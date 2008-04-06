@@ -52,6 +52,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define X_SELinuxGetSelectionContext		19
 #define X_SELinuxGetSelectionDataContext	20
 #define X_SELinuxListSelections			21
+#define X_SELinuxGetClientContext		22
 
 typedef struct {
     CARD8   reqType;

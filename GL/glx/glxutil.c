@@ -49,7 +49,6 @@
 #include "glxutil.h"
 #include "GL/internal/glcore.h"
 #include "GL/glxint.h"
-#include "glcontextmodes.h"
 
 /************************************************************************/
 /* Context stuff */
@@ -140,13 +139,13 @@ __glXUnrefDrawable(__GLXdrawable *glxPriv)
 GLboolean
 __glXDrawableInit(__GLXdrawable *drawable,
 		  __GLXscreen *screen, DrawablePtr pDraw, int type,
-		  XID drawId, __GLcontextModes *modes)
+		  XID drawId, __GLXconfig *config)
 {
     drawable->pDraw = pDraw;
     drawable->type = type;
     drawable->drawId = drawId;
     drawable->refCount = 1;
-    drawable->modes = modes;
+    drawable->config = config;
     drawable->eventMask = 0;
 
     return GL_TRUE;

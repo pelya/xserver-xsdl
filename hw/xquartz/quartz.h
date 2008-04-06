@@ -130,5 +130,5 @@ void QuartzInitOutput(int argc,char **argv);
 void QuartzInitInput(int argc, char **argv);
 void QuartzGiveUp(void);
 void QuartzProcessEvent(xEvent *xe);
-
+void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents);
 #endif

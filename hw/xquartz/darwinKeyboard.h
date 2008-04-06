@@ -31,7 +31,7 @@
 
 /* Provided for darwinEvents.c */
 extern darwinKeyboardInfo keyInfo;
-void DarwinKeyboardReload(DeviceIntPtr pDev);
+void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents);
 void DarwinKeyboardInit(DeviceIntPtr pDev);
 int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
 int DarwinModifierNXKeyToNXKeycode(int key, int side);

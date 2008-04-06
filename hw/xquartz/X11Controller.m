@@ -1,6 +1,6 @@
 /* X11Controller.m -- connect the IB ui, also the NSApp delegate
  
-   Copyright (c) 2002-2007 Apple Inc. All rights reserved.
+   Copyright (c) 2002-2008 Apple Inc. All rights reserved.
  
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -103,7 +103,7 @@
 {
   [NSApp activateIgnoringOtherApps:YES];
 	
-  QuartzMessageServerThread (kXquartzControllerNotify, 2,
+  DarwinSendDDXEvent(kXquartzControllerNotify, 2,
 			     AppleWMWindowMenuItem, [sender tag]);
 }
 
@@ -254,7 +254,7 @@
   [self remove_window_menu];
   [self install_window_menu:list];
 	
-  QuartzMessageServerThread (kXquartzControllerNotify, 1,
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1,
 			     AppleWMWindowMenuNotify);
 }
 
@@ -539,20 +539,20 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (void) hide_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMHideWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMHideWindow);
   else
     NSBeep ();			/* FIXME: something here */
 }
 
 - (IBAction)bring_to_front:sender
 {
-  QuartzMessageServerThread(kXquartzControllerNotify, 1, AppleWMBringAllToFront);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMBringAllToFront);
 }
 
 - (IBAction)close_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMCloseWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMCloseWindow);
   else
     [[NSApp keyWindow] performClose:sender];
 }
@@ -560,7 +560,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)minimize_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMMinimizeWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMMinimizeWindow);
   else
     [[NSApp keyWindow] performMiniaturize:sender];
 }
@@ -568,19 +568,19 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)zoom_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMZoomWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMZoomWindow);
   else
     [[NSApp keyWindow] performZoom:sender];
 }
 
 - (IBAction) next_window:sender
 {
-  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMNextWindow);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMNextWindow);
 }
 
 - (IBAction) previous_window:sender
 {
-  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMPreviousWindow);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMPreviousWindow);
 }
 
 - (IBAction) enable_fullscreen_changed:sender
@@ -588,7 +588,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   int value = ![enable_fullscreen intValue];
 	
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXquartzSetRootless, 1, value);
+  DarwinSendDDXEvent(kXquartzSetRootless, 1, value);
 #endif
 	
   [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
@@ -598,7 +598,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction) toggle_fullscreen:sender
 {
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXquartzToggleFullscreen, 0);
+  DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
 }
 
@@ -661,7 +661,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) quit:sender
 {
-  QuartzMessageServerThread (kXquartzQuit, 0);
+  DarwinSendDDXEvent(kXquartzQuit, 0);
 }
 
 - (IBAction) x11_help:sender
@@ -684,12 +684,12 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (void) applicationDidHide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMHideAll);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMHideAll);
 }
 
 - (void) applicationDidUnhide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMShowAll);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMShowAll);
 }
 
 - (NSApplicationTerminateReply) applicationShouldTerminate:sender
@@ -717,7 +717,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   [X11App prefs_synchronize];
 	
   /* shutdown the X server, it will exit () for us. */
-  QuartzMessageServerThread (kXquartzQuit, 0);
+  DarwinSendDDXEvent(kXquartzQuit, 0);
 	
   /* In case it doesn't, exit anyway after a while. */
   while (sleep (10) != 0) ;

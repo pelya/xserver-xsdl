@@ -239,6 +239,9 @@ _X_EXPORT int selinuxEnforcingState = SELINUX_MODE_DEFAULT;
 #ifdef XV
 _X_EXPORT Bool noXvExtension = FALSE;
 #endif
+#ifdef DRI2
+_X_EXPORT Bool noDRI2Extension = FALSE;
+#endif
 
 #define X_INCLUDE_NETDB_H
 #include <X11/Xos_r.h>

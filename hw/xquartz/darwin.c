@@ -353,24 +353,8 @@ static int DarwinMouseProc(
             InitPointerDeviceStruct( (DevicePtr)pPointer, map, 5,
 				     GetMotionHistory,
 				     (PtrCtrlProcPtr)NoopDDA,
-				     GetMotionHistorySize(), 2);
-
-#ifdef XINPUT
-            InitValuatorAxisStruct( pPointer,
-                                    0,     // X axis
-                                    0,     // min value
-                                    16000, // max value (fixme screen size?)
-                                    1,     // resolution (fixme ?)
-                                    1,     // min resolution
-                                    1 );   // max resolution
-            InitValuatorAxisStruct( pPointer,
-                                    1,     // X axis
-                                    0,     // min value
-                                    16000, // max value (fixme screen size?)
-                                    1,     // resolution (fixme ?)
-                                    1,     // min resolution
-                                    1 );   // max resolution
-#endif
+				     GetMotionHistorySize(), 5);
+	    InitProximityClassDeviceStruct( (DevicePtr)pPointer);
             break;
 
         case DEVICE_ON:
@@ -896,7 +880,7 @@ void AbortDDX( void )
  */
 
 void
-xf86SetRootClip (ScreenPtr pScreen, BOOL enable)
+xf86SetRootClip (ScreenPtr pScreen, int enable)
 {
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;

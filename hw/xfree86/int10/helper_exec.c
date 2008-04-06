@@ -461,7 +461,7 @@ Mem_wl(CARD32 addr, CARD32 val)
 static CARD32 PciCfg1Addr = 0;
 
 #define PCI_OFFSET(x) ((x) & 0x000000ff)
-#define PCI_TAG(x)    ((x) & 0xffffff00)
+#define PCI_TAG(x)    ((x) & 0x7fffff00)
 
 static struct pci_device*
 pci_device_for_cfg_address (CARD32 addr)

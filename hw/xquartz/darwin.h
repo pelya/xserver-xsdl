@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2008 Apple, Inc.
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -54,7 +55,7 @@ typedef struct {
 void DarwinPrintBanner(void);
 int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
-void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
+void xf86SetRootClip (ScreenPtr pScreen, int enable);
 
 #define SCREEN_PRIV(pScreen) ((DarwinFramebufferPtr) \
     dixLookupPrivate(&pScreen->devPrivates, darwinScreenKey))
@@ -90,13 +91,8 @@ extern int              darwinMainScreenY;
  * Special ddx events understood by the X server
  */
 enum {
-    kXquartzUpdateModifiers   // update all modifier keys
+    kXquartzReloadKeymap      // Reload system keymap
             = LASTEvent+1,    // (from X.h list of event names)
-    kXquartzUpdateButtons,    // update state of mouse buttons 2 and up
-    kXquartzScrollWheel,      // scroll wheel event
-    /*
-     * Quartz-specific events -- not used in IOKit mode
-     */
     kXquartzActivate,         // restore X drawing and cursor
     kXquartzDeactivate,       // clip X drawing and switch to Aqua cursor
     kXquartzSetRootClip,      // enable or disable drawing to the X screen
@@ -120,12 +116,14 @@ enum {
     kXquartzWindowMoved,      // window has moved on screen
 };
 
+void DarwinSendDDXEvent(int type, int argc, ...);
+
 #define ENABLE_DEBUG_LOG 1
 
 #ifdef ENABLE_DEBUG_LOG
 extern FILE *debug_log_fp;
 #define DEBUG_LOG_NAME "x11-debug.txt"
-#define DEBUG_LOG(msg, args...) if (debug_log_fp) fprintf(debug_log_fp, "%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args ); fflush(debug_log_fp);
+#define DEBUG_LOG(msg, args...) if (debug_log_fp) fprintf(debug_log_fp, "%x:%s:%s:%d " msg, pthread_self(), __FILE__, __FUNCTION__, __LINE__, ##args ); fflush(debug_log_fp);
 #else
 #define DEBUG_LOG(msg, args...) 
 #endif

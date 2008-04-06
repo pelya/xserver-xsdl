@@ -62,6 +62,7 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
+#include "darwin.h"
 
 /***********************************************************************
  *
@@ -79,6 +80,7 @@ SOFTWARE.
 void
 CloseInputDevice(DeviceIntPtr d, ClientPtr client)
 {
+  DEBUG_LOG("CloseInputDevice(%p, %p)\n", d, client);
 }
 
 /***********************************************************************
@@ -122,7 +124,7 @@ AddOtherInputDevices(void)
     RegisterOtherDevice(dev);
     dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
     ************************************************************************/
-
+  DEBUG_LOG("AddOtherInputDevices\n");
 }
 
 /***********************************************************************
@@ -150,6 +152,7 @@ AddOtherInputDevices(void)
 void
 OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
 {
+  DEBUG_LOG("OpenInputDevice(%p, %p, %p)\n", dev, client, status);
 }
 
 /****************************************************************************
@@ -167,6 +170,7 @@ OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
 int
 SetDeviceMode(ClientPtr client, DeviceIntPtr dev, int mode)
 {
+  DEBUG_LOG("SetDeviceMode(%p, %p, %d)\n", client, dev, mode);
     return BadMatch;
 }
 
@@ -186,7 +190,9 @@ int
 SetDeviceValuators(ClientPtr client, DeviceIntPtr dev,
 		   int *valuators, int first_valuator, int num_valuators)
 {
-    return BadMatch;
+  DEBUG_LOG("SetDeviceValuators(%p, %p, %p, %d, %d)\n", client,
+	    dev, valuators, first_valuator, num_valuators);
+  return BadMatch;
 }
 
 /****************************************************************************
@@ -201,6 +207,8 @@ int
 ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
 		    xDeviceCtl * control)
 {
+
+  DEBUG_LOG("ChangeDeviceControl(%p, %p, %p)\n", client, dev, control);
     switch (control->control) {
     case DEVICE_RESOLUTION:
 	return (BadMatch);
@@ -225,7 +233,8 @@ ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
 int
 NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 {
-    return BadValue;
+  DEBUG_LOG("NewInputDeviceRequest(%p, %p)\n", options, pdev);
+  return BadValue;
 }
 
 /****************************************************************************
@@ -238,4 +247,5 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 void
 DeleteInputDeviceRequest(DeviceIntPtr dev)
 {
+  DEBUG_LOG("DeleteInputDeviceRequest(%p)\n", dev);
 }

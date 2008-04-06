@@ -705,6 +705,15 @@ if test "x$NEED_DBUS" = xyes; then
 fi
 CONFIG_LIB='$(top_builddir)/config/libconfig.a'
 
+AC_MSG_CHECKING([for glibc...])
+AC_PREPROC_IFELSE([
+#include <features.h>
+#ifndef __GLIBC__
+#error
+#endif
+], glibc=yes, glibc=no)
+AC_MSG_RESULT([$glibc])
+
 AC_CHECK_FUNCS([clock_gettime], [have_clock_gettime=yes],
                [AC_CHECK_LIB([rt], [clock_gettime], [have_clock_gettime=-lrt],
                              [have_clock_gettime=no])])
@@ -720,9 +729,13 @@ if ! test "x$have_clock_gettime" = xno; then
 
     LIBS_SAVE="$LIBS"
     LIBS="$CLOCK_LIBS"
+    CPPFLAGS_SAVE="$CPPFLAGS"
+
+    if test x"$glibc" = xyes; then
+        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=199309L"
+    fi
 
     AC_RUN_IFELSE([
-#define _POSIX_C_SOURCE 199309L
 #include <time.h>
 
 int main(int argc, char *argv[[]]) {
@@ -737,6 +750,7 @@ int main(int argc, char *argv[[]]) {
        [MONOTONIC_CLOCK="cross compiling"])
 
     LIBS="$LIBS_SAVE"
+    CPPFLAGS="$CPPFLAGS_SAVE"
 else
     MONOTONIC_CLOCK=no
 fi
@@ -860,7 +874,7 @@ AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 if test "x$DRI2" = xyes; then
 	# FIXME: Bump the versions once we have releases of these.
 	AC_DEFINE(DRI2, 1, [Build DRI2 extension])
-	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto >= 2.0.3])
+	PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.1])
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.1])
 fi
 

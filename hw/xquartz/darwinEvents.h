@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2008 Apple, Inc.
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -32,9 +33,16 @@ void DarwinEQEnqueue(const xEventPtr e);
 void DarwinEQPointerPost(DeviceIntPtr pDev, xEventPtr e);
 void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
 void DarwinPokeEQ(void);
-void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y);
+void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y,
+			     float pressure, float tilt_x, float tilt_y);
+void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 
+			       float pressure, float tilt_x, float tilt_y);
 void DarwinSendKeyboardEvents(int ev_type, int keycode);
-void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y);
+void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y,
+			    float pressure, float tilt_x, float tilt_y);
 void DarwinUpdateModKeys(int flags);
+
+void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
+			int nevents);
 
 #endif  /* _DARWIN_EVENTS_H */

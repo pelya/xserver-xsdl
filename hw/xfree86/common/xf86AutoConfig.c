@@ -436,9 +436,10 @@ chooseVideoDriver(void)
     if (!info) {
 	ErrorF("Primary device is not PCI\n");
     }
-
 #ifdef __linux__
-    matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+    else {
+	matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+    }
 #endif /* __linux__ */
 
     /* TODO Handle multiple drivers claiming to support the same PCI ID */
