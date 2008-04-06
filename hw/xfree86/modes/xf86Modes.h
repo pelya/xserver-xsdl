@@ -62,6 +62,7 @@ DisplayModePtr xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new);
 DisplayModePtr xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC);
 DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VRefresh,
 			   Bool Reduced, Bool Interlaced);
+DisplayModePtr xf86GTFMode(int h_pixels, int v_lines, float freq, int interlaced, int margins);
 
 void
 xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,

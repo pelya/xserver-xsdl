@@ -1006,6 +1006,7 @@ FakeAllocColor (ColormapPtr pmap, xColorItem *item)
     switch (class) {
     case GrayScale:
     case PseudoColor:
+	temp = 0;
 	item->pixel = 0;
 	if (FindColor(pmap, pmap->red, entries, &rgb, &temp, PSEUDOMAP,
 		      -1, AllComp) == Success) {

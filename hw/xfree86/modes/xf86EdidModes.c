@@ -108,13 +108,6 @@ static Bool quirk_prefer_large_75 (int scrnIndex, xf86MonPtr DDC)
 
 static Bool quirk_detailed_h_in_cm (int scrnIndex, xf86MonPtr DDC)
 {
-    /* Bug #10304: "LGPhilipsLCD LP154W01-A5" */
-    /* Bug #12784: "LGPhilipsLCD LP154W01-TLA2" */
-    /* Red Hat #435216 "LGPhilipsLCD LP154W01-TLAE" */
-    if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
-	(DDC->vendor.prod_id == 0 || DDC->vendor.prod_id == 0x2a00))
-	return TRUE;
-
     /* Bug #11603: Funai Electronics PM36B */
     if (memcmp (DDC->vendor.name, "FCM", 4) == 0 &&
 	DDC->vendor.prod_id == 13600)
@@ -137,7 +130,7 @@ static Bool quirk_detailed_use_maximum_size (int scrnIndex, xf86MonPtr DDC)
 {
     /* Bug #10304: LGPhilipsLCD LP154W01-A5 */
     if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
-	DDC->vendor.prod_id == 0)
+	(DDC->vendor.prod_id == 0 || DDC->vendor.prod_id == 0x2a00))
 	return TRUE;
 
     return FALSE;
@@ -158,6 +151,16 @@ static Bool quirk_first_detailed_preferred (int scrnIndex, xf86MonPtr DDC)
     /* Philips 107p5 CRT. Reported on xorg@ with pastebin. */
     if (memcmp (DDC->vendor.name, "PHL", 4) == 0 &&
 	DDC->vendor.prod_id == 57364)
+	return TRUE;
+
+    /* Proview AY765C 17" LCD. See bug #15160*/
+    if (memcmp (DDC->vendor.name, "PTS", 4) == 0 &&
+	DDC->vendor.prod_id == 765)
+	return TRUE;
+
+    /* ACR of some sort RH #284231 */
+    if (memcmp (DDC->vendor.name, "ACR", 4) == 0 &&
+	DDC->vendor.prod_id == 2423)
 	return TRUE;
 
     return FALSE;
@@ -221,27 +224,27 @@ static const ddc_quirk_map_t ddc_quirks[] = {
  * TODO:
  *  - for those with access to the VESA DMT standard; review please.
  */
-#define MODEPREFIX(name) NULL, NULL, name, 0,M_T_DRIVER
-#define MODESUFFIX   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FALSE,FALSE,0,NULL,0,0.0,0.0
+#define MODEPREFIX NULL, NULL, NULL, 0, M_T_DRIVER
+#define MODESUFFIX 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FALSE,FALSE,0,NULL,0,0.0,0.0
 
-static DisplayModeRec DDCEstablishedModes[17] = {
-    { MODEPREFIX("800x600"),    40000,  800,  840,  968, 1056, 0,  600,  601,  605,  628, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@60Hz */
-    { MODEPREFIX("800x600"),    36000,  800,  824,  896, 1024, 0,  600,  601,  603,  625, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@56Hz */
-    { MODEPREFIX("640x480"),    31500,  640,  656,  720,  840, 0,  480,  481,  484,  500, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@75Hz */
-    { MODEPREFIX("640x480"),    31500,  640,  664,  704,  832, 0,  480,  489,  491,  520, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@72Hz */
-    { MODEPREFIX("640x480"),    30240,  640,  704,  768,  864, 0,  480,  483,  486,  525, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@67Hz */
-    { MODEPREFIX("640x480"),    25200,  640,  656,  752,  800, 0,  480,  490,  492,  525, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@60Hz */
-    { MODEPREFIX("720x400"),    35500,  720,  738,  846,  900, 0,  400,  421,  423,  449, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 720x400@88Hz */
-    { MODEPREFIX("720x400"),    28320,  720,  738,  846,  900, 0,  400,  412,  414,  449, 0, V_NHSYNC | V_PVSYNC, MODESUFFIX }, /* 720x400@70Hz */
-    { MODEPREFIX("1280x1024"), 135000, 1280, 1296, 1440, 1688, 0, 1024, 1025, 1028, 1066, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1280x1024@75Hz */
-    { MODEPREFIX("1024x768"),   78800, 1024, 1040, 1136, 1312, 0,  768,  769,  772,  800, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1024x768@75Hz */
-    { MODEPREFIX("1024x768"),   75000, 1024, 1048, 1184, 1328, 0,  768,  771,  777,  806, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 1024x768@70Hz */
-    { MODEPREFIX("1024x768"),   65000, 1024, 1048, 1184, 1344, 0,  768,  771,  777,  806, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 1024x768@60Hz */
-    { MODEPREFIX("1024x768"),   44900, 1024, 1032, 1208, 1264, 0,  768,  768,  776,  817, 0, V_PHSYNC | V_PVSYNC | V_INTERLACE, MODESUFFIX }, /* 1024x768@43Hz */
-    { MODEPREFIX("832x624"),    57284,  832,  864,  928, 1152, 0,  624,  625,  628,  667, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 832x624@75Hz */
-    { MODEPREFIX("800x600"),    49500,  800,  816,  896, 1056, 0,  600,  601,  604,  625, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@75Hz */
-    { MODEPREFIX("800x600"),    50000,  800,  856,  976, 1040, 0,  600,  637,  643,  666, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@72Hz */
-    { MODEPREFIX("1152x864"),  108000, 1152, 1216, 1344, 1600, 0,  864,  865,  868,  900, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1152x864@75Hz */
+static const DisplayModeRec DDCEstablishedModes[17] = {
+    { MODEPREFIX,    40000,  800,  840,  968, 1056, 0,  600,  601,  605,  628, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@60Hz */
+    { MODEPREFIX,    36000,  800,  824,  896, 1024, 0,  600,  601,  603,  625, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@56Hz */
+    { MODEPREFIX,    31500,  640,  656,  720,  840, 0,  480,  481,  484,  500, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@75Hz */
+    { MODEPREFIX,    31500,  640,  664,  704,  832, 0,  480,  489,  491,  520, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@72Hz */
+    { MODEPREFIX,    30240,  640,  704,  768,  864, 0,  480,  483,  486,  525, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@67Hz */
+    { MODEPREFIX,    25200,  640,  656,  752,  800, 0,  480,  490,  492,  525, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 640x480@60Hz */
+    { MODEPREFIX,    35500,  720,  738,  846,  900, 0,  400,  421,  423,  449, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 720x400@88Hz */
+    { MODEPREFIX,    28320,  720,  738,  846,  900, 0,  400,  412,  414,  449, 0, V_NHSYNC | V_PVSYNC, MODESUFFIX }, /* 720x400@70Hz */
+    { MODEPREFIX,   135000, 1280, 1296, 1440, 1688, 0, 1024, 1025, 1028, 1066, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1280x1024@75Hz */
+    { MODEPREFIX,    78800, 1024, 1040, 1136, 1312, 0,  768,  769,  772,  800, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1024x768@75Hz */
+    { MODEPREFIX,    75000, 1024, 1048, 1184, 1328, 0,  768,  771,  777,  806, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 1024x768@70Hz */
+    { MODEPREFIX,    65000, 1024, 1048, 1184, 1344, 0,  768,  771,  777,  806, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 1024x768@60Hz */
+    { MODEPREFIX,    44900, 1024, 1032, 1208, 1264, 0,  768,  768,  776,  817, 0, V_PHSYNC | V_PVSYNC | V_INTERLACE, MODESUFFIX }, /* 1024x768@43Hz */
+    { MODEPREFIX,    57284,  832,  864,  928, 1152, 0,  624,  625,  628,  667, 0, V_NHSYNC | V_NVSYNC, MODESUFFIX }, /* 832x624@75Hz */
+    { MODEPREFIX,    49500,  800,  816,  896, 1056, 0,  600,  601,  604,  625, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@75Hz */
+    { MODEPREFIX,    50000,  800,  856,  976, 1040, 0,  600,  637,  643,  666, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 800x600@72Hz */
+    { MODEPREFIX,   108000, 1152, 1216, 1344, 1600, 0,  864,  865,  868,  900, 0, V_PHSYNC | V_PVSYNC, MODESUFFIX }, /* 1152x864@75Hz */
 };
 
 static DisplayModePtr
@@ -263,20 +266,57 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing,
     return Modes;
 }
 
+#define LEVEL_DMT 0
+#define LEVEL_GTF 1
+#define LEVEL_CVT 2
+
+static int
+MonitorStandardTimingLevel(xf86MonPtr DDC)
+{
+    if (DDC->ver.revision >= 2) {
+	if (DDC->ver.revision >= 4 && CVT_SUPPORTED(DDC->features.msc)) {
+	    return LEVEL_CVT;
+	}
+	return LEVEL_GTF;
+    }
+    return LEVEL_DMT;
+}
+
 /*
+ * This is not really correct.  Appendix B of the EDID 1.4 spec defines
+ * the right thing to do here.  If the timing given here matches a mode
+ * defined in the VESA DMT standard, we _must_ use that.  If the device
+ * supports CVT modes, then we should generate a CVT timing.  If both
+ * of the above fail, use GTF.
  *
+ * There are some wrinkles here.  EDID 1.1 and 1.0 sinks can't really
+ * "support" GTF, since it wasn't a standard yet; so if they ask for a
+ * timing in this section that isn't defined in DMT, returning a GTF mode
+ * may not actually be valid.  EDID 1.3 sinks often report support for
+ * some CVT modes, but they are not required to support CVT timings for
+ * modes in the standard timing descriptor, so we should _not_ treat them
+ * as CVT-compliant (unless specified in an extension block I suppose).
+ *
+ * EDID 1.4 requires that all sink devices support both GTF and CVT timings
+ * for modes in this section, but does say that CVT is preferred.
  */
 static DisplayModePtr
-DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing,
-			   ddc_quirk_t quirks)
+DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
+			   int timing_level)
 {
     DisplayModePtr Modes = NULL, Mode = NULL;
     int i;
 
     for (i = 0; i < STD_TIMINGS; i++) {
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
-            Mode =  xf86CVTMode(timing[i].hsize, timing[i].vsize,
-                                timing[i].refresh, FALSE, FALSE);
+	    /* XXX check for DMT first, else... */
+	    if (timing_level == LEVEL_CVT)
+		Mode = xf86CVTMode(timing[i].hsize, timing[i].vsize,
+				   timing[i].refresh, FALSE, FALSE);
+	    else
+		Mode = xf86GTFMode(timing[i].hsize, timing[i].vsize,
+				   timing[i].refresh, FALSE, FALSE);
+
 	    Mode->type = M_T_DRIVER;
             Modes = xf86ModesAdd(Modes, Mode);
         }
@@ -321,8 +361,7 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
                     " sync.\n", __func__, timing->h_active, timing->v_active);
     }
 
-    Mode = xnfalloc(sizeof(DisplayModeRec));
-    memset(Mode, 0, sizeof(DisplayModeRec));
+    Mode = xnfcalloc(1, sizeof(DisplayModeRec));
 
     Mode->type = M_T_DRIVER;
     if (preferred)
@@ -374,6 +413,7 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     return Mode;
 }
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
 static DisplayModePtr
 DDCModesFromCVT(int scrnIndex, struct cvt_timings *t)
 {
@@ -402,10 +442,15 @@ DDCModesFromCVT(int scrnIndex, struct cvt_timings *t)
 
     return modes;
 }
+#endif
 
 
 /*
- *
+ * This is only valid when the sink claims to be continuous-frequency
+ * but does not supply a detailed range descriptor.  Such sinks are
+ * arguably broken.  Currently the mode validation code isn't aware of
+ * this; the non-RANDR code even punts the decision of optional sync
+ * range checking to the driver.  Loss.
  */
 static void
 DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
@@ -547,6 +592,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     DisplayModePtr  Modes = NULL, Mode;
     ddc_quirk_t	    quirks;
     Bool	    preferred;
+    int		    timing_level;
 
     xf86DrvMsg (scrnIndex, X_INFO, "EDID vendor \"%s\", prod id %d\n",
 		DDC->vendor.name, DDC->vendor.prod_id);
@@ -561,6 +607,8 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     if (quirks & (DDC_QUIRK_PREFER_LARGE_60 | DDC_QUIRK_PREFER_LARGE_75))
 	preferred = FALSE;
 
+    timing_level = MonitorStandardTimingLevel(DDC);
+
     for (i = 0; i < DET_TIMINGS; i++) {
 	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
 
@@ -574,15 +622,16 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
             Modes = xf86ModesAdd(Modes, Mode);
             break;
         case DS_STD_TIMINGS:
-            Mode = DDCModesFromStandardTiming(scrnIndex,
-					      det_mon->section.std_t,
-					      quirks);
+            Mode = DDCModesFromStandardTiming(det_mon->section.std_t,
+					      quirks, timing_level);
             Modes = xf86ModesAdd(Modes, Mode);
             break;
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
 	case DS_CVT:
 	    Mode = DDCModesFromCVT(scrnIndex, det_mon->section.cvt);
 	    Modes = xf86ModesAdd(Modes, Mode);
 	    break;
+#endif
         default:
             break;
         }
@@ -593,7 +642,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     Modes = xf86ModesAdd(Modes, Mode);
 
     /* Add standard timings */
-    Mode = DDCModesFromStandardTiming(scrnIndex, DDC->timings2, quirks);
+    Mode = DDCModesFromStandardTiming(DDC->timings2, quirks, timing_level);
     Modes = xf86ModesAdd(Modes, Mode);
 
     if (quirks & DDC_QUIRK_PREFER_LARGE_60)
@@ -620,13 +669,17 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
     Monitor->DDC = DDC;
 
-    Monitor->widthmm = 10 * DDC->features.hsize;
-    Monitor->heightmm = 10 * DDC->features.vsize;
+    if (Monitor->widthmm <= 0 && Monitor->heightmm <= 0) {
+	Monitor->widthmm = 10 * DDC->features.hsize;
+	Monitor->heightmm = 10 * DDC->features.vsize;
+    }
 
-    /* If this is a digital display, then we can use reduced blanking */
+    /*
+     * If this is a digital display, then we can use reduced blanking.
+     * XXX This is a 1.3 heuristic.  1.4 explicitly defines rb support.
+     */
     if (DDC->features.input_type)
         Monitor->reducedblanking = TRUE;
-    /* Allow the user to also enable this through config */
 
     Modes = xf86DDCGetModes(scrnIndex, DDC);
 

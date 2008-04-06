@@ -214,10 +214,11 @@ xf86DuplicateMode(DisplayModePtr pMode)
     *pNew = *pMode;
     pNew->next = NULL;
     pNew->prev = NULL;
-    if (pNew->name == NULL) {
-	xf86SetModeDefaultName(pMode);
-    }
-    pNew->name = xnfstrdup(pMode->name);
+
+    if (pMode->name == NULL)
+	xf86SetModeDefaultName(pNew);
+    else
+	pNew->name = xnfstrdup(pMode->name);
 
     return pNew;
 }
@@ -508,7 +509,12 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 
     for (mode = modeList; mode != NULL; mode = mode->next) {
 	if (xf86ModeBandwidth(mode, depth) > bandwidth)
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
 	    mode->status = MODE_BANDWIDTH;
+#else
+	    /* MODE_BANDWIDTH didn't exist in xserver 1.2 */
+	    mode->status = MODE_BAD;
+#endif
     }
 }
 
@@ -657,7 +663,7 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
     DisplayModePtr  head = NULL, prev = NULL, mode;
     int		    i;
 
-    for (i = 0; xf86DefaultModes[i].name != NULL; i++)
+    for (i = 0; i < xf86NumDefaultModes; i++)
     {
 	DisplayModePtr	defMode = &xf86DefaultModes[i];
 	
@@ -666,23 +672,9 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
 	if (!doubleScanAllowed && (defMode->Flags & V_DBLSCAN))
 	    continue;
 
-	mode = xalloc(sizeof(DisplayModeRec));
-	if (!mode)
-	    continue;
-        memcpy(mode,&xf86DefaultModes[i],sizeof(DisplayModeRec));
-        mode->name = xstrdup(xf86DefaultModes[i].name);
-        if (!mode->name)
-	{
-	    xfree (mode);
-	    continue;
-	}
-        mode->prev = prev;
-	mode->next = NULL;
-	if (prev)
-	    prev->next = mode;
-	else
-	    head = mode;
-	prev = mode;
+	mode = xf86DuplicateMode(defMode);
+
+	head = xf86ModesAdd(head, mode);
     }
     return head;
 }

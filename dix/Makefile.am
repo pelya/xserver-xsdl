@@ -30,6 +30,7 @@ libdix_la_SOURCES = 	\
 	property.c	\
 	registry.c	\
 	resource.c	\
+	selection.c	\
 	swaprep.c	\
 	swapreq.c	\
 	tables.c	\

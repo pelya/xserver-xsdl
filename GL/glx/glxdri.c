@@ -52,7 +52,6 @@
 #define DRI_NEW_INTERFACE_ONLY
 #include "glxserver.h"
 #include "glxutil.h"
-#include "glcontextmodes.h"
 
 #include "g_disptab.h"
 #include "glapitable.h"
@@ -61,26 +60,26 @@
 #include "dispatch.h"
 #include "extension_string.h"
 
-#define containerOf(ptr, type, member)			\
-    (type *)( (char *)ptr - offsetof(type,member) )
-
 typedef struct __GLXDRIscreen   __GLXDRIscreen;
 typedef struct __GLXDRIcontext  __GLXDRIcontext;
 typedef struct __GLXDRIdrawable __GLXDRIdrawable;
+typedef struct __GLXDRIconfig	__GLXDRIconfig;
 
 struct __GLXDRIscreen {
     __GLXscreen		 base;
-    __DRIscreen		 driScreen;
+    __DRIscreen		*driScreen;
     void		*driver;
 
     xf86EnterVTProc	*enterVT;
     xf86LeaveVTProc	*leaveVT;
 
-    __DRIcopySubBufferExtension *copySubBuffer;
-    __DRIswapControlExtension *swapControl;
+    const __DRIcoreExtension *core;
+    const __DRIlegacyExtension *legacy;
+    const __DRIcopySubBufferExtension *copySubBuffer;
+    const __DRIswapControlExtension *swapControl;
 
 #ifdef __DRI_TEX_OFFSET
-    __DRItexOffsetExtension *texOffset;
+    const __DRItexOffsetExtension *texOffset;
     DRITexOffsetStartProcPtr texOffsetStart;
     DRITexOffsetFinishProcPtr texOffsetFinish;
     __GLXDRIdrawable *texOffsetOverride[16];
@@ -92,13 +91,13 @@ struct __GLXDRIscreen {
 
 struct __GLXDRIcontext {
     __GLXcontext base;
-    __DRIcontext driContext;
+    __DRIcontext *driContext;
     XID hwContextID;
 };
 
 struct __GLXDRIdrawable {
     __GLXdrawable base;
-    __DRIdrawable driDrawable;
+    __DRIdrawable *driDrawable;
 
     /* Pulled in from old __GLXpixmap */
 #ifdef __DRI_TEX_OFFSET
@@ -109,7 +108,10 @@ struct __GLXDRIdrawable {
 #endif
 };
 
-static const char CREATE_NEW_SCREEN_FUNC[] = __DRI_CREATE_NEW_SCREEN_STRING;
+struct __GLXDRIconfig {
+    __GLXconfig config;
+    __DRIconfig *driConfig;
+};
 
 static void
 __glXDRIleaveServer(GLboolean rendering)
@@ -151,7 +153,7 @@ __glXDRIleaveServer(GLboolean rendering)
 		__GLXDRIdrawable *pGlxPix = texOffsetOverride[j];
 
 		if (pGlxPix && pGlxPix->texname) {
-		    screen->texOffset->setTexOffset(&pGlxPix->ctx->driContext,
+		    screen->texOffset->setTexOffset(pGlxPix->ctx->driContext,
 						    pGlxPix->texname,
 						    pGlxPix->offset,
 						    pGlxPix->base.pDraw->depth,
@@ -219,24 +221,24 @@ static void
 __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
-
+    __GLXDRIscreen *screen;
     int i;
 
     for (i = 0; i < screenInfo.numScreens; i++) {
-	__glXDRIdoReleaseTexImage((__GLXDRIscreen *)
-				  glxGetScreen(screenInfo.screens[i]),
-				  private);
+	screen = (__GLXDRIscreen *) glxGetScreen(screenInfo.screens[i]);
+	__glXDRIdoReleaseTexImage(screen, private);
     }
-
-    (*private->driDrawable.destroyDrawable)(&private->driDrawable);
 
     /* If the X window was destroyed, the dri DestroyWindow hook will
      * aready have taken care of this, so only call if pDraw isn't NULL. */
     if (drawable->pDraw != NULL) {
-	    __glXenterServer(GL_FALSE);
-	    DRIDestroyDrawable(drawable->pDraw->pScreen,
-			       serverClient, drawable->pDraw);
-	    __glXleaveServer(GL_FALSE);
+	screen = (__GLXDRIscreen *) glxGetScreen(drawable->pDraw->pScreen);
+	(*screen->core->destroyDrawable)(private->driDrawable);
+
+	__glXenterServer(GL_FALSE);
+	DRIDestroyDrawable(drawable->pDraw->pScreen,
+			   serverClient, drawable->pDraw);
+	__glXleaveServer(GL_FALSE);
     }
 
     xfree(private);
@@ -255,8 +257,10 @@ static GLboolean
 __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
+    __GLXDRIscreen *screen =
+	(__GLXDRIscreen *) glxGetScreen(basePrivate->pDraw->pScreen);
 
-    (*private->driDrawable.swapBuffers)(&private->driDrawable);
+    (*screen->core->swapBuffers)(private->driDrawable);
 
     return TRUE;
 }
@@ -266,11 +270,11 @@ static int
 __glXDRIdrawableSwapInterval(__GLXdrawable *baseDrawable, int interval)
 {
     __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseDrawable;
-    __GLXDRIscreen *screen = (__GLXDRIscreen *)
-	glxGetScreen(baseDrawable->pDraw->pScreen);
+    __GLXDRIscreen *screen =
+	(__GLXDRIscreen *) glxGetScreen(baseDrawable->pDraw->pScreen);
 
     if (screen->swapControl)
-	screen->swapControl->setSwapInterval(&draw->driDrawable, interval);
+	screen->swapControl->setSwapInterval(draw->driDrawable, interval);
 
     return 0;
 }
@@ -285,20 +289,21 @@ __glXDRIdrawableCopySubBuffer(__GLXdrawable *basePrivate,
 	glxGetScreen(basePrivate->pDraw->pScreen);
 
     if (screen->copySubBuffer)
-	screen->copySubBuffer->copySubBuffer(&private->driDrawable,
-					     x, y, w, h);
+	screen->copySubBuffer->copySubBuffer(private->driDrawable, x, y, w, h);
 }
 
 static void
 __glXDRIcontextDestroy(__GLXcontext *baseContext)
 {
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) context->base.pGlxScreen;
     Bool retval;
 
-    context->driContext.destroyContext(&context->driContext);
+    screen->core->destroyContext(context->driContext);
 
     __glXenterServer(GL_FALSE);
-    retval = DRIDestroyContext(baseContext->pGlxScreen->pScreen, context->hwContextID);
+    retval = DRIDestroyContext(baseContext->pGlxScreen->pScreen,
+			       context->hwContextID);
     __glXleaveServer(GL_FALSE);
 
     __glXContextDestroy(&context->base);
@@ -309,20 +314,22 @@ static int
 __glXDRIcontextMakeCurrent(__GLXcontext *baseContext)
 {
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) context->base.pGlxScreen;
     __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseContext->drawPriv;
     __GLXDRIdrawable *read = (__GLXDRIdrawable *) baseContext->readPriv;
 
-    return (*context->driContext.bindContext)(&context->driContext,
-					      &draw->driDrawable,
-					      &read->driDrawable);
+    return (*screen->core->bindContext)(context->driContext,
+					draw->driDrawable,
+					read->driDrawable);
 }					      
 
 static int
 __glXDRIcontextLoseCurrent(__GLXcontext *baseContext)
 {
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) context->base.pGlxScreen;
 
-    return (*context->driContext.unbindContext)(&context->driContext);
+    return (*screen->core->unbindContext)(context->driContext);
 }
 
 static int
@@ -331,13 +338,10 @@ __glXDRIcontextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc,
 {
     __GLXDRIcontext *dst = (__GLXDRIcontext *) baseDst;
     __GLXDRIcontext *src = (__GLXDRIcontext *) baseSrc;
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) dst->base.pGlxScreen;
 
-    /* FIXME: We will need to add DRIcontext::copyContext for this. */
-
-    (void) dst;
-    (void) src;
-
-    return FALSE;
+    return (*screen->core->copyContext)(dst->driContext,
+					src->driContext, mask);
 }
 
 static int
@@ -346,10 +350,11 @@ __glXDRIcontextForceCurrent(__GLXcontext *baseContext)
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
     __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseContext->drawPriv;
     __GLXDRIdrawable *read = (__GLXDRIdrawable *) baseContext->readPriv;
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) context->base.pGlxScreen;
 
-    return (*context->driContext.bindContext)(&context->driContext,
-					      &draw->driDrawable,
-					      &read->driDrawable);
+    return (*screen->core->bindContext)(context->driContext,
+					draw->driDrawable,
+					read->driDrawable);
 }
 
 static void
@@ -392,10 +397,8 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     int		bpp, override = 0, texname;
     GLenum	format, type;
     ScreenPtr pScreen = glxPixmap->pDraw->pScreen;
-    __GLXDRIdrawable *driDraw =
-	    containerOf(glxPixmap, __GLXDRIdrawable, base);
-    __GLXDRIscreen * const screen =
-	    (__GLXDRIscreen *) glxGetScreen(pScreen);
+    __GLXDRIdrawable *driDraw = (__GLXDRIdrawable *) glxPixmap;
+    __GLXDRIscreen * const screen = (__GLXDRIscreen *) glxGetScreen(pScreen);
 
     CALL_GetIntegerv(GET_DISPATCH(), (glxPixmap->target == GL_TEXTURE_2D ?
 				      GL_TEXTURE_BINDING_2D :
@@ -439,7 +442,7 @@ alreadyin:
 
 	driDraw->texname = texname;
 
-	screen->texOffset->setTexOffset(&driDraw->ctx->driContext, texname, 0,
+	screen->texOffset->setTexOffset(driDraw->ctx->driContext, texname, 0,
 					pixmap->drawable.depth,
 					pixmap->devKind);
     }
@@ -568,9 +571,11 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 			int buffer,
 			__GLXdrawable *pixmap)
 {
-    __glXDRIdoReleaseTexImage((__GLXDRIscreen *)
-			      glxGetScreen(pixmap->pDraw->pScreen),
-			      containerOf(pixmap, __GLXDRIdrawable, base));
+    __GLXDRIscreen *screen =
+	(__GLXDRIscreen *) glxGetScreen(pixmap->pDraw->pScreen);
+    __GLXDRIdrawable *drawable = (__GLXDRIdrawable *) pixmap;
+
+    __glXDRIdoReleaseTexImage(screen, drawable);
 
     return Success;
 }
@@ -585,7 +590,7 @@ __glXDRIscreenDestroy(__GLXscreen *baseScreen)
 {
     __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
 
-    screen->driScreen.destroyScreen(&screen->driScreen);
+    screen->core->destroyScreen(screen->driScreen);
 
     dlclose(screen->driver);
 
@@ -596,11 +601,12 @@ __glXDRIscreenDestroy(__GLXscreen *baseScreen)
 
 static __GLXcontext *
 __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
-			    __GLcontextModes *modes,
+			    __GLXconfig *glxConfig,
 			    __GLXcontext *baseShareContext)
 {
     __GLXDRIscreen *screen = (__GLXDRIscreen *) baseScreen;
     __GLXDRIcontext *context, *shareContext;
+    __GLXDRIconfig *config = (__GLXDRIconfig *) glxConfig;
     VisualPtr visual;
     int i;
     GLboolean retval;
@@ -610,7 +616,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 
     shareContext = (__GLXDRIcontext *) baseShareContext;
     if (shareContext)
-	driShare = &shareContext->driContext;
+	driShare = shareContext->driContext;
     else
 	driShare = NULL;
 
@@ -632,7 +638,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     /* Find the requested X visual */
     visual = pScreen->visuals;
     for (i = 0; i < pScreen->numVisuals; i++, visual++)
-	if (visual->vid == modes->visualID)
+	if (visual->vid == glxConfig->visualID)
 	    break;
     if (i == pScreen->numVisuals)
 	return GL_FALSE;
@@ -644,15 +650,15 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 			      context->hwContextID, &hwContext);
     __glXleaveServer(GL_FALSE);
 
-    context->driContext.private =
-	screen->driScreen.createNewContext(&screen->driScreen,
-					   modes,
-					   0, /* render type */
-					   driShare,
-					   hwContext,
-					   &context->driContext);
+    context->driContext =
+	screen->legacy->createNewContext(screen->driScreen,
+					 config->driConfig,
+					 0, /* render type */
+					 driShare,
+					 hwContext,
+					 context);
 
-    if (context->driContext.private == NULL) {
+    if (context->driContext == NULL) {
     	__glXenterServer(GL_FALSE);
 	retval = DRIDestroyContext(baseScreen->pScreen, context->hwContextID);
     	__glXleaveServer(GL_FALSE);
@@ -668,9 +674,10 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 			     DrawablePtr pDraw,
 			     int type,
 			     XID drawId,
-			     __GLcontextModes *modes)
+			     __GLXconfig *glxConfig)
 {
     __GLXDRIscreen *driScreen = (__GLXDRIscreen *) screen;
+    __GLXDRIconfig *config = (__GLXDRIconfig *) glxConfig;
     __GLXDRIdrawable *private;
     GLboolean retval;
     drm_drawable_t hwDrawable;
@@ -682,7 +689,7 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     memset(private, 0, sizeof *private);
 
     if (!__glXDrawableInit(&private->base, screen,
-			   pDraw, type, drawId, modes)) {
+			   pDraw, type, drawId, glxConfig)) {
         xfree(private);
 	return NULL;
     }
@@ -700,13 +707,12 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     /* The last argument is 'attrs', which is used with pbuffers which
      * we currently don't support. */
 
-    private->driDrawable.private =
-	(driScreen->driScreen.createNewDrawable)(&driScreen->driScreen,
-						 modes,
-						 &private->driDrawable,
-						 hwDrawable, 0, NULL);
+    private->driDrawable =
+	(driScreen->legacy->createNewDrawable)(driScreen->driScreen,
+					       config->driConfig,
+					       hwDrawable, 0, NULL, private);
 
-    if (private->driDrawable.private == NULL) {
+    if (private->driDrawable == NULL) {
 	__glXenterServer(GL_FALSE);
 	DRIDestroyDrawable(screen->pScreen, serverClient, pDraw);
 	__glXleaveServer(GL_FALSE);
@@ -723,10 +729,10 @@ getDrawableInfo(__DRIdrawable *driDrawable,
 		int *x, int *y, int *width, int *height,
 		int *numClipRects, drm_clip_rect_t **ppClipRects,
 		int *backX, int *backY,
-		int *numBackClipRects, drm_clip_rect_t **ppBackClipRects)
+		int *numBackClipRects, drm_clip_rect_t **ppBackClipRects,
+		void *data)
 {
-    __GLXDRIdrawable *drawable = containerOf(driDrawable,
-					     __GLXDRIdrawable, driDrawable);
+    __GLXDRIdrawable *drawable = data;
     ScreenPtr pScreen;
     drm_clip_rect_t *pClipRects, *pBackClipRects;
     GLboolean retval;
@@ -810,10 +816,10 @@ getUST(int64_t *ust)
 static void __glXReportDamage(__DRIdrawable *driDraw,
 			      int x, int y,
 			      drm_clip_rect_t *rects, int num_rects,
-			      GLboolean front_buffer)
+			      GLboolean front_buffer,
+			      void *data)
 {
-    __GLXDRIdrawable *drawable =
-	    containerOf(driDraw, __GLXDRIdrawable, driDrawable);
+    __GLXDRIdrawable *drawable = data;
     DrawablePtr pDraw = drawable->base.pDraw;
     RegionRec region;
 
@@ -827,18 +833,30 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
     __glXleaveServer(GL_FALSE);
 }
 
-/* Table of functions that we export to the driver. */
-static const __DRIinterfaceMethods interface_methods = {
-    _gl_context_modes_create,
-    _gl_context_modes_destroy,
-
-    getDrawableInfo,
-
+static const __DRIsystemTimeExtension systemTimeExtension = {
+    { __DRI_SYSTEM_TIME, __DRI_SYSTEM_TIME_VERSION },
     getUST,
-    NULL, /* glXGetMscRateOML, */
+    NULL,
+};
 
+static const __DRIgetDrawableInfoExtension getDrawableInfoExtension = {
+    { __DRI_GET_DRAWABLE_INFO, __DRI_GET_DRAWABLE_INFO_VERSION },
+    getDrawableInfo
+};
+
+static const __DRIdamageExtension damageExtension = {
+    { __DRI_DAMAGE, __DRI_DAMAGE_VERSION },
     __glXReportDamage,
 };
+
+static const __DRIextension *loader_extensions[] = {
+    &systemTimeExtension.base,
+    &getDrawableInfoExtension.base,
+    &damageExtension.base,
+    NULL
+};
+
+
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
 
@@ -877,7 +895,8 @@ initializeExtensions(__GLXDRIscreen *screen)
     const __DRIextension **extensions;
     int i;
 
-    extensions = screen->driScreen.getExtensions(&screen->driScreen);
+    extensions = screen->core->getExtensions(screen->driScreen);
+
     for (i = 0; extensions[i]; i++) {
 #ifdef __DRI_COPY_SUB_BUFFER
 	if (strcmp(extensions[i]->name, __DRI_COPY_SUB_BUFFER) == 0) {
@@ -911,12 +930,12 @@ initializeExtensions(__GLXDRIscreen *screen)
     }
 }
     
-#define COPY_SUB_BUFFER_INTERNAL_VERSION 20060314
+extern __GLXconfig *
+glxConvertConfigs(const __DRIcoreExtension *core, const __DRIconfig **configs);
 
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
-    PFNCREATENEWSCREENFUNC createNewScreen;
     drm_handle_t hSAREA;
     drmAddress pSAREA = NULL;
     char *BusID;
@@ -926,7 +945,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     __DRIframebuffer  framebuffer;
     int   fd = -1;
     int   status;
-    int api_ver = 20070121;
     drm_magic_t magic;
     drmVersionPtr version;
     int newlyopened;
@@ -934,11 +952,13 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     drm_handle_t  hFB;
     int        junk;
     __GLXDRIscreen *screen;
-    void *dev_priv = NULL;
     char filename[128];
     Bool isCapable;
     size_t buffer_size;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+    const __DRIconfig **driConfigs;
+    const __DRIextension **extensions;
+    int i;
 
     if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable") ||
 	!DRIQueryDirectRenderingCapable(pScreen, &isCapable) ||
@@ -965,9 +985,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     dri_version.major = XF86DRI_MAJOR_VERSION;
     dri_version.minor = XF86DRI_MINOR_VERSION;
     dri_version.patch = XF86DRI_PATCH_VERSION;
-
-    framebuffer.base = NULL;
-    framebuffer.dev_priv = NULL;
 
     if (!DRIOpenConnection(pScreen, &hSAREA, &BusID)) {
 	LogMessage(X_ERROR, "AIGLX error: DRIOpenConnection failed\n");
@@ -1027,11 +1044,30 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
         goto handle_error;
     }
 
-    createNewScreen = dlsym(screen->driver, CREATE_NEW_SCREEN_FUNC);
-    if (createNewScreen == NULL) {
-	LogMessage(X_ERROR, "AIGLX error: dlsym for %s failed (%s)\n",
-		   CREATE_NEW_SCREEN_FUNC, dlerror());
-      goto handle_error;
+    extensions = dlsym(screen->driver, __DRI_DRIVER_EXTENSIONS);
+    if (extensions == NULL) {
+	LogMessage(X_ERROR, "AIGLX error: %s exports no extensions (%s)\n",
+		   driverName, dlerror());
+	goto handle_error;
+    }
+    
+    for (i = 0; extensions[i]; i++) {
+	if (strcmp(extensions[i]->name, __DRI_CORE) == 0 &&
+	    extensions[i]->version >= __DRI_CORE_VERSION) {
+		screen->core = (__DRIcoreExtension *) extensions[i];
+	}
+
+	if (strcmp(extensions[i]->name, __DRI_LEGACY) == 0 &&
+	    extensions[i]->version >= __DRI_LEGACY_VERSION) {
+		screen->legacy = (__DRIlegacyExtension *) extensions[i];
+	}
+    }
+
+    if (screen->core == NULL || screen->legacy == NULL) {
+	LogMessage(X_ERROR,
+		   "AIGLX error: %s does not export required DRI extension\n",
+		   driverName);
+	goto handle_error;
     }
 
     /*
@@ -1046,19 +1082,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	LogMessage(X_ERROR, "AIGLX error: XF86DRIGetDeviceInfo failed");
 	goto handle_error;
     }
-
-    /* Sigh... the DRI interface is broken; the DRI driver will free
-     * the dev private pointer using _mesa_free() on screen destroy,
-     * but we can't use _mesa_malloc() here.  In fact, the DRI driver
-     * shouldn't free data it didn't allocate itself, but what can you
-     * do... */
-    dev_priv = xalloc(framebuffer.dev_priv_size);
-    if (dev_priv == NULL) {
-	LogMessage(X_ERROR, "AIGLX error: dev_priv allocation failed");
-	goto handle_error;
-    }
-    memcpy(dev_priv, framebuffer.dev_priv, framebuffer.dev_priv_size);
-    framebuffer.dev_priv = dev_priv;
 
     framebuffer.width = pScreen->width;
     framebuffer.height = pScreen->height;
@@ -1082,28 +1105,29 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	goto handle_error;
     }
     
-    screen->driScreen.private =
-	(*createNewScreen)(pScreen->myNum,
-			   &screen->driScreen,
-			   &ddx_version,
-			   &dri_version,
-			   &drm_version,
-			   &framebuffer,
-			   pSAREA,
-			   fd,
-			   api_ver,
-			   &interface_methods,
-			   &screen->base.fbconfigs);
+    screen->driScreen =
+	(*screen->legacy->createNewScreen)(pScreen->myNum,
+					   &ddx_version,
+					   &dri_version,
+					   &drm_version,
+					   &framebuffer,
+					   pSAREA,
+					   fd,
+					   loader_extensions,
+					   &driConfigs,
+					   screen);
 
-    if (screen->driScreen.private == NULL) {
+    if (screen->driScreen == NULL) {
 	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");
 	goto handle_error;
     }
 
-    DRIGetTexOffsetFuncs(pScreen, &screen->texOffsetStart,
-			 &screen->texOffsetFinish);
+    screen->base.fbconfigs = glxConvertConfigs(screen->core, driConfigs);
 
     initializeExtensions(screen);
+
+    DRIGetTexOffsetFuncs(pScreen, &screen->texOffsetStart,
+			 &screen->texOffsetFinish);
 
     __glXScreenInit(&screen->base, pScreen);
 
@@ -1136,9 +1160,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     if (framebuffer.base != NULL)
 	drmUnmap((drmAddress)framebuffer.base, framebuffer.size);
-
-    if (dev_priv != NULL)
-	xfree(dev_priv);
 
     if (fd >= 0)
 	drmCloseOnce(fd);

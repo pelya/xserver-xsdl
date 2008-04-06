@@ -54,6 +54,10 @@
 /* required for ABI compatibility for now */
 #define RANDR_10_INTERFACE 1
 #define RANDR_12_INTERFACE 1
+#define RANDR_13_INTERFACE 1 /* requires RANDR_12_INTERFACE */
+#define RANDR_GET_CRTC_INTERFACE 1
+
+#define RANDR_INTERFACE_VERSION 0x0103
 
 typedef XID	RRMode;
 typedef XID	RROutput;
@@ -175,6 +179,12 @@ typedef void (*RRModeDestroyProcPtr) (ScreenPtr	    pScreen,
 
 #endif
 
+#if RANDR_13_INTERFACE
+typedef Bool (*RROutputGetPropertyProcPtr) (ScreenPtr		pScreen,
+					    RROutputPtr		output,
+					    Atom		property);
+#endif /* RANDR_13_INTERFACE */
+
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation *rotations);
 typedef Bool (*RRCloseScreenProcPtr) ( int i, ScreenPtr pscreen);
 
@@ -219,6 +229,9 @@ typedef struct _rrScrPriv {
     RROutputSetPropertyProcPtr	rrOutputSetProperty;
     RROutputValidateModeProcPtr	rrOutputValidateMode;
     RRModeDestroyProcPtr	rrModeDestroy;
+#endif
+#if RANDR_13_INTERFACE
+    RROutputGetPropertyProcPtr	rrOutputGetProperty;
 #endif
     
     /*

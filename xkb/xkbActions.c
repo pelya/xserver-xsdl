@@ -49,15 +49,14 @@ xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
                    pointer data)
 {
     xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(device);
-    ProcessInputProc tmp = device->public.processInputProc;
-    ProcessInputProc dummy; /* unused, but neede for macro */
+    ProcessInputProc backupproc;
     if(xkbPrivPtr->unwrapProc)
 	xkbPrivPtr->unwrapProc = NULL;
 
-    UNWRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr, dummy);
+    UNWRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr, backupproc);
     proc(device,data);
-    WRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr,
-			    tmp,xkbUnwrapProc);
+    COND_WRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr,
+				 backupproc,xkbUnwrapProc);
 }
 
 

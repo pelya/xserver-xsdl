@@ -175,6 +175,16 @@ extern Bool noXInputExtension;
 extern Bool noXIdleExtension;
 #endif
 
+#ifdef XSELINUX
+extern Bool noSELinuxExtension;
+
+#define SELINUX_MODE_DEFAULT    0
+#define SELINUX_MODE_DISABLED   1
+#define SELINUX_MODE_PERMISSIVE 2
+#define SELINUX_MODE_ENFORCING  3
+extern int selinuxEnforcingState;
+#endif
+
 #ifdef XV
 extern Bool noXvExtension;
 #endif

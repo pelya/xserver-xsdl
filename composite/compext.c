@@ -289,8 +289,14 @@ ProcCompositeNameWindowPixmap (ClientPtr client)
     if (!pPixmap)
 	return BadMatch;
 
+    /* security creation/labeling check */
+    rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pixmap, RT_PIXMAP,
+		  pPixmap, RT_WINDOW, pWin, DixCreateAccess);
+    if (rc != Success)
+	return rc;
+
     ++pPixmap->refcnt;
-    
+
     if (!AddResource (stuff->pixmap, RT_PIXMAP, (pointer) pPixmap))
 	return BadAlloc;
 

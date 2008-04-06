@@ -52,6 +52,13 @@ SOFTWARE.
 
 typedef struct _Property *PropertyPtr;
 
+extern int dixLookupProperty(
+    PropertyPtr * /*result*/,
+    WindowPtr /*pWin*/,
+    Atom /*proprty*/,
+    ClientPtr /*pClient*/,
+    Mask /*access_mode*/);
+
 extern int dixChangeWindowProperty(
     ClientPtr /*pClient*/,
     WindowPtr /*pWin*/,

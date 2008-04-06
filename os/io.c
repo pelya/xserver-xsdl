@@ -91,8 +91,6 @@ _X_EXPORT CallbackListPtr       FlushCallback;
 
 static ConnectionInputPtr AllocateInputBuffer(void);
 static ConnectionOutputPtr AllocateOutputBuffer(void);
-static xReqPtr PeekNextRequest(xReqPtr req, ClientPtr client, Bool readmore);
-static void SkipRequests(xReqPtr req, ClientPtr client, int numskipped);
 
 /* check for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
@@ -618,134 +616,7 @@ ResetCurrentRequest(ClientPtr client)
 
 
 
-/*****************************************************************
- *  PeekNextRequest and SkipRequests were implemented to support DBE 
- *  idioms, but can certainly be used outside of DBE.  There are two 
- *  related macros in os.h, ReqLen and CastxReq.  See the porting 
- *  layer document for more details.
- *
- **********************/
-
-
-/*****************************************************************
- *  PeekNextRequest
- *      lets you look ahead at the unexecuted requests in a 
- *      client's request buffer.
- *
- *      Note: this implementation of PeekNextRequest ignores the
- *      readmore parameter.
- *
- **********************/
-
-static xReqPtr
-PeekNextRequest(
-    xReqPtr req,	/* request we're starting from */
-    ClientPtr client,	/* client whose requests we're skipping */
-    Bool readmore)	/* attempt to read more if next request isn't there? */
-{
-    register ConnectionInputPtr oci = ((OsCommPtr)client->osPrivate)->input;
-    xReqPtr pnextreq;
-    int needed, gotnow, reqlen;
-
-    if (!oci) return NULL;
-
-    if (!req)
-    {
-	/* caller wants the request after the one currently being executed */
-	pnextreq = (xReqPtr)
-	    (((CARD32 *)client->requestBuffer) + client->req_len);
-    }
-    else
-    {
-	/* caller wants the request after the one specified by req */
-	reqlen = get_req_len(req, client);
-#ifdef BIGREQS
-	if (!reqlen) reqlen = get_big_req_len(req, client);
-#endif
-	pnextreq = (xReqPtr)(((char *)req) + (reqlen << 2));
-    }
-
-    /* see how much of the next request we have available */
-
-    gotnow = oci->bufcnt - (((char *)pnextreq) - oci->buffer);
-
-    if (gotnow < sizeof(xReq))
-	return NULL;
-
-    needed = get_req_len(pnextreq, client) << 2;
-#ifdef BIGREQS
-    if (!needed)
-    {
-	/* it's a big request */
-	if (gotnow < sizeof(xBigReq))
-	    return NULL;
-	needed = get_big_req_len(pnextreq, client) << 2;
-    }
-#endif
-
-    /* if we have less than we need, return NULL */
-
-    return (gotnow < needed) ? NULL : pnextreq;
-}
-
-/*****************************************************************
- *  SkipRequests 
- *      lets you skip over some of the requests in a client's
- *      request buffer.  Presumably the caller has used PeekNextRequest
- *      to examine the requests being skipped and has performed whatever 
- *      actions they dictate.
- *
- **********************/
-
 _X_EXPORT CallbackListPtr SkippedRequestsCallback = NULL;
-
-static void
-SkipRequests(
-    xReqPtr req,	/* last request being skipped */
-    ClientPtr client,   /* client whose requests we're skipping */
-    int numskipped)	/* how many requests we're skipping */
-{
-    OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    register ConnectionInputPtr oci = oc->input;
-    int reqlen;
-
-    /* see if anyone wants to snoop the skipped requests */
-
-    if (SkippedRequestsCallback)
-    {
-	SkippedRequestInfoRec skipinfo;
-	skipinfo.req = req;
-	skipinfo.client = client;
-	skipinfo.numskipped = numskipped;
-	CallCallbacks(&SkippedRequestsCallback, &skipinfo);
-    }
-
-    /* adjust the sequence number */
-    client->sequence += numskipped;
-
-    /* twiddle the oci to skip over the requests */
-
-    reqlen = get_req_len(req, client);
-#ifdef BIGREQS
-    if (!reqlen) reqlen = get_big_req_len(req, client);
-#endif
-    reqlen <<= 2;
-    oci->bufptr = (char *)req;
-    oci->lenLastReq = reqlen;
-
-    /* see if any requests left in the buffer */
-
-    if ( ((char *)req + reqlen) == (oci->buffer + oci->bufcnt) )
-    {
-	/* no requests; mark input buffer as available and client
-	 * as having no input
-	 */
-	int fd = oc->fd;
-	AvailableInput = oc;
-	YieldControlNoInput();
-    }
-}
-
 
     /* lookup table for adding padding bytes to data that is read from
     	or written to the X socket.  */
@@ -859,11 +730,12 @@ SetCriticalOutputPending(void)
  *****************/
 
 _X_EXPORT int
-WriteToClient (ClientPtr who, int count, char *buf)
+WriteToClient (ClientPtr who, int count, const void *__buf)
 {
     OsCommPtr oc = (OsCommPtr)who->osPrivate;
     ConnectionOutputPtr oco = oc->output;
     int padBytes;
+    const char *buf = __buf;
 #ifdef DEBUG_COMMUNICATION
     Bool multicount = FALSE;
 #endif
@@ -1000,13 +872,14 @@ WriteToClient (ClientPtr who, int count, char *buf)
  **********************/
 
 int
-FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
+FlushClient(ClientPtr who, OsCommPtr oc, const void *__extraBuf, int extraCount)
 {
     ConnectionOutputPtr oco = oc->output;
     int connection = oc->fd;
     XtransConnInfo trans_conn = oc->trans_conn;
     struct iovec iov[3];
     static char padBuffer[3];
+    const char *extraBuf = __extraBuf;
     long written;
     long padsize;
     long notWritten;
@@ -1045,14 +918,14 @@ FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
 	    before = (-len); \
 	} else { \
 	    iov[i].iov_len = len; \
-	    iov[i].iov_base = (pointer) + before; \
+	    iov[i].iov_base = (pointer) + before;	\
 	    i++; \
 	    remain -= len; \
 	    before = 0; \
 	}
 
 	InsertIOV ((char *)oco->buf, oco->count)
-	InsertIOV (extraBuf, extraCount)
+	InsertIOV ((char *)extraBuf, extraCount)
 	InsertIOV (padBuffer, padsize)
 
 	errno = 0;

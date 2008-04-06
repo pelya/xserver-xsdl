@@ -1316,7 +1316,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 	} else
 	    effectiveFocus = pWin = inputFocus;
     } else
-	dixLookupWindow(&pWin, dest, client, DixUnknownAccess);
+	dixLookupWindow(&pWin, dest, client, DixSendAccess);
     if (!pWin)
 	return BadWindow;
     if ((propagate != xFalse) && (propagate != xTrue)) {

@@ -74,7 +74,7 @@ struct __GLXdrawable {
     /*
     ** Configuration of the visual to which this drawable was created.
     */
-    __GLcontextModes *modes;
+    __GLXconfig *config;
 
     /*
     ** Lists of contexts bound to this drawable.  There are two lists here.

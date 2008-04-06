@@ -31,21 +31,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Extension protocol */
 #define X_SELinuxQueryVersion			0
-#define X_SELinuxSetSecurityManager		1
-#define X_SELinuxGetSecurityManager		2
-#define X_SELinuxSetDeviceCreateContext		3
-#define X_SELinuxGetDeviceCreateContext		4
-#define X_SELinuxSetDeviceContext		5
-#define X_SELinuxGetDeviceContext		6
-#define X_SELinuxSetPropertyCreateContext	7
-#define X_SELinuxGetPropertyCreateContext	8
-#define X_SELinuxGetPropertyContext		9
-#define X_SELinuxSetWindowCreateContext		10
-#define X_SELinuxGetWindowCreateContext		11
-#define X_SELinuxGetWindowContext		12
-#define X_SELinuxSetSelectionCreateContext	13
-#define X_SELinuxGetSelectionCreateContext	14
-#define X_SELinuxGetSelectionContext		15
+#define X_SELinuxSetDeviceCreateContext		1
+#define X_SELinuxGetDeviceCreateContext		2
+#define X_SELinuxSetDeviceContext		3
+#define X_SELinuxGetDeviceContext		4
+#define X_SELinuxSetWindowCreateContext		5
+#define X_SELinuxGetWindowCreateContext		6
+#define X_SELinuxGetWindowContext		7
+#define X_SELinuxSetPropertyCreateContext	8
+#define X_SELinuxGetPropertyCreateContext	9
+#define X_SELinuxSetPropertyUseContext		10
+#define X_SELinuxGetPropertyUseContext		11
+#define X_SELinuxGetPropertyContext		12
+#define X_SELinuxGetPropertyDataContext		13
+#define X_SELinuxListProperties			14
+#define X_SELinuxSetSelectionCreateContext	15
+#define X_SELinuxGetSelectionCreateContext	16
+#define X_SELinuxSetSelectionUseContext		17
+#define X_SELinuxGetSelectionUseContext		18
+#define X_SELinuxGetSelectionContext		19
+#define X_SELinuxGetSelectionDataContext	20
+#define X_SELinuxListSelections			21
+#define X_SELinuxGetClientContext		22
 
 typedef struct {
     CARD8   reqType;
@@ -53,7 +60,6 @@ typedef struct {
     CARD16  length;
     CARD8   client_major;
     CARD8   client_minor;
-    CARD16  unused;
 } SELinuxQueryVersionReq;
 
 typedef struct {
@@ -74,35 +80,7 @@ typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
-    CARD32  window;
-} SELinuxSetSecurityManagerReq;
-
-typedef struct {
-    CARD8   reqType;
-    CARD8   SELinuxReqType;
-    CARD16  length;
-} SELinuxGetSecurityManagerReq;
-
-typedef struct {
-    CARD8   type;
-    CARD8   pad1;
-    CARD16  sequenceNumber;
-    CARD32  length;
-    CARD32  window;
-    CARD32  pad2;
-    CARD32  pad3;
-    CARD32  pad4;
-    CARD32  pad5;
-    CARD32  pad6;
-} SELinuxGetSecurityManagerReply;
-
-typedef struct {
-    CARD8   reqType;
-    CARD8   SELinuxReqType;
-    CARD16  length;
-    CARD8   permanent;
-    CARD8   unused;
-    CARD16  context_len;
+    CARD32  context_len;
 } SELinuxSetCreateContextReq;
 
 typedef struct {
@@ -112,26 +90,11 @@ typedef struct {
 } SELinuxGetCreateContextReq;
 
 typedef struct {
-    CARD8   type;
-    CARD8   permanent;
-    CARD16  sequenceNumber;
-    CARD32  length;
-    CARD16  context_len;
-    CARD16  pad1;
-    CARD32  pad2;
-    CARD32  pad3;
-    CARD32  pad4;
-    CARD32  pad5;
-    CARD32  pad6;
-} SELinuxGetCreateContextReply;
-
-typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
     CARD32  id;
-    CARD16  unused;
-    CARD16  context_len;
+    CARD32  context_len;
 } SELinuxSetContextReq;
 
 typedef struct {
@@ -154,14 +117,26 @@ typedef struct {
     CARD8   pad1;
     CARD16  sequenceNumber;
     CARD32  length;
-    CARD16  context_len;
-    CARD16  pad2;
+    CARD32  context_len;
+    CARD32  pad2;
     CARD32  pad3;
     CARD32  pad4;
     CARD32  pad5;
     CARD32  pad6;
-    CARD32  pad7;
 } SELinuxGetContextReply;
+
+typedef struct {
+    CARD8   type;
+    CARD8   pad1;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD32  count;
+    CARD32  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6;
+} SELinuxListItemsReply;
 
 
 /* Private Flask definitions */

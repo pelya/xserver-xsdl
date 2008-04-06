@@ -172,12 +172,11 @@ xf86CreateRootWindow(WindowPtr pWin)
 	  Atom prop;
 
 	  prop = MakeAtom(pProp->name, strlen(pProp->name), TRUE);
-	  err = ChangeWindowProperty(pWin,
-				     prop, pProp->type,
-				     pProp->format, PropModeReplace,
-				     pProp->size, pProp->data,
-				     FALSE
-				     );
+	  err = dixChangeWindowProperty(serverClient, pWin,
+					prop, pProp->type,
+					pProp->format, PropModeReplace,
+					pProp->size, pProp->data,
+					FALSE);
 	}
       
       /* Look at err */

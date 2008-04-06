@@ -30,6 +30,10 @@ if DBE
 DBE_DIR=dbe
 endif
 
+if RECORD
+RECORD_DIR=record
+endif
+
 SUBDIRS = \
 	doc \
 	include \
@@ -48,7 +52,7 @@ SUBDIRS = \
 	$(AFB_DIR) \
 	$(CFB_DIR) \
 	$(CFB32_DIR) \
-	record \
+	$(RECORD_DIR) \
 	xfixes \
 	damageext \
 	$(XTRAP_DIR) \

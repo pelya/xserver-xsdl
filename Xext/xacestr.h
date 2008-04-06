@@ -59,7 +59,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
-    PropertyPtr pProp;
+    PropertyPtr *ppProp;
     Mask access_mode;
     int status;
 } XacePropertyAccessRec;
@@ -110,7 +110,7 @@ typedef struct {
 /* XACE_SELECTION_ACCESS */
 typedef struct {
     ClientPtr client;
-    Atom name;
+    Selection **ppSel;
     Mask access_mode;
     int status;
 } XaceSelectionAccessRec;

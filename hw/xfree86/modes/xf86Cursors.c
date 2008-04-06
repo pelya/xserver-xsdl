@@ -138,7 +138,8 @@ cursor_bitpos (int flags, int x, Bool mask)
 	mask = !mask;
     if (flags & HARDWARE_CURSOR_NIBBLE_SWAPPED)
 	x = (x & ~3) | (3 - (x & 3));
-    if (flags & HARDWARE_CURSOR_BIT_ORDER_MSBFIRST)
+    if (((flags & HARDWARE_CURSOR_BIT_ORDER_MSBFIRST) == 0) ==
+	(X_BYTE_ORDER == X_BIG_ENDIAN))
 	x = (x & ~7) | (7 - (x & 7));
     if (flags & HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_1)
 	x = (x << 1) + mask;
@@ -227,8 +228,13 @@ xf86_set_cursor_colors (ScrnInfoPtr scrn, int bg, int fg)
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     CursorPtr		cursor = xf86_config->cursor;
     int			c;
-    CARD8		*bits = cursor ? dixLookupPrivate(&cursor->devPrivates,
-							  screen) : NULL;
+    CARD8		*bits = cursor ?
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+        dixLookupPrivate(&cursor->devPrivates, screen)
+#else
+        cursor->devPriv[screen->myNum]
+#endif
+      : NULL;
 
     /* Save ARGB versions of these colors */
     xf86_config->cursor_fg = (CARD32) fg | 0xff000000;
@@ -614,7 +620,12 @@ xf86_reload_cursors (ScreenPtr screen)
 	else
 #endif
 	    (*cursor_info->LoadCursorImage)(cursor_info->pScrn,
-			dixLookupPrivate(&cursor->devPrivates, screen));
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+			dixLookupPrivate(&cursor->devPrivates, screen)
+#else
+			cursor->devPriv[screen->myNum]
+#endif
+	    );
 
 	(*cursor_info->SetCursorPosition)(cursor_info->pScrn, x, y);
 	(*cursor_info->ShowCursor)(cursor_info->pScrn);

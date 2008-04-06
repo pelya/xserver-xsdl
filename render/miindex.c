@@ -147,6 +147,7 @@ miBuildRenderColormap (ColormapPtr  pColormap, Pixel *pixels, int *nump)
 	for (g = 0; g < cube; g++)
 	    for (b = 0; b < cube; b++)
 	    {
+		pixel = 0;
 		red = (r * 65535 + (cube-1)/2) / (cube - 1);
 		green = (g * 65535 + (cube-1)/2) / (cube - 1);
 		blue = (b * 65535 + (cube-1)/2) / (cube - 1);
@@ -157,6 +158,7 @@ miBuildRenderColormap (ColormapPtr  pColormap, Pixel *pixels, int *nump)
 	    }
     for (g = 0; g < gray; g++)
     {
+	pixel = 0;
 	red = green = blue = (g * 65535 + (gray-1)/2) / (gray - 1);
 	if (AllocColor (pColormap, &red, &green, &blue, &pixel, 0) != Success)
 	    return FALSE;

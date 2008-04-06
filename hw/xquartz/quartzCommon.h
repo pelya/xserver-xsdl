@@ -68,6 +68,7 @@ extern int              quartzEventWriteFD;
 // User preferences used by Quartz modes
 extern int              quartzRootless;
 extern int              quartzUseSysBeep;
+extern int              focusOnNewWindow;
 extern int              quartzUseAGL;
 extern int              quartzEnableKeyEquivalents;
 
@@ -90,18 +91,5 @@ void QuartzFSRelease(void);
 int  QuartzFSUseQDCursor(int depth);
 void QuartzBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask);
 void QuartzWakeupHandler(pointer blockData, int result, pointer pReadmask);
-
-// Messages that can be sent to the main thread.
-enum {
-    kQuartzServerHidden,
-    kQuartzServerStarted,
-    kQuartzServerDied,
-    kQuartzCursorUpdate,
-    kQuartzPostEvent,
-    kQuartzSetWindowMenu,
-    kQuartzSetWindowMenuCheck,
-    kQuartzSetFrontProcess,
-    kQuartzSetCanQuit
-};
 
 #endif  /* _QUARTZCOMMON_H */

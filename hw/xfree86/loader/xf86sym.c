@@ -68,8 +68,10 @@
 # include "xf86Xinput.h"
 #endif
 #include "xf86OSmouse.h"
+#ifdef XV
 #include "xf86xv.h"
 #include "xf86xvmc.h"
+#endif
 #include "xf86cmap.h"
 #include "xf86fbman.h"
 #include "dgaproc.h"
@@ -350,9 +352,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ClearPrimInitDone)
     SYMFUNC(xf86AllocateEntityPrivateIndex)
     SYMFUNC(xf86GetEntityPrivate)
-
-    /* xf86cvt.c */
-    SYMFUNC(xf86CVTMode)
 
     /* xf86Configure.c */
     SYMFUNC(xf86AddDeviceToConfigure)
@@ -952,6 +951,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86CrtcSetSizeRange)
     SYMFUNC(xf86CrtcScreenInit)
     SYMFUNC(xf86CVTMode)
+    SYMFUNC(xf86GTFMode)
     SYMFUNC(xf86DisableUnusedFunctions)
     SYMFUNC(xf86DPMSSet)
     SYMFUNC(xf86DuplicateMode)

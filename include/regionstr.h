@@ -158,7 +158,7 @@ extern RegDataRec miBrokenData;
 
 #define REGION_INIT(_pScreen, _pReg, _rect, _size) \
 { \
-    if (_rect) \
+    if ((_rect) != NULL)				\
     { \
         (_pReg)->extents = *(_rect); \
         (_pReg)->data = (RegDataPtr)NULL; \

@@ -175,7 +175,7 @@ GetPropString(
     if(atom != BAD_RESOURCE)
     {
         WindowPtr pPropWin;
-	int n;
+	int rc, n;
 */
 
 	/*
@@ -186,15 +186,12 @@ GetPropString(
         for(pPropWin = pWin; pPropWin != (WindowPtr)NULL; 
 	    pPropWin = pPropWin->parent)
         {
-	    for(pProp = (PropertyPtr)(wUserProps(pPropWin)); 
-		pProp != (PropertyPtr)NULL;
-	        pProp = pProp->next)
-	    {
-                if (pProp->propertyName == atom)
-                    break;
-	    }
-	    if(pProp != (PropertyPtr)NULL)
-	        break;
+	    rc = dixLookupProperty(&pProp, pPropWin, atom,
+				   serverClient, DixReadAccess);
+	    if (rc == Success)
+		break;
+	    else
+		pProp = NULL;
         }
 	if(pProp == (PropertyPtr)NULL)
 	    return (char *)NULL;

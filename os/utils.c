@@ -232,8 +232,15 @@ _X_EXPORT Bool noXInputExtension = FALSE;
 #ifdef XIDLE
 _X_EXPORT Bool noXIdleExtension = FALSE;
 #endif
+#ifdef XSELINUX
+_X_EXPORT Bool noSELinuxExtension = FALSE;
+_X_EXPORT int selinuxEnforcingState = SELINUX_MODE_DEFAULT;
+#endif
 #ifdef XV
 _X_EXPORT Bool noXvExtension = FALSE;
+#endif
+#ifdef DRI2
+_X_EXPORT Bool noDRI2Extension = FALSE;
 #endif
 
 _X_EXPORT Bool noGEExtension = FALSE;

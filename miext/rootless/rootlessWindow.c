@@ -181,8 +181,8 @@ set_screen_origin (WindowPtr pWin)
   data[1] = (dixScreenOrigins[pWin->drawable.pScreen->myNum].y
 	     + darwinMainScreenY);
 
-  ChangeWindowProperty (pWin, xa_native_screen_origin (), XA_INTEGER,
-			32, PropModeReplace, 2, data, TRUE);
+  dixChangeWindowProperty(serverClient, pWin, xa_native_screen_origin(),
+			  XA_INTEGER, 32, PropModeReplace, 2, data, TRUE);
 }
 
 /*

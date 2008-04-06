@@ -184,9 +184,27 @@ unsigned	wantNames,wantConfig,wantDflts;
     if (want==0)
 	return False;
 
-    if (xkb!=NULL)
-	 old_names= xkb->names;
-    else old_names= NULL;
+    if (xkb) {
+        old_names = xkb->names;
+
+        xkb->defined = 0;
+        /* Wow would it ever be neat if we didn't need this noise. */
+        if (xkb->names && xkb->names->keys)
+            xkb->defined |= XkmKeyNamesMask;
+        if (xkb->map && xkb->map->types)
+            xkb->defined |= XkmTypesMask;
+        if (xkb->compat)
+            xkb->defined |= XkmCompatMapMask;
+        if (xkb->map && xkb->map->num_syms)
+            xkb->defined |= XkmSymbolsMask;
+        if (xkb->indicators)
+            xkb->defined |= XkmIndicatorsMask;
+        if (xkb->geom)
+            xkb->defined |= XkmGeometryMask;
+    }
+    else {
+        old_names= NULL;
+    }
 
     wantConfig= want&(~complete);
     if (xkb!=NULL) {

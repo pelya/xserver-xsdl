@@ -8,11 +8,12 @@ Makefile.in
 *.a
 *.o
 *~
-.*.swp
+.*sw?
 *.pbxuser
 *.mode1v3
 obj*
 build*
+local
 aclocal.m4
 autom4te.cache
 compile
@@ -29,6 +30,7 @@ ltmain.sh
 missing
 TAGS
 tags
+cscope*
 ylwrap
 xorg-server.pc
 stamp-h?

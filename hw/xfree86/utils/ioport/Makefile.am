@@ -37,7 +37,7 @@ ioport_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 ioport_LDADD = \
 	../../os-support/libxorgos.la \
 	../../dummylib/libdummy-nonserver.a \
-	${SYS_LIBS}
+	${UTILS_SYS_LIBS} ${PCIACCESS_LIBS}
 
 
 ioport_SOURCES =	\

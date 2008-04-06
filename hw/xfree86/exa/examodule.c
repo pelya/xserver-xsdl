@@ -148,22 +148,23 @@ exaDDXDriverInit(ScreenPtr pScreen)
 				 FALSE);
     }
 
-    if (xf86IsOptionSet(pScreenPriv->options, EXAOPT_NO_COMPOSITE)) {
-	xf86DrvMsg(pScreen->myNum, X_INFO,
+    if (xf86ReturnOptValBool(pScreenPriv->options,
+                             EXAOPT_NO_COMPOSITE, FALSE)) {
+	xf86DrvMsg(pScreen->myNum, X_CONFIG,
 		   "EXA: Disabling Composite operation "
 		   "(RENDER acceleration)\n");
 	pExaScr->info->CheckComposite = NULL;
 	pExaScr->info->PrepareComposite = NULL;
     }
 
-    if (xf86IsOptionSet(pScreenPriv->options, EXAOPT_NO_UTS)) {
-	xf86DrvMsg(pScreen->myNum, X_INFO,
+    if (xf86ReturnOptValBool(pScreenPriv->options, EXAOPT_NO_UTS, FALSE)) {
+	xf86DrvMsg(pScreen->myNum, X_CONFIG,
 		   "EXA: Disabling UploadToScreen\n");
 	pExaScr->info->UploadToScreen = NULL;
     }
 
-    if (xf86IsOptionSet(pScreenPriv->options, EXAOPT_NO_DFS)) {
-	xf86DrvMsg(pScreen->myNum, X_INFO,
+    if (xf86ReturnOptValBool(pScreenPriv->options, EXAOPT_NO_DFS, FALSE)) {
+	xf86DrvMsg(pScreen->myNum, X_CONFIG,
 		   "EXA: Disabling DownloadFromScreen\n");
 	pExaScr->info->DownloadFromScreen = NULL;
     }

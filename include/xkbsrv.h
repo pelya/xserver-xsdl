@@ -237,6 +237,14 @@ typedef struct	_XkbSrvLedInfo {
 typedef struct
 {
     ProcessInputProc processInputProc;
+    /* If processInputProc is set to something different than realInputProc,
+     * UNWRAP and COND_WRAP will not touch processInputProc and update only
+     * realInputProc.  This ensures that
+     *   processInputProc == (frozen ? EnqueueEvent : realInputProc)
+     *
+     * WRAP_PROCESS_INPUT_PROC should only be called during initialization,
+     * since it may destroy this invariant.
+     */
     ProcessInputProc realInputProc;
     DeviceUnwrapProc unwrapProc;
 } xkbDeviceInfoRec, *xkbDeviceInfoPtr;
@@ -254,14 +262,14 @@ typedef struct
 	    device->public.processInputProc = proc; \
 	oldprocs->processInputProc = \
 	oldprocs->realInputProc = device->public.realInputProc; \
-	if (proc != device->public.enqueueInputProc) \
-		device->public.realInputProc = proc; \
+	device->public.realInputProc = proc; \
 	oldprocs->unwrapProc = device->unwrapProc; \
 	device->unwrapProc = unwrapproc;
 
 #define UNWRAP_PROCESS_INPUT_PROC(device, oldprocs, backupproc) \
-        backupproc = device->public.processInputProc; \
-	device->public.processInputProc = oldprocs->processInputProc; \
+        backupproc = device->public.realInputProc; \
+	if (device->public.processInputProc == device->public.realInputProc)\
+	    device->public.processInputProc = oldprocs->realInputProc; \
 	device->public.realInputProc = oldprocs->realInputProc; \
 	device->unwrapProc = oldprocs->unwrapProc;
 

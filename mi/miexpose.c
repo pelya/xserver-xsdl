@@ -288,8 +288,6 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
 #endif
     if (extents)
     {
-	WindowPtr pWin = (WindowPtr)pDstDrawable;
-
 	expBox = *REGION_EXTENTS(pscr, &rgnExposed);
 	REGION_RESET(pscr, &rgnExposed, &expBox);
     }

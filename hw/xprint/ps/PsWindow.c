@@ -154,9 +154,9 @@ PsCreateWindow(WindowPtr pWin)
 	    {
                 propName = MakeAtom(propStrings[i], strlen(propStrings[i]),
 				    TRUE);
-	        ChangeWindowProperty(pWin, propName, XA_STRING, 8, 
-			             PropModeReplace,  strlen(propVal), 
-			             (pointer)propVal, FALSE);
+	        dixChangeWindowProperty(serverClient, pWin, propName, XA_STRING,
+					8, PropModeReplace, strlen(propVal),
+					(pointer)propVal, FALSE);
 	        xfree(propVal);
 	    }
 	}

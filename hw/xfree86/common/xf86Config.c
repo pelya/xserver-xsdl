@@ -119,8 +119,11 @@ static ModuleDefault ModuleDefaults[] = {
     {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
+#ifdef XRECORD
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
+#endif
     {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dri2",     .toLoad = TRUE,    .load_opt=NULL},
     {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
 };
 
@@ -494,7 +497,7 @@ xf86InputDriverlistFromConfig()
 static void
 fixup_video_driver_list(char **drivers)
 {
-    static const char *fallback[5] = { "vga", "vesa", "fbdev", "wsfb", NULL };
+    static const char *fallback[4] = { "vesa", "fbdev", "wsfb", NULL };
     char **end, **drv;
     char *x;
     char **ati, **atimisc;
@@ -2088,8 +2091,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
      */
     cmodep = conf_monitor->mon_modeline_lst;
     while( cmodep ) {
-        mode = xnfalloc(sizeof(DisplayModeRec));
-        memset(mode,'\0',sizeof(DisplayModeRec));
+        mode = xnfcalloc(1, sizeof(DisplayModeRec));
 	mode->type       = 0;
         mode->Clock      = cmodep->ml_clock;
         mode->HDisplay   = cmodep->ml_hdisplay;
@@ -2421,31 +2423,16 @@ addDefaultModes(MonPtr monitorp)
     DisplayModePtr last = monitorp->Last;
     int i = 0;
 
-    while (xf86DefaultModes[i].name != NULL)
+    for (i = 0; i < xf86NumDefaultModes; i++)
     {
-	if ( ! modeIsPresent(xf86DefaultModes[i].name,monitorp) )
-	    do
-	    {
-		mode = xnfalloc(sizeof(DisplayModeRec));
-		memcpy(mode,&xf86DefaultModes[i],sizeof(DisplayModeRec));
-		if (xf86DefaultModes[i].name)
-		    mode->name = xnfstrdup(xf86DefaultModes[i].name);
-		if( last ) {
-		    mode->prev = last;
-		    last->next = mode;
-		}
-		else {
-		    /* this is the first mode */
-		    monitorp->Modes = mode;
-		    mode->prev = NULL;
-		}
-		last = mode;
-		i++;
-	    }
-	    while((xf86DefaultModes[i].name != NULL) &&
-		  (!strcmp(xf86DefaultModes[i].name,xf86DefaultModes[i-1].name)));
-	else
-	    i++;
+	mode = xf86DuplicateMode(&xf86DefaultModes[i]);
+	if (!modeIsPresent(mode, monitorp))
+	{
+	    monitorp->Modes = xf86ModesAdd(monitorp->Modes, mode);
+	    last = mode;
+	} else {
+	    xfree(mode);
+	}
     }
     monitorp->Last = last;
 

@@ -1528,7 +1528,6 @@ miOverlaySetShape(WindowPtr pWin)
 {
     Bool	WasViewable = (Bool)(pWin->viewable);
     ScreenPtr 	pScreen = pWin->drawable.pScreen;
-    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif

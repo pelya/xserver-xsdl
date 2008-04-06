@@ -215,7 +215,14 @@ typedef struct _xf86CrtcFuncs {
 		      Rotation rotation, int x, int y);
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
+#define XF86_CRTC_VERSION 1
+
 struct _xf86Crtc {
+    /**
+     * ABI versioning
+     */
+    int version;
+
     /**
      * Associated ScrnInfo
      */
@@ -410,6 +417,21 @@ typedef struct _xf86OutputFuncs {
 		    Atom property,
 		    RRPropertyValuePtr value);
 #endif
+#ifdef RANDR_13_INTERFACE
+    /**
+     * Callback to get an updated property value
+     */
+    Bool
+    (*get_property)(xf86OutputPtr output,
+		    Atom property);
+#endif
+#ifdef RANDR_GET_CRTC_INTERFACE
+    /**
+     * Callback to get current CRTC for a given output
+     */
+    xf86CrtcPtr
+    (*get_crtc)(xf86OutputPtr output);
+#endif
     /**
      * Clean up driver-specific bits of the output
      */
@@ -417,7 +439,15 @@ typedef struct _xf86OutputFuncs {
     (*destroy) (xf86OutputPtr	    output);
 } xf86OutputFuncsRec, *xf86OutputFuncsPtr;
 
+
+#define XF86_OUTPUT_VERSION 1
+
 struct _xf86Output {
+    /**
+     * ABI versioning
+     */
+    int version;
+
     /**
      * Associated ScrnInfo
      */
@@ -669,7 +699,11 @@ xf86ProbeOutputModes (ScrnInfoPtr pScrn, int maxX, int maxY);
 void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
 
+#ifdef RANDR_13_INTERFACE
+int
+#else
 Bool
+#endif
 xf86CrtcScreenInit (ScreenPtr pScreen);
 
 Bool

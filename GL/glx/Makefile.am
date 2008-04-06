@@ -31,8 +31,6 @@ INCLUDES = \
 
 nodist_libglx_la_SOURCES = indirect_size.h \
 			   glapi.c \
-			   glcontextmodes.c \
-			   glcontextmode.h \
 			   glthread.c \
 			   indirect_dispatch.c \
 			   indirect_dispatch.h \

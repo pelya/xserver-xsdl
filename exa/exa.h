@@ -56,7 +56,7 @@ struct _ExaOffscreenArea {
     int                 base_offset;	/* allocation base */
     int                 offset;         /* aligned offset */
     int                 size;           /* total allocation size */
-    int                 score;
+    unsigned            last_use;
     pointer             privData;
 
     ExaOffscreenSaveProc save;

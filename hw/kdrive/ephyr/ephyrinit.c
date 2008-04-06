@@ -109,6 +109,7 @@ ddxUseMsg (void)
   ErrorF("-nodri               do not use DRI\n");
 #endif
   ErrorF("-noxv                do not use XV\n");
+  ErrorF("-name [name]         define the name in the WM_CLASS property\n");
   ErrorF("\n");
 
   exit(1);
@@ -147,6 +148,11 @@ int
 ddxProcessArgument (int argc, char **argv, int i)
 {
   EPHYR_DBG("mark argv[%d]='%s'", i, argv[i] );
+
+  if (i == 1)
+    {
+      hostx_use_resname(basename(argv[0]), 0);
+    }
 
   if (!strcmp (argv[i], "-parent"))
     {
@@ -222,6 +228,19 @@ ddxProcessArgument (int argc, char **argv, int i)
        ephyrNoXV = TRUE ;
        EPHYR_LOG ("no XVideo enabled\n") ;
        return 1 ;
+   }
+  else if (!strcmp (argv[i], "-name"))
+   {
+       if (i+1 < argc && argv[i+1][0] != '-')
+         {
+           hostx_use_resname(argv[i+1], 1);
+           return 2;
+         }
+       else
+         {
+           UseMsg();
+           return 0;
+         }
    }
   else if (argv[i][0] == ':')
     {

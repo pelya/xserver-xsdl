@@ -32,12 +32,12 @@
 #endif
 
 #include "quartzCommon.h"
+#include "inputstr.h"
 #include "quartz.h"
 #include "xpr.h"
 #include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
-#include "safeAlpha/safeAlpha.h"
 #include "dri.h"
 #include "globals.h"
 #include "Xplugin.h"
@@ -64,10 +64,11 @@ static const char *xprOpenGLBundle = "glxCGL.bundle";
  */
 static void eventHandler(unsigned int type, const void *arg,
                          unsigned int arg_size, void *data) {
+    
     switch (type) {
         case XP_EVENT_DISPLAY_CHANGED:
             DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
-            QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
+            DarwinSendDDXEvent(kXquartzDisplayChanged, 0);
             break;
             
         case XP_EVENT_WINDOW_STATE_CHANGED:
@@ -75,7 +76,7 @@ static void eventHandler(unsigned int type, const void *arg,
                 const xp_window_state_event *ws_arg = arg;
                 
                 DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: id=%d, state=%d\n", ws_arg->id, ws_arg->state);
-                QuartzMessageServerThread(kXDarwinWindowState, 2,
+                DarwinSendDDXEvent(kXquartzWindowState, 2,
                                           ws_arg->id, ws_arg->state);
             } else {
                 DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: ignored\n");
@@ -87,7 +88,7 @@ static void eventHandler(unsigned int type, const void *arg,
             if (arg_size == sizeof(xp_window_id))  {
                 xp_window_id id = * (xp_window_id *) arg;
                 WindowPtr pWin = xprGetXWindow(id);
-                QuartzMessageServerThread(kXDarwinWindowMoved, 1, pWin);
+                DarwinSendDDXEvent(kXquartzWindowMoved, 1, pWin);
             }
             break;
             
@@ -104,6 +105,13 @@ static void eventHandler(unsigned int type, const void *arg,
                     kind = AppleDRISurfaceNotifyChanged;
                 
                 DRISurfaceNotify(*(xp_surface_id *) arg, kind);
+            }
+            break;
+        case  XP_EVENT_SPACE_CHANGED:
+            DEBUG_LOG("XP_EVENT_SPACE_CHANGED\n");
+            if(arg_size == sizeof(uint32_t)) {
+                uint32_t space_id = *(uint32_t *)arg;
+                DarwinSendDDXEvent(kXquartzSpaceChanged, 1, space_id);
             }
             break;
         default:
@@ -234,7 +242,8 @@ xprDisplayInit(void)
                      | XP_EVENT_WINDOW_STATE_CHANGED
                      | XP_EVENT_WINDOW_MOVED
                      | XP_EVENT_SURFACE_CHANGED
-                     | XP_EVENT_SURFACE_DESTROYED,
+                     | XP_EVENT_SURFACE_DESTROYED
+                     | XP_EVENT_SPACE_CHANGED,
                      eventHandler, NULL);
 
     AppleDRIExtensionInit();
@@ -341,15 +350,6 @@ xprAddScreen(int index, ScreenPtr pScreen)
 static Bool
 xprSetupScreen(int index, ScreenPtr pScreen)
 {
-    // Add alpha protecting replacements for fb screen functions
-
-#ifdef RENDER
-    {
-        PictureScreenPtr ps = GetPictureScreen(pScreen);
-        ps->Composite = SafeAlphaComposite;
-    }
-#endif /* RENDER */
-
     // Initialize accelerated rootless drawing
     // Note that this must be done before DamageSetup().
     RootlessAccelInit(pScreen);

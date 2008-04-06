@@ -33,6 +33,7 @@
 #ifdef _X86EMU
 #include "x86emu/x86emui.h"
 #endif
+#include <pciaccess.h>
 
 static int pciCfg1in(CARD16 addr, CARD32 *val);
 static int pciCfg1out(CARD16 addr, CARD32 val);
@@ -45,8 +46,6 @@ static void SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set);
 #endif
 
 #define REG pInt
-
-static int pci_config_cycle = 0;
 
 int
 setup_int(xf86Int10InfoPtr pInt)
@@ -461,7 +460,43 @@ Mem_wl(CARD32 addr, CARD32 val)
 
 static CARD32 PciCfg1Addr = 0;
 
-#define OFFSET(Cfg1Addr) (Cfg1Addr & 0xff)
+#define PCI_OFFSET(x) ((x) & 0x000000ff)
+#define PCI_TAG(x)    ((x) & 0x7fffff00)
+
+static struct pci_device*
+pci_device_for_cfg_address (CARD32 addr)
+{
+	struct pci_device *dev = NULL;
+	PCITAG tag = PCI_TAG(addr);
+	struct pci_slot_match slot_match = {
+		.domain = PCI_DOM_FROM_TAG(tag),
+		.bus = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(tag)),
+		.dev = PCI_DEV_FROM_TAG(tag),
+		.func = PCI_FUNC_FROM_TAG(tag),
+		.match_data = 0
+	};
+
+	struct pci_device_iterator *iter =
+	    pci_slot_match_iterator_create (&slot_match);
+	if (iter)
+		dev = pci_device_next(iter);
+	if (!dev) {
+		char buf[128]; /* enough to store "%u@%u" */
+		xf86FormatPciBusNumber(tag >> 16, buf);
+		ErrorF("Failed to find device matching %s:%u:%u\n",
+				buf, slot_match.dev, slot_match.func);
+		return NULL;
+	}
+
+	if (pci_device_next(iter)) {
+		char buf[128]; /* enough to store "%u@%u" */
+		xf86FormatPciBusNumber(tag >> 16, buf);
+		ErrorF("Multiple devices matching %s:%u:%u\n",
+				buf, slot_match.dev, slot_match.func);
+	}
+
+	return dev;
+}
 
 static int
 pciCfg1in(CARD16 addr, CARD32 *val)
@@ -471,7 +506,8 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	pci_device_cfg_read_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
+	pci_device_cfg_read_u32(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr));
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inl(%#x) = %8.8x\n", PciCfg1Addr, *val);
 	return 1;
@@ -489,7 +525,8 @@ pciCfg1out(CARD16 addr, CARD32 val)
     if (addr == 0xCFC) {
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outl(%#x, %8.8x)\n", PciCfg1Addr, val);
-	pci_device_cfg_write_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
+	pci_device_cfg_write_u32(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -508,7 +545,8 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
-	pci_device_cfg_read_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_read_u16(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inw(%#x) = %4.4x\n", PciCfg1Addr + offset, *val);
 	return 1;
@@ -532,7 +570,8 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outw(%#x, %4.4x)\n", PciCfg1Addr + offset, val);
-	pci_device_cfg_write_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_write_u16(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -551,7 +590,8 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
-	pci_device_cfg_read_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_read_u8(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inb(%#x) = %2.2x\n", PciCfg1Addr + offset, *val);
 	return 1;
@@ -575,7 +615,8 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outb(%#x, %2.2x)\n", PciCfg1Addr + offset, val);
-	pci_device_cfg_write_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_write_u8(pci_device_for_cfg_address(PciCfg1Addr),
+			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;

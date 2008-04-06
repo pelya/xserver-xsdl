@@ -28,11 +28,13 @@
 
 bin_PROGRAMS = cvt
 
-INCLUDES = $(XORG_INCS)
+INCLUDES = $(XORG_INCS) \
+	   -I$(top_srcdir)/hw/xfree86/ddc \
+	   -I$(top_srcdir)/hw/xfree86/parser
 DUMMYLIB_SRCDIR = $(XFREE86_SRCDIR)/dummylib
 
 # gah
-cvt_SOURCES = cvt.c $(top_srcdir)/hw/xfree86/common/xf86cvt.c
+cvt_SOURCES = cvt.c $(top_srcdir)/hw/xfree86/modes/xf86cvt.c
 cvt_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 cvt_LDADD = $(top_builddir)/hw/xfree86/dummylib/libdummy-nonserver.a
 

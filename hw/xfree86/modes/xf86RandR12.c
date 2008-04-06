@@ -61,10 +61,20 @@ static Bool xf86RandR12CreateScreenResources12 (ScreenPtr pScreen);
 #endif
 
 static int xf86RandR12Generation;
-static DevPrivateKey xf86RandR12Key;
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
 
+static DevPrivateKey xf86RandR12Key;
 #define XF86RANDRINFO(p) ((XF86RandRInfoPtr) \
     dixLookupPrivate(&(p)->devPrivates, xf86RandR12Key))
+
+#else /* XORG_VERSION_CURRENT < 7.0 */
+
+static int xf86RandR12Index;
+#define XF86RANDRINFO(p) \
+    ((XF86RandRInfoPtr)(p)->devPrivates[xf86RandR12Index].ptr)
+
+#endif /* XORG_VERSION_CURRENT < 7.0 */
+
 
 static int
 xf86RandR12ModeRefresh (DisplayModePtr mode)
@@ -134,23 +144,6 @@ xf86RandR12GetInfo (ScreenPtr pScreen, Rotation *rotations)
     {
 	randrp->maxX = maxX;
 	randrp->maxY = maxY;
-    }
-
-    if (scrp->currentMode->HDisplay != randrp->virtualX ||
-	scrp->currentMode->VDisplay != randrp->virtualY)
-    {
-	pSize = RRRegisterSize (pScreen,
-				randrp->virtualX, randrp->virtualY,
-				randrp->mmWidth,
-				randrp->mmHeight);
-	if (!pSize)
-	    return FALSE;
-	RRRegisterRate (pScreen, pSize, refresh0);
-	if (scrp->virtualX == randrp->virtualX &&
-	    scrp->virtualY == randrp->virtualY)
-	{
-	    RRSetCurrentConfig (pScreen, randrp->rotation, refresh0, pSize);
-	}
     }
 
     return TRUE;
@@ -341,13 +334,17 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     PixmapPtr		pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
     Bool		ret = FALSE;
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key) {
+#endif
         if (randrp->virtualX == -1 || randrp->virtualY == -1)
         {
 	    randrp->virtualX = pScrn->virtualX;
 	    randrp->virtualY = pScrn->virtualY;
         }
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     }
+#endif
     if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
 
@@ -359,8 +356,8 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 
     pScreen->width = pScrnPix->drawable.width = width;
     pScreen->height = pScrnPix->drawable.height = height;
-    pScreen->mmWidth = mmWidth;
-    pScreen->mmHeight = mmHeight;
+    randrp->mmWidth = pScreen->mmWidth = mmWidth;
+    randrp->mmHeight = pScreen->mmHeight = mmHeight;
 
     xf86SetViewport (pScreen, pScreen->width-1, pScreen->height-1);
     xf86SetViewport (pScreen, 0, 0);
@@ -469,8 +466,10 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 				  mmHeight);
     }
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key == NULL)
 	return TRUE;
+#endif
 
     if (randrp->virtualX == -1 || randrp->virtualY == -1)
     {
@@ -501,7 +500,11 @@ xf86RandR12Init (ScreenPtr pScreen)
     if (xf86RandR12Generation != serverGeneration)
 	xf86RandR12Generation = serverGeneration;
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     xf86RandR12Key = &xf86RandR12Key;
+#else
+    xf86RandR12Index = AllocateScreenPrivateIndex();
+#endif
 
     randrp = xalloc (sizeof (XF86RandRInfoRec));
     if (!randrp)
@@ -527,7 +530,11 @@ xf86RandR12Init (ScreenPtr pScreen)
 
     randrp->maxX = randrp->maxY = 0;
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     dixSetPrivate(&pScreen->devPrivates, xf86RandR12Key, randrp);
+#else
+    pScreen->devPrivates[xf86RandR12Index].ptr = randrp;
+#endif
 
 #if RANDR_12_INTERFACE
     if (!xf86RandR12Init12 (pScreen))
@@ -546,8 +553,10 @@ xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
 #endif
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key == NULL)
 	return;
+#endif
 
     randrp = XF86RANDRINFO(pScreen);
 #if RANDR_12_INTERFACE
@@ -735,6 +744,9 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
     xf86CrtcPtr		*save_crtcs;
     Bool		save_enabled = crtc->enabled;
 
+    if (!crtc->scrn->vtSema)
+	return FALSE;
+
     save_crtcs = xalloc(config->num_output * sizeof (xf86CrtcPtr));
     if ((randr_mode != NULL) != crtc->enabled)
 	changed = TRUE;
@@ -846,6 +858,20 @@ xf86RandR12OutputSetProperty (ScreenPtr pScreen,
      * when the VT switch occurs
      */
     return output->funcs->set_property(output, property, value);
+}
+
+static Bool
+xf86RandR13OutputGetProperty (ScreenPtr pScreen,
+			      RROutputPtr randr_output,
+			      Atom property)
+{
+    xf86OutputPtr output = randr_output->devPrivate;
+
+    if (output->funcs->get_property == NULL)
+	return TRUE;
+
+    /* Should be safe even w/o vtSema */
+    return output->funcs->get_property(output, property);
 }
 
 static Bool
@@ -1077,8 +1103,10 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key == NULL)
 	return TRUE;
+#endif
 
     for (c = 0; c < config->num_crtc; c++)
         xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
@@ -1100,8 +1128,13 @@ xf86RandR12TellChanged (ScreenPtr pScreen)
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
     int			c;
 
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key == NULL)
 	return;
+#else
+    if (!XF86RANDRINFO(pScreen))
+	return;
+#endif
 
     xf86RandR12SetInfo12 (pScreen);
     for (c = 0; c < config->num_crtc; c++)
@@ -1127,6 +1160,9 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrCrtcSetGamma = xf86RandR12CrtcSetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
+#if RANDR_13_INTERFACE
+    rp->rrOutputGetProperty = xf86RandR13OutputGetProperty;
+#endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;

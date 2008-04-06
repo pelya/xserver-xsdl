@@ -37,13 +37,14 @@
 #endif
 
 #include "quartzCommon.h"
+#include "inputstr.h"
 #include "quartzPasteboard.h"
 
 #define BOOL xBOOL
 #include "darwin.h"
-#undef BOOL
 
 #include <Cocoa/Cocoa.h>
+#undef BOOL
 
 #include "pseudoramiX.h"
 

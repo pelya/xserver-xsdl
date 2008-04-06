@@ -1,6 +1,6 @@
 /* X11Controller.m -- connect the IB ui, also the NSApp delegate
  
-   Copyright (c) 2002-2007 Apple Inc. All rights reserved.
+   Copyright (c) 2002-2008 Apple Inc. All rights reserved.
  
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -103,7 +103,7 @@
 {
   [NSApp activateIgnoringOtherApps:YES];
 	
-  QuartzMessageServerThread (kXDarwinControllerNotify, 2,
+  DarwinSendDDXEvent(kXquartzControllerNotify, 2,
 			     AppleWMWindowMenuItem, [sender tag]);
 }
 
@@ -254,7 +254,7 @@
   [self remove_window_menu];
   [self install_window_menu:list];
 	
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1,
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1,
 			     AppleWMWindowMenuNotify);
 }
 
@@ -539,20 +539,20 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (void) hide_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMHideWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMHideWindow);
   else
     NSBeep ();			/* FIXME: something here */
 }
 
 - (IBAction)bring_to_front:sender
 {
-  QuartzMessageServerThread(kXDarwinControllerNotify, 1, AppleWMBringAllToFront);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMBringAllToFront);
 }
 
 - (IBAction)close_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMCloseWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMCloseWindow);
   else
     [[NSApp keyWindow] performClose:sender];
 }
@@ -560,7 +560,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)minimize_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMMinimizeWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMMinimizeWindow);
   else
     [[NSApp keyWindow] performMiniaturize:sender];
 }
@@ -568,19 +568,19 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)zoom_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMZoomWindow);
+    DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMZoomWindow);
   else
     [[NSApp keyWindow] performZoom:sender];
 }
 
 - (IBAction) next_window:sender
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMNextWindow);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMNextWindow);
 }
 
 - (IBAction) previous_window:sender
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMPreviousWindow);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMPreviousWindow);
 }
 
 - (IBAction) enable_fullscreen_changed:sender
@@ -588,7 +588,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   int value = ![enable_fullscreen intValue];
 	
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXDarwinSetRootless, 1, value);
+  DarwinSendDDXEvent(kXquartzSetRootless, 1, value);
 #endif
 	
   [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
@@ -598,7 +598,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction) toggle_fullscreen:sender
 {
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXDarwinToggleFullscreen, 0);
+  DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
 }
 
@@ -609,47 +609,59 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction)prefs_changed:sender
 {
-  darwinFakeButtons = [fake_buttons intValue];
-  quartzUseSysBeep = [use_sysbeep intValue];
-  X11EnableKeyEquivalents = [enable_keyequivs intValue];
-  darwinSyncKeymap = [sync_keymap intValue];
-
-  /* after adding prefs here, also add to [X11Application read_defaults]
+    darwinFakeButtons = [fake_buttons intValue];
+    quartzUseSysBeep = [use_sysbeep intValue];
+    X11EnableKeyEquivalents = [enable_keyequivs intValue];
+    darwinSyncKeymap = [sync_keymap intValue];
+    
+    /* after adding prefs here, also add to [X11Application read_defaults]
      and below */
 	
-  [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
-  [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
-  [NSApp prefs_set_boolean:@PREFS_KEYEQUIVS value:X11EnableKeyEquivalents];
-  [NSApp prefs_set_boolean:@PREFS_SYNC_KEYMAP value:darwinSyncKeymap];
-  [NSApp prefs_set_boolean:@PREFS_QUARTZ_WM_CLICK_THROUGH value:[click_through intValue]];
-  [NSApp prefs_set_boolean:@PREFS_NO_AUTH value:![enable_auth intValue]];
-  [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
-  [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
+    [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
+    [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
+    [NSApp prefs_set_boolean:@PREFS_KEYEQUIVS value:X11EnableKeyEquivalents];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_KEYMAP value:darwinSyncKeymap];
+    [NSApp prefs_set_boolean:@PREFS_CLICK_THROUGH value:[click_through intValue]];
+    [NSApp prefs_set_boolean:@PREFS_FFM value:[focus_follows_mouse intValue]];
+    [NSApp prefs_set_boolean:@PREFS_FOCUS_ON_NEW_WINDOW value:[focus_on_new_window intValue]];
+    [NSApp prefs_set_boolean:@PREFS_NO_AUTH value:![enable_auth intValue]];
+    [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
+    [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
+    
+    system("killall -HUP quartz-wm");
 	
-  [NSApp prefs_synchronize];
+    [NSApp prefs_synchronize];
 }
 
 - (IBAction) prefs_show:sender
 {
-  [fake_buttons setIntValue:darwinFakeButtons];
-  [use_sysbeep setIntValue:quartzUseSysBeep];
-  [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
-  [sync_keymap setIntValue:darwinSyncKeymap];
-  [sync_keymap setEnabled:darwinKeymapFile == NULL];
-  [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_QUARTZ_WM_CLICK_THROUGH default:NO]];
+    [fake_buttons setIntValue:darwinFakeButtons];
+    [use_sysbeep setIntValue:quartzUseSysBeep];
+    [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
+    [sync_keymap setIntValue:darwinSyncKeymap];
+    [sync_keymap setEnabled:darwinKeymapFile == NULL];
+    [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_CLICK_THROUGH default:NO]];
+    [focus_follows_mouse setIntValue:[NSApp prefs_get_boolean:@PREFS_FFM default:NO]];
+    [focus_on_new_window setIntValue:[NSApp prefs_get_boolean:@PREFS_FOCUS_ON_NEW_WINDOW default:YES]];
+    
+    [enable_auth setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_AUTH default:NO]];
+    [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
+
+    [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
+    // TODO: Add 256 color support
+    if([depth indexOfItemWithTag:8] != -1)
+        [depth removeItemAtIndex:[depth indexOfItemWithTag:8]];
 	
-  [enable_auth setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_AUTH default:NO]];
-  [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
-  [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
+    [enable_fullscreen setIntValue:!quartzEnableRootless];
+    // TODO: Add fullscreen support
+    [enable_fullscreen setEnabled:NO];
 	
-  [enable_fullscreen setIntValue:!quartzEnableRootless];
-	
-  [prefs_panel makeKeyAndOrderFront:sender];
+    [prefs_panel makeKeyAndOrderFront:sender];
 }
 
 - (IBAction) quit:sender
 {
-  QuartzMessageServerThread (kXDarwinQuit, 0);
+  DarwinSendDDXEvent(kXquartzQuit, 0);
 }
 
 - (IBAction) x11_help:sender
@@ -672,12 +684,12 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (void) applicationDidHide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMHideAll);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMHideAll);
 }
 
 - (void) applicationDidUnhide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMShowAll);
+  DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMShowAll);
 }
 
 - (NSApplicationTerminateReply) applicationShouldTerminate:sender
@@ -705,7 +717,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   [X11App prefs_synchronize];
 	
   /* shutdown the X server, it will exit () for us. */
-  QuartzMessageServerThread (kXDarwinQuit, 0);
+  DarwinSendDDXEvent(kXquartzQuit, 0);
 	
   /* In case it doesn't, exit anyway after a while. */
   while (sleep (10) != 0) ;

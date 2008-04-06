@@ -508,7 +508,6 @@ xf86validateScreen (XF86ConfigPtr p)
 {
 	XF86ConfScreenPtr screen = p->conf_screen_lst;
 	XF86ConfMonitorPtr monitor;
-	XF86ConfDevicePtr device;
 	XF86ConfAdaptorLinkPtr adaptor;
 
 	while (screen)

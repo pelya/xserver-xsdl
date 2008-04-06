@@ -50,10 +50,10 @@ sdk_HEADERS =		\
 	validate.h	\
 	window.h	\
 	windowstr.h	\
-	xkbsrv.h	\
 	xorg-server.h
 endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
-EXTRA_DIST = $(sdk_HEADERS) do-not-use-config.h dix-config.h xorg-config.h
+EXTRA_DIST = $(sdk_HEADERS) do-not-use-config.h dix-config.h xorg-config.h \
+	xkb-config.h xkbfile.h xkbsrv.h xkbstr.h

@@ -74,6 +74,14 @@ miRROutputSetProperty (ScreenPtr	    pScreen,
 }
 
 Bool
+miRROutputGetProperty (ScreenPtr	    pScreen,
+		       RROutputPtr	    output,
+		       Atom		    property)
+{
+	return TRUE;
+}
+
+Bool
 miRROutputValidateMode (ScreenPtr	    pScreen,
 			RROutputPtr	    output,
 			RRModePtr	    mode)
@@ -116,6 +124,9 @@ miRandRInit (ScreenPtr pScreen)
     pScrPriv->rrCrtcSet = miRRCrtcSet;
     pScrPriv->rrCrtcSetGamma = miRRCrtcSetGamma;
     pScrPriv->rrOutputSetProperty = miRROutputSetProperty;
+#if RANDR_13_INTERFACE
+    pScrPriv->rrOutputGetProperty = miRROutputGetProperty;
+#endif
     pScrPriv->rrOutputValidateMode = miRROutputValidateMode;
     pScrPriv->rrModeDestroy = miRRModeDestroy;
     

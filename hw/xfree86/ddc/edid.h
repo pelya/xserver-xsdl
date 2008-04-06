@@ -271,6 +271,39 @@
 #define K_2ND_GTF _K_2ND_GTF(c)
 #define _J_2ND_GTF(x) (x[17] / 2)
 #define J_2ND_GTF _J_2ND_GTF(c)
+#define _HAVE_CVT(x) (x[10] == 0x04)
+#define HAVE_CVT _HAVE_CVT(c)
+#define _MAX_CLOCK_KHZ(x) (x[12] >> 2)
+#define MAX_CLOCK_KHZ (MAX_CLOCK * 10000) - (_MAX_CLOCK_KHZ(c) * 250)
+#define _MAXWIDTH(x) ((x[13] == 0 ? 0 : x[13] + ((x[12] & 0x03) << 8)) * 8)
+#define MAXWIDTH _MAXWIDTH(c)
+#define _SUPPORTED_ASPECT(x) x[14]
+#define SUPPORTED_ASPECT _SUPPORTED_ASPECT(c)
+#define  SUPPORTED_ASPECT_4_3   0x80
+#define  SUPPORTED_ASPECT_16_9  0x40
+#define  SUPPORTED_ASPECT_16_10 0x20
+#define  SUPPORTED_ASPECT_5_4   0x10
+#define  SUPPORTED_ASPECT_15_9  0x08
+#define _PREFERRED_ASPECT(x) ((x[15] & 0xe0) >> 5)
+#define PREFERRED_ASPECT _PREFERRED_ASPECT(c)
+#define  PREFERRED_ASPECT_4_3   0
+#define  PREFERRED_ASPECT_16_9  1
+#define  PREFERRED_ASPECT_16_10 2
+#define  PREFERRED_ASPECT_5_4   3
+#define  PREFERRED_ASPECT_15_9  4
+#define _SUPPORTED_BLANKING(x) ((x[15] & 0x18) >> 3)
+#define SUPPORTED_BLANKING _SUPPORTED_BLANKING(c)
+#define  CVT_STANDARD 0x01
+#define  CVT_REDUCED  0x02
+#define _SUPPORTED_SCALING(x) ((x[16] & 0xf0) >> 4)
+#define SUPPORTED_SCALING _SUPPORTED_SCALING(c)
+#define  SCALING_HSHRINK  0x08
+#define  SCALING_HSTRETCH 0x04
+#define  SCALING_VSHRINK  0x02
+#define  SCALING_VSTRETCH 0x01
+#define _PREFERRED_REFRESH(x) x[17]
+#define PREFERRED_REFRESH _PREFERRED_REFRESH(c)
+
 #define MONITOR_NAME 0xFC
 #define ADD_COLOR_POINT 0xFB
 #define WHITEX F_CC(I_CC((GET(D_BW_LOW)),(GET(D_WHITEX)),2))
@@ -339,6 +372,8 @@
 #define STD_COLOR_SPACE(x) (x & 0x4)
 #define PREFERRED_TIMING_MODE(x) (x & 0x2)
 #define GFT_SUPPORTED(x) (x & 0x1)
+#define GTF_SUPPORTED(x) (x & 0x1)
+#define CVT_SUPPORTED(x) (x & 0x1)
 
 /* detailed timing misc */
 #define IS_INTERLACED(x)  (x) 
@@ -445,12 +480,19 @@ struct monitor_ranges {
   int max_v;
   int min_h;
   int max_h;
-  int max_clock;
+  int max_clock;    /* in mhz */
   int gtf_2nd_f;
   int gtf_2nd_c;
   int gtf_2nd_m;
   int gtf_2nd_k;
   int gtf_2nd_j;
+  int max_clock_khz;
+  int maxwidth;	    /* in pixels */
+  char supported_aspect;
+  char preferred_aspect;
+  char supported_blanking;
+  char supported_scaling;
+  int preferred_refresh; /* in hz */
 };
 
 struct whitePoints{
@@ -480,7 +522,7 @@ struct detailed_monitor_section {
     Uchar serial[13];
     Uchar ascii_data[13];
     Uchar name[13];
-    struct monitor_ranges ranges;	/* 40 */
+    struct monitor_ranges ranges;	/* 56 */
     struct std_timings std_t[5];	/* 80 */
     struct whitePoints wp[2];		/* 32 */
     /* color management data */

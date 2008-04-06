@@ -92,9 +92,6 @@
 extern int XkbDfltRepeatDelay, XkbDfltRepeatInterval;
 #endif
 
-extern Selection *CurrentSelections;
-extern int NumCurrentSelections;
-
 /* DIX things */
 
 _X_HIDDEN void *dixLookupTab[] = {
@@ -150,8 +147,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(isItTimeToYield)
     SYMVAR(ClientStateCallback)
     SYMVAR(ServerGrabCallback)
-    SYMVAR(CurrentSelections)
-    SYMVAR(NumCurrentSelections)
     /* dixfonts.c */
     SYMFUNC(CloseFont)
     SYMFUNC(FontToXError)
@@ -193,8 +188,12 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(XineramaGetCursorScreen)
 #endif
     /* property.c */
+    SYMFUNC(dixLookupProperty)
     SYMFUNC(ChangeWindowProperty)
     SYMFUNC(dixChangeWindowProperty)
+    /* selection.c */
+    SYMFUNC(dixLookupSelection)
+    SYMVAR(CurrentSelections)
     /* extension.c */
     SYMFUNC(AddExtension)
     SYMFUNC(AddExtensionAlias)
@@ -440,6 +439,9 @@ _X_HIDDEN void *dixLookupTab[] = {
 #endif
 #ifdef XIDLE
     SYMVAR(noXIdleExtension)
+#endif
+#ifdef XSELINUX
+    SYMVAR(noSELinuxExtension)
 #endif
 #ifdef XV
     SYMVAR(noXvExtension)

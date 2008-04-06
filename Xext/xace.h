@@ -29,6 +29,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "region.h"
 #include "window.h"
 #include "property.h"
+#include "selection.h"
 
 /* Default window background */
 #define XaceBackgroundNoneState(w) ((w)->forcedBG ? BackgroundPixel : None)
@@ -68,9 +69,9 @@ extern int XaceHook(
  */
 extern int XaceHookDispatch(ClientPtr ptr, int major);
 extern int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
-				  PropertyPtr pProp, Mask access_mode);
-extern int XaceHookSelectionAccess(ClientPtr ptr, Atom name,
-				   Mask access_mode);
+				  PropertyPtr *ppProp, Mask access_mode);
+extern int XaceHookSelectionAccess(ClientPtr ptr,
+				   Selection **ppSel, Mask access_mode);
 extern void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.

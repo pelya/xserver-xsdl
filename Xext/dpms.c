@@ -188,12 +188,15 @@ static int
 ProcDPMSEnable(client)
     ClientPtr client;
 {
-    /* REQUEST(xDPMSEnableReq); */
+    Bool was_enabled = DPMSEnabled;
 
     REQUEST_SIZE_MATCH(xDPMSEnableReq);
 
-    if (DPMSCapableFlag)
+    if (DPMSCapableFlag) {
 	DPMSEnabled = TRUE;
+	if (!was_enabled)
+	    SetScreenSaverTimer();
+    }
 
     return(client->noClientException);
 }

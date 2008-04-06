@@ -1,9 +1,10 @@
-SUBDIRS = main math swrast swrast_setup tnl shader X glapi vbo
+SUBDIRS = X
+SUBDIRS += main math swrast swrast_setup tnl shader glapi vbo
 
 noinst_LTLIBRARIES = libGLcore.la
 
 libGLcore_la_SOURCES = dummy.c
-libGLcore_la_LIBADD = main/libmain.la \
+MESA_LIBS           = main/libmain.la \
                       math/libmath.la \
                       swrast/libswrast.la \
                       swrast_setup/libss.la \
@@ -11,5 +12,7 @@ libGLcore_la_LIBADD = main/libmain.la \
                       shader/libshader.la \
 		      shader/grammar/libgrammar.la \
 		      shader/slang/libslang.la \
-                      vbo/libvbo.la \
+                      vbo/libvbo.la
+
+libGLcore_la_LIBADD = $(MESA_LIBS) \
                       X/libX.la

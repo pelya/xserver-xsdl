@@ -27,6 +27,9 @@
 #include <xorg-config.h>
 #endif
 
+/* XXX kinda gross */
+#define _PARSE_EDID_
+
 #include "misc.h"
 #include "xf86.h"
 #include "xf86_OSproc.h"
@@ -350,23 +353,63 @@ print_detailed_monitor_section(int scrnIndex,
 	    xf86DrvMsg(scrnIndex,X_INFO,"Monitor name: %s\n",m[i].section.name);
 	    break;
 	case DS_RANGES:
+	{
+	    struct monitor_ranges *r = &m[i].section.ranges;
 	    xf86DrvMsg(scrnIndex,X_INFO,
-		       "Ranges: V min: %i  V max: %i Hz, H min: %i  H max: %i kHz,",
-		       m[i].section.ranges.min_v, m[i].section.ranges.max_v, 
-		       m[i].section.ranges.min_h, m[i].section.ranges.max_h);
-	    if (m[i].section.ranges.max_clock != 0)
-		xf86ErrorF(" PixClock max %i MHz\n",m[i].section.ranges.max_clock);
-	    else
+		       "Ranges: V min: %i V max: %i Hz, H min: %i H max: %i kHz,",
+		       r->min_v, r->max_v, r->min_h, r->max_h);
+	    if (r->max_clock_khz != 0) {
+		xf86ErrorF(" PixClock max %i kHz\n", r->max_clock_khz);
+		if (r->maxwidth)
+		    xf86DrvMsg(scrnIndex, X_INFO, "Maximum pixel width: %d\n",
+			       r->maxwidth);
+		xf86DrvMsg(scrnIndex, X_INFO, "Supported aspect ratios:");
+		if (r->supported_aspect & SUPPORTED_ASPECT_4_3)
+		    xf86ErrorF(" 4:3%s",
+			r->preferred_aspect == PREFERRED_ASPECT_4_3?"*":"");
+		if (r->supported_aspect & SUPPORTED_ASPECT_16_9)
+		    xf86ErrorF(" 16:9%s",
+			r->preferred_aspect == PREFERRED_ASPECT_16_9?"*":"");
+		if (r->supported_aspect & SUPPORTED_ASPECT_16_10)
+		    xf86ErrorF(" 16:10%s",
+			r->preferred_aspect == PREFERRED_ASPECT_16_10?"*":"");
+		if (r->supported_aspect & SUPPORTED_ASPECT_5_4)
+		    xf86ErrorF(" 5:4%s",
+			r->preferred_aspect == PREFERRED_ASPECT_5_4?"*":"");
+		if (r->supported_aspect & SUPPORTED_ASPECT_15_9)
+		    xf86ErrorF(" 15:9%s",
+			r->preferred_aspect == PREFERRED_ASPECT_15_9?"*":"");
 		xf86ErrorF("\n");
-	    if (m[i].section.ranges.gtf_2nd_f > 0)
+		xf86DrvMsg(scrnIndex, X_INFO, "Supported blankings:");
+		if (r->supported_blanking & CVT_STANDARD)
+		    xf86ErrorF(" standard");
+		if (r->supported_blanking & CVT_REDUCED)
+		    xf86ErrorF(" reduced");
+		xf86ErrorF("\n");
+		xf86DrvMsg(scrnIndex, X_INFO, "Supported scalings:");
+		if (r->supported_scaling & SCALING_HSHRINK)
+		    xf86ErrorF(" hshrink");
+		if (r->supported_scaling & SCALING_HSTRETCH)
+		    xf86ErrorF(" hstretch");
+		if (r->supported_scaling & SCALING_VSHRINK)
+		    xf86ErrorF(" vshrink");
+		if (r->supported_scaling & SCALING_VSTRETCH)
+		    xf86ErrorF(" vstretch");
+		xf86ErrorF("\n");
+		xf86DrvMsg(scrnIndex, X_INFO, "Preferred refresh rate: %d\n",
+			   r->preferred_refresh);
+	    } else if (r->max_clock != 0) {
+		xf86ErrorF(" PixClock max %i MHz\n", r->max_clock);
+	    } else {
+		xf86ErrorF("\n");
+	    }
+	    if (r->gtf_2nd_f > 0)
 		xf86DrvMsg(scrnIndex,X_INFO," 2nd GTF parameters: f: %i kHz "
-			   "c: %i m: %i k %i j %i\n",
-			   m[i].section.ranges.gtf_2nd_f,
-			   m[i].section.ranges.gtf_2nd_c,
-			   m[i].section.ranges.gtf_2nd_m,
-			   m[i].section.ranges.gtf_2nd_k,
-			   m[i].section.ranges.gtf_2nd_j);
+			   "c: %i m: %i k %i j %i\n", r->gtf_2nd_f,
+			   r->gtf_2nd_c, r->gtf_2nd_m, r->gtf_2nd_k,
+			   r->gtf_2nd_j);
 	    break;
+	}
 	case DS_STD_TIMINGS:
 	    for (j = 0; j<5; j++) 
 		xf86DrvMsg(scrnIndex,X_INFO,"#%i: hsize: %i  vsize %i  refresh: %i  "

@@ -70,6 +70,7 @@ struct EphyrHostXEvent
       int x;
       int y;
       int screen;
+      int window;
     } mouse_motion;
 
     struct mouse_down { 	
@@ -143,6 +144,9 @@ hostx_want_preexisting_window(EphyrScreenInfo screen);
 
 void
 hostx_use_preexisting_window(unsigned long win_id);
+
+void
+hostx_use_resname (char *name, int fromcmd);
 
 void 
 hostx_handle_signal(int signum);

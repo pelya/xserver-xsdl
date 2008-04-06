@@ -150,7 +150,7 @@ void
 DarwinPrintBanner(void)
 { 
   // this should change depending on which specific server we are building
-  ErrorF("XQuartz starting:\n");
+  ErrorF("Xquartz starting:\n");
   ErrorF("X.org Release 7.2\n"); // This is here to help fink until they fix their packages.
   ErrorF("X.Org X Server %s\nBuild Date: %s\n", XSERVER_VERSION, BUILD_DATE );
 }
@@ -353,24 +353,8 @@ static int DarwinMouseProc(
             InitPointerDeviceStruct( (DevicePtr)pPointer, map, 5,
 				     GetMotionHistory,
 				     (PtrCtrlProcPtr)NoopDDA,
-				     GetMotionHistorySize(), 2);
-
-#ifdef XINPUT
-            InitValuatorAxisStruct( pPointer,
-                                    0,     // X axis
-                                    0,     // min value
-                                    16000, // max value (fixme screen size?)
-                                    1,     // resolution (fixme ?)
-                                    1,     // min resolution
-                                    1 );   // max resolution
-            InitValuatorAxisStruct( pPointer,
-                                    1,     // X axis
-                                    0,     // min value
-                                    16000, // max value (fixme screen size?)
-                                    1,     // resolution (fixme ?)
-                                    1,     // min resolution
-                                    1 );   // max resolution
-#endif
+				     GetMotionHistorySize(), 5);
+	    InitProximityClassDeviceStruct( (DevicePtr)pPointer);
             break;
 
         case DEVICE_ON:
@@ -856,7 +840,7 @@ void ddxUseMsg( void )
  */
 void ddxGiveUp( void )
 {
-    ErrorF( "Quitting XQuartz...\n" );
+    ErrorF( "Quitting Xquartz...\n" );
 
     //if (!quartzRootless)
     //    quartzProcs->ReleaseScreens();
@@ -896,7 +880,7 @@ void AbortDDX( void )
  */
 
 void
-xf86SetRootClip (ScreenPtr pScreen, BOOL enable)
+xf86SetRootClip (ScreenPtr pScreen, int enable)
 {
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;

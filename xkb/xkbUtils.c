@@ -1799,6 +1799,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                   dsection = dst->geom->sections;
                  i < src->geom->num_sections;
                  i++, ssection++, dsection++) {
+                *dsection = *ssection;
                 if (ssection->num_rows) {
                     tmp = xcalloc(ssection->num_rows, sizeof(XkbRowRec));
                     if (!tmp)
@@ -1833,6 +1834,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     dsection->doodads = NULL;
                 }
 
+                dsection->sz_doodads = ssection->num_doodads;
                 for (k = 0,
                       sdoodad = ssection->doodads,
                       ddoodad = dsection->doodads;
@@ -1853,8 +1855,9 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     }
                     ddoodad->any.type = sdoodad->any.type;
                 }
-                dsection->num_doodads = ssection->num_doodads;
-                dsection->sz_doodads = ssection->num_doodads;
+                dsection->overlays = NULL;
+                dsection->sz_overlays = 0;
+                dsection->num_overlays = 0;
             }
         }
         else {

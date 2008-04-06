@@ -1093,7 +1093,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif

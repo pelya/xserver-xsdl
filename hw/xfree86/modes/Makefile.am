@@ -5,6 +5,7 @@ libxf86modes_a_SOURCES = \
 	xf86Crtc.h \
 	xf86Cursors.c \
 	xf86cvt.c \
+	xf86gtf.c \
 	xf86DiDGA.c \
 	xf86EdidModes.c \
 	xf86Modes.c \

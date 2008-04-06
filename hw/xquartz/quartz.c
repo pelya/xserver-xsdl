@@ -33,6 +33,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "inputstr.h"
 #include "quartz.h"
 #include "darwin.h"
 #include "darwinEvents.h"
@@ -231,17 +232,17 @@ RREditConnectionInfo (ScreenPtr pScreen)
 #endif
 
 /*
- * QuartzUpdateScreens
+ * QuartzDisplayChangeHandler
  *  Adjust for screen arrangement changes.
  */
-static void QuartzUpdateScreens(void)
+void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents)
 {
     ScreenPtr pScreen;
     WindowPtr pRoot;
     int x, y, width, height, sx, sy;
     xEvent e;
 
-    DEBUG_LOG("QuartzUpdateScreens()\n");
+    DEBUG_LOG("QuartzDisplayChangedHandler()\n");
     if (noPseudoramiXExtension || screenInfo.numScreens != 1)
     {
         /* FIXME: if not using Xinerama, we have multiple screens, and
@@ -266,7 +267,7 @@ static void QuartzUpdateScreens(void)
     
 #ifndef FAKE_RANDR
     if(!QuartzRandRInit(pScreen))
-      FatalError("Failed to init RandR extension.\n");
+        FatalError("Failed to init RandR extension.\n");
 #endif
 
     DarwinAdjustScreenOrigins(&screenInfo);
@@ -307,7 +308,7 @@ static void QuartzUpdateScreens(void)
  *  Calls mode specific screen resume to restore the X clip regions
  *  (if needed) and the X server cursor state.
  */
-static void QuartzShow(
+void QuartzShow(
     int x,      // cursor location
     int y )
 {
@@ -330,7 +331,7 @@ static void QuartzShow(
  *  hidden. Calls mode specific screen suspend to set X clip regions to
  *  prevent drawing (if needed) and restore the Aqua cursor.
  */
-static void QuartzHide(void)
+void QuartzHide(void)
 {
     int i;
 
@@ -349,7 +350,7 @@ static void QuartzHide(void)
  * QuartzSetRootClip
  *  Enable or disable rendering to the X screen.
  */
-static void QuartzSetRootClip(
+void QuartzSetRootClip(
     BOOL enable)
 {
     int i;
@@ -364,137 +365,11 @@ static void QuartzSetRootClip(
     }
 }
 
-
-/*
- * QuartzMessageServerThread
- *  Send the X server thread a message by placing it on the event queue.
+/* 
+ * QuartzSpaceChanged
+ *  Unmap offscreen windows, map onscreen windows
  */
-void
-QuartzMessageServerThread(
-    int type,
-    int argc, ...)
-{
-    xEvent xe;
-    INT32 *argv;
-    int i, max_args;
-    va_list args;
-
-    memset(&xe, 0, sizeof(xe));
-    xe.u.u.type = type;
-    xe.u.clientMessage.u.l.type = type;
-
-    argv = &xe.u.clientMessage.u.l.longs0;
-    max_args = 4;
-
-    if (argc > 0 && argc <= max_args) {
-        va_start (args, argc);
-        for (i = 0; i < argc; i++)
-            argv[i] = (int) va_arg (args, int);
-        va_end (args);
-    }
-
-    DarwinEQEnqueue(&xe);
-}
-
-
-/*
- * QuartzProcessEvent
- *  Process Quartz specific events.
- */
-void QuartzProcessEvent(xEvent *xe) {
-    switch (xe->u.u.type) {
-        case kXDarwinControllerNotify:
-            DEBUG_LOG("kXDarwinControllerNotify\n");
-            AppleWMSendEvent(AppleWMControllerNotify,
-                             AppleWMControllerNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXDarwinPasteboardNotify:
-            DEBUG_LOG("kXDarwinPasteboardNotify\n");
-            AppleWMSendEvent(AppleWMPasteboardNotify,
-                             AppleWMPasteboardNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXDarwinActivate:
-            DEBUG_LOG("kXDarwinActivate\n");
-            QuartzShow(xe->u.keyButtonPointer.rootX,
-                       xe->u.keyButtonPointer.rootY);
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsActive, 0);
-            break;
-
-        case kXDarwinDeactivate:
-            DEBUG_LOG("kXDarwinDeactivate\n");
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsInactive, 0);
-            QuartzHide();
-            break;
-
-        case kXDarwinDisplayChanged:
-            DEBUG_LOG("kXDarwinDisplayChanged\n");
-            QuartzUpdateScreens();
-            break;
-
-        case kXDarwinWindowState:
-            DEBUG_LOG("kXDarwinWindowState\n");
-            RootlessNativeWindowStateChanged(xe->u.clientMessage.u.l.longs0,
-		  			     xe->u.clientMessage.u.l.longs1);
-	    break;
-	  
-        case kXDarwinWindowMoved:
-            DEBUG_LOG("kXDarwinWindowMoved\n");
-            RootlessNativeWindowMoved ((WindowPtr)xe->u.clientMessage.u.l.longs0);
-	    break;
-
-        case kXDarwinToggleFullscreen:
-            DEBUG_LOG("kXDarwinToggleFullscreen\n");
-#ifdef DARWIN_DDX_MISSING
-            if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
-            else if (quartzHasRoot) QuartzHide();
-            else QuartzShow();
-#else
-    //	    ErrorF("kXDarwinToggleFullscreen not implemented\n");
-#endif
-            break;
-
-        case kXDarwinSetRootless:
-            DEBUG_LOG("kXDarwinSetRootless\n");
-#ifdef DARWIN_DDX_MISSING
-            QuartzSetRootless(xe->u.clientMessage.u.l.longs0);
-            if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
-#else
-    //	    ErrorF("kXDarwinSetRootless not implemented\n");
-#endif
-            break;
-
-        case kXDarwinSetRootClip:
-            QuartzSetRootClip((BOOL)xe->u.clientMessage.u.l.longs0);
-            break;
-
-        case kXDarwinQuit:
-            GiveUp(0);
-            break;
-
-        case kXDarwinReadPasteboard:
-            QuartzReadPasteboard();
-            break;
-
-        case kXDarwinWritePasteboard:
-            QuartzWritePasteboard();
-            break;
-
-        case kXDarwinBringAllToFront:
-            DEBUG_LOG("kXDarwinBringAllToFront\n");
-            RootlessOrderAllWindows();
-            break;
-
-        default:
-            ErrorF("Unknown application defined event type %d.\n", xe->u.u.type);
-    }
+void QuartzSpaceChanged(uint32_t space_id) {
+    /* Do something special here, so we don't depend on quartz-wm for spaces to work... */
+    DEBUG_LOG("Space Changed (%u) ... do something interesting...\n", space_id);
 }

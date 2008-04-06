@@ -38,7 +38,7 @@ int QuartzMoveToForeground() {
    ProcessSerialNumber psn = { 0, kCurrentProcess };
    OSStatus returnCode = TransformProcessType(& psn, kProcessTransformToForegroundApplication);
    if( returnCode == 0) {
-       fprintf(stderr, "TransformProcessType: Success\n");
+       /* fprintf(stderr, "TransformProcessType: Success\n"); */
        SetFrontProcess(&psn);
    } else {
        fprintf(stderr, "TransformProcessType: Failure\n");

@@ -38,6 +38,8 @@
 #include "xf86Module.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
+#include "region.h" 
+#include "damage.h" 
 #include "dri2.h"
 #include <GL/internal/dri_sarea.h>
 
@@ -48,8 +50,9 @@ static DevPrivateKey dri2WindowPrivateKey = &dri2WindowPrivateKey;
 static DevPrivateKey dri2PixmapPrivateKey = &dri2PixmapPrivateKey;
 
 typedef struct _DRI2DrawablePriv {
-    drm_drawable_t		 drawable;
-    unsigned int		 handle;
+    unsigned int		 refCount;
+    unsigned int		 boHandle;
+    unsigned int		 dri2Handle;
 } DRI2DrawablePrivRec, *DRI2DrawablePrivPtr;
 
 typedef struct _DRI2Screen {
@@ -58,9 +61,7 @@ typedef struct _DRI2Screen {
     void			*sarea;
     unsigned int		 sareaSize;
     const char			*driverName;
-    int				 ddxVersionMajor;
-    int				 ddxVersionMinor;
-    int				 ddxVersionPatch;
+    unsigned int		 nextHandle;
 
     __DRIEventBuffer		*buffer;
     int				 locked;
@@ -150,7 +151,7 @@ DRI2PostDrawableConfig(DrawablePtr pDraw)
 
     e = DRI2ScreenAllocEvent(ds, size);
     e->event_header = DRI2_EVENT_HEADER(DRI2_EVENT_DRAWABLE_CONFIG, size);
-    e->drawable = pPriv->drawable;
+    e->drawable = pPriv->dri2Handle;
     e->x = pDraw->x - pPixmap->screen_x;
     e->y = pDraw->y - pPixmap->screen_y;
     e->width = pDraw->width;
@@ -167,7 +168,7 @@ DRI2PostDrawableConfig(DrawablePtr pDraw)
 }
 
 static void
-DRI2PostBufferAttach(DrawablePtr pDraw)
+DRI2PostBufferAttach(DrawablePtr pDraw, Bool force)
 {
     ScreenPtr			 pScreen = pDraw->pScreen;
     DRI2ScreenPtr		 ds = DRI2GetScreen(pScreen);
@@ -176,7 +177,8 @@ DRI2PostBufferAttach(DrawablePtr pDraw)
     PixmapPtr			 pPixmap;
     __DRIBufferAttachEvent	*e;
     size_t			 size;
-    unsigned int		 handle, flags;
+    unsigned int		 flags;
+    unsigned int		 boHandle;
 
     if (pDraw->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr) pDraw;
@@ -190,22 +192,20 @@ DRI2PostBufferAttach(DrawablePtr pDraw)
     if (!pPriv)
 	return;
 
-    size = sizeof *e;
-
-    handle = ds->getPixmapHandle(pPixmap, &flags);
-    if (handle == 0 || handle == pPriv->handle)
+    boHandle = ds->getPixmapHandle(pPixmap, &flags);
+    if (boHandle == pPriv->boHandle && !force)
 	return;
 
+    pPriv->boHandle = boHandle;
+    size = sizeof *e;
     e = DRI2ScreenAllocEvent(ds, size);
     e->event_header = DRI2_EVENT_HEADER(DRI2_EVENT_BUFFER_ATTACH, size);
-    e->drawable = pPriv->drawable;
+    e->drawable = pPriv->dri2Handle;
     e->buffer.attachment = DRI_DRAWABLE_BUFFER_FRONT_LEFT;
-    e->buffer.handle = handle;
+    e->buffer.handle = pPriv->boHandle;
     e->buffer.pitch = pPixmap->devKind;
     e->buffer.cpp = pPixmap->drawable.bitsPerPixel / 8;
     e->buffer.flags = flags;
-
-    pPriv->handle = handle;
 }
 
 static void
@@ -226,7 +226,7 @@ DRI2ClipNotify(WindowPtr pWin, int dx, int dy)
     }
 
     DRI2PostDrawableConfig(&pWin->drawable);
-    DRI2PostBufferAttach(&pWin->drawable);
+    DRI2PostBufferAttach(&pWin->drawable, FALSE);
 }
 
 static void
@@ -265,10 +265,10 @@ DRI2CloseScreen(ScreenPtr pScreen)
 }
 
 Bool
-DRI2CreateDrawable(ScreenPtr pScreen,
-		   DrawablePtr pDraw, drm_drawable_t *pDrmDrawable)
+DRI2CreateDrawable(DrawablePtr pDraw,
+		   unsigned int *handle, unsigned int *head)
 {
-    DRI2ScreenPtr	ds = DRI2GetScreen(pScreen);
+    DRI2ScreenPtr	ds = DRI2GetScreen(pDraw->pScreen);
     WindowPtr		pWin;
     PixmapPtr		pPixmap;
     DRI2DrawablePrivPtr pPriv;
@@ -286,51 +286,70 @@ DRI2CreateDrawable(ScreenPtr pScreen,
     }
 
     pPriv = dixLookupPrivate(devPrivates, key);
-    if (pPriv == NULL) {
+    if (pPriv != NULL) {
+	pPriv->refCount++;
+    } else {
 	pPriv = xalloc(sizeof *pPriv);
-	if (drmCreateDrawable(ds->fd, &pPriv->drawable))
-	    return FALSE;
-
+	pPriv->refCount = 1;
+	pPriv->boHandle = 0;
+	pPriv->dri2Handle = ds->nextHandle++;
 	dixSetPrivate(devPrivates, key, pPriv);
     }
 
-    *pDrmDrawable = pPriv->drawable;
+    *handle = pPriv->dri2Handle;
+    *head = ds->buffer->head;
 
     DRI2PostDrawableConfig(pDraw);
-    DRI2PostBufferAttach(pDraw);
+    DRI2PostBufferAttach(pDraw, TRUE);
     DRI2ScreenCommitEvents(ds);
 
     return TRUE;
 }
 
 void
-DRI2DestroyDrawable(ScreenPtr pScreen, DrawablePtr pDraw)
+DRI2DestroyDrawable(DrawablePtr pDraw)
 {
-    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
-    PixmapPtr pPixmap;
-    WindowPtr pWin;
-    DRI2DrawablePrivPtr pPriv;
+    PixmapPtr		  pPixmap;
+    WindowPtr		  pWin;
+    DRI2DrawablePrivPtr   pPriv;
+    DevPrivateKey	  key;
+    PrivateRec		**devPrivates;
 
     if (pDraw->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr) pDraw;
-	pPriv = dixLookupPrivate(&pWin->devPrivates, dri2WindowPrivateKey);
-	dixSetPrivate(&pWin->devPrivates, dri2WindowPrivateKey, NULL);
+	devPrivates = &pWin->devPrivates;
+	key = dri2WindowPrivateKey;
     } else {
 	pPixmap = (PixmapPtr) pDraw;
-	pPriv = dixLookupPrivate(&pPixmap->devPrivates, dri2PixmapPrivateKey);
-	dixSetPrivate(&pPixmap->devPrivates, dri2PixmapPrivateKey, NULL);
+	devPrivates = &pPixmap->devPrivates;
+	key = dri2PixmapPrivateKey;
     }
 
+    pPriv = dixLookupPrivate(devPrivates, key);
     if (pPriv == NULL)
 	return;
     
-    drmDestroyDrawable(ds->fd, pPriv->drawable);
-    xfree(pPriv);
+    pPriv->refCount--;
+    if (pPriv->refCount == 0) {
+	dixSetPrivate(devPrivates, key, NULL);
+	xfree(pPriv);
+    }
+}
+
+void
+DRI2ReemitDrawableInfo(DrawablePtr pDraw, unsigned int *head)
+{
+    DRI2ScreenPtr ds = DRI2GetScreen(pDraw->pScreen);
+
+    *head = ds->buffer->head;
+
+    DRI2PostDrawableConfig(pDraw);
+    DRI2PostBufferAttach(pDraw, TRUE);
+    DRI2ScreenCommitEvents(ds);
 }
 
 Bool
 DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
-	    int *ddxMajor, int *ddxMinor, int *ddxPatch,
 	    unsigned int *sareaHandle)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
@@ -340,10 +359,18 @@ DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
 
     *fd = ds->fd;
     *driverName = ds->driverName;
-    *ddxMajor = ds->ddxVersionMajor;
-    *ddxMinor = ds->ddxVersionMinor;
-    *ddxPatch = ds->ddxVersionPatch;
     *sareaHandle = ds->sareaBO.handle;
+
+    return TRUE;
+}
+
+Bool
+DRI2AuthConnection(ScreenPtr pScreen, drm_magic_t magic)
+{
+    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
+
+    if (ds == NULL || drmAuthMagic(ds->fd, magic))
+	return FALSE;
 
     return TRUE;
 }
@@ -404,11 +431,9 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     if (!ds)
 	return NULL;
 
-    ds->fd = info->fd;
+    ds->fd			= info->fd;
     ds->driverName		= info->driverName;
-    ds->ddxVersionMajor		= info->ddxVersionMajor;
-    ds->ddxVersionMinor		= info->ddxVersionMinor;
-    ds->ddxVersionPatch		= info->ddxVersionPatch;
+    ds->nextHandle		= 1;
 
     ds->getPixmapHandle		= info->getPixmapHandle;
     ds->beginClipNotify		= info->beginClipNotify;
@@ -432,9 +457,21 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     return p;
 }
 
+extern ExtensionModule dri2ExtensionModule;
+
 static pointer
 DRI2Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
+    static Bool setupDone = FALSE;
+
+    if (!setupDone) {
+	setupDone = TRUE;
+	LoadExtension(&dri2ExtensionModule, FALSE);
+    } else {
+	if (errmaj)
+	    *errmaj = LDR_ONCEONLY;
+    }
+
     return (pointer) 1;
 }
 

@@ -127,10 +127,9 @@ CheckMode(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock *vbe, int id,
 {
     CARD16 major;
     VbeModeInfoBlock *mode;
-    DisplayModePtr pMode, p;
+    DisplayModePtr pMode;
     VbeModeInfoData *data;
     Bool modeOK = FALSE;
-    ModeStatus status = MODE_OK;
 
     major = (unsigned)(vbe->VESAVersion >> 8);
 

@@ -40,8 +40,6 @@
 **
 */
 
-#include "GL/internal/glcore.h"
-
 typedef struct __GLXtextureFromPixmap __GLXtextureFromPixmap;
 struct __GLXtextureFromPixmap {
     int (*bindTexImage)		(__GLXcontext  *baseContext,
@@ -77,9 +75,9 @@ struct __GLXcontext {
     __GLXcontext *nextReadPriv;
 
     /*
-    ** mode struct for this context
+    ** config struct for this context
     */
-    __GLcontextModes *modes;
+    __GLXconfig *config;
 
     /*
     ** Pointer to screen info data for this context.  This is set

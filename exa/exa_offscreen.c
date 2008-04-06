@@ -71,6 +71,64 @@ ExaOffscreenKickOut (ScreenPtr pScreen, ExaOffscreenArea *area)
     return exaOffscreenFree (pScreen, area);
 }
 
+#define AREA_SCORE(area) (area->size / (double)(pExaScr->offScreenCounter - area->last_use))
+
+static ExaOffscreenArea *
+exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
+{
+    ExaOffscreenArea *begin, *end, *best;
+    double score, best_score;
+    int avail, real_size, tmp;
+
+    best_score = UINT_MAX;
+    begin = end = pExaScr->info->offScreenAreas;
+    avail = 0;
+    score = 0;
+    best = 0;
+
+    while (end != NULL)
+    {
+	restart:
+	while (begin != NULL && begin->state == ExaOffscreenLocked)
+	    begin = end = begin->next;
+
+	if (begin == NULL)
+	    break;
+
+	/* adjust size needed to account for alignment loss for this area */
+	real_size = size;
+	tmp = begin->base_offset % align;
+	if (tmp)
+	    real_size += (align - tmp);
+
+	while (avail < real_size && end != NULL)
+	{
+	    if (end->state == ExaOffscreenLocked) {
+		/* Can't more room here, restart after this locked area */
+		avail = 0;
+		score = 0;
+		begin = end;
+		goto restart;
+	    }
+	    avail += end->size;
+	    score += AREA_SCORE(end);
+	    end = end->next;
+	}
+
+	/* Check the score, update best */
+	if (avail >= real_size && score < best_score) {
+	    best = begin;
+	    best_score = score;
+	}
+
+	avail -= begin->size;
+	score -= AREA_SCORE(begin);
+	begin = begin->next;
+    }
+
+    return best;
+}
+
 /**
  * exaOffscreenAlloc allocates offscreen memory
  *
@@ -96,9 +154,9 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
                    ExaOffscreenSaveProc save,
                    pointer privData)
 {
-    ExaOffscreenArea *area, *begin, *best;
+    ExaOffscreenArea *area;
     ExaScreenPriv (pScreen);
-    int tmp, real_size = 0, best_score;
+    int tmp, real_size = 0;
 #if DEBUG_OFFSCREEN
     static int number = 0;
     ErrorF("================= ============ allocating a new pixmap %d\n", ++number);
@@ -143,53 +201,8 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
     if (!area)
     {
-	/*
-	 * Kick out existing users to make space.
-	 *
-	 * First, locate a region which can hold the desired object.
-	 */
+	area = exaFindAreaToEvict(pExaScr, size, align);
 
-	/* prev points at the first object to boot */
-	best = NULL;
-	best_score = INT_MAX;
-	for (begin = pExaScr->info->offScreenAreas; begin != NULL;
-	     begin = begin->next)
-	{
-	    int avail, score;
-	    ExaOffscreenArea *scan;
-
-	    if (begin->state == ExaOffscreenLocked)
-		continue;
-
-	    /* adjust size needed to account for alignment loss for this area */
-	    real_size = size;
-	    tmp = begin->base_offset % align;
-	    if (tmp)
-		real_size += (align - tmp);
-
-	    avail = 0;
-	    score = 0;
-	    /* now see if we can make room here, and how "costly" it'll be. */
-	    for (scan = begin; scan != NULL; scan = scan->next)
-	    {
-		if (scan->state == ExaOffscreenLocked) {
-		    /* Can't make room here, start after this locked area. */
-		    begin = scan;
-		    break;
-		}
-		/* Score should only be non-zero for ExaOffscreenRemovable */
-		score += scan->score;
-		avail += scan->size;
-		if (avail >= real_size)
-		    break;
-	    }
-	    /* Is it the best option we've found so far? */
-	    if (avail >= real_size && score < best_score) {
-		best = begin;
-		best_score = score;
-	    }
-	}
-	area = best;
 	if (!area)
 	{
 	    DBG_OFFSCREEN (("Alloc 0x%x -> NOSPACE\n", size));
@@ -230,7 +243,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	new_area->size = area->size - real_size;
 	new_area->state = ExaOffscreenAvail;
 	new_area->save = NULL;
-	new_area->score = 0;
+	new_area->last_use = 0;
 	new_area->next = area->next;
 	area->next = new_area;
 	area->size = real_size;
@@ -244,7 +257,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	area->state = ExaOffscreenRemovable;
     area->privData = privData;
     area->save = save;
-    area->score = 0;
+    area->last_use = pExaScr->offScreenCounter++;
     area->offset = (area->base_offset + align - 1);
     area->offset -= area->offset % align;
 
@@ -395,7 +408,7 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
 
     area->state = ExaOffscreenAvail;
     area->save = NULL;
-    area->score = 0;
+    area->last_use = 0;
     /*
      * Find previous area
      */
@@ -427,23 +440,11 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
     ExaScreenPriv (pPixmap->drawable.pScreen);
-    static int iter = 0;
 
     if (!pExaPixmap || !pExaPixmap->area)
 	return;
 
-    /* The numbers here are arbitrary.  We may want to tune these. */
-    pExaPixmap->area->score += 100;
-    if (++iter == 10) {
-	ExaOffscreenArea *area;
-	for (area = pExaScr->info->offScreenAreas; area != NULL;
-	     area = area->next)
-	{
-	    if (area->state == ExaOffscreenRemovable)
-		area->score = (area->score * 7) / 8;
-	}
-	iter = 0;
-    }
+    pExaPixmap->area->last_use = pExaScr->offScreenCounter++;
 }
 
 /**
@@ -472,10 +473,11 @@ exaOffscreenInit (ScreenPtr pScreen)
     area->size = pExaScr->info->memorySize - area->base_offset;
     area->save = NULL;
     area->next = NULL;
-    area->score = 0;
+    area->last_use = 0;
 
     /* Add it to the free areas */
     pExaScr->info->offScreenAreas = area;
+    pExaScr->offScreenCounter = 1;
 
     ExaOffscreenValidate (pScreen);
 

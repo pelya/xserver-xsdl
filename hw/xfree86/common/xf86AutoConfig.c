@@ -82,7 +82,6 @@ static int builtinLines = 0;
 static const char *deviceList[] = {
 	"fbdev",
 	"vesa",
-	"vga",
 	NULL
 };
 
@@ -141,12 +140,13 @@ videoPtrToDriverName(struct pci_device *dev)
 {
     /*
      * things not handled yet:
-     * amd/cyrix/nsc
-     * xgi
+     * cyrix/nsc.  should be merged into geode anyway.
+     * xgi.
      */
 
     switch (dev->vendor_id)
     {
+	case 0x1022:		    return "amd";
 	case 0x1142:		    return "apm";
 	case 0xedd8:		    return "ark";
 	case 0x1a03:		    return "ast";
@@ -436,9 +436,10 @@ chooseVideoDriver(void)
     if (!info) {
 	ErrorF("Primary device is not PCI\n");
     }
-
 #ifdef __linux__
-    matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+    else {
+	matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+    }
 #endif /* __linux__ */
 
     /* TODO Handle multiple drivers claiming to support the same PCI ID */
@@ -450,8 +451,6 @@ chooseVideoDriver(void)
 	if (chosen_driver == NULL) {
 #if defined  __i386__ || defined __amd64__ || defined __hurd__
 	    chosen_driver = "vesa";
-#elif defined __alpha__
-	    chosen_driver = "vga";
 #elif defined __sparc__
 	    chosen_driver = "sunffb";
 #else

@@ -37,6 +37,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <libaudit.h>
 
 #include <X11/Xatom.h>
+#include "globals.h"
 #include "resource.h"
 #include "privates.h"
 #include "registry.h"
@@ -60,31 +61,36 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Globals
  */
 
-/* private state record */
+/* private state keys */
 static DevPrivateKey subjectKey = &subjectKey;
 static DevPrivateKey objectKey = &objectKey;
+static DevPrivateKey dataKey = &dataKey;
 
-/* This is what we store for security state */
+/* subject state (clients and devices only) */
 typedef struct {
     security_id_t sid;
+    security_id_t dev_create_sid;
+    security_id_t win_create_sid;
+    security_id_t sel_create_sid;
+    security_id_t prp_create_sid;
+    security_id_t sel_use_sid;
+    security_id_t prp_use_sid;
     struct avc_entry_ref aeref;
     char *command;
     int privileged;
 } SELinuxSubjectRec;
 
+/* object state */
 typedef struct {
     security_id_t sid;
     int poly;
 } SELinuxObjectRec;
 
-/* selection manager */
+/* selection and property atom cache */
 typedef struct {
-    Atom selection;
-    security_id_t sid;
-} SELinuxSelectionRec;
-
-static ClientPtr securityManager;
-static Window securityWindow;
+    SELinuxObjectRec prp;
+    SELinuxObjectRec sel;
+} SELinuxAtomRec;
 
 /* audit file descriptor */
 static int audit_fd;
@@ -123,9 +129,9 @@ static unsigned numKnownTypes;
 static security_id_t *knownEvents;
 static unsigned numKnownEvents;
 
-/* Array of selection SID structures */
-static SELinuxSelectionRec *knownSelections;
-static unsigned numKnownSelections;
+/* Array of property and selection SID structures */
+static SELinuxAtomRec *knownAtoms;
+static unsigned numKnownAtoms;
 
 /* dynamically allocated security classes and permissions */
 static struct security_class_mapping map[] = {
@@ -134,8 +140,8 @@ static struct security_class_mapping map[] = {
     { "x_gc", { "", "", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_font", { "", "", "destroy", "create", "getattr", "", "", "", "", "", "", "", "add_glyph", "remove_glyph", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_colormap", { "read", "write", "destroy", "create", "getattr", "", "", "", "", "", "", "", "add_color", "remove_color", "", "", "", "", "", "", "install", "uninstall", "", "", "use", NULL }},
-    { "x_property", { "read", "write", "destroy", "create", "getattr", "setattr", NULL }},
-    { "x_selection", { "read", "", "", "", "getattr", "setattr", NULL }},
+    { "x_property", { "read", "write", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "write", NULL }},
+    { "x_selection", { "read", "", "", "setattr", "getattr", "setattr", NULL }},
     { "x_cursor", { "read", "write", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_client", { "", "", "destroy", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "manage", NULL }},
     { "x_device", { "read", "write", "", "", "getattr", "setattr", "", "", "", "getfocus", "setfocus", "", "", "", "", "", "", "grab", "freeze", "force_cursor", "", "", "", "", "use", "manage", "", "bell", NULL }},
@@ -146,6 +152,12 @@ static struct security_class_mapping map[] = {
     { "x_resource", { "read", "write", "write", "write", "read", "write", "read", "read", "write", "read", "write", "read", "write", "write", "write", "read", "read", "write", "write", "write", "write", "write", "write", "read", "read", "write", "read", "write", NULL }},
     { NULL }
 };
+
+/* x_resource "read" bits from the list above */
+#define SELinuxReadMask (DixReadAccess|DixGetAttrAccess|DixListPropAccess| \
+			 DixGetPropAccess|DixGetFocusAccess|DixListAccess| \
+			 DixShowAccess|DixBlendAccess|DixReceiveAccess| \
+			 DixUseAccess|DixDebugAccess)
 
 /* forward declarations */
 static void SELinuxScreen(CallbackListPtr *, pointer, pointer);
@@ -159,48 +171,164 @@ static pointer truep = (pointer)1;
  */
 
 /*
- * Looks up the SID corresponding to the given selection atom
+ * Looks up a name in the selection or property mappings
  */
 static int
-SELinuxSelectionToSID(Atom selection, SELinuxObjectRec *sid_return)
+SELinuxAtomToSIDLookup(Atom atom, SELinuxObjectRec *obj, int map, int polymap)
 {
-    const char *name;
-    unsigned i, size;
+    const char *name = NameForAtom(atom);
+    security_context_t ctx;
+    int rc = Success;
 
-    for (i = 0; i < numKnownSelections; i++)
-	if (knownSelections[i].selection == selection) {
-	    sid_return->sid = knownSelections[i].sid;
-	    return Success;
-	}
+    obj->poly = 1;
 
-    /* Need to increase size of array */
-    i = numKnownSelections;
-    size = (i + 1) * sizeof(SELinuxSelectionRec);
-    knownSelections = xrealloc(knownSelections, size);
-    if (!knownSelections)
-	return BadAlloc;
-    knownSelections[i].selection = selection;
+    /* Look in the mappings of names to contexts */
+    if (selabel_lookup(label_hnd, &ctx, name, map) == 0) {
+	obj->poly = 0;
+    } else if (errno != ENOENT) {
+	ErrorF("SELinux: a property label lookup failed!\n");
+	return BadValue;
+    } else if (selabel_lookup(label_hnd, &ctx, name, polymap) < 0) {
+	ErrorF("SELinux: a property label lookup failed!\n");
+	return BadValue;
+    }
 
-    /* Look in the mappings of selection names to contexts */
-    name = NameForAtom(selection);
-    if (name) {
-	security_context_t con;
-	security_id_t sid;
+    /* Get a SID for context */
+    if (avc_context_to_sid(ctx, &obj->sid) < 0) {
+	ErrorF("SELinux: a context_to_SID call failed!\n");
+	rc = BadAlloc;
+    }
 
-	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_SELN) < 0) {
-	    ErrorF("SELinux: a selection label lookup failed!\n");
+    freecon(ctx);
+    return rc;
+}
+
+/*
+ * Looks up the SID corresponding to the given property or selection atom
+ */
+static int
+SELinuxAtomToSID(Atom atom, int prop, SELinuxObjectRec **obj_rtn)
+{
+    SELinuxObjectRec *obj;
+    int rc, map, polymap;
+
+    if (atom >= numKnownAtoms) {
+	/* Need to increase size of atoms array */
+	unsigned size = sizeof(SELinuxAtomRec);
+	knownAtoms = xrealloc(knownAtoms, (atom + 1) * size);
+	if (!knownAtoms)
+	    return BadAlloc;
+	memset(knownAtoms + numKnownAtoms, 0,
+	       (atom - numKnownAtoms + 1) * size);
+	numKnownAtoms = atom + 1;
+    }
+
+    if (prop) {
+	obj = &knownAtoms[atom].prp;
+	map = SELABEL_X_PROP;
+	polymap = SELABEL_X_POLYPROP;
+    } else {
+	obj = &knownAtoms[atom].sel;
+	map = SELABEL_X_SELN;
+	polymap = SELABEL_X_POLYSELN;
+    }
+
+    if (!obj->sid) {
+	rc = SELinuxAtomToSIDLookup(atom, obj, map, polymap);
+	if (rc != Success)
+	    goto out;
+    }
+
+    *obj_rtn = obj;
+    rc = Success;
+out:
+    return rc;
+}
+
+/*
+ * Looks up a SID for a selection/subject pair
+ */
+static int
+SELinuxSelectionToSID(Atom selection, SELinuxSubjectRec *subj,
+		      security_id_t *sid_rtn, int *poly_rtn)
+{
+    int rc;
+    SELinuxObjectRec *obj;
+    security_id_t tsid;
+
+    /* Get the default context and polyinstantiation bit */
+    rc = SELinuxAtomToSID(selection, 0, &obj);
+    if (rc != Success)
+	return rc;
+
+    /* Check for an override context next */
+    if (subj->sel_use_sid) {
+	sidget(tsid = subj->sel_use_sid);
+	goto out;
+    }
+
+    sidget(tsid = obj->sid);
+
+    /* Polyinstantiate if necessary to obtain the final SID */
+    if (obj->poly) {
+	sidput(tsid);
+	if (avc_compute_member(subj->sid, obj->sid,
+			       SECCLASS_X_SELECTION, &tsid) < 0) {
+	    ErrorF("SELinux: a compute_member call failed!\n");
 	    return BadValue;
 	}
-	/* Get a SID for context */
-	if (avc_context_to_sid(con, &sid) < 0) {
-	    ErrorF("SELinux: a context_to_SID call failed!\n");
-	    return BadAlloc;
-	}
-	freecon(con);
-	knownSelections[i].sid = sid_return->sid = sid;
-    } else
-	knownSelections[i].sid = sid_return->sid = unlabeled_sid;
+    }
+out:
+    *sid_rtn = tsid;
+    if (poly_rtn)
+	*poly_rtn = obj->poly;
+    return Success;
+}
 
+/*
+ * Looks up a SID for a property/subject pair
+ */
+static int
+SELinuxPropertyToSID(Atom property, SELinuxSubjectRec *subj,
+		     security_id_t *sid_rtn, int *poly_rtn)
+{
+    int rc;
+    SELinuxObjectRec *obj;
+    security_id_t tsid, tsid2;
+
+    /* Get the default context and polyinstantiation bit */
+    rc = SELinuxAtomToSID(property, 1, &obj);
+    if (rc != Success)
+	return rc;
+
+    /* Check for an override context next */
+    if (subj->prp_use_sid) {
+	sidget(tsid = subj->prp_use_sid);
+	goto out;
+    }
+
+    /* Perform a transition */
+    if (avc_compute_create(subj->sid, obj->sid,
+			   SECCLASS_X_PROPERTY, &tsid) < 0) {
+	ErrorF("SELinux: a compute_create call failed!\n");
+	return BadValue;
+    }
+
+    /* Polyinstantiate if necessary to obtain the final SID */
+    if (obj->poly) {
+	tsid2 = tsid;
+	if (avc_compute_member(subj->sid, tsid2,
+			       SECCLASS_X_PROPERTY, &tsid) < 0) {
+	    ErrorF("SELinux: a compute_member call failed!\n");
+	    sidput(tsid2);
+	    return BadValue;
+	}
+	sidput(tsid2);
+    }
+out:
+    *sid_rtn = tsid;
+    if (poly_rtn)
+	*poly_rtn = obj->poly;
     return Success;
 }
 
@@ -383,8 +511,7 @@ finish:
 	FatalError("SELinux: client %d: context_to_sid(%s) failed\n",
 		   client->index, ctx);
 
-    sidget(subj->sid);
-    obj->sid = subj->sid;
+    sidget(obj->sid = subj->sid);
     freecon(ctx);
 }
 
@@ -415,8 +542,7 @@ SELinuxLabelInitial(void)
     if (avc_context_to_sid(ctx, &subj->sid) < 0)
 	FatalError("SELinux: serverClient: context_to_sid(%s) failed\n", ctx);
 
-    sidget(subj->sid);
-    obj->sid = subj->sid;
+    sidget(obj->sid = subj->sid);
     freecon(ctx);
 
     srec.client = serverClient;
@@ -432,6 +558,44 @@ SELinuxLabelInitial(void)
 	dixLookupResource(&unused, screenInfo.screens[i]->defColormap,
 			  RT_COLORMAP, serverClient, DixCreateAccess);
     }
+}
+
+/*
+ * Labels new resource objects.
+ */
+static int
+SELinuxLabelResource(XaceResourceAccessRec *rec, SELinuxSubjectRec *subj,
+		     SELinuxObjectRec *obj, security_class_t class)
+{
+    int offset;
+    security_id_t tsid;
+
+    /* Check for a create context */
+    if (rec->rtype == RT_WINDOW && subj->win_create_sid) {
+	sidget(obj->sid = subj->win_create_sid);
+	return Success;
+    }
+
+    if (rec->parent)
+	offset = dixLookupPrivateOffset(rec->ptype);
+
+    if (rec->parent && offset >= 0) {
+	/* Use the SID of the parent object in the labeling operation */
+	PrivateRec **privatePtr = DEVPRIV_AT(rec->parent, offset);
+	SELinuxObjectRec *pobj = dixLookupPrivate(privatePtr, objectKey);
+	tsid = pobj->sid;
+    } else {
+	/* Use the SID of the subject */
+	tsid = subj->sid;
+    }
+
+    /* Perform a transition to obtain the final SID */
+    if (avc_compute_create(subj->sid, tsid, class, &obj->sid) < 0) {
+	ErrorF("SELinux: a compute_create call failed!\n");
+	return BadValue;
+    }
+
+    return Success;
 }
 
 
@@ -497,6 +661,7 @@ SELinuxLog(int type, const char *fmt, ...)
     vsnprintf(buf, MAX_AUDIT_MESSAGE_LENGTH, fmt, ap);
     rc = audit_log_user_avc_message(audit_fd, aut, buf, NULL, NULL, NULL, 0);
     va_end(ap);
+    LogMessageVerb(X_WARNING, 0, "%s", buf);
     return 0;
 }
 
@@ -524,11 +689,26 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	sidput(dsubj->sid);
 	sidput(obj->sid);
 
-	/* Label the device directly with the process SID */
-	sidget(subj->sid);
-	obj->sid = subj->sid;
-	sidget(subj->sid);
-	dsubj->sid = subj->sid;
+	if (subj->dev_create_sid) {
+	    /* Label the device with the create context */
+	    sidget(obj->sid = subj->dev_create_sid);
+	    sidget(dsubj->sid = subj->dev_create_sid);
+	} else {
+	    /* Label the device directly with the process SID */
+	    sidget(obj->sid = subj->sid);
+	    sidget(dsubj->sid = subj->sid);
+	}
+    }
+
+    /* XXX only check read permission on XQueryKeymap */
+    /* This is to allow the numerous apps that call XQueryPointer to work */
+    if (rec->access_mode & DixReadAccess) {
+	ClientPtr client = rec->client;
+	REQUEST(xReq);
+	if (stuff && stuff->reqType != X_QueryKeymap) {
+	    rec->access_mode &= ~DixReadAccess;
+	    rec->access_mode |= DixGetAttrAccess;
+	}
     }
 
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DEVICE, rec->access_mode,
@@ -673,55 +853,129 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 }
 
 static void
+SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    XaceSelectionAccessRec *rec = calldata;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj, *data;
+    Selection *pSel = *rec->ppSel;
+    Atom name = pSel->selection;
+    Mask access_mode = rec->access_mode;
+    SELinuxAuditRec auditdata = { .client = rec->client, .selection = name };
+    security_id_t tsid;
+    int rc;
+
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&pSel->devPrivates, objectKey);
+
+    /* If this is a new object that needs labeling, do it now */
+    if (access_mode & DixCreateAccess) {
+	sidput(obj->sid);
+	rc = SELinuxSelectionToSID(name, subj, &obj->sid, &obj->poly);
+	if (rc != Success)
+	    obj->sid = unlabeled_sid;
+	access_mode = DixSetAttrAccess;
+    }
+    /* If this is a polyinstantiated object, find the right instance */
+    else if (obj->poly) {
+	rc = SELinuxSelectionToSID(name, subj, &tsid, NULL);
+	if (rc != Success) {
+	    rec->status = rc;
+	    return;
+	}
+	while (pSel->selection != name || obj->sid != tsid) {
+	    if ((pSel = pSel->next) == NULL)
+		break;
+	    obj = dixLookupPrivate(&pSel->devPrivates, objectKey);
+	}
+	sidput(tsid);
+	
+	if (pSel)
+	    *rec->ppSel = pSel;
+	else {
+	    rec->status = BadMatch;
+	    return;
+	}
+    }
+
+    /* Perform the security check */
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SELECTION, access_mode,
+			&auditdata);
+    if (rc != Success)
+	rec->status = rc;
+
+    /* Label the content (advisory only) */
+    if (access_mode & DixSetAttrAccess) {
+	data = dixLookupPrivate(&pSel->devPrivates, dataKey);
+	sidput(data->sid);
+	if (subj->sel_create_sid)
+	    sidget(data->sid = subj->sel_create_sid);
+	else
+	    sidget(data->sid = obj->sid);
+    }
+}
+
+static void
 SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XacePropertyAccessRec *rec = calldata;
     SELinuxSubjectRec *subj;
-    SELinuxObjectRec *obj;
-    SELinuxAuditRec auditdata = { .client = rec->client };
+    SELinuxObjectRec *obj, *data;
+    PropertyPtr pProp = *rec->ppProp;
+    Atom name = pProp->propertyName;
+    SELinuxAuditRec auditdata = { .client = rec->client, .property = name };
+    security_id_t tsid;
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
-    obj = dixLookupPrivate(&rec->pProp->devPrivates, objectKey);
+    obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     if (rec->access_mode & DixCreateAccess) {
-	const char *name = NameForAtom(rec->pProp->propertyName);
-	security_context_t con;
-	security_id_t sid;
-
-	/* Look in the mappings of property names to contexts */
-	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_PROP) < 0) {
-	    ErrorF("SELinux: a property label lookup failed!\n");
-	    rec->status = BadValue;
-	    return;
-	}
-	/* Get a SID for context */
-	if (avc_context_to_sid(con, &sid) < 0) {
-	    ErrorF("SELinux: a context_to_SID call failed!\n");
-	    rec->status = BadAlloc;
-	    return;
-	}
-
 	sidput(obj->sid);
-
-	/* Perform a transition to obtain the final SID */
-	if (avc_compute_create(subj->sid, sid, SECCLASS_X_PROPERTY,
-			       &obj->sid) < 0) {
-	    ErrorF("SELinux: a SID transition call failed!\n");
-	    freecon(con);
-	    rec->status = BadValue;
+	rc = SELinuxPropertyToSID(name, subj, &obj->sid, &obj->poly);
+	if (rc != Success) {
+	    rec->status = rc;
 	    return;
 	}
-	freecon(con);
+    }
+    /* If this is a polyinstantiated object, find the right instance */
+    else if (obj->poly) {
+	rc = SELinuxPropertyToSID(name, subj, &tsid, NULL);
+	if (rc != Success) {
+	    rec->status = rc;
+	    return;
+	}
+	while (pProp->propertyName != name || obj->sid != tsid) {
+	    if ((pProp = pProp->next) == NULL)
+		break;
+	    obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
+	}
+	sidput(tsid);
+
+	if (pProp)
+	    *rec->ppProp = pProp;
+	else {
+	    rec->status = BadMatch;
+	    return;
+	}
     }
 
     /* Perform the security check */
-    auditdata.property = rec->pProp->propertyName;
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_PROPERTY, rec->access_mode,
 			&auditdata);
     if (rc != Success)
 	rec->status = rc;
+
+    /* Label the content (advisory only) */
+    if (rec->access_mode & DixWriteAccess) {
+	data = dixLookupPrivate(&pProp->devPrivates, dataKey);
+	sidput(data->sid);
+	if (subj->prp_create_sid)
+	    sidget(data->sid = subj->prp_create_sid);
+	else
+	    sidget(data->sid = obj->sid);
+    }
 }
 
 static void
@@ -729,14 +983,14 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceResourceAccessRec *rec = calldata;
     SELinuxSubjectRec *subj;
-    SELinuxObjectRec *obj, *sobj, *pobj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
+    Mask access_mode = rec->access_mode;
     PrivateRec **privatePtr;
     security_class_t class;
     int rc, offset;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
-    sobj = dixLookupPrivate(&rec->client->devPrivates, objectKey);
 
     /* Determine if the resource object has a devPrivates field */
     offset = dixLookupPrivateOffset(rec->rtype);
@@ -753,32 +1007,33 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     }
 
     /* If this is a new object that needs labeling, do it now */
-    if (rec->access_mode & DixCreateAccess && offset >= 0) {
-	if (rec->parent)
-	    offset = dixLookupPrivateOffset(rec->ptype);
-	if (rec->parent && offset >= 0)
-	    /* Use the SID of the parent object in the labeling operation */
-	    pobj = dixLookupPrivate(DEVPRIV_AT(rec->parent, offset), objectKey);
-	else
-	    /* Use the SID of the subject */
-	    pobj = sobj;
-
-	sidput(obj->sid);
-
-	/* Perform a transition to obtain the final SID */
-	if (avc_compute_create(subj->sid, pobj->sid, class, &obj->sid) < 0) {
-	    ErrorF("SELinux: a compute_create call failed!\n");
-	    rec->status = BadValue;
+    if (access_mode & DixCreateAccess && offset >= 0) {
+	rc = SELinuxLabelResource(rec, subj, obj, class);
+	if (rc != Success) {
+	    rec->status = rc;
 	    return;
 	}
+    }
+
+    /* Collapse generic resource permissions down to read/write */
+    if (class == SECCLASS_X_RESOURCE) {
+	access_mode = !!(rec->access_mode & SELinuxReadMask); /* rd */
+	access_mode |= !!(rec->access_mode & ~SELinuxReadMask) << 1; /* wr */
     }
 
     /* Perform the security check */
     auditdata.restype = rec->rtype;
     auditdata.id = rec->id;
-    rc = SELinuxDoCheck(subj, obj, class, rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, class, access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
+
+    /* Perform the background none check on windows */
+    if (access_mode & DixCreateAccess && rec->rtype == RT_WINDOW) {
+	rc = SELinuxDoCheck(subj, obj, class, DixBlendAccess, &auditdata);
+	if (rc != Success)
+	    ((WindowPtr)rec->res)->forcedBG = TRUE;
+    }
 }
 
 static void
@@ -851,30 +1106,6 @@ SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	rec->status = rc;
 }
 
-static void
-SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-{
-    XaceSelectionAccessRec *rec = (XaceSelectionAccessRec *)calldata;
-    SELinuxSubjectRec *subj;
-    SELinuxObjectRec sel_sid;
-    SELinuxAuditRec auditdata = { .client = rec->client };
-    int rc;
-
-    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
-
-    rc = SELinuxSelectionToSID(rec->name, &sel_sid);
-    if (rc != Success) {
-	rec->status = rc;
-	return;
-    }
-
-    auditdata.selection = rec->name;
-    rc = SELinuxDoCheck(subj, &sel_sid, SECCLASS_X_SELECTION, rec->access_mode,
-			&auditdata);
-    if (rc != Success)
-	rec->status = rc;
-}
-
 
 /*
  * DIX Callbacks
@@ -888,14 +1119,6 @@ SELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     switch (pci->client->clientState) {
     case ClientStateInitial:
 	SELinuxLabelClient(pci->client);
-	break;
-
-    case ClientStateRetained:
-    case ClientStateGone:
-	if (pci->client == securityManager) {
-	    securityManager = NULL;
-	    securityWindow = 0;
-	}
 	break;
 
     default:
@@ -948,20 +1171,6 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	FatalError("SELinux: Unexpected unlabeled window found\n");
 }
 
-static void
-SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-{
-    SelectionInfoRec *rec = calldata;
-
-    switch (rec->kind) {
-    case SelectionSetOwner:
-    case SelectionGetOwner:
-    case SelectionConvertSelection:
-    default:
-	break;
-    }
-}
-
 
 /*
  * DevPrivates Callbacks
@@ -987,8 +1196,13 @@ SELinuxSubjectFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     xfree(subj->command);
 
-    if (avc_active)
+    if (avc_active) {
 	sidput(subj->sid);
+	sidput(subj->dev_create_sid);
+	sidput(subj->win_create_sid);
+	sidput(subj->sel_create_sid);
+	sidput(subj->prp_create_sid);
+    }
 }
 
 static void
@@ -1016,6 +1230,21 @@ SELinuxObjectFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
  * Extension Dispatch
  */
 
+#define CTX_DEV offsetof(SELinuxSubjectRec, dev_create_sid)
+#define CTX_WIN offsetof(SELinuxSubjectRec, win_create_sid)
+#define CTX_PRP offsetof(SELinuxSubjectRec, prp_create_sid)
+#define CTX_SEL offsetof(SELinuxSubjectRec, sel_create_sid)
+#define USE_PRP offsetof(SELinuxSubjectRec, prp_use_sid)
+#define USE_SEL offsetof(SELinuxSubjectRec, sel_use_sid)
+
+typedef struct {
+    security_context_t octx;
+    security_context_t dctx;
+    CARD32 octx_len;
+    CARD32 dctx_len;
+    CARD32 id;
+} SELinuxListItemRec;
+
 static int
 ProcSELinuxQueryVersion(ClientPtr client)
 {
@@ -1038,65 +1267,101 @@ ProcSELinuxQueryVersion(ClientPtr client)
 }
 
 static int
-ProcSELinuxSetSecurityManager(ClientPtr client)
+SELinuxSendContextReply(ClientPtr client, security_id_t sid)
 {
-    WindowPtr pWin;
-    int rc;
+    SELinuxGetContextReply rep;
+    security_context_t ctx = NULL;
+    int len = 0;
 
-    REQUEST(SELinuxSetSecurityManagerReq);
-    REQUEST_SIZE_MATCH(SELinuxSetSecurityManagerReq);
-
-    if (stuff->window == None) {
-	securityManager = NULL;
-	securityWindow = None;
-    } else {
-	rc = dixLookupResource((pointer *)&pWin, stuff->window, RT_WINDOW,
-			       client, DixGetAttrAccess);
-	if (rc != Success)
-	    return rc;
-
-	securityManager = client;
-	securityWindow = stuff->window;
+    if (sid) {
+	if (avc_sid_to_context(sid, &ctx) < 0)
+	    return BadValue;
+	len = strlen(ctx) + 1;
     }
-
-    return Success;
-}
-
-static int
-ProcSELinuxGetSecurityManager(ClientPtr client)
-{
-    SELinuxGetSecurityManagerReply rep;
 
     rep.type = X_Reply;
-    rep.length = 0;
+    rep.length = (len + 3) >> 2;
     rep.sequenceNumber = client->sequence;
-    rep.window = securityWindow;
+    rep.context_len = len;
+
     if (client->swapped) {
 	int n;
-	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.length, n);
-	swapl(&rep.window, n);
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.context_len, n);
     }
-    WriteToClient(client, sizeof(rep), (char *)&rep);
-    return (client->noClientException);
+
+    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
+    WriteToClient(client, len, ctx);
+    freecon(ctx);
+    return client->noClientException;
 }
 
 static int
-ProcSELinuxSetDeviceCreateContext(ClientPtr client)
+ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 {
+    PrivateRec **privPtr = &client->devPrivates;
+    security_id_t *pSid;
+    security_context_t ctx;
+    char *ptr;
+
+    REQUEST(SELinuxSetCreateContextReq);
+    REQUEST_FIXED_SIZE(SELinuxSetCreateContextReq, stuff->context_len);
+
+    ctx = (char *)(stuff + 1);
+    if (stuff->context_len > 0 && ctx[stuff->context_len - 1])
+	return BadLength;
+
+    if (offset == CTX_DEV) {
+	/* Device create context currently requires manage permission */
+	int rc = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
+	if (rc != Success)
+	    return rc;
+	privPtr = &serverClient->devPrivates;
+    }
+    else if (offset == USE_SEL) {
+	/* Selection use context currently requires no selections owned */
+	Selection *pSel;
+	for (pSel = CurrentSelections; pSel; pSel = pSel->next)
+	    if (pSel->client == client)
+		return BadMatch;
+    }
+
+    ptr = dixLookupPrivate(privPtr, subjectKey);
+    pSid = (security_id_t *)(ptr + offset);
+    sidput(*pSid);
+    *pSid = NULL;
+
+    if (stuff->context_len > 0) {
+	if (security_check_context(ctx) < 0)
+	    return BadValue;
+	if (avc_context_to_sid(ctx, pSid) < 0)
+	    return BadValue;
+    }
     return Success;
 }
 
 static int
-ProcSELinuxGetDeviceCreateContext(ClientPtr client)
+ProcSELinuxGetCreateContext(ClientPtr client, unsigned offset)
 {
-    return Success;
+    security_id_t *pSid;
+    char *ptr;
+
+    REQUEST_SIZE_MATCH(SELinuxGetCreateContextReq);
+
+    if (offset == CTX_DEV)
+	ptr = dixLookupPrivate(&serverClient->devPrivates, subjectKey);
+    else
+	ptr = dixLookupPrivate(&client->devPrivates, subjectKey);
+
+    pSid = (security_id_t *)(ptr + offset);
+    return SELinuxSendContextReply(client, *pSid);
 }
 
 static int
 ProcSELinuxSetDeviceContext(ClientPtr client)
 {
-    char *ctx;
+    security_context_t ctx;
     security_id_t sid;
     DeviceIntPtr dev;
     SELinuxSubjectRec *subj;
@@ -1107,15 +1372,16 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     REQUEST_FIXED_SIZE(SELinuxSetContextReq, stuff->context_len);
 
     ctx = (char *)(stuff + 1);
-    if (ctx[stuff->context_len - 1])
+    if (stuff->context_len < 1 || ctx[stuff->context_len - 1])
 	return BadLength;
 
     rc = dixLookupDevice(&dev, stuff->id, client, DixManageAccess);
     if (rc != Success)
 	return rc;
 
-    rc = avc_context_to_sid(ctx, &sid);
-    if (rc != Success)
+    if (security_check_context(ctx) < 0)
+	return BadValue;
+    if (avc_context_to_sid(ctx, &sid) < 0)
 	return BadValue;
 
     subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
@@ -1123,7 +1389,7 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     subj->sid = sid;
     obj = dixLookupPrivate(&dev->devPrivates, objectKey);
     sidput(obj->sid);
-    obj->sid = sid;
+    sidget(obj->sid = sid);
 
     return Success;
 }
@@ -1131,10 +1397,8 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
 static int
 ProcSELinuxGetDeviceContext(ClientPtr client)
 {
-    char *ctx;
     DeviceIntPtr dev;
     SELinuxSubjectRec *subj;
-    SELinuxGetContextReply rep;
     int rc;
 
     REQUEST(SELinuxGetContextReq);
@@ -1145,112 +1409,14 @@ ProcSELinuxGetDeviceContext(ClientPtr client)
 	return rc;
 
     subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
-    rc = avc_sid_to_context(subj->sid, &ctx);
-    if (rc != Success)
-	return BadValue;
-
-    rep.type = X_Reply;
-    rep.length = (strlen(ctx) + 4) >> 2;
-    rep.sequenceNumber = client->sequence;
-    rep.context_len = strlen(ctx) + 1;
-
-    if (client->swapped) {
-	int n;
-	swapl(&rep.length, n);
-	swaps(&rep.sequenceNumber, n);
-	swaps(&rep.context_len, n);
-    }
-
-    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
-    WriteToClient(client, rep.context_len, ctx);
-    free(ctx);
-    return client->noClientException;
-}
-
-static int
-ProcSELinuxSetPropertyCreateContext(ClientPtr client)
-{
-    return Success;
-}
-
-static int
-ProcSELinuxGetPropertyCreateContext(ClientPtr client)
-{
-    return Success;
-}
-
-static int
-ProcSELinuxGetPropertyContext(ClientPtr client)
-{
-    char *ctx;
-    WindowPtr pWin;
-    PropertyPtr pProp;
-    SELinuxObjectRec *obj;
-    SELinuxGetContextReply rep;
-    int rc;
-
-    REQUEST(SELinuxGetPropertyContextReq);
-    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
-
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetPropAccess);
-    if (rc != Success)
-	return rc;
-
-    pProp = wUserProps(pWin);
-    while (pProp) {
-	if (pProp->propertyName == stuff->property)
-	    break;
-	pProp = pProp->next;
-    }
-    if (!pProp)
-	return BadValue;
-
-    rc = XaceHookPropertyAccess(client, pWin, pProp, DixGetAttrAccess);
-    if (rc != Success)
-	return rc;
-
-    obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
-    rc = avc_sid_to_context(obj->sid, &ctx);
-    if (rc != Success)
-	return BadValue;
-
-    rep.type = X_Reply;
-    rep.length = (strlen(ctx) + 4) >> 2;
-    rep.sequenceNumber = client->sequence;
-    rep.context_len = strlen(ctx) + 1;
-
-    if (client->swapped) {
-	int n;
-	swapl(&rep.length, n);
-	swaps(&rep.sequenceNumber, n);
-	swaps(&rep.context_len, n);
-    }
-
-    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
-    WriteToClient(client, rep.context_len, ctx);
-    free(ctx);
-    return client->noClientException;
-}
-
-static int
-ProcSELinuxSetWindowCreateContext(ClientPtr client)
-{
-    return Success;
-}
-
-static int
-ProcSELinuxGetWindowCreateContext(ClientPtr client)
-{
-    return Success;
+    return SELinuxSendContextReply(client, subj->sid);
 }
 
 static int
 ProcSELinuxGetWindowContext(ClientPtr client)
 {
-    char *ctx;
     WindowPtr pWin;
     SELinuxObjectRec *obj;
-    SELinuxGetContextReply rep;
     int rc;
 
     REQUEST(SELinuxGetContextReq);
@@ -1261,44 +1427,232 @@ ProcSELinuxGetWindowContext(ClientPtr client)
 	return rc;
 
     obj = dixLookupPrivate(&pWin->devPrivates, objectKey);
-    rc = avc_sid_to_context(obj->sid, &ctx);
+    return SELinuxSendContextReply(client, obj->sid);
+}
+
+static int
+ProcSELinuxGetPropertyContext(ClientPtr client, pointer privKey)
+{
+    WindowPtr pWin;
+    PropertyPtr pProp;
+    SELinuxObjectRec *obj;
+    int rc;
+
+    REQUEST(SELinuxGetPropertyContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
+
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetPropAccess);
     if (rc != Success)
+	return rc;
+
+    rc = dixLookupProperty(&pProp, pWin, stuff->property, client,
+			   DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    obj = dixLookupPrivate(&pProp->devPrivates, privKey);
+    return SELinuxSendContextReply(client, obj->sid);
+}
+
+static int
+ProcSELinuxGetSelectionContext(ClientPtr client, pointer privKey)
+{
+    Selection *pSel;
+    SELinuxObjectRec *obj;
+    int rc;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupSelection(&pSel, stuff->id, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    obj = dixLookupPrivate(&pSel->devPrivates, privKey);
+    return SELinuxSendContextReply(client, obj->sid);
+}
+
+static int
+ProcSELinuxGetClientContext(ClientPtr client)
+{
+    ClientPtr target;
+    SELinuxSubjectRec *subj;
+    int rc;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupClient(&target, stuff->id, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    subj = dixLookupPrivate(&target->devPrivates, subjectKey);
+    return SELinuxSendContextReply(client, subj->sid);
+}
+
+static int
+SELinuxPopulateItem(SELinuxListItemRec *i, PrivateRec **privPtr, CARD32 id,
+		    int *size)
+{
+    SELinuxObjectRec *obj = dixLookupPrivate(privPtr, objectKey);
+    SELinuxObjectRec *data = dixLookupPrivate(privPtr, dataKey);
+
+    if (avc_sid_to_context(obj->sid, &i->octx) < 0)
+	return BadValue;
+    if (avc_sid_to_context(data->sid, &i->dctx) < 0)
 	return BadValue;
 
-    rep.type = X_Reply;
-    rep.length = (strlen(ctx) + 4) >> 2;
-    rep.sequenceNumber = client->sequence;
-    rep.context_len = strlen(ctx) + 1;
+    i->id = id;
+    i->octx_len = (strlen(i->octx) + 4) >> 2;
+    i->dctx_len = (strlen(i->dctx) + 4) >> 2;
 
-    if (client->swapped) {
-	int n;
-	swapl(&rep.length, n);
-	swaps(&rep.sequenceNumber, n);
-	swaps(&rep.context_len, n);
+    *size += i->octx_len + i->dctx_len + 3;
+    return Success;
+}
+
+static void
+SELinuxFreeItems(SELinuxListItemRec *items, int count)
+{
+    int k;
+    for (k = 0; k < count; k++) {
+	freecon(items[k].octx);
+	freecon(items[k].dctx);
+    }
+    xfree(items);
+}
+
+static int
+SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
+			 int size, int count)
+{
+    int rc, k, n, pos = 0;
+    SELinuxListItemsReply rep;
+    CARD32 *buf;
+
+    buf = xcalloc(size, sizeof(CARD32));
+    if (!buf) {
+	rc = BadAlloc;
+	goto out;
     }
 
-    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
-    WriteToClient(client, rep.context_len, ctx);
-    free(ctx);
-    return client->noClientException;
+    /* Fill in the buffer */
+    for (k = 0; k < count; k++) {
+	buf[pos] = items[k].id;
+	if (client->swapped)
+	    swapl(buf + pos, n);
+	pos++;
+
+	buf[pos] = items[k].octx_len * 4;
+	if (client->swapped)
+	    swapl(buf + pos, n);
+	pos++;
+
+	buf[pos] = items[k].dctx_len * 4;
+	if (client->swapped)
+	    swapl(buf + pos, n);
+	pos++;
+
+	memcpy((char *)(buf + pos), items[k].octx, strlen(items[k].octx) + 1);
+	pos += items[k].octx_len;
+	memcpy((char *)(buf + pos), items[k].dctx, strlen(items[k].dctx) + 1);
+	pos += items[k].dctx_len;
+    }
+
+    /* Send reply to client */
+    rep.type = X_Reply;
+    rep.length = size;
+    rep.sequenceNumber = client->sequence;
+    rep.count = count;
+
+    if (client->swapped) {
+	swapl(&rep.length, n);
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.count, n);
+    }
+
+    WriteToClient(client, sizeof(SELinuxListItemsReply), (char *)&rep);
+    WriteToClient(client, size * 4, (char *)buf);
+
+    /* Free stuff and return */
+    rc = client->noClientException;
+    xfree(buf);
+out:
+    SELinuxFreeItems(items, count);
+    return rc;
 }
 
 static int
-ProcSELinuxSetSelectionCreateContext(ClientPtr client)
+ProcSELinuxListProperties(ClientPtr client)
 {
-    return Success;
+    WindowPtr pWin;
+    PropertyPtr pProp;
+    SELinuxListItemRec *items;
+    int rc, count, size, i;
+    CARD32 id;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixListPropAccess);
+    if (rc != Success)
+	return rc;
+
+    /* Count the number of properties and allocate items */
+    count = 0;
+    for (pProp = wUserProps(pWin); pProp; pProp = pProp->next)
+	count++;
+    items = xcalloc(count, sizeof(SELinuxListItemRec));
+    if (!items)
+	return BadAlloc;
+
+    /* Fill in the items and calculate size */
+    i = 0;
+    size = 0;
+    for (pProp = wUserProps(pWin); pProp; pProp = pProp->next) {
+	id = pProp->propertyName;
+	rc = SELinuxPopulateItem(items + i, &pProp->devPrivates, id, &size);
+	if (rc != Success) {
+	    SELinuxFreeItems(items, count);
+	    return rc;
+	}
+	i++;
+    }
+
+    return SELinuxSendItemsToClient(client, items, size, count);
 }
 
 static int
-ProcSELinuxGetSelectionCreateContext(ClientPtr client)
+ProcSELinuxListSelections(ClientPtr client)
 {
-    return Success;
-}
+    Selection *pSel;
+    SELinuxListItemRec *items;
+    int rc, count, size, i;
+    CARD32 id;
 
-static int
-ProcSELinuxGetSelectionContext(ClientPtr client)
-{
-    return Success;
+    REQUEST_SIZE_MATCH(SELinuxGetCreateContextReq);
+
+    /* Count the number of selections and allocate items */
+    count = 0;
+    for (pSel = CurrentSelections; pSel; pSel = pSel->next)
+	count++;
+    items = xcalloc(count, sizeof(SELinuxListItemRec));
+    if (!items)
+	return BadAlloc;
+
+    /* Fill in the items and calculate size */
+    i = 0;
+    size = 0;
+    for (pSel = CurrentSelections; pSel; pSel = pSel->next) {
+	id = pSel->selection;
+	rc = SELinuxPopulateItem(items + i, &pSel->devPrivates, id, &size);
+	if (rc != Success) {
+	    SELinuxFreeItems(items, count);
+	    return rc;
+	}
+	i++;
+    }
+
+    return SELinuxSendItemsToClient(client, items, size, count);
 }
 
 static int
@@ -1308,36 +1662,50 @@ ProcSELinuxDispatch(ClientPtr client)
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
 	return ProcSELinuxQueryVersion(client);
-    case X_SELinuxSetSecurityManager:
-	return ProcSELinuxSetSecurityManager(client);
-    case X_SELinuxGetSecurityManager:
-	return ProcSELinuxGetSecurityManager(client);
     case X_SELinuxSetDeviceCreateContext:
-	return ProcSELinuxSetDeviceCreateContext(client);
+	return ProcSELinuxSetCreateContext(client, CTX_DEV);
     case X_SELinuxGetDeviceCreateContext:
-	return ProcSELinuxGetDeviceCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_DEV);
     case X_SELinuxSetDeviceContext:
 	return ProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
 	return ProcSELinuxGetDeviceContext(client);
-    case X_SELinuxSetPropertyCreateContext:
-	return ProcSELinuxSetPropertyCreateContext(client);
-    case X_SELinuxGetPropertyCreateContext:
-	return ProcSELinuxGetPropertyCreateContext(client);
-    case X_SELinuxGetPropertyContext:
-	return ProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
-	return ProcSELinuxSetWindowCreateContext(client);
+	return ProcSELinuxSetCreateContext(client, CTX_WIN);
     case X_SELinuxGetWindowCreateContext:
-	return ProcSELinuxGetWindowCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_WIN);
     case X_SELinuxGetWindowContext:
 	return ProcSELinuxGetWindowContext(client);
+    case X_SELinuxSetPropertyCreateContext:
+	return ProcSELinuxSetCreateContext(client, CTX_PRP);
+    case X_SELinuxGetPropertyCreateContext:
+	return ProcSELinuxGetCreateContext(client, CTX_PRP);
+    case X_SELinuxSetPropertyUseContext:
+	return ProcSELinuxSetCreateContext(client, USE_PRP);
+    case X_SELinuxGetPropertyUseContext:
+	return ProcSELinuxGetCreateContext(client, USE_PRP);
+    case X_SELinuxGetPropertyContext:
+	return ProcSELinuxGetPropertyContext(client, objectKey);
+    case X_SELinuxGetPropertyDataContext:
+	return ProcSELinuxGetPropertyContext(client, dataKey);
+    case X_SELinuxListProperties:
+	return ProcSELinuxListProperties(client);
     case X_SELinuxSetSelectionCreateContext:
-	return ProcSELinuxSetSelectionCreateContext(client);
+	return ProcSELinuxSetCreateContext(client, CTX_SEL);
     case X_SELinuxGetSelectionCreateContext:
-	return ProcSELinuxGetSelectionCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_SEL);
+    case X_SELinuxSetSelectionUseContext:
+	return ProcSELinuxSetCreateContext(client, USE_SEL);
+    case X_SELinuxGetSelectionUseContext:
+	return ProcSELinuxGetCreateContext(client, USE_SEL);
     case X_SELinuxGetSelectionContext:
-	return ProcSELinuxGetSelectionContext(client);
+	return ProcSELinuxGetSelectionContext(client, objectKey);
+    case X_SELinuxGetSelectionDataContext:
+	return ProcSELinuxGetSelectionContext(client, dataKey);
+    case X_SELinuxListSelections:
+	return ProcSELinuxListSelections(client);
+    case X_SELinuxGetClientContext:
+	return ProcSELinuxGetClientContext(client);
     default:
 	return BadRequest;
     }
@@ -1356,25 +1724,14 @@ SProcSELinuxQueryVersion(ClientPtr client)
 }
 
 static int
-SProcSELinuxSetSecurityManager(ClientPtr client)
-{
-    REQUEST(SELinuxSetSecurityManagerReq);
-    int n;
-
-    REQUEST_SIZE_MATCH(SELinuxSetSecurityManagerReq);
-    swapl(&stuff->window, n);
-    return ProcSELinuxSetSecurityManager(client);
-}
-
-static int
-SProcSELinuxSetDeviceCreateContext(ClientPtr client)
+SProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 {
     REQUEST(SELinuxSetCreateContextReq);
     int n;
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len, n);
-    return ProcSELinuxSetDeviceCreateContext(client);
+    swapl(&stuff->context_len, n);
+    return ProcSELinuxSetCreateContext(client, offset);
 }
 
 static int
@@ -1385,7 +1742,7 @@ SProcSELinuxSetDeviceContext(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetContextReq);
     swapl(&stuff->id, n);
-    swaps(&stuff->context_len, n);
+    swapl(&stuff->context_len, n);
     return ProcSELinuxSetDeviceContext(client);
 }
 
@@ -1401,40 +1758,6 @@ SProcSELinuxGetDeviceContext(ClientPtr client)
 }
 
 static int
-SProcSELinuxSetPropertyCreateContext(ClientPtr client)
-{
-    REQUEST(SELinuxSetCreateContextReq);
-    int n;
-
-    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len, n);
-    return ProcSELinuxSetPropertyCreateContext(client);
-}
-
-static int
-SProcSELinuxGetPropertyContext(ClientPtr client)
-{
-    REQUEST(SELinuxGetPropertyContextReq);
-    int n;
-
-    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
-    swapl(&stuff->window, n);
-    swapl(&stuff->property, n);
-    return ProcSELinuxGetPropertyContext(client);
-}
-
-static int
-SProcSELinuxSetWindowCreateContext(ClientPtr client)
-{
-    REQUEST(SELinuxSetCreateContextReq);
-    int n;
-
-    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len, n);
-    return ProcSELinuxSetWindowCreateContext(client);
-}
-
-static int
 SProcSELinuxGetWindowContext(ClientPtr client)
 {
     REQUEST(SELinuxGetContextReq);
@@ -1446,25 +1769,48 @@ SProcSELinuxGetWindowContext(ClientPtr client)
 }
 
 static int
-SProcSELinuxSetSelectionCreateContext(ClientPtr client)
+SProcSELinuxGetPropertyContext(ClientPtr client, pointer privKey)
 {
-    REQUEST(SELinuxSetCreateContextReq);
+    REQUEST(SELinuxGetPropertyContextReq);
     int n;
 
-    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len, n);
-    return ProcSELinuxSetSelectionCreateContext(client);
+    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
+    swapl(&stuff->window, n);
+    swapl(&stuff->property, n);
+    return ProcSELinuxGetPropertyContext(client, privKey);
 }
 
 static int
-SProcSELinuxGetSelectionContext(ClientPtr client)
+SProcSELinuxGetSelectionContext(ClientPtr client, pointer privKey)
 {
     REQUEST(SELinuxGetContextReq);
     int n;
 
     REQUEST_SIZE_MATCH(SELinuxGetContextReq);
     swapl(&stuff->id, n);
-    return ProcSELinuxGetSelectionContext(client);
+    return ProcSELinuxGetSelectionContext(client, privKey);
+}
+
+static int
+SProcSELinuxListProperties(ClientPtr client)
+{
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id, n);
+    return ProcSELinuxListProperties(client);
+}
+
+static int
+SProcSELinuxGetClientContext(ClientPtr client)
+{
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id, n);
+    return ProcSELinuxGetClientContext(client);
 }
 
 static int
@@ -1478,36 +1824,50 @@ SProcSELinuxDispatch(ClientPtr client)
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
 	return SProcSELinuxQueryVersion(client);
-    case X_SELinuxSetSecurityManager:
-	return SProcSELinuxSetSecurityManager(client);
-    case X_SELinuxGetSecurityManager:
-	return ProcSELinuxGetSecurityManager(client);
     case X_SELinuxSetDeviceCreateContext:
-	return SProcSELinuxSetDeviceCreateContext(client);
+	return SProcSELinuxSetCreateContext(client, CTX_DEV);
     case X_SELinuxGetDeviceCreateContext:
-	return ProcSELinuxGetDeviceCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_DEV);
     case X_SELinuxSetDeviceContext:
 	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
 	return SProcSELinuxGetDeviceContext(client);
-    case X_SELinuxSetPropertyCreateContext:
-	return SProcSELinuxSetPropertyCreateContext(client);
-    case X_SELinuxGetPropertyCreateContext:
-	return ProcSELinuxGetPropertyCreateContext(client);
-    case X_SELinuxGetPropertyContext:
-	return SProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
-	return SProcSELinuxSetWindowCreateContext(client);
+	return SProcSELinuxSetCreateContext(client, CTX_WIN);
     case X_SELinuxGetWindowCreateContext:
-	return ProcSELinuxGetWindowCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_WIN);
     case X_SELinuxGetWindowContext:
 	return SProcSELinuxGetWindowContext(client);
+    case X_SELinuxSetPropertyCreateContext:
+	return SProcSELinuxSetCreateContext(client, CTX_PRP);
+    case X_SELinuxGetPropertyCreateContext:
+	return ProcSELinuxGetCreateContext(client, CTX_PRP);
+    case X_SELinuxSetPropertyUseContext:
+	return SProcSELinuxSetCreateContext(client, USE_PRP);
+    case X_SELinuxGetPropertyUseContext:
+	return ProcSELinuxGetCreateContext(client, USE_PRP);
+    case X_SELinuxGetPropertyContext:
+	return SProcSELinuxGetPropertyContext(client, objectKey);
+    case X_SELinuxGetPropertyDataContext:
+	return SProcSELinuxGetPropertyContext(client, dataKey);
+    case X_SELinuxListProperties:
+	return SProcSELinuxListProperties(client);
     case X_SELinuxSetSelectionCreateContext:
-	return SProcSELinuxSetSelectionCreateContext(client);
+	return SProcSELinuxSetCreateContext(client, CTX_SEL);
     case X_SELinuxGetSelectionCreateContext:
-	return ProcSELinuxGetSelectionCreateContext(client);
+	return ProcSELinuxGetCreateContext(client, CTX_SEL);
+    case X_SELinuxSetSelectionUseContext:
+	return SProcSELinuxSetCreateContext(client, USE_SEL);
+    case X_SELinuxGetSelectionUseContext:
+	return ProcSELinuxGetCreateContext(client, USE_SEL);
     case X_SELinuxGetSelectionContext:
-	return SProcSELinuxGetSelectionContext(client);
+	return SProcSELinuxGetSelectionContext(client, objectKey);
+    case X_SELinuxGetSelectionDataContext:
+	return SProcSELinuxGetSelectionContext(client, dataKey);
+    case X_SELinuxListSelections:
+	return ProcSELinuxListSelections(client);
+    case X_SELinuxGetClientContext:
+	return SProcSELinuxGetClientContext(client);
     default:
 	return BadRequest;
     }
@@ -1524,7 +1884,6 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     /* Unregister callbacks */
     DeleteCallback(&ClientStateCallback, SELinuxClientState, NULL);
     DeleteCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
-    DeleteCallback(&SelectionCallback, SELinuxSelectionState, NULL);
 
     XaceDeleteCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
     XaceDeleteCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
@@ -1549,9 +1908,9 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     avc_active = 0;
 
     /* Free local state */
-    xfree(knownSelections);
-    knownSelections = NULL;
-    numKnownSelections = 0;
+    xfree(knownAtoms);
+    knownAtoms = NULL;
+    numKnownAtoms = 0;
 
     xfree(knownEvents);
     knownEvents = NULL;
@@ -1566,16 +1925,36 @@ void
 SELinuxExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
-    struct selinux_opt options[] = { { SELABEL_OPT_VALIDATE, (char *)1 } };
+    struct selinux_opt selabel_option = { SELABEL_OPT_VALIDATE, (char *)1 };
+    struct selinux_opt avc_option = { AVC_OPT_SETENFORCE, (char *)0 };
     security_context_t con;
     int ret = TRUE;
 
-    /* Setup SELinux stuff */
+    /* Check SELinux mode on system */
     if (!is_selinux_enabled()) {
-	ErrorF("SELinux: SELinux not enabled, disabling SELinux support.\n");
+	ErrorF("SELinux: Disabled on system, not enabling in X server\n");
 	return;
     }
 
+    /* Check SELinux mode in configuration file */
+    switch(selinuxEnforcingState) {
+    case SELINUX_MODE_DISABLED:
+	LogMessage(X_INFO, "SELinux: Disabled in configuration file\n");
+	return;
+    case SELINUX_MODE_ENFORCING:
+	LogMessage(X_INFO, "SELinux: Configured in enforcing mode\n");
+	avc_option.value = (char *)1;
+	break;
+    case SELINUX_MODE_PERMISSIVE:
+	LogMessage(X_INFO, "SELinux: Configured in permissive mode\n");
+	avc_option.value = (char *)0;
+	break;
+    default:
+	avc_option.type = AVC_OPT_UNUSED;
+	break;
+    }
+
+    /* Set up SELinux stuff */
     selinux_set_callback(SELINUX_CB_LOG, (union selinux_callback)SELinuxLog);
     selinux_set_callback(SELINUX_CB_AUDIT, (union selinux_callback)SELinuxAudit);
 
@@ -1587,11 +1966,11 @@ SELinuxExtensionInit(INITARGS)
 	FatalError("SELinux: Failed to set up security class mapping\n");
     }
 
-    if (avc_open(NULL, 0) < 0)
+    if (avc_open(&avc_option, 1) < 0)
 	FatalError("SELinux: Couldn't initialize SELinux userspace AVC\n");
     avc_active = 1;
 
-    label_hnd = selabel_open(SELABEL_CTX_X, options, 1);
+    label_hnd = selabel_open(SELABEL_CTX_X, &selabel_option, 1);
     if (!label_hnd)
 	FatalError("SELinux: Failed to open x_contexts mapping in policy\n");
 
@@ -1608,7 +1987,8 @@ SELinuxExtensionInit(INITARGS)
 
     /* Allocate private storage */
     if (!dixRequestPrivate(subjectKey, sizeof(SELinuxSubjectRec)) ||
-	!dixRequestPrivate(objectKey, sizeof(SELinuxObjectRec)))
+	!dixRequestPrivate(objectKey, sizeof(SELinuxObjectRec)) ||
+	!dixRequestPrivate(dataKey, sizeof(SELinuxObjectRec)))
 	FatalError("SELinux: Failed to allocate private storage.\n");
 
     /* Create atoms for doing window labeling */
@@ -1624,10 +2004,11 @@ SELinuxExtensionInit(INITARGS)
     ret &= dixRegisterPrivateDeleteFunc(subjectKey, SELinuxSubjectFree, NULL);
     ret &= dixRegisterPrivateInitFunc(objectKey, SELinuxObjectInit, NULL);
     ret &= dixRegisterPrivateDeleteFunc(objectKey, SELinuxObjectFree, NULL);
+    ret &= dixRegisterPrivateInitFunc(dataKey, SELinuxObjectInit, NULL);
+    ret &= dixRegisterPrivateDeleteFunc(dataKey, SELinuxObjectFree, NULL);
 
     ret &= AddCallback(&ClientStateCallback, SELinuxClientState, NULL);
     ret &= AddCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
-    ret &= AddCallback(&SelectionCallback, SELinuxSelectionState, NULL);
 
     ret &= XaceRegisterCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
     ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
