@@ -332,13 +332,9 @@ WaitForSomething(int *pClientsReady)
 
 	    if (XFD_ANYSET (&devicesReadable) || XFD_ANYSET (&clientsReadable))
 		break;
-#ifdef WIN32
-	    /* Windows keyboard and mouse events are added to the input queue
-	       in Block- and WakupHandlers. There is no device to check if  
-	       data is ready. So check here if new input is available */
+	    /* check here for DDXes that queue events during Block/Wakeup */
 	    if (*checkForInput[0] != *checkForInput[1])
 		return 0;
-#endif
 	}
     }
 
