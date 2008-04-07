@@ -726,7 +726,10 @@ XkbSrvLedInfoPtr	sli;
     if (pXDev && pXDev->key && pXDev->key->xkbInfo && pXDev->kbdfeed) {
 	xkbi= pXDev->key->xkbInfo;
 	xkb= xkbi->desc;
-	if (pXDev->kbdfeed) {
+        /* If we come from DeepCopyDeviceClasses, the CtrlProc was already set
+         * to XkbDDXKeybdCtrlProc, overwriting it leads to happy recursion.
+         */
+	if (pXDev->kbdfeed && pXDev->kbdfeed->CtrlProc != XkbDDXKeybdCtrlProc) {
 	    xkbi->kbdProc= pXDev->kbdfeed->CtrlProc;
 	    pXDev->kbdfeed->CtrlProc= XkbDDXKeybdCtrlProc;
 	}
