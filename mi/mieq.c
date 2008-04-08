@@ -239,7 +239,8 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
 
     if (type == DeviceKeyPress || type == DeviceKeyRelease ||
             type == DeviceButtonPress || type == DeviceButtonRelease ||
-            type == DeviceMotionNotify)
+            type == DeviceMotionNotify || type == ProximityIn ||
+            type == ProximityOut)
         ((deviceKeyButtonPointer*)event)->deviceid = dev->id;
     else if (type == DeviceValuator)
         ((deviceValuator*)event)->deviceid = dev->id;

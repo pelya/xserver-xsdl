@@ -816,7 +816,8 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
     int num_events = 1;
-    deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events->event;
+    deviceKeyButtonPointer *kbp;
+    DeviceIntPtr master;
 
     /* Sanity checks. */
     if (type != ProximityIn && type != ProximityOut)
@@ -840,6 +841,20 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         (num_valuators + first_valuator) > pDev->valuator->numAxes)
         return 0;
 
+    master = pDev->u.master;
+    if (master && master->u.lastSlave != pDev)
+    {
+        CreateClassesChangedEvent(events, master, pDev);
+
+        pDev->lastx = master->lastx;
+        pDev->lasty = master->lasty;
+        master->u.lastSlave = pDev;
+
+        num_events++;
+        events++;
+    }
+
+    kbp = (deviceKeyButtonPointer *) events->event;
     kbp->type = type;
     kbp->deviceid = pDev->id;
     kbp->detail = 0;

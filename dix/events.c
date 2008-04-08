@@ -2513,7 +2513,7 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
             core = *xE;
             core.u.u.type = XItoCoreType(xE->u.u.type);
 
-            if (filter & pWin->deliverableEvents)
+            if (core.u.u.type && filter & pWin->deliverableEvents)
             {
                 if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
                 {
@@ -3562,6 +3562,8 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
     {
         core = *xE;
         core.u.u.type = XItoCoreType(xE->u.u.type);
+        if(!core.u.u.type) /* probably a Proximity event, can't grab for those */
+            return FALSE;
     }
 
     i = checkFirst;
@@ -3651,7 +3653,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     if (deliveries > 0)
         return;
 
-    if (sendCore)
+    if (sendCore && core.u.u.type)
     {
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
@@ -3734,20 +3736,22 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                 {
                     core = *xE;
                     core.u.u.type = XItoCoreType(xE->u.u.type);
-                    FixUpEventFromWindow(thisDev, &core, grab->window,
-                                         None, TRUE);
-                    if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                                 grab->window, &core, 1) ||
-                            XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                     grab->window, &count, 1))
-                        deliveries = 1; /* don't send, but pretend we did */
-                    else if (!IsInterferingGrab(rClient(grab), thisDev,
-                                &core))
-                    {
-                        deliveries = TryClientEvents(rClient(grab), thisDev,
-                                                     &core, 1, mask,
-                                                     filters[thisDev->id][core.u.u.type],
-                                                     grab);
+                    if(core.u.u.type) {
+                        FixUpEventFromWindow(thisDev, &core, grab->window,
+                                             None, TRUE);
+                        if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                                     grab->window, &core, 1) ||
+                                XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                                         grab->window, &count, 1))
+                            deliveries = 1; /* don't send, but pretend we did */
+                        else if (!IsInterferingGrab(rClient(grab), thisDev,
+                                    &core))
+                        {
+                            deliveries = TryClientEvents(rClient(grab), thisDev,
+                                                         &core, 1, mask,
+                                                         filters[thisDev->id][core.u.u.type],
+                                                         grab);
+                        }
                     }
                 }
 
