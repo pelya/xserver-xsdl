@@ -378,7 +378,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 
     ALLOC_COPY_CLASS_IF(key, KeyClassRec);
-    if (to->key)
+    if (to->key && from->key)
     {
 #ifdef XKB
         to->key->xkbInfo = NULL;
