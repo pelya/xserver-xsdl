@@ -734,7 +734,7 @@ if ! test "x$have_clock_gettime" = xno; then
     CPPFLAGS_SAVE="$CPPFLAGS"
 
     if test x"$glibc" = xyes; then
-        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=199309L"
+        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L"
     fi
 
     AC_RUN_IFELSE([
