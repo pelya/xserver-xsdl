@@ -241,6 +241,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             k = &(*k)->next;
         }
+    } else if (to->kbdfeed && !from->kbdfeed)
+    {
+        FreeFeedbackClass(KbdFeedbackClass, (pointer)&to->kbdfeed);
     }
 
     if (from->ptrfeed)
@@ -264,6 +267,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             p = &(*p)->next;
         }
+    } else if (to->ptrfeed && !from->ptrfeed)
+    {
+        FreeFeedbackClass(PtrFeedbackClass, (pointer)&to->ptrfeed);
     }
 
     if (from->intfeed)
@@ -286,6 +292,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             i = &(*i)->next;
         }
+    } else if (to->intfeed && !from->intfeed)
+    {
+        FreeFeedbackClass(IntegerFeedbackClass, (pointer)&to->intfeed);
     }
 
     if (from->stringfeed)
@@ -308,6 +317,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             s = &(*s)->next;
         }
+    } else if (to->stringfeed && !from->stringfeed)
+    {
+        FreeFeedbackClass(StringFeedbackClass, (pointer)&to->stringfeed);
     }
 
     if (from->bell)
@@ -331,6 +343,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             b = &(*b)->next;
         }
+    } else if (to->bell && !from->bell)
+    {
+        FreeFeedbackClass(BellFeedbackClass, (pointer)&to->bell);
     }
 
     if (from->leds)
@@ -354,6 +369,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             l = &(*l)->next;
         }
+    } else if (to->leds && !from->leds)
+    {
+        FreeFeedbackClass(LedFeedbackClass, (pointer)&to->leds);
     }
 }
 
@@ -385,6 +403,9 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #endif
         to->key->curKeySyms.map = NULL;
         CopyKeyClass(from, to);
+    } else if (to->key && !from->key)
+    {
+        FreeDeviceClass(KeyClass, (pointer)&to->key);
     }
 
     if (from->valuator)
@@ -406,6 +427,9 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
 
         v->axisVal = (int*)(v->axes + from->valuator->numAxes);
+    } else if (to->valuator && !from->valuator)
+    {
+        FreeDeviceClass(ValuatorClass, (pointer)&to->valuator);
     }
 
     ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
@@ -429,10 +453,28 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         to->button->xkb_acts = NULL;
         /* XXX: XkbAction needs to be copied */
 #endif
+    } else if (to->button && !from->button)
+    {
+        FreeDeviceClass(ButtonClass, (pointer)&to->button);
     }
+
+
     ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
+    if (to->focus && !from->focus)
+    {
+        FreeDeviceClass(FocusClass, (pointer)&to->focus);
+    }
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
+    if (to->proximity && !from->proximity)
+    {
+        FreeDeviceClass(ProximityClass, (pointer)&to->proximity);
+    }
     ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
+    if (to->absolute && !from->absolute)
+    {
+        xfree(to->absolute);
+        to->absolute = NULL;
+    }
 
     DeepCopyFeedbackClasses(from, to);
 }
