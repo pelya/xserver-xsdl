@@ -1732,7 +1732,8 @@ if test "X$XQUARTZ" = Xauto; then
 fi
 
 if test "x$XQUARTZ" = xyes; then
-	AC_DEFINE([XQUARTZ],[1],[Have Quartz])
+	AC_DEFINE(XQUARTZ,1,[Have Quartz])
+	AC_DEFINE(ROOTLESS,1,[Build Rootless code])
 
 #glxAGL / glxCGL don't work yet
 #	AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[

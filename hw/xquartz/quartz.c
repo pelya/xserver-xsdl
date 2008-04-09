@@ -52,7 +52,6 @@
 #include "windowstr.h"
 #include "colormapst.h"
 #include "globals.h"
-#include "rootlessWindow.h"
 
 // System headers
 #include <sys/types.h>

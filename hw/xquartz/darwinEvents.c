@@ -56,6 +56,10 @@ in this Software without prior written authorization from The Open Group.
 #include "applewmExt.h"
 #include <X11/extensions/applewm.h>
 
+/* FIXME: Abstract this away into xpr */
+#include <Xplugin.h>
+#include "rootlessWindow.h"
+WindowPtr xprGetXWindow(xp_window_id wid);
 
 /* Fake button press/release for scroll wheel move. */
 #define SCROLLWHEELUPFAKE   4
@@ -228,7 +232,7 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
 
         case kXquartzWindowState:
             DEBUG_LOG("kXquartzWindowState\n");
-            RootlessNativeWindowStateChanged(xe[i].u.clientMessage.u.l.longs0,
+            RootlessNativeWindowStateChanged(xprGetXWindow(xe[i].u.clientMessage.u.l.longs0),
                                              xe[i].u.clientMessage.u.l.longs1);
             break;
 

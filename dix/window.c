@@ -292,6 +292,9 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->forcedBS = FALSE;
     pWin->redirectDraw = RedirectDrawNone;
     pWin->forcedBG = FALSE;
+#ifdef ROOTLESS
+    pWin->rootlessUnhittable = FALSE;
+#endif
 }
 
 static void

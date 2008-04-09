@@ -117,12 +117,10 @@ rootlessHasRoot (ScreenPtr pScreen)
 }
 
 void
-RootlessNativeWindowStateChanged (xp_window_id id, unsigned int state)
+RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state)
 {
-  WindowPtr pWin;
   RootlessWindowRec *winRec;
 
-  pWin = xprGetXWindow (id);
   if (pWin == NULL) return;
 
   winRec = WINREC (pWin);
@@ -130,7 +128,7 @@ RootlessNativeWindowStateChanged (xp_window_id id, unsigned int state)
 
   winRec->is_offscreen = ((state & XP_WINDOW_STATE_OFFSCREEN) != 0);
   winRec->is_obscured = ((state & XP_WINDOW_STATE_OBSCURED) != 0);
-  //  pWin->rootlessUnhittable = winRec->is_offscreen;
+  pWin->rootlessUnhittable = winRec->is_offscreen;
 }
 
 void
@@ -143,7 +141,7 @@ RootlessNativeWindowMoved (WindowPtr pWin)
   ClientPtr client;
   RootlessWindowRec *winRec = WINREC(pWin);
 
-  if (xp_get_window_bounds (winRec->wid, &bounds) != Success) return;
+  if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
 
   sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
   sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
@@ -1426,6 +1424,10 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
 
     pTopWin = TopLevelParent(pWin);
     assert(pTopWin != pWin);
+    
+    pWin->rootlessUnhittable = FALSE;
+    
+    DeleteProperty (pWin, xa_native_window_id ());
 
     if (WINREC(pTopWin) != NULL) {
         /* We're screwed. */
@@ -1482,7 +1484,7 @@ RootlessFlushWindowColormap (WindowPtr pWin)
   wc.colormap = RootlessColormapCallback;
   wc.colormap_data = pWin->drawable.pScreen;
 
-  configure_window (winRec->wid, XP_COLORMAP, &wc);
+  configure_window ((xp_window_id)winRec->wid, XP_COLORMAP, &wc);
 }
 
 /*
