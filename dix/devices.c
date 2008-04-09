@@ -2506,7 +2506,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return Success;
 
     /* free the existing sprite. */
-    if (!dev->u.master && dev->spriteInfo->sprite)
+    if (!dev->u.master && dev->spriteInfo->paired == dev)
         xfree(dev->spriteInfo->sprite);
 
     oldmaster = dev->u.master;
@@ -2515,15 +2515,22 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     /* If device is set to floating, we need to create a sprite for it,
      * otherwise things go bad. However, we don't want to render the cursor,
      * so we reset spriteOwner.
+     * Sprite has to be forced to NULL first, otherwise InitializeSprite won't
+     * alloc new memory but overwrite the previous one.
      */
     if (!master)
     {
-                              /* current root window */
-        InitializeSprite(dev, dev->spriteInfo->sprite->spriteTrace[0]);
+        WindowPtr currentRoot = dev->spriteInfo->sprite->spriteTrace[0];
+        dev->spriteInfo->sprite = NULL;
+        InitializeSprite(dev, currentRoot);
         dev->spriteInfo->spriteOwner = FALSE;
-
+        dev->spriteInfo->paired = dev;
     } else
+    {
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
+        dev->spriteInfo->paired = master;
+        dev->spriteInfo->spriteOwner = FALSE;
+    }
 
     /* If we were connected to master device before, this MD may need to
      * change back to it's original classes.
