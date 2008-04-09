@@ -730,11 +730,15 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
         {
             kbd = GetPairedDevice(device);
             mouse = device;
+            if (!kbd->key) /* can happen with floating SDs */
+                kbd = NULL;
         }
         else
         {
             mouse = GetPairedDevice(device);
             kbd = device;
+            if (!mouse->valuator || !mouse->button) /* may be float. SDs */
+                mouse = NULL;
         }
         xE->u.keyButtonPointer.state = (kbd) ? (kbd->key->state) : 0;
         xE->u.keyButtonPointer.state |= (mouse) ? (mouse->button->state) : 0;
