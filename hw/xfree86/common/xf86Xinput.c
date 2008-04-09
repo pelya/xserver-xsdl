@@ -722,7 +722,10 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     int index;
 
 #if XFreeXDGA
-    DeviceIntPtr pointer = GetPairedDevice(device);
+    DeviceIntPtr pointer;
+
+    /* Some pointers send key events, paired device is wrong then. */
+    pointer = IsPointerDevice(device) ? device : GetPairedDevice(device);
 
     if (miPointerGetScreen(pointer)) {
         index = miPointerGetScreen(pointer)->myNum;
