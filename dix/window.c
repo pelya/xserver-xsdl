@@ -366,6 +366,7 @@ CreateRootWindow(ScreenPtr pScreen)
     WindowPtr	pWin;
     BoxRec	box;
     PixmapFormatRec *format;
+    FocusSemaphoresPtr sem;
 
     pWin = (WindowPtr)xalloc(sizeof(WindowRec));
     if (!pWin)
@@ -484,6 +485,7 @@ CreateRootWindow(ScreenPtr pScreen)
 		
     if (disableSaveUnders)
 	pScreen->saveUnderSupport = NotUseful;
+
     return TRUE;
 }
 

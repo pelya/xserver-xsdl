@@ -4393,7 +4393,7 @@ EnterLeaveEvent(
     GrabPtr	        grab = mouse->deviceGrab.grab;
     GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
-    int*                inWindow; /* no of sprites inside pWin */
+    int                 inWindow; /* zero if no sprites are in window */
     Bool                sendevent = FALSE;
 
     deviceEnterNotify   *devEnterLeave;
@@ -4446,7 +4446,6 @@ EnterLeaveEvent(
              IsParent(focus, pWin)))
         event.u.enterLeave.flags |= ELFlagFocus;
 
-    inWindow = &((FocusSemaphoresPtr)dixLookupPrivate(&pWin->devPrivates, FocusPrivatesKey))->enterleave;
 
     /*
      * Sending multiple core enter/leave events to the same window confuse the
@@ -4472,16 +4471,15 @@ EnterLeaveEvent(
      * NotifyNonlinearVirtual to C and nothing to B.
      */
 
-    if (event.u.u.detail != NotifyVirtual &&
-            event.u.u.detail != NotifyNonlinearVirtual)
-    {
-        if (((*inWindow) == (LeaveNotify - type)))
-            sendevent = TRUE;
-    } else
-    {
-        if (!(*inWindow))
-            sendevent = TRUE;
-    }
+    /* Clear bit for device, but don't worry about SDs. */
+    if (mouse->isMaster && type == LeaveNotify &&
+            (mode != NotifyVirtual && mode != NotifyNonlinearVirtual))
+        ENTER_LEAVE_SEMAPHORE_UNSET(pWin, mouse);
+
+    inWindow = EnterLeaveSemaphoresIsset(pWin);
+
+    if (!inWindow)
+        sendevent = TRUE;
 
     if ((mask & filters[mouse->id][type]) && sendevent)
     {
@@ -4492,6 +4490,10 @@ EnterLeaveEvent(
             DeliverEventsToWindow(mouse, pWin, &event, 1,
                                   filters[mouse->id][type], NullGrab, 0);
     }
+
+    if (mouse->isMaster && type == EnterNotify &&
+            (mode != NotifyVirtual && mode != NotifyNonlinearVirtual))
+        ENTER_LEAVE_SEMAPHORE_SET(pWin, mouse);
 
     /* we don't have enough bytes, so we squash flags and mode into
        one byte, and use the last byte for the deviceid. */
@@ -4582,25 +4584,6 @@ LeaveNotifies(DeviceIntPtr pDev,
     }
 }
 
-/* welcome to insanity */
-#define FOCUS_SEMAPHORE_MODIFY(win, field, mode, val) \
-{ \
-    FocusSemaphoresPtr sem;\
-    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey); \
-    if (mode != NotifyGrab && mode != NotifyUngrab) { \
-        sem->field += val; \
-    } else if (mode == NotifyUngrab) { \
-        if (sem->field == 0 && val > 0) \
-            sem->field += val; \
-        else if (sem->field == 1 && val < 0) \
-            sem->field += val; \
-    } \
-}
-#define ENTER_LEAVE_SEMAPHORE_UP(win, mode)  \
-        FOCUS_SEMAPHORE_MODIFY(win, enterleave, mode, 1);
-
-#define ENTER_LEAVE_SEMAPHORE_DOWN(win, mode) \
-        FOCUS_SEMAPHORE_MODIFY(win, enterleave, mode,  -1);
 
 
 /**
@@ -4620,33 +4603,27 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
 	return;
     if (IsParent(fromWin, toWin))
     {
-        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode);
         EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
                         None);
         EnterNotifies(pDev, fromWin, toWin, mode,
                       NotifyVirtual);
-        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
         EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
     }
     else if (IsParent(toWin, fromWin))
     {
-        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode);
 	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin,
                         None);
 	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
-        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
 	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
     }
     else
     { /* neither fromWin nor toWin is descendent of the other */
 	WindowPtr common = CommonAncestor(toWin, fromWin);
 	/* common == NullWindow ==> different screens */
-        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode);
         EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
                         None);
         LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
 	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
-        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
         EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
                         None);
     }
@@ -4656,7 +4633,7 @@ static void
 FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 {
     xEvent event;
-    int* numFoci; /* no of foci the window has already */
+    int numFoci; /* zero if no device has focus on window */
     Bool sendevent = FALSE;
 
     if (dev != inputInfo.keyboard)
@@ -4690,25 +4667,18 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
      * NotifyNonlinearVirtual to C and nothing to B.
      */
 
-    numFoci =
-        &((FocusSemaphoresPtr)dixLookupPrivate(&pWin->devPrivates,
-                    FocusPrivatesKey))->focusinout;
-    if (mode == NotifyGrab || mode == NotifyUngrab)
+    if (dev->isMaster && type == FocusOut &&
+            (detail != NotifyVirtual &&
+             detail != NotifyNonlinearVirtual &&
+             detail != NotifyPointer &&
+             detail != NotifyPointerRoot &&
+             detail != NotifyDetailNone))
+       FOCUS_SEMAPHORE_UNSET(pWin, dev);
+
+    numFoci = FocusSemaphoresIsset(pWin);
+
+    if (!numFoci)
         sendevent = TRUE;
-    else if (detail != NotifyVirtual &&
-            detail != NotifyNonlinearVirtual &&
-            detail != NotifyPointer &&
-            detail != NotifyPointerRoot &&
-            detail != NotifyDetailNone)
-    {
-        (type == FocusIn) ? (*numFoci)++ : (*numFoci)--;
-        if (((*numFoci) == (FocusOut - type)))
-            sendevent = TRUE;
-    } else
-    {
-        if (!(*numFoci))
-            sendevent = TRUE;
-    }
 
     if (sendevent)
     {
@@ -4733,6 +4703,14 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
                                         KeymapStateMask, NullGrab, 0);
         }
     }
+
+    if (dev->isMaster && type == FocusIn &&
+            (detail != NotifyVirtual &&
+             detail != NotifyNonlinearVirtual &&
+             detail != NotifyPointer &&
+             detail != NotifyPointerRoot &&
+             detail != NotifyDetailNone))
+        FOCUS_SEMAPHORE_SET(pWin, dev);
 }
 
  /*
@@ -6614,5 +6592,39 @@ ExtGrabDevice(ClientPtr client,
 
     (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
     return GrabSuccess;
+}
+
+/*
+ * @return Zero if no device is currently in window, non-zero otherwise.
+ */
+int
+EnterLeaveSemaphoresIsset(WindowPtr win)
+{
+    FocusSemaphoresPtr sem;
+    int set = 0;
+    int i;
+
+    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
+    for (i = 0; i < (MAX_DEVICES + 7)/8; i++)
+        set += sem->enterleave[i];
+
+    return set;
+}
+
+/*
+ * @return Zero if no devices has focus on the window, non-zero otherwise.
+ */
+int
+FocusSemaphoresIsset(WindowPtr win)
+{
+    FocusSemaphoresPtr sem;
+    int set = 0;
+    int i;
+
+    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
+    for (i = 0; i < (MAX_DEVICES + 7)/8; i++)
+        set += sem->focusinout[i];
+
+    return set;
 }
 

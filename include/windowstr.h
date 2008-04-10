@@ -59,6 +59,7 @@ SOFTWARE.
 #include "miscstruct.h"
 #include <X11/Xprotostr.h>
 #include "opaque.h"
+#include "inputstr.h"
 
 #define GuaranteeNothing	0
 #define GuaranteeVisBack	1
@@ -257,11 +258,14 @@ extern ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 extern DevPrivateKey FocusPrivatesKey;
 
 /* Used to maintain semantics of core protocol for Enter/LeaveNotifies and
- * FocusIn/Out events for multiple pointers/keyboards. 
- */ 
+ * FocusIn/Out events for multiple pointers/keyboards.
+ *
+ * Each device ID corresponds to one bit. If set, the device is in the
+ * window/has focus.
+ */
 typedef struct _FocusSemaphores {
-    int                 enterleave;
-    int                 focusinout;
+    char                enterleave[(MAX_DEVICES + 7)/8];
+    char                focusinout[(MAX_DEVICES + 7)/8];
 } FocusSemaphoresRec, *FocusSemaphoresPtr;
 
 /*

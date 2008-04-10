@@ -224,8 +224,7 @@ EnableDevice(DeviceIntPtr dev)
             if (dev->spriteInfo->spriteOwner)
             {
                 InitializeSprite(dev, WindowTable[0]);
-                ((FocusSemaphoresPtr)dixLookupPrivate(&(WindowTable[0])->devPrivates,
-                    FocusPrivatesKey))->enterleave++;
+                ENTER_LEAVE_SEMAPHORE_SET(WindowTable[0], dev);
             }
             else if ((other = NextFreePointerDevice()) == NULL)
             {
