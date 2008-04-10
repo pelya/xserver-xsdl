@@ -459,11 +459,29 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 
 
-    ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
-    if (to->focus && !from->focus)
+    /* We can't just copy over the focus class. When an app sets the focus,
+     * it'll do so on the master device. Copying the SDs focus means losing
+     * the focus.
+     * So we only copy the focus class if the device didn't have one,
+     * otherwise we leave it as it is.
+     */
+    if (from->focus)
     {
-        FreeDeviceClass(FocusClass, (pointer)&to->focus);
+        if (!to->focus)
+        {
+            to->focus = xcalloc(1, sizeof(FocusClassRec));
+            if (!to->focus)
+                FatalError("[Xi] no memory for class shift.\n");
+            memcpy(to->focus->trace, from->focus->trace,
+                    from->focus->traceSize * sizeof(WindowPtr));
+        }
+    } else if (to->focus)
+    {
+        /* properly freeing the class would also free the sprite trace, which
+         * is still in use by the SD. just xfree the struct. */
+        xfree(to->focus);
     }
+
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     if (to->proximity && !from->proximity)
     {
