@@ -977,7 +977,7 @@ KdClassifyInput (KdMouseInfo *mi, xEvent *ev)
     return keyboard;
 }
 
-#ifndef NDEBUG
+#ifdef DEBUG
 char	*kdStateNames[] = {
     "start",
     "button_1_pend",
@@ -1010,7 +1010,7 @@ char *kdActionNames[] = {
     "gen_down_2",
     "gen_up_2",
 };
-#endif
+#endif /* DEBUG */
 
 static void
 KdQueueEvent (xEvent *ev)

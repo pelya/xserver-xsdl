@@ -264,9 +264,6 @@
 /* Support MIT-SHM Extension */
 #undef MITSHM
 
-/* Disable some debugging code */
-#undef NDEBUG
-
 /* Enable some debugging code */
 #undef DEBUG
 

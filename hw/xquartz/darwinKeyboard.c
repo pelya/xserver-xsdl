@@ -76,13 +76,7 @@
 #include "quartzKeyboard.h"
 #include "quartzAudio.h"
 
-#ifdef NDEBUG
-#undef NDEBUG
 #include <assert.h>
-#define NDEBUG 1
-#else
-#include <assert.h>
-#endif
 
 #define AltMask         Mod1Mask
 #define MetaMask        Mod2Mask
