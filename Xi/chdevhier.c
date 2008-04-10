@@ -272,10 +272,10 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                             goto unwind;
                         }
 
-                        if ((IsPointerDevice(newmaster) &&
-                                    !IsPointerDevice(ptr)) ||
+                        if (!((IsPointerDevice(newmaster) &&
+                                    IsPointerDevice(ptr)) ||
                                 (IsKeyboardDevice(newmaster) &&
-                                 !IsKeyboardDevice(ptr)))
+                                 IsKeyboardDevice(ptr))))
                         {
                             rc = BadDevice;
                             goto unwind;

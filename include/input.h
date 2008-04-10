@@ -80,6 +80,39 @@ SOFTWARE.
 #define RevertToFollowKeyboard	3
 #endif
 
+/* Used for enter/leave and focus in/out semaphores */
+#define SEMAPHORE_FIELD_SET(win, dev, field) \
+{ \
+    FocusSemaphoresPtr sem; \
+    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey); \
+    sem->field[dev->id/8] |= (1 << (dev->id % 8)); \
+}
+
+#define SEMAPHORE_FIELD_UNSET(win, dev, field) \
+{ \
+    FocusSemaphoresPtr sem; \
+    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey); \
+    sem->field[dev->id/8] &= ~(1 << (dev->id % 8)); \
+}
+
+#define ENTER_LEAVE_SEMAPHORE_SET(win, dev) \
+        SEMAPHORE_FIELD_SET(win, dev, enterleave);
+
+#define ENTER_LEAVE_SEMAPHORE_UNSET(win, dev) \
+        SEMAPHORE_FIELD_UNSET(win, dev, enterleave);
+
+#define ENTER_LEAVE_SEMAPHORE_ISSET(win, dev) \
+    ((FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey))->enterleave[dev->id/8] & (1 << (dev->id % 8))
+
+#define FOCUS_SEMAPHORE_SET(win, dev) \
+        SEMAPHORE_FIELD_SET(win, dev, focusinout);
+
+#define FOCUS_SEMAPHORE_UNSET(win, dev) \
+        SEMAPHORE_FIELD_UNSET(win, dev, focusinout);
+
+#define FOCUS_SEMAPHORE_ISSET(win, dev) \
+    ((FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey))->focusinout[dev->id/8] & (1 << (dev->id % 8))
+
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;
 typedef struct _InputClients *InputClientsPtr;
@@ -488,6 +521,8 @@ extern void DeepCopyDeviceClasses(DeviceIntPtr from,
 extern void FreeDeviceClass(int type, pointer* class);
 extern void FreeFeedbackClass(int type, pointer* class);
 extern void FreeAllDeviceClasses(ClassesPtr classes);
+extern int EnterLeaveSemaphoresIsset(WindowPtr win);
+extern int FocusSemaphoresIsset(WindowPtr win);
 
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);

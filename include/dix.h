@@ -615,6 +615,7 @@ extern int XItoCoreType(int xi_type);
 extern Bool DevHasCursor(DeviceIntPtr pDev);
 extern Bool IsPointerDevice( DeviceIntPtr dev);
 extern Bool IsKeyboardDevice(DeviceIntPtr dev);
+extern Bool IsPointerEvent(xEvent* xE);
 
 /*
  * These are deprecated compatibility functions and will be removed soon!

@@ -104,6 +104,32 @@ RegisterOtherDevice(DeviceIntPtr device)
     device->public.realInputProc = ProcessOtherEvent;
 }
 
+_X_EXPORT Bool
+IsPointerEvent(xEvent* xE)
+{
+    switch(xE->u.u.type)
+    {
+        case ButtonPress:
+        case ButtonRelease:
+        case MotionNotify:
+        case EnterNotify:
+        case LeaveNotify:
+            return TRUE;
+        default:
+            if (xE->u.u.type == DeviceButtonPress ||
+                xE->u.u.type == DeviceButtonRelease ||
+                xE->u.u.type == DeviceMotionNotify ||
+                xE->u.u.type == DeviceEnterNotify ||
+                xE->u.u.type == DeviceLeaveNotify ||
+                xE->u.u.type == ProximityIn ||
+                xE->u.u.type == ProximityOut)
+            {
+                return TRUE;
+            }
+    }
+    return FALSE;
+}
+
 /**
  * Copy the device->key into master->key and send a mapping notify to the
  * clients if appropriate.
@@ -459,11 +485,29 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 
 
-    ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
-    if (to->focus && !from->focus)
+    /* We can't just copy over the focus class. When an app sets the focus,
+     * it'll do so on the master device. Copying the SDs focus means losing
+     * the focus.
+     * So we only copy the focus class if the device didn't have one,
+     * otherwise we leave it as it is.
+     */
+    if (from->focus)
     {
-        FreeDeviceClass(FocusClass, (pointer)&to->focus);
+        if (!to->focus)
+        {
+            to->focus = xcalloc(1, sizeof(FocusClassRec));
+            if (!to->focus)
+                FatalError("[Xi] no memory for class shift.\n");
+            memcpy(to->focus->trace, from->focus->trace,
+                    from->focus->traceSize * sizeof(WindowPtr));
+        }
+    } else if (to->focus)
+    {
+        /* properly freeing the class would also free the sprite trace, which
+         * is still in use by the SD. just xfree the struct. */
+        xfree(to->focus);
     }
+
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     if (to->proximity && !from->proximity)
     {
@@ -730,11 +774,15 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
         {
             kbd = GetPairedDevice(device);
             mouse = device;
+            if (!kbd->key) /* can happen with floating SDs */
+                kbd = NULL;
         }
         else
         {
             mouse = GetPairedDevice(device);
             kbd = device;
+            if (!mouse->valuator || !mouse->button) /* may be float. SDs */
+                mouse = NULL;
         }
         xE->u.keyButtonPointer.state = (kbd) ? (kbd->key->state) : 0;
         xE->u.keyButtonPointer.state |= (mouse) ? (mouse->button->state) : 0;
@@ -808,7 +856,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
     if (grab)
         DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
-    else if (device->focus)
+    else if (device->focus && !IsPointerEvent(xE))
 	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
     else
 	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,

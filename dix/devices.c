@@ -88,8 +88,6 @@ SOFTWARE.
 
 /* The client that is allowed to change pointer-keyboard pairings. */
 static ClientPtr pairingClient = NULL;
-
-DevPrivateKey MasterDevClassesPrivateKey = &MasterDevClassesPrivateKey;
 DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
 
 /**
@@ -224,8 +222,7 @@ EnableDevice(DeviceIntPtr dev)
             if (dev->spriteInfo->spriteOwner)
             {
                 InitializeSprite(dev, WindowTable[0]);
-                ((FocusSemaphoresPtr)dixLookupPrivate(&(WindowTable[0])->devPrivates,
-                    FocusPrivatesKey))->enterleave++;
+                ENTER_LEAVE_SEMAPHORE_SET(WindowTable[0], dev);
             }
             else if ((other = NextFreePointerDevice()) == NULL)
             {
@@ -410,7 +407,6 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
     XkbComponentNamesRec names;
 #endif
     ClassesPtr classes;
-    DeviceIntRec dummy;
 
     switch (what) {
     case DEVICE_INIT:
@@ -419,8 +415,6 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
             ErrorF("[dix] Could not allocate device classes.\n");
             return BadAlloc;
         }
-
-        dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey, NULL);
 
         keySyms.minKeyCode = 8;
         keySyms.maxKeyCode = 255;
@@ -460,53 +454,9 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 
         xfree(keySyms.map);
         xfree(modMap);
-
-        classes->key = pDev->key;
-        classes->valuator = pDev->valuator;
-        classes->button = pDev->button;
-        classes->focus = pDev->focus;
-        classes->proximity = pDev->proximity;
-        classes->absolute = pDev->absolute;
-        classes->kbdfeed = pDev->kbdfeed;
-        classes->ptrfeed = pDev->ptrfeed;
-        classes->intfeed = pDev->intfeed;
-        classes->stringfeed = pDev->stringfeed;
-        classes->bell = pDev->bell;
-        classes->leds = pDev->leds;
-
-        /* Each time we switch classes we free the MD's classes and copy the
-         * SD's classes into the MD. We mustn't lose the first set of classes
-         * though as we need it to restore them when the last SD disconnects.
-         *
-         * So we create a fake device, seem to copy from the fake to the real
-         * one, thus ending up with a copy of the original ones in our MD.
-         *
-         * If we don't do that, we're in SIGABRT territory (double-frees, etc)
-         */
-        memcpy(&dummy, pDev, sizeof(DeviceIntRec));
-        /* Need to set them to NULL. Otherwise, Xkb does some weird stuff and
-         * the dev->key->xkbInfo->kbdProc starts calling itself. This can
-         * probably be fixed in a better way, but I don't know how. (whot) */
-        pDev->key        = NULL;
-        pDev->valuator   = NULL;
-        pDev->button     = NULL;
-        pDev->focus      = NULL;
-        pDev->proximity  = NULL;
-        pDev->absolute   = NULL;
-        pDev->kbdfeed    = NULL;
-        pDev->ptrfeed    = NULL;
-        pDev->intfeed    = NULL;
-        pDev->stringfeed = NULL;
-        pDev->bell       = NULL;
-        pDev->leds       = NULL;
-        DeepCopyDeviceClasses(&dummy, pDev);
-
-        dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey,
-                      classes);
         break;
 
     case DEVICE_CLOSE:
-	dixSetPrivate(&pDev->devPrivates, CoreDevicePrivateKey, NULL);
         break;
 
     default:
@@ -527,15 +477,11 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     BYTE map[33];
     int i = 0;
     ClassesPtr classes;
-    DeviceIntRec dummy;
-
 
     switch (what) {
     case DEVICE_INIT:
         if (!(classes = xcalloc(1, sizeof(ClassesRec))))
             return BadAlloc;
-
-        dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey, NULL);
 
         for (i = 1; i <= 32; i++)
             map[i] = i;
@@ -546,43 +492,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         pDev->lastx = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         pDev->lasty = pDev->valuator->axisVal[1];
-
-        classes->key = pDev->key;
-        classes->valuator = pDev->valuator;
-        classes->button = pDev->button;
-        classes->focus = pDev->focus;
-        classes->proximity = pDev->proximity;
-        classes->absolute = pDev->absolute;
-        classes->kbdfeed = pDev->kbdfeed;
-        classes->ptrfeed = pDev->ptrfeed;
-        classes->intfeed = pDev->intfeed;
-        classes->stringfeed = pDev->stringfeed;
-        classes->bell = pDev->bell;
-        classes->leds = pDev->leds;
-
-        /* See comment in CoreKeyboardProc. */
-        memcpy(&dummy, pDev, sizeof(DeviceIntRec));
-        /* Need to set them to NULL for the VCK (see CoreKeyboardProc). Not
-         * sure if also necessary for the VCP, but it doesn't seem to hurt */
-        pDev->key        = NULL;
-        pDev->valuator   = NULL;
-        pDev->button     = NULL;
-        pDev->focus      = NULL;
-        pDev->proximity  = NULL;
-        pDev->absolute   = NULL;
-        pDev->kbdfeed    = NULL;
-        pDev->ptrfeed    = NULL;
-        pDev->intfeed    = NULL;
-        pDev->stringfeed = NULL;
-        pDev->bell       = NULL;
-        pDev->leds       = NULL;
-        DeepCopyDeviceClasses(&dummy, pDev);
-
-        dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey, classes);
         break;
 
     case DEVICE_CLOSE:
-	dixSetPrivate(&pDev->devPrivates, CoreDevicePrivateKey, NULL);
         break;
 
     default:
@@ -857,13 +769,6 @@ CloseDevice(DeviceIntPtr dev)
         screen->DeviceCursorCleanup(dev, screen);
 
     xfree(dev->name);
-
-    if (dev->isMaster)
-    {
-        classes = (ClassesPtr)dixLookupPrivate(&dev->devPrivates,
-                MasterDevClassesPrivateKey);
-        FreeAllDeviceClasses(classes);
-    }
 
     classes = (ClassesPtr)&dev->key;
     FreeAllDeviceClasses(classes);
@@ -2506,7 +2411,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return Success;
 
     /* free the existing sprite. */
-    if (!dev->u.master && dev->spriteInfo->sprite)
+    if (!dev->u.master && dev->spriteInfo->paired == dev)
         xfree(dev->spriteInfo->sprite);
 
     oldmaster = dev->u.master;
@@ -2515,15 +2420,22 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     /* If device is set to floating, we need to create a sprite for it,
      * otherwise things go bad. However, we don't want to render the cursor,
      * so we reset spriteOwner.
+     * Sprite has to be forced to NULL first, otherwise InitializeSprite won't
+     * alloc new memory but overwrite the previous one.
      */
     if (!master)
     {
-                              /* current root window */
-        InitializeSprite(dev, dev->spriteInfo->sprite->spriteTrace[0]);
+        WindowPtr currentRoot = dev->spriteInfo->sprite->spriteTrace[0];
+        dev->spriteInfo->sprite = NULL;
+        InitializeSprite(dev, currentRoot);
         dev->spriteInfo->spriteOwner = FALSE;
-
+        dev->spriteInfo->paired = dev;
     } else
+    {
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
+        dev->spriteInfo->paired = master;
+        dev->spriteInfo->spriteOwner = FALSE;
+    }
 
     /* If we were connected to master device before, this MD may need to
      * change back to it's original classes.
@@ -2537,16 +2449,9 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 
         if (!it)  /* no dev is paired with old master */
         {
-            ClassesPtr classes;
+            /* XXX: reset to defaults */
             EventList event = { NULL, 0};
             char* classbuf;
-            DeviceIntRec dummy;
-
-            FreeAllDeviceClasses((ClassesPtr)&oldmaster->key);
-            classes = (ClassesPtr)dixLookupPrivate(&oldmaster->devPrivates,
-                                        MasterDevClassesPrivateKey);
-            memcpy(&dummy.key, classes, sizeof(ClassesRec));
-            DeepCopyDeviceClasses(&dummy, oldmaster);
 
             /* Send event to clients */
             CreateClassesChangedEvent(&event, oldmaster, oldmaster);
