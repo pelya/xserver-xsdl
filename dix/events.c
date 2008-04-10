@@ -331,11 +331,14 @@ IsPointerDevice(DeviceIntPtr dev)
 /*
  * Return true if a device is a keyboard, check is the same as used by XI to
  * fill the 'use' field.
+ *
+ * Some pointer devices have keys as well (e.g. multimedia keys). Try to not
+ * count them as keyboard devices.
  */
 _X_EXPORT Bool
 IsKeyboardDevice(DeviceIntPtr dev)
 {
-    return (dev->key && dev->kbdfeed);
+    return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);;
 }
 
 #ifdef XEVIE
