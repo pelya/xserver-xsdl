@@ -1397,7 +1397,7 @@ ComputeFreezes(void)
 		replayDev->spriteInfo->sprite->spriteTrace[i])
 	    {
 		if (!CheckDeviceGrabs(replayDev, xE, i+1, count)) {
-		    if (replayDev->focus)
+		    if (replayDev->focus && !IsPointerEvent(xE))
 			DeliverFocusedEvent(replayDev, xE, w, count);
 		    else
 			DeliverDeviceEvents(w, xE, NullGrab, NullWindow,
@@ -1407,7 +1407,7 @@ ComputeFreezes(void)
 	    }
 	}
 	/* must not still be in the same stack */
-	if (replayDev->focus)
+	if (replayDev->focus && !IsPointerEvent(xE))
 	    DeliverFocusedEvent(replayDev, xE, w, count);
 	else
 	    DeliverDeviceEvents(w, xE, NullGrab, NullWindow, replayDev, count);

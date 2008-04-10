@@ -104,6 +104,32 @@ RegisterOtherDevice(DeviceIntPtr device)
     device->public.realInputProc = ProcessOtherEvent;
 }
 
+_X_EXPORT Bool
+IsPointerEvent(xEvent* xE)
+{
+    switch(xE->u.u.type)
+    {
+        case ButtonPress:
+        case ButtonRelease:
+        case MotionNotify:
+        case EnterNotify:
+        case LeaveNotify:
+            return TRUE;
+        default:
+            if (xE->u.u.type == DeviceButtonPress ||
+                xE->u.u.type == DeviceButtonRelease ||
+                xE->u.u.type == DeviceMotionNotify ||
+                xE->u.u.type == DeviceEnterNotify ||
+                xE->u.u.type == DeviceLeaveNotify ||
+                xE->u.u.type == ProximityIn ||
+                xE->u.u.type == ProximityOut)
+            {
+                return TRUE;
+            }
+    }
+    return FALSE;
+}
+
 /**
  * Copy the device->key into master->key and send a mapping notify to the
  * clients if appropriate.
@@ -830,7 +856,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
     if (grab)
         DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
-    else if (device->focus)
+    else if (device->focus && !IsPointerEvent(xE))
 	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
     else
 	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,
