@@ -9,11 +9,6 @@ if XTRAP
 XTRAP_DIR=XTrap
 endif
 
-if CFB
-CFB_DIR=cfb
-CFB32_DIR=cfb32
-endif
-
 if AFB
 AFB_DIR=afb
 endif
@@ -50,8 +45,6 @@ SUBDIRS = \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
 	$(AFB_DIR) \
-	$(CFB_DIR) \
-	$(CFB32_DIR) \
 	$(RECORD_DIR) \
 	xfixes \
 	damageext \
@@ -96,8 +89,6 @@ DIST_SUBDIRS = \
 	dbe \
 	mfb \
 	afb \
-	cfb \
-	cfb32 \
 	record \
 	xfixes \
 	damageext \

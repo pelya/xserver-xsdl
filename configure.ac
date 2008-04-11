@@ -575,7 +575,6 @@ AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl mo
 AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
 dnl legacy fb support
 AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: enabled)]), [MFB=$enableval], [MFB=$XORG])
-AC_ARG_ENABLE(cfb,            AS_HELP_STRING([--enable-cfb], [Build legacy color framebuffer support (default: enabled)]), [CFB=$enableval], [CFB=$XORG])
 AC_ARG_ENABLE(afb,            AS_HELP_STRING([--enable-afb], [Build legacy advanced framebuffer support (default: enabled)]), [AFB=$enableval], [AFB=$XORG])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
@@ -1581,12 +1580,10 @@ AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
 dnl legacy fb support
 test "x$MFB" = xauto && MFB="$XORG"
-test "x$CFB" = xauto && CFB="$XORG"
 test "x$AFB" = xauto && AFB="$XORG"
 AM_CONDITIONAL(MFB, [test "x$MFB" = xyes])
-AM_CONDITIONAL(CFB, [test "x$CFB" = xyes])
 AM_CONDITIONAL(AFB, [test "x$AFB" = xyes])
-if test "x$MFB" = xyes -o "x$CFB" = xyes -o "x$AFB" = xyes; then
+if test "x$MFB" = xyes -o "x$AFB" = xyes; then
 	if test "x$XORG" != xyes; then
 		AC_MSG_ERROR([legacy fb support requires the Xorg server])
 	fi
@@ -2135,8 +2132,6 @@ fb/Makefile
 record/Makefile
 XTrap/Makefile
 mfb/Makefile
-cfb/Makefile
-cfb32/Makefile
 config/Makefile
 mi/Makefile
 miext/Makefile
@@ -2195,7 +2190,6 @@ hw/xfree86/xaa/Makefile
 hw/xfree86/xf1bpp/Makefile
 hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
-hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
