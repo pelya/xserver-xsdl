@@ -24,6 +24,7 @@ config.sub
 configure
 configure.lineno
 depcomp
+doltcompile
 install-sh
 libtool
 ltmain.sh
