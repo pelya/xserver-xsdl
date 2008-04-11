@@ -766,6 +766,7 @@ typedef enum {
     FLAG_AUTO_ADD_DEVICES,
     FLAG_AUTO_ENABLE_DEVICES,
     FLAG_GLX_VISUALS,
+    FLAG_DRI2,
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -837,16 +838,18 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
         {0}, FALSE },
-  { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
+  { FLAG_IGNORE_ABI,		"IgnoreABI",			OPTV_BOOLEAN,
 	{0}, FALSE },
-  { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",			OPTV_BOOLEAN,
+  { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",		OPTV_BOOLEAN,
 	{0}, FALSE },
-  { FLAG_AUTO_ADD_DEVICES,       "AutoAddDevices",                      OPTV_BOOLEAN,
+  { FLAG_AUTO_ADD_DEVICES,       "AutoAddDevices",		OPTV_BOOLEAN,
         {0}, TRUE },
-  { FLAG_AUTO_ENABLE_DEVICES,    "AutoEnableDevices",                   OPTV_BOOLEAN,
+  { FLAG_AUTO_ENABLE_DEVICES,    "AutoEnableDevices",		OPTV_BOOLEAN,
         {0}, TRUE },
   { FLAG_GLX_VISUALS,		"GlxVisuals",			OPTV_STRING,
         {0}, FALSE },
+  { FLAG_DRI2,			"DRI2",				OPTV_BOOLEAN,
+	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -1179,7 +1182,21 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
       xf86Msg(from, "Xinerama: enabled\n");
 #endif
 
+#ifdef DRI2
+    xf86Info.dri2 = FALSE;
+    xf86Info.dri2From = X_DEFAULT;
+    if (xf86GetOptValBool(FlagOptions, FLAG_DRI2, &value)) {
+	xf86Info.dri2 = value;
+	xf86Info.dri2From = X_CONFIG;
+    }
+#endif
+
     return TRUE;
+}
+
+Bool xf86DRI2Enabled(void)
+{
+    return xf86Info.dri2;
 }
 
 /*

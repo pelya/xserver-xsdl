@@ -71,6 +71,7 @@ extern Bool sbusSlotClaimed;
 #endif
 extern confDRIRec xf86ConfigDRI;
 extern Bool xf86inSuspend;
+extern Bool xf86DRI2Enabled(void);
 
 #define XF86SCRNINFO(p) ((ScrnInfoPtr)dixLookupPrivate(&(p)->devPrivates, \
 						       xf86ScreenKey))
