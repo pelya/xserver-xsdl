@@ -743,15 +743,21 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (BOOL) application:(NSApplication *)app openFile:(NSString *)filename
 {
-  const char *name = [filename UTF8String];
-	
-  if (finished_launching)
-    [self launch_client:filename];
-  else if (name[0] != ':')		/* ignore display names */
-    pending_apps = x_list_prepend (pending_apps, [filename retain]);
-	
-  /* FIXME: report failures. */
-  return YES;
+    const char *name = [filename UTF8String];
+    
+    if (finished_launching)
+        [self launch_client:filename];
+    else if (name[0] != ':')		/* ignore display names */
+        pending_apps = x_list_prepend (pending_apps, [filename retain]);
+    
+    /* FIXME: report failures. */
+    return YES;
+}
+
+- (BOOL) applicationShouldHandleReopen:(NSApplication *)app
+                     hasVisibleWindows:(BOOL)hasVis {
+    DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
+    return YES;
 }
 
 @end
