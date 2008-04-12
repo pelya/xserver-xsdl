@@ -263,7 +263,11 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
             (*k)->BellProc = it->BellProc;
             (*k)->CtrlProc = it->CtrlProc;
             (*k)->ctrl     = it->ctrl;
-            /* XXX: xkb_sli needs to be copied */
+#ifdef XKB
+            if ((*k)->xkb_sli)
+                XkbFreeSrvLedInfo((*k)->xkb_sli);
+            (*k)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, *k, NULL);
+#endif
 
             k = &(*k)->next;
         }
@@ -289,7 +293,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
             }
             (*p)->CtrlProc = it->CtrlProc;
             (*p)->ctrl     = it->ctrl;
-            /* XXX: xkb_sli needs to be copied */
 
             p = &(*p)->next;
         }
@@ -391,7 +394,11 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
             }
             (*l)->CtrlProc = it->CtrlProc;
             (*l)->ctrl     = it->ctrl;
-            /* XXX: xkb_sli needs to be copied */
+#ifdef XKB
+            if ((*l)->xkb_sli)
+                XkbFreeSrvLedInfo((*l)->xkb_sli);
+            (*l)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, NULL, *l);
+#endif
 
             l = &(*l)->next;
         }
