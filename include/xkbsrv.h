@@ -576,6 +576,14 @@ extern XkbSrvLedInfoPtr XkbAllocSrvLedInfo(
     unsigned int		/* needed_parts */
 );
 
+extern XkbSrvLedInfoPtr XkbCopySrvLedInfo(
+    DeviceIntPtr		/* dev */,
+    XkbSrvLedInfoPtr		/* src */,
+    KbdFeedbackPtr		/* kf */,
+    LedFeedbackPtr		/* lf */
+);
+
+
 extern XkbSrvLedInfoPtr XkbFindSrvLedInfo(
     DeviceIntPtr		/* dev */,
     unsigned int		/* class */,
