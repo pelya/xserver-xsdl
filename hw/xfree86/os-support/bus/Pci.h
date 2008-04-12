@@ -246,7 +246,7 @@
 # if !defined(__FreeBSD__) && !defined(linux)
 #  define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
 # endif
-#elif defined(__amd64__) || defined(__amd64)
+#elif defined(__amd64__) || defined(__amd64) || defined(__x86_64__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 # else

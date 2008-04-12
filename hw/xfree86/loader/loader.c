@@ -63,7 +63,7 @@
 #include <string.h>
 #if defined(linux) && \
     (defined(__alpha__) || defined(__powerpc__) || defined(__ia64__) \
-    || defined(__amd64__))
+    || defined(__amd64__) || defined(__x86_64__))
 #include <malloc.h>
 #endif
 #include <stdarg.h>

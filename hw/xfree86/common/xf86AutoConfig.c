@@ -449,7 +449,7 @@ chooseVideoDriver(void)
 	if (info != NULL)
 	    chosen_driver = videoPtrToDriverName(info);
 	if (chosen_driver == NULL) {
-#if defined  __i386__ || defined __amd64__ || defined __hurd__
+#if defined  __i386__ || defined __amd64__ || defined __x86_64__ || defined __hurd__
 	    chosen_driver = "vesa";
 #elif defined __sparc__
 	    chosen_driver = "sunffb";
