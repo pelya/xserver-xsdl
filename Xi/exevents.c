@@ -416,6 +416,11 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 _X_EXPORT void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
+    /* XkbInitDevice (->XkbInitIndicatorMap->XkbFindSrvLedInfo) relies on the
+     * kbdfeed to be set up properly, so let's do the feedback classes first.
+     */
+    DeepCopyFeedbackClasses(from, to);
+
 #define ALLOC_COPY_CLASS_IF(field, type) \
     if (from->field)\
     { \
@@ -528,7 +533,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         to->absolute = NULL;
     }
 
-    DeepCopyFeedbackClasses(from, to);
 }
 
 /**
