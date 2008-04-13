@@ -96,6 +96,9 @@ Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
 static Bool MakeInputMasks(WindowPtr	/* pWin */
     );
 
+/* Used to sture classes currently not in use by an MD */
+extern DevPrivateKey UnusedClassesPrivateKey;
+
 
 void
 RegisterOtherDevice(DeviceIntPtr device)
@@ -416,27 +419,21 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 /**
  * Copies the CONTENT of the classes of device from into the classes in device
  * to. From and to are identical after finishing.
+ *
+ * If to does not have classes from currenly has, the classes are stored in
+ * to's devPrivates system. Later, we recover it again from there if needed.
+ * Saves a few memory allocations.
  */
 
 _X_EXPORT void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
+    ClassesPtr classes;
+
     /* XkbInitDevice (->XkbInitIndicatorMap->XkbFindSrvLedInfo) relies on the
      * kbdfeed to be set up properly, so let's do the feedback classes first.
      */
     DeepCopyFeedbackClasses(from, to);
-
-#define ALLOC_COPY_CLASS_IF(field, type) \
-    if (from->field)\
-    { \
-        if (!to->field) \
-        { \
-            to->field = xcalloc(1, sizeof(type)); \
-            if (!to->field) \
-            FatalError("[Xi] no memory for class shift.\n"); \
-        } \
-        memcpy(to->field, from->field, sizeof(type)); \
-    }
 
     if (from->key)
     {
@@ -445,14 +442,18 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #ifdef XKB
         struct _XkbSrvInfo  *oldXkbInfo;
 #endif
-
         if (!to->key)
         {
-            to->key = xcalloc(1, sizeof(KeyClassRec));
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->key = classes->key;
             if (!to->key)
-                FatalError("[Xi] no memory for class shift.\n");
+            {
+                to->key = xcalloc(1, sizeof(KeyClassRec));
+                if (!to->key)
+                    FatalError("[Xi] no memory for class shift.\n");
+            }
         }
-
 
         oldModKeyMap    = to->key->modifierKeyMap;
         oldMap          = to->key->curKeySyms.map;
@@ -480,14 +481,22 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
     {
-        FreeDeviceClass(KeyClass, (pointer)&to->key);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->key = to->key;
+        to->key      = NULL;
     }
 
     if (from->valuator)
     {
         ValuatorClassPtr v;
-        if (to->valuator)
-            xfree(to->valuator->motion);
+        if (!to->valuator)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->valuator = classes->valuator;
+        }
+
         to->valuator = xrealloc(to->valuator, sizeof(ValuatorClassRec) +
                 from->valuator->numAxes * sizeof(AxisInfo) +
                 from->valuator->numAxes * sizeof(unsigned int));
@@ -504,14 +513,28 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         v->axisVal = (int*)(v->axes + from->valuator->numAxes);
     } else if (to->valuator && !from->valuator)
     {
-        FreeDeviceClass(ValuatorClass, (pointer)&to->valuator);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->valuator = to->valuator;
+        to->valuator      = NULL;
     }
 
-    ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
-    if (to->button)
+    if (from->button)
     {
         int i;
         DeviceIntPtr sd;
+        if (!to->button)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->button = classes->button;
+            if (!to->button)
+            {
+                to->button = xcalloc(1, sizeof(ButtonClassRec));
+                if (!to->button)
+                    FatalError("[Xi] no memory for class shift.\n");
+            }
+        }
 
         /* merge button states from all attached devices */
         for (sd = inputInfo.devices; sd; sd = sd->next)
@@ -530,7 +553,10 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #endif
     } else if (to->button && !from->button)
     {
-        FreeDeviceClass(ButtonClass, (pointer)&to->button);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->button = to->button;
+        to->button      = NULL;
     }
 
 
@@ -544,29 +570,78 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     {
         if (!to->focus)
         {
-            to->focus = xcalloc(1, sizeof(FocusClassRec));
+            WindowPtr *oldTrace;
+
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->focus = classes->focus;
             if (!to->focus)
-                FatalError("[Xi] no memory for class shift.\n");
+            {
+                to->focus = xcalloc(1, sizeof(FocusClassRec));
+                if (!to->focus)
+                    FatalError("[Xi] no memory for class shift.\n");
+            }
+            oldTrace = to->focus->trace;
+            memcpy(to->focus, from->focus, sizeof(FocusClassRec));
+            to->focus->trace = xrealloc(oldTrace,
+                                  to->focus->traceSize * sizeof(WindowPtr));
+            if (!to->focus->trace && to->focus->traceSize)
+                FatalError("[Xi] no memory for trace.\n");
             memcpy(to->focus->trace, from->focus->trace,
                     from->focus->traceSize * sizeof(WindowPtr));
         }
     } else if (to->focus)
     {
-        /* properly freeing the class would also free the sprite trace, which
-         * is still in use by the SD. just xfree the struct. */
-        xfree(to->focus);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->focus = to->focus;
+        to->focus      = NULL;
     }
 
-    ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
-    if (to->proximity && !from->proximity)
+    if (from->proximity)
     {
-        FreeDeviceClass(ProximityClass, (pointer)&to->proximity);
+        if (!to->proximity)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->proximity = classes->proximity;
+            if (!to->proximity)
+            {
+                to->proximity = xcalloc(1, sizeof(ProximityClassRec));
+                if (!to->proximity)
+                    FatalError("[Xi] no memory for class shift.\n");
+            }
+        }
+        memcpy(to->proximity, from->proximity, sizeof(ProximityClassRec));
+    } else if (to->proximity)
+    {
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->proximity = to->proximity;
+        to->proximity      = NULL;
     }
-    ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
-    if (to->absolute && !from->absolute)
+
+    if (from->absolute)
     {
-        xfree(to->absolute);
-        to->absolute = NULL;
+        if (!to->absolute)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->absolute = classes->absolute;
+            if (!to->absolute)
+            {
+                to->absolute = xcalloc(1, sizeof(AbsoluteClassRec));
+                if (!to->absolute)
+                    FatalError("[Xi] no memory for class shift.\n");
+            }
+        }
+        memcpy(to->absolute, from->absolute, sizeof(AbsoluteClassRec));
+    } else if (to->absolute)
+    {
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->absolute = to->absolute;
+        to->absolute      = NULL;
     }
 
 }

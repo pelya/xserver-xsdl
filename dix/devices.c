@@ -89,6 +89,8 @@ SOFTWARE.
 /* The client that is allowed to change pointer-keyboard pairings. */
 static ClientPtr pairingClient = NULL;
 DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
+/* Used to sture classes currently not in use by an MD */
+DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKey;
 
 /**
  * Create a new input device and init it to sane values. The device is added
@@ -2550,6 +2552,7 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
+    ClassesPtr classes;
     *ptr = *keybd = NULL;
 
     pointer = AddInputDevice(client, CorePointerProc, TRUE);
@@ -2601,6 +2604,13 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
 
     keyboard->u.lastSlave = NULL;
     keyboard->isMaster = TRUE;
+
+
+    /* The ClassesRec stores the device classes currently not used. */
+    classes = xcalloc(1, sizeof(ClassesRec));
+    dixSetPrivate(&pointer->devPrivates, UnusedClassesPrivateKey, classes);
+    classes = xcalloc(1, sizeof(ClassesRec));
+    dixSetPrivate(&keyboard->devPrivates, UnusedClassesPrivateKey, classes);
 
     *ptr = pointer;
     *keybd = keyboard;
