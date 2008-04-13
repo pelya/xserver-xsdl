@@ -447,7 +447,7 @@ XkbIndicatorMapPtr	map;
 XkbDescPtr		xkb;
 
     if ((sli->flags&XkbSLI_HasOwnState)==0)
-	dev= inputInfo.keyboard;
+        return;
 
     sli->usesBase&=	 ~which;
     sli->usesLatched&=	 ~which;
@@ -462,7 +462,7 @@ XkbDescPtr		xkb;
 	if (which&bit) {
 	    CARD8		what;
 
-	    if (!XkbIM_InUse(map)) 
+	    if (!map || !XkbIM_InUse(map))
 		continue;
 	    sli->mapsPresent|= bit;
 
