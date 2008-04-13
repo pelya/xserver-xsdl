@@ -462,6 +462,15 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         memcpy(to->key, from->key, sizeof(KeyClassRec));
 
+        if (!oldMap) /* newly created key struct */
+        {
+            int bytes = (to->key->curKeySyms.maxKeyCode -
+                         to->key->curKeySyms.minKeyCode + 1) *
+                         to->key->curKeySyms.mapWidth;
+            oldMap = (KeySym *)xcalloc(sizeof(KeySym), bytes);
+            memcpy(oldMap, from->key->curKeySyms.map, bytes);
+        }
+
         to->key->modifierKeyMap = oldModKeyMap;
         to->key->curKeySyms.map = oldMap;
 #ifdef XKB
