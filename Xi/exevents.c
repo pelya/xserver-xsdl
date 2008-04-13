@@ -176,11 +176,16 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 
         if (dk->maxKeysPerModifier)
         {
-            mk->modifierKeyMap = xcalloc(8, dk->maxKeysPerModifier);
+            mk->modifierKeyMap = xrealloc(mk->modifierKeyMap,
+                                          8 * dk->maxKeysPerModifier);
             if (!mk->modifierKeyMap)
                 FatalError("[Xi] no memory for class shift.\n");
             memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
                     (8 * dk->maxKeysPerModifier));
+        } else
+        {
+            xfree(mk->modifierKeyMap);
+            mk->modifierKeyMap = NULL;
         }
 
         mk->maxKeysPerModifier = dk->maxKeysPerModifier;
@@ -439,7 +444,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #ifdef XKB
         to->key->xkbInfo = NULL;
 #endif
-        to->key->modifierKeyMap = NULL;
         to->key->curKeySyms.map = NULL;
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
