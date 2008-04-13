@@ -438,13 +438,36 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         memcpy(to->field, from->field, sizeof(type)); \
     }
 
-    ALLOC_COPY_CLASS_IF(key, KeyClassRec);
-    if (to->key && from->key)
+    if (from->key)
     {
+        KeyCode             *oldModKeyMap;
+        KeySym              *oldMap;
 #ifdef XKB
-        to->key->xkbInfo = NULL;
+        struct _XkbSrvInfo  *oldXkbInfo;
 #endif
-        to->key->curKeySyms.map = NULL;
+
+        if (!to->key)
+        {
+            to->key = xcalloc(1, sizeof(KeyClassRec));
+            if (!to->key)
+                FatalError("[Xi] no memory for class shift.\n");
+        }
+
+
+        oldModKeyMap    = to->key->modifierKeyMap;
+        oldMap          = to->key->curKeySyms.map;
+#ifdef XKB
+        oldXkbInfo      = to->key->xkbInfo;
+#endif
+
+        memcpy(to->key, from->key, sizeof(KeyClassRec));
+
+        to->key->modifierKeyMap = oldModKeyMap;
+        to->key->curKeySyms.map = oldMap;
+#ifdef XKB
+        to->key->xkbInfo        = oldXkbInfo;
+#endif
+
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
     {
