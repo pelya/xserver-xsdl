@@ -434,6 +434,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #ifdef XKB
         to->key->xkbInfo = NULL;
 #endif
+        to->key->modifierKeyMap = NULL;
         to->key->curKeySyms.map = NULL;
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
