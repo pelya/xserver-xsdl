@@ -253,9 +253,19 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 static void
 DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
+    ClassesPtr classes;
+
     if (from->kbdfeed)
     {
         KbdFeedbackPtr *k, it;
+
+        if (!to->kbdfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->kbdfeed = classes->kbdfeed;
+        }
+
         k = &to->kbdfeed;
         for(it = from->kbdfeed; it; it = it->next)
         {
@@ -281,12 +291,22 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->kbdfeed && !from->kbdfeed)
     {
-        FreeFeedbackClass(KbdFeedbackClass, (pointer)&to->kbdfeed);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->kbdfeed = to->kbdfeed;
+        to->kbdfeed      = NULL;
     }
 
     if (from->ptrfeed)
     {
         PtrFeedbackPtr *p, it;
+        if (!to->ptrfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->ptrfeed = classes->ptrfeed;
+        }
+
         p = &to->ptrfeed;
         for (it = from->ptrfeed; it; it = it->next)
         {
@@ -306,12 +326,23 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->ptrfeed && !from->ptrfeed)
     {
-        FreeFeedbackClass(PtrFeedbackClass, (pointer)&to->ptrfeed);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->ptrfeed = to->ptrfeed;
+        to->ptrfeed      = NULL;
     }
 
     if (from->intfeed)
     {
         IntegerFeedbackPtr *i, it;
+
+        if (!to->intfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->intfeed = classes->intfeed;
+        }
+
         i = &to->intfeed;
         for (it = from->intfeed; it; it = it->next)
         {
@@ -331,12 +362,23 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->intfeed && !from->intfeed)
     {
-        FreeFeedbackClass(IntegerFeedbackClass, (pointer)&to->intfeed);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->intfeed = to->intfeed;
+        to->intfeed      = NULL;
     }
 
     if (from->stringfeed)
     {
         StringFeedbackPtr *s, it;
+
+        if (!to->stringfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->stringfeed = classes->stringfeed;
+        }
+
         s = &to->stringfeed;
         for (it = from->stringfeed; it; it = it->next)
         {
@@ -356,12 +398,23 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->stringfeed && !from->stringfeed)
     {
-        FreeFeedbackClass(StringFeedbackClass, (pointer)&to->stringfeed);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->stringfeed = to->stringfeed;
+        to->stringfeed      = NULL;
     }
 
     if (from->bell)
     {
         BellFeedbackPtr *b, it;
+
+        if (!to->bell)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->bell = classes->bell;
+        }
+
         b = &to->bell;
         for (it = from->bell; it; it = it->next)
         {
@@ -382,12 +435,23 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->bell && !from->bell)
     {
-        FreeFeedbackClass(BellFeedbackClass, (pointer)&to->bell);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->bell = to->bell;
+        to->bell      = NULL;
     }
 
     if (from->leds)
     {
         LedFeedbackPtr *l, it;
+
+        if (!to->leds)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->leds = classes->leds;
+        }
+
         l = &to->leds;
         for (it = from->leds; it; it = it->next)
         {
@@ -412,7 +476,10 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         }
     } else if (to->leds && !from->leds)
     {
-        FreeFeedbackClass(LedFeedbackClass, (pointer)&to->leds);
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->leds = to->leds;
+        to->leds      = NULL;
     }
 }
 
