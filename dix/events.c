@@ -3546,7 +3546,7 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
 {
     int i;
     WindowPtr pWin = NULL;
-    FocusClassPtr focus = device->focus;
+    FocusClassPtr focus = IsPointerEvent(xE) ? NULL : device->focus;
     xEvent core;
     BOOL sendCore = (device->isMaster && device->coreEvents);
 
