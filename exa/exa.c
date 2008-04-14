@@ -224,6 +224,30 @@ exaLog2(int val)
     return bits - 1;
 }
 
+static void
+exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
+                 int w, int h, int bpp)
+{
+    pExaPixmap->accel_blocked = 0;
+
+    if (pExaScr->info->maxPitchPixels) {
+        int max_pitch = pExaScr->info->maxPitchPixels * (bpp + 7) / 8;
+
+        if (pExaPixmap->fb_pitch > max_pitch)
+            pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
+    }
+
+    if (pExaScr->info->maxPitchBytes &&
+        pExaPixmap->fb_pitch > pExaScr->info->maxPitchBytes)
+        pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
+
+    if (w > pExaScr->info->maxX)
+        pExaPixmap->accel_blocked |= EXA_RANGE_WIDTH;
+
+    if (h > pExaScr->info->maxY)
+        pExaPixmap->accel_blocked |= EXA_RANGE_HEIGHT;
+}
+
 /**
  * exaCreatePixmap() creates a new pixmap.
  *
@@ -339,25 +363,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
     REGION_NULL(pScreen, &pExaPixmap->validSys);
     REGION_NULL(pScreen, &pExaPixmap->validFB);
 
-    /* Check whether this pixmap can be used for acceleration. */
-    pExaPixmap->accel_blocked = 0;
-
-    if (pExaScr->info->maxPitchPixels) {
-        int max_pitch = pExaScr->info->maxPitchPixels * (bpp + 7) / 8;
-
-        if (pExaPixmap->fb_pitch > max_pitch)
-            pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
-    }
-
-    if (pExaScr->info->maxPitchBytes &&
-        pExaPixmap->fb_pitch > pExaScr->info->maxPitchBytes)
-        pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
-
-    if (w > pExaScr->info->maxX)
-        pExaPixmap->accel_blocked |= EXA_RANGE_WIDTH;
-
-    if (h > pExaScr->info->maxY)
-        pExaPixmap->accel_blocked |= EXA_RANGE_HEIGHT;
+    exaSetAccelBlock(pExaScr, pExaPixmap,
+                     w, h, bpp);
 
     return pPixmap;
 }
@@ -373,12 +380,16 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
     if (!pPixmap)
         return FALSE;
 
+    pExaScr = ExaGetScreenPriv(pPixmap->drawable.pScreen);
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
 
-    if (pExaPixmap)
+    if (pExaPixmap) {
 	pExaPixmap->sys_ptr = pPixData;
 
-    pExaScr = ExaGetScreenPriv(pPixmap->drawable.pScreen);
+        exaSetAccelBlock(pExaScr, pExaPixmap,
+                         width, height, bitsPerPixel);
+    }
+
 
     if (pExaScr->info->ModifyPixmapHeader) {
 	ret = pExaScr->info->ModifyPixmapHeader(pPixmap, width, height, depth,
