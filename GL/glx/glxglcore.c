@@ -317,7 +317,7 @@ createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
     for (back = numBack - 1; back >= 0; back--)
 	for (depth = 0; depth < numDepth; depth++)
 	    for (stencil = 0; stencil < numStencil; stencil++) {
-		config->next = xalloc(sizeof *config);
+		config->next = xcalloc(sizeof(*config), 1);
 		config = config->next;
 
 		config->visualType = glx_visual_types[visual->class];
