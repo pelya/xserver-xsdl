@@ -320,6 +320,7 @@ createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
 		config->next = xcalloc(sizeof(*config), 1);
 		config = config->next;
 
+		config->visualRating = GLX_NONE;
 		config->visualType = glx_visual_types[visual->class];
 		config->xRenderable = GL_TRUE;
 		config->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
