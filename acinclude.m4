@@ -142,7 +142,9 @@ AC_SUBST(LTCXXCOMPILE)
 
 
 
-##### http://autoconf-archive.cryp.to/ac_define_dir.html
+# ===========================================================================
+#             http://autoconf-archive.cryp.to/ac_define_dir.html
+# ===========================================================================
 #
 # SYNOPSIS
 #
@@ -150,11 +152,11 @@ AC_SUBST(LTCXXCOMPILE)
 #
 # DESCRIPTION
 #
-#   This macro sets VARNAME to the expansion of the DIR variable,
-#   taking care of fixing up ${prefix} and such.
+#   This macro sets VARNAME to the expansion of the DIR variable, taking
+#   care of fixing up ${prefix} and such.
 #
-#   VARNAME is then offered as both an output variable and a C
-#   preprocessor symbol.
+#   VARNAME is then offered as both an output variable and a C preprocessor
+#   symbol.
 #
 #   Example:
 #
@@ -162,18 +164,18 @@ AC_SUBST(LTCXXCOMPILE)
 #
 # LAST MODIFICATION
 #
-#   2006-10-13
+#   2008-04-12
 #
 # COPYLEFT
 #
-#   Copyright (c) 2006 Stepan Kasal <kasal@ucw.cz>
-#   Copyright (c) 2006 Andreas Schwab <schwab@suse.de>
-#   Copyright (c) 2006 Guido U. Draheim <guidod@gmx.de>
-#   Copyright (c) 2006 Alexandre Oliva
+#   Copyright (c) 2008 Stepan Kasal <kasal@ucw.cz>
+#   Copyright (c) 2008 Andreas Schwab <schwab@suse.de>
+#   Copyright (c) 2008 Guido U. Draheim <guidod@gmx.de>
+#   Copyright (c) 2008 Alexandre Oliva
 #
-#   Copying and distribution of this file, with or without
-#   modification, are permitted in any medium without royalty provided
-#   the copyright notice and this notice are preserved.
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved.
 
 AC_DEFUN([AC_DEFINE_DIR], [
   prefix_NONE=
