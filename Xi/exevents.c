@@ -603,6 +603,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             }
         }
 
+        to->button->buttonsDown = 0;
+        memset(to->button->down, 0, MAP_LENGTH);
         /* merge button states from all attached devices */
         for (sd = inputInfo.devices; sd; sd = sd->next)
         {
@@ -612,6 +614,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             for (i = 0; i < MAP_LENGTH; i++)
             {
                 to->button->down[i] += sd->button->down[i];
+                to->button->buttonsDown++;
             }
         }
 #ifdef XKB
