@@ -247,8 +247,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
  * Copies the feedback classes from device "from" into device "to". Classes
  * are duplicated (not just flipping the pointers). All feedback classes are
  * linked lists, the full list is duplicated.
- *
- * XXX: some XKB stuff is still missing.
  */
 static void
 DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
@@ -622,8 +620,18 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             }
         }
 #ifdef XKB
-        to->button->xkb_acts = NULL;
-        /* XXX: XkbAction needs to be copied */
+        if (from->button->xkb_acts)
+        {
+            if (!to->button->xkb_acts)
+            {
+                to->button->xkb_acts = xcalloc(1, sizeof(XkbAction));
+                if (!to->button->xkb_acts)
+                    FatalError("[Xi] not enough memory for xkb_acts.\n");
+            }
+            memcpy(to->button->xkb_acts, from->button->xkb_acts,
+                    sizeof(XkbAction));
+        } else
+            xfree(to->button->xkb_acts);
 #endif
     } else if (to->button && !from->button)
     {
