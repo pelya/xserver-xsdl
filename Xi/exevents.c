@@ -519,7 +519,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 to->key = xcalloc(1, sizeof(KeyClassRec));
                 if (!to->key)
                     FatalError("[Xi] no memory for class shift.\n");
-            }
+            } else
+                classes->key = NULL;
         }
 
         oldModKeyMap    = to->key->modifierKeyMap;
@@ -562,6 +563,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             classes = dixLookupPrivate(&to->devPrivates,
                                        UnusedClassesPrivateKey);
             to->valuator = classes->valuator;
+            if (to->valuator)
+                classes->valuator = NULL;
         }
 
         to->valuator = xrealloc(to->valuator, sizeof(ValuatorClassRec) +
@@ -600,7 +603,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 to->button = xcalloc(1, sizeof(ButtonClassRec));
                 if (!to->button)
                     FatalError("[Xi] no memory for class shift.\n");
-            }
+            } else
+                classes->button = NULL;
         }
 
         to->button->buttonsDown = 0;
@@ -650,7 +654,9 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 to->focus = xcalloc(1, sizeof(FocusClassRec));
                 if (!to->focus)
                     FatalError("[Xi] no memory for class shift.\n");
-            }
+            } else
+                classes->focus = NULL;
+
             oldTrace = to->focus->trace;
             memcpy(to->focus, from->focus, sizeof(FocusClassRec));
             to->focus->trace = xrealloc(oldTrace,
@@ -680,7 +686,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 to->proximity = xcalloc(1, sizeof(ProximityClassRec));
                 if (!to->proximity)
                     FatalError("[Xi] no memory for class shift.\n");
-            }
+            } else
+                classes->proximity = NULL;
         }
         memcpy(to->proximity, from->proximity, sizeof(ProximityClassRec));
     } else if (to->proximity)
@@ -703,7 +710,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 to->absolute = xcalloc(1, sizeof(AbsoluteClassRec));
                 if (!to->absolute)
                     FatalError("[Xi] no memory for class shift.\n");
-            }
+            } else
+                classes->absolute = NULL;
         }
         memcpy(to->absolute, from->absolute, sizeof(AbsoluteClassRec));
     } else if (to->absolute)
@@ -713,7 +721,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         classes->absolute = to->absolute;
         to->absolute      = NULL;
     }
-
 }
 
 /**

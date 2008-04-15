@@ -775,6 +775,13 @@ CloseDevice(DeviceIntPtr dev)
     classes = (ClassesPtr)&dev->key;
     FreeAllDeviceClasses(classes);
 
+    if (dev->isMaster)
+    {
+        classes = dixLookupPrivate(&dev->devPrivates, UnusedClassesPrivateKey);
+        FreeAllDeviceClasses(classes);
+    }
+
+
 #ifdef XKB
     while (dev->xkb_interest)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
