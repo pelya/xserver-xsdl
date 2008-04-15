@@ -301,6 +301,16 @@ DisableDevice(DeviceIntPtr dev)
     if (*prev != dev)
 	return FALSE;
 
+    /* float attached devices */
+    if (dev->isMaster)
+    {
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if (other->u.master == dev)
+                AttachDevice(NULL, other, NULL);
+        }
+    }
+
     if (dev->isMaster && dev->spriteInfo->sprite)
     {
         for (other = inputInfo.devices; other; other = other->next)
@@ -319,16 +329,6 @@ DisableDevice(DeviceIntPtr dev)
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
-
-    /* float attached devices */
-    if (dev->isMaster)
-    {
-        for (other = inputInfo.devices; other; other = other->next)
-        {
-            if (other->u.master == dev)
-                AttachDevice(NULL, dev, NULL);
-        }
-    }
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
