@@ -51,10 +51,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "rootlessCommon.h"
-
-WindowPtr xprGetXWindowFromAppKit(int windowNumber); // xpr/xprFrame.c
-
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 int X11EnableKeyEquivalents = TRUE;
@@ -192,6 +188,10 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) sendEvent:(NSEvent *)e {
+  NSEventType type;
+  BOOL for_appkit, for_x;
+  
+  type = [e type];
  	NSEventType type;
 	BOOL for_appkit, for_x;
 
@@ -210,8 +210,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 			if (_x_active) [self activateX:NO];
 		} else if ([self modalWindow] == nil) {
 			/* Must be an X window. Tell appkit it doesn't have focus. */
-			WindowPtr pWin = xprGetXWindowFromAppKit([e windowNumber]);
-			if (pWin) RootlessReorderWindow(pWin);
 			for_appkit = NO;
 
 			if ([self isActive]) {
@@ -244,10 +242,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 							|| [e keyCode] == 53 /*Esc*/)) {
 						swallow_up = 0;
 						for_x = NO;
-#ifdef DARWIN_DDX_MISSING
-						DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
-#endif
-					}
 			} else {
 			/* If we saw a key equivalent on the down, don't pass
 	   			the up through to X. */
