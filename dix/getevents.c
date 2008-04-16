@@ -84,22 +84,35 @@ GetMotionHistorySize(void)
     return MOTION_HISTORY_SIZE;
 }
 
-static void
-set_key_down(DeviceIntPtr pDev, int key_code)
+void
+set_key_down(DeviceIntPtr pDev, int key_code, int type)
 {
-    pDev->key->postdown[key_code >> 3] |= (1 << (key_code & 7));
+    if (type == KEY_PROCESSED)
+        pDev->key->down[key_code >> 3] |= (1 << (key_code & 7));
+    else
+        pDev->key->postdown[key_code >> 3] |= (1 << (key_code & 7));
 }
 
-static void
-set_key_up(DeviceIntPtr pDev, int key_code)
+void
+set_key_up(DeviceIntPtr pDev, int key_code, int type)
 {
-    pDev->key->postdown[key_code >> 3] &= ~(1 << (key_code & 7));
+    if (type == KEY_PROCESSED)
+        pDev->key->down[key_code >> 3] &= ~(1 << (key_code & 7));
+    else
+        pDev->key->postdown[key_code >> 3] &= ~(1 << (key_code & 7));
 }
 
-static Bool
-key_is_down(DeviceIntPtr pDev, int key_code)
+Bool
+key_is_down(DeviceIntPtr pDev, int key_code, int type)
 {
-    return !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
+    int ret = 0;
+
+    if (type & KEY_PROCESSED)
+        ret |= !!(pDev->key->down[key_code >> 3] & (1 << (key_code & 7)));
+    else if (type & KEY_POSTED)
+        ret |= !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
+
+    return ret;
 }
 
 static Bool
@@ -787,8 +800,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int num_valuators, int *valuators) {
     int numEvents = 0;
     CARD32 ms = 0;
-    KeySym *map;
-    KeySym sym;
     deviceKeyButtonPointer *kbp = NULL;
 
     if (!events ||!pDev->key || !pDev->focus || !pDev->kbdfeed ||
@@ -798,16 +809,12 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     numEvents = 1;
 
-    map = pDev->key->curKeySyms.map;
-    sym = map[(key_code - pDev->key->curKeySyms.minKeyCode)
-              * pDev->key->curKeySyms.mapWidth];
-
     events = updateFromMaster(events, pDev, &numEvents);
 
     numEvents += countValuatorEvents(num_valuators);
 
     /* Handle core repeating, via press/release/press/release. */
-    if (type == KeyPress && key_is_down(pDev, key_code)) {
+    if (type == KeyPress && key_is_down(pDev, key_code, KEY_POSTED)) {
         /* If autorepeating is disabled either globally or just for that key,
          * or we have a modifier, don't generate a repeat event. */
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
@@ -824,11 +831,11 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     kbp->detail = key_code;
     if (type == KeyPress) {
         kbp->type = DeviceKeyPress;
-	set_key_down(pDev, key_code);
+	set_key_down(pDev, key_code, KEY_POSTED);
     }
     else if (type == KeyRelease) {
         kbp->type = DeviceKeyRelease;
-	set_key_up(pDev, key_code);
+	set_key_up(pDev, key_code, KEY_POSTED);
     }
 
     events++;

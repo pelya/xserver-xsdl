@@ -438,36 +438,7 @@ int			maxNumberOfGroups;
             if (nGroups > maxNumberOfGroups)
 		maxNumberOfGroups = nGroups;
 	}
-	if (_XkbCoreKeycodeInRange(keyc,key)) {
-	    if (keyc->modifierMap[key]!=0) {
-		register unsigned bit,i,mask;
-		mask= keyc->modifierMap[key];
-		for (i=0,bit=1;i<XkbNumModifiers;i++,bit<<=1) {
-		    if (mask&bit) {
-			keysPerMod[i]++;
-			if (keysPerMod[i]>maxKeysPerMod)
-			    maxKeysPerMod= keysPerMod[i];
-		    }
-		}
-	    }
-	}
     }
-
-    if (maxKeysPerMod>0) {
-	tmp= maxKeysPerMod*XkbNumModifiers;
-	if (keyc->modifierKeyMap==NULL)
-	    keyc->modifierKeyMap= (KeyCode *)_XkbCalloc(1, tmp);
-	else if (keyc->maxKeysPerModifier<maxKeysPerMod)
-	    keyc->modifierKeyMap= (KeyCode *)_XkbRealloc(keyc->modifierKeyMap,tmp);
-	if (keyc->modifierKeyMap==NULL)
-	    FatalError("Couldn't allocate modifierKeyMap in UpdateCore\n");
-	bzero(keyc->modifierKeyMap,tmp);
-    }
-    else if ((keyc->maxKeysPerModifier>0)&&(keyc->modifierKeyMap!=NULL)) {
-	_XkbFree(keyc->modifierKeyMap);
-	keyc->modifierKeyMap= NULL;
-    }
-    keyc->maxKeysPerModifier= maxKeysPerMod;
 
     if (maxSymsPerKey>0) {
 	/* See Section 12.4 of the XKB Protocol spec. Because of the
@@ -489,7 +460,6 @@ int			maxNumberOfGroups;
     }
     keyc->curKeySyms.mapWidth= maxSymsPerKey;
 
-    bzero(keysPerMod,sizeof(keysPerMod));
     for (key=firstCommon;key<=lastCommon;key++) {
 	if (keyc->curKeySyms.map!=NULL) {
 	    KeySym *pCore,*pXKB;
@@ -566,17 +536,6 @@ int			maxNumberOfGroups;
 		    pCore[nOut++]= pXKB[s];
 		}
 		pXKB+= XkbKeyGroupsWidth(xkb,key);
-	    }
-	}
-	if (keyc->modifierMap[key]!=0) {
-	    register unsigned bit,i,mask;
-	    mask= keyc->modifierMap[key];
-	    for (i=0,bit=1;i<XkbNumModifiers;i++,bit<<=1) {
-		if (mask&bit) {
-		    tmp= i*maxKeysPerMod+keysPerMod[i];
-		    keyc->modifierKeyMap[tmp]= key;
-		    keysPerMod[i]++;
-		}
 	    }
 	}
     }

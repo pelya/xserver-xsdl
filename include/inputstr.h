@@ -137,11 +137,9 @@ typedef struct _GrabRec {
 typedef struct _KeyClassRec {
     CARD8		down[DOWN_LENGTH];
     CARD8		postdown[DOWN_LENGTH];
-    KeyCode 		*modifierKeyMap;
     KeySymsRec		curKeySyms;
     int			modifierKeyCount[8];
     CARD8		modifierMap[MAP_LENGTH];
-    CARD8		maxKeysPerModifier;
     struct _XkbSrvInfo *xkbInfo;
 } KeyClassRec, *KeyClassPtr;
 

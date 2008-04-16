@@ -201,21 +201,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 
     memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
 
-    if (dk->maxKeysPerModifier)
-    {
-        mk->modifierKeyMap = xrealloc(mk->modifierKeyMap,
-                                      8 * dk->maxKeysPerModifier);
-        if (!mk->modifierKeyMap)
-            FatalError("[Xi] no memory for class shift.\n");
-        memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
-                (8 * dk->maxKeysPerModifier));
-    } else
-    {
-        xfree(mk->modifierKeyMap);
-        mk->modifierKeyMap = NULL;
-    }
-
-    mk->maxKeysPerModifier = dk->maxKeysPerModifier;
     mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
     mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
     SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
@@ -498,7 +483,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
     if (from->key)
     {
-        KeyCode             *oldModKeyMap;
         KeySym              *oldMap;
         struct _XkbSrvInfo  *oldXkbInfo;
         if (!to->key)
@@ -515,7 +499,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->key = NULL;
         }
 
-        oldModKeyMap    = to->key->modifierKeyMap;
         oldMap          = to->key->curKeySyms.map;
         oldXkbInfo      = to->key->xkbInfo;
 
@@ -528,7 +511,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             memcpy(oldMap, from->key->curKeySyms.map, bytes);
         }
 
-        to->key->modifierKeyMap = oldModKeyMap;
         to->key->curKeySyms.map = oldMap;
         to->key->xkbInfo        = oldXkbInfo;
 
@@ -1662,86 +1644,6 @@ SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
     for (i = 0; i < nElts; i++)
 	b->map[i + 1] = map[i];
     return Success;
-}
-
-int
-SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
-		   int numKeyPerModifier, KeyCode * inputMap, KeyClassPtr * k)
-{
-    KeyCode *map = NULL;
-    int inputMapLen;
-    int i;
-
-    *k = dev->key;
-    if (*k == NULL)
-	return BadMatch;
-    if (len != ((numKeyPerModifier << 1) + rlen))
-	return BadLength;
-
-    inputMapLen = 8 * numKeyPerModifier;
-
-    /*
-     *  Now enforce the restriction that "all of the non-zero keycodes must be
-     *  in the range specified by min-keycode and max-keycode in the
-     *  connection setup (else a Value error)"
-     */
-    i = inputMapLen;
-    while (i--) {
-	if (inputMap[i]
-	    && (inputMap[i] < (*k)->curKeySyms.minKeyCode
-		|| inputMap[i] > (*k)->curKeySyms.maxKeyCode)) {
-	    client->errorValue = inputMap[i];
-	    return -1;	/* BadValue collides with MappingFailed */
-	}
-    }
-
-    /*
-     *  Now enforce the restriction that none of the old or new
-     *  modifier keys may be down while we change the mapping,  and
-     *  that the DDX layer likes the choice.
-     */
-    if (!AllModifierKeysAreUp(dev, (*k)->modifierKeyMap,
-			      (int)(*k)->maxKeysPerModifier, inputMap,
-			      (int)numKeyPerModifier)
-	|| !AllModifierKeysAreUp(dev, inputMap, (int)numKeyPerModifier,
-				 (*k)->modifierKeyMap,
-				 (int)(*k)->maxKeysPerModifier)) {
-	return MappingBusy;
-    } else {
-	for (i = 0; i < inputMapLen; i++) {
-	    if (inputMap[i] && !LegalModifier(inputMap[i], dev)) {
-		return MappingFailed;
-	    }
-	}
-    }
-
-    /*
-     *  Now build the keyboard's modifier bitmap from the
-     *  list of keycodes.
-     */
-    if (inputMapLen) {
-	map = (KeyCode *) xalloc(inputMapLen);
-	if (!map)
-	    return BadAlloc;
-    }
-    if ((*k)->modifierKeyMap)
-	xfree((*k)->modifierKeyMap);
-    if (inputMapLen) {
-	(*k)->modifierKeyMap = map;
-	memmove((char *)(*k)->modifierKeyMap, (char *)inputMap, inputMapLen);
-    } else
-	(*k)->modifierKeyMap = NULL;
-
-    (*k)->maxKeysPerModifier = numKeyPerModifier;
-    for (i = 0; i < MAP_LENGTH; i++)
-	(*k)->modifierMap[i] = 0;
-    for (i = 0; i < inputMapLen; i++)
-	if (inputMap[i]) {
-	    (*k)->modifierMap[inputMap[i]]
-		|= (1 << (i / (*k)->maxKeysPerModifier));
-	}
-
-    return (MappingSuccess);
 }
 
 void

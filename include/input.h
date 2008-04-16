@@ -222,6 +222,15 @@ typedef struct _InputOption {
     struct _InputOption *next;
 } InputOption;
 
+/* Key has been run through all input processing and events sent to clients. */
+#define KEY_PROCESSED 1
+/* Key has not been fully processed, no events have been sent. */
+#define KEY_POSTED 2
+
+extern void set_key_down(DeviceIntPtr pDev, int key_code, int type);
+extern void set_key_up(DeviceIntPtr pDev, int key_code, int type);
+extern int key_is_down(DeviceIntPtr pDev, int key_code, int type);
+
 extern _X_EXPORT void InitCoreDevices(void);
 
 extern _X_EXPORT DeviceIntPtr AddInputDevice(
@@ -373,13 +382,6 @@ extern _X_EXPORT Bool BadDeviceMap(
     unsigned /*high*/,
     XID* /*errval*/);
 
-extern _X_EXPORT Bool AllModifierKeysAreUp(
-    DeviceIntPtr /*device*/,
-    CARD8* /*map1*/,
-    int /*per1*/,
-    CARD8* /*map2*/,
-    int /*per2*/);
-
 extern _X_EXPORT void NoteLedState(
     DeviceIntPtr /*keybd*/,
     int /*led*/,
@@ -497,6 +499,12 @@ extern _X_EXPORT int AllocMasterDevice(ClientPtr client,
                              DeviceIntPtr* keybd);
 extern _X_EXPORT void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
+
+/* Helper functions. */
+extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
+                              KeyCode **modkeymap, int *max_keys_per_mod);
+extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
+                         int max_keys_per_mod);
 
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(

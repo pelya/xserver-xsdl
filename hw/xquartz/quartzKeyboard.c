@@ -370,6 +370,10 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
     KeySymsRec keySyms;
 
     DEBUG_LOG("DarwinKeyboardReloadHandler\n");
+    if (pDev->key) {
+        if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
+        xfree(pDev->key);
+    }
 
     DarwinLoadKeyboardMapping(&keySyms);
     DarwinKeyboardSetDeviceKeyMap(&keySyms);

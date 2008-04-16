@@ -31,6 +31,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define EXEVENTS_H
 
 #include <X11/extensions/XIproto.h>
+#include "inputstr.h"
 
 /**
  * Attached to the devPrivates of each client. Specifies the version number as
@@ -135,15 +136,6 @@ extern _X_EXPORT int SetButtonMapping (
 	DeviceIntPtr           /* dev */,
 	int                    /* nElts */,
 	BYTE *                 /* map */);
-
-extern _X_EXPORT int SetModifierMapping(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	int                    /* len */,
-	int                    /* rlen */,
-	int                    /* numKeyPerModifier */,
-	KeyCode *              /* inputMap */,
-	KeyClassPtr *          /* k */);
 
 extern _X_EXPORT void SendDeviceMappingNotify(
         ClientPtr              /* client, */,

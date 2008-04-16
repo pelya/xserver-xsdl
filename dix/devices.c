@@ -620,7 +620,6 @@ FreeDeviceClass(int type, pointer *class)
                     (*k)->xkbInfo = NULL;
                 }
                 xfree((*k)->curKeySyms.map);
-                xfree((*k)->modifierKeyMap);
                 xfree((*k));
                 break;
             }
@@ -1453,109 +1452,10 @@ BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
     return FALSE;
 }
 
-Bool
-AllModifierKeysAreUp(DeviceIntPtr dev, CARD8 *map1, int per1,
-                     CARD8 *map2, int per2)
-{
-    int i, j, k;
-    CARD8 *down = dev->key->down;
-
-    for (i = 8; --i >= 0; map2 += per2)
-    {
-	for (j = per1; --j >= 0; map1++)
-	{
-	    if (*map1 && BitIsOn(down, *map1))
-	    {
-		for (k = per2; (--k >= 0) && (*map1 != map2[k]);)
-		  ;
-		if (k < 0)
-		    return FALSE;
-	    }
-	}
-    }
-    return TRUE;
-}
-
-static int
-DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
-                     int numKeyPerModifier, xSetModifierMappingReply *rep)
-{
-    DeviceIntPtr pDev = NULL;
-    DeviceIntPtr cp = PickKeyboard(client); /* ClientPointer keyboard */
-    int rc, i = 0, inputMapLen = numKeyPerModifier * 8;
-
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if (pDev == cp || (!pDev->isMaster && (pDev->u.master == cp) && pDev->key)) {
-            for (i = 0; i < inputMapLen; i++) {
-                /* Check that all the new modifiers fall within the advertised
-                 * keycode range, and are okay with the DDX. */
-                if (inputMap[i] && ((inputMap[i] < pDev->key->curKeySyms.minKeyCode ||
-                                    inputMap[i] > pDev->key->curKeySyms.maxKeyCode) ||
-                                    !LegalModifier(inputMap[i], pDev))) {
-                    client->errorValue = inputMap[i];
-                    return BadValue;
-                }
-            }
-
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
-	    if (rc != Success)
-		return rc;
-
-            /* None of the modifiers (old or new) may be down while we change
-             * the map. */
-            if (!AllModifierKeysAreUp(pDev, pDev->key->modifierKeyMap,
-                                      pDev->key->maxKeysPerModifier,
-                                      inputMap, numKeyPerModifier) ||
-                !AllModifierKeysAreUp(pDev, inputMap, numKeyPerModifier,
-                                      pDev->key->modifierKeyMap,
-                                      pDev->key->maxKeysPerModifier)) {
-		rep->success = MappingBusy;
-                return Success;
-            }
-        }
-    }
-
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            bzero(pDev->key->modifierMap, MAP_LENGTH);
-
-            /* Annoyingly, we lack a modifierKeyMap size, so we have to just free
-             * and re-alloc it every time. */
-            if (pDev->key->modifierKeyMap)
-                xfree(pDev->key->modifierKeyMap);
-
-            if (inputMapLen) {
-                pDev->key->modifierKeyMap = (KeyCode *) xalloc(inputMapLen);
-                if (!pDev->key->modifierKeyMap)
-                    return BadAlloc;
-
-                memcpy(pDev->key->modifierKeyMap, inputMap, inputMapLen);
-                pDev->key->maxKeysPerModifier = numKeyPerModifier;
-
-                for (i = 0; i < inputMapLen; i++) {
-                    if (inputMap[i]) {
-                        pDev->key->modifierMap[inputMap[i]] |=
-                            (1 << (((unsigned int)i) / numKeyPerModifier));
-                    }
-                }
-            }
-            else {
-                pDev->key->modifierKeyMap = NULL;
-                pDev->key->maxKeysPerModifier = 0;
-            }
-        }
-    }
-
-    rep->success = Success;
-    return Success;
-}
-
 int
 ProcSetModifierMapping(ClientPtr client)
 {
     xSetModifierMappingReply rep;
-    DeviceIntPtr dev;
     int rc;
     REQUEST(xSetModifierMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
@@ -1568,14 +1468,16 @@ ProcSetModifierMapping(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    rc = DoSetModifierMapping(client, (KeyCode *)&stuff[1],
-			      stuff->numKeyPerModifier, &rep);
-    if (rc != Success)
+    rc = change_modmap(client, PickKeyboard(client), (KeyCode *)&stuff[1],
+                       stuff->numKeyPerModifier);
+    if (rc == MappingFailed || rc == -1)
+        rc = BadValue;
+    if (rc != Success && rc != MappingSuccess && rc != MappingFailed &&
+        rc != MappingBusy)
 	return rc;
 
-    for (dev = inputInfo.devices; dev; dev = dev->next)
-        if (dev->key && dev->coreEvents)
-            SendDeviceMappingNotify(client, MappingModifier, 0, 0, dev);
+    rep.success = rc;
+
     WriteReplyToClient(client, sizeof(xSetModifierMappingReply), &rep);
     return client->noClientException;
 }
@@ -1584,26 +1486,26 @@ int
 ProcGetModifierMapping(ClientPtr client)
 {
     xGetModifierMappingReply rep;
-    DeviceIntPtr dev = PickKeyboard(client);
-    KeyClassPtr keyc = dev->key;
-    int rc;
+    int ret, max_keys_per_mod = 0;
+    KeyCode *modkeymap = NULL;
     REQUEST_SIZE_MATCH(xReq);
 
-    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixGetAttrAccess);
-    if (rc != Success)
-	return rc;
+    ret = generate_modkeymap(client, PickKeyboard(client), &modkeymap,
+                             &max_keys_per_mod);
+    if (ret != Success)
+        return ret;
 
     rep.type = X_Reply;
-    rep.numKeyPerModifier = keyc->maxKeysPerModifier;
+    rep.numKeyPerModifier = max_keys_per_mod;
     rep.sequenceNumber = client->sequence;
     /* length counts 4 byte quantities - there are 8 modifiers 1 byte big */
-    rep.length = keyc->maxKeysPerModifier << 1;
+    rep.length = max_keys_per_mod << 1;
 
     WriteReplyToClient(client, sizeof(xGetModifierMappingReply), &rep);
+    (void)WriteToClient(client, max_keys_per_mod * 8, (char *) modkeymap);
 
-    /* Use the (modified by DDX) map that SetModifierMapping passed in */
-    (void)WriteToClient(client, (int)(keyc->maxKeysPerModifier << 3),
-			(char *)keyc->modifierKeyMap);
+    xfree(modkeymap);
+
     return client->noClientException;
 }
 
