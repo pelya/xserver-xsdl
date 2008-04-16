@@ -8,8 +8,7 @@ dnl To use dolt, invoke the DOLT macro immediately after the libtool macros.
 dnl Optionally, copy this file into acinclude.m4, to avoid the need to have it
 dnl installed when running autoconf on your project.
 dnl
-dnl git snapshot: 198a3026b347b9220a2f2e2ae23a3049c35af262
-
+dnl git snapshot: d91f2b4e9041538400e2703a2a6fbeecdb8ee27d
 AC_DEFUN([DOLT], [
 AC_REQUIRE([AC_CANONICAL_HOST])
 # dolt, a replacement for libtool
@@ -27,11 +26,13 @@ if test x$GCC != xyes; then
 fi
 case $host in
 i?86-*-linux*|x86_64-*-linux*|powerpc-*-linux*) ;;
-amd64-*-freebsd*|i386-*-freebsd*|ia64-*-freebsd*) ;;
+amd64-*-freebsd*|i?86-*-freebsd*|ia64-*-freebsd*) ;;
 *) dolt_supported=no ;;
 esac
 if test x$dolt_supported = xno ; then
     AC_MSG_RESULT([no, falling back to libtool])
+    LTCOMPILE='$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(COMPILE)'
+    LTCXXCOMPILE='$(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXXCOMPILE)'
 else
     AC_MSG_RESULT([yes, replacing libtool])
 
@@ -65,9 +66,10 @@ dnl Write out shared compilation code.
         cat <<'__DOLTCOMPILE__EOF__' >>doltcompile
 libobjdir="${obj%$objbase}.libs"
 if test ! -d "$libobjdir" ; then
-    mkdir -p "$libobjdir"
+    mkdir_out="$(mkdir "$libobjdir" 2>&1)"
     mkdir_ret=$?
     if test "$mkdir_ret" -ne 0 && test ! -d "$libobjdir" ; then
+	echo "$mkdir_out" 1>&2
         exit $mkdir_ret
     fi
 fi
@@ -130,10 +132,10 @@ __DOLTCOMPILE__EOF__
 dnl Done writing out doltcompile; substitute it for libtool compilation.
     chmod +x doltcompile
     LTCOMPILE='$(top_builddir)/doltcompile $(COMPILE)'
-    AC_SUBST(LTCOMPILE)
     LTCXXCOMPILE='$(top_builddir)/doltcompile $(CXXCOMPILE)'
-    AC_SUBST(LTCXXCOMPILE)
 fi
+AC_SUBST(LTCOMPILE)
+AC_SUBST(LTCXXCOMPILE)
 # end dolt
 ])
 
