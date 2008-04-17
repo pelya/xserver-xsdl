@@ -36,7 +36,7 @@
 pthread_t SERVER_THREAD;
 pthread_t APPKIT_THREAD;
 
-static void spewCallStack(void) {
+static inline void spewCallStack(void) {
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
     char** strs = backtrace_symbols(callstack, frames);
@@ -48,12 +48,13 @@ static void spewCallStack(void) {
     free(strs);
 }
 
-void threadAssert(pthread_t tid) {
+void _threadAssert(pthread_t tid, const char *file, const char *fun, int line) {
     if(pthread_equal(pthread_self(), tid))
         return;
     
     /* NOOOO! */
-    ErrorF("Thread Assertion Failed: self=%s, expected=%s\n",
-            threadSafetyID(pthread_self()), threadSafetyID(tid));
+    ErrorF("Thread Assertion Failed: self=%s, expected=%s\n%s:%s:%d\n",
+           threadSafetyID(pthread_self()), threadSafetyID(tid),
+           file, fun, line);
     spewCallStack();
 }

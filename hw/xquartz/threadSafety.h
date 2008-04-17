@@ -27,6 +27,8 @@
 #ifndef _XQ_THREAD_SAFETY_H_
 #define _XQ_THREAD_SAFETY_H_
 
+#define DEBUG_THREADS 1
+
 #include <pthread.h>
 
 extern pthread_t SERVER_THREAD;
@@ -35,9 +37,16 @@ extern pthread_t APPKIT_THREAD;
 #define threadSafetyID(tid) (pthread_equal((tid), SERVER_THREAD) ? "X Server Thread" : "Appkit Thread")
 
 /* Print message to ErrorF if we're in the wrong thread */
-void threadAssert(pthread_t tid);
+void _threadAssert(pthread_t tid, const char *file, const char *fun, int line);
 
+#define threadAssert(tid) _threadAssert(tid, __FILE__, __FUNCTION__, __LINE__)
+
+#ifdef DEBUG_THREADS
 #define TA_SERVER() threadAssert(SERVER_THREAD)
 #define TA_APPKIT() threadAssert(APPKIT_THREAD)
+#else
+#define TA_SERVER() 
+#define TA_APPKIT() 
+#endif
 
 #endif _XQ_THREAD_SAFETY_H_
