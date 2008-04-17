@@ -738,7 +738,7 @@ void X11ApplicationShowHideMenubar (int state) {
     [n release];
 }
 
-static void * create_thread (void *func, void *arg) {
+static pthread_t create_thread (void *func, void *arg) {
     pthread_attr_t attr;
     pthread_t tid;
 	
@@ -748,7 +748,7 @@ static void * create_thread (void *func, void *arg) {
     pthread_create (&tid, &attr, func, arg);
     pthread_attr_destroy (&attr);
 	
-    return (void *) tid;
+    return tid;
 }
 
 static void check_xinitrc (void) {
@@ -819,7 +819,10 @@ void X11ApplicationMain (int argc, const char **argv, void (*server_thread) (voi
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
   
-    if (!create_thread (server_thread, server_arg)) {
+    APPKIT_THREAD = pthread_self();
+    SERVER_THREAD = create_thread (server_thread, server_arg);
+
+    if (!SERVER_THREAD) {
         ErrorF("can't create secondary thread\n");
         exit (1);
     }
