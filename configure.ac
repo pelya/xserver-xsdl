@@ -789,6 +789,9 @@ if test "x$COMPOSITE" = xauto; then
 		darwin*)
 			[ "x$XQUARTZ" = xyes -o "x$XQUARTZ" = xauto ] && COMPOSITE=no
 			;;
+		*)
+			COMPOSITE=yes
+			;;
 	esac
 fi
 
