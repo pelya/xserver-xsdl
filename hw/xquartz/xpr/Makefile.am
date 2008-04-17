@@ -27,7 +27,6 @@ Xquartz_LDADD = \
 	$(top_builddir)/miext/shadow/libshadow.la \
 	$(top_builddir)/fb/libfb.la \
 	$(top_builddir)/mi/libmi.la \
-	$(top_builddir)/composite/libcomposite.la \
 	$(top_builddir)/damageext/libdamageext.la \
 	$(top_builddir)/miext/damage/libdamage.la \
 	$(top_builddir)/xfixes/libxfixes.la \
