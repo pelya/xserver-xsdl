@@ -52,6 +52,7 @@
 #include "windowstr.h"
 #include "colormapst.h"
 #include "globals.h"
+#include "mi.h"
 
 // System headers
 #include <sys/types.h>
