@@ -899,7 +899,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		break;
 
 		case NSScrollWheel:
-			DarwinSendScrollEvents([e deltaY], pointer_x, pointer_y,
+			DarwinSendScrollEvents([e deltaX], [e deltaY], pointer_x, pointer_y,
 				pressure, tilt_x, tilt_y);
 		break;
 

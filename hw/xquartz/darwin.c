@@ -337,7 +337,7 @@ static int DarwinMouseProc(
     DeviceIntPtr    pPointer,
     int             what )
 {
-    CARD8 map[6];
+  CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 
     switch (what) {
 
@@ -345,15 +345,10 @@ static int DarwinMouseProc(
             pPointer->public.on = FALSE;
 
             // Set button map.
-            map[1] = 1;
-            map[2] = 2;
-            map[3] = 3;
-            map[4] = 4;
-            map[5] = 5;
-            InitPointerDeviceStruct( (DevicePtr)pPointer, map, 5,
+              InitPointerDeviceStruct( (DevicePtr)pPointer, map, 7,
 				     GetMotionHistory,
 				     (PtrCtrlProcPtr)NoopDDA,
-				     GetMotionHistorySize(), 5);
+				     GetMotionHistorySize(), 7);
 	    InitProximityClassDeviceStruct( (DevicePtr)pPointer);
             break;
 

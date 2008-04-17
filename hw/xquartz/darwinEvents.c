@@ -1,7 +1,7 @@
 /*
 Darwin event queue and event handling
 
-Copyright 2007 Apple Inc.
+Copyright 2007-2008 Apple Inc.
 Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
 Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
 
@@ -56,6 +56,12 @@ in this Software without prior written authorization from The Open Group.
 #include <unistd.h>
 #include <IOKit/hidsystem/IOLLEvent.h>
 
+/* Fake button press/release for scroll wheel move. */
+#define SCROLLWHEELUPFAKE    4
+#define SCROLLWHEELDOWNFAKE  5
+#define SCROLLWHEELLEFTFAKE  6
+#define SCROLLWHEELRIGHTFAKE 7
+
 #define _APPLEWM_SERVER_
 #include "applewmExt.h"
 #include <X11/extensions/applewm.h>
@@ -64,10 +70,6 @@ in this Software without prior written authorization from The Open Group.
 #include <Xplugin.h>
 #include "rootlessWindow.h"
 WindowPtr xprGetXWindow(xp_window_id wid);
-
-/* Fake button press/release for scroll wheel move. */
-#define SCROLLWHEELUPFAKE   4
-#define SCROLLWHEELDOWNFAKE 5
 
 int input_check_zero, input_check_flag;
 
@@ -452,30 +454,32 @@ void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y,
 }
 
 
-/* Send the appropriate number of button 4 / 5 clicks to emulate scroll wheel */
-void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y, 
-			    float pressure, float tilt_x, float tilt_y) {
-  int i;
-  int ev_button = count > 0.0f ? 4 : 5;
-  int valuators[5] = {pointer_x, pointer_y, 
-		      pressure * INT32_MAX * 1.0f, 
-		      tilt_x * INT32_MAX * 1.0f, 
-		      tilt_y * INT32_MAX * 1.0f};
-
+/* Send the appropriate number of button clicks to emulate scroll wheel */
+void DarwinSendScrollEvents(float count_x, float count_y, 
+							int pointer_x, int pointer_y, 
+			    			float pressure, float tilt_x, float tilt_y) {
 	if(!darwinEvents) {
 		ErrorF("DarwinSendScrollEvents called before darwinEvents was initialized\n");
 		return;
 	}
-
-  for (count = fabs(count); count > 0.0; count = count - 1.0f) {
-    int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
-				      POINTER_ABSOLUTE, 0, 5, valuators);
-    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
-    num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
-				      POINTER_ABSOLUTE, 0, 5, valuators);
-    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
-  }
-  DarwinPokeEQ();
+	ErrorF("scroll(%f, %f)\n", count_x, count_y);
+	int sign_x = count_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
+	int sign_y = count_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
+	count_x = fabs(count_x);
+	count_y = fabs(count_y);
+	
+	while ((count_x > 0.0f) || (count_y > 0.0f)) {
+		if (count_x > 0.0f) {
+			DarwinSendPointerEvents(ButtonPress, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(ButtonRelease, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			count_x = count_x - 1.0f;
+		}
+		if (count_y > 0.0f) {
+			DarwinSendPointerEvents(ButtonPress, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(ButtonRelease, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			count_y = count_y - 1.0f;
+		}
+	}
 }
 
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
