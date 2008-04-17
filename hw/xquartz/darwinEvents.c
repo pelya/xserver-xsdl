@@ -459,7 +459,7 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 		ErrorF("DarwinSendScrollEvents called before darwinEvents was initialized\n");
 		return;
 	}
-	ErrorF("scroll(%f, %f)\n", count_x, count_y);
+
 	int sign_x = count_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
 	int sign_y = count_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
 	count_x = fabs(count_x);
