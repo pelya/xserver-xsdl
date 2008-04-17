@@ -76,7 +76,7 @@
 
 #include "darwin.h"
 #include "darwinEvents.h"
-#include "darwinKeyboard.h"
+#include "quartzKeyboard.h"
 #include "quartz.h"
 //#include "darwinClut8.h"
 

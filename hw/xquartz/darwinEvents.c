@@ -48,7 +48,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "darwin.h"
 #include "quartz.h"
-#include "darwinKeyboard.h"
+#include "quartzKeyboard.h"
 #include "darwinEvents.h"
 
 #include <sys/types.h>

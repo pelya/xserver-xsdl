@@ -49,4 +49,17 @@ typedef struct darwinKeyboardInfo_struct {
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info);
 unsigned int QuartzSystemKeymapSeed(void);
 
+/* Provided for darwinEvents.c */
+extern darwinKeyboardInfo keyInfo;
+void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents);
+void DarwinKeyboardInit(DeviceIntPtr pDev);
+int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
+int DarwinModifierNXKeyToNXKeycode(int key, int side);
+int DarwinModifierNXKeyToNXMask(int key);
+int DarwinModifierNXMaskToNXKey(int mask);
+int DarwinModifierStringToNXKey(const char *string);
+
+/* Provided for darwin.c */
+void DarwinKeyboardInit(DeviceIntPtr pDev);
+
 #endif /* QUARTZ_KEYBOARD_H */
