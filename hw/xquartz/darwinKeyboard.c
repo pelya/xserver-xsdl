@@ -1,9 +1,9 @@
 //=============================================================================
 //
-// Keyboard support for the Darwin X Server
+// Keyboard support for Xquartz
 //
+// Copyright (c) 2003, 2008 Apple, Inc.
 // Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
-// Copyright (c) 2003 Apple Computer, Inc. All Rights Reserved.
 // Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
 //
 // The code to parse the Darwin keymap is derived from dumpkeymap.c
@@ -799,52 +799,6 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 }
 
 
-/* Borrowed from dix/devices.c */
-static Bool InitModMap(register KeyClassPtr keyc) {
-    int i, j;
-    CARD8 keysPerModifier[8];
-    CARD8 mask;
-
-    //    darwinKeyc = keyc;
-    if (keyc->modifierKeyMap != NULL)
-        xfree (keyc->modifierKeyMap);
-
-    keyc->maxKeysPerModifier = 0;
-    for (i = 0; i < 8; i++)
-        keysPerModifier[i] = 0;
-    for (i = 8; i < MAP_LENGTH; i++)
-    {
-        for (j = 0, mask = 1; j < 8; j++, mask <<= 1)
-        {
-            if (mask & keyc->modifierMap[i])
-            {
-                if (++keysPerModifier[j] > keyc->maxKeysPerModifier)
-                    keyc->maxKeysPerModifier = keysPerModifier[j];
-            }
-        }
-    }
-    keyc->modifierKeyMap = (KeyCode *)xalloc(8*keyc->maxKeysPerModifier);
-    if (!keyc->modifierKeyMap && keyc->maxKeysPerModifier)
-        return (FALSE);
-    bzero((char *)keyc->modifierKeyMap, 8*(int)keyc->maxKeysPerModifier);
-    for (i = 0; i < 8; i++)
-        keysPerModifier[i] = 0;
-    for (i = 8; i < MAP_LENGTH; i++)
-    {
-        for (j = 0, mask = 1; j < 8; j++, mask <<= 1)
-        {
-            if (mask & keyc->modifierMap[i])
-            {
-                keyc->modifierKeyMap[(j*keyc->maxKeysPerModifier) +
-                         keysPerModifier[j]] = i;
-                keysPerModifier[j]++;
-            }
-        }
-    }
-    return TRUE;
-}
-
-
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
     KeySymsRec keySyms;
 	if (dev == NULL) dev = darwinKeyboard;
@@ -852,12 +806,16 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
 	DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", dev);
     DarwinLoadKeyboardMapping(&keySyms);
 
-    if (SetKeySymsMap(&dev->key->curKeySyms, &keySyms)) {
-        /* now try to update modifiers. */
-
-        memmove(dev->key->modifierMap, keyInfo.modMap, MAP_LENGTH);
-        InitModMap(dev->key);
-    } else DEBUG_LOG("SetKeySymsMap=0\n");
+	if (dev->key) {
+		if (dev->key->curKeySyms.map) xfree(dev->key->curKeySyms.map);
+		if (dev->key->modifierKeyMap) xfree(dev->key->modifierKeyMap);
+		xfree(dev->key);
+	}
+	
+	if (!InitKeyClassDeviceStruct(dev, &keySyms, keyInfo.modMap)) {
+		DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
+		return;
+	}
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
     SendMappingNotify(MappingModifier, 0, 0, 0);
