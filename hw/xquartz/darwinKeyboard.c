@@ -725,14 +725,6 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
  *  it to an equivalent X keyboard map and modifier map.
  */
 static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
-  void* callstack[128];
-  int i, frames = backtrace(callstack, 128);
-  char** strs = backtrace_symbols(callstack, frames);
-  for (i = 0; i < frames; ++i) {
-    ErrorF("%s\n", strs[i]);
-  }
-  free(strs);
-
     memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
 
     /* TODO: Clean this up
