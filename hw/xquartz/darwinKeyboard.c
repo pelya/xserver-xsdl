@@ -62,7 +62,7 @@
 
 // Define this to get a diagnostic output to stderr which is helpful
 // in determining how the X server is interpreting the Darwin keymap.
-// #define DUMP_DARWIN_KEYMAP
+#define DUMP_DARWIN_KEYMAP
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -216,6 +216,7 @@ static int const NUM_KEYPAD = sizeof(normal_to_keypad) / sizeof(normal_to_keypad
 
 static void DarwinChangeKeyboardControl( DeviceIntPtr device, KeybdCtrl *ctrl )
 {
+	// FIXME: to be implemented
     // keyclick, bell volume / pitch, autorepead, LED's
 }
 
