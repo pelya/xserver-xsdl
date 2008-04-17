@@ -363,17 +363,14 @@ int			maxSymsPerKey,maxKeysPerMod, maxGroup1Width;
 int			first,last,firstCommon,lastCommon;
 XkbDescPtr		xkb;
 KeyClassPtr		keyc;
-CARD8			keysPerMod[XkbNumModifiers];
 int			maxNumberOfGroups;
 
     if (!keybd || !keybd->key || !keybd->key->xkbInfo)
 	return;
     xkb= keybd->key->xkbInfo->desc;
     keyc= keybd->key;
-    maxSymsPerKey= maxKeysPerMod= maxGroup1Width= 0;
+    maxSymsPerKey= maxGroup1Width= 0;
     maxNumberOfGroups = 0;
-    bzero(keysPerMod,sizeof(keysPerMod));
-    memcpy(keyc->modifierMap,xkb->map->modmap,xkb->max_key_code+1);
     if ((xkb->min_key_code==keyc->curKeySyms.minKeyCode)&&
 	(xkb->max_key_code==keyc->curKeySyms.maxKeyCode)) {
 	first= firstCommon= xkb->min_key_code;
@@ -590,10 +587,7 @@ unsigned	 	check;
 	XkbDescPtr	xkb= kbd->key->xkbInfo->desc;
 
 	XkbSetCauseCoreReq(&cause,X_SetModifierMapping,client);
-
 	num = xkb->max_key_code-xkb->min_key_code+1;
-	memcpy(xkb->map->modmap,kbd->key->modifierMap,xkb->max_key_code+1);
-
 	changes.map.changed|= XkbModifierMapMask;
 	changes.map.first_modmap_key= xkb->min_key_code;
 	changes.map.num_modmap_keys= num;

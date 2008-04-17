@@ -32,6 +32,8 @@
 #include "input.h"
 #include "inputstr.h"
 #include "xace.h"
+#include "xkbsrv.h"
+#include "xkbstr.h"
 
 /* Check if a modifier map change is okay with the device.
  * Returns -1 for BadValue, as it collides with MappingBusy; this particular
@@ -79,7 +81,7 @@ check_modmap_change(ClientPtr client, DeviceIntPtr dev, KeyCode *modmap)
     /* None of the old modifiers may be down while we change the map,
      * either. */
     for (i = syms->minKeyCode; i < syms->maxKeyCode; i++) {
-        if (!dev->key->modifierMap[i])
+        if (!dev->key->xkbInfo->desc->map->modmap[i])
             continue;
         if (key_is_down(dev, i, KEY_POSTED | KEY_PROCESSED)) {
             client->errorValue = i;
@@ -130,7 +132,7 @@ check_modmap_change_slave(ClientPtr client, DeviceIntPtr master,
 static void
 do_modmap_change(ClientPtr client, DeviceIntPtr dev, CARD8 *modmap)
 {
-    memcpy(dev->key->modifierMap, modmap, MAP_LENGTH);
+    memcpy(dev->key->xkbInfo->desc->map->modmap, modmap, MAP_LENGTH);
     SendDeviceMappingNotify(client, MappingModifier, 0, 0, dev);
 }
 
@@ -209,7 +211,7 @@ int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
         keys_per_mod[i] = 0;
     for (i = 8; i < MAP_LENGTH; i++) {
         for (j = 0; j < 8; j++) {
-            if (dev->key->modifierMap[i] & (1 << j)) {
+            if (dev->key->xkbInfo->desc->map->modmap[i] & (1 << j)) {
                 if (++keys_per_mod[j] > max_keys_per_mod)
                     max_keys_per_mod = keys_per_mod[j];
             }
@@ -225,7 +227,7 @@ int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
 
     for (i = 8; i < MAP_LENGTH; i++) {
         for (j = 0; j < 8; j++) {
-            if (dev->key->modifierMap[i] & (1 << j)) {
+            if (dev->key->xkbInfo->desc->map->modmap[i] & (1 << j)) {
                 modkeymap[(j * max_keys_per_mod) + keys_per_mod[j]] = i;
                 keys_per_mod[j]++;
             }

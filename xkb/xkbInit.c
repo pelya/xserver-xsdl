@@ -506,9 +506,6 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
 
     XkbInitControls(dev, xkbi);
 
-    /* XXX: Doesn't XUCD make this redundant? */
-    memcpy(dev->key->modifierMap, xkb->map->modmap, xkb->max_key_code + 1);
-
     XkbInitIndicatorMap(xkbi);
 
     XkbDDXInitDevice(dev);

@@ -199,8 +199,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     dk = device->key;
     mk = master->key;
 
-    memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
-
     mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
     mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
     SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
@@ -997,7 +995,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
     if (xE->u.u.type == DeviceKeyPress) {
         if (ret == IS_REPEAT) {	/* allow ddx to generate multiple downs */
-            modifiers = k->modifierMap[key];
+            modifiers = k->xkbInfo->desc->map->modmap[key];
 	    if (!modifiers) {
 		xE->u.u.type = DeviceKeyRelease;
 		ProcessOtherEvent(xE, device, count);

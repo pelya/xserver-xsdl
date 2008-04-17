@@ -5836,9 +5836,6 @@ ProcXkbGetKbdByName(ClientPtr client)
             if (tmpd == dev ||
                 (dev->id == inputInfo.keyboard->id && tmpd->key &&
                  tmpd->coreEvents)) {
-
-                memcpy(tmpd->key->modifierMap, xkb->map->modmap,
-                       xkb->max_key_code + 1);
                 if (tmpd != dev)
                     XkbCopyKeymap(dev->key->xkbInfo->desc,
                                   tmpd->key->xkbInfo->desc, True);

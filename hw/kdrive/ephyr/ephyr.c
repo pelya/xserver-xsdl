@@ -782,7 +782,7 @@ ephyrUpdateModifierState(unsigned int state)
 	  int count = keyc->modifierKeyCount[i];
 	  
 	  for (key = 0; key < MAP_LENGTH; key++)
-	    if (keyc->modifierMap[key] & mask) 
+	    if (keyc->xkbInfo->desc->map->modmap[key] & mask)
 	      {
 		int bit;
 		BYTE *kptr;
@@ -802,9 +802,9 @@ ephyrUpdateModifierState(unsigned int state)
       /* Modifier shoud be down, but isn't   */
       if (!(keyc->state & mask) && (state & mask))
 	for (key = 0; key < MAP_LENGTH; key++)
-	  if (keyc->modifierMap[key] & mask) 
+	  if (keyc->xkbInfo->desc->map->modmap[key] & mask)
 	    {
-              if (keyc->modifierMap[key] & mask && ephyrKbd &&
+              if (keyc->xkbInfo->desc->map->modmap[key] & mask && ephyrKbd &&
                   ((EphyrKbdPrivate *)ephyrKbd->driverPrivate)->enabled)
 	          KdEnqueueKeyboardEvent(ephyrKbd, key, FALSE); /* press */
 	      break;

@@ -660,85 +660,6 @@ KdKbdCtrl (DeviceIntPtr pDevice, KeybdCtrl *ctrl)
 
 extern KeybdCtrl defaultKeyboardControl;
 
-static void
-KdInitAutoRepeats (KdKeyboardInfo *ki)
-{
-    int		    key_code;
-    unsigned char   mask;
-    int		    i;
-    unsigned char   *repeats;
-
-    repeats = defaultKeyboardControl.autoRepeats;
-    memset (repeats, '\0', 32);
-    for (key_code = KD_MIN_KEYCODE; key_code <= KD_MAX_KEYCODE; key_code++)
-    {
-	if (!ki->modmap[key_code])
-	{
-	    i = key_code >> 3;
-	    mask = 1 << (key_code & 7);
-	    repeats[i] |= mask;
-	}
-    }
-}
-
-const KdKeySymModsRec kdKeySymMods[] = {
-  {  XK_Control_L,	ControlMask },
-  {  XK_Control_R, ControlMask },
-  {  XK_Shift_L,	ShiftMask },
-  {  XK_Shift_R,	ShiftMask },
-  {  XK_Caps_Lock,	LockMask },
-  {  XK_Shift_Lock, LockMask },
-  {  XK_Alt_L,	Mod1Mask },
-  {  XK_Alt_R,	Mod1Mask },
-  {  XK_Meta_L,	Mod1Mask },
-  {  XK_Meta_R,	Mod1Mask },
-  {  XK_Num_Lock,	Mod2Mask },
-  {  XK_Super_L,	Mod3Mask },
-  {  XK_Super_R,	Mod3Mask },
-  {  XK_Hyper_L,	Mod3Mask },
-  {  XK_Hyper_R,	Mod3Mask },
-  {  XK_Mode_switch, Mod4Mask },
-  /* PDA specific hacks */
-#ifdef XF86XK_Start
-  {  XF86XK_Start, ControlMask },
-#endif
-  {  XK_Menu, ShiftMask },
-  {  XK_telephone, Mod1Mask },
-#ifdef XF86XK_AudioRecord
-  {  XF86XK_AudioRecord, Mod2Mask },
-#endif
-#ifdef XF86XK_Calendar
-  {  XF86XK_Calendar, Mod3Mask }
-#endif
-};
-
-#define NUM_SYM_MODS (sizeof(kdKeySymMods) / sizeof(kdKeySymMods[0]))
-
-static void
-KdInitModMap (KdKeyboardInfo *ki)
-{
-    int	    key_code;
-    int	    row;
-    int	    width;
-    KeySym  *syms;
-    int	    i;
-
-    width = ki->keySyms.mapWidth;
-    for (key_code = ki->keySyms.minKeyCode; key_code <= ki->keySyms.maxKeyCode; key_code++)
-    {
-	ki->modmap[key_code] = 0;
-	syms = ki->keySyms.map + (key_code - ki->keySyms.minKeyCode) * width;
-	for (row = 0; row < width; row++, syms++)
-	{
-	    for (i = 0; i < NUM_SYM_MODS; i++) 
-	    {
-		if (*syms == kdKeySymMods[i].modsym) 
-		    ki->modmap[key_code] |= kdKeySymMods[i].modbit;
-	    }
-	}
-    }
-}
-
 static int
 KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
 {
@@ -791,9 +712,6 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         if ((*ki->driver->Init) (ki) != Success) {
             return !Success;
         }
-
-        KdInitModMap(ki);
-        KdInitAutoRepeats(ki);
 
         memset(&rmlvo, 0, sizeof(rmlvo));
         rmlvo.rules = ki->xkbRules;

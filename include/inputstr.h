@@ -138,8 +138,7 @@ typedef struct _KeyClassRec {
     CARD8		down[DOWN_LENGTH];
     CARD8		postdown[DOWN_LENGTH];
     KeySymsRec		curKeySyms;
-    int			modifierKeyCount[8];
-    CARD8		modifierMap[MAP_LENGTH];
+    int                 modifierKeyCount[8];
     struct _XkbSrvInfo *xkbInfo;
 } KeyClassRec, *KeyClassPtr;
 

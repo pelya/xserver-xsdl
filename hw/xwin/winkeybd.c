@@ -217,7 +217,6 @@ int
 winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 {
   KeySymsRec		keySyms;
-  CARD8 		modMap[MAP_LENGTH];
   DevicePtr		pDevice = (DevicePtr) pDeviceInt;
   XkbComponentNamesRec names;
   XkbSrvInfoPtr       xkbi;
@@ -228,8 +227,6 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
     case DEVICE_INIT:
       winConfigKeyboard (pDeviceInt);
 
-      winGetKeyMappings (&keySyms, modMap);
-
       /* FIXME: Maybe we should use winGetKbdLeds () here? */
       defaultKeyboardControl.leds = g_winInfo.keyboard.leds;
 
@@ -237,7 +234,6 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 	{
 	  InitKeyboardDeviceStruct (pDevice,
 				    &keySyms,
-				    modMap,
 				    winKeybdBell,
 				    winKeybdCtrl);
 	} 
@@ -263,7 +259,7 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 			    g_winInfo.xkb.layout, g_winInfo.xkb.variant, 
 			    g_winInfo.xkb.options);
 	  XkbInitKeyboardDeviceStruct (pDeviceInt, &names, &keySyms,
-				       modMap, winKeybdBell, winKeybdCtrl);
+				       winKeybdBell, winKeybdCtrl);
 	}
 
       if (!g_winInfo.xkb.disable)

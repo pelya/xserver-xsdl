@@ -819,7 +819,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
          * or we have a modifier, don't generate a repeat event. */
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
             !key_autorepeats(pDev, key_code) ||
-            pDev->key->modifierMap[key_code])
+            pDev->key->xkbInfo->desc->map->modmap[key_code])
             return 0;
     }
 

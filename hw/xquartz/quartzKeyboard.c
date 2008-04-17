@@ -342,6 +342,16 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     pthread_mutex_lock(&keyInfo_mutex);
     assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
                                        QuartzBell, DarwinChangeKeyboardControl));
+    assert(pDev->key->xkbInfo->desc->map->modmap!=NULL);
+    memcpy(pDev->key->xkbInfo->desc->map->modmap, keyInfo.modMap, sizeof(keyInfo.modMap));
+    pthread_mutex_unlock(&keyInfo_mutex);
+
+	QuartzXkbUpdate(pDev);
+#else
+    pthread_mutex_lock(&keyInfo_mutex);
+    assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
+                                      QuartzBell,
+                                      DarwinChangeKeyboardControl ));
     pthread_mutex_unlock(&keyInfo_mutex);
 
     /* Get our key repeat settings from GlobalPreferences */

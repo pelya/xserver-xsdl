@@ -427,7 +427,6 @@ static int dmxKeyboardOn(DeviceIntPtr pDevice, DMXLocalInitInfo *info)
     XkbInitKeyboardDeviceStruct(pDevice,
                                 &info->names,
                                 &info->keySyms,
-                                info->modMap,
                                 dmxKeyboardBellProc,
                                 dmxKeyboardKbdCtrlProc);
 
@@ -461,7 +460,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
             DevicePtr pDev = (DevicePtr) pDevice;
             InitKeyboardDeviceStruct(pDev,
                                      &info.keySyms,
-                                     info.modMap,
                                      dmxBell, dmxKbdCtrl);
         }
         if (info.buttonClass) {

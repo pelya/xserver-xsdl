@@ -309,7 +309,6 @@ struct _KdKeyboardInfo {
     CARD8               keyState[KD_KEY_COUNT/8];
     int                 minScanCode;
     int                 maxScanCode;
-    CARD8               modmap[MAP_LENGTH];
     KeySymsRec          keySyms; 
 
     int                 leds;

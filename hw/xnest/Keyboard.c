@@ -119,7 +119,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   int mapWidth;
   int min_keycode, max_keycode;
   KeySymsRec keySyms;
-  CARD8 modmap[MAP_LENGTH];
   int i, j;
   XKeyboardState values;
   XkbComponentNamesRec names;
@@ -130,7 +129,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   switch (onoff)
     {
     case DEVICE_INIT: 
-      modifier_keymap = XGetModifierMapping(xnestDisplay);
       XDisplayKeycodes(xnestDisplay, &min_keycode, &max_keycode);
 #ifdef _XSERVER64
       {
@@ -152,18 +150,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
 				   max_keycode - min_keycode + 1,
 				   &mapWidth);
 #endif
-      
-      for (i = 0; i < MAP_LENGTH; i++)
-	modmap[i] = 0;
-      for (j = 0; j < 8; j++)
-	for(i = 0; i < modifier_keymap->max_keypermod; i++) {
-	  CARD8 keycode;
-	  if ((keycode = 
-	      modifier_keymap->
-	        modifiermap[j * modifier_keymap->max_keypermod + i]))
-	    modmap[keycode] |= 1<<j;
-	}
-      XFreeModifiermap(modifier_keymap);
       
       keySyms.minKeyCode = min_keycode;
       keySyms.maxKeyCode = max_keycode;
@@ -189,8 +175,8 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
       options = XKB_DFLT_OPTIONS;
 
       XkbSetRulesDflts(rules, model, layout, variants, options);
-      XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,
-				    xnestBell, xnestChangeKeyboardControl);
+      XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms,
+				  xnestBell, xnestChangeKeyboardControl);
       XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
       XkbFreeKeyboard(xkb, 0, False);
       xfree(keymap);
@@ -250,7 +236,7 @@ xnestUpdateModifierState(unsigned int state)
       int count = keyc->modifierKeyCount[i];
 
       for (key = 0; key < MAP_LENGTH; key++)
-	if (keyc->modifierMap[key] & mask) {
+	if (keyc->xkbInfo->desc->map->modmap[key] & mask) {
 	  int bit;
 	  BYTE *kptr;
 
@@ -269,7 +255,7 @@ xnestUpdateModifierState(unsigned int state)
      */
     if (!(keyc->state & mask) && (state & mask))
       for (key = 0; key < MAP_LENGTH; key++)
-	if (keyc->modifierMap[key] & mask) {
+	if (keyc->xkbInfo->desc->map->modmap[key] & mask) {
 	  xnestQueueKeyEvent(KeyPress, key);
 	  break;
 	}
