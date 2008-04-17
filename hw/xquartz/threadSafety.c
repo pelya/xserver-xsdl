@@ -36,7 +36,7 @@
 pthread_t SERVER_THREAD;
 pthread_t APPKIT_THREAD;
 
-static inline void spewCallStack(void) {
+void spewCallStack(void) {
     void* callstack[128];
     int i, frames = backtrace(callstack, 128);
     char** strs = backtrace_symbols(callstack, frames);

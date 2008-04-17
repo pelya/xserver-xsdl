@@ -32,7 +32,6 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr);
 void DarwinEQEnqueue(const xEventPtr e);
 void DarwinEQPointerPost(DeviceIntPtr pDev, xEventPtr e);
 void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
-void DarwinPokeEQ(void);
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y,
 			     float pressure, float tilt_x, float tilt_y);
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 

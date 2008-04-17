@@ -36,6 +36,9 @@ extern pthread_t APPKIT_THREAD;
 
 #define threadSafetyID(tid) (pthread_equal((tid), SERVER_THREAD) ? "X Server Thread" : "Appkit Thread")
 
+/* Dump the call stack */
+void spewCallStack(void);
+
 /* Print message to ErrorF if we're in the wrong thread */
 void _threadAssert(pthread_t tid, const char *file, const char *fun, int line);
 

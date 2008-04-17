@@ -54,6 +54,9 @@ in this Software without prior written authorization from The Open Group.
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
+
 #include <IOKit/hidsystem/IOLLEvent.h>
 
 /* Fake button press/release for scroll wheel move. */
@@ -76,6 +79,25 @@ int input_check_zero, input_check_flag;
 static int old_flags = 0;  // last known modifier state
 
 xEvent *darwinEvents = NULL;
+
+pthread_mutex_t mieqEnqueue_mutex;
+static inline void mieqEnqueue_lock(void) {
+    int err;
+    if((err = pthread_mutex_lock(&mieqEnqueue_mutex))) {
+        ErrorF("%s:%s:%d: Failed to lock mieqEnqueue_mutex: %d\n",
+               __FILE__, __FUNCTION__, __LINE__, err);
+        spewCallStack();
+    }
+}
+
+static inline void mieqEnqueue_unlock(void) {
+    int err;
+    if((err = pthread_mutex_unlock(&mieqEnqueue_mutex))) {
+        ErrorF("%s:%s:%d: Failed to unlock mieqEnqueue_mutex: %d\n",
+               __FILE__, __FUNCTION__, __LINE__, err);
+        spewCallStack();
+    }
+}
 
 /*
  * DarwinPressModifierMask
@@ -197,107 +219,119 @@ static void DarwinSimulateMouseClick(
    mieqSetHandler. */
 
 void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
-  int i;
-
-  DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
-  for (i=0; i<nevents; i++) {
-	switch(xe[i].u.u.type) {
-		case kXquartzControllerNotify:
-            DEBUG_LOG("kXquartzControllerNotify\n");
-            AppleWMSendEvent(AppleWMControllerNotify,
-                             AppleWMControllerNotifyMask,
-                             xe[i].u.clientMessage.u.l.longs0,
-                             xe[i].u.clientMessage.u.l.longs1);
-            break;
-
-        case kXquartzPasteboardNotify:
-            DEBUG_LOG("kXquartzPasteboardNotify\n");
-            AppleWMSendEvent(AppleWMPasteboardNotify,
-                             AppleWMPasteboardNotifyMask,
-                             xe[i].u.clientMessage.u.l.longs0,
-                             xe[i].u.clientMessage.u.l.longs1);
-            break;
-
-        case kXquartzActivate:
-            DEBUG_LOG("kXquartzActivate\n");
-            QuartzShow(xe[i].u.keyButtonPointer.rootX,
-                       xe[i].u.keyButtonPointer.rootY);
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsActive, 0);
-            break;
-
-        case kXquartzDeactivate:
-            DEBUG_LOG("kXquartzDeactivate\n");
-      		DarwinReleaseModifiers();
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsInactive, 0);
-            QuartzHide();
-            break;
-
-        case kXquartzWindowState:
-            DEBUG_LOG("kXquartzWindowState\n");
-            RootlessNativeWindowStateChanged(xprGetXWindow(xe[i].u.clientMessage.u.l.longs0),
-                                             xe[i].u.clientMessage.u.l.longs1);
-            break;
-
-        case kXquartzWindowMoved:
-            DEBUG_LOG("kXquartzWindowMoved\n");
-            RootlessNativeWindowMoved ((WindowPtr)xe[i].u.clientMessage.u.l.longs0);
-            break;
-
-        case kXquartzToggleFullscreen:
-            DEBUG_LOG("kXquartzToggleFullscreen\n");
+    int i;
+    
+    TA_SERVER();
+    
+    DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
+    for (i=0; i<nevents; i++) {
+        switch(xe[i].u.u.type) {
+            case kXquartzControllerNotify:
+                DEBUG_LOG("kXquartzControllerNotify\n");
+                AppleWMSendEvent(AppleWMControllerNotify,
+                                 AppleWMControllerNotifyMask,
+                                 xe[i].u.clientMessage.u.l.longs0,
+                                 xe[i].u.clientMessage.u.l.longs1);
+                break;
+                
+            case kXquartzPasteboardNotify:
+                DEBUG_LOG("kXquartzPasteboardNotify\n");
+                AppleWMSendEvent(AppleWMPasteboardNotify,
+                                 AppleWMPasteboardNotifyMask,
+                                 xe[i].u.clientMessage.u.l.longs0,
+                                 xe[i].u.clientMessage.u.l.longs1);
+                break;
+                
+            case kXquartzActivate:
+                DEBUG_LOG("kXquartzActivate\n");
+                QuartzShow(xe[i].u.keyButtonPointer.rootX,
+                           xe[i].u.keyButtonPointer.rootY);
+                AppleWMSendEvent(AppleWMActivationNotify,
+                                 AppleWMActivationNotifyMask,
+                                 AppleWMIsActive, 0);
+                break;
+                
+            case kXquartzDeactivate:
+                DEBUG_LOG("kXquartzDeactivate\n");
+                DarwinReleaseModifiers();
+                AppleWMSendEvent(AppleWMActivationNotify,
+                                 AppleWMActivationNotifyMask,
+                                 AppleWMIsInactive, 0);
+                QuartzHide();
+                break;
+                
+            case kXquartzWindowState:
+                DEBUG_LOG("kXquartzWindowState\n");
+                RootlessNativeWindowStateChanged(xprGetXWindow(xe[i].u.clientMessage.u.l.longs0),
+                                                 xe[i].u.clientMessage.u.l.longs1);
+                break;
+                
+            case kXquartzWindowMoved:
+                DEBUG_LOG("kXquartzWindowMoved\n");
+                RootlessNativeWindowMoved ((WindowPtr)xe[i].u.clientMessage.u.l.longs0);
+                break;
+                
+            case kXquartzToggleFullscreen:
+                DEBUG_LOG("kXquartzToggleFullscreen\n");
 #ifdef DARWIN_DDX_MISSING
-            if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
-            else if (quartzHasRoot) QuartzHide();
-            else QuartzShow();
+                if (quartzEnableRootless) 
+                    QuartzSetFullscreen(!quartzHasRoot);
+                else if (quartzHasRoot)
+                    QuartzHide();
+                else
+                    QuartzShow();
 #else
-    //      ErrorF("kXquartzToggleFullscreen not implemented\n");               
+                //      ErrorF("kXquartzToggleFullscreen not implemented\n");               
 #endif
-            break;
-
-        case kXquartzSetRootless:
-            DEBUG_LOG("kXquartzSetRootless\n");
+                break;
+                
+            case kXquartzSetRootless:
+                DEBUG_LOG("kXquartzSetRootless\n");
 #ifdef DARWIN_DDX_MISSING
-            QuartzSetRootless(xe[i].u.clientMessage.u.l.longs0);
-            if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
+                QuartzSetRootless(xe[i].u.clientMessage.u.l.longs0);
+                if (!quartzEnableRootless && !quartzHasRoot)
+                    QuartzHide();
 #else
-    //      ErrorF("kXquartzSetRootless not implemented\n");                    
+                //      ErrorF("kXquartzSetRootless not implemented\n");                    
 #endif
-            break;
+                break;
+                
+            case kXquartzSetRootClip:
+                QuartzSetRootClip((BOOL)xe[i].u.clientMessage.u.l.longs0);
+                break;
+                
+            case kXquartzQuit:
+                GiveUp(0);
+                break;
+                
+            case kXquartzBringAllToFront:
+                DEBUG_LOG("kXquartzBringAllToFront\n");
+                RootlessOrderAllWindows();
+                break;
+                
+            case kXquartzSpaceChanged:
+                DEBUG_LOG("kXquartzSpaceChanged\n");
+                QuartzSpaceChanged(xe[i].u.clientMessage.u.l.longs0);
+                break;
 
-        case kXquartzSetRootClip:
-            QuartzSetRootClip((BOOL)xe[i].u.clientMessage.u.l.longs0);
-		     break;
-
-        case kXquartzQuit:
-            GiveUp(0);
-            break;
-
-        case kXquartzBringAllToFront:
-     	    DEBUG_LOG("kXquartzBringAllToFront\n");
-            RootlessOrderAllWindows();
-            break;
-
-		case kXquartzSpaceChanged:
-            DEBUG_LOG("kXquartzSpaceChanged\n");
-            QuartzSpaceChanged(xe[i].u.clientMessage.u.l.longs0);
-
-            break;
-        default:
-            ErrorF("Unknown application defined event type %d.\n", xe[i].u.u.type);
+            default:
+                ErrorF("Unknown application defined event type %d.\n", xe[i].u.u.type);
 		}	
-  }
+    }
 }
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+    int err;
+
     if (!darwinEvents)
         darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
     if (!darwinEvents)
         FatalError("Couldn't allocate event buffer\n");
 
+    if((err = pthread_mutex_init(&mieqEnqueue_mutex, NULL))) {
+        FatalError("Couldn't allocate miEnqueue mutex: %d.\n", err);
+    }
+    
     mieqInit();
     mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
@@ -305,7 +339,7 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
     mieqSetHandler(kXquartzSetRootClip, DarwinEventHandler);
     mieqSetHandler(kXquartzQuit, DarwinEventHandler);
     mieqSetHandler(kXquartzReadPasteboard, QuartzReadPasteboard);
-	mieqSetHandler(kXquartzWritePasteboard, QuartzWritePasteboard);
+    mieqSetHandler(kXquartzWritePasteboard, QuartzWritePasteboard);
     mieqSetHandler(kXquartzToggleFullscreen, DarwinEventHandler);
     mieqSetHandler(kXquartzSetRootless, DarwinEventHandler);
     mieqSetHandler(kXquartzSpaceChanged, DarwinEventHandler);
@@ -325,6 +359,8 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
 void ProcessInputEvents(void) {
     xEvent  xe;
 	int x = sizeof(xe);
+    
+    TA_SERVER();
 
     mieqProcessInputEvents();
 
@@ -336,7 +372,7 @@ void ProcessInputEvents(void) {
 
 /* Sends a null byte down darwinEventWriteFD, which will cause the
    Dispatch() event loop to check out event queue */
-void DarwinPokeEQ(void) {
+static void DarwinPokeEQ(void) {
 	char nullbyte=0;
 	input_check_flag++;
 	//  <daniels> oh, i ... er ... christ.
@@ -398,15 +434,18 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 		return;
 	} 
 
-	num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
-				POINTER_ABSOLUTE, 0, 5, valuators);
-      
-	for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
-	DarwinPokeEQ();
+    mieqEnqueue_lock(); {
+        num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
+                                      POINTER_ABSOLUTE, 0, 5, valuators);
+        for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+        DarwinPokeEQ();
+
+    } mieqEnqueue_unlock();
 }
 
 void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 	int i, num_events;
+
 	if(!darwinEvents) {
 		ErrorF("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
 		return;
@@ -425,9 +464,11 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		}
 	}
 
-	num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
-	for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
-	DarwinPokeEQ();
+    mieqEnqueue_lock(); {
+        num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
+        for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+        DarwinPokeEQ();
+    } mieqEnqueue_unlock();
 }
 
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 
@@ -443,11 +484,12 @@ void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y,
 		return;
 	}
 
-	num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
-				0, 5, valuators);
-      
-	for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
-	DarwinPokeEQ();
+    mieqEnqueue_lock(); {
+        num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
+                                        0, 5, valuators);
+        for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+        DarwinPokeEQ();
+    } mieqEnqueue_unlock();
 }
 
 
@@ -512,5 +554,7 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
         va_end (args);
     }
 
+    mieqEnqueue_lock();
     mieqEnqueue(darwinPointer, &xe);
+    mieqEnqueue_unlock();
 }
