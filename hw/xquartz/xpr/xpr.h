@@ -30,6 +30,7 @@
 #define XPR_H
 
 #include "screenint.h"
+#include <Xplugin.h>
 
 Bool QuartzModeBundleInit(void);
 
@@ -37,6 +38,7 @@ void AppleDRIExtensionInit(void);
 void xprAppleWMInit(void);
 Bool xprInit(ScreenPtr pScreen);
 Bool xprIsX11Window(void *nsWindow, int windowNumber);
+WindowPtr xprGetXWindow(xp_window_id wid);
 
 void xprHideWindows(Bool hide);
 

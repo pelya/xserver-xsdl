@@ -11,6 +11,7 @@ Xquartz_SOURCES = \
 	dri.c \
 	xprAppleWM.c \
 	xprCursor.c \
+	xprEvent.c \
 	xprFrame.c \
 	xprScreen.c \
 	x-hash.c \
@@ -71,4 +72,5 @@ EXTRA_DIST = \
 	x-hash.h \
 	x-hook.h \
 	x-list.h \
-	xpr.h
+	xpr.h \
+	xprEvent.h

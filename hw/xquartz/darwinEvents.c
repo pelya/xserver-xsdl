@@ -69,10 +69,8 @@ in this Software without prior written authorization from The Open Group.
 #include "applewmExt.h"
 #include <X11/extensions/applewm.h>
 
-/* FIXME: Abstract this away into xpr */
-#include <Xplugin.h>
-#include "rootlessWindow.h"
-WindowPtr xprGetXWindow(xp_window_id wid);
+/* FIXME: Abstract this better */
+void QuartzModeEQInit(void);
 
 int input_check_zero, input_check_flag;
 
@@ -218,7 +216,7 @@ static void DarwinSimulateMouseClick(
    be moved into their own individual functions and set as handlers using
    mieqSetHandler. */
 
-void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
+static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
     int i;
     
     TA_SERVER();
@@ -259,18 +257,7 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
                                  AppleWMIsInactive, 0);
                 QuartzHide();
                 break;
-                
-            case kXquartzWindowState:
-                DEBUG_LOG("kXquartzWindowState\n");
-                RootlessNativeWindowStateChanged(xprGetXWindow(xe[i].u.clientMessage.u.l.longs0),
-                                                 xe[i].u.clientMessage.u.l.longs1);
-                break;
-                
-            case kXquartzWindowMoved:
-                DEBUG_LOG("kXquartzWindowMoved\n");
-                RootlessNativeWindowMoved ((WindowPtr)xe[i].u.clientMessage.u.l.longs0);
-                break;
-                
+
             case kXquartzToggleFullscreen:
                 DEBUG_LOG("kXquartzToggleFullscreen\n");
 #ifdef DARWIN_DDX_MISSING
@@ -304,11 +291,6 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
                 GiveUp(0);
                 break;
                 
-            case kXquartzBringAllToFront:
-                DEBUG_LOG("kXquartzBringAllToFront\n");
-                RootlessOrderAllWindows();
-                break;
-                
             case kXquartzSpaceChanged:
                 DEBUG_LOG("kXquartzSpaceChanged\n");
                 QuartzSpaceChanged(xe[i].u.clientMessage.u.l.longs0);
@@ -329,7 +311,7 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
         FatalError("Couldn't allocate event buffer\n");
 
     if((err = pthread_mutex_init(&mieqEnqueue_mutex, NULL))) {
-        FatalError("Couldn't allocate miEnqueue mutex: %d.\n", err);
+        FatalError("Couldn't allocate mieqEnqueue mutex: %d.\n", err);
     }
     
     mieqInit();
@@ -346,9 +328,9 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
     mieqSetHandler(kXquartzControllerNotify, DarwinEventHandler);
     mieqSetHandler(kXquartzPasteboardNotify, DarwinEventHandler);
     mieqSetHandler(kXquartzDisplayChanged, QuartzDisplayChangedHandler);
-    mieqSetHandler(kXquartzWindowState, DarwinEventHandler);
-    mieqSetHandler(kXquartzWindowMoved, DarwinEventHandler);
 
+    QuartzModeEQInit();
+    
     return TRUE;
 }
 

@@ -35,6 +35,7 @@
 #include "inputstr.h"
 #include "quartz.h"
 #include "xpr.h"
+#include "xprEvent.h"
 #include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
@@ -43,9 +44,6 @@
 #include <Xplugin.h>
 #include "applewmExt.h"
 #include "micmap.h"
-
-// From xprFrame.c
-WindowPtr xprGetXWindow(xp_window_id wid);
 
 #ifdef DAMAGE
 # include "damage.h"
