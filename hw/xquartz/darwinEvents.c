@@ -511,5 +511,5 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
         va_end (args);
     }
 
-    mieqEnqueue(NULL, &xe);
+    mieqEnqueue(darwinPointer, &xe);
 }
