@@ -638,7 +638,7 @@ XkbCopySrvLedInfo(	DeviceIntPtr		from,
     if (!sli_new)
 	goto finish;
 
-    memcpy(src, sli_new, sizeof(XkbSrvLedInfoRec));
+    memcpy(sli_new, src, sizeof(XkbSrvLedInfoRec));
     if (sli_new->class == KbdFeedbackClass)
 	sli_new->fb.kf = kf;
     else
