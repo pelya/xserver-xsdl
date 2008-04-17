@@ -324,16 +324,12 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
  */
 void ProcessInputEvents(void) {
     xEvent  xe;
-    // button number and modifier mask of currently pressed fake button
-    input_check_flag=0;
+	int x = sizeof(xe);
 
-    //    ErrorF("calling mieqProcessInputEvents\n");
     mieqProcessInputEvents();
 
     // Empty the signaling pipe
-    int x = sizeof(xe);
     while (x == sizeof(xe)) {
-//      DEBUG_LOG("draining pipe\n");
       x = read(darwinEventReadFD, &xe, sizeof(xe));
     }
 }
@@ -341,23 +337,23 @@ void ProcessInputEvents(void) {
 /* Sends a null byte down darwinEventWriteFD, which will cause the
    Dispatch() event loop to check out event queue */
 void DarwinPokeEQ(void) {
-  char nullbyte=0;
-  input_check_flag++;
-  //  <daniels> bushing: oh, i ... er ... christ.
-  write(darwinEventWriteFD, &nullbyte, 1);
+	char nullbyte=0;
+	input_check_flag++;
+	//  <daniels> oh, i ... er ... christ.
+	write(darwinEventWriteFD, &nullbyte, 1);
 }
 
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
 			     float pressure, float tilt_x, float tilt_y) {
-  static int darwinFakeMouseButtonDown = 0;
-  static int darwinFakeMouseButtonMask = 0;
-  int i, num_events;
+	static int darwinFakeMouseButtonDown = 0;
+	static int darwinFakeMouseButtonMask = 0;
+	int i, num_events;
 
 	if(!darwinEvents) {
 		ErrorF("DarwinSendPointerEvents called before darwinEvents was initialized\n");
 		return;
 	}
-  /* I can't find a spec for this, but at least GTK expects that tablets are
+	/* I can't find a spec for this, but at least GTK expects that tablets are
      just like mice, except they have either one or three extra valuators, in this
      order:
      
@@ -366,91 +362,92 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
      we can't do that.  Again, GTK seems to record the min/max of each valuator,
      and then perform scaling back to float itself using that info. Soo.... */
 
-  int valuators[5] = {pointer_x, pointer_y, 
+	int valuators[5] = {pointer_x, pointer_y, 
 		      pressure * INT32_MAX * 1.0f, 
 		      tilt_x * INT32_MAX * 1.0f, 
 		      tilt_y * INT32_MAX * 1.0f};
 
-  if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
-    // Mimic multi-button mouse with modifier-clicks
-    // If both sets of modifiers are pressed,
-    // button 2 is clicked.
-    if ((old_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
-      DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
+	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
+		// Mimic multi-button mouse with modifier-clicks
+		// If both sets of modifiers are pressed,
+		// button 2 is clicked.
+		if ((old_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
+			DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
 			       tilt_x, tilt_y, 2, darwinFakeMouse2Mask);
-      darwinFakeMouseButtonDown = 2;
-      darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
-      return;
-    } else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
-      DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
+			darwinFakeMouseButtonDown = 2;
+			darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
+			return;
+		} else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
+			DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
 			       tilt_x, tilt_y, 3, darwinFakeMouse3Mask);
-      darwinFakeMouseButtonDown = 3;
-      darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
-      return;
-    }
-  }
-  if (ev_type == ButtonRelease && darwinFakeButtons && darwinFakeMouseButtonDown) {
-    // If last mousedown was a fake click, don't check for
-    // mouse modifiers here. The user may have released the
-    // modifiers before the mouse button.
-    ev_button = darwinFakeMouseButtonDown;
-    darwinFakeMouseButtonDown = 0;
-    // Bring modifiers back up to date
-    DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
-    darwinFakeMouseButtonMask = 0;
-    return;
-  } 
+			darwinFakeMouseButtonDown = 3;
+			darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
+			return;
+		}
+	}
 
-  num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
+	if (ev_type == ButtonRelease && darwinFakeButtons && darwinFakeMouseButtonDown) {
+		// If last mousedown was a fake click, don't check for
+		// mouse modifiers here. The user may have released the
+		// modifiers before the mouse button.
+		ev_button = darwinFakeMouseButtonDown;
+		darwinFakeMouseButtonDown = 0;
+		// Bring modifiers back up to date
+		DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
+		darwinFakeMouseButtonMask = 0;
+		return;
+	} 
+
+	num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
 				POINTER_ABSOLUTE, 0, 5, valuators);
       
-  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
-  DarwinPokeEQ();
+	for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+	DarwinPokeEQ();
 }
 
 void DarwinSendKeyboardEvents(int ev_type, int keycode) {
-  int i, num_events;
+	int i, num_events;
 	if(!darwinEvents) {
 		ErrorF("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
 		return;
 	}
 
-  if (old_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
-    /* See if keymap has changed. */
+	if (old_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
+		/* See if keymap has changed. */
 
-    static unsigned int last_seed;
-    unsigned int this_seed;
+		static unsigned int last_seed;
+		unsigned int this_seed;
 
-    this_seed = QuartzSystemKeymapSeed();
-    if (this_seed != last_seed) {
-		last_seed = this_seed;
-		DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
-    }
-  }
+		this_seed = QuartzSystemKeymapSeed();
+		if (this_seed != last_seed) {
+			last_seed = this_seed;
+			DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
+		}
+	}
 
-  num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
-  for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
-  DarwinPokeEQ();
+	num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
+	for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+	DarwinPokeEQ();
 }
 
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 
 			       float pressure, float tilt_x, float tilt_y) {
-  int i, num_events;
-  int valuators[5] = {pointer_x, pointer_y, 
+	int i, num_events;
+	int valuators[5] = {pointer_x, pointer_y, 
 		      pressure * INT32_MAX * 1.0f, 
 		      tilt_x * INT32_MAX * 1.0f, 
 		      tilt_y * INT32_MAX * 1.0f};
 
-  if(!darwinEvents) {
+	if(!darwinEvents) {
 		ErrorF("DarwinSendProximityvents called before darwinEvents was initialized\n");
 		return;
-}
+	}
 
-  num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
+	num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
 				0, 5, valuators);
       
-  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
-  DarwinPokeEQ();
+	for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+	DarwinPokeEQ();
 }
 
 
@@ -485,9 +482,9 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
    reflect changing modifier flags (alt, control, meta, etc) */
 void DarwinUpdateModKeys(int flags) {
-  DarwinUpdateModifiers(KeyRelease, old_flags & ~flags);
-  DarwinUpdateModifiers(KeyPress, ~old_flags & flags);
-  old_flags = flags;
+	DarwinUpdateModifiers(KeyRelease, old_flags & ~flags);
+	DarwinUpdateModifiers(KeyPress, ~old_flags & flags);
+	old_flags = flags;
 }
 
 
