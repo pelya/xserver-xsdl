@@ -40,7 +40,6 @@ Xquartz_LDADD = \
 	$(top_builddir)/record/librecord.la \
 	$(top_builddir)/XTrap/libxtrap.la \
 	$(top_builddir)/miext/rootless/librootless.la \
-	$(top_builddir)/miext/rootless/accel/librlAccel.la \
 	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
 Xquartz_LDFLAGS =  \
