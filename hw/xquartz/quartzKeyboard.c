@@ -41,7 +41,7 @@
 // Define this to get a diagnostic output to stderr which is helpful
 // in determining how the X server is interpreting the Darwin keymap.
 #define DUMP_DARWIN_KEYMAP
-
+#define XQUARTZ_USE_XKB
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
@@ -70,12 +70,12 @@
 #include <assert.h>
 #endif
 
-
-
-
+#include "xkbsrv.h"
+#include "exevents.h"
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
+void QuartzXkbUpdate(DeviceIntPtr pDev);
 
 enum {
     MOD_COMMAND = 256,
@@ -863,6 +863,15 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
     keySyms->maxKeyCode = MAX_KEYCODE;
 }
 
+void QuartzXkbUpdate(DeviceIntPtr pDev) {
+#ifdef XQUARTZ_USE_XKB
+	SendDeviceMappingNotify(serverClient, MappingKeyboard, 
+		pDev->key->curKeySyms.minKeyCode, 
+		pDev->key->curKeySyms.maxKeyCode - pDev->key->curKeySyms.minKeyCode, pDev);
+	SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
+	SwitchCoreKeyboard(pDev);   
+#endif
+}
 
 /*
  * DarwinKeyboardInit
@@ -879,38 +888,56 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     assert( darwinParamConnect = NXOpenEventStatus() );
 
     DarwinLoadKeyboardMapping(&keySyms);
-    //    DarwinKeyboardReload(pDev);
     /* Initialize the seed, so we don't reload the keymap unnecessarily
        (and possibly overwrite xinitrc changes) */
     QuartzSystemKeymapSeed();
 
+#ifdef XQUARTZ_USE_XKB
+	XkbComponentNamesRec names;
+	bzero(&names, sizeof(names));
+    XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
+    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
+                                        QuartzBell, DarwinChangeKeyboardControl));
+	assert(SetKeySymsMap(&pDev->key->curKeySyms, &keySyms));
+	assert(keyInfo.modMap!=NULL);
+	assert(pDev->key->modifierMap!=NULL);
+	memcpy(pDev->key->modifierMap, keyInfo.modMap, sizeof(keyInfo.modMap));
+	
+	QuartzXkbUpdate(pDev);
+#else
+#error FAIL
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
                                       keyInfo.modMap, QuartzBell,
                                       DarwinChangeKeyboardControl ));
     SwitchCoreKeyboard(pDev);
+#endif
 }
 
 
-void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
-    KeySymsRec keySyms;
-	if (dev == NULL) dev = darwinKeyboard;
+void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
+	if (pDev == NULL) pDev = darwinKeyboard;
 	
-	DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", dev);
-    DarwinLoadKeyboardMapping(&keySyms);
+	DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", pDev);
 
-	if (dev->key) {
-		if (dev->key->curKeySyms.map) xfree(dev->key->curKeySyms.map);
-		if (dev->key->modifierKeyMap) xfree(dev->key->modifierKeyMap);
-		xfree(dev->key);
+#ifdef XQUARTZ_USE_XKB
+	QuartzXkbUpdate(pDev);
+#else
+#error FAIL
+	if (pDev->key) {
+		if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
+		if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
+		xfree(pDev->key);
 	}
 	
-	if (!InitKeyClassDeviceStruct(dev, &keySyms, keyInfo.modMap)) {
+    KeySymsRec keySyms;
+	if (!InitKeyClassDeviceStruct(pDev, &keySyms, keyInfo.modMap)) {
 		DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
 		return;
 	}
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
     SendMappingNotify(MappingModifier, 0, 0, 0);
+#endif
 }
 
 
