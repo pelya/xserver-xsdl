@@ -23,6 +23,10 @@ I810_LIBS =						\
 	libi810.a 					\
 	@KDRIVE_LIBS@
 
+if GLX
+Xi810_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xi810_LDADD = \
 	$(I810_LIBS)					\
 	@KDRIVE_LIBS@

@@ -14,6 +14,10 @@ bin_PROGRAMS = Xfbdev
 Xfbdev_SOURCES = \
 	fbinit.c
 
+if GLX
+Xfbdev_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xfbdev_LDADD = 						\
 	libfbdev.a					\
 	@KDRIVE_LIBS@

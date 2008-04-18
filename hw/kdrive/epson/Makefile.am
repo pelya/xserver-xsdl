@@ -20,6 +20,10 @@ EPSON_LIBS =					\
 	libepson.a 				\
 	@KDRIVE_LIBS@
 
+if GLX
+Xepson_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xepson_LDADD = \
 	$(EPSON_LIBS)			       \
 	@KDRIVE_LIBS@

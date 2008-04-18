@@ -21,6 +21,10 @@ VIA_LIBS =	\
 	libvia.a	\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a
 
+if GLX
+Xvia_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xvia_LDADD =						\
 	$(VIA_LIBS)					\
 	@KDRIVE_LIBS@
