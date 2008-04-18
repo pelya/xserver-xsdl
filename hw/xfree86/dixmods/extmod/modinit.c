@@ -155,15 +155,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef TOGCUP
-    {
-	XcupExtensionInit,
-	XCUPNAME,
-	&noXcupExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef XV
     {
 	XvExtensionInit,

@@ -180,9 +180,6 @@ _X_EXPORT Bool noSecurityExtension = FALSE;
 #ifdef XSYNC
 _X_EXPORT Bool noSyncExtension = FALSE;
 #endif
-#ifdef TOGCUP
-_X_EXPORT Bool noXcupExtension = FALSE;
-#endif
 #ifdef RES
 _X_EXPORT Bool noResExtension = FALSE;
 #endif

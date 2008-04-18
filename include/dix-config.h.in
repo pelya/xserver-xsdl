@@ -413,9 +413,6 @@
 /* Support Xv extension */
 #undef XV
 
-/* Build TOG-CUP extension */
-#undef TOGCUP
-
 /* Build Multibuffer extension */
 #undef MULTIBUFFER
 

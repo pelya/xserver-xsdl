@@ -83,12 +83,6 @@ extern void FontCacheExtensionInit(INITARGS);
 #include "fontcachstr.h"
 #endif
 
-#ifdef TOGCUP
-extern void XcupExtensionInit(INITARGS);
-#define _XCUP_SERVER_
-#include <X11/extensions/Xcupstr.h>
-#endif
-
 #ifdef XV
 extern void XvExtensionInit(INITARGS);
 extern void XvMCExtensionInit(INITARGS);

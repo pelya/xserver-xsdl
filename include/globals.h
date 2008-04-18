@@ -106,10 +106,6 @@ extern Bool noSecurityExtension;
 extern Bool noSyncExtension;
 #endif
 
-#ifdef TOGCUP
-extern Bool noXcupExtension;
-#endif
-
 #ifdef RES
 extern Bool noResExtension;
 #endif
