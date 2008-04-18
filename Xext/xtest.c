@@ -338,7 +338,23 @@ ProcXTestFakeInput(client)
                         values += 6;
                     }
                 }
-                break;
+                /* For XI events, the actual event is mostly unset. Since we
+                 * want to update the sprite nontheless, we need to fake up
+                 * sane values for the event. */
+
+                ev->u.keyButtonPointer.root = None;
+                dv = (deviceValuator*)(ev + 1);
+                if (dv->num_valuators && dv->first_valuator == 0)
+                    ev->u.keyButtonPointer.rootX = dv->valuator0;
+                else
+                    ev->u.keyButtonPointer.rootX = 0;
+
+                /* XXX: AFAIK, XI requires always sending _all_ valuators,
+                 * i.e. you can't just send vals 3 - 7. (whot) */
+                if (dv->num_valuators > 1 && dv->first_valuator == 0)
+                    ev->u.keyButtonPointer.rootY = dv->valuator1;
+                else
+                    ev->u.keyButtonPointer.rootY = 0;
             }
 
             if (!dev)
@@ -360,9 +376,13 @@ ProcXTestFakeInput(client)
             if (ev->u.u.detail == xTrue)
             {
                 int x, y;
-                GetSpritePosition(dev, &x, &y);
-                ev->u.keyButtonPointer.rootX += x;
-                ev->u.keyButtonPointer.rootY += y;
+                if (!extension || !dev->valuator->mode == Absolute)
+                {
+                    /* if Absolute, rootX already has the final coords. */
+                    GetSpritePosition(dev, &x, &y);
+                    ev->u.keyButtonPointer.rootX += x;
+                    ev->u.keyButtonPointer.rootY += y;
+                }
             }
             else if (ev->u.u.detail != xFalse)
             {
@@ -431,6 +451,12 @@ ProcXTestFakeInput(client)
         case ButtonRelease:
             if (!extension)
                 dev = PickPointer(client);
+            else
+            {
+                /* For XI events, the rootX/Y is unset. */
+                ev->u.keyButtonPointer.rootX = dev->lastx;
+                ev->u.keyButtonPointer.rootY = dev->lasty;
+            }
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;
