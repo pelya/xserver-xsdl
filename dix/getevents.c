@@ -664,8 +664,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
     int x = 0, y = 0;
-    /* The core pointer must not send Xi events. */
-    Bool coreOnly = (pDev == inputInfo.pointer);
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -700,7 +698,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* Do we need to send a DeviceValuator event? */
-    if (!coreOnly && num_valuators) {
+    if (num_valuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -771,33 +769,30 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         master->lasty = y;
     }
 
-    if (!coreOnly)
-    {
-        kbp = (deviceKeyButtonPointer *) events->event;
-        kbp->time = ms;
-        kbp->deviceid = pDev->id;
+    kbp = (deviceKeyButtonPointer *) events->event;
+    kbp->time = ms;
+    kbp->deviceid = pDev->id;
 
-        if (type == MotionNotify) {
-            kbp->type = DeviceMotionNotify;
-        }
-        else {
-            if (type == ButtonPress)
-                kbp->type = DeviceButtonPress;
-            else if (type == ButtonRelease)
-                kbp->type = DeviceButtonRelease;
-            kbp->detail = pDev->button->map[buttons];
-        }
+    if (type == MotionNotify) {
+        kbp->type = DeviceMotionNotify;
+    }
+    else {
+        if (type == ButtonPress)
+            kbp->type = DeviceButtonPress;
+        else if (type == ButtonRelease)
+            kbp->type = DeviceButtonRelease;
+        kbp->detail = pDev->button->map[buttons];
+    }
 
-        kbp->root_x = x;
-        kbp->root_y = y;
+    kbp->root_x = x;
+    kbp->root_y = y;
 
-        events++;
-        if (num_valuators) {
-            kbp->deviceid |= MORE_EVENTS;
-            clipValuators(pDev, first_valuator, num_valuators, valuators);
-            events = getValuatorEvents(events, pDev, first_valuator,
-                                       num_valuators, valuators);
-        }
+    events++;
+    if (num_valuators) {
+        kbp->deviceid |= MORE_EVENTS;
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                num_valuators, valuators);
     }
 
     return num_events;
