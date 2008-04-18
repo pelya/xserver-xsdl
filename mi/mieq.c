@@ -333,7 +333,7 @@ mieqProcessInputEvents(void)
 
             /* FIXME: Bad hack. The only event where we actually get multiple
              * events at once is a DeviceMotionNotify followed by
-             * DeviceValuators. For now it's save enough to just take the
+             * DeviceValuators. For now it's safe enough to just take the
              * event directly or copy the bunch of events and pass in the
              * copy. Eventually the interface for the processInputProc needs
              * to be changed. (whot)
