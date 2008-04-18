@@ -162,9 +162,6 @@ _X_EXPORT Bool noScreenSaverExtension = FALSE;
 #ifdef MITSHM
 _X_EXPORT Bool noMITShmExtension = FALSE;
 #endif
-#ifdef MITMISC
-_X_EXPORT Bool noMITMiscExtension = FALSE;
-#endif
 #ifdef MULTIBUFFER
 _X_EXPORT Bool noMultibufferExtension = FALSE;
 #endif

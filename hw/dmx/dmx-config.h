@@ -84,7 +84,6 @@
 #undef XFreeXDGA
 #undef XF86DRI
 #undef TOGCUP
-#undef MITMISC
 #undef SCREENSAVER
 #undef RANDR
 #undef XFIXES

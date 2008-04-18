@@ -28,7 +28,6 @@ BUILTIN_SRCS =			\
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
 	bigreq.c		\
-	mitmisc.c		\
 	shape.c			\
 	sync.c			\
 	xcmisc.c

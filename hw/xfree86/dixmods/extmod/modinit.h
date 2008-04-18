@@ -18,12 +18,6 @@ extern void MultibufferExtensionInit(INITARGS);
 #include <X11/extensions/multibufst.h>
 #endif
 
-#ifdef MITMISC
-extern void MITMiscExtensionInit(INITARGS);
-#define _MITMISC_SERVER_
-#include <X11/extensions/mitmiscstr.h>
-#endif
-
 #ifdef XTEST
 extern void XTestExtensionInit(INITARGS);
 #define _XTEST_SERVER_

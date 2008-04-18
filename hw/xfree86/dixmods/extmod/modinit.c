@@ -65,15 +65,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef MITMISC
-    {
-	MITMiscExtensionInit,
-	MITMISCNAME,
-	&noMITMiscExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef notyet
     {
 	XTestExtensionInit,

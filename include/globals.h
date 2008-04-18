@@ -82,10 +82,6 @@ extern Bool noScreenSaverExtension;
 extern Bool noMITShmExtension;
 #endif
 
-#ifdef MITMISC
-extern Bool noMITMiscExtension;
-#endif
-
 #ifdef MULTIBUFFER
 extern Bool noMultibufferExtension;
 #endif

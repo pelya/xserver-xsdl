@@ -46,9 +46,6 @@
 /* Support IPv6 for TCP connections */
 #undef IPv6
 
-/* Support MIT Misc extension */
-#undef MITMISC
-
 /* Support MIT-SHM Extension */
 #undef MITSHM
 

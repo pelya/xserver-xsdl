@@ -1106,7 +1106,6 @@ if test "x$DEBUGGING" = xyes; then
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
-AC_DEFINE(MITMISC, 1, [Support MIT Misc extension])
 AC_DEFINE(XTEST, 1, [Support XTest extension])
 AC_DEFINE(XSYNC, 1, [Support XSync extension])
 AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
