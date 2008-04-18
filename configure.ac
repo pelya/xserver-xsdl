@@ -837,7 +837,7 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([GL], [glproto >= 1.4.9])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
-	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
+	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la'
 	test -d GL || mkdir GL
 	case $host_os in
 	  solaris*) 	
@@ -2105,18 +2105,6 @@ Makefile
 GL/Makefile
 GL/apple/Makefile
 GL/glx/Makefile
-GL/mesa/Makefile
-GL/mesa/glapi/Makefile
-GL/mesa/main/Makefile
-GL/mesa/math/Makefile
-GL/mesa/shader/Makefile
-GL/mesa/shader/grammar/Makefile
-GL/mesa/shader/slang/Makefile
-GL/mesa/swrast/Makefile
-GL/mesa/swrast_setup/Makefile
-GL/mesa/tnl/Makefile
-GL/mesa/vbo/Makefile
-GL/mesa/X/Makefile
 include/Makefile
 afb/Makefile
 composite/Makefile

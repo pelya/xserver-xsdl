@@ -267,7 +267,6 @@ run() {
     # $1 what to do
     # $2 explanation
 
-    ACTION=$1 EXPLANATION=$2 run_module mesa
     ACTION=$1 EXPLANATION=$2 run_module glx
 }
 

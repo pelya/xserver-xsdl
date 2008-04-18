@@ -2,8 +2,8 @@ if XQUARTZ
 XQUARTZ_SUBDIRS = apple
 endif
 
-SUBDIRS = glx mesa $(XQUARTZ_SUBDIRS)
-DIST_SUBDIRS = glx mesa apple
+SUBDIRS = glx $(XQUARTZ_SUBDIRS)
+DIST_SUBDIRS = glx apple
 
 WINDOWS_EXTRAS = \
 	windows/ChangeLog \
