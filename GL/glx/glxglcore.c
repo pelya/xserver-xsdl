@@ -37,7 +37,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <string.h>
+#include <dlfcn.h>
 
+#define _NEED_GL_CORE_IF
 #include <GL/xmesa.h>
 #include <GL/internal/glcore.h>
 #include <glxserver.h>
@@ -48,6 +50,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "os.h"
 
+#define XMesaCreateVisual       (*glcore->XMesaCreateVisual)
+#define XMesaDestroyVisual      (*glcore->XMesaDestroyVisual)
+
+#define XMesaCreateWindowBuffer (*glcore->XMesaCreateWindowBuffer)
+#define XMesaCreatePixmapBuffer (*glcore->XMesaCreatePixmapBuffer)
+#define XMesaDestroyBuffer      (*glcore->XMesaDestroyBuffer)
+#define XMesaSwapBuffers        (*glcore->XMesaSwapBuffers)
+#define XMesaResizeBuffers      (*glcore->XMesaResizeBuffers)
+
+#define XMesaCreateContext      (*glcore->XMesaCreateContext)
+#define XMesaDestroyContext     (*glcore->XMesaDestroyContext)
+#define XMesaCopyContext        (*glcore->XMesaCopyContext)
+#define XMesaMakeCurrent2       (*glcore->XMesaMakeCurrent2)
+#define XMesaForceCurrent       (*glcore->XMesaForceCurrent)
+#define XMesaLoseCurrent        (*glcore->XMesaLoseCurrent)
+
 typedef struct __GLXMESAscreen   __GLXMESAscreen;
 typedef struct __GLXMESAcontext  __GLXMESAcontext;
 typedef struct __GLXMESAdrawable __GLXMESAdrawable;
@@ -55,8 +73,11 @@ typedef struct __GLXMESAdrawable __GLXMESAdrawable;
 struct __GLXMESAscreen {
     __GLXscreen   base;
     int           index;
-    int		  num_vis;
+    int           num_vis;
     XMesaVisual  *xm_vis;
+    void         *driver;
+
+    const __GLcoreModule *glcore;
 };
 
 struct __GLXMESAcontext {
@@ -65,8 +86,9 @@ struct __GLXMESAcontext {
 };
 
 struct __GLXMESAdrawable {
-    __GLXdrawable base;
-    XMesaBuffer   xm_buf;
+    __GLXdrawable    base;
+    XMesaBuffer      xm_buf;
+    __GLXMESAscreen *screen;
 };
 
 static XMesaVisual find_mesa_visual(__GLXscreen *screen, XID fbconfigID);
@@ -76,6 +98,7 @@ static void
 __glXMesaDrawableDestroy(__GLXdrawable *base)
 {
     __GLXMESAdrawable *glxPriv = (__GLXMESAdrawable *) base;
+    const __GLcoreModule *glcore = glxPriv->screen->glcore;
 
     if (glxPriv->xm_buf != NULL)
       XMesaDestroyBuffer(glxPriv->xm_buf);
@@ -86,6 +109,7 @@ static GLboolean
 __glXMesaDrawableResize(__GLXdrawable *base)
 {
     __GLXMESAdrawable *glxPriv = (__GLXMESAdrawable *) base;
+    const __GLcoreModule *glcore = glxPriv->screen->glcore;
 
     XMesaResizeBuffers(glxPriv->xm_buf);
 
@@ -96,6 +120,7 @@ static GLboolean
 __glXMesaDrawableSwapBuffers(__GLXdrawable *base)
 {
     __GLXMESAdrawable *glxPriv = (__GLXMESAdrawable *) base;
+    const __GLcoreModule *glcore = glxPriv->screen->glcore;
 
     /* This is terrifying: XMesaSwapBuffers() ends up calling CopyArea
      * to do the buffer swap, but this assumes that the server holds
@@ -121,6 +146,8 @@ __glXMesaScreenCreateDrawable(__GLXscreen *screen,
 			      XID drawId,
 			      __GLXconfig *modes)
 {
+    __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
+    const __GLcoreModule *glcore = mesaScreen->glcore;
     __GLXMESAdrawable *glxPriv;
     XMesaVisual xm_vis;
 
@@ -130,6 +157,7 @@ __glXMesaScreenCreateDrawable(__GLXscreen *screen,
 
     memset(glxPriv, 0, sizeof *glxPriv);
 
+    glxPriv->screen = mesaScreen;
     if (!__glXDrawableInit(&glxPriv->base, screen,
 			   pDraw, type, drawId, modes)) {
         xfree(glxPriv);
@@ -166,6 +194,8 @@ static void
 __glXMesaContextDestroy(__GLXcontext *baseContext)
 {
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
+    __GLXMESAscreen *screen = (__GLXMESAscreen *) context->base.pGlxScreen;
+    const __GLcoreModule *glcore = screen->glcore;
 
     XMesaDestroyContext(context->xmesa);
     __glXContextDestroy(&context->base);
@@ -179,6 +209,8 @@ __glXMesaContextMakeCurrent(__GLXcontext *baseContext)
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
     __GLXMESAdrawable *drawPriv = (__GLXMESAdrawable *) context->base.drawPriv;
     __GLXMESAdrawable *readPriv = (__GLXMESAdrawable *) context->base.readPriv;
+    __GLXMESAscreen *screen = (__GLXMESAscreen *) context->base.pGlxScreen;
+    const __GLcoreModule *glcore = screen->glcore;
 
     return XMesaMakeCurrent2(context->xmesa,
 			     drawPriv->xm_buf,
@@ -189,6 +221,8 @@ static int
 __glXMesaContextLoseCurrent(__GLXcontext *baseContext)
 {
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
+    __GLXMESAscreen *screen = (__GLXMESAscreen *) context->base.pGlxScreen;
+    const __GLcoreModule *glcore = screen->glcore;
 
     return XMesaLoseCurrent(context->xmesa);
 }
@@ -200,6 +234,8 @@ __glXMesaContextCopy(__GLXcontext *baseDst,
 {
     __GLXMESAcontext *dst = (__GLXMESAcontext *) baseDst;
     __GLXMESAcontext *src = (__GLXMESAcontext *) baseSrc;
+    __GLXMESAscreen *screen = (__GLXMESAscreen *) dst->base.pGlxScreen;
+    const __GLcoreModule *glcore = screen->glcore;
 
     return XMesaCopyContext(src->xmesa, dst->xmesa, mask);
 }
@@ -208,6 +244,8 @@ static int
 __glXMesaContextForceCurrent(__GLXcontext *baseContext)
 {
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
+    __GLXMESAscreen *screen = (__GLXMESAscreen *) context->base.pGlxScreen;
+    const __GLcoreModule *glcore = screen->glcore;
 
     /* GlxSetRenderTables() call for XGL moved in XMesaForceCurrent() */
 
@@ -219,6 +257,8 @@ __glXMesaScreenCreateContext(__GLXscreen *screen,
 			     __GLXconfig *config,
 			     __GLXcontext *baseShareContext)
 {
+    __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
+    const __GLcoreModule *glcore = mesaScreen->glcore;
     __GLXMESAcontext *context;
     __GLXMESAcontext *shareContext = (__GLXMESAcontext *) baseShareContext;
     XMesaVisual xm_vis;
@@ -261,6 +301,7 @@ static void
 __glXMesaScreenDestroy(__GLXscreen *screen)
 {
     __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
+    const __GLcoreModule *glcore = mesaScreen->glcore;
     int i;
 
     if (mesaScreen->xm_vis) {
@@ -271,6 +312,8 @@ __glXMesaScreenDestroy(__GLXscreen *screen)
 
 	xfree(mesaScreen->xm_vis);
     }
+
+    dlclose(mesaScreen->driver);
 
     __glXScreenDestroy(screen);
 
@@ -373,6 +416,7 @@ createFBConfigs(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 static void
 createMesaVisuals(__GLXMESAscreen *pMesaScreen)
 {
+    const __GLcoreModule *glcore = pMesaScreen->glcore;
     __GLXconfig *config;
     ScreenPtr pScreen;
     VisualPtr visual = NULL;
@@ -409,14 +453,34 @@ createMesaVisuals(__GLXMESAscreen *pMesaScreen)
     }
 }
 
+static const char dri_driver_path[] = DRI_DRIVER_PATH;
+
 static __GLXscreen *
 __glXMesaScreenProbe(ScreenPtr pScreen)
 {
     __GLXMESAscreen *screen;
+    char filename[128];
 
     screen = xalloc(sizeof *screen);
     if (screen == NULL)
 	return NULL;
+
+    snprintf(filename, sizeof filename, "%s/%s.so",
+             dri_driver_path, "libGLcore");
+
+    screen->driver = dlopen(filename, RTLD_LAZY | RTLD_LOCAL);
+    if (screen->driver == NULL) {
+        LogMessage(X_ERROR, "GLX error: dlopen of %s failed (%s)\n",
+                   filename, dlerror());
+        goto handle_error;
+    }
+
+    screen->glcore = dlsym(screen->driver, __GL_CORE);
+    if (screen->glcore == NULL) {
+        LogMessage(X_ERROR, "GLX error: dlsym for %s failed (%s)\n",
+                   __GL_CORE, dlerror());
+        goto handle_error;
+    }
 
     /*
      * Find the GLX visuals that are supported by this screen and create
@@ -435,7 +499,20 @@ __glXMesaScreenProbe(ScreenPtr pScreen)
     screen->base.swapInterval  = NULL;
     screen->base.pScreen       = pScreen;
 
+    LogMessage(X_INFO, "GLX: Loaded and initialized %s\n", filename);
+
     return &screen->base;
+
+handle_error:
+
+    if (screen->driver)
+        dlclose(screen->driver);
+
+    xfree(screen);
+
+    FatalError("GLX: could not load software renderer\n");
+
+    return NULL;
 }
 
 __GLXprovider __glXMesaProvider = {

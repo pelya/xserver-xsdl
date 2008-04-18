@@ -72,37 +72,6 @@ static XF86ModuleVersionInfo VersRec =
 
 _X_EXPORT XF86ModuleData glxModuleData = { &VersRec, glxSetup, NULL };
 
-/* We do a little proxy dance here, so we can avoid loading GLcore
- * unless we really need to.*/
-
-static pointer glxModule;
-
-static __GLXscreen *
-__glXMesaProxyScreenProbe(ScreenPtr pScreen)
-{
-  pointer GLcore;
-  static __GLXprovider *provider;
-
-  if (provider == NULL) {
-    GLcore = LoadSubModule(glxModule, "GLcore", NULL, NULL, NULL, NULL, 
-			   NULL, NULL);
-    if (GLcore == NULL)
-      return NULL;
-
-    provider = LoaderSymbol("__glXMesaProvider");
-    if (provider == NULL)
-      return NULL;
-  }
-
-  return provider->screenProbe(pScreen);
-}
-
-static __GLXprovider __glXMesaProxyProvider = {
-    __glXMesaProxyScreenProbe,
-    "MESA-PROXY",
-    NULL
-};
-
 static pointer
 glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
@@ -116,8 +85,10 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     setupDone = TRUE;
 
-    glxModule = module;
-    GlxPushProvider(&__glXMesaProxyProvider);
+    provider = LoaderSymbol("__glXMesaProvider");
+    if (provider == NULL)
+	return NULL;
+    GlxPushProvider(provider);
 
     xf86Msg(xf86Info.aiglxFrom, "AIGLX %s\n", 
 	    xf86Info.aiglx ? "enabled" : "disabled");
