@@ -29,6 +29,7 @@
 #ifndef XPR_H
 #define XPR_H
 
+#include "windowstr.h"
 #include "screenint.h"
 #include <Xplugin.h>
 

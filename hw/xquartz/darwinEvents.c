@@ -538,5 +538,6 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
 
     mieqEnqueue_lock();
     mieqEnqueue(darwinPointer, &xe);
+    DarwinPokeEQ();
     mieqEnqueue_unlock();
 }
