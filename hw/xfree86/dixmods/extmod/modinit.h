@@ -129,14 +129,6 @@ extern void SecurityExtensionInit(INITARGS);
 #endif
 
 #if 1
-extern void XagExtensionInit(INITARGS);
-#endif
-
-#if 1
-extern void XpExtensionInit(INITARGS);
-#endif
-
-#if 1
 extern void PanoramiXExtensionInit(int argc, char *argv[]);
 #endif
 

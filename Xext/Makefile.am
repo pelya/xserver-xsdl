@@ -105,12 +105,6 @@ if XPRINT
 BUILTIN_SRCS += $(XPRINT_SRCS)
 endif
 
-# AppGroup
-APPGROUP_SRCS = appgroup.c appgroup.h
-if APPGROUP
-BUILTIN_SRCS += $(APPGROUP_SRCS)
-endif
-
 # Colormap Utilization Protocol: Less flashing when switching between
 # PsuedoColor apps and better sharing of limited colormap slots
 CUP_SRCS = cup.c
@@ -164,7 +158,6 @@ EXTRA_DIST = \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
 	$(XPRINT_SRCS) \
-	$(APPGROUP_SRCS) \
 	$(CUP_SRCS) \
 	$(MULTIBUFFER_SRCS) \
 	$(EXTRA_MULTIBUFFER_SRCS) \

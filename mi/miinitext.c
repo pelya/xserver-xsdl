@@ -169,9 +169,6 @@ extern Bool noXcupExtension;
 #ifdef RES
 extern Bool noResExtension;
 #endif
-#ifdef XAPPGROUP
-extern Bool noXagExtension;
-#endif
 #ifdef XCMISC
 extern Bool noXCMiscExtension;
 #endif
@@ -239,10 +236,6 @@ typedef void (*InitExtension)(INITARGS);
 #endif
 #ifdef XPRINT
 #include <X11/extensions/Print.h>
-#endif
-#ifdef XAPPGROUP
-#define _XAG_SERVER_
-#include <X11/extensions/Xagstr.h>
 #endif
 #ifdef XCSECURITY
 #include "securitysrv.h"
@@ -313,9 +306,6 @@ extern void RecordExtensionInit(INITARGS);
 #endif
 #ifdef DBE
 extern void DbeExtensionInit(INITARGS);
-#endif
-#ifdef XAPPGROUP
-extern void XagExtensionInit(INITARGS);
 #endif
 #ifdef XCSECURITY
 extern void SecurityExtensionInit(INITARGS);
@@ -445,9 +435,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #endif
 #ifdef RES
     { "X-Resource", &noResExtension },
-#endif
-#ifdef XAPPGROUP
-    { "XC-APPGROUP", &noXagExtension },
 #endif
 #ifdef XCMISC
     { "XC-MISC", &noXCMiscExtension },
@@ -584,9 +571,6 @@ InitExtensions(argc, argv)
 #ifdef DBE
     if (!noDbeExtension) DbeExtensionInit();
 #endif
-#ifdef XAPPGROUP
-    if (!noXagExtension) XagExtensionInit();
-#endif
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
 #endif
@@ -677,9 +661,6 @@ static ExtensionModule staticExtensions[] = {
 #endif
 #ifdef XKB
     { XkbExtensionInit, XkbName, &noXkbExtension, NULL, NULL },
-#endif
-#ifdef XAPPGROUP
-    { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },
 #endif
 #ifdef XCSECURITY
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },

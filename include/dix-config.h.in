@@ -416,9 +416,6 @@
 /* Support Xv extension */
 #undef XV
 
-/* Build APPGROUP extension */
-#undef XAPPGROUP
-
 /* Build TOG-CUP extension */
 #undef TOGCUP
 

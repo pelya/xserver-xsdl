@@ -397,9 +397,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef RES
     SYMVAR(noResExtension)
 #endif
-#ifdef XAPPGROUP
-    SYMVAR(noXagExtension)
-#endif
 #ifdef XCMISC
     SYMVAR(noXCMiscExtension)
 #endif
