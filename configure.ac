@@ -544,7 +544,6 @@ AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Mi
 AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--disable-xselinux], [Build SELinux extension (default: disabled)]), [XSELINUX=$enableval], [XSELINUX=no])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: disabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
@@ -928,14 +927,6 @@ AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
 if test "x$XEVIE" = xyes; then
 	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
-fi
-
-AM_CONDITIONAL(APPGROUP, [test "x$APPGROUP" = xyes])
-if test "x$APPGROUP" = xyes; then
-	if test "x$XACE" != xyes || test "x$XCSECURITY" != xyes; then
-		AC_MSG_ERROR([cannot build APPGROUP extension without X-ACE and XC-SECURITY])
-	fi
-	AC_DEFINE(XAPPGROUP, 1, [Build APPGROUP extension])
 fi
 
 AM_CONDITIONAL(CUP, [test "x$CUP" = xyes])
