@@ -173,15 +173,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef EVI
-    {
-	EVIExtensionInit,
-	EVINAME,
-	&noEVIExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef XV
     {
 	XvExtensionInit,

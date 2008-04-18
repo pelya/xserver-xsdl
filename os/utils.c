@@ -149,9 +149,6 @@ _X_EXPORT Bool noDbeExtension = FALSE;
 #ifdef DPMSExtension
 _X_EXPORT Bool noDPMSExtension = FALSE;
 #endif
-#ifdef EVI
-_X_EXPORT Bool noEVIExtension = FALSE;
-#endif
 #ifdef FONTCACHE
 _X_EXPORT Bool noFontCacheExtension = FALSE;
 #endif

@@ -118,12 +118,6 @@ if CUP
 MODULE_SRCS  += $(CUP_SRCS)
 endif
 
-# Extended Visual Information
-EVI_SRCS = EVI.c sampleEVI.c EVIstruct.h
-if EVI
-MODULE_SRCS  += $(EVI_SRCS)
-endif
-
 # Multi-buffering extension
 MULTIBUFFER_SRCS = mbuf.c
 EXTRA_MULTIBUFFER_SRCS = mbufbf.c mbufpx.c
@@ -172,7 +166,6 @@ EXTRA_DIST = \
 	$(XPRINT_SRCS) \
 	$(APPGROUP_SRCS) \
 	$(CUP_SRCS) \
-	$(EVI_SRCS) \
 	$(MULTIBUFFER_SRCS) \
 	$(EXTRA_MULTIBUFFER_SRCS) \
 	$(FONTCACHE_SRCS) \

@@ -422,9 +422,6 @@
 /* Build TOG-CUP extension */
 #undef TOGCUP
 
-/* Build Extended-Visual-Information extension */
-#undef EVI
-
 /* Build Multibuffer extension */
 #undef MULTIBUFFER
 

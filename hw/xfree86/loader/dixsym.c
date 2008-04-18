@@ -358,9 +358,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef DPMSExtension
     SYMVAR(noDPMSExtension)
 #endif
-#ifdef EVI
-    SYMVAR(noEVIExtension)
-#endif
 #ifdef FONTCACHE
     SYMVAR(noFontCacheExtension)
 #endif

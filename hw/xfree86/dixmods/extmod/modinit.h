@@ -95,12 +95,6 @@ extern void XcupExtensionInit(INITARGS);
 #include <X11/extensions/Xcupstr.h>
 #endif
 
-#ifdef EVI
-extern void EVIExtensionInit(INITARGS);
-#define _XEVI_SERVER_
-#include <X11/extensions/XEVIstr.h>
-#endif
-
 #ifdef XV
 extern void XvExtensionInit(INITARGS);
 extern void XvMCExtensionInit(INITARGS);

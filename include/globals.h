@@ -66,10 +66,6 @@ extern Bool noDbeExtension;
 extern Bool noDPMSExtension;
 #endif
 
-#ifdef EVI
-extern Bool noEVIExtension;
-#endif
-
 #ifdef FONTCACHE
 extern Bool noFontCacheExtension;
 #endif
