@@ -471,7 +471,15 @@ ProcXTestFakeInput(client)
     if (screenIsSaved == SCREEN_SAVER_ON)
         dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
     ev->u.keyButtonPointer.time = currentTime.milliseconds;
-    (*dev->public.processInputProc)(ev, dev, nev);
+    if (!dev->isMaster && dev->u.master)
+    {   /* duplicate and route through master */
+        xEvent *master_event = NULL;
+        CopyGetMasterEvent(dev->u.master, ev, &master_event, nev);
+        (*dev->public.processInputProc)(ev, dev, nev);
+        (*dev->public.processInputProc)(master_event, dev->u.master, nev);
+        xfree(master_event);
+    } else
+        (*dev->public.processInputProc)(ev, dev, nev);
     return client->noClientException;
 }
 

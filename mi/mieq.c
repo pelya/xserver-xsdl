@@ -263,7 +263,7 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
  * @param master The event after being copied
  * @param count Number of events in original.
  */
-static void
+void
 CopyGetMasterEvent(DeviceIntPtr mdev, xEvent* original,
                    xEvent** master, int count)
 {
