@@ -440,10 +440,14 @@ ProcXTestFakeInput(client)
                             ev->u.keyButtonPointer.rootY);
                     return client->noClientException;
                 }
-            (*root->drawable.pScreen->SetCursorPosition)
-                (dev, root->drawable.pScreen,
-                 ev->u.keyButtonPointer.rootX,
-                 ev->u.keyButtonPointer.rootY, FALSE);
+            /* Only update sprite for MDs and floating SDs */
+            if (dev->isMaster || (!dev->isMaster && !dev->u.master))
+            {
+                (*root->drawable.pScreen->SetCursorPosition)
+                    (dev, root->drawable.pScreen,
+                     ev->u.keyButtonPointer.rootX,
+                     ev->u.keyButtonPointer.rootY, FALSE);
+            }
             dev->lastx = ev->u.keyButtonPointer.rootX;
             dev->lasty = ev->u.keyButtonPointer.rootY;
             break;
