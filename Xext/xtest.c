@@ -1,30 +1,30 @@
 /*
 
-Copyright 1992, 1998  The Open Group
+   Copyright 1992, 1998  The Open Group
 
-Permission to use, copy, modify, distribute, and sell this software and its
-documentation for any purpose is hereby granted without fee, provided that
-the above copyright notice appear in all copies and that both that
-copyright notice and this permission notice appear in supporting
-documentation.
+   Permission to use, copy, modify, distribute, and sell this software and its
+   documentation for any purpose is hereby granted without fee, provided that
+   the above copyright notice appear in all copies and that both that
+   copyright notice and this permission notice appear in supporting
+   documentation.
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE OPEN GROUP BE LIABLE FOR ANY CLAIM, DAMAGES OR
+   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+   OTHER DEALINGS IN THE SOFTWARE.
 
-Except as contained in this notice, the name of The Open Group shall
-not be used in advertising or otherwise to promote the sale, use or
-other dealings in this Software without prior written authorization
-from The Open Group.
+   Except as contained in this notice, the name of The Open Group shall
+   not be used in advertising or otherwise to promote the sale, use or
+   other dealings in this Software without prior written authorization
+   from The Open Group.
 
-*/
+ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -45,17 +45,13 @@ from The Open Group.
 #define _XTEST_SERVER_
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/xteststr.h>
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #define EXTENSION_EVENT_BASE	64
-#endif /* XINPUT */
 
 #include "modinit.h"
 
-#ifdef XINPUT
 extern int DeviceValuator;
-#endif /* XINPUT */
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -63,12 +59,12 @@ extern int DeviceValuator;
 #endif
 
 static void XTestResetProc(
-    ExtensionEntry * /* extEntry */
-);
+        ExtensionEntry * /* extEntry */
+        );
 static int XTestSwapFakeInput(
-    ClientPtr /* client */,
-    xReq * /* req */
-);
+        ClientPtr /* client */,
+        xReq * /* req */
+        );
 
 static DISPATCH_PROC(ProcXTestCompareCursor);
 static DISPATCH_PROC(ProcXTestDispatch);
@@ -85,23 +81,23 @@ void
 XTestExtensionInit(INITARGS)
 {
     AddExtension(XTestExtensionName, 0, 0,
-		 ProcXTestDispatch, SProcXTestDispatch,
-		 XTestResetProc, StandardMinorOpcode);
+            ProcXTestDispatch, SProcXTestDispatch,
+            XTestResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/
 static void
 XTestResetProc (extEntry)
-ExtensionEntry	*extEntry;
+    ExtensionEntry	*extEntry;
 {
 }
 
 static int
 ProcXTestGetVersion(client)
-     ClientPtr client;
+    ClientPtr client;
 {
     xXTestGetVersionReply rep;
-     int n;
+    int n;
 
     REQUEST_SIZE_MATCH(xXTestGetVersionReq);
     rep.type = X_Reply;
@@ -110,8 +106,8 @@ ProcXTestGetVersion(client)
     rep.majorVersion = XTestMajorVersion;
     rep.minorVersion = XTestMinorVersion;
     if (client->swapped) {
-	swaps(&rep.sequenceNumber, n);
-	swaps(&rep.minorVersion, n);
+        swaps(&rep.sequenceNumber, n);
+        swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xXTestGetVersionReply), (char *)&rep);
     return(client->noClientException);
@@ -119,7 +115,7 @@ ProcXTestGetVersion(client)
 
 static int
 ProcXTestCompareCursor(client)
-     ClientPtr client;
+    ClientPtr client;
 {
     REQUEST(xXTestCompareCursorReq);
     xXTestCompareCursorReply rep;
@@ -133,24 +129,24 @@ ProcXTestCompareCursor(client)
     if (rc != Success)
         return rc;
     if (stuff->cursor == None)
-	pCursor = NullCursor;
+        pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
-	pCursor = GetSpriteCursor(ptr);
+        pCursor = GetSpriteCursor(ptr);
     else {
-	rc = dixLookupResource((pointer *)&pCursor, stuff->cursor, RT_CURSOR,
-			       client, DixReadAccess);
-	if (rc != Success)
-	{
-	    client->errorValue = stuff->cursor;
-	    return (rc == BadValue) ? BadCursor : rc;
-	}
+        rc = dixLookupResource((pointer *)&pCursor, stuff->cursor, RT_CURSOR,
+                client, DixReadAccess);
+        if (rc != Success)
+        {
+            client->errorValue = stuff->cursor;
+            return (rc == BadValue) ? BadCursor : rc;
+        }
     }
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.same = (wCursor(pWin) == pCursor);
     if (client->swapped) {
-	swaps(&rep.sequenceNumber, n);
+        swaps(&rep.sequenceNumber, n);
     }
     WriteToClient(client, sizeof(xXTestCompareCursorReply), (char *)&rep);
     return(client->noClientException);
@@ -158,298 +154,292 @@ ProcXTestCompareCursor(client)
 
 static int
 ProcXTestFakeInput(client)
-     ClientPtr client;
+    ClientPtr client;
 {
     REQUEST(xXTestFakeInputReq);
     int nev, n, type, rc;
     xEvent *ev;
     DeviceIntPtr dev = NULL;
     WindowPtr root;
-#ifdef XINPUT
     Bool extension = FALSE;
     deviceValuator *dv = NULL;
     int base;
     int *values;
-#endif /* XINPUT */
 
     nev = (stuff->length << 2) - sizeof(xReq);
     if ((nev % sizeof(xEvent)) || !nev)
-	return BadLength;
+        return BadLength;
     nev /= sizeof(xEvent);
     UpdateCurrentTime();
     ev = (xEvent *)&((xReq *)stuff)[1];
     type = ev->u.u.type & 0177;
-#ifdef XINPUT
+
     if (type >= EXTENSION_EVENT_BASE)
     {
-	type -= DeviceValuator;
-	switch (type) {
-	case XI_DeviceKeyPress:
-	case XI_DeviceKeyRelease:
-	case XI_DeviceButtonPress:
-	case XI_DeviceButtonRelease:
-	case XI_DeviceMotionNotify:
-	case XI_ProximityIn:
-	case XI_ProximityOut:
-	    break;
-	default:
-	    client->errorValue = ev->u.u.type;
-	    return BadValue;
-	}
-	if (nev == 1 && type == XI_DeviceMotionNotify)
-	    return BadLength;
-	if (type == XI_DeviceMotionNotify)
-	    base = ((deviceValuator *)(ev+1))->first_valuator;
-	else
-	    base = 0;
-	for (n = 1; n < nev; n++)
-	{
-	    dv = (deviceValuator *)(ev + n);
-	    if (dv->type != DeviceValuator)
-	    {
-		client->errorValue = dv->type;
-		return BadValue;
-	    }
-	    if (dv->first_valuator != base)
-	    {
-		client->errorValue = dv->first_valuator;
-		return BadValue;
-	    }
-	    if (!dv->num_valuators || dv->num_valuators > 6)
-	    {
-		client->errorValue = dv->num_valuators;
-		return BadValue;
-	    }
-	    base += dv->num_valuators;
-	}
-	type = type - XI_DeviceKeyPress + KeyPress;
-	extension = TRUE;
+        type -= DeviceValuator;
+        switch (type) {
+            case XI_DeviceKeyPress:
+            case XI_DeviceKeyRelease:
+            case XI_DeviceButtonPress:
+            case XI_DeviceButtonRelease:
+            case XI_DeviceMotionNotify:
+            case XI_ProximityIn:
+            case XI_ProximityOut:
+                break;
+            default:
+                client->errorValue = ev->u.u.type;
+                return BadValue;
+        }
+        if (nev == 1 && type == XI_DeviceMotionNotify)
+            return BadLength; /* DevMotion must be followed by DevValuator */
+        if (type == XI_DeviceMotionNotify)
+            base = ((deviceValuator *)(ev+1))->first_valuator;
+        else
+            base = 0;
+        for (n = 1; n < nev; n++)
+        {
+            dv = (deviceValuator *)(ev + n);
+            if (dv->type != DeviceValuator)
+            {
+                client->errorValue = dv->type;
+                return BadValue;
+            }
+            if (dv->first_valuator != base)
+            {
+                client->errorValue = dv->first_valuator;
+                return BadValue;
+            }
+            if (!dv->num_valuators || dv->num_valuators > 6)
+            {
+                client->errorValue = dv->num_valuators;
+                return BadValue;
+            }
+            base += dv->num_valuators;
+        }
+        type = type - XI_DeviceKeyPress + KeyPress;
+        extension = TRUE;
     }
     else
-#endif /* XINPUT */
     {
-	if (nev != 1)
-	    return BadLength;
-	switch (type)
-	{
-	case KeyPress:
-	case KeyRelease:
-	case MotionNotify:
-	case ButtonPress:
-	case ButtonRelease:
-	    break;
-	default:
-	    client->errorValue = ev->u.u.type;
-	    return BadValue;
-	}
+        if (nev != 1)
+            return BadLength;
+        switch (type)
+        {
+            case KeyPress:
+            case KeyRelease:
+            case MotionNotify:
+            case ButtonPress:
+            case ButtonRelease:
+                break;
+            default:
+                client->errorValue = ev->u.u.type;
+                return BadValue;
+        }
     }
+
+    /* If the event has a time set, wait for it to pass */
     if (ev->u.keyButtonPointer.time)
     {
-	TimeStamp activateTime;
-	CARD32 ms;
+        TimeStamp activateTime;
+        CARD32 ms;
 
-	activateTime = currentTime;
-	ms = activateTime.milliseconds + ev->u.keyButtonPointer.time;
-	if (ms < activateTime.milliseconds)
-	    activateTime.months++;
-	activateTime.milliseconds = ms;
-	ev->u.keyButtonPointer.time = 0;
+        activateTime = currentTime;
+        ms = activateTime.milliseconds + ev->u.keyButtonPointer.time;
+        if (ms < activateTime.milliseconds)
+            activateTime.months++;
+        activateTime.milliseconds = ms;
+        ev->u.keyButtonPointer.time = 0;
 
-	/* see mbuf.c:QueueDisplayRequest for code similar to this */
+        /* see mbuf.c:QueueDisplayRequest for code similar to this */
 
-	if (!ClientSleepUntil(client, &activateTime, NULL, NULL))
-	{
-	    return BadAlloc;
-	}
-	/* swap the request back so we can simply re-execute it */
-	if (client->swapped)
-	{
-	    (void) XTestSwapFakeInput(client, (xReq *)stuff);
-	    swaps(&stuff->length, n);
-	}
-	ResetCurrentRequest (client);
-	client->sequence--;
-	return Success;
+        if (!ClientSleepUntil(client, &activateTime, NULL, NULL))
+        {
+            return BadAlloc;
+        }
+        /* swap the request back so we can simply re-execute it */
+        if (client->swapped)
+        {
+            (void) XTestSwapFakeInput(client, (xReq *)stuff);
+            swaps(&stuff->length, n);
+        }
+        ResetCurrentRequest (client);
+        client->sequence--;
+        return Success;
     }
-#ifdef XINPUT
+
     if (extension)
     {
-	rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
-			     DixWriteAccess);
-	if (rc != Success)
-	{
-	    client->errorValue = stuff->deviceid & 0177;
-	    return rc;
-	}
-	if (nev > 1)
-	{
-	    dv = (deviceValuator *)(ev + 1);
-	    if (!dev->valuator || dv->first_valuator >= dev->valuator->numAxes)
-	    {
-		client->errorValue = dv->first_valuator;
-		return BadValue;
-	    }
-	    if (dv->first_valuator + dv->num_valuators >
-		dev->valuator->numAxes)
-	    {
-		client->errorValue = dv->num_valuators;
-		return BadValue;
-	    }
-	}
+        rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
+                DixWriteAccess);
+        if (rc != Success)
+        {
+            client->errorValue = stuff->deviceid & 0177;
+            return rc;
+        }
+        if (nev > 1)
+        {
+            dv = (deviceValuator *)(ev + 1);
+            if (!dev->valuator || dv->first_valuator >= dev->valuator->numAxes)
+            {
+                client->errorValue = dv->first_valuator;
+                return BadValue;
+            }
+            if (dv->first_valuator + dv->num_valuators >
+                    dev->valuator->numAxes)
+            {
+                client->errorValue = dv->num_valuators;
+                return BadValue;
+            }
+        }
     }
-#endif /* XINPUT */
     switch (type)
     {
-    case KeyPress:
-    case KeyRelease:
-#ifdef XINPUT
-	if (!extension)
-#endif /* XINPUT */
-	    dev = PickKeyboard(client);
-	if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
-	    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
-	{
-	    client->errorValue = ev->u.u.detail;
-	    return BadValue;
-	}
-	break;
-    case MotionNotify:
-#ifdef XINPUT
-	if (extension)
-	{
-	    if (ev->u.u.detail != xFalse && ev->u.u.detail != xTrue)
-	    {
-		client->errorValue = ev->u.u.detail;
-		return BadValue;
-	    }
-	    if (ev->u.u.detail == xTrue && dev->valuator->mode == Absolute)
-	    {
-		values = dev->valuator->axisVal + dv->first_valuator;
-		for (n = 1; n < nev; n++)
-		{
-		    dv = (deviceValuator *)(ev + n);
-		    switch (dv->num_valuators)
-		    {
-		    case 6:
-			dv->valuator5 += values[5];
-		    case 5:
-			dv->valuator4 += values[4];
-		    case 4:
-			dv->valuator3 += values[3];
-		    case 3:
-			dv->valuator2 += values[2];
-		    case 2:
-			dv->valuator1 += values[1];
-		    case 1:
-			dv->valuator0 += values[0];
-		    }
-		    values += 6;
-		}
-	    }
-	    break;
-	}
-#endif /* XINPUT */
-        if (!dev)
-            dev = PickPointer(client);
-	if (ev->u.keyButtonPointer.root == None)
-	    root = GetCurrentRootWindow(dev);
-	else
-	{
-	    rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
-				 DixGetAttrAccess);
-	    if (rc != Success)
-		return rc;
-	    if (root->parent)
-	    {
-		client->errorValue = ev->u.keyButtonPointer.root;
-		return BadValue;
-	    }
-	}
-	if (ev->u.u.detail == xTrue)
-	{
-	    int x, y;
-	    GetSpritePosition(dev, &x, &y);
-	    ev->u.keyButtonPointer.rootX += x;
-	    ev->u.keyButtonPointer.rootY += y;
-	}
-	else if (ev->u.u.detail != xFalse)
-	{
-	    client->errorValue = ev->u.u.detail;
-	    return BadValue;
-	}
+        case KeyPress:
+        case KeyRelease:
+            if (!extension)
+                dev = PickKeyboard(client);
+            if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
+                    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
+            {
+                client->errorValue = ev->u.u.detail;
+                return BadValue;
+            }
+            break;
+        case MotionNotify:
+            if (extension)
+            {
+                if (ev->u.u.detail != xFalse && ev->u.u.detail != xTrue)
+                {
+                    client->errorValue = ev->u.u.detail;
+                    return BadValue;
+                }
+                /* detail is True for relative coordinates */
+                if (ev->u.u.detail == xTrue && dev->valuator->mode == Absolute)
+                {
+                    values = dev->valuator->axisVal + dv->first_valuator;
+                    for (n = 1; n < nev; n++)
+                    {
+                        dv = (deviceValuator *)(ev + n);
+                        switch (dv->num_valuators)
+                        {
+                            case 6:
+                                dv->valuator5 += values[5];
+                            case 5:
+                                dv->valuator4 += values[4];
+                            case 4:
+                                dv->valuator3 += values[3];
+                            case 3:
+                                dv->valuator2 += values[2];
+                            case 2:
+                                dv->valuator1 += values[1];
+                            case 1:
+                                dv->valuator0 += values[0];
+                        }
+                        values += 6;
+                    }
+                }
+                break;
+            }
+
+            if (!dev)
+                dev = PickPointer(client);
+            if (ev->u.keyButtonPointer.root == None)
+                root = GetCurrentRootWindow(dev);
+            else
+            {
+                rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
+                        DixGetAttrAccess);
+                if (rc != Success)
+                    return rc;
+                if (root->parent)
+                {
+                    client->errorValue = ev->u.keyButtonPointer.root;
+                    return BadValue;
+                }
+            }
+            if (ev->u.u.detail == xTrue)
+            {
+                int x, y;
+                GetSpritePosition(dev, &x, &y);
+                ev->u.keyButtonPointer.rootX += x;
+                ev->u.keyButtonPointer.rootY += y;
+            }
+            else if (ev->u.u.detail != xFalse)
+            {
+                client->errorValue = ev->u.u.detail;
+                return BadValue;
+            }
 
 #ifdef PANORAMIX
-	if (!noPanoramiXExtension) {
-	    ScreenPtr pScreen = root->drawable.pScreen;
-	    BoxRec    box;
-	    int       i;
-	    int       x = ev->u.keyButtonPointer.rootX + panoramiXdataPtr[0].x;
-	    int       y = ev->u.keyButtonPointer.rootY + panoramiXdataPtr[0].y;
-	    if (!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
-				 x, y, &box)) {
-		FOR_NSCREENS(i) {
-		    if (i == pScreen->myNum) continue;
-		    if (POINT_IN_REGION(pScreen,
-					&XineramaScreenRegions[i],
-					x, y, &box)) {
-			root = WindowTable[i];
-			x   -= panoramiXdataPtr[i].x;
-			y   -= panoramiXdataPtr[i].y;
-			ev->u.keyButtonPointer.rootX = x;
-			ev->u.keyButtonPointer.rootY = y;
-			break;
-		    }
-		}
-	    }
-	}
+            if (!noPanoramiXExtension) {
+                ScreenPtr pScreen = root->drawable.pScreen;
+                BoxRec    box;
+                int       i;
+                int       x = ev->u.keyButtonPointer.rootX + panoramiXdataPtr[0].x;
+                int       y = ev->u.keyButtonPointer.rootY + panoramiXdataPtr[0].y;
+                if (!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
+                            x, y, &box)) {
+                    FOR_NSCREENS(i) {
+                        if (i == pScreen->myNum) continue;
+                        if (POINT_IN_REGION(pScreen,
+                                    &XineramaScreenRegions[i],
+                                    x, y, &box)) {
+                            root = WindowTable[i];
+                            x   -= panoramiXdataPtr[i].x;
+                            y   -= panoramiXdataPtr[i].y;
+                            ev->u.keyButtonPointer.rootX = x;
+                            ev->u.keyButtonPointer.rootY = y;
+                            break;
+                        }
+                    }
+                }
+            }
 #endif
 
-	if (ev->u.keyButtonPointer.rootX < 0)
-	    ev->u.keyButtonPointer.rootX = 0;
-	else if (ev->u.keyButtonPointer.rootX >= root->drawable.width)
-	    ev->u.keyButtonPointer.rootX = root->drawable.width - 1;
-	if (ev->u.keyButtonPointer.rootY < 0)
-	    ev->u.keyButtonPointer.rootY = 0;
-	else if (ev->u.keyButtonPointer.rootY >= root->drawable.height)
-	    ev->u.keyButtonPointer.rootY = root->drawable.height - 1;
+            if (ev->u.keyButtonPointer.rootX < 0)
+                ev->u.keyButtonPointer.rootX = 0;
+            else if (ev->u.keyButtonPointer.rootX >= root->drawable.width)
+                ev->u.keyButtonPointer.rootX = root->drawable.width - 1;
+            if (ev->u.keyButtonPointer.rootY < 0)
+                ev->u.keyButtonPointer.rootY = 0;
+            else if (ev->u.keyButtonPointer.rootY >= root->drawable.height)
+                ev->u.keyButtonPointer.rootY = root->drawable.height - 1;
 
 #ifdef PANORAMIX
-	if ((!noPanoramiXExtension
-	     && root->drawable.pScreen->myNum
-                != XineramaGetCursorScreen(dev))
-	    || (noPanoramiXExtension && root != GetCurrentRootWindow(dev)))
+            if ((!noPanoramiXExtension
+                        && root->drawable.pScreen->myNum
+                        != XineramaGetCursorScreen(dev))
+                    || (noPanoramiXExtension && root != GetCurrentRootWindow(dev)))
 
 #else
-	if (root != GetCurrentRootWindow(dev))
+                if (root != GetCurrentRootWindow(dev))
 #endif
-	{
-	    NewCurrentScreen(dev, root->drawable.pScreen,
-			     ev->u.keyButtonPointer.rootX,
-			     ev->u.keyButtonPointer.rootY);
-	    return client->noClientException;
-	}
-	(*root->drawable.pScreen->SetCursorPosition)
-	    (dev, root->drawable.pScreen,
-	     ev->u.keyButtonPointer.rootX,
-	     ev->u.keyButtonPointer.rootY, FALSE);
-        dev->lastx = ev->u.keyButtonPointer.rootX;
-        dev->lasty = ev->u.keyButtonPointer.rootY;
-	break;
-    case ButtonPress:
-    case ButtonRelease:
-#ifdef XINPUT
-	if (!extension)
-#endif /* XINPUT */
-            dev = PickPointer(client);
-	if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
-	{
-	    client->errorValue = ev->u.u.detail;
-	    return BadValue;
-	}
-	break;
+                {
+                    NewCurrentScreen(dev, root->drawable.pScreen,
+                            ev->u.keyButtonPointer.rootX,
+                            ev->u.keyButtonPointer.rootY);
+                    return client->noClientException;
+                }
+            (*root->drawable.pScreen->SetCursorPosition)
+                (dev, root->drawable.pScreen,
+                 ev->u.keyButtonPointer.rootX,
+                 ev->u.keyButtonPointer.rootY, FALSE);
+            dev->lastx = ev->u.keyButtonPointer.rootX;
+            dev->lasty = ev->u.keyButtonPointer.rootY;
+            break;
+        case ButtonPress:
+        case ButtonRelease:
+            if (!extension)
+                dev = PickPointer(client);
+            if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
+            {
+                client->errorValue = ev->u.u.detail;
+                return BadValue;
+            }
+            break;
     }
     if (screenIsSaved == SCREEN_SAVER_ON)
-	dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+        dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
     ev->u.keyButtonPointer.time = currentTime.milliseconds;
     (*dev->public.processInputProc)(ev, dev, nev);
     return client->noClientException;
@@ -457,48 +447,48 @@ ProcXTestFakeInput(client)
 
 static int
 ProcXTestGrabControl(client)
-     ClientPtr client;
+    ClientPtr client;
 {
     REQUEST(xXTestGrabControlReq);
 
     REQUEST_SIZE_MATCH(xXTestGrabControlReq);
     if ((stuff->impervious != xTrue) && (stuff->impervious != xFalse))
     {
-	client->errorValue = stuff->impervious;
+        client->errorValue = stuff->impervious;
         return(BadValue);
     }
     if (stuff->impervious)
-	MakeClientGrabImpervious(client);
+        MakeClientGrabImpervious(client);
     else
-	MakeClientGrabPervious(client);
+        MakeClientGrabPervious(client);
     return(client->noClientException);
 }
 
 static int
 ProcXTestDispatch (client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
     {
-    case X_XTestGetVersion:
-	return ProcXTestGetVersion(client);
-    case X_XTestCompareCursor:
-	return ProcXTestCompareCursor(client);
-    case X_XTestFakeInput:
-	return ProcXTestFakeInput(client);
-    case X_XTestGrabControl:
-	return ProcXTestGrabControl(client);
-    default:
-	return BadRequest;
+        case X_XTestGetVersion:
+            return ProcXTestGetVersion(client);
+        case X_XTestCompareCursor:
+            return ProcXTestCompareCursor(client);
+        case X_XTestFakeInput:
+            return ProcXTestFakeInput(client);
+        case X_XTestGrabControl:
+            return ProcXTestGrabControl(client);
+        default:
+            return BadRequest;
     }
 }
 
 static int
 SProcXTestGetVersion(client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
-     int n;
+    int n;
     REQUEST(xXTestGetVersionReq);
 
     swaps(&stuff->length, n);
@@ -509,9 +499,9 @@ SProcXTestGetVersion(client)
 
 static int
 SProcXTestCompareCursor(client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
-     int n;
+    int n;
     REQUEST(xXTestCompareCursorReq);
 
     swaps(&stuff->length, n);
@@ -523,49 +513,49 @@ SProcXTestCompareCursor(client)
 
 static int
 XTestSwapFakeInput(client, req)
-     ClientPtr	client;
+    ClientPtr	client;
     xReq *req;
 {
-     int nev;
-     xEvent *ev;
+    int nev;
+    xEvent *ev;
     xEvent sev;
     EventSwapPtr proc;
 
     nev = ((req->length << 2) - sizeof(xReq)) / sizeof(xEvent);
     for (ev = (xEvent *)&req[1]; --nev >= 0; ev++)
     {
-	/* Swap event */
-	proc = EventSwapVector[ev->u.u.type & 0177];
-	/* no swapping proc; invalid event type? */
-	if (!proc ||  proc ==  NotImplemented) {
-	    client->errorValue = ev->u.u.type;
-	    return BadValue;
-	}
-	(*proc)(ev, &sev);
-	*ev = sev;
+        /* Swap event */
+        proc = EventSwapVector[ev->u.u.type & 0177];
+        /* no swapping proc; invalid event type? */
+        if (!proc ||  proc ==  NotImplemented) {
+            client->errorValue = ev->u.u.type;
+            return BadValue;
+        }
+        (*proc)(ev, &sev);
+        *ev = sev;
     }
     return Success;
 }
 
 static int
 SProcXTestFakeInput(client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
-     int n;
+    int n;
     REQUEST(xReq);
 
     swaps(&stuff->length, n);
     n = XTestSwapFakeInput(client, stuff);
     if (n != Success)
-	return n;
+        return n;
     return ProcXTestFakeInput(client);
 }
 
 static int
 SProcXTestGrabControl(client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
-     int n;
+    int n;
     REQUEST(xXTestGrabControlReq);
 
     swaps(&stuff->length, n);
@@ -575,20 +565,20 @@ SProcXTestGrabControl(client)
 
 static int
 SProcXTestDispatch (client)
-     ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
     {
-    case X_XTestGetVersion:
-	return SProcXTestGetVersion(client);
-    case X_XTestCompareCursor:
-	return SProcXTestCompareCursor(client);
-    case X_XTestFakeInput:
-	return SProcXTestFakeInput(client);
-    case X_XTestGrabControl:
-	return SProcXTestGrabControl(client);
-    default:
-	return BadRequest;
+        case X_XTestGetVersion:
+            return SProcXTestGetVersion(client);
+        case X_XTestCompareCursor:
+            return SProcXTestCompareCursor(client);
+        case X_XTestFakeInput:
+            return SProcXTestFakeInput(client);
+        case X_XTestGrabControl:
+            return SProcXTestGrabControl(client);
+        default:
+            return BadRequest;
     }
 }
