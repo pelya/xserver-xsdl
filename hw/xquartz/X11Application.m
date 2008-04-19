@@ -34,7 +34,7 @@
 #endif
 
 #include "quartzForeground.h"
-#include "quartzCommon.h"
+
 #import "X11Application.h"
 
 # include "darwin.h"
