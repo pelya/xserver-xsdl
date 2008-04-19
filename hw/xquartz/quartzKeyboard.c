@@ -34,6 +34,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -51,15 +53,6 @@
 #include <sys/stat.h>
 
 #include "quartzCommon.h"
-
-#undef GetWindowAttributes
-#undef ChangeWindowAttributes
-
-#include <CoreServices/CoreServices.h>
-#include <Carbon/Carbon.h>
-#include <IOKit/hidsystem/event_status_driver.h>
-#include <IOKit/hidsystem/ev_keymap.h>
-#include <architecture/byte_order.h>  // For the NXSwap*
 #include "darwin.h"
 
 #include "quartzKeyboard.h"

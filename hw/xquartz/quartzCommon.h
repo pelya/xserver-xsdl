@@ -35,18 +35,6 @@
 #ifndef _QUARTZCOMMON_H
 #define _QUARTZCOMMON_H
 
-// QuickDraw in ApplicationServices has the following conflicts with
-// the basic X server headers. Use QD_<name> to use the QuickDraw
-// definition of any of these symbols, or the normal name for the
-// X11 definition.
-#define Cursor       QD_Cursor
-#define WindowPtr    QD_WindowPtr
-#define Picture      QD_Picture
-#include <ApplicationServices/ApplicationServices.h>
-#include <Carbon/Carbon.h>
-#undef Cursor
-#undef WindowPtr
-#undef Picture
 #include <X11/Xdefs.h>
 #include "privates.h"
 

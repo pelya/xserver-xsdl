@@ -26,22 +26,17 @@
  copyright holders shall not be used in advertising or otherwise to
  promote the sale, use or other dealings in this Software without
  prior written authorization. */
-#include <Carbon/Carbon.h>
-#include "quartzCommon.h"
+
+#include "sanitizedCarbon.h"
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
-#define BOOL X_BOOL
-//#undef GetWindowAttributes
-//#undef ChangeWindowAttributes
-#undef BOOL
 
 #include "quartzForeground.h"
+#include "quartzCommon.h"
 #import "X11Application.h"
 
-/* ouch! */
-#define BOOL X_BOOL
 # include "darwin.h"
 # include "darwinEvents.h"
 # include "quartz.h"

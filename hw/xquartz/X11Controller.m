@@ -27,6 +27,8 @@
    promote the sale, use or other dealings in this Software without
    prior written authorization. */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -37,17 +39,13 @@
 
 #import "X11Controller.h"
 #import "X11Application.h"
-#import <Carbon/Carbon.h>
 
-/* ouch! */
-#define BOOL X_BOOL
 #include "opaque.h"
-# include "darwin.h"
-# include "quartz.h"
-# define _APPLEWM_SERVER_
-# include "X11/extensions/applewm.h"
-# include "applewmExt.h"
-#undef BOOL
+#include "darwin.h"
+#include "quartz.h"
+#define _APPLEWM_SERVER_
+#include "X11/extensions/applewm.h"
+#include "applewmExt.h"
 
 #include <stdio.h>
 #include <unistd.h>
