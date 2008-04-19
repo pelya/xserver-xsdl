@@ -600,7 +600,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 #endif
 }
 
-- (void) set_can_quit:(BOOL)state
+- (void) set_can_quit:(OSX_BOOL)state
 {
   can_quit = state;
 }
@@ -667,7 +667,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   AHLookupAnchor ((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR ("mchlp2276"));
 }
 
-- (BOOL) validateMenuItem:(NSMenuItem *)item
+- (OSX_BOOL) validateMenuItem:(NSMenuItem *)item
 {
   NSMenu *menu = [item menu];
 	
@@ -739,7 +739,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   pending_apps = NULL;
 }
 
-- (BOOL) application:(NSApplication *)app openFile:(NSString *)filename
+- (OSX_BOOL) application:(NSApplication *)app openFile:(NSString *)filename
 {
     const char *name = [filename UTF8String];
     
@@ -752,8 +752,8 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     return YES;
 }
 
-- (BOOL) applicationShouldHandleReopen:(NSApplication *)app
-                     hasVisibleWindows:(BOOL)hasVis {
+- (OSX_BOOL) applicationShouldHandleReopen:(NSApplication *)app
+                     hasVisibleWindows:(OSX_BOOL)hasVis {
     DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
     return YES;
 }
