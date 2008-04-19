@@ -52,6 +52,9 @@
 
 #include "quartzCommon.h"
 
+#undef GetWindowAttributes
+#undef ChangeWindowAttributes
+
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 #include <IOKit/hidsystem/event_status_driver.h>

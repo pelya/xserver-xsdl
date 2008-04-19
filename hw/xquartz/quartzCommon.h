@@ -43,6 +43,7 @@
 #define WindowPtr    QD_WindowPtr
 #define Picture      QD_Picture
 #include <ApplicationServices/ApplicationServices.h>
+#include <Carbon/Carbon.h>
 #undef Cursor
 #undef WindowPtr
 #undef Picture

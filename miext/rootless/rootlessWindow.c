@@ -1427,7 +1427,7 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
     
     pWin->rootlessUnhittable = FALSE;
     
-    DeleteProperty (pWin, xa_native_window_id ());
+    DeleteProperty (serverClient, pWin, xa_native_window_id ());
 
     if (WINREC(pTopWin) != NULL) {
         /* We're screwed. */

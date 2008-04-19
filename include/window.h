@@ -134,7 +134,7 @@ extern int ChangeWindowAttributes(
 /* Quartz support on Mac OS X uses the HIToolbox
    framework whose GetWindowAttributes function conflicts here. */
 #ifdef __APPLE__
-#define GetWindowAttributes(w,c,x) Darwin_X_GetWindowAttributes(w,c,x)
+#define GetWindowAttributes(w,c) Darwin_X_GetWindowAttributes(w,c)
 extern void Darwin_X_GetWindowAttributes(
 #else
 extern void GetWindowAttributes(

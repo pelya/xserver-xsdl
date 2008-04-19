@@ -26,16 +26,19 @@
  copyright holders shall not be used in advertising or otherwise to
  promote the sale, use or other dealings in this Software without
  prior written authorization. */
+#include <Carbon/Carbon.h>
+#include "quartzCommon.h"
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#define BOOL X_BOOL
+//#undef GetWindowAttributes
+//#undef ChangeWindowAttributes
+#undef BOOL
 
-#include "quartzCommon.h"
 #include "quartzForeground.h"
-
 #import "X11Application.h"
-#include <Carbon/Carbon.h>
 
 /* ouch! */
 #define BOOL X_BOOL
@@ -45,8 +48,6 @@
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"
 # include "micmap.h"
-#undef BOOL
-
 #include <mach/mach.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -188,10 +189,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) sendEvent:(NSEvent *)e {
-  NSEventType type;
-  BOOL for_appkit, for_x;
-  
-  type = [e type];
  	NSEventType type;
 	BOOL for_appkit, for_x;
 
@@ -242,6 +239,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 							|| [e keyCode] == 53 /*Esc*/)) {
 						swallow_up = 0;
 						for_x = NO;
+					}
 			} else {
 			/* If we saw a key equivalent on the down, don't pass
 	   			the up through to X. */
@@ -641,8 +639,8 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     if(darwinDesiredDepth == 8)
         darwinDesiredDepth = -1;
 	
-    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
-                     default:false];
+//    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
+//                     default:false];
 }
 
 /* This will end up at the end of the responder chain. */

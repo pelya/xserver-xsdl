@@ -31,7 +31,6 @@
 #define X11APPLICATION_H 1
 
 #if __OBJC__
-
 #import <Cocoa/Cocoa.h>
 #import "X11Controller.h"
 
