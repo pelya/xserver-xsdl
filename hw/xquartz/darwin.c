@@ -335,37 +335,34 @@ static void DarwinChangePointerControl(
  * DarwinMouseProc
  *  Handle the initialization, etc. of a mouse
  */
-static int DarwinMouseProc(
-    DeviceIntPtr    pPointer,
-    int             what )
-{
-  CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-
+static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
+    CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    
     switch (what) {
-
+            
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
-
+            
             // Set button map.
-              InitPointerDeviceStruct( (DevicePtr)pPointer, map, 7,
-				     GetMotionHistory,
-				     (PtrCtrlProcPtr)NoopDDA,
-				     GetMotionHistorySize(), 7);
-	    InitProximityClassDeviceStruct( (DevicePtr)pPointer);
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
+                                    GetMotionHistory,
+                                    (PtrCtrlProcPtr)NoopDDA,
+                                    GetMotionHistorySize(), 7);
+            InitProximityClassDeviceStruct(pPointer);
             break;
-
+            
         case DEVICE_ON:
             pPointer->public.on = TRUE;
             AddEnabledDevice( darwinEventReadFD );
             return Success;
-
+            
         case DEVICE_CLOSE:
         case DEVICE_OFF:
             pPointer->public.on = FALSE;
-            RemoveEnabledDevice( darwinEventReadFD );
+            RemoveEnabledDevice(darwinEventReadFD);
             return Success;
     }
-
+    
     return Success;
 }
 
