@@ -49,9 +49,7 @@ libfb_la_SOURCES = 	\
 	fbtile.c	\
 	fbtrap.c	\
 	fbutil.c	\
-	fbwindow.c	\
-	fbpseudocolor.c \
-	fbpseudocolor.h
+	fbwindow.c
 
 libwfb_la_SOURCES = $(libfb_la_SOURCES)
 
