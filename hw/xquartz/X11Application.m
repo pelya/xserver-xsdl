@@ -34,7 +34,7 @@
 #endif
 
 #include "quartzForeground.h"
-
+#include "quartzCommon.h"
 #import "X11Application.h"
 
 # include "darwin.h"
@@ -43,10 +43,6 @@
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"
 # include "micmap.h"
-<<<<<<< HEAD:hw/xquartz/X11Application.m
-=======
-
->>>>>>> bc50d41... XQuartz: More sanitization of the namespace:hw/xquartz/X11Application.m
 #include <mach/mach.h>
 #include <unistd.h>
 #include <pthread.h>
