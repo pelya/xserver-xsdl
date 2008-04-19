@@ -46,20 +46,13 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key);
 static _X_INLINE pointer
 dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
 {
-    PrivateRec *rec, *prev;
+    PrivateRec *rec = *privates;
     pointer *ptr;
 
-    for (rec = *privates, prev = NULL; rec; prev = rec, rec = rec->next) {
-	if (rec->key != key)
-	    continue;
-
-	if (prev) {
-	    prev->next = rec->next;
-	    rec->next = *privates;
-	    *privates = rec;
-	}
-
-	return rec->value;
+    while (rec) {
+	if (rec->key == key)
+	    return rec->value;
+	rec = rec->next;
     }
 
     ptr = dixAllocatePrivate(privates, key);
