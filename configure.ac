@@ -547,7 +547,6 @@ AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Secu
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
-AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
@@ -928,12 +927,6 @@ AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
 if test "x$XEVIE" = xyes; then
 	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
-fi
-
-AM_CONDITIONAL(CUP, [test "x$CUP" = xyes])
-if test "x$CUP" = xyes; then
-	AC_DEFINE(TOGCUP, 1, [Build TOG-CUP extension])
-	# Requires xextproto which is always required
 fi
 
 AM_CONDITIONAL(MULTIBUFFER, [test "x$MULTIBUFFER" = xyes])
