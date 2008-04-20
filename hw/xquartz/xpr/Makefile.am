@@ -31,7 +31,6 @@ Xquartz_LDADD = \
 	$(top_builddir)/damageext/libdamageext.la \
 	$(top_builddir)/miext/damage/libdamage.la \
 	$(top_builddir)/xfixes/libxfixes.la \
-	$(top_builddir)/miext/cw/libcw.la \
 	$(top_builddir)/Xext/libXext.la \
 	$(top_builddir)/xkb/libxkb.la \
 	$(top_builddir)/xkb/libxkbstubs.la \
