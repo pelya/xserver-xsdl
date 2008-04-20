@@ -54,7 +54,7 @@ is the relative path (with no \(lq..\(rq components) specified by that
 environment variable, and
 .I <hostname>
 is the machine's hostname as reported by
-.BR gethostname (__oslibmansuffix__).
+.BR gethostname (__libmansuffix__).
 .PP
 When the __xservername__ server is started by the \(lqroot\(rq user, the config file
 search locations are as follows:
@@ -93,7 +93,7 @@ is the path specified by that environment variable (usually the home
 directory), and
 .I <hostname>
 is the machine's hostname as reported by
-.BR gethostname (__oslibmansuffix__).
+.BR gethostname (__libmansuffix__).
 .PP
 The
 .I __xconfigfile__
@@ -1624,8 +1624,8 @@ Others are driver\-independent, and will eventually be described here.
 .\" XXX These should really be in an xaa man page.
 .TP 7
 .BI "Option \*qAccel\*q"
-Enables XAA (X Acceleration Architecture), a mechanism that makes video
-cards' 2D hardware acceleration available to the  __xservername__ server.
+Enables XAA (X Acceleration Architecture), a mechanism that makes video cards'
+2D hardware acceleration available to the  __xservername__ server.
 This option is on by default, but it may be necessary to turn it off if
 there are bugs in the driver.
 There are many options to disable specific accelerated operations, listed
