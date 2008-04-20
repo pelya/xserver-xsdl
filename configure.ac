@@ -46,6 +46,8 @@ dnl xorg-config.h covers the Xorg DDX.
 AC_CONFIG_HEADERS(include/xorg-config.h)
 dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
 AC_CONFIG_HEADERS(include/xkb-config.h)
+dnl xwin-config.h covers the XWin DDX.
+AC_CONFIG_HEADERS(include/xwin-config.h)
 dnl kdrive-config.h covers the kdrive DDX
 AC_CONFIG_HEADERS(include/kdrive-config.h)
 
@@ -564,6 +566,7 @@ AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz 
 AC_ARG_ENABLE(x11app,         AS_HELP_STRING([--enable-x11app], [Build Apple's X11.app for Xquartz (default: auto)]), [X11APP=$enableval], [X11APP=auto])
 AC_ARG_WITH(x11app-archs,     AS_HELP_STRING([--with-x11app-archs=ARCHS], [Architectures to build X11.app for, space delimeted (default: "ppc i386")]), [X11APP_ARCHS=$enableval], [X11APP_ARCHS="ppc i386"])
 AC_SUBST([X11APP_ARCHS])
+AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: no)]), [XPRINT=$enableval], [XPRINT=no])
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
 AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
@@ -1636,6 +1639,76 @@ if test "x$XPRINT" = xyes; then
 fi
 AM_CONDITIONAL(XP_USE_FREETYPE, [test "x$XPRINT" = xyes && test "x$XP_USE_FREETYPE" = xyes])
 
+
+dnl XWin DDX
+
+AC_MSG_CHECKING([whether to build XWin DDX])
+if test "x$XWIN" = xauto; then
+	case $host_os in
+		cygwin*) XWIN="yes" ;;
+		mingw*) XWIN="yes" ;;
+		*) XWIN="no" ;;
+	esac
+	XWIN_LIBS="$FB_LIB $XEXT_LIB $CONFIG_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $SHADOW_LIB"
+	AC_SUBST([XWIN_LIBS])
+fi
+AC_MSG_RESULT([$XWIN])
+
+if test "x$XWIN" = xyes; then
+	case $host_os in
+		cygwin*)
+			XWIN_SERVER_NAME=XWin
+			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
+			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
+			AC_DEFINE(ROOTLESS,1,[Build Rootless code])
+			CFLAGS="$CFLAGS -DFD_SETSIZE=256"
+			;;
+		mingw*)
+			XWIN_SERVER_NAME=Xming
+			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
+			AC_DEFINE(RELOCATE_PROJECTROOT,1,[Make PROJECT_ROOT relative to the xserver location])
+			AC_DEFINE(HAS_WINSOCK,1,[Use Windows sockets])
+			XWIN_SYS_LIBS=-lwinsock2
+			;;
+	esac
+	XWIN_SYS_LIBS="$XWIN_SYS_LIBS $(XWINMODULES_LIBS)"
+	AC_SUBST(XWIN_SERVER_NAME)
+	AC_SUBST(XWIN_SYS_LIBS)
+
+	if test "x$DEBUGGING" = xyes; then
+		AC_DEFINE(CYGDEBUG, 1, [Simple debug messages])
+		AC_DEFINE(CYGWINDOWING_DEBUG, 1, [Debug messages for window handling])
+		AC_DEFINE(CYGMULTIWINDOW_DEBUG, 1, [Debug window manager])
+	fi
+
+	AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
+	AC_DEFINE(DDXTIME, 1, [Use GetTimeInMillis])
+	AC_DEFINE(DDXOSFATALERROR, 1, [Use OsVendorFatalError])
+	AC_DEFINE(DDXOSVERRORF, 1, [Use OsVendorVErrorF])
+	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
+	if test "x$XF86VIDMODE" = xyes; then
+		AC_MSG_NOTICE([Disabling XF86VidMode extension])
+		XF86VIDMODE=no
+	fi
+	if test "x$XF86MISC" = xyes; then
+		AC_MSG_NOTICE([Disabling XF86Misc extension])
+		XF86MISC=no
+	fi
+	if test "x$COMPOSITE" = xyes; then
+		AC_MSG_NOTICE([Disabling Composite extension])
+		COMPOSITE=no
+	fi
+fi
+AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
+AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
+AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_CLIPBOARD, [test "x$XWIN" = xyes])
+AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_NATIVEGDI, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_PRIMARYFB, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
+AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
+
 dnl Darwin / OS X DDX
 if test "X$XQUARTZ" = Xauto; then
 	AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
@@ -2133,6 +2206,7 @@ hw/xgl/glx/module/Makefile
 hw/xgl/glxext/Makefile
 hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
+hw/xwin/Makefile
 hw/xquartz/Makefile
 hw/xquartz/bundle/Makefile
 hw/xquartz/xpr/Makefile

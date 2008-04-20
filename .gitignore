@@ -284,6 +284,7 @@ include/xgl-config.h
 include/xkb-config.h
 include/xorg-config.h
 include/xorg-server.h
+include/xwin-config.h
 mfb/mfbbltC.c
 mfb/mfbbltCI.c
 mfb/mfbbltG.c
