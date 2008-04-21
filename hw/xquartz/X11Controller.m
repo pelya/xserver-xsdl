@@ -690,24 +690,26 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMShowAll);
 }
 
-- (NSApplicationTerminateReply) applicationShouldTerminate:sender
-{
-  NSString *msg;
+- (NSApplicationTerminateReply) applicationShouldTerminate:sender {
+    NSString *msg;
+    NSString *title;
 	
-  if (can_quit || [X11App prefs_get_boolean:@PREFS_NO_QUIT_ALERT default:NO])
-    return NSTerminateNow;
+    if (can_quit || [X11App prefs_get_boolean:@PREFS_NO_QUIT_ALERT default:NO])
+        return NSTerminateNow;
 	
-  /* Make sure we're frontmost. */
-  [NSApp activateIgnoringOtherApps:YES];
+    /* Make sure we're frontmost. */
+    [NSApp activateIgnoringOtherApps:YES];
 	
-  msg = NSLocalizedString (@"Are you sure you want to quit X11?\n\nIf you quit X11, any X11 applications you are running will stop immediately and you will lose any changes you have not saved.", @"Dialog when quitting");
+    title = NSLocalizedString(@"Do you really want to quit X11?", @"Dialog title when quitting");
+    msg = NSLocalizedString(@"Any open X11 applications will stop immediately, and you will lose any unsaved changes.", @"Dialog when quitting");
+
+    /* FIXME: safe to run the alert in here? Or should we return Later
+     *        and then run the alert on a timer? It seems to work here, so..
+     */
 	
-  /* FIXME: safe to run the alert in here? Or should we return Later
-     and then run the alert on a timer? It seems to work here, so.. */
-	
-  return (NSRunAlertPanel (nil, msg, NSLocalizedString (@"Quit", @""),
-			   NSLocalizedString (@"Cancel", @""), nil)
-	  == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
+    return (NSRunAlertPanel (title, msg, NSLocalizedString (@"Quit", @""),
+                             NSLocalizedString (@"Cancel", @""), nil)
+            == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
 }
 
 - (void) applicationWillTerminate:(NSNotification *)aNotification
