@@ -379,7 +379,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	;;
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -387,7 +387,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -396,7 +396,7 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	KDRIVE_HW=yes
 	;;
   *solaris*)
