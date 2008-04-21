@@ -699,6 +699,34 @@ exaBitmapToRegion(PixmapPtr pPix)
   return ret;
 }
 
+static Bool
+exaCreateScreenResources(ScreenPtr pScreen)
+{
+    ExaScreenPriv(pScreen);
+    PixmapPtr pScreenPixmap;
+    Bool b;
+
+    pScreen->CreateScreenResources = pExaScr->SavedCreateScreenResources;
+    b = pScreen->CreateScreenResources(pScreen);
+    pScreen->CreateScreenResources = exaCreateScreenResources;
+
+    if (!b)
+        return FALSE;
+
+    pScreenPixmap = pScreen->GetScreenPixmap(pScreen);
+
+    if (pScreenPixmap) {
+        ExaPixmapPriv(pScreenPixmap);
+
+        exaSetAccelBlock(pExaScr, pExaPixmap,
+                         pScreenPixmap->drawable.width,
+                         pScreenPixmap->drawable.height,
+                         pScreenPixmap->drawable.bitsPerPixel);
+    }
+
+    return TRUE;
+}
+
 /**
  * exaCloseScreen() unwraps its wrapped screen functions and tears down EXA's
  * screen private, before calling down to the next CloseSccreen.
@@ -720,6 +748,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     pScreen->CopyWindow = pExaScr->SavedCopyWindow;
     pScreen->ChangeWindowAttributes = pExaScr->SavedChangeWindowAttributes;
     pScreen->BitmapToRegion = pExaScr->SavedBitmapToRegion;
+    pScreen->CreateScreenResources = pExaScr->SavedCreateScreenResources;
 #ifdef RENDER
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
@@ -876,6 +905,9 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pExaScr->SavedBitmapToRegion = pScreen->BitmapToRegion;
     pScreen->BitmapToRegion = exaBitmapToRegion;
+
+    pExaScr->SavedCreateScreenResources = pScreen->CreateScreenResources;
+    pScreen->CreateScreenResources = exaCreateScreenResources;
 
 #ifdef RENDER
     if (ps) {

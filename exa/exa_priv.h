@@ -107,6 +107,7 @@ typedef struct {
     CopyWindowProcPtr 		 SavedCopyWindow;
     ChangeWindowAttributesProcPtr SavedChangeWindowAttributes;
     BitmapToRegionProcPtr        SavedBitmapToRegion;
+    CreateScreenResourcesProcPtr SavedCreateScreenResources;
     ModifyPixmapHeaderProcPtr    SavedModifyPixmapHeader;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
