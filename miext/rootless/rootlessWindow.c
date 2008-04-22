@@ -138,7 +138,6 @@ RootlessNativeWindowMoved (WindowPtr pWin)
   int sx, sy;
   XID vlist[2];
   Mask mask;
-  ClientPtr client;
   RootlessWindowRec *winRec = WINREC(pWin);
 
   if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
@@ -152,14 +151,11 @@ RootlessNativeWindowMoved (WindowPtr pWin)
   vlist[1] = (INT16) bounds.y1 - sy;
   mask = CWX | CWY;
 
-  /* pretend we're the owner of the window! */
-  client = LookupClient (pWin->drawable.id, NullClient);
-
   /* Don't want to do anything to the physical window (avoids 
      notification-response feedback loops) */
 
   no_configure_window = TRUE;
-  ConfigureWindow (pWin, mask, vlist, client);
+  ConfigureWindow (pWin, mask, vlist, serverClient);
   no_configure_window = FALSE;
 }
 
