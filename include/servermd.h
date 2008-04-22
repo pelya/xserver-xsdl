@@ -130,6 +130,16 @@ SOFTWARE.
 
 #endif /* vax */
 
+#ifdef __avr32__
+
+#define IMAGE_BYTE_ORDER        MSBFirst
+#define BITMAP_BIT_ORDER        MSBFirst
+#define GLYPHPADBYTES           4
+#define GETLEFTBITS_ALIGNMENT   1
+#define AVOID_MEMORY_READ
+
+#endif /* __avr32__ */ 
+
 #ifdef __arm32__
 
 #define IMAGE_BYTE_ORDER        LSBFirst
