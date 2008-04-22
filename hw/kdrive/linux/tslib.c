@@ -114,6 +114,10 @@ TslibEnable (KdPointerInfo *pi)
 
     private->raw_event_hook = NULL;
     private->raw_event_closure = NULL;
+    if (!pi->path) {
+        pi->path = "/dev/input/touchscreen0";
+        ErrorF("[tslib/TslibEnable] no device path given, trying %s\n", pi->path);
+    }
     private->tsDev = ts_open(pi->path, 0);
     private->fd = ts_fd(private->tsDev);
     if (!private->tsDev || ts_config(private->tsDev) || private->fd < 0) {
