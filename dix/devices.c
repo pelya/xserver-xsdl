@@ -524,8 +524,8 @@ CloseDevice(DeviceIntPtr dev)
 #ifdef XKB
 	if (dev->key->xkbInfo)
 	    XkbFreeInfo(dev->key->xkbInfo);
-#endif
         dev->key->xkbInfo = NULL;
+#endif
 	xfree(dev->key->curKeySyms.map);
 	xfree(dev->key->modifierKeyMap);
 	xfree(dev->key);
