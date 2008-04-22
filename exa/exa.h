@@ -64,6 +64,8 @@ struct _ExaOffscreenArea {
     ExaOffscreenState   state;
 
     ExaOffscreenArea    *next;
+
+    unsigned            eviction_cost;
 };
 
 /**

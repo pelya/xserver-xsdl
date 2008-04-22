@@ -58,6 +58,7 @@ AC_PROG_LN_S
 AC_LIBTOOL_WIN32_DLL
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
+DOLT
 AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
 AC_PROG_LEX
@@ -313,6 +314,7 @@ case $host_cpu in
 	case $host_os in
 		*linux*)	DEFAULT_INT10=vm86 ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
+		*dragonfly*)	AC_DEFINE(USE_DEV_IO) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL)
 				SYS_LIBS=-li386
 				;;
@@ -337,6 +339,7 @@ case $host_cpu in
 	I386_VIDEO=yes
 	case $host_os in
 		*freebsd*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
+		*dragonfly*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl])
 				SYS_LIBS=-lx86_64
 				;;
@@ -367,7 +370,7 @@ DRI2=no
 KDRIVE_HW=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
-  *freebsd*)
+  *freebsd* | *dragonfly*)
 	case $host_os in
 		kfreebsd*-gnu) ;;
 		*) AC_DEFINE(CSRG_BASED, 1, [System is BSD-like]) ;;
@@ -521,7 +524,7 @@ AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with
 
 dnl Extensions.
 AC_ARG_ENABLE(registry,       AS_HELP_STRING([--disable-registry], [Build string registry module (default: enabled)]), [XREGISTRY=$enableval], [XREGISTRY=yes])
-AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
+AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=auto])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
 AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
 AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--disable-xtrap], [Build XTrap extension (default: enabled)]), [XTRAP=$enableval], [XTRAP=yes])
@@ -541,12 +544,10 @@ AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Mi
 AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--disable-xselinux], [Build SELinux extension (default: disabled)]), [XSELINUX=$enableval], [XSELINUX=no])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: disabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
-AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
@@ -571,9 +572,8 @@ AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (
 AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
 AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
 dnl legacy fb support
-AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: enabled)]), [MFB=$enableval], [MFB=$XORG])
-AC_ARG_ENABLE(cfb,            AS_HELP_STRING([--enable-cfb], [Build legacy color framebuffer support (default: enabled)]), [CFB=$enableval], [CFB=$XORG])
-AC_ARG_ENABLE(afb,            AS_HELP_STRING([--enable-afb], [Build legacy advanced framebuffer support (default: enabled)]), [AFB=$enableval], [AFB=$XORG])
+AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: disable)]), [MFB=$enableval], [MFB=no])
+AC_ARG_ENABLE(afb,            AS_HELP_STRING([--enable-afb], [Build legacy advanced framebuffer support (default: disable)]), [AFB=$enableval], [AFB=no])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -732,7 +732,7 @@ if ! test "x$have_clock_gettime" = xno; then
     CPPFLAGS_SAVE="$CPPFLAGS"
 
     if test x"$glibc" = xyes; then
-        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=199309L"
+        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=200112L"
     fi
 
     AC_RUN_IFELSE([
@@ -779,6 +779,18 @@ fi
 AM_CONDITIONAL(XREGISTRY, [test "x$XREGISTRY" = xyes])
 if test "x$XREGISTRY" = xyes; then
 	AC_DEFINE(XREGISTRY, 1, [Build registry module])
+fi
+
+dnl XQuartz DDX Detection... Yes, it's ugly to have it here... but we need to disable COMPOSITE for 
+if test "x$COMPOSITE" = xauto; then
+	case $host_os in
+		darwin*)
+			test "x$XQUARTZ" = xyes -o "x$XQUARTZ" = xauto && COMPOSITE=no
+			;;
+		*)
+			COMPOSITE=yes
+			;;
+	esac
 fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
@@ -917,23 +929,9 @@ if test "x$XEVIE" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
 fi
 
-AM_CONDITIONAL(APPGROUP, [test "x$APPGROUP" = xyes])
-if test "x$APPGROUP" = xyes; then
-	if test "x$XACE" != xyes || test "x$XCSECURITY" != xyes; then
-		AC_MSG_ERROR([cannot build APPGROUP extension without X-ACE and XC-SECURITY])
-	fi
-	AC_DEFINE(XAPPGROUP, 1, [Build APPGROUP extension])
-fi
-
 AM_CONDITIONAL(CUP, [test "x$CUP" = xyes])
 if test "x$CUP" = xyes; then
 	AC_DEFINE(TOGCUP, 1, [Build TOG-CUP extension])
-	# Requires xextproto which is always required
-fi
-
-AM_CONDITIONAL(EVI, [test "x$EVI" = xyes])
-if test "x$EVI" = xyes; then
-	AC_DEFINE(EVI, 1, [Build Extended-Visual-Information extension])
 	# Requires xextproto which is always required
 fi
 
@@ -1096,12 +1094,9 @@ AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrappe
 
 if test "x$DEBUGGING" = xyes; then
        AC_DEFINE(DEBUG, 1, [Enable debugging code])
-else
-       AC_DEFINE(NDEBUG, 1, [Disable some debugging code])
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
-AC_DEFINE(MITMISC, 1, [Support MIT Misc extension])
 AC_DEFINE(XTEST, 1, [Support XTest extension])
 AC_DEFINE(XSYNC, 1, [Support XSync extension])
 AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
@@ -1360,7 +1355,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 			;;
 		esac
 		;;
-	  freebsd* | kfreebsd*-gnu)
+	  freebsd* | kfreebsd*-gnu | dragonfly*)
 	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
 		xorg_bus_bsdpci="yes"
@@ -1555,7 +1550,11 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	abi_xinput=`extract_abi XINPUT`
 	abi_extension=`extract_abi EXTENSION`
 	abi_font=`extract_abi FONT`
-	AC_SUBST([abi_ansic abi_videodrv abi_xinput abi_extension abi_font])
+	AC_SUBST([abi_ansic])
+	AC_SUBST([abi_videodrv])
+	AC_SUBST([abi_xinput])
+	AC_SUBST([abi_extension])
+	AC_SUBST([abi_font])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
@@ -1576,12 +1575,10 @@ AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
 dnl legacy fb support
 test "x$MFB" = xauto && MFB="$XORG"
-test "x$CFB" = xauto && CFB="$XORG"
 test "x$AFB" = xauto && AFB="$XORG"
 AM_CONDITIONAL(MFB, [test "x$MFB" = xyes])
-AM_CONDITIONAL(CFB, [test "x$CFB" = xyes])
 AM_CONDITIONAL(AFB, [test "x$AFB" = xyes])
-if test "x$MFB" = xyes -o "x$CFB" = xyes -o "x$AFB" = xyes; then
+if test "x$MFB" = xyes -o "x$AFB" = xyes; then
 	if test "x$XORG" != xyes; then
 		AC_MSG_ERROR([legacy fb support requires the Xorg server])
 	fi
@@ -1594,7 +1591,7 @@ AC_MSG_RESULT([$XPRINT])
 
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINTMODULES], [printproto x11 xfont $XDMCP_MODULES xau])
-	XPRINT_CFLAGS="$XPRINTMODULES_CFLAGS"
+	XPRINT_CFLAGS="$XPRINTMODULES_CFLAGS -DXPRINT"
 	XPRINT_LIBS="$XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS $MIEXT_DAMAGE_LIB $XKB_LIB $XKB_STUB_LIB"
 	XPRINT_SYS_LIBS="$XPRINTMODULES_LIBS"
 
@@ -1730,7 +1727,8 @@ if test "X$XQUARTZ" = Xauto; then
 fi
 
 if test "x$XQUARTZ" = xyes; then
-	AC_DEFINE([XQUARTZ],[1],[Have Quartz])
+	AC_DEFINE(XQUARTZ,1,[Have Quartz])
+	AC_DEFINE(ROOTLESS,1,[Build Rootless code])
 
 #glxAGL / glxCGL don't work yet
 #	AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
@@ -2094,7 +2092,9 @@ DIX_CFLAGS="-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"
 
 AC_SUBST([DIX_CFLAGS])
 
-AC_SUBST([libdir exec_prefix prefix])
+AC_SUBST([libdir])
+AC_SUBST([exec_prefix])
+AC_SUBST([prefix])
 
 # Man page sections - used in config utils & generating man pages
 XORG_MANPAGE_SECTIONS
@@ -2127,8 +2127,6 @@ fb/Makefile
 record/Makefile
 XTrap/Makefile
 mfb/Makefile
-cfb/Makefile
-cfb32/Makefile
 config/Makefile
 mi/Makefile
 miext/Makefile
@@ -2136,7 +2134,6 @@ miext/damage/Makefile
 miext/shadow/Makefile
 miext/cw/Makefile
 miext/rootless/Makefile
-miext/rootless/accel/Makefile
 os/Makefile
 randr/Makefile
 render/Makefile
@@ -2187,7 +2184,6 @@ hw/xfree86/xaa/Makefile
 hw/xfree86/xf1bpp/Makefile
 hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
-hw/xfree86/xf8_32bpp/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (C) 2008 Apple, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,22 +24,37 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifndef DARWIN_KEYBOARD_H
-#define DARWIN_KEYBOARD_H 1
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 
-#include "quartzKeyboard.h"
+#include "threadSafety.h"
+#include "os.h"
 
-/* Provided for darwinEvents.c */
-extern darwinKeyboardInfo keyInfo;
-void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents);
-void DarwinKeyboardInit(DeviceIntPtr pDev);
-int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
-int DarwinModifierNXKeyToNXKeycode(int key, int side);
-int DarwinModifierNXKeyToNXMask(int key);
-int DarwinModifierNXMaskToNXKey(int mask);
-int DarwinModifierStringToNXKey(const char *string);
+#include <execinfo.h>
 
-/* Provided for darwin.c */
-void DarwinKeyboardInit(DeviceIntPtr pDev);
+pthread_t SERVER_THREAD;
+pthread_t APPKIT_THREAD;
 
-#endif /* DARWIN_KEYBOARD_H */
+void spewCallStack(void) {
+    void* callstack[128];
+    int i, frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    
+    for (i = 0; i < frames; ++i) {
+        ErrorF("%s\n", strs[i]);
+    }
+    
+    free(strs);
+}
+
+void _threadAssert(pthread_t tid, const char *file, const char *fun, int line) {
+    if(pthread_equal(pthread_self(), tid))
+        return;
+    
+    /* NOOOO! */
+    ErrorF("Thread Assertion Failed: self=%s, expected=%s\n%s:%s:%d\n",
+           threadSafetyID(pthread_self()), threadSafetyID(tid),
+           file, fun, line);
+    spewCallStack();
+}

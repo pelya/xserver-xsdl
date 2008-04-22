@@ -27,6 +27,8 @@
    promote the sale, use or other dealings in this Software without
    prior written authorization. */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -37,17 +39,13 @@
 
 #import "X11Controller.h"
 #import "X11Application.h"
-#import <Carbon/Carbon.h>
 
-/* ouch! */
-#define BOOL X_BOOL
 #include "opaque.h"
-# include "darwin.h"
-# include "quartz.h"
-# define _APPLEWM_SERVER_
-# include "X11/extensions/applewm.h"
-# include "applewmExt.h"
-#undef BOOL
+#include "darwin.h"
+#include "quartz.h"
+#define _APPLEWM_SERVER_
+#include "X11/extensions/applewm.h"
+#include "applewmExt.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -602,7 +600,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 #endif
 }
 
-- (void) set_can_quit:(BOOL)state
+- (void) set_can_quit:(OSX_BOOL)state
 {
   can_quit = state;
 }
@@ -669,7 +667,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   AHLookupAnchor ((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR ("mchlp2276"));
 }
 
-- (BOOL) validateMenuItem:(NSMenuItem *)item
+- (OSX_BOOL) validateMenuItem:(NSMenuItem *)item
 {
   NSMenu *menu = [item menu];
 	
@@ -692,24 +690,26 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMShowAll);
 }
 
-- (NSApplicationTerminateReply) applicationShouldTerminate:sender
-{
-  NSString *msg;
+- (NSApplicationTerminateReply) applicationShouldTerminate:sender {
+    NSString *msg;
+    NSString *title;
 	
-  if (can_quit || [X11App prefs_get_boolean:@PREFS_NO_QUIT_ALERT default:NO])
-    return NSTerminateNow;
+    if (can_quit || [X11App prefs_get_boolean:@PREFS_NO_QUIT_ALERT default:NO])
+        return NSTerminateNow;
 	
-  /* Make sure we're frontmost. */
-  [NSApp activateIgnoringOtherApps:YES];
+    /* Make sure we're frontmost. */
+    [NSApp activateIgnoringOtherApps:YES];
 	
-  msg = NSLocalizedString (@"Are you sure you want to quit X11?\n\nIf you quit X11, any X11 applications you are running will stop immediately and you will lose any changes you have not saved.", @"Dialog when quitting");
+    title = NSLocalizedString(@"Do you really want to quit X11?", @"Dialog title when quitting");
+    msg = NSLocalizedString(@"Any open X11 applications will stop immediately, and you will lose any unsaved changes.", @"Dialog when quitting");
+
+    /* FIXME: safe to run the alert in here? Or should we return Later
+     *        and then run the alert on a timer? It seems to work here, so..
+     */
 	
-  /* FIXME: safe to run the alert in here? Or should we return Later
-     and then run the alert on a timer? It seems to work here, so.. */
-	
-  return (NSRunAlertPanel (nil, msg, NSLocalizedString (@"Quit", @""),
-			   NSLocalizedString (@"Cancel", @""), nil)
-	  == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
+    return (NSRunAlertPanel (title, msg, NSLocalizedString (@"Quit", @""),
+                             NSLocalizedString (@"Cancel", @""), nil)
+            == NSAlertDefaultReturn) ? NSTerminateNow : NSTerminateCancel;
 }
 
 - (void) applicationWillTerminate:(NSNotification *)aNotification
@@ -741,17 +741,17 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   pending_apps = NULL;
 }
 
-- (BOOL) application:(NSApplication *)app openFile:(NSString *)filename
+- (OSX_BOOL) application:(NSApplication *)app openFile:(NSString *)filename
 {
-  const char *name = [filename UTF8String];
-	
-  if (finished_launching)
-    [self launch_client:filename];
-  else if (name[0] != ':')		/* ignore display names */
-    pending_apps = x_list_prepend (pending_apps, [filename retain]);
-	
-  /* FIXME: report failures. */
-  return YES;
+    const char *name = [filename UTF8String];
+    
+    if (finished_launching)
+        [self launch_client:filename];
+    else if (name[0] != ':')		/* ignore display names */
+        pending_apps = x_list_prepend (pending_apps, [filename retain]);
+    
+    /* FIXME: report failures. */
+    return YES;
 }
 
 @end

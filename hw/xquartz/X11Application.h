@@ -32,7 +32,6 @@
 
 #if __OBJC__
 
-#import <Cocoa/Cocoa.h>
 #import "X11Controller.h"
 
 @interface X11Application : NSApplication {
@@ -56,7 +55,7 @@
 - (void) prefs_set_string:(NSString *)key value:(NSString *)value;
 - (void) prefs_synchronize;
 
-- (BOOL) x_active;
+- (OSX_BOOL) x_active;
 
 @end
 

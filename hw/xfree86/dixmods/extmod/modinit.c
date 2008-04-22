@@ -65,15 +65,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef MITMISC
-    {
-	MITMiscExtensionInit,
-	MITMISCNAME,
-	&noMITMiscExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef notyet
     {
 	XTestExtensionInit,
@@ -160,24 +151,6 @@ static ExtensionModule extensionModules[] = {
 	FontCacheExtensionInit,
 	FONTCACHENAME,
 	&noFontCacheExtension,
-	NULL,
-	NULL
-    },
-#endif
-#ifdef TOGCUP
-    {
-	XcupExtensionInit,
-	XCUPNAME,
-	&noXcupExtension,
-	NULL,
-	NULL
-    },
-#endif
-#ifdef EVI
-    {
-	EVIExtensionInit,
-	EVINAME,
-	&noEVIExtension,
 	NULL,
 	NULL
     },

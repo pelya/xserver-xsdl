@@ -18,10 +18,6 @@ if AFB
 AFBMOD = libafb.la
 endif
 
-if CFB
-CFBMOD = libcfb.la libcfb32.la
-endif
-
 if MFB
 MFBMOD = libmfb.la
 endif
@@ -31,7 +27,6 @@ RECORDMOD = librecord.la
 endif
 
 module_LTLIBRARIES = $(AFBMOD) \
-                     $(CFBMOD) \
                      libfb.la \
                      libwfb.la \
                      $(MFBMOD) \
@@ -60,14 +55,6 @@ libGLcore_la_SOURCES = GLcoremodule.c
 libafb_la_LDFLAGS = -avoid-version
 libafb_la_LIBADD = $(top_builddir)/afb/libafb.la
 libafb_la_SOURCES = afbmodule.c
-
-libcfb_la_LDFLAGS = -avoid-version
-libcfb_la_LIBADD = $(top_builddir)/cfb/libcfb.la
-libcfb_la_SOURCES = cfbmodule.c
-
-libcfb32_la_LDFLAGS = -avoid-version
-libcfb32_la_LIBADD = $(top_builddir)/cfb32/libcfb32.la
-libcfb32_la_SOURCES = cfb32module.c
 
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la

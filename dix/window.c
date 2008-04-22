@@ -124,9 +124,6 @@ Equipment Corporation.
 #include "dixevents.h"
 #include "globals.h"
 
-#ifdef XAPPGROUP
-#include "appgroup.h"
-#endif
 #include "privates.h"
 #include "xace.h"
 
@@ -310,6 +307,10 @@ SetWindowToDefaults(WindowPtr pWin)
 
     sem = xcalloc(1, sizeof(FocusSemaphoresRec));
     dixSetPrivate(&pWin->devPrivates, FocusPrivatesKey, sem);
+
+#ifdef ROOTLESS
+    pWin->rootlessUnhittable = FALSE;
+#endif
 }
 
 static void
@@ -632,14 +633,6 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
     if (!ancwopt)
 	ancwopt = FindWindowWithOptional(pParent)->optional;
     if (visual == CopyFromParent) {
-#ifdef XAPPGROUP
-	VisualID ag_visual;
-
-	if (client->appgroup && !pParent->parent &&
-	    (ag_visual = XagRootVisual (client)))
-	    visual = ag_visual;
-	else
-#endif
 	visual = ancwopt->visual;
     }
 
@@ -1339,22 +1332,6 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	    pVlist++;
 	    if (cmap == CopyFromParent)
 	    {
-#ifdef XAPPGROUP
-		Colormap ag_colormap;
-		ClientPtr win_owner;
-
-		/*
-		 * win_owner == client for CreateWindow, other clients
-		 * can ChangeWindowAttributes
-		 */
-		win_owner = clients[CLIENT_ID(pWin->drawable.id)];
-
-		if ( win_owner && win_owner->appgroup &&
-		    !pWin->parent->parent &&
-		    (ag_colormap = XagDefaultColormap (win_owner)))
-		    cmap = ag_colormap;
-		else
-#endif
 		if (pWin->parent &&
 		    (!pWin->optional ||
 		     pWin->optional->visual == wVisual (pWin->parent)))
@@ -2283,10 +2260,6 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 		   h = pWin->drawable.height,
 		   bw = pWin->borderWidth;
     int rc, action, smode = Above;
-#ifdef XAPPGROUP
-    ClientPtr win_owner;
-    ClientPtr ag_leader = NULL;
-#endif
     xEvent event;
 
     if ((pWin->drawable.class == InputOnly) && (mask & IllegalInputOnlyConfigureMask))
@@ -2382,17 +2355,9 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
     else
 	pSib = pWin->nextSib;
 
-#ifdef XAPPGROUP
-    win_owner = clients[CLIENT_ID(pWin->drawable.id)];
-    ag_leader = XagLeader (win_owner);
-#endif
 
     if ((!pWin->overrideRedirect) && 
 	(RedirectSend(pParent)
-#ifdef XAPPGROUP
-	|| (win_owner->appgroup && ag_leader && 
-	    XagIsControlledRoot (client, pParent))
-#endif
 	))
     {
 	event.u.u.type = ConfigureRequest;
@@ -2417,16 +2382,6 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 	event.u.configureRequest.height = h;
 	event.u.configureRequest.borderWidth = bw;
 	event.u.configureRequest.valueMask = mask;
-#ifdef XAPPGROUP
-	/* make sure if the ag_leader maps the window it goes to the wm */
-	if (ag_leader && ag_leader != client && 
-	    XagIsControlledRoot (client, pParent)) {
-	    event.u.configureRequest.parent = XagId (win_owner);
-	    (void) TryClientEvents (ag_leader, &event, 1,
-				    NoEventMask, NoEventMask, NullGrab);
-	    return Success;
-	}
-#endif
 	event.u.configureRequest.parent = pParent->drawable.id;
 	if (MaybeDeliverEventsToClient(pParent, &event, 1,
 		SubstructureRedirectMask, client) == 1)
@@ -2803,31 +2758,13 @@ MapWindow(WindowPtr pWin, ClientPtr client)
     {
 	xEvent event;
 	Bool anyMarked;
-#ifdef XAPPGROUP
-	ClientPtr win_owner = clients[CLIENT_ID(pWin->drawable.id)];
-	ClientPtr ag_leader = XagLeader (win_owner);
-#endif
 
 	if ((!pWin->overrideRedirect) && 
 	    (RedirectSend(pParent)
-#ifdef XAPPGROUP
-	    || (win_owner->appgroup && ag_leader &&
-		XagIsControlledRoot (client, pParent))
-#endif
 	))
 	{
 	    event.u.u.type = MapRequest;
 	    event.u.mapRequest.window = pWin->drawable.id;
-#ifdef XAPPGROUP
-	    /* make sure if the ag_leader maps the window it goes to the wm */
-	    if (ag_leader && ag_leader != client &&
-		XagIsControlledRoot (client, pParent)) {
-		event.u.mapRequest.parent = XagId (win_owner);
-		(void) TryClientEvents (ag_leader, &event, 1,
-					NoEventMask, NoEventMask, NullGrab);
-		return Success;
-	    }
-#endif
 	    event.u.mapRequest.parent = pParent->drawable.id;
 
 	    if (MaybeDeliverEventsToClient(pParent, &event, 1,

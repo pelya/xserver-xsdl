@@ -1350,7 +1350,6 @@ int dmxAttachScreen(int idx, DMXScreenAttributesPtr attr)
  * RTContext
  * TagResType
  * StalledResType
- * RT_APPGROUP
  * SecurityAuthorizationResType
  * RTEventClient
  * __glXContextRes

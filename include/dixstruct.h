@@ -125,9 +125,7 @@ typedef struct _Client {
     int         requestLogIndex;
 #endif
     unsigned long replyBytesRemaining;
-#ifdef XAPPGROUP
-    struct _AppGroupRec*	appgroup;
-#endif
+    void *appgroup; /* Can't remove, ABI */
     struct _FontResolution * (*fontResFunc) (    /* no need for font.h */
 		ClientPtr	/* pClient */,
 		int *		/* num */);

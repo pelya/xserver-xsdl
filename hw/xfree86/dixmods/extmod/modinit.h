@@ -18,12 +18,6 @@ extern void MultibufferExtensionInit(INITARGS);
 #include <X11/extensions/multibufst.h>
 #endif
 
-#ifdef MITMISC
-extern void MITMiscExtensionInit(INITARGS);
-#define _MITMISC_SERVER_
-#include <X11/extensions/mitmiscstr.h>
-#endif
-
 #ifdef XTEST
 extern void XTestExtensionInit(INITARGS);
 #define _XTEST_SERVER_
@@ -89,18 +83,6 @@ extern void FontCacheExtensionInit(INITARGS);
 #include "fontcachstr.h"
 #endif
 
-#ifdef TOGCUP
-extern void XcupExtensionInit(INITARGS);
-#define _XCUP_SERVER_
-#include <X11/extensions/Xcupstr.h>
-#endif
-
-#ifdef EVI
-extern void EVIExtensionInit(INITARGS);
-#define _XEVI_SERVER_
-#include <X11/extensions/XEVIstr.h>
-#endif
-
 #ifdef XV
 extern void XvExtensionInit(INITARGS);
 extern void XvMCExtensionInit(INITARGS);
@@ -132,14 +114,6 @@ extern void SELinuxExtensionInit(INITARGS);
 
 #if 1
 extern void SecurityExtensionInit(INITARGS);
-#endif
-
-#if 1
-extern void XagExtensionInit(INITARGS);
-#endif
-
-#if 1
-extern void XpExtensionInit(INITARGS);
 #endif
 
 #if 1

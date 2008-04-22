@@ -488,7 +488,7 @@ addMinimalSet(__GLXscreen *pGlxScreen)
 	    continue;
 
 	pGlxScreen->visuals[j] = config;
-	config->visualID = visuals[j].vid;
+	config->visualID = visuals[i].vid;
 	j++;
     }
 

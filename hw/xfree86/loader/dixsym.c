@@ -358,9 +358,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef DPMSExtension
     SYMVAR(noDPMSExtension)
 #endif
-#ifdef EVI
-    SYMVAR(noEVIExtension)
-#endif
 #ifdef FONTCACHE
     SYMVAR(noFontCacheExtension)
 #endif
@@ -372,9 +369,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #endif
 #ifdef MITSHM
     SYMVAR(noMITShmExtension)
-#endif
-#ifdef MITMISC
-    SYMVAR(noMITMiscExtension)
 #endif
 #ifdef MULTIBUFFER
     SYMVAR(noMultibufferExtension)
@@ -394,14 +388,8 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef XSYNC
     SYMVAR(noSyncExtension)
 #endif
-#ifdef TOGCUP
-    SYMVAR(noXcupExtension)
-#endif
 #ifdef RES
     SYMVAR(noResExtension)
-#endif
-#ifdef XAPPGROUP
-    SYMVAR(noXagExtension)
 #endif
 #ifdef XCMISC
     SYMVAR(noXCMiscExtension)

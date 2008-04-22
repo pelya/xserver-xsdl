@@ -2664,6 +2664,13 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 				x - pWin->drawable.x,
 				y - pWin->drawable.y, &box))
 #endif
+#ifdef ROOTLESS
+    /* In rootless mode windows may be offscreen, even when
+     * they're in X's stack. (E.g. if the native window system
+     * implements some form of virtual desktop system).
+     */
+		&& !pWin->rootlessUnhittable
+#endif
 	    )
 	{
 	    if (pSprite->spriteTraceGood >= pSprite->spriteTraceSize)

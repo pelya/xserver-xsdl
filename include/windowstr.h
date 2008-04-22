@@ -189,6 +189,9 @@ typedef struct _Window {
     unsigned		forcedBS:1;	/* system-supplied backingStore */
     unsigned		redirectDraw:2;	/* COMPOSITE rendering redirect */
     unsigned		forcedBG:1;	/* must have an opaque background */
+#ifdef ROOTLESS
+    unsigned		rootlessUnhittable:1;	/* doesn't hit-test */
+#endif
 } WindowRec;
 
 /*

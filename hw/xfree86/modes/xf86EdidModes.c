@@ -93,6 +93,12 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 638)
 	return TRUE;
 
+    /* Acer F51 */
+    if (memcmp (DDC->vendor.name, "API", 4) == 0 &&
+	DDC->vendor.prod_id == 0x7602)
+	return TRUE;
+
+
     return FALSE;
 }
 

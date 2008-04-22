@@ -72,7 +72,6 @@ libbsd_la_SOURCES = \
 # FIXME: Add these files to the build as needed
 EXTRA_DIST = \
 	bsd_apm.c \
-	bsd_jstk.c \
 	bsd_kqueue_apm.c \
 	bsdResource.c \
 	memrange.h \

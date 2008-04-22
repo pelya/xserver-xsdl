@@ -149,9 +149,6 @@ _X_EXPORT Bool noDbeExtension = FALSE;
 #ifdef DPMSExtension
 _X_EXPORT Bool noDPMSExtension = FALSE;
 #endif
-#ifdef EVI
-_X_EXPORT Bool noEVIExtension = FALSE;
-#endif
 #ifdef FONTCACHE
 _X_EXPORT Bool noFontCacheExtension = FALSE;
 #endif
@@ -164,9 +161,6 @@ _X_EXPORT Bool noScreenSaverExtension = FALSE;
 #endif
 #ifdef MITSHM
 _X_EXPORT Bool noMITShmExtension = FALSE;
-#endif
-#ifdef MITMISC
-_X_EXPORT Bool noMITMiscExtension = FALSE;
 #endif
 #ifdef MULTIBUFFER
 _X_EXPORT Bool noMultibufferExtension = FALSE;
@@ -186,14 +180,8 @@ _X_EXPORT Bool noSecurityExtension = FALSE;
 #ifdef XSYNC
 _X_EXPORT Bool noSyncExtension = FALSE;
 #endif
-#ifdef TOGCUP
-_X_EXPORT Bool noXcupExtension = FALSE;
-#endif
 #ifdef RES
 _X_EXPORT Bool noResExtension = FALSE;
-#endif
-#ifdef XAPPGROUP
-_X_EXPORT Bool noXagExtension = FALSE;
 #endif
 #ifdef XCMISC
 _X_EXPORT Bool noXCMiscExtension = FALSE;

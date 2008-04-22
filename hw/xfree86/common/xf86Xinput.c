@@ -480,10 +480,18 @@ void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
-    InputDriverPtr drv = pInfo->drv;
-    IDevRec *idev = pInfo->conf_idev;
+    InputDriverPtr drv;
+    IDevRec *idev;
 
+    if (pInfo) /* need to get these before RemoveDevice */
+    {
+        drv = pInfo->drv;
+        idev = pInfo->conf_idev;
+    }
     RemoveDevice(pDev);
+
+    if (!pInfo) /* VCP and VCK */
+        return;
 
     if(drv->UnInit)
         drv->UnInit(drv, pInfo, 0);

@@ -317,9 +317,10 @@ createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
     for (back = numBack - 1; back >= 0; back--)
 	for (depth = 0; depth < numDepth; depth++)
 	    for (stencil = 0; stencil < numStencil; stencil++) {
-		config->next = xalloc(sizeof *config);
+		config->next = xcalloc(sizeof(*config), 1);
 		config = config->next;
 
+		config->visualRating = GLX_NONE;
 		config->visualType = glx_visual_types[visual->class];
 		config->xRenderable = GL_TRUE;
 		config->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
@@ -431,6 +432,7 @@ __glXMesaScreenProbe(ScreenPtr pScreen)
     screen->base.destroy        = __glXMesaScreenDestroy;
     screen->base.createContext  = __glXMesaScreenCreateContext;
     screen->base.createDrawable = __glXMesaScreenCreateDrawable;
+    screen->base.swapInterval  = NULL;
     screen->base.pScreen       = pScreen;
 
     return &screen->base;

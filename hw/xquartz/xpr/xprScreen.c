@@ -27,6 +27,8 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -35,17 +37,15 @@
 #include "inputstr.h"
 #include "quartz.h"
 #include "xpr.h"
+#include "xprEvent.h"
 #include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
 #include "dri.h"
 #include "globals.h"
-#include "Xplugin.h"
+#include <Xplugin.h>
 #include "applewmExt.h"
 #include "micmap.h"
-
-// From xprFrame.c
-WindowPtr xprGetXWindow(xp_window_id wid);
 
 #ifdef DAMAGE
 # include "damage.h"
@@ -150,7 +150,7 @@ displayScreenBounds(CGDirectDisplayID id)
 
     /* Remove menubar to help standard X11 window managers. */
 
-    if (frame.origin.x == 0 && frame.origin.y == 0)
+    if (frame.origin.y == 0)
     {
         frame.origin.y += aquaMenuBarHeight;
         frame.size.height -= aquaMenuBarHeight;
@@ -352,7 +352,9 @@ xprSetupScreen(int index, ScreenPtr pScreen)
 {
     // Initialize accelerated rootless drawing
     // Note that this must be done before DamageSetup().
-    RootlessAccelInit(pScreen);
+
+    // These are crashing ugly... better to be stable and not crash for now.
+    //RootlessAccelInit(pScreen);
 
 #ifdef DAMAGE
     // The Damage extension needs to wrap underneath the

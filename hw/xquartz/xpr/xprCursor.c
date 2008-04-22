@@ -29,6 +29,8 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -37,7 +39,7 @@
 #include "xpr.h"
 #include "darwin.h"
 #include "darwinEvents.h"
-#include "Xplugin.h"
+#include <Xplugin.h>
 
 #include "mi.h"
 #include "scrnintstr.h"

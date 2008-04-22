@@ -393,7 +393,7 @@ SOFTWARE.
 
 #endif /* ia64 */
 
-#if defined(__amd64__) || defined(amd64) || defined(__amd64)
+#if defined(__amd64__) || defined(amd64) || defined(__amd64) || defined(__x86_64__)
 # define IMAGE_BYTE_ORDER	LSBFirst
 
 # if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)

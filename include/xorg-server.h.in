@@ -46,14 +46,8 @@
 /* Support IPv6 for TCP connections */
 #undef IPv6
 
-/* Support MIT Misc extension */
-#undef MITMISC
-
 /* Support MIT-SHM Extension */
 #undef MITSHM
-
-/* Disable some debugging code */
-#undef NDEBUG
 
 /* Need XFree86 helper functions */
 #undef NEED_XF86_PROTOTYPES

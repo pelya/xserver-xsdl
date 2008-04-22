@@ -3,7 +3,7 @@ SUBDIRS = doc pcl pcl-mono raster ps etc config
 bin_PROGRAMS = Xprt
 
 Xprt_CFLAGS = @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
-	-DXPRINT -DPRINT_ONLY_SERVER -D_XP_PRINT_SERVER_  \
+	-DPRINT_ONLY_SERVER -D_XP_PRINT_SERVER_  \
 	-DXPRINTDIR=\"$(libdir)/X11/xserver\"    \
 	-DXPRASTERDDX -DXPPCLDDX -DXPMONOPCLDDX -DXPPSDDX \
 	-DXFree86Server
@@ -17,6 +17,7 @@ XPRINT_LIBS = \
 	pcl-mono/libpcl.la \
 	$(top_builddir)/fb/libfb.la \
 	$(top_builddir)/render/librender.la \
+	$(top_builddir)/dix/libXpdix.la \
 	$(XSERVER_LIBS) \
 	$(top_builddir)/Xext/libXext.la \
 	$(top_builddir)/xkb/libxkb.la \

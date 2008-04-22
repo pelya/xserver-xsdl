@@ -169,7 +169,7 @@ typedef signed __int64    PsOutColor;
      defined(ia64) || defined(__ia64__) || \
      defined(__sparc64__) || defined(_LP64) || \
      defined(__s390x__) || \
-     defined(amd64) || defined (__amd64__) || \
+     defined(amd64) || defined (__amd64__) || defined(__x86_64__) || \
      defined (__powerpc64__) || \
      (defined(sgi) && (_MIPS_SZLONG == 64))
 typedef signed long       PsOutColor;

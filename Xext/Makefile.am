@@ -29,7 +29,6 @@ BUILTIN_SRCS =			\
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
 	bigreq.c		\
-	mitmisc.c		\
 	shape.c			\
 	sync.c			\
 	xcmisc.c
@@ -106,25 +105,6 @@ if XPRINT
 BUILTIN_SRCS += $(XPRINT_SRCS)
 endif
 
-# AppGroup
-APPGROUP_SRCS = appgroup.c appgroup.h
-if APPGROUP
-BUILTIN_SRCS += $(APPGROUP_SRCS)
-endif
-
-# Colormap Utilization Protocol: Less flashing when switching between
-# PsuedoColor apps and better sharing of limited colormap slots
-CUP_SRCS = cup.c
-if CUP
-MODULE_SRCS  += $(CUP_SRCS)
-endif
-
-# Extended Visual Information
-EVI_SRCS = EVI.c sampleEVI.c EVIstruct.h
-if EVI
-MODULE_SRCS  += $(EVI_SRCS)
-endif
-
 # Multi-buffering extension
 MULTIBUFFER_SRCS = mbuf.c
 EXTRA_MULTIBUFFER_SRCS = mbufbf.c mbufpx.c
@@ -171,9 +151,6 @@ EXTRA_DIST = \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
 	$(XPRINT_SRCS) \
-	$(APPGROUP_SRCS) \
-	$(CUP_SRCS) \
-	$(EVI_SRCS) \
 	$(MULTIBUFFER_SRCS) \
 	$(EXTRA_MULTIBUFFER_SRCS) \
 	$(FONTCACHE_SRCS) \

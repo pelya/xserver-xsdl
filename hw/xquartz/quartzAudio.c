@@ -36,6 +36,8 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif

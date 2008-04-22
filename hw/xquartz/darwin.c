@@ -76,7 +76,7 @@
 
 #include "darwin.h"
 #include "darwinEvents.h"
-#include "darwinKeyboard.h"
+#include "quartzKeyboard.h"
 #include "quartz.h"
 //#include "darwinClut8.h"
 
@@ -141,6 +141,8 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 #ifndef XORG_RELEASE
 #define XORG_RELEASE "?"
 #endif
+
+const char *__crashreporter_info__ = "X.Org X Server " XSERVER_VERSION "Build Date: " BUILD_DATE;
 
 void DDXRingBell(int volume, int pitch, int duration) {
   // FIXME -- make some noise, yo
@@ -333,42 +335,34 @@ static void DarwinChangePointerControl(
  * DarwinMouseProc
  *  Handle the initialization, etc. of a mouse
  */
-static int DarwinMouseProc(
-    DeviceIntPtr    pPointer,
-    int             what )
-{
-    CARD8 map[6];
-
+static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
+    CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    
     switch (what) {
-
+            
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
-
+            
             // Set button map.
-            map[1] = 1;
-            map[2] = 2;
-            map[3] = 3;
-            map[4] = 4;
-            map[5] = 5;
-            InitPointerDeviceStruct( (DevicePtr)pPointer, map, 5,
-				     GetMotionHistory,
-				     (PtrCtrlProcPtr)NoopDDA,
-				     GetMotionHistorySize(), 5);
-	    InitProximityClassDeviceStruct( (DevicePtr)pPointer);
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
+                                    GetMotionHistory,
+                                    (PtrCtrlProcPtr)NoopDDA,
+                                    GetMotionHistorySize(), 7);
+            InitProximityClassDeviceStruct(pPointer);
             break;
-
+            
         case DEVICE_ON:
             pPointer->public.on = TRUE;
             AddEnabledDevice( darwinEventReadFD );
             return Success;
-
+            
         case DEVICE_CLOSE:
         case DEVICE_OFF:
             pPointer->public.on = FALSE;
-            RemoveEnabledDevice( darwinEventReadFD );
+            RemoveEnabledDevice(darwinEventReadFD);
             return Success;
     }
-
+    
     return Success;
 }
 

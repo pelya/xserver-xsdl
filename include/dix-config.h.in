@@ -258,14 +258,8 @@
 /* Support os-specific local connections */
 #undef LOCALCONN
 
-/* Support MIT Misc extension */
-#undef MITMISC
-
 /* Support MIT-SHM Extension */
 #undef MITSHM
-
-/* Disable some debugging code */
-#undef NDEBUG
 
 /* Enable some debugging code */
 #undef DEBUG
@@ -418,15 +412,6 @@
 
 /* Support Xv extension */
 #undef XV
-
-/* Build APPGROUP extension */
-#undef XAPPGROUP
-
-/* Build TOG-CUP extension */
-#undef TOGCUP
-
-/* Build Extended-Visual-Information extension */
-#undef EVI
 
 /* Build Multibuffer extension */
 #undef MULTIBUFFER

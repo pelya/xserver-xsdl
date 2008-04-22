@@ -146,7 +146,11 @@ videoPtrToDriverName(struct pci_device *dev)
 
     switch (dev->vendor_id)
     {
-	case 0x1022:		    return "amd";
+	case 0x1022:
+		if (dev->device_id == 0x2081)
+			return "geode";
+		else
+			return NULL;
 	case 0x1142:		    return "apm";
 	case 0xedd8:		    return "ark";
 	case 0x1a03:		    return "ast";
@@ -449,7 +453,7 @@ chooseVideoDriver(void)
 	if (info != NULL)
 	    chosen_driver = videoPtrToDriverName(info);
 	if (chosen_driver == NULL) {
-#if defined  __i386__ || defined __amd64__ || defined __hurd__
+#if defined  __i386__ || defined __amd64__ || defined __x86_64__ || defined __hurd__
 	    chosen_driver = "vesa";
 #elif defined __sparc__
 	    chosen_driver = "sunffb";

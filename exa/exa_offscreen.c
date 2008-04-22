@@ -21,11 +21,9 @@
  */
 
 /** @file
- * This allocator allocates blocks of memory by maintaining a list of areas
- * and a score for each area.  As an area is marked used, its score is
- * incremented, and periodically all of the areas have their scores decayed by
- * a fraction.  When allocating, the contiguous block of areas with the minimum
- * score is found and evicted in order to make room for the new allocation.
+ * This allocator allocates blocks of memory by maintaining a list of areas.
+ * When allocating, the contiguous block of areas with the minimum eviction
+ * cost is found and evicted in order to make room for the new allocation.
  */
 
 #include "exa_priv.h"
@@ -71,19 +69,36 @@ ExaOffscreenKickOut (ScreenPtr pScreen, ExaOffscreenArea *area)
     return exaOffscreenFree (pScreen, area);
 }
 
-#define AREA_SCORE(area) (area->size / (double)(pExaScr->offScreenCounter - area->last_use))
+static void
+exaUpdateEvictionCost(ExaOffscreenArea *area, unsigned offScreenCounter)
+{
+    unsigned age;
+
+    if (area->state == ExaOffscreenAvail)
+	return;
+
+    age = offScreenCounter - area->last_use;
+
+    /* This is unlikely to happen, but could result in a division by zero... */
+    if (age > (UINT_MAX / 2)) {
+	age = UINT_MAX / 2;
+	area->last_use = offScreenCounter - age;
+    }
+
+    area->eviction_cost = area->size / age;
+}
 
 static ExaOffscreenArea *
 exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
 {
     ExaOffscreenArea *begin, *end, *best;
-    double score, best_score;
+    unsigned cost, best_cost;
     int avail, real_size, tmp;
 
-    best_score = UINT_MAX;
+    best_cost = UINT_MAX;
     begin = end = pExaScr->info->offScreenAreas;
     avail = 0;
-    score = 0;
+    cost = 0;
     best = 0;
 
     while (end != NULL)
@@ -106,23 +121,24 @@ exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
 	    if (end->state == ExaOffscreenLocked) {
 		/* Can't more room here, restart after this locked area */
 		avail = 0;
-		score = 0;
+		cost = 0;
 		begin = end;
 		goto restart;
 	    }
 	    avail += end->size;
-	    score += AREA_SCORE(end);
+	    exaUpdateEvictionCost(end, pExaScr->offScreenCounter);
+	    cost += end->eviction_cost;
 	    end = end->next;
 	}
 
-	/* Check the score, update best */
-	if (avail >= real_size && score < best_score) {
+	/* Check the cost, update best */
+	if (avail >= real_size && cost < best_cost) {
 	    best = begin;
-	    best_score = score;
+	    best_cost = cost;
 	}
 
 	avail -= begin->size;
-	score -= AREA_SCORE(begin);
+	cost -= begin->eviction_cost;
 	begin = begin->next;
     }
 
@@ -244,6 +260,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	new_area->state = ExaOffscreenAvail;
 	new_area->save = NULL;
 	new_area->last_use = 0;
+	new_area->eviction_cost = 0;
 	new_area->next = area->next;
 	area->next = new_area;
 	area->size = real_size;
@@ -409,6 +426,7 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
     area->state = ExaOffscreenAvail;
     area->save = NULL;
     area->last_use = 0;
+    area->eviction_cost = 0;
     /*
      * Find previous area
      */
@@ -474,6 +492,7 @@ exaOffscreenInit (ScreenPtr pScreen)
     area->save = NULL;
     area->next = NULL;
     area->last_use = 0;
+    area->eviction_cost = 0;
 
     /* Add it to the free areas */
     pExaScr->info->offScreenAreas = area;

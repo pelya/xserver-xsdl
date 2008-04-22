@@ -131,4 +131,9 @@ void QuartzInitInput(int argc, char **argv);
 void QuartzGiveUp(void);
 void QuartzProcessEvent(xEvent *xe);
 void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents);
+
+void QuartzShow(int x, int y); // (x, y) = cursor loc
+void QuartzHide(void);
+void QuartzSetRootClip(BOOL enable);
+void QuartzSpaceChanged(uint32_t space_id);
 #endif

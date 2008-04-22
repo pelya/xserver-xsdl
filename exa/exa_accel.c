@@ -527,15 +527,35 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     pDstExaPixmap = ExaGetPixmapPriv (pDstPixmap);
 
     /* Check whether the accelerator can use this pixmap.
-     * FIXME: If it cannot, use temporary pixmaps so that the drawing
-     * happens within limits.
+     * If the pitch of the pixmaps is out of range, there's nothing
+     * we can do but fall back to software rendering.
      */
-    if (pSrcExaPixmap->accel_blocked || pDstExaPixmap->accel_blocked)
-    {
+    if (pSrcExaPixmap->accel_blocked & EXA_RANGE_PITCH ||
+        pDstExaPixmap->accel_blocked & EXA_RANGE_PITCH)
 	goto fallback;
-    } else {
-	exaDoMigration (pixmaps, 2, TRUE);
+
+    /* If the width or the height of either of the pixmaps
+     * is out of range, check whether the boxes are actually out of the
+     * addressable range as well. If they aren't, we can still do
+     * the copying in hardware.
+     */
+    if (pSrcExaPixmap->accel_blocked || pDstExaPixmap->accel_blocked) {
+        int i;
+
+        for (i = 0; i < nbox; i++) {
+            /* src */
+            if ((pbox[i].x2 + dx + src_off_x) >= pExaScr->info->maxX ||
+                (pbox[i].y2 + dy + src_off_y) >= pExaScr->info->maxY)
+                goto fallback;
+
+            /* dst */
+            if ((pbox[i].x2 + dst_off_x) >= pExaScr->info->maxX ||
+                (pbox[i].y2 + dst_off_y) >= pExaScr->info->maxY)
+                goto fallback;
+        }
     }
+
+    exaDoMigration (pixmaps, 2, TRUE);
 
     /* Mixed directions must be handled specially if the card is lame */
     if ((pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS) &&

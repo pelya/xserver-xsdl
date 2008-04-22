@@ -66,10 +66,6 @@ extern Bool noDbeExtension;
 extern Bool noDPMSExtension;
 #endif
 
-#ifdef EVI
-extern Bool noEVIExtension;
-#endif
-
 #ifdef FONTCACHE
 extern Bool noFontCacheExtension;
 #endif
@@ -84,10 +80,6 @@ extern Bool noScreenSaverExtension;
 
 #ifdef MITSHM
 extern Bool noMITShmExtension;
-#endif
-
-#ifdef MITMISC
-extern Bool noMITMiscExtension;
 #endif
 
 #ifdef MULTIBUFFER
@@ -114,16 +106,8 @@ extern Bool noSecurityExtension;
 extern Bool noSyncExtension;
 #endif
 
-#ifdef TOGCUP
-extern Bool noXcupExtension;
-#endif
-
 #ifdef RES
 extern Bool noResExtension;
-#endif
-
-#ifdef XAPPGROUP
-extern Bool noXagExtension;
 #endif
 
 #ifdef XCMISC

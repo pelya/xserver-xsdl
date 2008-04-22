@@ -51,6 +51,9 @@ static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
     case PICT_a8r8g8b8:
 	snprintf(format, 20, "ARGB8888");
 	break;
+    case PICT_x8r8g8b8:
+	snprintf(format, 20, "XRGB8888");
+	break;
     case PICT_r5g6b5:
 	snprintf(format, 20, "RGB565  ");
 	break;
@@ -650,7 +653,7 @@ exaComposite(CARD8	op,
 		     !pSrc->transform &&
 		     pSrc->repeatType == RepeatNormal)
 	    {
-		DDXPointRec srcOrg;
+		DDXPointRec patOrg;
 
 		/* Let's see if the driver can do the repeat in one go */
 		if (pExaScr->info->PrepareComposite && !pSrc->alphaMap &&
@@ -674,12 +677,14 @@ exaComposite(CARD8	op,
 					       width, height))
 		    goto done;
 
-		srcOrg.x = (xSrc - xDst) % pSrc->pDrawable->width;
-		srcOrg.y = (ySrc - yDst) % pSrc->pDrawable->height;
+		/* pattern origin is the point in the destination drawable
+		 * corresponding to (0,0) in the source */
+		patOrg.x = xDst - xSrc;
+		patOrg.y = yDst - ySrc;
 
 		ret = exaFillRegionTiled(pDst->pDrawable, &region,
 					 (PixmapPtr)pSrc->pDrawable,
-					 &srcOrg, FB_ALLONES, GXcopy);
+					 &patOrg, FB_ALLONES, GXcopy);
 
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 

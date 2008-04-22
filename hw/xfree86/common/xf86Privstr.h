@@ -149,6 +149,9 @@ typedef struct {
     Bool        autoAddDevices; /* Whether to succeed NIDR, or ignore. */
     Bool        autoEnableDevices; /* Whether to enable, or let the client
                                     * control. */
+
+    Bool		dri2;
+    MessageType		dri2From;
 } xf86InfoRec, *xf86InfoPtr;
 
 #ifdef DPMSExtension

@@ -24,6 +24,7 @@ config.sub
 configure
 configure.lineno
 depcomp
+doltcompile
 install-sh
 libtool
 ltmain.sh
@@ -277,6 +278,8 @@ hw/xprint/doc/Xprt.1x
 hw/xprint/doc/Xprt.man
 hw/xprint/dpmsstubs-wrapper.c
 hw/xprint/miinitext-wrapper.c
+hw/xquartz/xpr/Xquartz
+hw/xquartz/xpr/Xquartz.1
 include/dix-config.h
 include/kdrive-config.h
 include/xgl-config.h

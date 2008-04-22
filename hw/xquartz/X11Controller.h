@@ -32,7 +32,7 @@
 
 #if __OBJC__
 
-#import <Cocoa/Cocoa.h>
+#include "sanitizedCocoa.h"
 #include "xpr/x-list.h"
 
 @interface X11Controller : NSObject
@@ -67,14 +67,14 @@
     int checked_window_item;
     x_list *pending_apps;
 
-    BOOL finished_launching;
-    BOOL can_quit;
+    OSX_BOOL finished_launching;
+    OSX_BOOL can_quit;
 }
 
 - (void) set_window_menu:(NSArray *)list;
 - (void) set_window_menu_check:(NSNumber *)n;
 - (void) set_apps_menu:(NSArray *)list;
-- (void) set_can_quit:(BOOL)state;
+- (void) set_can_quit:(OSX_BOOL)state;
 - (void) server_ready;
 
 - (IBAction) apps_table_show:(id)sender;

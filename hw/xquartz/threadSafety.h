@@ -1,8 +1,5 @@
 /*
- * Rootless window management
- */
-/*
- * Copyright (c) 2001 Greg Parker. All Rights Reserved.
+ * Copyright (C) 2008 Apple, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,34 +24,32 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
+#ifndef _XQ_THREAD_SAFETY_H_
+#define _XQ_THREAD_SAFETY_H_
+
+#define DEBUG_THREADS 1
+
+#include <pthread.h>
+
+extern pthread_t SERVER_THREAD;
+extern pthread_t APPKIT_THREAD;
+
+#define threadSafetyID(tid) (pthread_equal((tid), SERVER_THREAD) ? "X Server Thread" : "Appkit Thread")
+
+/* Dump the call stack */
+void spewCallStack(void);
+
+/* Print message to ErrorF if we're in the wrong thread */
+void _threadAssert(pthread_t tid, const char *file, const char *fun, int line);
+
+#define threadAssert(tid) _threadAssert(tid, __FILE__, __FUNCTION__, __LINE__)
+
+#ifdef DEBUG_THREADS
+#define TA_SERVER() threadAssert(SERVER_THREAD)
+#define TA_APPKIT() threadAssert(APPKIT_THREAD)
+#else
+#define TA_SERVER() 
+#define TA_APPKIT() 
 #endif
 
-#ifndef _ROOTLESSWINDOW_H
-#define _ROOTLESSWINDOW_H
-
-#include "rootlessCommon.h"
-
-Bool RootlessCreateWindow(WindowPtr pWin);
-Bool RootlessDestroyWindow(WindowPtr pWin);
-
-#ifdef SHAPE
-void RootlessSetShape(WindowPtr pWin);
-#endif // SHAPE
-
-Bool RootlessChangeWindowAttributes(WindowPtr pWin, unsigned long vmask);
-Bool RootlessPositionWindow(WindowPtr pWin, int x, int y);
-Bool RootlessRealizeWindow(WindowPtr pWin);
-Bool RootlessUnrealizeWindow(WindowPtr pWin);
-void RootlessRestackWindow(WindowPtr pWin, WindowPtr pOldNextSib);
-void RootlessCopyWindow(WindowPtr pWin,DDXPointRec ptOldOrg,RegionPtr prgnSrc);
-void RootlessMoveWindow(WindowPtr pWin,int x,int y,WindowPtr pSib,VTKind kind);
-void RootlessResizeWindow(WindowPtr pWin, int x, int y,
-			  unsigned int w, unsigned int h, WindowPtr pSib);
-void RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent);
-void RootlessChangeBorderWidth(WindowPtr pWin, unsigned int width);
-void RootlessNativeWindowMoved (WindowPtr pWin);
-void RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state); 
-
-#endif
+#endif _XQ_THREAD_SAFETY_H_

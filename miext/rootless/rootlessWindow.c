@@ -117,12 +117,10 @@ rootlessHasRoot (ScreenPtr pScreen)
 }
 
 void
-RootlessNativeWindowStateChanged (xp_window_id id, unsigned int state)
+RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state)
 {
-  WindowPtr pWin;
   RootlessWindowRec *winRec;
 
-  pWin = xprGetXWindow (id);
   if (pWin == NULL) return;
 
   winRec = WINREC (pWin);
@@ -130,39 +128,41 @@ RootlessNativeWindowStateChanged (xp_window_id id, unsigned int state)
 
   winRec->is_offscreen = ((state & XP_WINDOW_STATE_OFFSCREEN) != 0);
   winRec->is_obscured = ((state & XP_WINDOW_STATE_OBSCURED) != 0);
-  //  pWin->rootlessUnhittable = winRec->is_offscreen;
+  pWin->rootlessUnhittable = winRec->is_offscreen;
 }
 
-void
-RootlessNativeWindowMoved (WindowPtr pWin)
-{
-  xp_box bounds;
-  int sx, sy;
-  XID vlist[2];
-  Mask mask;
-  ClientPtr client;
-  RootlessWindowRec *winRec = WINREC(pWin);
-
-  if (xp_get_window_bounds (winRec->wid, &bounds) != Success) return;
-
-  sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
-  sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
-
-  /* Fake up a ConfigureWindow packet to resize the window to the current bounds. */
-
-  vlist[0] = (INT16) bounds.x1 - sx;
-  vlist[1] = (INT16) bounds.y1 - sy;
-  mask = CWX | CWY;
-
-  /* pretend we're the owner of the window! */
-  client = LookupClient (pWin->drawable.id, NullClient);
-
-  /* Don't want to do anything to the physical window (avoids 
+void RootlessNativeWindowMoved (WindowPtr pWin) {
+    xp_box bounds;
+    int sx, sy, err;
+    XID vlist[2];
+    Mask mask;
+    ClientPtr client, pClient;
+    RootlessWindowRec *winRec = WINREC(pWin);
+    
+    if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
+    
+    sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
+    sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
+    
+    /* Fake up a ConfigureWindow packet to resize the window to the current bounds. */
+    
+    vlist[0] = (INT16) bounds.x1 - sx;
+    vlist[1] = (INT16) bounds.y1 - sy;
+    mask = CWX | CWY;
+    
+    /* pretend we're the owner of the window! */
+    err = dixLookupClient(&pClient, pWin->drawable.id, NullClient, DixUnknownAccess);
+    if(err != Success) {
+        ErrorF("RootlessNativeWindowMoved(): Failed to lookup window: 0x%x\n", pWin->drawable.id);
+        return;
+    }
+    
+    /* Don't want to do anything to the physical window (avoids 
      notification-response feedback loops) */
-
-  no_configure_window = TRUE;
-  ConfigureWindow (pWin, mask, vlist, client);
-  no_configure_window = FALSE;
+    
+    no_configure_window = TRUE;
+    ConfigureWindow (pWin, mask, vlist, client);
+    no_configure_window = FALSE;
 }
 
 /* Updates the _NATIVE_SCREEN_ORIGIN property on the given root window. */
@@ -1426,6 +1426,10 @@ RootlessReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
 
     pTopWin = TopLevelParent(pWin);
     assert(pTopWin != pWin);
+    
+    pWin->rootlessUnhittable = FALSE;
+    
+    DeleteProperty (serverClient, pWin, xa_native_window_id ());
 
     if (WINREC(pTopWin) != NULL) {
         /* We're screwed. */
@@ -1482,7 +1486,7 @@ RootlessFlushWindowColormap (WindowPtr pWin)
   wc.colormap = RootlessColormapCallback;
   wc.colormap_data = pWin->drawable.pScreen;
 
-  configure_window (winRec->wid, XP_COLORMAP, &wc);
+  configure_window ((xp_window_id)winRec->wid, XP_COLORMAP, &wc);
 }
 
 /*
