@@ -4690,6 +4690,8 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 
     if (!numFoci)
         sendevent = TRUE;
+    else if (mode == NotifyUngrab && FOCUS_SEMAPHORE_ISSET(pWin, dev))
+        sendevent = TRUE;
 
     if (sendevent)
     {
