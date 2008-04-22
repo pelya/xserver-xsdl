@@ -264,7 +264,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 				_appFlags._active = YES;
 
 				[self activateX:YES];
-				if ([e data2] & 0x10) X11ApplicationSetFrontProcess();
+				if ([e data2] & 0x10) 
+                    DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
 			}
 			break;
 

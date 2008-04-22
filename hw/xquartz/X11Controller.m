@@ -754,12 +754,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     return YES;
 }
 
-- (OSX_BOOL) applicationShouldHandleReopen:(NSApplication *)app
-                     hasVisibleWindows:(OSX_BOOL)hasVis {
-    DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
-    return YES;
-}
-
 @end
 
 void X11ControllerMain(int argc, const char **argv, void (*server_thread) (void *), void *server_arg) {
