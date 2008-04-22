@@ -270,7 +270,8 @@ dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
     *pClient = clients[clientIndex];
     return Success;
 bad:
-    client->errorValue = rid;
+    if(client)
+        client->errorValue = rid;
     *pClient = NULL;
     return rc;
 }
