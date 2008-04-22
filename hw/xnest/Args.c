@@ -57,11 +57,6 @@ void ddxInitGlobals(void)
     extern Bool noCompositeExtension;
     noCompositeExtension = TRUE;
 #endif
-
-#ifdef XKB
-    extern Bool noXkbExtension;
-    noXkbExtension = TRUE;
-#endif
 }
 
 int
