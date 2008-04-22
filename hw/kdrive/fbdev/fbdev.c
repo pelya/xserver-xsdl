@@ -179,16 +179,24 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	screen->rate = 103; /* FIXME: should get proper value from fb driver */
     }
     if (!screen->fb[0].depth)
-	screen->fb[0].depth = 16;
+    {
+	if (k >= 0) 
+	    screen->fb[0].depth = var.bits_per_pixel;
+	else
+	    screen->fb[0].depth = 16;
+    }
 
-    t = KdFindMode (screen, fbdevModeSupported);
-    screen->rate = t->rate;
-    screen->width = t->horizontal;
-    screen->height = t->vertical;
+    if ((screen->width != var.xres) || (screen->height != var.yres))
+    {
+      t = KdFindMode (screen, fbdevModeSupported);
+      screen->rate = t->rate;
+      screen->width = t->horizontal;
+      screen->height = t->vertical;
 
-    /* Now try setting the mode */
-    if (k < 0 || (t->horizontal != var.xres || t->vertical != var.yres))
-        fbdevConvertMonitorTiming (t, &var);
+      /* Now try setting the mode */
+      if (k < 0 || (t->horizontal != var.xres || t->vertical != var.yres))
+          fbdevConvertMonitorTiming (t, &var);
+    }
 
     var.activate = FB_ACTIVATE_NOW;
     var.bits_per_pixel = screen->fb[0].depth;
