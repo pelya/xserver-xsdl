@@ -150,7 +150,7 @@ displayScreenBounds(CGDirectDisplayID id)
 
     /* Remove menubar to help standard X11 window managers. */
 
-    if (frame.origin.x == 0 && frame.origin.y == 0)
+    if (frame.origin.y == 0)
     {
         frame.origin.y += aquaMenuBarHeight;
         frame.size.height -= aquaMenuBarHeight;
