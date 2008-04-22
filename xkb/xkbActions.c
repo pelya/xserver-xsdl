@@ -1031,7 +1031,7 @@ _XkbFilterDeviceBtn(	XkbSrvInfoPtr	xkbi,
 DeviceIntPtr	dev;
 int		button;
 
-    if (dev == inputInfo.keyboard)
+    if (xkbi->device == inputInfo.keyboard)
         return 0;
 
     if (filter->keycode==0) {		/* initial press */
