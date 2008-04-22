@@ -1,10 +1,10 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa ati chips epson i810 mach64 mga nvidia pm2 r128 \
+VESA_SUBDIRS = vesa ati chips i810 mach64 mga nvidia pm2 r128 \
                smi via
 endif
 
 if BUILD_KDRIVEFBDEVLIB
-FBDEV_SUBDIRS = fbdev
+FBDEV_SUBDIRS = fbdev epson
 endif
 
 if XFAKESERVER
