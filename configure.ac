@@ -1917,6 +1917,10 @@ if test "$KDRIVE" = yes; then
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi
+    if test "x$DRI" = xyes && test "x$GLX" = xyes; then
+        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS gl libdrm"
+    fi
+
     PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
     if test "x$XEPHYR" = xauto; then
         XEPHYR=$xephyr
@@ -1924,10 +1928,6 @@ if test "$KDRIVE" = yes; then
     XEPHYR_DRI=no
     if test x$XEPHYR = xyes -a x$DRI = xyes && test "x$GLX" = xyes; then
         XEPHYR_DRI=yes
-        XEPHYR_DRI_LIBS=-lGL
-        AC_SUBST(XEPHYR_DRI_LIBS)
-    fi
-    if test x$XEPHYR_DRI = xyes ; then
         AC_DEFINE(XEPHYR_DRI,1,[enable DRI extension in xephyr])
     fi
 
@@ -1964,9 +1964,6 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
     KDRIVE_LIBS="$TSLIB_LIBS $KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS"
-
-    # check if we can build Xephyr
-    PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])

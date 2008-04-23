@@ -2,14 +2,10 @@ INCLUDES = 			\
 	@KDRIVE_INCS@		\
 	@KDRIVE_CFLAGS@		\
 	@XEPHYR_INCS@		\
+	@XEPHYR_CFLAGS@		\
+	@DRIPROTO_CFLAGS@	\
 	-I$(top_srcdir)		\
 	-I$(top_srcdir)/exa
-
-if XEPHYR_HAS_DRI
-INCLUDES +=			\
-	@LIBDRM_CFLAGS@		\
-	@DRIPROTO_CFLAGS@
-endif
 
 if XV
 LIBXEPHYR_HOSTXV=libxephyr-hostxv.a
@@ -76,9 +72,7 @@ Xephyr_LDADD = 						\
 	$(LIBXEPHYR_HOSTDRI)				\
 	$(top_builddir)/exa/libexa.la			\
 	@KDRIVE_LIBS@					\
-	@XEPHYR_LIBS@ 					\
-	@LIBDRM_LIBS@					\
-	@XEPHYR_DRI_LIBS@
+	@XEPHYR_LIBS@
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.a					\
