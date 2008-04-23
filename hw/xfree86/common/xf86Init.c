@@ -1123,37 +1123,35 @@ InitInput(argc, argv)
     xf86Info.vtRequestsPending = FALSE;
     xf86Info.inputPending = FALSE;
 
-    if (serverGeneration == 1) {
-	/* Call the PreInit function for each input device instance. */
-	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
-	    /* Replace obsolete keyboard driver with kbd */
-	    if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
-		strcpy((*pDev)->driver, "kbd");
-            }
+    /* Call the PreInit function for each input device instance. */
+    for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
+        /* Replace obsolete keyboard driver with kbd */
+        if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
+            strcpy((*pDev)->driver, "kbd");
+        }
 
-	    if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
-		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
-		/* XXX For now, just continue. */
-		continue;
-	    }
-	    if (!pDrv->PreInit) {
-		xf86MsgVerb(X_WARNING, 0,
-		    "Input driver `%s' has no PreInit function (ignoring)\n",
-		    pDrv->driverName);
-		continue;
-	    }
-	    pInfo = pDrv->PreInit(pDrv, *pDev, 0);
-	    if (!pInfo) {
-		xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n",
-			(*pDev)->identifier);
-		continue;
-	    } else if (!(pInfo->flags & XI86_CONFIGURED)) {
-		xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-			(*pDev)->identifier);
-		xf86DeleteInput(pInfo, 0);
-		continue;
-	    }
-	}
+        if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
+            xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
+            /* XXX For now, just continue. */
+            continue;
+        }
+        if (!pDrv->PreInit) {
+            xf86MsgVerb(X_WARNING, 0,
+                    "Input driver `%s' has no PreInit function (ignoring)\n",
+                    pDrv->driverName);
+            continue;
+        }
+        pInfo = pDrv->PreInit(pDrv, *pDev, 0);
+        if (!pInfo) {
+            xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n",
+                    (*pDev)->identifier);
+            continue;
+        } else if (!(pInfo->flags & XI86_CONFIGURED)) {
+            xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
+                    (*pDev)->identifier);
+            xf86DeleteInput(pInfo, 0);
+            continue;
+        }
     }
 
     /* Initialise all input devices. */
