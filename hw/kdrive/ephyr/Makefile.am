@@ -23,19 +23,16 @@ noinst_LIBRARIES = libxephyr-hostx.a $(LIBXEPHYR_HOSTXV) $(LIBXEPHYR_HOSTDRI) li
 
 bin_PROGRAMS = Xephyr
 
-libxephyr_hostx_a_SOURCES =	\
+HOSTX_SRCS =			\
 	hostx.c			\
 	hostx.h
 
-if XV
-libxephyr_hostxv_a_SOURCES=	\
+HOSTVIDEO_SRCS =		\
 	ephyrvideo.c		\
 	ephyrhostvideo.c	\
 	ephyrhostvideo.h
-endif
 
-if XEPHYR_HAS_DRI
-libxephyr_hostdri_a_SOURCES=	\
+HOSTDRI_SRCS =			\
 	ephyrdriext.c		\
 	ephyrdriext.h		\
 	ephyrdri.c		\
@@ -45,14 +42,25 @@ libxephyr_hostdri_a_SOURCES=	\
 	ephyrglxext.h		\
 	ephyrhostglx.c		\
 	ephyrhostglx.h
-endif
 
-libxephyr_a_SOURCES =		\
+XEPHYR_SRCS =			\
 	ephyr.c			\
 	ephyr.h			\
 	ephyrlog.h		\
 	ephyr_draw.c		\
 	os.c
+
+libxephyr_hostx_a_SOURCES = $(HOSTX_SRCS)
+
+if XV
+libxephyr_hostxv_a_SOURCES = $(HOSTVIDEO_SRCS)
+endif
+
+if XEPHYR_HAS_DRI
+libxephyr_hostdri_a_SOURCES = $(HOSTDRI_SRCS)
+endif
+
+libxephyr_a_SOURCES = $(XEPHYR_SRCS)
 
 Xephyr_SOURCES = \
 	ephyrinit.c
@@ -81,3 +89,7 @@ Xephyr_DEPENDENCIES =	\
 
 relink:
 	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
+
+EXTRA_DIST = \
+	$(HOSTVIDEO_SRCS) \
+	$(HOSTDRI_SRCS)
