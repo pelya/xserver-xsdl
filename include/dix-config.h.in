@@ -419,8 +419,6 @@
 /* Support DRI extension */
 #undef XF86DRI
 
-#undef XEPHYR_DRI
-
 /* Build DRI2 extension */
 #undef DRI2
 

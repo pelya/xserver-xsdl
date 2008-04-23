@@ -46,8 +46,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <kdrive-config.h>
 #endif
 
-#ifdef XEPHYR_DRI
-
 /* THIS IS NOT AN X CONSORTIUM STANDARD */
 
 #define NEED_REPLIES
@@ -639,5 +637,3 @@ XF86DRICloseFullScreen(Display *dpy, int screen, Drawable drawable)
     (void) drawable;
     return True;
 }
-#endif /*EPHYR_DRI*/
-

@@ -45,12 +45,12 @@
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/shape.h>
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 #include <GL/glx.h>
-#endif /*XEPHYR_DRI*/
+#endif /* XF86DRI */
 #include "ephyrlog.h"
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 extern Bool XF86DRIQueryExtension (Display *dpy,
                                    int *event_basep,
                                    int *error_basep);
@@ -1315,7 +1315,7 @@ hostx_has_xshape (void)
     return TRUE;
 }
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 typedef struct {
     int is_valid ;
     int local_id ;
@@ -1418,5 +1418,4 @@ hostx_has_glx (void)
     return TRUE ;
 }
 
-#endif /*XEPHYR_DRI*/
-
+#endif /* XF86DRI */

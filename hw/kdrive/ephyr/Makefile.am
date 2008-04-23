@@ -11,7 +11,7 @@ if XV
 LIBXEPHYR_HOSTXV=libxephyr-hostxv.a
 endif
 
-if XEPHYR_HAS_DRI
+if DRI
 LIBXEPHYR_HOSTDRI=libxephyr-hostdri.a
 endif
 
@@ -53,7 +53,7 @@ if XV
 libxephyr_hostxv_a_SOURCES = $(HOSTVIDEO_SRCS)
 endif
 
-if XEPHYR_HAS_DRI
+if DRI
 libxephyr_hostdri_a_SOURCES = $(HOSTDRI_SRCS)
 endif
 

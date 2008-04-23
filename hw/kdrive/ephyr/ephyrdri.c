@@ -29,11 +29,8 @@
 #include <kdrive-config.h>
 #endif
 
-#ifdef XEPHYR_DRI
-
 #include <X11/Xutil.h>
 #include <X11/Xlibint.h>
-/*#define _XF86DRI_SERVER_*/
 #include <GL/glx.h>
 #include "xf86dri.h"
 #include "hostx.h"
@@ -287,5 +284,3 @@ ephyrDRIGetDeviceInfo (int a_screen,
     EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
-#endif /*EPHYR_DRI*/
-

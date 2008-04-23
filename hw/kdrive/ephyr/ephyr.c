@@ -32,11 +32,11 @@
 #include "scrnintstr.h"
 #include "ephyrlog.h"
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 #include "ephyrdri.h"
 #include "ephyrdriext.h"
 #include "ephyrglxext.h"
-#endif /*XEPHYR_DRI*/
+#endif /* XF86DRI */
 
 extern int KdTsPhyScreen;
 #ifdef GLXEXT
@@ -631,7 +631,7 @@ ephyrInitScreen (ScreenPtr pScreen)
   }
 #endif /*XV*/
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
   if (!ephyrNoDRI && !hostx_has_dri ()) {
       EPHYR_LOG ("host x does not support DRI. Disabling DRI forwarding\n") ;
       ephyrNoDRI = TRUE ;
@@ -841,7 +841,7 @@ miPointerScreenFuncRec ephyrPointerScreenFuncs =
   ephyrWarpCursor
 };
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 /**
  * find if the remote window denoted by a_remote
  * is paired with an internal Window within the Xephyr server.
@@ -873,7 +873,7 @@ ephyrExposePairedWindow (int a_remote)
     screen->WindowExposures (pair->local, &reg, NullRegion);
     REGION_UNINIT (screen, &reg);
 }
-#endif /*XEPHYR_DRI*/
+#endif /* XF86DRI */
 
 void
 ephyrPoll(void)
@@ -908,14 +908,14 @@ ephyrPoll(void)
             else
               {
                   int x=0, y=0;
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
                   EphyrWindowPair *pair = NULL;
 #endif
                   EPHYR_LOG ("enqueuing mouse motion:%d\n", ephyrCurScreen) ;
                   x = ev.data.mouse_motion.x;
                   y = ev.data.mouse_motion.y;
                   EPHYR_LOG ("initial (x,y):(%d,%d)\n", x, y) ;
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
                   EPHYR_LOG ("is this window peered by a gl drawable ?\n") ;
                   if (findWindowPairFromRemote (ev.data.mouse_motion.window,
                                                 &pair))
@@ -972,7 +972,7 @@ ephyrPoll(void)
 	  KdEnqueueKeyboardEvent (ephyrKbd, ev.data.key_up.scancode, TRUE);
 	  break;
 
-#ifdef XEPHYR_DRI
+#ifdef XF86DRI
 	case EPHYR_EV_EXPOSE:
 	  /*
 	   * We only receive expose events when the expose event have
@@ -982,7 +982,7 @@ ephyrPoll(void)
 	   */
 	  ephyrExposePairedWindow (ev.data.expose.window);
 	  break;
-#endif /*XEPHYR_DRI*/
+#endif /* XF86DRI */
 
 	default:
 	  break;
