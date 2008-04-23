@@ -437,6 +437,7 @@ initGlxVisual(VisualPtr visual, __GLXconfig *config)
 typedef struct {
     GLboolean doubleBuffer;
     GLboolean depthBuffer;
+    GLboolean stencilBuffer;
 } FBConfigTemplateRec, *FBConfigTemplatePtr;
 
 static __GLXconfig *
@@ -453,6 +454,8 @@ pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
 	    continue;
 	if ((config->depthBits > 0) != template->depthBuffer)
 	    continue;
+	if ((config->stencilBits > 0) != template->stencilBuffer)
+	    continue;
 
 	return config;
     }
@@ -466,8 +469,9 @@ addMinimalSet(__GLXscreen *pGlxScreen)
     __GLXconfig *config;
     VisualPtr visuals;
     int i, j;
-    FBConfigTemplateRec best = { GL_TRUE, GL_TRUE };
-    FBConfigTemplateRec minimal = { GL_FALSE, GL_FALSE };
+    FBConfigTemplateRec best = { GL_TRUE, GL_TRUE, GL_TRUE };
+    FBConfigTemplateRec good = { GL_TRUE, GL_TRUE, GL_FALSE };
+    FBConfigTemplateRec minimal = { GL_FALSE, GL_FALSE, GL_FALSE };
 
     pGlxScreen->visuals = xcalloc(pGlxScreen->pScreen->numVisuals,
 				  sizeof (__GLXconfig *));
@@ -480,8 +484,11 @@ addMinimalSet(__GLXscreen *pGlxScreen)
     for (i = 0, j = 0; i < pGlxScreen->pScreen->numVisuals; i++) {
 	if (visuals[i].nplanes == 32)
 	    config = pickFBConfig(pGlxScreen, &minimal, visuals[i].class);
-	else
+	else {
 	    config = pickFBConfig(pGlxScreen, &best, visuals[i].class);
+	    if (config == NULL)
+		config = pickFBConfig(pGlxScreen, &good, visuals[i].class);
+        }
 	if (config == NULL)
 	    config = pGlxScreen->fbconfigs;
 	if (config == NULL)
