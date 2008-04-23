@@ -156,7 +156,7 @@ void QuartzInitOutput(
     int argc,
     char **argv )
 {
-    if (serverGeneration == 0) {
+    if (serverGeneration == 1) {
         QuartzAudioInit();
     }
 
@@ -244,7 +244,7 @@ void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
     int x, y, width, height, sx, sy;
     xEvent e;
 
-    DEBUG_LOG("QuartzDisplayChangedHandler()\n");
+    DEBUG_LOG("QuartzDisplayChangedHandler(): noPseudoramiXExtension=%d, screenInfo.numScreens=%d\n", noPseudoramiXExtension, screenInfo.numScreens);
     if (noPseudoramiXExtension || screenInfo.numScreens != 1)
     {
         /* FIXME: if not using Xinerama, we have multiple screens, and
