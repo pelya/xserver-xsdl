@@ -64,6 +64,8 @@ symlink_glx() {
     dst_dir glx
 
     action indirect_size.h
+    action glcontextmodes.c
+    action glcontextmodes.h
     action indirect_dispatch.c
     action indirect_dispatch.h
     action indirect_dispatch_swap.c
