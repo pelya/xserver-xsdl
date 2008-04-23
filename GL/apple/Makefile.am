@@ -8,17 +8,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/hw/xquartz/xpr \
 	-I$(top_srcdir)/miext/damage
 
-if HAVE_AGL_FRAMEWORK
-noinst_LIBRARIES = libAGLcore.a 
-libAGLcore_a_SOURCES = aglGlx.c \
-		       $(top_srcdir)/hw/xquartz/xpr/x-list.c \
-		       $(top_srcdir)/hw/xquartz/xpr/x-list.h \
-		       $(top_srcdir)/hw/xquartz/xpr/x-hash.c \
-		       $(top_srcdir)/hw/xquartz/xpr/x-hash.h \
-		       $(top_srcdir)/hw/dmx/glxProxy/compsize.c
-endif
-
-#noinst_LIBRARIES = libCGLcore.a 
-#libCGLcore_a_SOURCES = \
-#	indirect.c \
-#	$(top_srcdir)/hw/dmx/glxProxy/compsize.c
+noinst_LIBRARIES = libCGLcore.a 
+libCGLcore_a_SOURCES = \
+	indirect.c \
+	$(top_srcdir)/hw/dmx/glxProxy/compsize.c
