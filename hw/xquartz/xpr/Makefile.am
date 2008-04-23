@@ -14,7 +14,6 @@ Xquartz_SOURCES = \
 	xprEvent.c \
 	xprFrame.c \
 	xprScreen.c \
-	../../../GL/apple/indirect.c \
 	x-hash.c \
 	x-hook.c \
 	x-list.c
