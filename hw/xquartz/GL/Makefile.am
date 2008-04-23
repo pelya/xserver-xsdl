@@ -1,4 +1,5 @@
-AM_CFLAGS = $(DIX_CFLAGS)
+noinst_LTLIBRARIES = libCGLCore.la
+AM_CFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/GL/glx \
@@ -8,7 +9,5 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/hw/xquartz/xpr \
 	-I$(top_srcdir)/miext/damage
 
-noinst_LIBRARIES = libCGLcore.a 
-libCGLcore_a_SOURCES = \
-	indirect.c \
-	$(top_srcdir)/hw/dmx/glxProxy/compsize.c
+libCGLCore_la_SOURCES = \
+	indirect.c

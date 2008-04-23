@@ -1724,22 +1724,14 @@ if test "x$XQUARTZ" = xyes; then
 	AC_DEFINE(XQUARTZ,1,[Have Quartz])
 	AC_DEFINE(ROOTLESS,1,[Build Rootless code])
 
-#glxAGL / glxCGL don't work yet
-#	AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
-#		save_LDFLAGS=$LDFLAGS
-#		LDFLAGS="$LDFLAGS -framework AGL"
-#		AC_LINK_IFELSE(
-#			[char aglEnable(); int main() { aglEnable(); return 0;}],
-#			[xorg_cv_AGL_framework=yes],
-#			[xorg_cv_AGL_framework=no])
-#		LDFLAGS=$save_LDFLAGS
-#	])
-	xorg_cv_AGL_framework=no
-	DARWIN_GLX_LIBS='$(top_builddir)/GL/apple/indirect.o $(top_builddir)/GL/glx/libglx.la'
-	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $DARWIN_GLX_LIBS"
+	DARWIN_GLX_LIBS='$(top_builddir)/hw/xquartz/GL/libCGLCore.la $(top_builddir)/GL/glx/libglx.la'
+	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $XPSTUBS_LIB $DARWIN_GLX_LIBS"
 	AC_SUBST([DARWIN_LIBS])
+
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
+
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
+
 	if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
 		AC_MSG_NOTICE([Disabling XF86Misc extension])
 		XF86MISC=no
@@ -2087,7 +2079,6 @@ XORG_MANPAGE_SECTIONS
 AC_OUTPUT([
 Makefile
 GL/Makefile
-GL/apple/Makefile
 GL/glx/Makefile
 include/Makefile
 afb/Makefile
@@ -2181,6 +2172,7 @@ hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/xquartz/Makefile
+hw/xquartz/GL/Makefile
 hw/xquartz/bundle/Makefile
 hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile

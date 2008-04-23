@@ -13,8 +13,8 @@ if X11APP
 X11APP_SUBDIRS = bundle
 endif
 
-SUBDIRS = . xpr $(X11APP_SUBDIRS)
-DIST_SUBDIRS = xpr bundle
+SUBDIRS = . GL xpr $(X11APP_SUBDIRS)
+DIST_SUBDIRS = GL xpr bundle
 
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \

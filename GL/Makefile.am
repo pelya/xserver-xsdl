@@ -1,9 +1,4 @@
-if XQUARTZ
-XQUARTZ_SUBDIRS = apple
-endif
-
-SUBDIRS = glx $(XQUARTZ_SUBDIRS)
-DIST_SUBDIRS = glx apple
+SUBDIRS = glx
 
 WINDOWS_EXTRAS = \
 	windows/ChangeLog \
