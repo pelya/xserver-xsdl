@@ -1,68 +1,58 @@
-INCLUDES = 					\
-	@KDRIVE_INCS@				\
-	@KDRIVE_CFLAGS@				\
-	-I$(srcdir)/../../../exa
+INCLUDES = 			\
+	@KDRIVE_INCS@		\
+	@KDRIVE_CFLAGS@		\
+	@XEPHYR_INCS@		\
+	-I$(top_srcdir)		\
+	-I$(top_srcdir)/exa
+
+if XEPHYR_HAS_DRI
+INCLUDES +=			\
+	@LIBDRM_CFLAGS@		\
+	@DRIPROTO_CFLAGS@
+endif
 
 if XV
-    LIBXEPHYR_HOSTXV=libxephyr-hostxv.a
-else
-    LIBXEPHYR_HOSTXV=
+LIBXEPHYR_HOSTXV=libxephyr-hostxv.a
 endif
 
 if XEPHYR_HAS_DRI
-    LIBXEPHYR_HOSTDRI=libxephyr-hostdri.a
-else
-    LIBXEPHYR_HOSTDRI=
+LIBXEPHYR_HOSTDRI=libxephyr-hostdri.a
 endif
 
 noinst_LIBRARIES = libxephyr-hostx.a $(LIBXEPHYR_HOSTXV) $(LIBXEPHYR_HOSTDRI) libxephyr.a
 
 bin_PROGRAMS = Xephyr
 
-libxephyr_hostx_a_SOURCES =                             \
-	hostx.c                                         \
+libxephyr_hostx_a_SOURCES =	\
+	hostx.c			\
 	hostx.h
 
-libxephyr_hostxv_a_INCLUDES = @XEPHYR_INCS@
-
 if XV
-libxephyr_hostxv_a_SOURCES=				\
-	ephyrhostvideo.c \
+libxephyr_hostxv_a_SOURCES=	\
+	ephyrvideo.c		\
+	ephyrhostvideo.c	\
 	ephyrhostvideo.h
 endif
 
 if XEPHYR_HAS_DRI
-
-libxephyr_hostdri_a_SOURCES= \
-ephyrdriext.c	\
-ephyrdriext.h	\
-ephyrdri.c	\
-ephyrdri.h	\
-XF86dri.c	\
-ephyrglxext.c	\
-ephyrglxext.h	\
-ephyrhostglx.c	\
-ephyrhostglx.h	
-
-libxephyr_hostdri_a_CFLAGS= \
--I$(top_srcdir)		\
-@LIBDRM_CFLAGS@ 	\
-@DRIPROTO_CFLAGS@
-
+libxephyr_hostdri_a_SOURCES=	\
+	ephyrdriext.c		\
+	ephyrdriext.h		\
+	ephyrdri.c		\
+	ephyrdri.h		\
+	XF86dri.c		\
+	ephyrglxext.c		\
+	ephyrglxext.h		\
+	ephyrhostglx.c		\
+	ephyrhostglx.h
 endif
 
-libxephyr_a_SOURCES =	\
-	ephyr.c		\
-	ephyr_draw.c	\
-	ephyrvideo.c	\
-	os.c		\
-	hostx.h         \
-	ephyr.h		\
-	ephyrlog.h
-
-libxephyr_a_CFLAGS = \
--I$(top_srcdir) \
-@LIBDRM_CFLAGS@
+libxephyr_a_SOURCES =		\
+	ephyr.c			\
+	ephyr.h			\
+	ephyrlog.h		\
+	ephyr_draw.c		\
+	os.c
 
 Xephyr_SOURCES = \
 	ephyrinit.c
@@ -73,18 +63,18 @@ endif
 
 Xephyr_LDADD = 						\
 	libxephyr.a					\
-	libxephyr-hostx.a			        \
+	libxephyr-hostx.a				\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
-	../../../exa/libexa.la				\
+	$(top_builddir)/exa/libexa.la			\
 	@KDRIVE_LIBS@					\
-        @XEPHYR_LIBS@ 					\
+	@XEPHYR_LIBS@ 					\
 	@LIBDRM_LIBS@					\
 	@XEPHYR_DRI_LIBS@
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.a					\
-	libxephyr-hostx.a			        \
+	libxephyr-hostx.a				\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
 	@KDRIVE_LOCAL_LIBS@
