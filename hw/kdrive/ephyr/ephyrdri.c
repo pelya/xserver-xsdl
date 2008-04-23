@@ -35,7 +35,7 @@
 #include <X11/Xlibint.h>
 /*#define _XF86DRI_SERVER_*/
 #include <GL/glx.h>
-#include <X11/dri/xf86dri.h>
+#include "xf86dri.h"
 #include "hostx.h"
 #include "ephyrdri.h"
 #define _HAVE_XALLOC_DECLS
