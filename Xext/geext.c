@@ -178,7 +178,7 @@ static void GEClientCallback(CallbackListPtr *list,
     pGEClient->minor_version = 0;
 }
 
-/* reset extension */
+/* Reset extension. Called on server shutdown. */
 static void
 GEResetProc(ExtensionEntry *extEntry)
 {
@@ -190,7 +190,13 @@ GEResetProc(ExtensionEntry *extEntry)
     GEEventType = 0;
 }
 
-/*  Calls the registered event swap function for the extension. */
+/*  Calls the registered event swap function for the extension.
+ *
+ *  Each extension can register a swap function to handle GenericEvents being
+ *  swapped properly. The server calls SGEGenericEvent() before the event is
+ *  written on the wire, this one calls the registered swap function to do the
+ *  work.
+ */
 static void
 SGEGenericEvent(xEvent* from, xEvent* to)
 {
@@ -207,7 +213,10 @@ SGEGenericEvent(xEvent* from, xEvent* to)
         GEExtensions[gefrom->extension & 0x7F].evswap(gefrom, geto);
 }
 
-/* init extension, register at server */
+/* Init extension, register at server.
+ * Since other extensions may rely on XGE (XInput does already), it is a good
+ * idea to init XGE first, before any other extension.
+ */
 void
 GEExtensionInit(void)
 {
@@ -357,8 +366,8 @@ void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
         {
             pWin->optional->geMasks->geClients = cli->next;
             xfree(cli);
-        } else 
-        { 
+        } else
+        {
             GenericMaskPtr prev = cli;
             cli = cli->next;
 
