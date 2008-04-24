@@ -64,7 +64,8 @@ static void SGEGenericEvent(xEvent* from, xEvent* to);
 /*                request handlers                          */
 /************************************************************/
 
-static int ProcGEQueryVersion(ClientPtr client)
+static int
+ProcGEQueryVersion(ClientPtr client)
 {
     int n;
     GEClientInfoPtr pGEClient = GEGetClient(client);
@@ -160,9 +161,10 @@ SProcGEDispatch(ClientPtr client)
  * We alloc a simple struct to store the client's major/minor version. Can be
  * used in the furture for versioning support.
  */
-static void GEClientCallback(CallbackListPtr *list,
-        pointer closure,
-        pointer data)
+static void
+GEClientCallback(CallbackListPtr *list,
+                 pointer closure,
+                 pointer data)
 {
     NewClientInfoRec	*clientinfo = (NewClientInfoRec *) data;
     ClientPtr		pClient = clientinfo->client;
@@ -256,12 +258,11 @@ GEExtensionInit(void)
  * @param ev_fill Called for an event before delivery. The extension now has
  * the chance to fill in necessary fields for the event.
  */
-void GERegisterExtension(
-        int extension,
-        void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
-        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
-                        WindowPtr pWin, GrabPtr pGrab)
-        )
+void
+GERegisterExtension(int extension,
+                    void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
+                    void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
+                                    WindowPtr pWin, GrabPtr pGrab))
 {
     if ((extension & 0x7F) >=  MAXEXTENSIONS)
         FatalError("GE: extension > MAXEXTENSIONS. This should not happen.\n");
@@ -275,7 +276,8 @@ void GERegisterExtension(
 /* Sets type and extension field for a generic event. This is just an
  * auxiliary function, extensions could do it manually too.
  */
-void GEInitEvent(xGenericEvent* ev, int extension)
+void
+GEInitEvent(xGenericEvent* ev, int extension)
 {
     ev->type = GenericEvent;
     ev->extension = extension;
@@ -312,8 +314,9 @@ GERecalculateWinMask(WindowPtr pWin)
 }
 
 /* Set generic event mask for given window. */
-void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
-                     WindowPtr pWin, int extension, Mask mask)
+void
+GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
+                WindowPtr pWin, int extension, Mask mask)
 {
     GenericMaskPtr cli;
 
@@ -397,8 +400,9 @@ void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
  * @param extension Extension ID
  * @param mask Event mask
  */
-BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
-                       int extension, Mask mask)
+BOOL
+GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
+                  int extension, Mask mask)
 {
     GenericMaskPtr gemask;
 
