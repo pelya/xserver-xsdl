@@ -490,7 +490,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     }
     RemoveDevice(pDev);
 
-    if (!pInfo) /* VCP and VCK */
+    if (pDev->isMaster)
         return;
 
     if(drv->UnInit)
