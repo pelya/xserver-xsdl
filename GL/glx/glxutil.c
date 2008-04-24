@@ -81,38 +81,40 @@ __glXDeassociateContext(__GLXcontext *glxc)
     __GLXcontext *curr, *prev;
 
     prev = NULL;
-    for ( curr = glxc->drawPriv->drawGlxc
-	  ; curr != NULL
-	  ; prev = curr, curr = curr->nextDrawPriv ) {
-	if (curr == glxc) {
-	    /* found context.  Deassociate. */
-	    if (prev == NULL) {
-		glxc->drawPriv->drawGlxc = curr->nextDrawPriv;
-	    } else {
-		prev->nextDrawPriv = curr->nextDrawPriv;
+    if (glxc->drawPriv) {
+        for ( curr = glxc->drawPriv->drawGlxc; curr != NULL
+	      ; prev = curr, curr = curr->nextDrawPriv ) {
+	    if (curr == glxc) {
+	        /* found context.  Deassociate. */
+	        if (prev == NULL) {
+		    glxc->drawPriv->drawGlxc = curr->nextDrawPriv;
+	        } else {
+		    prev->nextDrawPriv = curr->nextDrawPriv;
+	        }
+	        curr->nextDrawPriv = NULL;
+	        __glXUnrefDrawable(glxc->drawPriv);
+	        break;
 	    }
-	    curr->nextDrawPriv = NULL;
-	    __glXUnrefDrawable(glxc->drawPriv);
-	    break;
-	}
+        }
     }
 
-
     prev = NULL;
-    for ( curr = glxc->readPriv->readGlxc
-	  ; curr != NULL 
-	  ; prev = curr, curr = curr->nextReadPriv ) {
-	if (curr == glxc) {
-	    /* found context.  Deassociate. */
-	    if (prev == NULL) {
-		glxc->readPriv->readGlxc = curr->nextReadPriv;
-	    } else {
-		prev->nextReadPriv = curr->nextReadPriv;
-	    }
-	    curr->nextReadPriv = NULL;
-	    __glXUnrefDrawable(glxc->readPriv);
-	    break;
-	}
+    if (glxc->readPriv) {
+        for ( curr = glxc->readPriv->readGlxc
+	      ; curr != NULL 
+	      ; prev = curr, curr = curr->nextReadPriv ) {
+	    if (curr == glxc) {
+	        /* found context.  Deassociate. */
+	        if (prev == NULL) {
+		    glxc->readPriv->readGlxc = curr->nextReadPriv;
+	        } else {
+		    prev->nextReadPriv = curr->nextReadPriv;
+	        }
+	        curr->nextReadPriv = NULL;
+	        __glXUnrefDrawable(glxc->readPriv);
+	       break;
+	   }
+       }
     }
 }
 
