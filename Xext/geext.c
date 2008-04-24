@@ -1,4 +1,4 @@
-/* 
+/*
 
 Copyright 2007 Peter Hutterer <peter@cs.unisa.edu.au>
 
@@ -35,6 +35,11 @@ from the author.
 
 #include "geint.h"
 #include "geext.h"
+
+/* Currently supported XGE version */
+#define SERVER_GE_MAJOR 1
+#define SERVER_GE_MINOR 0
+
 
 int GEEventBase;
 int GEErrorBase;
@@ -73,20 +78,13 @@ static int ProcGEQueryVersion(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (stuff->majorVersion < GE_MAJOR) {
-        rep.majorVersion = stuff->majorVersion;
-        rep.minorVersion = stuff->minorVersion;
-    } else {
-        rep.majorVersion = GE_MAJOR;
-        if (stuff->majorVersion == GE_MAJOR &&
-                stuff->minorVersion < GE_MINOR)
-            rep.minorVersion = stuff->minorVersion;
-        else
-            rep.minorVersion = GE_MINOR;
-    }
+    /* return the supported version by the server */
+    rep.majorVersion = SERVER_GE_MAJOR;
+    rep.minorVersion = SERVER_GE_MINOR;
 
-    pGEClient->major_version = rep.majorVersion;
-    pGEClient->minor_version = rep.minorVersion;
+    /* Remember version the client requested */
+    pGEClient->major_version = stuff->majorVersion;
+    pGEClient->minor_version = stuff->minorVersion;
 
     if (client->swapped)
     {
@@ -156,7 +154,12 @@ SProcGEDispatch(ClientPtr client)
     return (*SProcGEVector[stuff->ReqType])(client);
 }
 
-/* new client callback */
+/**
+ * Called when a new client inits a connection to the X server.
+ *
+ * We alloc a simple struct to store the client's major/minor version. Can be
+ * used in the furture for versioning support.
+ */
 static void GEClientCallback(CallbackListPtr *list,
         pointer closure,
         pointer data)
