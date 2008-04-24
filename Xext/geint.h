@@ -1,4 +1,4 @@
-/* 
+/*
 
 Copyright 2007 Peter Hutterer <peter@cs.unisa.edu.au>
 

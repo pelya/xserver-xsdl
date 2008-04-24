@@ -78,7 +78,7 @@ static int ProcGEQueryVersion(ClientPtr client)
         rep.minorVersion = stuff->minorVersion;
     } else {
         rep.majorVersion = GE_MAJOR;
-        if (stuff->majorVersion == GE_MAJOR && 
+        if (stuff->majorVersion == GE_MAJOR &&
                 stuff->minorVersion < GE_MINOR)
             rep.minorVersion = stuff->minorVersion;
         else
@@ -90,8 +90,8 @@ static int ProcGEQueryVersion(ClientPtr client)
 
     if (client->swapped)
     {
-    	swaps(&rep.sequenceNumber, n);
-    	swapl(&rep.length, n);
+	swaps(&rep.sequenceNumber, n);
+        swapl(&rep.length, n);
         swaps(&rep.majorVersion, n);
         swaps(&rep.minorVersion, n);
     }
@@ -132,7 +132,7 @@ int (*SProcGEVector[GENumberRequests])(ClientPtr) = {
 /************************************************************/
 
 /* dispatch requests */
-static int 
+static int
 ProcGEDispatch(ClientPtr client)
 {
     GEClientInfoPtr pGEClient = GEGetClient(client);
@@ -188,7 +188,7 @@ GEResetProc(ExtensionEntry *extEntry)
 }
 
 /*  Calls the registered event swap function for the extension. */
-static void 
+static void
 SGEGenericEvent(xEvent* from, xEvent* to)
 {
     xGenericEvent* gefrom = (xGenericEvent*)from;
@@ -215,9 +215,9 @@ GEExtensionInit(void)
         FatalError("GEExtensionInit: register client callback failed.\n");
     }
 
-    if((extEntry = AddExtension(GE_NAME, 
-                        GENumberEvents, GENumberErrors, 
-                        ProcGEDispatch, SProcGEDispatch, 
+    if((extEntry = AddExtension(GE_NAME,
+                        GENumberEvents, GENumberErrors,
+                        ProcGEDispatch, SProcGEDispatch,
                         GEResetProc, StandardMinorOpcode)) != 0)
     {
         GEEventBase = extEntry->eventBase;
@@ -239,15 +239,15 @@ GEExtensionInit(void)
 
 /* Register an extension with GE. The given swap function will be called each
  * time an event is sent to a client with different byte order.
- * @param extension The extensions major opcode 
- * @param ev_swap The event swap function.  
+ * @param extension The extensions major opcode
+ * @param ev_swap The event swap function.
  * @param ev_fill Called for an event before delivery. The extension now has
  * the chance to fill in necessary fields for the event.
  */
 void GERegisterExtension(
-        int extension, 
+        int extension,
         void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
-        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev, 
+        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
                         WindowPtr pWin, GrabPtr pGrab)
         )
 {
@@ -261,8 +261,8 @@ void GERegisterExtension(
 
 
 /* Sets type and extension field for a generic event. This is just an
- * auxiliary function, extensions could do it manually too. 
- */ 
+ * auxiliary function, extensions could do it manually too.
+ */
 void GEInitEvent(xGenericEvent* ev, int extension)
 {
     ev->type = GenericEvent;
@@ -271,7 +271,7 @@ void GEInitEvent(xGenericEvent* ev, int extension)
 }
 
 /* Recalculates the summary mask for the window. */
-static void 
+static void
 GERecalculateWinMask(WindowPtr pWin)
 {
     int i;
@@ -300,7 +300,7 @@ GERecalculateWinMask(WindowPtr pWin)
 }
 
 /* Set generic event mask for given window. */
-void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev, 
+void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
                      WindowPtr pWin, int extension, Mask mask)
 {
     GenericMaskPtr cli;
@@ -403,7 +403,7 @@ BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
 
     while(gemask)
     {
-        if ((!gemask->dev || gemask->dev == pDev) && 
+        if ((!gemask->dev || gemask->dev == pDev) &&
                 (gemask->eventMask[extension] & mask))
             return TRUE;
 

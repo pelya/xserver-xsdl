@@ -1,4 +1,4 @@
-/* 
+/*
 
 Copyright 2007 Peter Hutterer <peter@cs.unisa.edu.au>
 
@@ -46,7 +46,7 @@ typedef struct _GenericMaskRec {
     ClientPtr       client;                /* client who set the event mask */
     DeviceIntPtr    dev;
     Mask            eventMask[MAXEXTENSIONS]; /* one mask per extension */
-    struct _GenericMaskRec* next;            
+    struct _GenericMaskRec* next;
 } GenericMaskRec, *GenericMaskPtr;
 
 
@@ -57,7 +57,7 @@ typedef struct _GenericMaskRec {
  */
 typedef struct _GEExtension {
     void (*evswap)(xGenericEvent* from, xGenericEvent* to);
-    void (*evfill)(xGenericEvent* ev, 
+    void (*evfill)(xGenericEvent* ev,
                     DeviceIntPtr pDev,  /* device */
                     WindowPtr pWin,     /* event window */
                     GrabPtr pGrab       /* current grab, may be NULL */
@@ -101,12 +101,12 @@ void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
 void GERegisterExtension(
         int extension,
         void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to),
-        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev, 
+        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
                         WindowPtr pWin, GrabPtr pGrab)
         );
 
 void GEInitEvent(xGenericEvent* ev, int extension);
-BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev, 
+BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
                        int extension, Mask mask);
 
 void GEExtensionInit(void);
