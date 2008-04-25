@@ -343,7 +343,7 @@ unsigned	tmp;
 	case XkbSA_SetMods: case XkbSA_LatchMods: case XkbSA_LockMods:
 	    if (act->mods.flags&XkbSA_UseModMapMods)
 		act->mods.real_mods= act->mods.mask= mods;
-	    if ((tmp= XkbModActionVMods(&act->mods))!=0) {
+	    if ((tmp= act->mods.vmods)!=0) {
 		XkbVirtualModsToReal(xkb,tmp,&tmp);
 		act->mods.mask|= tmp;
 	    }
@@ -351,7 +351,7 @@ unsigned	tmp;
 	case XkbSA_ISOLock:
 	    if (act->iso.flags&XkbSA_UseModMapMods)
 		act->iso.real_mods= act->iso.mask= mods;
-	    if ((tmp= XkbModActionVMods(&act->iso))!=0) {
+	    if ((tmp= act->iso.vmods)!=0) {
 		XkbVirtualModsToReal(xkb,tmp,&tmp);
 		act->iso.mask|= tmp;
 	    }
@@ -666,7 +666,7 @@ unsigned int	tmp;
 
     switch (act->type) {
 	case XkbSA_SetMods: case XkbSA_LatchMods: case XkbSA_LockMods:
-	    if (((tmp= XkbModActionVMods(&act->mods))&changed)!=0) {
+	    if (((tmp= act->mods.vmods)&changed)!=0) {
 		XkbVirtualModsToReal(xkb,tmp,&tmp);
 		act->mods.mask= act->mods.real_mods;
 		act->mods.mask|= tmp;
@@ -674,7 +674,7 @@ unsigned int	tmp;
 	    }
 	    break;
 	case XkbSA_ISOLock:
-	    if ((((tmp= XkbModActionVMods(&act->iso))!=0)&changed)!=0) {
+	    if ((((tmp= act->iso.vmods)!=0)&changed)!=0) {
 		XkbVirtualModsToReal(xkb,tmp,&tmp);
 		act->iso.mask= act->iso.real_mods;
 		act->iso.mask|= tmp;

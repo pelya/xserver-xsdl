@@ -678,7 +678,7 @@ XkbModAction *	act;
 unsigned	tmp;
 
     act= &action->mods;
-    tmp= XkbModActionVMods(act);
+    tmp= act->vmods;
     TryCopyStr(buf,"modifiers=",sz);
     if (act->flags&XkbSA_UseModMapMods)
 	  TryCopyStr(buf,"modMapMods",sz);
@@ -818,7 +818,7 @@ char		tbuf[64];
     }
     else {
 	unsigned tmp;
-	tmp= XkbModActionVMods(act);
+	tmp= act->vmods;
 	TryCopyStr(buf,"modifiers=",sz);
 	if (act->flags&XkbSA_UseModMapMods)
 	     TryCopyStr(buf,"modMapMods",sz);

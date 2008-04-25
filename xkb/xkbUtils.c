@@ -183,13 +183,13 @@ register unsigned	tmp;
 	case XkbSA_SetMods: case XkbSA_LatchMods: case XkbSA_LockMods:
 	    if (act->mods.flags&XkbSA_UseModMapMods)
 		act->mods.real_mods= act->mods.mask= mods;
-	    if ((tmp= XkbModActionVMods(&act->mods))!=0)
+	    if ((tmp= act->mods.vmods)!=0)
 		act->mods.mask|= XkbMaskForVMask(xkb,tmp);
 	    break;
 	case XkbSA_ISOLock:
 	    if (act->iso.flags&XkbSA_UseModMapMods)
 		act->iso.real_mods= act->iso.mask= mods;
-	    if ((tmp= XkbModActionVMods(&act->iso))!=0)
+	    if ((tmp= act->iso.vmods)!=0)
 		act->iso.mask|= XkbMaskForVMask(xkb,tmp);
 	    break;
     }

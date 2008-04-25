@@ -123,14 +123,8 @@ typedef struct _XkbModAction {
 	unsigned char	flags;
 	unsigned char	mask;
 	unsigned char	real_mods;
-        /* FIXME: Make this an int. */
-	unsigned char	vmods1;
-	unsigned char	vmods2;
+        unsigned int    vmods;
 } XkbModAction;
-#define	XkbModActionVMods(a) ((short) (((a)->vmods1 << 8) | (a)->vmods2))
-#define	XkbSetModActionVMods(a,v) \
-	((a)->vmods1 = (((v) >> 8) & 0xff), \
-         (a)->vmods2 = (v) & 0xff)
 
 typedef struct _XkbGroupAction {
 	unsigned char	type;
@@ -149,8 +143,7 @@ typedef struct _XkbISOAction {
         /* FIXME: Make this an int. */
 	char		group_XXX;
 	unsigned char	affect;
-	unsigned char	vmods1;
-	unsigned char	vmods2;
+	unsigned int	vmods;
 } XkbISOAction;
 
 typedef struct _XkbPtrAction {

@@ -457,8 +457,7 @@ XkbAction               *act;
             act->mods.flags = wire.actionData[0];
             act->mods.mask = wire.actionData[1];
             act->mods.real_mods = wire.actionData[2];
-            act->mods.vmods1 = wire.actionData[3];
-            act->mods.vmods2 = wire.actionData[4];
+            act->mods.vmods = (wire.actionData[3] << 8) | wire.actionData[4];
             break;
         case XkbSA_SetGroup:
         case XkbSA_LatchGroup:
@@ -497,8 +496,7 @@ XkbAction               *act;
             act->iso.real_mods = wire.actionData[2];
             act->iso.group_XXX = wire.actionData[3];
             act->iso.affect = wire.actionData[4];
-            act->iso.vmods1 = wire.actionData[5];
-            act->iso.vmods2 = wire.actionData[6];
+            act->iso.vmods = (wire.actionData[5] << 8) | wire.actionData[6];
             break;
         case XkbSA_SwitchScreen:
             act->screen.flags = wire.actionData[0];
