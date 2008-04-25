@@ -6435,10 +6435,31 @@ SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
     return TRUE;
 }
 
-/* PickPointer will pick an appropriate pointer for the given client.  */
+/* PickPointer will pick an appropriate pointer for the given client.
+ *
+ * An "appropriate device" is (in order of priority):
+ *  1) A device the given client has a core grab on.
+ *  2) A device set as ClientPointer for the given client.
+ *  3) The first master device.
+ */
 _X_EXPORT DeviceIntPtr
 PickPointer(ClientPtr client)
 {
+    DeviceIntPtr it = inputInfo.devices;
+
+    /* First, check if the client currently has a grab on a device. Even
+     * keyboards count. */
+    for(it = inputInfo.devices; it; it = it->next)
+    {
+        GrabPtr grab = it->deviceGrab.grab;
+        if (grab && grab->coreGrab && SameClient(grab, client))
+        {
+            if (!IsPointerDevice(it))
+                it = GetPairedDevice(it);
+            return it; /* Always return a core grabbed device */
+        }
+    }
+
     if (!client->clientPtr)
     {
         DeviceIntPtr it = inputInfo.devices;
