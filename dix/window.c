@@ -367,7 +367,6 @@ CreateRootWindow(ScreenPtr pScreen)
     WindowPtr	pWin;
     BoxRec	box;
     PixmapFormatRec *format;
-    FocusSemaphoresPtr sem;
 
     pWin = (WindowPtr)xalloc(sizeof(WindowRec));
     if (!pWin)
