@@ -52,17 +52,13 @@
 
 #include <X11/Xfuncproto.h>
 #include <X11/Xmd.h>
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#endif
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Xinput.h"
-#ifdef XINPUT
 #include "XIstubs.h"
 #include "xf86Optrec.h"
-#endif
 #include "mipointer.h"
 #include "xf86InPriv.h"
 
@@ -193,7 +189,6 @@ xf86ActivateDevice(LocalDevicePtr local)
 }
 
 
-#ifdef XINPUT
 /***********************************************************************
  *
  * Caller:	ProcXOpenDevice
@@ -322,7 +317,6 @@ void
 AddOtherInputDevices()
 {
 }
-#endif
 
 int
 NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)

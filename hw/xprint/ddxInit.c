@@ -284,8 +284,6 @@ ddxProcessArgument (
     return(0);
 }
 
-#ifdef XINPUT
-
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
@@ -372,8 +370,6 @@ SetDeviceValuators (
     return BadMatch;
 }
 
-
-#endif /* XINPUT */
 
 #ifdef AIXV3
 /*

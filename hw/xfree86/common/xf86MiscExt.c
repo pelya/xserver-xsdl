@@ -48,13 +48,9 @@
 #define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
 
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "xf86Xinput.h"
-#else
-#include "inputstr.h"
-#endif
 
 #include "xf86OSmouse.h"
 

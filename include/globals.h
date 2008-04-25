@@ -151,9 +151,7 @@ extern Bool noXkbExtension;
 extern Bool noPanoramiXExtension;
 #endif
 
-#ifdef XINPUT
 extern Bool noXInputExtension;
-#endif
 
 #ifdef XIDLE
 extern Bool noXIdleExtension;

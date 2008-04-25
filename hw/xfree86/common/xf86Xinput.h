@@ -57,11 +57,9 @@
 #endif
 #include "xf86str.h"
 #include "inputstr.h"
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#endif
 
 /* Input device flags */
 #define XI86_OPEN_ON_INIT       0x01 /* open the device at startup time */
@@ -89,7 +87,6 @@
 #define TS_Raw 60
 #define TS_Scaled 61
 
-#ifdef XINPUT
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int			    driverVersion;
@@ -103,7 +100,6 @@ typedef struct _InputDriverRec {
     pointer		    module;
     int			    refCount;
 } InputDriverRec, *InputDriverPtr;
-#endif
 
 /* This is to input devices what the ScrnInfoRec is to screens. */
 

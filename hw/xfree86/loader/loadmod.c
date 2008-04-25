@@ -59,9 +59,7 @@
 #include "misc.h"
 #include "xf86.h"
 #include "xf86Priv.h"
-#ifdef XINPUT
 #include "xf86Xinput.h"
-#endif
 #include "loader.h"
 #include "xf86Optrec.h"
 

@@ -1004,7 +1004,7 @@ DAMAGE_INC='-I$(top_srcdir)/damageext'
 MIEXT_DAMAGE_LIB='$(top_builddir)/miext/damage/libdamage.la'
 MIEXT_DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 
-AC_DEFINE(XINPUT, 1, [Support X Input extension])
+# XINPUT extension is integral part of the server
 XI_LIB='$(top_builddir)/Xi/libXi.la'
 XI_INC='-I$(top_srcdir)/Xi'
 

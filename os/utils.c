@@ -214,9 +214,7 @@ _X_EXPORT Bool noXFixesExtension = FALSE;
 /* Xinerama is disabled by default unless enabled via +xinerama */
 _X_EXPORT Bool noPanoramiXExtension = TRUE;
 #endif
-#ifdef XINPUT
 _X_EXPORT Bool noXInputExtension = FALSE;
-#endif
 #ifdef XIDLE
 _X_EXPORT Bool noXIdleExtension = FALSE;
 #endif

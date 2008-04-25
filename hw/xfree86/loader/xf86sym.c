@@ -64,9 +64,7 @@
 #include "xf86_OSproc.h"
 #include "xf86Parser.h"
 #include "xf86Config.h"
-#ifdef XINPUT
 # include "xf86Xinput.h"
-#endif
 #include "xf86OSmouse.h"
 #ifdef XV
 #include "xf86xv.h"
@@ -291,14 +289,12 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86UnbindGARTMemory)
     SYMFUNC(xf86EnableAGP)
     SYMFUNC(xf86GARTCloseScreen)
-#ifdef XINPUT
     SYMFUNC(XisbNew)
     SYMFUNC(XisbFree)
     SYMFUNC(XisbRead)
     SYMFUNC(XisbWrite)
     SYMFUNC(XisbTrace)
     SYMFUNC(XisbBlockDuration)
-#endif
 
     /* xf86Bus.c */
     SYMFUNC(xf86CheckPciSlot)
@@ -673,7 +669,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(GetTimeInMillis)
 
     /* xf86Xinput.c */
-#ifdef XINPUT
     SYMFUNC(xf86ProcessCommonOptions)
     SYMFUNC(xf86PostMotionEvent)
     SYMFUNC(xf86PostProximityEvent)
@@ -684,7 +679,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ActivateDevice)
     SYMFUNC(xf86XInputSetScreen)
     SYMFUNC(xf86ScaleAxis)
-#endif
 #ifdef DPMSExtension
     SYMFUNC(DPMSGet)
     SYMFUNC(DPMSSet)

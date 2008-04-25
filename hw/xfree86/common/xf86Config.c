@@ -62,10 +62,8 @@
 #include "extension.h"
 #include "Pci.h"
 
-#ifdef XINPUT
 #include "xf86Xinput.h"
 extern DeviceAssocRec mouse_assoc;
-#endif
 
 #ifdef XKB
 #undef XKB_IN_SERVER

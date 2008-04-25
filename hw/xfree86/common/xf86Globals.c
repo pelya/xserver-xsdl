@@ -100,9 +100,7 @@ xf86InfoRec xf86Info = {
 	FALSE,		/* vtSysreq */
 	SKWhenNeeded,	/* ddxSpecialKeys */
 	NULL,		/* pMouse */
-#ifdef XINPUT
 	NULL,		/* mouseLocal */
-#endif
 	-1,		/* lastEventTime */
 	FALSE,		/* vtRequestsPending */
 	FALSE,		/* inputPending */

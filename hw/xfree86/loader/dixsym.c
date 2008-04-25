@@ -422,9 +422,9 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef PANORAMIX
     SYMVAR(noPanoramiXExtension)
 #endif
-#ifdef XINPUT
+
     SYMVAR(noXInputExtension)
-#endif
+
 #ifdef XIDLE
     SYMVAR(noXIdleExtension)
 #endif
@@ -481,14 +481,12 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(XkbDfltRepeatInterval)
 #endif
 
-#ifdef XINPUT
     /* Xi */
     /* exevents.c */
     SYMFUNC(InitValuatorAxisStruct)
     SYMFUNC(InitProximityClassDeviceStruct)
     /* extinit.c */
     SYMFUNC(AssignTypeAndName)
-#endif
 
     /* xf86DGA.c */
     /* XXX This is exported from the DDX, not DIX. */

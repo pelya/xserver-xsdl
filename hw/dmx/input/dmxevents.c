@@ -57,9 +57,7 @@
 #include "mipointer.h"
 #include "mi.h"
 
-#ifdef XINPUT
 #include "XIstubs.h"
-#endif
 
 static int  dmxGlobalX, dmxGlobalY; /* Global cursor position */
 static int  dmxGlobalInvalid;       /* Flag indicating dmxCoreMotion
@@ -154,7 +152,6 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
     return 0;
 }
 
-#ifdef XINPUT
 static void dmxEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal, xEvent *e,
                                DMXBlockType block)
 {
@@ -208,7 +205,6 @@ static void dmxEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal, xEvent *e,
     if (block)
         dmxSigioUnblock();
 }
-#endif
 
 DMXScreenInfo *dmxFindFirstScreen(int x, int y)
 {
@@ -331,7 +327,6 @@ dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
 
 
 
-#ifdef XINPUT
 #define DMX_MAX_AXES 32         /* Max axes reported by this routine */
 static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
                          int *v, int firstAxis, int axesCount,
@@ -537,7 +532,6 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     }
     return 0;
 }
-#endif
 
 static int dmxGetButtonMapping(DMXLocalInputInfoPtr dmxLocal, int button)
 {
@@ -578,14 +572,12 @@ void dmxInvalidateGlobalPosition(void)
 void dmxMotion(DevicePtr pDev, int *v, int firstAxes, int axesCount,
                DMXMotionType type, DMXBlockType block)
 {
-#ifdef XINPUT
     GETDMXLOCALFROMPDEV;
 
     if (!dmxLocal->sendsCore) {
         dmxExtMotion(dmxLocal, v, firstAxes, axesCount, type, block);
         return;
     }
-#endif
     if (axesCount == 2) {
         switch (type) {
         case DMX_RELATIVE:
@@ -739,17 +731,13 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                  * control of the input device LEDs. */
         return;
     default:
-#ifdef XINPUT
         if (type == ProximityIn || type == ProximityOut) {
             if (dmxLocal->sendsCore)
                 return; /* Not a core event */
             break;
         }
-#endif
         if (type >= LASTEvent) {
-#ifdef XINPUT
             if (dmxTranslateAndEnqueueExtEvent(dmxLocal, e, block))
-#endif
                 dmxLogInput(dmxInput, "Unhandled extension event: %d\n", type);
         } else {
             dmxLogInput(dmxInput, "Unhandled event: %d (%s)\n",
@@ -764,11 +752,9 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     xE.u.u.detail              = detail;
     xE.u.keyButtonPointer.time = GetTimeInMillis();
 
-#ifdef XINPUT
     if (!dmxLocal->sendsCore)
         dmxEnqueueExtEvent(dmxLocal, &xE, block);
     else
-#endif
         dmxeqEnqueue(&xE);
 #endif /*00*/
 }

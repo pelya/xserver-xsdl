@@ -197,9 +197,7 @@ extern Bool noPanoramiXExtension;
 #ifdef INXQUARTZ
 extern Bool noPseudoramiXExtension;
 #endif
-#ifdef XINPUT
 extern Bool noXInputExtension;
-#endif
 #ifdef XIDLE
 extern Bool noXIdleExtension;
 #endif
@@ -262,9 +260,7 @@ extern void PanoramiXExtensionInit(INITARGS);
 #ifdef INXQUARTZ
 extern void PseudoramiXExtensionInit(INITARGS);
 #endif
-#ifdef XINPUT
 extern void XInputExtensionInit(INITARGS);
-#endif
 #ifdef XTEST
 extern void XTestExtensionInit(INITARGS);
 #endif
@@ -448,9 +444,7 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef PANORAMIX
     { "XINERAMA", &noPanoramiXExtension },
 #endif
-#ifdef XINPUT
     { "XInputExtension", &noXInputExtension },
-#endif
 #ifdef XKB
     { "XKEYBOARD", &noXkbExtension },
 #endif
@@ -632,9 +626,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef MITSHM
     { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif
-#ifdef XINPUT
     { XInputExtensionInit, "XInputExtension", &noXInputExtension, NULL, NULL },
-#endif
 #ifdef XTEST
     { XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL },
 #endif

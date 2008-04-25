@@ -71,12 +71,8 @@
 #include "xf86Date.h"
 #include "xf86Build.h"
 #include "mipointer.h"
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#else
-#include "inputstr.h"
-#endif
 #include "xf86DDC.h"
 #include "xf86Xinput.h"
 #include "xf86InPriv.h"

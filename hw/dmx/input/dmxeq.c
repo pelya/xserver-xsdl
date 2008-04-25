@@ -79,10 +79,8 @@
 #include "inputstr.h"
 #include "scrnintstr.h"         /* For screenInfo */
 
-#ifdef XINPUT
 #include <X11/extensions/XIproto.h>
 #define EXTENSION_PROC_ARGS void *
-#endif
 
 #if DMX_EQ_DEBUG
 #define DMXDBG2(f,a,b)           dmxLog(dmxDebug,f,a,b)
@@ -100,9 +98,7 @@
 typedef struct _Event {
     xEvent	   event;    /**< Event. */
     ScreenPtr	   pScreen;  /**< Screen on which event occurred. */
-#ifdef XINPUT
     deviceValuator valuator; /**< XInput device valuator information. */
-#endif
 } EventRec, *EventPtr;
 
 /** Event queue. */
@@ -183,15 +179,11 @@ void dmxeqEnqueue(xEvent *e)
 
                                 /* Store the event in the queue */
     dmxEventQueue.events[oldtail].event   = *e;
-#ifdef XINPUT
-    {
-                                /* If this is an XInput event, store the
-                                 * valuator event, too */
-        deviceKeyButtonPointer *ev = (deviceKeyButtonPointer *)e;
-        if (e->u.u.type >= LASTEvent && (ev->deviceid & MORE_EVENTS))
-            dmxEventQueue.events[oldtail].valuator = *(deviceValuator *)(ev+1);
-    }
-#endif
+                            /* If this is an XInput event, store the
+                             * valuator event, too */
+    deviceKeyButtonPointer *ev = (deviceKeyButtonPointer *)e;
+    if (e->u.u.type >= LASTEvent && (ev->deviceid & MORE_EVENTS))
+        dmxEventQueue.events[oldtail].valuator = *(deviceValuator *)(ev+1);
 
                                 /* Make sure that event times don't go
                                  * backwards - this is "unnecessary",
@@ -211,7 +203,6 @@ void dmxeqSwitchScreen(ScreenPtr pScreen, Bool fromDIX)
     if (fromDIX) dmxEventQueue.pDequeueScreen = pScreen;
 }
 
-#ifdef XINPUT
 static void dmxeqProcessXInputEvent(xEvent *xe, EventRec *e)
 {
     deviceKeyButtonPointer *ev     = (deviceKeyButtonPointer *)xe;
@@ -238,7 +229,6 @@ static void dmxeqProcessXInputEvent(xEvent *xe, EventRec *e)
         pDevice->public.processInputProc(xe, pDevice, 1);
     }
 }
-#endif
 
 /**
  * This function is called from #ProcessInputEvents() to remove events
@@ -285,11 +275,8 @@ void dmxeqProcessInputEvents(void)
                                        (DeviceIntPtr)dmxEventQueue.pKbd, 1);
 	    	break;
             default:
-#ifdef XINPUT
                 dmxeqProcessXInputEvent(xe, e);
                 break;
-#endif
-                /* ifndef XINPUT, fall through */
             case ButtonPress:
             case ButtonRelease:
             case MotionNotify:

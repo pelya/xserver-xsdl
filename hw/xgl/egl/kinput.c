@@ -612,7 +612,6 @@ eglInitInput(KdMouseFuncs    *pMouseFuncs,
     RegisterKeyboardDevice(pKeyboard);
     miRegisterPointerDevice(screenInfo.screens[0], pPointer);
     mieqInit(&pKeyboard->public, &pPointer->public);
-#ifdef XINPUT
     {
 	static long zero1, zero2;
 
@@ -620,7 +619,6 @@ eglInitInput(KdMouseFuncs    *pMouseFuncs,
 	ErrorF("Extended Input Devices not yet supported. Impelement it at line %d in %s\n",
 	       __LINE__, __FILE__);
     }
-#endif
 }
 
 /*

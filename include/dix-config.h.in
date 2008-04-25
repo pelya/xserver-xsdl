@@ -371,9 +371,6 @@
 /* Support Xinerama extension */
 #undef XINERAMA
 
-/* Support X Input extension */
-#undef XINPUT
-
 /* Build XKB */
 #undef XKB
 

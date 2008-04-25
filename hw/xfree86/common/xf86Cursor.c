@@ -44,10 +44,8 @@
 #include "xf86Priv.h"
 #include "xf86_OSproc.h"
 
-#ifdef XINPUT
 #include <X11/extensions/XIproto.h>
 #include "xf86Xinput.h"
-#endif
 
 #ifdef XFreeXDGA
 #include "dgaproc.h"

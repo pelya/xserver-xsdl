@@ -80,9 +80,7 @@ typedef struct {
 
     /* mouse part */
     DeviceIntPtr	pMouse;
-#ifdef XINPUT
     pointer		mouseLocal;
-#endif
 
     /* event handler part */
     int			lastEventTime;

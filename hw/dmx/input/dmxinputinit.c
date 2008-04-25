@@ -73,13 +73,11 @@
 #include "windowstr.h"
 #include "mi.h"
 
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #define EXTENSION_PROC_ARGS void *
 #include "extinit.h"
-#endif
 
 /* From XI.h */
 #ifndef Relative
@@ -462,9 +460,7 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
     GETDMXINPUTFROMPDEVICE;
     int              fd;
     DMXLocalInitInfo info;
-#ifdef XINPUT
     int              i;
-#endif
     
     if (dmxInput->detached) return Success;
 
@@ -504,41 +500,33 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                               GetMaximumEventsNum(),
 #endif
                                               Relative);
-#ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
                                            info.maxval[0], info.res[0],
                                            info.minres[0], info.maxres[0]);
-#endif
             } else if (info.numRelAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
                                               dmxPointerGetMotionEvents,
                                               dmxPointerGetMotionBufferSize(),
                                               Relative);
-#ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
                                            info.maxval[0], info.res[0],
                                            info.minres[0], info.maxres[0]);
-#endif
             } else if (info.numAbsAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numAbsAxes,
                                               dmxPointerGetMotionEvents,
                                               dmxPointerGetMotionBufferSize(),
                                               Absolute);
-#ifdef XINPUT
                 for (i = 0; i < info.numAbsAxes; i++)
                     InitValuatorAxisStruct(pDevice, i+info.numRelAxes,
                                            info.minval[i+1], info.maxval[i+1],
                                            info.res[i+1], info.minres[i+1],
                                            info.maxres[i+1]);
-#endif
             }
         }
         if (info.focusClass)       InitFocusClassDeviceStruct(pDevice);
-#ifdef XINPUT
         if (info.proximityClass)   InitProximityClassDeviceStruct(pDevice);
-#endif
         if (info.ptrFeedbackClass)
             InitPtrFeedbackClassDeviceStruct(pDevice, dmxChangePointerControl);
         if (info.kbdFeedbackClass)
@@ -759,17 +747,10 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
         }
     }
 
-#ifdef XINPUT
     if (!name) {
         name            = "extension";
         registerProcPtr = RegisterOtherDevice;
     }
-#else
-    if (!name)
-        dmxLog(dmxFatal,
-               "Server not build with XINPUT support (cannot add %s)\n",
-               dmxLocal->name);
-#endif
 
     if (!name || !registerProcPtr)
         dmxLog(dmxFatal, "Cannot add device %s\n", dmxLocal->name);
