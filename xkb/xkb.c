@@ -5964,10 +5964,8 @@ Bool			classOk;
 	}
     }
     if (nFBs>0) {
-	if (rep->supported&XkbXI_IndicatorsMask) {
-	    rep->nDeviceLedFBs= nFBs;
-	    rep->length+= (length/4);
-	}
+        rep->nDeviceLedFBs= nFBs;
+        rep->length+= (length/4);
 	return Success;
     }
     if (classOk) client->errorValue= _XkbErrCode2(XkbErr_BadId,id);
@@ -6091,7 +6089,7 @@ xkbGetDeviceInfoReply	rep;
 int			status,nDeviceLedFBs;
 unsigned		length,nameLen;
 CARD16			ledClass,ledID;
-unsigned		wanted,supported;
+unsigned		wanted;
 char *			str;
 
     REQUEST(xkbGetDeviceInfoReq);
@@ -6182,7 +6180,6 @@ char *			str;
 	    return status;
     }
     length= rep.length*4;
-    supported= rep.supported;
     nDeviceLedFBs = rep.nDeviceLedFBs;
     if (client->swapped) {
 	register int n;
@@ -6221,19 +6218,6 @@ char *			str;
 	ErrorF("[xkb] Internal Error!  BadLength in ProcXkbGetDeviceInfo\n");
 	ErrorF("[xkb]                  Wrote %d fewer bytes than expected\n",length);
 	return BadLength;
-    }
-    if (stuff->wanted&(~supported)) {
-	xkbExtensionDeviceNotify ed;
-	bzero((char *)&ed,SIZEOF(xkbExtensionDeviceNotify));
-	ed.ledClass=		ledClass;
-	ed.ledID=		ledID;
-	ed.ledsDefined= 	0;
-	ed.ledState=		0;
-	ed.firstBtn= ed.nBtns=	0;
-	ed.reason=		XkbXI_UnsupportedFeatureMask;
-	ed.supported=		supported;
-	ed.unsupported=		stuff->wanted&(~supported);
-	XkbSendExtensionDeviceNotify(dev,client,&ed);
     }
     return client->noClientException;
 }

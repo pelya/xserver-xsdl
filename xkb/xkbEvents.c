@@ -667,7 +667,7 @@ int		 initialized;
 XkbInterestPtr	 interest;
 Time 		 time = 0;
 CARD32		 defined, state;
-CARD16		 reason, supported = 0;
+CARD16		 reason;
 
     interest = dev->xkb_interest;
     if (!interest)
@@ -688,7 +688,6 @@ CARD16		 reason, supported = 0;
 		pEv->deviceID = dev->id;
 		pEv->sequenceNumber = interest->client->sequence;
 		pEv->time = time = GetTimeInMillis();
-		supported= pEv->supported;
 		initialized= 1;
 	    }
 	    else {
@@ -697,14 +696,7 @@ CARD16		 reason, supported = 0;
 		pEv->ledsDefined= defined;
 		pEv->ledState= state;
 		pEv->reason= reason;
-		pEv->supported= supported;
-	    }
-	    if (client!=interest->client) {
-		/* only report UnsupportedFeature to the client that */
-		/* issued the failing request */
-		pEv->reason&= ~XkbXI_UnsupportedFeatureMask;
-		if ((interest->extDevNotifyMask&reason)==0)
-		    continue;
+		pEv->supported= XkbXI_AllFeaturesMask;
 	    }
 	    if ( interest->client->swapped ) {
 		register int n;

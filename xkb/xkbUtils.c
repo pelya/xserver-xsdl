@@ -711,8 +711,7 @@ unsigned char	grp;
     if (!state || !ctrls)
         return;
 
-    state->mods= (state->base_mods|state->latched_mods);
-    state->mods|= state->locked_mods;
+    state->mods= (state->base_mods|state->latched_mods|state->locked_mods);
     state->lookup_mods= state->mods&(~ctrls->internal.mask);
     state->grab_mods= state->lookup_mods&(~ctrls->ignore_lock.mask);
     state->grab_mods|= 

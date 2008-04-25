@@ -283,7 +283,7 @@ unsigned			oldState;
     ed->ledID=		sli->id;
     ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
     ed->ledState=	sli->effectiveState;
-    ed->unsupported|=	XkbXI_IndicatorStateMask;
+    ed->unsupported=	0;
     ed->supported=	XkbXI_AllFeaturesMask;
 
     if (changes!=&my_changes)	changes= NULL;
@@ -875,7 +875,7 @@ xkbExtensionDeviceNotify	my_ed;
     ed->ledID=		sli->id;
     ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
     ed->ledState=	sli->effectiveState;
-    ed->unsupported|=	XkbXI_IndicatorMapsMask;
+    ed->unsupported=	0;
     ed->supported=	XkbXI_AllFeaturesMask;
 
     XkbUpdateLedAutoState(dev,sli,changed_maps,ed,changes,cause);
@@ -956,7 +956,7 @@ Bool				kb_changed;
 	ed->ledID=		sli->id;
 	ed->ledsDefined=	sli->namesPresent|sli->mapsPresent;
 	ed->ledState=		sli->effectiveState;
-	ed->unsupported|=	XkbXI_IndicatorStateMask;
+	ed->unsupported=	0;
 	ed->supported=		XkbXI_AllFeaturesMask;
     }
 
