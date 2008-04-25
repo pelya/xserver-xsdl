@@ -3924,19 +3924,6 @@ WindowParentHasDeviceCursor(WindowPtr pWin,
     return FALSE;
 }
 
-/**
- * Initialize some mandatory devPrivates for windows. 
- *
- * At the moment, this includes only the enter/leave semaphore.
- *
- * Returns TRUE on success.
- */
-_X_EXPORT Bool
-InitWindowPrivates(ScreenPtr screen)
-{
-    /* obsolete with devPrivates rework */
-}
-
 #ifndef NOLOGOHACK
 static void
 DrawLogo(WindowPtr pWin)
