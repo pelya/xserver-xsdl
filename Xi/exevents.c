@@ -952,7 +952,6 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     KeyClassPtr k;
     ValuatorClassPtr v;
     deviceValuator *xV  = (deviceValuator *) xE;
-    int coretype = 0;
     int ret = 0;
 
     ret = UpdateDeviceState(device, xE, count);

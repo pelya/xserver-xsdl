@@ -48,6 +48,7 @@ from the author.
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
+#include "mipointer.h" /* for miPointerUpdateSprite */
 
 
 #include "warpdevp.h"
