@@ -166,6 +166,109 @@ static struct dev_type
 CARD8 event_base[numInputClasses];
 XExtEventInfo EventInfo[32];
 
+/**
+ * Dispatch vector. Functions defined in here will be called when the matching
+ * request arrives.
+ */
+static int (*ProcIVector[])(ClientPtr) = {
+        NULL,                                   /*  0 */
+	ProcXGetExtensionVersion,               /*  1 */
+	ProcXListInputDevices,                  /*  2 */
+	ProcXOpenDevice,                        /*  3 */
+	ProcXCloseDevice,                       /*  4 */
+	ProcXSetDeviceMode,                     /*  5 */
+	ProcXSelectExtensionEvent,              /*  6 */
+	ProcXGetSelectedExtensionEvents,        /*  7 */
+	ProcXChangeDeviceDontPropagateList,     /*  8 */
+	ProcXGetDeviceDontPropagateList,        /*  9 */
+	ProcXGetDeviceMotionEvents,             /* 10 */
+	ProcXChangeKeyboardDevice,              /* 11 */
+	ProcXChangePointerDevice,               /* 12 */
+	ProcXGrabDevice,                        /* 13 */
+	ProcXUngrabDevice,                      /* 14 */
+	ProcXGrabDeviceKey,                     /* 15 */
+	ProcXUngrabDeviceKey,                   /* 16 */
+	ProcXGrabDeviceButton,                  /* 17 */
+	ProcXUngrabDeviceButton,                /* 18 */
+	ProcXAllowDeviceEvents,                 /* 19 */
+	ProcXGetDeviceFocus,                    /* 20 */
+	ProcXSetDeviceFocus,                    /* 21 */
+	ProcXGetFeedbackControl,                /* 22 */
+	ProcXChangeFeedbackControl,             /* 23 */
+	ProcXGetDeviceKeyMapping,               /* 24 */
+	ProcXChangeDeviceKeyMapping,            /* 25 */
+	ProcXGetDeviceModifierMapping,          /* 26 */
+	ProcXSetDeviceModifierMapping,          /* 27 */
+	ProcXGetDeviceButtonMapping,            /* 28 */
+	ProcXSetDeviceButtonMapping,            /* 29 */
+	ProcXQueryDeviceState,                  /* 30 */
+	ProcXSendExtensionEvent,                /* 31 */
+	ProcXDeviceBell,                        /* 32 */
+	ProcXSetDeviceValuators,                /* 33 */
+	ProcXGetDeviceControl,                  /* 34 */
+	ProcXChangeDeviceControl,               /* 35 */
+        ProcXQueryDevicePointer,                /* 36 */
+        ProcXWarpDevicePointer,                 /* 37 */
+        ProcXChangeDeviceCursor,                /* 38 */
+        ProcXChangeDeviceHierarchy,             /* 39 */
+        ProcXiSelectEvent,                      /* 40 */
+        ProcXChangeWindowAccess,                /* 41 */
+        ProcXQueryWindowAccess,                 /* 42 */
+        ProcXSetClientPointer,                  /* 43 */
+        ProcXGetClientPointer,                  /* 44 */
+        ProcXExtendedGrabDevice                 /* 45 */
+};
+
+/* For swapped clients */
+static int (*SProcIVector[])(ClientPtr) = {
+        NULL,                                    /*  0 */
+	SProcXGetExtensionVersion,               /*  1 */
+	SProcXListInputDevices,                  /*  2 */
+	SProcXOpenDevice,                        /*  3 */
+	SProcXCloseDevice,                       /*  4 */
+	SProcXSetDeviceMode,                     /*  5 */
+	SProcXSelectExtensionEvent,              /*  6 */
+	SProcXGetSelectedExtensionEvents,        /*  7 */
+	SProcXChangeDeviceDontPropagateList,     /*  8 */
+	SProcXGetDeviceDontPropagateList,        /*  9 */
+	SProcXGetDeviceMotionEvents,             /* 10 */
+	SProcXChangeKeyboardDevice,              /* 11 */
+	SProcXChangePointerDevice,               /* 12 */
+	SProcXGrabDevice,                        /* 13 */
+	SProcXUngrabDevice,                      /* 14 */
+	SProcXGrabDeviceKey,                     /* 15 */
+	SProcXUngrabDeviceKey,                   /* 16 */
+	SProcXGrabDeviceButton,                  /* 17 */
+	SProcXUngrabDeviceButton,                /* 18 */
+	SProcXAllowDeviceEvents,                 /* 19 */
+	SProcXGetDeviceFocus,                    /* 20 */
+	SProcXSetDeviceFocus,                    /* 21 */
+	SProcXGetFeedbackControl,                /* 22 */
+	SProcXChangeFeedbackControl,             /* 23 */
+	SProcXGetDeviceKeyMapping,               /* 24 */
+	SProcXChangeDeviceKeyMapping,            /* 25 */
+	SProcXGetDeviceModifierMapping,          /* 26 */
+	SProcXSetDeviceModifierMapping,          /* 27 */
+	SProcXGetDeviceButtonMapping,            /* 28 */
+	SProcXSetDeviceButtonMapping,            /* 29 */
+	SProcXQueryDeviceState,                  /* 30 */
+	SProcXSendExtensionEvent,                /* 31 */
+	SProcXDeviceBell,                        /* 32 */
+	SProcXSetDeviceValuators,                /* 33 */
+	SProcXGetDeviceControl,                  /* 34 */
+	SProcXChangeDeviceControl,               /* 35 */
+        SProcXQueryDevicePointer,                /* 36 */
+        SProcXWarpDevicePointer,                 /* 37 */
+        SProcXChangeDeviceCursor,                /* 38 */
+        SProcXChangeDeviceHierarchy,             /* 39 */
+        SProcXiSelectEvent,                      /* 40 */
+        SProcXChangeWindowAccess,                /* 41 */
+        SProcXQueryWindowAccess,                 /* 42 */
+        SProcXSetClientPointer,                  /* 43 */
+        SProcXGetClientPointer,                  /* 44 */
+        SProcXExtendedGrabDevice                 /* 45 */
+};
+
 /*****************************************************************
  *
  * Globals referenced elsewhere in the server.
@@ -246,100 +349,10 @@ static int
 ProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data == X_GetExtensionVersion)
-	return (ProcXGetExtensionVersion(client));
-    if (stuff->data == X_ListInputDevices)
-	return (ProcXListInputDevices(client));
-    else if (stuff->data == X_OpenDevice)
-	return (ProcXOpenDevice(client));
-    else if (stuff->data == X_CloseDevice)
-	return (ProcXCloseDevice(client));
-    else if (stuff->data == X_SetDeviceMode)
-	return (ProcXSetDeviceMode(client));
-    else if (stuff->data == X_SelectExtensionEvent)
-	return (ProcXSelectExtensionEvent(client));
-    else if (stuff->data == X_GetSelectedExtensionEvents)
-	return (ProcXGetSelectedExtensionEvents(client));
-    else if (stuff->data == X_ChangeDeviceDontPropagateList)
-	return (ProcXChangeDeviceDontPropagateList(client));
-    else if (stuff->data == X_GetDeviceDontPropagateList)
-	return (ProcXGetDeviceDontPropagateList(client));
-    else if (stuff->data == X_GetDeviceMotionEvents)
-	return (ProcXGetDeviceMotionEvents(client));
-    else if (stuff->data == X_ChangeKeyboardDevice)
-	return (ProcXChangeKeyboardDevice(client));
-    else if (stuff->data == X_ChangePointerDevice)
-	return (ProcXChangePointerDevice(client));
-    else if (stuff->data == X_GrabDevice)
-	return (ProcXGrabDevice(client));
-    else if (stuff->data == X_UngrabDevice)
-	return (ProcXUngrabDevice(client));
-    else if (stuff->data == X_GrabDeviceKey)
-	return (ProcXGrabDeviceKey(client));
-    else if (stuff->data == X_UngrabDeviceKey)
-	return (ProcXUngrabDeviceKey(client));
-    else if (stuff->data == X_GrabDeviceButton)
-	return (ProcXGrabDeviceButton(client));
-    else if (stuff->data == X_UngrabDeviceButton)
-	return (ProcXUngrabDeviceButton(client));
-    else if (stuff->data == X_AllowDeviceEvents)
-	return (ProcXAllowDeviceEvents(client));
-    else if (stuff->data == X_GetDeviceFocus)
-	return (ProcXGetDeviceFocus(client));
-    else if (stuff->data == X_SetDeviceFocus)
-	return (ProcXSetDeviceFocus(client));
-    else if (stuff->data == X_GetFeedbackControl)
-	return (ProcXGetFeedbackControl(client));
-    else if (stuff->data == X_ChangeFeedbackControl)
-	return (ProcXChangeFeedbackControl(client));
-    else if (stuff->data == X_GetDeviceKeyMapping)
-	return (ProcXGetDeviceKeyMapping(client));
-    else if (stuff->data == X_ChangeDeviceKeyMapping)
-	return (ProcXChangeDeviceKeyMapping(client));
-    else if (stuff->data == X_GetDeviceModifierMapping)
-	return (ProcXGetDeviceModifierMapping(client));
-    else if (stuff->data == X_SetDeviceModifierMapping)
-	return (ProcXSetDeviceModifierMapping(client));
-    else if (stuff->data == X_GetDeviceButtonMapping)
-	return (ProcXGetDeviceButtonMapping(client));
-    else if (stuff->data == X_SetDeviceButtonMapping)
-	return (ProcXSetDeviceButtonMapping(client));
-    else if (stuff->data == X_QueryDeviceState)
-	return (ProcXQueryDeviceState(client));
-    else if (stuff->data == X_SendExtensionEvent)
-	return (ProcXSendExtensionEvent(client));
-    else if (stuff->data == X_DeviceBell)
-	return (ProcXDeviceBell(client));
-    else if (stuff->data == X_SetDeviceValuators)
-	return (ProcXSetDeviceValuators(client));
-    else if (stuff->data == X_GetDeviceControl)
-	return (ProcXGetDeviceControl(client));
-    else if (stuff->data == X_ChangeDeviceControl)
-	return (ProcXChangeDeviceControl(client));
-    else if (stuff->data == X_QueryDevicePointer)
-        return (ProcXQueryDevicePointer(client));
-    else if (stuff->data == X_WarpDevicePointer)
-        return (ProcXWarpDevicePointer(client));
-    else if (stuff->data == X_ChangeDeviceCursor)
-        return (ProcXChangeDeviceCursor(client));
-    else if (stuff->data == X_ChangeDeviceHierarchy)
-        return (ProcXChangeDeviceHierarchy(client));
-    else if (stuff->data == X_XiSelectEvent)
-        return (ProcXiSelectEvent(client));
-    else if (stuff->data == X_ChangeWindowAccess)
-        return (ProcXChangeWindowAccess(client));
-    else if (stuff->data == X_QueryWindowAccess)
-        return ProcXQueryWindowAccess(client);
-    else if (stuff->data == X_SetClientPointer)
-        return ProcXSetClientPointer(client);
-    else if (stuff->data == X_GetClientPointer)
-        return ProcXGetClientPointer(client);
-    else if (stuff->data == X_ExtendedGrabDevice)
-        return ProcXExtendedGrabDevice(client);
-    else {
-	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
-    }
-    return (BadRequest);
+    if (stuff->data > IREQUESTS || !ProcIVector[stuff->data])
+        return BadRequest;
+
+    return (*ProcIVector[stuff->data])(client);
 }
 
 /*******************************************************************************
@@ -355,100 +368,10 @@ static int
 SProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data == X_GetExtensionVersion)
-	return (SProcXGetExtensionVersion(client));
-    if (stuff->data == X_ListInputDevices)
-	return (SProcXListInputDevices(client));
-    else if (stuff->data == X_OpenDevice)
-	return (SProcXOpenDevice(client));
-    else if (stuff->data == X_CloseDevice)
-	return (SProcXCloseDevice(client));
-    else if (stuff->data == X_SetDeviceMode)
-	return (SProcXSetDeviceMode(client));
-    else if (stuff->data == X_SelectExtensionEvent)
-	return (SProcXSelectExtensionEvent(client));
-    else if (stuff->data == X_GetSelectedExtensionEvents)
-	return (SProcXGetSelectedExtensionEvents(client));
-    else if (stuff->data == X_ChangeDeviceDontPropagateList)
-	return (SProcXChangeDeviceDontPropagateList(client));
-    else if (stuff->data == X_GetDeviceDontPropagateList)
-	return (SProcXGetDeviceDontPropagateList(client));
-    else if (stuff->data == X_GetDeviceMotionEvents)
-	return (SProcXGetDeviceMotionEvents(client));
-    else if (stuff->data == X_ChangeKeyboardDevice)
-	return (SProcXChangeKeyboardDevice(client));
-    else if (stuff->data == X_ChangePointerDevice)
-	return (SProcXChangePointerDevice(client));
-    else if (stuff->data == X_GrabDevice)
-	return (SProcXGrabDevice(client));
-    else if (stuff->data == X_UngrabDevice)
-	return (SProcXUngrabDevice(client));
-    else if (stuff->data == X_GrabDeviceKey)
-	return (SProcXGrabDeviceKey(client));
-    else if (stuff->data == X_UngrabDeviceKey)
-	return (SProcXUngrabDeviceKey(client));
-    else if (stuff->data == X_GrabDeviceButton)
-	return (SProcXGrabDeviceButton(client));
-    else if (stuff->data == X_UngrabDeviceButton)
-	return (SProcXUngrabDeviceButton(client));
-    else if (stuff->data == X_AllowDeviceEvents)
-	return (SProcXAllowDeviceEvents(client));
-    else if (stuff->data == X_GetDeviceFocus)
-	return (SProcXGetDeviceFocus(client));
-    else if (stuff->data == X_SetDeviceFocus)
-	return (SProcXSetDeviceFocus(client));
-    else if (stuff->data == X_GetFeedbackControl)
-	return (SProcXGetFeedbackControl(client));
-    else if (stuff->data == X_ChangeFeedbackControl)
-	return (SProcXChangeFeedbackControl(client));
-    else if (stuff->data == X_GetDeviceKeyMapping)
-	return (SProcXGetDeviceKeyMapping(client));
-    else if (stuff->data == X_ChangeDeviceKeyMapping)
-	return (SProcXChangeDeviceKeyMapping(client));
-    else if (stuff->data == X_GetDeviceModifierMapping)
-	return (SProcXGetDeviceModifierMapping(client));
-    else if (stuff->data == X_SetDeviceModifierMapping)
-	return (SProcXSetDeviceModifierMapping(client));
-    else if (stuff->data == X_GetDeviceButtonMapping)
-	return (SProcXGetDeviceButtonMapping(client));
-    else if (stuff->data == X_SetDeviceButtonMapping)
-	return (SProcXSetDeviceButtonMapping(client));
-    else if (stuff->data == X_QueryDeviceState)
-	return (SProcXQueryDeviceState(client));
-    else if (stuff->data == X_SendExtensionEvent)
-	return (SProcXSendExtensionEvent(client));
-    else if (stuff->data == X_DeviceBell)
-	return (SProcXDeviceBell(client));
-    else if (stuff->data == X_SetDeviceValuators)
-	return (SProcXSetDeviceValuators(client));
-    else if (stuff->data == X_GetDeviceControl)
-	return (SProcXGetDeviceControl(client));
-    else if (stuff->data == X_ChangeDeviceControl)
-	return (SProcXChangeDeviceControl(client));
-    else if (stuff->data == X_QueryDevicePointer)
-	return (SProcXQueryDevicePointer(client));
-    else if (stuff->data == X_WarpDevicePointer)
-	return (SProcXWarpDevicePointer(client));
-    else if (stuff->data == X_ChangeDeviceCursor)
-        return (SProcXChangeDeviceCursor(client));
-    else if (stuff->data == X_ChangeDeviceHierarchy)
-        return (SProcXChangeDeviceHierarchy(client));
-    else if (stuff->data == X_XiSelectEvent)
-        return (SProcXiSelectEvent(client));
-    else if (stuff->data == X_ChangeWindowAccess)
-        return (SProcXChangeWindowAccess(client));
-    else if (stuff->data == X_QueryWindowAccess)
-        return SProcXQueryWindowAccess(client);
-    else if (stuff->data == X_SetClientPointer)
-        return SProcXSetClientPointer(client);
-    else if (stuff->data == X_GetClientPointer)
-        return SProcXGetClientPointer(client);
-    else if (stuff->data == X_ExtendedGrabDevice)
-        return SProcXExtendedGrabDevice(client);
-    else {
-	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
-    }
-    return (BadRequest);
+    if (stuff->data > IREQUESTS || !SProcIVector[stuff->data])
+        return BadRequest;
+
+    return (*SProcIVector[stuff->data])(client);
 }
 
 /**********************************************************************
