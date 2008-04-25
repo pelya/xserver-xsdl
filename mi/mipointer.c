@@ -22,13 +22,6 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
- /* 
-  * MPX additions:
-  * Copyright © 2006 Peter Hutterer
-  * License see above.
-  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
-  *
-  */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

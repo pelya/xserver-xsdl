@@ -24,13 +24,6 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
- /* 
-  * MPX additions:
-  * Copyright © 2006 Peter Hutterer
-  * License see above.
-  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
-  *
-  */
 
 /*
  * mieq.c

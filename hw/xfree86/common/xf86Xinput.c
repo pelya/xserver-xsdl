@@ -46,15 +46,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
- /* 
-  * MPX additions:
-  * Copyright © 2006 Peter Hutterer
-  * License see above.
-  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
-  *
-  */
-
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
