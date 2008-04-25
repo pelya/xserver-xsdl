@@ -1006,8 +1006,8 @@ unsigned		vmods,vmods_mask;
 
     act= &action->redirect;
     kc= act->new_key;
-    vmods= XkbSARedirectVMods(act);
-    vmods_mask= XkbSARedirectVModsMask(act);
+    vmods= act->vmods;
+    vmods_mask= act->vmods_mask;
     if (xkb && xkb->names && xkb->names->keys && (kc<=xkb->max_key_code) &&
 				(xkb->names->keys[kc].name[0]!='\0')) {
 	char *kn;

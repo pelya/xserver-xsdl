@@ -512,10 +512,10 @@ XkbAction               *act;
             act->redirect.new_key = wire.actionData[0];
             act->redirect.mods_mask = wire.actionData[1];
             act->redirect.mods = wire.actionData[2];
-            act->redirect.vmods_mask0 = wire.actionData[3];
-            act->redirect.vmods_mask1 = wire.actionData[4];
-            act->redirect.vmods0 = wire.actionData[4];
-            act->redirect.vmods1 = wire.actionData[5];
+            act->redirect.vmods_mask = (wire.actionData[3] << 8) | \
+                                       wire.actionData[4];
+            act->redirect.vmods = (wire.actionData[5] << 8) | \
+                                  wire.actionData[6];
             break;
         case XkbSA_DeviceValuator:
             act->devval.device = wire.actionData[0];

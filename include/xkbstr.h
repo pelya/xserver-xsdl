@@ -194,22 +194,9 @@ typedef struct	_XkbRedirectKeyAction {
 	unsigned char	new_key;
 	unsigned char	mods_mask;
 	unsigned char	mods;
-        /* FIXME: Make this an int. */
-	unsigned char	vmods_mask0;
-	unsigned char	vmods_mask1;
-	unsigned char	vmods0;
-	unsigned char	vmods1;
+	unsigned int	vmods_mask;
+	unsigned int	vmods;
 } XkbRedirectKeyAction;
-
-#define	XkbSARedirectVMods(a)		((((unsigned int)(a)->vmods1)<<8)|\
-					((unsigned int)(a)->vmods0))
-/* FIXME: This is blatantly not setting vmods.   Yeesh. */
-#define	XkbSARedirectSetVMods(a,m)	(((a)->vmods_mask1=(((m)>>8)&0xff)),\
-					 ((a)->vmods_mask0=((m)&0xff)))
-#define	XkbSARedirectVModsMask(a)	((((unsigned int)(a)->vmods_mask1)<<8)|\
-					((unsigned int)(a)->vmods_mask0))
-#define	XkbSARedirectSetVModsMask(a,m)	(((a)->vmods_mask1=(((m)>>8)&0xff)),\
-					 ((a)->vmods_mask0=((m)&0xff)))
 
 typedef struct _XkbDeviceBtnAction {
 	unsigned char	type;

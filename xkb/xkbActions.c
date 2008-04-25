@@ -833,8 +833,8 @@ ProcessInputProc backupproc;
 	ev.u.u.type = KeyPress;
 	ev.u.u.detail = pAction->redirect.new_key;
 
-        mask= XkbSARedirectVModsMask(&pAction->redirect);
-        mods= XkbSARedirectVMods(&pAction->redirect);
+        mask= pAction->redirect.vmods_mask;
+        mods= pAction->redirect.vmods;
         if (mask) XkbVirtualModsToReal(xkbi->desc,mask,&mask);
         if (mods) XkbVirtualModsToReal(xkbi->desc,mods,&mods);
         mask|= pAction->redirect.mods_mask;
@@ -865,8 +865,8 @@ ProcessInputProc backupproc;
 	ev.u.u.type = KeyRelease;
 	ev.u.u.detail = filter->upAction.redirect.new_key;
 
-        mask= XkbSARedirectVModsMask(&filter->upAction.redirect);
-        mods= XkbSARedirectVMods(&filter->upAction.redirect);
+        mask= filter->upAction.redirect.vmods_mask;
+        mods= filter->upAction.redirect.vmods;
         if (mask) XkbVirtualModsToReal(xkbi->desc,mask,&mask);
         if (mods) XkbVirtualModsToReal(xkbi->desc,mods,&mods);
         mask|= filter->upAction.redirect.mods_mask;
