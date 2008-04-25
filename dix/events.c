@@ -1861,44 +1861,20 @@ AllowSome(ClientPtr client,
  * Server-side protocol handling for AllowEvents request.
  *
  * Release some events from a frozen device.
- *
- * In some cases, the grab the client has is not on the ClientPointer but on
- * some other device (see ProcGrabPointer comments). To cover this case, we
- * need to run through all devices to ensure we don't forget the device we
- * actually have a grab on.
  */
 int
 ProcAllowEvents(ClientPtr client)
 {
     TimeStamp		time;
-    DeviceIntPtr	mouse = NULL,
-			grabbed;
+    DeviceIntPtr	mouse = NULL;
     DeviceIntPtr	keybd = NULL;
-    GrabPtr		grab;
     REQUEST(xAllowEventsReq);
 
     REQUEST_SIZE_MATCH(xAllowEventsReq);
     time = ClientTimeToServerTime(stuff->time);
 
-    for (grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-    {
-        grab = grabbed->deviceGrab.grab;
-        if (grab && grab->coreGrab && SameClient(grab, client))
-        {
-            if (IsPointerDevice(grabbed))
-                mouse = grabbed;
-            else if (IsKeyboardDevice(grabbed))
-                keybd = grabbed;
-
-	    if (mouse && keybd)
-		break;
-        }
-    }
-
-    if (!mouse)
-        mouse = PickPointer(client);
-    if (!keybd)
-        keybd = PickKeyboard(client);
+    mouse = PickPointer(client);
+    keybd = PickKeyboard(client);
 
     switch (stuff->mode)
     {
@@ -5061,12 +5037,6 @@ ProcGetInputFocus(ClientPtr client)
  *
  * Sets an active grab on the client's ClientPointer and returns success
  * status to client.
- *
- * A special case of GrabPointer is when there is already a grab on some
- * device (by the same client). In this case, this grab is overwritten, and
- * the device stays as it is. This case can happen when a client has a passive
- * grab and then grabs the pointer, or when the client already has an active
- * grab and the ClientPointer was changed since.
  */
 int
 ProcGrabPointer(ClientPtr client)
@@ -5080,7 +5050,6 @@ ProcGrabPointer(ClientPtr client)
     TimeStamp time;
     Mask access_mode = DixGrabAccess;
     int rc;
-    DeviceIntPtr grabbed = NULL;
 
     REQUEST_SIZE_MATCH(xGrabPointerReq);
     UpdateCurrentTime();
@@ -5144,20 +5113,6 @@ ProcGrabPointer(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
 
-    /* Check if a the client already has a grab on a device */
-    for(grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-    {
-        if (IsPointerDevice(grabbed))
-        {
-            grab = grabbed->deviceGrab.grab;
-            if (grab && grab->coreGrab && SameClient(grab, client))
-            {
-                device = grabbed;
-                break;
-            }
-        }
-    }
-
     grab = device->deviceGrab.grab;
     /* check for
        1. other client has a grab on the device already.
@@ -5219,15 +5174,11 @@ ProcGrabPointer(ClientPtr client)
  *
  * Changes properties of the grab hold by the client. If the client does not
  * hold an active grab on the device, nothing happens.
- *
- * Works on the client's ClientPointer, but in some cases the client may have
- * a grab on a device that isn't the ClientPointer (see ProcGrabPointer
- * comments).
  */
 int
 ProcChangeActivePointerGrab(ClientPtr client)
 {
-    DeviceIntPtr device, grabbed;
+    DeviceIntPtr device;
     GrabPtr      grab;
     CursorPtr newCursor, oldCursor;
     REQUEST(xChangeActivePointerGrabReq);
@@ -5255,26 +5206,6 @@ ProcChangeActivePointerGrab(ClientPtr client)
     device = PickPointer(client);
     grab = device->deviceGrab.grab;
 
-    if (!grab || !SameClient(grab, client))
-    {
-        /* no grab on ClientPointer, or some other client has a grab on our
-         * ClientPointer, let's check if we have a pointer grab on some other
-         * device. */
-        for(grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-        {
-            if (IsPointerDevice(grabbed))
-            {
-                grab = grabbed->deviceGrab.grab;
-                if (grab && grab->coreGrab && SameClient(grab, client))
-                {
-                    device = grabbed;
-                    grab = device->deviceGrab.grab;
-                    break;
-                }
-            }
-        }
-    }
-
     if (!grab)
 	return Success;
     if (!SameClient(grab, client))
@@ -5297,17 +5228,12 @@ ProcChangeActivePointerGrab(ClientPtr client)
 /**
  * Server-side protocol handling for UngrabPointer request.
  *
- * Deletes a pointer grab on a device the client has grabbed. This should be
- * the ClientPointer, but may not be. So we search the device list for a
- * device we have a pointer grab on and then ungrab this device. (see
- * ProcGrabPointer comments). We are guaranteed that the client doesn't have
- * more than one core pointer grab at a time.
+ * Deletes a pointer grab on a device the client has grabbed.
  */
 int
 ProcUngrabPointer(ClientPtr client)
 {
-    DeviceIntPtr device = PickPointer(client),
-                 grabbed;
+    DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
     TimeStamp time;
     REQUEST(xResourceReq);
@@ -5315,30 +5241,6 @@ ProcUngrabPointer(ClientPtr client)
     REQUEST_SIZE_MATCH(xResourceReq);
     UpdateCurrentTime();
     grab = device->deviceGrab.grab;
-
-    if (!grab || !grab->coreGrab || !SameClient(grab, client))
-    {
-        /* No pointer grab on ClientPointer. May be a pointer grab on some
-         * other device */
-        for(grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-        {
-            if (IsPointerDevice(grabbed))
-            {
-                grab = grabbed->deviceGrab.grab;
-                if (grab && grab->coreGrab && SameClient(grab, client))
-                {
-                    device = grabbed;
-                    break;
-                }
-            }
-        }
-        /* nope. no grab on any actual device */
-        if (!grabbed)
-        {
-            device = inputInfo.pointer;
-            grab = inputInfo.pointer->deviceGrab.grab;
-        }
-    }
 
     time = ClientTimeToServerTime(stuff->id);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
@@ -5487,15 +5389,6 @@ RemoveOtherCoreGrabs(ClientPtr client, DeviceIntPtr dev)
  * Server-side protocol handling for GrabKeyboard request.
  *
  * Grabs the client's keyboard and returns success status to client.
- *
- * In some special cases the client may already have a grab on a keyboard that
- * is not the one that is paired with the ClientPointer. This can happen when
- * the client alreay has a passive grab on some keyboard device, or when the
- * client actively grabbed the keyboard and the ClientPointer or keyboard
- * pairing was changed since.
- * Therefore, we need to run through all the keyboards available and check if
- * there's already a grab on it from our client. The client will only ever
- * have one core keyboard grab at a time.
  */
 int
 ProcGrabKeyboard(ClientPtr client)
@@ -5503,24 +5396,10 @@ ProcGrabKeyboard(ClientPtr client)
     xGrabKeyboardReply rep;
     REQUEST(xGrabKeyboardReq);
     int result;
-    DeviceIntPtr keyboard = PickKeyboard(client),
-                 grabbed;
-    GrabPtr      grab;
+    DeviceIntPtr keyboard = PickKeyboard(client);
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
-    for (grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-    {
-	if (IsKeyboardDevice(grabbed))
-	{
-	    grab = grabbed->deviceGrab.grab;
-	    if (grab && grab->coreGrab && SameClient(grab, client))
-	    {
-		keyboard = grabbed;
-		break;
-	    }
-	}
-    }
     result = GrabDevice(client, keyboard, stuff->keyboardMode,
             stuff->pointerMode, stuff->grabWindow,
             stuff->ownerEvents, stuff->time,
@@ -5542,16 +5421,11 @@ ProcGrabKeyboard(ClientPtr client)
  * Server-side protocol handling for UngrabKeyboard request.
  *
  * Deletes a possible grab on the client's keyboard.
- *
- * We may have a grab on a keyboard that isn't the ClientPointer's keyboard.
- * Thus we need to check all keyboar devices for a grab. (see ProcGrabKeyboard
- * comments)
  */
 int
 ProcUngrabKeyboard(ClientPtr client)
 {
-    DeviceIntPtr device = PickKeyboard(client),
-		 grabbed;
+    DeviceIntPtr device = PickKeyboard(client);
     GrabPtr grab;
     TimeStamp time;
     REQUEST(xResourceReq);
@@ -5561,21 +5435,6 @@ ProcUngrabKeyboard(ClientPtr client)
 
     grab = device->deviceGrab.grab;
 
-    if (!grab || !grab->coreGrab || !SameClient(grab, client))
-    {
-	for (grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
-	{
-	    if (IsKeyboardDevice(grabbed))
-	    {
-		grab = device->deviceGrab.grab;
-		if (grab && grab->coreGrab && SameClient(grab, client))
-		{
-		    device = grabbed;
-		    break;
-		}
-	    }
-	}
-    }
     grab = device->deviceGrab.grab;
 
     time = ClientTimeToServerTime(stuff->id);
