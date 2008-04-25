@@ -1118,7 +1118,9 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 # OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
 # the OpenSSL libraries, just libcrypto
-PKG_CHECK_MODULES([OPENSSL], [openssl], [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])
+PKG_CHECK_EXISTS([openssl],
+ [PKG_CHECK_MODULES([OPENSSL], [openssl],
+   [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])])
 LIBCRYPTO="$OPENSSL_LIB_FLAGS -lcrypto"
 
 # Autotools has some unfortunate issues with library handling.  In order to
