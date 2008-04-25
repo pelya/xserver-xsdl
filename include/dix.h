@@ -460,10 +460,6 @@ extern int GrabDevice(
     CARD8 * /* status */,
     Bool /* coreGrab */);
 
-extern void RemoveOtherCoreGrabs(
-    ClientPtr /* client */,
-    DeviceIntPtr /* dev */);
-
 extern void InitEvents(void);
 extern void InitSprite(
         DeviceIntPtr /* pDev */, 

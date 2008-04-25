@@ -5161,9 +5161,6 @@ ProcGrabPointer(ClientPtr client)
 	if (oldCursor)
 	    FreeCursor (oldCursor, (Cursor)0);
 	rep.status = GrabSuccess;
-
-        /* guarantee only one core pointer grab at a time by this client */
-        RemoveOtherCoreGrabs(client, device);
     }
     WriteReplyToClient(client, sizeof(xGrabPointerReply), &rep);
     return Success;
@@ -5345,47 +5342,6 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 }
 
 /**
- * Deactivate any core grabs on the given client except the given device.
- *
- * This fixes race conditions where clients deal with implicit passive grabs
- * on one device, but then actively grab their client pointer, which is
- * another device.
- *
- * Grabs are only removed if the other device matches the type of device. If
- * dev is a pointer device, only other pointer grabs are removed. Likewise, if
- * dev is a keyboard device, only keyboard grabs are removed.
- *
- * If dev doesn't have a grab, do nothing and go for a beer.
- *
- * @param client The client that is to be limited.
- * @param dev The only device allowed to have a grab on the client.
- */
-
-_X_EXPORT void
-RemoveOtherCoreGrabs(ClientPtr client, DeviceIntPtr dev)
-{
-    if (!dev || !dev->deviceGrab.grab)
-        return;
-
-    DeviceIntPtr it = inputInfo.devices;
-    for (; it; it = it->next)
-    {
-        if (it == dev)
-            continue;
-        /* check for IsPointer Device */
-
-        if (it->deviceGrab.grab &&
-                it->deviceGrab.grab->coreGrab &&
-                SameClient(it->deviceGrab.grab, client))
-        {
-            if ((IsPointerDevice(dev) && IsPointerDevice(it)) ||
-                    (IsKeyboardDevice(dev) && IsKeyboardDevice(it)))
-                (*it->deviceGrab.DeactivateGrab)(it);
-        }
-    }
-}
-
-/**
  * Server-side protocol handling for GrabKeyboard request.
  *
  * Grabs the client's keyboard and returns success status to client.
@@ -5404,9 +5360,6 @@ ProcGrabKeyboard(ClientPtr client)
             stuff->pointerMode, stuff->grabWindow,
             stuff->ownerEvents, stuff->time,
             KeyPressMask | KeyReleaseMask, &rep.status, TRUE);
-
-    /* ensure only one core keyboard grab by this client */
-    RemoveOtherCoreGrabs(client, keyboard);
 
     if (result != Success)
 	return result;
