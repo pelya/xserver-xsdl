@@ -123,6 +123,7 @@ Equipment Corporation.
 #endif
 #include "dixevents.h"
 #include "globals.h"
+#include "mi.h" /* miPaintWindow */
 
 #include "privates.h"
 #include "xace.h"
