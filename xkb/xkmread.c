@@ -467,10 +467,8 @@ XkbAction               *act;
             break;
         case XkbSA_MovePtr:
             act->ptr.flags = wire.actionData[0];
-            act->ptr.high_XXX = wire.actionData[1];
-            act->ptr.low_XXX = wire.actionData[2];
-            act->ptr.high_YYY = wire.actionData[3];
-            act->ptr.low_YYY = wire.actionData[4];
+            act->ptr.x = (wire.actionData[1] << 8) | wire.actionData[2];
+            act->ptr.y = (wire.actionData[3] << 8) | wire.actionData[4];
             break;
         case XkbSA_PtrBtn:
         case XkbSA_LockPtrBtn:

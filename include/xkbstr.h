@@ -149,16 +149,9 @@ typedef struct _XkbISOAction {
 typedef struct _XkbPtrAction {
 	unsigned char	type;
 	unsigned char	flags;
-        /* FIXME: Make this an int. */
-	unsigned char	high_XXX;
-	unsigned char	low_XXX;
-	unsigned char	high_YYY;
-	unsigned char	low_YYY;
+	int	        x;
+	int	        y;
 } XkbPtrAction;
-#define	XkbPtrActionX(a)      (Xkb2CharsToInt((a)->high_XXX,(a)->low_XXX))
-#define	XkbPtrActionY(a)      (Xkb2CharsToInt((a)->high_YYY,(a)->low_YYY))
-#define	XkbSetPtrActionX(a,x) (XkbIntTo2Chars(x,(a)->high_XXX,(a)->low_XXX))
-#define	XkbSetPtrActionY(a,y) (XkbIntTo2Chars(y,(a)->high_YYY,(a)->low_YYY))
 
 typedef struct _XkbPtrBtnAction {
 	unsigned char	type;

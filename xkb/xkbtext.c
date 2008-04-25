@@ -731,8 +731,8 @@ int		x,y;
 char		tbuf[32];
 
     act= &action->ptr;
-    x= XkbPtrActionX(act);
-    y= XkbPtrActionY(act);
+    x= act->x;
+    y= act->y;
     if ((act->flags&XkbSA_MoveAbsoluteX)||(x<0))
 	 sprintf(tbuf,"x=%d",x);
     else sprintf(tbuf,"x=+%d",x);

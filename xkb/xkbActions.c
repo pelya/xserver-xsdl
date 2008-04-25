@@ -523,15 +523,15 @@ Bool	accel;
 	xkbi->mouseKeysCounter= 0;
 	xkbi->mouseKey= keycode;
 	accel= ((pAction->ptr.flags&XkbSA_NoAcceleration)==0);
-	x= XkbPtrActionX(&pAction->ptr);
-	y= XkbPtrActionY(&pAction->ptr);
+	x= pAction->ptr.x;
+	y= pAction->ptr.y;
 	XkbDDXFakePointerMotion(pAction->ptr.flags,x,y);
 	AccessXCancelRepeatKey(xkbi,keycode);
 	xkbi->mouseKeysAccel= accel&&
 		(xkbi->desc->ctrls->enabled_ctrls&XkbMouseKeysAccelMask);
 	xkbi->mouseKeysFlags= pAction->ptr.flags;
-	xkbi->mouseKeysDX= XkbPtrActionX(&pAction->ptr);
-	xkbi->mouseKeysDY= XkbPtrActionY(&pAction->ptr);
+	xkbi->mouseKeysDX= x;
+	xkbi->mouseKeysDY= y;
 	xkbi->mouseKeyTimer= TimerSet(xkbi->mouseKeyTimer, 0,
 				xkbi->desc->ctrls->mk_delay,
 				_XkbPtrAccelExpire,(pointer)xkbi);
