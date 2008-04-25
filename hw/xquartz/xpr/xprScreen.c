@@ -153,7 +153,8 @@ displayScreenBounds(CGDirectDisplayID id, Bool remove_menubar)
               (int)frame.origin.x, (int)frame.origin.y);
     
     /* Remove menubar to help standard X11 window managers. */
-    if (remove_menubar && !quartzHasRoot && id == 0) {
+    if (remove_menubar && !quartzHasRoot && 
+        frame.origin.x == 0 && frame.origin.y == 0) {
         frame.origin.y += aquaMenuBarHeight;
         frame.size.height -= aquaMenuBarHeight;
     }
@@ -201,6 +202,9 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     *width = unionRect.size.width;
     *height = unionRect.size.height;
 
+    DEBUG_LOG("  screen union origin: (%d,%d) size: (%d,%d).\n",
+              *x, *y, *width, *height);
+
     /* Tell PseudoramiX about the real screens. */
     for (i = 0; i < displayCount; i++)
     {
@@ -229,7 +233,7 @@ xprDisplayInit(void)
 {
     CGDisplayCount displayCount;
 
-    //    ErrorF("Display mode: Rootless Quartz -- Xplugin implementation\n");
+    DEBUG_LOG("");
 
     CGGetActiveDisplayList(0, NULL, &displayCount);
 
@@ -265,6 +269,8 @@ xprAddScreen(int index, ScreenPtr pScreen)
 {
     DarwinFramebufferPtr dfb = SCREEN_PRIV(pScreen);
     int depth = darwinDesiredDepth;
+
+    DEBUG_LOG("index=%d depth=%d\n", index, depth);
     
     if(depth == -1) {
         depth = CGDisplaySamplesPerPixel(kCGDirectMainDisplay) * CGDisplayBitsPerSample(kCGDirectMainDisplay);

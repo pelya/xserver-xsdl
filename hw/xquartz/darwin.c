@@ -535,8 +535,7 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
     /* Find leftmost screen. If there's a tie, take the topmost of the two. */
     for (i = 1; i < pScreenInfo->numScreens; i++) {
         if (dixScreenOrigins[i].x < left  ||
-            (dixScreenOrigins[i].x == left &&
-             dixScreenOrigins[i].y < top))
+            (dixScreenOrigins[i].x == left && dixScreenOrigins[i].y < top))
         {
             left = dixScreenOrigins[i].x;
             top = dixScreenOrigins[i].y;
@@ -545,17 +544,20 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
 
     darwinMainScreenX = left;
     darwinMainScreenY = top;
+    
+    DEBUG_LOG("top = %d, left=%d\n", top, left);
 
     /* Shift all screens so that there is a screen whose top left
-       is at X11 (0,0) and at global screen coordinate
-       (darwinMainScreenX, darwinMainScreenY). */
+     * is at X11 (0,0) and at global screen coordinate
+     * (darwinMainScreenX, darwinMainScreenY).
+     */
 
     if (darwinMainScreenX != 0 || darwinMainScreenY != 0) {
         for (i = 0; i < pScreenInfo->numScreens; i++) {
             dixScreenOrigins[i].x -= darwinMainScreenX;
             dixScreenOrigins[i].y -= darwinMainScreenY;
-    /*            ErrorF("Screen %d placed at X11 coordinate (%d,%d).\n",
-		  i, dixScreenOrigins[i].x, dixScreenOrigins[i].y); */
+            DEBUG_LOG("Screen %d placed at X11 coordinate (%d,%d).\n",
+                      i, dixScreenOrigins[i].x, dixScreenOrigins[i].y);
         }
     }
 }
