@@ -86,8 +86,6 @@ SOFTWARE.
  * This file handles input device-related stuff.
  */
 
-/* The client that is allowed to change pointer-keyboard pairings. */
-static ClientPtr pairingClient = NULL;
 DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
 /* Used to sture classes currently not in use by an MD */
 DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKey;
