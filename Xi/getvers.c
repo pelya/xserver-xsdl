@@ -85,7 +85,7 @@ SProcXGetExtensionVersion(ClientPtr client)
 
 /***********************************************************************
  *
- * This procedure lists the input devices available to the server.
+ * This procedure returns the major/minor version of the X Input extension.
  *
  */
 
@@ -105,14 +105,10 @@ ProcXGetExtensionVersion(ClientPtr client)
     rep.RepType = X_GetExtensionVersion;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.major_version = 0;
-    rep.minor_version = 0;
-
     rep.present = TRUE;
-    if (rep.present) {
-	rep.major_version = AllExtensionVersions[IReqCode - 128].major_version;
-	rep.minor_version = AllExtensionVersions[IReqCode - 128].minor_version;
-    }
+    rep.major_version = AllExtensionVersions[IReqCode - 128].major_version;
+    rep.minor_version = AllExtensionVersions[IReqCode - 128].minor_version;
+
     WriteReplyToClient(client, sizeof(xGetExtensionVersionReply), &rep);
 
     return Success;
