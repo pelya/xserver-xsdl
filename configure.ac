@@ -177,7 +177,7 @@ AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 
 case $host_os in
-    linux*)
+    linux*|darwin*)
 	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
     solaris*)
 	# Solaris 8 with patches, or Solaris 9 or later have /dev/urandom
