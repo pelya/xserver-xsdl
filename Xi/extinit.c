@@ -458,11 +458,6 @@ SProcIDispatch(ClientPtr client)
  *
  */
 
-/* FIXME: this would be more concise and readable in ANSI C */
-#define DISPATCH(code) \
-    if (rep->RepType == X_##code) \
-	SRepX##code (client, len, (x##code##Reply *) rep)
-
 static void
 SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 					/* All we look at is the type field */
