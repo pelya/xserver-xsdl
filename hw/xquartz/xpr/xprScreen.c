@@ -142,19 +142,25 @@ displayAtIndex(int index)
  *  Return the bounds of a particular display.
  */
 static CGRect
-displayScreenBounds(CGDirectDisplayID id)
+displayScreenBounds(CGDirectDisplayID id, Bool remove_menubar)
 {
     CGRect frame;
 
     frame = CGDisplayBounds(id);
 
+    DEBUG_LOG("    %dx%d @ (%d,%d).\n",
+              (int)frame.size.width, (int)frame.size.height,
+              (int)frame.origin.x, (int)frame.origin.y);
+    
     /* Remove menubar to help standard X11 window managers. */
-
-    if (frame.origin.y == 0)
-    {
+    if (remove_menubar && !quartzHasRoot && id == 0) {
         frame.origin.y += aquaMenuBarHeight;
         frame.size.height -= aquaMenuBarHeight;
     }
+
+    DEBUG_LOG("    %dx%d @ (%d,%d).\n",
+              (int)frame.size.width, (int)frame.size.height,
+              (int)frame.origin.x, (int)frame.origin.y);
 
     return frame;
 }
@@ -179,8 +185,13 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     /* Get the union of all screens */
     for (i = 0; i < displayCount; i++)
     {
+
+        /* we can't remove the menubar from the screen - doing so
+         * would constrain the pointer to the screen, not allowing it
+         * to reach the menubar..
+         */
         CGDirectDisplayID dpy = displayList[i];
-        frame = displayScreenBounds(dpy);
+        frame = displayScreenBounds(dpy, FALSE);
         unionRect = CGRectUnion(unionRect, frame);
     }
 
@@ -195,17 +206,12 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     {
         CGDirectDisplayID dpy = displayList[i];
 
-        frame = displayScreenBounds(dpy);
-
-	/*        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
-               (int)frame.size.width, (int)frame.size.height,
-               (int)frame.origin.x, (int)frame.origin.y); */
-
+        frame = displayScreenBounds(dpy, TRUE);
         frame.origin.x -= unionRect.origin.x;
         frame.origin.y -= unionRect.origin.y;
 
-	/*        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
-		  i, (int)frame.origin.x, (int)frame.origin.y); */
+        DEBUG_LOG("    placed at X11 coordinate (%d,%d).\n",
+                  (int)frame.origin.x, (int)frame.origin.y);
 
         PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
                              frame.size.width, frame.size.height);
@@ -315,12 +321,14 @@ xprAddScreen(int index, ScreenPtr pScreen)
 
     if (noPseudoramiXExtension)
     {
+        ErrorF("Warning: noPseudoramiXExtension!\n");
+        
         CGDirectDisplayID dpy;
         CGRect frame;
 
         dpy = displayAtIndex(index);
 
-        frame = displayScreenBounds(dpy);
+        frame = displayScreenBounds(dpy, TRUE);
 
         dfb->x = frame.origin.x;
         dfb->y = frame.origin.y;
