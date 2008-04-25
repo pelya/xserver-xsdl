@@ -180,20 +180,8 @@ typedef struct _XkbSwitchScreenAction {
 typedef struct _XkbCtrlsAction {
 	unsigned char	type;
 	unsigned char	flags;
-        /* FIXME: Make this an int. */
-	unsigned char	ctrls3;
-	unsigned char	ctrls2;
-	unsigned char	ctrls1;
-	unsigned char	ctrls0;
+	unsigned long	ctrls;
 } XkbCtrlsAction;
-#define	XkbActionSetCtrls(a, c) ((a)->ctrls3 = ((c) >> 24) & 0xff, \
-                                 (a)->ctrls2 = ((c) >> 16) & 0xff, \
-                                 (a)->ctrls1 = ((c) >> 8) & 0xff, \
-                                 (a)->ctrls0 = (c) & 0xff)
-#define	XkbActionCtrls(a) ((((unsigned int)(a)->ctrls3)<<24)|\
-			   (((unsigned int)(a)->ctrls2)<<16)|\
-			   (((unsigned int)(a)->ctrls1)<<8)|\
-                           ((unsigned int) (a)->ctrls0))
 
 typedef struct _XkbMessageAction {
 	unsigned char	type;

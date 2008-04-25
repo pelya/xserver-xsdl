@@ -671,7 +671,7 @@ XkbEventCauseRec	cause;
 	filter->keycode = keycode;
 	filter->active = 1;
 	filter->filterOthers = 0;
-	change= XkbActionCtrls(&pAction->ctrls);
+	change= pAction->ctrls.ctrls;
 	filter->priv = change;
 	filter->filter = _XkbFilterControls;
 	filter->upAction = *pAction;

@@ -890,7 +890,7 @@ unsigned		tmp;
 char			tbuf[32];
 
     act= &action->ctrls;
-    tmp= XkbActionCtrls(act);
+    tmp= act->ctrls;
     TryCopyStr(buf,"controls=",sz);
     if (tmp==0)
 	TryCopyStr(buf,"none",sz);
