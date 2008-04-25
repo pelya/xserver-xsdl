@@ -6479,8 +6479,6 @@ PickPointer(ClientPtr client)
 /* PickKeyboard will pick an appropriate keyboard for the given client by
  * searching the list of devices for the keyboard device that is paired with
  * the client's pointer.
- * If no pointer is paired with the keyboard, the virtual core keyboard is
- * returned.
  */
 _X_EXPORT DeviceIntPtr
 PickKeyboard(ClientPtr client)
