@@ -72,6 +72,7 @@ SOFTWARE.
 #include "exglobals.h"
 #include "swaprep.h"
 #include "registry.h"
+#include "privates.h"
 
 /* modules local to Xi */
 #include "allowev.h"
@@ -324,7 +325,22 @@ int RT_INPUTCLIENT;
 
 extern XExtensionVersion AllExtensionVersions[];
 
+
 Mask PropagateMask[MAX_DEVICES];
+
+/*****************************************************************
+ *
+ * Versioning support
+ *
+ */
+
+DevPrivateKey XIClientPrivateKey = &XIClientPrivateKey;
+
+static XExtensionVersion thisversion = { XI_Present,
+    XI_2_Major,
+    XI_2_Minor
+};
+
 
 /*****************************************************************
  *
@@ -332,11 +348,19 @@ Mask PropagateMask[MAX_DEVICES];
  *
  */
 
-static XExtensionVersion thisversion = { XI_Present,
-    XI_2_Major,
-    XI_2_Minor
-};
+static void
+XIClientCallback(CallbackListPtr        *list,
+                 pointer                closure,
+                 pointer                data)
+{
+    NewClientInfoRec *clientinfo = (NewClientInfoRec*)data;
+    ClientPtr pClient = clientinfo->client;
+    XIClientPtr pXIClient;
 
+    pXIClient = dixLookupPrivate(&pClient->devPrivates, XIClientPrivateKey);
+    pXIClient->major_version = 0;
+    pXIClient->minor_version = 0;
+}
 
 /*************************************************************************
  *
@@ -1080,12 +1104,19 @@ XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev,
  *
  * This extension has several events and errors.
  *
+ * XI is mandatory nowadays, so if we fail to init XI, we die.
  */
 
 void
 XInputExtensionInit(void)
 {
     ExtensionEntry *extEntry;
+
+    if (!dixRequestPrivate(XIClientPrivateKey, sizeof(XIClientRec)))
+        FatalError("Cannot request private for XI.\n");
+
+    if (!AddCallback(&ClientStateCallback, XIClientCallback, 0))
+        FatalError("Failed to add callback to XI.\n");
 
     extEntry = AddExtension(INAME, IEVENTS, IERRORS, ProcIDispatch,
 			    SProcIDispatch, IResetProc, StandardMinorOpcode);

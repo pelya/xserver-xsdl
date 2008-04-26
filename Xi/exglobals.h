@@ -31,6 +31,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#include "privates.h"
 
 #ifndef EXGLOBALS_H
 #define EXGLOBALS_H 1
@@ -75,4 +76,5 @@ extern int DeviceLeaveNotify;
 
 extern int RT_INPUTCLIENT;
 
+extern DevPrivateKey XIClientPrivateKey;
 #endif /* EXGLOBALS_H */

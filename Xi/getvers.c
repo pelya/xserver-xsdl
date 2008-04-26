@@ -59,6 +59,7 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include "exevents.h"
 #include "exglobals.h"
 
 #include "getvers.h"
@@ -93,6 +94,7 @@ int
 ProcXGetExtensionVersion(ClientPtr client)
 {
     xGetExtensionVersionReply rep;
+    XIClientPtr pXIClient;
 
     REQUEST(xGetExtensionVersionReq);
     REQUEST_AT_LEAST_SIZE(xGetExtensionVersionReq);
@@ -100,6 +102,21 @@ ProcXGetExtensionVersion(ClientPtr client)
     if (stuff->length != (sizeof(xGetExtensionVersionReq) +
 			  stuff->nbytes + 3) >> 2)
 	return BadLength;
+
+    pXIClient = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
+
+    /* GetExtensionVersionReq before XI 2 didn't supply the client's
+     * major/minor. So we don't actually have a clue what they support.
+     * {major|minor}Version was added as part of XI, so if they are set, we
+     * know we can trust it. In this case the client must set nbytes to 0
+     * though, otherwise we have to assume that the version are padding
+     * garbage.
+     */
+    if (!stuff->nbytes) /* Client using XQueryInputVersion(). */
+    {
+        pXIClient->major_version = stuff->majorVersion;
+        pXIClient->minor_version = stuff->minorVersion;
+    } /* else version unknown, leave it at 0.0 */
 
     rep.repType = X_Reply;
     rep.RepType = X_GetExtensionVersion;
