@@ -64,6 +64,7 @@ SOFTWARE.
 #include "XIstubs.h"
 #include "extnsionst.h"
 #include "exglobals.h"	/* FIXME */
+#include "exevents.h"
 #include "xace.h"
 
 #include "listdev.h"
@@ -313,12 +314,17 @@ CopySwapClasses(ClientPtr client, DeviceIntPtr dev, CARD8 *num_classes,
  *
  * This procedure lists the input devices available to the server.
  *
+ * If this request is called by a client that has not issued a
+ * GetExtensionVersion request with major/minor version set, we pretend no
+ * devices are available. It's the only thing we can do to stop pre-XI 2
+ * clients.
  */
 
 int
 ProcXListInputDevices(ClientPtr client)
 {
     xListInputDevicesReply rep;
+    XIClientPtr pXIClient;
     int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
     int rc, size = 0;
@@ -337,21 +343,38 @@ ProcXListInputDevices(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
+    pXIClient = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
+
     AddOtherInputDevices();
 
-    for (d = inputInfo.devices; d; d = d->next) {
-	rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
-	if (rc != Success)
-	    return rc;
-	SizeDeviceInfo(d, &namesize, &size);
-        numdevs++;
-    }
-    for (d = inputInfo.off_devices; d; d = d->next) {
-	rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
-	if (rc != Success)
-	    return rc;
-	SizeDeviceInfo(d, &namesize, &size);
-        numdevs++;
+    if (!pXIClient->major_version >= XI_2_Major) {
+        for (d = inputInfo.devices; d; d = d->next) {
+            rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
+            if (rc != Success)
+                return rc;
+            SizeDeviceInfo(d, &namesize, &size);
+            numdevs++;
+        }
+        for (d = inputInfo.off_devices; d; d = d->next) {
+            rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
+            if (rc != Success)
+                return rc;
+            SizeDeviceInfo(d, &namesize, &size);
+            numdevs++;
+        }
+    } else
+    {
+        /* Pretend we don't have XI devices connected */
+        rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.pointer, DixGetAttrAccess);
+        if (rc != Success)
+            return rc;
+        rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, DixGetAttrAccess);
+        if (rc != Success)
+            return rc;
+
+        SizeDeviceInfo(inputInfo.pointer, &namesize, &size);
+        SizeDeviceInfo(inputInfo.keyboard, &namesize, &size);
+        numdevs = 2;
     }
 
     total_length = numdevs * sizeof(xDeviceInfo) + size + namesize;
@@ -361,10 +384,17 @@ ProcXListInputDevices(ClientPtr client)
     savbuf = devbuf;
 
     dev = (xDeviceInfoPtr) devbuf;
-    for (d = inputInfo.devices; d; d = d->next, dev++)
-	ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
-    for (d = inputInfo.off_devices; d; d = d->next, dev++)
-	ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
+    if (pXIClient->major_version >= XI_2_Major)
+    {
+        for (d = inputInfo.devices; d; d = d->next, dev++)
+            ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
+        for (d = inputInfo.off_devices; d; d = d->next, dev++)
+            ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
+    } else
+    {
+        ListDeviceInfo(client, inputInfo.pointer, dev, &devbuf, &classbuf, &namebuf);
+        ListDeviceInfo(client, inputInfo.keyboard, dev, &devbuf, &classbuf, &namebuf);
+    }
 
     rep.ndevices = numdevs;
     rep.length = (total_length + 3) >> 2;
