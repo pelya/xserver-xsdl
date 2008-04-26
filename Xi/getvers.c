@@ -122,7 +122,10 @@ ProcXGetExtensionVersion(ClientPtr client)
     rep.RepType = X_GetExtensionVersion;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.present = TRUE;
+    if (!pXIClient->major_version < XI_2_Major) /* sorry, no XI 1.x anymore. */
+        rep.present = FALSE;
+    else
+        rep.present = TRUE;
     rep.major_version = AllExtensionVersions[IReqCode - 128].major_version;
     rep.minor_version = AllExtensionVersions[IReqCode - 128].minor_version;
 
