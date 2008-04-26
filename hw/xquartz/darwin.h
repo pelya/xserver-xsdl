@@ -130,4 +130,6 @@ extern FILE *debug_log_fp;
 #define DEBUG_LOG(msg, args...) 
 #endif
 
+#define TRACE() DEBUG_LOG("\n")
+
 #endif  /* _DARWIN_H */
