@@ -347,7 +347,7 @@ ProcXListInputDevices(ClientPtr client)
 
     AddOtherInputDevices();
 
-    if (!pXIClient->major_version >= XI_2_Major) {
+    if (pXIClient->major_version >= XI_2_Major) {
         for (d = inputInfo.devices; d; d = d->next) {
             rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
             if (rc != Success)
