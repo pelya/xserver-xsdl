@@ -47,6 +47,7 @@ include $(top_srcdir)/cpprules.in
 	cp $< $@
 
 EXTRA_DIST = \
+	Xquartz.man.pre \
 	dri.h \
 	dristruct.h \
 	appledri.h \
