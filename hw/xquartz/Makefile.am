@@ -52,4 +52,6 @@ EXTRA_DIST = \
 	quartzForeground.h \
 	quartzKeyboard.h \
 	quartzPasteboard.h \
+	sanitizedCarbon.h \
+	sanitizedCocoa.h \
 	threadSafety.h
