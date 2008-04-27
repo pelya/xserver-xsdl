@@ -35,6 +35,7 @@
 
 #include "quartzForeground.h"
 #include "quartzCommon.h"
+
 #import "X11Application.h"
 
 # include "darwin.h"
@@ -45,7 +46,9 @@
 # include "micmap.h"
 #include <mach/mach.h>
 #include <unistd.h>
+
 #include <pthread.h>
+extern pthread_cond_t server_can_start_cond;
 
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
@@ -732,19 +735,6 @@ void X11ApplicationShowHideMenubar (int state) {
     [n release];
 }
 
-static pthread_t create_thread (void *func, void *arg) {
-    pthread_attr_t attr;
-    pthread_t tid;
-	
-    pthread_attr_init (&attr);
-    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create (&tid, &attr, func, arg);
-    pthread_attr_destroy (&attr);
-	
-    return tid;
-}
-
 static void check_xinitrc (void) {
     char *tem, buf[1024];
     NSString *msg;
@@ -786,7 +776,7 @@ environment?", @"Startup xinitrc dialog");
     [X11App prefs_synchronize];
 }
 
-void X11ApplicationMain (int argc, const char **argv, void (*server_thread) (void *), void *server_arg) {
+void X11ApplicationMain (int argc, const char **argv) {
     NSAutoreleasePool *pool;
 
 #ifdef DEBUG
@@ -812,16 +802,9 @@ void X11ApplicationMain (int argc, const char **argv, void (*server_thread) (voi
     /* Calculate the height of the menubar so we can avoid it. */
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
-  
-    APPKIT_THREAD = pthread_self();
-    SERVER_THREAD = create_thread (server_thread, server_arg);
 
-    if (!SERVER_THREAD) {
-        ErrorF("can't create secondary thread\n");
-        exit (1);
-    }
-
-    QuartzMoveToForeground();
+    /* Tell the server thread that it can proceed */
+    pthread_cond_broadcast(&server_can_start_cond);
 
     [NSApp run];
     /* not reached */

@@ -37,53 +37,70 @@
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "quartzCommon.h"
+#include "quartzForeground.h"
 #include "X11Controller.h"
 #include "darwin.h"
+#include "darwinEvents.h"
+#include "quartzAudio.h"
 #include "quartz.h"
 #include "opaque.h"
 #include "micmap.h"
 
 #include <assert.h>
 
-char **envpGlobal;      // argcGlobal and argvGlobal
-                        // are from dix/globals.c
+#include <pthread.h>
 
-int main(int argc, char **argv, char **envp);
-void _InitHLTB(void);
-void DarwinHandleGUI(int argc, char **argv, char **envp);
+int dix_main(int argc, char **argv, char **envp);
+
+struct arg {
+    int argc;
+    char **argv;
+    char **envp;
+};
+
+pthread_cond_t server_can_start_cond = PTHREAD_COND_INITIALIZER;
 
 static void server_thread (void *arg) {
-  exit (main (argcGlobal, argvGlobal, envpGlobal));
+    struct arg *args = (struct arg *)arg;
+
+    /* Wait to be told we can continue */
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_lock(&mutex);
+    pthread_cond_wait(&server_can_start_cond, &mutex);
+    pthread_mutex_unlock(&mutex);
+    pthread_mutex_destroy(&mutex);
+
+    exit (dix_main(args->argc, args->argv, args->envp));
 }
 
-/*
- * DarwinHandleGUI
- *  This function is called first from main(). The first time
- *  it is called we start the Mac OS X front end. The front end
- *  will call main() again from another thread to run the X
- *  server. On the second call this function loads the user
- *  preferences set by the Mac OS X front end.
- */
-void DarwinHandleGUI(int argc, char **argv, char **envp) {
-    static Bool been_here = FALSE;
+static pthread_t create_thread (void *func, void *arg) {
+    pthread_attr_t attr;
+    pthread_t tid;
+	
+    pthread_attr_init (&attr);
+    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create (&tid, &attr, func, arg);
+    pthread_attr_destroy (&attr);
+	
+    return tid;
+}
+
+int main(int argc, char **argv, char **envp) {
     int         i;
     int         fd[2];
 
-    if (been_here) {
-        return;
-    }
-    been_here = TRUE;
-    
+    /* Store the args to pass to dix_main() */
+    struct arg  args;
+    args.argc = argc;
+    args.argv = argv;
+    args.envp = envp;
+
     // Make a pipe to pass events
     assert( pipe(fd) == 0 );
     darwinEventReadFD = fd[0];
     darwinEventWriteFD = fd[1];
     fcntl(darwinEventReadFD, F_SETFL, O_NONBLOCK);
-
-    // Store command line arguments to pass back to main()
-    argcGlobal = argc;
-    argvGlobal = argv;
-    envpGlobal = envp;
 
     for (i = 1; i < argc; i++) {
         // Display version info without starting Mac OS X UI if requested
@@ -93,16 +110,20 @@ void DarwinHandleGUI(int argc, char **argv, char **envp) {
         }
     }
 
-    /* Initially I ran the X server on the main thread, and received
-       events on the second thread. But now we may be using Carbon,
-       that needs to run on the main thread. (Otherwise, when it's
-       prebound, it will initialize itself on the wrong thread)
-       
-       grr.. but doing that means that if the X thread gets scheduled
-       before the main thread when we're _not_ prebound, things fail,
-       so initialize by hand. */
+    /* Create the audio mutex */
+    QuartzAudioInit();
+    
+    pthread_cond_init(&server_can_start_cond, NULL); 
+    
+    APPKIT_THREAD_ID = pthread_self();
+    SERVER_THREAD_ID = create_thread(server_thread, &args);
 
-    _InitHLTB();    
-    X11ControllerMain(argc, (const char **)argv, server_thread, NULL);
+    if (!SERVER_THREAD_ID) {
+        ErrorF("can't create secondary thread\n");
+        exit (1);
+    }
+
+    QuartzMoveToForeground();
+    X11ControllerMain(argc, (const char **)argv);
     exit(0);
 }

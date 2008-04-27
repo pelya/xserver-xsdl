@@ -78,7 +78,8 @@ static int old_flags = 0;  // last known modifier state
 
 xEvent *darwinEvents = NULL;
 
-pthread_mutex_t mieqEnqueue_mutex;
+pthread_mutex_t mieqEnqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 static inline void mieqEnqueue_lock(void) {
     int err;
     if((err = pthread_mutex_lock(&mieqEnqueue_mutex))) {
@@ -303,17 +304,11 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
 }
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
-    int err;
-
     if (!darwinEvents)
         darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
     if (!darwinEvents)
         FatalError("Couldn't allocate event buffer\n");
 
-    if((err = pthread_mutex_init(&mieqEnqueue_mutex, NULL))) {
-        FatalError("Couldn't allocate mieqEnqueue mutex: %d.\n", err);
-    }
-    
     mieqInit();
     mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
