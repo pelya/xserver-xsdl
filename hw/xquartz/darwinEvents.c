@@ -367,6 +367,8 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	static int darwinFakeMouseButtonMask = 0;
 	int i, num_events;
 
+    //DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+    
 	if(!darwinEvents) {
 		ErrorF("DarwinSendPointerEvents called before darwinEvents was initialized\n");
 		return;

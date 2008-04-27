@@ -867,8 +867,6 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		pointer_y = (screen.origin.y + screen.size.height) - location.y;
 	}
 
-	pointer_y -= aquaMenuBarHeight;
-
 	pressure = 0;  // for tablets
 	tilt_x = 0;
 	tilt_y = 0;
