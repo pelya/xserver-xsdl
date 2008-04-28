@@ -386,13 +386,15 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
  * Fills events with valuator events for pDev, as given by the other
  * parameters.
  *
+ * Note that we mis-use the sequence number to store the absolute bit.
+ *
  * FIXME: Need to fix ValuatorClassRec to store all the valuators as
  *        last posted, not just x and y; otherwise relative non-x/y
  *        valuators, though a very narrow use case, will be broken.
  */
 static EventList *
-getValuatorEvents(EventList *events, DeviceIntPtr pDev, int first_valuator,
-                  int num_valuators, int *valuators) {
+getValuatorEvents(EventList *events, DeviceIntPtr pDev, int absolute,
+        int first_valuator, int num_valuators, int *valuators) {
     deviceValuator *xv;
     int i = 0, final_valuator = first_valuator + num_valuators;
 
@@ -419,6 +421,8 @@ getValuatorEvents(EventList *events, DeviceIntPtr pDev, int first_valuator,
 
         if (i + 6 < final_valuator)
             xv->deviceid |= MORE_EVENTS;
+
+        xv->sequenceNumber = (absolute) ? Absolute : Relative;
     }
 
     return events;
@@ -561,8 +565,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, FALSE /* relative */,
+                                   first_valuator, num_valuators, valuators);
     }
 
     return numEvents;
@@ -751,14 +755,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
      * to the current screen.  Right now, we only have one history buffer,
      * so we don't set this for both the device and core.*/
     miPointerSetPosition(pDev, &x, &y, ms);
-
-    /* Drop x and y back into the valuators list, if they were originally
-     * present. */
-    if (first_valuator == 0 && num_valuators >= 1)
-        valuators[0] = x;
-    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-        valuators[1 - first_valuator] = y;
-
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
     pDev->lastx = x;
@@ -791,8 +787,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, (flags & POINTER_ABSOLUTE),
+                first_valuator, num_valuators, valuators);
     }
 
     return num_events;
@@ -859,8 +855,8 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         kbp->deviceid |= MORE_EVENTS;
         events++;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, False /* relative */,
+                                   first_valuator, num_valuators, valuators);
     }
 
     return num_events;
