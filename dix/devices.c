@@ -863,6 +863,11 @@ UndisplayDevices()
  * resources.
  * Removes both enabled and disabled devices and notifies all devices about
  * the removal of the device.
+ *
+ * No PresenceNotify is sent for device that the client never saw. This can
+ * happen if a malloc fails during the addition of master devices. If
+ * dev->init is FALSE it means the client never received a DeviceAdded event,
+ * so let's not send a DeviceRemoved event either.
  */
 int
 RemoveDevice(DeviceIntPtr dev)
@@ -873,12 +878,14 @@ RemoveDevice(DeviceIntPtr dev)
     DeviceIntRec dummyDev;
     ScreenPtr screen = screenInfo.screens[0];
     int deviceid;
+    int initialized;
 
     DebugF("(dix) removing device %d\n", dev->id);
 
     if (!dev || dev == inputInfo.keyboard || dev == inputInfo.pointer)
         return BadImplementation;
 
+    initialized = dev->inited;
     screen->UndisplayCursor(dev, screen);
 
     deviceid = dev->id;
@@ -914,7 +921,7 @@ RemoveDevice(DeviceIntPtr dev)
 	}
     }
 
-    if (ret == Success) {
+    if (ret == Success && initialized) {
         inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
@@ -2587,7 +2594,10 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
 
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
+    {
+        RemoveDevice(pointer);
         return BadAlloc;
+    }
 
     keyboard->name = xcalloc(strlen(name) + strlen(" keyboard") + 1, sizeof(char));
     strcpy(keyboard->name, name);
