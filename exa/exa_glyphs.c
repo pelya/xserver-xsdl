@@ -56,16 +56,6 @@
 #define DBG_GLYPH_CACHE(a)
 #endif
 
-/* Instructions for rendering a single glyph */
-typedef struct {
-    INT16 xSrc;
-    INT16 ySrc;
-    INT16 xDst;
-    INT16 yDst;
-    INT16 width;
-    INT16 height;
-} ExaGlyphRenderRec, *ExaGlyphRenderPtr;
-
 /* Width of the pixmaps we use for the caches; this should be less than
  * max texture size of the driver; this may need to actually come from
  * the driver.
@@ -79,7 +69,7 @@ typedef struct {
 
 typedef struct {
     PicturePtr source;
-    ExaGlyphRenderRec glyphs[GLYPH_BUFFER_SIZE];
+    ExaCompositeRectRec rects[GLYPH_BUFFER_SIZE];
     int count;
 } ExaGlyphBuffer, *ExaGlyphBufferPtr;
 
@@ -364,7 +354,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 			 int               xGlyph,
 			 int               yGlyph)
 {
-    ExaGlyphRenderPtr glyphRec;
+    ExaCompositeRectPtr rect;
     int pos;
     
     if (buffer->source && buffer->source != cache->picture)
@@ -407,7 +397,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 		y = (pos / cache->columns) * cache->glyphHeight;
 
 		for (i = 0; i < buffer->count; i++) {
-		    if (buffer->glyphs[i].xSrc == x && buffer->glyphs[i].ySrc == y) {
+		    if (buffer->rects[i].xSrc == x && buffer->rects[i].ySrc == y) {
 			DBG_GLYPH_CACHE(("  must flush buffer\n"));
 			return ExaGlyphNeedFlush;
 		    }
@@ -439,13 +429,13 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 
     buffer->source = cache->picture;
 	    
-    glyphRec = &buffer->glyphs[buffer->count];
-    glyphRec->xSrc = (pos % cache->columns) * cache->glyphWidth;
-    glyphRec->ySrc = (pos / cache->columns) * cache->glyphHeight;
-    glyphRec->xDst = xGlyph - pGlyph->info.x;
-    glyphRec->yDst = yGlyph - pGlyph->info.y;
-    glyphRec->width = pGlyph->info.width;
-    glyphRec->height = pGlyph->info.height;
+    rect = &buffer->rects[buffer->count];
+    rect->xSrc = (pos % cache->columns) * cache->glyphWidth;
+    rect->ySrc = (pos / cache->columns) * cache->glyphHeight;
+    rect->xDst = xGlyph - pGlyph->info.x;
+    rect->yDst = yGlyph - pGlyph->info.y;
+    rect->width = pGlyph->info.width;
+    rect->height = pGlyph->info.height;
 	    
     buffer->count++;
 
@@ -463,7 +453,7 @@ exaBufferGlyph(ScreenPtr         pScreen,
     unsigned int format = (GlyphPicture(pGlyph)[pScreen->myNum])->format;
     int width = pGlyph->info.width;
     int height = pGlyph->info.width;
-    ExaGlyphRenderPtr glyphRec;
+    ExaCompositeRectPtr rect;
     PicturePtr source;
     int i;
 
@@ -497,13 +487,13 @@ exaBufferGlyph(ScreenPtr         pScreen,
 
     buffer->source = source;
     
-    glyphRec = &buffer->glyphs[buffer->count];
-    glyphRec->xSrc = 0;
-    glyphRec->ySrc = 0;
-    glyphRec->xDst = xGlyph - pGlyph->info.x;
-    glyphRec->yDst = yGlyph - pGlyph->info.y;
-    glyphRec->width = pGlyph->info.width;
-    glyphRec->height = pGlyph->info.height;
+    rect = &buffer->rects[buffer->count];
+    rect->xSrc = 0;
+    rect->ySrc = 0;
+    rect->xDst = xGlyph - pGlyph->info.x;
+    rect->yDst = yGlyph - pGlyph->info.y;
+    rect->width = pGlyph->info.width;
+    rect->height = pGlyph->info.height;
 
     buffer->count++;
 
@@ -514,23 +504,8 @@ static void
 exaGlyphsToMask(PicturePtr        pMask,
 		ExaGlyphBufferPtr buffer)
 {
-    int i;
-
-    for (i = 0; i < buffer->count; i++) {
-	ExaGlyphRenderPtr glyphRec = &buffer->glyphs[i];
-	
-	CompositePicture (PictOpAdd,
-			  buffer->source,
-			  None,
-			  pMask,
-			  glyphRec->xSrc,
-			  glyphRec->ySrc,
-			  0, 0,
-			  glyphRec->xDst,
-			  glyphRec->yDst,
-			  glyphRec->width,
-			  glyphRec->height);
-    }
+    exaCompositeRects(PictOpAdd, buffer->source, pMask,
+		      buffer->count, buffer->rects);
     
     buffer->count = 0;
     buffer->source = NULL;
@@ -549,20 +524,20 @@ exaGlyphsToDst(CARD8		 op,
     int i;
 
     for (i = 0; i < buffer->count; i++) {
-	ExaGlyphRenderPtr glyphRec = &buffer->glyphs[i];
+	ExaCompositeRectPtr rect = &buffer->rects[i];
 	
 	CompositePicture (op,
 			  pSrc,
 			  buffer->source,
 			  pDst,
-			  xSrc + glyphRec->xDst - xDst,
-			  ySrc + glyphRec->yDst - yDst,
-			  glyphRec->xSrc,
-			  glyphRec->ySrc,
-			  glyphRec->xDst,
-			  glyphRec->yDst,
-			  glyphRec->width,
-			  glyphRec->height);
+			  xSrc + rect->xDst - xDst,
+			  ySrc + rect->yDst - yDst,
+			  rect->xSrc,
+			  rect->ySrc,
+			  rect->xDst,
+			  rect->yDst,
+			  rect->width,
+			  rect->height);
     }
     
     buffer->count = 0;

@@ -243,6 +243,15 @@ typedef struct _ExaMigrationRec {
     RegionPtr pReg;
 } ExaMigrationRec, *ExaMigrationPtr;
 
+typedef struct {
+    INT16 xSrc;
+    INT16 ySrc;
+    INT16 xDst;
+    INT16 yDst;
+    INT16 width;
+    INT16 height;
+} ExaCompositeRectRec, *ExaCompositeRectPtr;
+
 /**
  * exaDDXDriverInit must be implemented by the DDX using EXA, and is the place
  * to set EXA options or hook in screen functions to handle using EXA as the AA.
@@ -455,6 +464,13 @@ exaComposite(CARD8	op,
 	     INT16	yDst,
 	     CARD16	width,
 	     CARD16	height);
+
+void
+exaCompositeRects(CARD8	              op,
+		  PicturePtr	      Src,
+		  PicturePtr	      pDst,
+		  int                 nrect,
+		  ExaCompositeRectPtr rects);
 
 void
 exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
