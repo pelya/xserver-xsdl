@@ -61,7 +61,7 @@
 #define DEBUG_MIGRATE		0
 #define DEBUG_PIXMAP		0
 #define DEBUG_OFFSCREEN		0
-#define DEBUG_GLYPH_CACHE	1
+#define DEBUG_GLYPH_CACHE	0
 
 #if DEBUG_TRACE_FALL
 #define EXA_FALLBACK(x)     					\

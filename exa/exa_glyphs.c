@@ -260,11 +260,9 @@ exaGlyphCacheHashLookup(ExaGlyphCachePtr cache,
 	    return -1;
 
 	if (memcmp(pGlyph->sha1, cache->glyphs[entryPos].sha1, sizeof(pGlyph->sha1)) == 0){
-	    DBG_GLYPH_CACHE((" found entry at %d\n", slot));
 	    return entryPos;
 	}
 	    
-	DBG_GLYPH_CACHE((" lookup linear probe bumpalong\n"));
 	slot--;
 	if (slot < 0)
 	    slot = cache->hashSize - 1;
@@ -284,7 +282,6 @@ exaGlyphCacheHashInsert(ExaGlyphCachePtr cache,
     
     while (TRUE) { /* hash table can never be full */
 	if (cache->hashEntries[slot] == -1) {
-	    DBG_GLYPH_CACHE((" inserting entry at %d\n", slot));
 	    cache->hashEntries[slot] = pos;
 	    return;
 	}
