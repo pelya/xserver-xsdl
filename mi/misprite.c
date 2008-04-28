@@ -916,12 +916,15 @@ miSpriteUndisplayCursor(pDev, pScreen)
     DeviceIntPtr pDev;
     ScreenPtr    pScreen;
 {
+    miCursorInfoPtr pCursorInfo;
+
     if (!pDev->isMaster && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteUndisplayCursor called for floating device.\n");
         return;
     }
-    if (MISPRITE(pDev)->isUp)
+    pCursorInfo = MISPRITE(pDev);
+    if (pCursorInfo && pCursorInfo->isUp)
         miSpriteRemoveCursor(pDev, pScreen);
 }
 
