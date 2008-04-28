@@ -662,6 +662,79 @@ GlyphExtents (int		nlist,
     }
 }
 
+/**
+ * Returns TRUE if the glyphs in the lists intersect.  Only checks based on
+ * bounding box, which appears to be good enough to catch most cases at least.
+ */
+static Bool
+exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
+{
+    int x1, x2, y1, y2;
+    int n;
+    GlyphPtr glyph;
+    int x, y;
+    BoxRec extents;
+    Bool first = TRUE;
+
+    x = 0;
+    y = 0;
+    while (nlist--) {
+       x += list->xOff;
+       y += list->yOff;
+       n = list->len;
+       list++;
+       while (n--) {
+           glyph = *glyphs++;
+
+           if (glyph->info.width == 0 || glyph->info.height == 0) {
+               x += glyph->info.xOff;
+               y += glyph->info.yOff;
+               continue;
+           }
+
+           x1 = x - glyph->info.x;
+           if (x1 < MINSHORT)
+               x1 = MINSHORT;
+           y1 = y - glyph->info.y;
+           if (y1 < MINSHORT)
+               y1 = MINSHORT;
+           x2 = x1 + glyph->info.width;
+           if (x2 > MAXSHORT)
+               x2 = MAXSHORT;
+           y2 = y1 + glyph->info.height;
+           if (y2 > MAXSHORT)
+               y2 = MAXSHORT;
+
+           if (first) {
+               extents.x1 = x1;
+               extents.y1 = y1;
+               extents.x2 = x2;
+               extents.y2 = y2;
+               first = FALSE;
+           } else {
+               if (x1 < extents.x2 && x2 > extents.x1 &&
+                   y1 < extents.y2 && y2 > extents.y1)
+               {
+                   return TRUE;
+               }
+
+               if (x1 < extents.x1)
+                  extents.x1 = x1;
+               if (x2 > extents.x2)
+                   extents.x2 = x2;
+               if (y1 < extents.y1)
+                   extents.y1 = y1;
+               if (y2 > extents.y2)
+                   extents.y2 = y2;
+           }
+           x += glyph->info.xOff;
+           y += glyph->info.yOff;
+       }
+    }
+
+    return FALSE;
+}
+
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
 void
@@ -688,6 +761,29 @@ exaGlyphs (CARD8 	 op,
     BoxRec	extents = {0, 0, 0, 0};
     CARD32	component_alpha;
     ExaGlyphBuffer buffer;
+
+    /* If we don't have a mask format but all the glyphs have the same format
+     * and don't intersect, use the glyph format as mask format for the full
+     * benefits of the glyph cache.
+     */
+    if (!maskFormat) {
+       Bool sameFormat = TRUE;
+       int i;
+
+       maskFormat = list[0].format;
+
+       for (i = 0; i < nlist; i++) {
+           if (maskFormat->format != list[i].format->format) {
+               sameFormat = FALSE;
+               break;
+           }
+       }
+
+       if (!sameFormat || (maskFormat->depth != 1 &&
+			   exaGlyphsIntersect(nlist, list, glyphs))) {
+	   maskFormat = NULL;
+       }
+    }
 
     if (maskFormat)
     {
