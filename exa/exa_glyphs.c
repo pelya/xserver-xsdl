@@ -394,6 +394,12 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 				       pExaPixmap->sys_pitch))
 	return FALSE;
 
+    exaPixmapDirty (pCachePixmap,
+		    CACHE_X(pos) + cacheXoff,
+		    CACHE_Y(pos) + cacheYoff,
+		    CACHE_X(pos) + cacheXoff + pGlyph->info.width,
+		    CACHE_Y(pos) + cacheYoff + pGlyph->info.height);
+
     return TRUE;
 }
 
@@ -737,7 +743,8 @@ exaGlyphs (CARD8 	 op,
 	    glyph = *glyphs++;
 	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
 
-	    if (exaBufferGlyph(pScreen, &buffer, glyph, x, y) == ExaGlyphNeedFlush)
+	    if (glyph->info.width > 0 && glyph->info.height > 0 &&
+		exaBufferGlyph(pScreen, &buffer, glyph, x, y) == ExaGlyphNeedFlush)
 	    {
 		if (maskFormat)
 		    exaGlyphsToMask(pMask, &buffer);
