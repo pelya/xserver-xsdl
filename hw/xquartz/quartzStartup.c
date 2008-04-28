@@ -58,19 +58,10 @@ struct arg {
     char **envp;
 };
 
-pthread_cond_t server_can_start_cond = PTHREAD_COND_INITIALIZER;
-
 static void server_thread (void *arg) {
-    struct arg *args = (struct arg *)arg;
-
-    /* Wait to be told we can continue */
-    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_lock(&mutex);
-    pthread_cond_wait(&server_can_start_cond, &mutex);
-    pthread_mutex_unlock(&mutex);
-    pthread_mutex_destroy(&mutex);
-
-    exit (dix_main(args->argc, args->argv, args->envp));
+    struct arg args = *((struct arg *)arg);
+    free(arg);
+    exit (dix_main(args.argc, args.argv, args.envp));
 }
 
 static pthread_t create_thread (void *func, void *arg) {
@@ -86,15 +77,26 @@ static pthread_t create_thread (void *func, void *arg) {
     return tid;
 }
 
+void QuartzInitServer(int argc, char **argv, char **envp) {
+    struct arg *args = (struct arg*)malloc(sizeof(struct arg));
+    if(!args)
+        FatalError("Could not allocate memory.\n");
+    
+    args->argc = argc;
+    args->argv = argv;
+    args->envp = envp;
+    
+    APPKIT_THREAD_ID = pthread_self();
+    SERVER_THREAD_ID = create_thread(server_thread, args);
+
+    if (!SERVER_THREAD_ID) {
+        FatalError("can't create secondary thread\n");
+    }
+}
+
 int main(int argc, char **argv, char **envp) {
     int         i;
     int         fd[2];
-
-    /* Store the args to pass to dix_main() */
-    struct arg  args;
-    args.argc = argc;
-    args.argv = argv;
-    args.envp = envp;
 
     // Make a pipe to pass events
     assert( pipe(fd) == 0 );
@@ -112,18 +114,8 @@ int main(int argc, char **argv, char **envp) {
 
     /* Create the audio mutex */
     QuartzAudioInit();
-    
-    pthread_cond_init(&server_can_start_cond, NULL); 
-    
-    APPKIT_THREAD_ID = pthread_self();
-    SERVER_THREAD_ID = create_thread(server_thread, &args);
-
-    if (!SERVER_THREAD_ID) {
-        ErrorF("can't create secondary thread\n");
-        exit (1);
-    }
 
     QuartzMoveToForeground();
-    X11ControllerMain(argc, (const char **)argv);
+    X11ControllerMain(argc, argv, envp);
     exit(0);
 }

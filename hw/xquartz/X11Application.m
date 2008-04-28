@@ -47,9 +47,6 @@
 #include <mach/mach.h>
 #include <unistd.h>
 
-#include <pthread.h>
-extern pthread_cond_t server_can_start_cond;
-
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 int X11EnableKeyEquivalents = TRUE;
@@ -776,7 +773,7 @@ environment?", @"Startup xinitrc dialog");
     [X11App prefs_synchronize];
 }
 
-void X11ApplicationMain (int argc, const char **argv) {
+void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool;
 
 #ifdef DEBUG
@@ -804,7 +801,7 @@ void X11ApplicationMain (int argc, const char **argv) {
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
 
     /* Tell the server thread that it can proceed */
-    pthread_cond_broadcast(&server_can_start_cond);
+    QuartzInitServer(argc, argv, envp);
 
     [NSApp run];
     /* not reached */

@@ -100,6 +100,6 @@
 
 #endif /* __OBJC__ */
 
-void X11ControllerMain(int argc, const char **argv);
+void X11ControllerMain(int argc, char **argv, char **envp);
 
 #endif /* X11CONTROLLER_H */

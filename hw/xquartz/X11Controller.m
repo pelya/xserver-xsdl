@@ -756,6 +756,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 @end
 
-void X11ControllerMain(int argc, const char **argv) {
-    X11ApplicationMain (argc, argv);
+void X11ControllerMain(int argc, char **argv, char **envp) {
+    X11ApplicationMain (argc, argv, envp);
 }

@@ -71,7 +71,7 @@ void X11ApplicationSetCanQuit (int state);
 void X11ApplicationServerReady (void);
 void X11ApplicationShowHideMenubar (int state);
 
-void X11ApplicationMain(int argc, const char **argv);
+void X11ApplicationMain(int argc, char **argv, char **envp);
 
 extern int X11EnableKeyEquivalents;
 extern int quartzHasRoot, quartzEnableRootless;
