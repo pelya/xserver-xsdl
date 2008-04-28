@@ -453,8 +453,6 @@ xprGetXWindow(xp_window_id wid)
 {
     RootlessWindowRec *winRec;
 
-    TA_SERVER();
-    
     if (window_hash == NULL)
         return NULL;
 
@@ -474,8 +472,6 @@ xprGetXWindowFromAppKit(int windowNumber)
     Bool ret;
     xp_window_id wid;
 
-    TA_SERVER();
-    
     if (window_hash == NULL)
         return FALSE;
 
@@ -507,8 +503,6 @@ xprIsX11Window(void *nsWindow, int windowNumber)
     Bool ret;
     xp_window_id wid;
 
-    TA_SERVER();
-    
     if (window_hash == NULL)
         return FALSE;
 
