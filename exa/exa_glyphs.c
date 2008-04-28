@@ -347,6 +347,56 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
 #define CACHE_X(pos) (((pos) % cache->columns) * cache->glyphWidth)
 #define CACHE_Y(pos) (cache->yOffset + ((pos) / cache->columns) * cache->glyphHeight)
 
+/* The most efficient thing to way to upload the glyph to the screen
+ * is to use the UploadToScreen() driver hook; this allows us to
+ * pipeline glyph uploads and to avoid creating offscreen pixmaps for
+ * glyphs that we'll never use again.
+ */
+static Bool
+exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
+			 ExaGlyphCachePtr  cache,
+			 int               pos,
+			 GlyphPtr          pGlyph)
+{
+    ExaScreenPriv(pScreen);
+    PicturePtr pGlyphPicture = GlyphPicture(pGlyph)[pScreen->myNum];
+    PixmapPtr pGlyphPixmap = (PixmapPtr)pGlyphPicture->pDrawable;
+    ExaPixmapPriv(pGlyphPixmap);
+    PixmapPtr pCachePixmap = (PixmapPtr)cache->picture->pDrawable;
+    ExaMigrationRec pixmaps[1];
+    int cacheXoff, cacheYoff;
+
+    if (!pExaScr->info->UploadToScreen || pExaScr->swappedOut || pExaPixmap->accel_blocked)
+	return FALSE;
+
+    /* If the glyph pixmap is already uploaded, no point in doing
+     * things this way */
+    if (exaPixmapIsOffscreen(pGlyphPixmap))
+	return FALSE;
+
+    /* cache pixmap must be offscreen. */
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = pCachePixmap;
+    pixmaps[0].pReg = NULL;
+    exaDoMigration (pixmaps, 1, TRUE);
+
+    pCachePixmap = exaGetOffscreenPixmap ((DrawablePtr)pCachePixmap, &cacheXoff, &cacheYoff);
+    if (!pCachePixmap)
+	return FALSE;
+
+    if (!pExaScr->info->UploadToScreen(pCachePixmap,
+				       CACHE_X(pos) + cacheXoff,
+				       CACHE_Y(pos) + cacheYoff,
+				       pGlyph->info.width,
+				       pGlyph->info.height,
+				       (char *)pExaPixmap->sys_ptr,
+				       pExaPixmap->sys_pitch))
+	return FALSE;
+
+    return TRUE;
+}
+
 static ExaGlyphCacheResult
 exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 			 ExaGlyphCachePtr  cache,
@@ -413,18 +463,23 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	    cache->evictionPosition = rand() % cache->size;
 	}
 
-	/* Now actually upload the glyph into the cache picture */
+	/* Now actually upload the glyph into the cache picture; if
+	 * we can't do it with UploadToScreen (because the glyph is
+	 * offscreen, etc), we fall back to CompositePicture.
+	 */
+	if (!exaGlyphCacheUploadGlyph(pScreen, cache, pos, pGlyph)) {
+	    CompositePicture (PictOpSrc,
+			      GlyphPicture(pGlyph)[pScreen->myNum],
+			      None,
+			      cache->picture,
+			      0, 0,
+			      0, 0,
+			      CACHE_X(pos),
+			      CACHE_Y(pos),
+			      pGlyph->info.width,
+			      pGlyph->info.height);
+	}
 
-	CompositePicture (PictOpSrc,
-			  GlyphPicture(pGlyph)[pScreen->myNum],
-			  None,
-			  cache->picture,
-			  0, 0,
-			  0, 0,
-			  CACHE_X(pos),
-			  CACHE_Y(pos),
-			  pGlyph->info.width,
-			  pGlyph->info.height);
     }
     
 
