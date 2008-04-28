@@ -374,6 +374,10 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     if (exaPixmapIsOffscreen(pGlyphPixmap))
 	return FALSE;
 
+    /* UploadToScreen only works if bpp match */
+    if (pGlyphPixmap->drawable.bitsPerPixel != pCachePixmap->drawable.bitsPerPixel)
+	return FALSE;
+
     /* cache pixmap must be offscreen. */
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
@@ -524,6 +528,9 @@ exaBufferGlyph(ScreenPtr         pScreen,
 
     if (buffer->count == GLYPH_BUFFER_SIZE)
 	return ExaGlyphNeedFlush;
+
+    if (PICT_FORMAT_BPP(format) == 1)
+	format = PICT_a8;
     
     for (i = 0; i < EXA_NUM_GLYPH_CACHES; i++) {
 	ExaGlyphCachePtr cache = &pExaScr->glyphCaches[i];
@@ -796,6 +803,14 @@ exaGlyphs (CARD8 	 op,
 	    return;
 	width = extents.x2 - extents.x1;
 	height = extents.y2 - extents.y1;
+
+	if (maskFormat->depth == 1) {
+	    PictFormatPtr a8Format = PictureMatchFormat (pScreen, 8, PICT_a8);
+
+	    if (a8Format)
+		maskFormat = a8Format;
+	}
+
 	pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
 						maskFormat->depth,
 						CREATE_PIXMAP_USAGE_SCRATCH);
