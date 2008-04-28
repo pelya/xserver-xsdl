@@ -173,12 +173,13 @@ exaRealizeGlyphCaches(ScreenPtr    pScreen,
     for (i = 0; i < EXA_NUM_GLYPH_CACHES; i++) {
 	ExaGlyphCachePtr cache = &pExaScr->glyphCaches[i];
 	int rows;
-	
+
 	if (cache->format != format)
 	    continue;
 
-	rows = (cache->size + cache->columns - 1) / cache->columns;
+	cache->yOffset = height;
 
+	rows = (cache->size + cache->columns - 1) / cache->columns;
 	height += rows * cache->glyphHeight;
     }
 
@@ -346,6 +347,9 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
     }
 }
 
+#define CACHE_X(pos) (((pos) % cache->columns) * cache->glyphWidth)
+#define CACHE_Y(pos) (cache->yOffset + ((pos) / cache->columns) * cache->glyphHeight)
+
 static ExaGlyphCacheResult
 exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 			 ExaGlyphCachePtr  cache,
@@ -393,8 +397,8 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 		int x, y;
 		int i;
 		
-		x = (pos % cache->columns) * cache->glyphWidth;
-		y = (pos / cache->columns) * cache->glyphHeight;
+		x = CACHE_X(pos);
+		y = CACHE_Y(pos);
 
 		for (i = 0; i < buffer->count; i++) {
 		    if (buffer->rects[i].xSrc == x && buffer->rects[i].ySrc == y) {
@@ -420,8 +424,8 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 			  cache->picture,
 			  0, 0,
 			  0, 0,
-			  (pos % cache->columns) * cache->glyphWidth,
-			  (pos / cache->columns) * cache->glyphHeight,
+			  CACHE_X(pos),
+			  CACHE_Y(pos),
 			  pGlyph->info.width,
 			  pGlyph->info.height);
     }
@@ -430,8 +434,8 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
     buffer->source = cache->picture;
 	    
     rect = &buffer->rects[buffer->count];
-    rect->xSrc = (pos % cache->columns) * cache->glyphWidth;
-    rect->ySrc = (pos / cache->columns) * cache->glyphHeight;
+    rect->xSrc = CACHE_X(pos);
+    rect->ySrc = CACHE_Y(pos);
     rect->xDst = xGlyph - pGlyph->info.x;
     rect->yDst = yGlyph - pGlyph->info.y;
     rect->width = pGlyph->info.width;
@@ -441,6 +445,9 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 
     return ExaGlyphSuccess;
 }
+
+#undef CACHE_X
+#undef CACHE_Y
 
 static ExaGlyphCacheResult
 exaBufferGlyph(ScreenPtr         pScreen,
@@ -452,7 +459,7 @@ exaBufferGlyph(ScreenPtr         pScreen,
     ExaScreenPriv(pScreen);
     unsigned int format = (GlyphPicture(pGlyph)[pScreen->myNum])->format;
     int width = pGlyph->info.width;
-    int height = pGlyph->info.width;
+    int height = pGlyph->info.height;
     ExaCompositeRectPtr rect;
     PicturePtr source;
     int i;

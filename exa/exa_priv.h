@@ -61,7 +61,7 @@
 #define DEBUG_MIGRATE		0
 #define DEBUG_PIXMAP		0
 #define DEBUG_OFFSCREEN		0
-#define DEBUG_GLYPH_CACHE	0
+#define DEBUG_GLYPH_CACHE	1
 
 #if DEBUG_TRACE_FALL
 #define EXA_FALLBACK(x)     					\
@@ -121,6 +121,7 @@ typedef struct {
     int glyphCount; /* Current number of glyphs */
     
     PicturePtr picture;   /* Where the glyphs of the cache are stored */
+    int yOffset;          /* y location within the picture where the cache starts */
     int columns;          /* Number of columns the glyphs are layed out in */
     int evictionPosition; /* Next random position to evict a glyph */
 } ExaGlyphCacheRec, *ExaGlyphCachePtr;
