@@ -739,6 +739,8 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
 
+    exaGlyphsFini(pScreen);
+
     pScreen->CreateGC = pExaScr->SavedCreateGC;
     pScreen->CloseScreen = pExaScr->SavedCloseScreen;
     pScreen->GetImage = pExaScr->SavedGetImage;
@@ -752,7 +754,9 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 #ifdef RENDER
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
+	ps->Glyphs = pExaScr->SavedGlyphs;
 	ps->Trapezoids = pExaScr->SavedTrapezoids;
+	ps->Triangles = pExaScr->SavedTriangles;
     }
 #endif
 
@@ -914,6 +918,9 @@ exaDriverInit (ScreenPtr		pScreen,
         pExaScr->SavedComposite = ps->Composite;
 	ps->Composite = exaComposite;
 
+	pExaScr->SavedGlyphs = ps->Glyphs;
+	ps->Glyphs = exaGlyphs;
+	
 	pExaScr->SavedTriangles = ps->Triangles;
 	ps->Triangles = exaTriangles;
 
@@ -972,6 +979,8 @@ exaDriverInit (ScreenPtr		pScreen,
 	    }
 	}
     }
+
+    exaGlyphsInit(pScreen);
 
     LogMessage(X_INFO, "EXA(%d): Driver registered support for the following"
 	       " operations:\n", pScreen->myNum);

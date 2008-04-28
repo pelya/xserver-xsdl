@@ -61,6 +61,7 @@
 #define DEBUG_MIGRATE		0
 #define DEBUG_PIXMAP		0
 #define DEBUG_OFFSCREEN		0
+#define DEBUG_GLYPH_CACHE	0
 
 #if DEBUG_TRACE_FALL
 #define EXA_FALLBACK(x)     					\
@@ -95,6 +96,37 @@ enum ExaMigrationHeuristic {
     ExaMigrationSmart
 };
 
+typedef struct {
+    unsigned char sha1[20];
+} ExaCachedGlyphRec, *ExaCachedGlyphPtr;
+
+typedef struct {
+    /* The identity of the cache, statically configured at initialization */
+    unsigned int format;
+    int glyphWidth;
+    int glyphHeight;
+
+    int size; /* Size of cache; eventually this should be dynamically determined */
+
+    /* Hash table mapping from glyph sha1 to position in the glyph; we use
+     * open addressing with a hash table size determined based on size and large
+     * enough so that we always have a good amount of free space, so we can
+     * use linear probing. (Linear probing is preferrable to double hashing
+     * here because it allows us to easily remove entries.)
+     */
+    int *hashEntries;
+    int hashSize;
+    
+    ExaCachedGlyphPtr glyphs;
+    int glyphCount; /* Current number of glyphs */
+    
+    PicturePtr picture;   /* Where the glyphs of the cache are stored */
+    int columns;          /* Number of columns the glyphs are layed out in */
+    int evictionPosition; /* Next random position to evict a glyph */
+} ExaGlyphCacheRec, *ExaGlyphCachePtr;
+
+#define EXA_NUM_GLYPH_CACHES 4
+
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
@@ -122,6 +154,8 @@ typedef struct {
     unsigned			 disableFbCount;
     Bool			 optimize_migration;
     unsigned			 offScreenCounter;
+
+    ExaGlyphCacheRec             glyphCaches[EXA_NUM_GLYPH_CACHES];
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
@@ -431,6 +465,13 @@ void
 exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	      PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
 	      int ntri, xTriangle *tris);
+
+/* exa_glyph.c */
+void
+exaGlyphsInit(ScreenPtr pScreen);
+
+void
+exaGlyphsFini (ScreenPtr pScreen);
 
 void
 exaGlyphs (CARD8	op,
