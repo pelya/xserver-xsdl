@@ -512,12 +512,18 @@ extern Bool RegisterPairingClient(ClientPtr client);
 extern DeviceIntPtr GuessFreePointerDevice(void);
 extern DeviceIntPtr NextFreePointerDevice(void);
 
+extern void CopyGetMasterEvent(DeviceIntPtr mdev,
+			       xEvent* original,
+			       xEvent** master,
+			       int count);
+
 extern int AllocMasterDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
+
 extern void FreeDeviceClass(int type, pointer* class);
 extern void FreeFeedbackClass(int type, pointer* class);
 extern void FreeAllDeviceClasses(ClassesPtr classes);
