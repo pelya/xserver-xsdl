@@ -457,8 +457,7 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
     }
 
     for (c = 0; c < xf86_config->num_crtc; c++)
-	if (xf86_config->crtc[c]->rotatedPixmap ||
-	    xf86_config->crtc[c]->rotatedData)
+	if (xf86_config->crtc[c]->transform_in_use)
 	    return;
 
     /*
@@ -476,6 +475,24 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
 	DamageDestroy (xf86_config->rotation_damage);
 	xf86_config->rotation_damage = NULL;
     }
+}
+
+_X_EXPORT void
+xf86RotateFreeShadow(ScrnInfoPtr pScrn)
+{
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+    int c;
+
+   for (c = 0; c < config->num_crtc; c++) {
+       xf86CrtcPtr crtc = config->crtc[c];
+
+       if (crtc->rotatedPixmap || crtc->rotatedData) {
+	   crtc->funcs->shadow_destroy(crtc, crtc->rotatedPixmap,
+				crtc->rotatedData);
+	   crtc->rotatedPixmap = NULL;
+	   crtc->rotatedData = NULL;
+       }
+   }
 }
 
 _X_EXPORT void
