@@ -84,7 +84,6 @@ _X_EXPORT Bool
 PictureTransformPoint (PictTransformPtr transform,
 		       PictVectorPtr	vector)
 {
-    PictVector	    result;
     int		    i, j;
     xFixed_32_32    partial;
     xFixed_34_30    v[3];
@@ -227,7 +226,7 @@ PictureTransformTranslate (PictTransformPtr forward,
     return TRUE;
 }
 
-_X_EXPORT void
+_X_EXPORT Bool
 PictureTransformBounds (BoxPtr b, PictTransformPtr matrix)
 {
     PictVector	v[4];
@@ -240,7 +239,8 @@ PictureTransformBounds (BoxPtr b, PictTransformPtr matrix)
     v[3].vector[0] = F (b->x1);    v[3].vector[1] = F (b->y2);	v[3].vector[2] = F(1);
     for (i = 0; i < 4; i++)
     {
-	PictureTransformPoint (matrix, &v[i]);
+	if (!PictureTransformPoint (matrix, &v[i]))
+	    return FALSE;
 	x1 = xFixedToInt (v[i].vector[0]);
 	y1 = xFixedToInt (v[i].vector[1]);
 	x2 = xFixedToInt (xFixedCeil (v[i].vector[0]));
@@ -258,6 +258,7 @@ PictureTransformBounds (BoxPtr b, PictTransformPtr matrix)
 	    if (y2 > b->y2) b->y2 = y2;
 	}
     }
+    return TRUE;
 }
 
 _X_EXPORT Bool

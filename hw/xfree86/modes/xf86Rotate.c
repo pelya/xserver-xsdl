@@ -135,25 +135,6 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 }
 
 static void
-xf86CrtcDamageShadow (xf86CrtcPtr crtc)
-{
-    ScrnInfoPtr	pScrn = crtc->scrn;
-    BoxRec	damage_box;
-    RegionRec   damage_region;
-    ScreenPtr	pScreen = pScrn->pScreen;
-
-    damage_box.x1 = 0;
-    damage_box.x2 = crtc->mode.HDisplay;
-    damage_box.y1 = 0;
-    damage_box.y2 = crtc->mode.VDisplay;
-    PictureTransformBounds (&damage_box, &crtc->crtc_to_framebuffer);
-    REGION_INIT (pScreen, &damage_region, &damage_box, 1);
-    DamageRegionAppend(&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
-			&damage_region);
-    REGION_UNINIT (pScreen, &damage_region);
-}
-
-static void
 xf86CrtcShadowClear (xf86CrtcPtr crtc)
 {
     PixmapPtr		dst_pixmap = crtc->rotatedPixmap;
@@ -182,6 +163,36 @@ xf86CrtcShadowClear (xf86CrtcPtr crtc)
     rect.height = dst_pixmap->drawable.height;
     CompositeRects (PictOpSrc, dst, &black, 1, &rect);
     FreePicture (dst, None);
+}
+
+static void
+xf86CrtcDamageShadow (xf86CrtcPtr crtc)
+{
+    ScrnInfoPtr	pScrn = crtc->scrn;
+    BoxRec	damage_box;
+    RegionRec   damage_region;
+    ScreenPtr	pScreen = pScrn->pScreen;
+
+    damage_box.x1 = 0;
+    damage_box.x2 = crtc->mode.HDisplay;
+    damage_box.y1 = 0;
+    damage_box.y2 = crtc->mode.VDisplay;
+    if (!PictureTransformBounds (&damage_box, &crtc->crtc_to_framebuffer))
+    {
+	damage_box.x1 = 0;
+	damage_box.y1 = 0;
+	damage_box.x2 = pScreen->width;
+	damage_box.y2 = pScreen->height;
+    }
+    if (damage_box.x1 < 0) damage_box.x1 = 0;
+    if (damage_box.y1 < 0) damage_box.y1 = 0;
+    if (damage_box.x2 > pScreen->width) damage_box.x2 = pScreen->width;
+    if (damage_box.y2 > pScreen->height) damage_box.y2 = pScreen->height;
+    REGION_INIT (pScreen, &damage_region, &damage_box, 1);
+    DamageRegionAppend (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
+			&damage_region);
+    REGION_UNINIT (pScreen, &damage_region);
+    xf86CrtcShadowClear (crtc);
 }
 
 static void
