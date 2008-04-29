@@ -966,7 +966,7 @@ IResetProc(ExtensionEntry * unused)
  *
  */
 
-_X_EXPORT Bool
+Bool
 DeviceIsPointerType(DeviceIntPtr dev)
 {
     if (dev_type[1].type == dev->type)

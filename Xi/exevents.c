@@ -107,7 +107,7 @@ RegisterOtherDevice(DeviceIntPtr device)
     device->public.realInputProc = ProcessOtherEvent;
 }
 
-_X_EXPORT Bool
+Bool
 IsPointerEvent(xEvent* xE)
 {
     switch(xE->u.u.type)
@@ -490,7 +490,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
  * Saves a few memory allocations.
  */
 
-_X_EXPORT void
+void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
     ClassesPtr classes;
@@ -778,7 +778,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 #define DEFAULT 0
 #define DONT_PROCESS 1
 #define IS_REPEAT 2
-_X_EXPORT int
+int
 UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 {
     int i;
