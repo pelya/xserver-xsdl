@@ -778,7 +778,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 #define DEFAULT 0
 #define DONT_PROCESS 1
 #define IS_REPEAT 2
-static int
+_X_EXPORT int
 UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 {
     int i;

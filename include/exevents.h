@@ -44,6 +44,12 @@ typedef struct _XIClientRec {
 extern void RegisterOtherDevice (
 	DeviceIntPtr           /* device */);
 
+extern int
+UpdateDeviceState (
+	DeviceIntPtr           /* device */,
+	xEventPtr              /*  xE    */,
+        int                    /* count  */);
+
 extern void ProcessOtherEvent (
 	xEventPtr /* FIXME deviceKeyButtonPointer * xE */,
 	DeviceIntPtr           /* other */,
