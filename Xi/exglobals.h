@@ -37,6 +37,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define EXGLOBALS_H 1
 
 extern int IReqCode;
+extern int IEventBase;
 extern int BadDevice;
 extern int BadMode;
 extern int DeviceBusy;

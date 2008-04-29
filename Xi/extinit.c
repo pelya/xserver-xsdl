@@ -277,6 +277,7 @@ static int (*SProcIVector[])(ClientPtr) = {
  */
 
 int IReqCode = 0;
+int IEventBase = 0;
 int BadDevice = 0;
 static int BadEvent = 1;
 int BadMode = 2;
@@ -885,6 +886,7 @@ RestoreExtensionEvents(void)
     int i, j;
 
     IReqCode = 0;
+    IEventBase = 0;
 
     for (i = 0; i < ExtEventIndex - 1; i++) {
 	if ((EventInfo[i].type >= LASTEvent) && (EventInfo[i].type < 128))
@@ -1122,6 +1124,7 @@ XInputExtensionInit(void)
 			    SProcIDispatch, IResetProc, StandardMinorOpcode);
     if (extEntry) {
 	IReqCode = extEntry->base;
+	IEventBase = extEntry->eventBase;
 	AllExtensionVersions[IReqCode - 128] = thisversion;
 	MakeDeviceTypeAtoms();
 	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone);
