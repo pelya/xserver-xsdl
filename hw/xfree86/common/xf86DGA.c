@@ -46,6 +46,7 @@
 #include <xkbsrv.h>
 #endif
 #include "xf86Xinput.h"
+#include "exglobals.h"
 
 #include "mi.h"
 
@@ -1025,17 +1026,12 @@ static Mask filters[] =
 static void
 DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 {
-    int             key, bit;
-    register BYTE   *kptr;
-    register int    i;
-    register CARD8  modifiers;
-    register CARD16 mask;
     int		    coreEquiv;
-    xEvent	    core;
+    xEvent	    xi;
     KeyClassPtr	    keyc = keybd->key;
     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
     DeviceIntPtr    pointer = GetPairedDevice(keybd);
-    
+
     coreEquiv = de->u.u.type - *XDGAEventBase;
 
     /*
@@ -1046,59 +1042,10 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     de->u.event.screen = pScreen->myNum;
     de->u.event.state = keyc->state | pointer->button->state;
 
-    /*
-     * Keep the core state in sync by duplicating what
-     * CoreProcessKeyboardEvent does
-     */
-    key = de->u.u.detail;
-    kptr = &keyc->down[key >> 3];
-    bit = 1 << (key & 7);
-    modifiers = keyc->modifierMap[key];
-    switch (coreEquiv)
-    {
-    case KeyPress:
-        pointer->valuator->motionHintWindow = NullWindow;
-	*kptr |= bit;
-	keyc->prev_state = keyc->state;
-#ifdef XKB
-	if (noXkbExtension)
-#endif
-	{
-	    
-	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
-	    {
-		if (mask & modifiers)
-		{
-		    /* This key affects modifier "i" */
-		    keyc->modifierKeyCount[i]++;
-		    keyc->state |= mask;
-		    modifiers &= ~mask;
-		}
-	    }
-	}
-	break;
-    case KeyRelease:
-	pointer->valuator->motionHintWindow = NullWindow;
-	*kptr &= ~bit;
-	keyc->prev_state = keyc->state;
-#ifdef XKB
-	if (noXkbExtension)
-#endif
-	{
-	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
-	    {
-		if (mask & modifiers) {
-		    /* This key affects modifier "i" */
-		    if (--keyc->modifierKeyCount[i] <= 0) {
-			keyc->state &= ~mask;
-			keyc->modifierKeyCount[i] = 0;
-		    }
-		    modifiers &= ~mask;
-		}
-	    }
-	}
-	break;
-    }
+    de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
+    UpdateDeviceState(keybd, de);
+    de->u.u.type = *XDGAEventBase + coreEquiv; /* change back */
+
     /*
      * Deliver the DGA event
      */
@@ -1113,17 +1060,16 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	/* If the keyboard is actively grabbed, deliver a grabbed core event */
 	if (keybd->deviceGrab.grab && !keybd->deviceGrab.fromPassiveGrab)
 	{
-            /* I've got no clue if that is correct but only working on core
-             * grabs seems the right thing here. (whot) */
-            core.u.u.type		    = coreEquiv;
-	    core.u.u.detail		    = de->u.u.detail;
-	    core.u.keyButtonPointer.time    = de->u.event.time;
-	    core.u.keyButtonPointer.eventX  = de->u.event.dx;
-	    core.u.keyButtonPointer.eventY  = de->u.event.dy;
-	    core.u.keyButtonPointer.rootX   = de->u.event.dx;
-	    core.u.keyButtonPointer.rootY   = de->u.event.dy;
-	    core.u.keyButtonPointer.state   = de->u.event.state;
-	    DeliverGrabbedEvent (&core, keybd, FALSE, 1);
+	    xi.u.u.type                  = (IEventBase - 1) + coreEquiv;
+	    xi.u.u.detail                = de->u.u.detail;
+	    xi.u.keyButtonPointer.time   = de->u.event.time;
+	    xi.u.keyButtonPointer.eventX = de->u.event.dx;
+	    xi.u.keyButtonPointer.eventY = de->u.event.dy;
+	    xi.u.keyButtonPointer.rootX  = de->u.event.dx;
+	    xi.u.keyButtonPointer.rootY  = de->u.event.dy;
+	    xi.u.keyButtonPointer.state  = de->u.event.state;
+	    ((deviceKeyButtonPointer*)&xi)->deviceid = keybd->id;
+	    DeliverGrabbedEvent (&xi, keybd, FALSE, 1);
 	}
     }
 }
@@ -1132,9 +1078,9 @@ static void
 DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
 {
     ButtonClassPtr  butc = mouse->button;
-    int		    coreEquiv;    
+    int		    coreEquiv;
     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
-    xEvent	    core;
+    xEvent	    xi;
 
     coreEquiv = de->u.u.type - *XDGAEventBase;
     /*
@@ -1142,44 +1088,11 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
      */
     de->u.event.screen = pScreen->myNum;
     de->u.event.state = butc->state | GetPairedDevice(mouse)->key->state;
-    /*
-     * Keep the core state in sync by duplicating what
-     * CoreProcessPointerEvent does
-     */
-    if (coreEquiv != MotionNotify)
-    {
-	int           key;
-	BYTE          *kptr;
-	int           bit;
-	
-	key = de->u.u.detail;
-	kptr = &butc->down[key >> 3];
-	bit = 1 << (key & 7);
-	switch (coreEquiv)
-	{
-	case ButtonPress: 
-	    mouse->valuator->motionHintWindow = NullWindow;
-	    if (!(*kptr & bit))
-		butc->buttonsDown++;
-	    butc->motionMask = ButtonMotionMask;
-	    *kptr |= bit;
-	    if (key <= 5)
-		butc->state |= (Button1Mask >> 1) << key;
-	    break;
-	case ButtonRelease: 
-	    mouse->valuator->motionHintWindow = NullWindow;
-	    if (*kptr & bit)
-		--butc->buttonsDown;
-	    if (!butc->buttonsDown)
-		butc->motionMask = 0;
-	    *kptr &= ~bit;
-	    if (key == 0)
-		return;
-	    if (key <= 5)
-		butc->state &= ~((Button1Mask >> 1) << key);
-	    break;
-	}
-    }
+
+    de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
+    UpdateDeviceState(mouse, de);
+    de->u.u.type = *XDGAEventBase + coreEquiv; /* change back */
+
     /*
      * Deliver the DGA event
      */
@@ -1194,15 +1107,15 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
 	/* If the pointer is actively grabbed, deliver a grabbed core event */
 	if (mouse->deviceGrab.grab && !mouse->deviceGrab.fromPassiveGrab)
 	{
-	    core.u.u.type		    = coreEquiv;
-	    core.u.u.detail		    = de->u.u.detail;
-	    core.u.keyButtonPointer.time    = de->u.event.time;
-	    core.u.keyButtonPointer.eventX  = de->u.event.dx;
-	    core.u.keyButtonPointer.eventY  = de->u.event.dy;
-	    core.u.keyButtonPointer.rootX   = de->u.event.dx;
-	    core.u.keyButtonPointer.rootY   = de->u.event.dy;
-	    core.u.keyButtonPointer.state   = de->u.event.state;
-	    DeliverGrabbedEvent (&core, mouse, FALSE, 1);
+	    xi.u.u.type                   = (IEventBase - 1 ) + coreEquiv;
+	    xi.u.u.detail                 = de->u.u.detail;
+	    xi.u.keyButtonPointer.time    = de->u.event.time;
+	    xi.u.keyButtonPointer.eventX  = de->u.event.dx;
+	    xi.u.keyButtonPointer.eventY  = de->u.event.dy;
+	    xi.u.keyButtonPointer.rootX   = de->u.event.dx;
+	    xi.u.keyButtonPointer.rootY   = de->u.event.dy;
+	    xi.u.keyButtonPointer.state   = de->u.event.state;
+	    DeliverGrabbedEvent (&xi, mouse, FALSE, 1);
 	}
     }
 }
