@@ -313,16 +313,7 @@ mieqProcessInputEvents(void)
             NewCurrentScreen (e->pDev, DequeueScreen(e->pDev), x, y);
         }
         else {
-            /* If someone's registered a custom event handler, let them
-             * steal it. */
-            if (miEventQueue.handlers[e->events->event->u.u.type]) {
-                miEventQueue.handlers[e->events->event->u.u.type](
-                                              DequeueScreen(e->pDev)->myNum,
-                                                      e->events->event,
-                                                      e->pDev,
-                                                      e->nevents);
-                return;
-            }
+            mieqHandler handler;
 
             /* FIXME: Bad hack. The only event where we actually get multiple
              * events at once is a DeviceMotionNotify followed by
@@ -350,13 +341,27 @@ mieqProcessInputEvents(void)
             } else
                 master_event = NULL;
 
-            /* process slave first, then master */
-            e->pDev->public.processInputProc(event, e->pDev, e->nevents);
-
-            if (!e->pDev->isMaster && e->pDev->u.master)
+            /* If someone's registered a custom event handler, let them
+             * steal it. */
+            if ((handler = miEventQueue.handlers[e->events->event->u.u.type]))
             {
-                e->pDev->u.master->public.processInputProc(master_event,
-                        e->pDev->u.master, e->nevents);
+                handler(DequeueScreen(e->pDev)->myNum, e->events->event,
+                        e->pDev, e->nevents);
+                if (!e->pDev->isMaster && e->pDev->u.master)
+                {
+                    handler(DequeueScreen(e->pDev->u.master)->myNum,
+                            e->events->event, e->pDev->u.master, e->nevents);
+                }
+            } else
+            {
+                /* process slave first, then master */
+                e->pDev->public.processInputProc(event, e->pDev, e->nevents);
+
+                if (!e->pDev->isMaster && e->pDev->u.master)
+                {
+                    e->pDev->u.master->public.processInputProc(master_event,
+                            e->pDev->u.master, e->nevents);
+                }
             }
 
             if (e->nevents > 1)
