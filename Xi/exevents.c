@@ -1153,13 +1153,22 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
     return TRUE;
 }
 
+/**
+ * Initialise the device's valuators. The memory must already be allocated,
+ * this function merely inits the matching axis (specified through axnum) to
+ * sane values.
+ *
+ * It is a condition that (minval < maxval).
+ *
+ * @see InitValuatorClassDeviceStruct
+ */
 _X_EXPORT void
 InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
     AxisInfoPtr ax;
-  
-    if (!dev || !dev->valuator)
+
+    if (!dev || !dev->valuator || minval > maxval)
         return;
 
     ax = dev->valuator->axes + axnum;

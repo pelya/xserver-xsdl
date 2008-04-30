@@ -1187,7 +1187,8 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
         AllocateMotionHistory(dev);
 
     for (i=0; i<numAxes; i++) {
-        InitValuatorAxisStruct(dev, i, -1, -1, 0, 0, 0);
+        InitValuatorAxisStruct(dev, i, NO_AXIS_LIMITS, NO_AXIS_LIMITS,
+                               0, 0, 0);
 	valc->axisVal[i]=0;
     }
     return TRUE;
@@ -1203,10 +1204,10 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
         return FALSE;
 
     /* we don't do anything sensible with these, but should */
-    abs->min_x = -1;
-    abs->min_y = -1;
-    abs->max_x = -1;
-    abs->max_y = -1;
+    abs->min_x = NO_AXIS_LIMITS;
+    abs->min_y = NO_AXIS_LIMITS;
+    abs->max_x = NO_AXIS_LIMITS;
+    abs->max_y = NO_AXIS_LIMITS;
     abs->flip_x = 0;
     abs->flip_y = 0;
     abs->rotation = 0;
@@ -1214,8 +1215,8 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 
     abs->offset_x = 0;
     abs->offset_y = 0;
-    abs->width = -1;
-    abs->height = -1;
+    abs->width = NO_AXIS_LIMITS;
+    abs->height = NO_AXIS_LIMITS;
     abs->following = 0;
     abs->screen = 0;
 
