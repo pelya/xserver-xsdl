@@ -356,17 +356,17 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
 static void
 clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
-    AxisInfoPtr axes = pDev->valuator->axes + axisNum;
+    AxisInfoPtr axis = pDev->valuator->axes + axisNum;
 
     /* InitValuatoraAxisStruct ensures that (min < max) */
 
-    if (axes->min_value != NO_AXIS_LIMITS &&
+    if (axis->min_value != NO_AXIS_LIMITS &&
             *val < axis->min_value)
-        *val = axes->min_value;
+        *val = axis->min_value;
 
-    if (axes->max_value != NO_AXIS_LIMITS &&
-            *val > axes->max_value)
-        *val = axes->max_value;
+    if (axis->max_value != NO_AXIS_LIMITS &&
+            *val > axis->max_value)
+        *val = axis->max_value;
 }
 
 /**
