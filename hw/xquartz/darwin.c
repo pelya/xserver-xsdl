@@ -1,10 +1,9 @@
 /**************************************************************
  *
- * Shared code for the Darwin X Server
- * running with Quartz or IOKit display mode
+ * Xquartz initialization code
  *
+ * Copyright (c) 2007-2008 Apple Inc.
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
- * Copyright (c) 2007 Apple Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,6 +111,7 @@ int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 
 // devices
 DeviceIntPtr            darwinPointer = NULL;
+DeviceIntPtr            darwinTablet = NULL;
 DeviceIntPtr            darwinKeyboard = NULL;
 
 // Common pixmap formats
@@ -332,14 +332,13 @@ static void DarwinChangePointerControl(
 #endif
 
 /*
- * DarwinMouseProc
- *  Handle the initialization, etc. of a mouse
+ * DarwinMouseProc: Handle the initialization, etc. of a mouse
  */
 static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
+	// 7 buttons: left, right, middle, then four scroll wheel "buttons"
     CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     
     switch (what) {
-            
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
             
@@ -347,15 +346,13 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
             InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
                                     GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
-                                    GetMotionHistorySize(), 7);
-            InitProximityClassDeviceStruct(pPointer);
+                                    GetMotionHistorySize(), 2);
+								pPointer->name = strdup("Quartz Pointing Device");
             break;
-            
         case DEVICE_ON:
             pPointer->public.on = TRUE;
             AddEnabledDevice( darwinEventReadFD );
             return Success;
-            
         case DEVICE_CLOSE:
         case DEVICE_OFF:
             pPointer->public.on = FALSE;
@@ -366,6 +363,34 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
     return Success;
 }
 
+static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
+    CARD8 map[4] = {0, 1, 2, 3};
+    
+    switch (what) {
+        case DEVICE_INIT:
+            pPointer->public.on = FALSE;
+            
+            // Set button map.
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, 3,
+                                    GetMotionHistory,
+                                    (PtrCtrlProcPtr)NoopDDA,
+                                    GetMotionHistorySize(), 7);
+            InitProximityClassDeviceStruct(pPointer);
+//			InitAbsoluteClassDeviceStruct(pPointer);
+			pPointer->name = strdup("pen");			
+            break;
+        case DEVICE_ON:
+            pPointer->public.on = TRUE;
+            AddEnabledDevice( darwinEventReadFD );
+            return Success;
+        case DEVICE_CLOSE:
+        case DEVICE_OFF:
+            pPointer->public.on = FALSE;
+            RemoveEnabledDevice(darwinEventReadFD);
+            return Success;
+    }
+    return Success;
+}
 
 /*
  * DarwinKeybdProc
@@ -376,6 +401,7 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
     switch ( onoff ) {
         case DEVICE_INIT:
             DarwinKeyboardInit( pDev );
+			pDev->name = strdup("Quartz Keyboard");
             break;
         case DEVICE_ON:
             pDev->public.on = TRUE;
@@ -499,8 +525,10 @@ int DarwinParseModifierList(
 void InitInput( int argc, char **argv )
 {
     darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
-	darwinPointer->name = strdup("tablet");
     RegisterPointerDevice( darwinPointer );
+
+    darwinTablet = AddInputDevice(DarwinTabletProc, TRUE);
+    RegisterPointerDevice( darwinTablet );
 
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );

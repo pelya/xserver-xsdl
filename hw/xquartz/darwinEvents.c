@@ -365,7 +365,8 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	static int darwinFakeMouseButtonDown = 0;
 	static int darwinFakeMouseButtonMask = 0;
 	int i, num_events;
-
+	DeviceIntPtr dev;
+	
 //    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
 	if(!darwinEvents) {
@@ -376,7 +377,10 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	int valuators[5] = {pointer_x, pointer_y, pressure * SCALEFACTOR_PRESSURE, 
 		      tilt_x * SCALEFACTOR_TILT, tilt_y * SCALEFACTOR_TILT};
 	
-		DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
+	if (pressure == 0 && tilt_x == 0 && tilt_y == 0) dev = darwinPointer;
+	else dev = darwinTablet;
+
+	DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
 			valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
 		// Mimic multi-button mouse with modifier-clicks
@@ -410,9 +414,9 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	} 
 
     mieqEnqueue_lock(); {
-        num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
-                                      POINTER_ABSOLUTE, 0, 5, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+        num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
+                                      POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
+        for(i=0; i<num_events; i++) mieqEnqueue (dev,&darwinEvents[i]);
         DarwinPokeEQ();
 
     } mieqEnqueue_unlock();
@@ -460,9 +464,9 @@ void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
 	}
 
     mieqEnqueue_lock(); {
-        num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
+        num_events = GetProximityEvents(darwinEvents, darwinTablet, ev_type,
                                         0, 5, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+        for(i=0; i<num_events; i++) mieqEnqueue (darwinTablet,&darwinEvents[i]);
         DarwinPokeEQ();
     } mieqEnqueue_unlock();
 }
