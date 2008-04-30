@@ -217,6 +217,26 @@ SOFTWARE.
 
 #endif /* SuperH */
 
+#if defined(__m32r__)
+
+#if defined(__BIG_ENDIAN__)
+# define IMAGE_BYTE_ORDER      MSBFirst
+# define BITMAP_BIT_ORDER      MSBFirst
+# define GLYPHPADBYTES         4
+# define GETLEFTBITS_ALIGNMENT 1
+#else
+# define IMAGE_BYTE_ORDER      LSBFirst
+# define BITMAP_BIT_ORDER      LSBFirst
+# define GLYPHPADBYTES         4
+# define GETLEFTBITS_ALIGNMENT 1
+#endif
+
+#define AVOID_MEMORY_READ
+#define FAST_CONSTANT_OFFSET_MODE
+#define LARGE_INSTRUCTION_CACHE
+#define PLENTIFUL_REGISTERS
+
+#endif /* __m32r__ */
 
 #if (defined(sun) && (defined(__sparc) || defined(sparc))) || \
     (defined(__uxp__) && (defined(sparc) || defined(mc68000))) || \

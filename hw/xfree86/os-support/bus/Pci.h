@@ -237,6 +237,12 @@
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 # endif
+#elif defined(__m32r__)
+# if defined(linux)
+#  define ARCH_PCI_INIT linuxPciInit
+#  define INCLUDE_XF86_MAP_PCI_MEM
+#  define INCLUDE_XF86_NO_DOMAIN
+# endif
 #elif defined(__sparc__) || defined(sparc)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
