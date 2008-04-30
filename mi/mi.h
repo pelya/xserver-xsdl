@@ -153,6 +153,10 @@ extern Bool mieqInit(
     void
 );
 
+extern void mieqResize(
+    int /* min_size */
+);
+
 extern void mieqEnqueue(
     DeviceIntPtr /*pDev*/,
     xEventPtr /*e*/

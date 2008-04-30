@@ -249,6 +249,7 @@ EnableDevice(DeviceIntPtr dev)
     listlen = GetEventList(&evlist);
     OsBlockSignals();
     SetMinimumEventSize(evlist, listlen, evsize);
+    mieqResizeEvents(evsize);
     OsReleaseSignals();
 
     if ((*prev != dev) || !dev->inited ||

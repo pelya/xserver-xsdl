@@ -102,6 +102,16 @@ mieqInit(void)
     return TRUE;
 }
 
+/* Ensure all events in the EQ are at least size bytes. */
+Bool
+mieqResizeEvents(int min_size)
+{
+    int i;
+
+    for (i = 0; i < QUEUE_SIZE; i++)
+        SetMinimumEventSize(miEventQueue.events[i].events, 7, min_size);
+}
+
 /*
  * Must be reentrant with ProcessInputEvents.  Assumption: mieqEnqueue
  * will never be interrupted.  If this is called from both signal
