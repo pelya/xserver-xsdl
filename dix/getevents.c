@@ -358,8 +358,9 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
     AxisInfoPtr axes = pDev->valuator->axes + axisNum;
 
-    /* No clipping if the value-range <= 0 */
-    if(axes->min_value < axes->min_value) {
+    /* Don't clip if min_value and max_value are the same, or if an invalid
+       range is specified. */
+    if(axes->min_value < axes->max_value) {
         if (*val < axes->min_value)
             *val = axes->min_value;
         if (*val > axes->max_value)
