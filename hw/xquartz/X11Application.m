@@ -49,6 +49,13 @@
 
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
+#ifndef XSERVER_VERSION
+#define XSERVER_VERSION "?"
+#endif
+
+#define ProximityIn    0
+#define ProximityOut   1
+
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
@@ -852,25 +859,35 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	tilt_y = 0;
 
 	switch (type) {
-		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto handle_mouse;
-		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto handle_mouse;
-		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto handle_mouse;
-		case NSLeftMouseUp:      ev_button=1; ev_type=ButtonRelease; goto handle_mouse;
-		case NSOtherMouseUp:     ev_button=2; ev_type=ButtonRelease; goto handle_mouse;
-		case NSRightMouseUp:     ev_button=3; ev_type=ButtonRelease; goto handle_mouse;
-		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto handle_mouse;
-		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto handle_mouse;
-		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto handle_mouse;
+		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto check_subtype;
+		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto check_subtype;
+		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto check_subtype;
+		case NSLeftMouseUp:      ev_button=1; ev_type=ButtonRelease; goto check_subtype;
+		case NSOtherMouseUp:     ev_button=2; ev_type=ButtonRelease; goto check_subtype;
+		case NSRightMouseUp:     ev_button=3; ev_type=ButtonRelease; goto check_subtype;
+		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto check_subtype;
+		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto check_subtype;
+		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto check_subtype;
+		
+check_subtype:
+			if ([e subtype] != NSTabletPointEventSubtype) goto handle_mouse;
+			// fall through to get tablet data
 		case NSTabletPoint:
 			pressure = [e pressure];
 			tilt_x = [e tilt].x;
-			tilt_y = [e tilt].y; // fall through
-		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
-		handle_mouse:
+			tilt_y = [e tilt].y; 
+			// fall through to normal mouse handling
 
-//      if ([e subtype] == NSTabletPointEventSubtype) pressure = [e pressure];
+		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
+
+handle_mouse:
 		DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
 			pressure, tilt_x, tilt_y);
+		break;
+
+		case NSTabletProximity:
+			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
+				pointer_x, pointer_y);
 		break;
 
 		case NSScrollWheel:

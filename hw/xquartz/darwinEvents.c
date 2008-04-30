@@ -65,6 +65,10 @@ in this Software without prior written authorization from The Open Group.
 #define SCROLLWHEELLEFTFAKE  6
 #define SCROLLWHEELRIGHTFAKE 7
 
+/* These values were chosen to match the output of xinput under Linux */
+#define SCALEFACTOR_TILT        64.0
+#define SCALEFACTOR_PRESSURE    1000.0
+
 #define _APPLEWM_SERVER_
 #include "applewmExt.h"
 #include <X11/extensions/applewm.h>
@@ -362,26 +366,18 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	static int darwinFakeMouseButtonMask = 0;
 	int i, num_events;
 
-    //DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+//    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
 	if(!darwinEvents) {
 		ErrorF("DarwinSendPointerEvents called before darwinEvents was initialized\n");
 		return;
 	}
-	/* I can't find a spec for this, but at least GTK expects that tablets are
-     just like mice, except they have either one or three extra valuators, in this
-     order:
-     
-     X coord, Y coord, pressure, X tilt, Y tilt
-     Pressure and tilt should be represented natively as floats; unfortunately,
-     we can't do that.  Again, GTK seems to record the min/max of each valuator,
-     and then perform scaling back to float itself using that info. Soo.... */
 
-	int valuators[5] = {pointer_x, pointer_y, 
-		      pressure * INT32_MAX * 1.0f, 
-		      tilt_x * INT32_MAX * 1.0f, 
-		      tilt_y * INT32_MAX * 1.0f};
-
+	int valuators[5] = {pointer_x, pointer_y, pressure * SCALEFACTOR_PRESSURE, 
+		      tilt_x * SCALEFACTOR_TILT, tilt_y * SCALEFACTOR_TILT};
+	
+		DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
+			valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
 		// Mimic multi-button mouse with modifier-clicks
 		// If both sets of modifiers are pressed,
@@ -450,16 +446,16 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
     } mieqEnqueue_unlock();
 }
 
-void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 
-			       float pressure, float tilt_x, float tilt_y) {
+void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
 	int i, num_events;
-	int valuators[5] = {pointer_x, pointer_y, 
-		      pressure * INT32_MAX * 1.0f, 
-		      tilt_x * INT32_MAX * 1.0f, 
-		      tilt_y * INT32_MAX * 1.0f};
 
+	// tilt and pressure have no meaning for a Prox event
+	int valuators[5] = {pointer_x, pointer_y, 0, 0, 0};  
+
+	DEBUG_LOG("DarwinSendProximityEvents(%d, %d, %d)\n", ev_type, pointer_x, pointer_y);
+	
 	if(!darwinEvents) {
-		ErrorF("DarwinSendProximityvents called before darwinEvents was initialized\n");
+		ErrorF("DarwinSendProximityEvents called before darwinEvents was initialized\n");
 		return;
 	}
 
