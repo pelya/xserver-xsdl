@@ -499,12 +499,13 @@ int DarwinParseModifierList(
 void InitInput( int argc, char **argv )
 {
     darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
+	darwinPointer->name = strdup("tablet");
     RegisterPointerDevice( darwinPointer );
 
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
 
-    DarwinEQInit( (DevicePtr)darwinKeyboard, (DevicePtr)darwinPointer );
+    DarwinEQInit();
 
     QuartzInitInput(argc, argv);
 }

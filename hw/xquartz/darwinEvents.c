@@ -307,7 +307,7 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
     }
 }
 
-Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+Bool DarwinEQInit(void) { 
     if (!darwinEvents)
         darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
     if (!darwinEvents)

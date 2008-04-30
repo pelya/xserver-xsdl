@@ -28,7 +28,7 @@
 #ifndef _DARWIN_EVENTS_H
 #define _DARWIN_EVENTS_H
 
-Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr);
+Bool DarwinEQInit(void);
 void DarwinEQEnqueue(const xEventPtr e);
 void DarwinEQPointerPost(DeviceIntPtr pDev, xEventPtr e);
 void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
