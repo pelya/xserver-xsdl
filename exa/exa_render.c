@@ -345,6 +345,9 @@ exaTryDriverCompositeRects(CARD8	       op,
     struct _Pixmap scratch;
     ExaMigrationRec pixmaps[2];
 
+    if (!pExaScr->info->PrepareComposite)
+	return -1;
+
     pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
     pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
 
