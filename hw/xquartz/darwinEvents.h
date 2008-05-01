@@ -40,4 +40,36 @@ void DarwinSendScrollEvents(float count_x, float count_y, int pointer_x, int poi
 			    float pressure, float tilt_x, float tilt_y);
 void DarwinUpdateModKeys(int flags);
 
+/*
+ * Special ddx events understood by the X server
+ */
+enum {
+    kXquartzReloadKeymap      // Reload system keymap
+    = LASTEvent+1,    // (from X.h list of event names)
+    kXquartzActivate,         // restore X drawing and cursor
+    kXquartzDeactivate,       // clip X drawing and switch to Aqua cursor
+    kXquartzSetRootClip,      // enable or disable drawing to the X screen
+    kXquartzQuit,             // kill the X server and release the display
+    kXquartzReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
+    kXquartzWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
+    kXquartzBringAllToFront,  // bring all X windows to front
+    kXquartzToggleFullscreen, // Enable/Disable fullscreen mode
+    kXquartzSetRootless,      // Set rootless mode
+    kXquartzSpaceChanged,     // Spaces changed
+    /*
+     * AppleWM events
+     */
+    kXquartzControllerNotify, // send an AppleWMControllerNotify event
+    kXquartzPasteboardNotify, // notify the WM to copy or paste
+    /*
+     * Xplugin notification events
+     */
+    kXquartzDisplayChanged,   // display configuration has changed
+    kXquartzWindowState,      // window visibility state has changed
+    kXquartzWindowMoved,      // window has moved on screen
+};
+
+/* Send one of the above events to the server thread. */
+void DarwinSendDDXEvent(int type, int argc, ...);
+
 #endif  /* _DARWIN_EVENTS_H */
