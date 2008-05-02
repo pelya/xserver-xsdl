@@ -7,6 +7,10 @@ bin_PROGRAMS = Xsdl
 
 Xsdl_SOURCES = sdl.c
 
+if GLX
+Xsdl_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xsdl_LDADD = \
 	@KDRIVE_LIBS@                                  \
 	@XSDL_LIBS@

@@ -465,7 +465,7 @@ CreateFiles(TreeNode *files)
     Widget w;
     char *value;
 
-    value = file->file_logfile ? file->file_logfile : "";
+    value = (file && file->file_logfile) ? file->file_logfile : "";
     node = NewNode(files, NULL, NULL, files->node, 
 		   (TreeData*)XtCalloc(1, sizeof(TreeData)));
     CreateFilesField(node, "LogFile", value);
@@ -509,10 +509,14 @@ UpdateFiles(TreeNode *files)
     /* LogFile */
     files = files->child;
     XtVaGetValues(files->data->files.text, XtNstring, &str, NULL);
-    XtFree(XF86Config->conf_files->file_logfile);
-    if (*str)
+    if (XF86Config->conf_files && XF86Config->conf_files->file_logfile)
+	XtFree(XF86Config->conf_files->file_logfile);
+    if (*str) {
+	if (XF86Config->conf_files == NULL)
+	    XF86Config->conf_files = XtCalloc(1, sizeof(XF86ConfFilesRec));
 	XF86Config->conf_files->file_logfile = XtNewString(str);
-    else
+    }
+    else if (XF86Config->conf_files)
 	XF86Config->conf_files->file_logfile = NULL;
 }
 
@@ -527,10 +531,11 @@ CreateFontPath(TreeNode *fontpath, char *path)
     if (path == NULL) {
 	if (XF86Font_path) {
 	    path = XtNewString(XF86Font_path);
-	    if (XF86Config->conf_files && XF86Config->conf_files->file_fontpath) {
+	    if (XF86Config->conf_files && XF86Config->conf_files->file_fontpath)
 		XtFree(XF86Config->conf_files->file_fontpath);
-		XF86Config->conf_files->file_fontpath = XtNewString(path);
-	    }
+	    if (XF86Config->conf_files == NULL)
+		XF86Config->conf_files = XtCalloc(1, sizeof(XF86ConfFilesRec));
+	    XF86Config->conf_files->file_fontpath = XtNewString(path);
 	}
 	else if (XF86Config->conf_files && XF86Config->conf_files->file_fontpath)
 	    path = XtNewString(XF86Config->conf_files->file_fontpath);
@@ -629,9 +634,14 @@ FontPathChanged(TreeNode *node)
 	pos += len - 2;
     }
 
-    if (XF86Config->conf_files->file_fontpath)
-	XtFree(XF86Config->conf_files->file_fontpath);
-    XF86Config->conf_files->file_fontpath = fontpath;
+    if (XF86Config->conf_files) {
+	if (XF86Config->conf_files->file_fontpath)
+	    XtFree(XF86Config->conf_files->file_fontpath);
+    }
+    else if (fontpath)
+	XF86Config->conf_files = XtCalloc(1, sizeof(XF86ConfFilesRec));
+    if (XF86Config->conf_files)
+	XF86Config->conf_files->file_fontpath = fontpath;
 }
 
 static void
@@ -703,10 +713,11 @@ CreateModulePath(TreeNode *modulepath, char *path)
     if (path == NULL) {
 	if (XF86Module_path) {
 	    path = XtNewString(XF86Module_path);
-	    if (XF86Config->conf_files && XF86Config->conf_files->file_modulepath) {
+	    if (XF86Config->conf_files == NULL)
+		XF86Config->conf_files = XtCalloc(1, sizeof(XF86ConfFilesRec));
+	    else if (XF86Config->conf_files->file_modulepath)
 		XtFree(XF86Config->conf_files->file_modulepath);
-		XF86Config->conf_files->file_modulepath = XtNewString(path);
-	    }
+	    XF86Config->conf_files->file_modulepath = XtNewString(path);
 	}
 	else if (XF86Config->conf_files && XF86Config->conf_files->file_modulepath)
 	    path = XtNewString(XF86Config->conf_files->file_modulepath);
@@ -799,9 +810,14 @@ ModulePathChanged(TreeNode *node)
 	pos += len - 2;
     }
 
-    if (XF86Config->conf_files->file_modulepath)
-	XtFree(XF86Config->conf_files->file_modulepath);
-    XF86Config->conf_files->file_modulepath = modulepath;
+    if (XF86Config->conf_files) {
+	if (XF86Config->conf_files->file_modulepath)
+	    XtFree(XF86Config->conf_files->file_modulepath);
+    }
+    else if (modulepath)
+	XF86Config->conf_files = XtCalloc(1, sizeof(XF86ConfFilesRec));
+    if (XF86Config->conf_files)
+	XF86Config->conf_files->file_modulepath = modulepath;
 }
 
 static void
@@ -921,6 +937,8 @@ NewModuleCallback(Widget unused, XtPointer user_data, XtPointer call_data)
     DeleteNode(node);
     load = (XF86LoadPtr)XtCalloc(1, sizeof(XF86LoadRec));
     load->load_name = XtNewString(label);
+    if (XF86Config->conf_modules == NULL)
+	XF86Config->conf_modules = XtCalloc(1, sizeof(XF86ConfModuleRec));
     XF86Config->conf_modules->mod_load_lst =
 	xf86addModule(XF86Config->conf_modules->mod_load_lst, load);
 

@@ -33,8 +33,8 @@
 
 #include <execinfo.h>
 
-pthread_t SERVER_THREAD;
-pthread_t APPKIT_THREAD;
+pthread_t APPKIT_THREAD_ID;
+pthread_t SERVER_THREAD_ID;
 
 void spewCallStack(void) {
     void* callstack[128];
@@ -48,7 +48,7 @@ void spewCallStack(void) {
     free(strs);
 }
 
-void _threadAssert(pthread_t tid, const char *file, const char *fun, int line) {
+void _threadSafetyAssert(pthread_t tid, const char *file, const char *fun, int line) {
     if(pthread_equal(pthread_self(), tid))
         return;
     
@@ -57,4 +57,14 @@ void _threadAssert(pthread_t tid, const char *file, const char *fun, int line) {
            threadSafetyID(pthread_self()), threadSafetyID(tid),
            file, fun, line);
     spewCallStack();
+}
+
+const char *threadSafetyID(pthread_t tid) {
+    if(pthread_equal(tid, APPKIT_THREAD_ID)) {
+        return "Appkit Thread";
+    } else if(pthread_equal(tid, SERVER_THREAD_ID)) {
+        return "Xserver Thread";
+    } else {        
+        return "Unknown Thread";
+    }
 }

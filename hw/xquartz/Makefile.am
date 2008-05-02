@@ -13,13 +13,12 @@ if X11APP
 X11APP_SUBDIRS = bundle
 endif
 
-SUBDIRS = . xpr $(X11APP_SUBDIRS)
-DIST_SUBDIRS = xpr bundle
+SUBDIRS = . GL xpr $(X11APP_SUBDIRS)
+DIST_SUBDIRS = GL xpr bundle
 
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/Xext/dpmsstubs.c \
 	X11Application.m \
 	X11Controller.m \
 	applewm.c \
@@ -52,4 +51,6 @@ EXTRA_DIST = \
 	quartzForeground.h \
 	quartzKeyboard.h \
 	quartzPasteboard.h \
+	sanitizedCarbon.h \
+	sanitizedCocoa.h \
 	threadSafety.h

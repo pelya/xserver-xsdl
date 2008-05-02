@@ -71,6 +71,7 @@ extern io_connect_t     darwinParamConnect;
 extern int              darwinEventReadFD;
 extern int              darwinEventWriteFD;
 extern DeviceIntPtr     darwinPointer;
+extern DeviceIntPtr     darwinTablet;
 extern DeviceIntPtr     darwinKeyboard;
 
 // User preferences
@@ -88,38 +89,6 @@ extern int              darwinDesiredRefresh;
 extern int              darwinMainScreenX;
 extern int              darwinMainScreenY;
 
-
-/*
- * Special ddx events understood by the X server
- */
-enum {
-    kXquartzReloadKeymap      // Reload system keymap
-            = LASTEvent+1,    // (from X.h list of event names)
-    kXquartzActivate,         // restore X drawing and cursor
-    kXquartzDeactivate,       // clip X drawing and switch to Aqua cursor
-    kXquartzSetRootClip,      // enable or disable drawing to the X screen
-    kXquartzQuit,             // kill the X server and release the display
-    kXquartzReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
-    kXquartzWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
-    kXquartzBringAllToFront,  // bring all X windows to front
-    kXquartzToggleFullscreen, // Enable/Disable fullscreen mode
-    kXquartzSetRootless,      // Set rootless mode
-    kXquartzSpaceChanged,     // Spaces changed
-    /*
-     * AppleWM events
-     */
-    kXquartzControllerNotify, // send an AppleWMControllerNotify event
-    kXquartzPasteboardNotify, // notify the WM to copy or paste
-    /*
-     * Xplugin notification events
-     */
-    kXquartzDisplayChanged,   // display configuration has changed
-    kXquartzWindowState,      // window visibility state has changed
-    kXquartzWindowMoved,      // window has moved on screen
-};
-
-void DarwinSendDDXEvent(int type, int argc, ...);
-
 #define ENABLE_DEBUG_LOG 1
 
 #ifdef ENABLE_DEBUG_LOG
@@ -129,5 +98,7 @@ extern FILE *debug_log_fp;
 #else
 #define DEBUG_LOG(msg, args...) 
 #endif
+
+#define TRACE() DEBUG_LOG("\n")
 
 #endif  /* _DARWIN_H */

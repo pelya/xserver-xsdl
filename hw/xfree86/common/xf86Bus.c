@@ -2773,7 +2773,7 @@ xf86FindPrimaryDevice()
     }
 }
 
-#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__)
+#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__) && !defined(__m32r__)
 #include "vgaHW.h"
 #include "compiler.h"
 #endif
@@ -2785,7 +2785,7 @@ static void
 CheckGenericGA()
 {
 /* This needs to be changed for multiple domains */
-#if !defined(__sparc__) && !defined(__sparc) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__arm__) && !defined(__s390__)
+#if !defined(__sparc__) && !defined(__sparc) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__arm__) && !defined(__s390__) && !defined(__m32r__)
     IOADDRESS GenericIOBase = VGAHW_GET_IOBASE();
     CARD8 CurrentValue, TestValue;
 

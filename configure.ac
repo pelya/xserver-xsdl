@@ -177,7 +177,7 @@ AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 
 case $host_os in
-    linux*)
+    linux*|darwin*)
 	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
     solaris*)
 	# Solaris 8 with patches, or Solaris 9 or later have /dev/urandom
@@ -379,7 +379,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	;;
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -387,7 +387,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -396,7 +396,7 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
-	DRI2=yes
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
 	KDRIVE_HW=yes
 	;;
   *solaris*)
@@ -524,11 +524,11 @@ AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with
 
 dnl Extensions.
 AC_ARG_ENABLE(registry,       AS_HELP_STRING([--disable-registry], [Build string registry module (default: enabled)]), [XREGISTRY=$enableval], [XREGISTRY=yes])
-AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=auto])
+AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
 AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
 AC_ARG_ENABLE(xtrap,          AS_HELP_STRING([--disable-xtrap], [Build XTrap extension (default: enabled)]), [XTRAP=$enableval], [XTRAP=yes])
-AC_ARG_ENABLE(record,         AS_HELP_STRING([--disable-record], [Build Record extension (default: disabled)]), [RECORD=$enableval], [RECORD=no])
+AC_ARG_ENABLE(record,         AS_HELP_STRING([--enable-record], [Build Record extension (default: disabled)]), [RECORD=$enableval], [RECORD=no])
 AC_ARG_ENABLE(xv,             AS_HELP_STRING([--disable-xv], [Build Xv extension (default: enabled)]), [XV=$enableval], [XV=yes])
 AC_ARG_ENABLE(xvmc,           AS_HELP_STRING([--disable-xvmc], [Build XvMC extension (default: enabled)]), [XVMC=$enableval], [XVMC=yes])
 AC_ARG_ENABLE(dga,            AS_HELP_STRING([--disable-dga], [Build DGA extension (default: auto)]), [DGA=$enableval], [DGA=auto])
@@ -547,7 +547,6 @@ AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Secu
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
-AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
@@ -644,6 +643,40 @@ XORG_CHECK_LINUXDOC
 
 dnl Handle installing libxf86config
 AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
+
+dnl XQuartz DDX Detection... Yes, it's ugly to have it here... but we need to handle this early on
+case $host_os in
+	darwin*)
+		if test x$XQUARTZ = xauto; then
+			AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
+		 		save_LDFLAGS=$LDFLAGS
+				LDFLAGS="$LDFLAGS -framework Carbon"
+				AC_LINK_IFELSE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}],
+				[xorg_cv_Carbon_framework=yes],
+				[xorg_cv_Carbon_framework=no])
+			LDFLAGS=$save_LDFLAGS])
+                
+			if test "X$xorg_cv_Carbon_framework" = Xyes; then
+				XQUARTZ=yes
+			else
+				XQUARTZ=no
+			fi
+		fi
+
+		if test "x$XQUARTZ" = xyes ; then
+			XQUARTZ=yes
+			XVFB=no
+			XNEST=no
+
+			COMPOSITE=no
+			DGA=no
+			DPMSExtension=no
+			XF86BIGFONT=no
+			XF86MISC=no
+			XF86VIDMODE=no
+		fi
+		;;
+esac
 
 dnl ---------------------------------------------------------------------------
 dnl Extension section
@@ -781,18 +814,6 @@ if test "x$XREGISTRY" = xyes; then
 	AC_DEFINE(XREGISTRY, 1, [Build registry module])
 fi
 
-dnl XQuartz DDX Detection... Yes, it's ugly to have it here... but we need to disable COMPOSITE for 
-if test "x$COMPOSITE" = xauto; then
-	case $host_os in
-		darwin*)
-			test "x$XQUARTZ" = xyes -o "x$XQUARTZ" = xauto && COMPOSITE=no
-			;;
-		*)
-			COMPOSITE=yes
-			;;
-	esac
-fi
-
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
 if test "x$COMPOSITE" = xyes; then
 	AC_DEFINE(COMPOSITE, 1, [Support Composite Extension])
@@ -837,7 +858,7 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([GL], [glproto >= 1.4.9])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
-	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
+	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la'
 	test -d GL || mkdir GL
 	case $host_os in
 	  solaris*) 	
@@ -848,6 +869,7 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	if test $? -ne 0; then
 		AC_MSG_ERROR([Failed to link Mesa source tree.  Please specify a proper path to Mesa sources, or disable GLX.])
 	fi
+	GLX_SYS_LIBS="$GLX_SYS_LIBS $DLOPEN_LIBS"
 else
         GLX=no
 fi
@@ -927,12 +949,6 @@ AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
 if test "x$XEVIE" = xyes; then
 	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
-fi
-
-AM_CONDITIONAL(CUP, [test "x$CUP" = xyes])
-if test "x$CUP" = xyes; then
-	AC_DEFINE(TOGCUP, 1, [Build TOG-CUP extension])
-	# Requires xextproto which is always required
 fi
 
 AM_CONDITIONAL(MULTIBUFFER, [test "x$MULTIBUFFER" = xyes])
@@ -1124,7 +1140,9 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 # OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
 # the OpenSSL libraries, just libcrypto
-PKG_CHECK_MODULES([OPENSSL], [openssl], [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])
+PKG_CHECK_EXISTS([openssl],
+ [PKG_CHECK_MODULES([OPENSSL], [openssl],
+   [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])])
 LIBCRYPTO="$OPENSSL_LIB_FLAGS -lcrypto"
 
 # Autotools has some unfortunate issues with library handling.  In order to
@@ -1710,58 +1728,17 @@ AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 
 dnl Darwin / OS X DDX
-if test "X$XQUARTZ" = Xauto; then
-	AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
-	 	save_LDFLAGS=$LDFLAGS
-		LDFLAGS="$LDFLAGS -framework Carbon"
-		AC_LINK_IFELSE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}],
-			[xorg_cv_Carbon_framework=yes],
-			[xorg_cv_Carbon_framework=no])
-		LDFLAGS=$save_LDFLAGS])
-                
-	if test "X$xorg_cv_Carbon_framework" = Xyes; then
-		XQUARTZ=yes
-	else
-		XQUARTZ=no
-	fi
-fi
-
 if test "x$XQUARTZ" = xyes; then
 	AC_DEFINE(XQUARTZ,1,[Have Quartz])
 	AC_DEFINE(ROOTLESS,1,[Build Rootless code])
 
-#glxAGL / glxCGL don't work yet
-#	AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
-#		save_LDFLAGS=$LDFLAGS
-#		LDFLAGS="$LDFLAGS -framework AGL"
-#		AC_LINK_IFELSE(
-#			[char aglEnable(); int main() { aglEnable(); return 0;}],
-#			[xorg_cv_AGL_framework=yes],
-#			[xorg_cv_AGL_framework=no])
-#		LDFLAGS=$save_LDFLAGS
-#	])
-	xorg_cv_AGL_framework=no
-	DARWIN_GLX_LIBS='$(top_builddir)/GL/apple/indirect.o $(top_builddir)/GL/glx/libglx.la'
-	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
+	DARWIN_GLX_LIBS='$(top_builddir)/hw/xquartz/GL/libCGLCore.la $(top_builddir)/GL/glx/libglx.la'
+	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $XPSTUBS_LIB $DARWIN_GLX_LIBS"
 	AC_SUBST([DARWIN_LIBS])
+
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
+
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
-	if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
-		AC_MSG_NOTICE([Disabling XF86Misc extension])
-		XF86MISC=no
-	fi
-	if test "x$XF86VIDMODE" = xyes || test "x$XF86VIDMODE" = xauto; then
-		AC_MSG_NOTICE([Disabling XF86VidMode extension])
-		XF86VIDMODE=no
-	fi
-	if test "x$XF86BIGFONT" = xyes || test "x$XF86BIGFONT" = xauto; then
-		AC_MSG_NOTICE([Disabling XF86BigFont extension])
-		XF86BIGFONT=no
-	fi
-	if test "x$DGA" = xyes || test "x$DGA" = xauto; then
-		AC_MSG_NOTICE([Disabling DGA extension])
-		DGA=no
-	fi
 fi
 
 # Support for objc in autotools is minimal and not documented.
@@ -1923,18 +1900,13 @@ if test "$KDRIVE" = yes; then
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi
+    if test "x$DRI" = xyes && test "x$GLX" = xyes; then
+        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS gl libdrm"
+    fi
+
     PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
     if test "x$XEPHYR" = xauto; then
         XEPHYR=$xephyr
-    fi
-    XEPHYR_DRI=no
-    if test x$XEPHYR = xyes -a x$DRI = xyes && test "x$GLX" = xyes; then
-        XEPHYR_DRI=yes
-        XEPHYR_DRI_LIBS=-lGL
-        AC_SUBST(XEPHYR_DRI_LIBS)
-    fi
-    if test x$XEPHYR_DRI = xyes ; then
-        AC_DEFINE(XEPHYR_DRI,1,[enable DRI extension in xephyr])
     fi
 
     # Xephyr needs nanosleep() which is in librt on Solaris
@@ -1942,7 +1914,7 @@ if test "$KDRIVE" = yes; then
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
     
     if test "x$TSLIB" = xyes; then
-        PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
+        PKG_CHECK_MODULES([TSLIB], [tslib-1.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
         if test "x$HAVE_TSLIB" = xno; then
             AC_MSG_ERROR([tslib must be installed to build the tslib driver. See http://tslib.berlios.de/])
         fi
@@ -1966,13 +1938,10 @@ if test "$KDRIVE" = yes; then
 	    ;;
     esac
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
-    KDRIVE_LOCAL_LIBS="$TSLIB_LIBS $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
+    KDRIVE_LOCAL_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
-    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS"
-
-    # check if we can build Xephyr
-    PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
+    KDRIVE_LIBS="$TSLIB_LIBS $KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS"
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
@@ -1993,7 +1962,6 @@ AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
-AM_CONDITIONAL(XEPHYR_HAS_DRI, [test x$XEPHYR_DRI = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
@@ -2102,20 +2070,7 @@ XORG_MANPAGE_SECTIONS
 AC_OUTPUT([
 Makefile
 GL/Makefile
-GL/apple/Makefile
 GL/glx/Makefile
-GL/mesa/Makefile
-GL/mesa/glapi/Makefile
-GL/mesa/main/Makefile
-GL/mesa/math/Makefile
-GL/mesa/shader/Makefile
-GL/mesa/shader/grammar/Makefile
-GL/mesa/shader/slang/Makefile
-GL/mesa/swrast/Makefile
-GL/mesa/swrast_setup/Makefile
-GL/mesa/tnl/Makefile
-GL/mesa/vbo/Makefile
-GL/mesa/X/Makefile
 include/Makefile
 afb/Makefile
 composite/Makefile
@@ -2208,6 +2163,7 @@ hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/xquartz/Makefile
+hw/xquartz/GL/Makefile
 hw/xquartz/bundle/Makefile
 hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile

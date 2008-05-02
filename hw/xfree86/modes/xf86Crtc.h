@@ -665,6 +665,12 @@ Bool
 xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation);
 
 /*
+ * free shadow memory allocated for all crtcs
+ */
+void
+xf86RotateFreeShadow(ScrnInfoPtr pScrn);
+
+/*
  * Clean up rotation during CloseScreen
  */
 void

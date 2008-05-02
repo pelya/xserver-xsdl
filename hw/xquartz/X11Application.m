@@ -35,6 +35,7 @@
 
 #include "quartzForeground.h"
 #include "quartzCommon.h"
+
 #import "X11Application.h"
 
 # include "darwin.h"
@@ -45,9 +46,15 @@
 # include "micmap.h"
 #include <mach/mach.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
+
+#ifndef XSERVER_VERSION
+#define XSERVER_VERSION "?"
+#endif
+
+#define ProximityIn    0
+#define ProximityOut   1
 
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -732,19 +739,6 @@ void X11ApplicationShowHideMenubar (int state) {
     [n release];
 }
 
-static pthread_t create_thread (void *func, void *arg) {
-    pthread_attr_t attr;
-    pthread_t tid;
-	
-    pthread_attr_init (&attr);
-    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create (&tid, &attr, func, arg);
-    pthread_attr_destroy (&attr);
-	
-    return tid;
-}
-
 static void check_xinitrc (void) {
     char *tem, buf[1024];
     NSString *msg;
@@ -786,7 +780,7 @@ environment?", @"Startup xinitrc dialog");
     [X11App prefs_synchronize];
 }
 
-void X11ApplicationMain (int argc, const char **argv, void (*server_thread) (void *), void *server_arg) {
+void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool;
 
 #ifdef DEBUG
@@ -812,16 +806,9 @@ void X11ApplicationMain (int argc, const char **argv, void (*server_thread) (voi
     /* Calculate the height of the menubar so we can avoid it. */
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
-  
-    APPKIT_THREAD = pthread_self();
-    SERVER_THREAD = create_thread (server_thread, server_arg);
 
-    if (!SERVER_THREAD) {
-        ErrorF("can't create secondary thread\n");
-        exit (1);
-    }
-
-    QuartzMoveToForeground();
+    /* Tell the server thread that it can proceed */
+    QuartzInitServer(argc, argv, envp);
 
     [NSApp run];
     /* not reached */
@@ -867,32 +854,40 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		pointer_y = (screen.origin.y + screen.size.height) - location.y;
 	}
 
-	pointer_y -= aquaMenuBarHeight;
-
 	pressure = 0;  // for tablets
 	tilt_x = 0;
 	tilt_y = 0;
 
 	switch (type) {
-		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto handle_mouse;
-		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto handle_mouse;
-		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto handle_mouse;
-		case NSLeftMouseUp:      ev_button=1; ev_type=ButtonRelease; goto handle_mouse;
-		case NSOtherMouseUp:     ev_button=2; ev_type=ButtonRelease; goto handle_mouse;
-		case NSRightMouseUp:     ev_button=3; ev_type=ButtonRelease; goto handle_mouse;
-		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto handle_mouse;
-		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto handle_mouse;
-		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto handle_mouse;
+		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto check_subtype;
+		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto check_subtype;
+		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto check_subtype;
+		case NSLeftMouseUp:      ev_button=1; ev_type=ButtonRelease; goto check_subtype;
+		case NSOtherMouseUp:     ev_button=2; ev_type=ButtonRelease; goto check_subtype;
+		case NSRightMouseUp:     ev_button=3; ev_type=ButtonRelease; goto check_subtype;
+		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto check_subtype;
+		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto check_subtype;
+		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto check_subtype;
+		
+check_subtype:
+			if ([e subtype] != NSTabletPointEventSubtype) goto handle_mouse;
+			// fall through to get tablet data
 		case NSTabletPoint:
 			pressure = [e pressure];
 			tilt_x = [e tilt].x;
-			tilt_y = [e tilt].y; // fall through
-		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
-		handle_mouse:
+			tilt_y = [e tilt].y; 
+			// fall through to normal mouse handling
 
-//      if ([e subtype] == NSTabletPointEventSubtype) pressure = [e pressure];
+		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
+
+handle_mouse:
 		DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
 			pressure, tilt_x, tilt_y);
+		break;
+
+		case NSTabletProximity:
+			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
+				pointer_x, pointer_y);
 		break;
 
 		case NSScrollWheel:

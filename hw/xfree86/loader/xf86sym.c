@@ -939,6 +939,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86CrtcDestroy)
     SYMFUNC(xf86CrtcInUse)
     SYMFUNC(xf86CrtcSetScreenSubpixelOrder)
+    SYMFUNC(xf86RotateFreeShadow)
     SYMFUNC(xf86RotateCloseScreen)
     SYMFUNC(xf86CrtcRotate)
     SYMFUNC(xf86CrtcSetMode)

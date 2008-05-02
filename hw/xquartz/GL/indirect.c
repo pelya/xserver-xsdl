@@ -102,7 +102,7 @@ void warn_func(void * p1, char *format, ...);
 
 // some prototypes
 static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen);
-static __GLXdrawable * __glXAquaScreenCreateDrawable(__GLXscreen *screen, DrawablePtr pDraw, XID drawId, __GLcontextModes *modes);
+static __GLXdrawable * __glXAquaScreenCreateDrawable(__GLXscreen *screen, DrawablePtr pDraw, XID drawId, __GLXconfig *modes);
 
 static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
                               int *nvisualp, int *ndepthp,
@@ -118,7 +118,7 @@ static int __glXAquaContextLoseCurrent(__GLXcontext *baseContext);
 static int __glXAquaContextForceCurrent(__GLXcontext *baseContext);
 static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, unsigned long mask);
 
-static CGLPixelFormatObj makeFormat(__GLcontextModes *mode);
+static CGLPixelFormatObj makeFormat(__GLXconfig *mode);
 
 __GLXprovider __glXMesaProvider = {
   __glXAquaScreenProbe,
@@ -141,7 +141,7 @@ struct __GLXAquaScreen {
   __GLXscreen   base;
   int           index;
     int num_vis;
-    __GLcontextModes *modes;
+    __GLXconfig *modes;
 };
 
 static __GLXAquaScreen glAquaScreens[MAXSCREENS];
@@ -162,7 +162,7 @@ struct __GLXAquaDrawable {
 
 static __GLXcontext *
 __glXAquaScreenCreateContext(__GLXscreen *screen,
-			     __GLcontextModes *modes,
+			     __GLXconfig *config,
 			     __GLXcontext *baseShareContext)
 {
   __GLXAquaContext *context;
@@ -177,7 +177,7 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   memset(context, 0, sizeof *context);
 
   context->base.pGlxScreen = screen;
-  context->base.modes      = modes;
+  context->base.config      = config;
 
   context->base.destroy        = __glXAquaContextDestroy;
   context->base.makeCurrent    = __glXAquaContextMakeCurrent;
@@ -186,7 +186,7 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   context->base.forceCurrent   = __glXAquaContextForceCurrent;
   //  context->base.createDrawable = __glXAquaContextCreateDrawable;
 
-  context->pixelFormat = makeFormat(modes);
+  context->pixelFormat = makeFormat(config);
   if (!context->pixelFormat) {
         free(context);
         return NULL;
@@ -437,7 +437,7 @@ static GLboolean __glXAquaDrawableSwapBuffers(__GLXdrawable *base) {
     return GL_TRUE;
 }
 
-static CGLPixelFormatObj makeFormat(__GLcontextModes *mode) {
+static CGLPixelFormatObj makeFormat(__GLXconfig *config) {
     int i;
     CGLPixelFormatAttribute attr[64]; // currently uses max of 30
     CGLPixelFormatObj result;
@@ -446,7 +446,7 @@ static CGLPixelFormatObj makeFormat(__GLcontextModes *mode) {
     
     GLAQUA_DEBUG_MSG("makeFormat\n");
 
-    if (!mode->rgbMode)
+    if (!config->rgbMode)
         return NULL;
 
     i = 0;
@@ -454,42 +454,43 @@ static CGLPixelFormatObj makeFormat(__GLcontextModes *mode) {
     // attr [i++] = kCGLPFAAcelerated; // require hwaccel - BAD for multiscreen
     // attr [i++] = kCGLPFANoRecovery; // disable fallback renderers - BAD
 
-    if (mode->stereoMode) {
+    if (config->stereoMode) {
         attr[i++] = kCGLPFAStereo;
     }
-    if (mode->doubleBufferMode) {
+
+    if (config->doubleBufferMode) {
         attr[i++] = kCGLPFADoubleBuffer;
     }
 
-    if (mode->colorIndexMode) {
+    if (config->colorIndexMode) {
         /* ignored */
     }
 
-    if (mode->rgbMode) {
+    if (config->rgbMode) {
         attr[i++] = kCGLPFAColorSize;
-        attr[i++] = mode->redBits + mode->greenBits + mode->blueBits;
+        attr[i++] = config->redBits + config->greenBits + config->blueBits;
         attr[i++] = kCGLPFAAlphaSize;
-        attr[i++] = 1; /* FIXME: ignoring mode->alphaBits which is always 0 */
+        attr[i++] = 1; /* FIXME: ignoring config->alphaBits which is always 0 */
     }
 
-    if (mode->haveAccumBuffer) {
+    if (config->haveAccumBuffer) {
         attr[i++] = kCGLPFAAccumSize;
-        attr[i++] = mode->accumRedBits + mode->accumGreenBits
-                    + mode->accumBlueBits + mode->accumAlphaBits;
+        attr[i++] = config->accumRedBits + config->accumGreenBits
+                    + config->accumBlueBits + config->accumAlphaBits;
     }
 	
-    if (mode->haveDepthBuffer) {
+    if (config->haveDepthBuffer) {
         attr[i++] = kCGLPFADepthSize;
-        attr[i++] = mode->depthBits;
+        attr[i++] = config->depthBits;
     }
 	
-    if (mode->haveStencilBuffer) {
+    if (config->haveStencilBuffer) {
         attr[i++] = kCGLPFAStencilSize;
-        attr[i++] = mode->stencilBits;
+        attr[i++] = config->stencilBits;
     }
 
     attr[i++] = kCGLPFAAuxBuffers;
-    attr[i++] = mode->numAuxBuffers;
+    attr[i++] = config->numAuxBuffers;
 
     /* mode->level ignored */
 
@@ -670,7 +671,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     VisualPtr pVisual = *visualp;
     VisualPtr pVisualNew = NULL;
     VisualID *orig_vid = NULL;
-    __GLcontextModes *modes;
+    __GLXconfig *modes;
     __GLXvisualConfig *pNewVisualConfigs = NULL;
     void **glXVisualPriv;
     void **pNewVisualPriv;
@@ -752,7 +753,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     }
 
     /* Alloc space for the list of glXVisuals */
-    modes = _gl_context_modes_create(numNewVisuals, sizeof(__GLcontextModes));
+    modes = _gl_context_modes_create(numNewVisuals, sizeof(__GLXconfig));
     if (modes == NULL) {
         free(orig_vid);
         free(pNewVisualPriv);
@@ -925,6 +926,7 @@ Bool enable_stereo = FALSE;
 /* based on code in i830_dri.c
    This ends calling glAquaSetVisualConfigs to set the static
    numconfigs, etc. */
+// see also glxglcore.c -- bhb
 static void
 glAquaInitVisualConfigs(void)
 {
@@ -1085,7 +1087,7 @@ static void __glXAquaScreenDestroy(__GLXscreen *screen) {
 static void init_screen_visuals(__GLXAquaScreen *screen) {
   ScreenPtr pScreen = screen->base.pScreen;
   
-  __GLcontextModes *modes;
+  __GLXconfig *modes;
   int *used;
   int i, j;
   
@@ -1101,7 +1103,7 @@ static void init_screen_visuals(__GLXAquaScreen *screen) {
     memset(used, 0, pScreen->numVisuals * sizeof(int));
 
     i = 0;
-    for ( modes = screen -> base.modes
+    for ( modes = screen -> base.visuals
           ; modes != NULL
           ; modes = modes->next ) {
         const int vis_class = _gl_convert_to_x_visual_type( modes->visualType );
@@ -1174,7 +1176,7 @@ static __GLXdrawable *
 __glXAquaScreenCreateDrawable(__GLXscreen *screen,
 			      DrawablePtr pDraw,
 			      XID drawId,
-			      __GLcontextModes *modes) {
+			      __GLXconfig *modes) {
   __GLXAquaDrawable *glxPriv;
 
   GLAQUA_DEBUG_MSG("glAquaScreenCreateDrawable(%p,%p,%d,%p)\n", context, pDraw, drawId, modes);
@@ -1184,7 +1186,7 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
 
   memset(glxPriv, 0, sizeof *glxPriv);
 
-  if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, drawId, modes)) {
+  if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, GLX_DRAWABLE_PIXMAP /*?*/, drawId, modes)) {
     xfree(glxPriv);
     return NULL;
   }

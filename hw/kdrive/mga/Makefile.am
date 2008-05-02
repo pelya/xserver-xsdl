@@ -22,6 +22,10 @@ MGA_LIBS =						\
 	$(top_builddir)/hw/kdrive/vesa/libvesa.a	\
 	@KDRIVE_LIBS@
 
+if GLX
+Xmga_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xmga_LDADD = \
 	$(MGA_LIBS)					\
 	@KDRIVE_LIBS@

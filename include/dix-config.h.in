@@ -148,6 +148,9 @@
 /* Define to 1 if you have version 2.2 (or newer) of the drm library */
 #undef HAVE_LIBDRM_2_2
 
+/* Define to 1 if launchd is available. */
+#undef HAVE_LAUNCHD
+
 /* Have Quartz */
 #undef XQUARTZ
 
@@ -415,8 +418,6 @@
 
 /* Support DRI extension */
 #undef XF86DRI
-
-#undef XEPHYR_DRI
 
 /* Build DRI2 extension */
 #undef DRI2

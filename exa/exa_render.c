@@ -332,6 +332,231 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 }
 
 static int
+exaTryDriverCompositeRects(CARD8	       op,
+			   PicturePtr	       pSrc,
+			   PicturePtr	       pDst,
+			   int                 nrect,
+			   ExaCompositeRectPtr rects)
+{
+    ExaScreenPriv (pDst->pDrawable->pScreen);
+    int src_off_x, src_off_y, dst_off_x, dst_off_y;
+    PixmapPtr pSrcPix, pDstPix;
+    ExaPixmapPrivPtr pSrcExaPix, pDstExaPix;
+    struct _Pixmap scratch;
+    ExaMigrationRec pixmaps[2];
+
+    if (!pExaScr->info->PrepareComposite)
+	return -1;
+
+    pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
+    pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
+
+    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
+    pDstExaPix = ExaGetPixmapPriv(pDstPix);
+
+    /* Check whether the accelerator can use these pixmaps.
+     * FIXME: If it cannot, use temporary pixmaps so that the drawing
+     * happens within limits.
+     */
+    if (pSrcExaPix->accel_blocked ||
+	pDstExaPix->accel_blocked)
+    {
+	return -1;
+    }
+
+    if (pExaScr->info->CheckComposite &&
+	!(*pExaScr->info->CheckComposite) (op, pSrc, NULL, pDst))
+    {
+	return -1;
+    }
+    
+    exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
+	
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = exaOpReadsDestination(op);
+    pixmaps[0].pPix = pDstPix;
+    pixmaps[0].pReg = NULL;
+    pixmaps[1].as_dst = FALSE;
+    pixmaps[1].as_src = TRUE;
+    pixmaps[1].pPix = pSrcPix;
+    pixmaps[1].pReg = NULL;
+    exaDoMigration(pixmaps, 2, TRUE);
+
+    pSrcPix = exaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);
+    if (!exaPixmapIsOffscreen(pDstPix))
+	return 0;
+    
+    if (!pSrcPix && pExaScr->info->UploadToScratch)
+    {
+	pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
+	if ((*pExaScr->info->UploadToScratch) (pSrcPix, &scratch))
+	    pSrcPix = &scratch;
+    }
+
+    if (!pSrcPix)
+	return 0;
+
+    if (!(*pExaScr->info->PrepareComposite) (op, pSrc, NULL, pDst, pSrcPix,
+					     NULL, pDstPix))
+	return -1;
+
+    while (nrect--)
+    {
+	INT16 xDst = rects->xDst + pDst->pDrawable->x;
+	INT16 yDst = rects->yDst + pDst->pDrawable->y;
+	INT16 xSrc = rects->xSrc + pSrc->pDrawable->x;
+	INT16 ySrc = rects->ySrc + pSrc->pDrawable->y;
+	
+	RegionRec region;
+	BoxPtr pbox;
+	int nbox;
+	
+	if (!miComputeCompositeRegion (&region, pSrc, NULL, pDst,
+				       xSrc, ySrc, 0, 0, xDst, yDst,
+				       rects->width, rects->height))
+	    goto next_rect;
+	
+	REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
+	
+	nbox = REGION_NUM_RECTS(&region);
+	pbox = REGION_RECTS(&region);
+
+	xSrc = xSrc + src_off_x - xDst - dst_off_x;
+	ySrc = ySrc + src_off_y - yDst - dst_off_y;
+	
+	while (nbox--)
+	{
+	    (*pExaScr->info->Composite) (pDstPix,
+					 pbox->x1 + xSrc,
+					 pbox->y1 + ySrc,
+					 0, 0,
+					 pbox->x1,
+					 pbox->y1,
+					 pbox->x2 - pbox->x1,
+					 pbox->y2 - pbox->y1);
+	    pbox++;
+	}
+
+    next_rect:
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+
+	rects++;
+    }
+    
+    (*pExaScr->info->DoneComposite) (pDstPix);
+    exaMarkSync(pDst->pDrawable->pScreen);
+	
+    return 1;
+}
+
+/**
+ * Copy a number of rectangles from source to destination in a single
+ * operation. This is specialized for building a glyph mask: we don'y
+ * have a mask argument because we don't need it for that, and we
+ * don't have he special-case fallbacks found in exaComposite() - if the
+ * driver can support it, we use the driver functionality, otherwise we
+ * fallback straight to software.
+ */
+void
+exaCompositeRects(CARD8	              op,
+		  PicturePtr	      pSrc,
+		  PicturePtr	      pDst,
+		  int                 nrect,
+		  ExaCompositeRectPtr rects)
+{
+    PixmapPtr pPixmap = exaGetDrawablePixmap(pDst->pDrawable);
+    ExaPixmapPriv(pPixmap);
+    
+    int xoff, yoff;
+    int x1 = MAXSHORT;
+    int y1 = MAXSHORT;
+    int x2 = MINSHORT;
+    int y2 = MINSHORT;
+    RegionRec region;
+    RegionPtr pending_damage;
+    BoxRec box;
+    int n;
+    ExaCompositeRectPtr r;
+    
+    /* We have to manage the damage ourselves, since CompositeRects isn't
+     * something in the screen that can be managed by the damage extension,
+     * and EXA depends on damage to track what needs to be migrated between
+     * offscreen and onscreen.
+     */
+
+    /* Compute the overall extents of the composited region - we're making
+     * the assumption here that we are compositing a bunch of glyphs that
+     * cluster closely together and damaging each glyph individually would
+     * be a loss compared to damaging the bounding box.
+     */
+    n = nrect;
+    r = rects;
+    while (n--) {
+	int rect_x2 = r->xDst + r->width;
+	int rect_y2 = r->yDst + r->width;
+
+	if (r->xDst < x1) x1 = r->xDst;
+	if (r->xDst < y1) y1 = r->xDst;
+	if (rect_x2 > x2) x2 = rect_x2;
+	if (rect_y2 > y2) y2 = rect_y2;
+	
+	r++;
+    }
+
+    if (x2 <= x1 && y2 <= y1)
+	return;
+
+    box.x1 = x1;
+    box.x2 = x2 < MAXSHORT ? x2 : MAXSHORT;
+    box.y1 = y1;
+    box.y2 = y2 < MAXSHORT ? y2 : MAXSHORT;
+    
+    /* The pixmap migration code relies on pendingDamage indicating
+     * the bounds of the current rendering, so we need to force 
+     * the actual damage into that region before we do anything, and
+     * (see use of DamagePendingRegion in exaCopyDirty)
+     */
+    
+    REGION_INIT(pScreen, &region, &box, 1);
+    
+    exaGetDrawableDeltas(pDst->pDrawable, pPixmap, &xoff, &yoff);
+
+    REGION_TRANSLATE(pScreen, &region, xoff, yoff);
+    pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+    REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+    REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
+    
+    /************************************************************/
+    
+    ValidatePicture (pSrc);
+    ValidatePicture (pDst);
+    
+    if (exaTryDriverCompositeRects(op, pSrc, pDst, nrect, rects) != 1) {
+	n = nrect;
+	r = rects;
+	while (n--) {
+	    ExaCheckComposite (op, pSrc, NULL, pDst,
+			       r->xSrc, r->ySrc,
+			       0, 0,
+			       r->xDst, r->yDst,
+			       r->width, r->height);
+	    r++;
+	}
+    }
+    
+    /************************************************************/
+
+    /* Now we have to flush the damage out from pendingDamage => damage 
+     * Calling DamageDamageRegion has that effect. (We could pass
+     * in an empty region here, but we pass in the same region we
+     * use above; the effect is the same.)
+     */
+
+    DamageDamageRegion(pDst->pDrawable, &region);
+    REGION_UNINIT(pScreen, &region);
+}
+
+static int
 exaTryDriverComposite(CARD8		op,
 		      PicturePtr	pSrc,
 		      PicturePtr	pMask,

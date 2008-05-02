@@ -39,7 +39,6 @@
 #include "quartz.h"
 #include "darwin.h"
 #include "darwinEvents.h"
-#include "quartzAudio.h"
 #include "pseudoramiX.h"
 #define _APPLEWM_SERVER_
 #include "applewmExt.h"
@@ -156,10 +155,6 @@ void QuartzInitOutput(
     int argc,
     char **argv )
 {
-    if (serverGeneration == 0) {
-        QuartzAudioInit();
-    }
-
     if (!RegisterBlockAndWakeupHandlers(QuartzBlockHandler,
                                         QuartzWakeupHandler,
                                         NULL))
@@ -244,7 +239,7 @@ void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
     int x, y, width, height, sx, sy;
     xEvent e;
 
-    DEBUG_LOG("QuartzDisplayChangedHandler()\n");
+    DEBUG_LOG("QuartzDisplayChangedHandler(): noPseudoramiXExtension=%d, screenInfo.numScreens=%d\n", noPseudoramiXExtension, screenInfo.numScreens);
     if (noPseudoramiXExtension || screenInfo.numScreens != 1)
     {
         /* FIXME: if not using Xinerama, we have multiple screens, and

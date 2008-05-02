@@ -330,86 +330,87 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     int i, j;
 
     idsdir = opendir(PCI_TXT_IDS_PATH);
-    if (idsdir) {
-         xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCI_TXT_IDS_PATH);
-        direntry = readdir(idsdir);
-        /* Read the directory */
-        while (direntry) {
-            if (direntry->d_name[0] == '.') {
-                direntry = readdir(idsdir);
-                continue;
-            }
-            len = strlen(direntry->d_name);
-            /* A tiny bit of sanity checking. We should probably do better */
-            if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
-                /* We need the full path name to open the file */
-                strncpy(path_name, PCI_TXT_IDS_PATH, 256);
-                strncat(path_name, "/", 1);
-                strncat(path_name, direntry->d_name, (256 - strlen(path_name) - 1));
-                fp = fopen(path_name, "r");
-                if (fp == NULL) {
-                    xf86Msg(X_ERROR, "Could not open %s for reading. Exiting.\n", path_name);
-                    goto end;
-                }
-                /* Read the file */
-                #ifdef __GLIBC__
-                while ((read = getline(&line, &len, fp)) != -1) {
-                #else
-                while ((line = fgetln(fp, &len)) != (char *)NULL) {
-                #endif /* __GLIBC __ */
-                    xchomp(line);
-                    if (isdigit(line[0])) {
-                        strncpy(vendor_str, line, 4);
-                        vendor_str[4] = '\0';
-                        vendor = (int)strtol(vendor_str, NULL, 16);
-                        if ((strlen(&line[4])) == 0) {
-                                chip_str[0] = '\0';
-                                chip = -1;
-                        } else {
-                                /* Handle trailing whitespace */
-                                if (isspace(line[4])) {
-                                    chip_str[0] = '\0';
-                                    chip = -1;
-                                } else {
-                                /* Ok, it's a real ID */
-                                    strncpy(chip_str, &line[4], 4);
-                                    chip_str[4] = '\0';
-                                    chip = (int)strtol(chip_str, NULL, 16);
-                                }
-                        }
-                        if (vendor == match_vendor && chip == match_chip ) {
-                            i = 0;
-                            while (matches[i]) {
-                                i++;
-                            }
-                            matches[i] = (char*)xalloc(sizeof(char) * strlen(direntry->d_name) -  3);
-                            if (!matches[i]) {
-                                xf86Msg(X_ERROR, "Could not allocate space for the module name. Exiting.\n");
-                                goto end;
-                            }
-                            /* hack off the .ids suffix. This should guard
-                             * against other problems, but it will end up
-                             * taking off anything after the first '.' */
-                            for (j = 0; j < (strlen(direntry->d_name) - 3) ; j++) {
-                                if (direntry->d_name[j] == '.') {
-                                    matches[i][j] = '\0';
-                                    break;
-                                } else {
-                                    matches[i][j] = direntry->d_name[j];
-                                }
-                            }
-                            xf86Msg(X_INFO, "Matched %s from file name %s\n", matches[i], direntry->d_name);
-                        }
-                    } else {
-                        /* TODO Handle driver overrides here */
-                    }
-                }
-                fclose(fp);
-            }
+    if (!idsdir)
+        return;
+
+    xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCI_TXT_IDS_PATH);
+    direntry = readdir(idsdir);
+    /* Read the directory */
+    while (direntry) {
+        if (direntry->d_name[0] == '.') {
             direntry = readdir(idsdir);
+            continue;
         }
+        len = strlen(direntry->d_name);
+        /* A tiny bit of sanity checking. We should probably do better */
+        if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
+            /* We need the full path name to open the file */
+            strncpy(path_name, PCI_TXT_IDS_PATH, 256);
+            strncat(path_name, "/", 1);
+            strncat(path_name, direntry->d_name, (256 - strlen(path_name) - 1));
+            fp = fopen(path_name, "r");
+            if (fp == NULL) {
+                xf86Msg(X_ERROR, "Could not open %s for reading. Exiting.\n", path_name);
+                goto end;
+            }
+            /* Read the file */
+#ifdef __GLIBC__
+            while ((read = getline(&line, &len, fp)) != -1) {
+#else
+            while ((line = fgetln(fp, &len)) != (char *)NULL) {
+#endif /* __GLIBC __ */
+                xchomp(line);
+                if (isdigit(line[0])) {
+                    strncpy(vendor_str, line, 4);
+                    vendor_str[4] = '\0';
+                    vendor = (int)strtol(vendor_str, NULL, 16);
+                    if ((strlen(&line[4])) == 0) {
+                        chip_str[0] = '\0';
+                        chip = -1;
+                    } else {
+                        /* Handle trailing whitespace */
+                        if (isspace(line[4])) {
+                            chip_str[0] = '\0';
+                            chip = -1;
+                        } else {
+                            /* Ok, it's a real ID */
+                            strncpy(chip_str, &line[4], 4);
+                            chip_str[4] = '\0';
+                            chip = (int)strtol(chip_str, NULL, 16);
+                        }
+                    }
+                    if (vendor == match_vendor && chip == match_chip ) {
+                        i = 0;
+                        while (matches[i]) {
+                            i++;
+                        }
+                        matches[i] = (char*)xalloc(sizeof(char) * strlen(direntry->d_name) -  3);
+                        if (!matches[i]) {
+                            xf86Msg(X_ERROR, "Could not allocate space for the module name. Exiting.\n");
+                            goto end;
+                        }
+                        /* hack off the .ids suffix. This should guard
+                         * against other problems, but it will end up
+                         * taking off anything after the first '.' */
+                        for (j = 0; j < (strlen(direntry->d_name) - 3) ; j++) {
+                            if (direntry->d_name[j] == '.') {
+                                matches[i][j] = '\0';
+                                break;
+                            } else {
+                                matches[i][j] = direntry->d_name[j];
+                            }
+                        }
+                        xf86Msg(X_INFO, "Matched %s from file name %s\n", matches[i], direntry->d_name);
+                    }
+                } else {
+                    /* TODO Handle driver overrides here */
+                }
+            }
+            fclose(fp);
+        }
+        direntry = readdir(idsdir);
     }
-    end:
+ end:
     xfree(line);
     closedir(idsdir);
 }

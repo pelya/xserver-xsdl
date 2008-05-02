@@ -32,8 +32,6 @@
 #include <kdrive-config.h>
 #endif
 
-#ifdef XEPHYR_DRI
-
 #include <string.h>
 
 #define NEED_REPLIES
@@ -1439,5 +1437,3 @@ SProcXF86DRIDispatch (register ClientPtr client)
         }
     }
 }
-
-#endif /*XEPHYR_DRI*/

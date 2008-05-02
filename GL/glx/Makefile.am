@@ -47,7 +47,12 @@ libglxdri_la_SOURCES = \
         extension_string.c \
         extension_string.h
 
+#if XQUARTZ
+XQUARTZ_libglx_la_SOURCES = glcontextmodes.c
+#endif
+
 libglx_la_SOURCES = \
+	$(XQUARTZ_libglx_la_SOURCES) \
         g_disptab.h \
         glxbyteorder.h \
         glxcmds.c \

@@ -1,10 +1,9 @@
 /**************************************************************
  *
- * Shared code for the Darwin X Server
- * running with Quartz or IOKit display mode
+ * Xquartz initialization code
  *
+ * Copyright (c) 2007-2008 Apple Inc.
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
- * Copyright (c) 2007 Apple Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -110,6 +109,7 @@ int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 
 // devices
 DeviceIntPtr            darwinPointer = NULL;
+DeviceIntPtr            darwinTablet = NULL;
 DeviceIntPtr            darwinKeyboard = NULL;
 
 // Common pixmap formats
@@ -330,14 +330,13 @@ static void DarwinChangePointerControl(
 #endif
 
 /*
- * DarwinMouseProc
- *  Handle the initialization, etc. of a mouse
+ * DarwinMouseProc: Handle the initialization, etc. of a mouse
  */
 static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
+	// 7 buttons: left, right, middle, then four scroll wheel "buttons"
     CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     
     switch (what) {
-            
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
             
@@ -345,15 +344,13 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
             InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
                                     GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
-                                    GetMotionHistorySize(), 7);
-            InitProximityClassDeviceStruct(pPointer);
+                                    GetMotionHistorySize(), 2);
+								pPointer->name = strdup("Quartz Pointing Device");
             break;
-            
         case DEVICE_ON:
             pPointer->public.on = TRUE;
             AddEnabledDevice( darwinEventReadFD );
             return Success;
-            
         case DEVICE_CLOSE:
         case DEVICE_OFF:
             pPointer->public.on = FALSE;
@@ -364,6 +361,34 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
     return Success;
 }
 
+static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
+    CARD8 map[4] = {0, 1, 2, 3};
+    
+    switch (what) {
+        case DEVICE_INIT:
+            pPointer->public.on = FALSE;
+            
+            // Set button map.
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, 3,
+                                    GetMotionHistory,
+                                    (PtrCtrlProcPtr)NoopDDA,
+                                    GetMotionHistorySize(), 7);
+            InitProximityClassDeviceStruct(pPointer);
+//			InitAbsoluteClassDeviceStruct(pPointer);
+			pPointer->name = strdup("pen");			
+            break;
+        case DEVICE_ON:
+            pPointer->public.on = TRUE;
+            AddEnabledDevice( darwinEventReadFD );
+            return Success;
+        case DEVICE_CLOSE:
+        case DEVICE_OFF:
+            pPointer->public.on = FALSE;
+            RemoveEnabledDevice(darwinEventReadFD);
+            return Success;
+    }
+    return Success;
+}
 
 /*
  * DarwinKeybdProc
@@ -374,6 +399,7 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
     switch ( onoff ) {
         case DEVICE_INIT:
             DarwinKeyboardInit( pDev );
+			pDev->name = strdup("Quartz Keyboard");
             break;
         case DEVICE_ON:
             pDev->public.on = TRUE;
@@ -499,10 +525,13 @@ void InitInput( int argc, char **argv )
     darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
     RegisterPointerDevice( darwinPointer );
 
+    darwinTablet = AddInputDevice(DarwinTabletProc, TRUE);
+    RegisterPointerDevice( darwinTablet );
+
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
 
-    DarwinEQInit( (DevicePtr)darwinKeyboard, (DevicePtr)darwinPointer );
+    DarwinEQInit();
 
     QuartzInitInput(argc, argv);
 }
@@ -533,8 +562,7 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
     /* Find leftmost screen. If there's a tie, take the topmost of the two. */
     for (i = 1; i < pScreenInfo->numScreens; i++) {
         if (dixScreenOrigins[i].x < left  ||
-            (dixScreenOrigins[i].x == left &&
-             dixScreenOrigins[i].y < top))
+            (dixScreenOrigins[i].x == left && dixScreenOrigins[i].y < top))
         {
             left = dixScreenOrigins[i].x;
             top = dixScreenOrigins[i].y;
@@ -543,17 +571,20 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
 
     darwinMainScreenX = left;
     darwinMainScreenY = top;
+    
+    DEBUG_LOG("top = %d, left=%d\n", top, left);
 
     /* Shift all screens so that there is a screen whose top left
-       is at X11 (0,0) and at global screen coordinate
-       (darwinMainScreenX, darwinMainScreenY). */
+     * is at X11 (0,0) and at global screen coordinate
+     * (darwinMainScreenX, darwinMainScreenY).
+     */
 
     if (darwinMainScreenX != 0 || darwinMainScreenY != 0) {
         for (i = 0; i < pScreenInfo->numScreens; i++) {
             dixScreenOrigins[i].x -= darwinMainScreenX;
             dixScreenOrigins[i].y -= darwinMainScreenY;
-    /*            ErrorF("Screen %d placed at X11 coordinate (%d,%d).\n",
-		  i, dixScreenOrigins[i].x, dixScreenOrigins[i].y); */
+            DEBUG_LOG("Screen %d placed at X11 coordinate (%d,%d).\n",
+                      i, dixScreenOrigins[i].x, dixScreenOrigins[i].y);
         }
     }
 }

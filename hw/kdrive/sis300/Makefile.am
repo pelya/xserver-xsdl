@@ -34,6 +34,10 @@ SIS_LIBS =				\
 	$(VESA_LIBS)			\
 	@KDRIVE_LIBS@
 
+if GLX
+Xsis_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xsis_LDADD = \
 	$(SIS_LIBS)				\
 	@KDRIVE_LIBS@                          \

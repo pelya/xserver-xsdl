@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libdixmods.la libxorgxkb.la
 SUBDIRS = extmod
 
 if GLX
-GLXMODS = libglx.la libGLcore.la
+GLXMODS = libglx.la
 endif
 
 if XTRAP
@@ -47,10 +47,6 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
            -I$(top_srcdir)/GL/glx
-
-libGLcore_la_LDFLAGS = -avoid-version
-libGLcore_la_LIBADD = $(top_builddir)/GL/mesa/libGLcore.la
-libGLcore_la_SOURCES = GLcoremodule.c
 
 libafb_la_LDFLAGS = -avoid-version
 libafb_la_LIBADD = $(top_builddir)/afb/libafb.la

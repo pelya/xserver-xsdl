@@ -65,6 +65,7 @@ xf86AccResFromOS(resPtr ret)
       defined(__sparc__) || \
       defined(__mips__) || \
       defined(__sh__) || \
+      defined(__m32r__) || \
       defined(__mc68000__) || \
       defined(__arm__) || \
       defined(__s390__) || \

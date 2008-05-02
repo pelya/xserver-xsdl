@@ -43,6 +43,8 @@
 #include <X11/Xatom.h>
 #include "windowstr.h"
 
+#include "threadSafety.h"
+
 #include <pthread.h>
 
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
@@ -69,7 +71,8 @@ static inline xp_error
 xprConfigureWindow(xp_window_id id, unsigned int mask,
                    const xp_window_changes *values)
 {
-  //  ErrorF("xprConfigureWindow()\n");
+    TA_SERVER();
+
     if (!no_configure_window)
         return xp_configure_window(id, mask, values);
     else
@@ -84,6 +87,8 @@ xprSetNativeProperty(RootlessWindowPtr pFrame)
     unsigned int native_id;
     long data;
 
+    TA_SERVER();
+    
     err = xp_get_native_window((xp_window_id) pFrame->wid, &native_id);
     if (err == Success)
     {
@@ -108,6 +113,8 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
     unsigned int mask = 0;
     xp_error err;
 
+    TA_SERVER();
+    
     wc.x = newX;
     wc.y = newY;
     wc.width = pFrame->width;
@@ -169,6 +176,8 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
 void
 xprDestroyFrame(RootlessFrameID wid)
 {
+    TA_SERVER();
+    
     pthread_mutex_lock(&window_hash_mutex);
     x_hash_table_remove(window_hash, wid);
     pthread_mutex_unlock(&window_hash_mutex);
@@ -183,6 +192,8 @@ xprDestroyFrame(RootlessFrameID wid)
 void
 xprMoveFrame(RootlessFrameID wid, ScreenPtr pScreen, int newX, int newY)
 {
+    TA_SERVER();
+    
     xp_window_changes wc;
 
     wc.x = newX;
@@ -202,6 +213,8 @@ xprResizeFrame(RootlessFrameID wid, ScreenPtr pScreen,
 {
     xp_window_changes wc;
 
+    TA_SERVER();
+    
     wc.x = newX;
     wc.y = newY;
     wc.width = newW;
@@ -223,7 +236,9 @@ xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid)
 {
     xp_window_changes wc;
 
-    /* Stack frame below nextWid it if it exists, or raise
+    TA_SERVER();
+    
+   /* Stack frame below nextWid it if it exists, or raise
        frame above everything otherwise. */
 
     if (nextWid == NULL)
@@ -249,6 +264,8 @@ xprReshapeFrame(RootlessFrameID wid, RegionPtr pShape)
 {
     xp_window_changes wc;
 
+    TA_SERVER();
+    
     if (pShape != NULL)
     {
         wc.shape_nrects = REGION_NUM_RECTS(pShape);
@@ -274,6 +291,8 @@ xprUnmapFrame(RootlessFrameID wid)
 {
     xp_window_changes wc;
 
+    TA_SERVER();
+    
     wc.stack_mode = XP_UNMAPPED;
     wc.sibling = 0;
 
@@ -292,6 +311,8 @@ xprStartDrawing(RootlessFrameID wid, char **pixelData, int *bytesPerRow)
     unsigned int rowbytes[2];
     xp_error err;
 
+    TA_SERVER();
+    
     err = xp_lock_window((xp_window_id) wid, NULL, NULL, data, rowbytes, NULL);
     if (err != Success)
         FatalError("Could not lock window %i for drawing.", (int) wid);
@@ -307,6 +328,8 @@ xprStartDrawing(RootlessFrameID wid, char **pixelData, int *bytesPerRow)
 void
 xprStopDrawing(RootlessFrameID wid, Bool flush)
 {
+    TA_SERVER();
+    
     xp_unlock_window((xp_window_id) wid, flush);
 }
 
@@ -317,6 +340,8 @@ xprStopDrawing(RootlessFrameID wid, Bool flush)
 void
 xprUpdateRegion(RootlessFrameID wid, RegionPtr pDamage)
 {
+    TA_SERVER();
+    
     xp_flush_window((xp_window_id) wid);
 }
 
@@ -328,6 +353,8 @@ void
 xprDamageRects(RootlessFrameID wid, int nrects, const BoxRec *rects,
                int shift_x, int shift_y)
 {
+    TA_SERVER();
+    
     xp_mark_window((xp_window_id) wid, nrects, rects, shift_x, shift_y);
 }
 
@@ -341,6 +368,8 @@ xprSwitchWindow(RootlessWindowPtr pFrame, WindowPtr oldWin)
 {
     DeleteProperty(serverClient, oldWin, xa_native_window_id());
 
+    TA_SERVER();
+    
     xprSetNativeProperty(pFrame);
 }
 
@@ -352,6 +381,8 @@ Bool xprDoReorderWindow(RootlessWindowPtr pFrame)
 {
     WindowPtr pWin = pFrame->win;
 
+    TA_SERVER();
+    
     return AppleWMDoReorderWindow(pWin);
 }
 
@@ -364,6 +395,8 @@ void
 xprCopyWindow(RootlessFrameID wid, int dstNrects, const BoxRec *dstRects,
               int dx, int dy)
 {
+    TA_SERVER();
+    
     xp_copy_window((xp_window_id) wid, (xp_window_id) wid,
                    dstNrects, dstRects, dx, dy);
 }
@@ -398,6 +431,8 @@ xprInit(ScreenPtr pScreen)
 {
     RootlessInit(pScreen, &xprRootlessProcs);
 
+    TA_SERVER();
+    
     rootless_CopyBytes_threshold = xp_copy_bytes_threshold;
     rootless_FillBytes_threshold = xp_fill_bytes_threshold;
     rootless_CompositePixels_threshold = xp_composite_area_threshold;
@@ -498,6 +533,8 @@ xprHideWindows(Bool hide)
     int screen;
     WindowPtr pRoot, pWin;
 
+    TA_SERVER();
+    
     for (screen = 0; screen < screenInfo.numScreens; screen++) {
         pRoot = WindowTable[screenInfo.screens[screen]->myNum];
         RootlessFrameID prevWid = NULL;

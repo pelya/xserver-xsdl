@@ -2140,6 +2140,8 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
 
     for (i = 0; i < screenInfo.numScreens; i++) {
         pWin = WindowTable[i];
+        if (!pWin)
+            continue;
         (void)DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab, dev->id);
         p1 = pWin->firstChild;
         FindInterestedChildren(dev, p1, mask, ev, count);

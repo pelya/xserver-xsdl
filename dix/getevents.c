@@ -474,8 +474,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int num_valuators, int *valuators) {
     int numEvents = 0;
     CARD32 ms = 0;
-    KeySym *map = pDev->key->curKeySyms.map;
-    KeySym sym = map[key_code * pDev->key->curKeySyms.mapWidth];
+    KeySym *map;
+    KeySym sym;
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
 
@@ -486,14 +486,16 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
-    if (!pDev->key || !pDev->focus || !pDev->kbdfeed ||
-        (pDev->coreEvents && !inputInfo.keyboard->key))
+    if (!pDev->key || !pDev->focus || !pDev->kbdfeed)
         return 0;
 
     numEvents = 1;
 
     if (key_code < 8 || key_code > 255)
         return 0;
+
+    map = pDev->key->curKeySyms.map;
+    sym = map[key_code * pDev->key->curKeySyms.mapWidth];
 
     master = pDev->u.master;
     if (master && master->u.lastSlave != pDev)

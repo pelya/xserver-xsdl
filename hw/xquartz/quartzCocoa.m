@@ -44,8 +44,6 @@
 
 #include "darwin.h"
 
-#include "pseudoramiX.h"
-
 extern void FatalError(const char *, ...);
 extern char *display;
 extern int noPanoramiXExtension;

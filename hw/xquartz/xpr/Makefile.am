@@ -21,23 +21,6 @@ Xquartz_SOURCES = \
 Xquartz_LDADD = \
 	$(top_builddir)/hw/xquartz/libXquartz.la \
 	$(top_builddir)/dix/dixfonts.lo \
-	$(top_builddir)/config/libconfig.a \
-	$(top_builddir)/dix/libdix.la \
-	$(top_builddir)/os/libos.la \
-	$(top_builddir)/dix/libxpstubs.la \
-	$(top_builddir)/miext/shadow/libshadow.la \
-	$(top_builddir)/fb/libfb.la \
-	$(top_builddir)/mi/libmi.la \
-	$(top_builddir)/damageext/libdamageext.la \
-	$(top_builddir)/miext/damage/libdamage.la \
-	$(top_builddir)/xfixes/libxfixes.la \
-	$(top_builddir)/Xext/libXext.la \
-	$(top_builddir)/xkb/libxkb.la \
-	$(top_builddir)/xkb/libxkbstubs.la \
-	$(top_builddir)/Xi/libXi.la \
-	$(top_builddir)/dbe/libdbe.la \
-	$(top_builddir)/record/librecord.la \
-	$(top_builddir)/XTrap/libxtrap.la \
 	$(top_builddir)/miext/rootless/librootless.la \
 	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
@@ -64,6 +47,7 @@ include $(top_srcdir)/cpprules.in
 	cp $< $@
 
 EXTRA_DIST = \
+	Xquartz.man.pre \
 	dri.h \
 	dristruct.h \
 	appledri.h \

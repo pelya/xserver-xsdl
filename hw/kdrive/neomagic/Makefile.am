@@ -32,6 +32,10 @@ NEOMAGIC_LIBS =                 \
 	${VESA_LIBS}                \
 	@KDRIVE_LIBS@
 
+if GLX
+Xneomagic_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
+endif
+
 Xneomagic_LDADD = \
 	$(NEOMAGIC_LIBS)            \
 	@KDRIVE_LIBS@               \
