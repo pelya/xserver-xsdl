@@ -365,6 +365,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	static int darwinFakeMouseButtonMask = 0;
 	int i, num_events;
 	DeviceIntPtr dev;
+    ScreenPtr screen;
 	
 //    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
@@ -415,11 +416,12 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
     darwinEvents_lock(); {
         num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
-        for(i=0; i<num_events; i++) {
+        screen = miPointerGetScreen(dev);
+        for(i=0; i<num_events && screen; i++) {
             darwinEvents[i].u.keyButtonPointer.rootX -= darwinMainScreenX +
-                dixScreenOrigins[miPointerCurrentScreen()->myNum].x;
+                dixScreenOrigins[screen->myNum].x;
             darwinEvents[i].u.keyButtonPointer.rootY -= darwinMainScreenY +
-                dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
+                dixScreenOrigins[screen->myNum].y;
             mieqEnqueue (dev, &darwinEvents[i]);
         }
         DarwinPokeEQ();
