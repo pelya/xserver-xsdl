@@ -596,8 +596,10 @@ xf86_reload_cursors (ScreenPtr screen)
     CursorPtr		cursor;
     int			x, y;
     
-    /* initial mode setting will not have set a screen yet */
-    if (!screen)
+    /* initial mode setting will not have set a screen yet.
+       May be called before the devices are initialised.
+     */
+    if (!screen || !inputInfo.pointer)
 	return;
     scrn = xf86Screens[screen->myNum];
     xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
