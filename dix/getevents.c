@@ -358,7 +358,14 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
     AxisInfoPtr axis = pDev->valuator->axes + axisNum;
 
-    /* InitValuatoraAxisStruct ensures that (min < max) */
+    /* InitValuatoraAxisStruct ensures that (min < max). */
+
+
+    /* FIXME: drivers need to be updated, evdev e.g. inits axes as min = 0 and
+     * max = -1. Leave this extra check until the drivers have been updated.
+     */
+    if (axis->max_value < axis->min_value)
+        return;
 
     if (axis->min_value != NO_AXIS_LIMITS &&
             *val < axis->min_value)
