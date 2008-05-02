@@ -81,22 +81,21 @@ int input_check_zero, input_check_flag;
 static int old_flags = 0;  // last known modifier state
 
 xEvent *darwinEvents = NULL;
+pthread_mutex_t darwinEvents_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-pthread_mutex_t mieqEnqueue_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-static inline void mieqEnqueue_lock(void) {
+static inline void darwinEvents_lock(void) {
     int err;
-    if((err = pthread_mutex_lock(&mieqEnqueue_mutex))) {
-        ErrorF("%s:%s:%d: Failed to lock mieqEnqueue_mutex: %d\n",
+    if((err = pthread_mutex_lock(&darwinEvents_mutex))) {
+        ErrorF("%s:%s:%d: Failed to lock darwinEvents_mutex: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
         spewCallStack();
     }
 }
 
-static inline void mieqEnqueue_unlock(void) {
+static inline void darwinEvents_unlock(void) {
     int err;
-    if((err = pthread_mutex_unlock(&mieqEnqueue_mutex))) {
-        ErrorF("%s:%s:%d: Failed to unlock mieqEnqueue_mutex: %d\n",
+    if((err = pthread_mutex_unlock(&darwinEvents_mutex))) {
+        ErrorF("%s:%s:%d: Failed to unlock darwinEvents_mutex: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
         spewCallStack();
     }
@@ -413,13 +412,19 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 		return;
 	} 
 
-    mieqEnqueue_lock(); {
+    darwinEvents_lock(); {
         num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (dev,&darwinEvents[i]);
+        for(i=0; i<num_events; i++) {
+            darwinEvents[i].u.keyButtonPointer.rootX -= darwinMainScreenX +
+                dixScreenOrigins[miPointerCurrentScreen()->myNum].x;
+            darwinEvents[i].u.keyButtonPointer.rootY -= darwinMainScreenY +
+                dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
+            mieqEnqueue (dev, &darwinEvents[i]);
+        }
         DarwinPokeEQ();
 
-    } mieqEnqueue_unlock();
+    } darwinEvents_unlock();
 }
 
 void DarwinSendKeyboardEvents(int ev_type, int keycode) {
@@ -443,11 +448,11 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		}
 	}
 
-    mieqEnqueue_lock(); {
+    darwinEvents_lock(); {
         num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
         for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
         DarwinPokeEQ();
-    } mieqEnqueue_unlock();
+    } darwinEvents_unlock();
 }
 
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
@@ -463,12 +468,12 @@ void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
 		return;
 	}
 
-    mieqEnqueue_lock(); {
+    darwinEvents_lock(); {
         num_events = GetProximityEvents(darwinEvents, darwinTablet, ev_type,
                                         0, 5, valuators);
         for(i=0; i<num_events; i++) mieqEnqueue (darwinTablet,&darwinEvents[i]);
         DarwinPokeEQ();
-    } mieqEnqueue_unlock();
+    } darwinEvents_unlock();
 }
 
 
@@ -533,8 +538,8 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
         va_end (args);
     }
 
-    mieqEnqueue_lock();
+    darwinEvents_lock();
     mieqEnqueue(darwinPointer, &xe);
     DarwinPokeEQ();
-    mieqEnqueue_unlock();
+    darwinEvents_unlock();
 }
