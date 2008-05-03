@@ -359,6 +359,28 @@ static void DarwinPokeEQ(void) {
 	write(darwinEventWriteFD, &nullbyte, 1);
 }
 
+/* Convert from Appkit pointer input values to X input values:
+ * Note: pointer_x and pointer_y are relative to the upper-left of primary
+ *       display.
+ */
+static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
+                                   int pointer_x, int pointer_y, 
+                                   float pressure, float tilt_x, float tilt_y) {
+    /* Fix offset between darwin and X screens */
+    pointer_x -= darwinMainScreenX + dixScreenOrigins[screen->myNum].x;
+    pointer_y -= darwinMainScreenY + dixScreenOrigins[screen->myNum].y;
+    
+    /* Setup our array of values */
+    valuators[0] = pointer_x;
+    valuators[1] = pointer_y;
+    valuators[2] = pressure * SCALEFACTOR_PRESSURE;
+    valuators[3] = tilt_x * SCALEFACTOR_TILT;
+    valuators[4] = tilt_y * SCALEFACTOR_TILT;
+    
+    DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
+              valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
+}
+
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
 			     float pressure, float tilt_x, float tilt_y) {
 	static int darwinFakeMouseButtonDown = 0;
@@ -366,22 +388,26 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	int i, num_events;
 	DeviceIntPtr dev;
     ScreenPtr screen;
+    int valuators[5];
 	
-//    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
 	if(!darwinEvents) {
-		ErrorF("DarwinSendPointerEvents called before darwinEvents was initialized\n");
+		DEBUG_LOG("DarwinSendPointerEvents called before darwinEvents was initialized\n");
 		return;
 	}
 
-	int valuators[5] = {pointer_x, pointer_y, pressure * SCALEFACTOR_PRESSURE, 
-		      tilt_x * SCALEFACTOR_TILT, tilt_y * SCALEFACTOR_TILT};
-	
-	if (pressure == 0 && tilt_x == 0 && tilt_y == 0) dev = darwinPointer;
-	else dev = darwinTablet;
+	if (pressure == 0 && tilt_x == 0 && tilt_y == 0)
+        dev = darwinPointer;
+	else
+        dev = darwinTablet;
 
-	DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
-			valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
+    screen = miPointerGetScreen(dev);
+    if(!screen) {
+        DEBUG_LOG("DarwinSendPointerEvents called before screen was initialized\n");
+        return;
+    }
+
 	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
 		// Mimic multi-button mouse with modifier-clicks
 		// If both sets of modifiers are pressed,
@@ -411,19 +437,13 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 		DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
 		darwinFakeMouseButtonMask = 0;
 		return;
-	} 
+	}
 
+    DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
         num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
-        screen = miPointerGetScreen(dev);
-        for(i=0; i<num_events && screen; i++) {
-            darwinEvents[i].u.keyButtonPointer.rootX -= darwinMainScreenX +
-                dixScreenOrigins[screen->myNum].x;
-            darwinEvents[i].u.keyButtonPointer.rootY -= darwinMainScreenY +
-                dixScreenOrigins[screen->myNum].y;
-            mieqEnqueue (dev, &darwinEvents[i]);
-        }
+        for(i=0; i<num_events; i++) mieqEnqueue (dev, &darwinEvents[i]);
         DarwinPokeEQ();
 
     } darwinEvents_unlock();
@@ -433,7 +453,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 	int i, num_events;
 
 	if(!darwinEvents) {
-		ErrorF("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
+		DEBUG_LOG("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
 		return;
 	}
 
@@ -459,21 +479,28 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
 	int i, num_events;
-
-	// tilt and pressure have no meaning for a Prox event
-	int valuators[5] = {pointer_x, pointer_y, 0, 0, 0};  
+    ScreenPtr screen;
+    DeviceIntPtr dev = darwinTablet;
+    int valuators[5];
 
 	DEBUG_LOG("DarwinSendProximityEvents(%d, %d, %d)\n", ev_type, pointer_x, pointer_y);
-	
+
 	if(!darwinEvents) {
-		ErrorF("DarwinSendProximityEvents called before darwinEvents was initialized\n");
+		DEBUG_LOG("DarwinSendProximityEvents called before darwinEvents was initialized\n");
 		return;
 	}
+    
+    screen = miPointerGetScreen(dev);
+    if(!screen) {
+        DEBUG_LOG("DarwinSendPointerEvents called before screen was initialized\n");
+        return;
+    }    
 
+    DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, 0.0f, 0.0f, 0.0f);
     darwinEvents_lock(); {
-        num_events = GetProximityEvents(darwinEvents, darwinTablet, ev_type,
+        num_events = GetProximityEvents(darwinEvents, dev, ev_type,
                                         0, 5, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (darwinTablet,&darwinEvents[i]);
+        for(i=0; i<num_events; i++) mieqEnqueue (dev,&darwinEvents[i]);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -484,7 +511,7 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 							int pointer_x, int pointer_y, 
 			    			float pressure, float tilt_x, float tilt_y) {
 	if(!darwinEvents) {
-		ErrorF("DarwinSendScrollEvents called before darwinEvents was initialized\n");
+		DEBUG_LOG("DarwinSendScrollEvents called before darwinEvents was initialized\n");
 		return;
 	}
 

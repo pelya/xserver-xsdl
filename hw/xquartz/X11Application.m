@@ -839,7 +839,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	int pointer_x, pointer_y, ev_button, ev_type;
 	float pressure, tilt_x, tilt_y;
 
-	/* convert location to global top-left coordinates */
+	/* convert location to be relative to top-left of primary display */
 	location = [e locationInWindow];
 	window = [e window];
 	screen = [[[NSScreen screens] objectAtIndex:0] frame];
