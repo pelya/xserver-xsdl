@@ -74,7 +74,7 @@ remove_device(DeviceIntPtr dev)
 static void
 device_removed(LibHalContext *ctx, const char *udi)
 {
-    DeviceIntPtr dev;
+    DeviceIntPtr dev, next;
     char *value;
 
     value = xalloc(strlen(udi) + 5); /* "hal:" + NULL */
@@ -82,11 +82,13 @@ device_removed(LibHalContext *ctx, const char *udi)
         return;
     sprintf(value, "hal:%s", udi);
 
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
+    for (dev = inputInfo.devices; dev; dev = next) {
+	next = dev->next;
         if (dev->config_info && strcmp(dev->config_info, value) == 0)
             remove_device(dev);
     }
-    for (dev = inputInfo.off_devices; dev; dev = dev->next) {
+    for (dev = inputInfo.off_devices; dev; dev = next) {
+	next = dev->next;
         if (dev->config_info && strcmp(dev->config_info, value) == 0)
             remove_device(dev);
     }
