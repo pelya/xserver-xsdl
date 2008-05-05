@@ -1338,34 +1338,55 @@ RootlessResizeWindow(WindowPtr pWin, int x, int y,
     RegionRec saveRoot;
 
     RL_DEBUG_MSG("resizewindow start (win 0x%x) ", pWin);
+    
+    if(pWin->parent) {
+        if (winRec) {
+            oldBW = winRec->borderWidth;
+            oldX = winRec->x;
+            oldY = winRec->y;
+            oldW = winRec->width;
+            oldH = winRec->height;
 
-    if (winRec) {
-        oldBW = winRec->borderWidth;
-        oldX = winRec->x;
-        oldY = winRec->y;
-        oldW = winRec->width;
-        oldH = winRec->height;
+            newBW = oldBW;
+            newX = x;
+            newY = y;
+            newW = w + 2*newBW;
+            newH = h + 2*newBW;
 
-        newBW = oldBW;
-        newX = x;
-        newY = y;
-        newW = w + 2*newBW;
-        newH = h + 2*newBW;
+            resize_after = StartFrameResize(pWin, TRUE,
+                                            oldX, oldY, oldW, oldH, oldBW,
+                                            newX, newY, newW, newH, newBW);
+        }
 
-        resize_after = StartFrameResize(pWin, TRUE,
-                                        oldX, oldY, oldW, oldH, oldBW,
-                                        newX, newY, newW, newH, newBW);
-    }
+        HUGE_ROOT(pWin);
+        SCREEN_UNWRAP(pScreen, ResizeWindow);
+        pScreen->ResizeWindow(pWin, x, y, w, h, pSib);
+        SCREEN_WRAP(pScreen, ResizeWindow);
+        NORMAL_ROOT(pWin);
 
-    HUGE_ROOT(pWin);
-    SCREEN_UNWRAP(pScreen, ResizeWindow);
-    pScreen->ResizeWindow(pWin, x, y, w, h, pSib);
-    SCREEN_WRAP(pScreen, ResizeWindow);
-    NORMAL_ROOT(pWin);
+        if (winRec) {
+            FinishFrameResize(pWin, TRUE, oldX, oldY, oldW, oldH, oldBW,
+                              newX, newY, newW, newH, newBW, resize_after);
+        }
+    } else {
+        /* Special case for resizing the root window */
+        BoxRec box;
 
-    if (winRec) {
-        FinishFrameResize(pWin, TRUE, oldX, oldY, oldW, oldH, oldBW,
-                          newX, newY, newW, newH, newBW, resize_after);
+        pWin->drawable.x = x;
+        pWin->drawable.y = y;
+        pWin->drawable.width = w;
+        pWin->drawable.height = h;
+
+        box.x1 = x; box.y1 = y;
+        box.x2 = x + w; box.y2 = y + h;
+        REGION_UNINIT(pScreen, &pWin->winSize);
+        REGION_INIT(pScreen, &pWin->winSize, &box, 1);
+        REGION_COPY(pScreen, &pWin->borderSize, &pWin->winSize);
+        REGION_COPY(pScreen, &pWin->clipList, &pWin->winSize);
+        REGION_COPY(pScreen, &pWin->borderClip, &pWin->winSize);
+
+        miSendExposures(pWin, &pWin->borderClip,
+                        pWin->drawable.x, pWin->drawable.y);        
     }
 
     RL_DEBUG_MSG("resizewindow end\n");
