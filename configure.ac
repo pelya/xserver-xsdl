@@ -402,6 +402,9 @@ case $host_os in
   *solaris*)
 	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
 	;;
+  darwin*)
+	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
+	;;
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
