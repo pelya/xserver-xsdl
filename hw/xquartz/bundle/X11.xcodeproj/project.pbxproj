@@ -14,8 +14,22 @@
 		527F241F0B5D938C007840A7 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50F4F0A7039D6ACA0E82C0CB /* CoreFoundation.framework */; };
 		527F24200B5D938C007840A7 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 570C5748047186C400ACF82F /* SystemConfiguration.framework */; };
 		527F24370B5D9D89007840A7 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 527F24260B5D938C007840A7 /* Info.plist */; };
+		52880C6F0DCFF906003407EC /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 52880C6E0DCFF906003407EC /* Sparkle.framework */; };
 		52D9C0ED0BCDDF6B00CD2AFC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 52D9C0EB0BCDDF6B00CD2AFC /* Localizable.strings */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		52880C8C0DCFF9FC003407EC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				52880C6F0DCFF906003407EC /* Sparkle.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -76,6 +90,7 @@
 		50F4F0A7039D6ACA0E82C0CB /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		527F24260B5D938C007840A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		527F24270B5D938C007840A7 /* X11.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = X11.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		52880C6E0DCFF906003407EC /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = "<group>"; };
 		52D9C0EC0BCDDF6B00CD2AFC /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		570C5748047186C400ACF82F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
@@ -135,6 +150,7 @@
 		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				52880C6E0DCFF906003407EC /* Sparkle.framework */,
 				50F4F0A7039D6ACA0E82C0CB /* CoreFoundation.framework */,
 				570C5748047186C400ACF82F /* SystemConfiguration.framework */,
 			);
@@ -159,6 +175,7 @@
 			buildConfigurationList = 527F24220B5D938C007840A7 /* Build configuration list for PBXNativeTarget "X11" */;
 			buildPhases = (
 				527F24170B5D938C007840A7 /* Headers */,
+				52880C8C0DCFF9FC003407EC /* CopyFiles */,
 				527F24180B5D938C007840A7 /* Resources */,
 				527F241C0B5D938C007840A7 /* Sources */,
 				527F241E0B5D938C007840A7 /* Frameworks */,
@@ -350,7 +367,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
@@ -378,7 +399,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
@@ -405,7 +430,11 @@
 		527F24250B5D938C007840A7 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
+				);
+				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
