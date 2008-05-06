@@ -20,16 +20,15 @@ localities="Dutch English French German Italian Japanese Spanish da fi ko no pl 
 for lang in ${localities} ; do
     for f in InfoPlist.strings Localizable.strings main.nib/keyedobjects.nib ; do
 	if [[ $(id -u) == 0 ]] ; then
-	        install $(OWNERSHIP) -m 644 Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
+	        install ${OWNERSHIP} -m 644 Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
 	else
-	        install $(OWNERSHIP) -m 644 Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
+	        install ${OWNERSHIP} -m 644 Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
 	fi
     done
 done
 
-install $(OWNERSHIP) -m 644 Resources/English.lproj/main.nib//designable.nib ${BUNDLE_ROOT}/Contents/Resources/English.lproj/main.nib
-install $(OWNERSHIP) -m 644 Resources/X11.icns ${BUNDLE_ROOT}/Contents/Resources
+install ${OWNERSHIP} -m 644 Resources/English.lproj/main.nib//designable.nib ${BUNDLE_ROOT}/Contents/Resources/English.lproj/main.nib
+install ${OWNERSHIP} -m 644 Resources/X11.icns ${BUNDLE_ROOT}/Contents/Resources
 
-install $(OWNERSHIP) -m 644 Info.plist ${BUNDLE_ROOT}/Contents
-install $(OWNERSHIP) -m 644 PkgInfo ${BUNDLE_ROOT}/Contents
-
+install ${OWNERSHIP} -m 644 Info.plist ${BUNDLE_ROOT}/Contents
+install ${OWNERSHIP} -m 644 PkgInfo ${BUNDLE_ROOT}/Contents
