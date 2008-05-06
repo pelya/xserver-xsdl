@@ -1,4 +1,5 @@
-bin_PROGRAMS = Xquartz
+x11appdir = $(APPLE_APPLICATIONS_DIR)/X11.app/Contents/MacOS
+x11app_PROGRAMS = X11
 
 AM_CFLAGS =  $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
@@ -6,7 +7,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/miext \
 	-I$(top_srcdir)/miext/rootless
 
-Xquartz_SOURCES = \
+X11_SOURCES = \
 	appledri.c \
 	dri.c \
 	xprAppleWM.c \
@@ -18,13 +19,13 @@ Xquartz_SOURCES = \
 	x-hook.c \
 	x-list.c
 
-Xquartz_LDADD = \
+X11_LDADD = \
 	$(top_builddir)/hw/xquartz/libXquartz.la \
 	$(top_builddir)/dix/dixfonts.lo \
 	$(top_builddir)/miext/rootless/librootless.la \
-	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
+	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin -lX11
 
-Xquartz_LDFLAGS =  \
+X11_LDFLAGS =  \
 	-XCClinker -Objc \
 	-Wl,-u,_miDCInitialize \
 	-Wl,-framework,Carbon \

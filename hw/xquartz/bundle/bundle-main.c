@@ -43,7 +43,9 @@
 static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
 
-int main(int argc, char **argv) {
+int server_main(int argc, char **argv, char **envp);
+
+int main(int argc, char **argv, char **envp) {
     Display *display;
     const char *s;
 
@@ -52,7 +54,12 @@ int main(int argc, char **argv) {
     for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
     }
-
+    
+    /* Take care of the case where we're called like a normal DDX */
+    if(argc > 1 && argv[1][0] == ':') {
+        exit(server_main(argc, argv, envp));
+    }
+    
     /* If we have a process serial number and it's our only arg, act as if
      * the user double clicked the app bundle: launch app_to_run if possible
      */
@@ -73,7 +80,7 @@ int main(int argc, char **argv) {
     }
 
     /* Start the server */
-    if(s = getenv("DISPLAY")) {
+    if((s = getenv("DISPLAY"))) {
         fprintf(stderr, "X11.app: Could not connect to server (DISPLAY=\"%s\", unsetting).  Starting X server.\n", s);
         unsetenv("DISPLAY");
     } else {

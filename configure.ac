@@ -562,9 +562,6 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
-AC_ARG_ENABLE(x11app,         AS_HELP_STRING([--enable-x11app], [Build Apple's X11.app for Xquartz (default: auto)]), [X11APP=$enableval], [X11APP=auto])
-AC_ARG_WITH(x11app-archs,     AS_HELP_STRING([--with-x11app-archs=ARCHS], [Architectures to build X11.app for, space delimeted (default: "ppc i386")]), [X11APP_ARCHS=$enableval], [X11APP_ARCHS="ppc i386"])
-AC_SUBST([X11APP_ARCHS])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: no)]), [XPRINT=$enableval], [XPRINT=no])
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
@@ -1756,17 +1753,6 @@ AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
 
-if test "x$X11APP" = xauto; then
-	AC_MSG_CHECKING([whether to build X11.app])
-	if test "x$XQUARTZ" = xyes ; then
-		X11APP=yes
-	else
-		X11APP=no
-	fi
-	AC_MSG_RESULT([$X11APP])
-fi
-AM_CONDITIONAL(X11APP,[test "X$X11APP" = Xyes]) 
-
 if test "x$LAUNCHD" = "xauto"; then
 	if test "x$XQUARTZ" = "xyes" ; then
 		LAUNCHD=yes
@@ -2165,6 +2151,7 @@ hw/xwin/Makefile
 hw/xquartz/Makefile
 hw/xquartz/GL/Makefile
 hw/xquartz/bundle/Makefile
+hw/xquartz/stub/Makefile
 hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile

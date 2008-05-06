@@ -94,7 +94,7 @@ void QuartzInitServer(int argc, char **argv, char **envp) {
     }
 }
 
-int main(int argc, char **argv, char **envp) {
+int server_main(int argc, char **argv, char **envp) {
     int         i;
     int         fd[2];
 

@@ -1,20 +1,11 @@
-bin_SCRIPTS = x11app
-
-.PHONY: x11app
-
-x11app:
-	xcodebuild CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ARCHS="$(X11APP_ARCHS)"
-
 install-data-hook:
-	xcodebuild install DSTROOT="/$(DESTDIR)" INSTALL_PATH="$(APPLE_APPLICATIONS_DIR)" DEPLOYMENT_LOCATION=YES SKIP_INSTALL=NO ARCHS="$(X11APP_ARCHS)"
-
-clean-local:
-	rm -rf build
+	./mk_bundke.sh $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/X11.app
 
 resourcedir=$(libdir)/X11/xserver
 resource_DATA = Xquartz.plist
 
 EXTRA_DIST = \
+	mk_bundke.sh \
 	$(resource_DATA) \
 	Info.plist \
 	X11.icns \
