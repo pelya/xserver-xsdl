@@ -26,12 +26,18 @@ static Bool xf86CursorRealizeCursor(DeviceIntPtr, ScreenPtr, CursorPtr);
 static Bool xf86CursorUnrealizeCursor(DeviceIntPtr, ScreenPtr, CursorPtr);
 static void xf86CursorSetCursor(DeviceIntPtr, ScreenPtr, CursorPtr, int, int);
 static void xf86CursorMoveCursor(DeviceIntPtr, ScreenPtr, int, int);
+static Bool xf86DeviceCursorInitialize(DeviceIntPtr, ScreenPtr);
+static void xf86DeviceCursorCleanup(DeviceIntPtr, ScreenPtr);
+static void xf86DeviceCursorUndisplay(DeviceIntPtr, ScreenPtr);
 
 static miPointerSpriteFuncRec xf86CursorSpriteFuncs = {
    xf86CursorRealizeCursor,
    xf86CursorUnrealizeCursor,
    xf86CursorSetCursor,
-   xf86CursorMoveCursor
+   xf86CursorMoveCursor,
+   xf86DeviceCursorInitialize,
+   xf86DeviceCursorCleanup,
+   xf86DeviceCursorUndisplay
 };
 
 /* Screen functions */
@@ -419,4 +425,44 @@ void
 xf86DestroyCursorInfoRec(xf86CursorInfoPtr infoPtr)
 {
     xfree(infoPtr);
+}
+
+/**
+ * New cursor has been created. Do your initalizations here.
+ */
+static Bool
+xf86DeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+            &pScreen->devPrivates, xf86CursorScreenKey);
+
+    /* Init SW cursor */
+    return (*ScreenPriv->spriteFuncs->DeviceCursorInitialize)(pDev, pScreen);
+}
+
+/**
+ * Cursor has been removed. Clean up after yourself.
+ */
+static void
+xf86DeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+            &pScreen->devPrivates, xf86CursorScreenKey);
+
+    /* Clean up SW cursor */
+    (*ScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
+}
+
+/**
+ * Called on server shutdown to remove all cursors from the screen before
+ * bringing the server down.
+ */
+static void
+xf86DeviceCursorUndisplay(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+            &pScreen->devPrivates, xf86CursorScreenKey);
+
+    /* Undisplay SW cursor */
+    (*ScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
 }
