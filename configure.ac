@@ -1137,15 +1137,25 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 # OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
 # the OpenSSL libraries, just libcrypto
-PKG_CHECK_EXISTS([openssl],
- [PKG_CHECK_MODULES([OPENSSL], [openssl],
+# Some systems have matching functionality in the smaller/simpler libmd
+# Builders who want to force a choice can set SHA1_LIB and SHA1_CFLAGS
+if test "x$SHA1_LIB" = "x" ; then
+ AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIB="-lmd"
+	AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
+	   [Define to use libmd SHA1 functions instead of OpenSSL libcrypto])])
+fi
+if test "x$SHA1_LIB" = "x" ; then
+ PKG_CHECK_EXISTS([openssl],
+  [PKG_CHECK_MODULES([OPENSSL], [openssl],
    [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])])
-LIBCRYPTO="$OPENSSL_LIB_FLAGS -lcrypto"
+ SHA1_LIB="$OPENSSL_LIB_FLAGS -lcrypto"
+ SHA1_CFLAGS="$OPENSSL_CFLAGS"
+fi
 
 # Autotools has some unfortunate issues with library handling.  In order to
 # get a server to rebuild when a dependency in the tree is changed, it must
 # be listed in SERVERNAME_DEPENDENCIES.  However, no system libraries may be
-# listed there, or some versions of autotols will break (especially if a -L
+# listed there, or some versions of autotools will break (especially if a -L
 # is required to find the library).  So, we keep two sets of libraries
 # detected: NAMESPACE_LIBS for in-tree libraries to be linked against, which
 # will go into the _DEPENDENCIES and _LDADD of the server, and
@@ -1157,9 +1167,9 @@ LIBCRYPTO="$OPENSSL_LIB_FLAGS -lcrypto"
 # XSERVER_SYS_LIBS is the set of out-of-tree libraries which all servers
 # require.
 #
-XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS} ${OPENSSL_CFLAGS}"
+XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS} ${SHA1_CFLAGS}"
 XSERVER_LIBS="$DIX_LIB $CONFIG_LIB $MI_LIB $OS_LIB"
-XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} ${LIBCRYPTO}"
+XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} ${SHA1_LIB}"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([XSERVER_SYS_LIBS])
 
