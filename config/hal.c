@@ -167,7 +167,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 	
     LibHalPropertySet *set = NULL;
 	LibHalPropertySetIterator set_iter;
-    char *psi_key = NULL, *tmp_val, *tmp_key;
+    char *psi_key = NULL, *tmp_val;
     
     
     dbus_error_init(&error);
@@ -244,27 +244,10 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                     add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
                     xfree(tmp_val);
                 }
-            
-            /* evdev's XKB options... we should probably depreciate this usage */
-            } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
-                
-                /* only support strings for all values */
-                tmp_val = get_prop_string(hal_ctx, udi, psi_key);
-                
-                if (tmp_val){
-                    /* add "xkb_" + NULL */
-		    tmp_key = xalloc(strlen(psi_key) - ( sizeof(LIBHAL_XKB_PROP_KEY) - 1) + 5);
-                    
-                    if (!tmp_key){
-                        LogMessage(X_ERROR, "config/hal: couldn't allocate memory for option %s\n", psi_key);
-                    } else {
-                        sprintf(tmp_key, "xkb_%s", psi_key + sizeof(LIBHAL_XKB_PROP_KEY)-1);
-                        add_option(&options, tmp_key, tmp_val);
-                        
-                        xfree(tmp_key);
-                    }
-                    xfree(tmp_val);
-                }   
+            }           /* don't accept input.xkb.whatever options anymore */
+            else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
+                LogMessage(X_ERROR, "config/hal: Option '%s' is "
+                        "deprecated (ignoring).\n", psi_key);
             }
         }
         
