@@ -288,7 +288,7 @@ void GlxExtensionInit(void)
 			    __glXDispatch, ResetExtension,
 			    StandardMinorOpcode);
     if (!extEntry) {
-	FatalError("__glXExtensionInit: AddExtensions failed\n");
+	ErrorF("__glXExtensionInit: AddExtensions failed\n");
 	return;
     }
     if (!AddExtensionAlias(GLX_EXTENSION_ALIAS, extEntry)) {
