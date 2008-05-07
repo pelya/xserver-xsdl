@@ -660,7 +660,7 @@ XAADoGlyphs (CARD8         op,
 			pnt = pntr + (row * pitch) + (column >> 5);
 			column &= 31;
 			dwords = ((w + 31) >> 5) - 1;
-			bits = (CARD32*)(glyph + 1);
+			bits = (CARD32 *)GlyphPixmap(glyph)[pScreen->myNum]->devPrivate.ptr;
 			if(dwords) {
 			  while(h--) {
 			    for(i = 0; i <= dwords; i++) {
