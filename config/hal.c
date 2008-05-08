@@ -119,7 +119,7 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     return ret;
 }
 
-/* this function is no longer used... keep it here in case its needed in 
+/* this function is no longer used... keep it here in case its needed in
  * the future. */
 #if 0
 static char *
@@ -155,7 +155,7 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 
     return ret;
 }
-#endif 
+#endif
 
 static void
 device_added(LibHalContext *hal_ctx, const char *udi)
@@ -164,12 +164,12 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     InputOption *options = NULL, *tmpo = NULL;
     DeviceIntPtr dev;
     DBusError error;
-	
+
     LibHalPropertySet *set = NULL;
 	LibHalPropertySetIterator set_iter;
     char *psi_key = NULL, *tmp_val, *tmp_key;
-    
-    
+
+
     dbus_error_init(&error);
 
     driver = get_prop_string(hal_ctx, udi, "input.x11_driver");
@@ -178,13 +178,13 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         LogMessageVerb(X_INFO,7,"config/hal: no driver specified for device %s\n", udi);
         goto unwind;
     }
-    
+
     path = get_prop_string(hal_ctx, udi, "input.device");
     if (!path) {
         LogMessage(X_WARNING,"config/hal: no driver or path specified for %s\n", udi);
         goto unwind;
     }
-    
+
     name = get_prop_string(hal_ctx, udi, "info.product");
     if (!name)
         name = xstrdup("(unnamed)");
@@ -194,7 +194,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         LogMessage(X_ERROR, "config/hal: couldn't allocate space for input options!\n");
         goto unwind;
     }
-    
+
     options->key = xstrdup("_source");
     options->value = xstrdup("server/hal");
     if (!options->key || !options->value) {
@@ -202,14 +202,14 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         goto unwind;
     }
 
-    /* most drivers use device.. not path. evdev uses both however, but the 
+    /* most drivers use device.. not path. evdev uses both however, but the
      * path version isn't documented apparently. support both for now. */
     add_option(&options, "path", path);
     add_option(&options, "device", path);
-    
+
     add_option(&options, "driver", driver);
     add_option(&options, "name", name);
-    
+
     config_info = xalloc(strlen(udi) + 5); /* "hal:" and NULL */
     if (!config_info) {
         LogMessage(X_ERROR, "config/hal: couldn't allocate name\n");
@@ -220,58 +220,58 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     /* ok, grab options from hal.. iterate through all properties
     * and lets see if any of them are options that we can add */
     set = libhal_device_get_all_properties(hal_ctx, udi, &error);
-    
+
     if (!set) {
         LogMessage(X_ERROR, "config/hal: couldn't get property list for %s: %s (%s)\n",
                udi, error.name, error.message);
         goto unwind;
     }
-	
+
     libhal_psi_init(&set_iter,set);
     while (libhal_psi_has_more(&set_iter)) {
         /* we are looking for supported keys.. extract and add to options */
-        psi_key = libhal_psi_get_key(&set_iter);    
-        
+        psi_key = libhal_psi_get_key(&set_iter);
+
         if (psi_key){
 
             /* normal options first (input.x11_options.<propname>) */
             if (!strncasecmp(psi_key, LIBHAL_PROP_KEY, sizeof(LIBHAL_PROP_KEY)-1)){
-                
+
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
-                
+
                 if (tmp_val){
                     add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
                     xfree(tmp_val);
                 }
-            
+
             /* evdev's XKB options... we should probably depreciate this usage */
             } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
-                
+
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
-                
+
                 if (tmp_val){
                     /* add "xkb_" + NULL */
 		    tmp_key = xalloc(strlen(psi_key) - ( sizeof(LIBHAL_XKB_PROP_KEY) - 1) + 5);
-                    
+
                     if (!tmp_key){
                         LogMessage(X_ERROR, "config/hal: couldn't allocate memory for option %s\n", psi_key);
                     } else {
                         sprintf(tmp_key, "xkb_%s", psi_key + sizeof(LIBHAL_XKB_PROP_KEY)-1);
                         add_option(&options, tmp_key, tmp_val);
-                        
+
                         xfree(tmp_key);
                     }
                     xfree(tmp_val);
-                }   
+                }
             }
         }
-        
+
         /* psi_key doesn't need to be freed */
         libhal_psi_next(&set_iter);
     }
-	
+
     /* this isn't an error, but how else do you output something that the user can see? */
     LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
     if (NewInputDeviceRequest(options, &dev) != Success) {
@@ -413,7 +413,7 @@ config_hal_init(void)
 
     /* verbose message */
     LogMessageVerb(X_INFO,7,"config/hal: initialized");
-    
+
     return 1;
 }
 
