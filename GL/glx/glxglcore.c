@@ -510,7 +510,7 @@ handle_error:
 
     xfree(screen);
 
-    FatalError("GLX: could not load software renderer\n");
+    ErrorF("GLX: could not load software renderer\n");
 
     return NULL;
 }

@@ -25,6 +25,7 @@ MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
 
 xf86DefModeSet.c: $(srcdir)/modeline2c.awk $(MODEDEFSOURCES)
 	cat $(MODEDEFSOURCES) | $(AWK) -f $(srcdir)/modeline2c.awk > $@
+	echo >> $@
 
 BUILT_SOURCES = xf86DefModeSet.c
 
