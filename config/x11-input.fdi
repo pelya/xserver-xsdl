@@ -26,21 +26,19 @@
 	    Do not specify "input.x11_options.Device" since "input.device"
 	    will be used automatically.
 
-
-        XKB configuration:
-	     "input.x11_options.XkbRules"
-	     "input.x11_options.XkbModel"
-	     "input.x11_options.XkbLayout"
-	     "input.x11_options.XkbVariant"
-	     "input.x11_options.XkbOptions"
-
-        Legacy Keys (deprecated and ignored by the server):
+        Legacy Keys
 	     "input.xkb.rules"
              "input.xkb.model"
              "input.xkb.layout"
              "input.xkb.variant"
              "input.xkb.options"
              
+            These keys are deprecated. Use these instead:
+	     "input.x11_options.XkbRules"
+	     "input.x11_options.XkbModel"
+	     "input.x11_options.XkbLayout"
+	     "input.x11_options.XkbVariant"
+	     "input.x11_options.XkbOptions"
 
 	    See the evdev documentation for more information. 
     
