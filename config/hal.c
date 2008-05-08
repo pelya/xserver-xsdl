@@ -48,6 +48,15 @@ struct config_hal_info {
     LibHalContext *hal_ctx;
 };
 
+/* Used for special handling of xkb options. */
+struct xkb_options {
+    char* layout;
+    char* model;
+    char* rules;
+    char* variant;
+};
+
+
 static void
 remove_device(DeviceIntPtr dev)
 {
@@ -164,10 +173,11 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     InputOption *options = NULL, *tmpo = NULL;
     DeviceIntPtr dev;
     DBusError error;
+    struct xkb_options xkb_opts = {0};
 
     LibHalPropertySet *set = NULL;
 	LibHalPropertySetIterator set_iter;
-    char *psi_key = NULL, *tmp_val, *tmp_key;
+    char *psi_key = NULL, *tmp_val;
 
 
     dbus_error_init(&error);
@@ -241,27 +251,71 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
 
                 if (tmp_val){
-                    add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
-                    xfree(tmp_val);
-                }
+                    char* tmp;
 
-            /* evdev's XKB options... we should probably depreciate this usage */
+                    /* xkb needs special handling. HAL specs include
+                     * input.xkb.xyz options, but the x11-input.fdi specifies
+                     * input.x11_options.Xkbxyz options. By default, we use
+                     * the former, unless the specific X11 ones are specified.
+                     * Since we can't predict the order in which the keys
+                     * arrive, we need to store them.
+                     */
+                    if ((tmp = strcasestr(psi_key, "xkb")))
+                    {
+                        if (!strcasecmp(&tmp[3], "layout"))
+                        {
+                            if (xkb_opts.layout)
+                                xfree(xkb_opts.layout);
+                            xkb_opts.layout = strdup(tmp_val);
+                        } else if (!strcasecmp(&tmp[3], "model"))
+                        {
+                            if (xkb_opts.model)
+                                xfree(xkb_opts.model);
+                            xkb_opts.model = strdup(tmp_val);
+                        } else if (!strcasecmp(&tmp[3], "rules"))
+                        {
+                            if (xkb_opts.rules)
+                                xfree(xkb_opts.rules);
+                            xkb_opts.rules = strdup(tmp_val);
+                        } else if (!strcasecmp(&tmp[3], "variant"))
+                        {
+                            if (xkb_opts.variant)
+                                xfree(xkb_opts.variant);
+                            xkb_opts.variant = strdup(tmp_val);
+                        }
+                    } else
+                    {
+                        /* all others */
+                        add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
+                        xfree(tmp_val);
+                    }
+                }
             } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
 
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
 
                 if (tmp_val){
-                    /* add "xkb_" + NULL */
-		    tmp_key = xalloc(strlen(psi_key) - ( sizeof(LIBHAL_XKB_PROP_KEY) - 1) + 5);
+                    char* tmp;
 
-                    if (!tmp_key){
-                        LogMessage(X_ERROR, "config/hal: couldn't allocate memory for option %s\n", psi_key);
-                    } else {
-                        sprintf(tmp_key, "xkb_%s", psi_key + sizeof(LIBHAL_XKB_PROP_KEY)-1);
-                        add_option(&options, tmp_key, tmp_val);
+                    tmp = &psi_key[sizeof(LIBHAL_XKB_PROP_KEY) - 1];
 
-                        xfree(tmp_key);
+                    if (!strcasecmp(tmp, "layout"))
+                    {
+                        if (!xkb_opts.layout)
+                            xkb_opts.layout = strdup(tmp_val);
+                    } else if (!strcasecmp(tmp, "rules"))
+                    {
+                        if (!xkb_opts.rules)
+                            xkb_opts.rules = strdup(tmp_val);
+                    } else if (!strcasecmp(tmp, "variant"))
+                    {
+                        if (!xkb_opts.variant)
+                            xkb_opts.variant = strdup(tmp_val);
+                    } else if (!strcasecmp(tmp, "model"))
+                    {
+                        if (!xkb_opts.model)
+                            xkb_opts.model = strdup(tmp_val);
                     }
                     xfree(tmp_val);
                 }
@@ -271,6 +325,17 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         /* psi_key doesn't need to be freed */
         libhal_psi_next(&set_iter);
     }
+
+
+    /* Now add xkb options */
+    if (xkb_opts.layout)
+        add_option(&options, "xkb_layout", xkb_opts.layout);
+    if (xkb_opts.rules)
+        add_option(&options, "xkb_rules", xkb_opts.rules);
+    if (xkb_opts.variant)
+        add_option(&options, "xkb_variant", xkb_opts.variant);
+    if (xkb_opts.model)
+        add_option(&options, "xkb_model", xkb_opts.model);
 
     /* this isn't an error, but how else do you output something that the user can see? */
     LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
@@ -303,6 +368,15 @@ unwind:
         xfree(tmpo->value);
         xfree(tmpo);
     }
+
+    if (xkb_opts.layout)
+        xfree(xkb_opts.layout);
+    if (xkb_opts.rules)
+        xfree(xkb_opts.rules);
+    if (xkb_opts.model)
+        xfree(xkb_opts.model);
+    if (xkb_opts.variant)
+        xfree(xkb_opts.variant);
 
     dbus_error_free(&error);
 
