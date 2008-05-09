@@ -302,8 +302,14 @@ doOpenFont(ClientPtr client, OFclosurePtr c)
 	    c->fontname = newname;
 	    c->fnamelen = newlen;
 	    c->current_fpe = 0;
-	    if (--aliascount <= 0)
+	    if (--aliascount <= 0) {
+		/* We've tried resolving this alias 20 times, we're
+ 		 * probably stuck in an infinite loop of aliases pointing
+ 		 * to each other - time to take emergency exit!
+ 		 */
+ 		err = BadImplementation;
 		break;
+	    }
 	    continue;
 	}
 	if (err == BadFontName) {
