@@ -278,8 +278,9 @@ hw/xprint/doc/Xprt.1x
 hw/xprint/doc/Xprt.man
 hw/xprint/dpmsstubs-wrapper.c
 hw/xprint/miinitext-wrapper.c
-hw/xquartz/xpr/Xquartz
-hw/xquartz/xpr/Xquartz.1
+hw/xquartz/mach-startup/X11
+hw/xquartz/mach-startup/Xquartz
+hw/xquartz/doc/Xquartz.1
 include/dix-config.h
 include/kdrive-config.h
 include/xgl-config.h

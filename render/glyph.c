@@ -26,8 +26,12 @@
 #include <dix-config.h>
 #endif
 
-#include <stddef.h>  /* buggy openssl/sha.h wants size_t */
-#include <openssl/sha.h>
+#ifdef HAVE_SHA1_IN_LIBMD /* Use libmd for SHA1 */
+# include <sha1.h>
+#else /* Use OpenSSL's libcrypto */
+# include <stddef.h>  /* buggy openssl/sha.h wants size_t */
+# include <openssl/sha.h>
+#endif
 
 #include "misc.h"
 #include "scrnintstr.h"
@@ -202,6 +206,14 @@ HashGlyph (xGlyphInfo    *gi,
 	   unsigned long size,
 	   unsigned char sha1[20])
 {
+#ifdef HAVE_SHA1_IN_LIBMD /* Use libmd for SHA1 */
+    SHA1_CTX ctx;
+
+    SHA1Init (&ctx);
+    SHA1Update (&ctx, gi, sizeof (xGlyphInfo));
+    SHA1Update (&ctx, bits, size);
+    SHA1Final (sha1, &ctx);
+#else /* Use OpenSSL's libcrypto */
     SHA_CTX ctx;
     int success;
 
@@ -220,6 +232,7 @@ HashGlyph (xGlyphInfo    *gi,
     success = SHA1_Final (sha1, &ctx);
     if (! success)
 	return BadAlloc;
+#endif
 
     return Success;
 }

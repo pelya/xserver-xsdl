@@ -342,7 +342,9 @@ XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
     if (!infoRec->offscreenDepthsInitialized)
 	XAAInitializeOffscreenDepths (pScreen);
 
-    if(pScrn->vtSema && (infoRec->offscreenDepths & (1 << (depth - 1))) &&
+    if(pScrn->vtSema &&
+	(usage_hint != CREATE_PIXMAP_USAGE_GLYPH_PICTURE) &&
+	(infoRec->offscreenDepths & (1 << (depth - 1))) &&
 	(size >= MIN_OFFPIX_SIZE) && !SwitchedOut &&
 	(!infoRec->maxOffPixWidth || (w <= infoRec->maxOffPixWidth)) &&
 	(!infoRec->maxOffPixHeight || (h <= infoRec->maxOffPixHeight)) )
