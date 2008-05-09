@@ -9,12 +9,11 @@ AM_CPPFLAGS = \
 	-DXFree86Server \
 	-I$(top_srcdir)/miext/rootless
 
-SUBDIRS = bundle . GL xpr stub
+SUBDIRS = bundle . GL xpr mach-startup doc
 
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(top_srcdir)/mi/miinitext.c \
-	bundle/bundle-main.c \
 	X11Application.m \
 	X11Controller.m \
 	applewm.c \

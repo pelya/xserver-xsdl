@@ -7,7 +7,6 @@ resource_DATA = Xquartz.plist
 EXTRA_DIST = \
 	mk_bundke.sh \
 	$(resource_DATA) \
-	bundle-main.c \
 	Resources/da.lproj/InfoPlist.strings \
 	Resources/da.lproj/Localizable.strings \
 	Resources/da.lproj/main.nib/keyedobjects.nib \
