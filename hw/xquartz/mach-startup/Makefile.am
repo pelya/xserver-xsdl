@@ -5,8 +5,12 @@ AM_CPPFLAGS = \
 x11appdir = $(APPLE_APPLICATIONS_DIR)/X11.app/Contents/MacOS
 x11app_PROGRAMS = X11
 
-X11_SOURCES = \
+dist_X11_SOURCES = \
 	bundle-main.c
+
+nodist_X11_SOURCES = \
+	mach_startupServer.c \
+	mach_startupUser.c
 
 X11_LDADD = \
 	$(top_builddir)/hw/xquartz/libXquartz.la \
@@ -27,8 +31,28 @@ X11_LDFLAGS =  \
 
 bin_PROGRAMS = Xquartz
 
-Xquartz_SOURCES = \
+dist_Xquartz_SOURCES = \
 	stub.c
+
+nodist_Xquartz_SOURCES = \
+	mach_startupUser.c
 
 Xquartz_LDFLAGS =  \
 	-Wl,-framework,CoreServices
+
+BUILT_SOURCES = \
+	mach_startupServer.c \
+	mach_startupUser.c \
+	mach_startupServer.h \
+	mach_startup.h
+
+CLEANFILES = \
+	$(BUILT_SOURCES)
+
+$(BUILT_SOURCES): mach_startup.defs
+	mig -sheader mach_startupServer.h mach_startup.defs
+
+EXTRA_DIST = \
+	mach_startup.defs \
+	mach_startup_types.h
+

@@ -278,6 +278,10 @@ hw/xprint/doc/Xprt.1x
 hw/xprint/doc/Xprt.man
 hw/xprint/dpmsstubs-wrapper.c
 hw/xprint/miinitext-wrapper.c
+hw/xquartz/mach-startup/mach_startup.h
+hw/xquartz/mach-startup/mach_startupServer.c
+hw/xquartz/mach-startup/mach_startupServer.h
+hw/xquartz/mach-startup/mach_startupUser.c
 hw/xquartz/mach-startup/X11
 hw/xquartz/mach-startup/Xquartz
 hw/xquartz/doc/Xquartz.1
