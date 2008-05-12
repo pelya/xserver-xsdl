@@ -93,7 +93,7 @@ static CursorBits   animCursorBits = {
 static int AnimCurGeneration;
 static DevPrivateKey AnimCurScreenPrivateKey = &AnimCurScreenPrivateKey;
 
-#define IsAnimCur(c)	    ((c)->bits == &animCursorBits)
+#define IsAnimCur(c)	    ((c) && ((c)->bits == &animCursorBits))
 #define GetAnimCur(c)	    ((AnimCurPtr) ((c) + 1))
 #define GetAnimCurScreen(s) ((AnimCurScreenPtr)dixLookupPrivate(&(s)->devPrivates, AnimCurScreenPrivateKey))
 #define GetAnimCurScreenIfSet(s) GetAnimCurScreen(s)
