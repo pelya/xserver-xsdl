@@ -199,6 +199,11 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
     if (!pDev->isMaster && !pDev->u.master)
         return FALSE;
 
+    /* return for keyboards */
+    if ((pDev->isMaster && !DevHasCursor(pDev)) ||
+        (!pDev->isMaster && pDev->u.master && !DevHasCursor(pDev->u.master)))
+            return;
+
     pPointer = MIPOINTER(pDev);
 
     pPointer->pCursor = pCursor;
@@ -449,7 +454,7 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     else if (pPointer->pCursor != pPointer->pSpriteCursor)
     {
 	pCursor = pPointer->pCursor;
-	if (pCursor->bits->emptyMask && !pScreenPriv->showTransparent)
+	if (!pCursor || (pCursor->bits->emptyMask && !pScreenPriv->showTransparent))
 	    pCursor = NullCursor;
 	(*pScreenPriv->spriteFuncs->SetCursor) (pDev, pScreen, pCursor, x, y);
 
@@ -461,7 +466,7 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     {
 	pPointer->devx = x;
 	pPointer->devy = y;
-	if(!pPointer->pCursor->bits->emptyMask)
+	if(pPointer->pCursor && !pPointer->pCursor->bits->emptyMask)
 	    (*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
     }
 }
