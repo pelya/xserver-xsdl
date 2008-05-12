@@ -1937,37 +1937,27 @@ GetDefaultPointSize ()
 FontResolutionPtr
 GetClientResolutions (int *num)
 {
-#ifdef XPRINT
-    if (requestingClient && requestingClient->fontResFunc != NULL &&
-	!requestingClient->clientGone)
-    {
-	return (*requestingClient->fontResFunc)(requestingClient, num);
-    }
-    else
-#endif
-    {
-	static struct _FontResolution res;
-	ScreenPtr   pScreen;
+    static struct _FontResolution res;
+    ScreenPtr   pScreen;
 
-	pScreen = screenInfo.screens[0];
-	res.x_resolution = (pScreen->width * 25.4) / pScreen->mmWidth;
-	/*
-	 * XXX - we'll want this as long as bitmap instances are prevalent 
-	 so that we can match them from scalable fonts
-	 */
-	if (res.x_resolution < 88)
-	    res.x_resolution = 75;
-	else
-	    res.x_resolution = 100;
-	res.y_resolution = (pScreen->height * 25.4) / pScreen->mmHeight;
-	if (res.y_resolution < 88)
-	    res.y_resolution = 75;
-	else
-	    res.y_resolution = 100;
-	res.point_size = 120;
-	*num = 1;
-	return &res;
-    }
+    pScreen = screenInfo.screens[0];
+    res.x_resolution = (pScreen->width * 25.4) / pScreen->mmWidth;
+    /*
+     * XXX - we'll want this as long as bitmap instances are prevalent 
+     so that we can match them from scalable fonts
+     */
+    if (res.x_resolution < 88)
+	res.x_resolution = 75;
+    else
+	res.x_resolution = 100;
+    res.y_resolution = (pScreen->height * 25.4) / pScreen->mmHeight;
+    if (res.y_resolution < 88)
+	res.y_resolution = 75;
+    else
+	res.y_resolution = 100;
+    res.point_size = 120;
+    *num = 1;
+    return &res;
 }
 
 /*
