@@ -139,12 +139,20 @@ static void startup_trigger_thread(void *arg) {
 int main(int argc, char **argv, char **envp) {
     BOOL listenOnly = FALSE;
     int i;
+    mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
+    mach_port_t mp;
+    kern_return_t kr;
 
     for(i=1; i < argc; i++) {
         if(!strcmp(argv[i], "--listenonly")) {
             listenOnly = TRUE;
             break;
         }
+    }
+
+    /* TODO: This should be unconditional once we figure out fd passing */
+    if((argc > 1 && argv[1][0] == ':') || listenOnly) {
+        mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
     }
 
     /* Check if we need to do something other than listen, and make another
@@ -154,23 +162,20 @@ int main(int argc, char **argv, char **envp) {
         struct arg *args = (struct arg*)malloc(sizeof(struct arg));
         if(!args)
             FatalError("Could not allocate memory.\n");
-        
+
         args->argc = argc;
         args->argv = argv;
         args->envp = envp;
 
         create_thread(startup_trigger_thread, args);
-    } else {
-        /* TODO: This should actually fall through rather than be the else
-         *       case once we figure out how to get the stub to pass the
-         *       file descriptor.  For now, we only listen if we are explicitly
-         *       told to.
-         */
+    }
 
-        mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
-        mach_port_t mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
-        kern_return_t kr;
-        
+    /* TODO: This should actually fall through rather than be the else
+     *       case once we figure out how to get the stub to pass the
+     *       file descriptor.  For now, we only listen if we are explicitly
+     *       told to.
+     */
+    if((argc > 1 && argv[1][0] == ':') || listenOnly) {
         /* Main event loop */
         kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
         if (kr != KERN_SUCCESS) {
@@ -179,7 +184,7 @@ int main(int argc, char **argv, char **envp) {
             exit(EXIT_FAILURE);
         }
     }
-    
+
     return EXIT_SUCCESS;
 }
 
@@ -208,7 +213,7 @@ int main(int argc, char **argv, char **envp) {
         return server_main(argc, argv, envp);
 #endif
     }
-    
+
     /* If we have a process serial number and it's our only arg, act as if
      * the user double clicked the app bundle: launch app_to_run if possible
      */
@@ -227,7 +232,7 @@ int main(int argc, char **argv, char **envp) {
             return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }
     }
-    
+
     /* Start the server */
     if((s = getenv("DISPLAY"))) {
         fprintf(stderr, "X11.app: Could not connect to server (DISPLAY=\"%s\", unsetting).  Starting X server.\n", s);
