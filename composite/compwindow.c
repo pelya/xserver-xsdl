@@ -146,7 +146,7 @@ compCheckRedirect (WindowPtr pWin)
     Bool	    should;
 
     should = pWin->realized && (pWin->drawable.class != InputOnly) &&
-	     (cw != NULL);
+	     (cw != NULL) && (pWin->parent != NULL);
 
     /* Never redirect the overlay window */
     if (cs->pOverlayWin != NULL) {
