@@ -212,11 +212,11 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXWarpDevicePointer,                 /* 37 */
         ProcXChangeDeviceCursor,                /* 38 */
         ProcXChangeDeviceHierarchy,             /* 39 */
-        ProcXiSelectEvent,                      /* 40 */
-        ProcXChangeWindowAccess,                /* 41 */
-        ProcXQueryWindowAccess,                 /* 42 */
-        ProcXSetClientPointer,                  /* 43 */
-        ProcXGetClientPointer,                  /* 44 */
+        ProcXChangeWindowAccess,                /* 40 */
+        ProcXQueryWindowAccess,                 /* 41 */
+        ProcXSetClientPointer,                  /* 42 */
+        ProcXGetClientPointer,                  /* 43 */
+        ProcXiSelectEvent,                      /* 44 */
         ProcXExtendedGrabDevice                 /* 45 */
 };
 
@@ -262,11 +262,11 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXWarpDevicePointer,                 /* 37 */
         SProcXChangeDeviceCursor,                /* 38 */
         SProcXChangeDeviceHierarchy,             /* 39 */
-        SProcXiSelectEvent,                      /* 40 */
-        SProcXChangeWindowAccess,                /* 41 */
-        SProcXQueryWindowAccess,                 /* 42 */
-        SProcXSetClientPointer,                  /* 43 */
-        SProcXGetClientPointer,                  /* 44 */
+        SProcXChangeWindowAccess,                /* 40 */
+        SProcXQueryWindowAccess,                 /* 41 */
+        SProcXSetClientPointer,                  /* 42 */
+        SProcXGetClientPointer,                  /* 43 */
+        SProcXiSelectEvent,                      /* 44 */
         SProcXExtendedGrabDevice                 /* 45 */
 };
 
