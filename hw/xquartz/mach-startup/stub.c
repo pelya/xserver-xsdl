@@ -43,33 +43,55 @@ static char x11_path[PATH_MAX + 1];
 
 static void set_x11_path() {
     CFURLRef appURL = NULL;
+    CFBundleRef bundle = NULL;
     OSStatus osstatus = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), nil, nil, &appURL);
-    
+    UInt32 ver;
+
     switch (osstatus) {
         case noErr:
             if (appURL == NULL) {
-                fprintf(stderr, "xinit: Invalid response from LSFindApplicationForInfo(%s)\n", 
+                fprintf(stderr, "Xquartz: Invalid response from LSFindApplicationForInfo(%s)\n", 
                         kX11AppBundleId);
                 exit(1);
             }
-            
-            if (!CFURLGetFileSystemRepresentation(appURL, true, (unsigned char *)x11_path, sizeof(x11_path))) {
-                fprintf(stderr, "xinit: Error resolving URL for %s\n", kX11AppBundleId);
-                exit(2);
+
+            bundle = CFBundleCreate(NULL, appURL);
+            if(!bundle) {
+                fprintf(stderr, "Xquartz: Null value returned from CFBundleCreate().\n");
+                exit(2);                
             }
-            
+
+            if (!CFURLGetFileSystemRepresentation(appURL, true, (unsigned char *)x11_path, sizeof(x11_path))) {
+                fprintf(stderr, "Xquartz: Error resolving URL for %s\n", kX11AppBundleId);
+                exit(3);
+            }
+
+            ver = CFBundleGetVersionNumber(bundle);
+            if(ver < 0x02308000) {
+                CFStringRef versionStr = CFBundleGetValueForInfoDictionaryKey(bundle, kCFBundleVersionKey);
+                const char * versionCStr = "Unknown";
+
+                if(versionStr) 
+                    versionCStr = CFStringGetCStringPtr(versionStr, kCFStringEncodingMacRoman);
+
+                fprintf(stderr, "Xquartz: Could not find a new enough X11.app LSFindApplicationForInfo() returned\n");
+                fprintf(stderr, "         X11.app = %s\n", x11_path);
+                fprintf(stderr, "         Version = %s (%x), Expected Version > 2.3.0\n", versionCStr, (unsigned)ver);
+                exit(9);
+            }
+
             strlcat(x11_path, kX11AppBundlePath, sizeof(x11_path));
 #ifdef DEBUG
-            fprintf(stderr, "XQuartz: X11.app = %s\n", x11_path);
+            fprintf(stderr, "Xquartz: X11.app = %s\n", x11_path);
 #endif
             break;
         case kLSApplicationNotFoundErr:
-            fprintf(stderr, "XQuartz: Unable to find application for %s\n", kX11AppBundleId);
-            exit(4);
+            fprintf(stderr, "Xquartz: Unable to find application for %s\n", kX11AppBundleId);
+            exit(10);
         default:
-            fprintf(stderr, "XQuartz: Unable to find application for %s, error code = %d\n", 
+            fprintf(stderr, "Xquartz: Unable to find application for %s, error code = %d\n", 
                     kX11AppBundleId, (int)osstatus);
-            exit(5);
+            exit(11);
     }
 }
 
