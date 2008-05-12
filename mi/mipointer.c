@@ -60,7 +60,6 @@ static Bool miPointerUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                      CursorPtr pCursor);
 static Bool miPointerDisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);
-static void miPointerUndisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerConstrainCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                      BoxPtr pBox); 
 static void miPointerPointerNonInterestBox(DeviceIntPtr pDev, 
@@ -113,8 +112,6 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     pScreen->ConstrainCursor = miPointerConstrainCursor;
     pScreen->CursorLimits = miPointerCursorLimits;
     pScreen->DisplayCursor = miPointerDisplayCursor;
-    pScreen->UndisplayCursor = miPointerUndisplayCursor;
-    pScreen->UndisplayCursor = miPointerUndisplayCursor;
     pScreen->RealizeCursor = miPointerRealizeCursor;
     pScreen->UnrealizeCursor = miPointerUnrealizeCursor;
     pScreen->SetCursorPosition = miPointerSetCursorPosition;
@@ -210,16 +207,6 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
     pPointer->pScreen = pScreen;
     miPointerUpdateSprite(pDev);
     return TRUE;
-}
-
-static void
-miPointerUndisplayCursor(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr 	 pScreen;
-{
-    SetupScreen(pScreen);
-    if (pDev->isMaster && pDev->spriteInfo->spriteOwner)
-        (*pScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
 }
 
 static void

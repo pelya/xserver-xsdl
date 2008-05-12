@@ -440,10 +440,6 @@ typedef    void (* MarkUnrealizedWindowProcPtr)(
 	WindowPtr /*pWin*/,
 	Bool /*fromConfigure*/);
 
-typedef    void (* UndisplayCursorProcPtr)(
-        DeviceIntPtr /* pDev */,
-        ScreenPtr    /* pScreen */);
-
 typedef    Bool (* DeviceCursorInitializeProcPtr)(
         DeviceIntPtr /* pDev */,
         ScreenPtr    /* pScreen */);
@@ -601,7 +597,6 @@ typedef struct _Screen {
     MarkUnrealizedWindowProcPtr	MarkUnrealizedWindow;
 
     /* Device cursor procedures */
-    UndisplayCursorProcPtr        UndisplayCursor;
     DeviceCursorInitializeProcPtr DeviceCursorInitialize;
     DeviceCursorCleanupProcPtr    DeviceCursorCleanup;
 } ScreenRec;

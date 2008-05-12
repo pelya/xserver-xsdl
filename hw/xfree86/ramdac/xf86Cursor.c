@@ -38,8 +38,7 @@ static miPointerSpriteFuncRec xf86CursorSpriteFuncs = {
    xf86CursorSetCursor,
    xf86CursorMoveCursor,
    xf86DeviceCursorInitialize,
-   xf86DeviceCursorCleanup,
-   xf86DeviceCursorUndisplay
+   xf86DeviceCursorCleanup
 };
 
 /* Screen functions */
@@ -504,16 +503,3 @@ xf86DeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
     (*ScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
 }
 
-/**
- * Called on server shutdown to remove all cursors from the screen before
- * bringing the server down.
- */
-static void
-xf86DeviceCursorUndisplay(DeviceIntPtr pDev, ScreenPtr pScreen)
-{
-    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
-            &pScreen->devPrivates, xf86CursorScreenKey);
-
-    /* Undisplay SW cursor */
-    (*ScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
-}

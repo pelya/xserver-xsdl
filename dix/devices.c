@@ -854,9 +854,7 @@ UndisplayDevices()
     ScreenPtr screen = screenInfo.screens[0];
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
-    {
-        screen->UndisplayCursor(dev, screen);
-    }
+        screen->DisplayCursor(dev, screen, NullCursor);
 }
 
 /**
@@ -887,7 +885,7 @@ RemoveDevice(DeviceIntPtr dev)
         return BadImplementation;
 
     initialized = dev->inited;
-    screen->UndisplayCursor(dev, screen);
+    screen->DisplayCursor(dev, screen, NullCursor);
 
     deviceid = dev->id;
     DisableDevice(dev);
