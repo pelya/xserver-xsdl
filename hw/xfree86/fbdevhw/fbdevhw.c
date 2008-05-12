@@ -310,12 +310,12 @@ fbdev_open_pci(struct pci_device * pPci, char **namep)
     /* There are two ways to that we can determine which fb device is
      * associated with this PCI device.  The more modern way is to look in
      * the sysfs directory for the PCI device for a file named
-     * "graphics:fb*"
+     * "graphics/fb*"
      */
 
     for (i = 0; i < 8; i++) {
 	sprintf(filename, 
-		"/sys/bus/pci/devices/%04x:%02x:%02x.%d/graphics:fb%d",
+		"/sys/bus/pci/devices/%04x:%02x:%02x.%d/graphics/fb%d",
 		pPci->domain, pPci->bus, pPci->dev, pPci->func, i);
 
 	fd = open(filename, O_RDONLY, 0);
