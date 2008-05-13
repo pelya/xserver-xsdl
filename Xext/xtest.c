@@ -455,12 +455,9 @@ ProcXTestFakeInput(client)
         case ButtonRelease:
             if (!extension)
                 dev = PickPointer(client);
-            else
-            {
-                /* For XI events, the rootX/Y is unset. */
-                ev->u.keyButtonPointer.rootX = dev->lastx;
-                ev->u.keyButtonPointer.rootY = dev->lasty;
-            }
+
+            ev->u.keyButtonPointer.rootX = dev->lastx;
+            ev->u.keyButtonPointer.rootY = dev->lasty;
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;
