@@ -52,6 +52,7 @@
 #include "modinit.h"
 
 extern int DeviceValuator;
+extern int DeviceMotionNotify;
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -235,6 +236,26 @@ ProcXTestFakeInput(client)
                 client->errorValue = ev->u.u.type;
                 return BadValue;
         }
+
+        ev->u.u.type += (DeviceValuator - 1);
+        if (ev->u.u.type == DeviceMotionNotify)
+        {
+            /* fake up valuator */
+            xEvent *ne = xalloc(2 * sizeof(xEvent));
+            if (ne) {
+                memcpy(ne, ev, sizeof(xEvent));
+                memcpy(&ne[1], ev, sizeof(xEvent));
+                ev = ne;
+
+                dv = (deviceValuator*)(ne + 1);
+                dv->type = DeviceValuator;
+                dv->first_valuator = 0;
+                dv->num_valuators = 2;
+                dv->valuator0 = ev->u.keyButtonPointer.rootX;
+                dv->valuator1 = ev->u.keyButtonPointer.rootY;
+                nev = 2;
+            }
+        }
     }
 
     /* If the event has a time set, wait for it to pass */
@@ -338,6 +359,7 @@ ProcXTestFakeInput(client)
                         values += 6;
                     }
                 }
+
                 /* For XI events, the actual event is mostly unset. Since we
                  * want to update the sprite nontheless, we need to fake up
                  * sane values for the event. */
@@ -468,6 +490,7 @@ ProcXTestFakeInput(client)
     if (screenIsSaved == SCREEN_SAVER_ON)
         dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
     ev->u.keyButtonPointer.time = currentTime.milliseconds;
+
     if (!dev->isMaster && dev->u.master)
     {   /* duplicate and route through master */
         xEvent *master_event = NULL;
@@ -477,6 +500,8 @@ ProcXTestFakeInput(client)
         xfree(master_event);
     } else
         (*dev->public.processInputProc)(ev, dev, nev);
+    if (extension)
+        xfree(ev);
     return client->noClientException;
 }
 
