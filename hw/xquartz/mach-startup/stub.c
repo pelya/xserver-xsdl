@@ -35,9 +35,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define kX11AppBundleId "org.x.X11"
 #define kX11AppBundlePath "/Contents/MacOS/X11"
+
+#include <mach/mach.h>
+#include <mach/mach_error.h>
+#include <servers/bootstrap.h>
+#include "mach_startup.h"
 
 static char x11_path[PATH_MAX + 1];
 
@@ -102,17 +108,68 @@ static void set_x11_path() {
 #define XSERVER_VERSION "?"
 #endif
 
-int main(int argc, char **argv) {
-    
+int main(int argc, char **argv, char **envp) {
+#ifdef NEW_LAUNCH_METHOD_2
+    int envpc;
+    char *newargv[3];
+    kern_return_t kr;
+    mach_port_t mp;
+#endif
+
     if(argc == 2 && !strcmp(argv[1], "-version")) {
         fprintf(stderr, "X.org Release 7.3\n");
         fprintf(stderr, "X.Org X Server %s\n", XSERVER_VERSION);
         fprintf(stderr, "Build Date: %s\n", BUILD_DATE);
-        return 0;
+        return EXIT_SUCCESS;
     }
+
+#ifdef NEW_LAUNCH_METHOD_2
+    kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+    if(kr != KERN_SUCCESS) {
+        int i;
+        set_x11_path();
+
+        /* This forking is ugly and will be cleaned up later */
+        pid_t child = fork();
+        if(child == -1) {
+            fprintf(stderr, "Could not fork: %s\n", strerror(errno));
+            return EXIT_FAILURE;
+        }
+
+        if(child == 0) {
+            newargv[0] = x11_path;
+            newargv[1] = "--listenonly";
+            newargv[2] = NULL;
+            return execvp(x11_path, newargv);
+        }
+
+        /* Try connecting for 10 seconds */
+        for(i=0; i < 20; i++) {
+            usleep(500);
+            kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+            if(kr == KERN_SUCCESS)
+                break;
+        }
+
+        if(kr != KERN_SUCCESS) {
+            fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+            return EXIT_FAILURE;
+        }
+    }
+
+    /* Count envp */
+    for(envpc=0; envp[envpc]; envpc++);
     
+    kr = start_x11_server(mp, argv, argc + 1, envp, envpc + 1);
+    if (kr != KERN_SUCCESS) {
+        fprintf(stderr, "start_x11_server: %s\n", mach_error_string(kr));
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+    
+#else
     set_x11_path();
-    
     argv[0] = x11_path;
     return execvp(x11_path, argv);
+#endif
 }

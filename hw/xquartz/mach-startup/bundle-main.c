@@ -34,8 +34,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+
+#include <asl.h>
 
 #include <mach/mach.h>
 #include <mach/mach_error.h>
@@ -70,7 +73,7 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
                                   mach_msg_type_number_t argvCnt,
                                   string_array_t envp,
                                   mach_msg_type_number_t envpCnt) {
-    if(server_main(argvCnt, argv, envp) == 0)
+    if(server_main(argvCnt - 1, argv, envp) == 0)
         return KERN_SUCCESS;
     else
         return KERN_FAILURE;
@@ -137,7 +140,7 @@ static void startup_trigger_thread(void *arg) {
 }
 
 int main(int argc, char **argv, char **envp) {
-    BOOL listenOnly = FALSE;
+    Bool listen, listenOnly = FALSE;
     int i;
     mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
     mach_port_t mp;
@@ -151,7 +154,8 @@ int main(int argc, char **argv, char **envp) {
     }
 
     /* TODO: This should be unconditional once we figure out fd passing */
-    if((argc > 1 && argv[1][0] == ':') || listenOnly) {
+    listen = (argc > 1 && argv[1][0] == ':') || listenOnly;
+    if(listen) {
         mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
     }
 
@@ -160,8 +164,10 @@ int main(int argc, char **argv, char **envp) {
      */
     if(!listenOnly) {
         struct arg *args = (struct arg*)malloc(sizeof(struct arg));
-        if(!args)
-            FatalError("Could not allocate memory.\n");
+        if(!args) {
+            fprintf(stderr, "Memory allocation error.\n");
+            return EXIT_FAILURE;
+        }
 
         args->argc = argc;
         args->argv = argv;
@@ -175,13 +181,13 @@ int main(int argc, char **argv, char **envp) {
      *       file descriptor.  For now, we only listen if we are explicitly
      *       told to.
      */
-    if((argc > 1 && argv[1][0] == ':') || listenOnly) {
+    if(listen) {
         /* Main event loop */
         kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
         if (kr != KERN_SUCCESS) {
             asl_log(NULL, NULL, ASL_LEVEL_ERR,
                     "org.x.X11(mp): %s\n", mach_error_string(kr));
-            exit(EXIT_FAILURE);
+            return EXIT_FAILURE;
         }
     }
 
@@ -204,11 +210,27 @@ int main(int argc, char **argv, char **envp) {
     /* Take care of the case where we're called like a normal DDX */
     if(argc > 1 && argv[1][0] == ':') {
 #ifdef NEW_LAUNCH_METHOD
+        kern_return_t kr;
+        mach_port_t mp;
+        
+        sleep(2);
+
         /* We need to count envp */
         int envpc;
         for(envpc=0; envp[envpc]; envpc++);
 
-        return start_x11_server(argc, argv, envp, envpc);
+        kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+        if (kr != KERN_SUCCESS) {
+            fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+            exit(EXIT_FAILURE);
+        }
+
+        kr = start_x11_server(mp, argv, argc + 1, envp, envpc + 1);
+        if (kr != KERN_SUCCESS) {
+            fprintf(stderr, "start_x11_server: %s\n", mach_error_string(kr));
+            exit(EXIT_FAILURE);
+        }
+        exit(EXIT_SUCCESS);
 #else
         return server_main(argc, argv, envp);
 #endif
