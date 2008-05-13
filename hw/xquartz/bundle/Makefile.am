@@ -6,6 +6,8 @@ resource_DATA = Xquartz.plist
 
 EXTRA_DIST = \
 	mk_bundke.sh \
+	Info.plist \
+	PkgInfo \
 	$(resource_DATA) \
 	Resources/da.lproj/InfoPlist.strings \
 	Resources/da.lproj/Localizable.strings \
