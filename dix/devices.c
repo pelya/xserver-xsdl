@@ -169,7 +169,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     /*  security creation/labeling check
      */
-    if (XaceHook(XACE_DEVICE_ACCESS, serverClient, dev, DixCreateAccess)) {
+    if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixCreateAccess)) {
 	xfree(dev);
 	return NULL;
     }
