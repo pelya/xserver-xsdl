@@ -139,7 +139,6 @@ char *defaultCursorFont = COMPILEDCURSORFONT;
 char *defaultDisplayClass = COMPILEDDISPLAYCLASS;
 FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 			every compilation of dix code */
-Bool loadableFonts = FALSE;
 CursorPtr rootCursor;
 Bool blackRoot=FALSE;
 Bool whiteRoot=FALSE;

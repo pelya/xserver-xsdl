@@ -364,13 +364,8 @@ int main(int argc, char *argv[], char *envp[])
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
-	if (loadableFonts)
-	    SetFontPath(serverClient, 0, (unsigned char *)defaultFontPath,
-			&error);
-        else {
-	    if (SetDefaultFontPath(defaultFontPath) != Success)
-		ErrorF("failed to set default font path '%s'",
-			defaultFontPath);
+	if (SetDefaultFontPath(defaultFontPath) != Success) {
+	    ErrorF("failed to set default font path '%s'", defaultFontPath);
 	}
 	if (!SetDefaultFont(defaultTextFont)) {
 	    FatalError("could not open default font '%s'", defaultTextFont);
