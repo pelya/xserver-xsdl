@@ -115,6 +115,7 @@ int main(int argc, char **argv, char **envp) {
     mach_port_t mp;
     string_array_t newenvp;
     string_array_t newargv;
+    size_t i;
 #endif
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
@@ -127,7 +128,6 @@ int main(int argc, char **argv, char **envp) {
 #ifdef NEW_LAUNCH_METHOD_2
     kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
     if(kr != KERN_SUCCESS) {
-        int i;
         set_x11_path();
 
         /* This forking is ugly and will be cleaned up later */
@@ -142,19 +142,20 @@ int main(int argc, char **argv, char **envp) {
             _argv[0] = x11_path;
             _argv[1] = "--listenonly";
             _argv[2] = NULL;
+            fprintf(stderr, "Starting X server: %s --listenonly\n", x11_path);
             return execvp(x11_path, _argv);
         }
 
         /* Try connecting for 10 seconds */
-        for(i=0; i < 20; i++) {
-            usleep(500);
+        for(i=0; i < 40; i++) {
+            usleep(250000);
             kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
             if(kr == KERN_SUCCESS)
                 break;
         }
 
         if(kr != KERN_SUCCESS) {
-            fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+            fprintf(stderr, "bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
             return EXIT_FAILURE;
         }
     }

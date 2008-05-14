@@ -165,10 +165,11 @@ int main(int argc, char **argv, char **envp) {
     mach_port_t mp;
     kern_return_t kr;
 
+    fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
     for(i=1; i < argc; i++) {
+        fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
         if(!strcmp(argv[i], "--listenonly")) {
             listenOnly = TRUE;
-            break;
         }
     }
 
@@ -221,10 +222,12 @@ int main(int argc, char **argv, char **envp) {
     const char *s;
     
     size_t i;
+#ifndef NEW_LAUNCH_METHOD
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
     for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
     }
+#endif
     
     /* Take care of the case where we're called like a normal DDX */
     if(argc > 1 && argv[1][0] == ':') {
