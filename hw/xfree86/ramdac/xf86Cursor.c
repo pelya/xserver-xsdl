@@ -299,43 +299,36 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
     xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
 	&pScreen->devPrivates, xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
-    miPointerScreenPtr PointPriv;
+    miPointerScreenPtr PointPriv = (miPointerScreenPtr)dixLookupPrivate(
+    &pScreen->devPrivates, miPointerScreenKey);
+
+
+    if (pCurs == NullCursor) {	/* means we're supposed to remove the cursor */
+        if (ScreenPriv->SWCursor)
+            (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor,
+                                                  x, y);
+        else if (ScreenPriv->isUp) {
+            xf86SetCursor(pScreen, NullCursor, x, y);
+            ScreenPriv->isUp = FALSE;
+	    }
+	    return;
+    }
 
     /* only update for VCP, otherwise we get cursor jumps when removing a
        sprite. The second cursor is never HW rendered anyway. */
-    if (pDev == inputInfo.pointer ||
-	    (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
+    if (pDev == inputInfo.pointer)
     {
 	ScreenPriv->CurrentCursor = pCurs;
 	ScreenPriv->x = x;
 	ScreenPriv->y = y;
 	ScreenPriv->CursorToRestore = NULL;
+	ScreenPriv->HotX = pCurs->bits->xhot;
+	ScreenPriv->HotY = pCurs->bits->yhot;
     }
 
     if (!infoPtr->pScrn->vtSema)
 	 ScreenPriv->SavedCursor = pCurs;
 
-    if (pCurs == NullCursor) {	/* means we're supposed to remove the cursor */
-	if (ScreenPriv->SWCursor)
-            (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor,
-                                                  x, y); 
-        else if
-                (ScreenPriv->isUp) {
-	    xf86SetCursor(pScreen, NullCursor, x, y);
-	    ScreenPriv->isUp = FALSE;
-	}
-	return;
-    }
-
-    if (pDev == inputInfo.pointer ||
-	    (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
-    {
-	ScreenPriv->HotX = pCurs->bits->xhot;
-	ScreenPriv->HotY = pCurs->bits->yhot;
-    }
-
-    PointPriv = (miPointerScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
-						     miPointerScreenKey);
     if (!(ScreenPriv->SWCursor & XF86_FORCE_SW_CURSOR))
     {
 	if (infoPtr->pScrn->vtSema && (ScreenPriv->ForceHWCursorCount || ((
@@ -346,18 +339,18 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 #endif
 			    (pCurs->bits->height <= infoPtr->MaxHeight) &&
 			    (pCurs->bits->width <= infoPtr->MaxWidth) &&
-			    (!infoPtr->UseHWCursor || (*infoPtr->UseHWCursor)(pScreen, pCurs))))))
+                            (!infoPtr->UseHWCursor || (*infoPtr->UseHWCursor)(pScreen, pCurs))))))
 	{
 
-	if (ScreenPriv->SWCursor)	/* remove the SW cursor */
-	  (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor, x, y);
+	    if (ScreenPriv->SWCursor)	/* remove the SW cursor */
+		(*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor, x, y);
 
-	xf86SetCursor(pScreen, pCurs, x, y);
-	ScreenPriv->SWCursor = FALSE;
-	ScreenPriv->isUp = TRUE;
-	PointPriv->waitForUpdate = !infoPtr->pScrn->silkenMouse;
-	return;
-  }
+	    xf86SetCursor(pScreen, pCurs, x, y);
+	    ScreenPriv->SWCursor = FALSE;
+	    ScreenPriv->isUp = TRUE;
+	    PointPriv->waitForUpdate = !infoPtr->pScrn->silkenMouse;
+	    return;
+	}
 
     }
 
