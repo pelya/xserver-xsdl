@@ -201,7 +201,7 @@ static void dmxEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal, xEvent *e,
 
     if (block)
         dmxSigioBlock();
-    dmxeqEnqueue(xE);
+    dmxeqEnqueue(pDevice, xE);
     if (block)
         dmxSigioUnblock();
 }
@@ -227,14 +227,16 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
     GETDMXLOCALFROMPDEV;
     DeviceIntPtr p = dmxLocal->pDevice;
     int i, nevents, valuators[3];
-    xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    EventListPtr events;
     int detail = 0;  /* XXX should this be mask of pressed buttons? */
     valuators[0] = x;
     valuators[1] = y;
+
+    GetEventList(&events);
     nevents = GetPointerEvents(events, p, MotionNotify, detail,
                                POINTER_ABSOLUTE, 0, 2, valuators);
     for (i = 0; i < nevents; i++)
-       mieqEnqueue(p, events + i);
+       mieqEnqueue(p, (events + i)->event);
     xfree(events);
     return;
 }
@@ -419,7 +421,7 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
     if (block)
         dmxSigioBlock();
     dmxPointerPutMotionEvent(pDevice, firstAxis, axesCount, v, xev->time);
-    dmxeqEnqueue(xE);
+    dmxeqEnqueue(pDevice, xE);
     if (block)
         dmxSigioUnblock();
 }
@@ -434,6 +436,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     int                    event   = -1;
     XDeviceKeyEvent        *ke     = (XDeviceKeyEvent *)e;
     XDeviceMotionEvent     *me     = (XDeviceMotionEvent *)e;
+    DeviceIntPtr           pDevice = dmxLocal->pDevice;
 
     if (!e)
         return -1;          /* No extended event passed, cannot handle */
@@ -499,7 +502,7 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
 
         if (block)
             dmxSigioBlock();
-        dmxeqEnqueue(xE);
+        dmxeqEnqueue(pDevice, xE);
         if (block)
             dmxSigioUnblock();
         break;
@@ -674,7 +677,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     xEvent xE;
     DeviceIntPtr p = dmxLocal->pDevice;
     int i, nevents, valuators[3];
-    xEvent *events;
+    EventListPtr events;
 
     DMXDBG2("dmxEnqueue: Enqueuing type=%d detail=0x%0x\n", type, detail);
 
@@ -688,25 +691,24 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         if (dmxLocal->sendsCore && dmxLocal != dmxLocalCoreKeyboard)
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
 
-        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        GetEventList(&events);
         /*ErrorF("KEY %d  sym %d\n", detail, (int) keySym);*/
         nevents = GetKeyboardEvents(events, p, type, detail);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, events + i);
-        xfree(events);
+            mieqEnqueue(p, (events + i)->event);
         return;
 
     case ButtonPress:
     case ButtonRelease:
         detail = dmxGetButtonMapping(dmxLocal, detail);
-        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        GetEventList(&events);
         nevents = GetPointerEvents(events, p, type, detail,
                                    POINTER_ABSOLUTE,
                                    0,   /* first_valuator = 0 */
                                    0,   /* num_valuators = 0 */
                                    valuators);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, events + i);
+            mieqEnqueue(p, (events + i)->event);
         xfree(events);
         return;
 
@@ -718,8 +720,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         nevents = GetPointerEvents(events, p, type, detail, 
                                    POINTER_ABSOLUTE, 0, 3, valuators);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, events + i);
-        xfree(events);
+            mieqEnqueue(p, (events + i)->event);
         return;
 
     case EnterNotify:

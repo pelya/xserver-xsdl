@@ -178,14 +178,14 @@ static void dmxCrossScreen(ScreenPtr pScreen, Bool entering)
 {
 }
 
-static void dmxWarpCursor(ScreenPtr pScreen, int x, int y)
+static void dmxWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     DMXDBG3("dmxWarpCursor(%d,%d,%d)\n", pScreen->myNum, x, y);
 #if 11 /*BP*/
     /* This call is depracated.  Replace with???? */
-    miPointerWarpCursor(pScreen, x, y);
+    miPointerWarpCursor(pDev, pScreen, x, y);
 #else
-    pScreen->SetCursorPosition(pScreen, x, y, FALSE);
+    pScreen->SetCursorPosition(pDev, pScreen, x, y, FALSE);
 #endif
 }
 
@@ -753,7 +753,7 @@ static void _dmxSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
     if (dmxScreen->beDisplay) dmxSync(dmxScreen, TRUE);
 }
 
-static Bool dmxRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+static Bool dmxRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     DMXScreenInfo *start = &dmxScreens[pScreen->myNum];
     DMXScreenInfo *pt;
@@ -771,7 +771,7 @@ static Bool dmxRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
     return TRUE;
 }
 
-static Bool dmxUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+static Bool dmxUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     DMXScreenInfo *start = &dmxScreens[pScreen->myNum];
     DMXScreenInfo *pt;
@@ -794,14 +794,14 @@ static CursorPtr dmxFindCursor(DMXScreenInfo *start)
     DMXScreenInfo *pt;
 
     if (!start || !start->over)
-        return GetSpriteCursor();
+        return GetSpriteCursor(inputInfo.pointer);
     for (pt = start->over; /* condition at end of loop */; pt = pt->over) {
         if (pt->cursor)
             return pt->cursor;
         if (pt == start)
             break;
     }
-    return GetSpriteCursor();
+    return GetSpriteCursor(inputInfo.pointer);
 }
 
 /** Move the cursor to coordinates (\a x, \a y)on \a pScreen.  This
@@ -813,7 +813,7 @@ static CursorPtr dmxFindCursor(DMXScreenInfo *start)
  * back-end screens and see if they contain the global coord.  If so, call
  * _dmxMoveCursor() (XWarpPointer) to position the pointer on that screen.
  */
-void dmxMoveCursor(ScreenPtr pScreen, int x, int y)
+void dmxMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     DMXScreenInfo *start = &dmxScreens[pScreen->myNum];
     DMXScreenInfo *pt;
@@ -860,7 +860,7 @@ void dmxMoveCursor(ScreenPtr pScreen, int x, int y)
     }
 }
 
-static void dmxSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+static void dmxSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
     DMXScreenInfo *start = &dmxScreens[pScreen->myNum];
     DMXScreenInfo *pt;

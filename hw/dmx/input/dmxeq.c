@@ -99,6 +99,7 @@ typedef struct _Event {
     xEvent	   event;    /**< Event. */
     ScreenPtr	   pScreen;  /**< Screen on which event occurred. */
     deviceValuator valuator; /**< XInput device valuator information. */
+    DeviceIntPtr   pDev;
 } EventRec, *EventPtr;
 
 /** Event queue. */
@@ -154,7 +155,7 @@ Bool dmxeqInit(DevicePtr pKbd, DevicePtr pPtr)
  * called from regular code.
  */
 
-void dmxeqEnqueue(xEvent *e)
+void dmxeqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
     HWEventQueueType oldtail, newtail;
     Bool             isMotion;
@@ -179,6 +180,7 @@ void dmxeqEnqueue(xEvent *e)
 
                                 /* Store the event in the queue */
     dmxEventQueue.events[oldtail].event   = *e;
+    dmxEventQueue.events[oldtail].pDev    = pDev;
                             /* If this is an XInput event, store the
                              * valuator event, too */
     deviceKeyButtonPointer *ev = (deviceKeyButtonPointer *)e;
@@ -197,7 +199,7 @@ void dmxeqEnqueue(xEvent *e)
 
 /** Make \a pScreen the new screen for enqueueing events.  If \a fromDIX
  * is TRUE, also make \a pScreen the new screen for dequeuing events. */
-void dmxeqSwitchScreen(ScreenPtr pScreen, Bool fromDIX)
+void dmxeqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 {
     dmxEventQueue.pEnqueueScreen = pScreen;
     if (fromDIX) dmxEventQueue.pDequeueScreen = pScreen;
@@ -258,7 +260,7 @@ void dmxeqProcessInputEvents(void)
 	    y = e->event.u.keyButtonPointer.rootY;
 	    if (dmxEventQueue.head == QUEUE_SIZE - 1) dmxEventQueue.head = 0;
 	    else                                      ++dmxEventQueue.head;
-	    NewCurrentScreen(dmxEventQueue.pDequeueScreen, x, y);
+	    NewCurrentScreen(e->pDev, dmxEventQueue.pDequeueScreen, x, y);
 	} else {
 	    xe[0] = e->event;
 	    if (dmxEventQueue.head == QUEUE_SIZE - 1) dmxEventQueue.head = 0;

@@ -55,7 +55,7 @@ extern void dmxReInitOrigins(void);
 extern void dmxInitOrigins(void);
 extern void dmxInitOverlap(void);
 extern void dmxCursorNoMulti(void);
-extern void dmxMoveCursor(ScreenPtr pScreen, int x, int y);
+extern void dmxMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y);
 extern void dmxCheckCursor(void);
 extern int  dmxOnScreen(int x, int y, DMXScreenInfo *dmxScreen);
 extern void dmxHideCursor(DMXScreenInfo *dmxScreen);
