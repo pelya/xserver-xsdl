@@ -231,9 +231,7 @@ extern Bool ActivateDevice(
 extern Bool DisableDevice(
     DeviceIntPtr /*device*/);
 
-extern int InitAndStartDevices(
-    WindowPtr /*root*/);
-
+extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
 

@@ -539,7 +539,7 @@ InitCoreDevices(void)
  * @return Success or error code on failure.
  */
 int
-InitAndStartDevices(WindowPtr root)
+InitAndStartDevices()
 {
     DeviceIntPtr dev, next;
 
