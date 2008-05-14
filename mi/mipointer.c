@@ -357,7 +357,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
     	{
 	    pPointer->devx = x;
 	    pPointer->devy = y;
-	    if(!pPointer->pCursor->bits->emptyMask)
+	    if(pPointer->pCursor && !pPointer->pCursor->bits->emptyMask)
 		(*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
     	}
 	pPointer->x = x;
@@ -541,7 +541,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     {
 	pPointer->devx = x;
 	pPointer->devy = y;
-	if(!pPointer->pCursor->bits->emptyMask)
+	if(pPointer->pCursor && !pPointer->pCursor->bits->emptyMask)
 	    (*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
     }
 
