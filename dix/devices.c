@@ -885,7 +885,8 @@ RemoveDevice(DeviceIntPtr dev)
         return BadImplementation;
 
     initialized = dev->inited;
-    screen->DisplayCursor(dev, screen, NullCursor);
+    if (DevHasCursor(dev))
+        screen->DisplayCursor(dev, screen, NullCursor);
 
     deviceid = dev->id;
     DisableDevice(dev);
