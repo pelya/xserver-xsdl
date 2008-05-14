@@ -259,11 +259,6 @@ int main(int argc, char *argv[], char *envp[])
 
     InitConnectionLimits();
 
-    /* These are needed by some routines which are called from interrupt
-     * handlers, thus have no direct calling path back to main and thus
-     * can't be passed argc, argv as parameters */
-    argcGlobal = argc;
-    argvGlobal = argv;
     /* prep X authority file from environment; this can be overriden by a
      * command line option */
     xauthfile = getenv("XAUTHORITY");

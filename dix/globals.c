@@ -153,7 +153,5 @@ _X_EXPORT int monitorResolution = 0;
 _X_EXPORT char *display;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
-int	argcGlobal;
-char	**argvGlobal;
 
 DDXPointRec dixScreenOrigins[MAXSCREENS];

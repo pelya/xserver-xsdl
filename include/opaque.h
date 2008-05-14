@@ -49,8 +49,6 @@ extern int ScreenSaverBlanking;
 extern int ScreenSaverAllowExposures;
 extern int defaultScreenSaverBlanking;
 extern int defaultScreenSaverAllowExposures;
-extern int argcGlobal;
-extern char **argvGlobal;
 extern char *display;
 
 extern int defaultBackingStore;

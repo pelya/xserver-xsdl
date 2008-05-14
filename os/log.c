@@ -410,9 +410,7 @@ AbortServer(void)
     exit (1);
 }
 
-#ifndef AUDIT_PREFIX
-#define AUDIT_PREFIX "AUDIT: %s: %ld %s: "
-#endif
+#define AUDIT_PREFIX "AUDIT: %s: %ld: "
 #ifndef AUDIT_TIMEOUT
 #define AUDIT_TIMEOUT ((CARD32)(120 * 1000)) /* 2 mn */
 #endif
@@ -444,15 +442,11 @@ AuditPrefix(void)
     autime = ctime(&tm);
     if ((s = strchr(autime, '\n')))
 	*s = '\0';
-    if ((s = strrchr(argvGlobal[0], '/')))
-	s++;
-    else
-	s = argvGlobal[0];
-    len = strlen(AUDIT_PREFIX) + strlen(autime) + 10 + strlen(s) + 1;
+    len = strlen(AUDIT_PREFIX) + strlen(autime) + 10 + 1;
     tmpBuf = malloc(len);
     if (!tmpBuf)
 	return NULL;
-    snprintf(tmpBuf, len, AUDIT_PREFIX, autime, (unsigned long)getpid(), s);
+    snprintf(tmpBuf, len, AUDIT_PREFIX, autime, (unsigned long)getpid());
     return tmpBuf;
 }
 
