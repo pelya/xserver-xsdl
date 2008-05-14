@@ -73,7 +73,26 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
                                   mach_msg_type_number_t argvCnt,
                                   string_array_t envp,
                                   mach_msg_type_number_t envpCnt) {
-    if(server_main(argvCnt - 1, argv, envp) == 0)
+    /* And now back to char ** */
+    char **_argv = alloca((argvCnt + 1) * sizeof(char *));
+    char **_envp = alloca((envpCnt + 1) * sizeof(char *));
+    size_t i;
+
+    if(!_argv || !_envp) {
+        return KERN_FAILURE;
+    }
+
+    for(i=0; i < argvCnt; i++) {
+        _argv[i] = argv[i];
+    }
+    _argv[argvCnt] = NULL;
+
+    for(i=0; i < envpCnt; i++) {
+        _envp[i] = envp[i];
+    }
+    _envp[envpCnt] = NULL;
+    
+    if(server_main(argvCnt, _argv, _envp) == 0)
         return KERN_SUCCESS;
     else
         return KERN_FAILURE;
@@ -212,12 +231,30 @@ int main(int argc, char **argv, char **envp) {
 #ifdef NEW_LAUNCH_METHOD
         kern_return_t kr;
         mach_port_t mp;
-        
-        sleep(2);
+        string_array_t newenvp;
+        string_array_t newargv;
 
         /* We need to count envp */
         int envpc;
         for(envpc=0; envp[envpc]; envpc++);
+
+        /* We have fixed-size string lengths due to limitations in IPC,
+         * so we need to copy our argv and envp.
+         */
+        newargv = (string_array_t)alloca(argc * sizeof(string_t));
+        newenvp = (string_array_t)alloca(envpc * sizeof(string_t));
+        
+        if(!newargv || !newenvp) {
+            fprintf(stderr, "Memory allocation failure\n");
+            exit(EXIT_FAILURE);
+        }
+        
+        for(i=0; i < argc; i++) {
+            strlcpy(newargv[i], argv[i], STRING_T_SIZE);
+        }
+        for(i=0; i < envpc; i++) {
+            strlcpy(newenvp[i], envp[i], STRING_T_SIZE);
+        }
 
         kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
         if (kr != KERN_SUCCESS) {
@@ -225,7 +262,7 @@ int main(int argc, char **argv, char **envp) {
             exit(EXIT_FAILURE);
         }
 
-        kr = start_x11_server(mp, argv, argc + 1, envp, envpc + 1);
+        kr = start_x11_server(mp, newargv, argc, newenvp, envpc);
         if (kr != KERN_SUCCESS) {
             fprintf(stderr, "start_x11_server: %s\n", mach_error_string(kr));
             exit(EXIT_FAILURE);

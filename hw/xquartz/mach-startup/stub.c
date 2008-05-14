@@ -111,9 +111,10 @@ static void set_x11_path() {
 int main(int argc, char **argv, char **envp) {
 #ifdef NEW_LAUNCH_METHOD_2
     int envpc;
-    char *newargv[3];
     kern_return_t kr;
     mach_port_t mp;
+    string_array_t newenvp;
+    string_array_t newargv;
 #endif
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
@@ -137,10 +138,11 @@ int main(int argc, char **argv, char **envp) {
         }
 
         if(child == 0) {
-            newargv[0] = x11_path;
-            newargv[1] = "--listenonly";
-            newargv[2] = NULL;
-            return execvp(x11_path, newargv);
+            char *_argv[3];
+            _argv[0] = x11_path;
+            _argv[1] = "--listenonly";
+            _argv[2] = NULL;
+            return execvp(x11_path, _argv);
         }
 
         /* Try connecting for 10 seconds */
@@ -160,7 +162,25 @@ int main(int argc, char **argv, char **envp) {
     /* Count envp */
     for(envpc=0; envp[envpc]; envpc++);
     
-    kr = start_x11_server(mp, argv, argc + 1, envp, envpc + 1);
+    /* We have fixed-size string lengths due to limitations in IPC,
+     * so we need to copy our argv and envp.
+     */
+    newargv = (string_array_t)alloca(argc * sizeof(string_t));
+    newenvp = (string_array_t)alloca(envpc * sizeof(string_t));
+    
+    if(!newargv || !newenvp) {
+        fprintf(stderr, "Memory allocation failure\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    for(i=0; i < argc; i++) {
+        strlcpy(newargv[i], argv[i], STRING_T_SIZE);
+    }
+    for(i=0; i < envpc; i++) {
+        strlcpy(newenvp[i], envp[i], STRING_T_SIZE);
+    }
+
+    kr = start_x11_server(mp, newargv, argc, newenvp, envpc);
     if (kr != KERN_SUCCESS) {
         fprintf(stderr, "start_x11_server: %s\n", mach_error_string(kr));
         return EXIT_FAILURE;
