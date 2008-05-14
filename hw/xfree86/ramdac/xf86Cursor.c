@@ -464,11 +464,8 @@ xf86DeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 
     if (pDev != inputInfo.pointer)
     {
-	if (!ScreenPriv->SWCursor)
-	{
 	    ScreenPriv->spriteFuncs->SetCursor(inputInfo.pointer, pScreen,
 		    ScreenPriv->CurrentCursor, ScreenPriv->x, ScreenPriv->y);
-	}
         ScreenPriv->SWCursor = TRUE | XF86_FORCE_SW_CURSOR;
     }
 
