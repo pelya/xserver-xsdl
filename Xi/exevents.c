@@ -1021,6 +1021,26 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     ValuatorClassPtr v;
     deviceValuator *xV  = (deviceValuator *) xE;
     int ret = 0;
+    int state;
+    DeviceIntPtr mouse = NULL, kbd = NULL;
+
+    if (IsPointerDevice(device))
+    {
+        kbd = GetPairedDevice(device);
+        mouse = device;
+        if (!kbd->key) /* can happen with floating SDs */
+            kbd = NULL;
+    } else
+    {
+        mouse = GetPairedDevice(device);
+        kbd = device;
+        if (!mouse->valuator || !mouse->button) /* may be float. SDs */
+            mouse = NULL;
+    }
+
+    /* State needs to be assembled BEFORE the device is updated. */
+    state = (kbd) ? kbd->key->state : 0;
+    state |= (mouse) ? (mouse->button->state) : 0;
 
     ret = UpdateDeviceState(device, xE, count);
     if (ret == DONT_PROCESS)
@@ -1034,33 +1054,12 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
         CheckMotion(xE, device);
 
     if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
-        DeviceIntPtr mouse = NULL, kbd = NULL;
 	GetSpritePosition(device, &rootX, &rootY);
 	xE->u.keyButtonPointer.rootX = rootX;
 	xE->u.keyButtonPointer.rootY = rootY;
 	NoticeEventTime(xE);
 
-        /* If 'device' is a pointer device, we need to get the paired keyboard
-         * for the state. If there is none, the kbd bits of state are 0.
-         * If 'device' is a keyboard device, get the paired pointer and use the
-         * pointer's state for the button bits.
-         */
-        if (IsPointerDevice(device))
-        {
-            kbd = GetPairedDevice(device);
-            mouse = device;
-            if (!kbd->key) /* can happen with floating SDs */
-                kbd = NULL;
-        }
-        else
-        {
-            mouse = GetPairedDevice(device);
-            kbd = device;
-            if (!mouse->valuator || !mouse->button) /* may be float. SDs */
-                mouse = NULL;
-        }
-        xE->u.keyButtonPointer.state = (kbd) ? (kbd->key->state) : 0;
-        xE->u.keyButtonPointer.state |= (mouse) ? (mouse->button->state) : 0;
+        xE->u.keyButtonPointer.state = state;
 
         key = xE->u.u.detail;
     }
