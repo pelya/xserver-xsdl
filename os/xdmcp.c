@@ -44,6 +44,7 @@
 #include "input.h"
 #include "dixstruct.h"
 #include "opaque.h"
+#include "site.h"
 
 #if defined(DGUX)
 #include <net/net_ioctl.h>
