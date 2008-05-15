@@ -551,6 +551,9 @@ void DarwinUpdateModKeys(int flags) {
 	old_flags = flags;
 }
 
+void DarwinListenOnOpenFD(int fd) {
+    DarwinSendDDXEvent(kXquartzListenOnOpenFD, 1, fd);
+}
 
 /*
  * DarwinSendDDXEvent

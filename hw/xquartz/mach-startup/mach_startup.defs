@@ -33,9 +33,14 @@ import "mach_startup_types.h";
 subsystem mach_startup 1000;
 serverprefix do_;
 
-type string_array_t = array[] of c_string[1024];
+type string_t = c_string[1024];
+type string_array_t = array[] of string_t;
 
 routine start_x11_server(
 	port  : mach_port_t;
     argv  : string_array_t;
     envp  : string_array_t);
+
+routine get_display_handoff_socket(
+	port  : mach_port_t;
+    filename  : string_t);

@@ -28,6 +28,8 @@
  promote the sale, use or other dealings in this Software without
  prior written authorization. */
 
+#include <CoreFoundation/CoreFoundation.h>
+
 #include <X11/Xlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -35,10 +37,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
-
-#include <CoreFoundation/CoreFoundation.h>
-
-#include <asl.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 #include <mach/mach.h>
 #include <mach/mach_error.h>
@@ -56,6 +56,11 @@ static char *command_from_prefs(const char *key, const char *default_value);
 /* This is in quartzStartup.c */
 int server_main(int argc, char **argv, char **envp);
 
+static int execute(const char *command);
+static char *command_from_prefs(const char *key, const char *default_value);
+
+#ifdef NEW_LAUNCH_METHOD
+
 struct arg {
     int argc;
     char **argv;
@@ -68,39 +73,6 @@ union MaxMsgSize {
 	union __RequestUnion__mach_startup_subsystem req;
 	union __ReplyUnion__mach_startup_subsystem rep; 
 };
-
-kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
-                                  mach_msg_type_number_t argvCnt,
-                                  string_array_t envp,
-                                  mach_msg_type_number_t envpCnt) {
-    /* And now back to char ** */
-    char **_argv = alloca((argvCnt + 1) * sizeof(char *));
-    char **_envp = alloca((envpCnt + 1) * sizeof(char *));
-    size_t i;
-
-    if(!_argv || !_envp) {
-        return KERN_FAILURE;
-    }
-
-    for(i=0; i < argvCnt; i++) {
-        _argv[i] = argv[i];
-    }
-    _argv[argvCnt] = NULL;
-
-    for(i=0; i < envpCnt; i++) {
-        _envp[i] = envp[i];
-    }
-    _envp[envpCnt] = NULL;
-    
-    if(server_main(argvCnt, _argv, _envp) == 0)
-        return KERN_SUCCESS;
-    else
-        return KERN_FAILURE;
-}
-
-kern_return_t do_exit(mach_port_t port, int value) {
-    exit(value);
-}
 
 static mach_port_t checkin_or_register(char *bname) {
     kern_return_t kr;
@@ -147,71 +119,99 @@ static pthread_t create_thread(void *func, void *arg) {
     return tid;
 }
 
-/*** Main ***/
-static int execute(const char *command);
-static char *command_from_prefs(const char *key, const char *default_value);
+/*** $DISPLAY handoff ***/
+static char display_handoff_socket[PATH_MAX + 1];
 
-#ifdef NEW_LAUNCH_METHOD
-static void startup_trigger_thread(void *arg) {
-    struct arg args = *((struct arg *)arg);
-    free(arg);
-    startup_trigger(args.argc, args.argv, args.envp);
+kern_return_t do_get_display_handoff_socket(mach_port_t port, string_t filename) {
+    strlcpy(filename, display_handoff_socket, STRING_T_SIZE);
+    fprintf(stderr, "Telling him the filename is %s = %s\n", filename, display_handoff_socket);
+    return KERN_SUCCESS;
 }
 
-int main(int argc, char **argv, char **envp) {
-    Bool listen, listenOnly = FALSE;
-    int i;
-    mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
-    mach_port_t mp;
-    kern_return_t kr;
+/* From darwinEvents.c ... but don't want to pull in all the server cruft */
+void DarwinListenOnOpenFD(int fd);
 
-    fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
-    for(i=1; i < argc; i++) {
-        fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
-        if(!strcmp(argv[i], "--listenonly")) {
-            listenOnly = TRUE;
+static void accept_fd_handoff(int connectedSocket) {
+    int fd;
+    return;
+    DarwinListenOnOpenFD(fd);
+}
+
+/* This thread loops accepting incoming connections and handing off the file
+ * descriptor for the new connection to accept_fd_handoff()
+ */
+static void socket_handoff_thread(void *arg) {
+    struct sockaddr_un servaddr_un;
+    struct sockaddr *servaddr;
+    int handoff_fd;
+    int servaddr_len;
+    
+    /* Wipe ourselves clean */
+    memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
+    
+    servaddr_un.sun_family  = AF_UNIX;
+    strcpy(servaddr_un.sun_path, display_handoff_socket);
+    servaddr = (struct sockaddr *) &servaddr_un;
+    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(display_handoff_socket);
+    
+    handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if(handoff_fd == 0) {
+        fprintf(stderr, "Failed to create socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        return;
+        exit(EXIT_FAILURE);
+    }
+    
+    if(bind(handoff_fd, servaddr, servaddr_len) != 0) {
+        fprintf(stderr, "Failed to bind socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        return;
+        exit(EXIT_FAILURE);
+    }
+    
+    if(listen(handoff_fd, 10) != 0) {
+        fprintf(stderr, "Failed to listen to socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        return;
+        exit(EXIT_FAILURE);
+    }
+    
+    while(true) {
+        int connectedSocket = accept(handoff_fd, NULL, NULL);
+        
+        if(connectedSocket == -1) {
+            fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", display_handoff_socket, strerror(errno));
+            continue;
         }
+        accept_fd_handoff(connectedSocket);    
     }
+}
 
-    /* TODO: This should be unconditional once we figure out fd passing */
-    listen = (argc > 1 && argv[1][0] == ':') || listenOnly;
-    if(listen) {
-        mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
+/*** Server Startup ***/
+kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
+                                  mach_msg_type_number_t argvCnt,
+                                  string_array_t envp,
+                                  mach_msg_type_number_t envpCnt) {
+    /* And now back to char ** */
+    char **_argv = alloca((argvCnt + 1) * sizeof(char *));
+    char **_envp = alloca((envpCnt + 1) * sizeof(char *));
+    size_t i;
+    
+    if(!_argv || !_envp) {
+        return KERN_FAILURE;
     }
-
-    /* Check if we need to do something other than listen, and make another
-     * thread handle it.
-     */
-    if(!listenOnly) {
-        struct arg *args = (struct arg*)malloc(sizeof(struct arg));
-        if(!args) {
-            fprintf(stderr, "Memory allocation error.\n");
-            return EXIT_FAILURE;
-        }
-
-        args->argc = argc;
-        args->argv = argv;
-        args->envp = envp;
-
-        create_thread(startup_trigger_thread, args);
+    
+    for(i=0; i < argvCnt; i++) {
+        _argv[i] = argv[i];
     }
-
-    /* TODO: This should actually fall through rather than be the else
-     *       case once we figure out how to get the stub to pass the
-     *       file descriptor.  For now, we only listen if we are explicitly
-     *       told to.
-     */
-    if(listen) {
-        /* Main event loop */
-        kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
-        if (kr != KERN_SUCCESS) {
-            asl_log(NULL, NULL, ASL_LEVEL_ERR,
-                    "org.x.X11(mp): %s\n", mach_error_string(kr));
-            return EXIT_FAILURE;
-        }
+    _argv[argvCnt] = NULL;
+    
+    for(i=0; i < envpCnt; i++) {
+        _envp[i] = envp[i];
     }
-
-    return EXIT_SUCCESS;
+    _envp[envpCnt] = NULL;
+    
+    if(server_main(argvCnt, _argv, _envp) == 0)
+        return KERN_SUCCESS;
+    else
+        return KERN_FAILURE;
 }
 
 int startup_trigger(int argc, char **argv, char **envp) {
@@ -305,6 +305,72 @@ int main(int argc, char **argv, char **envp) {
     return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
 }
 
+#ifdef NEW_LAUNCH_METHOD
+static void startup_trigger_thread(void *arg) {
+    struct arg args = *((struct arg *)arg);
+    free(arg);
+    startup_trigger(args.argc, args.argv, args.envp);
+}
+
+/*** Main ***/
+int main(int argc, char **argv, char **envp) {
+    Bool listenOnly = FALSE;
+    int i;
+    mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
+    mach_port_t mp;
+    kern_return_t kr;
+    
+    fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
+    for(i=1; i < argc; i++) {
+        fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
+        if(!strcmp(argv[i], "--listenonly")) {
+            listenOnly = TRUE;
+        }
+    }
+    
+    mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
+    if(mp == MACH_PORT_NULL) {
+        fprintf(stderr, "NULL mach service: %s", SERVER_BOOTSTRAP_NAME);
+        return EXIT_FAILURE;
+    }
+    
+    /* Figure out what our handoff socket will be
+     * TODO: cleanup on exit.
+     */
+    tmpnam(display_handoff_socket);
+    create_thread(socket_handoff_thread, NULL);
+    
+    fprintf(stderr, "Hi\n");
+    
+    /* Check if we need to do something other than listen, and make another
+     * thread handle it.
+     */
+    if(!listenOnly) {
+        struct arg *args = (struct arg*)malloc(sizeof(struct arg));
+        if(!args) {
+            fprintf(stderr, "Memory allocation error.\n");
+            return EXIT_FAILURE;
+        }
+        
+        args->argc = argc;
+        args->argv = argv;
+        args->envp = envp;
+        
+        create_thread(startup_trigger_thread, args);
+    }
+    
+    /* Main event loop */
+    fprintf(stderr, "Statrup coming...\n");
+    kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
+    if (kr != KERN_SUCCESS) {
+        fprintf(stderr, "org.x.X11(mp): %s\n", mach_error_string(kr));
+        return EXIT_FAILURE;
+    }
+    
+    return EXIT_SUCCESS;
+}
+#endif
+    
 static int execute(const char *command) {
     const char *newargv[7];
     const char **s;

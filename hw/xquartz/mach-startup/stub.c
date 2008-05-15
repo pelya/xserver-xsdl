@@ -45,6 +45,8 @@
 #include <servers/bootstrap.h>
 #include "mach_startup.h"
 
+#include "launchd_fd.h"
+
 static char x11_path[PATH_MAX + 1];
 
 static void set_x11_path() {
@@ -109,13 +111,15 @@ static void set_x11_path() {
 #endif
 
 int main(int argc, char **argv, char **envp) {
-#ifdef NEW_LAUNCH_METHOD_2
+#ifdef NEW_LAUNCH_METHOD
     int envpc;
     kern_return_t kr;
     mach_port_t mp;
     string_array_t newenvp;
     string_array_t newargv;
     size_t i;
+    int launchd_fd;
+    string_t handoff_socket;
 #endif
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
@@ -125,7 +129,10 @@ int main(int argc, char **argv, char **envp) {
         return EXIT_SUCCESS;
     }
 
-#ifdef NEW_LAUNCH_METHOD_2
+#ifdef NEW_LAUNCH_METHOD
+    /* Get the $DISPLAY FD */
+    launchd_fd = launchd_display_fd();
+
     kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
     if(kr != KERN_SUCCESS) {
         set_x11_path();
@@ -147,7 +154,7 @@ int main(int argc, char **argv, char **envp) {
         }
 
         /* Try connecting for 10 seconds */
-        for(i=0; i < 40; i++) {
+        for(i=0; i < 80; i++) {
             usleep(250000);
             kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
             if(kr == KERN_SUCCESS)
@@ -158,6 +165,12 @@ int main(int argc, char **argv, char **envp) {
             fprintf(stderr, "bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
             return EXIT_FAILURE;
         }
+    }
+    
+    /* Handoff the $DISPLAY FD */
+    if(launchd_fd != -1) {
+        get_display_handoff_socket(mp, handoff_socket);
+        fprintf(stderr, "Handoff socket: %s %d\n", handoff_socket, launchd_fd);
     }
 
     /* Count envp */

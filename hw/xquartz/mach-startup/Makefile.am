@@ -10,9 +10,9 @@ dist_X11_SOURCES = \
 	bundle-main.c \
 	launchd_fd.c
 
-nodist_X11_SOURCES = \
-	mach_startupServer.c \
-	mach_startupUser.c
+#nodist_X11_SOURCES = \
+#	mach_startupServer.c \
+#	mach_startupUser.c
 
 X11_LDADD = \
 	$(top_builddir)/hw/xquartz/libXquartz.la \
@@ -34,11 +34,11 @@ X11_LDFLAGS =  \
 bin_PROGRAMS = Xquartz
 
 dist_Xquartz_SOURCES = \
-	stub.c \
-	launchd_fd.c
+	stub.c
+#	launchd_fd.c
 
-nodist_Xquartz_SOURCES = \
-	mach_startupUser.c
+#nodist_Xquartz_SOURCES = \
+#	mach_startupUser.c
 
 Xquartz_LDFLAGS =  \
 	-Wl,-framework,CoreServices
