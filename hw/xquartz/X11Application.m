@@ -59,10 +59,8 @@
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
-extern int darwinFakeButtons, input_check_flag;
+extern int darwinFakeButtons;
 extern Bool enable_stereo;
-
-extern xEvent *darwinEvents;
 
 X11Application *X11App;
 

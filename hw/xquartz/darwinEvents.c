@@ -76,12 +76,10 @@ in this Software without prior written authorization from The Open Group.
 /* FIXME: Abstract this better */
 void QuartzModeEQInit(void);
 
-int input_check_zero, input_check_flag;
-
 static int old_flags = 0;  // last known modifier state
 
-xEvent *darwinEvents = NULL;
-pthread_mutex_t darwinEvents_mutex = PTHREAD_MUTEX_INITIALIZER;
+static xEvent *darwinEvents = NULL;
+static pthread_mutex_t darwinEvents_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static inline void darwinEvents_lock(void) {
     int err;
@@ -307,11 +305,6 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
 }
 
 Bool DarwinEQInit(void) { 
-    if (!darwinEvents)
-        darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-    if (!darwinEvents)
-        FatalError("Couldn't allocate event buffer\n");
-
     mieqInit();
     mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
@@ -328,6 +321,11 @@ Bool DarwinEQInit(void) {
     mieqSetHandler(kXquartzDisplayChanged, QuartzDisplayChangedHandler);
 
     QuartzModeEQInit();
+
+    if (!darwinEvents)
+        darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!darwinEvents)
+        FatalError("Couldn't allocate event buffer\n");
     
     return TRUE;
 }
@@ -354,7 +352,6 @@ void ProcessInputEvents(void) {
    Dispatch() event loop to check out event queue */
 static void DarwinPokeEQ(void) {
 	char nullbyte=0;
-	input_check_flag++;
 	//  <daniels> oh, i ... er ... christ.
 	write(darwinEventWriteFD, &nullbyte, 1);
 }
@@ -567,8 +564,13 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
         va_end (args);
     }
 
-    darwinEvents_lock();
+    /* If we're called from something other than the X server thread, we need
+     * to wait for the X server to setup darwinEvents.
+     */
+    while(darwinEvents == NULL) {
+        usleep(250000);
+    }
+
     mieqEnqueue(darwinPointer, &xe);
     DarwinPokeEQ();
-    darwinEvents_unlock();
 }
