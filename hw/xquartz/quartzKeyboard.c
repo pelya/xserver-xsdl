@@ -43,7 +43,10 @@
 // Define this to get a diagnostic output to stderr which is helpful
 // in determining how the X server is interpreting the Darwin keymap.
 #define DUMP_DARWIN_KEYMAP
-#define XQUARTZ_USE_XKB
+
+// This breaks when we actually install xkeyboard-config files to start using it
+// We need to serup keymaps in the configs or something...
+// #define XQUARTZ_USE_XKB 
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
