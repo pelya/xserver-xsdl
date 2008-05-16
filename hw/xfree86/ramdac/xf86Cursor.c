@@ -20,8 +20,6 @@ extern InputInfo inputInfo;
 
 DevPrivateKey xf86CursorScreenKey = &xf86CursorScreenKey;
 
-#define XF86_FORCE_SW_CURSOR (1 << 7)
-
 /* sprite functions */
 
 static Bool xf86CursorRealizeCursor(DeviceIntPtr, ScreenPtr, CursorPtr);
@@ -304,14 +302,14 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 
 
     if (pCurs == NullCursor) {	/* means we're supposed to remove the cursor */
-        if (ScreenPriv->SWCursor)
+        if (ScreenPriv->SWCursor || pDev != inputInfo.pointer)
             (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor,
                                                   x, y);
         else if (ScreenPriv->isUp) {
             xf86SetCursor(pScreen, NullCursor, x, y);
             ScreenPriv->isUp = FALSE;
-	    }
-	    return;
+        }
+        return;
     }
 
     /* only update for VCP, otherwise we get cursor jumps when removing a
@@ -324,13 +322,10 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 	ScreenPriv->CursorToRestore = NULL;
 	ScreenPriv->HotX = pCurs->bits->xhot;
 	ScreenPriv->HotY = pCurs->bits->yhot;
-    }
 
-    if (!infoPtr->pScrn->vtSema)
-	 ScreenPriv->SavedCursor = pCurs;
+        if (!infoPtr->pScrn->vtSema)
+            ScreenPriv->SavedCursor = pCurs;
 
-    if (!(ScreenPriv->SWCursor & XF86_FORCE_SW_CURSOR))
-    {
 	if (infoPtr->pScrn->vtSema && (ScreenPriv->ForceHWCursorCount || ((
 #ifdef ARGB_CURSOR
 			    pCurs->bits->argb && infoPtr->UseHWCursorARGB &&
@@ -352,22 +347,22 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 	    return;
 	}
 
+        PointPriv->waitForUpdate = TRUE;
+
+        if (ScreenPriv->isUp) {
+            /* Remove the HW cursor, or make it transparent */
+            if (infoPtr->Flags & HARDWARE_CURSOR_SHOW_TRANSPARENT) {
+                xf86SetTransparentCursor(pScreen);
+            } else {
+                xf86SetCursor(pScreen, NullCursor, x, y);
+                ScreenPriv->isUp = FALSE;
+            }
+        }
+
+        if (!ScreenPriv->SWCursor)
+            ScreenPriv->SWCursor = TRUE;
+
     }
-
-    PointPriv->waitForUpdate = TRUE;
-
-    if (ScreenPriv->isUp) {
-	/* Remove the HW cursor, or make it transparent */
-	if (infoPtr->Flags & HARDWARE_CURSOR_SHOW_TRANSPARENT) {
-	    xf86SetTransparentCursor(pScreen);
-	} else {
-	    xf86SetCursor(pScreen, NullCursor, x, y);
-	    ScreenPriv->isUp = FALSE;
-	}
-    }
-
-    if (!ScreenPriv->SWCursor)
-        ScreenPriv->SWCursor = TRUE;
 
     if (pCurs->bits->emptyMask && !ScreenPriv->showTransparent)
 	pCurs = NullCursor;
@@ -384,18 +379,19 @@ xf86CursorMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     /* only update coordinate state for first sprite, otherwise we get jumps
        when removing a sprite. The second sprite is never HW rendered anyway */
     if (pDev == inputInfo.pointer ||
-            (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
+            !pDev->isMaster && pDev->u.master == inputInfo.pointer)
     {
 	ScreenPriv->x = x;
 	ScreenPriv->y = y;
-    }
 
-    if (ScreenPriv->CursorToRestore)
-	xf86CursorSetCursor(pDev, pScreen, ScreenPriv->CursorToRestore, x, y);
-    else if (ScreenPriv->SWCursor)
-	(*ScreenPriv->spriteFuncs->MoveCursor)(pDev, pScreen, x, y);
-    else if (ScreenPriv->isUp)
-	xf86MoveCursor(pScreen, x, y);
+        if (ScreenPriv->CursorToRestore)
+            xf86CursorSetCursor(pDev, pScreen, ScreenPriv->CursorToRestore, x, y);
+        else if (ScreenPriv->SWCursor)
+            (*ScreenPriv->spriteFuncs->MoveCursor)(pDev, pScreen, x, y);
+        else if (ScreenPriv->isUp)
+            xf86MoveCursor(pScreen, x, y);
+    } else
+        (*ScreenPriv->spriteFuncs->MoveCursor)(pDev, pScreen, x, y);
 }
 
 void
@@ -455,13 +451,6 @@ xf86DeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
     /* Init SW cursor */
     ret = (*ScreenPriv->spriteFuncs->DeviceCursorInitialize)(pDev, pScreen);
 
-    if (pDev != inputInfo.pointer)
-    {
-	    ScreenPriv->spriteFuncs->SetCursor(inputInfo.pointer, pScreen,
-		    ScreenPriv->CurrentCursor, ScreenPriv->x, ScreenPriv->y);
-        ScreenPriv->SWCursor = TRUE | XF86_FORCE_SW_CURSOR;
-    }
-
     return ret;
 }
 
@@ -475,21 +464,7 @@ xf86DeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
     xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
             &pScreen->devPrivates, xf86CursorScreenKey);
 
-    for (it = inputInfo.devices; it; it = it->next)
-    {
-        if (it->isMaster && it != inputInfo.pointer && it !=
-                inputInfo.keyboard)
-            break;
-    }
-
-    if (!it) /* no other sprites except VCP. restore HW rendering */
-    {
-	ScreenPriv->SWCursor = TRUE;
-	xf86CursorSetCursor(inputInfo.pointer, pScreen,
-		ScreenPriv->CurrentCursor, ScreenPriv->x, ScreenPriv->y);
-    }
-
-    /* Clean up SW cursor */
+   /* Clean up SW cursor */
     (*ScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
 }
 
