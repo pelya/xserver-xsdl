@@ -1300,6 +1300,50 @@ preferredMode(ScrnInfoPtr pScrn, xf86OutputPtr output)
     return preferred_mode;
 }
 
+static void
+GuessRangeFromModes(MonPtr mon, DisplayModePtr mode)
+{
+    if (!mon || !mode)
+       return;
+
+    mon->nHsync = 1;
+    mon->hsync[0].lo = 1024.0;
+    mon->hsync[0].hi = 0.0;
+
+    mon->nVrefresh = 1;
+    mon->vrefresh[0].lo = 1024.0;
+    mon->vrefresh[0].hi = 0.0;
+
+    while (mode) {
+	if (!mode->HSync)
+	    mode->HSync = ((float) mode->Clock ) / ((float) mode->HTotal);
+
+	if (!mode->VRefresh)
+	    mode->VRefresh = (1000.0 * ((float) mode->Clock)) / 
+		((float) (mode->HTotal * mode->VTotal));
+
+	if (mode->HSync < mon->hsync[0].lo)
+	    mon->hsync[0].lo = mode->HSync;
+
+	if (mode->HSync > mon->hsync[0].hi)
+	    mon->hsync[0].hi = mode->HSync;
+
+	if (mode->VRefresh < mon->vrefresh[0].lo)
+	    mon->vrefresh[0].lo = mode->VRefresh;
+
+	if (mode->VRefresh > mon->vrefresh[0].hi)
+	    mon->vrefresh[0].hi = mode->VRefresh;
+
+	mode = mode->next;
+    }
+
+    /* stretch out the bottom to fit 640x480@60 */
+    if (mon->hsync[0].lo > 31.0)
+       mon->hsync[0].lo = 31.0;
+    if (mon->vrefresh[0].lo > 58.0)
+       mon->vrefresh[0].lo = 58.0;
+}
+
 _X_EXPORT void
 xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 {
@@ -1416,6 +1460,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	if (xf86GetOptValFreq (output->options, OPTION_MAX_CLOCK,
 			       OPTUNITS_KHZ, &clock))
 	    max_clock = (int) clock;
+
+	/* If we still don't have a sync range, guess wildly */
+	if (!mon_rec.nHsync || !mon_rec.nVrefresh)
+	    GuessRangeFromModes(&mon_rec, output_modes);
 
 	/*
 	 * These limits will end up setting a 1024x768@60Hz mode by default,
