@@ -530,7 +530,11 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
 
     pPointer = MIPOINTER(pDev);
 
-    if (pDev && pDev->coreEvents 
+    /* Hack: We mustn't call into ->MoveCursor for anything but the
+     * VCP, as this may cause a non-HW rendered cursor to be rendered during
+     * SIGIO. This again leads to allocs during SIGIO which leads to SIGABRT.
+     */
+    if ((pDev == inputInfo.pointer || (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
         && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
     {
 	pPointer->devx = x;
