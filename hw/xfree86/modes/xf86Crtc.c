@@ -2244,6 +2244,10 @@ xf86SetDesiredModes (ScrnInfoPtr scrn)
 	xf86OutputPtr	output = NULL;
 	int		o;
 
+	/* Skip disabled CRTCs */
+	if (!crtc->enabled)
+	    continue;
+
 	if (config->output[config->compat_output]->crtc == crtc)
 	    output = config->output[config->compat_output];
 	else
@@ -2255,9 +2259,7 @@ xf86SetDesiredModes (ScrnInfoPtr scrn)
 		    break;
 		}
 	}
-	/*
-	 * Skip disabled crtcs
-	 */
+	/* paranoia */
 	if (!output)
 	    continue;
 
