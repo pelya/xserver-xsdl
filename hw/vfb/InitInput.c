@@ -52,7 +52,6 @@ void
 ProcessInputEvents()
 {
     mieqProcessInputEvents();
-    miPointerUpdate();
 }
 
 void DDXRingBell(int volume, int pitch, int duration)

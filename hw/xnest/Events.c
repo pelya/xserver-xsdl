@@ -49,7 +49,6 @@ void
 ProcessInputEvents()
 {
   mieqProcessInputEvents();
-  miPointerUpdate();
 }
 
 int
