@@ -500,7 +500,7 @@ ProcXTestFakeInput(client)
         xfree(master_event);
     } else
         (*dev->public.processInputProc)(ev, dev, nev);
-    if (extension)
+    if (!extension)
         xfree(ev);
     return client->noClientException;
 }
