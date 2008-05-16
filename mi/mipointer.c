@@ -374,16 +374,10 @@ miPointerWarpCursor (pDev, pScreen, x, y)
  */
 
 /*
- * miPointerUpdate
+ * miPointerUpdateSprite
  *
  * Syncronize the sprite with the cursor - called from ProcessInputEvents
  */
-
-void
-miPointerUpdate ()
-{
-    miPointerUpdateSprite(inputInfo.pointer);
-}
 
 void
 miPointerUpdateSprite (DeviceIntPtr pDev)
