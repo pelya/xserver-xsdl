@@ -1760,46 +1760,65 @@ nextEnabledOutput(xf86CrtcConfigPtr config, Bool *enabled, int *index)
 }
 
 static Bool
-xf86TargetExact(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
-		DisplayModePtr *modes, Bool *enabled,
-		int width, int height)
+xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+		    DisplayModePtr *modes, Bool *enabled,
+		    int width, int height)
 {
-    int o;
-    int pref_width = 0, pref_height = 0;
-    DisplayModePtr *preferred;
+    int o, p;
+    int max_pref_width = 0, max_pref_height = 0;
+    DisplayModePtr *preferred, *preferred_match;
     Bool ret = FALSE;
 
     preferred = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
+    preferred_match = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
 
-    /* Find all the preferred modes; fail if any outputs lack them */
-    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
-	preferred[o] =
-	    xf86OutputHasPreferredMode(config->output[o], width, height);
+    /* Check if the preferred mode is available on all outputs */
+    for (p = -1; nextEnabledOutput(config, enabled, &p); ) {
+	Rotation r = config->output[p]->initial_rotation;
+	DisplayModePtr mode;
+	if ((preferred[p] = xf86OutputHasPreferredMode(config->output[p],
+			width, height))) {
+	    int pref_width = xf86ModeWidth(preferred[p], r);
+	    int pref_height = xf86ModeHeight(preferred[p], r);
+	    Bool all_match = TRUE;
 
-	if (!preferred[o])
-	    goto out;
-    }
+	    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
+		Bool match = FALSE;
+		xf86OutputPtr output = config->output[o];
+		if (o == p)
+		    continue;
 
-    /* check that they're all the same size */
-    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
-	Rotation r = config->output[o]->initial_rotation;
-	if (!pref_width) {
-	    pref_width = xf86ModeWidth(preferred[o], r);
-	    pref_height = xf86ModeHeight(preferred[o], r);
-	} else {
-	    if (pref_width != xf86ModeWidth(preferred[o], r))
-		goto out;
-	    if (pref_height != xf86ModeHeight(preferred[o], r))
-		goto out;
+		for (mode = output->probed_modes; mode; mode = mode->next) {
+		    Rotation r = output->initial_rotation;
+		    if (xf86ModeWidth(mode, r) == pref_width &&
+			    xf86ModeHeight(mode, r) == pref_height) {
+			preferred[o] = mode;
+			match = TRUE;
+		    }
+		}
+
+		all_match &= match;
+	    }
+
+	    if (all_match &&
+		    (pref_width*pref_height > max_pref_width*max_pref_height)) {
+		for (o = -1; nextEnabledOutput(config, enabled, &o); )
+		    preferred_match[o] = preferred[o];
+		max_pref_width = pref_width;
+		max_pref_height = pref_height;
+		ret = TRUE;
+	    }
 	}
     }
 
-    /* oh good, they match.  stash the selected modes and return. */
-    memcpy(modes, preferred, config->num_output * sizeof(DisplayModePtr));
-    ret = TRUE;
+    if (ret) {
+	/* oh good, there is a match.  stash the selected modes and return. */
+	memcpy(modes, preferred_match,
+		config->num_output * sizeof(DisplayModePtr));
+    }
 
-out:
     xfree(preferred);
+    xfree(preferred_match);
     return ret;
 }
 
@@ -2025,7 +2044,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 
     if (xf86TargetUserpref(scrn, config, modes, enabled, width, height))
 	xf86DrvMsg(i, X_INFO, "Using user preference for initial modes\n");
-    else if (xf86TargetExact(scrn, config, modes, enabled, width, height))
+    else if (xf86TargetPreferred(scrn, config, modes, enabled, width, height))
 	xf86DrvMsg(i, X_INFO, "Using exact sizes for initial modes\n");
     else if (xf86TargetAspect(scrn, config, modes, enabled, width, height))
 	xf86DrvMsg(i, X_INFO, "Using fuzzy aspect match for initial modes\n");
@@ -2097,6 +2116,8 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	    crtc->x = output->initial_x;
 	    crtc->y = output->initial_y;
 	    output->crtc = crtc;
+	} else {
+	    output->crtc = NULL;
 	}
     }
     
