@@ -1593,7 +1593,98 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 _X_EXPORT void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr scrn, int *x, int *y);
 
-_X_EXPORT void
+static DisplayModePtr
+biggestMode(DisplayModePtr a, DisplayModePtr b)
+{
+    int A, B;
+
+    if (!a)
+	return b;
+    if (!b)
+	return a;
+
+    A = a->HDisplay * a->VDisplay;
+    B = b->HDisplay * b->VDisplay;
+
+    if (A > B)
+	return a;
+
+    return b;
+}
+
+static xf86OutputPtr
+SetCompatOutput(xf86CrtcConfigPtr config)
+{
+    xf86OutputPtr output = NULL, test = NULL;
+    DisplayModePtr maxmode = NULL, testmode, mode;
+    int o, compat = -1, count, mincount = 0;
+
+    /* Look for one that's definitely connected */
+    for (o = 0; o < config->num_output; o++)
+    {
+	test = config->output[o];
+	if (!test->crtc)
+	    continue;
+	if (test->status != XF86OutputStatusConnected)
+	    continue;
+	if (!test->probed_modes)
+	    continue;
+
+	testmode = mode = test->probed_modes;
+	for (count = 0; mode; mode = mode->next, count++)
+	    testmode = biggestMode(testmode, mode);
+
+	if (!output) {
+	    output = test;
+	    compat = o;
+	    maxmode = testmode;
+	    mincount = count;
+	} else if (maxmode == biggestMode(maxmode, testmode)) {
+	    output = test;
+	    compat = o;
+	    maxmode = testmode;
+	    mincount = count;
+	} else if ((maxmode->HDisplay == testmode->HDisplay) && 
+		(maxmode->VDisplay == testmode->VDisplay) &&
+		count <= mincount) {
+	    output = test;
+	    compat = o;
+	    maxmode = testmode;
+	    mincount = count;
+	}
+    }
+
+    /* If we didn't find one, take anything we can get */
+    if (!output)
+    {
+	for (o = 0; o < config->num_output; o++)
+	{
+	    test = config->output[o];
+	    if (!test->crtc)
+		continue;
+	    if (!test->probed_modes)
+		continue;
+
+	    if (!output) {
+		output = test;
+		compat = o;
+	    } else if (test->probed_modes->HDisplay < output->probed_modes->HDisplay) {
+		output = test;
+		compat = o;
+	    }
+	}
+    }
+
+    if (compat >= 0) {
+	config->compat_output = compat;
+    } else {
+	/* Don't change the compat output when no valid outputs found */
+	output = config->output[config->compat_output];
+    }
+
+    return output;
+}
+
 xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1601,23 +1692,11 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
     xf86CrtcPtr		crtc;
     DisplayModePtr	last, mode;
 
-    output = config->output[config->compat_output];
-    if (!output->crtc)
-    {
-	int o;
+    output = SetCompatOutput(config);
 
-	output = NULL;
-	for (o = 0; o < config->num_output; o++)
-	    if (config->output[o]->crtc)
-	    {
-		config->compat_output = o;
-		output = config->output[o];
-		break;
-	    }
-	/* no outputs are active, punt and leave things as they are */
-	if (!output)
-	    return;
-    }
+    if (!output)
+	return; /* punt */
+
     crtc = output->crtc;
 
     /* Clear any existing modes from scrn->modes */
@@ -1780,25 +1859,6 @@ bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
 
     /* return the biggest one found */
     return match;
-}
-
-static DisplayModePtr
-biggestMode(DisplayModePtr a, DisplayModePtr b)
-{
-    int A, B;
-
-    if (!a)
-	return b;
-    if (!b)
-	return a;
-
-    A = a->HDisplay * a->VDisplay;
-    B = b->HDisplay * b->VDisplay;
-
-    if (A > B)
-	return a;
-
-    return b;
 }
 
 static Bool
