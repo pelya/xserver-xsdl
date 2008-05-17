@@ -56,6 +56,7 @@ enum {
     kXquartzToggleFullscreen, // Enable/Disable fullscreen mode
     kXquartzSetRootless,      // Set rootless mode
     kXquartzSpaceChanged,     // Spaces changed
+    kXquartzListenOnOpenFD,   // Listen to the launchd fd (passed as arg)
     /*
      * AppleWM events
      */

@@ -7,7 +7,8 @@ x11appdir = $(APPLE_APPLICATIONS_DIR)/X11.app/Contents/MacOS
 x11app_PROGRAMS = X11
 
 dist_X11_SOURCES = \
-	bundle-main.c
+	bundle-main.c \
+	launchd_fd.c
 
 nodist_X11_SOURCES = \
 	mach_startupServer.c \
@@ -33,7 +34,8 @@ X11_LDFLAGS =  \
 bin_PROGRAMS = Xquartz
 
 dist_Xquartz_SOURCES = \
-	stub.c
+	stub.c \
+	launchd_fd.c
 
 nodist_Xquartz_SOURCES = \
 	mach_startupUser.c
@@ -54,6 +56,7 @@ $(BUILT_SOURCES): mach_startup.defs
 	mig -sheader mach_startupServer.h mach_startup.defs
 
 EXTRA_DIST = \
+	launchd_fd.h \
 	mach_startup.defs \
 	mach_startup_types.h
 

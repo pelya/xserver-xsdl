@@ -45,6 +45,7 @@ in this Software without prior written authorization from The Open Group.
 #include   "mi.h"
 #include   "scrnintstr.h"
 #include   "mipointer.h"
+#include   "os.h"
 
 #include "darwin.h"
 #include "quartz.h"
@@ -214,6 +215,16 @@ static void DarwinSimulateMouseClick(
     DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
+static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
+    size_t i;
+    TA_SERVER();
+
+    for (i=0; i<nevents; i++) {
+        //sleep(20);
+        ListenOnOpenFD(xe[i].u.clientMessage.u.l.longs0);
+    }
+}
+
 /* Generic handler for Xquartz-specifc events.  When possible, these should
    be moved into their own individual functions and set as handlers using
    mieqSetHandler. */
@@ -319,7 +330,8 @@ Bool DarwinEQInit(void) {
     mieqSetHandler(kXquartzControllerNotify, DarwinEventHandler);
     mieqSetHandler(kXquartzPasteboardNotify, DarwinEventHandler);
     mieqSetHandler(kXquartzDisplayChanged, QuartzDisplayChangedHandler);
-
+    mieqSetHandler(kXquartzListenOnOpenFD, kXquartzListenOnOpenFDHandler);
+    
     QuartzModeEQInit();
 
     if (!darwinEvents)

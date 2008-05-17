@@ -904,7 +904,6 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 	
 	QuartzXkbUpdate(pDev);
 #else
-#error FAIL
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
                                       keyInfo.modMap, QuartzBell,
                                       DarwinChangeKeyboardControl ));
@@ -921,7 +920,6 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
 #ifdef XQUARTZ_USE_XKB
 	QuartzXkbUpdate(pDev);
 #else
-#error FAIL
 	if (pDev->key) {
 		if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
 		if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
