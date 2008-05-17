@@ -156,6 +156,55 @@ CreateClassesChangedEvent(EventList* event,
 }
 
 /**
+ * Rescale the coord between the two axis ranges.
+ */
+static int
+rescaleValuatorAxis(int coord, int fmin, int fmax,
+                    int tmin, int tmax, int smax)
+{
+    if(fmin >= fmax) {
+        fmin = 0;
+        fmax = smax;
+    }
+    if(tmin >= tmax) {
+        tmin = 0;
+        tmax = smax;
+    }
+    if(fmin == tmin && fmax == tmax)
+        return coord;
+
+    return (int)(((float)(coord - fmin)) * (tmax - tmin + 1) /
+                 (fmax - fmin + 1)) + tmin;
+}
+
+/**
+ * Update all coordinates when changing to a different SD
+ * to ensure that relative reporting will work as expected
+ * without loss of precision.
+ */
+static void
+updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
+{
+    ScreenPtr scr = miPointerGetScreen(pDev);
+
+    /* lastx/y is in screen coords and the actual position
+     * of the pointer */
+    pDev->lastx = master->lastx;
+    pDev->lasty = master->lasty;
+    /* the valuator axis is in device coords and holds the
+     * position of the pointer, but in device coords. */
+    if(pDev->valuator->numAxes > 0)
+        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->lastx, 0, scr->width,
+                                            pDev->valuator->axes[0].min_value,
+                                            pDev->valuator->axes[0].max_value, scr->width);
+    if(pDev->valuator->numAxes > 1)
+        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->lasty, 0, scr->height,
+                                            pDev->valuator->axes[1].min_value,
+                                            pDev->valuator->axes[1].max_value, scr->height);
+    /*TODO calculate the other axis as well based on info from the old slave-device */
+}
+
+/**
  * Allocate the motion history buffer.
  */
 _X_EXPORT void
@@ -395,25 +444,23 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
  * Fills events with valuator events for pDev, as given by the other
  * parameters.
  *
- * Note that we mis-use the sequence number to store the absolute bit.
- *
  * FIXME: Need to fix ValuatorClassRec to store all the valuators as
  *        last posted, not just x and y; otherwise relative non-x/y
  *        valuators, though a very narrow use case, will be broken.
  */
 static EventList *
-getValuatorEvents(EventList *events, DeviceIntPtr pDev, int absolute,
+getValuatorEvents(EventList *events, DeviceIntPtr pDev,
         int first_valuator, int num_valuators, int *valuators) {
     deviceValuator *xv;
-    int i = 0, final_valuator = first_valuator + num_valuators;
+    int i;
 
-    for (i = first_valuator; i < final_valuator; i += 6, events++) {
+    for (i = 0; i < num_valuators; i += 6, events++) {
         xv = (deviceValuator*)events->event;
         xv->type = DeviceValuator;
-        xv->first_valuator = i;
-        xv->num_valuators = ((final_valuator - i) > 6) ? 6 : (final_valuator - i);
+        xv->first_valuator = first_valuator + i;
+        xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
         xv->deviceid = pDev->id;
-        switch (final_valuator - i) {
+        switch (num_valuators - i) {
         case 6:
             xv->valuator5 = valuators[i + 5];
         case 5:
@@ -425,13 +472,11 @@ getValuatorEvents(EventList *events, DeviceIntPtr pDev, int absolute,
         case 2:
             xv->valuator1 = valuators[i + 1];
         case 1:
-            xv->valuator0 = valuators[i];
+            xv->valuator0 = valuators[i + 0];
         }
 
-        if (i + 6 < final_valuator)
+        if (i + 6 < num_valuators)
             xv->deviceid |= MORE_EVENTS;
-
-        xv->sequenceNumber = (absolute) ? Absolute : Relative;
     }
 
     return events;
@@ -576,8 +621,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, FALSE /* relative */,
-                                   first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
     }
 
     return numEvents;
@@ -674,43 +719,27 @@ _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
-    int num_events = 0, final_valuator = 0;
+    int num_events = 1;
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
-    int x = 0, y = 0;
+    int x, y, cx, cy;
+    ScreenPtr scr = miPointerGetScreen(pDev);
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
         return 0;
-
-    if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
+    if (type != MotionNotify && !pDev->button)
         return 0;
-
     /* FIXME: I guess it should, in theory, be possible to post button events
      *        from devices without valuators. */
-    if (!pDev->valuator)
+    /* This method require at least valuator 0&1 defined on the InputDevice */
+    if (!pDev->valuator || pDev->valuator->numAxes < 2)
         return 0;
-
     if (type == MotionNotify && num_valuators <= 0)
         return 0;
 
     ms = GetTimeInMillis();
-
-    num_events = 1;
-
-    master = pDev->u.master;
-    if (master && master->u.lastSlave != pDev)
-    {
-        CreateClassesChangedEvent(events, master, pDev);
-
-        pDev->lastx = master->lastx;
-        pDev->lasty = master->lasty;
-        master->u.lastSlave = pDev;
-
-        num_events++;
-        events++;
-    }
 
     /* Do we need to send a DeviceValuator event? */
     if (num_valuators) {
@@ -719,28 +748,34 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         num_events += ((num_valuators - 1) / 6) + 1;
     }
 
-    final_valuator = num_valuators + first_valuator;
-
     /* You fail. */
-    if (first_valuator < 0 || final_valuator > pDev->valuator->numAxes)
+    if (first_valuator < 0 ||
+        (num_valuators + first_valuator) > pDev->valuator->numAxes)
         return 0;
+
+    master = pDev->u.master;
+    if (master && master->u.lastSlave != pDev)
+    {
+        CreateClassesChangedEvent(events, master, pDev);
+        updateSlaveDeviceCoords(master, pDev);
+        master->u.lastSlave = pDev;
+        num_events++;
+        events++;
+    }
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
+    x = pDev->valuator->axisVal[0];
+    y = pDev->valuator->axisVal[1];
     if (flags & POINTER_ABSOLUTE) {
-        if (num_valuators >= 1 && first_valuator == 0) {
+        if (num_valuators >= 1 && first_valuator == 0)
             x = valuators[0];
-        }
-        else {
-            x = pDev->lastx;
-        }
-
-        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
+        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
             y = valuators[1 - first_valuator];
-        }
-        else {
-            y = pDev->lasty;
-        }
+
+        /* Clip both x and y to the defined limits (usually co-ord space limit). */
+        clipAxis(pDev, 0, &x);
+        clipAxis(pDev, 1, &y);
     }
     else {
         if (flags & POINTER_ACCELERATE)
@@ -748,33 +783,68 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                               valuators);
 
         if (first_valuator == 0 && num_valuators >= 1)
-            x = pDev->lastx + valuators[0];
-        else
-            x = pDev->lastx;
-
+            x += valuators[0];
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            y = pDev->lasty + valuators[1 - first_valuator];
-        else
-            y = pDev->lasty;
+            y += valuators[1 - first_valuator];
+
+        /* if not core -> clip both x and y to the defined limits (usually
+         * co-ord space limit). */
+        if(!pDev->coreEvents) {
+            clipAxis(pDev, 0, &x);
+            clipAxis(pDev, 1, &y);
+        }
     }
 
-    /* Clip both x and y to the defined limits (usually co-ord space limit). */
-    clipAxis(pDev, 0, &x);
-    clipAxis(pDev, 1, &y);
+    /* scale x&y to screen */
+    pDev->lastx = cx = rescaleValuatorAxis(x, pDev->valuator->axes[0].min_value,
+                                           pDev->valuator->axes[0].max_value,
+                                           0, scr->width, scr->width);
+    pDev->lasty = cy = rescaleValuatorAxis(y, pDev->valuator->axes[1].min_value,
+                                           pDev->valuator->axes[1].max_value,
+                                           0, scr->height, scr->height);
 
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen.  Right now, we only have one history buffer,
      * so we don't set this for both the device and core.*/
-    miPointerSetPosition(pDev, &x, &y, ms);
+    miPointerSetPosition(pDev, &pDev->lastx, &pDev->lasty, ms);
+
+    scr = miPointerGetScreen(pDev);
+    if(cx != pDev->lastx)
+        x = rescaleValuatorAxis(pDev->lastx, 0, scr->width,
+                                pDev->valuator->axes[0].min_value,
+                                pDev->valuator->axes[0].max_value,
+                                scr->width);
+    if(cy != pDev->lasty)
+        y = rescaleValuatorAxis(pDev->lasty, 0, scr->height,
+                                pDev->valuator->axes[1].min_value,
+                                pDev->valuator->axes[1].max_value,
+                                scr->height);
+
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
-    pDev->lastx = x;
-    pDev->lasty = y;
-    if (master)
-    {
-        master->lastx = x;
-        master->lasty = y;
+    if (master) {
+        master->lastx = pDev->lastx;
+        master->lasty = pDev->lasty;
     }
+
+    /* update the contents of the valuators based on the mode of the InputDevice */
+    if(1) { /*TODO Absolute mode */
+        /* Update the valuators with the true value sent to the client
+         * (only absolute mode on the InputDevice) */
+        if (first_valuator == 0 && num_valuators >= 1)
+            pDev->valuator->axisVal[0] = x;
+        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+            pDev->valuator->axisVal[1] = y;
+    } else {/* Relative mode */
+        /* If driver reported in absolute, calculate the relative valuator
+         * values as a delta from the old absolute values of the valuator
+         * values. If relative report, keep it as-is.*/
+        /*TODO*/
+    }
+    /* Save the last calculated device axis value in the device
+     * valuator for next event */
+    pDev->valuator->axisVal[0] = x;
+    pDev->valuator->axisVal[1] = y;
 
     kbp = (deviceKeyButtonPointer *) events->event;
     kbp->time = ms;
@@ -791,15 +861,15 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = pDev->button->map[buttons];
     }
 
-    kbp->root_x = x;
-    kbp->root_y = y;
+    kbp->root_x = pDev->lastx;
+    kbp->root_y = pDev->lasty;
 
     events++;
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, (flags & POINTER_ABSOLUTE),
-                first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
     }
 
     return num_events;
@@ -824,10 +894,8 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
     /* Sanity checks. */
     if (type != ProximityIn && type != ProximityOut)
         return 0;
-
     if (!pDev->valuator)
         return 0;
-
     /* Do we need to send a DeviceValuator event? */
     if ((pDev->valuator->mode & 1) == Relative)
         num_valuators = 0;
@@ -847,11 +915,8 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (master && master->u.lastSlave != pDev)
     {
         CreateClassesChangedEvent(events, master, pDev);
-
-        pDev->lastx = master->lastx;
-        pDev->lasty = master->lasty;
+        updateSlaveDeviceCoords(master, pDev);
         master->u.lastSlave = pDev;
-
         num_events++;
         events++;
     }
@@ -866,8 +931,8 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         kbp->deviceid |= MORE_EVENTS;
         events++;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, False /* relative */,
-                                   first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
     }
 
     return num_events;
