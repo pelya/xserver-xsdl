@@ -55,7 +55,7 @@
 #endif
 #endif
 
-#if defined(__OpenBSD__) && (defined(__amd64__) || defined(__x86_64__))
+#if defined(__OpenBSD__) && defined(__amd64__)
 #include <machine/mtrr.h>
 #include <machine/sysarch.h>
 #endif
@@ -108,7 +108,7 @@ static pointer NetBSDsetWC(int, unsigned long, unsigned long, Bool,
 			   MessageType);
 static void NetBSDundoWC(int, pointer);
 #endif
-#if (defined(__amd64__) || defined(__x86_64__)) && defined(__OpenBSD__)
+#if defined(__OpenBSD__) && defined(__amd64__)
 static pointer amd64setWC(int, unsigned long, unsigned long, Bool, 
     MessageType);
 static void amd64undoWC(int, pointer);
@@ -229,7 +229,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 	pVidMem->setWC = NetBSDsetWC;
 	pVidMem->undoWC = NetBSDundoWC;
 #endif
-#if (defined(__amd64__) || defined(__x86_64__))  && defined(__OpenBSD__)
+#if defined(__OpenBSD__) && defined(__amd64__)
 	pVidMem->setWC = amd64setWC;
 	pVidMem->undoWC = amd64undoWC;
 #endif
@@ -953,7 +953,7 @@ NetBSDundoWC(int screenNum, pointer list)
 }
 #endif
 
-#if defined(__OpenBSD__) && (defined(__amd64__) || defined(__x86_64__))
+#if defined(__OpenBSD__) && defined(__amd64__)
 static pointer
 amd64setWC(int screenNum, unsigned long base, unsigned long size, Bool enable,
 	    MessageType from)
