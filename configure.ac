@@ -179,6 +179,8 @@ AC_CHECK_FUNC([dlopen], [],
 case $host_os in
     linux*|darwin*)
 	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
+    freebsd*|netbsd*|openbsd*|dragonfly*)
+	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
     solaris*)
 	# Solaris 8 with patches, or Solaris 9 or later have /dev/urandom
 	if test -r /dev/urandom ; then
