@@ -1190,7 +1190,8 @@ ResetHosts (char *display)
 		strlen(display) + 1;
     if (fnamelen > sizeof(fname))
 	FatalError("Display name `%s' is too long\n", display);
-    sprintf(fname, ETC_HOST_PREFIX "%s" ETC_HOST_SUFFIX, display);
+    snprintf(fname, sizeof(fname), ETC_HOST_PREFIX "%s" ETC_HOST_SUFFIX, 
+	     display);
 
     if ((fd = fopen (fname, "r")) != 0)
     {
