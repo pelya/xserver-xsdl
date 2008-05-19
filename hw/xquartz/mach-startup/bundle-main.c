@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
+
 #include <sys/socket.h>
 #include <sys/un.h>
 
@@ -120,68 +121,140 @@ static pthread_t create_thread(void *func, void *arg) {
 }
 
 /*** $DISPLAY handoff ***/
-static char display_handoff_socket[PATH_MAX + 1];
-
-kern_return_t do_get_display_handoff_socket(mach_port_t port, string_t filename) {
-    strlcpy(filename, display_handoff_socket, STRING_T_SIZE);
-    fprintf(stderr, "Telling him the filename is %s = %s\n", filename, display_handoff_socket);
-    return KERN_SUCCESS;
-}
-
 /* From darwinEvents.c ... but don't want to pull in all the server cruft */
 void DarwinListenOnOpenFD(int fd);
 
-static void accept_fd_handoff(int connectedSocket) {
-    int fd;
-    return;
-    DarwinListenOnOpenFD(fd);
+static void accept_fd_handoff(int connected_fd) {
+    int launchd_fd;
+    
+    char databuf[] = "display";
+    struct iovec iov[1];
+    
+    iov[0].iov_base = databuf;
+    iov[0].iov_len  = sizeof(databuf);
+    
+    union {
+        struct cmsghdr hdr;
+        char bytes[CMSG_SPACE(sizeof(int))];
+    } buf;
+    
+    struct msghdr msg;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = buf.bytes;
+    msg.msg_controllen = sizeof(buf);
+    msg.msg_name = 0;
+    msg.msg_namelen = 0;
+    msg.msg_flags = 0;
+    
+    struct cmsghdr *cmsg = CMSG_FIRSTHDR (&msg);
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+    
+    msg.msg_controllen = cmsg->cmsg_len;
+    
+    *((int*)CMSG_DATA(cmsg)) = -1;
+    
+    if(recvmsg(connected_fd, &msg, 0) < 0) {
+        fprintf(stderr, "Error receiving $DISPLAY file descriptor: %s\n", strerror(errno));
+        return;
+    }
+    
+    launchd_fd = *((int*)CMSG_DATA(cmsg));
+    
+    if(launchd_fd > 0)
+        DarwinListenOnOpenFD(launchd_fd);
+    else
+        fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
 }
+
+typedef struct {
+    string_t socket_filename;
+    pthread_mutex_t lock;
+    pthread_cond_t cond;
+    kern_return_t retval;
+} handoff_data_t;
 
 /* This thread loops accepting incoming connections and handing off the file
  * descriptor for the new connection to accept_fd_handoff()
  */
 static void socket_handoff_thread(void *arg) {
+    handoff_data_t *data = (handoff_data_t *)arg;
+    string_t filename;
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
-    int handoff_fd;
-    int servaddr_len;
+    socklen_t servaddr_len;
+    int handoff_fd, connected_fd;
+
+    /* We need to save it since data dies after we pthread_cond_broadcast */
+    strlcpy(filename, data->socket_filename, STRING_T_SIZE); 
     
-    /* Wipe ourselves clean */
+    /* Make sure we only run once the dispatch thread is waiting for us */
+    pthread_mutex_lock(&data->lock);
+    
+    /* Setup servaddr_un */
     memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
-    
     servaddr_un.sun_family  = AF_UNIX;
-    strcpy(servaddr_un.sun_path, display_handoff_socket);
+    strlcpy(servaddr_un.sun_path, filename, sizeof(servaddr_un.sun_path));
+
     servaddr = (struct sockaddr *) &servaddr_un;
-    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(display_handoff_socket);
+    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
     
     handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if(handoff_fd == 0) {
-        fprintf(stderr, "Failed to create socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        fprintf(stderr, "Failed to create socket: %s - %s\n", filename, strerror(errno));
+        data->retval = EXIT_FAILURE;
         return;
-        exit(EXIT_FAILURE);
     }
     
     if(bind(handoff_fd, servaddr, servaddr_len) != 0) {
-        fprintf(stderr, "Failed to bind socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        fprintf(stderr, "Failed to bind socket: %s - %s\n", filename, strerror(errno));
+        data->retval = EXIT_FAILURE;
         return;
-        exit(EXIT_FAILURE);
     }
     
     if(listen(handoff_fd, 10) != 0) {
-        fprintf(stderr, "Failed to listen to socket: %s - %s\n", display_handoff_socket, strerror(errno));
+        fprintf(stderr, "Failed to listen to socket: %s - %s\n", filename, strerror(errno));
+        data->retval = EXIT_FAILURE;
         return;
-        exit(EXIT_FAILURE);
     }
+
+    /* Let the dispatch thread now tell the caller that we're listening */
+    data->retval = EXIT_SUCCESS;
+    pthread_mutex_unlock(&data->lock);
+    pthread_cond_broadcast(&data->cond);
     
-    while(true) {
-        int connectedSocket = accept(handoff_fd, NULL, NULL);
-        
-        if(connectedSocket == -1) {
-            fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", display_handoff_socket, strerror(errno));
-            continue;
-        }
-        accept_fd_handoff(connectedSocket);    
+    connected_fd = accept(handoff_fd, NULL, NULL);
+    
+    /* We delete this temporary socket after we get the connection */
+    unlink(filename);
+
+    if(connected_fd == -1) {
+        fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", filename, strerror(errno));
+        return;
     }
+
+    /* Now actually get the passed file descriptor from this connection */
+    accept_fd_handoff(connected_fd);
+    
+    close(handoff_fd);
+}
+
+kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
+    handoff_data_t handoff_data;
+
+    pthread_mutex_init(&handoff_data.lock, NULL);
+    pthread_cond_init(&handoff_data.cond, NULL);
+    strlcpy(handoff_data.socket_filename, socket_filename, STRING_T_SIZE); 
+
+    pthread_mutex_lock(&handoff_data.lock);
+    
+    create_thread(socket_handoff_thread, &handoff_data);
+    
+    pthread_cond_wait(&handoff_data.cond, &handoff_data.lock);
+
+    return handoff_data.retval;
 }
 
 /*** Server Startup ***/
@@ -333,14 +406,6 @@ int main(int argc, char **argv, char **envp) {
         fprintf(stderr, "NULL mach service: %s", SERVER_BOOTSTRAP_NAME);
         return EXIT_FAILURE;
     }
-    
-    /* Figure out what our handoff socket will be
-     * TODO: cleanup on exit.
-     */
-    tmpnam(display_handoff_socket);
-    create_thread(socket_handoff_thread, NULL);
-    
-    fprintf(stderr, "Hi\n");
     
     /* Check if we need to do something other than listen, and make another
      * thread handle it.

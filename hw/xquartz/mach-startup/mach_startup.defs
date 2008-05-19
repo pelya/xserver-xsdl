@@ -41,6 +41,6 @@ routine start_x11_server(
     argv  : string_array_t;
     envp  : string_array_t);
 
-routine get_display_handoff_socket(
+routine prep_fd_handoff(
 	port  : mach_port_t;
-    filename  : string_t);
+    socket_filename  : string_t);
