@@ -163,10 +163,11 @@ static void accept_fd_handoff(int connected_fd) {
     
     launchd_fd = *((int*)CMSG_DATA(cmsg));
     
-    if(launchd_fd > 0)
-        DarwinListenOnOpenFD(launchd_fd);
-    else
+    if(launchd_fd == -1)
         fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
+        
+    fprintf(stderr, "Received new DISPLAY fd: %d\n", launchd_fd);
+    DarwinListenOnOpenFD(launchd_fd);
 }
 
 typedef struct {
@@ -227,9 +228,6 @@ static void socket_handoff_thread(void *arg) {
     
     connected_fd = accept(handoff_fd, NULL, NULL);
     
-    /* We delete this temporary socket after we get the connection */
-    unlink(filename);
-
     if(connected_fd == -1) {
         fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", filename, strerror(errno));
         return;
@@ -237,8 +235,10 @@ static void socket_handoff_thread(void *arg) {
 
     /* Now actually get the passed file descriptor from this connection */
     accept_fd_handoff(connected_fd);
-    
+
+    close(connected_fd);
     close(handoff_fd);
+    unlink(filename);
 }
 
 kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {

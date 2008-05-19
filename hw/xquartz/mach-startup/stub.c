@@ -113,7 +113,7 @@ static void set_x11_path() {
     }
 }
 
-static void send_fd_handoff(int connected_fd, int launchd_fd) {
+static void send_fd_handoff(int handoff_fd, int launchd_fd) {
     char databuf[] = "display";
     struct iovec iov[1];
     
@@ -143,19 +143,19 @@ static void send_fd_handoff(int connected_fd, int launchd_fd) {
     
     *((int*)CMSG_DATA(cmsg)) = launchd_fd;
     
-    if (sendmsg(connected_fd, &msg, 0) < 0) {
+    if (sendmsg(handoff_fd, &msg, 0) < 0) {
         fprintf(stderr, "Error sending $DISPLAY file descriptor: %s\n", strerror(errno));
         return;
     }
 
-    fprintf(stderr, "send %d %d %d %s\n", connected_fd, launchd_fd, errno, strerror(errno));
+    fprintf(stderr, "send %d %d %d %s\n", handoff_fd, launchd_fd, errno, strerror(errno));
 }
 
 static void handoff_fd(const char *filename, int launchd_fd) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
     socklen_t servaddr_len;
-    int handoff_fd, connected_fd;
+    int handoff_fd;
 
     /* Setup servaddr_un */
     memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
@@ -171,15 +171,14 @@ static void handoff_fd(const char *filename, int launchd_fd) {
         return;
     }
 
-    connected_fd = connect(handoff_fd, servaddr, servaddr_len);
-
-    if(connected_fd == -1) {
+    if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
         fprintf(stderr, "Failed to establish connection on socket: %s - %s\n", filename, strerror(errno));
         return;
     }
 
-    send_fd_handoff(connected_fd, launchd_fd);
+    fprintf(stderr, "Socket: %s\n", filename);
 
+    send_fd_handoff(handoff_fd, launchd_fd);
     close(handoff_fd);
 }
 
