@@ -43,7 +43,7 @@
 // Define this to get a diagnostic output to stderr which is helpful
 // in determining how the X server is interpreting the Darwin keymap.
 #define DUMP_DARWIN_KEYMAP
-#define XQUARTZ_USE_XKB 
+//#define XQUARTZ_USE_XKB 
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
@@ -910,24 +910,26 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
 
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
-	if (pDev == NULL) pDev = darwinKeyboard;
-	
-	DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", pDev);
+    if (pDev == NULL) pDev = darwinKeyboard;
+    
+    DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", pDev);
 
 #ifdef XQUARTZ_USE_XKB
-	QuartzXkbUpdate(pDev);
+    QuartzXkbUpdate(pDev);
 #else
-	if (pDev->key) {
-		if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
-		if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
-		xfree(pDev->key);
-	}
-	
     KeySymsRec keySyms;
-	if (!InitKeyClassDeviceStruct(pDev, &keySyms, keyInfo.modMap)) {
-		DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
-		return;
-	}
+    DarwinLoadKeyboardMapping(&keySyms);
+
+    if (pDev->key) {
+        if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
+        if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
+        xfree(pDev->key);
+    }
+    
+    if (!InitKeyClassDeviceStruct(pDev, &keySyms, keyInfo.modMap)) {
+        DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
+        return;
+    }
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
     SendMappingNotify(MappingModifier, 0, 0, 0);
