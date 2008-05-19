@@ -220,7 +220,6 @@ static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceInt
     TA_SERVER();
 
     for (i=0; i<nevents; i++) {
-        //sleep(20);
         ListenOnOpenFD(xe[i].u.clientMessage.u.l.longs0);
     }
 }

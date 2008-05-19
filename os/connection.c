@@ -1301,8 +1301,7 @@ MakeClientGrabPervious(ClientPtr client)
 /* Add a fd (from launchd) to our listeners */
 _X_EXPORT void ListenOnOpenFD(int fd) {
     char port[20];
-    XtransConnInfo ciptr, *ciptr2, *ciptr3;
-    int *iptr, *iptr2;
+    XtransConnInfo ciptr;
     
     /* Sigh for inconsistencies. */  
     sprintf (port, ":%d", atoi(display));
@@ -1312,37 +1311,13 @@ _X_EXPORT void ListenOnOpenFD(int fd) {
      */
     ciptr = _XSERVTransReopenCOTSServer(5, fd, port);
     if(ciptr == NULL) {
-        fprintf(stderr, "Got NULL while trying to Reopen launchd port.\n");
+        ErrorF("Got NULL while trying to Reopen launchd port.\n");
         return;
     }
     
     /* Allocate space to store it */
-    iptr = (int *) realloc(ListenTransFds, (ListenTransCount + 1) * sizeof (int));
-    
-    if(!iptr) {
-        fprintf(stderr, "Memory allocation error");
-        return;
-    }
-    
-    ciptr2 = (XtransConnInfo *) realloc(ListenTransConns, (ListenTransCount + 1) * sizeof (XtransConnInfo));
-    if(!ciptr2) {
-        fprintf(stderr, "Memory allocation error");
-        if(iptr != ListenTransFds)
-            free(ListenTransFds);
-        return;
-    }
-
-    if(iptr != ListenTransFds) {
-        iptr2 = ListenTransFds;
-        ListenTransFds = iptr;
-        free(iptr2);
-    }
-    
-    if(ciptr2 != ListenTransConns) {
-        ciptr3 = ListenTransConns;
-        ListenTransConns = ciptr2;
-        free(ciptr3);
-    }
+    ListenTransFds = (int *) xrealloc(ListenTransFds, (ListenTransCount + 1) * sizeof (int));
+    ListenTransConns = (XtransConnInfo *) xrealloc(ListenTransConns, (ListenTransCount + 1) * sizeof (XtransConnInfo));
     
     /* Store it */
     ListenTransConns[ListenTransCount] = ciptr;
@@ -1355,7 +1330,7 @@ _X_EXPORT void ListenOnOpenFD(int fd) {
     //    DefineSelf (fd);
     }
     */
-    
+
     /* Increment the count */
     ListenTransCount++;
 }
