@@ -1484,7 +1484,14 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	}
 	default_modes = xf86GetDefaultModes (output->interlaceAllowed,
 					     output->doubleScanAllowed);
-	
+
+	/*
+	 * If this is not an RB monitor, remove RB modes from the default
+	 * pool.  RB modes from the config or the monitor itself are fine.
+	 */
+	if (!mon_rec.reducedblanking)
+	    xf86ValidateModesReducedBlanking (scrn, default_modes);
+
 	if (sync_source == sync_config)
 	{
 	    /* 

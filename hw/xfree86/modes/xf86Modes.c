@@ -519,6 +519,28 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 }
 
 /**
+ * Marks as bad any reduced-blanking modes.
+ *
+ * \param modeList doubly-linked list of modes.
+ */
+_X_EXPORT void
+xf86ValidateModesReducedBlanking(ScrnInfoPtr pScrn, DisplayModePtr modeList)
+{
+    Bool mode_is_reduced = FALSE;
+    DisplayModePtr mode;
+
+    for (mode = modeList; mode != NULL; mode = mode->next) {
+	/* gratuitous duplication from pre-randr validation code */
+	if ((((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) &&
+	    ((mode->HTotal - mode->HDisplay) == 160) &&
+	    ((mode->HSyncEnd - mode->HDisplay) == 80) &&
+	    ((mode->HSyncEnd - mode->HSyncStart) == 32) &&
+	    ((mode->VSyncStart - mode->VDisplay) == 3))
+	    mode->status = MODE_NO_REDUCED;
+    }
+}
+
+/**
  * Frees any modes from the list with a status other than MODE_OK.
  *
  * \param modeList pointer to a doubly-linked or circular list of modes.
