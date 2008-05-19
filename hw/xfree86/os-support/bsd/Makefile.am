@@ -2,8 +2,16 @@ noinst_LTLIBRARIES = libbsd.la
 
 # FIXME: Add USB mouse support?
 
-# FIXME: APM support.
+# APM support.
+if BSD_KQUEUE_APM
+APM_SOURCES = $(srcdir)/bsd_kqueue_apm.c
+else 
+if BSD_APM
+APM_SOURCES = $(srcdir)/bsd_apm.c
+else
 APM_SOURCES = $(srcdir)/../shared/pm_noop.c
+endif
+endif
 
 if FREEBSD_KLDLOAD
 KMOD_SOURCES = bsd_kmod.c
