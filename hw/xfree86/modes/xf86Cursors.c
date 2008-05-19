@@ -613,18 +613,17 @@ xf86_reload_cursors (ScreenPtr screen)
 
     if (cursor)
     {
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+	void *src = dixLookupPrivate(&cursor->devPrivates, screen);
+#else
+	void *src = cursor->devPriv[screen->myNum];
+#endif
 #ifdef ARGB_CURSOR
 	if (cursor->bits->argb && cursor_info->LoadCursorARGB)
 	    (*cursor_info->LoadCursorARGB) (scrn, cursor);
-	else
+	else if (src)
 #endif
-	    (*cursor_info->LoadCursorImage)(cursor_info->pScrn,
-#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
-			dixLookupPrivate(&cursor->devPrivates, screen)
-#else
-			cursor->devPriv[screen->myNum]
-#endif
-	    );
+	    (*cursor_info->LoadCursorImage)(cursor_info->pScrn, src);
 
 	(*cursor_info->SetCursorPosition)(cursor_info->pScrn, x, y);
 	(*cursor_info->ShowCursor)(cursor_info->pScrn);
