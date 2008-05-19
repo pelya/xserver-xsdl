@@ -262,6 +262,8 @@ AM_CONDITIONAL(FREEBSD_KLDLOAD, [test "x$ac_cv_sys_linker_h" = xyes])
 AC_CACHE_CHECK([for SYSV IPC],
 		ac_cv_sysv_ipc,
 		[AC_TRY_LINK([
+#include <sys/types.h>
+#include <sys/ipc.h>
 #include <sys/shm.h>
 ],[
 { 
