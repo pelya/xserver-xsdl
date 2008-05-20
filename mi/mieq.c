@@ -103,7 +103,7 @@ mieqInit(void)
 }
 
 /* Ensure all events in the EQ are at least size bytes. */
-Bool
+void
 mieqResizeEvents(int min_size)
 {
     int i;

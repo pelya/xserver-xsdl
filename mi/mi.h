@@ -153,7 +153,7 @@ extern Bool mieqInit(
     void
 );
 
-extern void mieqResize(
+extern void mieqResizeEvents(
     int /* min_size */
 );
 
