@@ -240,7 +240,7 @@ int dix_main(int argc, char *argv[], char *envp[])
 int main(int argc, char *argv[], char *envp[])
 #endif
 {
-    int		i, j, k, error;
+    int		i, j, k;
     char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
 

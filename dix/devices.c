@@ -71,6 +71,7 @@ SOFTWARE.
 #endif
 #include "privates.h"
 #include "xace.h"
+#include "mi.h"
 
 #include "dispatch.h"
 #include "swaprep.h"
