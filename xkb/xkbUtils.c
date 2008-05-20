@@ -2052,7 +2052,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
              * just MapNotify.  we also need to send NKN if the geometry
              * changed (obviously ...). */
             if ((src->min_key_code != dst->min_key_code ||
-                 src->max_key_code != dst->max_key_code) && sendNotifies) {
+                 src->max_key_code != dst->max_key_code)) {
                 nkn.oldMinKeyCode = dst->min_key_code;
                 nkn.oldMaxKeyCode = dst->max_key_code;
                 nkn.deviceID = nkn.oldDeviceID = pDev->id;
@@ -2062,8 +2062,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
                 nkn.changed = XkbAllNewKeyboardEventsMask;
                 XkbSendNewKeyboardNotify(pDev, &nkn);
-            }
-            else if (sendNotifies) {
+            } else
+            {
                 mn.deviceID = pDev->id;
                 mn.minKeyCode = src->min_key_code;
                 mn.maxKeyCode = src->max_key_code;
