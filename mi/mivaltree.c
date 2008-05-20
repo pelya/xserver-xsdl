@@ -255,7 +255,11 @@ miComputeClips (
     if (pParent->redirectDraw != RedirectDrawNone)
     {
 	if (miSetRedirectBorderClipProc)
+	{
+	    if (TreatAsTransparent (pParent))
+		REGION_EMPTY (pScreen, universe);
 	    (*miSetRedirectBorderClipProc) (pParent, universe);
+	}
 	REGION_COPY(pScreen, universe, &pParent->borderSize);
     }
 #endif

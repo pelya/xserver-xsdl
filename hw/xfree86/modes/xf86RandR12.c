@@ -130,9 +130,7 @@ xf86RandR12GetInfo (ScreenPtr pScreen, Rotation *rotations)
 	    return FALSE;
 	RRRegisterRate (pScreen, pSize, refresh);
 
-	if (xf86ModesEqual(mode, scrp->currentMode) &&
-	    mode->HDisplay == scrp->virtualX &&
-	    mode->VDisplay == scrp->virtualY)
+	if (xf86ModesEqual(mode, scrp->currentMode))
 	{
 	    RRSetCurrentConfig (pScreen, randrp->rotation, refresh, pSize);
 	}

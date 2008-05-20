@@ -99,12 +99,6 @@ if XEVIE
 BUILTIN_SRCS += $(XEVIE_SRCS)
 endif
 
-# XPrint: Printing via X Protocol
-XPRINT_SRCS = xprint.c
-if XPRINT
-BUILTIN_SRCS += $(XPRINT_SRCS)
-endif
-
 # Multi-buffering extension
 MULTIBUFFER_SRCS = mbuf.c
 EXTRA_MULTIBUFFER_SRCS = mbufbf.c mbufpx.c
@@ -150,7 +144,6 @@ EXTRA_DIST = \
 	$(XCALIBRATE_SRCS) \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
-	$(XPRINT_SRCS) \
 	$(MULTIBUFFER_SRCS) \
 	$(EXTRA_MULTIBUFFER_SRCS) \
 	$(FONTCACHE_SRCS) \

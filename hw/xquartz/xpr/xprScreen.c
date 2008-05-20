@@ -40,6 +40,7 @@
 #include "xprEvent.h"
 #include "pseudoramiX.h"
 #include "darwin.h"
+#include "darwinEvents.h"
 #include "rootless.h"
 #include "dri.h"
 #include "globals.h"

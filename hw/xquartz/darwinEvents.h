@@ -39,6 +39,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode);
 void DarwinSendScrollEvents(float count_x, float count_y, int pointer_x, int pointer_y,
 			    float pressure, float tilt_x, float tilt_y);
 void DarwinUpdateModKeys(int flags);
+void DarwinListenOnOpenFD(int fd);
 
 /*
  * Special ddx events understood by the X server
@@ -56,6 +57,7 @@ enum {
     kXquartzToggleFullscreen, // Enable/Disable fullscreen mode
     kXquartzSetRootless,      // Set rootless mode
     kXquartzSpaceChanged,     // Spaces changed
+    kXquartzListenOnOpenFD,   // Listen to the launchd fd (passed as arg)
     /*
      * AppleWM events
      */

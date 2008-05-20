@@ -628,10 +628,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /*
      * Locate bus slot that had register IO enabled at server startup
      */
-
-    xf86AccessInit();
-    xf86FindPrimaryDevice();
-
+    if (xorgHWAccess) {
+        xf86AccessInit();
+        xf86FindPrimaryDevice();
+    }
     /*
      * Now call each of the Probe functions.  Each successful probe will
      * result in an extra entry added to the xf86Screens[] list for each
@@ -1180,9 +1180,6 @@ OsVendorInit()
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
   OsDelayInitColors = TRUE;
-#ifndef BUILTIN_FONTS
-  loadableFonts = TRUE;
-#endif
 
   if (!beenHere)
     xf86LogInit();

@@ -103,9 +103,6 @@ Equipment Corporation.
 #include "extnsionst.h"
 #include "privates.h"
 #include "registry.h"
-#ifdef XPRINT
-#include "DiPrint.h"
-#endif
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
 #else
@@ -251,9 +248,6 @@ int main(int argc, char *argv[], char *envp[])
 
     InitGlobals();
     InitRegions();
-#ifdef XPRINT
-    PrinterInitGlobals();
-#endif
 
     CheckUserParameters(argc, argv, envp);
 
@@ -265,11 +259,6 @@ int main(int argc, char *argv[], char *envp[])
 
     InitConnectionLimits();
 
-    /* These are needed by some routines which are called from interrupt
-     * handlers, thus have no direct calling path back to main and thus
-     * can't be passed argc, argv as parameters */
-    argcGlobal = argc;
-    argvGlobal = argv;
     /* prep X authority file from environment; this can be overriden by a
      * command line option */
     xauthfile = getenv("XAUTHORITY");
@@ -348,9 +337,6 @@ int main(int argc, char *argv[], char *envp[])
 	InitCallbackManager();
 	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);
-#ifdef XPRINT
-	PrinterInitOutput(&screenInfo, argc, argv);
-#endif
 
 	if (screenInfo.numScreens < 1)
 	    FatalError("no screens found");
@@ -374,13 +360,8 @@ int main(int argc, char *argv[], char *envp[])
 	}
 
 	InitFonts();
-	if (loadableFonts)
-	    SetFontPath(serverClient, 0, (unsigned char *)defaultFontPath,
-			&error);
-        else {
-	    if (SetDefaultFontPath(defaultFontPath) != Success)
-		ErrorF("[dix] failed to set default font path '%s'",
-			defaultFontPath);
+	if (SetDefaultFontPath(defaultFontPath) != Success) {
+	    ErrorF("[dix] failed to set default font path '%s'", defaultFontPath);
 	}
 	if (!SetDefaultFont(defaultTextFont)) {
 	    FatalError("could not open default font '%s'", defaultTextFont);

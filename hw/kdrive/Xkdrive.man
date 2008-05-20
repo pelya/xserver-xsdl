@@ -11,26 +11,6 @@ Xkdrive \- tiny X server
 .B Xfbdev
 .RI [ :display ]
 .RI [ option ...]
-
-.B Xigs
-.RI [ :display ]
-.RI [ option ...]
-
-.B Xtrident
-.RI [ :display ]
-.RI [ option ...]
-
-.B Xsis530
-.RI [ :display ]
-.RI [ option ...]
-
-.B Xtrio
-.RI [ :display ]
-.RI [ option ...]
-
-.B Xitsy
-.RI [ :display ]
-.RI [ option ...]
 .SH DESCRIPTION
 .B Xkdrive
 is a family of X servers designed to be particularly small.  This

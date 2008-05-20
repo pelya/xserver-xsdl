@@ -136,16 +136,11 @@ Bool screenSaverSuspended = FALSE;
 char *defaultFontPath = COMPILEDDEFAULTFONTPATH;
 char *defaultTextFont = COMPILEDDEFAULTFONT;
 char *defaultCursorFont = COMPILEDCURSORFONT;
-char *defaultDisplayClass = COMPILEDDISPLAYCLASS;
 FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 			every compilation of dix code */
-Bool loadableFonts = FALSE;
 CursorPtr rootCursor;
 Bool blackRoot=FALSE;
 Bool whiteRoot=FALSE;
-#ifdef XPRINT
-ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
-#endif
 
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;
@@ -156,7 +151,5 @@ _X_EXPORT int monitorResolution = 0;
 _X_EXPORT char *display;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
-int	argcGlobal;
-char	**argvGlobal;
 
 DDXPointRec dixScreenOrigins[MAXSCREENS];

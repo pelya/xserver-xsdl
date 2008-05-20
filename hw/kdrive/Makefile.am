@@ -1,10 +1,9 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa ati chips i810 mach64 mga nvidia pm2 r128 \
-               smi via
+VESA_SUBDIRS = vesa
 endif
 
 if BUILD_KDRIVEFBDEVLIB
-FBDEV_SUBDIRS = fbdev epson
+FBDEV_SUBDIRS = fbdev
 endif
 
 if XFAKESERVER
@@ -35,8 +34,7 @@ SUBDIRS =			\
 	$(LINUX_SUBDIRS)	\
 	$(SERVER_SUBDIRS)
 
-DIST_SUBDIRS = vesa ati chips epson i810 mach64 mga neomagic nvidia pm2 r128 \
-               smi via fbdev sdl ephyr src linux fake sis300
+DIST_SUBDIRS = vesa fbdev sdl ephyr src linux fake
 
 relink:
 	@for i in $(SERVER_SUBDIRS) ; do make -C $$i relink ; done

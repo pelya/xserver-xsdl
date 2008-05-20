@@ -76,14 +76,6 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->CopyWindow = cs->CopyWindow;
     pScreen->PositionWindow = cs->PositionWindow;
 
-    deleteCompOverlayClientsForScreen(pScreen);
-
-    /* 
-    ** Note: no need to call DeleteWindow; the server has
-    ** already destroyed it.
-    */
-    cs->pOverlayWin = NULL;
-
     xfree (cs);
     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, NULL);
     ret = (*pScreen->CloseScreen) (index, pScreen);
@@ -122,11 +114,11 @@ compChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     if (ret && (mask & CWBackingStore)) {
 	if (pWin->backingStore != NotUseful) {
 	    compRedirectWindow(serverClient, pWin, CompositeRedirectAutomatic);
-	    pWin->backStorage = TRUE;
+	    pWin->backStorage = (pointer) (intptr_t) 1;
 	} else {
 	    compUnredirectWindow(serverClient, pWin,
 				 CompositeRedirectAutomatic);
-	    pWin->backStorage = FALSE;
+	    pWin->backStorage = NULL;
 	}
     }
 
@@ -380,6 +372,7 @@ compScreenInit (ScreenPtr pScreen)
 	return FALSE;
 
     cs->damaged = FALSE;
+    cs->overlayWid = FakeClientID(0);
     cs->pOverlayWin = NULL;
     cs->pOverlayClients = NULL;
 

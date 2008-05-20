@@ -150,10 +150,21 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
 	  screen->fb[0].depth = 16;
 	  screen->fb[0].bitsPerPixel = 16;
 	}
-      else
+      else if (screen->fb[0].depth <= 24)
 	{
 	  screen->fb[0].depth = 24;
 	  screen->fb[0].bitsPerPixel = 32;
+	}
+      else if (screen->fb[0].depth <= 30)
+	{
+	  screen->fb[0].depth = 30;
+	  screen->fb[0].bitsPerPixel = 32;
+	}
+      else
+	{
+	  ErrorF("\nXephyr: Unsupported screen depth %d\n",
+	         screen->fb[0].depth);
+	  return FALSE;
 	}
 
       hostx_get_visual_masks (screen, &redMask, &greenMask, &blueMask);

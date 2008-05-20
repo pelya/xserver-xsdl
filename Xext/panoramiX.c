@@ -87,6 +87,9 @@ _X_EXPORT unsigned long XRT_PIXMAP;
 _X_EXPORT unsigned long XRT_GC;
 _X_EXPORT unsigned long XRT_COLORMAP;
 
+static Bool VisualsEqual(VisualPtr, ScreenPtr, VisualPtr);
+_X_EXPORT XineramaVisualsEqualProcPtr XineramaVisualsEqualPtr = &VisualsEqual;
+
 /*
  *	Function prototypes
  */
@@ -668,10 +671,10 @@ Bool PanoramiXCreateConnectionBlock(void)
 
     connSetupPrefix.length = length >> 2;
 
-    xfree(PanoramiXVisuals);
     for (i = 0; i < PanoramiXNumDepths; i++)
 	xfree(PanoramiXDepths[i].vids);
     xfree(PanoramiXDepths);
+    PanoramiXDepths = NULL;
 
     /*
      *  OK, change some dimensions so it looks as if it were one big screen
@@ -709,7 +712,7 @@ Bool PanoramiXCreateConnectionBlock(void)
  * do their own back-mapping.
  */
 static Bool
-VisualsEqual(VisualPtr a, VisualPtr b)
+VisualsEqual(VisualPtr a, ScreenPtr pScreenB, VisualPtr b)
 {
     return ((a->class == b->class) &&
 	(a->ColormapEntries == b->ColormapEntries) &&
@@ -759,7 +762,6 @@ static void
 PanoramiXMaybeAddVisual(VisualPtr pVisual)
 {
     ScreenPtr pScreen;
-    VisualPtr candidate = NULL;
     int j, k;
     Bool found = FALSE;
 
@@ -767,10 +769,10 @@ PanoramiXMaybeAddVisual(VisualPtr pVisual)
 	pScreen = screenInfo.screens[j];
 	found = FALSE;
 
-	candidate = pScreen->visuals;
 	for (k = 0; k < pScreen->numVisuals; k++) {
-	    candidate++;
-	    if (VisualsEqual(pVisual, candidate)
+	    VisualPtr candidate = &pScreen->visuals[k];
+
+	    if ((*XineramaVisualsEqualPtr)(pVisual, pScreen, candidate)
 #ifdef GLXPROXY
 		&& glxMatchVisual(screenInfo.screens[0], pVisual, pScreen)
 #endif
@@ -844,8 +846,13 @@ PanoramiXConsolidate(void)
 _X_EXPORT VisualID
 PanoramiXTranslateVisualID(int screen, VisualID orig)
 {
+    ScreenPtr pOtherScreen = screenInfo.screens[screen];
     VisualPtr pVisual = NULL;
-    int i, j;
+    int i;
+
+    /* if screen is 0, orig is already the correct visual ID */
+    if (screen == 0)
+	return orig;
 
     for (i = 0; i < PanoramiXNumVisuals; i++) {
 	if (orig == PanoramiXVisuals[i].vid) {
@@ -858,11 +865,13 @@ PanoramiXTranslateVisualID(int screen, VisualID orig)
 	return 0;
 
     /* found the original, now translate it relative to the backend screen */
-    for (i = 0; i < PanoramiXNumScreens; i++)
-	for (j = 0; j < screenInfo.screens[i]->numVisuals; j++)
-	    if (VisualsEqual(pVisual, &screenInfo.screens[i]->visuals[j]))
-		return screenInfo.screens[i]->visuals[j].vid;
-    
+    for (i = 0; i < pOtherScreen->numVisuals; i++) {
+	VisualPtr pOtherVisual = &pOtherScreen->visuals[i];
+
+	if ((*XineramaVisualsEqualPtr)(pVisual, pOtherScreen, pOtherVisual))
+	    return pOtherVisual->vid;
+    }
+
     return 0;
 }
 

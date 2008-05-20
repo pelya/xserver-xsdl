@@ -85,6 +85,9 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 			   unsigned int bandwidth, int depth);
 
 void
+xf86ValidateModesReducedBlanking(ScrnInfoPtr pScrn, DisplayModePtr modeList);
+
+void
 xf86PruneInvalidModes(ScrnInfoPtr pScrn, DisplayModePtr *modeList,
 		      Bool verbose);
 
