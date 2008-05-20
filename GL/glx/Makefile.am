@@ -62,6 +62,8 @@ libglx_la_SOURCES = \
         glxext.c \
         glxext.h \
         glxglcore.c \
+	glxdriswrast.c \
+	glxdricommon.c \
         glxscreens.c \
         glxscreens.h \
         glxserver.h \
