@@ -87,7 +87,7 @@ typedef long long GLint64EXT;
 
 // ggs: needed to call back to glx with visual configs
 extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs, void **configprivs);
-__GLXprovider * GlxGetMesaProvider (void);
+__GLXprovider * GlxGetDRISWrastProvider (void);
 
 // Write debugging output, or not
 #ifdef GLAQUA_DEBUG
@@ -120,17 +120,17 @@ static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, un
 
 static CGLPixelFormatObj makeFormat(__GLXconfig *mode);
 
-__GLXprovider __glXMesaProvider = {
+__GLXprovider __glXDRISWRastProvider = {
   __glXAquaScreenProbe,
   "Core OpenGL",
     NULL
 };
 
 __GLXprovider *
-GlxGetMesaProvider (void)
+GlxGetDRISWRastProvider (void)
 {
-  GLAQUA_DEBUG_MSG("GlxGetMesaProvider\n");
-  return &__glXMesaProvider;
+  GLAQUA_DEBUG_MSG("GlxGetDRISWRastProvider\n");
+  return &__glXDRISWRastProvider;
 }
 
 typedef struct __GLXAquaScreen   __GLXAquaScreen;
