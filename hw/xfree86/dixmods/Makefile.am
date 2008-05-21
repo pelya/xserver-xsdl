@@ -14,10 +14,6 @@ if DBE
 DBEMOD = libdbe.la
 endif
 
-if AFB
-AFBMOD = libafb.la
-endif
-
 if MFB
 MFBMOD = libmfb.la
 endif
@@ -26,8 +22,7 @@ if RECORD
 RECORDMOD = librecord.la
 endif
 
-module_LTLIBRARIES = $(AFBMOD) \
-                     libfb.la \
+module_LTLIBRARIES = libfb.la \
                      libwfb.la \
                      $(MFBMOD) \
                      libshadow.la
@@ -47,10 +42,6 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
            -I$(top_srcdir)/glx
-
-libafb_la_LDFLAGS = -avoid-version
-libafb_la_LIBADD = $(top_builddir)/afb/libafb.la
-libafb_la_SOURCES = afbmodule.c
 
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la

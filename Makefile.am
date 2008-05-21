@@ -9,10 +9,6 @@ if XTRAP
 XTRAP_DIR=XTrap
 endif
 
-if AFB
-AFB_DIR=afb
-endif
-
 if MFB
 MFB_DIR=mfb
 endif
