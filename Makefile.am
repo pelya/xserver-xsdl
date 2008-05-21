@@ -18,7 +18,7 @@ MFB_DIR=mfb
 endif
 
 if GLX
-GLX_DIR=GL
+GLX_DIR=glx
 endif
 
 if DBE
@@ -94,7 +94,7 @@ DIST_SUBDIRS = \
 	damageext \
 	XTrap \
 	composite \
-	GL \
+	glx \
 	exa \
 	config \
 	hw
