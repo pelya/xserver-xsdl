@@ -35,7 +35,6 @@
 #include <sys/time.h>
 #include <dlfcn.h>
 
-#include <drm.h>
 #include <GL/gl.h>
 #include <GL/internal/dri_interface.h>
 #include <GL/glxtokens.h>
@@ -102,10 +101,10 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 }
 
 static GLboolean
-__glXDRIdrawableResize(__GLXdrawable *glxPriv)
+__glXDRIdrawableResize(__GLXdrawable *drawable)
 {
     /* Nothing to do here, the DRI driver asks the server for drawable
-     * geometry when it sess the SAREA timestamps change.*/
+     * geometry appropriately. */
 
     return GL_TRUE;
 }
@@ -456,7 +455,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     const char *driverName = "swrast";
     __GLXDRIscreen *screen;
     char filename[128];
-    unsigned int sareaHandle;
     const __DRIextension **extensions;
     const __DRIconfig **driConfigs;
     int i;
@@ -506,7 +504,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	goto handle_error;
     }
 
-    sareaHandle = 0;
     screen->driScreen =
 	(*screen->swrast->createNewScreen)(pScreen->myNum,
 					   loader_extensions,
