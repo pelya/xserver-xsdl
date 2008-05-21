@@ -40,7 +40,6 @@ SUBDIRS = \
 	xkb \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
-	$(AFB_DIR) \
 	$(RECORD_DIR) \
 	xfixes \
 	damageext \
@@ -84,7 +83,6 @@ DIST_SUBDIRS = \
 	xkb \
 	dbe \
 	mfb \
-	afb \
 	record \
 	xfixes \
 	damageext \
