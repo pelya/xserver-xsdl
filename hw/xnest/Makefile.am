@@ -56,6 +56,7 @@ Xnest_SOURCES = $(SRCS)
 
 Xnest_DEPENDENCIES = $(XNEST_LIBS)
 Xnest_LDADD = $(XNEST_LIBS) $(XNEST_SYS_LIBS) $(XSERVER_SYS_LIBS)
+Xnest_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 EXTRA_DIST = icon \
              screensaver \
