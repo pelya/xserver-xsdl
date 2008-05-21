@@ -2,7 +2,7 @@ libdri_la_LTLIBRARIES = libdri.la
 libdri_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
                    -I$(top_srcdir)/hw/xfree86/os-support \
                    -I$(top_srcdir)/hw/xfree86/os-support/bus \
-                   -I$(top_srcdir)/GL/glx \
+                   -I$(top_srcdir)/glx \
                    -I$(top_srcdir)/GL/include \
                    -I$(top_builddir)/GL/include \
                    -DHAVE_XORG_CONFIG_H \

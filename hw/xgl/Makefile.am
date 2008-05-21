@@ -22,7 +22,7 @@ AM_CFLAGS = \
 	 $(DIX_CFLAGS) \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
-	-I$(top_srcdir)/GL/glx			\
+	-I$(top_srcdir)/glx			\
 	-I$(top_srcdir)/GL/include		\
 	-I@MESA_SOURCE@/include \
 	-I@MESA_SOURCE@/src/mesa/glapi \

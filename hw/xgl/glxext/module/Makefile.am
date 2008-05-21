@@ -7,7 +7,7 @@ AM_CFLAGS = \
 
 libglx_la_LDFLAGS = -avoid-version
 libglx_la_SOURCES = glxmodule.c
-libglx_la_LIBADD  = $(top_builddir)/GL/glx/libglx.la
+libglx_la_LIBADD  = $(top_builddir)/glx/libglx.la
 libglx_modules    = libglx.la
 
 libglcore_la_LDFLAGS = -avoid-version
