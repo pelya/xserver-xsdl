@@ -850,7 +850,7 @@ if test "x$RES" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES resourceproto"
 fi
 
-if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
+if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
 	PKG_CHECK_MODULES([GL], [glproto >= 1.4.9 gl >= 7.1.0])
 	AC_SUBST(XLIB_CFLAGS)
