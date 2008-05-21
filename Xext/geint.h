@@ -20,7 +20,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * Author: Peter Hutterer, UniSA, NICTA
+ * Author: Peter Hutterer, University of South Australia, NICTA
  */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

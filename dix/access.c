@@ -20,7 +20,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * Author: Peter Hutterer, UniSA, NICTA
+ * Author: Peter Hutterer, University of South Australia, NICTA
  */
 
 /* This file controls the access control lists for each window. 
