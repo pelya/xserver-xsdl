@@ -199,7 +199,7 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
     /* return for keyboards */
     if ((pDev->isMaster && !DevHasCursor(pDev)) ||
         (!pDev->isMaster && pDev->u.master && !DevHasCursor(pDev->u.master)))
-            return;
+            return FALSE;
 
     pPointer = MIPOINTER(pDev);
 
