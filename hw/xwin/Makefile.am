@@ -167,7 +167,14 @@ AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
 
 dist_man1_MANS = XWin.man XWinrc.man
 
+GLX_EXTRAS = \
+	windows/ChangeLog \
+	windows/glwindows.h \
+	windows/glwrap.c \
+	windows/indirect.c
+
 EXTRA_DIST = \
+	$(GLX_EXTRAS) \
 	_usr_X11R6_lib_X11_system.XWinrc \
 	X-boxed.ico \
 	X.ico \
