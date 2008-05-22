@@ -827,19 +827,23 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         master->lasty = pDev->lasty;
     }
 
-    /* update the contents of the valuators based on the mode of the InputDevice */
-    if(1) { /*TODO Absolute mode */
-        /* Update the valuators with the true value sent to the client
-         * (only absolute mode on the InputDevice) */
+    /* update the valuators based on the mode of the InputDevice */
+    if(pDev->valuator->mode == Absolute) {
+        /* Update the valuators with the true value sent to the client*/
         if (first_valuator == 0 && num_valuators >= 1)
-            pDev->valuator->axisVal[0] = x;
+            valuators[0] = x;
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            pDev->valuator->axisVal[1] = y;
+            valuators[1] = y;
     } else {/* Relative mode */
         /* If driver reported in absolute, calculate the relative valuator
          * values as a delta from the old absolute values of the valuator
          * values. If relative report, keep it as-is.*/
-        /*TODO*/
+        if (flags & POINTER_ABSOLUTE) {
+            int i;
+            for (i = first_valuator; i < num_valuators; i++)
+                valuators[i] = valuators[i] - pDev->valuator->axisVal[i];
+
+        }
     }
     /* Save the last calculated device axis value in the device
      * valuator for next event */
