@@ -475,6 +475,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
         drv = pInfo->drv;
         idev = pInfo->conf_idev;
     }
+    OsBlockSignals();
     RemoveDevice(pDev);
 
     if (pDev->isMaster)
@@ -484,6 +485,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
         drv->UnInit(drv, pInfo, 0);
     else
         xf86DeleteInput(pInfo, 0);
+    OsReleaseSignals();
 
     /* devices added through HAL aren't in the config layout */
     it = xf86ConfigLayout.inputs;
