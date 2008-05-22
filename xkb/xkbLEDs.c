@@ -629,7 +629,7 @@ XkbCopySrvLedInfo(	DeviceIntPtr		from,
 			KbdFeedbackPtr		kf,
 			LedFeedbackPtr		lf)
 {
-    XkbSrvLedInfoPtr sli_new;
+    XkbSrvLedInfoPtr sli_new = NULL;
 
     if (!src)
 	goto finish;
