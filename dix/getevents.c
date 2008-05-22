@@ -159,20 +159,22 @@ CreateClassesChangedEvent(EventList* event,
  * Rescale the coord between the two axis ranges.
  */
 static int
-rescaleValuatorAxis(int coord, int fmin, int fmax,
-                    int tmin, int tmax, int smax)
+rescaleValuatorAxis(int coord, AxisInfoPtr from, AxisInfoPtr to,
+                    int defmax)
 {
-    if(fmin >= fmax) {
-        fmin = 0;
-        fmax = smax;
+    int fmin = 0, tmin = 0, fmax = defmax, tmax = defmax;
+
+    if(from && from->min_value < from->max_value) {
+        fmin = from->min_value;
+        fmax = from->max_value;
     }
-    if(tmin >= tmax) {
-        tmin = 0;
-        tmax = smax;
+    if(to && to->min_value < to->max_value) {
+        tmin = to->min_value;
+        tmax = to->max_value;
     }
+
     if(fmin == tmin && fmax == tmax)
         return coord;
-
     return (int)(((float)(coord - fmin)) * (tmax - tmin + 1) /
                  (fmax - fmin + 1)) + tmin;
 }
@@ -194,13 +196,11 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
     /* the valuator axis is in device coords and holds the
      * position of the pointer, but in device coords. */
     if(pDev->valuator->numAxes > 0)
-        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->lastx, 0, scr->width,
-                                            pDev->valuator->axes[0].min_value,
-                                            pDev->valuator->axes[0].max_value, scr->width);
+        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->lastx, NULL,
+                                            pDev->valuator->axes + 0, scr->width);
     if(pDev->valuator->numAxes > 1)
-        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->lasty, 0, scr->height,
-                                            pDev->valuator->axes[1].min_value,
-                                            pDev->valuator->axes[1].max_value, scr->height);
+        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->lasty, NULL,
+                                            pDev->valuator->axes + 1, scr->height);
     /*TODO calculate the other axis as well based on info from the old slave-device */
 }
 
@@ -707,17 +707,22 @@ FreeEventList(EventListPtr list, int num_events)
  * The DDX is responsible for allocating the event structure in the first
  * place via InitEventList() and GetMaximumEventsNum(), and for freeing it.
  *
+ * In the generated events rootX/Y will be in absolute screen coords and
+ * the valuator information in the absolute or relative device coords.
+ * lastx/y of the device is always in absolute screen coords while the
+ * device valuator struct contain the absolute device coords.
  */
 _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
     int num_events = 1;
-    CARD32 ms = 0;
+    CARD32 ms;
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
     int x, y, cx, cy;
     ScreenPtr scr = miPointerGetScreen(pDev);
+    int *v0 = NULL, *v1 = NULL;
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -756,29 +761,34 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         events++;
     }
 
+    /* Fetch pointers into the valuator array for more easy to read code */
+    if (num_valuators >= 1 && first_valuator == 0)
+        v0 = valuators + 0;
+    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+        v1 = valuators + 1 - first_valuator;
+
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
     x = pDev->valuator->axisVal[0];
     y = pDev->valuator->axisVal[1];
     if (flags & POINTER_ABSOLUTE) {
-        if (num_valuators >= 1 && first_valuator == 0)
-            x = valuators[0];
-        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            y = valuators[1 - first_valuator];
+        if(v0) x = *v0;
+        if(v1) y = *v1;
+        /*TODO: Update the rest of the valuators */
 
         /* Clip both x and y to the defined limits (usually co-ord space limit). */
         clipAxis(pDev, 0, &x);
         clipAxis(pDev, 1, &y);
+        /*TODO: Clip the rest of the valuators */
     }
     else {
         if (flags & POINTER_ACCELERATE)
             acceleratePointer(pDev, first_valuator, num_valuators,
                               valuators);
 
-        if (first_valuator == 0 && num_valuators >= 1)
-            x += valuators[0];
-        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            y += valuators[1 - first_valuator];
+        if(v0) x += *v0;
+        if(v1) y += *v1;
+        /*TODO: Update the rest of the valuators */
 
         /* if not core -> clip both x and y to the defined limits (usually
          * co-ord space limit). */
@@ -786,15 +796,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             clipAxis(pDev, 0, &x);
             clipAxis(pDev, 1, &y);
         }
+        /*TODO: Clip the rest of the valuators (Yes, here. Only x&y get special treatment) */
     }
 
     /* scale x&y to screen */
-    pDev->lastx = cx = rescaleValuatorAxis(x, pDev->valuator->axes[0].min_value,
-                                           pDev->valuator->axes[0].max_value,
-                                           0, scr->width, scr->width);
-    pDev->lasty = cy = rescaleValuatorAxis(y, pDev->valuator->axes[1].min_value,
-                                           pDev->valuator->axes[1].max_value,
-                                           0, scr->height, scr->height);
+    pDev->lastx = cx = rescaleValuatorAxis(x, pDev->valuator->axes + 0,
+                                           NULL, scr->width);
+    pDev->lasty = cy = rescaleValuatorAxis(y, pDev->valuator->axes + 1,
+                                           NULL, scr->height);
 
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen.  Right now, we only have one history buffer,
@@ -803,15 +812,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     scr = miPointerGetScreen(pDev);
     if(cx != pDev->lastx)
-        x = rescaleValuatorAxis(pDev->lastx, 0, scr->width,
-                                pDev->valuator->axes[0].min_value,
-                                pDev->valuator->axes[0].max_value,
-                                scr->width);
+        x = rescaleValuatorAxis(pDev->lastx, NULL,
+                                pDev->valuator->axes + 0, scr->width);
     if(cy != pDev->lasty)
-        y = rescaleValuatorAxis(pDev->lasty, 0, scr->height,
-                                pDev->valuator->axes[1].min_value,
-                                pDev->valuator->axes[1].max_value,
-                                scr->height);
+        y = rescaleValuatorAxis(pDev->lasty, NULL,
+                                pDev->valuator->axes + 1, scr->height);
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
@@ -823,19 +828,17 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* update the valuators based on the mode of the InputDevice */
     if(pDev->valuator->mode == Absolute) {
         /* Update the valuators with the true value sent to the client*/
-        if (first_valuator == 0 && num_valuators >= 1)
-            valuators[0] = x;
-        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            valuators[1] = y;
+        if(v0) *v0 = x;
+        if(v1) *v1 = y;
+        /*TODO Ensure that valuator 2 and onward also are absolute */
     } else {/* Relative mode */
         /* If driver reported in absolute, calculate the relative valuator
          * values as a delta from the old absolute values of the valuator
          * values. If relative report, keep it as-is.*/
         if (flags & POINTER_ABSOLUTE) {
             int i;
-            for (i = first_valuator; i < num_valuators; i++)
-                valuators[i] = valuators[i] - pDev->valuator->axisVal[i];
-
+            for (i = 0; i < num_valuators; i++)
+                valuators[i] = valuators[i] - pDev->valuator->axisVal[i + first_valuator];
         }
     }
     /* Save the last calculated device axis value in the device
