@@ -2415,6 +2415,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
+    ScreenPtr screen;
     DeviceIntPtr oldmaster;
     if (!dev || dev->isMaster)
         return BadDevice;
@@ -2428,7 +2429,11 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 
     /* free the existing sprite. */
     if (!dev->u.master && dev->spriteInfo->paired == dev)
+    {
+        screen = miPointerGetScreen(dev);
+        screen->DeviceCursorCleanup(dev, screen);
         xfree(dev->spriteInfo->sprite);
+    }
 
     oldmaster = dev->u.master;
     dev->u.master = master;
@@ -2442,10 +2447,14 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     if (!master)
     {
         WindowPtr currentRoot = dev->spriteInfo->sprite->spriteTrace[0];
+        /* we need to init a fake sprite */
+        screen = currentRoot->drawable.pScreen;
+        screen->DeviceCursorInitialize(dev, screen);
         dev->spriteInfo->sprite = NULL;
         InitializeSprite(dev, currentRoot);
         dev->spriteInfo->spriteOwner = FALSE;
         dev->spriteInfo->paired = dev;
+
     } else
     {
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
