@@ -833,23 +833,10 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
-
-    /* update the valuators based on the mode of the InputDevice */
-    if(pDev->valuator->mode == Absolute) {
-        /* Update the valuators with the true value sent to the client*/
-        if(v0) *v0 = x;
-        if(v1) *v1 = y;
-        /*TODO Ensure that valuator 2 and onward also are absolute */
-    } else {/* Relative mode */
-        /* If driver reported in absolute, calculate the relative valuator
-         * values as a delta from the old absolute values of the valuator
-         * values. If relative report, keep it as-is.*/
-        if (flags & POINTER_ABSOLUTE) {
-            int i;
-            for (i = 0; i < num_valuators && i < pDev->last.numValuators; i++)
-                valuators[i] = valuators[i] - pDev->last.valuators[i + first_valuator];
-        }
-    }
+    /* Update the valuators with the true value sent to the client*/
+    if(v0) *v0 = x;
+    if(v1) *v1 = y;
+    /* TODO: other axes */
 
     /* dropy x/y (device coordinates) back into valuators for next event */
     pDev->last.valuators[0] = x;
