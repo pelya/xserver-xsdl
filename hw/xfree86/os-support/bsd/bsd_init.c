@@ -159,7 +159,7 @@ xf86OpenConsole()
     xf86ConsOpen_t *driver;
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
     int result;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
     struct utsname uts;
 #endif
     vtmode_t vtmode;
