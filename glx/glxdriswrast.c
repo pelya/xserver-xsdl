@@ -532,7 +532,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     xfree(screen);
 
-    LogMessage(X_ERROR, "AIGLX: reverting to software rendering\n");
+    FatalError("GLX: could not load software renderer\n");
 
     return NULL;
 }
