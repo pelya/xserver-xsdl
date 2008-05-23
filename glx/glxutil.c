@@ -42,13 +42,7 @@
 #include <string.h>
 
 #include "glxserver.h"
-#include <GL/glxtokens.h>
-#include <unpack.h>
-#include <pixmapstr.h>
-#include <windowstr.h>
 #include "glxutil.h"
-#include "GL/internal/glcore.h"
-#include "GL/glxint.h"
 
 /************************************************************************/
 /* Context stuff */
