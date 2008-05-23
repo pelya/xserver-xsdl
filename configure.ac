@@ -493,7 +493,6 @@ AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir
 				[ APPLE_APPLICATIONS_DIR="${withval}" ],
 				[ APPLE_APPLICATIONS_DIR="/Applications/Utilities" ])
 AC_SUBST([APPLE_APPLICATIONS_DIR])
-AC_ARG_WITH(launchd,          AS_HELP_STRING([--with-launchd], [Build with support for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
 AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Path to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
 				[ launchagentsdir="${withval}" ],
 				[ launchagentsdir="/Library/LaunchAgents" ])
@@ -1685,21 +1684,6 @@ _AM_DEPENDENCIES([OBJC])
 AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
-
-if test "x$LAUNCHD" = "xauto"; then
-	if test "x$XQUARTZ" = "xyes" ; then
-		LAUNCHD=yes
-	else
-		unset LAUNCHD
-		AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
-	fi
-fi
-
-if test "x$LAUNCHD" = "xyes" ; then
-	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
-fi
-AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
-
 
 dnl DMX DDX
 
