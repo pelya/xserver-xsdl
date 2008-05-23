@@ -420,10 +420,13 @@ findFirstSet(unsigned int v)
 static void
 initGlxVisual(VisualPtr visual, __GLXconfig *config)
 {
+    int maxBits;
+    maxBits = max(config->redBits, max(config->greenBits, config->blueBits));
+
     config->visualID = visual->vid;
     visual->class = glxConvertToXVisualType(config->visualType);
-    visual->bitsPerRGBValue = config->redBits;
-    visual->ColormapEntries = 1 << config->redBits;
+    visual->bitsPerRGBValue = maxBits;
+    visual->ColormapEntries = 1 << maxBits;
     visual->nplanes = config->redBits + config->greenBits + config->blueBits;
 
     visual->redMask = config->redMask;
