@@ -422,6 +422,8 @@ typedef struct _DeviceIntRec {
     } u;
 
     /* last valuator values recorded, not posted to client;
+     * for slave devices, valuators is in device coordinates
+     * for master devices, valuators is in screen coordinates
      * see dix/getevents.c */
     struct {
         int             valuators[MAX_VALUATORS];

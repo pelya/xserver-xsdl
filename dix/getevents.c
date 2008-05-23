@@ -183,24 +183,25 @@ rescaleValuatorAxis(int coord, AxisInfoPtr from, AxisInfoPtr to,
  * Update all coordinates when changing to a different SD
  * to ensure that relative reporting will work as expected
  * without loss of precision.
+ *
+ * pDev->last.valuators will be in absolute device coordinates after this
+ * function.
  */
 static void
 updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
     ScreenPtr scr = miPointerGetScreen(pDev);
 
-    /* last.valuators[0]/[1] is in screen coords and the actual position
-     * of the pointer */
+    /* master->last.valuators[0]/[1] is in screen coords and the actual
+     * position of the pointer */
     pDev->last.valuators[0] = master->last.valuators[0];
     pDev->last.valuators[1] = master->last.valuators[1];
-    /* the valuator axis is in device coords and holds the
-     * position of the pointer, but in device coords. */
+
+    /* scale back to device coordinates */
     if(pDev->valuator->numAxes > 0)
-        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
-                                            pDev->valuator->axes + 0, scr->width);
+        pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0], NULL, pDev->valuator->axes + 0, scr->width);
     if(pDev->valuator->numAxes > 1)
-        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
-                                            pDev->valuator->axes + 1, scr->height);
+        pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1], NULL, pDev->valuator->axes + 1, scr->height);
     /*TODO calculate the other axis as well based on info from the old slave-device */
 }
 
@@ -709,8 +710,9 @@ FreeEventList(EventListPtr list, int num_events)
  *
  * In the generated events rootX/Y will be in absolute screen coords and
  * the valuator information in the absolute or relative device coords.
- * last.valuators[0]/[1] of the device is always in absolute screen coords
- * while the device valuator struct contain the absolute device coords.
+ *
+ * last.valuators[x] of the device is always in absolute device coords.
+ * last.valuators[x] of the master device is in absolute screen coords.
  */
 _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
@@ -720,7 +722,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     CARD32 ms;
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
-    int x, y, cx, cy;
+    int x, y, /* switches between device and screen coords */
+        cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
     int *v0 = NULL, *v1 = NULL;
 
@@ -769,8 +772,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
-    x = pDev->valuator->axisVal[0];
-    y = pDev->valuator->axisVal[1];
+    x = pDev->last.valuators[0];
+    y = pDev->last.valuators[1];
     if (flags & POINTER_ABSOLUTE) {
         if(v0) x = *v0;
         if(v1) y = *v1;
@@ -811,20 +814,25 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
      * so we don't set this for both the device and core.*/
     miPointerSetPosition(pDev, &pDev->last.valuators[0], &pDev->last.valuators[1], ms);
 
-    scr = miPointerGetScreen(pDev);
-    if(cx != pDev->last.valuators[0])
-        x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
-                                pDev->valuator->axes + 0, scr->width);
-    if(cy != pDev->last.valuators[1])
-        y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
-                                pDev->valuator->axes + 1, scr->height);
-
-    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
-
     if (master) {
         master->last.valuators[0] = pDev->last.valuators[0];
         master->last.valuators[1] = pDev->last.valuators[1];
     }
+
+    if(cx != pDev->last.valuators[0])
+        cx = pDev->last.valuators[0];
+    if(cy != pDev->last.valuators[1])
+        cy = pDev->last.valuators[1];
+
+    /* scale x/y back to device coordinates */
+    scr = miPointerGetScreen(pDev);
+    x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
+                        pDev->valuator->axes + 0, scr->width);
+    y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
+                        pDev->valuator->axes + 1, scr->height);
+
+    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
+
 
     /* update the valuators based on the mode of the InputDevice */
     if(pDev->valuator->mode == Absolute) {
@@ -838,14 +846,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
          * values. If relative report, keep it as-is.*/
         if (flags & POINTER_ABSOLUTE) {
             int i;
-            for (i = 0; i < num_valuators; i++)
-                valuators[i] = valuators[i] - pDev->valuator->axisVal[i + first_valuator];
+            for (i = 0; i < num_valuators && i < pDev->last.numValuators; i++)
+                valuators[i] = valuators[i] - pDev->last.valuators[i + first_valuator];
         }
     }
-    /* Save the last calculated device axis value in the device
-     * valuator for next event */
-    pDev->valuator->axisVal[0] = x;
-    pDev->valuator->axisVal[1] = y;
+
+    /* dropy x/y (device coordinates) back into valuators for next event */
+    pDev->last.valuators[0] = x;
+    pDev->last.valuators[1] = y;
 
     kbp = (deviceKeyButtonPointer *) events->event;
     kbp->time = ms;
@@ -862,8 +870,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = pDev->button->map[buttons];
     }
 
-    kbp->root_x = pDev->last.valuators[0];
-    kbp->root_y = pDev->last.valuators[1];
+    kbp->root_x = cx; /* root_x/y always in screen coords */
+    kbp->root_y = cy;
 
     events++;
     if (num_valuators) {
