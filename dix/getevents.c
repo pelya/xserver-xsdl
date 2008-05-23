@@ -790,9 +790,10 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         if(v1) y += *v1;
         /*TODO: Update the rest of the valuators */
 
-        /* if not core -> clip both x and y to the defined limits (usually
-         * co-ord space limit). */
-        if(!pDev->coreEvents) {
+        /* if attached, clip both x and y to the defined limits (usually
+         * co-ord space limit). If it is attached, we need x/y to go over the
+         * limits to be able to change screens. */
+        if(master) {
             clipAxis(pDev, 0, &x);
             clipAxis(pDev, 1, &y);
         }
