@@ -16,10 +16,6 @@ libfake_a_SOURCES =	\
 Xfake_SOURCES = \
 	fakeinit.c
 
-if GLX
-Xfake_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
-endif
-
 Xfake_LDADD = 						\
 	libfake.a					\
 	@KDRIVE_LIBS@					\

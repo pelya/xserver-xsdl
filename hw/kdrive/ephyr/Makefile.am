@@ -62,10 +62,6 @@ libxephyr_a_SOURCES = $(XEPHYR_SRCS)
 Xephyr_SOURCES = \
 	ephyrinit.c
 
-if GLX
-Xephyr_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
-endif
-
 Xephyr_LDADD = 						\
 	libxephyr.a					\
 	libxephyr-hostx.a				\

@@ -19,10 +19,6 @@ libvesa_a_SOURCES = \
 Xvesa_SOURCES = \
 	vesainit.c
 
-if GLX
-Xvesa_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
-endif
-
 Xvesa_LDADD = \
 	libvesa.a 				\
 	@KDRIVE_LIBS@
