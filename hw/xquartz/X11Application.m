@@ -45,9 +45,6 @@
 #include "X11/extensions/applewm.h"
 #include "micmap.h"
 
-#include "os.h"
-#include "mach-startup/launchd_fd.h"
-
 #include <mach/mach.h>
 #include <unistd.h>
 
@@ -815,14 +812,6 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
     
-#ifndef NEW_LAUNCH_METHOD
-    /* Start listening on the launchd fd */
-    int launchd_fd = launchd_display_fd();
-    if(launchd_fd != -1) {
-        DarwinListenOnOpenFD(launchd_fd);
-    }
-#endif
-
     [NSApp run];
     /* not reached */
 }
