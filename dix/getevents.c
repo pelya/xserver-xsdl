@@ -189,17 +189,17 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
     ScreenPtr scr = miPointerGetScreen(pDev);
 
-    /* lastx/y is in screen coords and the actual position
+    /* last.valuators[0]/[1] is in screen coords and the actual position
      * of the pointer */
-    pDev->lastx = master->lastx;
-    pDev->lasty = master->lasty;
+    pDev->last.valuators[0] = master->last.valuators[0];
+    pDev->last.valuators[1] = master->last.valuators[1];
     /* the valuator axis is in device coords and holds the
      * position of the pointer, but in device coords. */
     if(pDev->valuator->numAxes > 0)
-        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->lastx, NULL,
+        pDev->valuator->axisVal[0] = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
                                             pDev->valuator->axes + 0, scr->width);
     if(pDev->valuator->numAxes > 1)
-        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->lasty, NULL,
+        pDev->valuator->axisVal[1] = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
                                             pDev->valuator->axes + 1, scr->height);
     /*TODO calculate the other axis as well based on info from the old slave-device */
 }
@@ -542,8 +542,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
         if (master->valuator && pDev->valuator)
         {
-            pDev->lastx = master->lastx;
-            pDev->lasty = master->lasty;
+            pDev->last.valuators[0] = master->last.valuators[0];
+            pDev->last.valuators[1] = master->last.valuators[1];
         }
         master->u.lastSlave = pDev;
         numEvents++;
@@ -709,8 +709,8 @@ FreeEventList(EventListPtr list, int num_events)
  *
  * In the generated events rootX/Y will be in absolute screen coords and
  * the valuator information in the absolute or relative device coords.
- * lastx/y of the device is always in absolute screen coords while the
- * device valuator struct contain the absolute device coords.
+ * last.valuators[0]/[1] of the device is always in absolute screen coords
+ * while the device valuator struct contain the absolute device coords.
  */
 _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
@@ -801,29 +801,29 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* scale x&y to screen */
-    pDev->lastx = cx = rescaleValuatorAxis(x, pDev->valuator->axes + 0,
+    pDev->last.valuators[0] = cx = rescaleValuatorAxis(x, pDev->valuator->axes + 0,
                                            NULL, scr->width);
-    pDev->lasty = cy = rescaleValuatorAxis(y, pDev->valuator->axes + 1,
+    pDev->last.valuators[1] = cy = rescaleValuatorAxis(y, pDev->valuator->axes + 1,
                                            NULL, scr->height);
 
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen.  Right now, we only have one history buffer,
      * so we don't set this for both the device and core.*/
-    miPointerSetPosition(pDev, &pDev->lastx, &pDev->lasty, ms);
+    miPointerSetPosition(pDev, &pDev->last.valuators[0], &pDev->last.valuators[1], ms);
 
     scr = miPointerGetScreen(pDev);
-    if(cx != pDev->lastx)
-        x = rescaleValuatorAxis(pDev->lastx, NULL,
+    if(cx != pDev->last.valuators[0])
+        x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
                                 pDev->valuator->axes + 0, scr->width);
-    if(cy != pDev->lasty)
-        y = rescaleValuatorAxis(pDev->lasty, NULL,
+    if(cy != pDev->last.valuators[1])
+        y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
                                 pDev->valuator->axes + 1, scr->height);
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
     if (master) {
-        master->lastx = pDev->lastx;
-        master->lasty = pDev->lasty;
+        master->last.valuators[0] = pDev->last.valuators[0];
+        master->last.valuators[1] = pDev->last.valuators[1];
     }
 
     /* update the valuators based on the mode of the InputDevice */
@@ -862,13 +862,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = pDev->button->map[buttons];
     }
 
-    kbp->root_x = pDev->lastx;
-    kbp->root_y = pDev->lasty;
+    kbp->root_x = pDev->last.valuators[0];
+    kbp->root_y = pDev->last.valuators[1];
 
     events++;
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
-        clipValuators(pDev, first_valuator, num_valuators, valuators);
+        if (flags & POINTER_ABSOLUTE)
+            clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
                                    num_valuators, valuators);
     }

@@ -505,8 +505,6 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
  * convenient functions to post events
  */
 
-#define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */
-
 _X_EXPORT void
 xf86PostMotionEvent(DeviceIntPtr	device,
                     int			is_absolute,
@@ -566,14 +564,14 @@ xf86PostMotionEventP(DeviceIntPtr	device,
             {
                 dx = valuators[0];
                 if (is_absolute)
-                    dx -= device->lastx;
+                    dx -= device->last.valuators[0];
             }
 
             if (first_valuator == 1 || num_valuators >= 2)
             {
                 dy = valuators[1 - first_valuator];
                 if (is_absolute)
-                    dy -= device->lasty;
+                    dy -= device->last.valuators[1];
             }
 
             if (DGAStealMotionEvent(device, index, dx, dy))
@@ -833,11 +831,11 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 {
     if (axnum == 0) {
 	dev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
-        dev->lastx = dev->valuator->axisVal[0];
+        dev->last.valuators[0] = dev->valuator->axisVal[0];
     }
     else if (axnum == 1) {
 	dev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
-        dev->lasty = dev->valuator->axisVal[1];
+        dev->last.valuators[1] = dev->valuator->axisVal[1];
     }
 }
 

@@ -63,6 +63,8 @@ SOFTWARE.
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
 
+#define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */
+
 #define NO_AXIS_LIMITS -1
 
 #define MAP_LENGTH	256

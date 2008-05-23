@@ -168,6 +168,10 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->spriteInfo->sprite = NULL;
     dev->spriteInfo->spriteOwner = FALSE;
 
+    /* last valuators */
+    memset(dev->last.valuators, 0, sizeof(dev->last.valuators));
+    dev->last.numValuators = 0;
+
     /*  security creation/labeling check
      */
     if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixCreateAccess)) {
@@ -491,9 +495,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
                                 GetMotionHistory, (PtrCtrlProcPtr)NoopDDA,
                                 GetMotionHistorySize(), 2);
         pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
-        pDev->lastx = pDev->valuator->axisVal[0];
+        pDev->last.valuators[0] = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
-        pDev->lasty = pDev->valuator->axisVal[1];
+        pDev->last.valuators[1] = pDev->valuator->axisVal[1];
         break;
 
     case DEVICE_CLOSE:
@@ -1192,6 +1196,8 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
                                0, 0, 0);
 	valc->axisVal[i]=0;
     }
+
+    dev->last.numValuators = numAxes;
     return TRUE;
 }
 

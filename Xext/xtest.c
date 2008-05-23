@@ -470,16 +470,16 @@ ProcXTestFakeInput(client)
                      ev->u.keyButtonPointer.rootX,
                      ev->u.keyButtonPointer.rootY, FALSE);
             }
-            dev->lastx = ev->u.keyButtonPointer.rootX;
-            dev->lasty = ev->u.keyButtonPointer.rootY;
+            dev->last.valuators[0] = ev->u.keyButtonPointer.rootX;
+            dev->last.valuators[1] = ev->u.keyButtonPointer.rootY;
             break;
         case ButtonPress:
         case ButtonRelease:
             if (!extension)
                 dev = PickPointer(client);
 
-            ev->u.keyButtonPointer.rootX = dev->lastx;
-            ev->u.keyButtonPointer.rootY = dev->lasty;
+            ev->u.keyButtonPointer.rootX = dev->last.valuators[0];
+            ev->u.keyButtonPointer.rootY = dev->last.valuators[1];
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;

@@ -420,8 +420,13 @@ typedef struct _DeviceIntRec {
     DeviceIntPtr        master;       /* master device */
     DeviceIntPtr        lastSlave;    /* last slave device used */
     } u;
-    int                 lastx, lasty; /* last event recorded, not posted to
-                                       * client; see dix/devices.c */
+
+    /* last valuator values recorded, not posted to client;
+     * see dix/getevents.c */
+    struct {
+        int             valuators[MAX_VALUATORS];
+        int             numValuators;
+    } last;
 } DeviceIntRec;
 
 typedef struct {
