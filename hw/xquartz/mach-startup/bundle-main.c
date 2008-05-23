@@ -437,8 +437,10 @@ int main(int argc, char **argv, char **envp) {
 }
 #else
 void *add_launchd_display_thread(void *data) {
-    /* TODO: Really fix this race */
-    sleep(5);
+    /* TODO: Really fix this race... we want xinitrc to finish before connections
+     *       are accepted on the launchd socket.
+     */
+    sleep(2);
     
     /* Start listening on the launchd fd */
     int launchd_fd = launchd_display_fd();
