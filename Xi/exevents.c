@@ -831,90 +831,50 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 		FatalError("Bad valuators reported for device %s\n",
 			   device->name);
 	    if (v && v->axisVal) {
-                /* The device always stores values in absolute. Only the
+                /* v->axisVal is always in absolute coordinates. Only the
                  * delivery mode changes.
-                 * If device is mode Absolute, and event is Relative
-                 *     dev += event
-                 *     event = dev
-                 * If device is mode Absolute, and event is Absolute
+                 * If device is mode Absolute
                  *     dev = event
-                 * If device is mode Relative, and event is Absolute
+                 * If device is mode Relative
                  *      swap = (event - device)
                  *      dev = event
                  *      event = delta
-                 * If device is mode Relative, and event is Relative
-                 *      dev += event
                  *
                  * XXX: axis clipping for relative events?
                  */
 		axisvals = v->axisVal;
-                if (xV->sequenceNumber & Absolute) {
-                    int delta;
-                    if (v->mode == Relative) /* device reports relative */
-                    {
-                        change = TRUE;
-                        xV->sequenceNumber &= ~Absolute;
-                    }
+                int delta;
+                if (v->mode == Relative) /* device reports relative */
+                    change = TRUE;
 
-                    switch (xV->num_valuators) {
-                        case 6:
-                            if (change) delta = xV->valuator5 - *(axisvals + first + 5);
-                            *(axisvals + first + 5) = xV->valuator5;
-                            if (change) xV->valuator5 = delta;
-                        case 5:
-                            if (change) delta = xV->valuator4 - *(axisvals + first + 4);
-                            *(axisvals + first + 4) = xV->valuator4;
-                            if (change) xV->valuator4 = delta;
-                        case 4:
-                            if (change) delta = xV->valuator3 - *(axisvals + first + 3);
-                            *(axisvals + first + 3) = xV->valuator3;
-                            if (change) xV->valuator3 = delta;
-                        case 3:
-                            if (change) delta = xV->valuator2 - *(axisvals + first + 2);
-                            *(axisvals + first + 2) = xV->valuator2;
-                            if (change) xV->valuator2 = delta;
-                        case 2:
-                            if (change) delta = xV->valuator1 - *(axisvals + first + 1);
-                            *(axisvals + first + 1) = xV->valuator1;
-                            if (change) xV->valuator1 = delta;
-                        case 1:
-                            if (change) delta = xV->valuator0 - *(axisvals + first);
-                            *(axisvals + first) = xV->valuator0;
-                            if (change) xV->valuator0 = delta;
-                        case 0:
-                        default:
-                            break;
-                    }
-		} else { /* event is relative */
-                    if (v->mode == Absolute) /* device reports absolute */
-                    {
-                        change = TRUE;
-                        xV->sequenceNumber |= Absolute;
-                    }
-
-                    switch (xV->num_valuators) {
-                        case 6:
-                            *(axisvals + first + 5) += xV->valuator5;
-                            if (change) xV->valuator5 = *(axisvals + first + 5);
-                        case 5:
-                            *(axisvals + first + 4) += xV->valuator4;
-                            if (change) xV->valuator4 = *(axisvals + first + 4);
-                        case 4:
-                            *(axisvals + first + 3) += xV->valuator3;
-                            if (change) xV->valuator3 = *(axisvals + first + 3);
-                        case 3:
-                            *(axisvals + first + 2) += xV->valuator2;
-                            if (change) xV->valuator2 = *(axisvals + first + 2);
-                        case 2:
-                            *(axisvals + first + 1) += xV->valuator1;
-                            if (change) xV->valuator1 = *(axisvals + first + 1);
-                        case 1:
-                            *(axisvals + first) += xV->valuator0;
-                            if (change) xV->valuator0 = *(axisvals + first);
-                        case 0:
-                        default:
-                            break;
-                    }
+                switch (xV->num_valuators) {
+                    case 6:
+                        if (change) delta = xV->valuator5 - *(axisvals + first + 5);
+                        *(axisvals + first + 5) = xV->valuator5;
+                        if (change) xV->valuator5 = delta;
+                    case 5:
+                        if (change) delta = xV->valuator4 - *(axisvals + first + 4);
+                        *(axisvals + first + 4) = xV->valuator4;
+                        if (change) xV->valuator4 = delta;
+                    case 4:
+                        if (change) delta = xV->valuator3 - *(axisvals + first + 3);
+                        *(axisvals + first + 3) = xV->valuator3;
+                        if (change) xV->valuator3 = delta;
+                    case 3:
+                        if (change) delta = xV->valuator2 - *(axisvals + first + 2);
+                        *(axisvals + first + 2) = xV->valuator2;
+                        if (change) xV->valuator2 = delta;
+                    case 2:
+                        if (change) delta = xV->valuator1 - *(axisvals + first + 1);
+                        *(axisvals + first + 1) = xV->valuator1;
+                        if (change) xV->valuator1 = delta;
+                    case 1:
+                        if (change) delta = xV->valuator0 - *(axisvals + first);
+                        *(axisvals + first) = xV->valuator0;
+                        if (change) xV->valuator0 = delta;
+                    case 0:
+                    default:
+                        break;
                 }
 	    }
 	}
