@@ -191,18 +191,39 @@ static void
 updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 {
     ScreenPtr scr = miPointerGetScreen(pDev);
+    int i;
+    DeviceIntPtr lastSlave;
 
     /* master->last.valuators[0]/[1] is in screen coords and the actual
      * position of the pointer */
     pDev->last.valuators[0] = master->last.valuators[0];
     pDev->last.valuators[1] = master->last.valuators[1];
 
+    if (!pDev->valuator)
+        return;
+
     /* scale back to device coordinates */
     if(pDev->valuator->numAxes > 0)
         pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0], NULL, pDev->valuator->axes + 0, scr->width);
     if(pDev->valuator->numAxes > 1)
         pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1], NULL, pDev->valuator->axes + 1, scr->height);
-    /*TODO calculate the other axis as well based on info from the old slave-device */
+
+    /* calculate the other axis as well based on info from the old
+     * slave-device. If the old slave had less axes than this one,
+     * last.valuators is reset to 0.
+     */
+    if ((lastSlave = master->u.lastSlave) && lastSlave->valuator) {
+        for (i = 2; i < pDev->valuator->numAxes; i++) {
+            if (i >= lastSlave->valuator->numAxes)
+                pDev->last.valuators[i] = 0;
+            else
+                pDev->last.valuators[i] =
+                    rescaleValuatorAxis(pDev->last.valuators[i],
+                            lastSlave->valuator->axes + i,
+                            pDev->valuator->axes + i, 0);
+        }
+    }
+
 }
 
 /**
@@ -540,13 +561,9 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (master && master->u.lastSlave != pDev)
     {
         CreateClassesChangedEvent(events, master, pDev);
-
-        if (master->valuator && pDev->valuator)
-        {
-            pDev->last.valuators[0] = master->last.valuators[0];
-            pDev->last.valuators[1] = master->last.valuators[1];
-        }
+        updateSlaveDeviceCoords(master, pDev);
         master->u.lastSlave = pDev;
+        master->last.numValuators = pDev->last.numValuators;
         numEvents++;
         events++;
     }
@@ -713,6 +730,8 @@ FreeEventList(EventListPtr list, int num_events)
  *
  * last.valuators[x] of the device is always in absolute device coords.
  * last.valuators[x] of the master device is in absolute screen coords.
+ *
+ * master->last.valuators[x] for x > 2 is undefined.
  */
 _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
@@ -726,6 +745,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
     int *v0 = NULL, *v1 = NULL;
+    int i;
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -760,6 +780,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         CreateClassesChangedEvent(events, master, pDev);
         updateSlaveDeviceCoords(master, pDev);
         master->u.lastSlave = pDev;
+        master->last.numValuators = pDev->last.numValuators;
         num_events++;
         events++;
     }
@@ -777,12 +798,17 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (flags & POINTER_ABSOLUTE) {
         if(v0) x = *v0;
         if(v1) y = *v1;
-        /*TODO: Update the rest of the valuators */
 
         /* Clip both x and y to the defined limits (usually co-ord space limit). */
         clipAxis(pDev, 0, &x);
         clipAxis(pDev, 1, &y);
-        /*TODO: Clip the rest of the valuators */
+
+        i = (first_valuator > 2) ? 0 : 2;
+        for (; i < num_valuators; i++)
+        {
+            pDev->last.valuators[i + first_valuator] = valuators[i];
+            clipAxis(pDev, i, &pDev->last.valuators[i + first_valuator]);
+        }
     }
     else {
         if (flags & POINTER_ACCELERATE)
@@ -791,7 +817,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
         if(v0) x += *v0;
         if(v1) y += *v1;
-        /*TODO: Update the rest of the valuators */
 
         /* if attached, clip both x and y to the defined limits (usually
          * co-ord space limit). If it is attached, we need x/y to go over the
@@ -800,7 +825,15 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             clipAxis(pDev, 0, &x);
             clipAxis(pDev, 1, &y);
         }
-        /*TODO: Clip the rest of the valuators (Yes, here. Only x&y get special treatment) */
+
+        /* calc other axes, clip, drop back into valuators */
+        i = (first_valuator > 2) ? 0 : 2;
+        for (; i < num_valuators; i++)
+        {
+            pDev->last.valuators[i + first_valuator] += valuators[i];
+            clipAxis(pDev, i, &pDev->last.valuators[i + first_valuator]);
+            valuators[i] = pDev->last.valuators[i + first_valuator];
+        }
     }
 
     /* scale x&y to screen */
@@ -836,7 +869,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* Update the valuators with the true value sent to the client*/
     if(v0) *v0 = x;
     if(v1) *v1 = y;
-    /* TODO: other axes */
 
     /* dropy x/y (device coordinates) back into valuators for next event */
     pDev->last.valuators[0] = x;
@@ -914,6 +946,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         CreateClassesChangedEvent(events, master, pDev);
         updateSlaveDeviceCoords(master, pDev);
         master->u.lastSlave = pDev;
+        master->last.numValuators = pDev->last.numValuators;
         num_events++;
         events++;
     }
