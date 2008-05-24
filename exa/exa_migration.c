@@ -116,7 +116,7 @@ exaPixmapShouldBeInFB (PixmapPtr pPix)
  * If the pixmap is currently dirty, this copies at least the dirty area from
  * FB to system or vice versa.  Both areas must be allocated.
  */
-static _X_INLINE void
+static void
 exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	     Bool (*transfer) (PixmapPtr pPix, int x, int y, int w, int h,
 			       char *sys, int sys_pitch), CARD8 *fallback_src,
