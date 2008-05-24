@@ -487,7 +487,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
     ExaMigrationRec pixmaps[2];
-    RegionPtr region = NULL;
+    RegionPtr srcregion = NULL, dstregion = NULL;
+    xRectangle *rects;
 
     pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
     pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
@@ -495,33 +496,38 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
     exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
 
-    if (!pGC || !exaGCReadsDestination(pDstDrawable, pGC->planemask,
-				       pGC->fillStyle, pGC->alu)) {
-	xRectangle *rects = xalloc(nbox * sizeof(xRectangle));
+    rects = xalloc(nbox * sizeof(xRectangle));
 
-	if (rects) {
-	    int i;
+    if (rects) {
+	int i;
 
-	    for (i = 0; i < nbox; i++) {
-		rects[i].x = pbox[i].x1 + dst_off_x;
-		rects[i].y = pbox[i].y1 + dst_off_y;
-		rects[i].width = pbox[i].x2 - pbox[i].x1;
-		rects[i].height = pbox[i].y2 - pbox[i].y1;
-	    }
+	for (i = 0; i < nbox; i++) {
+	    rects[i].x = pbox[i].x1 + dx + src_off_x;
+	    rects[i].y = pbox[i].y1 + dy + src_off_y;
+	    rects[i].width = pbox[i].x2 - pbox[i].x1;
+	    rects[i].height = pbox[i].y2 - pbox[i].y1;
+	}
 
-	    region  = RECTS_TO_REGION(pScreen, nbox, rects, CT_YXBANDED);
-	    xfree(rects);
+	srcregion  = RECTS_TO_REGION(pScreen, nbox, rects, CT_YXBANDED);
+	xfree(rects);
+
+	if (!pGC || !exaGCReadsDestination(pDstDrawable, pGC->planemask,
+					   pGC->fillStyle, pGC->alu)) {
+	    dstregion = REGION_CREATE(pScreen, NullBox, 0);
+	    REGION_COPY(pScreen, dstregion, srcregion);
+	    REGION_TRANSLATE(pScreen, dstregion, dst_off_x - dx - src_off_x,
+			     dst_off_y - dy - src_off_y);
 	}
     }
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pDstPixmap;
-    pixmaps[0].pReg = region;
+    pixmaps[0].pReg = dstregion;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pSrcPixmap;
-    pixmaps[1].pReg = NULL;
+    pixmaps[1].pReg = srcregion;
 
     pSrcExaPixmap = ExaGetPixmapPriv (pSrcPixmap);
     pDstExaPixmap = ExaGetPixmapPriv (pDstPixmap);
@@ -594,17 +600,21 @@ fallback:
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
 		  exaDrawableLocation(pSrcDrawable),
 		  exaDrawableLocation(pDstDrawable)));
-    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, region);
-    exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
+    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, dstregion);
+    exaPrepareAccessReg (pSrcDrawable, EXA_PREPARE_SRC, srcregion);
     fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse,
 		upsidedown, bitplane, closure);
     exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
 
 out:
-    if (region) {
-	REGION_UNINIT(pScreen, region);
-	REGION_DESTROY(pScreen, region);
+    if (dstregion) {
+	REGION_UNINIT(pScreen, dstregion);
+	REGION_DESTROY(pScreen, dstregion);
+    }
+    if (srcregion) {
+	REGION_UNINIT(pScreen, srcregion);
+	REGION_DESTROY(pScreen, srcregion);
     }
 }
 
