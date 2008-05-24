@@ -262,6 +262,7 @@ exaDoShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
     if (format == ZPixmap)
     {
 	PixmapPtr pPixmap;
+	ExaPixmapPriv(exaGetDrawablePixmap(pDrawable));
 
 	pPixmap = GetScratchPixmapHeader(pDrawable->pScreen, w, h, depth,
 		BitsPerPixel(depth), PixmapBytePad(w, depth), (pointer)data);
@@ -272,7 +273,8 @@ exaDoShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
 				  pGC->alu))
 	    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	else
-	    ExaDoPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST,
+				 DamagePendingRegion(pExaPixmap->pDamage));
 	fbCopyArea((DrawablePtr)pPixmap, pDrawable, pGC, sx, sy, sw, sh, dx, dy);
 	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 
@@ -316,7 +318,7 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 				  pGC->alu))
 	    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	else
-	    ExaDoPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, &region);
 	fbShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
 		      data);
 	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);

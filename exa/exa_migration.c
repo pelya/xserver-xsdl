@@ -301,6 +301,9 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
     ExaScreenPriv (pScreen);
     ExaPixmapPriv (pPixmap);
 
+    if (migrate->as_dst)
+	pExaPixmap->pendingDamage = TRUE;
+
     /* If we're VT-switched away, no touching card memory allowed. */
     if (pExaScr->swappedOut)
 	return;
@@ -368,6 +371,9 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
 {
     PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
+
+    if (migrate->as_dst)
+	pExaPixmap->pendingDamage = TRUE;
 
     if (!pExaPixmap->area || exaPixmapIsPinned(pPixmap))
 	return;

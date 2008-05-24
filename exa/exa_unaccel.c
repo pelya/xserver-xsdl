@@ -97,12 +97,15 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits)
 {
+    ExaPixmapPriv(exaGetDrawablePixmap(pDrawable));
+
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
     if (exaGCReadsDestination(pDrawable, pGC->planemask, pGC->fillStyle,
 			      pGC->alu))
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     else
-	ExaDoPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST,
+			     DamagePendingRegion(pExaPixmap->pDamage));
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
