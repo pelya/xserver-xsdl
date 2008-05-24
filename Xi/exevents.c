@@ -839,8 +839,6 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
                  *      swap = (event - device)
                  *      dev = event
                  *      event = delta
-                 *
-                 * XXX: axis clipping for relative events?
                  */
 		axisvals = v->axisVal;
                 int delta;
