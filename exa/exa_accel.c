@@ -970,10 +970,8 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     int		    dstBpp;
     int		    dstXoff, dstYoff;
     FbBits	    depthMask;
-    Bool	    fallback;
     PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
     ExaPixmapPriv(pPixmap);
-    ExaMigrationRec pixmaps[1];
     RegionPtr	    pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
     BoxRec	    extents = *REGION_EXTENTS(pScreen, pending_damage);
     int		    xoff, yoff;
@@ -982,16 +980,8 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 	return;
 
     depthMask = FbFullMask(pDrawable->depth);
-    fallback = (pGC->planemask & depthMask) != depthMask;
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap;
-    pixmaps[0].pReg = fallback ? NULL : pending_damage;
-
-    exaDoMigration(pixmaps, 1, FALSE);
-
-    if (fallback)
+    if ((pGC->planemask & depthMask) != depthMask)
     {
 	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	return;
@@ -1014,7 +1004,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     extents.y1 -= yoff;
     extents.y2 -= yoff;
 
-    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pending_damage);
 
     if (TERMINALFONT (pGC->font) && !glyph)
     {
