@@ -137,9 +137,9 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
 	coords = (INT32 *) xalloc(tsize);
 	if (!coords)
 	    return BadAlloc;
-	rep.nEvents = (v->GetMotionProc) (dev, (xTimecoord *) coords,	/* XXX */
-					  start.milliseconds, stop.milliseconds,
-					  (ScreenPtr) NULL);
+	rep.nEvents = GetMotionHistory(dev, (xTimecoord *) coords,/* XXX */
+					start.milliseconds, stop.milliseconds,
+					(ScreenPtr) NULL);
     }
     if (rep.nEvents > 0) {
 	length = (rep.nEvents * size + 3) >> 2;

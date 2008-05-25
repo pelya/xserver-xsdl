@@ -438,7 +438,6 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
         }
 
 	InitPointerDeviceStruct(pDev, pi->map, pi->nButtons,
-	    GetMotionHistory,
 	    (PtrCtrlProcPtr)NoopDDA,
 	    GetMotionHistorySize(), pi->nAxes);
 

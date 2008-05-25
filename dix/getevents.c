@@ -238,8 +238,8 @@ AllocateMotionHistory(DeviceIntPtr pDev)
     if (pDev->valuator->numMotionEvents < 1)
         return;
 
-    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes) +
-                                     sizeof(Time)) *
+    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes)
+                                    + sizeof(Time)) *
                                     pDev->valuator->numMotionEvents);
     pDev->valuator->first_motion = 0;
     pDev->valuator->last_motion = 0;

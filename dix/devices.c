@@ -492,7 +492,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         for (i = 1; i <= 32; i++)
             map[i] = i;
         InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
-                                GetMotionHistory, (PtrCtrlProcPtr)NoopDDA,
+                                (PtrCtrlProcPtr)NoopDDA,
                                 GetMotionHistorySize(), 2);
         pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
         pDev->last.valuators[0] = pDev->valuator->axisVal[0];
@@ -643,7 +643,7 @@ FreeDeviceClass(int type, pointer *class)
                 ValuatorClassPtr *v = (ValuatorClassPtr*)class;
 
                 /* Counterpart to 'biggest hack ever' in init. */
-                if ((*v)->motion && (*v)->GetMotionProc == GetMotionHistory)
+                if ((*v)->motion)
                     xfree((*v)->motion);
                 xfree((*v));
                 break;
@@ -1157,7 +1157,6 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
 
 _X_EXPORT Bool
 InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
-                              ValuatorMotionProcPtr motionProc,
                               int numMotionEvents, int mode)
 {
     int i;
@@ -1175,7 +1174,6 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->motion = NULL;
     valc->first_motion = 0;
     valc->last_motion = 0;
-    valc->GetMotionProc = motionProc;
 
     valc->numMotionEvents = numMotionEvents;
     valc->motionHintWindow = NullWindow;
@@ -1187,9 +1185,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->dyremaind = 0;
     dev->valuator = valc;
 
-    /* biggest hack ever. */
-    if (motionProc == GetMotionHistory)
-        AllocateMotionHistory(dev);
+    AllocateMotionHistory(dev);
 
     for (i=0; i<numAxes; i++) {
         InitValuatorAxisStruct(dev, i, NO_AXIS_LIMITS, NO_AXIS_LIMITS,
@@ -1414,14 +1410,13 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
 
 _X_EXPORT Bool
 InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
-                        ValuatorMotionProcPtr motionProc,
                         PtrCtrlProcPtr controlProc, int numMotionEvents,
                         int numAxes)
 {
     DeviceIntPtr dev = (DeviceIntPtr)device;
 
     return(InitButtonClassDeviceStruct(dev, numButtons, map) &&
-	   InitValuatorClassDeviceStruct(dev, numAxes, motionProc,
+	   InitValuatorClassDeviceStruct(dev, numAxes,
 					 numMotionEvents, 0) &&
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }
@@ -2317,10 +2312,8 @@ ProcGetMotionEvents(ClientPtr client)
 					      * sizeof(xTimecoord));
 	if (!coords)
 	    return BadAlloc;
-	count = (*mouse->valuator->GetMotionProc) (mouse, coords,
-						   start.milliseconds,
-						   stop.milliseconds,
-						   pWin->drawable.pScreen);
+	count = GetMotionHistory(mouse, coords, start.milliseconds,
+				 stop.milliseconds, pWin->drawable.pScreen);
 	xmin = pWin->drawable.x - wBorderWidth (pWin);
 	xmax = pWin->drawable.x + (int)pWin->drawable.width +
 		wBorderWidth (pWin);

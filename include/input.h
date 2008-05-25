@@ -274,17 +274,9 @@ extern Bool InitButtonClassDeviceStruct(
     int /*numButtons*/,
     CARD8* /*map*/);
 
-typedef int (*ValuatorMotionProcPtr)(
-		DeviceIntPtr /*pdevice*/,
-		xTimecoord * /*coords*/,
-		unsigned long /*start*/,
-		unsigned long /*stop*/,
-		ScreenPtr /*pScreen*/);
-
 extern Bool InitValuatorClassDeviceStruct(
     DeviceIntPtr /*device*/,
     int /*numAxes*/,
-    ValuatorMotionProcPtr /* motionProc */,
     int /*numMotionEvents*/,
     int /*mode*/);
 
@@ -358,7 +350,6 @@ extern Bool InitPointerDeviceStruct(
     DevicePtr /*device*/,
     CARD8* /*map*/,
     int /*numButtons*/,
-    ValuatorMotionProcPtr /*motionProc*/,
     PtrCtrlProcPtr /*controlProc*/,
     int /*numMotionEvents*/,
     int /*numAxes*/);

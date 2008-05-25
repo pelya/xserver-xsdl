@@ -295,7 +295,7 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	    map[1] = 1;
 	    map[2] = 2;
 	    map[3] = 3;
-	    InitPointerDeviceStruct(pDev, map, 3, GetMotionHistory,
+	    InitPointerDeviceStruct(pDev, map, 3,
 		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
 	    break;
 

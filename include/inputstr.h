@@ -164,11 +164,10 @@ typedef struct _AxisInfo {
 } AxisInfo, *AxisInfoPtr;
 
 typedef struct _ValuatorClassRec {
-    ValuatorMotionProcPtr GetMotionProc;
     int		 	  numMotionEvents;
     int                   first_motion;
     int                   last_motion;
-    void                  *motion;
+    void                  *motion; /* motion history buffer */
 
     WindowPtr    	  motionHintWindow;
 
