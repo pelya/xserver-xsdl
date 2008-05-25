@@ -232,15 +232,25 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 _X_EXPORT void
 AllocateMotionHistory(DeviceIntPtr pDev)
 {
+    int size;
     if (pDev->valuator->motion)
         xfree(pDev->valuator->motion);
 
     if (pDev->valuator->numMotionEvents < 1)
         return;
 
-    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes)
-                                    + sizeof(Time)) *
-                                    pDev->valuator->numMotionEvents);
+    /* An MD must have a motion history size large enough to keep all
+     * potential valuators, plus the respective range of the valuators.
+     * 3 * INT32 for (min_val, max_val, curr_val))
+     */
+    if (pDev->isMaster)
+        size = sizeof(INT32) * 3 * MAX_VALUATORS;
+    else
+        size = sizeof(INT32) * pDev->valuator->numAxes;
+
+    size += sizeof(Time);
+
+    pDev->valuator->motion = xcalloc(pDev->valuator->numMotionEvents, size);
     pDev->valuator->first_motion = 0;
     pDev->valuator->last_motion = 0;
 }

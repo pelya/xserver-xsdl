@@ -167,9 +167,9 @@ typedef struct _ValuatorClassRec {
     int		 	  numMotionEvents;
     int                   first_motion;
     int                   last_motion;
-    void                  *motion; /* motion history buffer */
-
-    WindowPtr    	  motionHintWindow;
+    void                  *motion; /* motion history buffer. Different layout
+                                      for MDs and SDs!*/
+    WindowPtr             motionHintWindow;
 
     AxisInfoPtr 	  axes;
     unsigned short	  numAxes;
