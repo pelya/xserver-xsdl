@@ -1003,10 +1003,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
                         pDev->valuator->axes + 1, scr->height);
 
-    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
+    updateMotionHistory(pDev, ms, first_valuator, num_valuators,
+            &pDev->last.valuators[first_valuator]);
     if (master)
         updateMotionHistory(master, ms, first_valuator, num_valuators,
-                valuators);
+                &pDev->last.valuators[first_valuator]);
 
     /* Update the valuators with the true value sent to the client*/
     if(v0) *v0 = x;

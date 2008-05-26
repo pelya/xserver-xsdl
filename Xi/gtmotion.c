@@ -119,7 +119,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.nEvents = 0;
     rep.axes = axes;
-    rep.mode = v->mode & DeviceMode;
+    rep.mode = Absolute; /* XXX we don't do relative at the moment */
     rep.length = 0;
     start = ClientTimeToServerTime(stuff->start);
     stop = ClientTimeToServerTime(stuff->stop);
