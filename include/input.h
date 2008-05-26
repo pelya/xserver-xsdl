@@ -483,7 +483,7 @@ extern void AllocateMotionHistory(
 
 extern int GetMotionHistory(
     DeviceIntPtr pDev,
-    xTimecoord *buff,
+    xTimecoord **buff,
     unsigned long start,
     unsigned long stop,
     ScreenPtr pScreen);

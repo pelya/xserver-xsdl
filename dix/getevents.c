@@ -253,6 +253,9 @@ AllocateMotionHistory(DeviceIntPtr pDev)
     pDev->valuator->motion = xcalloc(pDev->valuator->numMotionEvents, size);
     pDev->valuator->first_motion = 0;
     pDev->valuator->last_motion = 0;
+    if (!pDev->valuator->motion)
+        ErrorF("[dix] %s: Failed to alloc motion history (%d bytes).\n",
+                pDev->name, size * pDev->valuator->numMotionEvents);
 }
 
 
@@ -262,17 +265,31 @@ AllocateMotionHistory(DeviceIntPtr pDev)
  * sort of ignore this.
  */
 _X_EXPORT int
-GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
+GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                  unsigned long stop, ScreenPtr pScreen)
 {
-    char *ibuff = NULL, *obuff = (char *) buff;
+    char *ibuff = NULL, *obuff;
     int i = 0, ret = 0;
+    int j, coord;
     Time current;
     /* The size of a single motion event. */
-    int size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
+    int size;
+    int dflt;
+    AxisInfo from, *to; /* for scaling */
+    CARD32 *ocbuf, *icbuf; /* pointer to coordinates for copying */
 
     if (!pDev->valuator || !pDev->valuator->numMotionEvents)
         return 0;
+
+    if (pDev->isMaster)
+        size = (sizeof(INT32) * 3 * MAX_VALUATORS) + sizeof(Time);
+    else
+        size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
+
+    *buff = xalloc(size * pDev->valuator->numMotionEvents);
+    if (!(*buff))
+        return 0;
+    obuff = *buff;
 
     for (i = pDev->valuator->first_motion;
          i != pDev->valuator->last_motion;
@@ -287,8 +304,48 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
             return ret;
         }
         else if (current >= start) {
-            memcpy(obuff, ibuff, size);
-            obuff += size;
+            if (pDev->isMaster)
+            {
+                memcpy(obuff, ibuff, sizeof(Time)); /* copy timestamp */
+
+                ocbuf = (INT32*)(obuff + sizeof(Time));
+                icbuf = (INT32*)(ibuff + sizeof(Time));
+                for (j = 0; j < MAX_VALUATORS; j++)
+                {
+                    if (j >= pDev->valuator->numAxes)
+                        break;
+
+                    /* fetch min/max/coordinate */
+                    memcpy(&from.min_value, icbuf++, sizeof(INT32));
+                    memcpy(&from.max_value, icbuf++, sizeof(INT32));
+                    memcpy(&coord, icbuf++, sizeof(INT32));
+
+                    to = (j < pDev->valuator->numAxes) ? &pDev->valuator->axes[j] : NULL;
+
+                    /* x/y scaled to screen if no range is present */
+                    if (j == 0 && (from.max_value < from.min_value))
+                        from.max_value = pScreen->width;
+                    else if (j == 1 && (from.max_value < from.min_value))
+                        from.max_value = pScreen->height;
+
+                    if (j == 0 && (to->max_value < to->min_value))
+                        dflt = pScreen->width;
+                    else if (j == 1 && (to->max_value < to->min_value))
+                        dflt = pScreen->height;
+                    else
+                        dflt = 0;
+
+                    /* scale from stored range into current range */
+                    coord = rescaleValuatorAxis(coord, &from, to, 0);
+                    memcpy(ocbuf, &coord, sizeof(INT32));
+                    ocbuf++;
+                }
+            } else
+                memcpy(obuff, ibuff, size);
+
+            /* don't advance by size here. size may be different to the
+             * actually written size if the MD has less valuators than MAX */
+            obuff += (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
             ret++;
         }
     }
@@ -300,29 +357,63 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
 /**
  * Update the motion history for a specific device, with the list of
  * valuators.
+ *
+ * Layout of the history buffer:
+ *   for SDs: [time] [val0] [val1] ... [valn]
+ *   for MDs: [time] [min_val0] [max_val0] [val0] [min_val1] ... [valn]
+ *
+ * For events that have some valuators unset (first_valuator > 0):
+ *      min_val == max_val == val == 0.
  */
 static void
 updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
                     int num_valuators, int *valuators)
 {
     char *buff = (char *) pDev->valuator->motion;
+    ValuatorClassPtr v;
+    int i;
 
     if (!pDev->valuator->numMotionEvents)
         return;
 
-    buff += ((sizeof(INT32) * pDev->valuator->numAxes) + sizeof(CARD32)) *
+    v = pDev->valuator;
+    if (pDev->isMaster)
+    {
+        buff += ((sizeof(INT32) * 3 * MAX_VALUATORS) + sizeof(CARD32)) *
+                v->last_motion;
+
+        memcpy(buff, &ms, sizeof(Time));
+        buff += sizeof(Time);
+
+        memset(buff, 0, sizeof(INT32) * 3 * MAX_VALUATORS);
+        buff += 3 * sizeof(INT32) * first_valuator;
+
+        for (i = first_valuator; i < first_valuator + num_valuators; i++)
+        {
+            memcpy(buff, &v->axes[i].min_value, sizeof(INT32));
+            buff += sizeof(INT32);
+            memcpy(buff, &v->axes[i].max_value, sizeof(INT32));
+            buff += sizeof(INT32);
+            memcpy(buff, &valuators[i - first_valuator], sizeof(INT32));
+            buff += sizeof(INT32);
+        }
+    } else
+    {
+
+        buff += ((sizeof(INT32) * pDev->valuator->numAxes) + sizeof(CARD32)) *
             pDev->valuator->last_motion;
-    memcpy(buff, &ms, sizeof(Time));
 
-    buff += sizeof(Time);
-    bzero(buff, sizeof(INT32) * pDev->valuator->numAxes);
+        memcpy(buff, &ms, sizeof(Time));
+        buff += sizeof(Time);
 
-    buff += sizeof(INT32) * first_valuator;
-    memcpy(buff, valuators, sizeof(INT32) * num_valuators);
+        memset(buff, 0, sizeof(INT32) * pDev->valuator->numAxes);
+        buff += sizeof(INT32) * first_valuator;
+
+        memcpy(buff, valuators, sizeof(INT32) * num_valuators);
+    }
 
     pDev->valuator->last_motion = (pDev->valuator->last_motion + 1) %
-                                  pDev->valuator->numMotionEvents;
-
+        pDev->valuator->numMotionEvents;
     /* If we're wrapping around, just keep the circular buffer going. */
     if (pDev->valuator->first_motion == pDev->valuator->last_motion)
         pDev->valuator->first_motion = (pDev->valuator->first_motion + 1) %
@@ -875,6 +966,9 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                         pDev->valuator->axes + 1, scr->height);
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
+    if (master)
+        updateMotionHistory(master, ms, first_valuator, num_valuators,
+                valuators);
 
     /* Update the valuators with the true value sent to the client*/
     if(v0) *v0 = x;

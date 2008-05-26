@@ -571,12 +571,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         v = to->valuator;
         if (!v)
             FatalError("[Xi] no memory for class shift.\n");
-        memcpy(v, from->valuator, sizeof(ValuatorClassRec));
-        v->motion = NULL;
-        AllocateMotionHistory(to); /*XXX should be copied somehow */
-        v->first_motion = 0;
-        v->last_motion = 0;
 
+        v->numAxes = from->valuator->numAxes;
         v->axes = (AxisInfoPtr)&v[1];
         memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
 
