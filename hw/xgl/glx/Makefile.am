@@ -11,7 +11,7 @@ SUBDIRS =		  \
 AM_CFLAGS = \
 	-I$(srcdir)/.. \
 	-I$(srcdir)/../glxext \
-	-I$(top_srcdir)/GL/glx \
+	-I$(top_srcdir)/glx \
 	-I$(top_srcdir)/GL/include \
 	-I@MESA_SOURCE@/include \
 	-I@MESA_SOURCE@/src/mesa/glapi \

@@ -85,7 +85,7 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     setupDone = TRUE;
 
-    provider = LoaderSymbol("__glXMesaProvider");
+    provider = LoaderSymbol("__glXDRISWRastProvider");
     if (provider == NULL)
 	return NULL;
     GlxPushProvider(provider);

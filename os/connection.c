@@ -1324,15 +1324,17 @@ _X_EXPORT void ListenOnOpenFD(int fd) {
     ListenTransFds[ListenTransCount] = fd;
 
     FD_SET(fd, &WellKnownConnections);
+    FD_SET(fd, &AllSockets);
     
-    /* It is always local
-    if (!_XSERVTransIsLocal(ciptr)) {
-    //    DefineSelf (fd);
-    }
-    */
-
     /* Increment the count */
     ListenTransCount++;
+
+    /* This *might* be needed, but it seems to be working fine without it... */
+    //ResetAuthorization();
+    //ResetHosts(display);
+#ifdef XDMCP
+    //XdmcpReset();
+#endif
 }
 
 #endif

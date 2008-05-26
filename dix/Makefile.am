@@ -1,6 +1,4 @@
-standard_dix_libs = libdix.la libxpstubs.la
-
-noinst_LTLIBRARIES = $(standard_dix_libs)
+noinst_LTLIBRARIES = libdix.la
 
 AM_CFLAGS = $(DIX_CFLAGS) \
 	-DVENDOR_NAME=\""@VENDOR_NAME@"\" \
@@ -38,9 +36,6 @@ libdix_la_SOURCES = 	\
 	tables.c	\
 	window.c	\
 	strcasecmp.c
-
-libxpstubs_la_SOURCES =	\
-	xpstubs.c
 
 EXTRA_DIST = buildatoms BuiltInAtoms CHANGES Xserver.d Xserver-dtrace.h.in
 

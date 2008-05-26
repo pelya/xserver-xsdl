@@ -660,17 +660,6 @@ VerifyDisplayName(const char *d)
 }
 
 /*
- * This function is responsible for doing initalisation of any global
- * variables at an very early point of server startup (even before
- * |ProcessCommandLine()|. 
- */
-void InitGlobals(void)
-{
-    ddxInitGlobals();
-}
-
-
-/*
  * This function parses the command line. Handles device-independent fields
  * and allows ddx to handle additional fields.  It is not allowed to modify
  * argc or any of the strings pointed to by argv.

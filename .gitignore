@@ -37,14 +37,6 @@ xorg-server.pc
 stamp-h?
 do-not-use-config.h
 do-not-use-config.h.in
-afb/afbbltC.c
-afb/afbbltCI.c
-afb/afbbltG.c
-afb/afbbltO.c
-afb/afbbltX.c
-afb/afbseg.c
-afb/afbtileC.c
-afb/afbtileG.c
 cfb/cfb8lineCO.c
 cfb/cfb8lineCP.c
 cfb/cfb8lineG.c

@@ -47,6 +47,10 @@
 #include "mach_startup.h"
 #include "mach_startupServer.h"
 
+#include "launchd_fd.h"
+void DarwinListenOnOpenFD(int fd);
+
+
 #define DEFAULT_CLIENT "/usr/X11/bin/xterm"
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
 #define DEFAULT_SHELL  "/bin/sh"
@@ -60,8 +64,21 @@ int server_main(int argc, char **argv, char **envp);
 static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
 
-#ifdef NEW_LAUNCH_METHOD
+/*** Pthread Magics ***/
+static pthread_t create_thread(void *func, void *arg) {
+    pthread_attr_t attr;
+    pthread_t tid;
+	
+    pthread_attr_init (&attr);
+    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create (&tid, &attr, func, arg);
+    pthread_attr_destroy (&attr);
+	
+    return tid;
+}
 
+#ifdef NEW_LAUNCH_METHOD
 struct arg {
     int argc;
     char **argv;
@@ -104,20 +121,6 @@ static mach_port_t checkin_or_register(char *bname) {
     }
 
     return mp;
-}
-
-/*** Pthread Magics ***/
-static pthread_t create_thread(void *func, void *arg) {
-    pthread_attr_t attr;
-    pthread_t tid;
-	
-    pthread_attr_init (&attr);
-    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create (&tid, &attr, func, arg);
-    pthread_attr_destroy (&attr);
-	
-    return tid;
 }
 
 /*** $DISPLAY handoff ***/
@@ -163,10 +166,11 @@ static void accept_fd_handoff(int connected_fd) {
     
     launchd_fd = *((int*)CMSG_DATA(cmsg));
     
-    if(launchd_fd > 0)
-        DarwinListenOnOpenFD(launchd_fd);
-    else
+    if(launchd_fd == -1)
         fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
+        
+    fprintf(stderr, "Received new DISPLAY fd: %d\n", launchd_fd);
+    DarwinListenOnOpenFD(launchd_fd);
 }
 
 typedef struct {
@@ -227,9 +231,6 @@ static void socket_handoff_thread(void *arg) {
     
     connected_fd = accept(handoff_fd, NULL, NULL);
     
-    /* We delete this temporary socket after we get the connection */
-    unlink(filename);
-
     if(connected_fd == -1) {
         fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", filename, strerror(errno));
         return;
@@ -237,8 +238,10 @@ static void socket_handoff_thread(void *arg) {
 
     /* Now actually get the passed file descriptor from this connection */
     accept_fd_handoff(connected_fd);
-    
+
+    close(connected_fd);
     close(handoff_fd);
+    unlink(filename);
 }
 
 kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
@@ -289,6 +292,8 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
 
 int startup_trigger(int argc, char **argv, char **envp) {
 #else
+void *add_launchd_display_thread(void *data);
+    
 int main(int argc, char **argv, char **envp) {
 #endif
     Display *display;
@@ -345,6 +350,7 @@ int main(int argc, char **argv, char **envp) {
         }
         exit(EXIT_SUCCESS);
 #else
+        create_thread(add_launchd_display_thread, NULL);
         return server_main(argc, argv, envp);
 #endif
     }
@@ -356,14 +362,9 @@ int main(int argc, char **argv, char **envp) {
         /* Now, try to open a display, if so, run the launcher */
         display = XOpenDisplay(NULL);
         if(display) {
-            fprintf(stderr, "X11.app: Closing the display and sleeping for 2s to allow the X server to start up.\n");
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
             
-            /* Give 2 seconds for the server to start... 
-             * TODO: *Really* fix this race condition
-             */
-            usleep(2000);
             return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }
     }
@@ -433,6 +434,20 @@ int main(int argc, char **argv, char **envp) {
     }
     
     return EXIT_SUCCESS;
+}
+#else
+void *add_launchd_display_thread(void *data) {
+    /* TODO: Really fix this race... we want xinitrc to finish before connections
+     *       are accepted on the launchd socket.
+     */
+    sleep(2);
+    
+    /* Start listening on the launchd fd */
+    int launchd_fd = launchd_display_fd();
+    if(launchd_fd != -1) {
+        DarwinListenOnOpenFD(launchd_fd);
+    }
+    return NULL;
 }
 #endif
     

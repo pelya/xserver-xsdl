@@ -21,7 +21,6 @@ endif
 
 AM_CFLAGS = @DIX_CFLAGS@ @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ \
-           -I$(top_srcdir)/afb \
            -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \

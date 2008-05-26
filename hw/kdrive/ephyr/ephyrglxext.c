@@ -35,10 +35,10 @@
 #define _HAVE_XALLOC_DECLS
 #include "ephyrlog.h"
 #include <GL/glxproto.h>
-#include "GL/glx/glxserver.h"
-#include "GL/glx/indirect_table.h"
-#include "GL/glx/indirect_util.h"
-#include "GL/glx/unpack.h"
+#include "glx/glxserver.h"
+#include "glx/indirect_table.h"
+#include "glx/indirect_util.h"
+#include "glx/unpack.h"
 #include "hostx.h"
 
 

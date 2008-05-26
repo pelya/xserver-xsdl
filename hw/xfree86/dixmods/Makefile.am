@@ -14,10 +14,6 @@ if DBE
 DBEMOD = libdbe.la
 endif
 
-if AFB
-AFBMOD = libafb.la
-endif
-
 if MFB
 MFBMOD = libmfb.la
 endif
@@ -26,8 +22,7 @@ if RECORD
 RECORDMOD = librecord.la
 endif
 
-module_LTLIBRARIES = $(AFBMOD) \
-                     libfb.la \
+module_LTLIBRARIES = libfb.la \
                      libwfb.la \
                      $(MFBMOD) \
                      libshadow.la
@@ -46,11 +41,7 @@ INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
-           -I$(top_srcdir)/GL/glx
-
-libafb_la_LDFLAGS = -avoid-version
-libafb_la_LIBADD = $(top_builddir)/afb/libafb.la
-libafb_la_SOURCES = afbmodule.c
+           -I$(top_srcdir)/glx
 
 libdbe_la_LDFLAGS = -avoid-version
 libdbe_la_LIBADD = $(top_builddir)/dbe/libdbe.la
@@ -68,10 +59,10 @@ libwfb_la_CFLAGS = $(AM_CFLAGS) -DFB_ACCESS_WRAPPER
 
 libglx_la_LDFLAGS = -avoid-version
 if AIGLX
-GLXDRI_LIBRARY = $(top_builddir)/GL/glx/libglxdri.la
+GLXDRI_LIBRARY = $(top_builddir)/glx/libglxdri.la
 endif
 libglx_la_LIBADD = \
-	$(top_builddir)/GL/glx/libglx.la \
+	$(top_builddir)/glx/libglx.la \
 	$(GLXDRI_LIBRARY)
 libglx_la_SOURCES = glxmodule.c
 

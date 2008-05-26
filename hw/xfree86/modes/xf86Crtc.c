@@ -1692,6 +1692,7 @@ SetCompatOutput(xf86CrtcConfigPtr config)
     return output;
 }
 
+_X_EXPORT void
 xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);

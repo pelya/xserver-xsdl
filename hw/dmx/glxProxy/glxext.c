@@ -40,7 +40,7 @@
 ** Stubs to satisfy miinitext.c references.
 */
 typedef int __GLXprovider;
-__GLXprovider __glXMesaProvider;
+__GLXprovider __glXDRISWRastProvider;
 void GlxPushProvider(__GLXprovider *provider) { }
 
 /*

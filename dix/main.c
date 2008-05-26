@@ -246,7 +246,6 @@ int main(int argc, char *argv[], char *envp[])
 
     display = "0";
 
-    InitGlobals();
     InitRegions();
 
     CheckUserParameters(argc, argv, envp);

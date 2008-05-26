@@ -5,7 +5,7 @@ AM_CFLAGS =		 \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
 	$(XGLMODULES_CFLAGS) \
-	-I$(top_srcdir)/GL/glx \
+	-I$(top_srcdir)/glx \
 	-I$(top_srcdir)/GL/include \
 	-I$(top_srcdir)/hw/xgl \
 	-I@MESA_SOURCE@/include \

@@ -116,7 +116,7 @@ exaPixmapShouldBeInFB (PixmapPtr pPix)
  * If the pixmap is currently dirty, this copies at least the dirty area from
  * FB to system or vice versa.  Both areas must be allocated.
  */
-static _X_INLINE void
+static void
 exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	     Bool (*transfer) (PixmapPtr pPix, int x, int y, int w, int h,
 			       char *sys, int sys_pitch), CARD8 *fallback_src,
@@ -301,6 +301,9 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
     ExaScreenPriv (pScreen);
     ExaPixmapPriv (pPixmap);
 
+    if (migrate->as_dst)
+	pExaPixmap->pendingDamage = TRUE;
+
     /* If we're VT-switched away, no touching card memory allowed. */
     if (pExaScr->swappedOut)
 	return;
@@ -368,6 +371,9 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
 {
     PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
+
+    if (migrate->as_dst)
+	pExaPixmap->pendingDamage = TRUE;
 
     if (!pExaPixmap->area || exaPixmapIsPinned(pPixmap))
 	return;

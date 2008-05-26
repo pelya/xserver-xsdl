@@ -850,10 +850,6 @@ PanoramiXTranslateVisualID(int screen, VisualID orig)
     VisualPtr pVisual = NULL;
     int i;
 
-    /* if screen is 0, orig is already the correct visual ID */
-    if (screen == 0)
-	return orig;
-
     for (i = 0; i < PanoramiXNumVisuals; i++) {
 	if (orig == PanoramiXVisuals[i].vid) {
 	    pVisual = &PanoramiXVisuals[i];
@@ -863,6 +859,10 @@ PanoramiXTranslateVisualID(int screen, VisualID orig)
 
     if (!pVisual)
 	return 0;
+
+    /* if screen is 0, orig is already the correct visual ID */
+    if (screen == 0)
+	return orig;
 
     /* found the original, now translate it relative to the backend screen */
     for (i = 0; i < pOtherScreen->numVisuals; i++) {

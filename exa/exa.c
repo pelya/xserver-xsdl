@@ -261,6 +261,21 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
                                      pExaScr->info->pixmapPitchAlign);
 }
 
+
+static void
+ExaDamageReport(DamagePtr pDamage, RegionPtr pReg, void *pClosure)
+{
+    PixmapPtr pPixmap = pClosure;
+    ExaPixmapPriv(pPixmap);
+    RegionPtr pDamageReg = DamageRegion(pDamage);
+
+    if (pExaPixmap->pendingDamage) {
+	REGION_UNION(pScreen, pDamageReg, pDamageReg, pReg);
+	pExaPixmap->pendingDamage = FALSE;
+    }
+}
+
+
 /**
  * exaCreatePixmap() creates a new pixmap.
  *
@@ -352,7 +367,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
     pExaPixmap->area = NULL;
 
     /* Set up damage tracking */
-    pExaPixmap->pDamage = DamageCreate (NULL, NULL, DamageReportNone, TRUE,
+    pExaPixmap->pDamage = DamageCreate (ExaDamageReport, NULL, DamageReportRawRegion, TRUE,
 					pScreen, pPixmap);
 
     if (pExaPixmap->pDamage == NULL) {

@@ -9,16 +9,12 @@ if XTRAP
 XTRAP_DIR=XTrap
 endif
 
-if AFB
-AFB_DIR=afb
-endif
-
 if MFB
 MFB_DIR=mfb
 endif
 
 if GLX
-GLX_DIR=GL
+GLX_DIR=glx
 endif
 
 if DBE
@@ -44,7 +40,6 @@ SUBDIRS = \
 	xkb \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
-	$(AFB_DIR) \
 	$(RECORD_DIR) \
 	xfixes \
 	damageext \
@@ -88,13 +83,12 @@ DIST_SUBDIRS = \
 	xkb \
 	dbe \
 	mfb \
-	afb \
 	record \
 	xfixes \
 	damageext \
 	XTrap \
 	composite \
-	GL \
+	glx \
 	exa \
 	config \
 	hw
