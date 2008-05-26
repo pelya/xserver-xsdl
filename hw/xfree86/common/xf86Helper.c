@@ -2933,9 +2933,9 @@ xf86MotionHistoryAllocate(LocalDevicePtr local)
 
 _X_EXPORT int
 xf86GetMotionEvents(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
-                    unsigned long stop, ScreenPtr pScreen)
+                    unsigned long stop, ScreenPtr pScreen, BOOL core)
 {
-    return GetMotionHistory(pDev, buff, start, stop, pScreen);
+    return GetMotionHistory(pDev, buff, start, stop, pScreen, core);
 }
 
 _X_EXPORT void

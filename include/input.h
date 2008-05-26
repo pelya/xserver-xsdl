@@ -486,7 +486,8 @@ extern int GetMotionHistory(
     xTimecoord **buff,
     unsigned long start,
     unsigned long stop,
-    ScreenPtr pScreen);
+    ScreenPtr pScreen,
+    BOOL core);
 
 extern void SwitchCorePointer(DeviceIntPtr pDev);
 

@@ -135,7 +135,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
         size = sizeof(Time) + (axes * sizeof(INT32));
 	rep.nEvents = GetMotionHistory(dev, (xTimecoord **) &coords,/* XXX */
 					start.milliseconds, stop.milliseconds,
-					(ScreenPtr) NULL);
+					(ScreenPtr) NULL, FALSE);
     }
     if (rep.nEvents > 0) {
 	length = (rep.nEvents * size + 3) >> 2;

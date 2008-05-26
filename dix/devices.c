@@ -2308,12 +2308,9 @@ ProcGetMotionEvents(ClientPtr client)
     {
 	if (CompareTimeStamps(stop, currentTime) == LATER)
 	    stop = currentTime;
-	coords = (xTimecoord *)xalloc(mouse->valuator->numMotionEvents
-					      * sizeof(xTimecoord));
-	if (!coords)
-	    return BadAlloc;
-	count = GetMotionHistory(mouse, coords, start.milliseconds,
-				 stop.milliseconds, pWin->drawable.pScreen);
+	count = GetMotionHistory(mouse, &coords, start.milliseconds,
+				 stop.milliseconds, pWin->drawable.pScreen,
+                                 TRUE);
 	xmin = pWin->drawable.x - wBorderWidth (pWin);
 	xmax = pWin->drawable.x + (int)pWin->drawable.width +
 		wBorderWidth (pWin);

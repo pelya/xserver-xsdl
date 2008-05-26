@@ -258,15 +258,16 @@ AllocateMotionHistory(DeviceIntPtr pDev)
                 pDev->name, size * pDev->valuator->numMotionEvents);
 }
 
-
 /**
  * Dump the motion history between start and stop into the supplied buffer.
  * Only records the event for a given screen in theory, but in practice, we
  * sort of ignore this.
+ *
+ * If core is set, we only generate x/y, in INT16, scaled to screen coords.
  */
 _X_EXPORT int
 GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
-                 unsigned long stop, ScreenPtr pScreen)
+                 unsigned long stop, ScreenPtr pScreen, BOOL core)
 {
     char *ibuff = NULL, *obuff;
     int i = 0, ret = 0;
@@ -277,8 +278,13 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
     int dflt;
     AxisInfo from, *to; /* for scaling */
     CARD32 *ocbuf, *icbuf; /* pointer to coordinates for copying */
+    INT16 *corebuf;
+    AxisInfo core_axis = {0};
 
     if (!pDev->valuator || !pDev->valuator->numMotionEvents)
+        return 0;
+
+    if (core && !pScreen)
         return 0;
 
     if (pDev->isMaster)
@@ -304,7 +310,36 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
             return ret;
         }
         else if (current >= start) {
-            if (pDev->isMaster)
+            if (core)
+            {
+                memcpy(obuff, ibuff, sizeof(Time)); /* copy timestamp */
+
+                icbuf = (INT32*)(ibuff + sizeof(Time));
+                corebuf = (INT16*)(obuff + sizeof(Time));
+
+                /* fetch x coordinate + range */
+                memcpy(&from.min_value, icbuf++, sizeof(INT32));
+                memcpy(&from.max_value, icbuf++, sizeof(INT32));
+                memcpy(&coord, icbuf++, sizeof(INT32));
+
+                /* scale to screen coords */
+                to = &core_axis;
+                to->max_value = pScreen->width;
+                coord = rescaleValuatorAxis(coord, &from, to, pScreen->width);
+
+                memcpy(corebuf, &coord, sizeof(INT16));
+                corebuf++;
+
+                /* fetch y coordinate + range */
+                memcpy(&from.min_value, icbuf++, sizeof(INT32));
+                memcpy(&from.max_value, icbuf++, sizeof(INT32));
+                memcpy(&coord, icbuf++, sizeof(INT32));
+
+                to->max_value = pScreen->height;
+                coord = rescaleValuatorAxis(coord, &from, to, pScreen->height);
+                memcpy(corebuf, &coord, sizeof(INT16));
+
+            } else if (pDev->isMaster)
             {
                 memcpy(obuff, ibuff, sizeof(Time)); /* copy timestamp */
 
@@ -345,7 +380,10 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
 
             /* don't advance by size here. size may be different to the
              * actually written size if the MD has less valuators than MAX */
-            obuff += (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
+            if (core)
+                obuff += sizeof(INT32) + sizeof(Time);
+            else
+                obuff += (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
             ret++;
         }
     }

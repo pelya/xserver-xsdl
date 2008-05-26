@@ -197,7 +197,7 @@ void xf86DeleteInput(InputInfoPtr pInp, int flags);
 void xf86MotionHistoryAllocate(LocalDevicePtr local);
 int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
                         unsigned long start, unsigned long stop,
-                        ScreenPtr pScreen);
+                        ScreenPtr pScreen, BOOL core);
 
 /* xf86Option.c */
 void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
