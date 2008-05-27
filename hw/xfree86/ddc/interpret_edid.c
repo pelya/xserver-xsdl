@@ -349,14 +349,14 @@ get_monitor_ranges(Uchar *c, struct monitor_ranges *r)
 static void
 get_whitepoint_section(Uchar *c, struct whitePoints *wp)
 {
-    wp[1].white_x = WHITEX1;
-    wp[1].white_y = WHITEY1;
-    wp[2].white_x = WHITEX2;
-    wp[2].white_y = WHITEY2;
-    wp[1].index  = WHITE_INDEX1;
-    wp[2].index  = WHITE_INDEX2;
-    wp[1].white_gamma  = WHITE_GAMMA1;
-    wp[2].white_gamma  = WHITE_GAMMA2;
+    wp[0].white_x = WHITEX1;
+    wp[0].white_y = WHITEY1;
+    wp[1].white_x = WHITEX2;
+    wp[1].white_y = WHITEY2;
+    wp[0].index  = WHITE_INDEX1;
+    wp[1].index  = WHITE_INDEX2;
+    wp[0].white_gamma  = WHITE_GAMMA1;
+    wp[1].white_gamma  = WHITE_GAMMA2;
 }
 
 static void
