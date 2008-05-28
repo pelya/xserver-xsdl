@@ -872,6 +872,11 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     xf86SetSilkenMouse(pScreen);
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
 
+    /* Need to extend HWcursor support in kernel to handle mask interleave ?? */
+    xf86_cursors_init (pScreen, 64, 64,
+			       HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
+			       HARDWARE_CURSOR_ARGB);
+
     /* Must force it before EnterVT, so we are in control of VT and
      * later memory should be bound when allocating, e.g rotate_mem */
     pScrn->vtSema = TRUE;

@@ -47,6 +47,13 @@
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
 
+struct crtc_private {
+    drmModeCrtcPtr drm_crtc;
+
+    /* hwcursor */
+    drmBO cursor_bo;
+};
+
 static void
 crtc_dpms(xf86CrtcPtr crtc, int mode)
 {
@@ -98,7 +105,8 @@ crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode,
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     xf86OutputPtr output = config->output[config->compat_output];
     drmModeOutputPtr drm_output = output->driver_private;
-    drmModeCrtcPtr drm_crtc = crtc->driver_private;
+    struct crtc_private *crtcp = crtc->driver_private;
+    drmModeCrtcPtr drm_crtc = crtcp->drm_crtc;
     struct drm_mode_modeinfo drm_mode;
 
     drm_mode.clock = mode->Clock;
@@ -157,13 +165,64 @@ crtc_shadow_destroy(xf86CrtcPtr crtc, PixmapPtr rotate_pixmap, void *data)
 static void
 crtc_destroy(xf86CrtcPtr crtc)
 {
-    drmModeFreeCrtc(crtc->driver_private);
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    struct crtc_private *crtcp = crtc->driver_private;
+
+    drmBOUnreference(ms->fd, &crtcp->cursor_bo);
+    drmModeFreeCrtc(crtcp->drm_crtc);
+}
+
+static void
+crtc_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
+{
+    unsigned char *ptr;
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    struct crtc_private *crtcp = crtc->driver_private;
+
+    drmBOMap(ms->fd, &crtcp->cursor_bo, DRM_BO_FLAG_WRITE, 0, (void **)&ptr);
+
+    memcpy (ptr, image, 64 * 64 * 4);
+
+    drmBOUnmap(ms->fd, &crtcp->cursor_bo);
+}
+
+static void
+crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
+{
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    struct crtc_private *crtcp = crtc->driver_private;
+
+    drmModeMoveCursor(ms->fd, crtcp->drm_crtc->crtc_id, x, y);
+}
+
+static void
+crtc_show_cursor (xf86CrtcPtr crtc)
+{
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    struct crtc_private *crtcp = crtc->driver_private;
+
+    drmModeSetCursor(ms->fd, crtcp->drm_crtc->crtc_id, crtcp->cursor_bo.handle, 64, 64);
+}
+
+static void
+crtc_hide_cursor (xf86CrtcPtr crtc)
+{
+    modesettingPtr ms = modesettingPTR(crtc->scrn);
+    struct crtc_private *crtcp = crtc->driver_private;
+
+    drmModeSetCursor(ms->fd, crtcp->drm_crtc->crtc_id, 0, 0, 0);
+}
+
+static void
+crtc_set_cursor_colors (xf86CrtcPtr crtc, int bg, int fg)
+{
+    ScrnInfoPtr		scrn = crtc->scrn;
 }
 
 static const xf86CrtcFuncsRec crtc_funcs = {
     .dpms = crtc_dpms,
-    .save = NULL,		       /* XXX */
-    .restore = NULL,		       /* XXX */
+    .save = NULL,
+    .restore = NULL,
     .lock = crtc_lock,
     .unlock = crtc_unlock,
     .mode_fixup = crtc_mode_fixup,
@@ -174,13 +233,13 @@ static const xf86CrtcFuncsRec crtc_funcs = {
     .shadow_create = crtc_shadow_create,
     .shadow_allocate = crtc_shadow_allocate,
     .shadow_destroy = crtc_shadow_destroy,
-//    .set_cursor_colors = crtc_set_cursor_colors,
-//    .set_cursor_position = crtc_set_cursor_position,
-//    .show_cursor = crtc_show_cursor,
-//    .hide_cursor = crtc_hide_cursor,
-//    .load_cursor_image = crtc_load_cursor_image, 
-//    .load_cursor_argb = crtc_load_cursor_argb,
-    .destroy = crtc_destroy,	       /* XXX */
+    .set_cursor_colors = crtc_set_cursor_colors,
+    .set_cursor_position = crtc_set_cursor_position,
+    .show_cursor = crtc_show_cursor,
+    .hide_cursor = crtc_hide_cursor,
+    .load_cursor_image = NULL,	/* lets convert to argb only */
+    .load_cursor_argb = crtc_load_cursor_argb,
+    .destroy = crtc_destroy,
 };
 
 void
@@ -190,6 +249,7 @@ crtc_init(ScrnInfoPtr pScrn)
     xf86CrtcPtr crtc;
     drmModeResPtr res;
     drmModeCrtcPtr drm_crtc = NULL;
+    struct crtc_private *crtcp;
     int c, k, p;
 
     res = drmModeGetResources(ms->fd);
@@ -207,7 +267,21 @@ crtc_init(ScrnInfoPtr pScrn)
 	if (crtc == NULL)
 	    goto out;
 
-	crtc->driver_private = drm_crtc;
+	crtcp = xalloc(sizeof(struct crtc_private));
+	if (!crtcp) {
+	    xf86CrtcDestroy(crtc);
+	    goto out;
+	}
+
+ 	crtcp->drm_crtc = drm_crtc;
+
+	crtc->driver_private = crtcp;
+    
+        drmBOCreate(ms->fd, 64 * 64 * 4, 0, NULL,
+		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE 
+		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
+		DRM_BO_FLAG_MEM_VRAM | DRM_BO_FLAG_MEM_TT,
+		DRM_BO_HINT_DONT_FENCE, &crtcp->cursor_bo);
     }
 
   out:
