@@ -57,12 +57,10 @@ SOFTWARE.
 #include "pixmapstr.h"
 #include "mivalidate.h"
 
-_X_EXPORT void 
-miClearToBackground(pWin, x, y, w, h, generateExposures)
-    WindowPtr pWin;
-    int x,y;
-    int w,h;
-    Bool generateExposures;
+_X_EXPORT void
+miClearToBackground(WindowPtr pWin,
+                    int x, int y, int w, int h,
+                    Bool generateExposures)
 {
     BoxRec box;
     RegionRec	reg;
@@ -255,10 +253,11 @@ miCheckSubSaveUnder(
  *-----------------------------------------------------------------------
  */
 Bool
-miChangeSaveUnder(pWin, first)
-    WindowPtr		pWin;
-    WindowPtr		first;		/* First window to check.
+miChangeSaveUnder(
+    WindowPtr		pWin,
+    WindowPtr		first		/* First window to check.
 					 * Used when pWin was restacked */
+    )
 {
     RegionRec	rgn;	/* Area obscured by saveUnder windows */
     ScreenPtr 	pScreen;
@@ -293,9 +292,7 @@ miChangeSaveUnder(pWin, first)
  *-----------------------------------------------------------------------
  */
 void
-miPostChangeSaveUnder(pWin, pFirst)
-    WindowPtr		pWin;
-    WindowPtr		pFirst;
+miPostChangeSaveUnder(WindowPtr pWin, WindowPtr pFirst)
 {
     WindowPtr pParent, pChild;
     ChangeWindowAttributesProcPtr ChangeWindowAttributes;
@@ -329,8 +326,7 @@ miPostChangeSaveUnder(pWin, pFirst)
 }
 
 void
-miMarkWindow(pWin)
-    WindowPtr pWin;
+miMarkWindow(WindowPtr pWin)
 {
     ValidatePtr val;
 
@@ -345,10 +341,7 @@ miMarkWindow(pWin)
 }
 
 Bool
-miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
-    WindowPtr pWin;
-    WindowPtr pFirst;
-    WindowPtr *ppLayerWin;
+miMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst, WindowPtr *ppLayerWin)
 {
     BoxPtr box;
     WindowPtr pChild, pLast;
@@ -434,8 +427,7 @@ miMarkOverlappedWindows(pWin, pFirst, ppLayerWin)
  *    and then send any regions still exposed to the client
  *****/
 _X_EXPORT void
-miHandleValidateExposures(pWin)
-    WindowPtr pWin;
+miHandleValidateExposures(WindowPtr pWin)
 {
     WindowPtr pChild;
     ValidatePtr val;
@@ -472,11 +464,7 @@ miHandleValidateExposures(pWin)
 }
 
 void
-miMoveWindow(pWin, x, y, pNextSib, kind)
-    WindowPtr pWin;
-    int x,y;
-    WindowPtr pNextSib;
-    VTKind kind;
+miMoveWindow(WindowPtr pWin, int x, int y, WindowPtr pNextSib, VTKind kind)
 {
     WindowPtr pParent;
     Bool WasViewable = (Bool)(pWin->viewable);
@@ -589,11 +577,10 @@ miRecomputeExposures (
 }
 
 void
-miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
-    WindowPtr pWin;
-    int x,y;
-    unsigned int w, h;
-    WindowPtr pSib;
+miSlideAndSizeWindow(WindowPtr pWin,
+                     int x, int y,
+                     unsigned int w, unsigned int h,
+                     WindowPtr pSib)
 {
     WindowPtr pParent;
     Bool WasViewable = (Bool)(pWin->viewable);
@@ -917,8 +904,7 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
 }
 
 WindowPtr
-miGetLayerWindow(pWin)
-    WindowPtr pWin;
+miGetLayerWindow(WindowPtr pWin)
 {
     return pWin->firstChild;
 }
@@ -932,8 +918,7 @@ miGetLayerWindow(pWin)
  */
 
 _X_EXPORT void
-miSetShape(pWin)
-    WindowPtr	pWin;
+miSetShape(WindowPtr pWin)
 {
     Bool	WasViewable = (Bool)(pWin->viewable);
     ScreenPtr 	pScreen = pWin->drawable.pScreen;
@@ -1003,9 +988,7 @@ miSetShape(pWin)
 /* Keeps the same inside(!) origin */
 
 _X_EXPORT void
-miChangeBorderWidth(pWin, width)
-    WindowPtr pWin;
-    unsigned int width;
+miChangeBorderWidth(WindowPtr pWin, unsigned int width)
 {
     int oldwidth;
     Bool anyMarked = FALSE;
@@ -1072,10 +1055,7 @@ miChangeBorderWidth(pWin, width)
 }
 
 void
-miMarkUnrealizedWindow(pChild, pWin, fromConfigure)
-    WindowPtr pChild;
-    WindowPtr pWin;
-    Bool fromConfigure;
+miMarkUnrealizedWindow(WindowPtr pChild, WindowPtr pWin, Bool fromConfigure)
 {
     if ((pChild != pWin) || fromConfigure)
     {

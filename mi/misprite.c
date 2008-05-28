@@ -182,10 +182,9 @@ miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
  */
 
 Bool
-miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
-    ScreenPtr		    pScreen;
-    miSpriteCursorFuncPtr   cursorFuncs;
-    miPointerScreenFuncPtr  screenFuncs;
+miSpriteInitialize (ScreenPtr               pScreen,
+                    miSpriteCursorFuncPtr   cursorFuncs,
+                    miPointerScreenFuncPtr  screenFuncs)
 {
     miSpriteScreenPtr	pScreenPriv;
     VisualPtr		pVisual;
@@ -266,9 +265,7 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
  */
 
 static Bool
-miSpriteCloseScreen (i, pScreen)
-    int i;
-    ScreenPtr	pScreen;
+miSpriteCloseScreen (int i, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
     DeviceIntPtr        pDev;
@@ -291,12 +288,9 @@ miSpriteCloseScreen (i, pScreen)
 }
 
 static void
-miSpriteGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
-    DrawablePtr	    pDrawable;
-    int		    sx, sy, w, h;
-    unsigned int    format;
-    unsigned long   planemask;
-    char	    *pdstLine;
+miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
+                  unsigned int format, unsigned long planemask,
+                  char *pdstLine)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr    pScreenPriv;
@@ -331,13 +325,8 @@ miSpriteGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
 }
 
 static void
-miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
-    DrawablePtr	pDrawable;
-    int		wMax;
-    DDXPointPtr	ppt;
-    int		*pwidth;
-    int		nspans;
-    char	*pdstStart;
+miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
+                  int *pwidth, int nspans, char *pdstStart)
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr	    pScreenPriv;
@@ -390,9 +379,8 @@ miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 }
 
 static void
-miSpriteSourceValidate (pDrawable, x, y, width, height)
-    DrawablePtr	pDrawable;
-    int		x, y, width, height;
+miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
+                        int height)
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr	    pScreenPriv;
@@ -461,11 +449,8 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 }
 
 static void
-miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
-    int	i;
-    pointer	blockData;
-    pointer	pTimeout;
-    pointer	pReadmask;
+miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
+                      pointer pReadmask)
 {
     ScreenPtr		pScreen = screenInfo.screens[i];
     miSpriteScreenPtr	pPriv;
@@ -511,8 +496,7 @@ miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
 }
 
 static void
-miSpriteInstallColormap (pMap)
-    ColormapPtr	pMap;
+miSpriteInstallColormap (ColormapPtr pMap)
 {
     ScreenPtr		pScreen = pMap->pScreen;
     miSpriteScreenPtr	pPriv;
@@ -546,10 +530,7 @@ miSpriteInstallColormap (pMap)
 }
 
 static void
-miSpriteStoreColors (pMap, ndef, pdef)
-    ColormapPtr	pMap;
-    int		ndef;
-    xColorItem	*pdef;
+miSpriteStoreColors (ColormapPtr pMap, int ndef, xColorItem *pdef)
 {
     ScreenPtr		pScreen = pMap->pScreen;
     miSpriteScreenPtr	pPriv;
@@ -676,10 +657,7 @@ miSpriteFindColors (miCursorInfoPtr pDevCursor, ScreenPtr pScreen)
 #define SPRITE_PAD  8
 
 static Bool
-miSpriteRealizeCursor (pDev, pScreen, pCursor)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    CursorPtr	pCursor;
+miSpriteRealizeCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     miSpriteScreenPtr	pScreenPriv;
     miCursorInfoPtr pCursorInfo;
@@ -700,10 +678,7 @@ miSpriteRealizeCursor (pDev, pScreen, pCursor)
 }
 
 static Bool
-miSpriteUnrealizeCursor (pDev, pScreen, pCursor)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    CursorPtr	pCursor;
+miSpriteUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     miSpriteScreenPtr	pScreenPriv;
 
@@ -713,12 +688,8 @@ miSpriteUnrealizeCursor (pDev, pScreen, pCursor)
 }
 
 static void
-miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    CursorPtr	pCursor;
-    int		x;
-    int		y;
+miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
+                   CursorPtr pCursor, int x, int y)
 {
     miSpriteScreenPtr	pScreenPriv;
 
@@ -837,10 +808,7 @@ miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
 }
 
 static void
-miSpriteMoveCursor (pDev, pScreen, x, y)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    int		x, y;
+miSpriteMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     miSpriteScreenPtr	pScreenPriv;
     CursorPtr pCursor;
@@ -859,9 +827,7 @@ miSpriteMoveCursor (pDev, pScreen, x, y)
 
 
 static Bool
-miSpriteDeviceCursorInitialize(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr pScreen;
+miSpriteDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miSpriteScreenPtr pScreenPriv;
     miCursorInfoPtr pCursorInfo;
@@ -895,9 +861,7 @@ miSpriteDeviceCursorInitialize(pDev, pScreen)
 }
 
 static void
-miSpriteDeviceCursorCleanup(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr    pScreen;
+miSpriteDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     if (DevHasCursor(pDev))
     {
@@ -914,9 +878,7 @@ miSpriteDeviceCursorCleanup(pDev, pScreen)
  */
 
 static void
-miSpriteRemoveCursor (pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
+miSpriteRemoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
     miCursorInfoPtr     pCursorInfo;
@@ -955,10 +917,8 @@ miSpriteRemoveCursor (pDev, pScreen)
  * before waiting for something to do.
  */
 
-static void 
-miSpriteSaveUnderCursor(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
+static void
+miSpriteSaveUnderCursor(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
     int			x, y;
@@ -1002,9 +962,7 @@ miSpriteSaveUnderCursor(pDev, pScreen)
  */
 
 static void
-miSpriteRestoreCursor (pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
+miSpriteRestoreCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
     int			x, y;
@@ -1048,9 +1006,7 @@ miSpriteRestoreCursor (pDev, pScreen)
  */
 
 static void
-miSpriteComputeSaved (pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
+miSpriteComputeSaved (DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
     int		    x, y, w, h;

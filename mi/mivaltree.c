@@ -108,11 +108,8 @@ Equipment Corporation.
  * Compute the visibility of a shaped window
  */
 _X_EXPORT int
-miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
-    ScreenPtr	pScreen;
-    RegionPtr	universe, bounding;
-    BoxPtr	rect;
-    int 	x, y;
+miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
+                  BoxPtr rect, int x, int y)
 {
     BoxRec  	box;
     BoxPtr	boundBox;
@@ -597,11 +594,12 @@ miTreeObscured(
  */
 /*ARGSUSED*/
 int
-miValidateTree (pParent, pChild, kind)
-    WindowPtr	  	pParent;    /* Parent to validate */
-    WindowPtr	  	pChild;     /* First child of pParent that was
+miValidateTree (
+    WindowPtr		pParent,    /* Parent to validate */
+    WindowPtr		pChild,     /* First child of pParent that was
 				     * affected */
-    VTKind    	  	kind;       /* What kind of configuration caused call */
+    VTKind		kind        /* What kind of configuration caused call */
+    )
 {
     RegionRec	  	totalClip;  /* Total clipping region available to
 				     * the marked children. pParent's clipList

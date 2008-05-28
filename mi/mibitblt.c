@@ -74,14 +74,15 @@ extern int ffs(int);
  * We let SetSpans worry about clipping to the destination.
  */
 _X_EXPORT RegionPtr
-miCopyArea(pSrcDrawable, pDstDrawable,
-	    pGC, xIn, yIn, widthSrc, heightSrc, xOut, yOut)
-    DrawablePtr 	pSrcDrawable;
-    DrawablePtr 	pDstDrawable;
-    GCPtr 		pGC;
-    int 		xIn, yIn;
-    int 		widthSrc, heightSrc;
-    int 		xOut, yOut;
+miCopyArea(DrawablePtr  pSrcDrawable,
+           DrawablePtr  pDstDrawable,
+           GCPtr        pGC,
+           int          xIn,
+           int          yIn,
+           int          widthSrc,
+           int          heightSrc,
+           int          xOut,
+           int          yOut)
 {
     DDXPointPtr		ppt, pptFirst;
     unsigned int	*pwidthFirst, *pwidth, *pbits;
@@ -549,15 +550,16 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
  * Use the bitmap we've built up as a Stipple for the destination 
  */
 _X_EXPORT RegionPtr
-miCopyPlane(pSrcDrawable, pDstDrawable,
-	    pGC, srcx, srcy, width, height, dstx, dsty, bitPlane)
-    DrawablePtr 	pSrcDrawable;
-    DrawablePtr		pDstDrawable;
-    GCPtr		pGC;
-    int 		srcx, srcy;
-    int 		width, height;
-    int 		dstx, dsty;
-    unsigned long	bitPlane;
+miCopyPlane( DrawablePtr pSrcDrawable,
+             DrawablePtr pDstDrawable,
+             GCPtr pGC,
+             int srcx,
+             int srcy,
+             int width,
+             int height,
+             int dstx,
+             int dsty,
+             unsigned long bitPlane)
 {
     MiBits	*ptile;
     BoxRec 		box;
@@ -643,12 +645,8 @@ miCopyPlane(pSrcDrawable, pDstDrawable,
  * get the single plane specified in planemask
  */
 _X_EXPORT void
-miGetImage(pDraw, sx, sy, w, h, format, planeMask, pDst)
-    DrawablePtr 	pDraw;
-    int			sx, sy, w, h;
-    unsigned int 	format;
-    unsigned long 	planeMask;
-    char *              pDst;
+miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
+            unsigned int format, unsigned long planeMask, char *pDst)
 {
     unsigned char	depth;
     int			i, linelength, width, srcx, srcy;
@@ -745,12 +743,9 @@ miGetImage(pDraw, sx, sy, w, h, format, planeMask, pDst)
  *	This part is simple, just call SetSpans
  */
 _X_EXPORT void
-miPutImage(pDraw, pGC, depth, x, y, w, h, leftPad, format, pImage)
-    DrawablePtr		pDraw;
-    GCPtr		pGC;
-    int 		depth, x, y, w, h, leftPad;
-    int			format;
-    char		*pImage;
+miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
+            int x, int y, int w, int h,
+            int leftPad, int format, char *pImage)
 {
     DDXPointPtr		pptFirst, ppt;
     int			*pwidthFirst, *pwidth;

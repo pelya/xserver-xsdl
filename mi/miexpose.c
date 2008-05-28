@@ -128,15 +128,9 @@ exposing is done by the backing store's GraphicsExpose function, of course.
 */
 
 _X_EXPORT RegionPtr
-miHandleExposures(pSrcDrawable, pDstDrawable,
-		  pGC, srcx, srcy, width, height, dstx, dsty, plane)
-    DrawablePtr			pSrcDrawable;
-    DrawablePtr			pDstDrawable;
-    GCPtr 			pGC;
-    int 			srcx, srcy;
-    int 			width, height;
-    int 			dstx, dsty;
-    unsigned long		plane;
+miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
+		  GCPtr pGC, int srcx, int srcy, int width, int height,
+		  int dstx, int dsty, unsigned long plane)
 {
     ScreenPtr pscr;
     RegionPtr prgnSrcClip;	/* drawable-relative source clip */
@@ -350,12 +344,8 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
 /* send GraphicsExpose events, or a NoExpose event, based on the region */
 
 _X_EXPORT void
-miSendGraphicsExpose (client, pRgn, drawable, major, minor)
-    ClientPtr	client;
-    RegionPtr	pRgn;
-    XID		drawable;
-    int	major;
-    int	minor;
+miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
+                      int major, int minor)
 {
     if (pRgn && !REGION_NIL(pRgn))
     {
@@ -401,10 +391,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
 
 
 void
-miSendExposures(pWin, pRgn, dx, dy)
-    WindowPtr pWin;
-    RegionPtr pRgn;
-    int dx, dy;
+miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 {
     BoxPtr pBox;
     int numRects;
@@ -464,9 +451,7 @@ miSendExposures(pWin, pRgn, dx, dy)
 }
 
 _X_EXPORT void 
-miWindowExposures(pWin, prgn, other_exposed)
-    WindowPtr pWin;
-    RegionPtr prgn, other_exposed;
+miWindowExposures( WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
 {
     RegionPtr   exposures = prgn;
     if ((prgn && !REGION_NIL(prgn)) || 
@@ -654,9 +639,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
  * the GC.  Useful when we have a scratch drawable and need to initialize 
  * it. */
 _X_EXPORT void
-miClearDrawable(pDraw, pGC)
-    DrawablePtr	pDraw;
-    GCPtr	pGC;
+miClearDrawable(DrawablePtr pDraw, GCPtr pGC)
 {
     XID fg = pGC->fgPixel;
     XID bg = pGC->bgPixel;

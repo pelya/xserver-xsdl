@@ -57,11 +57,8 @@ SOFTWARE.
 extern Bool Must_have_memory;
 
 _X_EXPORT void
-miRecolorCursor( pDev, pScr, pCurs, displayed)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScr;
-    CursorPtr	 pCurs;
-    Bool	 displayed;
+miRecolorCursor(DeviceIntPtr pDev, ScreenPtr pScr,
+                CursorPtr pCurs, Bool displayed)
 {
     /*
      * This is guaranteed to correct any color-dependent state which may have

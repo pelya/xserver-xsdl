@@ -53,12 +53,13 @@ SOFTWARE.
 #include "mifpoly.h"
 
 _X_EXPORT void
-miStepDash (dist, pDashIndex, pDash, numInDashList, pDashOffset)
-    int dist;			/* distance to step */
-    int *pDashIndex;		/* current dash */
-    unsigned char *pDash;	/* dash list */
-    int numInDashList;		/* total length of dash list */
-    int *pDashOffset;		/* offset into current dash */
+miStepDash (
+    int dist,			/* distance to step */
+    int *pDashIndex,		/* current dash */
+    unsigned char *pDash,	/* dash list */
+    int numInDashList,		/* total length of dash list */
+    int *pDashOffset		/* offset into current dash */
+    )
 {
     int	dashIndex, dashOffset;
     int totallen;

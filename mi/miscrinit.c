@@ -61,15 +61,8 @@ typedef struct
 
 /* this plugs into pScreen->ModifyPixmapHeader */
 _X_EXPORT Bool
-miModifyPixmapHeader(pPixmap, width, height, depth, bitsPerPixel, devKind,
-		     pPixData)
-    PixmapPtr   pPixmap;
-    int		width;
-    int		height;
-    int		depth;
-    int		bitsPerPixel;
-    int		devKind;
-    pointer     pPixData;
+miModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
+                     int bitsPerPixel, int devKind, pointer pPixData)
 {
     if (!pPixmap)
 	return FALSE;
@@ -140,8 +133,7 @@ miCloseScreen (int iScreen, ScreenPtr pScreen)
  * screen pixmap here.
  */
 _X_EXPORT Bool
-miCreateScreenResources(pScreen)
-    ScreenPtr pScreen;
+miCreateScreenResources(ScreenPtr pScreen)
 {
     miScreenInitParmsPtr pScrInitParms;
     pointer value;
@@ -180,10 +172,7 @@ miCreateScreenResources(pScreen)
 }
 
 Bool
-miScreenDevPrivateInit(pScreen, width, pbits)
-    ScreenPtr pScreen;
-    int width;
-    pointer pbits;
+miScreenDevPrivateInit(ScreenPtr pScreen, int width, pointer pbits)
 {
     miScreenInitParmsPtr pScrInitParms;
 
@@ -201,19 +190,19 @@ miScreenDevPrivateInit(pScreen, width, pbits)
 }
 
 _X_EXPORT Bool
-miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
-	     rootDepth, numDepths, depths, rootVisual, numVisuals, visuals)
-    ScreenPtr pScreen;
-    pointer pbits;		/* pointer to screen bits */
-    int xsize, ysize;		/* in pixels */
-    int dpix, dpiy;		/* dots per inch */
-    int width;			/* pixel width of frame buffer */
-    int rootDepth;		/* depth of root window */
-    int numDepths;		/* number of depths supported */
-    DepthRec *depths;		/* supported depths */
-    VisualID rootVisual;	/* root visual */
-    int numVisuals;		/* number of visuals supported */
-    VisualRec *visuals;		/* supported visuals */
+miScreenInit(
+    ScreenPtr pScreen,
+    pointer pbits,		/* pointer to screen bits */
+    int xsize, int ysize,	/* in pixels */
+    int dpix, int dpiy,		/* dots per inch */
+    int width,			/* pixel width of frame buffer */
+    int rootDepth,		/* depth of root window */
+    int numDepths,		/* number of depths supported */
+    DepthRec *depths,		/* supported depths */
+    VisualID rootVisual,	/* root visual */
+    int numVisuals,		/* number of visuals supported */
+    VisualRec *visuals		/* supported visuals */
+    )
 {
     pScreen->width = xsize;
     pScreen->height = ysize;
@@ -304,23 +293,19 @@ miAllocateGCPrivateIndex()
 _X_EXPORT DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKey;
 
 _X_EXPORT void
-miSetZeroLineBias(pScreen, bias)
-    ScreenPtr pScreen;
-    unsigned int bias;
+miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)
 {
     dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);
 }
 
 _X_EXPORT PixmapPtr
-miGetScreenPixmap(pScreen)
-    ScreenPtr pScreen;
+miGetScreenPixmap(ScreenPtr pScreen)
 {
     return (PixmapPtr)(pScreen->devPrivate);
 }
 
 _X_EXPORT void
-miSetScreenPixmap(pPix)
-    PixmapPtr pPix;
+miSetScreenPixmap(PixmapPtr pPix)
 {
     if (pPix)
 	pPix->drawable.pScreen->devPrivate = (pointer)pPix;

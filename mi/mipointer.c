@@ -81,11 +81,10 @@ static void miPointerDeviceCleanup(DeviceIntPtr pDev,
 static EventList* events; /* for WarpPointer MotionNotifies */
 
 _X_EXPORT Bool
-miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
-    ScreenPtr		    pScreen;
-    miPointerSpriteFuncPtr  spriteFuncs;
-    miPointerScreenFuncPtr  screenFuncs;
-    Bool		    waitForUpdate;
+miPointerInitialize (ScreenPtr                  pScreen,
+                     miPointerSpriteFuncPtr     spriteFuncs,
+                     miPointerScreenFuncPtr     screenFuncs,
+                     Bool                       waitForUpdate)
 {
     miPointerScreenPtr	pScreenPriv;
 
@@ -125,9 +124,7 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
 }
 
 static Bool
-miPointerCloseScreen (index, pScreen)
-    int		index;
-    ScreenPtr	pScreen;
+miPointerCloseScreen (int index, ScreenPtr pScreen)
 {
     miPointerPtr pPointer;
     DeviceIntPtr pDev;
@@ -166,33 +163,26 @@ miPointerCloseScreen (index, pScreen)
  */
 
 static Bool
-miPointerRealizeCursor (pDev, pScreen, pCursor)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScreen;
-    CursorPtr	 pCursor;
+miPointerRealizeCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     SetupScreen(pScreen);
     return (*pScreenPriv->spriteFuncs->RealizeCursor) (pDev, pScreen, pCursor);
 }
 
 static Bool
-miPointerUnrealizeCursor (pDev, pScreen, pCursor)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScreen;
-    CursorPtr	 pCursor;
+miPointerUnrealizeCursor (DeviceIntPtr  pDev,
+                          ScreenPtr     pScreen,
+                          CursorPtr     pCursor)
 {
     SetupScreen(pScreen);
     return (*pScreenPriv->spriteFuncs->UnrealizeCursor) (pDev, pScreen, pCursor);
 }
 
 static Bool
-miPointerDisplayCursor (pDev, pScreen, pCursor)
-    DeviceIntPtr pDev;
-    ScreenPtr 	 pScreen;
-    CursorPtr	 pCursor;
+miPointerDisplayCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     miPointerPtr pPointer;
-    
+
     /* return for keyboards */
     if ((pDev->isMaster && !DevHasCursor(pDev)) ||
         (!pDev->isMaster && pDev->u.master && !DevHasCursor(pDev->u.master)))
@@ -207,10 +197,7 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
 }
 
 static void
-miPointerConstrainCursor (pDev, pScreen, pBox)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    BoxPtr	pBox;
+miPointerConstrainCursor (DeviceIntPtr pDev, ScreenPtr pScreen, BoxPtr pBox)
 {
     miPointerPtr pPointer;
 
@@ -222,22 +209,17 @@ miPointerConstrainCursor (pDev, pScreen, pBox)
 
 /*ARGSUSED*/
 static void
-miPointerPointerNonInterestBox (pDev, pScreen, pBox)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScreen;
-    BoxPtr	 pBox;
+miPointerPointerNonInterestBox (DeviceIntPtr    pDev,
+                                ScreenPtr       pScreen,
+                                BoxPtr          pBox)
 {
     /* until DIX uses this, this will remain a stub */
 }
 
 /*ARGSUSED*/
 static void
-miPointerCursorLimits(pDev, pScreen, pCursor, pHotBox, pTopLeftBox)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScreen;
-    CursorPtr	 pCursor;
-    BoxPtr	 pHotBox;
-    BoxPtr	 pTopLeftBox;
+miPointerCursorLimits(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
+                      BoxPtr pHotBox, BoxPtr pTopLeftBox)
 {
     *pTopLeftBox = *pHotBox;
 }
@@ -245,11 +227,8 @@ miPointerCursorLimits(pDev, pScreen, pCursor, pHotBox, pTopLeftBox)
 static Bool GenerateEvent;
 
 static Bool
-miPointerSetCursorPosition(pDev, pScreen, x, y, generateEvent)
-    DeviceIntPtr pDev;
-    ScreenPtr    pScreen;
-    int          x, y;
-    Bool         generateEvent;
+miPointerSetCursorPosition(DeviceIntPtr pDev, ScreenPtr pScreen,
+                           int x, int y, Bool generateEvent)
 {
     SetupScreen (pScreen);
 
@@ -261,14 +240,12 @@ miPointerSetCursorPosition(pDev, pScreen, x, y, generateEvent)
     return TRUE;
 }
 
-/* Set up sprite information for the device. 
+/* Set up sprite information for the device.
    This function will be called once for each device after it is initialized
    in the DIX.
- */ 
+ */
 static Bool
-miPointerDeviceInitialize(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr pScreen;
+miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miPointerPtr pPointer;
     SetupScreen (pScreen);
@@ -299,13 +276,11 @@ miPointerDeviceInitialize(pDev, pScreen)
     return TRUE;
 }
 
-/* Clean up after device. 
+/* Clean up after device.
    This function will be called once before the device is freed in the DIX
  */
 static void
-miPointerDeviceCleanup(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr pScreen;
+miPointerDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     if (!pDev->isMaster && pDev->u.master)
         return;
@@ -320,10 +295,7 @@ miPointerDeviceCleanup(pDev, pScreen)
 /* Once signals are ignored, the WarpCursor function can call this */
 
 _X_EXPORT void
-miPointerWarpCursor (pDev, pScreen, x, y)
-    DeviceIntPtr pDev;
-    ScreenPtr	 pScreen;
-    int	   	 x, y;
+miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     miPointerPtr pPointer;
     BOOL changedScreen = FALSE;
@@ -506,8 +478,8 @@ miPointerAbsoluteCursor (int x, int y, unsigned long time)
 
 /* Move the pointer on the current screen,  and update the sprite. */
 static void
-miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
-                     unsigned long time)
+miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,
+                int x, int y, unsigned long time)
 {
     miPointerPtr pPointer;
     SetupScreen(pScreen);

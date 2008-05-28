@@ -454,9 +454,7 @@ void EnableDisableExtensionError(char *name, Bool enable)
 
 /*ARGSUSED*/
 void
-InitExtensions(argc, argv)
-    int		argc;
-    char	*argv[];
+InitExtensions(int argc, char *argv[])
 {
     if (!noGEExtension) GEExtensionInit();
 
@@ -633,9 +631,7 @@ static ExtensionModule staticExtensions[] = {
     
 /*ARGSUSED*/
 void
-InitExtensions(argc, argv)
-    int		argc;
-    char	*argv[];
+InitExtensions(int argc, char *argv[])
 {
     int i;
     ExtensionModule *ext;

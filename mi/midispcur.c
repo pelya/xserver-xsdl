@@ -142,9 +142,7 @@ static miSpriteCursorFuncRec miDCFuncs = {
 };
 
 _X_EXPORT Bool
-miDCInitialize (pScreen, screenFuncs)
-    ScreenPtr		    pScreen;
-    miPointerScreenFuncPtr  screenFuncs;
+miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
 {
     miDCScreenPtr   pScreenPriv;
 
@@ -171,9 +169,7 @@ miDCInitialize (pScreen, screenFuncs)
 #define tossPict(pict)	(pict ? FreePicture (pict, 0) : 0)
 
 static Bool
-miDCCloseScreen (index, pScreen)
-    int		index;
-    ScreenPtr	pScreen;
+miDCCloseScreen (int index, ScreenPtr pScreen)
 {
     miDCScreenPtr   pScreenPriv;
 
@@ -185,9 +181,7 @@ miDCCloseScreen (index, pScreen)
 }
 
 static Bool
-miDCRealizeCursor (pScreen, pCursor)
-    ScreenPtr	pScreen;
-    CursorPtr	pCursor;
+miDCRealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 {
     if (pCursor->bits->refcnt <= 1)
 	dixSetPrivate(&pCursor->bits->devPrivates, pScreen, NULL);
@@ -235,9 +229,7 @@ miDCMakePicture (PicturePtr *ppPicture, DrawablePtr pDraw, WindowPtr pWin)
 #endif
 
 static miDCCursorPtr
-miDCRealize (
-    ScreenPtr	pScreen,
-    CursorPtr	pCursor)
+miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 {
     miDCCursorPtr   pPriv;
     GCPtr	    pGC;
@@ -349,9 +341,7 @@ miDCRealize (
 }
 
 static Bool
-miDCUnrealizeCursor (pScreen, pCursor)
-    ScreenPtr	pScreen;
-    CursorPtr	pCursor;
+miDCUnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 {
     miDCCursorPtr   pPriv;
 
@@ -453,12 +443,8 @@ miDCMakeGC(
 
 
 static Bool
-miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
-    DeviceIntPtr    pDev;
-    ScreenPtr	    pScreen;
-    CursorPtr	    pCursor;
-    int		    x, y;
-    unsigned long   source, mask;
+miDCPutUpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
+                 int x, int y, unsigned long source, unsigned long mask)
 {
     miDCScreenPtr   pScreenPriv;
     miDCCursorPtr   pPriv;
@@ -540,10 +526,8 @@ miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
 }
 
 static Bool
-miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    int		x, y, w, h;
+miDCSaveUnderCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
+                     int x, int y, int w, int h)
 {
     miDCScreenPtr   pScreenPriv;
     miDCBufferPtr   pBuffer;
@@ -583,10 +567,8 @@ miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
 }
 
 static Bool
-miDCRestoreUnderCursor (pDev, pScreen, x, y, w, h)
-    DeviceIntPtr pDev;
-    ScreenPtr	pScreen;
-    int		x, y, w, h;
+miDCRestoreUnderCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
+                        int x, int y, int w, int h)
 {
     miDCScreenPtr   pScreenPriv;
     miDCBufferPtr   pBuffer;
@@ -619,10 +601,8 @@ miDCRestoreUnderCursor (pDev, pScreen, x, y, w, h)
 }
 
 static Bool
-miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
-    DeviceIntPtr    pDev;
-    ScreenPtr	    pScreen;
-    int		    x, y, w, h, dx, dy;
+miDCChangeSave (DeviceIntPtr pDev, ScreenPtr pScreen,
+                int x, int y, int w, int h, int dx, int dy)
 {
     miDCScreenPtr   pScreenPriv;
     miDCBufferPtr   pBuffer;
@@ -768,12 +748,9 @@ miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
 }
 
 static Bool
-miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
-    DeviceIntPtr    pDev;
-    ScreenPtr	    pScreen;
-    CursorPtr	    pCursor;
-    int		    x, y, w, h, dx, dy;
-    unsigned long   source, mask;
+miDCMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
+                int x, int y, int w, int h, int dx, int dy,
+                unsigned long source, unsigned long mask)
 {
     miDCCursorPtr   pPriv;
     miDCScreenPtr   pScreenPriv;
@@ -904,9 +881,7 @@ miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
 }
 
 static Bool
-miDCDeviceInitialize(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr pScreen;
+miDCDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miDCBufferPtr pBuffer;
 
@@ -930,9 +905,7 @@ miDCDeviceInitialize(pDev, pScreen)
 }
 
 static void
-miDCDeviceCleanup(pDev, pScreen)
-    DeviceIntPtr pDev;
-    ScreenPtr pScreen;
+miDCDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     miDCBufferPtr   pBuffer;
 
