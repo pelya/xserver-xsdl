@@ -102,7 +102,7 @@ ExaSolid(PixmapPtr pPixmap, int x1, int y1, int x2, int y2)
 
 static Bool
 ExaPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
-		       int ydir, int alu, Pixel planeMask)
+	       int ydir, int alu, Pixel planeMask)
 {
     ScrnInfoPtr pScrn = xf86Screens[pDstPixmap->drawable.pScreen->myNum];
 
@@ -115,15 +115,15 @@ ExaPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
 
 static void
 ExaCopy(PixmapPtr pDstPixmap, int srcX, int srcY, int dstX, int dstY,
-		int width, int height)
+	int width, int height)
 {
     ScrnInfoPtr pScrn = xf86Screens[pDstPixmap->drawable.pScreen->myNum];
 }
 
 static Bool
 ExaPrepareComposite(int op, PicturePtr pSrcPicture,
-			    PicturePtr pMaskPicture, PicturePtr pDstPicture,
-			    PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
+		    PicturePtr pMaskPicture, PicturePtr pDstPicture,
+		    PixmapPtr pSrc, PixmapPtr pMask, PixmapPtr pDst)
 {
     ScreenPtr pScreen = pDst->drawable.pScreen;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -133,7 +133,7 @@ ExaPrepareComposite(int op, PicturePtr pSrcPicture,
 
 static Bool
 ExaUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src,
-		     int src_pitch)
+		  int src_pitch)
 {
     ScreenPtr pScreen = pDst->drawable.pScreen;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -143,7 +143,7 @@ ExaUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src,
 
 static void
 ExaComposite(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY,
-		     int dstX, int dstY, int width, int height)
+	     int dstX, int dstY, int width, int height)
 {
     ScreenPtr pScreen = pDst->drawable.pScreen;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -151,8 +151,8 @@ ExaComposite(PixmapPtr pDst, int srcX, int srcY, int maskX, int maskY,
 
 static Bool
 ExaCheckComposite(int op,
-		     PicturePtr pSrcPicture, PicturePtr pMaskPicture,
-		     PicturePtr pDstPicture)
+		  PicturePtr pSrcPicture, PicturePtr pMaskPicture,
+		  PicturePtr pDstPicture)
 {
     DrawablePtr pDraw = pSrcPicture->pDrawable;
     int w = pDraw->width;
@@ -173,17 +173,17 @@ ExaPixmapIsOffscreen(PixmapPtr p)
 void
 ExaClose(ScrnInfoPtr pScrn)
 {
-   modesettingPtr ms = modesettingPTR(pScrn);
+    modesettingPtr ms = modesettingPTR(pScrn);
 
     exaDriverFini(pScrn->pScreen);
 
-   drmBOUnreference(ms->fd, &ms->exa_bo);
+    drmBOUnreference(ms->fd, &ms->exa_bo);
 }
 
 ExaDriverPtr
 ExaInit(ScrnInfoPtr pScrn)
 {
-   modesettingPtr ms = modesettingPTR(pScrn);
+    modesettingPtr ms = modesettingPTR(pScrn);
     ExaDriverPtr pExa;
 
     pExa = exaDriverAlloc();
@@ -192,7 +192,9 @@ ExaInit(ScrnInfoPtr pScrn)
     }
 
     /* Create a 256KB offscreen area */
-    drmBOCreate(ms->fd, 256 * 1024, 0, NULL, DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_MEM_TT, DRM_BO_HINT_DONT_FENCE, &ms->exa_bo);
+    drmBOCreate(ms->fd, 256 * 1024, 0, NULL,
+		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_MEM_TT,
+		DRM_BO_HINT_DONT_FENCE, &ms->exa_bo);
 
     memset(pExa, 0, sizeof(*pExa));
     pExa->exa_major = 2;
@@ -203,8 +205,8 @@ ExaInit(ScrnInfoPtr pScrn)
     pExa->pixmapOffsetAlign = 8;
     pExa->pixmapPitchAlign = 32 * 4;
     pExa->flags = EXA_OFFSCREEN_PIXMAPS;
-    pExa->maxX = 8191; /* FIXME */
-    pExa->maxY = 8191; /* FIXME */
+    pExa->maxX = 8191;		       /* FIXME */
+    pExa->maxY = 8191;		       /* FIXME */
     pExa->WaitMarker = ExaWaitMarker;
     pExa->MarkSync = ExaMarkSync;
     pExa->PrepareSolid = ExaPrepareSolid;

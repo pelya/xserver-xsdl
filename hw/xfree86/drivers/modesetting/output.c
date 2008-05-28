@@ -69,20 +69,20 @@ restore(xf86OutputPtr output)
 static int
 mode_valid(xf86OutputPtr output, DisplayModePtr pMode)
 {
-   return MODE_OK;
+    return MODE_OK;
 }
 
 static Bool
 mode_fixup(xf86OutputPtr output, DisplayModePtr mode,
 	   DisplayModePtr adjusted_mode)
 {
-   return TRUE;
+    return TRUE;
 }
 
 static void
 prepare(xf86OutputPtr output)
 {
-   dpms(output, DPMSModeOff);
+    dpms(output, DPMSModeOff);
 }
 
 static void
@@ -94,69 +94,69 @@ mode_set(xf86OutputPtr output, DisplayModePtr mode,
 static void
 commit(xf86OutputPtr output)
 {
-   dpms(output, DPMSModeOn);
+    dpms(output, DPMSModeOn);
 
-   if (output->scrn->pScreen != NULL)
-      xf86_reload_cursors(output->scrn->pScreen);
+    if (output->scrn->pScreen != NULL)
+	xf86_reload_cursors(output->scrn->pScreen);
 }
 
 static xf86OutputStatus
 detect(xf86OutputPtr output)
 {
-   drmModeOutputPtr drm_output = output->driver_private;
+    drmModeOutputPtr drm_output = output->driver_private;
 
-   switch (drm_output->connection) {
-   	case DRM_MODE_CONNECTED:
-	    return XF86OutputStatusConnected;
-	case DRM_MODE_DISCONNECTED:
-	    return XF86OutputStatusDisconnected;
-	default:
-	    return XF86OutputStatusUnknown;
-   }
+    switch (drm_output->connection) {
+    case DRM_MODE_CONNECTED:
+	return XF86OutputStatusConnected;
+    case DRM_MODE_DISCONNECTED:
+	return XF86OutputStatusDisconnected;
+    default:
+	return XF86OutputStatusUnknown;
+    }
 }
 
 static DisplayModePtr
 get_modes(xf86OutputPtr output)
 {
-   drmModeOutputPtr drm_output = output->driver_private;
-   struct drm_mode_modeinfo *drm_mode = NULL;
-   DisplayModePtr modes = NULL, mode = NULL;
-   int i;
+    drmModeOutputPtr drm_output = output->driver_private;
+    struct drm_mode_modeinfo *drm_mode = NULL;
+    DisplayModePtr modes = NULL, mode = NULL;
+    int i;
 
-   for (i = 0; i < drm_output->count_modes; i++) {
-      drm_mode = &drm_output->modes[i];
-      if (drm_mode) {
-	 mode = xcalloc(1, sizeof(DisplayModeRec));
-	 if (!mode)
-	    continue;
-	 mode->type = 0;
-	 mode->Clock = drm_mode->clock;
-	 mode->HDisplay = drm_mode->hdisplay;
-	 mode->HSyncStart = drm_mode->hsync_start;
-	 mode->HSyncEnd = drm_mode->hsync_end;
-	 mode->HTotal = drm_mode->htotal;
-	 mode->VDisplay = drm_mode->vdisplay;
-	 mode->VSyncStart = drm_mode->vsync_start;
-	 mode->VSyncEnd = drm_mode->vsync_end;
-	 mode->VTotal = drm_mode->vtotal;
-	 mode->Flags = drm_mode->flags;
-	 mode->HSkew = drm_mode->hskew;
-	 mode->VScan = drm_mode->vscan;
-	 mode->VRefresh = xf86ModeVRefresh(mode);
-	 mode->Private = (void *)drm_mode;
-	 xf86SetModeDefaultName(mode);
-	 modes = xf86ModesAdd(modes, mode);
-	 xf86PrintModeline(0, mode);
-      }
-   }
+    for (i = 0; i < drm_output->count_modes; i++) {
+	drm_mode = &drm_output->modes[i];
+	if (drm_mode) {
+	    mode = xcalloc(1, sizeof(DisplayModeRec));
+	    if (!mode)
+		continue;
+	    mode->type = 0;
+	    mode->Clock = drm_mode->clock;
+	    mode->HDisplay = drm_mode->hdisplay;
+	    mode->HSyncStart = drm_mode->hsync_start;
+	    mode->HSyncEnd = drm_mode->hsync_end;
+	    mode->HTotal = drm_mode->htotal;
+	    mode->VDisplay = drm_mode->vdisplay;
+	    mode->VSyncStart = drm_mode->vsync_start;
+	    mode->VSyncEnd = drm_mode->vsync_end;
+	    mode->VTotal = drm_mode->vtotal;
+	    mode->Flags = drm_mode->flags;
+	    mode->HSkew = drm_mode->hskew;
+	    mode->VScan = drm_mode->vscan;
+	    mode->VRefresh = xf86ModeVRefresh(mode);
+	    mode->Private = (void *)drm_mode;
+	    xf86SetModeDefaultName(mode);
+	    modes = xf86ModesAdd(modes, mode);
+	    xf86PrintModeline(0, mode);
+	}
+    }
 
-   return modes;
+    return modes;
 }
 
 static void
 destroy(xf86OutputPtr output)
 {
-   drmModeFreeOutput(output->driver_private);
+    drmModeFreeOutput(output->driver_private);
 }
 
 static void
@@ -170,7 +170,7 @@ create_resources(xf86OutputPtr output)
 static Bool
 set_property(xf86OutputPtr output, Atom property, RRPropertyValuePtr value)
 {
-   return TRUE;
+    return TRUE;
 }
 #endif /* RANDR_12_INTERFACE */
 
@@ -178,7 +178,7 @@ set_property(xf86OutputPtr output, Atom property, RRPropertyValuePtr value)
 static Bool
 get_property(xf86OutputPtr output, Atom property)
 {
-   return TRUE;
+    return TRUE;
 }
 #endif /* RANDR_13_INTERFACE */
 
@@ -186,100 +186,102 @@ get_property(xf86OutputPtr output, Atom property)
 static xf86CrtcPtr
 get_crtc(xf86OutputPtr output)
 {
-   return NULL;
+    return NULL;
 }
 #endif
 
 static const xf86OutputFuncsRec output_funcs = {
-   .create_resources = create_resources,
-   .dpms = dpms,
-   .save = save,
-   .restore = restore,
-   .mode_valid = mode_valid,
-   .mode_fixup = mode_fixup,
-   .prepare = prepare,
-   .mode_set = mode_set,
-   .commit = commit,
-   .detect = detect,
-   .get_modes = get_modes,
+    .create_resources = create_resources,
+    .dpms = dpms,
+    .save = save,
+    .restore = restore,
+    .mode_valid = mode_valid,
+    .mode_fixup = mode_fixup,
+    .prepare = prepare,
+    .mode_set = mode_set,
+    .commit = commit,
+    .detect = detect,
+    .get_modes = get_modes,
 #ifdef RANDR_12_INTERFACE
-   .set_property = set_property,
+    .set_property = set_property,
 #endif
 #ifdef RANDR_13_INTERFACE
-   .get_property = get_property,
+    .get_property = get_property,
 #endif
-   .destroy = destroy,
+    .destroy = destroy,
 #ifdef RANDR_GET_CRTC_INTERFACE
-   .get_crtc = get_crtc,
+    .get_crtc = get_crtc,
 #endif
 };
 
 void
 output_init(ScrnInfoPtr pScrn)
 {
-   modesettingPtr ms = modesettingPTR(pScrn);
-   xf86OutputPtr output;
-   drmModeResPtr res;
-   drmModeOutputPtr drm_output = NULL;
-   drmModeCrtcPtr crtc;
-   char *name;
-   int o, v, p;
+    modesettingPtr ms = modesettingPTR(pScrn);
+    xf86OutputPtr output;
+    drmModeResPtr res;
+    drmModeOutputPtr drm_output = NULL;
+    drmModeCrtcPtr crtc;
+    char *name;
+    int o, v, p;
 
-   res = drmModeGetResources(ms->fd);
-   if (res == 0) {
-      DRV_ERROR("Failed drmModeGetResources\n");
-      return;
-   }
+    res = drmModeGetResources(ms->fd);
+    if (res == 0) {
+	DRV_ERROR("Failed drmModeGetResources\n");
+	return;
+    }
 
-   for (o = 0; o < res->count_outputs; o++) {
-      drm_output = drmModeGetOutput(ms->fd, res->outputs[o]);
-      if (!drm_output)
-         goto out;
+    for (o = 0; o < res->count_outputs; o++) {
+	drm_output = drmModeGetOutput(ms->fd, res->outputs[o]);
+	if (!drm_output)
+	    goto out;
 
-      for (p = 0; p < drm_output->count_props; p++) {
-	 drmModePropertyPtr prop;
+	for (p = 0; p < drm_output->count_props; p++) {
+	    drmModePropertyPtr prop;
 
-	 prop = drmModeGetProperty(ms->fd, drm_output->props[p]);
+	    prop = drmModeGetProperty(ms->fd, drm_output->props[p]);
 
-	 name = NULL;
-	 if (prop) {
-	 ErrorF("VALUES %d\n",prop->count_values);
+	    name = NULL;
+	    if (prop) {
+		ErrorF("VALUES %d\n", prop->count_values);
 
-	    for (v=0;v<prop->count_values;v++) 
-	    	ErrorF("%s %lld\n", prop->name, prop->values[v]);
+		for (v = 0; v < prop->count_values; v++)
+		    ErrorF("%s %lld\n", prop->name, prop->values[v]);
 
-	    for (v=0;v<prop->count_enums;v++) {
-	    	ErrorF("%s %s\n", prop->name, prop->enums[v].name);
-		if (drm_output->prop_values[p] == prop->enums[v].value) {
-		if (!strncmp("Connector Type", prop->name, 14)) {
-			ErrorF("WE'VE GOT %s\n",prop->enums[v].name);
-			name = xalloc(strlen(prop->enums[v].name));
-			strncpy(name, prop->enums[v].name, strlen(name));
+		for (v = 0; v < prop->count_enums; v++) {
+		    ErrorF("%s %s\n", prop->name, prop->enums[v].name);
+		    if (drm_output->prop_values[p] == prop->enums[v].value) {
+			if (!strncmp("Connector Type", prop->name, 14)) {
+			    ErrorF("WE'VE GOT %s\n", prop->enums[v].name);
+			    name = xalloc(strlen(prop->enums[v].name));
+			    strncpy(name, prop->enums[v].name, strlen(name));
+			}
+		    }
+		    if (name)
+			break;
 		}
-		}
-		if (name) break;
+		if (name)
+		    break;
 	    }
-	    if (name) break;
-	 }
-      }
+	}
 
-      if (!name)
-         continue;
+	if (!name)
+	    continue;
 
-      output = xf86OutputCreate(pScrn, &output_funcs, name);
-      if (!output)
-	 continue;
+	output = xf86OutputCreate(pScrn, &output_funcs, name);
+	if (!output)
+	    continue;
 
 	free(name);
 
-      output->possible_crtcs = drm_output->crtcs;
-      output->possible_clones = drm_output->clones;
-      output->driver_private = drm_output;
-      output->subpixel_order = SubPixelHorizontalRGB;
-      output->interlaceAllowed = FALSE;
-      output->doubleScanAllowed = FALSE;
-   }
+	output->possible_crtcs = drm_output->crtcs;
+	output->possible_clones = drm_output->clones;
+	output->driver_private = drm_output;
+	output->subpixel_order = SubPixelHorizontalRGB;
+	output->interlaceAllowed = FALSE;
+	output->doubleScanAllowed = FALSE;
+    }
 
-out:
-   drmModeFreeResources(res);
+  out:
+    drmModeFreeResources(res);
 }

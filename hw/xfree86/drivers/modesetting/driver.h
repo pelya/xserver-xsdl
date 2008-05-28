@@ -36,53 +36,55 @@
 
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
 
-typedef struct {
-   int            lastInstance;
-   int            refCount;
-   ScrnInfoPtr    pScrn_1;
-   ScrnInfoPtr    pScrn_2;
+typedef struct
+{
+    int lastInstance;
+    int refCount;
+    ScrnInfoPtr pScrn_1;
+    ScrnInfoPtr pScrn_2;
 } EntRec, *EntPtr;
 
-typedef struct _modesettingRec {
-   int fd;
-   unsigned int fb_id;
-   void *virtual;
-   drmBO bo;
+typedef struct _modesettingRec
+{
+    int fd;
+    unsigned int fb_id;
+    void *virtual;
+    drmBO bo;
 
-   EntPtr entityPrivate;	
+    EntPtr entityPrivate;
 
-   void (*PointerMoved)(int, int, int);
+    void (*PointerMoved) (int, int, int);
 
-   int Chipset;
-   EntityInfoPtr pEnt;
+    int Chipset;
+    EntityInfoPtr pEnt;
 #if XSERVER_LIBPCIACCESS
-   struct pci_device *PciInfo;
+    struct pci_device *PciInfo;
 #else
-   pciVideoPtr PciInfo;
-   PCITAG PciTag;
+    pciVideoPtr PciInfo;
+    PCITAG PciTag;
 #endif
 
-   Bool noAccel;
-   Bool SWCursor;
-   CloseScreenProcPtr CloseScreen;
+    Bool noAccel;
+    Bool SWCursor;
+    CloseScreenProcPtr CloseScreen;
 
-   Bool directRenderingDisabled;	/* DRI disabled in PreInit. */
-   Bool directRenderingEnabled;		/* DRI enabled this generation. */
+    Bool directRenderingDisabled;      /* DRI disabled in PreInit. */
+    Bool directRenderingEnabled;       /* DRI enabled this generation. */
 
-   /* Broken-out options. */
-   OptionInfoPtr Options;
+    /* Broken-out options. */
+    OptionInfoPtr Options;
 
-   unsigned int SaveGeneration;
+    unsigned int SaveGeneration;
 
-   /* shadowfb */
-   CARD8 *shadowMem;
-   Bool shadowFB;
-   CreateScreenResourcesProcPtr createScreenResources;
-   ShadowUpdateProc update;
+    /* shadowfb */
+    CARD8 *shadowMem;
+    Bool shadowFB;
+    CreateScreenResourcesProcPtr createScreenResources;
+    ShadowUpdateProc update;
 
-   /* exa */
-   ExaDriverPtr pExa;
-   drmBO exa_bo;
+    /* exa */
+    ExaDriverPtr pExa;
+    drmBO exa_bo;
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))
