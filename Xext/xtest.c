@@ -42,6 +42,7 @@
 #include "scrnintstr.h"
 #include "dixevents.h"
 #include "sleepuntil.h"
+#include "mi.h"
 #define _XTEST_SERVER_
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/xteststr.h>
@@ -164,8 +165,13 @@ ProcXTestFakeInput(client)
     WindowPtr root;
     Bool extension = FALSE;
     deviceValuator *dv = NULL;
-    int base;
-    int *values;
+    int valuators[MAX_VALUATORS] = {0};
+    int numValuators = 0;
+    int firstValuator;
+    EventListPtr events;
+    int nevents;
+    int i;
+    int base = 0;
 
     nev = (stuff->length << 2) - sizeof(xReq);
     if ((nev % sizeof(xEvent)) || !nev)
@@ -177,6 +183,18 @@ ProcXTestFakeInput(client)
 
     if (type >= EXTENSION_EVENT_BASE)
     {
+        extension = TRUE;
+
+        /* check device */
+        rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
+                DixWriteAccess);
+        if (rc != Success)
+        {
+            client->errorValue = stuff->deviceid & 0177;
+            return rc;
+        }
+
+        /* check type */
         type -= DeviceValuator;
         switch (type) {
             case XI_DeviceKeyPress:
@@ -191,12 +209,31 @@ ProcXTestFakeInput(client)
                 client->errorValue = ev->u.u.type;
                 return BadValue;
         }
+
+        /* check validity */
         if (nev == 1 && type == XI_DeviceMotionNotify)
             return BadLength; /* DevMotion must be followed by DevValuator */
+
         if (type == XI_DeviceMotionNotify)
-            base = ((deviceValuator *)(ev+1))->first_valuator;
-        else
-            base = 0;
+        {
+            firstValuator = ((deviceValuator *)(ev+1))->first_valuator;
+            if (firstValuator > dev->valuator->numAxes)
+            {
+                client->errorValue = ev->u.u.type;
+                return BadValue;
+            }
+        } else
+            firstValuator = 0;
+
+        if (nev == 1 && type == XI_DeviceMotionNotify && !dev->valuator)
+        {
+            client->errorValue = dv->first_valuator;
+            return BadValue;
+        }
+
+
+        /* check validity of valuator events */
+        base = firstValuator;
         for (n = 1; n < nev; n++)
         {
             dv = (deviceValuator *)(ev + n);
@@ -210,17 +247,32 @@ ProcXTestFakeInput(client)
                 client->errorValue = dv->first_valuator;
                 return BadValue;
             }
-            if (!dv->num_valuators || dv->num_valuators > 6)
+            switch(dv->num_valuators)
+            {
+                case 6: valuators[base + 5] = dv->valuator5;
+                case 5: valuators[base + 4] = dv->valuator4;
+                case 4: valuators[base + 3] = dv->valuator3;
+                case 3: valuators[base + 2] = dv->valuator2;
+                case 2: valuators[base + 1] = dv->valuator1;
+                case 1: valuators[base] = dv->valuator0;
+                        break;
+                default:
+                        client->errorValue = dv->num_valuators;
+                        return BadValue;
+            }
+
+            base += dv->num_valuators;
+            numValuators += dv->num_valuators;
+
+            if (firstValuator + numValuators > dev->valuator->numAxes)
             {
                 client->errorValue = dv->num_valuators;
                 return BadValue;
             }
-            base += dv->num_valuators;
         }
         type = type - XI_DeviceKeyPress + KeyPress;
-        extension = TRUE;
-    }
-    else
+
+    } else
     {
         if (nev != 1)
             return BadLength;
@@ -228,34 +280,26 @@ ProcXTestFakeInput(client)
         {
             case KeyPress:
             case KeyRelease:
-            case MotionNotify:
+                dev = PickKeyboard(client);
+                break;
             case ButtonPress:
             case ButtonRelease:
+                dev = PickPointer(client);
+                break;
+            case MotionNotify:
+                dev = PickPointer(client);
+                valuators[0] = ev->u.keyButtonPointer.rootX;
+                valuators[1] = ev->u.keyButtonPointer.rootY;
+                numValuators = 2;
+                firstValuator = 0;
                 break;
             default:
                 client->errorValue = ev->u.u.type;
                 return BadValue;
         }
 
-        ev->u.u.type += (DeviceValuator - 1);
-        if (ev->u.u.type == DeviceMotionNotify)
-        {
-            /* fake up valuator */
-            xEvent *ne = xalloc(2 * sizeof(xEvent));
-            if (ne) {
-                memcpy(ne, ev, sizeof(xEvent));
-                memcpy(&ne[1], ev, sizeof(xEvent));
-                ev = ne;
-
-                dv = (deviceValuator*)(ne + 1);
-                dv->type = DeviceValuator;
-                dv->first_valuator = 0;
-                dv->num_valuators = 2;
-                dv->valuator0 = ev->u.keyButtonPointer.rootX;
-                dv->valuator1 = ev->u.keyButtonPointer.rootY;
-                nev = 2;
-            }
-        }
+        if (dev->u.lastSlave)
+            dev = dev->u.lastSlave;
     }
 
     /* If the event has a time set, wait for it to pass */
@@ -288,37 +332,10 @@ ProcXTestFakeInput(client)
         return Success;
     }
 
-    if (extension)
-    {
-        rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
-                DixWriteAccess);
-        if (rc != Success)
-        {
-            client->errorValue = stuff->deviceid & 0177;
-            return rc;
-        }
-        if (nev > 1)
-        {
-            dv = (deviceValuator *)(ev + 1);
-            if (!dev->valuator || dv->first_valuator >= dev->valuator->numAxes)
-            {
-                client->errorValue = dv->first_valuator;
-                return BadValue;
-            }
-            if (dv->first_valuator + dv->num_valuators >
-                    dev->valuator->numAxes)
-            {
-                client->errorValue = dv->num_valuators;
-                return BadValue;
-            }
-        }
-    }
     switch (type)
     {
         case KeyPress:
         case KeyRelease:
-            if (!extension)
-                dev = PickKeyboard(client);
             if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
                     ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
             {
@@ -327,66 +344,13 @@ ProcXTestFakeInput(client)
             }
             break;
         case MotionNotify:
-            if (extension)
-            {
-                if (ev->u.u.detail != xFalse && ev->u.u.detail != xTrue)
-                {
-                    client->errorValue = ev->u.u.detail;
-                    return BadValue;
-                }
-                /* detail is True for relative coordinates */
-                if (ev->u.u.detail == xTrue && dev->valuator->mode == Absolute)
-                {
-                    values = dev->valuator->axisVal + dv->first_valuator;
-                    for (n = 1; n < nev; n++)
-                    {
-                        dv = (deviceValuator *)(ev + n);
-                        switch (dv->num_valuators)
-                        {
-                            case 6:
-                                dv->valuator5 += values[5];
-                            case 5:
-                                dv->valuator4 += values[4];
-                            case 4:
-                                dv->valuator3 += values[3];
-                            case 3:
-                                dv->valuator2 += values[2];
-                            case 2:
-                                dv->valuator1 += values[1];
-                            case 1:
-                                dv->valuator0 += values[0];
-                        }
-                        values += 6;
-                    }
-                }
-
-                /* For XI events, the actual event is mostly unset. Since we
-                 * want to update the sprite nontheless, we need to fake up
-                 * sane values for the event. */
-
-                ev->u.keyButtonPointer.root = None;
-                dv = (deviceValuator*)(ev + 1);
-                if (dv->num_valuators && dv->first_valuator == 0)
-                    ev->u.keyButtonPointer.rootX = dv->valuator0;
-                else
-                    ev->u.keyButtonPointer.rootX = 0;
-
-                /* XXX: AFAIK, XI requires always sending _all_ valuators,
-                 * i.e. you can't just send vals 3 - 7. (whot) */
-                if (dv->num_valuators > 1 && dv->first_valuator == 0)
-                    ev->u.keyButtonPointer.rootY = dv->valuator1;
-                else
-                    ev->u.keyButtonPointer.rootY = 0;
-            }
-
-            if (!dev)
-                dev = PickPointer(client);
-            if (ev->u.keyButtonPointer.root == None)
+            /* broken lib, XI events have root uninitialized */
+            if (extension || ev->u.keyButtonPointer.root == None)
                 root = GetCurrentRootWindow(dev);
             else
             {
-                rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
-                        DixGetAttrAccess);
+                rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root,
+                                     client, DixGetAttrAccess);
                 if (rc != Success)
                     return rc;
                 if (root->parent)
@@ -395,91 +359,23 @@ ProcXTestFakeInput(client)
                     return BadValue;
                 }
             }
-            if (ev->u.u.detail == xTrue)
-            {
-                int x, y;
-                if (!extension || !dev->valuator->mode == Absolute)
-                {
-                    /* if Absolute, rootX already has the final coords. */
-                    GetSpritePosition(dev, &x, &y);
-                    ev->u.keyButtonPointer.rootX += x;
-                    ev->u.keyButtonPointer.rootY += y;
-                }
-            }
-            else if (ev->u.u.detail != xFalse)
+            if (ev->u.u.detail != xTrue && ev->u.u.detail != xFalse)
             {
                 client->errorValue = ev->u.u.detail;
                 return BadValue;
             }
 
-#ifdef PANORAMIX
-            if (!noPanoramiXExtension) {
-                ScreenPtr pScreen = root->drawable.pScreen;
-                BoxRec    box;
-                int       i;
-                int       x = ev->u.keyButtonPointer.rootX + panoramiXdataPtr[0].x;
-                int       y = ev->u.keyButtonPointer.rootY + panoramiXdataPtr[0].y;
-                if (!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
-                            x, y, &box)) {
-                    FOR_NSCREENS(i) {
-                        if (i == pScreen->myNum) continue;
-                        if (POINT_IN_REGION(pScreen,
-                                    &XineramaScreenRegions[i],
-                                    x, y, &box)) {
-                            root = WindowTable[i];
-                            x   -= panoramiXdataPtr[i].x;
-                            y   -= panoramiXdataPtr[i].y;
-                            ev->u.keyButtonPointer.rootX = x;
-                            ev->u.keyButtonPointer.rootY = y;
-                            break;
-                        }
-                    }
-                }
-            }
-#endif
+            /* FIXME: Xinerama! */
 
-            if (ev->u.keyButtonPointer.rootX < 0)
-                ev->u.keyButtonPointer.rootX = 0;
-            else if (ev->u.keyButtonPointer.rootX >= root->drawable.width)
-                ev->u.keyButtonPointer.rootX = root->drawable.width - 1;
-            if (ev->u.keyButtonPointer.rootY < 0)
-                ev->u.keyButtonPointer.rootY = 0;
-            else if (ev->u.keyButtonPointer.rootY >= root->drawable.height)
-                ev->u.keyButtonPointer.rootY = root->drawable.height - 1;
-
-#ifdef PANORAMIX
-            if ((!noPanoramiXExtension
-                        && root->drawable.pScreen->myNum
-                        != XineramaGetCursorScreen(dev))
-                    || (noPanoramiXExtension && root != GetCurrentRootWindow(dev)))
-
-#else
-                if (root != GetCurrentRootWindow(dev))
-#endif
-                {
-                    NewCurrentScreen(dev, root->drawable.pScreen,
-                            ev->u.keyButtonPointer.rootX,
-                            ev->u.keyButtonPointer.rootY);
-                    return client->noClientException;
-                }
-            /* Only update sprite for MDs and floating SDs */
-            if (dev->isMaster || (!dev->isMaster && !dev->u.master))
-            {
-                (*root->drawable.pScreen->SetCursorPosition)
-                    (dev, root->drawable.pScreen,
-                     ev->u.keyButtonPointer.rootX,
-                     ev->u.keyButtonPointer.rootY, FALSE);
-            }
-            dev->last.valuators[0] = ev->u.keyButtonPointer.rootX;
-            dev->last.valuators[1] = ev->u.keyButtonPointer.rootY;
             break;
         case ButtonPress:
         case ButtonRelease:
             if (!extension)
+            {
                 dev = PickPointer(client);
-
-            ev->u.keyButtonPointer.rootX = dev->last.valuators[0];
-            ev->u.keyButtonPointer.rootY = dev->last.valuators[1];
+                if (dev->u.lastSlave)
+                    dev = dev->u.lastSlave;
+            }
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;
@@ -489,19 +385,31 @@ ProcXTestFakeInput(client)
     }
     if (screenIsSaved == SCREEN_SAVER_ON)
         dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
-    ev->u.keyButtonPointer.time = currentTime.milliseconds;
 
-    if (!dev->isMaster && dev->u.master)
-    {   /* duplicate and route through master */
-        xEvent *master_event = NULL;
-        CopyGetMasterEvent(dev->u.master, ev, &master_event, nev);
-        (*dev->public.processInputProc)(ev, dev, nev);
-        (*dev->public.processInputProc)(master_event, dev->u.master, nev);
-        xfree(master_event);
-    } else
-        (*dev->public.processInputProc)(ev, dev, nev);
-    if (!extension && type == MotionNotify)
-        xfree(ev);
+    GetEventList(&events);
+    switch(type) {
+        case MotionNotify:
+            nevents = GetPointerEvents(events, dev, type, 0,
+                            (ev->u.u.detail == xFalse) ?  POINTER_ABSOLUTE : 0,
+                            firstValuator, numValuators, valuators);
+            break;
+        case ButtonPress:
+        case ButtonRelease:
+            nevents = GetPointerEvents(events, dev, type, ev->u.u.detail,
+                                       POINTER_ABSOLUTE, firstValuator,
+                                       numValuators, valuators);
+            break;
+        case KeyPress:
+        case KeyRelease:
+            nevents = GetKeyboardEvents(events, dev, type, ev->u.u.detail);
+            break;
+    }
+
+    OsBlockSignals();
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(dev, events->event);
+    OsReleaseSignals();
+
     return client->noClientException;
 }
 
