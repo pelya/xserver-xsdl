@@ -295,6 +295,8 @@ miPointerSpriteFuncRec EphyrPointerSpriteFuncs = {
 	ephyrUnrealizeCursor,
 	ephyrSetCursor,
 	ephyrMoveCursor,
+        NULL,
+        NULL
 };
 
 

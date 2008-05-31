@@ -5410,7 +5410,6 @@ ProcQueryPointer(ClientPtr client)
     xQueryPointerReply rep;
     WindowPtr pWin, t;
     DeviceIntPtr mouse = PickPointer(client);
-    DeviceIntPtr dev;
     SpritePtr pSprite;
     int rc;
     REQUEST(xResourceReq);
@@ -5422,18 +5421,6 @@ ProcQueryPointer(ClientPtr client)
     rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixReadAccess);
     if (rc != Success)
 	return rc;
-
-    for (dev = inputInfo.devices; dev; dev = dev->next)
-    {
-        if (dev->isMaster && IsPointerDevice(dev) &&
-                dev->deviceGrab.grab && dev->deviceGrab.grab->coreGrab &&
-                SameClient(dev->deviceGrab.grab, client))
-        {
-            /* special case, we have a grab on the device so we need to return
-             * this one */
-            mouse = dev;
-        }
-    }
 
     pSprite = mouse->spriteInfo->sprite;
     if (mouse->valuator->motionHintWindow)
