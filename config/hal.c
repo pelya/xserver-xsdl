@@ -173,7 +173,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 {
     char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
     InputOption *options = NULL, *tmpo = NULL;
-    DeviceIntPtr dev;
+    DeviceIntPtr dev = NULL;
     DBusError error;
     struct xkb_options xkb_opts = {0};
 
