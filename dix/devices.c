@@ -376,7 +376,8 @@ ActivateDevice(DeviceIntPtr dev)
     ev.time = currentTime.milliseconds;
     ev.devchange = DeviceAdded;
     ev.deviceid = dev->id;
-    dummyDev.id = 0;
+
+    memset(&dummyDev, 0, sizeof(DeviceIntRec));
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 
