@@ -893,8 +893,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
     /* FIXME: I guess it should, in theory, be possible to post button events
      *        from devices without valuators. */
-    /* This method require at least valuator 0&1 defined on the InputDevice */
-    if (!pDev->valuator || pDev->valuator->numAxes < 2)
+    if (!pDev->valuator)
         return 0;
     if (type == MotionNotify && num_valuators <= 0)
         return 0;
