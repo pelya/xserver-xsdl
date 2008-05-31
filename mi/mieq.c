@@ -254,9 +254,11 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
         {
             // do nothing or drink a beer. your choice.
         } else
-            ErrorF("[mi] Unknown generic event, cannot change id.\n");
+            DebugF("[mi] Unknown generic event (%d/%d), cannot change id.\n",
+                    ((xGenericEvent*)ev)->extension,
+                    ((xGenericEvent*)ev)->evtype);
     } else
-        ErrorF("[mi] Unknown event type, cannot change id.\n");
+        DebugF("[mi] Unknown event type (%d), cannot change id.\n", type);
 }
 
 /**
