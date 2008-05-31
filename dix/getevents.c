@@ -428,6 +428,8 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
 
         for (i = first_valuator; i < first_valuator + num_valuators; i++)
         {
+            if (i >= v->numAxes)
+                break;
             memcpy(buff, &v->axes[i].min_value, sizeof(INT32));
             buff += sizeof(INT32);
             memcpy(buff, &v->axes[i].max_value, sizeof(INT32));
