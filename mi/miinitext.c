@@ -475,9 +475,7 @@ InitExtensions(int argc, char *argv[])
 #ifdef MULTIBUFFER
     if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
-#if defined(XINPUT)
     if (!noXInputExtension) XInputExtensionInit();
-#endif
 #ifdef XTEST
     if (!noTestExtensions) XTestExtensionInit();
 #endif
