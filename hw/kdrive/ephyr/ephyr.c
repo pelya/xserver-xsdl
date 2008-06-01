@@ -837,7 +837,7 @@ ephyrCrossScreen (ScreenPtr pScreen, Bool entering)
 int ephyrCurScreen; /*current event screen*/
 
 static void
-ephyrWarpCursor (ScreenPtr pScreen, int x, int y)
+ephyrWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     ephyrBlockSigio ();
     ephyrCurScreen = pScreen->myNum;
@@ -849,7 +849,9 @@ miPointerScreenFuncRec ephyrPointerScreenFuncs =
 {
   ephyrCursorOffScreen,
   ephyrCrossScreen,
-  ephyrWarpCursor
+  ephyrWarpCursor,
+  NULL,
+  NULL
 };
 
 #ifdef XF86DRI
@@ -911,7 +913,7 @@ ephyrPoll(void)
                   if (ev.data.mouse_motion.screen >= 0)
                     {
                       ephyrWarpCursor
-                            (screenInfo.screens[ev.data.mouse_motion.screen],
+                            (inputInfo.pointer, screenInfo.screens[ev.data.mouse_motion.screen],
                              ev.data.mouse_motion.x,
                              ev.data.mouse_motion.y );
                     }
