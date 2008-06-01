@@ -279,6 +279,21 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
     return;
 }
 
+void
+XkbDeleteRulesDflts()
+{
+    _XkbFree(XkbRulesFile);
+    XkbRulesFile = NULL;
+    _XkbFree(XkbModelDflt);
+    XkbModelDflt = NULL;
+    _XkbFree(XkbLayoutDflt);
+    XkbLayoutDflt = NULL;
+    _XkbFree(XkbVariantDflt);
+    XkbVariantDflt = NULL;
+    _XkbFree(XkbOptionsDflt);
+    XkbOptionsDflt = NULL;
+}
+
 /***====================================================================***/
 
 #include "xkbDflts.h"

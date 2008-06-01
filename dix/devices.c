@@ -847,6 +847,9 @@ CloseDownDevices(void)
     inputInfo.off_devices = NULL;
     inputInfo.keyboard = NULL;
     inputInfo.pointer = NULL;
+#ifdef XKB
+    XkbDeleteRulesDflts();
+#endif
 }
 
 /**
