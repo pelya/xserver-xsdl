@@ -104,7 +104,7 @@ crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode,
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     xf86OutputPtr output = config->output[config->compat_output];
-    drmModeOutputPtr drm_output = output->driver_private;
+    drmModeConnectorPtr drm_connector = output->driver_private;
     struct crtc_private *crtcp = crtc->driver_private;
     drmModeCrtcPtr drm_crtc = crtcp->drm_crtc;
     struct drm_mode_modeinfo drm_mode;
@@ -125,7 +125,7 @@ crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode,
     strncpy(drm_mode.name, mode->name, DRM_DISPLAY_MODE_LEN);
 
     drmModeSetCrtc(ms->fd, drm_crtc->crtc_id, ms->fb_id, x, y,
-		   &drm_output->output_id, 1, &drm_mode);
+		   &drm_connector->connector_id, 1, &drm_mode);
 }
 
 void

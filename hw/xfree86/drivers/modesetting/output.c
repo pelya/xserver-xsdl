@@ -103,9 +103,9 @@ commit(xf86OutputPtr output)
 static xf86OutputStatus
 detect(xf86OutputPtr output)
 {
-    drmModeOutputPtr drm_output = output->driver_private;
+    drmModeConnectorPtr drm_connector = output->driver_private;
 
-    switch (drm_output->connection) {
+    switch (drm_connector->connection) {
     case DRM_MODE_CONNECTED:
 	return XF86OutputStatusConnected;
     case DRM_MODE_DISCONNECTED:
@@ -118,13 +118,13 @@ detect(xf86OutputPtr output)
 static DisplayModePtr
 get_modes(xf86OutputPtr output)
 {
-    drmModeOutputPtr drm_output = output->driver_private;
+    drmModeConnectorPtr drm_connector = output->driver_private;
     struct drm_mode_modeinfo *drm_mode = NULL;
     DisplayModePtr modes = NULL, mode = NULL;
     int i;
 
-    for (i = 0; i < drm_output->count_modes; i++) {
-	drm_mode = &drm_output->modes[i];
+    for (i = 0; i < drm_connector->count_modes; i++) {
+	drm_mode = &drm_connector->modes[i];
 	if (drm_mode) {
 	    mode = xcalloc(1, sizeof(DisplayModeRec));
 	    if (!mode)
@@ -156,7 +156,7 @@ get_modes(xf86OutputPtr output)
 static void
 destroy(xf86OutputPtr output)
 {
-    drmModeFreeOutput(output->driver_private);
+    drmModeFreeConnector(output->driver_private);
 }
 
 static void
@@ -220,10 +220,11 @@ output_init(ScrnInfoPtr pScrn)
     modesettingPtr ms = modesettingPTR(pScrn);
     xf86OutputPtr output;
     drmModeResPtr res;
-    drmModeOutputPtr drm_output = NULL;
+    drmModeConnectorPtr drm_connector = NULL;
+    drmModeEncoderPtr drm_encoder = NULL;
     drmModeCrtcPtr crtc;
     char *name;
-    int o, v, p;
+    int c, v, p;
 
     res = drmModeGetResources(ms->fd);
     if (res == 0) {
@@ -231,15 +232,16 @@ output_init(ScrnInfoPtr pScrn)
 	return;
     }
 
-    for (o = 0; o < res->count_outputs; o++) {
-	drm_output = drmModeGetOutput(ms->fd, res->outputs[o]);
-	if (!drm_output)
+    for (c = 0; c < res->count_connectors; c++) {
+	drm_connector = drmModeGetConnector(ms->fd, res->connectors[c]);
+	if (!drm_connector)
 	    goto out;
 
-	for (p = 0; p < drm_output->count_props; p++) {
+#if 0
+	for (p = 0; p < drm_connector->count_props; p++) {
 	    drmModePropertyPtr prop;
 
-	    prop = drmModeGetProperty(ms->fd, drm_output->props[p]);
+	    prop = drmModeGetProperty(ms->fd, drm_connector->props[p]);
 
 	    name = NULL;
 	    if (prop) {
@@ -250,7 +252,7 @@ output_init(ScrnInfoPtr pScrn)
 
 		for (v = 0; v < prop->count_enums; v++) {
 		    ErrorF("%s %s\n", prop->name, prop->enums[v].name);
-		    if (drm_output->prop_values[p] == prop->enums[v].value) {
+		    if (drm_connector->prop_values[p] == prop->enums[v].value) {
 			if (!strncmp("Connector Type", prop->name, 14)) {
 			    ErrorF("WE'VE GOT %s\n", prop->enums[v].name);
 			    name = xalloc(strlen(prop->enums[v].name));
@@ -267,16 +269,29 @@ output_init(ScrnInfoPtr pScrn)
 
 	if (!name)
 	    continue;
+#endif
+
+
+#if 0
+	free(name);
+#endif
+
+	
+	name = "Unknown";
 
 	output = xf86OutputCreate(pScrn, &output_funcs, name);
 	if (!output)
 	    continue;
 
-	free(name);
-
-	output->possible_crtcs = drm_output->crtcs;
-	output->possible_clones = drm_output->clones;
-	output->driver_private = drm_output;
+	drm_encoder = drmModeGetEncoder(ms->fd, drm_connector->encoder);
+	if (drm_encoder) {
+	output->possible_crtcs = drm_encoder->crtcs;
+	output->possible_clones = drm_encoder->clones;
+	} else {
+	output->possible_crtcs = 0;
+	output->possible_clones = 0;
+	}
+	output->driver_private = drm_connector;
 	output->subpixel_order = SubPixelHorizontalRGB;
 	output->interlaceAllowed = FALSE;
 	output->doubleScanAllowed = FALSE;
