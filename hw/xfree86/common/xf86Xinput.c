@@ -475,28 +475,31 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
         drv = pInfo->drv;
         idev = pInfo->conf_idev;
     }
+
+    OsBlockSignals();
     RemoveDevice(pDev);
 
-    if (pDev->isMaster)
-        return;
-
-    if(drv->UnInit)
-        drv->UnInit(drv, pInfo, 0);
-    else
-        xf86DeleteInput(pInfo, 0);
-
-    /* devices added through HAL aren't in the config layout */
-    it = xf86ConfigLayout.inputs;
-    while(*it && *it != idev)
-        it++;
-
-    if (!(*it)) /* end of list, not in the layout */
+    if (!pDev->isMaster)
     {
-        xfree(idev->driver);
-        xfree(idev->identifier);
-        xf86optionListFree(idev->commonOptions);
-        xfree(idev);
+        if(drv->UnInit)
+            drv->UnInit(drv, pInfo, 0);
+        else
+            xf86DeleteInput(pInfo, 0);
+
+        /* devices added through HAL aren't in the config layout */
+        it = xf86ConfigLayout.inputs;
+        while(*it && *it != idev)
+            it++;
+
+        if (!(*it)) /* end of list, not in the layout */
+        {
+            xfree(idev->driver);
+            xfree(idev->identifier);
+            xf86optionListFree(idev->commonOptions);
+            xfree(idev);
+        }
     }
+    OsReleaseSignals();
 }
 
 /* 
