@@ -7,8 +7,8 @@ AM_CPPFLAGS = \
 	-DINXQUARTZ \
 	-DUSE_NEW_CLUT \
 	-DXFree86Server \
-	-I$(top_srcdir)/miext/rootless
-#	-DNEW_LAUNCH_METHOD
+	-I$(top_srcdir)/miext/rootless \
+	-DNEW_LAUNCH_METHOD
 
 SUBDIRS = bundle . GL xpr mach-startup doc
 

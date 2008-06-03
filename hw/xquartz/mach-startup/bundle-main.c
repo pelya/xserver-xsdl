@@ -48,8 +48,8 @@
 #include "mach_startupServer.h"
 
 #include "launchd_fd.h"
+/* From darwinEvents.c ... but don't want to pull in all the server cruft */
 void DarwinListenOnOpenFD(int fd);
-
 
 #define DEFAULT_CLIENT "/usr/X11/bin/xterm"
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
@@ -124,9 +124,6 @@ static mach_port_t checkin_or_register(char *bname) {
 }
 
 /*** $DISPLAY handoff ***/
-/* From darwinEvents.c ... but don't want to pull in all the server cruft */
-void DarwinListenOnOpenFD(int fd);
-
 static void accept_fd_handoff(int connected_fd) {
     int launchd_fd;
     
@@ -169,7 +166,9 @@ static void accept_fd_handoff(int connected_fd) {
     if(launchd_fd == -1)
         fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
         
-    fprintf(stderr, "Received new DISPLAY fd: %d\n", launchd_fd);
+    fprintf(stderr, "Received new DISPLAY fd (1): %d\n", launchd_fd);
+    sleep(10);
+    fprintf(stderr, "Received new DISPLAY fd (2): %d\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }
 
@@ -189,7 +188,7 @@ static void socket_handoff_thread(void *arg) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
     socklen_t servaddr_len;
-    int handoff_fd, connected_fd;
+    int handoff_fd;
 
     /* We need to save it since data dies after we pthread_cond_broadcast */
     strlcpy(filename, data->socket_filename, STRING_T_SIZE); 
@@ -208,40 +207,27 @@ static void socket_handoff_thread(void *arg) {
     handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if(handoff_fd == 0) {
         fprintf(stderr, "Failed to create socket: %s - %s\n", filename, strerror(errno));
+
         data->retval = EXIT_FAILURE;
-        return;
-    }
-    
-    if(bind(handoff_fd, servaddr, servaddr_len) != 0) {
-        fprintf(stderr, "Failed to bind socket: %s - %s\n", filename, strerror(errno));
-        data->retval = EXIT_FAILURE;
-        return;
-    }
-    
-    if(listen(handoff_fd, 10) != 0) {
-        fprintf(stderr, "Failed to listen to socket: %s - %s\n", filename, strerror(errno));
-        data->retval = EXIT_FAILURE;
+        pthread_mutex_unlock(&data->lock);
+        pthread_cond_broadcast(&data->cond);
         return;
     }
 
-    /* Let the dispatch thread now tell the caller that we're listening */
+    /* Let the dispatch thread now tell the caller that we're ready */
     data->retval = EXIT_SUCCESS;
     pthread_mutex_unlock(&data->lock);
     pthread_cond_broadcast(&data->cond);
     
-    connected_fd = accept(handoff_fd, NULL, NULL);
-    
-    if(connected_fd == -1) {
-        fprintf(stderr, "Failed to accept incoming connection on socket: %s - %s\n", filename, strerror(errno));
+    if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
+        fprintf(stderr, "Failed to connect to socket: %s - %s\n", filename, strerror(errno));
         return;
     }
 
     /* Now actually get the passed file descriptor from this connection */
-    accept_fd_handoff(connected_fd);
+    accept_fd_handoff(handoff_fd);
 
-    close(connected_fd);
     close(handoff_fd);
-    unlink(filename);
 }
 
 kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
@@ -273,9 +259,11 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
     if(!_argv || !_envp) {
         return KERN_FAILURE;
     }
-    
+
+    fprintf(stderr, "X11.app: do_start_x11_server(): argc=%d\n", argvCnt);
     for(i=0; i < argvCnt; i++) {
         _argv[i] = argv[i];
+        fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
     }
     _argv[argvCnt] = NULL;
     
