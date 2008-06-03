@@ -921,6 +921,7 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
                     }
                 }
                 break;
+#if 0
             case IsXExtensionDevice:
             case IsXExtensionKeyboard:
             case IsXExtensionPointer:
@@ -942,6 +943,7 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
                     }
                 }
                 break;
+#endif
             }
         }
         XFreeDeviceList(devices);
