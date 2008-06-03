@@ -883,9 +883,11 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
         for (i = 0; i < num; i++) {
             const char *use = "Unknown";
             switch (devices[i].use) {
-            case IsXPointer:         use = "XPointer";         break;
-            case IsXKeyboard:        use = "XKeyboard";        break;
-            case IsXExtensionDevice: use = "XExtensionDevice"; break;
+            case IsXPointer:           use = "XPointer";         break;
+            case IsXKeyboard:          use = "XKeyboard";        break;
+            case IsXExtensionDevice:   use = "XExtensionDevice"; break;
+            case IsXExtensionPointer:  use = "XExtensionPointer"; break;
+            case IsXExtensionKeyboard: use = "XExtensionKeyboard"; break;
             }
             dmxLogInput(dmxInput, "  %2d %-10.10s %-16.16s\n",
                         devices[i].id,
@@ -920,6 +922,8 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
                 }
                 break;
             case IsXExtensionDevice:
+            case IsXExtensionKeyboard:
+            case IsXExtensionPointer:
                 if (doXI) {
                     if (!dmxInput->numDevs) {
                         dmxLog(dmxWarning,
