@@ -865,7 +865,7 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
     
     /* Print out information about the XInput Extension. */
     handler = XSetExtensionErrorHandler(dmxInputExtensionErrorHandler);
-    ext     = XGetExtensionVersion(display, INAME);
+    ext     = XQueryInputVersion(display, XI_2_Major, XI_2_Minor);
     XSetExtensionErrorHandler(handler);
     
     if (!ext || ext == (XExtensionVersion *)NoSuchExtension) {
