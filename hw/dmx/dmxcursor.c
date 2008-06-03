@@ -969,10 +969,21 @@ void dmxCheckCursor(void)
     DMXDBG2("   leave dmxCheckCursor %d %d\n", x, y);
 }
 
+static Bool dmxDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScr)
+{
+    return TRUE;
+}
+
+static void dmxDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScr)
+{
+}
+
 miPointerSpriteFuncRec dmxPointerSpriteFuncs =
 {
     dmxRealizeCursor,
     dmxUnrealizeCursor,
     dmxSetCursor,
     dmxMoveCursor,
+    dmxDeviceCursorInitialize,
+    dmxDeviceCursorCleanup
 };
