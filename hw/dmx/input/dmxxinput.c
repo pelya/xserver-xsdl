@@ -93,12 +93,9 @@ int ChangePointerDevice(DeviceIntPtr old_dev,
 
                                 /* Switch the motion history buffers */
     if (dmxLocalOld->savedMotionProc) {
-        old_dev->valuator->GetMotionProc   = dmxLocalOld->savedMotionProc;
         old_dev->valuator->numMotionEvents = dmxLocalOld->savedMotionEvents;
     }
-    dmxLocalNew->savedMotionProc       = new_dev->valuator->GetMotionProc;
     dmxLocalNew->savedMotionEvents     = new_dev->valuator->numMotionEvents;
-    new_dev->valuator->GetMotionProc   = GetMotionHistory;
     new_dev->valuator->numMotionEvents = GetMaximumEventsNum();
                                 /* Switch our notion of core pointer */
     dmxLocalOld->isCore         = 0;

@@ -476,15 +476,11 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
             break;
         }
         if (info.keyClass) {
-#if 00 /*BP*/
-            InitKeyClassDeviceStruct(pDevice, &info.keySyms, info.modMap);
-#else
             DevicePtr pDev = (DevicePtr) pDevice;
             InitKeyboardDeviceStruct(pDev,
                                      &info.keySyms,
                                      info.modMap,
                                      dmxBell, dmxKbdCtrl);
-#endif
         }
         if (info.buttonClass) {
             InitButtonClassDeviceStruct(pDevice, info.numButtons, info.map);
@@ -492,13 +488,7 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
         if (info.valuatorClass) {
             if (info.numRelAxes && dmxLocal->sendsCore) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
-#if 00 /*BP*/
-                                              miPointerGetMotionEvents,
-                                              miPointerGetMotionBufferSize(),
-#else
-                                              GetMotionHistory,
                                               GetMaximumEventsNum(),
-#endif
                                               Relative);
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
@@ -506,7 +496,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                            info.minres[0], info.maxres[0]);
             } else if (info.numRelAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
-                                              dmxPointerGetMotionEvents,
                                               dmxPointerGetMotionBufferSize(),
                                               Relative);
                 for (i = 0; i < info.numRelAxes; i++)
@@ -515,7 +504,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                            info.minres[0], info.maxres[0]);
             } else if (info.numAbsAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numAbsAxes,
-                                              dmxPointerGetMotionEvents,
                                               dmxPointerGetMotionBufferSize(),
                                               Absolute);
                 for (i = 0; i < info.numAbsAxes; i++)
