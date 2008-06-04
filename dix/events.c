@@ -782,8 +782,8 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 }
 
 #else
-#define SyntheticMotion(x, y) \
-     PostSyntheticMotion(x, y, \
+#define SyntheticMotion(dev, x, y) \
+     PostSyntheticMotion(dev, x, y, \
                          0, \
                          syncEvents.playingEvents ? \
                            syncEvents.time.milliseconds : \
