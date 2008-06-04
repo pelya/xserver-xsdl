@@ -733,7 +733,7 @@ static void _dmxSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 
     if (pCursor) {
 	dmxCursorPrivPtr  pCursorPriv = DMX_GET_CURSOR_PRIV(pCursor, pScreen);
-	if (dmxScreen->curCursor != pCursorPriv->cursor) {
+	if (pCursorPriv && dmxScreen->curCursor != pCursorPriv->cursor) {
 	    if (dmxScreen->beDisplay)
 		XDefineCursor(dmxScreen->beDisplay, dmxScreen->scrnWin,
 			      pCursorPriv->cursor);
