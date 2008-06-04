@@ -160,9 +160,7 @@ static void accept_fd_handoff(int connected_fd) {
     if(launchd_fd == -1)
         fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
         
-    fprintf(stderr, "Received new DISPLAY fd (1): %d\n", launchd_fd);
-    sleep(10);
-    fprintf(stderr, "Received new DISPLAY fd (2): %d\n", launchd_fd);
+    fprintf(stderr, "Received new DISPLAY fd: %d\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }
 
@@ -353,6 +351,9 @@ int main(int argc, char **argv, char **envp) {
         if(display) {
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
+            
+            /* TODO: Clean up this race better... givint xinitrc time to run. */
+            sleep(2);
             
             return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }

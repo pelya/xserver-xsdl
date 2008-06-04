@@ -101,8 +101,10 @@ static inline void darwinEvents_lock(void) {
          * when darwinEvents == NULL
          *
          * TODO: Cleanup this race more elegantly.
+         *
+         * For some reason, xinitrc doesn't run until after this anyways... =/
+         * sleep(2);
          */
-        sleep(2);
     }
 }
 
