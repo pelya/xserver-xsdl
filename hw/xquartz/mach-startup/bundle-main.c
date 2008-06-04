@@ -79,12 +79,6 @@ static pthread_t create_thread(void *func, void *arg) {
 }
 
 #ifdef NEW_LAUNCH_METHOD
-struct arg {
-    int argc;
-    char **argv;
-    char **envp;
-};
-
 /*** Mach-O IPC Stuffs ***/
 
 union MaxMsgSize {
@@ -368,12 +362,6 @@ int main(int argc, char **argv, char **envp) {
 }
 
 #ifdef NEW_LAUNCH_METHOD
-static void startup_trigger_thread(void *arg) {
-    struct arg args = *((struct arg *)arg);
-    free(arg);
-    startup_trigger(args.argc, args.argv, args.envp);
-}
-
 /*** Main ***/
 int main(int argc, char **argv, char **envp) {
     Bool listenOnly = FALSE;
@@ -400,21 +388,13 @@ int main(int argc, char **argv, char **envp) {
      * thread handle it.
      */
     if(!listenOnly) {
-        struct arg *args = (struct arg*)malloc(sizeof(struct arg));
-        if(!args) {
-            fprintf(stderr, "Memory allocation error.\n");
-            return EXIT_FAILURE;
+        if(fork() == 0) {
+            return startup_trigger(argc, argv, envp);
         }
-        
-        args->argc = argc;
-        args->argv = argv;
-        args->envp = envp;
-        
-        create_thread(startup_trigger_thread, args);
     }
     
     /* Main event loop */
-    fprintf(stderr, "Statrup coming...\n");
+    fprintf(stderr, "Waiting for startup parameters via Mach IPC.\n");
     kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
     if (kr != KERN_SUCCESS) {
         fprintf(stderr, "org.x.X11(mp): %s\n", mach_error_string(kr));
