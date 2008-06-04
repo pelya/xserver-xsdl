@@ -746,8 +746,7 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
 		nconfigs = dmxScreen->numGlxVisuals;
 	    }
 
-	    configprivs = xalloc(dmxScreen->beNumVisuals *
-				 sizeof(dmxGlxVisualPrivate*));
+	    configprivs = xalloc(nconfigs * sizeof(dmxGlxVisualPrivate*));
 
 	    if (configs != NULL && configprivs != NULL) {
 
