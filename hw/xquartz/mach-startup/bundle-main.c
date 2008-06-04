@@ -203,15 +203,15 @@ static void socket_handoff_thread(void *arg) {
         fprintf(stderr, "Failed to create socket: %s - %s\n", filename, strerror(errno));
 
         data->retval = EXIT_FAILURE;
-        pthread_mutex_unlock(&data->lock);
         pthread_cond_broadcast(&data->cond);
+        pthread_mutex_unlock(&data->lock);
         return;
     }
 
     /* Let the dispatch thread now tell the caller that we're ready */
     data->retval = EXIT_SUCCESS;
-    pthread_mutex_unlock(&data->lock);
     pthread_cond_broadcast(&data->cond);
+    pthread_mutex_unlock(&data->lock);
     
     if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
         fprintf(stderr, "Failed to connect to socket: %s - %s\n", filename, strerror(errno));
@@ -227,6 +227,7 @@ static void socket_handoff_thread(void *arg) {
 kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
     handoff_data_t handoff_data;
 
+    /* Initialize our data */
     pthread_mutex_init(&handoff_data.lock, NULL);
     pthread_cond_init(&handoff_data.cond, NULL);
     strlcpy(handoff_data.socket_filename, socket_filename, STRING_T_SIZE); 
@@ -234,9 +235,15 @@ kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
     pthread_mutex_lock(&handoff_data.lock);
     
     create_thread(socket_handoff_thread, &handoff_data);
-    
-    pthread_cond_wait(&handoff_data.cond, &handoff_data.lock);
 
+    /* Wait for our return value */
+    pthread_cond_wait(&handoff_data.cond, &handoff_data.lock);
+    pthread_mutex_unlock(&handoff_data.lock);
+
+    /* Cleanup */
+    pthread_cond_destroy(&handoff_data.cond);
+    pthread_mutex_destroy(&handoff_data.lock);
+    
     return handoff_data.retval;
 }
 
