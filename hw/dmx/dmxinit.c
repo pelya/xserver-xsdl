@@ -778,6 +778,8 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
 
 		/* Hand out the glx configs to glx extension */
 		GlxSetVisualConfigs(nconfigs, configs, (void**)configprivs);
+
+                XFlush(dmxScreen->beDisplay);
 	    }
 	}
 #endif  /* GLXEXT */
