@@ -80,21 +80,36 @@ void QuartzModeEQInit(void);
 static int old_flags = 0;  // last known modifier state
 
 static xEvent *darwinEvents = NULL;
-static pthread_mutex_t darwinEvents_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t mieq_ready_cond = PTHREAD_COND_INITIALIZER;
 
 static inline void darwinEvents_lock(void) {
     int err;
-    if((err = pthread_mutex_lock(&darwinEvents_mutex))) {
-        ErrorF("%s:%s:%d: Failed to lock darwinEvents_mutex: %d\n",
+    if((err = pthread_mutex_lock(&mieq_lock))) {
+        ErrorF("%s:%s:%d: Failed to lock mieq_lock: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
         spewCallStack();
+    }
+    if(darwinEvents == NULL) {
+        pthread_cond_wait(&mieq_ready_cond, &mieq_lock);
+
+        /* We want to give xinit time to finish running xinitrc before we accept
+         * the launchd socket connection.
+         *
+         * Yes, we lock then immediately unlock because the lock does a cond_wait
+         * when darwinEvents == NULL
+         *
+         * TODO: Cleanup this race more elegantly.
+         */
+        sleep(2);
     }
 }
 
 static inline void darwinEvents_unlock(void) {
     int err;
-    if((err = pthread_mutex_unlock(&darwinEvents_mutex))) {
-        ErrorF("%s:%s:%d: Failed to unlock darwinEvents_mutex: %d\n",
+    if((err = pthread_mutex_unlock(&mieq_lock))) {
+        ErrorF("%s:%s:%d: Failed to unlock mieq_lock: %d\n",
                __FILE__, __FUNCTION__, __LINE__, err);
         spewCallStack();
     }
@@ -333,11 +348,17 @@ Bool DarwinEQInit(void) {
     
     QuartzModeEQInit();
 
-    if (!darwinEvents)
+    if (!darwinEvents) {
         darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-    if (!darwinEvents)
-        FatalError("Couldn't allocate event buffer\n");
-    
+        
+        if (!darwinEvents)
+            FatalError("Couldn't allocate event buffer\n");
+        
+        darwinEvents_lock();
+        pthread_cond_broadcast(&mieq_ready_cond);
+        darwinEvents_unlock();
+    }
+
     return TRUE;
 }
 
@@ -453,7 +474,6 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
                                       POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
         for(i=0; i<num_events; i++) mieqEnqueue (dev, &darwinEvents[i]);
         DarwinPokeEQ();
-
     } darwinEvents_unlock();
 }
 
@@ -578,13 +598,8 @@ void DarwinSendDDXEvent(int type, int argc, ...) {
         va_end (args);
     }
 
-    /* If we're called from something other than the X server thread, we need
-     * to wait for the X server to setup darwinEvents.
-     */
-    while(darwinEvents == NULL) {
-        usleep(250000);
-    }
-
-    mieqEnqueue(darwinPointer, &xe);
-    DarwinPokeEQ();
+    darwinEvents_lock(); {
+        mieqEnqueue(darwinPointer, &xe);
+        DarwinPokeEQ();
+    } darwinEvents_unlock();
 }
