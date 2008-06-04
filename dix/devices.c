@@ -1046,6 +1046,7 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
         if (!map)
             return FALSE;
         dst->map = map;
+        dst->mapWidth = src->mapWidth;
     }
     memmove((char *)&dst->map[rowDif * dst->mapWidth],
 	    (char *)src->map,
