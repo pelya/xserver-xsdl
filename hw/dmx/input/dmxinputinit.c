@@ -1079,13 +1079,6 @@ void dmxInputInit(DMXInputInfo *dmxInput)
     
     for (i = 0; i < dmxInput->numDevs; i++) {
         DMXLocalInputInfoPtr dmxLocal = dmxInput->devs[i];
-#ifndef XINPUT
-        if (!dmxLocal->isCore)
-            dmxLog(dmxFatal,
-                   "This server was not compiled to support the XInput"
-                   " extension, but %s is not a core device.\n",
-                   dmxLocal->name);
-#endif
         dmxLocal->pDevice = dmxAddDevice(dmxLocal);
         if (dmxLocal->isCore) {
             if (dmxLocal->type == DMX_LOCAL_MOUSE)
