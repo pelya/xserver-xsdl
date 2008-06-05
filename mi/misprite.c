@@ -460,7 +460,7 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
     pPriv = (miSpriteScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
 						miSpriteScreenKey);
     SCREEN_PROLOGUE(pScreen, BlockHandler);
-    
+
     (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
 
     SCREEN_EPILOGUE(pScreen, BlockHandler);
@@ -470,8 +470,8 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
         if (DevHasCursor(pDev))
         {
             pCursorInfo = MISPRITE(pDev);
-            if (!pCursorInfo->isUp 
-                    && pCursorInfo->pScreen == pScreen 
+            if (pCursorInfo && !pCursorInfo->isUp
+                    && pCursorInfo->pScreen == pScreen
                     && pCursorInfo->shouldBeUp)
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
@@ -484,8 +484,8 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
         if (DevHasCursor(pDev))
         {
             pCursorInfo = MISPRITE(pDev);
-            if (!pCursorInfo->isUp && 
-                    pCursorInfo->pScreen == pScreen && 
+            if (pCursorInfo && !pCursorInfo->isUp &&
+                    pCursorInfo->pScreen == pScreen &&
                     pCursorInfo->shouldBeUp)
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
