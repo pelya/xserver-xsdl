@@ -122,7 +122,7 @@ extern int miPointerGetMotionEvents(
     ScreenPtr /*pScreen*/
 );
 
-/* Deprecated in favour of miSetPointerPosition. */
+/* Deprecated in favour of miPointerSetPosition. */
 extern void miPointerDeltaCursor(
     int /*dx*/,
     int /*dy*/,
@@ -134,7 +134,7 @@ extern void miPointerAbsoluteCursor(
     unsigned long /*time*/
 ) _X_DEPRECATED;
 
-/* Deprecated in favour of miGetPointerPosition. */
+/* Deprecated in favour of miPointerGetPosition. */
 extern void miPointerPosition(
     int * /*x*/,
     int * /*y*/
