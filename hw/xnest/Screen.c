@@ -305,8 +305,7 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   pScreen->blockData = NULL;
   pScreen->wakeupData = NULL;
 
-  miPointerInitialize (pScreen, &xnestPointerSpriteFuncs, 
-		       &xnestPointerCursorFuncs, True);
+  miDCInitialize (pScreen, &xnestPointerCursorFuncs);
 
   pScreen->mmWidth = xnestWidth * DisplayWidthMM(xnestDisplay, 
 		       DefaultScreen(xnestDisplay)) / 
