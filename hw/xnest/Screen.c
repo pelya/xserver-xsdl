@@ -124,6 +124,8 @@ static miPointerSpriteFuncRec xnestPointerSpriteFuncs =
     xnestUnrealizeCursor,
     xnestSetCursor,
     xnestMoveCursor,
+    NULL,
+    NULL
 };
 
 Bool

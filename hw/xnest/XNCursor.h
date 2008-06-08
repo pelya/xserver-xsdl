@@ -28,10 +28,21 @@ typedef struct {
 #define xnestCursor(pCursor, pScreen) \
   (xnestGetCursorPriv(pCursor, pScreen)->cursor)
 
-Bool xnestRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
-Bool xnestUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
-void xnestRecolorCursor(ScreenPtr pScreen, CursorPtr pCursor, Bool displayed);
-void xnestSetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y);
-void xnestMoveCursor (ScreenPtr pScreen, int x, int y);
+Bool xnestRealizeCursor(DeviceIntPtr pDev,
+                        ScreenPtr pScreen,
+                        CursorPtr pCursor);
+Bool xnestUnrealizeCursor(DeviceIntPtr pDev,
+                          ScreenPtr pScreen,
+                          CursorPtr pCursor);
+void xnestRecolorCursor(ScreenPtr pScreen,
+                        CursorPtr pCursor,
+                        Bool displayed);
+void xnestSetCursor (DeviceIntPtr pDev,
+                     ScreenPtr pScreen,
+                     CursorPtr pCursor,
+                     int x, int y);
+void xnestMoveCursor (DeviceIntPtr pDev,
+                      ScreenPtr pScreen,
+                      int x, int y);
 
 #endif /* XNESTCURSOR_H */
