@@ -45,7 +45,7 @@ is" without express or implied warranty.
 
 Bool xnestDoFullGeneration = True;
 
-xEvent *xnestEvents = NULL;
+EventList *xnestEvents = NULL;
 
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
@@ -92,10 +92,7 @@ InitInput(int argc, char *argv[])
   xnestPointerDevice = AddInputDevice(serverClient, xnestPointerProc, TRUE);
   xnestKeyboardDevice = AddInputDevice(serverClient, xnestKeyboardProc, TRUE);
 
-  if (!xnestEvents)
-      xnestEvents = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-  if (!xnestEvents)
-      FatalError("couldn't allocate room for events\n");
+  GetEventList(&xnestEvents);
 
   RegisterPointerDevice(xnestPointerDevice);
   RegisterKeyboardDevice(xnestKeyboardDevice);
