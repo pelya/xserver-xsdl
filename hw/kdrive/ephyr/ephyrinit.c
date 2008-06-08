@@ -64,7 +64,7 @@ InitInput (int argc, char **argv)
 {
   KdKeyboardInfo *ki;
   KdPointerInfo *pi;
-        
+
   KdAddKeyboardDriver(&EphyrKeyboardDriver);
 #ifdef linux
   KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
@@ -301,17 +301,17 @@ miPointerSpriteFuncRec EphyrPointerSpriteFuncs = {
 	ephyrUnrealizeCursor,
 	ephyrSetCursor,
 	ephyrMoveCursor,
-    ephyrDeviceCursorInitialize,
-        NULL
+	ephyrDeviceCursorInitialize,
+	NULL
 };
 
 
 Bool
 ephyrCursorInit(ScreenPtr pScreen)
 {
-  miPointerInitialize(pScreen, 
+  miPointerInitialize(pScreen,
 		      &EphyrPointerSpriteFuncs,
-		      &ephyrPointerScreenFuncs, 
+		      &ephyrPointerScreenFuncs,
 		      FALSE);
 
   return TRUE;
@@ -336,18 +336,18 @@ KdCardFuncs ephyrFuncs = {
     ephyrRestore,	    /* restore */
     ephyrScreenFini,	    /* scrfini */
     ephyrCardFini,	    /* cardfini */
-    
-    0,	                    /* initCursor */
-    0,          	    /* enableCursor */
+
+    0,			    /* initCursor */
+    0,			    /* enableCursor */
     0,			    /* disableCursor */
     0,			    /* finiCursor */
     0,			    /* recolorCursor */
-    
+
     0,			    /* initAccel */
     0,			    /* enableAccel */
     0,			    /* disableAccel */
     0,			    /* finiAccel */
-    
-    ephyrGetColors,    	    /* getColors */
+
+    ephyrGetColors,/* getColors */
     ephyrPutColors,	    /* putColors */
 };
