@@ -2950,6 +2950,7 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 
     if (pScreen)
     {
+        (*pScreen->RealizeCursor) ( pDev, pScreen, pSprite->current);
         (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
                                    &pSprite->hotLimits, &pSprite->physLimits);
         pSprite->confined = FALSE;
