@@ -15,6 +15,15 @@ is" without express or implied warranty.
 #ifndef XNESTCURSOR_H
 #define XNESTCURSOR_H
 
+#include "mipointrst.h"
+
+typedef struct {
+    miPointerSpriteFuncPtr spriteFuncs;
+} xnestCursorFuncRec, *xnestCursorFuncPtr;
+
+extern DevPrivateKey xnestCursorScreenKey;
+extern xnestCursorFuncRec xnestCursorFuncs;
+
 typedef struct {
   Cursor cursor;
 } xnestPrivCursor;
@@ -44,5 +53,6 @@ void xnestSetCursor (DeviceIntPtr pDev,
 void xnestMoveCursor (DeviceIntPtr pDev,
                       ScreenPtr pScreen,
                       int x, int y);
-
+Bool xnestDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen);
+void xnestDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen);
 #endif /* XNESTCURSOR_H */

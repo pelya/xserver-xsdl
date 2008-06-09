@@ -25,6 +25,7 @@ is" without express or implied warranty.
 #include "cursorstr.h"
 #include "scrnintstr.h"
 #include "servermd.h"
+#include "mipointrst.h"
 
 #include "Xnest.h"
 
@@ -34,6 +35,8 @@ is" without express or implied warranty.
 #include "Visual.h"
 #include "Keyboard.h"
 #include "Args.h"
+
+xnestCursorFuncRec xnestCursorFuncs = {NULL};
 
 Bool
 xnestRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
@@ -154,4 +157,27 @@ void xnestSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, in
 void
 xnestMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
+}
+
+Bool
+xnestDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    xnestCursorFuncPtr pScreenPriv;
+
+    pScreenPriv = (xnestCursorFuncPtr)
+            dixLookupPrivate(&pScreen->devPrivates, xnestCursorScreenKey);
+
+    pScreenPriv->spriteFuncs->DeviceCursorInitialize(pDev, pScreen);
+    return TRUE;
+}
+
+void
+xnestDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    xnestCursorFuncPtr pScreenPriv;
+
+    pScreenPriv = (xnestCursorFuncPtr)
+            dixLookupPrivate(&pScreen->devPrivates, xnestCursorScreenKey);
+
+    pScreenPriv->spriteFuncs->DeviceCursorCleanup(pDev, pScreen);
 }
