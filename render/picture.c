@@ -413,8 +413,9 @@ PictureInitIndexedFormat(ScreenPtr pScreen, PictFormatPtr format)
 	    (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
     } else {
 	VisualPtr pVisual = PictureFindVisual(pScreen, format->index.vid);
-	if (!CreateColormap(FakeClientID (0), pScreen, pVisual,
-		    &format->index.pColormap, AllocNone, 0))
+	if (CreateColormap(FakeClientID (0), pScreen, pVisual,
+		    &format->index.pColormap, AllocNone, 0)
+		!= Success)
 	    return FALSE;
     }
     if (!ps->InitIndexed(pScreen, format))
