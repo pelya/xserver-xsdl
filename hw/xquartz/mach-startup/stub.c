@@ -214,6 +214,7 @@ int main(int argc, char **argv, char **envp) {
     int launchd_fd;
     string_t handoff_socket_filename;
 #endif
+    sig_t handler;
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
         fprintf(stderr, "X.org Release 7.3\n");
@@ -222,6 +223,15 @@ int main(int argc, char **argv, char **envp) {
         return EXIT_SUCCESS;
     }
 
+    /* We don't have a mechanism in place to handle this interrupt driven
+     * server-start notification, so just send the signal now, so xinit doesn't
+     * time out waiting for it and will just poll for the server.
+     */
+    handler = signal(SIGUSR1, SIG_IGN);
+    if(handler == SIG_IGN)
+        kill(getppid(), SIGUSR1);
+    signal(SIGUSR1, handler);
+    
 #ifdef NEW_LAUNCH_METHOD
     /* Get the $DISPLAY FD */
     launchd_fd = launchd_display_fd();

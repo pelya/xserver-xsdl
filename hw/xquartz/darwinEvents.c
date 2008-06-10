@@ -350,6 +350,10 @@ Bool DarwinEQInit(void) {
     
     QuartzModeEQInit();
 
+    /* Note that this *could* cause a potential async issue, since we're checking
+     * darwinEvents without holding the lock, but darwinEvents is only ever set
+     * here, so I don't bother.
+     */
     if (!darwinEvents) {
         darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
         
