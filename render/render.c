@@ -1117,9 +1117,16 @@ ProcRenderAddGlyphs (ClientPtr client)
     remain -= (sizeof (CARD32) + sizeof (xGlyphInfo)) * nglyphs;
     for (i = 0; i < nglyphs; i++)
     {
+	size_t padded_width;
 	glyph_new = &glyphs[i];
-	size = gi[i].height * PixmapBytePad (gi[i].width,
-					     glyphSet->format->depth);
+
+	padded_width = PixmapBytePad (gi[i].width,
+				      glyphSet->format->depth);
+
+	if (gi[i].height && padded_width > (UINT32_MAX - sizeof(GlyphRec))/gi[i].height)
+	    break;
+	
+	size = gi[i].height * padded_width;
 	if (remain < size)
 	    break;
 
