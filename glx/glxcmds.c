@@ -943,11 +943,11 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	buf[p++] = modes->transparentAlpha;
 	buf[p++] = GLX_TRANSPARENT_INDEX_VALUE;
 	buf[p++] = modes->transparentIndex;
-	buf[p++] = 0;
-	buf[p++] = 0;
-	buf[p++] = 0;
-	buf[p++] = 0;
-	buf[p++] = 0;
+	buf[p++] = GLX_SAMPLES_SGIS;
+	buf[p++] = modes->samples;
+	buf[p++] = GLX_SAMPLE_BUFFERS_SGIS;
+	buf[p++] = modes->sampleBuffers;
+	buf[p++] = 0; /* copy over visualSelectGroup (GLX_VISUAL_SELECT_GROUP_SGIX)? */
 	buf[p++] = 0;
 
 	if (client->swapped) {
@@ -959,7 +959,7 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
     return Success;
 }
 
-#define __GLX_TOTAL_FBCONFIG_ATTRIBS (33)
+#define __GLX_TOTAL_FBCONFIG_ATTRIBS (35)
 #define __GLX_FBCONFIG_ATTRIBS_LENGTH (__GLX_TOTAL_FBCONFIG_ATTRIBS * 2)
 /**
  * Send the set of GLXFBConfigs to the client.  There is not currently
@@ -1037,6 +1037,9 @@ DoGetFBConfigs(__GLXclientState *cl, unsigned screen)
 	WRITE_PAIR( GLX_TRANSPARENT_ALPHA_VALUE, modes->transparentAlpha );
 	WRITE_PAIR( GLX_TRANSPARENT_INDEX_VALUE, modes->transparentIndex );
 	WRITE_PAIR( GLX_SWAP_METHOD_OML, modes->swapMethod );
+	WRITE_PAIR( GLX_SAMPLES_SGIS, modes->samples );
+	WRITE_PAIR( GLX_SAMPLE_BUFFERS_SGIS, modes->sampleBuffers );
+	/* GLX_VISUAL_SELECT_GROUP_SGIX ? */
 	WRITE_PAIR( GLX_DRAWABLE_TYPE, modes->drawableType );
 	WRITE_PAIR( GLX_BIND_TO_TEXTURE_RGB_EXT, modes->bindToTextureRgb );
 	WRITE_PAIR( GLX_BIND_TO_TEXTURE_RGBA_EXT, modes->bindToTextureRgba );
