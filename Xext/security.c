@@ -676,15 +676,19 @@ SProcSecurityGenerateAuthorization(
     char	n;
     CARD32 *values;
     unsigned long nvalues;
+    int values_offset;
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xSecurityGenerateAuthorizationReq);
     swaps(&stuff->nbytesAuthProto, n);
     swaps(&stuff->nbytesAuthData, n);
     swapl(&stuff->valueMask, n);
-    values = (CARD32 *)(&stuff[1]) +
-	((stuff->nbytesAuthProto + (unsigned)3) >> 2) +
-	((stuff->nbytesAuthData + (unsigned)3) >> 2);
+    values_offset = ((stuff->nbytesAuthProto + (unsigned)3) >> 2) +
+		    ((stuff->nbytesAuthData + (unsigned)3) >> 2);
+    if (values_offset > 
+	stuff->length - (sz_xSecurityGenerateAuthorizationReq >> 2))
+	return BadLength;
+    values = (CARD32 *)(&stuff[1]) + values_offset;
     nvalues = (((CARD32 *)stuff) + stuff->length) - values;
     SwapLongs(values, nvalues);
     return ProcSecurityGenerateAuthorization(client);
