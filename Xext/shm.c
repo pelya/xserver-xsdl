@@ -894,8 +894,17 @@ ProcShmPutImage(client)
         return BadValue;
     }
 
-    VERIFY_SHMSIZE(shmdesc, stuff->offset, length * stuff->totalHeight,
-		   client);
+    /* 
+     * There's a potential integer overflow in this check:
+     * VERIFY_SHMSIZE(shmdesc, stuff->offset, length * stuff->totalHeight,
+     *                client);
+     * the version below ought to avoid it
+     */
+    if (stuff->totalHeight != 0 && 
+	length > (shmdesc->size - stuff->offset)/stuff->totalHeight) {
+	client->errorValue = stuff->totalWidth;
+	return BadValue;
+    }
     if (stuff->srcX > stuff->totalWidth)
     {
 	client->errorValue = stuff->srcX;
