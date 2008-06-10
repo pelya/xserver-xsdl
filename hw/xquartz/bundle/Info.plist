@@ -37,7 +37,5 @@ Copyright © 2003-2008, X.org Foundation, Inc.
 		<string>main</string>
 	<key>NSPrincipalClass</key>
 		<string>X11Application</string>
-	<key>LSBackgroundOnly</key>
-		<true/>
 </dict>
 </plist>
