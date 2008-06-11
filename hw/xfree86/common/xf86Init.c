@@ -1117,7 +1117,6 @@ InitInput(argc, argv)
     InputInfoPtr pInfo;
 
     xf86Info.vtRequestsPending = FALSE;
-    xf86Info.inputPending = FALSE;
 
     /* Call the PreInit function for each input device instance. */
     for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {

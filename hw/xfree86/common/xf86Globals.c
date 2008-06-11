@@ -103,7 +103,6 @@ xf86InfoRec xf86Info = {
 	NULL,		/* mouseLocal */
 	-1,		/* lastEventTime */
 	FALSE,		/* vtRequestsPending */
-	FALSE,		/* inputPending */
 	FALSE,		/* dontVTSwitch */
 	FALSE,		/* dontZap */
 	FALSE,		/* dontZoom */

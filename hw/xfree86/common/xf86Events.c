@@ -236,8 +236,6 @@ ProcessInputEvents ()
     }
 #endif
 
-  xf86Info.inputPending = FALSE;
-
   mieqProcessInputEvents();
 
   /* FIXME: This is a problem if we have multiple pointers */
@@ -499,8 +497,6 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
     }
 
     if (xf86VTSwitchPending()) xf86VTSwitch();
-
-    if (xf86Info.inputPending) ProcessInputEvents();
 }
 
 
