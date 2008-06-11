@@ -601,7 +601,12 @@ typedef struct {
 /* strcasecmp.c */
 #if NEED_STRCASECMP
 #define strcasecmp xstrcasecmp
-extern int xstrcasecmp(char *s1, char *s2);
+extern int xstrcasecmp(const char *s1, const char *s2);
+#endif
+
+#if NEED_STRNCASECMP
+#define strncasecmp xstrncasecmp
+extern int xstrncasecmp(const char *s1, const char *s2, size_t n);
 #endif
 
 extern int XItoCoreType(int xi_type);
