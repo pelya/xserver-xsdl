@@ -2454,12 +2454,6 @@ addDefaultModes(MonPtr monitorp)
     return TRUE;
 }
 
-static void
-checkInput(serverLayoutPtr layout) {
-    if (!xf86Info.allowEmptyInput)
-        checkCoreInputDevices(layout, FALSE);
-}
-
 /*
  * load the config file and fill the global data structure
  */
@@ -2486,7 +2480,7 @@ xf86HandleConfigFile(Bool autoconfig)
 	    xf86MsgVerb(from, 0, "Using config file: \"%s\"\n", filename);
 	    xf86ConfigFile = xnfstrdup(filename);
 	} else {
-	    xf86Msg(X_ERROR, "Unable to locate/open config file");
+	    xf86Msg(X_WARNING, "Unable to locate/open config file");
 	    if (xf86ConfigFile)
 		xf86ErrorFVerb(0, ": \"%s\"", xf86ConfigFile);
 	    xf86ErrorFVerb(0, "\n");
