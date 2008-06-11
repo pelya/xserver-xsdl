@@ -167,7 +167,7 @@ ProcXTestFakeInput(client)
     deviceValuator *dv = NULL;
     int valuators[MAX_VALUATORS] = {0};
     int numValuators = 0;
-    int firstValuator;
+    int firstValuator = 0;
     EventListPtr events;
     int nevents;
     int i;
