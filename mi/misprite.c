@@ -268,7 +268,6 @@ static Bool
 miSpriteCloseScreen (int i, ScreenPtr pScreen)
 {
     miSpriteScreenPtr   pScreenPriv;
-    DeviceIntPtr        pDev;
 
     pScreenPriv = (miSpriteScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
 						      miSpriteScreenKey);
