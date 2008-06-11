@@ -37,7 +37,6 @@
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "quartzCommon.h"
-#include "quartzForeground.h"
 #include "X11Controller.h"
 #include "darwin.h"
 #include "darwinEvents.h"
