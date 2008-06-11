@@ -2107,7 +2107,7 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
     if (flags & KD_MOUSE_DELTA)
     {
         if (x || y || z)
-            dixflags = POINTER_RELATIVE & POINTER_ACCELERATE;
+            dixflags = POINTER_RELATIVE | POINTER_ACCELERATE;
     } else if (x != pi->dixdev->last.valuators[0] ||
                 y != pi->dixdev->last.valuators[1])
             dixflags = POINTER_ABSOLUTE;
