@@ -188,13 +188,12 @@ static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
 static Bool badSysCall = FALSE;
 
 static void
-SigSysHandler(signo)
-int signo;
+SigSysHandler(int signo)
 {
     badSysCall = TRUE;
 }
 
-static Bool CheckForShmSyscall()
+static Bool CheckForShmSyscall(void)
 {
     void (*oldHandler)();
     int shmid = -1;
@@ -278,8 +277,7 @@ ShmExtensionInit(INITARGS)
 
 /*ARGSUSED*/
 static void
-ShmResetProc (extEntry)
-ExtensionEntry	*extEntry;
+ShmResetProc(ExtensionEntry *extEntry)
 {
     int i;
 
@@ -291,17 +289,13 @@ ExtensionEntry	*extEntry;
 }
 
 void
-ShmRegisterFuncs(
-    ScreenPtr pScreen,
-    ShmFuncsPtr funcs)
+ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs)
 {
     shmFuncs[pScreen->myNum] = funcs;
 }
 
 void
-ShmSetPixmapFormat(
-    ScreenPtr pScreen,
-    int format)
+ShmSetPixmapFormat(ScreenPtr pScreen, int format)
 {
     shmPixFormat[pScreen->myNum] = format;
 }
@@ -328,15 +322,13 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
 }
 
 void
-ShmRegisterFbFuncs(pScreen)
-    ScreenPtr pScreen;
+ShmRegisterFbFuncs(ScreenPtr pScreen)
 {
     shmFuncs[pScreen->myNum] = &fbFuncs;
 }
 
 static int
-ProcShmQueryVersion(client)
-    ClientPtr client;
+ProcShmQueryVersion(ClientPtr client)
 {
     xShmQueryVersionReply rep;
     int n;
@@ -430,8 +422,7 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 }
 
 static int
-ProcShmAttach(client)
-    ClientPtr client;
+ProcShmAttach(ClientPtr client)
 {
     SHMSTAT_TYPE buf;
     ShmDescPtr shmdesc;
@@ -492,9 +483,8 @@ ProcShmAttach(client)
 
 /*ARGSUSED*/
 static int
-ShmDetachSegment(value, shmseg)
-    pointer value; /* must conform to DeleteType */
-    XID shmseg;
+ShmDetachSegment(pointer value, /* must conform to DeleteType */
+		 XID shmseg)
 {
     ShmDescPtr shmdesc = (ShmDescPtr)value;
     ShmDescPtr *prev;
@@ -510,8 +500,7 @@ ShmDetachSegment(value, shmseg)
 }
 
 static int
-ProcShmDetach(client)
-    ClientPtr client;
+ProcShmDetach(ClientPtr client)
 {
     ShmDescPtr shmdesc;
     REQUEST(xShmDetachReq);
@@ -523,12 +512,10 @@ ProcShmDetach(client)
 }
 
 static void
-miShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
-    DrawablePtr dst;
-    GCPtr	pGC;
-    int		depth, w, h, sx, sy, sw, sh, dx, dy;
-    unsigned int format;
-    char 	*data;
+miShmPutImage(DrawablePtr dst, GCPtr pGC,
+	      int depth, unsigned int format,
+	      int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
+	      char *data)
 {
     PixmapPtr pmap;
     GCPtr putGC;
@@ -557,12 +544,10 @@ miShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
 }
 
 _X_EXPORT void
-fbShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
-    DrawablePtr dst;
-    GCPtr	pGC;
-    int		depth, w, h, sx, sy, sw, sh, dx, dy;
-    unsigned int format;
-    char 	*data;
+fbShmPutImage(DrawablePtr dst, GCPtr pGC,
+	      int depth, unsigned int format,
+	      int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
+	      char *data)
 {
     if ((format == ZPixmap) || (depth == 1))
     {
@@ -747,8 +732,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 }
 
 static int
-ProcPanoramiXShmCreatePixmap(
-    ClientPtr client)
+ProcPanoramiXShmCreatePixmap(ClientPtr client)
 {
     ScreenPtr pScreen = NULL;
     PixmapPtr pMap = NULL;
@@ -855,8 +839,7 @@ CreatePmap:
 #endif
 
 static int
-ProcShmPutImage(client)
-    ClientPtr client;
+ProcShmPutImage(ClientPtr client)
 {
     GCPtr pGC;
     DrawablePtr pDraw;
@@ -968,8 +951,7 @@ ProcShmPutImage(client)
 
 
 static int
-ProcShmGetImage(client)
-    ClientPtr client;
+ProcShmGetImage(ClientPtr client)
 {
     DrawablePtr		pDraw;
     long		lenPer = 0, length;
@@ -1081,12 +1063,8 @@ ProcShmGetImage(client)
 }
 
 static PixmapPtr
-fbShmCreatePixmap (pScreen, width, height, depth, addr)
-    ScreenPtr	pScreen;
-    int		width;
-    int		height;
-    int		depth;
-    char	*addr;
+fbShmCreatePixmap (ScreenPtr pScreen,
+		   int width, int height, int depth, char *addr)
 {
     PixmapPtr pPixmap;
 
@@ -1103,8 +1081,7 @@ fbShmCreatePixmap (pScreen, width, height, depth, addr)
 }
 
 static int
-ProcShmCreatePixmap(client)
-    ClientPtr client;
+ProcShmCreatePixmap(ClientPtr client)
 {
     PixmapPtr pMap;
     DrawablePtr pDraw;
@@ -1185,8 +1162,7 @@ CreatePmap:
 }
 
 static int
-ProcShmDispatch (client)
-    ClientPtr	client;
+ProcShmDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)
@@ -1221,8 +1197,7 @@ ProcShmDispatch (client)
 }
 
 static void
-SShmCompletionEvent(from, to)
-    xShmCompletionEvent *from, *to;
+SShmCompletionEvent(xShmCompletionEvent *from, xShmCompletionEvent *to)
 {
     to->type = from->type;
     cpswaps(from->sequenceNumber, to->sequenceNumber);
@@ -1234,8 +1209,7 @@ SShmCompletionEvent(from, to)
 }
 
 static int
-SProcShmQueryVersion(client)
-    ClientPtr	client;
+SProcShmQueryVersion(ClientPtr client)
 {
     int n;
     REQUEST(xShmQueryVersionReq);
@@ -1245,8 +1219,7 @@ SProcShmQueryVersion(client)
 }
 
 static int
-SProcShmAttach(client)
-    ClientPtr client;
+SProcShmAttach(ClientPtr client)
 {
     int n;
     REQUEST(xShmAttachReq);
@@ -1258,8 +1231,7 @@ SProcShmAttach(client)
 }
 
 static int
-SProcShmDetach(client)
-    ClientPtr client;
+SProcShmDetach(ClientPtr client)
 {
     int n;
     REQUEST(xShmDetachReq);
@@ -1270,8 +1242,7 @@ SProcShmDetach(client)
 }
 
 static int
-SProcShmPutImage(client)
-    ClientPtr client;
+SProcShmPutImage(ClientPtr client)
 {
     int n;
     REQUEST(xShmPutImageReq);
@@ -1293,8 +1264,7 @@ SProcShmPutImage(client)
 }
 
 static int
-SProcShmGetImage(client)
-    ClientPtr client;
+SProcShmGetImage(ClientPtr client)
 {
     int n;
     REQUEST(xShmGetImageReq);
@@ -1312,8 +1282,7 @@ SProcShmGetImage(client)
 }
 
 static int
-SProcShmCreatePixmap(client)
-    ClientPtr client;
+SProcShmCreatePixmap(ClientPtr client)
 {
     int n;
     REQUEST(xShmCreatePixmapReq);
@@ -1329,8 +1298,7 @@ SProcShmCreatePixmap(client)
 }
 
 static int
-SProcShmDispatch (client)
-    ClientPtr	client;
+SProcShmDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)
