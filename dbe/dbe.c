@@ -229,6 +229,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     xDbeSwapAction		swapAction;
     VisualID			visual;
     int				status;
+    int				add_index;
 
 
     REQUEST_SIZE_MATCH(xDbeAllocateBackBufferNameReq);
@@ -299,14 +300,6 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
             return(BadAlloc);
 	bzero(pDbeWindowPriv, sizeof(DbeWindowPrivRec));
 
-        /* Make the window priv a DBE window priv resource. */
-        if (!AddResource(stuff->buffer, dbeWindowPrivResType,
-            (pointer)pDbeWindowPriv))
-        {
-            xfree(pDbeWindowPriv);
-            return(BadAlloc);
-        }
-
         /* Fill out window priv information. */
         pDbeWindowPriv->pWindow      = pWin;
         pDbeWindowPriv->width        = pWin->drawable.width;
@@ -321,14 +314,15 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
         /* Initialize the buffer ID list. */ 
         pDbeWindowPriv->maxAvailableIDs = DBE_INIT_MAX_IDS;
         pDbeWindowPriv->IDs[0] = stuff->buffer;
-        for (i = 1; i < DBE_INIT_MAX_IDS; i++)
+
+        add_index = 0;
+        for (i = 0; i < DBE_INIT_MAX_IDS; i++)
         {
             pDbeWindowPriv->IDs[i] = DBE_FREE_ID_ELEMENT;
         }
 
-
         /* Actually connect the window priv to the window. */
-	dixSetPrivate(&pWin->devPrivates, dbeWindowPrivKey, pDbeWindowPriv);
+        dixSetPrivate(&pWin->devPrivates, dbeWindowPrivKey, pDbeWindowPriv);
 
     } /* if -- There is no buffer associated with the window. */
 
@@ -353,7 +347,6 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
         {
             /* No more room in the ID array -- reallocate another array. */
             XID	*pIDs;
-
 
             /* Setup an array pointer for the realloc operation below. */
             if (pDbeWindowPriv->maxAvailableIDs == DBE_INIT_MAX_IDS)
@@ -391,16 +384,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
             pDbeWindowPriv->maxAvailableIDs += DBE_INCR_MAX_IDS;
         }
 
-        /* Finally, record the buffer ID in the array. */
-        pDbeWindowPriv->IDs[i] = stuff->buffer;
-
-        /* Associate the new ID with an existing window priv. */
-        if (!AddResource(stuff->buffer, dbeWindowPrivResType,
-                         (pointer)pDbeWindowPriv))
-        {
-            pDbeWindowPriv->IDs[i] = DBE_FREE_ID_ELEMENT;
-            return(BadAlloc);
-        }
+	add_index = i;
 
     } /* else -- A buffer is already associated with the window. */
 
@@ -409,13 +393,26 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     status = (*pDbeScreenPriv->AllocBackBufferName)(pWin, stuff->buffer,
                                                     stuff->swapAction);
 
-    if ((status != Success) && (pDbeWindowPriv->nBufferIDs == 0))
+    if (status == Success)
     {
+	pDbeWindowPriv->IDs[add_index] = stuff->buffer;
+        if (!AddResource(stuff->buffer, dbeWindowPrivResType,
+                         (pointer)pDbeWindowPriv))
+	{
+            pDbeWindowPriv->IDs[add_index] = DBE_FREE_ID_ELEMENT;
+
+            if (pDbeWindowPriv->nBufferIDs == 0) {
+                status = BadAlloc;
+                goto out_free;
+            }
+        }
+    } else {
         /* The DDX buffer allocation routine failed for the first buffer of
          * this window.
          */
-        xfree(pDbeWindowPriv);
-        return(status);
+        if (pDbeWindowPriv->nBufferIDs == 0) {
+            goto out_free;
+        }
     }
 
     /* Increment the number of buffers (XIDs) associated with this window. */
@@ -424,8 +421,12 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     /* Set swap action on all calls. */
     pDbeWindowPriv->swapAction = stuff->swapAction;
 
-
     return(status);
+
+out_free:
+    dixSetPrivate(&pWin->devPrivates, dbeWindowPrivKey, NULL);
+    xfree(pDbeWindowPriv);
+    return (status);
 
 } /* ProcDbeAllocateBackBufferName() */
 
