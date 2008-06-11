@@ -174,10 +174,10 @@ xf86CreateRootWindow(WindowPtr pWin)
 					pProp->size, pProp->data,
 					FALSE);
 	}
-      
+
       /* Look at err */
       ret &= (err==Success);
-      
+
     } else {
       xf86Msg(X_ERROR, "xf86CreateRootWindow unexpectedly called with "
 	      "non-root window %p (parent %p)\n",
@@ -247,7 +247,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 	iter = pci_id_match_iterator_create(NULL);
 	while ((pPci = pci_device_next(iter)) != NULL) {
 	    if (devList[i]->busID && *devList[i]->busID) {
-		if (xf86ComparePciBusString(devList[i]->busID, 
+		if (xf86ComparePciBusString(devList[i]->busID,
 					    ((pPci->domain << 8)
 					     | pPci->bus),
 					    pPci->dev,
@@ -294,7 +294,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 		ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
 		       drvp->driverName, pPci->bus, pPci->dev, pPci->func);
 #endif
-	
+
 		/* Allocate an entry in the lists to be returned */
 		entry = xf86ClaimPciSlot(pPci, drvp, device_id,
 					  devList[i], devList[i]->active);
@@ -314,7 +314,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 			}
 		    }
 		}
-		
+
 		if (entry != -1) {
 		    if ((*drvp->PciProbe)(drvp, entry, pPci,
 					  devices[j].match_data)) {
@@ -327,7 +327,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 	}
     }
 
-	
+
     return foundScreen;
 }
 
@@ -353,7 +353,7 @@ add_matching_devices_to_configure_list(DriverPtr drvp)
 		 && ((devices[j].device_class_mask & pPci->device_class)
 		     == devices[j].device_class) ) {
 		if (xf86CheckPciSlot(pPci)) {
-		    GDevPtr pGDev = 
+		    GDevPtr pGDev =
 		      xf86AddDeviceToConfigure(drvp->driverName, pPci, -1);
 		    if (pGDev != NULL) {
 			/* After configure pass 1, chipID and chipRev are
@@ -388,11 +388,11 @@ check_for_matching_devices(DriverPtr drvp)
     for (j = 0; ! END_OF_MATCHES(devices[j]); j++) {
 	struct pci_device_iterator *iter;
 	struct pci_device *dev;
-	
+
 	iter = pci_id_match_iterator_create(& devices[j]);
 	dev = pci_device_next(iter);
 	pci_iterator_destroy(iter);
-	
+
 	if (dev != NULL) {
 	    return TRUE;
 	}
@@ -411,9 +411,9 @@ check_for_matching_devices(DriverPtr drvp)
  * is found, it is called.  If \c DriverRec::PciProbe or no devices can be
  * successfully probed with it (e.g., only non-PCI devices are available),
  * the driver's \c DriverRec::Probe function is called.
- * 
+ *
  * \param drv   Driver to probe
- * 
+ *
  * \return
  * If a device can be successfully probed by the driver, \c TRUE is
  * returned.  Otherwise, \c FALSE is returned.
@@ -441,7 +441,7 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     if ( ! foundScreen && (drv->Probe != NULL) ) {
 	xf86Msg( X_WARNING, "Falling back to old probe method for %s\n",
 		 drv->driverName );
-	foundScreen = (*drv->Probe)( drv, (detect_only) ? PROBE_DETECT 
+	foundScreen = (*drv->Probe)( drv, (detect_only) ? PROBE_DETECT
 				     : PROBE_DEFAULT );
     }
 
@@ -466,7 +466,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   Bool			 pix24Fail = FALSE;
   Bool			 autoconfig = FALSE;
   GDevPtr		 configured_device;
-  
+
   xf86Initialising = TRUE;
 
   if (serverGeneration == 1) {
@@ -641,7 +641,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 		|| !xf86DriverList[i]->driverFunc(NULL,
 						 GET_REQUIRED_HW_INTERFACES,
 						  &flags)
-		|| NEED_IO_ENABLED(flags)) 
+		|| NEED_IO_ENABLED(flags))
 		continue;
 	}
 
@@ -677,7 +677,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	   layout++) {
 	  Bool found = FALSE;
 	  for (j = 0; j < xf86Screens[i]->numEntities; j++) {
-	
+
 	      GDevPtr dev =
 		xf86GetDevFromEntity(xf86Screens[i]->entityList[j],
 				     xf86Screens[i]->entityInstanceList[j]);
@@ -735,7 +735,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      * Call the driver's PreInit()'s to complete initialisation for the first
      * generation.
      */
-    
+
     for (i = 0; i < xf86NumScreens; i++) {
 	xf86EnableAccess(xf86Screens[i]);
 	if (xf86Screens[i]->PreInit &&
@@ -745,7 +745,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     for (i = 0; i < xf86NumScreens; i++)
 	if (!xf86Screens[i]->configured)
 	    xf86DeleteScreen(i--, 0);
-    
+
     /*
      * If no screens left, return now.
      */
@@ -906,12 +906,12 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	FatalError("Unable to make VT property - out of memory. Exiting...\n");
       }
       *VT = xf86Info.vtno;
-    
+
       VTAtom = MakeAtom(VT_ATOM_NAME, sizeof(VT_ATOM_NAME) - 1, TRUE);
 
       for (i = 0, ret = Success; i < xf86NumScreens && ret == Success; i++) {
 	ret = xf86RegisterRootWindowProperty(xf86Screens[i]->scrnIndex,
-					     VTAtom, XA_INTEGER, 32, 
+					     VTAtom, XA_INTEGER, 32,
 					     1, VT );
 	if (ret != Success)
 	  xf86DrvMsg(xf86Screens[i]->scrnIndex, X_WARNING,
@@ -935,7 +935,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     xf86PostPreInit();
 
     AddCallback(&ServerGrabCallback, xf86GrabServerCallback, NULL);
-    
+
   } else {
     /*
      * serverGeneration != 1; some OSs have to do things here, too.
@@ -1000,7 +1000,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     pScreenInfo->formats[i] = formats[i];
 
   /* Make sure the server's VT is active */
-    
+
   if (serverGeneration != 1) {
     xf86Resetting = TRUE;
     /* All screens are in the same state, so just check the first */
@@ -1010,7 +1010,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
       xf86AccessEnter();
       xf86EnterServerState(SETUP);
-    } 
+    }
   }
 #ifdef SCO325
   else {
@@ -1027,7 +1027,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   }
 #endif /* SCO325 */
 
-  for (i = 0; i < xf86NumScreens; i++) {    
+  for (i = 0; i < xf86NumScreens; i++) {
    	xf86EnableAccess(xf86Screens[i]);
 	/*
 	 * Almost everything uses these defaults, and many of those that
@@ -1036,7 +1036,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	xf86Screens[i]->EnableDisableFBAccess = xf86EnableDisableFBAccess;
 	xf86Screens[i]->SetDGAMode = xf86SetDGAMode;
 	xf86Screens[i]->DPMSSet = NULL;
-	xf86Screens[i]->LoadPalette = NULL; 
+	xf86Screens[i]->LoadPalette = NULL;
 	xf86Screens[i]->SetOverscan = NULL;
 	xf86Screens[i]->DriverFunc = NULL;
 	xf86Screens[i]->pScreen = NULL;
@@ -1071,7 +1071,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #ifdef RENDER
     if (PictureGetSubpixelOrder (xf86Screens[i]->pScreen) == SubPixelUnknown)
     {
-	xf86MonPtr DDC = (xf86MonPtr)(xf86Screens[i]->monitor->DDC); 
+	xf86MonPtr DDC = (xf86MonPtr)(xf86Screens[i]->monitor->DDC);
 	PictureSetSubpixelOrder (xf86Screens[i]->pScreen,
 				 DDC ?
 				 (DDC->features.input_type ?
@@ -1287,9 +1287,9 @@ AbortDDX()
 	      (xf86Screens[i]->LeaveVT)(i, 0);
 	  }
   }
-  
+
   xf86AccessLeave();
-  
+
   /*
    * This is needed for an abnormal server exit, since the normal exit stuff
    * MUST also be performed (i.e. the vt must be left in a defined state)
@@ -1358,7 +1358,7 @@ ddxProcessArgument(int argc, char **argv, int i)
       UseMsg(); 							\
       FatalError("Required argument to %s not specified\n", argv[i]);	\
     }
-  
+
   /* First the options that are only allowed for root */
   if (getuid() == 0 || geteuid() != 0)
   {
@@ -1595,11 +1595,11 @@ ddxProcessArgument(int argc, char **argv, int i)
       return 0;
     }
   }
-  if (!strcmp(argv[i], "-gamma")  || !strcmp(argv[i], "-rgamma") || 
+  if (!strcmp(argv[i], "-gamma")  || !strcmp(argv[i], "-rgamma") ||
       !strcmp(argv[i], "-ggamma") || !strcmp(argv[i], "-bgamma"))
   {
     double gamma;
-    CHECK_FOR_REQUIRED_ARGUMENT();    
+    CHECK_FOR_REQUIRED_ARGUMENT();
     if (sscanf(argv[++i], "%lf", &gamma) == 1) {
        if (gamma < GAMMA_MIN || gamma > GAMMA_MAX) {
 	  ErrorF("gamma out of range, only  %.2f <= gamma_value <= %.1f"
@@ -1634,7 +1634,7 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i], "-keyboard"))
   {
-    CHECK_FOR_REQUIRED_ARGUMENT();    
+    CHECK_FOR_REQUIRED_ARGUMENT();
     xf86KeyboardName = argv[++i];
     return 2;
   }
@@ -1885,7 +1885,7 @@ xf86PrintDefaultLibraryPath(void)
 
 /*
  * xf86LoadModules iterates over a list that is being passed in.
- */             
+ */
 Bool
 xf86LoadModules(char **list, pointer *optlist)
 {
@@ -1956,7 +1956,7 @@ xf86GetPixFormat(ScrnInfoPtr pScrn, int depth)
 	    return &format;
 	}
     }
-	
+
     for (i = 0; i < numFormats; i++)
 	if (formats[i].depth == depth)
 	   break;
@@ -1978,11 +1978,10 @@ xf86GetBppFromDepth(ScrnInfoPtr pScrn, int depth)
 {
     PixmapFormatPtr format;
 
-   
+
     format = xf86GetPixFormat(pScrn, depth);
     if (format)
 	return format->bitsPerPixel;
     else
 	return 0;
 }
-
