@@ -180,12 +180,6 @@ int xf86SetVerbosity(int verb);
 int xf86SetLogVerbosity(int verb);
 Bool xf86CallDriverProbe( struct _DriverRec * drv, Bool detect_only );
 
-/* xf86Lock.c */
-
-#ifdef USE_XF86_SERVERLOCK
-void xf86UnlockServer(void);
-#endif
-
 /* xf86XKB.c */
 
 void xf86InitXkb(void);
