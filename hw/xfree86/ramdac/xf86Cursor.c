@@ -28,7 +28,6 @@ static void xf86CursorSetCursor(DeviceIntPtr, ScreenPtr, CursorPtr, int, int);
 static void xf86CursorMoveCursor(DeviceIntPtr, ScreenPtr, int, int);
 static Bool xf86DeviceCursorInitialize(DeviceIntPtr, ScreenPtr);
 static void xf86DeviceCursorCleanup(DeviceIntPtr, ScreenPtr);
-static void xf86DeviceCursorUndisplay(DeviceIntPtr, ScreenPtr);
 
 static miPointerSpriteFuncRec xf86CursorSpriteFuncs = {
    xf86CursorRealizeCursor,
