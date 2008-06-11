@@ -93,7 +93,6 @@ typedef struct _NewClientRec *NewClientPtr;
 #define SIGVAL void
 #endif
 
-extern Bool OsDelayInitColors;
 extern void (*OsVendorVErrorFProc)(const char *, va_list args);
 
 extern int WaitForSomething(
@@ -266,8 +265,6 @@ extern void OsCleanup(Bool);
 extern void OsVendorFatalError(void);
 
 extern void OsVendorInit(void);
-
-extern int OsInitColors(void);
 
 void OsBlockSignals (void);
 

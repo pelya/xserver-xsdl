@@ -194,7 +194,7 @@ xf86CreateRootWindow(WindowPtr pWin)
 
 
 static void
-PostConfigInit(void)
+InstallSignalHandlers(void)
 {
     /*
      * Install signal handler for unexpected signals
@@ -220,13 +220,6 @@ PostConfigInit(void)
        signal(SIGXFSZ,xf86SigHandler);
 #endif
     }
-
-#ifdef XF86PM
-    xf86OSPMClose = xf86OSPMOpen();
-#endif
-    
-    /* Do this after XF86Config is read (it's normally in OsInit()) */
-    OsInitColors();
 }
 
 
@@ -510,8 +503,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       }
     }
 
-    if (!autoconfig)
-	PostConfigInit();
+    InstallSignalHandlers();
 
     /* Initialise the loader */
     LoaderInit();
@@ -539,8 +531,11 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	    xf86Msg(X_ERROR, "Auto configuration failed\n");
 	    return;
 	}
-	PostConfigInit();
     }
+
+#ifdef XF86PM
+    xf86OSPMClose = xf86OSPMOpen();
+#endif
 
     /* Initialise the resource broker */
     xf86ResourceBrokerInit();
@@ -1170,7 +1165,7 @@ InitInput(argc, argv)
  *      OS/Vendor-specific initialisations.  Called from OsInit(), which
  *      is called by dix before establishing the well known sockets.
  */
- 
+
 void
 OsVendorInit()
 {
@@ -1179,7 +1174,6 @@ OsVendorInit()
 #ifdef SIGCHLD
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
-  OsDelayInitColors = TRUE;
 
   if (!beenHere)
     xf86LogInit();
