@@ -1864,6 +1864,7 @@ bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
 
     nextEnabledOutput(config, enabled, &o);
     while ((mode = nextAspectMode(config->output[o], mode, aspect))) {
+	test = mode;
 	for (p = o; nextEnabledOutput(config, enabled, &p); ) {
 	    test = xf86OutputFindClosestMode(config->output[p], mode);
 	    if (!test)
