@@ -40,8 +40,6 @@ AC_CONFIG_HEADERS(include/xorg-server.h)
 dnl dix-config.h covers most of the DIX (i.e. everything but the DDX, not just
 dnl dix/).
 AC_CONFIG_HEADERS(include/dix-config.h)
-dnl xgl-config.h covers the Xgl DDX.
-AC_CONFIG_HEADERS(include/xgl-config.h)
 dnl xorg-config.h covers the Xorg DDX.
 AC_CONFIG_HEADERS(include/xorg-config.h)
 dnl xkb-config.h covers XKB for the Xorg and Xnest DDXs.
@@ -567,9 +565,6 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
-AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
-AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
-AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
 dnl legacy fb support
 AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: disable)]), [MFB=$enableval], [MFB=no])
 dnl kdrive and its subsystems
@@ -1252,62 +1247,6 @@ if test "x$XORG" = xauto; then
 fi
 AC_MSG_RESULT([$XORG])
 
-dnl Xgl DDX
-
-AC_MSG_CHECKING([whether to build Xgl DDX])
-if test "x$XGL" != xno; then
-  PKG_CHECK_MODULES([XGLMODULES], [glitz-glx >= 0.4.3], [XGL=yes], [XGL=no])
-  AC_SUBST(XGLMODULES_CFLAGS)
-fi
-AC_MSG_RESULT([$XGL])
-AM_CONDITIONAL(XGL, [test "x$XGL" = xyes])
-
-if test "x$XGL" = xyes; then
-	XGL_LIBS="$FB_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB"
-	XGL_SYS_LIBS="$XGLMODULES_LIBS $GLX_SYS_LIBS $DLOPEN_LIBS"
-	AC_SUBST([XGL_LIBS])
-	AC_SUBST([XGL_SYS_LIBS])
-	AC_DEFINE(XGL_MODULAR, 1, [Use loadable XGL modules])
-
-	xglmoduledir="$moduledir/xgl"
-	AC_SUBST([xglmoduledir])
-	AC_DEFINE_DIR(XGL_MODULE_PATH, xglmoduledir, [Default XGL module search path])
-fi
-
-dnl Xegl DDX
-
-AC_MSG_CHECKING([whether to build Xegl DDX])
-if test "x$XEGL" != xno; then
-  PKG_CHECK_MODULES([XGLMODULES], [glitz-glx >= 0.4.3], [XEGL=yes], [XEGL=no])
-  AC_SUBST(XEGLMODULES_CFLAGS)
-fi
-AC_MSG_RESULT([$XEGL])
-AM_CONDITIONAL(XEGL, [test "x$XEGL" = xyes])
-
-if test "x$XEGL" = xyes; then
-	XEGL_LIBS="$FB_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB"
-	XEGL_SYS_LIBS = "$XEGL_SYS_LIBS $XEGLMODULES_LIBS $GLX_SYS_LIBS"
-	AC_SUBST([XEGL_LIBS])
-	AC_SUBST([XEGL_SYS_LIBS])
-fi
-
-dnl Xglx DDX
-
-AC_MSG_CHECKING([whether to build Xglx DDX])
-if test "x$XGLX" != xno; then
-  PKG_CHECK_MODULES([XGLXMODULES], [glitz-glx >= 0.4.3 xrender], [XGLX=yes], [XGLX=no])
-  AC_SUBST(XGLXMODULES_CFLAGS)
-fi
-AC_MSG_RESULT([$XGLX])
-AM_CONDITIONAL(XGLX, [test "x$XGLX" = xyes])
-
-if test "x$XGLX" = xyes; then
-	XGLX_LIBS="$FB_LIB $COMPOSITE_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_LAYER_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB"
-	XGLX_SYS_LIBS="$XGLX_SYS_LIBS $XGLXMODULES_LIBS $GLX_SYS_LIBS"
-	AC_SUBST([XGLX_LIBS])
-	AC_SUBST([XGLX_SYS_LIBS])
-fi
-
 xorg_bus_linuxpci=no
 xorg_bus_bsdpci=no
 xorg_bus_ix86pci=no
@@ -1315,7 +1254,7 @@ xorg_bus_ppcpci=no
 xorg_bus_sparcpci=no
 xorg_bus_sparc=no
 
-if test "x$XORG" = xyes -o "x$XGL" = xyes; then
+if test "x$XORG" = xyes; then
 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
@@ -2054,13 +1993,6 @@ hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
 hw/vfb/Makefile
-hw/xgl/Makefile
-hw/xgl/egl/Makefile
-hw/xgl/egl/module/Makefile
-hw/xgl/glx/Makefile
-hw/xgl/glx/module/Makefile
-hw/xgl/glxext/Makefile
-hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/xquartz/Makefile

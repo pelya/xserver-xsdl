@@ -18,10 +18,6 @@ if XWIN
 XWIN_SUBDIRS = xwin
 endif
 
-if XGL
-XGL_SUBDIRS = xgl
-endif
-
 if KDRIVE
 KDRIVE_SUBDIRS = kdrive
 endif
@@ -32,7 +28,6 @@ endif
 
 SUBDIRS =			\
 	$(XORG_SUBDIRS)		\
-	$(XGL_SUBDIRS)		\
 	$(XWIN_SUBDIRS)		\
 	$(XVFB_SUBDIRS)		\
 	$(XNEST_SUBDIRS)	\
@@ -40,7 +35,7 @@ SUBDIRS =			\
 	$(KDRIVE_SUBDIRS)	\
 	$(XQUARTZ_SUBDIRS)
 
-DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xgl
+DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
 
 relink:
 	for i in $(SUBDIRS) ; do $(MAKE) -C $$i relink ; done
