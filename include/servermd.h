@@ -179,6 +179,8 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER        MSBFirst
 #define GLYPHPADBYTES           4
 
+#endif /* AIXV3 */
+
 #if defined(ibm032) || defined (ibm)
 
 #ifdef __i386__
