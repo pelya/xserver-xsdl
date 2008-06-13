@@ -14,17 +14,12 @@ if DBE
 DBEMOD = libdbe.la
 endif
 
-if MFB
-MFBMOD = libmfb.la
-endif
-
 if RECORD
 RECORDMOD = librecord.la
 endif
 
 module_LTLIBRARIES = libfb.la \
                      libwfb.la \
-                     $(MFBMOD) \
                      libshadow.la
 
 extsmoduledir = $(moduledir)/extensions
@@ -65,10 +60,6 @@ libglx_la_LIBADD = \
 	$(top_builddir)/glx/libglx.la \
 	$(GLXDRI_LIBRARY)
 libglx_la_SOURCES = glxmodule.c
-
-libmfb_la_LDFLAGS = -avoid-version
-libmfb_la_LIBADD = $(top_builddir)/mfb/libmfb.la
-libmfb_la_SOURCES = mfbmodule.c
 
 librecord_la_LDFLAGS = -avoid-version
 librecord_la_LIBADD = $(top_builddir)/record/librecord.la

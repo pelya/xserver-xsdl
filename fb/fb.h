@@ -101,9 +101,6 @@
 #if GLYPHPADBYTES != 4
 #error "GLYPHPADBYTES must be 4"
 #endif
-#if GETLEFTBITS_ALIGNMENT != 1
-#error "GETLEFTBITS_ALIGNMENT must be 1"
-#endif
 /* whether to bother to include 24bpp support */
 #ifndef FBNO24BIT
 #define FB_24BIT

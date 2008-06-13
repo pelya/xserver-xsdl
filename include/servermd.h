@@ -49,6 +49,11 @@ SOFTWARE.
 #define SERVERMD_H 1
 
 /*
+ * Note: much of this is vestigial from mfb/cfb times.  This should
+ * really be simplified even further.
+ */
+
+/*
  * Machine dependent values:
  * GLYPHPADBYTES should be chosen with consideration for the space-time
  * trade-off.  Padding to 0 bytes means that there is no wasted space
@@ -61,63 +66,6 @@ SOFTWARE.
  * compiler what kind of padding you want because its defines are
  * kept separate from this.  See server/include/font.h for how
  * GLYPHPADBYTES is used.
- *
- * Along with this, you should choose an appropriate value for
- * GETLEFTBITS_ALIGNMENT, which is used in ddx/mfb/maskbits.h.  This
- * constant choses what kind of memory references are guarenteed during
- * font access; either 1, 2 or 4, for byte, word or longword access,
- * respectively.  For instance, if you have decided to to have
- * GLYPHPADBYTES == 4, then it is pointless for you to have a
- * GETLEFTBITS_ALIGNMENT > 1, because the padding of the fonts has already
- * guarenteed you that your fonts are longword aligned.  On the other
- * hand, even if you have chosen GLYPHPADBYTES == 1 to save space, you may
- * also decide that the computing involved in aligning the pointer is more
- * costly than an odd-address access; you choose GETLEFTBITS_ALIGNMENT == 1.
- *
- * Next, choose the tuning parameters which are appropriate for your
- * hardware; these modify the behaviour of the raw frame buffer code
- * in ddx/mfb and ddx/cfb.  Defining these incorrectly will not cause
- * the server to run incorrectly, but defining these correctly will
- * cause some noticeable speed improvements:
- *
- *  AVOID_MEMORY_READ - (8-bit cfb only)
- *	When stippling pixels on the screen (polytext and pushpixels),
- *	don't read long words from the display and mask in the
- *	appropriate values.  Rather, perform multiple byte/short/long
- *	writes as appropriate.  This option uses many more instructions
- *	but runs much faster when the destination is much slower than
- *	the CPU and at least 1 level of write buffer is availible (2
- *	is much better).  Defined currently for SPARC and MIPS.
- *
- *  FAST_CONSTANT_OFFSET_MODE - (cfb and mfb)
- *	This define is used on machines which have no auto-increment
- *	addressing mode, but do have an effectively free constant-offset
- *	addressing mode.  Currently defined for MIPS and SPARC, even though
- *	I remember the cg6 as performing better without it (cg3 definitely
- *	performs better with it).
- *	
- *  LARGE_INSTRUCTION_CACHE -
- *	This define increases the number of times some loops are
- *	unrolled.  On 68020 machines (with 256 bytes of i-cache),
- *	this define will slow execution down as instructions miss
- *	the cache frequently.  On machines with real i-caches, this
- *	reduces loop overhead, causing a slight performance improvement.
- *	Currently defined for MIPS and SPARC
- *
- *  FAST_UNALIGNED_READS -
- *	For machines with more memory bandwidth than CPU, this
- *	define uses unaligned reads for 8-bit BitBLT instead of doing
- *	aligned reads and combining the results with shifts and
- *	logical-ors.  Currently defined for 68020 and vax.
- *  PLENTIFUL_REGISTERS -
- *	For machines with > 20 registers.  Currently used for
- *	unrolling the text painting code a bit more.  Currently
- *	defined for MIPS.
- *  SHARED_IDCACHE -
- *	For non-Harvard RISC machines, those which share the same
- *	CPU memory bus for instructions and data.  This unrolls some
- *	solid fill loops which are otherwise best left rolled up.
- *	Currently defined for SPARC.
  */
 
 #ifdef vax
@@ -125,8 +73,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the VAX only */
 #define BITMAP_BIT_ORDER	LSBFirst
 #define	GLYPHPADBYTES		1
-#define GETLEFTBITS_ALIGNMENT	4
-#define FAST_UNALIGNED_READS
 
 #endif /* vax */
 
@@ -135,8 +81,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
 #define GLYPHPADBYTES           4
-#define GETLEFTBITS_ALIGNMENT   1
-#define AVOID_MEMORY_READ
 
 #endif /* __avr32__ */ 
 
@@ -155,9 +99,6 @@ SOFTWARE.
 # endif
 
 #define GLYPHPADBYTES           4
-#define GETLEFTBITS_ALIGNMENT   1
-#define LARGE_INSTRUCTION_CACHE
-#define AVOID_MEMORY_READ
 
 #endif /* __arm32__ */
 
@@ -166,13 +107,7 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
 #define GLYPHPADBYTES		4	/* to make fb work */
-#define GETLEFTBITS_ALIGNMENT	1	/* PA forces longs to 4 */
 					/* byte boundries */
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
-
 #endif /* hpux || __hppa__ */
 
 #if defined(__powerpc__) || defined(__ppc__)
@@ -180,19 +115,11 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
 #define GLYPHPADBYTES           4
-#define GETLEFTBITS_ALIGNMENT   1
 
 /* XXX Should this be for Lynx only? */
 #ifdef Lynx
 #define BITMAP_SCANLINE_UNIT	8
 #endif
-
-#define LARGE_INSTRUCTION_CACHE
-#define FAST_CONSTANT_OFFSET_MODE
-#define PLENTIFUL_REGISTERS
-#define AVOID_MEMORY_READ
-
-#define FAST_MEMCPY
 
 #endif /* PowerPC */
 
@@ -202,18 +129,11 @@ SOFTWARE.
 # define IMAGE_BYTE_ORDER	MSBFirst
 # define BITMAP_BIT_ORDER	MSBFirst
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
 #else
 # define IMAGE_BYTE_ORDER	LSBFirst
 # define BITMAP_BIT_ORDER	LSBFirst
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
 #endif
-
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
 
 #endif /* SuperH */
 
@@ -223,18 +143,11 @@ SOFTWARE.
 # define IMAGE_BYTE_ORDER      MSBFirst
 # define BITMAP_BIT_ORDER      MSBFirst
 # define GLYPHPADBYTES         4
-# define GETLEFTBITS_ALIGNMENT 1
 #else
 # define IMAGE_BYTE_ORDER      LSBFirst
 # define BITMAP_BIT_ORDER      LSBFirst
 # define GLYPHPADBYTES         4
-# define GETLEFTBITS_ALIGNMENT 1
 #endif
-
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
 
 #endif /* __m32r__ */
 
@@ -256,37 +169,15 @@ SOFTWARE.
 # define BITMAP_BIT_ORDER	MSBFirst
 #endif
 
-#ifdef sparc
-# define AVOID_MEMORY_READ
-# define LARGE_INSTRUCTION_CACHE
-# define FAST_CONSTANT_OFFSET_MODE
-# define SHARED_IDCACHE
-#endif
-
-#ifdef mc68020
-#define FAST_UNALIGNED_READS
-#endif
-
 #define	GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
 
 #endif /* sun && !(i386 && SVR4) */
-
 
 #if defined(AIXV3)
 
 #define IMAGE_BYTE_ORDER        MSBFirst        /* Values for the RISC/6000 */
 #define BITMAP_BIT_ORDER        MSBFirst
 #define GLYPHPADBYTES           4
-#define GETLEFTBITS_ALIGNMENT   1
-
-#define LARGE_INSTRUCTION_CACHE
-#define FAST_CONSTANT_OFFSET_MODE
-#define PLENTIFUL_REGISTERS
-#define AVOID_MEMORY_READ
-
-#define FAST_MEMCPY
-#endif /* AIXV3 */
 
 #if defined(ibm032) || defined (ibm)
 
@@ -297,7 +188,6 @@ SOFTWARE.
 #endif
 #define BITMAP_BIT_ORDER	MSBFirst
 #define	GLYPHPADBYTES		1
-#define GETLEFTBITS_ALIGNMENT	4
 /* ibm pcc doesn't understand pragmas. */
 
 #ifdef __i386__
@@ -311,9 +201,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst        /* Values for Pegasus only */
 #define BITMAP_BIT_ORDER	MSBFirst
 #define GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
-
-#define FAST_UNALIGNED_READS
 
 #endif /* tektronix */
 
@@ -322,9 +209,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER      	MSBFirst        /* Values for the MacII only */
 #define BITMAP_BIT_ORDER      	MSBFirst
 #define GLYPHPADBYTES         	4
-#define GETLEFTBITS_ALIGNMENT 	1
-
-/* might want FAST_UNALIGNED_READS for frame buffers with < 1us latency */
 
 #endif /* macII */
 
@@ -334,18 +218,11 @@ SOFTWARE.
 # define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the PMAX only */
 # define BITMAP_BIT_ORDER	LSBFirst
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
 #else
 # define IMAGE_BYTE_ORDER	MSBFirst        /* Values for the MIPS only */
 # define BITMAP_BIT_ORDER	MSBFirst
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
 #endif
-
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
 
 #endif /* mips */
 
@@ -363,10 +240,6 @@ SOFTWARE.
 # endif
 
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
-# define FAST_CONSTANT_OFFSET_MODE
-# define LARGE_INSTRUCTION_CACHE
-# define PLENTIFUL_REGISTERS
 
 #endif /* alpha */
 
@@ -375,14 +248,9 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER      	MSBFirst
 #define BITMAP_BIT_ORDER      	MSBFirst
 #define GLYPHPADBYTES         	4
-#define GETLEFTBITS_ALIGNMENT  1	
 
 #define BITMAP_SCANLINE_UNIT	8
-#define LARGE_INSTRUCTION_CACHE
-#define FAST_CONSTANT_OFFSET_MODE
 #define FAST_UNALIGNED_READ
-
-#define FAST_MEMCPY
 
 #endif /* linux/s390 */
 
@@ -391,14 +259,10 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER       MSBFirst
 #define BITMAP_BIT_ORDER       MSBFirst
 #define GLYPHPADBYTES          4
-#define GETLEFTBITS_ALIGNMENT  1
 
 #define BITMAP_SCANLINE_UNIT	8
-#define LARGE_INSTRUCTION_CACHE
-#define FAST_CONSTANT_OFFSET_MODE
 #define FAST_UNALIGNED_READ
 
-#define FAST_MEMCPY
 #endif /* linux/s390x */
 
 
@@ -416,10 +280,6 @@ SOFTWARE.
 # endif
 
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
-# define FAST_CONSTANT_OFFSET_MODE
-# define LARGE_INSTRUCTION_CACHE
-# define PLENTIFUL_REGISTERS
 
 #endif /* ia64 */
 
@@ -437,11 +297,7 @@ SOFTWARE.
 # endif
 
 # define GLYPHPADBYTES		4
-# define GETLEFTBITS_ALIGNMENT	1
-# define LARGE_INSTRUCTION_CACHE
-# define FAST_CONSTANT_OFFSET_MODE
 /* ???? */
-# define FAST_UNALIGNED_READS
 #endif /* AMD64 */
 
 #ifdef stellar
@@ -449,7 +305,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst       /* Values for the stellar only*/
 #define BITMAP_BIT_ORDER	MSBFirst
 #define	GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	4
 #define IMAGE_BUFSIZE		(64*1024)
 /*
  * Use SysV random number generator.
@@ -463,14 +318,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER        MSBFirst   	/* Values for the OMRON only*/
 #define BITMAP_BIT_ORDER	MSBFirst
 #define	GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
-
-#ifndef mc68000
-#define FAST_CONSTANT_OFFSET_MODE
-#define AVOID_MEMORY_READ
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
-#endif
 
 #endif /* luna */
 
@@ -501,12 +348,8 @@ SOFTWARE.
 #define GLYPHPADBYTES           4
 #endif
 
-#define GETLEFTBITS_ALIGNMENT	1
-#define AVOID_MEMORY_READ
 #ifdef XSVGA
 #define AVOID_GLYPHBLT
-#define FAST_CONSTANT_OFFSET_MODE
-#define FAST_MEMCPY
 #define NO_ONE_RECT
 #endif
 
@@ -516,9 +359,7 @@ SOFTWARE.
 
 #define IMAGE_BYTE_ORDER       MSBFirst
 #define BITMAP_BIT_ORDER       MSBFirst
-#define FAST_UNALIGNED_READS
 #define GLYPHPADBYTES          4
-#define GETLEFTBITS_ALIGNMENT  1
 
 #endif /* linux/m68k */
 
@@ -527,11 +368,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
 #define GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
-#define AVOID_MEMORY_READ
-#define FAST_CONSTANT_OFFSET_MODE
-#define LARGE_INSTRUCTION_CACHE
-#define PLENTIFUL_REGISTERS
 
 #endif
 
@@ -540,7 +376,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER	LSBFirst
 #define GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
 #endif
 
 /* linux on IBM S/390 */
@@ -548,7 +383,6 @@ SOFTWARE.
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
 #define GLYPHPADBYTES		4
-#define GETLEFTBITS_ALIGNMENT	1
 #endif /* linux/s390 */ 
 
 /* size of buffer to use with GetImage, measured in bytes. There's obviously

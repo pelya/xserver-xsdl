@@ -9,10 +9,6 @@ if XTRAP
 XTRAP_DIR=XTrap
 endif
 
-if MFB
-MFB_DIR=mfb
-endif
-
 if GLX
 GLX_DIR=glx
 endif
@@ -39,7 +35,6 @@ SUBDIRS = \
 	Xi \
 	xkb \
 	$(DBE_DIR) \
-	$(MFB_DIR) \
 	$(RECORD_DIR) \
 	xfixes \
 	damageext \
@@ -82,7 +77,6 @@ DIST_SUBDIRS = \
 	Xi \
 	xkb \
 	dbe \
-	mfb \
 	record \
 	xfixes \
 	damageext \

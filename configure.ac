@@ -1976,8 +1976,6 @@ hw/xfree86/vbe/Makefile
 hw/xfree86/vgahw/Makefile
 hw/xfree86/x86emu/Makefile
 hw/xfree86/xaa/Makefile
-hw/xfree86/xf1bpp/Makefile
-hw/xfree86/xf4bpp/Makefile
 hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
