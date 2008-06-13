@@ -565,8 +565,6 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
-dnl legacy fb support
-AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: disable)]), [MFB=$enableval], [MFB=no])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -1517,15 +1515,6 @@ AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86MISC], [test "x$XF86MISC" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
-dnl legacy fb support
-test "x$MFB" = xauto && MFB="$XORG"
-AM_CONDITIONAL(MFB, [test "x$MFB" = xyes])
-if test "x$MFB" = xyes; then
-	if test "x$XORG" != xyes; then
-		AC_MSG_ERROR([legacy fb support requires the Xorg server])
-	fi
-fi
-
 dnl XWin DDX
 
 AC_MSG_CHECKING([whether to build XWin DDX])
@@ -1921,7 +1910,6 @@ doc/Makefile
 fb/Makefile
 record/Makefile
 XTrap/Makefile
-mfb/Makefile
 config/Makefile
 mi/Makefile
 miext/Makefile
