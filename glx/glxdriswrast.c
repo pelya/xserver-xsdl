@@ -81,7 +81,6 @@ struct __GLXDRIdrawable {
     __GLXDRIscreen	*screen;
 
     GCPtr gc;		/* scratch GC for span drawing */
-    GCPtr cleargc;	/* GC for clearing the color buffer */
     GCPtr swapgc;	/* GC for swapping the color buffers */
 };
 
@@ -94,7 +93,6 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
     (*core->destroyDrawable)(private->driDrawable);
 
     FreeScratchGC(private->gc);
-    FreeScratchGC(private->cleargc);
     FreeScratchGC(private->swapgc);
 
     xfree(private);
@@ -335,11 +333,9 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     private->base.copySubBuffer = __glXDRIdrawableCopySubBuffer;
 
     private->gc = CreateScratchGC(pScreen, pDraw->depth);
-    private->cleargc = CreateScratchGC(pScreen, pDraw->depth);
     private->swapgc = CreateScratchGC(pScreen, pDraw->depth);
 
     glxChangeGC(private->gc, GCFunction, GXcopy);
-    glxChangeGC(private->cleargc, GCFunction, GXcopy);
     glxChangeGC(private->swapgc, GCFunction, GXcopy);
     glxChangeGC(private->swapgc, GCGraphicsExposures, FALSE);
 
@@ -377,9 +373,6 @@ swrastPutImage(__DRIdrawable *draw, int op,
     switch (op) {
     case __DRI_SWRAST_IMAGE_OP_DRAW:
 	gc = drawable->gc;
-	break;
-    case __DRI_SWRAST_IMAGE_OP_CLEAR:
-	gc = drawable->cleargc;
 	break;
     case __DRI_SWRAST_IMAGE_OP_SWAP:
 	gc = drawable->swapgc;
