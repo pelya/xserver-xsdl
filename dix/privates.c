@@ -39,6 +39,12 @@ from The Open Group.
 #include "colormapst.h"
 #include "inputstr.h"
 
+struct _Private {
+    DevPrivateKey      key;
+    pointer            value;
+    struct _Private    *next;
+};
+
 typedef struct _PrivateDesc {
     DevPrivateKey key;
     unsigned size;
@@ -114,6 +120,65 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 	CallCallbacks(&item->initfuncs, &calldata);
     }
     return &ptr->value;
+}
+
+/*
+ * Look up a private pointer.
+ */
+_X_EXPORT pointer
+dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
+{
+    PrivateRec *rec = *privates;
+    pointer *ptr;
+
+    while (rec) {
+	if (rec->key == key)
+	    return rec->value;
+	rec = rec->next;
+    }
+
+    ptr = dixAllocatePrivate(privates, key);
+    return ptr ? *ptr : NULL;
+}
+
+/*
+ * Look up the address of a private pointer.
+ */
+_X_EXPORT pointer *
+dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
+{
+    PrivateRec *rec = *privates;
+
+    while (rec) {
+	if (rec->key == key)
+	    return &rec->value;
+	rec = rec->next;
+    }
+
+    return dixAllocatePrivate(privates, key);
+}
+
+/*
+ * Set a private pointer.
+ */
+_X_EXPORT int
+dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
+{
+    PrivateRec *rec;
+
+ top:
+    rec = *privates;
+    while (rec) {
+	if (rec->key == key) {
+	    rec->value = val;
+	    return TRUE;
+	}
+	rec = rec->next;
+    }
+
+    if (!dixAllocatePrivate(privates, key))
+	return FALSE;
+    goto top;
 }
 
 /*

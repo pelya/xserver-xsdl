@@ -20,12 +20,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************/
 
 typedef void *DevPrivateKey;
-
-typedef struct _Private {
-    DevPrivateKey	key;
-    pointer		value;
-    struct _Private	*next;
-} PrivateRec;
+struct _Private;
+typedef struct _Private PrivateRec;
 
 /*
  * Request pre-allocated private space for your driver/module.
@@ -43,61 +39,20 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key);
 /*
  * Look up a private pointer.
  */
-static _X_INLINE pointer
-dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
-{
-    PrivateRec *rec = *privates;
-    pointer *ptr;
-
-    while (rec) {
-	if (rec->key == key)
-	    return rec->value;
-	rec = rec->next;
-    }
-
-    ptr = dixAllocatePrivate(privates, key);
-    return ptr ? *ptr : NULL;
-}
+pointer
+dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key);
 
 /*
  * Look up the address of a private pointer.
  */
-static _X_INLINE pointer *
-dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
-{
-    PrivateRec *rec = *privates;
-
-    while (rec) {
-	if (rec->key == key)
-	    return &rec->value;
-	rec = rec->next;
-    }
-
-    return dixAllocatePrivate(privates, key);
-}
+pointer *
+dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key);
 
 /*
  * Set a private pointer.
  */
-static _X_INLINE int
-dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
-{
-    PrivateRec *rec;
-
- top:
-    rec = *privates;
-    while (rec) {
-	if (rec->key == key) {
-	    rec->value = val;
-	    return TRUE;
-	}
-	rec = rec->next;
-    }
-
-    if (!dixAllocatePrivate(privates, key))
-	return FALSE;
-    goto top;
-}
+int
+dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val);
 
 /*
  * Register callbacks to be called on private allocation/freeing.
