@@ -126,8 +126,10 @@ miPointerInitialize (ScreenPtr                  pScreen,
 static Bool
 miPointerCloseScreen (int index, ScreenPtr pScreen)
 {
+#if 0
     miPointerPtr pPointer;
     DeviceIntPtr pDev;
+#endif
 
     SetupScreen(pScreen);
 
