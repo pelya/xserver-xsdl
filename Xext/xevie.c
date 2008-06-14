@@ -55,6 +55,7 @@ of the copyright holder.
 #include <xkbsrv.h>
 
 #include "../os/osdep.h"
+#include "modinit.h"
 
 #define NoSuchEvent 0x80000000
 

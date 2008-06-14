@@ -112,6 +112,10 @@ extern void SELinuxExtensionInit(INITARGS);
 #include "xselinux.h"
 #endif
 
+#ifdef XEVIE
+extern void XevieExtensionInit(INITARGS);
+#endif
+
 #if 1
 extern void SecurityExtensionInit(INITARGS);
 #endif
