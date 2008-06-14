@@ -227,7 +227,7 @@ fbFillRegionSolid (DrawablePtr	pDrawable,
     while (n--)
     {
 #ifndef FB_ACCESS_WRAPPER
-	if (!try_mmx || !pixman_fill (dst, dstStride, dstBpp,
+	if (!try_mmx || !pixman_fill ((uint32_t *)dst, dstStride, dstBpp,
 				      pbox->x1 + dstXoff, pbox->y1 + dstYoff,
 				      (pbox->x2 - pbox->x1),
 				      (pbox->y2 - pbox->y1),
