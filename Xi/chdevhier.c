@@ -80,7 +80,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
     xAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xChangeDeviceHierarchyReq);
     char n;
-    int rc;
+    int rc = Success;
     int nchanges = 0;
     deviceHierarchyChangedEvent ev;
 
