@@ -42,6 +42,7 @@ from The Open Group.
 #include <X11/Xauth.h>
 #include "misc.h"
 #include "os.h"
+#include "osdep.h"
 #include "dixstruct.h"
 
 #include <rpc/rpc.h>
