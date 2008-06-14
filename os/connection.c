@@ -757,7 +757,9 @@ ClientAuthorized(ClientPtr client,
 	}
     }
     priv->auth_id = auth_id;
+#ifdef HAVE_LAUNCHD
  done:
+#endif
     priv->conn_time = 0;
 
 #ifdef XDMCP
