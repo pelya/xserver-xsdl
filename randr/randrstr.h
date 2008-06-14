@@ -419,6 +419,11 @@ miRROutputSetProperty (ScreenPtr	    pScreen,
 		       RRPropertyValuePtr   value);
 
 Bool
+miRROutputGetProperty (ScreenPtr	    pScreen,
+		       RROutputPtr	    output,
+		       Atom		    property);
+
+Bool
 miRROutputValidateMode (ScreenPtr	    pScreen,
 			RROutputPtr	    output,
 			RRModePtr	    mode);
