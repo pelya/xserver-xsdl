@@ -295,7 +295,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
     *buff = xalloc(size * pDev->valuator->numMotionEvents);
     if (!(*buff))
         return 0;
-    obuff = *buff;
+    obuff = (char *)*buff;
 
     for (i = pDev->valuator->first_motion;
          i != pDev->valuator->last_motion;
