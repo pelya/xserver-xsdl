@@ -76,6 +76,7 @@ SOFTWARE.
 #include "dispatch.h"
 #include "swaprep.h"
 #include "dixevents.h"
+#include "mipointer.h"
 
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
