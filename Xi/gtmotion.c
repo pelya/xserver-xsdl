@@ -95,7 +95,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
     INT32 *coords = NULL, *bufptr;
     xGetDeviceMotionEventsReply rep;
     unsigned long i;
-    int rc, num_events, axes, size = 0, tsize;
+    int rc, num_events, axes, size = 0;
     unsigned long nEvents;
     DeviceIntPtr dev;
     TimeStamp start, stop;
