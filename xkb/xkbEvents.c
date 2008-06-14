@@ -882,14 +882,13 @@ XkbSrvInfoPtr	xkbi;
 		((xE[i].u.u.type==KeyPress)||(xE[i].u.u.type==KeyRelease)||
                  (xE[i].u.u.type==DeviceKeyPress)||
                  (xE[i].u.u.type == DeviceKeyRelease))) {
-		XkbStatePtr s= &xkbi->state;
 		DebugF("[xkb] XKbFilterWriteEvents (non-XKB):\n");
 		DebugF("[xkb] event= 0x%04x\n",xE[i].u.keyButtonPointer.state);
-		DebugF("[xkb] lookup= 0x%02x, grab= 0x%02x\n",s->lookup_mods,
-							s->grab_mods);
+		DebugF("[xkb] lookup= 0x%02x, grab= 0x%02x\n",xkbi->state.lookup_mods,
+							xkbi->state.grab_mods);
 		DebugF("[xkb] compat lookup= 0x%02x, grab= 0x%02x\n",
-							s->compat_lookup_mods,
-							s->compat_grab_mods);
+							xkbi->state.compat_lookup_mods,
+							xkbi->state.compat_grab_mods);
 	    }
 	    if ( (type>=KeyPress)&&(type<=MotionNotify) ) {
 		CARD16	old,new;
