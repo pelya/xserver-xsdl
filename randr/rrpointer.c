@@ -136,13 +136,10 @@ RRPointerMoved (ScreenPtr pScreen, int x, int y)
 void
 RRPointerScreenConfigured (ScreenPtr pScreen)
 {
-    WindowPtr	pRoot; 
+    WindowPtr	pRoot;
     ScreenPtr	pCurrentScreen;
     int		x, y;
     DeviceIntPtr pDev;
-
-    if (pScreen != pCurrentScreen)
-	return;
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
