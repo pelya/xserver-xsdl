@@ -1045,7 +1045,7 @@ int		button;
 	switch (pAction->type) {
 	    case XkbSA_LockDeviceBtn:
 		if ((pAction->devbtn.flags&XkbSA_LockNoLock)||
-		    (dev->button->down[button/8]&(1L<<(button%8))))
+		    (dev->button->down[button]))
 		    return 0;
 		XkbDDXFakeDeviceButton(dev,True,button);
 		filter->upAction.type= XkbSA_NoAction;
@@ -1077,7 +1077,7 @@ int		button;
 	switch (filter->upAction.type) {
 	    case XkbSA_LockDeviceBtn:
 		if ((filter->upAction.devbtn.flags&XkbSA_LockNoUnlock)||
-		    ((dev->button->down[button/8]&(1L<<(button%8)))==0))
+		    ((dev->button->down[button])==0))
 		    return 0;
 		XkbDDXFakeDeviceButton(dev,False,button);
 		break;
