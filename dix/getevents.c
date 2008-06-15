@@ -1030,7 +1030,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             kbp->type = DeviceButtonPress;
         else if (type == ButtonRelease)
             kbp->type = DeviceButtonRelease;
-        kbp->detail = pDev->button->map[buttons];
+        kbp->detail = buttons;
     }
 
     kbp->root_x = cx; /* root_x/y always in screen coords */

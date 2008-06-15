@@ -1066,9 +1066,11 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
             (key == device->deviceGrab.activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
-	xE->u.u.detail = key;
-	if (xE->u.u.detail == 0)
+	xE->u.u.detail = b->map[key];
+	if (xE->u.u.detail == 0) {
+	    xE->u.u.detail = key;
 	    return;
+	}
         if (!grab && CheckDeviceGrabs(device, xE, 0, count))
         {
             /* if a passive grab was activated, the event has been sent
@@ -1077,9 +1079,11 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
         }
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
-	xE->u.u.detail = key;
-	if (xE->u.u.detail == 0)
+	xE->u.u.detail = b->map[key];
+	if (xE->u.u.detail == 0) {
+	    xE->u.u.detail = key;
 	    return;
+	}
         if (!b->state && device->deviceGrab.fromPassiveGrab)
             deactivateDeviceGrab = TRUE;
     }
@@ -1094,6 +1098,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
+    xE->u.u.detail = key;
 }
 
 _X_EXPORT int
