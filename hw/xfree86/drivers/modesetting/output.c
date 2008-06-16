@@ -51,6 +51,23 @@
 
 #include "driver.h"
 
+static char *connector_enum_list[] = {
+    "Unknown",
+    "VGA",
+    "DVI-I",
+    "DVI-D",
+    "DVI-A",
+    "Composite",
+    "SVIDEO",
+    "LVDS",
+    "Component",
+    "9-pin DIN",
+    "DisplayPort",
+    "HDMI Type A",
+    "HDMI Type B",
+};
+
+
 static void
 dpms(xf86OutputPtr output, int mode)
 {
@@ -145,6 +162,7 @@ get_modes(xf86OutputPtr output)
 	    mode->VRefresh = xf86ModeVRefresh(mode);
 	    mode->Private = (void *)drm_mode;
 	    xf86SetModeDefaultName(mode);
+	    ErrorF("MODE %s\n",mode->name);
 	    modes = xf86ModesAdd(modes, mode);
 	    xf86PrintModeline(0, mode);
 	}
@@ -237,7 +255,6 @@ output_init(ScrnInfoPtr pScrn)
 	if (!drm_connector)
 	    goto out;
 
-#if 0
 	for (p = 0; p < drm_connector->count_props; p++) {
 	    drmModePropertyPtr prop;
 
@@ -249,41 +266,16 @@ output_init(ScrnInfoPtr pScrn)
 
 		for (v = 0; v < prop->count_values; v++)
 		    ErrorF("%s %lld\n", prop->name, prop->values[v]);
-
-		for (v = 0; v < prop->count_enums; v++) {
-		    ErrorF("%s %s\n", prop->name, prop->enums[v].name);
-		    if (drm_connector->prop_values[p] == prop->enums[v].value) {
-			if (!strncmp("Connector Type", prop->name, 14)) {
-			    ErrorF("WE'VE GOT %s\n", prop->enums[v].name);
-			    name = xalloc(strlen(prop->enums[v].name));
-			    strncpy(name, prop->enums[v].name, strlen(name));
-			}
-		    }
-		    if (name)
-			break;
-		}
-		if (name)
-		    break;
 	    }
 	}
 
-	if (!name)
-	    continue;
-#endif
-
-
-#if 0
-	free(name);
-#endif
-
-	
-	name = "Unknown";
+	name = connector_enum_list[drm_connector->connector_type];
 
 	output = xf86OutputCreate(pScrn, &output_funcs, name);
 	if (!output)
 	    continue;
 
-	drm_encoder = drmModeGetEncoder(ms->fd, drm_connector->encoder);
+	drm_encoder = drmModeGetEncoder(ms->fd, drm_connector->encoders[0]);
 	if (drm_encoder) {
 	output->possible_crtcs = drm_encoder->crtcs;
 	output->possible_clones = drm_encoder->clones;

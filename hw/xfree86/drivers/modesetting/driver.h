@@ -31,6 +31,7 @@
 #include <drm.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
+#include <xf86mm.h>
 #include "shadow.h"
 #include "exa.h"
 
@@ -50,6 +51,7 @@ typedef struct _modesettingRec
     unsigned int fb_id;
     void *virtual;
     drmBO bo;
+    Bool front;
 
     EntPtr entityPrivate;
 
@@ -68,9 +70,6 @@ typedef struct _modesettingRec
     Bool SWCursor;
     CloseScreenProcPtr CloseScreen;
 
-    Bool directRenderingDisabled;      /* DRI disabled in PreInit. */
-    Bool directRenderingEnabled;       /* DRI enabled this generation. */
-
     /* Broken-out options. */
     OptionInfoPtr Options;
 
@@ -85,6 +84,11 @@ typedef struct _modesettingRec
     /* exa */
     ExaDriverPtr pExa;
     drmBO exa_bo;
+
+    /* dri2 */
+    drm_context_t context;
+    drm_hw_lock_t *lock;
+    int lock_held;
 } modesettingRec, *modesettingPtr;
 
 #define modesettingPTR(p) ((modesettingPtr)((p)->driverPrivate))

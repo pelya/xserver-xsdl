@@ -132,6 +132,16 @@ static const OptionInfoRec Options[] = {
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
+static const char *exaSymbols[] = {
+    "exaGetVersion",
+    "exaDriverInit",
+    "exaDriverFini",
+    "exaOffscreenAlloc",
+    "exaOffscreenFree",
+    "exaWaitSync",
+    NULL
+};
+
 static const char *fbSymbols[] = {
     "fbPictureInit",
     "fbScreenInit",
@@ -190,7 +200,7 @@ Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 	 * Tell the loader about symbols from other modules that this module
 	 * might refer to.
 	 */
-	LoaderRefSymLists(fbSymbols, shadowSymbols, ddcSymbols, NULL);
+	LoaderRefSymLists(exaSymbols, fbSymbols, shadowSymbols, ddcSymbols, NULL);
 
 	/*
 	 * The return value must be non-NULL on success even though there
@@ -417,6 +427,8 @@ MapMem(ScrnInfoPtr pScrn)
     drmBOMap(ms->fd,
 	     &ms->bo, DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE, 0, &ms->virtual);
 
+    ms->virtual = ms->bo.virtual;
+
     return TRUE;
 }
 
@@ -438,7 +450,7 @@ LoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 }
 
 static Bool
-crtc_resize(ScrnInfoPtr pScrn, int width, int height)
+CreateFrontBuffer(ScrnInfoPtr pScrn)
 {
     modesettingPtr ms = modesettingPTR(pScrn);
     ScreenPtr pScreen = pScrn->pScreen;
@@ -446,37 +458,14 @@ crtc_resize(ScrnInfoPtr pScrn, int width, int height)
     Bool fbAccessDisabled;
     CARD8 *fbstart;
 
-    if (width == pScrn->virtualX && height == pScrn->virtualY)
-	return TRUE;
-
-    ErrorF("RESIZING TO %dx%d\n", width, height);
-
-    pScrn->virtualX = width;
-    pScrn->virtualY = height;
-    pScrn->displayWidth = (pScrn->virtualX + 63) & ~63;
-
-    if (ms->shadowMem) {
-	xfree(ms->shadowMem);
-	ms->shadowMem = NULL;
-    }
-
-    UnmapMem(pScrn);
-
-    /* move old buffer out of the way */
-    drmBOSetStatus(ms->fd, &ms->bo, DRM_BO_FLAG_READ | DRM_BO_FLAG_MEM_LOCAL,
-		   DRM_BO_MASK_MEM | DRM_BO_FLAG_NO_EVICT,
-		   DRM_BO_HINT_DONT_FENCE, 0, 0);
-
-    /* unreference it */
-    drmBOUnreference(ms->fd, &ms->bo);
-
     drmBOCreate(ms->fd,
 		pScrn->virtualY * pScrn->displayWidth *
 		pScrn->bitsPerPixel / 8, 0, NULL,
 		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_SHAREABLE
+		| DRM_BO_FLAG_CACHED_MAPPED
 		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
-		DRM_BO_FLAG_MEM_VRAM | DRM_BO_FLAG_MEM_TT,
-		DRM_BO_HINT_DONT_FENCE, &ms->bo);
+		/*DRM_BO_FLAG_MEM_VRAM |*/ DRM_BO_FLAG_MEM_TT,
+		0, &ms->bo);
 
     MapMem(pScrn);
 
@@ -498,7 +487,7 @@ crtc_resize(ScrnInfoPtr pScrn, int width, int height)
 	}
 	fbstart = ms->shadowMem;
     } else {
-	fbstart = ms->virtual;
+	fbstart = ms->bo.virtual;
     }
 
     /*
@@ -526,7 +515,47 @@ crtc_resize(ScrnInfoPtr pScrn, int width, int height)
     pScrn->frameY0 = 0;
     AdjustFrame(pScrn->scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
 
+    UnmapMem(pScrn);
+
+    ms->front = TRUE;
+
     return TRUE;
+}
+
+static Bool
+crtc_resize(ScrnInfoPtr pScrn, int width, int height)
+{
+    modesettingPtr ms = modesettingPTR(pScrn);
+    ScreenPtr pScreen = pScrn->pScreen;
+    PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
+    Bool fbAccessDisabled;
+    CARD8 *fbstart;
+
+    if (width == pScrn->virtualX && height == pScrn->virtualY)
+	return TRUE;
+
+    ErrorF("RESIZING TO %dx%d\n", width, height);
+
+    pScrn->virtualX = width;
+    pScrn->virtualY = height;
+    pScrn->displayWidth = (pScrn->virtualX + 63) & ~63;
+
+    if (ms->shadowMem) {
+	xfree(ms->shadowMem);
+	ms->shadowMem = NULL;
+    }
+
+    drmModeRmFB(ms->fd, ms->fb_id);
+
+    /* move old buffer out of the way */
+    drmBOSetStatus(ms->fd, &ms->bo, 0, 0, 0, 0, 0);
+
+    /* unreference it */
+    drmBOUnreference(ms->fd, &ms->bo);
+    ms->front = FALSE;
+
+    /* now create new frontbuffer */
+    return CreateFrontBuffer(pScrn);
 }
 
 static const xf86CrtcConfigFuncsRec crtc_config_funcs = {
@@ -713,6 +742,12 @@ PreInit(ScrnInfoPtr pScrn, int flags)
 
     xf86LoaderReqSymLists(fbSymbols, NULL);
 
+    xf86LoadSubModule(pScrn, "exa");
+
+#ifdef DRI2
+    xf86LoadSubModule(pScrn, "dri2");
+#endif
+
     return TRUE;
 }
 
@@ -744,7 +779,7 @@ WindowLinear(ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode,
 
     *size = pScrn->displayWidth * pScrn->bitsPerPixel / 8;
 
-    return ((CARD8 *) ms->virtual + row * (*size) + offset);
+    return ((CARD8 *) ms->bo.virtual + row * (*size) + offset);
 }
 
 static Bool
@@ -752,14 +787,22 @@ CreateScreenResources(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     modesettingPtr ms = modesettingPTR(pScrn);
+    PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
     Bool ret;
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
     pScreen->CreateScreenResources = CreateScreenResources;
 
-    shadowAdd(pScreen, pScreen->GetScreenPixmap(pScreen),
+    if (ms->shadowFB)
+    	shadowAdd(pScreen, rootPixmap,
 	      ms->update, WindowLinear, 0, 0);
+
+    if (!pScreen->ModifyPixmapHeader(pScreen->GetScreenPixmap(pScreen),
+                                     -1, -1, -1, -1, -1,
+                                     ms->shadowFB ? (pointer)ms->shadowMem : (pointer)ms->bo.virtual))
+	FatalError("Couldn't adjust screen pixmap\n");
+
 
     return ret;
 }
@@ -775,6 +818,30 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     MessageType from;
     CARD8 *fbstart;
 
+    /* deal with server regeneration */
+    if (ms->fd < 0) {
+    	char *BusID;
+
+    	BusID = xalloc(64);
+    	sprintf(BusID, "PCI:%d:%d:%d",
+#if XSERVER_LIBPCIACCESS
+	    ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
+	    ms->PciInfo->dev, ms->PciInfo->func
+#else
+	    ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
+	    ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
+	    ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+#endif
+	);
+
+    	ms->fd = drmOpen(NULL, BusID);
+
+    	if (ms->fd < 0)
+	    return FALSE;
+    }
+
+    pScrn->pScreen = pScreen;
+
     pScrn->displayWidth = (pScrn->virtualX + 63) & ~63;
 
     miClearVisualTypes();
@@ -787,9 +854,6 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     if (!miSetPixmapDepths())
 	return FALSE;
 
-    if (!MapMem(pScrn))
-	return FALSE;
-
     pScrn->memPhysBase = 0;
     pScrn->fbOffset = 0;
 
@@ -797,9 +861,10 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 		pScrn->virtualY * pScrn->displayWidth *
 		pScrn->bitsPerPixel / 8, 0, NULL,
 		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_SHAREABLE
+		| DRM_BO_FLAG_CACHED_MAPPED
 		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
-		DRM_BO_FLAG_MEM_VRAM | DRM_BO_FLAG_MEM_TT,
-		DRM_BO_HINT_DONT_FENCE, &ms->bo);
+		/*DRM_BO_FLAG_MEM_VRAM |*/ DRM_BO_FLAG_MEM_TT,
+		0, &ms->bo);
 
     MapMem(pScrn);
 
@@ -821,7 +886,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 	}
 	fbstart = ms->shadowMem;
     } else {
-	fbstart = ms->virtual;
+	fbstart = ms->bo.virtual;
     }
 
     if (!fbScreenInit(pScreen, fbstart,
@@ -853,18 +918,18 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 		       "Shadow framebuffer initialization failed.\n");
 	    return FALSE;
 	}
-
-	ms->createScreenResources = pScreen->CreateScreenResources;
-	pScreen->CreateScreenResources = CreateScreenResources;
     }
+
+    ms->createScreenResources = pScreen->CreateScreenResources;
+    pScreen->CreateScreenResources = CreateScreenResources;
 
     xf86SetBlackWhitePixels(pScreen);
 
 #if 0
     glucoseScreenInit(pScreen, 0);
 #endif
-#if 0
-    ms->pExa = ExaInit(pScreen);
+#if 1
+    ms->pExa = ExaInit(pScrn);
 #endif
 
     miInitializeBackingStore(pScreen);
@@ -872,8 +937,9 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     xf86SetSilkenMouse(pScreen);
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
 
-    /* Need to extend HWcursor support in kernel to handle mask interleave ?? */
-    xf86_cursors_init (pScreen, 64, 64,
+    /* Need to extend HWcursor support to handle mask interleave */
+    if (!ms->SWCursor)
+	xf86_cursors_init (pScreen, 64, 64,
 			       HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
 			       HARDWARE_CURSOR_ARGB);
 
@@ -907,6 +973,14 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     if (serverGeneration == 1)
 	xf86ShowUnusedOptions(pScrn->scrnIndex, pScrn->options);
+
+#ifdef DRI2
+    driScreenInit(pScreen);
+#endif
+
+    UnmapMem(pScrn);
+
+    ms->front = TRUE;
 
     return EnterVT(scrnIndex, 0);
 }
@@ -944,6 +1018,8 @@ LeaveVT(int scrnIndex, int flags)
     for (o = 0; o < config->num_crtc; o++) {
 	xf86CrtcPtr crtc = config->crtc[o];
 
+    	cursor_destroy(crtc);
+
 	if (crtc->rotatedPixmap || crtc->rotatedData) {
 	    crtc->funcs->shadow_destroy(crtc, crtc->rotatedPixmap,
 					crtc->rotatedData);
@@ -952,11 +1028,25 @@ LeaveVT(int scrnIndex, int flags)
 	}
     }
 
-    xf86_hide_cursors(pScrn);
+    drmModeRmFB(ms->fd, ms->fb_id);
 
-    drmMMLock(ms->fd, DRM_BO_MEM_VRAM, 1, 0);
+    /* move old buffer out of the way */
+    drmBOSetStatus(ms->fd, &ms->bo, 0, 0, 0, 0, 0);
+
+    drmBOUnreference(ms->fd, &ms->bo);
+    ms->front = FALSE;
 
     RestoreHWState(pScrn);
+
+#if 0
+    drmMMLock(ms->fd, DRM_BO_MEM_VRAM, 1, 0);
+    drmMMLock(ms->fd, DRM_BO_MEM_TT, 1, 0);
+#endif
+#ifdef DRI2
+    driLock(pScrn->pScreen);
+#endif
+
+    pScrn->vtSema = FALSE;
 }
 
 /*
@@ -968,6 +1058,17 @@ EnterVT(int scrnIndex, int flags)
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     modesettingPtr ms = modesettingPTR(pScrn);
 
+#if 0
+    if (pScrn->vtSema) {
+	drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
+	drmMMUnlock(ms->fd, DRM_BO_MEM_TT, 1);
+    }
+#endif
+
+#ifdef DRI2
+    driUnlock(pScrn->pScreen);
+#endif
+
     /*
      * Only save state once per server generation since that's what most
      * drivers do.  Could change this to save state at each VT enter.
@@ -977,7 +1078,8 @@ EnterVT(int scrnIndex, int flags)
 	SaveHWState(pScrn);
     }
 
-    drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
+    if (!ms->front)
+	CreateFrontBuffer(pScrn);
 
     if (!xf86SetDesiredModes(pScrn))
 	return FALSE;
@@ -1001,15 +1103,19 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     modesettingPtr ms = modesettingPTR(pScrn);
 
-    if (pScrn->vtSema == TRUE) {
-	LeaveVT(scrnIndex, 0);
-	drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
+    if (pScrn->vtSema) {
+    	LeaveVT(scrnIndex, 0);
+#if 0
+    	drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
+    	drmMMUnlock(ms->fd, DRM_BO_MEM_TT, 1);
+#endif
     }
 
-    UnmapMem(pScrn);
+#ifdef DRI2
+    driCloseScreen(pScreen);
+#endif
 
-    if (ms->shadowFB)
-	pScreen->CreateScreenResources = ms->createScreenResources;
+    pScreen->CreateScreenResources = ms->createScreenResources;
 
     if (ms->shadowMem) {
 	xfree(ms->shadowMem);
@@ -1019,14 +1125,8 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
     if (ms->pExa)
 	ExaClose(pScrn);
 
-    /* move old buffer out of the way */
-    drmBOSetStatus(ms->fd, &ms->bo, DRM_BO_FLAG_READ | DRM_BO_FLAG_MEM_LOCAL,
-		   DRM_BO_MASK_MEM | DRM_BO_FLAG_NO_EVICT,
-		   DRM_BO_HINT_DONT_FENCE, 0, 0);
-
-    drmBOUnreference(ms->fd, &ms->bo);
-
     drmClose(ms->fd);
+    ms->fd = -1;
 
     pScrn->vtSema = FALSE;
     pScreen->CloseScreen = ms->CloseScreen;
