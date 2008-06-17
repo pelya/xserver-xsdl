@@ -41,7 +41,8 @@ typedef enum {
     XAAOPT_WRITE_BITMAP,
     XAAOPT_WRITE_PIXMAP,
     XAAOPT_PIXMAP_CACHE,
-    XAAOPT_OFFSCREEN_PIXMAPS
+    XAAOPT_OFFSCREEN_PIXMAPS,
+    XAAOPT_HAS_DUMB_INVERTED_OPTION_SENSE
 } XAAOpts;
 
 static const OptionInfoRec XAAOptions[] = {
@@ -87,6 +88,8 @@ static const OptionInfoRec XAAOptions[] = {
 				OPTV_BOOLEAN,	{0}, FALSE },
     {XAAOPT_OFFSCREEN_PIXMAPS,		"XaaNoOffscreenPixmaps",
 				OPTV_BOOLEAN,	{0}, FALSE },
+    {XAAOPT_HAS_DUMB_INVERTED_OPTION_SENSE, "XaaOffscreenPixmaps",
+				OPTV_BOOLEAN,   {0}, FALSE },
     { -1,				NULL,
 				OPTV_NONE,	{0}, FALSE }
 };
@@ -525,8 +528,8 @@ XAAInitAccel(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 #define XAAMSG(s) do { if (serverGeneration == 1) xf86ErrorF(s); } while (0)
 
     if((infoRec->Flags & OFFSCREEN_PIXMAPS) && HaveScreenToScreenCopy &&
-		!xf86ReturnOptValBool(options, XAAOPT_OFFSCREEN_PIXMAPS,
-		                      FALSE)) {
+		xf86IsOptionSet(options, XAAOPT_HAS_DUMB_INVERTED_OPTION_SENSE))
+    {
 	XAAMSG("\tOffscreen Pixmaps\n");
     } else {
 	infoRec->Flags &= ~OFFSCREEN_PIXMAPS;
