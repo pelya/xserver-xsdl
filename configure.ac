@@ -1287,8 +1287,6 @@ if test "x$XORG" = xyes; then
 			;;
 		  alpha*)
 		  	linux_alpha=yes
-			XORG_OS_PCI="axp"
-			xorg_bus_linuxpci="no"
 			;;
 		  i*86|amd64*|x86_64*)
 			linux_acpi="yes"

@@ -23,10 +23,6 @@ if XORG_BUS_SPARCPCI
 PCI_SOURCES += sparcPci.c
 endif
 
-if LINUX_ALPHA
-PCI_SOURCES += axpPci.c
-endif
-
 if XORG_BUS_SPARC
 PLATFORM_SOURCES = Sbus.c
 sdk_HEADERS += xf86Sbus.h

@@ -189,75 +189,26 @@
 #define ARCH_PCI_INIT bsdPciInit
 #endif
 
+#if defined(linux)
+# define ARCH_PCI_INIT linuxPciInit
+# if defined(__m32r__)
+#  define INCLUDE_XF86_MAP_PCI_MEM
+#  define INCLUDE_XF86_NO_DOMAIN
+# endif
+#endif /* defined(linux) */
+
+
 #if !defined(ARCH_PCI_INIT)
 /*
  * Select architecture specific PCI init function
  */
-#if defined(__alpha__)
-# if defined(linux)
-#  define ARCH_PCI_INIT axpPciInit
-# endif
-#elif defined(__arm__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__hppa__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__ia64__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__i386__) || defined(__i386)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# else
-#  define ARCH_PCI_INIT ix86PciInit
-# endif
-#elif defined(__mc68000__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__mips__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
+#if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64) || defined(__x86_64__)
+# define ARCH_PCI_INIT ix86PciInit
 #elif defined(__powerpc__) || defined(__powerpc64__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# else
-#  define ARCH_PCI_INIT ppcPciInit
-# endif
-#elif defined(__s390__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__sh__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# endif
-#elif defined(__m32r__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_MAP_PCI_MEM
-#  define INCLUDE_XF86_NO_DOMAIN
-# endif
+# define ARCH_PCI_INIT ppcPciInit
 #elif defined(__sparc__) || defined(sparc)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# elif defined(sun)
-#  define ARCH_PCI_INIT sparcPciInit
-# endif
-# if !defined(__FreeBSD__) && !defined(linux)
-#  define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
-# endif
-#elif defined(__amd64__) || defined(__amd64) || defined(__x86_64__)
-# if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
-# else
-#  define ARCH_PCI_INIT ix86PciInit
-# endif
+# define ARCH_PCI_INIT sparcPciInit
+# define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
 #endif
 #endif /* !defined(ARCH_PCI_INIT) */
 
