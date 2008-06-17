@@ -6168,6 +6168,10 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     if (events->u.u.type == GenericEvent)
     {
         eventlength += ((xGenericEvent*)events)->length * 4;
+    }
+
+    if(pClient->swapped)
+    {
         if (eventlength > swapEventLen)
         {
             swapEventLen = eventlength;
@@ -6178,10 +6182,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
                 return;
             }
         }
-    }
 
-    if(pClient->swapped)
-    {
 	for(i = 0; i < count; i++)
 	{
 	    eventFrom = &events[i];
@@ -6192,7 +6193,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	    (*EventSwapVector[eventFrom->u.u.type & 0177])
 		(eventFrom, eventTo);
 
-	    (void)WriteToClient(pClient, eventlength, (char *)&eventTo);
+	    (void)WriteToClient(pClient, eventlength, (char *)eventTo);
 	}
     }
     else
