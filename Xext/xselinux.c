@@ -2031,6 +2031,8 @@ SELinuxExtensionInit(INITARGS)
 			    ProcSELinuxDispatch, SProcSELinuxDispatch,
 			    SELinuxResetProc, StandardMinorOpcode);
 
+    AddExtensionAlias("Flask", extEntry);
+
     /* Label objects that were created before we could register ourself */
     SELinuxLabelInitial();
 }
