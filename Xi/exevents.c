@@ -587,8 +587,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
     if (from->button)
     {
-        int i;
-        DeviceIntPtr sd;
         if (!to->button)
         {
             classes = dixLookupPrivate(&to->devPrivates,
@@ -603,20 +601,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->button = NULL;
         }
 
-        to->button->buttonsDown = 0;
-        memset(to->button->down, 0, MAP_LENGTH);
-        /* merge button states from all attached devices */
-        for (sd = inputInfo.devices; sd; sd = sd->next)
-        {
-            if (sd->isMaster || sd->u.master != to)
-                continue;
-
-            for (i = 0; i < MAP_LENGTH; i++)
-            {
-                to->button->down[i] += sd->button->down[i];
-                to->button->buttonsDown++;
-            }
-        }
 #ifdef XKB
         if (from->button->xkb_acts)
         {
@@ -923,8 +907,10 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         if (!b)
             return DONT_PROCESS;
 
-        if (b->down[key]++ > 0)
+        kptr = &b->down[key >> 3];
+        if ((*kptr & bit) != 0)
             return DONT_PROCESS;
+        *kptr |= bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         b->buttonsDown++;
@@ -938,10 +924,25 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         if (!b)
             return DONT_PROCESS;
 
-        if (b->down[key] == 0)
+        kptr = &b->down[key>>3];
+        if (!(*kptr & bit))
             return DONT_PROCESS;
-        if (--b->down[key] > 0)
-            return DONT_PROCESS;
+        if (device->isMaster) {
+            DeviceIntPtr sd;
+
+            /*
+             * Leave the button down if any slave has the
+             * button still down. Note that this depends on the
+             * event being delivered through the slave first
+             */
+            for (sd = inputInfo.devices; sd; sd = sd->next) {
+                if (sd->isMaster || sd->u.master != device)
+                    continue;
+                if ((sd->button->down[key>>3] & bit) != 0)
+                    return DONT_PROCESS;
+            }
+        }
+        *kptr &= ~bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         if (b->buttonsDown >= 1 && !--b->buttonsDown)
