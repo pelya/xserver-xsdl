@@ -184,16 +184,11 @@ ProcXExtendedGrabDevice(ClientPtr client)
             gemasks->eventMask[xgeMask->extension & 0x7F]= xgeMask->evmask;
     }
 
-    ExtGrabDevice(client, dev, stuff->device_mode,
-                  grab_window, confineTo, time, stuff->owner_events,
-                  cursor, tmp[stuff->deviceid].mask,
-                  gemasks);
-
-    if (rc != Success) {
-        errval = 0;
-        goto cleanup;
-    }
-
+    rep.status = ExtGrabDevice(client, dev, stuff->device_mode,
+                               grab_window, confineTo, time,
+                               stuff->owner_events, cursor,
+                               tmp[stuff->deviceid].mask,
+                               gemasks);
 cleanup:
 
     if (gemasks)
