@@ -4583,6 +4583,9 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
         WindowPtr toWin,
         int mode)
 {
+    if (!IsPointerDevice(pDev))
+        return;
+
     if (fromWin == toWin)
 	return;
     if (IsParent(fromWin, toWin))
