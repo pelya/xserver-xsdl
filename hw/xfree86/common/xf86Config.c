@@ -599,8 +599,9 @@ configFiles(XF86ConfFilesPtr fileconf)
       pathFrom = X_CONFIG;
       if (*f) {
         if (xf86Info.useDefaultFontPath) {
+          char *g;
           xf86Msg(X_DEFAULT, "Including the default font path %s.\n", defaultFontPath);
-          char *g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
+	  g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
           strcpy(g, f);
           strcat(g, ",");
           defaultFontPath = strcat(g, defaultFontPath);
@@ -1233,8 +1234,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * remove the core attribute from the later ones.
      */
     for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-        indp = *devs;
 	pointer opt1 = NULL, opt2 = NULL;
+        indp = *devs;
 	if (indp->commonOptions &&
 	    xf86CheckBoolOption(indp->commonOptions, "CorePointer", FALSE)) {
 	    opt1 = indp->commonOptions;
