@@ -2625,15 +2625,16 @@ xf86OutputGetEDIDModes (xf86OutputPtr output)
     return xf86DDCGetModes(scrn->scrnIndex, edid_mon);
 }
 
+/* maybe we should care about DDC1?  meh. */
 _X_EXPORT xf86MonPtr
 xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 {
     ScrnInfoPtr	scrn = output->scrn;
     xf86MonPtr mon;
 
-    mon = xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
+    mon = xf86DoEEDID(scrn->scrnIndex, pDDCBus, TRUE);
     if (mon)
-        xf86DDCApplyQuirks (scrn->scrnIndex, mon);
+        xf86DDCApplyQuirks(scrn->scrnIndex, mon);
 
     return mon;
 }
