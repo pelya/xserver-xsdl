@@ -305,7 +305,7 @@ xf86ModulelistFromConfig(pointer **optlist)
                 }
             }
             if (found == FALSE) {
-	            XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+		XF86LoadPtr ptr = (XF86LoadPtr)xf86configptr->conf_modules;
 	            ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
                 xf86Msg(X_INFO, "\"%s\" will be loaded by default.\n", ModuleDefaults[i].name);
             }
@@ -314,7 +314,7 @@ xf86ModulelistFromConfig(pointer **optlist)
 	xf86configptr->conf_modules = xnfcalloc(1, sizeof(XF86ConfModuleRec));
 	for (i=0 ; ModuleDefaults[i].name != NULL ; i++) {
 	    if (ModuleDefaults[i].toLoad == TRUE) {
-		XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+		XF86LoadPtr ptr = (XF86LoadPtr)xf86configptr->conf_modules;
 		ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
 	    }
 	}
