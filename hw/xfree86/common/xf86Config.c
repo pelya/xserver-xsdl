@@ -2417,14 +2417,14 @@ configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
 }
 
 static Bool
-modeIsPresent(char * modename,MonPtr monitorp)
+modeIsPresent(DisplayModePtr mode, MonPtr monitorp)
 {
     DisplayModePtr knownmodes = monitorp->Modes;
 
     /* all I can think of is a linear search... */
     while(knownmodes != NULL)
     {
-	if(!strcmp(modename,knownmodes->name) &&
+	if(!strcmp(mode->name, knownmodes->name) &&
 	   !(knownmodes->type & M_T_DEFAULT))
 	    return TRUE;
 	knownmodes = knownmodes->next;
