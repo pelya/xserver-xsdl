@@ -462,22 +462,28 @@ print_number_sections(int scrnIndex, int num)
 xf86MonPtr
 xf86PrintEDID(xf86MonPtr m)
 {
-    CARD16 i, j;
+    CARD16 i, j, n;
     char buf[EDID_WIDTH * 2 + 1];
 
-    if (!(m)) return NULL;
+    if (!m) return NULL;
 
-    print_vendor(m->scrnIndex,&m->vendor);
-    print_version(m->scrnIndex,&m->ver);
-    print_display(m->scrnIndex,&m->features, &m->ver);
-    print_established_timings(m->scrnIndex,&m->timings1);
-    print_std_timings(m->scrnIndex,m->timings2);
-    print_detailed_monitor_section(m->scrnIndex,m->det_mon);
-    print_number_sections(m->scrnIndex,m->no_sections);
+    print_vendor(m->scrnIndex, &m->vendor);
+    print_version(m->scrnIndex, &m->ver);
+    print_display(m->scrnIndex, &m->features, &m->ver);
+    print_established_timings(m->scrnIndex, &m->timings1);
+    print_std_timings(m->scrnIndex, m->timings2);
+    print_detailed_monitor_section(m->scrnIndex, m->det_mon);
+    print_number_sections(m->scrnIndex, m->no_sections);
+
+    /* extension block section stuff */
 
     xf86DrvMsg(m->scrnIndex, X_INFO, "EDID (in hex):\n");
- 
-    for (i = 0; i < 128; i += j) {
+
+    n = 128;
+    if (m->flags & EDID_COMPLETE_RAWDATA)
+	n += m->no_sections * 128;
+
+    for (i = 0; i < n; i += j) {
 	for (j = 0; j < EDID_WIDTH; ++j) {
 	    sprintf(&buf[j * 2], "%02x", m->rawData[i + j]);
 	}
