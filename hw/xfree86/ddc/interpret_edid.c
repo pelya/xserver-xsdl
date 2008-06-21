@@ -118,6 +118,20 @@ xf86InterpretEDID(int scrnIndex, Uchar *block)
     return NULL;
 }
 
+xf86MonPtr
+xf86InterpretEEDID(int scrnIndex, Uchar *block)
+{
+    xf86MonPtr m;
+
+    m = xf86InterpretEDID(scrnIndex, block);
+    if (!m)
+	return NULL;
+
+    /* extension parse */
+
+    return m;
+}
+
 static void
 get_vendor_section(Uchar *c, struct vendor *r)
 {

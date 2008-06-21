@@ -197,21 +197,17 @@ DDC2Read(I2CDevPtr dev, int block, unsigned char *R_Buffer)
  * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC2 are
  * unset.  EDID information blocks are interpreted and the results returned in
  * an xf86MonPtr.  Unlike xf86DoEDID_DDC[12](), this function will return
- * the complete EDID data, including all extension blocks.
+ * the complete EDID data, including all extension blocks, if the 'complete'
+ * parameter is TRUE;
  *
  * This function does not affect the list of modes used by drivers -- it is up
  * to the driver to decide policy on what to do with EDID information.
  *
  * @return pointer to a new xf86MonPtr containing the EDID information.
  * @return NULL if no monitor attached or failure to interpret the EDID.
- *
- * nblocks is an in/out parameter.  If non-zero, it defines the number of
- * blocks to read from the monitor; zero (or NULL pointer) means read all.
- * If non-NULL, on return it will be filled in with the number of blocks
- * read.
  */
 xf86MonPtr
-xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
+xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool complete)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     unsigned char *EDID_block = NULL;
@@ -242,15 +238,20 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
 	return NULL;
 
     if (DDC2Read(dev, 0, EDID_block)) {
-	tmp = xf86InterpretEDID(scrnIndex, EDID_block);
+	int i, n = EDID_block[0x7e];
+
+	if (complete && n) {
+	    EDID_block = xrealloc(EDID_block, EDID1_LEN * (1+n));
+
+	    for (i = 0; i < n; i++)
+		DDC2Read(dev, i+1, EDID_block + (EDID1_LEN * (1+i)));
+	}
+
+	tmp = xf86InterpretEEDID(scrnIndex, EDID_block);
     }
 
-    if (nblocks) {
-	if (tmp)
-	    *nblocks = tmp->no_sections;
-	else
-	    *nblocks = 0;
-    }
+    if (tmp && complete)
+	tmp->flags |= EDID_COMPLETE_RAWDATA;
 
     return tmp;
 }
@@ -269,8 +270,7 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
 xf86MonPtr
 xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
-    int nblocks = 1;
-    return xf86DoEEDID(scrnIndex, pBus, &nblocks);
+    return xf86DoEEDID(scrnIndex, pBus, FALSE);
 }
 
 /* 

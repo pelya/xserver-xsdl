@@ -35,7 +35,7 @@ extern xf86MonPtr xf86DoEDID_DDC2(
    I2CBusPtr pBus
 );
 
-extern xf86MonPtr xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks);
+extern xf86MonPtr xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool);
 
 extern xf86MonPtr xf86PrintEDID(
     xf86MonPtr monPtr

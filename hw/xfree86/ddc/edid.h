@@ -531,6 +531,9 @@ struct detailed_monitor_section {
   } section;				/* max: 80 */
 };
 
+/* flags */
+#define EDID_COMPLETE_RAWDATA	0x1
+
 typedef struct {
   int scrnIndex;
   struct vendor vendor;
@@ -539,7 +542,7 @@ typedef struct {
   struct established_timings timings1;
   struct std_timings timings2[8];
   struct detailed_monitor_section det_mon[4];
-  void *vdif; /* unused */
+  unsigned long flags;
   int no_sections;
   Uchar *rawData;
 } xf86Monitor, *xf86MonPtr;
