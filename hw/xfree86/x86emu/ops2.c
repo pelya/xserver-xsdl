@@ -40,6 +40,12 @@
 
 #include "x86emu/x86emui.h"
 
+#undef bswap_32
+#define bswap_32(x) (((x & 0xff000000) >> 24) | \
+		     ((x & 0x00ff0000) >> 8) | \
+		     ((x & 0x0000ff00) << 8) | \
+		     ((x & 0x000000ff) << 24))
+
 /*----------------------------- Implementation ----------------------------*/
 
 /****************************************************************************
@@ -2571,6 +2577,47 @@ static void x86emuOp2_movsx_word_R_RM(u8 X86EMU_UNUSED(op2))
     END_OF_INSTR();
 }
 
+/* Handles opcodes 0xc8-0xcf */
+static void x86emuOp2_bswap(u8 X86EMU_UNUSED(op2))
+{
+    START_OF_INSTR();
+    DECODE_PRINTF("BSWAP\n");
+    TRACE_AND_STEP();
+
+    switch (op2) {
+	case 0xc8:
+	    M.x86.R_EAX = bswap_32(M.x86.R_EAX);
+	    break;
+	case 0xc9:
+	    M.x86.R_ECX = bswap_32(M.x86.R_ECX);
+	    break;
+	case 0xca:
+	    M.x86.R_EDX = bswap_32(M.x86.R_EDX);
+	    break;
+	case 0xcb:
+	    M.x86.R_EBX = bswap_32(M.x86.R_EBX);
+	    break;
+	case 0xcc:
+	    M.x86.R_ESP = bswap_32(M.x86.R_ESP);
+	    break;
+	case 0xcd:
+	    M.x86.R_EBP = bswap_32(M.x86.R_EBP);
+	    break;
+	case 0xce:
+	    M.x86.R_ESI = bswap_32(M.x86.R_ESI);
+	    break;
+	case 0xcf:
+	    M.x86.R_EDI = bswap_32(M.x86.R_EDI);
+	    break;
+	default:
+	    /* can't happen */
+	    break;
+    }
+
+    DECODE_CLEAR_SEGOVR();
+    END_OF_INSTR();
+}
+
 /***************************************************************************
  * Double byte operation code table:
  **************************************************************************/
@@ -2788,14 +2835,14 @@ void (*x86emu_optab2[256])(u8) =
 /*  0xc5 */ x86emuOp2_illegal_op,
 /*  0xc6 */ x86emuOp2_illegal_op,
 /*  0xc7 */ x86emuOp2_illegal_op,
-/*  0xc8 */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xc9 */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xca */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xcb */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xcc */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xcd */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xce */ x86emuOp2_illegal_op,  /* TODO: bswap */
-/*  0xcf */ x86emuOp2_illegal_op,  /* TODO: bswap */
+/*  0xc8 */ x86emuOp2_bswap,
+/*  0xc9 */ x86emuOp2_bswap,
+/*  0xca */ x86emuOp2_bswap,
+/*  0xcb */ x86emuOp2_bswap,
+/*  0xcc */ x86emuOp2_bswap,
+/*  0xcd */ x86emuOp2_bswap,
+/*  0xce */ x86emuOp2_bswap,
+/*  0xcf */ x86emuOp2_bswap,
 
 /*  0xd0 */ x86emuOp2_illegal_op,
 /*  0xd1 */ x86emuOp2_illegal_op,
