@@ -131,7 +131,7 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     local->history_size = GetMotionHistorySize();
     /* Preallocate xEvent store */
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        GetEventList(&xf86Events);
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 }
