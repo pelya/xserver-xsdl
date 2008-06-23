@@ -1004,8 +1004,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	    prevglxc->pGlxPixmap = 0;
 	}
 
-	if (prevglxc->pGlxReadPixmap && 
-	    prevglxc->pGlxReadPixmap != prevglxc->pGlxPixmap ) {
+	if (prevglxc->pGlxReadPixmap) {
 	    /*
 	    ** The previous drawable was a glx pixmap, release it.
 	    */
@@ -1023,8 +1022,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	    prevglxc->pGlxWindow = 0;   
 	}
 
-	if (prevglxc->pGlxReadWindow &&
-	    prevglxc->pGlxReadWindow != prevglxc->pGlxWindow) {
+	if (prevglxc->pGlxReadWindow) {
 	    /*
 	    ** The previous drawable was a glx window, release it.
 	    */
@@ -1042,8 +1040,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	    prevglxc->pGlxPbuffer = 0;   
 	}
 
-	if (prevglxc->pGlxReadPbuffer &&
-	    prevglxc->pGlxReadPbuffer != prevglxc->pGlxPbuffer ) {
+	if (prevglxc->pGlxReadPbuffer) {
 	    /*
 	    ** The previous drawable was a glx Pbuffer, release it.
 	    */
@@ -1071,7 +1068,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	    pGlxPixmap->refcnt++;
 	}
 
-	if (pReadGlxPixmap && pReadGlxPixmap != pGlxPixmap) {
+	if (pReadGlxPixmap) {
 	    pReadGlxPixmap->refcnt++;
 	}
 
@@ -1079,7 +1076,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	   pGlxWindow->refcnt++;
 	}
 
-	if (pGlxReadWindow && pGlxReadWindow != pGlxWindow) {
+	if (pGlxReadWindow) {
 	   pGlxReadWindow->refcnt++;
 	}
 
@@ -1087,7 +1084,7 @@ static int MakeCurrent(__GLXclientState *cl,
 	   pGlxPbuffer->refcnt++;
 	}
 
-	if (pGlxReadPbuffer && pGlxReadPbuffer != pGlxPbuffer) {
+	if (pGlxReadPbuffer) {
 	   pGlxReadPbuffer->refcnt++;
 	}
 
