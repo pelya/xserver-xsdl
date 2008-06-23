@@ -378,7 +378,7 @@ xf86CursorMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     /* only update coordinate state for first sprite, otherwise we get jumps
        when removing a sprite. The second sprite is never HW rendered anyway */
     if (pDev == inputInfo.pointer ||
-            !pDev->isMaster && pDev->u.master == inputInfo.pointer)
+	(!pDev->isMaster && pDev->u.master == inputInfo.pointer))
     {
 	ScreenPriv->x = x;
 	ScreenPriv->y = y;
