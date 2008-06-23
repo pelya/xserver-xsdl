@@ -12,6 +12,12 @@ KDRIVE_HW_SOURCES =	\
 	vga.h
 endif
 
+if XV
+KDRIVE_XV_SOURCES =	\
+	kxv.c		\
+	kxv.h
+endif
+
 libkdrive_a_SOURCES =	\
 	fourcc.h	\
 	kaa.c		\
@@ -31,8 +37,7 @@ libkdrive_a_SOURCES =	\
 	koffscreen.c	\
 	kshadow.c	\
 	ktest.c		\
-	kxv.c		\
-	kxv.h		\
+	$(KDRIVE_XV_SOURCES) \
 	$(KDRIVE_HW_SOURCES) \
         $(top_srcdir)/mi/miinitext.c
 
