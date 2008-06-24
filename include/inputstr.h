@@ -66,7 +66,7 @@ SOFTWARE.
 
 #define MAX_DEVICES	20
 
-#define EMASKSIZE	MAX_DEVICES
+#define EMASKSIZE	MAX_DEVICES + 1
 
 extern DevPrivateKey CoreDevicePrivateKey;
 
