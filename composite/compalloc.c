@@ -82,6 +82,9 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	return Success;
     }
 
+    if (!pWin->parent)
+	return BadMatch;
+
     /*
      * Only one Manual update is allowed
      */
