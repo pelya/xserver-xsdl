@@ -1548,12 +1548,24 @@ FreePictFormat (pointer	pPictFormat,
  * being careful to avoid these cases.
  */
 static CARD8
-ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
+ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst,
+		   INT16 xSrc, INT16 ySrc, CARD16 width, CARD16 height)
 {
     Bool no_src_alpha, no_dst_alpha;
 
+    /* Sampling off the edge of a RepeatNone picture introduces alpha
+     * even if the picture itself doesn't have alpha. We don't try to
+     * detect every case where we don't sample off the edge, just the
+     * simplest case where there is no transform on the source
+     * picture.
+     */
     no_src_alpha = PICT_FORMAT_COLOR(pSrc->format) &&
                    PICT_FORMAT_A(pSrc->format) == 0 &&
+                   (pSrc->repeatType != RepeatNone ||
+		    (!pSrc->transform &&
+		     xSrc >= 0 && ySrc >= 0 &&
+		     xSrc + width <= pSrc->pDrawable->width &&
+		     ySrc + height <= pSrc->pDrawable->height)) &&
                    pSrc->alphaMap == NULL &&
                    pMask == NULL;
     no_dst_alpha = PICT_FORMAT_COLOR(pDst->format) &&
@@ -1655,7 +1667,7 @@ CompositePicture (CARD8		op,
 	ValidatePicture (pMask);
     ValidatePicture (pDst);
 
-    op = ReduceCompositeOp (op, pSrc, pMask, pDst);
+    op = ReduceCompositeOp (op, pSrc, pMask, pDst, xSrc, ySrc, width, height);
     if (op == PictOpDst)
 	return;
 
