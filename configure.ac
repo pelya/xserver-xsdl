@@ -1830,13 +1830,6 @@ AC_TRY_COMPILE([
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
-dnl xorgconfig CLI configuration utility
-if test "x$XORG" = xyes; then
-    PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile x11])
-    AC_SUBST(XORGCONFIG_DEP_CFLAGS)
-    AC_SUBST(XORGCONFIG_DEP_LIBS)
-fi
-
 dnl xorgcfg GUI configuration utility
 AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
 	[Build xorgcfg GUI configuration utility (default: no)]),
@@ -1971,7 +1964,6 @@ hw/xfree86/utils/gtf/Makefile
 hw/xfree86/utils/ioport/Makefile
 hw/xfree86/utils/kbd_mode/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
-hw/xfree86/utils/xorgconfig/Makefile
 hw/dmx/config/Makefile
 hw/dmx/doc/Makefile
 hw/dmx/examples/Makefile
