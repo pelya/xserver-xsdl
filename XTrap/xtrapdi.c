@@ -487,7 +487,7 @@ int XETrapCreateEnv(ClientPtr client)
     XETrapEnv *penv = NULL;
     int status = Success;
 
-    if (client->index > MAXCLIENTS)
+    if (client->index >= MAXCLIENTS)
     {
         status = BadImplementation;
     }
