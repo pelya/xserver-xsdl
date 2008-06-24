@@ -3,5 +3,4 @@ SUBDIRS = \
 	cvt \
 	ioport \
 	kbd_mode \
-	xorgcfg \
-	xorgconfig
+	xorgcfg
