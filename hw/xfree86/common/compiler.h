@@ -498,7 +498,7 @@ extern unsigned int inb(unsigned long port);
 extern unsigned int inw(unsigned long port);
 extern unsigned int inl(unsigned long port);
  
-#   elif defined(linux) && (defined(__amd64__) || defined(__x86_64__))
+#   elif defined(linux) && defined(__amd64__)
  
 #    include <inttypes.h>
 

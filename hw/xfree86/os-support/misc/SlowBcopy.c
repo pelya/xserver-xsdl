@@ -30,7 +30,7 @@ xf86SetReallySlowBcopy(void)
 	really_slow_bcopy = 1;
 }
 
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__amd64__)
 static void xf86_really_slow_bcopy(unsigned char *src, unsigned char *dst, int len)
 {
     while(len--)
@@ -45,7 +45,7 @@ static void xf86_really_slow_bcopy(unsigned char *src, unsigned char *dst, int l
 _X_EXPORT void
 xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
 {
-#if defined(__i386__) || defined(__x86_64__)
+#if defined(__i386__) || defined(__amd64__)
     if (really_slow_bcopy) {
 	xf86_really_slow_bcopy(src, dst, len);
 	return;

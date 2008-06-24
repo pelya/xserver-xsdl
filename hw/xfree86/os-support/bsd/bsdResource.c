@@ -19,7 +19,7 @@
 
 #ifdef INCLUDE_XF86_NO_DOMAIN
 
-#if defined(__alpha__) || defined(__sparc64__) || defined(__amd64__) || defined(__x86_64__)
+#if defined(__alpha__) || defined(__sparc64__) || defined(__amd64__)
 
 resPtr
 xf86AccResFromOS(resPtr ret)

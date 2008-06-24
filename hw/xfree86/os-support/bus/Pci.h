@@ -202,7 +202,7 @@
 /*
  * Select architecture specific PCI init function
  */
-#if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64) || defined(__x86_64__)
+#if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64)
 # define ARCH_PCI_INIT ix86PciInit
 #elif defined(__powerpc__) || defined(__powerpc64__)
 # define ARCH_PCI_INIT ppcPciInit
