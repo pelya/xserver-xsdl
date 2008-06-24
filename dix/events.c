@@ -3389,7 +3389,7 @@ CheckPassiveGrabsOnWindow(
             else
                 gdev = device;
         }
-        if (gdev)
+        if (gdev && gdev->key)
             xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
