@@ -126,10 +126,12 @@ RegisterExtensionNames(ExtensionEntry *extEntry)
     rewind(fh);
 
     while (fgets(buf, sizeof(buf), fh)) {
+	lineobj = NULL;
 	ptr = strchr(buf, '\n');
 	if (ptr)
 	    *ptr = 0;
 
+	/* Check for comments or empty lines */
 	switch (buf[0]) {
 	case PROT_REQUEST:
 	case PROT_EVENT:
@@ -139,48 +141,54 @@ RegisterExtensionNames(ExtensionEntry *extEntry)
 	case '\0':
 	    continue;
 	default:
-	    continue;
+	    goto invalid;
 	}
 
+	/* Check for space character in the fifth position */
 	ptr = strchr(buf, ' ');
-	if (!ptr || ptr != buf + 4) {
-	    LogMessage(X_WARNING, "Invalid line in " FILENAME ", skipping\n");
-	    continue;
-	}
+	if (!ptr || ptr != buf + 4)
+	    goto invalid;
+
+	/* Duplicate the string after the space */
 	lineobj = strdup(ptr + 1);
 	if (!lineobj)
 	    continue;
 
+	/* Check for a colon somewhere on the line */
 	ptr = strchr(buf, ':');
-	if (!ptr) {
-	    LogMessage(X_WARNING, "Invalid line in " FILENAME ", skipping\n");
-	    continue;
-	}
+	if (!ptr)
+	    goto invalid;
+
+	/* Compare the part before colon with the target extension name */
 	*ptr = 0;
-
 	if (strcmp(buf + 5, extEntry->name))
-	    continue;
+	    goto skip;
 
+	/* Get the opcode for the request, event, or error */
 	offset = strtol(buf + 1, &ptr, 10);
-	if (offset == 0 && ptr == buf + 1) {
-	    LogMessage(X_WARNING, "Invalid line in " FILENAME ", skipping\n");
-	    continue;
-	}
+	if (offset == 0 && ptr == buf + 1)
+	    goto invalid;
 
+	/* Save the strdup result in the registry */
 	switch(buf[0]) {
 	case PROT_REQUEST:
 	    if (extEntry->base)
 		RegisterRequestName(extEntry->base, offset, lineobj);
 	    else
 		RegisterRequestName(offset, 0, lineobj);
-	    break;
+	    continue;
 	case PROT_EVENT:
 	    RegisterEventName(extEntry->eventBase + offset, lineobj);
-	    break;
+	    continue;
 	case PROT_ERROR:
 	    RegisterErrorName(extEntry->errorBase + offset, lineobj);
-	    break;
+	    continue;
 	}
+
+    invalid:
+	LogMessage(X_WARNING, "Invalid line in " FILENAME ", skipping\n");
+    skip:
+	free(lineobj);
     }
 }
 
