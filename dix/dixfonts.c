@@ -1920,8 +1920,6 @@ InitFonts (void)
         BuiltinRegisterFpeFunctions();
 #else
 	FontFileRegisterFpeFunctions();
-#endif
-#ifndef NOFONTSERVERACCESS
 	fs_register_fpe_functions();
 #endif
     }

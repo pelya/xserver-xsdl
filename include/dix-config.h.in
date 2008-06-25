@@ -480,9 +480,6 @@
 /* Use only built-in fonts */
 #undef BUILTIN_FONTS
 
-/* Avoid using font servers */
-#undef NOFONTSERVERACCESS
-
 /* Use an empty root cursor */
 #undef NULL_ROOT_CURSOR
 
