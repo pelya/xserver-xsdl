@@ -1090,14 +1090,6 @@ typedef void (*InputHandlerProc)(int fd, pointer data);
 #define CLK_REG_SAVE		-1
 #define CLK_REG_RESTORE		-2
 
-/* xf86Debug.c */
-#ifdef BUILDDEBUG
-typedef struct {
-    long sec;
-    long usec;
-} xf86TsRec, *xf86TsPtr;
-#endif
-
 /*
  * misc constants
  */

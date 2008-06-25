@@ -341,22 +341,6 @@ Bool xf86IsUnblank(int mode);
 _X_DEPRECATED void xf86AddModuleInfo(pointer info, pointer module);
 _X_DEPRECATED void xf86DeleteModuleInfo(int idx);
 
-/* xf86Debug.c */
-#ifdef BUILDDEBUG
-CARD8  xf86PeekFb8(CARD8  *p);
-CARD16 xf86PeekFb16(CARD16 *p);
-CARD32 xf86PeekFb32(CARD32 *p);
-void xf86PokeFb8(CARD8  *p, CARD8  v);
-void xf86PokeFb16(CARD16 *p, CARD16 v);
-void xf86PokeFb32(CARD16 *p, CARD32 v);
-CARD8  xf86PeekMmio8(pointer Base, unsigned long Offset);
-CARD16 xf86PeekMmio16(pointer Base, unsigned long Offset);
-CARD32 xf86PeekMmio32(pointer Base, unsigned long Offset);
-void xf86PokeMmio8(pointer Base, unsigned long Offset, CARD8  v);
-void xf86PokeMmio16(pointer Base, unsigned long Offset, CARD16 v);
-void xf86PokeMmio32(pointer Base, unsigned long Offset, CARD32 v);
-#endif
-
 /* xf86Init.c */
 
 PixmapFormatPtr xf86GetPixFormat(ScrnInfoPtr pScrn, int depth);
