@@ -6,10 +6,6 @@ if GLX
 GLXMODS = libglx.la
 endif
 
-if XTRAP
-XTRAPMOD = libxtrap.la
-endif
-
 if DBE
 DBEMOD = libdbe.la
 endif
@@ -25,8 +21,7 @@ module_LTLIBRARIES = libfb.la \
 extsmoduledir = $(moduledir)/extensions
 extsmodule_LTLIBRARIES = $(RECORDMOD) \
 			 $(DBEMOD) \
-                         $(GLXMODS) \
-                         $(XTRAPMOD)
+                         $(GLXMODS)
 
 fontsmoduledir = $(moduledir)/fonts
 fontsmodule_LTLIBRARIES = libfreetype.la
@@ -77,7 +72,3 @@ libdixmods_la_CFLAGS = -DXFree86LOADER $(AM_CFLAGS)
 
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
 libxorgxkb_la_LIBADD = $(top_builddir)/dix/libdix.la
-
-libxtrap_la_LDFLAGS = -avoid-version
-libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la
-libxtrap_la_SOURCES = xf86XTrapModule.c

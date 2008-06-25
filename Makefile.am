@@ -5,10 +5,6 @@ if COMPOSITE
 COMPOSITE_DIR=composite
 endif
 
-if XTRAP
-XTRAP_DIR=XTrap
-endif
-
 if GLX
 GLX_DIR=glx
 endif
@@ -38,7 +34,6 @@ SUBDIRS = \
 	$(RECORD_DIR) \
 	xfixes \
 	damageext \
-	$(XTRAP_DIR) \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
@@ -80,7 +75,6 @@ DIST_SUBDIRS = \
 	record \
 	xfixes \
 	damageext \
-	XTrap \
 	composite \
 	glx \
 	exa \

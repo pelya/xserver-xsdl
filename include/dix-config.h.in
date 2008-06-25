@@ -410,9 +410,6 @@
 /* Support XTest extension */
 #undef XTEST
 
-/* Support XTrap extension */
-#undef XTRAP
-
 /* Support Xv extension */
 #undef XV
 

@@ -163,9 +163,6 @@
 /* Support XTest extension */
 #undef XTEST
 
-/* Support XTrap extension */
-#undef XTRAP
-
 /* Support Xv Extension */
 #undef XV
 

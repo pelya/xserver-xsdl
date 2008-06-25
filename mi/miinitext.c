@@ -240,9 +240,6 @@ extern void BigReqExtensionInit(INITARGS);
 #ifdef XIDLE
 extern void XIdleExtensionInit(INITARGS);
 #endif
-#ifdef XTRAP
-extern void DEC_XTRAPInit(INITARGS);
-#endif
 #ifdef SCREENSAVER
 extern void ScreenSaverExtensionInit (INITARGS);
 #endif
@@ -484,9 +481,6 @@ InitExtensions(int argc, char *argv[])
 #endif
 #ifdef XIDLE
     if (!noXIdleExtension) XIdleExtensionInit();
-#endif
-#ifdef XTRAP
-    if (!noTestExtensions) DEC_XTRAPInit();
 #endif
 #if defined(SCREENSAVER)
     if (!noScreenSaverExtension) ScreenSaverExtensionInit ();
