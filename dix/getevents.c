@@ -787,7 +787,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
  *
  * @param num_events Number of elements in list.
  */
-_X_EXPORT EventListPtr
+EventListPtr
 InitEventList(int num_events)
 {
     EventListPtr events;
