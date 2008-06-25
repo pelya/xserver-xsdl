@@ -14,7 +14,6 @@ XVSOURCES = xf86xv.c xf86xvmc.c
 XVSDKINCS = xf86xv.h xf86xvmc.h
 endif
 
-XKBSOURCES = xf86XKB.c
 XISOURCES = xf86Xinput.c xisb.c
 XISDKINCS = xf86Xinput.h xisb.h
 RANDRSOURCES = xf86RandR.c
@@ -38,8 +37,8 @@ libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86RAC.c \
                       xf86Mode.c xf86Build.h xorgHelper.c xf86Versions.c \
-                      $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
-                      $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES)
+                      $(XVSOURCES) $(BUSSOURCES) $(DEBUGSOURCES) \
+		      $(XISOURCES) $(RANDRSOURCES)
 nodist_libcommon_la_SOURCES = xf86DefModeSet.c
 libinit_a_SOURCES = xf86Build.h xf86Init.c
 

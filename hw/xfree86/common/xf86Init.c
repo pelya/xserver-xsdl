@@ -1047,9 +1047,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	}
     }
 
-#ifdef XKB
-    xf86InitXkb();
-#endif
     /* set up the proper access funcs */
     xf86PostPreInit();
 
