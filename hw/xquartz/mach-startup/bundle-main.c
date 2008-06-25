@@ -51,6 +51,8 @@
 /* From darwinEvents.c ... but don't want to pull in all the server cruft */
 void DarwinListenOnOpenFD(int fd);
 
+extern int noPanoramiXExtension;
+
 #define DEFAULT_CLIENT "/usr/X11/bin/xterm"
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
 #define DEFAULT_SHELL  "/bin/sh"
@@ -359,6 +361,9 @@ int main(int argc, char **argv, char **envp) {
     mach_msg_size_t mxmsgsz = sizeof(union MaxMsgSize) + MAX_TRAILER_SIZE;
     mach_port_t mp;
     kern_return_t kr;
+
+    // The server must not run the PanoramiX operations.
+    noPanoramiXExtension = TRUE;
     
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
     for(i=1; i < argc; i++) {

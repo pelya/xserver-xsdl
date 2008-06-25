@@ -44,10 +44,6 @@
 
 #include "darwin.h"
 
-extern void FatalError(const char *, ...);
-extern char *display;
-extern int noPanoramiXExtension;
-
 /*
  * QuartzWriteCocoaPasteboard
  *  Write text to the Mac OS X pasteboard.

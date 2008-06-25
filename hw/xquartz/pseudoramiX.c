@@ -46,7 +46,6 @@ Equipment Corporation.
 #include "globals.h"
 
 Bool noPseudoramiXExtension = FALSE;
-extern int noPanoramiXExtension;
 
 extern int ProcPanoramiXQueryVersion (ClientPtr client);
 
@@ -130,9 +129,6 @@ void PseudoramiXExtensionInit(int argc, char *argv[])
         return;
     }
 #endif
-
-    // The server must not run the PanoramiX operations.
-    noPanoramiXExtension = TRUE;
 
     if (pseudoramiXGeneration != serverGeneration) {
         extEntry = AddExtension(PANORAMIX_PROTOCOL_NAME, 0, 0,
