@@ -351,7 +351,7 @@ unsigned	missing;
 	(names->compat==NULL)&&(names->symbols==NULL)&&
 	(names->geometry==NULL)) {
         LogMessage(X_ERROR, "XKB: No components provided for device %s\n",
-                   keybd->name);
+                   keybd->name ? keybd->name : "(unnamed keyboard)");
         return 0;
     }
     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
