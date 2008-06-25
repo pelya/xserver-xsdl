@@ -437,6 +437,7 @@ int main(int argc, char *argv[], char *envp[])
 
         memset(WindowTable, 0, MAXSCREENS * sizeof(WindowPtr));
 	CloseDownDevices();
+	CloseDownEvents();
 
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{

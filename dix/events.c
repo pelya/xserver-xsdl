@@ -5520,14 +5520,15 @@ InitEvents(void)
         FatalError("[dix] Failed to allocate input event list.\n");
 }
 
-/**
- * This function is deprecated! It shouldn't be used anymore. It used to free
- * the spriteTraces, but now they are freed when the SpriteRec is freed.
- */
-_X_DEPRECATED void
+void
 CloseDownEvents(void)
 {
+    int len;
+    EventListPtr list;
 
+    len = GetEventList(&list);
+    while(len--)
+        xfree(list[len].event);
 }
 
 /**
