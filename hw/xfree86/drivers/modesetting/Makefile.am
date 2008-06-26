@@ -26,7 +26,8 @@ SUBDIRS =
 # TODO: -nostdlib/-Bstatic/-lgcc platform magic, not installing the .a, etc.
 
 AM_CFLAGS = @WARN_CFLAGS@ @XORG_CFLAGS@ @DRI_CFLAGS@ @PCIACCESS_CFLAGS@ \
-	@XMODES_CFLAGS@
+	-I@GALLIUM_DIR@/src/gallium/include \
+	-I@GALLIUM_DIR@/src/gallium/auxiliary
 
 modesetting_drv_la_LTLIBRARIES = modesetting_drv.la
 modesetting_drv_la_LDFLAGS = -module -avoid-version -ldrm
