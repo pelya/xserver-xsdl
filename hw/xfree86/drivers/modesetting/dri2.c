@@ -76,7 +76,8 @@ driEndClipNotify(ScreenPtr pScreen)
     driUnlock(pScreen);
 }
 
-struct __DRILock {
+struct __DRILock
+{
     unsigned int block_header;
     drm_hw_lock_t lock;
     unsigned int next_id;
@@ -99,13 +100,13 @@ driScreenInit(ScreenPtr pScreen)
     dri2info.version = 1;
     dri2info.fd = ms->fd;
     dri2info.driverSareaSize = sizeof(struct __DRILock);
-    dri2info.driverName = "i915"; /* FIXME */
+    dri2info.driverName = "i915";      /* FIXME */
     dri2info.getPixmapHandle = driGetPixmapHandle;
     dri2info.beginClipNotify = driBeginClipNotify;
-    dri2info.endClipNotify   = driEndClipNotify;
+    dri2info.endClipNotify = driEndClipNotify;
 
     p = DRI2ScreenInit(pScreen, &dri2info);
-    if (!p) 
+    if (!p)
 	return;
 
     DRILock = p;
