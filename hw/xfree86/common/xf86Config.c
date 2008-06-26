@@ -2041,6 +2041,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     XF86ConfModesLinkPtr modeslnk = conf_monitor->mon_modes_sect_lst;
     Gamma zeros = {0.0, 0.0, 0.0};
     float badgamma = 0.0;
+    double maxPixClock;
     
     xf86Msg(X_CONFIG, "|   |-->Monitor \"%s\"\n",
 	    conf_monitor->mon_identifier);
@@ -2175,8 +2176,11 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     xf86ProcessOptions(-1, monitorp->options, MonitorOptions);
     xf86GetOptValBool(MonitorOptions, MON_REDUCEDBLANKING,
                       &monitorp->reducedblanking);
-    xf86GetOptValFreq(MonitorOptions, MON_MAX_PIX_CLOCK, OPTUNITS_KHZ,
-		      &monitorp->maxPixClock);
+    if (xf86GetOptValFreq(MonitorOptions, MON_MAX_PIX_CLOCK, OPTUNITS_KHZ,
+			  &maxPixClock) == TRUE) {
+	monitorp->maxPixClock = (int) maxPixClock;
+    }
+	
     return TRUE;
 }
 
