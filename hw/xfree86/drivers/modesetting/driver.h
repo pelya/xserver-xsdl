@@ -32,7 +32,6 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <xf86mm.h>
-#include "shadow.h"
 #include "exa.h"
 
 #define DRV_ERROR(msg)	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, msg);
@@ -49,13 +48,8 @@ typedef struct _modesettingRec
 {
     int fd;
     unsigned int fb_id;
-    void *virtual;
-    drmBO bo;
-    Bool front;
 
     EntPtr entityPrivate;
-
-    void (*PointerMoved) (int, int, int);
 
     int Chipset;
     EntityInfoPtr pEnt;
@@ -75,15 +69,12 @@ typedef struct _modesettingRec
 
     unsigned int SaveGeneration;
 
-    /* shadowfb */
-    CARD8 *shadowMem;
-    Bool shadowFB;
     CreateScreenResourcesProcPtr createScreenResources;
-    ShadowUpdateProc update;
 
     /* exa */
-    ExaDriverPtr pExa;
-    drmBO exa_bo;
+    void *exa;
+    void *driver;
+    Bool noEvict;
 
     /* dri2 */
     drm_context_t context;

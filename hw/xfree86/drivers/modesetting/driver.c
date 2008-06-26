@@ -40,7 +40,6 @@
 #include "xf86Resources.h"
 #include "mipointer.h"
 #include "micmap.h"
-#include "shadowfb.h"
 #include <X11/extensions/randr.h>
 #include "fb.h"
 #include "edid.h"
@@ -50,7 +49,6 @@
 #include "dixstruct.h"
 #include "xf86xv.h"
 #include <X11/extensions/Xv.h>
-#include "shadow.h"
 #include <xorg-server.h>
 #if XSERVER_LIBPCIACCESS
 #include <pciaccess.h>
@@ -120,15 +118,11 @@ static PciChipsets PciDevices[] = {
 
 typedef enum
 {
-    OPTION_NOACCEL,
     OPTION_SW_CURSOR,
-    OPTION_SHADOWFB,
 } modesettingOpts;
 
 static const OptionInfoRec Options[] = {
-    {OPTION_NOACCEL, "NoAccel", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
-    {OPTION_SHADOWFB, "ShadowFB", OPTV_BOOLEAN, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -151,12 +145,6 @@ static const char *fbSymbols[] = {
 static const char *ddcSymbols[] = {
     "xf86PrintEDID",
     "xf86SetDDCproperties",
-    NULL
-};
-
-static const char *shadowSymbols[] = {
-    "shadowInit",
-    "shadowUpdatePackedWeak",
     NULL
 };
 
@@ -200,7 +188,7 @@ Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 	 * Tell the loader about symbols from other modules that this module
 	 * might refer to.
 	 */
-	LoaderRefSymLists(exaSymbols, fbSymbols, shadowSymbols, ddcSymbols, NULL);
+	LoaderRefSymLists(exaSymbols, fbSymbols, ddcSymbols, NULL);
 
 	/*
 	 * The return value must be non-NULL on success even though there
@@ -323,7 +311,6 @@ Probe(DriverPtr drv, int flags)
 	if (numUsed > 0)
 	    foundScreen = TRUE;
     } else {
-	ErrorF("NUMUSED %d\n", numUsed);
 	for (i = 0; i < numUsed; i++) {
 	    ScrnInfoPtr pScrn = NULL;
 
@@ -420,54 +407,21 @@ ProbeDDC(ScrnInfoPtr pScrn, int index)
 }
 
 static Bool
-MapMem(ScrnInfoPtr pScrn)
-{
-    modesettingPtr ms = modesettingPTR(pScrn);
-
-    drmBOMap(ms->fd,
-	     &ms->bo, DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE, 0, &ms->virtual);
-
-    ms->virtual = ms->bo.virtual;
-
-    return TRUE;
-}
-
-static Bool
-UnmapMem(ScrnInfoPtr pScrn)
-{
-    modesettingPtr ms = modesettingPTR(pScrn);
-
-    drmBOUnmap(ms->fd, &ms->bo);
-
-    return TRUE;
-}
-
-static void
-LoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
-	    LOCO * colors, VisualPtr pVisual)
-{
-    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
-}
-
-static Bool
 CreateFrontBuffer(ScrnInfoPtr pScrn)
 {
     modesettingPtr ms = modesettingPTR(pScrn);
     ScreenPtr pScreen = pScrn->pScreen;
     PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
     Bool fbAccessDisabled;
-    CARD8 *fbstart;
+    int flags;
 
-    drmBOCreate(ms->fd,
-		pScrn->virtualY * pScrn->displayWidth *
-		pScrn->bitsPerPixel / 8, 0, NULL,
-		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_SHAREABLE
-		| DRM_BO_FLAG_CACHED_MAPPED
-		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
-		/*DRM_BO_FLAG_MEM_VRAM |*/ DRM_BO_FLAG_MEM_TT,
-		0, &ms->bo);
-
-    MapMem(pScrn);
+    ms->noEvict = TRUE;
+    pScreen->ModifyPixmapHeader(rootPixmap,
+				pScrn->virtualX, pScrn->virtualY,
+				pScrn->depth, pScrn->bitsPerPixel,
+				pScrn->displayWidth * pScrn->bitsPerPixel / 8,
+				NULL);
+    ms->noEvict = FALSE;
 
     drmModeAddFB(ms->fd,
 		 pScrn->virtualX,
@@ -475,49 +429,11 @@ CreateFrontBuffer(ScrnInfoPtr pScrn)
 		 pScrn->depth,
 		 pScrn->bitsPerPixel,
 		 pScrn->displayWidth * pScrn->bitsPerPixel / 8,
-		 ms->bo.handle, &ms->fb_id);
-
-    if (ms->shadowFB) {
-	if ((ms->shadowMem =
-	     shadowAlloc(pScrn->displayWidth, pScrn->virtualY,
-			 pScrn->bitsPerPixel)) == NULL) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-		       "Allocation of shadow memory failed\n");
-	    return FALSE;
-	}
-	fbstart = ms->shadowMem;
-    } else {
-	fbstart = ms->bo.virtual;
-    }
-
-    /*
-     * If we are in a fb disabled state, the virtual address of the root
-     * pixmap should always be NULL, and it will be overwritten later
-     * if we try to set it to something.
-     *
-     * Therefore, set it to NULL, and modify the backup copy instead.
-     */
-
-    fbAccessDisabled = (rootPixmap->devPrivate.ptr == NULL);
-
-    pScreen->ModifyPixmapHeader(rootPixmap,
-				pScrn->virtualX, pScrn->virtualY,
-				pScrn->depth, pScrn->bitsPerPixel,
-				pScrn->displayWidth * pScrn->bitsPerPixel / 8,
-				fbstart);
-
-    if (fbAccessDisabled) {
-	pScrn->pixmapPrivate.ptr = fbstart;
-	rootPixmap->devPrivate.ptr = NULL;
-    }
+		 driGetPixmapHandle(rootPixmap, &flags), &ms->fb_id);
 
     pScrn->frameX0 = 0;
     pScrn->frameY0 = 0;
     AdjustFrame(pScrn->scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
-
-    UnmapMem(pScrn);
-
-    ms->front = TRUE;
 
     return TRUE;
 }
@@ -538,21 +454,11 @@ crtc_resize(ScrnInfoPtr pScrn, int width, int height)
 
     pScrn->virtualX = width;
     pScrn->virtualY = height;
-    pScrn->displayWidth = (pScrn->virtualX + 63) & ~63;
 
-    if (ms->shadowMem) {
-	xfree(ms->shadowMem);
-	ms->shadowMem = NULL;
-    }
+    /* HW dependent - FIXME */
+    pScrn->displayWidth = pScrn->virtualX;
 
     drmModeRmFB(ms->fd, ms->fb_id);
-
-    /* move old buffer out of the way */
-    drmBOSetStatus(ms->fd, &ms->bo, 0, 0, 0, 0, 0);
-
-    /* unreference it */
-    drmBOUnreference(ms->fd, &ms->bo);
-    ms->front = FALSE;
 
     /* now create new frontbuffer */
     return CreateFrontBuffer(pScrn);
@@ -571,7 +477,6 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     rgb defaultWeight = { 0, 0, 0 };
     EntityInfoPtr pEnt;
     EntPtr msEnt = NULL;
-    int flags24;
     char *BusID;
     int i;
     char *s;
@@ -645,13 +550,12 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     pScrn->progClock = TRUE;
     pScrn->rgbBits = 8;
 
-    flags24 = Support32bppFb | PreferConvert24to32 | SupportConvert24to32;
-
-    if (!xf86SetDepthBpp(pScrn, 0, 0, 0, flags24))
+    if (!xf86SetDepthBpp
+	(pScrn, 0, 0, 0,
+	 PreferConvert24to32 | SupportConvert24to32 | Support32bppFb))
 	return FALSE;
 
     switch (pScrn->depth) {
-    case 8:
     case 15:
     case 16:
     case 24:
@@ -684,21 +588,8 @@ PreInit(ScrnInfoPtr pScrn, int flags)
     max_height = 8192;
     xf86CrtcSetSizeRange(pScrn, 320, 200, max_width, max_height);
 
-    if (xf86ReturnOptValBool(ms->Options, OPTION_NOACCEL, FALSE)) {
-	ms->noAccel = TRUE;
-    }
-
     if (xf86ReturnOptValBool(ms->Options, OPTION_SW_CURSOR, FALSE)) {
 	ms->SWCursor = TRUE;
-    }
-
-    if (xf86ReturnOptValBool(ms->Options, OPTION_SHADOWFB, FALSE)) {
-	if (!xf86LoadSubModule(pScrn, "shadow"))
-	    return FALSE;
-
-	xf86LoaderReqSymLists(shadowSymbols, NULL);
-
-	ms->shadowFB = TRUE;
     }
 
     SaveHWState(pScrn);
@@ -767,42 +658,37 @@ RestoreHWState(ScrnInfoPtr pScrn)
     return TRUE;
 }
 
-static void *
-WindowLinear(ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode,
-	     CARD32 * size, void *closure)
-{
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
-    modesettingPtr ms = modesettingPTR(pScrn);
-
-    if (!pScrn->vtSema)
-	return NULL;
-
-    *size = pScrn->displayWidth * pScrn->bitsPerPixel / 8;
-
-    return ((CARD8 *) ms->bo.virtual + row * (*size) + offset);
-}
-
 static Bool
 CreateScreenResources(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     modesettingPtr ms = modesettingPTR(pScrn);
-    PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
+    PixmapPtr rootPixmap;
     Bool ret;
+    int flags;
+
+    ms->noEvict = TRUE;
 
     pScreen->CreateScreenResources = ms->createScreenResources;
     ret = pScreen->CreateScreenResources(pScreen);
     pScreen->CreateScreenResources = CreateScreenResources;
 
-    if (ms->shadowFB)
-    	shadowAdd(pScreen, rootPixmap,
-	      ms->update, WindowLinear, 0, 0);
+    rootPixmap = pScreen->GetScreenPixmap(pScreen);
 
-    if (!pScreen->ModifyPixmapHeader(pScreen->GetScreenPixmap(pScreen),
-                                     -1, -1, -1, -1, -1,
-                                     ms->shadowFB ? (pointer)ms->shadowMem : (pointer)ms->bo.virtual))
+    if (!pScreen->ModifyPixmapHeader(rootPixmap, -1, -1, -1, -1, -1, NULL))
 	FatalError("Couldn't adjust screen pixmap\n");
 
+    ms->noEvict = FALSE;
+
+    drmModeAddFB(ms->fd,
+		 pScrn->virtualX,
+		 pScrn->virtualY,
+		 pScrn->depth,
+		 pScrn->bitsPerPixel,
+		 pScrn->displayWidth * pScrn->bitsPerPixel / 8,
+		 driGetPixmapHandle(rootPixmap, &flags), &ms->fb_id);
+
+    AdjustFrame(pScrn->scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
 
     return ret;
 }
@@ -816,33 +702,33 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     unsigned long sys_mem;
     int c;
     MessageType from;
-    CARD8 *fbstart;
 
     /* deal with server regeneration */
     if (ms->fd < 0) {
-    	char *BusID;
+	char *BusID;
 
-    	BusID = xalloc(64);
-    	sprintf(BusID, "PCI:%d:%d:%d",
+	BusID = xalloc(64);
+	sprintf(BusID, "PCI:%d:%d:%d",
 #if XSERVER_LIBPCIACCESS
-	    ((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
-	    ms->PciInfo->dev, ms->PciInfo->func
+		((ms->PciInfo->domain << 8) | ms->PciInfo->bus),
+		ms->PciInfo->dev, ms->PciInfo->func
 #else
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
-	    ((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
+		((pciConfigPtr) ms->PciInfo->thisCard)->busnum,
+		((pciConfigPtr) ms->PciInfo->thisCard)->devnum,
+		((pciConfigPtr) ms->PciInfo->thisCard)->funcnum
 #endif
-	);
+	    );
 
-    	ms->fd = drmOpen(NULL, BusID);
+	ms->fd = drmOpen(NULL, BusID);
 
-    	if (ms->fd < 0)
+	if (ms->fd < 0)
 	    return FALSE;
     }
 
     pScrn->pScreen = pScreen;
 
-    pScrn->displayWidth = (pScrn->virtualX + 63) & ~63;
+    /* HW dependent - FIXME */
+    pScrn->displayWidth = pScrn->virtualX;
 
     miClearVisualTypes();
 
@@ -857,39 +743,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     pScrn->memPhysBase = 0;
     pScrn->fbOffset = 0;
 
-    drmBOCreate(ms->fd,
-		pScrn->virtualY * pScrn->displayWidth *
-		pScrn->bitsPerPixel / 8, 0, NULL,
-		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE | DRM_BO_FLAG_SHAREABLE
-		| DRM_BO_FLAG_CACHED_MAPPED
-		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
-		/*DRM_BO_FLAG_MEM_VRAM |*/ DRM_BO_FLAG_MEM_TT,
-		0, &ms->bo);
-
-    MapMem(pScrn);
-
-    drmModeAddFB(ms->fd,
-		 pScrn->virtualX,
-		 pScrn->virtualY,
-		 pScrn->depth,
-		 pScrn->bitsPerPixel,
-		 pScrn->displayWidth * pScrn->bitsPerPixel / 8,
-		 ms->bo.handle, &ms->fb_id);
-
-    if (ms->shadowFB) {
-	if ((ms->shadowMem =
-	     shadowAlloc(pScrn->displayWidth, pScrn->virtualY,
-			 pScrn->bitsPerPixel)) == NULL) {
-	    xf86DrvMsg(scrnIndex, X_ERROR,
-		       "Allocation of shadow memory failed\n");
-	    return FALSE;
-	}
-	fbstart = ms->shadowMem;
-    } else {
-	fbstart = ms->bo.virtual;
-    }
-
-    if (!fbScreenInit(pScreen, fbstart,
+    if (!fbScreenInit(pScreen, NULL,
 		      pScrn->virtualX, pScrn->virtualY,
 		      pScrn->xDpi, pScrn->yDpi,
 		      pScrn->displayWidth, pScrn->bitsPerPixel))
@@ -911,26 +765,13 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     }
 
     fbPictureInit(pScreen, NULL, 0);
-    if (ms->shadowFB) {
-	ms->update = shadowUpdatePackedWeak();
-	if (!shadowSetup(pScreen)) {
-	    xf86DrvMsg(scrnIndex, X_ERROR,
-		       "Shadow framebuffer initialization failed.\n");
-	    return FALSE;
-	}
-    }
 
     ms->createScreenResources = pScreen->CreateScreenResources;
     pScreen->CreateScreenResources = CreateScreenResources;
 
     xf86SetBlackWhitePixels(pScreen);
 
-#if 0
-    glucoseScreenInit(pScreen, 0);
-#endif
-#if 1
-    ms->pExa = ExaInit(pScrn);
-#endif
+    ms->exa = ExaInit(pScrn);
 
     miInitializeBackingStore(pScreen);
     xf86SetBackingStore(pScreen);
@@ -939,9 +780,9 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
 
     /* Need to extend HWcursor support to handle mask interleave */
     if (!ms->SWCursor)
-	xf86_cursors_init (pScreen, 64, 64,
-			       HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
-			       HARDWARE_CURSOR_ARGB);
+	xf86_cursors_init(pScreen, 64, 64,
+			  HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64 |
+			  HARDWARE_CURSOR_ARGB);
 
     /* Must force it before EnterVT, so we are in control of VT and
      * later memory should be bound when allocating, e.g rotate_mem */
@@ -957,19 +798,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     if (!miCreateDefColormap(pScreen))
 	return FALSE;
 
-#if 0
-    if (!xf86HandleColormaps(pScreen, 256, 8, LoadPalette, NULL,
-			     CMAP_RELOAD_ON_MODE_SWITCH |
-			     CMAP_PALETTED_TRUECOLOR)) {
-	return FALSE;
-    }
-#endif
-
     xf86DPMSInit(pScreen, xf86DPMSSet, 0);
-
-#if 0
-    glucoseInitVideo(pScreen);
-#endif
 
     if (serverGeneration == 1)
 	xf86ShowUnusedOptions(pScrn->scrnIndex, pScrn->options);
@@ -978,11 +807,7 @@ ScreenInit(int scrnIndex, ScreenPtr pScreen, int argc, char **argv)
     driScreenInit(pScreen);
 #endif
 
-    UnmapMem(pScrn);
-
-    ms->front = TRUE;
-
-    return EnterVT(scrnIndex, 0);
+    return EnterVT(scrnIndex, 1);
 }
 
 static void
@@ -1018,7 +843,7 @@ LeaveVT(int scrnIndex, int flags)
     for (o = 0; o < config->num_crtc; o++) {
 	xf86CrtcPtr crtc = config->crtc[o];
 
-    	cursor_destroy(crtc);
+	cursor_destroy(crtc);
 
 	if (crtc->rotatedPixmap || crtc->rotatedData) {
 	    crtc->funcs->shadow_destroy(crtc, crtc->rotatedPixmap,
@@ -1029,12 +854,6 @@ LeaveVT(int scrnIndex, int flags)
     }
 
     drmModeRmFB(ms->fd, ms->fb_id);
-
-    /* move old buffer out of the way */
-    drmBOSetStatus(ms->fd, &ms->bo, 0, 0, 0, 0, 0);
-
-    drmBOUnreference(ms->fd, &ms->bo);
-    ms->front = FALSE;
 
     RestoreHWState(pScrn);
 
@@ -1078,13 +897,11 @@ EnterVT(int scrnIndex, int flags)
 	SaveHWState(pScrn);
     }
 
-    if (!ms->front)
+    if (!flags)			       /* signals startup as we'll do this in CreateScreenResources */
 	CreateFrontBuffer(pScrn);
 
     if (!xf86SetDesiredModes(pScrn))
 	return FALSE;
-
-    AdjustFrame(pScrn->scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
 
     return TRUE;
 }
@@ -1104,25 +921,19 @@ CloseScreen(int scrnIndex, ScreenPtr pScreen)
     modesettingPtr ms = modesettingPTR(pScrn);
 
     if (pScrn->vtSema) {
-    	LeaveVT(scrnIndex, 0);
+	LeaveVT(scrnIndex, 0);
 #if 0
-    	drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
-    	drmMMUnlock(ms->fd, DRM_BO_MEM_TT, 1);
+	drmMMUnlock(ms->fd, DRM_BO_MEM_VRAM, 1);
+	drmMMUnlock(ms->fd, DRM_BO_MEM_TT, 1);
 #endif
     }
-
 #ifdef DRI2
     driCloseScreen(pScreen);
 #endif
 
     pScreen->CreateScreenResources = ms->createScreenResources;
 
-    if (ms->shadowMem) {
-	xfree(ms->shadowMem);
-	ms->shadowMem = NULL;
-    }
-
-    if (ms->pExa)
+    if (ms->exa)
 	ExaClose(pScrn);
 
     drmClose(ms->fd);
