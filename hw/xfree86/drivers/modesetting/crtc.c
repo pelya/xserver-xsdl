@@ -47,7 +47,8 @@
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
 
-struct crtc_private {
+struct crtc_private
+{
     drmModeCrtcPtr drm_crtc;
 
     /* hwcursor */
@@ -122,6 +123,8 @@ crtc_mode_set(xf86CrtcPtr crtc, DisplayModePtr mode,
     drm_mode.hskew = mode->HSkew;
     drm_mode.vscan = mode->VScan;
     drm_mode.vrefresh = mode->VRefresh;
+    if (!mode->name)
+	xf86SetModeDefaultName(mode);
     strncpy(drm_mode.name, mode->name, DRM_DISPLAY_MODE_LEN);
 
     drmModeSetCrtc(ms->fd, drm_crtc->crtc_id, ms->fb_id, x, y,
@@ -176,29 +179,30 @@ crtc_destroy(xf86CrtcPtr crtc)
 }
 
 static void
-crtc_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
+crtc_load_cursor_argb(xf86CrtcPtr crtc, CARD32 * image)
 {
     unsigned char *ptr;
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     struct crtc_private *crtcp = crtc->driver_private;
 
     if (!crtcp->cursor_bo.handle)
-        drmBOCreate(ms->fd, 64 * 64 * 4, 0, NULL,
-		DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE 
-		| DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
-		DRM_BO_FLAG_MEM_VRAM,
-		DRM_BO_HINT_DONT_FENCE, &crtcp->cursor_bo);
+	drmBOCreate(ms->fd, 64 * 64 * 4, 0, NULL,
+		    DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE
+		    | DRM_BO_FLAG_NO_EVICT | DRM_BO_FLAG_MAPPABLE |
+		    DRM_BO_FLAG_MEM_VRAM,
+		    DRM_BO_HINT_DONT_FENCE, &crtcp->cursor_bo);
 
-    drmBOMap(ms->fd, &crtcp->cursor_bo, DRM_BO_FLAG_WRITE, DRM_BO_HINT_DONT_FENCE, (void **)&ptr);
+    drmBOMap(ms->fd, &crtcp->cursor_bo, DRM_BO_FLAG_WRITE,
+	     DRM_BO_HINT_DONT_FENCE, (void **)&ptr);
 
     if (ptr)
-	memcpy (ptr, image, 64 * 64 * 4);
+	memcpy(ptr, image, 64 * 64 * 4);
 
     drmBOUnmap(ms->fd, &crtcp->cursor_bo);
 }
 
 static void
-crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
+crtc_set_cursor_position(xf86CrtcPtr crtc, int x, int y)
 {
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     struct crtc_private *crtcp = crtc->driver_private;
@@ -207,17 +211,18 @@ crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 }
 
 static void
-crtc_show_cursor (xf86CrtcPtr crtc)
+crtc_show_cursor(xf86CrtcPtr crtc)
 {
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     struct crtc_private *crtcp = crtc->driver_private;
 
     if (crtcp->cursor_bo.handle)
-	drmModeSetCursor(ms->fd, crtcp->drm_crtc->crtc_id, crtcp->cursor_bo.handle, 64, 64);
+	drmModeSetCursor(ms->fd, crtcp->drm_crtc->crtc_id,
+			 crtcp->cursor_bo.handle, 64, 64);
 }
 
 static void
-crtc_hide_cursor (xf86CrtcPtr crtc)
+crtc_hide_cursor(xf86CrtcPtr crtc)
 {
     modesettingPtr ms = modesettingPTR(crtc->scrn);
     struct crtc_private *crtcp = crtc->driver_private;
@@ -242,8 +247,8 @@ static const xf86CrtcFuncsRec crtc_funcs = {
     .set_cursor_position = crtc_set_cursor_position,
     .show_cursor = crtc_show_cursor,
     .hide_cursor = crtc_hide_cursor,
-    .load_cursor_image = NULL,	/* lets convert to argb only */
-    .set_cursor_colors = NULL, /* using argb only */
+    .load_cursor_image = NULL,	       /* lets convert to argb only */
+    .set_cursor_colors = NULL,	       /* using argb only */
     .load_cursor_argb = crtc_load_cursor_argb,
     .destroy = crtc_destroy,
 };
@@ -255,8 +260,8 @@ cursor_destroy(xf86CrtcPtr crtc)
     struct crtc_private *crtcp = crtc->driver_private;
 
     if (crtcp->cursor_bo.handle) {
-    	drmBOSetStatus(ms->fd, &crtcp->cursor_bo, 0, 0, 0, 0, 0);
-    	drmBOUnreference(ms->fd, &crtcp->cursor_bo);
+	drmBOSetStatus(ms->fd, &crtcp->cursor_bo, 0, 0, 0, 0, 0);
+	drmBOUnreference(ms->fd, &crtcp->cursor_bo);
     }
 }
 
@@ -291,10 +296,10 @@ crtc_init(ScrnInfoPtr pScrn)
 	    goto out;
 	}
 
- 	crtcp->drm_crtc = drm_crtc;
+	crtcp->drm_crtc = drm_crtc;
 
 	crtc->driver_private = crtcp;
-    
+
     }
 
   out:
