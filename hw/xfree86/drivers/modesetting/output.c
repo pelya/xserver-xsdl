@@ -67,7 +67,6 @@ static char *connector_enum_list[] = {
     "HDMI Type B",
 };
 
-
 static void
 dpms(xf86OutputPtr output, int mode)
 {
@@ -162,7 +161,6 @@ get_modes(xf86OutputPtr output)
 	    mode->VRefresh = xf86ModeVRefresh(mode);
 	    mode->Private = (void *)drm_mode;
 	    xf86SetModeDefaultName(mode);
-	    ErrorF("MODE %s\n",mode->name);
 	    modes = xf86ModesAdd(modes, mode);
 	    xf86PrintModeline(0, mode);
 	}
@@ -277,11 +275,11 @@ output_init(ScrnInfoPtr pScrn)
 
 	drm_encoder = drmModeGetEncoder(ms->fd, drm_connector->encoders[0]);
 	if (drm_encoder) {
-	output->possible_crtcs = drm_encoder->crtcs;
-	output->possible_clones = drm_encoder->clones;
+	    output->possible_crtcs = drm_encoder->crtcs;
+	    output->possible_clones = drm_encoder->clones;
 	} else {
-	output->possible_crtcs = 0;
-	output->possible_clones = 0;
+	    output->possible_crtcs = 0;
+	    output->possible_clones = 0;
 	}
 	output->driver_private = drm_connector;
 	output->subpixel_order = SubPixelHorizontalRGB;
