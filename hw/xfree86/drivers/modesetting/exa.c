@@ -504,6 +504,7 @@ ExaPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
     struct exa_entity *exa = ms->exa;
     struct pipe_surface *src_surf;
     struct PixmapPriv *priv = exaGetPixmapDriverPrivate(pDstPixmap);
+    struct PixmapPriv *src_priv = exaGetPixmapDriverPrivate(pSrcPixmap);
 
     if (alu != GXcopy)
 	return FALSE;
@@ -514,14 +515,14 @@ ExaPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
     if (!EXA_PM_IS_SOLID(&pSrcPixmap->drawable, planeMask))
 	return FALSE;
 
-    if (!priv->tex)
+    if (!priv->tex || !src_priv->tex)
 	return FALSE;
 
     if (!exa->ctx || !exa->ctx->surface_copy)
 	return FALSE;
 
     priv->src_surf =
-	exa->scrn->get_tex_surface(exa->scrn, priv->tex, 0, 0, 0,
+	exa->scrn->get_tex_surface(exa->scrn, src_priv->tex, 0, 0, 0,
 				   PIPE_BUFFER_USAGE_GPU_READ |
 				   PIPE_BUFFER_USAGE_GPU_WRITE);
 
@@ -691,7 +692,7 @@ ExaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height,
     PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
     struct exa_entity *exa = ms->exa;
 
-    /*if (rootPixmap == pPixmap) */  {
+    if (rootPixmap == pPixmap) {
 	miModifyPixmapHeader(pPixmap, width, height, depth,
 			     bitsPerPixel, devKind, NULL);
     }
