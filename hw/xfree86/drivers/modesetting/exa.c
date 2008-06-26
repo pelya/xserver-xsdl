@@ -463,7 +463,7 @@ ExaPrepareSolid(PixmapPtr pPixmap, int alu, Pixel planeMask, Pixel fg)
     if (!EXA_PM_IS_SOLID(&pPixmap->drawable, planeMask))
 	return FALSE;
 
-    if (!priv->tex)
+    if (!priv || !priv->tex)
 	return FALSE;
 
     if (alu != GXcopy)
@@ -513,6 +513,9 @@ ExaPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir,
 	return FALSE;
 
     if (!EXA_PM_IS_SOLID(&pSrcPixmap->drawable, planeMask))
+	return FALSE;
+
+    if (!priv || !src_priv)
 	return FALSE;
 
     if (!priv->tex || !src_priv->tex)
