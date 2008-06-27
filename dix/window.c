@@ -929,6 +929,7 @@ CrushTree(WindowPtr pWin)
 		(*UnrealizeWindow)(pChild);
 	    }
 	    FreeWindowResources(pChild);
+	    dixFreePrivates(pChild->devPrivates);
 	    xfree(pChild);
 	    if ( (pChild = pSib) )
 		break;
