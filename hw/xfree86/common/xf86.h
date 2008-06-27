@@ -401,12 +401,6 @@ Bool xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
 
 Bool VidModeExtensionInit(ScreenPtr pScreen);
 
-/* xf86Versions.c */
-CARD32 xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flag);
-Bool xf86RegisterBuiltinInterfaceVersion(BuiltinInterface iface,
-					 CARD32 version, int flags);
-
-
 #endif /* _NO_XF86_PROTOTYPES */
 
 #endif /* _XF86_H */

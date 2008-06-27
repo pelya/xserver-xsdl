@@ -299,10 +299,6 @@
 # include <sys/types.h>
 # include <assert.h>
 
-#ifdef __GNU__ /* GNU/Hurd */
-# define USE_OSMOUSE
-#endif
-
 # ifdef __linux__
 #  include <termio.h>
 # else /* __GLIBC__ */
@@ -553,8 +549,6 @@ extern int errno;
 #  define LED_SCR 0x01
 
 # define POSIX_TTY
-# define OSMOUSE_ONLY
-# define MOUSE_PROTOCOL_IN_KERNEL
 
 #define TIOCM_DTR       0x0001            /* data terminal ready */
 #define TIOCM_RTS       0x0002            /* request to send */
@@ -663,12 +657,6 @@ double RInt(
 
 #ifndef VT_SYSREQ_DEFAULT
 #define VT_SYSREQ_DEFAULT FALSE
-#endif
-
-#ifdef OSMOUSE_ONLY
-# ifndef MOUSE_PROTOCOL_IN_KERNEL
-#  define MOUSE_PROTOCOL_IN_KERNEL
-# endif
 #endif
 
 #define SYSCALL(call) while(((call) == -1) && (errno == EINTR))

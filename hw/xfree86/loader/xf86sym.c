@@ -65,7 +65,6 @@
 #include "xf86Parser.h"
 #include "xf86Config.h"
 # include "xf86Xinput.h"
-#include "xf86OSmouse.h"
 #ifdef XV
 #include "xf86xv.h"
 #include "xf86xvmc.h"
@@ -278,7 +277,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86SerialModemSetBits)
     SYMFUNC(xf86SerialModemClearBits)
     SYMFUNC(xf86LoadKernelModule)
-    SYMFUNC(xf86OSMouseInit)
     SYMFUNC(xf86AgpGARTSupported)
     SYMFUNC(xf86GetAGPInfo)
     SYMFUNC(xf86AcquireGART)
@@ -643,10 +641,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(VidModeGetGammaRamp)
     SYMFUNC(VidModeGetGammaRampSize)
 #endif
-
-    /* xf86Versions.c */
-    SYMFUNC(xf86GetBuiltinInterfaceVersion)
-    SYMFUNC(xf86RegisterBuiltinInterfaceVersion)
 
     /* xf86MiscExt.c */
 #ifdef XF86MISC
