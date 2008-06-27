@@ -695,11 +695,6 @@ ExaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height,
     PixmapPtr rootPixmap = pScreen->GetScreenPixmap(pScreen);
     struct exa_entity *exa = ms->exa;
 
-    if (rootPixmap == pPixmap) {
-	miModifyPixmapHeader(pPixmap, width, height, depth,
-			     bitsPerPixel, devKind, NULL);
-    }
-
     if (!priv)
 	return FALSE;
 
@@ -717,6 +712,9 @@ ExaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height,
 
     if (width <= 0 || height <= 0 || depth <= 0)
 	return FALSE;
+
+    miModifyPixmapHeader(pPixmap, width, height, depth,
+			     bitsPerPixel, devKind, NULL);
 
     /* Deal with screen resize */
     if (priv->tex) {
@@ -749,9 +747,6 @@ ExaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height,
 	template.tex_usage = PIPE_TEXTURE_USAGE_RENDER_TARGET;
 	priv->tex = exa->scrn->texture_create(exa->scrn, &template);
     }
-
-    if (rootPixmap == pPixmap)
-	return TRUE;
 
     return TRUE;
 }
@@ -826,17 +821,22 @@ ExaInit(ScrnInfoPtr pScrn)
 		 "%s/%s_dri.so", dri_driver_path, "i915");
 
 	ms->driver = dlopen(filename, RTLD_NOW | RTLD_DEEPBIND | RTLD_GLOBAL);
+	if (!ms->driver)
+		FatalError("failed to initialize i915 - for softpipe only.\n");
 
 	exa->c = xcalloc(1, sizeof(struct exa_context));
 
 	exa->ws = exa_get_pipe_winsys(ms);
+	if (!exa->ws)
+		FatalError("BAD WINSYS\n");
 
 	exa->scrn = softpipe_create_screen(exa->ws);
+	if (!exa->scrn)
+		FatalError("BAD SCREEN\n");
 
 	exa->ctx = softpipe_create(exa->scrn, exa->ws, NULL);
-
 	if (!exa->ctx)
-	    ErrorF("BAD CTX\n");
+	   	FatalError("BAD CTX\n");
 
 	exa->ctx->priv = exa->c;
     }
