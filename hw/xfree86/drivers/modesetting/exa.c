@@ -213,13 +213,13 @@ exa_surface_alloc_storage(struct pipe_winsys *winsys,
     surf->width = width;
     surf->height = height;
     surf->format = format;
-    surf->cpp = pf_get_size(format);
-    surf->pitch = round_up(width, alignment / surf->cpp);
+    pf_get_block(format, &surf->block);
+    surf->stride = round_up(surf->nblocksx * surf->block.size, alignment);
 
     assert(!surf->buffer);
     surf->buffer = winsys->buffer_create(winsys, alignment,
 					 PIPE_BUFFER_USAGE_PIXEL,
-					 surf->pitch * surf->cpp * height);
+					 surf->stride * height);
     if (!surf->buffer)
 	return -1;
 
@@ -739,7 +739,7 @@ ExaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height,
 	template.target = PIPE_TEXTURE_2D;
 	template.compressed = 0;
 	template.format = exa_get_pipe_format(depth);
-	template.cpp = pf_get_size(template.format);
+	pf_get_block(template.format, &template.block);
 	template.width[0] = width;
 	template.height[0] = height;
 	template.depth[0] = 1;
