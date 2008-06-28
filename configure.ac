@@ -867,7 +867,7 @@ if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.1 gl >= 7.1.0])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.1 dri >= 7.1.0])
 	PKG_CHECK_EXISTS(libdrm >= 2.2.0,
 			 [AC_DEFINE([HAVE_LIBDRM_2_2], 1,
 			 [Has version 2.2 (or newer) of the drm library])])
