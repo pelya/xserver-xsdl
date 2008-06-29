@@ -472,6 +472,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   MessageType		 pix24From = X_DEFAULT;
   Bool			 pix24Fail = FALSE;
   Bool			 autoconfig = FALSE;
+  GDevPtr		 configured_device;
   
   xf86Initialising = TRUE;
 
@@ -555,7 +556,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /* If there aren't any specified in the config file, autoconfig them */
     /* FIXME: Does not handle multiple active screen sections, but I'm not
      * sure if we really want to handle that case*/
-    GDevPtr configured_device = xf86ConfigLayout.screens->screen->device;
+    configured_device = xf86ConfigLayout.screens->screen->device;
     if ((!configured_device) || (!configured_device->driver)) {
         if (!autoConfigDevice(configured_device)) {
             xf86Msg(X_ERROR, "Automatic driver configuration failed\n");
