@@ -168,10 +168,10 @@ exa_buffer_create(struct pipe_winsys *pws,
     ErrorF("SIZE %d %d\n", size, alignment);
     if (!buffer->bo.handle) {
 	// buffer->data = align_malloc(size, alignment);
-	drmBOCreate(exa_winsys->ms->fd, size, 4096, NULL,
+	drmBOCreate(exa_winsys->ms->fd, size, 0, NULL,
 		    DRM_BO_FLAG_READ | DRM_BO_FLAG_WRITE |
 		    DRM_BO_FLAG_SHAREABLE | DRM_BO_FLAG_MEM_TT |
-		    DRM_BO_FLAG_MAPPABLE | DRM_BO_FLAG_CACHED_MAPPED | flags,
+		    DRM_BO_FLAG_MAPPABLE | flags,
 		    0, &buffer->bo);
     }
 
@@ -767,7 +767,7 @@ ExaInit(ScrnInfoPtr pScrn)
 {
     modesettingPtr ms = modesettingPTR(pScrn);
     struct exa_entity *exa;
-    ExaDriverPtr pExa = exa->pExa;
+    ExaDriverPtr pExa;
 
     exa = xcalloc(1, sizeof(struct exa_entity));
     if (!exa)
