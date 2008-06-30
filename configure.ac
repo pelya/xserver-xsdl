@@ -1110,7 +1110,7 @@ if test "x$SHA1_LIB" = "x" ; then
 	   [Define to use libmd SHA1 functions instead of OpenSSL libcrypto])])
 fi
 if test "x$SHA1_LIB" = "x" ; then
- PKG_CHECK_EXISTS([openssl],
+ AC_CHECK_LIB([crypto], [SHA1_Init], [],
   [PKG_CHECK_MODULES([OPENSSL], [openssl],
    [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])])
  SHA1_LIB="$OPENSSL_LIB_FLAGS -lcrypto"
