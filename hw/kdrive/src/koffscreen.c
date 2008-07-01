@@ -24,7 +24,6 @@
 #include <kdrive-config.h>
 #endif
 #include "kdrive.h"
-#include "kaa.h"
 
 #define DEBUG_OFFSCREEN 0
 #if DEBUG_OFFSCREEN

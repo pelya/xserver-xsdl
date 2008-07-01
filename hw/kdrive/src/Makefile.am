@@ -20,10 +20,6 @@ endif
 
 libkdrive_a_SOURCES =	\
 	fourcc.h	\
-	kaa.c		\
-	kaa.h		\
-	kaapict.c	\
-	kasync.c	\
 	kcmap.c		\
 	kcurscol.c	\
 	kdrive.c	\
