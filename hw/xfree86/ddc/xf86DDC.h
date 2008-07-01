@@ -45,6 +45,10 @@ extern xf86MonPtr xf86InterpretEDID(
     int screenIndex, Uchar *block
 );
 
+extern xf86MonPtr xf86InterpretEEDID(
+    int screenIndex, Uchar *block
+);
+
 extern void 
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC);
 
