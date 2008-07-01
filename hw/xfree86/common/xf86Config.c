@@ -121,7 +121,9 @@ static ModuleDefault ModuleDefaults[] = {
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
 #endif
     {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+#ifdef DRI2
     {.name = "dri2",     .toLoad = TRUE,    .load_opt=NULL},
+#endif
     {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
 };
 
