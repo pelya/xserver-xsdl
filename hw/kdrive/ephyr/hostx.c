@@ -565,14 +565,40 @@ hostx_get_visual_masks (EphyrScreenInfo screen,
     }
 }
 
+static int 
+hostx_calculate_color_shift(unsigned long mask,
+			    int bits_per_rgb)
+{
+    int shift = 0;
+    while(mask) {
+	mask = mask >> bits_per_rgb;
+	if (mask) shift += bits_per_rgb;
+    }
+    return shift;
+}
+
 void
 hostx_set_cmap_entry(unsigned char idx,
 		     unsigned char r,
 		     unsigned char g,
 		     unsigned char b)
 {
-  /* XXX Will likely break for 8 on 16, not sure if this is correct */
-  HostX.cmap[idx] = (r << 16) | (g << 8) | (b);
+/* need to calculate the shifts for RGB because server could be BGR. */
+/* XXX Not sure if this is correct for 8 on 16, but this works for 8 on 24.*/
+    static int rshift, bshift, gshift = 0;
+    static int first_time = 1;
+    if (first_time) {
+	first_time = 0;
+	rshift = hostx_calculate_color_shift(HostX.visual->red_mask,
+					     HostX.visual->bits_per_rgb);
+	gshift = hostx_calculate_color_shift(HostX.visual->green_mask,
+					     HostX.visual->bits_per_rgb);
+	bshift = hostx_calculate_color_shift(HostX.visual->blue_mask,
+					     HostX.visual->bits_per_rgb);
+    }
+    HostX.cmap[idx] = ((r << rshift) & HostX.visual->red_mask) |
+		      ((g << gshift) & HostX.visual->green_mask) |
+		      ((b << bshift) & HostX.visual->blue_mask);
 }
 
 /**
