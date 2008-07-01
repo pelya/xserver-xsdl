@@ -171,6 +171,25 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
 	scrp->virtualX = mode->HDisplay;
 	scrp->virtualY = mode->VDisplay;
     }
+
+    /*
+     * The DIX forgets the physical dimensions we passed into RRRegisterSize, so
+     * reconstruct them if possible.
+     */
+    if(scrp->DriverFunc) {
+	xorgRRModeMM RRModeMM;
+
+	RRModeMM.mode = mode;
+	RRModeMM.virtX = scrp->virtualX;
+	RRModeMM.virtY = scrp->virtualY;
+	RRModeMM.mmWidth = mmWidth;
+	RRModeMM.mmHeight = mmHeight;
+
+	(*scrp->DriverFunc)(scrp, RR_GET_MODE_MM, &RRModeMM);
+
+	mmWidth = RRModeMM.mmWidth;
+	mmHeight = RRModeMM.mmHeight;
+    }
     if(randrp->rotation & (RR_Rotate_90 | RR_Rotate_270))
     {
 	/* If the screen is rotated 90 or 270 degrees, swap the sizes. */
