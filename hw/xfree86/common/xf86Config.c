@@ -1608,10 +1608,14 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         count++;
         adjp = (XF86ConfAdjacencyPtr)adjp->list.next;
     }
+
 #ifdef DEBUG
     ErrorF("Found %d screens in the layout section %s",
            count, conf_layout->lay_identifier);
 #endif
+    if (!count) /* alloc enough storage even if no screen is specified */
+        count = 1;
+
     slp = xnfcalloc(1, (count + 1) * sizeof(screenLayoutRec));
     slp[count].screen = NULL;
     /*
@@ -1664,6 +1668,20 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 	}
         count++;
         adjp = (XF86ConfAdjacencyPtr)adjp->list.next;
+    }
+
+    /* No screen was specified in the layout. take the first one from the
+     * config file, or - if it is NULL - configScreen autogenerates one for
+     * us */
+    if (!count)
+    {
+        slp[0].screen = xnfcalloc(1, sizeof(confScreenRec));
+	if (!configScreen(slp[0].screen, xf86configptr->conf_screen_lst,
+                          0, X_CONFIG)) {
+	    xfree(slp[0].screen);
+	    xfree(slp);
+	    return FALSE;
+	}
     }
 
     /* XXX Need to tie down the upper left screen. */
