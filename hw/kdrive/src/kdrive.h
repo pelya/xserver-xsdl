@@ -843,9 +843,6 @@ KdOffscreenArea *
 KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area);
 
 void
-KdOffscreenMarkUsed (PixmapPtr pPixmap);
-
-void
 KdOffscreenSwapOut (ScreenPtr pScreen);
 
 void
