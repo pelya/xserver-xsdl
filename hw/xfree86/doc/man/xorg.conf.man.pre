@@ -696,7 +696,8 @@ the X server to load. Disabled by default.
 .TP 7
 .BI "Option \*qAllowEmptyInput\*q \*q" boolean \*q
 If enabled, don't add the standard keyboard and mouse drivers, if there are no
-input devices in the config file.  Disabled by default.
+input devices in the config file.  Enabled by default if AutoAddDevices and
+AutoEnableDevices is enabled, otherwise disabled.
 .TP 7
 .BI "Option \*qAutoAddDevices\*q \*q" boolean \*q
 If this option is disabled, then no devices will be added from HAL events.
