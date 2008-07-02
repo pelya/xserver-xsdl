@@ -706,7 +706,7 @@ if test "x$CONFIG_DBUS_API" = xyes; then
 	fi
 
 	AC_DEFINE(CONFIG_DBUS_API, 1, [Use the D-Bus input configuration API])
-	NEED_DBUS="yes"
+	CONFIG_NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(CONFIG_DBUS_API, [test "x$CONFIG_DBUS_API" = xyes])
 
@@ -721,13 +721,15 @@ if test "x$CONFIG_HAL" = xyes; then
 
 	AC_DEFINE(CONFIG_HAL, 1, [Use the HAL hotplug API])
         REQUIRED_LIBS="$REQUIRED_LIBS hal"
-	NEED_DBUS="yes"
+	CONFIG_NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(CONFIG_HAL, [test "x$CONFIG_HAL" = xyes])
 
-if test "x$NEED_DBUS" = xyes; then
+if test "x$CONFIG_NEED_DBUS" = xyes; then
 	REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
+        AC_DEFINE(CONFIG_NEED_DBUS, 1, [Use D-Bus for input hotplug])
 fi
+AM_CONDITIONAL(CONFIG_NEED_DBUS, [test "x$CONFIG_NEED_DBUS" = xyes])
 CONFIG_LIB='$(top_builddir)/config/libconfig.a'
 
 AC_MSG_CHECKING([for glibc...])

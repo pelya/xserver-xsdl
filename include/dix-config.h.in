@@ -468,6 +468,9 @@
 /* Support D-Bus */
 #undef HAVE_DBUS
 
+/* Use D-Bus for input hotplug */
+#undef CONFIG_NEED_DBUS
+
 /* Support the D-Bus hotplug API */
 #undef CONFIG_DBUS_API
 
