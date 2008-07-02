@@ -110,7 +110,7 @@ SOFTWARE.
 					/* byte boundries */
 #endif /* hpux || __hppa__ */
 
-#if defined(__powerpc__) || defined(__ppc__)
+#if defined(__powerpc__) || defined(__ppc__) || defined(__ppc64__)
 
 #define IMAGE_BYTE_ORDER        MSBFirst
 #define BITMAP_BIT_ORDER        MSBFirst
