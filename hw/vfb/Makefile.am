@@ -26,6 +26,7 @@ XVFB_LIBS = \
 
 Xvfb_LDADD = $(XVFB_LIBS) $(XVFB_SYS_LIBS) $(XSERVER_SYS_LIBS)
 Xvfb_DEPENDENCIES = $(XVFB_LIBS)
+Xvfb_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 # Man page
 include $(top_srcdir)/cpprules.in
