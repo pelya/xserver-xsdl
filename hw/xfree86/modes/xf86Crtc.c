@@ -1006,6 +1006,54 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp,
 
 #define POSITION_UNSET	-100000
 
+/*
+ * check if the user configured any outputs at all 
+ * with either a position or a relative setting or a mode.
+ */
+static Bool
+xf86UserConfiguredOutputs(ScrnInfoPtr scrn, DisplayModePtr *modes)
+{
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    int o;
+    Bool user_conf = FALSE;
+
+    for (o = 0; o < config->num_output; o++)
+    {
+	xf86OutputPtr output = config->output[o];
+	char	    *position;
+	char	    *relative_name;
+	OutputOpts	    relation;
+	int r;
+	static const OutputOpts	relations[] = {
+	    OPTION_BELOW, OPTION_RIGHT_OF, OPTION_ABOVE, OPTION_LEFT_OF
+	};
+
+	position = xf86GetOptValString (output->options,
+					OPTION_POSITION);
+	if (position)
+	    user_conf = TRUE;
+
+	relation = 0;
+	relative_name = NULL;
+	for (r = 0; r < 4; r++)
+	{
+	    relation = relations[r];
+	    relative_name = xf86GetOptValString (output->options,
+						     relation);
+	    if (relative_name)
+		break;
+	}
+	if (relative_name)
+	    user_conf = TRUE;
+
+	modes[o] = xf86OutputHasUserPreferredMode(output);
+	if (modes[o])
+	    user_conf = TRUE;
+    }
+
+    return user_conf;
+}
+
 static Bool
 xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 {
@@ -1993,6 +2041,9 @@ xf86TargetUserpref(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
 {
     int o;
 
+    if (xf86UserConfiguredOutputs(scrn, modes))
+	return xf86TargetFallback(scrn, config, modes, enabled, width, height);
+    
     for (o = -1; nextEnabledOutput(config, enabled, &o); )
 	if (xf86OutputHasUserPreferredMode(config->output[o]))
 	    return 
