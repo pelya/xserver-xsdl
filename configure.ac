@@ -381,7 +381,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
 	DRI=yes
-	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.2], DRI2=yes, DRI2=no)
 	;;
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -389,7 +389,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	DRI=yes
-	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.2], DRI2=yes, DRI2=no)
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -398,7 +398,7 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
-	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.1], DRI2=yes, DRI2=no)
+	PKG_CHECK_EXISTS([dri2proto >= 1.1 libdrm >= 2.3.2], DRI2=yes, DRI2=no)
 	KDRIVE_HW=yes
 	;;
   *solaris*)
@@ -882,7 +882,7 @@ if test "x$DRI2" = xyes; then
 	# FIXME: Bump the versions once we have releases of these.
 	AC_DEFINE(DRI2, 1, [Build DRI2 extension])
 	PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.1])
-	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.1])
+	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.2])
 fi
 
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
