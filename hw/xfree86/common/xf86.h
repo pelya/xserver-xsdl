@@ -340,7 +340,6 @@ Bool xf86IsUnblank(int mode);
 
 _X_DEPRECATED void xf86AddModuleInfo(pointer info, pointer module);
 _X_DEPRECATED void xf86DeleteModuleInfo(int idx);
-void xf86getsecs(long *, long *);
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG

@@ -2937,17 +2937,3 @@ xf86GetMotionEvents(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
 {
     return GetMotionHistory(pDev, buff, start, stop, pScreen, core);
 }
-
-_X_EXPORT void
-xf86getsecs(long * secs, long * usecs)
-{
-    struct timeval tv;
-
-    X_GETTIMEOFDAY(&tv);
-    if (secs)
-	*secs = tv.tv_sec;
-    if (usecs)
-	*usecs= tv.tv_usec;
-
-    return;
-}
