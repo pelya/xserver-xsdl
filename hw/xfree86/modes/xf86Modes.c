@@ -526,7 +526,6 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 _X_EXPORT void
 xf86ValidateModesReducedBlanking(ScrnInfoPtr pScrn, DisplayModePtr modeList)
 {
-    Bool mode_is_reduced = FALSE;
     DisplayModePtr mode;
 
     for (mode = modeList; mode != NULL; mode = mode->next) {
@@ -682,7 +681,7 @@ xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor)
 _X_EXPORT DisplayModePtr
 xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
 {
-    DisplayModePtr  head = NULL, prev = NULL, mode;
+    DisplayModePtr  head = NULL, mode;
     int		    i;
 
     for (i = 0; i < xf86NumDefaultModes; i++)

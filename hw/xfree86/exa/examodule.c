@@ -179,13 +179,6 @@ exaDDXDriverInit(ScreenPtr pScreen)
     
 }
 
-/*ARGSUSED*/
-static const OptionInfoRec *
-EXAAvailableOptions(void *unused)
-{
-    return (EXAOptions);
-}
-
 static XF86ModuleVersionInfo exaVersRec =
 {
 	"exa",

@@ -467,7 +467,6 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
     InputDriverPtr drv;
     IDevRec *idev;
-    BOOL found;
     IDevPtr *it;
 
     if (pInfo) /* need to get these before RemoveDevice */
