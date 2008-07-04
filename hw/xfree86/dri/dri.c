@@ -2301,7 +2301,7 @@ DRIAdjustFrame(int scrnIndex, int x, int y, int flags)
 	pScrn->frameY1 = pScrn->frameY0 + pDRIPriv->pSAREA->frame.height - 1;
 
 				/* Fix up cursor */
-	miPointerPosition(&px, &py);
+    miPointerGetPosition(inputInfo.pointer, &px, &py);
 	if (px < pScrn->frameX0) px = pScrn->frameX0;
 	if (px > pScrn->frameX1) px = pScrn->frameX1;
 	if (py < pScrn->frameY0) py = pScrn->frameY0;

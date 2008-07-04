@@ -134,12 +134,6 @@ extern void miPointerAbsoluteCursor(
     unsigned long /*time*/
 ) _X_DEPRECATED;
 
-/* Deprecated in favour of miPointerGetPosition. */
-extern void miPointerPosition(
-    int * /*x*/,
-    int * /*y*/
-) _X_DEPRECATED;
-
 /* Deprecated in favour of miPointerSetScreen. */
 extern void miPointerSetNewScreen(
     int, /*screen_no*/

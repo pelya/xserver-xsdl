@@ -560,12 +560,6 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 }
 
 _X_EXPORT void
-miPointerPosition (int *x, int *y)
-{
-    miPointerGetPosition(inputInfo.pointer, x, y);
-}
-
-_X_EXPORT void
 miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     *x = MIPOINTER(pDev)->x;

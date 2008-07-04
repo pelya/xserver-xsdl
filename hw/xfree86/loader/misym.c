@@ -160,7 +160,6 @@ _X_HIDDEN void *miLookupTab[] = {
     SYMFUNC(miPutImage)
     SYMFUNC(miPushPixels)
     SYMFUNC(miPointerInitialize)
-    SYMFUNC(miPointerPosition)
     SYMFUNC(miRecolorCursor)
     SYMFUNC(miPointerWarpCursor)
     SYMFUNC(miDCInitialize)

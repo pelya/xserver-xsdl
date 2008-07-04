@@ -243,7 +243,7 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
     Bool		    useVirtual = FALSE;
     Rotation		    oldRotation = randrp->rotation;
 
-    miPointerPosition (&px, &py);
+    miPointerGetPosition(inputInfo.pointermi, &px, &py);
     for (mode = scrp->modes; ; mode = mode->next)
     {
 	if (mode->HDisplay == pSize->width &&
