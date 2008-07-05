@@ -891,6 +891,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 #ifdef XQUARTZ_USE_XKB
 	XkbComponentNamesRec names;
 	bzero(&names, sizeof(names));
+    /* We need to really have rules... or something... */
     XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
     assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
                                         QuartzBell, DarwinChangeKeyboardControl));
@@ -1088,13 +1089,14 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 
 unsigned int QuartzSystemKeymapSeed(void) {
     static unsigned int seed;
-    static KeyboardLayoutRef last_key_layout;
-    KeyboardLayoutRef key_layout;
+    static TISInputSourceRef last_key_layout;
+    TISInputSourceRef key_layout;
 
-    KLGetCurrentKeyboardLayout (&key_layout);
+    key_layout = TISCopyCurrentKeyboardLayoutInputSource();
+
     if (key_layout != last_key_layout) seed++;
     last_key_layout = key_layout;
-
+    
     return seed;
 }
 
@@ -1136,7 +1138,6 @@ static KeySym make_dead_key(KeySym in) {
 }
 
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
-    KeyboardLayoutRef key_layout;
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
@@ -1150,18 +1151,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
       CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
       if (currentKeyLayoutDataRef) chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
-    
-    if (chr_data == NULL) {
-      KLGetCurrentKeyboardLayout (&key_layout);
-      KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
-    }
-    
-    if (chr_data == NULL) {
-      KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
-      is_uchr = 0;
-      num_keycodes = 128;
-    }
-    
+
     if (chr_data == NULL) {
       ErrorF ( "Couldn't get uchr or kchr resource\n");
       return FALSE;
