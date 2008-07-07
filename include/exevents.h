@@ -194,4 +194,19 @@ void SendEventToAllWindows(
         xEvent *               /* ev */,
         int                    /* count */);
 
+/* Input device properties */
+void XIDeleteAllDeviceProperties (DeviceIntPtr device);
+void XIDeleteDeviceProperty      (DeviceIntPtr Device, Atom property);
+int  XIChangeDeviceProperty      (DeviceIntPtr dev, Atom property, Atom type,
+			          int format, int mode, unsigned long len,
+			          pointer value, Bool sendevent, Bool pending);
+
+XIPropertyPtr      XIQueryDeviceProperty    (DeviceIntPtr dev, Atom property);
+XIPropertyValuePtr XIGetDeviceProperty      (DeviceIntPtr dev, Atom property,
+                                             Bool pending);
+
+int XIConfigureDeviceProperty (DeviceIntPtr dev, Atom property,
+			       Bool pending, Bool range, Bool immutable,
+			       int num_values, INT32 *values);
+
 #endif /* EXEVENTS_H */
