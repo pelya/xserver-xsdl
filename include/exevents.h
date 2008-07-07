@@ -188,10 +188,55 @@ extern int DeviceEventSuppressForWindow(
 	Mask                   /* mask */,
 	int                    /* maskndx */);
 
-void SendEventToAllWindows(
+extern void SendEventToAllWindows(
         DeviceIntPtr           /* dev */,
         Mask                   /* mask */,
         xEvent *               /* ev */,
         int                    /* count */);
+
+/* Input device properties */
+extern void XIDeleteAllDeviceProperties(
+        DeviceIntPtr            /* device */
+);
+
+extern int XIDeleteDeviceProperty(
+        DeviceIntPtr            /* device */,
+        Atom                    /* property */,
+        Bool                    /* fromClient */
+);
+
+extern int XIChangeDeviceProperty(
+        DeviceIntPtr            /* dev */,
+        Atom                    /* property */,
+        Atom                    /* type */,
+        int                     /* format*/,
+        int                     /* mode*/,
+        unsigned long           /* len*/,
+        pointer                 /* value*/,
+        Bool                    /* sendevent*/,
+        Bool                    /* pending*/,
+        Bool                    /* fromClient */
+        );
+
+extern XIPropertyPtr XIQueryDeviceProperty(
+        DeviceIntPtr            /* dev */,
+        Atom                    /* property */
+);
+
+extern XIPropertyValuePtr XIGetDeviceProperty(
+        DeviceIntPtr            /* dev */,
+        Atom                    /* property */,
+        Bool                    /* pending */
+);
+
+extern int XIConfigureDeviceProperty(
+        DeviceIntPtr            /* dev */,
+        Atom                    /* property */,
+        Bool                    /* pending */,
+        Bool                    /* range */,
+        Bool                    /* immutable */,
+        int                     /* num_values */,
+        INT32*                  /* values */
+);
 
 #endif /* EXEVENTS_H */
