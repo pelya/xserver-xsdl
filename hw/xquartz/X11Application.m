@@ -202,6 +202,12 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	for_appkit = YES;
 	for_x = YES;
   
+//    fprintf(stderr, "fd_add_count: %d\n", fd_add_count);
+    if(fd_add_count) {
+        DarwinProcessFDAdditionQueue();
+        fprintf(stderr, "ran it - fd_add_count: %d\n", fd_add_count);
+    }
+    
 	switch (type) {
 		case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
 		case NSLeftMouseUp: case NSRightMouseUp: case NSOtherMouseUp:

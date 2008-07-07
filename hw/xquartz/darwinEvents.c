@@ -79,6 +79,11 @@ void QuartzModeEQInit(void);
 
 static int old_flags = 0;  // last known modifier state
 
+#define FD_ADD_MAX 128
+static int fd_add[FD_ADD_MAX];
+int fd_add_count = 0;
+static pthread_mutex_t fd_add_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static xEvent *darwinEvents = NULL;
 
 static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -232,15 +237,6 @@ static void DarwinSimulateMouseClick(
     DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
-static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
-    size_t i;
-    TA_SERVER();
-
-    for (i=0; i<nevents; i++) {
-        ListenOnOpenFD(xe[i].u.clientMessage.u.l.longs0);
-    }
-}
-
 /* Generic handler for Xquartz-specifc events.  When possible, these should
    be moved into their own individual functions and set as handlers using
    mieqSetHandler. */
@@ -249,7 +245,7 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
     int i;
     
     TA_SERVER();
-    
+
     DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
     for (i=0; i<nevents; i++) {
         switch(xe[i].u.u.type) {
@@ -328,6 +324,35 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
             default:
                 ErrorF("Unknown application defined event type %d.\n", xe[i].u.u.type);
 		}	
+    }
+}
+
+void DarwinListenOnOpenFD(int fd) {
+    ErrorF("DarwinListenOnOpenFD: %d\n", fd);
+    
+    pthread_mutex_lock(&fd_add_lock);
+    if(fd_add_count < FD_ADD_MAX)
+        fd_add[fd_add_count++] = fd;
+    else
+        ErrorF("FD Addition buffer at max.  Dropping fd addition request.\n");
+
+    pthread_mutex_unlock(&fd_add_lock);
+}
+
+void DarwinProcessFDAdditionQueue() {
+    pthread_mutex_lock(&fd_add_lock);
+    while(fd_add_count) {
+        DarwinSendDDXEvent(kXquartzListenOnOpenFD, 1, fd_add[--fd_add_count]);
+    }
+    pthread_mutex_unlock(&fd_add_lock);
+}
+
+static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
+    size_t i;
+    TA_SERVER();
+    
+    for (i=0; i<nevents; i++) {
+        ListenOnOpenFD(xe[i].u.clientMessage.u.l.longs0);
     }
 }
 
@@ -574,10 +599,6 @@ void DarwinUpdateModKeys(int flags) {
 	DarwinUpdateModifiers(KeyRelease, old_flags & ~flags);
 	DarwinUpdateModifiers(KeyPress, ~old_flags & flags);
 	old_flags = flags;
-}
-
-void DarwinListenOnOpenFD(int fd) {
-    DarwinSendDDXEvent(kXquartzListenOnOpenFD, 1, fd);
 }
 
 /*

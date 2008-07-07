@@ -57,6 +57,8 @@
 #define XSERVER_VERSION "?"
 #endif
 
+#define DEBUG 1
+
 static char x11_path[PATH_MAX + 1];
 
 static void set_x11_path() {
@@ -132,23 +134,27 @@ static int create_socket(char *filename_out) {
         servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename_out);
         
         ret_fd = socket(PF_UNIX, SOCK_STREAM, 0);
-        if(ret_fd == 0) {
-            fprintf(stderr, "Failed to create socket (try %d / %d): %s - %s\n", (int)try+1, (int)try_max, filename_out, strerror(errno));
+        if(ret_fd == -1) {
+            fprintf(stderr, "Xquartz: Failed to create socket (try %d / %d): %s - %s\n", (int)try+1, (int)try_max, filename_out, strerror(errno));
             continue;
         }
         
         if(bind(ret_fd, servaddr, servaddr_len) != 0) {
-            fprintf(stderr, "Failed to bind socket: %s - %s\n", filename_out, strerror(errno));
+            fprintf(stderr, "Xquartz: Failed to bind socket: %d - %s\n", errno, strerror(errno));
             close(ret_fd);
             return 0;
         }
 
         if(listen(ret_fd, 10) != 0) {
-            fprintf(stderr, "Failed to listen to socket: %s - %s\n", filename_out, strerror(errno));
+            fprintf(stderr, "Xquartz: Failed to listen to socket: %s - %d - %s\n", filename_out, errno, strerror(errno));
             close(ret_fd);
             return 0;
         }
-        
+
+#ifdef DEBUG
+        fprintf(stderr, "Xquartz: Listening on socket for fd handoff:  %s\n", filename_out);
+#endif
+
         return ret_fd;
     }
     
@@ -186,19 +192,30 @@ static void send_fd_handoff(int handoff_fd, int launchd_fd) {
     
     *((int*)CMSG_DATA(cmsg)) = launchd_fd;
     
+#ifdef DEBUG
+    fprintf(stderr, "Xquartz: Waiting for fd handoff connection.\n");
+#endif
     connected_fd = accept(handoff_fd, NULL, NULL);
     if(connected_fd == -1) {
-        fprintf(stderr, "Failed to accept incoming connection on socket: %s\n", strerror(errno));
+        fprintf(stderr, "Xquartz: Failed to accept incoming connection on socket: %s\n", strerror(errno));
         return;
     }
     
+#ifdef DEBUG
+    fprintf(stderr, "Xquartz: Handoff connection established.  Sending message.\n");
+#endif
     if(sendmsg(connected_fd, &msg, 0) < 0) {
-        fprintf(stderr, "Error sending $DISPLAY file descriptor: %s\n", strerror(errno));
+        fprintf(stderr, "Xquartz: Error sending $DISPLAY file descriptor: %s\n", strerror(errno));
         return;
     }
 
+#ifdef DEBUG
+    fprintf(stderr, "Xquartz: Message sent.  Closing.\n");
+#endif
     close(connected_fd);
-    fprintf(stderr, "send %d %d %d %s\n", handoff_fd, launchd_fd, errno, strerror(errno));
+#ifdef DEBUG
+    fprintf(stderr, "Xquartz: end of send debug: %d %d %d %s\n", handoff_fd, launchd_fd, errno, strerror(errno));
+#endif
 }
 
 int main(int argc, char **argv, char **envp) {

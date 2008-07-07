@@ -57,6 +57,8 @@ extern int noPanoramiXExtension;
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
 #define DEFAULT_SHELL  "/bin/sh"
 
+#define DEBUG 1
+
 static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
 
@@ -198,8 +200,8 @@ static void socket_handoff_thread(void *arg) {
     servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
     
     handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if(handoff_fd == 0) {
-        fprintf(stderr, "Failed to create socket: %s - %s\n", filename, strerror(errno));
+    if(handoff_fd == -1) {
+        fprintf(stderr, "X11.app: Failed to create socket: %d - %s\n", errno, strerror(errno));
 
         data->retval = EXIT_FAILURE;
         pthread_cond_broadcast(&data->cond);
@@ -213,7 +215,7 @@ static void socket_handoff_thread(void *arg) {
     pthread_mutex_unlock(&data->lock);
     
     if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
-        fprintf(stderr, "Failed to connect to socket: %s - %s\n", filename, strerror(errno));
+        fprintf(stderr, "X11.app: Failed to connect to socket: %s - %d - %s\n", filename, errno, strerror(errno));
         return;
     }
 
@@ -226,6 +228,10 @@ static void socket_handoff_thread(void *arg) {
 kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
     handoff_data_t handoff_data;
 
+#ifdef DEBUG
+    fprintf(stderr, "X11.app: Prepping for fd handoff.\n");
+#endif
+    
     /* Initialize our data */
     pthread_mutex_init(&handoff_data.lock, NULL);
     pthread_cond_init(&handoff_data.cond, NULL);
@@ -235,6 +241,10 @@ kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
     
     create_thread(socket_handoff_thread, &handoff_data);
 
+#ifdef DEBUG
+    fprintf(stderr, "X11.app: Thread created for handoff.  Waiting on return value.\n");
+#endif
+    
     /* Wait for our return value */
     pthread_cond_wait(&handoff_data.cond, &handoff_data.lock);
     pthread_mutex_unlock(&handoff_data.lock);
@@ -242,6 +252,10 @@ kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
     /* Cleanup */
     pthread_cond_destroy(&handoff_data.cond);
     pthread_mutex_destroy(&handoff_data.lock);
+
+#ifdef DEBUG
+    fprintf(stderr, "X11.app: Sending return value: %d\n", handoff_data.retval);
+#endif
     
     return handoff_data.retval;
 }
