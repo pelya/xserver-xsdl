@@ -34,11 +34,11 @@ have been made in implementation.
 			at build time via Imakefile rules.  This is alway
 			preferable to reproducing functions in more than one
 			OS library.
-		bsd/	OS support for the 386BSD/NetBSD/FreeBSD operating 
+		bsd/	OS support for the NetBSD/FreeBSD/OpenBSD operating 
 			systems.
 		linux/	OS support for the Linux operating system.
 		sco/	OS support for the SCO SVR3.x operating system.
-		solx86/	OS support for the Solaris x86 operating system.
+		solaris/ OS support for the Solaris operating system.
 		sysv/	OS support for all SVR4.0 and SVR4.2, and for
 			ISC and AT&T SVR3.2 operating systems.
 
