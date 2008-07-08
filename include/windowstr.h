@@ -115,7 +115,7 @@ typedef struct _WindowOpt {
 #endif
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
     DevCursorList       deviceCursors;     /* default: NULL */
-    struct _GenericClientMasks *geMasks;/* default: NULL */
+    struct _GenericClientMasks *geMasks;   /* default: NULL */
     WindowAccessRec     access;
 } WindowOptRec, *WindowOptPtr;
 
