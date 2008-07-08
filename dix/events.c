@@ -2118,7 +2118,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         /* Handle generic events */
         if (type == GenericEvent)
         {
-            GenericMaskPtr pClient;
+            GenericMaskPtr gmask;
             /* We don't do more than one GenericEvent at a time. */
             if (count > 1)
             {
@@ -2132,16 +2132,16 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                 return 0;
 
             /* run through all clients, deliver event */
-            for (pClient = GECLIENT(pWin); pClient; pClient = pClient->next)
+            for (gmask = GECLIENT(pWin); gmask; gmask = gmask->next)
             {
-                if (pClient->eventMask[GEEXTIDX(pEvents)] & filter)
+                if (gmask->eventMask[GEEXTIDX(pEvents)] & filter)
                 {
-                    if (XaceHook(XACE_RECEIVE_ACCESS, pClient->client, pWin,
+                    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(gmask), pWin,
                                 pEvents, count))
                         /* do nothing */;
-                    else if (TryClientEvents(pClient->client, pDev,
+                    else if (TryClientEvents(rClient(gmask), pDev,
                              pEvents, count,
-                             pClient->eventMask[GEEXTIDX(pEvents)],
+                             gmask->eventMask[GEEXTIDX(pEvents)],
                              filter, grab) > 0)
                     {
                         deliveries++;
@@ -2223,7 +2223,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         {
             GenericClientMasksPtr gemasks = pWin->optional->geMasks;
             GenericMaskPtr geclient = gemasks->geClients;
-            while(geclient && geclient->client != client)
+            while(geclient && rClient(geclient) != client)
                 geclient = geclient->next;
             if (geclient)
             {

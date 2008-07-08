@@ -175,7 +175,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
             (XGenericEventMask*)(((XEventClass*)&stuff[1]) + stuff->event_count);
 
         gemasks = xcalloc(1, sizeof(GenericMaskRec));
-        gemasks->client = client;
+        gemasks->resource = FakeClientID(client->index);
         gemasks->next = NULL;
         gemasks->eventMask[xgeMask->extension & 0x7F] = xgeMask->evmask;
 

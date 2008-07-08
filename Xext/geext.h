@@ -43,10 +43,10 @@ from the author.
  * A grab has only one instance of this struct.
  */
 typedef struct _GenericMaskRec {
-    ClientPtr       client;                /* client who set the event mask */
+    struct _GenericMaskRec* next;
+    XID             resource;                 /* id for the resource manager */
     DeviceIntPtr    dev;
     Mask            eventMask[MAXEXTENSIONS]; /* one mask per extension */
-    struct _GenericMaskRec* next;
 } GenericMaskRec, *GenericMaskPtr;
 
 

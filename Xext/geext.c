@@ -36,11 +36,14 @@
 #define SERVER_GE_MAJOR 1
 #define SERVER_GE_MINOR 0
 
+#define rClient(obj) (clients[CLIENT_ID((obj)->resource)])
 
 int GEEventBase;
 int GEErrorBase;
 DevPrivateKey GEClientPrivateKey = &GEClientPrivateKey;
 int GEEventType; /* The opcode for all GenericEvents will have. */
+
+int RT_GECLIENT  = 0;
 
 
 GEExtension GEExtensions[MAXEXTENSIONS];
@@ -53,6 +56,7 @@ static const int version_requests[] = {
 
 /* Forward declarations */
 static void SGEGenericEvent(xEvent* from, xEvent* to);
+static void GERecalculateWinMask(WindowPtr pWin);
 
 #define NUM_VERSION_REQUESTS	(sizeof (version_requests) / sizeof (version_requests[0]))
 
@@ -211,6 +215,43 @@ SGEGenericEvent(xEvent* from, xEvent* to)
         GEExtensions[gefrom->extension & 0x7F].evswap(gefrom, geto);
 }
 
+/**
+ * Resource callback, invoked when the client disconnects and the associated
+ * GE masks must be destroyed.
+ */
+int
+GEClientGone(WindowPtr pWin, XID id)
+{
+    GenericClientMasksPtr gclmask;
+    GenericMaskPtr        gmask, prev = NULL;
+
+    if (!pWin || !pWin->optional)
+        return Success;
+
+    gclmask = pWin->optional->geMasks;
+    for (gmask = gclmask->geClients; gmask; gmask = gmask->next)
+    {
+        if (gmask->resource == id)
+        {
+            if (prev)
+            {
+                prev->next = gmask->next;
+                xfree(gmask);
+            } else {
+                gclmask->geClients = NULL;
+                CheckWindowOptionalNeed(pWin);
+                GERecalculateWinMask(pWin);
+                xfree(gmask);
+            }
+            return Success;
+        }
+        prev = gmask;
+    }
+
+    FatalError("Client not a GE client");
+    return BadImplementation;
+}
+
 /* Init extension, register at server.
  * Since other extensions may rely on XGE (XInput does already), it is a good
  * idea to init XGE first, before any other extension.
@@ -233,6 +274,9 @@ GEExtensionInit(void)
         GEEventBase = extEntry->eventBase;
         GEErrorBase = extEntry->errorBase;
         GEEventType = GEEventBase;
+
+        RT_GECLIENT = CreateNewResourceType((DeleteType)GEClientGone);
+        RegisterResourceName(RT_GECLIENT, "GECLIENT");
 
         memset(GEExtensions, 0, sizeof(GEExtensions));
 
@@ -338,7 +382,7 @@ GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
         cli = evmasks->geClients;
         while(cli)
         {
-            if (cli->client == pClient && cli->dev == pDev)
+            if (rClient(cli) == pClient && cli->dev == pDev)
                 break;
             cli = cli->next;
         }
@@ -352,16 +396,17 @@ GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
                 return;
             }
             cli->next = evmasks->geClients;
-            cli->client = pClient;
+            cli->resource = FakeClientID(pClient->index);
             cli->dev = pDev;
             evmasks->geClients = cli;
+            AddResource(cli->resource, RT_GECLIENT, (pointer)pWin);
         }
         cli->eventMask[extension] = mask;
     } else
     {
         /* remove client. */
         cli = pWin->optional->geMasks->geClients;
-        if (cli->client == pClient && cli->dev == pDev)
+        if (rClient(cli) == pClient && cli->dev == pDev)
         {
             pWin->optional->geMasks->geClients = cli->next;
             xfree(cli);
@@ -372,7 +417,7 @@ GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
 
             while(cli)
             {
-                if (cli->client == pClient && cli->dev == pDev)
+                if (rClient(cli) == pClient && cli->dev == pDev)
                 {
                     prev->next = cli->next;
                     xfree(cli);
