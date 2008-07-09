@@ -1087,16 +1087,26 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
     return 1;
 }
 
+/* TODO: Not thread safe */
 unsigned int QuartzSystemKeymapSeed(void) {
-    static unsigned int seed;
-    static TISInputSourceRef last_key_layout;
+    static unsigned int seed = 0;
+    static TISInputSourceRef last_key_layout = NULL;
     TISInputSourceRef key_layout;
 
     key_layout = TISCopyCurrentKeyboardLayoutInputSource();
 
-    if (key_layout != last_key_layout) seed++;
-    last_key_layout = key_layout;
-    
+    if(last_key_layout) {
+        if (CFEqual(key_layout, last_key_layout)) {
+            CFRelease(key_layout);
+        } else {
+            seed++;
+            CFRelease(last_key_layout);
+            last_key_layout = key_layout;
+        }
+    } else {
+        last_key_layout = key_layout;
+    }
+
     return seed;
 }
 
