@@ -696,7 +696,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
         return 0;
 
     map = pDev->key->curKeySyms.map;
-    sym = map[key_code * pDev->key->curKeySyms.mapWidth];
+    sym = map[(key_code - pDev->key->curKeySyms.minKeyCode)
+              * pDev->key->curKeySyms.mapWidth];
 
     master = pDev->u.master;
     if (master && master->u.lastSlave != pDev)
