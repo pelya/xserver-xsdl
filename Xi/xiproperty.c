@@ -39,33 +39,57 @@
 
 #include "xiproperty.h"
 
-void
-XIDeleteAllDeviceProperties (DeviceIntPtr device)
+static long XIPropHandlerID = 1;
+
+/* Registers a new property handler on the given device and returns a unique
+ * identifier for this handler. This identifier is required to unregister the
+ * property handler again.
+ * @return The handler's identifier or 0 if an error occured.
+ */
+long
+XIRegisterPropertyHandler(DeviceIntPtr         dev,
+                          Bool (*SetProperty) (DeviceIntPtr dev,
+                                               Atom property,
+                                               XIPropertyValuePtr prop),
+                          Bool (*GetProperty) (DeviceIntPtr dev,
+                                               Atom property))
 {
-    XIPropertyPtr               prop, next;
-    devicePropertyNotifyEvent   event;
+    XIPropertyHandlerPtr new_handler;
 
-    for (prop = device->properties; prop; prop = next)
+    new_handler = xcalloc(1, sizeof(XIPropertyHandler));
+    if (!new_handler)
+        return 0;
+
+    new_handler->id = XIPropHandlerID++;
+    new_handler->SetProperty = SetProperty;
+    new_handler->GetProperty = GetProperty;
+    new_handler->next = dev->properties.handlers;
+    dev->properties.handlers = new_handler;
+
+    return new_handler->id;
+}
+
+void
+XIUnRegisterPropertyHandler(DeviceIntPtr dev, long id)
+{
+    XIPropertyHandlerPtr curr, prev = NULL;
+
+    curr = dev->properties.handlers;
+    while(curr && curr->id != id)
     {
-        next = prop->next;
-
-        event.type      = GenericEvent;
-        event.extension = IReqCode;
-        event.evtype    = XI_DevicePropertyNotify;
-        event.length    = 0;
-        event.deviceid  = device->id;
-        event.state     = PropertyDelete;
-        event.atom      = prop->propertyName;
-        event.time      = currentTime.milliseconds;
-        SendEventToAllWindows(device, XI_DevicePropertyNotifyMask,
-                (xEvent*)&event, 1);
-
-        if (prop->current.data)
-            xfree(prop->current.data);
-        if (prop->pending.data)
-            xfree(prop->pending.data);
-        xfree(prop);
+        prev = curr;
+        curr = curr->next;
     }
+
+    if (!curr)
+        return;
+
+    if (!prev) /* first one */
+        dev->properties.handlers = curr->next;
+    else
+        prev->next = curr->next;
+
+    xfree(curr);
 }
 
 static void
@@ -112,13 +136,53 @@ XIDestroyDeviceProperty (XIPropertyPtr prop)
     xfree(prop);
 }
 
+/* This function destroys all of the device's property-related stuff,
+ * including removing all device handlers.
+ * DO NOT CALL FROM THE DRIVER.
+ */
+void
+XIDeleteAllDeviceProperties (DeviceIntPtr device)
+{
+    XIPropertyPtr               prop, next;
+    XIPropertyHandlerPtr        curr_handler, next_handler;
+    devicePropertyNotifyEvent   event;
+
+    for (prop = device->properties.properties; prop; prop = next)
+    {
+        next = prop->next;
+
+        event.type      = GenericEvent;
+        event.extension = IReqCode;
+        event.evtype    = XI_DevicePropertyNotify;
+        event.length    = 0;
+        event.deviceid  = device->id;
+        event.state     = PropertyDelete;
+        event.atom      = prop->propertyName;
+        event.time      = currentTime.milliseconds;
+        SendEventToAllWindows(device, XI_DevicePropertyNotifyMask,
+                (xEvent*)&event, 1);
+
+        XIDestroyDeviceProperty(prop);
+    }
+
+    /* Now free all handlers */
+    curr_handler = device->properties.handlers;
+    while(curr_handler)
+    {
+        next_handler = curr_handler->next;
+        xfree(curr_handler);
+        curr_handler = next_handler;
+    }
+}
+
+
 int
 XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 {
     XIPropertyPtr               prop, *prev;
     devicePropertyNotifyEvent   event;
 
-    for (prev = &device->properties; (prop = *prev); prev = &(prop->next))
+    for (prev = &device->properties.properties; (prop = *prev); prev = &(prop->next))
         if (prop->propertyName == property)
             break;
 
@@ -234,13 +298,20 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
            we're in a single thread after all
          */
         if (pending && prop->is_pending)
-            dev->pendingProperties = TRUE;
-        if (pending && dev->SetProperty &&
-            !dev->SetProperty(dev, prop->propertyName, &new_value))
+            dev->properties.pendingProperties = TRUE;
+        if (pending && dev->properties.handlers)
         {
-            if (new_value.data)
-                xfree (new_value.data);
-            return (BadValue);
+            XIPropertyHandlerPtr handler = dev->properties.handlers;
+            while(handler)
+            {
+                if (!handler->SetProperty(dev, prop->propertyName, &new_value))
+                {
+                    if (new_value.data)
+                        xfree (new_value.data);
+                    return (BadValue);
+                }
+                handler = handler->next;
+            }
         }
         if (prop_value->data)
             xfree (prop_value->data);
@@ -254,8 +325,8 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
 
     if (add)
     {
-        prop->next = dev->properties;
-        dev->properties = prop;
+        prop->next = dev->properties.properties;
+        dev->properties.properties = prop;
     }
 
 
@@ -280,7 +351,7 @@ XIQueryDeviceProperty (DeviceIntPtr dev, Atom property)
 {
     XIPropertyPtr   prop;
 
-    for (prop = dev->properties; prop; prop = prop->next)
+    for (prop = dev->properties.properties; prop; prop = prop->next)
         if (prop->propertyName == property)
             return prop;
     return NULL;
@@ -297,8 +368,15 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property, Bool pending)
         return &prop->pending;
     else {
         /* If we can, try to update the property value first */
-        if (dev->GetProperty)
-            dev->GetProperty(dev, prop->propertyName);
+        if (dev->properties.handlers)
+        {
+            XIPropertyHandlerPtr handler = dev->properties.handlers;
+            while(handler)
+            {
+                handler->GetProperty(dev, prop->propertyName);
+                handler = handler->next;
+            }
+        }
         return &prop->current;
     }
 }
@@ -353,8 +431,8 @@ XIConfigureDeviceProperty (DeviceIntPtr dev, Atom property,
     prop->valid_values = new_values;
 
     if (add) {
-        prop->next = dev->properties;
-        dev->properties = prop;
+        prop->next = dev->properties.properties;
+        dev->properties.properties = prop;
     }
 
     return Success;
@@ -377,7 +455,7 @@ ProcXListDeviceProperties (ClientPtr client)
     if (rc != Success)
         return rc;
 
-    for (prop = dev->properties; prop; prop = prop->next)
+    for (prop = dev->properties.properties; prop; prop = prop->next)
         numProps++;
     if (numProps)
         if(!(pAtoms = (Atom *)xalloc(numProps * sizeof(Atom))))
@@ -395,7 +473,7 @@ ProcXListDeviceProperties (ClientPtr client)
         swapl (&rep.length, n);
     }
     temppAtoms = pAtoms;
-    for (prop = dev->properties; prop; prop = prop->next)
+    for (prop = dev->properties.properties; prop; prop = prop->next)
         *temppAtoms++ = prop->propertyName;
 
     WriteReplyToClient(client, sizeof(xListDevicePropertiesReply), &rep);
@@ -589,7 +667,7 @@ ProcXGetDeviceProperty (ClientPtr client)
         return(BadAtom);
     }
 
-    for (prev = &dev->properties; (prop = *prev); prev = &prop->next)
+    for (prev = &dev->properties.properties; (prop = *prev); prev = &prop->next)
         if (prop->propertyName == stuff->property)
             break;
 

@@ -175,10 +175,9 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->last.numValuators = 0;
 
     /* device properties */
-    dev->properties  = NULL;
-    dev->SetProperty = NULL;
-    dev->GetProperty = NULL;
-    dev->pendingProperties = FALSE;
+    dev->properties.properties = NULL;
+    dev->properties.pendingProperties = FALSE;
+    dev->properties.handlers = NULL;
 
     /*  security creation/labeling check
      */

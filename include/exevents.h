@@ -239,4 +239,18 @@ extern int XIConfigureDeviceProperty(
         INT32*                  /* values */
 );
 
+extern long XIRegisterPropertyHandler(
+        DeviceIntPtr         dev,
+        Bool (*SetProperty) (DeviceIntPtr dev,
+                             Atom property,
+                             XIPropertyValuePtr prop),
+        Bool (*GetProperty) (DeviceIntPtr dev,
+                             Atom property)
+);
+
+extern void XIUnRegisterPropertyHandler(
+        DeviceIntPtr          dev,
+        long                  id
+);
+
 #endif /* EXEVENTS_H */

@@ -358,14 +358,22 @@ typedef struct _XIProperty
                           pending;
 } XIPropertyRec;
 
+
+
 typedef XIPropertyRec      *XIPropertyPtr;
 typedef XIPropertyValueRec *XIPropertyValuePtr;
 
-typedef Bool (*XISetDevicePropertyProcPtr) (DeviceIntPtr dev,
-                                            Atom property,
-                                            XIPropertyValuePtr prop);
-typedef Bool (*XIGetDevicePropertyProcPtr) (DeviceIntPtr dev,
-                                            Atom property);
+
+typedef struct _XIPropertyHandler
+{
+    struct _XIPropertyHandler* next;
+    long id;
+    Bool (*SetProperty) (DeviceIntPtr dev,
+                         Atom property,
+                         XIPropertyValuePtr prop);
+    Bool (*GetProperty) (DeviceIntPtr dev,
+                         Atom property);
+} XIPropertyHandler, *XIPropertyHandlerPtr;
 
 /* states for devices */
 
@@ -465,11 +473,12 @@ typedef struct _DeviceIntRec {
         int             numValuators;
     } last;
 
-    /* Input device property handling */
-    XIPropertyPtr               properties;
-    Bool                        pendingProperties;
-    XISetDevicePropertyProcPtr  SetProperty;
-    XIGetDevicePropertyProcPtr  GetProperty;
+    /* Input device property handling. */
+    struct {
+        XIPropertyPtr   properties;
+        Bool            pendingProperties;
+        XIPropertyHandlerPtr handlers; /* NULL-terminated */
+    } properties;
 } DeviceIntRec;
 
 typedef struct {
