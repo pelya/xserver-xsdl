@@ -674,6 +674,7 @@ ProcXGetDeviceProperty (ClientPtr client)
     reply.repType = X_Reply;
     reply.RepType = X_GetDeviceProperty;
     reply.sequenceNumber = client->sequence;
+    reply.deviceid = dev->id;
     if (!prop)
     {
         reply.nItems = 0;
