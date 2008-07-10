@@ -35,6 +35,7 @@ sdk_HEADERS =		\
 	privates.h	\
 	property.h	\
 	propertyst.h	\
+	ptrveloc.h  \
 	region.h	\
 	regionstr.h	\
 	registry.h	\

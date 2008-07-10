@@ -62,6 +62,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "cursorstr.h"
 #include "dixstruct.h"
+#include "ptrveloc.h"
 #include "site.h"
 #ifndef XKB_IN_SERVER
 #define	XKB_IN_SERVER
@@ -172,6 +173,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     /* last valuators */
     memset(dev->last.valuators, 0, sizeof(dev->last.valuators));
+    memset(dev->last.remainder, 0, sizeof(dev->last.remainder));
     dev->last.numValuators = 0;
 
     /* device properties */
@@ -785,6 +787,10 @@ CloseDevice(DeviceIntPtr dev)
     if (dev->isMaster && dev->spriteInfo->sprite)
         screen->DeviceCursorCleanup(dev, screen);
 
+    /* free acceleration info */
+    if(dev->valuator && dev->valuator->accelScheme.AccelCleanupProc)
+	dev->valuator->accelScheme.AccelCleanupProc(dev);
+
     xfree(dev->name);
 
     classes = (ClassesPtr)&dev->key;
@@ -1196,8 +1202,6 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->mode = mode;
     valc->axes = (AxisInfoPtr)(valc + 1);
     valc->axisVal = (int *)(valc->axes + numAxes);
-    valc->dxremaind = 0;
-    valc->dyremaind = 0;
     dev->valuator = valc;
 
     AllocateMotionHistory(dev);
@@ -1209,6 +1213,59 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     }
 
     dev->last.numValuators = numAxes;
+    if(!dev->isMaster) /* master devs do not accelerate */
+	InitPointerAccelerationScheme(dev, PtrAccelDefault);
+    return TRUE;
+}
+
+/* global list of acceleration schemes */
+ValuatorAccelerationRec pointerAccelerationScheme[] = {
+    {PtrAccelNoOp,        NULL, NULL, NULL},
+    {PtrAccelPredictable, acceleratePointerPredictable, NULL, AccelerationDefaultCleanup},
+    {PtrAccelClassic,     acceleratePointerClassic, NULL, NULL},
+    {-1, NULL, NULL, NULL} /* terminator */
+};
+
+_X_EXPORT Bool
+InitPointerAccelerationScheme(DeviceIntPtr dev,
+                              int scheme)
+{
+    int x, i = -1;
+    void* data = NULL;
+    ValuatorClassPtr val;
+
+    if(dev->isMaster) /* bail out if called for master devs */
+	return FALSE;
+
+    for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
+        if(pointerAccelerationScheme[x].number == scheme){
+            i = x;
+            break;
+        }
+    }
+
+    if(-1 == i)
+        return FALSE;
+
+
+    /* init scheme-specific data */
+    switch(scheme){
+        case PtrAccelPredictable:
+        {
+            DeviceVelocityPtr s;
+            s = (DeviceVelocityPtr)xalloc(sizeof(DeviceVelocityRec));
+            InitVelocityData(s);
+            data = s;
+            break;
+        }
+        default:
+            break;
+    }
+
+    val = dev->valuator;
+    val->accelScheme = pointerAccelerationScheme[i];
+    val->accelScheme.accelData = data;
+
     return TRUE;
 }
 

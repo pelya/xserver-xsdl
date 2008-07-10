@@ -166,6 +166,13 @@ typedef struct _AxisInfo {
     int		max_value;
 } AxisInfo, *AxisInfoPtr;
 
+typedef struct _ValuatorAccelerationRec {
+    int                         number;
+    PointerAccelSchemeProc      AccelSchemeProc;
+    void                       *accelData; /* at disposal of AccelScheme */
+    DeviceCallbackProc          AccelCleanupProc;
+} ValuatorAccelerationRec, *ValuatorAccelerationPtr;
+
 typedef struct _ValuatorClassRec {
     int		 	  numMotionEvents;
     int                   first_motion;
@@ -177,8 +184,8 @@ typedef struct _ValuatorClassRec {
     AxisInfoPtr 	  axes;
     unsigned short	  numAxes;
     int			  *axisVal; /* always absolute, but device-coord system */
-    float                 dxremaind, dyremaind; /* for acceleration */
     CARD8	 	  mode;
+    ValuatorAccelerationRec	accelScheme;
 } ValuatorClassRec, *ValuatorClassPtr;
 
 typedef struct _ButtonClassRec {
@@ -467,9 +474,12 @@ typedef struct _DeviceIntRec {
     /* last valuator values recorded, not posted to client;
      * for slave devices, valuators is in device coordinates
      * for master devices, valuators is in screen coordinates
-     * see dix/getevents.c */
+     * see dix/getevents.c
+     * remainder supports acceleration
+     */
     struct {
         int             valuators[MAX_VALUATORS];
+        float           remainder[MAX_VALUATORS];
         int             numValuators;
     } last;
 

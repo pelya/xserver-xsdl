@@ -28,6 +28,7 @@ libdix_la_SOURCES = 	\
 	pixmap.c	\
 	privates.c	\
 	property.c	\
+	ptrveloc.c	\
 	registry.c	\
 	resource.c	\
 	selection.c	\

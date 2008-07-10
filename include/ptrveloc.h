@@ -1,0 +1,89 @@
+/*
+*  2006-2008 by Simon Thum
+*/
+
+#ifndef POINTERVELOCITY_H
+#define POINTERVELOCITY_H
+
+#include <input.h> /* DeviceIntPtr */
+
+#define MAX_VELOCITY_FILTERS 8
+
+struct _DeviceVelocityRec;
+
+/**
+ * profile
+ * returns actual acceleration depending on velocity, acceleration control,...
+ */
+typedef float (*PointerAccelerationProfileFunc)
+              (struct _DeviceVelocityRec* /*pVel*/,
+               float /*threshold*/, float /*acc*/);
+
+/**
+ * a filter stage contains the data for the adaptive IIR filtering.
+ * To improve results, one may run several parallel filters
+ * which have different decays. Since more integration means more
+ * delay, a given filter only does good matches in a specific phase of
+ * a stroke.
+ *
+ * Basically, the coupling feature makes one filter fairly enough,
+ * so that is the default.
+ */
+typedef struct _FilterStage {
+    float*  fading_lut;     /* lookup for adaptive IIR filter */
+    int     fading_lut_size; /* size of lookup table */
+    float   rdecay;     /* reciprocal weighting halflife in ms */
+    float   current;
+} FilterStage, *FilterStagePtr;
+
+/**
+ * Contains all data needed to implement mouse ballistics
+ */
+typedef struct _DeviceVelocityRec {
+    FilterStage filters[MAX_VELOCITY_FILTERS];
+    float   velocity;       /* velocity as guessed by algorithm */
+    int     lrm_time;       /* time the last motion event was processed  */
+    int     last_dx, last_dy; /* last motion delta */
+    int     last_diff;      /* last time-diff */
+    float   corr_mul;       /* config: multiply this into velocity */
+    float   const_acceleration;  /* config: (recipr.) const deceleration */
+    float   min_acceleration;    /* config: minimum acceleration */
+    short   reset_time;     /* config: reset non-visible state after # ms */
+    short   use_softening;  /* config: use softening of mouse values */
+    float   coupling;       /* config: max. divergence before coupling */
+    PointerAccelerationProfileFunc Profile;
+    PointerAccelerationProfileFunc deviceSpecificProfile;
+    void*   profile_private;/* extended data, see  SetAccelerationProfile() */
+    struct {   /* to be able to query this information */
+        int     profile_number;
+        int     filter_usecount[MAX_VELOCITY_FILTERS];
+    } statistics;
+} DeviceVelocityRec, *DeviceVelocityPtr;
+
+
+extern void
+InitVelocityData(DeviceVelocityPtr s);
+
+extern void
+InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
+                int lutsize, int stages);
+
+extern int
+SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
+
+extern void
+SetDeviceSpecificAccelerationProfile(DeviceIntPtr s,
+                                     PointerAccelerationProfileFunc profile);
+
+extern void
+AccelerationDefaultCleanup(DeviceIntPtr pDev);
+
+extern void
+acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
+                             int num_valuators, int *valuators, int evtime);
+
+extern void
+acceleratePointerClassic(DeviceIntPtr pDev, int first_valuator,
+                         int num_valuators, int *valuators, int ignore);
+
+#endif  /* POINTERVELOCITY_H */

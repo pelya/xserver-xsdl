@@ -63,6 +63,12 @@ SOFTWARE.
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
 
+/*int constants for pointer acceleration schemes*/
+#define PtrAccelNoOp            0
+#define PtrAccelPredictable     1
+#define PtrAccelClassic         2
+#define PtrAccelDefault         PtrAccelPredictable
+
 #define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */
 
 #define NO_AXIS_LIMITS -1
@@ -154,6 +160,17 @@ typedef void (*DeviceUnwrapProc)(
     DeviceHandleProc /*proc*/,
     void* /*data*/
     );
+
+/* pointer acceleration handling */
+typedef void (*PointerAccelSchemeProc)(
+    DeviceIntPtr /*pDev*/,
+    int /*first_valuator*/,
+    int /*num_valuators*/,
+    int* /*valuators*/,
+    int /*evtime*/);
+
+typedef void (*DeviceCallbackProc)(
+              DeviceIntPtr /*pDev*/);
 
 typedef struct _DeviceRec {
     pointer	devicePrivate;
@@ -279,6 +296,10 @@ extern Bool InitValuatorClassDeviceStruct(
     int /*numAxes*/,
     int /*numMotionEvents*/,
     int /*mode*/);
+
+extern Bool InitPointerAccelerationScheme(
+    DeviceIntPtr /*dev*/,
+    int /*scheme*/);
 
 extern Bool InitAbsoluteClassDeviceStruct(
     DeviceIntPtr /*device*/);

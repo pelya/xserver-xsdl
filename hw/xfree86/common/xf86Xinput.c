@@ -82,11 +82,124 @@
 
 #include "mi.h"
 
+#include <ptrveloc.h>          /* dix pointer acceleration */
+
 #ifdef XFreeXDGA
 #include "dgaproc.h"
 #endif
 
 EventListPtr xf86Events = NULL;
+
+/**
+ * Eval config and modify DeviceVelocityRec accordingly
+ */
+static void
+ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
+    int tempi, i;
+    float tempf, tempf2;
+
+    if(!s)
+        return;
+
+    tempf = xf86SetRealOption(list, "FilterHalflife", 20);
+    xf86Msg(X_CONFIG, "%s: (accel) filter halflife %.1f ms\n", devname, tempf);
+    if(tempf > 0)
+        tempf = 1.0 / tempf;   /* set reciprocal if possible */
+    else
+        tempf = 10000;   /* else set fairly high */
+
+    tempf2 = xf86SetRealOption(list, "FilterChainProgression", 2.0);
+    xf86Msg(X_CONFIG, "%s: (accel) filter chain progression: %.2f\n",
+            devname, tempf2);
+    if(tempf2 < 1)
+        tempf2 = 2;
+
+    tempi = xf86SetIntOption(list, "FilterChainLength", 1);
+    if(tempi < 1 || tempi > MAX_VELOCITY_FILTERS)
+	tempi = 1;
+
+    InitFilterChain(s, tempf, tempf2, tempi, 40);
+    for(i = 0; i < tempi; i++)
+	xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
+                devname, i, 1.0f / (s->filters[i].rdecay));
+
+    tempf = xf86SetIntOption(list, "ConstantDeceleration", 1);
+    if(tempf > 1.0){
+        xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
+                devname, tempf);
+        s->const_acceleration = 1.0 / tempf;   /* set reciprocal deceleration
+                                                  alias acceleration */
+    }
+
+    tempf = xf86SetIntOption(list, "AdaptiveDeceleration", 1);
+    if(tempf > 1.0){
+        xf86Msg(X_CONFIG, "%s: (accel) adaptive deceleration by %.1f\n",
+                devname, tempf);
+        s->min_acceleration = 1.0 / tempf;   /* set minimum acceleration */
+    }
+
+    tempf = xf86SetRealOption(list, "VelocityCoupling", 0.2);
+    xf86Msg(X_CONFIG, "%s: (accel) velocity coupling is %.1f%%\n", devname,
+                tempf*100.0);
+    s->coupling = tempf;
+
+    /*  Configure softening. If const deceleration is used, this is expected
+     *  to provide better subpixel information so we enable
+     *  softening by default only if ConstantDeceleration is not used
+     */
+    s->use_softening = xf86SetBoolOption(list, "Softening",
+                                         s->const_acceleration == 1.0);
+
+    s->reset_time = xf86SetIntOption(list, "VelocityReset", 300);
+
+    tempf = xf86SetRealOption(list, "ExpectedRate", 0);
+    if(tempf > 0){
+        s->corr_mul = 1000.0 / tempf;
+    }else{
+        s->corr_mul = xf86SetRealOption(list, "VelocityScale", 10);
+    }
+
+    /* select profile by number */
+    tempi= xf86SetIntOption(list, "AccelerationProfile", 0);
+    if(SetAccelerationProfile(s, tempi)){
+        xf86Msg(X_CONFIG, "%s: (accel) set acceleration profile %i\n", devname, tempi);
+    }else{
+        xf86Msg(X_CONFIG, "%s: (accel) acceleration profile %i is unknown\n",
+                devname, tempi);
+    }
+}
+
+static void
+ApplyAccelerationSettings(DeviceIntPtr dev){
+    int scheme;
+    DeviceVelocityPtr pVel;
+    LocalDevicePtr local = (LocalDevicePtr)dev->public.devicePrivate;
+
+    if(dev->valuator){
+        scheme = xf86SetIntOption(local->options, "AccelerationScheme", 1);
+
+        /* reinit scheme if needed */
+        if(dev->valuator->accelScheme.number != scheme){
+            if(dev->valuator->accelScheme.AccelCleanupProc){
+                dev->valuator->accelScheme.AccelCleanupProc(dev);
+            }
+
+            xf86Msg(X_CONFIG, "%s: (accel) init acceleration scheme %i\n", local->name, scheme);
+            InitPointerAccelerationScheme(dev, scheme);
+        }else{
+            xf86Msg(X_CONFIG, "%s: (accel) keeping acceleration scheme %i\n", local->name, scheme);
+        }
+
+        /* process special configuration */
+        switch(scheme){
+            case 1:
+                pVel = (DeviceVelocityPtr) dev->valuator->accelScheme.accelData;
+                ProcessVelocityConfiguration (local->name, local->options,
+                                              pVel);
+                break;
+        }
+    }
+}
 
 static Bool
 xf86SendDragEvents(DeviceIntPtr	device)
@@ -838,6 +951,9 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 	dev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         dev->last.valuators[1] = dev->valuator->axisVal[1];
     }
+
+    if(axnum == 0)  /* to prevent double invocation */
+	ApplyAccelerationSettings(dev);
 }
 
 
