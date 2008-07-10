@@ -209,6 +209,7 @@ void LoaderReqSymLists(const char **, ...);
 void LoaderReqSymbols(const char *, ...);
 int LoaderCheckUnresolved(int);
 void LoaderGetOS(const char **name, int *major, int *minor, int *teeny);
+Bool LoaderShouldIgnoreABI(void);
 int LoaderGetABIVersion(const char *abiclass);
 
 typedef pointer (*ModuleSetupProc)(pointer, pointer, int *, int *);

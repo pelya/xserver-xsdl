@@ -713,6 +713,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(LoaderListDirs)
     SYMFUNC(LoaderFreeDirList)
     SYMFUNC(LoaderGetOS)
+    SYMFUNC(LoaderShouldIgnoreABI)
     SYMFUNC(LoaderGetABIVersion)
 
 #ifdef XF86DRI
