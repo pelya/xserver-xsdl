@@ -94,9 +94,7 @@ libXi_la_SOURCES =	\
 	ungrdevk.h \
 	warpdevp.c \
 	warpdevp.h \
-	xiproperty.c \
-	xiproperty.h \
-	xiselev.c \
-	xiselev.h
+        xiselev.c \
+        xiselev.h 
 
 EXTRA_DIST = stubs.c

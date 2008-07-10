@@ -335,38 +335,6 @@ typedef struct {
 
 } SpriteRec, *SpritePtr;
 
-/* Device properties */
-typedef struct _XIPropertyValue
-{
-    Atom                type;           /* ignored by server */
-    short               format;         /* format of data for swapping - 8,16,32 */
-    long                size;           /* size of data in (format/8) bytes */
-    pointer             data;           /* private to client */
-} XIPropertyValueRec;
-
-typedef struct _XIProperty
-{
-    struct _XIProperty   *next;
-    Atom                  propertyName;
-    Bool                  is_pending;
-    Bool                  range;
-    Bool                  immutable;
-
-    int                   num_valid;
-    INT32                 *valid_values;
-    XIPropertyValueRec    current,
-                          pending;
-} XIPropertyRec;
-
-typedef XIPropertyRec      *XIPropertyPtr;
-typedef XIPropertyValueRec *XIPropertyValuePtr;
-
-typedef Bool (*XISetDevicePropertyProcPtr) (DeviceIntPtr dev,
-                                            Atom property,
-                                            XIPropertyValuePtr prop);
-typedef Bool (*XIGetDevicePropertyProcPtr) (DeviceIntPtr dev,
-                                            Atom property);
-
 /* states for devices */
 
 #define NOT_GRABBED		0
@@ -379,9 +347,8 @@ typedef Bool (*XIGetDevicePropertyProcPtr) (DeviceIntPtr dev,
 #define FROZEN_WITH_EVENT	6
 #define THAW_OTHERS		7
 
-
 typedef struct _GrabInfoRec {
-    TimeStamp	    grabTime;
+    TimeStamp	    grabTime;           
     Bool            fromPassiveGrab;    /* true if from passive grab */
     Bool            implicitGrab;       /* implicit from ButtonPress */
     GrabRec         activeGrab;
@@ -464,12 +431,6 @@ typedef struct _DeviceIntRec {
         int             valuators[MAX_VALUATORS];
         int             numValuators;
     } last;
-
-    /* Input device property handling */
-    XIPropertyPtr               properties;
-    Bool                        pendingProperties;
-    XISetDevicePropertyProcPtr  SetProperty;
-    XIGetDevicePropertyProcPtr  GetProperty;
 } DeviceIntRec;
 
 typedef struct {

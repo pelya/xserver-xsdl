@@ -83,7 +83,6 @@ SOFTWARE.
 #include "exglobals.h"
 #include "exevents.h"
 #include "listdev.h" /* for CopySwapXXXClass */
-#include "xiproperty.h"
 
 /** @file
  * This file handles input device-related stuff.
@@ -173,12 +172,6 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     /* last valuators */
     memset(dev->last.valuators, 0, sizeof(dev->last.valuators));
     dev->last.numValuators = 0;
-
-    /* device properties */
-    dev->properties  = NULL;
-    dev->SetProperty = NULL;
-    dev->GetProperty = NULL;
-    dev->pendingProperties = FALSE;
 
     /*  security creation/labeling check
      */
@@ -776,8 +769,6 @@ CloseDevice(DeviceIntPtr dev)
 
     if (!dev)
         return;
-
-    XIDeleteAllDeviceProperties(dev);
 
     if (dev->inited)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
