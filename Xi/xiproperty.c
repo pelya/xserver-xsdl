@@ -304,7 +304,8 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
             XIPropertyHandlerPtr handler = dev->properties.handlers;
             while(handler)
             {
-                if (!handler->SetProperty(dev, prop->propertyName, &new_value))
+                if (handler->SetProperty &&
+                    !handler->SetProperty(dev, prop->propertyName, &new_value))
                 {
                     if (new_value.data)
                         xfree (new_value.data);
@@ -373,7 +374,8 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property, Bool pending)
             XIPropertyHandlerPtr handler = dev->properties.handlers;
             while(handler)
             {
-                handler->GetProperty(dev, prop->propertyName);
+                if (handler->GetProperty)
+                    handler->GetProperty(dev, prop->propertyName);
                 handler = handler->next;
             }
         }
