@@ -123,6 +123,7 @@ SOFTWARE.
 #include "warpdevp.h"
 #include "xiselev.h"
 #include "xiproperty.c"
+#include "xiproperty.h"
 
 
 static Mask lastExtEventMask = 1;
@@ -1140,6 +1141,7 @@ XInputExtensionInit(void)
 	IEventBase = extEntry->eventBase;
 	AllExtensionVersions[IReqCode - 128] = thisversion;
 	MakeDeviceTypeAtoms();
+	XIInitKnownProperties();
 	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone);
 	RegisterResourceName(RT_INPUTCLIENT, "INPUTCLIENT");
 	FixExtensionEvents(extEntry);

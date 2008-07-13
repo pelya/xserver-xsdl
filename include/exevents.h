@@ -253,4 +253,8 @@ extern void XIUnRegisterPropertyHandler(
         long                  id
 );
 
+extern Atom XIGetKnownProperty(
+        char*                 name
+);
+
 #endif /* EXEVENTS_H */

@@ -57,6 +57,7 @@ SOFTWARE.
 #define NEED_EVENTS
 #define NEED_REPLIES
 #include <X11/Xproto.h>
+#include <X11/Xatom.h>
 #include "windowstr.h"
 #include "inputstr.h"
 #include "scrnintstr.h"
@@ -93,6 +94,30 @@ SOFTWARE.
 DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
 /* Used to sture classes currently not in use by an MD */
 DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKey;
+
+
+/**
+ * DIX property handler.
+ */
+static Bool
+DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop)
+{
+    if (property == XIGetKnownProperty(XI_PROP_ENABLED))
+    {
+        if (prop->format != 8 || prop->type != XA_INTEGER || prop->size != 1)
+            return FALSE;
+
+        if ((*((CARD8*)prop->data)) && !dev->enabled)
+            EnableDevice(dev);
+        else if (!(*((CARD8*)prop->data)) && dev->enabled)
+            DisableDevice(dev);
+        return TRUE;
+    }
+
+    return TRUE;
+}
+
+
 
 /**
  * Create a new input device and init it to sane values. The device is added
@@ -195,6 +220,11 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     *prev = dev;
     dev->next = NULL;
 
+    XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           FALSE, FALSE, FALSE);
+    XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL);
+
     return dev;
 }
 
@@ -266,6 +296,7 @@ EnableDevice(DeviceIntPtr dev)
     mieqResizeEvents(evsize);
     OsReleaseSignals();
 
+
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
         ErrorF("[dix] couldn't enable device %d\n", dev->id);
@@ -278,6 +309,10 @@ EnableDevice(DeviceIntPtr dev)
         ;
     *prev = dev;
     dev->next = NULL;
+
+    XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           TRUE, FALSE, FALSE);
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
@@ -342,6 +377,10 @@ DisableDevice(DeviceIntPtr dev)
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
+
+    XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           TRUE, FALSE, FALSE);
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;

@@ -39,7 +39,53 @@
 
 #include "xiproperty.h"
 
+/**
+ * Properties used or alloced from inside the server.
+ */
+static struct dev_properties
+{
+    Atom type;
+    char *name;
+} dev_properties[] = {
+    {0, XI_PROP_ENABLED}
+};
+
 static long XIPropHandlerID = 1;
+
+/**
+ * Return the type assigned to the specified atom or 0 if the atom isn't known
+ * to the DIX.
+ */
+_X_EXPORT Atom
+XIGetKnownProperty(char *name)
+{
+    int i;
+    for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
+    {
+        if (strcmp(name, dev_properties[i].name) == 0)
+            return dev_properties[i].type;
+    }
+
+    return 0;
+}
+
+/**
+ * Init those properties that are allocated by the server and most likely used
+ * by the DIX or the DDX.
+ */
+void
+XIInitKnownProperties(void)
+{
+    int i;
+    for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
+    {
+        dev_properties[i].type =
+            MakeAtom(dev_properties[i].name,
+                     strlen(dev_properties[i].name),
+                     TRUE);
+    }
+}
+
 
 /* Registers a new property handler on the given device and returns a unique
  * identifier for this handler. This identifier is required to unregister the

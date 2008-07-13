@@ -40,4 +40,6 @@ int SProcXChangeDeviceProperty    (ClientPtr client);
 int SProcXDeleteDeviceProperty    (ClientPtr client);
 int SProcXGetDeviceProperty       (ClientPtr client);
 
+void XIInitKnownProperties(void);
+
 #endif /* XIPROPERTY_C */
