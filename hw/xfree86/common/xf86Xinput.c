@@ -299,6 +299,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
   if (!local->control_proc) {
       switch (control->control) {
       case DEVICE_CORE:
+          return BadMatch;
       case DEVICE_RESOLUTION:
       case DEVICE_ABS_CALIB:
       case DEVICE_ABS_AREA:

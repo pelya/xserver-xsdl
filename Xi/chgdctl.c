@@ -245,20 +245,9 @@ ProcXChangeDeviceControl(ClientPtr client)
 
         break;
     case DEVICE_CORE:
-        c = (xDeviceCoreCtl *)&stuff[1];
-
-        status = ChangeDeviceControl(client, dev, (xDeviceCtl *) c);
-
-        if (status == Success) {
-            dev->coreEvents = c->status;
-            ret = Success;
-        } else if (status == DeviceBusy) {
-            rep.status = DeviceBusy;
-            ret = Success;
-        } else {
-            ret = BadMatch;
-        }
-
+        /* Sorry, no device core switching no more. If you want a device to
+         * send core events, attach it to a master device */
+        ret = BadMatch;
         break;
     case DEVICE_ENABLE:
         e = (xDeviceEnableCtl *)&stuff[1];
