@@ -127,6 +127,7 @@ AC_CHECK_HEADER([sys/endian.h], [HAVE_SYS_ENDIAN_H="yes"], [HAVE_SYS_ENDIAN_H="n
 if test "x$HAVE_SYS_ENDIAN_H" = "xyes" ; then
 	AC_MSG_CHECKING([for __swap16 variant of <sys/endian.h> byteswapping macros])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/types.h>
 #include <sys/endian.h>
  ], [
 int a = 1, b;
@@ -137,6 +138,7 @@ b = __swap16(a);
 
 	AC_MSG_CHECKING([for bswap16 variant of <sys/endian.h> byteswapping macros])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/types.h>
 #include <sys/endian.h>
  ], [
 int a = 1, b;
