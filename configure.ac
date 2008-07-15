@@ -1942,7 +1942,6 @@ hw/xfree86/os-support/solaris/Makefile
 hw/xfree86/os-support/sysv/Makefile
 hw/xfree86/os-support/usl/Makefile
 hw/xfree86/parser/Makefile
-hw/xfree86/rac/Makefile
 hw/xfree86/ramdac/Makefile
 hw/xfree86/shadowfb/Makefile
 hw/xfree86/vbe/Makefile

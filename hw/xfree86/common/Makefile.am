@@ -36,7 +36,7 @@ libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Globals.c xf86AutoConfig.c \
                       xf86MiscExt.c xf86Option.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
-                      xf86Helper.c xf86PM.c \
+                      xf86Helper.c xf86PM.c xf86RAC.c \
                       xf86Mode.c xf86Build.h xorgHelper.c xf86Versions.c \
                       $(XVSOURCES) $(BUSSOURCES) $(XKBSOURCES) \
                       $(DEBUGSOURCES) $(XISOURCES) $(RANDRSOURCES)
@@ -50,7 +50,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
 
 sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               xf86PciInfo.h xf86Priv.h xf86Privstr.h xf86Resources.h \
-              xf86cmap.h xf86fbman.h xf86str.h $(XISDKINCS) \
+              xf86cmap.h xf86fbman.h xf86str.h $(XISDKINCS) xf86RAC.h \
               $(XVSDKINCS) atKeynames.h xf86Version.h xorgVersion.h \
               xf86sbusBus.h xf86xv.h xf86xvmc.h xf86xvpriv.h
 

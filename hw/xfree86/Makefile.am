@@ -14,13 +14,13 @@ endif
 
 DOC_SUBDIR = doc
 
-SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
+SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser \
 	  ramdac shadowfb vbe vgahw xaa \
 	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
-               parser rac ramdac shadowfb vbe vgahw xaa \
+               parser ramdac shadowfb vbe vgahw xaa \
                xf8_16bpp loader dixmods dri dri2 exa modes \
 	       utils doc
 
@@ -48,7 +48,6 @@ XORG_LIBS = \
             common/libinit.a \
             loader/libloader.a \
             libosandcommon.la \
-	    rac/librac.a \
             parser/libxf86config.a \
 	    dixmods/libdixmods.la \
 	    modes/libxf86modes.a \
