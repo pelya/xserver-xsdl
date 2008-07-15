@@ -202,9 +202,6 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasestr' function. */
-#undef HAVE_STRCASESTR
-
 /* Define to 1 if you have the `strchr' function. */
 #undef HAVE_STRCHR
 
@@ -497,5 +494,11 @@
 
 /* Define to 64-bit byteswap macro */
 #undef bswap_64
+
+/* Need the strcasecmp function. */
+#undef NEED_STRCASECMP
+
+/* Need the strncasecmp function. */
+#undef NEED_STRNCASECMP
 
 #endif /* _DIX_CONFIG_H_ */
