@@ -1101,25 +1101,29 @@ MIEXT_SHADOW_INC='-I$(top_srcdir)/miext/shadow'
 MIEXT_SHADOW_LIB='$(top_builddir)/miext/shadow/libshadow.la'
 CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
-PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
-PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
-
 # OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
 # the OpenSSL libraries, just libcrypto
 # Some systems have matching functionality in the smaller/simpler libmd
 # Builders who want to force a choice can set SHA1_LIB and SHA1_CFLAGS
 if test "x$SHA1_LIB" = "x" ; then
- AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIB="-lmd"
-	AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
-	   [Define to use libmd SHA1 functions instead of OpenSSL libcrypto])])
+  AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIB="-lmd"
+            AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
+            [Use libmd SHA1 functions instead of OpenSSL libcrypto])])
 fi
+
 if test "x$SHA1_LIB" = "x" ; then
- AC_CHECK_LIB([crypto], [SHA1_Init], [],
-  [PKG_CHECK_MODULES([OPENSSL], [openssl],
-   [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])])
- SHA1_LIB="$OPENSSL_LIB_FLAGS -lcrypto"
- SHA1_CFLAGS="$OPENSSL_CFLAGS"
+  PKG_CHECK_EXISTS([OPENSSL], [openssl], [HAVE_OPENSSL_PKC=yes],
+                    [HAVE_OPENSSL_PKC=no])
+  if test "x$HAVE_OPENSSL_PKC" = xyes; then
+    REQUIRED_LIBS="$REQUIRED_LIBS openssl"
+  else
+    AC_CHECK_LIB([crypto], [SHA1_Init], [SHA1_LIB="-lcrypto"],
+                 [AC_MSG_ERROR([OpenSSL must be installed in order to build the X server.])])
+  fi
 fi
+
+PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
+PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 # Autotools has some unfortunate issues with library handling.  In order to
 # get a server to rebuild when a dependency in the tree is changed, it must
