@@ -80,8 +80,6 @@ Bool xf86CheckPciSlot( const struct pci_device * );
 
 extern char *loaderPath, **loaderList, **ploaderList;
 xf86cfgModuleOptions *module_options;
-FontModule *font_module;
-int numFontModules;
 
 extern int noverify, error_level;
 
@@ -89,7 +87,6 @@ int xf86ShowUnresolved = 1;
 
 LOOKUP miLookupTab[]      = {{0,0}};
 LOOKUP dixLookupTab[]     = {{0,0}};
-LOOKUP fontLookupTab[]    = {{0,0}};
 LOOKUP extLookupTab[]     = {{0,0}};
 LOOKUP xfree86LookupTab[] = {
        /* Loader functions */
@@ -99,7 +96,6 @@ LOOKUP xfree86LookupTab[] = {
    SYMFUNC(LoaderErrorMsg)
    SYMFUNC(LoaderCheckUnresolved)
    SYMFUNC(LoadExtension)
-   SYMFUNC(LoadFont)
    SYMFUNC(LoaderReqSymbols)
    SYMFUNC(LoaderReqSymLists)
    SYMFUNC(LoaderRefSymbols)
@@ -221,10 +217,6 @@ xf86cfgLoaderInitList(int type)
 	"input",
 	NULL
     };
-    static const char *font[] = {
-	"fonts",
-	NULL
-    };
     const char **subdirs;
 
     switch (type) {
@@ -236,9 +228,6 @@ xf86cfgLoaderInitList(int type)
 	    break;
 	case InputModule:
 	    subdirs = input;
-	    break;
-	case FontRendererModule:
-	    subdirs = font;
 	    break;
 	default:
 	    fprintf(stderr, "Invalid value passed to xf86cfgLoaderInitList.\n");
@@ -270,13 +259,10 @@ xf86cfgCheckModule(void)
 {
     int errmaj, errmin;
     ModuleDescPtr module;
-    int nfonts;
-    FontModule *fonts, *pfont_module;
 
     driver = NULL;
     chips = NULL;
     info = NULL;
-    pfont_module = NULL;
     vendor = -1;
     module_type = GenericModule;
 
@@ -317,47 +303,6 @@ xf86cfgCheckModule(void)
 	    }
 	}
 	XtFree(p);
-    }
-
-    nfonts = numFontModules;
-    numFontModules = 0;
-    fonts = FontModuleList;
-    if (fonts) {
-	Bool dup = FALSE;
-	while (fonts->name) {
-	    if (strcasecmp(fonts->name, *ploaderList) == 0) {
-		pfont_module = fonts;
-		/* HACK:
-		 * fonts->names points into modules.
-		 * Duplicate string of all remaining names to survive
-		 * unloading. Since new fonts are appended to list
-		 * this will only happen once per renderer.
-		 */
-		dup = TRUE;
-	    }
-	    if (dup)
-		fonts->name = strdup(fonts->name);
-	    ++numFontModules;
-	    ++fonts;
-	}
-    }
-    if (pfont_module)
-	module_type = FontRendererModule;
-    else if (nfonts + 1 <= numFontModules) {
-	/* loader.c will flag a warning if -noverify is not set */
-	pfont_module = &FontModuleList[nfonts];
-	module_type = FontRendererModule;
-    }
-
-    if (font_module) {
-	XtFree((XtPointer)font_module->name);
-	XtFree((XtPointer)font_module);
-	font_module = NULL;
-    }
-    if (pfont_module) {
-	font_module = XtNew(FontModule);
-	memcpy(font_module, pfont_module, sizeof(FontModule));
-	font_module->name = XtNewString(pfont_module->name);
     }
 
     UnloadModule(module);

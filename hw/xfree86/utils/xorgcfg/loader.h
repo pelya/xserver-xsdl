@@ -47,7 +47,6 @@
 #endif
 #include "xf86Xinput.h"
 
-#include <X11/fonts/fontmod.h>
 #include "loaderProcs.h"
 
 #include <sym.h>
@@ -102,17 +101,6 @@ typedef struct {
     Bool                found;
 } OptionInfoRec, *OptionInfoPtr;
 
-/* fontmod.h */
-typedef void (*InitFont)(void);
-
-typedef struct {
-    InitFont	initFunc;
-    char *	name;
-    void	*module;
-} FontModule;
-
-extern FontModule *FontModuleList;
-
 typedef struct {
     int                 token;          /* id of the token */
     const char *        name;           /* token name */
@@ -124,7 +112,6 @@ typedef enum {
     VideoModule,
     InputModule,
     GenericModule,
-    FontRendererModule
 } ModuleType;
 
 typedef struct _xf86cfgModuleOptions {

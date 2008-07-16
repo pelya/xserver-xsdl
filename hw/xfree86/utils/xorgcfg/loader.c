@@ -74,9 +74,6 @@ extern int noverify;
 extern ModuleType module_type;
 static OptionInfoPtr option;
 
-extern FontModule *font_module;
-extern int numFontModules;
-
 char **checkerLegend;
 int *checkerErrors;
 
@@ -173,12 +170,12 @@ LoaderInitializeOptions(void)
     XrmQuark classes[2];
     volatile int i;
     static ModuleType module_types[] = {
-	GenericModule, FontRendererModule, InputModule, VideoModule, NullModule
+	GenericModule, InputModule, VideoModule, NullModule
     };
 
     /* The offset in this vector must match loader.h:enum ModuleType values */
     static char *module_strs[] = {
-	"Null Module", "Video Module", "Input Module", "Generic Module", "Font Module"
+	"Null Module", "Video Module", "Input Module", "Generic Module",
     };
 
     if (first) {
@@ -202,9 +199,8 @@ LoaderInitializeOptions(void)
 	checkerLegend[CHECKER_RECOGNIZED_AS] =
 	"This message means the module code did not follow what was expected\n"
 	"by the checker. For video drivers, it did not call xf86AddDriver,\n"
-	"a input module did not call xf86AddInputDriver and a font renderer\n"
-	"module did not call LoadFont. This message can also be printed if\n"
-	"the module is in the incorrect directory.";
+	"a input module did not call xf86AddInputDriver. This message can\n"
+	"also be printed if the module is in the incorrect directory.";
 	checkerLegend[CHECKER_NO_OPTIONS_AVAILABLE] =
 	"The driver does not have an AvailableOptions function, or that\n"
 	"function is returning NULL. If the driver is returning NULL, and\n"
@@ -272,9 +268,8 @@ LoaderInitializeOptions(void)
 		signal(SIGFPE, sig_handler);
 		if (sigsetjmp(jmp, 1) == 0) {
 		    if (!noverify) {
-			int ok, nfont_modules;
+			int ok;
 
-			nfont_modules = numFontModules;
 			error_level = 0;
 			ErrorF("CHECK MODULE %s\n", *ploaderList);
 			if ((ok = xf86cfgCheckModule()) == 0) {
@@ -351,25 +346,6 @@ LoaderInitializeOptions(void)
 				    ErrorF("  CHECK CHIPSETS\n");
 				    CheckChipsets(module_options, &error_level);
 				}
-			    }
-
-			    /* font modules check */
-			    if (module_type == FontRendererModule) {
-				if (strcmp(*ploaderList, font_module->name)) {
-				    /* not an error */
-				    ErrorF("  NOTICE FontModule->name specification mismatch: \"%s\" \"%s\"\n",
-					   *ploaderList, font_module->name);
-				}
-				if (nfont_modules + 1 != numFontModules) {
-				    /* not an error */
-				    ErrorF("  NOTICE font module \"%s\" loaded more than one font renderer.\n",
-					   *ploaderList);
-				}
-			    }
-			    else if (nfont_modules != numFontModules) {
-				ErrorF("  WARNING number of font modules changed from %d to %d.\n",
-				       nfont_modules, numFontModules);
-				++error_level;
 			    }
 			}
 			ErrorF("  SUMMARY error_level set to %d.\n\n", error_level);
