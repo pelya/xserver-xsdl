@@ -23,12 +23,10 @@ libloader_a_SOURCES = \
 	loaderProcs.h \
 	loadext.c \
         loadmod.c \
-	loadfont.c \
         dlloader.c \
 	os.c \
 	dixsym.c \
 	extsym.c \
-	fontsym.c \
 	misym.c \
 	xf86sym.c \
 	sym.h \
