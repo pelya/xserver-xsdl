@@ -129,10 +129,6 @@ extern Bool noXFree86DGAExtension;
 extern Bool noXFree86DRIExtension;
 #endif
 
-#ifdef XF86MISC
-extern Bool noXFree86MiscExtension;
-#endif
-
 #ifdef XF86VIDMODE
 extern Bool noXFree86VidModeExtension;
 #endif

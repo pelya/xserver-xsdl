@@ -951,13 +951,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.vidModeAllowNonLocal = value;
 #endif
 
-#ifdef XF86MISC
-    if (xf86GetOptValBool(FlagOptions, FLAG_DISABLEMODINDEV, &value))
-	xf86Info.miscModInDevEnabled = !value;
-    if (xf86GetOptValBool(FlagOptions, FLAG_MODINDEVALLOWNONLOCAL, &value))
-	xf86Info.miscModInDevAllowNonLocal = value;
-#endif
-
     if (xf86GetOptValBool(FlagOptions, FLAG_ALLOWMOUSEOPENFAIL, &value))
 	xf86Info.allowMouseOpenFail = value;
 
@@ -2614,13 +2607,6 @@ xf86HandleConfigFile(Bool autoconfig)
 	xf86Info.vidModeEnabled = FALSE;
     if (xf86VidModeAllowNonLocal)
 	xf86Info.vidModeAllowNonLocal = TRUE;
-#endif
-
-#ifdef XF86MISC
-    if (xf86MiscModInDevDisabled)
-	xf86Info.miscModInDevEnabled = FALSE;
-    if (xf86MiscModInDevAllowNonLocal)
-	xf86Info.miscModInDevAllowNonLocal = TRUE;
 #endif
 
     if (xf86AllowMouseOpenFail)

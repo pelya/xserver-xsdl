@@ -57,13 +57,6 @@ extern void	XFree86VidModeExtensionInit(INITARGS);
 #include <X11/extensions/xf86vmstr.h>
 #endif
 
-#ifdef XF86MISC
-extern void XFree86MiscExtensionInit(INITARGS);
-#define _XF86MISC_SERVER_
-#define _XF86MISC_SAVER_COMPAT_
-#include <X11/extensions/xf86mscstr.h>
-#endif
-
 #ifdef XFreeXDGA
 extern void XFree86DGAExtensionInit(INITARGS);
 extern void XFree86DGARegister(INITARGS);

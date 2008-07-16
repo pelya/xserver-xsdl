@@ -12,7 +12,7 @@ ILHACK_SRCS = xf86_IlHack.c
 
 noinst_LTLIBRARIES = libmisc.la
 
-libmisc_la_SOURCES = xf86_Util.c Delay.c $(ARCH_SRCS)
+libmisc_la_SOURCES = Delay.c $(ARCH_SRCS)
 
 #AM_LDFLAGS = -r
 

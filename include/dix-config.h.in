@@ -359,9 +359,6 @@
 /* Build XFree86 BigFont extension */
 #undef XF86BIGFONT
 
-/* Support XFree86 miscellaneous extensions */
-#undef XF86MISC
-
 /* Support XFree86 Video Mode extension */
 #undef XF86VIDMODE
 

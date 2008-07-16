@@ -51,10 +51,6 @@ extern Bool xf86AllowMouseOpenFail;
 extern Bool xf86VidModeDisabled;
 extern Bool xf86VidModeAllowNonLocal; 
 #endif 
-#ifdef XF86MISC
-extern Bool xf86MiscModInDevDisabled;
-extern Bool xf86MiscModInDevAllowNonLocal;
-#endif 
 extern Bool xf86fpFlag;
 extern Bool xf86coFlag;
 extern Bool xf86sFlag;

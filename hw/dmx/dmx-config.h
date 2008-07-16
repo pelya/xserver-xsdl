@@ -80,7 +80,6 @@
 #undef XIE
 #undef DBE
 #undef XF86VIDMODE
-#undef XF86MISC
 #undef XFreeXDGA
 #undef XF86DRI
 #undef SCREENSAVER

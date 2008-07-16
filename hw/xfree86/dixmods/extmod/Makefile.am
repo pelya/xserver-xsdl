@@ -11,10 +11,6 @@ if XV
 XV_SRCS = xvmod.c xvmodproc.h
 endif
 
-if XF86MISC
-XF86MISC_SRCS = xf86misc.c xf86miscproc.h
-endif
-
 if XF86VIDMODE
 XF86VMODE_SRCS = xf86vmode.c vidmodeproc.h
 endif
@@ -29,7 +25,6 @@ libextmod_la_LDFLAGS = -avoid-version
 libextmod_la_SOURCES = modinit.c \
                        modinit.h \
                        $(DGA_SRCS) \
-                       $(XF86MISC_SRCS) \
                        $(XF86VMODE_SRCS) \
                        $(XV_SRCS)
 libextmod_la_LIBADD = $(top_builddir)/Xext/libXextmodule.la

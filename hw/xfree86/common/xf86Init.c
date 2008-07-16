@@ -1518,18 +1518,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     return 1;
   }
 #endif
-#ifdef XF86MISC
-  if (!strcmp(argv[i],"-disableModInDev"))
-  {
-    xf86MiscModInDevDisabled = TRUE;
-    return 1;
-  }
-  if (!strcmp(argv[i],"-allowNonLocalModInDev"))
-  {
-    xf86MiscModInDevAllowNonLocal = TRUE;
-    return 1;
-  }
-#endif
   if (!strcmp(argv[i],"-allowMouseOpenFail"))
   {
     xf86AllowMouseOpenFail = TRUE;
@@ -1817,12 +1805,6 @@ ddxUseMsg()
 #ifdef XF86VIDMODE
   ErrorF("-disableVidMode        disable mode adjustments with xvidtune\n");
   ErrorF("-allowNonLocalXvidtune allow xvidtune to be run as a non-local client\n");
-#endif
-#ifdef XF86MISC
-  ErrorF("-disableModInDev       disable dynamic modification of input device settings\n");
-  ErrorF("-allowNonLocalModInDev allow changes to keyboard and mouse settings\n");
-  ErrorF("                       from non-local clients\n");
-  ErrorF("-allowMouseOpenFail    start server even if the mouse can't be initialized\n");
 #endif
   ErrorF("-bestRefresh           choose modes with the best refresh rate\n");
   ErrorF("-ignoreABI             make module ABI mismatches non-fatal\n");

@@ -196,9 +196,6 @@ _X_EXPORT Bool noXFree86DGAExtension = FALSE;
 #ifdef XF86DRI
 _X_EXPORT Bool noXFree86DRIExtension = FALSE;
 #endif
-#ifdef XF86MISC
-_X_EXPORT Bool noXFree86MiscExtension = FALSE;
-#endif
 #ifdef XF86VIDMODE
 _X_EXPORT Bool noXFree86VidModeExtension = FALSE;
 #endif

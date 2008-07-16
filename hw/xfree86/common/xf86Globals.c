@@ -192,10 +192,6 @@ Bool xf86AllowMouseOpenFail = FALSE;
 Bool xf86VidModeDisabled = FALSE;
 Bool xf86VidModeAllowNonLocal = FALSE;
 #endif
-#ifdef XF86MISC
-Bool xf86MiscModInDevDisabled = FALSE;
-Bool xf86MiscModInDevAllowNonLocal = FALSE;
-#endif
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 _X_EXPORT Bool xf86inSuspend = FALSE;
 Bool xorgHWAccess = FALSE;

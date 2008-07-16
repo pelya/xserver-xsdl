@@ -545,7 +545,6 @@ AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extensio
 AC_ARG_ENABLE(dri2,           AS_HELP_STRING([--enable-dri2], [Build DRI2 extension (default: auto)]), [DRI2=$enableval])
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: auto)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=auto])
-AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: auto)]), [XF86MISC=$enableval], [XF86MISC=auto])
 AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--disable-xselinux], [Build SELinux extension (default: disabled)]), [XSELINUX=$enableval], [XSELINUX=no])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
@@ -664,7 +663,6 @@ case $host_os in
 			DGA=no
 			DPMSExtension=no
 			XF86BIGFONT=no
-			XF86MISC=no
 			XF86VIDMODE=no
 		fi
 		;;
@@ -1415,15 +1413,6 @@ if test "x$XORG" = xyes; then
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 	fi
 
-	if test "x$XF86MISC" = xauto; then
-		PKG_CHECK_MODULES(XF86MISC, xf86miscproto, [XF86MISC=yes], [XF86MISC=no])
-	fi
-	if test "x$XF86MISC" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86miscproto"
-		PKG_CHECK_MODULES(XF86MISC, xf86miscproto)
-		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
-	fi
-
 	if test "x$XF86VIDMODE" = xauto; then
 		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto, [XF86VIDMODE=yes], [XF86VIDMODE=no])
 	fi
@@ -1513,7 +1502,6 @@ AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
-AM_CONDITIONAL([XF86MISC], [test "x$XF86MISC" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
 dnl XWin DDX
@@ -1565,10 +1553,6 @@ if test "x$XWIN" = xyes; then
 	if test "x$XF86VIDMODE" = xyes; then
 		AC_MSG_NOTICE([Disabling XF86VidMode extension])
 		XF86VIDMODE=no
-	fi
-	if test "x$XF86MISC" = xyes; then
-		AC_MSG_NOTICE([Disabling XF86Misc extension])
-		XF86MISC=no
 	fi
 	if test "x$COMPOSITE" = xyes; then
 		AC_MSG_NOTICE([Disabling Composite extension])
@@ -1837,7 +1821,7 @@ AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg],
 	[XORGCFG=$enableval],[XORGCFG=no])
 if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
-	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
+	    [xkbui >= 1.0.2 xkbfile xxf86vm xaw7 xmu xt xpm xext x11])
 	XORGCFG_DEP_CFLAGS="$XORGCFG_DEP_CFLAGS"
 	AC_CHECK_LIB([curses],[waddstr],
 	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],

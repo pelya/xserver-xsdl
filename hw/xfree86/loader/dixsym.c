@@ -409,9 +409,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef XF86DRI
     SYMVAR(noXFree86DRIExtension)
 #endif
-#ifdef XF86MISC
-    SYMVAR(noXFree86MiscExtension)
-#endif
 #ifdef XF86VIDMODE
     SYMVAR(noXFree86VidModeExtension)
 #endif
