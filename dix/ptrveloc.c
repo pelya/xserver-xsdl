@@ -232,7 +232,9 @@ QueryFilterChain(
     }
 
     s->statistics.filter_usecount[rfn]++;
-    DebugF("(dix ptraccel) result from filter stage %i,  input %.2f, output %.2f\n", rfn, value, result);
+#ifdef SERIOUS_DEBUGGING
+    ErrorF("(dix ptraccel) result from filter stage %i,  input %.2f, output %.2f\n", rfn, value, result);
+#endif
 
     /* override one current (coupling) so the filter
      * catches up quickly. */
@@ -287,7 +289,9 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
         dy += s->last_dy;
         diff += s->last_diff;
         s->last_diff = time - s->lrm_time; /* prevent repeating add-up */
-        DebugF("(dix ptracc) axial correction\n");
+#ifdef SERIOUS_DEBUGGING
+        ErrorF("(dix ptracc) axial correction\n");
+#endif
     }else{
         s->last_diff = diff;
     }
@@ -328,9 +332,12 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
     /* perform coupling and decide final value */
     s->velocity = QueryFilterChain(s, cvelocity, s->coupling);
 
-    DebugF("(dix ptracc) guess: vel=%.3f diff=%d   |%i|%i|%i|%i|\n",
+#ifdef SERIOUS_DEBUGGING
+    ErrorF("(dix ptracc) guess: vel=%.3f diff=%d   |%i|%i|%i|%i|\n",
            s->velocity, diff,
-           s->statistics.filter_usecount[0], s->statistics.filter_usecount[1], s->statistics.filter_usecount[2], s->statistics.filter_usecount[3]);
+           s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
+           s->statistics.filter_usecount[2], s->statistics.filter_usecount[3]);
+#endif
     return reset;
 }
 
@@ -650,11 +657,15 @@ acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
                                 (float)(pDev->ptrfeed->ctrl.num) /
                                 (float)(pDev->ptrfeed->ctrl.den));
 
-            DebugF("(dix ptracc) resulting speed multiplier : %.3f\n", mult);
+#ifdef SERIOUS_DEBUGGING
+            ErrorF("(dix ptracc) resulting speed multiplier : %.3f\n", mult);
+#endif
             /* enforce min_acceleration */
             if (mult < velocitydata->min_acceleration) {
-                DebugF("(dix ptracc) enforced min multiplier : %.3f\n",
+#ifdef SERIOUS_DEBUGGING
+                ErrorF("(dix ptracc) enforced min multiplier : %.3f\n",
                         velocitydata->min_acceleration);
+#endif
                 mult = velocitydata->min_acceleration;
 	    }
 

@@ -88,7 +88,7 @@ Equipment Corporation.
 #include <pixman.h>
 
 #undef assert
-#ifdef DEBUG
+#ifdef REGION_DEBUG
 #define assert(expr) { \
             CARD32 *foo = NULL; \
             if (!(expr)) { \
