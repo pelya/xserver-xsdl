@@ -87,7 +87,6 @@ ModuleDescPtr LoadSubModuleLocal(ModuleDescPtr, const char *,
 				 pointer, const XF86ModReqInfo *,
 				 int *, int *);
 ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
-void LoadFont(FontModule *);
 void UnloadModule(ModuleDescPtr);
 void UnloadSubModule(ModuleDescPtr);
 void UnloadDriver(ModuleDescPtr);

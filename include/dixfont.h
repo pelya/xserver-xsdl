@@ -33,10 +33,6 @@ SOFTWARE.
 
 typedef struct _DIXFontProp *DIXFontPropPtr;
 
-extern FPEFunctions *fpe_functions;
-
-extern int FontToXError(int /*err*/);
-
 extern Bool SetDefaultFont(char * /*defaultfontname*/);
 
 extern void QueueFontWakeup(FontPathElementPtr /*fpe*/);
@@ -109,12 +105,6 @@ extern int GetFontPath(ClientPtr client,
 		       int *count,
 		       int *length,
 		       unsigned char **result);
-
-extern int LoadGlyphs(ClientPtr /*client*/,
-		      FontPtr /*pfont*/,
-		      unsigned /*nchars*/,
-		      int /*item_size*/,
-		      unsigned char * /*data*/);
 
 extern void DeleteClientFontStuff(ClientPtr /*client*/);
 

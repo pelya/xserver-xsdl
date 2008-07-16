@@ -113,8 +113,7 @@ LoaderInit(void)
 
     xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)
 		((long)dixLookupTab ^ (long)extLookupTab
-	        ^ (long)fontLookupTab ^ (long)miLookupTab
-		^ (long)xfree86LookupTab));
+	        ^ (long)miLookupTab ^ (long)xfree86LookupTab));
     xf86MsgVerb(X_INFO, 2, "Module ABI versions:\n");
     xf86ErrorFVerb(2, "\t%s: %d.%d\n", ABI_CLASS_ANSIC,
 		   GET_ABI_MAJOR(LoaderVersionInfo.ansicVersion),
@@ -128,9 +127,6 @@ LoaderInit(void)
     xf86ErrorFVerb(2, "\t%s : %d.%d\n", ABI_CLASS_EXTENSION,
 		   GET_ABI_MAJOR(LoaderVersionInfo.extensionVersion),
 		   GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
-    xf86ErrorFVerb(2, "\t%s : %d.%d\n", ABI_CLASS_FONT,
-		   GET_ABI_MAJOR(LoaderVersionInfo.fontVersion),
-		   GET_ABI_MINOR(LoaderVersionInfo.fontVersion));
 
     LoaderGetOS(&osname, NULL, NULL, NULL);
     if (osname)
