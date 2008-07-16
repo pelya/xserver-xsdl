@@ -647,8 +647,7 @@ Note that the options
 and
 .B AllowClosedownGrabs
 will allow users to remove the grab used by screen saver/locker programs.
-An API was written to such cases.
-If you enable this option, make sure your screen saver/locker is updated.
+Do not use them if you rely on the screen saver for security.
 Default: off.
 .TP 7
 .BI "Option \*qHandleSpecialKeys\*q \*q" when \*q
