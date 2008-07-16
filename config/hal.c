@@ -262,17 +262,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                      * Since we can't predict the order in which the keys
                      * arrive, we need to store them.
                      */
-#ifndef HAVE_STRCASESTR
-                    int psi_key_len = strlen(psi_key);
-                    char *lower_psi_key = xalloc(psi_key_len + 1);
-
-                    CopyISOLatin1Lowered((unsigned char *) lower_psi_key,
-                                         (unsigned char *) psi_key,
-                                         psi_key_len);
-                    if ((tmp = strstr(lower_psi_key, "xkb")))
-#else
                     if ((tmp = strcasestr(psi_key, "xkb")))
-#endif
                     {
                         if (!strcasecmp(&tmp[3], "layout"))
                         {
@@ -301,9 +291,6 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                         add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
                         xfree(tmp_val);
                     }
-#ifndef HAVE_STRCASESTR
-                    xfree(lower_psi_key);
-#endif
                 }
             } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
 
