@@ -1908,21 +1908,12 @@ InitFonts (void)
 {
     patternCache = MakeFontPatternCache();
 
-#ifndef BUILTIN_FONTS
-    if (screenInfo.numScreens > screenInfo.numVideoScreens) {
-	PrinterFontRegisterFpeFunctions();
-	FontFileCheckRegisterFpeFunctions();
-	check_fs_register_fpe_functions();
-    } else 
-#endif
-    {
 #ifdef BUILTIN_FONTS
-        BuiltinRegisterFpeFunctions();
+    BuiltinRegisterFpeFunctions();
 #else
-	FontFileRegisterFpeFunctions();
-	fs_register_fpe_functions();
+    FontFileRegisterFpeFunctions();
+    fs_register_fpe_functions();
 #endif
-    }
 }
 
 int
