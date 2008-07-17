@@ -413,7 +413,7 @@ VENDOR_MAN_VERSION="Version ${PACKAGE_VERSION}"
 
 VENDOR_NAME="The X.Org Foundation"
 VENDOR_NAME_SHORT="X.Org"
-RELEASE_DATE="5 September 2007"
+RELEASE_DATE="(unreleased)"
 VENDOR_WEB="http://wiki.x.org"
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
