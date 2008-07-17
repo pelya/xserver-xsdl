@@ -402,10 +402,6 @@ extern XID GenerateAuthorization(
     unsigned int * /* data_length_return */,
     char	** /* data_return */);
 
-#ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
-extern void ExpandCommandLine(int * /*pargc*/, char *** /*pargv*/);
-#endif
-
 extern int ddxProcessArgument(int /*argc*/, char * /*argv*/ [], int /*i*/);
 
 extern void ddxUseMsg(void);

@@ -252,10 +252,6 @@ int main(int argc, char *argv[], char *envp[])
 
     CheckUserAuthorization();
 
-#ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
-    ExpandCommandLine(&argc, &argv);
-#endif
-
     InitConnectionLimits();
 
     /* prep X authority file from environment; this can be overriden by a

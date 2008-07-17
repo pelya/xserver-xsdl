@@ -562,9 +562,6 @@ void UseMsg(void)
     ErrorF("-c                     turns off key-click\n");
     ErrorF("c #                    key-click volume (0-100)\n");
     ErrorF("-cc int                default color visual class\n");
-#ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
-    ErrorF("-config file           read options from file\n");
-#endif
     ErrorF("-core                  generate core dump on fatal error\n");
     ErrorF("-dpi int               screen resolution in dots per inch\n");
 #ifdef DPMSExtension
@@ -1088,118 +1085,6 @@ ProcessCommandLine(int argc, char *argv[])
         }
     }
 }
-
-#ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
-static void
-InsertFileIntoCommandLine(
-    int *resargc, char ***resargv, 
-    int prefix_argc, char **prefix_argv,
-    char *filename, 
-    int suffix_argc, char **suffix_argv)
-{
-    struct stat     st;
-    FILE           *f;
-    char           *p;
-    char           *q;
-    int             insert_argc;
-    char           *buf;
-    int             len;
-    int             i;
-
-    f = fopen(filename, "r");
-    if (!f)
-	FatalError("Can't open option file %s\n", filename);
-
-    fstat(fileno(f), &st);
-
-    buf = (char *) xalloc((unsigned) st.st_size + 1);
-    if (!buf)
-	FatalError("Out of Memory\n");
-
-    len = fread(buf, 1, (unsigned) st.st_size, f);
-
-    fclose(f);
-
-    if (len < 0)
-	FatalError("Error reading option file %s\n", filename);
-
-    buf[len] = '\0';
-
-    p = buf;
-    q = buf;
-    insert_argc = 0;
-
-    while (*p)
-    {
-	while (isspace(*p))
-	    p++;
-	if (!*p)
-	    break;
-	if (*p == '#')
-	{
-	    while (*p && *p != '\n')
-		p++;
-	} else
-	{
-	    while (*p && !isspace(*p))
-		*q++ = *p++;
-	    /* Since p and q might still be pointing at the same place, we	 */
-	    /* need to step p over the whitespace now before we add the null.	 */
-	    if (*p)
-		p++;
-	    *q++ = '\0';
-	    insert_argc++;
-	}
-    }
-
-    buf = (char *) xrealloc(buf, q - buf);
-    if (!buf)
-	FatalError("Out of memory reallocing option buf\n");
-
-    *resargc = prefix_argc + insert_argc + suffix_argc;
-    *resargv = (char **) xalloc((*resargc + 1) * sizeof(char *));
-    if (!*resargv)
-	FatalError("Out of Memory\n");
-
-    memcpy(*resargv, prefix_argv, prefix_argc * sizeof(char *));
-
-    p = buf;
-    for (i = 0; i < insert_argc; i++)
-    {
-	(*resargv)[prefix_argc + i] = p;
-	p += strlen(p) + 1;
-    }
-
-    memcpy(*resargv + prefix_argc + insert_argc,
-	   suffix_argv, suffix_argc * sizeof(char *));
-
-    (*resargv)[*resargc] = NULL;
-} /* end InsertFileIntoCommandLine */
-
-
-void
-ExpandCommandLine(int *pargc, char ***pargv)
-{
-    int i;
-
-#if !defined(WIN32) && !defined(__CYGWIN__)
-    if (getuid() != geteuid())
-	return;
-#endif
-
-    for (i = 1; i < *pargc; i++)
-    {
-	if ( (0 == strcmp((*pargv)[i], "-config")) && (i < (*pargc - 1)) )
-	{
-	    InsertFileIntoCommandLine(pargc, pargv,
-					  i, *pargv,
-					  (*pargv)[i+1], /* filename */
-					  *pargc - i - 2, *pargv + i + 2);
-	    i--;
-	}
-    }
-} /* end ExpandCommandLine */
-#endif
 
 /* Implement a simple-minded font authorization scheme.  The authorization
    name is "hp-hostname-1", the contents are simply the host name. */
