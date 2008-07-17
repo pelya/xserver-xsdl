@@ -176,19 +176,6 @@ dnl has it in libc), or if libdl is needed to get it.
 AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 
-case $host_os in
-    linux*|darwin*)
-	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
-    freebsd*|netbsd*|openbsd*|dragonfly*)
-	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
-    solaris*)
-	# Solaris 8 with patches, or Solaris 9 or later have /dev/urandom
-	if test -r /dev/urandom ; then
-	   AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom])
-	fi ;;
-    *) ;;
-esac
-
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
