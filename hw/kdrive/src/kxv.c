@@ -1728,47 +1728,6 @@ KdXVQueryImageAttributes(
 }
 
 
-/****************  Offscreen surface stuff *******************/
-
-typedef struct {
-   KdOffscreenImagePtr images;
-   int num;
-} OffscreenImageRec;
-
-static OffscreenImageRec OffscreenImages[MAXSCREENS];
-static Bool offscreenInited = FALSE;
-
-Bool 
-KdXVRegisterOffscreenImages(
-    ScreenPtr pScreen,
-    KdOffscreenImagePtr images,
-    int num
-){
-    if(!offscreenInited) {
-	bzero(OffscreenImages, sizeof(OffscreenImages[MAXSCREENS]));
-	offscreenInited = TRUE;
-    }
-  
-    OffscreenImages[pScreen->myNum].num = num;
-    OffscreenImages[pScreen->myNum].images = images;
-
-    return TRUE;
-}
-
-KdOffscreenImagePtr
-KdXVQueryOffscreenImages(
-   ScreenPtr pScreen,
-   int *num
-){
-   if(!offscreenInited) {
-	*num = 0;
-	return NULL;
-   }
-
-   *num = OffscreenImages[pScreen->myNum].num;
-   return OffscreenImages[pScreen->myNum].images;
-}
-
 /****************  Common video manipulation functions *******************/
 
 void

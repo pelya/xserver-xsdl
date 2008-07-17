@@ -114,30 +114,6 @@ typedef struct _KdFrameBuffer {
     void	*closure;
 } KdFrameBuffer;
 
-typedef struct _KdOffscreenArea KdOffscreenArea;
-
-typedef void (*KdOffscreenSaveProc) (ScreenPtr pScreen, KdOffscreenArea *area);
-
-typedef enum _KdOffscreenState {
-    KdOffscreenAvail,
-    KdOffscreenRemovable,
-    KdOffscreenLocked,
-} KdOffscreenState;
-
-struct _KdOffscreenArea {
-    int			offset;
-    int			save_offset;
-    int			size;
-    int			score;
-    pointer		privData;
-    
-    KdOffscreenSaveProc save;
-
-    KdOffscreenState	state;
-    
-   KdOffscreenArea	*next;
-};
-
 #define RR_Rotate_All	(RR_Rotate_0|RR_Rotate_90|RR_Rotate_180|RR_Rotate_270)
 #define RR_Reflect_All	(RR_Reflect_X|RR_Reflect_Y)
 
@@ -205,8 +181,6 @@ typedef struct {
     int		    bytesPerPixel[KD_MAX_FB];
 
     int		    dpmsState;
-    
-    KdOffscreenArea *off_screen_areas;
 
     ColormapPtr     pInstalledmap[KD_MAX_FB];         /* current colormap */
     xColorItem      systemPalette[KD_MAX_PSEUDO_SIZE];/* saved windows colors */
@@ -400,90 +374,6 @@ extern const int		kdNumMonitorTimings;
 typedef struct _KdPointerMatrix {
     int	    matrix[2][3];
 } KdPointerMatrix;
-
-typedef struct _KaaTrapezoid {
-    float tl, tr, ty;
-    float bl, br, by;
-} KaaTrapezoid;
-
-typedef struct _KaaScreenInfo {
-    int	        offsetAlign;
-    int         pitchAlign;
-    int		flags;
-
-    int		(*markSync) (ScreenPtr pScreen);
-    void	(*waitMarker) (ScreenPtr pScreen, int marker);
-
-    Bool	(*PrepareSolid) (PixmapPtr	pPixmap,
-				 int		alu,
-				 Pixel		planemask,
-				 Pixel		fg);
-    void	(*Solid) (int x1, int y1, int x2, int y2);
-    void	(*DoneSolid) (void);
-
-    Bool	(*PrepareCopy) (PixmapPtr	pSrcPixmap,
-				PixmapPtr	pDstPixmap,
-				Bool		upsidedown,
-				Bool		reverse,
-				int		alu,
-				Pixel		planemask);
-    void	(*Copy) (int	srcX,
-			 int	srcY,
-			 int	dstX,
-			 int	dstY,
-			 int	width,
-			 int	height);
-    void	(*DoneCopy) (void);
-
-    Bool        (*PrepareBlend) (int		op,
-				 PicturePtr	pSrcPicture,
-				 PicturePtr	pDstPicture,
-				 PixmapPtr	pSrc,
-				 PixmapPtr	pDst);
-    void        (*Blend) (int	srcX,
-			  int	srcY,
-			  int	dstX,
-			  int	dstY,
-			  int	width,
-			  int	height);
-    void	(*DoneBlend) (void);
-
-    Bool        (*CheckComposite) (int		op,
-				   PicturePtr	pSrcPicture,
-				   PicturePtr	pMaskPicture,
-				   PicturePtr	pDstPicture);
-    Bool        (*PrepareComposite) (int		op,
-				     PicturePtr		pSrcPicture,
-				     PicturePtr		pMaskPicture,
-				     PicturePtr		pDstPicture,
-				     PixmapPtr		pSrc,
-				     PixmapPtr		pMask,
-				     PixmapPtr		pDst);
-    void        (*Composite) (int	srcX,
-			     int	srcY,
-			     int	maskX,
-			     int	maskY,
-			     int	dstX,
-			     int	dstY,
-			     int	width,
-			     int	height);
-    void	(*DoneComposite) (void);
-
-    Bool	(*PrepareTrapezoids) (PicturePtr pDstPicture,
-				      PixmapPtr pDst);
-    void	(*Trapezoids) (KaaTrapezoid	 *traps,
-			       int		 ntraps);
-    void	(*DoneTrapezoids) (void);
-
-    Bool        (*UploadToScreen) (PixmapPtr		pDst,
-				   char			*src,
-				   int			src_pitch);
-    Bool        (*UploadToScratch) (PixmapPtr		pSrc,
-				   PixmapPtr		pDst);
-} KaaScreenInfoRec, *KaaScreenInfoPtr;
-
-#define KAA_OFFSCREEN_PIXMAPS		(1 << 0)
-#define KAA_OFFSCREEN_ALIGN_POT		(1 << 1)
 
 /*
  * This is the only completely portable way to
@@ -820,36 +710,6 @@ KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindow
     
 void
 KdShadowUnset (ScreenPtr pScreen);
-
-/* ktest.c */
-Bool
-KdFrameBufferValid (CARD8 *base, int size);
-
-int
-KdFrameBufferSize (CARD8 *base, int max);
-
-/* koffscreen.c */
-
-Bool
-KdOffscreenInit (ScreenPtr pScreen);
-
-KdOffscreenArea *
-KdOffscreenAlloc (ScreenPtr pScreen, int size, int align,
-		  Bool locked,
-		  KdOffscreenSaveProc save,
-		  pointer privData);
-
-KdOffscreenArea *
-KdOffscreenFree (ScreenPtr pScreen, KdOffscreenArea *area);
-
-void
-KdOffscreenSwapOut (ScreenPtr pScreen);
-
-void
-KdOffscreenSwapIn (ScreenPtr pScreen);
-
-void
-KdOffscreenFini (ScreenPtr pScreen);
 
 /* function prototypes to be implemented by the drivers */
 void

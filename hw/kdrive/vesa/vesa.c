@@ -1226,8 +1226,6 @@ vesaRandRSetConfig (ScreenPtr		pScreen,
 	break;
     }
 
-    KdOffscreenSwapOut (screen->pScreen);
-    
     vesaUnmapFramebuffer (screen);
     
     if (!vesaComputeFramebufferMapping (screen))

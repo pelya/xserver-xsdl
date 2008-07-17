@@ -526,8 +526,6 @@ ephyrRandRSetConfig (ScreenPtr		pScreen,
   
   scrpriv->randr = KdAddRotation (screen->randr, randr);
   
-  KdOffscreenSwapOut (screen->pScreen);
-  
   ephyrUnmapFramebuffer (screen); 
   
   screen->width  = newwidth;

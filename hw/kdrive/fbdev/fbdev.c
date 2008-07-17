@@ -529,8 +529,6 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     
     scrpriv->randr = KdAddRotation (screen->randr, randr);
 
-    KdOffscreenSwapOut (screen->pScreen);
-
     fbdevUnmapFramebuffer (screen);
     
     if (!fbdevMapFramebuffer (screen))

@@ -208,7 +208,6 @@ KdDisableScreen (ScreenPtr pScreen)
     if (!pScreenPriv->closed)
 	KdSetRootClip (pScreen, FALSE);
     KdDisableColormap (pScreen);
-    KdOffscreenSwapOut (pScreen);
     if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->disableAccel)
 	(*pScreenPriv->card->cfuncs->disableAccel) (pScreen);
     if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->disableCursor)
@@ -285,7 +284,6 @@ KdEnableScreen (ScreenPtr pScreen)
     pScreenPriv->enabled = TRUE;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
     pScreenPriv->card->selected = pScreenPriv->screen->mynum;
-    KdOffscreenSwapIn (pScreen);    
     if (!pScreenPriv->screen->softCursor && pScreenPriv->card->cfuncs->enableCursor)
 	(*pScreenPriv->card->cfuncs->enableCursor) (pScreen);
     if (!pScreenPriv->screen->dumb && pScreenPriv->card->cfuncs->enableAccel)
@@ -796,9 +794,6 @@ KdCloseScreen (int index, ScreenPtr pScreen)
     else
 	ret = TRUE;
     
-    if (screen->off_screen_base < screen->memory_size)
-	KdOffscreenFini (pScreen);
-    
     if (pScreenPriv->dpmsState != KD_DPMS_NORMAL)
 	(*card->cfuncs->dpms) (pScreen, KD_DPMS_NORMAL);
     
@@ -1097,9 +1092,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!screen->dumb && card->cfuncs->initAccel)
 	if (!(*card->cfuncs->initAccel) (pScreen))
 	    screen->dumb = TRUE;
-
-    if (screen->off_screen_base < screen->memory_size)
-	KdOffscreenInit (pScreen);
     
 #ifdef PSEUDO8
     (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);

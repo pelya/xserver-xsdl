@@ -29,10 +29,7 @@ libkdrive_a_SOURCES =	\
 	kkeymap.c	\
 	kmap.c		\
 	kmode.c		\
-	knoop.c		\
-	koffscreen.c	\
 	kshadow.c	\
-	ktest.c		\
 	$(KDRIVE_XV_SOURCES) \
 	$(KDRIVE_HW_SOURCES) \
         $(top_srcdir)/mi/miinitext.c

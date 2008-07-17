@@ -324,8 +324,6 @@ fakeRandRSetConfig (ScreenPtr		pScreen,
     
     scrpriv->randr = KdAddRotation (screen->randr, randr);
 
-    KdOffscreenSwapOut (screen->pScreen);
-
     fakeUnmapFramebuffer (screen);
     
     if (!fakeMapFramebuffer (screen))
