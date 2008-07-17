@@ -92,15 +92,7 @@ static ConnectionOutputPtr AllocateOutputBuffer(void);
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
  */
 #ifndef WIN32
-#if defined(EAGAIN) && defined(EWOULDBLOCK)
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK)
-#else
-#ifdef EAGAIN
-#define ETEST(err) (err == EAGAIN)
-#else
-#define ETEST(err) (err == EWOULDBLOCK)
-#endif
-#endif
 #else /* WIN32 The socket errorcodes differ from the normal errors*/
 #define ETEST(err) (err == EAGAIN || err == WSAEWOULDBLOCK)
 #endif

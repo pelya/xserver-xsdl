@@ -42,11 +42,6 @@
 #include "opaque.h"
 #include "site.h"
 
-#if defined(DGUX)
-#include <net/net_ioctl.h>
-#include <sys/ioctl.h>
-#endif
-
 #ifdef STREAMSCONN
 #include <tiuser.h>
 #include <netconfig.h>

@@ -52,16 +52,6 @@ from The Open Group.
 extern bool_t xdr_opaque_auth(XDR *, struct opaque_auth *);
 #endif
 
-#if defined(DGUX)
-#include <time.h>
-#include <rpc/auth_des.h>
-#endif /* DGUX */
-
-#ifdef ultrix
-#include <time.h>
-#include <rpc/auth_des.h>
-#endif
-
 static enum auth_stat why;
 
 static char * 

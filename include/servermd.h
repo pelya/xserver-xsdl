@@ -68,14 +68,6 @@ SOFTWARE.
  * GLYPHPADBYTES is used.
  */
 
-#ifdef vax
-
-#define IMAGE_BYTE_ORDER	LSBFirst        /* Values for the VAX only */
-#define BITMAP_BIT_ORDER	LSBFirst
-#define	GLYPHPADBYTES		1
-
-#endif /* vax */
-
 #ifdef __avr32__
 
 #define IMAGE_BYTE_ORDER        MSBFirst
@@ -87,17 +79,7 @@ SOFTWARE.
 #ifdef __arm32__
 
 #define IMAGE_BYTE_ORDER        LSBFirst
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
-#  define BITMAP_BIT_ORDER      MSBFirst
-# else
-#  define BITMAP_BIT_ORDER      LSBFirst
-# endif
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16)
-#  define BITMAP_SCANLINE_UNIT  8
-# endif
-
+#define BITMAP_BIT_ORDER        LSBFirst
 #define GLYPHPADBYTES           4
 
 #endif /* __arm32__ */
@@ -193,22 +175,6 @@ SOFTWARE.
 
 #endif /* ibm */
 
-#if defined (M4310) || defined(M4315) || defined(M4317) || defined(M4319) || defined(M4330)
-
-#define IMAGE_BYTE_ORDER	MSBFirst        /* Values for Pegasus only */
-#define BITMAP_BIT_ORDER	MSBFirst
-#define GLYPHPADBYTES		4
-
-#endif /* tektronix */
-
-#ifdef macII
-
-#define IMAGE_BYTE_ORDER      	MSBFirst        /* Values for the MacII only */
-#define BITMAP_BIT_ORDER      	MSBFirst
-#define GLYPHPADBYTES         	4
-
-#endif /* macII */
-
 #if (defined(mips) || defined(__mips)) && !defined(sgi)
 
 #if defined(MIPSEL) || defined(__MIPSEL__)
@@ -223,19 +189,9 @@ SOFTWARE.
 
 #endif /* mips */
 
-#if defined(__alpha) || defined(__alpha__) || defined(__alphaCross)
+#if defined(__alpha) || defined(__alpha__)
 # define IMAGE_BYTE_ORDER	LSBFirst	/* Values for the Alpha only */
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
-#  define BITMAP_BIT_ORDER      MSBFirst
-# else
-#  define BITMAP_BIT_ORDER      LSBFirst
-# endif
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16)
-#  define BITMAP_SCANLINE_UNIT  8
-# endif
-
+# define BITMAP_BIT_ORDER       LSBFirst
 # define GLYPHPADBYTES		4
 
 #endif /* alpha */
@@ -264,59 +220,19 @@ SOFTWARE.
 
 
 #if defined(__ia64__) || defined(ia64)
+
 # define IMAGE_BYTE_ORDER	LSBFirst
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
-#  define BITMAP_BIT_ORDER      MSBFirst
-# else
-#  define BITMAP_BIT_ORDER      LSBFirst
-# endif
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16)
-#  define BITMAP_SCANLINE_UNIT  8
-# endif
-
+# define BITMAP_BIT_ORDER       LSBFirst
 # define GLYPHPADBYTES		4
 
 #endif /* ia64 */
 
 #if defined(__amd64__) || defined(amd64) || defined(__amd64)
 # define IMAGE_BYTE_ORDER	LSBFirst
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
-#  define BITMAP_BIT_ORDER      MSBFirst
-# else
-#  define BITMAP_BIT_ORDER      LSBFirst
-# endif
-
-# if defined(XF86MONOVGA) || defined(XF86VGA16)
-#  define BITMAP_SCANLINE_UNIT  8
-# endif
-
+# define BITMAP_BIT_ORDER       LSBFirst
 # define GLYPHPADBYTES		4
 /* ???? */
 #endif /* AMD64 */
-
-#ifdef stellar
-
-#define IMAGE_BYTE_ORDER	MSBFirst       /* Values for the stellar only*/
-#define BITMAP_BIT_ORDER	MSBFirst
-#define	GLYPHPADBYTES		4
-#define IMAGE_BUFSIZE		(64*1024)
-/*
- * Use SysV random number generator.
- */
-#define random rand
-
-#endif /* stellar */
-
-#ifdef luna
-
-#define IMAGE_BYTE_ORDER        MSBFirst   	/* Values for the OMRON only*/
-#define BITMAP_BIT_ORDER	MSBFirst
-#define	GLYPHPADBYTES		4
-
-#endif /* luna */
 
 #if	(defined(SVR4) && (defined(__i386__) || (defined(__i386)))) ||	\
 	defined(__alpha__) || defined(__alpha) || \
@@ -328,26 +244,11 @@ SOFTWARE.
 #endif
 
 #ifndef BITMAP_BIT_ORDER
-# if defined(XF86MONOVGA) || defined(XF86VGA16) || defined(XF86MONO)
-#  define BITMAP_BIT_ORDER      MSBFirst
-# else
-#  define BITMAP_BIT_ORDER      LSBFirst
-# endif
-#endif
-
-#ifndef BITMAP_SCANLINE_UNIT
-# if defined(XF86MONOVGA) || defined(XF86VGA16)
-#  define BITMAP_SCANLINE_UNIT  8
-# endif
+# define BITMAP_BIT_ORDER      LSBFirst
 #endif
 
 #ifndef GLYPHPADBYTES
 #define GLYPHPADBYTES           4
-#endif
-
-#ifdef XSVGA
-#define AVOID_GLYPHBLT
-#define NO_ONE_RECT
 #endif
 
 #endif /* SVR4 / BSD / i386 */
@@ -368,7 +269,7 @@ SOFTWARE.
 
 #endif
 
-/* linux on the Compaq Itsy */
+/* linux on ARM */
 #if defined(linux) && defined(__arm__)
 #define IMAGE_BYTE_ORDER	LSBFirst
 #define BITMAP_BIT_ORDER	LSBFirst
@@ -383,8 +284,8 @@ SOFTWARE.
 #endif /* linux/s390 */ 
 
 /* size of buffer to use with GetImage, measured in bytes. There's obviously
- * a trade-off between the amount of stack (or whatever ALLOCATE_LOCAL gives
- * you) used and the number of times the ddx routine has to be called.
+ * a trade-off between the amount of heap used and the number of times the
+ * ddx routine has to be called.
  */
 #ifndef IMAGE_BUFSIZE
 #define IMAGE_BUFSIZE		(64*1024)

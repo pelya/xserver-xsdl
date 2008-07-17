@@ -294,9 +294,6 @@
 /* Support Secure RPC ("SUN-DES-1") authentication for X11 clients */
 #undef SECURE_RPC
 
-/* Use a lock to prevent multiple servers on a display */
-#undef SERVER_LOCK
-
 /* Support SHAPE extension */
 #undef SHAPE
 

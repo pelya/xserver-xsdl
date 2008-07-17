@@ -83,7 +83,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <signal.h>
 #undef _POSIX_C_SOURCE
 #else
-#if defined(X_NOT_POSIX) || defined(_POSIX_SOURCE)
+#if defined(_POSIX_SOURCE)
 #include <signal.h>
 #else
 #define _POSIX_SOURCE
@@ -100,11 +100,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <sys/stat.h>
 #include <ctype.h>    /* for isspace */
 #include <stdarg.h>
-
-#if defined(DGUX)
-#include <sys/resource.h>
-#include <netdb.h>
-#endif
 
 #include <stdlib.h>	/* for malloc() */
 
@@ -261,9 +256,6 @@ OsSignal(sig, handler)
     int sig;
     OsSigHandlerPtr handler;
 {
-#ifdef X_NOT_POSIX
-    return signal(sig, handler);
-#else
     struct sigaction act, oact;
 
     sigemptyset(&act.sa_mask);
@@ -274,10 +266,8 @@ OsSignal(sig, handler)
     if (sigaction(sig, &act, &oact))
       perror("sigaction");
     return oact.sa_handler;
-#endif
 }
-	
-#ifdef SERVER_LOCK
+
 /*
  * Explicit support for a server lock file like the ones used for UUCP.
  * For architectures with virtual terminals that can run more than one
@@ -288,11 +278,6 @@ OsSignal(sig, handler)
 #define LOCK_TMP_PREFIX "/.tX"
 #define LOCK_PREFIX "/.X"
 #define LOCK_SUFFIX "-lock"
-
-#if defined(DGUX)
-#include <limits.h>
-#include <sys/param.h>
-#endif
 
 #ifndef PATH_MAX
 #include <sys/param.h>
@@ -369,11 +354,7 @@ LockServer(void)
     FatalError("Could not create lock file in %s\n", tmp);
   (void) sprintf(pid_str, "%10ld\n", (long)getpid());
   (void) write(lfd, pid_str, 11);
-#ifndef USE_CHMOD
-  (void) fchmod(lfd, 0444);
-#else
   (void) chmod(tmp, 0444);
-#endif
   (void) close(lfd);
 
   /*
@@ -455,7 +436,6 @@ UnlockServer(void)
   (void) unlink(LockFile);
   }
 }
-#endif /* SERVER_LOCK */
 
 /* Force connections to close on SIGHUP from init */
 
@@ -467,13 +447,6 @@ AutoResetServer (int sig)
 
     dispatchException |= DE_RESET;
     isItTimeToYield = TRUE;
-#ifdef GPROF
-    chdir ("/tmp");
-    exit (0);
-#endif
-#if defined(SYSV) && defined(X_NOT_POSIX)
-    OsSignal (SIGHUP, AutoResetServer);
-#endif
     errno = olderrno;
 }
 
@@ -487,10 +460,6 @@ GiveUp(int sig)
 
     dispatchException |= DE_TERMINATE;
     isItTimeToYield = TRUE;
-#if defined(SYSV) && defined(X_NOT_POSIX)
-    if (sig)
-	OsSignal(sig, SIG_IGN);
-#endif
     errno = olderrno;
 }
 

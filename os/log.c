@@ -528,9 +528,6 @@ FatalError(const char *f, ...)
     if (!beenhere)
 	OsVendorFatalError();
 #endif
-#ifdef ABORTONFATALERROR
-    abort();
-#endif
     if (!beenhere) {
 	beenhere = TRUE;
 	AbortServer();
@@ -563,21 +560,6 @@ ErrorF(const char * f, ...)
 }
 
 /* A perror() workalike. */
-
-#ifndef NEED_STRERROR
-#ifdef SYSV
-#if !defined(ISC) || defined(ISC202) || defined(ISC22)
-#define NEED_STRERROR
-#endif
-#endif
-#endif
-
-#if defined(NEED_STRERROR) && !defined(strerror)
-extern char *sys_errlist[];
-extern int sys_nerr;
-#define strerror(n) \
-	((n) >= 0 && (n) < sys_nerr) ? sys_errlist[(n)] : "unknown error"
-#endif
 
 _X_EXPORT void
 Error(char *str)

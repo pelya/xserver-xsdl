@@ -99,8 +99,6 @@ fbdevCardInit (KdCardInfo *card)
     return TRUE;
 }
 
-#define FBDEV_KLUDGE_FORMAT
-#ifdef FBDEV_KLUDGE_FORMAT
 static Pixel
 fbdevMakeContig (Pixel orig, Pixel others)
 {
@@ -114,7 +112,6 @@ fbdevMakeContig (Pixel orig, Pixel others)
     }
     return orig;
 }
-#endif
 
 static Bool
 fbdevModeSupported (KdScreenInfo		*screen,
@@ -261,7 +258,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	screen->fb[0].redMask = Mask (priv->var.red.offset, priv->var.red.length);
 	screen->fb[0].greenMask = Mask (priv->var.green.offset, priv->var.green.length);
 	screen->fb[0].blueMask = Mask (priv->var.blue.offset, priv->var.blue.length);
-#ifdef FBDEV_KLUDGE_FORMAT
+
 	/*
 	 * This is a kludge so that Render will work -- fill in the gaps
 	 * in the pixel
@@ -278,7 +275,6 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 						  screen->fb[0].redMask|
 						  screen->fb[0].greenMask);
 
-#endif
 	allbits = screen->fb[0].redMask | screen->fb[0].greenMask | screen->fb[0].blueMask;
 	depth = 32;
 	while (depth && !(allbits & (1 << (depth - 1))))

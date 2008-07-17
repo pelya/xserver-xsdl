@@ -597,9 +597,7 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
 }
 
 extern DevPrivateKey fbGetGCPrivateKey(void);
-#ifndef FB_NO_WINDOW_PIXMAPS
 extern DevPrivateKey fbGetWinPrivateKey(void);
-#endif
 extern const GCOps	fbGCOps;
 extern const GCFuncs	fbGCFuncs;
 
@@ -670,12 +668,8 @@ typedef struct {
 #define fbGetRotatedPixmap(pGC)	((pGC)->pRotatedPixmap)
 
 #define fbGetScreenPixmap(s)	((PixmapPtr) (s)->devPrivate)
-#ifdef FB_NO_WINDOW_PIXMAPS
-#define fbGetWindowPixmap(d)	fbGetScreenPixmap(((DrawablePtr) (d))->pScreen)
-#else
 #define fbGetWindowPixmap(pWin)	((PixmapPtr)\
     dixLookupPrivate(&((WindowPtr)(pWin))->devPrivates, fbGetWinPrivateKey()))
-#endif
 
 #ifdef ROOTLESS
 #define __fbPixDrawableX(pPix)	((pPix)->drawable.x)

@@ -75,19 +75,9 @@ extern int iopl(int __level);
 
 #ifdef __alpha__
 
-# ifdef LIBC_IS_FIXED
 extern void sethae(unsigned long hae);
-# else
-#  include <unistd.h>
-#  define sethae(x) syscall(301,x);
-# endif
 
-/* define to test the Sparse addressing on a non-Jensen */
-# ifdef TEST_JENSEN_CODE 
-#  define isJensen (1)
-# else
 #  define isJensen (axpSystem == JENSEN)
-# endif
 
 # define BUS_BASE bus_base
 

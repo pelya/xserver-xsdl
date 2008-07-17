@@ -245,10 +245,8 @@ extern OsSigHandlerPtr OsSignal(int /* sig */, OsSigHandlerPtr /* handler */);
 
 extern int auditTrailLevel;
 
-#ifdef SERVER_LOCK
 extern void LockServer(void);
 extern void UnlockServer(void);
-#endif
 
 extern int OsLookupColor(
     int	/*screen*/,

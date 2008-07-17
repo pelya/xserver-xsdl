@@ -141,15 +141,8 @@ OsInit(void)
 #endif
 	}
 
-#ifndef X_NOT_POSIX
 	if (getpgrp () == 0)
 	    setpgid (0, 0);
-#else
-#if !defined(SYSV) && !defined(WIN32)
-	if (getpgrp (0) == 0)
-	    setpgrp (0, getpid ());
-#endif
-#endif
 
 #ifdef RLIMIT_DATA
 	if (limitDataSpace >= 0)
@@ -196,9 +189,7 @@ OsInit(void)
 	    }
 	}
 #endif
-#ifdef SERVER_LOCK
 	LockServer();
-#endif
 	been_here = TRUE;
     }
     TimerInit();
@@ -221,10 +212,8 @@ OsInit(void)
 void
 OsCleanup(Bool terminating)
 {
-#ifdef SERVER_LOCK
     if (terminating)
     {
 	UnlockServer();
     }
-#endif
 }

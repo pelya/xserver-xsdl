@@ -214,12 +214,6 @@
 #  define VT_SYSREQ_DEFAULT TRUE
 # endif
 
-# ifdef SYSV
-#  if !defined(ISC) || defined(ISC202) || defined(ISC22)
-#   define NEED_STRERROR
-#  endif
-# endif
-
 #endif /* (SYSV || SVR4) && !DGUX */
 
 
@@ -578,15 +572,14 @@
 # define MAXHOSTNAMELEN 32
 #endif /* !MAXHOSTNAMELEN */
 
-#if !defined(X_NOT_POSIX)
-# if defined(_POSIX_SOURCE)
-#  include <limits.h>
-# else
-#  define _POSIX_SOURCE
-#  include <limits.h>
-#  undef _POSIX_SOURCE
-# endif /* _POSIX_SOURCE */
-#endif /* !X_NOT_POSIX */
+#if defined(_POSIX_SOURCE)
+# include <limits.h>
+#else
+# define _POSIX_SOURCE
+# include <limits.h>
+# undef _POSIX_SOURCE
+#endif /* _POSIX_SOURCE */
+
 #if !defined(PATH_MAX)
 # if defined(MAXPATHLEN)
 #  define PATH_MAX MAXPATHLEN
@@ -594,15 +587,6 @@
 #  define PATH_MAX 1024
 # endif /* MAXPATHLEN */
 #endif /* !PATH_MAX */
-
-#ifdef NEED_STRERROR
-# ifndef strerror
-extern char *sys_errlist[];
-extern int sys_nerr;
-#  define strerror(n) \
-     ((n) >= 0 && (n) < sys_nerr) ? sys_errlist[n] : "unknown error"
-# endif /* !strerror */
-#endif /* NEED_STRERROR */
 
 #if defined(ISC)
 #define rint(x) RInt(x)

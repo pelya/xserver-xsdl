@@ -59,7 +59,6 @@ SOFTWARE.
 #include <X11/Xdmcp.h>
 
 #ifndef sgi	    /* SGI defines OPEN_MAX in a useless way */
-#ifndef X_NOT_POSIX
 #ifdef _POSIX_SOURCE
 #include <limits.h>
 #else
@@ -67,13 +66,6 @@ SOFTWARE.
 #include <limits.h>
 #undef _POSIX_SOURCE
 #endif
-#else /* X_NOT_POSIX */
-#ifdef WIN32
-#define _POSIX_
-#include <limits.h>
-#undef _POSIX_
-#endif
-#endif /* X_NOT_POSIX */
 #endif
 
 #ifdef __QNX__

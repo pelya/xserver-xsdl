@@ -38,13 +38,11 @@ DevPrivateKey fbGetGCPrivateKey(void)
 {
     return fbGCPrivateKey;
 }
-#ifndef FB_NO_WINDOW_PIXMAPS
 static DevPrivateKey fbWinPrivateKey = &fbWinPrivateKey;
 DevPrivateKey fbGetWinPrivateKey(void)
 {
     return fbWinPrivateKey;
 }
-#endif
 
 Bool
 fbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCKey)

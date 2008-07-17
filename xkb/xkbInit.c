@@ -62,7 +62,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	PHYS_LEDS	0x7f
 #define	LED_COMPOSE	8
 #else
-#if defined(ultrix) || defined(__osf__) || defined(__alpha) || defined(__alpha__)
+#if defined(__osf__) || defined(__alpha) || defined(__alpha__)
 #define	LED_COMPOSE	2
 #define LED_CAPS	3
 #define	LED_SCROLL	4

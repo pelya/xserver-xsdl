@@ -90,18 +90,6 @@ SOFTWARE.
 #include <sys/ioctl.h>
 #endif
 
-#if defined(DGUX)
-#include <sys/ioctl.h>
-#include <sys/utsname.h>
-#include <sys/socket.h>
-#include <sys/uio.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
-#include <sys/param.h>
-#include <unistd.h>
-#endif
-
-
 #ifdef AIXV3
 #include <sys/ioctl.h>
 #endif
@@ -134,11 +122,7 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "xace.h"
 
-#ifdef X_NOT_POSIX
-#define Pid_t int
-#else
 #define Pid_t pid_t
-#endif
 
 #ifdef DNETCONN
 #include <netdnet/dn.h>

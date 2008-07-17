@@ -70,9 +70,6 @@
 /* Support MIT-SCREEN-SAVER extension */
 #undef SCREENSAVER
 
-/* Use a lock to prevent multiple servers on a display */
-#undef SERVER_LOCK
-
 /* Support SHAPE extension */
 #undef SHAPE
 
