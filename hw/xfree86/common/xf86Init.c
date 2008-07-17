@@ -1806,6 +1806,7 @@ ddxUseMsg()
   ErrorF("-disableVidMode        disable mode adjustments with xvidtune\n");
   ErrorF("-allowNonLocalXvidtune allow xvidtune to be run as a non-local client\n");
 #endif
+  ErrorF("-allowMouseOpenFail    start server even if the mouse can't be initialized\n");
   ErrorF("-bestRefresh           choose modes with the best refresh rate\n");
   ErrorF("-ignoreABI             make module ABI mismatches non-fatal\n");
   ErrorF("-isolateDevice bus_id  restrict device resets to bus_id (PCI only)\n");
