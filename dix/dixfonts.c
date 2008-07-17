@@ -1911,7 +1911,6 @@ InitFonts (void)
 #ifdef BUILTIN_FONTS
     BuiltinRegisterFpeFunctions();
 #else
-    FreeTypeRegisterFontFileFunctions();
     FontFileRegisterFpeFunctions();
     fs_register_fpe_functions();
 #endif
