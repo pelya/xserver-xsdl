@@ -662,14 +662,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-# Require updated renderproto for ABI sanity if we're 64-bit.
-if test "$ac_cv_sizeof_unsigned_long" = 8; then
-	RENDERPROTO="[renderproto >= 0.9.3]"
-else
-	RENDERPROTO="renderproto"
-fi
-
-REQUIRED_MODULES="[randrproto >= 1.2] $RENDERPROTO [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto [xextproto >= 7.0.3] [xproto >= 7.0.13] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.9.99.1] [kbproto >= 1.0.3]" 
+REQUIRED_MODULES="[randrproto >= 1.2] [renderproto >= 0.9.3] [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto [xextproto >= 7.0.3] [xproto >= 7.0.13] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.9.99.1] [kbproto >= 1.0.3]" 
 REQUIRED_LIBS="xfont xau fontenc [pixman-1 >= 0.9.5]"
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
@@ -1056,7 +1049,6 @@ AC_SUBST([VENDOR_NAME_SHORT])
 AC_SUBST([VENDOR_RELEASE])
 AC_SUBST([VENDOR_MAN_VERSION])
 
-AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SMART_SCHEDULE, 1, [Include time-based scheduler])
 AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
 
@@ -1530,9 +1522,6 @@ if test "x$XWIN" = xyes; then
 		AC_DEFINE(CYGMULTIWINDOW_DEBUG, 1, [Debug window manager])
 	fi
 
-	AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
-	AC_DEFINE(DDXTIME, 1, [Use GetTimeInMillis])
-	AC_DEFINE(DDXOSFATALERROR, 1, [Use OsVendorFatalError])
 	AC_DEFINE(DDXOSVERRORF, 1, [Use OsVendorVErrorF])
 	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
 	if test "x$XF86VIDMODE" = xyes; then
@@ -1757,7 +1746,6 @@ AC_SUBST([KDRIVE_LOCAL_LIBS])
 AC_SUBST([KDRIVE_LIBS])
 AM_CONDITIONAL(KDRIVELINUX, [test "x$KDRIVELINUX" = xyes])
 AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
-AM_CONDITIONAL(H3600_TS, false)
 AM_CONDITIONAL(KDRIVEVESA, [test "x$KDRIVEVESA" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
@@ -1788,7 +1776,10 @@ AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
 AC_SUBST(XKB_COMPILED_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
-AC_DEFINE(XResExtension, 1, [Build XRes extension])
+dnl 
+dnl though, thanks to the passing of some significant amount of time, the
+dnl above is probably a complete fallacy, and you should not rely on it.
+dnl but this is still actually better than imake, honest. -daniels
 
 AC_TRY_COMPILE([
 #include <features.h>

@@ -193,9 +193,7 @@ OsInit(void)
 	been_here = TRUE;
     }
     TimerInit();
-#ifdef DDXOSINIT
     OsVendorInit();
-#endif
     /*
      * No log file by default.  OsVendorInit() should call LogInit() with the
      * log file name if logging to a file is desired.

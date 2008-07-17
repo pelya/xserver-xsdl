@@ -524,10 +524,8 @@ FatalError(const char *f, ...)
     VErrorF(f, args);
     va_end(args);
     ErrorF("\n");
-#ifdef DDXOSFATALERROR
     if (!beenhere)
 	OsVendorFatalError();
-#endif
     if (!beenhere) {
 	beenhere = TRUE;
 	AbortServer();

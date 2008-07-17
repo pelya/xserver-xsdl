@@ -25,17 +25,11 @@
 /* Support Composite Extension */
 #undef COMPOSITE
 
-/* Use OsVendorInit */
-#undef DDXOSINIT
-
 /* Build DPMS extension */
 #undef DPMSExtension
 
 /* Build GLX extension */
 #undef GLXEXT
-
-/* Include handhelds.org h3600 touchscreen driver */
-#undef H3600_TS
 
 /* Support XDM-AUTH*-1 */
 #undef HASXDMAUTH
@@ -48,12 +42,6 @@
 
 /* Support MIT-SHM Extension */
 #undef MITSHM
-
-/* Need XFree86 helper functions */
-#undef NEED_XF86_PROTOTYPES
-
-/* Need XFree86 typedefs */
-#undef NEED_XF86_TYPES
 
 /* Internal define for Xinerama */
 #undef PANORAMIX
@@ -147,9 +135,6 @@
 
 /* Build XvMC Extension */
 #undef XvMCExtension
-
-/* Build XRes extension */
-#undef XResExtension
 
 /* Support XSync extension */
 #undef XSYNC

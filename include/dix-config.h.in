@@ -27,28 +27,11 @@
 /* Support Composite Extension */
 #undef COMPOSITE
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-#undef CRAY_STACKSEG_END
-
-/* Define to 1 if using `alloca.c'. */
-#undef C_ALLOCA
-
 /* Support Damage extension */
 #undef DAMAGE
 
 /* Build for darwin with Quartz support */
 #undef DARWIN_WITH_QUARTZ
-
-/* Use OsVendorInit */
-#undef DDXOSINIT
-
-/* Use GetTimeInMillis */
-#undef DDXTIME
-
-/* Use OsVendorFatalError */
-#undef DDXOSFATALERROR
 
 /* Use OsVendorVErrorF */
 #undef DDXOSVERRORF
@@ -67,9 +50,6 @@
 
 /* Path to DRI drivers */
 #undef DRI_DRIVER_PATH
-
-/* Include handhelds.org h3600 touchscreen driver */
-#undef H3600_TS
 
 /* Support XDM-AUTH*-1 */
 #undef HASXDMAUTH
@@ -91,13 +71,6 @@
 
 /* Support SHM */
 #undef HAS_SHM
-
-/* Define to 1 if you have `alloca', as a function or macro. */
-#undef HAVE_ALLOCA
-
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
-#undef HAVE_ALLOCA_H
 
 /* Define to 1 if you have the <asm/mtrr.h> header file. */
 #undef HAVE_ASM_MTRR_H
@@ -130,12 +103,6 @@
 /* Define to 1 if you have the `getisax' function. */
 #undef HAVE_GETISAX
 
-/* Define to 1 if you have the `getopt' function. */
-#undef HAVE_GETOPT
-
-/* Define to 1 if you have the `getopt_long' function. */
-#undef HAVE_GETOPT_LONG
-
 /* Define to 1 if you have the `getuid' function. */
 #undef HAVE_GETUID
 
@@ -165,18 +132,6 @@
 
 /* Define to 1 if you have the <linux/fb.h> header file. */
 #undef HAVE_LINUX_FB_H
-
-/* Define to 1 if you have the <linux/h3600_ts.h> header file. */
-#undef HAVE_LINUX_H3600_TS_H
-
-/* Define to 1 if you have the `memmove' function. */
-#undef HAVE_MEMMOVE
-
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
 
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
@@ -300,17 +255,6 @@
 /* Include time-based scheduler */
 #undef SMART_SCHEDULE
 
-/* If using the C implementation of alloca, define if you know the
-   direction of stack growth for your system; otherwise it will be
-   automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
-#undef STACK_DIRECTION
-
-/* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS
-
 /* Define to 1 on systems derived from System V Release 4 */
 #undef SVR4
 
@@ -392,9 +336,6 @@
 /* Build XvMC Extension */
 #undef XvMCExtension
 
-/* Build XRes extension */
-#undef XResExtension
-
 /* Support XSync extension */
 #undef XSYNC
 
@@ -452,9 +393,6 @@
 
 /* Define to 1 if `struct sockaddr_in' has a `sin_len' member */
 #undef BSD44SOCKETS
-
-/* Define to 1 if modules should avoid the libcwrapper */
-#undef NO_LIBCWRAPPER
 
 /* Support D-Bus */
 #undef HAVE_DBUS

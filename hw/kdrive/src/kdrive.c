@@ -1385,6 +1385,11 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
     signal(SIGSEGV, KdBacktrace);
 }
 
+void
+OsVendorFatalError(void)
+{
+}
+
 #ifdef DPMSExtension
 int
 DPMSSet(ClientPtr client, int level)
