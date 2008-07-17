@@ -70,11 +70,7 @@ SOFTWARE.
 #include <X11/Xmd.h>
 #include <errno.h>
 #if !defined(WIN32)
-#ifndef Lynx
 #include <sys/uio.h>
-#else
-#include <uio.h>
-#endif
 #endif
 #include <X11/X.h>
 #define NEED_REPLIES

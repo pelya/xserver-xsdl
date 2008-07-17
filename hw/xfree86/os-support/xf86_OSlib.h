@@ -329,46 +329,6 @@
 #endif /* __linux__ || __GLIBC__ */
 
 /**************************************************************************/
-/* LynxOS AT                                                              */
-/**************************************************************************/
-#if defined(Lynx)
- 
-# include <termio.h>
-# include <sys/ioctl.h>
-# include <param.h>
-# include <signal.h>
-# include <kd.h>
-# include <vt.h>
-# include <sys/stat.h>
-
-# include <errno.h>
-extern int errno;
- 
-/* smem_create et.al. to access physical memory */ 
-# include <smem.h>
- 
-/* keyboard types */
-# define KB_84		1
-# define KB_101 	2
-# define KB_OTHER	3
-
-/* atc drivers ignores argument to VT_RELDISP ioctl */
-# define VT_ACKACQ	2
-
-# include <termios.h>
-# define POSIX_TTY
-# define CLEARDTR_SUPPORT
-
-/* LynxOS 2.5.1 has these */
-# ifdef LED_NUMLOCK
-#  define LED_CAP	LED_CAPSLOCK
-#  define LED_NUM	LED_NUMLOCK
-#  define LED_SCR	LED_SCROLLOCK
-# endif
-
-#endif /* Lynx */
-
-/**************************************************************************/
 /* 386BSD and derivatives,  BSD/386                                       */
 /**************************************************************************/
 
@@ -644,7 +604,7 @@ extern int sys_nerr;
 # endif /* !strerror */
 #endif /* NEED_STRERROR */
 
-#if defined(ISC) || defined(Lynx)
+#if defined(ISC)
 #define rint(x) RInt(x)
 double RInt(
 	double x

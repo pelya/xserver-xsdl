@@ -67,11 +67,11 @@ SOFTWARE.
 #endif
 #endif
 
-#if defined(Lynx) || defined(__SCO__)
+#if defined(__SCO__)
 #include <sys/wait.h>
 #endif
 
-#if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
+#if !defined(SYSV) && !defined(WIN32) && !defined(QNX4)
 #include <sys/resource.h>
 #endif
 

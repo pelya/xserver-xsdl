@@ -94,7 +94,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef WIN32
 #include <sys/wait.h>
 #endif
-#if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
+#if !defined(SYSV) && !defined(WIN32) && !defined(QNX4)
 #include <sys/resource.h>
 #endif
 #include <sys/stat.h>
@@ -295,11 +295,7 @@ OsSignal(sig, handler)
 #endif
 
 #ifndef PATH_MAX
-#ifndef Lynx
 #include <sys/param.h>
-#else
-#include <param.h>
-#endif
 #ifndef PATH_MAX
 #ifdef MAXPATHLEN
 #define PATH_MAX MAXPATHLEN

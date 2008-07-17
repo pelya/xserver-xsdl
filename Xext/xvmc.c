@@ -24,14 +24,9 @@
 #include "xvmcext.h"
 
 #ifdef HAS_XVMCSHM
-#ifndef Lynx
 #include <sys/ipc.h>
 #include <sys/types.h>
 #include <sys/shm.h>
-#else
-#include <ipc.h>
-#include <shm.h>
-#endif /* Lynx */
 #endif /* HAS_XVMCSHM */
    
 

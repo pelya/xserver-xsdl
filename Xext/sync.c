@@ -72,7 +72,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/syncstr.h>
 
 #include <stdio.h>
-#if !defined(WIN32) && !defined(Lynx)
+#if !defined(WIN32)
 #include <sys/time.h>
 #endif
 

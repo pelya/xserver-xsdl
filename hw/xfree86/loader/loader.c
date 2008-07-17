@@ -76,7 +76,7 @@
 #include "compiler.h"
 #include "sym.h"
 
-#if defined(Lynx) && defined(sun)
+#if defined(sun)
 /* Cross build machine doesn;t have strerror() */
 #define strerror(err) "strerror unsupported"
 #endif

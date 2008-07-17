@@ -48,8 +48,6 @@
 #define OSNAME "netbsd"
 #elif defined(__OpenBSD__)
 #define OSNAME "openbsd"
-#elif defined(Lynx)
-#define OSNAME "lynxos"
 #elif defined(__GNU__)
 #define OSNAME "hurd"
 #elif defined(__SCO__)

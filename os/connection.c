@@ -83,11 +83,7 @@ SOFTWARE.
 #include <stdlib.h>
 
 #ifndef WIN32
-#if defined(Lynx)
-#include <socket.h>
-#else
 #include <sys/socket.h>
-#endif
 
 #ifdef hpux
 #include <sys/utsname.h>
@@ -128,11 +124,8 @@ SOFTWARE.
 # include <arpa/inet.h>
 #endif
 
-#ifndef Lynx
 #include <sys/uio.h>
-#else
-#include <uio.h>
-#endif
+
 #endif /* WIN32 */
 #include "misc.h"		/* for typedef of pointer */
 #include "osdep.h"

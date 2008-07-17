@@ -24,12 +24,8 @@
 #include <X11/Xos.h>
 
 #if !defined(WIN32)
-#ifndef Lynx
 #include <sys/param.h>
 #include <sys/socket.h>
-#else
-#include <socket.h>
-#endif
 #include <netinet/in.h>
 #include <netdb.h>
 #endif

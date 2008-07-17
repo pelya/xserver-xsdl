@@ -76,11 +76,7 @@ SOFTWARE.
 #include <errno.h>
 #include <sys/types.h>
 #ifndef WIN32
-#ifndef Lynx
 #include <sys/socket.h>
-#else
-#include <socket.h>
-#endif
 #include <sys/ioctl.h>
 #include <ctype.h>
 
@@ -177,11 +173,7 @@ SOFTWARE.
 #endif /* WIN32 */
 
 #ifndef PATH_MAX
-#ifndef Lynx
 #include <sys/param.h>
-#else
-#include <param.h>
-#endif 
 #ifndef PATH_MAX
 #ifdef MAXPATHLEN
 #define PATH_MAX MAXPATHLEN

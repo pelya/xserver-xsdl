@@ -34,13 +34,8 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #include <sys/types.h>
-#ifndef Lynx
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#else
-#include <ipc.h>
-#include <shm.h>
-#endif
 #include <unistd.h>
 #include <sys/stat.h>
 #define NEED_REPLIES

@@ -116,11 +116,6 @@ SOFTWARE.
 #define BITMAP_BIT_ORDER        MSBFirst
 #define GLYPHPADBYTES           4
 
-/* XXX Should this be for Lynx only? */
-#ifdef Lynx
-#define BITMAP_SCANLINE_UNIT	8
-#endif
-
 #endif /* PowerPC */
 
 #if defined(__sh__)
