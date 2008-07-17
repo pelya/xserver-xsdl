@@ -554,7 +554,7 @@ AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE ext
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
-AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=auto])
+AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: disabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=no])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--enable-config-dbus], [Build D-BUS API support (default: no)]), [CONFIG_DBUS_API=$enableval], [CONFIG_DBUS_API=no])
 AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
@@ -662,7 +662,6 @@ case $host_os in
 			COMPOSITE=no
 			DGA=no
 			DPMSExtension=no
-			XF86BIGFONT=no
 			XF86VIDMODE=no
 		fi
 		;;
