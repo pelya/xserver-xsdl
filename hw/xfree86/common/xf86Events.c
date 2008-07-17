@@ -316,30 +316,6 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	}
 	break;
 #endif
-    case ACTION_MESSAGE:
-        {
-            char *retstr, *message = (char *) arg;
-	    ScrnInfoPtr pScr = XF86SCRNINFO(xf86Info.currentScreen);
-
-#ifdef DEBUG
-            ErrorF("ActionMessage: '%s'\n", message);
-#endif
-	    /* Okay the message made it to the ddx.  The common layer */
-	    /* can check for relevant messages here and react to any  */
-	    /* that have a global effect.  For example:               */
-	    /*                                                        */
-	    /* if (!strcmp(message, "foo") {                          */
-	    /*      do_foo(); break                                   */
-	    /* }                                                      */
-	    /*                                                        */
-	    /* otherwise fallback to sending a key event message to   */
-	    /* the current screen's driver:                           */
-	    if (*pScr->HandleMessage != NULL) {
-		(void) (*pScr->HandleMessage)(pScr->scrnIndex,
-			"KeyEventMessage", message, &retstr);
-	    }
-        }
-	break;
     default:
 	break;
     }

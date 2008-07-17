@@ -33,8 +33,6 @@ XkbDDXPrivate(DeviceIntPtr dev,KeyCode key,XkbAction *act)
             xf86ProcessActionEvent(ACTION_DISABLEGRAB, NULL);
         else if (strcasecmp(msgbuf, "clsgrb")==0)
             xf86ProcessActionEvent(ACTION_CLOSECLIENT, NULL);
-        else
-            xf86ProcessActionEvent(ACTION_MESSAGE, (void *) msgbuf);
     }
 
     return 0;
