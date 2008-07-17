@@ -76,11 +76,6 @@
 #include "compiler.h"
 #include "sym.h"
 
-#if defined(sun)
-/* Cross build machine doesn;t have strerror() */
-#define strerror(err) "strerror unsupported"
-#endif
-
 /*
  * handles are used to identify files that are loaded. Even archives
  * are counted as a single file.
