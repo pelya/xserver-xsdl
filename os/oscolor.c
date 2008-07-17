@@ -59,7 +59,7 @@ typedef struct _builtinColor {
     unsigned short	name;
 } BuiltinColor;
 
-static const unsigned char BuiltinColorNames[] = {
+static const char BuiltinColorNames[] = {
     "alice blue\0"
     "AliceBlue\0"
     "antique white\0"
@@ -1573,14 +1573,13 @@ static const BuiltinColor BuiltinColors[] = {
 
 Bool
 OsLookupColor(int		screen,
-	      char		*s_name,
+	      char		*name,
 	      unsigned int	len,
 	      unsigned short	*pred,
 	      unsigned short	*pgreen,
 	      unsigned short	*pblue)
 {
     const BuiltinColor	*c;
-    unsigned char	*name = (unsigned char *) s_name;
     int			low, mid, high;
     int			r;
 
@@ -1598,7 +1597,7 @@ OsLookupColor(int		screen,
 	    *pblue = c->blue * 0x101;
 	    return TRUE;
 	}
-	if (r < 0)
+	if (r > 0)
 	    high = mid - 1;
 	else
 	    low = mid + 1;
