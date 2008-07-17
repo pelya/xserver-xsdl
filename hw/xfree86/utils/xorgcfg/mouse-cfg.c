@@ -36,7 +36,6 @@
 #include <X11/Xaw/Form.h>
 #include <X11/Xaw/Toggle.h>
 #include <X11/Xaw/Viewport.h>
-#include <X11/extensions/xf86misc.h>
 
 /*
  * Prototypes
@@ -44,7 +43,6 @@
 static void MouseDeviceCallback(Widget, XtPointer, XtPointer);
 static void MouseProtocolCallback(Widget, XtPointer, XtPointer);
 static void MouseEmulateCallback(Widget, XtPointer, XtPointer);
-static void MouseApplyCallback(Widget, XtPointer, XtPointer);
 static Bool MouseConfigCheck(void);
 
 /*
@@ -265,35 +263,6 @@ MouseEmulateCallback(Widget w, XtPointer user_data, XtPointer call_data)
     emulate = (Bool)(long)call_data;
 }
 
-static void
-MouseApplyCallback(Widget w, XtPointer user_data, XtPointer call_data)
-{
-    int i;
-    XF86MiscMouseSettings mouse;
-
-    XF86MiscGetMouseSettings(XtDisplay(w), &mouse);
-    XtFree(mouse.device);
-
-    if (mouse.baudrate == 0 || mouse.baudrate < 0 || mouse.baudrate > 9600 ||
-	mouse.baudrate % 1200)
-	mouse.baudrate = 1200;
-
-    mouse.type = MTYPE_AUTOMOUSE;
-    for (i = 0; i < sizeof(protocols) / sizeof(protocols[0]); i++)
-	if (strcmp(protocols[i].name, protocol) == 0) {
-	    mouse.type = protocols[i].type;
-	    break;
-	}
-
-    mouse.emulate3buttons = emulate;
-    mouse.flags |= MF_REOPEN;
-
-    mouse.device = device;
-
-    XFlush(XtDisplay(w));
-    XF86MiscSetMouseSettings(XtDisplay(w), &mouse);
-}
-
 void
 MouseDeviceAndProtocol(XF86SetupInfo *info)
 {
@@ -396,7 +365,6 @@ MouseDeviceAndProtocol(XF86SetupInfo *info)
 	XtAddCallback(emul3, XtNcallback, MouseEmulateCallback, NULL);
 	apply = XtCreateManagedWidget("apply", commandWidgetClass,
 				      mouse_dp, NULL, 0);
-	XtAddCallback(apply, XtNcallback, MouseApplyCallback, NULL);
 
 	XtRealizeWidget(mouse_dp);
     }
