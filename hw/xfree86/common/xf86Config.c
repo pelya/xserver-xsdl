@@ -116,7 +116,6 @@ static ModuleDefault ModuleDefaults[] = {
     {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
     {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
 #ifdef XRECORD
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
 #endif
