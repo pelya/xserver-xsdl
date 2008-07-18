@@ -611,7 +611,7 @@ extern int xstrncasecmp(const char *s1, const char *s2, size_t n);
 
 #if NEED_STRCASESTR
 #define strcasestr xstrcasestr
-extern int xstrcasestr(const char *s, const char *find);
+extern char *xstrcasestr(const char *s, const char *find);
 #endif
 
 extern int XItoCoreType(int xi_type);
