@@ -42,10 +42,6 @@ typedef struct _XkbRF_VarDefs {
 	char *			layout;
 	char *			variant;
 	char *			options;
-	unsigned short		sz_extra;
-	unsigned short		num_extra;
-	char *			extra_names;
-	char **			extra_values;
 } XkbRF_VarDefsRec,*XkbRF_VarDefsPtr;
 
 typedef struct _XkbRF_VarDesc {
@@ -94,10 +90,6 @@ typedef struct _XkbRF_Rules {
 	XkbRF_DescribeVarsRec	layouts;
 	XkbRF_DescribeVarsRec	variants;
 	XkbRF_DescribeVarsRec	options;
-	unsigned short		sz_extra;
-	unsigned short		num_extra;
-	char **			extra_names;
-	XkbRF_DescribeVarsPtr	extra;
 
 	unsigned short		sz_rules;
 	unsigned short		num_rules;
@@ -148,11 +140,6 @@ extern _X_EXPORT XkbRF_VarDescPtr	XkbRF_AddVarDescCopy(
     XkbRF_VarDescPtr		/* copy_from */
 );
 
-extern _X_EXPORT XkbRF_DescribeVarsPtr XkbRF_AddVarToDescribe(
-    XkbRF_RulesPtr		/* rules */,
-    char *			/* name */
-);
-
 extern _X_EXPORT Bool	XkbRF_LoadDescriptions(
     FILE *		/* file */,
     XkbRF_RulesPtr	/* rules */
@@ -171,10 +158,7 @@ extern _X_EXPORT XkbRF_RulesPtr XkbRF_Load(
     Bool		/* wantRules */
 );
 
-extern _X_EXPORT XkbRF_RulesPtr XkbRF_Create(
-    int			/* sz_rules */,
-    int			/* sz_extra */
-);
+extern _X_EXPORT XkbRF_RulesPtr XkbRF_Create(void);
 
 /***====================================================================***/
 

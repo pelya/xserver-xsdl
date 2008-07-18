@@ -1019,41 +1019,13 @@ XkbRF_VarDescPtr	nd;
     return nd;
 }
 
-XkbRF_DescribeVarsPtr
-XkbRF_AddVarToDescribe(XkbRF_RulesPtr rules,char *name)
-{
-    if (rules->sz_extra<1) {
-	rules->num_extra= 0;
-	rules->sz_extra= 1;
-	rules->extra_names= _XkbTypedCalloc(rules->sz_extra,char *);
-	rules->extra= _XkbTypedCalloc(rules->sz_extra, XkbRF_DescribeVarsRec);
-    }
-    else if (rules->num_extra>=rules->sz_extra) {
-	rules->sz_extra*= 2;
-	rules->extra_names= _XkbTypedRealloc(rules->extra_names,rules->sz_extra,
-								char *);
-	rules->extra=_XkbTypedRealloc(rules->extra, rules->sz_extra,
-							XkbRF_DescribeVarsRec);
-    }
-    if ((!rules->extra_names)||(!rules->extra)) {
-	DebugF("allocation error in extra parts\n");
-	rules->sz_extra= rules->num_extra= 0;
-	rules->extra_names= NULL;
-	rules->extra= NULL;
-	return NULL;
-    }
-    rules->extra_names[rules->num_extra]= _XkbDupString(name);
-    bzero(&rules->extra[rules->num_extra],sizeof(XkbRF_DescribeVarsRec));
-    return &rules->extra[rules->num_extra++];
-}
-
 Bool
 XkbRF_LoadDescriptions(FILE *file,XkbRF_RulesPtr rules)
 {
 InputLine		line;
 XkbRF_VarDescRec	tmp;
 char			*tok;
-int			len,headingtype,extra_ndx = 0;
+int			len,headingtype;
 
     bzero((char *)&tmp, sizeof(XkbRF_VarDescRec));
     headingtype = HEAD_NONE;
@@ -1069,23 +1041,13 @@ int			len,headingtype,extra_ndx = 0;
 		headingtype = HEAD_VARIANT;
 	    else if (strcasecmp(tok,"option") == 0)
 		headingtype = HEAD_OPTION;
-	    else {
-		int i;
-		headingtype = HEAD_EXTRA;
-		extra_ndx= -1;
-		for (i=0;(i<rules->num_extra)&&(extra_ndx<0);i++) {
-		    if (!strcasecmp(tok,rules->extra_names[i]))
-			extra_ndx= i;
-		}
-		if (extra_ndx<0) {
-		    XkbRF_DescribeVarsPtr	var;
-		    DebugF("Extra heading \"%s\" encountered\n",tok);
-		    var= XkbRF_AddVarToDescribe(rules,tok);
-		    if (var)
-			 extra_ndx= var-rules->extra;
-		    else headingtype= HEAD_NONE;
-		}
-	    }
+            else {
+                ErrorF("Broken rules file: unknown type for line %s\n",
+                       line.line);
+                ErrorF("Not parsing rules file further\n");
+                FreeInputLine(&line);
+                return False;
+            }
 	    continue;
 	}
 
@@ -1129,17 +1091,13 @@ int			len,headingtype,extra_ndx = 0;
 	    case HEAD_OPTION:
 		XkbRF_AddVarDescCopy(&rules->options,&tmp);
 		break;
-	    case HEAD_EXTRA:
-		XkbRF_AddVarDescCopy(&rules->extra[extra_ndx],&tmp);
-		break;
 	}
     }
     FreeInputLine(&line);
     if ((rules->models.num_desc==0) && (rules->layouts.num_desc==0) &&
-	(rules->variants.num_desc==0) && (rules->options.num_desc==0) &&
-	(rules->num_extra==0)) {
+	(rules->variants.num_desc==0) && (rules->options.num_desc==0))
 	return False;
-    }
+
     return True;
 }
 
@@ -1199,31 +1157,9 @@ XkbRF_RulesPtr	rules;
 }
 
 XkbRF_RulesPtr
-XkbRF_Create(int szRules,int szExtra) 
+XkbRF_Create(void)
 {
-XkbRF_RulesPtr rules;
-
-    if ((rules=_XkbTypedCalloc(1,XkbRF_RulesRec))==NULL)
-	return NULL;
-    if (szRules>0) {
-	rules->sz_rules= szRules; 
-	rules->rules= _XkbTypedCalloc(rules->sz_rules,XkbRF_RuleRec);
-	if (!rules->rules) {
-	    _XkbFree(rules);
-	    return NULL;
-	}
-    }
-    if (szExtra>0) {
-	rules->sz_extra= szExtra; 
-	rules->extra= _XkbTypedCalloc(rules->sz_extra,XkbRF_DescribeVarsRec);
-	if (!rules->extra) {
-	    if (rules->rules)
-		_XkbFree(rules->rules);
-	    _XkbFree(rules);
-	    return NULL;
-	}
-    }
-    return rules;
+    return _XkbTypedCalloc(1, XkbRF_RulesRec);
 }
 
 /***====================================================================***/
@@ -1259,14 +1195,6 @@ XkbRF_GroupPtr	group;
     XkbRF_ClearVarDescriptions(&rules->layouts);
     XkbRF_ClearVarDescriptions(&rules->variants);
     XkbRF_ClearVarDescriptions(&rules->options);
-    if (rules->extra) {
-	for (i = 0; i < rules->num_extra; i++) {
-	    XkbRF_ClearVarDescriptions(&rules->extra[i]);
-	}
-	_XkbFree(rules->extra);
-	rules->num_extra= rules->sz_extra= 0;
-	rules->extra= NULL;
-    }
     if (rules->rules) {
 	for (i=0,rule=rules->rules;i<rules->num_rules;i++,rule++) {
 	    if (rule->model)	_XkbFree(rule->model);

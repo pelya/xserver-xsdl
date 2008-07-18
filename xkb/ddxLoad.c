@@ -404,7 +404,7 @@ XkbRF_RulesPtr	rules;
 	return False;
     }
 
-    rules = XkbRF_Create(0, 0);
+    rules = XkbRF_Create();
     if (!rules) {
         LogMessage(X_ERROR, "XKB: Couldn't create rules struct\n");
 	fclose(file);
