@@ -52,6 +52,8 @@
 
 /***====================================================================***/
 
+
+
 #define DFLT_LINE_SIZE	128
 
 typedef struct {
@@ -856,7 +858,7 @@ XkbRF_GetComponents(	XkbRF_RulesPtr		rules,
 		names->compat && names->geometry);
 }
 
-XkbRF_RulePtr
+static XkbRF_RulePtr
 XkbRF_AddRule(XkbRF_RulesPtr	rules)
 {
     if (rules->sz_rules<1) {
@@ -878,7 +880,7 @@ XkbRF_AddRule(XkbRF_RulesPtr	rules)
     return &rules->rules[rules->num_rules++];
 }
 
-XkbRF_GroupPtr
+static XkbRF_GroupPtr
 XkbRF_AddGroup(XkbRF_RulesPtr	rules)
 {
     if (rules->sz_groups<1) {
@@ -967,185 +969,6 @@ Bool		ok;
 
 /***====================================================================***/
 
-#define HEAD_NONE	0
-#define HEAD_MODEL	1
-#define HEAD_LAYOUT	2
-#define HEAD_VARIANT	3
-#define HEAD_OPTION	4
-#define	HEAD_EXTRA	5
-
-XkbRF_VarDescPtr
-XkbRF_AddVarDesc(XkbRF_DescribeVarsPtr	vars)
-{
-    if (vars->sz_desc<1) {
-	vars->sz_desc= 16;
-	vars->num_desc= 0;
-	vars->desc= _XkbTypedCalloc(vars->sz_desc,XkbRF_VarDescRec);
-    }
-    else if (vars->num_desc>=vars->sz_desc) {
-	vars->sz_desc*= 2;
-	vars->desc= _XkbTypedRealloc(vars->desc,vars->sz_desc,XkbRF_VarDescRec);
-    }
-    if (!vars->desc) {
-	vars->sz_desc= vars->num_desc= 0;
-	DebugF("Allocation failure in XkbRF_AddVarDesc\n");
-	return NULL;
-    }
-    vars->desc[vars->num_desc].name= NULL;
-    vars->desc[vars->num_desc].desc= NULL;
-    return &vars->desc[vars->num_desc++];
-}
-
-XkbRF_VarDescPtr
-XkbRF_AddVarDescCopy(XkbRF_DescribeVarsPtr vars,XkbRF_VarDescPtr from)
-{
-XkbRF_VarDescPtr	nd;
-
-    if ((nd=XkbRF_AddVarDesc(vars))!=NULL) {
-	nd->name= _XkbDupString(from->name);
-	nd->desc= _XkbDupString(from->desc);
-    }
-    return nd;
-}
-
-Bool
-XkbRF_LoadDescriptions(FILE *file,XkbRF_RulesPtr rules)
-{
-InputLine		line;
-XkbRF_VarDescRec	tmp;
-char			*tok;
-int			len,headingtype;
-
-    bzero((char *)&tmp, sizeof(XkbRF_VarDescRec));
-    headingtype = HEAD_NONE;
-    InitInputLine(&line);
-    for ( ; GetInputLine(file,&line,False); line.num_line= 0) {
-	if (line.line[0]=='!') {
-	    tok = strtok(&(line.line[1]), " \t");
-	    if (strcasecmp(tok,"model") == 0)
-		headingtype = HEAD_MODEL;
-	    else if (strcasecmp(tok,"layout") == 0)
-		headingtype = HEAD_LAYOUT;
-	    else if (strcasecmp(tok,"variant") == 0)
-		headingtype = HEAD_VARIANT;
-	    else if (strcasecmp(tok,"option") == 0)
-		headingtype = HEAD_OPTION;
-            else {
-                ErrorF("Broken rules file: unknown type for line %s\n",
-                       line.line);
-                ErrorF("Not parsing rules file further\n");
-                XkbRF_Free(rules, False);
-                FreeInputLine(&line);
-                return False;
-            }
-	    continue;
-	}
-
-	if (headingtype == HEAD_NONE) {
-	    DebugF("Must have a heading before first line of data\n");
-	    DebugF("Illegal line of data ignored\n");
-	    continue;
-	}
-
-	len = strlen(line.line);
-	if ((tmp.name= strtok(line.line, " \t")) == NULL) {
-	    DebugF("Huh? No token on line\n");
-	    DebugF("Illegal line of data ignored\n");
-	    continue;
-	}
-	if (strlen(tmp.name) == len) {
-	    DebugF("No description found\n");
-	    DebugF("Illegal line of data ignored\n");
-	    continue;
-	}
-
-	tok = line.line + strlen(tmp.name) + 1;
-	while ((*tok!='\n')&&isspace(*tok))
-		tok++;
-	if (*tok == '\0') {
-	    DebugF("No description found\n");
-	    DebugF("Illegal line of data ignored\n");
-	    continue;
-	}
-	tmp.desc= tok;
-	switch (headingtype) {
-	    case HEAD_MODEL:
-		XkbRF_AddVarDescCopy(&rules->models,&tmp);
-		break;
-	    case HEAD_LAYOUT:
-		XkbRF_AddVarDescCopy(&rules->layouts,&tmp);
-		break;
-	    case HEAD_VARIANT:
-		XkbRF_AddVarDescCopy(&rules->variants,&tmp);
-		break;
-	    case HEAD_OPTION:
-		XkbRF_AddVarDescCopy(&rules->options,&tmp);
-		break;
-	}
-    }
-    FreeInputLine(&line);
-    if ((rules->models.num_desc==0) && (rules->layouts.num_desc==0) &&
-	(rules->variants.num_desc==0) && (rules->options.num_desc==0))
-	return False;
-
-    return True;
-}
-
-Bool
-XkbRF_LoadDescriptionsByName(char *base,char *locale,XkbRF_RulesPtr rules)
-{
-FILE *		file;
-char		buf[PATH_MAX];
-Bool		ok;
-
-    if ((!base)||(!rules))
-	return False;
-    if (locale) {
-	if (strlen(base)+strlen(locale)+6 > PATH_MAX)
-	    return False;
-	sprintf(buf,"%s-%s.lst", base, locale);
-    }
-    else {
-	if (strlen(base)+5 > PATH_MAX)
-	    return False;
-	sprintf(buf,"%s.lst", base);
-    }
-
-    file= fopen(buf, "r");
-    if ((!file)&&(locale)) { /* fallback if locale was specified */
-	sprintf(buf,"%s.lst", base);
-
-	file= fopen(buf, "r");
-    }
-    if (!file)
-	return False;
-    ok= XkbRF_LoadDescriptions(file,rules);
-    fclose(file);
-    return ok;
-}
-
-/***====================================================================***/
-
-XkbRF_RulesPtr
-XkbRF_Load(char *base,char *locale,Bool wantDesc,Bool wantRules)
-{
-XkbRF_RulesPtr	rules;
-
-    if ((!base)||((!wantDesc)&&(!wantRules)))
-	return NULL;
-    if ((rules=_XkbTypedCalloc(1,XkbRF_RulesRec))==NULL)
-	return NULL;
-    if (wantDesc&&(!XkbRF_LoadDescriptionsByName(base,locale,rules))) {
-	XkbRF_Free(rules,True);
-	return NULL;
-    }
-    if (wantRules&&(!XkbRF_LoadRulesByName(base,locale,rules))) {
-	XkbRF_Free(rules,True);
-	return NULL;
-    }
-    return rules;
-}
-
 XkbRF_RulesPtr
 XkbRF_Create(void)
 {
@@ -1153,24 +976,6 @@ XkbRF_Create(void)
 }
 
 /***====================================================================***/
-
-static void
-XkbRF_ClearVarDescriptions(XkbRF_DescribeVarsPtr var)
-{
-register int i;
-    
-    for (i=0;i<var->num_desc;i++) {
-	if (var->desc[i].name)
-	    _XkbFree(var->desc[i].name);
-	if (var->desc[i].desc)
-	    _XkbFree(var->desc[i].desc);
-	var->desc[i].name= var->desc[i].desc= NULL;
-    }
-    if (var->desc)
-	_XkbFree(var->desc);
-    var->desc= NULL;
-    return;
-}
 
 void
 XkbRF_Free(XkbRF_RulesPtr rules,Bool freeRules)
@@ -1181,10 +986,6 @@ XkbRF_GroupPtr	group;
 
     if (!rules)
 	return;
-    XkbRF_ClearVarDescriptions(&rules->models);
-    XkbRF_ClearVarDescriptions(&rules->layouts);
-    XkbRF_ClearVarDescriptions(&rules->variants);
-    XkbRF_ClearVarDescriptions(&rules->options);
     if (rules->rules) {
 	for (i=0,rule=rules->rules;i<rules->num_rules;i++,rule++) {
 	    if (rule->model)	_XkbFree(rule->model);
