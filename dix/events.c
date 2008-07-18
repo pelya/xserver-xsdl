@@ -422,7 +422,7 @@ static Mask* generic_filters[MAXEXTENSIONS];
 
 static CARD8 criticalEvents[32] =
 {
-    0x7c				/* key and button events */
+    0x7c, 0x30, 0x40			/* key, button, expose, and configure events */
 };
 
 #ifdef PANORAMIX
