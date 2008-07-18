@@ -137,15 +137,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef FONTCACHE
-    {
-	FontCacheExtensionInit,
-	FONTCACHENAME,
-	&noFontCacheExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef XV
     {
 	XvExtensionInit,

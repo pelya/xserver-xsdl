@@ -140,9 +140,6 @@ _X_EXPORT Bool noDbeExtension = FALSE;
 #ifdef DPMSExtension
 _X_EXPORT Bool noDPMSExtension = FALSE;
 #endif
-#ifdef FONTCACHE
-_X_EXPORT Bool noFontCacheExtension = FALSE;
-#endif
 #ifdef GLXEXT
 _X_EXPORT Bool noGlxExtension = FALSE;
 _X_EXPORT Bool noGlxVisualInit = FALSE;

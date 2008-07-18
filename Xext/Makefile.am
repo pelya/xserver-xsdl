@@ -106,12 +106,6 @@ if MULTIBUFFER
 MODULE_SRCS  += $(MULTIBUFFER_SRCS)
 endif
 
-# Font Cache extension
-FONTCACHE_SRCS = fontcache.c
-if FONTCACHE
-MODULE_SRCS  += $(FONTCACHE_SRCS)
-endif
-
 # XF86 Big Font extension
 BIGFONT_SRCS = xf86bigfont.c
 if XF86BIGFONT

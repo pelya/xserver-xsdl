@@ -101,9 +101,6 @@ extern Bool noDbeExtension;
 #ifdef DPMSExtension
 extern Bool noDPMSExtension;
 #endif
-#ifdef FONTCACHE
-extern Bool noFontCacheExtension;
-#endif
 #ifdef GLXEXT
 extern Bool noGlxExtension;
 #endif
@@ -284,9 +281,6 @@ extern void XFree86DRIExtensionInit(INITARGS);
 #ifdef DPMSExtension
 extern void DPMSExtensionInit(INITARGS);
 #endif
-#ifdef FONTCACHE
-extern void FontCacheExtensionInit(INITARGS);
-#endif
 #ifdef RENDER
 extern void RenderExtensionInit(INITARGS);
 #endif
@@ -339,9 +333,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #endif
 #ifdef DPMSExtension
     { "DPMS", &noDPMSExtension },
-#endif
-#ifdef FONTCACHE
-    { "FontCache", &noFontCacheExtension },
 #endif
 #ifdef GLXEXT
     { "GLX", &noGlxExtension },
@@ -503,9 +494,6 @@ InitExtensions(int argc, char *argv[])
 #endif
 #if defined(DPMSExtension) && !defined(NO_HW_ONLY_EXTS)
     if (!noDPMSExtension) DPMSExtensionInit();
-#endif
-#ifdef FONTCACHE
-    if (!noFontCacheExtension) FontCacheExtensionInit();
 #endif
 #ifdef XF86BIGFONT
     if (!noXFree86BigfontExtension) XFree86BigfontExtensionInit();

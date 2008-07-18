@@ -65,10 +65,6 @@ extern Bool noDbeExtension;
 extern Bool noDPMSExtension;
 #endif
 
-#ifdef FONTCACHE
-extern Bool noFontCacheExtension;
-#endif
-
 #ifdef GLXEXT
 extern Bool noGlxExtension;
 #endif
