@@ -527,7 +527,6 @@ typedef struct _XkbChanges {
 	 * database.
 	 */
 typedef struct _XkbComponentNames {
-	char *			 keymap;
 	char *			 keycodes;
 	char *			 types;
 	char *			 compat;

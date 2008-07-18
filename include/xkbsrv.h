@@ -962,13 +962,12 @@ extern Bool XkbCopyKeymap(
 #include <X11/extensions/XKMformat.h>
 #include "xkbrules.h"
 
-#define	_XkbListKeymaps		0
-#define	_XkbListKeycodes	1
-#define	_XkbListTypes		2
-#define	_XkbListCompat		3
-#define	_XkbListSymbols		4
-#define	_XkbListGeometry	5
-#define	_XkbListNumComponents	6
+#define	_XkbListKeycodes	0
+#define	_XkbListTypes		1
+#define	_XkbListCompat		2
+#define	_XkbListSymbols		3
+#define	_XkbListGeometry	4
+#define	_XkbListNumComponents	5
 
 typedef struct _XkbSrvListInfo {
 	int		szPool;

@@ -193,15 +193,14 @@ Bool	endOfFile,spacePending,slashPending,inComment;
 #define	TYPES		6
 #define	COMPAT		7
 #define	GEOMETRY	8
-#define	KEYMAP		9
-#define	MAX_WORDS	10
+#define	MAX_WORDS	9
 
 #define	PART_MASK	0x000F
 #define	COMPONENT_MASK	0x03F0
 
 static	char *	cname[MAX_WORDS] = {
 	"model", "layout", "variant", "option", 
-	"keycodes", "symbols", "types", "compat", "geometry", "keymap"
+	"keycodes", "symbols", "types", "compat", "geometry"
 };
 
 typedef	struct _RemapSpec {
@@ -336,13 +335,6 @@ Bool		found;
 	remap->num_remap= 0;
 	return;
    }
-   if (((present&COMPONENT_MASK)&(1<<KEYMAP))&&
-				((present&COMPONENT_MASK)!=(1<<KEYMAP))) {
-	DebugF("Keymap cannot appear with other components\n");
-	DebugF("Illegal mapping ignored\n");
-	remap->num_remap= 0;
-	return;
-   }
    remap->number++;
    return;
 }
@@ -459,7 +451,6 @@ Bool 		append = False;
     rule->types= _XkbDupString(tmp.name[TYPES]);
     rule->compat= _XkbDupString(tmp.name[COMPAT]);
     rule->geometry= _XkbDupString(tmp.name[GEOMETRY]);
-    rule->keymap= NULL;
 
     rule->layout_num = rule->variant_num = 0;
     for (i = 0; i < nread; i++) {
@@ -859,12 +850,10 @@ XkbRF_GetComponents(	XkbRF_RulesPtr		rules,
 	names->compat= XkbRF_SubstituteVars(names->compat, &mdefs);
     if (names->geometry)
 	names->geometry= XkbRF_SubstituteVars(names->geometry, &mdefs);
-    if (names->keymap)	
-	names->keymap= XkbRF_SubstituteVars(names->keymap, &mdefs);
 
     FreeMultiDefs(&mdefs);
     return (names->keycodes && names->symbols && names->types &&
-		names->compat && names->geometry ) || names->keymap;
+		names->compat && names->geometry);
 }
 
 XkbRF_RulePtr
@@ -1045,6 +1034,7 @@ int			len,headingtype;
                 ErrorF("Broken rules file: unknown type for line %s\n",
                        line.line);
                 ErrorF("Not parsing rules file further\n");
+                XkbRF_Free(rules, False);
                 FreeInputLine(&line);
                 return False;
             }

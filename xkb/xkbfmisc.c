@@ -170,7 +170,7 @@ int		multi_section;
 unsigned	wantNames,wantConfig,wantDflts;
 
     complete= 0;
-    if ((name=names->keymap)==NULL)	name= "default";
+    name= "default";
     if (COMPLETE(names->keycodes))	complete|= XkmKeyNamesMask;
     if (COMPLETE(names->types))		complete|= XkmTypesMask;
     if (COMPLETE(names->compat))	complete|= XkmCompatMapMask;
@@ -410,29 +410,6 @@ unsigned	rtrn;
 	if (orig!=0)				rtrn|= XkbGBN_OtherNamesMask;
     }
     return rtrn;
-}
-
-/* all latin-1 alphanumerics, plus parens, slash, minus, underscore and */
-/* wildcards */
-
-static unsigned char componentSpecLegal[] = {
-	0x00, 0x00, 0x00, 0x00, 0x00, 0xa7, 0xff, 0x83,
-	0xfe, 0xff, 0xff, 0x87, 0xfe, 0xff, 0xff, 0x07,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff
-};
-
-void
-XkbEnsureSafeMapName(char *name)
-{
-   if (name==NULL)
-        return;
-    while (*name!='\0') {
-	if ((componentSpecLegal[(*name)/8]&(1<<((*name)%8)))==0)
-	    *name= '_';
-        name++;
-    }
-    return;
 }
 
 /***====================================================================***/

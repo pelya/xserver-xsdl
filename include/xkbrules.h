@@ -69,7 +69,6 @@ typedef struct _XkbRF_Rule {
 	char *			types;
 	char *			compat;
 	char *			geometry;
-	char *			keymap;
 	unsigned		flags;
 } XkbRF_RuleRec,*XkbRF_RulePtr;
 

@@ -61,7 +61,7 @@ extern int Win32System(const char *cmdline);
 /***====================================================================***/
 
 static char *componentDirs[_XkbListNumComponents] = {
-	"keymap", "keycodes", "types", "compat", "symbols", "geometry"
+	"keycodes", "types", "compat", "symbols", "geometry"
 };
 
 /***====================================================================***/
@@ -280,9 +280,7 @@ XkbDDXList(DeviceIntPtr	dev,XkbSrvListInfoPtr list,ClientPtr client)
 {
 Status	status;
 
-    status= XkbDDXListComponent(dev,_XkbListKeymaps,list,client);
-    if (status==Success)
-	status= XkbDDXListComponent(dev,_XkbListKeycodes,list,client);
+    status= XkbDDXListComponent(dev,_XkbListKeycodes,list,client);
     if (status==Success)
 	status= XkbDDXListComponent(dev,_XkbListTypes,list,client);
     if (status==Success)

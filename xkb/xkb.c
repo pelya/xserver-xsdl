@@ -5492,7 +5492,6 @@ ProcXkbListComponents(ClientPtr client)
     str= (unsigned char *)&stuff[1];
     bzero(&list,sizeof(XkbSrvListInfoRec));
     list.maxRtrn= stuff->maxNames;
-    list.pattern[_XkbListKeymaps]= GetComponentSpec(&str,False,&status);
     list.pattern[_XkbListKeycodes]= GetComponentSpec(&str,False,&status);
     list.pattern[_XkbListTypes]= GetComponentSpec(&str,False,&status);
     list.pattern[_XkbListCompat]= GetComponentSpec(&str,False,&status);
@@ -5515,7 +5514,7 @@ ProcXkbListComponents(ClientPtr client)
     rep.deviceID = dev->id;
     rep.sequenceNumber = client->sequence;
     rep.length = XkbPaddedSize(list.nPool)/4;
-    rep.nKeymaps = list.nFound[_XkbListKeymaps];
+    rep.nKeymaps = 0;
     rep.nKeycodes = list.nFound[_XkbListKeycodes];
     rep.nTypes = list.nFound[_XkbListTypes];
     rep.nCompatMaps = list.nFound[_XkbListCompat];
@@ -5581,7 +5580,8 @@ ProcXkbGetKbdByName(ClientPtr client)
     xkb = dev->key->xkbInfo->desc;
     status= Success;
     str= (unsigned char *)&stuff[1];
-    names.keymap= GetComponentSpec(&str,True,&status);
+    if (GetComponentSpec(&str,True,&status)) /* keymap, unsupported */
+        return BadMatch;
     names.keycodes= GetComponentSpec(&str,True,&status);
     names.types= GetComponentSpec(&str,True,&status);
     names.compat= GetComponentSpec(&str,True,&status);
@@ -5873,7 +5873,6 @@ ProcXkbGetKbdByName(ClientPtr client)
 	XkbFreeKeyboard(new,XkbAllComponentsMask,True);
 	new= NULL;
     }
-    if (names.keymap)	{ _XkbFree(names.keymap); names.keymap= NULL; }
     if (names.keycodes)	{ _XkbFree(names.keycodes); names.keycodes= NULL; }
     if (names.types)	{ _XkbFree(names.types); names.types= NULL; }
     if (names.compat)	{ _XkbFree(names.compat); names.compat= NULL; }

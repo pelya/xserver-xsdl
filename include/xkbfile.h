@@ -284,10 +284,6 @@ extern _X_EXPORT Bool	XkbWriteXKBGeometry(
     void *		/* priv */
 );
 
-extern _X_EXPORT void	XkbEnsureSafeMapName(
-    char *		/* name */
-);
-
 extern _X_EXPORT Bool	XkbWriteXKBKeymapForNames(
     FILE *			/* file */,
     XkbComponentNamesPtr	/* names */,

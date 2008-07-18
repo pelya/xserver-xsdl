@@ -177,7 +177,7 @@ OutputDirectory(
     }
 }
 
-static Bool    	
+static Bool
 XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
@@ -204,7 +204,6 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 
     snprintf(keymap, sizeof(keymap), "server-%s", display);
 
-    XkbEnsureSafeMapName(keymap);
     OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
 
 #ifdef WIN32
