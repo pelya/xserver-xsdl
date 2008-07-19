@@ -74,6 +74,7 @@
 #include <X11/extensions/XKBfile.h>
 #include <X11/extensions/XKBui.h>
 #include <X11/extensions/XKBrules.h>
+#include <X11/extensions/xf86misc.h>
 
 #ifndef _xf86cfg_config_h
 #define _xf86cfg_config_h
