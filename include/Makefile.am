@@ -53,11 +53,10 @@ sdk_HEADERS =		\
 	windowstr.h	\
 	xkbfile.h	\
 	xkbsrv.h	\
-	xkbstr.h	\
-	xorg-server.h
+	xkbstr.h
+
+nodist_sdk_HEADERS = xorg-server.h
 endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
-EXTRA_DIST = $(sdk_HEADERS) do-not-use-config.h dix-config.h xorg-config.h \
-	xkb-config.h
