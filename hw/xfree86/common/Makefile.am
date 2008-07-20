@@ -32,10 +32,11 @@ libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
                       xf86Option.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86RAC.c xf86Xinput.c xisb.c \
-                      xf86Mode.c xf86Build.h xorgHelper.c \
+                      xf86Mode.c xorgHelper.c \
                       $(XVSOURCES) $(BUSSOURCES) $(RANDRSOURCES)
 nodist_libcommon_la_SOURCES = xf86DefModeSet.c
-libinit_a_SOURCES = xf86Build.h xf86Init.c
+libinit_a_SOURCES = xf86Init.c
+nodist_libinit_a_SOURCES = xf86Build.h
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
 	   -I$(srcdir)/../loader -I$(srcdir)/../rac -I$(srcdir)/../parser \
@@ -57,7 +58,6 @@ EXTRA_DIST = \
 	fourcc.h \
 	scoasm.h \
 	xf86.h \
-	xf86Build.h \
 	xf86Bus.h \
 	xf86Config.h \
 	xf86InPriv.h \
@@ -76,7 +76,6 @@ EXTRA_DIST = \
 	xf86xvmc.h \
 	xf86xvpriv.h \
 	xisb.h \
-	xf86Build.h.in \
 	xf86Version.h \
 	xorgVersion.h \
 	xf86Date.h \
