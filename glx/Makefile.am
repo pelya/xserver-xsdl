@@ -40,6 +40,8 @@ glapi_sources =					\
 	glapitemp.h				\
 	glapi.c					\
 	glapi.h					\
+	glapioffsets.h				\
+	glprocs.h				\
 	glthread.c				\
 	glthread.h
 
@@ -67,6 +69,7 @@ libglx_la_SOURCES = \
         glxext.h \
 	glxdriswrast.c \
 	glxdricommon.c \
+	glxdricommon.h \
         glxscreens.c \
         glxscreens.h \
         glxserver.h \
