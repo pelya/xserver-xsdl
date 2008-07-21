@@ -1226,10 +1226,6 @@ static int DoDestroyDrawable(__GLXclientState *cl, XID glxdrawable, int type)
 	}
     }
 
-    if (type == GLX_DRAWABLE_PIXMAP) {
-	((PixmapPtr) pGlxDraw->pDraw)->refcnt--;
-    }
-
     FreeResource(glxdrawable, FALSE);
 
     return Success;

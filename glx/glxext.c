@@ -107,6 +107,11 @@ static int ContextGone(__GLXcontext* cx, XID id)
 */
 static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
 {
+    ScreenPtr pScreen = glxPriv->pDraw->pScreen;
+
+    if (glxPriv->type == GLX_DRAWABLE_PIXMAP)
+	    (*pScreen->DestroyPixmap)((PixmapPtr) glxPriv->pDraw);
+
     glxPriv->pDraw = NULL;
     glxPriv->drawId = 0;
     __glXUnrefDrawable(glxPriv);
