@@ -68,6 +68,8 @@ typedef enum {
     DDC_QUIRK_FIRST_DETAILED_PREFERRED = 1 << 6,
     /* use +hsync +vsync for detailed mode */
     DDC_QUIRK_DETAILED_SYNC_PP = 1 << 7,
+    /* Force single-link DVI bandwidth limit */
+    DDC_QUIRK_DVI_SINGLE_LINK = 1 << 8,
 } ddc_quirk_t;
 
 static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
@@ -181,6 +183,16 @@ static Bool quirk_detailed_sync_pp(int scrnIndex, xf86MonPtr DDC)
     return FALSE;
 }
 
+/* This should probably be made more generic */
+static Bool quirk_dvi_single_link(int scrnIndex, xf86MonPtr DDC)
+{
+    /* Red Hat bug #453106: Apple 23" Cinema Display */
+    if (memcmp (DDC->vendor.name, "APL", 4) == 0 &&
+	DDC->vendor.prod_id == 0x921c)
+	return TRUE;
+    return FALSE;
+}
+
 typedef struct {
     Bool	(*detect) (int scrnIndex, xf86MonPtr DDC);
     ddc_quirk_t	quirk;
@@ -219,6 +231,10 @@ static const ddc_quirk_map_t ddc_quirks[] = {
     {
 	quirk_detailed_sync_pp, DDC_QUIRK_DETAILED_SYNC_PP,
 	"Use +hsync +vsync for detailed timing."
+    },
+    {
+	quirk_dvi_single_link, DDC_QUIRK_DVI_SINGLE_LINK,
+	"Forcing maximum pixel clock to single DVI link."
     },
     { 
 	NULL,		DDC_QUIRK_NONE,
@@ -669,11 +685,14 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
     Bool have_hsync = FALSE, have_vrefresh = FALSE, have_maxpixclock = FALSE;
+    ddc_quirk_t quirks;
 
     if (!Monitor || !DDC)
         return;
 
     Monitor->DDC = DDC;
+
+    quirks = xf86DDCDetectQuirks(scrnIndex, DDC, FALSE);
 
     if (Monitor->widthmm <= 0 && Monitor->heightmm <= 0) {
 	Monitor->widthmm = 10 * DDC->features.hsize;
@@ -727,6 +746,8 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 	    }
 
 	    clock = DDC->det_mon[i].section.ranges.max_clock * 1000;
+	    if (quirks & DDC_QUIRK_DVI_SINGLE_LINK)
+		clock = min(clock, 165000);
 	    if (!have_maxpixclock && clock > Monitor->maxPixClock)
 		Monitor->maxPixClock = clock;
 
