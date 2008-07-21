@@ -147,8 +147,10 @@ validGlxFBConfigForWindow(ClientPtr client, __GLXconfig *config,
 void
 __glXContextDestroy(__GLXcontext *context)
 {
-    if (!context->isDirect)
-	__glXDeassociateContext(context);
+    if (!context->isDirect) {
+	__glXUnrefDrawable(context->drawPriv);
+	__glXUnrefDrawable(context->readPriv);
+    }
     __glXFlushContextCache();
 }
 
@@ -618,7 +620,10 @@ DoMakeCurrent(__GLXclientState *cl,
 	    return __glXError(GLXBadContext);
 	}
 	__glXFlushContextCache();
-	__glXDeassociateContext(prevglxc);
+	if (!glxc->isDirect) {
+	    __glXUnrefDrawable(glxc->drawPriv);
+	    __glXUnrefDrawable(glxc->readPriv);
+	}
     }
 	
 
@@ -644,9 +649,8 @@ DoMakeCurrent(__GLXclientState *cl,
 	}
 
 	glxc->isCurrent = GL_TRUE;
-	__glXAssociateContext(glxc);
-	assert(drawPriv->drawGlxc == glxc);
-	assert(readPriv->readGlxc == glxc);
+	__glXRefDrawable(glxc->drawPriv);
+	__glXRefDrawable(glxc->readPriv);
     }
 
     if (prevglxc) {

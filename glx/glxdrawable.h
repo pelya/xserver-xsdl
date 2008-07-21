@@ -77,15 +77,6 @@ struct __GLXdrawable {
     __GLXconfig *config;
 
     /*
-    ** Lists of contexts bound to this drawable.  There are two lists here.
-    ** One list is of the contexts that have this drawable bound for drawing,
-    ** and the other is the list of contexts that have this drawable bound
-    ** for reading.
-    */
-    __GLXcontext *drawGlxc;
-    __GLXcontext *readGlxc;
-
-    /*
     ** reference count
     */
     int refCount;
