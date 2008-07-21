@@ -518,6 +518,18 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
     }
 }
 
+Bool
+xf86ModeIsReduced(DisplayModePtr mode)
+{
+    if ((((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) &&
+        ((mode->HTotal - mode->HDisplay) == 160) &&
+	((mode->HSyncEnd - mode->HDisplay) == 80) &&
+	((mode->HSyncEnd - mode->HSyncStart) == 32) &&
+	((mode->VSyncStart - mode->VDisplay) == 3))
+	return TRUE;
+    return FALSE;
+}
+
 /**
  * Marks as bad any reduced-blanking modes.
  *

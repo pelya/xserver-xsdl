@@ -1,5 +1,6 @@
 /*
  * Copyright 2006 Luc Verhaegen.
+ * Copyright 2008 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,10 +40,32 @@
 #include <X11/Xatom.h>
 #include "property.h"
 #include "propertyst.h"
-#include "xf86DDC.h"
 #include "xf86Crtc.h"
 #include <string.h>
 #include <math.h>
+
+static Bool
+xf86MonitorSupportsReducedBlanking(xf86MonPtr DDC)
+{
+    /* EDID 1.4 explicitly defines RB support */
+    if (DDC->ver.revision >= 4) {
+	int i;
+	for (i = 0; i < DET_TIMINGS; i++) {
+	    struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
+	    if (det_mon->type == DS_RANGES)
+		if (det_mon->section.ranges.supported_blanking & CVT_REDUCED)
+		    return TRUE;
+	}
+	
+	return FALSE;
+    }
+
+    /* For anything older, assume digital means RB support. Boo. */
+    if (DDC->features.input_type)
+        return TRUE;
+
+    return FALSE;
+}
 
 /*
  * Quirks to work around broken EDID data from various monitors.
@@ -400,16 +423,22 @@ ModeRefresh(DisplayModePtr mode)
 }
 
 /*
- * XXX should try not to return RB modes to non-RB displays...
+ * If rb is not set, then we'll not consider reduced-blanking modes as
+ * part of the DMT pool.  For the 'standard' EDID mode descriptor there's
+ * no way to specify whether the mode should be RB or not.
  */
 static DisplayModePtr
-FindDMTMode(int hsize, int vsize, int refresh)
+FindDMTMode(int hsize, int vsize, int refresh, Bool rb)
 {
     int i;
     DisplayModePtr ret;
 
     for (i = 0; i < sizeof(DMTModes) / sizeof(DisplayModeRec); i++) {
 	ret = &DMTModes[i];
+
+	if (!rb && xf86ModeIsReduced(ret))
+	    continue;
+
 	if (ret->HDisplay == hsize &&
 	    ret->VDisplay == vsize &&
 	    refresh == ModeRefresh(ret))
@@ -438,7 +467,7 @@ FindDMTMode(int hsize, int vsize, int refresh)
  */
 static DisplayModePtr
 DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
-			   int timing_level)
+			   int timing_level, Bool rb)
 {
     DisplayModePtr Modes = NULL, Mode = NULL;
     int i;
@@ -446,10 +475,11 @@ DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
     for (i = 0; i < STD_TIMINGS; i++) {
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
 	    Mode = FindDMTMode(timing[i].hsize, timing[i].vsize,
-			       timing[i].refresh);
+			       timing[i].refresh, rb);
 
 	    if (!Mode) {
 		if (timing_level == LEVEL_CVT)
+		    /* pass rb here too? */
 		    Mode = xf86CVTMode(timing[i].hsize, timing[i].vsize,
 				       timing[i].refresh, FALSE, FALSE);
 		else if (timing_level == LEVEL_GTF)
@@ -734,7 +764,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     int		    i;
     DisplayModePtr  Modes = NULL, Mode;
     ddc_quirk_t	    quirks;
-    Bool	    preferred;
+    Bool	    preferred, rb;
     int		    timing_level;
 
     xf86DrvMsg (scrnIndex, X_INFO, "EDID vendor \"%s\", prod id %d\n",
@@ -749,6 +779,8 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 	preferred = TRUE;
     if (quirks & (DDC_QUIRK_PREFER_LARGE_60 | DDC_QUIRK_PREFER_LARGE_75))
 	preferred = FALSE;
+
+    rb = xf86MonitorSupportsReducedBlanking(DDC);
 
     timing_level = MonitorStandardTimingLevel(DDC);
 
@@ -766,7 +798,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
             break;
         case DS_STD_TIMINGS:
             Mode = DDCModesFromStandardTiming(det_mon->section.std_t,
-					      quirks, timing_level);
+					      quirks, timing_level, rb);
             Modes = xf86ModesAdd(Modes, Mode);
             break;
 #if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
@@ -785,7 +817,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     Modes = xf86ModesAdd(Modes, Mode);
 
     /* Add standard timings */
-    Mode = DDCModesFromStandardTiming(DDC->timings2, quirks, timing_level);
+    Mode = DDCModesFromStandardTiming(DDC->timings2, quirks, timing_level, rb);
     Modes = xf86ModesAdd(Modes, Mode);
 
     if (quirks & DDC_QUIRK_PREFER_LARGE_60)
@@ -820,12 +852,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 	Monitor->heightmm = 10 * DDC->features.vsize;
     }
 
-    /*
-     * If this is a digital display, then we can use reduced blanking.
-     * XXX This is a 1.3 heuristic.  1.4 explicitly defines rb support.
-     */
-    if (DDC->features.input_type)
-        Monitor->reducedblanking = TRUE;
+    Monitor->reducedblanking = xf86MonitorSupportsReducedBlanking(DDC);
 
     Modes = xf86DDCGetModes(scrnIndex, DDC);
 

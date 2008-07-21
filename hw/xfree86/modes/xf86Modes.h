@@ -64,6 +64,9 @@ DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VRefresh,
 			   Bool Reduced, Bool Interlaced);
 DisplayModePtr xf86GTFMode(int h_pixels, int v_lines, float freq, int interlaced, int margins);
 
+Bool
+xf86ModeIsReduced(DisplayModePtr mode);
+
 void
 xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 		       int flags);
