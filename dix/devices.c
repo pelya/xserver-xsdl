@@ -1584,13 +1584,15 @@ SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
 }
 
 /*
- * n-squared algorithm. n < 255 and don't want to copy the whole thing and
- * sort it to do the checking. How often is it called? Just being lazy?
+ * Check if the given buffer contains elements between low (inclusive) and
+ * high (inclusive) only.
+ *
+ * @return TRUE if the device map is invalid, FALSE otherwise.
  */
 Bool
 BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 {
-    int i, j;
+    int i;
 
     for (i = 0; i < length; i++)
 	if (buff[i])		       /* only check non-zero elements */
@@ -1600,12 +1602,6 @@ BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 		*errval = buff[i];
 		return TRUE;
 	    }
-	    for (j = i + 1; j < length; j++)
-		if (buff[i] == buff[j])
-		{
-		    *errval = buff[i];
-		    return TRUE;
-		}
 	}
     return FALSE;
 }
@@ -1861,6 +1857,7 @@ ProcSetPointerMapping(ClientPtr client)
 {
     BYTE *map;
     int ret;
+    int i, j;
     DeviceIntPtr ptr = PickPointer(client);
     xSetPointerMappingReply rep;
     REQUEST(xSetPointerMappingReq);
@@ -1886,6 +1883,19 @@ ProcSetPointerMapping(ClientPtr client)
     }
     if (BadDeviceMap(&map[0], (int)stuff->nElts, 1, 255, &client->errorValue))
 	return BadValue;
+
+    /* core protocol specs don't allow for duplicate mappings. */
+    for (i = 0; i < stuff->nElts; i++)
+    {
+        for (j = i + 1; j < stuff->nElts; j++)
+        {
+            if (map[i] && map[i] == map[j])
+            {
+                client->errorValue = map[i];
+                return BadValue;
+            }
+        }
+    }
 
     ret = DoSetPointerMapping(client, ptr, map, stuff->nElts);
     if (ret != Success) {
