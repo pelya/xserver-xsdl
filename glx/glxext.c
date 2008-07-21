@@ -109,8 +109,12 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
 {
     ScreenPtr pScreen = glxPriv->pDraw->pScreen;
 
-    if (glxPriv->type == GLX_DRAWABLE_PIXMAP)
+    switch (glxPriv->type) {
+	case GLX_DRAWABLE_PIXMAP:
+	case GLX_DRAWABLE_PBUFFER:
 	    (*pScreen->DestroyPixmap)((PixmapPtr) glxPriv->pDraw);
+	    break;
+    }
 
     glxPriv->pDraw = NULL;
     glxPriv->drawId = 0;
