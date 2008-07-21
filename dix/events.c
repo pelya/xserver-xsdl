@@ -4441,13 +4441,15 @@ EnterLeaveEvent(
 
     /* Clear bit for device, but don't worry about SDs. */
     if (mouse->isMaster && type == LeaveNotify &&
-            (mode != NotifyVirtual && mode != NotifyNonlinearVirtual))
-        ENTER_LEAVE_SEMAPHORE_UNSET(pWin, mouse);
+            (detail != NotifyVirtual && detail != NotifyNonlinearVirtual))
+        if (mode != NotifyUngrab)
+            ENTER_LEAVE_SEMAPHORE_UNSET(pWin, mouse);
 
     inWindow = EnterLeaveSemaphoresIsset(pWin);
 
-    if (!inWindow)
+    if(!inWindow || mode == NotifyGrab || mode == NotifyUngrab)
         sendevent = TRUE;
+
 
     if ((mask & filters[mouse->id][type]) && sendevent)
     {
@@ -4460,8 +4462,9 @@ EnterLeaveEvent(
     }
 
     if (mouse->isMaster && type == EnterNotify &&
-            (mode != NotifyVirtual && mode != NotifyNonlinearVirtual))
-        ENTER_LEAVE_SEMAPHORE_SET(pWin, mouse);
+            (detail != NotifyVirtual && detail != NotifyNonlinearVirtual))
+        if (mode != NotifyGrab)
+            ENTER_LEAVE_SEMAPHORE_SET(pWin, mouse);
 
     /* we don't have enough bytes, so we squash flags and mode into
        one byte, and use the last byte for the deviceid. */
