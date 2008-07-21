@@ -185,51 +185,6 @@ static char GLXServerExtensions[] =
 			;
 
 /*
-** This hook gets called when a window moves or changes size.
-*/
-static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
-{
-    ScreenPtr pScreen;
-    __GLXdrawable *glxPriv;
-    Bool ret;
-    __GLXscreen *pGlxScreen;
-
-    /*
-    ** Call wrapped position window routine
-    */
-    pScreen = pWin->drawable.pScreen;
-    pGlxScreen = glxGetScreen(pScreen);
-    pScreen->PositionWindow = pGlxScreen->PositionWindow;
-    ret = (*pScreen->PositionWindow)(pWin, x, y);
-    pScreen->PositionWindow = glxPositionWindow;
-
-    /*
-    ** Tell all contexts rendering into this window that the window size
-    ** has changed.
-    */
-    glxPriv = (__GLXdrawable *) LookupIDByType(pWin->drawable.id,
-					       __glXDrawableRes);
-    if (glxPriv == NULL) {
-	/*
-	** This window is not being used by the OpenGL.
-	*/
-	return ret;
-    }
-
-    /*
-    ** resize the drawable
-    */
-    /* first change the drawable size */
-    if (glxPriv->resize(glxPriv) == GL_FALSE) {
-	/* resize failed! */
-	/* XXX: what can we possibly do here? */
-	ret = False;
-    }
-
-    return ret;
-}
-
-/*
  * If your DDX driver wants to register support for swap barriers or hyperpipe
  * topology, it should call __glXHyperpipeInit() or __glXSwapBarrierInit()
  * with a dispatch table of functions to handle the requests.   In the XFree86
@@ -260,7 +215,6 @@ glxCloseScreen (int index, ScreenPtr pScreen)
     __GLXscreen *pGlxScreen = glxGetScreen(pScreen);
 
     pScreen->CloseScreen = pGlxScreen->CloseScreen;
-    pScreen->PositionWindow = pGlxScreen->PositionWindow;
 
     pGlxScreen->destroy(pGlxScreen);
 
@@ -558,9 +512,6 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
     pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
     pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
 
-    pGlxScreen->PositionWindow = pScreen->PositionWindow;
-    pScreen->PositionWindow = glxPositionWindow;
- 
     pGlxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
 

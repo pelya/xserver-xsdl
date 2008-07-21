@@ -639,15 +639,6 @@ DoMakeCurrent(__GLXclientState *cl,
 	    return __glXError(GLXBadContext);
 	}
 
-	/* resize the buffers */
-	if (!(*drawPriv->resize)(drawPriv)) {
-	    /* could not do initial resize.  make current failed */
-	    (*glxc->loseCurrent)(glxc);
-	    glxc->drawPriv = NULL;
-	    glxc->readPriv = NULL;
-	    return __glXError(GLXBadContext);
-	}
-
 	glxc->isCurrent = GL_TRUE;
 	__glXRefDrawable(glxc->drawPriv);
 	__glXRefDrawable(glxc->readPriv);

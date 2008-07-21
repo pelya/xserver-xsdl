@@ -99,15 +99,6 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 }
 
 static GLboolean
-__glXDRIdrawableResize(__GLXdrawable *drawable)
-{
-    /* Nothing to do here, the DRI driver asks the server for drawable
-     * geometry appropriately. */
-
-    return GL_TRUE;
-}
-
-static GLboolean
 __glXDRIdrawableSwapBuffers(__GLXdrawable *drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
@@ -328,7 +319,6 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     }
 
     private->base.destroy       = __glXDRIdrawableDestroy;
-    private->base.resize        = __glXDRIdrawableResize;
     private->base.swapBuffers   = __glXDRIdrawableSwapBuffers;
     private->base.copySubBuffer = __glXDRIdrawableCopySubBuffer;
 
