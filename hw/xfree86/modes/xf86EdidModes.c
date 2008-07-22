@@ -35,6 +35,7 @@
 #endif
 #endif
 
+#define _PARSE_EDID_
 #include "xf86.h"
 #include "xf86DDC.h"
 #include <X11/Xatom.h>
