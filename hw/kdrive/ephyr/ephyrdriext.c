@@ -219,8 +219,7 @@ ephyrDRICreateWindow (WindowPtr a_win)
                               && screen_priv->CreateWindow,
                               FALSE) ;
 
-    EPHYR_LOG ("enter. win:%#x\n",
-               (unsigned int)a_win) ;
+    EPHYR_LOG ("enter. win:%p\n", a_win) ;
 
     screen->CreateWindow = screen_priv->CreateWindow ;
     is_ok = (*screen->CreateWindow) (a_win) ;
@@ -294,7 +293,7 @@ ephyrDRIMoveWindow (WindowPtr a_win,
     }
     screen->MoveWindow = ephyrDRIMoveWindow ;
 
-    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    EPHYR_LOG ("window: %p\n", a_win) ;
     if (!a_win->parent) {
         EPHYR_LOG ("cannot move root window\n") ;
         is_ok = TRUE ;
@@ -354,7 +353,7 @@ ephyrDRIPositionWindow (WindowPtr a_win,
     }
     screen->PositionWindow = ephyrDRIPositionWindow ;
 
-    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    EPHYR_LOG ("window: %p\n", a_win) ;
     win_priv = GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
     if (!win_priv) {
         EPHYR_LOG ("not a DRI peered window\n") ;
@@ -406,7 +405,7 @@ ephyrDRIClipNotify (WindowPtr a_win,
     }
     screen->ClipNotify = ephyrDRIClipNotify ;
 
-    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    EPHYR_LOG ("window: %p\n", a_win) ;
     win_priv = GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
     if (!win_priv) {
         EPHYR_LOG ("not a DRI peered window\n") ;
@@ -912,7 +911,7 @@ appendWindowPairToList (WindowPtr a_local,
 
     EPHYR_RETURN_VAL_IF_FAIL (a_local, FALSE) ;
 
-    EPHYR_LOG ("(local,remote):(%#x, %d)\n", (unsigned int)a_local, a_remote) ;
+    EPHYR_LOG ("(local,remote):(%p, %d)\n", a_local, a_remote) ;
 
     for (i=0; i < NUM_WINDOW_PAIRS; i++) {
         if (window_pairs[i].local == NULL) {
@@ -935,8 +934,8 @@ findWindowPairFromLocal (WindowPtr a_local,
     for (i=0; i < NUM_WINDOW_PAIRS; i++) {
         if (window_pairs[i].local == a_local) {
             *a_pair = &window_pairs[i] ;
-            EPHYR_LOG ("found (%#x, %d)\n",
-                       (unsigned int)(*a_pair)->local,
+            EPHYR_LOG ("found (%p, %d)\n",
+                       (*a_pair)->local,
                        (*a_pair)->remote) ;
             return TRUE ;
         }
@@ -976,7 +975,7 @@ createHostPeerWindow (const WindowPtr a_win,
     EPHYR_RETURN_VAL_IF_FAIL (a_win->drawable.pScreen,
                               FALSE) ;
 
-    EPHYR_LOG ("enter. a_win '%#x'\n", (unsigned int)a_win) ;
+    EPHYR_LOG ("enter. a_win '%p'\n", a_win) ;
     if (!getWindowVisual (a_win, &visual)) {
         EPHYR_LOG_ERROR ("failed to get window visual\n") ;
         goto out ;
@@ -1056,12 +1055,12 @@ ProcXF86DRICreateDrawable (ClientPtr client)
         EPHYR_LOG_ERROR ("non drawable windows are not yet supported\n") ;
         return BadImplementation ;
     }
-    EPHYR_LOG ("lookedup drawable %#x\n", (unsigned int)drawable) ;
+    EPHYR_LOG ("lookedup drawable %p\n", drawable) ;
     window = (WindowPtr)drawable;
     if (findWindowPairFromLocal (window, &pair) && pair) {
         remote_win = pair->remote ;
-        EPHYR_LOG ("found window '%#x' paire with remote '%d'\n",
-                   (unsigned int)window, remote_win) ;
+        EPHYR_LOG ("found window '%p' paire with remote '%d'\n",
+                   window, remote_win) ;
     } else if (!createHostPeerWindow (window, &remote_win)) {
         EPHYR_LOG_ERROR ("failed to create host peer window\n") ;
         return BadAlloc ;
@@ -1082,8 +1081,8 @@ ProcXF86DRICreateDrawable (ClientPtr client)
             return BadAlloc ;
         }
 	dixSetPrivate(&window->devPrivates, ephyrDRIWindowKey, win_priv);
-        EPHYR_LOG ("paired window '%#x' with remote '%d'\n",
-                   (unsigned int)window, remote_win) ;
+        EPHYR_LOG ("paired window '%p' with remote '%d'\n",
+                   window, remote_win) ;
     }
 
     WriteToClient(client, sizeof(xXF86DRICreateDrawableReply), (char *)&rep);

@@ -143,7 +143,7 @@ ephyrDRIGetClientDriverName (int a_screen,
 Bool
 ephyrDRICreateContext (int a_screen,
                        int a_visual_id,
-                       unsigned long int *a_returned_ctxt_id,
+                       XID *a_returned_ctxt_id,
                        drm_context_t *a_hw_ctxt)
 {
     Display *dpy = hostx_get_display () ;

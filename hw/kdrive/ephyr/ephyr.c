@@ -91,7 +91,7 @@ Bool
 ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
 {
   int width = 640, height = 480; 
-  unsigned long redMask, greenMask, blueMask;
+  CARD32 redMask, greenMask, blueMask;
   
   if (hostx_want_screen_size(screen, &width, &height)
       || !screen->width || !screen->height)
