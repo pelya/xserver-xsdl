@@ -98,7 +98,7 @@ InitVelocityData(DeviceVelocityPtr s)
     s->profile_private = NULL;
     memset(&s->statistics, 0, sizeof(s->statistics));
     memset(&s->filters, 0, sizeof(s->filters));
-    SetAccelerationProfile(s, 0);
+    SetAccelerationProfile(s, AccelProfileClassic);
     InitFilterChain(s, (float)1.0/20.0, 1, 1, 40);
 }
 
@@ -551,10 +551,10 @@ LinearProfile(
 /**
  * Set the profile by number.
  * Intended to make profiles exchangeable at runtime.
- * If you created a profile, give it a number here to make it selectable.
- * In case some profile-specific init is needed, here would be a good place,
- * since FreeVelocityData() also calls this with -1.
- * returns FALSE (0) if profile number is unknown.
+ * If you created a profile, give it a number here and in the header to
+ * make it selectable. In case some profile-specific init is needed, here
+ * would be a good place, since FreeVelocityData() also calls this with -1.
+ * returns FALSE (0) if profile number is unavailable.
  */
 int
 SetAccelerationProfile(
@@ -566,29 +566,31 @@ SetAccelerationProfile(
         case -1:
             profile = NULL;  /* Special case to uninit properly */
             break;
-        case 0:
+        case AccelProfileClassic:
             profile = ClassicProfile;
             break;
-        case 1:
+        case AccelProfileDeviceSpecific:
             if(NULL == s->deviceSpecificProfile)
         	return FALSE;
             profile = s->deviceSpecificProfile;
             break;
-        case 2:
+        case AccelProfilePolynomial:
             profile = PolynomialAccelerationProfile;
             break;
-        case 3:
+        case AccelProfileSmoothLinear:
             profile = SmoothLinearProfile;
             break;
-        case 4:
+        case AccelProfileSimple:
             profile = SimpleSmoothProfile;
             break;
-        case 5:
+        case AccelProfilePower:
             profile = PowerProfile;
             break;
-        case 6:
+        case AccelProfileLinear:
             profile = LinearProfile;
             break;
+        case AccelProfileReserved:
+            /* reserved for future use, e.g. a user-defined profile */
         default:
             return FALSE;
     }

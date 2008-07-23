@@ -29,6 +29,19 @@
 
 #define MAX_VELOCITY_FILTERS 8
 
+/* constants for acceleration profiles;
+ * see  */
+
+#define AccelProfileClassic  0
+#define AccelProfileDeviceSpecific 1
+#define AccelProfilePolynomial 2
+#define AccelProfileSmoothLinear 3
+#define AccelProfileSimple 4
+#define AccelProfilePower 5
+#define AccelProfileLinear 6
+#define AccelProfileReserved 7
+
+/* fwd */
 struct _DeviceVelocityRec;
 
 /**
