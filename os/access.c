@@ -95,12 +95,6 @@ SOFTWARE.
 # endif
 #endif
 
-#if defined(hpux) 
-# include <sys/utsname.h>
-# ifdef HAS_IFREQ
-#  include <net/if.h>
-# endif
-#else
 #if defined(SVR4) ||  (defined(SYSV) && defined(__i386__)) || defined(__GNU__)
 # include <sys/utsname.h>
 #endif
@@ -117,7 +111,6 @@ SOFTWARE.
 #else /*!__GNU__*/
 # include <net/if.h>
 #endif /*__GNU__ */
-#endif /* hpux */
 
 #ifdef SVR4
 #include <sys/sockio.h>
@@ -350,7 +343,7 @@ ifioctl (int fd, int cmd, char *arg)
  * for this fd and add them to the selfhosts list.
  */
 
-#if !defined(SIOCGIFCONF) || defined (hpux) && ! defined (HAS_IFREQ) 
+#if !defined(SIOCGIFCONF) 
 void
 DefineSelf (int fd)
 {

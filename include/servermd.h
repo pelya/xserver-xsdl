@@ -84,7 +84,7 @@ SOFTWARE.
 
 #endif /* __arm32__ */
 
-#if defined (hpux) || defined __hppa__
+#if defined __hppa__
 
 #define IMAGE_BYTE_ORDER	MSBFirst
 #define BITMAP_BIT_ORDER	MSBFirst
