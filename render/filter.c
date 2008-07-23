@@ -301,7 +301,7 @@ SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int 
     if (nparams != pPicture->filter_nparams)
     {
 	new_params = xalloc (nparams * sizeof (xFixed));
-	if (!new_params)
+	if (!new_params && nparams)
 	    return BadAlloc;
 	xfree (pPicture->filter_params);
 	pPicture->filter_params = new_params;
