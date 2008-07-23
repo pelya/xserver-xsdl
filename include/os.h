@@ -476,8 +476,7 @@ typedef enum {
 } MessageType;
 
 /* XXX Need to check which GCC versions have the format(printf) attribute. */
-#if defined(__GNUC__) && \
-    ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ > 4)))
+#if defined(__GNUC__) && (__GNUC__ > 2)
 #define _printf_attribute(a,b) __attribute((format(__printf__,a,b)))
 #else
 #define _printf_attribute(a,b) /**/
@@ -498,8 +497,7 @@ extern void FreeAuditTimer(void);
 extern void AuditF(const char *f, ...) _printf_attribute(1,2);
 extern void VAuditF(const char *f, va_list args);
 extern void FatalError(const char *f, ...) _printf_attribute(1,2)
-#if defined(__GNUC__) && \
-    ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ > 4)))
+#if defined(__GNUC__) && (__GNUC__ > 2)
 __attribute((noreturn))
 #endif
 ;
