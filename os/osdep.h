@@ -58,14 +58,12 @@ SOFTWARE.
 
 #include <X11/Xdmcp.h>
 
-#ifndef sgi	    /* SGI defines OPEN_MAX in a useless way */
 #ifdef _POSIX_SOURCE
 #include <limits.h>
 #else
 #define _POSIX_SOURCE
 #include <limits.h>
 #undef _POSIX_SOURCE
-#endif
 #endif
 
 #ifndef OPEN_MAX

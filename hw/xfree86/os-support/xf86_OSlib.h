@@ -84,7 +84,7 @@
 /* SYSV386 (SVR3, SVR4), including Solaris                                */
 /**************************************************************************/
 #if (defined(SYSV) || defined(SVR4)) && \
-    !defined(DGUX) && !defined(sgi) && \
+    !defined(DGUX) && \
     (defined(sun) || defined(__i386__))
 # ifdef SCO325
 #  ifndef _SVID3
@@ -479,13 +479,6 @@
 /**************************************************************************/
 /* IRIX                                                                   */
 /**************************************************************************/
-#if defined(sgi)
-
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#endif
 
 /**************************************************************************/
 /* Generic                                                                */

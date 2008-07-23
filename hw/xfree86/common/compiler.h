@@ -1488,13 +1488,13 @@ inl(unsigned short port)
 #      define uint_t unsigned int
 #      define uchar_t unsigned char
 #     endif /* __UNIXWARE__ */
-#     if !defined(sgi) && !defined(__SUNPRO_C)
+#     if !defined(__SUNPRO_C)
 #      include <sys/inline.h>
 #     endif
 #    else
 #     include "scoasm.h"
 #    endif
-#    if (!defined(__HIGHC__) && !defined(sgi) && !defined(__SUNPRO_C)) || \
+#    if !defined(__HIGHC__) && !defined(__SUNPRO_C) || \
 	defined(__USLC__)
 #     pragma asm partial_optimization outl
 #     pragma asm partial_optimization outw

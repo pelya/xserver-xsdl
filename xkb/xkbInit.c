@@ -55,13 +55,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define	CREATE_ATOM(s)	MakeAtom(s,sizeof(s)-1,1)
 
-#ifdef sgi
-#define LED_CAPS	5
-#define	LED_NUM		6
-#define	LED_SCROLL	7
-#define	PHYS_LEDS	0x7f
-#define	LED_COMPOSE	8
-#else
 #if defined(__osf__) || defined(__alpha) || defined(__alpha__)
 #define	LED_COMPOSE	2
 #define LED_CAPS	3
@@ -80,7 +73,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	LED_NUM		2
 #define	LED_SCROLL	3
 #define	PHYS_LEDS	0x07
-#endif
 #endif
 #endif
 

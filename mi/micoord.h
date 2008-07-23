@@ -43,7 +43,7 @@
  * forcing as to use div instead of shift.  Let's be explicit.
  */
 
-#if defined(mips) || defined(sgi) || \
+#if defined(mips) || \
     defined(sparc) || defined(__sparc64__) || \
     defined(__alpha) || defined(__alpha__) || \
     defined(__i386__) || defined(__i386) || defined(__ia64__) || \

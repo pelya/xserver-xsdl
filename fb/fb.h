@@ -139,8 +139,7 @@ typedef unsigned __int64    FbBits;
       defined(__sparc64__) || defined(_LP64) || \
       defined(__s390x__) || \
       defined(amd64) || defined (__amd64__) \
-      defined (__powerpc64__) || \
-      (defined(sgi) && (_MIPS_SZLONG == 64))
+      defined (__powerpc64__)
 typedef unsigned long	    FbBits;
 #  else
 typedef unsigned long long  FbBits;
