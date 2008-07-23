@@ -55,7 +55,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define	CREATE_ATOM(s)	MakeAtom(s,sizeof(s)-1,1)
 
-#if defined(__osf__) || defined(__alpha) || defined(__alpha__)
+#if defined(__alpha) || defined(__alpha__)
 #define	LED_COMPOSE	2
 #define LED_CAPS	3
 #define	LED_SCROLL	4
