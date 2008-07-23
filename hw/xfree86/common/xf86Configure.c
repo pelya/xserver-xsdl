@@ -76,12 +76,6 @@ static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
-#elif defined(QNX4)
-static char *DFLT_MOUSE_PROTO = "OSMouse";
-static char *DFLT_MOUSE_DEV = "/dev/mouse";
-#elif defined(__QNXNTO__)
-static char *DFLT_MOUSE_PROTO = "OSMouse";
-static char *DFLT_MOUSE_DEV = "/dev/devi/mouse0";
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 static char *DFLT_MOUSE_DEV = "/dev/sysmouse";
 static char *DFLT_MOUSE_PROTO = "auto";
@@ -797,11 +791,7 @@ DoConfigure()
 
       	if (home[0] == '/' && home[1] == '\0')
             home[0] = '\0';
-#ifndef QNX4
 	sprintf(filename, "%s/%s", home,configfile);
-#else
-	sprintf(filename, "//%d%s/%s", getnid(),home,configfile);
-#endif
 	
     }
 

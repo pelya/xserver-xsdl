@@ -234,9 +234,9 @@ SOFTWARE.
 /* ???? */
 #endif /* AMD64 */
 
-#if	(defined(SVR4) && (defined(__i386__) || (defined(__i386)))) ||	\
+#if	defined(SVR4) && (defined(__i386__) || defined(__i386) ) ||	\
 	defined(__alpha__) || defined(__alpha) || \
-	defined(__i386__) || defined(__QNX__) || \
+	defined(__i386__) || \
 	defined(__s390x__) || defined(__s390__)
   
 #ifndef IMAGE_BYTE_ORDER

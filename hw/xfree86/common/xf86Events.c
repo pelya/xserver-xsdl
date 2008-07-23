@@ -285,12 +285,8 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 #if defined(__SCO__) || defined(__UNIXWARE__)
 	    vtno--;
 #endif
-#if defined(QNX4)
-	    xf86Info.vtRequestsPending = vtno;
-#else
 	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, vtno) < 0)
 		ErrorF("Failed to switch consoles (%s)\n", strerror(errno));
-#endif
 	}
 	break;
     case ACTION_SWITCHSCREEN_NEXT:
@@ -373,7 +369,6 @@ xf86CommonSpecialKey(int key, Bool down, int modifiers)
 void
 xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 {
-#if !defined(__QNX__)
     fd_set* LastSelectMask = (fd_set*)pReadmask;
     fd_set devicesWithInput;
     InputInfoPtr pInfo;
@@ -400,27 +395,6 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 	    }
 	}
     }
-#else   /* __QNX__ */
-
-    InputInfoPtr pInfo;
-
-    pInfo = xf86InputDevs;
-    while (pInfo) {
-		if (pInfo->read_input && pInfo->fd >= 0) {
-		    int sigstate = xf86BlockSIGIO();
-
-		    pInfo->read_input(pInfo);
-		    xf86UnblockSIGIO(sigstate);
-		    /*
-		     * Must break here because more than one device may share
-		     * the same file descriptor.
-		     */
-		    break;
-		}
-		pInfo = pInfo->next;
-    }
-
-#endif  /* __QNX__ */
 
     if (err >= 0) { /* we don't want the handlers called if select() */
 	IHPtr ih;   /* returned with an error condition, do we?      */

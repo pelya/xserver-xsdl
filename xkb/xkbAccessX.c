@@ -30,9 +30,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <stdio.h>
 #include <math.h>
-#ifdef __QNX__
-#include <limits.h>
-#endif
 #define NEED_EVENTS 1
 #include <X11/X.h>
 #include <X11/Xproto.h>

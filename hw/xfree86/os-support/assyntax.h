@@ -236,7 +236,7 @@
 #endif /* ACK_ASSEMBLER */
 
 
-#if defined(__QNX__) || (defined(SYSV) || defined(SVR4)) && !defined(ACK_ASSEMBLER) || defined(__ELF__) || defined(__GNU__)
+#if (defined(SYSV) || defined(SVR4)) && !defined(ACK_ASSEMBLER) || defined(__ELF__) || defined(__GNU__)
 #define GLNAME(a)       a
 #else
 #define GLNAME(a)       CONCAT(_,a)

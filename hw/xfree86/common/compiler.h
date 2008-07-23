@@ -84,30 +84,6 @@
 #  define inl RealInl
 # endif
 
-# if defined(QNX4) /* Do this for now to keep Watcom happy */
-#  define outb outp
-#  define outw outpw
-#  define outl outpd 
-#  define inb inp
-#  define inw inpw
-#  define inl inpd
-
-/* Define the ffs function for inlining */
-extern int ffs(unsigned long);
-#  pragma aux ffs_ = \
-        "bsf edx, eax"          \
-        "jnz bits_set"          \
-        "xor eax, eax"          \
-        "jmp exit1"             \
-        "bits_set:"             \
-        "mov eax, edx"          \
-        "inc eax"               \
-        "exit1:"                \
-        __parm [eax]            \
-        __modify [eax edx]      \
-        __value [eax]           \
-        ;
-# endif
 
 # if defined(__SUNPRO_C)
 #  define DO_PROTOTYPES
@@ -1511,7 +1487,6 @@ inl(unsigned short port)
 #   endif /* ix86 */
 
 #  else /* !GNUC */
-#   if !defined(QNX4)
 #    if defined(__STDC__) && (__STDC__ == 1)
 #     ifndef asm
 #      define asm __asm
@@ -1542,7 +1517,6 @@ inl(unsigned short port)
 #     pragma asm partial_optimization inw
 #     pragma asm partial_optimization inb
 #    endif
-#   endif
 #   define ldq_u(p)	(*((unsigned long  *)(p)))
 #   define ldl_u(p)	(*((unsigned int   *)(p)))
 #   define ldw_u(p)	(*((unsigned short *)(p)))
@@ -1553,15 +1527,6 @@ inl(unsigned short port)
 #   define write_mem_barrier()   /* NOP */
 #  endif /* __GNUC__ */
 
-#  if defined(QNX4)
-#   include <sys/types.h>
-extern unsigned  inb(unsigned port);
-extern unsigned  inw(unsigned port);
-extern unsigned  inl(unsigned port);
-extern void outb(unsigned port, unsigned val);
-extern void outw(unsigned port, unsigned val);
-extern void outl(unsigned port, unsigned val);
-#  endif /* QNX4 */
 
 #  if defined(IODEBUG) && defined(__GNUC__)
 #   undef inb

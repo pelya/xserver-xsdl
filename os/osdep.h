@@ -68,9 +68,6 @@ SOFTWARE.
 #endif
 #endif
 
-#ifdef __QNX__
-#define NOFILES_MAX 256
-#endif
 #ifndef OPEN_MAX
 #ifdef SVR4
 #define OPEN_MAX 256

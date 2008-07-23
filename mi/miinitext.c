@@ -83,9 +83,6 @@ SOFTWARE.
 #include "micmap.h"
 #include "globals.h"
 
-#if defined(QNX4) /* sleaze for Watcom on QNX4 ... */
-#undef GLXEXT
-#endif
 
 extern Bool noTestExtensions;
 

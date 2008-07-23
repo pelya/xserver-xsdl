@@ -95,7 +95,7 @@ SOFTWARE.
 # endif
 #endif
 
-#if defined(hpux) || defined(QNX4)
+#if defined(hpux) 
 # include <sys/utsname.h>
 # ifdef HAS_IFREQ
 #  include <net/if.h>
@@ -350,7 +350,7 @@ ifioctl (int fd, int cmd, char *arg)
  * for this fd and add them to the selfhosts list.
  */
 
-#if !defined(SIOCGIFCONF) || (defined (hpux) && ! defined (HAS_IFREQ)) || defined(QNX4)
+#if !defined(SIOCGIFCONF) || defined (hpux) && ! defined (HAS_IFREQ) 
 void
 DefineSelf (int fd)
 {
@@ -393,18 +393,10 @@ DefineSelf (int fd)
      * uname() lets me access to the whole string (it smashes release, you
      * see), whereas gethostname() kindly truncates it for me.
      */
-#ifndef QNX4
 #ifndef WIN32
     uname(&name);
 #else
     gethostname(name.nodename, sizeof(name.nodename));
-#endif
-#else
-    /* QNX4's uname returns node number in name.nodename, not the hostname
-       have to overwrite it */
-    char hname[1024];
-    gethostname(hname, 1024);
-    name.nodename = hname;
 #endif
 
     hp = _XGethostbyname(name.nodename, hparams);
@@ -514,13 +506,8 @@ DefineLocalHost:
 		      p->ifr_addr.sa_len - sizeof (p->ifr_addr) : 0))
 #define ifraddr_size(a) (a.sa_len)
 #else
-#ifdef QNX4
-#define ifr_size(p) (p->ifr_addr.sa_len + IFNAMSIZ)
-#define ifraddr_size(a) (a.sa_len)
-#else
 #define ifr_size(p) (sizeof (ifr_type))
 #define ifraddr_size(a) (sizeof (a))
-#endif
 #endif
 
 #if defined(DEF_SELF_DEBUG) || (defined(IPv6) && defined(AF_INET6))

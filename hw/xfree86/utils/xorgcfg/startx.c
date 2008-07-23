@@ -82,12 +82,7 @@ startx(void)
 	if ((home = getenv("HOME")) == NULL)
 	    home = "/";
 
-#ifndef QNX4
 	XmuSnprintf(filename, sizeof(filename), "%s/"__XCONFIGFILE__".new", home);
-#else
-	XmuSnprintf(filename, sizeof(filename), "//%d%s/"__XCONFIGFILE__".new",
-		    getnid(), home);
-#endif
 
 	/* this memory is never released, even if the value of XF86Config_path is
 	 * changed.

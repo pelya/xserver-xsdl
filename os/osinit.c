@@ -71,7 +71,7 @@ SOFTWARE.
 #include <sys/wait.h>
 #endif
 
-#if !defined(SYSV) && !defined(WIN32) && !defined(QNX4)
+#if !defined(SYSV) && !defined(WIN32) 
 #include <sys/resource.h>
 #endif
 
