@@ -1590,19 +1590,17 @@ OsLookupColor(int		screen,
 	mid = (low + high) / 2;
 	c = &BuiltinColors[mid];
 	r = strncasecmp (&BuiltinColorNames[c->name], name, len);
-	if (r == 0 && strlen (&BuiltinColorNames[c->name]) > len)
-	    r++;
-	if (r == 0)
+	if (r == 0 && len == strlen (&BuiltinColorNames[c->name]))
 	{
 	    *pred = c->red * 0x101;
 	    *pgreen = c->green * 0x101;
 	    *pblue = c->blue * 0x101;
 	    return TRUE;
 	}
-	if (r > 0)
-	    high = mid - 1;
-	else
+	if (r < 0)
 	    low = mid + 1;
+	else
+	    high = mid - 1;
     }
     return FALSE;
 }
