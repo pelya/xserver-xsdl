@@ -174,9 +174,21 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
     int scheme;
     DeviceVelocityPtr pVel;
     LocalDevicePtr local = (LocalDevicePtr)dev->public.devicePrivate;
+    char* schemeStr;
 
     if(dev->valuator){
-        scheme = xf86SetIntOption(local->options, "AccelerationScheme", 1);
+	schemeStr = xf86SetStrOption(local->options, "AccelerationScheme", "");
+
+	scheme = dev->valuator->accelScheme.number;
+
+	if(!xf86NameCmp(schemeStr, "predictable"))
+	    scheme = PtrAccelPredictable;
+
+	if(!xf86NameCmp(schemeStr, "lightweight"))
+	    scheme = PtrAccelLightweight;
+
+	if(!xf86NameCmp(schemeStr, "none"))
+	    scheme = PtrAccelNoOp;
 
         /* reinit scheme if needed */
         if(dev->valuator->accelScheme.number != scheme){
@@ -184,15 +196,24 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
                 dev->valuator->accelScheme.AccelCleanupProc(dev);
             }
 
-            xf86Msg(X_CONFIG, "%s: (accel) init acceleration scheme %i\n", local->name, scheme);
-            InitPointerAccelerationScheme(dev, scheme);
+            if(InitPointerAccelerationScheme(dev, scheme)){
+		xf86Msg(X_CONFIG, "%s: (accel) selected scheme %s/%i\n",
+		        local->name, schemeStr, scheme);
+	    }else{
+        	xf86Msg(X_CONFIG, "%s: (accel) could not init scheme %s\n",
+        	        local->name, schemeStr);
+        	scheme = dev->valuator->accelScheme.number;
+            }
         }else{
-            xf86Msg(X_CONFIG, "%s: (accel) keeping acceleration scheme %i\n", local->name, scheme);
+            xf86Msg(X_CONFIG, "%s: (accel) keeping acceleration scheme %i\n",
+                    local->name, scheme);
         }
+
+        xfree(schemeStr);
 
         /* process special configuration */
         switch(scheme){
-            case 1:
+            case PtrAccelPredictable:
                 pVel = (DeviceVelocityPtr) dev->valuator->accelScheme.accelData;
                 ProcessVelocityConfiguration (local->name, local->options,
                                               pVel);
