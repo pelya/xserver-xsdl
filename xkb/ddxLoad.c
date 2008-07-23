@@ -48,7 +48,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XI.h>
 #include "xkb.h"
 
-#if defined(CSRG_BASED) || defined(linux) || defined(AIXV3) || defined(__osf__) || defined(__GNU__)
+#if defined(CSRG_BASED) || defined(linux) || defined(__osf__) || defined(__GNU__)
 #include <paths.h>
 #endif
 

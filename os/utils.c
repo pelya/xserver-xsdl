@@ -231,10 +231,6 @@ int auditTrailLevel = 1;
 
 _X_EXPORT Bool Must_have_memory = FALSE;
 
-#ifdef AIXV3
-int SyncOn  = 0;
-extern int SelectWaitTime;
-#endif
 
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
@@ -509,7 +505,6 @@ AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
 
 void UseMsg(void)
 {
-#if !defined(AIXrt) && !defined(AIX386)
     ErrorF("use: X [:<display>] [option]\n");
     ErrorF("-a #                   mouse acceleration (pixels)\n");
     ErrorF("-ac                    disable access control restrictions\n");
@@ -590,7 +585,6 @@ void UseMsg(void)
 #ifdef XDMCP
     XdmcpUseMsg();
 #endif
-#endif /* !AIXrt && ! AIX386 */
 #ifdef XKB
     XkbUseMsg();
 #endif
@@ -964,19 +958,6 @@ ProcessCommandLine(int argc, char *argv[])
 	{
 	    i = skip - 1;
 	}
-#endif
-#ifdef AIXV3
-        else if ( strcmp( argv[i], "-timeout") == 0)
-        {
-            if(++i < argc)
-                SelectWaitTime = atoi(argv[i]);
-            else
-                UseMsg();
-        }
-        else if ( strcmp( argv[i], "-sync") == 0)
-        {
-            SyncOn++;
-        }
 #endif
 #ifdef SMART_SCHEDULE
 	else if ( strcmp( argv[i], "-dumbSched") == 0)

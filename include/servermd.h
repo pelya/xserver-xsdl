@@ -150,13 +150,6 @@ SOFTWARE.
 
 #endif /* sun && !(i386 && SVR4) */
 
-#if defined(AIXV3)
-
-#define IMAGE_BYTE_ORDER        MSBFirst        /* Values for the RISC/6000 */
-#define BITMAP_BIT_ORDER        MSBFirst
-#define GLYPHPADBYTES           4
-
-#endif /* AIXV3 */
 
 #if defined(ibm032) || defined (ibm)
 

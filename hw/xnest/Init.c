@@ -140,8 +140,3 @@ void ddxBeforeReset(void)
 {
     return;
 }
-
-/* this is just to get the server to link on AIX */
-#ifdef AIXV3
-int SelectWaitTime = 10000; /* usec */
-#endif
