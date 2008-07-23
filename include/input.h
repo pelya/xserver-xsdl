@@ -66,7 +66,7 @@ SOFTWARE.
 /*int constants for pointer acceleration schemes*/
 #define PtrAccelNoOp            0
 #define PtrAccelPredictable     1
-#define PtrAccelClassic         2
+#define PtrAccelLightweight     2
 #define PtrAccelDefault         PtrAccelPredictable
 
 #define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */

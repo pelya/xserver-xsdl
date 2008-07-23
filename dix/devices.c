@@ -1269,10 +1269,14 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 ValuatorAccelerationRec pointerAccelerationScheme[] = {
     {PtrAccelNoOp,        NULL, NULL, NULL},
     {PtrAccelPredictable, acceleratePointerPredictable, NULL, AccelerationDefaultCleanup},
-    {PtrAccelClassic,     acceleratePointerClassic, NULL, NULL},
+    {PtrAccelLightweight, acceleratePointerLightweight, NULL, NULL},
     {-1, NULL, NULL, NULL} /* terminator */
 };
 
+/**
+ * install an acceleration scheme. retrns TRUE on success, and should not
+ * change anything if unsuccessful.
+ */
 _X_EXPORT Bool
 InitPointerAccelerationScheme(DeviceIntPtr dev,
                               int scheme)
@@ -1281,7 +1285,9 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
     void* data = NULL;
     ValuatorClassPtr val;
 
-    if(dev->isMaster) /* bail out if called for master devs */
+    val = dev->valuator;
+
+    if(!val || dev->isMaster) /* bail out if called for master devs */
 	return FALSE;
 
     for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
@@ -1301,6 +1307,8 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
         {
             DeviceVelocityPtr s;
             s = (DeviceVelocityPtr)xalloc(sizeof(DeviceVelocityRec));
+            if(!s)
+        	return FALSE;
             InitVelocityData(s);
             data = s;
             break;
@@ -1309,7 +1317,6 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
             break;
     }
 
-    val = dev->valuator;
     val->accelScheme = pointerAccelerationScheme[i];
     val->accelScheme.accelData = data;
 

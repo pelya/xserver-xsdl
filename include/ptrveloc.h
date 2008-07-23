@@ -103,7 +103,7 @@ acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
                              int num_valuators, int *valuators, int evtime);
 
 extern void
-acceleratePointerClassic(DeviceIntPtr pDev, int first_valuator,
+acceleratePointerLightweight(DeviceIntPtr pDev, int first_valuator,
                          int num_valuators, int *valuators, int ignore);
 
 #endif  /* POINTERVELOCITY_H */

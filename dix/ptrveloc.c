@@ -722,8 +722,12 @@ acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
  * in-place. Retained mostly for embedded scenarios.
  */
 void
-acceleratePointerClassic(DeviceIntPtr pDev, int first_valuator,
-                         int num_valuators, int *valuators, int ignored)
+acceleratePointerLightweight(
+    DeviceIntPtr pDev,
+    int first_valuator,
+    int num_valuators,
+    int *valuators,
+    int ignored)
 {
     float mult = 0.0;
     int dx = 0, dy = 0;
