@@ -30,6 +30,7 @@
 #include <ptrveloc.h>
 #include <inputstr.h>
 #include <assert.h>
+#include <os.h>
 
 /*****************************************************************************
  * Predictable pointer ballistics
@@ -151,6 +152,8 @@ InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages
 	ErrorF("(dix ptracc) invalid filter chain progression specified\n");
 	return;
     }
+    /* Block here to support runtime filter adjustment */
+    OsBlockSignals();
     for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
 	if(fn < stages){
 	    InitFilterStage(&s->filters[fn], rdecay, lutsize);
@@ -159,6 +162,10 @@ InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages
 	}
 	rdecay /= progression;
     }
+    /* release again. Should the input loop be threaded, we also need
+     * memory release here (in princliple).
+     */
+    OsReleaseSignals();
 }
 
 
@@ -199,7 +206,6 @@ InitFilterStage(FilterStagePtr s, float rdecay, int lutsize)
     float *oldlut;
 
     s->fading_lut_size  = 0; /* prevent access */
-    /* mb(); concurrency issues may arise */
 
     if(lutsize > 0){
         newlut = xalloc (sizeof(float)* lutsize);
