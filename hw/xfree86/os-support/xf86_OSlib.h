@@ -84,7 +84,6 @@
 /* SYSV386 (SVR3, SVR4), including Solaris                                */
 /**************************************************************************/
 #if (defined(SYSV) || defined(SVR4)) && \
-    !defined(DGUX) && \
     (defined(sun) || defined(__i386__))
 # ifdef SCO325
 #  ifndef _SVID3
@@ -214,74 +213,7 @@
 #  define VT_SYSREQ_DEFAULT TRUE
 # endif
 
-#endif /* (SYSV || SVR4) && !DGUX */
-
-
-
-/**************************************************************************/
-/* DG/ux R4.20MU03 Intel AViion Machines                                  */
-/**************************************************************************/
-#if defined(DGUX) && defined(SVR4)
-#include <sys/ioctl.h>
-#include <signal.h>
-#include <ctype.h>
-#include <termios.h>      /* Use termios for BSD Flavor ttys */
-#include <sys/termios.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <errno.h>
-#include <sys/sysi86.h>
-#include <unistd.h>
-#include <sys/proc.h>
-#include <sys/map.h>
-#include <sys/sysmacros.h>
-#include <sys/mman.h>       /* Memory handling */
-#include <sys/kd.h>       /* definitios for KDENABIO KDDISABIO needed for IOPL s */
-#include <sys/kbd.h>
-#include <fcntl.h>
-#include <time.h>
-#include <sys/stream.h>
-#include <sys/ptms.h>
-
-#include <sys/socket.h>
-#include <sys/utsname.h>
-#include <sys/stropts.h>
-#include <sys/sockio.h>
-
-
-#define POSIX_TTY
-
-#undef HAS_USL_VTS
-#undef USE_VT_SYSREQ
-#undef VT_ACKACQ
-
-#define LED_CAP KBD_LED_CAPS_LOCK
-#define LED_NUM KBD_LED_NUM_LOCK
-#define LED_SCR KBD_LED_SCROLL_LOCK
-
-#define KDGKBTYPE KBD_GET_LANGUAGE
-
-
-/* General keyboard types */
-# define KB_84          2
-# define KB_101         1  /* Because ioctl(dgkeybdFd,KBD_GET_LANGUAGE,&type) gives 1=US keyboard */
-# define KB_OTHER       3
-
-#define KDSETLED KBD_SET_LED
-#define KDGETLED KBD_GET_STATE
-#undef KDMKTONE
-#define KDMKTONE KBD_TONE_HIGH
-
-
-#undef DEV_MEM
-#define DEV_MEM "/dev/mem"
-#define CLEARDTR_SUPPORT
-
-#undef  VT_SYSREQ_DEFAULT
-#define VT_SYSREQ_DEFAULT FALSE        /* Make sure that we dont define any VTs since DG/ux has none */
-
-#endif /* DGUX && SVR4 */
+#endif /* (SYSV || SVR4) */
 
 /**************************************************************************/
 /* Linux or Glibc-based system                                            */
