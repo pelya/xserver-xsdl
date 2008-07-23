@@ -104,8 +104,11 @@ InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
 extern int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
 
+extern DeviceVelocityPtr
+GetDevicePredictableAccelData(DeviceIntPtr pDev);
+
 extern void
-SetDeviceSpecificAccelerationProfile(DeviceIntPtr s,
+SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr s,
                                      PointerAccelerationProfileFunc profile);
 
 extern void

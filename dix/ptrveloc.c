@@ -616,21 +616,31 @@ SetAccelerationProfile(
  */
 extern void
 SetDeviceSpecificAccelerationProfile(
-	DeviceIntPtr pDev,
+        DeviceVelocityPtr s,
         PointerAccelerationProfileFunc profile)
+{
+    if(s)
+	s->deviceSpecificProfile = profile;
+}
+
+/**
+ * Use this function to obtain a DeviceVelocityPtr for a device. Will return NULL if
+ * the predictable acceleration scheme is not in effect.
+ */
+DeviceVelocityPtr
+GetDevicePredictableAccelData(
+	DeviceIntPtr pDev)
 {
     /*sanity check*/
     if( pDev->valuator &&
 	pDev->valuator->accelScheme.AccelSchemeProc ==
 	    acceleratePointerPredictable &&
 	pDev->valuator->accelScheme.accelData != NULL){
-	((DeviceVelocityPtr)
-	(pDev->valuator->accelScheme.accelData))->deviceSpecificProfile
-		= profile;
+
+	return (DeviceVelocityPtr)pDev->valuator->accelScheme.accelData;
     }
+    return NULL;
 }
-
-
 
 /********************************
  *  acceleration schemes
