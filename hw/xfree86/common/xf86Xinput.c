@@ -138,7 +138,7 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
         s->min_acceleration = 1.0 / tempf;   /* set minimum acceleration */
     }
 
-    tempf = xf86SetRealOption(list, "VelocityCoupling", 0.2);
+    tempf = xf86SetRealOption(list, "VelocityCoupling", 0.25);
     xf86Msg(X_CONFIG, "%s: (accel) velocity coupling is %.1f%%\n", devname,
                 tempf*100.0);
     s->coupling = tempf;

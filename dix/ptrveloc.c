@@ -458,7 +458,10 @@ ApplySofteningAndConstantDeceleration(
  * Polynomial function similar previous one, but with f(1) = 1
  */
 static float
-PolynomialAccelerationProfile(DeviceVelocityPtr pVel, float ignored, float acc)
+PolynomialAccelerationProfile(
+    DeviceVelocityPtr pVel,
+    float ignored,
+    float acc)
 {
    return pow(pVel->velocity, (acc - 1.0) * 0.5);
 }
@@ -474,7 +477,6 @@ ClassicProfile(
     float threshold,
     float acc)
 {
-
     if (threshold) {
 	return SimpleSmoothProfile (pVel,
                                     threshold,
@@ -516,7 +518,8 @@ PowerProfile(
  * just a smooth function in [0..1] -> [0..1]
  *  - point symmetry at 0.5
  *  - f'(0) = f'(1) = 0
- *  - starts faster than sinoids, C1 (Cinf if you dare to ignore endpoints)
+ *  - starts faster than a sinoid
+ *  - smoothness C1 (Cinf if you dare to ignore endpoints)
  */
 static inline float
 CalcPenumbralGradient(float x){
@@ -561,13 +564,15 @@ SmoothLinearProfile(
     float threshold,
     float acc)
 {
+    float res, nv;
+
     if(acc > 1.0f)
         acc -= 1.0f; /*this is so acc = 1 is no acceleration */
     else
         return 1.0f;
 
-    float nv = (pVel->velocity - threshold) * acc * 0.5f;
-    float res;
+    nv = (pVel->velocity - threshold) * acc * 0.5f;
+
     if(nv < 0){
         res = 0;
     }else if(nv < 2){
@@ -696,8 +701,12 @@ GetDevicePredictableAccelData(
  * enable fine-grained predictable acceleration profiles.
  */
 void
-acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
-                             int num_valuators, int *valuators, int evtime)
+acceleratePointerPredictable(
+    DeviceIntPtr pDev,
+    int first_valuator,
+    int num_valuators,
+    int *valuators,
+    int evtime)
 {
     float mult = 0.0;
     int dx = 0, dy = 0;
