@@ -1888,7 +1888,6 @@ hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
-hw/xfree86/utils/ioport/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
 hw/dmx/config/Makefile
 hw/dmx/doc/Makefile
