@@ -1806,29 +1806,6 @@ fi
 AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
 AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
 
-AC_ARG_ENABLE(kbd_mode, AS_HELP_STRING([--enable-kbd_mode],
-	[Build kbd_mode utility (default: auto)]),
-	[BUILD_KBD_MODE=$enable_val], [BUILD_KBD_MODE="auto"])
-if test x$BUILD_KBD_MODE != xno ; then
-	case $host_os in
-	  *bsd*)
-		KBD_MODE_TYPE="bsd"
-#		BUILD_KBD_MODE="yes"  # need to test on BSD before enabling
-				      # by default
-		;;
-	  solaris*)
-		KBD_MODE_TYPE="sun"
-		BUILD_KBD_MODE="yes"  # enabled by default
-		;;
-	  *)
-		BUILD_KBD_MODE="no"   # disabled by default
-		;;
-	esac
-fi
-AM_CONDITIONAL(BUILD_KBD_MODE, [test x$BUILD_KBD_MODE = xyes])
-AM_CONDITIONAL(BSD_KBD_MODE, [test x$KBD_MODE_TYPE = xbsd])
-AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
-
 BUILD_DATE="$(date +'%Y%m%d')"
 AC_SUBST([BUILD_DATE])
 BUILD_TIME="$(date +'1%H%M%S')"
@@ -1912,7 +1889,6 @@ hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
 hw/xfree86/utils/ioport/Makefile
-hw/xfree86/utils/kbd_mode/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
 hw/dmx/config/Makefile
 hw/dmx/doc/Makefile
