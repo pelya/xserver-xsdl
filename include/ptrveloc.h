@@ -27,6 +27,9 @@
 
 #include <input.h> /* DeviceIntPtr */
 
+/* maximum number of filters to approximate velocity.
+ * ABI-breaker!
+ */
 #define MAX_VELOCITY_FILTERS 8
 
 /* constants for acceleration profiles;
@@ -53,7 +56,7 @@ typedef float (*PointerAccelerationProfileFunc)
                float /*threshold*/, float /*acc*/);
 
 /**
- * a filter stage contains the data for the adaptive IIR filtering.
+ * a filter stage contains the data for adaptive IIR filtering.
  * To improve results, one may run several parallel filters
  * which have different decays. Since more integration means more
  * delay, a given filter only does good matches in a specific phase of
@@ -77,7 +80,8 @@ typedef struct _DeviceVelocityRec {
     float   velocity;       /* velocity as guessed by algorithm */
     int     lrm_time;       /* time the last motion event was processed  */
     int     last_dx, last_dy; /* last motion delta */
-    int     last_diff;      /* last time-diff */
+    int     last_diff;      /* last time-difference */
+    Bool    last_reset;     /* whether a nv-reset occurred just before */
     float   corr_mul;       /* config: multiply this into velocity */
     float   const_acceleration;  /* config: (recipr.) const deceleration */
     float   min_acceleration;    /* config: minimum acceleration */
@@ -89,7 +93,7 @@ typedef struct _DeviceVelocityRec {
     void*   profile_private;/* extended data, see  SetAccelerationProfile() */
     struct {   /* to be able to query this information */
         int     profile_number;
-        int     filter_usecount[MAX_VELOCITY_FILTERS];
+        int     filter_usecount[MAX_VELOCITY_FILTERS +1];
     } statistics;
 } DeviceVelocityRec, *DeviceVelocityPtr;
 

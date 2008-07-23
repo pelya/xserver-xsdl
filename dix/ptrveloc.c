@@ -90,11 +90,12 @@ InitVelocityData(DeviceVelocityPtr s)
     s->corr_mul = 10.0;      /* dots per 10 milisecond should be usable */
     s->const_acceleration = 1.0;   /* no acceleration/deceleration  */
     s->reset_time = 300;
+    s->last_reset = FALSE;
     s->last_dx = 0;
     s->last_dy = 0;
     s->use_softening = 1;
     s->min_acceleration = 1.0; /* don't decelerate */
-    s->coupling = 0.2;
+    s->coupling = 0.25;
     s->profile_private = NULL;
     memset(&s->statistics, 0, sizeof(s->statistics));
     memset(&s->filters, 0, sizeof(s->filters));
@@ -135,6 +136,12 @@ AccelerationDefaultCleanup(DeviceIntPtr pDev){
 /**
 Initialize a filter chain.
 Expected result is a series of filters, each progressively more integrating.
+
+This allows for two strategies: Either you have one filter which is reasonable
+and is being coupled to account for fast-changing input, or you have 'one for
+every situation'. You might want to have loose coupling then, i.e. > 1.
+E.g. you could start around 1/2 of your anticipated delta t and
+scale up until several motion deltas are 'averaged'.
 */
 void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages, int lutsize)
@@ -164,9 +171,21 @@ CleanupFilterChain(DeviceVelocityPtr s)
 	InitFilterStage(&s->filters[fn], 0, 0);
 }
 
+static inline void
+StuffFilterChain(DeviceVelocityPtr s, float value)
+{
+    int fn;
+
+    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
+	if(s->filters[fn].rdecay != 0)
+	    s->filters[fn].current = value;
+	else break;
+    }
+}
+
 
 /**
- * Adjust weighting decay and lut in sync
+ * Adjust weighting decay and lut for a stage
  * The weight fn is designed so its integral 0->inf is unity, so we end
  * up with a stable (basically IIR) filter. It always draws
  * towards its more current input values, which have more weight the older
@@ -227,13 +246,12 @@ FeedFilterStage(FilterStagePtr s, float value, int tdiff){
 
 /**
  * Select the most filtered matching result. Also, the first
- * mismatching filter will be set to value (coupling).
+ * mismatching filter may be set to value (coupling).
  */
 static inline float
 QueryFilterChain(
     DeviceVelocityPtr s,
-    float value,
-    float maxdiv)
+    float value)
 {
     int fn, rfn = 0, cfn = -1;
     float cur, result = value;
@@ -246,20 +264,21 @@ QueryFilterChain(
 	cur = s->filters[fn].current;
 
 	if (fabs(value - cur) <= 1.0f ||
-	    fabs(value - cur) / (value + cur) <= maxdiv){
+	    fabs(value - cur) / (value + cur) <= s->coupling){
 	    result = cur;
-	    rfn = fn; /*remember result determining filter */
+	    rfn = fn + 1; /*remember result determining filter */
 	} else if(cfn == -1){
 	    cfn = fn; /* rememeber first mismatching filter */
 	}
     }
 
     s->statistics.filter_usecount[rfn]++;
-#ifdef SERIOUS_DEBUGGING
-    ErrorF("(dix ptraccel) result from filter stage %i,  input %.2f, output %.2f\n", rfn, value, result);
+#ifdef PTRACCEL_DEBUGGING
+    ErrorF("(dix ptraccel) result from stage %i,  input %.2f, output %.2f\n",
+           rfn, value, result);
 #endif
 
-    /* override one current (coupling) so the filter
+    /* override first mismatching current (coupling) so the filter
      * catches up quickly. */
     if(cfn != -1)
         s->filters[cfn].current = result;
@@ -296,7 +315,11 @@ GetAxis(int dx, int dy){
  * return true if non-visible state reset is suggested
  */
 static short
-ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
+ProcessVelocityData(
+    DeviceVelocityPtr s,
+    int dx,
+    int dy,
+    int time)
 {
     float cvelocity;
 
@@ -312,7 +335,7 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
         dy += s->last_dy;
         diff += s->last_diff;
         s->last_diff = time - s->lrm_time; /* prevent repeating add-up */
-#ifdef SERIOUS_DEBUGGING
+#ifdef PTRACCEL_DEBUGGING
         ErrorF("(dix ptracc) axial correction\n");
 #endif
     }else{
@@ -320,9 +343,9 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
     }
 
     /*
-     * cvelocity is not a real velocity yet, more a motion delta. contant
+     * cvelocity is not a real velocity yet, more a motion delta. constant
      * acceleration is multiplied here to make the velocity an on-screen
-     * velocity (px/t as opposed to [insert unit]/t). This is intended to
+     * velocity (pix/t as opposed to [insert unit]/t). This is intended to
      * make multiple devices with widely varying ConstantDecelerations respond
      * similar to acceleration controls.
      */
@@ -330,10 +353,10 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
 
     s->lrm_time = time;
 
-    if (s->reset_time < 0 || diff < 0) {     /* disabled or timer overrun? */
+    if (s->reset_time < 0 || diff < 0) { /* reset disabled or timer overrun? */
         /* simply set velocity from current movement, no reset. */
         s->velocity = cvelocity;
-        return 0;
+        return FALSE;
     }
 
     if (diff == 0)
@@ -345,23 +368,38 @@ ProcessVelocityData(DeviceVelocityPtr s, int dx, int dy, int time)
 
     /* short-circuit: when nv-reset the rest can be skipped */
     if(reset == TRUE){
-        s->velocity = cvelocity;
-        return TRUE;
+	StuffFilterChain(s, cvelocity);
+	s->velocity = cvelocity;
+	s->last_reset = TRUE;
+	return TRUE;
+    }
+
+    if(s->last_reset == TRUE){
+	/*
+	 * when here, we're probably processing the second mickey of a starting
+	 * stroke. This happens to be the first time we can reasonably pretend
+	 * that cvelocity is an actual velocity. Thus, to opt precision, we
+	 * stuff that into the filter chain.
+	 */
+	s->last_reset = FALSE;
+	StuffFilterChain(s, cvelocity);
+	s->velocity = cvelocity;
+	return FALSE;
     }
 
     /* feed into filter chain */
     FeedFilterChain(s, cvelocity, diff);
 
     /* perform coupling and decide final value */
-    s->velocity = QueryFilterChain(s, cvelocity, s->coupling);
+    s->velocity = QueryFilterChain(s, cvelocity);
 
-#ifdef SERIOUS_DEBUGGING
+#ifdef PTRACCEL_DEBUGGING
     ErrorF("(dix ptracc) guess: vel=%.3f diff=%d   |%i|%i|%i|%i|\n",
            s->velocity, diff,
            s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
            s->statistics.filter_usecount[2], s->statistics.filter_usecount[3]);
 #endif
-    return reset;
+    return FALSE;
 }
 
 
@@ -689,15 +727,15 @@ acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
             /* invoke acceleration profile to determine acceleration */
             mult = velocitydata->Profile(velocitydata,
                                 pDev->ptrfeed->ctrl.threshold,
-                                (float)(pDev->ptrfeed->ctrl.num) /
-                                (float)(pDev->ptrfeed->ctrl.den));
+                                (float)pDev->ptrfeed->ctrl.num /
+                                (float)pDev->ptrfeed->ctrl.den);
 
-#ifdef SERIOUS_DEBUGGING
+#ifdef PTRACCEL_DEBUGGING
             ErrorF("(dix ptracc) resulting speed multiplier : %.3f\n", mult);
 #endif
             /* enforce min_acceleration */
             if (mult < velocitydata->min_acceleration) {
-#ifdef SERIOUS_DEBUGGING
+#ifdef PTRACCEL_DEBUGGING
                 ErrorF("(dix ptracc) enforced min multiplier : %.3f\n",
                         velocitydata->min_acceleration);
 #endif
