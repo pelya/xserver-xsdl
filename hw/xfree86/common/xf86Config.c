@@ -2473,6 +2473,13 @@ static void
 checkInput(serverLayoutPtr layout) {
     if (!xf86Info.allowEmptyInput)
         checkCoreInputDevices(layout, FALSE);
+    else
+    {
+        xf86Msg(X_INFO, "AllowEmptyInput is on.\n"
+                "\tThe server relies on HAL to provide the list of input "
+                "devices.\n\tIf no devices become available, reconfigure "
+                "HAL.\n");
+    }
 }
 
 /*
