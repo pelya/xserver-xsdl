@@ -64,7 +64,7 @@
 #include "xf86Priv.h"
 #define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
-#include "atKeynames.h"
+#include <X11/keysym.h>
 
 
 #ifdef XFreeXDGA
@@ -315,49 +315,6 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
     default:
 	break;
     }
-}
-
-#define ModifierIsSet(k) ((modifiers & (k)) == (k))
-
-_X_EXPORT Bool
-xf86CommonSpecialKey(int key, Bool down, int modifiers)
-{
-  if ((!ModifierIsSet(ShiftMask)) &&
-      (((ModifierIsSet(ControlMask | AltMask)) ||
-        (ModifierIsSet(ControlMask | AltLangMask))))) {
-      switch (key) {
-	
-      case KEY_BackSpace:
-	xf86ProcessActionEvent(ACTION_TERMINATE, NULL);
-	break;
-
-      /*
-       * Check grabs
-       */
-      case KEY_KP_Divide:
-	xf86ProcessActionEvent(ACTION_DISABLEGRAB, NULL);
-	break;
-      case KEY_KP_Multiply:
-	xf86ProcessActionEvent(ACTION_CLOSECLIENT, NULL);
-	break;
-	
-	/*
-	 * The idea here is to pass the scancode down to a list of
-	 * registered routines. There should be some standard conventions
-	 * for processing certain keys.
-	 */
-      case KEY_KP_Minus:   /* Keypad - */
-	if (down) xf86ProcessActionEvent(ACTION_PREV_MODE, NULL);
-	if (!xf86Info.dontZoom) return TRUE;
-	break;
-	
-      case KEY_KP_Plus:   /* Keypad + */
-	if (down) xf86ProcessActionEvent(ACTION_NEXT_MODE, NULL);
-	if (!xf86Info.dontZoom) return TRUE;
-	break;
-      }
-  }
-  return FALSE;
 }
 
 /*
@@ -674,6 +631,9 @@ xf86SigHandler(int signo)
 
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
+
+#define KeyPressed(k) (keyc->postdown[k >> 3] & (1 << (k & 7)))
+#define ModifierDown(k) ((keyc->state & (k)) == (k))
 
 static void
 xf86ReleaseKeys(DeviceIntPtr pDev)

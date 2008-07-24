@@ -442,7 +442,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86GetModInDevAllowNonLocal)
     SYMFUNC(xf86GetModInDevEnabled)
     SYMFUNC(xf86GetAllowMouseOpenFail)
-    SYMFUNC(xf86CommonSpecialKey)
     SYMFUNC(xf86IsPc98)
     SYMFUNC(xf86DisableRandR)
     SYMFUNC(xf86GetRotation)

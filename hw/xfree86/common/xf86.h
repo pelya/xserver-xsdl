@@ -204,7 +204,6 @@ void xf86EnableGeneralHandler(pointer handler);
 void xf86InterceptSignals(int *signo);
 void xf86InterceptSigIll(void (*sigillhandler)(void));
 Bool xf86EnableVTSwitch(Bool new);
-Bool xf86CommonSpecialKey(int key, Bool down, int modifiers);
 void xf86ProcessActionEvent(ActionEvent action, void *arg);
 
 /* xf86Helper.c */
