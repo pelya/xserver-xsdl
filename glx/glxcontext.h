@@ -69,12 +69,6 @@ struct __GLXcontext {
     __GLXcontext *next;
 
     /*
-    ** list of contexts bound to the same drawable
-    */
-    __GLXcontext *nextDrawPriv;
-    __GLXcontext *nextReadPriv;
-
-    /*
     ** config struct for this context
     */
     __GLXconfig *config;
@@ -94,11 +88,6 @@ struct __GLXcontext {
     ** The XID of the shareList context.
     */
     XID share_id;
-
-    /*
-    ** screen number.
-    */
-    GLint screen;
 
     /*
     ** Whether this context's ID still exists.
@@ -139,11 +128,6 @@ struct __GLXcontext {
     __GLXdrawable *drawPriv;
     __GLXdrawable *readPriv;
 };
-
-/* pending state defines */
-#define __GLX_PENDING_RESIZE	0x1
-#define	__GLX_PENDING_DESTROY	0x2
-#define __GLX_PENDING_SWAP	0x4
 
 void __glXContextDestroy(__GLXcontext *context);
 

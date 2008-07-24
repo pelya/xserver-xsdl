@@ -40,29 +40,6 @@
 **
 */
 
-/*
- * Added by VA Linux for XFree86 4.0.x
- */
-typedef struct {
-    int type;
-    void (*resetExtension)(void);
-    Bool (*initVisuals)(
-        VisualPtr *       visualp,
-        DepthPtr *        depthp,
-        int *             nvisualp,
-        int *             ndepthp,
-        int *             rootDepthp,
-        VisualID *        defaultVisp,
-        unsigned long     sizes,
-        int               bitsPerRGB
-        );
-    void (*setVisualConfigs)(
-        int                nconfigs,
-        __GLXvisualConfig *configs,
-        void              **privates
-        );
-} __GLXextensionInfo;
-
 extern GLboolean __glXFreeContext(__GLXcontext *glxc);
 extern void __glXFlushContextCache(void);
 
@@ -75,18 +52,6 @@ extern void GlxExtensionInit(void);
 
 extern const char GLServerVersion[];
 extern int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap);
-
-extern int GlxInitVisuals(
-    VisualPtr *       visualp,
-    DepthPtr *        depthp,
-    int *             nvisualp,
-    int *             ndepthp,
-    int *             rootDepthp,
-    VisualID *        defaultVisp,
-    unsigned long     sizes,
-    int               bitsPerRGB,
-    int               preferredVis
-);
 
 #endif /* _glxext_h_ */
 
