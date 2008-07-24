@@ -321,7 +321,6 @@ case $host_cpu in
 	esac
 	;;
   sparc*)
-	xorg_loader_sparcmuldiv="yes"
 	SPARC64_VIDEO=yes
 	BSD_ARCH_SOURCES="sparc64_video.c ioperm_noop.c"
 	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
@@ -1465,7 +1464,6 @@ AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_PPCPCI], [test "x$xorg_bus_ppcpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARCPCI], [test "x$xorg_bus_sparcpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
-AM_CONDITIONAL([XORG_LOADER_SPARC], [test "x$xorg_loader_sparcmuldiv" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])

@@ -8,15 +8,10 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../dixmods/extmod \
 #AM_LDFLAGS = -r
 AM_CFLAGS = -DIN_LOADER $(DIX_CFLAGS) $(XORG_CFLAGS)
 
-if XORG_LOADER_SPARC
-SPARC_SOURCES = SparcMulDiv.S
-endif
-
 EXTRA_DIST = \
 	dlloader.h \
 	loader.h \
 	loaderProcs.h \
-	SparcMulDiv.S
 
 libloader_a_SOURCES = \
 	loader.c \
@@ -29,5 +24,4 @@ libloader_a_SOURCES = \
 	extsym.c \
 	misym.c \
 	xf86sym.c \
-	sym.h \
-	$(SPARC_SOURCES)
+	sym.h
