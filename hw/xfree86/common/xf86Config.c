@@ -2479,6 +2479,16 @@ checkInput(serverLayoutPtr layout) {
                 "\tThe server relies on HAL to provide the list of input "
                 "devices.\n\tIf no devices become available, reconfigure "
                 "HAL.\n");
+        if (!layout->inputs || !*layout->inputs)
+        {
+            /* No input device specified in ServerLayout. */
+            if (xf86configptr->conf_input_lst &&
+                    xf86configptr->conf_input_lst->inp_identifier)
+                xf86Msg(X_WARNING, "Input devices specified in xorg.conf, but"
+                        " not referenced in ServerLayout.\n\tThese devices"
+                        " will NOT be available.\n");
+        }
+
     }
 }
 
