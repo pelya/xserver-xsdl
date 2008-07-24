@@ -1,4 +1,3 @@
 SUBDIRS = \
 	gtf \
-	cvt \
-	xorgcfg
+	cvt

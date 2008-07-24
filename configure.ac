@@ -1784,28 +1784,6 @@ AC_TRY_COMPILE([
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
-dnl xorgcfg GUI configuration utility
-AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
-	[Build xorgcfg GUI configuration utility (default: no)]),
-	[XORGCFG=$enableval],[XORGCFG=no])
-if test x$XORGCFG = xyes ; then
-	PKG_CHECK_MODULES([XORGCFG_DEP], 
-	    [xkbui >= 1.0.2 xkbfile xxf86vm xaw7 xmu xt xpm xext x11])
-	XORGCFG_DEP_CFLAGS="$XORGCFG_DEP_CFLAGS"
-	AC_CHECK_LIB([curses],[waddstr],
-	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],
-	    AC_CHECK_LIB([ncurses],[waddstr],
-		[XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lncurses" ; CURSES=yes],
-		[CURSES=no]))
-	AC_SUBST(XORGCFG_DEP_CFLAGS)
-	AC_SUBST(XORGCFG_DEP_LIBS)
-
-	APPDEFAULTDIR=$(pkg-config --variable=appdefaultdir xt)
-	AC_SUBST(APPDEFAULTDIR)
-fi
-AM_CONDITIONAL(BUILD_XORGCFG, [test x$XORGCFG = xyes])
-AM_CONDITIONAL(USE_CURSES, [test x$CURSES = xyes])
-
 BUILD_DATE="$(date +'%Y%m%d')"
 AC_SUBST([BUILD_DATE])
 BUILD_TIME="$(date +'1%H%M%S')"
@@ -1888,7 +1866,6 @@ hw/xfree86/xf8_16bpp/Makefile
 hw/xfree86/utils/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
-hw/xfree86/utils/xorgcfg/Makefile
 hw/dmx/config/Makefile
 hw/dmx/doc/Makefile
 hw/dmx/examples/Makefile
