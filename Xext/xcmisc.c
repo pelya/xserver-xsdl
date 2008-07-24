@@ -48,10 +48,6 @@ from The Open Group.
 #define UINT32_MAX 0xffffffffU
 #endif
 
-static void XCMiscResetProc(
-    ExtensionEntry * /* extEntry */
-);
-
 static DISPATCH_PROC(ProcXCMiscDispatch);
 static DISPATCH_PROC(ProcXCMiscGetVersion);
 static DISPATCH_PROC(ProcXCMiscGetXIDList);
@@ -66,14 +62,7 @@ XCMiscExtensionInit(INITARGS)
 {
     AddExtension(XCMiscExtensionName, 0, 0,
 		 ProcXCMiscDispatch, SProcXCMiscDispatch,
-		 XCMiscResetProc, StandardMinorOpcode);
-}
-
-/*ARGSUSED*/
-static void
-XCMiscResetProc (extEntry)
-    ExtensionEntry	*extEntry;
-{
+		 NULL, StandardMinorOpcode);
 }
 
 static int

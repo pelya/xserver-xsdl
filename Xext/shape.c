@@ -61,9 +61,6 @@ static int ShapeFreeEvents(
 	pointer /* data */,
 	XID /* id */
 	);
-static void ShapeResetProc(
-	ExtensionEntry * /* extEntry */
-	);
 static void SShapeNotifyEvent(
 	xShapeNotifyEvent * /* from */,
 	xShapeNotifyEvent * /* to */
@@ -149,18 +146,11 @@ ShapeExtensionInit(void)
     if (ClientType && EventType &&
 	(extEntry = AddExtension(SHAPENAME, ShapeNumberEvents, 0,
 				 ProcShapeDispatch, SProcShapeDispatch,
-				 ShapeResetProc, StandardMinorOpcode)))
+				 NULL, StandardMinorOpcode)))
     {
 	ShapeEventBase = extEntry->eventBase;
 	EventSwapVector[ShapeEventBase] = (EventSwapPtr) SShapeNotifyEvent;
     }
-}
-
-/*ARGSUSED*/
-static void
-ShapeResetProc (extEntry)
-ExtensionEntry	*extEntry;
-{
 }
 
 static int

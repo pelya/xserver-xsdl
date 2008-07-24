@@ -415,11 +415,6 @@ SProcRRXineramaDispatch(ClientPtr client)
     return BadRequest;
 }
 
-static void
-RRXineramaResetProc(ExtensionEntry* extEntry)
-{
-}
-
 void
 RRXineramaExtensionInit(void)
 {
@@ -439,6 +434,6 @@ RRXineramaExtensionInit(void)
     (void) AddExtension(PANORAMIX_PROTOCOL_NAME, 0,0,
 			ProcRRXineramaDispatch,
 			SProcRRXineramaDispatch,
-			RRXineramaResetProc,
+			NULL,
 			StandardMinorOpcode);
 }

@@ -77,11 +77,6 @@ CompositeClientCallback (CallbackListPtr	*list,
     pCompositeClient->minor_version = 0;
 }
 
-static void
-CompositeResetProc (ExtensionEntry *extEntry)
-{
-}
-    
 static int
 FreeCompositeClientWindow (pointer value, XID ccwid)
 {
@@ -598,7 +593,7 @@ CompositeExtensionInit (void)
 
     extEntry = AddExtension (COMPOSITE_NAME, 0, 0,
 			     ProcCompositeDispatch, SProcCompositeDispatch,
-			     CompositeResetProc, StandardMinorOpcode);
+			     NULL, StandardMinorOpcode);
     if (!extEntry)
 	return;
     CompositeReqCode = (CARD8) extEntry->base;

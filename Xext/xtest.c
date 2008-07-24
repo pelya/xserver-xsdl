@@ -60,9 +60,6 @@ extern int DeviceMotionNotify;
 #include "panoramiXsrv.h"
 #endif
 
-static void XTestResetProc(
-        ExtensionEntry * /* extEntry */
-        );
 static int XTestSwapFakeInput(
         ClientPtr /* client */,
         xReq * /* req */
@@ -84,14 +81,7 @@ XTestExtensionInit(INITARGS)
 {
     AddExtension(XTestExtensionName, 0, 0,
             ProcXTestDispatch, SProcXTestDispatch,
-            XTestResetProc, StandardMinorOpcode);
-}
-
-/*ARGSUSED*/
-static void
-XTestResetProc (extEntry)
-    ExtensionEntry	*extEntry;
-{
+            NULL, StandardMinorOpcode);
 }
 
 static int

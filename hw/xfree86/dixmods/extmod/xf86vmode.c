@@ -65,10 +65,6 @@ typedef struct {
 #define VM_SETPRIV(c,p) \
     dixSetPrivate(&(c)->devPrivates, VidModeClientPrivateKey, p)
 
-static void XF86VidModeResetProc(
-    ExtensionEntry* /* extEntry */
-);
-
 static DISPATCH_PROC(ProcXF86VidModeDispatch);
 static DISPATCH_PROC(ProcXF86VidModeGetAllModeLines);
 static DISPATCH_PROC(ProcXF86VidModeGetModeLine);
@@ -199,7 +195,7 @@ XFree86VidModeExtensionInit(void)
 				XF86VidModeNumberErrors,
 				ProcXF86VidModeDispatch,
 				SProcXF86VidModeDispatch,
-				XF86VidModeResetProc,
+				NULL,
 				StandardMinorOpcode))) {
 #if 0
 	XF86VidModeReqCode = (unsigned char)extEntry->base;
@@ -210,13 +206,6 @@ XFree86VidModeExtensionInit(void)
 	EventSwapVector[XF86VidModeEventBase] = (EventSwapPtr)SXF86VidModeNotifyEvent;
 #endif
     }
-}
-
-/*ARGSUSED*/
-static void
-XF86VidModeResetProc (extEntry)
-    ExtensionEntry* extEntry;
-{
 }
 
 static int

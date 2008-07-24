@@ -92,8 +92,6 @@ static DISPATCH_PROC(SProcXF86DRIQueryVersion);
 static DISPATCH_PROC(SProcXF86DRIQueryDirectRenderingCapable);
 static DISPATCH_PROC(SProcXF86DRIDispatch);
 
-static void XF86DRIResetProc(ExtensionEntry* extEntry);
-
 static Bool ephyrDRIScreenInit (ScreenPtr a_screen) ;
 static Bool ephyrDRICreateWindow (WindowPtr a_win) ;
 static Bool ephyrDRIDestroyWindow (WindowPtr a_win) ;
@@ -150,7 +148,7 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
 				 XF86DRINumberErrors,
 				 ProcXF86DRIDispatch,
 				 SProcXF86DRIDispatch,
-				 XF86DRIResetProc,
+				 NULL,
 				 StandardMinorOpcode))) {
 	DRIReqCode = (unsigned char)extEntry->base;
 	DRIErrorBase = extEntry->errorBase;
@@ -611,14 +609,6 @@ out:
     return is_ok;
 }
 
-
-/*ARGSUSED*/
-static void
-XF86DRIResetProc (
-    ExtensionEntry* extEntry
-)
-{
-}
 
 static int
 ProcXF86DRIQueryVersion (register ClientPtr client)

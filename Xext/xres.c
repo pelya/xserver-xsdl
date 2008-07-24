@@ -301,10 +301,6 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
     return (client->noClientException);
 }
 
-
-static void
-ResResetProc (ExtensionEntry *extEntry) { }
-
 static int
 ProcResDispatch (ClientPtr client)
 {
@@ -386,5 +382,5 @@ ResExtensionInit(INITARGS)
 {
     (void) AddExtension(XRES_NAME, 0, 0,
                             ProcResDispatch, SProcResDispatch,
-                            ResResetProc, StandardMinorOpcode);
+                            NULL, StandardMinorOpcode);
 }

@@ -210,9 +210,6 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     SProcRenderCreateConicalGradient
 };
 
-static void
-RenderResetProc (ExtensionEntry *extEntry);
-    
 int	RenderErrBase;
 DevPrivateKey RenderClientPrivateKey;
 
@@ -252,15 +249,10 @@ RenderExtensionInit (void)
 
     extEntry = AddExtension (RENDER_NAME, 0, RenderNumberErrors,
 			     ProcRenderDispatch, SProcRenderDispatch,
-			     RenderResetProc, StandardMinorOpcode);
+			     NULL, StandardMinorOpcode);
     if (!extEntry)
 	return;
     RenderErrBase = extEntry->errorBase;
-}
-
-static void
-RenderResetProc (ExtensionEntry *extEntry)
-{
 }
 
 static int

@@ -110,10 +110,6 @@ static void SScreenSaverNotifyEvent (
 	xScreenSaverNotifyEvent * /* to */
 	);
 
-static void ScreenSaverResetProc (
-	ExtensionEntry * /* extEntry */
-	);
-
 static RESTYPE SuspendType;  /* resource type for suspension records */
 
 typedef struct _ScreenSaverSuspension *ScreenSaverSuspensionPtr;
@@ -269,18 +265,11 @@ ScreenSaverExtensionInit(INITARGS)
     if (AttrType && EventType && SuspendType &&
 	(extEntry = AddExtension(ScreenSaverName, ScreenSaverNumberEvents, 0,
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
-				 ScreenSaverResetProc, StandardMinorOpcode)))
+				 NULL, StandardMinorOpcode)))
     {
 	ScreenSaverEventBase = extEntry->eventBase;
 	EventSwapVector[ScreenSaverEventBase] = (EventSwapPtr) SScreenSaverNotifyEvent;
     }
-}
-
-/*ARGSUSED*/
-static void
-ScreenSaverResetProc (extEntry)
-ExtensionEntry	*extEntry;
-{
 }
 
 static void

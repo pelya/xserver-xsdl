@@ -6199,12 +6199,6 @@ XkbClientGone(pointer data,XID id)
     return 1;
 }
 
-/*ARGSUSED*/
-static void
-XkbResetProc(ExtensionEntry *extEntry)
-{
-}
-
 void
 XkbExtensionInit(void)
 {
@@ -6212,7 +6206,7 @@ XkbExtensionInit(void)
 
     if ((extEntry = AddExtension(XkbName, XkbNumberEvents, XkbNumberErrors,
 				 ProcXkbDispatch, SProcXkbDispatch,
-				 XkbResetProc, StandardMinorOpcode))) {
+				 NULL, StandardMinorOpcode))) {
 	XkbReqCode = (unsigned char)extEntry->base;
 	XkbEventBase = (unsigned char)extEntry->eventBase;
 	XkbErrorBase = (unsigned char)extEntry->errorBase;

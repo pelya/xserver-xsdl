@@ -67,8 +67,6 @@ extern int    xeviegrabState;
 static DISPATCH_PROC(ProcXevieDispatch);
 static DISPATCH_PROC(SProcXevieDispatch);
 
-static void		XevieResetProc (ExtensionEntry *extEntry);
-
 static unsigned char	XevieReqCode = 0;
 static int		XevieErrorBase;
 
@@ -140,17 +138,11 @@ XevieExtensionInit (void)
 				XevieNumberErrors,
 				ProcXevieDispatch,
 				SProcXevieDispatch,
-				XevieResetProc,
+				NULL,
 				StandardMinorOpcode))) {
 	XevieReqCode = (unsigned char)extEntry->base;
 	XevieErrorBase = extEntry->errorBase;
     }
-}
-
-/*ARGSUSED*/
-static 
-void XevieResetProc (ExtensionEntry *extEntry)
-{
 }
 
 static 

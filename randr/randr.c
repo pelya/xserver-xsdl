@@ -86,11 +86,6 @@ RRClientCallback (CallbackListPtr	*list,
     }
 }
 
-static void
-RRResetProc (ExtensionEntry *extEntry)
-{
-}
-    
 static Bool
 RRCloseScreen (int i, ScreenPtr pScreen)
 {
@@ -339,7 +334,7 @@ RRExtensionInit (void)
 	return;
     extEntry = AddExtension (RANDR_NAME, RRNumberEvents, RRNumberErrors,
 			     ProcRRDispatch, SProcRRDispatch,
-			     RRResetProc, StandardMinorOpcode);
+			     NULL, StandardMinorOpcode);
     if (!extEntry)
 	return;
     RRErrorBase = extEntry->errorBase;

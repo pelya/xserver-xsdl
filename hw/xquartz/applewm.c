@@ -74,8 +74,6 @@ static int WMErrorBase;
 static DISPATCH_PROC(ProcAppleWMDispatch);
 static DISPATCH_PROC(SProcAppleWMDispatch);
 
-static void AppleWMResetProc(ExtensionEntry* extEntry);
-
 static unsigned char WMReqCode = 0;
 static int WMEventBase = 0;
 
@@ -124,7 +122,7 @@ AppleWMExtensionInit(
                                  AppleWMNumberErrors,
                                  ProcAppleWMDispatch,
                                  SProcAppleWMDispatch,
-                                 AppleWMResetProc,
+                                 NULL,
                                  StandardMinorOpcode)))
     {
         WMReqCode = (unsigned char)extEntry->base;
@@ -133,14 +131,6 @@ AppleWMExtensionInit(
         EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
         appleWMProcs = procsPtr;
     }
-}
-
-/*ARGSUSED*/
-static void
-AppleWMResetProc (
-    ExtensionEntry* extEntry
-)
-{
 }
 
 /* Updates the _NATIVE_SCREEN_ORIGIN property on the given root window. */

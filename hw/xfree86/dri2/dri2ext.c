@@ -322,11 +322,6 @@ SProcDRI2Dispatch (ClientPtr client)
     }
 }
 
-static void
-DRI2ResetProc (ExtensionEntry *extEntry)
-{
-}
-
 static int DRI2DrawableGone(pointer p, XID id)
 {
     DrawablePtr pDrawable = p;
@@ -344,7 +339,7 @@ DRI2ExtensionInit(void)
 				 DRI2NumberErrors,
 				 ProcDRI2Dispatch,
 				 SProcDRI2Dispatch,
-				 DRI2ResetProc,
+				 NULL,
 				 StandardMinorOpcode);
 
     dri2DrawableRes = CreateNewResourceType(DRI2DrawableGone);

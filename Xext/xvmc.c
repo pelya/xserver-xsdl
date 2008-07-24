@@ -108,12 +108,6 @@ XvMCDestroySubpictureRes(pointer data, XID id)
    return Success;
 }
 
-static void
-XvMCResetProc (ExtensionEntry *extEntry)
-{
-}
-
-
 static int 
 ProcXvMCQueryVersion(ClientPtr client)
 {
@@ -688,7 +682,7 @@ XvMCExtensionInit(void)
 
    extEntry = AddExtension(XvMCName, XvMCNumEvents, XvMCNumErrors, 
                               ProcXvMCDispatch, SProcXvMCDispatch,
-                              XvMCResetProc, StandardMinorOpcode);
+                              NULL, StandardMinorOpcode);
 
    if(!extEntry) return;
   
