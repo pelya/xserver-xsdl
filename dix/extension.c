@@ -247,7 +247,8 @@ CloseDownExtensions(void)
 
     for (i = NumExtensions - 1; i >= 0; i--)
     {
-	(* extensions[i]->CloseDown)(extensions[i]);
+	if (extensions[i]->CloseDown)
+	    extensions[i]->CloseDown(extensions[i]);
 	NumExtensions = i;
 	xfree(extensions[i]->name);
 	for (j = extensions[i]->num_aliases; --j >= 0;)
