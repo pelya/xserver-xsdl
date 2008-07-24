@@ -2014,26 +2014,20 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         }
     }
 
-    if (inputInfo.keyboard->key->xkbInfo &&
-        inputInfo.keyboard->key->xkbInfo->desc == dst) {
-        pDev = inputInfo.keyboard;
-    }
-    else {
-        for (tmpDev = inputInfo.devices; tmpDev && !pDev;
-             tmpDev = tmpDev->next) {
-            if (tmpDev->key && tmpDev->key->xkbInfo &&
+    for (tmpDev = inputInfo.devices; tmpDev && !pDev;
+            tmpDev = tmpDev->next) {
+        if (tmpDev->key && tmpDev->key->xkbInfo &&
                 tmpDev->key->xkbInfo->desc == dst) {
-                pDev = tmpDev;
-                break;
-            }
+            pDev = tmpDev;
+            break;
         }
-        for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
-             tmpDev = tmpDev->next) {
-            if (tmpDev->key && tmpDev->key->xkbInfo &&
+    }
+    for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
+            tmpDev = tmpDev->next) {
+        if (tmpDev->key && tmpDev->key->xkbInfo &&
                 tmpDev->key->xkbInfo->desc == dst) {
-                pDev = tmpDev;
-                break;
-            }
+            pDev = tmpDev;
+            break;
         }
     }
 
