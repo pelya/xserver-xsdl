@@ -56,16 +56,10 @@ _XkbLookupAnyDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
     int rc = XkbKeyboardErrorCode;
 
     if (id == XkbUseCoreKbd) {
-	if (inputInfo.keyboard)
-	    id = inputInfo.keyboard->id;
-	else
-	    goto out;
+        id = PickKeyboard(client)->id;
     }
     if (id == XkbUseCorePtr) {
-	if (inputInfo.pointer)
-	    id = inputInfo.pointer->id;
-	else
-	    goto out;
+        id = PickPointer(client)->id;
     }
     rc = dixLookupDevice(pDev, id, client, access_mode);
 out:
