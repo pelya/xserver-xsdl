@@ -204,7 +204,6 @@ OsInit(void)
 	if (!SmartScheduleInit ())
 	    SmartScheduleDisable = TRUE;
 #endif
-    OsInitAllocator();
 }
 
 void

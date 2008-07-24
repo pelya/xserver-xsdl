@@ -224,12 +224,6 @@ _X_EXPORT Bool Must_have_memory = FALSE;
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
 
-#ifdef MEMBUG
-#define MEM_FAIL_SCALE 100000
-long Memory_fail = 0;
-#include <stdlib.h>  /* for random() */
-#endif
-
 static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
 
 OsSigHandlerPtr
@@ -496,9 +490,6 @@ void UseMsg(void)
     ErrorF("use: X [:<display>] [option]\n");
     ErrorF("-a #                   mouse acceleration (pixels)\n");
     ErrorF("-ac                    disable access control restrictions\n");
-#ifdef MEMBUG
-    ErrorF("-alloc int             chance alloc should fail\n");
-#endif
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
     ErrorF("-br                    create root window with black background\n");
@@ -644,15 +635,6 @@ ProcessCommandLine(int argc, char *argv[])
 	{
 	    defeatAccessControl = TRUE;
 	}
-#ifdef MEMBUG
-	else if ( strcmp( argv[i], "-alloc") == 0)
-	{
-	    if(++i < argc)
-	        Memory_fail = atoi(argv[i]);
-	    else
-		UseMsg();
-	}
-#endif
 	else if ( strcmp( argv[i], "-audit") == 0)
 	{
 	    if(++i < argc)
@@ -1108,11 +1090,6 @@ Xalloc(unsigned long amount)
     }
     /* aligned extra on long word boundary */
     amount = (amount + (sizeof(long) - 1)) & ~(sizeof(long) - 1);
-#ifdef MEMBUG
-    if (!Must_have_memory && Memory_fail &&
-	((random() % MEM_FAIL_SCALE) < Memory_fail))
-	return (unsigned long *)NULL;
-#endif
     if ((ptr = (pointer)malloc(amount))) {
 	return (unsigned long *)ptr;
     }
@@ -1184,11 +1161,6 @@ XNFcalloc(unsigned long amount)
 _X_EXPORT void *
 Xrealloc(pointer ptr, unsigned long amount)
 {
-#ifdef MEMBUG
-    if (!Must_have_memory && Memory_fail &&
-	((random() % MEM_FAIL_SCALE) < Memory_fail))
-	return (unsigned long *)NULL;
-#endif
     if ((long)amount <= 0)
     {
 	if (ptr && !amount)
@@ -1233,20 +1205,6 @@ Xfree(pointer ptr)
 {
     if (ptr)
 	free((char *)ptr); 
-}
-
-void
-OsInitAllocator (void)
-{
-#ifdef MEMBUG
-    static int	been_here;
-
-    /* Check the memory system after each generation */
-    if (been_here)
-	CheckMemory ();
-    else
-	been_here = 1;
-#endif
 }
 #endif /* !INTERNAL_MALLOC */
 

@@ -230,8 +230,6 @@ extern pointer XNFalloc(unsigned long /*amount*/);
 extern pointer XNFcalloc(unsigned long /*amount*/);
 extern pointer XNFrealloc(pointer /*ptr*/, unsigned long /*amount*/);
 
-extern void OsInitAllocator(void);
-
 extern char *Xstrdup(const char *s);
 extern char *XNFstrdup(const char *s);
 extern char *Xprintf(const char *fmt, ...);
