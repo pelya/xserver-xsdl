@@ -122,9 +122,6 @@ extern Bool noSyncExtension;
 #ifdef RES
 extern Bool noResExtension;
 #endif
-#ifdef XCMISC
-extern Bool noXCMiscExtension;
-#endif
 #ifdef XEVIE
 extern Bool noXevieExtension;
 #endif
@@ -234,9 +231,7 @@ extern void SyncExtensionInit(INITARGS);
 #ifdef XKB
 extern void XkbExtensionInit(INITARGS);
 #endif
-#ifdef XCMISC
 extern void XCMiscExtensionInit(INITARGS);
-#endif
 #ifdef XRECORD
 extern void RecordExtensionInit(INITARGS);
 #endif
@@ -347,9 +342,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef RES
     { "X-Resource", &noResExtension },
 #endif
-#ifdef XCMISC
-    { "XC-MISC", &noXCMiscExtension },
-#endif
 #ifdef XEVIE
     { "XEVIE", &noXevieExtension },
 #endif
@@ -456,9 +448,7 @@ InitExtensions(int argc, char *argv[])
 #if defined(XKB)
     if (!noXkbExtension) XkbExtensionInit();
 #endif
-#ifdef XCMISC
-    if (!noXCMiscExtension) XCMiscExtensionInit();
-#endif
+    XCMiscExtensionInit();
 #ifdef XRECORD
     if (!noTestExtensions) RecordExtensionInit(); 
 #endif
@@ -545,6 +535,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XKB
     { XkbExtensionInit, XkbName, &noXkbExtension, NULL, NULL },
 #endif
+    { XCMiscExtensionInit, "XC-MISC", NULL, NULL, NULL },
 #ifdef XCSECURITY
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif

@@ -83,15 +83,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef XCMISC
-    {
-	XCMiscExtensionInit,
-	XCMiscExtensionName,
-	&noXCMiscExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef XF86VIDMODE
     {
 	XFree86VidModeExtensionInit,

@@ -165,9 +165,6 @@ _X_EXPORT Bool noSyncExtension = FALSE;
 #ifdef RES
 _X_EXPORT Bool noResExtension = FALSE;
 #endif
-#ifdef XCMISC
-_X_EXPORT Bool noXCMiscExtension = FALSE;
-#endif
 #ifdef XEVIE
 /* Xevie is disabled by default for now until the
  * interface is stable */

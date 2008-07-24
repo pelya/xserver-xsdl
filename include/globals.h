@@ -97,10 +97,6 @@ extern Bool noSyncExtension;
 extern Bool noResExtension;
 #endif
 
-#ifdef XCMISC
-extern Bool noXCMiscExtension;
-#endif
-
 #ifdef XEVIE
 extern Bool noXevieExtension;
 #endif

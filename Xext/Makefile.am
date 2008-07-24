@@ -24,13 +24,13 @@ BUILTIN_SRCS =			\
 	shape.c			\
 	sleepuntil.c		\
 	sleepuntil.h		\
+	xcmisc.c		\
 	xtest.c                 \
         geext.c
 
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
-	sync.c			\
-	xcmisc.c
+	sync.c
 
 # Optional sources included if extension enabled by configure.ac rules
 

@@ -39,11 +39,6 @@ extern void ScreenSaverExtensionInit (INITARGS);
 #include <X11/extensions/saver.h>
 #endif
 
-#ifdef XCMISC
-extern void XCMiscExtensionInit(INITARGS);
-#include <X11/extensions/xcmiscstr.h>
-#endif
-
 #ifdef XF86VIDMODE
 extern void	XFree86VidModeExtensionInit(INITARGS);
 #define _XF86VIDMODE_SERVER_
