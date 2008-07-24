@@ -364,7 +364,6 @@ WaitForSomething(int *pClientsReady)
 	    curclient = XFD_FD(&savedClientsReadable, i);
 	    client_index = GetConnectionTranslation(curclient);
 #endif
-#ifdef XSYNC
 		/*  We implement "strict" priorities.
 		 *  Only the highest priority client is returned to
 		 *  dix.  If multiple clients at the same priority are
@@ -391,7 +390,6 @@ WaitForSomething(int *pClientsReady)
 		 *  clients get batched together
 		 */
 		else if (client_priority == highest_priority)
-#endif
 		{
 		    pClientsReady[nready++] = client_index;
 		}

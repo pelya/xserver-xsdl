@@ -65,15 +65,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef XSYNC
-    {
-	SyncExtensionInit,
-	SYNC_NAME,
-	&noSyncExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef SCREENSAVER
     {
 	ScreenSaverExtensionInit,

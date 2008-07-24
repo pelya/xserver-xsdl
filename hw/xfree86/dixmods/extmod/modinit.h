@@ -27,13 +27,6 @@ extern void XTestExtensionInit(INITARGS);
 extern void XTestExtension1Init(INITARGS);
 #endif
 
-#ifdef XSYNC
-extern void SyncExtensionInit(INITARGS);
-#define _SYNC_SERVER
-#include <X11/extensions/sync.h>
-#include <X11/extensions/syncstr.h>
-#endif
-
 #ifdef SCREENSAVER
 extern void ScreenSaverExtensionInit (INITARGS);
 #include <X11/extensions/saver.h>

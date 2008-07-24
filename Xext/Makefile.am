@@ -21,16 +21,16 @@ endif
 # Sources always included in libXextbuiltin.la & libXext.la
 BUILTIN_SRCS =			\
 	bigreq.c		\
+        geext.c			\
 	shape.c			\
 	sleepuntil.c		\
 	sleepuntil.h		\
+	sync.c			\
 	xcmisc.c		\
-	xtest.c                 \
-        geext.c
+	xtest.c
 
-# Sources always included in libXextmodule.la & libXext.la
-MODULE_SRCS =			\
-	sync.c
+# Sources always included in libXextmodule.la & libXext.la. That's right, zero.
+MODULE_SRCS =
 
 # Optional sources included if extension enabled by configure.ac rules
 
