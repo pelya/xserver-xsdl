@@ -11,7 +11,7 @@ AM_CFLAGS = -DIN_LOADER $(DIX_CFLAGS) $(XORG_CFLAGS)
 EXTRA_DIST = \
 	dlloader.h \
 	loader.h \
-	loaderProcs.h \
+	loaderProcs.h
 
 libloader_a_SOURCES = \
 	loader.c \
