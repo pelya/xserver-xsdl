@@ -20,6 +20,7 @@ endif
 
 # Sources always included in libXextbuiltin.la & libXext.la
 BUILTIN_SRCS =			\
+	bigreq.c		\
 	shape.c			\
 	sleepuntil.c		\
 	sleepuntil.h		\
@@ -28,7 +29,6 @@ BUILTIN_SRCS =			\
 
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
-	bigreq.c		\
 	sync.c			\
 	xcmisc.c
 

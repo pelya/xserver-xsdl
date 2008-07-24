@@ -27,11 +27,6 @@ extern void XTestExtensionInit(INITARGS);
 extern void XTestExtension1Init(INITARGS);
 #endif
 
-#ifdef BIGREQS
-extern void BigReqExtensionInit(INITARGS);
-#include <X11/extensions/bigreqstr.h>
-#endif
-
 #ifdef XSYNC
 extern void SyncExtensionInit(INITARGS);
 #define _SYNC_SERVER

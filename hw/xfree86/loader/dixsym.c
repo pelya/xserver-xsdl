@@ -226,8 +226,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(DPMSDisabledSwitch)
     SYMVAR(defaultDPMSEnabled)
 #endif
-    /* bigreq */
-    SYMVAR(maxBigRequestSize)
 #ifdef XV
     /* XXX These are exported from the DDX, not DIX. */
     SYMVAR(XvScreenInitProc)
@@ -341,9 +339,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(noTestExtensions)
     SYMFUNC(GiveUp)
 
-#ifdef BIGREQS
-    SYMVAR(noBigReqExtension)
-#endif
 #ifdef COMPOSITE
     SYMVAR(noCompositeExtension)
 #endif

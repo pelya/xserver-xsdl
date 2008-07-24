@@ -45,10 +45,6 @@ extern Bool DPMSCapableFlag;
 extern Bool PanoramiXExtensionDisabledHack;
 #endif
 
-#ifdef BIGREQS
-extern Bool noBigReqExtension;
-#endif
-
 #ifdef COMPOSITE
 extern Bool noCompositeExtension;
 #endif

@@ -124,9 +124,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 
 _X_EXPORT Bool noTestExtensions;
-#ifdef BIGREQS
-_X_EXPORT Bool noBigReqExtension = FALSE;
-#endif
 #ifdef COMPOSITE
 _X_EXPORT Bool noCompositeExtension = FALSE;
 #endif

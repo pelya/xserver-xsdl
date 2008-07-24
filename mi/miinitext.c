@@ -86,9 +86,6 @@ SOFTWARE.
 
 extern Bool noTestExtensions;
 
-#ifdef BIGREQS
-extern Bool noBigReqExtension;
-#endif
 #ifdef COMPOSITE
 extern Bool noCompositeExtension;
 #endif
@@ -220,9 +217,7 @@ extern void XInputExtensionInit(INITARGS);
 #ifdef XTEST
 extern void XTestExtensionInit(INITARGS);
 #endif
-#ifdef BIGREQS
 extern void BigReqExtensionInit(INITARGS);
-#endif
 #ifdef XIDLE
 extern void XIdleExtensionInit(INITARGS);
 #endif
@@ -313,9 +308,6 @@ static ExtensionToggle ExtensionToggleList[] =
 {
     /* sort order is extension name string as shown in xdpyinfo */
     { "Generic Events", &noGEExtension },
-#ifdef BIGREQS
-    { "BIG-REQUESTS", &noBigReqExtension },
-#endif
 #ifdef COMPOSITE
     { "Composite", &noCompositeExtension },
 #endif
@@ -445,9 +437,7 @@ InitExtensions(int argc, char *argv[])
 #ifdef XTEST
     if (!noTestExtensions) XTestExtensionInit();
 #endif
-#ifdef BIGREQS
-    if (!noBigReqExtension) BigReqExtensionInit();
-#endif
+    BigReqExtensionInit();
 #ifdef XIDLE
     if (!noXIdleExtension) XIdleExtensionInit();
 #endif
@@ -548,6 +538,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XTEST
     { XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL },
 #endif
+    { BigReqExtensionInit, "BIG-REQUESTS", NULL, NULL, NULL },
 #ifdef XIDLE
     { XIdleExtensionInit, "XIDLE", &noXIdleExtension, NULL, NULL },
 #endif
