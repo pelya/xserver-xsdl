@@ -155,10 +155,8 @@ ProcXWarpDevicePointer(ClientPtr client)
         else if (y >= pSprite->physLimits.y2)
             y = pSprite->physLimits.y2 - 1;
 
-#if defined(SHAPE)
         if (pSprite->hotShape)
             ConfineToShape(pDev, pSprite->hotShape, &x, &y);
-#endif
         (*newScreen->SetCursorPosition)(pDev, newScreen, x, y, TRUE);
     } else if (!PointerConfinedToScreen(pDev))
     {

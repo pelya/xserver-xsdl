@@ -265,7 +265,6 @@ RootlessDestroyWindow(WindowPtr pWin)
 }
 
 
-#ifdef SHAPE
 
 static Bool
 RootlessGetShape(WindowPtr pWin, RegionPtr pShape)
@@ -345,7 +344,6 @@ RootlessSetShape(WindowPtr pWin)
     RootlessReshapeFrame(pWin);
 }
 
-#endif // SHAPE
 
 
 /* Disallow ParentRelative background on top-level windows
@@ -463,9 +461,7 @@ RootlessEnsureFrame(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
     RootlessWindowRec *winRec;
-#ifdef SHAPE
     RegionRec shape;
-#endif
     RegionPtr pShape = NULL;
 
     if (WINREC(pWin) != NULL)
@@ -491,11 +487,9 @@ RootlessEnsureFrame(WindowPtr pWin)
 
     SETWINREC(pWin, winRec);
 
-#ifdef SHAPE
     // Set the frame's shape if the window is shaped
     if (RootlessGetShape(pWin, &shape))
         pShape = &shape;
-#endif
 
     RL_DEBUG_MSG("creating frame ");
 
@@ -513,10 +507,8 @@ RootlessEnsureFrame(WindowPtr pWin)
     if (pWin->drawable.depth == 8)
       RootlessFlushWindowColormap(pWin);
 
-#ifdef SHAPE
     if (pShape != NULL)
         REGION_UNINIT(pScreen, &shape);
-#endif
 
     return winRec;
 }

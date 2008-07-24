@@ -426,10 +426,8 @@ typedef    void (* ReparentWindowProcPtr)(
     WindowPtr /*pWin*/,
     WindowPtr /*pPriorParent*/);
 
-#ifdef SHAPE
 typedef    void (* SetShapeProcPtr)(
 	WindowPtr /*pWin*/);
-#endif /* SHAPE */
 
 typedef    void (* ChangeBorderWidthProcPtr)(
 	WindowPtr /*pWin*/,
@@ -589,9 +587,7 @@ typedef struct _Screen {
     HandleExposuresProcPtr	HandleExposures;
     ReparentWindowProcPtr	ReparentWindow;
 
-#ifdef SHAPE
     SetShapeProcPtr		SetShape;
-#endif /* SHAPE */
 
     ChangeBorderWidthProcPtr	ChangeBorderWidth;
     MarkUnrealizedWindowProcPtr	MarkUnrealizedWindow;

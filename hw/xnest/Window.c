@@ -131,12 +131,10 @@ xnestCreateWindow(WindowPtr pWin)
   xnestWindowPriv(pWin)->sibling_above = None;
   if (pWin->nextSib)
     xnestWindowPriv(pWin->nextSib)->sibling_above = xnestWindow(pWin);
-#ifdef SHAPE
   xnestWindowPriv(pWin)->bounding_shape = 
     REGION_CREATE(pWin->drawable.pScreen, NULL, 1);
   xnestWindowPriv(pWin)->clip_shape = 
     REGION_CREATE(pWin->drawable.pScreen, NULL, 1);
-#endif /* SHAPE */
 
   if (!pWin->parent) /* only the root window will have the right colormap */
     xnestSetInstalledColormapWindows(pWin->drawable.pScreen);
@@ -150,12 +148,10 @@ xnestDestroyWindow(WindowPtr pWin)
   if (pWin->nextSib)
     xnestWindowPriv(pWin->nextSib)->sibling_above = 
       xnestWindowPriv(pWin)->sibling_above;
-#ifdef SHAPE
   REGION_DESTROY(pWin->drawable.pScreen, 
 				xnestWindowPriv(pWin)->bounding_shape);
   REGION_DESTROY(pWin->drawable.pScreen, 
 				xnestWindowPriv(pWin)->clip_shape);
-#endif
   XDestroyWindow(xnestDisplay, xnestWindow(pWin));
   xnestWindowPriv(pWin)->window = None;
 
@@ -362,9 +358,7 @@ Bool
 xnestRealizeWindow(WindowPtr pWin)
 {
   xnestConfigureWindow(pWin, CWStackingOrder);
-#ifdef SHAPE
   xnestShapeWindow(pWin);
-#endif /* SHAPE */
   XMapWindow(xnestDisplay, xnestWindow(pWin));
 
   return True;
@@ -387,9 +381,7 @@ void
 xnestClipNotify(WindowPtr pWin, int dx, int dy)
 {
   xnestConfigureWindow(pWin, CWStackingOrder); 
-#ifdef SHAPE
   xnestShapeWindow(pWin);
-#endif /* SHAPE */
 }
 
 static Bool
@@ -426,7 +418,6 @@ xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn, RegionPtr other_exposed)
   miWindowExposures(pWin, pRgn, other_exposed);
 }
 
-#ifdef SHAPE
 void
 xnestSetShape(WindowPtr pWin)
 {
@@ -529,4 +520,3 @@ xnestShapeWindow(WindowPtr pWin)
     }
   }
 }
-#endif /* SHAPE */

@@ -407,11 +407,9 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->optional->userProps = NULL;
     pWin->optional->backingBitPlanes = ~0L;
     pWin->optional->backingPixel = 0;
-#ifdef SHAPE
     pWin->optional->boundingShape = NULL;
     pWin->optional->clipShape = NULL;
     pWin->optional->inputShape = NULL;
-#endif
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
     pWin->optional->geMasks = (GenericClientMasksPtr)xcalloc(1, sizeof(GenericClientMasksRec));
@@ -884,14 +882,12 @@ FreeWindowResources(WindowPtr pWin)
     REGION_UNINIT(pScreen, &pWin->winSize);
     REGION_UNINIT(pScreen, &pWin->borderClip);
     REGION_UNINIT(pScreen, &pWin->borderSize);
-#ifdef SHAPE
     if (wBoundingShape (pWin))
 	REGION_DESTROY(pScreen, wBoundingShape (pWin));
     if (wClipShape (pWin))
 	REGION_DESTROY(pScreen, wClipShape (pWin));
     if (wInputShape (pWin))
 	REGION_DESTROY(pScreen, wInputShape (pWin));
-#endif
     if (pWin->borderIsPixel == FALSE)
 	(*pScreen->DestroyPixmap)(pWin->border.pixmap);
     if (pWin->backgroundState == BackgroundPixmap)
@@ -1679,7 +1675,6 @@ CreateUnclippedWinSize (WindowPtr pWin)
     box.x2 = pWin->drawable.x + (int) pWin->drawable.width;
     box.y2 = pWin->drawable.y + (int) pWin->drawable.height;
     pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
-#ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
 	ScreenPtr pScreen;
         pScreen = pWin->drawable.pScreen;
@@ -1692,7 +1687,6 @@ CreateUnclippedWinSize (WindowPtr pWin)
 	    REGION_INTERSECT(pScreen, pRgn, pRgn, wClipShape (pWin));
 	REGION_TRANSLATE(pScreen, pRgn, pWin->drawable.x, pWin->drawable.y);
     }
-#endif
     return pRgn;
 }
 
@@ -1720,7 +1714,6 @@ SetWinSize (WindowPtr pWin)
 			 pWin->drawable.x, pWin->drawable.y,
 			 (int)pWin->drawable.width,
 			 (int)pWin->drawable.height);
-#ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
 	ScreenPtr pScreen;
         pScreen = pWin->drawable.pScreen;
@@ -1736,7 +1729,6 @@ SetWinSize (WindowPtr pWin)
 	REGION_TRANSLATE(pScreen, &pWin->winSize, pWin->drawable.x,
 			 pWin->drawable.y);
     }
-#endif
 }
 
 _X_EXPORT void
@@ -1767,7 +1759,6 @@ SetBorderSize (WindowPtr pWin)
 		pWin->drawable.x - bw, pWin->drawable.y - bw,
 		(int)(pWin->drawable.width + (bw<<1)),
 		(int)(pWin->drawable.height + (bw<<1)));
-#ifdef SHAPE
 	if (wBoundingShape (pWin)) {
 	    ScreenPtr pScreen;
             pScreen = pWin->drawable.pScreen;
@@ -1781,7 +1772,6 @@ SetBorderSize (WindowPtr pWin)
 	    REGION_UNION(pScreen, &pWin->borderSize, &pWin->borderSize,
 			 &pWin->winSize);
 	}
-#endif
     } else {
 	REGION_COPY(pWin->drawable.pScreen, &pWin->borderSize,
 					       &pWin->winSize);
@@ -1972,7 +1962,6 @@ WindowExtents(
     return(pBox);
 }
 
-#ifdef SHAPE
 #define IS_SHAPED(pWin)	(wBoundingShape (pWin) != (RegionPtr) NULL)
 
 static RegionPtr
@@ -2017,7 +2006,6 @@ ShapeOverlap (
     REGION_DESTROY(pScreen, pSibRgn);
     return ret;
 }
-#endif
 
 static Bool
 AnyWindowOverlapsMe(
@@ -2035,9 +2023,7 @@ AnyWindowOverlapsMe(
 	{
 	    sbox = WindowExtents(pSib, &sboxrec);
 	    if (BOXES_OVERLAP(sbox, box)
-#ifdef SHAPE
 	    && ShapeOverlap (pWin, box, pSib, sbox)
-#endif
 	    )
 		return(TRUE);
 	}
@@ -2060,9 +2046,7 @@ IOverlapAnyWindow(
 	{
 	    sbox = WindowExtents(pSib, &sboxrec);
 	    if (BOXES_OVERLAP(sbox, box)
-#ifdef SHAPE
 	    && ShapeOverlap (pWin, box, pSib, sbox)
-#endif
 	    )
 		return(TRUE);
 	}
@@ -3617,14 +3601,12 @@ CheckWindowOptionalNeed (WindowPtr w)
 	return;
     if (optional->backingPixel != 0)
 	return;
-#ifdef SHAPE
     if (optional->boundingShape != NULL)
 	return;
     if (optional->clipShape != NULL)
 	return;
     if (optional->inputShape != NULL)
 	return;
-#endif
     if (optional->inputMasks != NULL)
 	return;
     if (optional->deviceCursors != NULL)
@@ -3681,11 +3663,9 @@ MakeWindowOptional (WindowPtr pWin)
     optional->userProps = NULL;
     optional->backingBitPlanes = ~0L;
     optional->backingPixel = 0;
-#ifdef SHAPE
     optional->boundingShape = NULL;
     optional->clipShape = NULL;
     optional->inputShape = NULL;
-#endif
     optional->inputMasks = NULL;
     optional->deviceCursors = NULL;
 

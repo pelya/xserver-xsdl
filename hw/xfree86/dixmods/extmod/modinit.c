@@ -47,15 +47,6 @@ static ExtensionModule extensionModules[] = {
 	NULL
     },
 #endif
-#ifdef SHAPE
-    {
-	ShapeExtensionInit,
-	SHAPENAME,
-	&noShapeExtension,
-	NULL,
-	NULL
-    },
-#endif
 #ifdef MULTIBUFFER
     {
 	MultibufferExtensionInit,

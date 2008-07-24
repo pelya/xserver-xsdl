@@ -314,9 +314,7 @@ typedef struct {
     CursorPtr	current;
     BoxRec	hotLimits;	/* logical constraints of hot spot */
     Bool	confined;	/* confined to screen */
-#if defined(SHAPE) || defined(PANORAMIX)
     RegionPtr	hotShape;	/* additional logical shape constraint */
-#endif
     BoxRec	physLimits;	/* physical constraints of hot spot */
     WindowPtr	win;		/* window of logical position */
     HotSpot	hot;		/* logical pointer position */

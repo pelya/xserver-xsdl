@@ -89,10 +89,6 @@ extern Bool noRRExtension;
 extern Bool noRenderExtension;
 #endif
 
-#ifdef SHAPE
-extern Bool noShapeExtension;
-#endif
-
 #ifdef XCSECURITY
 extern Bool noSecurityExtension;
 #endif

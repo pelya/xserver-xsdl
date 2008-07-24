@@ -265,9 +265,7 @@ miScreenInit(
     pScreen->HandleExposures = miHandleValidateExposures;
     pScreen->ReparentWindow = (ReparentWindowProcPtr) 0;
     pScreen->ChangeBorderWidth = miChangeBorderWidth;
-#ifdef SHAPE
     pScreen->SetShape = miSetShape;
-#endif
     pScreen->MarkUnrealizedWindow = miMarkUnrealizedWindow;
 
     pScreen->SaveDoomedAreas = 0;

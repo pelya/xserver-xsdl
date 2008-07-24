@@ -159,9 +159,6 @@ _X_EXPORT Bool noRRExtension = FALSE;
 #ifdef RENDER
 _X_EXPORT Bool noRenderExtension = FALSE;
 #endif
-#ifdef SHAPE
-_X_EXPORT Bool noShapeExtension = FALSE;
-#endif
 #ifdef XCSECURITY
 _X_EXPORT Bool noSecurityExtension = FALSE;
 #endif

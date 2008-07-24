@@ -116,9 +116,6 @@ extern Bool noRRExtension;
 #ifdef RENDER
 extern Bool noRenderExtension;
 #endif
-#ifdef SHAPE
-extern Bool noShapeExtension;
-#endif
 #ifdef XCSECURITY
 extern Bool noSecurityExtension;
 #endif
@@ -349,9 +346,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef RENDER
     { "RENDER", &noRenderExtension },
 #endif
-#ifdef SHAPE
-    { "SHAPE", &noShapeExtension },
-#endif
 #ifdef XCSECURITY
     { "SECURITY", &noSecurityExtension },
 #endif
@@ -440,9 +434,7 @@ InitExtensions(int argc, char *argv[])
 #ifdef INXQUARTZ
     if(!noPseudoramiXExtension) PseudoramiXExtensionInit();
 #endif
-#ifdef SHAPE
-    if (!noShapeExtension) ShapeExtensionInit();
-#endif
+    ShapeExtensionInit();
 #ifdef MITSHM
     if (!noMITShmExtension) ShmExtensionInit();
 #endif
@@ -548,6 +540,7 @@ InitVisualWrap()
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
     { GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL, NULL},
+    { ShapeExtensionInit, "SHAPE", NULL, NULL, NULL },
 #ifdef MITSHM
     { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif

@@ -84,9 +84,7 @@ typedef XID           KeySym64;
 #include <X11/cursorfont.h>
 #include <X11/Xmu/SysUtil.h>    /* For XmuSnprintf */
 
-#ifdef SHAPE
 #include <X11/extensions/shape.h>
-#endif
 
 #ifdef RENDER
 #include <X11/extensions/Xrender.h>

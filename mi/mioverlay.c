@@ -80,9 +80,7 @@ static void miOverlayResizeWindow(WindowPtr, int, int, unsigned int,
 					unsigned int, WindowPtr);
 static void miOverlayClearToBackground(WindowPtr, int, int, int, int, Bool);
 
-#ifdef SHAPE
 static void miOverlaySetShape(WindowPtr);
-#endif
 static void miOverlayChangeBorderWidth(WindowPtr, unsigned int);
 
 #define MIOVERLAY_GET_SCREEN_PRIVATE(pScreen) ((miOverlayScreenPtr) \
@@ -148,9 +146,7 @@ miInitOverlay(
     pScreen->ResizeWindow = miOverlayResizeWindow;
     pScreen->MarkWindow = miOverlayMarkWindow;
     pScreen->ClearToBackground = miOverlayClearToBackground;
-#ifdef SHAPE
     pScreen->SetShape = miOverlaySetShape;
-#endif
     pScreen->ChangeBorderWidth = miOverlayChangeBorderWidth;
 
     return TRUE;
@@ -480,7 +476,6 @@ miOverlayComputeClips(
 	    break;
 	case rgnPART:
 	    newVis = VisibilityPartiallyObscured;
-#ifdef SHAPE
 	    {
 		RegionPtr   pBounding;
 
@@ -499,7 +494,6 @@ miOverlayComputeClips(
 		    }
 		}
 	    }
-#endif
 	    break;
 	default:
 	    newVis = VisibilityFullyObscured;
@@ -1522,7 +1516,6 @@ miOverlayResizeWindow(
 }
 
 
-#ifdef SHAPE
 static void
 miOverlaySetShape(WindowPtr pWin)
 {
@@ -1584,7 +1577,6 @@ miOverlaySetShape(WindowPtr pWin)
 	WindowsRestructured ();
     CheckCursorConfinement(pWin);
 }
-#endif
 
 
 

@@ -231,9 +231,7 @@ typedef struct _DMXScreenInfo {
     InstallColormapProcPtr         InstallColormap;
     StoreColorsProcPtr             StoreColors;
 
-#ifdef SHAPE
     SetShapeProcPtr                SetShape;
-#endif
 
 #ifdef RENDER
     CreatePictureProcPtr           CreatePicture;

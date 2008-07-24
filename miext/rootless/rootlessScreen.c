@@ -666,9 +666,7 @@ RootlessWrap(ScreenPtr pScreen)
     WRAP(UninstallColormap);
     WRAP(StoreColors);
 
-#ifdef SHAPE
     WRAP(SetShape);
-#endif
 
 #ifdef RENDER
     {

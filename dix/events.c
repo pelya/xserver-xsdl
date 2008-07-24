@@ -815,7 +815,6 @@ SetCriticalEvent(int event)
     criticalEvents[event >> 3] |= 1 << (event & 7);
 }
 
-#ifdef SHAPE
 void
 ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 {
@@ -853,7 +852,6 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
     *px = x;
     *py = y;
 }
-#endif
 
 static void
 CheckPhysLimits(
@@ -887,10 +885,8 @@ CheckPhysLimits(
     else
 	if (new.y >= pSprite->physLimits.y2)
 	    new.y = pSprite->physLimits.y2 - 1;
-#ifdef SHAPE
     if (pSprite->hotShape)
 	ConfineToShape(pDev, pSprite->hotShape, &new.x, &new.y);
-#endif
     if ((pScreen != pSprite->hotPhys.pScreen) ||
 	(new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
     {
@@ -942,11 +938,9 @@ CheckVirtualMotion(
 	    pSprite->hot.y = lims.y1;
 	else if (pSprite->hot.y >= lims.y2)
 	    pSprite->hot.y = lims.y2 - 1;
-#ifdef SHAPE
 	if (wBoundingShape(pWin))
 	    ConfineToShape(pDev, &pWin->borderSize,
                     &pSprite->hot.x, &pSprite->hot.y);
-#endif
 	if (qe)
 	{
 	    qe->pScreen = pSprite->hot.pScreen;
@@ -982,10 +976,8 @@ ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bo
     else
     {
 	pSprite->hotLimits = *REGION_EXTENTS( pScreen, &pWin->borderSize);
-#ifdef SHAPE
 	pSprite->hotShape = wBoundingShape(pWin) ? &pWin->borderSize
 					       : NullRegion;
-#endif
         CheckPhysLimits(pDev, pSprite->current, generateEvents,
                         confineToScreen, pScreen);
     }
@@ -2628,7 +2620,6 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 	    (y >= pWin->drawable.y - wBorderWidth (pWin)) &&
 	    (y < pWin->drawable.y + (int)pWin->drawable.height +
 	     wBorderWidth (pWin))
-#ifdef SHAPE
 	    /* When a window is shaped, a further check
 	     * is made to see if the point is inside
 	     * borderSize
@@ -2639,7 +2630,6 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 				wInputShape(pWin),
 				x - pWin->drawable.x,
 				y - pWin->drawable.y, &box))
-#endif
 #ifdef ROOTLESS
     /* In rootless mode windows may be offscreen, even when
      * they're in X's stack. (E.g. if the native window system
@@ -2732,10 +2722,8 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
             pSprite->hot.y = pSprite->physLimits.y1;
         else if (pSprite->hot.y >= pSprite->physLimits.y2)
             pSprite->hot.y = pSprite->physLimits.y2 - 1;
-#ifdef SHAPE
 	if (pSprite->hotShape)
 	    ConfineToShape(pDev, pSprite->hotShape, &pSprite->hot.x, &pSprite->hot.y);
-#endif
 #ifdef XEVIE
         xeviehot.x = pSprite->hot.x;
         xeviehot.y = pSprite->hot.y;
@@ -2970,9 +2958,7 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
         pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
         pSprite->physLimits = pSprite->hotLimits;
         pSprite->confineWin = NullWindow;
-#ifdef SHAPE
         pSprite->hotShape = NullRegion;
-#endif
         pSprite->screen = pScreen;
         /* gotta UNINIT these someplace */
         REGION_NULL(pScreen, &pSprite->Reg1);
@@ -3305,10 +3291,8 @@ ProcWarpPointer(ClientPtr client)
 	    y = pSprite->physLimits.y1;
 	else if (y >= pSprite->physLimits.y2)
 	    y = pSprite->physLimits.y2 - 1;
-#if defined(SHAPE)
 	if (pSprite->hotShape)
 	    ConfineToShape(PickPointer(client), pSprite->hotShape, &x, &y);
-#endif
         (*newScreen->SetCursorPosition)(PickPointer(client), newScreen, x, y,
                                         TRUE);
     }

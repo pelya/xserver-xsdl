@@ -265,7 +265,6 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     extents = pGC->graphicsExposures &&
 	      (REGION_NUM_RECTS(&rgnExposed) > RECTLIMIT) &&
 	      (pDstDrawable->type != DRAWABLE_PIXMAP);
-#ifdef SHAPE
     if (pSrcWin)
     {
 	RegionPtr	region;
@@ -279,7 +278,6 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     	    (RECT_IN_REGION(pscr, region, &srcBox) != rgnIN))
 	    	extents = FALSE;
     }
-#endif
     if (extents)
     {
 	expBox = *REGION_EXTENTS(pscr, &rgnExposed);

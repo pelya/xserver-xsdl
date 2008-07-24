@@ -7,10 +7,8 @@
 #define INITARGS void
 #endif
 
-#ifdef SHAPE
 #define _SHAPE_SERVER_  /* don't want Xlib structures */
 #include <X11/extensions/shapestr.h>
-#endif
 
 #ifdef MULTIBUFFER
 extern void MultibufferExtensionInit(INITARGS);

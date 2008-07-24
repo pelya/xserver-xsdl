@@ -1044,9 +1044,7 @@ ProcTranslateCoords(ClientPtr client)
 	pWin = pDst->firstChild;
 	while (pWin)
 	{
-#ifdef SHAPE
 	    BoxRec  box;
-#endif
 	    if ((pWin->mapped) &&
 		(x >= pWin->drawable.x - wBorderWidth (pWin)) &&
 		(x < pWin->drawable.x + (int)pWin->drawable.width +
@@ -1054,7 +1052,6 @@ ProcTranslateCoords(ClientPtr client)
 		(y >= pWin->drawable.y - wBorderWidth (pWin)) &&
 		(y < pWin->drawable.y + (int)pWin->drawable.height +
 		 wBorderWidth (pWin))
-#ifdef SHAPE
 		/* When a window is shaped, a further check
 		 * is made to see if the point is inside
 		 * borderSize
@@ -1068,7 +1065,6 @@ ProcTranslateCoords(ClientPtr client)
 				    wInputShape(pWin),
 				    x - pWin->drawable.x,
 				    y - pWin->drawable.y, &box))
-#endif
 		)
             {
 		rep.child = pWin->drawable.id;

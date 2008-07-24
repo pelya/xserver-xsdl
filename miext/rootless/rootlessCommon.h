@@ -39,9 +39,7 @@
 #include "rootless.h"
 #include "fb.h"
 
-#ifdef SHAPE
 #include "scrnintstr.h"
-#endif /* SHAPE */
 
 #ifdef RENDER
 #include "picturestr.h"
@@ -99,9 +97,7 @@ typedef struct _RootlessScreenRec {
     MarkOverlappedWindowsProcPtr MarkOverlappedWindows;
     ValidateTreeProcPtr ValidateTree;
 
-#ifdef SHAPE
     SetShapeProcPtr SetShape;
-#endif
 
 #ifdef RENDER
     CompositeProcPtr Composite;

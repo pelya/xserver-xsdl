@@ -340,10 +340,8 @@ Bool dmxScreenInit(int idx, ScreenPtr pScreen, int argc, char *argv[])
 	DMX_WRAP(InstallColormap, dmxInstallColormap, dmxScreen, pScreen);
 	DMX_WRAP(StoreColors, dmxStoreColors, dmxScreen, pScreen);
 
-#ifdef SHAPE
 	/* Wrap Shape functions */
 	DMX_WRAP(SetShape, dmxSetShape, dmxScreen, pScreen);
-#endif
     }
 
     if (!dmxCreateDefColormap(pScreen))
@@ -434,10 +432,8 @@ Bool dmxCloseScreen(int idx, ScreenPtr pScreen)
 	xfree(dmxScreen->shadow);
     } else {
 
-#ifdef SHAPE
 	/* Unwrap Shape functions */
 	DMX_UNWRAP(SetShape, dmxScreen, pScreen);
-#endif
 
 	/* Unwrap the pScreen functions */
 	DMX_UNWRAP(CreateGC, dmxScreen, pScreen);

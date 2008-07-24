@@ -331,10 +331,8 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   if (!miScreenDevPrivateInit(pScreen, xnestWidth, NULL))
       return FALSE;
 
-#ifdef SHAPE
   /* overwrite miSetShape with our own */
   pScreen->SetShape = xnestSetShape;
-#endif /* SHAPE */
 
   /* devPrivates */
 

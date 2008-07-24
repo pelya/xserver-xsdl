@@ -103,7 +103,6 @@ Equipment Corporation.
 
 #include    "globals.h"
 
-#ifdef SHAPE
 /*
  * Compute the visibility of a shaped window
  */
@@ -163,7 +162,6 @@ miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
 	return rgnIN;
     return rgnOUT;
 }
-#endif
 
 static GetRedirectBorderClipProcPtr	miGetRedirectBorderClipProc;
 static SetRedirectBorderClipProcPtr	miSetRedirectBorderClipProc;
@@ -269,7 +267,6 @@ miComputeClips (
 	    break;
 	case rgnPART:
 	    newVis = VisibilityPartiallyObscured;
-#ifdef SHAPE
 	    {
 		RegionPtr   pBounding;
 
@@ -289,7 +286,6 @@ miComputeClips (
 		    }
 		}
 	    }
-#endif
 	    break;
 	default:
 	    newVis = VisibilityFullyObscured;

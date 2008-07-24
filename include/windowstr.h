@@ -108,11 +108,9 @@ typedef struct _WindowOpt {
     PropertyPtr		userProps;	   /* default: NULL */
     unsigned long	backingBitPlanes;  /* default: ~0L */
     unsigned long	backingPixel;	   /* default: 0 */
-#ifdef SHAPE
     RegionPtr		boundingShape;	   /* default: NULL */
     RegionPtr		clipShape;	   /* default: NULL */
     RegionPtr		inputShape;	   /* default: NULL */
-#endif
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
     DevCursorList       deviceCursors;     /* default: NULL */
     struct _GenericClientMasks *geMasks;   /* default: NULL */
@@ -217,21 +215,15 @@ extern Mask	    DontPropagateMasks[];
 #define wUserProps(w)		wUseDefault(w, userProps, NULL)
 #define wBackingBitPlanes(w)	wUseDefault(w, backingBitPlanes, ~0L)
 #define wBackingPixel(w)	wUseDefault(w, backingPixel, 0)
-#ifdef SHAPE
 #define wBoundingShape(w)	wUseDefault(w, boundingShape, NULL)
 #define wClipShape(w)		wUseDefault(w, clipShape, NULL)
 #define wInputShape(w)          wUseDefault(w, inputShape, NULL)
-#endif
 #define wClient(w)		(clients[CLIENT_ID((w)->drawable.id)])
 #define wBorderWidth(w)		((int) (w)->borderWidth)
 
 /* true when w needs a border drawn. */
 
-#ifdef SHAPE
 #define HasBorder(w)	((w)->borderWidth || wClipShape(w))
-#else
-#define HasBorder(w)	((w)->borderWidth)
-#endif
 
 typedef struct _ScreenSaverStuff {
     WindowPtr pWindow;

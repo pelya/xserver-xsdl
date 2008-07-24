@@ -909,7 +909,6 @@ miGetLayerWindow(WindowPtr pWin)
     return pWin->firstChild;
 }
 
-#ifdef SHAPE
 /******
  *
  * miSetShape
@@ -983,7 +982,6 @@ miSetShape(WindowPtr pWin)
 	WindowsRestructured ();
     CheckCursorConfinement(pWin);
 }
-#endif
 
 /* Keeps the same inside(!) origin */
 
