@@ -84,7 +84,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
     int i;
     ExtensionEntry *ext, **newexts;
 
-    if (!MainProc || !SwappedMainProc || !CloseDownProc || !MinorOpcodeProc)
+    if (!MainProc || !SwappedMainProc || !MinorOpcodeProc)
         return((ExtensionEntry *) NULL);
     if ((lastEvent + NumEvents > LAST_EVENT) || 
 	        (unsigned)(lastError + NumErrors > LAST_ERROR))
