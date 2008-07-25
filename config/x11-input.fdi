@@ -26,6 +26,9 @@
 	    Do not specify "input.x11_options.Device" since "input.device"
 	    will be used automatically.
 
+            You MUST specify all options as strings, otherwise the server will
+            ignore them.
+
         Legacy Keys
 	     "input.xkb.rules"
              "input.xkb.model"
