@@ -279,6 +279,7 @@ void GlxExtensionInit(void)
     ScreenPtr pScreen;
     int i;
     __GLXprovider *p;
+    Bool glx_provided = False;
 
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
@@ -287,6 +288,29 @@ void GlxExtensionInit(void)
     if (!dixRequestPrivate(glxClientPrivateKey, sizeof (__GLXclientState)))
 	return;
     if (!AddCallback (&ClientStateCallback, glxClientCallback, 0))
+	return;
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	pScreen = screenInfo.screens[i];
+
+	for (p = __glXProviderStack; p != NULL; p = p->next) {
+	    if (p->screenProbe(pScreen) != NULL) {
+		LogMessage(X_INFO,
+			   "GLX: Initialized %s GL provider for screen %d\n",
+			   p->name, i);
+		break;
+	    }
+	}
+
+	if (!p)
+	    LogMessage(X_INFO,
+		       "GLX: no usable GL providers found for screen %d\n", i);
+	else
+	    glx_provided = True;
+    }
+
+    /* don't register extension if GL is not provided on any screen */
+    if (!glx_provided)
 	return;
 
     /*
@@ -306,19 +330,6 @@ void GlxExtensionInit(void)
     }
 
     __glXErrorBase = extEntry->errorBase;
-
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	pScreen = screenInfo.screens[i];
-
-	for (p = __glXProviderStack; p != NULL; p = p->next) {
-	    if (p->screenProbe(pScreen) != NULL) {
-		LogMessage(X_INFO,
-			   "GLX: Initialized %s GL provider for screen %d\n",
-			   p->name, i);
-	    	break;
-	    }
-	}
-    }
 }
 
 /************************************************************************/

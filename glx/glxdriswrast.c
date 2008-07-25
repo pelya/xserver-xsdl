@@ -515,7 +515,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     xfree(screen);
 
-    FatalError("GLX: could not load software renderer\n");
+    LogMessage(X_ERROR, "GLX: could not load software renderer\n");
 
     return NULL;
 }
