@@ -847,14 +847,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     char *m = NULL;
     const char **cim;
 
-    xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"\n", module);
-
-    for (cim = compiled_in_modules; *cim; cim++)
-	if (!strcmp (module, *cim))
-	{
-	    xf86MsgVerb(X_INFO, 3, "Module \"%s\" already built-in\n", module);
-	    return (ModuleDescPtr) 1;
-	}
+    xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
 
     patterns = InitPatterns(patternlist);
     name = LoaderGetCanonicalName(module, patterns);
@@ -869,6 +862,14 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
 	xf86ErrorFVerb(3, "\n");
 	m = (char *)module;
     }
+
+    for (cim = compiled_in_modules; *cim; cim++)
+	if (!strcmp (m, *cim))
+	{
+	    xf86MsgVerb(X_INFO, 3, "Module \"%s\" already built-in\n", m);
+	    return (ModuleDescPtr) 1;
+	}
+
     if (!name) {
 	if (errmaj)
 	    *errmaj = LDR_BADUSAGE;
