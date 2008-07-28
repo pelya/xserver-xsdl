@@ -620,9 +620,9 @@ DoMakeCurrent(__GLXclientState *cl,
 	    return __glXError(GLXBadContext);
 	}
 	__glXFlushContextCache();
-	if (!glxc->isDirect) {
-	    __glXUnrefDrawable(glxc->drawPriv);
-	    __glXUnrefDrawable(glxc->readPriv);
+	if (!prevglxc->isDirect) {
+	    __glXUnrefDrawable(prevglxc->drawPriv);
+	    __glXUnrefDrawable(prevglxc->readPriv);
 	}
     }
 	
