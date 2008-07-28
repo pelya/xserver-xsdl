@@ -695,7 +695,7 @@ LinearProfile(
  * would be a good place, since FreeVelocityData() also calls this with -1.
  * returns FALSE (0) if profile number is unavailable.
  */
-int
+_X_EXPORT int
 SetAccelerationProfile(
     DeviceVelocityPtr s,
     int profile_num)
@@ -744,6 +744,11 @@ SetAccelerationProfile(
     return TRUE;
 }
 
+/**********************************************
+ * driver interaction
+ **********************************************/
+
+
 /**
  * device-specific profile
  *
@@ -753,7 +758,7 @@ SetAccelerationProfile(
  * it should do init/uninit in the driver (ie. with DEVICE_INIT and friends).
  * Users may override or choose it.
  */
-extern void
+_X_EXPORT void
 SetDeviceSpecificAccelerationProfile(
         DeviceVelocityPtr s,
         PointerAccelerationProfileFunc profile)
@@ -766,11 +771,15 @@ SetDeviceSpecificAccelerationProfile(
  * Use this function to obtain a DeviceVelocityPtr for a device. Will return NULL if
  * the predictable acceleration scheme is not in effect.
  */
-DeviceVelocityPtr
+_X_EXPORT DeviceVelocityPtr
 GetDevicePredictableAccelData(
 	DeviceIntPtr pDev)
 {
     /*sanity check*/
+    if(!pDev){
+	ErrorF("[dix] accel: DeviceIntPtr was NULL");
+	return NULL;
+    }
     if( pDev->valuator &&
 	pDev->valuator->accelScheme.AccelSchemeProc ==
 	    acceleratePointerPredictable &&
