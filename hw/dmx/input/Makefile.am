@@ -62,7 +62,6 @@ endif
 
 AM_CFLAGS = $(DIX_CFLAGS) \
             -I$(top_srcdir)/hw/dmx \
-            -I$(top_srcdir)/hw/xfree86/common \
             $(GLX_INCS) \
             -DHAVE_DMX_CONFIG_H \
             $(GLX_DEFS) \
