@@ -740,7 +740,7 @@ getDrawableInfo(__DRIdrawable *driDrawable,
 				numBackClipRects, &pBackClipRects);
     __glXleaveServer(GL_FALSE);
 
-    if (*numClipRects > 0) {
+    if (retval && *numClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numClipRects;
 	*ppClipRects = xalloc (size);
 
@@ -771,16 +771,20 @@ getDrawableInfo(__DRIdrawable *driDrawable,
     }
     else {
       *ppClipRects = NULL;
+      *numClipRects = 0;
     }
       
-    if (*numBackClipRects > 0) {
+    if (retval && *numBackClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numBackClipRects;
 	*ppBackClipRects = xalloc (size);
 	if (*ppBackClipRects != NULL)
 	    memcpy (*ppBackClipRects, pBackClipRects, size);
+	else
+	    *numBackClipRects = 0;
     }
     else {
       *ppBackClipRects = NULL;
+      *numBackClipRects = 0;
     }
 
     return retval;
