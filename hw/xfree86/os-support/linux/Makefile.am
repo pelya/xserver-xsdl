@@ -40,7 +40,7 @@ liblinux_la_SOURCES = lnx_init.c lnx_video.c \
 
 AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(DIX_CFLAGS) $(XORG_CFLAGS) $(PLATFORM_DEFINES)
 
-INCLUDES = $(XORG_INCS) $(PLATFORM_INCLUDES) -I/usr/include/drm # FIXME this last part is crack
+INCLUDES = $(XORG_INCS) $(PLATFORM_INCLUDES) $(LIBDRM_CFLAGS)
 
 # FIXME: These need to be added to the build
 LNX_EXTRA_SRCS = \
