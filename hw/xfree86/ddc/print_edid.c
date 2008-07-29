@@ -148,7 +148,8 @@ print_dpms_features(int scrnIndex, struct disp_features *c,
 	}
     } else {
 	int enc = c->display_type;
-	xf86DrvMsg(scrnIndex, X_INFO, "\nSupported color encodings: "
+	xf86ErrorF("\n");
+	xf86DrvMsg(scrnIndex, X_INFO, "Supported color encodings: "
 		   "RGB 4:4:4 %s%s\n",
 		   enc & DISP_YCRCB444 ? "YCrCb 4:4:4 " : "",
 		   enc & DISP_YCRCB422 ? "YCrCb 4:2:2" : "");
