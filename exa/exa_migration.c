@@ -33,8 +33,6 @@
 #include <string.h>
 
 #include "exa_priv.h"
-#include <X11/fonts/fontstruct.h>
-#include "dixfontstr.h"
 #include "exa.h"
 #include "cw.h"
 
