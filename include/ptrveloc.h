@@ -53,7 +53,7 @@ struct _DeviceVelocityRec;
  */
 typedef float (*PointerAccelerationProfileFunc)
               (struct _DeviceVelocityRec* /*pVel*/,
-               float /*threshold*/, float /*acc*/);
+               float /*velocity*/, float /*threshold*/, float /*acc*/);
 
 /**
  * a filter stage contains the data for adaptive IIR filtering.
@@ -78,6 +78,7 @@ typedef struct _FilterStage {
 typedef struct _DeviceVelocityRec {
     FilterStage filters[MAX_VELOCITY_FILTERS];
     float   velocity;       /* velocity as guessed by algorithm */
+    float   last_velocity;  /* previous velocity estimate */
     int     lrm_time;       /* time the last motion event was processed  */
     int     last_dx, last_dy; /* last motion delta */
     int     last_diff;      /* last time-difference */
@@ -88,6 +89,7 @@ typedef struct _DeviceVelocityRec {
     short   reset_time;     /* config: reset non-visible state after # ms */
     short   use_softening;  /* config: use softening of mouse values */
     float   coupling;       /* config: max. divergence before coupling */
+    Bool    average_accel;  /* config: average acceleration over velocity */
     PointerAccelerationProfileFunc Profile;
     PointerAccelerationProfileFunc deviceSpecificProfile;
     void*   profile_private;/* extended data, see  SetAccelerationProfile() */

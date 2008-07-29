@@ -150,6 +150,8 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
     s->use_softening = xf86SetBoolOption(list, "Softening",
                                          s->const_acceleration == 1.0);
 
+    s->average_accel = xf86SetBoolOption(list, "AccelerationProfileAveraging", TRUE);
+
     s->reset_time = xf86SetIntOption(list, "VelocityReset", 300);
 
     tempf = xf86SetRealOption(list, "ExpectedRate", 0);
@@ -214,7 +216,7 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
         /* process special configuration */
         switch(scheme){
             case PtrAccelPredictable:
-                pVel = (DeviceVelocityPtr) dev->valuator->accelScheme.accelData;
+                pVel = GetDevicePredictableAccelData(dev);
                 ProcessVelocityConfiguration (local->name, local->options,
                                               pVel);
                 break;

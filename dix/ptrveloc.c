@@ -73,7 +73,8 @@ InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
 void
 CleanupFilterChain(DeviceVelocityPtr s);
 static float
-SimpleSmoothProfile(DeviceVelocityPtr pVel, float threshold, float acc);
+SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
+                    float threshold, float acc);
 
 
 /********************************
@@ -88,6 +89,7 @@ InitVelocityData(DeviceVelocityPtr s)
 {
     s->lrm_time = 0;
     s->velocity  = 0;
+    s->last_velocity = 0;
     s->corr_mul = 10.0;      /* dots per 10 milisecond should be usable */
     s->const_acceleration = 1.0;   /* no acceleration/deceleration  */
     s->reset_time = 300;
@@ -97,6 +99,7 @@ InitVelocityData(DeviceVelocityPtr s)
     s->use_softening = 1;
     s->min_acceleration = 1.0; /* don't decelerate */
     s->coupling = 0.25;
+    s->average_accel = TRUE;
     s->profile_private = NULL;
     memset(&s->statistics, 0, sizeof(s->statistics));
     memset(&s->filters, 0, sizeof(s->filters));
@@ -163,7 +166,7 @@ InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages
 	rdecay /= progression;
     }
     /* release again. Should the input loop be threaded, we also need
-     * memory release here (in princliple).
+     * memory release here (in principle).
      */
     OsReleaseSignals();
 }
@@ -330,9 +333,13 @@ ProcessVelocityData(
     float cvelocity;
 
     int diff = time - s->lrm_time;
-    int cur_ax = GetAxis(dx, dy);
-    int last_ax = GetAxis(s->last_dx, s->last_dy);
+    int cur_ax, last_ax;
     short reset = (diff >= s->reset_time);
+
+    /* remember last round's result */
+    s->last_velocity = s->velocity;
+    cur_ax = GetAxis(dx, dy);
+    last_ax = GetAxis(s->last_dx, s->last_dy);
 
     if(cur_ax != last_ax && cur_ax != -1 && last_ax != -1 && !reset){
         /* correct for the error induced when diagonal movements are
@@ -368,15 +375,22 @@ ProcessVelocityData(
     if (diff == 0)
         diff = 1; /* prevent div-by-zero, though it shouldn't happen anyway*/
 
-    /* translate velocity to dots/ms (somewhat untractable in integers,
+    /* translate velocity to dots/ms (somewhat intractable in integers,
        so we multiply by some per-device adjustable factor) */
     cvelocity = cvelocity * s->corr_mul / (float)diff;
 
     /* short-circuit: when nv-reset the rest can be skipped */
     if(reset == TRUE){
+	/*
+	 * we don't really have a velocity here, since diff includes inactive
+	 * time. This is dealt with in ComputeAcceleration.
+	 */
 	StuffFilterChain(s, cvelocity);
-	s->velocity = cvelocity;
+	s->velocity = s->last_velocity = cvelocity;
 	s->last_reset = TRUE;
+#ifdef PTRACCEL_DEBUGGING
+        ErrorF("(dix ptracc) non-visible state reset\n");
+#endif
 	return TRUE;
     }
 
@@ -388,6 +402,9 @@ ProcessVelocityData(
 	 * stuff that into the filter chain.
 	 */
 	s->last_reset = FALSE;
+#ifdef PTRACCEL_DEBUGGING
+        ErrorF("(dix ptracc) after-reset vel:%.3f\n", cvelocity);
+#endif
 	StuffFilterChain(s, cvelocity);
 	s->velocity = cvelocity;
 	return FALSE;
@@ -448,6 +465,72 @@ ApplySofteningAndConstantDeceleration(
     *fdy *= s->const_acceleration;
 }
 
+/*
+ * compute the acceleration for given velocity and enforce min_acceleartion
+ */
+static float
+BasicComputeAcceleration(
+    DeviceVelocityPtr pVel,
+    float velocity,
+    float threshold,
+    float acc){
+
+    float result;
+    result = pVel->Profile(pVel, velocity, threshold, acc);
+
+    /* enforce min_acceleration */
+    if (result < pVel->min_acceleration)
+	result = pVel->min_acceleration;
+    return result;
+}
+
+/**
+ * Compute acceleration. Takes into account averaging, nv-reset, etc.
+ */
+static float
+ComputeAcceleration(
+    DeviceVelocityPtr vel,
+    float threshold,
+    float acc){
+    float res;
+
+    if(vel->last_reset){
+#ifdef PTRACCEL_DEBUGGING
+        ErrorF("(dix ptracc) profile skipped\n");
+#endif
+        /*
+         * This is intended to override the first estimate of a stroke,
+         * which is too low (see ProcessVelocityData). 1 should make sure
+         * the mickey is seen on screen.
+         */
+	return 1;
+    }
+
+    if(vel->average_accel && vel->velocity != vel->last_velocity){
+	/* use simpson's rule to average acceleration between
+	 * current and previous velocity.
+	 * Though being the more natural choice, it causes a minor delay
+	 * in comparison, so it can be disabled. */
+	res = BasicComputeAcceleration(vel, vel->velocity, threshold, acc);
+	res += BasicComputeAcceleration(vel, vel->last_velocity, threshold, acc);
+	res += 4.0f * BasicComputeAcceleration(vel,
+	                   (vel->last_velocity + vel->velocity) / 2,
+	                   threshold, acc);
+	res /= 6.0f;
+#ifdef PTRACCEL_DEBUGGING
+        ErrorF("(dix ptracc) profile average [%.2f ... %.2f] is %.3f\n",
+               vel->velocity, vel->last_velocity, res);
+#endif
+        return res;
+    }else{
+	res = BasicComputeAcceleration(vel, vel->velocity, threshold, acc);
+#ifdef PTRACCEL_DEBUGGING
+        ErrorF("(dix ptracc) profile sample [%.2f] is %.3f\n",
+               vel->velocity, res);
+#endif
+	return res;
+    }
+}
 
 
 /*****************************************
@@ -460,10 +543,11 @@ ApplySofteningAndConstantDeceleration(
 static float
 PolynomialAccelerationProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float ignored,
     float acc)
 {
-   return pow(pVel->velocity, (acc - 1.0) * 0.5);
+   return pow(velocity, (acc - 1.0) * 0.5);
 }
 
 
@@ -474,15 +558,18 @@ PolynomialAccelerationProfile(
 static float
 ClassicProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float threshold,
     float acc)
 {
     if (threshold) {
 	return SimpleSmoothProfile (pVel,
+	                            velocity,
                                     threshold,
                                     acc);
     } else {
 	return PolynomialAccelerationProfile (pVel,
+	                                      velocity,
                                               0,
                                               acc);
     }
@@ -500,6 +587,7 @@ ClassicProfile(
 static float
 PowerProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float threshold,
     float acc)
 {
@@ -507,9 +595,9 @@ PowerProfile(
 
     acc = (acc-1.0) * 0.1f + 1.0; /* without this, acc of 2 is unuseable */
 
-    if (pVel->velocity <= threshold)
+    if (velocity <= threshold)
         return pVel->min_acceleration;
-    vel_dist = pVel->velocity - threshold;
+    vel_dist = velocity - threshold;
     return (pow(acc, vel_dist)) * pVel->min_acceleration;
 }
 
@@ -536,10 +624,10 @@ CalcPenumbralGradient(float x){
 static float
 SimpleSmoothProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float threshold,
     float acc)
 {
-    float velocity = pVel->velocity;
     if(velocity < 1.0f)
         return CalcPenumbralGradient(0.5 + velocity*0.5) * 2.0f - 1.0f;
     if(threshold < 1.0f)
@@ -561,6 +649,7 @@ SimpleSmoothProfile(
 static float
 SmoothLinearProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float threshold,
     float acc)
 {
@@ -571,7 +660,7 @@ SmoothLinearProfile(
     else
         return 1.0f;
 
-    nv = (pVel->velocity - threshold) * acc * 0.5f;
+    nv = (velocity - threshold) * acc * 0.5f;
 
     if(nv < 0){
         res = 0;
@@ -590,10 +679,11 @@ SmoothLinearProfile(
 static float
 LinearProfile(
     DeviceVelocityPtr pVel,
+    float velocity,
     float threshold,
     float acc)
 {
-    return acc * pVel->velocity;
+    return acc * velocity;
 }
 
 
@@ -730,7 +820,9 @@ acceleratePointerPredictable(
     if (dx || dy){
         /* reset nonvisible state? */
         if (ProcessVelocityData(velocitydata, dx , dy, evtime)) {
-            /* set to center of pixel */
+            /* set to center of pixel. makes sense as long as there are no
+             * means of passing on sub-pixel values.
+             */
             pDev->last.remainder[0] = pDev->last.remainder[1] = 0.5f;
             /* prevent softening (somewhat quirky solution,
             as it depends on the algorithm) */
@@ -740,22 +832,10 @@ acceleratePointerPredictable(
 
         if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
             /* invoke acceleration profile to determine acceleration */
-            mult = velocitydata->Profile(velocitydata,
-                                pDev->ptrfeed->ctrl.threshold,
-                                (float)pDev->ptrfeed->ctrl.num /
-                                (float)pDev->ptrfeed->ctrl.den);
-
-#ifdef PTRACCEL_DEBUGGING
-            ErrorF("(dix ptracc) resulting speed multiplier : %.3f\n", mult);
-#endif
-            /* enforce min_acceleration */
-            if (mult < velocitydata->min_acceleration) {
-#ifdef PTRACCEL_DEBUGGING
-                ErrorF("(dix ptracc) enforced min multiplier : %.3f\n",
-                        velocitydata->min_acceleration);
-#endif
-                mult = velocitydata->min_acceleration;
-	    }
+            mult = ComputeAcceleration (velocitydata,
+					pDev->ptrfeed->ctrl.threshold,
+					(float)pDev->ptrfeed->ctrl.num /
+					(float)pDev->ptrfeed->ctrl.den);
 
             if(mult != 1.0 || velocitydata->const_acceleration != 1.0) {
                 ApplySofteningAndConstantDeceleration( velocitydata,
