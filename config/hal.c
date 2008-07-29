@@ -1,5 +1,6 @@
 /*
  * Copyright © 2007 Daniel Stone
+ * Copyright © 2007 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,6 +55,7 @@ struct xkb_options {
     char* model;
     char* rules;
     char* variant;
+    char* options;
 };
 
 
@@ -284,6 +286,11 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                             if (xkb_opts.variant)
                                 xfree(xkb_opts.variant);
                             xkb_opts.variant = strdup(tmp_val);
+                        } else if (!strcasecmp(&tmp[3], "options"))
+                        {
+                            if (xkb_opts.options)
+                                xfree(xkb_opts.options);
+                            xkb_opts.options = strdup(tmp_val);
                         }
                     } else
                     {
@@ -318,6 +325,10 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                     {
                         if (!xkb_opts.model)
                             xkb_opts.model = strdup(tmp_val);
+                    } else if (!strcasecmp(tmp, "options"))
+                    {
+                        if (!xkb_opts.options)
+                            xkb_opts.options = strdup(tmp_val);
                     }
                     xfree(tmp_val);
                 }
@@ -338,6 +349,8 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         add_option(&options, "xkb_variant", xkb_opts.variant);
     if (xkb_opts.model)
         add_option(&options, "xkb_model", xkb_opts.model);
+    if (xkb_opts.options)
+        add_option(&options, "xkb_options", xkb_opts.options);
 
     /* this isn't an error, but how else do you output something that the user can see? */
     LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
@@ -379,6 +392,8 @@ unwind:
         xfree(xkb_opts.model);
     if (xkb_opts.variant)
         xfree(xkb_opts.variant);
+    if (xkb_opts.options)
+        xfree(xkb_opts.options);
 
     dbus_error_free(&error);
 
