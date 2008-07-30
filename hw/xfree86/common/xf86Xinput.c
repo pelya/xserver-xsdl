@@ -101,12 +101,9 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
     if(!s)
         return;
 
-    tempf = xf86SetRealOption(list, "FilterHalflife", 20);
-    xf86Msg(X_CONFIG, "%s: (accel) filter halflife %.1f ms\n", devname, tempf);
+    tempf = xf86SetRealOption(list, "FilterHalflife", -1);
     if(tempf > 0)
         tempf = 1.0 / tempf;   /* set reciprocal if possible */
-    else
-        tempf = 10000;   /* else set fairly high */
 
     tempf2 = xf86SetRealOption(list, "FilterChainProgression", 2.0);
     xf86Msg(X_CONFIG, "%s: (accel) filter chain progression: %.2f\n",
@@ -118,7 +115,9 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
     if(tempi < 1 || tempi > MAX_VELOCITY_FILTERS)
 	tempi = 1;
 
-    InitFilterChain(s, tempf, tempf2, tempi, 40);
+    if(tempf > 0.0f && tempi >= 1 && tempf2 >= 1.0f)
+	InitFilterChain(s, tempf, tempf2, tempi, 40);
+
     for(i = 0; i < tempi; i++)
 	xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
                 devname, i, 1.0f / (s->filters[i].rdecay));
@@ -138,10 +137,12 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
         s->min_acceleration = 1.0 / tempf;   /* set minimum acceleration */
     }
 
-    tempf = xf86SetRealOption(list, "VelocityCoupling", 0.25);
-    xf86Msg(X_CONFIG, "%s: (accel) velocity coupling is %.1f%%\n", devname,
+    tempf = xf86SetRealOption(list, "VelocityCoupling", -1);
+    if(tempf >= 0){
+	xf86Msg(X_CONFIG, "%s: (accel) velocity coupling is %.1f%%\n", devname,
                 tempf*100.0);
-    s->coupling = tempf;
+	s->coupling = tempf;
+    }
 
     /*  Configure softening. If const deceleration is used, this is expected
      *  to provide better subpixel information so we enable
@@ -150,19 +151,22 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
     s->use_softening = xf86SetBoolOption(list, "Softening",
                                          s->const_acceleration == 1.0);
 
-    s->average_accel = xf86SetBoolOption(list, "AccelerationProfileAveraging", TRUE);
+    s->average_accel = xf86SetBoolOption(list, "AccelerationProfileAveraging",
+                                         s->average_accel);
 
-    s->reset_time = xf86SetIntOption(list, "VelocityReset", 300);
+    s->reset_time = xf86SetIntOption(list, "VelocityReset", s->reset_time);
 
     tempf = xf86SetRealOption(list, "ExpectedRate", 0);
     if(tempf > 0){
         s->corr_mul = 1000.0 / tempf;
     }else{
-        s->corr_mul = xf86SetRealOption(list, "VelocityScale", 10);
+        s->corr_mul = xf86SetRealOption(list, "VelocityScale", s->corr_mul);
     }
 
     /* select profile by number */
-    tempi= xf86SetIntOption(list, "AccelerationProfile", 0);
+    tempi= xf86SetIntOption(list, "AccelerationProfile",
+                            s->statistics.profile_number);
+
     if(SetAccelerationProfile(s, tempi)){
         xf86Msg(X_CONFIG, "%s: (accel) set acceleration profile %i\n", devname, tempi);
     }else{
