@@ -1211,6 +1211,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     int nbox = REGION_NUM_RECTS (pRegion);
     BoxPtr pBox = REGION_RECTS (pRegion);
     Bool ret = FALSE;
+    int i;
 
     tileWidth = pTile->drawable.width;
     tileHeight = pTile->drawable.height;
@@ -1252,19 +1253,25 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 
     if ((*pExaScr->info->PrepareCopy) (pTile, pPixmap, 1, 1, alu, planemask))
     {
-	while (nbox--)
+	for (i = 0; i < nbox; i++)
 	{
-	    int height = pBox->y2 - pBox->y1;
-	    int dstY = pBox->y1;
+	    int height = pBox[i].y2 - pBox[i].y1;
+	    int dstY = pBox[i].y1;
 	    int tileY;
+
+	    if (alu == GXcopy)
+		height = min(height, tileHeight);
 
 	    modulus(dstY - yoff - pDrawable->y - pPatOrg->y, tileHeight, tileY);
 
 	    while (height > 0) {
-		int width = pBox->x2 - pBox->x1;
-		int dstX = pBox->x1;
+		int width = pBox[i].x2 - pBox[i].x1;
+		int dstX = pBox[i].x1;
 		int tileX;
 		int h = tileHeight - tileY;
+
+		if (alu == GXcopy)
+		    width = min(width, tileWidth);
 
 		if (h > height)
 		    h = height;
@@ -1287,12 +1294,51 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		dstY += h;
 		tileY = 0;
 	    }
-	    pBox++;
 	}
 	(*pExaScr->info->DoneCopy) (pPixmap);
+
 	exaMarkSync(pDrawable->pScreen);
 
-	ret = TRUE;
+	/* With GXcopy, we only need to do the basic algorithm up to the tile
+	 * size; then, we can just keep doubling the destination in each
+	 * direction until it fills the box. This way, the number of copy
+	 * operations is O(log(rx)) + O(log(ry)) instead of O(rx * ry), where
+	 * rx/ry is the ratio between box and tile width/height. This can make
+	 * a big difference if each driver copy incurs a significant constant
+	 * overhead.
+	 */
+	if (alu != GXcopy)
+	    ret = TRUE;
+	else if ((*pExaScr->info->PrepareCopy) (pPixmap, pPixmap, 1, 1, alu,
+						planemask)) {
+	    for (i = 0; i < nbox; i++)
+	    {
+		int width = min(pBox[i].x2 - pBox[i].x1, tileWidth);
+		int height = min(pBox[i].y2 - pBox[i].y1, tileHeight);
+		int dstX = pBox[i].x1 + width;
+		int dstY = pBox[i].y1 + height;
+
+		while (dstX < pBox[i].x2) {
+		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
+					    dstX, pBox[i].y1, width, height);
+		    dstX += width;
+		    width = min(pBox[i].x2 - dstX, width * 2);
+		}
+
+		width = pBox[i].x2 - pBox[i].x1;
+
+		while (dstY < pBox[i].y2) {
+		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
+					    pBox[i].x1, dstY, width, height);
+		    dstY += height;
+		    height = min(pBox[i].y2 - dstY, height * 2);
+		}
+	    }
+
+	    (*pExaScr->info->DoneCopy) (pPixmap);
+
+	    ret = TRUE;
+	}
     }
 
 out:
