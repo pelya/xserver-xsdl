@@ -272,8 +272,7 @@ QueryFilterChain(
 	    break;
 	cur = s->filters[fn].current;
 
-	if (fabs(value - cur) <= 1.0f ||
-	    fabs(value - cur) / (value + cur) <= s->coupling){
+	if (fabs(value - cur) <= (s->coupling * (value + cur))){
 	    result = cur;
 	    rfn = fn + 1; /*remember result determining filter */
 	} else if(cfn == -1){
