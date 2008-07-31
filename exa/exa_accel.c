@@ -1311,10 +1311,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 						planemask)) {
 	    for (i = 0; i < nbox; i++)
 	    {
-		int width = min(pBox[i].x2 - pBox[i].x1, tileWidth);
+		int dstX = pBox[i].x1 + tileWidth;
+		int dstY = pBox[i].y1 + tileHeight;
+		int width = min(pBox[i].x2 - dstX, tileWidth);
 		int height = min(pBox[i].y2 - pBox[i].y1, tileHeight);
-		int dstX = pBox[i].x1 + width;
-		int dstY = pBox[i].y1 + height;
 
 		while (dstX < pBox[i].x2) {
 		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
@@ -1324,6 +1324,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		}
 
 		width = pBox[i].x2 - pBox[i].x1;
+		height = min(pBox[i].y2 - dstY, tileHeight);
 
 		while (dstY < pBox[i].y2) {
 		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
