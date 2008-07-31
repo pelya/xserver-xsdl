@@ -283,13 +283,13 @@ ShmResetProc(ExtensionEntry *extEntry)
     }
 }
 
-void
+_X_EXPORT void
 ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs)
 {
     shmFuncs[pScreen->myNum] = funcs;
 }
 
-void
+_X_EXPORT void
 ShmSetPixmapFormat(ScreenPtr pScreen, int format)
 {
     shmPixFormat[pScreen->myNum] = format;
@@ -316,7 +316,7 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     return ret;
 }
 
-void
+_X_EXPORT void
 ShmRegisterFbFuncs(ScreenPtr pScreen)
 {
     shmFuncs[pScreen->myNum] = &fbFuncs;
