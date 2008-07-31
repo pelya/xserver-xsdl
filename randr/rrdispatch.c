@@ -85,7 +85,8 @@ ProcRRSelectInput (ClientPtr client)
 
     if (stuff->enable & (RRScreenChangeNotifyMask|
 			 RRCrtcChangeNotifyMask|
-			 RROutputChangeNotifyMask)) 
+			 RROutputChangeNotifyMask|
+			 RROutputPropertyNotifyMask)) 
     {
 	ScreenPtr	pScreen = pWin->drawable.pScreen;
 	rrScrPriv	(pScreen);
