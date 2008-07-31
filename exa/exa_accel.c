@@ -1335,6 +1335,8 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    }
 
 	    (*pExaScr->info->DoneCopy) (pPixmap);
+
+	    ret = TRUE;
 	}
 
 	exaMarkSync(pDrawable->pScreen);
@@ -1343,7 +1345,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
     }
 
-    return TRUE;
+    return ret;
 }
 
 
