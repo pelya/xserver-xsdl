@@ -1187,8 +1187,8 @@ fi
 
 dnl Xnest DDX
 
-AC_MSG_CHECKING([whether to build Xnest DDX])
 PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
+AC_MSG_CHECKING([whether to build Xnest DDX])
 if test "x$XNEST" = xauto; then
 	XNEST="$have_xnest"
 fi
@@ -1565,8 +1565,8 @@ AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
 
 dnl DMX DDX
 
-AC_MSG_CHECKING([whether to build Xdmx DDX])
 PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 	case $host_os in
