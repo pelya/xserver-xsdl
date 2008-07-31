@@ -1234,14 +1234,11 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     pixmaps[1].pPix = pTile;
     pixmaps[1].pReg = NULL;
 
-    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
-    REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
-
     pExaPixmap = ExaGetPixmapPriv (pPixmap);
 
     if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
     {
-	goto out;
+	return FALSE;
     } else {
 	exaDoMigration (pixmaps, 2, TRUE);
     }
@@ -1249,10 +1246,13 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
     if (!pPixmap || !exaPixmapIsOffscreen(pTile))
-	goto out;
+	return FALSE;
 
     if ((*pExaScr->info->PrepareCopy) (pTile, pPixmap, 1, 1, alu, planemask))
     {
+	if (xoff || yoff)
+	    REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
+
 	for (i = 0; i < nbox; i++)
 	{
 	    int height = pBox[i].y2 - pBox[i].y1;
@@ -1297,8 +1297,6 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	}
 	(*pExaScr->info->DoneCopy) (pPixmap);
 
-	exaMarkSync(pDrawable->pScreen);
-
 	/* With GXcopy, we only need to do the basic algorithm up to the tile
 	 * size; then, we can just keep doubling the destination in each
 	 * direction until it fills the box. This way, the number of copy
@@ -1336,15 +1334,15 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    }
 
 	    (*pExaScr->info->DoneCopy) (pPixmap);
-
-	    ret = TRUE;
 	}
+
+	exaMarkSync(pDrawable->pScreen);
+
+	if (xoff || yoff)
+	    REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
     }
 
-out:
-    REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
-
-    return ret;
+    return TRUE;
 }
 
 
