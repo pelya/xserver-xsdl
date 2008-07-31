@@ -128,9 +128,6 @@ extern Bool noPanoramiXExtension;
 
 extern Bool noXInputExtension;
 
-#ifdef XIDLE
-extern Bool noXIdleExtension;
-#endif
 
 #ifdef XSELINUX
 extern Bool noSELinuxExtension;

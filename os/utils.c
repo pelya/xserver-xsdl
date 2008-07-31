@@ -188,9 +188,6 @@ _X_EXPORT Bool noXFixesExtension = FALSE;
 _X_EXPORT Bool noPanoramiXExtension = TRUE;
 #endif
 _X_EXPORT Bool noXInputExtension = FALSE;
-#ifdef XIDLE
-_X_EXPORT Bool noXIdleExtension = FALSE;
-#endif
 #ifdef XSELINUX
 _X_EXPORT Bool noSELinuxExtension = FALSE;
 _X_EXPORT int selinuxEnforcingState = SELINUX_MODE_DEFAULT;

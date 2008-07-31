@@ -148,9 +148,6 @@ extern Bool noPanoramiXExtension;
 extern Bool noPseudoramiXExtension;
 #endif
 extern Bool noXInputExtension;
-#ifdef XIDLE
-extern Bool noXIdleExtension;
-#endif
 #ifdef XSELINUX
 extern Bool noSELinuxExtension;
 #endif
@@ -212,9 +209,6 @@ extern void XInputExtensionInit(INITARGS);
 extern void XTestExtensionInit(INITARGS);
 #endif
 extern void BigReqExtensionInit(INITARGS);
-#ifdef XIDLE
-extern void XIdleExtensionInit(INITARGS);
-#endif
 #ifdef SCREENSAVER
 extern void ScreenSaverExtensionInit (INITARGS);
 #endif
@@ -422,9 +416,6 @@ InitExtensions(int argc, char *argv[])
     if (!noTestExtensions) XTestExtensionInit();
 #endif
     BigReqExtensionInit();
-#ifdef XIDLE
-    if (!noXIdleExtension) XIdleExtensionInit();
-#endif
 #if defined(SCREENSAVER)
     if (!noScreenSaverExtension) ScreenSaverExtensionInit ();
 #endif
@@ -519,9 +510,6 @@ static ExtensionModule staticExtensions[] = {
     { XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL },
 #endif
     { BigReqExtensionInit, "BIG-REQUESTS", NULL, NULL, NULL },
-#ifdef XIDLE
-    { XIdleExtensionInit, "XIDLE", &noXIdleExtension, NULL, NULL },
-#endif
     { SyncExtensionInit, "SYNC", NULL, NULL, NULL },
 #ifdef XKB
     { XkbExtensionInit, XkbName, &noXkbExtension, NULL, NULL },

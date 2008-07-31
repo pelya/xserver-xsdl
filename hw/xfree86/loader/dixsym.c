@@ -403,9 +403,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 
     SYMVAR(noXInputExtension)
 
-#ifdef XIDLE
-    SYMVAR(noXIdleExtension)
-#endif
 #ifdef XSELINUX
     SYMVAR(noSELinuxExtension)
 #endif
