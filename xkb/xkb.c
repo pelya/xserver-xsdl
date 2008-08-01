@@ -2332,158 +2332,165 @@ XkbServerMapPtr		srv = xkbi->desc->server;
     return (char *)wire;
 }
 
-/* FIXME: Needs to set map on all core-sending devices. */
-int
-ProcXkbSetMap(ClientPtr client)
+/**
+ * Check if the given request can be applied to the given device but don't
+ * actually do anything..
+ */
+static int
+_XkbSetMapChecks(ClientPtr client, DeviceIntPtr dev, xkbSetMapReq *req, char* values)
 {
-    DeviceIntPtr	dev;
-    XkbSrvInfoPtr	xkbi;
-    XkbDescPtr		xkb;
-    XkbChangesRec	change;
-    XkbEventCauseRec	cause;
-    int			nTypes = 0,nActions,error;
-    char *		tmp;
-    CARD8	 	mapWidths[XkbMaxLegalKeyCode+1];
-    CARD16	 	symsPerKey[XkbMaxLegalKeyCode+1];
-    Bool		sentNKN;
+    XkbSrvInfoPtr       xkbi;
+    XkbDescPtr          xkb;
+    int                 error;
+    int                 nTypes = 0, nActions;
+    CARD8               mapWidths[XkbMaxLegalKeyCode + 1];
+    CARD16              symsPerKey[XkbMaxLegalKeyCode + 1];
 
-    REQUEST(xkbSetMapReq);
-    REQUEST_AT_LEAST_SIZE(xkbSetMapReq);
-
-    if (!(client->xkbClientFlags&_XkbClientInitialized))
-	return BadAccess;
-
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
-    CHK_MASK_LEGAL(0x01,stuff->present,XkbAllMapComponentsMask);
-
-    XkbSetCauseXkbReq(&cause,X_kbSetMap,client);
     xkbi= dev->key->xkbInfo;
     xkb = xkbi->desc;
 
-    if ((xkb->min_key_code!=stuff->minKeyCode)||
-    				(xkb->max_key_code!=stuff->maxKeyCode)) {
+    if ((xkb->min_key_code != req->minKeyCode)||
+        (xkb->max_key_code != req->maxKeyCode)) {
 	if (client->vMajor!=1) { /* pre 1.0 versions of Xlib have a bug */
-	    stuff->minKeyCode= xkb->min_key_code;
-	    stuff->maxKeyCode= xkb->max_key_code;
+	    req->minKeyCode= xkb->min_key_code;
+	    req->maxKeyCode= xkb->max_key_code;
 	}
 	else {
-	    if (!XkbIsLegalKeycode(stuff->minKeyCode)) {
-		client->errorValue= _XkbErrCode3(2,stuff->minKeyCode,
-							stuff->maxKeyCode);
+	    if (!XkbIsLegalKeycode(req->minKeyCode)) {
+		client->errorValue = _XkbErrCode3(2, req->minKeyCode, req->maxKeyCode);
 		return BadValue;
 	    }
-	    if (stuff->minKeyCode>stuff->maxKeyCode) {
-		client->errorValue= _XkbErrCode3(3,stuff->minKeyCode,
-							stuff->maxKeyCode);
+	    if (req->minKeyCode > req->maxKeyCode) {
+		client->errorValue = _XkbErrCode3(3, req->minKeyCode, req->maxKeyCode);
 		return BadMatch;
 	    }
 	}
     }
 
-    tmp = (char *)&stuff[1];
-    if ((stuff->present&XkbKeyTypesMask)&&
-	(!CheckKeyTypes(client,xkb,stuff,(xkbKeyTypeWireDesc **)&tmp,
+    if ((req->present & XkbKeyTypesMask) &&
+	(!CheckKeyTypes(client,xkb,req,(xkbKeyTypeWireDesc **)&values,
 						&nTypes,mapWidths))) {
 	client->errorValue = nTypes;
 	return BadValue;
     }
-    if ((stuff->present&XkbKeySymsMask)&&
-	(!CheckKeySyms(client,xkb,stuff,nTypes,mapWidths,symsPerKey,
-					(xkbSymMapWireDesc **)&tmp,&error))) {
+    if ((req->present & XkbKeySymsMask) &&
+	(!CheckKeySyms(client,xkb,req,nTypes,mapWidths,symsPerKey,
+					(xkbSymMapWireDesc **)&values,&error))) {
 	client->errorValue = error;
 	return BadValue;
     }
 
-    if ((stuff->present&XkbKeyActionsMask)&&
-	(!CheckKeyActions(xkb,stuff,nTypes,mapWidths,symsPerKey,
-						(CARD8 **)&tmp,&nActions))) {
+    if ((req->present & XkbKeyActionsMask) &&
+	(!CheckKeyActions(xkb,req,nTypes,mapWidths,symsPerKey,
+						(CARD8 **)&values,&nActions))) {
 	client->errorValue = nActions;
 	return BadValue;
     }
 
-    if ((stuff->present&XkbKeyBehaviorsMask)&&
-	(!CheckKeyBehaviors(xkb,stuff,(xkbBehaviorWireDesc**)&tmp,&error))) {
+    if ((req->present & XkbKeyBehaviorsMask) &&
+	(!CheckKeyBehaviors(xkb,req,(xkbBehaviorWireDesc**)&values,&error))) {
 	client->errorValue = error;
 	return BadValue;
     }
 
-    if ((stuff->present&XkbVirtualModsMask)&&
-	(!CheckVirtualMods(xkb,stuff,(CARD8 **)&tmp,&error))) {
+    if ((req->present & XkbVirtualModsMask) &&
+	(!CheckVirtualMods(xkb,req,(CARD8 **)&values,&error))) {
 	client->errorValue= error;
 	return BadValue;
     }
-    if ((stuff->present&XkbExplicitComponentsMask)&&
-	(!CheckKeyExplicit(xkb,stuff,(CARD8 **)&tmp,&error))) {
+    if ((req->present&XkbExplicitComponentsMask) &&
+	(!CheckKeyExplicit(xkb,req,(CARD8 **)&values,&error))) {
 	client->errorValue= error;
 	return BadValue;
     }
-    if ((stuff->present&XkbModifierMapMask)&&
-	(!CheckModifierMap(xkb,stuff,(CARD8 **)&tmp,&error))) {
+    if ((req->present&XkbModifierMapMask) &&
+	(!CheckModifierMap(xkb,req,(CARD8 **)&values,&error))) {
 	client->errorValue= error;
 	return BadValue;
     }
-    if ((stuff->present&XkbVirtualModMapMask)&&
-	(!CheckVirtualModMap(xkb,stuff,(xkbVModMapWireDesc **)&tmp,&error))) {
+    if ((req->present&XkbVirtualModMapMask) &&
+	(!CheckVirtualModMap(xkb,req,(xkbVModMapWireDesc **)&values,&error))) {
 	client->errorValue= error;
 	return BadValue;
     }
-    if (((tmp-((char *)stuff))/4)!=stuff->length) {
+
+    if (((values-((char *)req))/4)!= req->length) {
 	ErrorF("[xkb] Internal error! Bad length in XkbSetMap (after check)\n");
-	client->errorValue = tmp-((char *)&stuff[1]);
+	client->errorValue = values-((char *)&req[1]);
 	return BadLength;
     }
-    bzero(&change,sizeof(change));
-    sentNKN= False;
-    if ((xkb->min_key_code!=stuff->minKeyCode)||
-    				(xkb->max_key_code!=stuff->maxKeyCode)) {
+
+    return Success;
+}
+
+/**
+ * Apply the given request on the given device.
+ */
+static int
+_XkbSetMap(ClientPtr client, DeviceIntPtr dev, xkbSetMapReq *req, char *values)
+{
+    XkbEventCauseRec	cause;
+    XkbChangesRec	change;
+    Bool		sentNKN;
+    XkbSrvInfoPtr       xkbi;
+    XkbDescPtr          xkb;
+
+    xkbi= dev->key->xkbInfo;
+    xkb = xkbi->desc;
+
+    XkbSetCauseXkbReq(&cause,X_kbSetMap,client);
+    bzero(&change, sizeof(change));
+    sentNKN = False;
+    if ((xkb->min_key_code!=req->minKeyCode)||
+        (xkb->max_key_code!=req->maxKeyCode)) {
 	Status			status;
 	xkbNewKeyboardNotify	nkn;
-	nkn.deviceID= nkn.oldDeviceID= dev->id;
-	nkn.oldMinKeyCode= xkb->min_key_code;
-	nkn.oldMaxKeyCode= xkb->max_key_code;
-	status= XkbChangeKeycodeRange(xkb,stuff->minKeyCode,stuff->maxKeyCode,
-								&change);
-	if (status!=Success)
-	    return status;
-	nkn.minKeyCode= xkb->min_key_code;
-	nkn.maxKeyCode= xkb->max_key_code;
-	nkn.requestMajor= XkbReqCode;
-	nkn.requestMinor= X_kbSetMap;
-	nkn.changed= XkbNKN_KeycodesMask;
+	nkn.deviceID = nkn.oldDeviceID = dev->id;
+	nkn.oldMinKeyCode = xkb->min_key_code;
+	nkn.oldMaxKeyCode = xkb->max_key_code;
+	status= XkbChangeKeycodeRange(xkb, req->minKeyCode,
+                                      req->maxKeyCode, &change);
+	if (status != Success)
+	    return status; /* oh-oh. what about the other keyboards? */
+	nkn.minKeyCode = xkb->min_key_code;
+	nkn.maxKeyCode = xkb->max_key_code;
+	nkn.requestMajor = XkbReqCode;
+	nkn.requestMinor = X_kbSetMap;
+	nkn.changed = XkbNKN_KeycodesMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
-	sentNKN= True;
+	sentNKN = True;
     }
-    tmp = (char *)&stuff[1];
-    if (stuff->present&XkbKeyTypesMask) {
-	tmp = SetKeyTypes(xkb,stuff,(xkbKeyTypeWireDesc *)tmp,&change);
-	if (!tmp)	goto allocFailure;
+
+    if (req->present&XkbKeyTypesMask) {
+	values = SetKeyTypes(xkb,req,(xkbKeyTypeWireDesc *)values,&change);
+	if (!values)	goto allocFailure;
     }
-    if (stuff->present&XkbKeySymsMask) {
-	tmp = SetKeySyms(client,xkb,stuff,(xkbSymMapWireDesc *)tmp,&change,dev);
-	if (!tmp)	goto allocFailure;
+    if (req->present&XkbKeySymsMask) {
+	values = SetKeySyms(client,xkb,req,(xkbSymMapWireDesc *)values,&change,dev);
+	if (!values)	goto allocFailure;
     }
-    if (stuff->present&XkbKeyActionsMask) {
-	tmp = SetKeyActions(xkb,stuff,(CARD8 *)tmp,&change);
-	if (!tmp)	goto allocFailure;
+    if (req->present&XkbKeyActionsMask) {
+	values = SetKeyActions(xkb,req,(CARD8 *)values,&change);
+	if (!values)	goto allocFailure;
     }
-    if (stuff->present&XkbKeyBehaviorsMask) {
-	tmp= SetKeyBehaviors(xkbi,stuff,(xkbBehaviorWireDesc *)tmp,&change);
-	if (!tmp)	goto allocFailure;
+    if (req->present&XkbKeyBehaviorsMask) {
+	values= SetKeyBehaviors(xkbi,req,(xkbBehaviorWireDesc *)values,&change);
+	if (!values)	goto allocFailure;
     }
-    if (stuff->present&XkbVirtualModsMask)
-	tmp= SetVirtualMods(xkbi,stuff,(CARD8 *)tmp,&change);
-    if (stuff->present&XkbExplicitComponentsMask)
-	tmp= SetKeyExplicit(xkbi,stuff,(CARD8 *)tmp,&change);
-    if (stuff->present&XkbModifierMapMask)
-	tmp= SetModifierMap(xkbi,stuff,(CARD8 *)tmp,&change);
-    if (stuff->present&XkbVirtualModMapMask)
-	tmp= SetVirtualModMap(xkbi,stuff,(xkbVModMapWireDesc *)tmp,&change);
-    if (((tmp-((char *)stuff))/4)!=stuff->length) {
+    if (req->present&XkbVirtualModsMask)
+	values= SetVirtualMods(xkbi,req,(CARD8 *)values,&change);
+    if (req->present&XkbExplicitComponentsMask)
+	values= SetKeyExplicit(xkbi,req,(CARD8 *)values,&change);
+    if (req->present&XkbModifierMapMask)
+	values= SetModifierMap(xkbi,req,(CARD8 *)values,&change);
+    if (req->present&XkbVirtualModMapMask)
+	values= SetVirtualModMap(xkbi,req,(xkbVModMapWireDesc *)values,&change);
+    if (((values-((char *)req))/4)!=req->length) {
 	ErrorF("[xkb] Internal error! Bad length in XkbSetMap (after set)\n");
-	client->errorValue = tmp-((char *)&stuff[1]);
+	client->errorValue = values-((char *)&req[1]);
 	return BadLength;
     }
-    if (stuff->flags&XkbSetMapRecomputeActions) {
+    if (req->flags&XkbSetMapRecomputeActions) {
 	KeyCode		first,last,firstMM,lastMM;
 	if (change.map.num_key_syms>0) {
 	    first= change.map.first_key_sym;
@@ -2516,9 +2523,80 @@ ProcXkbSetMap(ClientPtr client)
 	XkbSendNotification(dev,&change,&cause);
 
     XkbUpdateCoreDescription(dev,False);
-    return client->noClientException;
+    return Success;
 allocFailure:
     return BadAlloc;
+}
+
+
+int
+ProcXkbSetMap(ClientPtr client)
+{
+    DeviceIntPtr	dev;
+    char *		tmp;
+    int                 rc;
+
+    REQUEST(xkbSetMapReq);
+    REQUEST_AT_LEAST_SIZE(xkbSetMapReq);
+
+    if (!(client->xkbClientFlags&_XkbClientInitialized))
+	return BadAccess;
+
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
+    CHK_MASK_LEGAL(0x01,stuff->present,XkbAllMapComponentsMask);
+
+    tmp = (char *)&stuff[1];
+
+    /* Check if we can to the SetMap on the requested device. If this
+       succeeds, do the same thing for all extension devices (if needed).
+       If any of them fails, fail.  */
+    rc = _XkbSetMapChecks(client, dev, stuff, tmp);
+
+    if (rc != Success)
+        return rc;
+
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
+                if (rc == Success)
+                {
+                    rc = _XkbSetMapChecks(client, other, stuff, tmp);
+                    if (rc != Success)
+                        return rc;
+                }
+            }
+        }
+    }
+
+    /* We know now that we will succed with the SetMap. In theory anyway. */
+    rc = _XkbSetMap(client, dev, stuff, tmp);
+    if (rc != Success)
+        return rc;
+
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
+                if (rc == Success)
+                    _XkbSetMap(client, other, stuff, tmp);
+                /* ignore rc. if the SetMap failed although the check above
+                   reported true there isn't much we can do. we still need to
+                   set all other devices, hoping that at least they stay in
+                   sync. */
+            }
+        }
+    }
+
+    return client->noClientException;
 }
 
 /***====================================================================***/
