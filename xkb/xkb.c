@@ -5242,17 +5242,65 @@ char *		wire;
     return Success;
 }
 
-/* FIXME: Needs to set geom on all core-sending devices. */
-int
-ProcXkbSetGeometry(ClientPtr client)
+static int
+_XkbSetGeometry(ClientPtr client, DeviceIntPtr dev, xkbSetGeometryReq *stuff)
 {
-    DeviceIntPtr 	dev;
-    XkbGeometryPtr	geom,old;
-    XkbGeometrySizesRec	sizes;
-    Status		status;
     XkbDescPtr		xkb;
     Bool		new_name;
     xkbNewKeyboardNotify	nkn;
+    XkbGeometryPtr	geom,old;
+    XkbGeometrySizesRec	sizes;
+    Status		status;
+
+    xkb= dev->key->xkbInfo->desc;
+    old= xkb->geom;
+    xkb->geom= NULL;
+
+    sizes.which=		XkbGeomAllMask;
+    sizes.num_properties=	stuff->nProperties;
+    sizes.num_colors=	stuff->nColors;
+    sizes.num_shapes=	stuff->nShapes;
+    sizes.num_sections=	stuff->nSections;
+    sizes.num_doodads=	stuff->nDoodads;
+    sizes.num_key_aliases=	stuff->nKeyAliases;
+    if ((status= XkbAllocGeometry(xkb,&sizes))!=Success) {
+        xkb->geom= old;
+        return status;
+    }
+    geom= xkb->geom;
+    geom->name= stuff->name;
+    geom->width_mm= stuff->widthMM;
+    geom->height_mm= stuff->heightMM;
+    if ((status= _CheckSetGeom(geom,stuff,client))!=Success) {
+        XkbFreeGeometry(geom,XkbGeomAllMask,True);
+        xkb->geom= old;
+        return status;
+    }
+    new_name= (xkb->names->geometry!=geom->name);
+    xkb->names->geometry= geom->name;
+    if (old)
+        XkbFreeGeometry(old,XkbGeomAllMask,True);
+    if (new_name) {
+        xkbNamesNotify	nn;
+        bzero(&nn,sizeof(xkbNamesNotify));
+        nn.changed= XkbGeometryNameMask;
+        XkbSendNamesNotify(dev,&nn);
+    }
+    nkn.deviceID= nkn.oldDeviceID= dev->id;
+    nkn.minKeyCode= nkn.oldMinKeyCode= xkb->min_key_code;
+    nkn.maxKeyCode= nkn.oldMaxKeyCode= xkb->max_key_code;
+    nkn.requestMajor=	XkbReqCode;
+    nkn.requestMinor=	X_kbSetGeometry;
+    nkn.changed=	XkbNKN_GeometryMask;
+    XkbSendNewKeyboardNotify(dev,&nkn);
+    return Success;
+}
+
+int
+ProcXkbSetGeometry(ClientPtr client)
+{
+    DeviceIntPtr        dev;
+    int                 rc;
 
     REQUEST(xkbSetGeometryReq);
     REQUEST_AT_LEAST_SIZE(xkbSetGeometryReq);
@@ -5263,47 +5311,24 @@ ProcXkbSetGeometry(ClientPtr client)
     CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
-    xkb= dev->key->xkbInfo->desc;
-    old= xkb->geom;
-    xkb->geom= NULL;
+    rc = _XkbSetGeometry(client, dev, stuff);
+    if (rc != Success)
+        return rc;
 
-    sizes.which= 		XkbGeomAllMask;
-    sizes.num_properties=	stuff->nProperties;
-    sizes.num_colors=	  	stuff->nColors;
-    sizes.num_shapes=	  	stuff->nShapes;
-    sizes.num_sections=	  	stuff->nSections;
-    sizes.num_doodads=	  	stuff->nDoodads;
-    sizes.num_key_aliases=	stuff->nKeyAliases;
-    if ((status= XkbAllocGeometry(xkb,&sizes))!=Success) {
-	xkb->geom= old;
-	return status;
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
+                if (rc == Success)
+                    _XkbSetGeometry(client, other, stuff);
+            }
+        }
     }
-    geom= xkb->geom;
-    geom->name= stuff->name;
-    geom->width_mm= stuff->widthMM;
-    geom->height_mm= stuff->heightMM;
-    if ((status= _CheckSetGeom(geom,stuff,client))!=Success) {
-	XkbFreeGeometry(geom,XkbGeomAllMask,True);
-	xkb->geom= old;
-	return status;
-    }
-    new_name= (xkb->names->geometry!=geom->name);
-    xkb->names->geometry= geom->name;
-    if (old)
-    	XkbFreeGeometry(old,XkbGeomAllMask,True);
-    if (new_name) {
-	xkbNamesNotify	nn;
-	bzero(&nn,sizeof(xkbNamesNotify));
-	nn.changed= XkbGeometryNameMask;
-	XkbSendNamesNotify(dev,&nn);
-    }
-    nkn.deviceID= nkn.oldDeviceID= dev->id;
-    nkn.minKeyCode= nkn.oldMinKeyCode= xkb->min_key_code;
-    nkn.maxKeyCode= nkn.oldMaxKeyCode= xkb->max_key_code;
-    nkn.requestMajor=	XkbReqCode;
-    nkn.requestMinor=	X_kbSetGeometry;
-    nkn.changed=	XkbNKN_GeometryMask;
-    XkbSendNewKeyboardNotify(dev,&nkn);
+
     return Success;
 }
 
