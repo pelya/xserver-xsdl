@@ -132,9 +132,6 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     return ret;
 }
 
-/* this function is no longer used... keep it here in case its needed in
- * the future. */
-#if 0
 static char *
 get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 {
@@ -168,7 +165,6 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 
     return ret;
 }
-#endif
 
 static void
 device_added(LibHalContext *hal_ctx, const char *udi)
@@ -250,12 +246,12 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 
             /* normal options first (input.x11_options.<propname>) */
             if (!strncasecmp(psi_key, LIBHAL_PROP_KEY, sizeof(LIBHAL_PROP_KEY)-1)){
+                char* tmp;
 
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
 
                 if (tmp_val){
-                    char* tmp;
 
                     /* xkb needs special handling. HAL specs include
                      * input.xkb.xyz options, but the x11-input.fdi specifies
@@ -298,14 +294,25 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                         add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
                         xfree(tmp_val);
                     }
+                } else
+                {
+                    /* server 1.4 had xkb_options as strlist. */
+                    if ((tmp = strcasestr(psi_key, "xkb")) &&
+                        (!strcasecmp(&tmp[3], "options")) &&
+                        (tmp_val = get_prop_string_array(hal_ctx, udi, psi_key)))
+                    {
+                        if (xkb_opts.options)
+                            xfree(xkb_opts.options);
+                        xkb_opts.options = strdup(tmp_val);
+                    }
                 }
             } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
+                char* tmp;
 
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
 
                 if (tmp_val){
-                    char* tmp;
 
                     tmp = &psi_key[sizeof(LIBHAL_XKB_PROP_KEY) - 1];
 
@@ -331,6 +338,16 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                             xkb_opts.options = strdup(tmp_val);
                     }
                     xfree(tmp_val);
+                } else
+                {
+                    /* server 1.4 had xkb options as strlist */
+                    tmp_val = get_prop_string_array(hal_ctx, udi, psi_key);
+                    if (tmp_val)
+                    {
+                        tmp = &psi_key[sizeof(LIBHAL_XKB_PROP_KEY) - 1];
+                        if (!strcasecmp(tmp, ".options") && (!xkb_opts.options))
+                            xkb_opts.options = strdup(tmp_val);
+                    }
                 }
             }
         }
