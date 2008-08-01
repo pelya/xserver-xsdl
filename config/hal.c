@@ -260,7 +260,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                      * Since we can't predict the order in which the keys
                      * arrive, we need to store them.
                      */
-                    if ((tmp = strcasestr(psi_key, "xkb")))
+                    if ((tmp = strcasestr(psi_key, "xkb")) && strlen(tmp) >= 4)
                     {
                         if (!strcasecmp(&tmp[3], "layout"))
                         {
@@ -298,6 +298,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                 {
                     /* server 1.4 had xkb_options as strlist. */
                     if ((tmp = strcasestr(psi_key, "xkb")) &&
+                        (strlen(tmp) >= 4) &&
                         (!strcasecmp(&tmp[3], "options")) &&
                         (tmp_val = get_prop_string_array(hal_ctx, udi, psi_key)))
                     {
@@ -312,7 +313,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                 /* only support strings for all values */
                 tmp_val = get_prop_string(hal_ctx, udi, psi_key);
 
-                if (tmp_val){
+                if (tmp_val && strlen(psi_key) >= sizeof(LIBHAL_XKB_PROP_KEY)) {
 
                     tmp = &psi_key[sizeof(LIBHAL_XKB_PROP_KEY) - 1];
 
@@ -342,7 +343,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                 {
                     /* server 1.4 had xkb options as strlist */
                     tmp_val = get_prop_string_array(hal_ctx, udi, psi_key);
-                    if (tmp_val)
+                    if (tmp_val && strlen(psi_key) >= sizeof(LIBHAL_XKB_PROP_KEY))
                     {
                         tmp = &psi_key[sizeof(LIBHAL_XKB_PROP_KEY) - 1];
                         if (!strcasecmp(tmp, ".options") && (!xkb_opts.options))
