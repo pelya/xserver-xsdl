@@ -1550,6 +1550,21 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
     return i;
 }
 
+static Bool
+pciDeviceHasBars(struct pci_device *pci)
+{
+    int i;
+
+    for (i = 0; i < 6; i++)
+	if (pci->regions[0].size)
+	    return TRUE;
+
+    if (pci->rom_size)
+	return TRUE;
+
+    return FALSE;
+}
+
 struct Inst {
     struct pci_device *	pci;
     GDevPtr		dev;
@@ -1804,7 +1819,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	}
 	if (devBus) dev = devBus;  /* busID preferred */
 	if (!dev) {
-	    if ( xf86CheckPciSlot( pPci ) ) {
+	    if (xf86CheckPciSlot(pPci) && pciDeviceHasBars(pPci)) {
 		xf86MsgVerb(X_WARNING, 0, "%s: No matching Device section "
 			    "for instance (BusID PCI:%u@%u:%u:%u) found\n",
 			    driverName, pPci->domain, pPci->bus, pPci->dev,
