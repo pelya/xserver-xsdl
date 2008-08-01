@@ -2727,57 +2727,58 @@ ProcXkbGetCompatMap(ClientPtr client)
     return XkbSendCompatMap(client,compat,&rep);
 }
 
-/* FIXME: Needs to set compat map on all core-sending devices. */
-int
-ProcXkbSetCompatMap(ClientPtr client)
+/**
+ * Apply the given request on the given device.
+ * If dryRun is True, then value checks are performed, but the device isn't
+ * modified.
+ */
+static int
+_XkbSetCompatMap(ClientPtr client, DeviceIntPtr dev,
+                 xkbSetCompatMapReq *req, char* data, BOOL dryRun)
 {
-    DeviceIntPtr 	dev;
-    XkbSrvInfoPtr 	xkbi;
-    XkbDescPtr		xkb;
-    XkbCompatMapPtr 	compat;
-    char	*	data;
-    int		 	nGroups;
-    register unsigned	i,bit;
+    XkbSrvInfoPtr       xkbi;
+    XkbDescPtr          xkb;
+    XkbCompatMapPtr     compat;
+    int                 nGroups;
+    unsigned            i,bit;
 
-    REQUEST(xkbSetCompatMapReq);
-    REQUEST_AT_LEAST_SIZE(xkbSetCompatMapReq);
-
-    if (!(client->xkbClientFlags&_XkbClientInitialized))
-	return BadAccess;
-
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
-
-    data = (char *)&stuff[1];
     xkbi = dev->key->xkbInfo;
-    xkb= xkbi->desc;
-    compat= xkb->compat;
-    if ((stuff->nSI>0)||(stuff->truncateSI)) {
+    xkb = xkbi->desc;
+    compat = xkb->compat;
+
+    if ((req->nSI>0)||(req->truncateSI)) {
 	xkbSymInterpretWireDesc *wire;
-	if (stuff->firstSI>compat->num_si) {
+	if (req->firstSI>compat->num_si) {
 	    client->errorValue = _XkbErrCode2(0x02,compat->num_si);
 	    return BadValue;
 	}
 	wire= (xkbSymInterpretWireDesc *)data;
-	wire+= stuff->nSI;
+	wire+= req->nSI;
 	data = (char *)wire;
     }
+
     nGroups= 0;
-    if (stuff->groups!=0) {
+    if (req->groups!=0) {
 	for (i=0,bit=1;i<XkbNumKbdGroups;i++,bit<<=1) {
-	    if ( stuff->groups&bit )
+	    if ( req->groups&bit )
 		nGroups++;
 	}
     }
     data+= nGroups*SIZEOF(xkbModsWireDesc);
-    if (((data-((char *)stuff))/4)!=stuff->length) {
+    if (((data-((char *)req))/4)!=req->length) {
 	return BadLength;
     }
-    data = (char *)&stuff[1];
-    if (stuff->nSI>0) {
+
+    /* Done all the checks we can do */
+    if (dryRun)
+        return Success;
+
+    data = (char *)&req[1];
+    if (req->nSI>0) {
 	xkbSymInterpretWireDesc *wire = (xkbSymInterpretWireDesc *)data;
 	XkbSymInterpretPtr	sym;
-	if ((unsigned)(stuff->firstSI+stuff->nSI)>compat->num_si) {
-	    compat->num_si= stuff->firstSI+stuff->nSI;
+	if ((unsigned)(req->firstSI+req->nSI)>compat->num_si) {
+	    compat->num_si= req->firstSI+req->nSI;
 	    compat->sym_interpret= _XkbTypedRealloc(compat->sym_interpret,
 						   compat->num_si,
 						   XkbSymInterpretRec);
@@ -2786,13 +2787,13 @@ ProcXkbSetCompatMap(ClientPtr client)
 		return BadAlloc;
 	    }
 	}
-	else if (stuff->truncateSI) {
-	    compat->num_si = stuff->firstSI+stuff->nSI;
+	else if (req->truncateSI) {
+	    compat->num_si = req->firstSI+req->nSI;
 	}
-	sym = &compat->sym_interpret[stuff->firstSI];
-	for (i=0;i<stuff->nSI;i++,wire++,sym++) {
+	sym = &compat->sym_interpret[req->firstSI];
+	for (i=0;i<req->nSI;i++,wire++,sym++) {
 	    if (client->swapped) {
-		register int n;
+		int n;
 		swapl(&wire->sym,n);
 	    }
 	    sym->sym= wire->sym;
@@ -2801,21 +2802,21 @@ ProcXkbSetCompatMap(ClientPtr client)
 	    sym->flags= wire->flags;
 	    sym->virtual_mod= wire->virtualMod;
 	    memcpy((char *)&sym->act,(char *)&wire->act,
-	    					SIZEOF(xkbActionWireDesc));
+                   SIZEOF(xkbActionWireDesc));
 	}
 	data = (char *)wire;
     }
-    else if (stuff->truncateSI) {
-	compat->num_si = stuff->firstSI;
+    else if (req->truncateSI) {
+	compat->num_si = req->firstSI;
     }
 
-    if (stuff->groups!=0) {
-	register unsigned i,bit;
+    if (req->groups!=0) {
+	unsigned i, bit;
 	xkbModsWireDesc *wire = (xkbModsWireDesc *)data;
-	for (i=0,bit=1;i<XkbNumKbdGroups;i++,bit<<=1) {
-	    if (stuff->groups&bit) {
+	for (i = 0, bit = 1; i < XkbNumKbdGroups; i++, bit <<= 1) {
+	    if (req->groups & bit) {
 		if (client->swapped) {
-		    register int n;
+		    int n;
 		    swaps(&wire->virtualMods,n);
 		}
 		compat->groups[i].mask= wire->realMods;
@@ -2831,23 +2832,23 @@ ProcXkbSetCompatMap(ClientPtr client)
 	    }
 	}
     }
-    i= XkbPaddedSize((data-((char *)stuff)));
-    if ((i/4)!=stuff->length) {
-	ErrorF("[xkb] Internal length error on read in ProcXkbSetCompatMap\n");
+    i= XkbPaddedSize((data-((char *)req)));
+    if ((i/4)!=req->length) {
+	ErrorF("[xkb] Internal length error on read in _XkbSetCompatMap\n");
 	return BadLength;
     }
-    
+
     if (dev->xkb_interest) {
 	xkbCompatMapNotify ev;
 	ev.deviceID = dev->id;
-	ev.changedGroups = stuff->groups;
-	ev.firstSI = stuff->firstSI;
-	ev.nSI = stuff->nSI;
+	ev.changedGroups = req->groups;
+	ev.firstSI = req->firstSI;
+	ev.nSI = req->nSI;
 	ev.nTotalSI = compat->num_si;
 	XkbSendCompatMapNotify(dev,&ev);
     }
 
-    if (stuff->recomputeActions) {
+    if (req->recomputeActions) {
 	XkbChangesRec		change;
 	unsigned		check;
 	XkbEventCauseRec	cause;
@@ -2861,6 +2862,71 @@ ProcXkbSetCompatMap(ClientPtr client)
 	XkbUpdateCoreDescription(dev,False);
 	XkbSendNotification(dev,&change,&cause);
     }
+    return Success;
+}
+
+int
+ProcXkbSetCompatMap(ClientPtr client)
+{
+    DeviceIntPtr        dev;
+    char                *data;
+    int                 rc;
+
+    REQUEST(xkbSetCompatMapReq);
+    REQUEST_AT_LEAST_SIZE(xkbSetCompatMapReq);
+
+    if (!(client->xkbClientFlags&_XkbClientInitialized))
+	return BadAccess;
+
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
+
+    data = (char *)&stuff[1];
+
+    /* check first using a dry-run */
+    rc = _XkbSetCompatMap(client, dev, stuff, data, TRUE);
+    if (rc != Success)
+        return rc;
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
+                if (rc == Success)
+                {
+                    /* dry-run */
+                    rc = _XkbSetCompatMap(client, other, stuff, data, TRUE);
+                    if (rc != Success)
+                        return rc;
+                }
+            }
+        }
+    }
+
+    /* Yay, the dry-runs succeed. Let's apply */
+    rc = _XkbSetCompatMap(client, dev, stuff, data, TRUE);
+    if (rc != Success)
+        return rc;
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
+                if (rc == Success)
+                {
+                    rc = _XkbSetCompatMap(client, other, stuff, data, TRUE);
+                    if (rc != Success)
+                        return rc;
+                }
+            }
+        }
+    }
+
     return client->noClientException;
 }
 
