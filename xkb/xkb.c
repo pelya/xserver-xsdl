@@ -3071,17 +3071,59 @@ XkbIndicatorPtr		leds;
     return XkbSendIndicatorMap(client,leds,&rep);
 }
 
-/* FIXME: Needs to set indicator map on all core-sending devices. */
+/**
+ * Apply the given map to the given device. Which specifies which components
+ * to apply.
+ */
+static int
+_XkbSetIndicatorMap(ClientPtr client, DeviceIntPtr dev,
+                    int which, xkbIndicatorMapWireDesc *desc)
+{
+    XkbSrvInfoPtr       xkbi;
+    XkbSrvLedInfoPtr    sli;
+    XkbEventCauseRec    cause;
+    int                 i, bit;
+
+    xkbi = dev->key->xkbInfo;
+
+    sli= XkbFindSrvLedInfo(dev, XkbDfltXIClass, XkbDfltXIId,
+						XkbXI_IndicatorMapsMask);
+    if (!sli)
+	return BadAlloc;
+
+    for (i = 0, bit = 1; i < XkbNumIndicators; i++, bit <<= 1) {
+	if (which & bit) {
+	    sli->maps[i].flags = desc->flags;
+	    sli->maps[i].which_groups = desc->whichGroups;
+	    sli->maps[i].groups = desc->groups;
+	    sli->maps[i].which_mods = desc->whichMods;
+	    sli->maps[i].mods.mask = desc->mods;
+	    sli->maps[i].mods.real_mods = desc->mods;
+	    sli->maps[i].mods.vmods= desc->virtualMods;
+	    sli->maps[i].ctrls = desc->ctrls;
+	    if (desc->virtualMods!=0) {
+		unsigned tmp;
+		tmp= XkbMaskForVMask(xkbi->desc,desc->virtualMods);
+		sli->maps[i].mods.mask= desc->mods|tmp;
+	    }
+	    desc++;
+	}
+    }
+
+    XkbSetCauseXkbReq(&cause,X_kbSetIndicatorMap,client);
+    XkbApplyLedMapChanges(dev,sli,which,NULL,NULL,&cause);
+
+    return Success;
+}
+
 int
 ProcXkbSetIndicatorMap(ClientPtr client)
 {
-    register int 	i,bit;
-    int			nIndicators;
-    DeviceIntPtr 	dev;
-    XkbSrvInfoPtr	xkbi;
-    xkbIndicatorMapWireDesc *from;
-    XkbSrvLedInfoPtr	sli;
-    XkbEventCauseRec	cause;
+    int                 i, bit;
+    int                 nIndicators;
+    DeviceIntPtr        dev;
+    xkbIndicatorMapWireDesc     *from;
+    int                 rc;
 
     REQUEST(xkbSetIndicatorMapReq);
     REQUEST_AT_LEAST_SIZE(xkbSetIndicatorMapReq);
@@ -3090,8 +3132,6 @@ ProcXkbSetIndicatorMap(ClientPtr client)
 	return BadAccess;
 
     CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
-
-    xkbi= dev->key->xkbInfo;
 
     if (stuff->which==0)
 	return client->noClientException;
@@ -3105,16 +3145,11 @@ ProcXkbSetIndicatorMap(ClientPtr client)
 	return BadLength;
     }
 
-    sli= XkbFindSrvLedInfo(dev,XkbDfltXIClass,XkbDfltXIId,
-						XkbXI_IndicatorMapsMask);
-    if (!sli)
-	return BadAlloc;
-
     from = (xkbIndicatorMapWireDesc *)&stuff[1];
     for (i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
 	if (stuff->which&bit) {
 	    if (client->swapped) {
-		register int n;
+		int n;
 		swaps(&from->virtualMods,n);
 		swapl(&from->ctrls,n);
 	    }
@@ -3125,28 +3160,25 @@ ProcXkbSetIndicatorMap(ClientPtr client)
     }
 
     from = (xkbIndicatorMapWireDesc *)&stuff[1];
-    for (i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
-	if (stuff->which&bit) {
-	    sli->maps[i].flags = from->flags;
-	    sli->maps[i].which_groups = from->whichGroups;
-	    sli->maps[i].groups = from->groups;
-	    sli->maps[i].which_mods = from->whichMods;
-	    sli->maps[i].mods.mask = from->mods;
-	    sli->maps[i].mods.real_mods = from->mods;
-	    sli->maps[i].mods.vmods= from->virtualMods;
-	    sli->maps[i].ctrls = from->ctrls;
-	    if (from->virtualMods!=0) {
-		unsigned tmp;
-		tmp= XkbMaskForVMask(xkbi->desc,from->virtualMods);
-		sli->maps[i].mods.mask= from->mods|tmp;
-	    }
-	    from++;
-	}
+    rc = _XkbSetIndicatorMap(client, dev, stuff->which, from);
+    if (rc != Success)
+        return rc;
+
+    if (stuff->deviceSpec == XkbUseCoreKbd)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess);
+                if (rc == Success)
+                    _XkbSetIndicatorMap(client, other, stuff->which, from);
+            }
+        }
     }
 
-    XkbSetCauseXkbReq(&cause,X_kbSetIndicatorMap,client);
-    XkbApplyLedMapChanges(dev,sli,stuff->which,NULL,NULL,&cause);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
