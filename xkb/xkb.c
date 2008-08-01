@@ -3264,19 +3264,149 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     return client->noClientException;
 }
 
-/* FIXME: Needs to set indicator on all core-sending devices. */
+
+/**
+ * Find the IM on the device.
+ * Returns the map, or NULL if the map doesn't exist.
+ * If the return value is NULL, led_return is undefined. Otherwise, led_return
+ * is set to the led index of the map.
+ */
+static XkbIndicatorMapPtr
+_XkbFindNamedIndicatorMap(XkbSrvLedInfoPtr sli, Atom indicator,
+                          int *led_return)
+{
+    XkbIndicatorMapPtr  map;
+    int                 led;
+
+    /* search for the right indicator */
+    map = NULL;
+    if (sli->names && sli->maps) {
+	for (led = 0; (led < XkbNumIndicators) && (map == NULL); led++) {
+	    if (sli->names[led] == indicator) {
+		map= &sli->maps[led];
+		break;
+	    }
+	}
+    }
+
+    *led_return = led;
+    return map;
+}
+
+/**
+ * Creates an indicator map on the device. If dryRun is True, it only checks
+ * if creation is possible, but doesn't actually create it.
+ */
+static int
+_XkbCreateIndicatorMap(DeviceIntPtr dev, Atom indicator,
+                       int ledClass, int ledID,
+                       XkbIndicatorMapPtr *map_return, int *led_return,
+                       Bool dryRun)
+{
+    XkbSrvLedInfoPtr    sli;
+    XkbIndicatorMapPtr  map;
+    int                 led;
+
+    sli = XkbFindSrvLedInfo(dev, ledClass, ledID, XkbXI_IndicatorsMask);
+    if (!sli)
+        return BadAlloc;
+
+    map = _XkbFindNamedIndicatorMap(sli, indicator, &led);
+
+    if (!map)
+    {
+        /* find first unused indicator maps and assign the name to it */
+        for (led = 0, map = NULL; (led < XkbNumIndicators) && (map == NULL); led++) {
+            if ((sli->names) && (sli->maps) && (sli->names[led] == None) &&
+                    (!XkbIM_InUse(&sli->maps[led])))
+            {
+                map = &sli->maps[led];
+                if (!dryRun)
+                    sli->names[led] = indicator;
+                break;
+            }
+        }
+    }
+
+    if (!map)
+        return BadAlloc;
+
+    *led_return = led;
+    *map_return = map;
+    return Success;
+}
+
+static int
+_XkbSetNamedIndicator(ClientPtr client, DeviceIntPtr dev,
+                      xkbSetNamedIndicatorReq *stuff)
+{
+    unsigned int                extDevReason;
+    unsigned int                statec, namec, mapc;
+    XkbSrvLedInfoPtr            sli;
+    int                         led = 0;
+    XkbIndicatorMapPtr          map;
+    DeviceIntPtr                kbd;
+    XkbEventCauseRec            cause;
+    xkbExtensionDeviceNotify    ed;
+    XkbChangesRec               changes;
+    int                         rc;
+
+    rc = _XkbCreateIndicatorMap(dev, stuff->indicator, stuff->ledClass,
+                                stuff->ledID, &map, &led, FALSE);
+    if (rc != Success || !map) /* oh-oh */
+        return rc;
+
+    namec = mapc = statec = 0;
+    extDevReason = 0;
+
+    namec |= (1<<led);
+    sli->namesPresent |= ((stuff->indicator != None) ? (1 << led) : 0);
+    extDevReason |= XkbXI_IndicatorNamesMask;
+
+    if (stuff->setMap) {
+        map->flags = stuff->flags;
+        map->which_groups = stuff->whichGroups;
+        map->groups = stuff->groups;
+        map->which_mods = stuff->whichMods;
+        map->mods.mask = stuff->realMods;
+        map->mods.real_mods = stuff->realMods;
+        map->mods.vmods= stuff->virtualMods;
+        map->ctrls = stuff->ctrls;
+        mapc|= (1<<led);
+    }
+
+    if ((stuff->setState) && ((map->flags & XkbIM_NoExplicit) == 0))
+    {
+        if (stuff->on)	sli->explicitState |=  (1<<led);
+        else		sli->explicitState &= ~(1<<led);
+        statec |= ((sli->effectiveState ^ sli->explicitState) & (1 << led));
+    }
+
+    bzero((char *)&ed,sizeof(xkbExtensionDeviceNotify));
+    bzero((char *)&changes,sizeof(XkbChangesRec));
+    XkbSetCauseXkbReq(&cause,X_kbSetNamedIndicator,client);
+    if (namec)
+        XkbApplyLedNameChanges(dev,sli,namec,&ed,&changes,&cause);
+    if (mapc)
+        XkbApplyLedMapChanges(dev,sli,mapc,&ed,&changes,&cause);
+    if (statec)
+        XkbApplyLedStateChanges(dev,sli,statec,&ed,&changes,&cause);
+
+    kbd = dev;
+    if ((sli->flags&XkbSLI_HasOwnState)==0)
+        kbd = inputInfo.keyboard;
+    XkbFlushLedEvents(dev, kbd, sli, &ed, &changes, &cause);
+
+    return Success;
+}
+
 int
 ProcXkbSetNamedIndicator(ClientPtr client)
 {
-    DeviceIntPtr 		dev,kbd;
-    XkbIndicatorMapPtr		map;
-    XkbSrvLedInfoPtr 		sli;
-    register int		led = 0;
-    unsigned			extDevReason;
-    unsigned			statec,namec,mapc;
-    XkbEventCauseRec		cause;
-    xkbExtensionDeviceNotify	ed;
-    XkbChangesRec		changes;
+    int                         rc;
+    DeviceIntPtr                dev;
+    int                         led = 0;
+    XkbIndicatorMapPtr          map;
 
     REQUEST(xkbSetNamedIndicatorReq);
     REQUEST_SIZE_MATCH(xkbSetNamedIndicatorReq);
@@ -3289,71 +3419,50 @@ ProcXkbSetNamedIndicator(ClientPtr client)
     CHK_MASK_LEGAL(0x10,stuff->whichGroups,XkbIM_UseAnyGroup);
     CHK_MASK_LEGAL(0x11,stuff->whichMods,XkbIM_UseAnyMods);
 
-    extDevReason= 0;
+    /* Dry-run for checks */
+    rc = _XkbCreateIndicatorMap(dev, stuff->indicator,
+                                stuff->ledClass, stuff->ledID,
+                                &map, &led, TRUE);
+    if (rc != Success || !map) /* couldn't be created or didn't exist */
+        return rc;
 
-    sli= XkbFindSrvLedInfo(dev,stuff->ledClass,stuff->ledID,
-							XkbXI_IndicatorsMask);
-    if (!sli)
-	return BadAlloc;
-
-    statec= mapc= namec= 0;
-    map= NULL;
-    if (sli->names && sli->maps) {
-	for (led=0;(led<XkbNumIndicators)&&(map==NULL);led++) {
-	    if (sli->names[led]==stuff->indicator) {
-		map= &sli->maps[led];
-		break;
-	    }
-	}
-    }
-    if (map==NULL) {
-	if (!stuff->createMap)
-	    return client->noClientException;
-	for (led=0,map=NULL;(led<XkbNumIndicators)&&(map==NULL);led++) {
-	    if ((sli->names)&&(sli->maps)&&(sli->names[led]==None)&&
-                (!XkbIM_InUse(&sli->maps[led]))) {
-		map= &sli->maps[led];
-		sli->names[led]= stuff->indicator;
-		break;
-	    }
-	}
-	if (map==NULL)
-	    return client->noClientException;
-	namec|= (1<<led);
-	sli->namesPresent|= ((stuff->indicator!=None)?(1<<led):0);
-	extDevReason|= XkbXI_IndicatorNamesMask;
+    if (stuff->deviceSpec == XkbUseCoreKbd ||
+        stuff->deviceSpec == XkbUseCorePtr)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && !other->isMaster && (other->u.master == dev) &&
+                (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
+            {
+                rc = _XkbCreateIndicatorMap(other, stuff->indicator,
+                                            stuff->ledClass, stuff->ledID,
+                                            &map, &led, TRUE);
+                if (rc != Success || !map)
+                    return rc;
+            }
+        }
     }
 
-    if (stuff->setMap) {
-	map->flags = stuff->flags;
-	map->which_groups = stuff->whichGroups;
-	map->groups = stuff->groups;
-	map->which_mods = stuff->whichMods;
-	map->mods.mask = stuff->realMods;
-	map->mods.real_mods = stuff->realMods;
-	map->mods.vmods= stuff->virtualMods;
-	map->ctrls = stuff->ctrls;
-	mapc|= (1<<led);
-    }
-    if ((stuff->setState)&&((map->flags&XkbIM_NoExplicit)==0)) {
-	if (stuff->on)	sli->explicitState|=  (1<<led);
-	else		sli->explicitState&= ~(1<<led);
-	statec|= ((sli->effectiveState^sli->explicitState)&(1<<led));
-    }
-    bzero((char *)&ed,sizeof(xkbExtensionDeviceNotify));
-    bzero((char *)&changes,sizeof(XkbChangesRec));
-    XkbSetCauseXkbReq(&cause,X_kbSetNamedIndicator,client);
-    if (namec)
-	XkbApplyLedNameChanges(dev,sli,namec,&ed,&changes,&cause);
-    if (mapc)
-	XkbApplyLedMapChanges(dev,sli,mapc,&ed,&changes,&cause);
-    if (statec)
-	XkbApplyLedStateChanges(dev,sli,statec,&ed,&changes,&cause);
+    /* All checks passed, let's do it */
+    rc = _XkbSetNamedIndicator(client, dev, stuff);
+    if (rc != Success)
+        return rc;
 
-    kbd= dev;
-    if ((sli->flags&XkbSLI_HasOwnState)==0)
-	kbd = inputInfo.keyboard;
-    XkbFlushLedEvents(dev,kbd,sli,&ed,&changes,&cause);
+    if (stuff->deviceSpec == XkbUseCoreKbd ||
+        stuff->deviceSpec == XkbUseCorePtr)
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && !other->isMaster && (other->u.master == dev) &&
+                (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
+            {
+                _XkbSetNamedIndicator(client, other, stuff);
+            }
+        }
+    }
+
     return client->noClientException;
 }
 
