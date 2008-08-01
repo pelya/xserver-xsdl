@@ -1556,7 +1556,7 @@ pciDeviceHasBars(struct pci_device *pci)
     int i;
 
     for (i = 0; i < 6; i++)
-	if (pci->regions[0].size)
+	if (pci->regions[i].size)
 	    return TRUE;
 
     if (pci->rom_size)
