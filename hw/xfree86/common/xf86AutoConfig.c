@@ -204,6 +204,12 @@ videoPtrToDriverList(struct pci_device *dev,
 	case 0x100c:		    driverList[0] = "tseng";	break;
 	case 0x1106:		    driverList[0] = "openchrome"; break;
 	case 0x15ad:		    driverList[0] = "vmware";	break;
+	case 0x18ca:
+	    if (dev->device_id == 0x47)
+		driverList[0] = "xgixp";
+	    else
+		driverList[0] = "xgi";
+	    break;
 	default: break;
     }
     for (i = 0; (i < returnListMax) && (driverList[i] != NULL); i++) {
