@@ -348,17 +348,119 @@ ProcXkbSelectEvents(ClientPtr client)
 }
 
 /***====================================================================***/
+/**
+ * Ring a bell on the given device for the given client.
+ */
+static int
+_XkbBell(ClientPtr client, DeviceIntPtr dev, WindowPtr pWin,
+         int bellClass, int bellID, int pitch, int duration,
+         int percent, int forceSound, int eventOnly, Atom name)
+{
+    int         base;
+    pointer     ctrl;
+    int         oldPitch, oldDuration;
+    int         newPercent;
 
-/* FIXME: Needs to ding on all core-sending devices. */
+    if (bellClass == KbdFeedbackClass) {
+        KbdFeedbackPtr	k;
+        if (bellID==XkbDfltXIId)
+            k= dev->kbdfeed;
+        else {
+            for (k=dev->kbdfeed; k; k=k->next) {
+                if (k->ctrl.id == bellID)
+                    break;
+            }
+        }
+        if (!k) {
+            client->errorValue = _XkbErrCode2(0x5,bellID);
+            return BadValue;
+        }
+        base = k->ctrl.bell;
+        ctrl = (pointer) &(k->ctrl);
+        oldPitch= k->ctrl.bell_pitch;
+        oldDuration= k->ctrl.bell_duration;
+        if (pitch!=0) {
+            if (pitch==-1)
+                k->ctrl.bell_pitch= defaultKeyboardControl.bell_pitch;
+            else k->ctrl.bell_pitch= pitch;
+        }
+        if (duration!=0) {
+            if (duration==-1)
+                k->ctrl.bell_duration= defaultKeyboardControl.bell_duration;
+            else k->ctrl.bell_duration= duration;
+        }
+    }
+    else if (bellClass == BellFeedbackClass) {
+        BellFeedbackPtr	b;
+        if (bellID==XkbDfltXIId)
+            b= dev->bell;
+        else {
+            for (b=dev->bell; b; b=b->next) {
+                if (b->ctrl.id == bellID)
+                    break;
+            }
+        }
+        if (!b) {
+            client->errorValue = _XkbErrCode2(0x6,bellID);
+            return BadValue;
+        }
+        base = b->ctrl.percent;
+        ctrl = (pointer) &(b->ctrl);
+        oldPitch= b->ctrl.pitch;
+        oldDuration= b->ctrl.duration;
+        if (pitch!=0) {
+            if (pitch==-1)
+                b->ctrl.pitch= defaultKeyboardControl.bell_pitch;
+            else b->ctrl.pitch= pitch;
+        }
+        if (duration!=0) {
+            if (duration==-1)
+                b->ctrl.duration= defaultKeyboardControl.bell_duration;
+            else b->ctrl.duration= duration;
+        }
+    }
+    else {
+        client->errorValue = _XkbErrCode2(0x7, bellClass);;
+        return BadValue;
+    }
+
+    newPercent = (base * percent)/100;
+    if (percent < 0)
+         newPercent = base + newPercent;
+    else newPercent = base - newPercent + percent;
+
+    XkbHandleBell(forceSound, eventOnly,
+                  dev, newPercent, ctrl, bellClass,
+                  name, pWin, client);
+    if ((pitch!=0)||(duration!=0)) {
+        if (bellClass == KbdFeedbackClass) {
+            KbdFeedbackPtr      k;
+            k= (KbdFeedbackPtr)ctrl;
+            if (pitch!=0)
+                k->ctrl.bell_pitch= oldPitch;
+            if (duration!=0)
+                k->ctrl.bell_duration= oldDuration;
+        }
+        else {
+            BellFeedbackPtr     b;
+            b= (BellFeedbackPtr)ctrl;
+            if (pitch!=0)
+                b->ctrl.pitch= oldPitch;
+            if (duration!=0)
+                b->ctrl.duration= oldDuration;
+        }
+    }
+
+    return Success;
+}
+
 int
 ProcXkbBell(ClientPtr client)
 {
     REQUEST(xkbBellReq);
     DeviceIntPtr dev;
     WindowPtr	 pWin;
-    int rc, base;
-    int newPercent,oldPitch,oldDuration;
-    pointer ctrl;
+    int rc;
 
     REQUEST_SIZE_MATCH(xkbBellReq);
 
@@ -368,6 +470,7 @@ ProcXkbBell(ClientPtr client)
     CHK_BELL_DEVICE(dev, stuff->deviceSpec, client, DixBellAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
+    /* device-independent checks request for sane values */
     if ((stuff->forceSound)&&(stuff->eventOnly)) {
 	client->errorValue=_XkbErrCode3(0x1,stuff->forceSound,stuff->eventOnly);
 	return BadMatch;
@@ -390,68 +493,7 @@ ProcXkbBell(ClientPtr client)
 	     stuff->bellClass= KbdFeedbackClass;
 	else stuff->bellClass= BellFeedbackClass;
     }
-    if (stuff->bellClass == KbdFeedbackClass) {
-	KbdFeedbackPtr	k;
-	if (stuff->bellID==XkbDfltXIId) 
-	    k= dev->kbdfeed;
-	else {
-	    for (k=dev->kbdfeed; k; k=k->next) {
-		if (k->ctrl.id == stuff->bellID)
-		    break;
-	    }
-	}
-	if (!k) {
-	    client->errorValue= _XkbErrCode2(0x5,stuff->bellID);
-	    return BadValue;
-	}
-	base = k->ctrl.bell;
-	ctrl = (pointer) &(k->ctrl);
-	oldPitch= k->ctrl.bell_pitch;
-	oldDuration= k->ctrl.bell_duration;
-	if (stuff->pitch!=0) {
-	    if (stuff->pitch==-1)
-		 k->ctrl.bell_pitch= defaultKeyboardControl.bell_pitch;
-	    else k->ctrl.bell_pitch= stuff->pitch;
-	}
-	if (stuff->duration!=0) {
-	    if (stuff->duration==-1)
-		 k->ctrl.bell_duration= defaultKeyboardControl.bell_duration;
-	    else k->ctrl.bell_duration= stuff->duration;
-	}
-    }
-    else if (stuff->bellClass == BellFeedbackClass) {
-	BellFeedbackPtr	b;
-	if (stuff->bellID==XkbDfltXIId)
-	    b= dev->bell;
-	else {
-	    for (b=dev->bell; b; b=b->next) {
-		if (b->ctrl.id == stuff->bellID)
-		    break;
-	    }
-	}
-	if (!b) {
-	    client->errorValue = _XkbErrCode2(0x6,stuff->bellID);
-	    return BadValue;
-	}
-	base = b->ctrl.percent;
-	ctrl = (pointer) &(b->ctrl);
-	oldPitch= b->ctrl.pitch;
-	oldDuration= b->ctrl.duration;
-	if (stuff->pitch!=0) {
-	    if (stuff->pitch==-1)
-		 b->ctrl.pitch= defaultKeyboardControl.bell_pitch;
-	    else b->ctrl.pitch= stuff->pitch;
-	}
-	if (stuff->duration!=0) {
-	    if (stuff->duration==-1)
-		 b->ctrl.duration= defaultKeyboardControl.bell_duration;
-	    else b->ctrl.duration= stuff->duration;
-	}
-    }
-    else {
-	client->errorValue = _XkbErrCode2(0x7,stuff->bellClass);;
-	return BadValue;
-    }
+
     if (stuff->window!=None) {
 	rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
 	if (rc != Success) {
@@ -461,32 +503,39 @@ ProcXkbBell(ClientPtr client)
     }
     else pWin= NULL;
 
-    newPercent= (base*stuff->percent)/100;
-    if (stuff->percent < 0)
-         newPercent= base+newPercent;
-    else newPercent= base-newPercent+stuff->percent;
-    XkbHandleBell(stuff->forceSound, stuff->eventOnly,
-				dev, newPercent, ctrl, stuff->bellClass, 
-				stuff->name, pWin, client);
-    if ((stuff->pitch!=0)||(stuff->duration!=0)) {
-	if (stuff->bellClass == KbdFeedbackClass) {
-	    KbdFeedbackPtr	k;
-	    k= (KbdFeedbackPtr)ctrl;
-	    if (stuff->pitch!=0)
-		k->ctrl.bell_pitch= oldPitch;
-	    if (stuff->duration!=0)
-		k->ctrl.bell_duration= oldDuration;
-	}
-	else {
-	    BellFeedbackPtr	b;
-	    b= (BellFeedbackPtr)ctrl;
-	    if (stuff->pitch!=0)
-		b->ctrl.pitch= oldPitch;
-	    if (stuff->duration!=0)
-		b->ctrl.duration= oldDuration;
-	}
+    /* Client wants to ring a bell on the core keyboard?
+       Ring the bell on the core keyboard (which does nothing, but if that
+       fails the client is screwed anyway), and then on all extension devices.
+       Fail if the core keyboard fails but not the extension devices.  this
+       may cause some keyboards to ding and others to stay silent. Fix
+       your client to use explicit keyboards to avoid this.
+
+       dev is the device the client requested.
+     */
+    rc = _XkbBell(client, dev, pWin, stuff->bellClass, stuff->bellID,
+                  stuff->pitch, stuff->duration, stuff->percent,
+                  stuff->forceSound, stuff->eventOnly, stuff->name);
+
+    if ((rc == Success) && ((stuff->deviceSpec == XkbUseCoreKbd) ||
+                            (stuff->deviceSpec == XkbUseCorePtr)))
+    {
+        DeviceIntPtr other;
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if ((other != dev) && other->key && !other->isMaster && (other->u.master == dev))
+            {
+                rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixBellAccess);
+                if (rc == Success)
+                    _XkbBell(client, other, pWin, stuff->bellClass,
+                             stuff->bellID, stuff->pitch, stuff->duration,
+                             stuff->percent, stuff->forceSound,
+                             stuff->eventOnly, stuff->name);
+            }
+        }
+        rc = Success; /* reset to success, that's what we got for the VCK */
     }
-    return Success;
+
+    return rc;
 }
 
 /***====================================================================***/
