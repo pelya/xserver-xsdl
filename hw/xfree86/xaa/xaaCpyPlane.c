@@ -110,12 +110,12 @@ XAACopyPlaneNtoNColorExpand(
     int Bpp = pSrc->bitsPerPixel >> 3;
     unsigned long mask = TmpBitPlane;
 
-    if(TmpBitPlane < 8) {
+    if(TmpBitPlane < (1 << 8)) {
 	offset = 0;
-    } else if(TmpBitPlane < 16) {
+    } else if(TmpBitPlane < (1 << 16)) {
 	offset = 1;
 	mask >>= 8;
-    } else if(TmpBitPlane < 24) {
+    } else if(TmpBitPlane < (1 << 24)) {
 	offset = 2;
 	mask >>= 16;
     } else {
