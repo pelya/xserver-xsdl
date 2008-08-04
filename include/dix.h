@@ -119,7 +119,7 @@ typedef struct _Client *ClientPtr; /* also in misc.h */
 
 typedef struct _WorkQueue	*WorkQueuePtr;
 
-extern ClientPtr *clients;
+extern ClientPtr clients[MAXCLIENTS];
 extern ClientPtr serverClient;
 extern int currentMaxClients;
 extern char dispatchExceptionAtReset;

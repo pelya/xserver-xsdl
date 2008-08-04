@@ -284,10 +284,7 @@ int main(int argc, char *argv[], char *envp[])
 	{
 	    CreateWellKnownSockets();
 	    InitProcVectors();
-	    clients = (ClientPtr *)xalloc(MAXCLIENTS * sizeof(ClientPtr));
-	    if (!clients)
-		FatalError("couldn't create client array");
-	    for (i=1; i<MAXCLIENTS; i++) 
+	    for (i=1; i<MAXCLIENTS; i++)
 		clients[i] = NullClient;
 	    serverClient = (ClientPtr)xalloc(sizeof(ClientRec));
 	    if (!serverClient)

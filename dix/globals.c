@@ -78,7 +78,7 @@ PtrCtrl defaultPointerControl = {
 	DEFAULT_PTR_THRESHOLD,
 	0};
 
-_X_EXPORT ClientPtr *clients;
+_X_EXPORT ClientPtr  clients[MAXCLIENTS];
 _X_EXPORT ClientPtr  serverClient;
 _X_EXPORT int  currentMaxClients;   /* current size of clients array */
 _X_EXPORT long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
