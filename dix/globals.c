@@ -83,7 +83,7 @@ _X_EXPORT ClientPtr  serverClient;
 _X_EXPORT int  currentMaxClients;   /* current size of clients array */
 _X_EXPORT long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
 
-_X_EXPORT WindowPtr *WindowTable;
+_X_EXPORT WindowPtr WindowTable[MAXSCREENS];
 
 _X_EXPORT unsigned long globalSerialNumber = 0;
 _X_EXPORT unsigned long serverGeneration = 0;

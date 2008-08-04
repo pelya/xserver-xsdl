@@ -305,9 +305,6 @@ int main(int argc, char *argv[], char *envp[])
 	SetInputCheck(&alwaysCheckForInput[0], &alwaysCheckForInput[1]);
 	screenInfo.arraySize = MAXSCREENS;
 	screenInfo.numScreens = 0;
-	WindowTable = (WindowPtr *)xalloc(MAXSCREENS * sizeof(WindowPtr));
-	if (!WindowTable)
-	    FatalError("couldn't create root window table");
 
 	InitAtoms();
 	InitEvents();
@@ -417,7 +414,7 @@ int main(int argc, char *argv[], char *envp[])
 
         config_fini();
 
-        memset(WindowTable, 0, MAXSCREENS * sizeof(WindowPtr));
+        memset(WindowTable, 0, sizeof(WindowTable));
 	CloseDownDevices();
 	CloseDownEvents();
 
@@ -431,8 +428,6 @@ int main(int argc, char *argv[], char *envp[])
 	    xfree(screenInfo.screens[i]);
 	    screenInfo.numScreens = i;
 	}
-	xfree(WindowTable);
-	WindowTable = NULL;
 	FreeFonts();
 
 	FreeAuditTimer();

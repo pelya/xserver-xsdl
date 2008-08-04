@@ -48,6 +48,7 @@ from Kaleb S. KEITHLEY
 #include "swaprep.h"
 #include "xf86.h"
 #include "vidmodeproc.h"
+#include "globals.h"
 
 #define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
@@ -121,8 +122,6 @@ static void SXF86VidModeNotifyEvent();
     xXF86VidModeNotifyEvent * /* from */,
     xXF86VidModeNotifyEvent * /* to */
 );
-
-extern WindowPtr *WindowTable;
 
 static RESTYPE EventType;	/* resource type for event masks */
 

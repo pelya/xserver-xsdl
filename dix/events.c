@@ -150,7 +150,6 @@ typedef const char *string;
 #endif
 
 #ifdef XEVIE
-extern WindowPtr *WindowTable;
 extern int       xevieFlag;
 extern int       xevieClientIndex;
 extern DeviceIntPtr     xeviemouse;

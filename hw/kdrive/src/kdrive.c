@@ -93,7 +93,6 @@ static Bool         kdCaughtSignal = FALSE;
  */
 
 KdOsFuncs	*kdOsFuncs;
-extern WindowPtr *WindowTable;
 
 void
 KdSetRootClip (ScreenPtr pScreen, BOOL enable)

@@ -43,12 +43,11 @@
 #include "fboverlay.h"
 #include "shadow.h"
 #include "randrstr.h"
+#include "globals.h"
 
 #ifdef XKB
 #include <X11/extensions/XKBstr.h>
 #endif
-
-extern WindowPtr    *WindowTable;
 
 #define KD_DPMS_NORMAL	    0
 #define KD_DPMS_STANDBY	    1
