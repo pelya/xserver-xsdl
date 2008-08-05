@@ -861,6 +861,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	tilt_y = 0;
 
 	switch (type) {
+		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto check_subtype;
 		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto check_subtype;
 		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto check_subtype;
 		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto check_subtype;
@@ -872,15 +873,15 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto check_subtype;
 		
 check_subtype:
-			if ([e subtype] != NSTabletPointEventSubtype) goto handle_mouse;
+			if ([e subtype] != NSTabletPointEventSubtype) 
+                goto handle_mouse;
 			// fall through to get tablet data
 		case NSTabletPoint:
 			pressure = [e pressure];
 			tilt_x = [e tilt].x;
 			tilt_y = [e tilt].y; 
+            goto handle_mouse;
 			// fall through to normal mouse handling
-
-		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
 
 handle_mouse:
 		DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
