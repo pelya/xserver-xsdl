@@ -327,9 +327,12 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
     }
 }
 
+int xquartz_launchd_fd = -1;
+
 void DarwinListenOnOpenFD(int fd) {
     ErrorF("DarwinListenOnOpenFD: %d\n", fd);
     
+#if 0
     pthread_mutex_lock(&fd_add_lock);
     if(fd_add_count < FD_ADD_MAX)
         fd_add[fd_add_count++] = fd;
@@ -337,6 +340,9 @@ void DarwinListenOnOpenFD(int fd) {
         ErrorF("FD Addition buffer at max.  Dropping fd addition request.\n");
 
     pthread_mutex_unlock(&fd_add_lock);
+#else
+    xquartz_launchd_fd = fd;
+#endif
 }
 
 void DarwinProcessFDAdditionQueue() {

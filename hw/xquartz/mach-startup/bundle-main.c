@@ -82,6 +82,7 @@ static pthread_t create_thread(void *func, void *arg) {
     return tid;
 }
 
+#ifdef MACHO_STARTUP
 /*** Mach-O IPC Stuffs ***/
 
 union MaxMsgSize {
@@ -293,13 +294,18 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
 }
 
 int startup_trigger(int argc, char **argv, char **envp) {
+#else
+void *add_launchd_display_thread(void *data);
+
+int main(int argc, char **argv, char **envp) {
+#endif
     Display *display;
     const char *s;
     
-    size_t i;
-    
     /* Take care of the case where we're called like a normal DDX */
     if(argc > 1 && argv[1][0] == ':') {
+#ifdef MACHO_STARTUP
+        size_t i;
         kern_return_t kr;
         mach_port_t mp;
         string_array_t newenvp;
@@ -339,6 +345,10 @@ int startup_trigger(int argc, char **argv, char **envp) {
             exit(EXIT_FAILURE);
         }
         exit(EXIT_SUCCESS);
+#else
+        create_thread(add_launchd_display_thread, NULL);
+        return server_main(argc, argv, envp);
+#endif
     }
 
     /* If we have a process serial number and it's our only arg, act as if
@@ -368,6 +378,7 @@ int startup_trigger(int argc, char **argv, char **envp) {
     return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
 }
 
+#ifdef MACHO_STARTUP
 /*** Main ***/
 int main(int argc, char **argv, char **envp) {
     Bool listenOnly = FALSE;
@@ -412,6 +423,17 @@ int main(int argc, char **argv, char **envp) {
     
     return EXIT_SUCCESS;
 }
+#else
+
+void *add_launchd_display_thread(void *data) {
+    /* Start listening on the launchd fd */
+    int launchd_fd = launchd_display_fd();
+    if(launchd_fd != -1) {
+        DarwinListenOnOpenFD(launchd_fd);
+    }
+    return NULL;
+}
+#endif
     
 static int execute(const char *command) {
     const char *newargv[7];
@@ -427,7 +449,7 @@ static int execute(const char *command) {
     
     fprintf(stderr, "X11.app: Launching %s:\n", command);
     for(s=newargv; *s; s++) {
-        fprintf(stderr, "\targv[%d] = %s\n", s - newargv, *s);
+        fprintf(stderr, "\targv[%ld] = %s\n", (long int)(s - newargv), *s);
     }
 
     execvp (newargv[0], (char * const *) newargv);

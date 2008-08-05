@@ -1545,7 +1545,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
 
-	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
+	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA -DXQUARTZ_EXPORTS_LAUNCHD_FD"
 fi
 
 # Support for objc in autotools is minimal and not documented.

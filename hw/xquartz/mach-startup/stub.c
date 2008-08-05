@@ -115,6 +115,7 @@ static void set_x11_path() {
     }
 }
 
+#ifdef MACHO_STARTUP
 static int create_socket(char *filename_out) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
@@ -218,7 +219,10 @@ static void send_fd_handoff(int handoff_fd, int launchd_fd) {
 #endif
 }
 
+#endif
+
 int main(int argc, char **argv, char **envp) {
+#ifdef MACHO_STARTUP
     int envpc;
     kern_return_t kr;
     mach_port_t mp;
@@ -227,6 +231,7 @@ int main(int argc, char **argv, char **envp) {
     size_t i;
     int launchd_fd;
     string_t handoff_socket_filename;
+#endif
     sig_t handler;
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
@@ -244,7 +249,8 @@ int main(int argc, char **argv, char **envp) {
     if(handler == SIG_IGN)
         kill(getppid(), SIGUSR1);
     signal(SIGUSR1, handler);
-    
+
+#ifdef MACHO_STARTUP
     /* Get the $DISPLAY FD */
     launchd_fd = launchd_display_fd();
 
@@ -325,4 +331,9 @@ int main(int argc, char **argv, char **envp) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
+#else
+    set_x11_path();
+    argv[0] = x11_path;
+    return execvp(x11_path, argv);
+#endif
 }
