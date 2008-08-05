@@ -41,9 +41,6 @@ void DarwinSendScrollEvents(float count_x, float count_y, int pointer_x, int poi
 void DarwinUpdateModKeys(int flags);
 void DarwinListenOnOpenFD(int fd);
 
-extern int fd_add_count;
-void DarwinProcessFDAdditionQueue(void);
-
 /*
  * Special ddx events understood by the X server
  */

@@ -155,16 +155,18 @@ static void accept_fd_handoff(int connected_fd) {
     *((int*)CMSG_DATA(cmsg)) = -1;
     
     if(recvmsg(connected_fd, &msg, 0) < 0) {
-        fprintf(stderr, "Error receiving $DISPLAY file descriptor.  recvmsg() error: %s\n", strerror(errno));
+        fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor.  recvmsg() error: %s\n", strerror(errno));
         return;
     }
     
     launchd_fd = *((int*)CMSG_DATA(cmsg));
     
     if(launchd_fd == -1)
-        fprintf(stderr, "Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
+        fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
         
-    fprintf(stderr, "Received new DISPLAY fd: %d\n", launchd_fd);
+//    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping before handoff to server thread\n", launchd_fd);
+//    sleep(5);
+    fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }
 
@@ -221,7 +223,7 @@ kern_return_t do_prep_fd_handoff(mach_port_t port, string_t filename) {
     create_thread(socket_handoff_thread, &handoff_fd);
    
 #ifdef DEBUG
-    fprintf(stderr, "X11.app: Thread created for handoff.  Returning success to tell sender to push the fd.\n");
+    fprintf(stderr, "X11.app: Thread created for handoff.  Returning success to tell caller to accept our connection and push the fd.\n");
 #endif
     
     return KERN_SUCCESS;

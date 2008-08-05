@@ -83,11 +83,27 @@ static int old_flags = 0;  // last known modifier state
 static int fd_add[FD_ADD_MAX];
 int fd_add_count = 0;
 static pthread_mutex_t fd_add_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t fd_add_ready_cond = PTHREAD_COND_INITIALIZER;
+static pthread_t fd_add_tid = NULL;
 
 static xEvent *darwinEvents = NULL;
 
 static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t mieq_ready_cond = PTHREAD_COND_INITIALIZER;
+
+/*** Pthread Magics ***/
+static pthread_t create_thread(void *func, void *arg) {
+    pthread_attr_t attr;
+    pthread_t tid;
+
+    pthread_attr_init (&attr);
+    pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create (&tid, &attr, func, arg);
+    pthread_attr_destroy (&attr);
+
+    return tid;
+}
 
 static inline void darwinEvents_lock(void) {
     int err;
@@ -339,18 +355,21 @@ void DarwinListenOnOpenFD(int fd) {
     else
         ErrorF("FD Addition buffer at max.  Dropping fd addition request.\n");
 
+    pthread_cond_broadcast(&fd_add_ready_cond);
     pthread_mutex_unlock(&fd_add_lock);
 #else
     xquartz_launchd_fd = fd;
 #endif
 }
 
-void DarwinProcessFDAdditionQueue() {
+static void DarwinProcessFDAdditionQueue_thread(void *args) {
     pthread_mutex_lock(&fd_add_lock);
-    while(fd_add_count) {
-        DarwinSendDDXEvent(kXquartzListenOnOpenFD, 1, fd_add[--fd_add_count]);
+    while(true) {
+        while(fd_add_count) {
+            DarwinSendDDXEvent(kXquartzListenOnOpenFD, 1, fd_add[--fd_add_count]);
+        }
+        pthread_cond_wait(&fd_add_ready_cond, &fd_add_lock);
     }
-    pthread_mutex_unlock(&fd_add_lock);
 }
 
 static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
@@ -358,7 +377,8 @@ static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceInt
     TA_SERVER();
     
     for (i=0; i<nevents; i++) {
-        ListenOnOpenFD(xe[i].u.clientMessage.u.l.longs0);
+        ErrorF("Calling ListenOnOpenFD() for new fd: %d\n", (int)xe[i].u.clientMessage.u.l.longs0);
+        ListenOnOpenFD((int)xe[i].u.clientMessage.u.l.longs0);
     }
 }
 
@@ -396,6 +416,9 @@ Bool DarwinEQInit(void) {
         darwinEvents_unlock();
     }
 
+    if(!fd_add_tid)
+        fd_add_tid = create_thread(DarwinProcessFDAdditionQueue_thread, NULL);
+    
     return TRUE;
 }
 

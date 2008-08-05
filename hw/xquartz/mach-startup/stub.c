@@ -261,7 +261,7 @@ int main(int argc, char **argv, char **envp) {
         /* This forking is ugly and will be cleaned up later */
         pid_t child = fork();
         if(child == -1) {
-            fprintf(stderr, "Could not fork: %s\n", strerror(errno));
+            fprintf(stderr, "XQuartz: Could not fork: %s\n", strerror(errno));
             return EXIT_FAILURE;
         }
 
@@ -270,7 +270,7 @@ int main(int argc, char **argv, char **envp) {
             _argv[0] = x11_path;
             _argv[1] = "--listenonly";
             _argv[2] = NULL;
-            fprintf(stderr, "Starting X server: %s --listenonly\n", x11_path);
+            fprintf(stderr, "XQuartz: Starting X server: %s --listenonly\n", x11_path);
             return execvp(x11_path, _argv);
         }
 
@@ -283,7 +283,7 @@ int main(int argc, char **argv, char **envp) {
         }
 
         if(kr != KERN_SUCCESS) {
-            fprintf(stderr, "bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
+            fprintf(stderr, "XQuartz: bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
             return EXIT_FAILURE;
         }
     }
@@ -300,7 +300,7 @@ int main(int argc, char **argv, char **envp) {
             close(handoff_fd);
             unlink(handoff_socket_filename);
         } else {
-            fprintf(stderr, "Unable to hand of $DISPLAY file descriptor\n");
+            fprintf(stderr, "XQuartz: Unable to hand of $DISPLAY file descriptor\n");
         }
     }
 
@@ -314,7 +314,7 @@ int main(int argc, char **argv, char **envp) {
     newenvp = (string_array_t)alloca(envpc * sizeof(string_t));
     
     if(!newargv || !newenvp) {
-        fprintf(stderr, "Memory allocation failure\n");
+        fprintf(stderr, "XQuartz: Memory allocation failure\n");
         exit(EXIT_FAILURE);
     }
     
@@ -327,7 +327,7 @@ int main(int argc, char **argv, char **envp) {
 
     kr = start_x11_server(mp, newargv, argc, newenvp, envpc);
     if (kr != KERN_SUCCESS) {
-        fprintf(stderr, "start_x11_server: %s\n", mach_error_string(kr));
+        fprintf(stderr, "XQuartz: start_x11_server: %s\n", mach_error_string(kr));
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
