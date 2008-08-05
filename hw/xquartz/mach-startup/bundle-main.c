@@ -155,7 +155,7 @@ static void accept_fd_handoff(int connected_fd) {
     *((int*)CMSG_DATA(cmsg)) = -1;
     
     if(recvmsg(connected_fd, &msg, 0) < 0) {
-        fprintf(stderr, "Error receiving $DISPLAY file descriptor: %s\n", strerror(errno));
+        fprintf(stderr, "Error receiving $DISPLAY file descriptor.  recvmsg() error: %s\n", strerror(errno));
         return;
     }
     
