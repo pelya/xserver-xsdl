@@ -77,6 +77,15 @@ SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
                     float threshold, float acc);
 
 
+
+/*#define PTRACCEL_DEBUGGING*/
+
+#ifdef PTRACCEL_DEBUGGING
+#define DebugAccelF ErrorF
+#else
+#define DebugAccelF(...) /* */
+#endif
+
 /********************************
  *  Init/Uninit etc
  *******************************/
@@ -276,15 +285,13 @@ QueryFilterChain(
 	    result = cur;
 	    rfn = fn + 1; /*remember result determining filter */
 	} else if(cfn == -1){
-	    cfn = fn; /* rememeber first mismatching filter */
+	    cfn = fn; /* remember first mismatching filter */
 	}
     }
 
     s->statistics.filter_usecount[rfn]++;
-#ifdef PTRACCEL_DEBUGGING
-    ErrorF("(dix ptraccel) result from stage %i,  input %.2f, output %.2f\n",
+    DebugAccelF("(dix ptracc) result from stage %i,  input %.2f, output %.2f\n",
            rfn, value, result);
-#endif
 
     /* override first mismatching current (coupling) so the filter
      * catches up quickly. */
@@ -347,9 +354,7 @@ ProcessVelocityData(
         dy += s->last_dy;
         diff += s->last_diff;
         s->last_diff = time - s->lrm_time; /* prevent repeating add-up */
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) axial correction\n");
-#endif
+        DebugAccelF("(dix ptracc) axial correction\n");
     }else{
         s->last_diff = diff;
     }
@@ -387,9 +392,7 @@ ProcessVelocityData(
 	StuffFilterChain(s, cvelocity);
 	s->velocity = s->last_velocity = cvelocity;
 	s->last_reset = TRUE;
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) non-visible state reset\n");
-#endif
+	DebugAccelF("(dix ptracc) non-visible state reset\n");
 	return TRUE;
     }
 
@@ -401,9 +404,7 @@ ProcessVelocityData(
 	 * stuff that into the filter chain.
 	 */
 	s->last_reset = FALSE;
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) after-reset vel:%.3f\n", cvelocity);
-#endif
+	DebugAccelF("(dix ptracc) after-reset vel:%.3f\n", cvelocity);
 	StuffFilterChain(s, cvelocity);
 	s->velocity = cvelocity;
 	return FALSE;
@@ -415,12 +416,13 @@ ProcessVelocityData(
     /* perform coupling and decide final value */
     s->velocity = QueryFilterChain(s, cvelocity);
 
-#ifdef PTRACCEL_DEBUGGING
-    ErrorF("(dix ptracc) guess: vel=%.3f diff=%d   |%i|%i|%i|%i|\n",
+    DebugAccelF("(dix ptracc) guess: vel=%.3f diff=%d   %i|%i|%i|%i|%i|%i|%i|%i|%i\n",
            s->velocity, diff,
            s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
-           s->statistics.filter_usecount[2], s->statistics.filter_usecount[3]);
-#endif
+           s->statistics.filter_usecount[2], s->statistics.filter_usecount[3],
+           s->statistics.filter_usecount[4], s->statistics.filter_usecount[5],
+           s->statistics.filter_usecount[6], s->statistics.filter_usecount[7],
+           s->statistics.filter_usecount[8]);
     return FALSE;
 }
 
@@ -494,9 +496,7 @@ ComputeAcceleration(
     float res;
 
     if(vel->last_reset){
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) profile skipped\n");
-#endif
+	DebugAccelF("(dix ptracc) profile skipped\n");
         /*
          * This is intended to override the first estimate of a stroke,
          * which is too low (see ProcessVelocityData). 1 should make sure
@@ -516,17 +516,13 @@ ComputeAcceleration(
 	                   (vel->last_velocity + vel->velocity) / 2,
 	                   threshold, acc);
 	res /= 6.0f;
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) profile average [%.2f ... %.2f] is %.3f\n",
-               vel->velocity, vel->last_velocity, res);
-#endif
+	DebugAccelF("(dix ptracc) profile average [%.2f ... %.2f] is %.3f\n",
+	            vel->velocity, vel->last_velocity, res);
         return res;
     }else{
 	res = BasicComputeAcceleration(vel, vel->velocity, threshold, acc);
-#ifdef PTRACCEL_DEBUGGING
-        ErrorF("(dix ptracc) profile sample [%.2f] is %.3f\n",
+	DebugAccelF("(dix ptracc) profile sample [%.2f] is %.3f\n",
                vel->velocity, res);
-#endif
 	return res;
     }
 }
