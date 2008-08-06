@@ -161,11 +161,18 @@ static void accept_fd_handoff(int connected_fd) {
     
     launchd_fd = *((int*)CMSG_DATA(cmsg));
     
-    if(launchd_fd == -1)
+    if(launchd_fd == -1) {
         fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
-        
-//    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping before handoff to server thread\n", launchd_fd);
-//    sleep(5);
+        return;
+    }
+
+#ifndef XQUARTZ_EXPORTS_LAUNCHD_FD
+    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
+
+    /* TODO: Clean up this race better... givint xinitrc time to run. */
+    sleep(2);
+#endif
+
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }
@@ -328,10 +335,14 @@ int main(int argc, char **argv, char **envp) {
         if(display) {
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
+
+#ifdef XQUARTZ_EXPORTS_LAUNCHD_FD
+            fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
             
             /* TODO: Clean up this race better... givint xinitrc time to run. */
             sleep(2);
-            
+#endif
+
             return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }
     }
@@ -359,7 +370,7 @@ int main(int argc, char **argv, char **envp) {
     noPanoramiXExtension = TRUE;
     
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
-    for(i=1; i < argc; i++) {
+    for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
         if(!strcmp(argv[i], "--listenonly")) {
             listenOnly = TRUE;

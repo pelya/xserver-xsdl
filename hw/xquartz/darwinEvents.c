@@ -343,12 +343,16 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
     }
 }
 
+#ifdef XQUARTZ_EXPORTS_LAUNCHD_FD
 int xquartz_launchd_fd = -1;
+#endif
 
 void DarwinListenOnOpenFD(int fd) {
     ErrorF("DarwinListenOnOpenFD: %d\n", fd);
     
-#if 0
+#ifdef XQUARTZ_EXPORTS_LAUNCHD_FD
+    xquartz_launchd_fd = fd;
+#else
     pthread_mutex_lock(&fd_add_lock);
     if(fd_add_count < FD_ADD_MAX)
         fd_add[fd_add_count++] = fd;
@@ -357,8 +361,6 @@ void DarwinListenOnOpenFD(int fd) {
 
     pthread_cond_broadcast(&fd_add_ready_cond);
     pthread_mutex_unlock(&fd_add_lock);
-#else
-    xquartz_launchd_fd = fd;
 #endif
 }
 
@@ -378,7 +380,7 @@ static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceInt
     
     for (i=0; i<nevents; i++) {
         ErrorF("Calling ListenOnOpenFD() for new fd: %d\n", (int)xe[i].u.clientMessage.u.l.longs0);
-        ListenOnOpenFD((int)xe[i].u.clientMessage.u.l.longs0);
+        ListenOnOpenFD((int)xe[i].u.clientMessage.u.l.longs0, 1);
     }
 }
 

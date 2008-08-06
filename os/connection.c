@@ -74,9 +74,7 @@ SOFTWARE.
 #define TRANS_SERVER
 #define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
-#ifdef HAVE_LAUNCHD
 #include <X11/Xtrans/Xtransint.h>
-#endif
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -661,23 +659,22 @@ ClientAuthorized(ClientPtr client,
     XID	 		auth_id;
     char	 	*reason = NULL;
     XtransConnInfo	trans_conn;
-#ifdef HAVE_LAUNCHD
-    struct sockaddr     *saddr;
-#endif
 
     priv = (OsCommPtr)client->osPrivate;
     trans_conn = priv->trans_conn;
 
-#ifdef HAVE_LAUNCHD
-    saddr = (struct sockaddr *) (trans_conn->addr);
-    /* Allow any client to connect without authorization on a launchd socket,
-       because it is securely created -- this prevents a race condition on launch */
-    if (saddr->sa_len > 11 && saddr->sa_family == AF_UNIX &&
-        !strncmp(saddr->sa_data, "/tmp/launch", 11)) goto done;
+/* Make it compile for now, remove this once we have a new xtrans release and are depending on it in configure.ac */
+#ifndef TRANS_NOXAUTH
+#define TRANS_NOXAUTH 0
 #endif
 
-    auth_id = CheckAuthorization (proto_n, auth_proto,
-				  string_n, auth_string, client, &reason);
+    /* Allow any client to connect without authorization on a launchd socket,
+       because it is securely created -- this prevents a race condition on launch */
+    if(trans_conn->flags | TRANS_NOXAUTH) {
+        auth_id = (XID) 0L;
+    } else {
+        auth_id = CheckAuthorization (proto_n, auth_proto, string_n, auth_string, client, &reason);
+    }
 
     if (auth_id == (XID) ~0L)
     {
@@ -725,9 +722,6 @@ ClientAuthorized(ClientPtr client,
 	}
     }
     priv->auth_id = auth_id;
-#ifdef HAVE_LAUNCHD
- done:
-#endif
     priv->conn_time = 0;
 
 #ifdef XDMCP
@@ -1269,12 +1263,17 @@ MakeClientGrabPervious(ClientPtr client)
 
 #ifdef XQUARTZ
 /* Add a fd (from launchd) to our listeners */
-_X_EXPORT void ListenOnOpenFD(int fd) {
-    char port[20];
+_X_EXPORT void ListenOnOpenFD(int fd, int noxauth) {
+    char port[256];
     XtransConnInfo ciptr;
-    
-    /* Sigh for inconsistencies. */  
-    sprintf (port, ":%d", atoi(display));
+
+    if(!strncmp(getenv("DISPLAY"), "/tmp/launch", 11)) {
+        /* Make the path the launchd socket if our DISPLAY is set right */
+        strcpy(port, getenv("DISPLAY"));
+    } else {
+        /* Just some default so things don't break and die. */
+        sprintf(port, ":%d", atoi(display));
+    }
 
     /* Make our XtransConnInfo
      * TRANS_SOCKET_LOCAL_INDEX = 5 from Xtrans.c
@@ -1285,6 +1284,9 @@ _X_EXPORT void ListenOnOpenFD(int fd) {
         return;
     }
     
+    if(noxauth)
+        ciptr->flags = ciptr->flags | TRANS_NOXAUTH;
+
     /* Allocate space to store it */
     ListenTransFds = (int *) xrealloc(ListenTransFds, (ListenTransCount + 1) * sizeof (int));
     ListenTransConns = (XtransConnInfo *) xrealloc(ListenTransConns, (ListenTransCount + 1) * sizeof (XtransConnInfo));
@@ -1299,11 +1301,11 @@ _X_EXPORT void ListenOnOpenFD(int fd) {
     /* Increment the count */
     ListenTransCount++;
 
-    /* This *might* be needed, but it seems to be working fine without it... */
-    //ResetAuthorization();
-    //ResetHosts(display);
+    /* This *might* not be needed... /shrug */
+    ResetAuthorization();
+    ResetHosts(display);
 #ifdef XDMCP
-    //XdmcpReset();
+    XdmcpReset();
 #endif
 }
 
