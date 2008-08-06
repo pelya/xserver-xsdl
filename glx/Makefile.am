@@ -89,3 +89,6 @@ libglx_la_SOURCES = \
         swap_interval.c \
         unpack.h \
         xfont.c
+
+EXTRA_DIST = glcontextmodes.h \
+	     glcontextmodes.c 
