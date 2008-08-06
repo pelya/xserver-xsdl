@@ -168,57 +168,11 @@ static void accept_fd_handoff(int connected_fd) {
     DarwinListenOnOpenFD(launchd_fd);
 }
 
-typedef struct {
-    string_t socket_filename;
-    pthread_mutex_t lock;
-    pthread_cond_t cond;
-    kern_return_t retval;
-} handoff_data_t;
-
-/* This thread loops accepting incoming connections and handing off the file
+/* This thread accepts an incoming connection and hands off the file
  * descriptor for the new connection to accept_fd_handoff()
  */
 static void socket_handoff_thread(void *arg) {
-    handoff_data_t *data = (handoff_data_t *)arg;
-    string_t filename;
-    struct sockaddr_un servaddr_un;
-    struct sockaddr *servaddr;
-    socklen_t servaddr_len;
-    int handoff_fd;
-
-    /* We need to save it since data dies after we pthread_cond_broadcast */
-    strlcpy(filename, data->socket_filename, STRING_T_SIZE); 
-    
-    /* Make sure we only run once the dispatch thread is waiting for us */
-    pthread_mutex_lock(&data->lock);
-    
-    /* Setup servaddr_un */
-    memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
-    servaddr_un.sun_family  = AF_UNIX;
-    strlcpy(servaddr_un.sun_path, filename, sizeof(servaddr_un.sun_path));
-
-    servaddr = (struct sockaddr *) &servaddr_un;
-    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
-    
-    handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if(handoff_fd == -1) {
-        fprintf(stderr, "X11.app: Failed to create socket: %d - %s\n", errno, strerror(errno));
-
-        data->retval = EXIT_FAILURE;
-        pthread_cond_broadcast(&data->cond);
-        pthread_mutex_unlock(&data->lock);
-        return;
-    }
-
-    /* Let the dispatch thread now tell the caller that we're ready */
-    data->retval = EXIT_SUCCESS;
-    pthread_cond_broadcast(&data->cond);
-    pthread_mutex_unlock(&data->lock);
-    
-    if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
-        fprintf(stderr, "X11.app: Failed to connect to socket: %s - %d - %s\n", filename, errno, strerror(errno));
-        return;
-    }
+    int handoff_fd = *(int *)arg;
 
     /* Now actually get the passed file descriptor from this connection */
     accept_fd_handoff(handoff_fd);
@@ -226,39 +180,51 @@ static void socket_handoff_thread(void *arg) {
     close(handoff_fd);
 }
 
-kern_return_t do_prep_fd_handoff(mach_port_t port, string_t socket_filename) {
-    handoff_data_t handoff_data;
+kern_return_t do_prep_fd_handoff(mach_port_t port, string_t filename) {
+    struct sockaddr_un servaddr_un;
+    struct sockaddr *servaddr;
+    socklen_t servaddr_len;
+    int handoff_fd;
 
 #ifdef DEBUG
     fprintf(stderr, "X11.app: Prepping for fd handoff.\n");
 #endif
     
     /* Initialize our data */
-    pthread_mutex_init(&handoff_data.lock, NULL);
-    pthread_cond_init(&handoff_data.cond, NULL);
-    strlcpy(handoff_data.socket_filename, socket_filename, STRING_T_SIZE); 
 
-    pthread_mutex_lock(&handoff_data.lock);
+    /* Setup servaddr_un */
+    memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
+    servaddr_un.sun_family  = AF_UNIX;
+    strlcpy(servaddr_un.sun_path, filename, sizeof(servaddr_un.sun_path));
     
-    create_thread(socket_handoff_thread, &handoff_data);
+    servaddr = (struct sockaddr *) &servaddr_un;
+    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
 
+    /* Get a fd for the handoff */
+    handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if(handoff_fd == -1) {
+        fprintf(stderr, "X11.app: Failed to create socket: %d - %s\n", errno, strerror(errno));
+        return KERN_FAILURE;
+    }
 #ifdef DEBUG
-    fprintf(stderr, "X11.app: Thread created for handoff.  Waiting on return value.\n");
+    fprintf(stderr, "X11.app: socket created for fd handoff: fd=%d\n", handoff_fd);
+#endif
+
+    if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
+        fprintf(stderr, "X11.app: Failed to connect to socket: %s - %d - %s\n", filename, errno, strerror(errno));
+        return KERN_FAILURE;
+    }
+#ifdef DEBUG
+    fprintf(stderr, "X11.app: Connection established for fd handoff: fd=%d\n", handoff_fd);
 #endif
     
-    /* Wait for our return value */
-    pthread_cond_wait(&handoff_data.cond, &handoff_data.lock);
-    pthread_mutex_unlock(&handoff_data.lock);
-
-    /* Cleanup */
-    pthread_cond_destroy(&handoff_data.cond);
-    pthread_mutex_destroy(&handoff_data.lock);
-
+    create_thread(socket_handoff_thread, &handoff_fd);
+   
 #ifdef DEBUG
-    fprintf(stderr, "X11.app: Sending return value: %d\n", handoff_data.retval);
+    fprintf(stderr, "X11.app: Thread created for handoff.  Returning success to tell sender to push the fd.\n");
 #endif
     
-    return handoff_data.retval;
+    return KERN_SUCCESS;
 }
 
 /*** Server Startup ***/
