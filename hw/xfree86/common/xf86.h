@@ -205,6 +205,7 @@ void xf86InterceptSignals(int *signo);
 void xf86InterceptSigIll(void (*sigillhandler)(void));
 Bool xf86EnableVTSwitch(Bool new);
 void xf86ProcessActionEvent(ActionEvent action, void *arg);
+void xf86PrintBacktrace(void);
 
 /* xf86Helper.c */
 

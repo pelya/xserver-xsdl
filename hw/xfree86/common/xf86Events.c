@@ -632,6 +632,16 @@ xf86SigHandler(int signo)
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
 
+/*
+ * xf86PrintBacktrace --
+ *    Print a stack backtrace for debugging purposes.
+ */
+_X_EXPORT void
+xf86PrintBacktrace(void)
+{
+    xorg_backtrace();
+}
+
 #define KeyPressed(k) (keyc->postdown[k >> 3] & (1 << (k & 7)))
 #define ModifierDown(k) ((keyc->state & (k)) == (k))
 
