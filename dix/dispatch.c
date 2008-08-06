@@ -1116,11 +1116,11 @@ ProcQueryFont(ClientPtr client)
     REQUEST_SIZE_MATCH(xResourceReq);
 
     client->errorValue = stuff->id;		/* EITHER font or gc */
-    rc = dixLookupResource((pointer *)&pFont, stuff->id, RT_FONT, client,
-			   DixGetAttrAccess);
+    rc = dixLookupResourceByType((pointer *)&pFont, stuff->id, RT_FONT, client,
+				 DixGetAttrAccess);
     if (rc == BadValue) {
-	rc = dixLookupResource((pointer *)&pGC, stuff->id, RT_GC, client,
-			       DixGetAttrAccess);
+	rc = dixLookupResourceByType((pointer *)&pGC, stuff->id, RT_GC, client,
+				     DixGetAttrAccess);
 	if (rc == Success)
 	    pFont = pGC->font;
     }
@@ -1174,10 +1174,10 @@ ProcQueryTextExtents(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xQueryTextExtentsReq);
         
     client->errorValue = stuff->fid;		/* EITHER font or gc */
-    rc = dixLookupResource((pointer *)&pFont, stuff->fid, RT_FONT, client,
-			   DixGetAttrAccess);
+    rc = dixLookupResourceByType((pointer *)&pFont, stuff->fid, RT_FONT, client,
+				 DixGetAttrAccess);
     if (rc == BadValue) {
-	rc = dixLookupResource((pointer *)&pGC, stuff->fid, RT_GC, client,
+	rc = dixLookupResourceByType((pointer *)&pGC, stuff->fid, RT_GC, client,
 			       DixGetAttrAccess);
 	if (rc == Success)
 	    pFont = pGC->font;
@@ -1322,7 +1322,7 @@ ProcFreePixmap(ClientPtr client)
     REQUEST(xResourceReq);
     REQUEST_SIZE_MATCH(xResourceReq);
 
-    rc = dixLookupResource((pointer *)&pMap, stuff->id, RT_PIXMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pMap, stuff->id, RT_PIXMAP, client,
 			   DixDestroyAccess);
     if (rc == Success)
     {
@@ -2269,7 +2269,7 @@ ProcFreeColormap(ClientPtr client)
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupResource((pointer *)&pmap, stuff->id, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pmap, stuff->id, RT_COLORMAP, client,
 			   DixDestroyAccess);
     if (rc == Success)
     {
@@ -2297,7 +2297,7 @@ ProcCopyColormapAndFree(ClientPtr client)
     REQUEST_SIZE_MATCH(xCopyColormapAndFreeReq);
     mid = stuff->mid;
     LEGAL_NEW_RESOURCE(mid, client);
-    rc = dixLookupResource((pointer *)&pSrcMap, stuff->srcCmap, RT_COLORMAP,
+    rc = dixLookupResourceByType((pointer *)&pSrcMap, stuff->srcCmap, RT_COLORMAP,
 			   client, DixReadAccess|DixRemoveAccess);
     if (rc == Success)
     {
@@ -2322,7 +2322,7 @@ ProcInstallColormap(ClientPtr client)
     REQUEST(xResourceReq);
     REQUEST_SIZE_MATCH(xResourceReq);
 
-    rc = dixLookupResource((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
 			   DixInstallAccess);
     if (rc != Success)
 	goto out;
@@ -2347,7 +2347,7 @@ ProcUninstallColormap(ClientPtr client)
     REQUEST(xResourceReq);
     REQUEST_SIZE_MATCH(xResourceReq);
 
-    rc = dixLookupResource((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
 			   DixUninstallAccess);
     if (rc != Success)
 	goto out;
@@ -2413,7 +2413,7 @@ ProcAllocColor (ClientPtr client)
     REQUEST(xAllocColorReq);
 
     REQUEST_SIZE_MATCH(xAllocColorReq);
-    rc = dixLookupResource((pointer *)&pmap, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pmap, stuff->cmap, RT_COLORMAP, client,
 			   DixAddAccess);
     if (rc == Success)
     {
@@ -2454,7 +2454,7 @@ ProcAllocNamedColor (ClientPtr client)
     REQUEST(xAllocNamedColorReq);
 
     REQUEST_FIXED_SIZE(xAllocNamedColorReq, stuff->nbytes);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixAddAccess);
     if (rc == Success)
     {
@@ -2505,7 +2505,7 @@ ProcAllocColorCells (ClientPtr client)
     REQUEST(xAllocColorCellsReq);
 
     REQUEST_SIZE_MATCH(xAllocColorCellsReq);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixAddAccess);
     if (rc == Success)
     {
@@ -2572,7 +2572,7 @@ ProcAllocColorPlanes(ClientPtr client)
     REQUEST(xAllocColorPlanesReq);
 
     REQUEST_SIZE_MATCH(xAllocColorPlanesReq);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixAddAccess);
     if (rc == Success)
     {
@@ -2637,7 +2637,7 @@ ProcFreeColors(ClientPtr client)
     REQUEST(xFreeColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xFreeColorsReq);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixRemoveAccess);
     if (rc == Success)
     {
@@ -2672,7 +2672,7 @@ ProcStoreColors (ClientPtr client)
     REQUEST(xStoreColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xStoreColorsReq);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixWriteAccess);
     if (rc == Success)
     {
@@ -2706,7 +2706,7 @@ ProcStoreNamedColor (ClientPtr client)
     REQUEST(xStoreNamedColorReq);
 
     REQUEST_FIXED_SIZE(xStoreNamedColorReq, stuff->nbytes);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixWriteAccess);
     if (rc == Success)
     {
@@ -2740,7 +2740,7 @@ ProcQueryColors(ClientPtr client)
     REQUEST(xQueryColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xQueryColorsReq);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixReadAccess);
     if (rc == Success)
     {
@@ -2793,7 +2793,7 @@ ProcLookupColor(ClientPtr client)
     REQUEST(xLookupColorReq);
 
     REQUEST_FIXED_SIZE(xLookupColorReq, stuff->nbytes);
-    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
 			   DixReadAccess);
     if (rc == Success)
     {
@@ -2842,14 +2842,14 @@ ProcCreateCursor (ClientPtr client)
     REQUEST_SIZE_MATCH(xCreateCursorReq);
     LEGAL_NEW_RESOURCE(stuff->cid, client);
 
-    rc = dixLookupResource((pointer *)&src, stuff->source, RT_PIXMAP, client,
+    rc = dixLookupResourceByType((pointer *)&src, stuff->source, RT_PIXMAP, client,
 			   DixReadAccess);
     if (rc != Success) {
 	client->errorValue = stuff->source;
 	return (rc == BadValue) ? BadPixmap : rc;
     }
 
-    rc = dixLookupResource((pointer *)&msk, stuff->mask, RT_PIXMAP, client,
+    rc = dixLookupResourceByType((pointer *)&msk, stuff->mask, RT_PIXMAP, client,
 			   DixReadAccess);
     if (rc != Success)
     {
@@ -2947,7 +2947,7 @@ ProcFreeCursor (ClientPtr client)
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupResource((pointer *)&pCursor, stuff->id, RT_CURSOR, client,
+    rc = dixLookupResourceByType((pointer *)&pCursor, stuff->id, RT_CURSOR, client,
 			   DixDestroyAccess);
     if (rc == Success) 
     {

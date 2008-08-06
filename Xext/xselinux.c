@@ -553,7 +553,7 @@ SELinuxLabelInitial(void)
 	SELinuxScreen(NULL, NULL, &srec);
 
 	/* Do the default colormap */
-	dixLookupResource(&unused, screenInfo.screens[i]->defColormap,
+	dixLookupResourceByType(&unused, screenInfo.screens[i]->defColormap,
 			  RT_COLORMAP, serverClient, DixCreateAccess);
     }
 }

@@ -263,7 +263,7 @@ SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XSyncCounter counter,
     {
 	if (counter == None)
 	    pCounter = NULL;
-	else if (Success != (rc = dixLookupResource((pointer *)&pCounter,
+	else if (Success != (rc = dixLookupResourceByType ((pointer *)&pCounter,
 				counter, RTCounter, client, DixReadAccess)))
 	{
 	    client->errorValue = counter;

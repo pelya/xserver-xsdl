@@ -218,10 +218,17 @@ extern _X_EXPORT pointer LookupClientResourceComplex(
     FindComplexResType func,
     pointer cdata);
 
-extern _X_EXPORT int dixLookupResource(
+extern _X_EXPORT int dixLookupResourceByType(
     pointer *result,
     XID id,
     RESTYPE rtype,
+    ClientPtr client,
+    Mask access_mode);
+
+extern _X_EXPORT int dixLookupResourceByClass(
+    pointer *result,
+    XID id,
+    RESTYPE rclass,
     ClientPtr client,
     Mask access_mode);
 
@@ -244,29 +251,43 @@ extern _X_EXPORT RESTYPE TypeMask;
  * Please use the noted replacements instead.
  */
 
-/* replaced by dixLookupResource */
+#ifdef __GNUC__
+#define X_DEPRECATED __attribute__((deprecated))
+#else
+#define X_DEPRECATED
+#endif
+
+/* replaced by dixLookupResourceByType or dixLookupResourceByClass */
+extern int dixLookupResource(
+    pointer *result,
+    XID id,
+    RESTYPE rtype,
+    ClientPtr client,
+    Mask access_mode) X_DEPRECATED;
+
+/* replaced by dixLookupResourceByType */
 extern _X_EXPORT pointer SecurityLookupIDByType(
     ClientPtr client,
     XID id,
     RESTYPE rtype,
-    Mask access_mode);
+    Mask access_mode) X_DEPRECATED;
 
-/* replaced by dixLookupResource */
+/* replaced by dixLookupResourceByClass */
 extern _X_EXPORT pointer SecurityLookupIDByClass(
     ClientPtr client,
     XID id,
     RESTYPE classes,
-    Mask access_mode);
+    Mask access_mode) X_DEPRECATED;
 
-/* replaced by dixLookupResource */
+/* replaced by dixLookupResourceByType */
 extern _X_EXPORT pointer LookupIDByType(
     XID id,
-    RESTYPE rtype);
+    RESTYPE rtype) X_DEPRECATED;
 
-/* replaced by dixLookupResource */
+/* replaced by dixLookupResourceByClass */
 extern _X_EXPORT pointer LookupIDByClass(
     XID id,
-    RESTYPE classes);
+    RESTYPE classes) X_DEPRECATED;
 
 #endif /* RESOURCE_H */
 
