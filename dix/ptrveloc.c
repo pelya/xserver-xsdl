@@ -152,9 +152,8 @@ Expected result is a series of filters, each progressively more integrating.
 
 This allows for two strategies: Either you have one filter which is reasonable
 and is being coupled to account for fast-changing input, or you have 'one for
-every situation'. You might want to have loose coupling then, i.e. > 1.
-E.g. you could start around 1/2 of your anticipated delta t and
-scale up until several motion deltas are 'averaged'.
+every situation'. You might want to have tighter coupling then, e.g. 0.1.
+In the filter stats, you can see if a reasonable filter useage emerges.
 */
 void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages, int lutsize)
