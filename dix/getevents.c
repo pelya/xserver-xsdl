@@ -525,10 +525,6 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
 /**
  * Fills events with valuator events for pDev, as given by the other
  * parameters.
- *
- * FIXME: Need to fix ValuatorClassRec to store all the valuators as
- *        last posted, not just x and y; otherwise relative non-x/y
- *        valuators, though a very narrow use case, will be broken.
  */
 static EventList *
 getValuatorEvents(EventList *events, DeviceIntPtr pDev,
