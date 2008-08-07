@@ -1651,10 +1651,11 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                      int numKeyPerModifier, xSetModifierMappingReply *rep)
 {
     DeviceIntPtr pDev = NULL;
+    DeviceIntPtr cp = PickKeyboard(client); /* ClientPointer keyboard */
     int rc, i = 0, inputMapLen = numKeyPerModifier * 8;
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
+        if (pDev == cp || (!pDev->isMaster && (pDev->u.master == cp) && pDev->key)) {
             for (i = 0; i < inputMapLen; i++) {
                 /* Check that all the new modifiers fall within the advertised
                  * keycode range, and are okay with the DDX. */
