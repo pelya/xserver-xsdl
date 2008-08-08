@@ -21,6 +21,9 @@ X11_LDADD = \
 	$(top_builddir)/miext/rootless/librootless.la \
 	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin -lX11
 
+#	$(top_builddir)/hw/xquartz/GL/libCGLCore.la \
+#	$(top_builddir)/glx/libglx.la \
+
 X11_LDFLAGS =  \
 	-XCClinker -Objc \
 	-Wl,-u,_miDCInitialize \
