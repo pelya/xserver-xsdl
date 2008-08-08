@@ -33,7 +33,6 @@
 #include <dix-config.h>
 #endif
 
-#include "quartzForeground.h"
 #include "quartzCommon.h"
 
 #import "X11Application.h"
