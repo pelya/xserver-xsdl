@@ -466,65 +466,67 @@ exaCompositeRects(CARD8	              op,
 {
     PixmapPtr pPixmap = exaGetDrawablePixmap(pDst->pDrawable);
     ExaPixmapPriv(pPixmap);
-    
-    int xoff, yoff;
-    int x1 = MAXSHORT;
-    int y1 = MAXSHORT;
-    int x2 = MINSHORT;
-    int y2 = MINSHORT;
     RegionRec region;
-    RegionPtr pending_damage;
-    BoxRec box;
     int n;
     ExaCompositeRectPtr r;
     
-    /* We have to manage the damage ourselves, since CompositeRects isn't
-     * something in the screen that can be managed by the damage extension,
-     * and EXA depends on damage to track what needs to be migrated between
-     * offscreen and onscreen.
-     */
+    if (pExaPixmap->pDamage) {
+	int xoff, yoff;
+	int x1 = MAXSHORT;
+	int y1 = MAXSHORT;
+	int x2 = MINSHORT;
+	int y2 = MINSHORT;
+	RegionPtr pending_damage;
+	BoxRec box;
+    
+	/* We have to manage the damage ourselves, since CompositeRects isn't
+	 * something in the screen that can be managed by the damage extension,
+	 * and EXA depends on damage to track what needs to be migrated between
+	 * offscreen and onscreen.
+	 */
 
-    /* Compute the overall extents of the composited region - we're making
-     * the assumption here that we are compositing a bunch of glyphs that
-     * cluster closely together and damaging each glyph individually would
-     * be a loss compared to damaging the bounding box.
-     */
-    n = nrect;
-    r = rects;
-    while (n--) {
-	int rect_x2 = r->xDst + r->width;
-	int rect_y2 = r->yDst + r->width;
+	/* Compute the overall extents of the composited region - we're making
+	 * the assumption here that we are compositing a bunch of glyphs that
+	 * cluster closely together and damaging each glyph individually would
+	 * be a loss compared to damaging the bounding box.
+	 */
+	n = nrect;
+	r = rects;
+	while (n--) {
+	    int rect_x2 = r->xDst + r->width;
+	    int rect_y2 = r->yDst + r->width;
 
-	if (r->xDst < x1) x1 = r->xDst;
-	if (r->xDst < y1) y1 = r->xDst;
-	if (rect_x2 > x2) x2 = rect_x2;
-	if (rect_y2 > y2) y2 = rect_y2;
-	
-	r++;
+	    if (r->xDst < x1) x1 = r->xDst;
+	    if (r->xDst < y1) y1 = r->xDst;
+	    if (rect_x2 > x2) x2 = rect_x2;
+	    if (rect_y2 > y2) y2 = rect_y2;
+
+	    r++;
+	}
+
+	if (x2 <= x1 && y2 <= y1)
+	    return;
+
+	box.x1 = x1;
+	box.x2 = x2 < MAXSHORT ? x2 : MAXSHORT;
+	box.y1 = y1;
+	box.y2 = y2 < MAXSHORT ? y2 : MAXSHORT;
+
+ 	/* The pixmap migration code relies on pendingDamage indicating
+	 * the bounds of the current rendering, so we need to force 
+	 * the actual damage into that region before we do anything, and
+	 * (see use of DamagePendingRegion in exaCopyDirty)
+	 */
+
+	REGION_INIT(pScreen, &region, &box, 1);
+    
+	exaGetDrawableDeltas(pDst->pDrawable, pPixmap, &xoff, &yoff);
+
+	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
+	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+	REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
     }
-
-    if (x2 <= x1 && y2 <= y1)
-	return;
-
-    box.x1 = x1;
-    box.x2 = x2 < MAXSHORT ? x2 : MAXSHORT;
-    box.y1 = y1;
-    box.y2 = y2 < MAXSHORT ? y2 : MAXSHORT;
-    
-    /* The pixmap migration code relies on pendingDamage indicating
-     * the bounds of the current rendering, so we need to force 
-     * the actual damage into that region before we do anything, and
-     * (see use of DamagePendingRegion in exaCopyDirty)
-     */
-    
-    REGION_INIT(pScreen, &region, &box, 1);
-    
-    exaGetDrawableDeltas(pDst->pDrawable, pPixmap, &xoff, &yoff);
-
-    REGION_TRANSLATE(pScreen, &region, xoff, yoff);
-    pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-    REGION_UNION(pScreen, pending_damage, pending_damage, &region);
-    REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
     
     /************************************************************/
     
@@ -546,14 +548,16 @@ exaCompositeRects(CARD8	              op,
     
     /************************************************************/
 
-    /* Now we have to flush the damage out from pendingDamage => damage 
-     * Calling DamageDamageRegion has that effect. (We could pass
-     * in an empty region here, but we pass in the same region we
-     * use above; the effect is the same.)
-     */
+    if (pExaPixmap->pDamage) {
+	/* Now we have to flush the damage out from pendingDamage => damage 
+	 * Calling DamageDamageRegion has that effect. (We could pass
+	 * in an empty region here, but we pass in the same region we
+	 * use above; the effect is the same.)
+	 */
 
-    DamageDamageRegion(pDst->pDrawable, &region);
-    REGION_UNINIT(pScreen, &region);
+	DamageDamageRegion(pDst->pDrawable, &region);
+	REGION_UNINIT(pScreen, &region);
+    }
 }
 
 static int
@@ -1067,23 +1071,26 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
-	RegionRec migration;
-	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-	int xoff, yoff;
 
-	exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
+	if (pExaPixmap->pDamage) {
+	    RegionRec migration;
+	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	    int xoff, yoff;
 
-	xoff += pDraw->x;
-	yoff += pDraw->y;
+	    exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
 
-	bounds.x1 += xoff;
-	bounds.y1 += yoff;
-	bounds.x2 += xoff;
-	bounds.y2 += yoff;
+	    xoff += pDraw->x;
+	    yoff += pDraw->y;
 
-	REGION_INIT(pScreen, &migration, &bounds, 1);
-	REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
-	REGION_UNINIT(pScreen, &migration);
+	    bounds.x1 += xoff;
+	    bounds.y1 += yoff;
+	    bounds.x2 += xoff;
+	    bounds.y2 += yoff;
+
+	    REGION_INIT(pScreen, &migration, &bounds, 1);
+	    REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
+	    REGION_UNINIT(pScreen, &migration);
+	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
 
@@ -1170,23 +1177,26 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
-	RegionRec migration;
-	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-	int xoff, yoff;
 
-	exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
+	if (pExaPixmap->pDamage) {
+	    RegionRec migration;
+	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	    int xoff, yoff;
 
-	xoff += pDraw->x;
-	yoff += pDraw->y;
+	    exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
 
-	bounds.x1 += xoff;
-	bounds.y1 += yoff;
-	bounds.x2 += xoff;
-	bounds.y2 += yoff;
+	    xoff += pDraw->x;
+	    yoff += pDraw->y;
 
-	REGION_INIT(pScreen, &migration, &bounds, 1);
-	REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
-	REGION_UNINIT(pScreen, &migration);
+	    bounds.x1 += xoff;
+	    bounds.y1 += yoff;
+	    bounds.x2 += xoff;
+	    bounds.y2 += yoff;
+
+	    REGION_INIT(pScreen, &migration, &bounds, 1);
+	    REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
+	    REGION_UNINIT(pScreen, &migration);
+	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
 	(*ps->AddTriangles) (pDst, 0, 0, ntri, tris);

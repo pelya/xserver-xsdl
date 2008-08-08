@@ -159,7 +159,7 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
     RegionPtr pDamageReg;
     RegionRec region;
 
-    if (!pExaPixmap)
+    if (!pExaPixmap || !pExaPixmap->pDamage)
 	return;
 	
     box.x1 = max(x1, 0);
@@ -334,6 +334,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
                                        paddedWidth, NULL);
         pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
         pExaPixmap->fb_ptr = NULL;
+        pExaPixmap->pDamage = NULL;
     } else {
         pExaPixmap->driverPriv = NULL;
         /* Scratch pixmaps may have w/h equal to zero, and may not be
@@ -358,21 +359,22 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	     fbDestroyPixmap(pPixmap);
 	     return NULL;
         }
+
+	/* Set up damage tracking */
+	pExaPixmap->pDamage = DamageCreate (ExaDamageReport, NULL,
+					    DamageReportRawRegion, TRUE,
+					    pScreen, pPixmap);
+
+	if (pExaPixmap->pDamage == NULL) {
+	    fbDestroyPixmap (pPixmap);
+	    return NULL;
+	}
+
+	DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
+	DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
     }
  
     pExaPixmap->area = NULL;
-
-    /* Set up damage tracking */
-    pExaPixmap->pDamage = DamageCreate (ExaDamageReport, NULL, DamageReportRawRegion, TRUE,
-					pScreen, pPixmap);
-
-    if (pExaPixmap->pDamage == NULL) {
-	fbDestroyPixmap (pPixmap);
-	return NULL;
-    }
-
-    DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
-    DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
 
     /* None of the pixmap bits are valid initially */
     REGION_NULL(pScreen, &pExaPixmap->validSys);

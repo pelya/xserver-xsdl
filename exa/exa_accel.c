@@ -144,7 +144,6 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     ExaScreenPriv (pDrawable->pScreen);
     PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
     ExaPixmapPriv(pPix);
-    ExaMigrationRec pixmaps[1];
     RegionPtr pClip;
     BoxPtr pbox;
     int nbox;
@@ -166,11 +165,16 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     if (pExaScr->swappedOut)
 	return FALSE;
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPix;
-    pixmaps[0].pReg = DamagePendingRegion(pExaPixmap->pDamage);
-    exaDoMigration (pixmaps, 1, TRUE);
+    if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+ 	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pPix;
+	pixmaps[0].pReg = DamagePendingRegion(pExaPixmap->pDamage);
+
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
@@ -297,14 +301,19 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 		   .x2 = pDrawable->x + dx + sw, .y2 = pDrawable->y + dy + sh };
     RegionRec region;
     int xoff, yoff;
-    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+    RegionPtr pending_damage = NULL;
 
-    REGION_INIT(pScreen, &region, &box, 1);
+    if (pExaPixmap->pDamage)
+	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
-    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+    if (pending_damage) {
+	REGION_INIT(pScreen, &region, &box, 1);
 
-    REGION_TRANSLATE(pScreen, &region, xoff, yoff);
-    REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+	exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+
+	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
+	REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+    }
 
     if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh,
 			  dx, dy, data)) {
@@ -318,10 +327,12 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
     }
 
-    REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
-    DamageDamageRegion(pDrawable, &region);
+    if (pending_damage) {
+	REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
+	DamageDamageRegion(pDrawable, &region);
 
-    REGION_UNINIT(pScreen, &region);
+	REGION_UNINIT(pScreen, &region);
+    }
 }
 
 ShmFuncs exaShmFuncs = { NULL, exaShmPutImage };
@@ -968,16 +979,23 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     FbBits	    depthMask;
     PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
     ExaPixmapPriv(pPixmap);
-    RegionPtr	    pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-    BoxRec	    extents = *REGION_EXTENTS(pScreen, pending_damage);
+    RegionPtr	    pending_damage = NULL;
+    BoxRec	    extents;
     int		    xoff, yoff;
 
-    if (extents.x1 >= extents.x2 || extents.y1 >= extents.y2)
-	return;
+    if (pExaPixmap->pDamage)
+	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
-    depthMask = FbFullMask(pDrawable->depth);
+    if (pending_damage) {
+	extents = *REGION_EXTENTS(pScreen, pending_damage);
 
-    if ((pGC->planemask & depthMask) != depthMask)
+	if (extents.x1 >= extents.x2 || extents.y1 >= extents.y2)
+	    return;
+
+	depthMask = FbFullMask(pDrawable->depth);
+    }
+
+    if (!pending_damage || (pGC->planemask & depthMask) != depthMask)
     {
 	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	return;
