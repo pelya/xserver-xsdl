@@ -71,6 +71,8 @@
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
+#include <Availability.h>
+
 void QuartzXkbUpdate(DeviceIntPtr pDev);
 
 enum {
@@ -1090,6 +1092,7 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 /* TODO: Not thread safe */
 unsigned int QuartzSystemKeymapSeed(void) {
     static unsigned int seed = 0;
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
     static TISInputSourceRef last_key_layout = NULL;
     TISInputSourceRef key_layout;
 
@@ -1106,7 +1109,15 @@ unsigned int QuartzSystemKeymapSeed(void) {
     } else {
         last_key_layout = key_layout;
     }
+#else
+    static KeyboardLayoutRef last_key_layout;
+    KeyboardLayoutRef key_layout;
 
+    KLGetCurrentKeyboardLayout (&key_layout);
+    if (key_layout != last_key_layout)
+        seed++;
+    last_key_layout = key_layout;
+#endif
     return seed;
 }
 
@@ -1148,6 +1159,9 @@ static KeySym make_dead_key(KeySym in) {
 }
 
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+    KeyboardLayoutRef key_layout;
+#endif
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
@@ -1156,17 +1170,44 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     KeySym *k;
 
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
-    keyboard_type = LMGetKbdType ();
+    keyboard_type = LMGetKbdType();
+
     if (currentKeyLayoutRef) {
       CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
-      if (currentKeyLayoutDataRef) chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
+      if (currentKeyLayoutDataRef)
+          chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
+
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+    if (chr_data == NULL) {
+        ErrorF("X11.app: Error detected in determining keyboard layout.  Please report this error at http://xquartz.macosforge.org\n");
+        ErrorF("X11.app: Debug Info: currentKeyLayoutRef=%p, chr_data=%p\n", currentKeyLayoutRef, chr_data);
+
+        KLGetCurrentKeyboardLayout (&key_layout);
+        KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
+
+        if(chr_data != NULL) {
+            ErrorF("X11.app: Fallback succeeded, but this is still a bug.  Please report the above information.\n");
+        }
+    }
+
+    if (chr_data == NULL) {
+        ErrorF("X11.app: Debug Info: kKLuchrData fallback failed, trying kKLKCHRData.\n", currentKeyLayoutRef, chr_data);
+        KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
+        is_uchr = 0;
+        num_keycodes = 128;
+        
+        if(chr_data != NULL) {
+            ErrorF("X11.app: Fallback succeeded, but this is still a bug.  Please report the above information.\n");
+        }
+    }
+#endif
 
     if (chr_data == NULL) {
       ErrorF ( "Couldn't get uchr or kchr resource\n");
       return FALSE;
     }
-
+    
     /* Scan the keycode range for the Unicode character that each
        key produces in the four shift states. Then convert that to
        an X11 keysym (which may just the bit that says "this is
