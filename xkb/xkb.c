@@ -3356,6 +3356,11 @@ _XkbSetNamedIndicator(ClientPtr client, DeviceIntPtr dev,
     if (rc != Success || !map) /* oh-oh */
         return rc;
 
+    sli = XkbFindSrvLedInfo(dev, stuff->ledClass, stuff->ledID,
+                            XkbXI_IndicatorsMask);
+    if (!sli)
+        return BadAlloc;
+
     namec = mapc = statec = 0;
     extDevReason = 0;
 
