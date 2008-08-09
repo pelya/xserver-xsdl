@@ -1925,7 +1925,8 @@ KdCheckLock (void)
         if (tmp->LockLed && tmp->dixdev && tmp->dixdev->key) {
             keyc = tmp->dixdev->key;
             isSet = (tmp->leds & (1 << (tmp->LockLed-1))) != 0;
-            shouldBeSet = (keyc->state & LockMask) != 0;
+            /* FIXME: Just use XKB indicators! */
+            shouldBeSet = !!(XkbStateFieldFromRec(&keyc->xkbInfo->state) & LockMask);
             if (isSet != shouldBeSet)
                 KdSetLed (tmp, tmp->LockLed, shouldBeSet);
         }

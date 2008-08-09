@@ -802,7 +802,7 @@ unsigned	realMods = 0;
 xEvent 		ev;
 int		x,y;
 XkbStateRec	old;
-unsigned	mods,mask,oldCoreState = 0,oldCorePrevState = 0;
+unsigned	mods,mask;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
 ProcessInputProc backupproc;
 
@@ -843,8 +843,6 @@ ProcessInputProc backupproc;
 
 	if ( mask || mods ) {
 	    old= xkbi->state;
-	    oldCoreState= xkbi->device->key->state;
-	    oldCorePrevState= xkbi->device->key->prev_state;
 	    xkbi->state.base_mods&= ~mask;
 	    xkbi->state.base_mods|= (mods&mask);
 	    xkbi->state.latched_mods&= ~mask;
@@ -852,8 +850,6 @@ ProcessInputProc backupproc;
 	    xkbi->state.locked_mods&= ~mask;
 	    xkbi->state.locked_mods|= (mods&mask);
 	    XkbComputeDerivedState(xkbi);
-	    xkbi->device->key->state= xkbi->device->key->prev_state= 
-							xkbi->state.mods;
 	}
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
@@ -864,11 +860,8 @@ ProcessInputProc backupproc;
 				     backupproc,xkbUnwrapProc);
 	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 	
-	if ( mask || mods ) {
-	    xkbi->device->key->state= oldCoreState;
-	    xkbi->device->key->prev_state= oldCorePrevState;
+	if ( mask || mods )
 	    xkbi->state= old;
-	}
     }
     else if (filter->keycode==keycode) {
 
@@ -885,8 +878,6 @@ ProcessInputProc backupproc;
 
 	if ( mask || mods ) {
 	    old= xkbi->state;
-	    oldCoreState= xkbi->device->key->state;
-	    oldCorePrevState= xkbi->device->key->prev_state;
 	    xkbi->state.base_mods&= ~mask;
 	    xkbi->state.base_mods|= (mods&mask);
 	    xkbi->state.latched_mods&= ~mask;
@@ -894,8 +885,6 @@ ProcessInputProc backupproc;
 	    xkbi->state.locked_mods&= ~mask;
 	    xkbi->state.locked_mods|= (mods&mask);
 	    XkbComputeDerivedState(xkbi);
-	    xkbi->device->key->state= xkbi->device->key->prev_state= 
-							xkbi->state.mods;
 	}
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
@@ -906,11 +895,8 @@ ProcessInputProc backupproc;
 				     backupproc,xkbUnwrapProc);
 	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 
-	if ( mask || mods ) {
-	    xkbi->device->key->state= oldCoreState;
-	    xkbi->device->key->prev_state= oldCorePrevState;
+	if ( mask || mods )
 	    xkbi->state= old;
-	}
 
 	filter->keycode= 0;
 	filter->active= 0;
@@ -1250,8 +1236,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 
     xkbi->prev_state= oldState;
     XkbComputeDerivedState(xkbi);
-    keyc->prev_state= keyc->state;
-    keyc->state= XkbStateFieldFromRec(&xkbi->state);
     changed = XkbStateChangedFlags(&oldState,&xkbi->state);
     if (genStateNotify) {
 	if (changed) {

@@ -220,27 +220,18 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
     SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
 
-    /*
-     * Copy state from the extended keyboard to core.  If you omit this,
-     * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
-     * cause your app to quit.  This feels wrong to me, hence the below
-     * code.
-     *
-     * XXX: If you synthesise core modifier events, the state will get
-     *      clobbered here.  You'll have to work out something sensible
-     *      to fix that.  Good luck.
-     */
-
-#define KEYBOARD_MASK (ShiftMask | LockMask | ControlMask | Mod1Mask | \
-        Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
-    mk->state &= ~(KEYBOARD_MASK);
-    mk->state |= (dk->state & KEYBOARD_MASK);
-#undef KEYBOARD_MASK
     for (i = 0; i < 8; i++)
         mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
     if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
         FatalError("Couldn't pivot keymap from device to core!\n");
+
+    /* Copy the state here.  This means we'll only have consistency
+     * between state and active keymap, rather than between state and
+     * keycodes pressed, but there's pretty much no way to win here,
+     * so might as well go for the one that would seem to give the
+     * least nonsensical result. */
+    mk->xkbInfo->state = dk->xkbInfo->state;
 
     if (lastMapNotifyDevice != master) {
         SendMappingNotify(master, MappingKeyboard,
@@ -250,13 +241,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
                           serverClient);
         lastMapNotifyDevice = master;
     }
-
-    /* Copy the state here.  This means we'll only have consistency
-     * between state and active keymap, rather than between state and
-     * keycodes pressed, but there's pretty much no way to win here,
-     * so might as well go for the one that would seem to give the
-     * least nonsensical result. */
-    mk->xkbInfo->state = dk->xkbInfo->state;
 }
 
 /**
@@ -879,12 +863,10 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
-	k->prev_state = k->state;
 	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
 	    if (mask & modifiers) {
 		/* This key affects modifier "i" */
 		k->modifierKeyCount[i]++;
-		k->state |= mask;
 		modifiers &= ~mask;
 	    }
 	}
@@ -899,13 +881,11 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
-	k->prev_state = k->state;
 	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
 	    if (mask & modifiers) {
 		/* This key affects modifier "i" */
 		if (--k->modifierKeyCount[i] <= 0) {
 		    k->modifierKeyCount[i] = 0;
-		    k->state &= ~mask;
 		}
 		modifiers &= ~mask;
 	    }
@@ -1003,7 +983,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     }
 
     /* State needs to be assembled BEFORE the device is updated. */
-    state = (kbd) ? kbd->key->state : 0;
+    state = (kbd) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
     state |= (mouse) ? (mouse->button->state) : 0;
 
     ret = UpdateDeviceState(device, xE, count);
@@ -1047,7 +1027,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 			   device->name);
 	    xV->device_state = 0;
 	    if (k)
-		xV->device_state |= k->state;
+		xV->device_state |= XkbStateFieldFromRec(&k->xkbInfo->state);
 	    if (b)
 		xV->device_state |= b->state;
 	}

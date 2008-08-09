@@ -748,7 +748,6 @@ deviceKeyButtonPointer *kbp = xE;
 		XkbUpdateIndicators(dev,changed_leds,True,NULL,&cause);
 	    }
 	}
-	dev->key->state= XkbStateFieldFromRec(&xkbi->state);
     }
 
     if (((xkbi->flags&_XkbStateNotifyInProgress)==0)&&(changed!=0)) {

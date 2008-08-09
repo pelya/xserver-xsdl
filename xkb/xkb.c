@@ -559,7 +559,7 @@ ProcXkbGetState(ClientPtr client)
     rep.sequenceNumber= client->sequence;
     rep.length = 0;
     rep.deviceID = dev->id;
-    rep.mods = dev->key->state&0xff;
+    rep.mods = XkbStateFieldFromRec(xkb) & 0xff;
     rep.baseMods = xkb->base_mods;
     rep.lockedMods = xkb->locked_mods;
     rep.latchedMods = xkb->latched_mods;
@@ -626,7 +626,6 @@ ProcXkbLatchLockState(ClientPtr client)
                 return status;
 
             XkbComputeDerivedState(tmpd->key->xkbInfo);
-            tmpd->key->state = XkbStateFieldFromRec(newState);
 
             changed = XkbStateChangedFlags(&oldState, newState);
             if (changed) {

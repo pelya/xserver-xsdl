@@ -398,7 +398,6 @@ xf86PrintBacktrace(void)
 }
 
 #define KeyPressed(k) (keyc->postdown[k >> 3] & (1 << (k & 7)))
-#define ModifierDown(k) ((keyc->state & (k)) == (k))
 
 static void
 xf86ReleaseKeys(DeviceIntPtr pDev)

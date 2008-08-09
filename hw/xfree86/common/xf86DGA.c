@@ -1043,7 +1043,8 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     de->u.event.dx = 0;
     de->u.event.dy = 0;
     de->u.event.screen = pScreen->myNum;
-    de->u.event.state = keyc->state | pointer->button->state;
+    de->u.event.state = XkbStateFieldFromRec(&keyc->xkbInfo->state);
+    de->u.event.state |= pointer->button->state;
 
     de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
     UpdateDeviceState(keybd, (xEvent*)de, 1);
@@ -1090,7 +1091,8 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
      * Fill in remaining event state
      */
     de->u.event.screen = pScreen->myNum;
-    de->u.event.state = butc->state | GetPairedDevice(mouse)->key->state;
+    de->u.event.state = butc->state;
+    de->u.event.state |= XkbStateFieldFromRec(&GetPairedDevice(mouse)->key->xkbInfo->state);
 
     de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
     UpdateDeviceState(mouse, (xEvent*)de, 1);

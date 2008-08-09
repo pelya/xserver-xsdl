@@ -3683,11 +3683,14 @@ CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
 	    CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
 	}
     }
+
     /* ProcessOtherEvent already updated the keyboard's state, so we need to
      * access prev_state here! */
-    XE_KBPTR.state = (keyc->prev_state | GetPairedDevice(keybd)->button->state);
+    XE_KBPTR.state = XkbStateFieldFromRec(&keybd->key->xkbInfo->prev_state);
+    XE_KBPTR.state |= GetPairedDevice(keybd)->button->state;
     XE_KBPTR.rootX = keybd->spriteInfo->sprite->hot.x;
     XE_KBPTR.rootY = keybd->spriteInfo->sprite->hot.y;
+
     key = xE->u.u.detail;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
@@ -4800,7 +4803,8 @@ ProcQueryPointer(ClientPtr client)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.mask = mouse->button->state | kbd->key->state;
+    rep.mask = mouse->button->state;
+    rep.mask |= XkbStateFieldFromRec(&inputInfo.keyboard->key->xkbInfo->state);
     rep.length = 0;
     rep.root = (RootWindow(mouse))->drawable.id;
     rep.rootX = pSprite->hot.x;

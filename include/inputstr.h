@@ -142,8 +142,6 @@ typedef struct _KeyClassRec {
     int			modifierKeyCount[8];
     CARD8		modifierMap[MAP_LENGTH];
     CARD8		maxKeysPerModifier;
-    unsigned short	state;
-    unsigned short	prev_state;
     struct _XkbSrvInfo *xkbInfo;
 } KeyClassRec, *KeyClassPtr;
 

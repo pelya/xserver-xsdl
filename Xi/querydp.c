@@ -42,6 +42,7 @@
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
+#include "xkbsrv.h"
 
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
@@ -105,7 +106,9 @@ ProcXQueryDevicePointer(ClientPtr client)
     rep.RepType = X_QueryDevicePointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.mask = pDev->button->state | (kbd && kbd->key) ? kbd->key->state : 0;
+    rep.mask = pDev->button->state;
+    if (kbd && kbd->key)
+        rep.mask |= XkbStateFieldFromRec(&kbd->key->xkbInfo->state);
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
