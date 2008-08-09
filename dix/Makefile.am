@@ -35,9 +35,7 @@ libdix_la_SOURCES = 	\
 	swaprep.c	\
 	swapreq.c	\
 	tables.c	\
-	window.c	\
-	strcasecmp.c	\
-	strcasestr.c
+	window.c
 
 EXTRA_DIST = buildatoms BuiltInAtoms CHANGES Xserver.d Xserver-dtrace.h.in
 

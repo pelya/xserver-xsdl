@@ -18,6 +18,8 @@ libos_la_SOURCES = 	\
 	osdep.h		\
 	osinit.c	\
 	utils.c		\
+	strcasecmp.c	\
+	strcasestr.c	\
 	xdmauth.c	\
 	xstrans.c	\
 	xprintf.c	\
