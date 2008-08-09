@@ -878,6 +878,10 @@ EstablishNewConnections(ClientPtr clientUnused, pointer closure)
 	    ErrorConnMax(new_trans_conn);
 	    _XSERVTransClose(new_trans_conn);
 	}
+
+	if(trans_conn->flags & TRANS_NOXAUTH)
+	    new_trans_conn->flags = new_trans_conn->flags | TRANS_NOXAUTH;
+
       }
 #ifndef WIN32
     }
