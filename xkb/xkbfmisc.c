@@ -163,14 +163,13 @@ XkbWriteXKBKeymapForNames(	FILE *			file,
 				unsigned		want,
 				unsigned		need)
 {
-char *		name,*tmp;
+char *		tmp;
 unsigned	complete;
 XkbNamesPtr	old_names;
 int		multi_section;
 unsigned	wantNames,wantConfig,wantDflts;
 
     complete= 0;
-    name= "default";
     if (COMPLETE(names->keycodes))	complete|= XkmKeyNamesMask;
     if (COMPLETE(names->types))		complete|= XkmTypesMask;
     if (COMPLETE(names->compat))	complete|= XkmCompatMapMask;
@@ -292,15 +291,15 @@ unsigned	wantNames,wantConfig,wantDflts;
     multi_section= 1;
     if (((complete&XkmKeymapRequired)==XkmKeymapRequired)&&
 	((complete&(~XkmKeymapLegal))==0)) {
-	fprintf(file,"xkb_keymap \"%s\" {\n",name);
+	fprintf(file,"xkb_keymap \"default\" {\n");
     }
     else if (((complete&XkmSemanticsRequired)==XkmSemanticsRequired)&&
 	((complete&(~XkmSemanticsLegal))==0)) {
-	fprintf(file,"xkb_semantics \"%s\" {\n",name);
+	fprintf(file,"xkb_semantics \"default\" {\n");
     }
     else if (((complete&XkmLayoutRequired)==XkmLayoutRequired)&&
 	((complete&(~XkmLayoutLegal))==0)) {
-	fprintf(file,"xkb_layout \"%s\" {\n",name);
+	fprintf(file,"xkb_layout \"default\" {\n");
     }
     else if (XkmSingleSection(complete&(~XkmVirtualModsMask))) {
 	multi_section= 0;
@@ -310,41 +309,36 @@ unsigned	wantNames,wantConfig,wantDflts;
     }
 
     wantNames= complete&(~(wantConfig|wantDflts));
-    name= names->keycodes;
     if (wantConfig&XkmKeyNamesMask)
-	XkbWriteXKBKeycodes(file,xkb,False,False,_AddIncl,name);
+	XkbWriteXKBKeycodes(file,xkb,False,False,_AddIncl,names->keycodes);
     else if (wantDflts&XkmKeyNamesMask)
 	fprintf(stderr,"Default symbols not implemented yet!\n");
     else if (wantNames&XkmKeyNamesMask)
-	XkbWriteSectionFromName(file,"keycodes",name);
+	XkbWriteSectionFromName(file,"keycodes",names->keycodes);
 
-    name= names->types;
     if (wantConfig&XkmTypesMask)
-	XkbWriteXKBKeyTypes(file,xkb,False,False,_AddIncl,name);
+	XkbWriteXKBKeyTypes(file,xkb,False,False,_AddIncl,names->types);
     else if (wantDflts&XkmTypesMask)
 	fprintf(stderr,"Default types not implemented yet!\n");
     else if (wantNames&XkmTypesMask)
-	XkbWriteSectionFromName(file,"types",name);
+	XkbWriteSectionFromName(file,"types",names->types);
 
-    name= names->compat;
     if (wantConfig&XkmCompatMapMask)
-	XkbWriteXKBCompatMap(file,xkb,False,False,_AddIncl,name);
+	XkbWriteXKBCompatMap(file,xkb,False,False,_AddIncl,names->compat);
     else if (wantDflts&XkmCompatMapMask)
 	fprintf(stderr,"Default interps not implemented yet!\n");
     else if (wantNames&XkmCompatMapMask)
-	XkbWriteSectionFromName(file,"compatibility",name);
+	XkbWriteSectionFromName(file,"compatibility",names->compat);
 
-    name= names->symbols;
     if (wantConfig&XkmSymbolsMask)
-	XkbWriteXKBSymbols(file,xkb,False,False,_AddIncl,name);
+	XkbWriteXKBSymbols(file,xkb,False,False,_AddIncl,names->symbols);
     else if (wantNames&XkmSymbolsMask)
-	XkbWriteSectionFromName(file,"symbols",name);
+	XkbWriteSectionFromName(file,"symbols",names->symbols);
 
-    name= names->geometry;
     if (wantConfig&XkmGeometryMask)
-	XkbWriteXKBGeometry(file,xkb,False,False,_AddIncl,name);
+	XkbWriteXKBGeometry(file,xkb,False,False,_AddIncl,names->geometry);
     else if (wantNames&XkmGeometryMask)
-	XkbWriteSectionFromName(file,"geometry",name);
+	XkbWriteSectionFromName(file,"geometry",names->geometry);
 
     if (multi_section)
 	fprintf(file,"};\n");
