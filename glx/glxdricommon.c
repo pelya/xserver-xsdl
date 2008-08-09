@@ -164,6 +164,10 @@ createModeFromConfig(const __DRIcoreExtension *core,
 	    if (value & __DRI_ATTRIB_TEXTURE_RECTANGLE_BIT)
 		config->config.bindToTextureTargets |= GLX_TEXTURE_RECTANGLE_BIT_EXT;
 	    break;	
+	case __DRI_ATTRIB_FLOAT_MODE:
+	    config->config.floatMode = (value ? GL_TRUE : GL_FALSE);
+	    break;
+
 	default:
 	    setScalar(&config->config, attrib, value);
 	    break;
