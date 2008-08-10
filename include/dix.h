@@ -596,22 +596,6 @@ typedef struct {
     int count;
 } DeviceEventInfoRec;
 
-/* strcasecmp.c */
-#if NEED_STRCASECMP
-#define strcasecmp xstrcasecmp
-extern int xstrcasecmp(const char *s1, const char *s2);
-#endif
-
-#if NEED_STRNCASECMP
-#define strncasecmp xstrncasecmp
-extern int xstrncasecmp(const char *s1, const char *s2, size_t n);
-#endif
-
-#if NEED_STRCASESTR
-#define strcasestr xstrcasestr
-extern char *xstrcasestr(const char *s, const char *find);
-#endif
-
 extern int XItoCoreType(int xi_type);
 extern Bool DevHasCursor(DeviceIntPtr pDev);
 extern Bool IsPointerDevice( DeviceIntPtr dev);

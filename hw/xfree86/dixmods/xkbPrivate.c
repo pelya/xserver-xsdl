@@ -14,6 +14,7 @@
 #define XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
 
+#include "os.h"
 #include "xf86.h"
 
 int

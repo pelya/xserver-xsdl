@@ -88,6 +88,8 @@
 #include "dgaproc.h"
 #endif
 
+#include "os.h"
+
 EventListPtr xf86Events = NULL;
 
 /**
