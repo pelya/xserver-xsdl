@@ -1396,28 +1396,6 @@ InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }
 
-_X_EXPORT void
-SendPointerMappingNotify(DeviceIntPtr pDev, ClientPtr client)
-{
-    int i;
-    xEvent event;
-
-    /* 0 is the server client. */
-    for (i = 1; i < currentMaxClients; i++) {
-        /* Don't send irrelevant events to naïve clients. */
-        if (PickPointer(clients[i]) != pDev)
-            continue;
-
-        if (clients[i] && clients[i]->clientState == ClientStateRunning) {
-            event.u.u.type = MappingNotify;
-            event.u.u.sequenceNumber = clients[i]->sequence;
-            event.u.mappingNotify.request = MappingPointer;
-
-            WriteEventsToClient(clients[i], 1, &event);
-        }
-    }
-}
-
 /*
  * Check if the given buffer contains elements between low (inclusive) and
  * high (inclusive) only.
@@ -1553,31 +1531,6 @@ ProcChangeKeyboardMapping(ClientPtr client)
     return client->noClientException;
 }
 
-static int
-DoSetPointerMapping(ClientPtr client, DeviceIntPtr device, BYTE *map, int n)
-{
-    int rc, i = 0;
-
-    if (!device || !device->button)
-        return BadDevice;
-
-    rc = XaceHook(XACE_DEVICE_ACCESS, client, device, DixManageAccess);
-    if (rc != Success)
-        return rc;
-
-    for (i = 0; i < n; i++) {
-        if ((device->button->map[i + 1] != map[i]) &&
-            BitIsOn(device->button->down, i + 1)) {
-            return MappingBusy;
-        }
-    }
-
-    for (i = 0; i < n; i++)
-        device->button->map[i + 1] = map[i];
-
-    return Success;
-}
-
 int
 ProcSetPointerMapping(ClientPtr client)
 {
@@ -1607,31 +1560,26 @@ ProcSetPointerMapping(ClientPtr client)
 	client->errorValue = stuff->nElts;
 	return BadValue;
     }
-    if (BadDeviceMap(&map[0], (int)stuff->nElts, 1, 255, &client->errorValue))
-	return BadValue;
 
-    /* core protocol specs don't allow for duplicate mappings. */
-    for (i = 0; i < stuff->nElts; i++)
-    {
-        for (j = i + 1; j < stuff->nElts; j++)
-        {
-            if (map[i] && map[i] == map[j])
-            {
+    /* Core protocol specs don't allow for duplicate mappings; this check
+     * almost certainly wants disabling through XFixes too. */
+    for (i = 0; i < stuff->nElts; i++) {
+        for (j = i + 1; j < stuff->nElts; j++) {
+            if (map[i] && map[i] == map[j]) {
                 client->errorValue = map[i];
                 return BadValue;
             }
         }
     }
 
-    ret = DoSetPointerMapping(client, ptr, map, stuff->nElts);
-    if (ret != Success) {
+    ret = ApplyPointerMapping(ptr, map, stuff->nElts, client);
+    if (ret == MappingBusy)
         rep.success = ret;
-        WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
-        return Success;
-    }
+    else if (ret == -1)
+        return BadValue;
+    else if (ret != Success)
+        return ret;
 
-    /* FIXME: Send mapping notifies for masters/slaves as well. */
-    SendPointerMappingNotify(ptr, client);
     WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
     return Success;
 }

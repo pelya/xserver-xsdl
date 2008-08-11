@@ -137,10 +137,6 @@ extern _X_EXPORT int SetButtonMapping (
 	int                    /* nElts */,
 	BYTE *                 /* map */);
 
-extern _X_EXPORT void SendDevicePointerMappingNotify(
-        ClientPtr              /* client, */,
-	DeviceIntPtr           /* dev */);
-
 extern _X_EXPORT int ChangeKeyMapping(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,

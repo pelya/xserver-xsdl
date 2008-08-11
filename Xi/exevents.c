@@ -1639,20 +1639,6 @@ SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
     return Success;
 }
 
-void
-SendDevicePointerMappingNotify(ClientPtr client, DeviceIntPtr dev)
-{
-    xEvent event;
-    deviceMappingNotify *ev = (deviceMappingNotify *) & event;
-
-    ev->type = DeviceMappingNotify;
-    ev->request = MappingPointer;
-    ev->deviceid = dev->id;
-    ev->time = currentTime.milliseconds;
-
-    SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) ev, 1);
-}
-
 int
 ChangeKeyMapping(ClientPtr client,
 		 DeviceIntPtr dev,

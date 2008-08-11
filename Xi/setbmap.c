@@ -107,21 +107,15 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.status = MappingSuccess;
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
-    if (ret != Success)
-	return ret;
+    ret = ApplyPointerMapping(dev, (CARD8 *) &stuff[1], stuff->map_length, client);
+    if (ret == -1)
+        return BadValue;
+    else if (ret == MappingBusy)
+        rep.status = ret;
+    else if (ret != Success)
+        return ret;
 
-    ret = SetButtonMapping(client, dev, stuff->map_length, (BYTE *) & stuff[1]);
-
-    if (ret == BadValue || ret == BadMatch)
-	return ret;
-    else {
-	rep.status = ret;
-	WriteReplyToClient(client, sizeof(xSetDeviceButtonMappingReply), &rep);
-    }
-
-    if (ret != MappingBusy)
-	SendDevicePointerMappingNotify(client, dev);
+    WriteReplyToClient(client, sizeof(xSetDeviceButtonMappingReply), &rep);
 
     return Success;
 }

@@ -28,12 +28,117 @@
 #endif
 
 #include "exevents.h"
+#include "exglobals.h"
 #include "misc.h"
 #include "input.h"
 #include "inputstr.h"
 #include "xace.h"
 #include "xkbsrv.h"
 #include "xkbstr.h"
+
+/* Check if a button map change is okay with the device.
+ * Returns -1 for BadValue, as it collides with MappingBusy. */
+static int
+check_butmap_change(DeviceIntPtr dev, CARD8 *map, int len, CARD32 *errval_out,
+                    ClientPtr client)
+{
+    int i, ret;
+
+    if (!dev || !dev->button)
+        return BadDevice;
+
+    ret = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
+    if (ret != Success)
+        return ret;
+
+    for (i = 0; i < len; i++) {
+        if (dev->button->map[i + 1] != map[i] && dev->button->down[i + 1])
+            return MappingBusy;
+
+        if (map[i] < 1 || map[i] > 255) {
+            if (errval_out)
+                *errval_out = map[i];
+            return -1;
+        }
+    }
+
+    return Success;
+}
+
+static void
+do_butmap_change(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
+{
+    int i;
+    xEvent core_mn;
+    deviceMappingNotify xi_mn;
+
+    /* The map in ButtonClassRec refers to button numbers, whereas the
+     * protocol is zero-indexed.  Sigh. */
+    memcpy(&(dev->button->map[1]), map, len);
+
+    core_mn.u.u.type = MappingNotify;
+    core_mn.u.mappingNotify.request = MappingPointer;
+
+    /* 0 is the server client. */
+    for (i = 1; i < currentMaxClients; i++) {
+        /* Don't send irrelevant events to naïve clients. */
+        if (!clients[i] || clients[i]->clientState != ClientStateRunning)
+            continue;
+
+        if (!XIShouldNotify(clients[i], dev))
+            continue;
+
+        core_mn.u.u.sequenceNumber = clients[i]->sequence;
+        WriteEventsToClient(clients[i], 1, &core_mn);
+    }
+
+    xi_mn.type = DeviceMappingNotify;
+    xi_mn.request = MappingPointer;
+    xi_mn.deviceid = dev->id;
+    xi_mn.time = GetTimeInMillis();
+
+    SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) &xi_mn, 1);
+}
+
+/*
+ * Does what it says on the box, both for core and Xi.
+ *
+ * Faithfully reports any errors encountered while trying to apply the map
+ * to the requested device, faithfully ignores any errors encountered while
+ * trying to apply the map to its master/slaves.
+ */
+_X_EXPORT int
+ApplyPointerMapping(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
+{
+    int ret;
+    DeviceIntPtr tmp;
+
+    /* If we can't perform the change on the requested device, bail out. */
+    ret = check_butmap_change(dev, map, len, &client->errorValue, client);
+    if (ret != Success)
+        return ret;
+    do_butmap_change(dev, map, len, client);
+
+    /* Change any attached masters/slaves. */
+    if (dev->isMaster) {
+        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+            if (!tmp->isMaster && tmp->u.master == dev)
+                if (check_butmap_change(tmp, map, len, NULL, client) == Success)
+                    do_butmap_change(tmp, map, len, client);
+        }
+    }
+    else {
+        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+            if (tmp->isMaster && tmp->u.lastSlave == dev) {
+                /* If this fails, expect the results to be weird. */
+                if (check_butmap_change(tmp, map, len, NULL, client) == Success)
+                    do_butmap_change(tmp, map, len, client);
+            }
+        }
+    }
+
+    return Success;
+}
 
 /* Check if a modifier map change is okay with the device.
  * Returns -1 for BadValue, as it collides with MappingBusy; this particular
