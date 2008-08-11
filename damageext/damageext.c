@@ -90,9 +90,7 @@ DamageExtNotify (DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
     if (pDamageClient->critical > 0)
     {
 	SetCriticalOutputPending ();
-#ifdef SMART_SCHEDULE
 	pClient->smart_priority = SMART_MAX_PRIORITY;
-#endif
     }
 }
 

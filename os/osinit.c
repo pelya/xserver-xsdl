@@ -55,9 +55,7 @@ SOFTWARE.
 #include "osdep.h"
 #include <X11/Xos.h>
 
-#ifdef SMART_SCHEDULE
 #include "dixstruct.h"
-#endif
 
 #ifndef PATH_MAX
 #ifdef MAXPATHLEN
@@ -199,11 +197,9 @@ OsInit(void)
      * log file name if logging to a file is desired.
      */
     LogInit(NULL, NULL);
-#ifdef SMART_SCHEDULE
     if (!SmartScheduleDisable)
 	if (!SmartScheduleInit ())
 	    SmartScheduleDisable = TRUE;
-#endif
 }
 
 void

@@ -237,7 +237,6 @@ UpdateCurrentTimeIf(void)
 	currentTime = systime;
 }
 
-#ifdef SMART_SCHEDULE
 
 #undef SMART_DEBUG
 
@@ -338,7 +337,6 @@ SmartScheduleClient (int *clientReady, int nready)
     }
     return best;
 }
-#endif
 
 #define MAJOROP ((xReq *)client->requestBuffer)->reqType
 
@@ -350,9 +348,7 @@ Dispatch(void)
     ClientPtr	client;
     int	nready;
     HWEventQueuePtr* icheck = checkForInput;
-#ifdef SMART_SCHEDULE
     long			start_tick;
-#endif
 
     nextFreeClientID = 1;
     nClients = 0;
@@ -371,13 +367,11 @@ Dispatch(void)
 
 	nready = WaitForSomething(clientReady);
 
-#ifdef SMART_SCHEDULE
 	if (nready && !SmartScheduleDisable)
 	{
 	    clientReady[0] = SmartScheduleClient (clientReady, nready);
 	    nready = 1;
 	}
-#endif
        /***************** 
 	*  Handle events in round robin fashion, doing input between 
 	*  each round 
@@ -399,16 +393,13 @@ Dispatch(void)
 	    }
 	    isItTimeToYield = FALSE;
  
-#ifdef SMART_SCHEDULE
 	    start_tick = SmartScheduleTime;
-#endif
 	    while (!isItTimeToYield)
 	    {
 	        if (*icheck[0] != *icheck[1])
 		    ProcessInputEvents();
 		
 		FlushIfCriticalOutputPending();
-#ifdef SMART_SCHEDULE
 		if (!SmartScheduleDisable && 
 		    (SmartScheduleTime - start_tick) >= SmartScheduleSlice)
 		{
@@ -417,7 +408,6 @@ Dispatch(void)
 			client->smart_priority--;
 		    break;
 		}
-#endif
 		/* now, finally, deal with client requests */
 
 	        result = ReadRequestFromClient(client);
@@ -465,11 +455,9 @@ Dispatch(void)
 	        }
 	    }
 	    FlushAllOutput();
-#ifdef SMART_SCHEDULE
 	    client = clients[clientReady[nready]];
 	    if (client)
 		client->smart_stop_tick = SmartScheduleTime;
-#endif
 	}
 	dispatchException &= ~DE_PRIORITYCHANGE;
     }
@@ -3453,9 +3441,7 @@ CloseDownClient(ClientPtr client)
 	if (client->index < nextFreeClientID)
 	    nextFreeClientID = client->index;
 	clients[client->index] = NullClient;
-#ifdef SMART_SCHEDULE
 	SmartLastClient = NullClient;
-#endif
 	dixFreePrivates(client->devPrivates);
 	xfree(client);
 
@@ -3505,12 +3491,10 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
 #endif
     client->replyBytesRemaining = 0;
     client->fontResFunc = NULL;
-#ifdef SMART_SCHEDULE
     client->smart_priority = 0;
     client->smart_start_tick = SmartScheduleTime;
     client->smart_stop_tick = SmartScheduleTime;
     client->smart_check_tick = SmartScheduleTime;
-#endif
 
     client->clientPtr = NULL;
 }

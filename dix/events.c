@@ -2014,10 +2014,8 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
 
 	if (BitIsOn(criticalEvents, type))
 	{
-#ifdef SMART_SCHEDULE
 	    if (client->smart_priority < SMART_MAX_PRIORITY)
 		client->smart_priority++;
-#endif
 	    SetCriticalOutputPending();
 	}
 

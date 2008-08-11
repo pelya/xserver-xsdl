@@ -111,9 +111,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "opaque.h"
 
-#ifdef SMART_SCHEDULE
 #include "dixstruct.h"
-#endif
 
 #ifdef XKB
 #include <xkbsrv.h>
@@ -552,10 +550,8 @@ void UseMsg(void)
     ErrorF("+xinerama              Enable XINERAMA extension\n");
     ErrorF("-xinerama              Disable XINERAMA extension\n");
 #endif
-#ifdef SMART_SCHEDULE
     ErrorF("-dumbSched             Disable smart scheduling, enable old behavior\n");
     ErrorF("-schedInterval int     Set scheduler interval in msec\n");
-#endif
     ErrorF("+extension name        Enable extension\n");
     ErrorF("-extension name        Disable extension\n");
 #ifdef XDMCP
@@ -926,7 +922,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    i = skip - 1;
 	}
 #endif
-#ifdef SMART_SCHEDULE
 	else if ( strcmp( argv[i], "-dumbSched") == 0)
 	{
 	    SmartScheduleDisable = TRUE;
@@ -950,7 +945,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
-#endif
 #ifdef RENDER
 	else if ( strcmp( argv[i], "-render" ) == 0)
 	{
@@ -1234,7 +1228,6 @@ XNFstrdup(const char *s)
     return sd;
 }
 
-#ifdef SMART_SCHEDULE
 
 #ifdef SIGVTALRM
 #define SMART_SCHEDULE_POSSIBLE
@@ -1310,7 +1303,6 @@ SmartScheduleInit (void)
     return FALSE;
 #endif
 }
-#endif
 
 #ifdef SIG_BLOCK
 static sigset_t	PreviousSignalMask;

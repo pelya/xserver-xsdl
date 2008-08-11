@@ -61,9 +61,6 @@
 /* Support SHAPE extension */
 #undef SHAPE
 
-/* Include time-based scheduler */
-#undef SMART_SCHEDULE
-
 /* Define to 1 on systems derived from System V Release 4 */
 #undef SVR4
 

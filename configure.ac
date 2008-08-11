@@ -1041,7 +1041,6 @@ AC_SUBST([VENDOR_NAME_SHORT])
 AC_SUBST([VENDOR_RELEASE])
 AC_SUBST([VENDOR_MAN_VERSION])
 
-AC_DEFINE(SMART_SCHEDULE, 1, [Include time-based scheduler])
 AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
 
 if test "x$DEBUGGING" = xyes; then
