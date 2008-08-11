@@ -33,49 +33,67 @@
 #ifndef _DRI2_H_
 #define _DRI2_H_
 
-typedef unsigned int	(*DRI2GetPixmapHandleProcPtr)(PixmapPtr p,
-						      unsigned int *flags);
-typedef void		(*DRI2BeginClipNotifyProcPtr)(ScreenPtr pScreen);
-typedef void		(*DRI2EndClipNotifyProcPtr)(ScreenPtr pScreen);
+#include <X11/extensions/dri2tokens.h>
+
+typedef struct {
+    unsigned int attachment;
+    unsigned int name;
+    unsigned int pitch;
+    unsigned int cpp;
+    unsigned int flags;
+    void *driverPrivate;
+} DRI2BufferRec, *DRI2BufferPtr;
+
+typedef DRI2BufferPtr	(*DRI2CreateBuffersProcPtr)(DrawablePtr pDraw,
+						    unsigned int *attachments,
+						    int count);
+typedef void		(*DRI2DestroyBuffersProcPtr)(DrawablePtr pDraw,
+						     DRI2BufferPtr buffers,
+						     int count);
+typedef void		(*DRI2SwapBuffersProcPtr)(DrawablePtr pDraw,
+						  DRI2BufferPtr pSrcBuffer,
+						  int x,
+						  int y,
+						  int width,
+						  int height);
 
 typedef struct {
     unsigned int version;	/* Version of this struct */
     int fd;
-    size_t driverSareaSize;
     const char *driverName;
-    DRI2GetPixmapHandleProcPtr getPixmapHandle;
-    DRI2BeginClipNotifyProcPtr beginClipNotify;
-    DRI2EndClipNotifyProcPtr endClipNotify;
+
+    DRI2CreateBuffersProcPtr	CreateBuffers;
+    DRI2DestroyBuffersProcPtr	DestroyBuffers;
+    DRI2SwapBuffersProcPtr	SwapBuffers;
+
 }  DRI2InfoRec, *DRI2InfoPtr;
 
-void *DRI2ScreenInit(ScreenPtr	pScreen,
-		     DRI2InfoPtr info);
+Bool DRI2ScreenInit(ScreenPtr	pScreen,
+		    DRI2InfoPtr info);
 
 void DRI2CloseScreen(ScreenPtr pScreen);
 
 Bool DRI2Connect(ScreenPtr pScreen,
 		 int *fd,
-		 const char **driverName,
-		 unsigned int *sareaHandle);
+		 const char **driverName);
 
 Bool DRI2AuthConnection(ScreenPtr pScreen, drm_magic_t magic);
 
-unsigned int DRI2GetPixmapHandle(PixmapPtr pPixmap,
-				 unsigned int *flags);
-
-void DRI2Lock(ScreenPtr pScreen);
-void DRI2Unlock(ScreenPtr pScreen);
-
-Bool DRI2CreateDrawable(DrawablePtr pDraw,
-			unsigned int *handle,
-			unsigned int *head);
+int DRI2CreateDrawable(DrawablePtr pDraw);
 
 void DRI2DestroyDrawable(DrawablePtr pDraw);
 
-void DRI2ReemitDrawableInfo(DrawablePtr pDraw,
-			    unsigned int *head);
+DRI2BufferPtr DRI2GetBuffers(DrawablePtr pDraw,
+			     int *width,
+			     int *height,
+			     unsigned int *attachments,
+			     int count,
+			     int *out_count);
 
-Bool DRI2PostDamage(DrawablePtr pDrawable,
-		    struct drm_clip_rect *rects, int numRects);
+void DRI2SwapBuffers(DrawablePtr pDraw,
+		     int x,
+		     int y,
+		     int width,
+		     int height);
 
 #endif
