@@ -72,7 +72,7 @@ ProcXQueryDevicePointer(ClientPtr client)
 {
     int rc;
     xQueryDevicePointerReply rep;
-    DeviceIntPtr pDev;
+    DeviceIntPtr pDev, kbd;
     WindowPtr pWin, t;
     SpritePtr pSprite;
 
@@ -100,12 +100,14 @@ ProcXQueryDevicePointer(ClientPtr client)
     if (pDev->valuator->motionHintWindow)
         MaybeStopHint(pDev, client);
 
+    kbd = GetPairedDevice(pDev);
+
     pSprite = pDev->spriteInfo->sprite;
     rep.repType = X_Reply;
     rep.RepType = X_QueryDevicePointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.mask = pDev->button->state | inputInfo.keyboard->key->state;
+    rep.mask = pDev->button->state | (kbd && kbd->key) ? kbd->key->state : 0;
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
