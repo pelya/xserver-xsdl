@@ -2640,9 +2640,6 @@ GetPairedDevice(DeviceIntPtr dev)
     if (!dev->isMaster && dev->u.master)
         dev = dev->u.master;
 
-    if (!dev->spriteInfo->paired)
-        return NULL;
-
     return dev->spriteInfo->paired;
 }
 
