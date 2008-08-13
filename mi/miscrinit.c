@@ -257,8 +257,8 @@ miScreenInit(
     pScreen->wakeupData = (pointer)0;
     pScreen->MarkWindow = miMarkWindow;
     pScreen->MarkOverlappedWindows = miMarkOverlappedWindows;
-    pScreen->ChangeSaveUnder = miChangeSaveUnder;
-    pScreen->PostChangeSaveUnder = miPostChangeSaveUnder;
+    pScreen->ChangeSaveUnder = NULL;
+    pScreen->PostChangeSaveUnder = NULL;
     pScreen->MoveWindow = miMoveWindow;
     pScreen->ResizeWindow = miSlideAndSizeWindow;
     pScreen->GetLayerWindow = miGetLayerWindow;

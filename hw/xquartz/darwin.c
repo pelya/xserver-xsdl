@@ -900,9 +900,6 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = TRUE;
     RegionPtr	pOldClip = NULL, bsExposed;
-#ifdef DO_SAVE_UNDERS
-    Bool	dosave = FALSE;
-#endif
     WindowPtr   pLayerWin;
     BoxRec	box;
 
@@ -973,12 +970,6 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
 	    anyMarked = TRUE;
 	}
 
-#ifdef DO_SAVE_UNDERS
-	if (DO_SAVE_UNDERS(pWin))
-	{
-	    dosave = (*pScreen->ChangeSaveUnder)(pLayerWin, pLayerWin);
-	}
-#endif /* DO_SAVE_UNDERS */
 
 	if (anyMarked)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
@@ -1010,10 +1001,6 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
     {
 	if (anyMarked)
 	    (*pScreen->HandleExposures)(pWin);
-#ifdef DO_SAVE_UNDERS
-	if (dosave)
-	    (*pScreen->PostChangeSaveUnder)(pLayerWin, pLayerWin);
-#endif /* DO_SAVE_UNDERS */
 	if (anyMarked && pScreen->PostValidateTree)
 	    (*pScreen->PostValidateTree)(pWin, NullWindow, VTOther);
     }

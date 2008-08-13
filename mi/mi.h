@@ -485,16 +485,6 @@ extern void miClearToBackground(
     Bool /*generateExposures*/
 );
 
-extern Bool miChangeSaveUnder(
-    WindowPtr /*pWin*/,
-    WindowPtr /*first*/
-);
-
-extern void miPostChangeSaveUnder(
-    WindowPtr /*pWin*/,
-    WindowPtr /*pFirst*/
-);
-
 extern void miMarkWindow(
     WindowPtr /*pWin*/
 );

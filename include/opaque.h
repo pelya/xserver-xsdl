@@ -54,7 +54,6 @@ extern char *display;
 extern int defaultBackingStore;
 extern Bool disableBackingStore;
 extern Bool enableBackingStore;
-extern Bool disableSaveUnders;
 extern Bool PartialNetwork;
 #ifndef NOLOGOHACK
 extern int logoScreenSaver;

@@ -588,7 +588,6 @@ Bool PanoramiXCreateConnectionBlock(void)
 {
     int i, j, length;
     Bool disableBackingStore = FALSE;
-    Bool disableSaveUnders = FALSE;
     int old_width, old_height;
     float width_mult, height_mult;
     xWindowRoot *root;
@@ -614,17 +613,12 @@ Bool PanoramiXCreateConnectionBlock(void)
 	}
 	if(pScreen->backingStoreSupport != screenInfo.screens[0]->backingStoreSupport)
 	     disableBackingStore = TRUE;
-	if(pScreen->saveUnderSupport != screenInfo.screens[0]->saveUnderSupport)
-	     disableSaveUnders = TRUE;
     }
 
-    if(disableBackingStore || disableSaveUnders) {
-    	for(i = 0; i < screenInfo.numScreens; i++) {
+    if (disableBackingStore) {
+    	for (i = 0; i < screenInfo.numScreens; i++) {
 	    pScreen = screenInfo.screens[i];
-	    if(disableBackingStore)
-		pScreen->backingStoreSupport = NotUseful;
-	    if(disableSaveUnders)
-		pScreen->saveUnderSupport = NotUseful;
+	    pScreen->backingStoreSupport = NotUseful;
 	}
     }
 

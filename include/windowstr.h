@@ -257,25 +257,6 @@ typedef struct _FocusSemaphores {
     char                focusinout[(MAX_DEVICES + 7)/8];
 } FocusSemaphoresRec, *FocusSemaphoresPtr;
 
-/*
- * this is the configuration parameter "NO_BACK_SAVE"
- * it means that any existant backing store should not 
- * be used to implement save unders.
- */
-
-#ifndef NO_BACK_SAVE
-#define DO_SAVE_UNDERS(pWin)	((pWin)->drawable.pScreen->saveUnderSupport ==\
-				 USE_DIX_SAVE_UNDERS)
-/*
- * saveUnderSupport is set to this magic value when using DIXsaveUnders
- */
-
-#define USE_DIX_SAVE_UNDERS	0x40
-#endif
-
-extern int numSaveUndersViewable;
-extern int deltaSaveUndersViewable;
-
 #ifdef XEVIE
 extern WindowPtr xeviewin;
 #endif

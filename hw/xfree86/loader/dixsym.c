@@ -323,8 +323,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(TraverseTree)
     SYMFUNC(UnmapWindow)
     SYMFUNC(WalkTree)
-    SYMVAR(deltaSaveUndersViewable)
-    SYMVAR(numSaveUndersViewable)
     SYMVAR(savedScreenInfo)
     SYMVAR(screenIsSaved)
 
