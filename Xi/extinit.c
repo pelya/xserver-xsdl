@@ -210,22 +210,24 @@ static int (*ProcIVector[])(ClientPtr) = {
 	ProcXSetDeviceValuators,                /* 33 */
 	ProcXGetDeviceControl,                  /* 34 */
 	ProcXChangeDeviceControl,               /* 35 */
-        ProcXQueryDevicePointer,                /* 36 */
-        ProcXWarpDevicePointer,                 /* 37 */
-        ProcXChangeDeviceCursor,                /* 38 */
-        ProcXChangeDeviceHierarchy,             /* 39 */
-        ProcXChangeWindowAccess,                /* 40 */
-        ProcXQueryWindowAccess,                 /* 41 */
-        ProcXSetClientPointer,                  /* 42 */
-        ProcXGetClientPointer,                  /* 43 */
-        ProcXiSelectEvent,                      /* 44 */
-        ProcXExtendedGrabDevice,                /* 45 */
-        ProcXListDeviceProperties,              /* 46 */
-        ProcXQueryDeviceProperty,               /* 47 */
-        ProcXConfigureDeviceProperty,           /* 48 */
-        ProcXChangeDeviceProperty,              /* 49 */
-        ProcXDeleteDeviceProperty,              /* 50 */
-        ProcXGetDeviceProperty                  /* 51 */
+        /* XI 1.5 */
+        ProcXListDeviceProperties,              /* 36 */
+        ProcXQueryDeviceProperty,               /* 37 */
+        ProcXConfigureDeviceProperty,           /* 38 */
+        ProcXChangeDeviceProperty,              /* 39 */
+        ProcXDeleteDeviceProperty,              /* 40 */
+        ProcXGetDeviceProperty,                 /* 41 */
+        /* XI 2 */
+        ProcXQueryDevicePointer,                /* 42 */
+        ProcXWarpDevicePointer,                 /* 43 */
+        ProcXChangeDeviceCursor,                /* 44 */
+        ProcXChangeDeviceHierarchy,             /* 45 */
+        ProcXChangeWindowAccess,                /* 46 */
+        ProcXQueryWindowAccess,                 /* 47 */
+        ProcXSetClientPointer,                  /* 48 */
+        ProcXGetClientPointer,                  /* 49 */
+        ProcXiSelectEvent,                      /* 50 */
+        ProcXExtendedGrabDevice                 /* 51 */
 };
 
 /* For swapped clients */
@@ -266,22 +268,22 @@ static int (*SProcIVector[])(ClientPtr) = {
 	SProcXSetDeviceValuators,                /* 33 */
 	SProcXGetDeviceControl,                  /* 34 */
 	SProcXChangeDeviceControl,               /* 35 */
-        SProcXQueryDevicePointer,                /* 36 */
-        SProcXWarpDevicePointer,                 /* 37 */
-        SProcXChangeDeviceCursor,                /* 38 */
-        SProcXChangeDeviceHierarchy,             /* 39 */
-        SProcXChangeWindowAccess,                /* 40 */
-        SProcXQueryWindowAccess,                 /* 41 */
-        SProcXSetClientPointer,                  /* 42 */
-        SProcXGetClientPointer,                  /* 43 */
-        SProcXiSelectEvent,                      /* 44 */
-        SProcXExtendedGrabDevice,                /* 45 */
-        SProcXListDeviceProperties,              /* 46 */
-        SProcXQueryDeviceProperty,               /* 47 */
-        SProcXConfigureDeviceProperty,           /* 48 */
-        SProcXChangeDeviceProperty,              /* 49 */
-        SProcXDeleteDeviceProperty,              /* 50 */
-        SProcXGetDeviceProperty                  /* 51 */
+        SProcXListDeviceProperties,              /* 36 */
+        SProcXQueryDeviceProperty,               /* 37 */
+        SProcXConfigureDeviceProperty,           /* 38 */
+        SProcXChangeDeviceProperty,              /* 39 */
+        SProcXDeleteDeviceProperty,              /* 40 */
+        SProcXGetDeviceProperty,                 /* 41 */
+        SProcXQueryDevicePointer,                /* 42 */
+        SProcXWarpDevicePointer,                 /* 43 */
+        SProcXChangeDeviceCursor,                /* 44 */
+        SProcXChangeDeviceHierarchy,             /* 45 */
+        SProcXChangeWindowAccess,                /* 46 */
+        SProcXQueryWindowAccess,                 /* 47 */
+        SProcXSetClientPointer,                  /* 48 */
+        SProcXGetClientPointer,                  /* 49 */
+        SProcXiSelectEvent,                      /* 50 */
+        SProcXExtendedGrabDevice                 /* 51 */
 };
 
 /*****************************************************************
@@ -308,6 +310,7 @@ Mask DeviceOwnerGrabButtonMask;
 Mask DeviceButtonGrabMask;
 Mask DeviceButtonMotionMask;
 Mask DevicePresenceNotifyMask;
+Mask DevicePropertyNotifyMask;
 Mask DeviceEnterWindowMask;
 Mask DeviceLeaveWindowMask;
 
@@ -327,6 +330,7 @@ int DeviceButtonStateNotify;
 int DeviceMappingNotify;
 int ChangeDeviceNotify;
 int DevicePresenceNotify;
+int DevicePropertyNotify;
 int DeviceEnterNotify;
 int DeviceLeaveNotify;
 
@@ -590,6 +594,17 @@ SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to
 }
 
 static void
+SDevicePropertyNotifyEvent (devicePropertyNotify *from, devicePropertyNotify *to)
+{
+    char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber,n);
+    swapl(&to->time, n);
+    swapl(&to->atom, n);
+}
+
+static void
 SDeviceEnterNotifyEvent (deviceEnterNotify *from, deviceEnterNotify *to)
 {
     char n;
@@ -786,7 +801,8 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DeviceKeyStateNotify = ChangeDeviceNotify + 1;
     DeviceButtonStateNotify = DeviceKeyStateNotify + 1;
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
-    DeviceEnterNotify = DevicePresenceNotify + 1;
+    DevicePropertyNotify = DevicePresenceNotify + 1;
+    DeviceEnterNotify = DevicePropertyNotify + 1;
     DeviceLeaveNotify = DeviceEnterNotify + 1;
 
     event_base[KeyClass] = DeviceKeyPress;
@@ -876,6 +892,9 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DevicePresenceNotifyMask = GetNextExtEventMask();
     SetEventInfo(DevicePresenceNotifyMask, _devicePresence);
 
+    DevicePropertyNotifyMask = GetNextExtEventMask();
+    SetMaskForExtEvent(DevicePropertyNotifyMask, DevicePropertyNotify);
+
     DeviceEnterWindowMask = GetNextExtEventMask();
     SetMaskForExtEvent(DeviceEnterWindowMask, DeviceEnterNotify);
     AllowPropagateSuppress(DeviceEnterWindowMask);
@@ -929,8 +948,9 @@ RestoreExtensionEvents(void)
     DeviceKeyStateNotify = 13;
     DeviceButtonStateNotify = 13;
     DevicePresenceNotify = 14;
-    DeviceEnterNotify = 15;
-    DeviceLeaveNotify = 16;
+    DevicePropertyNotify = 15;
+    DeviceEnterNotify = 16;
+    DeviceLeaveNotify = 17;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -969,6 +989,7 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[DeviceMappingNotify] = NotImplemented;
     EventSwapVector[ChangeDeviceNotify] = NotImplemented;
     EventSwapVector[DevicePresenceNotify] = NotImplemented;
+    EventSwapVector[DevicePropertyNotify] = NotImplemented;
     EventSwapVector[DeviceEnterNotify] = NotImplemented;
     EventSwapVector[DeviceLeaveNotify] = NotImplemented;
     RestoreExtensionEvents();
@@ -1072,6 +1093,8 @@ SEventIDispatch(xEvent * from, xEvent * to)
 	DO_SWAP(SChangeDeviceNotifyEvent, changeDeviceNotify);
     else if (type == DevicePresenceNotify)
 	DO_SWAP(SDevicePresenceNotifyEvent, devicePresenceNotify);
+    else if (type == DevicePropertyNotify)
+	DO_SWAP(SDevicePropertyNotifyEvent, devicePropertyNotify);
     else if (type == DeviceEnterNotify)
         DO_SWAP(SDeviceEnterNotifyEvent, deviceEnterNotify);
     else if (type == DeviceLeaveNotify)

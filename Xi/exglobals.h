@@ -52,6 +52,7 @@ extern Mask DeviceOwnerGrabButtonMask;
 extern Mask DeviceButtonGrabMask;
 extern Mask DeviceButtonMotionMask;
 extern Mask DevicePresenceNotifyMask;
+extern Mask DevicePropertyNotifyMask;
 extern Mask DeviceEnterWindowMask;
 extern Mask DeviceLeaveWindowMask;
 extern Mask PropagateMask[];
@@ -72,6 +73,7 @@ extern int DeviceButtonStateNotify;
 extern int DeviceMappingNotify;
 extern int ChangeDeviceNotify;
 extern int DevicePresenceNotify;
+extern int DevicePropertyNotify;
 extern int DeviceEnterNotify;
 extern int DeviceLeaveNotify;
 

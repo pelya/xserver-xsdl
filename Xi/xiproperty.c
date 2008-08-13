@@ -191,21 +191,18 @@ XIDeleteAllDeviceProperties (DeviceIntPtr device)
 {
     XIPropertyPtr               prop, next;
     XIPropertyHandlerPtr        curr_handler, next_handler;
-    devicePropertyNotifyEvent   event;
+    devicePropertyNotify        event;
 
     for (prop = device->properties.properties; prop; prop = next)
     {
         next = prop->next;
 
-        event.type      = GenericEvent;
-        event.extension = IReqCode;
-        event.evtype    = XI_DevicePropertyNotify;
-        event.length    = 0;
+        event.type      = DevicePropertyNotify;
         event.deviceid  = device->id;
         event.state     = PropertyDelete;
         event.atom      = prop->propertyName;
         event.time      = currentTime.milliseconds;
-        SendEventToAllWindows(device, XI_DevicePropertyNotifyMask,
+        SendEventToAllWindows(device, DevicePropertyNotifyMask,
                 (xEvent*)&event, 1);
 
         XIDestroyDeviceProperty(prop);
@@ -226,7 +223,7 @@ int
 XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 {
     XIPropertyPtr               prop, *prev;
-    devicePropertyNotifyEvent   event;
+    devicePropertyNotify        event;
 
     for (prev = &device->properties.properties; (prop = *prev); prev = &(prop->next))
         if (prop->propertyName == property)
@@ -238,15 +235,12 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
     if (prop)
     {
         *prev = prop->next;
-        event.type      = GenericEvent;
-        event.extension = IReqCode;
-        event.length    = 0;
-        event.evtype    = XI_DevicePropertyNotify;
+        event.type      = DevicePropertyNotify;
         event.deviceid  = device->id;
         event.state     = PropertyDelete;
         event.atom      = prop->propertyName;
         event.time      = currentTime.milliseconds;
-        SendEventToAllWindows(device, XI_DevicePropertyNotifyMask,
+        SendEventToAllWindows(device, DevicePropertyNotifyMask,
                               (xEvent*)&event, 1);
         XIDestroyDeviceProperty (prop);
     }
@@ -261,7 +255,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                         Bool fromClient)
 {
     XIPropertyPtr               prop;
-    devicePropertyNotifyEvent   event;
+    devicePropertyNotify        event;
     int                         size_in_bytes;
     int                         total_size;
     unsigned long               total_len;
@@ -379,15 +373,12 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
 
     if (sendevent)
     {
-        event.type      = GenericEvent;
-        event.extension = IReqCode;
-        event.length    = 0;
-        event.evtype    = XI_DevicePropertyNotify;
+        event.type      = DevicePropertyNotify;
         event.deviceid  = dev->id;
         event.state     = PropertyNewValue;
         event.atom      = prop->propertyName;
         event.time      = currentTime.milliseconds;
-        SendEventToAllWindows(dev, XI_DevicePropertyNotifyMask,
+        SendEventToAllWindows(dev, DevicePropertyNotifyMask,
                               (xEvent*)&event, 1);
     }
     return(Success);
@@ -786,17 +777,14 @@ ProcXGetDeviceProperty (ClientPtr client)
 
     if (stuff->delete && (reply.bytesAfter == 0))
     {
-        devicePropertyNotifyEvent    event;
+        devicePropertyNotify    event;
 
-        event.type      = GenericEvent;
-        event.extension = IReqCode;
-        event.length    = 0;
-        event.evtype    = XI_DevicePropertyNotify;
+        event.type      = DevicePropertyNotify;
         event.deviceid  = dev->id;
         event.state     = PropertyDelete;
         event.atom      = prop->propertyName;
         event.time      = currentTime.milliseconds;
-        SendEventToAllWindows(dev, XI_DevicePropertyNotifyMask,
+        SendEventToAllWindows(dev, DevicePropertyNotifyMask,
                               (xEvent*)&event, 1);
     }
 
