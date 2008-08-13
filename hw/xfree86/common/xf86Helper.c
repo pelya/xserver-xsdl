@@ -60,7 +60,6 @@
 #include "mivalidate.h"
 #include "xf86RAC.h"
 #include "xf86Bus.h"
-#include "xf86Version.h"
 
 /* For xf86GetClocks */
 #if defined(CSRG_BASED) || defined(__GNU__)
@@ -2349,12 +2348,6 @@ xf86DisableRandR()
 {
     xf86Info.disableRandR = TRUE;
     xf86Info.randRFrom = X_PROBED;
-}
-
-_X_EXPORT CARD32
-xf86GetVersion()
-{
-    return XF86_VERSION_CURRENT;
 }
 
 _X_EXPORT CARD32

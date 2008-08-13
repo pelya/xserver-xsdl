@@ -445,7 +445,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86IsPc98)
     SYMFUNC(xf86DisableRandR)
     SYMFUNC(xf86GetRotation)
-    SYMFUNC(xf86GetVersion)
     SYMFUNC(xf86GetModuleVersion)
     SYMFUNC(xf86GetClocks)
     SYMFUNC(xf86SetPriority)

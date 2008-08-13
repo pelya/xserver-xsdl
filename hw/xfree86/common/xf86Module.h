@@ -42,7 +42,6 @@
 #define _XF86MODULE_H
 
 #include "misc.h"
-#include "xf86Version.h"
 #ifndef NULL
 #define NULL ((void *)0)
 #endif
