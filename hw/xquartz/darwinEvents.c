@@ -77,7 +77,7 @@ in this Software without prior written authorization from The Open Group.
 /* FIXME: Abstract this better */
 void QuartzModeEQInit(void);
 
-static int old_flags = 0;  // last known modifier state
+static int modifier_flags = 0;  // last known modifier state
 
 #define FD_ADD_MAX 128
 static int fd_add[FD_ADD_MAX];
@@ -140,19 +140,19 @@ static inline void darwinEvents_unlock(void) {
 
 /*
  * DarwinPressModifierMask
- *  Press or release the given modifier key, specified by its mask.
+ * Press or release the given modifier key, specified by its mask (one of NX_*MASK constants)
  */
-static void DarwinPressModifierMask(
-    int pressed,				    
-    int mask)       // one of NX_*MASK constants
-{
+static void DarwinPressModifierMask(int pressed, int mask) {
+    int keycode;
     int key = DarwinModifierNXMaskToNXKey(mask);
 
     if (key != -1) {
-        int keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
+        keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
         if (keycode != 0)
-	  DarwinSendKeyboardEvents(pressed, keycode);
+            DarwinSendKeyboardEvents(pressed, keycode);
     }
+
+    ErrorF("DarwinPressModifierMask pressed=%s, mask=%d, key=%d, keycode=%d\n", pressed == KeyPress ? "press" : "release", mask, key, keycode);
 }
 
 #ifdef NX_DEVICELCTLKEYMASK
@@ -187,6 +187,8 @@ static void DarwinUpdateModifiers(
     int pressed,        // KeyPress or KeyRelease
     int flags )         // modifier flags that have changed
 {
+    fprintf(stderr, "DarwinUpdateModifiers pressed=%s, flags=%x\n", pressed == KeyPress ? "press" : "release", flags);
+    
     if (flags & NX_ALPHASHIFTMASK) {
         DarwinPressModifierMask(pressed, NX_ALPHASHIFTMASK);
     }
@@ -214,43 +216,8 @@ static void DarwinUpdateModifiers(
  * are held down during a "context" switch -- otherwise, we would miss the KeyUp.
  */
 static void DarwinReleaseModifiers(void) {
+    ErrorF("DarwinReleaseModifiers\n");
 	DarwinUpdateModifiers(KeyRelease, COMMAND_MASK(-1) | CONTROL_MASK(-1) | ALTERNATE_MASK(-1) | SHIFT_MASK(-1));
-}
-
-/*
- * DarwinSimulateMouseClick
- *  Send a mouse click to X when multiple mouse buttons are simulated
- *  with modifier-clicks, such as command-click for button 2. The dix
- *  layer is told that the previously pressed modifier key(s) are
- *  released, the simulated click event is sent. After the mouse button
- *  is released, the modifier keys are reverted to their actual state,
- *  which may or may not be pressed at that point. This is usually
- *  closest to what the user wants. Ie. the user typically wants to
- *  simulate a button 2 press instead of Command-button 2.
- */
-static void DarwinSimulateMouseClick(
-    int pointer_x,
-    int pointer_y,
-    float pressure,
-    float tilt_x,
-    float tilt_y,
-    int whichButton,    // mouse button to be pressed
-    int modifierMask)   // modifiers used for the fake click
-{
-    // first fool X into forgetting about the keys
-	// for some reason, it's not enough to tell X we released the Command key -- 
-	// it has to be the *left* Command key.
-	if (modifierMask & NX_COMMANDMASK) modifierMask |=NX_DEVICELCMDKEYMASK ;
-    DarwinUpdateModifiers(KeyRelease, modifierMask);
-
-    // push the mouse button
-    DarwinSendPointerEvents(ButtonPress, whichButton, pointer_x, pointer_y, 
-			    pressure, tilt_x, tilt_y);
-    DarwinSendPointerEvents(ButtonRelease, whichButton, pointer_x, pointer_y, 
-			    pressure, tilt_x, tilt_y);
-
-    // restore old modifiers
-    DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
 /* Generic handler for Xquartz-specifc events.  When possible, these should
@@ -475,7 +442,6 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
 			     float pressure, float tilt_x, float tilt_y) {
 	static int darwinFakeMouseButtonDown = 0;
-	static int darwinFakeMouseButtonMask = 0;
 	int i, num_events;
 	DeviceIntPtr dev;
     ScreenPtr screen;
@@ -499,35 +465,27 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
         return;
     }
 
+    /* Handle fake click */
 	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
-		// Mimic multi-button mouse with modifier-clicks
-		// If both sets of modifiers are pressed,
-		// button 2 is clicked.
-		if ((old_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
-			DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
-			       tilt_x, tilt_y, 2, darwinFakeMouse2Mask);
+        if(darwinFakeMouseButtonDown != 0) {
+            /* We're currently "down" with another button, so release it first */
+            DarwinSendPointerEvents(ButtonRelease, darwinFakeMouseButtonDown, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+            darwinFakeMouseButtonDown=0;
+        }
+		if ((modifier_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
+            ev_button = 2;
 			darwinFakeMouseButtonDown = 2;
-			darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
-			return;
-		} else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
-			DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
-			       tilt_x, tilt_y, 3, darwinFakeMouse3Mask);
+		} else if ((modifier_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
+            ev_button = 3;
 			darwinFakeMouseButtonDown = 3;
-			darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
-			return;
 		}
 	}
 
-	if (ev_type == ButtonRelease && darwinFakeButtons && darwinFakeMouseButtonDown) {
-		// If last mousedown was a fake click, don't check for
-		// mouse modifiers here. The user may have released the
-		// modifiers before the mouse button.
-		ev_button = darwinFakeMouseButtonDown;
-		darwinFakeMouseButtonDown = 0;
-		// Bring modifiers back up to date
-		DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
-		darwinFakeMouseButtonMask = 0;
-		return;
+	if (ev_type == ButtonRelease && ev_button == 1) {
+        if(darwinFakeMouseButtonDown) {
+            ev_button = darwinFakeMouseButtonDown;
+            darwinFakeMouseButtonDown = 0;
+        }
 	}
 
     DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
@@ -547,7 +505,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		return;
 	}
 
-	if (old_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
+	if (modifier_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
 		/* See if keymap has changed. */
 
 		static unsigned int last_seed;
@@ -627,9 +585,9 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
    reflect changing modifier flags (alt, control, meta, etc) */
 void DarwinUpdateModKeys(int flags) {
-	DarwinUpdateModifiers(KeyRelease, old_flags & ~flags);
-	DarwinUpdateModifiers(KeyPress, ~old_flags & flags);
-	old_flags = flags;
+	DarwinUpdateModifiers(KeyRelease, modifier_flags & ~flags);
+	DarwinUpdateModifiers(KeyPress, ~modifier_flags & flags);
+	modifier_flags = flags;
 }
 
 /*
