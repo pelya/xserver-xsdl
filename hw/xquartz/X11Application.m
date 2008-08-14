@@ -898,7 +898,7 @@ handle_mouse:
 		break;
 
 		case NSKeyDown: case NSKeyUp:
-			DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
+            DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
 		break;
 
 		case NSFlagsChanged:

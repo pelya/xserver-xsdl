@@ -151,32 +151,38 @@ static void DarwinPressModifierMask(int pressed, int mask) {
         if (keycode != 0)
             DarwinSendKeyboardEvents(pressed, keycode);
     }
-
-    ErrorF("DarwinPressModifierMask pressed=%s, mask=%d, key=%d, keycode=%d\n", pressed == KeyPress ? "press" : "release", mask, key, keycode);
 }
 
 #ifdef NX_DEVICELCTLKEYMASK
 #define CONTROL_MASK(flags) (flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK))
+#define NX_CONTROLMASK_FULL (NX_CONTROLMASK | NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK)
 #else
 #define CONTROL_MASK(flags) (NX_CONTROLMASK)
+#define NX_CONTROLMASK_FULL NX_CONTROLMASK
 #endif /* NX_DEVICELCTLKEYMASK */
 
 #ifdef NX_DEVICELSHIFTKEYMASK
 #define SHIFT_MASK(flags) (flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK))
+#define NX_SHIFTMASK_FULL (NX_SHIFTMASK | NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK)
 #else
 #define SHIFT_MASK(flags) (NX_SHIFTMASK)
+#define NX_SHIFTMASK_FULL NX_SHIFTMASK
 #endif /* NX_DEVICELSHIFTKEYMASK */
 
 #ifdef NX_DEVICELCMDKEYMASK
 #define COMMAND_MASK(flags) (flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK))
+#define NX_COMMANDMASK_FULL (NX_COMMANDMASK | NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK)
 #else
 #define COMMAND_MASK(flags) (NX_COMMANDMASK)
+#define NX_COMMANDMASK_FULL NX_COMMANDMASK
 #endif /* NX_DEVICELCMDKEYMASK */
 
 #ifdef NX_DEVICELALTKEYMASK
 #define ALTERNATE_MASK(flags) (flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK))
+#define NX_ALTERNATEMASK_FULL (NX_ALTERNATEMASK | NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK)
 #else
 #define ALTERNATE_MASK(flags) (NX_ALTERNATEMASK)
+#define NX_ALTERNATEMASK_FULL NX_ALTERNATEMASK
 #endif /* NX_DEVICELALTKEYMASK */
 
 /*
@@ -187,21 +193,19 @@ static void DarwinUpdateModifiers(
     int pressed,        // KeyPress or KeyRelease
     int flags )         // modifier flags that have changed
 {
-    fprintf(stderr, "DarwinUpdateModifiers pressed=%s, flags=%x\n", pressed == KeyPress ? "press" : "release", flags);
-    
     if (flags & NX_ALPHASHIFTMASK) {
         DarwinPressModifierMask(pressed, NX_ALPHASHIFTMASK);
     }
-    if (flags & NX_COMMANDMASK) {
+    if (flags & NX_COMMANDMASK_FULL) {
         DarwinPressModifierMask(pressed, COMMAND_MASK(flags));
     }
-    if (flags & NX_CONTROLMASK) {
+    if (flags & NX_CONTROLMASK_FULL) {
         DarwinPressModifierMask(pressed, CONTROL_MASK(flags));
     }
-    if (flags & NX_ALTERNATEMASK) {
+    if (flags & NX_ALTERNATEMASK_FULL) {
         DarwinPressModifierMask(pressed, ALTERNATE_MASK(flags));
     }
-    if (flags & NX_SHIFTMASK) {
+    if (flags & NX_SHIFTMASK_FULL) {
         DarwinPressModifierMask(pressed, SHIFT_MASK(flags));
     }
     if (flags & NX_SECONDARYFNMASK) {
