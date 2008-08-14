@@ -63,8 +63,6 @@ SOFTWARE.
 
 #define EMASKSIZE	MAXDEVICES + 1
 
-extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
-
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
 typedef struct _OtherClients {
