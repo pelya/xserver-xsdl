@@ -203,67 +203,56 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     dk = device->key;
     mk = master->key;
 
-    if (device != dixLookupPrivate(&master->devPrivates,
-                                   CoreDevicePrivateKey)) {
-        memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
+    memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
 
-        if (dk->maxKeysPerModifier)
-        {
-            mk->modifierKeyMap = xrealloc(mk->modifierKeyMap,
-                                          8 * dk->maxKeysPerModifier);
-            if (!mk->modifierKeyMap)
-                FatalError("[Xi] no memory for class shift.\n");
-            memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
-                    (8 * dk->maxKeysPerModifier));
-        } else
-        {
-            xfree(mk->modifierKeyMap);
-            mk->modifierKeyMap = NULL;
-        }
+    if (dk->maxKeysPerModifier)
+    {
+        mk->modifierKeyMap = xrealloc(mk->modifierKeyMap,
+                                      8 * dk->maxKeysPerModifier);
+        if (!mk->modifierKeyMap)
+            FatalError("[Xi] no memory for class shift.\n");
+        memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
+                (8 * dk->maxKeysPerModifier));
+    } else
+    {
+        xfree(mk->modifierKeyMap);
+        mk->modifierKeyMap = NULL;
+    }
 
-        mk->maxKeysPerModifier = dk->maxKeysPerModifier;
-        mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
-        mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
-        SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
+    mk->maxKeysPerModifier = dk->maxKeysPerModifier;
+    mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
+    mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
+    SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
 
-        /*
-         * Copy state from the extended keyboard to core.  If you omit this,
-         * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
-         * cause your app to quit.  This feels wrong to me, hence the below
-         * code.
-         *
-         * XXX: If you synthesise core modifier events, the state will get
-         *      clobbered here.  You'll have to work out something sensible
-         *      to fix that.  Good luck.
-         */
+    /*
+     * Copy state from the extended keyboard to core.  If you omit this,
+     * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
+     * cause your app to quit.  This feels wrong to me, hence the below
+     * code.
+     *
+     * XXX: If you synthesise core modifier events, the state will get
+     *      clobbered here.  You'll have to work out something sensible
+     *      to fix that.  Good luck.
+     */
 
 #define KEYBOARD_MASK (ShiftMask | LockMask | ControlMask | Mod1Mask | \
         Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
-        mk->state &= ~(KEYBOARD_MASK);
-        mk->state |= (dk->state & KEYBOARD_MASK);
+    mk->state &= ~(KEYBOARD_MASK);
+    mk->state |= (dk->state & KEYBOARD_MASK);
 #undef KEYBOARD_MASK
-        for (i = 0; i < 8; i++)
-            mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
+    for (i = 0; i < 8; i++)
+        mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
-#ifdef XKB
-        if (!noXkbExtension && dk->xkbInfo && dk->xkbInfo->desc) {
-            if (!mk->xkbInfo || !mk->xkbInfo->desc)
-            {
-                XkbInitDevice(master);
-                XkbFinishDeviceInit(master);
-            }
-            if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
-                FatalError("Couldn't pivot keymap from device to core!\n");
+    if (dk->xkbInfo && dk->xkbInfo->desc) {
+        if (!mk->xkbInfo || !mk->xkbInfo->desc) {
+            XkbInitDevice(master);
+            XkbFinishDeviceInit(master);
         }
-#endif
+        if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
+            FatalError("Couldn't pivot keymap from device to core!\n");
+    }
 
-        dixSetPrivate(&master->devPrivates, CoreDevicePrivateKey, device);
-        sendNotify = TRUE;
-    } else if (lastMapNotifyDevice != master)
-        sendNotify = TRUE;
-
-    if (sendNotify)
-    {
+    if (lastMapNotifyDevice != master) {
         SendMappingNotify(master, MappingKeyboard,
                            mk->curKeySyms.minKeyCode,
                           (mk->curKeySyms.maxKeyCode -
@@ -271,6 +260,13 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
                           serverClient);
         lastMapNotifyDevice = master;
     }
+
+    /* Copy the state here.  This means we'll only have consistency
+     * between state and active keymap, rather than between state and
+     * keycodes pressed, but there's pretty much no way to win here,
+     * so might as well go for the one that would seem to give the
+     * least nonsensical result. */
+    mk->xkbInfo->state = dk->xkbInfo->state;
 }
 
 /**
