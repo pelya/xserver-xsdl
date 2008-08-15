@@ -660,7 +660,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] [renderproto >= 0.9.3] [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto [xextproto >= 7.0.3] [xproto >= 7.0.13] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.9.99.3] [kbproto >= 1.0.3]" 
+REQUIRED_MODULES="[randrproto >= 1.2] [renderproto >= 0.9.3] [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto [xextproto >= 7.0.3] [xproto >= 7.0.13] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.9.99.4] [kbproto >= 1.0.3]" 
 REQUIRED_LIBS="xfont xau fontenc [pixman-1 >= 0.9.5]"
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
