@@ -938,6 +938,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                 &pDev->last.valuators[first_valuator]);
 
     /* Update the valuators with the true value sent to the client*/
+    /* FIXME: we lose subpixel precision here. */
     if(v0) *v0 = x;
     if(v1) *v1 = y;
 
