@@ -148,8 +148,10 @@ void
 __glXContextDestroy(__GLXcontext *context)
 {
     if (!context->isDirect) {
-	__glXUnrefDrawable(context->drawPriv);
-	__glXUnrefDrawable(context->readPriv);
+	if (context->drawPriv)
+	    __glXUnrefDrawable(context->drawPriv);
+	if (context->readPriv)
+	    __glXUnrefDrawable(context->readPriv);
     }
     __glXFlushContextCache();
 }
@@ -621,8 +623,10 @@ DoMakeCurrent(__GLXclientState *cl,
 	}
 	__glXFlushContextCache();
 	if (!prevglxc->isDirect) {
-	    __glXUnrefDrawable(prevglxc->drawPriv);
-	    __glXUnrefDrawable(prevglxc->readPriv);
+	    if (prevglxc->drawPriv)
+		__glXUnrefDrawable(prevglxc->drawPriv);
+	    if (prevglxc->readPriv)
+		__glXUnrefDrawable(prevglxc->readPriv);
 	}
     }
 	
