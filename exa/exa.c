@@ -514,7 +514,7 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 
     if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
 	ExaPixmapPriv (pPixmap);
-	if (pExaPixmap->score != EXA_PIXMAP_SCORE_PINNED)
+	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
 	exaMoveOutPixmap (pPixmap);
     }
