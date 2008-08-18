@@ -115,8 +115,6 @@
 /*
  * Global Definitions
  */
-#define MAX_PCI_DEVICES 128	/* Max number of devices accomodated */
-				/* by xf86scanpci		     */
 #if defined(sun) && defined(SVR4) && defined(sparc)
 # define MAX_PCI_BUSES   4096	/* Max number of PCI buses           */
 #elif (defined(__alpha__) || defined(__ia64__)) && defined (linux)
