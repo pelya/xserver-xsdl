@@ -15,10 +15,6 @@ if XORG_BUS_IX86PCI
 PCI_SOURCES += ix86Pci.c
 endif
 
-if XORG_BUS_SPARCPCI
-PCI_SOURCES += sparcPci.c
-endif
-
 if XORG_BUS_SPARC
 PLATFORM_SOURCES = Sbus.c
 sdk_HEADERS += xf86Sbus.h

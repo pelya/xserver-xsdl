@@ -1217,7 +1217,6 @@ AC_MSG_RESULT([$XORG])
 xorg_bus_linuxpci=no
 xorg_bus_bsdpci=no
 xorg_bus_ix86pci=no
-xorg_bus_sparcpci=no
 xorg_bus_sparc=no
 
 if test "x$XORG" = xyes; then
@@ -1344,7 +1343,6 @@ if test "x$XORG" = xyes; then
 
 	case $host_cpu in
 	  sparc*)
-		xorg_bus_sparcpci="yes"
 		xorg_bus_sparc="yes"
 		;;
 	  i*86|x86_64*|amd64*)
@@ -1450,7 +1448,6 @@ AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
-AM_CONDITIONAL([XORG_BUS_SPARCPCI], [test "x$xorg_bus_sparcpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])

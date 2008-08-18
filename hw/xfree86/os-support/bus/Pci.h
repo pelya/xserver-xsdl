@@ -198,15 +198,9 @@
 
 #if !defined(ARCH_PCI_INIT)
 #warning You really need to port to libpciaccess.
-/*
- * Select architecture specific PCI init function
- */
 #if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64)
-# define ARCH_PCI_INIT ix86PciInit
-#elif defined(__sparc__) || defined(sparc)
-# define ARCH_PCI_INIT sparcPciInit
-# define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
-#endif
+#define ARCH_PCI_INIT ix86PciInit
+#endif /* i386/amd64 */
 #endif /* !defined(ARCH_PCI_INIT) */
 
 #ifndef ARCH_PCI_INIT
