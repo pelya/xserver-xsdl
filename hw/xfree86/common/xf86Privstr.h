@@ -115,18 +115,6 @@ typedef struct {
     Bool		useDefaultFontPath;
     MessageType		useDefaultFontPathFrom;
     Bool        ignoreABI;
-    struct {
-	Bool		disabled;		/* enable/disable deactivating
-						 * grabs or closing the
-						 * connection to the grabbing
-						 * client */
-	ClientPtr	override;		/* client that disabled
-						 * grab deactivation.
-						 */
-	Bool		allowDeactivate;
-	Bool		allowClosedown;
-	ServerGrabInfoRec server;
-    } grabInfo;
 
     Bool        allowEmptyInput;  /* Allow the server to start with no input
                                    * devices. */

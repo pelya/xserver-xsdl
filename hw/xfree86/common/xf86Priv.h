@@ -164,7 +164,6 @@ void xf86SigHandler(int signo);
 void xf86HandlePMEvents(int fd, pointer data);
 extern int (*xf86PMGetEventFromOs)(int fd,pmEvent *events,int num);
 extern pmWait (*xf86PMConfirmEventToOs)(int fd,pmEvent event);
-void xf86GrabServerCallback(CallbackListPtr *, pointer, pointer);
 
 /* xf86Helper.c */
 void xf86LogInit(void);

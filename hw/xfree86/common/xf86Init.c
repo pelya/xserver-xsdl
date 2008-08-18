@@ -1050,8 +1050,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /* set up the proper access funcs */
     xf86PostPreInit();
 
-    AddCallback(&ServerGrabCallback, xf86GrabServerCallback, NULL);
-
   } else {
     /*
      * serverGeneration != 1; some OSs have to do things here, too.

@@ -204,15 +204,6 @@ ProcessInputEvents ()
   xf86SetViewport(xf86Info.currentScreen, x, y);
 }
 
-void
-xf86GrabServerCallback(CallbackListPtr *callbacks, pointer data, pointer args)
-{
-    ServerGrabInfoRec *grab = (ServerGrabInfoRec*)args;
-
-    xf86Info.grabInfo.server.client = grab->client;
-    xf86Info.grabInfo.server.grabstate = grab->grabstate;
-}
-
 /*
  * Handle keyboard events that cause some kind of "action"
  * (i.e., server termination, video mode changes, VT switches, etc.)
@@ -239,43 +230,6 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
     case ACTION_PREV_MODE:
 	if (!xf86Info.dontZoom)
 	    xf86ZoomViewport(xf86Info.currentScreen, -1);
-	break;
-    case ACTION_DISABLEGRAB:
-	if (!xf86Info.grabInfo.disabled && xf86Info.grabInfo.allowDeactivate) {
-	  if (inputInfo.pointer && inputInfo.pointer->deviceGrab.grab != NULL &&
-	      inputInfo.pointer->deviceGrab.DeactivateGrab)
-	    inputInfo.pointer->deviceGrab.DeactivateGrab(inputInfo.pointer);
-	  if (inputInfo.keyboard && 
-                  inputInfo.keyboard->deviceGrab.grab != NULL &&
-	      inputInfo.keyboard->deviceGrab.DeactivateGrab)
-	    inputInfo.keyboard->deviceGrab.DeactivateGrab(inputInfo.keyboard);
-	}
-	break;
-    case ACTION_CLOSECLIENT:
-	if (!xf86Info.grabInfo.disabled && xf86Info.grabInfo.allowClosedown) {
-	  ClientPtr pointer, keyboard, server;
-
-	  pointer = keyboard = server = NULL;
-	  if (inputInfo.pointer && inputInfo.pointer->deviceGrab.grab != NULL)
-	    pointer = clients[CLIENT_ID(inputInfo.pointer->deviceGrab.grab->resource)];
-	  if (inputInfo.keyboard && inputInfo.keyboard->deviceGrab.grab != NULL)
-          {
-	    keyboard = clients[CLIENT_ID(inputInfo.keyboard->deviceGrab.grab->resource)];
-	    if (keyboard == pointer)
-	      keyboard = NULL;
-	  }
-	  if ((xf86Info.grabInfo.server.grabstate == SERVER_GRABBED) &&
-	      (((server = xf86Info.grabInfo.server.client) == pointer) ||
-	       (server == keyboard)))
-	      server = NULL;
-
-	  if (pointer)
-	    CloseDownClient(pointer);
-	  if (keyboard)
-	    CloseDownClient(keyboard);
-	  if (server)
-	    CloseDownClient(server);
-	}
 	break;
 #if !defined(__SOL8__) && \
     (!defined(sun) || defined(__i386__)) && defined(VT_ACTIVATE)

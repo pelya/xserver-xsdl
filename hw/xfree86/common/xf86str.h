@@ -1110,8 +1110,6 @@ typedef enum {
     ACTION_TERMINATE		= 0,	/* Terminate Server */
     ACTION_NEXT_MODE		= 10,	/* Switch to next video mode */
     ACTION_PREV_MODE,
-    ACTION_DISABLEGRAB		= 20,	/* Cancel server/pointer/kbd grabs */
-    ACTION_CLOSECLIENT,			/* Kill client holding grab */
     ACTION_SWITCHSCREEN		= 100,	/* VT switch */
     ACTION_SWITCHSCREEN_NEXT,
     ACTION_SWITCHSCREEN_PREV,
