@@ -100,7 +100,6 @@ xf86InfoRec xf86Info = {
 	FALSE,		/* vtSysreq */
 	SKWhenNeeded,	/* ddxSpecialKeys */
 	NULL,		/* pMouse */
-	NULL,		/* mouseLocal */
 	-1,		/* lastEventTime */
 	FALSE,		/* vtRequestsPending */
 	FALSE,		/* dontVTSwitch */

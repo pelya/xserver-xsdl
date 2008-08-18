@@ -69,7 +69,6 @@ typedef struct {
 
     /* mouse part */
     DeviceIntPtr	pMouse;
-    pointer		mouseLocal;
 
     /* event handler part */
     int			lastEventTime;
