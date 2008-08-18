@@ -136,17 +136,10 @@
 
 #include <pciaccess.h>
 
-#define PCI_MFDEV_SUPPORT   1 /* Include PCI multifunction device support */
-#define PCI_BRIDGE_SUPPORT  1 /* Include support for PCI-to-PCI bridges */
-
-/*
- * Global data
- */
+/* Global data */
 
 pciBusInfo_t  *pciBusInfo[MAX_PCI_BUSES] = { NULL, };
 _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
-int            pciMaxBusNum = MAX_PCI_BUSES;
-
 
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)

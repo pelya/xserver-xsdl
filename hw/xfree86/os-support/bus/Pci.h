@@ -245,8 +245,6 @@ void          pciCfgMech1SetBits(PCITAG tag, int offset, CARD32 mask,
 				 CARD32 val);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
-extern int    pciMaxBusNum;
-
 extern pciBusInfo_t  *pciBusInfo[];
 
 #endif /* _PCI_H */
