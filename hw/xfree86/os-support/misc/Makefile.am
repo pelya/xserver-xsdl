@@ -1,15 +1,7 @@
-# FIXME: Add the *.S files to build when applicable
-I386_SRCS = BUSmemcpy.S IODelay.S SlowBcopy.S
-OTHER_SRCS = BUSmemcpy.c IODelay.c SlowBcopy.c
-
-ARCH_SRCS = $(OTHER_SRCS)
-
-# FIXME: Add to the build (NeedPortIO)
-PORTIO_SRCS = PortIO.S
 
 noinst_LTLIBRARIES = libmisc.la
 
-libmisc_la_SOURCES = Delay.c $(ARCH_SRCS)
+libmisc_la_SOURCES = Delay.c BUSmemcpy.c IODelay.c SlowBcopy.c
 
 #AM_LDFLAGS = -r
 
