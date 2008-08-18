@@ -15,10 +15,6 @@ if XORG_BUS_IX86PCI
 PCI_SOURCES += ix86Pci.c
 endif
 
-if XORG_BUS_PPCPCI
-PCI_SOURCES += ppcPci.c
-endif
-
 if XORG_BUS_SPARCPCI
 PCI_SOURCES += sparcPci.c
 endif
