@@ -108,7 +108,6 @@ xf86InfoRec xf86Info = {
 	FALSE,		/* dontZoom */
 	FALSE,		/* notrapSignals */
 	FALSE,		/* caughtSignal */
-	FALSE,		/* sharedMonitor */
 	NULL,		/* currentScreen */
 #ifdef CSRG_BASED
 	-1,		/* screenFd */

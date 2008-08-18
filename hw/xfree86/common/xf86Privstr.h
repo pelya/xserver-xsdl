@@ -81,7 +81,6 @@ typedef struct {
     Bool		caughtSignal;
 
     /* graphics part */
-    Bool		sharedMonitor;
     ScreenPtr		currentScreen;
 #if defined(CSRG_BASED) || defined(__FreeBSD_kernel__)
     int			screenFd;	/* fd for memory mapped access to
