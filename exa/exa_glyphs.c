@@ -389,9 +389,10 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     if (!pCachePixmap)
 	return FALSE;
 
+    /* CACHE_{X,Y} are in pixmap coordinates, no need for cache{X,Y}off */
     if (!pExaScr->info->UploadToScreen(pCachePixmap,
-				       CACHE_X(pos) + cacheXoff,
-				       CACHE_Y(pos) + cacheYoff,
+				       CACHE_X(pos),
+				       CACHE_Y(pos),
 				       pGlyph->info.width,
 				       pGlyph->info.height,
 				       (char *)pExaPixmap->sys_ptr,
