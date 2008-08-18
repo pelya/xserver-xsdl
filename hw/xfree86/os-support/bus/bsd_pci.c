@@ -80,7 +80,7 @@ void
 bsdPciInit(void)
 {
     pciNumBuses = 1;
-    pciBusInfo[0] = &bsd_pci;
+    pciBusInfo = &bsd_pci;
 
     xf86InitVidMem();
 }

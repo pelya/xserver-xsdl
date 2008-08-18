@@ -115,14 +115,10 @@
 /*
  * Global Definitions
  */
-#if defined(sun) && defined(SVR4) && defined(sparc)
-# define MAX_PCI_BUSES   4096	/* Max number of PCI buses           */
-#elif (defined(__alpha__) || defined(__ia64__)) && defined (linux)
-# define MAX_PCI_DOMAINS	512
-# define PCI_DOM_MASK	0x01fful
-# define MAX_PCI_BUSES	(MAX_PCI_DOMAINS*256) /* 256 per domain      */
+#if (defined(__alpha__) || defined(__ia64__)) && defined (linux)
+#define PCI_DOM_MASK	0x01fful
 #else
-# define MAX_PCI_BUSES   256	/* Max number of PCI buses           */
+#define PCI_DOM_MASK 0x0ffu
 #endif
 
 #define DEVID(vendor, device) \
@@ -245,6 +241,6 @@ void          pciCfgMech1SetBits(PCITAG tag, int offset, CARD32 mask,
 				 CARD32 val);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
-extern pciBusInfo_t  *pciBusInfo[];
+extern pciBusInfo_t  *pciBusInfo;
 
 #endif /* _PCI_H */

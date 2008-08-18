@@ -115,7 +115,7 @@ linuxPciInit(void)
 	return;
     }
     pciNumBuses    = 1;
-    pciBusInfo[0]  = &linuxPci0;
+    pciBusInfo	   = &linuxPci0;
 }
 
 /**
