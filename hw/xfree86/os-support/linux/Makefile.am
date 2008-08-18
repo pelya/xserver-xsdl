@@ -44,8 +44,7 @@ INCLUDES = $(XORG_INCS) $(PLATFORM_INCLUDES) $(LIBDRM_CFLAGS)
 
 # FIXME: These need to be added to the build
 LNX_EXTRA_SRCS = \
-	lnx_font.c \
-	lnxResource.c
+	lnx_font.c
 
 EXTRA_DIST = \
 	$(LNX_EXTRA_SRCS) \

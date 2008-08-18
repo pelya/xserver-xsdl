@@ -72,7 +72,6 @@ libbsd_la_SOURCES = \
 EXTRA_DIST = \
 	bsd_apm.c \
 	bsd_kqueue_apm.c \
-	bsdResource.c \
 	memrange.h \
 	libusb/data.c \
 	libusb/descr.c \
