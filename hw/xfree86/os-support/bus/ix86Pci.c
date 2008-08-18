@@ -277,8 +277,8 @@ ix86PciBusCheck(void)
     return FALSE;
 }
 
-static
-void ix86PciSelectCfgmech(void)
+static void
+ix86PciSelectCfgmech(void)
 {
     static Bool beenhere = FALSE;
     CARD32 mode1Res1 = 0, mode1Res2 = 0, oldVal1 = 0;
@@ -290,248 +290,184 @@ void ix86PciSelectCfgmech(void)
 
     beenhere = TRUE;
 
-    /*
-     * Determine if motherboard chipset supports PCI Config Mech 1 or 2
-     * We rely on xf86Info.pciFlags to tell which mechanisms to try....
-     */
-    switch (xf86Info.pciFlags) {
-	case PCIOsConfig:
-	case PCIProbe1:
-	    if (!xf86EnableIO())
-		return;
+    /* Determine if motherboard chipset supports PCI Config Mech 1 or 2 */
+    do {
+	if (!xf86EnableIO())
+	    return;
 
-	    xf86MsgVerb(X_INFO, 2,
-			"PCI: Probing config type using method 1\n");
-	    oldVal1 = inl(PCI_CFGMECH1_ADDRESS_REG);
-
-#ifdef DEBUGPCI
-      if (xf86Verbose > 2) {
-	ErrorF("Checking config type 1:\n"
-		"\tinitial value of MODE1_ADDR_REG is 0x%08x\n", oldVal1);
-	ErrorF("\tChecking that all bits in mask 0x7f000000 are clear\n");
-      }
-#endif
-
-      /* Assuming config type 1 to start with */
-      if ((oldVal1 & 0x7f000000) == 0) {
-
-	stages |= 0x01;
+	xf86MsgVerb(X_INFO, 2,
+		"PCI: Probing config type using method 1\n");
+	oldVal1 = inl(PCI_CFGMECH1_ADDRESS_REG);
 
 #ifdef DEBUGPCI
 	if (xf86Verbose > 2) {
-	    ErrorF("\tValue indicates possibly config type 1\n");
-	    ErrorF("\tWriting 32-bit value 0x%08x to MODE1_ADDR_REG\n", PCI_EN);
-#if 0
-	    ErrorF("\tWriting 8-bit value 0x00 to MODE1_ADDR_REG + 3\n");
-#endif
+	    ErrorF("Checking config type 1:\n"
+		    "\tinitial value of MODE1_ADDR_REG is 0x%08x\n", oldVal1);
+	    ErrorF("\tChecking that all bits in mask 0x7f000000 are clear\n");
 	}
 #endif
 
-	ix86Pci0.configMech = PCI_CFG_MECH_1;
-	ix86Pci0.numDevices = PCI_CFGMECH1_MAXDEV;
-	ix86Pci0.funcs = &ix86Funcs1;
+	/* Assuming config type 1 to start with */
+	if ((oldVal1 & 0x7f000000) == 0) {
 
-	outl(PCI_CFGMECH1_ADDRESS_REG, PCI_EN);
-
-#if 0
-	/*
-	 * This seems to cause some Neptune-based PCI machines to switch
-	 * from config type 1 to config type 2
-	 */
-	outb(PCI_CFGMECH1_ADDRESS_REG + 3, 0);
-#endif
-	mode1Res1 = inl(PCI_CFGMECH1_ADDRESS_REG);
+	    stages |= 0x01;
 
 #ifdef DEBUGPCI
-	if (xf86Verbose > 2) {
-	    ErrorF("\tValue read back from MODE1_ADDR_REG is 0x%08x\n",
+	    if (xf86Verbose > 2) {
+		ErrorF("\tValue indicates possibly config type 1\n");
+		ErrorF("\tWriting 32-bit value 0x%08x to MODE1_ADDR_REG\n", PCI_EN);
+#if 0
+		ErrorF("\tWriting 8-bit value 0x00 to MODE1_ADDR_REG + 3\n");
+#endif
+	    }
+#endif
+
+	    ix86Pci0.configMech = PCI_CFG_MECH_1;
+	    ix86Pci0.numDevices = PCI_CFGMECH1_MAXDEV;
+	    ix86Pci0.funcs = &ix86Funcs1;
+
+	    outl(PCI_CFGMECH1_ADDRESS_REG, PCI_EN);
+
+#if 0
+	    /*
+	     * This seems to cause some Neptune-based PCI machines to switch
+	     * from config type 1 to config type 2
+	     */
+	    outb(PCI_CFGMECH1_ADDRESS_REG + 3, 0);
+#endif
+	    mode1Res1 = inl(PCI_CFGMECH1_ADDRESS_REG);
+
+#ifdef DEBUGPCI
+	    if (xf86Verbose > 2) {
+		ErrorF("\tValue read back from MODE1_ADDR_REG is 0x%08x\n",
 			mode1Res1);
-	    ErrorF("\tRestoring original contents of MODE1_ADDR_REG\n");
-	}
+		ErrorF("\tRestoring original contents of MODE1_ADDR_REG\n");
+	    }
 #endif
 
-	outl(PCI_CFGMECH1_ADDRESS_REG, oldVal1);
+	    outl(PCI_CFGMECH1_ADDRESS_REG, oldVal1);
 
-	if (mode1Res1) {
+	    if (mode1Res1) {
 
-	    stages |= 0x02;
+		stages |= 0x02;
+
+#ifdef DEBUGPCI
+		if (xf86Verbose > 2) {
+		    ErrorF("\tValue read back is non-zero, and indicates possible"
+			    " config type 1\n");
+		}
+#endif
+
+		if (ix86PciBusCheck()) {
+
+#ifdef DEBUGPCI
+		    if (xf86Verbose > 2)
+			ErrorF("\tBus check Confirms this: ");
+#endif
+
+		    xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
+		    xf86MsgVerb(X_INFO, 3,
+			    "PCI: stages = 0x%02x, oldVal1 = 0x%08lx, mode1Res1"
+			    " = 0x%08lx\n", stages, (unsigned long)oldVal1,
+			    (unsigned long)mode1Res1);
+		    return;
+		}
+
+#ifdef DEBUGPCI
+		if (xf86Verbose > 2) {
+		    ErrorF("\tBus check fails to confirm this, continuing type 1"
+			    " check ...\n");
+		}
+#endif
+
+	    }
+
+	    stages |= 0x04;
 
 #ifdef DEBUGPCI
 	    if (xf86Verbose > 2) {
-		ErrorF("\tValue read back is non-zero, and indicates possible"
-			" config type 1\n");
+		ErrorF("\tWriting 0xff000001 to MODE1_ADDR_REG\n");
 	    }
 #endif
-
-	    if (ix86PciBusCheck()) {
-
-#ifdef DEBUGPCI
-		if (xf86Verbose > 2)
-		    ErrorF("\tBus check Confirms this: ");
-#endif
-
-		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
-		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx, mode1Res1"
-			" = 0x%08lx\n", stages, (unsigned long)oldVal1,
-			(unsigned long)mode1Res1);
-		return;
-	    }
+	    outl(PCI_CFGMECH1_ADDRESS_REG, 0xff000001);
+	    mode1Res2 = inl(PCI_CFGMECH1_ADDRESS_REG);
 
 #ifdef DEBUGPCI
 	    if (xf86Verbose > 2) {
-		ErrorF("\tBus check fails to confirm this, continuing type 1"
-			" check ...\n");
-	    }
-#endif
-
-	}
-
-	stages |= 0x04;
-
-#ifdef DEBUGPCI
-	if (xf86Verbose > 2) {
-	    ErrorF("\tWriting 0xff000001 to MODE1_ADDR_REG\n");
-	}
-#endif
-	outl(PCI_CFGMECH1_ADDRESS_REG, 0xff000001);
-	mode1Res2 = inl(PCI_CFGMECH1_ADDRESS_REG);
-
-#ifdef DEBUGPCI
-	if (xf86Verbose > 2) {
-	    ErrorF("\tValue read back from MODE1_ADDR_REG is 0x%08x\n",
+		ErrorF("\tValue read back from MODE1_ADDR_REG is 0x%08x\n",
 			mode1Res2);
-	    ErrorF("\tRestoring original contents of MODE1_ADDR_REG\n");
-	}
+		ErrorF("\tRestoring original contents of MODE1_ADDR_REG\n");
+	    }
 #endif
 
-	outl(PCI_CFGMECH1_ADDRESS_REG, oldVal1);
+	    outl(PCI_CFGMECH1_ADDRESS_REG, oldVal1);
 
-	if ((mode1Res2 & 0x80000001) == 0x80000000) {
+	    if ((mode1Res2 & 0x80000001) == 0x80000000) {
 
-	    stages |= 0x08;
+		stages |= 0x08;
 
 #ifdef DEBUGPCI
-	    if (xf86Verbose > 2) {
-		ErrorF("\tValue read back has only the msb set\n"
-			"\tThis indicates possible config type 1\n");
-	    }
+		if (xf86Verbose > 2) {
+		    ErrorF("\tValue read back has only the msb set\n"
+			    "\tThis indicates possible config type 1\n");
+		}
 #endif
 
-	    if (ix86PciBusCheck()) {
+		if (ix86PciBusCheck()) {
 
 #ifdef DEBUGPCI
-		if (xf86Verbose > 2)
-		    ErrorF("\tBus check Confirms this: ");
+		    if (xf86Verbose > 2)
+			ErrorF("\tBus check Confirms this: ");
 #endif
 
-		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
-		xf86MsgVerb(X_INFO, 3,
-			"PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
-			"\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
-			stages, (unsigned long)oldVal1,
-			(unsigned long)mode1Res1, (unsigned long)mode1Res2);
-		return;
-	    }
+		    xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
+		    xf86MsgVerb(X_INFO, 3,
+			    "PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+			    "\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+			    stages, (unsigned long)oldVal1,
+			    (unsigned long)mode1Res1, (unsigned long)mode1Res2);
+		    return;
+		}
 
 #ifdef DEBUGPCI
-	    if (xf86Verbose > 2) {
-		ErrorF("\tBus check fails to confirm this.\n");
-	    }
+		if (xf86Verbose > 2) {
+		    ErrorF("\tBus check fails to confirm this.\n");
+		}
 #endif
 
-	}
-      }
-
-      xf86MsgVerb(X_INFO, 3, "PCI: Standard check for type 1 failed.\n");
-      xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
-	       "\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
-	       stages, (unsigned long)oldVal1, (unsigned long)mode1Res1,
-	       (unsigned long)mode1Res2);
-
-      /* Try config type 2 */
-      oldVal2 = inb(PCI_CFGMECH2_ENABLE_REG);
-      if ((oldVal2 & 0xf0) == 0) {
-	ix86Pci0.configMech = PCI_CFG_MECH_2;
-	ix86Pci0.numDevices = PCI_CFGMECH2_MAXDEV;
-	ix86Pci0.funcs = &ix86Funcs2;
-
-	outb(PCI_CFGMECH2_ENABLE_REG, 0x0e);
-	mode2Res1 = inb(PCI_CFGMECH2_ENABLE_REG);
-	outb(PCI_CFGMECH2_ENABLE_REG, oldVal2);
-
-	if (mode2Res1 == 0x0e) {
-	    if (ix86PciBusCheck()) {
-		xf86MsgVerb(X_INFO, 2, "PCI: Config type is 2\n");
-		return;
 	    }
 	}
-      }
-      break; /* } */
 
-    case PCIProbe2: /* { */
-	if (!xf86EnableIO())
-	    return;
+	xf86MsgVerb(X_INFO, 3, "PCI: Standard check for type 1 failed.\n");
+	xf86MsgVerb(X_INFO, 3, "PCI: stages = 0x%02x, oldVal1 = 0x%08lx,\n"
+		"\tmode1Res1 = 0x%08lx, mode1Res2 = 0x%08lx\n",
+		stages, (unsigned long)oldVal1, (unsigned long)mode1Res1,
+		(unsigned long)mode1Res2);
 
-      /* The scanpci-style detection method */
+	/* Try config type 2 */
+	oldVal2 = inb(PCI_CFGMECH2_ENABLE_REG);
+	if ((oldVal2 & 0xf0) == 0) {
+	    ix86Pci0.configMech = PCI_CFG_MECH_2;
+	    ix86Pci0.numDevices = PCI_CFGMECH2_MAXDEV;
+	    ix86Pci0.funcs = &ix86Funcs2;
 
-      xf86MsgVerb(X_INFO, 2, "PCI: Probing config type using method 2\n");
+	    outb(PCI_CFGMECH2_ENABLE_REG, 0x0e);
+	    mode2Res1 = inb(PCI_CFGMECH2_ENABLE_REG);
+	    outb(PCI_CFGMECH2_ENABLE_REG, oldVal2);
 
-      outb(PCI_CFGMECH2_ENABLE_REG, 0x00);
-      outb(PCI_CFGMECH2_FORWARD_REG, 0x00);
-      mode2Res1 = inb(PCI_CFGMECH2_ENABLE_REG);
-      mode2Res2 = inb(PCI_CFGMECH2_FORWARD_REG);
-
-      if (mode2Res1 == 0 && mode2Res2 == 0) {
-	xf86MsgVerb(X_INFO, 2, "PCI: Config type is 2\n");
-	ix86Pci0.configMech = PCI_CFG_MECH_2;
-	ix86Pci0.numDevices = PCI_CFGMECH2_MAXDEV;
-	ix86Pci0.funcs = &ix86Funcs2;
-	return;
-      }
-
-      oldVal1 = inl(PCI_CFGMECH1_ADDRESS_REG);
-      outl(PCI_CFGMECH1_ADDRESS_REG, PCI_EN);
-      mode1Res1 = inl(PCI_CFGMECH1_ADDRESS_REG);
-      outl(PCI_CFGMECH1_ADDRESS_REG, oldVal1);
-      if (mode1Res1 == PCI_EN) {
-	xf86MsgVerb(X_INFO, 2, "PCI: Config type is 1\n");
-	ix86Pci0.configMech = PCI_CFG_MECH_1;
-	ix86Pci0.numDevices = PCI_CFGMECH1_MAXDEV;
-	ix86Pci0.funcs = &ix86Funcs1;
-	return;
-      }
-      break; /* } */
-
-    case PCIForceConfig1:
-	if (!xf86EnableIO())
-	    return;
-
-      xf86MsgVerb(X_INFO, 2, "PCI: Forcing config type 1\n");
-
-      ix86Pci0.configMech = PCI_CFG_MECH_1;
-      ix86Pci0.numDevices = PCI_CFGMECH1_MAXDEV;
-      ix86Pci0.funcs = &ix86Funcs1;
-      return;
-
-    case PCIForceConfig2:
-	if (!xf86EnableIO())
-	    return;
-
-      xf86MsgVerb(X_INFO, 2, "PCI: Forcing config type 2\n");
-
-      ix86Pci0.configMech = PCI_CFG_MECH_2;
-      ix86Pci0.numDevices = PCI_CFGMECH2_MAXDEV;
-      ix86Pci0.funcs = &ix86Funcs2;
-      return;
-
-    case PCIForceNone:
+	    if (mode2Res1 == 0x0e) {
+		if (ix86PciBusCheck()) {
+		    xf86MsgVerb(X_INFO, 2, "PCI: Config type is 2\n");
+		    return;
+		}
+	    }
+	}
 	break;
-    }
+    } while (0);
 
     /* No PCI found */
     ix86Pci0.configMech = PCI_CFG_MECH_UNKNOWN;
-    xf86MsgVerb(X_INFO, 2, "PCI: No PCI bus found or probed for\n");
+    xf86MsgVerb(X_INFO, 2, "PCI: No PCI bus found\n");
 }
 
 #if 0

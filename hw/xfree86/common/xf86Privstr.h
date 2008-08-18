@@ -37,17 +37,6 @@
 #include "xf86Pci.h"
 #include "xf86str.h"
 
-/* PCI probe flags */
-
-typedef enum {
-    PCIProbe1		= 0,
-    PCIProbe2,
-    PCIForceConfig1,
-    PCIForceConfig2,
-    PCIForceNone,
-    PCIOsConfig
-} PciProbeType;
-
 typedef enum {
     LogNone,
     LogFlush,
@@ -108,7 +97,6 @@ typedef struct {
     Bool		miscModInDevEnabled;	/* Allow input devices to be
 						 * changed */
     Bool		miscModInDevAllowNonLocal;
-    PciProbeType	pciFlags;
     Pix24Flags		pixmap24;
     MessageType		pix24From;
 #ifdef __i386__

@@ -103,20 +103,19 @@ static pointer DomainMmappedIO[MAX_DOMAINS];
 void
 linuxPciInit(void)
 {
-	struct stat st;
+    struct stat st;
 
 #ifndef INCLUDE_XF86_NO_DOMAIN
     (void) memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
 #endif
 
-	if ((xf86Info.pciFlags == PCIForceNone) ||
-	    (-1 == stat("/proc/bus/pci", &st))) {
-		/* when using this as default for all linux architectures,
-		   we'll need a fallback for 2.0 kernels here */
-		return;
-	}
-	pciNumBuses    = 1;
-	pciBusInfo[0]  = &linuxPci0;
+    if (-1 == stat("/proc/bus/pci", &st)) {
+	/* when using this as default for all linux architectures,
+	   we'll need a fallback for 2.0 kernels here */
+	return;
+    }
+    pciNumBuses    = 1;
+    pciBusInfo[0]  = &linuxPci0;
 }
 
 /**
