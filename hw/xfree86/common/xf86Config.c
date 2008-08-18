@@ -744,7 +744,6 @@ typedef enum {
     FLAG_DPMS_OFFTIME,
     FLAG_PIXMAP,
     FLAG_PC98,
-    FLAG_ESTIMATE_SIZES_AGGRESSIVELY,
     FLAG_NOPM,
     FLAG_XINERAMA,
     FLAG_ALLOW_DEACTIVATE_GRABS,
@@ -797,8 +796,6 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_PIXMAP,		"Pixmap",			OPTV_INTEGER,
 	{0}, FALSE },
   { FLAG_PC98,			"PC98",				OPTV_BOOLEAN,
-	{0}, FALSE },
-  { FLAG_ESTIMATE_SIZES_AGGRESSIVELY,"EstimateSizesAggressively",OPTV_INTEGER,
 	{0}, FALSE },
   { FLAG_NOPM,			"NoPM",				OPTV_BOOLEAN,
 	{0}, FALSE },
@@ -1013,12 +1010,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.randRFrom = X_CONFIG;
     }
 #endif
-    i = -1;
-    xf86GetOptValInteger(FlagOptions, FLAG_ESTIMATE_SIZES_AGGRESSIVELY, &i);
-    if (i >= 0)
-	xf86Info.estimateSizesAggressively = i;
-    else
-	xf86Info.estimateSizesAggressively = 0;
 
     xf86Info.aiglx = TRUE;
     xf86Info.aiglxFrom = X_DEFAULT;

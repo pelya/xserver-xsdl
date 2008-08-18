@@ -104,7 +104,6 @@ typedef struct {
 #endif
     Bool		pmFlag;
     Log			log;
-    int			estimateSizesAggressively;
     Bool		kbdCustomKeycodes;
     Bool		disableRandR;
     MessageType		randRFrom;

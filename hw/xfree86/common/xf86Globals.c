@@ -126,7 +126,6 @@ xf86InfoRec xf86Info = {
 #endif
 	TRUE,		/* pmFlag */
 	LogNone,	/* syncLog */
-	0,		/* estimateSizesAggressively */
 	FALSE,		/* kbdCustomKeycodes */
 	FALSE,		/* disableRandR */
 	X_DEFAULT	/* randRFrom */
