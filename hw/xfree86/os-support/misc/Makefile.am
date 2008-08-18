@@ -7,9 +7,6 @@ ARCH_SRCS = $(OTHER_SRCS)
 # FIXME: Add to the build (NeedPortIO)
 PORTIO_SRCS = PortIO.S
 
-# FIXME: Add to the build (if HasGcc || HasGcc2)
-ILHACK_SRCS = xf86_IlHack.c
-
 noinst_LTLIBRARIES = libmisc.la
 
 libmisc_la_SOURCES = Delay.c $(ARCH_SRCS)
@@ -20,4 +17,4 @@ INCLUDES = $(XORG_INCS)
 
 AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
 
-EXTRA_DIST = $(I386_SRCS) $(PORTIO_SRCS) $(ILHACK_SRCS)
+EXTRA_DIST = $(I386_SRCS) $(PORTIO_SRCS)
