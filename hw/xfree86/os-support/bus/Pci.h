@@ -215,14 +215,6 @@
 
 extern void ARCH_PCI_INIT(void);
 
-#if defined(XF86SCANPCI_WRAPPER)
-typedef enum {
-    SCANPCI_INIT,
-    SCANPCI_TERM
-} scanpciWrapperOpt;
-extern void XF86SCANPCI_WRAPPER(scanpciWrapperOpt flags);
-#endif
-
 /*
  * Table of functions used to access a specific PCI bus domain
  * (e.g. a primary PCI bus and all of its secondaries)
