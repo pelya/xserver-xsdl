@@ -868,37 +868,14 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       return;
     }
 
-    /* This could be moved into a separate function */
-
-    /*
-     * Check that all screens have initialised the mandatory function
-     * entry points.  Delete those which have not.
-     */
-
-#define WARN_SCREEN(func) \
-    xf86Msg(X_ERROR, "Driver `%s' has no %s function, deleting.\n", \
-	   xf86Screens[i]->name, (warned++, func))
-
     for (i = 0; i < xf86NumScreens; i++) {
-      int warned = 0;
       if (xf86Screens[i]->name == NULL) {
-	xf86Screens[i]->name = xnfalloc(strlen("screen") + 1 + 1);
-	if (i < 10)
-	  sprintf(xf86Screens[i]->name, "screen%c", i + '0');
-	else
-	  sprintf(xf86Screens[i]->name, "screen%c", i - 10 + 'A');
+	xf86Screens[i]->name = xnfalloc(strlen("screen") + 10 + 1);
+	sprintf(xf86Screens[i]->name, "screen%d", i);
 	xf86MsgVerb(X_WARNING, 0,
 		    "Screen driver %d has no name set, using `%s'.\n",
 		    i, xf86Screens[i]->name);
       }
-      if (xf86Screens[i]->ScreenInit == NULL)
-	WARN_SCREEN("ScreenInit");
-      if (xf86Screens[i]->EnterVT == NULL)
-	WARN_SCREEN("EnterVT");
-      if (xf86Screens[i]->LeaveVT == NULL)
-	WARN_SCREEN("LeaveVT");
-      if (warned)
-	xf86DeleteScreen(i--, 0);
     }
 
     /*
