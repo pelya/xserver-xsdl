@@ -730,11 +730,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     }
 
     /* Enable full I/O access */
-    if (xorgHWAccess) {
-	if(!xf86EnableIO())
-	    /* oops, we have failed */
-	    xorgHWAccess = FALSE;
-    }
+    if (xorgHWAccess)
+	xorgHWAccess = xf86EnableIO();
 
     /*
      * Locate bus slot that had register IO enabled at server startup
