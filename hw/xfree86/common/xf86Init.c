@@ -716,14 +716,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     for (i = 0; i < xf86NumDrivers; i++) {
 	xorgHWFlags flags;
-      /* The Identify function is mandatory, but if it isn't there continue */
+
 	if (xf86DriverList[i]->Identify != NULL)
 	    xf86DriverList[i]->Identify(0);
-	else {
-	    xf86Msg(X_WARNING, "Driver `%s' has no Identify function\n",
-		  xf86DriverList[i]->driverName ? xf86DriverList[i]->driverName
-					     : "noname");
-	}
+
 	if (!xorgHWAccess
 	    && (!xf86DriverList[i]->driverFunc
 		|| !xf86DriverList[i]->driverFunc(NULL,
