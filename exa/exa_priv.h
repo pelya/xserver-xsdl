@@ -260,12 +260,6 @@ typedef struct {
   */
 void exaDDXDriverInit (ScreenPtr pScreen);
 
-void
-exaPrepareAccessWindow(WindowPtr pWin);
-
-void
-exaFinishAccessWindow(WindowPtr pWin);
-
 /* exa_unaccel.c */
 void
 exaPrepareAccessGC(GCPtr pGC);

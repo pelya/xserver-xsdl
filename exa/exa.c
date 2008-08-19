@@ -671,34 +671,25 @@ exaCreateGC (GCPtr pGC)
     return TRUE;
 }
 
-void
-exaPrepareAccessWindow(WindowPtr pWin)
-{
-    if (pWin->backgroundState == BackgroundPixmap) 
-        exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
-
-    if (pWin->borderIsPixel == FALSE)
-        exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_SRC);
-}
-
-void
-exaFinishAccessWindow(WindowPtr pWin)
-{
-    if (pWin->backgroundState == BackgroundPixmap) 
-        exaFinishAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
-
-    if (pWin->borderIsPixel == FALSE)
-        exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_SRC);
-}
-
 static Bool
 exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
     Bool ret;
 
-    exaPrepareAccessWindow(pWin);
+    if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
+        exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+
+    if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
+        exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
+
     ret = fbChangeWindowAttributes(pWin, mask);
-    exaFinishAccessWindow(pWin);
+
+    if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
+        exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
+
+    if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
+        exaFinishAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+
     return ret;
 }
 
