@@ -67,9 +67,6 @@ typedef struct {
     Bool		vtSysreq;
     SpecialKeysInDDX	ddxSpecialKeys;
 
-    /* mouse part */
-    DeviceIntPtr	pMouse;
-
     /* event handler part */
     int			lastEventTime;
     Bool		vtRequestsPending;
