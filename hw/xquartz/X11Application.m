@@ -200,6 +200,11 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	/* By default pass down the responder chain and to X. */
 	for_appkit = YES;
 	for_x = YES;
+    
+    if(darwinAppKitModMask & [e modifierFlags]) {
+        [super sendEvent:e];
+        return;
+    }
   
 	switch (type) {
 		case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
@@ -617,14 +622,17 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
                          default:darwinFakeButtons];
     if (darwinFakeButtons) {
-      const char *fake2, *fake3;
-      
-      fake2 = [self prefs_get_string:@PREFS_FAKE_BUTTON2 default:NULL];
-      fake3 = [self prefs_get_string:@PREFS_FAKE_BUTTON3 default:NULL];
-      
-      if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2);
-      if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3);
+        const char *fake2, *fake3;
+
+        fake2 = [self prefs_get_string:@PREFS_FAKE_BUTTON2 default:NULL];
+        fake3 = [self prefs_get_string:@PREFS_FAKE_BUTTON3 default:NULL];
+
+        if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2);
+        if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3);
     }
+
+    tem = [self prefs_get_string:@PREFS_APPKIT_MODIFIERS default:NULL];
+    if (tem != NULL) darwinAppKitModMask = DarwinParseModifierList(tem);
 	
     X11EnableKeyEquivalents = [self prefs_get_boolean:@PREFS_KEYEQUIVS
                                default:X11EnableKeyEquivalents];

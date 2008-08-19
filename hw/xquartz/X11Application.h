@@ -91,6 +91,7 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_NO_QUIT_ALERT         "no_quit_alert"
 #define PREFS_FAKE_BUTTON2          "fake_button2"
 #define PREFS_FAKE_BUTTON3          "fake_button3"
+#define PREFS_APPKIT_MODIFIERS      "appkit_modifiers"
 #define PREFS_ROOTLESS              "rootless"
 #define PREFS_FULLSCREEN_HOTKEYS    "fullscreen_hotkeys"
 #define PREFS_SWAP_ALT_META         "swap_alt_meta"

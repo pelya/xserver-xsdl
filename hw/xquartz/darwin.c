@@ -112,6 +112,9 @@ int                     darwinFakeMouse2Mask = NX_ALTERNATEMASK;
 int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 #endif
 
+// Modifier mask for overriding event delivery to appkit (might be useful to set this to rcommand for input menu
+int                     darwinAppKitModMask = 0;
+
 // devices
 DeviceIntPtr            darwinPointer = NULL;
 DeviceIntPtr            darwinTablet = NULL;
