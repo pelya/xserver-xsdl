@@ -1489,11 +1489,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86ConfigFile = argv[i + 1];
     return 2;
   }
-  if (!strcmp(argv[i],"-showunresolved"))
-  {
-    xf86ShowUnresolved = TRUE;
-    return 1;
-  }
   if (!strcmp(argv[i],"-probeonly"))
   {
     xf86ProbeOnly = TRUE;

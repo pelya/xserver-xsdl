@@ -73,7 +73,6 @@ extern Bool xf86FlipPixels;
 extern Bool xf86BestRefresh;
 extern Gamma xf86Gamma;
 extern char *xf86ServerName;
-extern Bool xf86ShowUnresolved;
 extern struct pci_slot_match xf86IsolateDevice;
 
 /* Other parameters */
