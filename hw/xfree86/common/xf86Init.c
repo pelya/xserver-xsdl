@@ -878,15 +878,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       }
     }
 
-    /*
-     * If no screens left, return now.
-     */
-
-    if (xf86NumScreens == 0) {
-      xf86Msg(X_ERROR, "Screen(s) found, but drivers were unusable.\n");
-      return;
-    }
-
     /* XXX Should this be before or after loading dependent modules? */
     if (xf86ProbeOnly)
     {
