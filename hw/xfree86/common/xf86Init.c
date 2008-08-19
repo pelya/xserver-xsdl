@@ -1579,12 +1579,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86fpFlag = TRUE;
     return 0;
   }
-  /* Notice the -co flag, but allow it to pass to the dix layer */
-  if (!strcmp(argv[i], "-co"))
-  {
-    xf86coFlag = TRUE;
-    return 0;
-  }
   /* Notice the -bs flag, but allow it to pass to the dix layer */
   if (!strcmp(argv[i], "-bs"))
   {

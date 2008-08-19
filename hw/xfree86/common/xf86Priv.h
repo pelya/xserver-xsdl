@@ -52,7 +52,6 @@ extern Bool xf86VidModeDisabled;
 extern Bool xf86VidModeAllowNonLocal; 
 #endif 
 extern Bool xf86fpFlag;
-extern Bool xf86coFlag;
 extern Bool xf86sFlag;
 extern Bool xf86bsEnableFlag;
 extern Bool xf86bsDisableFlag;
