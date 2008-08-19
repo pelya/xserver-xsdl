@@ -180,7 +180,6 @@ int xf86Depth = -1;
 rgb xf86Weight = {0, 0, 0};
 Bool xf86FlipPixels = FALSE;
 Gamma xf86Gamma = {0.0, 0.0, 0.0};
-Bool xf86BestRefresh = DEFAULT_BEST_REFRESH;
 Bool xf86AllowMouseOpenFail = FALSE;
 #ifdef XF86VIDMODE
 Bool xf86VidModeDisabled = FALSE;

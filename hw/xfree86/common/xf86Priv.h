@@ -70,7 +70,6 @@ extern int xf86Depth;
 extern Pix24Flags xf86Pix24;
 extern rgb xf86Weight;
 extern Bool xf86FlipPixels;
-extern Bool xf86BestRefresh;
 extern Gamma xf86Gamma;
 extern char *xf86ServerName;
 extern struct pci_slot_match xf86IsolateDevice;
