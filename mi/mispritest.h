@@ -92,26 +92,6 @@ typedef struct {
 #define SOURCE_COLOR	0
 #define MASK_COLOR	1
 
-static int damageRegister = 0;
-
-#define miSpriteDisableDamage(pScreen, pScreenPriv) \
-    if (damageRegister) { \
-    DamageUnregister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage);  \
-    damageRegister = 0; \
-}
-
-#define miSpriteEnableDamage(pScreen, pScreenPriv) \
-    if (!damageRegister) {\
-    damageRegister = 1; \
-    DamageRegister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
-    }
-
-#define miSpriteIsUpTRUE(pDevCursor, pScreen, pScreenPriv) if (!pDevCursor->isUp)  \
-    pDevCursor->isUp = TRUE; 
-
-#define miSpriteIsUpFALSE(pDevCursor, pScreen, pScreenPriv) if (pDevCursor->isUp)  \
-    pDevCursor->isUp = FALSE; 
-
 /*
  * Overlap BoxPtr and Box elements
  */
