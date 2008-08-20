@@ -77,7 +77,7 @@ struct message_struct {
 
 static mach_port_t _port;
 
-static void send_nsevent (NSEventType type, NSEvent *e);
+static void send_nsevent(NSEvent *e);
 
 /* Quartz mode initialization routine. This is often dynamically loaded
    but is statically linked into this X server. */
@@ -192,113 +192,117 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) sendEvent:(NSEvent *)e {
- 	NSEventType type;
-	OSX_BOOL for_appkit, for_x;
-
-	type = [e type];
-
-	/* By default pass down the responder chain and to X. */
-	for_appkit = YES;
-	for_x = YES;
+    NSEventType type;
+    OSX_BOOL for_appkit, for_x;
     
-    if(darwinAppKitModMask & [e modifierFlags]) {
-        [super sendEvent:e];
-        return;
+    type = [e type];
+    
+    /* By default pass down the responder chain and to X. */
+    for_appkit = YES;
+    for_x = YES;
+    
+    switch ([e type]) {
+        case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
+        case NSLeftMouseUp: case NSRightMouseUp: case NSOtherMouseUp:
+            if ([e window] != nil) {
+                /* Pointer event has an (AppKit) window. Probably something for the kit. */
+                for_x = NO;
+                if (_x_active) [self activateX:NO];
+            } else if ([self modalWindow] == nil) {
+                /* Must be an X window. Tell appkit it doesn't have focus. */
+                for_appkit = NO;
+                
+                if ([self isActive]) {
+                    [self deactivate];
+                    if (!_x_active && quartzProcs->IsX11Window([e window],
+                                                               [e windowNumber]))
+                        [self activateX:YES];
+                }
+            }
+            break;
+            
+        case NSKeyDown: case NSKeyUp:
+            if(darwinAppKitModMask & [e modifierFlags]) {
+                /* Override to force sending to Appkit */
+                for_x = NO;
+            } else if (_x_active) {
+                static int swallow_up;
+                
+                /* No kit window is focused, so send it to X. */
+                for_appkit = NO;
+                if ([e type] == NSKeyDown) {
+                    /* Before that though, see if there are any global
+                     shortcuts bound to it. */
+                    
+                    if (X11EnableKeyEquivalents
+                        && [[self mainMenu] performKeyEquivalent:e]) {
+                        swallow_up = [e keyCode];
+                        for_x = NO;
+                    } else if (!quartzEnableRootless
+                               && ([e modifierFlags] & ALL_KEY_MASKS)
+                               == (NSCommandKeyMask | NSAlternateKeyMask)
+                               && ([e keyCode] == 0 /*a*/
+                                   || [e keyCode] == 53 /*Esc*/)) {
+                        swallow_up = 0;
+                        for_x = NO;
+#ifdef DARWIN_DDX_MISSING
+                        DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
+#endif
+                    }
+                } else {
+                    /* If we saw a key equivalent on the down, don't pass
+                     the up through to X. */
+                    
+                    if (swallow_up != 0 && [e keyCode] == swallow_up) {
+                        swallow_up = 0;
+                        for_x = NO;
+                    }
+                }
+            } else {
+                for_x = NO;
+            }
+            break;
+            
+        case NSFlagsChanged:
+            /* Don't tell X11 about modifiers changing while it's not active */
+            if (!_x_active)
+                for_x = NO;
+            break;
+            
+        case NSAppKitDefined:
+            switch ([e subtype]) {
+                case NSApplicationActivatedEventType:
+                    for_x = NO;
+                    if ([self modalWindow] == nil) {
+                        for_appkit = NO;
+                        
+                        /* FIXME: hack to avoid having to pass the event to appkit,
+                         which would cause it to raise one of its windows. */
+                        _appFlags._active = YES;
+                        
+                        [self activateX:YES];
+                        if ([e data2] & 0x10) 
+                            DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
+                    }
+                    break;
+                    
+                case 18: /* ApplicationDidReactivate */
+                    if (quartzHasRoot) for_appkit = NO;
+                    break;
+                    
+                case NSApplicationDeactivatedEventType:
+                    for_x = NO;
+                    [self activateX:NO];
+                    break;
+            }
+            break;
+            
+        default: break; /* for gcc */
     }
-  
-	switch (type) {
-		case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
-		case NSLeftMouseUp: case NSRightMouseUp: case NSOtherMouseUp:
-		if ([e window] != nil) {
-			/* Pointer event has an (AppKit) window. Probably something for the kit. */
-			for_x = NO;
-			if (_x_active) [self activateX:NO];
-		} else if ([self modalWindow] == nil) {
-			/* Must be an X window. Tell appkit it doesn't have focus. */
-			for_appkit = NO;
-
-			if ([self isActive]) {
-				[self deactivate];
-				if (!_x_active && quartzProcs->IsX11Window([e window],
-					[e windowNumber]))
-					[self activateX:YES];
-			}
-		}
-		break;
-
-		case NSKeyDown: case NSKeyUp:
-		if (_x_active) {
-			static int swallow_up;
-
-			/* No kit window is focused, so send it to X. */
-			for_appkit = NO;
-			if (type == NSKeyDown) {
-				/* Before that though, see if there are any global
-				shortcuts bound to it. */
-
-					if (X11EnableKeyEquivalents
-						&& [[self mainMenu] performKeyEquivalent:e]) {
-							swallow_up = [e keyCode];
-							for_x = NO;
-					} else if (!quartzEnableRootless
-						&& ([e modifierFlags] & ALL_KEY_MASKS)
-						== (NSCommandKeyMask | NSAlternateKeyMask)
-						&& ([e keyCode] == 0 /*a*/
-							|| [e keyCode] == 53 /*Esc*/)) {
-						swallow_up = 0;
-						for_x = NO;
-					}
-			} else {
-			/* If we saw a key equivalent on the down, don't pass
-	   			the up through to X. */
-
-				if (swallow_up != 0 && [e keyCode] == swallow_up) {
-					swallow_up = 0;
-					for_x = NO;
-				}
-			}
-    		} else for_x = NO;
-    	break;
-
-		case NSFlagsChanged:
-			/* For the l33t X users who remap modifier keys to normal keysyms. */
-			if (!_x_active) for_x = NO;
-		break;
-
-		case NSAppKitDefined:
-		switch ([e subtype]) {
-			case NSApplicationActivatedEventType:
-      		for_x = NO;
-			if ([self modalWindow] == nil) {
-				for_appkit = NO;
-
-				/* FIXME: hack to avoid having to pass the event to appkit,
-	   			which would cause it to raise one of its windows. */
-				_appFlags._active = YES;
-
-				[self activateX:YES];
-				if ([e data2] & 0x10) 
-                    DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
-			}
-			break;
-
-			case 18: /* ApplicationDidReactivate */
-				if (quartzHasRoot) for_appkit = NO;
-			break;
-
-			case NSApplicationDeactivatedEventType:
-				for_x = NO;
-				[self activateX:NO];
-			break;
-		}
-	break;
- 
-	default: break; /* for gcc */
-	}
-
-	if (for_appkit) [super sendEvent:e];
-
-	if (for_x) send_nsevent (type, e);
+    
+    if (for_appkit) [super sendEvent:e];
+    
+    if (for_x) send_nsevent(e);
 }
 
 - (void) set_window_menu:(NSArray *)list {
@@ -843,7 +847,7 @@ convert_flags (unsigned int nsflags) {
 
 extern int darwin_modifier_flags; // darwinEvents.c
 
-static void send_nsevent (NSEventType type, NSEvent *e) {
+static void send_nsevent(NSEvent *e) {
 	NSRect screen;
 	NSPoint location;
 	NSWindow *window;
@@ -859,7 +863,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		NSRect frame = [window frame];
 		pointer_x = location.x + frame.origin.x;
 		pointer_y = (((screen.origin.y + screen.size.height)
-			- location.y) - frame.origin.y);
+                      - location.y) - frame.origin.y);
 	} else {
 		pointer_x = location.x;
 		pointer_y = (screen.origin.y + screen.size.height) - location.y;
@@ -875,8 +879,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
      */
     if(darwin_modifier_flags != [e modifierFlags])
         DarwinUpdateModKeys([e modifierFlags]);
-    
-	switch (type) {
+
+	switch ([e type]) {
 		case NSMouseMoved:        ev_button=0; ev_type=MotionNotify;  goto check_subtype;
 		case NSLeftMouseDown:     ev_button=1; ev_type=ButtonPress;   goto check_subtype;
 		case NSOtherMouseDown:    ev_button=2; ev_type=ButtonPress;   goto check_subtype;
@@ -887,8 +891,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify;  goto check_subtype;
 		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify;  goto check_subtype;
 		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify;  goto check_subtype;
-		
-check_subtype:
+
+        check_subtype:
 			if ([e subtype] != NSTabletPointEventSubtype) 
                 goto handle_mouse;
 			// fall through to get tablet data
@@ -897,27 +901,25 @@ check_subtype:
             pressure = [e pressure];
 			tilt_x   = [e tilt].x;
 			tilt_y   = [e tilt].y; 
-            goto handle_mouse;
 			// fall through to normal mouse handling
-
-handle_mouse:
-		DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
-			pressure, tilt_x, tilt_y);
-		break;
+        handle_mouse:
+            DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
+                                    pressure, tilt_x, tilt_y);
+            break;
 
 		case NSTabletProximity:
 			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
-				pointer_x, pointer_y);
-		break;
+                                      pointer_x, pointer_y);
+            break;
 
 		case NSScrollWheel:
 			DarwinSendScrollEvents([e deltaX], [e deltaY], pointer_x, pointer_y,
-				pressure, tilt_x, tilt_y);
-		break;
+                                   pressure, tilt_x, tilt_y);
+            break;
 
 		case NSKeyDown: case NSKeyUp:
-            DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
-		break;
+            DarwinSendKeyboardEvents(([e type] == NSKeyDown) ? KeyPress : KeyRelease, [e keyCode]);
+            break;
 
         default: break; /* for gcc */
 	}	
