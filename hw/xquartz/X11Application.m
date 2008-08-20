@@ -70,6 +70,10 @@ X11Application *X11App;
 
 #define ALL_KEY_MASKS (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask | NSCommandKeyMask)
 
+@interface X11Application (Private)
+- (void) sendX11NSEvent:(NSEvent *)e;
+@end
+
 @implementation X11Application
 
 typedef struct message_struct message;
@@ -80,8 +84,6 @@ struct message_struct {
 };
 
 static mach_port_t _port;
-
-static void send_nsevent(NSEvent *e);
 
 /* Quartz mode initialization routine. This is often dynamically loaded
    but is statically linked into this X server. */
@@ -195,10 +197,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) sendEvent:(NSEvent *)e {
-    NSEventType type;
     OSX_BOOL for_appkit, for_x;
-    
-    type = [e type];
     
     /* By default pass down the responder chain and to X. */
     for_appkit = YES;
@@ -322,7 +321,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     
     if (for_appkit) [super sendEvent:e];
     
-    if (for_x) send_nsevent(e);
+    if (for_x) [self sendX11NSEvent:e];
 }
 
 - (void) set_window_menu:(NSArray *)list {
@@ -862,27 +861,10 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     /* not reached */
 }
 
-/* event conversion */
-
-static inline unsigned short
-convert_flags (unsigned int nsflags) {
-    unsigned int xflags = 0;
-	
-    if (nsflags == ~0) return 0xffff;
-	
-    if (nsflags & NSAlphaShiftKeyMask)	xflags |= LockMask;
-    if (nsflags & NSShiftKeyMask)	xflags |= ShiftMask;
-    if (nsflags & NSControlKeyMask)	xflags |= ControlMask;
-    if (nsflags & NSAlternateKeyMask)	xflags |= Mod1Mask;
-    if (nsflags & NSCommandKeyMask)	xflags |= Mod2Mask;
-    /* FIXME: secondaryfn? */
-	
-    return xflags;
-}
-
+@implementation X11Application (Private)
 extern int darwin_modifier_flags; // darwinEvents.c
 
-static void send_nsevent(NSEvent *e) {
+- (void) sendX11NSEvent:(NSEvent *)e {
 	NSRect screen;
 	NSPoint location;
 	NSWindow *window;
@@ -1047,3 +1029,4 @@ static void send_nsevent(NSEvent *e) {
         default: break; /* for gcc */
 	}	
 }
+@end
