@@ -1045,39 +1045,49 @@ int DarwinModifierNXKeyToNXMask(int key) {
  * DarwinModifierStringToNXMask
  *      Returns 0 if string is not a known modifier.
  */
-int DarwinModifierStringToNXMask(const char *str) {
+int DarwinModifierStringToNXMask(const char *str, int separatelr) {
 #ifdef NX_DEVICELSHIFTKEYMASK
-    if      (!strcasecmp(str, "shift"))    return NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK;
-    else if (!strcasecmp(str, "control"))  return NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK;
-    else if (!strcasecmp(str, "option"))   return NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
-    else if (!strcasecmp(str, "command"))  return NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK;
-    else if (!strcasecmp(str, "lshift"))   return NX_DEVICELSHIFTKEYMASK;
-    else if (!strcasecmp(str, "rshift"))   return NX_DEVICERSHIFTKEYMASK;
-    else if (!strcasecmp(str, "lcontrol")) return NX_DEVICELCTLKEYMASK;
-    else if (!strcasecmp(str, "rcontrol")) return NX_DEVICERCTLKEYMASK;
-    else if (!strcasecmp(str, "loption"))  return NX_DEVICELALTKEYMASK;
-    else if (!strcasecmp(str, "roption"))  return NX_DEVICERALTKEYMASK;
-    else if (!strcasecmp(str, "lcommand")) return NX_DEVICELCMDKEYMASK;
-    else if (!strcasecmp(str, "rcommand")) return NX_DEVICERCMDKEYMASK;
-#else
-    if      (!strcasecmp(str, "shift"))    return NX_SHIFTMASK;
-    else if (!strcasecmp(str, "control"))  return NX_CONTROLMASK;
-    else if (!strcasecmp(str, "option"))   return NX_ALTERNATEMASK;
-    else if (!strcasecmp(str, "command"))  return NX_COMMANDMASK;
-    else if (!strcasecmp(str, "lshift"))   return NX_SHIFTMASK;
-    else if (!strcasecmp(str, "rshift"))   return NX_SHIFTMASK;
-    else if (!strcasecmp(str, "lcontrol")) return NX_CONTROLMASK;
-    else if (!strcasecmp(str, "rcontrol")) return NX_CONTROLMASK;
-    else if (!strcasecmp(str, "loption"))  return NX_ALTERNATEMASK;
-    else if (!strcasecmp(str, "roption"))  return NX_ALTERNATEMASK;
-    else if (!strcasecmp(str, "lcommand")) return NX_COMMANDMASK;
-    else if (!strcasecmp(str, "rcommand")) return NX_COMMANDMASK;
+    if(separatelr) {
+        if (!strcasecmp(str, "shift"))    return NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK;
+        if (!strcasecmp(str, "control"))  return NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK;
+        if (!strcasecmp(str, "option"))   return NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
+        if (!strcasecmp(str, "alt"))   return NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
+        if (!strcasecmp(str, "command"))  return NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK;
+        if (!strcasecmp(str, "lshift"))   return NX_DEVICELSHIFTKEYMASK;
+        if (!strcasecmp(str, "rshift"))   return NX_DEVICERSHIFTKEYMASK;
+        if (!strcasecmp(str, "lcontrol")) return NX_DEVICELCTLKEYMASK;
+        if (!strcasecmp(str, "rcontrol")) return NX_DEVICERCTLKEYMASK;
+        if (!strcasecmp(str, "loption"))  return NX_DEVICELALTKEYMASK;
+        if (!strcasecmp(str, "roption"))  return NX_DEVICERALTKEYMASK;
+        if (!strcasecmp(str, "lalt"))  return NX_DEVICELALTKEYMASK;
+        if (!strcasecmp(str, "ralt"))  return NX_DEVICERALTKEYMASK;
+        if (!strcasecmp(str, "lcommand")) return NX_DEVICELCMDKEYMASK;
+        if (!strcasecmp(str, "rcommand")) return NX_DEVICERCMDKEYMASK;
+    } else {
 #endif
-    else if (!strcasecmp(str, "lock"))     return NX_ALPHASHIFTMASK;
-    else if (!strcasecmp(str, "fn"))       return NX_SECONDARYFNMASK;
-    else if (!strcasecmp(str, "help"))     return NX_HELPMASK;
-    else if (!strcasecmp(str, "numlock"))  return NX_NUMERICPADMASK;
-    else return 0;
+        if (!strcasecmp(str, "shift"))    return NX_SHIFTMASK;
+        if (!strcasecmp(str, "control"))  return NX_CONTROLMASK;
+        if (!strcasecmp(str, "option"))   return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "alt"))   return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "command"))  return NX_COMMANDMASK;
+        if (!strcasecmp(str, "lshift"))   return NX_SHIFTMASK;
+        if (!strcasecmp(str, "rshift"))   return NX_SHIFTMASK;
+        if (!strcasecmp(str, "lcontrol")) return NX_CONTROLMASK;
+        if (!strcasecmp(str, "rcontrol")) return NX_CONTROLMASK;
+        if (!strcasecmp(str, "loption"))  return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "roption"))  return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "lalt"))  return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "ralt"))  return NX_ALTERNATEMASK;
+        if (!strcasecmp(str, "lcommand")) return NX_COMMANDMASK;
+        if (!strcasecmp(str, "rcommand")) return NX_COMMANDMASK;
+#ifdef NX_DEVICELSHIFTKEYMASK
+    }
+#endif
+    if (!strcasecmp(str, "lock"))     return NX_ALPHASHIFTMASK;
+    if (!strcasecmp(str, "fn"))       return NX_SECONDARYFNMASK;
+    if (!strcasecmp(str, "help"))     return NX_HELPMASK;
+    if (!strcasecmp(str, "numlock"))  return NX_NUMERICPADMASK;
+    return 0;
 }
 
 /*

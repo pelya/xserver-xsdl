@@ -129,7 +129,7 @@
   NSMenu *menu;
   NSMenuItem *item;
   int first, count, i;
-	
+
   menu = [window_separator menu];
   first = [menu indexOfItem:window_separator] + 1;
   count = [list count];
@@ -142,14 +142,18 @@
 		
       item = (NSMenuItem *) [menu addItemWithTitle:name action:@selector
 				  (item_selected:) keyEquivalent:shortcut];
+
+      [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];
-		
+
       item = (NSMenuItem *) [dock_menu insertItemWithTitle:name
 				       action:@selector
 				       (item_selected:) keyEquivalent:shortcut
 				       atIndex:i];
+
+      [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];

@@ -103,7 +103,7 @@ int                     darwinDesiredRefresh = -1;
 char                    *darwinKeymapFile = "USA.keymapping";
 int                     darwinSyncKeymap = FALSE;
 
-// modifier masks for faking mouse buttons
+// modifier masks for faking mouse buttons - ANY of these bits trigger it  (not all)
 #ifdef NX_DEVICELCMDKEYMASK
 int                     darwinFakeMouse2Mask = NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
 int                     darwinFakeMouse3Mask = NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK;
@@ -113,7 +113,10 @@ int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 #endif
 
 // Modifier mask for overriding event delivery to appkit (might be useful to set this to rcommand for input menu
-int                     darwinAppKitModMask = 0;
+int                     darwinAppKitModMask = 0; // Any of these bits
+
+// Modifier mask for items in the Window menu (0 and -1 cause shortcuts to be disabled)
+int                     windowItemModMask = NX_COMMANDMASK;
 
 // devices
 DeviceIntPtr            darwinPointer = NULL;
@@ -491,8 +494,7 @@ static char * DarwinFindLibraryFile(
  * DarwinParseModifierList
  *  Parse a list of modifier names and return a corresponding modifier mask
  */
-int DarwinParseModifierList(
-    const char *constmodifiers) // string containing list of modifier names
+int DarwinParseModifierList(const char *constmodifiers, int separatelr)
 {
     int result = 0;
 
@@ -504,7 +506,7 @@ int DarwinParseModifierList(
 
         while (p) {
             modifier = strsep(&p, " ,+&|/"); // allow lots of separators
-            nxkey = DarwinModifierStringToNXMask(modifier);
+            nxkey = DarwinModifierStringToNXMask(modifier, separatelr);
             if(nxkey)
                 result |= nxkey;
             else
@@ -725,7 +727,7 @@ int ddxProcessArgument( int argc, char *argv[], int i )
         if (!strcasecmp(argv[i+1], "none") || !strcmp(argv[i+1], ""))
             darwinFakeMouse2Mask = 0;
         else
-            darwinFakeMouse2Mask = DarwinParseModifierList(argv[i+1]);
+            darwinFakeMouse2Mask = DarwinParseModifierList(argv[i+1], 1);
         ErrorF("Modifier mask to fake mouse button 2 = 0x%x\n",
                darwinFakeMouse2Mask);
         return 2;
@@ -738,7 +740,7 @@ int ddxProcessArgument( int argc, char *argv[], int i )
         if (!strcasecmp(argv[i+1], "none") || !strcmp(argv[i+1], ""))
             darwinFakeMouse3Mask = 0;
         else
-            darwinFakeMouse3Mask = DarwinParseModifierList(argv[i+1]);
+            darwinFakeMouse3Mask = DarwinParseModifierList(argv[i+1], 1);
         ErrorF("Modifier mask to fake mouse button 3 = 0x%x\n",
                darwinFakeMouse3Mask);
         return 2;

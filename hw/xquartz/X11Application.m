@@ -608,6 +608,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 
 - (void) read_defaults
 {
+    NSString *nsstr;
     const char *tem;
 	
     quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
@@ -631,13 +632,26 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
         fake2 = [self prefs_get_string:@PREFS_FAKE_BUTTON2 default:NULL];
         fake3 = [self prefs_get_string:@PREFS_FAKE_BUTTON3 default:NULL];
 
-        if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2);
-        if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3);
+        if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2, TRUE);
+        if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3, TRUE);
     }
 
     tem = [self prefs_get_string:@PREFS_APPKIT_MODIFIERS default:NULL];
-    if (tem != NULL) darwinAppKitModMask = DarwinParseModifierList(tem);
+    if (tem != NULL) darwinAppKitModMask = DarwinParseModifierList(tem, TRUE);
 	
+    tem = [self prefs_get_string:@PREFS_WINDOW_ITEM_MODIFIERS default:NULL];
+    if (tem != NULL) {
+        windowItemModMask = DarwinParseModifierList(tem, FALSE);
+    } else {
+        nsstr = NSLocalizedString (@"window item modifiers", @"window item modifiers");
+        if(nsstr != NULL) {
+            tem = [nsstr UTF8String];
+            if((tem != NULL) && strcmp(tem, "window item modifiers")) {
+                windowItemModMask = DarwinParseModifierList(tem, FALSE);
+            }
+        }
+    }
+
     X11EnableKeyEquivalents = [self prefs_get_boolean:@PREFS_KEYEQUIVS
                                default:X11EnableKeyEquivalents];
 	
