@@ -139,7 +139,10 @@
 		
       name = [[list objectAtIndex:i] objectAtIndex:0];
       shortcut = [[list objectAtIndex:i] objectAtIndex:1];
-		
+        
+      if(windowItemModMask == 0 || windowItemModMask == -1)
+          shortcut = @"";
+
       item = (NSMenuItem *) [menu addItemWithTitle:name action:@selector
 				  (item_selected:) keyEquivalent:shortcut];
 
