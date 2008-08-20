@@ -894,6 +894,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
     RRCrtcPtr			crtc;
     int				n;
     unsigned long		len;
+    char			*extra;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcGammaReq);
     crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
@@ -902,6 +903,12 @@ ProcRRGetCrtcGamma (ClientPtr client)
     
     len = crtc->gammaSize * 3 * 2;
     
+    if (crtc->gammaSize) {
+	extra = xalloc(len);
+	if (!extra)
+	    return BadAlloc;
+    }
+
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
     reply.length = (len + 3) >> 2;
@@ -914,8 +921,10 @@ ProcRRGetCrtcGamma (ClientPtr client)
     WriteToClient (client, sizeof (xRRGetCrtcGammaReply), (char *) &reply);
     if (crtc->gammaSize)
     {
+	memcpy(extra, crtc->gammaRed, len);
 	client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write;
-	WriteSwappedDataToClient (client, len, (char *) crtc->gammaRed);
+	WriteSwappedDataToClient (client, len, extra);
+	xfree(extra);
     }
     return client->noClientException;
 }
