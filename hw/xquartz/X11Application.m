@@ -833,6 +833,8 @@ convert_flags (unsigned int nsflags) {
     return xflags;
 }
 
+extern int darwin_modifier_flags; // darwinEvents.c
+
 static void send_nsevent (NSEventType type, NSEvent *e) {
 	NSRect screen;
 	NSPoint location;
@@ -859,26 +861,34 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	tilt_x = 0;
 	tilt_y = 0;
 
+    /* We don't receive modifier key events while out of focus, and 3button
+     * emulation mucks this up, so we need to check our modifier flag state
+     * on every event... ugg
+     */
+    if(darwin_modifier_flags != [e modifierFlags])
+        DarwinUpdateModKeys([e modifierFlags]);
+    
 	switch (type) {
-		case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto check_subtype;
-		case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto check_subtype;
-		case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto check_subtype;
-		case NSRightMouseDown:   ev_button=3; ev_type=ButtonPress; goto check_subtype;
-		case NSLeftMouseUp:      ev_button=1; ev_type=ButtonRelease; goto check_subtype;
-		case NSOtherMouseUp:     ev_button=2; ev_type=ButtonRelease; goto check_subtype;
-		case NSRightMouseUp:     ev_button=3; ev_type=ButtonRelease; goto check_subtype;
-		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto check_subtype;
-		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto check_subtype;
-		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto check_subtype;
+		case NSMouseMoved:        ev_button=0; ev_type=MotionNotify;  goto check_subtype;
+		case NSLeftMouseDown:     ev_button=1; ev_type=ButtonPress;   goto check_subtype;
+		case NSOtherMouseDown:    ev_button=2; ev_type=ButtonPress;   goto check_subtype;
+		case NSRightMouseDown:    ev_button=3; ev_type=ButtonPress;   goto check_subtype;
+		case NSLeftMouseUp:       ev_button=1; ev_type=ButtonRelease; goto check_subtype;
+		case NSOtherMouseUp:      ev_button=2; ev_type=ButtonRelease; goto check_subtype;
+		case NSRightMouseUp:      ev_button=3; ev_type=ButtonRelease; goto check_subtype;
+		case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify;  goto check_subtype;
+		case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify;  goto check_subtype;
+		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify;  goto check_subtype;
 		
 check_subtype:
 			if ([e subtype] != NSTabletPointEventSubtype) 
                 goto handle_mouse;
 			// fall through to get tablet data
+
 		case NSTabletPoint:
-			pressure = [e pressure];
-			tilt_x = [e tilt].x;
-			tilt_y = [e tilt].y; 
+            pressure = [e pressure];
+			tilt_x   = [e tilt].x;
+			tilt_y   = [e tilt].y; 
             goto handle_mouse;
 			// fall through to normal mouse handling
 
@@ -901,9 +911,6 @@ handle_mouse:
             DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
 		break;
 
-		case NSFlagsChanged:
-			DarwinUpdateModKeys([e modifierFlags]);
-		break;
-		default: break; /* for gcc */
+        default: break; /* for gcc */
 	}	
 }

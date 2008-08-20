@@ -57,7 +57,7 @@ int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
 int DarwinModifierNXKeyToNXKeycode(int key, int side);
 int DarwinModifierNXKeyToNXMask(int key);
 int DarwinModifierNXMaskToNXKey(int mask);
-int DarwinModifierStringToNXKey(const char *string);
+int DarwinModifierStringToNXMask(const char *string);
 
 /* Provided for darwin.c */
 void DarwinKeyboardInit(DeviceIntPtr pDev);

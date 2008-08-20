@@ -30,6 +30,8 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
  */
 
+#include "sanitizedCarbon.h"
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -77,7 +79,7 @@ in this Software without prior written authorization from The Open Group.
 /* FIXME: Abstract this better */
 void QuartzModeEQInit(void);
 
-static int modifier_flags = 0;  // last known modifier state
+int darwin_modifier_flags = 0;  // last known modifier state
 
 #define FD_ADD_MAX 128
 static int fd_add[FD_ADD_MAX];
@@ -139,89 +141,55 @@ static inline void darwinEvents_unlock(void) {
 }
 
 /*
- * DarwinPressModifierMask
- * Press or release the given modifier key, specified by its mask (one of NX_*MASK constants)
+ * DarwinPressModifierKey
+ * Press or release the given modifier key (one of NX_MODIFIERKEY_* constants)
  */
-static void DarwinPressModifierMask(int pressed, int mask) {
-    int keycode;
-    int key = DarwinModifierNXMaskToNXKey(mask);
+static void DarwinPressModifierKey(int pressed, int key) {
+    int keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
 
-    if (key != -1) {
-        keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
-        if (keycode != 0)
-            DarwinSendKeyboardEvents(pressed, keycode);
+    if (keycode == 0) {
+        ErrorF("DarwinPressModifierKey bad keycode: key=%d\n", pressed == KeyPress ? "press" : "release", key, keycode);
+        return;
     }
+
+    DarwinSendKeyboardEvents(pressed, keycode);
 }
-
-#ifdef NX_DEVICELCTLKEYMASK
-#define CONTROL_MASK(flags) (flags & (NX_DEVICELCTLKEYMASK|NX_DEVICERCTLKEYMASK))
-#define NX_CONTROLMASK_FULL (NX_CONTROLMASK | NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK)
-#else
-#define CONTROL_MASK(flags) (NX_CONTROLMASK)
-#define NX_CONTROLMASK_FULL NX_CONTROLMASK
-#endif /* NX_DEVICELCTLKEYMASK */
-
-#ifdef NX_DEVICELSHIFTKEYMASK
-#define SHIFT_MASK(flags) (flags & (NX_DEVICELSHIFTKEYMASK|NX_DEVICERSHIFTKEYMASK))
-#define NX_SHIFTMASK_FULL (NX_SHIFTMASK | NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK)
-#else
-#define SHIFT_MASK(flags) (NX_SHIFTMASK)
-#define NX_SHIFTMASK_FULL NX_SHIFTMASK
-#endif /* NX_DEVICELSHIFTKEYMASK */
-
-#ifdef NX_DEVICELCMDKEYMASK
-#define COMMAND_MASK(flags) (flags & (NX_DEVICELCMDKEYMASK|NX_DEVICERCMDKEYMASK))
-#define NX_COMMANDMASK_FULL (NX_COMMANDMASK | NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK)
-#else
-#define COMMAND_MASK(flags) (NX_COMMANDMASK)
-#define NX_COMMANDMASK_FULL NX_COMMANDMASK
-#endif /* NX_DEVICELCMDKEYMASK */
-
-#ifdef NX_DEVICELALTKEYMASK
-#define ALTERNATE_MASK(flags) (flags & (NX_DEVICELALTKEYMASK|NX_DEVICERALTKEYMASK))
-#define NX_ALTERNATEMASK_FULL (NX_ALTERNATEMASK | NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK)
-#else
-#define ALTERNATE_MASK(flags) (NX_ALTERNATEMASK)
-#define NX_ALTERNATEMASK_FULL NX_ALTERNATEMASK
-#endif /* NX_DEVICELALTKEYMASK */
 
 /*
  * DarwinUpdateModifiers
  *  Send events to update the modifier state.
  */
+
+static int modifier_mask_list[] = {
+    NX_SECONDARYFNMASK, NX_NUMERICPADMASK, NX_HELPMASK,
+#ifdef NX_DEVICELCMDKEYMASK
+    NX_DEVICELCTLKEYMASK, NX_DEVICERCTLKEYMASK,
+    NX_DEVICELSHIFTKEYMASK, NX_DEVICERSHIFTKEYMASK,
+    NX_DEVICELCMDKEYMASK, NX_DEVICERCMDKEYMASK,
+    NX_DEVICELALTKEYMASK, NX_DEVICERALTKEYMASK,
+#else
+    NX_CONTROLMASK, NX_SHIFTMASK, NX_COMMANDMASK, NX_ALTERNATEMASK,
+#endif
+    0
+};
+
 static void DarwinUpdateModifiers(
     int pressed,        // KeyPress or KeyRelease
     int flags )         // modifier flags that have changed
 {
-    if (flags & NX_ALPHASHIFTMASK) {
-        DarwinPressModifierMask(pressed, NX_ALPHASHIFTMASK);
-    }
-    if (flags & NX_COMMANDMASK_FULL) {
-        DarwinPressModifierMask(pressed, COMMAND_MASK(flags));
-    }
-    if (flags & NX_CONTROLMASK_FULL) {
-        DarwinPressModifierMask(pressed, CONTROL_MASK(flags));
-    }
-    if (flags & NX_ALTERNATEMASK_FULL) {
-        DarwinPressModifierMask(pressed, ALTERNATE_MASK(flags));
-    }
-    if (flags & NX_SHIFTMASK_FULL) {
-        DarwinPressModifierMask(pressed, SHIFT_MASK(flags));
-    }
-    if (flags & NX_SECONDARYFNMASK) {
-        DarwinPressModifierMask(pressed, NX_SECONDARYFNMASK);
-    }
-}
+    int *f;
 
-/*
- * DarwinReleaseModifiers
- * This hacky function releases all modifier keys.  It should be called when X11.app
- * is deactivated (kXquartzDeactivate) to prevent modifiers from getting stuck if they
- * are held down during a "context" switch -- otherwise, we would miss the KeyUp.
- */
-static void DarwinReleaseModifiers(void) {
-    ErrorF("DarwinReleaseModifiers\n");
-	DarwinUpdateModifiers(KeyRelease, COMMAND_MASK(-1) | CONTROL_MASK(-1) | ALTERNATE_MASK(-1) | SHIFT_MASK(-1));
+    /* Capslock is special.  This mask is the state of capslock (on/off),
+     * not the state of the button.  Hopefully we can find a better solution.
+     */
+    if(NX_ALPHASHIFTMASK & flags) {
+        DarwinPressModifierKey(KeyPress, NX_MODIFIERKEY_ALPHALOCK);
+        DarwinPressModifierKey(KeyRelease, NX_MODIFIERKEY_ALPHALOCK);
+    }
+    
+    for(f=modifier_mask_list; *f; f++)
+        if(*f & flags)
+            DarwinPressModifierKey(pressed, DarwinModifierNXMaskToNXKey(*f));
 }
 
 /* Generic handler for Xquartz-specifc events.  When possible, these should
@@ -263,7 +231,6 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
                 
             case kXquartzDeactivate:
                 DEBUG_LOG("kXquartzDeactivate\n");
-                DarwinReleaseModifiers();
                 AppleWMSendEvent(AppleWMActivationNotify,
                                  AppleWMActivationNotifyMask,
                                  AppleWMIsInactive, 0);
@@ -476,20 +443,29 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
             DarwinSendPointerEvents(ButtonRelease, darwinFakeMouseButtonDown, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
             darwinFakeMouseButtonDown=0;
         }
-		if ((modifier_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
+		if (darwin_modifier_flags & darwinFakeMouse2Mask) {
             ev_button = 2;
 			darwinFakeMouseButtonDown = 2;
-		} else if ((modifier_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
+            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse2Mask);
+		} else if (darwin_modifier_flags & darwinFakeMouse3Mask) {
             ev_button = 3;
 			darwinFakeMouseButtonDown = 3;
+            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse3Mask);
 		}
 	}
 
 	if (ev_type == ButtonRelease && ev_button == 1) {
         if(darwinFakeMouseButtonDown) {
             ev_button = darwinFakeMouseButtonDown;
-            darwinFakeMouseButtonDown = 0;
         }
+
+        if(darwinFakeMouseButtonDown == 2) {
+            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse2Mask);
+        } else if(darwinFakeMouseButtonDown == 3) {
+            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse3Mask);
+        }
+
+        darwinFakeMouseButtonDown = 0;
 	}
 
     DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
@@ -509,7 +485,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		return;
 	}
 
-	if (modifier_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
+	if (darwinSyncKeymap && darwinKeymapFile == NULL) {
 		/* See if keymap has changed. */
 
 		static unsigned int last_seed;
@@ -589,9 +565,9 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
    reflect changing modifier flags (alt, control, meta, etc) */
 void DarwinUpdateModKeys(int flags) {
-	DarwinUpdateModifiers(KeyRelease, modifier_flags & ~flags);
-	DarwinUpdateModifiers(KeyPress, ~modifier_flags & flags);
-	modifier_flags = flags;
+	DarwinUpdateModifiers(KeyRelease, darwin_modifier_flags & ~flags);
+	DarwinUpdateModifiers(KeyPress, ~darwin_modifier_flags & flags);
+	darwin_modifier_flags = flags;
 }
 
 /*

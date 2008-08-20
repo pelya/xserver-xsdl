@@ -71,8 +71,6 @@
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
-#include <Availability.h>
-
 void QuartzXkbUpdate(DeviceIntPtr pDev);
 
 enum {
@@ -1014,28 +1012,6 @@ int DarwinModifierNXMaskToNXKey(int mask) {
     return -1;
 }
 
-static const char *DarwinModifierNXMaskTostring(int mask) {
-    switch (mask) {
-        case NX_ALPHASHIFTMASK:      return "NX_ALPHASHIFTMASK";
-        case NX_SHIFTMASK:           return "NX_SHIFTMASK";
-        case NX_DEVICELSHIFTKEYMASK: return "NX_DEVICELSHIFTKEYMASK";
-        case NX_DEVICERSHIFTKEYMASK: return "NX_DEVICERSHIFTKEYMASK";
-        case NX_CONTROLMASK:         return "NX_CONTROLMASK";
-        case NX_DEVICELCTLKEYMASK:   return "NX_DEVICELCTLKEYMASK";
-        case NX_DEVICERCTLKEYMASK:   return "NX_DEVICERCTLKEYMASK";
-        case NX_ALTERNATEMASK:       return "NX_ALTERNATEMASK";
-        case NX_DEVICELALTKEYMASK:   return "NX_DEVICELALTKEYMASK";
-        case NX_DEVICERALTKEYMASK:   return "NX_DEVICERALTKEYMASK";
-        case NX_COMMANDMASK:         return "NX_COMMANDMASK";
-        case NX_DEVICELCMDKEYMASK:   return "NX_DEVICELCMDKEYMASK";
-        case NX_DEVICERCMDKEYMASK:   return "NX_DEVICERCMDKEYMASK";
-        case NX_NUMERICPADMASK:      return "NX_NUMERICPADMASK";
-        case NX_HELPMASK:            return "NX_HELPMASK";
-        case NX_SECONDARYFNMASK:     return "NX_SECONDARYFNMASK";
-    }
-    return "unknown mask";
-}
-
 /*
  * DarwinModifierNXKeyToNXMask
  *      Returns 0 if key is not a known modifier key.
@@ -1043,21 +1019,20 @@ static const char *DarwinModifierNXMaskTostring(int mask) {
 int DarwinModifierNXKeyToNXMask(int key) {
     switch (key) {
         case NX_MODIFIERKEY_ALPHALOCK:   return NX_ALPHASHIFTMASK;
+#ifdef NX_DEVICELSHIFTKEYMASK
+        case NX_MODIFIERKEY_SHIFT:       return NX_DEVICELSHIFTKEYMASK;
+        case NX_MODIFIERKEY_RSHIFT:      return NX_DEVICERSHIFTKEYMASK;
+        case NX_MODIFIERKEY_CONTROL:     return NX_DEVICELCTLKEYMASK;
+        case NX_MODIFIERKEY_RCONTROL:    return NX_DEVICERCTLKEYMASK;
+        case NX_MODIFIERKEY_ALTERNATE:   return NX_DEVICELALTKEYMASK;
+        case NX_MODIFIERKEY_RALTERNATE:  return NX_DEVICERALTKEYMASK;
+        case NX_MODIFIERKEY_COMMAND:     return NX_DEVICELCMDKEYMASK;
+        case NX_MODIFIERKEY_RCOMMAND:    return NX_DEVICERCMDKEYMASK;
+#else
         case NX_MODIFIERKEY_SHIFT:       return NX_SHIFTMASK;
-#ifdef NX_MODIFIERKEY_RSHIFT
-        case NX_MODIFIERKEY_RSHIFT:      return NX_SHIFTMASK;
-#endif
         case NX_MODIFIERKEY_CONTROL:     return NX_CONTROLMASK;
-#ifdef NX_MODIFIERKEY_RCONTROL
-        case NX_MODIFIERKEY_RCONTROL:    return NX_CONTROLMASK;
-#endif
         case NX_MODIFIERKEY_ALTERNATE:   return NX_ALTERNATEMASK;
-#ifdef NX_MODIFIERKEY_RALTERNATE
-        case NX_MODIFIERKEY_RALTERNATE:  return NX_ALTERNATEMASK;
-#endif
         case NX_MODIFIERKEY_COMMAND:     return NX_COMMANDMASK;
-#ifdef NX_MODIFIERKEY_RCOMMAND
-        case NX_MODIFIERKEY_RCOMMAND:    return NX_COMMANDMASK;
 #endif
         case NX_MODIFIERKEY_NUMERICPAD:  return NX_NUMERICPADMASK;
         case NX_MODIFIERKEY_HELP:        return NX_HELPMASK;
@@ -1067,16 +1042,42 @@ int DarwinModifierNXKeyToNXMask(int key) {
 }
 
 /*
- * DarwinModifierStringToNXKey
- *      Returns -1 if string is not a known modifier.
+ * DarwinModifierStringToNXMask
+ *      Returns 0 if string is not a known modifier.
  */
-int DarwinModifierStringToNXKey(const char *str) {
-    if      (!strcasecmp(str, "shift"))   return NX_MODIFIERKEY_SHIFT;
-    else if (!strcasecmp(str, "control")) return NX_MODIFIERKEY_CONTROL;
-    else if (!strcasecmp(str, "option"))  return NX_MODIFIERKEY_ALTERNATE;
-    else if (!strcasecmp(str, "command")) return NX_MODIFIERKEY_COMMAND;
-    else if (!strcasecmp(str, "fn"))      return NX_MODIFIERKEY_SECONDARYFN;
-    else return -1;
+int DarwinModifierStringToNXMask(const char *str) {
+#ifdef NX_DEVICELSHIFTKEYMASK
+    if      (!strcasecmp(str, "shift"))    return NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK;
+    else if (!strcasecmp(str, "control"))  return NX_DEVICELCTLKEYMASK | NX_DEVICERCTLKEYMASK;
+    else if (!strcasecmp(str, "option"))   return NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
+    else if (!strcasecmp(str, "command"))  return NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK;
+    else if (!strcasecmp(str, "lshift"))   return NX_DEVICELSHIFTKEYMASK;
+    else if (!strcasecmp(str, "rshift"))   return NX_DEVICERSHIFTKEYMASK;
+    else if (!strcasecmp(str, "lcontrol")) return NX_DEVICELCTLKEYMASK;
+    else if (!strcasecmp(str, "rcontrol")) return NX_DEVICERCTLKEYMASK;
+    else if (!strcasecmp(str, "loption"))  return NX_DEVICELALTKEYMASK;
+    else if (!strcasecmp(str, "roption"))  return NX_DEVICERALTKEYMASK;
+    else if (!strcasecmp(str, "lcommand")) return NX_DEVICELCMDKEYMASK;
+    else if (!strcasecmp(str, "rcommand")) return NX_DEVICERCMDKEYMASK;
+#else
+    if      (!strcasecmp(str, "shift"))    return NX_SHIFTMASK;
+    else if (!strcasecmp(str, "control"))  return NX_CONTROLMASK;
+    else if (!strcasecmp(str, "option"))   return NX_ALTERNATEMASK;
+    else if (!strcasecmp(str, "command"))  return NX_COMMANDMASK;
+    else if (!strcasecmp(str, "lshift"))   return NX_SHIFTMASK;
+    else if (!strcasecmp(str, "rshift"))   return NX_SHIFTMASK;
+    else if (!strcasecmp(str, "lcontrol")) return NX_CONTROLMASK;
+    else if (!strcasecmp(str, "rcontrol")) return NX_CONTROLMASK;
+    else if (!strcasecmp(str, "loption"))  return NX_ALTERNATEMASK;
+    else if (!strcasecmp(str, "roption"))  return NX_ALTERNATEMASK;
+    else if (!strcasecmp(str, "lcommand")) return NX_COMMANDMASK;
+    else if (!strcasecmp(str, "rcommand")) return NX_COMMANDMASK;
+#endif
+    else if (!strcasecmp(str, "lock"))     return NX_ALPHASHIFTMASK;
+    else if (!strcasecmp(str, "fn"))       return NX_SECONDARYFNMASK;
+    else if (!strcasecmp(str, "help"))     return NX_HELPMASK;
+    else if (!strcasecmp(str, "numlock"))  return NX_NUMERICPADMASK;
+    else return 0;
 }
 
 /*
@@ -1092,7 +1093,7 @@ Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 /* TODO: Not thread safe */
 unsigned int QuartzSystemKeymapSeed(void) {
     static unsigned int seed = 0;
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+#if defined(__x86_64__) || defined(__ppc64__)
     static TISInputSourceRef last_key_layout = NULL;
     TISInputSourceRef key_layout;
 
@@ -1159,7 +1160,7 @@ static KeySym make_dead_key(KeySym in) {
 }
 
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+#if !defined(__x86_64__) && !defined(__ppc64__)
     KeyboardLayoutRef key_layout;
 #endif
     const void *chr_data = NULL;
@@ -1178,10 +1179,11 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
           chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+#if !defined(__x86_64__) && !defined(__ppc64__)
     if (chr_data == NULL) {
         ErrorF("X11.app: Error detected in determining keyboard layout.  Please report this error at http://xquartz.macosforge.org\n");
-        ErrorF("X11.app: Debug Info: currentKeyLayoutRef=%p, chr_data=%p\n", currentKeyLayoutRef, chr_data);
+        ErrorF("X11.app: Debug Info: keyboard_type=%u, currentKeyLayoutRef=%p, currentKeyLayoutDataRef=%p, chr_data=%p\n",
+               (unsigned)keyboard_type, currentKeyLayoutRef, currentKeyLayoutDataRef, chr_data);
 
         KLGetCurrentKeyboardLayout (&key_layout);
         KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
@@ -1192,7 +1194,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     }
 
     if (chr_data == NULL) {
-        ErrorF("X11.app: Debug Info: kKLuchrData fallback failed, trying kKLKCHRData.\n", currentKeyLayoutRef, chr_data);
+        ErrorF("X11.app: Debug Info: kKLuchrData fallback failed, trying kKLKCHRData.\n");
         KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
         is_uchr = 0;
         num_keycodes = 128;

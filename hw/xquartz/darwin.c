@@ -104,8 +104,13 @@ char                    *darwinKeymapFile = "USA.keymapping";
 int                     darwinSyncKeymap = FALSE;
 
 // modifier masks for faking mouse buttons
+#ifdef NX_DEVICELCMDKEYMASK
+int                     darwinFakeMouse2Mask = NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK;
+int                     darwinFakeMouse3Mask = NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK;
+#else
 int                     darwinFakeMouse2Mask = NX_ALTERNATEMASK;
 int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
+#endif
 
 // devices
 DeviceIntPtr            darwinPointer = NULL;
@@ -140,7 +145,7 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 #define XORG_RELEASE "?"
 #endif
 
-const char *__crashreporter_info__ = "X.Org X Server " XSERVER_VERSION "Build Date: " BUILD_DATE;
+const char *__crashreporter_info__ = "X.Org X Server " XSERVER_VERSION " Build Date: " BUILD_DATE;
 
 void DDXRingBell(int volume, int pitch, int duration) {
   // FIXME -- make some noise, yo
@@ -496,9 +501,9 @@ int DarwinParseModifierList(
 
         while (p) {
             modifier = strsep(&p, " ,+&|/"); // allow lots of separators
-            nxkey = DarwinModifierStringToNXKey(modifier);
-            if (nxkey != -1)
-                result |= DarwinModifierNXKeyToNXMask(nxkey);
+            nxkey = DarwinModifierStringToNXMask(modifier);
+            if(nxkey)
+                result |= nxkey;
             else
                 ErrorF("fakebuttons: Unknown modifier \"%s\"\n", modifier);
         }
