@@ -149,6 +149,7 @@ _X_EXPORT int defaultColorVisualClass = -1;
 _X_EXPORT int monitorResolution = 0;
 
 _X_EXPORT char *display;
+char *ConnectionInfo;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
 

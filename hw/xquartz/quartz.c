@@ -184,7 +184,6 @@ void QuartzInitInput(
 
 
 #ifdef FAKE_RANDR
-extern char	*ConnectionInfo;
 
 static int padlength[4] = {0, 3, 2, 1};
 

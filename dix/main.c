@@ -118,7 +118,6 @@ Equipment Corporation.
 
 extern void Dispatch(void);
 
-char *ConnectionInfo;
 xConnSetupPrefix connSetupPrefix;
 
 extern FontPtr defaultFont;

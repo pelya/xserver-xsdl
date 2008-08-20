@@ -297,8 +297,6 @@ findVisual (ScreenPtr pScreen, VisualID vid)
     return 0;
 }
 
-extern char *ConnectionInfo;
-
 static int
 ProcRenderQueryPictFormats (ClientPtr client)
 {

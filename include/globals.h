@@ -26,6 +26,8 @@ extern Bool noTestExtensions;
 
 extern DDXPointRec dixScreenOrigins[MAXSCREENS];
 
+extern char *ConnectionInfo;
+
 #ifdef DPMSExtension
 extern CARD32 defaultDPMSStandbyTime;
 extern CARD32 defaultDPMSSuspendTime;

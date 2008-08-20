@@ -43,7 +43,6 @@
 #include "dmxinput.h"
 #include "dmxlog.h"
 
-extern char    *ConnectionInfo;
 extern int     connBlockScreenStart;
 
 #ifdef PANORAMIX

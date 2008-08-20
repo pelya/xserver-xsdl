@@ -160,7 +160,6 @@ typedef const char *string;
 #define GETBIT(buf, i) (MASKWORD(buf, i) & BITMASK(i))
 
 extern xConnSetupPrefix connSetupPrefix;
-extern char *ConnectionInfo;
 
 static ClientPtr grabClient;
 #define GrabNone 0
