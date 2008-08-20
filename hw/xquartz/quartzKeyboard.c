@@ -1191,7 +1191,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
 
 #if !defined(__x86_64__) && !defined(__ppc64__)
     if (chr_data == NULL) {
-        ErrorF("X11.app: Error detected in determining keyboard layout.  Please report this error at http://xquartz.macosforge.org\n");
+        ErrorF("X11.app: Error detected in determining keyboard layout.  If you are using an Apple-provided keyboard layout, please report this error at http://xquartz.macosforge.org and http://bugreport.apple.com\n");
         ErrorF("X11.app: Debug Info: keyboard_type=%u, currentKeyLayoutRef=%p, currentKeyLayoutDataRef=%p, chr_data=%p\n",
                (unsigned)keyboard_type, currentKeyLayoutRef, currentKeyLayoutDataRef, chr_data);
 
@@ -1205,6 +1205,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
 
     if (chr_data == NULL) {
         ErrorF("X11.app: Debug Info: kKLuchrData fallback failed, trying kKLKCHRData.\n");
+        ErrorF("If you are using a 3rd party keyboard layout, please see http://xquartz.macosforge.org/trac/ticket/154\n");
         KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
         is_uchr = 0;
         num_keycodes = 128;
