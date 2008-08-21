@@ -105,7 +105,7 @@ SOFTWARE.
 #include "gtmotion.h"
 #include "listdev.h"
 #include "opendev.h"
-#include "qryacces.c"
+#include "qryacces.h"
 #include "querydp.h"
 #include "queryst.h"
 #include "selectev.h"
@@ -122,7 +122,6 @@ SOFTWARE.
 #include "ungrdevk.h"
 #include "warpdevp.h"
 #include "xiselev.h"
-#include "xiproperty.c"
 #include "xiproperty.h"
 
 
