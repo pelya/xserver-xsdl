@@ -888,3 +888,43 @@ SProcXGetDeviceProperty (ClientPtr client)
     return (ProcXGetDeviceProperty(client));
 }
 
+
+/* Reply swapping */
+
+void
+SRepXListDeviceProperties(ClientPtr client, int size,
+                          xListDevicePropertiesReply *rep)
+{
+    char n;
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swaps(&rep->nAtoms, n);
+    /* properties will be swapped later, see ProcXListDeviceProperties */
+    WriteToClient(client, size, (char*)rep);
+}
+
+void
+SRepXQueryDeviceProperty(ClientPtr client, int size,
+                         xQueryDevicePropertyReply *rep)
+{
+    char n;
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+
+    WriteToClient(client, size, (char*)rep);
+}
+
+void
+SRepXGetDeviceProperty(ClientPtr client, int size,
+                       xGetDevicePropertyReply *rep)
+{
+    char n;
+
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swapl(&rep->propertyType, n);
+    swapl(&rep->bytesAfter, n);
+    swapl(&rep->nItems, n);
+    /* data will be swapped, see ProcXGetDeviceProperty */
+    WriteToClient(client, size, (char*)rep);
+}

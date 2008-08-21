@@ -33,12 +33,21 @@ int ProcXChangeDeviceProperty     (ClientPtr client);
 int ProcXDeleteDeviceProperty     (ClientPtr client);
 int ProcXGetDeviceProperty        (ClientPtr client);
 
+/* request swapping */
 int SProcXListDeviceProperties    (ClientPtr client);
 int SProcXQueryDeviceProperty     (ClientPtr client);
 int SProcXConfigureDeviceProperty (ClientPtr client);
 int SProcXChangeDeviceProperty    (ClientPtr client);
 int SProcXDeleteDeviceProperty    (ClientPtr client);
 int SProcXGetDeviceProperty       (ClientPtr client);
+
+/* reply swapping */
+void SRepXListDeviceProperties(ClientPtr client, int size,
+                               xListDevicePropertiesReply *rep);
+void SRepXQueryDeviceProperty(ClientPtr client, int size,
+                              xQueryDevicePropertyReply *rep);
+void SRepXGetDeviceProperty(ClientPtr client, int size,
+                            xGetDevicePropertyReply *rep);
 
 void XIInitKnownProperties(void);
 

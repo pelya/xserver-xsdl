@@ -478,6 +478,12 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_ChangeDeviceControl)
 	SRepXChangeDeviceControl(client, len,
 				 (xChangeDeviceControlReply *) rep);
+    else if (rep->RepType == X_ListDeviceProperties)
+        SRepXListDeviceProperties(client, len, (xListDevicePropertiesReply*)rep);
+    else if (rep->RepType == X_QueryDeviceProperty)
+        SRepXQueryDeviceProperty(client, len, (xQueryDevicePropertyReply*)rep);
+    else if (rep->RepType == X_GetDeviceProperty)
+	SRepXGetDeviceProperty(client, len, (xGetDevicePropertyReply *) rep);
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
 				(xQueryDevicePointerReply *) rep);
