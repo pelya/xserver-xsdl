@@ -912,6 +912,7 @@ static void send_nsevent(NSEvent *e) {
 			// fall through to get tablet data
 
 		case NSTabletPoint:
+            ev_type  = MotionNotify;
             pressure = [e pressure];
 			tilt_x   = [e tilt].x;
 			tilt_y   = [e tilt].y; 
