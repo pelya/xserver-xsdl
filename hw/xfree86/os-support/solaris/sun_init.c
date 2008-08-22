@@ -329,8 +329,6 @@ xf86ProcessArgument(int argc, char **argv, int i)
 
 #endif /* HAS_USL_VTS */
 
-#if defined(__SOL8__) || (!defined(__i386__) && !defined(__i386))
-
     if ((i + 1) < argc) {
 	if (!strcmp(argv[i], "-dev")) {
 	    strncpy(fb_dev, argv[i+1], PATH_MAX);
@@ -338,8 +336,6 @@ xf86ProcessArgument(int argc, char **argv, int i)
 	    return 2;
 	}
     }
-
-#endif
 
     return 0;
 }
@@ -349,9 +345,7 @@ void xf86UseMsg()
 #ifdef HAS_USL_VTS
     ErrorF("vtXX                   Use the specified VT number\n");
 #endif
-#if defined(__SOL8__) || !defined(__i386__)
     ErrorF("-dev <fb>              Framebuffer device\n");
-#endif
     ErrorF("-keeptty               Don't detach controlling tty\n");
     ErrorF("                       (for debugging only)\n");
 }
