@@ -29,7 +29,7 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
-#if defined(__i386__) || defined(__i386) || defined(__x86)
+#ifdef HAVE_SYS_KD_H
 # include <sys/kd.h>
 #endif
 

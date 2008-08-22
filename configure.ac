@@ -1280,6 +1280,7 @@ if test "x$XORG" = xyes; then
 	  solaris*)
 	  	XORG_OS="solaris"
 		XORG_OS_SUBDIR="solaris"
+		AC_CHECK_HEADERS([sys/kd.h])
 		# This really should be tests for specific features, but the #ifdef's
 		# were done as a simple version check in XFree86 4.x and haven't been 
 		# fixed yet
