@@ -148,7 +148,7 @@ static void DarwinPressModifierKey(int pressed, int key) {
     int keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
 
     if (keycode == 0) {
-        ErrorF("DarwinPressModifierKey bad keycode: key=%d\n", pressed == KeyPress ? "press" : "release", key, keycode);
+        ErrorF("DarwinPressModifierKey bad keycode: key=%d\n", key);
         return;
     }
 
