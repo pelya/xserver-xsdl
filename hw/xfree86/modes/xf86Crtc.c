@@ -2631,9 +2631,11 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     size = 0;
     if (edid_mon)
     {
-	if (edid_mon->ver.version == 1)
+	if (edid_mon->ver.version == 1) {
 	    size = 128;
-	else if (edid_mon->ver.version == 2)
+	    if (edid->flags & EDID_COMPLETE_RAWDATA)
+		size += edid->no_sections * 128;
+	} else if (edid_mon->ver.version == 2)
 	    size = 256;
     }
     xf86OutputSetEDIDProperty (output, edid_mon ? edid_mon->rawData : NULL, size);
