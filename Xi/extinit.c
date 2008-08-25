@@ -611,16 +611,6 @@ SDevicePropertyNotifyEvent (devicePropertyNotify *from, devicePropertyNotify *to
 }
 
 static void
-SDeviceEnterNotifyEvent (deviceEnterNotify *from, deviceEnterNotify *to)
-{
-    char n;
-
-    *to = *from;
-    swaps(&to->sequenceNumber,n);
-    swapl(&to->time, n);
-}
-
-static void
 SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
 {
     char n;
@@ -1102,7 +1092,7 @@ SEventIDispatch(xEvent * from, xEvent * to)
     else if (type == DevicePropertyNotify)
 	DO_SWAP(SDevicePropertyNotifyEvent, devicePropertyNotify);
     else if (type == DeviceEnterNotify)
-        DO_SWAP(SDeviceEnterNotifyEvent, deviceEnterNotify);
+        DO_SWAP(SDeviceLeaveNotifyEvent, deviceEnterNotify);
     else if (type == DeviceLeaveNotify)
         DO_SWAP(SDeviceLeaveNotifyEvent, deviceLeaveNotify);
     else {
