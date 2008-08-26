@@ -41,6 +41,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <sys/time.h>
+
 #include <mach/mach.h>
 #include <mach/mach_error.h>
 #include <servers/bootstrap.h>
@@ -167,10 +169,29 @@ static void accept_fd_handoff(int connected_fd) {
     }
 
 #ifndef XQUARTZ_EXPORTS_LAUNCHD_FD
-    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
+    /* TODO: Clean up this race better... giving xinitrc time to run... need to wait for 1.5 branch:
+     *
+     * From ajax:
+     * There's already an internal callback chain for setting selection [in 1.5]
+     * ownership.  See the CallSelectionCallback at the bottom of
+     * ProcSetSelectionOwner, and xfixes/select.c for an example of how to hook
+     * into it.
+     */
 
-    /* TODO: Clean up this race better... givint xinitrc time to run. */
-    sleep(2);
+#if 0
+    struct timeval start, now;
+    gettimeofday(&start, NULL);
+    gettimeofday(&now, NULL);
+    while((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec) < 2000000) {
+        unsigned usec = 3000001 - ((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec));
+        fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup (%u).\n", launchd_fd, usec);
+        usleep(usec);
+        gettimeofday(&now, NULL);
+    }
+#else
+    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
+    sleep(3);
+#endif
 #endif
 
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
