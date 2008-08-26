@@ -471,12 +471,10 @@ exaCompositeRects(CARD8	              op,
     ExaCompositeRectPtr r;
     
     if (pExaPixmap->pDamage) {
-	int xoff, yoff;
 	int x1 = MAXSHORT;
 	int y1 = MAXSHORT;
 	int x2 = MINSHORT;
 	int y2 = MINSHORT;
-	RegionPtr pending_damage;
 	BoxRec box;
     
 	/* We have to manage the damage ourselves, since CompositeRects isn't
@@ -1066,10 +1064,9 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
+	RegionRec migration;
 
 	if (pExaPixmap->pDamage) {
-	    RegionRec migration;
-
 	    bounds.x1 += pDraw->x;
 	    bounds.y1 += pDraw->y;
 	    bounds.x2 += pDraw->x;
@@ -1085,6 +1082,13 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	    (*ps->RasterizeTrapezoid) (pDst, traps, 0, 0);
 
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
+
+	/* Damage manually, because Trapezoids expects to hit Composite normally. */
+	/* Composite is wrapped by damage, but Trapezoids isn't. */
+	if (pExaPixmap->pDamage) {
+	    DamageDamageRegion(pDraw, &migration);
+	    REGION_UNINIT(pScreen, &migration);
+	}
     }
     else if (maskFormat)
     {
@@ -1164,10 +1168,9 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
+	RegionRec migration;
 
 	if (pExaPixmap->pDamage) {
-	    RegionRec migration;
-
 	    bounds.x1 += pDraw->x;
 	    bounds.y1 += pDraw->y;
 	    bounds.x2 += pDraw->x;
@@ -1180,6 +1183,13 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
 	(*ps->AddTriangles) (pDst, 0, 0, ntri, tris);
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
+
+	/* Damage manually, because Triangles expects to hit Composite normally. */
+	/* Composite is wrapped by damage, but Triangles isn't. */
+	if (pExaPixmap->pDamage) {
+	    DamageDamageRegion(pDraw, &migration);
+	    REGION_UNINIT(pScreen, &migration);
+	}
     }
     else if (maskFormat)
     {
