@@ -43,6 +43,39 @@
 #endif
 
 /**
+ * Returns TRUE if the pixmap has damage.
+ * EXA only migrates the parts of a destination 
+ * that are affected by rendering.
+ * It uses the current damage as indication.
+ * So anything that does not need to be updated won't be.
+ * For clarity this seperate function was made.
+ * Note that some situations don't use this, 
+ * because their calls are wrapped by the damage layer.
+ */
+Bool
+exaDamageDestForMigration(PixmapPtr pPix, RegionPtr region)
+{
+    ScreenPtr pScreen = pPix->drawable.pScreen;
+    (void) pScreen; /* the macros don't use pScreen currently */
+    ExaPixmapPriv (pPix);
+    int x_offset, y_offset;
+    RegionPtr pending_damage;
+
+    if (!pExaPixmap->pDamage)
+	return FALSE;
+
+    exaGetDrawableDeltas(&pPix->drawable, pPix, &x_offset, &y_offset);
+
+    REGION_TRANSLATE(pScreen, region, x_offset, y_offset);
+    pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+    REGION_UNION(pScreen, pending_damage, pending_damage, region);
+    /* Restore region as we got it. */
+    REGION_TRANSLATE(pScreen, region, -x_offset, -y_offset);
+
+    return TRUE;
+}
+
+/**
  * Returns TRUE if the pixmap is not movable.  This is the case where it's a
  * fake pixmap for the frontbuffer (no pixmap private) or it's a scratch
  * pixmap created by some other X Server internals (the score says it's

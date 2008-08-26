@@ -795,6 +795,9 @@ exaGetPixmapDriverPrivate(PixmapPtr p);
 CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap);
 
+Bool
+exaDamageDestForMigration(PixmapPtr pPix, RegionPtr region);
+
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
  * pixel values for pDrawable.

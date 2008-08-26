@@ -520,12 +520,7 @@ exaCompositeRects(CARD8	              op,
 
 	REGION_INIT(pScreen, &region, &box, 1);
     
-	exaGetDrawableDeltas(pDst->pDrawable, pPixmap, &xoff, &yoff);
-
-	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
-	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-	REGION_UNION(pScreen, pending_damage, pending_damage, &region);
-	REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
+	exaDamageDestForMigration(pPixmap, &region);
     }
     
     /************************************************************/
@@ -1074,22 +1069,14 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
 	if (pExaPixmap->pDamage) {
 	    RegionRec migration;
-	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-	    int xoff, yoff;
 
-	    exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
-
-	    xoff += pDraw->x;
-	    yoff += pDraw->y;
-
-	    bounds.x1 += xoff;
-	    bounds.y1 += yoff;
-	    bounds.x2 += xoff;
-	    bounds.y2 += yoff;
+	    bounds.x1 += pDraw->x;
+	    bounds.y1 += pDraw->y;
+	    bounds.x2 += pDraw->x;
+	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
-	    REGION_UNINIT(pScreen, &migration);
+	    exaDamageDestForMigration(pixmap, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
@@ -1180,22 +1167,14 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
 	if (pExaPixmap->pDamage) {
 	    RegionRec migration;
-	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-	    int xoff, yoff;
 
-	    exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
-
-	    xoff += pDraw->x;
-	    yoff += pDraw->y;
-
-	    bounds.x1 += xoff;
-	    bounds.y1 += yoff;
-	    bounds.x2 += xoff;
-	    bounds.y2 += yoff;
+	    bounds.x1 += pDraw->x;
+	    bounds.y1 += pDraw->y;
+	    bounds.x2 += pDraw->x;
+	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
-	    REGION_UNINIT(pScreen, &migration);
+	    exaDamageDestForMigration(pixmap, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);

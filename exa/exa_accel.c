@@ -300,7 +300,6 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
     BoxRec box = { .x1 = pDrawable->x + dx, .y1 = pDrawable->y + dy,
 		   .x2 = pDrawable->x + dx + sw, .y2 = pDrawable->y + dy + sh };
     RegionRec region;
-    int xoff, yoff;
     RegionPtr pending_damage = NULL;
 
     if (pExaPixmap->pDamage)
@@ -308,11 +307,7 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 
     if (pending_damage) {
 	REGION_INIT(pScreen, &region, &box, 1);
-
-	exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
-
-	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
-	REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+	exaDamageDestForMigration(pPixmap, &region);
     }
 
     if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh,
@@ -328,9 +323,7 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
     }
 
     if (pending_damage) {
-	REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
 	DamageDamageRegion(pDrawable, &region);
-
 	REGION_UNINIT(pScreen, &region);
     }
 }
