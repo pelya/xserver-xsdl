@@ -242,9 +242,9 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 				    pBox->x1, pBox->y1,
 				    pBox->x2 - pBox->x1,
 				    pBox->y2 - pBox->y1,
-				    pExaPixmap->sys_ptr
+				    (char *) (pExaPixmap->sys_ptr
 				    + pBox->y1 * pExaPixmap->sys_pitch
-				    + pBox->x1 * pPixmap->drawable.bitsPerPixel / 8,
+				    + pBox->x1 * pPixmap->drawable.bitsPerPixel / 8),
 				    pExaPixmap->sys_pitch))
 	{
 	    if (!access_prepared) {

@@ -503,4 +503,7 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area);
 
+Bool
+exaDamageDestForMigration(PixmapPtr pPix, RegionPtr region);
+
 #endif /* EXAPRIV_H */
