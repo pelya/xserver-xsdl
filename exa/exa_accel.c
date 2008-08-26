@@ -307,7 +307,7 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 
     if (pending_damage) {
 	REGION_INIT(pScreen, &region, &box, 1);
-	exaDamageDestForMigration(pPixmap, &region);
+	exaDamageDestForMigration(pDrawable, pPixmap, &region);
     }
 
     if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh,

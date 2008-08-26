@@ -53,9 +53,9 @@
  * because their calls are wrapped by the damage layer.
  */
 Bool
-exaDamageDestForMigration(PixmapPtr pPix, RegionPtr region)
+exaDamageDestForMigration(DrawablePtr pDrawable, PixmapPtr pPix, RegionPtr region)
 {
-    ScreenPtr pScreen = pPix->drawable.pScreen;
+    ScreenPtr pScreen = pDrawable->pScreen;
     (void) pScreen; /* the macros don't use pScreen currently */
     ExaPixmapPriv (pPix);
     int x_offset, y_offset;
@@ -64,7 +64,7 @@ exaDamageDestForMigration(PixmapPtr pPix, RegionPtr region)
     if (!pExaPixmap->pDamage)
 	return FALSE;
 
-    exaGetDrawableDeltas(&pPix->drawable, pPix, &x_offset, &y_offset);
+    exaGetDrawableDeltas(pDrawable, pPix, &x_offset, &y_offset);
 
     REGION_TRANSLATE(pScreen, region, x_offset, y_offset);
     pending_damage = DamagePendingRegion(pExaPixmap->pDamage);

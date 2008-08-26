@@ -518,7 +518,7 @@ exaCompositeRects(CARD8	              op,
 
 	REGION_INIT(pScreen, &region, &box, 1);
     
-	exaDamageDestForMigration(pPixmap, &region);
+	exaDamageDestForMigration(pDst->pDrawable, pPixmap, &region);
     }
     
     /************************************************************/
@@ -1073,7 +1073,7 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    exaDamageDestForMigration(pixmap, &migration);
+	    exaDamageDestForMigration(pDraw, pixmap, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
@@ -1177,7 +1177,7 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    exaDamageDestForMigration(pixmap, &migration);
+	    exaDamageDestForMigration(pDraw, pixmap, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
