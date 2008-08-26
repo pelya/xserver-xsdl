@@ -58,15 +58,8 @@ void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs);
 typedef struct __GLXconfig __GLXconfig;
 struct __GLXconfig {
     __GLXconfig *next;
-    GLboolean rgbMode;
-    GLboolean floatMode;
-    GLboolean colorIndexMode;
     GLuint doubleBufferMode;
     GLuint stereoMode;
-
-    GLboolean haveAccumBuffer;
-    GLboolean haveDepthBuffer;
-    GLboolean haveStencilBuffer;
 
     GLint redBits, greenBits, blueBits, alphaBits;	/* bits per comp */
     GLuint redMask, greenMask, blueMask, alphaMask;

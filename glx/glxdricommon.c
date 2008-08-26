@@ -88,7 +88,6 @@ static const struct { unsigned int attrib, offset; } attribMap[] = {
     __ATTRIB(__DRI_ATTRIB_TRANSPARENT_GREEN_VALUE,	transparentGreen),
     __ATTRIB(__DRI_ATTRIB_TRANSPARENT_BLUE_VALUE,	transparentBlue),
     __ATTRIB(__DRI_ATTRIB_TRANSPARENT_ALPHA_VALUE,	transparentAlpha),
-    __ATTRIB(__DRI_ATTRIB_FLOAT_MODE,			floatMode),
     __ATTRIB(__DRI_ATTRIB_RED_MASK,			redMask),
     __ATTRIB(__DRI_ATTRIB_GREEN_MASK,			greenMask),
     __ATTRIB(__DRI_ATTRIB_BLUE_MASK,			blueMask),
@@ -136,16 +135,11 @@ createModeFromConfig(const __DRIcoreExtension *core,
     while (core->indexConfigAttrib(driConfig, i++, &attrib, &value)) {
 	switch (attrib) {
 	case __DRI_ATTRIB_RENDER_TYPE:
-	    if (value & __DRI_ATTRIB_RGBA_BIT) {
+	    config->config.renderType = 0;
+	    if (value & __DRI_ATTRIB_RGBA_BIT)
 		config->config.renderType |= GLX_RGBA_BIT;
-		config->config.rgbMode = GL_TRUE;
-	    } else if (value & __DRI_ATTRIB_COLOR_INDEX_BIT) {
+	    if (value & __DRI_ATTRIB_COLOR_INDEX_BIT)
 		config->config.renderType |= GLX_COLOR_INDEX_BIT;
-		config->config.rgbMode = GL_FALSE;
-	    } else {
-		config->config.renderType = 0;
-		config->config.rgbMode = GL_FALSE;
-	    }
 	    break;
 	case __DRI_ATTRIB_CONFIG_CAVEAT:
 	    if (value & __DRI_ATTRIB_NON_CONFORMANT_CONFIG)
@@ -164,10 +158,6 @@ createModeFromConfig(const __DRIcoreExtension *core,
 	    if (value & __DRI_ATTRIB_TEXTURE_RECTANGLE_BIT)
 		config->config.bindToTextureTargets |= GLX_TEXTURE_RECTANGLE_BIT_EXT;
 	    break;	
-	case __DRI_ATTRIB_FLOAT_MODE:
-	    config->config.floatMode = (value ? GL_TRUE : GL_FALSE);
-	    break;
-
 	default:
 	    setScalar(&config->config, attrib, value);
 	    break;

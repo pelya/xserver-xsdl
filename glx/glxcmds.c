@@ -906,7 +906,7 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	p = 0;
 	buf[p++] = modes->visualID;
 	buf[p++] = glxConvertToXVisualType( modes->visualType );
-	buf[p++] = modes->rgbMode;
+	buf[p++] = (modes->renderType & GLX_RGBA_BIT) ? GL_TRUE : GL_FALSE;
 
 	buf[p++] = modes->redBits;
 	buf[p++] = modes->greenBits;
@@ -958,7 +958,7 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
     return Success;
 }
 
-#define __GLX_TOTAL_FBCONFIG_ATTRIBS (35)
+#define __GLX_TOTAL_FBCONFIG_ATTRIBS (36)
 #define __GLX_FBCONFIG_ATTRIBS_LENGTH (__GLX_TOTAL_FBCONFIG_ATTRIBS * 2)
 /**
  * Send the set of GLXFBConfigs to the client.  There is not currently
@@ -1010,7 +1010,9 @@ DoGetFBConfigs(__GLXclientState *cl, unsigned screen)
 	WRITE_PAIR( GLX_FBCONFIG_ID,      modes->fbconfigID );
 	WRITE_PAIR( GLX_X_RENDERABLE,     GL_TRUE );
 
-	WRITE_PAIR( GLX_RGBA,             modes->rgbMode );
+	WRITE_PAIR( GLX_RGBA,
+		    (modes->renderType & GLX_RGBA_BIT) ? GL_TRUE : GL_FALSE );
+	WRITE_PAIR( GLX_RENDER_TYPE,      modes->renderType );
 	WRITE_PAIR( GLX_DOUBLEBUFFER,     modes->doubleBufferMode );
 	WRITE_PAIR( GLX_STEREO,           modes->stereoMode );
 
