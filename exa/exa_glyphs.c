@@ -364,7 +364,6 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     ExaPixmapPriv(pGlyphPixmap);
     PixmapPtr pCachePixmap = (PixmapPtr)cache->picture->pDrawable;
     ExaMigrationRec pixmaps[1];
-    int cacheXoff, cacheYoff;
 
     if (!pExaScr->info->UploadToScreen || pExaScr->swappedOut || pExaPixmap->accel_blocked)
 	return FALSE;
@@ -385,8 +384,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     pixmaps[0].pReg = NULL;
     exaDoMigration (pixmaps, 1, TRUE);
 
-    pCachePixmap = exaGetOffscreenPixmap ((DrawablePtr)pCachePixmap, &cacheXoff, &cacheYoff);
-    if (!pCachePixmap)
+    if (!exaPixmapIsOffscreen(pCachePixmap))
 	return FALSE;
 
     /* CACHE_{X,Y} are in pixmap coordinates, no need for cache{X,Y}off */
@@ -399,11 +397,12 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 				       pExaPixmap->sys_pitch))
 	return FALSE;
 
+    /* This pixmap should never be bound to a window, so no need to offset coordinates. */
     exaPixmapDirty (pCachePixmap,
-		    CACHE_X(pos) + cacheXoff,
-		    CACHE_Y(pos) + cacheYoff,
-		    CACHE_X(pos) + cacheXoff + pGlyph->info.width,
-		    CACHE_Y(pos) + cacheYoff + pGlyph->info.height);
+		    CACHE_X(pos),
+		    CACHE_Y(pos),
+		    CACHE_X(pos) + pGlyph->info.width,
+		    CACHE_Y(pos) + pGlyph->info.height);
 
     return TRUE;
 }
