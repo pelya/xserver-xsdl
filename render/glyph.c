@@ -92,14 +92,6 @@ static GlyphHashRec	globalGlyphs[GlyphFormatNum];
 static void
 FreeGlyphPrivates (GlyphPtr glyph)
 {
-    ScreenPtr pScreen;
-    int i;
-
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	pScreen = screenInfo.screens[i];
-	dixFreePrivates(*GetGlyphPrivatesForScreen(glyph, pScreen));
-    }
-
     dixFreePrivates(glyph->devPrivates);
     glyph->devPrivates = NULL;
 }

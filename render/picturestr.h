@@ -403,9 +403,6 @@ extern RESTYPE		GlyphSetType;
 #define GetPictureWindow(w) ((PicturePtr)dixLookupPrivate(&(w)->devPrivates, PictureWindowPrivateKey))
 #define SetPictureWindow(w,p) dixSetPrivate(&(w)->devPrivates, PictureWindowPrivateKey, p)
 
-#define GetGlyphPrivatesForScreen(glyph, s) \
-    ((PrivateRec **)dixLookupPrivateAddr(&(glyph)->devPrivates, s))
-
 #define VERIFY_PICTURE(pPicture, pid, client, mode, err) {\
     pPicture = SecurityLookupIDByType(client, pid, PictureType, mode);\
     if (!pPicture) { \
