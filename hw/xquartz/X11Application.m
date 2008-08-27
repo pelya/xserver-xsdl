@@ -47,6 +47,8 @@
 #include <mach/mach.h>
 #include <unistd.h>
 
+#include <Xplugin.h>
+
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 #ifndef XSERVER_VERSION
@@ -222,34 +224,40 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
             break;
             
         case NSKeyDown: case NSKeyUp:
-            if(darwinAppKitModMask & [e modifierFlags]) {
-                /* Override to force sending to Appkit */
-                for_x = NO;
-            } else if (_x_active) {
+            
+            if(_x_active) {
                 static int swallow_up;
                 
-                /* No kit window is focused, so send it to X. */
-                for_appkit = NO;
-                if ([e type] == NSKeyDown) {
+                if([e type] == NSKeyDown) {
                     /* Before that though, see if there are any global
                      shortcuts bound to it. */
-                    
-                    if (X11EnableKeyEquivalents
-                        && [[self mainMenu] performKeyEquivalent:e]) {
+
+                    if(darwinAppKitModMask & [e modifierFlags]) {
+                        /* Override to force sending to Appkit */
                         swallow_up = [e keyCode];
                         for_x = NO;
-                    } else if (!quartzEnableRootless
-                               && ([e modifierFlags] & ALL_KEY_MASKS)
-                               == (NSCommandKeyMask | NSAlternateKeyMask)
-                               && ([e keyCode] == 0 /*a*/
-                                   || [e keyCode] == 53 /*Esc*/)) {
-                        swallow_up = 0;
+#if 0
+                    } else if(!quartzEnableRootless
+                              && ([e modifierFlags] & ALL_KEY_MASKS) == (NSCommandKeyMask | NSAlternateKeyMask)
+                              && ([e keyCode] == 0 /*a*/ || [e keyCode] == 53 /*Esc*/)) {
+                        swallow_up = [e keyCode];
                         for_x = NO;
-#ifdef DARWIN_DDX_MISSING
                         DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
+                    } else if(X11EnableKeyEquivalents &&
+#if XPLUGIN_VERSION >= 4
+                              xp_is_symbolic_hotkey_event([e eventRef])) {
+#else
+                              [[self mainMenu] performKeyEquivalent:e]) {
+                        for_appkit = NO;
+#endif
+                        swallow_up = [e keyCode];
+                        for_x = NO;
+                    } else {
+                        /* No kit window is focused, so send it to X. */
+                        for_appkit = NO;
                     }
-                } else {
+                } else { /* KeyUp */
                     /* If we saw a key equivalent on the down, don't pass
                      the up through to X. */
                     
@@ -258,7 +266,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         for_x = NO;
                     }
                 }
-            } else {
+            } else { /* !_x_active */
                 for_x = NO;
             }
             break;
