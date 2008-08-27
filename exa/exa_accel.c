@@ -249,100 +249,12 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     return TRUE;
 }
 
-#ifdef MITSHM
-
-static Bool
-exaDoShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
-		 unsigned int format, int w, int h, int sx, int sy, int sw,
-		 int sh, int dx, int dy, char *data)
-{
-    int src_stride = PixmapBytePad(w, depth);
-
-    if (exaDoPutImage(pDrawable, pGC, depth, dx, dy, sw, sh, format, data +
-		      sy * src_stride + sx * BitsPerPixel(depth) / 8,
-		      src_stride))
-	return TRUE;
-
-    if (format == ZPixmap)
-    {
-	PixmapPtr pPixmap =
-	    GetScratchPixmapHeader(pDrawable->pScreen, w, h, depth,
-				   BitsPerPixel(depth), PixmapBytePad(w, depth),
-				   (pointer)data);
-
-	if (!pPixmap)
-	    return FALSE;
-
-	pGC->ops->CopyArea(&pPixmap->drawable, pDrawable, pGC, sx, sy, sw, sh,
-			   dx, dy);
-
-	FreeScratchPixmapHeader(pPixmap);
-
-	return TRUE;
-    }
-
-    return FALSE;
-}
-
-/* The actual ShmPutImage isn't wrapped by the damage layer, so we need to
- * inform any interested parties of the damage incurred to the drawable.
- *
- * We also need to set the pending damage to ensure correct migration in all
- * cases.
- */
-void
-exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
-	       int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
-	       char *data)
-{
-    PixmapPtr pPixmap = exaGetDrawablePixmap(pDrawable);
-    ExaPixmapPriv(pPixmap);
-    BoxRec box = { .x1 = pDrawable->x + dx, .y1 = pDrawable->y + dy,
-		   .x2 = pDrawable->x + dx + sw, .y2 = pDrawable->y + dy + sh };
-    RegionRec region;
-    RegionPtr pending_damage = NULL;
-
-    if (pExaPixmap->pDamage)
-	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-
-    if (pending_damage) {
-	REGION_INIT(pScreen, &region, &box, 1);
-	exaDamageDestForMigration(pDrawable, pPixmap, &region);
-    }
-
-    if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh,
-			  dx, dy, data)) {
-	if (exaGCReadsDestination(pDrawable, pGC->planemask, pGC->fillStyle,
-				  pGC->alu))
-	    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
-	else
-	    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, &region);
-	fbShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
-		      data);
-	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
-    }
-
-    if (pending_damage) {
-	DamageDamageRegion(pDrawable, &region);
-	REGION_UNINIT(pScreen, &region);
-    }
-}
-
-ShmFuncs exaShmFuncs = { NULL, exaShmPutImage };
-
-#endif
-
 static void
 exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	     int w, int h, int leftPad, int format, char *bits)
 {
-#ifdef MITSHM
-    if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, 0, 0, w, h, x, y,
-			  bits))
-#else
     if (!exaDoPutImage(pDrawable, pGC, depth, x, y, w, h, format, bits,
 		       PixmapBytePad(w, pDrawable->depth)))
-#endif
 	ExaCheckPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format,
 			 bits);
 }

@@ -101,7 +101,6 @@ typedef struct _ShmDesc {
     unsigned long size;
 } ShmDescRec, *ShmDescPtr;
 
-static void miShmPutImage(XSHM_PUT_IMAGE_ARGS);
 static PixmapPtr fbShmCreatePixmap(XSHM_CREATE_PIXMAP_ARGS);
 static int ShmDetachSegment(
     pointer		/* value */,
@@ -143,8 +142,8 @@ static int shmPixFormat[MAXSCREENS];
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
 static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivate;
-static ShmFuncs miFuncs = {NULL, miShmPutImage};
-static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
+static ShmFuncs miFuncs = {NULL, NULL};
+static ShmFuncs fbFuncs = {fbShmCreatePixmap, NULL};
 
 #define VERIFY_SHMSEG(shmseg,shmdesc,client) \
 { \
@@ -506,65 +505,27 @@ ProcShmDetach(ClientPtr client)
     return(client->noClientException);
 }
 
-static void
-miShmPutImage(DrawablePtr dst, GCPtr pGC,
+/*
+ * If the given request doesn't exactly match PutImage's constraints,
+ * wrap the image in a scratch pixmap header and let CopyArea sort it out.
+ */
+static oid
+doShmPutImage(DrawablePtr dst, GCPtr pGC,
 	      int depth, unsigned int format,
 	      int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
 	      char *data)
 {
-    PixmapPtr pmap;
-    GCPtr putGC;
-
-    putGC = GetScratchGC(depth, dst->pScreen);
-    if (!putGC)
+    PixmapPtr pPixmap;
+  
+    pPixmap = GetScratchPixmapHeader(dst->pScreen, w, h, depth,
+				     BitsPerPixel(depth),
+				     PixmapBytePad(w, depth),
+				     data);
+    if (!pPixmap)
 	return;
-    pmap = (*dst->pScreen->CreatePixmap)(dst->pScreen, sw, sh, depth,
-					 CREATE_PIXMAP_USAGE_SCRATCH);
-    if (!pmap)
-    {
-	FreeScratchGC(putGC);
-	return;
-    }
-    ValidateGC((DrawablePtr)pmap, putGC);
-    (*putGC->ops->PutImage)((DrawablePtr)pmap, putGC, depth, -sx, -sy, w, h, 0,
-			    (format == XYPixmap) ? XYPixmap : ZPixmap, data);
-    FreeScratchGC(putGC);
-    if (format == XYBitmap)
-	(void)(*pGC->ops->CopyPlane)((DrawablePtr)pmap, dst, pGC, 0, 0, sw, sh,
-				     dx, dy, 1L);
-    else
-	(void)(*pGC->ops->CopyArea)((DrawablePtr)pmap, dst, pGC, 0, 0, sw, sh,
-				    dx, dy);
-    (*pmap->drawable.pScreen->DestroyPixmap)(pmap);
+    pGC->ops->CopyArea((DrawablePtr)pPixmap, dst, pGC, sx, sy, sw, sh, dx, dy);
+    FreeScratchPixmapHeader(pPixmap);
 }
-
-_X_EXPORT void
-fbShmPutImage(DrawablePtr dst, GCPtr pGC,
-	      int depth, unsigned int format,
-	      int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
-	      char *data)
-{
-    if ((format == ZPixmap) || (depth == 1))
-    {
-	PixmapPtr pPixmap;
-
-	pPixmap = GetScratchPixmapHeader(dst->pScreen, w, h, depth,
-		BitsPerPixel(depth), PixmapBytePad(w, depth), (pointer)data);
-	if (!pPixmap)
-	    return;
-	if (format == XYBitmap)
-	    (void)(*pGC->ops->CopyPlane)((DrawablePtr)pPixmap, dst, pGC,
-					 sx, sy, sw, sh, dx, dy, 1L);
-	else
-	    (void)(*pGC->ops->CopyArea)((DrawablePtr)pPixmap, dst, pGC,
-					sx, sy, sw, sh, dx, dy);
-	FreeScratchPixmapHeader(pPixmap);
-    }
-    else
-	miShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
-		      data);
-}
-
 
 #ifdef PANORAMIX
 static int 
@@ -918,13 +879,12 @@ ProcShmPutImage(ClientPtr client)
 			       shmdesc->addr + stuff->offset +
 			       (stuff->srcY * length));
     else
-	(*shmFuncs[pDraw->pScreen->myNum]->PutImage)(
-			       pDraw, pGC, stuff->depth, stuff->format,
-			       stuff->totalWidth, stuff->totalHeight,
-			       stuff->srcX, stuff->srcY,
-			       stuff->srcWidth, stuff->srcHeight,
-			       stuff->dstX, stuff->dstY,
-                               shmdesc->addr + stuff->offset);
+	doShmPutImage(pDraw, pGC, stuff->depth, stuff->format,
+		      stuff->totalWidth, stuff->totalHeight,
+		      stuff->srcX, stuff->srcY,
+		      stuff->srcWidth, stuff->srcHeight,
+		      stuff->dstX, stuff->dstY,
+                      shmdesc->addr + stuff->offset);
 
     if (stuff->sendEvent)
     {

@@ -936,13 +936,6 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 #endif
 
-#ifdef MITSHM
-    /* Re-register with the MI funcs, which don't allow shared pixmaps.
-     * Shared pixmaps are almost always a performance loss for us, but this
-     * still allows for SHM PutImage.
-     */
-    ShmRegisterFuncs(pScreen, &exaShmFuncs);
-#endif
     /*
      * Hookup offscreen pixmaps
      */

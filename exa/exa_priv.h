@@ -351,19 +351,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable, RegionPtr pRegion, PixmapPtr pTile,
 		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu);
 
 void
-exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
-	       int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
-	       char *data);
-
-void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d);
 
 extern const GCOps exaOps;
-
-#ifdef MITSHM
-extern ShmFuncs exaShmFuncs;
-#endif
 
 #ifdef RENDER
 void
