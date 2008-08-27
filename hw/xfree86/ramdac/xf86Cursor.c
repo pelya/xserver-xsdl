@@ -269,7 +269,7 @@ xf86CursorRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs)
 	&pScreen->devPrivates, xf86CursorScreenKey);
 
     if (pCurs->refcnt <= 1)
-	dixSetPrivate(&pCurs->devPrivates, pScreen, NULL);
+	dixSetPrivate(&pCurs->devPrivates, CursorScreenKey(pScreen), NULL);
 
     return (*ScreenPriv->spriteFuncs->RealizeCursor)(pDev, pScreen, pCurs);
 }
@@ -282,8 +282,8 @@ xf86CursorUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
 	&pScreen->devPrivates, xf86CursorScreenKey);
 
     if (pCurs->refcnt <= 1) {
-	xfree(dixLookupPrivate(&pCurs->devPrivates, pScreen));
-	dixSetPrivate(&pCurs->devPrivates, pScreen, NULL);
+	xfree(dixLookupPrivate(&pCurs->devPrivates, CursorScreenKey(pScreen)));
+	dixSetPrivate(&pCurs->devPrivates, CursorScreenKey(pScreen), NULL);
     }
 
     return (*ScreenPriv->spriteFuncs->UnrealizeCursor)(pDev, pScreen, pCurs);

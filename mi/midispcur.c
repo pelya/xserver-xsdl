@@ -178,7 +178,7 @@ static Bool
 miDCRealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 {
     if (pCursor->bits->refcnt <= 1)
-	dixSetPrivate(&pCursor->bits->devPrivates, pScreen, NULL);
+	dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), NULL);
     return TRUE;
 }
 
@@ -277,7 +277,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 	    xfree ((pointer) pPriv);
 	    return (miDCCursorPtr)NULL;
 	}
-	dixSetPrivate(&pCursor->bits->devPrivates, pScreen, pPriv);
+	dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), pPriv);
 	return pPriv;
     }
     pPriv->pPicture = 0;
@@ -295,7 +295,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 	xfree ((pointer) pPriv);
 	return (miDCCursorPtr)NULL;
     }
-    dixSetPrivate(&pCursor->bits->devPrivates, pScreen, pPriv);
+    dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), pPriv);
 
     /* create the two sets of bits, clipping as appropriate */
 
@@ -340,7 +340,7 @@ miDCUnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
     miDCCursorPtr   pPriv;
 
     pPriv = (miDCCursorPtr)dixLookupPrivate(&pCursor->bits->devPrivates,
-					    pScreen);
+					    CursorScreenKey(pScreen));
     if (pPriv && (pCursor->bits->refcnt <= 1))
     {
 	if (pPriv->sourceBits)
@@ -352,7 +352,7 @@ miDCUnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 	    FreePicture (pPriv->pPicture, 0);
 #endif
 	xfree ((pointer) pPriv);
-	dixSetPrivate(&pCursor->bits->devPrivates, pScreen, NULL);
+	dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), NULL);
     }
     return TRUE;
 }
@@ -446,7 +446,7 @@ miDCPutUpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
     WindowPtr	    pWin;
 
     pPriv = (miDCCursorPtr)dixLookupPrivate(&pCursor->bits->devPrivates,
-					    pScreen);
+					    CursorScreenKey(pScreen));
     if (!pPriv)
     {
 	pPriv = miDCRealize(pScreen, pCursor);
@@ -756,7 +756,7 @@ miDCMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
     PixmapPtr	    pTemp;
 
     pPriv = (miDCCursorPtr)dixLookupPrivate(&pCursor->bits->devPrivates,
-					    pScreen);
+					    CursorScreenKey(pScreen));
     if (!pPriv)
     {
 	pPriv = miDCRealize(pScreen, pCursor);

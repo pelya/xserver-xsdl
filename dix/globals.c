@@ -142,6 +142,8 @@ CursorPtr rootCursor;
 Bool blackRoot=FALSE;
 Bool whiteRoot=FALSE;
 
+_X_EXPORT int cursorScreenDevPriv[MAXSCREENS];
+
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;
 

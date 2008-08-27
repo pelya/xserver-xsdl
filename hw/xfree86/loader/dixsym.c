@@ -112,6 +112,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(QueryColors)
     /* cursor.c */
     SYMFUNC(FreeCursor)
+    SYMVAR(cursorScreenDevPriv)
     /* deprecated.c */
     SYMFUNC(LookupClient)
     SYMFUNC(LookupDrawable)
