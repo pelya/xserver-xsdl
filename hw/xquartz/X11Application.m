@@ -245,7 +245,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
                     } else if(X11EnableKeyEquivalents &&
-#if XPLUGIN_VERSION >= 4
+#if XPLUGIN_VERSION >= 1
                               xp_is_symbolic_hotkey_event([e eventRef])) {
 #else
                               [[self mainMenu] performKeyEquivalent:e]) {
