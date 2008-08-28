@@ -491,7 +491,7 @@ ProcShmDetach(ClientPtr client)
  * If the given request doesn't exactly match PutImage's constraints,
  * wrap the image in a scratch pixmap header and let CopyArea sort it out.
  */
-static oid
+static void
 doShmPutImage(DrawablePtr dst, GCPtr pGC,
 	      int depth, unsigned int format,
 	      int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
