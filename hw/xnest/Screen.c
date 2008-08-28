@@ -149,8 +149,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
       return False;
   if (!dixRequestPrivate(xnestGCPrivateKey, sizeof(xnestPrivGC)))
     return False;
-  if (!dixRequestPrivate(xnestPixmapPrivateKey, sizeof (xnestPrivPixmap)))
-      return False;
 
   visuals = (VisualPtr)xalloc(xnestNumVisuals * sizeof(VisualRec));
   numVisuals = 0;
