@@ -137,8 +137,6 @@ _X_EXPORT int BadShmSegCode;
 _X_EXPORT RESTYPE ShmSegType;
 static ShmDescPtr Shmsegs;
 static Bool sharedPixmaps;
-static int pixmapFormat;
-static int shmPixFormat[MAXSCREENS];
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
 static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivate;
@@ -231,24 +229,15 @@ ShmExtensionInit(INITARGS)
 #endif
 
     sharedPixmaps = xFalse;
-    pixmapFormat = 0;
     {
       sharedPixmaps = xTrue;
-      pixmapFormat = shmPixFormat[0];
       for (i = 0; i < screenInfo.numScreens; i++)
       {
 	if (!shmFuncs[i])
 	    shmFuncs[i] = &miFuncs;
 	if (!shmFuncs[i]->CreatePixmap)
 	    sharedPixmaps = xFalse;
-	if (shmPixFormat[i] && (shmPixFormat[i] != pixmapFormat))
-	{
-	    sharedPixmaps = xFalse;
-	    pixmapFormat = 0;
-	}
       }
-      if (!pixmapFormat)
-	pixmapFormat = ZPixmap;
       if (sharedPixmaps)
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
@@ -278,7 +267,6 @@ ShmResetProc(ExtensionEntry *extEntry)
     for (i = 0; i < MAXSCREENS; i++)
     {
 	shmFuncs[i] = (ShmFuncsPtr)NULL;
-	shmPixFormat[i] = 0;
     }
 }
 
@@ -286,12 +274,6 @@ _X_EXPORT void
 ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs)
 {
     shmFuncs[pScreen->myNum] = funcs;
-}
-
-_X_EXPORT void
-ShmSetPixmapFormat(ScreenPtr pScreen, int format)
-{
-    shmPixFormat[pScreen->myNum] = format;
 }
 
 static Bool
@@ -332,7 +314,7 @@ ProcShmQueryVersion(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.sharedPixmaps = sharedPixmaps;
-    rep.pixmapFormat = pixmapFormat;
+    rep.pixmapFormat = sharedPixmaps ? ZPixmap : 0;
     rep.majorVersion = SHM_MAJOR_VERSION;
     rep.minorVersion = SHM_MINOR_VERSION;
     rep.uid = geteuid();
