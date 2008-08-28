@@ -40,7 +40,8 @@
 
 int GEEventBase;
 int GEErrorBase;
-DevPrivateKey GEClientPrivateKey = &GEClientPrivateKey;
+static int GEClientPrivateKeyIndex;
+DevPrivateKey GEClientPrivateKey = &GEClientPrivateKeyIndex;
 int GEEventType; /* The opcode for all GenericEvents will have. */
 
 int RT_GECLIENT  = 0;

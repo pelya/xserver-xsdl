@@ -50,7 +50,8 @@ static RESTYPE RTEventClient;
 static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
 /* Private state record */
-static DevPrivateKey stateKey = &stateKey;
+static int stateKeyIndex;
+static DevPrivateKey stateKey = &stateKeyIndex;
 
 /* This is what we store as client security state */
 typedef struct {

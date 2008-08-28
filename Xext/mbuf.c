@@ -61,8 +61,10 @@ in this Software without prior written authorization from The Open Group.
 
 static int		MultibufferEventBase;
 static int		MultibufferErrorBase;
-static DevPrivateKey MultibufferScreenPrivKey = &MultibufferScreenPrivKey;
-static DevPrivateKey MultibufferWindowPrivKey = &MultibufferWindowPrivKey;
+static int MultibufferScreenPrivKeyIndex;
+static DevPrivateKey MultibufferScreenPrivKey = &MultibufferScreenPrivKeyIndex;
+static int MultibufferWindowPrivKeyIndex;
+static DevPrivateKey MultibufferWindowPrivKey = &MultibufferWindowPrivKeyIndex;
 
 static void		PerformDisplayRequest (
 				MultibuffersPtr * /* ppMultibuffers */,

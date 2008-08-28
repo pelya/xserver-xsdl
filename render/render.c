@@ -211,7 +211,8 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
 };
 
 int	RenderErrBase;
-DevPrivateKey RenderClientPrivateKey;
+static int RenderClientPrivateKeyIndex;
+DevPrivateKey RenderClientPrivateKey = &RenderClientPrivateKeyIndex;
 
 typedef struct _RenderClient {
     int	    major_version;

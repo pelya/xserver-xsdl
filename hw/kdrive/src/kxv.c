@@ -103,9 +103,10 @@ static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
 /* misc */
 static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr*, int);
 
-
-DevPrivateKey KdXVWindowKey = &KdXVWindowKey;
-DevPrivateKey KdXvScreenKey = &KdXvScreenKey;
+static int KdXVWindowKeyIndex;
+DevPrivateKey KdXVWindowKey = &KdXVWindowKeyIndex;
+static int KdXvScreenKeyIndex;
+DevPrivateKey KdXvScreenKey = &KdXvScreenKeyIndex;
 static unsigned long KdXVGeneration = 0;
 static unsigned long PortResource = 0;
 

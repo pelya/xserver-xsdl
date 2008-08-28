@@ -39,7 +39,8 @@ is" without express or implied warranty.
 #include "Events.h"
 #include "Args.h"
 
-DevPrivateKey xnestWindowPrivateKey = &xnestWindowPrivateKey;
+static int xnestWindowPrivateKeyIndex;
+DevPrivateKey xnestWindowPrivateKey = &xnestWindowPrivateKeyIndex;
 
 static int
 xnestFindWindowMatch(WindowPtr pWin, pointer ptr)

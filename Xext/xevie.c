@@ -77,8 +77,10 @@ DeviceIntPtr		xeviemouse = NULL;
 Mask			xevieMask = 0;
 int       		xevieEventSent = 0;
 int			xevieKBEventSent = 0;
-static DevPrivateKey    xevieDevicePrivateKey = &xevieDevicePrivateKey;
 static Bool             xevieModifiersOn = FALSE;
+
+static int xevieDevicePrivateKeyIndex;
+static DevPrivateKey xevieDevicePrivateKey = &xevieDevicePrivateKeyIndex;
 
 #define XEVIEINFO(dev)  ((xevieDeviceInfoPtr) \
     dixLookupPrivate(&(dev)->devPrivates, xevieDevicePrivateKey))

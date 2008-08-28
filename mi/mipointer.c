@@ -41,13 +41,15 @@ in this Software without prior written authorization from The Open Group.
 # include   "dixstruct.h"
 # include   "inputstr.h"
 
-_X_EXPORT DevPrivateKey miPointerScreenKey = &miPointerScreenKey;
+static int miPointerScreenKeyIndex;
+_X_EXPORT DevPrivateKey miPointerScreenKey = &miPointerScreenKeyIndex;
 
 #define GetScreenPrivate(s) ((miPointerScreenPtr) \
     dixLookupPrivate(&(s)->devPrivates, miPointerScreenKey))
 #define SetupScreen(s)	miPointerScreenPtr  pScreenPriv = GetScreenPrivate(s)
 
-static DevPrivateKey miPointerPrivKey = &miPointerPrivKey;
+static int miPointerPrivKeyIndex;
+static DevPrivateKey miPointerPrivKey = &miPointerPrivKeyIndex;
 
 #define MIPOINTER(dev) \
     ((DevHasCursor((dev)) || (!dev->isMaster && !dev->u.master)) ? \

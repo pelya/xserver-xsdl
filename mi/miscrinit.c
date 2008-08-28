@@ -280,7 +280,8 @@ miScreenInit(
     return miScreenDevPrivateInit(pScreen, width, pbits);
 }
 
-static DevPrivateKey privateKey = &privateKey;
+static int privateKeyIndex;
+static DevPrivateKey privateKey = &privateKeyIndex;
 
 _X_EXPORT DevPrivateKey
 miAllocateGCPrivateIndex()
@@ -288,7 +289,8 @@ miAllocateGCPrivateIndex()
     return privateKey;
 }
 
-_X_EXPORT DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKey;
+static int miZeroLineScreenKeyIndex;
+_X_EXPORT DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKeyIndex;
 
 _X_EXPORT void
 miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)

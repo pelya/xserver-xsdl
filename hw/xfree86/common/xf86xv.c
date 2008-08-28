@@ -110,8 +110,10 @@ static void xf86XVAdjustFrame(int index, int x, int y, int flags);
 static Bool xf86XVInitAdaptors(ScreenPtr, XF86VideoAdaptorPtr*, int);
 
 
-static DevPrivateKey XF86XVWindowKey = &XF86XVWindowKey;
-DevPrivateKey XF86XvScreenKey;
+static int XF86XVWindowKeyIndex;
+static DevPrivateKey XF86XVWindowKey = &XF86XVWindowKeyIndex;
+static int XF86XvScreenKeyIndex;
+DevPrivateKey XF86XvScreenKey = &XF86XvScreenKeyIndex;
 static unsigned long PortResource = 0;
 
 DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;

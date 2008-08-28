@@ -175,8 +175,11 @@ typedef struct _miBankQueue
 #define xalloc_ARRAY(atype, ntype) \
     (atype *)xalloc((ntype) * sizeof(atype))
 
-static DevPrivateKey miBankScreenKey = &miBankScreenKey;
-static DevPrivateKey miBankGCKey = &miBankGCKey;
+static int miBankScreenKeyIndex;
+static DevPrivateKey miBankScreenKey = &miBankScreenKeyIndex;
+static int miBankGCKeyIndex;
+static DevPrivateKey miBankGCKey = &miBankGCKeyIndex;
+
 static unsigned long miBankGeneration = 0;
 
 #define BANK_SCRPRIVLVAL dixLookupPrivate(&pScreen->devPrivates, miBankScreenKey)

@@ -154,7 +154,8 @@ _X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
 
 _X_EXPORT ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 
-_X_EXPORT DevPrivateKey FocusPrivatesKey = &FocusPrivatesKey;
+static int FocusPrivatesKeyIndex;
+_X_EXPORT DevPrivateKey FocusPrivatesKey = &FocusPrivatesKeyIndex;
 
 static Bool TileScreenSaver(int i, int kind);
 

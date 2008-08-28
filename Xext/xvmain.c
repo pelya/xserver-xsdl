@@ -105,7 +105,8 @@ SOFTWARE.
 #endif
 #include "xvdisp.h"
 
-static DevPrivateKey XvScreenKey = &XvScreenKey;
+static int XvScreenKeyIndex;
+static DevPrivateKey XvScreenKey = &XvScreenKeyIndex;
 unsigned long XvExtensionGeneration = 0;
 unsigned long XvScreenGeneration = 0;
 unsigned long XvResourceGeneration = 0;

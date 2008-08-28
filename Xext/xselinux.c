@@ -62,9 +62,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 /* private state keys */
-static DevPrivateKey subjectKey = &subjectKey;
-static DevPrivateKey objectKey = &objectKey;
-static DevPrivateKey dataKey = &dataKey;
+static int subjectKeyIndex;
+static DevPrivateKey subjectKey = &subjectKeyIndex;
+static int objectKeyIndex;
+static DevPrivateKey objectKey = &objectKeyIndex;
+static int dataKeyIndex;
+static DevPrivateKey dataKey = &dataKeyIndex;
 
 /* subject state (clients and devices only) */
 typedef struct {

@@ -55,13 +55,14 @@ in this Software without prior written authorization from The Open Group.
 # include "inputstr.h" /* for MAX_DEVICES */
 
 /* per-screen private data */
-
-static DevPrivateKey miDCScreenKey = &miDCScreenKey;
+static int miDCScreenKeyIndex;
+static DevPrivateKey miDCScreenKey = &miDCScreenKeyIndex;
 
 static Bool	miDCCloseScreen(int index, ScreenPtr pScreen);
 
 /* per device private data */
-static DevPrivateKey miDCSpriteKey = &miDCSpriteKey;
+static int miDCSpriteKeyIndex;
+static DevPrivateKey miDCSpriteKey = &miDCSpriteKeyIndex;
 
 typedef struct {
     GCPtr	    pSourceGC, pMaskGC;

@@ -43,8 +43,10 @@
 #include "xace.h"
 #include "registry.h"
 
-_X_EXPORT DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKey;
-DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKey;
+static int PictureScreenPrivateKeyIndex;
+_X_EXPORT DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKeyIndex;
+static int PictureWindowPrivateKeyIndex;
+DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKeyIndex;
 static int	PictureGeneration;
 RESTYPE		PictureType;
 RESTYPE		PictFormatType;

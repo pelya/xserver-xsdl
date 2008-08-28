@@ -50,7 +50,8 @@
 
 #include "mi.h"
 
-static DevPrivateKey DGAScreenKey = NULL;
+static int DGAScreenKeyIndex;
+static DevPrivateKey DGAScreenKey;
 static int mieq_installed = 0;
 
 static Bool DGACloseScreen(int i, ScreenPtr pScreen);
@@ -116,7 +117,7 @@ DGAInit(
     if(!modes || num <= 0)
 	return FALSE;
 
-    DGAScreenKey = &DGAScreenKey;
+    DGAScreenKey = &DGAScreenKeyIndex;
 
     if(!(pScreenPriv = (DGAScreenPtr)xalloc(sizeof(DGAScreenRec))))
 	return FALSE;

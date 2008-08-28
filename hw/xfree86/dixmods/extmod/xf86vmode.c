@@ -53,7 +53,8 @@ from Kaleb S. KEITHLEY
 #define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
 static int VidModeErrorBase;
-static DevPrivateKey VidModeClientPrivateKey = &VidModeClientPrivateKey;
+static int VidModeClientPrivateKeyIndex;
+static DevPrivateKey VidModeClientPrivateKey = &VidModeClientPrivateKeyIndex;
 
 /* This holds the client's version information */
 typedef struct {
@@ -141,8 +142,9 @@ typedef struct _XF86VidModeScreenPrivate {
     XF86VidModeEventPtr	events;
     Bool		hasWindow;
 } XF86VidModeScreenPrivateRec, *XF86VidModeScreenPrivatePtr;
-   
-static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKey;
+
+static int ScreenPrivateKeyIndex;
+static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
 
 #define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
     dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))

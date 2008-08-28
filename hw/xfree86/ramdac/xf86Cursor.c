@@ -18,7 +18,8 @@
 #include "inputstr.h"
 extern InputInfo inputInfo;
 
-DevPrivateKey xf86CursorScreenKey = &xf86CursorScreenKey;
+static int xf86CursorScreenKeyIndex;
+DevPrivateKey xf86CursorScreenKey = &xf86CursorScreenKeyIndex;
 
 /* sprite functions */
 

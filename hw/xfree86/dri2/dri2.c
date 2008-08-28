@@ -45,9 +45,12 @@
 
 #include "xf86.h"
 
-static DevPrivateKey dri2ScreenPrivateKey = &dri2ScreenPrivateKey;
-static DevPrivateKey dri2WindowPrivateKey = &dri2WindowPrivateKey;
-static DevPrivateKey dri2PixmapPrivateKey = &dri2PixmapPrivateKey;
+static int dri2ScreenPrivateKeyIndex;
+static DevPrivateKey dri2ScreenPrivateKey = &dri2ScreenPrivateKeyIndex;
+static int dri2WindowPrivateKeyIndex;
+static DevPrivateKey dri2WindowPrivateKey = &dri2WindowPrivateKeyIndex;
+static int dri2PixmapPrivateKeyIndex;
+static DevPrivateKey dri2PixmapPrivateKey = &dri2PixmapPrivateKeyIndex;
 
 typedef struct _DRI2DrawablePriv {
     unsigned int		 refCount;

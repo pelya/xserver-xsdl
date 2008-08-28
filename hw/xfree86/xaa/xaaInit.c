@@ -39,9 +39,12 @@ static int  XAASetDGAMode(int index, int num, DGADevicePtr devRet);
 static void XAAEnableDisableFBAccess (int index, Bool enable);
 static Bool XAAChangeWindowAttributes (WindowPtr pWin, unsigned long mask);
 
-static DevPrivateKey XAAScreenKey = &XAAScreenKey;
-static DevPrivateKey XAAGCKey = &XAAGCKey;
-static DevPrivateKey XAAPixmapKey = &XAAPixmapKey;
+static int XAAScreenKeyIndex;
+static DevPrivateKey XAAScreenKey = &XAAScreenKeyIndex;
+static int XAAGCKeyIndex;
+static DevPrivateKey XAAGCKey = &XAAGCKeyIndex;
+static int XAAPixmapKeyIndex;
+static DevPrivateKey XAAPixmapKey = &XAAPixmapKeyIndex;
 
 DevPrivateKey XAAGetScreenKey(void) {
     return XAAScreenKey;

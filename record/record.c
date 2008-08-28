@@ -165,7 +165,8 @@ typedef struct {
     ProcFunctionPtr recordVector[256]; 
 } RecordClientPrivateRec, *RecordClientPrivatePtr;
 
-static DevPrivateKey RecordClientPrivateKey = &RecordClientPrivateKey;
+static int RecordClientPrivateKeyIndex;
+static DevPrivateKey RecordClientPrivateKey = &RecordClientPrivateKeyIndex;
 
 /*  RecordClientPrivatePtr RecordClientPrivate(ClientPtr)
  *  gets the client private of the given client.  Syntactic sugar.

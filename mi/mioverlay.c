@@ -54,8 +54,10 @@ typedef struct {
    Bool				copyUnderlay;
 } miOverlayScreenRec, *miOverlayScreenPtr;
 
-static DevPrivateKey miOverlayWindowKey = &miOverlayWindowKey;
-static DevPrivateKey miOverlayScreenKey = &miOverlayScreenKey;
+static int miOverlayWindowKeyKeyIndex;
+static DevPrivateKey miOverlayWindowKey = &miOverlayWindowKeyKeyIndex;
+static int miOverlayScreenKeyIndex;
+static DevPrivateKey miOverlayScreenKey = &miOverlayScreenKeyIndex;
 
 static void RebuildTree(WindowPtr);
 static Bool HasUnderlayChildren(WindowPtr);

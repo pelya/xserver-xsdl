@@ -91,9 +91,11 @@ SOFTWARE.
  * This file handles input device-related stuff.
  */
 
-DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
+static int CoreDevicePrivateKeyIndex;
+DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
 /* Used to sture classes currently not in use by an MD */
-DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKey;
+static int UnusedClassesPrivateKeyIndex;
+DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
 
 
 /**

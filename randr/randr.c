@@ -56,9 +56,11 @@ static int SProcRRDispatch (ClientPtr pClient);
 int	RREventBase;
 int	RRErrorBase;
 RESTYPE RRClientType, RREventType; /* resource types for event masks */
-DevPrivateKey RRClientPrivateKey = &RRClientPrivateKey;
+static int RRClientPrivateKeyIndex;
+DevPrivateKey RRClientPrivateKey = &RRClientPrivateKeyIndex;
 
-DevPrivateKey rrPrivKey = &rrPrivKey;
+static int rrPrivKeyIndex;
+DevPrivateKey rrPrivKey = &rrPrivKeyIndex;
 
 static void
 RRClientCallback (CallbackListPtr	*list,

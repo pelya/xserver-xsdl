@@ -48,7 +48,8 @@
 #include "glxutil.h"
 #include "glxext.h"
 
-static DevPrivateKey glxScreenPrivateKey = &glxScreenPrivateKey;
+static int glxScreenPrivateKeyIndex;
+static DevPrivateKey glxScreenPrivateKey = &glxScreenPrivateKeyIndex;
 
 const char GLServerVersion[] = "1.4";
 static const char GLServerExtensions[] = 

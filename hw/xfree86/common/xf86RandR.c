@@ -46,7 +46,8 @@ typedef struct _xf86RandRInfo {
     Rotation			    rotation;
 } XF86RandRInfoRec, *XF86RandRInfoPtr;
 
-static DevPrivateKey xf86RandRKey = NULL;
+static int xf86RandRKeyIndex;
+static DevPrivateKey xf86RandRKey;
 
 #define XF86RANDRINFO(p) ((XF86RandRInfoPtr)dixLookupPrivate(&(p)->devPrivates, xf86RandRKey))
 
@@ -423,7 +424,7 @@ xf86RandRInit (ScreenPtr    pScreen)
 	return TRUE;
 #endif
 
-    xf86RandRKey = &xf86RandRKey;
+    xf86RandRKey = &xf86RandRKeyIndex;
 
     randrp = xalloc (sizeof (XF86RandRInfoRec));
     if (!randrp)

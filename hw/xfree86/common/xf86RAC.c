@@ -256,8 +256,10 @@ static miPointerSpriteFuncRec RACSpriteFuncs = {
     RACSpriteMoveCursor
 };
 
-static DevPrivateKey RACScreenKey = &RACScreenKey;
-static DevPrivateKey RACGCKey = &RACGCKey;
+static int RACScreenKeyIndex;
+static DevPrivateKey RACScreenKey = &RACScreenKeyIndex;
+static int RACGCKeyIndex;
+static DevPrivateKey RACGCKey = &RACGCKeyIndex;
 
 
 Bool 

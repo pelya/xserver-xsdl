@@ -67,7 +67,8 @@ KdDepths    kdDepths[] = {
 
 #define KD_DEFAULT_BUTTONS 5
 
-DevPrivateKey       kdScreenPrivateKey = &kdScreenPrivateKey;
+static int          kdScreenPrivateKeyIndex;
+DevPrivateKey       kdScreenPrivateKey = &kdScreenPrivateKeyIndex;
 unsigned long	    kdGeneration;
 
 Bool                kdVideoTest;

@@ -45,7 +45,8 @@ is" without express or implied warranty.
 
 Window xnestDefaultWindows[MAXSCREENS];
 Window xnestScreenSaverWindows[MAXSCREENS];
-DevPrivateKey xnestCursorScreenKey = &xnestCursorScreenKey;
+static int xnestCursorScreenKeyIndex;
+DevPrivateKey xnestCursorScreenKey = &xnestCursorScreenKeyIndex;
 
 ScreenPtr
 xnestScreen(Window window)

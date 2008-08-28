@@ -228,7 +228,8 @@ MakeScreenPrivate (
 	ScreenPtr /* pScreen */
 	);
 
-static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKey;
+static int ScreenPrivateKeyIndex;
+static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
 
 #define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
     dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))

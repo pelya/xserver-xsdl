@@ -33,7 +33,8 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNPixmap.h"
 
-DevPrivateKey xnestPixmapPrivateKey = &xnestPixmapPrivateKey;
+static int xnestPixmapPrivateKeyIndex;
+DevPrivateKey xnestPixmapPrivateKey = &xnestPixmapPrivateKeyIndex;
 
 PixmapPtr
 xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,

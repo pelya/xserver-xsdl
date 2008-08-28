@@ -34,7 +34,8 @@
 #define DR_CLIENT_DRIVER_NAME_SIZE 48
 #define DR_BUSID_SIZE 48
 
-static DevPrivateKey XvMCScreenKey = NULL;
+static int XvMCScreenKeyIndex;
+static DevPrivateKey XvMCScreenKey;
 
 unsigned long XvMCGeneration = 0;
 
@@ -709,7 +710,7 @@ XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
 {
    XvMCScreenPtr pScreenPriv;
 
-   XvMCScreenKey = &XvMCScreenKey;
+   XvMCScreenKey = &XvMCScreenKeyIndex;
 
    if(!(pScreenPriv = (XvMCScreenPtr)xalloc(sizeof(XvMCScreenRec))))
 	return BadAlloc;

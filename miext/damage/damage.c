@@ -70,10 +70,14 @@
 
 #define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
 
-static DevPrivateKey damageScrPrivateKey = &damageScrPrivateKey;
-static DevPrivateKey damagePixPrivateKey = &damagePixPrivateKey;
-static DevPrivateKey damageGCPrivateKey = &damageGCPrivateKey;
-static DevPrivateKey damageWinPrivateKey = &damageWinPrivateKey;
+static int damageScrPrivateKeyIndex;
+static DevPrivateKey damageScrPrivateKey = &damageScrPrivateKeyIndex;
+static int damagePixPrivateKeyIndex;
+static DevPrivateKey damagePixPrivateKey = &damagePixPrivateKeyIndex;
+static int damageGCPrivateKeyIndex;
+static DevPrivateKey damageGCPrivateKey = &damageGCPrivateKeyIndex;
+static int damageWinPrivateKeyIndex;
+static DevPrivateKey damageWinPrivateKey = &damageWinPrivateKeyIndex;
 
 static DamagePtr *
 getDrawableDamageRef (DrawablePtr pDrawable)

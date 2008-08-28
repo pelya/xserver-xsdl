@@ -56,7 +56,8 @@ typedef struct {
     miPointerSpriteFuncPtr  spriteFuncs;
 } QuartzCursorScreenRec, *QuartzCursorScreenPtr;
 
-static DevPrivateKey darwinCursorScreenKey = &darwinCursorScreenKey;
+static int darwinCursorScreenKeyIndex;
+static DevPrivateKey darwinCursorScreenKey = &darwinCursorScreenKeyIndex;
 
 #define CURSOR_PRIV(pScreen) ((QuartzCursorScreenPtr) \
     dixLookupPrivate(&pScreen->devPrivates, darwinCursorScreenKey))

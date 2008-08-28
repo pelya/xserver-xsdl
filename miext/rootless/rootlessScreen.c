@@ -62,10 +62,14 @@ extern int RootlessMiValidateTree(WindowPtr pRoot, WindowPtr pChild,
 extern Bool RootlessCreateGC(GCPtr pGC);
 
 // Initialize globals
-DevPrivateKey rootlessGCPrivateKey = &rootlessGCPrivateKey;
-DevPrivateKey rootlessScreenPrivateKey = &rootlessScreenPrivateKey;
-DevPrivateKey rootlessWindowPrivateKey = &rootlessWindowPrivateKey;
-DevPrivateKey rootlessWindowOldPixmapPrivateKey = &rootlessWindowOldPixmapPrivateKey;
+static int rootlessGCPrivateKeyIndex;
+DevPrivateKey rootlessGCPrivateKey = &rootlessGCPrivateKeyIndex;
+static int rootlessScreenPrivateKeyIndex;
+DevPrivateKey rootlessScreenPrivateKey = &rootlessScreenPrivateKeyIndex;
+static int rootlessWindowPrivateKeyIndex;
+DevPrivateKey rootlessWindowPrivateKey = &rootlessWindowPrivateKeyIndex;
+static int rootlessWindowOldPixmapPrivateKeyIndex;
+DevPrivateKey rootlessWindowOldPixmapPrivateKey = &rootlessWindowOldPixmapPrivateKeyIndex;
 
 
 /*

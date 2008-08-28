@@ -38,8 +38,10 @@
 #include "exa.h"
 #include "cw.h"
 
-DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKey;
-DevPrivateKey exaPixmapPrivateKey = &exaPixmapPrivateKey;
+static int exaScreenPrivateKeyIndex;
+DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKeyIndex;
+static int exaPixmapPrivateKeyIndex;
+DevPrivateKey exaPixmapPrivateKey = &exaPixmapPrivateKeyIndex;
 
 static _X_INLINE void*
 ExaGetPixmapAddress(PixmapPtr p)

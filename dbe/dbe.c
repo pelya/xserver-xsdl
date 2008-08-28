@@ -62,8 +62,10 @@
 static Bool (* DbeInitFunct[MAXSCREENS])();	/* pScreen, pDbeScreenPriv */
 
 /* These are static globals copied to DBE's screen private for use by DDX */
-static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKey;
-static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKey;
+static int dbeScreenPrivKeyIndex;
+static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKeyIndex;
+static int dbeWindowPrivKeyIndex;
+static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKeyIndex;
 
 /* These are static globals copied to DBE's screen private for use by DDX */
 static RESTYPE	dbeDrawableResType;

@@ -51,7 +51,8 @@
 #define SERVER_COMPOSITE_MINOR	4
 
 static CARD8	CompositeReqCode;
-static DevPrivateKey CompositeClientPrivateKey = &CompositeClientPrivateKey;
+static int CompositeClientPrivateKeyIndex;
+static DevPrivateKey CompositeClientPrivateKey = &CompositeClientPrivateKeyIndex;
 RESTYPE		CompositeClientWindowType;
 RESTYPE		CompositeClientSubwindowsType;
 RESTYPE		CompositeClientOverlayType;

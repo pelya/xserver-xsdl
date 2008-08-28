@@ -352,7 +352,8 @@ Mask PropagateMask[MAX_DEVICES];
  *
  */
 
-DevPrivateKey XIClientPrivateKey = &XIClientPrivateKey;
+static int XIClientPrivateKeyIndex;
+DevPrivateKey XIClientPrivateKey = &XIClientPrivateKeyIndex;
 
 static XExtensionVersion thisversion = { XI_Present,
     XI_2_Major,

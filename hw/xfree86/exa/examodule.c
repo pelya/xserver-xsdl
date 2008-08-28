@@ -42,7 +42,8 @@ typedef struct _ExaXorgScreenPrivRec {
     OptionInfoPtr		 options;
 } ExaXorgScreenPrivRec, *ExaXorgScreenPrivPtr;
 
-static DevPrivateKey exaXorgScreenPrivateKey = &exaXorgScreenPrivateKey;
+static int exaXorgScreenPrivateKeyIndex;
+static DevPrivateKey exaXorgScreenPrivateKey = &exaXorgScreenPrivateKeyIndex;
 
 typedef enum {
     EXAOPT_MIGRATION_HEURISTIC,

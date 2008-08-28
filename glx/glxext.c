@@ -54,7 +54,8 @@ RESTYPE __glXSwapBarrierRes;
 */
 xGLXSingleReply __glXReply;
 
-static DevPrivateKey glxClientPrivateKey = &glxClientPrivateKey;
+static int glxClientPrivateKeyIndex;
+static DevPrivateKey glxClientPrivateKey = &glxClientPrivateKeyIndex;
 
 /*
 ** Client that called into GLX dispatch.

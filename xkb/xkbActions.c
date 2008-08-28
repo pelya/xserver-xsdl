@@ -42,7 +42,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <ctype.h>
 #define EXTENSION_EVENT_BASE 64
 
-DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKey;
+static int xkbDevicePrivateKeyIndex;
+DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKeyIndex;
 
 void
 xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,

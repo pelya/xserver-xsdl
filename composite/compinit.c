@@ -46,9 +46,12 @@
 
 #include "compint.h"
 
-DevPrivateKey CompScreenPrivateKey = &CompScreenPrivateKey;
-DevPrivateKey CompWindowPrivateKey = &CompWindowPrivateKey;
-DevPrivateKey CompSubwindowsPrivateKey = &CompSubwindowsPrivateKey;
+static int CompScreenPrivateKeyIndex;
+DevPrivateKey CompScreenPrivateKey = &CompScreenPrivateKeyIndex;
+static int CompWindowPrivateKeyIndex;
+DevPrivateKey CompWindowPrivateKey = &CompWindowPrivateKeyIndex;
+static int CompSubwindowsPrivateKeyIndex;
+DevPrivateKey CompSubwindowsPrivateKey = &CompSubwindowsPrivateKeyIndex;
 
 
 static Bool

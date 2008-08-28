@@ -109,8 +109,10 @@ miSpriteIsDown(miCursorInfoPtr pDevCursor)
  * screen wrappers
  */
 
-static DevPrivateKey miSpriteScreenKey = &miSpriteScreenKey;
-static DevPrivateKey miSpriteDevPrivatesKey = &miSpriteDevPrivatesKey;
+static int miSpriteScreenKeyIndex;
+static DevPrivateKey miSpriteScreenKey = &miSpriteScreenKeyIndex;
+static int mmiSpriteDevPrivatesKeyIndex;
+static DevPrivateKey miSpriteDevPrivatesKey = &mmiSpriteDevPrivatesKeyIndex;
 
 static Bool	    miSpriteCloseScreen(int i, ScreenPtr pScreen);
 static void	    miSpriteGetImage(DrawablePtr pDrawable, int sx, int sy,

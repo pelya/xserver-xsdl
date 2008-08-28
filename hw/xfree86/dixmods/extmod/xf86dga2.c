@@ -62,7 +62,8 @@ unsigned char DGAReqCode = 0;
 int DGAErrorBase;
 int DGAEventBase;
 
-static DevPrivateKey DGAClientPrivateKey = &DGAClientPrivateKey;
+static int DGAClientPrivateKeyIndex;
+static DevPrivateKey DGAClientPrivateKey = &DGAClientPrivateKeyIndex;
 static int DGACallbackRefCount = 0;
 
 /* This holds the client's version information */

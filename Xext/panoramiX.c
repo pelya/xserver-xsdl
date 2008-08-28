@@ -107,8 +107,10 @@ static void PanoramiXResetProc(ExtensionEntry*);
 
 int (* SavedProcVector[256]) (ClientPtr client) = { NULL, };
 
-static DevPrivateKey PanoramiXGCKey = &PanoramiXGCKey;
-static DevPrivateKey PanoramiXScreenKey = &PanoramiXScreenKey;
+static int PanoramiXGCKeyIndex;
+static DevPrivateKey PanoramiXGCKey = &PanoramiXGCKeyIndex;
+static int PanoramiXScreenKeyIndex;
+static DevPrivateKey PanoramiXScreenKey = &PanoramiXScreenKeyIndex;
 
 typedef struct {
   DDXPointRec clipOrg;

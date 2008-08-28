@@ -139,7 +139,8 @@ static ShmDescPtr Shmsegs;
 static Bool sharedPixmaps;
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
-static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivate;
+static int shmPixmapPrivateIndex;
+static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivateIndex;
 static ShmFuncs miFuncs = {NULL, NULL};
 static ShmFuncs fbFuncs = {fbShmCreatePixmap, NULL};
 

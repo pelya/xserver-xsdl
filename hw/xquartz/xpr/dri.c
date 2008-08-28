@@ -71,9 +71,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <AvailabilityMacros.h>
 
-static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKey;
-static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKey;
-static DevPrivateKey DRIPixmapPrivKey = &DRIPixmapPrivKey;
+static int DRIScreenPrivKeyIndex;
+static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKeyIndex;
+static int DRIWindowPrivKeyIndex;
+static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKeyIndex;
+static int DRIPixmapPrivKeyIndex;
+static DevPrivateKey DRIPixmapPrivKey = &DRIPixmapPrivKeyIndex;
 
 static RESTYPE DRIDrawablePrivResType;
 

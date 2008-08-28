@@ -29,9 +29,11 @@
 static unsigned char	DamageReqCode;
 static int		DamageEventBase;
 static int		DamageErrorBase;
-static DevPrivateKey	DamageClientPrivateKey = &DamageClientPrivateKey;
 static RESTYPE		DamageExtType;
 static RESTYPE		DamageExtWinType;
+
+static int DamageClientPrivateKeyIndex;
+static DevPrivateKey DamageClientPrivateKey = &DamageClientPrivateKeyIndex;
 
 /* Version of the damage extension supported by the server, as opposed to the
  * DAMAGE_* defines from damageproto for what version the proto header

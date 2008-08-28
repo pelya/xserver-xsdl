@@ -79,8 +79,10 @@ extern Bool noPanoramiXExtension;
 #endif
 
 static int DRIEntPrivIndex = -1;
-static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKey;
-static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKey;
+static int DRIScreenPrivKeyIndex;
+static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKeyIndex;
+static int DRIWindowPrivKeyIndex;
+static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKeyIndex;
 static unsigned long DRIGeneration = 0;
 static unsigned int DRIDrawableValidationStamp = 0;
 
@@ -343,7 +345,6 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv = DRI_ENT_PRIV(pScrn);
 
-    DRIScreenPrivKey = &DRIScreenPrivKey;
     if (DRIGeneration != serverGeneration)
 	DRIGeneration = serverGeneration;
 

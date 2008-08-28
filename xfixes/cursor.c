@@ -56,9 +56,11 @@
 static RESTYPE		CursorClientType;
 static RESTYPE		CursorHideCountType;
 static RESTYPE		CursorWindowType;
-static DevPrivateKey	CursorScreenPrivateKey = &CursorScreenPrivateKey;
 static CursorPtr	CursorCurrent;
 static CursorPtr        pInvisibleCursor = NULL;
+
+static int CursorScreenPrivateKeyIndex;
+static DevPrivateKey CursorScreenPrivateKey = &CursorScreenPrivateKeyIndex;
 
 static void deleteCursorHideCountsForScreen (ScreenPtr pScreen);
 
