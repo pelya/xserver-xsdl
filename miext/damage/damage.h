@@ -39,6 +39,9 @@ typedef enum _damageReportLevel {
 
 typedef void (*DamageReportFunc) (DamagePtr pDamage, RegionPtr pRegion, void *closure);
 typedef void (*DamageDestroyFunc) (DamagePtr pDamage, void *closure);
+/* It's the responsibility of the driver to duplicate both regions. */
+/* At some point DamageRegionRendered() must be called. */
+typedef void (*DamageMarkerFunc) (DrawablePtr pDrawable, DamagePtr pDamage, RegionPtr pOldDamage, RegionPtr pRegion, void *closure);
 
 Bool
 DamageSetup (ScreenPtr pScreen);
@@ -86,6 +89,10 @@ DamageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion);
 void
 DamageRegionSubmitted (DrawablePtr pDrawable);
 
+/* Call this some time after rendering is done, only relevant when a damageMarker is provided. */
+void
+DamageRegionRendered (DrawablePtr pDrawable, DamagePtr pDamage, RegionPtr pOldDamage, RegionPtr pRegion);
+
 /* Avoid using this call, it only exists for API compatibility. */
 void
 DamageDamageRegion (DrawablePtr	    pDrawable,
@@ -93,5 +100,9 @@ DamageDamageRegion (DrawablePtr	    pDrawable,
 
 void
 DamageSetReportAfterOp (DamagePtr pDamage, Bool reportAfter);
+
+void
+DamageSetPostRenderingFunctions(DamagePtr pDamage, DamageReportFunc damageReportPostRendering,
+				DamageMarkerFunc damageMarker);
 
 #endif /* _DAMAGE_H_ */
