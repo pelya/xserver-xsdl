@@ -461,6 +461,7 @@ static void
 SELinuxLabelClient(ClientPtr client)
 {
     XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
+    int fd = _XSERVTransGetConnectionNumber(ci);
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj;
     security_context_t ctx;
@@ -470,19 +471,20 @@ SELinuxLabelClient(ClientPtr client)
     obj = dixLookupPrivate(&client->devPrivates, objectKey);
     sidput(obj->sid);
 
+    /* Try to get a context from the socket */
+    if (fd < 0 || getpeercon(fd, &ctx) < 0) {
+	/* Otherwise, fall back to a default context */
+	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
+	    FatalError("SELinux: failed to look up remote-client context\n");
+    }
+
+    /* For local clients, try and determine the executable name */
     if (_XSERVTransIsLocal(ci)) {
-	int fd = _XSERVTransGetConnectionNumber(ci);
 	struct ucred creds;
 	socklen_t len = sizeof(creds);
 	char path[PATH_MAX + 1];
 	size_t bytes;
 
-	/* For local clients, can get context from the socket */
-	if (getpeercon(fd, &ctx) < 0)
-	    FatalError("SELinux: client %d: couldn't get context from socket\n",
-		       client->index);
-
-	/* Try and determine the client's executable name */
 	memset(&creds, 0, sizeof(creds));
 	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &len) < 0)
 	    goto finish;
@@ -503,10 +505,7 @@ SELinuxLabelClient(ClientPtr client)
 
 	memcpy(subj->command, path, bytes);
 	subj->command[bytes - 1] = 0;
-    } else
-	/* For remote clients, need to use a default context */
-	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
-	    FatalError("SELinux: failed to look up remote-client context\n");
+    }
 
 finish:
     /* Get a SID from the context */
