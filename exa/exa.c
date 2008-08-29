@@ -261,21 +261,6 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
                                      pExaScr->info->pixmapPitchAlign);
 }
 
-
-static void
-ExaDamageReport(DamagePtr pDamage, RegionPtr pReg, void *pClosure)
-{
-    PixmapPtr pPixmap = pClosure;
-    ExaPixmapPriv(pPixmap);
-    RegionPtr pDamageReg = DamageRegion(pDamage);
-
-    if (pExaPixmap->pendingDamage) {
-	REGION_UNION(pScreen, pDamageReg, pDamageReg, pReg);
-	pExaPixmap->pendingDamage = FALSE;
-    }
-}
-
-
 /**
  * exaCreatePixmap() creates a new pixmap.
  *
@@ -363,8 +348,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         }
 
 	/* Set up damage tracking */
-	pExaPixmap->pDamage = DamageCreate (ExaDamageReport, NULL,
-					    DamageReportRawRegion, TRUE,
+	pExaPixmap->pDamage = DamageCreate (NULL, NULL,
+					    DamageReportNone, TRUE,
 					    pScreen, pPixmap);
 
 	if (pExaPixmap->pDamage == NULL) {
@@ -373,6 +358,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	}
 
 	DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
+	/* This ensures that pending damage reflects the current operation. */
+	/* This is used by exa to optimize migration. */
 	DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
     }
  

@@ -226,7 +226,6 @@ typedef struct {
      * location.
      */
     DamagePtr	    pDamage;
-    Bool	    pendingDamage;
     /**
      * The valid regions mark the valid bits (at least, as they're derived from
      * damage, which may be overreported) of a pixmap's system and FB copies.
@@ -493,8 +492,5 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
 void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area);
-
-Bool
-exaDamageDestForMigration(DrawablePtr pDrawable, PixmapPtr pPix, RegionPtr region);
 
 #endif /* EXAPRIV_H */

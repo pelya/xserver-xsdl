@@ -224,7 +224,7 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 	DamageRegister (&pWin->drawable, cw->damage);
 	cw->damageRegistered = TRUE;
 	pWin->redirectDraw = RedirectDrawAutomatic;
-	DamageDamageRegion (&pWin->drawable, &pWin->borderSize);
+	DamageRegionPending(&pWin->drawable, &pWin->borderSize);
     }
     if (wasMapped && !pWin->mapped)
     {

@@ -78,6 +78,15 @@ DamageRegion (DamagePtr		    pDamage);
 RegionPtr
 DamagePendingRegion (DamagePtr	    pDamage);
 
+/* Call this function before rendering to a destination. */
+void
+DamageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion);
+
+/* Call this directly after the rendering operation has been submitted. */
+void
+DamageRegionSubmitted (DrawablePtr pDrawable);
+
+/* Avoid using this call, it only exists for API compatibility. */
 void
 DamageDamageRegion (DrawablePtr	    pDrawable,
 		    const RegionPtr pRegion);

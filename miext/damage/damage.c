@@ -168,11 +168,11 @@ DamageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
 
 #if DAMAGE_DEBUG_ENABLE
 static void
-_damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip, int subWindowMode, const char *where)
-#define damageDamageRegion(d,r,c,m) _damageDamageRegion(d,r,c,m,__FUNCTION__)
+_damageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip, int subWindowMode, const char *where)
+#define damageRegionPending(d,r,c,m) _damageRegionPending(d,r,c,m,__FUNCTION__)
 #else
 static void
-damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
+damageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 			int subWindowMode)
 #endif
 {
@@ -330,7 +330,7 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 }
 
 static void
-damageReportPostOp (DrawablePtr pDrawable)
+damageRegionSubmitted (DrawablePtr pDrawable)
 {
     drawableDamage(pDrawable);
 
@@ -357,9 +357,9 @@ damageDamageBox (DrawablePtr pDrawable, BoxPtr pBox, int subWindowMode)
 
     REGION_INIT (pDrawable->pScreen, &region, pBox, 1);
 #if DAMAGE_DEBUG_ENABLE
-    _damageDamageRegion (pDrawable, &region, TRUE, subWindowMode, where);
+    _damageRegionPending (pDrawable, &region, TRUE, subWindowMode, where);
 #else
-    damageDamageRegion (pDrawable, &region, TRUE, subWindowMode);
+    damageRegionPending (pDrawable, &region, TRUE, subWindowMode);
 #endif
     REGION_UNINIT (pDrawable->pScreen, &region);
 }
@@ -589,7 +589,7 @@ damageComposite (CARD8      op,
 		       yDst,
 		       width,
 		       height);
-    damageReportPostOp (pDst->pDrawable);
+    damageRegionSubmitted (pDst->pDrawable);
     wrap (pScrPriv, ps, Composite, damageComposite);
 }
 
@@ -656,7 +656,7 @@ damageGlyphs (CARD8		op,
     }
     unwrap (pScrPriv, ps, Glyphs);
     (*ps->Glyphs) (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
-    damageReportPostOp (pDst->pDrawable);
+    damageRegionSubmitted (pDst->pDrawable);
     wrap (pScrPriv, ps, Glyphs, damageGlyphs);
 }
 #endif
@@ -709,7 +709,7 @@ damageFillSpans(DrawablePtr pDrawable,
     
     (*pGC->ops->FillSpans)(pDrawable, pGC, npt, ppt, pwidth, fSorted);
 
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -757,7 +757,7 @@ damageSetSpans(DrawablePtr  pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->SetSpans)(pDrawable, pGC, pcharsrc, ppt, pwidth, npt, fSorted);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -789,7 +789,7 @@ damagePutImage(DrawablePtr  pDrawable,
     }
     (*pGC->ops->PutImage)(pDrawable, pGC, depth, x, y, w, h,
 		leftPad, format, pImage);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -833,7 +833,7 @@ damageCopyArea(DrawablePtr   pSrc,
 
     ret = (*pGC->ops->CopyArea)(pSrc, pDst,
             pGC, srcx, srcy, width, height, dstx, dsty);
-    damageReportPostOp (pDst);
+    damageRegionSubmitted (pDst);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDst);
     return ret;
 }
@@ -879,7 +879,7 @@ damageCopyPlane(DrawablePtr	pSrc,
 
     ret = (*pGC->ops->CopyPlane)(pSrc, pDst,
 	       pGC, srcx, srcy, width, height, dstx, dsty, bitPlane);
-    damageReportPostOp (pDst);
+    damageRegionSubmitted (pDst);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDst);
     return ret;
 }
@@ -921,7 +921,7 @@ damagePolyPoint(DrawablePtr pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyPoint)(pDrawable, pGC, mode, npt, ppt);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -995,7 +995,7 @@ damagePolylines(DrawablePtr pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->Polylines)(pDrawable, pGC, mode, npt, ppt);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1074,7 +1074,7 @@ damagePolySegment(DrawablePtr	pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolySegment)(pDrawable, pGC, nSeg, pSeg);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1136,7 +1136,7 @@ damagePolyRectangle(DrawablePtr  pDrawable,
 	}
     }
     (*pGC->ops->PolyRectangle)(pDrawable, pGC, nRects, pRects);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1189,7 +1189,7 @@ damagePolyArc(DrawablePtr   pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyArc)(pDrawable, pGC, nArcs, pArcs);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1248,7 +1248,7 @@ damageFillPolygon(DrawablePtr	pDrawable,
     }
     
     (*pGC->ops->FillPolygon)(pDrawable, pGC, shape, mode, npt, ppt);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1287,7 +1287,7 @@ damagePolyFillRect(DrawablePtr	pDrawable,
 	    damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyFillRect)(pDrawable, pGC, nRects, pRects);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1329,7 +1329,7 @@ damagePolyFillArc(DrawablePtr	pDrawable,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PolyFillArc)(pDrawable, pGC, nArcs, pArcs);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1440,7 +1440,7 @@ damagePolyText8(DrawablePtr pDrawable,
 		    Linear8Bit, TT_POLY8);
     else
 	x = (*pGC->ops->PolyText8)(pDrawable, pGC, x, y, count, chars);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
     return x;
 }
@@ -1461,7 +1461,7 @@ damagePolyText16(DrawablePtr	pDrawable,
 		    TT_POLY16);
     else
 	x = (*pGC->ops->PolyText16)(pDrawable, pGC, x, y, count, chars);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
     return x;
 }
@@ -1481,7 +1481,7 @@ damageImageText8(DrawablePtr	pDrawable,
 		    Linear8Bit, TT_IMAGE8);
     else
 	(*pGC->ops->ImageText8)(pDrawable, pGC, x, y, count, chars);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1501,7 +1501,7 @@ damageImageText16(DrawablePtr	pDrawable,
 		    TT_IMAGE16);
     else
 	(*pGC->ops->ImageText16)(pDrawable, pGC, x, y, count, chars);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1520,7 +1520,7 @@ damageImageGlyphBlt(DrawablePtr	    pDrawable,
 		       nglyph, ppci, TRUE, pGC->subWindowMode);
     (*pGC->ops->ImageGlyphBlt)(pDrawable, pGC, x, y, nglyph,
 					ppci, pglyphBase);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1538,7 +1538,7 @@ damagePolyGlyphBlt(DrawablePtr	pDrawable,
 		       nglyph, ppci, FALSE, pGC->subWindowMode);
     (*pGC->ops->PolyGlyphBlt)(pDrawable, pGC, x, y, nglyph,
 				ppci, pglyphBase);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1572,7 +1572,7 @@ damagePushPixels(GCPtr		pGC,
 	   damageDamageBox (pDrawable, &box, pGC->subWindowMode);
     }
     (*pGC->ops->PushPixels)(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg);
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
     DAMAGE_GC_OP_EPILOGUE(pGC, pDrawable);
 }
 
@@ -1652,12 +1652,12 @@ damageCopyWindow(WindowPtr	pWindow,
 	 * at the destination location.  Translate back and forth.
 	 */
 	REGION_TRANSLATE (pScreen, prgnSrc, dx, dy);
-	damageDamageRegion (&pWindow->drawable, prgnSrc, FALSE, -1);
+	damageRegionPending (&pWindow->drawable, prgnSrc, FALSE, -1);
 	REGION_TRANSLATE (pScreen, prgnSrc, -dx, -dy);
     }
     unwrap (pScrPriv, pScreen, CopyWindow);
     (*pScreen->CopyWindow) (pWindow, ptOldOrg, prgnSrc);
-    damageReportPostOp (&pWindow->drawable);
+    damageRegionSubmitted (&pWindow->drawable);
     wrap (pScrPriv, pScreen, CopyWindow, damageCopyWindow);
 }
 
@@ -1739,6 +1739,10 @@ damageCloseScreen (int i, ScreenPtr pScreen)
     xfree (pScrPriv);
     return (*pScreen->CloseScreen) (i, pScreen);
 }
+
+/**
+ * Public functions for consumption outside this file.
+ */
 
 Bool
 DamageSetup (ScreenPtr pScreen)
@@ -1941,16 +1945,29 @@ DamagePendingRegion (DamagePtr	    pDamage)
 }
 
 _X_EXPORT void
+DamageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion)
+{
+    damageRegionPending (pDrawable, pRegion, FALSE, -1);
+}
+
+_X_EXPORT void
+DamageRegionSubmitted (DrawablePtr pDrawable)
+{
+    damageRegionSubmitted (pDrawable);
+}
+
+/* This call is very odd, i'm leaving it intact for API sake, but please don't use it. */
+_X_EXPORT void
 DamageDamageRegion (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion)
 {
-    damageDamageRegion (pDrawable, pRegion, FALSE, -1);
+    damageRegionPending (pDrawable, pRegion, FALSE, -1);
 
     /* Go back and report this damage for DamagePtrs with reportAfter set, since
      * this call isn't part of an in-progress drawing op in the call chain and
      * the DDX probably just wants to know about it right away.
      */
-    damageReportPostOp (pDrawable);
+    damageRegionSubmitted (pDrawable);
 }
 
 void

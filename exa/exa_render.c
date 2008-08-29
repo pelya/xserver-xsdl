@@ -466,11 +466,11 @@ exaCompositeRects(CARD8	              op,
 {
     PixmapPtr pPixmap = exaGetDrawablePixmap(pDst->pDrawable);
     ExaPixmapPriv(pPixmap);
-    RegionRec region;
     int n;
     ExaCompositeRectPtr r;
     
     if (pExaPixmap->pDamage) {
+	RegionRec region;
 	int x1 = MAXSHORT;
 	int y1 = MAXSHORT;
 	int x2 = MINSHORT;
@@ -518,7 +518,9 @@ exaCompositeRects(CARD8	              op,
 
 	REGION_INIT(pScreen, &region, &box, 1);
     
-	exaDamageDestForMigration(pDst->pDrawable, pPixmap, &region);
+	DamageRegionPending(pDst->pDrawable, &region);
+
+	REGION_UNINIT(pScreen, &region);
     }
     
     /************************************************************/
@@ -543,13 +545,10 @@ exaCompositeRects(CARD8	              op,
 
     if (pExaPixmap->pDamage) {
 	/* Now we have to flush the damage out from pendingDamage => damage 
-	 * Calling DamageDamageRegion has that effect. (We could pass
-	 * in an empty region here, but we pass in the same region we
-	 * use above; the effect is the same.)
+	 * Calling DamageRegionSubmitted has that effect.
 	 */
 
-	DamageDamageRegion(pDst->pDrawable, &region);
-	REGION_UNINIT(pScreen, &region);
+	DamageRegionSubmitted(pDst->pDrawable);
     }
 }
 
@@ -1064,16 +1063,20 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
-	RegionRec migration;
 
+	/* Damage manually, because Trapezoids expects to hit Composite normally. */
+	/* Composite is wrapped by damage, but Trapezoids isn't. */
 	if (pExaPixmap->pDamage) {
+	    RegionRec migration;
+
 	    bounds.x1 += pDraw->x;
 	    bounds.y1 += pDraw->y;
 	    bounds.x2 += pDraw->x;
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    exaDamageDestForMigration(pDraw, pixmap, &migration);
+	    DamageRegionPending(pDraw, &migration);
+	    REGION_UNINIT(pScreen, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
@@ -1083,12 +1086,8 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 
-	/* Damage manually, because Trapezoids expects to hit Composite normally. */
-	/* Composite is wrapped by damage, but Trapezoids isn't. */
-	if (pExaPixmap->pDamage) {
-	    DamageDamageRegion(pDraw, &migration);
-	    REGION_UNINIT(pScreen, &migration);
-	}
+	if (pExaPixmap->pDamage)
+	    DamageRegionSubmitted(pDraw);
     }
     else if (maskFormat)
     {
@@ -1168,28 +1167,28 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	DrawablePtr pDraw = pDst->pDrawable;
 	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
 	ExaPixmapPriv (pixmap);
-	RegionRec migration;
 
+	/* Damage manually, because Triangles expects to hit Composite normally. */
+	/* Composite is wrapped by damage, but Triangles isn't. */
 	if (pExaPixmap->pDamage) {
+	    RegionRec migration;
+
 	    bounds.x1 += pDraw->x;
 	    bounds.y1 += pDraw->y;
 	    bounds.x2 += pDraw->x;
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    exaDamageDestForMigration(pDraw, pixmap, &migration);
+	    DamageRegionPending(pDraw, &migration);
+	    REGION_UNINIT(pScreen, &migration);
 	}
 
 	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
 	(*ps->AddTriangles) (pDst, 0, 0, ntri, tris);
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 
-	/* Damage manually, because Triangles expects to hit Composite normally. */
-	/* Composite is wrapped by damage, but Triangles isn't. */
-	if (pExaPixmap->pDamage) {
-	    DamageDamageRegion(pDraw, &migration);
-	    REGION_UNINIT(pScreen, &migration);
-	}
+	if (pExaPixmap->pDamage)
+	    DamageRegionSubmitted(pDraw);
     }
     else if (maskFormat)
     {

@@ -336,7 +336,7 @@ xf86CrtcDamageShadow (xf86CrtcPtr crtc)
     damage_box.y1 = crtc->y;
     damage_box.y2 = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
     REGION_INIT (pScreen, &damage_region, &damage_box, 1);
-    DamageDamageRegion (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
+    DamageRegionPending (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
 			&damage_region);
     REGION_UNINIT (pScreen, &damage_region);
 }
