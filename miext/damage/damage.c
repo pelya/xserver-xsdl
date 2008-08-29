@@ -129,6 +129,8 @@ damageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
 
     switch (pDamage->damageLevel) {
     case DamageReportRawRegion:
+	REGION_UNION(pScreen, &pDamage->damage, &pDamage->damage,
+			 pDamageRegion);
 	(*pDamage->damageReport) (pDamage, pDamageRegion, pDamage->closure);
 	break;
     case DamageReportDeltaRegion:
