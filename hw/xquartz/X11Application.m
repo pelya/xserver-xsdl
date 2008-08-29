@@ -244,13 +244,15 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         for_x = NO;
                         DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
-                    } else if(X11EnableKeyEquivalents &&
 #if XPLUGIN_VERSION >= 1
+                    } else if(X11EnableKeyEquivalents &&
                               xp_is_symbolic_hotkey_event([e eventRef])) {
-#else
+                        swallow_up = [e keyCode];
+                        for_x = NO;
+#endif
+                    } else if(X11EnableKeyEquivalents &&
                               [[self mainMenu] performKeyEquivalent:e]) {
                         for_appkit = NO;
-#endif
                         swallow_up = [e keyCode];
                         for_x = NO;
                     } else {
