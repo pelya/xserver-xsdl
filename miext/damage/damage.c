@@ -121,7 +121,7 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 	dixLookupPrivateAddr(&(pWindow)->devPrivates, damageWinPrivateKey)
 
 static void
-DamageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
+damageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
 {
     BoxRec tmpBox;
     RegionRec tmpRegion;
@@ -309,7 +309,7 @@ damageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	 * be used for reporting after calling down, and skip the reporting 
 	 */
 	if (!pDamage->reportAfter) {
-	    DamageReportDamage (pDamage, pDamageRegion);
+	    damageReportDamage (pDamage, pDamageRegion);
 	} else {
 	    REGION_UNION(pScreen, &pDamage->pendingDamage,
 			 &pDamage->pendingDamage, pDamageRegion);
@@ -337,7 +337,7 @@ damageRegionSubmitted (DrawablePtr pDrawable)
     for (; pDamage != NULL; pDamage = pDamage->pNext)
     {
 	if (pDamage->reportAfter) {
-	    DamageReportDamage (pDamage, &pDamage->pendingDamage);
+	    damageReportDamage (pDamage, &pDamage->pendingDamage);
 	    REGION_EMPTY (pScreen, &pDamage->pendingDamage);
 	}
     }
