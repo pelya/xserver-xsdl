@@ -507,7 +507,7 @@ by the \fIfont path\fP.
 The default font path is
 __default_font_path__ .
 .LP
-A special kind of directory can be specified using the the \fBcatalogue\fP:
+A special kind of directory can be specified using the \fBcatalogue\fP:
 prefix. Directories specified this way can contain symlinks pointing to the
 real font directories. See the FONTPATH.D section for details.
 .LP
