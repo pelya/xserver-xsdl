@@ -131,15 +131,44 @@ RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state)
   pWin->rootlessUnhittable = winRec->is_offscreen;
 }
 
+#ifdef XQUARTZ
+#include <string.h>
+extern char *__crashreporter_info__;
+extern const char *__crashreporter_info__base;
+extern int __crashreporter_info__len;
+#endif
+
 void RootlessNativeWindowMoved (WindowPtr pWin) {
     xp_box bounds;
     int sx, sy, err;
     XID vlist[2];
     Mask mask;
     ClientPtr client, pClient;
-    RootlessWindowRec *winRec = WINREC(pWin);
+    RootlessWindowRec *winRec;
+
+#ifdef XQUARTZ
+    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
+    snprintf(__crashreporter_info__, __crashreporter_info__len,
+             "%s\n\RootlessNativeWindowMoved debug data\npWin=%p\n",
+             __crashreporter_info__base, pWin);
+    ErrorF("RootlessNativeWindowMoved debug data\npWin=%p\n", pWin);
+#endif
+    
+    winRec = WINREC(pWin);
+
+#ifdef XQUARTZ
+    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
+    snprintf(__crashreporter_info__, __crashreporter_info__len, "%swinRec=%p\nwinRec->wid=%d\n", __crashreporter_info__, winRec, winRec ? (int)winRec->wid : 0);
+    ErrorF("winRec=%p\nwinRec->wid=%d\n", winRec, winRec ? (int)winRec->wid : 0);
+#endif
     
     if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
+    
+#ifdef XQUARTZ
+    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
+    snprintf(__crashreporter_info__, __crashreporter_info__len, "%spWin->drawable.pScreen=%p\npWin->drawable.pScreen->myNum=%d\n", __crashreporter_info__, pWin->drawable.pScreen, pWin->drawable.pScreen ? pWin->drawable.pScreen->myNum : 0);
+    ErrorF("pWin->drawable.pScreen=%p\npWin->drawable.pScreen->myNum=%d\n", pWin->drawable.pScreen, pWin->drawable.pScreen ? pWin->drawable.pScreen->myNum : 0);
+#endif
     
     sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
     sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
@@ -153,7 +182,7 @@ void RootlessNativeWindowMoved (WindowPtr pWin) {
     /* pretend we're the owner of the window! */
     err = dixLookupClient(&pClient, pWin->drawable.id, NullClient, DixUnknownAccess);
     if(err != Success) {
-        ErrorF("RootlessNativeWindowMoved(): Failed to lookup window: 0x%x\n", pWin->drawable.id);
+        ErrorF("RootlessNativeWindowMoved(): Failed to lookup window: 0x%x\n", (unsigned int)pWin->drawable.id);
         return;
     }
     

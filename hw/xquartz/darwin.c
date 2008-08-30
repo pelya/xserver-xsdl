@@ -152,8 +152,6 @@ const int NUMFORMATS = sizeof(formats)/sizeof(formats[0]);
 #define XORG_RELEASE "?"
 #endif
 
-const char *__crashreporter_info__ = "X.Org X Server " XSERVER_VERSION " Build Date: " BUILD_DATE;
-
 void DDXRingBell(int volume, int pitch, int duration) {
   // FIXME -- make some noise, yo
 }

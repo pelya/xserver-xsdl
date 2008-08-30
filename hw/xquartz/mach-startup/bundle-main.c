@@ -59,6 +59,18 @@ extern int noPanoramiXExtension;
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
 #define DEFAULT_SHELL  "/bin/sh"
 
+#ifndef BUILD_DATE
+#define BUILD_DATE ""
+#endif
+#ifndef XSERVER_VERSION
+#define XSERVER_VERSION "?"
+#endif
+
+const int __crashreporter_info__len = 4096;
+const char *__crashreporter_info__base = "X.Org X Server " XSERVER_VERSION " Build Date: " BUILD_DATE;
+char __crashreporter_info__buf[4096];
+char *__crashreporter_info__ = __crashreporter_info__buf;
+
 #define DEBUG 1
 
 static int execute(const char *command);
@@ -389,7 +401,10 @@ int main(int argc, char **argv, char **envp) {
 
     // The server must not run the PanoramiX operations.
     noPanoramiXExtension = TRUE;
-    
+
+    /* Setup the initial crasherporter info */
+    strlcpy(__crashreporter_info__, __crashreporter_info__base, __crashreporter_info__len);
+
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
     for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
@@ -397,7 +412,7 @@ int main(int argc, char **argv, char **envp) {
             listenOnly = TRUE;
         }
     }
-    
+
     mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
     if(mp == MACH_PORT_NULL) {
         fprintf(stderr, "NULL mach service: %s", SERVER_BOOTSTRAP_NAME);
