@@ -1180,12 +1180,13 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     int is_uchr = 1, i, j;
     OSStatus err;
     KeySym *k;
+    CFDataRef currentKeyLayoutDataRef = NULL;
 
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
     keyboard_type = LMGetKbdType();
 
     if (currentKeyLayoutRef) {
-      CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
+      currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
       if (currentKeyLayoutDataRef)
           chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
