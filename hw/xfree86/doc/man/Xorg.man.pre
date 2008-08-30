@@ -202,7 +202,7 @@ to the
 __xconfigfile__(__filemansuffix__) file option.
 .TP 8
 .B \-disableVidMode
-Disable the the parts of the VidMode extension (used by the xvidtune
+Disable the parts of the VidMode extension (used by the xvidtune
 client) that can be used to change the video modes.  This is equivalent
 to the
 .B DisableVidModeExtension
