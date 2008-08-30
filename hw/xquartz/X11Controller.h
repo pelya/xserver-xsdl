@@ -78,7 +78,6 @@
 - (void) server_ready;
 
 - (IBAction) apps_table_show:(id)sender;
-- (IBAction) apps_table_cancel:(id)sender;
 - (IBAction) apps_table_done:(id)sender;
 - (IBAction) apps_table_new:(id)sender;
 - (IBAction) apps_table_duplicate:(id)sender;

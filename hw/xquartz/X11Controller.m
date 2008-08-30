@@ -389,12 +389,14 @@
 - (IBAction) apps_table_show:sender
 {
   NSArray *columns;
+  NSMutableArray *oldapps = nil;
 	
-  if (table_apps == nil) {
-    table_apps = [[NSMutableArray alloc] initWithCapacity:1];
-      
-    if (apps != nil)[table_apps addObjectsFromArray:apps];
-  }
+  if (table_apps != nil)
+    oldapps = table_apps;
+
+  table_apps = [[NSMutableArray alloc] initWithCapacity:1];
+  if(apps != nil)
+      [table_apps addObjectsFromArray:apps];
 	
   columns = [apps_table tableColumns];
   [[columns objectAtIndex:0] setIdentifier:@"0"];
@@ -405,15 +407,9 @@
   [apps_table selectRow:0 byExtendingSelection:NO];
 	
   [[apps_table window] makeKeyAndOrderFront:sender];
-}
-
-- (IBAction) apps_table_cancel:sender
-{
-  [[apps_table window] orderOut:sender];
   [apps_table reloadData];
-	
-  [table_apps release];
-  table_apps = nil;
+  if(oldapps != nil)
+    [oldapps release];
 }
 
 - (IBAction) apps_table_done:sender
