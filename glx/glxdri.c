@@ -804,9 +804,9 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
 
     REGION_INIT(pDraw->pScreen, &region, (BoxPtr) rects, num_rects);
     REGION_TRANSLATE(pScreen, &region, pDraw->x, pDraw->y);
-    DamageRegionPending(pDraw, &region);
+    DamageRegionAppend(pDraw, &region);
     /* This is wrong, this needs a seperate function. */
-    DamageRegionSubmitted(pDraw);
+    DamageRegionProcessPending(pDraw);
     REGION_UNINIT(pDraw->pScreen, &region);
 
     __glXleaveServer(GL_FALSE);

@@ -518,7 +518,7 @@ exaCompositeRects(CARD8	              op,
 
 	REGION_INIT(pScreen, &region, &box, 1);
     
-	DamageRegionPending(pDst->pDrawable, &region);
+	DamageRegionAppend(pDst->pDrawable, &region);
 
 	REGION_UNINIT(pScreen, &region);
     }
@@ -545,10 +545,10 @@ exaCompositeRects(CARD8	              op,
 
     if (pExaPixmap->pDamage) {
 	/* Now we have to flush the damage out from pendingDamage => damage 
-	 * Calling DamageRegionSubmitted has that effect.
+	 * Calling DamageRegionProcessPending has that effect.
 	 */
 
-	DamageRegionSubmitted(pDst->pDrawable);
+	DamageRegionProcessPending(pDst->pDrawable);
     }
 }
 
@@ -1075,7 +1075,7 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    DamageRegionPending(pDraw, &migration);
+	    DamageRegionAppend(pDraw, &migration);
 	    REGION_UNINIT(pScreen, &migration);
 	}
 
@@ -1087,7 +1087,7 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 
 	if (pExaPixmap->pDamage)
-	    DamageRegionSubmitted(pDraw);
+	    DamageRegionProcessPending(pDraw);
     }
     else if (maskFormat)
     {
@@ -1179,7 +1179,7 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	    bounds.y2 += pDraw->y;
 
 	    REGION_INIT(pScreen, &migration, &bounds, 1);
-	    DamageRegionPending(pDraw, &migration);
+	    DamageRegionAppend(pDraw, &migration);
 	    REGION_UNINIT(pScreen, &migration);
 	}
 
@@ -1188,7 +1188,7 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 
 	if (pExaPixmap->pDamage)
-	    DamageRegionSubmitted(pDraw);
+	    DamageRegionProcessPending(pDraw);
     }
     else if (maskFormat)
     {

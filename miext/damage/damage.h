@@ -81,13 +81,13 @@ DamageRegion (DamagePtr		    pDamage);
 RegionPtr
 DamagePendingRegion (DamagePtr	    pDamage);
 
-/* Call this function before rendering to a destination. */
+/* In case of rendering, call this before the submitting the commands. */
 void
-DamageRegionPending (DrawablePtr pDrawable, RegionPtr pRegion);
+DamageRegionAppend (DrawablePtr pDrawable, RegionPtr pRegion);
 
 /* Call this directly after the rendering operation has been submitted. */
 void
-DamageRegionSubmitted (DrawablePtr pDrawable);
+DamageRegionProcessPending (DrawablePtr pDrawable);
 
 /* Call this some time after rendering is done, only relevant when a damageMarker is provided. */
 void
