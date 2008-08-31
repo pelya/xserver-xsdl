@@ -34,7 +34,6 @@
 
 #include "exa_priv.h"
 #include "exa.h"
-#include "cw.h"
 
 #if DEBUG_MIGRATE
 #define DBG_MIGRATE(a) ErrorF a

@@ -34,7 +34,6 @@
 #include <X11/fonts/fontstruct.h>
 #include "dixfontstr.h"
 #include "exa.h"
-#include "cw.h"
 
 static void
 exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,

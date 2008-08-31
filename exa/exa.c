@@ -36,7 +36,6 @@
 
 #include "exa_priv.h"
 #include "exa.h"
-#include "cw.h"
 
 static int exaScreenPrivateKeyIndex;
 DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKeyIndex;
