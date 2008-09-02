@@ -1312,8 +1312,8 @@ CreatePmap:
 	}
 	if (AddResource(stuff->pid, RT_PIXMAP, (pointer)pMap))
 	    return(client->noClientException);
+	(*pDraw->pScreen->DestroyPixmap)(pMap);
     }
-    (*pDraw->pScreen->DestroyPixmap)(pMap);
     return (BadAlloc);
 }
 
