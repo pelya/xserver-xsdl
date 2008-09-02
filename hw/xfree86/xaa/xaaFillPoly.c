@@ -131,8 +131,8 @@ XAAIsEasyPolygon(
     *bottomY = 0;
 
     origin -= (origin & 0x8000) << 1;
-    vertex1 = *((int *) &extents->x1) - origin;
-    vertex2 = *((int *) &extents->x2) - origin /* - 0x00010001 */;
+    vertex1 = extents->x1 - origin;
+    vertex2 = extents->x2 - origin /* - 0x00010001 */;
                      /* I think this was an error in cfb ^ */
 
     if (shape == Convex) {
@@ -714,7 +714,7 @@ XAAFillPolygonStippled(
 	return;
     }
 
-    origin = *((int *)&pDraw->x);
+    origin = pDraw->x;
 
     switch( XAAIsEasyPolygon(ptsIn, count, &pGC->pCompositeClip->extents,
 		 origin, &topPoint, &y, &maxy, shape) ) {
@@ -867,7 +867,7 @@ XAAFillPolygonTiled(
 	return;
     }
 
-    origin = *((int *)&pDraw->x);
+    origin = pDraw->x;
 
     switch( XAAIsEasyPolygon(ptsIn, count, &pGC->pCompositeClip->extents,
 		 origin, &topPoint, &y, &maxy, shape) ) {
