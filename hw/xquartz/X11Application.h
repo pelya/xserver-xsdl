@@ -94,8 +94,6 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_APPKIT_MODIFIERS      "appkit_modifiers"
 #define PREFS_WINDOW_ITEM_MODIFIERS "window_item_modifiers"
 #define PREFS_ROOTLESS              "rootless"
-#define PREFS_FULLSCREEN_HOTKEYS    "fullscreen_hotkeys"
-#define PREFS_SWAP_ALT_META         "swap_alt_meta"
 #define PREFS_XP_OPTIONS            "xp_options"
 #define PREFS_ENABLE_STEREO         "enable_stereo"
 #define PREFS_LOGIN_SHELL           "login_shell"
