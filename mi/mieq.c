@@ -298,6 +298,7 @@ CopyGetMasterEvent(DeviceIntPtr mdev, xEvent* original,
 void
 mieqProcessInputEvents(void)
 {
+    mieqHandler handler;
     EventRec *e = NULL;
     int x = 0, y = 0;
     xEvent* event,
@@ -336,8 +337,6 @@ mieqProcessInputEvents(void)
             NewCurrentScreen (e->pDev, DequeueScreen(e->pDev), x, y);
         }
         else {
-            mieqHandler handler;
-
             /* FIXME: Bad hack. The only event where we actually get multiple
              * events at once is a DeviceMotionNotify followed by
              * DeviceValuators. For now it's safe enough to just take the
