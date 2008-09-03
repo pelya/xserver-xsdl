@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/miext/rootless
 
 # GL
-SUBDIRS = bundle . xpr mach-startup doc
+SUBDIRS = bundle . xpr mach-startup doc pbproxy
 
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \
