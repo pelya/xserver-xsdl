@@ -116,18 +116,6 @@ static inline void darwinEvents_lock(void) {
     }
     if(darwinEvents == NULL) {
         pthread_cond_wait(&mieq_ready_cond, &mieq_lock);
-
-        /* We want to give xinit time to finish running xinitrc before we accept
-         * the launchd socket connection.
-         *
-         * Yes, we lock then immediately unlock because the lock does a cond_wait
-         * when darwinEvents == NULL
-         *
-         * TODO: Cleanup this race more elegantly.
-         *
-         * For some reason, xinitrc doesn't run until after this anyways... =/
-         * sleep(2);
-         */
     }
 }
 

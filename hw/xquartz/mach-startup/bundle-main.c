@@ -190,20 +190,9 @@ static void accept_fd_handoff(int connected_fd) {
      * into it.
      */
 
-#if 0
-    struct timeval start, now;
-    gettimeofday(&start, NULL);
-    gettimeofday(&now, NULL);
-    while((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec) < 2000000) {
-        unsigned usec = 3000001 - ((now.tv_sec - start.tv_sec) * 1000000 + (now.tv_usec - start.tv_usec));
-        fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup (%u).\n", launchd_fd, usec);
-        usleep(usec);
-        gettimeofday(&now, NULL);
-    }
-#else
+    unsigned remain = 3000000;
     fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
-    sleep(3);
-#endif
+    while((remain = usleep(remain)) > 0);
 #endif
 
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
