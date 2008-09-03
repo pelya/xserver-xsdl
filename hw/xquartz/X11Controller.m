@@ -96,6 +96,13 @@
 		
       [self set_apps_menu:array];
     }
+    
+    [[NSNotificationCenter defaultCenter]
+     addObserver: self
+     selector: @selector(apps_table_done:)
+     name: NSWindowWillCloseNotification
+     object: [apps_table window]];
+    
 }
 
 - (void) item_selected:sender
