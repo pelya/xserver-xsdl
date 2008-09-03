@@ -70,7 +70,7 @@ in this Software without prior written authorization from The Open Group.
 
 /* These values were chosen to match the output of xinput under Linux */
 #define SCALEFACTOR_TILT        64.0
-#define SCALEFACTOR_PRESSURE    1000.0
+#define SCALEFACTOR_PRESSURE    1023.0
 
 #define _APPLEWM_SERVER_
 #include "applewmExt.h"
@@ -416,7 +416,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	if (pressure == 0 && tilt_x == 0 && tilt_y == 0)
         dev = darwinPointer;
 	else
-        dev = darwinTablet;
+        dev = darwinTabletCurrent;
 
     screen = miPointerGetScreen(dev);
     if(!screen) {
@@ -459,7 +459,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
     DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
         num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
-                                      POINTER_ABSOLUTE, 0, dev==darwinTablet?5:2, valuators);
+                                      POINTER_ABSOLUTE, 0, dev==darwinTabletCurrent?5:2, valuators);
         for(i=0; i<num_events; i++) mieqEnqueue (dev, &darwinEvents[i]);
         DarwinPokeEQ();
     } darwinEvents_unlock();
@@ -496,7 +496,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y) {
 	int i, num_events;
     ScreenPtr screen;
-    DeviceIntPtr dev = darwinTablet;
+    DeviceIntPtr dev = darwinTabletCurrent;
     int valuators[5];
 
 	DEBUG_LOG("DarwinSendProximityEvents(%d, %d, %d)\n", ev_type, pointer_x, pointer_y);

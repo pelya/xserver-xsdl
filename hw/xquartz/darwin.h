@@ -71,7 +71,10 @@ extern io_connect_t     darwinParamConnect;
 extern int              darwinEventReadFD;
 extern int              darwinEventWriteFD;
 extern DeviceIntPtr     darwinPointer;
-extern DeviceIntPtr     darwinTablet;
+extern DeviceIntPtr     darwinTabletCurrent;
+extern DeviceIntPtr     darwinTabletCursor;
+extern DeviceIntPtr     darwinTabletStylus;
+extern DeviceIntPtr     darwinTabletEraser;
 extern DeviceIntPtr     darwinKeyboard;
 
 // User preferences

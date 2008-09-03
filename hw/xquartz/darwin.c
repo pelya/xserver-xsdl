@@ -120,9 +120,12 @@ int                     darwinAppKitModMask = 0; // Any of these bits
 int                     windowItemModMask = NX_COMMANDMASK;
 
 // devices
-DeviceIntPtr            darwinPointer = NULL;
-DeviceIntPtr            darwinTablet = NULL;
 DeviceIntPtr            darwinKeyboard = NULL;
+DeviceIntPtr            darwinPointer = NULL;
+DeviceIntPtr            darwinTabletCurrent = NULL;
+DeviceIntPtr            darwinTabletStylus = NULL;
+DeviceIntPtr            darwinTabletCursor = NULL;
+DeviceIntPtr            darwinTabletEraser = NULL;
 
 // Common pixmap formats
 static PixmapFormatRec formats[] = {
@@ -354,7 +357,8 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
                                     GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
                                     GetMotionHistorySize(), 2);
-								pPointer->name = strdup("Quartz Pointing Device");
+			InitAbsoluteClassDeviceStruct(pPointer);
+            pPointer->valuator->mode = Absolute; // Relative
             break;
         case DEVICE_ON:
             pPointer->public.on = TRUE;
@@ -381,10 +385,22 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
             InitPointerDeviceStruct((DevicePtr)pPointer, map, 3,
                                     GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
-                                    GetMotionHistorySize(), 7);
+                                    GetMotionHistorySize(), 5);
+            pPointer->valuator->mode = Absolute; // Relative
             InitProximityClassDeviceStruct(pPointer);
-//			InitAbsoluteClassDeviceStruct(pPointer);
-			pPointer->name = strdup("pen");			
+			InitAbsoluteClassDeviceStruct(pPointer);
+
+//            InitValuatorAxisStruct(pPointer, 0, 0, 1440, 1, 0, 1);
+//            InitValuatorAxisStruct(pPointer, 1, 0, 900, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 2, 0, 1023, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 3, -64, 64, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 4, -64, 64, 1, 0, 1);
+//            InitValuatorAxisStruct(pPointer, 2, 0, 240, 49999, 49999, 49999);
+//            InitValuatorAxisStruct(pPointer, 3, -64, 63, 128, 128, 128);
+//            InitValuatorAxisStruct(pPointer, 4, -64, 63, 128, 128, 128);
+//            InitValuatorAxisStruct(pPointer, 5, 0, 1023, 128, 128, 128);
+            
+//            pPointer->use = IsXExtensionDevice;
             break;
         case DEVICE_ON:
             pPointer->public.on = TRUE;
@@ -408,7 +424,6 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
     switch ( onoff ) {
         case DEVICE_INIT:
             DarwinKeyboardInit( pDev );
-			pDev->name = strdup("Quartz Keyboard");
             break;
         case DEVICE_ON:
             pDev->public.on = TRUE;
@@ -530,15 +545,28 @@ int DarwinParseModifierList(const char *constmodifiers, int separatelr)
  */
 void InitInput( int argc, char **argv )
 {
-    darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
-    RegisterPointerDevice( darwinPointer );
-
-    darwinTablet = AddInputDevice(DarwinTabletProc, TRUE);
-    RegisterPointerDevice( darwinTablet );
-
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
+    darwinKeyboard->name = strdup("Quartz Keyboard");
 
+    darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
+    RegisterPointerDevice( darwinPointer );
+    darwinPointer->name = strdup("Quartz Pointing Device");
+
+    darwinTabletStylus = AddInputDevice(DarwinTabletProc, TRUE);
+    RegisterPointerDevice( darwinTabletStylus );
+    darwinTabletStylus->name = strdup("stylus");
+
+    darwinTabletCursor = AddInputDevice(DarwinTabletProc, TRUE);
+    RegisterPointerDevice( darwinTabletCursor );
+    darwinTabletCursor->name = strdup("cursor");
+
+    darwinTabletEraser = AddInputDevice(DarwinTabletProc, TRUE);
+    RegisterPointerDevice( darwinTabletEraser );
+    darwinTabletEraser->name = strdup("eraser");
+
+    darwinTabletCurrent = darwinTabletStylus;
+    
     DarwinEQInit();
 
     QuartzInitInput(argc, argv);
