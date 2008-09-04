@@ -143,38 +143,17 @@ void RootlessNativeWindowMoved (WindowPtr pWin) {
     int sx, sy, err;
     XID vlist[2];
     Mask mask;
-    ClientPtr client, pClient;
+    ClientPtr pClient;
     RootlessWindowRec *winRec;
-
-#ifdef XQUARTZ
-    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
-    snprintf(__crashreporter_info__, __crashreporter_info__len,
-             "%s\n\RootlessNativeWindowMoved debug data\npWin=%p\n",
-             __crashreporter_info__base, pWin);
-    ErrorF("RootlessNativeWindowMoved debug data\npWin=%p\n", pWin);
-#endif
     
     winRec = WINREC(pWin);
-
-#ifdef XQUARTZ
-    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
-    snprintf(__crashreporter_info__, __crashreporter_info__len, "%swinRec=%p\nwinRec->wid=%d\n", __crashreporter_info__, winRec, winRec ? (int)winRec->wid : 0);
-    ErrorF("winRec=%p\nwinRec->wid=%d\n", winRec, winRec ? (int)winRec->wid : 0);
-#endif
     
     if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
-    
-#ifdef XQUARTZ
-    /* We're seeing a crash here, but I'm not sure what's causing it... so putting in some debugging */
-    snprintf(__crashreporter_info__, __crashreporter_info__len, "%spWin->drawable.pScreen=%p\npWin->drawable.pScreen->myNum=%d\n", __crashreporter_info__, pWin->drawable.pScreen, pWin->drawable.pScreen ? pWin->drawable.pScreen->myNum : 0);
-    ErrorF("pWin->drawable.pScreen=%p\npWin->drawable.pScreen->myNum=%d\n", pWin->drawable.pScreen, pWin->drawable.pScreen ? pWin->drawable.pScreen->myNum : 0);
-#endif
     
     sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
     sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
     
     /* Fake up a ConfigureWindow packet to resize the window to the current bounds. */
-    
     vlist[0] = (INT16) bounds.x1 - sx;
     vlist[1] = (INT16) bounds.y1 - sy;
     mask = CWX | CWY;
@@ -190,7 +169,7 @@ void RootlessNativeWindowMoved (WindowPtr pWin) {
      notification-response feedback loops) */
     
     no_configure_window = TRUE;
-    ConfigureWindow (pWin, mask, vlist, client);
+    ConfigureWindow (pWin, mask, vlist, pClient);
     no_configure_window = FALSE;
 }
 
