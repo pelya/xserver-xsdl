@@ -131,13 +131,6 @@ RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state)
   pWin->rootlessUnhittable = winRec->is_offscreen;
 }
 
-#ifdef XQUARTZ
-#include <string.h>
-extern char *__crashreporter_info__;
-extern const char *__crashreporter_info__base;
-extern int __crashreporter_info__len;
-#endif
-
 void RootlessNativeWindowMoved (WindowPtr pWin) {
     xp_box bounds;
     int sx, sy, err;
