@@ -318,29 +318,6 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
  =============================================================================
 */
 
-#if 0
-/*
- * DarwinChangePointerControl
- *  Set mouse acceleration and thresholding
- *  FIXME: We currently ignore the threshold in ctrl->threshold.
- */
-static void DarwinChangePointerControl(
-    DeviceIntPtr    device,
-    PtrCtrl         *ctrl )
-{
-    kern_return_t   kr;
-    double          acceleration;
-
-    if (!darwinMouseAccelChange)
-        return;
-
-    acceleration = ctrl->num / ctrl->den;
-    kr = IOHIDSetMouseAcceleration( darwinParamConnect, acceleration );
-    if (kr != KERN_SUCCESS)
-        ErrorF( "Could not set mouse acceleration with kernel return = 0x%x.\n", kr );
-}
-#endif
-
 /*
  * DarwinMouseProc: Handle the initialization, etc. of a mouse
  */
