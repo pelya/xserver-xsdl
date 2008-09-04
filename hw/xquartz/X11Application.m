@@ -924,7 +924,7 @@ static void send_nsevent(NSEvent *e) {
                 tilt_y   = [e tilt].y; 
             }
             
-            if([e subtype] != NSTabletProximityEventSubtype) {
+            if([e subtype] == NSTabletProximityEventSubtype) {
                 switch([e pointingDeviceType]) {
                     case NSEraserPointingDevice:
                         darwinTabletCurrent=darwinTabletEraser;
@@ -949,21 +949,19 @@ static void send_nsevent(NSEvent *e) {
             break;
 
 		case NSTabletProximity:
-                if([e subtype] != NSTabletProximityEventSubtype) {
-                    switch([e pointingDeviceType]) {
-                        case NSEraserPointingDevice:
-                            darwinTabletCurrent=darwinTabletEraser;
-                            break;
-                        case NSPenPointingDevice:
-                            darwinTabletCurrent=darwinTabletStylus;
-                            break;
-                        case NSCursorPointingDevice:
-                        case NSUnknownPointingDevice:
-                        default:
-                            darwinTabletCurrent=darwinTabletCursor;
-                            break;
-                    }
-                }
+            switch([e pointingDeviceType]) {
+                case NSEraserPointingDevice:
+                    darwinTabletCurrent=darwinTabletEraser;
+                    break;
+                case NSPenPointingDevice:
+                    darwinTabletCurrent=darwinTabletStylus;
+                    break;
+                case NSCursorPointingDevice:
+                case NSUnknownPointingDevice:
+                default:
+                    darwinTabletCurrent=darwinTabletCursor;
+                    break;
+            }
                     
 			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
                                       pointer_x, pointer_y);
