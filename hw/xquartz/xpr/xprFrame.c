@@ -64,19 +64,13 @@ DEFINE_ATOM_HELPER(xa_native_window_id, "_NATIVE_WINDOW_ID")
 static x_hash_table *window_hash;
 static pthread_mutex_t window_hash_mutex;
 
-static Bool no_configure_window;
-
-
 static inline xp_error
 xprConfigureWindow(xp_window_id id, unsigned int mask,
                    const xp_window_changes *values)
 {
     TA_SERVER();
 
-    if (!no_configure_window)
-        return xp_configure_window(id, mask, values);
-    else
-        return XP_Success;
+    return xp_configure_window(id, mask, values);
 }
 
 
@@ -437,8 +431,6 @@ xprInit(ScreenPtr pScreen)
     rootless_FillBytes_threshold = xp_fill_bytes_threshold;
     rootless_CompositePixels_threshold = xp_composite_area_threshold;
     rootless_CopyWindow_threshold = xp_scroll_area_threshold;
-
-    no_configure_window = FALSE;
 
     return TRUE;
 }
