@@ -37,10 +37,10 @@ type string_t = c_string[1024];
 type string_array_t = array[] of string_t;
 
 routine start_x11_server(
-	port  : mach_port_t;
+    port  : mach_port_t;
     argv  : string_array_t;
     envp  : string_array_t);
 
-routine prep_fd_handoff(
-	port  : mach_port_t;
-    socket_filename  : string_t);
+routine request_fd_handoff_socket (
+        port             : mach_port_t;
+    out socket_filename  : string_t);

@@ -116,56 +116,38 @@ static void set_x11_path() {
 }
 
 #ifdef MACHO_STARTUP
-static int create_socket(char *filename_out) {
+static int connect_to_socket(const char *filename) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
     socklen_t servaddr_len;
     int ret_fd;
-    size_t try, try_max;
 
-    for(try=0, try_max=5; try < try_max; try++) {
-        tmpnam(filename_out);
+    /* Setup servaddr_un */
+    memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
+    servaddr_un.sun_family = AF_UNIX;
+    strlcpy(servaddr_un.sun_path, filename, sizeof(servaddr_un.sun_path));
+    
+    servaddr = (struct sockaddr *) &servaddr_un;
+    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
+    
+    ret_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+    if(ret_fd == -1) {
+        fprintf(stderr, "Xquartz: Failed to create socket: %s - %s\n", filename, strerror(errno));
+        return -1;
+    }
 
-        /* Setup servaddr_un */
-        memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
-        servaddr_un.sun_family = AF_UNIX;
-        strlcpy(servaddr_un.sun_path, filename_out, sizeof(servaddr_un.sun_path));
-        
-        servaddr = (struct sockaddr *) &servaddr_un;
-        servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename_out);
-        
-        ret_fd = socket(PF_UNIX, SOCK_STREAM, 0);
-        if(ret_fd == -1) {
-            fprintf(stderr, "Xquartz: Failed to create socket (try %d / %d): %s - %s\n", (int)try+1, (int)try_max, filename_out, strerror(errno));
-            continue;
-        }
-        
-        if(bind(ret_fd, servaddr, servaddr_len) != 0) {
-            fprintf(stderr, "Xquartz: Failed to bind socket: %d - %s\n", errno, strerror(errno));
-            close(ret_fd);
-            return 0;
-        }
-
-        if(listen(ret_fd, 10) != 0) {
-            fprintf(stderr, "Xquartz: Failed to listen to socket: %s - %d - %s\n", filename_out, errno, strerror(errno));
-            close(ret_fd);
-            return 0;
-        }
-
-#ifdef DEBUG
-        fprintf(stderr, "Xquartz: Listening on socket for fd handoff:  %s\n", filename_out);
-#endif
-
-        return ret_fd;
+    if(connect(ret_fd, servaddr, servaddr_len) < 0) {
+        fprintf(stderr, "Xquartz: Failed to connect to socket: %s - %d - %s\n", filename, errno, strerror(errno));
+        close(ret_fd);
+        return -1;
     }
     
-    return 0;
+    return ret_fd;
 }
 
-static void send_fd_handoff(int handoff_fd, int launchd_fd) {
+static void send_fd_handoff(int connected_fd, int launchd_fd) {
     char databuf[] = "display";
     struct iovec iov[1];
-    int connected_fd;
     
     iov[0].iov_base = databuf;
     iov[0].iov_len  = sizeof(databuf);
@@ -194,15 +176,6 @@ static void send_fd_handoff(int handoff_fd, int launchd_fd) {
     *((int*)CMSG_DATA(cmsg)) = launchd_fd;
     
 #ifdef DEBUG
-    fprintf(stderr, "Xquartz: Waiting for fd handoff connection.\n");
-#endif
-    connected_fd = accept(handoff_fd, NULL, NULL);
-    if(connected_fd == -1) {
-        fprintf(stderr, "Xquartz: Failed to accept incoming connection on socket: %s\n", strerror(errno));
-        return;
-    }
-    
-#ifdef DEBUG
     fprintf(stderr, "Xquartz: Handoff connection established.  Sending message.\n");
 #endif
     if(sendmsg(connected_fd, &msg, 0) < 0) {
@@ -214,9 +187,6 @@ static void send_fd_handoff(int handoff_fd, int launchd_fd) {
     fprintf(stderr, "Xquartz: Message sent.  Closing.\n");
 #endif
     close(connected_fd);
-#ifdef DEBUG
-    fprintf(stderr, "Xquartz: end of send debug: %d %d %d %s\n", handoff_fd, launchd_fd, errno, strerror(errno));
-#endif
 }
 
 #endif
@@ -261,7 +231,7 @@ int main(int argc, char **argv, char **envp) {
         /* This forking is ugly and will be cleaned up later */
         pid_t child = fork();
         if(child == -1) {
-            fprintf(stderr, "XQuartz: Could not fork: %s\n", strerror(errno));
+            fprintf(stderr, "Xquartz: Could not fork: %s\n", strerror(errno));
             return EXIT_FAILURE;
         }
 
@@ -270,7 +240,7 @@ int main(int argc, char **argv, char **envp) {
             _argv[0] = x11_path;
             _argv[1] = "--listenonly";
             _argv[2] = NULL;
-            fprintf(stderr, "XQuartz: Starting X server: %s --listenonly\n", x11_path);
+            fprintf(stderr, "Xquartz: Starting X server: %s --listenonly\n", x11_path);
             return execvp(x11_path, _argv);
         }
 
@@ -283,24 +253,31 @@ int main(int argc, char **argv, char **envp) {
         }
 
         if(kr != KERN_SUCCESS) {
-            fprintf(stderr, "XQuartz: bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
+            fprintf(stderr, "Xquartz: bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
             return EXIT_FAILURE;
         }
     }
     
     /* Handoff the $DISPLAY FD */
     if(launchd_fd != -1) {
-        int handoff_fd = create_socket(handoff_socket_filename);
-        
-        if((handoff_fd != 0) &&
-           (prep_fd_handoff(mp, handoff_socket_filename) == KERN_SUCCESS)) {
-            send_fd_handoff(handoff_fd, launchd_fd);
+        size_t try, try_max;
+        int handoff_fd = -1;
+
+        for(try=0, try_max=5; try < try_max; try++) {
+            if(request_fd_handoff_socket(mp, handoff_socket_filename) != KERN_SUCCESS) {
+                fprintf(stderr, "Xquartz: Failed to request a socket from the server to send the $DISPLAY fd over (try %d of %d)\n", (int)try+1, (int)try_max);
+                continue;
+            }
             
-            // Cleanup
+            handoff_fd = connect_to_socket(handoff_socket_filename);
+            if(handoff_fd == -1) {
+                fprintf(stderr, "Xquartz: Failed to connect to socket (try %d of %d)\n", (int)try+1, (int)try_max);
+                continue;
+            }
+
+            send_fd_handoff(handoff_fd, launchd_fd);            
             close(handoff_fd);
-            unlink(handoff_socket_filename);
-        } else {
-            fprintf(stderr, "XQuartz: Unable to hand of $DISPLAY file descriptor\n");
+            break;
         }
     }
 
@@ -314,7 +291,7 @@ int main(int argc, char **argv, char **envp) {
     newenvp = (string_array_t)alloca(envpc * sizeof(string_t));
     
     if(!newargv || !newenvp) {
-        fprintf(stderr, "XQuartz: Memory allocation failure\n");
+        fprintf(stderr, "Xquartz: Memory allocation failure\n");
         exit(EXIT_FAILURE);
     }
     
@@ -327,7 +304,7 @@ int main(int argc, char **argv, char **envp) {
 
     kr = start_x11_server(mp, newargv, argc, newenvp, envpc);
     if (kr != KERN_SUCCESS) {
-        fprintf(stderr, "XQuartz: start_x11_server: %s\n", mach_error_string(kr));
+        fprintf(stderr, "Xquartz: start_x11_server: %s\n", mach_error_string(kr));
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

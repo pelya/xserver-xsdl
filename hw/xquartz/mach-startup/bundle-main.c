@@ -136,7 +136,7 @@ static mach_port_t checkin_or_register(char *bname) {
 }
 
 /*** $DISPLAY handoff ***/
-static void accept_fd_handoff(int connected_fd) {
+static int accept_fd_handoff(int connected_fd) {
     int launchd_fd;
     
     char databuf[] = "display";
@@ -170,16 +170,49 @@ static void accept_fd_handoff(int connected_fd) {
     
     if(recvmsg(connected_fd, &msg, 0) < 0) {
         fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor.  recvmsg() error: %s\n", strerror(errno));
-        return;
+        return -1;
     }
     
     launchd_fd = *((int*)CMSG_DATA(cmsg));
     
-    if(launchd_fd == -1) {
-        fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor, no descriptor received? %d\n", launchd_fd);
-        return;
+    return launchd_fd;
+}
+
+typedef struct {
+    int fd;
+    string_t filename;
+} socket_handoff_t;
+
+/* This thread accepts an incoming connection and hands off the file
+ * descriptor for the new connection to accept_fd_handoff()
+ */
+static void socket_handoff_thread(void *arg) {
+    socket_handoff_t *handoff_data = (socket_handoff_t *)arg;
+    int launchd_fd = -1;
+    int connected_fd;
+
+    /* Now actually get the passed file descriptor from this connection
+     * If we encounter an error, keep listening.
+     */
+    while(launchd_fd == -1) {
+        connected_fd = accept(handoff_data->fd, NULL, NULL);
+        if(connected_fd == -1) {
+            fprintf(stderr, "X11.app: Failed to accept incoming connection on socket (fd=%d): %s\n", handoff_data->fd, strerror(errno));
+            sleep(2);
+            continue;
+        }
+
+        launchd_fd = accept_fd_handoff(connected_fd);
+        if(launchd_fd == -1)
+            fprintf(stderr, "X11.app: Error receiving $DISPLAY file descriptor, no descriptor received?  Waiting for another connection.\n");
+
+        close(connected_fd);
     }
 
+    close(handoff_data->fd);
+    unlink(handoff_data->filename);
+    free(handoff_data);
+    
 #ifndef XQUARTZ_EXPORTS_LAUNCHD_FD
     /* TODO: Clean up this race better... giving xinitrc time to run... need to wait for 1.5 branch:
      *
@@ -189,72 +222,84 @@ static void accept_fd_handoff(int connected_fd) {
      * ProcSetSelectionOwner, and xfixes/select.c for an example of how to hook
      * into it.
      */
-
+    
     unsigned remain = 3000000;
-    fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
+    fprintf(stderr, "X11.app: Received new $DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
     while((remain = usleep(remain)) > 0);
 #endif
-
+    
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
 }
 
-/* This thread accepts an incoming connection and hands off the file
- * descriptor for the new connection to accept_fd_handoff()
- */
-static void socket_handoff_thread(void *arg) {
-    int handoff_fd = *(int *)arg;
-
-    /* Now actually get the passed file descriptor from this connection */
-    accept_fd_handoff(handoff_fd);
-
-    close(handoff_fd);
-}
-
-kern_return_t do_prep_fd_handoff(mach_port_t port, string_t filename) {
+static int create_socket(char *filename_out) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
     socklen_t servaddr_len;
-    int handoff_fd;
-
+    int ret_fd;
+    size_t try, try_max;
+    
+    for(try=0, try_max=5; try < try_max; try++) {
+        tmpnam(filename_out);
+        
+        /* Setup servaddr_un */
+        memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
+        servaddr_un.sun_family = AF_UNIX;
+        strlcpy(servaddr_un.sun_path, filename_out, sizeof(servaddr_un.sun_path));
+        
+        servaddr = (struct sockaddr *) &servaddr_un;
+        servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename_out);
+        
+        ret_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+        if(ret_fd == -1) {
+            fprintf(stderr, "X11.app: Failed to create socket (try %d / %d): %s - %s\n", (int)try+1, (int)try_max, filename_out, strerror(errno));
+            continue;
+        }
+        
+        if(bind(ret_fd, servaddr, servaddr_len) != 0) {
+            fprintf(stderr, "X11.app: Failed to bind socket: %d - %s\n", errno, strerror(errno));
+            close(ret_fd);
+            return 0;
+        }
+        
+        if(listen(ret_fd, 10) != 0) {
+            fprintf(stderr, "X11.app: Failed to listen to socket: %s - %d - %s\n", filename_out, errno, strerror(errno));
+            close(ret_fd);
+            return 0;
+        }
+        
 #ifdef DEBUG
-    fprintf(stderr, "X11.app: Prepping for fd handoff.\n");
+        fprintf(stderr, "X11.app: Listening on socket for fd handoff:  (%d) %s\n", ret_fd, filename_out);
 #endif
+        
+        return ret_fd;
+    }
     
-    /* Initialize our data */
+    return 0;
+}
 
-    /* Setup servaddr_un */
-    memset (&servaddr_un, 0, sizeof (struct sockaddr_un));
-    servaddr_un.sun_family  = AF_UNIX;
-    strlcpy(servaddr_un.sun_path, filename, sizeof(servaddr_un.sun_path));
-    
-    servaddr = (struct sockaddr *) &servaddr_un;
-    servaddr_len = sizeof(struct sockaddr_un) - sizeof(servaddr_un.sun_path) + strlen(filename);
+kern_return_t do_request_fd_handoff_socket(mach_port_t port, string_t filename) {
+    socket_handoff_t *handoff_data;
 
-    /* Get a fd for the handoff */
-    handoff_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if(handoff_fd == -1) {
-        fprintf(stderr, "X11.app: Failed to create socket: %d - %s\n", errno, strerror(errno));
+    handoff_data = (socket_handoff_t *)calloc(1,sizeof(socket_handoff_t));
+    if(!handoff_data) {
+        fprintf(stderr, "X11.app: Error allocating memory for handoff_data\n");
         return KERN_FAILURE;
     }
-#ifdef DEBUG
-    fprintf(stderr, "X11.app: socket created for fd handoff: fd=%d\n", handoff_fd);
-#endif
 
-    if(connect(handoff_fd, servaddr, servaddr_len) < 0) {
-        fprintf(stderr, "X11.app: Failed to connect to socket: %s - %d - %s\n", filename, errno, strerror(errno));
+    handoff_data->fd = create_socket(handoff_data->filename);
+    if(!handoff_data->fd) {
         return KERN_FAILURE;
     }
-#ifdef DEBUG
-    fprintf(stderr, "X11.app: Connection established for fd handoff: fd=%d\n", handoff_fd);
-#endif
+
+    strlcpy(filename, handoff_data->filename, STRING_T_SIZE);
     
-    create_thread(socket_handoff_thread, &handoff_fd);
-   
-#ifdef DEBUG
-    fprintf(stderr, "X11.app: Thread created for handoff.  Returning success to tell caller to accept our connection and push the fd.\n");
-#endif
+    create_thread(socket_handoff_thread, handoff_data);
     
+#ifdef DEBUG
+    fprintf(stderr, "X11.app: Thread created for handoff.  Returning success to tell caller to connect and push the fd.\n");
+#endif
+
     return KERN_SUCCESS;
 }
 
