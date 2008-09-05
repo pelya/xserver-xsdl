@@ -13,6 +13,7 @@ Makefile.in
 *.mode1v3
 obj*
 build*
+cscope*
 local
 aclocal.m4
 autom4te.cache
