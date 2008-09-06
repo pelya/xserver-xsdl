@@ -648,7 +648,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [use_sysbeep setIntValue:quartzUseSysBeep];
     [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
     [sync_keymap setIntValue:darwinSyncKeymap];
-    [sync_keymap setEnabled:darwinKeymapFile == NULL];
     [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_CLICK_THROUGH default:NO]];
     [focus_follows_mouse setIntValue:[NSApp prefs_get_boolean:@PREFS_FFM default:NO]];
     [focus_on_new_window setIntValue:[NSApp prefs_get_boolean:@PREFS_FOCUS_ON_NEW_WINDOW default:YES]];

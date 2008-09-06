@@ -84,7 +84,6 @@ extern int              darwinFakeMouse2Mask;
 extern int              darwinFakeMouse3Mask;
 extern int              darwinAppKitModMask;
 extern int              windowItemModMask;
-extern char            *darwinKeymapFile;
 extern int              darwinSyncKeymap;
 extern unsigned int     darwinDesiredWidth, darwinDesiredHeight;
 extern int              darwinDesiredDepth;

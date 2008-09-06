@@ -62,9 +62,7 @@
 #include <sys/utsname.h>
 
 #define NO_CFPLUGIN
-#include <IOKit/IOKitLib.h>
 #include <IOKit/hidsystem/IOHIDLib.h>
-#include <IOKit/hidsystem/ev_keymap.h>
 
 #ifdef MITSHM
 #define _XSHM_SERVER_
@@ -101,7 +99,6 @@ int                     darwinMainScreenY = 0;
 unsigned int            darwinDesiredWidth = 0, darwinDesiredHeight = 0;
 int                     darwinDesiredDepth = -1;
 int                     darwinDesiredRefresh = -1;
-char                    *darwinKeymapFile = "USA.keymapping";
 int                     darwinSyncKeymap = FALSE;
 
 // modifier masks for faking mouse buttons - ANY of these bits trigger it  (not all)
@@ -433,62 +430,6 @@ static int DarwinKeybdProc( DeviceIntPtr pDev, int onoff )
 */
 
 /*
- * DarwinFindLibraryFile
- *  Search for a file in the standard Library paths, which are (in order):
- *
- *      ~/Library/              user specific
- *      /Library/               host specific
- *      /Network/Library/       LAN specific
- *      /System/Library/        OS specific
- *
- *  A sub-path can be specified to search in below the various Library
- *  directories. Returns a new character string (owned by the caller)
- *  containing the full path to the first file found.
- */
-static char * DarwinFindLibraryFile(
-    const char *file,
-    const char *pathext )
-{
-    // Library search paths
-    char *pathList[] = {
-        "",
-        "/Network",
-        "/System",
-        NULL
-    };
-    char *home;
-    char *fullPath;
-    int i = 0;
-
-    // Return the file name as is if it is already a fully qualified path.
-    if (!access(file, F_OK)) {
-        fullPath = xalloc(strlen(file)+1);
-        strcpy(fullPath, file);
-        return fullPath;
-    }
-
-    fullPath = xalloc(PATH_MAX);
-
-    home = getenv("HOME");
-    if (home) {
-        snprintf(fullPath, PATH_MAX, "%s/Library/%s/%s", home, pathext, file);
-        if (!access(fullPath, F_OK))
-            return fullPath;
-    }
-
-    while (pathList[i]) {
-        snprintf(fullPath, PATH_MAX, "%s/Library/%s/%s", pathList[i++],
-                 pathext, file);
-        if (!access(fullPath, F_OK))
-            return fullPath;
-    }
-
-    xfree(fullPath);
-    return NULL;
-}
-
-
-/*
  * DarwinParseModifierList
  *  Parse a list of modifier names and return a corresponding modifier mask
  */
@@ -681,18 +622,6 @@ void OsVendorInit(void)
 	}
 #endif
     }
-    //    DEBUG_LOG("Xquartz started at %s\n", ctime(time(NULL)));
-
-    // Find the full path to the keymapping file.
-    if ( darwinKeymapFile ) {
-        char *tempStr = DarwinFindLibraryFile(darwinKeymapFile, "Keyboards");
-        if ( !tempStr ) {
-            ErrorF("Could not find keymapping file %s.\n", darwinKeymapFile);
-        } else {
-            ErrorF("Using keymapping provided in %s.\n", tempStr);
-        }
-        darwinKeymapFile = tempStr;
-    }
 }
 
 
@@ -755,19 +684,6 @@ int ddxProcessArgument( int argc, char *argv[], int i )
         ErrorF("Modifier mask to fake mouse button 3 = 0x%x\n",
                darwinFakeMouse3Mask);
         return 2;
-    }
-
-    if ( !strcmp( argv[i], "-keymap" ) ) {
-        if ( i == argc-1 ) {
-            FatalError( "-keymap must be followed by a filename\n" );
-        }
-        darwinKeymapFile = argv[i+1];
-        return 2;
-    }
-
-    if ( !strcmp( argv[i], "-nokeymap" ) ) {
-        darwinKeymapFile = NULL;
-        return 1;
     }
 
     if ( !strcmp( argv[i], "+synckeymap" ) ) {
@@ -853,12 +769,8 @@ void ddxUseMsg( void )
     ErrorF("-fakemouse2 <modifiers> : fake middle mouse button with modifier keys.\n");
     ErrorF("-fakemouse3 <modifiers> : fake right mouse button with modifier keys.\n");
     ErrorF("  ex: -fakemouse2 \"option,shift\" = option-shift-click is middle button.\n");
-    ErrorF("-keymap <file> : read the keymapping from a file instead of the kernel.\n");
     ErrorF("-version : show the server version.\n");
     ErrorF("\n");
-//    ErrorF("Quartz modes (Experimental / In Development):\n");
-//    ErrorF("-fullscreen : run full screen in parallel with Mac OS X window server.\n");
-//    ErrorF("-rootless : run rootless inside Mac OS X window server.\n");
     ErrorF("\n");
     ErrorF("Options ignored in rootless mode:\n");
     ErrorF("-size <height> <width> : use a screen resolution of <height> x <width>.\n");

@@ -171,7 +171,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 		DarwinSendDDXEvent(kXquartzActivate, 0);
 
 		if (!_x_active) {
-			if (x11_document == 0 && darwinKeymapFile == NULL) {
+			if (x11_document == 0) {
 				OSType types[1];
 				types[0] = kUnicodeDocument;
 				NewTSMDocument (1, types, &x11_document, 0);
@@ -667,11 +667,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     darwinSyncKeymap = [self prefs_get_boolean:@PREFS_SYNC_KEYMAP
                         default:darwinSyncKeymap];
-	
-    tem = [self prefs_get_string:@PREFS_KEYMAP_FILE default:NULL];
-    if (tem != NULL) darwinKeymapFile = strdup (tem);
-    else             darwinKeymapFile = NULL;
-	
+		
     darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
                           default:darwinDesiredDepth];
 	

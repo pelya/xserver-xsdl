@@ -473,7 +473,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		return;
 	}
 
-	if (darwinSyncKeymap && darwinKeymapFile == NULL) {
+	if (darwinSyncKeymap) {
 		/* See if keymap has changed. */
 
 		static unsigned int last_seed;
