@@ -657,9 +657,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
 
     [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
-    // TODO: Add 256 color support
-    if([depth indexOfItemWithTag:8] != -1)
-        [depth removeItemAtIndex:[depth indexOfItemWithTag:8]];
 	
     [enable_fullscreen setIntValue:!quartzEnableRootless];
     // TODO: Add fullscreen support

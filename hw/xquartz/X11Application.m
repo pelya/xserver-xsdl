@@ -674,10 +674,6 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
                           default:darwinDesiredDepth];
-    
-    // TODO: Add 256 color support
-    if(darwinDesiredDepth == 8)
-        darwinDesiredDepth = -1;
 	
 //    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
 //                     default:false];

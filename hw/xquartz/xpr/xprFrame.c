@@ -119,11 +119,9 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
     if (pWin->drawable.depth == 8)
     {
         wc.depth = XP_DEPTH_INDEX8;
-#if 0
-        wc.colormap = xprColormapCallback;
+        wc.colormap = RootlessColormapCallback;
         wc.colormap_data = pScreen;
         mask |= XP_COLORMAP;
-#endif
     }
     else if (pWin->drawable.depth == 15)
         wc.depth = XP_DEPTH_RGB555;

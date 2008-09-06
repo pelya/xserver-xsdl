@@ -273,6 +273,8 @@ Bool RootlessResolveColormap (ScreenPtr pScreen, int first_color,
 void RootlessFlushWindowColormap (WindowPtr pWin);
 void RootlessFlushScreenColormaps (ScreenPtr pScreen);
 
+RootlessColormapCallback(void *data, int first_color, int n_colors, uint32_t *colors);
+
 // Move a window to its proper location on the screen.
 void RootlessRepositionWindow(WindowPtr pWin);
 

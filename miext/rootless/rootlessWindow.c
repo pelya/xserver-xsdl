@@ -448,7 +448,7 @@ RootlessInitializeFrame(WindowPtr pWin, RootlessWindowRec *winRec)
 Bool
 RootlessColormapCallback (void *data, int first_color, int n_colors, uint32_t *colors)
 {
-  return RootlessResolveColormap (data, first_color, n_colors, colors);
+    return (RootlessResolveColormap (data, first_color, n_colors, colors) ? XP_Success : XP_BadMatch);
 }
 
 /*
