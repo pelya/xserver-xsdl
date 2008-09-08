@@ -85,6 +85,11 @@ RRModeCreate (xRRModeInfo   *modeInfo,
 	return NULL;
     modes = newModes;
     modes[num_modes++] = mode;
+    
+    /*
+     * give the caller a reference to this mode
+     */
+    ++mode->refcnt;
     return mode;
 }
 
