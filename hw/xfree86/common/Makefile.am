@@ -54,7 +54,6 @@ DISTCLEANFILES = xf86Build.h
 CLEANFILES = $(BUILT_SOURCES)
 
 EXTRA_DIST = \
-	atKeynames.h \
 	compiler.h \
 	fourcc.h \
 	scoasm.h \
@@ -77,7 +76,6 @@ EXTRA_DIST = \
 	xf86xvmc.h \
 	xf86xvpriv.h \
 	xisb.h \
-	xf86Version.h \
 	xorgVersion.h \
 	xf86Date.h \
 	$(MODEDEFSOURCES) \
