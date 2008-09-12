@@ -294,16 +294,6 @@ QuartzCrossScreen(ScreenPtr pScreen, Bool entering)
 static void
 QuartzWarpCursor(ScreenPtr pScreen, int x, int y)
 {
-    static Bool neverMoved = TRUE;
-
-    if (neverMoved)
-    {
-        /* Don't move the cursor the first time. This is the
-           jump-to-center initialization, and it's annoying. */
-        neverMoved = FALSE;
-        return;
-    }
-
     if (quartzServerVisible)
     {
         int sx, sy;
