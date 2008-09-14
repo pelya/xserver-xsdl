@@ -34,6 +34,12 @@
 #include "pbproxy.h"
 #include <AppKit/NSPasteboard.h>
 
+/* This stores image data or text. */
+struct propdata {
+	unsigned char *data;
+	size_t length;
+};
+
 @interface x_selection : NSObject
 {
 @private
@@ -53,6 +59,24 @@
 
     /* When true, we're expecting a SelectionNotify event. */
     unsigned int _pending_notify :1;
+ 
+    Atom request_atom;
+    
+    struct {
+        struct propdata propdata;
+        Window requestor;
+        Atom selection;
+    } pending;
+ 
+    /* This may not be needed.*/
+    /* If we can have the Apple clipboard translate to PNG or JPEG we can
+     * do away with this.   Otherwise we could use libjpeg and libpng
+     * to convert some raw clipboard format to the proper format.
+     */
+    struct {
+	struct propdata propdata;
+	Atom type;
+    } request_data;
 }
 
 - (void) x_active:(Time)timestamp;
@@ -63,6 +87,10 @@
 - (void) clear_event:(XSelectionClearEvent *)e;
 - (void) request_event:(XSelectionRequestEvent *)e;
 - (void) notify_event:(XSelectionEvent *)e;
+- (void) property_event:(XPropertyEvent *)e;
+- (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata;
+- (void) reclaim_clipboard;
+- (void) set_clipboard_manager;
 
 @end
 

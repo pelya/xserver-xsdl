@@ -14,14 +14,13 @@
 Display *x_dpy;
 int x_apple_wm_event_base, x_apple_wm_error_base;
 
-Atom x_atom_wm_state, x_atom_wm_protocols, x_atom_wm_delete_window;
-Atom x_atom_clipboard, x_atom_text, x_atom_utf8_string;
-Atom x_atom_targets, x_atom_multiple, x_atom_cstring;
+struct atom_list atom_list_inst;
+struct atom_list *atoms = &atom_list_inst;
 
 static int x_grab_count;
 static Bool x_grab_synced;
 
-static BOOL _is_active = YES;		/* FIXME: should query server */
+static BOOL _is_active = YES;		/* FIXME: should query server */ /*GPS why? Is there a race?*/
 
 static x_selection *_selection_object;
 
@@ -65,19 +64,24 @@ static void x_init (void) {
     }
     
     XSetIOErrorHandler (x_io_error_handler);
-    x_atom_clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
-    x_atom_text = XInternAtom (x_dpy, "TEXT", False);
-    x_atom_utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
-    x_atom_targets = XInternAtom (x_dpy, "TARGETS", False);
-    x_atom_multiple = XInternAtom (x_dpy, "MULTIPLE", False);
-    x_atom_cstring = XInternAtom (x_dpy, "CSTRING", False);
-        
+    atoms->primary = XInternAtom (x_dpy, "PRIMARY", False);
+    atoms->clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
+    atoms->text = XInternAtom (x_dpy, "TEXT", False);
+    atoms->utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
+    atoms->targets = XInternAtom (x_dpy, "TARGETS", False);
+    atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
+    atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
+    atoms->image_png = XInternAtom (x_dpy, "image/png", False);
+    atoms->incr = XInternAtom (x_dpy, "INCR", False);
+    atoms->atom = XInternAtom (x_dpy, "ATOM", False);
+    atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
+
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base)) {
         fprintf (stderr, "can't open AppleWM server extension\n");
         exit (1);
     }
-        
+    
     XAppleWMSelectInput (x_dpy, AppleWMActivationNotifyMask |
                          AppleWMPasteboardNotifyMask);
     
@@ -85,15 +89,22 @@ static void x_init (void) {
     
     x_input_register ();
     x_input_run ();
+
+    [_selection_object set_clipboard_manager];
+    [_selection_object reclaim_clipboard];
 }
 
 static void x_shutdown (void) {
+    /*GPS: signal_handler() calls this, and I don't think these are async-signal safe. */
+    /*TODO use a socketpair() to trigger a cleanup.  This is totally unsafe according to Jordan. */
+
     [_selection_object release];
     _selection_object = nil;
 
+
     XCloseDisplay (x_dpy);
     x_dpy = NULL;
-    exit(0);
+    exit(0); //GPS this is almost certainly unsafe (sigaction(2) doesn't list it).
 }
 
 static void x_error_shutdown (void) {
