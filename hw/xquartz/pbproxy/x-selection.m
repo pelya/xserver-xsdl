@@ -334,10 +334,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     if (None != w)
     {
+	DB ("requesting targets\n");
 	request_atom = atoms->targets;
-
-	puts("Asking for targets");
-
 	XConvertSelection (x_dpy, atoms->primary, atoms->targets,
 			   atoms->primary, _selection_window, CurrentTime);
     }
@@ -376,7 +374,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	/* 
 	 * We lost ownership of the CLIPBOARD.
 	 */
-	[self reclaim_clipboard];
+	[self claim_clipboard];
     } 
     else if (atoms->clipboard_manager == e->selection)
     {
@@ -393,7 +391,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 /* 
  * We greedily acquire the clipboard after it changes, and on startup.
  */
-- (void) reclaim_clipboard
+- (void) claim_clipboard
 {
     Window owner;
     
@@ -404,6 +402,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	 * The owner probably died or we are just starting up pbproxy.
 	 * Set pbproxy's _selection_window as the owner, and continue.
 	 */
+	DB ("No clipboard owner.\n");
+
 	do 
 	{
 	    XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
@@ -414,6 +414,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	return;
     }
     
+    DB ("requesting targets\n");
+
     request_atom = atoms->targets;
     XConvertSelection (x_dpy, atoms->clipboard, atoms->targets,
 		       atoms->clipboard, _selection_window, CurrentTime);
@@ -439,7 +441,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	const char *bytes;
 
 	if (target == XA_STRING)
-	    bytes = [data lossyCString];
+	    bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
 	else
 	    bytes = [data UTF8String];
 
@@ -452,6 +454,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	}
     }
     /* FIXME: handle COMPOUND_TEXT target */
+    /*gstaplin: should we [data release]? */
+    [data release];
 
     return ret;
 }
@@ -481,6 +485,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 
 	data[0] = atoms->utf8_string;
 	data[1] = XA_STRING;
+
+	/*TODO add handling for when the data can be represented as an image. */
 
 	XChangeProperty (x_dpy, e->requestor, e->property, target,
 			 8, PropModeReplace, (unsigned char *) &data,
@@ -532,9 +538,9 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	
     [self release_pending];
     
-    puts ("NOTIFY EVENT");
+    DB ("notify_event\n");
     if (None == e->property) {
-	puts("Nothing");
+	DB ("e->property is None.\n");
 	/* Nothing is selected. */
 	return;
     }
@@ -546,7 +552,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	 * will get the data after a series of PropertyNotify events.
 	 */
 
-	puts("IS INCR");
+	DB ("is INCR\n");
 
 	if (get_property (e->requestor, e->property, &pdata, /*Delete*/ True, &type)) 
 	{
@@ -565,13 +571,12 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	    return;
 	}
 
-	puts("HANDLING NOW");
-	
 	/* We have the complete selection data.*/
 	[self handle_selection: e->selection type:type propdata:&pdata];
     }
 }
 
+/* This is used for INCR transfers.  See the ICCCM for the details. */
 - (void) property_event:(XPropertyEvent *)e
 {
     struct propdata pdata;
@@ -601,6 +606,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 
 - (void) handle_targets: (Atom)selection propdata:(struct propdata *)pdata
 {
+    /* Find a type we can handle and prefer from the list of ATOMs. */
     Atom preferred = find_preferred (pdata);
 
     if (None == preferred) 
@@ -612,30 +618,66 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	preferred = XA_STRING;
     }
 
+    DB ("requesting %s\n", XGetAtomName (x_dpy, preferred));
     request_atom = preferred;
     XConvertSelection (x_dpy, selection, preferred, selection,
 		       _selection_window, CurrentTime);    
 }
 
-/* This handles the image/png type of selection (typically in CLIPBOARD). */
-- (void) handle_png: (struct propdata *)pdata
+/* This handles the image type of selection (typically in CLIPBOARD). */
+- (void) handle_image: (struct propdata *)pdata extension:(NSString *)fileext
 {
-    /* TODO Use the NSPasteboard code I wrote that may work... */
+    NSString *pbtype;
+    NSArray *pbtypes;
+    NSUInteger length;
+    NSData *data;
+
+    pbtype = NSCreateFileContentsPboardType (fileext);
+    if (nil == pbtype) 
+    {
+	fprintf (stderr, "unknown extension or unable to create PboardType\n");
+	return;
+    }
+    
+    DB ("%s\n", [pbtype cStringUsingEncoding:NSISOLatin1StringEncoding]); 
+    
+    pbtypes = [NSArray arrayWithObject: pbtype];
+    if (nil == pbtypes) 
+    {
+       DB ("error creating NSArray\n");
+       [pbtype release];
+       return;
+    }
+    
+    length = pdata->length;
+    data = [[NSData alloc] initWithBytes:pdata->data length:length];
+    if (nil == data)
+    {
+	[pbtype release];
+	[pbtypes release];
+	return;
+    }
+
+    [_pasteboard declareTypes:pbtypes owner:self];
+    if (YES != [_pasteboard setData:data forType:pbtype])
+    {
+	DB ("writing pasteboard data failed!\n");
+    }
+
+    [pbtype release];
+    [pbtypes release];
+    [data release];
+    
+    DB ("handled image\n");
 }
 
 /* This handles the UTF8_STRING type of selection. */
 - (void) handle_utf8_string: (struct propdata *)pdata
 {
-    size_t i;
-    unsigned char *p = pdata->data;
-
-    puts("HANDLE UTF8_STRING");
-    for (i = 0; i < pdata->length; ++i) {
-	printf("%c", p[i]);
-    }
-    puts("");
-
     NSString *string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSUTF8StringEncoding];
+    if (nil == string)
+	return;
+
     [_pasteboard setString:string forType:NSStringPboardType];
     [string release];
 }
@@ -643,13 +685,15 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 /* This handles the XA_STRING type, which should be in Latin-1. */
 - (void) handle_string: (struct propdata *)pdata
 {
-    puts("STRING");
-
     NSString *string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSISOLatin1StringEncoding];
+    if (nil == string)
+	return;
+
     [_pasteboard setString:string forType:NSStringPboardType];
     [string release];
 }
 
+/* This is called when the selection is completely retrieved from another client. */
 /* Warning: this frees the propdata in most cases. */
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata
 {
@@ -659,8 +703,12 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     } 
     else if (type == atoms->image_png)
     {
-	[self handle_png:pdata];
+	[self handle_image:pdata extension:@".png"];
     } 
+    else if (type == atoms->image_jpeg)
+    {
+	[self handle_image:pdata extension:@".jpeg"];
+    }
     else if (type == atoms->utf8_string) 
     {
 	[self handle_utf8_string:pdata];
@@ -674,7 +722,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	free_propdata(pdata);
     }
     
-    if (selection == atoms->clipboard)
+    if (selection == atoms->clipboard && pdata->data)
     {
 	free_propdata(&request_data.propdata);
 	request_data.propdata = *pdata;
@@ -697,7 +745,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 {
     TRACE ();
 
-    puts("PB changed owner");
+    DB ("PB changed owner");
 
     /* Right now we don't care with this. */
 }
@@ -721,6 +769,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     _selection_window = XCreateSimpleWindow (x_dpy, DefaultRootWindow (x_dpy),
 					     0, 0, 1, 1, 0, pixel, pixel);
 
+    /* This is used to get PropertyNotify events when doing INCR transfers. */
     XSelectInput (x_dpy, _selection_window, PropertyChangeMask);
 
     request_atom = None;
