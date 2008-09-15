@@ -89,7 +89,7 @@ struct propdata {
 - (void) notify_event:(XSelectionEvent *)e;
 - (void) property_event:(XPropertyEvent *)e;
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata;
-- (void) reclaim_clipboard;
+- (void) claim_clipboard;
 - (void) set_clipboard_manager;
 
 @end
