@@ -20,7 +20,8 @@ struct atom_list *atoms = &atom_list_inst;
 static int x_grab_count;
 static Bool x_grab_synced;
 
-static BOOL _is_active = YES;		/* FIXME: should query server */ /*GPS why? Is there a race?*/
+static BOOL _is_active = YES;		/* FIXME: should query server */ 
+/*gstaplin: why? Is there a race?*/
 
 static x_selection *_selection_object;
 
@@ -72,6 +73,7 @@ static void x_init (void) {
     atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
     atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
     atoms->image_png = XInternAtom (x_dpy, "image/png", False);
+    atoms->image_jpeg = XInternAtom (x_dpy, "image/jpeg", False);
     atoms->incr = XInternAtom (x_dpy, "INCR", False);
     atoms->atom = XInternAtom (x_dpy, "ATOM", False);
     atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
@@ -91,20 +93,19 @@ static void x_init (void) {
     x_input_run ();
 
     [_selection_object set_clipboard_manager];
-    [_selection_object reclaim_clipboard];
+    [_selection_object claim_clipboard];
 }
 
 static void x_shutdown (void) {
-    /*GPS: signal_handler() calls this, and I don't think these are async-signal safe. */
-    /*TODO use a socketpair() to trigger a cleanup.  This is totally unsafe according to Jordan. */
+    /*gstaplin: signal_handler() calls this, and I don't think these are async-signal safe. */
+    /*TODO use a socketpair() to trigger a cleanup.  This is totally unsafe according to Jordan.  It's a segfault waiting to happen on a signal*/
 
     [_selection_object release];
     _selection_object = nil;
 
-
     XCloseDisplay (x_dpy);
     x_dpy = NULL;
-    exit(0); //GPS this is almost certainly unsafe (sigaction(2) doesn't list it).
+    exit(0); 
 }
 
 static void x_error_shutdown (void) {
