@@ -36,6 +36,13 @@
 
 #include <unistd.h> /*GPS may not be needed now */
 
+// These will be set by X11Controller.m once this is integrated into a server thread
+BOOL pbproxy_active = YES;
+BOOL pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
+BOOL pbproxy_clipboard_to_pasteboard = YES;
+BOOL pbproxy_pasteboard_to_primary = YES;
+BOOL pbproxy_pasteboard_to_clipboard = YES;
+
 @implementation x_selection
 
 static struct propdata null_propdata = {NULL, 0};
