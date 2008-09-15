@@ -25,7 +25,7 @@ extern int x_apple_wm_event_base, x_apple_wm_error_base;
 
 struct atom_list {
     Atom primary, clipboard, text, utf8_string, string, targets, multiple,
-	cstring, image_png, incr, atom, clipboard_manager;
+	cstring, image_png, image_jpeg, incr, atom, clipboard_manager;
 };
 
 extern struct atom_list *atoms;
