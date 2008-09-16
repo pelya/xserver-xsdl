@@ -34,8 +34,6 @@
 #include <stdlib.h>
 #include <X11/Xatom.h>
 
-#include <unistd.h> /*GPS may not be needed now */
-
 // These will be set by X11Controller.m once this is integrated into a server thread
 BOOL pbproxy_active = YES;
 BOOL pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
@@ -69,6 +67,8 @@ is_incr_type (XSelectionEvent *e)
     unsigned long numitems = 0UL, bytesleft = 0UL;
     unsigned char *chunk;
        
+    TRACE ();
+
     if (Success != XGetWindowProperty (x_dpy, e->requestor, e->property,
 				       /*offset*/ 0L, /*length*/ 4UL,
 				       /*Delete*/ False,
@@ -91,6 +91,8 @@ find_preferred (struct propdata *pdata)
     Atom a = None;
     size_t i;
     Bool png = False, utf8 = False, string = False;
+
+    TRACE ();
 
     if (pdata->length % sizeof (a))
     {
@@ -149,6 +151,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     unsigned char *buf = NULL, *chunk = NULL;
     size_t buflen = 0, chunkbytesize = 0;
     int format;
+
+    TRACE ();
     
     if(None == property)
 	return True;
@@ -243,6 +247,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  */
 - (void) release_pending
 {
+    TRACE ();
+
     free_propdata (&pending.propdata);
     pending.requestor = None;
     pending.selection = None;
@@ -254,6 +260,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 {
     unsigned char *newdata;
     size_t newlength;
+    
+    TRACE ();
     
     if (requestor != pending.requestor)
     {
@@ -330,6 +338,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 {
     Window w;
 
+    TRACE ();
+
     w = XGetSelectionOwner (x_dpy, atoms->primary);
 
     if (None != w)
@@ -350,6 +360,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  */
 - (void) set_clipboard_manager
 {
+    TRACE ();
+
     if (None != XGetSelectionOwner (x_dpy, atoms->clipboard_manager))
     {
 	fprintf (stderr, "A clipboard manager is already running!\n"
@@ -368,20 +380,23 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 - (void) clear_event:(XSelectionClearEvent *)e
 {
     TRACE ();
+    
+    DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
  
     if (atoms->clipboard == e->selection)
     {
 	/* 
 	 * We lost ownership of the CLIPBOARD.
 	 */
+	
+
 	[self claim_clipboard];
     } 
     else if (atoms->clipboard_manager == e->selection)
     {
-	/*TODO/HMM  What should we do here? */
 	/* Another CLIPBOARD_MANAGER has set itself as owner.
          * a) we can call [self set_clipboard_manager] here and risk a war.
-	 * b) we can print a message and exit.
+	 * b) we can print a message and exit.  Ideally we would popup a message box.
 	 */
 	fprintf (stderr, "error: another clipboard manager was started!\n"); 
 	exit (EXIT_FAILURE);
@@ -395,6 +410,11 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 {
     Window owner;
     
+    TRACE ();
+
+    if (NO == pbproxy_clipboard_to_pasteboard)
+	return;
+
     owner = XGetSelectionOwner (x_dpy, atoms->clipboard);
     if (None == owner)
     {
@@ -403,14 +423,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	 * Set pbproxy's _selection_window as the owner, and continue.
 	 */
 	DB ("No clipboard owner.\n");
-
-	do 
-	{
-	    XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
-				CurrentTime);
-	} while (_selection_window != XGetSelectionOwner (x_dpy,
-							  atoms->clipboard));
-
+	[self own_clipboard];
 	return;
     }
     
@@ -419,10 +432,29 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     request_atom = atoms->targets;
     XConvertSelection (x_dpy, atoms->clipboard, atoms->targets,
 		       atoms->clipboard, _selection_window, CurrentTime);
+    XFlush (x_dpy);
     /* Now we will get a SelectionNotify event in the future. */
 }
 
+/* Greedily acquire the clipboard. */
+- (void) own_clipboard
+{
+
+    TRACE ();
+
+    /* We should perhaps have a boundary limit on the number of iterations... */
+    do 
+    {
+	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
+			    CurrentTime);
+    } while (_selection_window != XGetSelectionOwner (x_dpy,
+						      atoms->clipboard));
+}
+
+
 /* The preference should be for UTF8_STRING before the XA_STRING*/
+/* This should NOT be used for Atom transfers, because it uses 8 bits. */
+/* This was previously used for Atom transfers (incorrectly). */
 static Atom
 convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 {
@@ -454,19 +486,91 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	}
     }
     /* FIXME: handle COMPOUND_TEXT target */
-    /*gstaplin: should we [data release]? */
     [data release];
 
     return ret;
 }
 
-- (void) request_event:(XSelectionRequestEvent *)e
+/* 
+ * This responds to a TARGETS request.
+ * The result is a list of a Atoms that correspond to the types available
+ * for a selection.  
+ * For instance an application might provide a UTF8_STRING and a STRING
+ * (in Latin-1 encoding).  The requestor can then make the choice based on
+ * the targets list.
+ */
+- (void) send_targets:(XSelectionRequestEvent *)e
 {
-    /* Someone's asking us for the data on the pasteboard */
     XEvent reply;
-    NSString *data;
-    Atom target;
+    long list[2];
 
+    reply.xselection.type = SelectionNotify;
+    reply.xselection.selection = e->selection;
+    reply.xselection.target = e->target;
+    reply.xselection.requestor = e->requestor;
+    reply.xselection.time = e->time;
+    reply.xselection.property = None;    
+
+    /*
+    Todo
+    if (clipboard_data is an image) {
+      list[0] = atoms->image_jpeg;  or some such thing.
+    }
+    ...
+    */
+
+    list[0] = atoms->utf8_string;
+    list[1] = XA_STRING;
+     
+    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+		     32, PropModeReplace, (unsigned char *) list,
+		     sizeof (list) / sizeof (Atom));
+    reply.xselection.property = e->property;
+    /*
+     * We are supposed to use an empty event mask, and not propagate
+     * the event, according to the ICCCM.
+     */
+    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+}
+
+
+/*TODO finish this - it's flawed. */
+- (void) send_multiple:(XSelectionRequestEvent *)e
+{
+#if 0
+    XEvent reply;
+    int i, nitems;
+    unsigned long *atoms;
+
+    if (None == e->property)
+	return;
+
+    atoms = read_prop_32 (e->requestor, e->property, &nitems);
+    
+    if (atoms != NULL)
+    {
+	data = [_pasteboard stringForType:NSStringPboardType];
+	
+	for (i = 0; i < nitems; i += 2)
+        {
+	    Atom target = atoms[i], prop = atoms[i+1];
+	    
+	    atoms[i+1] = convert_1 (e, data, target, prop);
+	}
+
+	XChangeProperty (x_dpy, e->requestor, e->property, target,
+			 32, PropModeReplace, (unsigned char *) atoms,
+			 nitems);
+	XFree (atoms);
+    }
+#endif
+}
+
+- (void) send_string:(XSelectionRequestEvent *)e utf8:(BOOL)utf8
+{
+    XEvent reply;
+    NSArray *pbtypes;
+    
     TRACE ();
 
     reply.xselection.type = SelectionNotify;
@@ -474,60 +578,78 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     reply.xselection.target = e->target;
     reply.xselection.requestor = e->requestor;
     reply.xselection.time = e->time;
-    reply.xselection.property = None;
+    reply.xselection.property = None; 
 
-    target = e->target;
-    
-    if (target == atoms->targets) 
+    pbtypes = [_pasteboard types];
+
+    if ([pbtypes containsObject: NSStringPboardType])
     {
-	/* This is where we respond to the TARGETS request. */
-	long data[2];
-
-	data[0] = atoms->utf8_string;
-	data[1] = XA_STRING;
-
-	/*TODO add handling for when the data can be represented as an image. */
-
-	XChangeProperty (x_dpy, e->requestor, e->property, target,
-			 8, PropModeReplace, (unsigned char *) &data,
-			 sizeof (data));
-	reply.xselection.property = e->property;
-    }
-    else if (target == atoms->multiple)
-    {
-	if (e->property != None)
+	NSString *data = [_pasteboard stringForType:NSStringPboardType];
+	if (nil != data)
 	{
-	    int i, nitems;
-	    unsigned long *atoms;
+	    const char *bytes;
+	    NSUInteger length;
 
-	    atoms = read_prop_32 (e->requestor, e->property, &nitems);
-
-	    if (atoms != NULL)
-	    {
-		data = [_pasteboard stringForType:NSStringPboardType];
-
-		for (i = 0; i < nitems; i += 2)
-		{
-		    Atom target = atoms[i], prop = atoms[i+1];
-
-		    atoms[i+1] = convert_1 (e, data, target, prop);
-		}
-
-		XChangeProperty (x_dpy, e->requestor, e->property, target,
-				 32, PropModeReplace, (unsigned char *) atoms,
-				 nitems);
-		XFree (atoms);
+	    if (utf8) {
+		bytes = [data UTF8String];
+		/*
+		 * We don't want the UTF-8 string length here.  
+		 * We want the length in bytes.
+		 */
+		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
+	    } else {
+		bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
+		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
 	    }
+
+	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+			     8, PropModeReplace, (unsigned char *) bytes, length);
+	    
+	    reply.xselection.property = e->property;
+
+	    [data release];
 	}
     }
-
-    data = [_pasteboard stringForType:NSStringPboardType];
-    if (data != nil)
-    {
-	reply.xselection.property = convert_1 (e, data, target, e->property);
-    }
-
+    /* Always send a response, even if the property value is None. */
     XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+}
+
+- (void) request_event:(XSelectionRequestEvent *)e
+{
+    /* Someone's asking us for the data on the pasteboard */
+    TRACE ();
+
+    /* TODO We should also keep track of the time of the selection, and 
+     * according to the ICCCM "refuse the request" if the event timestamp
+     * is before we owned it.
+     * What should we base the time on?  How can we get the current time just
+     * before an XSetSelectionOwner?  Is it the server's time, or the clients?
+     * According to the XSelectionRequestEvent manual page, the Time value
+     * may be set to CurrentTime or a time, so that makes it a bit different.
+     * Perhaps we should just punt and ignore races.
+     */
+    
+    if (e->target == atoms->targets) 
+    {
+	/* The paste requestor wants to know what TARGETS we support. */
+	[self send_targets:e];
+    }
+    else if (e->target == atoms->multiple)
+    {
+	[self send_multiple:e];
+    } 
+    else if (e->target == atoms->utf8_string)
+    {
+	[self send_string:e utf8:YES];
+    } 
+    else if (e->target == atoms->string)
+    {
+	[self send_string:e utf8:NO];
+    } 
+    else 
+    {
+	//[self send_null:e];
+    }
 }
 
 /* This handles the events resulting from an XConvertSelection request. */
@@ -536,6 +658,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     Atom type;
     struct propdata pdata;
 	
+    TRACE ();
+
     [self release_pending];
     
     DB ("notify_event\n");
@@ -551,7 +675,6 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	 * This is an INCR-style transfer, which means that we 
 	 * will get the data after a series of PropertyNotify events.
 	 */
-
 	DB ("is INCR\n");
 
 	if (get_property (e->requestor, e->property, &pdata, /*Delete*/ True, &type)) 
@@ -573,6 +696,9 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 
 	/* We have the complete selection data.*/
 	[self handle_selection: e->selection type:type propdata:&pdata];
+
+	if (pbproxy_clipboard_to_pasteboard && e->selection == atoms->clipboard)
+	    [self own_clipboard];
     }
 }
 
@@ -582,10 +708,18 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     struct propdata pdata;
     Atom type;
 
+    TRACE ();
+
     if (None != pending.requestor && PropertyNewValue == e->state) 
     {
+	DB ("pending.requestor 0x%lx\n", pending.requestor);
+
 	if (get_property (e->window, e->atom, &pdata, /*Delete*/ True, &type))
-	{
+        {
+	    if (pbproxy_clipboard_to_pasteboard && pending.selection == atoms->clipboard)
+		[self own_clipboard];
+    
+	    [self release_pending];
 	    return;
 	}
 
@@ -593,6 +727,9 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	{
 	    /* We completed the transfer. */
 	    [self handle_selection: pending.selection type: type propdata: &pending.propdata];
+	   
+	    if (pbproxy_clipboard_to_pasteboard && pending.selection == atoms->clipboard)
+		[self own_clipboard];
 	    pending.propdata = null_propdata;
 	    pending.requestor = None;
 	    pending.selection = None;
@@ -607,8 +744,12 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 - (void) handle_targets: (Atom)selection propdata:(struct propdata *)pdata
 {
     /* Find a type we can handle and prefer from the list of ATOMs. */
-    Atom preferred = find_preferred (pdata);
+    Atom preferred;
 
+    TRACE ();
+
+    preferred = find_preferred (pdata);
+    
     if (None == preferred) 
     {
 	/* 
@@ -624,6 +765,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 		       _selection_window, CurrentTime);    
 }
 
+/*TODO I think this should convert to a standard NSPasteboard format, 
+ * such as TIFF or PICT with a NSBitmapImageRep class.  */
 /* This handles the image type of selection (typically in CLIPBOARD). */
 - (void) handle_image: (struct propdata *)pdata extension:(NSString *)fileext
 {
@@ -631,6 +774,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     NSArray *pbtypes;
     NSUInteger length;
     NSData *data;
+
+    TRACE ();
 
     pbtype = NSCreateFileContentsPboardType (fileext);
     if (nil == pbtype) 
@@ -674,22 +819,48 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 /* This handles the UTF8_STRING type of selection. */
 - (void) handle_utf8_string: (struct propdata *)pdata
 {
-    NSString *string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSUTF8StringEncoding];
+    NSString *string;
+    NSArray *pbtypes;
+
+    TRACE ();
+    
+    string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSUTF8StringEncoding];
+ 
     if (nil == string)
 	return;
 
-    [_pasteboard setString:string forType:NSStringPboardType];
+    pbtypes = [NSArray arrayWithObject:NSStringPboardType];
+
+    if (nil != pbtypes)
+    {
+	[_pasteboard declareTypes:pbtypes owner:self];
+	[_pasteboard setString:string forType:NSStringPboardType];
+	[pbtypes release];
+    }
+
     [string release];
 }
 
 /* This handles the XA_STRING type, which should be in Latin-1. */
 - (void) handle_string: (struct propdata *)pdata
 {
-    NSString *string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSISOLatin1StringEncoding];
+    NSString *string; 
+    NSArray *pbtypes;
+
+    string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSISOLatin1StringEncoding];
+    
     if (nil == string)
 	return;
 
-    [_pasteboard setString:string forType:NSStringPboardType];
+    pbtypes = [NSArray arrayWithObject:NSStringPboardType];
+
+    if (nil != pbtypes)
+    {
+	[_pasteboard declareTypes:pbtypes owner:self];
+	[_pasteboard setString:string forType:NSStringPboardType];
+	[pbtypes release];
+    }
+
     [string release];
 }
 
@@ -724,6 +895,9 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     
     if (selection == atoms->clipboard && pdata->data)
     {
+	/* This may not be used. 
+	 * We should really pull from the data in the NSPasteboard.
+	 */
 	free_propdata(&request_data.propdata);
 	request_data.propdata = *pdata;
 	request_data.type = type;
@@ -744,8 +918,6 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 - (void) pasteboardChangedOwner:(NSPasteboard *)sender
 {
     TRACE ();
-
-    DB ("PB changed owner");
 
     /* Right now we don't care with this. */
 }
@@ -806,3 +978,4 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 }
 
 @end
+

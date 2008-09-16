@@ -91,6 +91,7 @@ struct propdata {
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata;
 - (void) claim_clipboard;
 - (void) set_clipboard_manager;
+- (void) own_clipboard;
 
 @end
 
