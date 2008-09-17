@@ -21,12 +21,7 @@ CFRunLoopSourceRef x_dpy_source;
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
 
-static FILE *getSelectionLog(void) {
-    return fopen("/tmp/selection.log", "a");
-}
-
 static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
-    FILE *fp = getSelectionLog();
 
     switch (e->type - x_apple_wm_event_base) {              
         case AppleWMActivationNotify:
@@ -45,19 +40,15 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
             break;
             
         case AppleWMPasteboardNotify:
-	    fprintf(fp, "AppleWMPasteboardNotify\n");
-	   
             switch (e->kind) {
                 case AppleWMCopyToPasteboard:
                     [x_selection_object () x_copy:e->time];
             }
             break;
     }
-    fclose(fp);
 }
 
 void x_input_run (void) {
-    FILE *fp = getSelectionLog();
 
     while (XPending (x_dpy) != 0) {
         XEvent e;       
@@ -66,23 +57,18 @@ void x_input_run (void) {
         
         switch (e.type) {                
             case SelectionClear:
-		fprintf(fp, "SelectionClear\n");
-
 	        [x_selection_object () clear_event:&e.xselectionclear];
                 break;
                 
             case SelectionRequest:
-		fprintf(fp, "SelectionRequest\n");
                 [x_selection_object () request_event:&e.xselectionrequest];
                 break;
                 
             case SelectionNotify:
-		fprintf(fp, "SelectionNotify\n");
                 [x_selection_object () notify_event:&e.xselection];
                 break;
                 
 	    case PropertyNotify:
-		fprintf(fp, "PropertyNotify\n");
 		[x_selection_object () property_event:&e.xproperty];
 		break;
 
@@ -96,7 +82,6 @@ void x_input_run (void) {
 
 	XFlush(x_dpy);
     }
-    fclose(fp);
 }
 
 static int add_input_socket (int sock, CFOptionFlags callback_types,
