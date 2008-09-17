@@ -114,7 +114,8 @@ compChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     pScreen->ChangeWindowAttributes = cs->ChangeWindowAttributes;
     ret = pScreen->ChangeWindowAttributes(pWin, mask);
 
-    if (ret && (mask & CWBackingStore)) {
+    if (ret && (mask & CWBackingStore) &&
+	    pScreen->backingStoreSupport != NotUseful) {
 	if (pWin->backingStore != NotUseful) {
 	    compRedirectWindow(serverClient, pWin, CompositeRedirectAutomatic);
 	    pWin->backStorage = (pointer) (intptr_t) 1;
