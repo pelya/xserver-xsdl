@@ -215,9 +215,10 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
                                  dfb->greenMask, dfb->blueMask)) {
         return FALSE;
     }
-    
-    if(dfb->depth > 8)
-        miSetVisualTypesAndMasks(8, PseudoColorMask, 8, PseudoColor, 0, 0, 0);
+  
+// TODO: Make PseudoColor visuals not suck in TrueColor mode  
+//    if(dfb->depth > 8)
+//        miSetVisualTypesAndMasks(8, PseudoColorMask, 8, PseudoColor, 0, 0, 0);
     if(dfb->depth > 15)
         miSetVisualTypesAndMasks(15, LARGE_VISUALS, 5, TrueColor, 0x7c00, 0x03e0, 0x001f);
     if(dfb->depth > 24)
