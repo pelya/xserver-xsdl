@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <X11/Xatom.h>
+#import <AppKit/NSBitmapImageRep.h>
 
 // These will be set by X11Controller.m once this is integrated into a server thread
 BOOL pbproxy_active = YES;
@@ -797,55 +798,66 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 		       _selection_window, CurrentTime);    
 }
 
-/*TODO I think this should convert to a standard NSPasteboard format, 
- * such as TIFF or PICT with a NSBitmapImageRep class.  */
 /* This handles the image type of selection (typically in CLIPBOARD). */
+/* We convert to a TIFF, so that other applications can paste more easily. */
 - (void) handle_image: (struct propdata *)pdata extension:(NSString *)fileext
 {
-    NSString *pbtype;
     NSArray *pbtypes;
     NSUInteger length;
-    NSData *data;
+    NSData *data, *tiff;
+    NSBitmapImageRep *bmimage;
 
     TRACE ();
 
-    pbtype = NSCreateFileContentsPboardType (fileext);
-    if (nil == pbtype) 
-    {
-	fprintf (stderr, "unknown extension or unable to create PboardType\n");
-	return;
-    }
-    
-    DB ("%s\n", [pbtype cStringUsingEncoding:NSISOLatin1StringEncoding]); 
-    
-    pbtypes = [NSArray arrayWithObjects: pbtype, nil];
-    if (nil == pbtypes) 
-    {
-       DB ("error creating NSArray\n");
-       [pbtype release];
-       return;
-    }
-    
     length = pdata->length;
     data = [[NSData alloc] initWithBytes:pdata->data length:length];
+
     if (nil == data)
     {
-	[pbtype release];
-	[pbtypes release];
+	DB ("unable to create NSData object!\n");
 	return;
     }
 
+    bmimage = [[NSBitmapImageRep alloc] initWithData:data];
+
+    if (nil == bmimage)
+    {
+	DB ("unable to create NSBitmapImageRep!\n");
+	return;
+    }
+
+    @try 
+    {
+	tiff = [bmimage TIFFRepresentation];
+    }
+
+    @catch (NSException *e) 
+    {
+	DB ("NSTIFFException!\n");
+	[data release];
+	[bmimage release];
+	return;
+    }
+    
+    pbtypes = [NSArray arrayWithObjects:NSTIFFPboardType, nil];
+
+    if (nil == pbtypes)
+    {
+	[tiff release];
+	[data release];
+	[bmimage release];
+    }
+
     [_pasteboard declareTypes:pbtypes owner:self];
-    if (YES != [_pasteboard setData:data forType:pbtype])
+    if (YES != [_pasteboard setData:data forType:NSTIFFPboardType])
     {
 	DB ("writing pasteboard data failed!\n");
     }
 
-    [pbtype release];
     [pbtypes release];
     [data release];
-    
-    DB ("handled image\n");
+    [tiff release];
+    [bmimage release];
 }
 
 /* This handles the UTF8_STRING type of selection. */
