@@ -94,11 +94,11 @@ XIInitKnownProperties(void)
  */
 long
 XIRegisterPropertyHandler(DeviceIntPtr         dev,
-                          Bool (*SetProperty) (DeviceIntPtr dev,
-                                               Atom property,
-                                               XIPropertyValuePtr prop),
-                          Bool (*GetProperty) (DeviceIntPtr dev,
-                                               Atom property))
+                          int (*SetProperty) (DeviceIntPtr dev,
+                                              Atom property,
+                                              XIPropertyValuePtr prop),
+                          int (*GetProperty) (DeviceIntPtr dev,
+                                              Atom property))
 {
     XIPropertyHandlerPtr new_handler;
 
@@ -252,6 +252,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     XIPropertyValuePtr          prop_value;
     XIPropertyValueRec          new_value;
     Bool                        add = FALSE;
+    int                         rc;
 
     size_in_bytes = format >> 3;
 
@@ -325,12 +326,16 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
             XIPropertyHandlerPtr handler = dev->properties.handlers;
             while(handler)
             {
-                if (handler->SetProperty &&
-                    !handler->SetProperty(dev, prop->propertyName, &new_value))
+                if (handler->SetProperty)
                 {
-                    if (new_value.data)
-                        xfree (new_value.data);
-                    return (BadValue);
+                    rc = handler->SetProperty(dev, prop->propertyName,
+                                              &new_value);
+                    if (rc != Success)
+                    {
+                        if (new_value.data)
+                            xfree (new_value.data);
+                        return (rc);
+                    }
                 }
                 handler = handler->next;
             }
@@ -349,7 +354,6 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
         dev->properties.properties = prop;
     }
 
-
     if (sendevent)
     {
         event.type      = DevicePropertyNotify;
@@ -363,16 +367,17 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     return(Success);
 }
 
-/**
- *
- */
-_X_EXPORT XIPropertyValuePtr
-XIGetDeviceProperty (DeviceIntPtr dev, Atom property)
+int
+XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
 {
     XIPropertyPtr   prop = XIFetchDeviceProperty (dev, property);
+    int rc;
 
     if (!prop)
-        return NULL;
+    {
+        *value = NULL;
+        return BadAtom;
+    }
 
     /* If we can, try to update the property value first */
     if (dev->properties.handlers)
@@ -381,11 +386,20 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property)
         while(handler)
         {
             if (handler->GetProperty)
-                handler->GetProperty(dev, prop->propertyName);
+            {
+                rc = handler->GetProperty(dev, prop->propertyName);
+                if (rc != Success)
+                {
+                    *value = NULL;
+                    return rc;
+                }
+            }
             handler = handler->next;
         }
     }
-    return &prop->value;
+
+    *value = &prop->value;
+    return Success;
 }
 
 int
@@ -489,6 +503,8 @@ ProcXChangeDeviceProperty (ClientPtr client)
                                  stuff->type, (int)format,
                                  (int)mode, len, (pointer)&stuff[1], TRUE);
 
+    if (rc != Success)
+        client->errorValue = stuff->property;
     return rc;
 }
 
@@ -570,9 +586,12 @@ ProcXGetDeviceProperty (ClientPtr client)
         return(client->noClientException);
     }
 
-    prop_value = XIGetDeviceProperty(dev, stuff->property);
-    if (!prop_value)
-        return BadAtom;
+    rc = XIGetDeviceProperty(dev, stuff->property, &prop_value);
+    if (rc != Success)
+    {
+        client->errorValue = stuff->property;
+        return rc;
+    }
 
     /* If the request type and actual type don't match. Return the
     property information, but not the data. */

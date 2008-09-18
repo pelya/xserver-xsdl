@@ -364,11 +364,11 @@ typedef struct _XIPropertyHandler
 {
     struct _XIPropertyHandler* next;
     long id;
-    Bool (*SetProperty) (DeviceIntPtr dev,
-                         Atom property,
-                         XIPropertyValuePtr prop);
-    Bool (*GetProperty) (DeviceIntPtr dev,
-                         Atom property);
+    int (*SetProperty) (DeviceIntPtr dev,
+                        Atom property,
+                        XIPropertyValuePtr prop);
+    int (*GetProperty) (DeviceIntPtr dev,
+                        Atom property);
 } XIPropertyHandler, *XIPropertyHandlerPtr;
 
 /* states for devices */

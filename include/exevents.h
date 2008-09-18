@@ -216,19 +216,19 @@ extern int XIChangeDeviceProperty(
         Bool                    /* sendevent*/
         );
 
-extern XIPropertyValuePtr XIGetDeviceProperty(
+extern int XIGetDeviceProperty(
         DeviceIntPtr            /* dev */,
-        Atom                    /* property */
+        Atom                    /* property */,
+        XIPropertyValuePtr*     /* value */
 );
-
 
 extern long XIRegisterPropertyHandler(
         DeviceIntPtr         dev,
-        Bool (*SetProperty) (DeviceIntPtr dev,
-                             Atom property,
-                             XIPropertyValuePtr prop),
-        Bool (*GetProperty) (DeviceIntPtr dev,
-                             Atom property)
+        int (*SetProperty) (DeviceIntPtr dev,
+                            Atom property,
+                            XIPropertyValuePtr prop),
+        int (*GetProperty) (DeviceIntPtr dev,
+                            Atom property)
 );
 
 extern void XIUnRegisterPropertyHandler(
