@@ -42,7 +42,6 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XInput.h>
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/geproto.h>
 #include "extnsionst.h"
