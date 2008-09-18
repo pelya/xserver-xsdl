@@ -138,15 +138,6 @@ XIUnRegisterPropertyHandler(DeviceIntPtr dev, long id)
     xfree(curr);
 }
 
-static void
-XIInitDevicePropertyValue (XIPropertyValuePtr property_value)
-{
-    property_value->type   = None;
-    property_value->format = 0;
-    property_value->size   = 0;
-    property_value->data   = NULL;
-}
-
 static XIPropertyPtr
 XICreateDeviceProperty (Atom property)
 {
@@ -156,29 +147,32 @@ XICreateDeviceProperty (Atom property)
     if (!prop)
         return NULL;
 
-    prop->next         = NULL;
-    prop->propertyName = property;
-    prop->is_pending   = FALSE;
-    prop->range        = FALSE;
-    prop->fromClient   = FALSE;
-    prop->immutable    = FALSE;
-    prop->num_valid    = 0;
-    prop->valid_values = NULL;
+    prop->next          = NULL;
+    prop->propertyName  = property;
+    prop->value.type   = None;
+    prop->value.format = 0;
+    prop->value.size   = 0;
+    prop->value.data   = NULL;
 
-    XIInitDevicePropertyValue (&prop->current);
-    XIInitDevicePropertyValue (&prop->pending);
     return prop;
+}
+
+static XIPropertyPtr
+XIFetchDeviceProperty(DeviceIntPtr dev, Atom property)
+{
+    XIPropertyPtr   prop;
+
+    for (prop = dev->properties.properties; prop; prop = prop->next)
+        if (prop->propertyName == property)
+            return prop;
+    return NULL;
 }
 
 static void
 XIDestroyDeviceProperty (XIPropertyPtr prop)
 {
-    if (prop->valid_values)
-        xfree (prop->valid_values);
-    if (prop->current.data)
-        xfree(prop->current.data);
-    if (prop->pending.data)
-        xfree(prop->pending.data);
+    if (prop->value.data)
+        xfree(prop->value.data);
     xfree(prop);
 }
 
@@ -229,9 +223,6 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
         if (prop->propertyName == property)
             break;
 
-    if (!prop->fromClient && fromClient)
-        return BadAtom;
-
     if (prop)
     {
         *prev = prop->next;
@@ -251,8 +242,7 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 int
 XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                         int format, int mode, unsigned long len,
-                        pointer value, Bool sendevent, Bool pending,
-                        Bool fromClient)
+                        pointer value, Bool sendevent)
 {
     XIPropertyPtr               prop;
     devicePropertyNotify        event;
@@ -266,20 +256,16 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     size_in_bytes = format >> 3;
 
     /* first see if property already exists */
-    prop = XIQueryDeviceProperty (dev, property);
+    prop = XIFetchDeviceProperty (dev, property);
     if (!prop)   /* just add to list */
     {
         prop = XICreateDeviceProperty (property);
         if (!prop)
             return(BadAlloc);
-        prop->fromClient = fromClient;
         add = TRUE;
         mode = PropModeReplace;
     }
-    if (pending && prop->is_pending)
-        prop_value = &prop->pending;
-    else
-        prop_value = &prop->current;
+    prop_value = &prop->value;
 
     /* To append or prepend to a property the request format and type
      must match those of the already defined property.  The
@@ -334,12 +320,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
             memcpy ((char *) old_data, (char *) prop_value->data,
                     prop_value->size * size_in_bytes);
 
-        /* We must set pendingProperties TRUE before we commit to the driver,
-           we're in a single thread after all
-         */
-        if (pending && prop->is_pending)
-            dev->properties.pendingProperties = TRUE;
-        if (pending && dev->properties.handlers)
+        if (dev->properties.handlers)
         {
             XIPropertyHandlerPtr handler = dev->properties.handlers;
             while(handler)
@@ -357,9 +338,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
         if (prop_value->data)
             xfree (prop_value->data);
         *prop_value = new_value;
-    }
-
-    else if (len == 0)
+    } else if (len == 0)
     {
         /* do nothing */
     }
@@ -384,97 +363,29 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     return(Success);
 }
 
-XIPropertyPtr
-XIQueryDeviceProperty (DeviceIntPtr dev, Atom property)
+/**
+ *
+ */
+_X_EXPORT XIPropertyValuePtr
+XIGetDeviceProperty (DeviceIntPtr dev, Atom property)
 {
-    XIPropertyPtr   prop;
-
-    for (prop = dev->properties.properties; prop; prop = prop->next)
-        if (prop->propertyName == property)
-            return prop;
-    return NULL;
-}
-
-XIPropertyValuePtr
-XIGetDeviceProperty (DeviceIntPtr dev, Atom property, Bool pending)
-{
-    XIPropertyPtr   prop = XIQueryDeviceProperty (dev, property);
+    XIPropertyPtr   prop = XIFetchDeviceProperty (dev, property);
 
     if (!prop)
         return NULL;
-    if (pending && prop->is_pending)
-        return &prop->pending;
-    else {
-        /* If we can, try to update the property value first */
-        if (dev->properties.handlers)
+
+    /* If we can, try to update the property value first */
+    if (dev->properties.handlers)
+    {
+        XIPropertyHandlerPtr handler = dev->properties.handlers;
+        while(handler)
         {
-            XIPropertyHandlerPtr handler = dev->properties.handlers;
-            while(handler)
-            {
-                if (handler->GetProperty)
-                    handler->GetProperty(dev, prop->propertyName);
-                handler = handler->next;
-            }
+            if (handler->GetProperty)
+                handler->GetProperty(dev, prop->propertyName);
+            handler = handler->next;
         }
-        return &prop->current;
     }
-}
-
-int
-XIConfigureDeviceProperty (DeviceIntPtr dev, Atom property,
-                           Bool pending, Bool range, Bool immutable,
-                           int num_values, INT32 *values)
-{
-    XIPropertyPtr   prop = XIQueryDeviceProperty (dev, property);
-    Bool            add = FALSE;
-    INT32           *new_values;
-
-    if (!prop)
-    {
-        prop = XICreateDeviceProperty (property);
-        if (!prop)
-            return(BadAlloc);
-        add = TRUE;
-    } else if (prop->immutable && !immutable)
-        return(BadAccess);
-
-    /*
-     * ranges must have even number of values
-     */
-    if (range && (num_values & 1))
-        return BadMatch;
-
-    new_values = xalloc (num_values * sizeof (INT32));
-    if (!new_values && num_values)
-        return BadAlloc;
-    if (num_values)
-        memcpy (new_values, values, num_values * sizeof (INT32));
-
-    /*
-     * Property moving from pending to non-pending
-     * loses any pending values
-     */
-    if (prop->is_pending && !pending)
-    {
-        if (prop->pending.data)
-            xfree (prop->pending.data);
-        XIInitDevicePropertyValue (&prop->pending);
-    }
-
-    prop->is_pending = pending;
-    prop->range = range;
-    prop->immutable = immutable;
-    prop->num_valid = num_values;
-    if (prop->valid_values)
-        xfree (prop->valid_values);
-    prop->valid_values = new_values;
-
-    if (add) {
-        prop->next = dev->properties.properties;
-        dev->properties.properties = prop;
-    }
-
-    return Success;
+    return &prop->value;
 }
 
 int
@@ -527,71 +438,6 @@ ProcXListDeviceProperties (ClientPtr client)
 }
 
 int
-ProcXQueryDeviceProperty (ClientPtr client)
-{
-    REQUEST(xQueryDevicePropertyReq);
-    xQueryDevicePropertyReply   rep;
-    DeviceIntPtr                dev;
-    XIPropertyPtr               prop;
-    int                         rc;
-
-    REQUEST_SIZE_MATCH(xQueryDevicePropertyReq);
-
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixReadAccess);
-
-    if (rc != Success)
-        return rc;
-
-    prop = XIQueryDeviceProperty (dev, stuff->property);
-    if (!prop)
-        return BadName;
-
-    rep.repType = X_Reply;
-    rep.length = prop->num_valid;
-    rep.sequenceNumber = client->sequence;
-    rep.pending = prop->is_pending;
-    rep.range = prop->range;
-    rep.immutable = prop->immutable;
-    rep.fromClient = prop->fromClient;
-    if (client->swapped)
-    {
-        int n;
-        swaps (&rep.sequenceNumber, n);
-        swapl (&rep.length, n);
-    }
-    WriteReplyToClient (client, sizeof (xQueryDevicePropertyReply), &rep);
-    if (prop->num_valid)
-    {
-        client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
-        WriteSwappedDataToClient(client, prop->num_valid * sizeof(INT32),
-                                 prop->valid_values);
-    }
-    return(client->noClientException);
-}
-
-int
-ProcXConfigureDeviceProperty (ClientPtr client)
-{
-    REQUEST(xConfigureDevicePropertyReq);
-    DeviceIntPtr        dev;
-    int                 num_valid;
-    int                 rc;
-
-    REQUEST_AT_LEAST_SIZE(xConfigureDevicePropertyReq);
-
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixReadAccess);
-
-    if (rc != Success)
-        return rc;
-
-    num_valid = stuff->length - (sizeof (xConfigureDevicePropertyReq) >> 2);
-    return XIConfigureDeviceProperty (dev, stuff->property,
-                                      stuff->pending, stuff->range,
-                                      FALSE, num_valid,
-                                      (INT32 *) (stuff + 1));
-}
-
-int
 ProcXChangeDeviceProperty (ClientPtr client)
 {
     REQUEST(xChangeDevicePropertyReq);
@@ -641,8 +487,7 @@ ProcXChangeDeviceProperty (ClientPtr client)
 
     rc = XIChangeDeviceProperty(dev, stuff->property,
                                  stuff->type, (int)format,
-                                 (int)mode, len, (pointer)&stuff[1], TRUE,
-                                 TRUE, TRUE);
+                                 (int)mode, len, (pointer)&stuff[1], TRUE);
 
     return rc;
 }
@@ -665,7 +510,6 @@ ProcXDeleteDeviceProperty (ClientPtr client)
         client->errorValue = stuff->property;
         return (BadAtom);
     }
-
 
     rc = XIDeleteDeviceProperty(dev, stuff->property, TRUE);
     return rc;
@@ -726,10 +570,7 @@ ProcXGetDeviceProperty (ClientPtr client)
         return(client->noClientException);
     }
 
-    if (prop->immutable && stuff->delete)
-        return BadAccess;
-
-    prop_value = XIGetDeviceProperty(dev, stuff->property, stuff->pending);
+    prop_value = XIGetDeviceProperty(dev, stuff->property);
     if (!prop_value)
         return BadAtom;
 
@@ -822,32 +663,6 @@ SProcXListDeviceProperties (ClientPtr client)
 }
 
 int
-SProcXQueryDeviceProperty (ClientPtr client)
-{
-    char n;
-    REQUEST(xQueryDevicePropertyReq);
-
-    swaps(&stuff->length, n);
-    swapl(&stuff->property, n);
-
-    REQUEST_SIZE_MATCH(xQueryDevicePropertyReq);
-    return (ProcXQueryDeviceProperty(client));
-}
-
-int
-SProcXConfigureDeviceProperty (ClientPtr client)
-{
-    char n;
-    REQUEST(xConfigureDevicePropertyReq);
-
-    swaps(&stuff->length, n);
-    swapl(&stuff->property, n);
-
-    REQUEST_SIZE_MATCH(xConfigureDevicePropertyReq);
-    return (ProcXConfigureDeviceProperty(client));
-}
-
-int
 SProcXChangeDeviceProperty (ClientPtr client)
 {
     char n;
@@ -900,17 +715,6 @@ SRepXListDeviceProperties(ClientPtr client, int size,
     swapl(&rep->length, n);
     swaps(&rep->nAtoms, n);
     /* properties will be swapped later, see ProcXListDeviceProperties */
-    WriteToClient(client, size, (char*)rep);
-}
-
-void
-SRepXQueryDeviceProperty(ClientPtr client, int size,
-                         xQueryDevicePropertyReply *rep)
-{
-    char n;
-    swaps(&rep->sequenceNumber, n);
-    swapl(&rep->length, n);
-
     WriteToClient(client, size, (char*)rep);
 }
 

@@ -205,7 +205,6 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     /* device properties */
     dev->properties.properties = NULL;
-    dev->properties.pendingProperties = FALSE;
     dev->properties.handlers = NULL;
 
     /*  security creation/labeling check
@@ -224,7 +223,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
                            XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
-                           FALSE, FALSE, FALSE);
+                           FALSE);
     XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL);
 
     return dev;
@@ -314,7 +313,7 @@ EnableDevice(DeviceIntPtr dev)
 
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
                            XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
-                           TRUE, FALSE, FALSE);
+                           TRUE);
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
@@ -390,7 +389,7 @@ DisableDevice(DeviceIntPtr dev)
 
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
                            XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
-                           TRUE, FALSE, FALSE);
+                           TRUE);
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;

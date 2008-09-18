@@ -353,17 +353,8 @@ typedef struct _XIProperty
 {
     struct _XIProperty   *next;
     Atom                  propertyName;
-    Bool                  is_pending;
-    Bool                  range;
-    Bool                  immutable;
-    Bool                  fromClient;       /* created by client or driver/server */
-    int                   num_valid;
-    INT32                 *valid_values;
-    XIPropertyValueRec    current,
-                          pending;
+    XIPropertyValueRec    value;
 } XIPropertyRec;
-
-
 
 typedef XIPropertyRec      *XIPropertyPtr;
 typedef XIPropertyValueRec *XIPropertyValuePtr;
@@ -484,7 +475,6 @@ typedef struct _DeviceIntRec {
     /* Input device property handling. */
     struct {
         XIPropertyPtr   properties;
-        Bool            pendingProperties;
         XIPropertyHandlerPtr handlers; /* NULL-terminated */
     } properties;
 } DeviceIntRec;

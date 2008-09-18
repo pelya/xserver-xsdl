@@ -211,22 +211,20 @@ static int (*ProcIVector[])(ClientPtr) = {
 	ProcXChangeDeviceControl,               /* 35 */
         /* XI 1.5 */
         ProcXListDeviceProperties,              /* 36 */
-        ProcXQueryDeviceProperty,               /* 37 */
-        ProcXConfigureDeviceProperty,           /* 38 */
-        ProcXChangeDeviceProperty,              /* 39 */
-        ProcXDeleteDeviceProperty,              /* 40 */
-        ProcXGetDeviceProperty,                 /* 41 */
+        ProcXChangeDeviceProperty,              /* 37 */
+        ProcXDeleteDeviceProperty,              /* 38 */
+        ProcXGetDeviceProperty,                 /* 39 */
         /* XI 2 */
-        ProcXQueryDevicePointer,                /* 42 */
-        ProcXWarpDevicePointer,                 /* 43 */
-        ProcXChangeDeviceCursor,                /* 44 */
-        ProcXChangeDeviceHierarchy,             /* 45 */
-        ProcXChangeWindowAccess,                /* 46 */
-        ProcXQueryWindowAccess,                 /* 47 */
-        ProcXSetClientPointer,                  /* 48 */
-        ProcXGetClientPointer,                  /* 49 */
-        ProcXiSelectEvent,                      /* 50 */
-        ProcXExtendedGrabDevice                 /* 51 */
+        ProcXQueryDevicePointer,                /* 40 */
+        ProcXWarpDevicePointer,                 /* 41 */
+        ProcXChangeDeviceCursor,                /* 42 */
+        ProcXChangeDeviceHierarchy,             /* 43 */
+        ProcXChangeWindowAccess,                /* 44 */
+        ProcXQueryWindowAccess,                 /* 45 */
+        ProcXSetClientPointer,                  /* 46 */
+        ProcXGetClientPointer,                  /* 47 */
+        ProcXiSelectEvent,                      /* 48 */
+        ProcXExtendedGrabDevice                 /* 49 */
 };
 
 /* For swapped clients */
@@ -268,21 +266,19 @@ static int (*SProcIVector[])(ClientPtr) = {
 	SProcXGetDeviceControl,                  /* 34 */
 	SProcXChangeDeviceControl,               /* 35 */
         SProcXListDeviceProperties,              /* 36 */
-        SProcXQueryDeviceProperty,               /* 37 */
-        SProcXConfigureDeviceProperty,           /* 38 */
-        SProcXChangeDeviceProperty,              /* 39 */
-        SProcXDeleteDeviceProperty,              /* 40 */
-        SProcXGetDeviceProperty,                 /* 41 */
-        SProcXQueryDevicePointer,                /* 42 */
-        SProcXWarpDevicePointer,                 /* 43 */
-        SProcXChangeDeviceCursor,                /* 44 */
-        SProcXChangeDeviceHierarchy,             /* 45 */
-        SProcXChangeWindowAccess,                /* 46 */
-        SProcXQueryWindowAccess,                 /* 47 */
-        SProcXSetClientPointer,                  /* 48 */
-        SProcXGetClientPointer,                  /* 49 */
-        SProcXiSelectEvent,                      /* 50 */
-        SProcXExtendedGrabDevice                 /* 51 */
+        SProcXChangeDeviceProperty,              /* 37 */
+        SProcXDeleteDeviceProperty,              /* 38 */
+        SProcXGetDeviceProperty,                 /* 39 */
+        SProcXQueryDevicePointer,                /* 40 */
+        SProcXWarpDevicePointer,                 /* 41 */
+        SProcXChangeDeviceCursor,                /* 42 */
+        SProcXChangeDeviceHierarchy,             /* 43 */
+        SProcXChangeWindowAccess,                /* 44 */
+        SProcXQueryWindowAccess,                 /* 45 */
+        SProcXSetClientPointer,                  /* 46 */
+        SProcXGetClientPointer,                  /* 47 */
+        SProcXiSelectEvent,                      /* 48 */
+        SProcXExtendedGrabDevice                 /* 49 */
 };
 
 /*****************************************************************
@@ -480,8 +476,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 				 (xChangeDeviceControlReply *) rep);
     else if (rep->RepType == X_ListDeviceProperties)
         SRepXListDeviceProperties(client, len, (xListDevicePropertiesReply*)rep);
-    else if (rep->RepType == X_QueryDeviceProperty)
-        SRepXQueryDeviceProperty(client, len, (xQueryDevicePropertyReply*)rep);
     else if (rep->RepType == X_GetDeviceProperty)
 	SRepXGetDeviceProperty(client, len, (xGetDevicePropertyReply *) rep);
     else if (rep->RepType == X_QueryDevicePointer)

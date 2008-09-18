@@ -213,31 +213,14 @@ extern int XIChangeDeviceProperty(
         int                     /* mode*/,
         unsigned long           /* len*/,
         pointer                 /* value*/,
-        Bool                    /* sendevent*/,
-        Bool                    /* pending*/,
-        Bool                    /* fromClient */
+        Bool                    /* sendevent*/
         );
 
-extern XIPropertyPtr XIQueryDeviceProperty(
+extern XIPropertyValuePtr XIGetDeviceProperty(
         DeviceIntPtr            /* dev */,
         Atom                    /* property */
 );
 
-extern XIPropertyValuePtr XIGetDeviceProperty(
-        DeviceIntPtr            /* dev */,
-        Atom                    /* property */,
-        Bool                    /* pending */
-);
-
-extern int XIConfigureDeviceProperty(
-        DeviceIntPtr            /* dev */,
-        Atom                    /* property */,
-        Bool                    /* pending */,
-        Bool                    /* range */,
-        Bool                    /* immutable */,
-        int                     /* num_values */,
-        INT32*                  /* values */
-);
 
 extern long XIRegisterPropertyHandler(
         DeviceIntPtr         dev,
