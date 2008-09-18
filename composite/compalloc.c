@@ -148,6 +148,16 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	return BadAlloc;
     if (ccw->update == CompositeRedirectManual)
     {
+	/* If the window was CompositeRedirectAutomatic, then
+	 * unmap the window so that the parent clip list will
+	 * be correctly recomputed.
+	 */
+	if (pWin->mapped) 
+	{
+	    DisableMapUnmapEvents (pWin);
+	    UnmapWindow (pWin, FALSE);
+	    EnableMapUnmapEvents (pWin);
+	}
 	if (cw->damageRegistered)
 	{
 	    DamageUnregister (&pWin->drawable, cw->damage);
