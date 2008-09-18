@@ -1235,7 +1235,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     if (!dev)
         return FALSE;
 
-    valc = (ValuatorClassPtr)xalloc(sizeof(ValuatorClassRec) +
+    valc = (ValuatorClassPtr)xcalloc(1, sizeof(ValuatorClassRec) +
 				    numAxes * sizeof(AxisInfo) +
 				    numAxes * sizeof(unsigned int));
     if (!valc)
