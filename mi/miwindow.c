@@ -342,6 +342,15 @@ miRecomputeExposures (
 
     if (pWin->valdata)
     {
+#ifdef COMPOSITE
+	/*
+	 * Redirected windows are not affected by parent window
+	 * gravity manipulations, so don't recompute their
+	 * exposed areas here.
+	 */
+	if (pWin->redirectDraw != RedirectDrawNone)
+	    return WT_DONTWALKCHILDREN;
+#endif
 	pScreen = pWin->drawable.pScreen;
 	/*
 	 * compute exposed regions of this window
