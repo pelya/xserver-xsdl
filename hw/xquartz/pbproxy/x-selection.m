@@ -35,6 +35,32 @@
 #include <X11/Xatom.h>
 #import <AppKit/NSBitmapImageRep.h>
 
+
+/*
+ * The basic design of the pbproxy code is as follows.
+ *
+ * When a client selects text, say from an xterm - we only copy it when the
+ * X11 Edit->Copy menu item is pressed or the shortcut activated.  In this
+ * case we take the PRIMARY selection, and set it as the NSPasteboard data.
+ *
+ * When an X11 client copies something to the CLIPBOARD, pbproxy greedily grabs
+ * the data, sets it as the NSPasteboard data, and finally sets itself as 
+ * owner of the CLIPBOARD.
+ * 
+ * When an X11 window is activated we check to see if the NSPasteboard has
+ * changed.  If the NSPasteboard has changed, then we set pbproxy as owner
+ * of the PRIMARY and CLIPBOARD and respond to requests for text and images.
+ *
+ */
+
+/*
+ * TODO:
+ * 1. finish handling these pbproxy control knobs.
+ * 2. handle  MULTIPLE - I need to study the ICCCM further.
+ * 3. handle COMPOUND_TEXT (if possible) - it's a variant of iso2022 from 
+ * what I've read.
+ */
+
 // These will be set by X11Controller.m once this is integrated into a server thread
 BOOL pbproxy_active = YES;
 BOOL pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
@@ -292,7 +318,22 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 /* Called when X11 becomes active (i.e. has key focus) */
 - (void) x_active:(Time)timestamp
 {
+    static NSInteger changeCount;
+    NSInteger countNow;
+
     TRACE ();
+
+    countNow = [_pasteboard changeCount];
+
+    if (countNow != changeCount)
+    {
+	DB ("changed pasteboard!\n");
+	changeCount = countNow;
+
+	/*HMM should we pass CurrentTime instead?*/
+	XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, timestamp);
+	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window, timestamp);
+    }
 
 #if 0
     if ([_pasteboard changeCount] != _my_last_change)
@@ -452,58 +493,18 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 						      atoms->clipboard));
 }
 
-
-/* The preference should be for UTF8_STRING before the XA_STRING*/
-/* This should NOT be used for Atom transfers, because it uses 8 bits. */
-/* This was previously used for Atom transfers (incorrectly). */
-static Atom
-convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
-{
-    Atom ret = None;
-
-    if (data == nil)
-	return ret;
-
-    if (target == atoms->text)
-	target = atoms->utf8_string;
-
-    if (target == XA_STRING
-	|| target == atoms->cstring
-	|| target == atoms->utf8_string)
-    {
-	const char *bytes;
-
-	if (target == XA_STRING)
-	    bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
-	else
-	    bytes = [data UTF8String];
-
-	if (bytes != NULL)
-	{
-	    XChangeProperty (x_dpy, e->requestor, prop, target,
-			     8, PropModeReplace, (unsigned char *) bytes,
-			     strlen (bytes));
-	    ret = prop;
-	}
-    }
-    /* FIXME: handle COMPOUND_TEXT target */
-    [data release];
-
-    return ret;
-}
-
 /* 
  * This responds to a TARGETS request.
- * The result is a list of a Atoms that correspond to the types available
+ * The result is a list of a ATOMs that correspond to the types available
  * for a selection.  
  * For instance an application might provide a UTF8_STRING and a STRING
  * (in Latin-1 encoding).  The requestor can then make the choice based on
- * the targets list.
+ * the list.
  */
 - (void) send_targets:(XSelectionRequestEvent *)e
 {
     XEvent reply;
-    long list[2];
+    NSArray *pbtypes;
 
     reply.xselection.type = SelectionNotify;
     reply.xselection.selection = e->selection;
@@ -512,21 +513,44 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     reply.xselection.time = e->time;
     reply.xselection.property = None;    
 
-    /*
-    Todo
-    if (clipboard_data is an image) {
-      list[0] = atoms->image_jpeg;  or some such thing.
-    }
-    ...
-    */
+    pbtypes = [_pasteboard types];
+    if (pbtypes)
+    {
+	long list[5];
+        long count = 0;
+	
+	if ([pbtypes containsObject:NSStringPboardType])
+	{
+	    /* We have a string type that we can convert to a UTF8 or Latin-1 string. */
+	    DB ("NSStringPboardType\n");
+	    list[count] = atoms->utf8_string;
+	    ++count;
+	    list[count] = atoms->string;
+	    ++count;
+	}
 
-    list[0] = atoms->utf8_string;
-    list[1] = XA_STRING;
-     
-    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
-		     32, PropModeReplace, (unsigned char *) list,
-		     sizeof (list) / sizeof (Atom));
-    reply.xselection.property = e->property;
+	if ([pbtypes containsObject:NSTIFFPboardType] 
+	    || [pbtypes containsObject:NSPICTPboardType])
+	{
+	    /* We can convert a TIFF or PICT to a PNG or JPEG. */
+	    DB ("NSTIFFPboardType or NSPICTPboardType\n");
+	    list[count] = atoms->image_png;
+	    ++count;
+	    list[count] = atoms->image_jpeg;
+	    ++count;
+	} 
+
+
+	if (count)
+	{
+	    /* We have a list of ATOMs to send. */
+	    XChangeProperty (x_dpy, e->requestor, e->property, atoms->atom, 32,
+			 PropModeReplace, (unsigned char *) list, count);
+	    
+	    reply.xselection.property = e->property;
+	}
+    }
+
     /*
      * We are supposed to use an empty event mask, and not propagate
      * the event, according to the ICCCM.
@@ -598,7 +622,9 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 		 * We want the length in bytes.
 		 */
 		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
+		DB ("UTF-8\n");
 	    } else {
+		DB ("Latin-1\n");
 		bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
 		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
 	    }
@@ -608,20 +634,107 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
 	    
 	    reply.xselection.property = e->property;
 
-	    [data release];
+	    /*Should we [data release] here?*/
+ 	}
+    }
+
+    /* Always send a response, even if the property value is None. */
+    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+}
+
+- (void) send_image:(XSelectionRequestEvent *)e
+{
+    XEvent reply;
+    NSArray *pbtypes;
+    NSString *type = nil;
+    NSBitmapImageFileType imagetype = /*quiet warning*/ NSPNGFileType; 
+
+    TRACE ();
+
+    reply.xselection.type = SelectionNotify;
+    reply.xselection.selection = e->selection;
+    reply.xselection.target = e->target;
+    reply.xselection.requestor = e->requestor;
+    reply.xselection.time = e->time;
+    reply.xselection.property = None; 
+
+    pbtypes = [_pasteboard types];
+
+    if (pbtypes) 
+    {
+	if ([pbtypes containsObject:NSTIFFPboardType])
+	    type = NSTIFFPboardType;
+
+	if ([pbtypes containsObject:NSPICTPboardType])
+	    type  = NSPICTPboardType;
+    }
+
+    if (e->target == atoms->image_png)
+	imagetype = NSPNGFileType;
+    else if (e->target == atoms->image_jpeg)
+	imagetype = NSJPEGFileType;
+        
+
+    if (type)
+    {
+	NSData *data;
+	data = [_pasteboard dataForType: type];
+
+	if (data)
+	{
+	    NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
+	    
+	    if (bmimage) 
+	    {
+		NSDictionary *dict;
+		NSData *encdata;
+		
+		dict = [[NSDictionary alloc] init];
+		encdata = [bmimage representationUsingType:imagetype properties:dict];
+		if (encdata)
+		{
+		    NSUInteger length;
+		    const void *bytes;
+
+		    length = [encdata length];
+		    bytes = [encdata bytes];
+		    		    
+		    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+				     8, PropModeReplace, bytes, length);
+		
+		    reply.xselection.property = e->property;
+		    
+		    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
+		}
+	    }
 	}
     }
     /* Always send a response, even if the property value is None. */
     XSendEvent (x_dpy, e->requestor, False, 0, &reply);
 }
 
-- (void) request_event:(XSelectionRequestEvent *)e
+- (void)send_none:(XSelectionRequestEvent *)e
 {
-    /* Someone's asking us for the data on the pasteboard */
+    XEvent reply;
+
     TRACE ();
 
-    /*NOT YET*/
-    return;
+    reply.xselection.type = SelectionNotify;
+    reply.xselection.selection = e->selection;
+    reply.xselection.target = e->target;
+    reply.xselection.requestor = e->requestor;
+    reply.xselection.time = e->time;
+    reply.xselection.property = None;
+
+    /* Always send a response, even if the property value is None. */
+    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+}
+
+
+/* Another client requested the data or targets of data available from the clipboard. */
+- (void)request_event:(XSelectionRequestEvent *)e
+{
+    TRACE ();
 
     /* TODO We should also keep track of the time of the selection, and 
      * according to the ICCCM "refuse the request" if the event timestamp
@@ -632,6 +745,8 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
      * may be set to CurrentTime or a time, so that makes it a bit different.
      * Perhaps we should just punt and ignore races.
      */
+
+    /*TODO handle COMPOUND_STRING... We need a test app*/
 
     DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
 
@@ -652,9 +767,13 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     {
 	[self send_string:e utf8:NO];
     } 
+    else if (e->target == atoms->image_png || e->target == atoms->image_jpeg)
+    {
+	[self send_image:e];
+    }
     else 
     {
-	//[self send_null:e];
+	[self send_none:e];
     }
 }
 
@@ -889,7 +1008,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     DB ("done handling utf8 string\n");
 }
 
-/* This handles the XA_STRING type, which should be in Latin-1. */
+/* This handles the STRING type, which should be in Latin-1. */
 - (void) handle_string: (struct propdata *)pdata
 {
     NSString *string; 
@@ -936,27 +1055,14 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     {
 	[self handle_string:pdata];
     } 
-    else
-    {
-	free_propdata(pdata);
-    }
+ 
+    free_propdata(pdata);
     
-    if (selection == atoms->clipboard && pdata->data)
+    if (selection == atoms->clipboard)
     {
-	/* This may not be used. 
-	 * We should really pull from the data in the NSPasteboard.
-	 */
-	free_propdata(&request_data.propdata);
-	request_data.propdata = *pdata;
-	request_data.type = type;
-	
 	/* We greedily take the CLIPBOARD selection whenever it changes. */
 	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
 			    CurrentTime);
-    }
-    else
-    {
-	free_propdata(pdata);
     }
 }
 
@@ -973,7 +1079,7 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     TRACE ();
 }
 
-- (void) pasteboardChangedOwner:(NSPasteboard *)sender
+- (void)pasteboardChangedOwner:(NSPasteboard *)pb
 {
     TRACE ();
 
@@ -1008,14 +1114,12 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     pending.requestor = None;
     pending.selection = None;
 
-    init_propdata (&request_data.propdata);
-    request_data.type = None;
-    
     return self;
 }
 
 - (void) dealloc
 {
+
     [_pasteboard releaseGlobally];
     [_pasteboard release];
     _pasteboard = nil;
@@ -1030,7 +1134,6 @@ convert_1 (XSelectionRequestEvent *e, NSString *data, Atom target, Atom prop)
     }
 
     free_propdata (&pending.propdata);
-    free_propdata (&request_data.propdata);
 
     [super dealloc];
 }

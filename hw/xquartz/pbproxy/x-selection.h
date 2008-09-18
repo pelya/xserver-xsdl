@@ -67,16 +67,6 @@ struct propdata {
         Window requestor;
         Atom selection;
     } pending;
- 
-    /* This may not be needed.*/
-    /* If we can have the Apple clipboard translate to PNG or JPEG we can
-     * do away with this.   Otherwise we could use libjpeg and libpng
-     * to convert some raw clipboard format to the proper format.
-     */
-    struct {
-	struct propdata propdata;
-	Atom type;
-    } request_data;
 }
 
 - (void) x_active:(Time)timestamp;
