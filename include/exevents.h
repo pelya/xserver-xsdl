@@ -222,13 +222,21 @@ extern int XIGetDeviceProperty(
         XIPropertyValuePtr*     /* value */
 );
 
+extern int XISetDevicePropertyDeletable(
+        DeviceIntPtr            /* dev */,
+        Atom                    /* property */,
+        Bool                    /* deletable */
+);
+
 extern long XIRegisterPropertyHandler(
         DeviceIntPtr         dev,
         int (*SetProperty) (DeviceIntPtr dev,
                             Atom property,
                             XIPropertyValuePtr prop),
         int (*GetProperty) (DeviceIntPtr dev,
-                            Atom property)
+                            Atom property),
+        int (*DeleteProperty) (DeviceIntPtr dev,
+                               Atom property)
 );
 
 extern void XIUnRegisterPropertyHandler(

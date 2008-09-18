@@ -98,7 +98,9 @@ XIRegisterPropertyHandler(DeviceIntPtr         dev,
                                               Atom property,
                                               XIPropertyValuePtr prop),
                           int (*GetProperty) (DeviceIntPtr dev,
-                                              Atom property))
+                                              Atom property),
+                          int (*DeleteProperty) (DeviceIntPtr dev,
+                                                 Atom property))
 {
     XIPropertyHandlerPtr new_handler;
 
@@ -109,6 +111,7 @@ XIRegisterPropertyHandler(DeviceIntPtr         dev,
     new_handler->id = XIPropHandlerID++;
     new_handler->SetProperty = SetProperty;
     new_handler->GetProperty = GetProperty;
+    new_handler->DeleteProperty = DeleteProperty;
     new_handler->next = dev->properties.handlers;
     dev->properties.handlers = new_handler;
 
@@ -153,6 +156,7 @@ XICreateDeviceProperty (Atom property)
     prop->value.format = 0;
     prop->value.size   = 0;
     prop->value.data   = NULL;
+    prop->deletable    = TRUE;
 
     return prop;
 }
@@ -218,10 +222,28 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 {
     XIPropertyPtr               prop, *prev;
     devicePropertyNotify        event;
+    int                         rc = Success;
 
     for (prev = &device->properties.properties; (prop = *prev); prev = &(prop->next))
         if (prop->propertyName == property)
             break;
+
+    if (fromClient && !prop->deletable)
+        return BadAccess;
+
+    /* Ask handlers if we may delete the property */
+    if (device->properties.handlers)
+    {
+        XIPropertyHandlerPtr handler = device->properties.handlers;
+        while(handler)
+        {
+            if (handler->DeleteProperty)
+                rc = handler->DeleteProperty(device, prop->propertyName);
+            if (rc != Success)
+                return (rc);
+            handler = handler->next;
+        }
+    }
 
     if (prop)
     {
@@ -399,6 +421,18 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
     }
 
     *value = &prop->value;
+    return Success;
+}
+
+int
+XISetDevicePropertyDeletable(DeviceIntPtr dev, Atom property, Bool deletable)
+{
+    XIPropertyPtr prop = XIFetchDeviceProperty(dev, property);
+
+    if (!prop)
+        return BadAtom;
+
+    prop->deletable = deletable;
     return Success;
 }
 

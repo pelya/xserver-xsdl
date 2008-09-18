@@ -223,7 +223,8 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
                            XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
                            FALSE);
-    XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL);
+    XISetDevicePropertyDeletable(dev, XIGetKnownProperty(XI_PROP_ENABLED), FALSE);
+    XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL, NULL);
 
     return dev;
 }

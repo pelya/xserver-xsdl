@@ -353,6 +353,7 @@ typedef struct _XIProperty
 {
     struct _XIProperty   *next;
     Atom                  propertyName;
+    BOOL                  deletable;    /* clients can delete this prop? */
     XIPropertyValueRec    value;
 } XIPropertyRec;
 
@@ -369,6 +370,8 @@ typedef struct _XIPropertyHandler
                         XIPropertyValuePtr prop);
     int (*GetProperty) (DeviceIntPtr dev,
                         Atom property);
+    int (*DeleteProperty) (DeviceIntPtr dev,
+                           Atom property);
 } XIPropertyHandler, *XIPropertyHandlerPtr;
 
 /* states for devices */
