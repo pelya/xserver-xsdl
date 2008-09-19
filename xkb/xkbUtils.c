@@ -504,6 +504,40 @@ CARD8			keysPerMod[XkbNumModifiers];
 		if (groupWidth>2)
 		    nOut= groupWidth;
 	    }
+
+	    /* See XKB Protocol Sec, Section 12.4.
+	       A 1-group key with ABCDE on a 2 group keyboard must be
+	       duplicated across all groups as ABABCDECDE.
+	     */
+	    if (nGroups == 1)
+	    {
+		int idx;
+
+		groupWidth = XkbKeyGroupWidth(xkb, key, XkbGroup1Index);
+
+		/* AB..CDE... -> ABABCDE... */
+		if (groupWidth > 0 && maxSymsPerKey >= 3)
+		    pCore[2] = pCore[0];
+		if (groupWidth > 1 && maxSymsPerKey >= 4)
+		    pCore[3] = pCore[1];
+
+		/* ABABCDE... -> ABABCDECDE */
+		idx = 2 + groupWidth;
+		while (groupWidth > 2 &&
+			idx < maxSymsPerKey &&
+			idx < groupWidth * 2)
+		{
+		    pCore[idx] = pCore[idx - groupWidth + 2];
+		    idx++;
+		}
+		idx = 2 * groupWidth;
+		if (idx < 4)
+		    idx = 4;
+		/* 3 or more groups: ABABCDECDEABCDEABCDE */
+		for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
+		    pCore[idx++] = pXKB[n];
+	    }
+
 	    pXKB+= XkbKeyGroupsWidth(xkb,key);
 	    nOut+= 2;
 	    if (nGroups>1) {
@@ -524,11 +558,6 @@ CARD8			keysPerMod[XkbNumModifiers];
 		    pCore[nOut++]= pXKB[s];
 		}
 		pXKB+= XkbKeyGroupsWidth(xkb,key);
-	    }
-	    if (!pCore[2] && !pCore[3] && maxSymsPerKey >= 6 &&
-                (pCore[4] || pCore[5])) {
-                pCore[2] = pCore[4];
-                pCore[3] = pCore[5];
 	    }
 	}
 	if (keyc->modifierMap[key]!=0) {
