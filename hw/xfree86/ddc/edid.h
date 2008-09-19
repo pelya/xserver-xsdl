@@ -531,93 +531,8 @@ struct detailed_monitor_section {
   } section;				/* max: 80 */
 };
 
-/*
- * E-EDID is defined as a sequence of 128-byte blocks.  Block 0 is mandatory
- * and contains a base EDID 1.3+ record as given above.  If only one extension
- * is present, block 1 is that extension; otherwise block 1 is a block map.
- * If necessary, block 128 is also a block map.
- *
- * Actually the block map requirements aren't especially well defined.  And
- * the list below is merely the set of extensions that are most likely to
- * exist.
- */
-
-#define EDID_EXT_CEAEXT		0x02
-#define EDID_EXT_VTBEXT		0x10
-#define EDID_EXT_DIEXT		0x40
-#define EDID_EXT_LSEXT		0x50
-#define EDID_EXT_DPVL		0x60
-#define EDID_EXT_BLOCKMAP	0xF0
-#define EDID_EXT_VENDOR		0xFF
-
-struct edid_extension {
-    char extension;
-    char version;
-};
-
-/* we use this for unknown extension types too */
-struct edid_vendor_extension {
-    struct edid_extension header;
-    char data[126];
-};
-
-struct edid_blockmap {
-    char extension;
-    char block[126];
-    char checksum;
-};
-
-/* CEA-EXT */
-
-#define CEA_AUDIO	1
-#define CEA_VIDEO	2
-#define CEA_VENDOR	3
-#define CEA_SPEAKER	4
-#define CEA_VTC		5
-
-/* struct cea_audio_block { } ; */
-
-struct cea_video_block {
-    int num_codes;
-    char vic[32]; /* Video Identification Code, see InfoFrame docs */
-};
-
-struct cea_vendor_block {
-    int len;
-    unsigned int ieee_id;
-    union {
-	/* hdmi */
-	char raw[32];
-    };
-};
-
-struct cea_data_block {
-    int tag;
-    union {
-	struct cea_video_block video;
-	/* struct cea_audio_block audio; */
-	struct cea_vendor_block vendor;
-    } u;
-};
-
-struct edid_cea_extension {
-    struct edid_extension header;
-    Bool underscan;
-    Bool audio;
-    Bool ycbcr_444;
-    Bool ycbcr_422;
-    int num_native;
-
-    int num_detailed;
-    struct detailed_timings d_timings[6];
-    
-    int num_data_block;
-    void **data;
-};
-
 /* flags */
 #define EDID_COMPLETE_RAWDATA	0x1
-#define EDID_HAVE_EXTENSIONS	0x2
 
 typedef struct {
   int scrnIndex;
@@ -630,7 +545,6 @@ typedef struct {
   unsigned long flags;
   int no_sections;
   Uchar *rawData;
-  void **ext;
 } xf86Monitor, *xf86MonPtr;
 
 extern xf86MonPtr ConfiguredMonitor;
