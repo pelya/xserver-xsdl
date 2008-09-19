@@ -67,6 +67,18 @@ struct propdata {
         Window requestor;
         Atom selection;
     } pending;
+
+    /* 
+     * This is the number of times the user has requested a copy.
+     * Once the copy is completed, we --pending_copy, and if the 
+     * pending_copy is > 0 we do it again.
+     */
+    int pending_copy;
+    /* 
+     * This is used for the same purpose as pending_copy, but for the 
+     * CLIPBOARD.  It also prevents a race with INCR transfers.
+     */
+    int pending_clipboard; 
 }
 
 - (void) x_active:(Time)timestamp;
@@ -82,7 +94,7 @@ struct propdata {
 - (void) claim_clipboard;
 - (void) set_clipboard_manager;
 - (void) own_clipboard;
-
+- (void) copy_completed:(Atom)selection;
 @end
 
 #endif /* X_SELECTION_H */

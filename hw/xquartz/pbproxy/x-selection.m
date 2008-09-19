@@ -58,8 +58,6 @@
  * TODO:
  * 1. finish handling these pbproxy control knobs.
  * 2. handle  MULTIPLE - I need to study the ICCCM further.
- * 3. handle COMPOUND_TEXT (if possible) - it's a variant of iso2022 from 
- * what I've read.
  */
 
 // These will be set by X11Controller.m once this is integrated into a server thread
@@ -331,9 +329,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	DB ("changed pasteboard!\n");
 	changeCount = countNow;
 
-	/*HMM should we pass CurrentTime instead?*/
-	XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, timestamp);
-	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window, timestamp);
+	XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
+	[self own_clipboard];
     }
 
 #if 0
@@ -357,23 +354,17 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 /* Called when X11 loses key focus */
 - (void) x_inactive:(Time)timestamp
 {
-    Window w;
-
     TRACE ();
-#if 0
-    if (_proxied_selection == XA_PRIMARY)
-      return;
+}
 
-    w = XGetSelectionOwner (x_dpy, atoms->clipboard);
+/* This requests the TARGETS list from the PRIMARY selection owner. */
+- (void) x_copy_request_targets
+{
+    TRACE ();
 
-    if (w != None && w != _selection_window)
-    {
-	/* An X client has the selection, proxy it to the pasteboard */
-
-	_my_last_change = [_pasteboard declareTypes:_known_types owner:self];
-	_proxied_selection = atoms->clipboard;
-    }
-#endif
+    request_atom = atoms->targets;
+    XConvertSelection (x_dpy, atoms->primary, atoms->targets,
+		       atoms->primary, _selection_window, CurrentTime);
 }
 
 /* Called when the Edit/Copy item on the main X11 menubar is selected
@@ -388,10 +379,15 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     if (None != w)
     {
-	DB ("requesting targets\n");
-	request_atom = atoms->targets;
-	XConvertSelection (x_dpy, atoms->primary, atoms->targets,
-			   atoms->primary, _selection_window, CurrentTime);
+	++pending_copy;
+	
+	if (1 == pending_copy) {
+	    /*
+	     * There are no other copy operations in progress, so we
+	     * can proceed safely.
+	     */	    
+	    [self x_copy_request_targets];
+	}
     }
     else
     {
@@ -432,9 +428,13 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	/* 
 	 * We lost ownership of the CLIPBOARD.
 	 */
-	
+	++pending_clipboard;
 
-	[self claim_clipboard];
+	if (1 == pending_clipboard) 
+	{
+	    /* Claim the clipboard contents from the new owner. */
+	    [self claim_clipboard];
+	}
     } 
     else if (atoms->clipboard_manager == e->selection)
     {
@@ -443,7 +443,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	 * b) we can print a message and exit.  Ideally we would popup a message box.
 	 */
 	fprintf (stderr, "error: another clipboard manager was started!\n"); 
-	exit (EXIT_FAILURE);
+	//exit (EXIT_FAILURE);
     }
 }
 
@@ -458,7 +458,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     if (NO == pbproxy_clipboard_to_pasteboard)
 	return;
-
+    
     owner = XGetSelectionOwner (x_dpy, atoms->clipboard);
     if (None == owner)
     {
@@ -467,7 +467,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	 * Set pbproxy's _selection_window as the owner, and continue.
 	 */
 	DB ("No clipboard owner.\n");
-	[self own_clipboard];
+	[self copy_completed:atoms->clipboard];
 	return;
     }
     
@@ -511,7 +511,10 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
      * We are supposed to use an empty event mask, and not propagate
      * the event, according to the ICCCM.
      */
+    DB ("reply->xselection.requestor 0x%lx\n", reply->xselection.requestor);
+  
     XSendEvent (x_dpy, reply->xselection.requestor, False, 0, reply);
+    XFlush (x_dpy);
 }
 
 /* 
@@ -598,22 +601,26 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 		 * We don't want the UTF-8 string length here.  
 		 * We want the length in bytes.
 		 */
-		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
-		DB ("UTF-8\n");
+		length = strlen (bytes);
+
+		if (length < 50) {
+		    DB ("UTF-8: %s\n", bytes);
+		    DB ("UTF-8 length: %u\n", length); 
+		}
 	    } 
 	    else 
 	    {
 		DB ("Latin-1\n");
 		bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
-		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
+		length = strlen (bytes);
 	    }
+
+	    DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
 
 	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
 			     8, PropModeReplace, (unsigned char *) bytes, length);
 	    
 	    reply.xselection.property = e->property;
-
-	    /*Should we [data release] here?*/
  	}
     }
 
@@ -671,6 +678,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     [self send_reply:&reply];
 }
 
+/* Finding a test application that uses MULTIPLE has proven to be difficult. */
 - (void) send_multiple:(XSelectionRequestEvent *)e
 {
     XEvent reply;
@@ -831,10 +839,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  
     if (None == e->property) {
 	DB ("e->property is None.\n");
-
-	if (pbproxy_clipboard_to_pasteboard && e->selection == atoms->clipboard)
-	    [self own_clipboard];
-	
+	[self copy_completed:e->selection];
 	/* Nothing is selected. */
 	return;
     }
@@ -853,13 +858,10 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	if (get_property (e->requestor, e->property, &pdata, /*Delete*/ True, &type)) 
 	{
 	    /* 
-	     * The get_property error could have occured with the clipboard atom.
-	     * Greedily own the clipboard again.
+	     * An error occured, so we should invoke the copy_completed:, but
+	     * not handle_selection:type:propdata:
 	     */
-
-	    if (pbproxy_clipboard_to_pasteboard && e->selection == atoms->clipboard)
-		[self own_clipboard];
-	    
+	    [self copy_completed:e->selection];
 	    return;
 	}
 
@@ -867,26 +869,21 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
 	pending.requestor = e->requestor;
 	pending.selection = e->selection;
+
+	DB ("set pending.requestor to 0x%lx\n", pending.requestor);
     }
     else
     {
 	if (get_property (e->requestor, e->property, &pdata, /*Delete*/ True, &type))
 	{
+	    [self copy_completed:e->selection];
 	    return;
 	}
 
 	/* We have the complete selection data.*/
-	[self handle_selection: e->selection type:type propdata:&pdata];
-
+	[self handle_selection:e->selection type:type propdata:&pdata];
+	
 	DB ("handled selection with the first notify_event\n");
-
-	/* 
-	 * This may have been the end of the clipboard request from [self claim_clipboard].
-	 * If so, then we should own the contents now.
-	 */
-
-	if (pbproxy_clipboard_to_pasteboard && e->selection == atoms->clipboard)
-	    [self own_clipboard];
     }
 }
 
@@ -909,9 +906,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
 	if (get_property (e->window, e->atom, &pdata, /*Delete*/ True, &type))
         {
-	    if (pbproxy_clipboard_to_pasteboard && pending.selection == atoms->clipboard)
-		[self own_clipboard];
-    
+	    [self copy_completed:pending.selection];
 	    [self release_pending];
 	    return;
 	}
@@ -920,19 +915,15 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	{
 	    /* We completed the transfer. */
 	    [self handle_selection:pending.selection type:type propdata:&pending.propdata];
-	   
-	    if (pbproxy_clipboard_to_pasteboard && pending.selection == atoms->clipboard)
-		[self own_clipboard];
-
 	    pending.propdata = null_propdata;
 	    pending.requestor = None;
 	    pending.selection = None;
 	} 
 	else 
 	{
-	    [self append_to_pending: &pdata requestor: e->window];
+	    [self append_to_pending:&pdata requestor:e->window];
 	}       
-    } 
+    }
 }
 
 - (void) handle_targets: (Atom)selection propdata:(struct propdata *)pdata
@@ -1056,6 +1047,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     NSString *string; 
     NSArray *pbtypes;
 
+    TRACE ();
+
     string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSISOLatin1StringEncoding];
     
     if (nil == string)
@@ -1074,9 +1067,11 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 }
 
 /* This is called when the selection is completely retrieved from another client. */
-/* Warning: this frees the propdata in most cases. */
+/* Warning: this frees the propdata. */
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata
 {
+    TRACE ();
+
     if (request_atom == atoms->targets && type == atoms->atom)
     {
 	[self handle_targets:selection propdata:pdata];
@@ -1100,28 +1095,66 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  
     free_propdata(pdata);
     
-    if (selection == atoms->clipboard)
+    [self copy_completed:selection];
+}
+
+- (void) copy_completed:(Atom)selection
+{
+    TRACE ();
+    
+    DB ("copy_completed: %s\n", XGetAtomName (x_dpy, selection));
+
+    if (selection == atoms->primary && pending_copy > 0)
     {
-	/* We greedily take the CLIPBOARD selection whenever it changes. */
-	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
-			    CurrentTime);
+	--pending_copy;
+	if (pending_copy > 0)
+	{
+	    /* Copy PRIMARY again. */
+	    [self x_copy_request_targets];
+	    return;
+	}
+    }
+    else if (selection == atoms->clipboard && pending_clipboard > 0) 
+    {
+	--pending_clipboard;
+	if (pending_clipboard > 0) 
+	{
+	    /* Copy CLIPBOARD. */
+	    [self claim_clipboard];
+	    return;
+	} 
+	else 
+	{
+	    /* We got the final data.  Now set pbproxy as the owner. */
+	    [self own_clipboard];
+	    return;
+	}
+    }
+    
+    /* 
+     * We had 1 or more primary in progress, and the clipboard arrived
+     * while we were busy. 
+     */
+    if (pending_clipboard > 0)
+    {
+	[self claim_clipboard];
     }
 }
 
 
 /* NSPasteboard-required methods */
 
-- (void)paste:(id)sender
+- (void) paste:(id)sender
 {
     TRACE ();
 }
 
-- (void)pasteboard:(NSPasteboard *)pb provideDataForType:(NSString *)type
+- (void) pasteboard:(NSPasteboard *)pb provideDataForType:(NSString *)type
 {
     TRACE ();
 }
 
-- (void)pasteboardChangedOwner:(NSPasteboard *)pb
+- (void) pasteboardChangedOwner:(NSPasteboard *)pb
 {
     TRACE ();
 
@@ -1155,6 +1188,9 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     init_propdata (&pending.propdata);
     pending.requestor = None;
     pending.selection = None;
+
+    pending_copy = 0;
+    pending_clipboard = 0;
 
     return self;
 }
