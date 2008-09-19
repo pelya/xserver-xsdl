@@ -641,9 +641,9 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
     [sync_primary_immediately setEnabled:pbproxy_active];
 
-    // This doesn't seem to work.
-    [sync_text1 setEnabled:pbproxy_active];
-    [sync_text2 setEnabled:pbproxy_active];
+    // setEnabled doesn't do this...
+    [sync_text1 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
+    [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
     
     /* after adding prefs here, also add to [X11Application read_defaults]
      and prefs_show */
@@ -696,9 +696,9 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
     [sync_primary_immediately setEnabled:pbproxy_active];
 
-    // This doesn't seem to work.
-    [sync_text1 setEnabled:pbproxy_active];
-    [sync_text2 setEnabled:pbproxy_active];
+    // setEnabled doesn't do this...
+    [sync_text1 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
+    [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
 
     [enable_fullscreen setIntValue:!quartzEnableRootless];
     // TODO: Add fullscreen support
