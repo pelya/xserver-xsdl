@@ -338,6 +338,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 #if 0
     if ([_pasteboard changeCount] != _my_last_change)
     {
+	/*gstaplin: we should perhaps investigate something like this branch above...*/
 	if ([_pasteboard availableTypeFromArray: _known_types] != nil)
 	{
 	    /* Pasteboard has data we should proxy; I think it makes
@@ -493,6 +494,25 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 						      atoms->clipboard));
 }
 
+- (void) init_reply:(XEvent *)reply request:(XSelectionRequestEvent *)e
+{
+    reply->xselection.type = SelectionNotify;
+    reply->xselection.selection = e->selection;
+    reply->xselection.target = e->target;
+    reply->xselection.requestor = e->requestor;
+    reply->xselection.time = e->time;
+    reply->xselection.property = None; 
+}
+
+- (void) send_reply:(XEvent *)reply
+{
+    /*
+     * We are supposed to use an empty event mask, and not propagate
+     * the event, according to the ICCCM.
+     */
+    XSendEvent (x_dpy, reply->xselection.requestor, False, 0, reply);
+}
+
 /* 
  * This responds to a TARGETS request.
  * The result is a list of a ATOMs that correspond to the types available
@@ -506,26 +526,23 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     XEvent reply;
     NSArray *pbtypes;
 
-    reply.xselection.type = SelectionNotify;
-    reply.xselection.selection = e->selection;
-    reply.xselection.target = e->target;
-    reply.xselection.requestor = e->requestor;
-    reply.xselection.time = e->time;
-    reply.xselection.property = None;    
+    [self init_reply:&reply request:e];
 
     pbtypes = [_pasteboard types];
     if (pbtypes)
     {
-	long list[5];
+	long list[6];
         long count = 0;
 	
 	if ([pbtypes containsObject:NSStringPboardType])
 	{
-	    /* We have a string type that we can convert to a UTF8 or Latin-1 string. */
+	    /* We have a string type that we can convert to UTF8, or Latin-1... */
 	    DB ("NSStringPboardType\n");
 	    list[count] = atoms->utf8_string;
 	    ++count;
 	    list[count] = atoms->string;
+	    ++count;
+	    list[count] = atoms->compound_text;
 	    ++count;
 	}
 
@@ -540,7 +557,6 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	    ++count;
 	} 
 
-
 	if (count)
 	{
 	    /* We have a list of ATOMs to send. */
@@ -551,45 +567,9 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	}
     }
 
-    /*
-     * We are supposed to use an empty event mask, and not propagate
-     * the event, according to the ICCCM.
-     */
-    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+    [self send_reply:&reply];
 }
 
-
-/*TODO finish this - it's flawed. */
-- (void) send_multiple:(XSelectionRequestEvent *)e
-{
-#if 0
-    XEvent reply;
-    int i, nitems;
-    unsigned long *atoms;
-
-    if (None == e->property)
-	return;
-
-    atoms = read_prop_32 (e->requestor, e->property, &nitems);
-    
-    if (atoms != NULL)
-    {
-	data = [_pasteboard stringForType:NSStringPboardType];
-	
-	for (i = 0; i < nitems; i += 2)
-        {
-	    Atom target = atoms[i], prop = atoms[i+1];
-	    
-	    atoms[i+1] = convert_1 (e, data, target, prop);
-	}
-
-	XChangeProperty (x_dpy, e->requestor, e->property, target,
-			 32, PropModeReplace, (unsigned char *) atoms,
-			 nitems);
-	XFree (atoms);
-    }
-#endif
-}
 
 - (void) send_string:(XSelectionRequestEvent *)e utf8:(BOOL)utf8
 {
@@ -598,12 +578,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     
     TRACE ();
 
-    reply.xselection.type = SelectionNotify;
-    reply.xselection.selection = e->selection;
-    reply.xselection.target = e->target;
-    reply.xselection.requestor = e->requestor;
-    reply.xselection.time = e->time;
-    reply.xselection.property = None; 
+    [self init_reply:&reply request:e];
 
     pbtypes = [_pasteboard types];
 
@@ -615,7 +590,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	    const char *bytes;
 	    NSUInteger length;
 
-	    if (utf8) {
+	    if (utf8) 
+	    {
 		bytes = [data UTF8String];
 		/*
 		 * We don't want the UTF-8 string length here.  
@@ -623,7 +599,9 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 		 */
 		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
 		DB ("UTF-8\n");
-	    } else {
+	    } 
+	    else 
+	    {
 		DB ("Latin-1\n");
 		bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
 		length = [data lengthOfBytesUsingEncoding:NSASCIIStringEncoding];
@@ -638,9 +616,76 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  	}
     }
 
-    /* Always send a response, even if the property value is None. */
-    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+    [self send_reply:&reply];
 }
+
+- (void) send_compound_text:(XSelectionRequestEvent *)e
+{
+    XEvent reply;
+    NSArray *pbtypes;
+    
+    TRACE ();
+    
+    [self init_reply:&reply request:e];
+     
+    pbtypes = [_pasteboard types];
+
+    if ([pbtypes containsObject: NSStringPboardType])
+    {
+	NSString *data = [_pasteboard stringForType:NSStringPboardType];
+	if (nil != data)
+	{
+	    /*
+	     * Cast to (void *) to avoid a const warning. 
+	     * AFAIK Xutf8TextListToTextProperty does not modify the input memory.
+	     */
+	    void *utf8 = (void *)[data UTF8String];
+	    char *list[] = { utf8, NULL };
+	    XTextProperty textprop;
+	    
+	    textprop.value = NULL;
+
+	    if (Success == Xutf8TextListToTextProperty (x_dpy, list, 1,
+							XCompoundTextStyle,
+							&textprop))
+	    {
+		
+		if (8 != textprop.format)
+		    DB ("textprop.format is unexpectedly not 8 - it's %d instead\n",
+			textprop.format);
+
+		XChangeProperty (x_dpy, e->requestor, e->property, 
+				 atoms->compound_text, textprop.format, 
+				 PropModeReplace, textprop.value,
+				 textprop.nitems);
+		
+		reply.xselection.property = e->property;
+	    }
+
+	    if (textprop.value)
+ 		XFree (textprop.value);
+	}
+    }
+    
+    [self send_reply:&reply];
+}
+
+- (void) send_multiple:(XSelectionRequestEvent *)e
+{
+    XEvent reply;
+
+    TRACE ();
+
+    [self init_reply:&reply request:e];
+
+    if (None != e->property) 
+    {
+	
+    }
+    
+    [self send_reply:&reply];
+}
+
 
 - (void) send_image:(XSelectionRequestEvent *)e
 {
@@ -651,12 +696,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     TRACE ();
 
-    reply.xselection.type = SelectionNotify;
-    reply.xselection.selection = e->selection;
-    reply.xselection.target = e->target;
-    reply.xselection.requestor = e->requestor;
-    reply.xselection.time = e->time;
-    reply.xselection.property = None; 
+    [self init_reply:&reply request:e];
 
     pbtypes = [_pasteboard types];
 
@@ -678,7 +718,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     if (type)
     {
 	NSData *data;
-	data = [_pasteboard dataForType: type];
+	data = [_pasteboard dataForType:type];
 
 	if (data)
 	{
@@ -709,8 +749,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	    }
 	}
     }
-    /* Always send a response, even if the property value is None. */
-    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+    [self send_reply:&reply];
 }
 
 - (void)send_none:(XSelectionRequestEvent *)e
@@ -719,15 +758,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     TRACE ();
 
-    reply.xselection.type = SelectionNotify;
-    reply.xselection.selection = e->selection;
-    reply.xselection.target = e->target;
-    reply.xselection.requestor = e->requestor;
-    reply.xselection.time = e->time;
-    reply.xselection.property = None;
-
-    /* Always send a response, even if the property value is None. */
-    XSendEvent (x_dpy, e->requestor, False, 0, &reply);
+    [self init_reply:&reply request:e];
+    [self send_reply:&reply];
 }
 
 
@@ -746,7 +778,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
      * Perhaps we should just punt and ignore races.
      */
 
-    /*TODO handle COMPOUND_STRING... We need a test app*/
+    /*TODO we need a COMPOUND_TEXT test app*/
+    /*TODO we need a MULTIPLE test app*/
 
     DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
 
@@ -766,7 +799,15 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     else if (e->target == atoms->string)
     {
 	[self send_string:e utf8:NO];
-    } 
+    }
+    else if (e->target == atoms->compound_text)
+    {
+	[self send_compound_text:e];
+    }
+    else if (e->target == atoms->multiple)
+    {
+	[self send_multiple:e];
+    }
     else if (e->target == atoms->image_png || e->target == atoms->image_jpeg)
     {
 	[self send_image:e];
@@ -919,7 +960,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
 /* This handles the image type of selection (typically in CLIPBOARD). */
 /* We convert to a TIFF, so that other applications can paste more easily. */
-- (void) handle_image: (struct propdata *)pdata extension:(NSString *)fileext
+- (void) handle_image: (struct propdata *)pdata
 {
     NSArray *pbtypes;
     NSUInteger length;
@@ -1041,11 +1082,11 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     } 
     else if (type == atoms->image_png)
     {
-	[self handle_image:pdata extension:@".png"];
+	[self handle_image:pdata];
     } 
     else if (type == atoms->image_jpeg)
     {
-	[self handle_image:pdata extension:@".jpeg"];
+	[self handle_image:pdata];
     }
     else if (type == atoms->utf8_string) 
     {

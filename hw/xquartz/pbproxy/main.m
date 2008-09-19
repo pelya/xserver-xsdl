@@ -77,6 +77,8 @@ static void x_init (void) {
     atoms->incr = XInternAtom (x_dpy, "INCR", False);
     atoms->atom = XInternAtom (x_dpy, "ATOM", False);
     atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
+    atoms->compound_text = XInternAtom (x_dpy, "COMPOUND_TEXT", False);
+    atoms->atom_pair = XInternAtom (x_dpy, "ATOM_PAIR", False);
 
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base)) {
