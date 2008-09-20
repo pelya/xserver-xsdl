@@ -58,6 +58,7 @@
  * TODO:
  * 1. finish handling these pbproxy control knobs.
  * 2. handle  MULTIPLE - I need to study the ICCCM further.
+ * 3. Handle PICT images properly.
  */
 
 // These will be set by X11Controller.m once this is integrated into a server thread
@@ -550,11 +551,14 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	    ++count;
 	}
 
-	if ([pbtypes containsObject:NSTIFFPboardType] 
-	    || [pbtypes containsObject:NSPICTPboardType])
+	/* TODO add the NSPICTPboardType back again, once we have conversion
+	 * functionality in send_image.
+	 */
+
+	if ([pbtypes containsObject:NSTIFFPboardType]) 
 	{
-	    /* We can convert a TIFF or PICT to a PNG or JPEG. */
-	    DB ("NSTIFFPboardType or NSPICTPboardType\n");
+	    /* We can convert a TIFF to a PNG or JPEG. */
+	    DB ("NSTIFFPboardType\n");
 	    list[count] = atoms->image_png;
 	    ++count;
 	    list[count] = atoms->image_jpeg;
@@ -702,6 +706,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     NSArray *pbtypes;
     NSString *type = nil;
     NSBitmapImageFileType imagetype = /*quiet warning*/ NSPNGFileType; 
+    NSData *data;
 
     TRACE ();
 
@@ -714,8 +719,11 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	if ([pbtypes containsObject:NSTIFFPboardType])
 	    type = NSTIFFPboardType;
 
-	if ([pbtypes containsObject:NSPICTPboardType])
+	/* PICT is not yet supported by pbproxy. 
+	 * The NSBitmapImageRep doesn't support it. 
+	else if ([pbtypes containsObject:NSPICTPboardType])
 	    type  = NSPICTPboardType;
+	*/
     }
 
     if (e->target == atoms->image_png)
@@ -724,40 +732,55 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	imagetype = NSJPEGFileType;
         
 
-    if (type)
+    if (nil == type) 
     {
-	NSData *data;
-	data = [_pasteboard dataForType:type];
-
-	if (data)
-	{
-	    NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
-	    
-	    if (bmimage) 
-	    {
-		NSDictionary *dict;
-		NSData *encdata;
-		
-		dict = [[NSDictionary alloc] init];
-		encdata = [bmimage representationUsingType:imagetype properties:dict];
-		if (encdata)
-		{
-		    NSUInteger length;
-		    const void *bytes;
-
-		    length = [encdata length];
-		    bytes = [encdata bytes];
-		    		    
-		    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
-				     8, PropModeReplace, bytes, length);
-		
-		    reply.xselection.property = e->property;
-		    
-		    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
-		}
-	    }
-	}
+	[self send_reply:&reply];
+	return;
     }
+
+    data = [_pasteboard dataForType:type];
+
+    if (nil == data)
+    {
+	[self send_reply:&reply];
+	return;
+    }
+	 
+    if (NSTIFFPboardType == type)
+    {
+	NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
+	NSDictionary *dict;
+	NSData *encdata;
+
+	if (nil == bmimage) 
+	{
+	    [self send_reply:&reply];
+	    return;
+	}
+
+	DB ("have valid bmimage\n");
+	
+	dict = [[NSDictionary alloc] init];
+	encdata = [bmimage representationUsingType:imagetype properties:dict];
+	if (encdata)
+	{
+	    NSUInteger length;
+	    const void *bytes;
+	    
+	    length = [encdata length];
+	    bytes = [encdata bytes];
+		
+	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+				 8, PropModeReplace, bytes, length);
+	    
+	    reply.xselection.property = e->property;
+	    
+	    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
+	}
+	[dict release];
+	[bmimage release];
+    } 
+
     [self send_reply:&reply];
 }
 
