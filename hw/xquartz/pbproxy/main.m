@@ -14,9 +14,6 @@
 Display *x_dpy;
 int x_apple_wm_event_base, x_apple_wm_error_base;
 
-struct atom_list atom_list_inst;
-struct atom_list *atoms = &atom_list_inst;
-
 static int x_grab_count;
 static Bool x_grab_synced;
 
@@ -57,6 +54,10 @@ static int x_io_error_handler (Display *dpy) {
     return 0;
 }
 
+static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
+    return 0;
+}
+
 static void x_init (void) {
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL) {
@@ -65,21 +66,8 @@ static void x_init (void) {
     }
     
     XSetIOErrorHandler (x_io_error_handler);
-    atoms->primary = XInternAtom (x_dpy, "PRIMARY", False);
-    atoms->clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
-    atoms->text = XInternAtom (x_dpy, "TEXT", False);
-    atoms->utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
-    atoms->targets = XInternAtom (x_dpy, "TARGETS", False);
-    atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
-    atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
-    atoms->image_png = XInternAtom (x_dpy, "image/png", False);
-    atoms->image_jpeg = XInternAtom (x_dpy, "image/jpeg", False);
-    atoms->incr = XInternAtom (x_dpy, "INCR", False);
-    atoms->atom = XInternAtom (x_dpy, "ATOM", False);
-    atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
-    atoms->compound_text = XInternAtom (x_dpy, "COMPOUND_TEXT", False);
-    atoms->atom_pair = XInternAtom (x_dpy, "ATOM_PAIR", False);
-
+    XSetErrorHandler (x_error_handler);
+    
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base)) {
         fprintf (stderr, "can't open AppleWM server extension\n");

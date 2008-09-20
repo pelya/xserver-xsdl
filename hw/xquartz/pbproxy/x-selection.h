@@ -40,6 +40,13 @@ struct propdata {
 	size_t length;
 };
 
+struct atom_list {
+    Atom primary, clipboard, text, utf8_string, string, targets, multiple,
+        cstring, image_png, image_jpeg, incr, atom, clipboard_manager,
+        compound_text, atom_pair;
+};
+
+
 @interface x_selection : NSObject
 {
 @private
@@ -79,6 +86,8 @@ struct propdata {
      * CLIPBOARD.  It also prevents a race with INCR transfers.
      */
     int pending_clipboard; 
+    
+    struct atom_list atoms[1];
 }
 
 - (void) x_active:(Time)timestamp;

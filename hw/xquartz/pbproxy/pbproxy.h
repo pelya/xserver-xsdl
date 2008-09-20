@@ -23,14 +23,6 @@ extern Time x_current_timestamp (void);
 extern Display *x_dpy;
 extern int x_apple_wm_event_base, x_apple_wm_error_base;
 
-struct atom_list {
-    Atom primary, clipboard, text, utf8_string, string, targets, multiple,
-	cstring, image_png, image_jpeg, incr, atom, clipboard_manager,
-	compound_text, atom_pair;
-};
-
-extern struct atom_list *atoms;
-
 /* from x-input.m */
 extern void x_input_register (void);
 extern void x_input_run (void);

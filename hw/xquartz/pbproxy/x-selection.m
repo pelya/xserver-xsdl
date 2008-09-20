@@ -85,80 +85,6 @@ free_propdata (struct propdata *pdata)
     *pdata = null_propdata;
 }
 
-/* Return True if this is an INCR-style transfer. */
-static Bool
-is_incr_type (XSelectionEvent *e)
-{
-    Atom seltype;
-    int format;
-    unsigned long numitems = 0UL, bytesleft = 0UL;
-    unsigned char *chunk;
-       
-    TRACE ();
-
-    if (Success != XGetWindowProperty (x_dpy, e->requestor, e->property,
-				       /*offset*/ 0L, /*length*/ 4UL,
-				       /*Delete*/ False,
-				       AnyPropertyType, &seltype, &format,
-				       &numitems, &bytesleft, &chunk))
-    {
-	return False;
-    }
-
-    if(chunk)
-	XFree(chunk);
-
-    return (seltype == atoms->incr) ? True : False;
-}
-
-/* This finds the preferred type from a TARGETS list.*/
-static Atom 
-find_preferred (struct propdata *pdata)
-{
-    Atom a = None;
-    size_t i;
-    Bool png = False, utf8 = False, string = False;
-
-    TRACE ();
-
-    if (pdata->length % sizeof (a))
-    {
-	fprintf(stderr, "Atom list is not a multiple of the size of an atom!\n");
-	return None;
-    }
-
-    for (i = 0; i < pdata->length; i += sizeof (a))
-    {
-	memcpy (&a, pdata->data + i, sizeof (a));
-	
-	if (a == atoms->image_png)
-	{
-	    png = True;
-	} 
-	else if (a == atoms->utf8_string)
-	{
-	    utf8 = True;
-        } 
-	else if (a == atoms->string)
-	{
-	    string = True;
-	}
-    }
-
-    /*We prefer PNG over strings, and UTF8 over a Latin-1 string.*/
-    if (png)
-	return atoms->image_png;
-
-    if (utf8)
-	return atoms->utf8_string;
-
-    if (string)
-	return atoms->string;
-
-    /* This is evidently something we don't know how to handle.*/
-    return None;
-}
-
 /*
  * Return True if an error occurs.  Return False if pdata has data 
  * and we finished. 
@@ -266,6 +192,80 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     *nitems_ret = nitems;
     return (unsigned long *) data;
+}
+
+/* Implementation methods */
+
+/* This finds the preferred type from a TARGETS list.*/
+- (Atom) find_preferred:(struct propdata *)pdata
+{
+    Atom a = None;
+    size_t i;
+    Bool png = False, utf8 = False, string = False;
+
+    TRACE ();
+
+    if (pdata->length % sizeof (a))
+    {
+	fprintf(stderr, "Atom list is not a multiple of the size of an atom!\n");
+	return None;
+    }
+
+    for (i = 0; i < pdata->length; i += sizeof (a))
+    {
+	memcpy (&a, pdata->data + i, sizeof (a));
+	
+	if (a == atoms->image_png)
+	{
+	    png = True;
+	} 
+	else if (a == atoms->utf8_string)
+	{
+	    utf8 = True;
+        } 
+	else if (a == atoms->string)
+	{
+	    string = True;
+	}
+    }
+
+    /*We prefer PNG over strings, and UTF8 over a Latin-1 string.*/
+    if (png)
+	return atoms->image_png;
+
+    if (utf8)
+	return atoms->utf8_string;
+
+    if (string)
+	return atoms->string;
+
+    /* This is evidently something we don't know how to handle.*/
+    return None;
+}
+
+/* Return True if this is an INCR-style transfer. */
+- (Bool) is_incr_type:(XSelectionEvent *)e
+{
+    Atom seltype;
+    int format;
+    unsigned long numitems = 0UL, bytesleft = 0UL;
+    unsigned char *chunk;
+       
+    TRACE ();
+
+    if (Success != XGetWindowProperty (x_dpy, e->requestor, e->property,
+				       /*offset*/ 0L, /*length*/ 4UL,
+				       /*Delete*/ False,
+				       AnyPropertyType, &seltype, &format,
+				       &numitems, &bytesleft, &chunk))
+    {
+	return False;
+    }
+
+    if(chunk)
+	XFree(chunk);
+
+    return (seltype == atoms->incr) ? True : False;
 }
 
 /* 
@@ -870,7 +870,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
     DB ("e->property %s\n", XGetAtomName (x_dpy, e->property));
 
-    if (is_incr_type (e)) 
+    if ([self is_incr_type:e]) 
     {
 	/*
 	 * This is an INCR-style transfer, which means that we 
@@ -956,7 +956,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     TRACE ();
 
-    preferred = find_preferred (pdata);
+    preferred = [self find_preferred:pdata];
     
     if (None == preferred) 
     {
@@ -1194,6 +1194,21 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     self = [super init];
     if (self == nil)
 	return nil;
+
+    atoms->primary = XInternAtom (x_dpy, "PRIMARY", False);
+    atoms->clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
+    atoms->text = XInternAtom (x_dpy, "TEXT", False);
+    atoms->utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
+    atoms->targets = XInternAtom (x_dpy, "TARGETS", False);
+    atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
+    atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
+    atoms->image_png = XInternAtom (x_dpy, "image/png", False);
+    atoms->image_jpeg = XInternAtom (x_dpy, "image/jpeg", False);
+    atoms->incr = XInternAtom (x_dpy, "INCR", False);
+    atoms->atom = XInternAtom (x_dpy, "ATOM", False);
+    atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
+    atoms->compound_text = XInternAtom (x_dpy, "COMPOUND_TEXT", False);
+    atoms->atom_pair = XInternAtom (x_dpy, "ATOM_PAIR", False);
 
     _pasteboard = [[NSPasteboard generalPasteboard] retain];
 
