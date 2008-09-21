@@ -88,8 +88,7 @@ static void eventHandler(unsigned int type, const void *arg,
             DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
             if (arg_size == sizeof(xp_window_id))  {
                 xp_window_id id = * (xp_window_id *) arg;
-                WindowPtr pWin = xprGetXWindow(id);
-                DarwinSendDDXEvent(kXquartzWindowMoved, 1, pWin);
+                DarwinSendDDXEvent(kXquartzWindowMoved, 1, id);
             }
             break;
             

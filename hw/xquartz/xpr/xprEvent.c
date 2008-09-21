@@ -73,7 +73,7 @@ static void xprEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int n
                 
             case kXquartzWindowMoved:
                 DEBUG_LOG("kXquartzWindowMoved\n");
-                RootlessNativeWindowMoved ((WindowPtr)xe[i].u.clientMessage.u.l.longs0);
+                RootlessNativeWindowMoved(xprGetXWindow(xe[i].u.clientMessage.u.l.longs0));
                 break;
                 
             case kXquartzBringAllToFront:
