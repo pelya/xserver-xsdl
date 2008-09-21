@@ -6423,13 +6423,10 @@ static int
 _XkbSetDeviceInfo(ClientPtr client, DeviceIntPtr dev,
                   xkbSetDeviceInfoReq *stuff)
 {
-    unsigned                    change;
     char                       *wire;
 
-    change = stuff->change;
-
     wire= (char *)&stuff[1];
-    if (change&XkbXI_ButtonActionsMask) {
+    if (stuff->change&XkbXI_ButtonActionsMask) {
 	if (!dev->button) {
 	    client->errorValue = _XkbErrCode2(XkbErr_BadClass,ButtonClass);
 	    return XkbKeyboardErrorCode;
@@ -6458,14 +6455,13 @@ static int
 _XkbSetDeviceInfoCheck(ClientPtr client, DeviceIntPtr dev,
                        xkbSetDeviceInfoReq *stuff)
 {
-    unsigned                    change;
     char                       *wire;
     xkbExtensionDeviceNotify    ed;
 
     bzero((char *)&ed,SIZEOF(xkbExtensionDeviceNotify));
     ed.deviceID=	dev->id;
     wire= (char *)&stuff[1];
-    if (change&XkbXI_ButtonActionsMask) {
+    if (stuff->change&XkbXI_ButtonActionsMask) {
 	int			nBtns,sz,i;
 	XkbAction *		acts;
 	DeviceIntPtr		kbd;
@@ -6495,8 +6491,8 @@ _XkbSetDeviceInfoCheck(ClientPtr client, DeviceIntPtr dev,
     }
     if (stuff->change&XkbXI_IndicatorsMask) {
 	int status= Success;
-	wire= SetDeviceIndicators(wire,dev,change,stuff->nDeviceLedFBs,
-							&status,client,&ed);
+	wire= SetDeviceIndicators(wire,dev,stuff->change,
+				  stuff->nDeviceLedFBs, &status,client,&ed);
 	if (status!=Success)
 	    return status;
     }
@@ -6508,7 +6504,6 @@ _XkbSetDeviceInfoCheck(ClientPtr client, DeviceIntPtr dev,
 int
 ProcXkbSetDeviceInfo(ClientPtr client)
 {
-    unsigned int        change;
     DeviceIntPtr        dev;
     int                 rc;
 
@@ -6518,10 +6513,8 @@ ProcXkbSetDeviceInfo(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    change = stuff->change;
-
     CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
-    CHK_MASK_LEGAL(0x01,change,XkbXI_AllFeaturesMask);
+    CHK_MASK_LEGAL(0x01,stuff->change,XkbXI_AllFeaturesMask);
 
     rc = _XkbSetDeviceInfoCheck(client, dev, stuff);
 
