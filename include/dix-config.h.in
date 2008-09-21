@@ -433,4 +433,7 @@
 /* Need the strcasestr function. */
 #undef NEED_STRCASESTR
 
+/* Define to 1 if you have the `ffs' function. */
+#undef HAVE_FFS
+
 #endif /* _DIX_CONFIG_H_ */
