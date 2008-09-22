@@ -56,6 +56,21 @@ defaults to the depth of the main display.
 .TP 8
 .B defaults write org.x.X11 sync_keymap -boolean true
 Keep the X11 keymap up to date with the OSX system keymap.
+.TP 8
+.B defaults write org.x.X11 sync_pasteboard -boolean true
+Enable syncing between the OSX pasteboard and clipboard/primary selection buffers in X11.  This option needs to be true for any of the other pasteboard sync options to have an effect.
+.TP 8
+.B defaults write org.x.X11 sync_pasteboard_to_clipboard -boolean true
+Update the X11 CLIPBOARD when the OSX NSPasteboard is updated.
+.TP 8
+.B defaults write org.x.X11 sync_pasteboard_to_primary -boolean true
+Update the the X11 PRIMARY buffer when the OSX NSPasteboard is updated.
+.TP 8
+.B defaults write org.x.X11 sync_clipboard_to_pasteboard -boolean true
+Update the the OSX NSPasteboard when the X11 CLIPBOARD is updated.  Note that enabling this option causes the clipboard synchronization to act as a clipboard manager in X11.  This makes it impossible to use xclipboard, klipper, or any other such clipboard managers.  If you want to use any of these programs, you must disable this option.
+.TP 8
+.B defaults write org.x.X11 sync_primary_on_select -boolean true
+This option defaults to false and is provided only "for experts."  It updates the NSPasteboard whenever a new X11 selection is made (rather than requiring you to hit cmd-c to copy the selection to the NSPasteboard).  Since the X11 protocol does not require applications to send notification when they change selection, this might not work in all cases (if you run into this problem, try selecting text in another application first, then selecting the text you want).
 .SH OPTIONS
 .PP
 In addition to the normal server options described in the \fIXserver(1)\fP

@@ -49,6 +49,13 @@
     IBOutlet NSButton *focus_on_new_window;
     IBOutlet NSButton *enable_auth;
     IBOutlet NSButton *enable_tcp;
+    IBOutlet NSButton *sync_pasteboard;
+    IBOutlet NSButton *sync_pasteboard_to_clipboard;
+    IBOutlet NSButton *sync_pasteboard_to_primary;
+    IBOutlet NSButton *sync_clipboard_to_pasteboard;
+    IBOutlet NSButton *sync_primary_immediately;
+    IBOutlet NSTextField *sync_text1;
+    IBOutlet NSTextField *sync_text2;
     IBOutlet NSPopUpButton *depth;
 
     IBOutlet NSMenuItem *x11_about_item;
@@ -56,6 +63,7 @@
     IBOutlet NSMenuItem *dock_window_separator;
     IBOutlet NSMenuItem *apps_separator;
     IBOutlet NSMenuItem *toggle_fullscreen_item;
+    IBOutlet NSMenuItem *copy_menu_item;
     IBOutlet NSMenu *dock_apps_menu;
     IBOutlet NSTableView *apps_table;
 

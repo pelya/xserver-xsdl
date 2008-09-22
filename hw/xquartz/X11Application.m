@@ -673,6 +673,17 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
 //    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
 //                     default:false];
+    
+    pbproxy_active = [self prefs_get_boolean:@PREFS_SYNC_PB
+                                     default:pbproxy_active];
+    pbproxy_pasteboard_to_clipboard = [self prefs_get_boolean:@PREFS_SYNC_PB_TO_CLIPBOARD
+                                                      default:pbproxy_pasteboard_to_clipboard];
+    pbproxy_pasteboard_to_primary = [self prefs_get_boolean:@PREFS_SYNC_PB_TO_PRIMARY
+                                                    default:pbproxy_pasteboard_to_primary];
+    pbproxy_clipboard_to_pasteboard = [self prefs_get_boolean:@PREFS_SYNC_CLIPBOARD_TO_PB
+                                                      default:pbproxy_clipboard_to_pasteboard];
+    pbproxy_primary_on_grab = [self prefs_get_boolean:@PREFS_SYNC_PRIMARY_ON_SELECT
+                                              default:pbproxy_primary_on_grab];
 }
 
 /* This will end up at the end of the responder chain. */

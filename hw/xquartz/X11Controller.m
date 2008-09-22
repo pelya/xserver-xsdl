@@ -54,6 +54,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// This will live in pbproxy/x-selection.m when we integrage that into a server thread... for now, living here for testing the UI.
+int pbproxy_active = YES;
+int pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
+int pbproxy_clipboard_to_pasteboard = YES;
+int pbproxy_pasteboard_to_primary = YES;
+int pbproxy_pasteboard_to_clipboard = YES;
+
 @implementation X11Controller
 
 - (void) awakeFromNib
@@ -622,9 +629,24 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     quartzUseSysBeep = [use_sysbeep intValue];
     X11EnableKeyEquivalents = [enable_keyequivs intValue];
     darwinSyncKeymap = [sync_keymap intValue];
+
+    pbproxy_active = [sync_pasteboard intValue];
+    pbproxy_pasteboard_to_clipboard = [sync_pasteboard_to_clipboard intValue];
+    pbproxy_pasteboard_to_primary = [sync_pasteboard_to_primary intValue];
+    pbproxy_clipboard_to_pasteboard = [sync_clipboard_to_pasteboard intValue];
+    pbproxy_primary_on_grab = [sync_primary_immediately intValue];
+
+    [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
+    [sync_pasteboard_to_primary setEnabled:pbproxy_active];
+    [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
+    [sync_primary_immediately setEnabled:pbproxy_active];
+
+    // This doesn't seem to work.
+    [sync_text1 setEnabled:pbproxy_active];
+    [sync_text2 setEnabled:pbproxy_active];
     
     /* after adding prefs here, also add to [X11Application read_defaults]
-     and below */
+     and prefs_show */
 	
     [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
     [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
@@ -636,6 +658,12 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [NSApp prefs_set_boolean:@PREFS_NO_AUTH value:![enable_auth intValue]];
     [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
     [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
+
+    [NSApp prefs_set_integer:@PREFS_SYNC_PB value:pbproxy_active];
+    [NSApp prefs_set_integer:@PREFS_SYNC_PB_TO_CLIPBOARD value:pbproxy_pasteboard_to_clipboard];
+    [NSApp prefs_set_integer:@PREFS_SYNC_PB_TO_PRIMARY value:pbproxy_pasteboard_to_primary];
+    [NSApp prefs_set_integer:@PREFS_SYNC_CLIPBOARD_TO_PB value:pbproxy_clipboard_to_pasteboard];
+    [NSApp prefs_set_integer:@PREFS_SYNC_PRIMARY_ON_SELECT value:pbproxy_primary_on_grab];
     
     system("killall -HUP quartz-wm");
 	
@@ -656,7 +684,22 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
 
     [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
-	
+    
+    [sync_pasteboard setIntValue:pbproxy_active];
+    [sync_pasteboard_to_clipboard setIntValue:pbproxy_pasteboard_to_clipboard];
+    [sync_pasteboard_to_primary setIntValue:pbproxy_pasteboard_to_primary];
+    [sync_clipboard_to_pasteboard setIntValue:pbproxy_clipboard_to_pasteboard];
+    [sync_primary_immediately setIntValue:pbproxy_primary_on_grab];
+
+    [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
+    [sync_pasteboard_to_primary setEnabled:pbproxy_active];
+    [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
+    [sync_primary_immediately setEnabled:pbproxy_active];
+
+    // This doesn't seem to work.
+    [sync_text1 setEnabled:pbproxy_active];
+    [sync_text2 setEnabled:pbproxy_active];
+
     [enable_fullscreen setIntValue:!quartzEnableRootless];
     // TODO: Add fullscreen support
     [enable_fullscreen setEnabled:NO];
@@ -677,9 +720,11 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (OSX_BOOL) validateMenuItem:(NSMenuItem *)item
 {
   NSMenu *menu = [item menu];
-	
+    
   if (item == toggle_fullscreen_item)
     return !quartzEnableRootless;
+  else   if (item == copy_menu_item) // For some reason, this isn't working...
+      return NO;
   else if (menu == [window_separator menu] || menu == dock_menu
 	   || (menu == [x11_about_item menu] && [item tag] == 42))
     return (AppleWMSelectedEvents () & AppleWMControllerNotifyMask) != 0;

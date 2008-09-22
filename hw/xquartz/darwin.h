@@ -89,6 +89,12 @@ extern unsigned int     darwinDesiredWidth, darwinDesiredHeight;
 extern int              darwinDesiredDepth;
 extern int              darwinDesiredRefresh;
 
+extern int              pbproxy_active;
+extern int              pbproxy_primary_on_grab;
+extern int              pbproxy_clipboard_to_pasteboard;
+extern int              pbproxy_pasteboard_to_primary;
+extern int              pbproxy_pasteboard_to_clipboard;
+
 // location of X11's (0,0) point in global screen coordinates
 extern int              darwinMainScreenX;
 extern int              darwinMainScreenY;

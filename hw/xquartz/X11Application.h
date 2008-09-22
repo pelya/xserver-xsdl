@@ -100,4 +100,10 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_FFM                   "wm_ffm"
 #define PREFS_FOCUS_ON_NEW_WINDOW   "wm_focus_on_new_window"
 
+#define PREFS_SYNC_PB                "sync_pasteboard"
+#define PREFS_SYNC_PB_TO_CLIPBOARD   "sync_pasteboard_to_clipboard"
+#define PREFS_SYNC_PB_TO_PRIMARY     "sync_pasteboard_to_primary"
+#define PREFS_SYNC_CLIPBOARD_TO_PB   "sync_clipboard_to_pasteboard"
+#define PREFS_SYNC_PRIMARY_ON_SELECT "sync_primary_on_select"
+
 #endif /* X11APPLICATION_H */
