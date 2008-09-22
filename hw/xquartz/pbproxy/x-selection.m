@@ -1,7 +1,7 @@
 /* x-selection.m -- proxies between NSPasteboard and X11 selections
    $Id: x-selection.m,v 1.9 2006-07-07 18:24:28 jharper Exp $
 
-   Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
+   Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -114,11 +114,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	unsigned long newbuflen;
 	unsigned char *newbuf;
 	
+#ifdef TEST   
+	printf("bytesleft %lu\n", bytesleft);
+#endif
+
 	if (Success != XGetWindowProperty (x_dpy, win, property,
 					   offset, length, delete, 
 					   AnyPropertyType,
 					   type, &format, &numitems, 
 					   &bytesleft, &chunk)) {
+	    DB ("Error while getting window property.\n");
 	    free (buf);
 	    return True;
 	}
@@ -127,7 +132,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	printf("format %d numitems %lu bytesleft %lu\n",
 	       format, numitems, bytesleft);
 	
-	printf("type %s\n", XGetAtomName(dis, *type));
+	printf("type %s\n", XGetAtomName (x_dpy, *type));
 #endif
 	
 	/* Format is the number of bits. */
@@ -151,6 +156,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	buflen = newbuflen;
 	/* offset is a multiple of 32 bits*/
 	offset += chunkbytesize / 4;
+
+#ifdef TEST
+	printf("bytesleft %lu\n", bytesleft);
+#endif
     } while (bytesleft > 0);
     
     pdata->data = buf;
@@ -160,40 +169,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 }
 
 
-static unsigned long *
-read_prop_32 (Window id, Atom prop, int *nitems_ret)
-{
-    int r, format;
-    Atom type;
-    unsigned long nitems, bytes_after;
-    unsigned char *data;
-
-    r = XGetWindowProperty (x_dpy, id, prop, 0, 0,
-			    False, AnyPropertyType, &type, &format,
-			    &nitems, &bytes_after, &data);
-
-    if (r == Success && bytes_after != 0)
-    {
-	XFree (data);
-	r = XGetWindowProperty (x_dpy, id, prop, 0,
-				(bytes_after / 4) + 1, False,
-				AnyPropertyType, &type, &format,
-				&nitems, &bytes_after, &data);
-    }
-
-    if (r != Success)
-	return NULL;
-
-    if (format != 32)
-    {
-	XFree (data);
-	return NULL;
-    }
-
-    *nitems_ret = nitems;
-    return (unsigned long *) data;
-}
-
 /* Implementation methods */
 
 /* This finds the preferred type from a TARGETS list.*/
@@ -201,7 +176,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 {
     Atom a = None;
     size_t i;
-    Bool png = False, utf8 = False, string = False;
+    Bool png = False, jpeg = False, utf8 = False, string = False;
 
     TRACE ();
 
@@ -219,6 +194,10 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	{
 	    png = True;
 	} 
+	else if (a == atoms->image_jpeg)
+	{
+	    jpeg = True;
+	}
 	else if (a == atoms->utf8_string)
 	{
 	    utf8 = True;
@@ -232,6 +211,9 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     /*We prefer PNG over strings, and UTF8 over a Latin-1 string.*/
     if (png)
 	return atoms->image_png;
+
+    if (jpeg)
+	return atoms->image_jpeg;
 
     if (utf8)
 	return atoms->utf8_string;
@@ -309,7 +291,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     memcpy(newdata + pending.propdata.length, pdata->data, pdata->length);
     pending.propdata.data = newdata;
     pending.propdata.length = newlength;
-	
+    
     return False;
 }
 
@@ -583,51 +565,63 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 {
     XEvent reply;
     NSArray *pbtypes;
-    
+    NSString *data;
+    const char *bytes;
+    NSUInteger length;
+
     TRACE ();
 
     [self init_reply:&reply request:e];
 
     pbtypes = [_pasteboard types];
-
-    if ([pbtypes containsObject: NSStringPboardType])
+ 
+    if (![pbtypes containsObject:NSStringPboardType])
     {
-	NSString *data = [_pasteboard stringForType:NSStringPboardType];
-	if (nil != data)
-	{
-	    const char *bytes;
-	    NSUInteger length;
-
-	    if (utf8) 
-	    {
-		bytes = [data UTF8String];
-		/*
-		 * We don't want the UTF-8 string length here.  
-		 * We want the length in bytes.
-		 */
-		length = strlen (bytes);
-
-		if (length < 50) {
-		    DB ("UTF-8: %s\n", bytes);
-		    DB ("UTF-8 length: %u\n", length); 
-		}
-	    } 
-	    else 
-	    {
-		DB ("Latin-1\n");
-		bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
-		length = strlen (bytes);
-	    }
-
-	    DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
-
-	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
-			     8, PropModeReplace, (unsigned char *) bytes, length);
-	    
-	    reply.xselection.property = e->property;
- 	}
+	[self send_reply:&reply];
+	return;
     }
 
+    DB ("pbtypes retainCount after containsObject: %u\n", [pbtypes retainCount]);
+
+    data = [_pasteboard stringForType:NSStringPboardType];
+
+    if (nil == data)
+    {
+	[self send_reply:&reply];
+	return;
+    }
+
+
+    if (utf8) 
+    {
+	bytes = [data UTF8String];
+	/*
+	 * We don't want the UTF-8 string length here.  
+	 * We want the length in bytes.
+	 */
+	length = strlen (bytes);
+	
+	if (length < 50) {
+	    DB ("UTF-8: %s\n", bytes);
+	    DB ("UTF-8 length: %u\n", length); 
+	}
+    } 
+    else 
+    {
+	DB ("Latin-1\n");
+	bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
+	length = strlen (bytes);
+    }
+
+    DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
+    
+    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+		     8, PropModeReplace, (unsigned char *) bytes, length);
+    
+    reply.xselection.property = e->property;
+
+    DB ("data retainCount before release %u\n", [data retainCount]);
+    [data release];
     [self send_reply:&reply];
 }
 
@@ -676,6 +670,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
 	    if (textprop.value)
  		XFree (textprop.value);
+
+	    [data release];
 	}
     }
     
@@ -730,8 +726,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	imagetype = NSPNGFileType;
     else if (e->target == atoms->image_jpeg)
 	imagetype = NSJPEGFileType;
-        
-
+    
+    
     if (nil == type) 
     {
 	[self send_reply:&reply];
@@ -748,18 +744,21 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	 
     if (NSTIFFPboardType == type)
     {
-	NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
+  	NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
 	NSDictionary *dict;
 	NSData *encdata;
+	
 
-	if (nil == bmimage) 
+	if (nil == bmimage)
 	{
+	    [data release];
 	    [self send_reply:&reply];
 	    return;
 	}
+	/*FIXME Why is [bmimage retainCount] 2 here? */
 
-	DB ("have valid bmimage\n");
-	
+	DB ("bmimage retainCount after initWithData %u\n", [bmimage retainCount]);
+
 	dict = [[NSDictionary alloc] init];
 	encdata = [bmimage representationUsingType:imagetype properties:dict];
 	if (encdata)
@@ -769,18 +768,27 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	    
 	    length = [encdata length];
 	    bytes = [encdata bytes];
-		
-	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
-				 8, PropModeReplace, bytes, length);
 	    
+	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+			     8, PropModeReplace, bytes, length);
 	    reply.xselection.property = e->property;
 	    
 	    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
+	    DB ("encdata retainCount %u\n", [encdata retainCount]);
+	    [encdata release];
+	    [bmimage release];
 	}
+	DB ("dict retainCount before release %u\n", [dict retainCount]);
+	
 	[dict release];
-	[bmimage release];
-    } 
 
+	
+	DB ("bmimage retainCount before release %u\n", [bmimage retainCount]);
+	/*FIXME Why on earth is retainCount 3? */
+	[bmimage release];
+	[bmimage release];
+    }
+    [data release];
     [self send_reply:&reply];
 }
 
@@ -812,8 +820,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     /*TODO we need a COMPOUND_TEXT test app*/
     /*TODO we need a MULTIPLE test app*/
-
-    DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
+    if (None != e->target)
+	DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
 
     if (e->target == atoms->targets) 
     {
@@ -890,7 +898,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
 	free_propdata (&pdata);
 
-	pending.requestor = e->requestor;
+      	pending.requestor = e->requestor;
 	pending.selection = e->selection;
 
 	DB ("set pending.requestor to 0x%lx\n", pending.requestor);
@@ -993,13 +1001,20 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	return;
     }
 
+    DB ("data retainCount before NSBitmapImageRep initWithData: %u\n",
+	[data retainCount]);
+
     bmimage = [[NSBitmapImageRep alloc] initWithData:data];
 
     if (nil == bmimage)
     {
+	[data release];
 	DB ("unable to create NSBitmapImageRep!\n");
 	return;
     }
+
+    DB ("data retainCount after NSBitmapImageRep initWithData: %u\n", 
+	[data retainCount]);
 
     @try 
     {
@@ -1011,9 +1026,13 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	DB ("NSTIFFException!\n");
 	[data release];
 	[bmimage release];
+	/*WHY 2?*/
+	[bmimage release];
 	return;
     }
     
+    DB ("bmimage retainCount after TIFFRepresentation %u\n", [bmimage retainCount]);
+
     pbtypes = [NSArray arrayWithObjects:NSTIFFPboardType, nil];
 
     if (nil == pbtypes)
@@ -1021,17 +1040,28 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 	[tiff release];
 	[data release];
 	[bmimage release];
+	/* WHY is the object with a retainCount of 2 after initWithData? */
+	[bmimage release];
+	return;
     }
 
+ 
     [_pasteboard declareTypes:pbtypes owner:self];
-    if (YES != [_pasteboard setData:data forType:NSTIFFPboardType])
+    if (YES != [_pasteboard setData:tiff forType:NSTIFFPboardType])
     {
 	DB ("writing pasteboard data failed!\n");
     }
 
     [pbtypes release];
     [data release];
+
+    DB ("tiff retainCount before release %u\n", [tiff retainCount]);
     [tiff release];
+
+    DB ("bmimage retainCount before release %u\n", [bmimage retainCount]);
+    /*WHY 3?*/
+    [bmimage release];
+    [bmimage release];
     [bmimage release];
 }
 
@@ -1047,6 +1077,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
  
     if (nil == string)
 	return;
+
+    DB ("string retainCount is %u\n", [string retainCount]);
 
     pbtypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
 
@@ -1083,9 +1115,10 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     {
 	[_pasteboard declareTypes:pbtypes owner:self];
 	[_pasteboard setString:string forType:NSStringPboardType];
+
+	DB ("pbtypes retainCount %u\n", [pbtypes retainCount]);
 	[pbtypes release];
     }
-
     [string release];
 }
 
@@ -1212,7 +1245,8 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
 
     _pasteboard = [[NSPasteboard generalPasteboard] retain];
 
-    _known_types = [[NSArray arrayWithObject:NSStringPboardType] retain];
+    //_known_types = [[NSArray arrayWithObject:NSStringPboardType] retain];
+    _known_types = nil;
 
     pixel = BlackPixel (x_dpy, DefaultScreen (x_dpy));
     _selection_window = XCreateSimpleWindow (x_dpy, DefaultRootWindow (x_dpy),
@@ -1240,7 +1274,7 @@ read_prop_32 (Window id, Atom prop, int *nitems_ret)
     [_pasteboard release];
     _pasteboard = nil;
 
-    [_known_types release];
+    //[_known_types release];
     _known_types = nil;
 
     if (None != _selection_window)

@@ -12,7 +12,7 @@
 #include <X11/extensions/shape.h>
 #undef   Cursor
 
-#define DEBUG 1
+#define DEBUG 0
 
 /* from main.m */
 extern void x_set_is_active (BOOL state);
@@ -30,6 +30,7 @@ extern void x_input_run (void);
 #if DEBUG == 0
 # define DB(msg, args...) do {} while (0)
 #else
+/* BEWARE: this can cause a string memory leak, according to the leaks program. */
 # define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
 #endif
 
