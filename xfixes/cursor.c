@@ -1060,6 +1060,9 @@ Bool
 XFixesCursorInit (void)
 {
     int	i;
+
+    if (party_like_its_1989)
+	CursorVisible = TRUE;
     
     for (i = 0; i < screenInfo.numScreens; i++)
     {

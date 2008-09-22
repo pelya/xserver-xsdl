@@ -219,6 +219,11 @@ turns off auto-repeat.
 .B r
 turns on auto-repeat.
 .TP 8
+.B -retro
+starts the stipple with the classic stipple and cursor visible.  The default
+is to start with a black root window, and to suppress display of the cursor
+until the first time an application calls XDefineCursor().
+.TP 8
 .B \-s \fIminutes\fP
 sets screen-saver timeout time in minutes.
 .TP 8

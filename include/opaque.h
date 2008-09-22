@@ -69,7 +69,7 @@ extern int limitNoFile;
 #endif
 extern Bool defeatAccessControl;
 extern long maxBigRequestSize;
-extern Bool blackRoot;
+extern Bool party_like_its_1989;
 extern Bool whiteRoot;
 
 extern Bool CoreDump;

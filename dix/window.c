@@ -486,15 +486,14 @@ InitRootWindow(WindowPtr pWin)
     rootCursor->refcnt++;
 
 
-    if (!blackRoot && !whiteRoot) {
+    if (party_like_its_1989) {
         MakeRootTile(pWin);
         backFlag |= CWBackPixmap;
-    }
-    else {
-        if (blackRoot)
-            pWin->background.pixel = pScreen->blackPixel;
-        else
+    } else {
+	if (whiteRoot)
             pWin->background.pixel = pScreen->whitePixel;
+        else
+            pWin->background.pixel = pScreen->blackPixel;
         backFlag |= CWBackPixel;
     } 
 
