@@ -3026,6 +3026,11 @@ HandleSaveSet(ClientPtr client)
 	{
 	    if (pParent != pWin->parent)
 	    {
+#ifdef XFIXES
+		/* unmap first so that ReparentWindow doesn't remap */
+		if (!SaveSetRemap (client->saveSet[j]))
+		    UnmapWindow(pWin, FALSE);
+#endif
 		ReparentWindow(pWin, pParent,
 			       pWin->drawable.x - wBorderWidth (pWin) - pParent->drawable.x,
 			       pWin->drawable.y - wBorderWidth (pWin) - pParent->drawable.y,
