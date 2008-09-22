@@ -178,16 +178,23 @@ int		nGroups,tmp,groupsWidth;
 	}
     }
 
-    /* step 7: check for all groups identical or all width 1 */
+    /* step 7: check for all groups identical or all width 1
+     *
+     * Special feature: if group 1 has an explicit type and all other groups
+     * have canonical types with same symbols, we assume it's info lost from
+     * the core replication.
+     */
     if (nGroups>1) {
-	Bool sameType,allOneLevel;
+	Bool sameType,allOneLevel, canonical = True;
 	allOneLevel= (xkb->map->types[types_inout[0]].num_levels==1);
 	for (i=1,sameType=True;(allOneLevel||sameType)&&(i<nGroups);i++) {
 	    sameType=(sameType&&(types_inout[i]==types_inout[XkbGroup1Index]));
 	    if (allOneLevel)
 		allOneLevel= (xkb->map->types[types_inout[i]].num_levels==1);
+	    if (types_inout[i] > XkbLastRequiredType)
+		canonical = False;
 	}
-	if ((sameType)&&
+	if (((sameType) || canonical)&&
 	    (!(protected&(XkbExplicitKeyTypesMask&~XkbExplicitKeyType1Mask)))){
 	    register int s;
 	    Bool	identical;
