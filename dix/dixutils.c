@@ -278,7 +278,7 @@ bad:
 
 int
 AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
-                      Bool toRoot, Bool remap)
+                      Bool toRoot, Bool map)
 {
     int numnow;
     SaveSetElt *pTmp = NULL;
@@ -304,7 +304,7 @@ AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
        	client->numSaved = numnow;
 	SaveSetAssignWindow(client->saveSet[numnow - 1], pWin);
 	SaveSetAssignToRoot(client->saveSet[numnow - 1], toRoot);
-	SaveSetAssignRemap(client->saveSet[numnow - 1], remap);
+	SaveSetAssignMap(client->saveSet[numnow - 1], map);
 	return(Success);
     }
     else if ((mode == SetModeDelete) && (j < numnow))

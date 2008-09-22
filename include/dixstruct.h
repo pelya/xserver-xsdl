@@ -71,22 +71,22 @@ typedef enum {ClientStateInitial,
 typedef struct _saveSet {
     struct _Window  *windowPtr;
     Bool	    toRoot;
-    Bool	    remap;
+    Bool	    map;
 } SaveSetElt;
 #define SaveSetWindow(ss)   ((ss).windowPtr)
 #define SaveSetToRoot(ss)   ((ss).toRoot)
-#define SaveSetRemap(ss)    ((ss).remap)
+#define SaveSetMap(ss)      ((ss).map)
 #define SaveSetAssignWindow(ss,w)   ((ss).windowPtr = (w))
 #define SaveSetAssignToRoot(ss,tr)  ((ss).toRoot = (tr))
-#define SaveSetAssignRemap(ss,rm)  ((ss).remap = (rm))
+#define SaveSetAssignMap(ss,m)      ((ss).map = (m))
 #else
 typedef struct _Window *SaveSetElt;
 #define SaveSetWindow(ss)   (ss)
 #define SaveSetToRoot(ss)   FALSE
-#define SaveSetRemap(ss)    TRUE
+#define SaveSetMap(ss)      TRUE
 #define SaveSetAssignWindow(ss,w)   ((ss) = (w))
 #define SaveSetAssignToRoot(ss,tr)
-#define SaveSetAssignRemap(ss,rm)
+#define SaveSetAssignMap(ss,m)
 #endif
 
 typedef struct _Client {

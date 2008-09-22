@@ -218,7 +218,7 @@ extern int AlterSaveSetForClient(
     WindowPtr /*pWin*/,
     unsigned /*mode*/,
     Bool /*toRoot*/,
-    Bool /*remap*/);
+    Bool /*map*/);
   
 extern void DeleteWindowFromAnySaveSet(
     WindowPtr /*pWin*/);
