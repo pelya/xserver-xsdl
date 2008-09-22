@@ -318,18 +318,10 @@ mieqProcessInputEvents(void)
         e = &miEventQueue.events[miEventQueue.head];
         miEventQueue.head = (miEventQueue.head + 1) % QUEUE_SIZE;
 
-        if ((handler = miEventQueue.handlers[e->events->event->u.u.type]))
-        {
-            /* If someone's registered a custom event handler, let them
-             * steal it. */
-            handler(DequeueScreen(e->pDev)->myNum, e->events->event,
-                    e->pDev, e->nevents);
-            if (!e->pDev->isMaster && e->pDev->u.master)
-            {
-                handler(DequeueScreen(e->pDev->u.master)->myNum,
-                        e->events->event, e->pDev->u.master, e->nevents);
-            }
-        } else if (e->pScreen != DequeueScreen(e->pDev)) {
+        /* Custom event handler */
+        handler = miEventQueue.handlers[e->events->event->u.u.type];
+
+        if (e->pScreen != DequeueScreen(e->pDev) && !handler) {
             /* Assumption - screen switching can only occur on motion events. */
             DequeueScreen(e->pDev) = e->pScreen;
             x = e->events[0].event->u.keyButtonPointer.rootX;
@@ -363,6 +355,19 @@ mieqProcessInputEvents(void)
             } else
                 master_event = NULL;
 
+            /* If someone's registered a custom event handler, let them
+             * steal it. */
+            if (handler)
+            {
+                handler(DequeueScreen(e->pDev)->myNum, e->events->event,
+                        e->pDev, e->nevents);
+                if (!e->pDev->isMaster && e->pDev->u.master)
+                {
+                    handler(DequeueScreen(e->pDev->u.master)->myNum,
+                            e->events->event, e->pDev->u.master, e->nevents);
+                }
+            } else
+            {
                 /* process slave first, then master */
                 e->pDev->public.processInputProc(event, e->pDev, e->nevents);
 
@@ -371,6 +376,7 @@ mieqProcessInputEvents(void)
                     e->pDev->u.master->public.processInputProc(master_event,
                             e->pDev->u.master, e->nevents);
                 }
+            }
 
             if (e->nevents > 1)
                 xfree(event);
