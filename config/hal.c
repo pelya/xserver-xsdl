@@ -174,6 +174,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     DeviceIntPtr dev = NULL;
     DBusError error;
     struct xkb_options xkb_opts = {0};
+    int rc;
 
     LibHalPropertySet *set = NULL;
 	LibHalPropertySetIterator set_iter;
@@ -372,8 +373,8 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 
     /* this isn't an error, but how else do you output something that the user can see? */
     LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
-    if (NewInputDeviceRequest(options, &dev) != Success) {
-        LogMessage(X_ERROR, "config/hal: NewInputDeviceRequest failed\n");
+    if ((rc = NewInputDeviceRequest(options, &dev)) != Success) {
+        LogMessage(X_ERROR, "config/hal: NewInputDeviceRequest failed (%d)\n", rc);
         dev = NULL;
         goto unwind;
     }
