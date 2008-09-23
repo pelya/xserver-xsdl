@@ -75,7 +75,7 @@ typedef struct _saveSet {
 } SaveSetElt;
 #define SaveSetWindow(ss)   ((ss).windowPtr)
 #define SaveSetToRoot(ss)   ((ss).toRoot)
-#define SaveSetMap(ss)      ((ss).map)
+#define SaveSetShouldMap(ss)	    ((ss).map)
 #define SaveSetAssignWindow(ss,w)   ((ss).windowPtr = (w))
 #define SaveSetAssignToRoot(ss,tr)  ((ss).toRoot = (tr))
 #define SaveSetAssignMap(ss,m)      ((ss).map = (m))
@@ -83,7 +83,7 @@ typedef struct _saveSet {
 typedef struct _Window *SaveSetElt;
 #define SaveSetWindow(ss)   (ss)
 #define SaveSetToRoot(ss)   FALSE
-#define SaveSetMap(ss)      TRUE
+#define SaveSetShouldMap(ss)	    TRUE
 #define SaveSetAssignWindow(ss,w)   ((ss) = (w))
 #define SaveSetAssignToRoot(ss,tr)
 #define SaveSetAssignMap(ss,m)

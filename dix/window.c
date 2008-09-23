@@ -3028,7 +3028,7 @@ HandleSaveSet(ClientPtr client)
 	    {
 #ifdef XFIXES
 		/* unmap first so that ReparentWindow doesn't remap */
-		if (!SaveSetMap (client->saveSet[j]))
+		if (!SaveSetShouldMap (client->saveSet[j]))
 		    UnmapWindow(pWin, FALSE);
 #endif
 		ReparentWindow(pWin, pParent,
@@ -3039,7 +3039,7 @@ HandleSaveSet(ClientPtr client)
 		    pWin->mapped = FALSE;
 	    }
 #ifdef XFIXES
-	    if (SaveSetMap (client->saveSet[j]))
+	    if (SaveSetShouldMap (client->saveSet[j]))
 #endif
 		MapWindow(pWin, client);
 	}
