@@ -49,6 +49,13 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
 }
 
 void x_input_run (void) {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    if (nil == pool) 
+    {
+	fprintf(stderr, "unable to allocate/init auto release pool!\n");
+	return;
+    }
 
     while (XPending (x_dpy) != 0) {
         XEvent e;       
@@ -82,6 +89,8 @@ void x_input_run (void) {
 
 	XFlush(x_dpy);
     }
+
+    [pool release];
 }
 
 static int add_input_socket (int sock, CFOptionFlags callback_types,

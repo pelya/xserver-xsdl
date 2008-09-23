@@ -302,10 +302,18 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 {
     static NSInteger changeCount;
     NSInteger countNow;
+    NSPasteboard *pb;
 
     TRACE ();
 
-    countNow = [_pasteboard changeCount];
+    pb = [NSPasteboard generalPasteboard];
+
+    if (nil == pb)
+    {
+	return;
+    }
+
+    countNow = [pb changeCount];
 
     if (countNow != changeCount)
     {
@@ -317,8 +325,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 
 #if 0
-    if ([_pasteboard changeCount] != _my_last_change)
-    {
 	/*gstaplin: we should perhaps investigate something like this branch above...*/
 	if ([_pasteboard availableTypeFromArray: _known_types] != nil)
 	{
@@ -330,7 +336,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    XSetSelectionOwner (x_dpy, XA_PRIMARY,
 				_selection_window, timestamp);
 	}
-    }
 #endif
 }
 
@@ -379,7 +384,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 }
 
 /*
- *
+ * Set pbproxy as owner of the SELECTION_MANAGER selection.
+ * This prevents tools like xclipboard from causing havoc.
  */
 - (void) set_clipboard_manager
 {
@@ -508,19 +514,19 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
  * (in Latin-1 encoding).  The requestor can then make the choice based on
  * the list.
  */
-- (void) send_targets:(XSelectionRequestEvent *)e
+- (void) send_targets:(XSelectionRequestEvent *)e pasteboard:(NSPasteboard *)pb
 {
     XEvent reply;
     NSArray *pbtypes;
 
     [self init_reply:&reply request:e];
 
-    pbtypes = [_pasteboard types];
+    pbtypes = [pb types];
     if (pbtypes)
     {
 	long list[6];
         long count = 0;
-	
+ 	
 	if ([pbtypes containsObject:NSStringPboardType])
 	{
 	    /* We have a string type that we can convert to UTF8, or Latin-1... */
@@ -561,7 +567,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 }
 
 
-- (void) send_string:(XSelectionRequestEvent *)e utf8:(BOOL)utf8
+- (void) send_string:(XSelectionRequestEvent *)e utf8:(BOOL)utf8 pasteboard:(NSPasteboard *)pb
 {
     XEvent reply;
     NSArray *pbtypes;
@@ -573,7 +579,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     [self init_reply:&reply request:e];
 
-    pbtypes = [_pasteboard types];
+    pbtypes = [pb types];
  
     if (![pbtypes containsObject:NSStringPboardType])
     {
@@ -583,14 +589,13 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     DB ("pbtypes retainCount after containsObject: %u\n", [pbtypes retainCount]);
 
-    data = [_pasteboard stringForType:NSStringPboardType];
+    data = [pb stringForType:NSStringPboardType];
 
     if (nil == data)
     {
 	[self send_reply:&reply];
 	return;
     }
-
 
     if (utf8) 
     {
@@ -620,12 +625,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     
     reply.xselection.property = e->property;
 
-    DB ("data retainCount before release %u\n", [data retainCount]);
-    [data release];
     [self send_reply:&reply];
 }
 
-- (void) send_compound_text:(XSelectionRequestEvent *)e
+- (void) send_compound_text:(XSelectionRequestEvent *)e pasteboard:(NSPasteboard *)pb
 {
     XEvent reply;
     NSArray *pbtypes;
@@ -634,11 +637,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     
     [self init_reply:&reply request:e];
      
-    pbtypes = [_pasteboard types];
+    pbtypes = [pb types];
 
     if ([pbtypes containsObject: NSStringPboardType])
     {
-	NSString *data = [_pasteboard stringForType:NSStringPboardType];
+	NSString *data = [pb stringForType:NSStringPboardType];
 	if (nil != data)
 	{
 	    /*
@@ -671,7 +674,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    if (textprop.value)
  		XFree (textprop.value);
 
-	    [data release];
 	}
     }
     
@@ -696,7 +698,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 }
 
 
-- (void) send_image:(XSelectionRequestEvent *)e
+- (void) send_image:(XSelectionRequestEvent *)e pasteboard:(NSPasteboard *)pb
 {
     XEvent reply;
     NSArray *pbtypes;
@@ -708,7 +710,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     [self init_reply:&reply request:e];
 
-    pbtypes = [_pasteboard types];
+    pbtypes = [pb types];
 
     if (pbtypes) 
     {
@@ -734,7 +736,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	return;
     }
 
-    data = [_pasteboard dataForType:type];
+    data = [pb dataForType:type];
 
     if (nil == data)
     {
@@ -751,7 +753,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 	if (nil == bmimage)
 	{
-	    [data release];
 	    [self send_reply:&reply];
 	    return;
 	}
@@ -775,20 +776,15 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    
 	    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
 	    DB ("encdata retainCount %u\n", [encdata retainCount]);
-	    [encdata release];
-	    [bmimage release];
 	}
 	DB ("dict retainCount before release %u\n", [dict retainCount]);
-	
-	[dict release];
+	[dict autorelease];
 
-	
 	DB ("bmimage retainCount before release %u\n", [bmimage retainCount]);
-	/*FIXME Why on earth is retainCount 3? */
-	[bmimage release];
-	[bmimage release];
+	
+	[bmimage autorelease];
     }
-    [data release];
+
     [self send_reply:&reply];
 }
 
@@ -806,6 +802,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 /* Another client requested the data or targets of data available from the clipboard. */
 - (void)request_event:(XSelectionRequestEvent *)e
 {
+    NSPasteboard *pb;
+
     TRACE ();
 
     /* TODO We should also keep track of the time of the selection, and 
@@ -820,29 +818,39 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     /*TODO we need a COMPOUND_TEXT test app*/
     /*TODO we need a MULTIPLE test app*/
+
+    pb = [NSPasteboard generalPasteboard];
+    if (nil == pb) 
+    {
+	[self send_none:e];
+	return;
+    }
+    
+
     if (None != e->target)
 	DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
 
     if (e->target == atoms->targets) 
     {
 	/* The paste requestor wants to know what TARGETS we support. */
-	[self send_targets:e];
+	[self send_targets:e pasteboard:pb];
     }
     else if (e->target == atoms->multiple)
     {
+	/* This isn't finished, and may never be, unless I can find a good app. */
 	[self send_multiple:e];
     } 
     else if (e->target == atoms->utf8_string)
     {
-	[self send_string:e utf8:YES];
+	[self send_string:e utf8:YES pasteboard:pb];
     } 
     else if (e->target == atoms->string)
     {
-	[self send_string:e utf8:NO];
+	[self send_string:e utf8:NO pasteboard:pb];
     }
     else if (e->target == atoms->compound_text)
     {
-	[self send_compound_text:e];
+	[self send_compound_text:e pasteboard:pb];
     }
     else if (e->target == atoms->multiple)
     {
@@ -850,9 +858,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
     else if (e->target == atoms->image_png || e->target == atoms->image_jpeg)
     {
-	[self send_image:e];
+	[self send_image:e pasteboard:pb];
     }
-    else 
+    else
     {
 	[self send_none:e];
     }
@@ -983,7 +991,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 /* This handles the image type of selection (typically in CLIPBOARD). */
 /* We convert to a TIFF, so that other applications can paste more easily. */
-- (void) handle_image: (struct propdata *)pdata
+- (void) handle_image: (struct propdata *)pdata pasteboard:(NSPasteboard *)pb
 {
     NSArray *pbtypes;
     NSUInteger length;
@@ -1008,7 +1016,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     if (nil == bmimage)
     {
-	[data release];
+	[data autorelease];
 	DB ("unable to create NSBitmapImageRep!\n");
 	return;
     }
@@ -1024,10 +1032,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     @catch (NSException *e) 
     {
 	DB ("NSTIFFException!\n");
-	[data release];
-	[bmimage release];
-	/*WHY 2?*/
-	[bmimage release];
+	[data autorelease];
+	[bmimage autorelease];
 	return;
     }
     
@@ -1037,40 +1043,29 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     if (nil == pbtypes)
     {
-	[tiff release];
-	[data release];
-	[bmimage release];
-	/* WHY is the object with a retainCount of 2 after initWithData? */
-	[bmimage release];
+	[data autorelease];
+	[bmimage autorelease];
 	return;
     }
 
- 
-    [_pasteboard declareTypes:pbtypes owner:self];
-    if (YES != [_pasteboard setData:tiff forType:NSTIFFPboardType])
+    [pb declareTypes:pbtypes owner:nil];
+    if (YES != [pb setData:tiff forType:NSTIFFPboardType])
     {
 	DB ("writing pasteboard data failed!\n");
     }
 
-    [pbtypes release];
-    [data release];
-
-    DB ("tiff retainCount before release %u\n", [tiff retainCount]);
-    [tiff release];
+    [data autorelease];
 
     DB ("bmimage retainCount before release %u\n", [bmimage retainCount]);
-    /*WHY 3?*/
-    [bmimage release];
-    [bmimage release];
-    [bmimage release];
+    [bmimage autorelease];
 }
 
 /* This handles the UTF8_STRING type of selection. */
-- (void) handle_utf8_string: (struct propdata *)pdata
+- (void) handle_utf8_string:(struct propdata *)pdata pasteboard:(NSPasteboard *)pb
 {
     NSString *string;
     NSArray *pbtypes;
-
+ 
     TRACE ();
 
     string = [[NSString alloc] initWithBytes:pdata->data length:pdata->length encoding:NSUTF8StringEncoding];
@@ -1078,26 +1073,25 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if (nil == string)
 	return;
 
-    DB ("string retainCount is %u\n", [string retainCount]);
-
     pbtypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
 
-    if (nil != pbtypes)
+    if (nil == pbtypes)
     {
-	[_pasteboard declareTypes:pbtypes owner:self];
-
-	if (YES != [_pasteboard setString:string forType:NSStringPboardType]) {
-	    DB ("_pasteboard setString:forType: failed!\n");
-	}
-	[pbtypes release];
+	[string autorelease];
+	return;	
     }
-    [string release];
 
+    [pb declareTypes:pbtypes owner:nil];
+    
+    if (YES != [pb setString:string forType:NSStringPboardType]) {
+	DB ("_pasteboard setString:forType: failed!\n");
+    }
+    [string autorelease];
     DB ("done handling utf8 string\n");
 }
 
 /* This handles the STRING type, which should be in Latin-1. */
-- (void) handle_string: (struct propdata *)pdata
+- (void) handle_string: (struct propdata *)pdata pasteboard:(NSPasteboard *)pb
 {
     NSString *string; 
     NSArray *pbtypes;
@@ -1113,46 +1107,54 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     if (nil != pbtypes)
     {
-	[_pasteboard declareTypes:pbtypes owner:self];
-	[_pasteboard setString:string forType:NSStringPboardType];
-
-	DB ("pbtypes retainCount %u\n", [pbtypes retainCount]);
-	[pbtypes release];
+	[pb declareTypes:pbtypes owner:nil];
+	[pb setString:string forType:NSStringPboardType];
     }
-    [string release];
+    [string autorelease];
 }
 
 /* This is called when the selection is completely retrieved from another client. */
 /* Warning: this frees the propdata. */
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata
 {
+    NSPasteboard *pb;
+
     TRACE ();
 
+    pb = [NSPasteboard generalPasteboard];
+
+    if (nil == pb) 
+    {
+	[self copy_completed:selection];
+	return;
+    }
+ 
     if (request_atom == atoms->targets && type == atoms->atom)
     {
 	[self handle_targets:selection propdata:pdata];
     } 
     else if (type == atoms->image_png)
     {
-	[self handle_image:pdata];
+	[self handle_image:pdata pasteboard:pb];
     } 
     else if (type == atoms->image_jpeg)
     {
-	[self handle_image:pdata];
+	[self handle_image:pdata pasteboard:pb];
     }
     else if (type == atoms->utf8_string) 
     {
-	[self handle_utf8_string:pdata];
+	[self handle_utf8_string:pdata pasteboard:pb];
     } 
     else if (type == atoms->string)
     {
-	[self handle_string:pdata];
+	[self handle_string:pdata pasteboard:pb];
     } 
  
     free_propdata(pdata);
-    
+
     [self copy_completed:selection];
 }
+
 
 - (void) copy_completed:(Atom)selection
 {
@@ -1243,11 +1245,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     atoms->compound_text = XInternAtom (x_dpy, "COMPOUND_TEXT", False);
     atoms->atom_pair = XInternAtom (x_dpy, "ATOM_PAIR", False);
 
-    _pasteboard = [[NSPasteboard generalPasteboard] retain];
-
-    //_known_types = [[NSArray arrayWithObject:NSStringPboardType] retain];
-    _known_types = nil;
-
     pixel = BlackPixel (x_dpy, DefaultScreen (x_dpy));
     _selection_window = XCreateSimpleWindow (x_dpy, DefaultRootWindow (x_dpy),
 					     0, 0, 1, 1, 0, pixel, pixel);
@@ -1269,14 +1266,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 - (void) dealloc
 {
-
-    [_pasteboard releaseGlobally];
-    [_pasteboard release];
-    _pasteboard = nil;
-
-    //[_known_types release];
-    _known_types = nil;
-
     if (None != _selection_window)
     {
 	XDestroyWindow (x_dpy, _selection_window);

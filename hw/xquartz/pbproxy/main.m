@@ -7,6 +7,7 @@
 #import "x-selection.h"
 
 #include <pthread.h>
+#include <unistd.h> /*for getpid*/
 
 #include <X11/extensions/applewm.h>
 #include <HIServices/CoreDockServices.h>
@@ -130,9 +131,7 @@ static void signal_handler (int sig) {
 }
 
 int main (int argc, const char *argv[]) {
-    NSAutoreleasePool *pool;
-
-    pool = [[NSAutoreleasePool alloc] init];
+    printf("pid: %u\n", getpid());
     
     x_init ();
     

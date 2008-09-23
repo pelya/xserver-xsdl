@@ -54,10 +54,6 @@ struct atom_list {
     /* The unmapped window we use for fetching selections. */
     Window _selection_window;
 
-    /* Cached general pasteboard and array of types we can handle. */
-    NSPasteboard *_pasteboard;
-    NSArray *_known_types;
-
     /* Last time we declared anything on the pasteboard. */
     int _my_last_change;
 
