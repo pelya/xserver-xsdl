@@ -110,9 +110,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if(None == property)
 	return True;
     
-    do {
-	unsigned long newbuflen;
-	unsigned char *newbuf;
+    do 
+    {
+	unsigned long newbuflen = 0;
+	unsigned char *newbuf = NULL;
 	
 #ifdef TEST   
 	printf("bytesleft %lu\n", bytesleft);
@@ -122,8 +123,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 					   offset, length, delete, 
 					   AnyPropertyType,
 					   type, &format, &numitems, 
-					   &bytesleft, &chunk)) {
+					   &bytesleft, &chunk)) 
+	{
 	    DB ("Error while getting window property.\n");
+	    *pdata = null_propdata;
 	    free (buf);
 	    return True;
 	}
@@ -141,10 +144,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 #ifdef TEST
 	printf("chunkbytesize %zu\n", chunkbytesize);
 #endif
-	
 	newbuflen = buflen + chunkbytesize;
 	newbuf = realloc (buf, newbuflen);
-	if (NULL == newbuf) {
+
+	if (NULL == newbuf)
+	{
 	    XFree (chunk);
 	    free (buf);
 	    return True;
@@ -837,7 +841,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
     else if (e->target == atoms->multiple)
     {
-	/* This isn't finished, and may never be, unless I can find a good app. */
+	/*
+	 * This isn't finished, and may never be, unless I can find 
+	 * a good test app.
+	 */
 	[self send_multiple:e];
     } 
     else if (e->target == atoms->utf8_string)
@@ -954,14 +961,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	{
 	    /* We completed the transfer. */
 	    [self handle_selection:pending.selection type:type propdata:&pending.propdata];
+	    free_propdata(&pdata);
 	    pending.propdata = null_propdata;
 	    pending.requestor = None;
 	    pending.selection = None;
-	} 
+	}
 	else 
 	{
 	    [self append_to_pending:&pdata requestor:e->window];
-	}       
+	    free_propdata (&pdata);
+	}
     }
 }
 
@@ -1084,7 +1093,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     [pb declareTypes:pbtypes owner:nil];
     
     if (YES != [pb setString:string forType:NSStringPboardType]) {
-	DB ("_pasteboard setString:forType: failed!\n");
+	DB ("pasteboard setString:forType: failed!\n");
     }
     [string autorelease];
     DB ("done handling utf8 string\n");
@@ -1126,6 +1135,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if (nil == pb) 
     {
 	[self copy_completed:selection];
+	free_propdata (pdata);
 	return;
     }
  
