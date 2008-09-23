@@ -37,7 +37,7 @@ libdix_la_SOURCES = 	\
 	tables.c	\
 	window.c
 
-EXTRA_DIST = buildatoms BuiltInAtoms CHANGES Xserver.d Xserver-dtrace.h.in
+EXTRA_DIST = buildatoms BuiltInAtoms Xserver.d Xserver-dtrace.h.in
 
 # Install list of protocol names
 miscconfigdir = $(SERVER_MISC_CONFIG_PATH)
