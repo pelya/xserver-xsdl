@@ -38,6 +38,7 @@
 #include "swaprep.h"
 
 #include "xiproperty.h"
+#include "xserver-properties.h"
 
 /**
  * Properties used or alloced from inside the server.

@@ -86,6 +86,7 @@ SOFTWARE.
 #include "exevents.h"
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xiproperty.h"
+#include "xserver-properties.h"
 
 /** @file
  * This file handles input device-related stuff.
