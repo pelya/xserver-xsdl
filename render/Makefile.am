@@ -13,11 +13,8 @@ librender_la_SOURCES =	\
 	mitri.c		\
 	picture.c	\
 	render.c	\
-	sha1.c		\
 	renderedge.c
 
 if XORG
 sdk_HEADERS = picture.h mipict.h glyphstr.h picturestr.h renderedge.h
 endif
-
-EXTRA_DIST = sha1.h
