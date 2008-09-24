@@ -871,6 +871,15 @@ initializeExtensions(__GLXDRIscreen *screen)
     extensions = screen->core->getExtensions(screen->driScreen);
 
     for (i = 0; extensions[i]; i++) {
+#ifdef __DRI_READ_DRAWABLE
+	if (strcmp(extensions[i]->name, __DRI_READ_DRAWABLE) == 0) {
+	    __glXEnableExtension(screen->glx_enable_bits,
+				 "GLX_SGI_make_current_read");
+	    
+	    LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_make_current_read\n");
+	}
+#endif
+
 #ifdef __DRI_COPY_SUB_BUFFER
 	if (strcmp(extensions[i]->name, __DRI_COPY_SUB_BUFFER) == 0) {
 	    screen->copySubBuffer = (__DRIcopySubBufferExtension *) extensions[i];
