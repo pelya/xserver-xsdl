@@ -890,8 +890,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	return;
     }
 
-    DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
-    DB ("e->property %s\n", XGetAtomName (x_dpy, e->property));
+#if 0
+    printf ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
+    printf ("e->property %s\n", XGetAtomName (x_dpy, e->property));
+#endif
 
     if ([self is_incr_type:e]) 
     {
@@ -1114,11 +1116,14 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     pbtypes = [NSArray arrayWithObjects:NSStringPboardType, nil];
 
-    if (nil != pbtypes)
+    if (nil == pbtypes)
     {
-	[pb declareTypes:pbtypes owner:nil];
-	[pb setString:string forType:NSStringPboardType];
+	[string autorelease];
+	return;
     }
+
+    [pb declareTypes:pbtypes owner:nil];
+    [pb setString:string forType:NSStringPboardType];
     [string autorelease];
 }
 
@@ -1138,7 +1143,14 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	free_propdata (pdata);
 	return;
     }
- 
+
+#if 0
+    if (None != request_atom)
+	printf ("request_atom %s\n", XGetAtomName (x_dpy, request_atom));
+	       
+    printf ("type %s\n", XGetAtomName (x_dpy, type));
+#endif
+
     if (request_atom == atoms->targets && type == atoms->atom)
     {
 	[self handle_targets:selection propdata:pdata];
@@ -1159,7 +1171,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     {
 	[self handle_string:pdata pasteboard:pb];
     } 
- 
+    
     free_propdata(pdata);
 
     [self copy_completed:selection];
@@ -1244,6 +1256,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     atoms->clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
     atoms->text = XInternAtom (x_dpy, "TEXT", False);
     atoms->utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
+    atoms->string = XInternAtom (x_dpy, "STRING", False);
     atoms->targets = XInternAtom (x_dpy, "TARGETS", False);
     atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
     atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
