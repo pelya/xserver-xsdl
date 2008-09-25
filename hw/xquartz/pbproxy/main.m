@@ -10,7 +10,6 @@
 #include <unistd.h> /*for getpid*/
 
 #include <X11/extensions/applewm.h>
-#include <HIServices/CoreDockServices.h>
 
 Display *x_dpy;
 int x_apple_wm_event_base, x_apple_wm_error_base;
