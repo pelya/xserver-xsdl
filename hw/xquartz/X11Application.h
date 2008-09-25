@@ -56,7 +56,6 @@
 - (void) prefs_synchronize;
 
 - (OSX_BOOL) x_active;
-
 @end
 
 extern X11Application *X11App;

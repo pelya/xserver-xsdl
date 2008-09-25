@@ -52,6 +52,8 @@
 #include "quartzKeyboard.h"
 #include "quartzAudio.h"
 
+#include "threadSafety.h"
+
 #ifdef NDEBUG
 #undef NDEBUG
 #include <assert.h>
@@ -59,6 +61,7 @@
 #else
 #include <assert.h>
 #endif
+#include <pthread.h>
 
 #include "xkbsrv.h"
 #include "exevents.h"
@@ -304,6 +307,7 @@ const static struct {
 };
 
 darwinKeyboardInfo keyInfo;
+pthread_mutex_t keyInfo_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void DarwinChangeKeyboardControl( DeviceIntPtr device, KeybdCtrl *ctrl )
 {
@@ -411,18 +415,16 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
  *  it to an equivalent X keyboard map and modifier map.
  */
 static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
-    memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
-
-    if (!QuartzReadSystemKeymap(&keyInfo)) {
-        FatalError("Could not build a valid keymap.");
-    }
-
+    pthread_mutex_lock(&keyInfo_mutex);
+    
     DarwinBuildModifierMaps(&keyInfo);
 
     keySyms->map        = keyInfo.keyMap;
     keySyms->mapWidth   = GLYPHS_PER_KEY;
     keySyms->minKeyCode = MIN_KEYCODE;
     keySyms->maxKeyCode = MAX_KEYCODE;
+
+    pthread_mutex_unlock(&keyInfo_mutex);
 }
 
 void QuartzXkbUpdate(DeviceIntPtr pDev) {
@@ -450,27 +452,27 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     assert( darwinParamConnect = NXOpenEventStatus() );
 
     DarwinLoadKeyboardMapping(&keySyms);
-    /* Initialize the seed, so we don't reload the keymap unnecessarily
-       (and possibly overwrite xinitrc changes) */
-    QuartzSystemKeymapSeed();
-
 #ifdef XQUARTZ_USE_XKB
 	XkbComponentNamesRec names;
 	bzero(&names, sizeof(names));
     /* We need to really have rules... or something... */
     XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
+    pthread_mutex_lock(&keyInfo_mutex);
     assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
                                         QuartzBell, DarwinChangeKeyboardControl));
 	assert(SetKeySymsMap(&pDev->key->curKeySyms, &keySyms));
 	assert(keyInfo.modMap!=NULL);
 	assert(pDev->key->modifierMap!=NULL);
 	memcpy(pDev->key->modifierMap, keyInfo.modMap, sizeof(keyInfo.modMap));
+    pthread_mutex_unlock(&keyInfo_mutex);
 	
 	QuartzXkbUpdate(pDev);
 #else
+    pthread_mutex_lock(&keyInfo_mutex);
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
                                       keyInfo.modMap, QuartzBell,
                                       DarwinChangeKeyboardControl ));
+    pthread_mutex_unlock(&keyInfo_mutex);
     SwitchCoreKeyboard(pDev);
 #endif
 }
@@ -492,11 +494,14 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
         if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
         xfree(pDev->key);
     }
-    
+
+    pthread_mutex_lock(&keyInfo_mutex);
     if (!InitKeyClassDeviceStruct(pDev, &keySyms, keyInfo.modMap)) {
         DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
+        pthread_mutex_unlock(&keyInfo_mutex);
         return;
     }
+    pthread_mutex_unlock(&keyInfo_mutex);
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
     SendMappingNotify(MappingModifier, 0, 0, 0);
@@ -521,7 +526,12 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
  *      Returns 0 if key+side is not a known modifier.
  */
 int DarwinModifierNXKeyToNXKeycode(int key, int side) {
-    return keyInfo.modifierKeycodes[key][side];
+    int retval;
+    pthread_mutex_lock(&keyInfo_mutex);
+    retval = keyInfo.modifierKeycodes[key][side];
+    pthread_mutex_unlock(&keyInfo_mutex);
+
+    return retval;
 }
 
 /*
@@ -532,6 +542,7 @@ int DarwinModifierNXKeyToNXKeycode(int key, int side) {
 int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide) {
     int key, side;
 
+    pthread_mutex_lock(&keyInfo_mutex);
     keycode += MIN_KEYCODE;
     // search modifierKeycodes for this keycode+side
     for (key = 0; key < NX_NUMMODIFIERS; key++) {
@@ -539,8 +550,13 @@ int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide) {
             if (keyInfo.modifierKeycodes[key][side] == keycode) break;
         }
     }
-    if (key == NX_NUMMODIFIERS) return -1;
+    if (key == NX_NUMMODIFIERS) {
+        pthread_mutex_unlock(&keyInfo_mutex);
+        return -1;
+    }
     if (outSide) *outSide = side;
+
+    pthread_mutex_unlock(&keyInfo_mutex);
     return key;
 }
 
@@ -664,39 +680,6 @@ int DarwinModifierStringToNXMask(const char *str, int separatelr) {
 Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return 1;
-}
-
-/* TODO: Not thread safe */
-unsigned int QuartzSystemKeymapSeed(void) {
-    static unsigned int seed = 0;
-//#if defined(__x86_64__) || defined(__ppc64__)
-#if 1
-    static TISInputSourceRef last_key_layout = NULL;
-    TISInputSourceRef key_layout;
-
-    key_layout = TISCopyCurrentKeyboardLayoutInputSource();
-
-    if(last_key_layout) {
-        if (CFEqual(key_layout, last_key_layout)) {
-            CFRelease(key_layout);
-        } else {
-            seed++;
-            CFRelease(last_key_layout);
-            last_key_layout = key_layout;
-        }
-    } else {
-        last_key_layout = key_layout;
-    }
-#else
-    static KeyboardLayoutRef last_key_layout;
-    KeyboardLayoutRef key_layout;
-
-    KLGetCurrentKeyboardLayout (&key_layout);
-    if (key_layout != last_key_layout)
-        seed++;
-    last_key_layout = key_layout;
-#endif
-    return seed;
 }
 
 static inline UniChar macroman2ucs(unsigned char c) {

@@ -473,19 +473,6 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 		return;
 	}
 
-	if (darwinSyncKeymap) {
-		/* See if keymap has changed. */
-
-		static unsigned int last_seed;
-		unsigned int this_seed;
-
-		this_seed = QuartzSystemKeymapSeed();
-		if (this_seed != last_seed) {
-			last_seed = this_seed;
-			DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
-		}
-	}
-
     darwinEvents_lock(); {
         num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
         for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);

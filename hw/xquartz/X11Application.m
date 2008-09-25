@@ -39,6 +39,7 @@
 
 #include "darwin.h"
 #include "darwinEvents.h"
+#include "quartzKeyboard.h"
 #include "quartz.h"
 #define _APPLEWM_SERVER_
 #include "X11/extensions/applewm.h"
@@ -60,6 +61,8 @@
 
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
+
+static TISInputSourceRef last_key_layout;
 
 extern int darwinFakeButtons;
 extern Bool enable_stereo;
@@ -163,8 +166,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 
 - (void) activateX:(OSX_BOOL)state {
     /* Create a TSM document that supports full Unicode input, and
-	 have it activated while X is active (unless using the old
-	 keymapping files) */
+	 have it activated while X is active */
     static TSMDocumentID x11_document;
 	DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
@@ -589,8 +591,8 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 
 - (void) prefs_set_boolean:(NSString *)key value:(int)value {
   CFPreferencesSetValue ((CFStringRef) key,
-			 (CFTypeRef) value ? kCFBooleanTrue
-			 : kCFBooleanFalse, CFSTR (APP_PREFS),
+			 (CFTypeRef) (value ? kCFBooleanTrue
+			 : kCFBooleanFalse), CFSTR (APP_PREFS),
 			 kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
   
 }
@@ -847,9 +849,21 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
 
+    /* Set the key layout seed before we start the server */
+    last_key_layout = TISCopyCurrentKeyboardLayoutInputSource();
+    
+    if(!last_key_layout) {
+        fprintf(stderr, "X11ApplicationMain: Unable to determine TISCopyCurrentKeyboardLayoutInputSource() at startup.\n");
+    }
+
+    memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
+    if (!QuartzReadSystemKeymap(&keyInfo)) {
+        fprintf(stderr, "X11ApplicationMain: Could not build a valid keymap.\n");
+    }
+
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
-    
+           
     [NSApp run];
     /* not reached */
 }
@@ -880,12 +894,12 @@ static void send_nsevent(NSEvent *e) {
 	NSWindow *window;
 	int pointer_x, pointer_y, ev_button, ev_type;
 	float pressure, tilt_x, tilt_y;
-
+    
 	/* convert location to be relative to top-left of primary display */
 	location = [e locationInWindow];
 	window = [e window];
 	screen = [[[NSScreen screens] objectAtIndex:0] frame];
-
+    
     if (window != nil)	{
 		NSRect frame = [window frame];
 		pointer_x = location.x + frame.origin.x;
@@ -895,18 +909,18 @@ static void send_nsevent(NSEvent *e) {
 		pointer_x = location.x;
 		pointer_y = (screen.origin.y + screen.size.height) - location.y;
 	}
-
+    
 	pressure = 0;  // for tablets
 	tilt_x = 0;
 	tilt_y = 0;
-
+    
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state
      * on every event... ugg
      */
     if(darwin_modifier_flags != [e modifierFlags])
         DarwinUpdateModKeys([e modifierFlags]);
-
+    
 	switch ([e type]) {
 		case NSLeftMouseDown:     ev_button=1; ev_type=ButtonPress;   goto handle_mouse;
 		case NSOtherMouseDown:    ev_button=2; ev_type=ButtonPress;   goto handle_mouse;
@@ -919,7 +933,7 @@ static void send_nsevent(NSEvent *e) {
 		case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify;  goto handle_mouse;
 		case NSMouseMoved:        ev_button=0; ev_type=MotionNotify;  goto handle_mouse;
         case NSTabletPoint:       ev_button=0; ev_type=MotionNotify;  goto handle_mouse;
-
+            
         handle_mouse:
 			if ([e type] == NSTabletPoint || [e subtype] == NSTabletPointEventSubtype) {
                 pressure = [e pressure];
@@ -941,16 +955,16 @@ static void send_nsevent(NSEvent *e) {
                         darwinTabletCurrent=darwinTabletCursor;
                         break;
                 }
-
+                
                 DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
                                           pointer_x, pointer_y);
             }
-
+            
             DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
                                     pressure, tilt_x, tilt_y);
-
+            
             break;
-
+            
 		case NSTabletProximity:
             switch([e pointingDeviceType]) {
                 case NSEraserPointingDevice:
@@ -965,20 +979,44 @@ static void send_nsevent(NSEvent *e) {
                     darwinTabletCurrent=darwinTabletCursor;
                     break;
             }
-                    
+            
 			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
                                       pointer_x, pointer_y);
             break;
-
+            
 		case NSScrollWheel:
 			DarwinSendScrollEvents([e deltaX], [e deltaY], pointer_x, pointer_y,
                                    pressure, tilt_x, tilt_y);
             break;
+            
+        case NSKeyDown: case NSKeyUp:
+            if(darwinSyncKeymap) {
+                TISInputSourceRef key_layout = TISCopyCurrentKeyboardLayoutInputSource();
+                TISInputSourceRef clear;
+                if (CFEqual(key_layout, last_key_layout)) {
+                    CFRelease(key_layout);
+                } else {
+                    /* Swap/free thread-safely */
+                    clear = last_key_layout;
+                    last_key_layout = key_layout;
+                    CFRelease(clear);
 
-		case NSKeyDown: case NSKeyUp:
+                    /* Update keyInfo */
+                    pthread_mutex_lock(&keyInfo_mutex);
+                    memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
+                    if (!QuartzReadSystemKeymap(&keyInfo)) {
+                        fprintf(stderr, "sendX11NSEvent: Could not build a valid keymap.\n");
+                    }
+                    pthread_mutex_unlock(&keyInfo_mutex);
+                    
+                    /* Tell server thread to deal with new keyInfo */
+                    DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
+                }
+            }
+            
             DarwinSendKeyboardEvents(([e type] == NSKeyDown) ? KeyPress : KeyRelease, [e keyCode]);
             break;
-
+            
         default: break; /* for gcc */
 	}	
 }
