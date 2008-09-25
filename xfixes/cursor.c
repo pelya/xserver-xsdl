@@ -142,7 +142,8 @@ CursorDisplayCursor (DeviceIntPtr pDev,
 	CursorVisible = TRUE;
 
     if (cs->pCursorHideCounts != NULL || !CursorVisible) {
-	ret = (*pScreen->DisplayCursor) (pDev, pScreen, pInvisibleCursor);
+        ret = ((*pScreen->RealizeCursor)(pDev, pScreen, pInvisibleCursor) &&
+	       (*pScreen->DisplayCursor) (pDev, pScreen, pInvisibleCursor));
     } else {
 	ret = (*pScreen->DisplayCursor) (pDev, pScreen, pCursor);
     }
