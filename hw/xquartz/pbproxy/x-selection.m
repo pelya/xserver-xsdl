@@ -528,7 +528,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pbtypes = [pb types];
     if (pbtypes)
     {
-	long list[6];
+	long list[6]; /* Don't forget to increase this if we handle more types! */
         long count = 0;
  	
 	if ([pbtypes containsObject:NSStringPboardType])
@@ -619,7 +619,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     {
 	DB ("Latin-1\n");
 	bytes = [data cStringUsingEncoding:NSISOLatin1StringEncoding];
-	length = strlen (bytes);
+	/*WARNING: bytes is not NUL-terminated. */
+	length = [data lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
     }
 
     DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
@@ -760,7 +761,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    [self send_reply:&reply];
 	    return;
 	}
-	/*FIXME Why is [bmimage retainCount] 2 here? */
 
 	DB ("bmimage retainCount after initWithData %u\n", [bmimage retainCount]);
 
