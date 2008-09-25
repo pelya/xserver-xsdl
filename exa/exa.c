@@ -325,6 +325,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
         pExaPixmap->fb_ptr = NULL;
         pExaPixmap->pDamage = NULL;
+        pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+        pPixmap->devPrivate.ptr = NULL;
+
     } else {
         pExaPixmap->driverPriv = NULL;
         /* Scratch pixmaps may have w/h equal to zero, and may not be
