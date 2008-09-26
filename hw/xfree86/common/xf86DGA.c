@@ -922,6 +922,9 @@ DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
    if(DGAScreenKey == NULL) /* no DGA */
         return FALSE;
 
+   if (key_code < 8 || key_code > 255)
+       return FALSE;
+
    pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
 
    if(!pScreenPriv || !pScreenPriv->grabKeyboard) /* no direct mode */
