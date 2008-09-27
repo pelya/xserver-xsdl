@@ -20,11 +20,9 @@ static Bool x_grab_synced;
 static BOOL _is_active = YES;		/* FIXME: should query server */ 
 /*gstaplin: why? Is there a race?*/
 
-static x_selection *_selection_object;
+x_selection *_selection_object;
 
 /* X11 code */
-static void x_error_shutdown(void);
-
 void x_grab_server (Bool sync) {
     if (x_grab_count++ == 0) {
         XGrabServer (x_dpy);
@@ -48,8 +46,11 @@ static int x_io_error_handler (Display *dpy) {
     /* We lost our connection to the server. */
     
     TRACE ();
-    
-	x_error_shutdown ();
+
+    /* TODO: tirgger the thread to restart? */
+#ifndef INTEGRATED_XPBPROXY
+    exit(1);
+#endif
     
     return 0;
 }
@@ -58,7 +59,7 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
     return 0;
 }
 
-static void x_init (void) {
+void x_init (void) {
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL) {
         fprintf (stderr, "can't open default display\n");
@@ -86,22 +87,6 @@ static void x_init (void) {
     [_selection_object claim_clipboard];
 }
 
-static void x_shutdown (void) {
-    /*gstaplin: signal_handler() calls this, and I don't think these are async-signal safe. */
-    /*TODO use a socketpair() to trigger a cleanup.  This is totally unsafe according to Jordan.  It's a segfault waiting to happen on a signal*/
-
-    [_selection_object release];
-    _selection_object = nil;
-
-    XCloseDisplay (x_dpy);
-    x_dpy = NULL;
-    exit(0); 
-}
-
-static void x_error_shutdown (void) {
-    exit(1);
-}
-
 id x_selection_object (void) {
     return _selection_object;
 }
@@ -122,33 +107,6 @@ void x_set_is_active (BOOL state) {
         return;
 
     _is_active = state;
-}
-
-/* Startup */
-static void signal_handler (int sig) {
-    x_shutdown ();
-}
-
-int main (int argc, const char *argv[]) {
-    printf("pid: %u\n", getpid());
-    
-    x_init ();
-    
-    signal (SIGINT, signal_handler);
-    signal (SIGTERM, signal_handler);
-    signal (SIGPIPE, SIG_IGN);
-    
-    while (1) {
-        NS_DURING
-        CFRunLoopRun ();
-        NS_HANDLER
-        NSString *s = [NSString stringWithFormat:@"%@ - %@",
-                       [localException name], [localException reason]];
-        fprintf(stderr, "quartz-wm: caught exception: %s\n", [s UTF8String]);
-        NS_ENDHANDLER
-    }		
-    
-    return 0;
 }
 
 void debug_printf (const char *fmt, ...) {

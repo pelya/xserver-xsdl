@@ -3,6 +3,7 @@ AM_LDFLAGS=-L/usr/X11/lib -lX11 -lAppleWM -framework AppKit -framework Foundatio
 
 SOURCE_FILES = \
 	trick_autotools.c \
+	main.m \
 	x-input.m \
 	x-selection.m
 
@@ -12,7 +13,7 @@ libxpbproxy_la_SOURCES = $(SOURCE_FILES)
 if !INTEGRATED_XPBPROXY
 
 bin_PROGRAMS = xpbproxy
-xpbproxy_SOURCES = main.m
+xpbproxy_SOURCES = app-main.m
 xpbproxy_LDADD = $(top_builddir)/hw/xquartz/pbproxy/libxpbproxy.la
 
 endif

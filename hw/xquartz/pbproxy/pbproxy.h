@@ -19,6 +19,7 @@ extern void x_set_is_active (BOOL state);
 extern BOOL x_get_is_active (void);
 extern id x_selection_object (void);
 extern Time x_current_timestamp (void);
+extern void x_init (void);
 
 extern Display *x_dpy;
 extern int x_apple_wm_event_base, x_apple_wm_error_base;

@@ -102,4 +102,7 @@ struct atom_list {
 - (void) copy_completed:(Atom)selection;
 @end
 
+/* main.m */
+extern x_selection *_selection_object;
+
 #endif /* X_SELECTION_H */
