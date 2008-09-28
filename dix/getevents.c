@@ -919,17 +919,22 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         master->last.valuators[1] = pDev->last.valuators[1];
     }
 
+    /* Crossed screen? Scale back to device coordiantes */
     if(cx != pDev->last.valuators[0])
+    {
+        scr = miPointerGetScreen(pDev);
+        x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
+                                pDev->valuator->axes + 0, scr->width);
         cx = pDev->last.valuators[0];
+    }
     if(cy != pDev->last.valuators[1])
+    {
+        scr = miPointerGetScreen(pDev);
         cy = pDev->last.valuators[1];
+        y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
+                                pDev->valuator->axes + 1, scr->height);
+    }
 
-    /* scale x/y back to device coordinates */
-    scr = miPointerGetScreen(pDev);
-    x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
-                        pDev->valuator->axes + 0, scr->width);
-    y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
-                        pDev->valuator->axes + 1, scr->height);
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators,
             &pDev->last.valuators[first_valuator]);
@@ -938,7 +943,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                 &pDev->last.valuators[first_valuator]);
 
     /* Update the valuators with the true value sent to the client*/
-    /* FIXME: we lose subpixel precision here. */
     if(v0) *v0 = x;
     if(v1) *v1 = y;
 
