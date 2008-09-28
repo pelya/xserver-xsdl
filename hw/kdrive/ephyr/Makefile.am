@@ -83,6 +83,20 @@ Xephyr_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 relink:
 	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
 
+MAN_SRCS = Xephyr.man.pre
+
+appmandir = $(APP_MAN_DIR)
+appman_DATA = Xephyr.$(APP_MAN_SUFFIX)
+
+Xephyr.$(APP_MAN_SUFFIX): Xephyr.man
+	-rm -f Xephyr.$(APP_MAN_SUFFIX)
+	$(LN_S) Xephyr.man Xephyr.$(APP_MAN_SUFFIX)
+
+include $(top_srcdir)/cpprules.in
+
+CLEANFILES = $(appman_DATA) Xephyr.man
+
 EXTRA_DIST = \
 	$(HOSTVIDEO_SRCS) \
-	$(HOSTDRI_SRCS)
+	$(HOSTDRI_SRCS) \
+	$(MAN_SRCS)
