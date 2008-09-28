@@ -1262,7 +1262,9 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     }
 
     dev->last.numValuators = numAxes;
-    if(!dev->isMaster) /* master devs do not accelerate */
+    if(dev->isMaster) /* master devs do not accelerate */
+	InitPointerAccelerationScheme(dev, PtrAccelNoOp);
+    else
 	InitPointerAccelerationScheme(dev, PtrAccelDefault);
     return TRUE;
 }
@@ -1289,8 +1291,11 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
 
     val = dev->valuator;
 
-    if(!val || dev->isMaster) /* bail out if called for master devs */
+    if(!val)
 	return FALSE;
+
+    if(dev->isMaster && (scheme != PtrAccelNoOp))
+        scheme = PtrAccelNoOp; /* no accel for master devices */
 
     for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
         if(pointerAccelerationScheme[x].number == scheme){
