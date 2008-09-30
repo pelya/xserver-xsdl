@@ -890,8 +890,8 @@ static void send_nsevent(NSEvent *e) {
 	NSRect screen;
 	NSPoint location;
 	NSWindow *window;
-	int pointer_x, pointer_y, ev_button, ev_type;
-	float pressure, tilt_x, tilt_y;
+	int ev_button, ev_type;
+	float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
     DeviceIntPtr pDev;
     
 	/* convert location to be relative to top-left of primary display */
@@ -909,7 +909,8 @@ static void send_nsevent(NSEvent *e) {
 		pointer_y = (screen.origin.y + screen.size.height) - location.y;
 	}
     
-	pressure = 0;  // for tablets
+    /* Setup our valuators.  These will range from 0 to 1 */
+	pressure = 0;
 	tilt_x = 0;
 	tilt_y = 0;
     

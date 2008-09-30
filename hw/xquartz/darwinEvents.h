@@ -28,15 +28,18 @@
 #ifndef _DARWIN_EVENTS_H
 #define _DARWIN_EVENTS_H
 
+/* For extra precision of our cursor and other valuators */
+#define XQUARTZ_VALUATOR_LIMIT (1 << 16)
+
 Bool DarwinEQInit(void);
 void DarwinEQEnqueue(const xEventPtr e);
 void DarwinEQPointerPost(DeviceIntPtr pDev, xEventPtr e);
 void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
-void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, int pointer_x, int pointer_y,
+void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, float pointer_x, float pointer_y,
 			     float pressure, float tilt_x, float tilt_y);
-void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y);
+void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y);
 void DarwinSendKeyboardEvents(int ev_type, int keycode);
-void DarwinSendScrollEvents(float count_x, float count_y, int pointer_x, int pointer_y,
+void DarwinSendScrollEvents(float count_x, float count_y, float pointer_x, float pointer_y,
 			    float pressure, float tilt_x, float tilt_y);
 void DarwinUpdateModKeys(int flags);
 void DarwinListenOnOpenFD(int fd);

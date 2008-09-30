@@ -341,6 +341,8 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
                                     GetMotionHistorySize(), 2);
 			InitAbsoluteClassDeviceStruct(pPointer);
             pPointer->valuator->mode = Absolute; // Relative
+            InitValuatorAxisStruct(pPointer, 0, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 1, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
             break;
         case DEVICE_ON:
             pPointer->public.on = TRUE;
@@ -372,17 +374,12 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
             InitProximityClassDeviceStruct(pPointer);
 			InitAbsoluteClassDeviceStruct(pPointer);
 
-//            InitValuatorAxisStruct(pPointer, 0, 0, 1440, 1, 0, 1);
-//            InitValuatorAxisStruct(pPointer, 1, 0, 900, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 2, 0, 1023, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 3, -64, 64, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 4, -64, 64, 1, 0, 1);
-//            InitValuatorAxisStruct(pPointer, 2, 0, 240, 49999, 49999, 49999);
-//            InitValuatorAxisStruct(pPointer, 3, -64, 63, 128, 128, 128);
-//            InitValuatorAxisStruct(pPointer, 4, -64, 63, 128, 128, 128);
-//            InitValuatorAxisStruct(pPointer, 5, 0, 1023, 128, 128, 128);
-            
-//            pPointer->use = IsXExtensionDevice;
+            InitValuatorAxisStruct(pPointer, 0, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 1, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 2, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 3, -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 4, -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+//          pPointer->use = IsXExtensionDevice;
             break;
         case DEVICE_ON:
             pPointer->public.on = TRUE;
