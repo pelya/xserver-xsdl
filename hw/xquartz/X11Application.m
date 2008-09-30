@@ -795,8 +795,6 @@ static void check_xinitrc (void) {
     if (access (buf, F_OK) != 0)
 		goto done;
 	
-    /* FIXME: put localized strings into Resources/English.lproj */
-	
     msg = NSLocalizedString (@"You have an existing ~/.xinitrc file.\n\n\
 Windows displayed by X11 applications may not have titlebars, or may look \
 different to windows displayed by native applications.\n\n\
