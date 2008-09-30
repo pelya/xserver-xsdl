@@ -894,6 +894,7 @@ static void send_nsevent(NSEvent *e) {
 	NSWindow *window;
 	int pointer_x, pointer_y, ev_button, ev_type;
 	float pressure, tilt_x, tilt_y;
+    DeviceIntPtr pDev;
     
 	/* convert location to be relative to top-left of primary display */
 	location = [e locationInWindow];
@@ -935,10 +936,13 @@ static void send_nsevent(NSEvent *e) {
         case NSTabletPoint:       ev_button=0; ev_type=MotionNotify;  goto handle_mouse;
             
         handle_mouse:
+            pDev = darwinPointer;
 			if ([e type] == NSTabletPoint || [e subtype] == NSTabletPointEventSubtype) {
                 pressure = [e pressure];
                 tilt_x   = [e tilt].x;
-                tilt_y   = [e tilt].y; 
+                tilt_y   = [e tilt].y;
+                
+                pDev = darwinTabletCurrent;
             }
             
             if([e subtype] == NSTabletProximityEventSubtype) {
@@ -958,9 +962,11 @@ static void send_nsevent(NSEvent *e) {
                 
                 DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
                                           pointer_x, pointer_y);
+                
+                pDev = darwinTabletCurrent;
             }
-            
-            DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
+
+            DarwinSendPointerEvents(pDev, ev_type, ev_button, pointer_x, pointer_y,
                                     pressure, tilt_x, tilt_y);
             
             break;

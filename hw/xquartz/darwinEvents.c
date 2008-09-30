@@ -407,11 +407,10 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
 //              valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 }
 
-void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
+void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, int pointer_x, int pointer_y, 
 			     float pressure, float tilt_x, float tilt_y) {
 	static int darwinFakeMouseButtonDown = 0;
 	int i, num_events;
-	DeviceIntPtr dev;
     ScreenPtr screen;
     int valuators[5];
 	
@@ -422,12 +421,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 		return;
 	}
 
-	if (pressure == 0 && tilt_x == 0 && tilt_y == 0)
-        dev = darwinPointer;
-	else
-        dev = darwinTabletCurrent;
-
-    screen = miPointerGetScreen(dev);
+    screen = miPointerGetScreen(pDev);
     if(!screen) {
         DEBUG_LOG("DarwinSendPointerEvents called before screen was initialized\n");
         return;
@@ -437,7 +431,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 	if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
         if(darwinFakeMouseButtonDown != 0) {
             /* We're currently "down" with another button, so release it first */
-            DarwinSendPointerEvents(ButtonRelease, darwinFakeMouseButtonDown, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+            DarwinSendPointerEvents(pDev, ButtonRelease, darwinFakeMouseButtonDown, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
             darwinFakeMouseButtonDown=0;
         }
 		if (darwin_modifier_flags & darwinFakeMouse2Mask) {
@@ -467,9 +461,9 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 
     DarwinPrepareValuators(valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
-        num_events = GetPointerEvents(darwinEvents, dev, ev_type, ev_button, 
-                                      POINTER_ABSOLUTE, 0, dev==darwinTabletCurrent?5:2, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (dev, &darwinEvents[i]);
+        num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
+                                      POINTER_ABSOLUTE, 0, pDev==darwinTabletCurrent?5:2, valuators);
+        for(i=0; i<num_events; i++) mieqEnqueue (pDev, &darwinEvents[i]);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -534,13 +528,13 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 	
 	while ((count_x > 0.0f) || (count_y > 0.0f)) {
 		if (count_x > 0.0f) {
-			DarwinSendPointerEvents(ButtonPress, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
-			DarwinSendPointerEvents(ButtonRelease, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_x, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
 			count_x = count_x - 1.0f;
 		}
 		if (count_y > 0.0f) {
-			DarwinSendPointerEvents(ButtonPress, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
-			DarwinSendPointerEvents(ButtonRelease, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(darwinPointer, ButtonPress, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+			DarwinSendPointerEvents(darwinPointer, ButtonRelease, sign_y, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
 			count_y = count_y - 1.0f;
 		}
 	}
