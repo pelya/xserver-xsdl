@@ -1,7 +1,7 @@
 /* x-input.m -- event handling
  $Id: x-input.m,v 1.26 2007-04-07 20:39:03 jharper Exp $
  
- Copyright (c) 2002 Apple Computer, Inc. All rights reserved. */
+ Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved. */
 
 #include "pbproxy.h"
 #import "x-selection.h"
@@ -15,8 +15,7 @@
 
 #include <unistd.h>
 
-/* FIXME: .. */
-CFRunLoopSourceRef x_dpy_source;
+static CFRunLoopSourceRef x_dpy_source;
 
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
@@ -28,20 +27,22 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
             switch (e->kind) {
                 case AppleWMIsActive:
                     last_activation_time = e->time;
-                    x_set_is_active (YES);
                     [x_selection_object () x_active:e->time];
                     break;
                     
                 case AppleWMIsInactive:
-                    x_set_is_active (NO);
                     [x_selection_object () x_inactive:e->time];
                     break;
+
+  	        case AppleWMReloadPreferences:
+		    [x_selection_object () reload_preferences];
+		    break;
             }
             break;
             
         case AppleWMPasteboardNotify:
             switch (e->kind) {
-                case AppleWMCopyToPasteboard:
+	        case AppleWMCopyToPasteboard:
                     [x_selection_object () x_copy:e->time];
             }
             break;
@@ -128,4 +129,3 @@ void x_input_register(void) {
         exit (1);
     }
 }
-

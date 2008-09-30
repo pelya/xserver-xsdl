@@ -100,6 +100,8 @@ struct atom_list {
 - (void) set_clipboard_manager;
 - (void) own_clipboard;
 - (void) copy_completed:(Atom)selection;
+
+- (void) reload_preferences;
 @end
 
 /* main.m */

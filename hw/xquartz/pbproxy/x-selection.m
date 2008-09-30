@@ -1221,6 +1221,12 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 }
 
+- (void) reload_preferences
+{
+    
+}
+
+
 
 /* NSPasteboard-required methods */
 

@@ -1,7 +1,7 @@
-/* main.m
+/* app-main.m
  $Id: main.m,v 1.29 2007-04-07 20:39:03 jharper Exp $
  
- Copyright (c) 2002 Apple Computer, Inc. All rights reserved. */
+ Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved. */
 
 #include "pbproxy.h"
 #import "x-selection.h"
@@ -9,24 +9,8 @@
 #include <pthread.h>
 #include <unistd.h> /*for getpid*/
 
-#include <X11/extensions/applewm.h>
-
-/* X11 code */
-static void x_shutdown (void) {
-    /*gstaplin: signal_handler() calls this, and I don't think these are async-signal safe. */
-    /*TODO use a socketpair() to trigger a cleanup.  This is totally unsafe according to Jordan.  It's a segfault waiting to happen on a signal*/
-
-    [_selection_object release];
-    _selection_object = nil;
-
-    XCloseDisplay (x_dpy);
-    x_dpy = NULL;
-    exit(0); 
-}
-
-/* Startup */
 static void signal_handler (int sig) {
-    x_shutdown ();
+    _exit(0);
 }
 
 int main (int argc, const char *argv[]) {
