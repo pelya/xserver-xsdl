@@ -470,15 +470,29 @@ void InitInput( int argc, char **argv )
 {
     darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
-    darwinKeyboard->name = strdup("Quartz Keyboard");
+    darwinKeyboard->name = strdup("keyboard");
+
+    /* here's the snippet from the current gdk sources:
+    if (!strcmp (tmp_name, "pointer"))
+        gdkdev->info.source = GDK_SOURCE_MOUSE;
+    else if (!strcmp (tmp_name, "wacom") ||
+             !strcmp (tmp_name, "pen"))
+        gdkdev->info.source = GDK_SOURCE_PEN;
+    else if (!strcmp (tmp_name, "eraser"))
+        gdkdev->info.source = GDK_SOURCE_ERASER;
+    else if (!strcmp (tmp_name, "cursor"))
+        gdkdev->info.source = GDK_SOURCE_CURSOR;
+    else
+        gdkdev->info.source = GDK_SOURCE_PEN;
+    */
 
     darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
     RegisterPointerDevice( darwinPointer );
-    darwinPointer->name = strdup("Quartz Pointing Device");
+    darwinPointer->name = strdup("pointer");
 
     darwinTabletStylus = AddInputDevice(DarwinTabletProc, TRUE);
     RegisterPointerDevice( darwinTabletStylus );
-    darwinTabletStylus->name = strdup("stylus");
+    darwinTabletStylus->name = strdup("pen");
 
     darwinTabletCursor = AddInputDevice(DarwinTabletProc, TRUE);
     RegisterPointerDevice( darwinTabletCursor );
