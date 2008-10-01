@@ -175,8 +175,12 @@ rescaleValuatorAxis(int coord, AxisInfoPtr from, AxisInfoPtr to,
 
     if(fmin == tmin && fmax == tmax)
         return coord;
-    return (int)(((float)(coord - fmin)) * (tmax - tmin + 1) /
-                 (fmax - fmin + 1)) + tmin;
+
+    if(fmax == fmin) /* avoid division by 0 */
+        return 0;
+
+    return roundf(((float)(coord - fmin)) * (tmax - tmin) /
+                 (fmax - fmin)) + tmin;
 }
 
 /**
