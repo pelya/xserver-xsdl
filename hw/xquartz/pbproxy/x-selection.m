@@ -324,8 +324,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	DB ("changed pasteboard!\n");
 	changeCount = countNow;
 
-	XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
-	[self own_clipboard];
+	if (pbproxy_pasteboard_to_primary)
+	{
+	    
+	    XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
+	}
+
+	if (pbproxy_pasteboard_to_clipboard)
+	{
+	    [self own_clipboard];
+	}
     }
 
 #if 0
@@ -449,7 +457,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     
     TRACE ();
 
-    if (NO == pbproxy_clipboard_to_pasteboard)
+    if (!pbproxy_clipboard_to_pasteboard)
 	return;
     
     owner = XGetSelectionOwner (x_dpy, atoms->clipboard);
@@ -460,6 +468,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	 * Set pbproxy's _selection_window as the owner, and continue.
 	 */
 	DB ("No clipboard owner.\n");
+	[self copy_completed:atoms->clipboard];
+	return;
+    } 
+    else if (owner == _selection_window) 
+    {
 	[self copy_completed:atoms->clipboard];
 	return;
     }
@@ -1223,9 +1236,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 - (void) reload_preferences
 {
-    
+    if (pbproxy_clipboard_to_pasteboard)
+    {
+	[self claim_clipboard];
+    }
 }
 
+- (BOOL) is_active 
+{
+    return pbproxy_active;
+}
 
 
 /* NSPasteboard-required methods */

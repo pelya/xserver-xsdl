@@ -8,6 +8,7 @@
 
 #include <pthread.h>
 #include <unistd.h> /*for getpid*/
+#include <Cocoa/Cocoa.h>
 
 static void signal_handler (int sig) {
     _exit(0);
@@ -21,16 +22,9 @@ int main (int argc, const char *argv[]) {
     signal (SIGINT, signal_handler);
     signal (SIGTERM, signal_handler);
     signal (SIGPIPE, SIG_IGN);
-    
-    while (1) {
-        NS_DURING
-        CFRunLoopRun ();
-        NS_HANDLER
-        NSString *s = [NSString stringWithFormat:@"%@ - %@",
-                       [localException name], [localException reason]];
-        fprintf(stderr, "quartz-wm: caught exception: %s\n", [s UTF8String]);
-        NS_ENDHANDLER
-    }		
+
+    [NSApplication sharedApplication];
+    [NSApp run];
     
     return 0;
 }

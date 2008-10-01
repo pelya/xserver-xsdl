@@ -1,7 +1,7 @@
 /* x-selection.h -- proxies between NSPasteboard and X11 selections
    $Id: x-selection.h,v 1.2 2002-12-13 00:21:00 jharper Exp $
 
-   Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
+   Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved.
 
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -102,6 +102,7 @@ struct atom_list {
 - (void) copy_completed:(Atom)selection;
 
 - (void) reload_preferences;
+- (BOOL) is_active;
 @end
 
 /* main.m */

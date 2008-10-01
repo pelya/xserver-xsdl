@@ -62,7 +62,11 @@ void x_input_run (void) {
         XEvent e;       
 
         XNextEvent (x_dpy, &e);
-        
+
+	/* If pbproxy isn't active (in the preferences), then don't do anything. */
+	if (![x_selection_object() is_active])
+	    continue;
+
         switch (e.type) {                
             case SelectionClear:
 	        [x_selection_object () clear_event:&e.xselectionclear];
