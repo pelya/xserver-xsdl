@@ -67,7 +67,6 @@ search locations are as follows:
 .B $XORGCONFIG
 .IB /etc/X11/ $XORGCONFIG
 .IB __projectroot__/etc/X11/ $XORGCONFIG
-.BI $HOME /__xconfigfile__
 .I /etc/X11/__xconfigfile__\-4
 .I /etc/X11/__xconfigfile__
 .I /etc/__xconfigfile__
