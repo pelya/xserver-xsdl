@@ -98,16 +98,10 @@
 # include <termio.h>
 # include <sys/stat.h>
 # include <sys/types.h>
-# if defined(__SCO__) || defined(ISC)
+# if defined(__SCO__) 
 # include <sys/param.h>
 # endif
 
-# ifdef ISC
-#  define TIOCMSET (TIOC|26)	/* set all modem bits */
-#  define TIOCMBIS (TIOC|27)	/* bis modem bits */
-#  define TIOCMBIC (TIOC|28)	/* bic modem bits */
-#  define TIOCMGET (TIOC|29)	/* get all modem bits */
-# endif
 
 # include <errno.h>
 
@@ -203,10 +197,6 @@
 #  define POSIX_TTY
 # endif /* SVR4 */
 
-# ifdef ISC
-#  include <termios.h>
-#  define POSIX_TTY
-# endif
 
 # if defined(sun) && (defined (__i386__) || defined(__i386)) && defined (SVR4) && !defined(__SOL8__)
 #  define USE_VT_SYSREQ
@@ -446,12 +436,6 @@
 # endif /* MAXPATHLEN */
 #endif /* !PATH_MAX */
 
-#if defined(ISC)
-#define rint(x) RInt(x)
-double RInt(
-	double x
-);
-#endif
 
 #ifndef DEV_MEM
 #define DEV_MEM "/dev/mem"

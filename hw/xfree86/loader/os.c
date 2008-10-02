@@ -52,8 +52,6 @@
 #define OSNAME "hurd"
 #elif defined(__SCO__)
 #define OSNAME "sco"
-#elif defined(ISC)
-#define OSNAME "isc"
 #elif defined(SVR4) && defined(sun)
 #define OSNAME "solaris"
 #elif defined(SVR5)
