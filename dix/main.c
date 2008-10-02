@@ -253,10 +253,6 @@ int main(int argc, char *argv[], char *envp[])
 
     InitConnectionLimits();
 
-    /* prep X authority file from environment; this can be overriden by a
-     * command line option */
-    xauthfile = getenv("XAUTHORITY");
-    if (xauthfile) InitAuthorization (xauthfile);
     ProcessCommandLine(argc, argv);
 
     alwaysCheckForInput[0] = 0;
