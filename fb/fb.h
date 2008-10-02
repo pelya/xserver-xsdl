@@ -138,7 +138,7 @@ typedef unsigned __int64    FbBits;
       defined(ia64) || defined(__ia64__) || \
       defined(__sparc64__) || defined(_LP64) || \
       defined(__s390x__) || \
-      defined(amd64) || defined (__amd64__) \
+      defined(amd64) || defined (__amd64__) || \
       defined (__powerpc64__)
 typedef unsigned long	    FbBits;
 #  else
