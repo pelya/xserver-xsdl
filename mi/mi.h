@@ -369,10 +369,6 @@ extern Bool miRectAlloc(
     int /*n*/
 );
 
-extern int miFindMaxBand(
-    RegionPtr /*prgn*/
-);
-
 #ifdef DEBUG
 extern Bool miValidRegion(
     RegionPtr /*prgn*/

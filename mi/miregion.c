@@ -1843,33 +1843,3 @@ miClipSpans(
     }
     return (pwidthNew - pwidthNewStart);
 }
-
-/* find the band in a region with the most rectangles */
-_X_EXPORT int
-miFindMaxBand(RegionPtr prgn)
-{
-    int nbox;
-    BoxPtr pbox;
-    int nThisBand;
-    int nMaxBand = 0;
-    short yThisBand;
-
-    good(prgn);
-    nbox = REGION_NUM_RECTS(prgn);
-    pbox = REGION_RECTS(prgn);
-
-    while(nbox > 0)
-    {
-	yThisBand = pbox->y1;
-	nThisBand = 0;
-	while((nbox > 0) && (pbox->y1 == yThisBand))
-	{
-	    nbox--;
-	    pbox++;
-	    nThisBand++;
-	}
-	if (nThisBand > nMaxBand)
-	    nMaxBand = nThisBand;
-    }
-    return (nMaxBand);
-}
