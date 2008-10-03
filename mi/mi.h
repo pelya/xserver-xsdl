@@ -419,10 +419,6 @@ extern DevPrivateKey miAllocateGCPrivateIndex(
     void
 );
 
-extern void miSetScreenPixmap(
-    PixmapPtr pPix
-);
-
 /* mivaltree.c */
 
 extern int miShapedWindowIn(
