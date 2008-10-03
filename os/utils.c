@@ -212,9 +212,6 @@ Bool PanoramiXExtensionDisabledHack = FALSE;
 
 int auditTrailLevel = 1;
 
-_X_EXPORT Bool Must_have_memory = FALSE;
-
-
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
@@ -1056,60 +1053,40 @@ set_font_authorizations(char **authorizations, int *authlen, pointer client)
 #endif /* TCPCONN */
 }
 
-/* XALLOC -- X's internal memory allocator.  Why does it return unsigned
- * long * instead of the more common char *?  Well, if you read K&R you'll
- * see they say that alloc must return a pointer "suitable for conversion"
- * to whatever type you really want.  In a full-blown generic allocator
- * there's no way to solve the alignment problems without potentially
- * wasting lots of space.  But we have a more limited problem. We know
- * we're only ever returning pointers to structures which will have to
- * be long word aligned.  So we are making a stronger guarantee.  It might
- * have made sense to make Xalloc return char * to conform with people's
- * expectations of malloc, but this makes lint happier.
- */
-
 #ifndef INTERNAL_MALLOC
 
 _X_EXPORT void * 
 Xalloc(unsigned long amount)
 {
-    register pointer  ptr;
-	
+    void *ptr;
+
     if ((long)amount <= 0) {
-	return (unsigned long *)NULL;
+	return NULL;
     }
     /* aligned extra on long word boundary */
     amount = (amount + (sizeof(long) - 1)) & ~(sizeof(long) - 1);
-    if ((ptr = (pointer)malloc(amount))) {
-	return (unsigned long *)ptr;
-    }
-    if (Must_have_memory)
-	FatalError("Out of memory");
-    return (unsigned long *)NULL;
+    ptr = malloc(amount);
+    return ptr;
 }
 
 /*****************
  * XNFalloc 
- * "no failure" realloc, alternate interface to Xalloc w/o Must_have_memory
+ * "no failure" realloc
  *****************/
 
 _X_EXPORT void *
 XNFalloc(unsigned long amount)
 {
-    register pointer ptr;
+    void *ptr;
 
     if ((long)amount <= 0)
-    {
-        return (unsigned long *)NULL;
-    }
+        return NULL;
     /* aligned extra on long word boundary */
     amount = (amount + (sizeof(long) - 1)) & ~(sizeof(long) - 1);
-    ptr = (pointer)malloc(amount);
+    ptr = malloc(amount);
     if (!ptr)
-    {
         FatalError("Out of memory");
-    }
-    return ((unsigned long *)ptr);
+    return ptr;
 }
 
 /*****************
@@ -1119,11 +1096,11 @@ XNFalloc(unsigned long amount)
 _X_EXPORT void *
 Xcalloc(unsigned long amount)
 {
-    unsigned long   *ret;
+    void *ret;
 
     ret = Xalloc (amount);
     if (ret)
-	bzero ((char *) ret, (int) amount);
+	bzero (ret, (int) amount);
     return ret;
 }
 
@@ -1134,11 +1111,11 @@ Xcalloc(unsigned long amount)
 _X_EXPORT void *
 XNFcalloc(unsigned long amount)
 {
-    unsigned long   *ret;
+    void *ret;
 
     ret = Xalloc (amount);
     if (ret)
-	bzero ((char *) ret, (int) amount);
+	bzero (ret, (int) amount);
     else if ((long)amount > 0)
         FatalError("Out of memory");
     return ret;
@@ -1155,34 +1132,31 @@ Xrealloc(pointer ptr, unsigned long amount)
     {
 	if (ptr && !amount)
 	    free(ptr);
-	return (unsigned long *)NULL;
+	return NULL;
     }
     amount = (amount + (sizeof(long) - 1)) & ~(sizeof(long) - 1);
     if (ptr)
-        ptr = (pointer)realloc((char *)ptr, amount);
+        ptr = realloc(ptr, amount);
     else
-	ptr = (pointer)malloc(amount);
-    if (ptr)
-        return (unsigned long *)ptr;
-    if (Must_have_memory)
-	FatalError("Out of memory");
-    return (unsigned long *)NULL;
+	ptr = malloc(amount);
+
+    return ptr;
 }
                     
 /*****************
  * XNFrealloc 
- * "no failure" realloc, alternate interface to Xrealloc w/o Must_have_memory
+ * "no failure" realloc
  *****************/
 
 _X_EXPORT void *
 XNFrealloc(pointer ptr, unsigned long amount)
 {
-    if (( ptr = (pointer)Xrealloc( ptr, amount ) ) == NULL)
+    if ((ptr = Xrealloc(ptr, amount)) == NULL)
     {
 	if ((long)amount > 0)
             FatalError( "Out of memory" );
     }
-    return ((unsigned long *)ptr);
+    return ptr;
 }
 
 /*****************
@@ -1194,7 +1168,7 @@ _X_EXPORT void
 Xfree(pointer ptr)
 {
     if (ptr)
-	free((char *)ptr); 
+	free(ptr); 
 }
 #endif /* !INTERNAL_MALLOC */
 
@@ -1207,7 +1181,7 @@ Xstrdup(const char *s)
     if (s == NULL)
 	return NULL;
 
-    sd = (char *)Xalloc(strlen(s) + 1);
+    sd = Xalloc(strlen(s) + 1);
     if (sd != NULL)
 	strcpy(sd, s);
     return sd;
@@ -1222,7 +1196,7 @@ XNFstrdup(const char *s)
     if (s == NULL)
 	return NULL;
 
-    sd = (char *)XNFalloc(strlen(s) + 1);
+    sd = XNFalloc(strlen(s) + 1);
     strcpy(sd, s);
     return sd;
 }

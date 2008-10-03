@@ -2640,11 +2640,8 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 	    if (pSprite->spriteTraceGood >= pSprite->spriteTraceSize)
 	    {
 		pSprite->spriteTraceSize += 10;
-		Must_have_memory = TRUE; /* XXX */
-		pSprite->spriteTrace = (WindowPtr *)xrealloc(
-		                    pSprite->spriteTrace,
+		pSprite->spriteTrace = xrealloc(pSprite->spriteTrace,
 		                    pSprite->spriteTraceSize*sizeof(WindowPtr));
-		Must_have_memory = FALSE; /* XXX */
 	    }
 	    pSprite->spriteTrace[pSprite->spriteTraceGood++] = pWin;
 	    pWin = pWin->firstChild;
@@ -3462,11 +3459,8 @@ CheckPassiveGrabsOnWindow(
 	    {
 		if (grabinfo->sync.evcount < scount)
 		{
-		    Must_have_memory = TRUE; /* XXX */
-		    grabinfo->sync.event = (xEvent *)xrealloc(grabinfo->sync.event,
-							    scount*
-							    sizeof(xEvent));
-		    Must_have_memory = FALSE; /* XXX */
+		    grabinfo->sync.event = xrealloc(grabinfo->sync.event,
+						    scount * sizeof(xEvent));
 		}
 		grabinfo->sync.evcount = scount;
                 /* we always store the XI event, never the core event */
@@ -3792,10 +3786,8 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	    FreezeThaw(thisDev, TRUE);
 	    if (grabinfo->sync.evcount < count)
 	    {
-		Must_have_memory = TRUE; /* XXX */
-		grabinfo->sync.event = (xEvent *)xrealloc(grabinfo->sync.event,
-							 count*sizeof(xEvent));
-		Must_have_memory = FALSE; /* XXX */
+		grabinfo->sync.event = xrealloc(grabinfo->sync.event,
+						count * sizeof(xEvent));
 	    }
 	    grabinfo->sync.evcount = count;
 	    for (dxE = grabinfo->sync.event; --count >= 0; dxE++, xE++)
@@ -4953,11 +4945,8 @@ SetInputFocus(
         if (depth > focus->traceSize)
         {
 	    focus->traceSize = depth+1;
-	    Must_have_memory = TRUE; /* XXX */
-	    focus->trace = (WindowPtr *)xrealloc(focus->trace,
-						 focus->traceSize *
-						 sizeof(WindowPtr));
-	    Must_have_memory = FALSE; /* XXX */
+	    focus->trace = xrealloc(focus->trace,
+				    focus->traceSize * sizeof(WindowPtr));
 	}
 	focus->traceGood = depth;
         for (pWin = focusWin, depth--; pWin; pWin = pWin->parent, depth--)

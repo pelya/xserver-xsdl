@@ -333,7 +333,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     /* utils.c */
     SYMFUNC(Xstrdup)
     SYMFUNC(XNFstrdup)
-    SYMVAR(Must_have_memory)
     SYMFUNC(AdjustWaitForDelay)
     SYMVAR(noTestExtensions)
     SYMFUNC(GiveUp)

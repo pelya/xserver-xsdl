@@ -63,11 +63,9 @@ miCreateGCOps(GCOpsPtr prototype)
 {
     GCOpsPtr        ret;
 
-     /* XXX */ Must_have_memory = TRUE;
-    ret = (GCOpsPtr) xalloc(sizeof(GCOps));
-     /* XXX */ Must_have_memory = FALSE;
+    ret = xalloc(sizeof(GCOps));
     if (!ret)
-	return 0;
+	return NULL;
     *ret = *prototype;
     ret->devPrivate.val = 1;
     return ret;

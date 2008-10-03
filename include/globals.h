@@ -19,7 +19,6 @@ extern char *defaultFontPath;
 extern int monitorResolution;
 extern int defaultColorVisualClass;
 
-extern Bool Must_have_memory;
 extern WindowPtr WindowTable[MAXSCREENS];
 extern int GrabInProgress;
 extern Bool noTestExtensions;
