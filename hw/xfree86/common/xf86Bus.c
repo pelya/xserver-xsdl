@@ -1522,11 +1522,11 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 #ifdef DEBUG
     xf86MsgVerb(X_INFO, 3,"Resources after driver initialization\n");
     xf86PrintResList(3, Acc);
-    if (res) xf86MsgVerb(X_INFO, 3,
-			 "Failed Resources after driver initialization "
-			 "for Entity: %i\n",entityIndex);
-    xf86PrintResList(3, res);
 #endif
+    if (res) {
+	xf86MsgVerb(X_INFO, 3, "Failed to register resources:\n");
+	xf86PrintResList(3, res);
+    }
     return res;
     
 }
