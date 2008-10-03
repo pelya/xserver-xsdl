@@ -838,9 +838,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     /* Globals from xf86Configure.c */
     SYMVAR(ConfiguredMonitor)
 
-    /* Pci.c */
-    SYMVAR(pciNumBuses)
-
     /* modes */
     SYMVAR(xf86CrtcConfigPrivateIndex)
     SYMFUNC(xf86CrtcConfigInit)

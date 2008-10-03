@@ -474,13 +474,11 @@ void
 ix86PciInit()
 {
     /* Initialize pciBusInfo */
-    pciNumBuses    = 1;
     pciBusInfo     = &ix86Pci0;
 
     /* Make sure that there is a PCI bus present. */
     ix86PciSelectCfgmech();
     if (ix86Pci0.configMech == PCI_CFG_MECH_UNKNOWN) {
-	pciNumBuses    = 0;
 	pciBusInfo     = NULL;
     }
 }

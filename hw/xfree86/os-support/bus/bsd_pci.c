@@ -79,7 +79,6 @@ xf86MapLegacyIO(struct pci_device *dev)
 void
 bsdPciInit(void)
 {
-    pciNumBuses = 1;
     pciBusInfo = &bsd_pci;
 
     xf86InitVidMem();

@@ -114,7 +114,6 @@ linuxPciInit(void)
 	   we'll need a fallback for 2.0 kernels here */
 	return;
     }
-    pciNumBuses    = 1;
     pciBusInfo	   = &linuxPci0;
 }
 

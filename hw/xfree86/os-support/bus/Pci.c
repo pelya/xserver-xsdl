@@ -139,7 +139,6 @@
 /* Global data */
 
 pciBusInfo_t *pciBusInfo = NULL;
-_X_EXPORT int pciNumBuses = 0;     /* Actual number of PCI buses */
 
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
