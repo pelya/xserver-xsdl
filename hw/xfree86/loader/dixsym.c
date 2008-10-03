@@ -443,8 +443,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(AttendClient)
     SYMFUNC(AddEnabledDevice)
     SYMFUNC(RemoveEnabledDevice)
-    SYMFUNC(MakeClientGrabPervious)
-    SYMFUNC(MakeClientGrabImpervious)
     SYMVAR(GrabInProgress)
 
 #ifdef XKB
