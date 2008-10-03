@@ -189,6 +189,19 @@ miScreenDevPrivateInit(ScreenPtr pScreen, int width, pointer pbits)
     return TRUE;
 }
 
+static PixmapPtr
+miGetScreenPixmap(ScreenPtr pScreen)
+{
+    return (PixmapPtr)(pScreen->devPrivate);
+}
+
+static void
+miSetScreenPixmap(PixmapPtr pPix)
+{
+    if (pPix)
+	pPix->drawable.pScreen->devPrivate = (pointer)pPix;
+}
+
 _X_EXPORT Bool
 miScreenInit(
     ScreenPtr pScreen,
@@ -296,17 +309,4 @@ _X_EXPORT void
 miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)
 {
     dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);
-}
-
-PixmapPtr
-miGetScreenPixmap(ScreenPtr pScreen)
-{
-    return (PixmapPtr)(pScreen->devPrivate);
-}
-
-void
-miSetScreenPixmap(PixmapPtr pPix)
-{
-    if (pPix)
-	pPix->drawable.pScreen->devPrivate = (pointer)pPix;
 }
