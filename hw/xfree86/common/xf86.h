@@ -100,7 +100,6 @@ Bool xf86ParsePciBusString(const char *busID, int *bus, int *device,
 			   int *func);
 Bool xf86ComparePciBusString(const char *busID, int bus, int device, int func);
 void xf86FormatPciBusNumber(int busnum, char *buffer);
-void xf86PrintResList(int verb, resPtr list);
 resPtr xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex);
 int xf86ClaimIsaSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 int xf86GetIsaInfoForScreen(int scrnIndex);
@@ -114,8 +113,6 @@ Bool xf86IsPrimaryPci(struct pci_device * pPci);
 Bool xf86IsPrimaryIsa(void);
 /* new RAC */
 resPtr xf86AddResToList(resPtr rlist, resRange *Range, int entityIndex);
-resPtr xf86JoinResLists(resPtr rlist1, resPtr rlist2);
-resPtr xf86DupResList(const resPtr rlist);
 void xf86FreeResList(resPtr rlist);
 void xf86ClaimFixedResources(resList list, int entityIndex);
 Bool xf86DriverHasEntities(DriverPtr drvp);

@@ -1129,7 +1129,7 @@ xf86ChkConflict(resRange *rgp, int entityIndex)
  * Resources List handling
  */
 
-_X_EXPORT resPtr
+static resPtr
 xf86JoinResLists(resPtr rlist1, resPtr rlist2)
 {
     resPtr pRes;
@@ -1146,7 +1146,7 @@ xf86JoinResLists(resPtr rlist1, resPtr rlist2)
     return rlist1;
 }
 
-_X_EXPORT resPtr
+resPtr
 xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
 {
     resPtr new;
@@ -1196,7 +1196,7 @@ xf86FreeResList(resPtr rlist)
     xfree(rlist);
 }
 
-_X_EXPORT resPtr
+static resPtr
 xf86DupResList(const resPtr rlist)
 {
     resPtr pRes, ret, prev, new;
@@ -1216,7 +1216,7 @@ xf86DupResList(const resPtr rlist)
     return ret;
 }
 
-_X_EXPORT void
+static void
 xf86PrintResList(int verb, resPtr list)
 {
     int i = 0;
