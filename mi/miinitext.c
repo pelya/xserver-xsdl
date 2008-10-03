@@ -584,7 +584,7 @@ InitVisualWrap()
 	(*__miHookInitVisualsFunction)(&miInitVisualsProc);
 }
 
-_X_EXPORT void
+void
 miHookInitVisuals(void (**old)(miInitVisualsProcPtr *),
 		  void (*new)(miInitVisualsProcPtr *))
 {

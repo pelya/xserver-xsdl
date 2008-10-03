@@ -2217,7 +2217,7 @@ miBankNewSerialNumber(
 }
 
 /* This entry modifies the banking interface */
-_X_EXPORT Bool
+Bool
 miModifyBanking(
     ScreenPtr     pScreen,
     miBankInfoPtr pBankInfo

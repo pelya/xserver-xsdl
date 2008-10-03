@@ -106,7 +106,7 @@ Equipment Corporation.
 /*
  * Compute the visibility of a shaped window
  */
-_X_EXPORT int
+int
 miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
                   BoxPtr rect, int x, int y)
 {

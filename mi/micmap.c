@@ -52,7 +52,7 @@ static Bool miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
 		unsigned long sizes, int bitsPerRGB, int preferredVis);
 
-_X_EXPORT miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
+miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
 
 _X_EXPORT int
 miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)

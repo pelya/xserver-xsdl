@@ -223,7 +223,7 @@ miMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst, WindowPtr *ppLayerWin)
  *    regions, translate the regions, restore any backing store,
  *    and then send any regions still exposed to the client
  *****/
-_X_EXPORT void
+void
 miHandleValidateExposures(WindowPtr pWin)
 {
     WindowPtr pChild;
@@ -694,7 +694,7 @@ miGetLayerWindow(WindowPtr pWin)
  *    and send appropriate exposure events
  */
 
-_X_EXPORT void
+void
 miSetShape(WindowPtr pWin)
 {
     Bool	WasViewable = (Bool)(pWin->viewable);
@@ -750,7 +750,7 @@ miSetShape(WindowPtr pWin)
 
 /* Keeps the same inside(!) origin */
 
-_X_EXPORT void
+void
 miChangeBorderWidth(WindowPtr pWin, unsigned int width)
 {
     int oldwidth;

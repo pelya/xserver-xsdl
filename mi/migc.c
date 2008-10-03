@@ -58,7 +58,7 @@ miDestroyGC(GCPtr pGC)
  * create a private op array for a gc
  */
 
-_X_EXPORT GCOpsPtr
+GCOpsPtr
 miCreateGCOps(GCOpsPtr prototype)
 {
     GCOpsPtr        ret;
@@ -71,7 +71,7 @@ miCreateGCOps(GCOpsPtr prototype)
     return ret;
 }
 
-_X_EXPORT void
+void
 miDestroyGCOps(GCOpsPtr ops)
 {
     if (ops->devPrivate.val)

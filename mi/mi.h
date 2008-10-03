@@ -423,10 +423,6 @@ extern DevPrivateKey miAllocateGCPrivateIndex(
     void
 );
 
-extern PixmapPtr miGetScreenPixmap(
-    ScreenPtr pScreen
-);
-
 extern void miSetScreenPixmap(
     PixmapPtr pPix
 );

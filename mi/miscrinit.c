@@ -283,7 +283,7 @@ miScreenInit(
 static int privateKeyIndex;
 static DevPrivateKey privateKey = &privateKeyIndex;
 
-_X_EXPORT DevPrivateKey
+DevPrivateKey
 miAllocateGCPrivateIndex()
 {
     return privateKey;
@@ -298,13 +298,13 @@ miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)
     dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);
 }
 
-_X_EXPORT PixmapPtr
+PixmapPtr
 miGetScreenPixmap(ScreenPtr pScreen)
 {
     return (PixmapPtr)(pScreen->devPrivate);
 }
 
-_X_EXPORT void
+void
 miSetScreenPixmap(PixmapPtr pPix)
 {
     if (pPix)
