@@ -2671,7 +2671,7 @@ CheckGenericGA()
 #endif
 }
 
-_X_EXPORT Bool
+Bool
 xf86NoSharedResources(int screenIndex,resType res)
 {
     int j;
