@@ -63,6 +63,7 @@ enum {
      */
     kXquartzControllerNotify, // send an AppleWMControllerNotify event
     kXquartzPasteboardNotify, // notify the WM to copy or paste
+    kXquartzReloadPreferences, // send AppleWMReloadPreferences
     /*
      * Xplugin notification events
      */

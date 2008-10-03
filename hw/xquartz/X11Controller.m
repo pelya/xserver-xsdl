@@ -54,13 +54,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-// This will live in pbproxy/x-selection.m when we integrage that into a server thread... for now, living here for testing the UI.
-int pbproxy_active = YES;
-int pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
-int pbproxy_clipboard_to_pasteboard = YES;
-int pbproxy_pasteboard_to_primary = YES;
-int pbproxy_pasteboard_to_clipboard = YES;
-
 @implementation X11Controller
 
 - (void) awakeFromNib
@@ -630,21 +623,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     X11EnableKeyEquivalents = [enable_keyequivs intValue];
     darwinSyncKeymap = [sync_keymap intValue];
 
-    pbproxy_active = [sync_pasteboard intValue];
-    pbproxy_pasteboard_to_clipboard = [sync_pasteboard_to_clipboard intValue];
-    pbproxy_pasteboard_to_primary = [sync_pasteboard_to_primary intValue];
-    pbproxy_clipboard_to_pasteboard = [sync_clipboard_to_pasteboard intValue];
-    pbproxy_primary_on_grab = [sync_primary_immediately intValue];
-
-    [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
-    [sync_pasteboard_to_primary setEnabled:pbproxy_active];
-    [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
-    [sync_primary_immediately setEnabled:pbproxy_active];
-
-    // setEnabled doesn't do this...
-    [sync_text1 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
-    [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
-    
     /* after adding prefs here, also add to [X11Application read_defaults]
      and prefs_show */
 	
@@ -659,19 +637,32 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
     [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
 
-    [NSApp prefs_set_integer:@PREFS_SYNC_PB value:pbproxy_active];
-    [NSApp prefs_set_integer:@PREFS_SYNC_PB_TO_CLIPBOARD value:pbproxy_pasteboard_to_clipboard];
-    [NSApp prefs_set_integer:@PREFS_SYNC_PB_TO_PRIMARY value:pbproxy_pasteboard_to_primary];
-    [NSApp prefs_set_integer:@PREFS_SYNC_CLIPBOARD_TO_PB value:pbproxy_clipboard_to_pasteboard];
-    [NSApp prefs_set_integer:@PREFS_SYNC_PRIMARY_ON_SELECT value:pbproxy_primary_on_grab];
+    BOOL pbproxy_active = [sync_pasteboard intValue];
     
-    system("killall -HUP quartz-wm");
-	
+    [NSApp prefs_set_boolean:@PREFS_SYNC_PB value:pbproxy_active];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_PB_TO_CLIPBOARD value:[sync_pasteboard_to_clipboard intValue]];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_PB_TO_PRIMARY value:[sync_pasteboard_to_primary intValue]];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_CLIPBOARD_TO_PB value:[sync_clipboard_to_pasteboard intValue]];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_PRIMARY_ON_SELECT value:[sync_primary_immediately intValue]];
+    
     [NSApp prefs_synchronize];
+
+    [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
+    [sync_pasteboard_to_primary setEnabled:pbproxy_active];
+    [sync_clipboard_to_pasteboard setEnabled:pbproxy_active];
+    [sync_primary_immediately setEnabled:pbproxy_active];
+    
+    // setEnabled doesn't do this...
+    [sync_text1 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
+    [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
+    
+	DarwinSendDDXEvent(kXquartzReloadPreferences, 0);
 }
 
 - (IBAction) prefs_show:sender
 {
+    BOOL pbproxy_active = [NSApp prefs_get_boolean:@PREFS_SYNC_PB default:YES];
+    
     [fake_buttons setIntValue:darwinFakeButtons];
     [use_sysbeep setIntValue:quartzUseSysBeep];
     [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
@@ -684,12 +675,12 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
 
     [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
-    
+
     [sync_pasteboard setIntValue:pbproxy_active];
-    [sync_pasteboard_to_clipboard setIntValue:pbproxy_pasteboard_to_clipboard];
-    [sync_pasteboard_to_primary setIntValue:pbproxy_pasteboard_to_primary];
-    [sync_clipboard_to_pasteboard setIntValue:pbproxy_clipboard_to_pasteboard];
-    [sync_primary_immediately setIntValue:pbproxy_primary_on_grab];
+    [sync_pasteboard_to_clipboard setIntValue:[NSApp prefs_get_boolean:@PREFS_SYNC_PB_TO_CLIPBOARD default:YES]];
+    [sync_pasteboard_to_primary setIntValue:[NSApp prefs_get_boolean:@PREFS_SYNC_PB_TO_PRIMARY default:YES]];
+    [sync_clipboard_to_pasteboard setIntValue:[NSApp prefs_get_boolean:@PREFS_SYNC_CLIPBOARD_TO_PB default:YES]];
+    [sync_primary_immediately setIntValue:[NSApp prefs_get_boolean:@PREFS_SYNC_PRIMARY_ON_SELECT default:NO]];
 
     [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
     [sync_pasteboard_to_primary setEnabled:pbproxy_active];

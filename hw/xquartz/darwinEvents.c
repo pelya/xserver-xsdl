@@ -107,7 +107,8 @@ static pthread_t create_thread(void *func, void *arg) {
     return tid;
 }
 
-static inline void darwinEvents_lock(void) {
+void darwinEvents_lock(void);
+void darwinEvents_lock(void) {
     int err;
     if((err = pthread_mutex_lock(&mieq_lock))) {
         ErrorF("%s:%s:%d: Failed to lock mieq_lock: %d\n",
@@ -225,6 +226,13 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
                 QuartzHide();
                 break;
 
+            case kXquartzReloadPreferences:
+                DEBUG_LOG("kXquartzReloadPreferences\n");
+                AppleWMSendEvent(AppleWMActivationNotify,
+                                 AppleWMActivationNotifyMask,
+                                 AppleWMReloadPreferences, 0);
+                break;
+                
             case kXquartzToggleFullscreen:
                 DEBUG_LOG("kXquartzToggleFullscreen\n");
 #ifdef DARWIN_DDX_MISSING
@@ -315,6 +323,7 @@ Bool DarwinEQInit(void) {
     mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
     mieqSetHandler(kXquartzDeactivate, DarwinEventHandler);
+    mieqSetHandler(kXquartzReloadPreferences, DarwinEventHandler);
     mieqSetHandler(kXquartzSetRootClip, DarwinEventHandler);
     mieqSetHandler(kXquartzQuit, DarwinEventHandler);
     mieqSetHandler(kXquartzReadPasteboard, QuartzReadPasteboard);
@@ -394,8 +403,8 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
     valuators[3] = tilt_x * SCALEFACTOR_TILT;
     valuators[4] = tilt_y * SCALEFACTOR_TILT;
     
-    DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
-              valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
+//    DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
+//              valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 }
 
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
@@ -406,7 +415,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
     ScreenPtr screen;
     int valuators[5];
 	
-    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+//    DEBUG_LOG("x=%d, y=%d, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
 	if(!darwinEvents) {
 		DEBUG_LOG("DarwinSendPointerEvents called before darwinEvents was initialized\n");
