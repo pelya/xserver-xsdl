@@ -371,7 +371,7 @@ exaTryDriverCompositeRects(CARD8	       op,
     }
     
     exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
-	
+
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = exaOpReadsDestination(op);
     pixmaps[0].pPix = pDstPix;
@@ -406,24 +406,24 @@ exaTryDriverCompositeRects(CARD8	       op,
 	INT16 yDst = rects->yDst + pDst->pDrawable->y;
 	INT16 xSrc = rects->xSrc + pSrc->pDrawable->x;
 	INT16 ySrc = rects->ySrc + pSrc->pDrawable->y;
-	
+
 	RegionRec region;
 	BoxPtr pbox;
 	int nbox;
-	
+
 	if (!miComputeCompositeRegion (&region, pSrc, NULL, pDst,
 				       xSrc, ySrc, 0, 0, xDst, yDst,
 				       rects->width, rects->height))
 	    goto next_rect;
-	
+
 	REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
-	
+
 	nbox = REGION_NUM_RECTS(&region);
 	pbox = REGION_RECTS(&region);
 
 	xSrc = xSrc + src_off_x - xDst - dst_off_x;
 	ySrc = ySrc + src_off_y - yDst - dst_off_y;
-	
+
 	while (nbox--)
 	{
 	    (*pExaScr->info->Composite) (pDstPix,
@@ -442,10 +442,10 @@ exaTryDriverCompositeRects(CARD8	       op,
 
 	rects++;
     }
-    
+
     (*pExaScr->info->DoneComposite) (pDstPix);
     exaMarkSync(pDst->pDrawable->pScreen);
-	
+
     return 1;
 }
 

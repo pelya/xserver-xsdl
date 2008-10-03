@@ -491,7 +491,6 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	}
 
     }
-    
 
     buffer->source = cache->picture;
 	    
@@ -502,7 +501,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
     rect->yDst = yGlyph - pGlyph->info.y;
     rect->width = pGlyph->info.width;
     rect->height = pGlyph->info.height;
-	    
+
     buffer->count++;
 
     return ExaGlyphSuccess;
@@ -597,7 +596,7 @@ exaGlyphsToDst(CARD8		 op,
 
     for (i = 0; i < buffer->count; i++) {
 	ExaCompositeRectPtr rect = &buffer->rects[i];
-	
+
 	CompositePicture (op,
 			  pSrc,
 			  buffer->source,
