@@ -54,31 +54,6 @@ miDestroyGC(GCPtr pGC)
     miDestroyGCOps(pGC->ops);
 }
 
-/*
- * create a private op array for a gc
- */
-
-GCOpsPtr
-miCreateGCOps(GCOpsPtr prototype)
-{
-    GCOpsPtr        ret;
-
-    ret = xalloc(sizeof(GCOps));
-    if (!ret)
-	return NULL;
-    *ret = *prototype;
-    ret->devPrivate.val = 1;
-    return ret;
-}
-
-void
-miDestroyGCOps(GCOpsPtr ops)
-{
-    if (ops->devPrivate.val)
-	xfree(ops);
-}
-
-
 _X_EXPORT void
 miDestroyClip(GCPtr pGC)
 {
