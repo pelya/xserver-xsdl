@@ -436,7 +436,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(SetCriticalOutputPending)
     SYMVAR(FlushCallback)
     SYMVAR(ReplyCallback)
-    SYMVAR(SkippedRequestsCallback)
     SYMFUNC(ResetCurrentRequest)
     /* connection.c */
     SYMFUNC(IgnoreClient)

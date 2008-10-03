@@ -574,95 +574,6 @@ RecordARequest(ClientPtr client)
     return (* pClientPriv->originalVector[majorop])(client);
 } /* RecordARequest */
 
-
-/* RecordASkippedRequest
- *
- * Arguments:
- *	pcbl is &SkippedRequestCallback.
- *	nulldata is NULL.
- *	calldata is a pointer to a SkippedRequestInfoRec (include/os.h)
- *	  which provides information about requests that the server is
- *	  skipping.  The client's proc vector won't be called for skipped
- *	  requests, so that's why we have to catch them here.
- *
- * Returns: nothing.
- *
- * Side Effects:
- *	The skipped requests are recorded by all contexts that have 
- *	registered those requests for this client.
- *
- * Note: most servers don't skip requests, so calls to this will probably
- *	 be rare.  For more information on skipped requests, search for
- *	 the word skip in ddx.tbl.ms (the porting layer document).
- */
-static void
-RecordASkippedRequest(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
-{
-    SkippedRequestInfoRec *psi = (SkippedRequestInfoRec *)calldata;
-    RecordContextPtr pContext;
-    RecordClientsAndProtocolPtr pRCAP;
-    xReqPtr stuff = psi->req;
-    ClientPtr client = psi->client;
-    int numSkippedRequests = psi->numskipped;
-    int reqlen;
-    int i;
-    int majorop;
-    
-    while (numSkippedRequests--)
-    {
-	majorop = stuff->reqType;
-	reqlen = ReqLen(stuff, client);
-	/* handle big request */
-	if (stuff->length == 0)
-	    reqlen += 4;
-	for (i = 0; i < numEnabledContexts; i++)
-	{
-	    pContext = ppAllContexts[i];
-	    pRCAP = RecordFindClientOnContext(pContext, client->clientAsMask,
-					      NULL);
-	    if (pRCAP && pRCAP->pRequestMajorOpSet &&
-		RecordIsMemberOfSet(pRCAP->pRequestMajorOpSet, majorop))
-	    {
-		if (majorop <= 127)
-		{ /* core request */
-
-		    RecordAProtocolElement(pContext, client, XRecordFromClient,
-				(pointer)stuff, reqlen, 0);
-		}
-		else /* extension, check minor opcode */
-		{
-		    int minorop = MinorOpcodeOfRequest(client);
-		    int numMinOpInfo;
-		    RecordMinorOpPtr pMinorOpInfo = pRCAP->pRequestMinOpInfo;
-
-		    assert (pMinorOpInfo);
-		    numMinOpInfo = pMinorOpInfo->count;
-		    pMinorOpInfo++;
-		    assert (numMinOpInfo);
-		    for ( ; numMinOpInfo; numMinOpInfo--, pMinorOpInfo++)
-		    {
-			if (majorop >= pMinorOpInfo->major.first &&
-			    majorop <= pMinorOpInfo->major.last &&
-			    RecordIsMemberOfSet(pMinorOpInfo->major.pMinOpSet,
-						minorop))
-			{
-			    RecordAProtocolElement(pContext, client, 
-				    XRecordFromClient, (pointer)stuff,
-				    reqlen, 0);
-			    break;
-			}			    
-		    } /* end for each minor op info */
-		} /* end extension request */
-	    } /* end this RCAP wants this major opcode */
-	} /* end for each context */
-
-	/* go to next request */
-	stuff = (xReqPtr)( ((char *)stuff) + reqlen);
-
-    } /* end for each skipped request */
-} /* RecordASkippedRequest */
-
-
 /* RecordAReply
  *
  * Arguments:
@@ -1012,9 +923,6 @@ RecordInstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 	    return BadAlloc;
 	if (!AddCallback(&ReplyCallback, RecordAReply, NULL))
 	    return BadAlloc;
-	if (!AddCallback(&SkippedRequestsCallback, RecordASkippedRequest,
-			 NULL))
-	    return BadAlloc;
 	if (!AddCallback(&FlushCallback, RecordFlushAllContexts, NULL))
 	    return BadAlloc;
 	/* Alternate context flushing scheme: delete the line above
@@ -1116,7 +1024,6 @@ RecordUninstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 	DeleteCallback(&EventCallback, RecordADeliveredEventOrError, NULL);
 	DeleteCallback(&DeviceEventCallback, RecordADeviceEvent, NULL);
 	DeleteCallback(&ReplyCallback, RecordAReply, NULL);
-	DeleteCallback(&SkippedRequestsCallback, RecordASkippedRequest, NULL);
 	DeleteCallback(&FlushCallback, RecordFlushAllContexts, NULL);
 	/* Alternate context flushing scheme: delete the line above
 	 * and call RemoveBlockAndWakeupHandlers here passing

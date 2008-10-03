@@ -576,10 +576,6 @@ ResetCurrentRequest(ClientPtr client)
     }
 }
 
-
-
-_X_EXPORT CallbackListPtr SkippedRequestsCallback = NULL;
-
     /* lookup table for adding padding bytes to data that is read from
     	or written to the X socket.  */
 static int padlength[4] = {0, 3, 2, 1};

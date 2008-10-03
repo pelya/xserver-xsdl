@@ -425,14 +425,6 @@ extern void ddxUseMsg(void);
     (_pxReq->length ? (otherReqTypePtr)_pxReq \
 		    : (otherReqTypePtr)(((CARD32*)_pxReq)+1))
 
-/* stuff for SkippedRequestsCallback */
-extern CallbackListPtr SkippedRequestsCallback;
-typedef struct {
-    xReqPtr req;
-    ClientPtr client;
-    int numskipped;
-} SkippedRequestInfoRec;
-
 /* stuff for ReplyCallback */
 extern CallbackListPtr ReplyCallback;
 typedef struct {
