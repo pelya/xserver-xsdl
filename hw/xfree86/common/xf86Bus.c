@@ -819,24 +819,6 @@ xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
     }
 }
 
-_X_EXPORT void
-xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
-		   xf86SetAccessFuncPtr oldFuncs)
-{
-    AccessFuncPtr rac;
-
-    if (!xf86Entities[pEnt->index]->rac)
-	xf86Entities[pEnt->index]->rac = xnfcalloc(1,sizeof(AccessFuncRec));
-
-    rac = xf86Entities[pEnt->index]->rac;
-
-    rac->mem_new = funcs->mem;
-    rac->io_new = funcs->io;
-    rac->io_mem_new = funcs->io_mem;
-    
-    rac->old = oldFuncs;
-}
-
 /*
  * Conflict checking
  */
