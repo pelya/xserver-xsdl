@@ -1,15 +1,22 @@
 AM_CPPFLAGS=-F/System/Library/Frameworks/ApplicationServices.framework/Frameworks
 AM_LDFLAGS=-L/usr/X11/lib -lX11 -lAppleWM -framework AppKit -framework Foundation -framework ApplicationServices
 
-noinst_PROGRAMS = pbproxy
-
-pbproxy_SOURCES = \
+SOURCE_FILES = \
 	trick_autotools.c \
-	main.m \
 	x-input.m \
 	x-selection.m
+
+noinst_LTLIBRARIES = libxpbproxy.la
+libxpbproxy_la_SOURCES = $(SOURCE_FILES)
+
+if !INTEGRATED_XPBPROXY
+
+bin_PROGRAMS = xpbproxy
+xpbproxy_SOURCES = main.m
+xpbproxy_LDADD = $(top_builddir)/hw/xquartz/pbproxy/libxpbproxy.la
+
+endif
 
 EXTRA_DIST = \
 	pbproxy.h \
 	x-selection.h
-

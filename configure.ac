@@ -547,6 +547,7 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
+AC_ARG_ENABLE(integrated-xpbproxy, AS_HELP_STRING([--enable-integrated-xpbproxy], [Build xpbproxy into Xquartz as a separate thread (default: no)]), [INTEGRATED_XPBPROXY=$enableval], [INTEGRATED_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
@@ -1536,6 +1537,10 @@ if test "x$XQUARTZ" = xyes; then
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
 
 	PKG_CHECK_MODULES(APPLEWM, [applewmproto >= 1.1.0])
+
+	if test "x$INTEGRATED_XPBPROXY" = xyes ; then
+		AC_DEFINE(INTEGRATED_XPBPROXY,1,[Build xpbproxy into the server rather than as a standalone app])
+	fi
 fi
 
 # Support for objc in autotools is minimal and not documented.
@@ -1552,6 +1557,7 @@ _AM_DEPENDENCIES([OBJC])
 AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
+AM_CONDITIONAL(INTEGRATED_XPBPROXY, [test "x$INTEGRATED_XPBPROXY" = xyes])
 
 dnl DMX DDX
 
