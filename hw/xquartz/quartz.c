@@ -186,7 +186,7 @@ void QuartzInitInput(
 
 #ifdef FAKE_RANDR
 
-static int padlength[4] = {0, 3, 2, 1};
+static const int padlength[4] = {0, 3, 2, 1};
 
 static void
 RREditConnectionInfo (ScreenPtr pScreen)

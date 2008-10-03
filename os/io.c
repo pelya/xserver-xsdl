@@ -576,9 +576,7 @@ ResetCurrentRequest(ClientPtr client)
     }
 }
 
-    /* lookup table for adding padding bytes to data that is read from
-    	or written to the X socket.  */
-static int padlength[4] = {0, 3, 2, 1};
+static const int padlength[4] = {0, 3, 2, 1};
 
  /********************
  * FlushAllOutput()

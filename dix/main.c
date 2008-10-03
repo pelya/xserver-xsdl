@@ -461,7 +461,7 @@ SetVendorString(char *string)
     VendorString = string;
 }
 
-static int padlength[4] = {0, 3, 2, 1};
+static const int padlength[4] = {0, 3, 2, 1};
 
 #ifndef PANORAMIX
 static

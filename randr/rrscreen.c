@@ -22,7 +22,7 @@
 
 #include "randrstr.h"
 
-static int padlength[4] = {0, 3, 2, 1};
+static const int padlength[4] = {0, 3, 2, 1};
 
 static CARD16
 RR10CurrentSizeID (ScreenPtr pScreen);
