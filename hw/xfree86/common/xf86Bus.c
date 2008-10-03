@@ -60,7 +60,10 @@ int xf86NumEntities = 0;
 static int xf86EntityPrivateCount = 0;
 BusAccPtr xf86BusAccInfo = NULL;
 
-xf86AccessRec AccessNULL = {NULL,NULL,NULL};
+static void
+noopEnableDisable(void *arg) { }
+
+xf86AccessRec AccessNULL = { noopEnableDisable, noopEnableDisable, NULL };
 
 xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
@@ -170,11 +173,9 @@ xf86EntityInit(void)
 		((BusAccPtr)xf86Entities[i]->access->busAcc)->set_f
 		    (xf86Entities[i]->access->busAcc);
 	    pacc = xf86Entities[i]->access->fallback;
-	    if (pacc->AccessEnable)
-		pacc->AccessEnable(pacc->arg);
+	    pacc->AccessEnable(pacc->arg);
 	    xf86Entities[i]->entityInit(i,xf86Entities[i]->private);
-	    if (pacc->AccessDisable)
-		pacc->AccessDisable(pacc->arg);
+	    pacc->AccessDisable(pacc->arg);
 	    /* remove init resources after init is processed */
 	    pprev_next = &Acc;
 	    res = Acc;
@@ -213,11 +214,9 @@ EntityEnter(void)
 		((BusAccPtr)xf86Entities[i]->access->busAcc)->set_f
 		    (xf86Entities[i]->access->busAcc);
 	    pacc = xf86Entities[i]->access->fallback;
-	    if (pacc->AccessEnable)
-		pacc->AccessEnable(pacc->arg);
+	    pacc->AccessEnable(pacc->arg);
 	    xf86Entities[i]->entityEnter(i,xf86Entities[i]->private);
-	    if (pacc->AccessDisable)
-		pacc->AccessDisable(pacc->arg);
+	    pacc->AccessDisable(pacc->arg);
 	}
 }
 
@@ -233,11 +232,9 @@ EntityLeave(void)
 		((BusAccPtr)xf86Entities[i]->access->busAcc)->set_f
 		    (xf86Entities[i]->access->busAcc);
 	    pacc = xf86Entities[i]->access->fallback;
-	    if (pacc->AccessEnable)
-		pacc->AccessEnable(pacc->arg);
+	    pacc->AccessEnable(pacc->arg);
 	    xf86Entities[i]->entityLeave(i,xf86Entities[i]->private);
-	    if (pacc->AccessDisable)
-		pacc->AccessDisable(pacc->arg);
+	    pacc->AccessDisable(pacc->arg);
 	}
 }
 
@@ -358,10 +355,10 @@ xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex)
 	    peacc = xf86Entities[pScrn->entityList[i]]->access;
 	    (*ptr) = peacc->next;
 	    /* disable entity: call disable func */
-	    if (peacc->pAccess && peacc->pAccess->AccessDisable)
+	    if (peacc->pAccess)
 		peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	    /* also disable fallback - just in case */
-	    if (peacc->fallback && peacc->fallback->AccessDisable)
+	    if (peacc->fallback)
 		peacc->fallback->AccessDisable(peacc->fallback->arg);
 	    for (i++; i < pScrn->numEntities; i++)
 		pScrn->entityList[i-1] = pScrn->entityList[i];
@@ -391,10 +388,10 @@ xf86ClearEntityListForScreen(int scrnIndex)
 	xf86Entities[entityIndex]->inUse = FALSE;
 	/* disable resource: call the disable function */
 	peacc = xf86Entities[entityIndex]->access;
-	if (peacc->pAccess && peacc->pAccess->AccessDisable)
+	if (peacc->pAccess)
 	    peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	/* and the fallback function */
-	if (peacc->fallback && peacc->fallback->AccessDisable)
+	if (peacc->fallback)
 	    peacc->fallback->AccessDisable(peacc->fallback->arg);
 	/* shared resources are only needed when entity is active: remove */
 	xf86DeallocateResourcesForEntity(entityIndex, ResShared);
@@ -525,14 +522,14 @@ disableAccess(void)
     for (i = 0; i < xf86NumScreens; i++) {
 	peacc = xf86Screens[i]->CurrentAccess->pIoAccess;
 	while (peacc) {
-	    if (peacc->pAccess && peacc->pAccess->AccessDisable)
+	    if (peacc->pAccess)
 		peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	    peacc = peacc->next;
 	}
 	xf86Screens[i]->CurrentAccess->pIoAccess = NULL;
 	peacc = xf86Screens[i]->CurrentAccess->pMemAccess;
 	while (peacc) {
-	    if (peacc->pAccess && peacc->pAccess->AccessDisable)
+	    if (peacc->pAccess)
 		peacc->pAccess->AccessDisable(peacc->pAccess->arg);
 	    peacc = peacc->next;
 	}
@@ -541,8 +538,7 @@ disableAccess(void)
     /* then call the generic entity disable funcs */
     for (i = 0; i < xf86NumEntities; i++) {
 	pacc = xf86Entities[i]->access->fallback; 
-	if (pacc->AccessDisable)
-	    pacc->AccessDisable(pacc->arg);
+	pacc->AccessDisable(pacc->arg);
     }
 }
 
@@ -692,16 +688,16 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    pScrn->CurrentAccess->pMemAccess = NULL;
 	while (pceAcc) {
 	    pAcc = pceAcc->pAccess;
-	    if ( pAcc && pAcc->AccessDisable) 
-		(*pAcc->AccessDisable)(pAcc->arg);
+	    if (pAcc)
+		pAcc->AccessDisable(pAcc->arg);
 	    pceAcc = pceAcc->next;
 	}
 	if (pScrn->busAccess)
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
 	while (peAcc) {
 	    pAcc = peAcc->pAccess;
-	    if (pAcc && pAcc->AccessEnable) 
-		(*pAcc->AccessEnable)(pAcc->arg);
+	    if (pAcc) 
+		pAcc->AccessEnable(pAcc->arg);
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pIoAccess = (EntityAccessPtr) pScrn->access;
@@ -713,8 +709,8 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    tmp = pceAcc;
 	    while (pceAcc) {
 		pAcc = pceAcc->pAccess;
-		if (pAcc && pAcc->AccessDisable)
-		    (*pAcc->AccessDisable)(pAcc->arg);
+		if (pAcc)
+		    pAcc->AccessDisable(pAcc->arg);
 		pceAcc = pceAcc->next;
 	    }
 	    pceAcc = pScrn->CurrentAccess->pMemAccess;
@@ -722,8 +718,8 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 		&& tmp !=pceAcc) {
 		while (pceAcc) {
 		    pAcc = pceAcc->pAccess;
-		    if (pAcc && pAcc->AccessDisable)
-			(*pAcc->AccessDisable)(pAcc->arg);
+		    if (pAcc)
+			pAcc->AccessDisable(pAcc->arg);
 		    pceAcc = pceAcc->next;
 		}
 	    }
@@ -734,8 +730,8 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    }
 	    while (pceAcc) {  /* current Mem != pAccess */
 		pAcc = pceAcc->pAccess;
-		if (pAcc && pAcc->AccessDisable) 
-		    (*pAcc->AccessDisable)(pAcc->arg);
+		if (pAcc)
+		    pAcc->AccessDisable(pAcc->arg);
 		pceAcc = pceAcc->next;
 	    }
 	}
@@ -743,8 +739,8 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
 	while (peAcc) {
 	    pAcc = peAcc->pAccess;
-	    if (pAcc && pAcc->AccessEnable) 
-		(*pAcc->AccessEnable)(pAcc->arg);
+	    if (pAcc) 
+		pAcc->AccessEnable(pAcc->arg);
 		peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pMemAccess =
@@ -760,16 +756,16 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    pScrn->CurrentAccess->pIoAccess = NULL;
 	while (pceAcc) {
 	    pAcc = pceAcc->pAccess;
-	    if ( pAcc && pAcc->AccessDisable) 
-		(*pAcc->AccessDisable)(pAcc->arg);
+	    if (pAcc)
+		pAcc->AccessDisable(pAcc->arg);
 	    pceAcc = pceAcc->next;
 	}
 	if (pScrn->busAccess)
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
 	while (peAcc) {
 	    pAcc = peAcc->pAccess;
-	    if (pAcc && pAcc->AccessEnable) 
-		(*pAcc->AccessEnable)(pAcc->arg);
+	    if (pAcc)
+		pAcc->AccessEnable(pAcc->arg);
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pMemAccess = (EntityAccessPtr) pScrn->access;
@@ -808,13 +804,11 @@ xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
 
     while (pceAcc) {
 	pAcc = pceAcc->pAccess;
-	if ( pAcc) {
-	    if (!Enable) {
-		if (pAcc->AccessDisable) 
-		    (*pAcc->AccessDisable)(pAcc->arg);
+	if (pAcc) {
+	    if (Enable) {
+		pAcc->AccessEnable(pAcc->arg);
 	    } else {
-		if (pAcc->AccessEnable) 
-		    (*pAcc->AccessEnable)(pAcc->arg);
+		pAcc->AccessDisable(pAcc->arg);
 	    }
 	}
 	pceAcc = pceAcc->next;
@@ -1733,7 +1727,7 @@ setAccess(EntityPtr pEnt, xf86State state)
 	if (pEnt->rac->old) {
 	    /* give it to the driver, leave state disabled */
 	    pEnt->rac->old->io = org_io;
-	} else if (org_io->AccessEnable) {
+	} else {
 	    /* driver doesn't want it - enable generic access */
 	    org_io->AccessEnable(org_io->arg);
 	}
@@ -1744,7 +1738,7 @@ setAccess(EntityPtr pEnt, xf86State state)
 	if (pEnt->rac->old) {
 	    /* give it to the driver, leave state disabled */
 	    pEnt->rac->old->io_mem = org_mem_io;
-	} else if (org_mem_io->AccessEnable) {
+	} else {
 	    /* driver doesn't want it - enable generic access */
 	    org_mem_io->AccessEnable(org_mem_io->arg);
 	}
@@ -1755,7 +1749,7 @@ setAccess(EntityPtr pEnt, xf86State state)
 	if (pEnt->rac->old) {
 	    /* give it to the driver, leave state disabled */
 	    pEnt->rac->old->mem = org_mem;
-	} else if (org_mem->AccessEnable) {
+	} else {
 	    /* driver doesn't want it - enable generic access */
 	    org_mem->AccessEnable(org_mem->arg);
 	}
@@ -1763,27 +1757,26 @@ setAccess(EntityPtr pEnt, xf86State state)
 
     if (!(prop & NEED_MEM_SHARED)){
 	if (prop & NEED_MEM) {
-	    if (acc_mem && acc_mem->AccessEnable)
+	    if (acc_mem)
 		acc_mem->AccessEnable(acc_mem->arg);
 	} else {
-	    if (acc_mem && acc_mem->AccessDisable)
+	    if (acc_mem)
 		acc_mem->AccessDisable(acc_mem->arg);
 	}
     }
 
     if (!(prop & NEED_IO_SHARED)) {
 	if (prop & NEED_IO) {
-	    if (acc_io && acc_io->AccessEnable)
-	    acc_io->AccessEnable(acc_io->arg);
+	    if (acc_io)
+		acc_io->AccessEnable(acc_io->arg);
 	} else {
-	    if (acc_io && acc_io->AccessDisable)
+	    if (acc_io)
 		acc_io->AccessDisable(acc_io->arg);
 	}
     }
 
     /* disable shared resources */
-    if (pEnt->access->pAccess 
-	&& pEnt->access->pAccess->AccessDisable)
+    if (pEnt->access->pAccess)
 	pEnt->access->pAccess->AccessDisable(pEnt->access->pAccess->arg);
 
     /*
