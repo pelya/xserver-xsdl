@@ -1100,23 +1100,14 @@ checkConflict(resRange *rgp, resPtr pRes, int entityIndex,
 }
 
 /*
- * ChkConflict() -- used within xxxBus ; find conflict with any location.
- */
-memType
-ChkConflict(resRange *rgp, resPtr res, xf86State state)
-{
-    return checkConflict(rgp, res, -2, state,FALSE);
-}
-
-/*
  * xf86ChkConflict() - This function is the low level interface to
  * the resource broker that gets exported. Tests all resources ie.
  * performs test with SETUP flag.
  */
-_X_EXPORT memType
+static memType
 xf86ChkConflict(resRange *rgp, int entityIndex)
 {
-    return checkConflict(rgp, Acc, entityIndex, SETUP,FALSE);
+    return checkConflict(rgp, Acc, entityIndex, SETUP, FALSE);
 }
 
 /*
