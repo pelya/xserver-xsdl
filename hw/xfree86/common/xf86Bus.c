@@ -1427,7 +1427,7 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
 }
 
 /*
- * Resource registrarion
+ * Resource registration
  */
 
 static resList
