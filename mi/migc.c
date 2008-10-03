@@ -51,7 +51,6 @@ miDestroyGC(GCPtr pGC)
 	(*pGC->pScreen->DestroyPixmap) (pGC->pRotatedPixmap);
     if (pGC->freeCompClip)
 	REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
-    miDestroyGCOps(pGC->ops);
 }
 
 _X_EXPORT void
