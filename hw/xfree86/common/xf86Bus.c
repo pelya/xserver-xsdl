@@ -402,7 +402,7 @@ xf86ClearEntityListForScreen(int scrnIndex)
     pScrn->entityInstanceList = NULL;
 }
 
-_X_EXPORT void
+void
 xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
 {
     resPtr *pprev_next = &Acc;
