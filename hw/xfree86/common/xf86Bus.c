@@ -1790,7 +1790,7 @@ SetSIGIOForState(xf86State state)
     }
 }
 
-_X_EXPORT void
+void
 xf86EnterServerState(xf86State state)
 {
     EntityPtr pEnt;
