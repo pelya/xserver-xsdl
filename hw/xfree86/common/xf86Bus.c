@@ -830,11 +830,6 @@ xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
 
     rac = xf86Entities[pEnt->index]->rac;
 
-    if (funcs->mem == funcs->io_mem && funcs->mem && funcs->io)
-	xf86Entities[pEnt->index]->entityProp |= NO_SEPARATE_MEM_FROM_IO;
-    if (funcs->io == funcs->io_mem && funcs->mem && funcs->io)
-	xf86Entities[pEnt->index]->entityProp |= NO_SEPARATE_IO_FROM_MEM;
-    
     rac->mem_new = funcs->mem;
     rac->io_new = funcs->io;
     rac->io_mem_new = funcs->io_mem;
@@ -2269,13 +2264,6 @@ checkRequiredResources(int entityIndex)
 	pAcc = pAcc->next;
     }
     
-    /* check if we can separately enable mem/io resources */
-    /* XXX we still need to find out how to set this yet  */
-    if ( ((pEnt->entityProp & NO_SEPARATE_MEM_FROM_IO)
-	  && (pEnt->entityProp & NEED_MEM_SHARED))
-	 || ((pEnt->entityProp & NO_SEPARATE_IO_FROM_MEM)
-	     && (pEnt->entityProp & NEED_IO_SHARED)) )
-	pEnt->entityProp |= NEED_SHARED;
     /*
      * After we have checked all resources of an entity agains any
      * other resource we know if the entity need this resource type
@@ -2283,13 +2271,11 @@ checkRequiredResources(int entityIndex)
      * so no need to share it either. 
      */
     if ((pEnt->entityProp & NEED_MEM_SHARED)
-	&& (!(pEnt->entityProp & NEED_MEM))
-	&& (!(pEnt->entityProp & NO_SEPARATE_MEM_FROM_IO)))
+	&& (!(pEnt->entityProp & NEED_MEM)))
 	pEnt->entityProp &= ~(unsigned long)NEED_MEM_SHARED;
 
     if ((pEnt->entityProp & NEED_IO_SHARED)
-	&& (!(pEnt->entityProp & NEED_IO))
-	&& (!(pEnt->entityProp & NO_SEPARATE_IO_FROM_MEM)))
+	&& (!(pEnt->entityProp & NEED_IO)))
 	pEnt->entityProp &= ~(unsigned long)NEED_IO_SHARED;
 }
 
