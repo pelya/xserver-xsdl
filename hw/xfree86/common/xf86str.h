@@ -778,18 +778,6 @@ typedef enum {
     OPERATING
 } xf86State;
 
-typedef enum {
-    NOTIFY_SETUP_TRANSITION,
-    NOTIFY_SETUP,
-    NOTIFY_OPERATING,
-    NOTIFY_OPERATING_TRANSITION,
-    NOTIFY_ENABLE,
-    NOTIFY_ENTER,
-    NOTIFY_LEAVE
-} xf86NotifyState;
-
-typedef void (*xf86StateChangeNotificationCallbackFunc)(xf86NotifyState state,pointer);
-
 /* DGA */
 
 typedef struct {

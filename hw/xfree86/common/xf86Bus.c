@@ -95,10 +95,6 @@ _X_EXPORT resRange res8514Shared[] = {_8514_SHARED, _END};
 static Bool needRAC = FALSE;
 static Bool doFramebufferMode = FALSE;
 
-/* state change notification callback list */
-static StateChangeNotificationPtr StateChangeNotificationList;
-static void notifyStateChange(xf86NotifyState state);
-
 #undef MIN
 #define MIN(x,y) ((x<y)?x:y)
 
@@ -595,7 +591,6 @@ xf86AccessEnter(void)
     PciStateEnter();
     disableAccess();
     EntityEnter();
-    notifyStateChange(NOTIFY_ENTER);
     xf86EnterServerState(SETUP);
     xf86ResAccessEnter = TRUE;
 }
@@ -614,7 +609,6 @@ xf86AccessLeave(void)
 {
     if (!xf86ResAccessEnter)
 	return;
-    notifyStateChange(NOTIFY_LEAVE);
     disableAccess();
     DisablePciBusAccess();
     EntityLeave();
@@ -1766,14 +1760,8 @@ xf86EnterServerState(xf86State state)
      */
     if (!needRAC) {
 	xf86EnableAccess(xf86Screens[0]);
-	notifyStateChange(NOTIFY_ENABLE);
 	return;
     }
-    
-    if (state == SETUP)
-	notifyStateChange(NOTIFY_SETUP_TRANSITION);
-    else
-	notifyStateChange(NOTIFY_OPERATING_TRANSITION);
     
     clearAccess();
     for (i=0; i<xf86NumScreens;i++) {
@@ -1817,10 +1805,6 @@ xf86EnterServerState(xf86State state)
 	    break;
 	}
     }
-    if (state == SETUP)
-	notifyStateChange(NOTIFY_SETUP);
-    else
-	notifyStateChange(NOTIFY_OPERATING);
 }
 
 /*
@@ -2070,7 +2054,6 @@ xf86PostProbe(void)
 	} else  {
 	    xf86Msg(X_INFO,"Running in FRAMEBUFFER Mode\n");
 	    xf86AccessRestoreState();
-	    notifyStateChange(NOTIFY_ENABLE);
 	    doFramebufferMode = TRUE;
 
 	    return;
@@ -2727,46 +2710,6 @@ xf86NoSharedResources(int screenIndex,resType res)
       }
     }
     return TRUE;
-}
-
-_X_EXPORT void
-xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg)
-{
-    StateChangeNotificationPtr ptr =
-	(StateChangeNotificationPtr)xnfalloc(sizeof(StateChangeNotificationRec));
-
-    ptr->func = func;
-    ptr->arg = arg;
-    ptr->next = StateChangeNotificationList;
-    StateChangeNotificationList = ptr;
-}
-
-_X_EXPORT Bool
-xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func)
-{
-    StateChangeNotificationPtr *ptr = &StateChangeNotificationList;
-    StateChangeNotificationPtr tmp;
-    
-    while (*ptr) {
-	if ((*ptr)->func == func) {
-	    tmp = (*ptr);
-	    (*ptr) = (*ptr)->next;
-	    xfree(tmp);
-	    return TRUE;
-	}
-	ptr = &((*ptr)->next);
-    }
-    return FALSE;
-}
-
-static void
-notifyStateChange(xf86NotifyState state)
-{
-    StateChangeNotificationPtr ptr = StateChangeNotificationList;
-    while (ptr) {
-	ptr->func(state,ptr->arg);
-	ptr = ptr->next;
-    }
 }
 
 /* Multihead accel sharing accessor functions and entity Private handling */
