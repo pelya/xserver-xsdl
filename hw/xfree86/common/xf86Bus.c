@@ -253,7 +253,7 @@ xf86IsEntityPrimary(int entityIndex)
     }
 }
 	
-_X_EXPORT Bool
+Bool
 xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
 		   EntityProc leave, pointer private)
 {
