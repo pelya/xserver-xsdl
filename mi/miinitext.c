@@ -491,12 +491,6 @@ InitExtensions(int argc, char *argv[])
 #endif
 }
 
-void
-InitVisualWrap()
-{
-    miResetInitVisuals();
-}
-
 #else /* XFree86LOADER */
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
@@ -572,25 +566,6 @@ InitExtensions(int argc, char *argv[])
 	    (ext->initFunc)();
 	}
     }
-}
-
-static void (*__miHookInitVisualsFunction)(miInitVisualsProcPtr *);
-
-void
-InitVisualWrap()
-{
-    miResetInitVisuals();
-    if (__miHookInitVisualsFunction)
-	(*__miHookInitVisualsFunction)(&miInitVisualsProc);
-}
-
-void
-miHookInitVisuals(void (**old)(miInitVisualsProcPtr *),
-		  void (*new)(miInitVisualsProcPtr *))
-{
-    if (old)
-	*old = __miHookInitVisualsFunction;
-    __miHookInitVisualsFunction = new;
 }
 
 #endif /* XFree86LOADER */

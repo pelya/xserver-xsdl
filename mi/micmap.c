@@ -52,8 +52,6 @@ static Bool miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
 		unsigned long sizes, int bitsPerRGB, int preferredVis);
 
-miInitVisualsProcPtr miInitVisualsProc = miDoInitVisuals;
-
 _X_EXPORT int
 miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
@@ -479,20 +477,6 @@ miSetPixmapDepths (void)
     return TRUE;
 }
 
-_X_EXPORT Bool
-miInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
-		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
-		unsigned long sizes, int bitsPerRGB, int preferredVis)
-
-{
-    if (miInitVisualsProc)
-	return miInitVisualsProc(visualp, depthp, nvisualp, ndepthp,
-				 rootDepthp, defaultVisp, sizes, bitsPerRGB,
-				 preferredVis);
-    else
-	return FALSE;
-}
-
 /*
  * Distance to least significant one bit
  */
@@ -517,10 +501,11 @@ maskShift (Pixel p)
  * the set which can be used with this version of cfb.
  */
 
-static Bool
-miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
+_X_EXPORT Bool
+miInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
 		unsigned long sizes, int bitsPerRGB, int preferredVis)
+
 {
     int		i, j = 0, k;
     VisualPtr	visual;
@@ -688,10 +673,3 @@ miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 
     return TRUE;
 }
-
-void
-miResetInitVisuals(void)
-{
-    miInitVisualsProc = miDoInitVisuals;
-}
-

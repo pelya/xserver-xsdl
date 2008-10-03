@@ -307,7 +307,6 @@ int main(int argc, char *argv[], char *envp[])
 	dixResetRegistry();
 	ResetFontPrivateIndex();
 	InitCallbackManager();
-	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);
 
 	if (screenInfo.numScreens < 1)
