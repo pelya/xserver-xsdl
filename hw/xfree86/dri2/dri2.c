@@ -39,7 +39,6 @@
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "dri2.h"
-#include <GL/internal/dri_sarea.h>
 
 #include "xf86.h"
 
