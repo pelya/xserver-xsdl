@@ -14,7 +14,7 @@ if !INTEGRATED_XPBPROXY
 
 bin_PROGRAMS = xpbproxy
 xpbproxy_SOURCES = app-main.m
-xpbproxy_LDADD = $(top_builddir)/hw/xquartz/pbproxy/libxpbproxy.la
+xpbproxy_LDADD = libxpbproxy.la
 
 endif
 
