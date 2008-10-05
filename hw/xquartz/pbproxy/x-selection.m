@@ -421,10 +421,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
         if(owner == _selection_window)
             return TRUE;
 
-//        if(None != _selection_window) {
-//            fprintf (stderr, "A clipboard manager is already running.  pbproxy will not sync clipboard to pasteboard.\n");
-//            return FALSE;
-//        }
+        if(None != _selection_window) {
+            fprintf (stderr, "A clipboard manager is already running.  pbproxy will not sync clipboard to pasteboard.\n");
+            return FALSE;
+        }
         
         XSetSelectionOwner(x_dpy, atoms->clipboard_manager, _selection_window, CurrentTime);
         return (_selection_window == XGetSelectionOwner(x_dpy, atoms->clipboard_manager));
