@@ -1143,10 +1143,11 @@ static void init_screen_visuals(__GLXAquaScreen *screen) {
     free(used);
 }
 
+/* This is called by __glXInitScreens(). */
 static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
   __GLXAquaScreen *screen;
   GLAQUA_DEBUG_MSG("glXAquaScreenProbe\n");
-  if (screen == NULL) return NULL;
+  if (pScreen == NULL) return NULL;
 
   screen = malloc(sizeof *screen);
 
@@ -1158,6 +1159,8 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
   screen->base.pScreen       = pScreen;
 
   init_screen_visuals(screen);
+    
+  glAquaInitVisualConfigs();
 
   return &screen->base;
 }
