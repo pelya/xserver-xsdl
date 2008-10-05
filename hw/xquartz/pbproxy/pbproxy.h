@@ -12,7 +12,9 @@
 #include <X11/extensions/shape.h>
 #undef   Cursor
 
+#ifndef DEBUG
 #define DEBUG 0
+#endif
 
 /* from main.m */
 extern void x_set_is_active (BOOL state);
@@ -27,7 +29,7 @@ extern int x_apple_wm_event_base, x_apple_wm_error_base;
 /* from x-input.m */
 extern void x_input_register (void);
 extern void x_input_run (void);
- 
+
 #if DEBUG == 0
 # define DB(msg, args...) do {} while (0)
 #else

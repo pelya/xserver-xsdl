@@ -97,7 +97,7 @@ struct atom_list {
 - (void) property_event:(XPropertyEvent *)e;
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata;
 - (void) claim_clipboard;
-- (void) set_clipboard_manager;
+- (BOOL) set_clipboard_manager_status:(BOOL)value;
 - (void) own_clipboard;
 - (void) copy_completed:(Atom)selection;
 

@@ -15,8 +15,10 @@ static void signal_handler (int sig) {
 }
 
 int main (int argc, const char *argv[]) {
+#ifdef TEST
     printf("pid: %u\n", getpid());
-    
+#endif
+
     x_init ();
     
     signal (SIGINT, signal_handler);

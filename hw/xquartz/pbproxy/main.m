@@ -55,10 +55,6 @@ void x_init (void) {
     _selection_object = [[x_selection alloc] init];
     
     x_input_register ();
-   
-    [_selection_object set_clipboard_manager];
-    [_selection_object claim_clipboard];
-
     x_input_run ();
 
     [pool release];

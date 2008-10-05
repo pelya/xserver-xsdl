@@ -21,29 +21,35 @@ static CFRunLoopSourceRef x_dpy_source;
 static Time last_activation_time;
 
 static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
+    int type = e->type - x_apple_wm_event_base;
+    int kind = e->kind;
 
-    switch (e->type - x_apple_wm_event_base) {              
+    /* We want to reload prefs even if we're not active */
+    if(type == AppleWMActivationNotify &&
+       kind == AppleWMReloadPreferences)
+        [x_selection_object() reload_preferences];
+
+    if(![x_selection_object() is_active])
+        return;
+
+    switch (type) {              
         case AppleWMActivationNotify:
-            switch (e->kind) {
+            switch (kind) {
                 case AppleWMIsActive:
                     last_activation_time = e->time;
-                    [x_selection_object () x_active:e->time];
+                    [x_selection_object() x_active:e->time];
                     break;
                     
                 case AppleWMIsInactive:
-                    [x_selection_object () x_inactive:e->time];
+                    [x_selection_object() x_inactive:e->time];
                     break;
-
-  	        case AppleWMReloadPreferences:
-		    [x_selection_object () reload_preferences];
-		    break;
             }
             break;
             
         case AppleWMPasteboardNotify:
-            switch (e->kind) {
-	        case AppleWMCopyToPasteboard:
-                    [x_selection_object () x_copy:e->time];
+            switch (kind) {
+                case AppleWMCopyToPasteboard:
+                    [x_selection_object() x_copy:e->time];
             }
             break;
     }
@@ -54,22 +60,18 @@ void x_input_run (void) {
     
     if (nil == pool) 
     {
-	fprintf(stderr, "unable to allocate/init auto release pool!\n");
-	return;
+        fprintf(stderr, "unable to allocate/init auto release pool!\n");
+        return;
     }
-
+    
     while (XPending (x_dpy) != 0) {
-        XEvent e;       
-
+        XEvent e;
         XNextEvent (x_dpy, &e);
-
-	/* If pbproxy isn't active (in the preferences), then don't do anything. */
-	if (![x_selection_object() is_active])
-	    continue;
-
+        
         switch (e.type) {                
             case SelectionClear:
-	        [x_selection_object () clear_event:&e.xselectionclear];
+                if([x_selection_object() is_active])
+                    [x_selection_object () clear_event:&e.xselectionclear];
                 break;
                 
             case SelectionRequest:
@@ -80,10 +82,10 @@ void x_input_run (void) {
                 [x_selection_object () notify_event:&e.xselection];
                 break;
                 
-	    case PropertyNotify:
-		[x_selection_object () property_event:&e.xproperty];
-		break;
-
+            case PropertyNotify:
+                [x_selection_object () property_event:&e.xproperty];
+                break;
+                
             default:
                 if (e.type - x_apple_wm_event_base >= 0
                     && e.type - x_apple_wm_event_base < AppleWMNumberEvents) {
@@ -91,10 +93,10 @@ void x_input_run (void) {
                 }
                 break;
         }
-
-	XFlush(x_dpy);
+        
+        XFlush(x_dpy);
     }
-
+    
     [pool release];
 }
 

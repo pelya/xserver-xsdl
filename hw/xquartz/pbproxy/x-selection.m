@@ -56,21 +56,35 @@
 
 /*
  * TODO:
- * 1. finish handling these pbproxy control knobs.
+ * 1. handle primary_on_grab
  * 2. handle  MULTIPLE - I need to study the ICCCM further.
  * 3. Handle PICT images properly.
+ * 4. Handle NSPasteboard updates immediately, not on active/inactive
+ *    - Open xterm, run 'cat readme.txt | pbcopy'
+ * 5. Detect if CLIPBOARD_MANAGER atom belongs to a dead client rather than just None
  */
 
-// These will be set by X11Controller.m once this is integrated into a server thread
-BOOL pbproxy_active = YES;
-BOOL pbproxy_primary_on_grab = NO; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
-BOOL pbproxy_clipboard_to_pasteboard = YES;
-BOOL pbproxy_pasteboard_to_primary = YES;
-BOOL pbproxy_pasteboard_to_clipboard = YES;
+static struct {
+    BOOL active ;
+    BOOL primary_on_grab; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
+    BOOL clipboard_to_pasteboard;
+    BOOL pasteboard_to_primary;
+    BOOL pasteboard_to_clipboard;
+} pbproxy_prefs = { YES, NO, YES, YES, YES };
 
 @implementation x_selection
 
 static struct propdata null_propdata = {NULL, 0};
+
+#define APP_PREFS "org.x.X11"
+static BOOL prefs_get_bool (CFStringRef key, BOOL def) {
+     int ret;
+     Boolean ok;
+
+     ret = CFPreferencesGetAppBooleanValue (key, CFSTR (APP_PREFS), &ok);
+
+     return ok ? (BOOL) ret : def;
+}
 
 static void
 init_propdata (struct propdata *pdata)
@@ -321,19 +335,17 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     if (countNow != changeCount)
     {
-	DB ("changed pasteboard!\n");
-	changeCount = countNow;
-
-	if (pbproxy_pasteboard_to_primary)
-	{
-	    
-	    XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
-	}
-
-	if (pbproxy_pasteboard_to_clipboard)
-	{
-	    [self own_clipboard];
-	}
+        DB ("changed pasteboard!\n");
+        changeCount = countNow;
+        
+        if (pbproxy_prefs.pasteboard_to_primary)
+        {
+            XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
+        }
+        
+        if (pbproxy_prefs.pasteboard_to_clipboard) {
+            [self own_clipboard];
+        }
     }
 
 #if 0
@@ -395,23 +407,36 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 }
 
-/*
- * Set pbproxy as owner of the SELECTION_MANAGER selection.
+/* Set pbproxy as owner of the SELECTION_MANAGER selection.
  * This prevents tools like xclipboard from causing havoc.
+ * Returns TRUE on success
  */
-- (void) set_clipboard_manager
+- (BOOL) set_clipboard_manager_status:(BOOL)value
 {
     TRACE ();
 
-    if (None != XGetSelectionOwner (x_dpy, atoms->clipboard_manager))
-    {
-	fprintf (stderr, "A clipboard manager is already running!\n"
-		 "pbproxy can not continue!\n");
-	exit (EXIT_FAILURE);
-    }
+    Window owner = XGetSelectionOwner (x_dpy, atoms->clipboard_manager);
 
-    XSetSelectionOwner (x_dpy, atoms->clipboard_manager, _selection_window,
-			CurrentTime);
+    if(value) {
+        if(owner == _selection_window)
+            return TRUE;
+
+//        if(None != _selection_window) {
+//            fprintf (stderr, "A clipboard manager is already running.  pbproxy will not sync clipboard to pasteboard.\n");
+//            return FALSE;
+//        }
+        
+        XSetSelectionOwner(x_dpy, atoms->clipboard_manager, _selection_window, CurrentTime);
+        return (_selection_window == XGetSelectionOwner(x_dpy, atoms->clipboard_manager));
+    } else {
+        if(owner != _selection_window)
+            return TRUE;
+
+        XSetSelectionOwner(x_dpy, atoms->clipboard_manager, None, CurrentTime);
+        return(None == XGetSelectionOwner(x_dpy, atoms->clipboard_manager));
+    }
+    
+    return FALSE;
 }
 
 /*
@@ -423,28 +448,25 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     TRACE ();
     
     DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
- 
-    if (atoms->clipboard == e->selection)
-    {
-	/* 
-	 * We lost ownership of the CLIPBOARD.
-	 */
-	++pending_clipboard;
-
-	if (1 == pending_clipboard) 
-	{
-	    /* Claim the clipboard contents from the new owner. */
-	    [self claim_clipboard];
-	}
-    } 
-    else if (atoms->clipboard_manager == e->selection)
-    {
-	/* Another CLIPBOARD_MANAGER has set itself as owner.
-         * a) we can call [self set_clipboard_manager] here and risk a war.
-	 * b) we can print a message and exit.  Ideally we would popup a message box.
-	 */
-	fprintf (stderr, "error: another clipboard manager was started!\n"); 
-	//exit (EXIT_FAILURE);
+    
+    if(e->selection == atoms->clipboard) {
+        /* 
+         * We lost ownership of the CLIPBOARD.
+         */
+        ++pending_clipboard;
+        
+        if (1 == pending_clipboard) {
+            /* Claim the clipboard contents from the new owner. */
+            [self claim_clipboard];
+        }
+    } else if(e->selection == atoms->clipboard_manager) {
+        if(pbproxy_prefs.clipboard_to_pasteboard) {
+            /* Another CLIPBOARD_MANAGER has set itself as owner.  Disable syncing
+             * to avoid a race.
+             */
+            fprintf(stderr, "Another clipboard manager was started!  xpbproxy is disabling syncing with clipboard.\n"); 
+            pbproxy_prefs.clipboard_to_pasteboard = NO;
+        }
     }
 }
 
@@ -456,32 +478,29 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     Window owner;
     
     TRACE ();
-
-    if (!pbproxy_clipboard_to_pasteboard)
-	return;
+    
+    if (!pbproxy_prefs.clipboard_to_pasteboard)
+        return;
     
     owner = XGetSelectionOwner (x_dpy, atoms->clipboard);
-    if (None == owner)
-    {
-	/*
-	 * The owner probably died or we are just starting up pbproxy.
-	 * Set pbproxy's _selection_window as the owner, and continue.
-	 */
-	DB ("No clipboard owner.\n");
-	[self copy_completed:atoms->clipboard];
-	return;
-    } 
-    else if (owner == _selection_window) 
-    {
-	[self copy_completed:atoms->clipboard];
-	return;
+    if (None == owner) {
+        /*
+         * The owner probably died or we are just starting up pbproxy.
+         * Set pbproxy's _selection_window as the owner, and continue.
+         */
+        DB ("No clipboard owner.\n");
+        [self copy_completed:atoms->clipboard];
+        return;
+    } else if (owner == _selection_window) {
+        [self copy_completed:atoms->clipboard];
+        return;
     }
     
     DB ("requesting targets\n");
-
+    
     request_atom = atoms->targets;
     XConvertSelection (x_dpy, atoms->clipboard, atoms->targets,
-		       atoms->clipboard, _selection_window, CurrentTime);
+                       atoms->clipboard, _selection_window, CurrentTime);
     XFlush (x_dpy);
     /* Now we will get a SelectionNotify event in the future. */
 }
@@ -1236,18 +1255,25 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 - (void) reload_preferences
 {
-    if (pbproxy_clipboard_to_pasteboard)
-    {
-	[self claim_clipboard];
-    }
+    pbproxy_prefs.active = prefs_get_bool(CFSTR("sync_pasteboard"), pbproxy_prefs.active);
+    pbproxy_prefs.primary_on_grab = prefs_get_bool(CFSTR("sync_primary_on_select"), pbproxy_prefs.primary_on_grab);
+    pbproxy_prefs.clipboard_to_pasteboard = prefs_get_bool(CFSTR("sync_clibpoard_to_pasteboard"), pbproxy_prefs.clipboard_to_pasteboard);
+    pbproxy_prefs.pasteboard_to_primary = prefs_get_bool(CFSTR("sync_pasteboard_to_primary"), pbproxy_prefs.pasteboard_to_primary);
+    pbproxy_prefs.pasteboard_to_clipboard =  prefs_get_bool(CFSTR("sync_pasteboard_to_clipboard"), pbproxy_prefs.pasteboard_to_clipboard);
+
+    /* Claim or release the CLIPBOARD_MANAGER atom */
+    if(![self set_clipboard_manager_status:(pbproxy_prefs.active && pbproxy_prefs.clipboard_to_pasteboard)])
+        pbproxy_prefs.clipboard_to_pasteboard = NO;
+    
+    if(pbproxy_prefs.active && pbproxy_prefs.clipboard_to_pasteboard)
+        [self claim_clipboard];
 }
 
 - (BOOL) is_active 
 {
-    return pbproxy_active;
+    return pbproxy_prefs.active;
 }
 
-
 /* NSPasteboard-required methods */
 
 - (void) paste:(id)sender
@@ -1267,7 +1293,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     /* Right now we don't care with this. */
 }
 
-
 /* Allocation */
 
 - init
@@ -1310,6 +1335,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pending_copy = 0;
     pending_clipboard = 0;
 
+    [self reload_preferences];
+    
     return self;
 }
 
