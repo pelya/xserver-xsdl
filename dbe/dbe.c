@@ -297,10 +297,9 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
          * Allocate a window priv.
          */
 
-        pDbeWindowPriv = (DbeWindowPrivPtr)xalloc(sizeof(DbeWindowPrivRec));
+        pDbeWindowPriv = xcalloc(1, sizeof(DbeWindowPrivRec));
 	if (!pDbeWindowPriv)
             return(BadAlloc);
-	bzero(pDbeWindowPriv, sizeof(DbeWindowPrivRec));
 
         /* Fill out window priv information. */
         pDbeWindowPriv->pWindow      = pWin;

@@ -1516,12 +1516,11 @@ AddExtensionClient(WindowPtr pWin, ClientPtr client, Mask mask, int mskidx)
 
     if (!pWin->optional && !MakeWindowOptional(pWin))
 	return BadAlloc;
-    others = (InputClients *) xalloc(sizeof(InputClients));
+    others = xcalloc(1, sizeof(InputClients));
     if (!others)
 	return BadAlloc;
     if (!pWin->optional->inputMasks && !MakeInputMasks(pWin))
 	return BadAlloc;
-    bzero((char *)&others->mask[0], sizeof(Mask) * EMASKSIZE);
     others->mask[mskidx] = mask;
     others->resource = FakeClientID(client->index);
     others->next = pWin->optional->inputMasks->inputClients;
@@ -1536,11 +1535,9 @@ MakeInputMasks(WindowPtr pWin)
 {
     struct _OtherInputMasks *imasks;
 
-    imasks = (struct _OtherInputMasks *)
-	xalloc(sizeof(struct _OtherInputMasks));
+    imasks = xcalloc(1, sizeof(struct _OtherInputMasks));
     if (!imasks)
 	return FALSE;
-    bzero((char *)imasks, sizeof(struct _OtherInputMasks));
     pWin->optional->inputMasks = imasks;
     return TRUE;
 }

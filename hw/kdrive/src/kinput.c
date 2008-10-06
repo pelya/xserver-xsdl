@@ -1127,11 +1127,9 @@ KdGetOptions (InputOption **options, char *string)
     InputOption     *newopt = NULL, **tmpo = NULL;
     int             tam_key = 0;
 
-    newopt = (InputOption *) xalloc(sizeof (InputOption));
+    newopt = xcalloc(1, sizeof (InputOption));
     if (!newopt)
         return FALSE;
-
-    bzero(newopt, sizeof (InputOption));
 
     for (tmpo = options; *tmpo; tmpo = &(*tmpo)->next)
         ; /* Hello, I'm here */ 

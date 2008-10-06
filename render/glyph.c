@@ -513,10 +513,9 @@ AllocateGlyphSet (int fdepth, PictFormatPtr format)
     }
 
     size = sizeof (GlyphSetRec);
-    glyphSet = xalloc (size);
+    glyphSet = xcalloc (1, size);
     if (!glyphSet)
 	return FALSE;
-    bzero((char *)glyphSet, size);
 
     if (!AllocateGlyphHash (&glyphSet->hash, &glyphHashSets[0]))
     {

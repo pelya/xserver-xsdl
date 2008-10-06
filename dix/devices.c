@@ -495,13 +495,12 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
             return BadAlloc;
         }
 
-        modMap = (CARD8 *)xalloc(MAP_LENGTH);
+        modMap = xcalloc(1, MAP_LENGTH);
         if (!modMap) {
             ErrorF("[dix] Couldn't allocate core modifier map\n");
             xfree(classes);
             return BadAlloc;
         }
-        bzero((char *)modMap, MAP_LENGTH);
 
 #ifdef XKB
         if (!noXkbExtension) {
@@ -1141,10 +1140,9 @@ InitModMap(KeyClassPtr keyc)
 	    }
 	}
     }
-    keyc->modifierKeyMap = (KeyCode *)xalloc(8*keyc->maxKeysPerModifier);
+    keyc->modifierKeyMap = xcalloc(8, keyc->maxKeysPerModifier);
     if (!keyc->modifierKeyMap && keyc->maxKeysPerModifier)
 	return (FALSE);
-    bzero((char *)keyc->modifierKeyMap, 8*(int)keyc->maxKeysPerModifier);
     for (i = 0; i < 8; i++)
 	keysPerModifier[i] = 0;
     for (i = 8; i < MAP_LENGTH; i++)
@@ -1168,24 +1166,13 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
     int i;
     KeyClassPtr keyc;
 
-    keyc = (KeyClassPtr)xalloc(sizeof(KeyClassRec));
+    keyc = xcalloc(1, sizeof(KeyClassRec));
     if (!keyc)
 	return FALSE;
-    keyc->curKeySyms.map = (KeySym *)NULL;
-    keyc->curKeySyms.mapWidth = 0;
     keyc->curKeySyms.minKeyCode = pKeySyms->minKeyCode;
     keyc->curKeySyms.maxKeyCode = pKeySyms->maxKeyCode;
-    keyc->modifierKeyMap = (KeyCode *)NULL;
-    keyc->state = 0;
-    keyc->prev_state = 0;
     if (pModifiers)
 	memmove((char *)keyc->modifierMap, (char *)pModifiers, MAP_LENGTH);
-    else
-	bzero((char *)keyc->modifierMap, MAP_LENGTH);
-    bzero((char *)keyc->down, DOWN_LENGTH);
-    bzero((char *)keyc->postdown, DOWN_LENGTH);
-    for (i = 0; i < 8; i++)
-	keyc->modifierKeyCount[i] = 0;
     if (!SetKeySymsMap(&keyc->curKeySyms, pKeySyms) || !InitModMap(keyc))
     {
 	xfree(keyc->curKeySyms.map);
@@ -1208,19 +1195,12 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
     ButtonClassPtr butc;
     int i;
 
-    butc = (ButtonClassPtr)xalloc(sizeof(ButtonClassRec));
+    butc = xcalloc(1, sizeof(ButtonClassRec));
     if (!butc)
 	return FALSE;
     butc->numButtons = numButtons;
     for (i = 1; i <= numButtons; i++)
 	butc->map[i] = map[i];
-    butc->buttonsDown = 0;
-    butc->state = 0;
-    butc->motionMask = 0;
-    bzero((char *)butc->down, sizeof(butc->down));
-#ifdef XKB
-    butc->xkb_acts=	NULL;
-#endif
     dev->button = butc;
     return TRUE;
 }

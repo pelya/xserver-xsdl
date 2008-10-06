@@ -1571,21 +1571,19 @@ ProcRenderCreateCursor (ClientPtr client)
     
     stride = BitmapBytePad(width);
     nbytes_mono = stride*height;
-    srcbits = (unsigned char *)xalloc(nbytes_mono);
+    srcbits = xcalloc(nbytes_mono);
     if (!srcbits)
     {
 	xfree (argbbits);
 	return (BadAlloc);
     }
-    mskbits = (unsigned char *)xalloc(nbytes_mono);
+    mskbits = xcalloc(nbytes_mono);
     if (!mskbits)
     {
 	xfree(argbbits);
 	xfree(srcbits);
 	return (BadAlloc);
     }
-    bzero ((char *) mskbits, nbytes_mono);
-    bzero ((char *) srcbits, nbytes_mono);
 
     if (pSrc->format == PICT_a8r8g8b8)
     {

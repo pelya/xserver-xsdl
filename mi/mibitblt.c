@@ -317,11 +317,10 @@ miGetPlane(
     sy += pDraw->y;
     widthInBytes = BitmapBytePad(w);
     if(!result)
-        result = (MiBits *)xalloc(h * widthInBytes);
+        result = xcalloc(h, widthInBytes);
     if (!result)
 	return (MiBits *)NULL;
     bitsPerPixel = pDraw->bitsPerPixel;
-    bzero((char *)result, h * widthInBytes);
     pOut = (OUT_TYPE *) result;
     if(bitsPerPixel == 1)
     {

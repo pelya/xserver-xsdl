@@ -131,10 +131,8 @@ XAACopyPlaneNtoNColorExpand(
 	h = height = pbox->y2 - pbox->y1;
 	pitch = BitmapBytePad(width);
 
-	if(!(data = xalloc(height * pitch)))
+	if(!(data = xcalloc(height, pitch)))
 	   goto ALLOC_FAILED;
-
-        bzero(data, height * pitch);
 
 	dataPtr = data;
         srcPtr = ((pptSrc->y) * srcwidth) + src + 

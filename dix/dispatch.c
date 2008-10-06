@@ -2875,18 +2875,16 @@ ProcCreateCursor (ClientPtr client)
 	return (BadMatch);
 
     n = BitmapBytePad(width)*height;
-    srcbits = (unsigned char *)xalloc(n);
+    srcbits = xcalloc(1, n);
     if (!srcbits)
 	return (BadAlloc);
-    mskbits = (unsigned char *)xalloc(n);
+    mskbits = xalloc(n);
     if (!mskbits)
     {
 	xfree(srcbits);
 	return (BadAlloc);
     }
 
-    /* zeroing the (pad) bits helps some ddx cursor handling */
-    bzero((char *)srcbits, n);
     (* src->drawable.pScreen->GetImage)( (DrawablePtr)src, 0, 0, width, height,
 					 XYPixmap, 1, (pointer)srcbits);
     if ( msk == (PixmapPtr)NULL)
