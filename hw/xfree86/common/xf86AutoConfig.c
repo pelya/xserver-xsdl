@@ -295,11 +295,10 @@ autoConfigDevice(GDevPtr preconf_device)
     if (preconf_device) {
         ptr = preconf_device;
     } else {
-        ptr = (GDevPtr)xalloc(sizeof(GDevRec));
+        ptr = xcalloc(1, sizeof(GDevRec));
         if (!ptr) {
             return NULL;
         }
-        memset((GDevPtr)ptr, 0, sizeof(GDevRec));
         ptr->chipID = -1;
         ptr->chipRev = -1;
         ptr->irq = -1;

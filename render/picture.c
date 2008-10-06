@@ -316,10 +316,9 @@ PictureCreateDefaultFormats (ScreenPtr pScreen, int *nformatp)
     }
     
 
-    pFormats = (PictFormatPtr) xalloc (nformats * sizeof (PictFormatRec));
+    pFormats = xcalloc (nformats, sizeof (PictFormatRec));
     if (!pFormats)
 	return 0;
-    memset (pFormats, '\0', nformats * sizeof (PictFormatRec));
     for (f = 0; f < nformats; f++)
     {
         pFormats[f].id = FakeClientID (0);

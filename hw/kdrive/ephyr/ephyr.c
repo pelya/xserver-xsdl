@@ -185,12 +185,11 @@ ephyrScreenInit (KdScreenInfo *screen)
 {
   EphyrScrPriv *scrpriv;
   
-  scrpriv = xalloc (sizeof (EphyrScrPriv));
+  scrpriv = xcalloc (1, sizeof (EphyrScrPriv));
 
   if (!scrpriv)
     return FALSE;
 
-  memset (scrpriv, 0, sizeof (EphyrScrPriv));
   screen->driver = scrpriv;
 
   if (!ephyrScreenInitialize (screen, scrpriv))

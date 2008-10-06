@@ -419,19 +419,17 @@ static int __glXDispatch(ClientPtr client)
     opcode = stuff->glxCode;
     cl = __glXClients[client->index];
     if (!cl) {
-	cl = (__GLXclientState *) __glXMalloc(sizeof(__GLXclientState));
+	cl = __glXCalloc(1, sizeof(__GLXclientState));
 	 __glXClients[client->index] = cl;
 	if (!cl) {
 	    return BadAlloc;
 	}
-	memset(cl, 0, sizeof(__GLXclientState));
 
-	cl->be_displays = (Display **) __glXMalloc( screenInfo.numScreens * sizeof(Display *) );
+	cl->be_displays = __glXCalloc(screenInfo.numScreens, sizeof(Display *));
 	if (!cl->be_displays) {
 	    __glXFree( cl );
 	    return BadAlloc;
 	}
-	memset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
     }
     
     if (!cl->inUse) {
@@ -473,20 +471,17 @@ static int __glXSwapDispatch(ClientPtr client)
     opcode = stuff->glxCode;
     cl = __glXClients[client->index];
     if (!cl) {
-	cl = (__GLXclientState *) __glXMalloc(sizeof(__GLXclientState));
+	cl = __glXCalloc(1, sizeof(__GLXclientState));
 	 __glXClients[client->index] = cl;
 	if (!cl) {
 	    return BadAlloc;
 	}
-	memset(cl, 0, sizeof(__GLXclientState));
 
-	cl->be_displays = (Display **) __glXMalloc( screenInfo.numScreens * sizeof(Display *) );
+	cl->be_displays = __glXCalloc(screenInfo.numScreens, sizeof(Display *));
 	if (!cl->be_displays) {
 	    __glXFree( cl );
 	    return BadAlloc;
 	}
-
-	memset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
     }
     
     if (!cl->inUse) {

@@ -358,8 +358,7 @@ static unsigned char at2lnx[NUM_KEYCODES] =
 /** Create a private structure for use within this file. */
 pointer kbdLinuxCreatePrivate(DeviceIntPtr pKeyboard)
 {
-    myPrivate *priv = xalloc(sizeof(*priv));
-    memset(priv, 0, sizeof(*priv));
+    myPrivate *priv = xcalloc(1, sizeof(*priv));
     priv->fd        = -1;
     priv->pKeyboard = pKeyboard;
     return priv;

@@ -321,7 +321,7 @@ sparcPromAssignNodes(void)
     FILE *f;
     sbusDevicePtr devicePtrs[32];
 
-    (void)memset(devicePtrs, 0, sizeof(devicePtrs));
+    memset(devicePtrs, 0, sizeof(devicePtrs));
     for (psdpp = xf86SbusInfo, n = 0; (psdp = *psdpp); psdpp++, n++) {
 	if (psdp->fbNum != n)
 	    holes = 1;

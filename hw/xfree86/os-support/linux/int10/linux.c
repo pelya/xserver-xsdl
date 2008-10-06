@@ -245,7 +245,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
      * 64K bytes at a time.
      */
     if (!videoBiosMapped) {
-	(void)memset((pointer)V_BIOS, 0, SYS_BIOS - V_BIOS);
+	memset((pointer)V_BIOS, 0, SYS_BIOS - V_BIOS);
 #ifdef DEBUG
 	ErrorF("Reading BIOS\n");
 #endif

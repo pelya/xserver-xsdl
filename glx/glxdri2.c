@@ -279,11 +279,10 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     else
 	driShare = NULL;
 
-    context = xalloc(sizeof *context);
+    context = xcalloc(1, sizeof *context);
     if (context == NULL)
 	return NULL;
 
-    memset(context, 0, sizeof *context);
     context->base.destroy           = __glXDRIcontextDestroy;
     context->base.makeCurrent       = __glXDRIcontextMakeCurrent;
     context->base.loseCurrent       = __glXDRIcontextLoseCurrent;
@@ -310,11 +309,9 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     __GLXDRIconfig *config = (__GLXDRIconfig *) glxConfig;
     __GLXDRIdrawable *private;
 
-    private = xalloc(sizeof *private);
+    private = xcalloc(1, sizeof *private);
     if (private == NULL)
 	return NULL;
-
-    memset(private, 0, sizeof *private);
 
     private->screen = driScreen;
     if (!__glXDrawableInit(&private->base, screen,
@@ -464,10 +461,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     const __DRIconfig **driConfigs;
     int i;
 
-    screen = xalloc(sizeof *screen);
+    screen = xcalloc(1, sizeof *screen);
     if (screen == NULL)
 	return NULL;
-    memset(screen, 0, sizeof *screen);
 
     if (!xf86LoaderCheckSymbol("DRI2Connect") ||
 	!DRI2Connect(pScreen, &screen->fd, &driverName)) {

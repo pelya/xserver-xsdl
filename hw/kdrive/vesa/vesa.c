@@ -175,10 +175,8 @@ vesaGetModes (Vm86InfoPtr vi, int *ret_nmode)
     if (nmode <= 0)
 	return 0;
     
-    modes = xalloc (nmode * sizeof (VesaModeRec));
-    
-    memset (modes, '\0', nmode * sizeof (VesaModeRec));
-    
+    modes = xcalloc (nmode, sizeof (VesaModeRec));
+ 
     if (nmodeVga)
     {
 	code = VgaGetModes (vi, modes, nmodeVga);

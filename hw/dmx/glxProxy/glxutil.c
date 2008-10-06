@@ -69,13 +69,11 @@ __glXCalloc(size_t numElements, size_t elementSize)
     if ((numElements == 0) || (elementSize == 0)) {
 	return NULL;
     }
-    size = numElements * elementSize;
-    addr = (void *) xalloc(size);
+    addr = xcalloc(numElements, elementSize);
     if (addr == NULL) {
 	/* XXX: handle out of memory error */
 	return NULL;
     }
-    memset(addr, 0, size);
     return addr;
 }
 

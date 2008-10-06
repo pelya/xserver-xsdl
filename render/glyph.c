@@ -441,10 +441,9 @@ bail:
 Bool
 AllocateGlyphHash (GlyphHashPtr hash, GlyphHashSetPtr hashSet)
 {
-    hash->table = (GlyphRefPtr) xalloc (hashSet->size * sizeof (GlyphRefRec));
+    hash->table = xcalloc (hashSet->size, sizeof (GlyphRefRec));
     if (!hash->table)
 	return FALSE;
-    memset (hash->table, 0, hashSet->size * sizeof (GlyphRefRec));
     hash->hashSet = hashSet;
     hash->tableEntries = 0;
     return TRUE;

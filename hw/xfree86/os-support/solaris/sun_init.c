@@ -244,8 +244,8 @@ xf86CloseConsole(void)
 			    "xf86CloseConsole():  unable to mmap framebuffer"
 			    " (%s)\n", strerror(errno));
 		} else {
-		    (void)memset(fbdata, 0, fbattr.fbtype.fb_size);
-		    (void)munmap(fbdata, fbattr.fbtype.fb_size);
+		    memset(fbdata, 0, fbattr.fbtype.fb_size);
+		    munmap(fbdata, fbattr.fbtype.fb_size);
 		}
 	    }
 

@@ -146,11 +146,10 @@ static int CreateContext(__GLXclientState *cl,
     /*
     ** Allocate memory for the new context
     */
-    glxc = (__GLXcontext *) __glXMalloc(sizeof(__GLXcontext));
+    glxc = __glXCalloc(1, sizeof(__GLXcontext));
     if (!glxc) {
 	return BadAlloc;
     }
-    memset(glxc, 0, sizeof(__GLXcontext));
 
     pScreen = screenInfo.screens[screen];
     pGlxScreen = &__glXActiveScreens[screen];

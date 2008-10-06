@@ -171,10 +171,8 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   
   GLAQUA_DEBUG_MSG("glXAquaScreenCreateContext\n");
 
-  context = malloc (sizeof (__GLXAquaContext));
+  context = calloc (1, sizeof (__GLXAquaContext));
   if (context == NULL) return NULL;
-
-  memset(context, 0, sizeof *context);
 
   context->base.pGlxScreen = screen;
   context->base.config      = config;
@@ -1099,8 +1097,7 @@ static void init_screen_visuals(__GLXAquaScreen *screen) {
      * FIXME: malloc / free.  If nothing else, convert 'used' to
      * FIXME: array of bytes instead of ints!
      */
-    used = (int *)malloc(pScreen->numVisuals * sizeof(int));
-    memset(used, 0, pScreen->numVisuals * sizeof(int));
+    used = calloc(pScreen->numVisuals, sizeof(int));
 
     i = 0;
     for ( modes = screen -> base.visuals
@@ -1184,10 +1181,8 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
 
   GLAQUA_DEBUG_MSG("glAquaScreenCreateDrawable(%p,%p,%d,%p)\n", context, pDraw, drawId, modes);
 
-  glxPriv = xalloc(sizeof *glxPriv);
+  glxPriv = calloc(1, sizeof *glxPriv);
   if (glxPriv == NULL) return NULL;
-
-  memset(glxPriv, 0, sizeof *glxPriv);
 
   if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, GLX_DRAWABLE_PIXMAP /*?*/, drawId, modes)) {
     xfree(glxPriv);

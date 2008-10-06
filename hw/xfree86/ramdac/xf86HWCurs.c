@@ -255,7 +255,7 @@ RealizeCursorInterleave0(xf86CursorInfoPtr infoPtr, CursorPtr pCurs)
 	    DstM = (SCANLINE*)mem;
 	    if (!(infoPtr->Flags & HARDWARE_CURSOR_SWAP_SOURCE_AND_MASK))
 		DstM += words;
-	    (void)memset(DstM, -1, words * sizeof(SCANLINE));
+	    memset(DstM, -1, words * sizeof(SCANLINE));
 	}
 	return mem;
     }

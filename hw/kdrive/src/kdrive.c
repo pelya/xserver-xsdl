@@ -739,10 +739,9 @@ KdAllocatePrivates (ScreenPtr pScreen)
     if (kdGeneration != serverGeneration)
 	kdGeneration = serverGeneration;
 
-    pScreenPriv = (KdPrivScreenPtr) xalloc(sizeof (*pScreenPriv));
+    pScreenPriv = xcalloc(1, sizeof (*pScreenPriv));
     if (!pScreenPriv)
 	return FALSE;
-    memset (pScreenPriv, '\0', sizeof (KdPrivScreenRec));
     KdSetScreenPriv (pScreen, pScreenPriv);
     return TRUE;
 }

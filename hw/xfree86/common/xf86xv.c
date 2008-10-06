@@ -964,9 +964,8 @@ xf86XVEnlistPortInWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
    }
 
    if(!winPriv) {
-	winPriv = xalloc(sizeof(XF86XVWindowRec));
+	winPriv = xcalloc(1, sizeof(XF86XVWindowRec));
 	if(!winPriv) return BadAlloc;
-	memset(winPriv, 0, sizeof(XF86XVWindowRec));
 	winPriv->PortRec = portPriv;
 	winPriv->next = PrivRoot;
 	dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey, winPriv);
@@ -1175,7 +1174,7 @@ xf86XVCloseScreen(int i, ScreenPtr pScreen)
   int c;
 
   /* Clear offscreen images */
-  (void)memset(&OffscreenImages[pScreen->myNum], 0, sizeof(OffscreenImages[0]));
+  memset(&OffscreenImages[pScreen->myNum], 0, sizeof(OffscreenImages[0]));
 
   if(!ScreenPriv) return TRUE;
 

@@ -106,7 +106,7 @@ linuxPciInit(void)
     struct stat st;
 
 #ifndef INCLUDE_XF86_NO_DOMAIN
-    (void) memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
+    memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
 #endif
 
     if (-1 == stat("/proc/bus/pci", &st)) {

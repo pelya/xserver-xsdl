@@ -133,9 +133,7 @@ ProcXResQueryClientResources (ClientPtr client)
         return BadValue;
     }
 
-    counts = xalloc((lastResourceType + 1) * sizeof(int));
-
-    memset(counts, 0, (lastResourceType + 1) * sizeof(int));
+    counts = xcalloc(lastResourceType + 1, sizeof(int));
 
     FindAllClientResources(clients[clientID], ResFindAllRes, counts);
 

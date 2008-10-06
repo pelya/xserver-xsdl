@@ -297,10 +297,9 @@ fbdevScreenInit (KdScreenInfo *screen)
 {
     FbdevScrPriv *scrpriv;
 
-    scrpriv = xalloc (sizeof (FbdevScrPriv));
+    scrpriv = xcalloc (1, sizeof (FbdevScrPriv));
     if (!scrpriv)
 	return FALSE;
-    memset (scrpriv, '\0', sizeof (FbdevScrPriv));
     screen->driver = scrpriv;
     if (!fbdevScreenInitialize (screen, scrpriv))
     {

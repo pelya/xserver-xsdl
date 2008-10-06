@@ -147,13 +147,10 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     if (devid >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
-    dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec), 1);
+    dev =  xcalloc(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
-    dev->name = (char *)NULL;
-    dev->type = 0;
     dev->id = devid;
-    dev->public.on = FALSE;
     dev->public.processInputProc = (ProcessInputProc)NoopDDA;
     dev->public.realInputProc = (ProcessInputProc)NoopDDA;
     dev->public.enqueueInputProc = EnqueueEvent;
@@ -161,51 +158,12 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->startup = autoStart;
 
     /* device grab defaults */
-    dev->deviceGrab.sync.frozen = FALSE;
-    dev->deviceGrab.sync.other = NullGrab;
-    dev->deviceGrab.sync.state = NOT_GRABBED;
-    dev->deviceGrab.sync.event = (xEvent *) NULL;
-    dev->deviceGrab.sync.evcount = 0;
-    dev->deviceGrab.grab = NullGrab;
     dev->deviceGrab.grabTime = currentTime;
-    dev->deviceGrab.fromPassiveGrab = FALSE;
-    dev->deviceGrab.implicitGrab = FALSE;
 
-    dev->key = (KeyClassPtr)NULL;
-    dev->valuator = (ValuatorClassPtr)NULL;
-    dev->button = (ButtonClassPtr)NULL;
-    dev->focus = (FocusClassPtr)NULL;
-    dev->proximity = (ProximityClassPtr)NULL;
-    dev->absolute = (AbsoluteClassPtr)NULL;
-    dev->kbdfeed = (KbdFeedbackPtr)NULL;
-    dev->ptrfeed = (PtrFeedbackPtr)NULL;
-    dev->intfeed = (IntegerFeedbackPtr)NULL;
-    dev->stringfeed = (StringFeedbackPtr)NULL;
-    dev->bell = (BellFeedbackPtr)NULL;
-    dev->leds = (LedFeedbackPtr)NULL;
-#ifdef XKB
-    dev->xkb_interest = NULL;
-#endif
-    dev->config_info = NULL;
-    dev->devPrivates = NULL;
-    dev->unwrapProc = NULL;
     dev->coreEvents = TRUE;
-    dev->inited = FALSE;
-    dev->enabled = FALSE;
 
     /* sprite defaults */
     dev->spriteInfo = (SpriteInfoPtr)&dev[1];
-    dev->spriteInfo->sprite = NULL;
-    dev->spriteInfo->spriteOwner = FALSE;
-
-    /* last valuators */
-    memset(dev->last.valuators, 0, sizeof(dev->last.valuators));
-    memset(dev->last.remainder, 0, sizeof(dev->last.remainder));
-    dev->last.numValuators = 0;
-
-    /* device properties */
-    dev->properties.properties = NULL;
-    dev->properties.handlers = NULL;
 
     /*  security creation/labeling check
      */

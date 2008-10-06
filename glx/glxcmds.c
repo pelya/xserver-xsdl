@@ -164,11 +164,10 @@ static __GLXcontext *__glXdirectContextCreate(__GLXscreen *screen,
 {
     __GLXcontext *context;
 
-    context = xalloc (sizeof (__GLXcontext));
+    context = xcalloc (1, sizeof (__GLXcontext));
     if (context == NULL)
 	return NULL;
 
-    memset(context, 0, sizeof *context);
     context->destroy = __glXdirectContextDestroy;
 
     return context;

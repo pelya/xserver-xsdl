@@ -140,8 +140,7 @@ static int unscaley(myPrivate *priv, int y)
 pointer dmxConsoleCreatePrivate(DeviceIntPtr pDevice)
 {
     GETDMXLOCALFROMPDEVICE;
-    myPrivate *priv = xalloc(sizeof(*priv));
-    memset(priv, 0, sizeof(*priv));
+    myPrivate *priv = xcalloc(1, sizeof(*priv));
     priv->dmxLocal  = dmxLocal;
     return priv;
 }

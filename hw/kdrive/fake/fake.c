@@ -121,10 +121,9 @@ fakeScreenInit (KdScreenInfo *screen)
 {
     FakeScrPriv *scrpriv;
 
-    scrpriv = xalloc (sizeof (FakeScrPriv));
+    scrpriv = xcalloc (1, sizeof (FakeScrPriv));
     if (!scrpriv)
 	return FALSE;
-    memset (scrpriv, '\0', sizeof (FakeScrPriv));
     screen->driver = scrpriv;
     if (!fakeScreenInitialize (screen, scrpriv))
     {

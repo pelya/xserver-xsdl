@@ -80,8 +80,7 @@ hid_start_parse(report_desc_t d, int kindset)
 
 	_DIAGASSERT(d != NULL);
 
-	s = malloc(sizeof *s);
-	memset(s, 0, sizeof *s);
+	s = calloc(1, sizeof *s);
 	s->start = s->p = d->data;
 	s->end = d->data + d->size;
 	s->kindset = kindset;
