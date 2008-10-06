@@ -871,12 +871,14 @@ exaGlyphs (CARD8 	 op,
 	list++;
     }
     
-    if (maskFormat)
-	exaGlyphsToMask(pMask, &buffer);
-    else
-	exaGlyphsToDst(op, pSrc, pDst, &buffer,
-		       xSrc, ySrc, xDst, yDst);
-    
+    if (buffer.count) {
+        if (maskFormat)
+	    exaGlyphsToMask(pMask, &buffer);
+        else
+	    exaGlyphsToDst(op, pSrc, pDst, &buffer,
+		           xSrc, ySrc, xDst, yDst);
+    }
+
     if (maskFormat)
     {
 	x = extents.x1;
