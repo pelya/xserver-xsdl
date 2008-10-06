@@ -1007,7 +1007,7 @@ DeviceIsPointerType(DeviceIntPtr dev)
  *
  */
 
-_X_EXPORT void
+void
 AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 {
     dev->type = type;

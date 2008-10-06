@@ -1518,7 +1518,7 @@ GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply 
 }
 
 
-_X_EXPORT WindowPtr
+WindowPtr
 MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
 {
     WindowPtr pParent = pWin->parent;
@@ -1628,7 +1628,7 @@ CreateUnclippedWinSize (WindowPtr pWin)
     return pRgn;
 }
 
-_X_EXPORT void
+void
 SetWinSize (WindowPtr pWin)
 {
 #ifdef COMPOSITE
@@ -1669,7 +1669,7 @@ SetWinSize (WindowPtr pWin)
     }
 }
 
-_X_EXPORT void
+void
 SetBorderSize (WindowPtr pWin)
 {
     int	bw;
@@ -1773,7 +1773,7 @@ GravityTranslate (int x, int y, int oldx, int oldy,
 }
 
 /* XXX need to retile border on each window with ParentRelative origin */
-_X_EXPORT void
+void
 ResizeChildrenWinSize(WindowPtr pWin, int dx, int dy, int dw, int dh)
 {
     ScreenPtr pScreen;
@@ -3089,7 +3089,7 @@ NotClippedByChildren(WindowPtr pWin)
     return(pReg);
 }
 
-_X_EXPORT void
+void
 SendVisibilityNotify(WindowPtr pWin)
 {
     xEvent event;

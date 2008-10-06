@@ -111,7 +111,7 @@ CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
 CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
 CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
 _X_EXPORT CARD16 DPMSPowerLevel = 0;
-_X_EXPORT Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
+Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
 _X_EXPORT Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
 _X_EXPORT Bool DPMSDisabledSwitch = FALSE; /* lind switch states */
 _X_EXPORT Bool DPMSCapableFlag = FALSE;
@@ -141,8 +141,6 @@ FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 CursorPtr rootCursor;
 Bool party_like_its_1989 = FALSE;
 Bool whiteRoot = FALSE;
-
-_X_EXPORT int cursorScreenDevPriv[MAXSCREENS];
 
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;

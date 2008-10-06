@@ -2767,7 +2767,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
  * Windows have restructured, we need to update the sprite position and the
  * sprite's cursor.
  */
-_X_EXPORT void
+void
 WindowsRestructured(void)
 {
     DeviceIntPtr pDev = inputInfo.devices;
