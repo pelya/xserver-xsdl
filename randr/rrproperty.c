@@ -24,10 +24,36 @@
 #include "propertyst.h"
 #include "swaprep.h"
 
-static void
-RRDeliverEvent (ScreenPtr pScreen, xEvent *event, CARD32 mask)
+static int
+DeliverPropertyEvent(WindowPtr pWin, void *value)
 {
+    xRROutputPropertyNotifyEvent *event = value;
+    RREventPtr *pHead, pRREvent;
+    ClientPtr client;
 
+    pHead = LookupIDByType(pWin->drawable.id, RREventType);
+    if (!pHead)
+	return WT_WALKCHILDREN;
+
+    for (pRREvent = *pHead; pRREvent; pRREvent = pRREvent->next)
+    {
+	client = pRREvent->client;
+	if (client == serverClient || client->clientGone)
+	    continue;
+
+	if (!(pRREvent->mask & RROutputPropertyNotifyMask))
+	    continue;
+
+	event->window = pRREvent->window->drawable.id;
+	WriteEventsToClient(pRREvent->client, 1, (xEvent *)event);
+    }
+
+    return WT_WALKCHILDREN;
+}
+
+static void RRDeliverPropertyEvent(ScreenPtr pScreen, xEvent *event)
+{
+    WalkTree(pScreen, DeliverPropertyEvent, event);
 }
 
 void
@@ -45,7 +71,7 @@ RRDeleteAllOutputProperties (RROutputPtr output)
 	event.state = PropertyDelete;
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
-	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
+	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
 	if (prop->current.data)
 	    xfree(prop->current.data);
 	if (prop->pending.data)
@@ -113,7 +139,7 @@ RRDeleteOutputProperty (RROutputPtr output, Atom property)
 	event.state = PropertyDelete;
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
-	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
+	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
 	RRDestroyOutputProperty (prop);
     }
 }
@@ -238,7 +264,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	event.state = PropertyNewValue;
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
-	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
+	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
     }
     return(Success);
 }
@@ -707,7 +733,7 @@ ProcRRGetOutputProperty (ClientPtr client)
 	event.state = PropertyDelete;
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
-	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
+	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
     }
 
     if (client->swapped) {
