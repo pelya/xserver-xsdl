@@ -318,6 +318,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86GetPciInfoForEntity)
     SYMFUNC(xf86RegisterResources)
     SYMFUNC(xf86CheckPciMemBase)
+    SYMFUNC(xf86SetAccessFuncs)
     SYMFUNC(xf86IsEntityPrimary)
     SYMFUNC(xf86SetOperatingState)
     SYMFUNC(xf86FindScreenForEntity)

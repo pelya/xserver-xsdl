@@ -130,6 +130,8 @@ void xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type);
 resPtr xf86RegisterResources(int entityIndex, resList list,
 			     unsigned long Access);
 Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base);
+void xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
+			xf86SetAccessFuncPtr oldFuncs);
 Bool xf86IsEntityPrimary(int entityIndex);
 resPtr xf86ReallocatePciResources(int entityIndex, resPtr pRes);
 resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
