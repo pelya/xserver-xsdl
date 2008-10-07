@@ -488,13 +488,6 @@ pci_device_for_cfg_address (CARD32 addr)
 		return NULL;
 	}
 
-	if (pci_device_next(iter)) {
-		char buf[128]; /* enough to store "%u@%u" */
-		xf86FormatPciBusNumber(tag >> 16, buf);
-		ErrorF("Multiple devices matching %s:%u:%u\n",
-				buf, slot_match.dev, slot_match.func);
-	}
-
 	return dev;
 }
 
