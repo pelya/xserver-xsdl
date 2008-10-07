@@ -75,6 +75,9 @@
 #include "quartz.h"
 //#include "darwinClut8.h"
 
+#include "GL/visualConfigs.h"
+
+
 #ifdef ENABLE_DEBUG_LOG
 FILE *debug_log_fp = NULL;
 #endif
@@ -179,7 +182,6 @@ static Bool DarwinSaveScreen(ScreenPtr pScreen, int on)
     return TRUE;
 }
 
-
 /*
  * DarwinAddScreen
  *  This is a callback from dix during AddScreen() from InitOutput().
@@ -225,6 +227,8 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
         miSetVisualTypesAndMasks(24, LARGE_VISUALS, 8, TrueColor, 0x00ff0000, 0x0000ff00, 0x000000ff);
 
     miSetPixmapDepths();
+
+    setVisualConfigs();
 
     // machine independent screen init
     // setup _Screen structure in pScreen

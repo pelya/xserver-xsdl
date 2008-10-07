@@ -10,4 +10,6 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/miext/damage
 
 libCGLCore_la_SOURCES = \
-	indirect.c
+	indirect.c \
+	capabilities.c \
+	visualConfigs.c
