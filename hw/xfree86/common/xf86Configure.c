@@ -538,7 +538,7 @@ configureModuleSection (void)
 	for (el = elist; *el; el++) {
 	    XF86LoadPtr module;
 
-    	    module = xf86confcalloc(sizeof(XF86LoadRec));
+    	    module = xf86confcalloc(1, sizeof(XF86LoadRec));
     	    module->load_name = *el;
 
             /* Add only those font backends which are referenced by fontpath */
