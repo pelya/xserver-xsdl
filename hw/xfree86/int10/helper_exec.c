@@ -482,6 +482,8 @@ pci_device_for_cfg_address (CARD32 addr)
 	if (iter)
 		dev = pci_device_next(iter);
 
+	pci_iterator_destroy(iter);
+
 	return dev;
 }
 
