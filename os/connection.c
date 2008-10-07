@@ -663,11 +663,6 @@ ClientAuthorized(ClientPtr client,
     priv = (OsCommPtr)client->osPrivate;
     trans_conn = priv->trans_conn;
 
-/* Make it compile for now, remove this once we have a new xtrans release and are depending on it in configure.ac */
-#ifndef TRANS_NOXAUTH
-#define TRANS_NOXAUTH 0
-#endif
-
     /* Allow any client to connect without authorization on a launchd socket,
        because it is securely created -- this prevents a race condition on launch */
     if(trans_conn->flags | TRANS_NOXAUTH) {
