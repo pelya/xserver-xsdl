@@ -13,3 +13,7 @@ libCGLCore_la_SOURCES = \
 	indirect.c \
 	capabilities.c \
 	visualConfigs.c
+
+EXTRA_DIST = \
+	capabilities.h \
+	visualConfigs.h
