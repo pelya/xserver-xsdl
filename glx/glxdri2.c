@@ -110,13 +110,30 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
     xfree(private);
 }
 
+static void
+__glXDRIdrawableCopySubBuffer(__GLXdrawable *drawable,
+			       int x, int y, int w, int h)
+{
+    BoxRec box;
+    RegionRec region;
+
+    box.x1 = x;
+    box.y1 = y;
+    box.x2 = x + w;
+    box.y2 = y + h;
+    REGION_INIT(drawable->pDraw->pScreen, &region, &box, 0);
+
+    DRI2CopyRegion(drawable->pDraw, &region,
+		   DRI2BufferFrontLeft, DRI2BufferBackLeft);
+}
+
 static GLboolean
 __glXDRIdrawableSwapBuffers(__GLXdrawable *drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
 
-    DRI2SwapBuffers(drawable->pDraw,
-		    0, 0, private->width, private->height);
+    __glXDRIdrawableCopySubBuffer(drawable, 0, 0,
+				  private->width, private->height);
 
     return TRUE;
 }
@@ -126,14 +143,6 @@ static int
 __glXDRIdrawableSwapInterval(__GLXdrawable *drawable, int interval)
 {
     return 0;
-}
-
-
-static void
-__glXDRIdrawableCopySubBuffer(__GLXdrawable *drawable,
-			       int x, int y, int w, int h)
-{
-	DRI2SwapBuffers(drawable->pDraw, x, y, w, h);
 }
 
 static void
@@ -452,7 +461,7 @@ initializeExtensions(__GLXDRIscreen *screen)
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
-    const char *driverName;
+    const char *driverName, *deviceName;
     __GLXDRIscreen *screen;
     char filename[128];
     size_t buffer_size;
@@ -466,7 +475,8 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	return NULL;
 
     if (!xf86LoaderCheckSymbol("DRI2Connect") ||
-	!DRI2Connect(pScreen, &screen->fd, &driverName)) {
+	!DRI2Connect(pScreen, DRI2DriverDRI,
+		     &screen->fd, &driverName, &deviceName)) {
 	LogMessage(X_INFO,
 		   "AIGLX: Screen %d is not DRI2 capable\n", pScreen->myNum);
 	return NULL;

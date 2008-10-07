@@ -50,21 +50,24 @@ typedef DRI2BufferPtr	(*DRI2CreateBuffersProcPtr)(DrawablePtr pDraw,
 typedef void		(*DRI2DestroyBuffersProcPtr)(DrawablePtr pDraw,
 						     DRI2BufferPtr buffers,
 						     int count);
-typedef void		(*DRI2SwapBuffersProcPtr)(DrawablePtr pDraw,
-						  DRI2BufferPtr pSrcBuffer,
-						  int x,
-						  int y,
-						  int width,
-						  int height);
+typedef void		(*DRI2CopyRegionProcPtr)(DrawablePtr pDraw,
+						 RegionPtr pRegion,
+						 DRI2BufferPtr pDestBuffer,
+						 DRI2BufferPtr pSrcBuffer);
+
+typedef void		(*DRI2WaitProcPtr)(WindowPtr pWin,
+					   unsigned int sequence);
 
 typedef struct {
     unsigned int version;	/* Version of this struct */
     int fd;
     const char *driverName;
+    const char *deviceName;
 
     DRI2CreateBuffersProcPtr	CreateBuffers;
     DRI2DestroyBuffersProcPtr	DestroyBuffers;
-    DRI2SwapBuffersProcPtr	SwapBuffers;
+    DRI2CopyRegionProcPtr	CopyRegion;
+    DRI2WaitProcPtr		Wait;
 
 }  DRI2InfoRec, *DRI2InfoPtr;
 
@@ -74,10 +77,12 @@ Bool DRI2ScreenInit(ScreenPtr	pScreen,
 void DRI2CloseScreen(ScreenPtr pScreen);
 
 Bool DRI2Connect(ScreenPtr pScreen,
+		 unsigned int driverType,
 		 int *fd,
-		 const char **driverName);
+		 const char **driverName,
+		 const char **deviceName);
 
-Bool DRI2AuthConnection(ScreenPtr pScreen, drm_magic_t magic);
+Bool DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic);
 
 int DRI2CreateDrawable(DrawablePtr pDraw);
 
@@ -90,10 +95,9 @@ DRI2BufferPtr DRI2GetBuffers(DrawablePtr pDraw,
 			     int count,
 			     int *out_count);
 
-void DRI2SwapBuffers(DrawablePtr pDraw,
-		     int x,
-		     int y,
-		     int width,
-		     int height);
+int DRI2CopyRegion(DrawablePtr pDraw,
+		   RegionPtr pRegion,
+		   unsigned int dest,
+		   unsigned int src);
 
 #endif
