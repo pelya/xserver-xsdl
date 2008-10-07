@@ -64,6 +64,9 @@ struct _DeviceIntRec;
 typedef struct _Cursor *CursorPtr;
 typedef struct _CursorMetric *CursorMetricPtr;
 
+extern int cursorScreenDevPriv[MAXSCREENS];
+#define CursorScreenKey(pScreen) (cursorScreenDevPriv + (pScreen)->myNum)
+
 extern CursorPtr rootCursor;
 
 extern int FreeCursor(
