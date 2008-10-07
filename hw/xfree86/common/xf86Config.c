@@ -766,7 +766,7 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_DONTVTSWITCH,		"DontVTSwitch",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_DONTZAP,		"DontZap",			OPTV_BOOLEAN,
-	{0}, FALSE },
+	{0}, TRUE },
   { FLAG_DONTZOOM,		"DontZoom",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_DISABLEVIDMODE,	"DisableVidModeExtension",	OPTV_BOOLEAN,

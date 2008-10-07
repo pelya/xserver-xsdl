@@ -76,7 +76,7 @@ unsigned long       kdVideoTestTime;
 Bool		    kdEmulateMiddleButton;
 Bool		    kdRawPointerCoordinates;
 Bool		    kdDisableZaphod;
-Bool                kdDontZap;
+Bool                kdAllowZap;
 Bool		    kdEnabled;
 int		    kdSubpixelOrder;
 int		    kdVirtualTerminal = -1;
@@ -613,9 +613,9 @@ KdProcessArgument (int argc, char **argv, int i)
 	kdDisableZaphod = TRUE;
 	return 1;
     }
-    if (!strcmp (argv[i], "-nozap"))
+    if (!strcmp (argv[i], "-zap"))
     {
-	kdDontZap = TRUE;
+	kdAllowZap = TRUE;
 	return 1;
     }
     if (!strcmp (argv[i], "-3button"))

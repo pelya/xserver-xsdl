@@ -1921,11 +1921,11 @@ KdCheckSpecialKeys(KdKeyboardInfo *ki, int type, int sym)
     case XK_BackSpace:
     case XK_Delete:
     case XK_KP_Delete:
-	/* 
+	/*
 	 * Set the dispatch exception flag so the server will terminate the
 	 * next time through the dispatch loop.
 	 */
-	if (kdDontZap == FALSE)
+	if (kdAllowZap)
 	    dispatchException |= DE_TERMINATE;
 	break;
     }
