@@ -642,6 +642,8 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ActivateDevice)
     SYMFUNC(xf86XInputSetScreen)
     SYMFUNC(xf86ScaleAxis)
+    SYMFUNC(NewInputDeviceRequest)
+    SYMFUNC(DeleteInputDeviceRequest)
 #ifdef DPMSExtension
     SYMFUNC(DPMSGet)
     SYMFUNC(DPMSSet)

@@ -461,7 +461,7 @@ AddOtherInputDevices()
 {
 }
 
-int
+_X_EXPORT int
 NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 {
     IDevRec *idev = NULL;
@@ -604,7 +604,7 @@ unwind:
     return rval;
 }
 
-void
+_X_EXPORT void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
