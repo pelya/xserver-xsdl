@@ -86,65 +86,75 @@ void setVisualConfigs(void) {
 
       2 iterations for accum (on and off (with an accum color size of 16)).
      */
-    
 
     numConfigs = ((enable_stereo && caps->stereo) ? 2 : 1) * 2 * 
 	(caps->aux_buffers ? 2 : 1) * (caps->buffers) * 2 * 2;
 
     visualConfigs = xcalloc(sizeof(*visualConfigs), numConfigs);
+
+    if(NULL == visualConfigs) {
+	ErrorF("xcalloc failure when allocating visualConfigs\n");
+	return;
+    }
+    
     visualPrivates = xcalloc(sizeof(void *), numConfigs);
 
-    if (NULL != visualConfigs) {
-        i = 0; /* current buffer */
-        for (stereo = 0; stereo < ((enable_stereo && caps->stereo) ? 2 : 1); ++stereo) {
-	    for (depth = 0; depth < 2; ++depth) {
-		for (aux = 0; aux < (caps->aux_buffers ? 2 : 1); ++aux) {
-		    for (buffers = 0; buffers < caps->buffers; ++buffers) {
-			for (stencil = 0; stencil < 2; ++stencil) {
-			    for (accum = 0; accum < 2; ++accum) {
-				visualConfigs[i].vid = -1;
-				visualConfigs[i].class = -1;
-				visualConfigs[i].rgba = TRUE;
-				visualConfigs[i].redSize = -1;
-				visualConfigs[i].greenSize = -1;
-				visualConfigs[i].blueSize = -1;
-				visualConfigs[i].redMask = -1;
-				visualConfigs[i].greenMask = -1;
-				visualConfigs[i].blueMask = -1;
-				visualConfigs[i].alphaMask = 0;
-				if (accum) {
-				    visualConfigs[i].accumRedSize = 16;
-				    visualConfigs[i].accumGreenSize = 16;
-				    visualConfigs[i].accumBlueSize = 16;
-				    visualConfigs[i].accumAlphaSize = 16;
-				} else {
-				    visualConfigs[i].accumRedSize = 0;
-				    visualConfigs[i].accumGreenSize = 0;
-				    visualConfigs[i].accumBlueSize = 0;
-				    visualConfigs[i].accumAlphaSize = 0;
-				}
-				visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
-				visualConfigs[i].stereo = stereo ? TRUE : FALSE;
-				visualConfigs[i].bufferSize = -1;
-                    
-				visualConfigs[i].depthSize = depth ? 24 : 0;
-				visualConfigs[i].stencilSize = stencil ? 8 : 0;
-				visualConfigs[i].auxBuffers = aux ? caps->aux_buffers : 0;
-				visualConfigs[i].level = 0;
-				visualConfigs[i].visualRating = GLX_NONE_EXT;
-				visualConfigs[i].transparentPixel = 0;
-				visualConfigs[i].transparentRed = 0;
-				visualConfigs[i].transparentGreen = 0;
-				visualConfigs[i].transparentBlue = 0;
-				visualConfigs[i].transparentAlpha = 0;
-				visualConfigs[i].transparentIndex = 0;
-				++i;
+    if(NULL == visualPrivates) {
+	ErrorF("xcalloc failure when allocating visualPrivates");
+	xfree(visualConfigs);
+	return;
+    }
+
+ 
+    i = 0; /* current buffer */
+    for (stereo = 0; stereo < ((enable_stereo && caps->stereo) ? 2 : 1); ++stereo) {
+	for (depth = 0; depth < 2; ++depth) {
+	    for (aux = 0; aux < (caps->aux_buffers ? 2 : 1); ++aux) {
+		for (buffers = 0; buffers < caps->buffers; ++buffers) {
+		    for (stencil = 0; stencil < 2; ++stencil) {
+			for (accum = 0; accum < 2; ++accum) {
+			    visualConfigs[i].vid = -1;
+			    visualConfigs[i].class = -1;
+			    visualConfigs[i].rgba = TRUE;
+			    visualConfigs[i].redSize = -1;
+			    visualConfigs[i].greenSize = -1;
+			    visualConfigs[i].blueSize = -1;
+			    visualConfigs[i].redMask = -1;
+			    visualConfigs[i].greenMask = -1;
+			    visualConfigs[i].blueMask = -1;
+			    visualConfigs[i].alphaMask = 0;
+			    if (accum) {
+				visualConfigs[i].accumRedSize = 16;
+				visualConfigs[i].accumGreenSize = 16;
+				visualConfigs[i].accumBlueSize = 16;
+				visualConfigs[i].accumAlphaSize = 16;
+			    } else {
+				visualConfigs[i].accumRedSize = 0;
+				visualConfigs[i].accumGreenSize = 0;
+				visualConfigs[i].accumBlueSize = 0;
+				visualConfigs[i].accumAlphaSize = 0;
 			    }
+			    visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
+			    visualConfigs[i].stereo = stereo ? TRUE : FALSE;
+			    visualConfigs[i].bufferSize = -1;
+			    
+			    visualConfigs[i].depthSize = depth ? 24 : 0;
+			    visualConfigs[i].stencilSize = stencil ? 8 : 0;
+			    visualConfigs[i].auxBuffers = aux ? caps->aux_buffers : 0;
+			    visualConfigs[i].level = 0;
+			    visualConfigs[i].visualRating = GLX_NONE_EXT;
+			    visualConfigs[i].transparentPixel = 0;
+			    visualConfigs[i].transparentRed = 0;
+			    visualConfigs[i].transparentGreen = 0;
+			    visualConfigs[i].transparentBlue = 0;
+			    visualConfigs[i].transparentAlpha = 0;
+			    visualConfigs[i].transparentIndex = 0;
+			    ++i;
 			}
 		    }
 		}
 	    }
-        }
+	}
     }
 
     if (i != numConfigs) {
