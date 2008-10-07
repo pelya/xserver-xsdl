@@ -466,9 +466,9 @@ This disallows the use of the
 .B Ctrl+Alt+Backspace
 sequence.
 That sequence is normally used to terminate the __xservername__ server.
-When this option is enabled, that key sequence has no special meaning and
-is passed to clients.
-Default: off.
+When this option is enabled (as per default), that key sequence has no
+special meaning.
+Default: on.
 .TP 7
 .BI "Option \*qDontZoom\*q  \*q" boolean \*q
 This disallows the use of the

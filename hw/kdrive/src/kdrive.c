@@ -567,7 +567,7 @@ KdUseMsg (void)
     ErrorF("-videoTest       Start the server, pause momentarily and exit\n");
     ErrorF("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
     ErrorF("-switchCmd       Command to execute on vt switch\n");
-    ErrorF("-nozap           Don't terminate server on Ctrl+Alt+Backspace\n");
+    ErrorF("-zap             Terminate server on Ctrl+Alt+Backspace\n");
     ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
 #ifdef PSEUDO8
     p8UseMsg ();
