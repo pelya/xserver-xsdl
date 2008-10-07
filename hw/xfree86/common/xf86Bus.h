@@ -119,6 +119,14 @@ typedef struct x_BusAccRec {
     } busdep;
 } BusAccRec, *BusAccPtr;
 
+/* state change notification callback */
+typedef struct _stateChange {
+    xf86StateChangeNotificationCallbackFunc func;
+    pointer arg;
+    struct _stateChange *next;
+} StateChangeNotificationRec, *StateChangeNotificationPtr;
+
+
 extern EntityPtr *xf86Entities;
 extern int xf86NumEntities;
 extern xf86AccessRec AccessNULL;

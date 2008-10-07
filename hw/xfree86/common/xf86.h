@@ -137,6 +137,8 @@ void xf86EnterServerState(xf86State state);
 ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 Bool xf86NoSharedResources(int screenIndex, resType res);
 resPtr xf86FindIntersectOfLists(resPtr l1, resPtr l2);
+void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
+Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 
 int xf86GetLastScrnFlag(int entityIndex);
 void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);
