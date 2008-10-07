@@ -1,3 +1,33 @@
+/*
+ * Copyright (c) 2007, 2008 Apple Inc.
+ * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002 Greg Parker. All Rights Reserved.
+ *
+ * Portions of this file are copied from Mesa's xf86glx.c,
+ * which contains the following copyright:
+ *
+ * Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
+ * All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE ABOVE LISTED COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -28,6 +58,7 @@
 
 extern BOOL enable_stereo;
 
+/* Based originally on code from indirect.c which was based on code from i830_dri.c. */
 void setVisualConfigs(void) {
     int numConfigs = 0;
     __GLXvisualConfig *visualConfigs = NULL;
@@ -41,14 +72,21 @@ void setVisualConfigs(void) {
 	return;
     }
     
-    /* count num configs:
-        2 stereo (on, off) (optional)
-        2 Z buffer (0, 24 bit)
-        2 AUX buffer (0, 2)
-        2 buffers (single, double)
-        2 stencil (0, 8 bit)
-        2 accum (0, 64 bit)
-        = 64 configs with stereo, or 32 without */
+    /*
+      caps->stereo is 0 or 1, but we need at least 1 iteration of the loop, so we treat
+      a true caps->stereo as 2.
+
+      The depth size is 0 or 24.  Thus we do 2 iterations for that.
+
+      caps->aux_buffers (when available/non-zero) result in 2 iterations instead of 1.
+
+      caps->buffers indicates whether we have single or double buffering.
+      
+      2 iterations for stencil (on and off (with a stencil size of 8)).
+
+      2 iterations for accum (on and off (with an accum color size of 16)).
+     */
+    
 
     numConfigs = ((enable_stereo && caps->stereo) ? 2 : 1) * 2 * 
 	(caps->aux_buffers ? 2 : 1) * (caps->buffers) * 2 * 2;
@@ -89,7 +127,7 @@ void setVisualConfigs(void) {
 				visualConfigs[i].stereo = stereo ? TRUE : FALSE;
 				visualConfigs[i].bufferSize = -1;
                     
-				visualConfigs[i].depthSize = depth? 24 : 0;
+				visualConfigs[i].depthSize = depth ? 24 : 0;
 				visualConfigs[i].stencilSize = stencil ? 8 : 0;
 				visualConfigs[i].auxBuffers = aux ? caps->aux_buffers : 0;
 				visualConfigs[i].level = 0;
