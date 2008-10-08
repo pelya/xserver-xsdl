@@ -420,26 +420,6 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     }
 }
 
-/*
- * miPointerDeltaCursor.  The pointer has moved dx,dy from it's previous
- * position.
- */
-
-void
-miPointerDeltaCursor (int dx, int dy, unsigned long time)
-{
-    int x = MIPOINTER(inputInfo.pointer)->x = dx;
-    int y = MIPOINTER(inputInfo.pointer)->y = dy;
-
-    miPointerSetPosition(inputInfo.pointer, &x, &y, time);
-}
-
-void
-miPointerSetNewScreen(int screen_no, int x, int y)
-{
-    miPointerSetScreen(inputInfo.pointer, screen_no, x, y);
-}
-
 void
 miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 {

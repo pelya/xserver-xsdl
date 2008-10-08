@@ -943,13 +943,8 @@ void dmxCheckCursor(void)
         pScreen                  = screenInfo.screens[dmxScreen->index];
 
         if (!dmxOnScreen(x, y, dmxScreen)) {
-#if 00
-            if (firstScreen && i == miPointerCurrentScreen()->myNum)
-                miPointerSetNewScreen(firstScreen->index, x, y);
-#else
             if (firstScreen && i == miPointerGetScreen(inputInfo.pointer)->myNum)
                 miPointerSetScreen(inputInfo.pointer, firstScreen->index, x, y);
-#endif
             _dmxSetCursor(pScreen, NULL,
                           x - dmxScreen->rootXOrigin,
                           y - dmxScreen->rootYOrigin);

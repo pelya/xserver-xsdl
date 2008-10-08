@@ -110,10 +110,6 @@ extern void miPointerWarpCursor(
     int /*y*/
 ) _X_DEPRECATED;
 
-extern int miPointerGetMotionBufferSize(
-    void
-) _X_DEPRECATED;
-
 extern int miPointerGetMotionEvents(
     DeviceIntPtr /*pPtr*/,
     xTimecoord * /*coords*/,
@@ -123,22 +119,10 @@ extern int miPointerGetMotionEvents(
 );
 
 /* Deprecated in favour of miPointerSetPosition. */
-extern void miPointerDeltaCursor(
-    int /*dx*/,
-    int /*dy*/,
-    unsigned long /*time*/
-) _X_DEPRECATED;
 extern void miPointerAbsoluteCursor(
     int /*x*/,
     int /*y*/,
     unsigned long /*time*/
-) _X_DEPRECATED;
-
-/* Deprecated in favour of miPointerSetScreen. */
-extern void miPointerSetNewScreen(
-    int, /*screen_no*/
-    int, /*x*/
-    int /*y*/
 ) _X_DEPRECATED;
 
 /* Deprecated in favour of miPointerGetScreen. */
