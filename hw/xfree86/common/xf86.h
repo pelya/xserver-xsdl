@@ -191,8 +191,6 @@ xf86SetDGAModeProc xf86SetDGAMode;
 void SetTimeSinceLastInputEvent(void);
 pointer xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data);
 int xf86RemoveInputHandler(pointer handler);
-void xf86DisableInputHandler(pointer handler);
-void xf86EnableInputHandler(pointer handler);
 pointer xf86AddGeneralHandler(int fd, InputHandlerProc proc, pointer data);
 int xf86RemoveGeneralHandler(pointer handler);
 void xf86InterceptSignals(int *signo);

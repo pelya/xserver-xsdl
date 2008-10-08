@@ -635,6 +635,34 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
     }
 }
 
+static void
+xf86EnableInputHandler(pointer handler)
+{
+    IHPtr ih;
+
+    if (!handler)
+	return;
+
+    ih = handler;
+    ih->enabled = TRUE;
+    if (ih->fd >= 0)
+	AddEnabledDevice(ih->fd);
+}
+
+static void
+xf86DisableInputHandler(pointer handler)
+{
+    IHPtr ih;
+
+    if (!handler)
+	return;
+
+    ih = handler;
+    ih->enabled = FALSE;
+    if (ih->fd >= 0)
+	RemoveEnabledDevice(ih->fd);
+}
+
 /*
  * xf86VTSwitch --
  *      Handle requests for switching the vt.
@@ -899,34 +927,6 @@ xf86RemoveGeneralHandler(pointer handler)
     removeInputHandler(ih);
 
     return fd;
-}
-
-_X_EXPORT void
-xf86DisableInputHandler(pointer handler)
-{
-    IHPtr ih;
-
-    if (!handler)
-	return;
-
-    ih = handler;
-    ih->enabled = FALSE;
-    if (ih->fd >= 0)
-	RemoveEnabledDevice(ih->fd);
-}
-
-_X_EXPORT void
-xf86EnableInputHandler(pointer handler)
-{
-    IHPtr ih;
-
-    if (!handler)
-	return;
-
-    ih = handler;
-    ih->enabled = TRUE;
-    if (ih->fd >= 0)
-	AddEnabledDevice(ih->fd);
 }
 
 /*
