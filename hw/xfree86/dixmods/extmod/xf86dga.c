@@ -93,7 +93,7 @@ ProcXF86DGADirectVideo(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXF86DGADirectVideoReq);
 
-    if (!DGAAvailable(stuff->screen)) 
+    if (!DGAAvailable(stuff->screen))
 	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     if (stuff->enable & XF86DGADirectGraphics) {
@@ -128,7 +128,7 @@ ProcXF86DGAGetViewPortSize(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!DGAAvailable(stuff->screen)) 
+    if (!DGAAvailable(stuff->screen))
 	return (DGAErrorBase + XF86DGANoDirectVideoMode);
 
     if(!(num = DGAGetOldDGAMode(stuff->screen)))
@@ -152,6 +152,9 @@ ProcXF86DGASetViewPort(ClientPtr client)
 	return BadValue;
 
     REQUEST_SIZE_MATCH(xXF86DGASetViewPortReq);
+
+    if (!DGAAvailable(stuff->screen))
+	return (DGAErrorBase + XF86DGANoDirectVideoMode);
 
     if (!DGAActive(stuff->screen))
     {
