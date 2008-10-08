@@ -916,7 +916,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen.  Right now, we only have one history buffer,
      * so we don't set this for both the device and core.*/
-    miPointerSetPosition(pDev, &pDev->last.valuators[0], &pDev->last.valuators[1], ms);
+    miPointerSetPosition(pDev, &pDev->last.valuators[0], &pDev->last.valuators[1]);
 
     if (master) {
         master->last.valuators[0] = pDev->last.valuators[0];

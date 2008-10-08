@@ -74,8 +74,7 @@ static Bool miPointerSetCursorPosition(DeviceIntPtr pDev, ScreenPtr pScreen,
 				       Bool generateEvent);
 static Bool miPointerCloseScreen(int index, ScreenPtr pScreen);
 static void miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, 
-                          int x, int y,
-                          unsigned long time);
+                          int x, int y);
 static Bool miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerDeviceCleanup(DeviceIntPtr pDev,
                                    ScreenPtr pScreen);
@@ -315,7 +314,7 @@ miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 
     if (GenerateEvent)
     {
-	miPointerMove (pDev, pScreen, x, y, GetTimeInMillis()); 
+	miPointerMove (pDev, pScreen, x, y);
     }
     else
     {
@@ -457,13 +456,13 @@ miPointerGetScreen(DeviceIntPtr pDev)
 _X_EXPORT void
 miPointerAbsoluteCursor (int x, int y, unsigned long time)
 {
-    miPointerSetPosition(inputInfo.pointer, &x, &y, time);
+    miPointerSetPosition(inputInfo.pointer, &x, &y);
 }
 
 /* Move the pointer on the current screen,  and update the sprite. */
 static void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,
-                int x, int y, unsigned long time)
+                int x, int y)
 {
     miPointerPtr pPointer;
     SetupScreen(pScreen);
@@ -489,7 +488,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,
 }
 
 _X_EXPORT void
-miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
+miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     miPointerScreenPtr	pScreenPriv;
     ScreenPtr		pScreen;
@@ -538,7 +537,7 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
             pPointer->pScreen == pScreen) 
         return;
 
-    miPointerMoved(pDev, pScreen, *x, *y, time);
+    miPointerMoved(pDev, pScreen, *x, *y);
 }
 
 _X_EXPORT void
@@ -549,12 +548,12 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 }
 
 void
-miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long time)
+miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     int i, nevents;
     int valuators[2];
 
-    miPointerMoved(pDev, pScreen, x, y, time);
+    miPointerMoved(pDev, pScreen, x, y);
 
     /* generate motion notify */
     valuators[0] = x;

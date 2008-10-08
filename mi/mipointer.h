@@ -149,8 +149,7 @@ extern void miPointerGetPosition(
 extern void miPointerSetPosition(
     DeviceIntPtr pDev,
     int *x,
-    int *y,
-    unsigned long time);
+    int *y);
 
 extern void miPointerUpdateSprite(
     DeviceIntPtr pDev);
