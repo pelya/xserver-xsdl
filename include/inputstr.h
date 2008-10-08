@@ -367,7 +367,8 @@ typedef struct _XIPropertyHandler
     long id;
     int (*SetProperty) (DeviceIntPtr dev,
                         Atom property,
-                        XIPropertyValuePtr prop);
+                        XIPropertyValuePtr prop,
+                        BOOL checkonly);
     int (*GetProperty) (DeviceIntPtr dev,
                         Atom property);
     int (*DeleteProperty) (DeviceIntPtr dev,

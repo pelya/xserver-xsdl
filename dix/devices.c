@@ -103,17 +103,21 @@ DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
  * DIX property handler.
  */
 static int
-DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop)
+DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
+                  BOOL checkonly)
 {
     if (property == XIGetKnownProperty(XI_PROP_ENABLED))
     {
         if (prop->format != 8 || prop->type != XA_INTEGER || prop->size != 1)
             return BadValue;
 
-        if ((*((CARD8*)prop->data)) && !dev->enabled)
-            EnableDevice(dev);
-        else if (!(*((CARD8*)prop->data)) && dev->enabled)
-            DisableDevice(dev);
+        if (!checkonly)
+        {
+            if ((*((CARD8*)prop->data)) && !dev->enabled)
+                EnableDevice(dev);
+            else if (!(*((CARD8*)prop->data)) && dev->enabled)
+                DisableDevice(dev);
+        }
     }
 
     return Success;

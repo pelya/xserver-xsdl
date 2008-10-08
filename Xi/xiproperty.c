@@ -97,7 +97,8 @@ long
 XIRegisterPropertyHandler(DeviceIntPtr         dev,
                           int (*SetProperty) (DeviceIntPtr dev,
                                               Atom property,
-                                              XIPropertyValuePtr prop),
+                                              XIPropertyValuePtr prop,
+                                              BOOL checkonly),
                           int (*GetProperty) (DeviceIntPtr dev,
                                               Atom property),
                           int (*DeleteProperty) (DeviceIntPtr dev,
@@ -346,22 +347,31 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
 
         if (dev->properties.handlers)
         {
-            XIPropertyHandlerPtr handler = dev->properties.handlers;
-            while(handler)
+            XIPropertyHandlerPtr handler;
+            BOOL checkonly = TRUE;
+            /* run through all handlers with checkonly TRUE, then again with
+             * checkonly FALSE. Handlers MUST return error codes on the
+             * checkonly run, errors on the second run are ignored */
+            do
             {
-                if (handler->SetProperty)
+                handler = dev->properties.handlers;
+                while(handler)
                 {
-                    rc = handler->SetProperty(dev, prop->propertyName,
-                                              &new_value);
-                    if (rc != Success)
+                    if (handler->SetProperty)
                     {
-                        if (new_value.data)
-                            xfree (new_value.data);
-                        return (rc);
+                        rc = handler->SetProperty(dev, prop->propertyName,
+                                &new_value, checkonly);
+                        if (checkonly && rc != Success)
+                        {
+                            if (new_value.data)
+                                xfree (new_value.data);
+                            return (rc);
+                        }
                     }
+                    handler = handler->next;
                 }
-                handler = handler->next;
-            }
+                checkonly = !checkonly;
+            } while (!checkonly);
         }
         if (prop_value->data)
             xfree (prop_value->data);
