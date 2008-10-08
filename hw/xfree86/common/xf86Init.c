@@ -236,7 +236,6 @@ xf86PrintBanner()
 #endif
   ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
-  ErrorF("Module Loader present\n");
 }
 
 static void
