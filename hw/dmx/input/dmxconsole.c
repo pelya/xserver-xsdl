@@ -140,7 +140,7 @@ static int unscaley(myPrivate *priv, int y)
 pointer dmxConsoleCreatePrivate(DeviceIntPtr pDevice)
 {
     GETDMXLOCALFROMPDEVICE;
-    myPrivate *priv = xcalloc(1, sizeof(*priv));
+    myPrivate *priv = calloc(1, sizeof(*priv));
     priv->dmxLocal  = dmxLocal;
     return priv;
 }
@@ -148,7 +148,7 @@ pointer dmxConsoleCreatePrivate(DeviceIntPtr pDevice)
 /** If \a private is non-NULL, free its associated memory. */
 void dmxConsoleDestroyPrivate(pointer private)
 {
-    if (private) xfree(private);
+    if (private) free(private);
 }
 
 static void dmxConsoleDrawFineCursor(myPrivate *priv, XRectangle *rect)

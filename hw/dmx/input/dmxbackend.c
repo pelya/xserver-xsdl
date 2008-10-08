@@ -104,7 +104,7 @@ typedef struct _myPrivate {
 pointer dmxBackendCreatePrivate(DeviceIntPtr pDevice)
 {
     GETDMXLOCALFROMPDEVICE;
-    myPrivate *priv = xcalloc(1, sizeof(*priv));
+    myPrivate *priv = calloc(1, sizeof(*priv));
     priv->dmxLocal  = dmxLocal;
     return priv;
 }
@@ -114,7 +114,7 @@ pointer dmxBackendCreatePrivate(DeviceIntPtr pDevice)
  * #dmxBackendCreatePrivate. */
 void dmxBackendDestroyPrivate(pointer private)
 {
-    if (private) xfree(private);
+    if (private) free(private);
 }
 
 static void *dmxBackendTestScreen(DMXScreenInfo *dmxScreen, void *closure)
