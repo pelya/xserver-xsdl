@@ -660,8 +660,8 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     static int valuators[MAX_VALUATORS];
 
     if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
-	    " is greater than MAX_VALUATORS\n", num_valuators);
+	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
+	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
 	return;
     }
 
@@ -688,8 +688,8 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     int flags = 0;
 
     if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
-	    " is greater than MAX_VALUATORS\n", num_valuators);
+	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
+	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
 	return;
     }
 
@@ -751,8 +751,8 @@ xf86PostProximityEvent(DeviceIntPtr	device,
 
 
     if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
-	    " is greater than MAX_VALUATORS\n", num_valuators);
+	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
+	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
 	return;
     }
 
@@ -792,8 +792,8 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     }
 #endif
     if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
-	    " is greater than MAX_VALUATORS\n", num_valuators);
+	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
+	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
 	return;
     }
 
@@ -832,8 +832,8 @@ xf86PostKeyEvent(DeviceIntPtr	device,
            "broken.\n");
 
     if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
-	    " is greater than MAX_VALUATORS\n", num_valuators);
+	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
+	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
 	return;
     }
 
