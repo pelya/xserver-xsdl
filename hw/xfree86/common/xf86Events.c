@@ -57,15 +57,12 @@
 #include <X11/Xpoll.h>
 #include <X11/Xproto.h>
 #include "misc.h"
-
 #include "compiler.h"
-
 #include "xf86.h"
 #include "xf86Priv.h"
 #define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
 #include <X11/keysym.h>
-
 
 #ifdef XFreeXDGA
 #include "dgaproc.h"
@@ -87,24 +84,11 @@
 #include <X11/extensions/xf86bigfont.h>
 #endif
 
-#ifdef XKB
-extern Bool noXkbExtension;
-#endif
-
 #ifdef DPMSExtension
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
 #include "dpmsproc.h"
 #endif
-
-#define XE_POINTER  1
-#define XE_KEYBOARD 2
-
-#define EqEnqueue(pDev, ev) { \
-    int __sigstate = xf86BlockSIGIO (); \
-    mieqEnqueue (pDev, ev); \
-    xf86UnblockSIGIO(__sigstate); \
-}
 
 /*
  * The first of many hacks to get VT switching to work under
@@ -160,7 +144,6 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
  *      Function used for screensaver purposes by the os module. Returns the
  *      time in milliseconds since there last was any input.
  */
-
 int
 TimeSinceLastInputEvent()
 {
@@ -170,20 +153,15 @@ TimeSinceLastInputEvent()
   return GetTimeInMillis() - xf86Info.lastEventTime;
 }
 
-
-
 /*
  * SetTimeSinceLastInputEvent --
  *      Set the lastEventTime to now.
  */
-
 _X_EXPORT void
 SetTimeSinceLastInputEvent()
 {
   xf86Info.lastEventTime = GetTimeInMillis();
 }
-
-
 
 /*
  * ProcessInputEvents --
@@ -191,7 +169,6 @@ SetTimeSinceLastInputEvent()
  *      correct chronological order. Only reads from the system pointer
  *      and keyboard.
  */
-
 void
 ProcessInputEvents ()
 {
@@ -939,20 +916,6 @@ xf86DisableInputHandler(pointer handler)
 }
 
 _X_EXPORT void
-xf86DisableGeneralHandler(pointer handler)
-{
-    IHPtr ih;
-
-    if (!handler)
-	return;
-
-    ih = handler;
-    ih->enabled = FALSE;
-    if (ih->fd >= 0)
-	RemoveGeneralSocket(ih->fd);
-}
-
-_X_EXPORT void
 xf86EnableInputHandler(pointer handler)
 {
     IHPtr ih;
@@ -964,20 +927,6 @@ xf86EnableInputHandler(pointer handler)
     ih->enabled = TRUE;
     if (ih->fd >= 0)
 	AddEnabledDevice(ih->fd);
-}
-
-_X_EXPORT void
-xf86EnableGeneralHandler(pointer handler)
-{
-    IHPtr ih;
-
-    if (!handler)
-	return;
-
-    ih = handler;
-    ih->enabled = TRUE;
-    if (ih->fd >= 0)
-	AddGeneralSocket(ih->fd);
 }
 
 /*
