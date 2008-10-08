@@ -1925,7 +1925,7 @@ KdCheckSpecialKeys(KdKeyboardInfo *ki, int type, int sym)
 	 * Set the dispatch exception flag so the server will terminate the
 	 * next time through the dispatch loop.
 	 */
-	if (kdAllowZap)
+	if (kdAllowZap || party_like_its_1989)
 	    dispatchException |= DE_TERMINATE;
 	break;
     }
