@@ -393,7 +393,7 @@ extern Bool		kdEnabled;
 extern Bool		kdSwitchPending;
 extern Bool		kdEmulateMiddleButton;
 extern Bool		kdDisableZaphod;
-extern Bool		kdDontZap;
+extern Bool		kdAllowZap;
 extern int		kdVirtualTerminal;
 extern char		*kdSwitchCmd;
 extern KdOsFuncs	*kdOsFuncs;
