@@ -169,8 +169,6 @@ extern void MakeClientGrabPervious(ClientPtr /*client*/);
 extern void ListenOnOpenFD(int /* fd */, int /* noxauth */);
 #endif
 
-extern void AvailableClientInput(ClientPtr /* client */);
-
 extern CARD32 GetTimeInMillis(void);
 
 extern void AdjustWaitForDelay(

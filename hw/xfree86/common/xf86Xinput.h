@@ -170,7 +170,6 @@ void xf86PostKeyEvent(DeviceIntPtr device, unsigned int key_code, int is_down,
 		      ...);
 void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
-void xf86XinputFinalizeInit(DeviceIntPtr dev);
 void xf86ActivateDevice(LocalDevicePtr local);
 Bool xf86CheckButton(int button, int down);
 void xf86SwitchCoreDevice(LocalDevicePtr device, DeviceIntPtr core);
