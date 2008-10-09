@@ -187,13 +187,6 @@
 #define ARCH_PCI_INIT linuxPciInit
 #endif /* defined(linux) */
 
-#if !defined(ARCH_PCI_INIT)
-#warning You really need to port to libpciaccess.
-#if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64)
-#define ARCH_PCI_INIT ix86PciInit
-#endif /* i386/amd64 */
-#endif /* !defined(ARCH_PCI_INIT) */
-
 #ifndef ARCH_PCI_INIT
 #error No PCI support available for this architecture/OS combination
 #endif
