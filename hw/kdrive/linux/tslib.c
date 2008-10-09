@@ -95,8 +95,8 @@ TsRead (int fd, void *closure)
                     y = event.y - private->lasty;
 	    	}
             }
-            private->lastx = x;
-            private->lasty = y;
+            private->lastx = event.x;
+            private->lasty = event.y;
         } else {
             flags = 0;
             x = private->lastx;
