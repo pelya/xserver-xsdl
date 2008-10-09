@@ -2459,9 +2459,6 @@ xf86ExtractTypeFromList(resPtr list, unsigned long type)
     return ret;
 }
 
-/*------------------------------------------------------------*/
-static void CheckGenericGA(void);
-
 /*
  * xf86FindPrimaryDevice() - Find the display device which
  * was active when the server was started.
@@ -2469,9 +2466,6 @@ static void CheckGenericGA(void);
 void
 xf86FindPrimaryDevice()
 {
-    /* if no VGA device is found check for primary PCI device */
-    if (primaryBus.type == BUS_NONE && xorgHWAccess)
-        CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
 	char loc[16];
@@ -2500,39 +2494,6 @@ xf86FindPrimaryDevice()
 
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
     }
-}
-
-#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__) && !defined(__m32r__)
-#include "vgaHW.h"
-#include "compiler.h"
-#endif
-
-/*
- * CheckGenericGA() - Check for presence of a VGA device.
- */
-static void
-CheckGenericGA()
-{
-/* This needs to be changed for multiple domains */
-#if !defined(__sparc__) && !defined(__sparc) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__arm__) && !defined(__s390__) && !defined(__m32r__)
-    IOADDRESS GenericIOBase = VGAHW_GET_IOBASE();
-    CARD8 CurrentValue, TestValue;
-
-    /* VGA CRTC registers are not used here, so don't bother unlocking them */
-
-    /* VGA has one more read/write attribute register than EGA */
-    (void) inb(GenericIOBase + VGA_IN_STAT_1_OFFSET);  /* Reset flip-flop */
-    outb(VGA_ATTR_INDEX, 0x14 | 0x20);
-    CurrentValue = inb(VGA_ATTR_DATA_R);
-    outb(VGA_ATTR_DATA_W, CurrentValue ^ 0x0F);
-    outb(VGA_ATTR_INDEX, 0x14 | 0x20);
-    TestValue = inb(VGA_ATTR_DATA_R);
-    outb(VGA_ATTR_DATA_W, CurrentValue);
-
-    if ((CurrentValue ^ 0x0F) == TestValue) {
-	primaryBus.type = BUS_ISA;
-    }
-#endif
 }
 
 Bool
