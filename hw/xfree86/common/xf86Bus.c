@@ -25,7 +25,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#define REDUCER
 /*
  * This file contains the interfaces to the bus-specific code
  */
@@ -71,10 +70,6 @@ BusRec primaryBus = { BUS_NONE, {{0}}};
 
 static Bool xf86ResAccessEnter = FALSE;
 
-#ifdef REDUCER
-/* Resources that temporarily conflict with estimated resources */
-static resPtr AccReducers = NULL;
-#endif
 
 /* resource lists */
 resPtr Acc = NULL;
@@ -1853,22 +1848,6 @@ xf86SetOperatingState(resList list, int entityIndex, int mask)
   * resources that conflict with estimated resources.  For now, just register
   * them with a logged warning.
   */
-#ifdef REDUCER
-static void
-ProcessEstimatedConflicts(void)
-{
-    if (!AccReducers)
-	return;
-
-    /* Temporary */
-    xf86MsgVerb(X_WARNING, 3,
-		"Registering the following despite conflicts with estimated"
-		" resources:\n");
-    xf86PrintResList(3, AccReducers);
-    Acc = xf86JoinResLists(Acc, AccReducers);
-    AccReducers = NULL;
-}
-#endif
 
 /*
  * xf86ClaimFixedResources() -- This function gets called from the
@@ -1909,20 +1888,7 @@ xf86ClaimFixedResources(resList list, int entityIndex)
   	case ResExclusive:
  	    if (!xf86ChkConflict(&range, entityIndex)) {
  		Acc = xf86AddResToList(Acc, &range, entityIndex);
-#ifdef REDUCER
-	    } else {
- 		range.type |= ResEstimated;
- 		if (!xf86ChkConflict(&range, entityIndex) &&
- 		    !checkConflict(&range, AccReducers, entityIndex,
-				   SETUP, FALSE)) {
- 		    range.type &= ~(ResEstimated | ResBios);
- 		    AccReducers =
- 			xf86AddResToList(AccReducers, &range, entityIndex);
-#endif
 		} else resError(&range); /* no return */
-#ifdef REDUCER
-	    }
-#endif
 	    break;
 	case ResShared:
 	    /* at this stage the resources are just added to the
@@ -1944,9 +1910,6 @@ xf86ClaimFixedResources(resList list, int entityIndex)
     xf86MsgVerb(X_INFO, 3,
 	"resource ranges after xf86ClaimFixedResources() call:\n");
     xf86PrintResList(3,Acc);
-#ifdef REDUCER
-    ProcessEstimatedConflicts();
-#endif
 #ifdef DEBUG
     if (ptr) {
 	xf86MsgVerb(X_INFO, 3, "to be registered later:\n");
@@ -2085,16 +2048,6 @@ xf86PostProbe(void)
 		resp_x = resp;
 		resp = resp->next;
 		resp_x->next = tmp;
-#ifdef REDUCER
-	    } else {
-		resp->res_type |= ResEstimated;
- 		if (!checkConflict(&resp->val, acc, i, SETUP, FALSE)) {
- 		    resp->res_type &= ~(ResEstimated | ResBios);
- 		    tmp = AccReducers;
- 		    AccReducers = resp;
- 		    resp = resp->next;
- 		    AccReducers->next = tmp;
-#endif
 		} else {
 		    xf86MsgVerb(X_INFO, 3, "Found conflict at: 0x%lx\n",val);
  		    resp->res_type &= ~ResEstimated;
@@ -2103,14 +2056,8 @@ xf86PostProbe(void)
 		    resp = resp->next;
 		    xf86Entities[i]->resources->next = tmp;
 		}
-#ifdef REDUCER
-	    }
-#endif
 	}
 	xf86JoinResLists(Acc,resp_x);
-#ifdef REDUCER
-	ProcessEstimatedConflicts();
-#endif
     }
     xf86FreeResList(acc);
     
