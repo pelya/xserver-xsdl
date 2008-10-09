@@ -2,7 +2,6 @@ noinst_LTLIBRARIES = liblinux.la
 
 if LINUX_IA64
 PLATFORM_PCI_SUPPORT = $(srcdir)/../shared/ia64Pci.c
-PLATFORM_DEFINES = -DOS_PROBE_PCI_CHIPSET=lnxProbePciChipset
 PLATFORM_INCLUDES = -I$(srcdir)/../shared
 endif
 if LINUX_ALPHA
