@@ -80,7 +80,6 @@ static pciBusFuncs_t linuxFuncs0 = {
 };
 
 static pciBusInfo_t linuxPci0 = {
-/* configMech  */	PCI_CFG_MECH_OTHER,
 /* numDevices  */	32,
 /* secondary   */	FALSE,
 /* primary_bus */	0,

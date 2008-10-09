@@ -53,7 +53,6 @@ static pciBusFuncs_t bsd_funcs = {
 };
 
 static pciBusInfo_t bsd_pci = {
-    .configMech = PCI_CFG_MECH_OTHER,
     .numDevices = 32,
     .secondary = FALSE,
     .primary_bus = 0,
