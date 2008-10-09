@@ -725,6 +725,10 @@ ProcXF86DGADirectVideo(ClientPtr client)
     if (!DGAAvailable(stuff->screen))
 	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
+    if (DGAClients[stuff->screen] &&
+        (DGAClients[stuff->screen] != client))
+        return DGAErrorBase + XF86DGANoDirectVideoMode;
+
     if (stuff->enable & XF86DGADirectGraphics) {
 	if(!(num = DGAGetOldDGAMode(stuff->screen)))
 	    return (DGAErrorBase + XF86DGANoDirectVideoMode);
@@ -737,6 +741,24 @@ ProcXF86DGADirectVideo(ClientPtr client)
     DGASetInputMode (stuff->screen,
 		     (stuff->enable & XF86DGADirectKeyb) != 0,
 		     (stuff->enable & XF86DGADirectMouse) != 0);
+
+    /* We need to track the client and attach the teardown callback */
+    if (stuff->enable &
+	(XF86DGADirectGraphics | XF86DGADirectKeyb | XF86DGADirectMouse)) {
+	if (!DGAClients[stuff->screen]) {
+	    if (DGACallbackRefCount++ == 0)
+		AddCallback (&ClientStateCallback, DGAClientStateChange, NULL);
+	}
+
+	DGAClients[stuff->screen] = client;
+    } else {
+	if (DGAClients[stuff->screen]) {
+	    if (--DGACallbackRefCount == 0)
+		DeleteCallback(&ClientStateCallback, DGAClientStateChange, NULL);
+	}
+
+	DGAClients[stuff->screen] = NULL;
+    }
 
     return (client->noClientException);
 }
@@ -780,22 +802,16 @@ ProcXF86DGASetViewPort(ClientPtr client)
     if (stuff->screen > screenInfo.numScreens)
 	return BadValue;
 
+    if (DGAClients[stuff->screen] != client)
+        return DGAErrorBase + XF86DGADirectNotActivated;
+
     REQUEST_SIZE_MATCH(xXF86DGASetViewPortReq);
 
     if (!DGAAvailable(stuff->screen))
 	return (DGAErrorBase + XF86DGANoDirectVideoMode);
 
     if (!DGAActive(stuff->screen))
-    {
-	int num;
-	PixmapPtr pix;
-	XDGAModeRec mode;
-
-	if(!(num = DGAGetOldDGAMode(stuff->screen)))
-	    return (DGAErrorBase + XF86DGANoDirectVideoMode);
-	if(Success != DGASetMode(stuff->screen, num, &mode, &pix))
-	    return (DGAErrorBase + XF86DGAScreenNotActive);
-    }
+	return DGAErrorBase + XF86DGADirectNotActivated;
 
     if (DGASetViewport(stuff->screen, stuff->x, stuff->y, DGA_FLIP_RETRACE)
 		!= Success)
@@ -846,6 +862,12 @@ ProcXF86DGAInstallColormap(ClientPtr client)
     ColormapPtr pcmp;
     REQUEST(xXF86DGAInstallColormapReq);
 
+    if (stuff->screen > screenInfo.numScreens)
+	return BadValue;
+
+    if (DGAClients[stuff->screen] != client)
+        return DGAErrorBase + XF86DGADirectNotActivated;
+
     REQUEST_SIZE_MATCH(xXF86DGAInstallColormapReq);
 
     if (!DGAActive(stuff->screen))
@@ -891,6 +913,9 @@ ProcXF86DGAViewPortChanged(ClientPtr client)
 
     if (stuff->screen > screenInfo.numScreens)
 	return BadValue;
+
+    if (DGAClients[stuff->screen] != client)
+        return DGAErrorBase + XF86DGADirectNotActivated;
 
     REQUEST_SIZE_MATCH(xXF86DGAViewPortChangedReq);
 
