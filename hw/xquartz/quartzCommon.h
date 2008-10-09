@@ -60,6 +60,7 @@ extern int              quartzUseSysBeep;
 extern int              focusOnNewWindow;
 extern int              quartzUseAGL;
 extern int              quartzEnableKeyEquivalents;
+extern int              quartzFullscreenDisableHotkeys;
 
 // Other shared data
 extern int              quartzServerVisible;

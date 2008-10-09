@@ -1581,3 +1581,105 @@ RootlessOrderAllWindows (void)
     }
     RL_DEBUG_MSG("RootlessOrderAllWindows() done");
 }
+
+void
+RootlessEnableRoot (ScreenPtr pScreen)
+{
+    WindowPtr pRoot;
+    pRoot = WindowTable[pScreen->myNum];
+    
+    RootlessEnsureFrame (pRoot);
+    (*pScreen->ClearToBackground) (pRoot, 0, 0, 0, 0, TRUE);
+    RootlessReorderWindow (pRoot);
+}
+
+void
+RootlessDisableRoot (ScreenPtr pScreen)
+{
+    WindowPtr pRoot;
+    RootlessWindowRec *winRec;
+    
+    pRoot = WindowTable[pScreen->myNum];
+    winRec = WINREC (pRoot);
+    
+    if (winRec != NULL)
+    {
+        RootlessDestroyFrame (pRoot, winRec);
+        DeleteProperty (pRoot, xa_native_window_id ());
+    }
+}
+
+void
+RootlessHideAllWindows (void)
+{
+    int i;
+    ScreenPtr pScreen;
+    WindowPtr pWin;
+    RootlessWindowRec *winRec;
+    xp_window_changes wc;
+    
+    if (windows_hidden)
+        return;
+    
+    windows_hidden = TRUE;
+    
+    for (i = 0; i < screenInfo.numScreens; i++)
+    {
+        pScreen = screenInfo.screens[i];
+        pWin = WindowTable[i];
+        if (pScreen == NULL || pWin == NULL)
+            continue;
+        
+        for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib)
+        {
+            if (!pWin->realized)
+                continue;
+            
+            RootlessStopDrawing (pWin, FALSE);
+            
+            winRec = WINREC (pWin);
+            if (winRec != NULL)
+            {
+                wc.stack_mode = XP_UNMAPPED;
+                wc.sibling = 0;
+                configure_window ((xp_window_id)winRec->wid, XP_STACKING, &wc);
+            }
+        }
+    }
+}
+
+void
+RootlessShowAllWindows (void)
+{
+    int i;
+    ScreenPtr pScreen;
+    WindowPtr pWin;
+    RootlessWindowRec *winRec;
+    
+    if (!windows_hidden)
+        return;
+    
+    windows_hidden = FALSE;
+    
+    for (i = 0; i < screenInfo.numScreens; i++)
+    {
+        pScreen = screenInfo.screens[i];
+        pWin = WindowTable[i];
+        if (pScreen == NULL || pWin == NULL)
+            continue;
+        
+        for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib)
+        {
+            if (!pWin->realized)
+                continue;
+            
+            winRec = RootlessEnsureFrame (pWin);
+            if (winRec == NULL)
+                continue;
+            
+            RootlessReorderWindow (pWin);
+        }
+        
+        RootlessScreenExpose (pScreen);
+    }
+}

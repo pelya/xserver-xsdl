@@ -137,4 +137,7 @@ void QuartzShow(int x, int y); // (x, y) = cursor loc
 void QuartzHide(void);
 void QuartzSetRootClip(BOOL enable);
 void QuartzSpaceChanged(uint32_t space_id);
+
+void QuartzSetFullscreen(Bool state);
+void QuartzSetRootless(Bool state);
 #endif

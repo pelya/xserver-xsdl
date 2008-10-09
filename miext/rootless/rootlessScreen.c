@@ -475,6 +475,34 @@ RootlessMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst,
     return result;
 }
 
+expose_1 (WindowPtr pWin)
+{
+    WindowPtr pChild;
+    
+    if (!pWin->realized)
+        return;
+    
+    (*pWin->drawable.pScreen->PaintWindowBackground) (pWin, &pWin->borderClip,
+                                                      PW_BACKGROUND);
+    
+    /* FIXME: comments in windowstr.h indicate that borderClip doesn't
+     include subwindow visibility. But I'm not so sure.. so we may
+     be exposing too much.. */
+    
+    miSendExposures (pWin, &pWin->borderClip,
+                     pWin->drawable.x, pWin->drawable.y);
+    
+    for (pChild = pWin->firstChild; pChild != NULL; pChild = pChild->nextSib)
+        expose_1 (pChild);
+}
+
+void
+RootlessScreenExpose (ScreenPtr pScreen)
+{
+    expose_1 (WindowTable[pScreen->myNum]);
+}
+
+
 ColormapPtr
 RootlessGetColormap (ScreenPtr pScreen)
 {
@@ -717,4 +745,19 @@ Bool RootlessInit(ScreenPtr pScreen, RootlessFrameProcsPtr procs)
     }
 
     return TRUE;
+}
+
+void RootlessUpdateRooted (Bool state) {
+    int i;
+    
+    if (!state)
+    {
+        for (i = 0; i < screenInfo.numScreens; i++)
+            RootlessDisableRoot (screenInfo.screens[i]);
+    }
+    else
+    {
+        for (i = 0; i < screenInfo.numScreens; i++)
+            RootlessEnableRoot (screenInfo.screens[i]);
+    }
 }

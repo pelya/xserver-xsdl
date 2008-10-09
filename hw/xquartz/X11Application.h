@@ -81,6 +81,7 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_FAKEBUTTONS           "enable_fake_buttons"
 #define PREFS_SYSBEEP               "enable_system_beep"
 #define PREFS_KEYEQUIVS             "enable_key_equivalents"
+#define PREFS_FULLSCREEN_HOTKEYS    "fullscreen_hotkeys"
 #define PREFS_SYNC_KEYMAP           "sync_keymap"
 #define PREFS_DEPTH                 "depth"
 #define PREFS_NO_AUTH               "no_auth"

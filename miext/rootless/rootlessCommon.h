@@ -273,12 +273,22 @@ Bool RootlessResolveColormap (ScreenPtr pScreen, int first_color,
 void RootlessFlushWindowColormap (WindowPtr pWin);
 void RootlessFlushScreenColormaps (ScreenPtr pScreen);
 
-RootlessColormapCallback(void *data, int first_color, int n_colors, uint32_t *colors);
+// xp_error
+int RootlessColormapCallback(void *data, int first_color, int n_colors, uint32_t *colors);
 
 // Move a window to its proper location on the screen.
 void RootlessRepositionWindow(WindowPtr pWin);
 
 // Move the window to it's correct place in the physical stacking order.
 void RootlessReorderWindow(WindowPtr pWin);
+
+void RootlessScreenExpose (ScreenPtr pScreen);
+void RootlessHideAllWindows (void);
+void RootlessShowAllWindows (void);
+void RootlessUpdateRooted (Bool state);
+
+void RootlessEnableRoot (ScreenPtr pScreen);
+void RootlessDisableRoot (ScreenPtr pScreen);
+
 
 #endif /* _ROOTLESSCOMMON_H */

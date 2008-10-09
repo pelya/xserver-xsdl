@@ -625,16 +625,12 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
                         default:quartzUseSysBeep];
-
-    // TODO: Add fullscreen support
-    //quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
-    //                    default:quartzEnableRootless];
-#ifdef DARWIN_DDX_MISSING
+#if 0
+    quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
+                        default:quartzEnableRootless];
     quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
 					      @PREFS_FULLSCREEN_HOTKEYS default:
 					      !quartzFullscreenDisableHotkeys];
-    quartzXpluginOptions = [self prefs_get_integer:@PREFS_XP_OPTIONS
-                            default:quartzXpluginOptions];
 #endif
     darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
                          default:darwinFakeButtons];

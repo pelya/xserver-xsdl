@@ -595,10 +595,8 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction) enable_fullscreen_changed:sender
 {
   int value = ![enable_fullscreen intValue];
-	
-#ifdef DARWIN_DDX_MISSING
+
   DarwinSendDDXEvent(kXquartzSetRootless, 1, value);
-#endif
 	
   [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
   [NSApp prefs_synchronize];
@@ -606,9 +604,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) toggle_fullscreen:sender
 {
-#ifdef DARWIN_DDX_MISSING
   DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
-#endif
 }
 
 - (void) set_can_quit:(OSX_BOOL)state

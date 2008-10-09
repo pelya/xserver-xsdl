@@ -231,27 +231,20 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
                 
             case kXquartzToggleFullscreen:
                 DEBUG_LOG("kXquartzToggleFullscreen\n");
-#ifdef DARWIN_DDX_MISSING
                 if (quartzEnableRootless) 
                     QuartzSetFullscreen(!quartzHasRoot);
                 else if (quartzHasRoot)
                     QuartzHide();
                 else
-                    QuartzShow();
-#else
-                //      ErrorF("kXquartzToggleFullscreen not implemented\n");               
-#endif
+                    QuartzShow(xe[i].u.keyButtonPointer.rootX,
+                               xe[i].u.keyButtonPointer.rootY);
                 break;
                 
             case kXquartzSetRootless:
                 DEBUG_LOG("kXquartzSetRootless\n");
-#ifdef DARWIN_DDX_MISSING
                 QuartzSetRootless(xe[i].u.clientMessage.u.l.longs0);
                 if (!quartzEnableRootless && !quartzHasRoot)
                     QuartzHide();
-#else
-                //      ErrorF("kXquartzSetRootless not implemented\n");                    
-#endif
                 break;
                 
             case kXquartzSetRootClip:
