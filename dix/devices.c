@@ -1121,7 +1121,6 @@ InitModMap(KeyClassPtr keyc)
 _X_EXPORT Bool
 InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers[])
 {
-    int i;
     KeyClassPtr keyc;
 
     keyc = xcalloc(1, sizeof(KeyClassRec));
