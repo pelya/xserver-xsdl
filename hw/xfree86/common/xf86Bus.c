@@ -1439,24 +1439,6 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
  * Resource registration
  */
 
-static resList
-xf86GetResourcesImplicitly(int entityIndex)
-{
-    if (entityIndex >= xf86NumEntities) return NULL;
-    
-    switch (xf86Entities[entityIndex]->bus.type) {
-    case BUS_ISA:
-    case BUS_NONE:
-    case BUS_SBUS:
-	return NULL;
-    case BUS_PCI:
-	return NULL;
-    case BUS_last:
-	return NULL;
-    }
-    return NULL;
-}
-
 static void
 convertRange2Host(int entityIndex, resRange *pRange)
 {
@@ -1487,8 +1469,7 @@ xf86ConvertListToHost(int entityIndex, resPtr list)
 
 /*
  * xf86RegisterResources() -- attempts to register listed resources.
- * If list is NULL it tries to obtain resources implicitly. Function
- * returns a resPtr listing all resources not successfully registered.
+ * Returns a resPtr listing all resources not successfully registered.
  */
 
 _X_EXPORT resPtr
@@ -1498,13 +1479,9 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
     resRange range;
     resList list_f = NULL;
 
-    if (!list) {
-	list = xf86GetResourcesImplicitly(entityIndex);
-	/* these resources have to be in host address space already */
-	if (!list) return NULL;
-	list_f = list;
-    }
-    
+    if (!list)
+	return NULL;
+
     while(list->type != ResEnd) {
 	range = *list;
 
