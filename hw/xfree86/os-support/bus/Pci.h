@@ -184,13 +184,8 @@
 #endif
 
 #if defined(linux)
-# define ARCH_PCI_INIT linuxPciInit
-# if defined(__m32r__)
-#  define INCLUDE_XF86_MAP_PCI_MEM
-#  define INCLUDE_XF86_NO_DOMAIN
-# endif
+#define ARCH_PCI_INIT linuxPciInit
 #endif /* defined(linux) */
-
 
 #if !defined(ARCH_PCI_INIT)
 #warning You really need to port to libpciaccess.

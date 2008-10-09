@@ -95,19 +95,15 @@ static const struct pci_id_match match_host_bridge = {
     0x0000ffff00, 0
 };
 
-#ifndef INCLUDE_XF86_NO_DOMAIN
 #define MAX_DOMAINS 257
 static pointer DomainMmappedIO[MAX_DOMAINS];
-#endif
 
 void
 linuxPciInit(void)
 {
     struct stat st;
 
-#ifndef INCLUDE_XF86_NO_DOMAIN
     memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
-#endif
 
     if (-1 == stat("/proc/bus/pci", &st)) {
 	/* when using this as default for all linux architectures,
@@ -237,7 +233,6 @@ linuxPpcBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 
 #endif /* __powerpc__ */
 
-#ifndef INCLUDE_XF86_NO_DOMAIN
 
 /*
  * Compiling the following simply requires the presence of <linux/pci.c>.
@@ -601,4 +596,3 @@ xf86AccResFromOS(resPtr pRes)
     return pRes;
 }
 
-#endif /* !INCLUDE_XF86_NO_DOMAIN */
