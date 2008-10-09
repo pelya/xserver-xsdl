@@ -527,8 +527,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         oldXkbInfo      = to->key->xkbInfo;
 #endif
 
-        memcpy(to->key, from->key, sizeof(KeyClassRec));
-
         if (!oldMap) /* newly created key struct */
         {
             int bytes = (to->key->curKeySyms.maxKeyCode -
