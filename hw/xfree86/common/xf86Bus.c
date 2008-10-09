@@ -1009,10 +1009,6 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     if (pRes->res_type & type & ResBios)
 	return FALSE;
     
-    /*If requested, skip over estimated resources */
-    if (pRes->res_type & type & ResEstimated)
- 	return FALSE;
-      
     if (type & pRes->res_type & ResUnused)
  	return FALSE;
 
@@ -1284,8 +1280,6 @@ xf86PrintResList(int verb, resPtr list)
 		    s = "[?]";
 		}
 		xf86ErrorFVerb(verb, "%s", s);
-		if (list->res_type & ResEstimated)
-		    xf86ErrorFVerb(verb, "E");
 		if (list->res_type & ResOverlap)
 		    xf86ErrorFVerb(verb, "O");
 		if (list->res_type & ResInit)
@@ -1360,8 +1354,7 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
     if (!target)
 	return;
     
-    if (!(target->res_type & ResEstimated)   /* Don't touch sure resources */
-	&& !(target->res_type & ResOverlap)) /* Unless they may overlap    */
+    if (!(target->res_type & ResOverlap)) /* only touch overlaps */
 	return;
 
     for (pRes = list; pRes; pRes = pRes->next) {
@@ -1373,9 +1366,6 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
 	    continue;
 
 	if (pRes->block_begin <= target->block_begin) {
-	    /* Possibly ignore estimated resources */
-	    if (!useEstimated && (pRes->res_type & ResEstimated))
-		continue;
 	    
 	    /* Special cases */
 	    if (pRes->block_end >= target->block_end) {
