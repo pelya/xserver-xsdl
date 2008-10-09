@@ -79,15 +79,6 @@ static pciBusFuncs_t linuxFuncs0 = {
 #endif
 };
 
-static pciBusInfo_t linuxPci0 = {
-/* numDevices  */	32,
-/* secondary   */	FALSE,
-/* primary_bus */	0,
-/* funcs       */	&linuxFuncs0,
-/* pciBusPriv  */	NULL,
-/* bridge      */	NULL
-};
-
 static const struct pci_id_match match_host_bridge = {
     PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
     (PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_HOST << 8),
@@ -109,7 +100,7 @@ linuxPciInit(void)
 	   we'll need a fallback for 2.0 kernels here */
 	return;
     }
-    pciBusInfo	   = &linuxPci0;
+    pciBusFuncs	   = &linuxFuncs0;
 }
 
 /**

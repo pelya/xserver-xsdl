@@ -48,19 +48,6 @@
 
 #include "pciaccess.h"
 
-static pciBusFuncs_t bsd_funcs = {
-    .pciAddrBusToHost = pciAddrNOOP,
-};
-
-static pciBusInfo_t bsd_pci = {
-    .numDevices = 32,
-    .secondary = FALSE,
-    .primary_bus = 0,
-    .funcs = &bsd_funcs,
-    .pciBusPriv = NULL,
-    .bridge = NULL,
-};
-
 _X_EXPORT pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
 		    ADDRESS Base, unsigned long Size)
@@ -78,7 +65,5 @@ xf86MapLegacyIO(struct pci_device *dev)
 void
 bsdPciInit(void)
 {
-    pciBusInfo = &bsd_pci;
-
     xf86InitVidMem();
 }

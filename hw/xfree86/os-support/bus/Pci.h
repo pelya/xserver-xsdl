@@ -191,23 +191,9 @@ typedef struct pci_bus_funcs {
 	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
 } pciBusFuncs_t, *pciBusFuncs_p;
 
-/*
- * pciBusInfo_t - One structure per defined PCI bus
- */
-typedef struct pci_bus_info {
-	unsigned char  numDevices;   /* Range of valid devnums      */
-	unsigned char  secondary;    /* Boolean: bus is a secondary */
-	int            primary_bus;  /* Parent bus                  */
-	pciBusFuncs_p  funcs;        /* PCI access functions        */
-	void          *pciBusPriv;   /* Implementation private data */
-	struct pci_device *bridge;       /* bridge that opens this bus  */
-} pciBusInfo_t;
-
-#define HOST_NO_BUS ((pciBusInfo_t *)(-1))
-
 /* Generic PCI service functions and helpers */
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
-extern pciBusInfo_t  *pciBusInfo;
+extern pciBusFuncs_t  *pciBusFuncs;
 
 #endif /* _PCI_H */

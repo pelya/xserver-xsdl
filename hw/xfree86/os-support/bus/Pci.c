@@ -138,13 +138,13 @@
 
 /* Global data */
 
-pciBusInfo_t *pciBusInfo = NULL;
+pciBusFuncs_t *pciBusFuncs = NULL;
 
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
-    if (pciBusInfo->funcs->pciAddrBusToHost)
-	return pciBusInfo->funcs->pciAddrBusToHost(tag, type, addr);
+    if (pciBusFuncs && pciBusFuncs->pciAddrBusToHost)
+	return pciBusFuncs->pciAddrBusToHost(tag, type, addr);
     else
 	return addr;
 }
