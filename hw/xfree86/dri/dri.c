@@ -351,7 +351,6 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv = (DRIScreenPrivPtr) xcalloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
 	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
-        DRIScreenPrivKey = NULL;
         return FALSE;
     }
 
@@ -744,7 +743,6 @@ DRICloseScreen(ScreenPtr pScreen)
 
 	xfree(pDRIPriv);
 	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
-	DRIScreenPrivKey = NULL;
     }
 }
 
