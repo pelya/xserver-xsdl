@@ -249,6 +249,7 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool complete)
 
 	tmp = xf86InterpretEEDID(scrnIndex, EDID_block);
     }
+    xfree(EDID_block);
 
     if (tmp && complete)
 	tmp->flags |= EDID_COMPLETE_RAWDATA;
