@@ -85,6 +85,47 @@ handle_edid_quirks(xf86MonPtr m)
 	    }
 	}
     }
+
+    /*
+     * some monitors encode the aspect ratio instead of the physical size.
+     * try to find the largest detailed timing that matches that aspect
+     * ratio and use that to fill in the feature section.
+     */
+    if ((m->features.hsize == 16 && m->features.vsize == 9) ||
+	(m->features.hsize == 16 && m->features.vsize == 10) ||
+	(m->features.hsize == 4 && m->features.vsize == 3) ||
+	(m->features.hsize == 5 && m->features.vsize == 4)) {
+	int real_hsize = 0, real_vsize = 0;
+	float target_aspect, timing_aspect;
+	
+	target_aspect = (float)m->features.hsize / (float)m->features.vsize;
+	for (i = 0; i < 4; i++) {
+	    if (m->det_mon[i].type == DT) {
+		struct detailed_timings *timing;
+		timing = &m->det_mon[i].section.d_timings;
+
+		if (!timing->v_size)
+		    continue;
+
+		timing_aspect = (float)timing->h_size / (float)timing->v_size;
+		if (fabs(1 - (timing_aspect / target_aspect)) < 0.05) {
+		    real_hsize = max(real_hsize, timing->h_size);
+		    real_vsize = max(real_vsize, timing->v_size);
+		}
+	    }
+	}
+
+	if (real_hsize && real_vsize) {
+	    /* convert mm to cm */
+	    m->features.hsize = (real_hsize + 5) / 10;
+	    m->features.vsize = (real_vsize + 5) / 10;
+	} else {
+	    m->features.hsize = m->features.vsize = 0;
+	}
+	
+	xf86Msg(X_INFO, "Quirked EDID physical size to %dx%d cm\n",
+		m->features.hsize, m->features.vsize);
+    }
 }
 
 xf86MonPtr
