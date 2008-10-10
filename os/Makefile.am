@@ -11,6 +11,7 @@ libos_la_SOURCES = 	\
 	WaitFor.c	\
 	access.c	\
 	auth.c		\
+	backtrace.c	\
 	connection.c	\
 	io.c		\
 	mitauth.c	\

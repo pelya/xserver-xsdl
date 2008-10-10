@@ -517,4 +517,6 @@ extern void ErrorF(const char *f, ...) _printf_attribute(1,2);
 extern void Error(char *str);
 extern void LogPrintMarkers(void);
 
+extern void xorg_backtrace(void);
+
 #endif /* OS_H */
