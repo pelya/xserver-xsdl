@@ -1922,12 +1922,6 @@ ReleaseActiveGrabs(ClientPtr client)
 		(*dev->deviceGrab.DeactivateGrab)(dev);
 		done = FALSE;
 	    }
-
-	    if (dev->deviceGrab.grab && SameClient(dev->deviceGrab.grab, client))
-	    {
-		(*dev->deviceGrab.DeactivateGrab)(dev);
-		done = FALSE;
-	    }
 	}
     } while (!done);
 }
