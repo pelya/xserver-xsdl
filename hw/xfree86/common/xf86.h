@@ -195,6 +195,8 @@ void xf86DisableInputHandler(pointer handler);
 void xf86EnableInputHandler(pointer handler);
 pointer xf86AddGeneralHandler(int fd, InputHandlerProc proc, pointer data);
 int xf86RemoveGeneralHandler(pointer handler);
+void xf86DisableGeneralHandler(pointer handler);
+void xf86EnableGeneralHandler(pointer handler);
 void xf86InterceptSignals(int *signo);
 void xf86InterceptSigIll(void (*sigillhandler)(void));
 Bool xf86EnableVTSwitch(Bool new);
