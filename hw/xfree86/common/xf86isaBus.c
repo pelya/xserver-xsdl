@@ -133,9 +133,3 @@ xf86IsPrimaryIsa(void)
 {
     return ( primaryBus.type == BUS_ISA );
 }
-
-void
-isaConvertRange2Host(resRange *pRange)
-{
-    return;
-}

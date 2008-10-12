@@ -1347,9 +1347,6 @@ convertRange2Host(int entityIndex, resRange *pRange)
 	case BUS_PCI:
 	    pciConvertRange2Host(entityIndex,pRange);
 	    break;
-	case BUS_ISA:
-	    isaConvertRange2Host(pRange);
-	    break;
 	default:
 	    break;
 	}
