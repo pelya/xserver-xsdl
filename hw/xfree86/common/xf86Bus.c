@@ -1716,28 +1716,6 @@ xf86SetOperatingState(resList list, int entityIndex, int mask)
 /*
  * Stage specific code
  */
- /*
-  * ProcessEstimatedConflicts() -- Do something about driver-registered
-  * resources that conflict with estimated resources.  For now, just register
-  * them with a logged warning.
-  */
-
-/*
- * xf86ClaimFixedResources() -- This function gets called from the
- * driver Probe() function to claim fixed resources.
- */
-static void
-resError(resList list)
-{
-    FatalError("A driver tried to allocate the %s %sresource at \n"
-	       "0x%lx:0x%lx which conflicted with another resource. Send the\n"
-	       "output of the server to %s. Please \n"
-	       "specify your computer hardware as closely as possible.\n",
-	       ResIsBlock(list)?"Block":"Sparse",
-	       ResIsMem(list)?"Mem":"Io",
-	       ResIsBlock(list)?list->rBegin:list->rBase,
-	       ResIsBlock(list)?list->rEnd:list->rMask,BUILDERADDR);
-}
 
 /*
  * xf86ClaimFixedResources() is used to allocate non-relocatable resources.
@@ -1761,7 +1739,7 @@ xf86ClaimFixedResources(resList list, int entityIndex)
   	case ResExclusive:
  	    if (!xf86ChkConflict(&range, entityIndex)) {
  		Acc = xf86AddResToList(Acc, &range, entityIndex);
-		} else resError(&range); /* no return */
+	    } else FatalError("xf86ClaimFixedResources conflict\n");
 	    break;
 	case ResShared:
 	    /* at this stage the resources are just added to the
