@@ -1349,13 +1349,13 @@ xf86ConvertListToHost(int entityIndex, resPtr list)
 
 /*
  * xf86RegisterResources() -- attempts to register listed resources.
- * Returns a resPtr listing all resources not successfully registered.
+ * Returns a resPtr listing all resources not successfully registered, by
+ * which we mean, NULL.
  */
 
 _X_EXPORT resPtr
 xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 {
-    resPtr res = NULL;
     resRange range;
     resList list_f = NULL;
 
@@ -1371,15 +1371,7 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 	    range.type = (range.type & ~ResAccMask) | (access & ResAccMask);
 	}
  	range.type &= ~ResEstimated;	/* Not allowed for drivers */
-#if !((defined(__alpha__) || (defined(__ia64__))) && defined(linux))
-	/* On Alpha Linux, do not check for conflicts, trust the kernel. */
-	if (checkConflict(&range, Acc, entityIndex, SETUP,TRUE)) 
-	    res = xf86AddResToList(res,&range,entityIndex);
-	else
-#endif
-	{
-	    Acc = xf86AddResToList(Acc,&range,entityIndex);
-	}
+	Acc = xf86AddResToList(Acc,&range,entityIndex);
 	list++;
     }
     if (list_f)
@@ -1389,11 +1381,7 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
     xf86MsgVerb(X_INFO, 3,"Resources after driver initialization\n");
     xf86PrintResList(3, Acc);
 #endif
-    if (res) {
-	xf86MsgVerb(X_INFO, 3, "Failed to register resources:\n");
-	xf86PrintResList(3, res);
-    }
-    return res;
+    return NULL;
     
 }
 
