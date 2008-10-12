@@ -978,10 +978,6 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     BusType loc = BUS_NONE;
     BusType r_loc = BUS_NONE;
 
-    /* Ignore overlapped ranges that have been nullified */
-    if ((pRes->res_type & ResOverlap) && (pRes->block_begin > pRes->block_end))
-	return FALSE;
-    
     if ((pRes->res_type & ResTypeMask) != (type & ResTypeMask))
         return FALSE;
 
@@ -1263,8 +1259,6 @@ xf86PrintResList(int verb, resPtr list)
 		    s = "[?]";
 		}
 		xf86ErrorFVerb(verb, "%s", s);
-		if (list->res_type & ResOverlap)
-		    xf86ErrorFVerb(verb, "O");
 		if (list->res_type & ResInit)
 		    xf86ErrorFVerb(verb, "t");
 		if (list->res_type & ResBios)

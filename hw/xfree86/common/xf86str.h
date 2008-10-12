@@ -645,7 +645,6 @@ typedef struct _CurrAccRec {
 #define ResMiscMask	0x00F000
 
 #define ResBus		0x010000
-#define ResOverlap	0x020000
 
 #if defined(__alpha__) && defined(linux)
 # define ResDomain	0x1ff000000ul
@@ -684,7 +683,6 @@ typedef struct _CurrAccRec {
 #define ResIsBlock(r)		(((r)->type & ResExtMask) == ResBlock)
 #define ResIsSparse(r)		(((r)->type & ResExtMask) == ResSparse)
 #define ResIsEstimated(r)	(((r)->type & ResMiscMask) == ResEstimated)
-#define ResCanOverlap(r)	(ResIsEstimated(r) || ((r)->type & ResOverlap))
 
 typedef struct {
     unsigned long type;     /* shared, exclusive, unused etc. */
