@@ -623,9 +623,6 @@ typedef struct _CurrAccRec {
 
 #define ResMem		0x0001
 #define ResIo		0x0002
-#define ResIrq		0x0003
-#define ResDma		0x0004
-#define ResPciCfg	0x000e	/* PCI Configuration space */
 #define ResPhysMask	0x000F
 
 #define ResExclusive	0x0010
