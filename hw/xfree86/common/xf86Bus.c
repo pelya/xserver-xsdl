@@ -158,8 +158,6 @@ void
 xf86EntityInit(void)
 {
     int i;
-    resPtr *pprev_next;
-    resPtr res;
     xf86AccessPtr pacc;
     
     for (i = 0; i < xf86NumEntities; i++)
@@ -171,17 +169,6 @@ xf86EntityInit(void)
 	    pacc->AccessEnable(pacc->arg);
 	    xf86Entities[i]->entityInit(i,xf86Entities[i]->private);
 	    pacc->AccessDisable(pacc->arg);
-	    /* remove init resources after init is processed */
-	    pprev_next = &Acc;
-	    res = Acc;
-	    while (res) {  
-		if (res->res_type & ResInit && (res->entityIndex == i)) {
-		    (*pprev_next) = res->next;
-		    xfree(res);
-		} else 
-		    pprev_next = &(res->next);
-		res = (*pprev_next);
-	    }
 	}
 }
 
@@ -1907,7 +1894,7 @@ xf86PostProbe(void)
 {
     memType val;
     int i,j;
-    resPtr resp, acc, tmp, resp_x, *pprev_next;
+    resPtr resp, acc, tmp, resp_x;
 
     if (fbSlotClaimed) {
         if (pciSlotClaimed || isaSlotClaimed 
@@ -1927,17 +1914,7 @@ xf86PostProbe(void)
 	    return;
 	}
     }
-    /* don't compare against ResInit - remove it from clone.*/
     acc = tmp = xf86DupResList(Acc);
-    pprev_next = &acc;
-    while (tmp) {
-	if (tmp->res_type & ResInit) {
-	    (*pprev_next) = tmp->next;
-	    xfree(tmp);
-	} else 
-	    pprev_next = &(tmp->next);
-	tmp = (*pprev_next);
-    }
 
     for (i=0; i<xf86NumEntities; i++) {
 	resp = xf86Entities[i]->resources;
