@@ -161,7 +161,7 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 	return(addr);
 }
 
-_X_EXPORT Bool
+Bool
 xf86scanpci(void)
 {
     Bool  success = FALSE;
