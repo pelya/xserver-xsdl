@@ -548,8 +548,8 @@ add_matching_devices_to_configure_list(DriverPtr drvp)
 		 && ((devices[j].device_class_mask & pPci->device_class)
 		     == devices[j].device_class) ) {
 		if (xf86CheckPciSlot(pPci)) {
-		    GDevPtr pGDev =
-		      xf86AddDeviceToConfigure(drvp->driverName, pPci, -1);
+		    GDevPtr pGDev = xf86AddBusDeviceToConfigure(
+					drvp->driverName, BUS_PCI, pPci, -1);
 		    if (pGDev != NULL) {
 			/* After configure pass 1, chipID and chipRev are
 			 * treated as over-rides, so clobber them here.

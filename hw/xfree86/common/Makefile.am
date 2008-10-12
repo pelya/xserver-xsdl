@@ -14,7 +14,7 @@ XISOURCES = xf86Xinput.c xisb.c
 XISDKINCS = xf86Xinput.h xisb.h
 RANDRSOURCES = xf86RandR.c
 
-BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
+BUSSOURCES = xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
 MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
 

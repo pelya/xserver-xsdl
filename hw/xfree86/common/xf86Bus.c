@@ -135,8 +135,6 @@ StringToBusType(const char* busID, const char **retID)
     }
     if (!xf86NameCmp(p, "pci") || !xf86NameCmp(p, "agp"))
 	ret = BUS_PCI; 
-    if (!xf86NameCmp(p, "isa"))
-	ret = BUS_ISA;
     if (!xf86NameCmp(p, "sbus"))
 	ret = BUS_SBUS;
     if (ret != BUS_NONE)
@@ -226,8 +224,6 @@ xf86IsEntityPrimary(int entityIndex)
     switch (pEnt->busType) {
     case BUS_PCI:
 	return (pEnt->bus.id.pci == primaryBus.id.pci);
-    case BUS_ISA:
-	return TRUE;
     case BUS_SBUS:
 	return (pEnt->sbusBusId.fbNum == primaryBus.id.sbus.fbNum);
     default:
@@ -1009,33 +1005,10 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     if (pRes->entityIndex > -1)
 	r_loc = xf86Entities[pRes->entityIndex]->busType;
 
-    switch (type & ResAccMask) {
-    case ResExclusive:
-	switch (pRes->res_type & ResAccMask) {
-	case ResExclusive:
-	    break;
-	case ResShared:
-	    /* ISA buses are only locally exclusive on a PCI system */
-	    if (loc == BUS_ISA && r_loc == BUS_PCI)
-		return FALSE;
-	    break;
-	}
-	break;
-    case ResShared:
-	switch (pRes->res_type & ResAccMask) {
-	case ResExclusive:
-	    /* ISA buses are only locally exclusive on a PCI system */
-	    if (loc == BUS_PCI && r_loc == BUS_ISA) 
-		return FALSE;
-	    break;
-	case ResShared:
-	    return FALSE;
-	}
-	break;
-    case ResAny:
-	break;
-    }
-    
+    if ((type & ResAccMask == ResShared) &&
+	(pRes->res_type & ResAccMask) == ResShared)
+	return FALSE;
+
     if (pRes->entityIndex == entityIndex) return FALSE;
 
     if (pRes->entityIndex > -1 &&
@@ -1384,7 +1357,6 @@ busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
 {
     switch (pEnt->bus.type) {
-    case BUS_ISA:
     case BUS_SBUS:
 	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
@@ -1853,7 +1825,7 @@ xf86PostProbe(void)
     resPtr resp, acc, tmp, resp_x;
 
     if (fbSlotClaimed) {
-        if (pciSlotClaimed || isaSlotClaimed 
+        if (pciSlotClaimed
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	    || sbusSlotClaimed
 #endif
@@ -2408,10 +2380,6 @@ xf86FindPrimaryDevice()
 		     primaryBus.id.pci->domain,
 		     primaryBus.id.pci->dev,
 		     primaryBus.id.pci->func);
-	    break;
-	case BUS_ISA:
-	    bus = "ISA";
-	    loc[0] = '\0';
 	    break;
 	case BUS_SBUS:
 	    bus = "SBUS";

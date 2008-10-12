@@ -564,11 +564,6 @@ initPciBusState(void)
 	    pbap->disable_f = pciBusAccessDisable;
 	    savePciBusState(pbap);
 	    break;
-	case PCI_SUBCLASS_BRIDGE_ISA:
-	case PCI_SUBCLASS_BRIDGE_EISA:
-	case PCI_SUBCLASS_BRIDGE_MC:
-	    pbap->type = BUS_ISA;
-	    break;
 	}
 	pbap->next = xf86BusAccInfo;
 	xf86BusAccInfo = pbap;

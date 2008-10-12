@@ -115,18 +115,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 		return NULL;
 	isPrimary = xf86IsPrimaryPci(pVideo);
 	break;
-    case BUS_ISA:
-	/*
-	 * This needs to be revisited as it doesn't allow for non-PCI
-	 * multihead.
-	 */
-	if (!xf86IsPrimaryIsa())
-	    return NULL;
-	isPrimary = TRUE;
-	for (i = 0;  i < nDevToConfig;  i++)
-	    if (!DevToConfig[i].pVideo)
-		return NULL;
-	break;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS:
 	for (i = 0;  i < nDevToConfig;  i++)
@@ -202,10 +190,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	    chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 	}
 	break;
-    case BUS_ISA:
-	NewDevice.GDev.identifier = "ISA Adapter";
-	NewDevice.GDev.busID = "ISA";
-	break;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS: {
 	char *promPath = NULL;
@@ -239,17 +223,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
     return &NewDevice.GDev;
 
 #   undef NewDevice
-}
-
-/*
- * Backwards compatibility
- */
-_X_EXPORT GDevPtr
-xf86AddDeviceToConfigure(const char *driver, struct pci_device * pVideo, 
-			 int chipset)
-{
-    return xf86AddBusDeviceToConfigure(driver, pVideo ? BUS_PCI : BUS_ISA,
-				       pVideo, chipset);
 }
 
 static XF86ConfInputPtr

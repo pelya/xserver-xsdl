@@ -383,17 +383,12 @@ typedef enum {
 struct pci_device;
 
 typedef struct {
-    unsigned int dummy;
-} IsaBusId;
-
-typedef struct {
     int		fbNum;
 } SbusBusId;
 
 typedef struct _bus {
     BusType type;
     union {
-	IsaBusId isa;
 	struct pci_device *pci;
 	SbusBusId sbus;
     } id;
@@ -435,8 +430,6 @@ typedef struct {
    int                          irq;
    int                          screen;         /* For multi-CRTC cards */
 } GDevRec, *GDevPtr;
-
-typedef int (*FindIsaDevProc)(GDevPtr dev);
 
 typedef struct {
    char *			identifier;
@@ -716,11 +709,6 @@ typedef struct _resRec {
 #define block_begin	val.rBegin
 #define block_end	val.rEnd
 #define res_type	val.type
-
-typedef struct {
-    int numChipset;
-    resRange *resList;
-} IsaChipsets;
 
 typedef struct _PciChipsets {
     /**

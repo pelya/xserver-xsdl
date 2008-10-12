@@ -1683,8 +1683,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 		    if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
 			if (xf86CheckPciSlot(pPci)) {
 			    GDevPtr pGDev = 
-			      xf86AddDeviceToConfigure(drvp->driverName,
-						       pPci, -1);
+			      xf86AddBusDeviceToConfigure(drvp->driverName,
+							  BUS_PCI, pPci, -1);
 			    if (pGDev) {
 				/* After configure pass 1, chipID and chipRev
 				 * are treated as over-rides, so clobber them
@@ -1950,108 +1950,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	*foundEntities = retEntities;
     }
 	
-    return numFound;
-}
-
-_X_EXPORT int
-xf86MatchIsaInstances(const char *driverName, SymTabPtr chipsets,
-		      IsaChipsets *ISAchipsets, DriverPtr drvp,
-		      FindIsaDevProc FindIsaDevice, GDevPtr *devList,
-		      int numDevs, int **foundEntities)
-{
-    SymTabRec *c;
-    IsaChipsets *Chips;
-    int i;
-    int numFound = 0;
-    int foundChip = -1;
-    int *retEntities = NULL;
-
-    *foundEntities = NULL;
-
-#if defined(__sparc__) || defined(__powerpc__)
-    FindIsaDevice = NULL;	/* Temporary */
-#endif
-
-    if (xf86DoProbe || (xf86DoConfigure && xf86DoConfigurePass1)) {
-	if (FindIsaDevice &&
-	    ((foundChip = (*FindIsaDevice)(NULL)) != -1)) {
-	    xf86AddDeviceToConfigure(drvp->driverName, NULL, foundChip);
-	    return 1;
-	}
-	return 0;
-    }
-
-    for (i = 0; i < numDevs; i++) {
-	MessageType from = X_CONFIG;
-	GDevPtr dev = NULL;
-	GDevPtr devBus = NULL;
-
-	if (devList[i]->busID && *devList[i]->busID) {
-	    if (xf86ParseIsaBusString(devList[i]->busID)) {
-		if (devBus) xf86MsgVerb(X_WARNING,0,
-					"%s: More than one matching Device "
-					"section for ISA-Bus found: %s\n",
-					driverName,devList[i]->identifier);
-		else devBus = devList[i];
-	    }
-	} else {
-	    if (xf86IsPrimaryIsa()) {
-		if (dev) xf86MsgVerb(X_WARNING,0,
-				     "%s: More than one matching "
-				     "Device section found: %s\n",
-				     driverName,devList[i]->identifier);
-		else dev = devList[i];
-	    }
-	}
-	if (devBus) dev = devBus;
-	if (dev) {
-	    if (dev->chipset) {
-		for (c = chipsets; c->token >= 0; c++) {
-		    if (xf86NameCmp(c->name, dev->chipset) == 0)
-			break;
-		}
-		if (c->token == -1) {
-		    xf86MsgVerb(X_WARNING, 0, "%s: Chipset \"%s\" in Device "
-				"section \"%s\" isn't valid for this driver\n",
-				driverName, dev->chipset,
-				dev->identifier);
-		} else
-		    foundChip = c->token;
-	    } else {
-		if (FindIsaDevice) foundChip = (*FindIsaDevice)(dev);
-                                                        /* Probe it */
-		from = X_PROBED;
-	    }
-	}
-	
-	/* Check if the chip type is listed in the chipset table - for sanity*/
-
-	if (foundChip >= 0){
-	    for (Chips = ISAchipsets; Chips->numChipset >= 0; Chips++) {
-		if (Chips->numChipset == foundChip)
-		    break;
-	    }
-	    if (Chips->numChipset == -1){
-		foundChip = -1;
-		xf86MsgVerb(X_WARNING,0,
-			    "%s: Driver detected unknown ISA-Bus Chipset\n",
-			    driverName);
-	    }
-	}
-	if (foundChip != -1) {
-	    numFound++;
-	    retEntities = xnfrealloc(retEntities,numFound * sizeof(int));
-	    retEntities[numFound - 1] =
-	    xf86ClaimIsaSlot(drvp,foundChip,dev, dev->active ? TRUE : FALSE);
-	    for (c = chipsets; c->token >= 0; c++) {
-		if (c->token == foundChip)
-		    break;
-	    }
-	    xf86Msg(from, "Chipset %s found\n", c->name);
-	}
-    }
-    *foundEntities = retEntities;
-
     return numFound;
 }
 
@@ -2557,49 +2455,6 @@ xf86FindXvOptions(int scrnIndex, int adaptor_index, char *port_name,
 #include "loader/os.c"
 
 /* new RAC */
-/*
- * xf86ConfigIsa/PciEntity() -- These helper functions assign an
- * active entity to a screen, registers its fixed resources, assign
- * special enter/leave functions and their private scratch area to
- * this entity, take the dog for a walk...
- */
-_X_EXPORT ScrnInfoPtr
-xf86ConfigIsaEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
-			  IsaChipsets *i_chip, resList res, EntityProc init,
-			  EntityProc enter, EntityProc leave, pointer private)
-{
-    IsaChipsets *i_id;
-    EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
-    if (!pEnt) return pScrn;
-
-    if (!(pEnt->location.type == BUS_ISA)) {
-	xfree(pEnt);
-	return pScrn;
-    }
-
-    if (!pEnt->active) {
-	xf86ConfigIsaEntityInactive(pEnt, i_chip, res, init,  enter,
-				    leave,  private);
-	xfree(pEnt);
-	return pScrn;
-    }
-
-    if (!pScrn)
-	pScrn = xf86AllocateScreen(pEnt->driver,scrnFlag);
-    xf86AddEntityToScreen(pScrn,entityIndex);
-
-    if (i_chip) {
-	for (i_id = i_chip; i_id->numChipset != -1; i_id++) {
-	    if (pEnt->chipset == i_id->numChipset) break;
-	}
-	xf86ClaimFixedResources(i_id->resList,entityIndex);
-    }
-    xfree(pEnt);
-    xf86ClaimFixedResources(res,entityIndex);
-    xf86SetEntityFuncs(entityIndex,init,enter,leave,private);
-
-    return pScrn;
-}
 
 _X_EXPORT ScrnInfoPtr
 xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
@@ -2675,39 +2530,9 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 
 /*
  *
- *  OBSOLETE ! xf86ConfigActiveIsaEntity() and xf86ConfigActivePciEntity()
- *             are obsolete functions. They the are likely to be removed
- *             Don't use!
+ *  OBSOLETE ! xf86ConfigActivePciEntity() is an obsolete functions.
+ *	       They the are likely to be removed. Don't use!
  */
-_X_EXPORT Bool
-xf86ConfigActiveIsaEntity(ScrnInfoPtr pScrn, int entityIndex,
-                          IsaChipsets *i_chip, resList res, EntityProc init,
-                          EntityProc enter, EntityProc leave, pointer private)
-{
-    IsaChipsets *i_id;
-    EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
-    if (!pEnt) return FALSE;
-
-    if (!pEnt->active || !(pEnt->location.type == BUS_ISA)) {
-        xfree(pEnt);
-        return FALSE;
-    }
-
-    xf86AddEntityToScreen(pScrn,entityIndex);
-
-    if (i_chip) {
-        for (i_id = i_chip; i_id->numChipset != -1; i_id++) {
-            if (pEnt->chipset == i_id->numChipset) break;
-        }
-        xf86ClaimFixedResources(i_id->resList,entityIndex);
-    }
-    xfree(pEnt);
-    xf86ClaimFixedResources(res,entityIndex);
-    if (!xf86SetEntityFuncs(entityIndex,init,enter,leave,private))
-        return FALSE;
-
-    return TRUE;
-}
 
 _X_EXPORT Bool
 xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
@@ -2740,10 +2565,10 @@ xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
 }
 
 /*
- * xf86ConfigPci/IsaEntityInactive() -- These functions can be used
+ * xf86ConfigPciEntityInactive() -- This functions can be used
  * to configure an inactive entity as well as to reconfigure an
  * previously active entity inactive. If the entity has been
- * assigned to a screen before it will be removed. If p_pci(p_isa) is
+ * assigned to a screen before it will be removed. If p_pci is
  * non-NULL all static resources listed there will be registered.
  */
 _X_EXPORT void
@@ -2761,28 +2586,6 @@ xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
 	    if (pEnt->chipset == p_id->numChipset) break;
 	}
 	xf86ClaimFixedResources(p_id->resList,pEnt->index);
-    }
-    xf86ClaimFixedResources(res,pEnt->index);
-    /* shared resources are only needed when entity is active: remove */
-    xf86DeallocateResourcesForEntity(pEnt->index, ResShared);
-    xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
-}
-
-_X_EXPORT void
-xf86ConfigIsaEntityInactive(EntityInfoPtr pEnt, IsaChipsets *i_chip,
-			    resList res, EntityProc init, EntityProc enter,
-			    EntityProc leave, pointer private)
-{
-    IsaChipsets *i_id;
-    ScrnInfoPtr pScrn;
-
-    if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
-	xf86RemoveEntityFromScreen(pScrn,pEnt->index);
-    else if (i_chip) {
-	for (i_id = i_chip; i_id->numChipset != -1; i_id++) {
-	    if (pEnt->chipset == i_id->numChipset) break;
-	}
-	xf86ClaimFixedResources(i_id->resList,pEnt->index);
     }
     xf86ClaimFixedResources(res,pEnt->index);
     /* shared resources are only needed when entity is active: remove */
