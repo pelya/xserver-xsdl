@@ -1541,8 +1541,6 @@ extern void (*xf86WriteMmio32)(int, void *, unsigned long);
 extern void (*xf86WriteMmioNB8)(int, void *, unsigned long);
 extern void (*xf86WriteMmioNB16)(int, void *, unsigned long);
 extern void (*xf86WriteMmioNB32)(int, void *, unsigned long);
-extern void xf86JensenMemToBus(char *, long, long, int);
-extern void xf86JensenBusToMem(char *, char *, unsigned long, int);
 extern void xf86SlowBCopyFromBus(unsigned char *, unsigned char *, int);
 extern void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 
@@ -1556,20 +1554,13 @@ extern void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #   define MMIO_IN32(base, offset) xf86ReadMmio32(base, offset)
 #  endif
 
-#  if defined (JENSEN_SUPPORT)
-#   define MMIO_OUT32(base, offset, val) \
-    (*xf86WriteMmio32)((CARD32)(val), base, offset)
-#   define MMIO_ONB32(base, offset, val) \
-    (*xf86WriteMmioNB32)((CARD32)(val), base, offset)
-#  else
-#   define MMIO_OUT32(base, offset, val) \
+#  define MMIO_OUT32(base, offset, val) \
     do { \
 	write_mem_barrier(); \
 	*(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val); \
     } while (0)
-#   define MMIO_ONB32(base, offset, val) \
+#  define MMIO_ONB32(base, offset, val) \
 	*(volatile CARD32 *)(void *)(((CARD8*)(base)) + (offset)) = (val)
-#  endif
 
 #  define MMIO_OUT8(base, offset, val) \
     (*xf86WriteMmio8)((CARD8)(val), base, offset)
