@@ -375,6 +375,8 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(SetTimeSinceLastInputEvent)
     SYMFUNC(xf86AddInputHandler)
     SYMFUNC(xf86RemoveInputHandler)
+    SYMFUNC(xf86DisableInputHandler)
+    SYMFUNC(xf86EnableInputHandler)
     SYMFUNC(xf86AddEnabledDevice)
     SYMFUNC(xf86RemoveEnabledDevice)
     SYMFUNC(xf86InterceptSignals)
