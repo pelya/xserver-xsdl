@@ -146,8 +146,6 @@ extern void xf86MapReadSideEffects(int, int, pointer, unsigned long);
 extern int xf86ReadBIOS(unsigned long, unsigned long, unsigned char *, int);
 extern Bool xf86EnableIO(void);
 extern void xf86DisableIO(void);
-extern Bool xf86DisableInterrupts(void);
-extern void xf86EnableInterrupts(void);
 extern void xf86SetTVOut(int);
 extern void xf86SetRGBOut(void);
 extern void xf86OSRingBell(int, int, int);

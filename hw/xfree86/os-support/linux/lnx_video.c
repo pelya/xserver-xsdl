@@ -568,24 +568,6 @@ xf86DisableIO(void)
 	return;
 }
 
-/*
- * Don't use these two functions.  They can't possibly work.  If you actually
- * need interrupts off for something, you ought to be doing it in the kernel
- * anyway.
- */
-
-_X_EXPORT Bool
-xf86DisableInterrupts()
-{
-	return (TRUE);
-}
-
-_X_EXPORT void
-xf86EnableInterrupts()
-{
-	return;
-}
-
 #if defined (__alpha__)
 
 #define vuip    volatile unsigned int *

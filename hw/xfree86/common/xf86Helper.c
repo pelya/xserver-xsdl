@@ -1992,14 +1992,6 @@ xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
     	cnt  = 0;
     	sync = 200000;
 
-	/* XXX How critical is this? */
-    	if (!xf86DisableInterrupts())
-    	{
-	    (*ClockFunc)(pScrn, CLK_REG_RESTORE);
-	    ErrorF("Failed to disable interrupts during clock probe.  If\n");
-	    ErrorF("your OS does not support disabling interrupts, then you\n");
-	    FatalError("must specify a Clocks line in the XF86Config file.\n");
-	}
 	while ((inb(status) & maskval) == 0x00)
 	    if (sync-- == 0) goto finish;
 	/* Something appears to be happening, so reset sync count */
@@ -2020,8 +2012,6 @@ xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
 	}
 
 finish:
-	xf86EnableInterrupts();
-
 	pScrn->clock[i] = cnt ? cnt : -1;
 	if (BlankScreen)
             (*BlankScreen)(pScrn, TRUE);

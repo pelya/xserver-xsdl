@@ -244,8 +244,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ReadBIOS)
     SYMFUNC(xf86EnableIO)
     SYMFUNC(xf86DisableIO)
-    SYMFUNC(xf86DisableInterrupts)
-    SYMFUNC(xf86EnableInterrupts)
     SYMFUNC(xf86LinearVidMem)
     SYMFUNC(xf86CheckMTRR)
     SYMFUNC(xf86MapVidMem)

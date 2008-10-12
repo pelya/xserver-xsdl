@@ -444,38 +444,6 @@ xf86DisableIO()
 
 #endif
 
-
-/***************************************************************************/
-/* Interrupt Handling section                                              */
-/***************************************************************************/
-
-_X_EXPORT Bool
-xf86DisableInterrupts()
-{
-
-#ifdef __GNUC__
-	__asm__ __volatile__("cli");
-#else 
-	asm("cli");
-#endif /* __GNUC__ */
-
-	return(TRUE);
-}
-
-_X_EXPORT void
-xf86EnableInterrupts()
-{
-
-#ifdef __GNUC__
-	__asm__ __volatile__("sti");
-#else 
-	asm("sti");
-#endif /* __GNUC__ */
-
-	return;
-}
-
-
 #ifdef __NetBSD__
 /***************************************************************************/
 /* Set TV output mode                                                      */
