@@ -94,10 +94,6 @@ static Bool doFramebufferMode = FALSE;
 static StateChangeNotificationPtr StateChangeNotificationList;
 static void notifyStateChange(xf86NotifyState state);
 
-#undef MIN
-#define MIN(x,y) ((x<y)?x:y)
-
-
 /*
  * Call the bus probes relevant to the architecture.
  *
