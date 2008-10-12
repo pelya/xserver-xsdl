@@ -53,6 +53,8 @@ static int activeVT = -1;
 
 static int vtPermSave[4];
 static char vtname[11];
+static struct termios tty_attr; /* tty state to restore */
+static int tty_mode; /* kbd mode to restore */
 
 static int
 saveVtPerms(void)
@@ -272,6 +274,34 @@ xf86OpenConsole(void)
 	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed %s\n",
 		           strerror(errno));
 
+	    /* Set the keyboard to RAW mode. If we're using the keyboard
+	     * driver, the driver does it for us. If we have AEI on, then
+	     * we're expecting the devices to be added (i.e. evdev) and we
+	     * have to set it manually.
+	     */
+	    if (xf86Info.allowEmptyInput)
+	    {
+		struct termios nTty;
+
+		tcgetattr(xf86Info.consoleFd, &tty_attr);
+		ioctl(xf86Info.consoleFd, KDGKBMODE, &tty_mode);
+
+		if (ioctl(xf86Info.consoleFd, KDSKBMODE, K_RAW) < 0)
+		    FatalError("xf86OpenConsole: KDSKBMODE K_RAW failed %s\n",
+			    strerror(errno));
+
+		nTty = tty_attr;
+		nTty.c_iflag = (IGNPAR | IGNBRK) & (~PARMRK) & (~ISTRIP);
+		nTty.c_oflag = 0;
+		nTty.c_cflag = CREAD | CS8;
+		nTty.c_lflag = 0;
+		nTty.c_cc[VTIME]=0;
+		nTty.c_cc[VMIN]=1;
+		cfsetispeed(&nTty, 9600);
+		cfsetospeed(&nTty, 9600);
+		tcsetattr(xf86Info.consoleFd, TCSANOW, &nTty);
+	    }
+
 	    /* we really should have a InitOSInputDevices() function instead
 	     * of Init?$#*&Device(). So I just place it here */
 	
@@ -328,7 +358,10 @@ xf86CloseConsole()
     if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT) < 0)
 	xf86Msg(X_WARNING, "xf86CloseConsole: KDSETMODE failed: %s\n",
 		strerror(errno));
-	
+
+    ioctl(xf86Info.consoleFd, KDSKBMODE, tty_mode);
+    tcsetattr(xf86Info.consoleFd, TCSANOW, &tty_attr);
+
     if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) < 0) 
 	xf86Msg(X_WARNING, "xf86CloseConsole: VT_GETMODE failed: %s\n",
 		strerror(errno));
