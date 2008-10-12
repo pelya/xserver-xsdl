@@ -251,7 +251,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86MapReadSideEffects)
     SYMFUNC(xf86MapDomainMemory)
     SYMFUNC(xf86UDelay)
-    SYMFUNC(xf86IODelay)
     SYMFUNC(xf86SlowBcopy)
     SYMFUNC(xf86SetReallySlowBcopy)
 #ifdef __alpha__
