@@ -75,6 +75,9 @@
 /* Define to 1 if you have the <asm/mtrr.h> header file. */
 #undef HAVE_ASM_MTRR_H
 
+/* Has backtrace support */
+#undef HAVE_BACKTRACE
+
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
@@ -93,6 +96,9 @@
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
+
+/* Have execinfo.h */
+#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
