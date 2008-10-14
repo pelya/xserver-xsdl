@@ -115,12 +115,16 @@ handle_edid_quirks(xf86MonPtr m)
 	    }
 	}
 
-	if (real_hsize && real_vsize) {
+	if (!real_hsize || !real_vsize) {
+	    m->features.hsize = m->features.vsize = 0;
+	} else if ((m->features.hsize * 10 == real_hsize) &&
+		   (m->features.vsize * 10 == real_vsize)) {
+	    /* exact match is just unlikely, should do a better check though */
+	    m->features.hsize = m->features.vsize = 0;
+	} else {
 	    /* convert mm to cm */
 	    m->features.hsize = (real_hsize + 5) / 10;
 	    m->features.vsize = (real_vsize + 5) / 10;
-	} else {
-	    m->features.hsize = m->features.vsize = 0;
 	}
 	
 	xf86Msg(X_INFO, "Quirked EDID physical size to %dx%d cm\n",
