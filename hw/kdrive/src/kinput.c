@@ -1292,7 +1292,7 @@ KdParsePointer (char *arg)
         return NULL;
     pi->emulateMiddleButton = kdEmulateMiddleButton;
     pi->transformCoordinates = !kdRawPointerCoordinates;
-    pi->nButtons = 3;
+    pi->nButtons = 5; /* XXX should not be hardcoded */
     pi->inputClass = KD_MOUSE;
 
     if (!arg)
