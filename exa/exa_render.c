@@ -911,6 +911,12 @@ exaComposite(CARD8	op,
 
 		if (ret)
 		    goto done;
+
+		/* Let's be correct and restore the variables to their original state. */
+		xDst -= pDst->pDrawable->x;
+		yDst -= pDst->pDrawable->y;
+		xSrc -= pSrc->pDrawable->x;
+		ySrc -= pSrc->pDrawable->y;
 	    }
 	}
     }
