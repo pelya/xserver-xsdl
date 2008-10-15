@@ -875,10 +875,8 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     xf86GetOptValBool(FlagOptions, FLAG_NOTRAPSIGNALS, &xf86Info.notrapSignals);
     xf86GetOptValBool(FlagOptions, FLAG_DONTVTSWITCH, &xf86Info.dontVTSwitch);
-    if (xf86IsOptionSet(FlagOptions, FLAG_DONTZAP))
-        xf86GetOptValBool(FlagOptions, FLAG_DONTZAP, &xf86Info.dontZap);
-    else
-        xf86Info.dontZap = party_like_its_1989;
+    if (!xf86GetOptValBool(FlagOptions, FLAG_DONTZAP, &xf86Info.dontZap))
+        xf86Info.dontZap = !party_like_its_1989;
     xf86GetOptValBool(FlagOptions, FLAG_DONTZOOM, &xf86Info.dontZoom);
 
     xf86GetOptValBool(FlagOptions, FLAG_IGNORE_ABI, &xf86Info.ignoreABI);
