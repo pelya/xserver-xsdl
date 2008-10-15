@@ -54,7 +54,7 @@ libglxdri_la_SOURCES = \
         extension_string.h
 
 if DRI2
-libglxdri_la_SOURCES = glxdri2.c
+libglxdri_la_SOURCES += glxdri2.c
 endif
 
 libglx_la_SOURCES = \
