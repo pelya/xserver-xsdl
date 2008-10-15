@@ -22,8 +22,11 @@ INCLUDES = \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/dri \
-	-I$(top_srcdir)/hw/xfree86/dri2 \
 	-I$(top_srcdir)/mi
+
+if DRI2
+INCLUDES += -I$(top_srcdir)/hw/xfree86/dri2
+endif
 
 glapi_sources =					\
 	indirect_dispatch.c			\
@@ -47,9 +50,12 @@ glapi_sources =					\
 
 libglxdri_la_SOURCES = \
         glxdri.c \
-        glxdri2.c \
         extension_string.c \
         extension_string.h
+
+if DRI2
+libglxdri_la_SOURCES = glxdri2.c
+endif
 
 libglx_la_SOURCES = \
 	$(indirect_sources) \
