@@ -4,9 +4,9 @@ if DRI
 DRI_SUBDIR = dri
 endif
 
-#if DRI2
-#DRI2_SUBDIR = dri2
-#endif
+if DRI2
+DRI2_SUBDIR = dri2
+endif
 
 if XF86UTILS
 XF86UTILS_SUBDIR = utils
