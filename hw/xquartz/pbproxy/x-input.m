@@ -87,9 +87,11 @@ void x_input_run (void) {
                 break;
                 
             default:
-                if (e.type - x_apple_wm_event_base >= 0
-                    && e.type - x_apple_wm_event_base < AppleWMNumberEvents) {
-                    x_event_apple_wm_notify ((XAppleWMNotifyEvent *) &e);
+                if(e.type >= x_apple_wm_event_base &&
+                   e.type < x_apple_wm_event_base + AppleWMNumberEvents) {
+                    x_event_apple_wm_notify((XAppleWMNotifyEvent *) &e);
+                } else if(e.type == x_xfixes_event_base + XFixesSelectionNotify) {
+                    [x_selection_object() xfixes_selection_notify:(XFixesSelectionNotifyEvent *)&e];
                 }
                 break;
         }

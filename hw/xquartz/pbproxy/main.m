@@ -8,9 +8,12 @@
 
 #include <pthread.h>
 #include <X11/extensions/applewm.h>
+#include <X11/extensions/xfixes.h>
 
 Display *x_dpy;
 int x_apple_wm_event_base, x_apple_wm_error_base;
+int x_xfixes_event_base, x_xfixes_error_base;
+BOOL have_xfixes;
 
 x_selection *_selection_object;
 
@@ -31,13 +34,13 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
     return 0;
 }
 
-void x_init (void) {
+int x_init (void) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL) {
         fprintf (stderr, "can't open default display\n");
-        exit (1);
+        return 1;
     }
     
     XSetIOErrorHandler (x_io_error_handler);
@@ -46,8 +49,10 @@ void x_init (void) {
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base)) {
         fprintf (stderr, "can't open AppleWM server extension\n");
-        exit (1);
+        return 1;
     }
+    
+    have_xfixes = XFixesQueryExtension(x_dpy, &x_xfixes_event_base, &x_xfixes_error_base);
     
     XAppleWMSelectInput (x_dpy, AppleWMActivationNotifyMask |
                          AppleWMPasteboardNotifyMask);
@@ -58,6 +63,8 @@ void x_init (void) {
     x_input_run ();
 
     [pool release];
+    
+    return 0;
 }
 
 id x_selection_object (void) {

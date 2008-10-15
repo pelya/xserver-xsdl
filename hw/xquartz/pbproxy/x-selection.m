@@ -36,6 +36,7 @@
 #include <X11/Xutil.h>
 #import <AppKit/NSBitmapImageRep.h>
 
+#include <X11/extensions/xfixes.h>
 
 /*
  * The basic design of the pbproxy code is as follows.
@@ -56,12 +57,10 @@
 
 /*
  * TODO:
- * 1. handle primary_on_grab
- * 2. handle  MULTIPLE - I need to study the ICCCM further.
- * 3. Handle PICT images properly.
- * 4. Handle NSPasteboard updates immediately, not on active/inactive
+ * 1. handle  MULTIPLE - I need to study the ICCCM further.
+ * 2. Handle PICT images properly.
+ * 3. Handle NSPasteboard updates immediately, not on active/inactive
  *    - Open xterm, run 'cat readme.txt | pbcopy'
- * 5. Detect if CLIPBOARD_MANAGER atom belongs to a dead client rather than just None
  */
 
 static struct {
@@ -357,7 +356,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 	    XSetSelectionOwner (x_dpy, atoms->clipboard,
 				_selection_window, timestamp);
-	    XSetSelectionOwner (x_dpy, XA_PRIMARY,
+	    XSetSelectionOwner (x_dpy, atoms->primary,
 				_selection_window, timestamp);
 	}
 #endif
@@ -421,8 +420,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
         if(owner == _selection_window)
             return TRUE;
 
-        if(None != _selection_window) {
-            fprintf (stderr, "A clipboard manager is already running.  pbproxy will not sync clipboard to pasteboard.\n");
+        if(owner != None) {
+            fprintf (stderr, "A clipboard manager is already running on window 0x%x.  pbproxy will not sync clipboard to pasteboard.\n", (int)owner);
             return FALSE;
         }
         
@@ -1008,6 +1007,24 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 }
 
+- (void) xfixes_selection_notify:(XFixesSelectionNotifyEvent *)e {
+    if(!pbproxy_prefs.active)
+        return;
+    
+    switch(e->subtype) {              
+        case XFixesSetSelectionOwnerNotify:
+            if(e->selection == atoms->primary && pbproxy_prefs.primary_on_grab)
+                [self x_copy:e->timestamp];
+            break;
+                
+        case XFixesSelectionWindowDestroyNotify:
+        case XFixesSelectionClientCloseNotify:
+        default:
+            fprintf(stderr, "Unhandled XFixesSelectionNotifyEvent: subtype=%d\n", e->subtype);
+            break;
+    }
+}
+
 - (void) handle_targets: (Atom)selection propdata:(struct propdata *)pdata
 {
     /* Find a type we can handle and prefer from the list of ATOMs. */
@@ -1023,7 +1040,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	 * This isn't required by the ICCCM, but some apps apparently 
 	 * don't respond to TARGETS properly.
 	 */
-	preferred = XA_STRING;
+	preferred = atoms->string;
     }
 
     DB ("requesting %s\n", XGetAtomName (x_dpy, preferred));
@@ -1260,6 +1277,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pbproxy_prefs.clipboard_to_pasteboard = prefs_get_bool(CFSTR("sync_clibpoard_to_pasteboard"), pbproxy_prefs.clipboard_to_pasteboard);
     pbproxy_prefs.pasteboard_to_primary = prefs_get_bool(CFSTR("sync_pasteboard_to_primary"), pbproxy_prefs.pasteboard_to_primary);
     pbproxy_prefs.pasteboard_to_clipboard =  prefs_get_bool(CFSTR("sync_pasteboard_to_clipboard"), pbproxy_prefs.pasteboard_to_clipboard);
+    
+    if(pbproxy_prefs.active && pbproxy_prefs.primary_on_grab && !have_xfixes) {
+        fprintf(stderr, "Disabling sync_primary_on_select functionality due to missing XFixes extension.\n");
+        pbproxy_prefs.primary_on_grab = NO;
+    }
 
     /* Claim or release the CLIPBOARD_MANAGER atom */
     if(![self set_clipboard_manager_status:(pbproxy_prefs.active && pbproxy_prefs.clipboard_to_pasteboard)])
@@ -1334,6 +1356,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     pending_copy = 0;
     pending_clipboard = 0;
+
+    if(have_xfixes)
+        XFixesSelectSelectionInput(x_dpy, _selection_window, atoms->primary, 
+                                   XFixesSetSelectionOwnerNotifyMask);
 
     [self reload_preferences];
     

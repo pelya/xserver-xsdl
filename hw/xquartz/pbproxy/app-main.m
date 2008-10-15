@@ -19,7 +19,8 @@ int main (int argc, const char *argv[]) {
     printf("pid: %u\n", getpid());
 #endif
 
-    x_init ();
+    if(x_init () !=0)
+        return 1;
     
     signal (SIGINT, signal_handler);
     signal (SIGTERM, signal_handler);

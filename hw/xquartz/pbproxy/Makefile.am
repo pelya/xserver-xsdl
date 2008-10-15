@@ -1,5 +1,5 @@
 AM_CPPFLAGS=-F/System/Library/Frameworks/ApplicationServices.framework/Frameworks
-AM_LDFLAGS=-L/usr/X11/lib -lX11 -lAppleWM -framework AppKit -framework Foundation -framework ApplicationServices
+AM_LDFLAGS=-L/usr/X11/lib -lX11 -lXfixes -lAppleWM -framework AppKit -framework Foundation -framework ApplicationServices
 
 SOURCE_FILES = \
 	trick_autotools.c \

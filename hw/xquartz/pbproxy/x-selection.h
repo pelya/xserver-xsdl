@@ -33,6 +33,7 @@
 
 #include "pbproxy.h"
 #include <AppKit/NSPasteboard.h>
+#include <X11/extensions/xfixes.h>
 
 /* This stores image data or text. */
 struct propdata {
@@ -95,6 +96,7 @@ struct atom_list {
 - (void) request_event:(XSelectionRequestEvent *)e;
 - (void) notify_event:(XSelectionEvent *)e;
 - (void) property_event:(XPropertyEvent *)e;
+- (void) xfixes_selection_notify:(XFixesSelectionNotifyEvent *)e;
 - (void) handle_selection:(Atom)selection type:(Atom)type propdata:(struct propdata *)pdata;
 - (void) claim_clipboard;
 - (BOOL) set_clipboard_manager_status:(BOOL)value;
