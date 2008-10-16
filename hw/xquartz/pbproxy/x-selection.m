@@ -26,7 +26,8 @@
    Except as contained in this notice, the name(s) of the above
    copyright holders shall not be used in advertising or otherwise to
    promote the sale, use or other dealings in this Software without
-   prior written authorization. */
+   prior written authorization. 
+*/
 
 #import "x-selection.h"
 
@@ -53,6 +54,8 @@
  * changed.  If the NSPasteboard has changed, then we set pbproxy as owner
  * of the PRIMARY and CLIPBOARD and respond to requests for text and images.
  *
+ * The behavior is now dynamic since the information above was written.
+ * The behavior is now dependent on the pbproxy_prefs below.
  */
 
 /*
@@ -75,14 +78,31 @@ static struct {
 
 static struct propdata null_propdata = {NULL, 0};
 
+static void
+dump_prefs (FILE *fp) {
+    fprintf(fp, 
+	    "pbproxy preferences:\n"
+	    "\tactive %u\n"
+	    "\tprimary_on_grab %u\n"
+	    "\tclipboard_to_pasteboard %u\n"
+	    "\tpasteboard_to_primary %u\n"
+	    "\tpasteboard_to_clipboard %u\n",
+	    pbproxy_prefs.active,
+	    pbproxy_prefs.primary_on_grab,
+	    pbproxy_prefs.clipboard_to_pasteboard,
+	    pbproxy_prefs.pasteboard_to_primary,
+	    pbproxy_prefs.pasteboard_to_clipboard);
+}
+
+
 #define APP_PREFS "org.x.X11"
-static BOOL prefs_get_bool (CFStringRef key, BOOL def) {
-     int ret;
-     Boolean ok;
-
-     ret = CFPreferencesGetAppBooleanValue (key, CFSTR (APP_PREFS), &ok);
-
-     return ok ? (BOOL) ret : def;
+static BOOL
+prefs_get_bool (CFStringRef key, BOOL defaultValue) {
+    Boolean value, ok;
+    
+    value = CFPreferencesGetAppBooleanValue (key, CFSTR (APP_PREFS), &ok);
+   
+    return ok ? (BOOL) value : defaultValue;
 }
 
 static void
@@ -157,23 +177,31 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 #ifdef TEST
 	printf("chunkbytesize %zu\n", chunkbytesize);
 #endif
-	newbuflen = buflen + chunkbytesize;
-	newbuf = realloc (buf, newbuflen);
-
-	if (NULL == newbuf)
+ 	newbuflen = buflen + chunkbytesize;
+	if (newbuflen > 0) 
 	{
+	    newbuf = realloc (buf, newbuflen);
+	    
+	    if (NULL == newbuf)
+	    {
+		XFree (chunk);
+		free (buf);
+		return True;
+	    }
+	
+	    memcpy (newbuf + buflen, chunk, chunkbytesize);
 	    XFree (chunk);
-	    free (buf);
-	    return True;
+	    buf = newbuf;
+	    buflen = newbuflen;
+	    /* offset is a multiple of 32 bits*/
+	    offset += chunkbytesize / 4;
+	} 
+	else 
+	{
+	    if (chunk) 
+		XFree (chunk);
 	}
 	
-	memcpy (newbuf + buflen, chunk, chunkbytesize);
-	XFree (chunk);
-	buf = newbuf;
-	buflen = newbuflen;
-	/* offset is a multiple of 32 bits*/
-	offset += chunkbytesize / 4;
-
 #ifdef TEST
 	printf("bytesleft %lu\n", bytesleft);
 #endif
@@ -326,9 +354,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pb = [NSPasteboard generalPasteboard];
 
     if (nil == pb)
-    {
 	return;
-    }
 
     countNow = [pb changeCount];
 
@@ -395,7 +421,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	if (1 == pending_copy) {
 	    /*
 	     * There are no other copy operations in progress, so we
-	     * can proceed safely.
+	     * can proceed safely.  Otherwise the copy_completed method
+	     * will see that the pending_copy is > 1, and do another copy.
 	     */	    
 	    [self x_copy_request_targets];
 	}
@@ -421,7 +448,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
             return TRUE;
 
         if(owner != None) {
-            fprintf (stderr, "A clipboard manager is already running on window 0x%x.  pbproxy will not sync clipboard to pasteboard.\n", (int)owner);
+            fprintf (stderr, "A clipboard manager using window 0x%lx "
+		     "already owns the clipboard selection.  "
+		     "pbproxy will not sync clipboard to pasteboard.\n", owner);
             return FALSE;
         }
         
@@ -463,7 +492,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
             /* Another CLIPBOARD_MANAGER has set itself as owner.  Disable syncing
              * to avoid a race.
              */
-            fprintf(stderr, "Another clipboard manager was started!  xpbproxy is disabling syncing with clipboard.\n"); 
+            fprintf(stderr, "Another clipboard manager was started!  "
+		    "xpbproxy is disabling syncing with clipboard.\n"); 
             pbproxy_prefs.clipboard_to_pasteboard = NO;
         }
     }
@@ -559,9 +589,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pbtypes = [pb types];
     if (pbtypes)
     {
-	long list[6]; /* Don't forget to increase this if we handle more types! */
+	long list[7]; /* Don't forget to increase this if we handle more types! */
         long count = 0;
  	
+	/*
+	 * I'm not sure if this is needed, but some toolkits/clients list 
+	 * TARGETS in response to targets. 
+	 */
+	list[count] = atoms->targets;
+	++count;
+
 	if ([pbtypes containsObject:NSStringPboardType])
 	{
 	    /* We have a string type that we can convert to UTF8, or Latin-1... */
@@ -785,7 +822,6 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
   	NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
 	NSDictionary *dict;
 	NSData *encdata;
-	
 
 	if (nil == bmimage)
 	{
@@ -992,7 +1028,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 	if (0 == pdata.length) 
 	{
-	    /* We completed the transfer. */
+	    /*
+	     * We completed the transfer.
+	     * handle_selection will call copy_completed: for us.
+	     */
 	    [self handle_selection:pending.selection type:type propdata:&pending.propdata];
 	    free_propdata(&pdata);
 	    pending.propdata = null_propdata;
@@ -1272,12 +1311,21 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
 - (void) reload_preferences
 {
+    /*
+     * It's uncertain how we could handle the synchronization failing, so cast to void.
+     * The prefs_get_bool should fall back to defaults if the org.x.X11 plist doesn't exist or is invalid.
+     */
+    (void)CFPreferencesAppSynchronize(CFSTR(APP_PREFS));
+
     pbproxy_prefs.active = prefs_get_bool(CFSTR("sync_pasteboard"), pbproxy_prefs.active);
     pbproxy_prefs.primary_on_grab = prefs_get_bool(CFSTR("sync_primary_on_select"), pbproxy_prefs.primary_on_grab);
-    pbproxy_prefs.clipboard_to_pasteboard = prefs_get_bool(CFSTR("sync_clibpoard_to_pasteboard"), pbproxy_prefs.clipboard_to_pasteboard);
+    pbproxy_prefs.clipboard_to_pasteboard = prefs_get_bool(CFSTR("sync_clipboard_to_pasteboard"), pbproxy_prefs.clipboard_to_pasteboard);
     pbproxy_prefs.pasteboard_to_primary = prefs_get_bool(CFSTR("sync_pasteboard_to_primary"), pbproxy_prefs.pasteboard_to_primary);
     pbproxy_prefs.pasteboard_to_clipboard =  prefs_get_bool(CFSTR("sync_pasteboard_to_clipboard"), pbproxy_prefs.pasteboard_to_clipboard);
-    
+
+    /* This is used for debugging. */
+    //dump_prefs(stdout);
+
     if(pbproxy_prefs.active && pbproxy_prefs.primary_on_grab && !have_xfixes) {
         fprintf(stderr, "Disabling sync_primary_on_select functionality due to missing XFixes extension.\n");
         pbproxy_prefs.primary_on_grab = NO;
