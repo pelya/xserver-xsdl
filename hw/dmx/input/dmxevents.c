@@ -711,7 +711,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         return;
 
     case MotionNotify:
-        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        GetEventList(&events);
         valuators[0] = e->xmotion.x;
         valuators[1] = e->xmotion.y;
         valuators[2] = e->xmotion.state;
