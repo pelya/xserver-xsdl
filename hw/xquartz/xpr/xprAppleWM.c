@@ -32,10 +32,25 @@
 #endif
 
 #include "xpr.h"
+
+#define _APPLEWM_SERVER_
+#include <X11/extensions/applewmstr.h>
+
 #include "applewmExt.h"
 #include "rootless.h"
 #include <Xplugin.h>
 #include <X11/X.h>
+#include "quartz.h"
+
+/* This lookup table came straight from the Tiger X11 source.  I tried to figure
+ * it out based on CGWindowLevel.h, but I dunno... -JH
+ */
+static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
+0, 3, 4, 5, LONG_MIN + 30, LONG_MIN + 29,
+};
+static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
+202, 203, 204, 205, 201, 200
+};
 
 static int xprSetWindowLevel(
     WindowPtr pWin,
@@ -50,7 +65,12 @@ static int xprSetWindowLevel(
 
     RootlessStopDrawing (pWin, FALSE);
 
-    wc.window_level = level;
+    //if (WINREC(WindowTable[pWin->drawable.pScreen->myNum]) == NULL)
+    if (quartzHasRoot)
+        wc.window_level = normal_window_levels[level];
+    else
+        wc.window_level = rooted_window_levels[level];
+    
     if (xp_configure_window (wid, XP_WINDOW_LEVEL, &wc) != Success) {
         return BadValue;
     }
