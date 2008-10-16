@@ -1282,7 +1282,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 4. First pointer with 'mouse' as the driver. */
-    if (!foundPointer && (!xf86Info.allowEmptyInput || implicitLayout)) {
+    if (!foundPointer && !xf86Info.allowEmptyInput) {
 	confInput = xf86findInput(CONF_IMPLICIT_POINTER,
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
@@ -1422,7 +1422,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 4. First keyboard with 'keyboard' or 'kbd' as the driver. */
-    if (!foundKeyboard && (!xf86Info.allowEmptyInput || implicitLayout)) {
+    if (!foundKeyboard && !xf86Info.allowEmptyInput) {
 	confInput = xf86findInput(CONF_IMPLICIT_KEYBOARD,
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
@@ -2445,6 +2445,41 @@ addDefaultModes(MonPtr monitorp)
 static void
 checkInput(serverLayoutPtr layout, Bool implicit_layout) {
     checkCoreInputDevices(layout, implicit_layout);
+
+    /* AllowEmptyInput and the "kbd" and "mouse" drivers are mutually
+     * exclusive. Trawl the list for mouse/kbd devices and disable them.
+     */
+    if (xf86Info.allowEmptyInput && layout->inputs)
+    {
+        IDevPtr *dev = layout->inputs;
+        BOOL warned = FALSE;
+
+        while(*dev)
+        {
+            if (strcmp((*dev)->driver, "kbd") == 0 ||
+                strcmp((*dev)->driver, "mouse") == 0)
+            {
+                IDevPtr *current;
+                if (!warned)
+                {
+                    xf86Msg(X_WARNING, "AllowEmptyInput is on, devices using "
+                            "drivers 'kbd' or 'mouse' will be disabled.\n");
+                    warned = TRUE;
+                }
+
+                xf86Msg(X_WARNING, "Disabling %s\n", (*dev)->identifier);
+
+                current = dev;
+                xfree(*dev);
+
+                do {
+                    *current = *(current + 1);
+                    current++;
+                } while(*current);
+            } else
+                dev++;
+        }
+    }
 }
 
 /*
