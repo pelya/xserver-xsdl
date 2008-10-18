@@ -368,11 +368,8 @@ extern _X_EXPORT Bool InitKeyboardDeviceStruct(
     BellProcPtr /*bellProc*/,
     KbdCtrlProcPtr /*controlProc*/);
 
-extern _X_EXPORT void SendMappingNotify(
+extern _X_EXPORT void SendPointerMappingNotify(
     DeviceIntPtr /* pDev */,
-    unsigned int /*request*/,
-    unsigned int /*firstKeyCode*/,
-    unsigned int /*count*/,
     ClientPtr	/* client */);
 
 extern _X_EXPORT Bool BadDeviceMap(

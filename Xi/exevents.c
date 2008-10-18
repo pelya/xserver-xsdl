@@ -205,41 +205,20 @@ XIGetDevice(xEvent* xE)
 static void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 {
-    static DeviceIntPtr lastMapNotifyDevice = NULL;
-    KeyClassPtr mk, dk; /* master, device */
+    KeyClassPtr mk = master->key;
+    KeyClassPtr dk = device->key;
     int i;
 
     if (device == master)
         return;
 
-    dk = device->key;
-    mk = master->key;
-
-    mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
-    mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
     SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
 
     for (i = 0; i < 8; i++)
         mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
-    if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
+    if (!XkbCopyDeviceKeymap(master, device))
         FatalError("Couldn't pivot keymap from device to core!\n");
-
-    /* Copy the state here.  This means we'll only have consistency
-     * between state and active keymap, rather than between state and
-     * keycodes pressed, but there's pretty much no way to win here,
-     * so might as well go for the one that would seem to give the
-     * least nonsensical result. */
-    mk->xkbInfo->state = dk->xkbInfo->state;
-
-    if (lastMapNotifyDevice != master) {
-        SendMappingNotify(master, MappingKeyboard,
-                           mk->curKeySyms.minKeyCode,
-                          (mk->curKeySyms.maxKeyCode -
-                           mk->curKeySyms.minKeyCode),
-                          serverClient);
-        lastMapNotifyDevice = master;
-    }
 }
 
 /**
@@ -1661,23 +1640,15 @@ SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
 }
 
 void
-SendDeviceMappingNotify(ClientPtr client, CARD8 request,
-			KeyCode firstKeyCode, CARD8 count, DeviceIntPtr dev)
+SendDevicePointerMappingNotify(ClientPtr client, DeviceIntPtr dev)
 {
     xEvent event;
     deviceMappingNotify *ev = (deviceMappingNotify *) & event;
 
     ev->type = DeviceMappingNotify;
-    ev->request = request;
+    ev->request = MappingPointer;
     ev->deviceid = dev->id;
     ev->time = currentTime.milliseconds;
-    if (request == MappingKeyboard) {
-	ev->firstKeyCode = firstKeyCode;
-	ev->count = count;
-    }
-
-    if (request == MappingKeyboard || request == MappingModifier)
-        XkbApplyMappingChange(dev, request, firstKeyCode, count, client);
 
     SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) ev, 1);
 }
@@ -1712,9 +1683,10 @@ ChangeKeyMapping(ClientPtr client,
     keysyms.maxKeyCode = firstKeyCode + keyCodes - 1;
     keysyms.mapWidth = keySymsPerKeyCode;
     keysyms.map = map;
-    if (!SetKeySymsMap(&k->curKeySyms, &keysyms))
-	return BadAlloc;
-    SendDeviceMappingNotify(client, MappingKeyboard, firstKeyCode, keyCodes, dev);
+
+    XkbApplyMappingChange(dev, &keysyms, firstKeyCode, keyCodes, NULL,
+                          serverClient);
+
     return client->noClientException;
 }
 

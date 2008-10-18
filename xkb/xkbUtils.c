@@ -563,41 +563,52 @@ XkbSetRepeatKeys(DeviceIntPtr pXDev,int key,int onoff)
     return;
 }
 
+/* Applies a change to a single device, does not traverse the device tree. */
 void
-XkbApplyMappingChange(	DeviceIntPtr	kbd,
-			CARD8		 request,
-			KeyCode		 firstKey,
-			CARD8		 num,
-			ClientPtr	 client)
+XkbApplyMappingChange(DeviceIntPtr kbd, KeySymsPtr map, KeyCode first_key,
+                      CARD8 num_keys, CARD8 *modmap, ClientPtr client)
 {
-XkbEventCauseRec	cause;
-XkbChangesRec	 	changes;
-unsigned	 	check;
+    XkbDescPtr xkb = kbd->key->xkbInfo->desc;
+    XkbEventCauseRec cause;
+    XkbChangesRec changes;
+    unsigned int check;
 
-    bzero(&changes,sizeof(XkbChangesRec));
-    check= 0;
-    if (request==MappingKeyboard) {
-	XkbSetCauseCoreReq(&cause,X_ChangeKeyboardMapping,client);
-	XkbUpdateKeyTypesFromCore(kbd,firstKey,num,&changes);
-	XkbUpdateActions(kbd,firstKey,num,&changes,&check,&cause);
-	if (check)
-	    XkbCheckSecondaryEffects(kbd->key->xkbInfo,check,&changes,&cause);
-    }
-    else if (request==MappingModifier) {
-	XkbDescPtr	xkb= kbd->key->xkbInfo->desc;
+    memset(&changes, 0, sizeof(changes));
+    memset(&cause, 0, sizeof(cause));
 
-	XkbSetCauseCoreReq(&cause,X_SetModifierMapping,client);
-	num = xkb->max_key_code-xkb->min_key_code+1;
-	changes.map.changed|= XkbModifierMapMask;
-	changes.map.first_modmap_key= xkb->min_key_code;
-	changes.map.num_modmap_keys= num;
-	XkbUpdateActions(kbd,xkb->min_key_code,num,&changes,&check,&cause);
-	if (check)
-	    XkbCheckSecondaryEffects(kbd->key->xkbInfo,check,&changes,&cause);
+    if (map && first_key && num_keys) {
+        check = 0;
+        XkbSetCauseCoreReq(&cause, X_ChangeKeyboardMapping, client);
+
+        if (!SetKeySymsMap(&kbd->key->curKeySyms, map))
+            FatalError("XkbApplyMappingChange: failed to copy core keymap!\n");
+        XkbUpdateKeyTypesFromCore(kbd, first_key, num_keys, &changes);
+        XkbUpdateActions(kbd, first_key, num_keys, &changes, &check, &cause);
+
+        if (check)
+            XkbCheckSecondaryEffects(kbd->key->xkbInfo, 1, &changes, &cause);
     }
-    /* 3/26/94 (ef) -- XXX! Doesn't deal with input extension requests */
-    XkbSendNotification(kbd,&changes,&cause);
-    return;
+
+    if (modmap) {
+        /* A keymap change can imply a modmap change, se we prefer the
+         * former. */
+        if (!cause.mjr)
+            XkbSetCauseCoreReq(&cause,X_SetModifierMapping,client);
+
+        check = 0;
+        num_keys = xkb->max_key_code - xkb->min_key_code + 1;
+        changes.map.changed |= XkbModifierMapMask;
+        changes.map.first_modmap_key = xkb->min_key_code;
+        changes.map.num_modmap_keys = num_keys;
+        memcpy(kbd->key->xkbInfo->desc->map->modmap, modmap, MAP_LENGTH);
+        XkbUpdateActions(kbd, xkb->min_key_code, num_keys, &changes, &check,
+                         &cause);
+
+        if (check)
+            XkbCheckSecondaryEffects(kbd->key->xkbInfo, 1, &changes, &cause);
+    }
+
+    XkbSendNotification(kbd, &changes, &cause);
 }
 
 void
@@ -2062,17 +2073,8 @@ _XkbCopyControls(XkbDescPtr src, XkbDescPtr dst)
  */
 
 Bool
-XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
+XkbCopyKeymap(XkbDescPtr dst, XkbDescPtr src)
 {
-    DeviceIntPtr pDev = NULL, tmpDev = NULL;
-    xkbMapNotify mn;
-    xkbNewKeyboardNotify nkn;
-    XkbEventCauseRec cause;
-    XkbChangesRec changes;
-    unsigned int check = 0;
-
-    memset(&changes, 0, sizeof(changes));
-    memset(&cause, 0, sizeof(cause));
 
     if (!src || !dst) {
         DebugF("XkbCopyKeymap: src (%p) or dst (%p) is NULL\n", src, dst);
@@ -2111,79 +2113,36 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         return FALSE;
     }
 
-    for (tmpDev = inputInfo.devices; tmpDev && !pDev; tmpDev = tmpDev->next) {
-        if (tmpDev->key && tmpDev->key->xkbInfo &&
-            tmpDev->key->xkbInfo->desc == dst) {
-            pDev = tmpDev;
-            break;
-        }
-    }
-    for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
-         tmpDev = tmpDev->next) {
-        if (tmpDev->key && tmpDev->key->xkbInfo &&
-            tmpDev->key->xkbInfo->desc == dst) {
-            pDev = tmpDev;
-            break;
-        }
-    }
-
-    if (sendNotifies) {
-        if (!pDev) {
-            ErrorF("[xkb] XkbCopyKeymap: asked for notifies, but can't find device!\n");
-        }
-        else {
-            /* send NewKeyboardNotify if the keycode range changed, else
-             * just MapNotify.  we also need to send NKN if the geometry
-             * changed (obviously ...). */
-            if ((src->min_key_code != dst->min_key_code ||
-                 src->max_key_code != dst->max_key_code)) {
-                nkn.oldMinKeyCode = dst->min_key_code;
-                nkn.oldMaxKeyCode = dst->max_key_code;
-                nkn.deviceID = nkn.oldDeviceID = pDev->id;
-                nkn.minKeyCode = src->min_key_code;
-                nkn.maxKeyCode = src->max_key_code;
-                nkn.requestMajor = XkbReqCode;
-                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
-                nkn.changed = XkbAllNewKeyboardEventsMask;
-                XkbSendNewKeyboardNotify(pDev, &nkn);
-            } else
-            {
-                mn.deviceID = pDev->id;
-                mn.minKeyCode = src->min_key_code;
-                mn.maxKeyCode = src->max_key_code;
-                mn.firstType = 0;
-                mn.nTypes = src->map->num_types;
-                mn.firstKeySym = src->min_key_code;
-                mn.nKeySyms = XkbNumKeys(src);
-                mn.firstKeyAct = src->min_key_code;
-                mn.nKeyActs = XkbNumKeys(src);
-                /* Cargo-culted from ProcXkbGetMap. */
-                mn.firstKeyBehavior = src->min_key_code;
-                mn.nKeyBehaviors = XkbNumKeys(src);
-                mn.firstKeyExplicit = src->min_key_code;
-                mn.nKeyExplicit = XkbNumKeys(src);
-                mn.firstModMapKey = src->min_key_code;
-                mn.nModMapKeys = XkbNumKeys(src);
-                mn.firstVModMapKey = src->min_key_code;
-                mn.nVModMapKeys = XkbNumKeys(src);
-                mn.virtualMods = ~0; /* ??? */
-                mn.changed = XkbAllMapComponentsMask;
-                XkbSendMapNotify(pDev, &mn);
-            }
-
-            XkbUpdateActions(pDev, dst->min_key_code,
-                             XkbNumKeys(pDev->key->xkbInfo->desc), &changes,
-                             &check, &cause);
-            if (check)
-                XkbCheckSecondaryEffects(pDev->key->xkbInfo, check, &changes,
-                                         &cause);
-            memcpy(pDev->kbdfeed->ctrl.autoRepeats, dst->ctrls->per_key_repeat,
-                   XkbPerKeyBitArraySize);
-        }
-    }
-
     dst->min_key_code = src->min_key_code;
     dst->max_key_code = src->max_key_code;
 
     return TRUE;
+}
+
+Bool
+XkbCopyDeviceKeymap(DeviceIntPtr dst, DeviceIntPtr src)
+{
+    xkbNewKeyboardNotify nkn;
+    Bool ret;
+
+    if (!dst->key || !src->key)
+        return FALSE;
+
+    nkn.oldMinKeyCode = dst->key->xkbInfo->desc->min_key_code;
+    nkn.oldMaxKeyCode = dst->key->xkbInfo->desc->max_key_code;
+    nkn.deviceID = dst->id;
+    nkn.oldDeviceID = dst->id; /* maybe src->id? */
+    nkn.minKeyCode = src->key->xkbInfo->desc->min_key_code;
+    nkn.maxKeyCode = src->key->xkbInfo->desc->max_key_code;
+    nkn.requestMajor = XkbReqCode;
+    nkn.requestMinor = X_kbSetMap; /* Near enough's good enough. */
+    nkn.changed = XkbNKN_KeycodesMask;
+    if (src->key->xkbInfo->desc->geom)
+        nkn.changed |= XkbNKN_GeometryMask;
+
+    ret = XkbCopyKeymap(dst->key->xkbInfo->desc, src->key->xkbInfo->desc);
+    if (ret)
+        XkbSendNewKeyboardNotify(dst, &nkn);
+
+    return ret;
 }

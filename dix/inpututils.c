@@ -132,8 +132,7 @@ check_modmap_change_slave(ClientPtr client, DeviceIntPtr master,
 static void
 do_modmap_change(ClientPtr client, DeviceIntPtr dev, CARD8 *modmap)
 {
-    memcpy(dev->key->xkbInfo->desc->map->modmap, modmap, MAP_LENGTH);
-    SendDeviceMappingNotify(client, MappingModifier, 0, 0, dev);
+    XkbApplyMappingChange(dev, NULL, 0, 0, modmap, serverClient);
 }
 
 /* Rebuild modmap (key -> mod) from map (mod -> key). */
@@ -165,7 +164,7 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
 {
     int ret;
     CARD8 modmap[MAP_LENGTH];
-    DeviceIntPtr slave;
+    DeviceIntPtr tmp;
 
     ret = build_modmap_from_modkeymap(modmap, modkeymap, max_keys_per_mod);
     if (ret != Success)
@@ -177,12 +176,21 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
         return ret;
     do_modmap_change(client, dev, modmap);
 
-    /* If we're acting on a master, change the slaves as well. */
+    /* Change any attached masters/slaves. */
     if (dev->isMaster) {
-        for (slave = inputInfo.devices; slave; slave = slave->next) {
-            if (slave != dev && !slave->isMaster && slave->u.master == dev)
-                if (check_modmap_change_slave(client, dev, slave, modmap))
-                    do_modmap_change(client, slave, modmap);
+        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+            if (!tmp->isMaster && tmp->u.master == dev)
+                if (check_modmap_change_slave(client, dev, tmp, modmap))
+                    do_modmap_change(client, tmp, modmap);
+        }
+    }
+    else {
+        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+            if (tmp->isMaster && tmp->u.lastSlave == dev) {
+                /* If this fails, expect the results to be weird. */
+                if (check_modmap_change(client, tmp, modmap))
+                    do_modmap_change(client, tmp, modmap);
+            }
         }
     }
 

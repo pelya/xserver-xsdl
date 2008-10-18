@@ -5837,8 +5837,7 @@ ProcXkbGetKbdByName(ClientPtr client)
                 (dev->id == inputInfo.keyboard->id && tmpd->key &&
                  tmpd->coreEvents)) {
                 if (tmpd != dev)
-                    XkbCopyKeymap(dev->key->xkbInfo->desc,
-                                  tmpd->key->xkbInfo->desc, True);
+                    XkbCopyDeviceKeymap(tmpd, dev);
                 XkbUpdateCoreDescription(tmpd, True);
 
                 if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {

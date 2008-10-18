@@ -293,26 +293,15 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
  * DarwinKeyboardSetDeviceKeyMap
  * Load a keymap into the keyboard device
  */
-static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms) {
+static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms, CARD8 *modmap) {
     DeviceIntPtr pDev;
 
-    /* From ProcSetModifierMapping */
-    SendMappingNotify(darwinKeyboard, MappingModifier, 0, 0, serverClient);
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
-        if (pDev->key && pDev->coreEvents)
-            SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
-    
-    /* From ProcChangeKeyboardMapping */
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
-            assert(SetKeySymsMap(&pDev->key->curKeySyms, keySyms));
-
-    SendMappingNotify(darwinKeyboard, MappingKeyboard, keySyms->minKeyCode,
-                      keySyms->maxKeyCode - keySyms->minKeyCode + 1, serverClient);
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
-        if (pDev->key && pDev->coreEvents)
-            SendDeviceMappingNotify(serverClient, MappingKeyboard, keySyms->minKeyCode,
-                                    keySyms->maxKeyCode - keySyms->minKeyCode + 1, pDev);    
+            XkbApplyMappingChange(pDev, XkbKeySymsMask | XkbModifierMapMask,
+                                  keysyms, keysyms.minKeyCode,
+                                  keysyms.maxKeyCode - keysyms.minKeyCode + 1,
+                                  modmap, serverClient);
 }
 
 /*
@@ -340,14 +329,11 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
     
     pthread_mutex_lock(&keyInfo_mutex);
-    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
-                                       QuartzBell, DarwinChangeKeyboardControl));
-    assert(pDev->key->xkbInfo->desc->map->modmap!=NULL);
-    memcpy(pDev->key->xkbInfo->desc->map->modmap, keyInfo.modMap, sizeof(keyInfo.modMap));
+    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, QuartzBell,
+                                       DarwinChangeKeyboardControl));
+    assert(keyInfo.modMap!=NULL);
     pthread_mutex_unlock(&keyInfo_mutex);
 
-	QuartzXkbUpdate(pDev);
-#else
     pthread_mutex_lock(&keyInfo_mutex);
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
                                       QuartzBell,
@@ -373,7 +359,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
     }
 
-    DarwinKeyboardSetDeviceKeyMap(&keySyms);
+    DarwinKeyboardSetDeviceKeyMap(&keySyms, keyInfo.modMap);
 }
 
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {

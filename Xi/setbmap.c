@@ -121,7 +121,8 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     }
 
     if (ret != MappingBusy)
-	SendDeviceMappingNotify(client, MappingPointer, 0, 0, dev);
+	SendDevicePointerMappingNotify(client, dev);
+
     return Success;
 }
 

@@ -538,9 +538,10 @@ extern _X_EXPORT void XkbUpdateCoreDescription(
 
 extern _X_EXPORT void XkbApplyMappingChange(
     DeviceIntPtr	/* pXDev */,
-    CARD8 		/* request */,
-    KeyCode 		/* firstKey */,
-    CARD8 		/* num */,
+    KeySymsPtr          /* map */,
+    KeyCode		/* firstKey */,
+    CARD8		/* num */,
+    CARD8 *             /* modmap */,
     ClientPtr		/* client */
 );
 
@@ -955,8 +956,11 @@ extern _X_EXPORT void XkbSendNewKeyboardNotify(
 
 extern Bool XkbCopyKeymap(
         XkbDescPtr              /* dst */,
-        XkbDescPtr              /* src */,
-        Bool                    /* sendNotifies */);
+        XkbDescPtr              /* src */);
+
+extern Bool XkbCopyDeviceKeymap(
+        DeviceIntPtr            /* dst */,
+        DeviceIntPtr            /* src */);
 
 #include "xkbfile.h"
 #include <X11/extensions/XKMformat.h>

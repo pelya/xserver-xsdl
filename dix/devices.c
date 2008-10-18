@@ -1013,19 +1013,20 @@ QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
     }
 }
 
+/* Notably, this function does not expand the destination's keycode range, or
+ * notify clients. */
 Bool
 SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 {
     int i, j;
+    KeySym *tmp;
     int rowDif = src->minKeyCode - dst->minKeyCode;
 
     /* if keysym map size changes, grow map first */
-    if (src->mapWidth < dst->mapWidth)
-    {
-        for (i = src->minKeyCode; i <= src->maxKeyCode; i++)
-	{
-#define SI(r, c) (((r-src->minKeyCode)*src->mapWidth) + (c))
-#define DI(r, c) (((r - dst->minKeyCode)*dst->mapWidth) + (c))
+    if (src->mapWidth < dst->mapWidth) {
+        for (i = src->minKeyCode; i <= src->maxKeyCode; i++) {
+#define SI(r, c) (((r - src->minKeyCode) * src->mapWidth) + (c))
+#define DI(r, c) (((r - dst->minKeyCode) * dst->mapWidth) + (c))
 	    for (j = 0; j < src->mapWidth; j++)
 		dst->map[DI(i, j)] = src->map[SI(i, j)];
 	    for (j = src->mapWidth; j < dst->mapWidth; j++)
@@ -1035,39 +1036,37 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 	}
 	return TRUE;
     }
-    else if (src->mapWidth > dst->mapWidth)
-    {
-        KeySym *map;
-	int bytes = sizeof(KeySym) * src->mapWidth *
-		    (dst->maxKeyCode - dst->minKeyCode + 1);
-        map = (KeySym *)xcalloc(1, bytes);
-	if (!map)
-	    return FALSE;
-        if (dst->map)
-	{
-            for (i = 0; i <= dst->maxKeyCode-dst->minKeyCode; i++)
-		memmove((char *)&map[i*src->mapWidth],
-			(char *)&dst->map[i*dst->mapWidth],
-		      dst->mapWidth * sizeof(KeySym));
-	    xfree(dst->map);
-	}
-	dst->mapWidth = src->mapWidth;
-	dst->map = map;
-    } else if (!dst->map)
-    {
-        KeySym *map;
-	int bytes = sizeof(KeySym) * src->mapWidth *
-		    (dst->maxKeyCode - dst->minKeyCode + 1);
-        map = (KeySym *)xcalloc(1, bytes);
-        if (!map)
+    else if (src->mapWidth > dst->mapWidth) {
+        i = sizeof(KeySym) * src->mapWidth *
+             (dst->maxKeyCode - dst->minKeyCode + 1);
+        tmp = xcalloc(sizeof(KeySym), i);
+        if (!tmp)
             return FALSE;
-        dst->map = map;
+
+        if (dst->map) {
+            for (i = 0; i <= dst->maxKeyCode-dst->minKeyCode; i++)
+                memmove(&tmp[i * src->mapWidth], &dst->map[i * dst->mapWidth],
+                        dst->mapWidth * sizeof(KeySym));
+            xfree(dst->map);
+        }
+        dst->mapWidth = src->mapWidth;
+        dst->map = tmp;
+    }
+    else if (!dst->map) {
+        i = sizeof(KeySym) * src->mapWidth *
+             (dst->maxKeyCode - dst->minKeyCode + 1);
+        tmp = xcalloc(sizeof(KeySym), i);
+        if (!tmp)
+            return FALSE;
+
+        dst->map = tmp;
         dst->mapWidth = src->mapWidth;
     }
-    memmove((char *)&dst->map[rowDif * dst->mapWidth],
-	    (char *)src->map,
-	  (int)(src->maxKeyCode - src->minKeyCode + 1) *
-	  dst->mapWidth * sizeof(KeySym));
+
+    memmove(&dst->map[rowDif * dst->mapWidth], src->map,
+            (src->maxKeyCode - src->minKeyCode + 1) *
+            dst->mapWidth * sizeof(KeySym));
+
     return TRUE;
 }
 
@@ -1398,34 +1397,24 @@ InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
 }
 
 _X_EXPORT void
-SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
-        unsigned count, ClientPtr client)
+SendPointerMappingNotify(DeviceIntPtr pDev, ClientPtr client)
 {
     int i;
     xEvent event;
 
-    event.u.u.type = MappingNotify;
-    event.u.mappingNotify.request = request;
-    if (request == MappingKeyboard)
-    {
-        event.u.mappingNotify.firstKeyCode = firstKeyCode;
-        event.u.mappingNotify.count = count;
-    }
-    if (request == MappingKeyboard || request == MappingModifier)
-	XkbApplyMappingChange(pDev,request,firstKeyCode,count, client);
+    /* 0 is the server client. */
+    for (i = 1; i < currentMaxClients; i++) {
+        /* Don't send irrelevant events to naïve clients. */
+        if (PickPointer(clients[i]) != pDev)
+            continue;
 
-   /* 0 is the server client */
-    for (i=1; i<currentMaxClients; i++)
-    {
-	if (clients[i] && clients[i]->clientState == ClientStateRunning)
-	{
-	    if (request == MappingKeyboard &&
-		clients[i]->xkbClientFlags != 0 &&
-		(clients[i]->mapNotifyMask & XkbKeySymsMask))
-		continue;
-	    event.u.u.sequenceNumber = clients[i]->sequence;
-	    WriteEventsToClient(clients[i], 1, &event);
-	}
+        if (clients[i] && clients[i]->clientState == ClientStateRunning) {
+            event.u.u.type = MappingNotify;
+            event.u.u.sequenceNumber = clients[i]->sequence;
+            event.u.mappingNotify.request = MappingPointer;
+
+            WriteEventsToClient(clients[i], 1, &event);
+        }
     }
 }
 
@@ -1516,7 +1505,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     unsigned len;
     KeySymsRec keysyms;
     KeySymsPtr curKeySyms = &PickKeyboard(client)->key->curKeySyms;
-    DeviceIntPtr pDev = NULL;
+    DeviceIntPtr pDev, tmp;
     int rc;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
 
@@ -1536,28 +1525,30 @@ ProcChangeKeyboardMapping(ClientPtr client)
 	    return BadValue;
     }
 
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
-	    if (rc != Success)
-                return rc;
-        }
-    }
-
     keysyms.minKeyCode = stuff->firstKeyCode;
     keysyms.maxKeyCode = stuff->firstKeyCode + stuff->keyCodes - 1;
     keysyms.mapWidth = stuff->keySymsPerKeyCode;
-    keysyms.map = (KeySym *)&stuff[1];
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
-            if (!SetKeySymsMap(&pDev->key->curKeySyms, &keysyms))
-                return BadAlloc;
+    keysyms.map = (KeySym *) &stuff[1];
 
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
-        if (pDev->key && pDev->coreEvents)
-            SendDeviceMappingNotify(client, MappingKeyboard,
-                                    stuff->firstKeyCode, stuff->keyCodes,
-                                    pDev);
+    pDev = PickKeyboard(client);
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
+    if (rc != Success)
+        return rc;
+
+    XkbApplyMappingChange(pDev, &keysyms, stuff->firstKeyCode,
+                          stuff->keyCodes, NULL, client);
+
+    for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+        if (tmp->isMaster || tmp->u.master != pDev)
+            continue;
+
+        rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
+        if (rc != Success)
+            continue;
+
+        XkbApplyMappingChange(tmp, &keysyms, stuff->firstKeyCode,
+                              stuff->keyCodes, NULL, client);
+    }
 
     return client->noClientException;
 }
@@ -1639,7 +1630,8 @@ ProcSetPointerMapping(ClientPtr client)
         return Success;
     }
 
-    SendMappingNotify(ptr, MappingPointer, 0, 0, client);
+    /* FIXME: Send mapping notifies for masters/slaves as well. */
+    SendPointerMappingNotify(ptr, client);
     WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
     return Success;
 }
