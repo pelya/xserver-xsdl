@@ -514,13 +514,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 {
     BYTE map[33];
     int i = 0;
-    ClassesPtr classes;
 
     switch (what) {
     case DEVICE_INIT:
-        if (!(classes = xcalloc(1, sizeof(ClassesRec))))
-            return BadAlloc;
-
         for (i = 1; i <= 32; i++)
             map[i] = i;
         InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
@@ -619,7 +615,6 @@ FreeDeviceClass(int type, pointer *class)
                     XkbFreeInfo((*k)->xkbInfo);
                     (*k)->xkbInfo = NULL;
                 }
-                xfree((*k)->curKeySyms.map);
                 xfree((*k));
                 break;
             }
@@ -1008,8 +1003,8 @@ void
 QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
 {
     if (inputInfo.keyboard) {
-	*minCode = inputInfo.keyboard->key->curKeySyms.minKeyCode;
-	*maxCode = inputInfo.keyboard->key->curKeySyms.maxKeyCode;
+	*minCode = inputInfo.keyboard->key->xkbInfo->desc->min_key_code;
+	*maxCode = inputInfo.keyboard->key->xkbInfo->desc->max_key_code;
     }
 }
 
@@ -1482,7 +1477,6 @@ ProcChangeKeyboardMapping(ClientPtr client)
     REQUEST(xChangeKeyboardMappingReq);
     unsigned len;
     KeySymsRec keysyms;
-    KeySymsPtr curKeySyms = &PickKeyboard(client)->key->curKeySyms;
     DeviceIntPtr pDev, tmp;
     int rc;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
@@ -1491,14 +1485,17 @@ ProcChangeKeyboardMapping(ClientPtr client)
     if (len != (stuff->keyCodes * stuff->keySymsPerKeyCode))
             return BadLength;
 
-    if ((stuff->firstKeyCode < curKeySyms->minKeyCode) ||
-	(stuff->firstKeyCode > curKeySyms->maxKeyCode)) {
+    pDev = PickKeyboard(client);
+
+    if ((stuff->firstKeyCode < pDev->key->xkbInfo->desc->min_key_code) ||
+	(stuff->firstKeyCode > pDev->key->xkbInfo->desc->max_key_code)) {
 	    client->errorValue = stuff->firstKeyCode;
 	    return BadValue;
 
     }
     if (((unsigned)(stuff->firstKeyCode + stuff->keyCodes - 1) >
-        curKeySyms->maxKeyCode) || (stuff->keySymsPerKeyCode == 0)) {
+          pDev->key->xkbInfo->desc->max_key_code) ||
+        (stuff->keySymsPerKeyCode == 0)) {
 	    client->errorValue = stuff->keySymsPerKeyCode;
 	    return BadValue;
     }
@@ -1589,7 +1586,8 @@ ProcGetKeyboardMapping(ClientPtr client)
 {
     xGetKeyboardMappingReply rep;
     DeviceIntPtr kbd = PickKeyboard(client);
-    KeySymsPtr curKeySyms = &kbd->key->curKeySyms;
+    XkbDescPtr xkb;
+    KeySymsPtr syms;
     int rc;
     REQUEST(xGetKeyboardMappingReq);
     REQUEST_SIZE_MATCH(xGetKeyboardMappingReq);
@@ -1598,29 +1596,35 @@ ProcGetKeyboardMapping(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    if ((stuff->firstKeyCode < curKeySyms->minKeyCode) ||
-        (stuff->firstKeyCode > curKeySyms->maxKeyCode)) {
+    xkb = kbd->key->xkbInfo->desc;
+
+    if ((stuff->firstKeyCode < xkb->min_key_code) ||
+        (stuff->firstKeyCode > xkb->max_key_code)) {
 	client->errorValue = stuff->firstKeyCode;
 	return BadValue;
     }
-    if (stuff->firstKeyCode + stuff->count >
-	(unsigned)(curKeySyms->maxKeyCode + 1)) {
+    if (stuff->firstKeyCode + stuff->count > xkb->max_key_code + 1) {
 	client->errorValue = stuff->count;
         return BadValue;
     }
 
+    syms = XkbGetCoreMap(kbd);
+    if (!syms)
+        return BadAlloc;
+
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.keySymsPerKeyCode = curKeySyms->mapWidth;
+    rep.keySymsPerKeyCode = syms->mapWidth;
     /* length is a count of 4 byte quantities and KeySyms are 4 bytes */
-    rep.length = (curKeySyms->mapWidth * stuff->count);
+    rep.length = syms->mapWidth * stuff->count;
     WriteReplyToClient(client, sizeof(xGetKeyboardMappingReply), &rep);
     client->pSwapReplyFunc = (ReplySwapPtr) CopySwap32Write;
-    WriteSwappedDataToClient(
-	client,
-	curKeySyms->mapWidth * stuff->count * sizeof(KeySym),
-	&curKeySyms->map[(stuff->firstKeyCode - curKeySyms->minKeyCode) *
-			 curKeySyms->mapWidth]);
+    WriteSwappedDataToClient(client,
+                             syms->mapWidth * stuff->count * sizeof(KeySym),
+                             &syms->map[syms->mapWidth * (stuff->firstKeyCode -
+                                                          syms->minKeyCode)]);
+    xfree(syms->map);
+    xfree(syms);
 
     return client->noClientException;
 }
@@ -1773,8 +1777,8 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
 	case KBKey:
 	    key = (KeyCode)*vlist;
 	    vlist++;
-	    if ((KeyCode)key < keybd->key->curKeySyms.minKeyCode ||
-		(KeyCode)key > keybd->key->curKeySyms.maxKeyCode) {
+	    if ((KeyCode)key < keybd->key->xkbInfo->desc->min_key_code ||
+		(KeyCode)key > keybd->key->xkbInfo->desc->max_key_code) {
 		client->errorValue = key;
 		return BadValue;
 	    }

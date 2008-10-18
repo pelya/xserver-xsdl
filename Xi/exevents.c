@@ -212,8 +212,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     if (device == master)
         return;
 
-    SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
-
     for (i = 0; i < 8; i++)
         mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
@@ -476,7 +474,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
     if (from->key)
     {
-        KeySym              *oldMap;
         struct _XkbSrvInfo  *oldXkbInfo;
         if (!to->key)
         {
@@ -492,21 +489,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->key = NULL;
         }
 
-        oldMap          = to->key->curKeySyms.map;
         oldXkbInfo      = to->key->xkbInfo;
-
-        if (!oldMap) /* newly created key struct */
-        {
-            int bytes = (to->key->curKeySyms.maxKeyCode -
-                         to->key->curKeySyms.minKeyCode + 1) *
-                         to->key->curKeySyms.mapWidth;
-            oldMap = (KeySym *)xcalloc(sizeof(KeySym), bytes);
-            memcpy(oldMap, from->key->curKeySyms.map, bytes);
-        }
-
-        to->key->curKeySyms.map = oldMap;
         to->key->xkbInfo        = oldXkbInfo;
-
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
     {
@@ -1101,7 +1085,8 @@ FixDeviceStateNotify(DeviceIntPtr dev, deviceStateNotify * ev, KeyClassPtr k,
 	memcpy((char*)ev->buttons, (char*)b->down, 4);
     } else if (k) {
 	ev->classes_reported |= (1 << KeyClass);
-	ev->num_keys = k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode;
+	ev->num_keys = k->xkbInfo->desc->max_key_code -
+                       k->xkbInfo->desc->min_key_code;
 	memmove((char *)&ev->keys[0], (char *)k->down, 4);
     }
     if (v) {
@@ -1185,7 +1170,8 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 		evcount++;
 	}
 	if ((k = dev->key) != NULL) {
-	    nkeys = k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode;
+	    nkeys = k->xkbInfo->desc->max_key_code -
+                    k->xkbInfo->desc->min_key_code;
 	    if (nkeys > 32)
 		evcount++;
 	    if (nbuttons > 0) {
@@ -1355,10 +1341,11 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = this_device_mode;
 	return BadValue;
     }
-    if (((key > k->curKeySyms.maxKeyCode) || (key < k->curKeySyms.minKeyCode))
+    if ((key > k->xkbInfo->desc->max_key_code ||
+         key < k->xkbInfo->desc->min_key_code)
 	&& (key != AnyKey)) {
 	client->errorValue = key;
-	return BadValue;
+        return BadValue;
     }
     if ((modifiers != AnyModifier) && (modifiers & ~AllModifiersMask)) {
 	client->errorValue = modifiers;
@@ -1656,8 +1643,8 @@ ChangeKeyMapping(ClientPtr client,
     if (len != (keyCodes * keySymsPerKeyCode))
 	return BadLength;
 
-    if ((firstKeyCode < k->curKeySyms.minKeyCode) ||
-	(firstKeyCode + keyCodes - 1 > k->curKeySyms.maxKeyCode)) {
+    if ((firstKeyCode < k->xkbInfo->desc->min_key_code) ||
+	(firstKeyCode + keyCodes - 1 > k->xkbInfo->desc->max_key_code)) {
 	client->errorValue = firstKeyCode;
 	return BadValue;
     }

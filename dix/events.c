@@ -5018,8 +5018,8 @@ ProcUngrabKey(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    if (((stuff->key > keybd->key->curKeySyms.maxKeyCode) ||
-	 (stuff->key < keybd->key->curKeySyms.minKeyCode))
+    if (((stuff->key > keybd->key->xkbInfo->desc->max_key_code) ||
+	 (stuff->key < keybd->key->xkbInfo->desc->min_key_code))
 	&& (stuff->key != AnyKey))
     {
 	client->errorValue = stuff->key;
@@ -5080,8 +5080,8 @@ ProcGrabKey(ClientPtr client)
 	client->errorValue = stuff->keyboardMode;
         return BadValue;
     }
-    if (((stuff->key > keybd->key->curKeySyms.maxKeyCode) ||
-	 (stuff->key < keybd->key->curKeySyms.minKeyCode))
+    if (((stuff->key > keybd->key->xkbInfo->desc->max_key_code) ||
+	 (stuff->key < keybd->key->xkbInfo->desc->min_key_code))
 	&& (stuff->key != AnyKey))
     {
 	client->errorValue = stuff->key;

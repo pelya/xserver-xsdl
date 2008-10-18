@@ -322,11 +322,6 @@ extern	_X_EXPORT int	DeviceEnterNotify,DeviceLeaveNotify;
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
 #define	_XkbIsReleaseEvent(t)	(((t)==KeyRelease)||((t)==DeviceKeyRelease))
 
-#define	_XkbCoreKeycodeInRange(c,k)	(((k)>=(c)->curKeySyms.minKeyCode)&&\
-					 ((k)<=(c)->curKeySyms.maxKeyCode))
-#define	_XkbCoreNumKeys(c)	((c)->curKeySyms.maxKeyCode-\
-				 (c)->curKeySyms.minKeyCode+1)
-
 #define	XConvertCase(s,l,u)	XkbConvertCase(s,l,u)
 #undef	IsKeypadKey
 #define	IsKeypadKey(s)		XkbKSIsKeypad(s)
@@ -510,6 +505,7 @@ extern _X_EXPORT XkbAction *XkbResizeKeyActions(
 
 extern _X_EXPORT void XkbUpdateKeyTypesFromCore(
     DeviceIntPtr	/* pXDev */,
+    KeySymsPtr          /* syms */,
     KeyCode 		/* first */,
     CARD8 		/* num */,
     XkbChangesPtr	/* pChanges */
@@ -531,9 +527,8 @@ extern _X_EXPORT void XkbUpdateActions(
     XkbEventCausePtr	/* cause */
 );
 
-extern _X_EXPORT void XkbUpdateCoreDescription(
-    DeviceIntPtr	/* keybd */,
-    Bool		/* resize */
+extern _X_EXPORT KeySymsPtr XkbGetCoreMap(
+    DeviceIntPtr        /* keybd */
 );
 
 extern _X_EXPORT void XkbApplyMappingChange(

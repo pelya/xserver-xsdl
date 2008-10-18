@@ -148,7 +148,7 @@ static int
 check_modmap_change(ClientPtr client, DeviceIntPtr dev, KeyCode *modmap)
 {
     int ret, i;
-    KeySymsPtr syms;
+    XkbDescPtr xkb;
 
     ret = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
     if (ret != Success)
@@ -156,7 +156,7 @@ check_modmap_change(ClientPtr client, DeviceIntPtr dev, KeyCode *modmap)
 
     if (!dev->key)
         return BadMatch;
-    syms = &dev->key->curKeySyms;
+    xkb = dev->key->xkbInfo->desc;
 
     for (i = 0; i < MAP_LENGTH; i++) {
         if (!modmap[i])
@@ -164,7 +164,7 @@ check_modmap_change(ClientPtr client, DeviceIntPtr dev, KeyCode *modmap)
 
         /* Check that all the new modifiers fall within the advertised
          * keycode range. */
-        if (i < syms->minKeyCode || i > syms->maxKeyCode) {
+        if (i < xkb->min_key_code || i > xkb->max_key_code) {
             client->errorValue = i;
             return -1;
         }
@@ -185,8 +185,8 @@ check_modmap_change(ClientPtr client, DeviceIntPtr dev, KeyCode *modmap)
 
     /* None of the old modifiers may be down while we change the map,
      * either. */
-    for (i = syms->minKeyCode; i < syms->maxKeyCode; i++) {
-        if (!dev->key->xkbInfo->desc->map->modmap[i])
+    for (i = xkb->min_key_code; i < xkb->max_key_code; i++) {
+        if (!xkb->map->modmap[i])
             continue;
         if (key_is_down(dev, i, KEY_POSTED | KEY_PROCESSED)) {
             client->errorValue = i;
@@ -201,18 +201,18 @@ static int
 check_modmap_change_slave(ClientPtr client, DeviceIntPtr master,
                           DeviceIntPtr slave, CARD8 *modmap)
 {
-    KeySymsPtr master_syms, slave_syms;
+    XkbDescPtr master_xkb, slave_xkb;
     int i, j;
 
     if (!slave->key || !master->key)
         return 0;
 
-    master_syms = &master->key->curKeySyms;
-    slave_syms = &slave->key->curKeySyms;
+    master_xkb = master->key->xkbInfo->desc;
+    slave_xkb = slave->key->xkbInfo->desc;
 
     /* Ignore devices with a clearly different keymap. */
-    if (slave_syms->minKeyCode != master_syms->minKeyCode ||
-        slave_syms->maxKeyCode != master_syms->maxKeyCode)
+    if (slave_xkb->min_key_code != master_xkb->min_key_code ||
+        slave_xkb->max_key_code != master_xkb->max_key_code)
         return 0;
 
     for (i = 0; i < MAP_LENGTH; i++) {
@@ -221,9 +221,11 @@ check_modmap_change_slave(ClientPtr client, DeviceIntPtr master,
 
         /* If we have different symbols for any modifier on an
          * extended keyboard, ignore the whole remap request. */
-        for (j = 0; j < slave_syms->mapWidth && j < master_syms->mapWidth; j++)
-            if (slave_syms->map[modmap[i] * slave_syms->mapWidth + j] !=
-                master_syms->map[modmap[i] * master_syms->mapWidth + j])
+        for (j = 0;
+             j < XkbKeyNumSyms(slave_xkb, i) &&
+              j < XkbKeyNumSyms(master_xkb, i);
+             j++)
+            if (XkbKeySymsPtr(slave_xkb, i)[j] != XkbKeySymsPtr(master_xkb, i)[j])
                 return 0;
     }
 

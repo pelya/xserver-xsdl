@@ -42,6 +42,8 @@
 #include "dixevents.h"
 #include "sleepuntil.h"
 #include "mi.h"
+#include "xkbsrv.h"
+#include "xkbstr.h"
 #define _XTEST_SERVER_
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/xteststr.h>
@@ -321,8 +323,8 @@ ProcXTestFakeInput(ClientPtr client)
     {
         case KeyPress:
         case KeyRelease:
-            if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
-                    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
+            if (ev->u.u.detail < dev->key->xkbInfo->desc->min_key_code ||
+                ev->u.u.detail > dev->key->xkbInfo->desc->max_key_code)
             {
                 client->errorValue = ev->u.u.detail;
                 return BadValue;

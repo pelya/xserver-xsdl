@@ -75,12 +75,6 @@ static KdPointerMatrix	kdPointerMatrix = {
 
 void KdResetInputMachine (void);
     
-#define IsKeyDown(ki, key) ((ki->keyState[(key) >> 3] >> ((key) & 7)) & 1)
-#define KEYMAP(ki)        (ki->dixdev->key->curKeySyms)
-#define KEYMAPDDX(ki)     (ki->keySyms)
-#define KEYCOL1(ki, k)    (KEYMAP(ki).map[((k)-(KEYMAP(ki).minKeyCode))*KEYMAP(ki).mapWidth])
-#define KEYCOL1DDX(ki, k) (KEYMAPDDX(ki).map[((k)-(KEYMAPDDX(ki).minKeyCode))*KEYMAPDDX(ki).mapWidth])
-
 #define KD_MAX_INPUT_FDS    8
 
 typedef struct _kdInputFd {
@@ -1756,13 +1750,6 @@ KdReceiveTimeout (KdPointerInfo *pi)
     KdRunMouseMachine (pi, timeout, 0, 0, 0, 0, 0, 0);
 }
 
-#define KILL_SEQUENCE     ((1L << KK_CONTROL)|(1L << KK_ALT)|(1L << KK_F8)|(1L << KK_F10))
-#define SPECIAL_SEQUENCE  ((1L << KK_CONTROL) | (1L << KK_ALT))
-#define SETKILLKEY(b)     (KdSpecialKeys |= (1L << (b)))
-#define CLEARKILLKEY(b)   (KdSpecialKeys &= ~(1L << (b)))
-
-CARD32	KdSpecialKeys = 0;
-
 /*
  * kdCheckTermination
  *
@@ -1819,7 +1806,7 @@ KdReleaseAllKeys (void)
     for (ki = kdKeyboards; ki; ki = ki->next) {
         for (key = ki->keySyms.minKeyCode; key < ki->keySyms.maxKeyCode;
              key++) {
-            if (IsKeyDown(ki, key)) {
+            if (key_is_down(ki->dixdev, key, KEY_POSTED | KEY_PROCESSED)) {
                 KdHandleKeyboardEvent(ki, KeyRelease, key);
                 GetEventList(&kdEvents);
                 nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, KeyRelease, key);

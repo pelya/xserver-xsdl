@@ -2519,7 +2519,6 @@ _XkbSetMap(ClientPtr client, DeviceIntPtr dev, xkbSetMapReq *req, char *values)
     if (!sentNKN)
 	XkbSendNotification(dev,&change,&cause);
 
-    XkbUpdateCoreDescription(dev,False);
     return Success;
 allocFailure:
     return BadAlloc;
@@ -2856,7 +2855,6 @@ _XkbSetCompatMap(ClientPtr client, DeviceIntPtr dev,
 									&cause);
 	if (check)
 	    XkbCheckSecondaryEffects(xkbi,check,&change,&cause);
-	XkbUpdateCoreDescription(dev,False);
 	XkbSendNotification(dev,&change,&cause);
     }
     return Success;
@@ -5838,7 +5836,6 @@ ProcXkbGetKbdByName(ClientPtr client)
                  tmpd->coreEvents)) {
                 if (tmpd != dev)
                     XkbCopyDeviceKeymap(tmpd, dev);
-                XkbUpdateCoreDescription(tmpd, True);
 
                 if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
                     old_sli = tmpd->kbdfeed->xkb_sli;
@@ -5854,8 +5851,6 @@ ProcXkbGetKbdByName(ClientPtr client)
             }
         }
 
-        /* this should be either a MN or an NKN, depending on whether or not
-         * the keycode range changed? */
 	nkn.deviceID= nkn.oldDeviceID= dev->id;
 	nkn.minKeyCode= new->min_key_code;
 	nkn.maxKeyCode= new->max_key_code;

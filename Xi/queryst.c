@@ -42,6 +42,8 @@ from The Open Group.
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "exglobals.h"
+#include "xkbsrv.h"
+#include "xkbstr.h"
 
 #include "queryst.h"
 
@@ -126,7 +128,8 @@ ProcXQueryDeviceState(ClientPtr client)
 	tk = (xKeyState *) buf;
 	tk->class = KeyClass;
 	tk->length = sizeof(xKeyState);
-	tk->num_keys = k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode + 1;
+	tk->num_keys = k->xkbInfo->desc->max_key_code -
+                       k->xkbInfo->desc->min_key_code + 1;
 	for (i = 0; i < 32; i++)
 	    tk->keys[i] = k->down[i];
 	buf += sizeof(xKeyState);

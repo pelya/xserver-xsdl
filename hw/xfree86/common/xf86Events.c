@@ -76,6 +76,9 @@
 #include "mi.h"
 #include "mipointer.h"
 
+#include "xkbsrv.h"
+#include "xkbstr.h"
+
 #ifdef XF86BIGFONT
 #define _XF86BIGFONT_SERVER_
 #include <X11/extensions/xf86bigfont.h>
@@ -402,16 +405,14 @@ xf86PrintBacktrace(void)
 static void
 xf86ReleaseKeys(DeviceIntPtr pDev)
 {
-    KeyClassPtr keyc = NULL;
-    KeySym *map = NULL;
+    KeyClassPtr keyc;
     xEvent ke;
-    int i = 0, j = 0, nevents = 0;
+    int i, j, nevents, sigstate;
 
     if (!pDev || !pDev->key)
         return;
 
     keyc = pDev->key;
-    map = keyc->curKeySyms.map;
 
     /*
      * Hmm... here is the biggest hack of every time !
@@ -424,36 +425,15 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
      * are reenabled.
      */
 
-    for (i = keyc->curKeySyms.minKeyCode, map = keyc->curKeySyms.map;
-         i < keyc->curKeySyms.maxKeyCode;
-         i++, map += keyc->curKeySyms.mapWidth) {
+    for (i = keyc->xkbInfo->desc->min_key_code;
+         i < keyc->xkbInfo->desc->max_key_code;
+         i++) {
         if (KeyPressed(i)) {
-            switch (*map) {
-            /* Don't release the lock keys */
-            case XK_Caps_Lock:
-            case XK_Shift_Lock:
-            case XK_Num_Lock:
-            case XK_Scroll_Lock:
-            case XK_Kana_Lock:
-                break;
-            default:
-                if (pDev == inputInfo.keyboard) {
-                    ke.u.keyButtonPointer.time = GetTimeInMillis();
-                    ke.u.keyButtonPointer.rootX = 0;
-                    ke.u.keyButtonPointer.rootY = 0;
-                    ke.u.u.type = KeyRelease;
-                    ke.u.u.detail = i;
-                    (*pDev->public.processInputProc) (&ke, pDev, 1);
-                }
-                else {
-		    int sigstate = xf86BlockSIGIO ();
-                    nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
-                    for (j = 0; j < nevents; j++)
-                        mieqEnqueue(pDev, (xf86Events + j)->event);
-		    xf86UnblockSIGIO(sigstate);
-                }
-                break;
-            }
+            sigstate = xf86BlockSIGIO ();
+            nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
+            for (j = 0; j < nevents; j++)
+                mieqEnqueue(pDev, (xf86Events + j)->event);
+            xf86UnblockSIGIO(sigstate);
         }
     }
 }
@@ -502,18 +482,19 @@ xf86VTSwitch(void)
      * Keep the order: Disable Device > LeaveVT
      *                        EnterVT > EnableDevice
      */
-    pInfo = xf86InputDevs;
-    while (pInfo) {
-      if (pInfo->dev)
+    for (ih = InputHandlers; ih; ih = ih->next)
+      xf86DisableInputHandler(ih);
+    for (pInfo = xf86InputDevs; pInfo; pInfo = pInfo->next) {
+      if (pInfo->dev) {
+          xf86ReleaseKeys(pInfo->dev);
+          ProcessInputEvents();
           DisableDevice(pInfo->dev);
-      pInfo = pInfo->next;
+      }
     }
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++)
 	xf86Screens[i]->LeaveVT(i, 0);
 
-    for (ih = InputHandlers; ih; ih = ih->next)
-      xf86DisableInputHandler(ih);
     xf86AccessLeave();      /* We need this here, otherwise */
     xf86AccessLeaveState(); /* console won't be restored    */
 
@@ -543,14 +524,10 @@ xf86VTSwitch(void)
 
       pInfo = xf86InputDevs;
       while (pInfo) {
-        if (pInfo->dev) {
-            xf86ReleaseKeys(pInfo->dev);
+        if (pInfo->dev)
             EnableDevice(pInfo->dev);
-        }
 	pInfo = pInfo->next;
       }
-      /* XXX HACK */
-      xf86ReleaseKeys(inputInfo.keyboard);
       for (ih = InputHandlers; ih; ih = ih->next)
         xf86EnableInputHandler(ih);
 
@@ -607,14 +584,10 @@ xf86VTSwitch(void)
 
     pInfo = xf86InputDevs;
     while (pInfo) {
-      if (pInfo->dev) {
-          xf86ReleaseKeys(pInfo->dev);
+      if (pInfo->dev)
           EnableDevice(pInfo->dev);
-      }
       pInfo = pInfo->next;
     }
-    /* XXX HACK */
-    xf86ReleaseKeys(inputInfo.keyboard);
 
     for (ih = InputHandlers; ih; ih = ih->next)
       xf86EnableInputHandler(ih);

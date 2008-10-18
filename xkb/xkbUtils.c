@@ -213,13 +213,13 @@ register unsigned mask;
 
 void
 XkbUpdateKeyTypesFromCore(	DeviceIntPtr	pXDev,
+                                KeySymsPtr      pCore,
 				KeyCode	 	first,
 				CARD8	 	num,
 				XkbChangesPtr	changes)
 {
 XkbDescPtr		xkb;
 unsigned		key,nG,explicit;
-KeySymsPtr		pCore;
 int			types[XkbNumKbdGroups];
 KeySym			tsyms[XkbMaxSymsPerKey],*syms;
 XkbMapChangesPtr	mc;
@@ -232,7 +232,6 @@ XkbMapChangesPtr	mc;
 
     mc= (changes?(&changes->map):NULL);
 
-    pCore= &pXDev->key->curKeySyms;
     syms= &pCore->map[(first-xkb->min_key_code)*pCore->mapWidth];
     for (key=first; key<(first+num); key++,syms+= pCore->mapWidth) {
         explicit= xkb->server->explicit[key]&XkbExplicitKeyTypesMask;
@@ -355,54 +354,24 @@ CARD8 *			repeat;
     return;
 }
 
-void
-XkbUpdateCoreDescription(DeviceIntPtr keybd,Bool resize)
+KeySymsPtr
+XkbGetCoreMap(DeviceIntPtr keybd)
 {
 register int		key,tmp;
 int			maxSymsPerKey,maxKeysPerMod, maxGroup1Width;
-int			first,last,firstCommon,lastCommon;
 XkbDescPtr		xkb;
-KeyClassPtr		keyc;
+KeySymsPtr              syms;
 int			maxNumberOfGroups;
 
     if (!keybd || !keybd->key || !keybd->key->xkbInfo)
-	return;
+	return NULL;
+
     xkb= keybd->key->xkbInfo->desc;
-    keyc= keybd->key;
     maxSymsPerKey= maxGroup1Width= 0;
     maxNumberOfGroups = 0;
-    if ((xkb->min_key_code==keyc->curKeySyms.minKeyCode)&&
-	(xkb->max_key_code==keyc->curKeySyms.maxKeyCode)) {
-	first= firstCommon= xkb->min_key_code;
-	last= lastCommon= xkb->max_key_code;
-    }
-    else if (resize) {
-	keyc->curKeySyms.minKeyCode= xkb->min_key_code;
-	keyc->curKeySyms.maxKeyCode= xkb->max_key_code;
-	first= firstCommon= xkb->min_key_code;
-	last= lastCommon= xkb->max_key_code;
-    }
-    else {
-	if (xkb->min_key_code<keyc->curKeySyms.minKeyCode) {
-	    first= xkb->min_key_code;
-	    firstCommon= keyc->curKeySyms.minKeyCode;
-	}
-	else {
-	    firstCommon= xkb->min_key_code;
-	    first= keyc->curKeySyms.minKeyCode;
-	}
-	if (xkb->max_key_code>keyc->curKeySyms.maxKeyCode) {
-	    lastCommon= keyc->curKeySyms.maxKeyCode;
-	    last= xkb->max_key_code;
-	}
-	else {
-	    lastCommon= xkb->max_key_code;
-	    last= keyc->curKeySyms.maxKeyCode;
-	}
-    }
 
     /* determine sizes */
-    for (key=first;key<=last;key++) {
+    for (key=xkb->min_key_code;key<=xkb->max_key_code;key++) {
 	if (XkbKeycodeInRange(xkb,key)) {
 	    int	nGroups;
 	    int	w;
@@ -437,53 +406,69 @@ int			maxNumberOfGroups;
 	}
     }
 
-    if (maxSymsPerKey>0) {
-	/* See Section 12.4 of the XKB Protocol spec. Because of the
-	 * single-group distribution for multi-group keyboards, we have to
-	 * have enough symbols for the largest group 1 to replicate across the
-	 * number of groups on the keyboard. e.g. a single-group key with 4
-	 * symbols on a keyboard that has 3 groups -> 12 syms per key */
-	if (maxSymsPerKey < maxNumberOfGroups * maxGroup1Width)
-	    maxSymsPerKey = maxNumberOfGroups * maxGroup1Width;
+    if (maxSymsPerKey <= 0)
+        return NULL;
 
-	tmp= maxSymsPerKey*_XkbCoreNumKeys(keyc);
-	keyc->curKeySyms.map= _XkbTypedRealloc(keyc->curKeySyms.map,tmp,KeySym);
-	if (keyc->curKeySyms.map==NULL)
-	    FatalError("Couldn't allocate symbols map in UpdateCore\n");
+    syms = xcalloc(1, sizeof(*syms));
+    if (!syms)
+        return NULL;
+
+    /* See Section 12.4 of the XKB Protocol spec. Because of the
+     * single-group distribution for multi-group keyboards, we have to
+     * have enough symbols for the largest group 1 to replicate across the
+     * number of groups on the keyboard. e.g. a single-group key with 4
+     * symbols on a keyboard that has 3 groups -> 12 syms per key */
+    if (maxSymsPerKey < maxNumberOfGroups * maxGroup1Width)
+        maxSymsPerKey = maxNumberOfGroups * maxGroup1Width;
+
+    syms->mapWidth = maxSymsPerKey;
+
+    tmp = syms->mapWidth * (xkb->max_key_code - xkb->min_key_code);
+    syms->map = xcalloc(tmp, sizeof(*syms->map));
+    if (!syms->map) {
+        xfree(syms);
+        return NULL;
     }
-    else if ((keyc->curKeySyms.mapWidth>0)&&(keyc->curKeySyms.map!=NULL)) {
-	_XkbFree(keyc->curKeySyms.map);
-	keyc->curKeySyms.map= NULL;
-    }
-    keyc->curKeySyms.mapWidth= maxSymsPerKey;
 
-    for (key=firstCommon;key<=lastCommon;key++) {
-	if (keyc->curKeySyms.map!=NULL) {
-	    KeySym *pCore,*pXKB;
-	    unsigned nGroups,groupWidth,n,nOut;
+    for (key=xkb->min_key_code;key<=xkb->max_key_code;key++) {
+        KeySym *pCore,*pXKB;
+        unsigned nGroups,groupWidth,n,nOut;
 
-	    nGroups= XkbKeyNumGroups(xkb,key);
-	    n= (key-keyc->curKeySyms.minKeyCode)*maxSymsPerKey;
-	    pCore= &keyc->curKeySyms.map[n];
-	    bzero(pCore,maxSymsPerKey*sizeof(KeySym));
-	    pXKB= XkbKeySymsPtr(xkb,key);
-	    nOut= 2;
-	    if (nGroups>0) {
-		groupWidth= XkbKeyGroupWidth(xkb,key,XkbGroup1Index);
-		if (groupWidth>0)	pCore[0]= pXKB[0];
-		if (groupWidth>1)	pCore[1]= pXKB[1];
-		for (n=2;n<groupWidth;n++) {
-		    pCore[2+n]= pXKB[n];
-		}
-		if (groupWidth>2)
-		    nOut= groupWidth;
-	    }
+        nGroups= XkbKeyNumGroups(xkb,key);
+        n= (key-xkb->min_key_code)*syms->mapWidth;
+        pCore= &syms->map[n];
+        pXKB= XkbKeySymsPtr(xkb,key);
+        nOut= 2;
+        if (nGroups>0) {
+            groupWidth= XkbKeyGroupWidth(xkb,key,XkbGroup1Index);
+            if (groupWidth>0)   pCore[0]= pXKB[0];
+            if (groupWidth>1)   pCore[1]= pXKB[1];
+            for (n=2;n<groupWidth;n++)
+                pCore[2+n]= pXKB[n];
+            if (groupWidth>2)
+                nOut= groupWidth;
+        }
 
-	    /* See XKB Protocol Sec, Section 12.4.
-	       A 1-group key with ABCDE on a 2 group keyboard must be
-	       duplicated across all groups as ABABCDECDE.
-	     */
-	    if (nGroups == 1)
+	/* See XKB Protocol Sec, Section 12.4.
+           A 1-group key with ABCDE on a 2 group keyboard must be
+	   duplicated across all groups as ABABCDECDE.
+	 */
+	if (nGroups == 1)
+	{
+	    int idx;
+
+	    groupWidth = XkbKeyGroupWidth(xkb, key, XkbGroup1Index);
+
+	    /* AB..CDE... -> ABABCDE... */
+	    if (groupWidth > 0 && syms->mapWidth >= 3)
+	        pCore[2] = pCore[0];
+	    if (groupWidth > 1 && syms->mapWidth >= 4)
+	        pCore[3] = pCore[1];
+
+	    /* ABABCDE... -> ABABCDECDE */
+	    idx = 2 + groupWidth;
+	    while (groupWidth > 2 && idx < syms->mapWidth &&
+		   idx < groupWidth * 2)
 	    {
 		int idx, j;
 
@@ -512,31 +497,38 @@ int			maxNumberOfGroups;
                     for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
                         pCore[idx++] = pXKB[n];
 	    }
+	    idx = 2 * groupWidth;
+	    if (idx < 4)
+		idx = 4;
+	    /* 3 or more groups: ABABCDECDEABCDEABCDE */
+	    for (n = 0; n < groupWidth && idx < syms->mapWidth; n++)
+		pCore[idx++] = pXKB[n];
+	}
 
-	    pXKB+= XkbKeyGroupsWidth(xkb,key);
-	    nOut+= 2;
-	    if (nGroups>1) {
-		groupWidth= XkbKeyGroupWidth(xkb,key,XkbGroup2Index);
-		if (groupWidth>0)	pCore[2]= pXKB[0];
-		if (groupWidth>1)	pCore[3]= pXKB[1];
-		for (n=2;n<groupWidth;n++) {
-		    pCore[nOut+(n-2)]= pXKB[n];
-		}
-		if (groupWidth>2)
-		    nOut+= (groupWidth-2);
+	pXKB+= XkbKeyGroupsWidth(xkb,key);
+	nOut+= 2;
+	if (nGroups>1) {
+	    groupWidth= XkbKeyGroupWidth(xkb,key,XkbGroup2Index);
+	    if (groupWidth>0)	pCore[2]= pXKB[0];
+	    if (groupWidth>1)	pCore[3]= pXKB[1];
+	    for (n=2;n<groupWidth;n++) {
+		pCore[nOut+(n-2)]= pXKB[n];
+	    }
+	    if (groupWidth>2)
+		nOut+= (groupWidth-2);
+	}
+	pXKB+= XkbKeyGroupsWidth(xkb,key);
+	for (n=XkbGroup3Index;n<nGroups;n++) {
+	    register int s;
+	    groupWidth= XkbKeyGroupWidth(xkb,key,n);
+	    for (s=0;s<groupWidth;s++) {
+		pCore[nOut++]= pXKB[s];
 	    }
 	    pXKB+= XkbKeyGroupsWidth(xkb,key);
-	    for (n=XkbGroup3Index;n<nGroups;n++) {
-		register int s;
-		groupWidth= XkbKeyGroupWidth(xkb,key,n);
-		for (s=0;s<groupWidth;s++) {
-		    pCore[nOut++]= pXKB[s];
-		}
-		pXKB+= XkbKeyGroupsWidth(xkb,key);
-	    }
 	}
     }
-    return;
+
+    return syms;
 }
 
 void
@@ -580,9 +572,7 @@ XkbApplyMappingChange(DeviceIntPtr kbd, KeySymsPtr map, KeyCode first_key,
         check = 0;
         XkbSetCauseCoreReq(&cause, X_ChangeKeyboardMapping, client);
 
-        if (!SetKeySymsMap(&kbd->key->curKeySyms, map))
-            FatalError("XkbApplyMappingChange: failed to copy core keymap!\n");
-        XkbUpdateKeyTypesFromCore(kbd, first_key, num_keys, &changes);
+        XkbUpdateKeyTypesFromCore(kbd, map, first_key, num_keys, &changes);
         XkbUpdateActions(kbd, first_key, num_keys, &changes, &check, &cause);
 
         if (check)

@@ -64,6 +64,8 @@ SOFTWARE.
 #include "exglobals.h"	/* FIXME */
 #include "exevents.h"
 #include "xace.h"
+#include "xkbsrv.h"
+#include "xkbstr.h"
 
 #include "listdev.h"
 
@@ -211,8 +213,8 @@ CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
     k2 = (xKeyInfoPtr) * buf;
     k2->class = KeyClass;
     k2->length = sizeof(xKeyInfo);
-    k2->min_keycode = k->curKeySyms.minKeyCode;
-    k2->max_keycode = k->curKeySyms.maxKeyCode;
+    k2->min_keycode = k->xkbInfo->desc->min_key_code;
+    k2->max_keycode = k->xkbInfo->desc->max_key_code;
     k2->num_keys = k2->max_keycode - k2->min_keycode + 1;
     if (client && client->swapped) {
 	swaps(&k2->num_keys, n);

@@ -60,6 +60,8 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "dixgrabs.h"
+#include "xkbsrv.h"
+#include "xkbstr.h"
 
 #include "ungrdevk.h"
 
@@ -124,8 +126,8 @@ ProcXUngrabDeviceKey(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    if (((stuff->key > dev->key->curKeySyms.maxKeyCode) ||
-	 (stuff->key < dev->key->curKeySyms.minKeyCode))
+    if (((stuff->key > dev->key->xkbInfo->desc->max_key_code) ||
+	 (stuff->key < dev->key->xkbInfo->desc->min_key_code))
 	&& (stuff->key != AnyKey))
 	return BadValue;
 
