@@ -37,7 +37,6 @@
 #include <dix-config.h>
 #endif
 
-//#define XQUARTZ_USE_XKB 
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
@@ -307,9 +306,8 @@ const static struct {
 darwinKeyboardInfo keyInfo;
 pthread_mutex_t keyInfo_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void DarwinChangeKeyboardControl( DeviceIntPtr device, KeybdCtrl *ctrl )
-{
-	// FIXME: to be implemented
+static void DarwinChangeKeyboardControl(DeviceIntPtr device, KeybdCtrl *ctrl) {
+    // FIXME: to be implemented
     // keyclick, bell volume / pitch, autorepead, LED's
 }
 
@@ -426,58 +424,11 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
 }
 
 /*
- * DarwinKeyboardInit
- *      Get the Darwin keyboard map and compute an equivalent
- *      X keyboard map and modifier map. Set the new keyboard
- *      device structure.
+ * DarwinKeyboardSetDeviceKeyMap
+ * Load a keymap into the keyboard device
  */
-void DarwinKeyboardInit(DeviceIntPtr pDev) {
-    KeySymsRec          keySyms;
-
-    // Open a shared connection to the HID System.
-    // Note that the Event Status Driver is really just a wrapper
-    // for a kIOHIDParamConnectType connection.
-    assert( darwinParamConnect = NXOpenEventStatus() );
-
-    DarwinLoadKeyboardMapping(&keySyms);
-#ifdef XQUARTZ_USE_XKB
-	XkbComponentNamesRec names;
-	bzero(&names, sizeof(names));
-    /* We need to really have rules... or something... */
-    XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
-    pthread_mutex_lock(&keyInfo_mutex);
-    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
-                                        QuartzBell, DarwinChangeKeyboardControl));
-	assert(SetKeySymsMap(&pDev->key->curKeySyms, &keySyms));
-	assert(keyInfo.modMap!=NULL);
-	assert(pDev->key->modifierMap!=NULL);
-	memcpy(pDev->key->modifierMap, keyInfo.modMap, sizeof(keyInfo.modMap));
-    pthread_mutex_unlock(&keyInfo_mutex);
-	
-	SendDeviceMappingNotify(serverClient, MappingKeyboard, 
-                            pDev->key->curKeySyms.minKeyCode, 
-                            pDev->key->curKeySyms.maxKeyCode - pDev->key->curKeySyms.minKeyCode, pDev);
-	SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
-	SwitchCoreKeyboard(pDev);   
-#else
-    pthread_mutex_lock(&keyInfo_mutex);
-    assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
-                                      keyInfo.modMap, QuartzBell,
-                                      DarwinChangeKeyboardControl ));
-    pthread_mutex_unlock(&keyInfo_mutex);
-    SwitchCoreKeyboard(pDev);
-#endif
-}
-
-
-void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
-    // Note that pDev is the device that "initiated" the reload event here...
-    // So we change this later on.
-    
-    DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", pDev);
-
-    KeySymsRec keySyms;
-    DarwinLoadKeyboardMapping(&keySyms);
+static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms) {
+    DeviceIntPtr pDev;
 
     /* From ProcSetModifierMapping */
     SendMappingNotify(MappingModifier, 0, 0, serverClient);
@@ -486,20 +437,58 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
             SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
     
     /* From ProcChangeKeyboardMapping */
-    SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, serverClient);
-
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
-            if (!SetKeySymsMap(&pDev->key->curKeySyms, &keySyms))
-                ErrorF("Error changing keysyms.  SetKeySymsMap failed.");
-    
-    SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, serverClient);
+            assert(SetKeySymsMap(&pDev->key->curKeySyms, keySyms));
+
+    SendMappingNotify(MappingKeyboard, keySyms->minKeyCode,
+                      keySyms->maxKeyCode - keySyms->minKeyCode + 1, serverClient);
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if (pDev->key && pDev->coreEvents)
-            SendDeviceMappingNotify(serverClient, MappingKeyboard,
-                                    MIN_KEYCODE, NUM_KEYCODES, pDev);
+            SendDeviceMappingNotify(serverClient, MappingKeyboard, keySyms->minKeyCode,
+                                    keySyms->maxKeyCode - keySyms->minKeyCode + 1, pDev);    
 }
 
+/*
+ * DarwinKeyboardInit
+ *      Get the Darwin keyboard map and compute an equivalent
+ *      X keyboard map and modifier map. Set the new keyboard
+ *      device structure.
+ */
+void DarwinKeyboardInit(DeviceIntPtr pDev) {
+    KeySymsRec keySyms;
+	XkbComponentNamesRec names;
+
+    // Open a shared connection to the HID System.
+    // Note that the Event Status Driver is really just a wrapper
+    // for a kIOHIDParamConnectType connection.
+    assert(darwinParamConnect = NXOpenEventStatus());
+
+    DarwinLoadKeyboardMapping(&keySyms);
+
+	bzero(&names, sizeof(names));
+
+    /* We need to really have rules... or something... */
+    //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
+    
+    pthread_mutex_lock(&keyInfo_mutex);
+    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, keyInfo.modMap,
+                                       QuartzBell, DarwinChangeKeyboardControl));
+    pthread_mutex_unlock(&keyInfo_mutex);
+
+	SwitchCoreKeyboard(pDev);   
+
+    DarwinKeyboardSetDeviceKeyMap(&keySyms);
+}
+
+void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
+    KeySymsRec keySyms;
+
+    DEBUG_LOG("DarwinKeyboardReloadHandler\n");
+
+    DarwinLoadKeyboardMapping(&keySyms);
+    DarwinKeyboardSetDeviceKeyMap(&keySyms);
+}
 
 //-----------------------------------------------------------------------------
 // Modifier translation functions
