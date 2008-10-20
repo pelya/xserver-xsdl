@@ -129,6 +129,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     BoxPtr pBox;
     int nbox;
     Bool access_prepared = FALSE;
+    Bool need_sync = FALSE;
 
     /* Damaged bits are valid in current copy but invalid in other one */
     if (exaPixmapIsOffscreen(pPixmap)) {
@@ -220,14 +221,15 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	    exaMemcpyBox (pPixmap, pBox,
 			  fallback_src, fallback_srcpitch,
 			  fallback_dst, fallback_dstpitch);
-	}
+	} else
+	    need_sync = TRUE;
 
 	pBox++;
     }
 
     if (access_prepared)
 	exaFinishAccess(&pPixmap->drawable, fallback_index);
-    else
+    else if (need_sync)
 	sync (pPixmap->drawable.pScreen);
 
     pExaPixmap->offscreen = save_offscreen;
