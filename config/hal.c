@@ -166,6 +166,26 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
     return ret;
 }
 
+static BOOL
+device_is_duplicate(char *config_info)
+{
+    DeviceIntPtr dev;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (dev->config_info && (strcmp(dev->config_info, config_info) == 0))
+            return TRUE;
+    }
+
+    for (dev = inputInfo.off_devices; dev; dev = dev->next)
+    {
+        if (dev->config_info && (strcmp(dev->config_info, config_info) == 0))
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 static void
 device_added(LibHalContext *hal_ctx, const char *udi)
 {
@@ -227,6 +247,13 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         goto unwind;
     }
     sprintf(config_info, "hal:%s", udi);
+
+    /* Check for duplicate devices */
+    if (device_is_duplicate(config_info))
+    {
+        LogMessage(X_WARNING, "config/hal: device %s already added. Ignoring.\n", name);
+        goto unwind;
+    }
 
     /* ok, grab options from hal.. iterate through all properties
     * and lets see if any of them are options that we can add */
