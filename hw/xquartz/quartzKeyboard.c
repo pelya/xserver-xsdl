@@ -68,8 +68,6 @@
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
-void QuartzXkbUpdate(DeviceIntPtr pDev);
-
 enum {
     MOD_COMMAND = 256,
     MOD_SHIFT = 512,
@@ -427,16 +425,6 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
     pthread_mutex_unlock(&keyInfo_mutex);
 }
 
-void QuartzXkbUpdate(DeviceIntPtr pDev) {
-#ifdef XQUARTZ_USE_XKB
-	SendDeviceMappingNotify(serverClient, MappingKeyboard, 
-		pDev->key->curKeySyms.minKeyCode, 
-		pDev->key->curKeySyms.maxKeyCode - pDev->key->curKeySyms.minKeyCode, pDev);
-	SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
-	SwitchCoreKeyboard(pDev);   
-#endif
-}
-
 /*
  * DarwinKeyboardInit
  *      Get the Darwin keyboard map and compute an equivalent
@@ -466,7 +454,11 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 	memcpy(pDev->key->modifierMap, keyInfo.modMap, sizeof(keyInfo.modMap));
     pthread_mutex_unlock(&keyInfo_mutex);
 	
-	QuartzXkbUpdate(pDev);
+	SendDeviceMappingNotify(serverClient, MappingKeyboard, 
+                            pDev->key->curKeySyms.minKeyCode, 
+                            pDev->key->curKeySyms.maxKeyCode - pDev->key->curKeySyms.minKeyCode, pDev);
+	SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
+	SwitchCoreKeyboard(pDev);   
 #else
     pthread_mutex_lock(&keyInfo_mutex);
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
@@ -479,33 +471,33 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
 
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
-    if (pDev == NULL) pDev = darwinKeyboard;
+    // Note that pDev is the device that "initiated" the reload event here...
+    // So we change this later on.
     
     DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", pDev);
 
-#ifdef XQUARTZ_USE_XKB
-    QuartzXkbUpdate(pDev);
-#else
     KeySymsRec keySyms;
     DarwinLoadKeyboardMapping(&keySyms);
 
-    if (pDev->key) {
-        if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
-        if (pDev->key->modifierKeyMap) xfree(pDev->key->modifierKeyMap);
-        xfree(pDev->key);
-    }
+    /* From ProcSetModifierMapping */
+    SendMappingNotify(MappingModifier, 0, 0, serverClient);
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if (pDev->key && pDev->coreEvents)
+            SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
+    
+    /* From ProcChangeKeyboardMapping */
+    SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, serverClient);
 
-    pthread_mutex_lock(&keyInfo_mutex);
-    if (!InitKeyClassDeviceStruct(pDev, &keySyms, keyInfo.modMap)) {
-        DEBUG_LOG("InitKeyClassDeviceStruct failed\n");
-        pthread_mutex_unlock(&keyInfo_mutex);
-        return;
-    }
-    pthread_mutex_unlock(&keyInfo_mutex);
-
-    SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
-    SendMappingNotify(MappingModifier, 0, 0, 0);
-#endif
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
+            if (!SetKeySymsMap(&pDev->key->curKeySyms, &keySyms))
+                ErrorF("Error changing keysyms.  SetKeySymsMap failed.");
+    
+    SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, serverClient);
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if (pDev->key && pDev->coreEvents)
+            SendDeviceMappingNotify(serverClient, MappingKeyboard,
+                                    MIN_KEYCODE, NUM_KEYCODES, pDev);
 }
 
 
