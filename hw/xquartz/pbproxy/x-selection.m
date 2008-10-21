@@ -78,6 +78,7 @@ static struct {
 
 static struct propdata null_propdata = {NULL, 0};
 
+#ifdef DEBUG
 static void
 dump_prefs (FILE *fp) {
     fprintf(fp, 
@@ -93,7 +94,7 @@ dump_prefs (FILE *fp) {
 	    pbproxy_prefs.pasteboard_to_primary,
 	    pbproxy_prefs.pasteboard_to_clipboard);
 }
-
+#endif
 
 #define APP_PREFS "org.x.X11"
 static BOOL

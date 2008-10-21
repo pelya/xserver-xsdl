@@ -102,7 +102,7 @@ void x_input_run (void) {
     [pool release];
 }
 
-static int add_input_socket (int sock, CFOptionFlags callback_types,
+static BOOL add_input_socket (int sock, CFOptionFlags callback_types,
                              CFSocketCallBack callback, const CFSocketContext *ctx,
                              CFRunLoopSourceRef *cf_source) {
     CFSocketRef cf_sock;
@@ -128,12 +128,18 @@ static int add_input_socket (int sock, CFOptionFlags callback_types,
 
 static void x_input_callback (CFSocketRef sock, CFSocketCallBackType type,
                               CFDataRef address, const void *data, void *info) {
-    x_input_run ();
+
+#ifndef INTEGRATED_XPBPROXY
+    if(prefs_reload) {
+        [x_selection_object() reload_preferences];
+        prefs_reload = NO;
+    }
+#endif
+    
+    x_input_run();
 }
 
-void x_input_register(void) {
-    if (!add_input_socket (ConnectionNumber (x_dpy), kCFSocketReadCallBack,
-                           x_input_callback, NULL, &x_dpy_source)) {
-        exit (1);
-    }
+BOOL x_input_register(void) {
+    return add_input_socket(ConnectionNumber(x_dpy), kCFSocketReadCallBack,
+                            x_input_callback, NULL, &x_dpy_source);
 }

@@ -16,12 +16,16 @@
 #define DEBUG 0
 #endif
 
+#ifndef INTEGRATED_XPBPROXY
+extern BOOL prefs_reload;
+#endif
+
 /* from main.m */
 extern void x_set_is_active (BOOL state);
 extern BOOL x_get_is_active (void);
 extern id x_selection_object (void);
 extern Time x_current_timestamp (void);
-extern int x_init (void);
+extern BOOL x_init (void);
 
 extern Display *x_dpy;
 extern int x_apple_wm_event_base, x_apple_wm_error_base;
@@ -29,7 +33,7 @@ extern int x_xfixes_event_base, x_xfixes_error_base;
 extern BOOL have_xfixes;
 
 /* from x-input.m */
-extern void x_input_register (void);
+extern BOOL x_input_register (void);
 extern void x_input_run (void);
 
 #if DEBUG == 0

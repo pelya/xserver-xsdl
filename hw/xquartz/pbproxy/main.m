@@ -34,13 +34,13 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
     return 0;
 }
 
-int x_init (void) {
+BOOL x_init (void) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
     x_dpy = XOpenDisplay (NULL);
     if (x_dpy == NULL) {
         fprintf (stderr, "can't open default display\n");
-        return 1;
+        return FALSE;
     }
     
     XSetIOErrorHandler (x_io_error_handler);
@@ -49,7 +49,7 @@ int x_init (void) {
     if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
                                  &x_apple_wm_error_base)) {
         fprintf (stderr, "can't open AppleWM server extension\n");
-        return 1;
+        return FALSE;
     }
     
     have_xfixes = XFixesQueryExtension(x_dpy, &x_xfixes_event_base, &x_xfixes_error_base);
@@ -59,12 +59,13 @@ int x_init (void) {
     
     _selection_object = [[x_selection alloc] init];
     
-    x_input_register ();
-    x_input_run ();
+    if(!x_input_register())
+        return FALSE;
+    x_input_run();
 
     [pool release];
     
-    return 0;
+    return TRUE;
 }
 
 id x_selection_object (void) {

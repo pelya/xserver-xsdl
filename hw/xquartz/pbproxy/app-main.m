@@ -10,8 +10,16 @@
 #include <unistd.h> /*for getpid*/
 #include <Cocoa/Cocoa.h>
 
+BOOL prefs_reload = NO;
+
 static void signal_handler (int sig) {
-    _exit(0);
+    switch(sig) {
+        case SIGHUP:
+            prefs_reload = YES;
+            break;
+        default:
+            _exit(EXIT_SUCCESS);
+    }
 }
 
 int main (int argc, const char *argv[]) {
@@ -19,15 +27,16 @@ int main (int argc, const char *argv[]) {
     printf("pid: %u\n", getpid());
 #endif
 
-    if(x_init () !=0)
-        return 1;
+    if(!x_init())
+        return EXIT_FAILURE;
     
     signal (SIGINT, signal_handler);
     signal (SIGTERM, signal_handler);
+    signal (SIGHUP, signal_handler);
     signal (SIGPIPE, SIG_IGN);
 
     [NSApplication sharedApplication];
     [NSApp run];
     
-    return 0;
+    return EXIT_SUCCESS;
 }
