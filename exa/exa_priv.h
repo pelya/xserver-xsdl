@@ -405,9 +405,6 @@ exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
 		      int *xp, int *yp);
 
 Bool
-exaDrawableIsOffscreen (DrawablePtr pDrawable);
-
-Bool
 exaPixmapIsOffscreen(PixmapPtr p);
 
 PixmapPtr

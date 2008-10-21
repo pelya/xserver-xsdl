@@ -789,6 +789,8 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap);
 void
 exaEnableDisableFBAccess (int index, Bool enable);
 
+Bool
+exaDrawableIsOffscreen (DrawablePtr pDrawable);
 
 /* in exa_migration.c */
 void
