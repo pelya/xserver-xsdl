@@ -238,14 +238,12 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         /* Override to force sending to Appkit */
                         swallow_up = [e keyCode];
                         for_x = NO;
-#if 0
                     } else if(!quartzEnableRootless
                               && ([e modifierFlags] & ALL_KEY_MASKS) == (NSCommandKeyMask | NSAlternateKeyMask)
                               && ([e keyCode] == 0 /*a*/ || [e keyCode] == 53 /*Esc*/)) {
                         swallow_up = [e keyCode];
                         for_x = NO;
                         DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
-#endif
 #if XPLUGIN_VERSION >= 1
                     } else if(X11EnableKeyEquivalents &&
                               xp_is_symbolic_hotkey_event([e eventRef])) {
@@ -625,13 +623,11 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
                         default:quartzUseSysBeep];
-#if 0
     quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
                         default:quartzEnableRootless];
     quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
 					      @PREFS_FULLSCREEN_HOTKEYS default:
 					      !quartzFullscreenDisableHotkeys];
-#endif
     darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
                          default:darwinFakeButtons];
     if (darwinFakeButtons) {

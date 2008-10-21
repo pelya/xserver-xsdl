@@ -688,8 +688,6 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
 
     [enable_fullscreen setIntValue:!quartzEnableRootless];
-    // TODO: Add fullscreen support
-    [enable_fullscreen setEnabled:NO];
 	
     [prefs_panel makeKeyAndOrderFront:sender];
 }
