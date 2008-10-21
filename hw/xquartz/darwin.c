@@ -233,7 +233,7 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
     if (monitorResolution)
         dpi = monitorResolution;
     else
-        dpi = 75;
+        dpi = 96;
 
     // initialize fb
     if (! fbScreenInit(pScreen,
