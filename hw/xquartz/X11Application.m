@@ -232,18 +232,12 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                 
                 if([e type] == NSKeyDown) {
                     /* Before that though, see if there are any global
-                     shortcuts bound to it. */
+                     * shortcuts bound to it. */
 
                     if(darwinAppKitModMask & [e modifierFlags]) {
                         /* Override to force sending to Appkit */
                         swallow_up = [e keyCode];
                         for_x = NO;
-                    } else if(!quartzEnableRootless
-                              && ([e modifierFlags] & ALL_KEY_MASKS) == (NSCommandKeyMask | NSAlternateKeyMask)
-                              && ([e keyCode] == 0 /*a*/ || [e keyCode] == 53 /*Esc*/)) {
-                        swallow_up = [e keyCode];
-                        for_x = NO;
-                        DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #if XPLUGIN_VERSION >= 1
                     } else if(X11EnableKeyEquivalents &&
                               xp_is_symbolic_hotkey_event([e eventRef])) {
@@ -252,16 +246,25 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 #endif
                     } else if(X11EnableKeyEquivalents &&
                               [[self mainMenu] performKeyEquivalent:e]) {
+                        swallow_up = [e keyCode];
                         for_appkit = NO;
+                        for_x = NO;
+                    } else if(!quartzEnableRootless
+                              && ([e modifierFlags] & ALL_KEY_MASKS) == (NSCommandKeyMask | NSAlternateKeyMask)
+                              && ([e keyCode] == 0 /*a*/ || [e keyCode] == 53 /*Esc*/)) {
+                        /* We have this here to force processing fullscreen 
+                         * toggle even if X11EnableKeyEquivalents is disabled */
                         swallow_up = [e keyCode];
                         for_x = NO;
+                        for_appkit = NO;
+                        DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
                     } else {
                         /* No kit window is focused, so send it to X. */
                         for_appkit = NO;
                     }
                 } else { /* KeyUp */
                     /* If we saw a key equivalent on the down, don't pass
-                     the up through to X. */
+                     * the up through to X. */
                     
                     if (swallow_up != 0 && [e keyCode] == swallow_up) {
                         swallow_up = 0;

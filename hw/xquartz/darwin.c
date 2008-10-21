@@ -805,9 +805,6 @@ void ddxUseMsg( void )
 void ddxGiveUp( void )
 {
     ErrorF( "Quitting Xquartz...\n" );
-
-    //if (!quartzRootless)
-    //    quartzProcs->ReleaseScreens();
 }
 
 

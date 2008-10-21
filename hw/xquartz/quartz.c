@@ -68,11 +68,10 @@
 
 // Shared global variables for Quartz modes
 int                     quartzEventWriteFD = -1;
-int                     quartzRootless = -1;
 int                     quartzUseSysBeep = 0;
 int                     quartzUseAGL = 1;
 int                     quartzEnableKeyEquivalents = 1;
-int                     quartzServerVisible = TRUE;
+int                     quartzServerVisible = FALSE;
 int                     quartzServerQuitting = FALSE;
 static int              quartzScreenKeyIndex;
 DevPrivateKey           quartzScreenKey = &quartzScreenKeyIndex;
