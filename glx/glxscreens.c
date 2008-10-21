@@ -106,7 +106,7 @@ static const char GLServerExtensions[] =
  			"GL_EXT_texture_env_add "
  			"GL_EXT_texture_env_combine "
  			"GL_EXT_texture_env_dot3 "
- 			"GL_EXT_texture_filter_ansiotropic "
+ 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_lod "
  			"GL_EXT_texture_lod_bias "
  			"GL_EXT_texture_mirror_clamp "
