@@ -185,7 +185,6 @@ _X_EXPORT Bool noXFixesExtension = FALSE;
 /* Xinerama is disabled by default unless enabled via +xinerama */
 _X_EXPORT Bool noPanoramiXExtension = TRUE;
 #endif
-_X_EXPORT Bool noXInputExtension = FALSE;
 #ifdef XSELINUX
 _X_EXPORT Bool noSELinuxExtension = FALSE;
 _X_EXPORT int selinuxEnforcingState = SELINUX_MODE_DEFAULT;

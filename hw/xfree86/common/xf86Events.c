@@ -68,12 +68,9 @@
 #include "dgaproc.h"
 #endif
 
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#else
 #include "inputstr.h"
-#endif
 #include "xf86Xinput.h"
 
 #include "mi.h"

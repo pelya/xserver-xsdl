@@ -147,7 +147,6 @@ extern Bool noPanoramiXExtension;
 #ifdef INXQUARTZ
 extern Bool noPseudoramiXExtension;
 #endif
-extern Bool noXInputExtension;
 #ifdef XSELINUX
 extern Bool noSELinuxExtension;
 #endif
@@ -349,7 +348,7 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef PANORAMIX
     { "XINERAMA", &noPanoramiXExtension },
 #endif
-    { "XInputExtension", &noXInputExtension },
+    { "XInputExtension", NULL },
 #ifdef XKB
     { "XKEYBOARD", &noXkbExtension },
 #endif
@@ -411,7 +410,7 @@ InitExtensions(int argc, char *argv[])
 #ifdef MULTIBUFFER
     if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
-    if (!noXInputExtension) XInputExtensionInit();
+    XInputExtensionInit();
 #ifdef XTEST
     if (!noTestExtensions) XTestExtensionInit();
 #endif
@@ -499,7 +498,7 @@ static ExtensionModule staticExtensions[] = {
 #ifdef MITSHM
     { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif
-    { XInputExtensionInit, "XInputExtension", &noXInputExtension, NULL, NULL },
+    { XInputExtensionInit, "XInputExtension", NULL, NULL, NULL },
 #ifdef XTEST
     { XTestExtensionInit, XTestExtensionName, &noTestExtensions, NULL, NULL },
 #endif

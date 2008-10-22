@@ -383,9 +383,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef PANORAMIX
     SYMVAR(noPanoramiXExtension)
 #endif
-
-    SYMVAR(noXInputExtension)
-
 #ifdef XSELINUX
     SYMVAR(noSELinuxExtension)
 #endif

@@ -127,9 +127,6 @@ extern Bool noXkbExtension;
 extern Bool noPanoramiXExtension;
 #endif
 
-extern Bool noXInputExtension;
-
-
 #ifdef XSELINUX
 extern Bool noSELinuxExtension;
 
