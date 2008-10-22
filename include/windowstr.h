@@ -257,8 +257,4 @@ typedef struct _FocusSemaphores {
     char                focusinout[(MAXDEVICES + 7)/8];
 } FocusSemaphoresRec, *FocusSemaphoresPtr;
 
-#ifdef XEVIE
-extern WindowPtr xeviewin;
-#endif
-
 #endif /* WINDOWSTRUCT_H */

@@ -303,9 +303,6 @@
 /* Support Xdmcp */
 #undef XDMCP
 
-/* Build XEvIE extension */
-#undef XEVIE
-
 /* Build XFree86 BigFont extension */
 #undef XF86BIGFONT
 

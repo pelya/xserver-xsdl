@@ -193,10 +193,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(CheckExtension)
     SYMFUNC(MinorOpcodeOfRequest)
     SYMFUNC(StandardMinorOpcode)
-#ifdef XEVIE
-    SYMVAR(xeviehot)
-    SYMVAR(xeviewin)
-#endif
     /* gc.c */
     SYMFUNC(CopyGC)
     SYMFUNC(CreateGC)
@@ -357,9 +353,6 @@ _X_HIDDEN void *dixLookupTab[] = {
 #endif
 #ifdef RES
     SYMVAR(noResExtension)
-#endif
-#ifdef XEVIE
-    SYMVAR(noXevieExtension)
 #endif
 #ifdef XF86BIGFONT
     SYMVAR(noXFree86BigfontExtension)

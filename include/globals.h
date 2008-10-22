@@ -94,10 +94,6 @@ extern Bool noSecurityExtension;
 extern Bool noResExtension;
 #endif
 
-#ifdef XEVIE
-extern Bool noXevieExtension;
-#endif
-
 #ifdef XF86BIGFONT
 extern Bool noXFree86BigfontExtension;
 #endif

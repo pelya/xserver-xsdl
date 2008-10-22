@@ -532,7 +532,6 @@ AC_ARG_ENABLE(xselinux,       AS_HELP_STRING([--disable-xselinux], [Build SELinu
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: disabled)]), [XCSECURITY=$enableval], [XCSECURITY=no])
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
 AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
-AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: disabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=no])
@@ -899,12 +898,6 @@ if test "x$XCSECURITY" = xyes; then
 		AC_MSG_ERROR([cannot build Security extension without X-ACE])
 	fi
 	AC_DEFINE(XCSECURITY, 1, [Build Security extension])
-fi
-
-AM_CONDITIONAL(XEVIE, [test "x$XEVIE" = xyes])
-if test "x$XEVIE" = xyes; then
-	AC_DEFINE(XEVIE, 1, [Build XEvIE extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
 fi
 
 AM_CONDITIONAL(MULTIBUFFER, [test "x$MULTIBUFFER" = xyes])

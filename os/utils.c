@@ -160,11 +160,6 @@ _X_EXPORT Bool noSecurityExtension = FALSE;
 #ifdef RES
 _X_EXPORT Bool noResExtension = FALSE;
 #endif
-#ifdef XEVIE
-/* Xevie is disabled by default for now until the
- * interface is stable */
-_X_EXPORT Bool noXevieExtension = TRUE;
-#endif
 #ifdef XF86BIGFONT
 _X_EXPORT Bool noXFree86BigfontExtension = FALSE;
 #endif

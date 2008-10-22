@@ -149,18 +149,6 @@ typedef const char *string;
 #include "Xserver-dtrace.h"
 #endif
 
-#ifdef XEVIE
-extern int       xevieFlag;
-extern int       xevieClientIndex;
-extern DeviceIntPtr     xeviemouse;
-extern DeviceIntPtr     xeviekb;
-extern Mask      xevieMask;
-extern Mask      xevieFilters[128];
-extern int       xevieEventSent;
-extern int       xevieKBEventSent;
-int    xeviegrabState = 0;
-#endif
-
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/XI.h>
 #include "exglobals.h"
@@ -337,11 +325,6 @@ IsKeyboardDevice(DeviceIntPtr dev)
 {
     return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);;
 }
-
-#ifdef XEVIE
-_X_EXPORT WindowPtr xeviewin;
-_X_EXPORT HotSpot xeviehot;
-#endif
 
 static void DoEnterLeaveEvents(
     DeviceIntPtr pDev,
@@ -634,10 +617,6 @@ XineramaCheckVirtualMotion(
 	    qe->event->u.keyButtonPointer.rootY = pSprite->hot.y;
 	}
     }
-#ifdef XEVIE
-    xeviehot.x = pSprite->hot.x;
-    xeviehot.y = pSprite->hot.y;
-#endif
 }
 
 
@@ -683,11 +662,6 @@ XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	XE_KBPTR.rootY = pSprite->hot.y;
     }
 
-#ifdef XEVIE
-    xeviehot.x = pSprite->hot.x;
-    xeviehot.y = pSprite->hot.y;
-    xeviewin =
-#endif
     pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
 
     if (pSprite->win != prevSpriteWin)
@@ -945,10 +919,6 @@ CheckVirtualMotion(
 	    qe->event->u.keyButtonPointer.rootY = pSprite->hot.y;
 	}
     }
-#ifdef XEVIE
-    xeviehot.x = pSprite->hot.x;
-    xeviehot.y = pSprite->hot.y;
-#endif
     RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
 }
 
@@ -2711,10 +2681,6 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
             pSprite->hot.y = pSprite->physLimits.y2 - 1;
 	if (pSprite->hotShape)
 	    ConfineToShape(pDev, pSprite->hotShape, &pSprite->hot.x, &pSprite->hot.y);
-#ifdef XEVIE
-        xeviehot.x = pSprite->hot.x;
-        xeviehot.y = pSprite->hot.y;
-#endif
 	pSprite->hotPhys = pSprite->hot;
 
 	if ((pSprite->hotPhys.x != *rootX) ||
@@ -2729,9 +2695,6 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	*rootY = pSprite->hot.y;
     }
 
-#ifdef XEVIE
-    xeviewin =
-#endif
     pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
 #ifdef notyet
     if (!(pSprite->win->deliverableEvents &
@@ -2828,14 +2791,12 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 /**
  * Called from main() with the root window on the first screen. Used to do a
  * lot more when MPX wasn't around yet. Things change.
+ *
+ * Should delete this now? -ds
  */
 void
 DefineInitialRootWindow(WindowPtr win)
 {
-#ifdef XEVIE
-    xeviewin = win;
-#endif
-
 }
 
 /**
@@ -2988,9 +2949,6 @@ UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
     pSprite->hot = pSprite->hotPhys;
     pSprite->hotLimits.x2 = pScreen->width;
     pSprite->hotLimits.y2 = pScreen->height;
-#ifdef XEVIE
-    xeviewin =
-#endif
     pSprite->win = win;
     pSprite->current = wCursor (win);
     pSprite->current->refcnt++;
@@ -3813,45 +3771,6 @@ ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
     GrabInfoPtr     grabinfo;
     Bool            deactivateGrab = FALSE;
     KeyClassPtr     keyc = keybd->key;
-#ifdef XEVIE
-    static Window   rootWin = 0;
-
-    if(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
-          (xevieMask & xevieFilters[xE->u.u.type])) {
-      key = xE->u.u.detail;
-      kptr = &keyc->down[key >> 3];
-      bit = 1 << (key & 7);
-      if((xE->u.u.type == KeyPress &&  (*kptr & bit)) ||
-         (xE->u.u.type == KeyRelease && !(*kptr & bit)))
-      {} else {
-#ifdef XKB
-        if(!noXkbExtension)
-	    xevieKBEventSent = 1;
-#endif
-        if(!xevieKBEventSent)
-        {
-          xeviekb = keybd;
-          if(!rootWin) {
-	      rootWin = GetCurrentRootWindow(keybd)->drawable.id;
-          }
-          xE->u.keyButtonPointer.event = xeviewin->drawable.id;
-          xE->u.keyButtonPointer.root = rootWin;
-          xE->u.keyButtonPointer.child = (xeviewin->firstChild) ? xeviewin->firstChild->
-drawable.id:0;
-          xE->u.keyButtonPointer.rootX = xeviehot.x;
-          xE->u.keyButtonPointer.rootY = xeviehot.y;
-          xE->u.keyButtonPointer.state = keyc->state;
-          WriteToClient(clients[xevieClientIndex], sizeof(xEvent), (char *)xE);
-#ifdef XKB
-          if(noXkbExtension)
-#endif
-            return;
-        } else {
-	    xevieKBEventSent = 0;
-        }
-      }
-    }
-#endif
 
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
         grabinfo = &keybd->deviceGrab;
@@ -3871,15 +3790,6 @@ drawable.id:0;
 	    CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
 	}
     }
-#ifdef XEVIE
-    /* fix for bug5094030: don't change the state bit if the event is from XEvIE client */
-    if(!(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
-	 (xevieMask & xevieFilters[xE->u.u.type]
-#ifdef XKB
-	  && !noXkbExtension
-#endif
-    )))
-#endif
     /* ProcessOtherEvent already updated the keyboard's state, so we need to
      * access prev_state here! */
     XE_KBPTR.state = (keyc->prev_state | GetPairedDevice(keybd)->button->state);
@@ -3889,16 +3799,6 @@ drawable.id:0;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
     modifiers = keyc->modifierMap[key];
-#if defined(XKB) && defined(XEVIE)
-    if(!noXkbExtension && !xeviegrabState &&
-       xevieFlag && clients[xevieClientIndex] &&
-       (xevieMask & xevieFilters[xE->u.u.type])) {
-	switch(xE->u.u.type) {
-	  case KeyPress: *kptr &= ~bit; break;
-	  case KeyRelease: *kptr |= bit; break;
-	}
-    }
-#endif
 
     switch (xE->u.u.type)
     {
@@ -3995,18 +3895,6 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 
 #ifdef XKB
     XkbSrvInfoPtr xkbi= GetPairedDevice(mouse)->key->xkbInfo;
-#endif
-#ifdef XEVIE
-    if(xevieFlag && clients[xevieClientIndex] && !xeviegrabState &&
-       (xevieMask & xevieFilters[xE->u.u.type])) {
-      if(xevieEventSent)
-        xevieEventSent = 0;
-      else {
-        xeviemouse = mouse;
-        WriteToClient(clients[xevieClientIndex], sizeof(xEvent), (char *)xE);
-        return;
-      }
-    }
 #endif
 
     if (!syncEvents.playingEvents)
@@ -5453,10 +5341,6 @@ InitEvents(void)
     {
         memcpy(&filters[i], filters[0], sizeof(filters[0]));
     }
-
-#ifdef XEVIE
-    xeviewin = NULL;
-#endif
 
     syncEvents.replayDev = (DeviceIntPtr)NULL;
     syncEvents.replayWin = NullWindow;

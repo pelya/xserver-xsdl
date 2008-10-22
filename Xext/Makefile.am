@@ -90,14 +90,6 @@ BUILTIN_SRCS += $(XCALIBRATE_SRCS)
 # XCalibrate needs tslib
 endif
 
-# X EVent Interception Extension: allows accessibility helpers & composite
-# managers to intercept events from input devices and transform as needed
-# before the clients see them.
-XEVIE_SRCS = xevie.c
-if XEVIE
-BUILTIN_SRCS += $(XEVIE_SRCS)
-endif
-
 # Multi-buffering extension
 MULTIBUFFER_SRCS = mbuf.c
 EXTRA_MULTIBUFFER_SRCS = mbufbf.c mbufpx.c
@@ -136,7 +128,6 @@ EXTRA_DIST = \
 	$(XCSECURITY_SRCS) \
 	$(XCALIBRATE_SRCS) \
 	$(XINERAMA_SRCS) \
-	$(XEVIE_SRCS) \
 	$(MULTIBUFFER_SRCS) \
 	$(EXTRA_MULTIBUFFER_SRCS) \
 	$(FONTCACHE_SRCS) \
