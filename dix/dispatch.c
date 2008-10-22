@@ -3483,6 +3483,8 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     if (!noXkbExtension) {
 	client->xkbClientFlags = 0;
 	client->mapNotifyMask = 0;
+	client->newKeyboardNotifyMask = 0;
+	client->vMinor = client->vMajor = 0;
 	QueryMinMaxKeyCodes(&client->minKC,&client->maxKC);
     }
 #endif
