@@ -139,6 +139,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     DeviceIntPtr devtmp;
     int devid;
     char devind[MAX_DEVICES];
+    BOOL enabled;
 
     /* Find next available id */
     memset(devind, 0, sizeof(char)*MAX_DEVICES);
@@ -183,8 +184,9 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     *prev = dev;
     dev->next = NULL;
 
+    enabled = TRUE;
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
-                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            FALSE);
     XISetDevicePropertyDeletable(dev, XIGetKnownProperty(XI_PROP_ENABLED), FALSE);
     XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL, NULL);
