@@ -61,6 +61,7 @@
 #include "xf86Optrec.h"
 #include "mipointer.h"
 #include "xf86InPriv.h"
+#include "compiler.h"
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
