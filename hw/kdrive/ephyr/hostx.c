@@ -78,6 +78,7 @@ struct EphyrHostScreen
 {
   Window          win;
   Window          win_pre_existing; 	/* Set via -parent option like xnest */
+  Window          peer_win;          /* Used for GL; should be at most one */
   XImage         *ximg;
   int             win_width, win_height;
   int             server_depth;
@@ -904,35 +905,17 @@ host_screen_from_window (Window w)
 {
   int index = 0;
   struct EphyrHostScreen *result  = NULL;
-#if 0
-  unsigned int num_children = 0;
-  Window root = None, parent = None, *children = NULL;
-#endif
 
   for (index = 0 ; index < HostX.n_screens ; index++)
     {
-      if (HostX.screens[index].win == w)
+      if (HostX.screens[index].win == w || HostX.screens[index].peer_win == w)
         {
           result = &HostX.screens[index];
           goto out;
         }
     }
-#if 0
-  XQueryTree (hostx_get_display (), w, &root, &parent,
-              &children, &num_children);
-  if (parent == root || parent == None)
-      goto out;
-  result = host_screen_from_window (parent);
-#endif
 
 out:
-#if 0
-  if (children)
-      {
-        XFree (children);
-        children = NULL;
-      }
-#endif
   return result;
 }
 
@@ -1225,6 +1208,11 @@ hostx_create_window (int a_screen_number,
     if (win == None) {
         EPHYR_LOG_ERROR ("failed to create peer window\n") ;
         goto out ;
+    }
+    if (HostX.screens[a_screen_number].peer_win == None) {
+	HostX.screens[a_screen_number].peer_win = win;
+    } else {
+        EPHYR_LOG_ERROR ("multiple peer windows created for same screen\n") ;
     }
     XFlush (dpy) ;
     XMapWindow (dpy, win) ;
