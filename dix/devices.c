@@ -111,6 +111,11 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
         if (prop->format != 8 || prop->type != XA_INTEGER || prop->size != 1)
             return BadValue;
 
+        /* Don't allow disabling of VCP/VCK */
+        if ((dev == inputInfo.pointer || dev == inputInfo.keyboard) &&
+            !(*(CARD8*)prop->data))
+            return BadAccess;
+
         if (!checkonly)
         {
             if ((*((CARD8*)prop->data)) && !dev->enabled)
