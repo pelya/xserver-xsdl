@@ -64,7 +64,7 @@
 #include "xf86_OSproc.h"
 #include "xf86Parser.h"
 #include "xf86Config.h"
-# include "xf86Xinput.h"
+#include "xf86Xinput.h"
 #ifdef XV
 #include "xf86xv.h"
 #include "xf86xvmc.h"

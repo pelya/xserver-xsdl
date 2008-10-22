@@ -46,10 +46,10 @@
 #include "globals.h"
 #include "dix.h"
 
-# include <X11/extensions/XI.h>
-# include <X11/extensions/XIproto.h>
-# include "exevents.h"
-# include "extinit.h"
+#include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
+#include "exevents.h"
+#include "extinit.h"
 
 #include <sys/types.h>
 #include <sys/time.h>
