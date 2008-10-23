@@ -294,7 +294,15 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         _appFlags._active = YES;
                         
                         [self activateX:YES];
-                        if ([e data2] & 0x10) 
+                        
+                        /* Get the Spaces preference for SwitchOnActivate */
+                        (void)CFPreferencesAppSynchronize(CFSTR(".GlobalPreferences"));
+                        BOOL switch_on_activate, ok;
+                        switch_on_activate = CFPreferencesGetAppBooleanValue(CFSTR("AppleSpacesSwitchOnActivate"), CFSTR(".GlobalPreferences"), &ok);
+                        if(!ok)
+                            switch_on_activate = YES;
+                        
+                        if ([e data2] & 0x10 && switch_on_activate)
                             DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
                     }
                     break;
