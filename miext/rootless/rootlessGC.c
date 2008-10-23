@@ -61,6 +61,8 @@ static void RootlessChangeClip(GCPtr pGC, int type, pointer pvalue,
 static void RootlessDestroyClip(GCPtr pGC);
 static void RootlessCopyClip(GCPtr pgcDst, GCPtr pgcSrc);
 
+Bool RootlessCreateGC(GCPtr pGC);
+
 GCFuncs rootlessGCFuncs = {
     RootlessValidateGC,
     RootlessChangeGC,
@@ -72,26 +74,55 @@ GCFuncs rootlessGCFuncs = {
 };
 
 // GC operations
-static void RootlessFillSpans();
-static void RootlessSetSpans();
-static void RootlessPutImage();
-static RegionPtr RootlessCopyArea();
-static RegionPtr RootlessCopyPlane();
-static void RootlessPolyPoint();
-static void RootlessPolylines();
-static void RootlessPolySegment();
-static void RootlessPolyRectangle();
-static void RootlessPolyArc();
-static void RootlessFillPolygon();
-static void RootlessPolyFillRect();
-static void RootlessPolyFillArc();
-static int RootlessPolyText8();
-static int RootlessPolyText16();
-static void RootlessImageText8();
-static void RootlessImageText16();
-static void RootlessImageGlyphBlt();
-static void RootlessPolyGlyphBlt();
-static void RootlessPushPixels();
+static void RootlessFillSpans(DrawablePtr dst, GCPtr pGC, int nInit,
+			      DDXPointPtr pptInit, int *pwidthInit, 
+			      int sorted);
+static void RootlessSetSpans(DrawablePtr dst, GCPtr pGC, char *pSrc,
+			     DDXPointPtr pptInit, int *pwidthInit,
+			     int nspans, int sorted);
+static void RootlessPutImage(DrawablePtr dst, GCPtr pGC,
+			     int depth, int x, int y, int w, int h,
+			     int leftPad, int format, char *pBits);
+static RegionPtr RootlessCopyArea(DrawablePtr pSrc, DrawablePtr dst, GCPtr pGC,
+				  int srcx, int srcy, int w, int h,
+				  int dstx, int dsty);
+static RegionPtr RootlessCopyPlane(DrawablePtr pSrc, DrawablePtr dst,
+                                   GCPtr pGC, int srcx, int srcy,
+                                   int w, int h, int dstx, int dsty,
+                                   unsigned long plane);
+static void RootlessPolyPoint(DrawablePtr dst, GCPtr pGC,
+                              int mode, int npt, DDXPointPtr pptInit);
+static void RootlessPolylines(DrawablePtr dst, GCPtr pGC,
+                              int mode, int npt, DDXPointPtr pptInit);
+static void RootlessPolySegment(DrawablePtr dst, GCPtr pGC,
+                                int nseg, xSegment *pSeg);
+static void RootlessPolyRectangle(DrawablePtr dst, GCPtr pGC,
+                                  int nRects, xRectangle *pRects);
+static void RootlessPolyArc(DrawablePtr dst, GCPtr pGC, int narcs, xArc *parcs);
+static void RootlessFillPolygon(DrawablePtr dst, GCPtr pGC,
+                                int shape, int mode, int count,
+                                DDXPointPtr pptInit);
+static void RootlessPolyFillRect(DrawablePtr dst, GCPtr pGC,
+                                 int nRectsInit, xRectangle *pRectsInit);
+static void RootlessPolyFillArc(DrawablePtr dst, GCPtr pGC,
+                                int narcsInit, xArc *parcsInit);
+static int RootlessPolyText8(DrawablePtr dst, GCPtr pGC,
+			     int x, int y, int count, char *chars);
+static int RootlessPolyText16(DrawablePtr dst, GCPtr pGC,
+			      int x, int y, int count, unsigned short *chars);
+static void RootlessImageText8(DrawablePtr dst, GCPtr pGC,
+                               int x, int y, int count, char *chars);
+static void RootlessImageText16(DrawablePtr dst, GCPtr pGC,
+                                int x, int y, int count, unsigned short *chars);
+static void RootlessImageGlyphBlt(DrawablePtr dst, GCPtr pGC,
+                                  int x, int y, unsigned int nglyphInit,
+                                  CharInfoPtr *ppciInit, pointer unused);
+static void RootlessPolyGlyphBlt(DrawablePtr dst, GCPtr pGC,
+                                 int x, int y, unsigned int nglyph,
+                                 CharInfoPtr *ppci, pointer pglyphBase);
+static void RootlessPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr dst,
+			       int dx, int dy, int xOrg, int yOrg);
+
 
 static GCOps rootlessGCOps = {
     RootlessFillSpans,

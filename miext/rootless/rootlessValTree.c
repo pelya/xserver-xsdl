@@ -104,15 +104,17 @@ Equipment Corporation.
 
 #include    "globals.h"
 
+int RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
+			RegionPtr bounding, BoxPtr rect, int x, int y);
+
+int RootlessMiValidateTree (WindowPtr pRoot, WindowPtr pChild, VTKind kind);
+
 /*
  * Compute the visibility of a shaped window
  */
 int
-RootlessShapedWindowIn (pScreen, universe, bounding, rect, x, y)
-    ScreenPtr	pScreen;
-    RegionPtr	universe, bounding;
-    BoxPtr	rect;
-    register int x, y;
+RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
+			RegionPtr bounding, BoxPtr rect, int x, int y)
 {
     BoxRec  box;
     register BoxPtr  boundBox;
@@ -189,12 +191,8 @@ RootlessShapedWindowIn (pScreen, universe, bounding, rect, x, y)
  *-----------------------------------------------------------------------
  */
 static void
-RootlessComputeClips (pParent, pScreen, universe, kind, exposed)
-    register WindowPtr	pParent;
-    register ScreenPtr	pScreen;
-    register RegionPtr	universe;
-    VTKind		kind;
-    RegionPtr		exposed; /* for intermediate calculations */
+RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen, 
+		      RegionPtr universe, VTKind kind, RegionPtr exposed)
 {
     int			dx,
 			dy;
@@ -510,8 +508,7 @@ RootlessComputeClips (pParent, pScreen, universe, kind, exposed)
 }
 
 static void
-RootlessTreeObscured(pParent)
-    register WindowPtr pParent;
+RootlessTreeObscured(WindowPtr pParent)
 {
     register WindowPtr pChild;
     register int    oldVis;
@@ -577,11 +574,10 @@ RootlessTreeObscured(pParent)
 // fixme this is ugly
 // Xprint/ValTree.c doesn't work, but maybe that method can?
 int
-RootlessMiValidateTree (pRoot, pChild, kind)
-    WindowPtr	  	pRoot;      /* Parent to validate */
-    WindowPtr	  	pChild;     /* First child of pRoot that was
-				     * affected */
-    VTKind    	  	kind;       /* What kind of configuration caused call */
+RootlessMiValidateTree (WindowPtr pRoot, /* Parent to validate */
+			WindowPtr pChild, /* First child of pRoot that was
+					   * affected */
+			VTKind kind /* What kind of configuration caused call */)
 {
     RegionRec	  	childClip;  /* The new borderClip for the current
 				     * child */
