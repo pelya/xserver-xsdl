@@ -771,7 +771,7 @@ damageAddTraps (PicturePtr  pPicture,
     }
     unwrap (pScrPriv, ps, AddTraps);
     (*ps->AddTraps) (pPicture, x_off, y_off, ntrap, traps);
-    damageReportPostOp (pPicture->pDrawable);
+    damageRegionProcessPending (pPicture->pDrawable);
     wrap (pScrPriv, ps, AddTraps, damageAddTraps);
 }
 #endif
