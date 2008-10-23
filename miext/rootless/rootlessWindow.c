@@ -272,6 +272,12 @@ RootlessGetShape(WindowPtr pWin, RegionPtr pShape)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
 
+    /* 
+     * Avoid a warning.  
+     * REGION_NULL and the other macros don't actually seem to use pScreen.
+     */
+    (void)pScreen; 
+
     if (wBoundingShape(pWin) == NULL)
         return FALSE;
 
@@ -1598,15 +1604,19 @@ RootlessDisableRoot (ScreenPtr pScreen)
 {
     WindowPtr pRoot;
     RootlessWindowRec *winRec;
-    
+
     pRoot = WindowTable[pScreen->myNum];
     winRec = WINREC (pRoot);
-    
-    if (winRec != NULL)
-    {
-        RootlessDestroyFrame (pRoot, winRec);
-        DeleteProperty (pRoot, xa_native_window_id ());
-    }
+
+    if (NULL == winRec)
+	return;
+           
+    RootlessDestroyFrame (pRoot, winRec);
+    /* 
+     * gstaplin: I fixed the usage of this DeleteProperty so that it would compile.
+     * QUESTION: Where is this xa_native_window_id set?
+     */
+    DeleteProperty (serverClient, pRoot, xa_native_window_id ());
 }
 
 void
