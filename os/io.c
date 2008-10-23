@@ -179,7 +179,7 @@ YieldControl(void)
 }
 
 static void
-YieldControlNoInput(void)
+YieldControlNoInput(int fd)
 {
     YieldControl();
     FD_CLR(fd, &ClientsWithInput);
@@ -346,7 +346,7 @@ ReadRequestFromClient(ClientPtr client)
 		if (0)
 #endif
 		{
-		    YieldControlNoInput();
+		    YieldControlNoInput(fd);
 		    return 0;
 		}
 	    }
@@ -388,7 +388,7 @@ ReadRequestFromClient(ClientPtr client)
 	if (gotnow < needed)
 	{
 	    /* Still don't have enough; punt. */
-	    YieldControlNoInput();
+	    YieldControlNoInput(fd);
 	    return 0;
 	}
     }
@@ -425,7 +425,7 @@ ReadRequestFromClient(ClientPtr client)
 	    if (!SmartScheduleDisable)
 		FD_CLR(fd, &ClientsWithInput);
 	    else
-		YieldControlNoInput();
+		YieldControlNoInput(fd);
 	}
     }
     else
@@ -435,7 +435,7 @@ ReadRequestFromClient(ClientPtr client)
 	if (!SmartScheduleDisable)
 	    FD_CLR(fd, &ClientsWithInput);
 	else
-	    YieldControlNoInput();
+	    YieldControlNoInput(fd);
     }
     if (SmartScheduleDisable)
     if (++timesThisConnection >= MAX_TIMES_PER)
@@ -529,7 +529,7 @@ InsertFakeRequest(ClientPtr client, char *data, int count)
 	(gotnow >= (int)(get_req_len((xReq *)oci->bufptr, client) << 2)))
 	FD_SET(fd, &ClientsWithInput);
     else
-	YieldControlNoInput();
+	YieldControlNoInput(fd);
     return(TRUE);
 }
 
@@ -553,7 +553,7 @@ ResetCurrentRequest(ClientPtr client)
     gotnow = oci->bufcnt + oci->buffer - oci->bufptr;
     if (gotnow < sizeof(xReq))
     {
-	YieldControlNoInput();
+	YieldControlNoInput(fd);
     }
     else
     {
@@ -583,7 +583,7 @@ ResetCurrentRequest(ClientPtr client)
 	    YieldControl();
 	}
 	else
-	    YieldControlNoInput();
+	    YieldControlNoInput(fd);
     }
 }
 
