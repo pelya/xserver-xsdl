@@ -303,6 +303,10 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 	(*screen->dri2->createNewContext)(screen->driScreen,
 					  config->driConfig,
 					  driShare, context);
+    if (context->driContext == NULL) {
+	    xfree(context);
+        return NULL;
+    }
 
     return &context->base;
 }
