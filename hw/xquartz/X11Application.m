@@ -65,7 +65,6 @@ int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 static TISInputSourceRef last_key_layout;
 
 extern int darwinFakeButtons;
-extern Bool enable_stereo;
 
 X11Application *X11App;
 
@@ -676,8 +675,6 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
                           default:darwinDesiredDepth];
 	
-    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
-                     default:enable_stereo];
 }
 
 /* This will end up at the end of the responder chain. */

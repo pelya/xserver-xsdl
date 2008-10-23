@@ -56,8 +56,6 @@
 #include "capabilities.h"
 #include "visualConfigs.h"
 
-extern BOOL enable_stereo;
-
 /* Based originally on code from indirect.c which was based on code from i830_dri.c. */
 void setVisualConfigs(void) {
     int numConfigs = 0;
@@ -87,7 +85,7 @@ void setVisualConfigs(void) {
       2 iterations for accum (on and off (with an accum color size of 16)).
      */
 
-    numConfigs = ((enable_stereo && caps->stereo) ? 2 : 1) * 2 * 
+    numConfigs = (caps->stereo ? 2 : 1) * 2 * 
 	(caps->aux_buffers ? 2 : 1) * (caps->buffers) * 2 * 2;
 
     visualConfigs = xcalloc(sizeof(*visualConfigs), numConfigs);
@@ -107,7 +105,7 @@ void setVisualConfigs(void) {
 
  
     i = 0; /* current buffer */
-    for (stereo = 0; stereo < ((enable_stereo && caps->stereo) ? 2 : 1); ++stereo) {
+    for (stereo = 0; stereo < (caps->stereo ? 2 : 1); ++stereo) {
 	for (depth = 0; depth < 2; ++depth) {
 	    for (aux = 0; aux < (caps->aux_buffers ? 2 : 1); ++aux) {
 		for (buffers = 0; buffers < caps->buffers; ++buffers) {

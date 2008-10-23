@@ -94,7 +94,6 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_WINDOW_ITEM_MODIFIERS "window_item_modifiers"
 #define PREFS_ROOTLESS              "rootless"
 #define PREFS_XP_OPTIONS            "xp_options"
-#define PREFS_ENABLE_STEREO         "enable_stereo"
 #define PREFS_LOGIN_SHELL           "login_shell"
 #define PREFS_CLICK_THROUGH         "wm_click_through"
 #define PREFS_FFM                   "wm_ffm"
