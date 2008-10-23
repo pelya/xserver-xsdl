@@ -37,8 +37,6 @@
 #include <X11/Xutil.h>
 #import <AppKit/NSBitmapImageRep.h>
 
-#include <X11/extensions/xfixes.h>
-
 /*
  * The basic design of the pbproxy code is as follows.
  *

@@ -12,10 +12,6 @@
 #include <X11/extensions/shape.h>
 #undef   Cursor
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
 #ifndef INTEGRATED_XPBPROXY
 extern BOOL prefs_reload;
 #endif
@@ -36,11 +32,12 @@ extern BOOL have_xfixes;
 extern BOOL x_input_register (void);
 extern void x_input_run (void);
 
-#if DEBUG == 0
-# define DB(msg, args...) do {} while (0)
-#else
+#ifdef DEBUG
 /* BEWARE: this can cause a string memory leak, according to the leaks program. */
 # define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
+#else
+# define DB(msg, args...) do {} while (0)
+#else
 #endif
 
 #define TRACE() DB("TRACE\n")

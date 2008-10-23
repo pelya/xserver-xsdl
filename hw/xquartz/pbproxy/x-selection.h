@@ -32,8 +32,10 @@
 #define X_SELECTION_H 1
 
 #include "pbproxy.h"
+
+#include <X11/extensions/Xfixes.h>
+
 #include <AppKit/NSPasteboard.h>
-#include <X11/extensions/xfixes.h>
 
 /* This stores image data or text. */
 struct propdata {
