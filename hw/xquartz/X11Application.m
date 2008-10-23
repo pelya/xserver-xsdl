@@ -357,7 +357,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         if(!ok)
                             switch_on_activate = YES;
                         
-                        if ([e data2] & 0x10 && switch_on_activate)
+                        if ([e data2] & 0x10 && switch_on_activate) // 0x10 is set when we use cmd-tab or the dock icon
                             DarwinSendDDXEvent(kXquartzBringAllToFront, 0);
                     }
                     break;
