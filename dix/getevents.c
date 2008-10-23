@@ -47,7 +47,6 @@
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include <xkbsrv.h>
-extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #endif
 
 #ifdef PANORAMIX
