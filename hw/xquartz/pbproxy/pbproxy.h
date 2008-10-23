@@ -37,7 +37,6 @@ extern void x_input_run (void);
 # define DB(msg, args...) debug_printf("%s:%s:%d " msg, __FILE__, __FUNCTION__, __LINE__, ##args)
 #else
 # define DB(msg, args...) do {} while (0)
-#else
 #endif
 
 #define TRACE() DB("TRACE\n")
