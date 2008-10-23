@@ -189,7 +189,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     *prev = dev;
     dev->next = NULL;
 
-    enabled = TRUE;
+    enabled = FALSE;
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
                            XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            FALSE);
@@ -223,6 +223,7 @@ EnableDevice(DeviceIntPtr dev)
     int evsize  = sizeof(xEvent);
     int listlen;
     EventListPtr evlist;
+    BOOL enabled;
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
@@ -281,8 +282,9 @@ EnableDevice(DeviceIntPtr dev)
     *prev = dev;
     dev->next = NULL;
 
+    enabled = TRUE;
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
-                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            TRUE);
 
     ev.type = DevicePresenceNotify;
@@ -312,6 +314,7 @@ DisableDevice(DeviceIntPtr dev)
     DeviceIntPtr *prev, other;
     DeviceIntRec dummyDev;
     devicePresenceNotify ev;
+    BOOL enabled;
 
     for (prev = &inputInfo.devices;
 	 *prev && (*prev != dev);
@@ -357,8 +360,9 @@ DisableDevice(DeviceIntPtr dev)
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
 
+    enabled = FALSE;
     XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_ENABLED),
-                           XA_INTEGER, 8, PropModeReplace, 1, &dev->enabled,
+                           XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            TRUE);
 
     ev.type = DevicePresenceNotify;
