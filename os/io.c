@@ -171,14 +171,25 @@ static OsCommPtr AvailableInput = (OsCommPtr)NULL;
  *    a partial request) because others clients need to be scheduled.
  *****************************************************************/
 
-#define YieldControl()				\
-        { isItTimeToYield = TRUE;		\
-	  timesThisConnection = 0; }
-#define YieldControlNoInput()			\
-        { YieldControl();			\
-	  FD_CLR(fd, &ClientsWithInput); }
-#define YieldControlDeath()			\
-        { timesThisConnection = 0; }
+static void
+YieldControl(void)
+{
+    isItTimeToYield = TRUE;
+    timesThisConnection = 0;
+}
+
+static void
+YieldControlNoInput(void)
+{
+    YieldControl();
+    FD_CLR(fd, &ClientsWithInput);
+}
+
+static void
+YieldControlDeath(void)
+{
+    timesThisConnection = 0;
+}
 
 int
 ReadRequestFromClient(ClientPtr client)
