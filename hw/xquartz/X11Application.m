@@ -788,20 +788,19 @@ static void check_xinitrc (void) {
 Windows displayed by X11 applications may not have titlebars, or may look \
 different to windows displayed by native applications.\n\n\
 Would you like to move aside the existing file and use the standard X11 \
-environment?", @"Startup xinitrc dialog");
-	
-    if (NSRunAlertPanel (nil, msg, NSLocalizedString (@"Yes", @""),
-			 NSLocalizedString (@"No", @""), nil)
-	== NSAlertDefaultReturn) {
-      char buf2[1024];
-      int i = -1;
+environment the next time you start X11?", @"Startup xinitrc dialog");
+
+    if(NSAlertDefaultReturn == NSRunAlertPanel (nil, msg, NSLocalizedString (@"Yes", @""),
+                                                NSLocalizedString (@"No", @""), nil)) {
+        char buf2[1024];
+        int i = -1;
       
-      snprintf (buf2, sizeof (buf2), "%s.old", buf);
+        snprintf (buf2, sizeof (buf2), "%s.old", buf);
       
-      for (i = 1; access (buf2, F_OK) == 0; i++)
-	snprintf (buf2, sizeof (buf2), "%s.old.%d", buf, i);
-      
-      rename (buf, buf2);
+        for(i = 1; access (buf2, F_OK) == 0; i++)
+            snprintf (buf2, sizeof (buf2), "%s.old.%d", buf, i);
+
+        rename (buf, buf2);
     }
     
  done:
@@ -824,7 +823,6 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     [[NSNotificationCenter defaultCenter] addObserver:NSApp
 					selector:@selector (became_key:)
 					name:NSWindowDidBecomeKeyNotification object:nil];
-    check_xinitrc ();
 
     /*
      * The xpr Quartz mode is statically linked into this server.
@@ -850,6 +848,11 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
 
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
+    
+    /* This must be done after QuartzInitServer because it can result in
+     * an mieqEnqueue() - <rdar://problem/6300249>
+     */
+    check_xinitrc();
            
     [NSApp run];
     /* not reached */
