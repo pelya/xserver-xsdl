@@ -39,6 +39,9 @@
 #include "xf86Config.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
+#ifdef __sparc__
+# include "xf86sbusBus.h"
+#endif
 #include "dirent.h"
 
 #ifdef sun
@@ -470,6 +473,13 @@ listPossibleVideoDrivers(char *matches[], int nmatches)
 		}
 	    }
 	}
+    }
+#endif
+#ifdef __sparc__
+    {
+	char *sbusDriver = sparcDriverName();
+	if (sbusDriver)
+	    matches[i++] = xnfstrdup(sbusDriver);
     }
 #endif
 
