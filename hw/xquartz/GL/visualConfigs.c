@@ -61,37 +61,56 @@ void setVisualConfigs(void) {
     int numConfigs = 0;
     __GLXvisualConfig *visualConfigs = NULL;
     void **visualPrivates = NULL;
-    struct glCapabilities caps[1];
-    int stereo, depth, aux, buffers, stencil, accum;
+    struct glCapabilities caps;
+    struct glCapabilitiesConfig *conf = NULL;
+    int stereo, depth, aux, buffers, stencil, accum, color;
     int i = 0; 
-
-    if(getGlCapabilities(caps)) {
+   
+    if(getGlCapabilities(&caps)) {
 	ErrorF("error from getGlCapabilities()!\n");
 	return;
     }
     
     /*
-      caps->stereo is 0 or 1, but we need at least 1 iteration of the loop, so we treat
-      a true caps->stereo as 2.
+      conf->stereo is 0 or 1, but we need at least 1 iteration of the loop, 
+      so we treat a true conf->stereo as 2.
 
       The depth size is 0 or 24.  Thus we do 2 iterations for that.
 
-      caps->aux_buffers (when available/non-zero) result in 2 iterations instead of 1.
+      conf->aux_buffers (when available/non-zero) result in 2 iterations instead of 1.
 
-      caps->buffers indicates whether we have single or double buffering.
+      conf->buffers indicates whether we have single or double buffering.
+     
+      conf->total_stencil_bit_depths
+       
+      conf->total_color_buffers indicates the RGB/RGBA color depths.
       
-      2 iterations for stencil (on and off (with a stencil size of 8)).
-
-      2 iterations for accum (on and off (with an accum color size of 16)).
+      conf->total_accum_buffers iterations for accum (with at least 1 if equal to 0) 
      */
 
-    numConfigs = (caps->stereo ? 2 : 1) * 2 * 
-	(caps->aux_buffers ? 2 : 1) * (caps->buffers) * 2 * 2;
+    assert(NULL != caps.configurations);
+    conf = caps.configurations;
+  
+    numConfigs = 0;
+
+    for(conf = caps.configurations; conf; conf = conf->next) {
+	if(conf->total_color_buffers <= 0)
+	    continue;
+
+	numConfigs += (conf->stereo ? 2 : 1) 
+	    * 2 /*depth*/ 
+	    * (conf->aux_buffers ? 2 : 1) 
+	    * conf->buffers
+	    * ((conf->total_stencil_bit_depths > 0) ? conf->total_stencil_bit_depths : 1)
+	    * conf->total_color_buffers
+	    * ((conf->total_accum_buffers > 0) ? conf->total_accum_buffers : 1);
+    }
 
     visualConfigs = xcalloc(sizeof(*visualConfigs), numConfigs);
 
     if(NULL == visualConfigs) {
 	ErrorF("xcalloc failure when allocating visualConfigs\n");
+	freeGlCapabilities(&caps);
 	return;
     }
     
@@ -99,55 +118,83 @@ void setVisualConfigs(void) {
 
     if(NULL == visualPrivates) {
 	ErrorF("xcalloc failure when allocating visualPrivates");
+	freeGlCapabilities(&caps);
 	xfree(visualConfigs);
 	return;
     }
-
- 
+    
     i = 0; /* current buffer */
-    for (stereo = 0; stereo < (caps->stereo ? 2 : 1); ++stereo) {
-	for (depth = 0; depth < 2; ++depth) {
-	    for (aux = 0; aux < (caps->aux_buffers ? 2 : 1); ++aux) {
-		for (buffers = 0; buffers < caps->buffers; ++buffers) {
-		    for (stencil = 0; stencil < 2; ++stencil) {
-			for (accum = 0; accum < 2; ++accum) {
-			    visualConfigs[i].vid = -1;
-			    visualConfigs[i].class = -1;
-			    visualConfigs[i].rgba = TRUE;
-			    visualConfigs[i].redSize = -1;
-			    visualConfigs[i].greenSize = -1;
-			    visualConfigs[i].blueSize = -1;
-			    visualConfigs[i].redMask = -1;
-			    visualConfigs[i].greenMask = -1;
-			    visualConfigs[i].blueMask = -1;
-			    visualConfigs[i].alphaMask = 0;
-			    if (accum) {
-				visualConfigs[i].accumRedSize = 16;
-				visualConfigs[i].accumGreenSize = 16;
-				visualConfigs[i].accumBlueSize = 16;
-				visualConfigs[i].accumAlphaSize = 16;
-			    } else {
-				visualConfigs[i].accumRedSize = 0;
-				visualConfigs[i].accumGreenSize = 0;
-				visualConfigs[i].accumBlueSize = 0;
-				visualConfigs[i].accumAlphaSize = 0;
+    for(conf = caps.configurations; conf; conf = conf->next) {
+	for(stereo = 0; stereo < (conf->stereo ? 2 : 1); ++stereo) {
+	    for(depth = 0; depth < 2; ++depth) {
+		for(aux = 0; aux < (conf->aux_buffers ? 2 : 1); ++aux) {
+		    for(buffers = 0; buffers < conf->buffers; ++buffers) {
+			for(stencil = 0; stencil < ((conf->total_stencil_bit_depths > 0) ? 
+						    conf->total_stencil_bit_depths : 1); ++stencil) {
+			    for(color = 0; color < conf->total_color_buffers; ++color) {
+				for(accum = 0; accum < ((conf->total_accum_buffers > 0) ?
+							conf->total_accum_buffers : 1); ++accum) {
+				    visualConfigs[i].vid = -1;
+				    visualConfigs[i].class = -1;
+		     
+				    visualConfigs[i].rgba = true;
+				    visualConfigs[i].redSize = conf->color_buffers[color].r;
+				    visualConfigs[i].greenSize = conf->color_buffers[color].g;
+				    visualConfigs[i].blueSize = conf->color_buffers[color].b;
+				    visualConfigs[i].alphaSize = conf->color_buffers[color].a;
+				
+				    visualConfigs[i].redMask = -1;
+				    visualConfigs[i].greenMask = -1;
+				    visualConfigs[i].blueMask = -1;
+				    visualConfigs[i].alphaMask = -1;
+
+				    if(conf->total_accum_buffers > 0) {
+					visualConfigs[i].accumRedSize = conf->accum_buffers[accum].r;
+					visualConfigs[i].accumGreenSize = conf->accum_buffers[accum].g;
+					visualConfigs[i].accumBlueSize = conf->accum_buffers[accum].b;
+					if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->accum_buffers[accum].a) {
+					    visualConfigs[i].accumAlphaSize = conf->accum_buffers[accum].a;
+					} else {
+					    visualConfigs[i].accumAlphaSize = 0;
+					}
+				    } else {
+					visualConfigs[i].accumRedSize = 0;
+					visualConfigs[i].accumGreenSize = 0;
+					visualConfigs[i].accumBlueSize = 0;
+					visualConfigs[i].accumAlphaSize = 0;
+				    }
+
+				    visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
+				    visualConfigs[i].stereo = stereo ? TRUE : FALSE;
+				    visualConfigs[i].bufferSize = -1;
+				    
+				    visualConfigs[i].depthSize = depth ? 24 : 0;
+				    
+				    if(conf->total_stencil_bit_depths > 0) {
+					visualConfigs[i].stencilSize = conf->stencil_bit_depths[stencil];
+				    } else {
+					visualConfigs[i].stencilSize = 0;
+				    }
+				    visualConfigs[i].auxBuffers = aux ? conf->aux_buffers : 0;
+				    visualConfigs[i].level = 0;
+				    visualConfigs[i].visualRating = GLX_NONE;
+				    visualConfigs[i].transparentPixel = GLX_NONE;
+				    visualConfigs[i].transparentRed = GLX_NONE;
+				    visualConfigs[i].transparentGreen = GLX_NONE;
+				    visualConfigs[i].transparentBlue = GLX_NONE;
+				    visualConfigs[i].transparentAlpha = GLX_NONE;
+				    visualConfigs[i].transparentIndex = GLX_NONE;
+
+				    /*
+				      TODO possibly handle:
+				      multiSampleSize;
+				      nMultiSampleBuffers;
+				      visualSelectGroup;
+				    */
+
+				    ++i;
+				}
 			    }
-			    visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
-			    visualConfigs[i].stereo = stereo ? TRUE : FALSE;
-			    visualConfigs[i].bufferSize = -1;
-			    
-			    visualConfigs[i].depthSize = depth ? 24 : 0;
-			    visualConfigs[i].stencilSize = stencil ? 8 : 0;
-			    visualConfigs[i].auxBuffers = aux ? caps->aux_buffers : 0;
-			    visualConfigs[i].level = 0;
-			    visualConfigs[i].visualRating = GLX_NONE_EXT;
-			    visualConfigs[i].transparentPixel = 0;
-			    visualConfigs[i].transparentRed = 0;
-			    visualConfigs[i].transparentGreen = 0;
-			    visualConfigs[i].transparentBlue = 0;
-			    visualConfigs[i].transparentAlpha = 0;
-			    visualConfigs[i].transparentIndex = 0;
-			    ++i;
 			}
 		    }
 		}
@@ -156,9 +203,11 @@ void setVisualConfigs(void) {
     }
 
     if (i != numConfigs) {
-	ErrorF("numConfigs calculation error in setVisualConfigs!\n");
+	ErrorF("numConfigs calculation error in setVisualConfigs!  numConfigs is %d  i is %d\n", numConfigs, i);
 	abort();
     }
+
+    freeGlCapabilities(&caps);
 
     GlxSetVisualConfigs(numConfigs, visualConfigs, visualPrivates);
 }

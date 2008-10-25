@@ -1157,7 +1157,7 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
 
   init_screen_visuals(screen);
     
-  glAquaInitVisualConfigs();
+  //glAquaInitVisualConfigs();
 
   return &screen->base;
 }

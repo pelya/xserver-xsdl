@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -30,27 +31,371 @@
 
 #include "capabilities.h"
 
-//#define DIAGNOSTIC 0
-
-static void handleBufferModes(struct glCapabilities *cap, GLint bufferModes) {
+static void handleBufferModes(struct glCapabilitiesConfig *c, GLint bufferModes) {
     if(bufferModes & kCGLStereoscopicBit) {
-	cap->stereo = true;
+	c->stereo = true;
     }
 
     if(bufferModes & kCGLDoubleBufferBit) {
-	cap->buffers = 2;
+	c->buffers = 2;
     } else {
-	cap->buffers = 1;
+	c->buffers = 1;
     }
 }
 
-static void initCapabilities(struct glCapabilities *cap) {
-    cap->stereo = cap->buffers = cap->aux_buffers = 0;
+static void handleStencilModes(struct glCapabilitiesConfig *c, GLint smodes) {
+    int offset = 0;
+    
+    if(kCGL0Bit & smodes)
+	c->stencil_bit_depths[offset++] = 0;
+
+    if(kCGL1Bit & smodes)
+	c->stencil_bit_depths[offset++] = 1;
+
+    if(kCGL2Bit & smodes)
+	c->stencil_bit_depths[offset++] = 2;
+    
+    if(kCGL3Bit & smodes)
+	c->stencil_bit_depths[offset++] = 3;
+
+    if(kCGL4Bit & smodes)
+	c->stencil_bit_depths[offset++] = 4;
+
+    if(kCGL5Bit & smodes)
+	c->stencil_bit_depths[offset++] = 5;
+    
+    if(kCGL6Bit & smodes)
+	c->stencil_bit_depths[offset++] = 6;
+
+    if(kCGL8Bit & smodes)
+	c->stencil_bit_depths[offset++] = 8;
+
+    if(kCGL10Bit & smodes)
+	c->stencil_bit_depths[offset++] = 10;
+
+    if(kCGL12Bit & smodes)
+	c->stencil_bit_depths[offset++] = 12;
+
+    if(kCGL16Bit & smodes)
+	c->stencil_bit_depths[offset++] = 16;
+
+    if(kCGL24Bit & smodes)
+	c->stencil_bit_depths[offset++] = 24;
+
+    if(kCGL32Bit & smodes)
+	c->stencil_bit_depths[offset++] = 32;
+    
+    if(kCGL48Bit & smodes)
+	c->stencil_bit_depths[offset++] = 48;
+    
+    if(kCGL64Bit & smodes)
+	c->stencil_bit_depths[offset++] = 64;
+    
+    if(kCGL96Bit & smodes)
+	c->stencil_bit_depths[offset++] = 96;
+    
+    if(kCGL128Bit & smodes)
+	c->stencil_bit_depths[offset++] = 128;
+
+    assert(offset < GLCAPS_STENCIL_BIT_DEPTH_BUFFERS);
+
+    c->total_stencil_bit_depths = offset;
 }
 
-enum {
-    MAX_DISPLAYS = 32
-};
+static int handleColorAndAccumulation(struct glColorBufCapabilities *c, 
+				       GLint cmodes) {
+    int offset = 0;
+        
+    /*1*/
+    if(kCGLRGB444Bit & cmodes) {
+	c[offset].r = 4;
+	c[offset].g = 4; 
+	c[offset].b = 4;
+	++offset;
+    }
+    
+    /*2*/
+    if(kCGLARGB4444Bit & cmodes) {
+	c[offset].a = 4;
+	c[offset].r = 4;
+	c[offset].g = 4;
+	c[offset].b = 4;
+	c[offset].is_argb = true;
+	++offset;
+    }
+    
+    /*3*/
+    if(kCGLRGB444A8Bit & cmodes) {
+	c[offset].r = 4;
+	c[offset].g = 4;
+	c[offset].b = 4;
+	c[offset].a = 8;
+	++offset;
+    }
+
+    /*4*/
+    if(kCGLRGB555Bit & cmodes) {
+	c[offset].r = 5;
+	c[offset].g = 5;
+	c[offset].b = 5;
+	++offset;
+    }
+
+    /*5*/
+    if(kCGLARGB1555Bit & cmodes) {
+	c[offset].a = 1;
+	c[offset].r = 5;
+	c[offset].g = 5;
+	c[offset].b = 5;
+	c[offset].is_argb = true;
+	++offset;
+    }
+
+    /*6*/
+    if(kCGLRGB555A8Bit & cmodes) {
+	c[offset].r = 5;
+	c[offset].g = 5; 
+	c[offset].b = 5;
+	c[offset].a = 8;
+	++offset;
+    }
+
+    /*7*/
+    if(kCGLRGB565Bit & cmodes) {
+	c[offset].r = 5;
+	c[offset].g = 6;
+	c[offset].b = 5;
+	++offset;
+    }
+
+    /*8*/
+    if(kCGLRGB565A8Bit & cmodes) {
+	c[offset].r = 5;
+	c[offset].g = 6;
+	c[offset].b = 5;
+	c[offset].a = 8;
+	++offset;
+    }
+
+    /*9*/
+    if(kCGLRGB888Bit & cmodes) {
+	c[offset].r = 8;
+	c[offset].g = 8;
+	c[offset].b = 8;
+	++offset;
+    }
+
+    /*10*/
+    if(kCGLARGB8888Bit & cmodes) {
+	c[offset].a = 8;
+	c[offset].r = 8;
+	c[offset].g = 8;
+	c[offset].b = 8;
+	c[offset].is_argb = true;
+	++offset;
+    }
+
+    /*11*/
+    if(kCGLRGB888A8Bit & cmodes) {
+	c[offset].r = 8;
+	c[offset].g = 8;
+	c[offset].b = 8;
+	c[offset].a = 8;
+	++offset;
+    }
+
+    /*12*/
+    if(kCGLRGB101010Bit & cmodes) {
+	c[offset].r = 10;
+	c[offset].g = 10;
+	c[offset].b = 10;
+	++offset;
+    }
+
+    /*13*/
+    if(kCGLARGB2101010Bit & cmodes) {
+	c[offset].a = 2;
+	c[offset].r = 10;
+	c[offset].g = 10;
+	c[offset].b = 10;
+	c[offset].is_argb = true;
+	++offset;
+    }
+
+    /*14*/
+    if(kCGLRGB101010_A8Bit & cmodes) {
+	c[offset].r = 10;
+	c[offset].g = 10;
+	c[offset].b = 10;
+	c[offset].a = 8;
+	++offset;
+    }
+
+    /*15*/
+    if(kCGLRGB121212Bit & cmodes) {
+	c[offset].r = 12;
+	c[offset].g = 12;
+	c[offset].b = 12;
+	++offset;	
+    }
+
+    /*16*/
+    if(kCGLARGB12121212Bit & cmodes) {
+	c[offset].a = 12;
+	c[offset].r = 12;
+	c[offset].g = 12;
+	c[offset].b = 12;
+	c[offset].is_argb = true;
+	++offset;
+    }
+
+    /*17*/
+    if(kCGLRGB161616Bit & cmodes) {
+	c[offset].r = 16;
+	c[offset].g = 16;
+	c[offset].b = 16;
+	++offset;
+    }
+
+    /*18*/
+    if(kCGLRGBA16161616Bit & cmodes) {
+	c[offset].r = 16;
+	c[offset].g = 16;
+	c[offset].b = 16;
+	c[offset].a = 16;
+	++offset;
+    }
+
+    /* FIXME should we handle the floating point color modes, and if so, how? */
+      
+    return offset;
+}
+
+
+static void handleColorModes(struct glCapabilitiesConfig *c, GLint cmodes) {
+    c->total_color_buffers = handleColorAndAccumulation(c->color_buffers,
+							cmodes);
+    
+    assert(c->total_color_buffers < GLCAPS_COLOR_BUFFERS);
+}
+
+static void handleAccumulationModes(struct glCapabilitiesConfig *c, GLint cmodes) {
+    c->total_accum_buffers = handleColorAndAccumulation(c->accum_buffers,
+							cmodes);
+    assert(c->total_accum_buffers < GLCAPS_COLOR_BUFFERS);
+}
+
+/* Return true if an error occured. */
+static CGLError handleRendererDescriptions(CGLRendererInfoObj info, GLint r, 
+					   struct glCapabilitiesConfig *c) {
+    CGLError err;
+    GLint accelerated = 0, flags = 0, aux = 0;
+
+    err = CGLDescribeRenderer (info, r, kCGLRPAccelerated, &accelerated);
+
+    if(err)
+	return err;
+    
+    c->accelerated = accelerated;
+
+    /* Buffering modes: single/double, stereo */
+    err = CGLDescribeRenderer(info, r, kCGLRPBufferModes, &flags);
+
+    if(err)
+	return err;
+    
+    handleBufferModes(c, flags);
+    
+    /* AUX buffers */
+    err = CGLDescribeRenderer(info, r, kCGLRPMaxAuxBuffers, &aux);
+
+    if(err)
+	return err;
+    
+    c->aux_buffers = aux;
+    
+
+    /* Stencil bit depths */
+    err = CGLDescribeRenderer(info, r, kCGLRPStencilModes, &flags);
+
+    if(err)
+	return err;
+
+    handleStencilModes(c, flags);   
+
+
+    /* Color modes (RGB/RGBA depths supported */
+    err = CGLDescribeRenderer(info, r, kCGLRPColorModes, &flags);
+
+    if(err)
+	return true;
+    
+    handleColorModes(c, flags);
+
+    err = CGLDescribeRenderer(info, r, kCGLRPAccumModes, &flags);
+
+    if(err)
+	return true;
+
+    handleAccumulationModes(c, flags);
+    
+    return 0;
+}
+
+static void initCapabilities(struct glCapabilities *cap) {
+    cap->configurations = NULL;
+    cap->total_configurations = 0;
+}
+
+static void initConfig(struct glCapabilitiesConfig *c) {
+    int i;
+
+    c->accelerated = false;
+    c->stereo = false;
+    c->buffers = 0;
+    c->aux_buffers = 0;
+    c->total_stencil_bit_depths = 0;
+
+    for(i = 0; i < GLCAPS_STENCIL_BIT_DEPTH_BUFFERS; ++i) {
+	c->stencil_bit_depths[i] = GLCAPS_INVALID_STENCIL_DEPTH;
+    }
+   
+    c->total_color_buffers = 0;
+
+    for(i = 0; i < GLCAPS_COLOR_BUFFERS; ++i) {
+	c->color_buffers[i].r =	c->color_buffers[i].g =
+	    c->color_buffers[i].b = c->color_buffers[i].a = 
+	    GLCAPS_COLOR_BUF_INVALID_VALUE;
+	c->color_buffers[i].is_argb = false;
+     }
+
+    c->total_accum_buffers = 0;
+
+    for(i = 0; i < GLCAPS_COLOR_BUFFERS; ++i) {
+	c->accum_buffers[i].r = c->accum_buffers[i].g =
+	    c->accum_buffers[i].b = c->accum_buffers[i].a =
+	    GLCAPS_COLOR_BUF_INVALID_VALUE;
+	c->accum_buffers[i].is_argb = false;
+    }
+
+    c->next = NULL;
+}
+
+void freeGlCapabilities(struct glCapabilities *cap) {
+    struct glCapabilitiesConfig *conf, *next;
+    
+    conf = cap->configurations;
+
+    while(conf) {
+	next = conf->next;
+	free(conf);
+	conf = next;
+    }
+
+    cap->configurations = NULL;    
+}
+
+enum { MAX_DISPLAYS = 3 };
 
 /*Return true if an error occured. */
 bool getGlCapabilities(struct glCapabilities *cap) {
@@ -63,9 +408,7 @@ bool getGlCapabilities(struct glCapabilities *cap) {
     
     err = CGGetActiveDisplayList(MAX_DISPLAYS, dspys, &displayCount);
     if(err) {
-#ifdef DIAGNOSTIC
-	fprintf(stderr, "CGGetActiveDisplayList %s\n", CGLErrorString (err));
-#endif
+	fprintf(stderr, "CGGetActiveDisplayList error: %s\n", CGLErrorString(err));
 	return true;
     }
  
@@ -73,36 +416,48 @@ bool getGlCapabilities(struct glCapabilities *cap) {
         displayMask = CGDisplayIDToOpenGLDisplayMask(dspys[i]);
        
 	CGLRendererInfoObj info;
-	GLint numRenderers = 0, r, accelerated = 0, flags = 0, aux = 0;
-    
-	err = CGLQueryRendererInfo (displayMask, &info, &numRenderers);
-        if(!err) {
-            CGLDescribeRenderer (info, 0, kCGLRPRendererCount, &numRenderers);
-            for(r = 0; r < numRenderers; ++r) {
-                // find accelerated renderer (assume only one)
-                CGLDescribeRenderer (info, r, kCGLRPAccelerated, &accelerated);
-                if(accelerated) {
-                    err = CGLDescribeRenderer(info, r, kCGLRPBufferModes, &flags);
-		    if(err) {
-			CGLDestroyRendererInfo(info);
-			return true;
-		    }
+	GLint numRenderers = 0, r, renderCount = 0;
+	    
+	err = CGLQueryRendererInfo(displayMask, &info, &numRenderers);
 
-		    handleBufferModes(cap, flags);
-
-		    err = CGLDescribeRenderer(info, r, kCGLRPMaxAuxBuffers, &aux);
-		    if(err) {
-			CGLDestroyRendererInfo(info);
-			return true;
-		    }
-
-		    cap->aux_buffers = aux;
-                }
-            }
-	    CGLDestroyRendererInfo(info);
+        if(err) {
+	    fprintf(stderr, "CGLQueryRendererInfo error: %s\n", CGLErrorString(err));
+	    fprintf(stderr, "trying to continue...\n");
+	    continue;
 	}
-    }
+			
+	CGLDescribeRenderer(info, 0, kCGLRPRendererCount, &renderCount);
 
+	for(r = 0; r < renderCount; ++r) {
+	    CGLError derr;
+	    struct glCapabilitiesConfig tmpconf, *conf;
+
+	    initConfig(&tmpconf);
+
+	    derr = handleRendererDescriptions(info, r, &tmpconf);
+	    if(derr) {
+		fprintf(stderr, "error: %s\n", CGLErrorString(derr));
+		fprintf(stderr, "trying to continue...\n");
+		continue;
+	    }
+
+	    conf = malloc(sizeof(*conf));
+	    if(NULL == conf) {
+		perror("malloc");
+		abort();
+	    }
+
+	    /* Copy the struct. */
+	    *conf = tmpconf;
+
+	    /* Now link the configuration into the list. */
+	    conf->next = cap->configurations;
+	    cap->configurations = conf;
+	}
+
+    	CGLDestroyRendererInfo(info);
+    }
+    
     /* No error occured.  We are done. */
     return false;
 }

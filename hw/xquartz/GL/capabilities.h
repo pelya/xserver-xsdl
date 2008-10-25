@@ -25,13 +25,36 @@
 
 #include <stdbool.h>
 
-struct glCapabilities {
-    int stereo;
+enum { GLCAPS_INVALID_STENCIL_DEPTH = -1 };
+enum { GLCAPS_COLOR_BUF_INVALID_VALUE = -1 };
+enum { GLCAPS_COLOR_BUFFERS = 20 };
+enum { GLCAPS_STENCIL_BIT_DEPTH_BUFFERS = 20 };
+
+struct glColorBufCapabilities {
+    char r, g, b, a;
+    bool is_argb;
+};
+
+struct glCapabilitiesConfig {
+    bool accelerated;
+    bool stereo;
     int aux_buffers;
     int buffers;
-    /*TODO handle STENCIL and ACCUM*/
+    int total_stencil_bit_depths;
+    char stencil_bit_depths[GLCAPS_STENCIL_BIT_DEPTH_BUFFERS];
+    int total_color_buffers;
+    struct glColorBufCapabilities color_buffers[GLCAPS_COLOR_BUFFERS];
+    int total_accum_buffers;
+    struct glColorBufCapabilities accum_buffers[GLCAPS_COLOR_BUFFERS];
+    struct glCapabilitiesConfig *next;
+};
+
+struct glCapabilities  {
+    struct glCapabilitiesConfig *configurations;
+    int total_configurations;
 };
 
 bool getGlCapabilities(struct glCapabilities *cap);
+void freeGlCapabilities(struct glCapabilities *cap);
 
 #endif
