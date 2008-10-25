@@ -706,6 +706,15 @@ If this option is disabled, then the devices will be added (and the
 DevicePresenceNotify event sent), but not enabled, thus leaving policy up
 to the client.
 Enabled by default.
+.TP 7
+.BI "Option \*qLog\*q \*q" string \*q
+This option controls whether the log is flushed and/or synced to disk after
+each message.
+Possible values are
+.B flush
+or
+.BR sync .
+Unset by default.
 .SH "MODULE SECTION"
 The
 .B Module
