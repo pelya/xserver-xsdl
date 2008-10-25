@@ -285,7 +285,7 @@ static void handleAccumulationModes(struct glCapabilitiesConfig *c, GLint cmodes
     assert(c->total_accum_buffers < GLCAPS_COLOR_BUFFERS);
 }
 
-/* Return true if an error occured. */
+/* Return non-zero if an error occured. */
 static CGLError handleRendererDescriptions(CGLRendererInfoObj info, GLint r, 
 					   struct glCapabilitiesConfig *c) {
     CGLError err;
@@ -328,14 +328,14 @@ static CGLError handleRendererDescriptions(CGLRendererInfoObj info, GLint r,
     err = CGLDescribeRenderer(info, r, kCGLRPColorModes, &flags);
 
     if(err)
-	return true;
+	return err;
     
     handleColorModes(c, flags);
 
     err = CGLDescribeRenderer(info, r, kCGLRPAccumModes, &flags);
 
     if(err)
-	return true;
+	return err;
 
     handleAccumulationModes(c, flags);
     
