@@ -250,11 +250,12 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	{
 	    string = True;
 	}
-    else
-    {
-        const char *type = XGetAtomName(x_dpy, a);
-        DB("Unhandled X11 mime type: %s", type);
-        Xfree(type);
+	else
+	{
+	    char *type = XGetAtomName(x_dpy, a);
+	    DB("Unhandled X11 mime type: %s", type);
+	    XFree(type);
+	}
     }
 
     /*We prefer PNG over strings, and UTF8 over a Latin-1 string.*/
