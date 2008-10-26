@@ -28,6 +28,7 @@
 #endif
 #include "windowstr.h"
 #include <X11/extensions/ge.h>
+#include "registry.h"
 
 #include "geint.h"
 #include "geext.h"
@@ -220,7 +221,7 @@ SGEGenericEvent(xEvent* from, xEvent* to)
  * Resource callback, invoked when the client disconnects and the associated
  * GE masks must be destroyed.
  */
-int
+static int
 GEClientGone(WindowPtr pWin, XID id)
 {
     GenericClientMasksPtr gclmask;
