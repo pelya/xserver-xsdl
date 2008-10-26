@@ -47,6 +47,7 @@
 #endif
 #include "xf86Xinput.h"
 #include "exglobals.h"
+#include "exevents.h"
 
 #include "mi.h"
 

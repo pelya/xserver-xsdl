@@ -62,6 +62,7 @@
 #include "mipointer.h"
 #include "xf86InPriv.h"
 #include "compiler.h"
+#include "extinit.h"
 
 #ifdef DPMSExtension
 #define DPMS_SERVER
@@ -87,6 +88,10 @@
 
 #ifdef XFreeXDGA
 #include "dgaproc.h"
+#endif
+
+#ifdef XKB
+#include "xkbsrv.h"
 #endif
 
 #include "os.h"
