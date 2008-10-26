@@ -19,6 +19,9 @@
 #include "xaawrap.h"
 #include "xf86fbman.h"
 #include "servermd.h"
+#ifdef COMPOSITE
+#include "cw.h"
+#endif
 
 #define MAX_PREALLOC_MEM	65536	/* MUST be >= 1024 */
 

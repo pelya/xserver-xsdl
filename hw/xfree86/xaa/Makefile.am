@@ -69,6 +69,6 @@ EXTRA_DIST = xaacexp.h xaawrap.h xaaLine.c xaaDashLine.c \
              xaaStipple.c xaaTEGlyph.c xaaNonTEGlyph.c xaaBitmap.c \
              XAA.HOWTO
 
-INCLUDES = $(XORG_INCS)
+INCLUDES = $(XORG_INCS) -I$(srcdir)/../../../miext/cw
 
 AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
