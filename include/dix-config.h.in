@@ -72,6 +72,9 @@
 /* Support SHM */
 #undef HAS_SHM
 
+/* Have the 'strlcpy' function */
+#undef HAS_STRLCPY
+
 /* Define to 1 if you have the <asm/mtrr.h> header file. */
 #undef HAVE_ASM_MTRR_H
 

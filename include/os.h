@@ -456,6 +456,11 @@ extern int xstrncasecmp(const char *s1, const char *s2, size_t n);
 extern char *xstrcasestr(const char *s, const char *find);
 #endif
 
+#ifndef HAS_STRLCPY
+extern size_t strlcpy(char *dst, const char *src, size_t siz);
+extern size_t strlcat(char *dst, const char *src, size_t siz);
+#endif
+
 /* Logging. */
 typedef enum _LogParameter {
     XLOG_FLUSH,
