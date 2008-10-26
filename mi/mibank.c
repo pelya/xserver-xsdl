@@ -2203,18 +2203,6 @@ miInitializeBanking(
     return TRUE;
 }
 
-/* This is used to force GC revalidation when the banking type is changed */
-/*ARGSUSED*/
-static int
-miBankNewSerialNumber(
-    WindowPtr pWin,
-    pointer   unused
-)
-{
-    pWin->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-    return WT_WALKCHILDREN;
-}
-
 /*
  * Given various screen attributes, determine the minimum scanline width such
  * that each scanline is server and DDX padded and any pixels with imbedded
