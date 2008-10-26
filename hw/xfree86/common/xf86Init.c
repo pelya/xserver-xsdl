@@ -297,15 +297,15 @@ DoModalias(void)
                  ErrorF("sd%08X", match->subdevice_id);
 
              /* Class */
-             if (match->device_class_mask >> 16 & 0xFF == 0xFF)
+             if ((match->device_class_mask >> 16 & 0xFF) == 0xFF)
                  ErrorF("bc%02X", match->device_class >> 16 & 0xFF);
              else
                  ErrorF("bc*");
-             if (match->device_class_mask >> 8 & 0xFF == 0xFF)
+             if ((match->device_class_mask >> 8 & 0xFF) == 0xFF)
                  ErrorF("sc%02X", match->device_class >> 8 & 0xFF);
              else
                  ErrorF("sc*");
-             if (match->device_class_mask & 0xFF == 0xFF)
+             if ((match->device_class_mask & 0xFF) == 0xFF)
                  ErrorF("i%02X*", match->device_class & 0xFF);
              else
                  ErrorF("i*");
