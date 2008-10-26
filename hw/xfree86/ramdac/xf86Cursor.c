@@ -460,7 +460,6 @@ xf86DeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
 static void
 xf86DeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
-    DeviceIntPtr it;
     xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
             &pScreen->devPrivates, xf86CursorScreenKey);
 

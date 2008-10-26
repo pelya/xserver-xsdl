@@ -117,7 +117,6 @@ void
 xnestCollectEvents(void)
 {
   XEvent X;
-  xEvent x;
   int i, n, valuators[2];
   ScreenPtr pScreen;
   GetEventList(&xnestEvents);

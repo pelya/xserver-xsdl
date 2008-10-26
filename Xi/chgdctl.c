@@ -138,7 +138,6 @@ ProcXChangeDeviceControl(ClientPtr client)
     CARD32 *resolution;
     xDeviceAbsCalibCtl *calib;
     xDeviceAbsAreaCtl *area;
-    xDeviceCoreCtl *c;
     xDeviceEnableCtl *e;
     devicePresenceNotify dpn;
 

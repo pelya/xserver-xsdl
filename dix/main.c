@@ -240,7 +240,6 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 {
     int		i;
-    char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
 
     display = "0";

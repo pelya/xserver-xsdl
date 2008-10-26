@@ -1014,7 +1014,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
     Pixmap pixID;
     CursorPtr pCursor, pOldCursor;
     Cursor cursorID;
-    WindowPtr pChild, pLayerWin;
+    WindowPtr pChild;
     Colormap cmap;
     ColormapPtr	pCmap;
     xEvent xE;
