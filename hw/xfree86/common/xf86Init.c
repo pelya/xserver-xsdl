@@ -132,7 +132,7 @@ static Bool formatsDone = FALSE;
 #endif
 
 static void
-xf86PrintBanner()
+xf86PrintBanner(void)
 {
 #if PRE_RELEASE
   ErrorF("\n"
@@ -239,13 +239,13 @@ xf86PrintBanner()
 }
 
 static void
-xf86PrintMarkers()
+xf86PrintMarkers(void)
 {
   LogPrintMarkers();
 }
 
 static void
-DoModalias()
+DoModalias(void)
 {
     int i = -1;
     char **vlist;
