@@ -48,10 +48,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 _X_EXPORT ColormapPtr miInstalledMaps[MAXSCREENS];
 
-static Bool miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
-		int *ndepthp, int *rootDepthp, VisualID *defaultVisp,
-		unsigned long sizes, int bitsPerRGB, int preferredVis);
-
 _X_EXPORT int
 miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
