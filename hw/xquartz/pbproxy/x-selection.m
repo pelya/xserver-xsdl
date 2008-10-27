@@ -35,6 +35,8 @@
 #include <stdlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
+#import <AppKit/NSGraphics.h>
+#import <AppKit/NSImage.h>
 #import <AppKit/NSBitmapImageRep.h>
 
 /*
@@ -58,15 +60,17 @@
 
 /*
  * TODO:
- * 1. handle  MULTIPLE - I need to study the ICCCM further.
- * 2. Handle PICT images properly.
- * 3. Handle NSPasteboard updates immediately, not on active/inactive
+ * 1. handle MULTIPLE - I need to study the ICCCM further, and find a test app.
+ * 2. Handle NSPasteboard updates immediately, not on active/inactive
  *    - Open xterm, run 'cat readme.txt | pbcopy'
  */
 
 static struct {
     BOOL active ;
-    BOOL primary_on_grab; // This is provided as an option for people who want it and has issues that won't ever be addressed to make it *always* work
+    BOOL primary_on_grab; /* This is provided as an option for people who
+			   * want it and has issues that won't ever be
+			   * addressed to make it *always* work.
+			   */
     BOOL clipboard_to_pasteboard;
     BOOL pasteboard_to_primary;
     BOOL pasteboard_to_clipboard;
@@ -410,7 +414,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 }
 
 /* Called when the Edit/Copy item on the main X11 menubar is selected
-   and no appkit window claims it. */
+ * and no appkit window claims it. */
 - (void) x_copy:(Time)timestamp
 {
     Window w;
@@ -620,7 +624,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	 * functionality in send_image.
 	 */
 
-	if ([pbtypes containsObject:NSTIFFPboardType]) 
+	if ([pbtypes containsObject:NSPICTPboardType] 
+	    || [pbtypes containsObject:NSTIFFPboardType]) 
 	{
 	    /* We can convert a TIFF to a PNG or JPEG. */
 	    DB ("NSTIFFPboardType\n");
@@ -775,93 +780,159 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     [self send_reply:&reply];
 }
 
+/* Return nil if an error occured. */
+/* DO NOT retain the encdata for longer than the length of an event response.  
+ * The autorelease pool will reuse/free it.
+ */ 
+- (NSData *) encode_image_data:(NSData *)data type:(NSBitmapImageFileType)enctype
+{
+    NSBitmapImageRep *bmimage = nil; 
+    NSData *encdata = nil;
+    NSDictionary *dict = nil;
+
+    bmimage = [[NSBitmapImageRep alloc] initWithData:data];
+
+    if (nil == bmimage)
+	return nil;
+
+    dict = [[NSDictionary alloc] init];
+    encdata = [bmimage representationUsingType:enctype properties:dict];
+
+    if (nil == encdata)
+    {
+	[dict autorelease];
+	[bmimage autorelease];
+	return nil;
+    }
+    
+    [dict autorelease];
+    [bmimage autorelease];
+
+    return encdata;
+}
+
+/* Return YES when an error has occured when trying to send the PICT. */
+/* The caller should send a default reponse with a property of None when an error occurs. */
+- (BOOL) send_image_pict_reply:(XSelectionRequestEvent *)e 
+		    pasteboard:(NSPasteboard *)pb 
+			  type:(NSBitmapImageFileType)imagetype
+{
+    XEvent reply;
+    NSImage *img = nil;
+    NSData *data = nil, *encdata = nil;
+    NSUInteger length;
+    const void *bytes = NULL;
+    
+    img = [[NSImage alloc] initWithPasteboard:pb];
+
+    if (nil == img) 
+    {
+	return YES;
+    }
+	    
+    data = [img TIFFRepresentation];
+
+    if (nil == data)
+    {
+	[img autorelease];
+	fprintf(stderr, "unable to convert PICT to TIFF!\n");
+	return YES;
+    }
+        
+    encdata = [self encode_image_data:data type:imagetype];
+    if(nil == encdata)
+    {
+	[img autorelease];
+	return YES;
+    }
+
+    [self init_reply:&reply request:e];
+
+    length = [encdata length];
+    bytes = [encdata bytes];
+    
+    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+		     8, PropModeReplace, bytes, length);
+    reply.xselection.property = e->property;
+
+    [self send_reply:&reply];
+
+    [img autorelease];
+
+    return NO; /*no error*/
+}
+
+/* Return YES if an error occured. */
+/* The caller should send a reply with a property of None when an error occurs. */
+- (BOOL) send_image_tiff_reply:(XSelectionRequestEvent *)e
+		    pasteboard:(NSPasteboard *)pb 
+			  type:(NSBitmapImageFileType)imagetype
+{
+    XEvent reply;
+    NSData *data = nil;
+    NSData *encdata = nil;
+    NSUInteger length;
+    const void *bytes = NULL;
+
+    data = [pb dataForType:NSTIFFPboardType];
+
+    if (nil == data)
+ 	return YES;
+  
+    encdata = [self encode_image_data:data type:imagetype];
+
+    if(nil == encdata)
+	return YES;
+
+    [self init_reply:&reply request:e];
+
+    length = [encdata length];
+    bytes = [encdata bytes];
+    
+    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+		     8, PropModeReplace, bytes, length);
+    reply.xselection.property = e->property;
+    
+    [self send_reply:&reply];
+
+    return NO; /*no error*/
+}
 
 - (void) send_image:(XSelectionRequestEvent *)e pasteboard:(NSPasteboard *)pb
 {
-    XEvent reply;
-    NSArray *pbtypes;
-    NSString *type = nil;
-    NSBitmapImageFileType imagetype = /*quiet warning*/ NSPNGFileType; 
-    NSData *data;
+    NSArray *pbtypes = nil;
+    NSBitmapImageFileType imagetype = NSPNGFileType;
 
     TRACE ();
 
-    [self init_reply:&reply request:e];
+    if (e->target == atoms->image_png)
+	imagetype = NSPNGFileType;
+    else if (e->target == atoms->image_jpeg)
+	imagetype = NSJPEGFileType;
+    else 
+    {
+	fprintf(stderr, "internal failure in xpbproxy!  imagetype being sent isn't PNG or JPEG.\n");
+    }
 
     pbtypes = [pb types];
 
     if (pbtypes) 
     {
 	if ([pbtypes containsObject:NSTIFFPboardType])
-	    type = NSTIFFPboardType;
-
-	/* PICT is not yet supported by pbproxy. 
-	 * The NSBitmapImageRep doesn't support it. 
-	else if ([pbtypes containsObject:NSPICTPboardType])
-	    type  = NSPICTPboardType;
-	*/
-    }
-
-    if (e->target == atoms->image_png)
-	imagetype = NSPNGFileType;
-    else if (e->target == atoms->image_jpeg)
-	imagetype = NSJPEGFileType;
-    
-    
-    if (nil == type) 
-    {
-	[self send_reply:&reply];
-	return;
-    }
-
-    data = [pb dataForType:type];
-
-    if (nil == data)
-    {
-	[self send_reply:&reply];
-	return;
-    }
-	 
-    if (NSTIFFPboardType == type)
-    {
-  	NSBitmapImageRep *bmimage = [[NSBitmapImageRep alloc] initWithData:data];
-	NSDictionary *dict;
-	NSData *encdata;
-
-	if (nil == bmimage)
 	{
-	    [self send_reply:&reply];
-	    return;
-	}
-
-	DB ("bmimage retainCount after initWithData %u\n", [bmimage retainCount]);
-
-	dict = [[NSDictionary alloc] init];
-	encdata = [bmimage representationUsingType:imagetype properties:dict];
-	if (encdata)
+	    if (NO == [self send_image_tiff_reply:e pasteboard:pb type:imagetype]) 
+	  	return;
+	} 
+     	else if ([pbtypes containsObject:NSPICTPboardType])
 	{
-	    NSUInteger length;
-	    const void *bytes;
-	    
-	    length = [encdata length];
-	    bytes = [encdata bytes];
-	    
-	    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
-			     8, PropModeReplace, bytes, length);
-	    reply.xselection.property = e->property;
-	    
-	    DB ("changed property for %s\n", XGetAtomName (x_dpy, e->target));
-	    DB ("encdata retainCount %u\n", [encdata retainCount]);
-	}
-	DB ("dict retainCount before release %u\n", [dict retainCount]);
-	[dict autorelease];
+	    if (NO == [self send_image_pict_reply:e pasteboard:pb type:imagetype]) 
+		return;
 
-	DB ("bmimage retainCount before release %u\n", [bmimage retainCount]);
-	
-	[bmimage autorelease];
+	    /* Fall through intentionally to the send_none: */
+	}
     }
 
-    [self send_reply:&reply];
+    [self send_none:e];
 }
 
 - (void)send_none:(XSelectionRequestEvent *)e

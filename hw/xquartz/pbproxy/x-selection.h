@@ -107,6 +107,7 @@ struct atom_list {
 
 - (void) reload_preferences;
 - (BOOL) is_active;
+- (void) send_none:(XSelectionRequestEvent *)e;
 @end
 
 /* main.m */
