@@ -48,6 +48,8 @@
 #include <servers/bootstrap.h>
 #include "mach_startup.h"
 
+#include <signal.h>
+
 #include "launchd_fd.h"
 
 #ifndef BUILD_DATE
@@ -60,6 +62,8 @@
 #define DEBUG 1
 
 static char x11_path[PATH_MAX + 1];
+
+static pid_t x11app_pid = 0;
 
 static void set_x11_path() {
     CFURLRef appURL = NULL;
@@ -115,7 +119,6 @@ static void set_x11_path() {
     }
 }
 
-#ifdef MACHO_STARTUP
 static int connect_to_socket(const char *filename) {
     struct sockaddr_un servaddr_un;
     struct sockaddr *servaddr;
@@ -189,10 +192,13 @@ static void send_fd_handoff(int connected_fd, int launchd_fd) {
     close(connected_fd);
 }
 
-#endif
+static void signal_handler(int sig) {
+    if(x11app_pid)
+        kill(x11app_pid, sig);
+    _exit(0);
+}
 
 int main(int argc, char **argv, char **envp) {
-#ifdef MACHO_STARTUP
     int envpc;
     kern_return_t kr;
     mach_port_t mp;
@@ -201,7 +207,6 @@ int main(int argc, char **argv, char **envp) {
     size_t i;
     int launchd_fd;
     string_t handoff_socket_filename;
-#endif
     sig_t handler;
 
     if(argc == 2 && !strcmp(argv[1], "-version")) {
@@ -220,7 +225,10 @@ int main(int argc, char **argv, char **envp) {
         kill(getppid(), SIGUSR1);
     signal(SIGUSR1, handler);
 
-#ifdef MACHO_STARTUP
+    /* Pass on SIGs to X11.app */
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+    
     /* Get the $DISPLAY FD */
     launchd_fd = launchd_display_fd();
 
@@ -258,6 +266,9 @@ int main(int argc, char **argv, char **envp) {
         }
     }
     
+    /* Get X11.app's pid */
+    request_pid(mp, &x11app_pid);
+
     /* Handoff the $DISPLAY FD */
     if(launchd_fd != -1) {
         size_t try, try_max;
@@ -308,9 +319,4 @@ int main(int argc, char **argv, char **envp) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-#else
-    set_x11_path();
-    argv[0] = x11_path;
-    return execvp(x11_path, argv);
-#endif
 }

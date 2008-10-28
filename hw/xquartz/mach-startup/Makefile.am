@@ -1,14 +1,12 @@
 AM_CPPFLAGS = \
 	-DBUILD_DATE=\"$(BUILD_DATE)\" \
-	-DXSERVER_VERSION=\"$(VERSION)\" \
-	-DMACHO_STARTUP
+	-DXSERVER_VERSION=\"$(VERSION)\"
 
 x11appdir = $(APPLE_APPLICATIONS_DIR)/X11.app/Contents/MacOS
 x11app_PROGRAMS = X11
 
 dist_X11_SOURCES = \
 	bundle-main.c 
-#	launchd_fd.c
 
 nodist_X11_SOURCES = \
 	mach_startupServer.c \

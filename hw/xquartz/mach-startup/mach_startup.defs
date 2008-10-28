@@ -44,3 +44,7 @@ routine start_x11_server(
 routine request_fd_handoff_socket (
         port             : mach_port_t;
     out socket_filename  : string_t);
+
+routine request_pid (
+        port    : mach_port_t;
+    out pid     : int);
