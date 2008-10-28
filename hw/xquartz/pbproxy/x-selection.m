@@ -236,7 +236,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     for (i = 0; i < pdata->length; i += sizeof (a))
     {
-	a = 0;
+	a = None;
 	memcpy (&a, pdata->data + i, sizeof (a));
 
 	if (a == atoms->image_png)
@@ -1095,6 +1095,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     
     if (None != e->atom) 
     {
+#ifdef DEBUG
 	char *name = XGetAtomName (x_dpy, e->atom);
 
 	if (name) 
@@ -1102,6 +1103,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    DB ("e->atom %s\n", name);
 	    XFree(name);
 	}
+#endif
     }
 
     if (None != pending.requestor && PropertyNewValue == e->state) 
@@ -1157,6 +1159,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 {
     /* Find a type we can handle and prefer from the list of ATOMs. */
     Atom preferred;
+    char *name;
 
     TRACE ();
 
@@ -1171,7 +1174,15 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	preferred = atoms->string;
     }
 
-    DB ("requesting %s\n", XGetAtomName (x_dpy, preferred));
+    (void)name; /* Avoid a warning with non-debug compiles. */
+#ifdef DEBUG
+    name = XGetAtomName (x_dpy, preferred);
+
+    if (name)
+    {
+	DB ("requesting %s\n", name);
+    }
+#endif
     request_atom = preferred;
     XConvertSelection (x_dpy, selection, preferred, selection,
 		       _selection_window, CurrentTime);    
@@ -1272,7 +1283,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     [pb declareTypes:pbtypes owner:nil];
     
     if (YES != [pb setString:string forType:NSStringPboardType]) {
-	DB ("pasteboard setString:forType: failed!\n");
+	fprintf(stderr, "pasteboard setString:forType: failed!\n");
     }
     [string autorelease];
     DB ("done handling utf8 string\n");
@@ -1300,7 +1311,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 
     [pb declareTypes:pbtypes owner:nil];
-    [pb setString:string forType:NSStringPboardType];
+    if (YES != [pb setString:string forType:NSStringPboardType]) {
+	fprintf(stderr, "pasteboard setString:forType failed in handle_string!\n");
+    }
     [string autorelease];
 }
 
@@ -1321,21 +1334,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	return;
     }
 
-#if 0
-    if (None != request_atom)
-	printf ("request_atom %s\n", XGetAtomName (x_dpy, request_atom));
-	       
-    printf ("type %s\n", XGetAtomName (x_dpy, type));
-#endif
-
     /*
      * Some apps it seems set the type to TARGETS instead of ATOM, such as Eterm.
      * These aren't ICCCM compliant apps, but we need these to work... 
      */
-    if (request_atom == atoms->targets 
+    if (request_atom == atoms->targets
 	&& (type == atoms->atom || type == atoms->targets))
     {
 	[self handle_targets:selection propdata:pdata];
+	free_propdata(pdata);
+	return;
     } 
     else if (type == atoms->image_png)
     {
@@ -1353,7 +1361,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     {
 	[self handle_string:pdata pasteboard:pb];
     } 
-    
+   
     free_propdata(pdata);
 
     [self copy_completed:selection];
