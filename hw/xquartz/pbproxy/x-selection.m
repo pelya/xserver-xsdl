@@ -236,12 +236,13 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     for (i = 0; i < pdata->length; i += sizeof (a))
     {
+	a = 0;
 	memcpy (&a, pdata->data + i, sizeof (a));
-	
+
 	if (a == atoms->image_png)
 	{
 	    png = True;
-	} 
+	}
 	else if (a == atoms->image_jpeg)
 	{
 	    jpeg = True;
@@ -257,8 +258,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	else
 	{
 	    char *type = XGetAtomName(x_dpy, a);
-	    DB("Unhandled X11 mime type: %s", type);
-	    XFree(type);
+	    if (type)
+	    {
+		DB("Unhandled X11 mime type: %s", type);
+		XFree(type);
+	    }
 	}
     }
 
@@ -482,8 +486,10 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
  */
 - (void) clear_event:(XSelectionClearEvent *)e
 {
-    TRACE ();
     
+
+    TRACE ();
+        
     DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
     
     if(e->selection == atoms->clipboard) {
@@ -1087,9 +1093,16 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     TRACE ();
     
-    if (None != e->atom)
-	DB ("e->atom %s\n", XGetAtomName (x_dpy, e->atom));
+    if (None != e->atom) 
+    {
+	char *name = XGetAtomName (x_dpy, e->atom);
 
+	if (name) 
+	{
+	    DB ("e->atom %s\n", name);
+	    XFree(name);
+	}
+    }
 
     if (None != pending.requestor && PropertyNewValue == e->state) 
     {
@@ -1315,7 +1328,12 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     printf ("type %s\n", XGetAtomName (x_dpy, type));
 #endif
 
-    if (request_atom == atoms->targets && type == atoms->atom)
+    /*
+     * Some apps it seems set the type to TARGETS instead of ATOM, such as Eterm.
+     * These aren't ICCCM compliant apps, but we need these to work... 
+     */
+    if (request_atom == atoms->targets 
+	&& (type == atoms->atom || type == atoms->targets))
     {
 	[self handle_targets:selection propdata:pdata];
     } 
@@ -1345,8 +1363,17 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 - (void) copy_completed:(Atom)selection
 {
     TRACE ();
-    
-    DB ("copy_completed: %s\n", XGetAtomName (x_dpy, selection));
+    char *name;
+
+    (void)name; /* Avoid warning with non-debug compiles. */
+#ifdef DEBUG
+    name = XGetAtomName (x_dpy, selection);
+    if (name)
+    {
+	DB ("copy_completed: %s\n", name);
+	XFree (name);
+    }
+#endif
 
     if (selection == atoms->primary && pending_copy > 0)
     {
