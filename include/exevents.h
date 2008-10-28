@@ -255,4 +255,9 @@ extern _X_EXPORT int XIPropToFloat(
         float **buf_return
 );
 
+/* For an event such as MappingNotify which affects client interpretation
+ * of input events sent by device dev, should we notify the client, or
+ * would it merely be irrelevant and confusing? */
+extern _X_EXPORT int XIShouldNotify(ClientPtr client, DeviceIntPtr dev);
+
 #endif /* EXEVENTS_H */

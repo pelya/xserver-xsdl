@@ -95,6 +95,22 @@ static Bool MakeInputMasks(WindowPtr	/* pWin */
 /* Used to sture classes currently not in use by an MD */
 extern DevPrivateKey UnusedClassesPrivateKey;
 
+/*
+ * Only let the given client know of core events which will affect its
+ * interpretation of input events, if the client's ClientPointer (or the
+ * paired keyboard) is the current device.
+ */
+int
+XIShouldNotify(ClientPtr client, DeviceIntPtr dev)
+{
+    DeviceIntPtr current_ptr = PickPointer(client);
+    DeviceIntPtr current_kbd = GetPairedDevice(current_ptr);
+
+    if (dev == current_kbd || dev == current_ptr)
+        return 1;
+
+    return 0;
+}
 
 void
 RegisterOtherDevice(DeviceIntPtr device)
