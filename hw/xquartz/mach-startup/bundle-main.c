@@ -213,7 +213,6 @@ static void socket_handoff_thread(void *arg) {
     unlink(handoff_data->filename);
     free(handoff_data);
     
-#ifndef XQUARTZ_EXPORTS_LAUNCHD_FD
     /* TODO: Clean up this race better... giving xinitrc time to run... need to wait for 1.5 branch:
      *
      * From ajax:
@@ -226,7 +225,6 @@ static void socket_handoff_thread(void *arg) {
     unsigned remain = 3000000;
     fprintf(stderr, "X11.app: Received new $DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
     while((remain = usleep(remain)) > 0);
-#endif
     
     fprintf(stderr, "X11.app Handing off fd to server thread via DarwinListenOnOpenFD(%d)\n", launchd_fd);
     DarwinListenOnOpenFD(launchd_fd);
@@ -397,13 +395,6 @@ int startup_trigger(int argc, char **argv, char **envp) {
         if(display) {
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
-
-#ifdef XQUARTZ_EXPORTS_LAUNCHD_FD
-            fprintf(stderr, "X11.app: Received new DISPLAY fd: %d ... sleeping to allow xinitrc to catchup.\n", launchd_fd);
-            
-            /* TODO: Clean up this race better... givint xinitrc time to run. */
-            sleep(2);
-#endif
 
             return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }
