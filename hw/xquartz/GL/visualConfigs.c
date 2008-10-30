@@ -177,7 +177,13 @@ void setVisualConfigs(void) {
 				    }
 				    visualConfigs[i].auxBuffers = aux ? conf->aux_buffers : 0;
 				    visualConfigs[i].level = 0;
-				    visualConfigs[i].visualRating = GLX_NONE;
+
+				    if(conf->accelerated) {
+					visualConfigs[i].visualRating = GLX_NONE;
+				    } else {
+					visualConfigs[i].visualRating = GLX_SLOW_VISUAL_EXT;
+				    }
+
 				    visualConfigs[i].transparentPixel = GLX_NONE;
 				    visualConfigs[i].transparentRed = GLX_NONE;
 				    visualConfigs[i].transparentGreen = GLX_NONE;
