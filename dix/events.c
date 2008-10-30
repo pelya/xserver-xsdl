@@ -3710,7 +3710,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                         if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
                                      grab->window, &core, 1) ||
                                 XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                         grab->window, &count, 1))
+                                         grab->window, &core, 1))
                             deliveries = 1; /* don't send, but pretend we did */
                         else if (!IsInterferingGrab(rClient(grab), thisDev,
                                     &core))
@@ -3736,8 +3736,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                     if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
                                  grab->window, xE, count) ||
                             XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                     grab->window,
-                                xE, count))
+                                     grab->window, xE, count))
                         deliveries = 1; /* don't send, but pretend we did */
                     else
                     {
