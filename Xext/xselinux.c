@@ -657,7 +657,19 @@ SELinuxLog(int type, const char *fmt, ...)
 {
     va_list ap;
     char buf[MAX_AUDIT_MESSAGE_LENGTH];
-    int rc, aut = AUDIT_USER_AVC;
+    int rc, aut;
+
+    switch (type) {
+    case SELINUX_INFO:
+	aut = AUDIT_USER_MAC_POLICY_LOAD;
+	break;
+    case SELINUX_AVC:
+	aut = AUDIT_USER_AVC;
+	break;
+    default:
+	aut = AUDIT_USER_SELINUX_ERR;
+	break;
+    }
 
     va_start(ap, fmt);
     vsnprintf(buf, MAX_AUDIT_MESSAGE_LENGTH, fmt, ap);
