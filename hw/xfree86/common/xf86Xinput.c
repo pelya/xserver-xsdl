@@ -935,9 +935,9 @@ xf86ScaleAxis(int	Cx,
     }
     
     if (X > Sxhigh)
-	X = Sxlow;
-    if (X < Sxlow)
 	X = Sxhigh;
+    if (X < Sxlow)
+	X = Sxlow;
     
     return (X);
 }
