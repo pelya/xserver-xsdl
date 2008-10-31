@@ -1049,22 +1049,6 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
 }
 
 /**
- * Note that pDev was the last function to send a core pointer event.
- * Currently a no-op.
- *
- * Call this just before processInputProc.
- */
-_X_EXPORT void
-SwitchCorePointer(DeviceIntPtr pDev)
-{
-    if (pDev != dixLookupPrivate(&inputInfo.pointer->devPrivates,
-				 CoreDevicePrivateKey))
-	dixSetPrivate(&inputInfo.pointer->devPrivates,
-		      CoreDevicePrivateKey, pDev);
-}
-
-
-/**
  * Synthesize a single motion event for the core pointer.
  *
  * Used in cursor functions, e.g. when cursor confinement changes, and we need

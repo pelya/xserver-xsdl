@@ -510,8 +510,6 @@ extern int GetMotionHistory(
     ScreenPtr pScreen,
     BOOL core);
 
-extern void SwitchCorePointer(DeviceIntPtr pDev);
-
 extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr slave,
                         DeviceIntPtr master);
