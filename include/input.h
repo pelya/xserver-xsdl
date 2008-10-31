@@ -516,8 +516,6 @@ extern int AttachDevice(ClientPtr client,
 
 extern DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
-extern Bool RegisterPairingClient(ClientPtr client);
-
 extern int AllocMasterDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
