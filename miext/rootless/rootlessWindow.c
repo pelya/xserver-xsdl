@@ -65,7 +65,7 @@ extern int darwinMainScreenX, darwinMainScreenY;
 
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
   static Atom func (void) {                                       \
-    static unsigned int generation;                             \
+    static unsigned int generation = 0;                             \
     static Atom atom;                                           \
     if (generation != serverGeneration) {                       \
       generation = serverGeneration;                          \
@@ -81,13 +81,6 @@ DEFINE_ATOM_HELPER (xa_apple_no_order_in, "_APPLE_NO_ORDER_IN")
 static Bool no_configure_window;
 static Bool windows_hidden;
 // TODO - abstract xp functions
-
-static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
-  0, 3, 4, 5, LONG_MIN + 30, LONG_MIN + 29,
-};
-static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
-  202, 203, 204, 205, 201, 200
-};
 
 static inline int
 configure_window (xp_window_id id, unsigned int mask,
