@@ -659,31 +659,10 @@ InitAndStartDevices()
     return Success;
 }
 
-_X_EXPORT void
-FreeAllDeviceClasses(ClassesPtr classes)
-{
-    if (!classes)
-        return;
-
-    FreeDeviceClass(KeyClass, (pointer)&classes->key);
-    FreeDeviceClass(ValuatorClass, (pointer)&classes->valuator);
-    FreeDeviceClass(ButtonClass, (pointer)&classes->button);
-    FreeDeviceClass(FocusClass, (pointer)&classes->focus);
-    FreeDeviceClass(ProximityClass, (pointer)&classes->proximity);
-
-    FreeFeedbackClass(KbdFeedbackClass, (pointer)&classes->kbdfeed);
-    FreeFeedbackClass(PtrFeedbackClass, (pointer)&classes->ptrfeed);
-    FreeFeedbackClass(IntegerFeedbackClass, (pointer)&classes->intfeed);
-    FreeFeedbackClass(StringFeedbackClass, (pointer)&classes->stringfeed);
-    FreeFeedbackClass(BellFeedbackClass, (pointer)&classes->bell);
-    FreeFeedbackClass(LedFeedbackClass, (pointer)&classes->leds);
-
-}
-
 /**
  * Free the given device class and reset the pointer to NULL.
  */
-_X_EXPORT void
+static void
 FreeDeviceClass(int type, pointer *class)
 {
     if (!(*class))
@@ -742,7 +721,8 @@ FreeDeviceClass(int type, pointer *class)
     }
     *class = NULL;
 }
-_X_EXPORT void
+
+static void
 FreeFeedbackClass(int type, pointer *class)
 {
     if (!(*class))
@@ -828,6 +808,28 @@ FreeFeedbackClass(int type, pointer *class)
     }
     *class = NULL;
 }
+
+static void
+FreeAllDeviceClasses(ClassesPtr classes)
+{
+    if (!classes)
+        return;
+
+    FreeDeviceClass(KeyClass, (pointer)&classes->key);
+    FreeDeviceClass(ValuatorClass, (pointer)&classes->valuator);
+    FreeDeviceClass(ButtonClass, (pointer)&classes->button);
+    FreeDeviceClass(FocusClass, (pointer)&classes->focus);
+    FreeDeviceClass(ProximityClass, (pointer)&classes->proximity);
+
+    FreeFeedbackClass(KbdFeedbackClass, (pointer)&classes->kbdfeed);
+    FreeFeedbackClass(PtrFeedbackClass, (pointer)&classes->ptrfeed);
+    FreeFeedbackClass(IntegerFeedbackClass, (pointer)&classes->intfeed);
+    FreeFeedbackClass(StringFeedbackClass, (pointer)&classes->stringfeed);
+    FreeFeedbackClass(BellFeedbackClass, (pointer)&classes->bell);
+    FreeFeedbackClass(LedFeedbackClass, (pointer)&classes->leds);
+
+}
+
 /**
  * Close down a device and free all resources.
  * Once closed down, the driver will probably not expect you that you'll ever

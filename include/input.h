@@ -523,9 +523,6 @@ extern int AllocMasterDevice(ClientPtr client,
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
 
-extern void FreeDeviceClass(int type, pointer* class);
-extern void FreeFeedbackClass(int type, pointer* class);
-extern void FreeAllDeviceClasses(ClassesPtr classes);
 extern int EnterLeaveSemaphoresIsset(WindowPtr win);
 extern int FocusSemaphoresIsset(WindowPtr win);
 
