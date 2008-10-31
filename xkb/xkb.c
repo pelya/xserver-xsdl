@@ -2906,7 +2906,7 @@ ProcXkbSetCompatMap(ClientPtr client)
     }
 
     /* Yay, the dry-runs succeed. Let's apply */
-    rc = _XkbSetCompatMap(client, dev, stuff, data, TRUE);
+    rc = _XkbSetCompatMap(client, dev, stuff, data, FALSE);
     if (rc != Success)
         return rc;
     if (stuff->deviceSpec == XkbUseCoreKbd)
@@ -2919,7 +2919,7 @@ ProcXkbSetCompatMap(ClientPtr client)
                 rc = XaceHook(XACE_DEVICE_ACCESS, client, other, DixManageAccess);
                 if (rc == Success)
                 {
-                    rc = _XkbSetCompatMap(client, other, stuff, data, TRUE);
+                    rc = _XkbSetCompatMap(client, other, stuff, data, FALSE);
                     if (rc != Success)
                         return rc;
                 }
