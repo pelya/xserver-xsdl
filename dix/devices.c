@@ -128,6 +128,38 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
     return Success;
 }
 
+/* Pair the keyboard to the pointer device. Keyboard events will follow the
+ * pointer sprite. Only applicable for master devices.
+ * If the client is set, the request to pair comes from some client. In this
+ * case, we need to check for access. If the client is NULL, it's from an
+ * internal automatic pairing, we must always permit this.
+ */
+static int
+PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
+{
+    if (!ptr)
+        return BadDevice;
+
+    /* Don't allow pairing for slave devices */
+    if (!ptr->isMaster || !kbd->isMaster)
+        return BadDevice;
+
+    if (ptr->spriteInfo->paired)
+        return BadDevice;
+
+    if (kbd->spriteInfo->spriteOwner)
+    {
+        xfree(kbd->spriteInfo->sprite);
+        kbd->spriteInfo->sprite = NULL;
+        kbd->spriteInfo->spriteOwner = FALSE;
+    }
+
+    kbd->spriteInfo->sprite = ptr->spriteInfo->sprite;
+    kbd->spriteInfo->paired = ptr;
+    ptr->spriteInfo->paired = kbd;
+    return Success;
+}
+
 
 
 /**
@@ -2460,38 +2492,6 @@ ProcQueryKeymap(ClientPtr client)
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
 
    return Success;
-}
-
-/* Pair the keyboard to the pointer device. Keyboard events will follow the
- * pointer sprite. Only applicable for master devices.
- * If the client is set, the request to pair comes from some client. In this
- * case, we need to check for access. If the client is NULL, it's from an
- * internal automatic pairing, we must always permit this.
- */
-int
-PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
-{
-    if (!ptr)
-        return BadDevice;
-
-    /* Don't allow pairing for slave devices */
-    if (!ptr->isMaster || !kbd->isMaster)
-        return BadDevice;
-
-    if (ptr->spriteInfo->paired)
-        return BadDevice;
-
-    if (kbd->spriteInfo->spriteOwner)
-    {
-        xfree(kbd->spriteInfo->sprite);
-        kbd->spriteInfo->sprite = NULL;
-        kbd->spriteInfo->spriteOwner = FALSE;
-    }
-
-    kbd->spriteInfo->sprite = ptr->spriteInfo->sprite;
-    kbd->spriteInfo->paired = ptr;
-    ptr->spriteInfo->paired = kbd;
-    return Success;
 }
 
 /**

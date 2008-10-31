@@ -512,10 +512,6 @@ extern int GetMotionHistory(
 
 extern void SwitchCorePointer(DeviceIntPtr pDev);
 
-/* Pairing input devices */
-extern int PairDevices(ClientPtr client, 
-                       DeviceIntPtr pointer, 
-                       DeviceIntPtr keyboard);
 extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr slave,
                         DeviceIntPtr master);
