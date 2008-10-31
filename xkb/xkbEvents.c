@@ -870,7 +870,7 @@ XkbSrvInfoPtr	xkbi;
 	     * Faking a release of the button here solves the problem.
 	     */
 	    DebugF("[xkb] Faking release of button %d\n", xE[0].u.u.detail);
-	    XkbDDXFakePointerButton(ButtonRelease, xE[0].u.u.detail);
+	    XkbDDXFakeDeviceButton(xkbi->device, 0, xE[0].u.u.detail);
         }
     }
     else {
@@ -923,12 +923,12 @@ XkbSrvInfoPtr	xkbi;
 		((xE[i].u.keyButtonPointer.state >> 7) & button_mask) == button_mask &&
 		(xkbi->lockedPtrButtons & button_mask) == button_mask) {
 		DebugF("[xkb] Faking release of button %d\n", xE[i].u.u.detail);
-		XkbDDXFakePointerButton(ButtonRelease, xE[i].u.u.detail);
+		XkbDDXFakeDeviceButton(xkbi->device, 0, xE[i].u.u.detail);
 	    } else if (type == DeviceButtonPress &&
                     ((((deviceKeyButtonPointer*)&xE[i])->state >> 7) & button_mask) == button_mask &&
                     (xkbi->lockedPtrButtons & button_mask) == button_mask) {
 		DebugF("[xkb] Faking release of button %d\n", ((deviceKeyButtonPointer*)&xE[i])->state);
-		XkbDDXFakePointerButton(DeviceButtonRelease, ((deviceKeyButtonPointer*)&xE[i])->state);
+		XkbDDXFakeDeviceButton(xkbi->device, 0, ((deviceKeyButtonPointer*)&xE[i])->state);
             }
 	}
     }
