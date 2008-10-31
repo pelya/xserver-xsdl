@@ -81,12 +81,10 @@ _XkbLookupAnyDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
 
     if (id == XkbUseCoreKbd) {
         id = PickKeyboard(client)->id;
-    }
-    if (id == XkbUseCorePtr) {
+    } else if (id == XkbUseCorePtr) {
         id = PickPointer(client)->id;
     }
     rc = dixLookupDevice(pDev, id, client, access_mode);
-out:
     if (rc != Success)
 	*xkb_err = XkbErr_BadDevice;
     return rc;
