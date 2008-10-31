@@ -76,7 +76,6 @@ SOFTWARE.
 
 /* modules local to Xi */
 #include "allowev.h"
-#include "chaccess.h"
 #include "chdevcur.h"
 #include "chgdctl.h"
 #include "chdevhier.h"
@@ -105,7 +104,6 @@ SOFTWARE.
 #include "gtmotion.h"
 #include "listdev.h"
 #include "opendev.h"
-#include "qryacces.h"
 #include "querydp.h"
 #include "queryst.h"
 #include "selectev.h"
@@ -219,12 +217,10 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXWarpDevicePointer,                 /* 41 */
         ProcXChangeDeviceCursor,                /* 42 */
         ProcXChangeDeviceHierarchy,             /* 43 */
-        ProcXChangeWindowAccess,                /* 44 */
-        ProcXQueryWindowAccess,                 /* 45 */
-        ProcXSetClientPointer,                  /* 46 */
-        ProcXGetClientPointer,                  /* 47 */
-        ProcXiSelectEvent,                      /* 48 */
-        ProcXExtendedGrabDevice                 /* 49 */
+        ProcXSetClientPointer,                  /* 44 */
+        ProcXGetClientPointer,                  /* 45 */
+        ProcXiSelectEvent,                      /* 46 */
+        ProcXExtendedGrabDevice                 /* 47 */
 };
 
 /* For swapped clients */
@@ -273,12 +269,10 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXWarpDevicePointer,                 /* 41 */
         SProcXChangeDeviceCursor,                /* 42 */
         SProcXChangeDeviceHierarchy,             /* 43 */
-        SProcXChangeWindowAccess,                /* 44 */
-        SProcXQueryWindowAccess,                 /* 45 */
-        SProcXSetClientPointer,                  /* 46 */
-        SProcXGetClientPointer,                  /* 47 */
-        SProcXiSelectEvent,                      /* 48 */
-        SProcXExtendedGrabDevice                 /* 49 */
+        SProcXSetClientPointer,                  /* 44 */
+        SProcXGetClientPointer,                  /* 45 */
+        SProcXiSelectEvent,                      /* 46 */
+        SProcXExtendedGrabDevice                 /* 47 */
 };
 
 /*****************************************************************
@@ -481,9 +475,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
 				(xQueryDevicePointerReply *) rep);
-    else if (rep->RepType == X_QueryWindowAccess)
-        SRepXQueryWindowAccess(client, len,
-                               (xQueryWindowAccessReply*) rep);
     else if (rep->RepType == X_GetClientPointer)
         SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
     else if (rep->RepType == X_ExtendedGrabDevice)

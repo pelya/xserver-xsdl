@@ -2030,13 +2030,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 		              this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
 
-    /* if a  is denied, we return 0. This could cause the caller to
-     * traverse the parent. May be bad! (whot) */
-    if (!ACDeviceAllowed(pWin, pDev, pEvents))
-    {
-        return 0;
-    }
-
     /* CantBeFiltered means only window owner gets the event */
     if ((filter == CantBeFiltered) ||
             (!(type & EXTENSION_EVENT_BASE) && type != GenericEvent))
@@ -3633,83 +3626,80 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-        if (ACDeviceAllowed(grab->window, thisDev, xE))
+        if (xE->u.u.type == GenericEvent)
         {
-            if (xE->u.u.type == GenericEvent)
+            /* find evmask for event's extension */
+            xGenericEvent* ge = ((xGenericEvent*)xE);
+            GenericMaskPtr    gemask = grab->genericMasks;
+
+            if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
+                return;
+
+            if (GEEventFill(xE))
+                GEEventFill(xE)(ge, thisDev, grab->window, grab);
+            deliveries = TryClientEvents(rClient(grab), thisDev, xE,
+                    count, gemask->eventMask[GEEXTIDX(ge)],
+                    generic_filters[GEEXTIDX(ge)][ge->evtype],
+                    grab);
+        } else
+        {
+            Mask mask = grab->eventMask;
+
+            sendCore = (thisDev->isMaster && thisDev->coreEvents);
+            /* try core event */
+            if (sendCore && grab->coreGrab)
             {
-                /* find evmask for event's extension */
-                xGenericEvent* ge = ((xGenericEvent*)xE);
-                GenericMaskPtr    gemask = grab->genericMasks;
-
-                if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
-                    return;
-
-                if (GEEventFill(xE))
-                    GEEventFill(xE)(ge, thisDev, grab->window, grab);
-                deliveries = TryClientEvents(rClient(grab), thisDev, xE,
-                        count, gemask->eventMask[GEEXTIDX(ge)],
-                        generic_filters[GEEXTIDX(ge)][ge->evtype],
-                        grab);
-            } else
-            {
-                Mask mask = grab->eventMask;
-
-                sendCore = (thisDev->isMaster && thisDev->coreEvents);
-                /* try core event */
-                if (sendCore && grab->coreGrab)
-                {
-                    core = *xE;
-                    core.u.u.type = XItoCoreType(xE->u.u.type);
-                    if(core.u.u.type) {
-                        FixUpEventFromWindow(thisDev, &core, grab->window,
-                                             None, TRUE);
-                        if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                                     grab->window, &core, 1) ||
-                                XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                         grab->window, &core, 1))
-                            deliveries = 1; /* don't send, but pretend we did */
-                        else if (!IsInterferingGrab(rClient(grab), thisDev,
-                                    &core))
-                        {
-                            deliveries = TryClientEvents(rClient(grab), thisDev,
-                                                         &core, 1, mask,
-                                                         filters[thisDev->id][core.u.u.type],
-                                                         grab);
-                        }
-                    }
-                }
-
-                if (!deliveries)
-                {
-                    /* try XI event */
-                    if (grabinfo->fromPassiveGrab  &&
-                            grabinfo->implicitGrab &&
-                            (xE->u.u.type & EXTENSION_EVENT_BASE))
-                        mask = grab->deviceMask;
-                    FixUpEventFromWindow(thisDev, xE, grab->window,
-                                         None, TRUE);
-
+                core = *xE;
+                core.u.u.type = XItoCoreType(xE->u.u.type);
+                if(core.u.u.type) {
+                    FixUpEventFromWindow(thisDev, &core, grab->window,
+                            None, TRUE);
                     if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                                 grab->window, xE, count) ||
+                                grab->window, &core, 1) ||
                             XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                     grab->window, xE, count))
+                                grab->window, &core, 1))
                         deliveries = 1; /* don't send, but pretend we did */
-                    else
+                    else if (!IsInterferingGrab(rClient(grab), thisDev,
+                                &core))
                     {
-                        deliveries =
-                            TryClientEvents(rClient(grab), thisDev,
-                                           xE, count,
-                                           mask,
-                                           filters[thisDev->id][xE->u.u.type],
-                                           grab);
+                        deliveries = TryClientEvents(rClient(grab), thisDev,
+                                &core, 1, mask,
+                                filters[thisDev->id][core.u.u.type],
+                                grab);
                     }
-
                 }
             }
-            if (deliveries && (xE->u.u.type == MotionNotify
-                        || xE->u.u.type == DeviceMotionNotify))
-                thisDev->valuator->motionHintWindow = grab->window;
+
+            if (!deliveries)
+            {
+                /* try XI event */
+                if (grabinfo->fromPassiveGrab  &&
+                        grabinfo->implicitGrab &&
+                        (xE->u.u.type & EXTENSION_EVENT_BASE))
+                    mask = grab->deviceMask;
+                FixUpEventFromWindow(thisDev, xE, grab->window,
+                        None, TRUE);
+
+                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                            grab->window, xE, count) ||
+                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                            grab->window, xE, count))
+                    deliveries = 1; /* don't send, but pretend we did */
+                else
+                {
+                    deliveries =
+                        TryClientEvents(rClient(grab), thisDev,
+                                xE, count,
+                                mask,
+                                filters[thisDev->id][xE->u.u.type],
+                                grab);
+                }
+
+            }
         }
+        if (deliveries && (xE->u.u.type == MotionNotify
+                    || xE->u.u.type == DeviceMotionNotify))
+            thisDev->valuator->motionHintWindow = grab->window;
     }
     if (deliveries && !deactivateGrab &&
        (xE->u.u.type != MotionNotify && xE->u.u.type != DeviceMotionNotify))

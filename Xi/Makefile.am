@@ -21,8 +21,6 @@ libXi_la_SOURCES =	\
 	chgprop.h \
 	chgptr.c \
 	chgptr.h \
-	chaccess.c \
-	chaccess.h \
 	closedev.c \
 	closedev.h \
 	devbell.c \
@@ -68,8 +66,6 @@ libXi_la_SOURCES =	\
 	querydp.h \
 	queryst.c \
 	queryst.h \
-	qryacces.c \
-	qryacces.h \
 	selectev.c \
 	selectev.h \
 	sendexev.c \

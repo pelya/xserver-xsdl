@@ -526,30 +526,6 @@ extern void DeepCopyDeviceClasses(DeviceIntPtr from,
 extern int EnterLeaveSemaphoresIsset(WindowPtr win);
 extern int FocusSemaphoresIsset(WindowPtr win);
 
-/* Window/device based access control */
-extern Bool ACRegisterClient(ClientPtr client);
-extern Bool ACUnregisterClient(ClientPtr client);
-extern int ACClearWindowAccess(ClientPtr client,
-                        WindowPtr win,
-                        int what);
-extern int ACChangeWindowAccess(ClientPtr client, 
-                                WindowPtr win, 
-                                int defaultRule,
-                                DeviceIntPtr* perm_devices,
-                                int npermit,
-                                DeviceIntPtr* deny_devices,
-                                int ndeny);
-extern void ACQueryWindowAccess(WindowPtr win, 
-                                int* defaultRule,
-                                DeviceIntPtr** perm,
-                                int* nperm,
-                                DeviceIntPtr** deny,
-                                int* ndeny);
-
-extern Bool ACDeviceAllowed(WindowPtr win, 
-                            DeviceIntPtr dev,
-                            xEvent* xE);
-
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(
     InputOption *options,

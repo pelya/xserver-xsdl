@@ -3375,7 +3375,6 @@ CloseDownClient(ClientPtr client)
 	DeleteClientFromAnySelections(client);
 	ReleaseActiveGrabs(client);
 	DeleteClientFontStuff(client);
-        ACUnregisterClient(client);
 	if (!really_close_down)
 	{
 	    /*  This frees resources that should never be retained
