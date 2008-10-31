@@ -967,23 +967,21 @@ static void send_nsevent(NSEvent *e) {
                 pDev = darwinTabletCurrent;
             }
 
-#if 0 // XPlugin isn't thread safe ... sigh
             if(!quartzServerVisible) {
                 xp_window_id wid;
-                
+
                 /* Sigh. Need to check that we're really over one of
                  * our windows. (We need to receive pointer events while
-                 * not in the foreground, and the only way to do that
-                 * right now is to ask for _all_ pointer events..)
+                 * not in the foreground, but we don't want to receive them
+                 * when another window is over us or we might show a tooltip)
                  */
                 
                 wid = 0;
-                xp_find_window(pointer_x, pointer_y, 0, &wid);
                 
-                if (wid == 0)
+                if (xp_find_window(pointer_x, pointer_y, 0, &wid) == XP_Success &&
+                    wid == 0)
                     return;        
             }
-#endif
             
             DarwinSendPointerEvents(pDev, ev_type, ev_button, pointer_x, pointer_y,
                                     pressure, tilt_x, tilt_y);
