@@ -186,7 +186,7 @@ static void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, in
     
     TA_SERVER();
 
-    DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
+//    DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
     for (i=0; i<nevents; i++) {
         switch(xe[i].u.u.type) {
             case kXquartzControllerNotify:
@@ -390,8 +390,8 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
     valuators[3] = tilt_x * XQUARTZ_VALUATOR_LIMIT;
     valuators[4] = tilt_y * XQUARTZ_VALUATOR_LIMIT;
     
-    DEBUG_LOG("Pointer (%f, %f), Valuators: {%d,%d,%d,%d,%d}\n", pointer_x, pointer_y,
-              valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
+    //DEBUG_LOG("Pointer (%f, %f), Valuators: {%d,%d,%d,%d,%d}\n", pointer_x, pointer_y,
+    //          valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 }
 
 void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, float pointer_x, float pointer_y, 
@@ -401,7 +401,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
     ScreenPtr screen;
     int valuators[5];
 	
-    DEBUG_LOG("x=%f, y=%f, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
+    //DEBUG_LOG("x=%f, y=%f, p=%f, tx=%f, ty=%f\n", pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     
 	if(!darwinEvents) {
 		DEBUG_LOG("DarwinSendPointerEvents called before darwinEvents was initialized\n");
