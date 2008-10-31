@@ -63,8 +63,6 @@ SOFTWARE.
 #include "registry.h"
 #include "xace.h"
 
-#define EXTENSION_BASE  128
-#define EXTENSION_EVENT_BASE  64
 #define LAST_EVENT  128
 #define LAST_ERROR 255
 

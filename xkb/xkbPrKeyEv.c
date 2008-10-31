@@ -39,7 +39,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "exevents.h"
 #include <xkbsrv.h>
 #include <ctype.h>
-#define EXTENSION_EVENT_BASE 64
 
 /***====================================================================***/
 

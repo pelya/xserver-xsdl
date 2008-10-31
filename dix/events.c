@@ -179,8 +179,6 @@ int    xeviegrabState = 0;
 /**
  * Extension events type numbering starts at EXTENSION_EVENT_BASE.
  */
-#define EXTENSION_EVENT_BASE  64
-
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
 #define StructureAndSubMask ( StructureNotifyMask | SubstructureNotifyMask )
 #define AllButtonsMask ( \

@@ -48,7 +48,6 @@
 #include <X11/extensions/xteststr.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#define EXTENSION_EVENT_BASE	64
 
 #include "modinit.h"
 

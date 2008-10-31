@@ -50,7 +50,6 @@ SOFTWARE.
  *
  */
 
-#define EXTENSION_EVENT_BASE  64
 #define	 NEED_EVENTS
 #define	 NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
