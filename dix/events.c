@@ -372,7 +372,7 @@ extern int DeviceMotionNotify;
  * is initialized. The rest is memcpy'd in InitEvents.
  */
 #define CantBeFiltered NoEventMask
-static Mask filters[MAX_DEVICES][128] = {
+static Mask filters[MAXDEVICES][128] = {
 {
 	NoSuchEvent,		       /* 0 */
 	NoSuchEvent,		       /* 1 */
@@ -794,7 +794,7 @@ void
 SetMaskForEvent(int deviceid, Mask mask, int event)
 {
     int coretype;
-    if (deviceid < 0 || deviceid > MAX_DEVICES)
+    if (deviceid < 0 || deviceid > MAXDEVICES)
         FatalError("SetMaskForEvent: bogus device id");
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("SetMaskForEvent: bogus event number");
@@ -5451,7 +5451,7 @@ InitEvents(void)
     inputInfo.pointer = (DeviceIntPtr)NULL;
     lastEventMask = OwnerGrabButtonMask;
     filters[0][PointerMotionMask] = MotionNotify;
-    for (i = 1; i < MAX_DEVICES; i++)
+    for (i = 1; i < MAXDEVICES; i++)
     {
         memcpy(&filters[i], filters[0], sizeof(filters[0]));
     }
@@ -6405,7 +6405,7 @@ EnterLeaveSemaphoresIsset(WindowPtr win)
     int i;
 
     sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
-    for (i = 0; i < (MAX_DEVICES + 7)/8; i++)
+    for (i = 0; i < (MAXDEVICES + 7)/8; i++)
         set += sem->enterleave[i];
 
     return set;
@@ -6422,7 +6422,7 @@ FocusSemaphoresIsset(WindowPtr win)
     int i;
 
     sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
-    for (i = 0; i < (MAX_DEVICES + 7)/8; i++)
+    for (i = 0; i < (MAXDEVICES + 7)/8; i++)
         set += sem->focusinout[i];
 
     return set;

@@ -89,6 +89,7 @@ extern unsigned long serverGeneration;
 #define MAXCLIENTS	256
 #define MAXEXTENSIONS   128
 #define MAXFORMATS	8
+#define MAXDEVICES	20 /* input devices */
 
 typedef unsigned long PIXEL;
 typedef unsigned long ATOM;

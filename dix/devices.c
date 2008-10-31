@@ -143,19 +143,19 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     DeviceIntPtr dev, *prev; /* not a typo */
     DeviceIntPtr devtmp;
     int devid;
-    char devind[MAX_DEVICES];
+    char devind[MAXDEVICES];
     BOOL enabled;
 
     /* Find next available id */
-    memset(devind, 0, sizeof(char)*MAX_DEVICES);
+    memset(devind, 0, sizeof(char)*MAXDEVICES);
     for (devtmp = inputInfo.devices; devtmp; devtmp = devtmp->next)
 	devind[devtmp->id]++;
     for (devtmp = inputInfo.off_devices; devtmp; devtmp = devtmp->next)
 	devind[devtmp->id]++;
-    for (devid = 0; devid < MAX_DEVICES && devind[devid]; devid++)
+    for (devid = 0; devid < MAXDEVICES && devind[devid]; devid++)
 	;
 
-    if (devid >= MAX_DEVICES)
+    if (devid >= MAXDEVICES)
 	return (DeviceIntPtr)NULL;
     dev =  xcalloc(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec), 1);
     if (!dev)
@@ -291,7 +291,7 @@ EnableDevice(DeviceIntPtr dev)
     ev.time = currentTime.milliseconds;
     ev.devchange = DeviceEnabled;
     ev.deviceid = dev->id;
-    dummyDev.id = MAX_DEVICES;
+    dummyDev.id = MAXDEVICES;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 
@@ -369,7 +369,7 @@ DisableDevice(DeviceIntPtr dev)
     ev.time = currentTime.milliseconds;
     ev.devchange = DeviceDisabled;
     ev.deviceid = dev->id;
-    dummyDev.id = MAX_DEVICES;
+    dummyDev.id = MAXDEVICES;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 
@@ -409,7 +409,7 @@ ActivateDevice(DeviceIntPtr dev)
     ev.deviceid = dev->id;
 
     memset(&dummyDev, 0, sizeof(DeviceIntRec));
-    dummyDev.id = MAX_DEVICES;
+    dummyDev.id = MAXDEVICES;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 
@@ -973,7 +973,7 @@ RemoveDevice(DeviceIntPtr dev)
         ev.time = currentTime.milliseconds;
         ev.devchange = DeviceRemoved;
         ev.deviceid = deviceid;
-        dummyDev.id = MAX_DEVICES;
+        dummyDev.id = MAXDEVICES;
         SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                               (xEvent *) &ev, 1);
     }

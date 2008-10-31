@@ -253,8 +253,8 @@ extern DevPrivateKey FocusPrivatesKey;
  * window/has focus.
  */
 typedef struct _FocusSemaphores {
-    char                enterleave[(MAX_DEVICES + 7)/8];
-    char                focusinout[(MAX_DEVICES + 7)/8];
+    char                enterleave[(MAXDEVICES + 7)/8];
+    char                focusinout[(MAXDEVICES + 7)/8];
 } FocusSemaphoresRec, *FocusSemaphoresPtr;
 
 #ifdef XEVIE

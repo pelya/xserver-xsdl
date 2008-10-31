@@ -340,7 +340,7 @@ int RT_INPUTCLIENT;
 extern XExtensionVersion AllExtensionVersions[];
 
 
-Mask PropagateMask[MAX_DEVICES];
+Mask PropagateMask[MAXDEVICES];
 
 /*****************************************************************
  *
@@ -680,7 +680,7 @@ AllowPropagateSuppress(Mask mask)
 {
     int i;
 
-    for (i = 0; i < MAX_DEVICES; i++)
+    for (i = 0; i < MAXDEVICES; i++)
 	PropagateMask[i] |= mask;
 }
 
@@ -701,7 +701,7 @@ GetNextExtEventMask(void)
     }
     lastExtEventMask <<= 1;
 
-    for (i = 0; i < MAX_DEVICES; i++)
+    for (i = 0; i < MAXDEVICES; i++)
 	ExtValidMasks[i] |= mask;
     return mask;
 }
@@ -739,7 +739,7 @@ SetExclusiveAccess(Mask mask)
 {
     int i;
 
-    for (i = 0; i < MAX_DEVICES; i++)
+    for (i = 0; i < MAXDEVICES; i++)
 	ExtExclusiveMasks[i] |= mask;
 }
 
@@ -760,7 +760,7 @@ SetMaskForExtEvent(Mask mask, int event)
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("MaskForExtensionEvent: bogus event number");
 
-    for (i = 0; i < MAX_DEVICES; i++)
+    for (i = 0; i < MAXDEVICES; i++)
         SetMaskForEvent(i, mask, event);
 }
 
@@ -914,7 +914,7 @@ RestoreExtensionEvents(void)
     for (i = 0; i < ExtEventIndex - 1; i++) {
 	if ((EventInfo[i].type >= LASTEvent) && (EventInfo[i].type < 128))
         {
-            for (j = 0; j < MAX_DEVICES; j++)
+            for (j = 0; j < MAXDEVICES; j++)
                 SetMaskForEvent(j, 0, EventInfo[i].type);
         }
 	EventInfo[i].mask = 0;

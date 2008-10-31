@@ -82,7 +82,7 @@ typedef struct _AnimCurState {
 } AnimCurStateRec, *AnimCurStatePtr;
 
 /* What a waste. But we need an API change to alloc it per device only. */
-static AnimCurStateRec animCurState[MAX_DEVICES];
+static AnimCurStateRec animCurState[MAXDEVICES];
 
 static unsigned char empty[4];
 
@@ -354,7 +354,7 @@ AnimCurInit (ScreenPtr pScreen)
     {
         int i;
 	AnimCurGeneration = serverGeneration;
-        for (i = 0; i < MAX_DEVICES; i++) {
+        for (i = 0; i < MAXDEVICES; i++) {
             animCurState[i].pCursor = 0;
             animCurState[i].pScreen = 0;
             animCurState[i].elt = 0;

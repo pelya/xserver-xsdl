@@ -64,9 +64,7 @@ SOFTWARE.
 #define SameClient(obj,client) \
 	(CLIENT_BITS((obj)->resource) == (client)->clientAsMask)
 
-#define MAX_DEVICES	20
-
-#define EMASKSIZE	MAX_DEVICES + 1
+#define EMASKSIZE	MAXDEVICES + 1
 
 extern DevPrivateKey CoreDevicePrivateKey;
 
