@@ -274,9 +274,12 @@ static void QuartzUpdateScreens(void) {
     pRoot = WindowTable[pScreen->myNum];
     AppleWMSetScreenOrigin(pRoot);
     pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
+    //pScreen->PaintWindowBackground (pRoot, &pRoot->borderClip,  PW_BACKGROUND);
     miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
     DefineInitialRootWindow(pRoot);
-    
+
+    DEBUG_LOG("Root Window: %dx%d @ (%d, %d) darwinMainScreen (%d, %d) xy (%d, %d) dixScreenOrigins (%d, %d)\n", width, height, x - sx, y - sy, darwinMainScreenX, darwinMainScreenY, x, y, dixScreenOrigins[pScreen->myNum].x, dixScreenOrigins[pScreen->myNum].y);
+
     /* Send an event for the root reconfigure */
     e.u.u.type = ConfigureNotify;
     e.u.configureNotify.window = pRoot->drawable.id;
@@ -303,6 +306,9 @@ void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
 }
 
 void QuartzSetFullscreen(Bool state) {
+    
+    DEBUG_LOG("QuartzSetFullscreen: state=%d\n", state);
+    
     if(quartzHasRoot == state)
         return;
     
