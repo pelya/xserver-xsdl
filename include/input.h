@@ -518,8 +518,6 @@ extern DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
 extern Bool RegisterPairingClient(ClientPtr client);
 
-extern DeviceIntPtr GuessFreePointerDevice(void);
-
 extern int AllocMasterDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
