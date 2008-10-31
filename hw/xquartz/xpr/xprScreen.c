@@ -184,15 +184,9 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     CGGetActiveDisplayList(displayCount, displayList, &displayCount);
 
     /* Get the union of all screens */
-    for (i = 0; i < displayCount; i++)
-    {
-
-        /* we can't remove the menubar from the screen - doing so
-         * would constrain the pointer to the screen, not allowing it
-         * to reach the menubar..
-         */
+    for (i = 0; i < displayCount; i++) {
         CGDirectDisplayID dpy = displayList[i];
-        frame = displayScreenBounds(dpy, FALSE);
+        frame = displayScreenBounds(dpy, TRUE);
         unionRect = CGRectUnion(unionRect, frame);
     }
 

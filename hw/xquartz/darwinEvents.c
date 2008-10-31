@@ -376,7 +376,13 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
     /* Fix offset between darwin and X screens */
     pointer_x -= darwinMainScreenX + dixScreenOrigins[screen->myNum].x;
     pointer_y -= darwinMainScreenY + dixScreenOrigins[screen->myNum].y;
-    
+
+    if(pointer_x < 0.0)
+        pointer_x = 0.0;
+
+    if(pointer_y < 0.0)
+        pointer_y = 0.0;
+
     /* Setup our array of values */
     valuators[0] = pointer_x * XQUARTZ_VALUATOR_LIMIT / (float)screenInfo.screens[0]->width;
     valuators[1] = pointer_y * XQUARTZ_VALUATOR_LIMIT / (float)screenInfo.screens[0]->height;
@@ -384,7 +390,7 @@ static void DarwinPrepareValuators(int *valuators, ScreenPtr screen,
     valuators[3] = tilt_x * XQUARTZ_VALUATOR_LIMIT;
     valuators[4] = tilt_y * XQUARTZ_VALUATOR_LIMIT;
     
-    DEBUG_LOG("Valuators: {%d,%d,%d,%d,%d}\n", 
+    DEBUG_LOG("Pointer (%f, %f), Valuators: {%d,%d,%d,%d,%d}\n", pointer_x, pointer_y,
               valuators[0], valuators[1], valuators[2], valuators[3], valuators[4]);
 }
 
