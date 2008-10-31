@@ -161,6 +161,20 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 }
 
 
+/**
+ * Find and return the next unpaired MD pointer device.
+ */
+static DeviceIntPtr
+NextFreePointerDevice(void)
+{
+    DeviceIntPtr dev;
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+        if (dev->isMaster &&
+                dev->spriteInfo->spriteOwner &&
+                !dev->spriteInfo->paired)
+            return dev;
+    return NULL;
+}
 
 /**
  * Create a new input device and init it to sane values. The device is added
@@ -2643,17 +2657,6 @@ GuessFreePointerDevice()
     return (lastRealPtr) ? lastRealPtr : inputInfo.pointer;
 }
 
-DeviceIntPtr
-NextFreePointerDevice()
-{
-    DeviceIntPtr dev;
-    for (dev = inputInfo.devices; dev; dev = dev->next)
-        if (dev->isMaster &&
-                dev->spriteInfo->spriteOwner &&
-                !dev->spriteInfo->paired)
-            return dev;
-    return NULL;
-}
 /**
  * Create a new master device (== one pointer, one keyboard device).
  * Only allocates the devices, you will need to call ActivateDevice() and
