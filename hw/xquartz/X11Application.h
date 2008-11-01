@@ -73,7 +73,7 @@ void X11ApplicationShowHideMenubar (int state);
 void X11ApplicationMain(int argc, char **argv, char **envp);
 
 extern int X11EnableKeyEquivalents;
-extern int quartzHasRoot, quartzEnableRootless;
+extern int quartzHasRoot, quartzEnableRootless, quartzFullscreenMenu;
 
 #define APP_PREFS "org.x.X11"
 
@@ -82,6 +82,7 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_SYSBEEP               "enable_system_beep"
 #define PREFS_KEYEQUIVS             "enable_key_equivalents"
 #define PREFS_FULLSCREEN_HOTKEYS    "fullscreen_hotkeys"
+#define PREFS_FULLSCREEN_MENU       "fullscreen_menu"
 #define PREFS_SYNC_KEYMAP           "sync_keymap"
 #define PREFS_DEPTH                 "depth"
 #define PREFS_NO_AUTH               "no_auth"

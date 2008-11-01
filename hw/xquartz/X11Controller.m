@@ -592,14 +592,15 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   DarwinSendDDXEvent(kXquartzControllerNotify, 1, AppleWMPreviousWindow);
 }
 
-- (IBAction) enable_fullscreen_changed:sender
-{
-  int value = ![enable_fullscreen intValue];
+- (IBAction) enable_fullscreen_changed:sender {
+    int value = ![enable_fullscreen intValue];
 
-  DarwinSendDDXEvent(kXquartzSetRootless, 1, value);
-	
-  [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
-  [NSApp prefs_synchronize];
+    [enable_fullscreen_menu setEnabled:!value];
+
+    DarwinSendDDXEvent(kXquartzSetRootless, 1, value);
+
+    [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
+    [NSApp prefs_synchronize];
 }
 
 - (IBAction) toggle_fullscreen:sender
@@ -618,14 +619,16 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     quartzUseSysBeep = [use_sysbeep intValue];
     X11EnableKeyEquivalents = [enable_keyequivs intValue];
     darwinSyncKeymap = [sync_keymap intValue];
+    quartzFullscreenMenu = [enable_fullscreen_menu intValue];
 
     /* after adding prefs here, also add to [X11Application read_defaults]
      and prefs_show */
-	
+
     [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
     [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
     [NSApp prefs_set_boolean:@PREFS_KEYEQUIVS value:X11EnableKeyEquivalents];
     [NSApp prefs_set_boolean:@PREFS_SYNC_KEYMAP value:darwinSyncKeymap];
+    [NSApp prefs_set_boolean:@PREFS_FULLSCREEN_MENU value:quartzFullscreenMenu];
     [NSApp prefs_set_boolean:@PREFS_CLICK_THROUGH value:[click_through intValue]];
     [NSApp prefs_set_boolean:@PREFS_FFM value:[focus_follows_mouse intValue]];
     [NSApp prefs_set_boolean:@PREFS_FOCUS_ON_NEW_WINDOW value:[focus_on_new_window intValue]];
@@ -634,13 +637,13 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
 
     BOOL pbproxy_active = [sync_pasteboard intValue];
-    
+
     [NSApp prefs_set_boolean:@PREFS_SYNC_PB value:pbproxy_active];
     [NSApp prefs_set_boolean:@PREFS_SYNC_PB_TO_CLIPBOARD value:[sync_pasteboard_to_clipboard intValue]];
     [NSApp prefs_set_boolean:@PREFS_SYNC_PB_TO_PRIMARY value:[sync_pasteboard_to_primary intValue]];
     [NSApp prefs_set_boolean:@PREFS_SYNC_CLIPBOARD_TO_PB value:[sync_clipboard_to_pasteboard intValue]];
     [NSApp prefs_set_boolean:@PREFS_SYNC_PRIMARY_ON_SELECT value:[sync_primary_immediately intValue]];
-    
+
     [NSApp prefs_synchronize];
 
     [sync_pasteboard_to_clipboard setEnabled:pbproxy_active];
@@ -686,9 +689,11 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     // setEnabled doesn't do this...
     [sync_text1 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
     [sync_text2 setTextColor:pbproxy_active ? [NSColor controlTextColor] : [NSColor disabledControlTextColor]];
-
-    [enable_fullscreen setIntValue:!quartzEnableRootless];
 	
+    [enable_fullscreen setIntValue:!quartzEnableRootless];
+    [enable_fullscreen_menu setEnabled:!quartzEnableRootless];
+    [enable_fullscreen_menu setIntValue:quartzFullscreenMenu];
+    
     [prefs_panel makeKeyAndOrderFront:sender];
 }
 

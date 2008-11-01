@@ -59,7 +59,7 @@
 #define ProximityIn    0
 #define ProximityOut   1
 
-int X11EnableKeyEquivalents = TRUE;
+int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
 static TISInputSourceRef last_key_layout;
@@ -353,14 +353,11 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) show_hide_menubar:(NSNumber *)state {
-#if defined(__LP64__)
-	/* Also shows/hides the dock */
-	if ([state boolValue]) SetSystemUIMode(kUIModeNormal, 0);
-	else SetSystemUIMode(kUIModeAllHidden, 0);
-#else
-	if ([state boolValue]) ShowMenuBar ();
-	else HideMenuBar ();
-#endif
+    /* Also shows/hides the dock */
+    if ([state boolValue])
+        SetSystemUIMode(kUIModeNormal, 0); 
+    else
+        SetSystemUIMode(kUIModeAllHidden, quartzFullscreenMenu ? kUIOptionAutoShowMenuBar : 0); // kUIModeAllSuppressed or kUIOptionAutoShowMenuBar can be used to allow "mouse-activation"
 }
 
 
@@ -638,14 +635,15 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     const char *tem;
 	
     quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
-                        default:quartzUseSysBeep];
+                                       default:quartzUseSysBeep];
     quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
-                        default:quartzEnableRootless];
+                                           default:quartzEnableRootless];
+    quartzFullscreenMenu = [self prefs_get_boolean:@PREFS_FULLSCREEN_MENU
+                                           default:quartzFullscreenMenu];
     quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
-					      @PREFS_FULLSCREEN_HOTKEYS default:
-					      !quartzFullscreenDisableHotkeys];
+                            @PREFS_FULLSCREEN_HOTKEYS default:!quartzFullscreenDisableHotkeys];
     darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
-                         default:darwinFakeButtons];
+                                        default:darwinFakeButtons];
     if (darwinFakeButtons) {
         const char *fake2, *fake3;
 
