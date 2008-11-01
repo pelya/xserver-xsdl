@@ -230,9 +230,9 @@ static void __glXAquaContextDestroy(__GLXcontext *baseContext) {
                      (unsigned int) baseContext);
     if (context != NULL) {
       if (context->sid != 0 && surface_hash != NULL) {
-		lst = x_hash_table_lookup(surface_hash, (void *) context->sid, NULL);
+		lst = x_hash_table_lookup(surface_hash, x_cvt_uint_to_vptr(context->sid), NULL);
 		lst = x_list_remove(lst, context);
-		x_hash_table_insert(surface_hash, (void *) context->sid, lst);
+		x_hash_table_insert(surface_hash, x_cvt_uint_to_vptr(context->sid), lst);
       }
 
       if (context->ctx != NULL) CGLDestroyContext(context->ctx);
@@ -273,14 +273,14 @@ static void surface_notify(void *_arg, void *data) {
     switch (arg->kind) {
     case AppleDRISurfaceNotifyDestroyed:
         if (surface_hash != NULL)
-            x_hash_table_remove(surface_hash, (void *) arg->id);
+            x_hash_table_remove(surface_hash, x_cvt_uint_to_vptr(arg->id));
 	        draw->base.pDraw = NULL;
 			draw->sid = 0;
         break;
 
     case AppleDRISurfaceNotifyChanged:
         if (surface_hash != NULL) {
-            lst = x_hash_table_lookup(surface_hash, (void *) arg->id, NULL);
+            lst = x_hash_table_lookup(surface_hash, x_cvt_uint_to_vptr(arg->id), NULL);
             for (; lst != NULL; lst = lst->next)
             {
                 context = lst->data;
@@ -316,7 +316,7 @@ static void attach(__GLXAquaContext *context, __GLXAquaDrawable *draw) {
             DRIDestroySurface(pDraw->pScreen, pDraw->id, pDraw,
 								surface_notify, draw);
             if (surface_hash != NULL)
-                x_hash_table_remove(surface_hash, (void *) draw->sid);
+                x_hash_table_remove(surface_hash, x_cvt_uint_to_vptr(draw->sid));
 
             draw->sid = 0;
             return;
@@ -328,10 +328,10 @@ static void attach(__GLXAquaContext *context, __GLXAquaDrawable *draw) {
         if (surface_hash == NULL)
             surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
 
-        lst = x_hash_table_lookup(surface_hash, (void *) context->sid, NULL);
+        lst = x_hash_table_lookup(surface_hash, x_cvt_uint_to_vptr(context->sid), NULL);
         if (x_list_find(lst, context) == NULL) {
             lst = x_list_prepend(lst, context);
-            x_hash_table_insert(surface_hash, (void *) context->sid, lst);
+            x_hash_table_insert(surface_hash, x_cvt_uint_to_vptr(context->sid), lst);
         }
 
         GLAQUA_DEBUG_MSG("attached 0x%x to 0x%x\n", (unsigned int) pDraw->id,

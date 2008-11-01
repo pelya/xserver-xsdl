@@ -238,7 +238,7 @@ static void QuartzCoreAudioBell(
         OSStatus status;
         status = AudioDeviceStart(quartzAudioDevice, QuartzAudioIOProc);
         if (status) {
-            ErrorF("QuartzAudioBell: AudioDeviceStart returned %ld\n", status);
+            ErrorF("QuartzAudioBell: AudioDeviceStart returned %ld\n", (long)status);
         } else {
             data.playing = TRUE;
         }
@@ -299,7 +299,7 @@ void QuartzAudioInit(void)
                     &propertySize, &outputDevice);
     if (status) {
         ErrorF("QuartzAudioInit: AudioHardwareGetProperty returned %ld\n",
-               status);
+               (long)status);
         return;
     }
     if (outputDevice == kAudioDeviceUnknown) {
@@ -314,7 +314,7 @@ void QuartzAudioInit(void)
                                     &propertySize, &outputStreamDescription);
     if (status) {
         ErrorF("QuartzAudioInit: GetProperty(stream format) returned %ld\n",
-               status);
+               (long)status);
         return;
     }
     sampleRate = outputStreamDescription.mSampleRate;
@@ -339,7 +339,7 @@ void QuartzAudioInit(void)
     // Prepare for playback
     status = AudioDeviceAddIOProc(outputDevice, QuartzAudioIOProc, &data);
     if (status) {
-        ErrorF("QuartzAudioInit: AddIOProc returned %ld\n", status);
+        ErrorF("QuartzAudioInit: AddIOProc returned %ld\n", (long)status);
         return;
     }
 

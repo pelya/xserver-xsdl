@@ -353,8 +353,14 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) show_hide_menubar:(NSNumber *)state {
+#if defined(__LP64__)
+	/* Also shows/hides the dock */
+	if ([state boolValue]) SetSystemUIMode(kUIModeNormal, 0);
+	else SetSystemUIMode(kUIModeAllHidden, 0);
+#else
 	if ([state boolValue]) ShowMenuBar ();
 	else HideMenuBar ();
+#endif
 }
 
 

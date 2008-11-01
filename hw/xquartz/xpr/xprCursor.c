@@ -49,6 +49,7 @@
 #include "globals.h"
 #include "servermd.h"
 #include "dixevents.h"
+#include "x-hash.h"
 
 typedef struct {
     int                     cursorVisible;

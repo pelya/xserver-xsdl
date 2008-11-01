@@ -701,13 +701,16 @@ static KeySym make_dead_key(KeySym in) {
 }
 
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
-#if !defined(__x86_64__) && !defined(__ppc64__)
+#if !defined(__LP64__)
     KeyboardLayoutRef key_layout;
 #endif
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
-    int is_uchr = 1, i, j;
+#if !defined(__LP64__)
+    int is_uchr = 1;
+#endif
+    int i, j;
     OSStatus err;
     KeySym *k;
     CFDataRef currentKeyLayoutDataRef = NULL;
@@ -721,7 +724,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
           chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
 
-#if !defined(__x86_64__) && !defined(__ppc64__)
+#if !defined(__LP64__)
     if (chr_data == NULL) {
         ErrorF("X11.app: Error detected in determining keyboard layout.  If you are using an Apple-provided keyboard layout, please report this error at http://xquartz.macosforge.org and http://bugreport.apple.com\n");
         ErrorF("X11.app: Debug Info: keyboard_type=%u, currentKeyLayoutRef=%p, currentKeyLayoutDataRef=%p, chr_data=%p\n",
@@ -757,6 +760,9 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
        key produces in the four shift states. Then convert that to
        an X11 keysym (which may just the bit that says "this is
        Unicode" if it can't find the real symbol.) */
+       
+    /* KeyTranslate is not available on 64-bit platforms; UCKeyTranslate
+       must be used instead. */
 
     for (i = 0; i < num_keycodes; i++) {
         static const int mods[4] = {0, MOD_SHIFT, MOD_OPTION,
@@ -765,7 +771,9 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
         k = info->keyMap + i * GLYPHS_PER_KEY;
 
         for (j = 0; j < 4; j++) {
+#if !defined(__LP64__)
             if (is_uchr)  {
+#endif
                 UniChar s[8];
                 UniCharCount len;
                 UInt32 dead_key_state = 0, extra_dead = 0;
@@ -789,6 +797,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
                     k[j] = ucs2keysym (s[0]);
                     if (dead_key_state != 0) k[j] = make_dead_key (k[j]);
                 }
+#if !defined(__LP64__)
             } else { // kchr
 	      UInt32 c, state = 0, state2 = 0;
                 UInt16 code;
@@ -812,6 +821,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
                     if (state != 0) k[j] = make_dead_key (k[j]);
                 }
             }
+#endif
         }
 	
         if (k[3] == k[2]) k[3] = NoSymbol;
