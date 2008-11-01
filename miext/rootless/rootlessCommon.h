@@ -238,7 +238,7 @@ extern RegionRec rootlessHugeRoot;
                             ((int)(_x) * _pPix->drawable.bitsPerPixel/8 +   \
                              (int)(_y) * _pPix->devKind);                   \
     if (_pPix->drawable.bitsPerPixel != FB_UNIT) {                          \
-        unsigned _diff = ((unsigned) _pPix->devPrivate.ptr) &               \
+        size_t _diff = ((size_t) _pPix->devPrivate.ptr) &               \
                          (FB_UNIT / CHAR_BIT - 1);                          \
         _pPix->devPrivate.ptr = (char *) (_pPix->devPrivate.ptr) -          \
                                 _diff;                                      \

@@ -63,6 +63,8 @@ extern int darwinMainScreenX, darwinMainScreenY;
 #define SCREEN_TO_GLOBAL_Y 0
 #endif
 
+#define MAKE_WINDOW_ID(x)		((xp_window_id)((size_t)(x)))
+
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
   static Atom func (void) {                                       \
     static unsigned int generation = 0;                             \
@@ -134,7 +136,7 @@ void RootlessNativeWindowMoved (WindowPtr pWin) {
     
     winRec = WINREC(pWin);
     
-    if (xp_get_window_bounds ((xp_window_id)winRec->wid, &bounds) != Success) return;
+    if (xp_get_window_bounds (MAKE_WINDOW_ID(winRec->wid), &bounds) != Success) return;
     
     sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
     sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
@@ -1499,7 +1501,7 @@ RootlessFlushWindowColormap (WindowPtr pWin)
   wc.colormap = RootlessColormapCallback;
   wc.colormap_data = pWin->drawable.pScreen;
 
-  configure_window ((xp_window_id)winRec->wid, XP_COLORMAP, &wc);
+  configure_window (MAKE_WINDOW_ID(winRec->wid), XP_COLORMAP, &wc);
 }
 
 /*
@@ -1645,7 +1647,7 @@ RootlessHideAllWindows (void)
             {
                 wc.stack_mode = XP_UNMAPPED;
                 wc.sibling = 0;
-                configure_window ((xp_window_id)winRec->wid, XP_STACKING, &wc);
+                configure_window (MAKE_WINDOW_ID(winRec->wid), XP_STACKING, &wc);
             }
         }
     }
