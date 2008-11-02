@@ -337,7 +337,8 @@ void QuartzAudioInit(void)
     // fixme assert fadeLength<framesPerBuffer
 
     // Prepare for playback
-    status = AudioDeviceAddIOProc(outputDevice, QuartzAudioIOProc, &data);
+    AudioDeviceIOProcID sInputIOProcID = NULL;
+    status = AudioDeviceCreateIOProcID( outputDevice, QuartzAudioIOProc, NULL, &sInputIOProcID );
     if (status) {
         ErrorF("QuartzAudioInit: AddIOProc returned %ld\n", (long)status);
         return;
