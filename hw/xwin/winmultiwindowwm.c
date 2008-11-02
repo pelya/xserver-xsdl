@@ -58,6 +58,10 @@
 #include "winwindow.h"
 #ifdef XWIN_MULTIWINDOWEXTWM
 #include "windowswmstr.h"
+#else
+/* We need the native HWND atom for intWM, so for consistency use the
+   same name as extWM would if we were building with enabled... */
+#define WINDOWSWM_NATIVE_HWND "_WINDOWSWM_NATIVE_HWND"
 #endif
 
 extern void winDebug(const char *format, ...);
@@ -1256,11 +1260,10 @@ winInitMultiWindowWM (WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
   pWMInfo->atmWmDelete = XInternAtom (pWMInfo->pDisplay,
 				      "WM_DELETE_WINDOW",
 				      False);
-#ifdef XWIN_MULTIWINDOWEXTWM
+
   pWMInfo->atmPrivMap  = XInternAtom (pWMInfo->pDisplay,
 				      WINDOWSWM_NATIVE_HWND,
 				      False);
-#endif
 
 
   if (1) {
