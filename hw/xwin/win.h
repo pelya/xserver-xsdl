@@ -313,6 +313,7 @@ typedef Bool (*winReleasePrimarySurfaceProcPtr)(ScreenPtr);
 
 typedef Bool (*winFinishCreateWindowsWindowProcPtr)(WindowPtr pWin);
 
+typedef Bool (*winCreateScreenResourcesProc)(ScreenPtr);
 
 /* Typedef for DIX wrapper functions */
 typedef int (*winDispatchProcPtr) (ClientPtr);
@@ -562,6 +563,8 @@ typedef struct _winPrivScreenRec
   winHotKeyAltTabProcPtr		pwinHotKeyAltTab;
   winCreatePrimarySurfaceProcPtr	pwinCreatePrimarySurface;
   winReleasePrimarySurfaceProcPtr	pwinReleasePrimarySurface;
+
+  winCreateScreenResourcesProc       pwinCreateScreenResources;
 
 #ifdef XWIN_MULTIWINDOW
   /* Window Procedures for MultiWindow mode */

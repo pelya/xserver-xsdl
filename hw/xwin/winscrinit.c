@@ -244,6 +244,25 @@ winScreenInit (int index,
   return TRUE;
 }
 
+static Bool
+winCreateScreenResources(ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+  Bool result;
+
+  result = pScreenPriv->pwinCreateScreenResources(pScreen);
+
+  /* Now the screen bitmap has been wrapped in a pixmap,
+     add that to the Shadow framebuffer */
+  if (!shadowAdd(pScreen, pScreen->devPrivate,
+		 pScreenPriv->pwinShadowUpdate, NULL, 0, 0))
+    {
+      ErrorF ("winCreateScreenResources - shadowAdd () failed\n");
+      return FALSE;
+    }
+
+  return result;
+}
 
 /* See Porting Layer Definition - p. 20 */
 Bool
@@ -427,15 +446,18 @@ winFinishScreenInitFB (int index,
       )
     {
 #if CYGDEBUG
-      winDebug ("winFinishScreenInitFB - Calling shadowInit ()\n");
+      winDebug ("winFinishScreenInitFB - Calling shadowSetup ()\n");
 #endif
-      if (!shadowInit (pScreen,
-		       pScreenPriv->pwinShadowUpdate,
-		       NULL))
+      if (!shadowSetup(pScreen))
 	{
-	  ErrorF ("winFinishScreenInitFB - shadowInit () failed\n");
+	  ErrorF ("winFinishScreenInitFB - shadowSetup () failed\n");
 	  return FALSE;
 	}
+
+      /* Wrap CreateScreenResources so we can add the screen pixmap
+         to the Shadow framebuffer after it's been created */
+      pScreenPriv->pwinCreateScreenResources = pScreen->CreateScreenResources;
+      pScreen->CreateScreenResources = winCreateScreenResources;
     }
 
 #ifdef XWIN_MULTIWINDOWEXTWM
