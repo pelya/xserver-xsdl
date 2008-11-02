@@ -30,6 +30,10 @@ that \fIXWin -multiwindow\fP produces for each top-level X-window.
 Again, that can be done both for the generic case and for particular
 programs.  The new icons associated should be \fIWindows\fP format
 icons \fI.ico\fP.
+.PP
+4- To change the style that is associated to the \fIWindows\fP window
+that \fI-multiwindow\fP produces for  each  top-level  X window.   Again,
+that can be done both for the generic case and for particular programs.
 
 
 .SH FILE FORMAT
@@ -41,9 +45,10 @@ completely capitalized.
 are legal pretty much anywhere you can have an end-of-line; they
 begin with "#" or "//" and go to the end-of-line.
 .PP
-Quote marks in strings are optional unless the string has included spaces.
+Quote marks in strings are optional unless the string has included spaces,
+or could be parsed, ambiguously, as a misplaced keyword.
 .PP
-There are three kinds of instructions: miscellaneous, menu, and icon.
+There are four kinds of instructions: miscellaneous, menu, icon and style.
 
 
 .SH Miscellaneous instruction
@@ -117,7 +122,9 @@ included at the start or at the end of the menu.
 .br
   \fB}\fP
 .br
-Associates a specific menu to a specific WM_CLASS or WM_NAME.
+Associates a specific menu to a specified window class or name
+in \fI-multiwindow\fP mode. The keywords ATSTART or ATEND indicate if
+such items should be included at the start or at the end of the menu.
 
 
 .SH Icon Instructions
@@ -131,7 +138,7 @@ When specifying an \fIicon-file\fP in the following commands several different f
 .br
 \t \t ("c:\\windows\\system32\\shell32.dll,4" is the default folder icon)
 .br
-\fB",nn"\fP\fI index into XWin.EXE internal ICON resources\fP
+\fB",nnn"\fP\fI index into XWin.EXE internal ICON resources\fP
 .br
 \t \t (",101" is the 1st icon inside \fIXWin.EXE\fP)
 .TP 8
@@ -155,6 +162,57 @@ Defines icon replacements windows matching the specified window class or names.
 If multiple name or class matches occur for a window, only the first one
 will be used.
 
+.SH Style Instructions
+.TP 8
+.B STYLES {
+\fIclass-or-name-of-window\fP \fIstyle-keyword-1\fP \fIstyle-keyword-2\fP
+.br
+  \fI...\fP
+.br
+\fB}\fP
+
+Associates specific styles to a specified window class or name
+in \fI-multiwindow\fP mode.  If multiple class or name matches occur,
+for a window, only the first one will be used.
+
+The style keywords indicate the following:
+
+\fIstyle-keyword-1\fP
+
+\fBTOPMOST\fP
+.br
+Open the class or name above all NOTOPMOST Microsoft Windows
+.br
+\fBMAXIMIZE\fP
+.br
+Start the class or name fullscreen.
+.br
+\fBMINIMIZE\fP
+.br
+Start the class or name iconic.
+.br
+\fBBOTTOM\fP
+.br
+Open the class or name below all Windows windows.
+.br
+
+\fIstyle-keyword-2\fP
+
+\fBNOTITLE\fP
+.br
+No Windows title bar, for the class or name.
+.br
+\fBOUTLINE\fP
+.br
+No Windows title bar and just a thin-line border, for the class or name.
+.br
+\fBNOFRAME\fP
+.br
+No Windows title bar or border, for the class or name.
+
+One keyword in \fIstyle-keyword-1\fP can be used with one keyword in \fIstyle-keyword-2\fP,
+or any keyword can be used singly.
+
 
 .SH EXAMPLE
 .TP 8
@@ -170,6 +228,15 @@ This example adds an Xterm menu item to the system tray icon
 ROOTMENU systray
 \fP
 
+.TP 8
+This example makes an oclock window frameless in \fI-multiwindow\fP mode
+\fBSTYLES {
+.br
+\t oclock NOFRAME
+.br
+}
+
+
 
 .SH "SEE ALSO"
  XWin(1)
@@ -177,4 +244,4 @@ ROOTMENU systray
 
 .SH AUTHOR
 The XWinrc feature of XWin was written primarily by Earle F. Philhower
-III.
+III.  Extended for style configuration by Colin Harrison.
