@@ -37,7 +37,6 @@
 #endif
 #include "win.h"
 #include "winmsg.h"
-#include "safeAlpha.h"	
 
 
 #ifdef XWIN_MULTIWINDOWEXTWM

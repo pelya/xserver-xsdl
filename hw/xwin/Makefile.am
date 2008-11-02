@@ -119,8 +119,10 @@ SRCS =	InitInput.c \
 	winpriv.h \
 	winresource.h \
 	winwindow.h \
+	XWin.rc \
+	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/fb/fbcmap.c \
+	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(SRCS_CLIPBOARD) \
 	$(SRCS_GLX_WINDOWS) \
 	$(SRCS_MULTIWINDOW) \
@@ -141,15 +143,13 @@ SRCS =	InitInput.c \
 
 XWin_SOURCES = $(SRCS)
 
-INCLUDES = -I$(top_srcdir)/miext/rootless \
-           -I$(top_srcdir)/miext/rootless/safeAlpha
-
-XWIN_LIBS = \
-	$(top_builddir)/fb/libfb.la \
-	$(XSERVER_LIBS)
+INCLUDES = -I$(top_srcdir)/miext/rootless
 
 XWin_DEPENDENCIES = $(XWIN_LIBS)
-XWin_LDADD = $(XWIN_LIBS) $(XSERVER_SYS_LIBS) $(XWIN_SYS_LIBS)
+XWin_LDADD = $(XWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) $(XWIN_SYS_LIBS)
+
+.rc.o:
+	$(WINDRES) --use-temp-file -i $< --input-format=rc -o $@ -O coff -DPROJECT_NAME=\"$(VENDOR_NAME_SHORT)\"
 
 XWin_LDFLAGS = -mwindows -static
 
@@ -162,7 +162,8 @@ CLEANFILES = $(BUILT_SOURCES)
 AM_YFLAGS = -d
 AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
-            $(XWINMODULES_CFLAGS)
+            $(XWINMODULES_CFLAGS) \
+            -DXFree86Server
 
 dist_man1_MANS = XWin.man XWinrc.man
 
@@ -200,4 +201,4 @@ EXTRA_DIST = \
 	xlaunch/window/wizard.h
 
 relink:
-	rm -f XWin && $(MAKE) XWin
+	rm -f XWin$(EXEEXT) && $(MAKE) XWin$(EXEEXT)
