@@ -49,6 +49,8 @@ DISPATCH_PROC(winProcSetSelectionOwner);
  */
 
 CARD32				g_c32LastInputEventTime = 0;
+DeviceIntPtr g_pwinPointer;
+DeviceIntPtr g_pwinKeyboard;
 
 
 /*
@@ -94,7 +96,6 @@ ProcessInputEvents (void)
 #endif
 
   mieqProcessInputEvents ();
-  miPointerUpdate ();
 
 #if 0
   ErrorF ("ProcessInputEvents - returning\n");
@@ -122,8 +123,6 @@ TimeSinceLastInputEvent ()
 void
 InitInput (int argc, char *argv[])
 {
-  DeviceIntPtr		pMouse, pKeyboard;
-
 #if CYGDEBUG
   winDebug ("InitInput\n");
 #endif
@@ -145,11 +144,14 @@ InitInput (int argc, char *argv[])
     }
 #endif
 
-  pMouse = AddInputDevice (winMouseProc, TRUE);
-  pKeyboard = AddInputDevice (winKeybdProc, TRUE);
+  g_pwinPointer = AddInputDevice (serverClient, winMouseProc, TRUE);
+  g_pwinKeyboard = AddInputDevice (serverClient, winKeybdProc, TRUE);
   
-  RegisterPointerDevice (pMouse);
-  RegisterKeyboardDevice (pKeyboard);
+  RegisterPointerDevice (g_pwinPointer);
+  RegisterKeyboardDevice (g_pwinKeyboard);
+
+  g_pwinPointer->name = strdup("Windows mouse");
+  g_pwinKeyboard->name = strdup("Windows keyboard");
 
   miRegisterPointerDevice (screenInfo.screens[0], pMouse);
   mieqInit ((DevicePtr)pKeyboard, (DevicePtr)pMouse);

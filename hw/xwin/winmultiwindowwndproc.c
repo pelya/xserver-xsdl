@@ -495,8 +495,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	break;
 
       /* Has the mouse pointer crossed screens? */
-      if (s_pScreen != miPointerGetScreen(inputInfo.pointer))
-	miPointerSetScreen (inputInfo.pointer, s_pScreenInfo->dwScreen,
+      if (s_pScreen != miPointerGetScreen(g_pwinPointer))
+	miPointerSetScreen (g_pwinPointer, s_pScreenInfo->dwScreen,
 			       ptMouse.x - s_pScreenInfo->dwXOffset,
 			       ptMouse.y - s_pScreenInfo->dwYOffset);
 

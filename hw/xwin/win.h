@@ -638,6 +638,8 @@ extern HINSTANCE		g_hInstance;
 extern int                      g_copyROP[];
 extern int                      g_patternROP[];
 extern const char *		g_pszQueryHost;
+extern DeviceIntPtr             g_pwinPointer;
+extern DeviceIntPtr             g_pwinKeyboard;
 
 
 /*
