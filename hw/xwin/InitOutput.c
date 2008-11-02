@@ -1120,20 +1120,3 @@ winCheckDisplayNumber ()
 
   return TRUE;
 }
-
-#ifdef DPMSExtension
-Bool DPMSSupported(void)
-{
-  return FALSE;
-}
-
-void DPMSSet(int level)
-{
-  return;
-}
-
-int DPMSGet(int *plevel)
-{
-  return 0;
-}
-#endif

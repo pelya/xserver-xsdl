@@ -120,6 +120,7 @@ SRCS =	InitInput.c \
 	winresource.h \
 	winwindow.h \
 	XWin.rc \
+	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c \
 	$(top_srcdir)/fb/fbcmap_mi.c \
