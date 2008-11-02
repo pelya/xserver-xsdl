@@ -571,9 +571,9 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	}
 
       /* Deliver absolute cursor position to X Server */
-      miPointerAbsoluteCursor (ptMouse.x - pScreenInfo->dwXOffset,
-			       ptMouse.y - pScreenInfo->dwYOffset,
-			       g_c32LastInputEventTime = GetTickCount ());
+      winEnqueueMotion(ptMouse.x - pScreenInfo->dwXOffset,
+		       ptMouse.y - pScreenInfo->dwYOffset);
+
       return 0;
       
     case WM_NCMOUSEMOVE:
