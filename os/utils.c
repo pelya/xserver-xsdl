@@ -56,6 +56,11 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef __CYGWIN__
 #include <stdlib.h>
 #include <signal.h>
+/*
+   Sigh... We really need a prototype for this to know it is stdcall,
+   but #include-ing <windows.h> here is not a good idea...
+*/
+__stdcall unsigned long GetTickCount(void);
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -422,7 +427,7 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#if defined WIN32 && defined __MINGW32__
+#if (defined WIN32 && defined __MINGW32__) || defined(__CYGWIN__)
 CARD32
 GetTimeInMillis (void)
 {
