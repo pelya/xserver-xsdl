@@ -100,7 +100,6 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       InitPointerDeviceStruct (pDevice,
 			       map,
 			       lngMouseButtons + lngWheelEvents,
-			       GetMotionHistory,
 			       winMouseCtrl,
 			       GetMotionHistorySize(),
 			       2);
@@ -221,19 +220,25 @@ winMouseWheel (ScreenPtr pScreen, int iDeltaZ)
 void
 winMouseButtonsSendEvent (int iEventType, int iButton)
 {
-  xEvent		xCurrentEvent;
+  EventListPtr events;
+  int i, nevents;
 
-  /* Load an xEvent and enqueue the event */
-  xCurrentEvent.u.u.type = iEventType;
 #if defined(XFree86Server)
   if (g_winMouseButtonMap)
-    xCurrentEvent.u.u.detail = g_winMouseButtonMap[iButton];
-  else
+    iButton = g_winMouseButtonMap[iButton];
 #endif
-  xCurrentEvent.u.u.detail = iButton;
-  xCurrentEvent.u.keyButtonPointer.time
-    = g_c32LastInputEventTime = GetTickCount ();
-  mieqEnqueue (&xCurrentEvent);
+
+  GetEventList(&events);
+  nevents = GetPointerEvents(events, g_pwinPointer, iEventType, iButton,
+			     POINTER_RELATIVE, 0, 0, NULL);
+
+  for (i = 0; i < nevents; i++)
+    mieqEnqueue(g_pwinPointer, events[i].event);
+
+#if CYGDEBUG
+  ErrorF("winMouseButtonsSendEvent: iEventType: %d, iButton: %d, nEvents %d\n",
+          iEventType, iButton, nevents);
+#endif
 }
 
 

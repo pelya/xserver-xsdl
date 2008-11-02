@@ -580,7 +580,8 @@ winKeybdReleaseKeys ()
 void
 winSendKeyEvent (DWORD dwKey, Bool fDown)
 {
-  xEvent			xCurrentEvent;
+  EventListPtr events;
+  int i, nevents;
 
   /*
    * When alt-tabing between screens we can get phantom key up messages
@@ -590,14 +591,17 @@ winSendKeyEvent (DWORD dwKey, Bool fDown)
 
   /* Update the keyState map */
   g_winKeyState[dwKey] = fDown;
-  
-  ZeroMemory (&xCurrentEvent, sizeof (xCurrentEvent));
 
-  xCurrentEvent.u.u.type = fDown ? KeyPress : KeyRelease;
-  xCurrentEvent.u.keyButtonPointer.time =
-    g_c32LastInputEventTime = GetTickCount ();
-  xCurrentEvent.u.u.detail = dwKey + MIN_KEYCODE;
-  mieqEnqueue (&xCurrentEvent);
+  GetEventList(&events);
+  nevents = GetKeyboardEvents(events, g_pwinKeyboard, fDown ? KeyPress : KeyRelease, dwKey + MIN_KEYCODE);
+
+  for (i = 0; i < nevents; i++)
+    mieqEnqueue(g_pwinKeyboard, events[i].event);
+
+#if CYGDEBUG
+  ErrorF("winSendKeyEvent: dwKey: %d, fDown: %d, nEvents %d\n",
+          dwKey, fDown, nevents);
+#endif
 }
 
 BOOL winCheckKeyPressed(WPARAM wParam, LPARAM lParam)

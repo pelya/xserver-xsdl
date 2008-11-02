@@ -153,8 +153,7 @@ InitInput (int argc, char *argv[])
   g_pwinPointer->name = strdup("Windows mouse");
   g_pwinKeyboard->name = strdup("Windows keyboard");
 
-  miRegisterPointerDevice (screenInfo.screens[0], pMouse);
-  mieqInit ((DevicePtr)pKeyboard, (DevicePtr)pMouse);
+  mieqInit ();
 
   /* Initialize the mode key states */
   winInitializeModeKeyStates ();
