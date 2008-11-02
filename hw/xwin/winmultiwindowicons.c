@@ -83,8 +83,8 @@ winScaleXBitmapToWindows (int iconSize,
   if (pixmap->drawable.depth == 15)
     effXDepth = 16;
 
-  /* Need 32-bit aligned rows */
-  stride = ((iconSize * effBPP + 31) & (~31)) / 8;
+  /* Need 16-bit aligned rows for DDBitmaps */
+  stride = ((iconSize * effBPP + 15) & (~15)) / 8;
   xStride = PixmapBytePad (pixmap->drawable.width, pixmap->drawable.depth);
   if (stride == 0 || xStride == 0)
     {
@@ -296,11 +296,11 @@ winXIconToHICON (WindowPtr pWin, int iconSize)
   else
     effBPP = bpp;
   
-  /* Need 32-bit aligned rows */
-  stride = ((iconSize * effBPP + 31) & (~31)) / 8;
+  /* Need 16-bit aligned rows for DDBitmaps */
+  stride = ((iconSize * effBPP + 15) & (~15)) / 8;
 
   /* Mask is 1-bit deep */
-  maskStride = ((iconSize * 1 + 31) & (~31)) / 8; 
+  maskStride = ((iconSize * 1 + 15) & (~15)) / 8;
 
   image = malloc (stride * iconSize);
   imageMask = malloc (stride * iconSize);
