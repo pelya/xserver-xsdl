@@ -42,8 +42,8 @@
 #  define PROJECT_NAME		"Cygwin/X"
 #endif
 #define WINDOW_CLASS		"cygwin/x"
-#define WINDOW_TITLE		PROJECT_NAME " - %s:%d"
-#define WINDOW_TITLE_XDMCP	PROJECT_NAME " - %s"
+#define WINDOW_TITLE		PROJECT_NAME ":%s.%d"
+#define WINDOW_TITLE_XDMCP	"%s:%s.%d"
 #define WIN_SCR_PROP		"cyg_screen_prop rl"
 #define WINDOW_CLASS_X		"cygwin/x X rl"
 #define WINDOW_TITLE_X		PROJECT_NAME " X"
