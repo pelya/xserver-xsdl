@@ -267,9 +267,11 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 
 	  winErrorFVerb(2, "Rules = \"%s\" Model = \"%s\" Layout = \"%s\""
 		 " Variant = \"%s\" Options = \"%s\"\n",
-		 g_winInfo.xkb.rules, g_winInfo.xkb.model,
-		 g_winInfo.xkb.layout, g_winInfo.xkb.variant,
-		 g_winInfo.xkb.options);
+		 g_winInfo.xkb.rules ? g_winInfo.xkb.rules : "none",
+		 g_winInfo.xkb.model ? g_winInfo.xkb.model : "none",
+		 g_winInfo.xkb.layout ? g_winInfo.xkb.layout : "none",
+		 g_winInfo.xkb.variant ? g_winInfo.xkb.variant : "none",
+		 g_winInfo.xkb.options ? g_winInfo.xkb.options : "none");
           
 	  XkbSetRulesDflts (g_winInfo.xkb.rules, g_winInfo.xkb.model, 
 			    g_winInfo.xkb.layout, g_winInfo.xkb.variant, 
