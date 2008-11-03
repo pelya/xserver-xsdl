@@ -361,6 +361,21 @@ glxFillAlphaChannel (CARD32 *pixels, CARD32 rowstride, int width, int height)
     }
 }
 
+static Bool
+testTexOffset(__GLXDRIscreen * const screen, PixmapPtr pPixmap)
+{
+    Bool ret;
+
+    if (!screen->texOffsetStart || !screen->texOffset)
+	return FALSE;
+
+    __glXenterServer(GL_FALSE);
+    ret = screen->texOffsetStart(pPixmap) != ~0ULL;
+    __glXleaveServer(GL_FALSE);
+
+    return ret;
+}
+
 /*
  * (sticking this here for lack of a better place)
  * Known issues with the GLX_EXT_texture_from_pixmap implementation:
@@ -396,7 +411,7 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 
     pixmap = (PixmapPtr) glxPixmap->pDraw;
 
-    if (screen->texOffsetStart && screen->texOffset) {
+    if (testTexOffset(screen, pixmap)) {
 	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
 	int i, firstEmpty = 16;
 
