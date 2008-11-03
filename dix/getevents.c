@@ -563,6 +563,218 @@ getValuatorEvents(EventList *events, DeviceIntPtr pDev,
     return events;
 }
 
+/**
+ * Create the DCCE event (does not update the master's device state yet, this
+ * is done in the event processing).
+ * Pull in the coordinates from the MD if necessary.
+ *
+ * @param events Pointer to a pre-allocated event list.
+ * @param dev The slave device that generated an event.
+ * @param num_events The current number of events, returns the number of
+ *        events if a DCCE was generated.
+ * @return The updated @events pointer.
+ */
+static EventListPtr
+updateFromMaster(EventListPtr events, DeviceIntPtr dev, int *num_events)
+{
+    DeviceIntPtr master = dev->u.master;
+    if (master && master->u.lastSlave != dev)
+    {
+        CreateClassesChangedEvent(events, master, dev);
+        updateSlaveDeviceCoords(master, dev);
+        master->u.lastSlave = dev;
+        master->last.numValuators = dev->last.numValuators;
+        (*num_events)++;
+        events++;
+    }
+    return events;
+}
+
+/**
+ * Move the device's pointer to the position given in the valuators.
+ *
+ * @param dev The device which's pointer is to be moved.
+ * @param x Returns the x position of the pointer after the move.
+ * @param y Returns the y position of the pointer after the move.
+ * @param first The first valuator in @valuators
+ * @param num Total number of valuators in @valuators.
+ * @param valuators Valuator data for each axis between @first and
+ *        @first+@num.
+ */
+static void
+moveAbsolute(DeviceIntPtr dev, int *x, int *y,
+             int first, int num, int *valuators)
+{
+    int i;
+
+
+    if (num >= 1 && first == 0)
+        *x = *(valuators + 0);
+    else
+        *x = dev->last.valuators[0];
+
+    if (first <= 1 && num >= (2 - first))
+        *y = *(valuators + 1 - first);
+    else
+        *y = dev->last.valuators[1];
+
+    clipAxis(dev, 0, x);
+    clipAxis(dev, 1, y);
+
+    i = (first > 2) ? 0 : 2;
+    for (; i < num; i++)
+    {
+        dev->last.valuators[i + first] = valuators[i];
+        clipAxis(dev, i, &dev->last.valuators[i + first]);
+    }
+}
+
+/**
+ * Move the device's pointer by the values given in @valuators.
+ *
+ * @param dev The device which's pointer is to be moved.
+ * @param x Returns the x position of the pointer after the move.
+ * @param y Returns the y position of the pointer after the move.
+ * @param first The first valuator in @valuators
+ * @param num Total number of valuators in @valuators.
+ * @param valuators Valuator data for each axis between @first and
+ *        @first+@num.
+ */
+static void
+moveRelative(DeviceIntPtr dev, int *x, int *y,
+             int first, int num, int *valuators)
+{
+    int i;
+
+    *x = dev->last.valuators[0];
+    *y = dev->last.valuators[1];
+
+    if (num >= 1 && first == 0)
+        *x += *(valuators +0);
+
+    if (first <= 1 && num >= (2 - first))
+        *y += *(valuators + 1 - first);
+
+    /* if attached, clip both x and y to the defined limits (usually
+     * co-ord space limit). If it is attached, we need x/y to go over the
+     * limits to be able to change screens. */
+    if(dev->u.master) {
+        clipAxis(dev, 0, x);
+        clipAxis(dev, 1, y);
+    }
+
+    /* calc other axes, clip, drop back into valuators */
+    i = (first > 2) ? 0 : 2;
+    for (; i < num; i++)
+    {
+        dev->last.valuators[i + first] += valuators[i];
+        clipAxis(dev, i, &dev->last.valuators[i + first]);
+        valuators[i] = dev->last.valuators[i + first];
+    }
+}
+
+/**
+ * Accelerate the data in valuators based on the device's acceleration scheme.
+ *
+ * @param dev The device which's pointer is to be moved.
+ * @param first The first valuator in @valuators
+ * @param num Total number of valuators in @valuators.
+ * @param valuators Valuator data for each axis between @first and
+ *        @first+@num.
+ * @param ms Current time.
+ */
+static void
+accelPointer(DeviceIntPtr dev, int first, int num, int *valuators, CARD32 ms)
+{
+    if (dev->valuator->accelScheme.AccelSchemeProc)
+        dev->valuator->accelScheme.AccelSchemeProc(dev, first, num, valuators, ms);
+}
+
+/**
+ * If we have HW cursors, this actually moves the visible sprite. If not, we
+ * just do all the screen crossing, etc.
+ *
+ * We scale from device to screen coordinates here, call
+ * miPointerSetPosition() and then scale back into device coordinates (if
+ * needed). miPSP will change x/y if the screen was crossed.
+ *
+ * @param dev The device to be moved.
+ * @param x Pointer to current x-axis value, may be modified.
+ * @param y Pointer to current y-axis value, may be modified.
+ * @param scr Screen the device's sprite is currently on.
+ * @param screenx Screen x coordinate the sprite is on after the update.
+ * @param screeny Screen y coordinate the sprite is on after the update.
+ */
+static void
+positionSprite(DeviceIntPtr dev, int *x, int *y,
+               ScreenPtr scr, int *screenx, int *screeny)
+{
+    /* scale x&y to screen */
+    *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL, scr->width);
+    *screeny = rescaleValuatorAxis(*y, dev->valuator->axes + 1, NULL, scr->height);
+    dev->last.valuators[0] = *screenx;
+    dev->last.valuators[1] = *screeny;
+
+    /* This takes care of crossing screens for us, as well as clipping
+     * to the current screen. */
+    miPointerSetPosition(dev, &dev->last.valuators[0], &dev->last.valuators[1]);
+
+    if (dev->u.master) {
+        dev->u.master->last.valuators[0] = dev->last.valuators[0];
+        dev->u.master->last.valuators[1] = dev->last.valuators[1];
+    }
+
+    /* Crossed screen? Scale back to device coordiantes */
+    if(*screenx != dev->last.valuators[0])
+    {
+        scr = miPointerGetScreen(dev);
+        *x = rescaleValuatorAxis(dev->last.valuators[0], NULL,
+                                dev->valuator->axes + 0, scr->width);
+        *screenx = dev->last.valuators[0];
+    }
+    if(*screeny != dev->last.valuators[1])
+    {
+        scr = miPointerGetScreen(dev);
+        *screeny = dev->last.valuators[1];
+        *y = rescaleValuatorAxis(dev->last.valuators[1], NULL,
+                                 dev->valuator->axes + 1, scr->height);
+    }
+
+}
+
+/**
+ * Update the motion history for the device and (if appropriate) for its
+ * master device.
+ * @param dev Slave device to update.
+ * @param first First valuator to append to history.
+ * @param num Total number of valuators to append to history.
+ * @param ms Current time
+ */
+static void
+updateHistory(DeviceIntPtr dev, int first, int num, CARD32 ms)
+{
+    updateMotionHistory(dev, ms, first, num, &dev->last.valuators[first]);
+    if (dev->u.master)
+        updateMotionHistory(dev->u.master, ms, first, num,
+                            &dev->last.valuators[first]);
+}
+
+/**
+ * Calculate how many DeviceValuator events are needed given a number of
+ * valuators.
+ * @param num_valuators Number of valuators to attach to event.
+ * @return the number of DeviceValuator events needed.
+ */
+static int
+countValuatorEvents(int num_valuators)
+{
+    if (num_valuators) {
+        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS;
+        return (num_valuators / 6) + 1;
+    } else
+        return 0;
+}
 
 /**
  * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
@@ -603,43 +815,21 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     KeySym *map;
     KeySym sym;
     deviceKeyButtonPointer *kbp = NULL;
-    DeviceIntPtr master;
 
-    if (!events)
-        return 0;
-
-    /* DO NOT WANT */
-    if (type != KeyPress && type != KeyRelease)
-        return 0;
-
-    if (!pDev->key || !pDev->focus || !pDev->kbdfeed)
+    if (!events ||!pDev->key || !pDev->focus || !pDev->kbdfeed ||
+       (type != KeyPress && type != KeyRelease) ||
+       (key_code < 8 || key_code > 255))
         return 0;
 
     numEvents = 1;
-
-    if (key_code < 8 || key_code > 255)
-        return 0;
 
     map = pDev->key->curKeySyms.map;
     sym = map[(key_code - pDev->key->curKeySyms.minKeyCode)
               * pDev->key->curKeySyms.mapWidth];
 
-    master = pDev->u.master;
-    if (master && master->u.lastSlave != pDev)
-    {
-        CreateClassesChangedEvent(events, master, pDev);
-        updateSlaveDeviceCoords(master, pDev);
-        master->u.lastSlave = pDev;
-        master->last.numValuators = pDev->last.numValuators;
-        numEvents++;
-        events++;
-    }
+    events = updateFromMaster(events, pDev, &numEvents);
 
-    if (num_valuators) {
-        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS;
-        numEvents += (num_valuators / 6) + 1;
-    }
+    numEvents += countValuatorEvents(num_valuators);
 
 #ifdef XKB
     if (noXkbExtension)
@@ -807,151 +997,43 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     int num_events = 1;
     CARD32 ms;
     deviceKeyButtonPointer *kbp = NULL;
-    DeviceIntPtr master;
     int x, y, /* switches between device and screen coords */
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
-    int *v0 = NULL, *v1 = NULL;
-    int i;
 
     ms = GetTimeInMillis(); /* before pointer update to help precision */
 
-    /* Sanity checks. */
-    if (!scr) /* can happen during server shutdown */
-        return 0;
-    if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
-        return 0;
-    if (type != MotionNotify && !pDev->button)
-        return 0;
-    /* FIXME: I guess it should, in theory, be possible to post button events
-     *        from devices without valuators. */
-    if (!pDev->valuator)
-        return 0;
-    if (type == MotionNotify && num_valuators <= 0)
+    if (!scr || !pDev->valuator || first_valuator < 0 ||
+        ((num_valuators + first_valuator) > pDev->valuator->numAxes) ||
+        (type != MotionNotify && type != ButtonPress && type != ButtonRelease) ||
+        (type != MotionNotify && !pDev->button) ||
+        (type == MotionNotify && num_valuators <= 0))
         return 0;
 
-    /* Do we need to send a DeviceValuator event? */
-    if (num_valuators) {
-        if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS * 6;
-        num_events += ((num_valuators - 1) / 6) + 1;
-    }
+    num_events += countValuatorEvents(num_valuators);
 
-    /* You fail. */
-    if (first_valuator < 0 ||
-        (num_valuators + first_valuator) > pDev->valuator->numAxes)
-        return 0;
+    events = updateFromMaster(events, pDev, &num_events);
 
-    master = pDev->u.master;
-    if (master && master->u.lastSlave != pDev)
-    {
-        CreateClassesChangedEvent(events, master, pDev);
-        updateSlaveDeviceCoords(master, pDev);
-        master->u.lastSlave = pDev;
-        master->last.numValuators = pDev->last.numValuators;
-        num_events++;
-        events++;
-    }
-
-    /* Fetch pointers into the valuator array for more easy to read code */
-    if (num_valuators >= 1 && first_valuator == 0)
-        v0 = valuators + 0;
-    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-        v1 = valuators + 1 - first_valuator;
-
-    /* Set x and y based on whether this is absolute or relative, and
-     * accelerate if we need to. */
-    x = pDev->last.valuators[0];
-    y = pDev->last.valuators[1];
-    if (flags & POINTER_ABSOLUTE) {
-        if(v0) x = *v0;
-        if(v1) y = *v1;
-
-        /* Clip both x and y to the defined limits (usually co-ord space limit). */
-        clipAxis(pDev, 0, &x);
-        clipAxis(pDev, 1, &y);
-
-        i = (first_valuator > 2) ? 0 : 2;
-        for (; i < num_valuators; i++)
-        {
-            pDev->last.valuators[i + first_valuator] = valuators[i];
-            clipAxis(pDev, i, &pDev->last.valuators[i + first_valuator]);
-        }
-    }
+    if (flags & POINTER_ABSOLUTE)
+        moveAbsolute(pDev, &x, &y, first_valuator, num_valuators, valuators);
     else {
-        if (flags & POINTER_ACCELERATE &&
-            pDev->valuator->accelScheme.AccelSchemeProc){
-            pDev->valuator->accelScheme.AccelSchemeProc(
-                      pDev, first_valuator, num_valuators, valuators, ms);
-        }
-
-        if(v0) x += *v0;
-        if(v1) y += *v1;
-
-        /* if attached, clip both x and y to the defined limits (usually
-         * co-ord space limit). If it is attached, we need x/y to go over the
-         * limits to be able to change screens. */
-        if(master) {
-            clipAxis(pDev, 0, &x);
-            clipAxis(pDev, 1, &y);
-        }
-
-        /* calc other axes, clip, drop back into valuators */
-        i = (first_valuator > 2) ? 0 : 2;
-        for (; i < num_valuators; i++)
-        {
-            pDev->last.valuators[i + first_valuator] += valuators[i];
-            clipAxis(pDev, i, &pDev->last.valuators[i + first_valuator]);
-            valuators[i] = pDev->last.valuators[i + first_valuator];
-        }
+        if (flags & POINTER_ACCELERATE)
+            accelPointer(pDev, first_valuator, num_valuators, valuators, ms);
+        moveRelative(pDev, &x, &y, first_valuator, num_valuators, valuators);
     }
 
-    /* scale x&y to screen */
-    pDev->last.valuators[0] = cx = rescaleValuatorAxis(x, pDev->valuator->axes + 0,
-                                           NULL, scr->width);
-    pDev->last.valuators[1] = cy = rescaleValuatorAxis(y, pDev->valuator->axes + 1,
-                                           NULL, scr->height);
-
-    /* This takes care of crossing screens for us, as well as clipping
-     * to the current screen.  Right now, we only have one history buffer,
-     * so we don't set this for both the device and core.*/
-    miPointerSetPosition(pDev, &pDev->last.valuators[0], &pDev->last.valuators[1]);
-
-    if (master) {
-        master->last.valuators[0] = pDev->last.valuators[0];
-        master->last.valuators[1] = pDev->last.valuators[1];
-    }
-
-    /* Crossed screen? Scale back to device coordiantes */
-    if(cx != pDev->last.valuators[0])
-    {
-        scr = miPointerGetScreen(pDev);
-        x = rescaleValuatorAxis(pDev->last.valuators[0], NULL,
-                                pDev->valuator->axes + 0, scr->width);
-        cx = pDev->last.valuators[0];
-    }
-    if(cy != pDev->last.valuators[1])
-    {
-        scr = miPointerGetScreen(pDev);
-        cy = pDev->last.valuators[1];
-        y = rescaleValuatorAxis(pDev->last.valuators[1], NULL,
-                                pDev->valuator->axes + 1, scr->height);
-    }
-
-
-    updateMotionHistory(pDev, ms, first_valuator, num_valuators,
-            &pDev->last.valuators[first_valuator]);
-    if (master)
-        updateMotionHistory(master, ms, first_valuator, num_valuators,
-                &pDev->last.valuators[first_valuator]);
-
-    /* Update the valuators with the true value sent to the client*/
-    if(v0) *v0 = x;
-    if(v1) *v1 = y;
+    positionSprite(pDev, &x, &y, scr, &cx, &cy);
+    updateHistory(pDev, first_valuator, num_valuators, ms);
 
     /* dropy x/y (device coordinates) back into valuators for next event */
     pDev->last.valuators[0] = x;
     pDev->last.valuators[1] = y;
+
+    /* Update the valuators with the true value sent to the client*/
+    if (num_valuators >= 1 && first_valuator == 0)
+        valuators[0] = x;
+    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+        valuators[1 - first_valuator] = y;
 
     kbp = (deviceKeyButtonPointer *) events->event;
     kbp->time = ms;
