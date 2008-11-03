@@ -59,6 +59,7 @@ extern Bool xf86SetDDCproperties(
 
 DisplayModePtr xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC);
 
+extern Bool
+xf86MonitorIsHDMI(xf86MonPtr mon);
+
 #endif
-
-

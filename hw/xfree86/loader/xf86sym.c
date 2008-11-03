@@ -922,6 +922,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86DoEEDID)
     SYMFUNC(xf86DDCMonitorSet)
     SYMFUNC(xf86SetDDCproperties)
+    SYMFUNC(xf86MonitorIsHDMI)
 
     SYMFUNC(xf86CreateI2CBusRec)
     SYMFUNC(xf86CreateI2CDevRec)
