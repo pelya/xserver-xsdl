@@ -249,4 +249,6 @@ extern Atom XIGetKnownProperty(
         char*                 name
 );
 
+extern DeviceIntPtr XIGetDevice(xEvent *ev);
+
 #endif /* EXEVENTS_H */

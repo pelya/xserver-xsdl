@@ -134,6 +134,37 @@ IsPointerEvent(xEvent* xE)
 }
 
 /**
+ * @return the device matching the deviceid of the device set in the event, or
+ * NULL if the event is not an XInput event.
+ */
+DeviceIntPtr
+XIGetDevice(xEvent* xE)
+{
+    DeviceIntPtr pDev = NULL;
+
+    if (xE->u.u.type == DeviceButtonPress ||
+        xE->u.u.type == DeviceButtonRelease ||
+        xE->u.u.type == DeviceMotionNotify ||
+        xE->u.u.type == DeviceEnterNotify ||
+        xE->u.u.type == DeviceLeaveNotify ||
+        xE->u.u.type == ProximityIn ||
+        xE->u.u.type == ProximityOut ||
+        xE->u.u.type == DevicePropertyNotify)
+    {
+        int rc;
+        int id;
+
+        id = ((deviceKeyButtonPointer*)xE)->deviceid;
+
+        rc = dixLookupDevice(&pDev, id, serverClient, DixUnknownAccess);
+        if (rc != Success)
+            ErrorF("[dix] XIGetDevice failed on XACE restrictions (%d)\n", rc);
+    }
+    return pDev;
+}
+
+
+/**
  * Copy the device->key into master->key and send a mapping notify to the
  * clients if appropriate.
  * master->key needs to be allocated by the caller.
@@ -2107,3 +2138,4 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
         FindInterestedChildren(dev, p1, mask, ev, count);
     }
 }
+

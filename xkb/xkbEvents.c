@@ -37,6 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "inputstr.h"
 #include "windowstr.h"
+#include "exevents.h"
 #include <xkbsrv.h>
 #include "xkb.h"
 
@@ -810,6 +811,13 @@ XkbFilterEvents(ClientPtr pClient,int nEvents,xEvent *xE)
 int	i, button_mask;
 DeviceIntPtr pXDev = inputInfo.keyboard;
 XkbSrvInfoPtr	xkbi;
+
+    if (xE->u.u.type & EXTENSION_EVENT_BASE)
+    {
+        pXDev = XIGetDevice(xE);
+        if (!pXDev)
+            pXDev = inputInfo.keyboard;
+    }
 
     xkbi= pXDev->key->xkbInfo;
     if ( pClient->xkbClientFlags & _XkbClientInitialized ) {
