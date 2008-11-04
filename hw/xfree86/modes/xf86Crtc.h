@@ -569,6 +569,8 @@ typedef struct _xf86CrtcConfigFuncs {
 	      int		height);
 } xf86CrtcConfigFuncsRec, *xf86CrtcConfigFuncsPtr;
 
+typedef void (*xf86_crtc_notify_proc_ptr) (ScreenPtr pScreen);
+
 typedef struct _xf86CrtcConfig {
     int			num_output;
     xf86OutputPtr	*output;
@@ -620,6 +622,9 @@ typedef struct _xf86CrtcConfig {
 
     /* wrap screen BlockHandler for rotation */
     ScreenBlockHandlerProcPtr	BlockHandler;
+
+    /* callback when crtc configuration changes */
+    xf86_crtc_notify_proc_ptr  xf86_crtc_notify;
 
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
@@ -838,4 +843,13 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 			    INT32	width,
 			    INT32	height);
     
+xf86_crtc_notify_proc_ptr
+xf86_wrap_crtc_notify (ScreenPtr pScreen, xf86_crtc_notify_proc_ptr new);
+
+void
+xf86_unwrap_crtc_notify(ScreenPtr pScreen, xf86_crtc_notify_proc_ptr old);
+
+void
+xf86_crtc_notify(ScreenPtr pScreen);
+
 #endif /* _XF86CRTC_H_ */

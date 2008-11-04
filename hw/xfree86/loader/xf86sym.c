@@ -914,6 +914,9 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86_hide_cursors)
     SYMFUNC(xf86_cursors_fini)
     SYMFUNC(xf86_crtc_clip_video_helper)
+    SYMFUNC(xf86_wrap_crtc_notify)
+    SYMFUNC(xf86_unwrap_crtc_notify)
+    SYMFUNC(xf86_crtc_notify)
 
     SYMFUNC(xf86DoEDID_DDC1)
     SYMFUNC(xf86DoEDID_DDC2)

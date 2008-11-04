@@ -2609,6 +2609,8 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 	    memset(&crtc->mode, 0, sizeof(crtc->mode));
 	}
     }
+    if (pScrn->pScreen)
+	xf86_crtc_notify(pScrn->pScreen);
 }
 
 #ifdef RANDR_12_INTERFACE
@@ -2862,4 +2864,35 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 	REGION_UNINIT (pScreen, &crtc_region_local);
 
     return ret;
+}
+
+xf86_crtc_notify_proc_ptr
+xf86_wrap_crtc_notify (ScreenPtr screen, xf86_crtc_notify_proc_ptr new)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    xf86_crtc_notify_proc_ptr	old;
+    
+    old = config->xf86_crtc_notify;
+    config->xf86_crtc_notify = new;
+    return old;
+}
+
+void
+xf86_unwrap_crtc_notify(ScreenPtr screen, xf86_crtc_notify_proc_ptr old)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    config->xf86_crtc_notify = old;
+}
+
+void
+xf86_crtc_notify(ScreenPtr screen)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    
+    if (config->xf86_crtc_notify)
+	config->xf86_crtc_notify(screen);
 }
