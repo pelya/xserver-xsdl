@@ -307,8 +307,12 @@ mieqProcessInputEvents(void)
     mieqHandler handler;
     EventRec *e = NULL;
     int x = 0, y = 0;
-    xEvent* event,
-            *master_event = NULL;
+    int type, nevents, evlen, i;
+    ScreenPtr screen;
+    xEvent *event,
+           *master_event = NULL;
+    DeviceIntPtr dev = NULL,
+                 master = NULL;
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
@@ -322,79 +326,69 @@ mieqProcessInputEvents(void)
 #endif
 
         e = &miEventQueue.events[miEventQueue.head];
+
+        /* GenericEvents always have nevents == 1 */
+        nevents = e->nevents;
+        evlen   = (nevents > 1) ? sizeof(xEvent) : e->events->evlen;
+        event   = xcalloc(nevents, evlen);
+
+        if (!event)
+            FatalError("[mi] No memory left for event processing.\n");
+
+        for (i = 0; i < nevents; i++)
+            memcpy(&event[i], e->events[i].event, evlen);
+
+
+        dev     = e->pDev;
+        screen  = e->pScreen;
+
         miEventQueue.head = (miEventQueue.head + 1) % QUEUE_SIZE;
 
-        /* Custom event handler */
-        handler = miEventQueue.handlers[e->events->event->u.u.type];
+        type    = event->u.u.type;
+        master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
 
-        if (e->pScreen != DequeueScreen(e->pDev) && !handler) {
+        /* Custom event handler */
+        handler = miEventQueue.handlers[type];
+
+        if (screen != DequeueScreen(dev) && !handler) {
             /* Assumption - screen switching can only occur on motion events. */
-            DequeueScreen(e->pDev) = e->pScreen;
-            x = e->events[0].event->u.keyButtonPointer.rootX;
-            y = e->events[0].event->u.keyButtonPointer.rootY;
-            NewCurrentScreen (e->pDev, DequeueScreen(e->pDev), x, y);
+            DequeueScreen(dev) = screen;
+            x = event->u.keyButtonPointer.rootX;
+            y = event->u.keyButtonPointer.rootY;
+            NewCurrentScreen (dev, DequeueScreen(dev), x, y);
         }
         else {
-            /* FIXME: Bad hack. The only event where we actually get multiple
-             * events at once is a DeviceMotionNotify followed by
-             * DeviceValuators. For now it's safe enough to just take the
-             * event directly or copy the bunch of events and pass in the
-             * copy. Eventually the interface for the processInputProc needs
-             * to be changed. (whot)
-             */
-            if (e->nevents > 1)
-            {
-                int i;
-                event = xcalloc(e->nevents, sizeof(xEvent));
-                if (!event)
-                    FatalError("[mi] No memory left for event processing.\n");
-                for (i = 0; i < e->nevents; i++)
-                {
-                    memcpy(&event[i], e->events[i].event, sizeof(xEvent));
-                }
-            } else
-                event = e->events->event;
-            if (!e->pDev->isMaster && e->pDev->u.master)
-            {
-                CopyGetMasterEvent(e->pDev->u.master, event,
-                                   &master_event, e->nevents);
-            } else
+            if (master)
+                CopyGetMasterEvent(master, event,
+                                   &master_event, nevents);
+            else
                 master_event = NULL;
 
             /* If someone's registered a custom event handler, let them
              * steal it. */
             if (handler)
             {
-                handler(DequeueScreen(e->pDev)->myNum, e->events->event,
-                        e->pDev, e->nevents);
-                if (!e->pDev->isMaster && e->pDev->u.master)
-                {
-                    handler(DequeueScreen(e->pDev->u.master)->myNum,
-                            e->events->event, e->pDev->u.master, e->nevents);
-                }
+                handler(DequeueScreen(dev)->myNum, event, dev, nevents);
+                if (master)
+                    handler(DequeueScreen(master)->myNum,
+                            master_event, master, nevents);
             } else
             {
                 /* process slave first, then master */
-                e->pDev->public.processInputProc(event, e->pDev, e->nevents);
+                dev->public.processInputProc(event, dev, nevents);
 
-                if (!e->pDev->isMaster && e->pDev->u.master)
-                {
-                    e->pDev->u.master->public.processInputProc(master_event,
-                            e->pDev->u.master, e->nevents);
-                }
+                if (master)
+                    master->public.processInputProc(master_event, master,
+                                                    nevents);
             }
 
-            if (e->nevents > 1)
-                xfree(event);
+            xfree(event);
             xfree(master_event);
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (e->events->event[0].u.u.type == DeviceMotionNotify
-                && e->pDev->coreEvents)
-        {
-            miPointerUpdateSprite(e->pDev);
-        }
+        if (type == DeviceMotionNotify && dev->coreEvents)
+            miPointerUpdateSprite(dev);
     }
 }
 
