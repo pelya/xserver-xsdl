@@ -1155,8 +1155,15 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
   screen->base.createDrawable = __glXAquaScreenCreateDrawable;
   screen->base.pScreen       = pScreen;
 
-  init_screen_visuals(screen);
-    
+  /* 
+   * These are both commented out, because they cause problems with
+   * the other visual config code, and visuals.
+   * This probe function is called normally on startup in direct
+   * mode too.
+   * They don't seem to be needed now that we have better visual
+   * setup.
+   */
+  //init_screen_visuals(screen);
   //glAquaInitVisualConfigs();
 
   return &screen->base;

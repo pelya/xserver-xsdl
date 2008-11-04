@@ -204,6 +204,15 @@ static int handleColorAndAccumulation(struct glColorBufCapabilities *c,
 	++offset;
     }
 
+#if 0
+    /* 
+     * Disable this path, because some part of libGL, X, or Xplugin 
+     * doesn't work with sizes greater than 8.
+     * When this is enabled and visuals are chosen using depths
+     * such as 16, the result is that the windows don't redraw
+     * and are often white, until a resize.
+     */
+
     /*12*/
     if(kCGLRGB101010Bit & cmodes) {
 	c[offset].r = 10;
@@ -265,6 +274,7 @@ static int handleColorAndAccumulation(struct glColorBufCapabilities *c,
 	c[offset].a = 16;
 	++offset;
     }
+#endif
 
     /* FIXME should we handle the floating point color modes, and if so, how? */
       
