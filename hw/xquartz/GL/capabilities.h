@@ -29,6 +29,8 @@ enum { GLCAPS_INVALID_STENCIL_DEPTH = -1 };
 enum { GLCAPS_COLOR_BUF_INVALID_VALUE = -1 };
 enum { GLCAPS_COLOR_BUFFERS = 20 };
 enum { GLCAPS_STENCIL_BIT_DEPTH_BUFFERS = 20 };
+enum { GLCAPS_DEPTH_BUFFERS = 20 };
+enum { GLCAPS_INVALID_DEPTH_VALUE = 1 };
 
 struct glColorBufCapabilities {
     char r, g, b, a;
@@ -40,6 +42,10 @@ struct glCapabilitiesConfig {
     bool stereo;
     int aux_buffers;
     int buffers;
+    int total_depth_buffer_depths;
+    int depth_buffers[GLCAPS_DEPTH_BUFFERS];
+    int multisample_buffers;
+    int multisample_samples;
     int total_stencil_bit_depths;
     char stencil_bit_depths[GLCAPS_STENCIL_BIT_DEPTH_BUFFERS];
     int total_color_buffers;

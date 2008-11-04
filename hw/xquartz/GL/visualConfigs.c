@@ -63,9 +63,9 @@ void setVisualConfigs(void) {
     void **visualPrivates = NULL;
     struct glCapabilities caps;
     struct glCapabilitiesConfig *conf = NULL;
-    int stereo, depth, aux, buffers, stencil, accum, color;
+    int stereo, depth, aux, buffers, stencil, accum, color, msample;
     int i = 0; 
-   
+    
     if(getGlCapabilities(&caps)) {
 	ErrorF("error from getGlCapabilities()!\n");
 	return;
@@ -86,7 +86,12 @@ void setVisualConfigs(void) {
       conf->total_color_buffers indicates the RGB/RGBA color depths.
       
       conf->total_accum_buffers iterations for accum (with at least 1 if equal to 0) 
-	 
+	
+      conf->total_depth_buffer_depths 
+
+      conf->multisample_buffers iterations (with at least 1 if equal to 0).  We add 1
+      for the 0 multisampling config.
+      
      */
 
     assert(NULL != caps.configurations);
@@ -103,7 +108,9 @@ void setVisualConfigs(void) {
 	    * conf->buffers
 	    * ((conf->total_stencil_bit_depths > 0) ? conf->total_stencil_bit_depths : 1)
 	    * conf->total_color_buffers
-	    * ((conf->total_accum_buffers > 0) ? conf->total_accum_buffers : 1);
+	    * ((conf->total_accum_buffers > 0) ? conf->total_accum_buffers : 1)
+	    * conf->total_depth_buffer_depths
+	    * (conf->multisample_buffers + 1);
     }
 
     visualConfigs = xcalloc(sizeof(*visualConfigs), numConfigs);
@@ -133,79 +140,84 @@ void setVisualConfigs(void) {
 			for(color = 0; color < conf->total_color_buffers; ++color) {
 			    for(accum = 0; accum < ((conf->total_accum_buffers > 0) ?
 						    conf->total_accum_buffers : 1); ++accum) {
-				visualConfigs[i].vid = (VisualID)(-1);
-				visualConfigs[i].class = TrueColor;
+				for(depth = 0; depth < conf->total_depth_buffer_depths; ++depth) {
+				    for(msample = 0; msample < (conf->multisample_buffers + 1); ++msample) {
+					visualConfigs[i].vid = (VisualID)(-1);
+					visualConfigs[i].class = TrueColor;
+					
+					visualConfigs[i].rgba = true;
+					visualConfigs[i].redSize = conf->color_buffers[color].r;
+					visualConfigs[i].greenSize = conf->color_buffers[color].g;
+					visualConfigs[i].blueSize = conf->color_buffers[color].b;
+					visualConfigs[i].alphaSize = conf->color_buffers[color].a;
+					
+					visualConfigs[i].bufferSize = conf->color_buffers[color].r +
+					    conf->color_buffers[color].g + conf->color_buffers[color].b +
+					    conf->color_buffers[color].a;
+					
+					/*
+					 * I'm uncertain about these masks.
+					 * I don't think we actually care what the values are in our
+					 * libGL, so it doesn't seem to make a difference.
+					 */
+					visualConfigs[i].redMask = -1;
+					visualConfigs[i].greenMask = -1;
+					visualConfigs[i].blueMask = -1;
+					visualConfigs[i].alphaMask = -1;
+					
+					if(conf->total_accum_buffers > 0) {
+					    visualConfigs[i].accumRedSize = conf->accum_buffers[accum].r;
+					    visualConfigs[i].accumGreenSize = conf->accum_buffers[accum].g;
+					    visualConfigs[i].accumBlueSize = conf->accum_buffers[accum].b;
+					    if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->accum_buffers[accum].a) {
+						visualConfigs[i].accumAlphaSize = conf->accum_buffers[accum].a;
+					    } else {
+						visualConfigs[i].accumAlphaSize = 0;
+					    }
+					} else {
+					    visualConfigs[i].accumRedSize = 0;
+					    visualConfigs[i].accumGreenSize = 0;
+					    visualConfigs[i].accumBlueSize = 0;
+					    visualConfigs[i].accumAlphaSize = 0;
+					}
+					
+					visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
+					visualConfigs[i].stereo = stereo ? TRUE : FALSE;
+
+  					visualConfigs[i].depthSize = conf->depth_buffers[depth];
 				
-				visualConfigs[i].rgba = true;
-				visualConfigs[i].redSize = conf->color_buffers[color].r;
-				visualConfigs[i].greenSize = conf->color_buffers[color].g;
-				visualConfigs[i].blueSize = conf->color_buffers[color].b;
-				visualConfigs[i].alphaSize = conf->color_buffers[color].a;
+					if(conf->total_stencil_bit_depths > 0) {
+					    visualConfigs[i].stencilSize = conf->stencil_bit_depths[stencil];
+					} else {
+					    visualConfigs[i].stencilSize = 0;
+					}
+					visualConfigs[i].auxBuffers = aux ? conf->aux_buffers : 0;
+					visualConfigs[i].level = 0;
 				
-				visualConfigs[i].bufferSize = conf->color_buffers[color].r +
-				    conf->color_buffers[color].g + conf->color_buffers[color].b +
-				    conf->color_buffers[color].a;
-				
-				/*
-				 * I'm uncertain about these masks.
-				 * I don't think we actually care what the values are in our
-				 * libGL, so it doesn't seem to make a difference.
-				 */
-				visualConfigs[i].redMask = -1;
-				visualConfigs[i].greenMask = -1;
-				visualConfigs[i].blueMask = -1;
-				visualConfigs[i].alphaMask = -1;
-				
-				if(conf->total_accum_buffers > 0) {
-				    visualConfigs[i].accumRedSize = conf->accum_buffers[accum].r;
-				    visualConfigs[i].accumGreenSize = conf->accum_buffers[accum].g;
-				    visualConfigs[i].accumBlueSize = conf->accum_buffers[accum].b;
-				    if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->accum_buffers[accum].a) {
-					visualConfigs[i].accumAlphaSize = conf->accum_buffers[accum].a;
-				    } else {
-					visualConfigs[i].accumAlphaSize = 0;
+					if(conf->accelerated) {
+					    visualConfigs[i].visualRating = GLX_NONE;
+					} else {
+					    visualConfigs[i].visualRating = GLX_SLOW_VISUAL_EXT;
+					}
+					
+					visualConfigs[i].transparentPixel = GLX_NONE;
+					visualConfigs[i].transparentRed = GLX_NONE;
+					visualConfigs[i].transparentGreen = GLX_NONE;
+					visualConfigs[i].transparentBlue = GLX_NONE;
+					visualConfigs[i].transparentAlpha = GLX_NONE;
+					visualConfigs[i].transparentIndex = GLX_NONE;
+					
+					if(msample > 0) {
+					    visualConfigs[i].multiSampleSize = conf->multisample_samples;
+					    visualConfigs[i].nMultiSampleBuffers = conf->multisample_buffers;
+					} else {
+					    visualConfigs[i].multiSampleSize = 0;
+					    visualConfigs[i].nMultiSampleBuffers = 0;
+					}
+										
+					++i;
 				    }
-				} else {
-				    visualConfigs[i].accumRedSize = 0;
-				    visualConfigs[i].accumGreenSize = 0;
-				    visualConfigs[i].accumBlueSize = 0;
-				    visualConfigs[i].accumAlphaSize = 0;
 				}
-				
-				visualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
-				visualConfigs[i].stereo = stereo ? TRUE : FALSE;
-				
-				visualConfigs[i].depthSize = 24;
-				
-				if(conf->total_stencil_bit_depths > 0) {
-				    visualConfigs[i].stencilSize = conf->stencil_bit_depths[stencil];
-				} else {
-				    visualConfigs[i].stencilSize = 0;
-				}
-				visualConfigs[i].auxBuffers = aux ? conf->aux_buffers : 0;
-				visualConfigs[i].level = 0;
-				
-				if(conf->accelerated) {
-				    visualConfigs[i].visualRating = GLX_NONE;
-				} else {
-				    visualConfigs[i].visualRating = GLX_SLOW_VISUAL_EXT;
-				}
-				
-				visualConfigs[i].transparentPixel = GLX_NONE;
-				visualConfigs[i].transparentRed = GLX_NONE;
-				visualConfigs[i].transparentGreen = GLX_NONE;
-				visualConfigs[i].transparentBlue = GLX_NONE;
-				visualConfigs[i].transparentAlpha = GLX_NONE;
-				visualConfigs[i].transparentIndex = GLX_NONE;
-				
-				/*
-				  TODO possibly handle:
-				  multiSampleSize;
-				  nMultiSampleBuffers;
-				  visualSelectGroup;
-				*/
-				
-				++i;
 			    }
 			}
 		    }
