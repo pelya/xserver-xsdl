@@ -103,7 +103,7 @@ struct __GLXDRIdrawable {
 #ifdef __DRI_TEX_OFFSET
     GLint texname;
     __GLXDRIcontext *ctx;
-    unsigned long offset;
+    unsigned long long offset;
     DamagePtr pDamage;
 #endif
 };
