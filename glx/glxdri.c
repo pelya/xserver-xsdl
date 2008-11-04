@@ -189,6 +189,8 @@ __glXDRIdoReleaseTexImage(__GLXDRIscreen *screen, __GLXDRIdrawable *drawable)
 
 	for (i = 0; i < lastOverride; i++) {
 	    if (texOffsetOverride[i] == drawable) {
+		if (screen->texOffsetFinish)
+		    screen->texOffsetFinish((PixmapPtr)drawable->base.pDraw);
 
 		texOffsetOverride[i] = NULL;
 
