@@ -554,7 +554,6 @@ AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdriv
 AC_ARG_ENABLE(xsdl,           AS_HELP_STRING([--enable-xsdl], [Build the kdrive Xsdl server (default: auto)]), [XSDL=$enableval], [XSDL=auto])
 AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
-AC_ARG_ENABLE(kdrive-vesa,    AS_HELP_STRING([--enable-kdrive-vesa], [Build the kdrive VESA-based servers (default: auto)]), [KDRIVEVESA=$enableval], [KDRIVEVESA=auto])
 
 
 dnl chown/chmod to be setuid root as part of build
@@ -1875,6 +1874,5 @@ hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/sdl/Makefile
 hw/kdrive/src/Makefile
-hw/kdrive/vesa/Makefile
 xorg-server.pc
 ])

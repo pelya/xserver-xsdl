@@ -1,7 +1,3 @@
-if KDRIVEVESA
-VESA_SUBDIRS = vesa
-endif
-
 if BUILD_KDRIVEFBDEVLIB
 FBDEV_SUBDIRS = fbdev
 endif
@@ -25,7 +21,6 @@ endif
 SERVER_SUBDIRS = 		\
 	$(XSDL_SUBDIRS)		\
 	$(FBDEV_SUBDIRS)	\
-	$(VESA_SUBDIRS)		\
 	$(XEPHYR_SUBDIRS)       \
 	$(XFAKE_SUBDIRS)
 
@@ -34,7 +29,7 @@ SUBDIRS =			\
 	$(LINUX_SUBDIRS)	\
 	$(SERVER_SUBDIRS)
 
-DIST_SUBDIRS = vesa fbdev sdl ephyr src linux fake
+DIST_SUBDIRS = fbdev sdl ephyr src linux fake
 
 relink:
 	@for i in $(SERVER_SUBDIRS) ; do make -C $$i relink ; done
