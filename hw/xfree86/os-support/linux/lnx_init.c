@@ -85,6 +85,14 @@ restoreVtPerms(void)
     chown(vtname, vtPermSave[2], vtPermSave[3]);
 }
 
+static void *console_handler;
+
+static void
+drain_console(int fd, void *closure)
+{
+    tcflush(fd, TCIOFLUSH);
+}
+
 void
 xf86OpenConsole(void)
 {
@@ -300,6 +308,10 @@ xf86OpenConsole(void)
 		cfsetispeed(&nTty, 9600);
 		cfsetospeed(&nTty, 9600);
 		tcsetattr(xf86Info.consoleFd, TCSANOW, &nTty);
+
+		/* need to keep the buffer clean, else the kernel gets angry */
+		console_handler = xf86AddGeneralHandler(xf86Info.consoleFd,
+							drain_console, NULL);
 	    }
 
 	    /* we really should have a InitOSInputDevices() function instead
@@ -345,6 +357,11 @@ xf86CloseConsole()
 #endif
 
     if (ShareVTs) return;
+
+    if (console_handler) {
+	xf86RemoveGeneralHandler(console_handler);
+	console_handler = NULL;
+    };
 
 #if defined(DO_OS_FONTRESTORE)
     if (ioctl(xf86Info.consoleFd, VT_GETSTATE, &vts) < 0)
