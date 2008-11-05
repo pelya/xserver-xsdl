@@ -4214,7 +4214,6 @@ EnterLeaveEvent(
     WindowPtr		focus;
     DeviceIntPtr        keybd;
     GrabPtr	        grab = mouse->deviceGrab.grab;
-    GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
     int                 inWindow; /* zero if no sprites are in window */
     Bool                sendevent = FALSE;
@@ -4336,11 +4335,11 @@ EnterLeaveEvent(
        (filters[mouse->id][devEnterLeave->type] &
             inputMasks->deliverableEvents[mskidx]))
     {
-        if (devgrab)
-            (void)TryClientEvents(rClient(devgrab), mouse,
+        if (grab)
+            (void)TryClientEvents(rClient(grab), mouse,
                                 (xEvent*)devEnterLeave, 1,
                                 mask, filters[mouse->id][devEnterLeave->type],
-                                devgrab);
+                                grab);
 	else
 	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave,
                                    1, filters[mouse->id][devEnterLeave->type],
