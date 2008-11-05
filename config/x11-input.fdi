@@ -67,8 +67,8 @@
       <merge key="input.x11_options.XkbRules" type="string">base</merge>
 
       <!-- If we're using Linux, we use evdev by default (falling back to
-           keyboard otherwise). -->
-      <merge key="input.x11_driver" type="string">keyboard</merge>
+           kbd otherwise). -->
+      <merge key="input.x11_driver" type="string">kbd</merge>
       <merge key="input.x11_options.XkbModel" type="string">pc105</merge>
       <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
              string="Linux">
