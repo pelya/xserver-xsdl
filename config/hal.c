@@ -120,7 +120,7 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     char *prop, *ret;
 
     prop = libhal_device_get_property_string(hal_ctx, udi, name, NULL);
-    LogMessageVerb(X_INFO, 10, "config/hal: getting %s on %s returned %s\n", name, udi, prop);
+    LogMessageVerb(X_INFO, 10, "config/hal: getting %s on %s returned %s\n", name, udi, prop ? prop : "(null)");
     if (prop) {
         ret = xstrdup(prop);
         libhal_free_string(prop);
