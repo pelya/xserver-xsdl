@@ -1393,7 +1393,7 @@ static struct pid {
     int pid;
 } *pidlist;
 
-void (*old_alarm)(int) = NULL; /* XXX horrible awful hack */
+OsSigHandlerPtr old_alarm = NULL; /* XXX horrible awful hack */
 
 pointer
 Popen(char *command, char *type)
@@ -1417,7 +1417,7 @@ Popen(char *command, char *type)
     }
 
     /* Ignore the smart scheduler while this is going on */
-    old_alarm = signal(SIGALRM, SIG_IGN);
+    old_alarm = OsSignal(SIGALRM, SIG_IGN);
     if (old_alarm == SIG_ERR) {
       perror("signal");
       return NULL;
@@ -1428,7 +1428,7 @@ Popen(char *command, char *type)
 	close(pdes[0]);
 	close(pdes[1]);
 	xfree(cur);
-	if (signal(SIGALRM, old_alarm) == SIG_ERR)
+	if (OsSignal(SIGALRM, old_alarm) == SIG_ERR)
 	  perror("signal");
 	return NULL;
     case 0:	/* child */
@@ -1605,7 +1605,7 @@ Pclose(pointer iop)
     /* allow EINTR again */
     OsReleaseSignals ();
     
-    if (old_alarm && signal(SIGALRM, old_alarm) == SIG_ERR) {
+    if (old_alarm && OsSignal(SIGALRM, old_alarm) == SIG_ERR) {
       perror("signal");
       return -1;
     }
