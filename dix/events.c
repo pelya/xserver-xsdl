@@ -4383,7 +4383,8 @@ EnterNotifies(DeviceIntPtr pDev,
 	return;
     EnterNotifies(pDev, ancestor, parent, mode, detail);
     EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
-                    child->drawable.id); }
+                    child->drawable.id);
+}
 
 
 /**
