@@ -447,10 +447,6 @@ xf86AddPixFormat(ScrnInfoPtr pScrn, int depth, int bpp, int pad)
 #define GLOBAL_DEFAULT_DEPTH 24
 #endif
 
-#ifndef GLOBAL_DEFAULT_FBBPP
-#define GLOBAL_DEFAULT_FBBPP 32
-#endif
-
 _X_EXPORT Bool
 xf86SetDepthBpp(ScrnInfoPtr scrp, int depth, int dummy, int fbbpp,
 		int depth24flags)
@@ -528,7 +524,6 @@ xf86SetDepthBpp(ScrnInfoPtr scrp, int depth, int dummy, int fbbpp,
 	    if (depth > 0)
 		scrp->depth = depth;
 	} else {
-	    scrp->bitsPerPixel = GLOBAL_DEFAULT_FBBPP;
 	    scrp->depth = GLOBAL_DEFAULT_DEPTH;
 	}
     }
