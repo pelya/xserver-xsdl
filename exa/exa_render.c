@@ -492,17 +492,17 @@ exaCompositeRects(CARD8	              op,
 	r = rects;
 	while (n--) {
 	    int rect_x2 = r->xDst + r->width;
-	    int rect_y2 = r->yDst + r->width;
+	    int rect_y2 = r->yDst + r->height;
 
 	    if (r->xDst < x1) x1 = r->xDst;
-	    if (r->xDst < y1) y1 = r->xDst;
+	    if (r->yDst < y1) y1 = r->yDst;
 	    if (rect_x2 > x2) x2 = rect_x2;
 	    if (rect_y2 > y2) y2 = rect_y2;
 
 	    r++;
 	}
 
-	if (x2 <= x1 && y2 <= y1)
+	if (x2 <= x1 || y2 <= y1)
 	    return;
 
 	box.x1 = x1;
