@@ -420,7 +420,7 @@ _XkbBell(ClientPtr client, DeviceIntPtr dev, WindowPtr pWin,
         }
     }
     else {
-        client->errorValue = _XkbErrCode2(0x7, bellClass);;
+        client->errorValue = _XkbErrCode2(0x7, bellClass);
         return BadValue;
     }
 

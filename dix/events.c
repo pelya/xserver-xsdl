@@ -323,7 +323,7 @@ IsPointerDevice(DeviceIntPtr dev)
 _X_EXPORT Bool
 IsKeyboardDevice(DeviceIntPtr dev)
 {
-    return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);;
+    return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);
 }
 
 static void DoEnterLeaveEvents(

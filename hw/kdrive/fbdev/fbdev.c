@@ -770,7 +770,7 @@ fbdevGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     cmap.start = min;
     cmap.len = max - min + 1;
     cmap.red = &priv->red[min];
-    cmap.green = &priv->green[min];;
+    cmap.green = &priv->green[min];
     cmap.blue = &priv->blue[min];
     cmap.transp = 0;
     k = ioctl (priv->fd, FBIOGETCMAP, &cmap);

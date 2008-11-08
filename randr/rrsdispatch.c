@@ -125,7 +125,7 @@ static int
 SProcRRGetOutputInfo (ClientPtr client)
 {
     int n;
-    REQUEST(xRRGetOutputInfoReq);;
+    REQUEST(xRRGetOutputInfoReq);
 
     REQUEST_SIZE_MATCH(xRRGetOutputInfoReq);
     swaps(&stuff->length, n);

@@ -597,7 +597,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     if (!pScrPriv || !output)
     {
 	rep.type = X_Reply;
-	rep.setOfRotations = RR_Rotate_0;;
+	rep.setOfRotations = RR_Rotate_0;
 	rep.sequenceNumber = client->sequence;
 	rep.length = 0;
 	rep.root = WindowTable[pWin->drawable.pScreen->myNum]->drawable.id;

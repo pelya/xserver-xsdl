@@ -435,7 +435,7 @@ again:
 			i = 0;
 			do
 			{
-				configRBuf[++i] = (c = configBuf[configPos++]);;
+				configRBuf[++i] = (c = configBuf[configPos++]);
 			}
 			while ((c != ' ') && (c != '\t') && (c != '\n') && (c != '\r') && (c != '\0') && (c != '#'));
 			--configPos;

@@ -779,7 +779,7 @@ miPolyFillArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
     for(i = narcs, arc = parcs; --i >= 0; arc++)
     {
 	if (miFillArcEmpty(arc))
-	    continue;;
+	    continue;
 	if ((arc->angle2 >= FULLCIRCLE) || (arc->angle2 <= -FULLCIRCLE))
 	{
 	    if (miCanFillArc(arc))

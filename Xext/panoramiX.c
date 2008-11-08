@@ -550,8 +550,8 @@ void PanoramiXExtensionInit(int argc, char *argv[])
     ProcVector[X_SetClipRectangles] = PanoramiXSetClipRectangles;
     ProcVector[X_FreeGC] = PanoramiXFreeGC;
     ProcVector[X_ClearArea] = PanoramiXClearToBackground;
-    ProcVector[X_CopyArea] = PanoramiXCopyArea;;
-    ProcVector[X_CopyPlane] = PanoramiXCopyPlane;;
+    ProcVector[X_CopyArea] = PanoramiXCopyArea;
+    ProcVector[X_CopyPlane] = PanoramiXCopyPlane;
     ProcVector[X_PolyPoint] = PanoramiXPolyPoint;
     ProcVector[X_PolyLine] = PanoramiXPolyLine;
     ProcVector[X_PolySegment] = PanoramiXPolySegment;
@@ -574,10 +574,10 @@ void PanoramiXExtensionInit(int argc, char *argv[])
     ProcVector[X_AllocColor] = PanoramiXAllocColor;
     ProcVector[X_AllocNamedColor] = PanoramiXAllocNamedColor;
     ProcVector[X_AllocColorCells] = PanoramiXAllocColorCells;
-    ProcVector[X_AllocColorPlanes] = PanoramiXAllocColorPlanes;    
+    ProcVector[X_AllocColorPlanes] = PanoramiXAllocColorPlanes;
     ProcVector[X_FreeColors] = PanoramiXFreeColors;
-    ProcVector[X_StoreColors] = PanoramiXStoreColors;    
-    ProcVector[X_StoreNamedColor] = PanoramiXStoreNamedColor;    
+    ProcVector[X_StoreColors] = PanoramiXStoreColors;
+    ProcVector[X_StoreNamedColor] = PanoramiXStoreNamedColor;
 
 #ifdef RENDER
     PanoramiXRenderInit ();
