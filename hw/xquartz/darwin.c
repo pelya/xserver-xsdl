@@ -221,10 +221,17 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
 // TODO: Make PseudoColor visuals not suck in TrueColor mode  
 //    if(dfb->depth > 8)
 //        miSetVisualTypesAndMasks(8, PseudoColorMask, 8, PseudoColor, 0, 0, 0);
+
+#if 0
+    /*
+     * These aren't used anymore.  xpr/xprScreen.c initializes the dfb struct
+     * above based on the display properties.
+     */
     if(dfb->depth > 15)
         miSetVisualTypesAndMasks(15, LARGE_VISUALS, 5, TrueColor, 0x7c00, 0x03e0, 0x001f);
     if(dfb->depth > 24)
         miSetVisualTypesAndMasks(24, LARGE_VISUALS, 8, TrueColor, 0x00ff0000, 0x0000ff00, 0x000000ff);
+#endif
 
     miSetPixmapDepths();
 
