@@ -3762,11 +3762,7 @@ ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
     Bool            deactivateGrab = FALSE;
     KeyClassPtr     keyc = keybd->key;
 
-    if (xE->u.u.type & EXTENSION_EVENT_BASE)
-        grabinfo = &keybd->deviceGrab;
-    else
-        grabinfo = &keybd->deviceGrab;
-
+    grabinfo = &keybd->deviceGrab;
     grab = grabinfo->grab;
 
     if (!syncEvents.playingEvents)
