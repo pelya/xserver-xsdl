@@ -92,27 +92,16 @@ SOFTWARE.
 
 /* Used for enter/leave and focus in/out semaphores */
 #define SEMAPHORE_FIELD_SET(win, dev, field) \
-{ \
-    FocusSemaphoresPtr sem; \
-    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey); \
-    sem->field[dev->id/8] |= (1 << (dev->id % 8)); \
-}
+    (win)->field[(dev)->id/8] |= (1 << ((dev)->id % 8)); \
 
 #define SEMAPHORE_FIELD_UNSET(win, dev, field) \
-{ \
-    FocusSemaphoresPtr sem; \
-    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey); \
-    sem->field[dev->id/8] &= ~(1 << (dev->id % 8)); \
-}
+    (win)->field[(dev)->id/8] &= ~(1 << ((dev)->id % 8));
 
 #define ENTER_LEAVE_SEMAPHORE_SET(win, dev) \
         SEMAPHORE_FIELD_SET(win, dev, enterleave);
 
 #define ENTER_LEAVE_SEMAPHORE_UNSET(win, dev) \
         SEMAPHORE_FIELD_UNSET(win, dev, enterleave);
-
-#define ENTER_LEAVE_SEMAPHORE_ISSET(win, dev) \
-    ((FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey))->enterleave[dev->id/8] & (1 << (dev->id % 8))
 
 #define FOCUS_SEMAPHORE_SET(win, dev) \
         SEMAPHORE_FIELD_SET(win, dev, focusinout);
@@ -121,7 +110,7 @@ SOFTWARE.
         SEMAPHORE_FIELD_UNSET(win, dev, focusinout);
 
 #define FOCUS_SEMAPHORE_ISSET(win, dev) \
-    ((FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey))->focusinout[dev->id/8] & (1 << (dev->id % 8))
+        (win)->focusinout[(dev)->id/8] & (1 << ((dev)->id % 8))
 
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;

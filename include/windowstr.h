@@ -188,6 +188,12 @@ typedef struct _Window {
 #ifdef ROOTLESS
     unsigned		rootlessUnhittable:1;	/* doesn't hit-test */
 #endif
+    /* Used to maintain semantics of core protocol for Enter/LeaveNotifies and
+     * FocusIn/Out events for multiple pointers/keyboards. Each device ID
+     * corresponds to one bit. If set, the device is in the window/has focus.
+     */
+    char                enterleave[(MAXDEVICES + 7)/8];
+    char                focusinout[(MAXDEVICES + 7)/8];
 } WindowRec;
 
 /*
@@ -244,17 +250,5 @@ typedef struct _ScreenSaverStuff {
 
 extern int screenIsSaved;
 extern ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
-extern DevPrivateKey FocusPrivatesKey;
-
-/* Used to maintain semantics of core protocol for Enter/LeaveNotifies and
- * FocusIn/Out events for multiple pointers/keyboards.
- *
- * Each device ID corresponds to one bit. If set, the device is in the
- * window/has focus.
- */
-typedef struct _FocusSemaphores {
-    char                enterleave[(MAXDEVICES + 7)/8];
-    char                focusinout[(MAXDEVICES + 7)/8];
-} FocusSemaphoresRec, *FocusSemaphoresPtr;
 
 #endif /* WINDOWSTRUCT_H */

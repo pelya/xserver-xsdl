@@ -271,8 +271,6 @@ Bool	enableBackingStore = FALSE;
 static void
 SetWindowToDefaults(WindowPtr pWin)
 {
-    FocusSemaphoresPtr sem;
-
     pWin->prevSib = NullWindow;
     pWin->firstChild = NullWindow;
     pWin->lastChild = NullWindow;
@@ -302,8 +300,8 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->redirectDraw = RedirectDrawNone;
     pWin->forcedBG = FALSE;
 
-    sem = xcalloc(1, sizeof(FocusSemaphoresRec));
-    dixSetPrivate(&pWin->devPrivates, FocusPrivatesKey, sem);
+    memset(pWin->enterleave, 0, sizeof(pWin->enterleave));
+    memset(pWin->focusinout, 0, sizeof(pWin->focusinout));
 
 #ifdef ROOTLESS
     pWin->rootlessUnhittable = FALSE;

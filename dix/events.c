@@ -6266,13 +6266,11 @@ ExtGrabDevice(ClientPtr client,
 int
 EnterLeaveSemaphoresIsset(WindowPtr win)
 {
-    FocusSemaphoresPtr sem;
     int set = 0;
     int i;
 
-    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
     for (i = 0; i < (MAXDEVICES + 7)/8; i++)
-        set += sem->enterleave[i];
+        set += win->enterleave[i];
 
     return set;
 }
@@ -6283,13 +6281,11 @@ EnterLeaveSemaphoresIsset(WindowPtr win)
 int
 FocusSemaphoresIsset(WindowPtr win)
 {
-    FocusSemaphoresPtr sem;
     int set = 0;
     int i;
 
-    sem = (FocusSemaphoresPtr)dixLookupPrivate(&win->devPrivates, FocusPrivatesKey);
     for (i = 0; i < (MAXDEVICES + 7)/8; i++)
-        set += sem->focusinout[i];
+        set += win->focusinout[i];
 
     return set;
 }
