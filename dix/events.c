@@ -4325,8 +4325,6 @@ EnterLeaveEvent(
     devEnterLeave = (deviceEnterNotify*)&event;
     devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
         DeviceLeaveNotify;
-    devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
-        DeviceLeaveNotify;
     devEnterLeave->mode |= (event.u.enterLeave.flags << 4);
     devEnterLeave->deviceid = mouse->id;
     mskidx = mouse->id;
