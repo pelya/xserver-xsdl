@@ -114,13 +114,14 @@ static void
 __glXDRIdrawableCopySubBuffer(__GLXdrawable *drawable,
 			       int x, int y, int w, int h)
 {
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
     BoxRec box;
     RegionRec region;
 
     box.x1 = x;
-    box.y1 = y;
+    box.y1 = private->height - y - h;
     box.x2 = x + w;
-    box.y2 = y + h;
+    box.y2 = private->height - y;
     REGION_INIT(drawable->pDraw->pScreen, &region, &box, 0);
 
     DRI2CopyRegion(drawable->pDraw, &region,
