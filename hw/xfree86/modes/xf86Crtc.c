@@ -1820,69 +1820,6 @@ nextEnabledOutput(xf86CrtcConfigPtr config, Bool *enabled, int *index)
 }
 
 static Bool
-xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
-		    DisplayModePtr *modes, Bool *enabled,
-		    int width, int height)
-{
-    int o, p;
-    int max_pref_width = 0, max_pref_height = 0;
-    DisplayModePtr *preferred, *preferred_match;
-    Bool ret = FALSE;
-
-    preferred = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
-    preferred_match = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
-
-    /* Check if the preferred mode is available on all outputs */
-    for (p = -1; nextEnabledOutput(config, enabled, &p); ) {
-	Rotation r = config->output[p]->initial_rotation;
-	DisplayModePtr mode;
-	if ((preferred[p] = xf86OutputHasPreferredMode(config->output[p],
-			width, height))) {
-	    int pref_width = xf86ModeWidth(preferred[p], r);
-	    int pref_height = xf86ModeHeight(preferred[p], r);
-	    Bool all_match = TRUE;
-
-	    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
-		Bool match = FALSE;
-		xf86OutputPtr output = config->output[o];
-		if (o == p)
-		    continue;
-
-		for (mode = output->probed_modes; mode; mode = mode->next) {
-		    Rotation r = output->initial_rotation;
-		    if (xf86ModeWidth(mode, r) == pref_width &&
-			    xf86ModeHeight(mode, r) == pref_height) {
-			preferred[o] = mode;
-			match = TRUE;
-		    }
-		}
-
-		all_match &= match;
-	    }
-
-	    if (all_match &&
-		    (pref_width*pref_height > max_pref_width*max_pref_height)) {
-		for (o = -1; nextEnabledOutput(config, enabled, &o); )
-		    preferred_match[o] = preferred[o];
-		max_pref_width = pref_width;
-		max_pref_height = pref_height;
-		ret = TRUE;
-	    }
-	}
-    }
-
-    if (ret) {
-	/* oh good, there is a match.  stash the selected modes and return. */
-	memcpy(modes, preferred_match,
-		config->num_output * sizeof(DisplayModePtr));
-    }
-
-    xfree(preferred);
-    xfree(preferred_match);
-    return ret;
-}
-
-static Bool
 aspectMatch(float a, float b)
 {
     return fabs(1 - (a / b)) < 0.05;
@@ -1940,6 +1877,97 @@ bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
 
     /* return the biggest one found */
     return match;
+}
+
+static Bool
+xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+		    DisplayModePtr *modes, Bool *enabled,
+		    int width, int height)
+{
+    int o, p;
+    int max_pref_width = 0, max_pref_height = 0;
+    DisplayModePtr *preferred, *preferred_match;
+    Bool ret = FALSE;
+
+    preferred = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
+    preferred_match = xnfcalloc(config->num_output, sizeof(DisplayModePtr));
+
+    /* Check if the preferred mode is available on all outputs */
+    for (p = -1; nextEnabledOutput(config, enabled, &p); ) {
+	Rotation r = config->output[p]->initial_rotation;
+	DisplayModePtr mode;
+	if ((preferred[p] = xf86OutputHasPreferredMode(config->output[p],
+			width, height))) {
+	    int pref_width = xf86ModeWidth(preferred[p], r);
+	    int pref_height = xf86ModeHeight(preferred[p], r);
+	    Bool all_match = TRUE;
+
+	    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
+		Bool match = FALSE;
+		xf86OutputPtr output = config->output[o];
+		if (o == p)
+		    continue;
+
+		for (mode = output->probed_modes; mode; mode = mode->next) {
+		    Rotation r = output->initial_rotation;
+		    if (xf86ModeWidth(mode, r) == pref_width &&
+			    xf86ModeHeight(mode, r) == pref_height) {
+			preferred[o] = mode;
+			match = TRUE;
+		    }
+		}
+
+		all_match &= match;
+	    }
+
+	    if (all_match &&
+		    (pref_width*pref_height > max_pref_width*max_pref_height)) {
+		for (o = -1; nextEnabledOutput(config, enabled, &o); )
+		    preferred_match[o] = preferred[o];
+		max_pref_width = pref_width;
+		max_pref_height = pref_height;
+		ret = TRUE;
+	    }
+	}
+    }
+
+    /*
+     * If there's no preferred mode, but only one monitor, pick the
+     * biggest mode for its aspect ratio, assuming one exists.
+     */
+    if (!ret) do {
+	int i = 0;
+	float aspect = 0.0;
+
+	/* count the number of enabled outputs */
+	for (i = 0, p = -1; nextEnabledOutput(config, enabled, &p); i++) ;
+
+	if (i != 1)
+	    break;
+
+	p = -1;
+	nextEnabledOutput(config, enabled, &p);
+	if (config->output[p]->mm_height)
+	    aspect = (float)config->output[p]->mm_width /
+		     (float)config->output[p]->mm_height;
+
+	if (aspect)
+	    preferred_match[0] = bestModeForAspect(config, enabled, aspect);
+
+	if (preferred_match[0])
+	    ret = TRUE;
+
+    } while (0);
+
+    if (ret) {
+	/* oh good, there is a match.  stash the selected modes and return. */
+	memcpy(modes, preferred_match,
+		config->num_output * sizeof(DisplayModePtr));
+    }
+
+    xfree(preferred);
+    xfree(preferred_match);
+    return ret;
 }
 
 static Bool
