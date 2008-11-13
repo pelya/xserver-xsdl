@@ -221,6 +221,34 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         [self activateX:YES];
                 }
             }
+
+            /* We want to force sending to appkit if we're over the menu bar */
+            if(!for_appkit) {
+                NSPoint NSlocation = [e locationInWindow];
+                NSWindow *window = [e window];
+                
+                if (window != nil)	{
+                    NSRect frame = [window frame];
+                    NSlocation.x += frame.origin.x;
+                    NSlocation.y += frame.origin.y;
+                }
+
+                NSRect NSframe = [[NSScreen mainScreen] frame];
+                NSRect NSvisibleFrame = [[NSScreen mainScreen] visibleFrame];
+                
+                CGRect CGframe = CGRectMake(NSframe.origin.x, NSframe.origin.y,
+                                            NSframe.size.width, NSframe.size.height);
+                CGRect CGvisibleFrame = CGRectMake(NSvisibleFrame.origin.x,
+                                                   NSvisibleFrame.origin.y,
+                                                   NSvisibleFrame.size.width,
+                                                   NSvisibleFrame.size.height);
+                CGPoint CGlocation = CGPointMake(NSlocation.x, NSlocation.y);
+                
+                if(CGRectContainsPoint(CGframe, CGlocation) &&
+                   !CGRectContainsPoint(CGvisibleFrame, CGlocation))
+                    for_appkit = YES;
+            }
+            
             break;
             
         case NSKeyDown: case NSKeyUp:
@@ -865,32 +893,32 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
 extern int darwin_modifier_flags; // darwinEvents.c
 
 - (void) sendX11NSEvent:(NSEvent *)e {
-	NSRect screen;
-	NSPoint location;
-	NSWindow *window;
-	int ev_button, ev_type;
-	float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
+    NSRect screen;
+    NSPoint location;
+    NSWindow *window;
+    int ev_button, ev_type;
+    float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
     DeviceIntPtr pDev;
-    
-	/* convert location to be relative to top-left of primary display */
-	location = [e locationInWindow];
-	window = [e window];
-	screen = [[[NSScreen screens] objectAtIndex:0] frame];
-    
+
+    /* convert location to be relative to top-left of primary display */
+    location = [e locationInWindow];
+    window = [e window];
+    screen = [[[NSScreen screens] objectAtIndex:0] frame];
+
     if (window != nil)	{
-		NSRect frame = [window frame];
-		pointer_x = location.x + frame.origin.x;
-		pointer_y = (((screen.origin.y + screen.size.height)
-                      - location.y) - frame.origin.y);
-	} else {
-		pointer_x = location.x;
-		pointer_y = (screen.origin.y + screen.size.height) - location.y;
-	}
-    
+        NSRect frame = [window frame];
+        pointer_x = location.x + frame.origin.x;
+        pointer_y = (screen.origin.y + screen.size.height)
+                    - (location.y + frame.origin.y);
+    } else {
+        pointer_x = location.x;
+        pointer_y = (screen.origin.y + screen.size.height) - location.y;
+    }
+
     /* Setup our valuators.  These will range from 0 to 1 */
-	pressure = 0;
-	tilt_x = 0;
-	tilt_y = 0;
+    pressure = 0;
+    tilt_x = 0;
+    tilt_y = 0;
     
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state
