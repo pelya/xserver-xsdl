@@ -1418,7 +1418,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
     {
 	xf86OutputPtr	    output = config->output[o];
 	DisplayModePtr	    mode;
-	DisplayModePtr	    config_modes = NULL, output_modes, default_modes;
+	DisplayModePtr	    config_modes = NULL, output_modes, default_modes = NULL;
 	char		    *preferred_mode;
 	xf86MonPtr	    edid_monitor;
 	XF86ConfMonitorPtr  conf_monitor;
@@ -1426,6 +1426,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	int		    min_clock = 0;
 	int		    max_clock = 0;
 	double		    clock;
+	Bool                add_default_modes = TRUE;
 	enum { sync_config, sync_edid, sync_default } sync_source = sync_default;
 	
 	while (output->probed_modes != NULL)
@@ -1476,6 +1477,11 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    int			    i;
 	    Bool		    set_hsync = mon_rec.nHsync == 0;
 	    Bool		    set_vrefresh = mon_rec.nVrefresh == 0;
+	    struct disp_features    *features = &edid_monitor->features;
+
+	    /* if display is not continuous-frequency, don't add default modes */
+	    if (!GTF_SUPPORTED(features->msc))
+		add_default_modes = FALSE;
 
 	    for (i = 0; i < sizeof (edid_monitor->det_mon) / sizeof (edid_monitor->det_mon[0]); i++)
 	    {
@@ -1532,8 +1538,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    mon_rec.vrefresh[0].hi = 62.0;
 	    mon_rec.nVrefresh = 1;
 	}
-	default_modes = xf86GetDefaultModes (output->interlaceAllowed,
-					     output->doubleScanAllowed);
+
+	if (add_default_modes)
+	    default_modes = xf86GetDefaultModes (output->interlaceAllowed,
+						 output->doubleScanAllowed);
 
 	/*
 	 * If this is not an RB monitor, remove RB modes from the default
