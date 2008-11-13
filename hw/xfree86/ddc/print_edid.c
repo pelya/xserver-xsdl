@@ -168,7 +168,7 @@ print_dpms_features(int scrnIndex, struct disp_features *c,
     } else if (v->revision == 3) {
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "First detailed timing not preferred "
-		   "mode in violation of standard!");
+		   "mode in violation of standard!\n");
     }
 
     if (v->revision >= 4) {
