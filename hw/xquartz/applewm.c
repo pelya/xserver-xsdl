@@ -165,7 +165,11 @@ AppleWMDoReorderWindow(
 
     atom = xa_apple_no_order_in();
     rc = dixLookupProperty(&prop, pWin, atom, serverClient, DixReadAccess);
-    return (rc == Success) && (prop->type == atom);
+    
+    if(Success == rc && prop->type == atom)
+	return 0;
+    
+    return 1;
 }
 
 
