@@ -149,12 +149,30 @@ void setVisualConfigs(void) {
 					visualConfigs[i].redSize = conf->color_buffers[color].r;
 					visualConfigs[i].greenSize = conf->color_buffers[color].g;
 					visualConfigs[i].blueSize = conf->color_buffers[color].b;
-					visualConfigs[i].alphaSize = conf->color_buffers[color].a;
-					
-					visualConfigs[i].bufferSize = conf->color_buffers[color].r +
-					    conf->color_buffers[color].g + conf->color_buffers[color].b +
-					    conf->color_buffers[color].a;
-					
+
+					if(GLCAPS_COLOR_BUF_INVALID_VALUE == conf->color_buffers[color].a) {
+					    /* This visual has no alpha. */
+					    visualConfigs[i].alphaSize = 0;
+					} else {
+					    visualConfigs[i].alphaSize = conf->color_buffers[color].a;
+					}
+	
+					/* 
+					 * If the .a/alpha value is unset, then don't add it to the
+					 * bufferSize specification.  The INVALID_VALUE indicates that it
+					 * was unset.
+					 * 
+					 * This prevents odd bufferSizes, such as 14.
+					 */
+					if(GLCAPS_COLOR_BUF_INVALID_VALUE == conf->color_buffers[color].a) {
+					    visualConfigs[i].bufferSize = conf->color_buffers[color].r +
+						conf->color_buffers[color].g + conf->color_buffers[color].b;
+					} else {
+					    visualConfigs[i].bufferSize = conf->color_buffers[color].r +
+						conf->color_buffers[color].g + conf->color_buffers[color].b +
+						conf->color_buffers[color].a;
+					}
+
 					/*
 					 * I'm uncertain about these masks.
 					 * I don't think we actually care what the values are in our
