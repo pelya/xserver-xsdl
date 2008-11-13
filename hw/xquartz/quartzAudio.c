@@ -338,7 +338,7 @@ void QuartzAudioInit(void)
 
     // Prepare for playback
     AudioDeviceIOProcID sInputIOProcID = NULL;
-    status = AudioDeviceCreateIOProcID( outputDevice, QuartzAudioIOProc, NULL, &sInputIOProcID );
+    status = AudioDeviceCreateIOProcID( outputDevice, QuartzAudioIOProc, &data, &sInputIOProcID );
     if (status) {
         ErrorF("QuartzAudioInit: AddIOProc returned %ld\n", (long)status);
         return;
