@@ -178,17 +178,15 @@ static void send_fd_handoff(int connected_fd, int launchd_fd) {
     
     *((int*)CMSG_DATA(cmsg)) = launchd_fd;
     
-#ifdef DEBUG
-    fprintf(stderr, "Xquartz: Handoff connection established.  Sending message.\n");
-#endif
     if(sendmsg(connected_fd, &msg, 0) < 0) {
-        fprintf(stderr, "Xquartz: Error sending $DISPLAY file descriptor: %s\n", strerror(errno));
+        fprintf(stderr, "Xquartz: Error sending $DISPLAY file descriptor over fd %d: %d -- %s\n", connected_fd, errno, strerror(errno));
         return;
     }
 
 #ifdef DEBUG
-    fprintf(stderr, "Xquartz: Message sent.  Closing.\n");
+    fprintf(stderr, "Xquartz: Message sent.  Closing handoff fd.\n");
 #endif
+
     close(connected_fd);
 }
 
@@ -279,12 +277,16 @@ int main(int argc, char **argv, char **envp) {
                 fprintf(stderr, "Xquartz: Failed to request a socket from the server to send the $DISPLAY fd over (try %d of %d)\n", (int)try+1, (int)try_max);
                 continue;
             }
-            
+
             handoff_fd = connect_to_socket(handoff_socket_filename);
             if(handoff_fd == -1) {
                 fprintf(stderr, "Xquartz: Failed to connect to socket (try %d of %d)\n", (int)try+1, (int)try_max);
                 continue;
             }
+
+#ifdef DEBUG
+            fprintf(stderr, "Xquartz: Handoff connection established (try %d of %d) on fd %d, \"%s\".  Sending message.\n", (int)try+1, (int)try_max, handoff_fd, handoff_socket_filename);
+#endif
 
             send_fd_handoff(handoff_fd, launchd_fd);            
             close(handoff_fd);
