@@ -153,6 +153,106 @@ LeaveNotifies(DeviceIntPtr dev,
 }
 
 /**
+ * Search for the first window below @win that has a pointer directly within
+ * it's boundaries (excluding boundaries of its own descendants).
+ * Windows including @exclude and its descendants are ignored.
+ *
+ * @return The child window that has the pointer within its boundaries or
+ *         NULL.
+ */
+static WindowPtr
+FirstPointerChild(WindowPtr win, WindowPtr exclude)
+{
+    static WindowPtr *queue = NULL;
+    static int queue_size  = 256; /* allocated size of queue */
+
+    WindowPtr child = NULL;
+    int queue_len   = 0;          /* no of elements in queue */
+    int queue_head  = 0;          /* pos of current element  */
+
+    if (!win || win == exclude || !win->firstChild)
+        return NULL;
+
+    if (!queue && !(queue = xcalloc(queue_size, sizeof(WindowPtr))))
+        FatalError("[dix] FirstPointerChild: OOM.\n");
+
+    queue[0] = win;
+    queue_head = 0;
+    queue_len  = 1;
+
+    while (queue_len--)
+    {
+        if (queue[queue_head] == exclude)
+        {
+            queue_head = (queue_head + 1) % queue_size;
+            continue;
+        }
+
+        if (queue[queue_head] != win && HasPointer(queue[queue_head]))
+            return queue[queue_head];
+
+        child = queue[queue_head]->firstChild;
+        /* pop children onto queue */
+        while(child)
+        {
+            queue_len++;
+            if (queue_len >= queue_size)
+            {
+                const int inc = 256;
+
+                queue = xrealloc(queue, (queue_size + inc) * sizeof(WindowPtr));
+                if (!queue)
+                    FatalError("[dix] FirstPointerChild: OOM.\n");
+
+                /* Are we wrapped around? */
+                if (queue_head + queue_len > queue_size)
+                {
+                    memmove(&queue[queue_head + inc], &queue[queue_head],
+                            (queue_size - queue_head) * sizeof(WindowPtr));
+                    queue_head += inc;
+                }
+
+                queue_size += inc;
+            }
+
+            queue[(queue_head + queue_len) % queue_size] = child;
+            child = child->nextSib;
+        }
+
+        queue_head = (queue_head + 1) % queue_size;
+    }
+
+    return NULL;
+}
+
+/**
+ * Find the first parent of @win that has a pointer or has a child window with
+ * a pointer. Traverses up to (and including) the root window if @stopBefore
+ * is NULL, otherwise it stops at @stopBefore.
+ * Neither @win nor @win's descendants nor @stopBefore are tested for having a
+ * pointer.
+ *
+ * @return the window or NULL if @stopBefore was reached.
+ */
+static WindowPtr
+FirstPointerAncestor(WindowPtr win, WindowPtr stopBefore)
+{
+    WindowPtr parent;
+
+    parent = win->parent;
+
+    while(parent && parent != stopBefore)
+    {
+        if (HasPointer(parent) || FirstPointerChild(parent, win))
+            return parent;
+
+        parent = parent->parent;
+    }
+
+    return NULL;
+}
+
+/**
  * Figure out if enter/leave events are necessary and send them to the
  * appropriate windows.
  *
