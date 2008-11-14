@@ -164,6 +164,8 @@ typedef const char *string;
 #include "geext.h"
 #include "geint.h"
 
+#include "enterleave.h"
+
 /**
  * Extension events type numbering starts at EXTENSION_EVENT_BASE.
  */
@@ -325,13 +327,6 @@ IsKeyboardDevice(DeviceIntPtr dev)
 {
     return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);
 }
-
-static void DoEnterLeaveEvents(
-    DeviceIntPtr pDev,
-    WindowPtr fromWin,
-    WindowPtr toWin,
-    int mode
-);
 
 static WindowPtr XYToWindow(
     DeviceIntPtr pDev,
@@ -4185,23 +4180,10 @@ EventSuppressForWindow(WindowPtr pWin, ClientPtr client,
 }
 
 /**
- * @return The window that is the first ancestor of both a and b.
- */
-static WindowPtr
-CommonAncestor(
-    WindowPtr a,
-    WindowPtr b)
-{
-    for (b = b->parent; b; b = b->parent)
-	if (IsParent(b, a)) return b;
-    return NullWindow;
-}
-
-/**
  * Assembles an EnterNotify or LeaveNotify and sends it event to the client.
  * Uses the paired keyboard to get some additional information.
  */
-static void
+void
 EnterLeaveEvent(
     DeviceIntPtr mouse,
     int type,
@@ -4361,98 +4343,6 @@ EnterLeaveEvent(
 	else
 	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
 					KeymapStateMask, NullGrab, 0);
-    }
-}
-
-/**
- * Send enter notifies to all parent windows up to ancestor.
- * This function recurses.
- */
-static void
-EnterNotifies(DeviceIntPtr pDev,
-              WindowPtr ancestor,
-              WindowPtr child,
-              int mode,
-              int detail)
-{
-    WindowPtr	parent = child->parent;
-
-    if (ancestor == parent)
-	return;
-    EnterNotifies(pDev, ancestor, parent, mode, detail);
-    EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
-                    child->drawable.id);
-}
-
-
-/**
- * Send leave notifies to all parent windows up to ancestor.
- * This function recurses.
- */
-static void
-LeaveNotifies(DeviceIntPtr pDev,
-              WindowPtr child,
-              WindowPtr ancestor,
-              int mode,
-              int detail)
-{
-    WindowPtr  pWin;
-
-    if (ancestor == child)
-	return;
-    for (pWin = child->parent; pWin != ancestor; pWin = pWin->parent)
-    {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, detail, pWin,
-                        child->drawable.id);
-        child = pWin;
-    }
-}
-
-
-
-/**
- * Figure out if enter/leave events are necessary and send them to the
- * appropriate windows.
- *
- * @param fromWin Window the sprite moved out of.
- * @param toWin Window the sprite moved into.
- */
-static void
-DoEnterLeaveEvents(DeviceIntPtr pDev,
-        WindowPtr fromWin,
-        WindowPtr toWin,
-        int mode)
-{
-    if (!IsPointerDevice(pDev))
-        return;
-
-    if (fromWin == toWin)
-	return;
-    if (IsParent(fromWin, toWin))
-    {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
-                        None);
-        EnterNotifies(pDev, fromWin, toWin, mode,
-                      NotifyVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
-    }
-    else if (IsParent(toWin, fromWin))
-    {
-	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin,
-                        None);
-	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
-	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
-    }
-    else
-    { /* neither fromWin nor toWin is descendent of the other */
-	WindowPtr common = CommonAncestor(toWin, fromWin);
-	/* common == NullWindow ==> different screens */
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
-                        None);
-        LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
-	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
-                        None);
     }
 }
 
