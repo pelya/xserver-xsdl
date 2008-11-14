@@ -5225,8 +5225,6 @@ ProcUngrabKeyboard(ClientPtr client)
 
     grab = device->deviceGrab.grab;
 
-    grab = device->deviceGrab.grab;
-
     time = ClientTimeToServerTime(stuff->id);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
 	(CompareTimeStamps(time, device->deviceGrab.grabTime) != EARLIER) &&
