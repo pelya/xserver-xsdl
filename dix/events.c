@@ -6149,21 +6149,6 @@ ExtGrabDevice(ClientPtr client,
 }
 
 /*
- * @return Zero if no device is currently in window, non-zero otherwise.
- */
-int
-EnterLeaveSemaphoresIsset(WindowPtr win)
-{
-    int set = 0;
-    int i;
-
-    for (i = 0; i < (MAXDEVICES + 7)/8; i++)
-        set += win->enterleave[i];
-
-    return set;
-}
-
-/*
  * @return Zero if no devices has focus on the window, non-zero otherwise.
  */
 int
