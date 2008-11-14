@@ -33,6 +33,80 @@
 #include "exglobals.h"
 #include "enterleave.h"
 
+/* @file This file describes the model for sending core enter/leave events in
+ * the case of multiple pointers.
+ * Since we can't send more than one Enter or Leave event per window
+ * to a core client without confusing it, this is a rather complicated
+ * approach.
+ *
+ * For a full description of the model from a window's perspective, see
+ * http://lists.freedesktop.org/archives/xorg/2008-August/037606.html
+ *
+ *
+ * EnterNotify(Virtual, B) means EnterNotify Event, detail Virtual, child = B.
+ *
+ * Pointer moves from A to B, nonlinear (CoreEnterLeaveNonLinear):
+ * 1. a. if A has another pointer, goto 2.
+ *    b. otherwise, if A has a child with a pointer in it,
+ *       LeaveNotify(Inferior) to A
+ *       LeaveNotify(Virtual) between A and child(A)
+ *
+ * 2. Find common ancestor X between A and B.
+ * 3. Find closest pointer window P between A and X.
+ *    a. if P exists
+ *       LeaveNotify(Ancestor) to A
+ *       LeaveNotify(Virtual) between A and P
+ *    b. otherwise, if P does not exist,
+ *       LeaveNotify(NonLinear) to A
+ *       LeaveNotify(NonLinearVirtual) between A and X.
+ *
+ * 4. If X does not have a pointer, EnterNotify(NonLinearVirtual, B) to X.
+ * 5. Find closest pointer window P between X and B.
+ *    a. if P exists, EnterNotify(NonLinearVirtual) between X and P
+ *    b. otherwise, EnterNotify(NonLinearVirtual) between X and B
+ *
+ * 5. a. if B has another pointer in it, finish.
+ *    b. otherwise, if B has a child with a pointer in it
+ *       LeaveNotify(Virtual) between child(B) and B.
+ *       EnterNotify(Inferior) to B.
+ *    c. otherwise, EnterNotify(NonLinear) to B.
+ *
+ * --------------------------------------------------------------------------
+ *
+ * Pointer moves from A to B, A is a parent of B (CoreEnterLeaveToDescendant):
+ * 1. a. If A has another pointer, goto 2.
+ *    b. Otherwise, LeaveNotify(Inferior) to A.
+ *
+ * 2. Find highest window X that has a pointer child that is not a child of B.
+ *    a. if X exists, EnterNotify(Virtual, B) between A and X,
+ *       EnterNotify(Virtual, B) to X (if X has no pointer).
+ *    b. otherwise, EnterNotify(Virtual, B) between A and B.
+ *
+ * 3. a. if B has another pointer, finish
+ *    b. otherwise, if B has a child with a pointer in it,
+ *       LeaveNotify(Virtual, child(B)) between child(B) and B.
+ *       EnterNotify(Inferior, child(B)) to B.
+ *    c. otherwise, EnterNotify(Ancestor) to B.
+ *
+ * --------------------------------------------------------------------------
+ *
+ * Pointer moves from A to B, A is a child of B (CoreEnterLeaveToAncestor):
+ * 1. a. If A has another pointer, goto 2.
+ *    b. Otherwise, if A has a child with a pointer in it.
+ *       LeaveNotify(Inferior, child(A)) to A.
+ *       EnterNotify(Virtual, child(A)) between A and child(A).
+ *       Skip to 3.
+ *
+ * 2. Find closest pointer window P between A and B.
+ *    If P does not exist, P is B.
+ *           LeaveNotify(Ancestor) to A.
+ *           LeaveNotify(Virtual, A) between A and P.
+ * 3. a. If B has another pointer, finish.
+ *    b. otherwise, EnterNotify(Inferior) to B.
+ */
+
+#define WID(w) ((w) ? ((w)->drawable.id) : 0)
+
 /**
  * Return TRUE if @win has a pointer within its boundaries, excluding child
  * window.
@@ -67,7 +141,7 @@ HasOtherPointer(WindowPtr win, DeviceIntPtr dev)
 /**
  * Set the presence flag for @dev to mark that it is now in @win.
  */
-static void
+void
 EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 {
     win->enterleave[dev->id/8] |= (1 << (dev->id % 8));
@@ -250,6 +324,198 @@ FirstPointerAncestor(WindowPtr win, WindowPtr stopBefore)
     }
 
     return NULL;
+}
+
+/**
+ * Pointer @dev moves from @A to @B and @A neither a descendant of @B nor is
+ * @B a descendant of @A.
+ */
+static void
+CoreEnterLeaveNonLinear(DeviceIntPtr dev,
+                        WindowPtr A,
+                        WindowPtr B,
+                        int mode)
+{
+    WindowPtr childA, childB, X, P;
+    BOOL hasPointerA = HasPointer(A);
+
+    /* 2 */
+    X = CommonAncestor(A, B);
+
+    /* 1.a */             /* 1.b */
+    if (!hasPointerA && (childA = FirstPointerChild(A, None)))
+    {
+        CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyInferior, A, WID(childA));
+        EnterNotifies(dev, A, childA, mode, NotifyVirtual, TRUE);
+    } else {
+        /* 3 */
+        P = FirstPointerAncestor(A, X);
+
+        if (P)
+        {
+            if (!hasPointerA)
+                CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyAncestor, A, None);
+            LeaveNotifies(dev, A, P, mode, NotifyVirtual, TRUE);
+        /* 3.b */
+        } else
+        {
+            if (!hasPointerA)
+                CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyNonlinear, A, None);
+            LeaveNotifies(dev, A, X, mode, NotifyNonlinearVirtual, TRUE);
+        }
+    }
+
+    /* 4. */
+    if (!HasPointer(X))
+        CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyNonlinearVirtual, X, WID(B));
+
+    /* 5. */
+    P = FirstPointerChild(X, B);
+    if (!P)
+        P = B; /* 4.b */
+    EnterNotifies(dev, X, P, mode, NotifyNonlinearVirtual, TRUE);
+
+    /* 5.a */
+    if (!HasOtherPointer(B, dev))
+    {
+       /* 5.b */
+       if ((childB = FirstPointerChild(B, None)))
+       {
+           LeaveNotifies(dev, childB, B, mode, NotifyVirtual, TRUE);
+           CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyInferior, B, WID(childB));
+       } else
+           /* 5.c */
+           CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyNonlinear, B, None);
+    }
+}
+
+/**
+ * Pointer @dev moves from @A to @B and @A is a descendant of @B.
+ */
+static void
+CoreEnterLeaveToAncestor(DeviceIntPtr dev,
+                         WindowPtr A,
+                         WindowPtr B,
+                         int mode)
+{
+    WindowPtr childA = NULL, P;
+    BOOL hasPointerA = HasPointer(A);
+
+    /* 1.a */             /* 1.b */
+    if (!hasPointerA && (childA = FirstPointerChild(A, None)))
+    {
+        CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyInferior, A, WID(childA));
+        EnterNotifies(dev, A, childA, mode, NotifyVirtual, TRUE);
+    } else {
+        /* 2 */
+        P = FirstPointerAncestor(A, B);
+        if (!P)
+            P = B;
+
+        if (!hasPointerA)
+            CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyAncestor, A, None);
+        LeaveNotifies(dev, A, P, mode, NotifyVirtual, TRUE);
+    }
+
+    /* 3 */
+    if (!HasOtherPointer(B, dev))
+        CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyInferior, B, None);
+
+}
+
+/**
+ * Pointer @dev moves from @A to @B and @B is a descendant of @A.
+ */
+static void
+CoreEnterLeaveToDescendant(DeviceIntPtr dev,
+                           WindowPtr A,
+                           WindowPtr B,
+                           int mode)
+{
+    WindowPtr X, childB, tmp;
+
+    /* 1 */
+    if (!HasPointer(A))
+        CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyInferior, A, WID(B));
+
+    /* 2 */
+    X = FirstPointerAncestor(B, A);
+    if (X)
+    {
+        /* 2.a */
+        tmp = X;
+        while((tmp = FirstPointerAncestor(tmp, A)))
+            X = tmp;
+    } else /* 2.b */
+        X = B;
+
+    EnterNotifies(dev, A, X, mode, NotifyVirtual, TRUE);
+
+    if (X != B && !HasPointer(X))
+        CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyVirtual, X, None);
+
+    /* 3 */
+    if (!HasOtherPointer(B, dev))
+    {
+        childB = FirstPointerChild(B, None);
+        /* 3.a */
+        if (childB)
+        {
+            LeaveNotifies(dev, childB, B, mode, NotifyVirtual, TRUE);
+            CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyInferior, B, WID(childB));
+        } else /* 3.c */
+            CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyAncestor, B, None);
+    }
+}
+
+static void
+CoreEnterLeaveEvents(DeviceIntPtr dev,
+                     WindowPtr from,
+                     WindowPtr to,
+                     int mode)
+{
+    if (!dev->isMaster)
+        return;
+
+    LeaveWindow(dev, from, mode);
+
+    if (IsParent(from, to))
+        CoreEnterLeaveToDescendant(dev, from, to, mode);
+    else if (IsParent(to, from))
+        CoreEnterLeaveToAncestor(dev, from, to, mode);
+    else
+        CoreEnterLeaveNonLinear(dev, from, to, mode);
+
+    EnterWindow(dev, to, mode);
+}
+
+static void
+DeviceEnterLeaveEvents(DeviceIntPtr dev,
+                       WindowPtr    from,
+                       WindowPtr    to,
+                       int          mode)
+{
+    if (IsParent(from, to))
+    {
+        DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyInferior, from, None);
+        EnterNotifies(dev, from, to, mode, NotifyVirtual, FALSE);
+        DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyAncestor, to, None);
+    }
+    else if (IsParent(to, from))
+    {
+	DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyAncestor, from, None);
+	LeaveNotifies(dev, from, to, mode, NotifyVirtual, FALSE);
+	DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyInferior, to, None);
+    }
+    else
+    { /* neither from nor to is descendent of the other */
+	WindowPtr common = CommonAncestor(to, from);
+	/* common == NullWindow ==> different screens */
+        DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyNonlinear, from, None);
+        LeaveNotifies(dev, from, common, mode, NotifyNonlinearVirtual, FALSE);
+	EnterNotifies(dev, common, to, mode, NotifyNonlinearVirtual, FALSE);
+        DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyNonlinear, to, None);
+    }
 }
 
 /**

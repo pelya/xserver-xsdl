@@ -86,6 +86,7 @@ SOFTWARE.
 #include "exevents.h"
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xiproperty.h"
+#include "enterleave.h" /* for EnterWindow() */
 #include "xserver-properties.h"
 
 /** @file
@@ -284,7 +285,8 @@ EnableDevice(DeviceIntPtr dev)
             if (dev->spriteInfo->spriteOwner)
             {
                 InitializeSprite(dev, WindowTable[0]);
-                ENTER_LEAVE_SEMAPHORE_SET(WindowTable[0], dev);
+                                                 /* mode doesn't matter */
+                EnterWindow(dev, WindowTable[0], NotifyAncestor);
             }
             else if ((other = NextFreePointerDevice()) == NULL)
             {

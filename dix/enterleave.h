@@ -63,4 +63,8 @@ extern void DeviceEnterLeaveEvent(DeviceIntPtr mouse,
                                   WindowPtr pWin,
                                   Window child);
 
+extern void EnterWindow(DeviceIntPtr dev,
+                        WindowPtr win,
+                        int mode);
+
 #endif /* _ENTERLEAVE_H_ */
