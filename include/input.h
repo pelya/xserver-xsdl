@@ -97,12 +97,6 @@ SOFTWARE.
 #define SEMAPHORE_FIELD_UNSET(win, dev, field) \
     (win)->field[(dev)->id/8] &= ~(1 << ((dev)->id % 8));
 
-#define ENTER_LEAVE_SEMAPHORE_SET(win, dev) \
-        SEMAPHORE_FIELD_SET(win, dev, enterleave);
-
-#define ENTER_LEAVE_SEMAPHORE_UNSET(win, dev) \
-        SEMAPHORE_FIELD_UNSET(win, dev, enterleave);
-
 #define FOCUS_SEMAPHORE_SET(win, dev) \
         SEMAPHORE_FIELD_SET(win, dev, focusinout);
 
