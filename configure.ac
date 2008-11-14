@@ -638,7 +638,6 @@ case $host_os in
 			XQUARTZ=yes
 			XVFB=no
 			XNEST=no
-			GLX=no
 
 			COMPOSITE=no
 			DGA=no

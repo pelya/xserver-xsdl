@@ -27,11 +27,19 @@ X11_LDFLAGS =  \
 	-XCClinker -Objc \
 	-Wl,-u,_miDCInitialize \
 	-Wl,-framework,Carbon \
-	-L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL \
-	-Wl,-framework,OpenGL \
 	-Wl,-framework,Cocoa \
 	-Wl,-framework,CoreAudio \
 	-Wl,-framework,IOKit
+
+if GLX
+X11_LDADD += \
+	$(top_builddir)/hw/xquartz/GL/libCGLCore.la \
+	$(top_builddir)/glx/libglx.la
+
+X11_LDFLAGS += \
+	-L/System/Library/Frameworks/OpenGL.framework/Libraries -lGL \
+	-Wl,-framework,OpenGL
+endif
 
 bin_PROGRAMS = Xquartz
 
