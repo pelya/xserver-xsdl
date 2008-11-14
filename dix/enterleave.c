@@ -30,6 +30,7 @@
 
 #include <X11/X.h>
 #include "windowstr.h"
+#include "exglobals.h"
 #include "enterleave.h"
 
 /**
@@ -47,46 +48,57 @@ CommonAncestor(
 
 
 /**
- * Send enter notifies to all parent windows up to ancestor.
- * This function recurses.
+ * Send enter notifies to all windows between @ancestor and @child (excluding
+ * both). Events are sent running up the window hierarchy. This function
+ * recurses.
+ * If @core is TRUE, core events are sent, otherwise XI events will be sent.
  */
 static void
-EnterNotifies(DeviceIntPtr pDev,
+EnterNotifies(DeviceIntPtr dev,
               WindowPtr ancestor,
               WindowPtr child,
               int mode,
-              int detail)
+              int detail,
+              BOOL core)
 {
     WindowPtr	parent = child->parent;
 
     if (ancestor == parent)
 	return;
-    EnterNotifies(pDev, ancestor, parent, mode, detail);
-    EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
-                    child->drawable.id);
+    EnterNotifies(dev, ancestor, parent, mode, detail, core);
+    if (core)
+        CoreEnterLeaveEvent(dev, EnterNotify, mode, detail, parent,
+                            child->drawable.id);
+    else
+        DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, detail, parent,
+                              child->drawable.id);
 }
 
-
 /**
- * Send leave notifies to all parent windows up to ancestor.
- * This function recurses.
+ * Send leave notifies to all windows between @child and @ancestor.
+ * Events are sent running up the hierarchy.
  */
 static void
-LeaveNotifies(DeviceIntPtr pDev,
+LeaveNotifies(DeviceIntPtr dev,
               WindowPtr child,
               WindowPtr ancestor,
               int mode,
-              int detail)
+              int detail,
+              BOOL core)
 {
-    WindowPtr  pWin;
+    WindowPtr  win;
 
     if (ancestor == child)
 	return;
-    for (pWin = child->parent; pWin != ancestor; pWin = pWin->parent)
+    for (win = child->parent; win != ancestor; win = win->parent)
     {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, detail, pWin,
-                        child->drawable.id);
-        child = pWin;
+        if (core)
+            CoreEnterLeaveEvent(dev, LeaveNotify, mode, detail, win,
+                            child->drawable.id);
+        else
+            DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, detail, win,
+                                  child->drawable.id);
+        child = win;
     }
 }
 
@@ -108,31 +120,7 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
 
     if (fromWin == toWin)
 	return;
-    if (IsParent(fromWin, toWin))
-    {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
-                        None);
-        EnterNotifies(pDev, fromWin, toWin, mode,
-                      NotifyVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
-    }
-    else if (IsParent(toWin, fromWin))
-    {
-	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin,
-                        None);
-	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
-	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
-    }
-    else
-    { /* neither fromWin nor toWin is descendent of the other */
-	WindowPtr common = CommonAncestor(toWin, fromWin);
-	/* common == NullWindow ==> different screens */
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
-                        None);
-        LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
-	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
-                        None);
-    }
-}
 
+    CoreEnterLeaveEvents(pDev, fromWin, toWin, mode);
+    DeviceEnterLeaveEvents(pDev, fromWin, toWin, mode);
+}

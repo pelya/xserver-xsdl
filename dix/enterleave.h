@@ -50,4 +50,17 @@ extern WindowPtr CommonAncestor(
     WindowPtr a,
     WindowPtr b);
 
+extern void CoreEnterLeaveEvent(DeviceIntPtr mouse,
+                                int type,
+                                int mode,
+                                int detail,
+                                WindowPtr pWin,
+                                Window child);
+extern void DeviceEnterLeaveEvent(DeviceIntPtr mouse,
+                                  int type,
+                                  int mode,
+                                  int detail,
+                                  WindowPtr pWin,
+                                  Window child);
+
 #endif /* _ENTERLEAVE_H_ */
