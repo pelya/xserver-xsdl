@@ -34,6 +34,56 @@
 #include "enterleave.h"
 
 /**
+ * Return TRUE if @win has a pointer within its boundaries, excluding child
+ * window.
+ */
+static BOOL
+HasPointer(WindowPtr win)
+{
+    int i;
+
+    for (i = 0; i < sizeof(win->enterleave); i++)
+        if (win->enterleave[i])
+            return TRUE;
+
+    return FALSE;
+}
+
+static BOOL
+HasOtherPointer(WindowPtr win, DeviceIntPtr dev)
+{
+    int i;
+
+    for (i = 0; i < sizeof(win->enterleave); i++)
+        if (win->enterleave[i] &&
+            !(i == dev->id/8 && win->enterleave[i] == (1 << (dev->id % 8))))
+        {
+            return TRUE;
+        }
+
+    return FALSE;
+}
+
+/**
+ * Set the presence flag for @dev to mark that it is now in @win.
+ */
+static void
+EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
+{
+    win->enterleave[dev->id/8] |= (1 << (dev->id % 8));
+}
+
+/**
+ * Unset the presence flag for @dev to mark that it is not in @win anymore.
+ */
+static void
+LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
+{
+    win->enterleave[dev->id/8] &= ~(1 << (dev->id % 8));
+}
+
+
+/**
  * @return The window that is the first ancestor of both a and b.
  */
 WindowPtr
