@@ -258,7 +258,7 @@ DRI2ClipNotify(WindowPtr pWin, int dx, int dy)
     DRI2ScreenPtr       ds = DRI2GetScreen(pScreen);
     DRI2DrawablePtr     dd = DRI2GetDrawable(&pWin->drawable);
 
-    if (ds->lastSequence < dd->pendingSequence && ds->Wait)
+    if (dd && ds->lastSequence < dd->pendingSequence && ds->Wait)
 	ds->Wait(pWin, dd->pendingSequence);
 
     if (ds->ClipNotify) {
