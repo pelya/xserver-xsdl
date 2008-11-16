@@ -44,7 +44,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <available.h>
+#include <AvailabilityMacros.h>
 
 #include "quartzCommon.h"
 #include "darwin.h"

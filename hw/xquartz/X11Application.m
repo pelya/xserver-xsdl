@@ -47,7 +47,7 @@
 
 #include <mach/mach.h>
 #include <unistd.h>
-#include <available.h>
+#include <AvailabilityMacros.h>
 
 #include <Xplugin.h>
 
