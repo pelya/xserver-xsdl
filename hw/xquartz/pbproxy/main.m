@@ -9,10 +9,14 @@
 #include <pthread.h>
 #include <X11/extensions/applewm.h>
 
-Display *x_dpy;
-int x_apple_wm_event_base, x_apple_wm_error_base;
-int x_xfixes_event_base, x_xfixes_error_base;
-BOOL have_xfixes;
+Display *xpbproxy_dpy;
+int xpbproxy_apple_wm_event_base, xpbproxy_apple_wm_error_base;
+int xpbproxy_xfixes_event_base, xpbproxy_xfixes_error_base;
+BOOL xpbproxy_have_xfixes;
+
+#ifdef STANDALONE_XPBPROXY
+BOOL xpbproxy_is_standalone = NO;
+#endif
 
 x_selection *_selection_object;
 
@@ -21,11 +25,15 @@ static int x_io_error_handler (Display *dpy) {
     
     TRACE ();
 
-    /* TODO: trigger the thread to restart? */
-#ifndef INTEGRATED_XPBPROXY
-    exit(1);
+    /* trigger the thread to restart?
+     *   NO - this would be to a "deeper" problem, and restarts would just
+     *        make things worse...
+     */
+#ifdef STANDALONE_XPBPROXY
+    if(xpbproxy_is_standalone)
+        exit(EXIT_FAILURE);
 #endif
-    
+
     return 0;
 }
 
@@ -33,45 +41,50 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
     return 0;
 }
 
-BOOL x_init (void) {
+BOOL xpbproxy_init (void) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    x_dpy = XOpenDisplay (NULL);
-    if (x_dpy == NULL) {
+    xpbproxy_dpy = XOpenDisplay (NULL);
+    if (xpbproxy_dpy == NULL) {
         fprintf (stderr, "can't open default display\n");
+        [pool release];
         return FALSE;
     }
     
     XSetIOErrorHandler (x_io_error_handler);
     XSetErrorHandler (x_error_handler);
     
-    if (!XAppleWMQueryExtension (x_dpy, &x_apple_wm_event_base,
-                                 &x_apple_wm_error_base)) {
+    if (!XAppleWMQueryExtension (xpbproxy_dpy, &xpbproxy_apple_wm_event_base,
+                                 &xpbproxy_apple_wm_error_base)) {
         fprintf (stderr, "can't open AppleWM server extension\n");
+        [pool release];
         return FALSE;
     }
     
-    have_xfixes = XFixesQueryExtension(x_dpy, &x_xfixes_event_base, &x_xfixes_error_base);
+    xpbproxy_have_xfixes = XFixesQueryExtension(xpbproxy_dpy, &xpbproxy_xfixes_event_base, &xpbproxy_xfixes_error_base);
     
-    XAppleWMSelectInput (x_dpy, AppleWMActivationNotifyMask |
+    XAppleWMSelectInput (xpbproxy_dpy, AppleWMActivationNotifyMask |
                          AppleWMPasteboardNotifyMask);
     
     _selection_object = [[x_selection alloc] init];
     
-    if(!x_input_register())
+    if(!xpbproxy_input_register()) {
+        [pool release];
         return FALSE;
-    x_input_run();
+    }
+
+    xpbproxy_input_run();
 
     [pool release];
     
     return TRUE;
 }
 
-id x_selection_object (void) {
+id xpbproxy_selection_object (void) {
     return _selection_object;
 }
 
-Time x_current_timestamp (void) {
+Time xpbproxy_current_timestamp (void) {
     /* FIXME: may want to fetch a timestamp from the server.. */
     return CurrentTime;
 }

@@ -15,21 +15,25 @@
 
 #include <unistd.h>
 
-static CFRunLoopSourceRef x_dpy_source;
+static CFRunLoopSourceRef xpbproxy_dpy_source;
+
+#ifdef STANDALONE_XPBPROXY
+BOOL xpbproxy_prefs_reload = NO;
+#endif
 
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
 
 static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
-    int type = e->type - x_apple_wm_event_base;
+    int type = e->type - xpbproxy_apple_wm_event_base;
     int kind = e->kind;
 
     /* We want to reload prefs even if we're not active */
     if(type == AppleWMActivationNotify &&
        kind == AppleWMReloadPreferences)
-        [x_selection_object() reload_preferences];
+        [xpbproxy_selection_object() reload_preferences];
 
-    if(![x_selection_object() is_active])
+    if(![xpbproxy_selection_object() is_active])
         return;
 
     switch (type) {              
@@ -37,11 +41,11 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
             switch (kind) {
                 case AppleWMIsActive:
                     last_activation_time = e->time;
-                    [x_selection_object() x_active:e->time];
+                    [xpbproxy_selection_object() x_active:e->time];
                     break;
                     
                 case AppleWMIsInactive:
-                    [x_selection_object() x_inactive:e->time];
+                    [xpbproxy_selection_object() x_inactive:e->time];
                     break;
             }
             break;
@@ -49,13 +53,13 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
         case AppleWMPasteboardNotify:
             switch (kind) {
                 case AppleWMCopyToPasteboard:
-                    [x_selection_object() x_copy:e->time];
+                    [xpbproxy_selection_object() x_copy:e->time];
             }
             break;
     }
 }
 
-void x_input_run (void) {
+void xpbproxy_input_run (void) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
     if (nil == pool) 
@@ -64,39 +68,39 @@ void x_input_run (void) {
         return;
     }
     
-    while (XPending (x_dpy) != 0) {
+    while (XPending (xpbproxy_dpy) != 0) {
         XEvent e;
-        XNextEvent (x_dpy, &e);
+        XNextEvent (xpbproxy_dpy, &e);
         
         switch (e.type) {                
             case SelectionClear:
-                if([x_selection_object() is_active])
-                    [x_selection_object () clear_event:&e.xselectionclear];
+                if([xpbproxy_selection_object() is_active])
+                    [xpbproxy_selection_object () clear_event:&e.xselectionclear];
                 break;
                 
             case SelectionRequest:
-                [x_selection_object () request_event:&e.xselectionrequest];
+                [xpbproxy_selection_object () request_event:&e.xselectionrequest];
                 break;
                 
             case SelectionNotify:
-                [x_selection_object () notify_event:&e.xselection];
+                [xpbproxy_selection_object () notify_event:&e.xselection];
                 break;
                 
             case PropertyNotify:
-                [x_selection_object () property_event:&e.xproperty];
+                [xpbproxy_selection_object () property_event:&e.xproperty];
                 break;
                 
             default:
-                if(e.type >= x_apple_wm_event_base &&
-                   e.type < x_apple_wm_event_base + AppleWMNumberEvents) {
+                if(e.type >= xpbproxy_apple_wm_event_base &&
+                   e.type < xpbproxy_apple_wm_event_base + AppleWMNumberEvents) {
                     x_event_apple_wm_notify((XAppleWMNotifyEvent *) &e);
-                } else if(e.type == x_xfixes_event_base + XFixesSelectionNotify) {
-                    [x_selection_object() xfixes_selection_notify:(XFixesSelectionNotifyEvent *)&e];
+                } else if(e.type == xpbproxy_xfixes_event_base + XFixesSelectionNotify) {
+                    [xpbproxy_selection_object() xfixes_selection_notify:(XFixesSelectionNotifyEvent *)&e];
                 }
                 break;
         }
         
-        XFlush(x_dpy);
+        XFlush(xpbproxy_dpy);
     }
     
     [pool release];
@@ -129,17 +133,17 @@ static BOOL add_input_socket (int sock, CFOptionFlags callback_types,
 static void x_input_callback (CFSocketRef sock, CFSocketCallBackType type,
                               CFDataRef address, const void *data, void *info) {
 
-#ifndef INTEGRATED_XPBPROXY
-    if(prefs_reload) {
-        [x_selection_object() reload_preferences];
-        prefs_reload = NO;
+#ifdef STANDALONE_XPBPROXY
+    if(xpbproxy_prefs_reload) {
+        [xpbproxy_selection_object() reload_preferences];
+        xpbproxy_prefs_reload = NO;
     }
 #endif
-    
-    x_input_run();
+
+    xpbproxy_input_run();
 }
 
-BOOL x_input_register(void) {
-    return add_input_socket(ConnectionNumber(x_dpy), kCFSocketReadCallBack,
-                            x_input_callback, NULL, &x_dpy_source);
+BOOL xpbproxy_input_register(void) {
+    return add_input_socket(ConnectionNumber(xpbproxy_dpy), kCFSocketReadCallBack,
+                            x_input_callback, NULL, &xpbproxy_dpy_source);
 }

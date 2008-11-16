@@ -50,6 +50,9 @@
 
 #include <Xplugin.h>
 
+// pbproxy/pbproxy.h
+extern BOOL xpbproxy_init (void);
+
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 #ifndef XSERVER_VERSION
@@ -884,6 +887,9 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
      * an mieqEnqueue() - <rdar://problem/6300249>
      */
     check_xinitrc();
+    
+    if(!xpbproxy_init())
+        fprintf(stderr, "Error initializing xpbproxy\n");
            
     [NSApp run];
     /* not reached */

@@ -155,7 +155,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	printf("bytesleft %lu\n", bytesleft);
 #endif
 
-	if (Success != XGetWindowProperty (x_dpy, win, property,
+	if (Success != XGetWindowProperty (xpbproxy_dpy, win, property,
 					   offset, length, delete, 
 					   AnyPropertyType,
 					   type, &format, &numitems, 
@@ -171,7 +171,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	printf("format %d numitems %lu bytesleft %lu\n",
 	       format, numitems, bytesleft);
 	
-	printf("type %s\n", XGetAtomName (x_dpy, *type));
+	printf("type %s\n", XGetAtomName (xpbproxy_dpy, *type));
 #endif
 	
 	/* Format is the number of bits. */
@@ -257,7 +257,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	}
 	else
 	{
-	    char *type = XGetAtomName(x_dpy, a);
+	    char *type = XGetAtomName(xpbproxy_dpy, a);
 	    if (type)
 	    {
 		DB("Unhandled X11 mime type: %s", type);
@@ -293,7 +293,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
        
     TRACE ();
 
-    if (Success != XGetWindowProperty (x_dpy, e->requestor, e->property,
+    if (Success != XGetWindowProperty (xpbproxy_dpy, e->requestor, e->property,
 				       /*offset*/ 0L, /*length*/ 4UL,
 				       /*Delete*/ False,
 				       AnyPropertyType, &seltype, &format,
@@ -378,7 +378,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
         
         if (pbproxy_prefs.pasteboard_to_primary)
         {
-            XSetSelectionOwner (x_dpy, atoms->primary, _selection_window, CurrentTime);
+            XSetSelectionOwner (xpbproxy_dpy, atoms->primary, _selection_window, CurrentTime);
         }
         
         if (pbproxy_prefs.pasteboard_to_clipboard) {
@@ -393,9 +393,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    /* Pasteboard has data we should proxy; I think it makes
 	       sense to put it on both CLIPBOARD and PRIMARY */
 
-	    XSetSelectionOwner (x_dpy, atoms->clipboard,
+	    XSetSelectionOwner (xpbproxy_dpy, atoms->clipboard,
 				_selection_window, timestamp);
-	    XSetSelectionOwner (x_dpy, atoms->primary,
+	    XSetSelectionOwner (xpbproxy_dpy, atoms->primary,
 				_selection_window, timestamp);
 	}
 #endif
@@ -413,7 +413,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     TRACE ();
 
     request_atom = atoms->targets;
-    XConvertSelection (x_dpy, atoms->primary, atoms->targets,
+    XConvertSelection (xpbproxy_dpy, atoms->primary, atoms->targets,
 		       atoms->primary, _selection_window, CurrentTime);
 }
 
@@ -425,7 +425,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     TRACE ();
 
-    w = XGetSelectionOwner (x_dpy, atoms->primary);
+    w = XGetSelectionOwner (xpbproxy_dpy, atoms->primary);
 
     if (None != w)
     {
@@ -442,7 +442,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
     else
     {
-	XBell (x_dpy, 0);
+	XBell (xpbproxy_dpy, 0);
     }
 }
 
@@ -454,7 +454,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 {
     TRACE ();
 
-    Window owner = XGetSelectionOwner (x_dpy, atoms->clipboard_manager);
+    Window owner = XGetSelectionOwner (xpbproxy_dpy, atoms->clipboard_manager);
 
     if(value) {
         if(owner == _selection_window)
@@ -467,14 +467,14 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
             return FALSE;
         }
         
-        XSetSelectionOwner(x_dpy, atoms->clipboard_manager, _selection_window, CurrentTime);
-        return (_selection_window == XGetSelectionOwner(x_dpy, atoms->clipboard_manager));
+        XSetSelectionOwner(xpbproxy_dpy, atoms->clipboard_manager, _selection_window, CurrentTime);
+        return (_selection_window == XGetSelectionOwner(xpbproxy_dpy, atoms->clipboard_manager));
     } else {
         if(owner != _selection_window)
             return TRUE;
 
-        XSetSelectionOwner(x_dpy, atoms->clipboard_manager, None, CurrentTime);
-        return(None == XGetSelectionOwner(x_dpy, atoms->clipboard_manager));
+        XSetSelectionOwner(xpbproxy_dpy, atoms->clipboard_manager, None, CurrentTime);
+        return(None == XGetSelectionOwner(xpbproxy_dpy, atoms->clipboard_manager));
     }
     
     return FALSE;
@@ -490,7 +490,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     TRACE ();
         
-    DB ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
+    DB ("e->selection %s\n", XGetAtomName (xpbproxy_dpy, e->selection));
     
     if(e->selection == atoms->clipboard) {
         /* 
@@ -526,7 +526,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if (!pbproxy_prefs.clipboard_to_pasteboard)
         return;
     
-    owner = XGetSelectionOwner (x_dpy, atoms->clipboard);
+    owner = XGetSelectionOwner (xpbproxy_dpy, atoms->clipboard);
     if (None == owner) {
         /*
          * The owner probably died or we are just starting up pbproxy.
@@ -543,9 +543,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     DB ("requesting targets\n");
     
     request_atom = atoms->targets;
-    XConvertSelection (x_dpy, atoms->clipboard, atoms->targets,
+    XConvertSelection (xpbproxy_dpy, atoms->clipboard, atoms->targets,
                        atoms->clipboard, _selection_window, CurrentTime);
-    XFlush (x_dpy);
+    XFlush (xpbproxy_dpy);
     /* Now we will get a SelectionNotify event in the future. */
 }
 
@@ -558,9 +558,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     /* We should perhaps have a boundary limit on the number of iterations... */
     do 
     {
-	XSetSelectionOwner (x_dpy, atoms->clipboard, _selection_window,
+	XSetSelectionOwner (xpbproxy_dpy, atoms->clipboard, _selection_window,
 			    CurrentTime);
-    } while (_selection_window != XGetSelectionOwner (x_dpy,
+    } while (_selection_window != XGetSelectionOwner (xpbproxy_dpy,
 						      atoms->clipboard));
 }
 
@@ -582,8 +582,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
      */
     DB ("reply->xselection.requestor 0x%lx\n", reply->xselection.requestor);
   
-    XSendEvent (x_dpy, reply->xselection.requestor, False, 0, reply);
-    XFlush (x_dpy);
+    XSendEvent (xpbproxy_dpy, reply->xselection.requestor, False, 0, reply);
+    XFlush (xpbproxy_dpy);
 }
 
 /* 
@@ -644,7 +644,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	if (count)
 	{
 	    /* We have a list of ATOMs to send. */
-	    XChangeProperty (x_dpy, e->requestor, e->property, atoms->atom, 32,
+	    XChangeProperty (xpbproxy_dpy, e->requestor, e->property, atoms->atom, 32,
 			 PropModeReplace, (unsigned char *) list, count);
 	    
 	    reply.xselection.property = e->property;
@@ -707,9 +707,9 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	length = [data lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
     }
 
-    DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
+    DB ("e->target %s\n", XGetAtomName (xpbproxy_dpy, e->target));
     
-    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+    XChangeProperty (xpbproxy_dpy, e->requestor, e->property, e->target,
 		     8, PropModeReplace, (unsigned char *) bytes, length);
     
     reply.xselection.property = e->property;
@@ -743,7 +743,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 	    
 	    textprop.value = NULL;
 
-	    if (Success == Xutf8TextListToTextProperty (x_dpy, list, 1,
+	    if (Success == Xutf8TextListToTextProperty (xpbproxy_dpy, list, 1,
 							XCompoundTextStyle,
 							&textprop))
 	    {
@@ -752,7 +752,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 		    DB ("textprop.format is unexpectedly not 8 - it's %d instead\n",
 			textprop.format);
 
-		XChangeProperty (x_dpy, e->requestor, e->property, 
+		XChangeProperty (xpbproxy_dpy, e->requestor, e->property, 
 				 atoms->compound_text, textprop.format, 
 				 PropModeReplace, textprop.value,
 				 textprop.nitems);
@@ -857,7 +857,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     length = [encdata length];
     bytes = [encdata bytes];
     
-    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+    XChangeProperty (xpbproxy_dpy, e->requestor, e->property, e->target,
 		     8, PropModeReplace, bytes, length);
     reply.xselection.property = e->property;
 
@@ -895,7 +895,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     length = [encdata length];
     bytes = [encdata bytes];
     
-    XChangeProperty (x_dpy, e->requestor, e->property, e->target,
+    XChangeProperty (xpbproxy_dpy, e->requestor, e->property, e->target,
 		     8, PropModeReplace, bytes, length);
     reply.xselection.property = e->property;
     
@@ -981,7 +981,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     
 
     if (None != e->target)
-	DB ("e->target %s\n", XGetAtomName (x_dpy, e->target));
+	DB ("e->target %s\n", XGetAtomName (xpbproxy_dpy, e->target));
 
     if (e->target == atoms->targets) 
     {
@@ -1040,8 +1040,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 
 #if 0
-    printf ("e->selection %s\n", XGetAtomName (x_dpy, e->selection));
-    printf ("e->property %s\n", XGetAtomName (x_dpy, e->property));
+    printf ("e->selection %s\n", XGetAtomName (xpbproxy_dpy, e->selection));
+    printf ("e->property %s\n", XGetAtomName (xpbproxy_dpy, e->property));
 #endif
 
     if ([self is_incr_type:e]) 
@@ -1096,7 +1096,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if (None != e->atom) 
     {
 #ifdef DEBUG
-	char *name = XGetAtomName (x_dpy, e->atom);
+	char *name = XGetAtomName (xpbproxy_dpy, e->atom);
 
 	if (name) 
 	{
@@ -1176,7 +1176,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     (void)name; /* Avoid a warning with non-debug compiles. */
 #ifdef DEBUG
-    name = XGetAtomName (x_dpy, preferred);
+    name = XGetAtomName (xpbproxy_dpy, preferred);
 
     if (name)
     {
@@ -1184,7 +1184,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     }
 #endif
     request_atom = preferred;
-    XConvertSelection (x_dpy, selection, preferred, selection,
+    XConvertSelection (xpbproxy_dpy, selection, preferred, selection,
 		       _selection_window, CurrentTime);    
 }
 
@@ -1375,7 +1375,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 
     (void)name; /* Avoid warning with non-debug compiles. */
 #ifdef DEBUG
-    name = XGetAtomName (x_dpy, selection);
+    name = XGetAtomName (xpbproxy_dpy, selection);
     if (name)
     {
 	DB ("copy_completed: %s\n", name);
@@ -1427,7 +1427,11 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
      * The prefs_get_bool should fall back to defaults if the org.x.X11 plist doesn't exist or is invalid.
      */
     (void)CFPreferencesAppSynchronize(CFSTR(APP_PREFS));
-
+#ifdef STANDALONE_XPBPROXY
+    if(xpbproxy_is_standalone)
+        pbproxy_prefs.active = YES;
+    else
+#endif
     pbproxy_prefs.active = prefs_get_bool(CFSTR("sync_pasteboard"), pbproxy_prefs.active);
     pbproxy_prefs.primary_on_grab = prefs_get_bool(CFSTR("sync_primary_on_select"), pbproxy_prefs.primary_on_grab);
     pbproxy_prefs.clipboard_to_pasteboard = prefs_get_bool(CFSTR("sync_clipboard_to_pasteboard"), pbproxy_prefs.clipboard_to_pasteboard);
@@ -1437,7 +1441,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     /* This is used for debugging. */
     //dump_prefs(stdout);
 
-    if(pbproxy_prefs.active && pbproxy_prefs.primary_on_grab && !have_xfixes) {
+    if(pbproxy_prefs.active && pbproxy_prefs.primary_on_grab && !xpbproxy_have_xfixes) {
         fprintf(stderr, "Disabling sync_primary_on_select functionality due to missing XFixes extension.\n");
         pbproxy_prefs.primary_on_grab = NO;
     }
@@ -1484,28 +1488,28 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     if (self == nil)
 	return nil;
 
-    atoms->primary = XInternAtom (x_dpy, "PRIMARY", False);
-    atoms->clipboard = XInternAtom (x_dpy, "CLIPBOARD", False);
-    atoms->text = XInternAtom (x_dpy, "TEXT", False);
-    atoms->utf8_string = XInternAtom (x_dpy, "UTF8_STRING", False);
-    atoms->string = XInternAtom (x_dpy, "STRING", False);
-    atoms->targets = XInternAtom (x_dpy, "TARGETS", False);
-    atoms->multiple = XInternAtom (x_dpy, "MULTIPLE", False);
-    atoms->cstring = XInternAtom (x_dpy, "CSTRING", False);
-    atoms->image_png = XInternAtom (x_dpy, "image/png", False);
-    atoms->image_jpeg = XInternAtom (x_dpy, "image/jpeg", False);
-    atoms->incr = XInternAtom (x_dpy, "INCR", False);
-    atoms->atom = XInternAtom (x_dpy, "ATOM", False);
-    atoms->clipboard_manager = XInternAtom (x_dpy, "CLIPBOARD_MANAGER", False);
-    atoms->compound_text = XInternAtom (x_dpy, "COMPOUND_TEXT", False);
-    atoms->atom_pair = XInternAtom (x_dpy, "ATOM_PAIR", False);
+    atoms->primary = XInternAtom (xpbproxy_dpy, "PRIMARY", False);
+    atoms->clipboard = XInternAtom (xpbproxy_dpy, "CLIPBOARD", False);
+    atoms->text = XInternAtom (xpbproxy_dpy, "TEXT", False);
+    atoms->utf8_string = XInternAtom (xpbproxy_dpy, "UTF8_STRING", False);
+    atoms->string = XInternAtom (xpbproxy_dpy, "STRING", False);
+    atoms->targets = XInternAtom (xpbproxy_dpy, "TARGETS", False);
+    atoms->multiple = XInternAtom (xpbproxy_dpy, "MULTIPLE", False);
+    atoms->cstring = XInternAtom (xpbproxy_dpy, "CSTRING", False);
+    atoms->image_png = XInternAtom (xpbproxy_dpy, "image/png", False);
+    atoms->image_jpeg = XInternAtom (xpbproxy_dpy, "image/jpeg", False);
+    atoms->incr = XInternAtom (xpbproxy_dpy, "INCR", False);
+    atoms->atom = XInternAtom (xpbproxy_dpy, "ATOM", False);
+    atoms->clipboard_manager = XInternAtom (xpbproxy_dpy, "CLIPBOARD_MANAGER", False);
+    atoms->compound_text = XInternAtom (xpbproxy_dpy, "COMPOUND_TEXT", False);
+    atoms->atom_pair = XInternAtom (xpbproxy_dpy, "ATOM_PAIR", False);
 
-    pixel = BlackPixel (x_dpy, DefaultScreen (x_dpy));
-    _selection_window = XCreateSimpleWindow (x_dpy, DefaultRootWindow (x_dpy),
+    pixel = BlackPixel (xpbproxy_dpy, DefaultScreen (xpbproxy_dpy));
+    _selection_window = XCreateSimpleWindow (xpbproxy_dpy, DefaultRootWindow (xpbproxy_dpy),
 					     0, 0, 1, 1, 0, pixel, pixel);
 
     /* This is used to get PropertyNotify events when doing INCR transfers. */
-    XSelectInput (x_dpy, _selection_window, PropertyChangeMask);
+    XSelectInput (xpbproxy_dpy, _selection_window, PropertyChangeMask);
 
     request_atom = None;
 
@@ -1516,8 +1520,8 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
     pending_copy = 0;
     pending_clipboard = 0;
 
-    if(have_xfixes)
-        XFixesSelectSelectionInput(x_dpy, _selection_window, atoms->primary, 
+    if(xpbproxy_have_xfixes)
+        XFixesSelectSelectionInput(xpbproxy_dpy, _selection_window, atoms->primary, 
                                    XFixesSetSelectionOwnerNotifyMask);
 
     [self reload_preferences];
@@ -1529,7 +1533,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
 {
     if (None != _selection_window)
     {
-	XDestroyWindow (x_dpy, _selection_window);
+	XDestroyWindow (xpbproxy_dpy, _selection_window);
 	_selection_window = None;
     }
 

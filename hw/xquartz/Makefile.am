@@ -13,9 +13,9 @@ if GLX
 GL_DIR = GL
 endif
 
-SUBDIRS = bundle . GL xpr mach-startup doc pbproxy
+SUBDIRS = bundle . GL xpr pbproxy mach-startup doc
 
-DIST_SUBDIRS = bundle . $(GL_DIR) xpr mach-startup doc pbproxy
+DIST_SUBDIRS = bundle . $(GL_DIR) xpr pbproxy mach-startup doc
 
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \

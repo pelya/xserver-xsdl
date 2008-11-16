@@ -127,8 +127,8 @@
 /* Have Quartz */
 #undef XQUARTZ
 
-/* Build xpbproxy into Xquartz rather than a separate app */
-#undef INTEGRATED_XPBPROXY
+/* Build a standalone xpbproxy */
+#undef STANDALONE_XPBPROXY
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM

@@ -546,7 +546,7 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
-AC_ARG_ENABLE(integrated-xpbproxy, AS_HELP_STRING([--enable-integrated-xpbproxy], [Build xpbproxy into Xquartz as a separate thread (default: no)]), [INTEGRATED_XPBPROXY=$enableval], [INTEGRATED_XPBPROXY=no])
+AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addigion to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
@@ -1532,8 +1532,8 @@ if test "x$XQUARTZ" = xyes; then
 
 	PKG_CHECK_MODULES(APPLEWM, [applewmproto >= 1.1.1])
 
-	if test "x$INTEGRATED_XPBPROXY" = xyes ; then
-		AC_DEFINE(INTEGRATED_XPBPROXY,1,[Build xpbproxy into the server rather than as a standalone app])
+	if test "x$STANDALONE_XPBPROXY" = xyes ; then
+		AC_DEFINE(STANDALONE_XPBPROXY,1,[Build a standalone xpbproxy])
 	fi
 fi
 
@@ -1551,7 +1551,7 @@ _AM_DEPENDENCIES([OBJC])
 AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
-AM_CONDITIONAL(INTEGRATED_XPBPROXY, [test "x$INTEGRATED_XPBPROXY" = xyes])
+AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 
 dnl DMX DDX
 

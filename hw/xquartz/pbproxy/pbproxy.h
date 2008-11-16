@@ -12,25 +12,34 @@
 #include <X11/extensions/shape.h>
 #undef   Cursor
 
-#ifndef INTEGRATED_XPBPROXY
-extern BOOL prefs_reload;
+#ifdef STANDALONE_XPBPROXY
+/* Just used for the standalone to respond to SIGHUP to reload prefs */
+extern BOOL xpbproxy_prefs_reload;
+
+/* Setting this to YES (for the standalone app) causes us to ignore the
+ * 'sync_pasteboard' defaults preference since we assume it to be on... this is
+ * mainly useful for debugging/developing xpbproxy with XQuartz still running.
+ * Just disable the one in the server with X11's preference pane, then run
+ * the standalone app.
+ */
+extern BOOL xpbproxy_is_standalone;
 #endif
 
 /* from main.m */
-extern void x_set_is_active (BOOL state);
-extern BOOL x_get_is_active (void);
-extern id x_selection_object (void);
-extern Time x_current_timestamp (void);
-extern BOOL x_init (void);
+extern void xpbproxy_set_is_active (BOOL state);
+extern BOOL xpbproxy_get_is_active (void);
+extern id xpbproxy_selection_object (void);
+extern Time xpbproxy_current_timestamp (void);
+extern BOOL xpbproxy_init (void);
 
-extern Display *x_dpy;
-extern int x_apple_wm_event_base, x_apple_wm_error_base;
-extern int x_xfixes_event_base, x_xfixes_error_base;
-extern BOOL have_xfixes;
+extern Display *xpbproxy_dpy;
+extern int xpbproxy_apple_wm_event_base, xpbproxy_apple_wm_error_base;
+extern int xpbproxy_xfixes_event_base, xpbproxy_xfixes_error_base;
+extern BOOL xpbproxy_have_xfixes;
 
 /* from x-input.m */
-extern BOOL x_input_register (void);
-extern void x_input_run (void);
+extern BOOL xpbproxy_input_register (void);
+extern void xpbproxy_input_run (void);
 
 #ifdef DEBUG
 /* BEWARE: this can cause a string memory leak, according to the leaks program. */
