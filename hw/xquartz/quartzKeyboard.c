@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <available.h>
 
 #include "quartzCommon.h"
 #include "darwin.h"
@@ -701,20 +702,19 @@ static KeySym make_dead_key(KeySym in) {
 }
 
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
-#if !defined(__LP64__)
+#if !defined(__LP64__) || MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     KeyboardLayoutRef key_layout;
+    int is_uchr = 1;
 #endif
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
-#if !defined(__LP64__)
-    int is_uchr = 1;
-#endif
     int i, j;
     OSStatus err;
     KeySym *k;
     CFDataRef currentKeyLayoutDataRef = NULL;
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
     keyboard_type = LMGetKbdType();
 
@@ -723,13 +723,15 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
       if (currentKeyLayoutDataRef)
           chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
     }
+#endif
 
-#if !defined(__LP64__)
+#if !defined(__LP64__) || MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     if (chr_data == NULL) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
         ErrorF("X11.app: Error detected in determining keyboard layout.  If you are using an Apple-provided keyboard layout, please report this error at http://xquartz.macosforge.org and http://bugreport.apple.com\n");
         ErrorF("X11.app: Debug Info: keyboard_type=%u, currentKeyLayoutRef=%p, currentKeyLayoutDataRef=%p, chr_data=%p\n",
                (unsigned)keyboard_type, currentKeyLayoutRef, currentKeyLayoutDataRef, chr_data);
-
+#endif
         KLGetCurrentKeyboardLayout (&key_layout);
         KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
 
@@ -771,7 +773,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
         k = info->keyMap + i * GLYPHS_PER_KEY;
 
         for (j = 0; j < 4; j++) {
-#if !defined(__LP64__)
+#if !defined(__LP64__) || MAC_OS_X_VERSION_MIN_REQUIRED < 1050
             if (is_uchr)  {
 #endif
                 UniChar s[8];
@@ -797,7 +799,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
                     k[j] = ucs2keysym (s[0]);
                     if (dead_key_state != 0) k[j] = make_dead_key (k[j]);
                 }
-#if !defined(__LP64__)
+#if !defined(__LP64__) || MAC_OS_X_VERSION_MIN_REQUIRED < 1050
             } else { // kchr
 	      UInt32 c, state = 0, state2 = 0;
                 UInt16 code;

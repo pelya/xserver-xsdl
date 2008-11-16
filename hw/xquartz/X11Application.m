@@ -47,6 +47,7 @@
 
 #include <mach/mach.h>
 #include <unistd.h>
+#include <available.h>
 
 #include <Xplugin.h>
 
@@ -65,7 +66,11 @@ extern BOOL xpbproxy_init (void);
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 static TISInputSourceRef last_key_layout;
+#else
+static KeyboardLayoutRef last_key_layout;
+#endif
 
 extern int darwinFakeButtons;
 
@@ -869,11 +874,16 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
 
     /* Set the key layout seed before we start the server */
-    last_key_layout = TISCopyCurrentKeyboardLayoutInputSource();
-    
-    if(!last_key_layout) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+    last_key_layout = TISCopyCurrentKeyboardLayoutInputSource();    
+
+    if(!last_key_layout)
         fprintf(stderr, "X11ApplicationMain: Unable to determine TISCopyCurrentKeyboardLayoutInputSource() at startup.\n");
-    }
+#else
+    KLGetCurrentKeyboardLayout(&last_key_layout);
+    if(!last_key_layout)
+        fprintf(stderr, "X11ApplicationMain: Unable to determine KLGetCurrentKeyboardLayout() at startup.\n");
+#endif
 
     memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
     if (!QuartzReadSystemKeymap(&keyInfo)) {
@@ -1034,6 +1044,7 @@ extern int darwin_modifier_flags; // darwinEvents.c
             
         case NSKeyDown: case NSKeyUp:
             if(darwinSyncKeymap) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
                 TISInputSourceRef key_layout = TISCopyCurrentKeyboardLayoutInputSource();
                 TISInputSourceRef clear;
                 if (CFEqual(key_layout, last_key_layout)) {
@@ -1043,6 +1054,12 @@ extern int darwin_modifier_flags; // darwinEvents.c
                     clear = last_key_layout;
                     last_key_layout = key_layout;
                     CFRelease(clear);
+#else
+                KeyboardLayoutRef key_layout;
+                KLGetCurrentKeyboardLayout(&key_layout);
+                if(key_layout != last_key_layout) {
+                    last_key_layout = key_layout;
+#endif
 
                     /* Update keyInfo */
                     pthread_mutex_lock(&keyInfo_mutex);
