@@ -1,5 +1,4 @@
 /* x-selection.h -- proxies between NSPasteboard and X11 selections
-   $Id: x-selection.h,v 1.2 2002-12-13 00:21:00 jharper Exp $
 
    Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved.
 
@@ -26,7 +25,8 @@
    Except as contained in this notice, the name(s) of the above
    copyright holders shall not be used in advertising or otherwise to
    promote the sale, use or other dealings in this Software without
-   prior written authorization. */
+   prior written authorization.
+*/
 
 #ifndef X_SELECTION_H
 #define X_SELECTION_H 1

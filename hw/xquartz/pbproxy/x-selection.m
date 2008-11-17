@@ -1,5 +1,4 @@
 /* x-selection.m -- proxies between NSPasteboard and X11 selections
-   $Id: x-selection.m,v 1.9 2006-07-07 18:24:28 jharper Exp $
 
    Copyright (c) 2002, 2008 Apple Computer, Inc. All rights reserved.
 
