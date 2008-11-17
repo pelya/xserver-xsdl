@@ -1233,36 +1233,53 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	 */
 	if (alu != GXcopy)
 	    ret = TRUE;
-	else if ((*pExaScr->info->PrepareCopy) (pPixmap, pPixmap, 1, 1, alu,
-						planemask)) {
-	    for (i = 0; i < nbox; i++)
-	    {
+	else {
+	    Bool more_copy = FALSE;
+
+	    for (i = 0; i < nbox; i++) {
 		int dstX = pBox[i].x1 + tileWidth;
 		int dstY = pBox[i].y1 + tileHeight;
-		int width = min(pBox[i].x2 - dstX, tileWidth);
-		int height = min(pBox[i].y2 - pBox[i].y1, tileHeight);
 
-		while (dstX < pBox[i].x2) {
-		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
-					    dstX, pBox[i].y1, width, height);
-		    dstX += width;
-		    width = min(pBox[i].x2 - dstX, width * 2);
-		}
-
-		width = pBox[i].x2 - pBox[i].x1;
-		height = min(pBox[i].y2 - dstY, tileHeight);
-
-		while (dstY < pBox[i].y2) {
-		    (*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
-					    pBox[i].x1, dstY, width, height);
-		    dstY += height;
-		    height = min(pBox[i].y2 - dstY, height * 2);
+		if ((dstX < pBox[i].x2) || (dstY < pBox[i].y2)) {
+		    more_copy = TRUE;
+		    break;
 		}
 	    }
 
-	    (*pExaScr->info->DoneCopy) (pPixmap);
+	    if (more_copy == FALSE)
+		ret = TRUE;
 
-	    ret = TRUE;
+	    if (more_copy && (*pExaScr->info->PrepareCopy) (pPixmap, pPixmap,
+							    1, 1, alu, planemask)) {
+		for (i = 0; i < nbox; i++)
+		{
+		    int dstX = pBox[i].x1 + tileWidth;
+		    int dstY = pBox[i].y1 + tileHeight;
+		    int width = min(pBox[i].x2 - dstX, tileWidth);
+		    int height = min(pBox[i].y2 - pBox[i].y1, tileHeight);
+
+		    while (dstX < pBox[i].x2) {
+			(*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
+						dstX, pBox[i].y1, width, height);
+			dstX += width;
+			width = min(pBox[i].x2 - dstX, width * 2);
+		    }
+
+		    width = pBox[i].x2 - pBox[i].x1;
+		    height = min(pBox[i].y2 - dstY, tileHeight);
+
+		    while (dstY < pBox[i].y2) {
+			(*pExaScr->info->Copy) (pPixmap, pBox[i].x1, pBox[i].y1,
+						pBox[i].x1, dstY, width, height);
+			dstY += height;
+			height = min(pBox[i].y2 - dstY, height * 2);
+		    }
+		}
+
+		(*pExaScr->info->DoneCopy) (pPixmap);
+
+		ret = TRUE;
+	    }
 	}
 
 	exaMarkSync(pDrawable->pScreen);
