@@ -401,6 +401,10 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     RegionPtr srcregion = NULL, dstregion = NULL;
     xRectangle *rects;
 
+    /* avoid doing copy operations if no boxes */
+    if (nbox == 0)
+	return;
+
     pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
     pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
 
