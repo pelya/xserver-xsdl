@@ -861,9 +861,6 @@ AM_CONDITIONAL(DRI2, test "x$DRI2" == xyes)
 
 if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
-	PKG_CHECK_EXISTS(libdrm >= 2.2.0,
-			 [AC_DEFINE([HAVE_LIBDRM_2_2], 1,
-			 [Has version 2.2 (or newer) of the drm library])])
 	AC_SUBST(LIBDRM_CFLAGS)
 	AC_SUBST(LIBDRM_LIBS)
 fi
