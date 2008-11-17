@@ -129,9 +129,15 @@ xf86InfoRec xf86Info = {
     .kbdCustomKeycodes          = FALSE,
     .disableRandR               = FALSE,
     .randRFrom                  = X_DEFAULT,
+#ifdef CONFIG_HAL
     .allowEmptyInput            = TRUE,
     .autoAddDevices             = TRUE,
     .autoEnableDevices          = TRUE
+#else
+    .allowEmptyInput            = FALSE,
+    .autoAddDevices             = FALSE,
+    .autoEnableDevices          = FALSE
+#endif
 };
 const char *xf86ConfigFile = NULL;
 const char *xf86InputDeviceList = NULL;
