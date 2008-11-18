@@ -130,7 +130,7 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
 	xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
                 devname, i, 1.0f / (s->filters[i].rdecay));
 
-    tempf = xf86SetIntOption(list, "ConstantDeceleration", 1);
+    tempf = xf86SetRealOption(list, "ConstantDeceleration", 1.0);
     if(tempf > 1.0){
         xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
                 devname, tempf);
@@ -138,7 +138,7 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
                                                   alias acceleration */
     }
 
-    tempf = xf86SetIntOption(list, "AdaptiveDeceleration", 1);
+    tempf = xf86SetRealOption(list, "AdaptiveDeceleration", 1.0);
     if(tempf > 1.0){
         xf86Msg(X_CONFIG, "%s: (accel) adaptive deceleration by %.1f\n",
                 devname, tempf);
