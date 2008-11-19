@@ -192,16 +192,8 @@ char	*buf = NULL, keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
 #ifdef WIN32
 char tmpname[PATH_MAX];
 #endif    
-    if ((names->keymap==NULL)||(names->keymap[0]=='\0')) {
-	sprintf(keymap,"server-%s",display);
-    }
-    else {
-	if (strlen(names->keymap) > PATH_MAX - 1) {
-	    ErrorF("[xkb] name of keymap (%s) exceeds max length\n", names->keymap);
-	    return False;
-	}
-	strcpy(keymap,names->keymap);
-    }
+
+    snprintf(keymap, sizeof(keymap), "server-%s", display);
 
     XkbEnsureSafeMapName(keymap);
     OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
