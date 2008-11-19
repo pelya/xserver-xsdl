@@ -97,8 +97,6 @@ BOOL xpbproxy_init (void) {
         return FALSE;
     }
 
-    xpbproxy_input_run();
-
     [pool release];
     
     return TRUE;

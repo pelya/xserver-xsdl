@@ -39,11 +39,38 @@
 
 #include <unistd.h>
 
+#include <pthread.h>
+
 static CFRunLoopSourceRef xpbproxy_dpy_source;
 
 #ifdef STANDALONE_XPBPROXY
 BOOL xpbproxy_prefs_reload = NO;
 #endif
+
+static pthread_mutex_t xpbproxy_dpy_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t xpbproxy_dpy_cond = PTHREAD_COND_INITIALIZER;
+
+static inline pthread_t create_thread(void *func, void *arg) {
+    pthread_attr_t attr;
+    pthread_t tid;
+    
+    pthread_attr_init(&attr);
+    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&tid, &attr, func, arg);
+    pthread_attr_destroy(&attr);
+    
+    return tid;
+}
+
+static void *xpbproxy_input_thread(void *args) {
+    pthread_mutex_lock(&xpbproxy_dpy_lock);
+    while(true) {
+        xpbproxy_input_run();
+        pthread_cond_wait(&xpbproxy_dpy_cond, &xpbproxy_dpy_lock);
+    }
+}
+
 
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
@@ -164,10 +191,14 @@ static void x_input_callback (CFSocketRef sock, CFSocketCallBackType type,
     }
 #endif
 
-    xpbproxy_input_run();
+    pthread_mutex_lock(&xpbproxy_dpy_lock);
+    pthread_cond_broadcast(&xpbproxy_dpy_cond);
+    pthread_mutex_unlock(&xpbproxy_dpy_lock);
 }
 
 BOOL xpbproxy_input_register(void) {
+    create_thread(xpbproxy_input_thread, NULL);
+
     return add_input_socket(ConnectionNumber(xpbproxy_dpy), kCFSocketReadCallBack,
                             x_input_callback, NULL, &xpbproxy_dpy_source);
 }
