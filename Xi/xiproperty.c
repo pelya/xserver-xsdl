@@ -50,7 +50,11 @@ static struct dev_properties
     char *name;
 } dev_properties[] = {
     {0, XI_PROP_ENABLED},
-    {0, XATOM_FLOAT}
+    {0, XATOM_FLOAT},
+    {0, ACCEL_PROP_PROFILE_NUMBER},
+    {0, ACCEL_PROP_CONSTANT_DECELERATION},
+    {0, ACCEL_PROP_ADAPTIVE_DECELERATION},
+    {0, ACCEL_PROP_VELOCITY_SCALING}
 };
 
 static long XIPropHandlerID = 1;

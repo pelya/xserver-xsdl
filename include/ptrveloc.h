@@ -43,6 +43,7 @@
 #define AccelProfilePower 5
 #define AccelProfileLinear 6
 #define AccelProfileReserved 7
+#define AccelProfileLAST AccelProfileReserved
 
 /* fwd */
 struct _DeviceVelocityRec;
@@ -102,6 +103,9 @@ typedef struct _DeviceVelocityRec {
 
 extern _X_EXPORT void
 InitVelocityData(DeviceVelocityPtr s);
+
+extern _X_EXPORT BOOL
+InitializePredictableAccelerationProperties(DeviceIntPtr pDev);
 
 extern _X_EXPORT void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,

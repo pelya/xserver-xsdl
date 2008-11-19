@@ -1319,6 +1319,16 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
     val->accelScheme = pointerAccelerationScheme[i];
     val->accelScheme.accelData = data;
 
+    /* post-init scheme */
+    switch(scheme){
+        case PtrAccelPredictable:
+            InitializePredictableAccelerationProperties(dev);
+            break;
+
+        default:
+            break;
+    }
+
     return TRUE;
 }
 

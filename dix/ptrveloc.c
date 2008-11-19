@@ -29,8 +29,12 @@
 #include <math.h>
 #include <ptrveloc.h>
 #include <inputstr.h>
+#include <exevents.h>
+#include <X11/Xatom.h>
 #include <assert.h>
 #include <os.h>
+
+#include <xserver-properties.h>
 
 /*****************************************************************************
  * Predictable pointer acceleration
@@ -52,8 +56,8 @@
  *      which returns an acceleration
  *      for a given velocity
  *
- *  The profile can be selected by the user (potentially at runtime).
- *  the classic profile is intended to cleanly perform old-style
+ *  The profile can be selected by the user at runtime.
+ *  The classic profile is intended to cleanly perform old-style
  *  function selection (threshold =/!= 0)
  *
  ****************************************************************************/
@@ -135,6 +139,209 @@ AccelerationDefaultCleanup(DeviceIntPtr pDev)
         xfree(pDev->valuator->accelScheme.accelData);
         pDev->valuator->accelScheme.accelData = NULL;
     }
+}
+
+
+/*************************
+ * Input property support
+ ************************/
+
+/**
+ * choose profile
+ */
+static int
+AccelSetProfileProperty(DeviceIntPtr dev, Atom atom,
+                        XIPropertyValuePtr val, BOOL checkOnly)
+{
+    DeviceVelocityPtr pVel;
+    int profile, *ptr = &profile;
+    int rc;
+    int nelem = 1;
+
+    if (atom != XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER))
+        return Success;
+
+    pVel = GetDevicePredictableAccelData(dev);
+    if (!pVel)
+        return BadValue;
+    rc = XIPropToInt(val, &nelem, &ptr);
+
+    if(checkOnly)
+    {
+        if (rc)
+            return rc;
+
+        if (GetAccelerationProfile(pVel, profile) == NULL)
+            return BadValue;
+    } else
+	SetAccelerationProfile(pVel, profile);
+
+    return Success;
+}
+
+static void
+AccelInitProfileProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+{
+    int profile = pVel->statistics.profile_number;
+    Atom prop_profile_number = XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER);
+
+    XIChangeDeviceProperty(dev, prop_profile_number, XA_INTEGER, 32,
+                           PropModeReplace, 1, &profile, FALSE);
+    XISetDevicePropertyDeletable(dev, prop_profile_number, FALSE);
+    XIRegisterPropertyHandler(dev, AccelSetProfileProperty, NULL, NULL);
+}
+
+/**
+ * constant deceleration
+ */
+static int
+AccelSetDecelProperty(DeviceIntPtr dev, Atom atom,
+                      XIPropertyValuePtr val, BOOL checkOnly)
+{
+    DeviceVelocityPtr pVel;
+    float v, *ptr = &v;
+    int rc;
+    int nelem = 1;
+
+    if (atom != XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION))
+        return Success;
+
+    pVel = GetDevicePredictableAccelData(dev);
+    if (!pVel)
+        return BadValue;
+    rc = XIPropToFloat(val, &nelem, &ptr);
+
+    if(checkOnly)
+    {
+        if (rc)
+            return rc;
+	return (v >= 1.0f) ? Success : BadValue;
+    }
+
+    if(v >= 1.0f)
+	pVel->const_acceleration = 1/v;
+
+    return Success;
+}
+
+static void
+AccelInitDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+{
+    float fval = 1.0/pVel->const_acceleration;
+    Atom prop_const_decel = XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION);
+    XIChangeDeviceProperty(dev, prop_const_decel,
+                           XIGetKnownProperty(XATOM_FLOAT), 32,
+                           PropModeReplace, 1, &fval, FALSE);
+    XISetDevicePropertyDeletable(dev, prop_const_decel, FALSE);
+    XIRegisterPropertyHandler(dev, AccelSetDecelProperty, NULL, NULL);
+}
+
+
+/**
+ * adaptive deceleration
+ */
+static int
+AccelSetAdaptDecelProperty(DeviceIntPtr dev, Atom atom,
+                           XIPropertyValuePtr val, BOOL checkOnly)
+{
+    DeviceVelocityPtr pVel;
+    float v, *ptr = &v;
+    int rc;
+    int nelem = 1;
+
+    if (atom != XIGetKnownProperty(ACCEL_PROP_ADAPTIVE_DECELERATION))
+        return Success;
+
+    pVel = GetDevicePredictableAccelData(dev);
+    if (!pVel)
+        return BadValue;
+    rc = XIPropToFloat(val, &nelem, &ptr);
+
+    if(checkOnly)
+    {
+        if (rc)
+            return rc;
+	return (v >= 1.0f) ? Success : BadValue;
+    }
+
+    if(v >= 1.0f)
+	pVel->min_acceleration = 1/v;
+
+    return Success;
+}
+
+static void
+AccelInitAdaptDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+{
+    float fval = 1.0/pVel->min_acceleration;
+    Atom prop_adapt_decel = XIGetKnownProperty(ACCEL_PROP_ADAPTIVE_DECELERATION);
+
+    XIChangeDeviceProperty(dev, prop_adapt_decel, XIGetKnownProperty(XATOM_FLOAT), 32,
+                           PropModeReplace, 1, &fval, FALSE);
+    XISetDevicePropertyDeletable(dev, prop_adapt_decel, FALSE);
+    XIRegisterPropertyHandler(dev, AccelSetAdaptDecelProperty, NULL, NULL);
+}
+
+
+/**
+ * velocity scaling
+ */
+static int
+AccelSetScaleProperty(DeviceIntPtr dev, Atom atom,
+                      XIPropertyValuePtr val, BOOL checkOnly)
+{
+    DeviceVelocityPtr pVel;
+    float v, *ptr = &v;
+    int rc;
+    int nelem = 1;
+
+    if (atom != XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING))
+        return Success;
+
+    pVel = GetDevicePredictableAccelData(dev);
+    if (!pVel)
+        return BadValue;
+    rc = XIPropToFloat(val, &nelem, &ptr);
+
+    if (checkOnly)
+    {
+        if (rc)
+            return rc;
+
+        return (v > 0) ? Success : BadValue;
+    }
+
+    if(v > 0)
+	pVel->corr_mul = v;
+
+    return Success;
+}
+
+static void
+AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+{
+    float fval = pVel->corr_mul;
+    Atom prop_velo_scale = XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING);
+
+    XIChangeDeviceProperty(dev, prop_velo_scale, XIGetKnownProperty(XATOM_FLOAT), 32,
+                           PropModeReplace, 1, &fval, FALSE);
+    XISetDevicePropertyDeletable(dev, prop_velo_scale, FALSE);
+    XIRegisterPropertyHandler(dev, AccelSetScaleProperty, NULL, NULL);
+}
+
+BOOL
+InitializePredictableAccelerationProperties(DeviceIntPtr device)
+{
+    DeviceVelocityPtr  pVel        = GetDevicePredictableAccelData(device);
+
+    if(!pVel)
+	return FALSE;
+
+    AccelInitProfileProperty(device, pVel);
+    AccelInitDecelProperty(device, pVel);
+    AccelInitAdaptDecelProperty(device, pVel);
+    AccelInitScaleProperty(device, pVel);
+    return TRUE;
 }
 
 /*********************

@@ -33,4 +33,14 @@
 /* BOOL. 0 - device disabled, 1 - device enabled */
 #define XI_PROP_ENABLED      "Device Enabled"
 
+/* Pointer acceleration properties */
+/* INTEGER of any format */
+#define ACCEL_PROP_PROFILE_NUMBER "Device Accel Profile"
+/* FLOAT, format 32 */
+#define ACCEL_PROP_CONSTANT_DECELERATION "Device Accel Constant Deceleration"
+/* FLOAT, format 32 */
+#define ACCEL_PROP_ADAPTIVE_DECELERATION "Device Accel Adaptive Deceleration"
+/* FLOAT, format 32 */
+#define ACCEL_PROP_VELOCITY_SCALING "Device Accel Velocity Scaling"
+
 #endif
