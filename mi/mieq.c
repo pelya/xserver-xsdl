@@ -314,16 +314,6 @@ mieqProcessInputEvents(void)
                  master = NULL;
 
     while (miEventQueue.head != miEventQueue.tail) {
-        if (screenIsSaved == SCREEN_SAVER_ON)
-            dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
-#ifdef DPMSExtension
-        else if (DPMSPowerLevel != DPMSModeOn)
-            SetScreenSaverTimer();
-
-        if (DPMSPowerLevel != DPMSModeOn)
-            DPMSSet(serverClient, DPMSModeOn);
-#endif
-
         e = &miEventQueue.events[miEventQueue.head];
 
         /* GenericEvents always have nevents == 1 */
@@ -345,6 +335,16 @@ mieqProcessInputEvents(void)
 
         type    = event->u.u.type;
         master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
+
+        if (screenIsSaved == SCREEN_SAVER_ON)
+            dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+#ifdef DPMSExtension
+        else if (DPMSPowerLevel != DPMSModeOn)
+            SetScreenSaverTimer();
+
+        if (DPMSPowerLevel != DPMSModeOn)
+            DPMSSet(serverClient, DPMSModeOn);
+#endif
 
         /* Custom event handler */
         handler = miEventQueue.handlers[type];
