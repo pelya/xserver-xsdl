@@ -11,6 +11,7 @@ Makefile.in
 .*sw?
 *.pbxuser
 *.mode1v3
+*.patch
 obj*
 build*
 cscope*
