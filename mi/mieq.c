@@ -122,7 +122,7 @@ mieqResizeEvents(int min_size)
 void
 mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
-    unsigned int           oldtail = miEventQueue.tail, newtail;
+    unsigned int           oldtail = miEventQueue.tail;
     EventListPtr           evt;
     int                    isMotion = 0;
     int                    evlen;
@@ -170,11 +170,10 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     }
     else {
 	static int stuck = 0;
-	newtail = (oldtail + 1) % QUEUE_SIZE;
 	/* Toss events which come in late.  Usually this means your server's
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled. */
-	if (newtail == miEventQueue.head) {
+	if (((oldtail + 1) % QUEUE_SIZE) == miEventQueue.head) {
             ErrorF("[mi] EQ overflowing. The server is probably stuck "
                    "in an infinite loop.\n");
 	    if (!stuck) {
@@ -184,7 +183,6 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 	    return;
         }
 	stuck = 0;
-	miEventQueue.tail = newtail;
     }
 
     evlen = sizeof(xEvent);
@@ -218,6 +216,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
+    miEventQueue.tail = (oldtail + 1) % QUEUE_SIZE;
 }
 
 void
