@@ -179,7 +179,7 @@
 #define PCI_CFGMECH1_MAXDEV	32
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
-	defined(__DragonFly__)
+	defined(__DragonFly__) || defined(__sun)
 #define ARCH_PCI_INIT bsdPciInit
 #endif
 

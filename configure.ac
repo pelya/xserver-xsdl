@@ -1278,6 +1278,9 @@ if test "x$XORG" = xyes; then
 	  solaris*)
 	  	XORG_OS="solaris"
 		XORG_OS_SUBDIR="solaris"
+		# Use the same stubs as BSD for old functions, since we now
+		# use libpciaccess for PCI
+		xorg_bus_bsdpci="yes"
 		AC_CHECK_HEADERS([sys/kd.h])
 		# This really should be tests for specific features, but the #ifdef's
 		# were done as a simple version check in XFree86 4.x and haven't been 
@@ -1346,7 +1349,7 @@ if test "x$XORG" = xyes; then
 		;;
 	  i*86|x86_64*|amd64*)
 		case $host_os in
-		  *bsd*|linux*)
+		  *bsd*|linux*|solaris*)
 			;;
 		  *)
 			xorg_bus_ix86pci="yes"
