@@ -1278,7 +1278,7 @@ ValuatorAccelerationRec pointerAccelerationScheme[] = {
 };
 
 /**
- * install an acceleration scheme. retrns TRUE on success, and should not
+ * install an acceleration scheme. returns TRUE on success, and should not
  * change anything if unsuccessful.
  */
 _X_EXPORT Bool

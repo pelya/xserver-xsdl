@@ -33,7 +33,7 @@
 #include <os.h>
 
 /*****************************************************************************
- * Predictable pointer ballistics
+ * Predictable pointer acceleration
  *
  * 2006-2008 by Simon Thum (simon [dot] thum [at] gmx de)
  *
@@ -131,7 +131,8 @@ FreeVelocityData(DeviceVelocityPtr s){
  *  dix uninit helper, called through scheme
  */
 void
-AccelerationDefaultCleanup(DeviceIntPtr pDev){
+AccelerationDefaultCleanup(DeviceIntPtr pDev)
+{
     /*sanity check*/
     if( pDev->valuator->accelScheme.AccelSchemeProc == acceleratePointerPredictable
             && pDev->valuator->accelScheme.accelData != NULL){
