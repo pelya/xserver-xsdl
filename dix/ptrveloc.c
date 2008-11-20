@@ -96,22 +96,15 @@ SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
 void
 InitVelocityData(DeviceVelocityPtr s)
 {
-    s->lrm_time = 0;
-    s->velocity  = 0;
-    s->last_velocity = 0;
+    memset(s, 0, sizeof(DeviceVelocityRec));
+
     s->corr_mul = 10.0;      /* dots per 10 milisecond should be usable */
     s->const_acceleration = 1.0;   /* no acceleration/deceleration  */
     s->reset_time = 300;
-    s->last_reset = FALSE;
-    s->last_dx = 0;
-    s->last_dy = 0;
     s->use_softening = 1;
     s->min_acceleration = 1.0; /* don't decelerate */
     s->coupling = 0.25;
     s->average_accel = TRUE;
-    s->profile_private = NULL;
-    memset(&s->statistics, 0, sizeof(s->statistics));
-    memset(&s->filters, 0, sizeof(s->filters));
     SetAccelerationProfile(s, AccelProfileClassic);
     InitFilterChain(s, (float)1.0/20.0, 1, 1, 40);
 }
