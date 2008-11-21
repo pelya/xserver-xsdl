@@ -361,8 +361,7 @@ int main(int argc, char *argv[], char *envp[])
 
         InitCoreDevices();
 	InitInput(argc, argv);
-	if (InitAndStartDevices() != Success)
-	    FatalError("failed to initialize core devices");
+	InitAndStartDevices();
 
 	dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
 
