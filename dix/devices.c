@@ -592,8 +592,6 @@ CorePointerProc(DeviceIntPtr pDev, int what)
  * Initialise the two core devices, VCP and VCK (see events.c).
  * Both devices are not tied to physical devices, but guarantee that there is
  * always a keyboard and a pointer present and keep the protocol semantics.
- * Both core devices are NOT part of the device list and act only as a
- * fallback if no physical device is available.
  *
  * The devices are activated but not enabled.
  *
