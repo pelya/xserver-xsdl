@@ -1,6 +1,6 @@
 /*
  * linux specific part of the int10 module
- * Copyright 1999, 2000, 2001, 2002, 2003, 2004 Egbert Eich
+ * Copyright 1999, 2000, 2001, 2002, 2003, 2004, 2008 Egbert Eich
  */
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -357,7 +357,10 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
 		   "shmat(low_mem) error: %s\n",strerror(errno));
 	return FALSE;
     }
-    
+    if (mprotect((void*)0, V_RAM, PROT_READ|PROT_WRITE|PROT_EXEC) != 0)
+        xf86DrvMsg(pInt->scrnIndex, X_ERROR,
+		   "Cannot set EXEC bit on low memory: %s\n", strerror(errno));
+
     if (((linuxInt10Priv*)pInt->private)->highMem >= 0) {
 	addr = shmat(((linuxInt10Priv*)pInt->private)->highMem,
 		     (char*)HIGH_MEM, 0);
@@ -368,6 +371,11 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
 		       "shmget error: %s\n",strerror(errno));
 	    return FALSE;
 	}
+	if (mprotect((void*)HIGH_MEM, HIGH_MEM_SIZE,
+		     PROT_READ|PROT_WRITE|PROT_EXEC) != 0)
+	    xf86DrvMsg(pInt->scrnIndex, X_ERROR,
+		       "Cannot set EXEC bit on high memory: %s\n",
+		       strerror(errno));
     } else {
 	if ((fd = open(DEV_MEM, O_RDWR, 0)) >= 0) {
 	    if (mmap((void *)(V_BIOS), SYS_BIOS - V_BIOS,
