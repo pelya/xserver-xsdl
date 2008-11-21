@@ -50,6 +50,8 @@
 
 #include <signal.h>
 
+#include <AvailabilityMacros.h>
+
 #include "launchd_fd.h"
 
 #ifndef BUILD_DATE
@@ -66,6 +68,8 @@ static char x11_path[PATH_MAX + 1];
 static pid_t x11app_pid = 0;
 
 static void set_x11_path() {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+
     CFURLRef appURL = NULL;
     CFBundleRef bundle = NULL;
     OSStatus osstatus = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), nil, nil, &appURL);
@@ -117,6 +121,10 @@ static void set_x11_path() {
                     kX11AppBundleId, (int)osstatus);
             exit(11);
     }
+#else
+    /* TODO: Make Tiger smarter... but TBH, this should never get called on Tiger... */
+    strlcpy(x11_path, "/Applications/Utilities/X11.app/Contents/MacOS/X11", sizeof(x11_path));
+#endif
 }
 
 static int connect_to_socket(const char *filename) {
