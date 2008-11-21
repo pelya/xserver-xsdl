@@ -1242,8 +1242,7 @@ InitInput(argc, argv)
      char	  **argv;
 {
     IDevPtr* pDev;
-    InputDriverPtr pDrv;
-    InputInfoPtr pInfo;
+    DeviceIntPtr dev;
 
     xf86Info.vtRequestsPending = FALSE;
 
@@ -1254,36 +1253,7 @@ InitInput(argc, argv)
             strcpy((*pDev)->driver, "kbd");
         }
 
-        if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
-            xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
-            /* XXX For now, just continue. */
-            continue;
-        }
-        if (!pDrv->PreInit) {
-            xf86MsgVerb(X_WARNING, 0,
-                    "Input driver `%s' has no PreInit function (ignoring)\n",
-                    pDrv->driverName);
-            continue;
-        }
-        pInfo = pDrv->PreInit(pDrv, *pDev, 0);
-        if (!pInfo) {
-            xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n",
-                    (*pDev)->identifier);
-            continue;
-        } else if (!(pInfo->flags & XI86_CONFIGURED)) {
-            xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-                    (*pDev)->identifier);
-            xf86DeleteInput(pInfo, 0);
-            continue;
-        }
-    }
-
-    /* Initialise all input devices. */
-    pInfo = xf86InputDevs;
-    while (pInfo) {
-        xf86Msg(X_INFO, "evaluating device (%s)\n", pInfo->name);
-	xf86ActivateDevice(pInfo);
-	pInfo = pInfo->next;
+        xf86NewInputDevice(*pDev, &dev, TRUE);
     }
 
     mieqInit();

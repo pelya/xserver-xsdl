@@ -185,6 +185,7 @@ void xf86AddEnabledDevice(InputInfoPtr pInfo);
 void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
 void xf86DisableDevice(DeviceIntPtr dev, Bool panic);
 void xf86EnableDevice(DeviceIntPtr dev);
+int xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL is_auto);
 
 /* xf86Helper.c */
 void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);

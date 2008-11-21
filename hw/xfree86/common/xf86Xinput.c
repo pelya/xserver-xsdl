@@ -467,14 +467,87 @@ AddOtherInputDevices()
 {
 }
 
+/**
+ * Create a new input device, activate and enable it.
+ *
+ * @param idev The device, already set up with identifier, driver, and the
+ * options.
+ * @param pdev Pointer to the new device, if Success was reported.
+ * @param enable Enable the device after activating it.
+ *
+ * @return Success or an error code
+ */
+_X_INTERNAL int
+xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
+{
+    InputDriverPtr drv = NULL;
+    InputInfoPtr pInfo = NULL;
+    DeviceIntPtr dev = NULL;
+    int rval;
+
+    /* Memory leak for every attached device if we don't
+     * test if the module is already loaded first */
+    drv = xf86LookupInputDriver(idev->driver);
+    if (!drv)
+        if (xf86LoadOneModule(idev->driver, NULL))
+            drv = xf86LookupInputDriver(idev->driver);
+    if (!drv) {
+        xf86Msg(X_ERROR, "No input driver matching `%s'\n", idev->driver);
+        rval = BadName;
+        goto unwind;
+    }
+
+    if (!drv->PreInit) {
+        xf86Msg(X_ERROR,
+                "Input driver `%s' has no PreInit function (ignoring)\n",
+                drv->driverName);
+        rval = BadImplementation;
+        goto unwind;
+    }
+
+    pInfo = drv->PreInit(drv, idev, 0);
+
+    if (!pInfo) {
+        xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n", idev->identifier);
+        rval = BadMatch;
+        goto unwind;
+    }
+    else if (!(pInfo->flags & XI86_CONFIGURED)) {
+        xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
+                idev->identifier);
+        rval = BadMatch;
+        goto unwind;
+    }
+
+    xf86ActivateDevice(pInfo);
+
+    dev = pInfo->dev;
+    ActivateDevice(dev);
+    /* Enable it if it's properly initialised and we're currently in the VT */
+    if (enable && dev->inited && dev->startup && xf86Screens[0]->vtSema)
+        EnableDevice(dev);
+
+    /* send enter/leave event, update sprite window */
+    CheckMotion(NULL, dev);
+
+    *pdev = dev;
+    return Success;
+
+unwind:
+    if(pInfo) {
+        if(drv->UnInit)
+            drv->UnInit(drv, pInfo, 0);
+        else
+            xf86DeleteInput(pInfo, 0);
+    }
+    return rval;
+}
+
 _X_EXPORT int
 NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 {
     IDevRec *idev = NULL;
-    InputDriverPtr drv = NULL;
-    InputInfoPtr pInfo = NULL;
     InputOption *option = NULL;
-    DeviceIntPtr dev = NULL;
     int rval = Success;
     int is_auto = 0;
 
@@ -486,18 +559,6 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         if (strcasecmp(option->key, "driver") == 0) {
             if (idev->driver) {
                 rval = BadRequest;
-                goto unwind;
-            }
-            /* Memory leak for every attached device if we don't
-             * test if the module is already loaded first */
-            drv = xf86LookupInputDriver(option->value);
-            if (!drv)
-                if (xf86LoadOneModule(option->value, NULL))
-                    drv = xf86LookupInputDriver(option->value);
-            if (!drv) {
-                xf86Msg(X_ERROR, "No input driver matching `%s'\n",
-                        option->value);
-                rval = BadName;
                 goto unwind;
             }
             idev->driver = xstrdup(option->value);
@@ -537,22 +598,9 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         goto unwind;
     }
 
-    if (!drv) {
-        xf86Msg(X_ERROR, "No input driver specified (ignoring)\n");
-        return BadMatch;
-    }
-
     if (!idev->identifier) {
         xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
         return BadMatch;
-    }
-
-    if (!drv->PreInit) {
-        xf86Msg(X_ERROR,
-                "Input driver `%s' has no PreInit function (ignoring)\n",
-                drv->driverName);
-        rval = BadImplementation;
-        goto unwind;
     }
 
     for (option = options; option; option = option->next) {
@@ -564,43 +612,12 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         option->value = NULL;
     }
 
-    pInfo = drv->PreInit(drv, idev, 0);
-
-    if (!pInfo) {
-        xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n", idev->identifier);
-        rval = BadMatch;
-        goto unwind;
-    }
-    else if (!(pInfo->flags & XI86_CONFIGURED)) {
-        xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-                idev->identifier);
-        rval = BadMatch;
-        goto unwind;
-    }
-
-    xf86ActivateDevice(pInfo);
-
-    dev = pInfo->dev;
-    ActivateDevice(dev);
-    /* Enable it if it's properly initialised, we're currently in the VT, and
-     * either it's a manual request, or we're automatically enabling devices. */
-    if (dev->inited && dev->startup && xf86Screens[0]->vtSema &&
-        (!is_auto || xf86Info.autoEnableDevices))
-        EnableDevice(dev);
-
-    /* send enter/leave event, update sprite window */
-    CheckMotion(NULL, dev);
-
-    *pdev = dev;
-    return Success;
+    rval = xf86NewInputDevice(idev, pdev,
+                (!is_auto || (is_auto && xf86Info.autoEnableDevices)));
+    if (rval == Success)
+        return Success;
 
 unwind:
-    if(pInfo) {
-        if(drv->UnInit)
-            drv->UnInit(drv, pInfo, 0);
-        else
-            xf86DeleteInput(pInfo, 0);
-    }
     if(idev->driver)
         xfree(idev->driver);
     if(idev->identifier)
