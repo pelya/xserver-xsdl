@@ -114,10 +114,10 @@ int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 #endif
 
 // Modifier mask for overriding event delivery to appkit (might be useful to set this to rcommand for input menu
-int                     darwinAppKitModMask = 0; // Any of these bits
+unsigned int            darwinAppKitModMask = 0; // Any of these bits
 
 // Modifier mask for items in the Window menu (0 and -1 cause shortcuts to be disabled)
-int                     windowItemModMask = NX_COMMANDMASK;
+unsigned int            windowItemModMask = NX_COMMANDMASK;
 
 // devices
 DeviceIntPtr            darwinKeyboard = NULL;

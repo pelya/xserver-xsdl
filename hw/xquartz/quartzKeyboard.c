@@ -753,6 +753,11 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     }
 #endif
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+    if(currentKeyLayoutRef)
+        CFRelease(currentKeyLayoutRef);
+#endif
+    
     if (chr_data == NULL) {
       ErrorF ( "Couldn't get uchr or kchr resource\n");
       return FALSE;
@@ -856,7 +861,6 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
                 k[0] = known_numeric_keys[i].keypad;
         }
     }
-    if(currentKeyLayoutRef)	CFRelease(currentKeyLayoutRef);
-    
+
     return TRUE;
 }

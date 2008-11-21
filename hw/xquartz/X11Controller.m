@@ -28,6 +28,7 @@
    prior written authorization. */
 
 #include "sanitizedCarbon.h"
+#include <AvailabilityMacros.h>
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -152,8 +153,11 @@
 
       item = (NSMenuItem *) [menu addItemWithTitle:name action:@selector
 				  (item_selected:) keyEquivalent:shortcut];
-
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
       [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
+#else
+      [item setKeyEquivalentModifierMask:windowItemModMask];
+#endif
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];
@@ -162,8 +166,11 @@
 				       action:@selector
 				       (item_selected:) keyEquivalent:shortcut
 				       atIndex:i];
-
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
       [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
+#else
+      [item setKeyEquivalentModifierMask:windowItemModMask];
+#endif
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];
