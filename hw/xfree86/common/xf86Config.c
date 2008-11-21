@@ -890,7 +890,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         from = X_CONFIG;
     }
     else {
-        xf86Info.autoAddDevices = TRUE;
         from = X_DEFAULT;
     }
     xf86Msg(from, "%sutomatically adding devices\n",
@@ -902,7 +901,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
         from = X_CONFIG;
     }
     else {
-        xf86Info.autoEnableDevices = TRUE;
         from = X_DEFAULT;
     }
     xf86Msg(from, "%sutomatically enabling devices\n",
