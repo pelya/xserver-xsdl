@@ -31,10 +31,13 @@
 #include "threadSafety.h"
 #include "os.h"
 
-#include <execinfo.h>
-
 pthread_t APPKIT_THREAD_ID;
 pthread_t SERVER_THREAD_ID;
+
+#include <AvailabilityMacros.h>
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+#include <execinfo.h>
 
 void spewCallStack(void) {
     void* callstack[128];
@@ -47,6 +50,11 @@ void spewCallStack(void) {
     
     free(strs);
 }
+#else
+void spewCallStack(void) {
+	return;
+}
+#endif
 
 void _threadSafetyAssert(pthread_t tid, const char *file, const char *fun, int line) {
     if(pthread_equal(pthread_self(), tid))
