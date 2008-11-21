@@ -47,6 +47,7 @@
 
 #include <CoreAudio/CoreAudio.h>
 #include <pthread.h>
+#include <AvailabilityMacros.h>
 
 #include "inputstr.h"
 #include <X11/extensions/XI.h>
@@ -337,8 +338,12 @@ void QuartzAudioInit(void)
     // fixme assert fadeLength<framesPerBuffer
 
     // Prepare for playback
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     AudioDeviceIOProcID sInputIOProcID = NULL;
     status = AudioDeviceCreateIOProcID( outputDevice, QuartzAudioIOProc, &data, &sInputIOProcID );
+#else
+    status = AudioDeviceAddIOProc(outputDevice, QuartzAudioIOProc, &data);
+#endif
     if (status) {
         ErrorF("QuartzAudioInit: AddIOProc returned %ld\n", (long)status);
         return;
