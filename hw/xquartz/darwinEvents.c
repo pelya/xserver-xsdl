@@ -84,7 +84,7 @@ static pthread_mutex_t fd_add_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t fd_add_ready_cond = PTHREAD_COND_INITIALIZER;
 static pthread_t fd_add_tid = NULL;
 
-static xEvent *darwinEvents = NULL;
+static EventList *darwinEvents = NULL;
 
 static pthread_mutex_t mieq_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t mieq_ready_cond = PTHREAD_COND_INITIALIZER;
@@ -324,7 +324,7 @@ Bool DarwinEQInit(void) {
      * here, so I don't bother.
      */
     if (!darwinEvents) {
-        darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        darwinEvents = InitEventList(GetMaximumEventsNum());;
         
         if (!darwinEvents)
             FatalError("Couldn't allocate event buffer\n");
@@ -450,7 +450,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
     darwinEvents_lock(); {
         num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, 0, pDev==darwinTabletCurrent?5:2, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (pDev, &darwinEvents[i]);
+        for(i=0; i<num_events; i++) mieqEnqueue (pDev, darwinEvents[i].event);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -465,7 +465,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 
     darwinEvents_lock(); {
         num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
-        for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+        for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,darwinEvents[i].event);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
@@ -493,7 +493,7 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
     darwinEvents_lock(); {
         num_events = GetProximityEvents(darwinEvents, dev, ev_type,
                                         0, 5, valuators);
-        for(i=0; i<num_events; i++) mieqEnqueue (dev,&darwinEvents[i]);
+        for(i=0; i<num_events; i++) mieqEnqueue (dev,darwinEvents[i].event);
         DarwinPokeEQ();
     } darwinEvents_unlock();
 }
