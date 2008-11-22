@@ -12,10 +12,8 @@ AM_CPPFLAGS = \
 libCGLCore_la_SOURCES = \
 	indirect.c \
 	capabilities.c \
-	glcontextmodes.c \
 	visualConfigs.c
 
 EXTRA_DIST = \
 	capabilities.h \
-	glcontextmodes.h \
 	visualConfigs.h
