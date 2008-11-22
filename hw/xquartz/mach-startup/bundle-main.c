@@ -29,6 +29,7 @@
  prior written authorization. */
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <AvailabilityMacros.h>
 
 #include <X11/Xlib.h>
 #include <unistd.h>
@@ -374,7 +375,11 @@ int startup_trigger(int argc, char **argv, char **envp) {
 
         kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
         if (kr != KERN_SUCCESS) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
             fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+#else
+            fprintf(stderr, "bootstrap_look_up(): %ul\n", (unsigned long)kr);
+#endif
             exit(EXIT_FAILURE);
         }
 

@@ -267,7 +267,11 @@ int main(int argc, char **argv, char **envp) {
         }
 
         if(kr != KERN_SUCCESS) {
-            fprintf(stderr, "Xquartz: bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+            fprintf(stderr, "Xquartz: bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+#else
+            fprintf(stderr, "Xquartz: bootstrap_look_up(): %ul\n", (unsigned long)kr);
+#endif
             return EXIT_FAILURE;
         }
     }
