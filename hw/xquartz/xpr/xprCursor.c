@@ -185,7 +185,7 @@ load_cursor(CursorPtr src, int screen)
  *  Convert the X cursor representation to native format if possible.
  */
 static Bool
-QuartzRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+QuartzRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     if(pCursor == NULL || pCursor->bits == NULL)
         return FALSE;
@@ -201,7 +201,7 @@ QuartzRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
  *  Free the storage space associated with a realized cursor.
  */
 static Bool
-QuartzUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+QuartzUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     return TRUE;
 }
@@ -212,7 +212,7 @@ QuartzUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
  *  Set the cursor sprite and position.
  */
 static void
-QuartzSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
     QuartzCursorScreenPtr ScreenPriv = CURSOR_PRIV(pScreen);
 
@@ -245,16 +245,26 @@ QuartzSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
  *  Move the cursor. This is a noop for us.
  */
 static void
-QuartzMoveCursor(ScreenPtr pScreen, int x, int y)
+QuartzMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
 }
 
+/* TODO: New for 1.6 ... probably noop */
+static Bool QuartzDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen) {
+    return TRUE;
+}
+
+/* TODO: New for 1.6 ... probably noop */
+static void QuartzDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen) {
+}
 
 static miPointerSpriteFuncRec quartzSpriteFuncsRec = {
     QuartzRealizeCursor,
     QuartzUnrealizeCursor,
     QuartzSetCursor,
-    QuartzMoveCursor
+    QuartzMoveCursor,
+    QuartzDeviceCursorInitialize,
+    QuartzDeviceCursorCleanup
 };
 
 
@@ -293,7 +303,7 @@ QuartzCrossScreen(ScreenPtr pScreen, Bool entering)
  *
  */
 static void
-QuartzWarpCursor(ScreenPtr pScreen, int x, int y)
+QuartzWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     if (quartzServerVisible)
     {
@@ -305,8 +315,8 @@ QuartzWarpCursor(ScreenPtr pScreen, int x, int y)
         CGWarpMouseCursorPosition(CGPointMake(sx + x, sy + y));
     }
 
-    miPointerWarpCursor(pScreen, x, y);
-    miPointerUpdate();
+    miPointerWarpCursor(pDev, pScreen, x, y);
+    miPointerUpdateSprite(pDev);
 }
 
 
@@ -404,13 +414,15 @@ QuartzResumeXCursor(ScreenPtr pScreen, int x, int y)
     WindowPtr pWin;
     CursorPtr pCursor;
 
-    pWin = GetSpriteWindow();
+    /* TODO: Tablet? */
+    
+    pWin = GetSpriteWindow(darwinPointer);
     if (pWin->drawable.pScreen != pScreen)
         return;
 
-    pCursor = GetSpriteCursor();
+    pCursor = GetSpriteCursor(darwinPointer);
     if (pCursor == NULL)
         return;
 
-    QuartzSetCursor(pScreen, pCursor, x, y);
+    QuartzSetCursor(darwinPointer, pScreen, pCursor, x, y);
 }
