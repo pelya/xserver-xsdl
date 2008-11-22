@@ -81,7 +81,6 @@
 typedef unsigned long long GLuint64EXT;
 typedef long long GLint64EXT;
 #include <Xplugin.h>
-#include "glcontextmodes.h"
 #include <glapi.h>
 #include <glapitable.h>
 
@@ -156,7 +155,7 @@ struct __GLXAquaContext {
 };
 
 struct __GLXAquaDrawable {
-  __GLXdrawable base;
+    __GLXdrawable base;
     DrawablePtr pDraw;
     xp_surface_id sid;
 };
@@ -1350,14 +1349,34 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     return &screen->base;
 }
 
-static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
-    GLAQUA_DEBUG_MSG("glAquaDestroyDrawablePrivate\n");
+static void __glXAquaDrawableCopySubBuffer (__GLXdrawable *drawable,
+					    int x, int y, int w, int h) {
+    /*TODO finish me*/
+}
 
+
+static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
+    /* gstaplin: base is the head of the structure, so it's at the same 
+     * offset in memory.
+     * Is this safe with strict aliasing?   I noticed that the other dri code
+     * does this too...
+     */
+    __GLXAquaDrawable *glxPriv = (__GLXAquaDrawable *)base;
+
+    GLAQUA_DEBUG_MSG(__func__);
+    
     /* It doesn't work to call DRIDestroySurface here, the drawable's
        already gone.. But dri.c notices the window destruction and
        frees the surface itself. */
 
-    free(base);
+    /*gstaplin: verify the statement above.  The surface destroy
+     *messages weren't making it through, and may still not be.
+     *We need a good test case for surface creation and destruction.
+     *We also need a good way to enable introspection on the server
+     *to validate the test, beyond using gdb with print.
+     */
+
+    xfree(glxPriv);
 }
 
 static __GLXdrawable *
@@ -1371,11 +1390,13 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   GLAQUA_DEBUG_MSG("glAquaScreenCreateDrawable(%p,%p,%d,%p)\n", context, pDraw, drawId, modes);
 
   glxPriv = xalloc(sizeof *glxPriv);
-  if (glxPriv == NULL) return NULL;
+
+  if(glxPriv == NULL)
+      return NULL;
 
   memset(glxPriv, 0, sizeof *glxPriv);
 
-  if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, type, drawId, conf)) {
+  if(!__glXDrawableInit(&glxPriv->base, screen, pDraw, type, drawId, conf)) {
     xfree(glxPriv);
     return NULL;
   }
@@ -1383,7 +1404,7 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   glxPriv->base.destroy       = __glXAquaDrawableDestroy;
   glxPriv->base.resize        = __glXAquaDrawableResize;
   glxPriv->base.swapBuffers   = __glXAquaDrawableSwapBuffers;
-  //  glxPriv->base.copySubBuffer = __glXAquaDrawableCopySubBuffer;
+  glxPriv->base.copySubBuffer = __glXAquaDrawableCopySubBuffer;
 
   return &glxPriv->base;
 }
