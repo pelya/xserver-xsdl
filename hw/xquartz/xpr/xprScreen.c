@@ -423,12 +423,8 @@ static QuartzModeProcsRec xprModeProcs = {
     xprSetupScreen,
     xprInitInput,
     QuartzInitCursor,
-    NULL,               // No need to update cursor
     QuartzSuspendXCursor,
     QuartzResumeXCursor,
-    NULL,               // No capture or release in rootless mode
-    NULL,
-    NULL,               // Xplugin sends screen change events directly
     xprAddPseudoramiXScreens,
     xprUpdateScreen,
     xprIsX11Window,
