@@ -56,6 +56,7 @@
 
 /* General parameters */
 extern int xf86DoConfigure;
+extern int xf86DoShowOptions;
 extern Bool xf86DoModalias;
 extern Bool xf86DoConfigurePass1;
 extern DevPrivateKey xf86ScreenKey;

@@ -432,7 +432,7 @@ static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms) {
     DeviceIntPtr pDev;
 
     /* From ProcSetModifierMapping */
-    SendMappingNotify(MappingModifier, 0, 0, serverClient);
+    SendMappingNotify(darwinKeyboard, MappingModifier, 0, 0, serverClient);
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if (pDev->key && pDev->coreEvents)
             SendDeviceMappingNotify(serverClient, MappingModifier, 0, 0, pDev);
@@ -442,7 +442,7 @@ static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
             assert(SetKeySymsMap(&pDev->key->curKeySyms, keySyms));
 
-    SendMappingNotify(MappingKeyboard, keySyms->minKeyCode,
+    SendMappingNotify(darwinKeyboard, MappingKeyboard, keySyms->minKeyCode,
                       keySyms->maxKeyCode - keySyms->minKeyCode + 1, serverClient);
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if (pDev->key && pDev->coreEvents)
@@ -477,7 +477,8 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
                                        QuartzBell, DarwinChangeKeyboardControl));
     pthread_mutex_unlock(&keyInfo_mutex);
 
-	SwitchCoreKeyboard(pDev);   
+    // TODO: What do we do now in 1.6?
+	//SwitchCoreKeyboard(pDev);   
 
     DarwinKeyboardSetDeviceKeyMap(&keySyms);
 }

@@ -81,7 +81,6 @@
 typedef unsigned long long GLuint64EXT;
 typedef long long GLint64EXT;
 #include <Xplugin.h>
-#include "glcontextmodes.h"
 #include <glapi.h>
 #include <glapitable.h>
 
@@ -156,7 +155,7 @@ struct __GLXAquaContext {
 };
 
 struct __GLXAquaDrawable {
-  __GLXdrawable base;
+    __GLXdrawable base;
     DrawablePtr pDraw;
     xp_surface_id sid;
 };
@@ -298,49 +297,61 @@ static void surface_notify(void *_arg, void *data) {
     }
 }
 
-static void attach(__GLXAquaContext *context, __GLXAquaDrawable *draw) {
+static BOOL attach(__GLXAquaContext *context, __GLXAquaDrawable *draw) {
     DrawablePtr pDraw;
-	GLAQUA_DEBUG_MSG("attach(%p, %p)\n", context, draw);
+    
+    GLAQUA_DEBUG_MSG("attach(%p, %p)\n", context, draw);
+	
+    if(NULL == context || NULL == draw)
+	return TRUE;
+
     pDraw = draw->base.pDraw;
 
-    if (draw->sid == 0) {
-//        if (!quartzProcs->CreateSurface(pDraw->pScreen, pDraw->id, pDraw,
-        if (!DRICreateSurface(pDraw->pScreen, pDraw->id, pDraw,
-                                        0, &draw->sid, NULL,
-                                        surface_notify, draw))
-            return;
-        draw->pDraw = pDraw;
-	} 
+    if(NULL == pDraw) {
+	ErrorF("%s:attach() pDraw is NULL!\n", __FILE__);
+	return TRUE;
+    }
 
+    if (draw->sid == 0) {
+	//if (!quartzProcs->CreateSurface(pDraw->pScreen, pDraw->id, pDraw,
+        if (!DRICreateSurface(pDraw->pScreen, pDraw->id, pDraw,
+			      0, &draw->sid, NULL,
+			      surface_notify, draw))
+            return TRUE;
+        draw->pDraw = pDraw;
+    } 
+    
     if (!context->isAttached || context->sid != draw->sid) {
         x_list *lst;
-
+	
         if (xp_attach_gl_context(context->ctx, draw->sid) != Success) {
-//            quartzProcs->DestroySurface(pDraw->pScreen, pDraw->id, pDraw,
+	    //quartzProcs->DestroySurface(pDraw->pScreen, pDraw->id, pDraw,
             DRIDestroySurface(pDraw->pScreen, pDraw->id, pDraw,
-								surface_notify, draw);
+			      surface_notify, draw);
             if (surface_hash != NULL)
                 x_hash_table_remove(surface_hash, x_cvt_uint_to_vptr(draw->sid));
-
+	    
             draw->sid = 0;
-            return;
+            return TRUE;
         }
-
+	
         context->isAttached = TRUE;
         context->sid = draw->sid;
-
+	
         if (surface_hash == NULL)
             surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
-
+	
         lst = x_hash_table_lookup(surface_hash, x_cvt_uint_to_vptr(context->sid), NULL);
         if (x_list_find(lst, context) == NULL) {
             lst = x_list_prepend(lst, context);
             x_hash_table_insert(surface_hash, x_cvt_uint_to_vptr(context->sid), lst);
         }
-
+	
         GLAQUA_DEBUG_MSG("attached 0x%x to 0x%x\n", (unsigned int) pDraw->id,
                          (unsigned int) draw->sid);
     } 
+
+    return FALSE;
 }
 
 #if 0     // unused
@@ -370,11 +381,12 @@ static void unattach(__GLXAquaContext *context) {
 static int __glXAquaContextMakeCurrent(__GLXcontext *baseContext) {
     CGLError gl_err;
     __GLXAquaContext *context = (__GLXAquaContext *) baseContext;
-	__GLXAquaDrawable *drawPriv = (__GLXAquaDrawable *) context->base.drawPriv;
-
+    __GLXAquaDrawable *drawPriv = (__GLXAquaDrawable *) context->base.drawPriv;
+    
     GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%p)\n", baseContext);
     
-    attach(context, drawPriv);
+    if(attach(context, drawPriv))
+	return /*error*/ 0;
 
     gl_err = CGLSetCurrentContext(context->ctx);
     if (gl_err != 0)
@@ -1310,8 +1322,8 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.fbconfigs = configs;
     screen->base.numFBConfigs = 1; 
 
-    screen->base.visuals = configs;
-    screen->base.numVisuals = 1;
+    screen->base.visuals = NULL;
+    screen->base.numVisuals = 0;
 
     GlxSetVisualConfig(GLX_ALL_VISUALS);
 
@@ -1337,14 +1349,34 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     return &screen->base;
 }
 
-static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
-    GLAQUA_DEBUG_MSG("glAquaDestroyDrawablePrivate\n");
+static void __glXAquaDrawableCopySubBuffer (__GLXdrawable *drawable,
+					    int x, int y, int w, int h) {
+    /*TODO finish me*/
+}
 
+
+static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
+    /* gstaplin: base is the head of the structure, so it's at the same 
+     * offset in memory.
+     * Is this safe with strict aliasing?   I noticed that the other dri code
+     * does this too...
+     */
+    __GLXAquaDrawable *glxPriv = (__GLXAquaDrawable *)base;
+
+    GLAQUA_DEBUG_MSG(__func__);
+    
     /* It doesn't work to call DRIDestroySurface here, the drawable's
        already gone.. But dri.c notices the window destruction and
        frees the surface itself. */
 
-    free(base);
+    /*gstaplin: verify the statement above.  The surface destroy
+     *messages weren't making it through, and may still not be.
+     *We need a good test case for surface creation and destruction.
+     *We also need a good way to enable introspection on the server
+     *to validate the test, beyond using gdb with print.
+     */
+
+    xfree(glxPriv);
 }
 
 static __GLXdrawable *
@@ -1358,11 +1390,13 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   GLAQUA_DEBUG_MSG("glAquaScreenCreateDrawable(%p,%p,%d,%p)\n", context, pDraw, drawId, modes);
 
   glxPriv = xalloc(sizeof *glxPriv);
-  if (glxPriv == NULL) return NULL;
+
+  if(glxPriv == NULL)
+      return NULL;
 
   memset(glxPriv, 0, sizeof *glxPriv);
 
-  if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, type, drawId, conf)) {
+  if(!__glXDrawableInit(&glxPriv->base, screen, pDraw, type, drawId, conf)) {
     xfree(glxPriv);
     return NULL;
   }
@@ -1370,7 +1404,7 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   glxPriv->base.destroy       = __glXAquaDrawableDestroy;
   glxPriv->base.resize        = __glXAquaDrawableResize;
   glxPriv->base.swapBuffers   = __glXAquaDrawableSwapBuffers;
-  //  glxPriv->base.copySubBuffer = __glXAquaDrawableCopySubBuffer;
+  glxPriv->base.copySubBuffer = __glXAquaDrawableCopySubBuffer;
 
   return &glxPriv->base;
 }

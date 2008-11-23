@@ -345,7 +345,6 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
             
             // Set button map.
             InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
-                                    GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
                                     GetMotionHistorySize(), 2);
 			InitAbsoluteClassDeviceStruct(pPointer);
@@ -376,7 +375,6 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
             
             // Set button map.
             InitPointerDeviceStruct((DevicePtr)pPointer, map, 3,
-                                    GetMotionHistory,
                                     (PtrCtrlProcPtr)NoopDDA,
                                     GetMotionHistorySize(), 5);
             pPointer->valuator->mode = Absolute; // Relative
@@ -477,7 +475,7 @@ int DarwinParseModifierList(const char *constmodifiers, int separatelr)
  */
 void InitInput( int argc, char **argv )
 {
-    darwinKeyboard = AddInputDevice(DarwinKeybdProc, TRUE);
+    darwinKeyboard = AddInputDevice(serverClient, DarwinKeybdProc, TRUE);
     RegisterKeyboardDevice( darwinKeyboard );
     darwinKeyboard->name = strdup("keyboard");
 
@@ -495,19 +493,19 @@ void InitInput( int argc, char **argv )
         gdkdev->info.source = GDK_SOURCE_PEN;
     */
 
-    darwinPointer = AddInputDevice(DarwinMouseProc, TRUE);
+    darwinPointer = AddInputDevice(serverClient, DarwinMouseProc, TRUE);
     RegisterPointerDevice( darwinPointer );
     darwinPointer->name = strdup("pointer");
 
-    darwinTabletStylus = AddInputDevice(DarwinTabletProc, TRUE);
+    darwinTabletStylus = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
     RegisterPointerDevice( darwinTabletStylus );
     darwinTabletStylus->name = strdup("pen");
 
-    darwinTabletCursor = AddInputDevice(DarwinTabletProc, TRUE);
+    darwinTabletCursor = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
     RegisterPointerDevice( darwinTabletCursor );
     darwinTabletCursor->name = strdup("cursor");
 
-    darwinTabletEraser = AddInputDevice(DarwinTabletProc, TRUE);
+    darwinTabletEraser = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
     RegisterPointerDevice( darwinTabletEraser );
     darwinTabletEraser->name = strdup("eraser");
 

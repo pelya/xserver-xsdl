@@ -131,7 +131,7 @@ void QuartzReadPasteboard(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nev
 		event.u.selectionClear.time = GetTimeInMillis();
 		event.u.selectionClear.window = pSel->window;
 		event.u.selectionClear.atom = pSel->selection;
-		TryClientEvents(pSel->client, &event, 1, NoEventMask,
+		TryClientEvents(pSel->client, dev, &event, 1, NoEventMask,
 				NoEventMask /*CantBeFiltered*/, NullGrab);
 	    }
 
