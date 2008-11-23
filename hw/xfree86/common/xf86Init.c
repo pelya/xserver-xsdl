@@ -688,7 +688,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     }
 
     /* Read and parse the config file */
-    if (!xf86DoProbe && !xf86DoConfigure && !xf86DoModalias) {
+    if (!xf86DoProbe && !xf86DoConfigure && !xf86DoModalias && !xf86DoShowOptions) {
       switch (xf86HandleConfigFile(FALSE)) {
       case CONFIG_OK:
 	break;
@@ -712,6 +712,9 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (xf86Info.ignoreABI) {
         LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
     }
+
+    if (xf86DoShowOptions)
+        DoShowOptions();
 
     xf86OpenConsole();
 
@@ -1774,6 +1777,15 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86AllowMouseOpenFail = TRUE;
     return 1;
   }
+  if (!strcmp(argv[i], "-showopts"))
+  {
+    if (getuid() != 0 && geteuid() == 0) {
+    ErrorF("The '-showopts' option can only be used by root.\n");
+    exit(1);
+    }
+    xf86DoShowOptions = TRUE;
+    return 1;
+  }
   if (!strcmp(argv[i], "-isolateDevice"))
   {
     int bus, device, func;
@@ -1812,6 +1824,7 @@ ddxUseMsg()
     ErrorF("-modulepath paths      specify the module search path\n");
     ErrorF("-logfile file          specify a log file name\n");
     ErrorF("-configure             probe for devices and write an "__XCONFIGFILE__"\n");
+    ErrorF("-showopts              print available options for all installed drivers\n");
   }
   ErrorF("-modalias              output a modalias-style filter for each driver installed\n");
   ErrorF("-config file           specify a configuration file, relative to the\n");

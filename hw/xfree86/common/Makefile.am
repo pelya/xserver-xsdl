@@ -25,7 +25,7 @@ xf86DefModeSet.c: $(srcdir)/modeline2c.awk $(MODEDEFSOURCES)
 BUILT_SOURCES = xf86DefModeSet.c
 
 AM_LDFLAGS = -r
-libcommon_la_SOURCES = xf86Configure.c xf86Bus.c xf86Config.c \
+libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c \
                       xf86DoProbe.c xf86Events.c \
                       xf86Globals.c xf86AutoConfig.c \

@@ -153,6 +153,7 @@ extern const int xf86NumDefaultModes;
 /* xf86DoProbe.c */
 void DoProbe(void);
 void DoConfigure(void);
+void DoShowOptions(void);
 
 /* xf86Events.c */
 
