@@ -780,6 +780,7 @@ DoConfigure()
     	if (!(filename =
 	     (char *)xalloc(strlen(home) + 
 	  			 strlen(configfile) + 3)))
+		goto bail;
 
       	if (home[0] == '/' && home[1] == '\0')
             home[0] = '\0';
