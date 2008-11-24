@@ -733,24 +733,29 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
         ErrorF("X11.app: Debug Info: keyboard_type=%u, currentKeyLayoutRef=%p, currentKeyLayoutDataRef=%p, chr_data=%p\n",
                (unsigned)keyboard_type, currentKeyLayoutRef, currentKeyLayoutDataRef, chr_data);
 #endif
+
         KLGetCurrentKeyboardLayout (&key_layout);
         KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
         if(chr_data != NULL) {
             ErrorF("X11.app: Fallback succeeded, but this is still a bug.  Please report the above information.\n");
         }
+#endif
     }
 
     if (chr_data == NULL) {
-        ErrorF("X11.app: Debug Info: kKLuchrData fallback failed, trying kKLKCHRData.\n");
+        ErrorF("X11.app: Debug Info: kKLuchrData failed, trying kKLKCHRData.\n");
         ErrorF("If you are using a 3rd party keyboard layout, please see http://xquartz.macosforge.org/trac/ticket/154\n");
         KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
         is_uchr = 0;
         num_keycodes = 128;
         
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
         if(chr_data != NULL) {
             ErrorF("X11.app: Fallback succeeded, but this is still a bug.  Please report the above information.\n");
         }
+#endif
     }
 #endif
 
