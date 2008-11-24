@@ -1048,7 +1048,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     de->u.event.state = keyc->state | pointer->button->state;
 
     de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
-    UpdateDeviceState(keybd, de, 1);
+    UpdateDeviceState(keybd, (xEvent*)de, 1);
     de->u.u.type = *XDGAEventBase + coreEquiv; /* change back */
 
     /*
@@ -1095,7 +1095,7 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
     de->u.event.state = butc->state | GetPairedDevice(mouse)->key->state;
 
     de->u.u.type = (IEventBase - 1) + coreEquiv; /* change to XI event */
-    UpdateDeviceState(mouse, de, 1);
+    UpdateDeviceState(mouse, (xEvent*)de, 1);
     de->u.u.type = *XDGAEventBase + coreEquiv; /* change back */
 
     /*
