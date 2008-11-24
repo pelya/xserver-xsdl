@@ -91,9 +91,9 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
     crtc->devPrivate = devPrivate;
     RRTransformInit (&crtc->client_pending_transform);
     RRTransformInit (&crtc->client_current_transform);
-    PictureTransformInitIdentity (&crtc->transform);
-    pict_f_transform_init_identity (&crtc->f_transform);
-    pict_f_transform_init_identity (&crtc->f_inverse);
+    pixman_transform_init_identity (&crtc->transform);
+    pixman_f_transform_init_identity (&crtc->f_transform);
+    pixman_f_transform_init_identity (&crtc->f_inverse);
 
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
 	return NULL;
@@ -395,7 +395,7 @@ RRCrtcGetTransform (RRCrtcPtr crtc)
 {
     RRTransformPtr  transform = &crtc->client_pending_transform;
 
-    if (PictureTransformIsIdentity (&transform->transform))
+    if (pixman_transform_is_identity (&transform->transform))
 	return NULL;
     return transform;
 }
@@ -508,7 +508,7 @@ RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
     box.x2 = mode->mode.width;
     box.y2 = mode->mode.height;
 
-    PictureTransformBounds (&box, transform);
+    pixman_transform_bounds (transform, &box);
     *width = box.x2 - box.x1;
     *height = box.y2 - box.y1;
 }
@@ -558,8 +558,8 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 int
 RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    PictTransformPtr	transform,
-		    struct pict_f_transform *f_transform,
-		    struct pict_f_transform *f_inverse,
+		    struct pixman_f_transform *f_transform,
+		    struct pixman_f_transform *f_inverse,
 		    char		*filter_name,
 		    int			filter_len,
 		    xFixed		*params,
@@ -909,7 +909,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    int source_width;
 	    int	source_height;
 	    PictTransform transform;
-	    struct pict_f_transform f_transform, f_inverse;
+	    struct pixman_f_transform f_transform, f_inverse;
 
 	    RRTransformCompute (stuff->x, stuff->y,
 				mode->mode.width, mode->mode.height,
@@ -1011,7 +1011,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
     RRCrtcPtr			crtc;
     int				n;
     unsigned long		len;
-    char			*extra;
+    char			*extra = NULL;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcGammaReq);
     crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
@@ -1083,7 +1083,7 @@ ProcRRSetCrtcTransform (ClientPtr client)
     REQUEST(xRRSetCrtcTransformReq);
     RRCrtcPtr		    crtc;
     PictTransform	    transform;
-    struct pict_f_transform f_transform, f_inverse;
+    struct pixman_f_transform f_transform, f_inverse;
     char		    *filter;
     int			    nbytes;
     xFixed		    *params;
@@ -1095,8 +1095,8 @@ ProcRRSetCrtcTransform (ClientPtr client)
 	return RRErrorBase + BadRRCrtc;
 
     PictTransform_from_xRenderTransform (&transform, &stuff->transform);
-    pict_f_transform_from_pixman_transform (&f_transform, &transform);
-    if (!pict_f_transform_invert (&f_inverse, &f_transform))
+    pixman_f_transform_from_pixman_transform (&f_transform, &transform);
+    if (!pixman_f_transform_invert (&f_inverse, &f_transform))
 	return BadMatch;
 
     filter = (char *) (stuff + 1);

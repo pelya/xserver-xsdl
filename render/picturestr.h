@@ -56,13 +56,8 @@ typedef struct _PictFormat {
 typedef struct pixman_vector PictVector, *PictVectorPtr;
 typedef struct pixman_transform PictTransform, *PictTransformPtr;
 
-struct pict_f_vector {
-    double  v[3];
-};
-
-struct pict_f_transform {
-    double  m[3][3];
-};
+#define pict_f_vector pixman_f_vector
+#define pict_f_transform pixman_f_transform
 
 #define PICT_GRADIENT_STOPTABLE_SIZE 1024
 #define SourcePictTypeSolidFill 0
@@ -685,62 +680,6 @@ void PanoramiXRenderReset (void);
 /*
  * matrix.c
  */
-void
-PictureTransformInitIdentity (PictTransformPtr matrix);
-
-Bool
-PictureTransformPoint3d (PictTransformPtr transform,
-                         PictVectorPtr	vector);
-
-Bool
-PictureTransformPoint (PictTransformPtr transform,
-		       PictVectorPtr	vector);
-
-Bool
-PictureTransformMultiply (PictTransformPtr dst,
-			  PictTransformPtr l, PictTransformPtr r);
-
-void
-PictureTransformInitScale (PictTransformPtr t, xFixed sx, xFixed sy);
-
-Bool
-PictureTransformScale (PictTransformPtr forward,
-		       PictTransformPtr reverse,
-		       xFixed sx, xFixed sy);
-
-void
-PictureTransformInitRotate (PictTransformPtr t, xFixed c, xFixed s);
-
-Bool
-PictureTransformRotate (PictTransformPtr forward,
-			PictTransformPtr reverse,
-			xFixed c, xFixed s);
-
-void
-PictureTransformInitTranslate (PictTransformPtr t, xFixed tx, xFixed ty);
-
-Bool
-PictureTransformTranslate (PictTransformPtr forward,
-			   PictTransformPtr reverse,
-			   xFixed tx, xFixed ty);
-
-Bool
-PictureTransformBounds (BoxPtr b, PictTransformPtr matrix);
-
-Bool
-PictureTransformInvert (PictTransformPtr dst, const PictTransformPtr src);
-
-Bool
-PictureTransformIsIdentity(PictTransform *t);
-
-Bool
-PictureTransformIsScale(PictTransform *t);
-
-Bool
-PictureTransformIsIntTranslate (PictTransform *t);
-
-Bool
-PictureTransformIsInverse(PictTransform *t, PictTransform *i);
 
 void
 PictTransform_from_xRenderTransform (PictTransformPtr pict,
@@ -750,59 +689,12 @@ void
 xRenderTransform_from_PictTransform (xRenderTransform *render,
 				     PictTransformPtr pict);
 
-void
-pict_f_transform_from_pixman_transform (struct pict_f_transform *ft,
-					struct pixman_transform	*t);
+Bool
+PictureTransformPoint (PictTransformPtr transform,
+		       PictVectorPtr	vector);
 
 Bool
-pixman_transform_from_pict_f_transform (struct pixman_transform	*t,
-					struct pict_f_transform	*ft);
-
-Bool
-pict_f_transform_invert (struct pict_f_transform *r,
-			 struct pict_f_transform *m);
-
-
-Bool
-pict_f_transform_point (struct pict_f_transform *t,
-			struct pict_f_vector	*v);
-
-void
-pict_f_transform_point_3d (struct pict_f_transform *t,
-			   struct pict_f_vector	*v);
-
-void
-pict_f_transform_multiply (struct pict_f_transform *dst,
-			   struct pict_f_transform *l, struct pict_f_transform *r);
-
-void
-pict_f_transform_init_scale (struct pict_f_transform *t, double sx, double sy);
-
-Bool
-pict_f_transform_scale (struct pict_f_transform *forward,
-			struct pict_f_transform *reverse,
-			double sx, double sy);
-
-void
-pict_f_transform_init_rotate (struct pict_f_transform *t, double c, double s);
-
-Bool
-pict_f_transform_rotate (struct pict_f_transform *forward,
-			 struct pict_f_transform *reverse,
-			 double c, double s);
-
-void
-pict_f_transform_init_translate (struct pict_f_transform *t, double tx, double ty);
-
-Bool
-pict_f_transform_translate (struct pict_f_transform *forward,
-			    struct pict_f_transform *reverse,
-			    double tx, double ty);
-
-Bool
-pict_f_transform_bounds (struct pict_f_transform *t, BoxPtr b);
-
-void
-pict_f_transform_init_identity (struct pict_f_transform *t);
+PictureTransformPoint3d (PictTransformPtr transform,
+                         PictVectorPtr	vector);
 
 #endif /* _PICTURESTR_H_ */

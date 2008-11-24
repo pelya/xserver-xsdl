@@ -329,7 +329,7 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 	struct pict_f_vector   v;
 
 	v.v[0] = x + ScreenPriv->HotX; v.v[1] = y + ScreenPriv->HotY; v.v[2] = 1;
-	pict_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
+	pixman_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
 	x = floor (v.v[0] + 0.5);
 	y = floor (v.v[1] + 0.5);
 	/*

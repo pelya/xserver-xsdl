@@ -122,7 +122,7 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 	dst_box.x2 += crtc->filter_width >> 1;
 	dst_box.y1 -= crtc->filter_height >> 1;
 	dst_box.y2 += crtc->filter_height >> 1;
-	pict_f_transform_bounds (&crtc->f_framebuffer_to_crtc, &dst_box);
+	pixman_f_transform_bounds (&crtc->f_framebuffer_to_crtc, &dst_box);
 	CompositePicture (PictOpSrc,
 			  src, NULL, dst,
 			  dst_box.x1, dst_box.y1, 0, 0, dst_box.x1, dst_box.y1,
@@ -177,7 +177,7 @@ xf86CrtcDamageShadow (xf86CrtcPtr crtc)
     damage_box.x2 = crtc->mode.HDisplay;
     damage_box.y1 = 0;
     damage_box.y2 = crtc->mode.VDisplay;
-    if (!PictureTransformBounds (&damage_box, &crtc->crtc_to_framebuffer))
+    if (!pixman_transform_bounds (&crtc->crtc_to_framebuffer, &damage_box))
     {
 	damage_box.x1 = 0;
 	damage_box.y1 = 0;
@@ -375,7 +375,7 @@ xf86CrtcFitsScreen (xf86CrtcPtr crtc, struct pict_f_transform *crtc_to_fb)
     b.x2 = crtc->mode.HDisplay;
     b.y2 = crtc->mode.VDisplay;
     if (crtc_to_fb)
-	pict_f_transform_bounds (crtc_to_fb, &b);
+	pixman_f_transform_bounds (crtc_to_fb, &b);
     else {
 	b.x1 += crtc->x;
 	b.y1 += crtc->y;
@@ -532,7 +532,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
     crtc->bounds.x2 = crtc->mode.HDisplay;
     crtc->bounds.y1 = 0;
     crtc->bounds.y2 = crtc->mode.VDisplay;
-    pict_f_transform_bounds (&f_crtc_to_fb, &crtc->bounds);
+    pixman_f_transform_bounds (&f_crtc_to_fb, &crtc->bounds);
 
     /* All done */
     return TRUE;

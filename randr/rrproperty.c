@@ -461,7 +461,7 @@ ProcRRQueryOutputProperty (ClientPtr client)
     xRRQueryOutputPropertyReply	    rep;
     RROutputPtr			    output;
     RRPropertyPtr		    prop;
-    char *extra;
+    char *extra = NULL;
     
     REQUEST_SIZE_MATCH(xRRQueryOutputPropertyReq);
 
@@ -613,7 +613,7 @@ ProcRRGetOutputProperty (ClientPtr client)
     unsigned long		n, len, ind;
     RROutputPtr			output;
     xRRGetOutputPropertyReply	reply;
-    char			*extra;
+    char			*extra = NULL;
 
     REQUEST_SIZE_MATCH(xRRGetOutputPropertyReq);
     if (stuff->delete)

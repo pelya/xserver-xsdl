@@ -26,9 +26,9 @@
 void
 RRTransformInit (RRTransformPtr transform)
 {
-    PictureTransformInitIdentity (&transform->transform);
-    pict_f_transform_init_identity (&transform->f_transform);
-    pict_f_transform_init_identity (&transform->f_inverse);
+    pixman_transform_init_identity (&transform->transform);
+    pixman_f_transform_init_identity (&transform->f_transform);
+    pixman_f_transform_init_identity (&transform->f_inverse);
     transform->filter = NULL;
     transform->params = NULL;
     transform->nparams = 0;
@@ -44,9 +44,9 @@ RRTransformFini (RRTransformPtr transform)
 Bool
 RRTransformEqual (RRTransformPtr a, RRTransformPtr b)
 {
-    if (a && PictureTransformIsIdentity (&a->transform))
+    if (a && pixman_transform_is_identity (&a->transform))
 	a = NULL;
-    if (b && PictureTransformIsIdentity (&b->transform))
+    if (b && pixman_transform_is_identity (&b->transform))
 	b = NULL;
     if (a == NULL && b == NULL)
 	return TRUE;
@@ -95,7 +95,7 @@ RRTransformSetFilter (RRTransformPtr	dst,
 Bool
 RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 {
-    if (src && PictureTransformIsIdentity (&src->transform))
+    if (src && pixman_transform_is_identity (&src->transform))
 	src = NULL;
 
     if (src)
@@ -111,9 +111,9 @@ RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
     {
 	if (!RRTransformSetFilter (dst, NULL, NULL, 0, 0, 0))
 	    return FALSE;
-	PictureTransformInitIdentity (&dst->transform);
-	pict_f_transform_init_identity (&dst->f_transform);
-	pict_f_transform_init_identity (&dst->f_inverse);
+	pixman_transform_init_identity (&dst->transform);
+	pixman_f_transform_init_identity (&dst->f_transform);
+	pixman_f_transform_init_identity (&dst->f_inverse);
     }
     return TRUE;
 }
@@ -136,20 +136,20 @@ RRTransformCompute (int			    x,
 		    RRTransformPtr	    rr_transform,
 
 		    PictTransformPtr	    transform,
-		    struct pict_f_transform *f_transform,
-		    struct pict_f_transform *f_inverse)
+		    struct pixman_f_transform *f_transform,
+		    struct pixman_f_transform *f_inverse)
 {
     PictTransform	    t_transform, inverse;
-    struct pict_f_transform tf_transform, tf_inverse;
+    struct pixman_f_transform tf_transform, tf_inverse;
 
     if (!transform) transform = &t_transform;
     if (!f_transform) f_transform = &tf_transform;
     if (!f_inverse) f_inverse = &tf_inverse;
 
-    PictureTransformInitIdentity (transform);
-    PictureTransformInitIdentity (&inverse);
-    pict_f_transform_init_identity (f_transform);
-    pict_f_transform_init_identity (f_inverse);
+    pixman_transform_init_identity (transform);
+    pixman_transform_init_identity (&inverse);
+    pixman_f_transform_init_identity (f_transform);
+    pixman_f_transform_init_identity (f_inverse);
     if (rotation != RR_Rotate_0)
     {
 	double	f_rot_cos, f_rot_sin, f_rot_dx, f_rot_dy;
@@ -186,10 +186,10 @@ RRTransformCompute (int			    x,
 	    break;
 	}
 	
-	PictureTransformRotate (transform, &inverse, rot_cos, rot_sin);
-	PictureTransformTranslate (transform, &inverse, rot_dx, rot_dy);
-	pict_f_transform_rotate (f_transform, f_inverse, f_rot_cos, f_rot_sin);
-	pict_f_transform_translate (f_transform, f_inverse, f_rot_dx, f_rot_dy);
+	pixman_transform_rotate (transform, &inverse, rot_cos, rot_sin);
+	pixman_transform_translate (transform, &inverse, rot_dx, rot_dy);
+	pixman_f_transform_rotate (f_transform, f_inverse, f_rot_cos, f_rot_sin);
+	pixman_f_transform_translate (f_transform, f_inverse, f_rot_dx, f_rot_dy);
 
 	/* reflection */
 	f_scale_x = 1;
@@ -225,35 +225,35 @@ RRTransformCompute (int			    x,
 	    }
 	}
 	
-	PictureTransformScale (transform, &inverse, scale_x, scale_y);
-	pict_f_transform_scale (f_transform, f_inverse, f_scale_x, f_scale_y);
-	PictureTransformTranslate (transform, &inverse, scale_dx, scale_dy);
-	pict_f_transform_translate (f_transform, f_inverse, f_scale_dx, f_scale_dy);
+	pixman_transform_scale (transform, &inverse, scale_x, scale_y);
+	pixman_f_transform_scale (f_transform, f_inverse, f_scale_x, f_scale_y);
+	pixman_transform_translate (transform, &inverse, scale_dx, scale_dy);
+	pixman_f_transform_translate (f_transform, f_inverse, f_scale_dx, f_scale_dy);
     }
     
 #ifdef RANDR_12_INTERFACE
     if (rr_transform)
     {
-        PictureTransformMultiply (transform, transform, &rr_transform->transform);
-	pict_f_transform_multiply (f_transform, f_transform, &rr_transform->f_transform);
-	pict_f_transform_multiply (f_inverse, &rr_transform->f_inverse, f_inverse);
+        pixman_transform_multiply (transform, transform, &rr_transform->transform);
+	pixman_f_transform_multiply (f_transform, f_transform, &rr_transform->f_transform);
+	pixman_f_transform_multiply (f_inverse, &rr_transform->f_inverse, f_inverse);
     }
 #endif
     /*
      * Compute the class of the resulting transform
      */
-    if (PictureTransformIsIdentity (transform))
+    if (pixman_transform_is_identity (transform))
     {
-	PictureTransformInitTranslate (transform, F ( x), F ( y));
+	pixman_transform_init_translate (transform, F ( x), F ( y));
 
-	pict_f_transform_init_translate (f_transform, F( x), F( y));
-	pict_f_transform_init_translate (f_inverse,   F(-x), F(-y));
+	pixman_f_transform_init_translate (f_transform, F( x), F( y));
+	pixman_f_transform_init_translate (f_inverse,   F(-x), F(-y));
 	return FALSE;
     }
     else
     {
-	PictureTransformTranslate (&inverse, transform, x, y);
-	pict_f_transform_translate (f_inverse, f_transform, x, y);
+	pixman_transform_translate (&inverse, transform, x, y);
+	pixman_f_transform_translate (f_inverse, f_transform, x, y);
 	return TRUE;
     }
 }

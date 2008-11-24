@@ -103,9 +103,9 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
 #endif
     crtc->rotation = RR_Rotate_0;
     crtc->desiredRotation = RR_Rotate_0;
-    PictureTransformInitIdentity (&crtc->crtc_to_framebuffer);
-    pict_f_transform_init_identity (&crtc->f_crtc_to_framebuffer);
-    pict_f_transform_init_identity (&crtc->f_framebuffer_to_crtc);
+    pixman_transform_init_identity (&crtc->crtc_to_framebuffer);
+    pixman_f_transform_init_identity (&crtc->f_crtc_to_framebuffer);
+    pixman_f_transform_init_identity (&crtc->f_framebuffer_to_crtc);
     crtc->filter = NULL;
     crtc->params = NULL;
     crtc->nparams = 0;
