@@ -169,9 +169,7 @@ extern void SendErrorToClient(
 extern void MarkClientException(
     ClientPtr /*client*/);
 
-#if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
-#endif
 
 /* dixutils.c */
 
