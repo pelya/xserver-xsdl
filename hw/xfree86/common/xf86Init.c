@@ -643,6 +643,75 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     return foundScreen;
 }
 
+static void
+DoProbe(void)
+{
+    int i;
+    Bool probeResult;
+    Bool ioEnableFailed = FALSE;
+    
+    /* Find the list of video driver modules. */
+    char **list = xf86DriverlistFromCompile();
+    char **l;
+
+    if (list) {
+	ErrorF("List of video driver modules:\n");
+	for (l = list; *l; l++)
+	    ErrorF("\t%s\n", *l);
+    } else {
+	ErrorF("No video driver modules found\n");
+    }
+
+    /* Load all the drivers that were found. */
+    xf86LoadModules(list, NULL);
+
+    /* Disable PCI devices */
+    xf86AccessInit();
+
+    /* Call all of the probe functions, reporting the results. */
+    for (i = 0; i < xf86NumDrivers; i++) {
+	DriverRec * const drv = xf86DriverList[i];
+
+	if (!xorgHWAccess) {
+	    xorgHWFlags flags;
+	    if (!drv->driverFunc
+		|| !drv->driverFunc( NULL, GET_REQUIRED_HW_INTERFACES, &flags )
+		|| NEED_IO_ENABLED(flags)) {
+		if (ioEnableFailed)
+		    continue;
+		if (!xf86EnableIO()) {
+		    ioEnableFailed = TRUE;
+		    continue;
+		}
+		xorgHWAccess = TRUE;
+	    }
+	}
+	    
+
+	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",  drv->driverName);
+
+	probeResult = xf86CallDriverProbe( drv, TRUE );
+	if (!probeResult) {
+	    xf86ErrorF("Probe in driver `%s' returns FALSE\n",
+		drv->driverName);
+	} else {
+	    xf86ErrorF("Probe in driver `%s' returns TRUE\n",
+		drv->driverName);
+
+	    /* If we have a result, then call driver's Identify function */
+	    if (drv->Identify != NULL) {
+		const int verbose = xf86SetVerbosity(1);
+		(*drv->Identify)(0);
+		xf86SetVerbosity(verbose);
+	    }
+	}
+    }
+
+    OsCleanup(TRUE);
+    AbortDDX();
+    fflush(stderr);
+    exit(0);
+}
 
 /*
  * InitOutput --

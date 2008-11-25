@@ -150,9 +150,10 @@ Bool xf86PathIsSafe(const char *path);
 extern const DisplayModeRec xf86DefaultModes[];
 extern const int xf86NumDefaultModes;
 
-/* xf86DoProbe.c */
-void DoProbe(void);
+/* xf86Configure.c */
 void DoConfigure(void);
+
+/* xf86ShowOpts.c */
 void DoShowOptions(void);
 
 /* xf86Events.c */
