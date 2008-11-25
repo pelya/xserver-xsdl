@@ -76,9 +76,9 @@ BOOL xpbproxy_init (void) {
         xpbproxy_dpy = XOpenDisplay(NULL);
         
         if(!xpbproxy_dpy && display) {
-            char *_display = alloca(sizeof(char) * (strlen(display) + 2));
-            strcpy(_display+1, display);
-            *_display=':';
+            char _display[32];
+            snprintf(_display, sizeof(_display), ":%s", display);
+            setenv("DISPLAY", _display, TRUE);
 
             xpbproxy_dpy=XOpenDisplay(_display);
         }
