@@ -321,16 +321,6 @@ BOOL xquartz_resetenv_display = NO;
   int child1, child2 = 0;
   int status;
 	
-  if(xquartz_resetenv_display) {
-      char _display[32];
-      size_t i;
-      for(i=0; !display && i < 5; i++)
-        sleep(1);
-      
-      snprintf(_display, sizeof(_display), ":%s", display);
-      setenv("DISPLAY", _display, TRUE);
-  }
-    
   argv[0] = "/usr/bin/login";
   argv[1] = "-fp";
   argv[2] = getlogin();
@@ -368,7 +358,7 @@ BOOL xquartz_resetenv_display = NO;
 	
       /* Setup environment */
       temp = getenv("DISPLAY");
-      if (temp == NULL || temp[0] == 0) {
+      if (xquartz_resetenv_display || temp == NULL || temp[0] == 0) {
     snprintf(buf, sizeof(buf), ":%s", display);
 	setenv("DISPLAY", buf, TRUE);
       }
