@@ -16,8 +16,6 @@
 #include "xf86fbman.h"
 #include "servermd.h"
 
-static const OptionInfoRec *XAAAvailableOptions(void *unused);
-
 /*
  * XAA Config options
  */
@@ -110,13 +108,6 @@ static XF86ModuleVersionInfo xaaVersRec =
 };
 
 _X_EXPORT XF86ModuleData xaaModuleData = { &xaaVersRec, NULL, NULL };
-
-/*ARGSUSED*/
-static const OptionInfoRec *
-XAAAvailableOptions(void *unused)
-{
-    return (XAAOptions);
-}
 
 Bool
 XAAInitAccel(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
