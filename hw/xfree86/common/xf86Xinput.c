@@ -54,6 +54,7 @@
 #include <X11/Xmd.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/Xatom.h>
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Xinput.h"
@@ -85,6 +86,7 @@
 #include "mi.h"
 
 #include <ptrveloc.h>          /* dix pointer acceleration */
+#include <xserver-properties.h>
 
 #ifdef XFreeXDGA
 #include "dgaproc.h"
@@ -102,13 +104,69 @@ EventListPtr xf86Events = NULL;
  * Eval config and modify DeviceVelocityRec accordingly
  */
 static void
-ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
+ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
+                             DeviceVelocityPtr s)
+{
     int tempi, i;
     float tempf, tempf2;
+    Atom float_prop = XIGetKnownProperty(XATOM_FLOAT);
+    Atom prop;
 
     if(!s)
         return;
 
+    /* common settings (available via device properties) */
+    tempf = xf86SetIntOption(list, "ConstantDeceleration", 1);
+    if(tempf > 1.0){
+        xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
+                devname, tempf);
+        prop = XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION);
+        XIChangeDeviceProperty(pDev, prop, float_prop, 32,
+                               PropModeReplace, 1, &tempf, FALSE);
+    }
+
+    tempf = xf86SetIntOption(list, "AdaptiveDeceleration", 1);
+    if(tempf > 1.0){
+        xf86Msg(X_CONFIG, "%s: (accel) adaptive deceleration by %.1f\n",
+                devname, tempf);
+        prop = XIGetKnownProperty(ACCEL_PROP_ADAPTIVE_DECELERATION);
+        XIChangeDeviceProperty(pDev, prop, float_prop, 32,
+                               PropModeReplace, 1, &tempf, FALSE);
+    }
+
+    /* select profile by number */
+    tempi = xf86SetIntOption(list, "AccelerationProfile",
+            s->statistics.profile_number);
+
+    prop = XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER);
+    if (XIChangeDeviceProperty(pDev, prop, XA_INTEGER, 32,
+                               PropModeReplace, 1, &tempi, FALSE) == Success)
+    {
+        xf86Msg(X_CONFIG, "%s: (accel) acceleration profile %i\n", devname,
+                tempi);
+    } else {
+        xf86Msg(X_CONFIG, "%s: (accel) acceleration profile %i is unknown\n",
+                devname, tempi);
+    }
+
+    /* set scaling */
+    tempf = xf86SetRealOption(list, "ExpectedRate", 0);
+    prop = XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING);
+    if(tempf > 0){
+        if(tempf > 300){
+            xf86Msg(X_WARNING, "%s: (accel) Using ExpectedRate > 300 may not "
+                    "yield good controllability!\n", devname);
+        }
+        tempf = 1000.0 / tempf;
+        XIChangeDeviceProperty(pDev, prop, float_prop, 32,
+                               PropModeReplace, 1, &tempf, FALSE);
+    }else{
+        tempf = xf86SetRealOption(list, "VelocityScale", s->corr_mul);
+        XIChangeDeviceProperty(pDev, prop, float_prop, 32,
+                               PropModeReplace, 1, &tempf, FALSE);
+    }
+
+    /* advanced stuff, best kept in .fdi's */
     tempf = xf86SetRealOption(list, "FilterHalflife", -1);
     if(tempf > 0)
         tempf = 1.0 / tempf;   /* set reciprocal if possible */
@@ -133,21 +191,6 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
 
         xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
                 devname, i, 1.0f / (s->filters[i].rdecay));
-    }
-
-    tempf = xf86SetRealOption(list, "ConstantDeceleration", 1.0);
-    if(tempf > 1.0){
-        xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
-                devname, tempf);
-        s->const_acceleration = 1.0 / tempf;   /* set reciprocal deceleration
-                                                  alias acceleration */
-    }
-
-    tempf = xf86SetRealOption(list, "AdaptiveDeceleration", 1.0);
-    if(tempf > 1.0){
-        xf86Msg(X_CONFIG, "%s: (accel) adaptive deceleration by %.1f\n",
-                devname, tempf);
-        s->min_acceleration = 1.0 / tempf;   /* set minimum acceleration */
     }
 
     tempf = xf86SetRealOption(list, "VelocityCoupling", -1);
@@ -234,7 +277,7 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
         switch(scheme){
             case PtrAccelPredictable:
                 pVel = GetDevicePredictableAccelData(dev);
-                ProcessVelocityConfiguration (local->name, local->options,
+                ProcessVelocityConfiguration (dev, local->name, local->options,
                                               pVel);
                 break;
         }
