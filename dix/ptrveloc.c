@@ -75,7 +75,8 @@ CleanupFilterChain(DeviceVelocityPtr s);
 static float
 SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
                     float threshold, float acc);
-
+static PointerAccelerationProfileFunc
+GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
 
 
 /*#define PTRACCEL_DEBUGGING*/
@@ -675,6 +676,33 @@ LinearProfile(
 }
 
 
+static PointerAccelerationProfileFunc
+GetAccelerationProfile(
+    DeviceVelocityPtr s,
+    int profile_num)
+{
+    switch(profile_num){
+        case AccelProfileClassic:
+            return ClassicProfile;
+        case AccelProfileDeviceSpecific:
+            return s->deviceSpecificProfile;
+        case AccelProfilePolynomial:
+            return PolynomialAccelerationProfile;
+        case AccelProfileSmoothLinear:
+            return SmoothLinearProfile;
+        case AccelProfileSimple:
+            return SimpleSmoothProfile;
+        case AccelProfilePower:
+            return PowerProfile;
+        case AccelProfileLinear:
+            return LinearProfile;
+        case AccelProfileReserved:
+            /* reserved for future use, e.g. a user-defined profile */
+        default:
+            return NULL;
+    }
+}
+
 /**
  * Set the profile by number.
  * Intended to make profiles exchangeable at runtime.
@@ -689,38 +717,11 @@ SetAccelerationProfile(
     int profile_num)
 {
     PointerAccelerationProfileFunc profile;
-    switch(profile_num){
-        case -1:
-            profile = NULL;  /* Special case to uninit properly */
-            break;
-        case AccelProfileClassic:
-            profile = ClassicProfile;
-            break;
-        case AccelProfileDeviceSpecific:
-            if(NULL == s->deviceSpecificProfile)
-        	return FALSE;
-            profile = s->deviceSpecificProfile;
-            break;
-        case AccelProfilePolynomial:
-            profile = PolynomialAccelerationProfile;
-            break;
-        case AccelProfileSmoothLinear:
-            profile = SmoothLinearProfile;
-            break;
-        case AccelProfileSimple:
-            profile = SimpleSmoothProfile;
-            break;
-        case AccelProfilePower:
-            profile = PowerProfile;
-            break;
-        case AccelProfileLinear:
-            profile = LinearProfile;
-            break;
-        case AccelProfileReserved:
-            /* reserved for future use, e.g. a user-defined profile */
-        default:
-            return FALSE;
-    }
+    profile = GetAccelerationProfile(s, profile_num);
+
+    if(profile == NULL && profile_num != -1)
+	return FALSE;
+
     if(s->profile_private != NULL){
         /* Here one could free old profile-private data */
         xfree(s->profile_private);
