@@ -426,6 +426,17 @@ int main(int argc, char **argv, char **envp) {
     /* Setup the initial crasherporter info */
     strlcpy(__crashreporter_info__, __crashreporter_info__base, __crashreporter_info__len);
 
+    /* Pass on our prefs domain to startx and its inheritors (mainly for quartz-wm) */
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if(bundle) {
+        CFStringRef pd = CFBundleGetIdentifier(bundle);
+        if(pd) {
+            const char *pds = CFStringGetCStringPtr(pd, 0);
+            if(pds)
+                setenv("X11_PREFS_DOMAIN", pds, 1);
+        }
+    }
+    
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
     for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
