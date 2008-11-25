@@ -3091,6 +3091,8 @@ void
 SendVisibilityNotify(WindowPtr pWin)
 {
     xEvent event;
+    if (!MapUnmapEventsEnabled(pWin))
+        return;
 #ifndef NO_XINERAMA_PORT
     unsigned int visibility = pWin->visibility;
 #endif
