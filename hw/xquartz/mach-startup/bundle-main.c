@@ -75,9 +75,6 @@ char *__crashreporter_info__ = __crashreporter_info__buf;
 
 #define DEBUG 1
 
-static int execute(const char *command);
-static char *command_from_prefs(const char *key, const char *default_value);
-
 /* This is in quartzStartup.c */
 int server_main(int argc, char **argv, char **envp);
 
