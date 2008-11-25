@@ -73,6 +73,8 @@ const char *__crashreporter_info__base = "X.Org X Server " XSERVER_VERSION " Bui
 char __crashreporter_info__buf[4096];
 char *__crashreporter_info__ = __crashreporter_info__buf;
 
+static char *server_bootstrap_name = "org.x.X11";
+
 #define DEBUG 1
 
 /* This is in quartzStartup.c */
@@ -370,7 +372,7 @@ int startup_trigger(int argc, char **argv, char **envp) {
             strlcpy(newenvp[i], envp[i], STRING_T_SIZE);
         }
 
-        kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+        kr = bootstrap_look_up(bootstrap_port, server_bootstrap_name, &mp);
         if (kr != KERN_SUCCESS) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
             fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
@@ -426,14 +428,19 @@ int main(int argc, char **argv, char **envp) {
     /* Setup the initial crasherporter info */
     strlcpy(__crashreporter_info__, __crashreporter_info__base, __crashreporter_info__len);
 
-    /* Pass on our prefs domain to startx and its inheritors (mainly for quartz-wm) */
+    /* Pass on our prefs domain to startx and its inheritors (mainly for
+     * quartz-wm and the Xquartz stub's MachIPC)
+     */
     CFBundleRef bundle = CFBundleGetMainBundle();
     if(bundle) {
         CFStringRef pd = CFBundleGetIdentifier(bundle);
         if(pd) {
             const char *pds = CFStringGetCStringPtr(pd, 0);
-            if(pds)
+            if(pds) {
+                server_bootstrap_name = malloc(sizeof(char) * (strlen(pds) + 1));
+                strcpy(server_bootstrap_name, pds);
                 setenv("X11_PREFS_DOMAIN", pds, 1);
+            }
         }
     }
     
@@ -445,9 +452,9 @@ int main(int argc, char **argv, char **envp) {
         }
     }
 
-    mp = checkin_or_register(SERVER_BOOTSTRAP_NAME);
+    mp = checkin_or_register(server_bootstrap_name);
     if(mp == MACH_PORT_NULL) {
-        fprintf(stderr, "NULL mach service: %s", SERVER_BOOTSTRAP_NAME);
+        fprintf(stderr, "NULL mach service: %s", server_bootstrap_name);
         return EXIT_FAILURE;
     }
     
