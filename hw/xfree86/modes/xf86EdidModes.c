@@ -418,7 +418,7 @@ MonitorStandardTimingLevel(xf86MonPtr DDC)
 }
 
 static int
-ModeRefresh(DisplayModePtr mode)
+ModeRefresh(const DisplayModeRec *mode)
 {
     return (int)(xf86ModeVRefresh(mode) + 0.5);
 }
@@ -432,7 +432,7 @@ static DisplayModePtr
 FindDMTMode(int hsize, int vsize, int refresh, Bool rb)
 {
     int i;
-    DisplayModePtr ret;
+    const DisplayModeRec *ret;
 
     for (i = 0; i < sizeof(DMTModes) / sizeof(DisplayModeRec); i++) {
 	ret = &DMTModes[i];

@@ -52,7 +52,7 @@ extern XF86ConfigPtr xf86configptr;
  * Exact copy of xf86Mode.c's.
  */
 _X_EXPORT double
-xf86ModeHSync(DisplayModePtr mode)
+xf86ModeHSync(const DisplayModeRec *mode)
 {
     double hsync = 0.0;
     
@@ -70,7 +70,7 @@ xf86ModeHSync(DisplayModePtr mode)
  * Exact copy of xf86Mode.c's.
  */
 _X_EXPORT double
-xf86ModeVRefresh(DisplayModePtr mode)
+xf86ModeVRefresh(const DisplayModeRec *mode)
 {
     double refresh = 0.0;
 
@@ -89,7 +89,7 @@ xf86ModeVRefresh(DisplayModePtr mode)
 }
 
 _X_EXPORT int
-xf86ModeWidth (DisplayModePtr mode, Rotation rotation)
+xf86ModeWidth (const DisplayModeRec *mode, Rotation rotation)
 {
     switch (rotation & 0xf) {
     case RR_Rotate_0:
@@ -104,7 +104,7 @@ xf86ModeWidth (DisplayModePtr mode, Rotation rotation)
 }
 
 _X_EXPORT int
-xf86ModeHeight (DisplayModePtr mode, Rotation rotation)
+xf86ModeHeight (const DisplayModeRec *mode, Rotation rotation)
 {
     switch (rotation & 0xf) {
     case RR_Rotate_0:
@@ -206,7 +206,7 @@ xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
  * Allocates and returns a copy of pMode, including pointers within pMode.
  */
 _X_EXPORT DisplayModePtr
-xf86DuplicateMode(DisplayModePtr pMode)
+xf86DuplicateMode(const DisplayModeRec *pMode)
 {
     DisplayModePtr pNew;
 
@@ -264,7 +264,7 @@ xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList)
  * This isn't in xf86Modes.c, but it might deserve to be there.
  */
 _X_EXPORT Bool
-xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2)
+xf86ModesEqual(const DisplayModeRec *pMode1, const DisplayModeRec *pMode2)
 {
      if (pMode1->Clock == pMode2->Clock &&
 	 pMode1->HDisplay == pMode2->HDisplay &&
@@ -519,7 +519,7 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 }
 
 Bool
-xf86ModeIsReduced(DisplayModePtr mode)
+xf86ModeIsReduced(const DisplayModeRec *mode)
 {
     if ((((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) &&
         ((mode->HTotal - mode->HDisplay) == 160) &&
@@ -698,7 +698,7 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
 
     for (i = 0; i < xf86NumDefaultModes; i++)
     {
-	DisplayModePtr	defMode = &xf86DefaultModes[i];
+	const DisplayModeRec	*defMode = &xf86DefaultModes[i];
 	
 	if (!interlaceAllowed && (defMode->Flags & V_INTERLACE))
 	    continue;
