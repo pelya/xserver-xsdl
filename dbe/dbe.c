@@ -58,9 +58,6 @@
 
 /* GLOBALS */
 
-/* Per-screen initialization functions [init'ed by DbeRegisterFunction()] */
-static Bool (* DbeInitFunct[MAXSCREENS])();	/* pScreen, pDbeScreenPriv */
-
 /* These are static globals copied to DBE's screen private for use by DDX */
 static int dbeScreenPrivKeyIndex;
 static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKeyIndex;
@@ -74,45 +71,6 @@ static RESTYPE	dbeWindowPrivResType;
 /* Used to generate DBE's BadBuffer error. */
 static int	dbeErrorBase;
 
-/* Used by DbeRegisterFunction() to initialize the initialization function
- * table only once per server lifetime.
- */
-static Bool	firstRegistrationPass = TRUE;
-
-
-/******************************************************************************
- *
- * DBE DIX Procedure: DbeRegisterFunction
- *
- * Description:
- *
- *     This function registers the DBE init function for the specified screen.
- *
- *****************************************************************************/
-
-void
-DbeRegisterFunction(ScreenPtr pScreen, Bool (*funct) (/* ??? */))
-{
-    int	i;
-
-    /* Initialize the initialization function table if it has not been
-     * initialized already.
-     */
-    if (firstRegistrationPass)
-    {
-        for (i = 0; i < MAXSCREENS; i++)
-        {
-            DbeInitFunct[i] = NULL;
-        }
-
-        firstRegistrationPass = FALSE;
-    }
-
-    DbeInitFunct[pScreen->myNum] = funct;
-
-} /* DbeRegisterFunction() */
-
-
 /******************************************************************************
  *
  * DBE DIX Procedure: DbeStubScreen
@@ -1498,12 +1456,6 @@ DbeResetProc(ExtensionEntry *extEntry)
 	    xfree(pDbeScreenPriv);
 	}
     }
-
-    /* We want to init the initialization function table after every server
-     * reset in DbeRegisterFunction().
-     */
-    firstRegistrationPass = TRUE;
-
 } /* DbeResetProc() */
 
 
@@ -1659,39 +1611,8 @@ DbeExtensionInit(void)
         pDbeScreenPriv->dbeScreenPrivKey = dbeScreenPrivKey;
         pDbeScreenPriv->dbeWindowPrivKey = dbeWindowPrivKey;
 
-        if(DbeInitFunct[i])
         {
-            /* This screen supports DBE. */
-
-            /* Setup DIX. */
-            pDbeScreenPriv->SetupBackgroundPainter = DbeSetupBackgroundPainter; 
-
-            /* Setup DDX. */
-            ddxInitSuccess = (*DbeInitFunct[i])(pScreen, pDbeScreenPriv);
-
-            /* DDX DBE initialization may have the side affect of
-             * reallocating pDbeScreenPriv, so we need to update it.
-             */
-            pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
-
-            if (ddxInitSuccess)
-            {
-                /* Wrap DestroyWindow.  The DDX initialization function
-                 * already wrapped PositionWindow for us.
-                 */
-
-                pDbeScreenPriv->DestroyWindow = pScreen->DestroyWindow;
-                pScreen->DestroyWindow        = DbeDestroyWindow;
-            }
-            else
-            {
-                /* DDX initialization failed.  Stub the screen. */
-                DbeStubScreen(pDbeScreenPriv, &nStubbedScreens);
-            }
-        }
-        else
-        {
-            /* This screen does not support DBE. */
+            /* We don't have DDX support for DBE anymore */
 
 #ifndef DISABLE_MI_DBE_BY_DEFAULT
             /* Setup DIX. */
@@ -1723,7 +1644,7 @@ DbeExtensionInit(void)
             DbeStubScreen(pDbeScreenPriv, &nStubbedScreens);
 #endif
 
-        } /* else -- this screen does not support DBE. */
+        }
 
     } /* for (i = 0; i < screenInfo.numScreens; i++) */
 
