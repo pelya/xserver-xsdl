@@ -1134,24 +1134,6 @@ UnloadSubModule(ModuleDescPtr mod)
 }
 
 static void
-FreeModuleDesc(ModuleDescPtr head)
-{
-    ModuleDescPtr sibs, prev;
-
-    if (head == (ModuleDescPtr) 1)
-	return;
-    if (head->child)
-	FreeModuleDesc(head->child);
-    sibs = head;
-    while (sibs) {
-	prev = sibs;
-	sibs = sibs->sib;
-	TestFree(prev->name);
-	xfree(prev);
-    }
-}
-
-static void
 RemoveChild(ModuleDescPtr child)
 {
     ModuleDescPtr mdp;
