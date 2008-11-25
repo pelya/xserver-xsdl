@@ -753,6 +753,8 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 {
     DeviceIntPtr master = device->u.master;
     char* classbuff;
+    int len = sizeof(xEvent);
+    int namelen = 0; /* dummy */
 
     if (device->isMaster)
         return;
@@ -763,11 +765,14 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
     dcce->deviceid     = master->id;
     dcce->num_classes  = 0;
 
+    SizeDeviceInfo(device, &namelen, &len);
+    dcce->length = (len - sizeof(xEvent))/4;
+
     master->public.devicePrivate = device->public.devicePrivate;
 
     DeepCopyDeviceClasses(device, master);
 
-    /* event is already correct size, see comment in GetPointerEvents */
+    /* event is already correct size, see SetMinimumEventSize */
     classbuff = (char*)&dcce[1];
 
     /* we don't actually swap if there's a NullClient, swapping is done

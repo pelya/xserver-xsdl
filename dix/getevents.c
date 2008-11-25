@@ -119,25 +119,6 @@ CreateClassesChangedEvent(EventList* event,
     deviceClassesChangedEvent *dcce;
     int len = sizeof(xEvent);
     CARD32 ms = GetTimeInMillis();
-    int namelen = 0; /* dummy */
-
-    /* XXX: ok, this is a bit weird. We need to alloc enough size for the
-     * event so it can be filled in in POE lateron. Reason being that if
-     * we realloc the event in POE we can get SIGABRT when we try to free
-     * or realloc the original pointer.
-     * We can only do it here as we don't have the EventList in the event
-     * processing any more.
-     */
-    SizeDeviceInfo(slave, &namelen, &len);
-
-    if (event->evlen < len)
-    {
-        event->event = realloc(event->event, len);
-        if (!event->event)
-            FatalError("[dix] Cannot allocate memory for "
-                    "DeviceClassesChangedEvent.\n");
-        event->evlen = len;
-    }
 
     dcce = (deviceClassesChangedEvent*)event->event;
     dcce->type = GenericEvent;
