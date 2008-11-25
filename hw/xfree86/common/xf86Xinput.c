@@ -126,9 +126,14 @@ ProcessVelocityConfiguration(char* devname, pointer list, DeviceVelocityPtr s){
     if(tempf > 0.0f && tempi >= 1 && tempf2 >= 1.0f)
 	InitFilterChain(s, tempf, tempf2, tempi, 40);
 
-    for(i = 0; i < tempi; i++)
-	xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
+    /* dump filter setup to log */
+    for(i = 0; i < MAX_VELOCITY_FILTERS; i++){
+	if(s->filters[i].rdecay <= 0)
+	    break;
+
+        xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
                 devname, i, 1.0f / (s->filters[i].rdecay));
+    }
 
     tempf = xf86SetRealOption(list, "ConstantDeceleration", 1.0);
     if(tempf > 1.0){
