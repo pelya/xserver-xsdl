@@ -31,12 +31,15 @@
 #import "x-selection.h"
 
 #include <pthread.h>
+#include <unistd.h>
 #include <X11/extensions/applewm.h>
 
 Display *xpbproxy_dpy;
 int xpbproxy_apple_wm_event_base, xpbproxy_apple_wm_error_base;
 int xpbproxy_xfixes_event_base, xpbproxy_xfixes_error_base;
 BOOL xpbproxy_have_xfixes;
+
+extern char *display;
 
 #ifdef STANDALONE_XPBPROXY
 BOOL xpbproxy_is_standalone = NO;
@@ -67,10 +70,24 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
 
 BOOL xpbproxy_init (void) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    size_t i;
 
-    xpbproxy_dpy = XOpenDisplay (NULL);
+    for(i=0, xpbproxy_dpy=NULL; !xpbproxy_dpy && i<5; i++) {
+        xpbproxy_dpy = XOpenDisplay(NULL);
+        
+        if(!xpbproxy_dpy && display) {
+            char *_display = alloca(sizeof(char) * (strlen(display) + 2));
+            strcpy(_display+1, display);
+            *_display=':';
+
+            xpbproxy_dpy=XOpenDisplay(_display);
+        }
+        if(!xpbproxy_dpy)
+            sleep(1);
+    }
+    
     if (xpbproxy_dpy == NULL) {
-        fprintf (stderr, "can't open default display\n");
+        fprintf (stderr, "xpbproxy: can't open default display\n");
         [pool release];
         return FALSE;
     }
@@ -80,7 +97,7 @@ BOOL xpbproxy_init (void) {
     
     if (!XAppleWMQueryExtension (xpbproxy_dpy, &xpbproxy_apple_wm_event_base,
                                  &xpbproxy_apple_wm_error_base)) {
-        fprintf (stderr, "can't open AppleWM server extension\n");
+        fprintf (stderr, "xpbproxy: can't open AppleWM server extension\n");
         [pool release];
         return FALSE;
     }

@@ -37,6 +37,8 @@
 static const char *app_prefs_domain = "org.x.X11";
 CFStringRef app_prefs_domain_cfstr;
 
+char *display = NULL;
+
 static void signal_handler (int sig) {
     switch(sig) {
         case SIGHUP:
