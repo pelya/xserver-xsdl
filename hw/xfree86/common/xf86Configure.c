@@ -771,7 +771,7 @@ DoConfigure(void)
     xf86config->conf_layout_lst = configureLayoutSection();
 
     home = getenv("HOME");
-    if ((home == NULL) || (home[0] = '\0')) {
+    if ((home == NULL) || (home[0] == '\0')) {
     	home = "/";
     } else {
 	/* Determine if trailing slash is present or needed */
