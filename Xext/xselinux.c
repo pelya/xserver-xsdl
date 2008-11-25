@@ -474,7 +474,7 @@ SELinuxLabelClient(ClientPtr client)
     /* Try to get a context from the socket */
     if (fd < 0 || getpeercon(fd, &ctx) < 0) {
 	/* Otherwise, fall back to a default context */
-	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
+	if (selabel_lookup(label_hnd, &ctx, "remote", SELABEL_X_CLIENT) < 0)
 	    FatalError("SELinux: failed to look up remote-client context\n");
     }
 
