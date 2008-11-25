@@ -76,6 +76,8 @@ extern int darwinFakeButtons;
 
 X11Application *X11App;
 
+CFStringRef app_prefs_domain_cfstr = NULL;
+
 #define ALL_KEY_MASKS (NSShiftKeyMask | NSControlKeyMask | NSAlternateKeyMask | NSCommandKeyMask)
 
 @interface X11Application (Private)
@@ -466,7 +468,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 - (CFPropertyListRef) prefs_get:(NSString *)key {
     CFPropertyListRef value;
 	
-    value = CFPreferencesCopyAppValue ((CFStringRef) key, CFSTR (APP_PREFS));
+    value = CFPreferencesCopyAppValue ((CFStringRef) key, app_prefs_domain_cfstr);
 	
     if (value == NULL) {
       static CFDictionaryRef defaults;
@@ -618,7 +620,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     x = CFNumberCreate (NULL, kCFNumberIntType, &value);
 	
-    CFPreferencesSetValue ((CFStringRef) key, (CFTypeRef) x, CFSTR (APP_PREFS),
+    CFPreferencesSetValue ((CFStringRef) key, (CFTypeRef) x, app_prefs_domain_cfstr,
 			   kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	
     CFRelease (x);
@@ -629,7 +631,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     x = CFNumberCreate (NULL, kCFNumberFloatType, &value);
 	
-    CFPreferencesSetValue ((CFStringRef) key, (CFTypeRef) x, CFSTR (APP_PREFS),
+    CFPreferencesSetValue ((CFStringRef) key, (CFTypeRef) x, app_prefs_domain_cfstr,
 			   kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	
     CFRelease (x);
@@ -638,7 +640,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 - (void) prefs_set_boolean:(NSString *)key value:(int)value {
   CFPreferencesSetValue ((CFStringRef) key,
 			 (CFTypeRef) (value ? kCFBooleanTrue
-			 : kCFBooleanFalse), CFSTR (APP_PREFS),
+			 : kCFBooleanFalse), app_prefs_domain_cfstr,
 			 kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
   
 }
@@ -649,14 +651,14 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
   cfarray = nsarray_to_cfarray (value);
   CFPreferencesSetValue ((CFStringRef) key,
 			 (CFTypeRef) cfarray,
-			 CFSTR (APP_PREFS),
+			 app_prefs_domain_cfstr,
 			 kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
   CFRelease (cfarray);
 }
 
 - (void) prefs_set_string:(NSString *)key value:(NSString *)value {
   CFPreferencesSetValue ((CFStringRef) key, (CFTypeRef) value,
-			 CFSTR (APP_PREFS), kCFPreferencesCurrentUser,
+			 app_prefs_domain_cfstr, kCFPreferencesCurrentUser,
 			 kCFPreferencesAnyHost);
 }
 
@@ -857,6 +859,9 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     pool = [[NSAutoreleasePool alloc] init];
     X11App = (X11Application *) [X11Application sharedApplication];
     init_ports ();
+    
+    app_prefs_domain_cfstr = (CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
+
     [NSApp read_defaults];
     [NSBundle loadNibNamed:@"main" owner:NSApp];
     [[NSNotificationCenter defaultCenter] addObserver:NSApp

@@ -97,12 +97,13 @@ dump_prefs (FILE *fp) {
 }
 #endif
 
-#define APP_PREFS "org.x.X11"
+extern CFStringRef app_prefs_domain_cfstr;
+
 static BOOL
 prefs_get_bool (CFStringRef key, BOOL defaultValue) {
     Boolean value, ok;
     
-    value = CFPreferencesGetAppBooleanValue (key, CFSTR (APP_PREFS), &ok);
+    value = CFPreferencesGetAppBooleanValue (key, app_prefs_domain_cfstr, &ok);
    
     return ok ? (BOOL) value : defaultValue;
 }
@@ -1425,7 +1426,7 @@ get_property(Window win, Atom property, struct propdata *pdata, Bool delete, Ato
      * It's uncertain how we could handle the synchronization failing, so cast to void.
      * The prefs_get_bool should fall back to defaults if the org.x.X11 plist doesn't exist or is invalid.
      */
-    (void)CFPreferencesAppSynchronize(CFSTR(APP_PREFS));
+    (void)CFPreferencesAppSynchronize(app_prefs_domain_cfstr);
 #ifdef STANDALONE_XPBPROXY
     if(xpbproxy_is_standalone)
         pbproxy_prefs.active = YES;
