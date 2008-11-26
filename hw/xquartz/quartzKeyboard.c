@@ -572,7 +572,7 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
 #endif
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
-    UInt32 keyboard_type = 0;
+    UInt32 keyboard_type = LMGetKbdType();
     int i, j;
     OSStatus err;
     KeySym *k;
@@ -580,7 +580,6 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
-    keyboard_type = LMGetKbdType();
 
     if (currentKeyLayoutRef) {
       currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
