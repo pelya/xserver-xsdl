@@ -2520,8 +2520,8 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 
 /*
  *
- *  OBSOLETE ! xf86ConfigActivePciEntity() is an obsolete functions.
- *	       They the are likely to be removed. Don't use!
+ *  OBSOLETE ! xf86ConfigActivePciEntity() is an obsolete function.
+ *             It is likely to be removed. Don't use!
  */
 
 _X_EXPORT Bool
@@ -2555,10 +2555,10 @@ xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
 }
 
 /*
- * xf86ConfigPciEntityInactive() -- This functions can be used
+ * xf86ConfigPciEntityInactive() -- This function can be used
  * to configure an inactive entity as well as to reconfigure an
  * previously active entity inactive. If the entity has been
- * assigned to a screen before it will be removed. If p_pci is
+ * assigned to a screen before it will be removed. If p_chip is
  * non-NULL all static resources listed there will be registered.
  */
 _X_EXPORT void
