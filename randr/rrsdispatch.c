@@ -367,21 +367,36 @@ SProcRRSetCrtcGamma (ClientPtr client)
 static int
 SProcRRSetCrtcTransform (ClientPtr client)
 {
+    int n, nparams;
+    char *filter;
+    CARD32 *params;
     REQUEST(xRRSetCrtcTransformReq);
-    
-    REQUEST_SIZE_MATCH(xRRSetCrtcTransformReq);
-    (void) stuff;
-    return BadImplementation; 
+
+    REQUEST_AT_LEAST_SIZE(xRRSetCrtcTransformReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->crtc, n);
+    SwapLongs((CARD32 *)&stuff->transform, (sizeof(xRenderTransform)) >> 2);
+    swaps(&stuff->nbytesFilter, n);
+    filter = (char *)(stuff + 1);
+    params = (CARD32 *) (filter + ((stuff->nbytesFilter + 3) & ~3));
+    nparams = ((CARD32 *) stuff + client->req_len) - params;
+    if (nparams < 0)
+	return BadLength;
+
+    SwapLongs(params, nparams);
+    return (*ProcRandrVector[stuff->randrReqType]) (client);
 }
 
 static int
 SProcRRGetCrtcTransform (ClientPtr client)
 {
+    int n;
     REQUEST(xRRGetCrtcTransformReq);
-    
+
     REQUEST_SIZE_MATCH(xRRGetCrtcTransformReq);
-    (void) stuff;
-    return BadImplementation; 
+    swaps(&stuff->length, n);
+    swapl(&stuff->crtc, n);
+    return (*ProcRandrVector[stuff->randrReqType]) (client);
 }
 
 int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {

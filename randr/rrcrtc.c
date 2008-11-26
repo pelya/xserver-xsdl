@@ -1150,8 +1150,7 @@ transform_filter_encode (ClientPtr client, char *output,
     if (client->swapped) {
 	swaps (nbytesFilter, n);
 	swaps (nparamsFilter, n);
-	SwapLongs ((CARD32 *) (output + nbytes),
-		   nparams * sizeof (xFixed));
+	SwapLongs ((CARD32 *) (output + nbytes), nparams);
     }
     nbytes += nparams * sizeof (xFixed);
     return nbytes;
@@ -1162,7 +1161,7 @@ transform_encode (ClientPtr client, xRenderTransform *wire, PictTransform *pict)
 {
     xRenderTransform_from_PictTransform (wire, pict);
     if (client->swapped)
-	SwapLongs ((CARD32 *) wire, sizeof (xRenderTransform));
+	SwapLongs ((CARD32 *) wire, sizeof (xRenderTransform) >> 2);
 }
 
 int
@@ -1214,5 +1213,6 @@ ProcRRGetCrtcTransform (ClientPtr client)
 	swapl (&reply->length, n);
     }
     WriteToClient (client, sizeof (xRRGetCrtcTransformReply) + nextra, (char *) reply);
+    xfree(reply);
     return client->noClientException;
 }
