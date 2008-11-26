@@ -415,7 +415,8 @@ int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRGetCrtcGamma,	/* 23 */
     SProcRRSetCrtcGamma,	/* 24 */
 /* V1.3 additions */
-    SProcRRSetCrtcTransform,	/* 25 */
-    SProcRRGetCrtcTransform,	/* 26 */
+    SProcRRGetScreenResources,	/* 25 GetScreenResourcesCurrent */
+    SProcRRSetCrtcTransform,	/* 26 */
+    SProcRRGetCrtcTransform,	/* 27 */
 };
 

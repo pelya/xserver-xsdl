@@ -388,6 +388,9 @@ int
 ProcRRGetScreenResources (ClientPtr client);
 
 int
+ProcRRGetScreenResourcesCurrent (ClientPtr client);
+
+int
 ProcRRSetScreenConfig (ClientPtr client);
 
 int

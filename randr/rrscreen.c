@@ -314,8 +314,8 @@ ProcRRSetScreenSize (ClientPtr client)
     return Success;
 }
 
-int
-ProcRRGetScreenResources (ClientPtr client)
+static int
+rrGetScreenResources(ClientPtr client, Bool query)
 {
     REQUEST(xRRGetScreenResourcesReq);
     xRRGetScreenResourcesReply  rep;
@@ -339,7 +339,7 @@ ProcRRGetScreenResources (ClientPtr client)
     pScrPriv = rrGetScrPriv(pScreen);
     rep.pad = 0;
     
-    if (pScrPriv)
+    if (query && pScrPriv)
 	if (!RRGetInfo (pScreen))
 	    return BadAlloc;
 
@@ -461,6 +461,18 @@ ProcRRGetScreenResources (ClientPtr client)
 	xfree (extra);
     }
     return client->noClientException;
+}
+
+int
+ProcRRGetScreenResources (ClientPtr client)
+{
+    return rrGetScreenResources(client, TRUE);
+}
+    
+int
+ProcRRGetScreenResourcesCurrent (ClientPtr client)
+{
+    return rrGetScreenResources(client, FALSE);
 }
 
 typedef struct _RR10Data {
