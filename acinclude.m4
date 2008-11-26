@@ -7,15 +7,12 @@ dnl
 dnl To use dolt, invoke the DOLT macro immediately after the libtool macros.
 dnl Optionally, copy this file into acinclude.m4, to avoid the need to have it
 dnl installed when running autoconf on your project.
-dnl
-dnl git snapshot: d91f2b4e9041538400e2703a2a6fbeecdb8ee27d
+
 AC_DEFUN([DOLT], [
 AC_REQUIRE([AC_CANONICAL_HOST])
 # dolt, a replacement for libtool
 # Josh Triplett <josh@freedesktop.org>
 AC_PATH_PROG(DOLT_BASH, bash)
-AC_MSG_CHECKING([if libtool sucks])
-AC_MSG_RESULT([yup, it does])
 AC_MSG_CHECKING([if dolt supports this host])
 dolt_supported=yes
 if test x$DOLT_BASH = x; then
@@ -25,9 +22,16 @@ if test x$GCC != xyes; then
     dolt_supported=no
 fi
 case $host in
-i?86-*-linux*|x86_64-*-linux*|powerpc-*-linux*) ;;
-amd64-*-freebsd*|i?86-*-freebsd*|ia64-*-freebsd*) ;;
-*) dolt_supported=no ;;
+i?86-*-linux*|x86_64-*-linux*|powerpc-*-linux* \
+|amd64-*-freebsd*|i?86-*-freebsd*|ia64-*-freebsd*)
+    pic_options='-fPIC'
+    ;;
+i?86-apple-darwin*)
+    pic_options='-fno-common'
+    ;;
+*)
+    dolt_supported=no
+    ;;
 esac
 if test x$dolt_supported = xno ; then
     AC_MSG_RESULT([no, falling back to libtool])
@@ -75,7 +79,9 @@ if test ! -d "$libobjdir" ; then
 fi
 pic_object="$libobjdir/$objbase.o"
 args@<:@$objarg@:>@="$pic_object"
-"${args@<:@@@:>@}" -fPIC -DPIC || exit $?
+__DOLTCOMPILE__EOF__
+    cat <<__DOLTCOMPILE__EOF__ >>doltcompile
+"\${args@<:@@@:>@}" $pic_options -DPIC || exit \$?
 __DOLTCOMPILE__EOF__
     fi
 
@@ -107,7 +113,7 @@ __DOLTCOMPILE__EOF__
 
     if test x$enable_shared = xyes; then
         cat <<'__DOLTCOMPILE__EOF__' >>doltcompile
-echo "pic_object='$pic_object'"
+echo "pic_object='.libs/${objbase}.o'"
 __DOLTCOMPILE__EOF__
     else
         cat <<'__DOLTCOMPILE__EOF__' >>doltcompile
@@ -117,7 +123,7 @@ __DOLTCOMPILE__EOF__
 
     if test x$enable_static = xyes; then
         cat <<'__DOLTCOMPILE__EOF__' >>doltcompile
-echo "non_pic_object='$non_pic_object'"
+echo "non_pic_object='${objbase}.o'"
 __DOLTCOMPILE__EOF__
     else
         cat <<'__DOLTCOMPILE__EOF__' >>doltcompile
@@ -133,14 +139,42 @@ dnl Done writing out doltcompile; substitute it for libtool compilation.
     chmod +x doltcompile
     LTCOMPILE='$(top_builddir)/doltcompile $(COMPILE)'
     LTCXXCOMPILE='$(top_builddir)/doltcompile $(CXXCOMPILE)'
+
+dnl automake ignores LTCOMPILE and LTCXXCOMPILE when it has separate CFLAGS for
+dnl a target, so write out a libtool wrapper to handle that case.
+dnl Note that doltlibtool does not handle inferred tags or option arguments
+dnl without '=', because automake does not use them.
+    cat <<__DOLTLIBTOOL__EOF__ > doltlibtool
+#!$DOLT_BASH
+__DOLTLIBTOOL__EOF__
+    cat <<'__DOLTLIBTOOL__EOF__' >>doltlibtool
+top_builddir_slash="${0%%doltlibtool}"
+: ${top_builddir_slash:=./}
+args=()
+modeok=false
+tagok=false
+for arg in "$[]@"; do
+    case "$arg" in
+        --mode=compile) modeok=true ;;
+        --tag=CC|--tag=CXX) tagok=true ;;
+        *) args+=("$arg")
+    esac
+done
+if $modeok && $tagok ; then
+    . ${top_builddir_slash}doltcompile "${args@<:@@@:>@}"
+else
+    exec ${top_builddir_slash}libtool "$[]@"
+fi
+__DOLTLIBTOOL__EOF__
+
+dnl Done writing out doltlibtool; substitute it for libtool.
+    chmod +x doltlibtool
+    LIBTOOL='$(top_builddir)/doltlibtool'
 fi
 AC_SUBST(LTCOMPILE)
 AC_SUBST(LTCXXCOMPILE)
 # end dolt
 ])
-
-
-
 
 # ===========================================================================
 #             http://autoconf-archive.cryp.to/ac_define_dir.html
