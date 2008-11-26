@@ -819,7 +819,8 @@ XkbSrvInfoPtr	xkbi;
             pXDev = inputInfo.keyboard;
     }
 
-    xkbi= pXDev->key->xkbInfo;
+    xkbi= (pXDev->key) ? pXDev->key->xkbInfo : NULL;
+
     if ( pClient->xkbClientFlags & _XkbClientInitialized ) {
 	if ((xkbDebugFlags&0x10)&&
 		((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease)||
@@ -841,6 +842,10 @@ XkbSrvInfoPtr	xkbi;
 	     	(_XkbIsReleaseEvent(xE[0].u.u.type)) ) {
 	    return False;
 	}
+
+        if (!xkbi)
+            return True;
+
 	if ((pXDev->deviceGrab.grab != NullGrab) 
                 && pXDev->deviceGrab.fromPassiveGrab &&
 	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease)||
@@ -883,6 +888,9 @@ XkbSrvInfoPtr	xkbi;
     }
     else {
 	register CARD8 	type;
+
+        if (!xkbi)
+            return True;
 
 	for (i=0;i<nEvents;i++) {
 	    type= xE[i].u.u.type;
