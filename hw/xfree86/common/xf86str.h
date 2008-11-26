@@ -383,17 +383,12 @@ typedef enum {
 struct pci_device;
 
 typedef struct {
-    unsigned int dummy;
-} IsaBusId;
-
-typedef struct {
     int		fbNum;
 } SbusBusId;
 
 typedef struct _bus {
     BusType type;
     union {
-	IsaBusId isa;
 	struct pci_device *pci;
 	SbusBusId sbus;
     } id;
@@ -435,8 +430,6 @@ typedef struct {
    int                          irq;
    int                          screen;         /* For multi-CRTC cards */
 } GDevRec, *GDevPtr;
-
-typedef int (*FindIsaDevProc)(GDevPtr dev);
 
 typedef struct {
    char *			identifier;
@@ -623,9 +616,6 @@ typedef struct _CurrAccRec {
 
 #define ResMem		0x0001
 #define ResIo		0x0002
-#define ResIrq		0x0003
-#define ResDma		0x0004
-#define ResPciCfg	0x000e	/* PCI Configuration space */
 #define ResPhysMask	0x000F
 
 #define ResExclusive	0x0010
@@ -648,7 +638,6 @@ typedef struct _CurrAccRec {
 #define ResMiscMask	0x00F000
 
 #define ResBus		0x010000
-#define ResOverlap	0x020000
 
 #if defined(__alpha__) && defined(linux)
 # define ResDomain	0x1ff000000ul
@@ -687,7 +676,6 @@ typedef struct _CurrAccRec {
 #define ResIsBlock(r)		(((r)->type & ResExtMask) == ResBlock)
 #define ResIsSparse(r)		(((r)->type & ResExtMask) == ResSparse)
 #define ResIsEstimated(r)	(((r)->type & ResMiscMask) == ResEstimated)
-#define ResCanOverlap(r)	(ResIsEstimated(r) || ((r)->type & ResOverlap))
 
 typedef struct {
     unsigned long type;     /* shared, exclusive, unused etc. */
@@ -721,11 +709,6 @@ typedef struct _resRec {
 #define block_begin	val.rBegin
 #define block_end	val.rEnd
 #define res_type	val.type
-
-typedef struct {
-    int numChipset;
-    resRange *resList;
-} IsaChipsets;
 
 typedef struct _PciChipsets {
     /**

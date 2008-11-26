@@ -292,10 +292,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    pInt->BIOSseg = V_BIOS >> 4;
 	    break;
 	}
-	case BUS_ISA:
-	    if (!xf86int10GetBiosSegment(pInt, NULL))
-		goto error3;
-	    break;
 	default:
 	    goto error3;
 	}

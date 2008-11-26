@@ -186,53 +186,61 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				char *			nameRtrn,
 				int			nameRtrnLen)
 {
-FILE *	out;
-char	*buf = NULL, keymap[PATH_MAX],xkm_output_dir[PATH_MAX];
+    FILE *	out;
+    char	*buf = NULL, keymap[PATH_MAX], xkm_output_dir[PATH_MAX];
+
+    const char	*emptystring = "";
+    const char	*xkbbasedirflag = emptystring;
+    const char	*xkbbindir = emptystring;
+    const char	*xkbbindirsep = emptystring;
 
 #ifdef WIN32
-char tmpname[PATH_MAX];
-#endif    
+    /* WIN32 has no popen. The input must be stored in a file which is
+       used as input for xkbcomp. xkbcomp does not read from stdin. */
+    char tmpname[PATH_MAX];
+    const char *xkmfile = tmpname;
+#else
+    const char *xkmfile = "-";
+#endif
 
     snprintf(keymap, sizeof(keymap), "server-%s", display);
 
     XkbEnsureSafeMapName(keymap);
     OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
+
 #ifdef WIN32
     strcpy(tmpname, Win32TempDir());
     strcat(tmpname, "\\xkb_XXXXXX");
     (void) mktemp(tmpname);
 #endif
-    if (XkbBaseDirectory!=NULL) {
-#ifndef WIN32
-        char *xkmfile = "-";
-#else
-        /* WIN32 has no popen. The input must be stored in a file which is used as input
-           for xkbcomp. xkbcomp does not read from stdin. */
-        char *xkmfile = tmpname;
-#endif
-        char *xkbbasedir = XkbBaseDirectory;
-        char *xkbbindir = XkbBinDirectory;
-        
-	buf = Xprintf(
-	   "\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm \"%s\" -em1 %s -emp %s -eml %s \"%s%s.xkm\"",
-		xkbbindir,
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
-		xkbbasedir, xkmfile,
-		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,
-		xkm_output_dir,keymap);
+
+    if (XkbBaseDirectory != NULL) {
+	xkbbasedirflag = Xprintf("\"-R%s\"", XkbBaseDirectory);
     }
-    else {
-#ifndef WIN32
-        char *xkmfile = "-";
-#else
-        char *xkmfile = tmpname;
-#endif
-	buf = Xprintf(
-		"xkbcomp -w %d -xkm \"%s\" -em1 %s -emp %s -eml %s \"%s%s.xkm\"",
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
-                xkmfile,
-		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,
-		xkm_output_dir,keymap);
+
+    if (XkbBinDirectory != NULL) {
+	int ld = strlen(XkbBinDirectory);
+	int lps = strlen(PATHSEPARATOR);
+
+	xkbbindir = XkbBinDirectory;
+
+	if ((ld >= lps) &&
+	    (strcmp(xkbbindir + ld - lps, PATHSEPARATOR) != 0)) {
+	    xkbbindirsep = PATHSEPARATOR;
+	}
+    }
+
+    buf = Xprintf("\"%s%sxkbcomp\" -w %d %s -xkm \"%s\" "
+		  "-em1 %s -emp %s -eml %s \"%s%s.xkm\"",
+		  xkbbindir, xkbbindirsep,
+		  ( (xkbDebugFlags < 2) ? 1 :
+		    ((xkbDebugFlags > 10) ? 10 : (int)xkbDebugFlags) ),
+		  xkbbasedirflag, xkmfile,
+		  PRE_ERROR_MSG, ERROR_PREFIX, POST_ERROR_MSG1,
+		  xkm_output_dir, keymap);
+
+    if (xkbbasedirflag != emptystring) {
+	xfree(xkbbasedirflag);
     }
     
 #ifndef WIN32

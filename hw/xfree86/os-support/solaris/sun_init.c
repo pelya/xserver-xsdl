@@ -49,8 +49,9 @@ static char fb_dev[PATH_MAX] = "/dev/console";
 void
 xf86OpenConsole(void)
 {
+    int i;
 #ifdef HAS_USL_VTS
-    int fd, i;
+    int fd;
     struct vt_mode VT;
     struct vt_stat vtinfo;
     int FreeVTslot;
@@ -173,9 +174,14 @@ xf86OpenConsole(void)
 	if (ioctl(xf86Info.consoleFd, VT_SETMODE, &VT) < 0)
 	    FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed\n");
 #endif
+
 #ifdef KDSETMODE
-	if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
-	    FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed\n");
+	SYSCALL(i = ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS));
+	if (i < 0) {
+	    xf86Msg(X_WARNING,
+		    "xf86OpenConsole: KDSETMODE KD_GRAPHICS failed on %s (%s)\n",
+		    fb_dev, strerror(errno));
+	}
 #endif
     }
     else /* serverGeneration != 1 */
@@ -257,7 +263,7 @@ xf86CloseConsole(void)
 
 #ifdef KDSETMODE
     /* Reset the display back to text mode */
-    ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT);
+    SYSCALL(ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT));
 #endif
 
 #ifdef HAS_USL_VTS

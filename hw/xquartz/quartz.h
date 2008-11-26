@@ -54,20 +54,16 @@ typedef void (*InitInputProc)(int argc, char **argv);
  * Cursor functions
  */
 typedef Bool (*InitCursorProc)(ScreenPtr pScreen);
-typedef void (*CursorUpdateProc)(void);
 
 /*
  * Suspend and resume X11 activity
  */
 typedef void (*SuspendScreenProc)(ScreenPtr pScreen);
 typedef void (*ResumeScreenProc)(ScreenPtr pScreen, int x, int y);
-typedef void (*CaptureScreensProc)(void);
-typedef void (*ReleaseScreensProc)(void);
 
 /*
  * Screen state change support
  */
-typedef void (*ScreenChangedProc)(void);
 typedef void (*AddPseudoramiXScreensProc)(int *x, int *y, int *width, int *height);
 typedef void (*UpdateScreenProc)(ScreenPtr pScreen);
 
@@ -101,14 +97,10 @@ typedef struct _QuartzModeProcs {
     InitInputProc InitInput;
 
     InitCursorProc InitCursor;
-    CursorUpdateProc CursorUpdate;	// Not used if NULL
 
     SuspendScreenProc SuspendScreen;
     ResumeScreenProc ResumeScreen;
-    CaptureScreensProc CaptureScreens;	// Only called in fullscreen
-    ReleaseScreensProc ReleaseScreens;	// Only called in fullscreen
 
-    ScreenChangedProc ScreenChanged;
     AddPseudoramiXScreensProc AddPseudoramiXScreens;
     UpdateScreenProc UpdateScreen;
 

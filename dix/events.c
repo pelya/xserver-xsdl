@@ -164,6 +164,8 @@ typedef const char *string;
 #include "geext.h"
 #include "geint.h"
 
+#include "enterleave.h"
+
 /**
  * Extension events type numbering starts at EXTENSION_EVENT_BASE.
  */
@@ -325,13 +327,6 @@ IsKeyboardDevice(DeviceIntPtr dev)
 {
     return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);
 }
-
-static void DoEnterLeaveEvents(
-    DeviceIntPtr pDev,
-    WindowPtr fromWin,
-    WindowPtr toWin,
-    int mode
-);
 
 static WindowPtr XYToWindow(
     DeviceIntPtr pDev,
@@ -4185,24 +4180,11 @@ EventSuppressForWindow(WindowPtr pWin, ClientPtr client,
 }
 
 /**
- * @return The window that is the first ancestor of both a and b.
- */
-static WindowPtr
-CommonAncestor(
-    WindowPtr a,
-    WindowPtr b)
-{
-    for (b = b->parent; b; b = b->parent)
-	if (IsParent(b, a)) return b;
-    return NullWindow;
-}
-
-/**
  * Assembles an EnterNotify or LeaveNotify and sends it event to the client.
  * Uses the paired keyboard to get some additional information.
  */
-static void
-EnterLeaveEvent(
+void
+CoreEnterLeaveEvent(
     DeviceIntPtr mouse,
     int type,
     int mode,
@@ -4215,12 +4197,6 @@ EnterLeaveEvent(
     DeviceIntPtr        keybd;
     GrabPtr	        grab = mouse->deviceGrab.grab;
     Mask		mask;
-    int                 inWindow; /* zero if no sprites are in window */
-    Bool                sendevent = FALSE;
-
-    deviceEnterNotify   *devEnterLeave;
-    int                 mskidx;
-    OtherInputMasks     *inputMasks;
 
     keybd = GetPairedDevice(mouse);
 
@@ -4268,44 +4244,7 @@ EnterLeaveEvent(
              IsParent(focus, pWin)))
         event.u.enterLeave.flags |= ELFlagFocus;
 
-
-    /*
-     * Sending multiple core enter/leave events to the same window confuse the
-     * client.
-     * We can send multiple events that have detail NotifyVirtual or
-     * NotifyNonlinearVirtual however. For most clients anyway.
-     *
-     * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
-     * we only send an enter event for the first pointer to enter. A leave
-     * event is sent for the last pointer to leave.
-     *
-     * For events with Virtual detail, we send them only to a window that does
-     * not have a pointer inside.
-     *
-     * For a window tree in the form of
-     *
-     * A -> Bp -> C -> D
-     *  \               (where B and E have pointers)
-     *    -> Ep
-     *
-     * If the pointer moves from E into D, a LeaveNotify is sent to E, an
-     * EnterNotify is sent to D, an EnterNotify with detail
-     * NotifyNonlinearVirtual to C and nothing to B.
-     */
-
-    /* Clear bit for device, but don't worry about SDs. */
-    if (mouse->isMaster && type == LeaveNotify &&
-            (detail != NotifyVirtual && detail != NotifyNonlinearVirtual))
-        if (mode != NotifyUngrab)
-            ENTER_LEAVE_SEMAPHORE_UNSET(pWin, mouse);
-
-    inWindow = EnterLeaveSemaphoresIsset(pWin);
-
-    if(!inWindow || mode == NotifyGrab || mode == NotifyUngrab)
-        sendevent = TRUE;
-
-
-    if ((mask & filters[mouse->id][type]) && sendevent)
+    if ((mask & filters[mouse->id][type]))
     {
         if (grab)
             TryClientEvents(rClient(grab), mouse, &event, 1, mask,
@@ -4315,18 +4254,81 @@ EnterLeaveEvent(
                                   filters[mouse->id][type], NullGrab, 0);
     }
 
-    if (mouse->isMaster && type == EnterNotify &&
-            (detail != NotifyVirtual && detail != NotifyNonlinearVirtual))
-        if (mode != NotifyGrab)
-            ENTER_LEAVE_SEMAPHORE_SET(pWin, mouse);
+    if ((type == EnterNotify) && (mask & KeymapStateMask))
+    {
+        xKeymapEvent ke;
+        ClientPtr client = grab ? rClient(grab)
+            : clients[CLIENT_ID(pWin->drawable.id)];
+        if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
+            bzero((char *)&ke.map[0], 31);
+        else
+            memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
+
+        ke.type = KeymapNotify;
+        if (grab)
+            TryClientEvents(rClient(grab), keybd, (xEvent *)&ke, 1,
+                            mask, KeymapStateMask, grab);
+        else
+            DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
+                                  KeymapStateMask, NullGrab, 0);
+    }
+}
+
+void
+DeviceEnterLeaveEvent(
+    DeviceIntPtr mouse,
+    int type,
+    int mode,
+    int detail,
+    WindowPtr pWin,
+    Window child)
+{
+    xEvent              event;
+    GrabPtr             grab = mouse->deviceGrab.grab;
+    deviceEnterNotify   *devEnterLeave;
+    int                 mskidx;
+    OtherInputMasks     *inputMasks;
+    Mask                mask;
+    DeviceIntPtr        keybd = GetPairedDevice(mouse);
+    BOOL                sameScreen;
+
+    if (grab) {
+        mask = (pWin == grab->window) ? grab->eventMask : 0;
+        if (grab->ownerEvents)
+            mask |= EventMaskForClient(pWin, rClient(grab));
+    } else {
+        mask = pWin->eventMask | wOtherEventMasks(pWin);
+    }
 
     /* we don't have enough bytes, so we squash flags and mode into
        one byte, and use the last byte for the deviceid. */
-    devEnterLeave = (deviceEnterNotify*)&event;
-    devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
-        DeviceLeaveNotify;
-    devEnterLeave->mode |= (event.u.enterLeave.flags << 4);
+    devEnterLeave           = (deviceEnterNotify*)&event;
+    devEnterLeave->detail   = detail;
+    devEnterLeave->time     = currentTime.milliseconds;
+    devEnterLeave->rootX    = mouse->spriteInfo->sprite->hot.x;
+    devEnterLeave->rootY    = mouse->spriteInfo->sprite->hot.y;
+    FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
+    sameScreen = event.u.keyButtonPointer.sameScreen;
+
+    devEnterLeave->child    = child;
+    devEnterLeave->type     = type;
     devEnterLeave->deviceid = mouse->id;
+    devEnterLeave->mode     = mode;
+    devEnterLeave->mode    |= (sameScreen ?  (ELFlagSameScreen << 4) : 0);
+
+#ifdef XKB
+    if (!noXkbExtension) {
+        devEnterLeave->state = mouse->button->state & 0x1f00;
+        if (keybd)
+            devEnterLeave->state |=
+                XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
+    } else
+#endif
+    {
+        devEnterLeave->state = (keybd) ? keybd->key->state : 0;
+        devEnterLeave->state |= mouse->button->state;
+    }
+
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
     if (inputMasks &&
@@ -4334,126 +4336,15 @@ EnterLeaveEvent(
             inputMasks->deliverableEvents[mskidx]))
     {
         if (grab)
-            (void)TryClientEvents(rClient(grab), mouse,
-                                (xEvent*)devEnterLeave, 1,
-                                mask, filters[mouse->id][devEnterLeave->type],
-                                grab);
-	else
-	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave,
-                                   1, filters[mouse->id][devEnterLeave->type],
-                                   NullGrab, mouse->id);
+            TryClientEvents(rClient(grab), mouse,
+                            (xEvent*)devEnterLeave, 1, mask,
+                            filters[mouse->id][devEnterLeave->type], grab);
+        else
+            DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave, 1,
+                                  filters[mouse->id][devEnterLeave->type],
+                                  NullGrab, mouse->id);
     }
 
-    if ((type == EnterNotify) && (mask & KeymapStateMask))
-    {
-	xKeymapEvent ke;
-	ClientPtr client = grab ? rClient(grab)
-				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
-	    bzero((char *)&ke.map[0], 31);
-	else
-	    memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
-
-	ke.type = KeymapNotify;
-	if (grab)
-	    (void)TryClientEvents(rClient(grab), keybd, (xEvent *)&ke, 1,
-                                  mask, KeymapStateMask, grab);
-	else
-	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
-					KeymapStateMask, NullGrab, 0);
-    }
-}
-
-/**
- * Send enter notifies to all parent windows up to ancestor.
- * This function recurses.
- */
-static void
-EnterNotifies(DeviceIntPtr pDev,
-              WindowPtr ancestor,
-              WindowPtr child,
-              int mode,
-              int detail)
-{
-    WindowPtr	parent = child->parent;
-
-    if (ancestor == parent)
-	return;
-    EnterNotifies(pDev, ancestor, parent, mode, detail);
-    EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
-                    child->drawable.id);
-}
-
-
-/**
- * Send leave notifies to all parent windows up to ancestor.
- * This function recurses.
- */
-static void
-LeaveNotifies(DeviceIntPtr pDev,
-              WindowPtr child,
-              WindowPtr ancestor,
-              int mode,
-              int detail)
-{
-    WindowPtr  pWin;
-
-    if (ancestor == child)
-	return;
-    for (pWin = child->parent; pWin != ancestor; pWin = pWin->parent)
-    {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, detail, pWin,
-                        child->drawable.id);
-        child = pWin;
-    }
-}
-
-
-
-/**
- * Figure out if enter/leave events are necessary and send them to the
- * appropriate windows.
- *
- * @param fromWin Window the sprite moved out of.
- * @param toWin Window the sprite moved into.
- */
-static void
-DoEnterLeaveEvents(DeviceIntPtr pDev,
-        WindowPtr fromWin,
-        WindowPtr toWin,
-        int mode)
-{
-    if (!IsPointerDevice(pDev))
-        return;
-
-    if (fromWin == toWin)
-	return;
-    if (IsParent(fromWin, toWin))
-    {
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
-                        None);
-        EnterNotifies(pDev, fromWin, toWin, mode,
-                      NotifyVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
-    }
-    else if (IsParent(toWin, fromWin))
-    {
-	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin,
-                        None);
-	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
-	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
-    }
-    else
-    { /* neither fromWin nor toWin is descendent of the other */
-	WindowPtr common = CommonAncestor(toWin, fromWin);
-	/* common == NullWindow ==> different screens */
-        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
-                        None);
-        LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
-	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
-        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
-                        None);
-    }
 }
 
 static void
@@ -6256,21 +6147,6 @@ ExtGrabDevice(ClientPtr client,
 
     (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
     return GrabSuccess;
-}
-
-/*
- * @return Zero if no device is currently in window, non-zero otherwise.
- */
-int
-EnterLeaveSemaphoresIsset(WindowPtr win)
-{
-    int set = 0;
-    int i;
-
-    for (i = 0; i < (MAXDEVICES + 7)/8; i++)
-        set += win->enterleave[i];
-
-    return set;
 }
 
 /*

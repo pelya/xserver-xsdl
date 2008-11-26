@@ -472,9 +472,9 @@ SELinuxLabelClient(ClientPtr client)
     sidput(obj->sid);
 
     /* Try to get a context from the socket */
-    if (fd < 0 || getpeercon(fd, &ctx) < 0) {
+    if (fd < 0 || getpeercon_raw(fd, &ctx) < 0) {
 	/* Otherwise, fall back to a default context */
-	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
+	if (selabel_lookup(label_hnd, &ctx, "remote", SELABEL_X_CLIENT) < 0)
 	    FatalError("SELinux: failed to look up remote-client context\n");
     }
 
@@ -537,7 +537,7 @@ SELinuxLabelInitial(void)
     sidput(subj->sid);
 
     /* Use the context of the X server process for the serverClient */
-    if (getcon(&ctx) < 0)
+    if (getcon_raw(&ctx) < 0)
 	FatalError("SELinux: couldn't get context of X server process\n");
 
     /* Get a SID from the context */

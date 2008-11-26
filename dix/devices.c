@@ -86,6 +86,7 @@ SOFTWARE.
 #include "exevents.h"
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xiproperty.h"
+#include "enterleave.h" /* for EnterWindow() */
 #include "xserver-properties.h"
 
 /** @file
@@ -284,7 +285,8 @@ EnableDevice(DeviceIntPtr dev)
             if (dev->spriteInfo->spriteOwner)
             {
                 InitializeSprite(dev, WindowTable[0]);
-                ENTER_LEAVE_SEMAPHORE_SET(WindowTable[0], dev);
+                                                 /* mode doesn't matter */
+                EnterWindow(dev, WindowTable[0], NotifyAncestor);
             }
             else if ((other = NextFreePointerDevice()) == NULL)
             {
@@ -604,10 +606,10 @@ InitCoreDevices(void)
                           &inputInfo.keyboard) != Success)
         FatalError("Failed to allocate core devices");
 
-    if (inputInfo.pointer->inited && inputInfo.pointer->startup)
-        EnableDevice(inputInfo.pointer);
-    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
-        EnableDevice(inputInfo.keyboard);
+    ActivateDevice(inputInfo.pointer);
+    ActivateDevice(inputInfo.keyboard);
+    EnableDevice(inputInfo.pointer);
+    EnableDevice(inputInfo.keyboard);
 
 }
 
@@ -623,7 +625,7 @@ InitCoreDevices(void)
  *
  * @return Success or error code on failure.
  */
-void
+int
 InitAndStartDevices()
 {
     DeviceIntPtr dev, next;
@@ -640,8 +642,10 @@ InitAndStartDevices()
         DebugF("(dix) enabling device %d\n", dev->id);
 	next = dev->next;
 	if (dev->inited && dev->startup)
-	    EnableDevice(dev);
+	    (void)EnableDevice(dev);
     }
+
+    return Success;
 }
 
 /**

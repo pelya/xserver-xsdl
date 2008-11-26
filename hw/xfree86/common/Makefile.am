@@ -14,7 +14,7 @@ XISOURCES = xf86Xinput.c xisb.c
 XISDKINCS = xf86Xinput.h xisb.h
 RANDRSOURCES = xf86RandR.c
 
-BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
+BUSSOURCES = xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
 MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
 
@@ -27,8 +27,7 @@ BUILT_SOURCES = xf86DefModeSet.c
 AM_LDFLAGS = -r
 libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c \
-                      xf86DoProbe.c xf86Events.c \
-                      xf86Globals.c xf86AutoConfig.c \
+                      xf86Events.c xf86Globals.c xf86AutoConfig.c \
                       xf86Option.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86RAC.c xf86Xinput.c xisb.c \

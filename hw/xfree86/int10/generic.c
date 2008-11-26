@@ -220,19 +220,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    INTPriv(pInt)->highMemory = GET_HIGH_BASE(rom_device->rom_size);
 	    break;
 	}
-	case BUS_ISA:
-	    vbiosMem = (unsigned char *)sysMem + bios_location;
-#if 0
-	    memset(vbiosMem, 0, V_BIOS_SIZE);
-	    if (xf86ReadBIOS(bios_location, 0, vbiosMem, V_BIOS_SIZE)
-		< V_BIOS_SIZE)
-		xf86DrvMsg(screen, X_WARNING,
-		    "Unable to retrieve all of segment 0x%x.\n",bios_location);
-#endif
-	    if (!int10_check_bios(screen, bios_location >> 4, vbiosMem)) {
-	        xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (4)\n");
-		goto error1;
-	    }
 	default:
 	    goto error1;
 	}

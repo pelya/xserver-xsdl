@@ -90,7 +90,7 @@ xnestPixmapToRegion(PixmapPtr pPixmap)
   register RegionPtr pReg, pTmpReg;
   register int x, y;
   unsigned long previousPixel, currentPixel;
-  BoxRec Box;
+  BoxRec Box = { 0, 0, 0, 0 };
   Bool overlap;
   
   ximage = XGetImage(xnestDisplay, xnestPixmap(pPixmap), 0, 0,

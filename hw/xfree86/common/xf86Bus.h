@@ -140,7 +140,5 @@ BusType StringToBusType(const char* busID, const char **retID);
 Bool xf86IsSubsetOf(resRange range, resPtr list);
 resPtr xf86ExtractTypeFromList(resPtr list, unsigned long type);
 resPtr xf86FindIntersect(resRange Range, resPtr list);
-void RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment,
-		    Bool useEstimated);
 
 #endif /* _XF86_BUS_H */

@@ -34,6 +34,11 @@
 #include <unistd.h> /*for getpid*/
 #include <Cocoa/Cocoa.h>
 
+static const char *app_prefs_domain = "org.x.X11";
+CFStringRef app_prefs_domain_cfstr;
+
+char *display = NULL;
+
 static void signal_handler (int sig) {
     switch(sig) {
         case SIGHUP:
@@ -50,6 +55,27 @@ int main (int argc, const char *argv[]) {
 #endif
 
     xpbproxy_is_standalone = YES;
+
+    if((s = getenv("X11_PREFS_DOMAIN")))
+        app_prefs_domain = s;
+
+    for (i = 1; i < argc; i++) {
+        if(strcmp (argv[i], "--prefs-domain") == 0 && i+1 < argc) {
+            app_prefs_domain = argv[++i];
+        } else if (strcmp (argv[i], "--help") == 0) {
+            printf("usage: xpbproxy OPTIONS\n"
+                   "Pasteboard proxying for X11.\n\n"
+                   "--prefs-domain <domain>   Change the domain used for reading preferences\n"
+                   "                          (default: org.x.X11)\n");
+            return 0;
+        } else {
+            fprintf(stderr, "usage: xpbproxy OPTIONS...\n"
+                    "Try 'xpbproxy --help' for more information.\n");
+            return 1;
+        }
+    }
+    
+    app_prefs_domain_cfstr = CFStringCreateWithCString(NULL, app_prefs_domain, kCFStringEncodingUTF8);
     
     if(!xpbproxy_init())
         return EXIT_FAILURE;

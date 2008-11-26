@@ -55,6 +55,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+BOOL xquartz_resetenv_display = NO;
+
 @implementation X11Controller
 
 - (void) awakeFromNib
@@ -356,7 +358,7 @@
 	
       /* Setup environment */
       temp = getenv("DISPLAY");
-      if (temp == NULL || temp[0] == 0) {
+      if (xquartz_resetenv_display || temp == NULL || temp[0] == 0) {
     snprintf(buf, sizeof(buf), ":%s", display);
 	setenv("DISPLAY", buf, TRUE);
       }

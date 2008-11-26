@@ -25,7 +25,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#define REDUCER
 /*
  * This file contains the interfaces to the bus-specific code
  */
@@ -71,10 +70,6 @@ BusRec primaryBus = { BUS_NONE, {{0}}};
 
 static Bool xf86ResAccessEnter = FALSE;
 
-#ifdef REDUCER
-/* Resources that temporarily conflict with estimated resources */
-static resPtr AccReducers = NULL;
-#endif
 
 /* resource lists */
 resPtr Acc = NULL;
@@ -98,10 +93,6 @@ static Bool doFramebufferMode = FALSE;
 /* state change notification callback list */
 static StateChangeNotificationPtr StateChangeNotificationList;
 static void notifyStateChange(xf86NotifyState state);
-
-#undef MIN
-#define MIN(x,y) ((x<y)?x:y)
-
 
 /*
  * Call the bus probes relevant to the architecture.
@@ -144,8 +135,6 @@ StringToBusType(const char* busID, const char **retID)
     }
     if (!xf86NameCmp(p, "pci") || !xf86NameCmp(p, "agp"))
 	ret = BUS_PCI; 
-    if (!xf86NameCmp(p, "isa"))
-	ret = BUS_ISA;
     if (!xf86NameCmp(p, "sbus"))
 	ret = BUS_SBUS;
     if (ret != BUS_NONE)
@@ -163,8 +152,6 @@ void
 xf86EntityInit(void)
 {
     int i;
-    resPtr *pprev_next;
-    resPtr res;
     xf86AccessPtr pacc;
     
     for (i = 0; i < xf86NumEntities; i++)
@@ -176,17 +163,6 @@ xf86EntityInit(void)
 	    pacc->AccessEnable(pacc->arg);
 	    xf86Entities[i]->entityInit(i,xf86Entities[i]->private);
 	    pacc->AccessDisable(pacc->arg);
-	    /* remove init resources after init is processed */
-	    pprev_next = &Acc;
-	    res = Acc;
-	    while (res) {  
-		if (res->res_type & ResInit && (res->entityIndex == i)) {
-		    (*pprev_next) = res->next;
-		    xfree(res);
-		} else 
-		    pprev_next = &(res->next);
-		res = (*pprev_next);
-	    }
 	}
 }
 
@@ -248,8 +224,6 @@ xf86IsEntityPrimary(int entityIndex)
     switch (pEnt->busType) {
     case BUS_PCI:
 	return (pEnt->bus.id.pci == primaryBus.id.pci);
-    case BUS_ISA:
-	return TRUE;
     case BUS_SBUS:
 	return (pEnt->sbusBusId.fbNum == primaryBus.id.sbus.fbNum);
     default:
@@ -1000,10 +974,6 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     BusType loc = BUS_NONE;
     BusType r_loc = BUS_NONE;
 
-    /* Ignore overlapped ranges that have been nullified */
-    if ((pRes->res_type & ResOverlap) && (pRes->block_begin > pRes->block_end))
-	return FALSE;
-    
     if ((pRes->res_type & ResTypeMask) != (type & ResTypeMask))
         return FALSE;
 
@@ -1014,10 +984,6 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     if (pRes->res_type & type & ResBios)
 	return FALSE;
     
-    /*If requested, skip over estimated resources */
-    if (pRes->res_type & type & ResEstimated)
- 	return FALSE;
-      
     if (type & pRes->res_type & ResUnused)
  	return FALSE;
 
@@ -1039,33 +1005,10 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     if (pRes->entityIndex > -1)
 	r_loc = xf86Entities[pRes->entityIndex]->busType;
 
-    switch (type & ResAccMask) {
-    case ResExclusive:
-	switch (pRes->res_type & ResAccMask) {
-	case ResExclusive:
-	    break;
-	case ResShared:
-	    /* ISA buses are only locally exclusive on a PCI system */
-	    if (loc == BUS_ISA && r_loc == BUS_PCI)
-		return FALSE;
-	    break;
-	}
-	break;
-    case ResShared:
-	switch (pRes->res_type & ResAccMask) {
-	case ResExclusive:
-	    /* ISA buses are only locally exclusive on a PCI system */
-	    if (loc == BUS_PCI && r_loc == BUS_ISA) 
-		return FALSE;
-	    break;
-	case ResShared:
-	    return FALSE;
-	}
-	break;
-    case ResAny:
-	break;
-    }
-    
+    if ((type & ResAccMask == ResShared) &&
+	(pRes->res_type & ResAccMask) == ResShared)
+	return FALSE;
+
     if (pRes->entityIndex == entityIndex) return FALSE;
 
     if (pRes->entityIndex > -1 &&
@@ -1289,10 +1232,6 @@ xf86PrintResList(int verb, resPtr list)
 		    s = "[?]";
 		}
 		xf86ErrorFVerb(verb, "%s", s);
-		if (list->res_type & ResEstimated)
-		    xf86ErrorFVerb(verb, "E");
-		if (list->res_type & ResOverlap)
-		    xf86ErrorFVerb(verb, "O");
 		if (list->res_type & ResInit)
 		    xf86ErrorFVerb(verb, "t");
 		if (list->res_type & ResBios)
@@ -1346,116 +1285,9 @@ xf86ResourceBrokerInit(void)
     xf86PrintResList(3, Acc);
 }
 
-#define MEM_ALIGN (1024 * 1024)
-
-/*
- * RemoveOverlaps() -- remove overlaps between resources of the
- * same kind.
- * Beware: This function doesn't check for access attributes.
- * At resource broker initialization this is no problem as this
- * only deals with exclusive resources.
- */
-
-void
-RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated)
-{
-    resPtr pRes;
-    memType size, newsize, adjust;
-
-    if (!target)
-	return;
-    
-    if (!(target->res_type & ResEstimated)   /* Don't touch sure resources */
-	&& !(target->res_type & ResOverlap)) /* Unless they may overlap    */
-	return;
-
-    for (pRes = list; pRes; pRes = pRes->next) {
-	if (pRes == target
-	    || ((pRes->res_type & ResTypeMask) !=
-		(target->res_type & ResTypeMask))
-	    || pRes->block_begin > target->block_end
-	    || pRes->block_end < target->block_begin)
-	    continue;
-
-	if (pRes->block_begin <= target->block_begin) {
-	    /* Possibly ignore estimated resources */
-	    if (!useEstimated && (pRes->res_type & ResEstimated))
-		continue;
-	    
-	    /* Special cases */
-	    if (pRes->block_end >= target->block_end) {
-		/*
-		 * If pRes fully contains target, don't do anything
-		 * unless target can overlap.
-		 */
-		if (target->res_type & ResOverlap) {
-		    /* Nullify range but keep its ResOverlap bit on */
-		    target->block_end = target->block_begin - 1;
-		    return;
-		} else
-		    continue;
-	    } else {
-#if 0 /* Don't trim start address - we trust what we got */
-		/*
-		 * If !pow2Alignment trim start address: !pow2Alingment
-		 * is only set when estimated OS addresses are handled.
-		 * In cases where the target and pRes have the same
-		 * starting address, reduce the size of the target
-		 * (given it's an estimate).
-		 */
-		if (!pow2Alignment)
-		    target->block_begin = pRes->block_end + 1;
-		else 
-#endif
-		if (pRes->block_begin == target->block_begin)
-		    target->block_end = pRes->block_end;
-		else
-		    continue;
-	    }
-	} else {
-	    /* Trim target to remove the overlap */
-		target->block_end = pRes->block_begin - 1;
-	}
-	if (pow2Alignment) {
-	    /*
-	     * Align to a power of two.  This requires finding the
-	     * largest power of two that is smaller than the adjusted
-	     * size.
-	     */
-	    size = target->block_end - target->block_begin + 1;
-	    newsize = 1UL << (sizeof(memType) * 8 - 1);
-	    while (!(newsize & size))
-		newsize >>= 1;
-	    target->block_end = target->block_begin + newsize - 1;
-	} else if (target->block_end > MEM_ALIGN) {
-	    /* Align the end to MEM_ALIGN */
-	    if ((adjust = (target->block_end + 1) % MEM_ALIGN))
-		target->block_end -= adjust;
-	}
-    }
-}
-
 /*
  * Resource registration
  */
-
-static resList
-xf86GetResourcesImplicitly(int entityIndex)
-{
-    if (entityIndex >= xf86NumEntities) return NULL;
-    
-    switch (xf86Entities[entityIndex]->bus.type) {
-    case BUS_ISA:
-    case BUS_NONE:
-    case BUS_SBUS:
-	return NULL;
-    case BUS_PCI:
-	return NULL;
-    case BUS_last:
-	return NULL;
-    }
-    return NULL;
-}
 
 static void
 convertRange2Host(int entityIndex, resRange *pRange)
@@ -1464,9 +1296,6 @@ convertRange2Host(int entityIndex, resRange *pRange)
 	switch (xf86Entities[entityIndex]->busType) {
 	case BUS_PCI:
 	    pciConvertRange2Host(entityIndex,pRange);
-	    break;
-	case BUS_ISA:
-	    isaConvertRange2Host(pRange);
 	    break;
 	default:
 	    break;
@@ -1487,24 +1316,19 @@ xf86ConvertListToHost(int entityIndex, resPtr list)
 
 /*
  * xf86RegisterResources() -- attempts to register listed resources.
- * If list is NULL it tries to obtain resources implicitly. Function
- * returns a resPtr listing all resources not successfully registered.
+ * Returns a resPtr listing all resources not successfully registered, by
+ * which we mean, NULL.
  */
 
 _X_EXPORT resPtr
 xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 {
-    resPtr res = NULL;
     resRange range;
     resList list_f = NULL;
 
-    if (!list) {
-	list = xf86GetResourcesImplicitly(entityIndex);
-	/* these resources have to be in host address space already */
-	if (!list) return NULL;
-	list_f = list;
-    }
-    
+    if (!list)
+	return NULL;
+
     while(list->type != ResEnd) {
 	range = *list;
 
@@ -1514,15 +1338,7 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 	    range.type = (range.type & ~ResAccMask) | (access & ResAccMask);
 	}
  	range.type &= ~ResEstimated;	/* Not allowed for drivers */
-#if !((defined(__alpha__) || (defined(__ia64__))) && defined(linux))
-	/* On Alpha Linux, do not check for conflicts, trust the kernel. */
-	if (checkConflict(&range, Acc, entityIndex, SETUP,TRUE)) 
-	    res = xf86AddResToList(res,&range,entityIndex);
-	else
-#endif
-	{
-	    Acc = xf86AddResToList(Acc,&range,entityIndex);
-	}
+	Acc = xf86AddResToList(Acc,&range,entityIndex);
 	list++;
     }
     if (list_f)
@@ -1532,11 +1348,7 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
     xf86MsgVerb(X_INFO, 3,"Resources after driver initialization\n");
     xf86PrintResList(3, Acc);
 #endif
-    if (res) {
-	xf86MsgVerb(X_INFO, 3, "Failed to register resources:\n");
-	xf86PrintResList(3, res);
-    }
-    return res;
+    return NULL;
     
 }
 
@@ -1545,7 +1357,6 @@ busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
 {
     switch (pEnt->bus.type) {
-    case BUS_ISA:
     case BUS_SBUS:
 	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
@@ -1871,44 +1682,6 @@ xf86SetOperatingState(resList list, int entityIndex, int mask)
 /*
  * Stage specific code
  */
- /*
-  * ProcessEstimatedConflicts() -- Do something about driver-registered
-  * resources that conflict with estimated resources.  For now, just register
-  * them with a logged warning.
-  */
-#ifdef REDUCER
-static void
-ProcessEstimatedConflicts(void)
-{
-    if (!AccReducers)
-	return;
-
-    /* Temporary */
-    xf86MsgVerb(X_WARNING, 3,
-		"Registering the following despite conflicts with estimated"
-		" resources:\n");
-    xf86PrintResList(3, AccReducers);
-    Acc = xf86JoinResLists(Acc, AccReducers);
-    AccReducers = NULL;
-}
-#endif
-
-/*
- * xf86ClaimFixedResources() -- This function gets called from the
- * driver Probe() function to claim fixed resources.
- */
-static void
-resError(resList list)
-{
-    FatalError("A driver tried to allocate the %s %sresource at \n"
-	       "0x%lx:0x%lx which conflicted with another resource. Send the\n"
-	       "output of the server to %s. Please \n"
-	       "specify your computer hardware as closely as possible.\n",
-	       ResIsBlock(list)?"Block":"Sparse",
-	       ResIsMem(list)?"Mem":"Io",
-	       ResIsBlock(list)?list->rBegin:list->rBase,
-	       ResIsBlock(list)?list->rEnd:list->rMask,BUILDERADDR);
-}
 
 /*
  * xf86ClaimFixedResources() is used to allocate non-relocatable resources.
@@ -1932,20 +1705,7 @@ xf86ClaimFixedResources(resList list, int entityIndex)
   	case ResExclusive:
  	    if (!xf86ChkConflict(&range, entityIndex)) {
  		Acc = xf86AddResToList(Acc, &range, entityIndex);
-#ifdef REDUCER
-	    } else {
- 		range.type |= ResEstimated;
- 		if (!xf86ChkConflict(&range, entityIndex) &&
- 		    !checkConflict(&range, AccReducers, entityIndex,
-				   SETUP, FALSE)) {
- 		    range.type &= ~(ResEstimated | ResBios);
- 		    AccReducers =
- 			xf86AddResToList(AccReducers, &range, entityIndex);
-#endif
-		} else resError(&range); /* no return */
-#ifdef REDUCER
-	    }
-#endif
+	    } else FatalError("xf86ClaimFixedResources conflict\n");
 	    break;
 	case ResShared:
 	    /* at this stage the resources are just added to the
@@ -1967,9 +1727,6 @@ xf86ClaimFixedResources(resList list, int entityIndex)
     xf86MsgVerb(X_INFO, 3,
 	"resource ranges after xf86ClaimFixedResources() call:\n");
     xf86PrintResList(3,Acc);
-#ifdef REDUCER
-    ProcessEstimatedConflicts();
-#endif
 #ifdef DEBUG
     if (ptr) {
 	xf86MsgVerb(X_INFO, 3, "to be registered later:\n");
@@ -2065,10 +1822,10 @@ xf86PostProbe(void)
 {
     memType val;
     int i,j;
-    resPtr resp, acc, tmp, resp_x, *pprev_next;
+    resPtr resp, acc, tmp, resp_x;
 
     if (fbSlotClaimed) {
-        if (pciSlotClaimed || isaSlotClaimed 
+        if (pciSlotClaimed
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	    || sbusSlotClaimed
 #endif
@@ -2085,17 +1842,7 @@ xf86PostProbe(void)
 	    return;
 	}
     }
-    /* don't compare against ResInit - remove it from clone.*/
     acc = tmp = xf86DupResList(Acc);
-    pprev_next = &acc;
-    while (tmp) {
-	if (tmp->res_type & ResInit) {
-	    (*pprev_next) = tmp->next;
-	    xfree(tmp);
-	} else 
-	    pprev_next = &(tmp->next);
-	tmp = (*pprev_next);
-    }
 
     for (i=0; i<xf86NumEntities; i++) {
 	resp = xf86Entities[i]->resources;
@@ -2108,16 +1855,6 @@ xf86PostProbe(void)
 		resp_x = resp;
 		resp = resp->next;
 		resp_x->next = tmp;
-#ifdef REDUCER
-	    } else {
-		resp->res_type |= ResEstimated;
- 		if (!checkConflict(&resp->val, acc, i, SETUP, FALSE)) {
- 		    resp->res_type &= ~(ResEstimated | ResBios);
- 		    tmp = AccReducers;
- 		    AccReducers = resp;
- 		    resp = resp->next;
- 		    AccReducers->next = tmp;
-#endif
 		} else {
 		    xf86MsgVerb(X_INFO, 3, "Found conflict at: 0x%lx\n",val);
  		    resp->res_type &= ~ResEstimated;
@@ -2126,14 +1863,8 @@ xf86PostProbe(void)
 		    resp = resp->next;
 		    xf86Entities[i]->resources->next = tmp;
 		}
-#ifdef REDUCER
-	    }
-#endif
 	}
 	xf86JoinResLists(Acc,resp_x);
-#ifdef REDUCER
-	ProcessEstimatedConflicts();
-#endif
     }
     xf86FreeResList(acc);
     
@@ -2630,9 +2361,6 @@ xf86ExtractTypeFromList(resPtr list, unsigned long type)
     return ret;
 }
 
-/*------------------------------------------------------------*/
-static void CheckGenericGA(void);
-
 /*
  * xf86FindPrimaryDevice() - Find the display device which
  * was active when the server was started.
@@ -2640,9 +2368,6 @@ static void CheckGenericGA(void);
 void
 xf86FindPrimaryDevice()
 {
-    /* if no VGA device is found check for primary PCI device */
-    if (primaryBus.type == BUS_NONE && xorgHWAccess)
-        CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
 	char loc[16];
@@ -2656,10 +2381,6 @@ xf86FindPrimaryDevice()
 		     primaryBus.id.pci->dev,
 		     primaryBus.id.pci->func);
 	    break;
-	case BUS_ISA:
-	    bus = "ISA";
-	    loc[0] = '\0';
-	    break;
 	case BUS_SBUS:
 	    bus = "SBUS";
 	    snprintf(loc, sizeof(loc), " %2.2x", primaryBus.id.sbus.fbNum);
@@ -2671,39 +2392,6 @@ xf86FindPrimaryDevice()
 
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
     }
-}
-
-#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__) && !defined(__m32r__)
-#include "vgaHW.h"
-#include "compiler.h"
-#endif
-
-/*
- * CheckGenericGA() - Check for presence of a VGA device.
- */
-static void
-CheckGenericGA()
-{
-/* This needs to be changed for multiple domains */
-#if !defined(__sparc__) && !defined(__sparc) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__arm__) && !defined(__s390__) && !defined(__m32r__)
-    IOADDRESS GenericIOBase = VGAHW_GET_IOBASE();
-    CARD8 CurrentValue, TestValue;
-
-    /* VGA CRTC registers are not used here, so don't bother unlocking them */
-
-    /* VGA has one more read/write attribute register than EGA */
-    (void) inb(GenericIOBase + VGA_IN_STAT_1_OFFSET);  /* Reset flip-flop */
-    outb(VGA_ATTR_INDEX, 0x14 | 0x20);
-    CurrentValue = inb(VGA_ATTR_DATA_R);
-    outb(VGA_ATTR_DATA_W, CurrentValue ^ 0x0F);
-    outb(VGA_ATTR_INDEX, 0x14 | 0x20);
-    TestValue = inb(VGA_ATTR_DATA_R);
-    outb(VGA_ATTR_DATA_W, CurrentValue);
-
-    if ((CurrentValue ^ 0x0F) == TestValue) {
-	primaryBus.type = BUS_ISA;
-    }
-#endif
 }
 
 Bool

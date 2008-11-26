@@ -14,6 +14,8 @@ libdix_la_SOURCES = 	\
 	dispatch.h	\
 	dixfonts.c	\
 	dixutils.c	\
+	enterleave.c	\
+	enterleave.h	\
 	events.c	\
 	extension.c	\
 	ffs.c		\

@@ -115,18 +115,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 		return NULL;
 	isPrimary = xf86IsPrimaryPci(pVideo);
 	break;
-    case BUS_ISA:
-	/*
-	 * This needs to be revisited as it doesn't allow for non-PCI
-	 * multihead.
-	 */
-	if (!xf86IsPrimaryIsa())
-	    return NULL;
-	isPrimary = TRUE;
-	for (i = 0;  i < nDevToConfig;  i++)
-	    if (!DevToConfig[i].pVideo)
-		return NULL;
-	break;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS:
 	for (i = 0;  i < nDevToConfig;  i++)
@@ -202,10 +190,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	    chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 	}
 	break;
-    case BUS_ISA:
-	NewDevice.GDev.identifier = "ISA Adapter";
-	NewDevice.GDev.busID = "ISA";
-	break;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS: {
 	char *promPath = NULL;
@@ -239,17 +223,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
     return &NewDevice.GDev;
 
 #   undef NewDevice
-}
-
-/*
- * Backwards compatibility
- */
-_X_EXPORT GDevPtr
-xf86AddDeviceToConfigure(const char *driver, struct pci_device * pVideo, 
-			 int chipset)
-{
-    return xf86AddBusDeviceToConfigure(driver, pVideo ? BUS_PCI : BUS_ISA,
-				       pVideo, chipset);
 }
 
 static XF86ConfInputPtr
@@ -662,12 +635,17 @@ configureDDCMonitorSection (int screennum)
     return ptr;
 }
 
+#if !defined(PATH_MAX)
+# define PATH_MAX 1024
+#endif
+
 void
-DoConfigure()
+DoConfigure(void)
 {
     int i,j, screennum = -1;
     char *home = NULL;
-    char *filename = NULL;
+    char filename[PATH_MAX];
+    char *addslash = "";
     XF86ConfigPtr xf86config = NULL;
     char **vlist, **vl;
     int *dev2screen;
@@ -765,28 +743,20 @@ DoConfigure()
     xf86config->conf_input_lst = configureInputSection();
     xf86config->conf_layout_lst = configureLayoutSection();
 
-    if (!(home = getenv("HOME")))
+    home = getenv("HOME");
+    if ((home == NULL) || (home[0] == '\0')) {
     	home = "/";
-    {
-#if !defined(PATH_MAX)
-#define PATH_MAX 1024
-#endif
-        const char* configfile = XF86CONFIGFILE".new";
-    	char homebuf[PATH_MAX];
-    	/* getenv might return R/O memory, as with OS/2 */
-    	strncpy(homebuf,home,PATH_MAX-1);
-    	homebuf[PATH_MAX-1] = '\0';
-    	home = homebuf;
-    	if (!(filename =
-	     (char *)xalloc(strlen(home) + 
-	  			 strlen(configfile) + 3)))
-		goto bail;
+    } else {
+	/* Determine if trailing slash is present or needed */
+	int l = strlen(home);
 
-      	if (home[0] == '/' && home[1] == '\0')
-            home[0] = '\0';
-	sprintf(filename, "%s/%s", home,configfile);
-	
+	if (home[l-1] != '/') {
+	    addslash = "/";
+	}
     }
+
+    snprintf(filename, sizeof(filename), "%s%s" XF86CONFIGFILE ".new",
+	     home, addslash);
 
     xf86writeConfigFile(filename, xf86config);
 

@@ -40,6 +40,12 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+static char *server_bootstrap_name = "org.x.X11";
+
+/* The launchd startup is only designed for the primary X11.app that is
+ * org.x.X11... server_bootstrap_name might be differnet if we were triggered to
+ * start by another X11.app.
+ */
 #define kX11AppBundleId "org.x.X11"
 #define kX11AppBundlePath "/Contents/MacOS/X11"
 
@@ -222,6 +228,9 @@ int main(int argc, char **argv, char **envp) {
         return EXIT_SUCCESS;
     }
 
+    if(getenv("X11_PREFS_DOMAIN"))
+        server_bootstrap_name = getenv("X11_PREFS_DOMAIN");
+    
     /* We don't have a mechanism in place to handle this interrupt driven
      * server-start notification, so just send the signal now, so xinit doesn't
      * time out waiting for it and will just poll for the server.
@@ -238,7 +247,7 @@ int main(int argc, char **argv, char **envp) {
     /* Get the $DISPLAY FD */
     launchd_fd = launchd_display_fd();
 
-    kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+    kr = bootstrap_look_up(bootstrap_port, server_bootstrap_name, &mp);
     if(kr != KERN_SUCCESS) {
         set_x11_path();
 
@@ -261,13 +270,17 @@ int main(int argc, char **argv, char **envp) {
         /* Try connecting for 10 seconds */
         for(i=0; i < 80; i++) {
             usleep(250000);
-            kr = bootstrap_look_up(bootstrap_port, SERVER_BOOTSTRAP_NAME, &mp);
+            kr = bootstrap_look_up(bootstrap_port, server_bootstrap_name, &mp);
             if(kr == KERN_SUCCESS)
                 break;
         }
 
         if(kr != KERN_SUCCESS) {
-            fprintf(stderr, "Xquartz: bootstrap_look_up(): Timed out: %s\n", bootstrap_strerror(kr));
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
+            fprintf(stderr, "Xquartz: bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+#else
+            fprintf(stderr, "Xquartz: bootstrap_look_up(): %ul\n", (unsigned long)kr);
+#endif
             return EXIT_FAILURE;
         }
     }

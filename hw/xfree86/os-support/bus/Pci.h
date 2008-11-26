@@ -168,36 +168,14 @@
 
 #endif /* !defined(DEBUGPCI) */
 
-/*
- * PCI Config mechanism definitions
- */
-#define PCI_EN 0x80000000
-
-#define	PCI_CFGMECH1_ADDRESS_REG	0xCF8
-#define	PCI_CFGMECH1_DATA_REG		0xCFC
-
-#define PCI_CFGMECH1_MAXDEV	32
-
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
 	defined(__DragonFly__) || defined(__sun)
 #define ARCH_PCI_INIT bsdPciInit
 #endif
 
 #if defined(linux)
-# define ARCH_PCI_INIT linuxPciInit
-# if defined(__m32r__)
-#  define INCLUDE_XF86_MAP_PCI_MEM
-#  define INCLUDE_XF86_NO_DOMAIN
-# endif
+#define ARCH_PCI_INIT linuxPciInit
 #endif /* defined(linux) */
-
-
-#if !defined(ARCH_PCI_INIT)
-#warning You really need to port to libpciaccess.
-#if defined(__i386__) || defined(__i386) ||  defined(__amd64__) || defined(__amd64)
-#define ARCH_PCI_INIT ix86PciInit
-#endif /* i386/amd64 */
-#endif /* !defined(ARCH_PCI_INIT) */
 
 #ifndef ARCH_PCI_INIT
 #error No PCI support available for this architecture/OS combination
@@ -213,34 +191,9 @@ typedef struct pci_bus_funcs {
 	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
 } pciBusFuncs_t, *pciBusFuncs_p;
 
-/*
- * pciBusInfo_t - One structure per defined PCI bus
- */
-typedef struct pci_bus_info {
-	unsigned char  configMech;   /* PCI config type to use      */
-	unsigned char  numDevices;   /* Range of valid devnums      */
-	unsigned char  secondary;    /* Boolean: bus is a secondary */
-	int            primary_bus;  /* Parent bus                  */
-	pciBusFuncs_p  funcs;        /* PCI access functions        */
-	void          *pciBusPriv;   /* Implementation private data */
-	struct pci_device *bridge;       /* bridge that opens this bus  */
-} pciBusInfo_t;
-
-#define HOST_NO_BUS ((pciBusInfo_t *)(-1))
-
-/* configMech values */
-#define PCI_CFG_MECH_UNKNOWN 0 /* Not yet known  */
-#define PCI_CFG_MECH_1       1 /* Most machines  */
-#define PCI_CFG_MECH_2       2 /* Older PC's     */
-#define PCI_CFG_MECH_OTHER   3 /* Something else */
-
 /* Generic PCI service functions and helpers */
-CARD32        pciCfgMech1Read(PCITAG tag, int offset);
-void          pciCfgMech1Write(PCITAG tag, int offset, CARD32 val);
-void          pciCfgMech1SetBits(PCITAG tag, int offset, CARD32 mask,
-				 CARD32 val);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
-extern pciBusInfo_t  *pciBusInfo;
+extern pciBusFuncs_t  *pciBusFuncs;
 
 #endif /* _PCI_H */
