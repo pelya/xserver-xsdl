@@ -169,7 +169,7 @@ void xf86PostKeyEvent(DeviceIntPtr device, unsigned int key_code, int is_down,
 		      ...);
 void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
-void xf86ActivateDevice(LocalDevicePtr local);
+int xf86ActivateDevice(LocalDevicePtr local);
 LocalDevicePtr xf86FirstLocalDevice(void);
 int xf86ScaleAxis(int Cx, int Sxhigh, int Sxlow, int Rxhigh, int Rxlow);
 void xf86XInputSetScreen(LocalDevicePtr local, int screen_number, int x, int y);

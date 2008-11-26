@@ -287,12 +287,13 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
 /***********************************************************************
  *
  * xf86ActivateDevice --
- * 
+ *
  *	Initialize an input device.
  *
+ * Returns TRUE on success, or FALSE otherwise.
  ***********************************************************************
  */
-_X_EXPORT void
+_X_EXPORT int
 xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
@@ -301,8 +302,13 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev = AddInputDevice(serverClient, local->device_control, TRUE);
 
         if (dev == NULL)
-            FatalError("Too many input devices");
-        
+        {
+            xf86Msg(X_ERROR, "Too many input devices. Ignoring %s\n",
+                    local->name);
+            local->dev = NULL;
+            return FALSE;
+        }
+
         local->atom = MakeAtom(local->type_name,
                                strlen(local->type_name),
                                TRUE);
@@ -334,6 +340,8 @@ xf86ActivateDevice(LocalDevicePtr local)
             xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
                     local->name, local->type_name);
     }
+
+    return TRUE;
 }
 
 
@@ -470,6 +478,13 @@ AddOtherInputDevices()
 /**
  * Create a new input device, activate and enable it.
  *
+ * Possible return codes:
+ *    BadName .. a bad driver name was supplied.
+ *    BadImplementation ... The driver does not have a PreInit function. This
+ *                          is a driver bug.
+ *    BadMatch .. device initialization failed.
+ *    BadAlloc .. too many input devices
+ *
  * @param idev The device, already set up with identifier, driver, and the
  * options.
  * @param pdev Pointer to the new device, if Success was reported.
@@ -519,7 +534,11 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         goto unwind;
     }
 
-    xf86ActivateDevice(pInfo);
+    if (!xf86ActivateDevice(pInfo))
+    {
+        rval = BadAlloc;
+        goto unwind;
+    }
 
     dev = pInfo->dev;
     ActivateDevice(dev);
