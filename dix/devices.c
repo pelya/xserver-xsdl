@@ -1847,7 +1847,7 @@ DoSetPointerMapping(ClientPtr client, DeviceIntPtr device, BYTE *map, int n)
         if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
             for (i = 0; i < n; i++) {
                 if ((device->button->map[i + 1] != map[i]) &&
-                        device->button->down[i + 1]) {
+                        BitIsOn(device->button->down, i + 1)) {
                     return MappingBusy;
                 }
             }

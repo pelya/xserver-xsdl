@@ -139,8 +139,7 @@ ProcXQueryDeviceState(ClientPtr client)
 	tb->class = ButtonClass;
 	tb->length = sizeof(xButtonState);
 	tb->num_buttons = b->numButtons;
-	for (i = 0; i < MAP_LENGTH; i++)
-            SetBitIf(tb->buttons, b->down, i);
+	memcpy(tb->buttons, b->down, sizeof(b->down));
 	buf += sizeof(xButtonState);
     }
 

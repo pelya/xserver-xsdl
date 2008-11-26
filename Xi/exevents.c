@@ -1183,11 +1183,9 @@ FixDeviceStateNotify(DeviceIntPtr dev, deviceStateNotify * ev, KeyClassPtr k,
     ev->num_valuators = 0;
 
     if (b) {
-	int i;
 	ev->classes_reported |= (1 << ButtonClass);
 	ev->num_buttons = b->numButtons;
-	for (i = 0; i < 32; i++)
-	    SetBitIf(ev->buttons, b->down, i);
+	memcpy((char*)ev->buttons, (char*)b->down, 4);
     } else if (k) {
 	ev->classes_reported |= (1 << KeyClass);
 	ev->num_keys = k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode;
@@ -1302,13 +1300,11 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 	    first += 3;
 	    nval -= 3;
 	    if (nbuttons > 32) {
-		int i;
 		(ev - 1)->deviceid |= MORE_EVENTS;
 		bev = (deviceButtonStateNotify *) ev++;
 		bev->type = DeviceButtonStateNotify;
 		bev->deviceid = dev->id;
-		for (i = 32; i < MAP_LENGTH; i++)
-		    SetBitIf(bev->buttons, b->down, i);
+		memcpy((char*)&bev->buttons[4], (char*)&b->down[4], DOWN_LENGTH - 4);
 	    }
 	    if (nval > 0) {
 		(ev - 1)->deviceid |= MORE_EVENTS;
@@ -1723,7 +1719,7 @@ SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
     if (BadDeviceMap(&map[0], nElts, 1, 255, &client->errorValue))
 	return BadValue;
     for (i = 0; i < nElts; i++)
-	if ((b->map[i + 1] != map[i]) && (b->down[i + 1]))
+	if ((b->map[i + 1] != map[i]) && BitIsOn(b->down, i + 1))
 	    return MappingBusy;
     for (i = 0; i < nElts; i++)
 	b->map[i + 1] = map[i];
