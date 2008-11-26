@@ -145,6 +145,7 @@ const static struct {
     KeySym normal, dead;
 } dead_keys[] = {
     {XK_grave, XK_dead_grave},
+    {XK_apostrophe, XK_dead_acute},         /* "=" on a Czech keyboard */
     {XK_acute, XK_dead_acute},
     {XK_asciicircum, XK_dead_circumflex},
     {UKEYSYM (0x2c6), XK_dead_circumflex},	/* MODIFIER LETTER CIRCUMFLEX ACCENT */
