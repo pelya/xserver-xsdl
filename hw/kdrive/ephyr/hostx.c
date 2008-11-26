@@ -578,14 +578,14 @@ hostx_get_visual_masks (EphyrScreenInfo screen,
 }
 
 static int 
-hostx_calculate_color_shift(unsigned long mask,
-			    int bits_per_rgb)
+hostx_calculate_color_shift(unsigned long mask)
 {
-    int shift = 0;
-    while(mask) {
-	mask = mask >> bits_per_rgb;
-	if (mask) shift += bits_per_rgb;
-    }
+    int shift = 1;
+    /* count # of bits in mask */
+    while (mask=(mask>>1)) shift++;
+    /* cmap entry is an unsigned char so adjust it by size of that */
+    shift = shift - sizeof(unsigned char) * 8;
+    if (shift < 0) shift = 0;
     return shift;
 }
 
@@ -601,12 +601,9 @@ hostx_set_cmap_entry(unsigned char idx,
     static int first_time = 1;
     if (first_time) {
 	first_time = 0;
-	rshift = hostx_calculate_color_shift(HostX.visual->red_mask,
-					     HostX.visual->bits_per_rgb);
-	gshift = hostx_calculate_color_shift(HostX.visual->green_mask,
-					     HostX.visual->bits_per_rgb);
-	bshift = hostx_calculate_color_shift(HostX.visual->blue_mask,
-					     HostX.visual->bits_per_rgb);
+	rshift = hostx_calculate_color_shift(HostX.visual->red_mask);
+	gshift = hostx_calculate_color_shift(HostX.visual->green_mask);
+	bshift = hostx_calculate_color_shift(HostX.visual->blue_mask);
     }
     HostX.cmap[idx] = ((r << rshift) & HostX.visual->red_mask) |
 		      ((g << gshift) & HostX.visual->green_mask) |
