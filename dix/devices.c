@@ -595,6 +595,8 @@ CorePointerProc(DeviceIntPtr pDev, int what)
  * Both devices are not tied to physical devices, but guarantee that there is
  * always a keyboard and a pointer present and keep the protocol semantics.
  *
+ * The devices are activated but not enabled.
+ *
  * Note that the server MUST have two core devices at all times, even if there
  * is no physical device connected.
  */
@@ -605,12 +607,6 @@ InitCoreDevices(void)
                           &inputInfo.pointer,
                           &inputInfo.keyboard) != Success)
         FatalError("Failed to allocate core devices");
-
-    if (inputInfo.pointer->inited && inputInfo.pointer->startup)
-        EnableDevice(inputInfo.pointer);
-    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
-        EnableDevice(inputInfo.keyboard);
-
 }
 
 /**
@@ -625,7 +621,7 @@ InitCoreDevices(void)
  *
  * @return Success or error code on failure.
  */
-void
+int
 InitAndStartDevices()
 {
     DeviceIntPtr dev, next;
@@ -636,14 +632,31 @@ InitAndStartDevices()
             ActivateDevice(dev);
     }
 
+    if (!inputInfo.keyboard) { /* In theory, this cannot happen */
+	ErrorF("[dix] No core keyboard\n");
+	return BadImplementation;
+    }
+    if (!inputInfo.pointer) { /* In theory, this cannot happen */
+	ErrorF("[dix] No core pointer\n");
+	return BadImplementation;
+    }
+
+    /* Now enable all devices */
+    if (inputInfo.pointer->inited && inputInfo.pointer->startup)
+        EnableDevice(inputInfo.pointer);
+    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
+        EnableDevice(inputInfo.keyboard);
+
     /* enable real devices */
     for (dev = inputInfo.off_devices; dev; dev = next)
     {
         DebugF("(dix) enabling device %d\n", dev->id);
 	next = dev->next;
 	if (dev->inited && dev->startup)
-	    EnableDevice(dev);
+	    (void)EnableDevice(dev);
     }
+
+    return Success;
 }
 
 /**
