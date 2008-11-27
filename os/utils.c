@@ -982,7 +982,7 @@ ProcessCommandLine(int argc, char *argv[])
 
 /* Implement a simple-minded font authorization scheme.  The authorization
    name is "hp-hostname-1", the contents are simply the host name. */
-int
+_X_EXPORT int
 set_font_authorizations(char **authorizations, int *authlen, pointer client)
 {
 #define AUTHORIZATION_NAME "hp-hostname-1"

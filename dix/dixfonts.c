@@ -1915,14 +1915,14 @@ InitFonts (void)
 #endif
 }
 
-int
+_X_EXPORT int
 GetDefaultPointSize ()
 {
     return 120;
 }
 
 
-FontResolutionPtr
+_X_EXPORT FontResolutionPtr
 GetClientResolutions (int *num)
 {
     static struct _FontResolution res;
@@ -1954,7 +1954,7 @@ GetClientResolutions (int *num)
  * should be called (only once!) by each type of fpe when initialized
  */
 
-int
+_X_EXPORT int
 RegisterFPEFunctions(NameCheckFunc name_func, 
 		     InitFpeFunc init_func, 
 		     FreeFpeFunc free_func, 
@@ -2020,32 +2020,32 @@ FreeFonts(void)
 
 /* convenience functions for FS interface */
 
-FontPtr
+_X_EXPORT FontPtr
 find_old_font(XID id)
 {
     return (FontPtr) SecurityLookupIDByType(NullClient, id, RT_NONE,
 					    DixUnknownAccess);
 }
 
-Font
+_X_EXPORT Font
 GetNewFontClientID()
 {
     return FakeClientID(0);
 }
 
-int
+_X_EXPORT int
 StoreFontClientFont(FontPtr pfont, Font id)
 {
     return AddResource(id, RT_NONE, (pointer) pfont);
 }
 
-void
+_X_EXPORT void
 DeleteFontClientID(Font id)
 {
     FreeResource(id, RT_NONE);
 }
 
-int
+_X_EXPORT int
 client_auth_generation(ClientPtr client)
 {
     return 0;
@@ -2054,7 +2054,7 @@ client_auth_generation(ClientPtr client)
 static int  fs_handlers_installed = 0;
 static unsigned int last_server_gen;
 
-int
+_X_EXPORT int
 init_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler)
 {
     /* if server has reset, make sure the b&w handlers are reinstalled */
@@ -2072,7 +2072,7 @@ init_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler)
     return Successful;
 }
 
-void
+_X_EXPORT void
 remove_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler, Bool all)
 {
     if (all) {

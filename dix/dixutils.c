@@ -614,7 +614,7 @@ ClientSleep (ClientPtr client, ClientSleepProcPtr function, pointer closure)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 ClientSignal (ClientPtr client)
 {
     SleepQueuePtr   q;
