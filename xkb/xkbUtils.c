@@ -2130,26 +2130,42 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     memset(&changes, 0, sizeof(changes));
     memset(&cause, 0, sizeof(cause));
 
-    if (!src || !dst)
+    if (!src || !dst) {
+        DebugF("XkbCopyKeymap: src (%p) or dst (%p) is NULL\n", src, dst);
         return FALSE;
+    }
 
     if (src == dst)
         return TRUE;
 
-    if (!_XkbCopyClientMap(src, dst))
+    if (!_XkbCopyClientMap(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy client map\n");
         return FALSE;
-    if (!_XkbCopyServerMap(src, dst))
+    }
+    if (!_XkbCopyServerMap(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy server map\n");
         return FALSE;
-    if (!_XkbCopyIndicators(src, dst))
+    }
+    if (!_XkbCopyIndicators(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy indicators\n");
         return FALSE;
-    if (!_XkbCopyControls(src, dst))
+    }
+    if (!_XkbCopyControls(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy controls\n");
         return FALSE;
-    if (!_XkbCopyNames(src, dst))
+    }
+    if (!_XkbCopyNames(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy names\n");
         return FALSE;
-    if (!_XkbCopyCompat(src, dst))
+    }
+    if (!_XkbCopyCompat(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy compat map\n");
         return FALSE;
-    if (!_XkbCopyGeom(src, dst))
+    }
+    if (!_XkbCopyGeom(src, dst)) {
+        DebugF("XkbCopyKeymap: failed to copy geometry\n");
         return FALSE;
+    }
 
     for (tmpDev = inputInfo.devices; tmpDev && !pDev; tmpDev = tmpDev->next) {
         if (tmpDev->key && tmpDev->key->xkbInfo &&
