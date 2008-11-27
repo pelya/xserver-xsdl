@@ -19,7 +19,7 @@ xf86InitInt10(int entityIndex)
     return xf86ExtendedInitInt10(entityIndex, 0);
 }
 
-xf86Int10InfoPtr
+_X_EXPORT xf86Int10InfoPtr
 xf86ExtendedInitInt10(int entityIndex, int Flags)
 {
     return NULL;
@@ -31,20 +31,20 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86FreeInt10(xf86Int10InfoPtr pInt)
 {
     return;
 }
 
-void *
+_X_EXPORT void *
 xf86Int10AllocPages(xf86Int10InfoPtr pInt,int num, int *off)
 {
     *off = 0;
     return NULL;
 }
 
-void
+_X_EXPORT void
 xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 {
     return;
@@ -56,13 +56,13 @@ xf86Int10ExecSetup(xf86Int10InfoPtr pInt)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86ExecX86int10(xf86Int10InfoPtr pInt)
 {
     return;
 }
 
-pointer
+_X_EXPORT pointer
 xf86int10Addr(xf86Int10InfoPtr pInt, CARD32 addr)
 {
     return 0;

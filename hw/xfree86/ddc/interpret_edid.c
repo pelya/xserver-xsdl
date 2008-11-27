@@ -132,7 +132,7 @@ handle_edid_quirks(xf86MonPtr m)
     }
 }
 
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86InterpretEDID(int scrnIndex, Uchar *block)
 {
     xf86MonPtr m;

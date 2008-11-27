@@ -116,7 +116,7 @@ read_legacy_video_BIOS(struct pci_device *dev, unsigned char *Buf)
 }
 
 
-xf86Int10InfoPtr
+_X_EXPORT xf86Int10InfoPtr
 xf86ExtendedInitInt10(int entityIndex, int Flags)
 {
     xf86Int10InfoPtr pInt;
@@ -328,7 +328,7 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86FreeInt10(xf86Int10InfoPtr pInt)
 {
     if (!pInt)
@@ -345,7 +345,7 @@ xf86FreeInt10(xf86Int10InfoPtr pInt)
     xfree(pInt);
 }
 
-void *
+_X_EXPORT void *
 xf86Int10AllocPages(xf86Int10InfoPtr pInt, int num, int *off)
 {
     int pagesize = getpagesize();
@@ -373,7 +373,7 @@ xf86Int10AllocPages(xf86Int10InfoPtr pInt, int num, int *off)
     return (char *)INTPriv(pInt)->base + *off;
 }
 
-void
+_X_EXPORT void
 xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 {
     int pagesize = getpagesize();
@@ -486,7 +486,7 @@ write_l(xf86Int10InfoPtr pInt, int addr, CARD32 val)
     V_ADDR_WB(addr + 3, val >> 24);
 }
 
-pointer
+_X_EXPORT pointer
 xf86int10Addr(xf86Int10InfoPtr pInt, CARD32 addr)
 {
     return V_ADDR(addr);

@@ -108,7 +108,7 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86SetDDCproperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 {
     if (!pScrn || !pScrn->monitor || !DDC)

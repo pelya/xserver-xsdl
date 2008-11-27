@@ -47,7 +47,7 @@ VBEInit(xf86Int10InfoPtr pInt, int entityIndex)
     return VBEExtendedInit(pInt, entityIndex, 0);
 }
 
-vbeInfoPtr
+_X_EXPORT vbeInfoPtr
 VBEExtendedInit(xf86Int10InfoPtr pInt, int entityIndex, int Flags)
 {
     int RealOff;
@@ -155,7 +155,7 @@ VBEExtendedInit(xf86Int10InfoPtr pInt, int entityIndex, int Flags)
     return NULL;
 }
 
-void
+_X_EXPORT void
 vbeFree(vbeInfoPtr pVbe)
 {
     if (!pVbe)
@@ -306,7 +306,7 @@ vbeReadEDID(vbeInfoPtr pVbe)
     return tmp;
 }
 
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 vbeDoEDID(vbeInfoPtr pVbe, pointer pDDCModule)
 {
     xf86MonPtr    pMonitor;
@@ -339,7 +339,7 @@ vbeDoEDID(vbeInfoPtr pVbe, pointer pDDCModule)
 #define GET_UNALIGNED2(x) \
             ((*(CARD16*)(x)) | (*(((CARD16*)(x) + 1))) << 16)
 
-VbeInfoBlock *
+_X_EXPORT VbeInfoBlock *
 VBEGetVBEInfo(vbeInfoPtr pVbe)
 {
     VbeInfoBlock *block = NULL;
@@ -436,7 +436,7 @@ VBEFreeVBEInfo(VbeInfoBlock *block)
     xfree(block);
 }
 
-Bool
+_X_EXPORT Bool
 VBESetVBEMode(vbeInfoPtr pVbe, int mode, VbeCRTCInfoBlock *block)
 {
     /*
@@ -474,7 +474,7 @@ VBESetVBEMode(vbeInfoPtr pVbe, int mode, VbeCRTCInfoBlock *block)
     return (R16(pVbe->pInt10->ax) == 0x4f);
 }
 
-Bool
+_X_EXPORT Bool
 VBEGetVBEMode(vbeInfoPtr pVbe, int *mode)
 {
     /*
@@ -602,7 +602,7 @@ VBEFreeModeInfo(VbeModeInfoBlock *block)
     xfree(block);
 }
 
-Bool
+_X_EXPORT Bool
 VBESaveRestore(vbeInfoPtr pVbe, vbeSaveRestoreFunction function, 
 	       pointer *memory, int *size, int *real_mode_pages)
 {
@@ -701,7 +701,7 @@ VBESaveRestore(vbeInfoPtr pVbe, vbeSaveRestoreFunction function,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 VBEBankSwitch(vbeInfoPtr pVbe, unsigned int iBank, int window)
 {
     /*
@@ -723,7 +723,7 @@ VBEBankSwitch(vbeInfoPtr pVbe, unsigned int iBank, int window)
     return (TRUE);
 }
 
-Bool
+_X_EXPORT Bool
 VBESetGetLogicalScanlineLength(vbeInfoPtr pVbe, vbeScanwidthCommand command,
 				int width, int *pixels, int *bytes, int *max)
 {
@@ -771,7 +771,7 @@ VBESetGetLogicalScanlineLength(vbeInfoPtr pVbe, vbeScanwidthCommand command,
     return (TRUE);
 }
 
-Bool
+_X_EXPORT Bool
 VBESetDisplayStart(vbeInfoPtr pVbe, int x, int y, Bool wait_retrace)
 {
     pVbe->pInt10->num = 0x10;
@@ -804,7 +804,7 @@ VBEGetDisplayStart(vbeInfoPtr pVbe, int *x, int *y)
     return (TRUE);
 }
 
-int
+_X_EXPORT int
 VBESetGetDACPaletteFormat(vbeInfoPtr pVbe, int bits)
 {
     /*
@@ -834,7 +834,7 @@ VBESetGetDACPaletteFormat(vbeInfoPtr pVbe, int bits)
     return (bits != 0 ? bits : (pVbe->pInt10->bx >> 8) & 0x00ff);
 }
 
-CARD32 *
+_X_EXPORT CARD32 *
 VBESetGetPaletteData(vbeInfoPtr pVbe, Bool set, int first, int num,
 		      CARD32 *data, Bool secondary, Bool wait_retrace)
 {
@@ -1013,7 +1013,7 @@ VBEVesaSaveRestore(vbeInfoPtr pVbe, vbeSaveRestorePtr vbe_sr,
 
 }
 
-int
+_X_EXPORT int
 VBEGetPixelClock(vbeInfoPtr pVbe, int mode, int clock)
 {
     /*
@@ -1041,7 +1041,7 @@ VBEGetPixelClock(vbeInfoPtr pVbe, int mode, int clock)
     return (pVbe->pInt10->cx);
 }
 
-Bool
+_X_EXPORT Bool
 VBEDPMSSet(vbeInfoPtr pVbe, int mode)
 {
     /*

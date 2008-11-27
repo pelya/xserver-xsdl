@@ -28,7 +28,7 @@ x86emu_do_int(int num)
     }
 }
 
-void
+_X_EXPORT void
 xf86ExecX86int10(xf86Int10InfoPtr pInt)
 {
     int sig = setup_int(pInt);

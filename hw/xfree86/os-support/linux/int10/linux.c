@@ -71,7 +71,7 @@ static Int10LinuxSubModuleState int10LinuxLoadSubModule(ScrnInfoPtr pScrn);
 
 #endif /* DoSubModules */
 
-xf86Int10InfoPtr
+_X_EXPORT xf86Int10InfoPtr
 xf86ExtendedInitInt10(int entityIndex, int Flags)
 {
     xf86Int10InfoPtr pInt = NULL;
@@ -392,7 +392,7 @@ MapCurrentInt10(xf86Int10InfoPtr pInt)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86FreeInt10(xf86Int10InfoPtr pInt)
 {
     if (!pInt)
@@ -421,7 +421,7 @@ xf86FreeInt10(xf86Int10InfoPtr pInt)
     xfree(pInt);
 }
 
-void *
+_X_EXPORT void *
 xf86Int10AllocPages(xf86Int10InfoPtr pInt, int num, int *off)
 {
     int pagesize = getpagesize();
@@ -450,7 +450,7 @@ xf86Int10AllocPages(xf86Int10InfoPtr pInt, int num, int *off)
     return ((linuxInt10Priv*)pInt->private)->base + ((i + 1) * pagesize);
 }
 
-void
+_X_EXPORT void
 xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 {
     int pagesize = getpagesize();
@@ -499,7 +499,7 @@ void write_l(xf86Int10InfoPtr pInt, int addr, CARD32 val)
     *((CARD32 *)(memType) addr) = val;
 }
 
-pointer
+_X_EXPORT pointer
 xf86int10Addr(xf86Int10InfoPtr pInt, CARD32 addr)
 {
     if (addr < V_RAM)

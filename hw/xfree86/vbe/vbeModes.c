@@ -89,7 +89,7 @@ GetDepthFlag(vbeInfoPtr pVbe, int id)
 /*
  * Find supported mode depths.
  */
-int
+_X_EXPORT int
 VBEFindSupportedDepths(vbeInfoPtr pVbe, VbeInfoBlock *vbe, int *flags24,
 			int modeTypes)
 {
@@ -269,7 +269,7 @@ CheckMode(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock *vbe, int id,
  * list.
  */
 
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 VBEGetModePool(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock *vbe,
 	       int modeTypes)
 {
@@ -343,7 +343,7 @@ VBEGetModePool(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock *vbe,
     return modePool;
 }
 
-void
+_X_EXPORT void
 VBESetModeNames(DisplayModePtr pMode)
 {
     if (!pMode)
@@ -369,7 +369,7 @@ VBESetModeNames(DisplayModePtr pMode)
  * parameters for each BIOS mode.  Note: This is only supported in
  * VBE version 3.0 or later.
  */
-void
+_X_EXPORT void
 VBESetModeParameters(ScrnInfoPtr pScrn, vbeInfoPtr pVbe)
 {
     DisplayModePtr pMode;
@@ -432,7 +432,7 @@ VBESetModeParameters(ScrnInfoPtr pScrn, vbeInfoPtr pVbe)
 /*
  * These wrappers are to allow (temporary) funtionality divergences.
  */
-int
+_X_EXPORT int
 VBEValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		  char **modeNames, ClockRangePtr clockRanges,
 		  int *linePitches, int minPitch, int maxPitch, int pitchInc,
@@ -445,7 +445,7 @@ VBEValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			     apertureSize, strategy);
 }
 
-void
+_X_EXPORT void
 VBEPrintModes(ScrnInfoPtr scrp)
 {
     xf86PrintModes(scrp);

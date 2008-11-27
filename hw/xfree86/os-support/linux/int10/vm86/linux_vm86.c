@@ -255,7 +255,7 @@ do_vm86(xf86Int10InfoPtr pInt)
     return 1;
 }
 
-void
+_X_EXPORT void
 xf86ExecX86int10(xf86Int10InfoPtr pInt)
 {
     int sig = setup_int(pInt);
