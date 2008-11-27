@@ -2130,8 +2130,11 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     memset(&changes, 0, sizeof(changes));
     memset(&cause, 0, sizeof(cause));
 
-    if (!src || !dst || src == dst)
+    if (!src || !dst)
         return FALSE;
+
+    if (src == dst)
+        return TRUE;
 
     if (!_XkbCopyClientMap(src, dst))
         return FALSE;
