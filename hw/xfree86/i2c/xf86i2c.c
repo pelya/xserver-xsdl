@@ -358,7 +358,7 @@ I2CAddress(I2CDevPtr d, I2CSlaveAddr addr)
  * Don't expect a read- or write-only device will respond otherwise.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CProbeAddress(I2CBusPtr b, I2CSlaveAddr addr)
 {
     int r;
@@ -439,7 +439,7 @@ I2CWriteRead(I2CDevPtr d,
 
 /* wrapper - for compatibility and convinience */
 
-Bool
+_X_EXPORT Bool
 xf86I2CWriteRead(I2CDevPtr d,
 		 I2CByte *WriteBuffer, int nWrite,
 		 I2CByte *ReadBuffer,  int nRead) 
@@ -595,7 +595,7 @@ xf86I2CWriteVec(I2CDevPtr d, I2CByte *vec, int nValues)
  * the least significant bit, indicating a read or write access, to zero.
  */
 
-I2CDevPtr
+_X_EXPORT I2CDevPtr
 xf86CreateI2CDevRec(void) 
 {
     return xcalloc(1, sizeof(I2CDevRec));
@@ -640,7 +640,7 @@ xf86DestroyI2CDevRec(I2CDevPtr d, Bool unalloc)
  * the bus-wide defaults. The function returns TRUE on success.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CDevInit(I2CDevPtr d) 
 {
     I2CBusPtr b;
@@ -690,7 +690,7 @@ static I2CBusPtr I2CBusList;
  * with safe defaults.
  */
 
-I2CBusPtr
+_X_EXPORT I2CBusPtr
 xf86CreateI2CBusRec(void) 
 {
     I2CBusPtr b;
@@ -716,7 +716,7 @@ xf86CreateI2CBusRec(void)
  * first, passing down the <unalloc> option.
  */
 
-void
+_X_EXPORT void
 xf86DestroyI2CBusRec(I2CBusPtr b, Bool unalloc, Bool devs_too) 
 {
     if (b) {
@@ -763,7 +763,7 @@ xf86DestroyI2CBusRec(I2CBusPtr b, Bool unalloc, Bool devs_too)
  * At this point there won't be any traffic on the I2C bus.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CBusInit(I2CBusPtr b) 
 {
     /* I2C buses must be identified by a unique scrnIndex 

@@ -31,7 +31,7 @@
 #include "uda1380.h"
 #include "i2c_def.h"
 
-UDA1380Ptr Detect_uda1380(I2CBusPtr b, I2CSlaveAddr addr)
+_X_EXPORT UDA1380Ptr Detect_uda1380(I2CBusPtr b, I2CSlaveAddr addr)
 {
 	UDA1380Ptr t;
 	I2CByte a;
@@ -74,7 +74,7 @@ UDA1380Ptr Detect_uda1380(I2CBusPtr b, I2CSlaveAddr addr)
 	return t;  
 }
 
-Bool uda1380_init(UDA1380Ptr t)
+_X_EXPORT Bool uda1380_init(UDA1380Ptr t)
 {
 	CARD8 data[3];
 	CARD16 tmp;
@@ -109,7 +109,7 @@ Bool uda1380_init(UDA1380Ptr t)
 	return TRUE;
 }
 
-void uda1380_shutdown(UDA1380Ptr t)
+_X_EXPORT void uda1380_shutdown(UDA1380Ptr t)
 {
 	CARD8 data[3];
 	Bool ret;
@@ -123,7 +123,7 @@ void uda1380_shutdown(UDA1380Ptr t)
 		xf86DrvMsg(t->d.pI2CBus->scrnIndex,X_INFO,"UDA1380 failed to shutdown\n");
 }
 
-void uda1380_setvolume(UDA1380Ptr t, INT32 value)
+_X_EXPORT void uda1380_setvolume(UDA1380Ptr t, INT32 value)
 {
 	CARD8 data[3];
 	/*
@@ -143,7 +143,7 @@ void uda1380_setvolume(UDA1380Ptr t, INT32 value)
 		xf86DrvMsg(t->d.pI2CBus->scrnIndex,X_INFO,"UDA1380 failed to set volume\n");
 }
 
-void uda1380_mute(UDA1380Ptr t, Bool mute)
+_X_EXPORT void uda1380_mute(UDA1380Ptr t, Bool mute)
 {
 	CARD8 data[3];
 	Bool ret;
@@ -170,14 +170,14 @@ void uda1380_mute(UDA1380Ptr t, Bool mute)
 	}
 }
 
-void uda1380_getstatus(UDA1380Ptr t)
+_X_EXPORT void uda1380_getstatus(UDA1380Ptr t)
 {
 }
 
-void uda1380_setparameters(UDA1380Ptr t)
+_X_EXPORT void uda1380_setparameters(UDA1380Ptr t)
 {
 }
 
-void uda1380_dumpstatus(UDA1380Ptr t)
+_X_EXPORT void uda1380_dumpstatus(UDA1380Ptr t)
 {
 }

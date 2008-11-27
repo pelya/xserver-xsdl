@@ -13,7 +13,7 @@
 		I2C_WriteRead(&(t->d), data, 2, NULL, 0); \
 		}
 
-TDA9850Ptr Detect_tda9850(I2CBusPtr b, I2CSlaveAddr addr)
+_X_EXPORT TDA9850Ptr Detect_tda9850(I2CBusPtr b, I2CSlaveAddr addr)
 {
   TDA9850Ptr t;
   I2CByte a;
@@ -53,7 +53,7 @@ TDA9850Ptr Detect_tda9850(I2CBusPtr b, I2CSlaveAddr addr)
   return t;  
 }
 
-Bool tda9850_init(TDA9850Ptr t)
+_X_EXPORT Bool tda9850_init(TDA9850Ptr t)
 {
   t->stereo = 1;
   t->sap = 0;
@@ -63,7 +63,7 @@ Bool tda9850_init(TDA9850Ptr t)
   return TRUE;
 }
 
-void tda9850_setaudio(TDA9850Ptr t)
+_X_EXPORT void tda9850_setaudio(TDA9850Ptr t)
 {
 CARD8 data[2];
 
@@ -83,7 +83,7 @@ if(t->mux==2)
 TDA9850(0x06,(t->stereo<<6)|(t->sap<<7)|(t->mute?0x8:0)|(t->sap_mute?0x10:0x0)); 
 }
 
-void tda9850_mute(TDA9850Ptr t, Bool mute)
+_X_EXPORT void tda9850_mute(TDA9850Ptr t, Bool mute)
 {
 CARD8 data[2];
 
@@ -93,7 +93,7 @@ t->mute = mute;
 TDA9850(0x06,(t->stereo<<6)|(t->sap<<7)|(t->mute?0x8:0x0)|(t->sap_mute?0x10:0x0)); 
 }
 
-void tda9850_sap_mute(TDA9850Ptr t, Bool sap_mute)
+_X_EXPORT void tda9850_sap_mute(TDA9850Ptr t, Bool sap_mute)
 {
 CARD8 data[2];
 
@@ -103,7 +103,7 @@ t->sap_mute = sap_mute;
 TDA9850(0x06,(t->stereo<<6)|(t->sap<<7)|(t->mute?0x8:0x0)|(t->sap_mute?0x10:0x0)); 
 }
 
-CARD16 tda9850_getstatus(TDA9850Ptr t)
+_X_EXPORT CARD16 tda9850_getstatus(TDA9850Ptr t)
 {
 CARD16 status;
 
