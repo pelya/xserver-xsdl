@@ -120,8 +120,6 @@ of the copyright holder.
 #include <X11/keysym.h>
 #include "misc.h"
 #include "resource.h"
-#define NEED_EVENTS
-#define NEED_REPLIES
 #include <X11/Xproto.h>
 #include "windowstr.h"
 #include "inputstr.h"

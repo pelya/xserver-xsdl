@@ -54,8 +54,6 @@ SOFTWARE.
 #include <X11/X.h>
 #include "misc.h"
 #include "resource.h"
-#define NEED_EVENTS
-#define NEED_REPLIES
 #include <X11/Xproto.h>
 #include <X11/Xatom.h>
 #include "windowstr.h"

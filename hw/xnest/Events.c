@@ -17,7 +17,6 @@ is" without express or implied warranty.
 #endif
 
 #include <X11/X.h>
-#define NEED_EVENTS
 #include <X11/Xproto.h>
 #include "screenint.h"
 #include "input.h"

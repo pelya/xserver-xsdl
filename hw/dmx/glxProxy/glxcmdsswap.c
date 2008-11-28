@@ -28,7 +28,6 @@
  * Silicon Graphics, Inc.
  */
 
-#define NEED_REPLIES
 #define FONT_PCF
 #include "glxserver.h"
 #include "glxutil.h"

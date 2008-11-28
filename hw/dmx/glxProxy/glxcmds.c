@@ -43,7 +43,6 @@
 #undef Xrealloc
 #undef Xfree
 
-#define NEED_REPLIES
 #define FONT_PCF
 #include "glxserver.h"
 #include <GL/glxtokens.h>

@@ -12,7 +12,6 @@ is" without express or implied warranty.
 
 */
 
-#define NEED_EVENTS
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>
 #endif

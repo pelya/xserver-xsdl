@@ -31,7 +31,6 @@ from The Open Group.
 #endif
 
 #include <X11/X.h>
-#define NEED_EVENTS
 #include "mi.h"
 #include <X11/Xproto.h>
 #include "scrnintstr.h"

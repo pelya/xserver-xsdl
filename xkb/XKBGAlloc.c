@@ -28,8 +28,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#define	NEED_EVENTS
-#define	NEED_REPLIES
 
 #include <stdio.h>
 #include <X11/X.h>

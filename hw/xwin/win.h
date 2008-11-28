@@ -58,7 +58,6 @@
 # define WM_XBUTTONDBLCLK 525
 #endif
 
-#define NEED_EVENTS
 
 #define WIN_DEFAULT_BPP				0
 #define WIN_DEFAULT_WHITEPIXEL			255

@@ -31,8 +31,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 #include "win.h"
 
-#define NEED_REPLIES
-#define NEED_EVENTS
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"

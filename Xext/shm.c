@@ -38,8 +38,6 @@ in this Software without prior written authorization from The Open Group.
 #include <sys/shm.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#define NEED_REPLIES
-#define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "misc.h"

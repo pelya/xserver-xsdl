@@ -44,7 +44,6 @@
 #undef Xrealloc
 #undef Xfree
 
-#define NEED_REPLIES
 #include "glxserver.h"
 #include "glxext.h"
 #include "g_disptab.h"

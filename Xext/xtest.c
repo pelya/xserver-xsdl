@@ -31,7 +31,6 @@
 #endif
 
 #include <X11/X.h>
-#define NEED_EVENTS
 #include <X11/Xproto.h>
 #include "misc.h"
 #include "os.h"

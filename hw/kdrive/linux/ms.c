@@ -24,7 +24,6 @@ THE SOFTWARE.
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
-#define NEED_EVENTS
 #include <errno.h>
 #include <termios.h>
 #include <X11/X.h>

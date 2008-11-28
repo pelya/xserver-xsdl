@@ -52,9 +52,6 @@
 #ifndef _xf86Xinput_h
 #define _xf86Xinput_h
 
-#ifndef NEED_EVENTS
-#define NEED_EVENTS
-#endif
 #include "xf86str.h"
 #include "inputstr.h"
 #include <X11/extensions/XI.h>

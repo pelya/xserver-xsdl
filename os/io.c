@@ -73,7 +73,6 @@ SOFTWARE.
 #include <sys/uio.h>
 #endif
 #include <X11/X.h>
-#define NEED_REPLIES
 #include <X11/Xproto.h>
 #include "os.h"
 #include "osdep.h"

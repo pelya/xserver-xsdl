@@ -32,8 +32,6 @@ Equipment Corporation.
 
 #include <stdio.h>
 #include <X11/X.h>
-#define NEED_REPLIES
-#define NEED_EVENTS
 #include <X11/Xproto.h>
 #include "windowstr.h"
 #include "dixfontstr.h"

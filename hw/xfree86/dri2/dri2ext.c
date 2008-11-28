@@ -34,7 +34,6 @@
 #include <xorg-config.h>
 #endif
 
-#define NEED_REPLIES
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/extensions/dri2proto.h>
