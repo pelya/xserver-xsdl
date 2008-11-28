@@ -190,6 +190,17 @@ typedef void (*RRModeDestroyProcPtr) (ScreenPtr	    pScreen,
 typedef Bool (*RROutputGetPropertyProcPtr) (ScreenPtr		pScreen,
 					    RROutputPtr		output,
 					    Atom		property);
+typedef Bool (*RRGetPanningProcPtr)    (ScreenPtr		pScrn,
+					RRCrtcPtr		crtc,
+					BoxPtr		totalArea,
+					BoxPtr		trackingArea,
+					INT16		*border);
+typedef Bool (*RRSetPanningProcPtr)    (ScreenPtr		pScrn,
+					RRCrtcPtr		crtc,
+					BoxPtr		totalArea,
+					BoxPtr		trackingArea,
+					INT16		*border);
+
 #endif /* RANDR_13_INTERFACE */
 
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation *rotations);
@@ -239,6 +250,8 @@ typedef struct _rrScrPriv {
 #endif
 #if RANDR_13_INTERFACE
     RROutputGetPropertyProcPtr	rrOutputGetProperty;
+    RRGetPanningProcPtr	rrGetPanning;
+    RRSetPanningProcPtr	rrSetPanning;
 #endif
     
     /*
@@ -677,6 +690,12 @@ ProcRRSetCrtcTransform (ClientPtr client);
 
 extern _X_EXPORT int
 ProcRRGetCrtcTransform (ClientPtr client);
+
+int
+ProcRRGetPanning (ClientPtr client);
+
+int
+ProcRRSetPanning (ClientPtr client);
 
 /* rrdispatch.c */
 extern _X_EXPORT Bool
