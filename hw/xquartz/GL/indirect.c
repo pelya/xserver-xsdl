@@ -138,20 +138,20 @@ typedef struct __GLXAquaContext  __GLXAquaContext;
 typedef struct __GLXAquaDrawable __GLXAquaDrawable;
 
 struct __GLXAquaScreen {
-  __GLXscreen   base;
-  int           index;
+    __GLXscreen base;
+    int index;
     int num_vis;
-    __GLcontextModes *modes;
+    //__GLcontextModes *modes;
 };
 
 static __GLXAquaScreen glAquaScreens[MAXSCREENS];
 
 struct __GLXAquaContext {
-  __GLXcontext base;
-  CGLContextObj ctx;
-  CGLPixelFormatObj pixelFormat;
-  xp_surface_id sid;
-  unsigned isAttached :1;
+    __GLXcontext base;
+    CGLContextObj ctx;
+    CGLPixelFormatObj pixelFormat;
+    xp_surface_id sid;
+    unsigned isAttached :1;
 };
 
 struct __GLXAquaDrawable {
@@ -171,8 +171,10 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   
   GLAQUA_DEBUG_MSG("glXAquaScreenCreateContext\n");
 
-  context = malloc (sizeof (__GLXAquaContext));
-  if (context == NULL) return NULL;
+  context = xalloc (sizeof (__GLXAquaContext));
+
+  if (context == NULL)
+      return NULL;
 
   memset(context, 0, sizeof *context);
 
@@ -186,8 +188,9 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   /*FIXME verify that the context->base is fully initialized. */
 
   context->pixelFormat = makeFormat(conf);
+
   if (!context->pixelFormat) {
-        free(context);
+        xfree(context);
         return NULL;
   }
 
@@ -199,7 +202,7 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   if (gl_err != 0) {
       ErrorF("CGLCreateContext error: %s\n", CGLErrorString(gl_err));
       CGLDestroyPixelFormat(context->pixelFormat);
-      free(context);
+      xfree(context);
       return NULL;
   }
 
@@ -238,11 +241,13 @@ static void __glXAquaContextDestroy(__GLXcontext *baseContext) {
 		x_hash_table_insert(surface_hash, x_cvt_uint_to_vptr(context->sid), lst);
       }
 
-      if (context->ctx != NULL) CGLDestroyContext(context->ctx);
+      if (context->ctx != NULL)
+	  CGLDestroyContext(context->ctx);
 
-      if (context->pixelFormat != NULL)	CGLDestroyPixelFormat(context->pixelFormat);
+      if (context->pixelFormat != NULL)
+	  CGLDestroyPixelFormat(context->pixelFormat);
       
-      free(context);
+      xfree(context);
     }
 }
 
@@ -433,21 +438,22 @@ static GLboolean __glXAquaDrawableResize(__GLXdrawable *base)  {
 
 static GLboolean __glXAquaDrawableSwapBuffers(__GLXdrawable *base) {
     CGLError gl_err;
-	__GLXAquaContext * drawableCtx;
-//    GLAQUA_DEBUG_MSG("glAquaDrawableSwapBuffers(%p)\n",base);
+    __GLXAquaContext * drawableCtx;
+    //    GLAQUA_DEBUG_MSG("glAquaDrawableSwapBuffers(%p)\n",base);
 	
-	if(!base) {
-		ErrorF("glXAquaDrawbleSwapBuffers passed NULL\n");
-	    return GL_FALSE;
-	}
+    if(!base) {
+	ErrorF("glXAquaDrawbleSwapBuffers passed NULL\n");
+	return GL_FALSE;
+    }
 
     drawableCtx = (__GLXAquaContext *)base->drawGlxc;
-
+    
     if (drawableCtx != NULL && drawableCtx->ctx != NULL) {
         gl_err = CGLFlushDrawable(drawableCtx->ctx);
         if (gl_err != 0)
             ErrorF("CGLFlushDrawable error: %s\n", CGLErrorString(gl_err));
     }
+
     return GL_TRUE;
 }
 
@@ -470,7 +476,21 @@ static CGLPixelFormatObj makeFormat(__GLXconfig *conf) {
     attr[i++] = kCGLPFAAlphaSize;
     attr[i++] = conf->alphaBits;
 
-    /*TODO add accum, depth, and stencil. */
+    if((conf->accumRedBits + conf->accumGreenBits + conf->accumBlueBits +
+	conf->accumAlphaBits) > 0) {
+
+	attr[i++] = kCGLPFAAccumSize;
+        attr[i++] = conf->accumRedBits + conf->accumGreenBits
+	    + conf->accumBlueBits + conf->accumAlphaBits;
+    }
+    
+    attr[i++] = kCGLPFADepthSize;
+    attr[i++] = conf->depthBits;
+
+    if(conf->stencilBits) {
+	attr[i++] = kCGLPFAStencilSize;
+        attr[i++] = conf->stencilBits;	
+    }
     
     if(conf->numAuxBuffers > 0) {
 	attr[i++] = kCGLPFAAuxBuffers;
@@ -494,80 +514,6 @@ static CGLPixelFormatObj makeFormat(__GLXconfig *conf) {
 
     return fobj;
 }
-
-#if 0
-static CGLPixelFormatObj makeFormat(__GLcontextModes *mode) {
-    int i;
-    CGLPixelFormatAttribute attr[64]; // currently uses max of 30
-    CGLPixelFormatObj result;
-    GLint n_formats;
-    CGLError gl_err;
-    
-    GLAQUA_DEBUG_MSG("makeFormat\n");
-
-    if (!mode->rgbMode)
-        return NULL;
-
-    i = 0;
-
-    // attr [i++] = kCGLPFAAcelerated; // require hwaccel - BAD for multiscreen
-    // attr [i++] = kCGLPFANoRecovery; // disable fallback renderers - BAD
-
-    if (mode->stereoMode) {
-        attr[i++] = kCGLPFAStereo;
-    }
-    if (mode->doubleBufferMode) {
-        attr[i++] = kCGLPFADoubleBuffer;
-    }
-
-    if (mode->colorIndexMode) {
-        /* ignored */
-    }
-
-    if (mode->rgbMode) {
-        attr[i++] = kCGLPFAColorSize;
-        attr[i++] = mode->redBits + mode->greenBits + mode->blueBits;
-        attr[i++] = kCGLPFAAlphaSize;
-        attr[i++] = 1; /* FIXME: ignoring mode->alphaBits which is always 0 */
-    }
-
-    if (mode->haveAccumBuffer) {
-        attr[i++] = kCGLPFAAccumSize;
-        attr[i++] = mode->accumRedBits + mode->accumGreenBits
-                    + mode->accumBlueBits + mode->accumAlphaBits;
-    }
-	
-    if (mode->haveDepthBuffer) {
-        attr[i++] = kCGLPFADepthSize;
-        attr[i++] = mode->depthBits;
-    }
-	
-    if (mode->haveStencilBuffer) {
-        attr[i++] = kCGLPFAStencilSize;
-        attr[i++] = mode->stencilBits;
-    }
-
-    attr[i++] = kCGLPFAAuxBuffers;
-    attr[i++] = mode->numAuxBuffers;
-
-    /* mode->level ignored */
-
-    /* mode->pixmapMode ? */
-
-    attr[i++] = 0;
-
-    GLAQUA_DEBUG_MSG("makeFormat almost done\n");
-
-    result = NULL;
-    gl_err = CGLChoosePixelFormat(attr, &result, &n_formats);
-    if (gl_err != 0)
-        ErrorF("CGLChoosePixelFormat error: %s\n", CGLErrorString(gl_err));
-
-    GLAQUA_DEBUG_MSG("makeFormat done (0x%x)\n", (unsigned int) result);
-
-    return result;
-}
-#endif
 
 // Originally copied from Mesa
 
@@ -1210,7 +1156,9 @@ static void init_screen_visuals(__GLXAquaScreen *screen) {
 #endif
 }
 
-/* This will eventually need to use the capabilities.c code. */
+/* This will eventually need to use the capabilities.c code.  
+ * We can probably update the visualConfigs.c code to work with __GLXconfig.
+ */
 static __GLXconfig *createConfigs(void) {
     __GLXconfig *conf;
 
@@ -1333,8 +1281,15 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.GLextensions = "";
     screen->base.GLXvendor = "Apple";
     screen->base.GLXversion = "1.4";
-    screen->base.GLXextensions = "";
+    screen->base.GLXextensions = "GLX_SGIX_fbconfig "
+	"GLX_SGIS_multisample "
+	"GLX_ARB_multisample "
+	"GLX_EXT_visual_info "
+	"GLX_EXT_import_context "
+	"GLX_EXT_texture_from_pixmap "; 
+    /*We may be able to add more GLXextensions at a later time. */
     
+
     /* 
      * These are both commented out, because they cause problems with
      * the other visual config code, and visuals.
