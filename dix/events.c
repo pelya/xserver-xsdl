@@ -223,8 +223,7 @@ static int DontPropagateRefCnts[DNPMCOUNT];
  * Main input device struct.
  *     inputInfo.pointer
  *     is the core pointer. Referred to as "virtual core pointer", "VCP",
- *     "core pointer" or inputInfo.pointer. There is exactly one core pointer,
- *     but multiple devices may send core events. The VCP is the first master
+ *     "core pointer" or inputInfo.pointer. The VCP is the first master
  *     pointer device and cannot be deleted.
  *
  *     inputInfo.keyboard
