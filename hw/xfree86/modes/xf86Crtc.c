@@ -96,6 +96,7 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
     crtc = xcalloc (sizeof (xf86CrtcRec), 1);
     if (!crtc)
 	return NULL;
+    crtc->version = XF86_CRTC_VERSION;
     crtc->scrn = scrn;
     crtc->funcs = funcs;
 #ifdef RANDR_12_INTERFACE
