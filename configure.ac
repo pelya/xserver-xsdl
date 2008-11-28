@@ -504,6 +504,9 @@ AC_ARG_ENABLE(builtin-fonts,  AS_HELP_STRING([--enable-builtin-fonts], [Use only
 AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use an empty root cursor (default: use core cursor)]),
                                  [NULL_ROOT_CURSOR=$enableval],
                                  [NULL_ROOT_CURSOR=no])
+AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
+				[SYMBOL_VISIBILITY=$enableval],
+				[SYMBOL_VISIBILITY=auto])
 
 dnl GLX build options
 AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
@@ -1228,6 +1231,46 @@ if test "x$XORG" = xyes; then
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 	XORG_LIBS="$COMPOSITE_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $SELINUX_LIB"
+
+	dnl ==================================================================
+	dnl symbol visibility
+	symbol_visibility=
+	have_visibility=disabled
+	if test x$SYMBOL_VISIBILITY != xno; then
+	    AC_MSG_CHECKING(for symbol visibility support)
+	    if test x$GCC = xyes; then
+		VISIBILITY_CFLAGS="-fvisibility=hidden"
+	    else
+		AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
+		if test x$SUNCC = xyes; then
+		    VISIBILITY_CFLAGS="-xldscope=hidden"
+		else
+		    have_visibility=no
+		fi
+	    fi
+	    if test x$have_visibility != xno; then
+		save_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS $VISIBILITY_CFLAGS"
+		AC_TRY_COMPILE(
+		    [#include <X11/Xfuncproto.h>
+		     extern _X_HIDDEN int hidden_int;
+		     extern _X_EXPORT int public_int;
+		     extern _X_HIDDEN int hidden_int_func(void);
+		     extern _X_EXPORT int public_int_func(void);],
+		    [],
+		    have_visibility=yes,
+		    have_visibility=no)
+		CFLAGS=$save_CFLAGS
+	    fi
+	    AC_MSG_RESULT([$have_visibility])
+	    if test x$have_visibility != xno; then
+		symbol_visibility=$VISIBILITY_CFLAGS
+		XORG_CFLAGS="$XORG_CFLAGS $VISIBILITY_CFLAGS"
+	    fi
+	fi
+	dnl added to xorg-server.pc
+	AC_SUBST([symbol_visibility])
+	dnl ===================================================================
 
 	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
 	SAVE_LIBS=$LIBS

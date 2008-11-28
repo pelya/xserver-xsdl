@@ -15,5 +15,5 @@ Name: xorg-server
 Description: Modular X.Org X Server
 Version: @PACKAGE_VERSION@
 Requires: pixman-1 pciaccess
-Cflags: -I${sdkdir}
+Cflags: -I${sdkdir} @symbol_visibility@
 Libs: -L${libdir}
