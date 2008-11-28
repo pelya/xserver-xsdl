@@ -419,6 +419,28 @@ int startup_trigger(int argc, char **argv, char **envp) {
     return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
 }
 
+/** Setup the environment we want our child processes to inherit */
+static void setup_env() {
+    char buf[1024], *temp;
+
+    /* Make sure /usr/X11/bin is in the $PATH */
+    temp = getenv("PATH");
+    if(temp == NULL || temp[0] == 0) {
+        snprintf(buf, sizeof(buf), "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:%s", X11BINDIR);
+        setenv("PATH", buf, TRUE);
+    } else if(strnstr(temp, X11BINDIR, sizeof(temp)) == NULL) {
+        snprintf(buf, sizeof(buf), "%s:%s", temp, X11BINDIR);
+        setenv("PATH", buf, TRUE);
+    }
+
+    fprintf(stderr, "PATH: %s\n", getenv("PATH"));
+    
+    /* cd $HOME */
+    temp = getenv("HOME");
+    if(temp != NULL && temp[0] != '\0')
+        chdir(temp);
+}
+
 /*** Main ***/
 int main(int argc, char **argv, char **envp) {
     Bool listenOnly = FALSE;
@@ -427,7 +449,10 @@ int main(int argc, char **argv, char **envp) {
     mach_port_t mp;
     kern_return_t kr;
 
-    // The server must not run the PanoramiX operations.
+    /* Setup our environment for our children */
+    setup_env();
+    
+    /* The server must not run the PanoramiX operations. */
     noPanoramiXExtension = TRUE;
 
     /* Setup the initial crasherporter info */

@@ -34,8 +34,6 @@
 #include <dix-config.h>
 #endif
 
-#define DEFAULT_PATH "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/X11/bin"
-
 #include "quartzCommon.h"
 
 #import "X11Controller.h"
@@ -362,18 +360,7 @@ BOOL xquartz_resetenv_display = NO;
     snprintf(buf, sizeof(buf), ":%s", display);
 	setenv("DISPLAY", buf, TRUE);
       }
-	
-      temp = getenv("PATH");
-      if (temp == NULL || temp[0] == 0) 
-	setenv ("PATH", DEFAULT_PATH, TRUE);
-      else if (strnstr(temp, "/usr/X11/bin", sizeof(temp)) == NULL) {
-	snprintf(buf, sizeof(buf), "%s:/usr/X11/bin", temp);            
-	setenv("PATH", buf, TRUE);      
-      }
-      /* cd $HOME */
-      temp = getenv("HOME");
-      if (temp != NULL && temp[0]!=0) chdir(temp);
-	
+
       execvp(argv[0], (char **const) argv);
 	
       _exit(2);
