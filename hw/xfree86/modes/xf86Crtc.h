@@ -213,9 +213,16 @@ typedef struct _xf86CrtcFuncs {
     Bool
     (*set_mode_major)(xf86CrtcPtr crtc, DisplayModePtr mode,
 		      Rotation rotation, int x, int y);
+
+    /**
+     * Callback for panning. Doesn't change the mode.
+     */
+    void
+    (*pan)(xf86CrtcPtr crtc, int x, int y);
+
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
-#define XF86_CRTC_VERSION 1
+#define XF86_CRTC_VERSION 2
 
 struct _xf86Crtc {
     /**
@@ -321,6 +328,15 @@ struct _xf86Crtc {
      * Bounding box in screen space
      */
     BoxRec	    bounds;
+    /**
+     * Panning:
+     * TotalArea: total panning area, larger than CRTC's size
+     * TrackingArea: Area of the pointer for which the CRTC is panned
+     * border: Borders of the displayed CRTC area which induces panning if the pointer reaches them
+     */
+    BoxRec          panningTotalArea;
+    BoxRec          panningTrackingArea;
+    INT16           panningBorder[4];
 };
 
 typedef struct _xf86OutputFuncs {
@@ -678,6 +694,9 @@ extern _X_EXPORT Bool
 xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y);
 
+void
+xf86CrtcPan (xf86CrtcPtr crtc, int x, int y);
+
 /*
  * Assign crtc rotation during mode set
  */
@@ -867,5 +886,20 @@ xf86_unwrap_crtc_notify(ScreenPtr pScreen, xf86_crtc_notify_proc_ptr old);
 
 extern _X_EXPORT void
 xf86_crtc_notify(ScreenPtr pScreen);
+
+/**
+ * Panning
+ */
+Bool
+xf86_crtc_get_panning(ScrnInfoPtr pScrn,
+		      BoxPtr      totalArea,
+		      BoxPtr      TrackingArea,
+		      INT16      *border);
+
+Bool
+xf86_crtc_set_panning(ScrnInfoPtr pScrn,
+		      BoxPtr      totalArea,
+		      BoxPtr      TrackingArea,
+		      INT16      *border);
 
 #endif /* _XF86CRTC_H_ */
