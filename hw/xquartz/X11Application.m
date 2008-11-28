@@ -964,7 +964,9 @@ extern int darwin_modifier_flags; // darwinEvents.c
         handle_mouse:
             pDev = darwinPointer;
 
-            if([e subtype] == NSTabletProximityEventSubtype) {
+            /* NSTabletPoint can have no subtype */
+            if([e type] != NSTabletPoint &&
+               [e subtype] == NSTabletProximityEventSubtype) {
                 switch([e pointingDeviceType]) {
                     case NSEraserPointingDevice:
                         darwinTabletCurrent=darwinTabletEraser;
