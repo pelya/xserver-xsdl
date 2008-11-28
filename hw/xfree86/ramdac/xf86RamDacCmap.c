@@ -58,7 +58,7 @@ RamDacLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices, LOCO *colors,
     }
 }
 
-Bool
+_X_EXPORT Bool
 RamDacHandleColormaps(ScreenPtr pScreen, int maxColors, int sigRGBbits,
 		      unsigned int flags)
 {

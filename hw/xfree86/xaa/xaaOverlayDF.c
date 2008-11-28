@@ -164,7 +164,7 @@ static DevPrivateKey XAAOverlayKey = &XAAOverlayKeyIndex;
    }
 
 
-Bool
+_X_EXPORT Bool
 XAAInitDualFramebufferOverlay(
     ScreenPtr pScreen, 
     DepthChangeFuncPtr callback

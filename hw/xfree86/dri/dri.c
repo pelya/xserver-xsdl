@@ -315,7 +315,7 @@ dri_crtc_notify(ScreenPtr pScreen)
     pDRIPriv->xf86_crtc_notify = xf86_wrap_crtc_notify(pScreen, dri_crtc_notify);
 }
 
-Bool
+_X_EXPORT Bool
 DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 {
     DRIScreenPrivPtr    pDRIPriv;
@@ -594,7 +594,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIFinishScreenInit(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -640,7 +640,7 @@ DRIFinishScreenInit(ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 DRICloseScreen(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -812,7 +812,7 @@ DRIReset(void)
      */
 }
 
-Bool
+_X_EXPORT Bool
 DRIQueryDirectRenderingCapable(ScreenPtr pScreen, Bool* isCapable)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -825,7 +825,7 @@ DRIQueryDirectRenderingCapable(ScreenPtr pScreen, Bool* isCapable)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIOpenConnection(ScreenPtr pScreen, drm_handle_t * hSAREA, char **busIdString)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -836,7 +836,7 @@ DRIOpenConnection(ScreenPtr pScreen, drm_handle_t * hSAREA, char **busIdString)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIAuthConnection(ScreenPtr pScreen, drm_magic_t magic)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -845,13 +845,13 @@ DRIAuthConnection(ScreenPtr pScreen, drm_magic_t magic)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRICloseConnection(ScreenPtr pScreen)
 {
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIGetClientDriverName(ScreenPtr pScreen,
                        int *ddxDriverMajorVersion,
                        int *ddxDriverMinorVersion,
@@ -1014,7 +1014,7 @@ DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv)
     pDRIPriv->dummyCtxPriv = NULL;
 }
 
-Bool
+_X_EXPORT Bool
 DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
                  XID context, drm_context_t * pHWContext)
 {
@@ -1050,7 +1050,7 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIDestroyContext(ScreenPtr pScreen, XID context)
 {
     FreeResourceByType(context, DRIContextPrivResType, FALSE);
@@ -1233,7 +1233,7 @@ DRIDecreaseNumberVisible(ScreenPtr pScreen)
     DRIDriverClipNotify(pScreen);
 }
 
-Bool
+_X_EXPORT Bool
 DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 		  drm_drawable_t * hHWDrawable)
 {
@@ -1345,7 +1345,7 @@ DRIDestroyDrawableCB(pointer value, XID id, pointer data)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIDestroyDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable)
 {
     if (pDrawable->type == DRAWABLE_WINDOW) {
@@ -1386,7 +1386,7 @@ DRIDrawablePrivDelete(pointer pResource, XID id)
     }
 }
 
-Bool
+_X_EXPORT Bool
 DRIGetDrawableInfo(ScreenPtr pScreen,
                    DrawablePtr pDrawable,
                    unsigned int* index,
@@ -1558,7 +1558,7 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIGetDeviceInfo(ScreenPtr pScreen,
                  drm_handle_t * hFrameBuffer,
                  int* fbOrigin,
@@ -1579,7 +1579,7 @@ DRIGetDeviceInfo(ScreenPtr pScreen,
     return TRUE;
 }
 
-DRIInfoPtr
+_X_EXPORT DRIInfoPtr
 DRICreateInfoRec(void)
 {
     DRIInfoPtr inforec = (DRIInfoPtr)xcalloc(1, sizeof(DRIInfoRec));
@@ -1605,7 +1605,7 @@ DRICreateInfoRec(void)
     return inforec;
 }
 
-void
+_X_EXPORT void
 DRIDestroyInfoRec(DRIInfoPtr DRIInfo)
 {
     if (DRIInfo->busIdString) xfree(DRIInfo->busIdString);
@@ -1613,7 +1613,7 @@ DRIDestroyInfoRec(DRIInfoPtr DRIInfo)
 }
 
 
-void
+_X_EXPORT void
 DRIWakeupHandler(pointer wakeupData, int result, pointer pReadmask)
 {
     int i;
@@ -1629,7 +1629,7 @@ DRIWakeupHandler(pointer wakeupData, int result, pointer pReadmask)
     }
 }
 
-void
+_X_EXPORT void
 DRIBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
 {
     int i;
@@ -2156,7 +2156,7 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
     }
 }
 
-CARD32
+_X_EXPORT CARD32
 DRIGetDrawableIndex(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -2190,7 +2190,7 @@ DRIPrintDrawableLock(ScreenPtr pScreen, char *msg)
     ErrorF("%s: %d\n", msg,  pDRIPriv->pSAREA->drawable_lock.lock);
 }
 
-void
+_X_EXPORT void
 DRILock(ScreenPtr pScreen, int flags)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2211,7 +2211,7 @@ DRILock(ScreenPtr pScreen, int flags)
     (*pDRIPriv->pLockRefCount)++;
 }
 
-void
+_X_EXPORT void
 DRIUnlock(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2236,7 +2236,7 @@ DRIUnlock(ScreenPtr pScreen)
         DRM_UNLOCK(pDRIPriv->drmFD, pDRIPriv->pLSAREA, pDRIPriv->myContext);
 }
 
-void *
+_X_EXPORT void *
 DRIGetSAREAPrivate(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2245,7 +2245,7 @@ DRIGetSAREAPrivate(ScreenPtr pScreen)
     return (void *)(((char*)pDRIPriv->pSAREA)+sizeof(XF86DRISAREARec));
 }
 
-drm_context_t
+_X_EXPORT drm_context_t
 DRIGetContext(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2254,7 +2254,7 @@ DRIGetContext(ScreenPtr pScreen)
     return pDRIPriv->myContext;
 }
 
-void
+_X_EXPORT void
 DRIGetTexOffsetFuncs(ScreenPtr pScreen,
 		     DRITexOffsetStartProcPtr *texOffsetStartFunc,
 		     DRITexOffsetFinishProcPtr *texOffsetFinishFunc)
@@ -2278,7 +2278,7 @@ DRIGetWrappedFuncs(ScreenPtr pScreen)
 }
 
 /* note that this returns the library version, not the protocol version */
-void
+_X_EXPORT void
 DRIQueryVersion(int *majorVersion,
                 int *minorVersion,
                 int *patchVersion)
@@ -2349,7 +2349,7 @@ DRIAdjustFrame(int scrnIndex, int x, int y, int flags)
  * REGION_VALIDATE on it, or better yet, save a copy first.
  */
 
-void
+_X_EXPORT void
 DRIMoveBuffersHelper(
    ScreenPtr pScreen, 
    int dx,
@@ -2415,7 +2415,7 @@ DRIMoveBuffersHelper(
 
 }
 
-char *
+_X_EXPORT char *
 DRICreatePCIBusID(const struct pci_device * dev)
 {
     char *busID;

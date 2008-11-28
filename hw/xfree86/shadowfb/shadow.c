@@ -159,7 +159,7 @@ static DevPrivateKey ShadowGCKey = &ShadowGCKeyIndex;
 
 
 
-Bool
+_X_EXPORT Bool
 ShadowFBInit2 (
     ScreenPtr		pScreen,
     RefreshAreaFuncPtr  preRefreshArea,
@@ -212,7 +212,7 @@ ShadowFBInit2 (
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 ShadowFBInit (
     ScreenPtr		pScreen,
     RefreshAreaFuncPtr  refreshArea

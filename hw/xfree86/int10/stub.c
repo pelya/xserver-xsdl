@@ -13,7 +13,7 @@
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 
-xf86Int10InfoPtr
+_X_EXPORT xf86Int10InfoPtr
 xf86InitInt10(int entityIndex)
 {
     return xf86ExtendedInitInt10(entityIndex, 0);

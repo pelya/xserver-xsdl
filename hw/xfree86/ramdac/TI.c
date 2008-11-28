@@ -42,7 +42,7 @@
 #define TI_MIN_VCO_FREQ  110000
 #define TI_MAX_VCO_FREQ  220000
 
-unsigned long
+_X_EXPORT unsigned long
 TIramdacCalculateMNPForClock(
     unsigned long RefClock,	/* In 100Hz units */
     unsigned long ReqClock,	/* In 100Hz units */
@@ -280,7 +280,7 @@ TIramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
     TISAVE(TIDAC_ind_curs_ctrl);
 }
 
-RamDacHelperRecPtr
+_X_EXPORT RamDacHelperRecPtr
 TIramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs)
 {
     RamDacRecPtr ramdacPtr = RAMDACSCRPTR(pScrn);
@@ -714,6 +714,6 @@ void TIramdacLoadPalette(
 }
 }
 
-TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void) {
+_X_EXPORT TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void) {
     return TIramdacLoadPalette;
 }

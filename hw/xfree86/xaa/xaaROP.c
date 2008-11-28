@@ -95,27 +95,27 @@ int XAAPatternROP_PM[16] =
    ROP_DPo
 };
 
-int XAAGetCopyROP(int i)
+_X_EXPORT int XAAGetCopyROP(int i)
 {
     return XAACopyROP[i];
 }
 
-int XAAGetCopyROP_PM(int i)
+_X_EXPORT int XAAGetCopyROP_PM(int i)
 {
     return XAACopyROP_PM[i];
 }
 
-int XAAGetPatternROP(int i)
+_X_EXPORT int XAAGetPatternROP(int i)
 {
     return XAAPatternROP[i];
 }
 
-int XAAGetPatternROP_PM(int i)
+_X_EXPORT int XAAGetPatternROP_PM(int i)
 {
     return XAAPatternROP_PM[i];
 }
 
-int
+_X_EXPORT int
 XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);
@@ -150,7 +150,7 @@ XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop)
 }
 
 
-int
+_X_EXPORT int
 XAAHelpSolidROP(ScrnInfoPtr pScrn, int *fg, int pm, int *rop)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);

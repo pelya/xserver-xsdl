@@ -278,7 +278,7 @@ fbExpandDirectColors (ColormapPtr   pmap,
     return nresult;
 }
 
-Bool
+_X_EXPORT Bool
 fbCreateDefColormap(ScreenPtr pScreen)
 {
     unsigned short	zero = 0, ones = 0xFFFF;

@@ -65,7 +65,7 @@ BTramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 	    ramdacReg->DacRegs[i] = (*ramdacPtr->ReadDAC)(pScrn, i);
 }
 
-RamDacHelperRecPtr
+_X_EXPORT RamDacHelperRecPtr
 BTramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs/*, RamDacRecPtr ramdacPtr*/)
 {
     RamDacRecPtr ramdacPtr = RAMDACSCRPTR(pScrn);

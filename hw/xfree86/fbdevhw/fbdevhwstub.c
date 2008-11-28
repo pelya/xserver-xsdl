@@ -15,7 +15,7 @@ fbdevHWGetRec(ScrnInfoPtr pScrn)
 	return FALSE;
 }
 
-void
+_X_EXPORT void
 fbdevHWFreeRec(ScrnInfoPtr pScrn)
 {
 }
@@ -98,13 +98,13 @@ fbdevHWUnmapVidmem(ScrnInfoPtr pScrn)
 	return FALSE;
 }
 
-void*
+_X_EXPORT void*
 fbdevHWMapMMIO(ScrnInfoPtr pScrn)
 {
 	return NULL;
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWUnmapMMIO(ScrnInfoPtr pScrn)
 {
 	return FALSE;
@@ -138,7 +138,7 @@ fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 	return MODE_ERROR;
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWSwitchMode(int scrnIndex, DisplayModePtr mode, int flags)
 {
 	return FALSE;
@@ -149,18 +149,18 @@ fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 {
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWEnterVT(int scrnIndex, int flags)
 {
 	return FALSE;
 }
 
-void
+_X_EXPORT void
 fbdevHWLeaveVT(int scrnIndex, int flags)
 {
 }
 
-void
+_X_EXPORT void
 fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
 {
 }

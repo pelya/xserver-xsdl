@@ -41,7 +41,7 @@ static Bool vbeProbeDDC(vbeInfoPtr pVbe);
 
 static const char vbeVersionString[] = "VBE2";
 
-vbeInfoPtr
+_X_EXPORT vbeInfoPtr
 VBEInit(xf86Int10InfoPtr pInt, int entityIndex)
 {
     return VBEExtendedInit(pInt, entityIndex, 0);
@@ -423,7 +423,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     return (block);
 }
 
-void
+_X_EXPORT void
 VBEFreeVBEInfo(VbeInfoBlock *block)
 {
     xfree(block->OEMStringPtr);
@@ -501,7 +501,7 @@ VBEGetVBEMode(vbeInfoPtr pVbe, int *mode)
     return (FALSE);
 }
 
-VbeModeInfoBlock *
+_X_EXPORT VbeModeInfoBlock *
 VBEGetModeInfo(vbeInfoPtr pVbe, int mode)
 {
     VbeModeInfoBlock *block = NULL;
@@ -596,7 +596,7 @@ VBEGetModeInfo(vbeInfoPtr pVbe, int mode)
     return (block);
 }
 
-void
+_X_EXPORT void
 VBEFreeModeInfo(VbeModeInfoBlock *block)
 {
     xfree(block);

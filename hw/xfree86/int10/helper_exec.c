@@ -724,7 +724,7 @@ xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
 }
 #endif
 
-xf86Int10InfoPtr
+_X_EXPORT xf86Int10InfoPtr
 xf86InitInt10(int entityIndex)
 {
     return xf86ExtendedInitInt10(entityIndex, 0);

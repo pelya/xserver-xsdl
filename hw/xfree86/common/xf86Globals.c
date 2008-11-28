@@ -97,7 +97,7 @@ InputInfoPtr xf86InputDevs = NULL;
 
 /* Globals that video drivers may not access */
 
-xf86InfoRec xf86Info = {
+_X_EXPORT xf86InfoRec xf86Info = {
     .consoleFd                  = -1,
     .vtno                       = -1,
     .vtSysreq                   = FALSE,
@@ -200,7 +200,7 @@ Bool xf86VidModeAllowNonLocal = FALSE;
 #endif
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 _X_EXPORT Bool xf86inSuspend = FALSE;
-Bool xorgHWAccess = FALSE;
+_X_EXPORT Bool xorgHWAccess = FALSE;
 
 struct pci_slot_match xf86IsolateDevice = {
     PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, 0

@@ -106,7 +106,7 @@ xf86DrvMsg(m->d.pI2CBus->scrnIndex, X_INFO, "MSP34xx: control=0x%02x%02x\n",
 #endif
 
 /* wrapper */
-void InitMSP3430(MSP3430Ptr m)
+_X_EXPORT void InitMSP3430(MSP3430Ptr m)
 {
   #if __MSPDEBUG__ > 1
   xf86DrvMsg(m->d.pI2CBus->scrnIndex,X_INFO,"InitMSP3430(m->connector=%d, m->standard=%d, m->chip_family=%d)\n",

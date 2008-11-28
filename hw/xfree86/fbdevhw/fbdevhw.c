@@ -141,7 +141,7 @@ fbdevHWGetRec(ScrnInfoPtr pScrn)
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 fbdevHWFreeRec(ScrnInfoPtr pScrn)
 {
 	if (fbdevHWPrivateIndex < 0)
@@ -721,7 +721,7 @@ fbdevHWUnmapVidmem(ScrnInfoPtr pScrn)
 	return TRUE;
 }
 
-void*
+_X_EXPORT void*
 fbdevHWMapMMIO(ScrnInfoPtr pScrn)
 {
 	unsigned int mmio_off;
@@ -754,7 +754,7 @@ fbdevHWMapMMIO(ScrnInfoPtr pScrn)
 	return fPtr->mmio;
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWUnmapMMIO(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
@@ -885,7 +885,7 @@ fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 	return MODE_OK;
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWSwitchMode(int scrnIndex, DisplayModePtr mode, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -916,7 +916,7 @@ fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 			   "FBIOPAN_DISPLAY: %s\n", strerror(errno));
 }
 
-Bool
+_X_EXPORT Bool
 fbdevHWEnterVT(int scrnIndex, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -928,7 +928,7 @@ fbdevHWEnterVT(int scrnIndex, int flags)
 	return TRUE;
 }
 
-void
+_X_EXPORT void
 fbdevHWLeaveVT(int scrnIndex, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -937,7 +937,7 @@ fbdevHWLeaveVT(int scrnIndex, int flags)
 	fbdevHWRestore(pScrn);
 }
 
-void
+_X_EXPORT void
 fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);

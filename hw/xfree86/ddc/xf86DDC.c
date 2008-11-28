@@ -63,7 +63,7 @@ static const OptionInfoRec DDCOptions[] = {
  * @return pointer to a new xf86MonPtr containing the EDID information.
  * @return NULL if no monitor attached or failure to interpret the EDID.
  */
-xf86MonPtr 
+_X_EXPORT xf86MonPtr 
 xf86DoEDID_DDC1(
     int scrnIndex, DDC1SetSpeedProc DDC1SetSpeed, 
     unsigned int (*DDC1Read)(ScrnInfoPtr)
@@ -206,7 +206,7 @@ DDC2Read(I2CDevPtr dev, int block, unsigned char *R_Buffer)
  * @return pointer to a new xf86MonPtr containing the EDID information.
  * @return NULL if no monitor attached or failure to interpret the EDID.
  */
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool complete)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -267,7 +267,7 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool complete)
  * @return pointer to a new xf86MonPtr containing the EDID information.
  * @return NULL if no monitor attached or failure to interpret the EDID.
  */
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
     return xf86DoEEDID(scrnIndex, pBus, FALSE);

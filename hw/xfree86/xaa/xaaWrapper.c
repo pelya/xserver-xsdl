@@ -265,7 +265,7 @@ xaaWrapperListInstalledColormaps(ScreenPtr pScreen, Colormap *pCmapIds)
     return n;
 }
 
-Bool
+_X_EXPORT Bool
 xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *func)
 {
     Bool ret;

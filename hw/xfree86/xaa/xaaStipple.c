@@ -32,7 +32,7 @@ StippleScanlineProcPtr stipple_scanline_func[6] = {
    StippleOver32_Inverted
 };
 
-StippleScanlineProcPtr *stipple_get_scanline_func(void) {
+_X_EXPORT StippleScanlineProcPtr *stipple_get_scanline_func(void) {
    return stipple_scanline_func;
 }
 

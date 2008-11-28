@@ -85,7 +85,7 @@ fbExpandDirectColors (ColormapPtr   pmap,
     return miExpandDirectColors(pmap, ndef, indefs, outdefs);
 }
 
-Bool
+_X_EXPORT Bool
 fbCreateDefColormap(ScreenPtr pScreen)
 {
     return miCreateDefColormap(pScreen);

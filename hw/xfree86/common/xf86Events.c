@@ -182,7 +182,7 @@ ProcessInputEvents ()
  * Handle keyboard events that cause some kind of "action"
  * (i.e., server termination, video mode changes, VT switches, etc.)
  */
-void
+_X_EXPORT void
 xf86ProcessActionEvent(ActionEvent action, void *arg)
 {
 #ifdef DEBUG

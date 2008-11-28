@@ -693,7 +693,7 @@ xf86DDCDetectQuirks(int scrnIndex, xf86MonPtr DDC, Bool verbose)
  * Note that some quirks applying to the mode list are still implemented in
  * xf86DDCGetModes.
  */
-void
+_X_EXPORT void
 xf86DDCApplyQuirks(int scrnIndex, xf86MonPtr DDC)
 {
     ddc_quirk_t quirks = xf86DDCDetectQuirks (scrnIndex, DDC, FALSE);

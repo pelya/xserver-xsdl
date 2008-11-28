@@ -346,7 +346,7 @@ GCOps XAAFallbackOps = {
     {NULL}		/* devPrivate */
 };
 
-GCOps *XAAGetFallbackOps(void)
+_X_EXPORT GCOps *XAAGetFallbackOps(void)
 {
     return &XAAFallbackOps;
 }

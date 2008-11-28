@@ -39,7 +39,7 @@
 
 #define INITIALFREQERR 100000
 
-unsigned long
+_X_EXPORT unsigned long
 IBMramdac640CalculateMNPCForClock(
     unsigned long RefClock,	/* In 100Hz units */
     unsigned long ReqClock,	/* In 100Hz units */
@@ -105,7 +105,7 @@ IBMramdac640CalculateMNPCForClock(
   return (ActualClock);
 }
 
-unsigned long
+_X_EXPORT unsigned long
 IBMramdac526CalculateMNPCForClock(
     unsigned long RefClock,	/* In 100Hz units */
     unsigned long ReqClock,	/* In 100Hz units */
@@ -225,7 +225,7 @@ IBMramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 	    ramdacReg->DacRegs[i] = (*ramdacPtr->ReadDAC)(pScrn, i);
 }
 
-RamDacHelperRecPtr
+_X_EXPORT RamDacHelperRecPtr
 IBMramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs/* , RamDacRecPtr ramdacPtr*/)
 {
     RamDacRecPtr ramdacPtr = RAMDACSCRPTR(pScrn);
@@ -376,7 +376,7 @@ IBMramdac526SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
     }
 }
 
-IBMramdac526SetBppProc *IBMramdac526SetBppWeak(void) {
+_X_EXPORT IBMramdac526SetBppProc *IBMramdac526SetBppWeak(void) {
     return IBMramdac526SetBpp;
 }
 

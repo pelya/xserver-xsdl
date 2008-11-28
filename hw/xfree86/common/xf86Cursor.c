@@ -133,7 +133,7 @@ xf86InitViewport(ScrnInfoPtr pScr)
  *      Scroll the visual part of the screen so the pointer is visible.
  */
 
-void
+_X_EXPORT void
 xf86SetViewport(ScreenPtr pScreen, int x, int y)
 {
   ScrnInfoPtr   pScr = XF86SCRNINFO(pScreen);
@@ -197,7 +197,7 @@ xf86LockZoom(ScreenPtr pScreen, Bool lock)
  *	set a new mode.
  */
 
-Bool
+_X_EXPORT Bool
 xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
 {
   ScrnInfoPtr pScr = XF86SCRNINFO(pScreen);
@@ -845,7 +845,7 @@ xf86InitOrigins(void)
     }
 }
 
-void
+_X_EXPORT void
 xf86ReconfigureLayout(void)
 {
     int i;

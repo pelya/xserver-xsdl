@@ -372,7 +372,7 @@ XAARenderPixmapCopyRects(
 	|   Solid    |
 	\************/
 
-void
+_X_EXPORT void
 XAAFillSolidRects(
     ScrnInfoPtr pScrn,
     int	fg, int rop,

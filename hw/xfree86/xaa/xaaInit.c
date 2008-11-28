@@ -49,11 +49,11 @@ static DevPrivateKey XAAGCKey = &XAAGCKeyIndex;
 static int XAAPixmapKeyIndex;
 static DevPrivateKey XAAPixmapKey = &XAAPixmapKeyIndex;
 
-DevPrivateKey XAAGetScreenKey(void) {
+_X_EXPORT DevPrivateKey XAAGetScreenKey(void) {
     return XAAScreenKey;
 }
 
-DevPrivateKey XAAGetGCKey(void) {
+_X_EXPORT DevPrivateKey XAAGetGCKey(void) {
     return XAAGCKey;
 }
 
@@ -64,7 +64,7 @@ DevPrivateKey XAAGetPixmapKey(void) {
 /* temp kludge */
 static Bool SwitchedOut = FALSE;
 
-XAAInfoRecPtr
+_X_EXPORT XAAInfoRecPtr
 XAACreateInfoRec()
 {
     XAAInfoRecPtr infoRec;
@@ -76,7 +76,7 @@ XAACreateInfoRec()
     return infoRec;
 }
 
-void 
+_X_EXPORT void 
 XAADestroyInfoRec(XAAInfoRecPtr infoRec)
 {
     if(!infoRec) return;
@@ -94,7 +94,7 @@ XAADestroyInfoRec(XAAInfoRecPtr infoRec)
 }
 
 
-Bool 
+_X_EXPORT Bool 
 XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];

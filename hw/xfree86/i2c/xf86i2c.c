@@ -460,7 +460,7 @@ xf86I2CReadStatus(I2CDevPtr d, I2CByte *pbyte)
 /* Read a byte from one of the registers determined by its sub-address.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CReadByte(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte)
 {
     return xf86I2CWriteRead(d, &subaddr, 1, pbyte, 1);
@@ -470,7 +470,7 @@ xf86I2CReadByte(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte)
  * sub-address of the first register.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CReadBytes(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte, int n)
 {
     return xf86I2CWriteRead(d, &subaddr, 1, pbyte, n);
@@ -495,7 +495,7 @@ xf86I2CReadWord(I2CDevPtr d, I2CByte subaddr, unsigned short *pword)
 /* Write a byte to one of the registers determined by its sub-address.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CWriteByte(I2CDevPtr d, I2CByte subaddr, I2CByte byte)
 {
     I2CByte wb[2];
@@ -555,7 +555,7 @@ xf86I2CWriteWord(I2CDevPtr d, I2CByte subaddr, unsigned short word)
  * remain uninitialized.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CWriteVec(I2CDevPtr d, I2CByte *vec, int nValues)
 {
     I2CBusPtr b = d->pI2CBus;
@@ -605,7 +605,7 @@ xf86CreateI2CDevRec(void)
  * you should set <unalloc> to free it.
  */
 
-void
+_X_EXPORT void
 xf86DestroyI2CDevRec(I2CDevPtr d, Bool unalloc) 
 {
     if (d) {
@@ -666,7 +666,7 @@ xf86I2CDevInit(I2CDevPtr d)
     return TRUE;
 }
 
-I2CDevPtr
+_X_EXPORT I2CDevPtr
 xf86I2CFindDev(I2CBusPtr b, I2CSlaveAddr addr) 
 {
     I2CDevPtr d;
@@ -822,7 +822,7 @@ xf86I2CBusInit(I2CBusPtr b)
     return TRUE;
 }
 
-I2CBusPtr
+_X_EXPORT I2CBusPtr
 xf86I2CFindBus(int scrnIndex, char *name) 
 {
     I2CBusPtr p;
@@ -840,7 +840,7 @@ xf86I2CFindBus(int scrnIndex, char *name)
  * Return an array of I2CBusPtr's related to a screen.  The caller is
  * responsible for freeing the array.
  */
-int
+_X_EXPORT int
 xf86I2CGetScreenBuses(int scrnIndex, I2CBusPtr **pppI2CBus)
 {
     I2CBusPtr pI2CBus;

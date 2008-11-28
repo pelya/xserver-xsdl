@@ -67,7 +67,7 @@ ExaGetPixmapAddress(PixmapPtr p)
  * support for having multiple card-accessible offscreen, such as an AGP memory
  * pool alongside the framebuffer pool.
  */
-unsigned long
+_X_EXPORT unsigned long
 exaGetPixmapOffset(PixmapPtr pPix)
 {
     ExaScreenPriv (pPix->drawable.pScreen);
@@ -90,7 +90,7 @@ exaGetPixmapDriverPrivate(PixmapPtr pPix)
  * This is a helper to make driver code more obvious, due to the rather obscure
  * naming of the pitch field in the pixmap.
  */
-unsigned long
+_X_EXPORT unsigned long
 exaGetPixmapPitch(PixmapPtr pPix)
 {
     return pPix->devKind;
@@ -776,7 +776,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
  *
  * @return a newly allocated, zero-filled driver structure
  */
-ExaDriverPtr
+_X_EXPORT ExaDriverPtr
 exaDriverAlloc(void)
 {
     return xcalloc(1, sizeof(ExaDriverRec));
@@ -792,7 +792,7 @@ exaDriverAlloc(void)
  *
  * @return TRUE if EXA was successfully initialized.
  */
-Bool
+_X_EXPORT Bool
 exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
@@ -1012,7 +1012,7 @@ exaDriverInit (ScreenPtr		pScreen,
  *
  * @param pScreen screen being torn down.
  */
-void
+_X_EXPORT void
 exaDriverFini (ScreenPtr pScreen)
 {
     /*right now does nothing*/
@@ -1029,7 +1029,7 @@ exaDriverFini (ScreenPtr pScreen)
  * driver MarkSync() callback, the return value of which may be used to do partial
  * synchronization with the hardware in the future.
  */
-void exaMarkSync(ScreenPtr pScreen)
+_X_EXPORT void exaMarkSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
 
@@ -1048,7 +1048,7 @@ void exaMarkSync(ScreenPtr pScreen)
  * It should always be called before relying on the framebuffer contents
  * reflecting previous drawing, from a CPU perspective.
  */
-void exaWaitSync(ScreenPtr pScreen)
+_X_EXPORT void exaWaitSync(ScreenPtr pScreen)
 {
     ExaScreenPriv(pScreen);
 

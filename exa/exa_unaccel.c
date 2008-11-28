@@ -373,7 +373,7 @@ ExaCheckAddTraps (PicturePtr	pPicture,
  *
  * XXX This really belongs in fb, so it can be aware of tiling and etc.
  */
-CARD32
+_X_EXPORT CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 {
     CARD32 pixel;

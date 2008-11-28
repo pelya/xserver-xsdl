@@ -53,7 +53,7 @@
  * Initialize xf86CrtcConfig structure
  */
 
-int xf86CrtcConfigPrivateIndex = -1;
+_X_EXPORT int xf86CrtcConfigPrivateIndex = -1;
 
 _X_EXPORT void
 xf86CrtcConfigInit (ScrnInfoPtr scrn,
@@ -2913,7 +2913,7 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
     return ret;
 }
 
-xf86_crtc_notify_proc_ptr
+_X_EXPORT xf86_crtc_notify_proc_ptr
 xf86_wrap_crtc_notify (ScreenPtr screen, xf86_crtc_notify_proc_ptr new)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -2925,7 +2925,7 @@ xf86_wrap_crtc_notify (ScreenPtr screen, xf86_crtc_notify_proc_ptr new)
     return old;
 }
 
-void
+_X_EXPORT void
 xf86_unwrap_crtc_notify(ScreenPtr screen, xf86_crtc_notify_proc_ptr old)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -2934,7 +2934,7 @@ xf86_unwrap_crtc_notify(ScreenPtr screen, xf86_crtc_notify_proc_ptr old)
     config->xf86_crtc_notify = old;
 }
 
-void
+_X_EXPORT void
 xf86_crtc_notify(ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];

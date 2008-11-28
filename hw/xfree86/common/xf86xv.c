@@ -116,9 +116,9 @@ static int XF86XvScreenKeyIndex;
 DevPrivateKey XF86XvScreenKey = &XF86XvScreenKeyIndex;
 static unsigned long PortResource = 0;
 
-DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;
-unsigned long (*XvGetRTPortProc)(void) = NULL;
-int (*XvScreenInitProc)(ScreenPtr) = NULL;
+_X_EXPORT DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;
+_X_EXPORT unsigned long (*XvGetRTPortProc)(void) = NULL;
+_X_EXPORT int (*XvScreenInitProc)(ScreenPtr) = NULL;
 
 #define GET_XV_SCREEN(pScreen) \
     ((XvScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, XF86XvScreenKey))

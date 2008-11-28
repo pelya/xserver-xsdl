@@ -38,7 +38,7 @@ void XAAMoveDWORDS_FixedBase(
      *dest = *(src + 2);
 }
 
-void XAAMoveDWORDS(
+_X_EXPORT void XAAMoveDWORDS(
    register CARD32* dest,
    register CARD32* src,
    register int dwords )

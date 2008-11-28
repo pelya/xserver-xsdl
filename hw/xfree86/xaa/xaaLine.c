@@ -18,7 +18,7 @@
 #include "xaalocal.h"
 
 
-void
+_X_EXPORT void
 #ifdef POLYSEGMENT
 XAAPolySegment(
     DrawablePtr	pDrawable,

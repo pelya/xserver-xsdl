@@ -154,7 +154,7 @@ XAAGetRGBAFromPixel(
 
 /* 8:8:8 + PICT_a8 -> 8:8:8:8 texture */
 
-void
+_X_EXPORT void
 XAA_888_plus_PICT_a8_to_8888 (
     CARD32 color,
     CARD8  *alphaPtr,   /* in bytes */

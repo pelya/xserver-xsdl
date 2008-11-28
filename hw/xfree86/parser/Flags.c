@@ -232,7 +232,7 @@ xf86freeFlags (XF86ConfFlagsPtr flags)
 	xf86conffree (flags);
 }
 
-XF86OptionPtr
+_X_EXPORT XF86OptionPtr
 xf86optionListDup (XF86OptionPtr opt)
 {
 	XF86OptionPtr newopt = NULL;

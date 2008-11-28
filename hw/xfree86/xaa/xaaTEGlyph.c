@@ -126,7 +126,7 @@ GlyphScanlineFuncPtr glyph_scanline_func[32] = {
    DrawTETextScanlineGeneric, DrawTETextScanlineGeneric
 };
 
-GlyphScanlineFuncPtr *glyph_get_scanline_func(void) {
+_X_EXPORT GlyphScanlineFuncPtr *glyph_get_scanline_func(void) {
    return glyph_scanline_func;
 }
 

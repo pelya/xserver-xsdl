@@ -1657,7 +1657,7 @@ XAACachePlanarMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
    return pCache;
 }
 
-XAACachePlanarMonoStippleProc
+_X_EXPORT XAACachePlanarMonoStippleProc
 XAAGetCachePlanarMonoStipple(void) { return XAACachePlanarMonoStipple; }
 
 XAACacheInfoPtr
