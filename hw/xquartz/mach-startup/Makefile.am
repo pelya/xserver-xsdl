@@ -39,6 +39,11 @@ X11_LDFLAGS += \
 	-Wl,-framework,OpenGL
 endif
 
+if RECORD
+X11_LDADD += \
+	$(top_builddir)/record/librecord.la
+endif
+
 bin_PROGRAMS = Xquartz
 
 dist_Xquartz_SOURCES = \

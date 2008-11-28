@@ -66,6 +66,8 @@ extern BOOL xpbproxy_init (void);
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
+extern Bool noTestExtensions;
+
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
 static TISInputSourceRef last_key_layout;
 #else
@@ -708,14 +710,16 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     }
 
     X11EnableKeyEquivalents = [self prefs_get_boolean:@PREFS_KEYEQUIVS
-                               default:X11EnableKeyEquivalents];
+                                              default:X11EnableKeyEquivalents];
 	
     darwinSyncKeymap = [self prefs_get_boolean:@PREFS_SYNC_KEYMAP
-                        default:darwinSyncKeymap];
+                                       default:darwinSyncKeymap];
 		
     darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
-                          default:darwinDesiredDepth];
-	
+                                         default:darwinDesiredDepth];
+    
+    noTestExtensions = ![self prefs_get_boolean:@PREFS_TEST_EXTENSIONS
+                                        default:FALSE];
 }
 
 /* This will end up at the end of the responder chain. */
