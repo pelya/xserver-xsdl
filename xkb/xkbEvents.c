@@ -110,7 +110,7 @@ Time 		time;
 register CARD16	changed,bState;
 
     interest = kbd->xkb_interest;
-    if (!interest)
+    if (!interest || !kbd->key || !kbd->key->xkbInfo)
 	return;
     xkbi = kbd->key->xkbInfo;
     state= &xkbi->state;
@@ -168,6 +168,9 @@ int 		i;
 XkbSrvInfoPtr	xkbi;
 unsigned	time = 0,initialized;
 CARD16		changed;
+
+    if (!kbd->key || !kbd->key->xkbInfo)
+        return;
 
     xkbi = kbd->key->xkbInfo;
     initialized= 0;
@@ -292,7 +295,7 @@ XkbInterestPtr		interest;
 Time 		 	time = 0;
 
     interest = kbd->xkb_interest;
-    if (!interest)
+    if (!interest || !kbd->key || !kbd->key->xkbInfo)
 	return;
     xkbi = kbd->key->xkbInfo;
  
@@ -401,6 +404,9 @@ CARD8		id;
 CARD16		pitch,duration;
 Time 		time = 0;
 XID		winID = 0;
+
+    if (!kbd->key || !kbd->key->xkbInfo)
+        return;
 
     xkbi = kbd->key->xkbInfo;
 
@@ -617,11 +623,12 @@ XkbSrvInfoPtr	 xkbi;
 XkbInterestPtr	 interest;
 Time 		 time = 0;
 
-    xkbi = kbd->key->xkbInfo;
     interest = kbd->xkb_interest;
-    if (!interest)
+    if (!interest || !kbd->key || !kbd->key->xkbInfo)
 	return;
  
+    xkbi = kbd->key->xkbInfo;
+
     initialized = 0;
     pEv->mods= xkbi->state.mods;
     pEv->group= xkbi->state.group;
@@ -1016,6 +1023,10 @@ unsigned long	autoCtrls,autoValues;
 ClientPtr	client = NULL;
 
     found= False;
+
+    if (!dev->key || !dev->key->xkbInfo)
+        return found;
+
     autoCtrls= autoValues= 0;
     if ( dev->xkb_interest ) {
 	interest = dev->xkb_interest;
