@@ -51,6 +51,8 @@ typedef struct _xf86RandR12Info {
     int				    mmHeight;
     int				    maxX;
     int				    maxY;
+    int				    pointerX;
+    int				    pointerY;
     Rotation			    rotation; /* current mode */
     Rotation                        supported_rotations; /* driver supported */
 } XF86RandRInfoRec, *XF86RandRInfoPtr;
@@ -84,6 +86,85 @@ xf86RandR12ModeRefresh (DisplayModePtr mode)
 	return (int) (mode->VRefresh + 0.5);
     else
 	return (int) (mode->Clock * 1000.0 / mode->HTotal / mode->VTotal + 0.5);
+}
+
+static int
+xf86RandR13VerifyPanningArea (xf86CrtcPtr crtc, int screenWidth, int screenHeight)
+{
+    if (crtc->version < 2)
+	return FALSE;
+
+    if (crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1				||
+	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1) {
+	memset (&crtc->panningTotalArea, 0, sizeof(BoxRec));
+	memset (&crtc->panningTrackingArea, 0, sizeof(BoxRec));
+	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
+	return TRUE;
+    }
+
+    if (crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1				||
+	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1				||
+	crtc->panningTotalArea.x1 < 0							||
+	crtc->panningTotalArea.y1 < 0							||
+	crtc->panningTotalArea.x2 < crtc->panningTotalArea.x1 + crtc->mode.HDisplay	||
+	crtc->panningTotalArea.y2 < crtc->panningTotalArea.y1 + crtc->mode.VDisplay	||
+	crtc->panningTotalArea.x2 > screenWidth				 		||
+	crtc->panningTotalArea.y2 > screenHeight)
+    {
+	memset (&crtc->panningTotalArea, 0, sizeof(BoxRec));
+	memset (&crtc->panningTrackingArea, 0, sizeof(BoxRec));
+	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
+	return FALSE;
+    }
+    if (crtc->panningBorder[0] + crtc->panningBorder[2] > crtc->mode.HDisplay		||
+	crtc->panningBorder[1] + crtc->panningBorder[3] > crtc->mode.VDisplay) {
+	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
+	return FALSE;
+    }
+    return TRUE;
+}
+
+static void
+xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
+{
+    int newX, newY;
+    int width, height;
+
+    if (crtc->version < 2)
+	return;
+
+    if (! crtc->enabled						||
+	crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1	||
+	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1)
+	return;
+
+    newX   = crtc->x;
+    newY   = crtc->y;
+    width  = crtc->mode.HDisplay;
+    height = crtc->mode.VDisplay;
+
+    if (x >= crtc->panningTrackingArea.x1 && x < crtc->panningTrackingArea.x2 &&
+    	y >= crtc->panningTrackingArea.y1 && y < crtc->panningTrackingArea.y2) {
+	if (x < crtc->x + crtc->panningBorder[0])
+	    newX = x - crtc->panningBorder[0];
+	if (x >= crtc->x + width - crtc->panningBorder[2])
+	    newX = x - width + crtc->panningBorder[2] + 1;
+	if (y < crtc->y + crtc->panningBorder[1])
+	    newY = y - crtc->panningBorder[1];
+	if (y >= crtc->y + height - crtc->panningBorder[3])
+	    newY = y - height + crtc->panningBorder[3] + 1;
+    }
+    /* Validate against [xy]1 after [xy]2, to be sure that results are > 0 for [xy]1 > 0 */
+    if (newX >= crtc->panningTotalArea.x2 - width)
+	newX =  crtc->panningTotalArea.x2 - width - 1;
+    if (newX <  crtc->panningTotalArea.x1)
+	newX =  crtc->panningTotalArea.x1;
+    if (newY >= crtc->panningTotalArea.y2 - height)
+	newY =  crtc->panningTotalArea.y2 - height - 1;
+    if (newY <  crtc->panningTotalArea.y1)
+	newY =  crtc->panningTotalArea.y1;
+    if (newX != crtc->x || newY != crtc->y)
+	xf86CrtcPan (crtc, newX, newY);
 }
 
 static Bool
@@ -332,6 +413,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     WindowPtr		pRoot = WindowTable[pScreen->myNum];
     PixmapPtr		pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
     Bool		ret = FALSE;
+    int                 c;
 
 #if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
     if (xf86RandR12Key) {
@@ -352,6 +434,19 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 	goto finish;
 
     ret = TRUE;
+    /* Update panning information */
+    for (c = 0; c < config->num_crtc; c++) {
+	xf86CrtcPtr crtc = config->crtc[c];
+	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1 &&
+	    crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
+	    crtc->panningTotalArea.x2 += width  - pScreen->width;
+	    crtc->panningTotalArea.y2 += height - pScreen->height;
+	    crtc->panningTrackingArea.x2 += width  - pScreen->width;
+	    crtc->panningTrackingArea.y2 += height - pScreen->height;
+	    xf86RandR13VerifyPanningArea (crtc, width, height);
+	    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
+	}
+    }
 
     pScreen->width = pScrnPix->drawable.width = width;
     pScreen->height = pScrnPix->drawable.height = height;
@@ -762,6 +857,7 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 		    int		    num_randr_outputs,
 		    RROutputPtr	    *randr_outputs)
 {
+    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
     xf86CrtcPtr		crtc = randr_crtc->devPrivate;
@@ -841,6 +937,8 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 		xfree(save_crtcs);
 		return FALSE;
 	    }
+	    xf86RandR13VerifyPanningArea (crtc, pScreen->width, pScreen->height);
+	    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
 	    /*
 	     * Save the last successful setting for EnterVT
 	     */
@@ -1187,6 +1285,62 @@ xf86RandR12TellChanged (ScreenPtr pScreen)
 static void
 xf86RandR12PointerMoved (int scrnIndex, int x, int y)
 {
+    ScreenPtr		pScreen = screenInfo.screens[scrnIndex];
+    ScrnInfoPtr		pScrn   = XF86SCRNINFO(pScreen);
+    xf86CrtcConfigPtr	config  = XF86_CRTC_CONFIG_PTR(pScrn);
+    XF86RandRInfoPtr	randrp  = XF86RANDRINFO(pScreen);
+    int c;
+
+    randrp->pointerX = x;
+    randrp->pointerY = y;
+    for (c = 0; c < config->num_crtc; c++)
+	xf86RandR13Pan (config->crtc[c], x, y);
+}
+
+static Bool
+xf86RandR13GetPanning (ScreenPtr           pScreen,
+		       RRCrtcPtr           randr_crtc,
+		       BoxPtr              totalArea,
+		       BoxPtr              trackingArea,
+		       INT16               *border)
+{
+    xf86CrtcPtr		crtc = randr_crtc->devPrivate;
+
+    if (crtc->version < 2)
+	return FALSE;
+    if (totalArea)
+	memcpy (totalArea,    &crtc->panningTotalArea,    sizeof(BoxRec));
+    if (trackingArea)
+	memcpy (trackingArea, &crtc->panningTrackingArea, sizeof(BoxRec));
+    if (border)
+	memcpy (border,        crtc->panningBorder,       4*sizeof(INT16));
+
+    return TRUE;
+}
+
+static Bool
+xf86RandR13SetPanning (ScreenPtr           pScreen,
+		       RRCrtcPtr           randr_crtc,
+		       BoxPtr              totalArea,
+		       BoxPtr              trackingArea,
+		       INT16               *border)
+{
+    XF86RandRInfoPtr	randrp  = XF86RANDRINFO(pScreen);
+    xf86CrtcPtr		crtc = randr_crtc->devPrivate;
+    int			ret;
+
+    if (crtc->version < 2)
+	return FALSE;
+    if (totalArea)
+	memcpy (&crtc->panningTotalArea, totalArea, sizeof(BoxRec));
+    if (trackingArea)
+	memcpy (&crtc->panningTrackingArea, trackingArea, sizeof(BoxRec));
+    if (border)
+	memcpy (crtc->panningBorder, border, 4*sizeof(INT16));
+    ret = xf86RandR13VerifyPanningArea (crtc, pScreen->width, pScreen->height);
+    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
+
+    return ret;
 }
 
 static Bool
@@ -1203,6 +1357,8 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
 #if RANDR_13_INTERFACE
     rp->rrOutputGetProperty = xf86RandR13OutputGetProperty;
+    rp->rrGetPanning = xf86RandR13GetPanning;
+    rp->rrSetPanning = xf86RandR13SetPanning;
 #endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
