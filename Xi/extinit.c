@@ -133,7 +133,7 @@ Mask ExtExclusiveMasks[EMASKSIZE];
  * Filters for various generic events.
  * Evtype is index, mask is value at index.
  */
-static Mask xi_filters[4] = {
+static Mask xi_filters[] = {
     XI_DeviceHierarchyChangedMask,
     XI_DeviceClassesChangedMask,
 };
