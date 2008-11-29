@@ -464,7 +464,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
 	    /* mark shadowed area as damaged so it will be repainted */
 	    xf86CrtcDamageShadow (crtc);
 	}
-	
+
 	if (!xf86_config->rotation_damage)
 	{
 	    /* Create damage structure */
