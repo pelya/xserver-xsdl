@@ -123,7 +123,7 @@ TIramdacCalculateMNPForClock(
     return (ActualClock);
 }
 
-void
+_X_EXPORT void
 TIramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 				   RamDacRegRecPtr ramdacReg)
 {
@@ -225,7 +225,7 @@ TIramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 #endif
 }
 
-void
+_X_EXPORT void
 TIramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr, 
 				RamDacRegRecPtr ramdacReg)
 {
@@ -353,7 +353,7 @@ TIramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs)
     return ramdacHelperPtr;
 }
 
-void
+_X_EXPORT void
 TIramdac3026SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     switch (pScrn->bitsPerPixel) {
@@ -470,7 +470,7 @@ TIramdac3026SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
     }
 }
 
-void
+_X_EXPORT void
 TIramdac3030SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     switch (pScrn->bitsPerPixel) {
@@ -660,7 +660,7 @@ TIramdacUseHWCursor(ScreenPtr pScr, CursorPtr pCurs)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr)
 {
     infoPtr->MaxWidth = 64;
@@ -676,7 +676,7 @@ TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr)
     infoPtr->UseHWCursor = TIramdacUseHWCursor;
 }
 
-void TIramdacLoadPalette(
+_X_EXPORT void TIramdacLoadPalette(
     ScrnInfoPtr pScrn, 
     int numColors, 
     int *indices,

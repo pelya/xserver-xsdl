@@ -94,7 +94,7 @@ SOFTWARE.
  */
 
 static int CoreDevicePrivateKeyIndex;
-DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
+_X_EXPORT DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
 /* Used to sture classes currently not in use by an MD */
 static int UnusedClassesPrivateKeyIndex;
 DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
@@ -184,7 +184,7 @@ NextFreePointerDevice(void)
  * @param deviceProc Callback for device control function (switch dev on/off).
  * @return The newly created device.
  */
-DeviceIntPtr
+_X_EXPORT DeviceIntPtr
 AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
@@ -258,7 +258,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
  * @param The device to be enabled.
  * @return TRUE on success or FALSE otherwise.
  */
-Bool
+_X_EXPORT Bool
 EnableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
@@ -356,7 +356,7 @@ EnableDevice(DeviceIntPtr dev)
  *
  * @return TRUE on success or FALSE otherwise.
  */
-Bool
+_X_EXPORT Bool
 DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev, other;
@@ -433,7 +433,7 @@ DisableDevice(DeviceIntPtr dev)
  *
  * @return Success or an error code on failure.
  */
-int
+_X_EXPORT int
 ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
@@ -598,7 +598,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
  * Note that the server MUST have two core devices at all times, even if there
  * is no physical device connected.
  */
-void
+_X_EXPORT void
 InitCoreDevices(void)
 {
     if (AllocMasterDevice(serverClient, "Virtual core",
@@ -625,7 +625,7 @@ InitCoreDevices(void)
  *
  * @return Success or error code on failure.
  */
-int
+_X_EXPORT int
 InitAndStartDevices()
 {
     DeviceIntPtr dev, next;
@@ -890,7 +890,7 @@ CloseDevice(DeviceIntPtr dev)
  * Shut down all devices, free all resources, etc.
  * Only useful if you're shutting down the server!
  */
-void
+_X_EXPORT void
 CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
@@ -930,7 +930,7 @@ CloseDownDevices(void)
  * Remove the cursor sprite for all devices. This needs to be done before any
  * resources are freed or any device is deleted.
  */
-void
+_X_EXPORT void
 UndisplayDevices()
 {
     DeviceIntPtr dev;
@@ -951,7 +951,7 @@ UndisplayDevices()
  * dev->init is FALSE it means the client never received a DeviceAdded event,
  * so let's not send a DeviceRemoved event either.
  */
-int
+_X_EXPORT int
 RemoveDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr prev,tmp,next;
@@ -1018,7 +1018,7 @@ RemoveDevice(DeviceIntPtr dev)
     return ret;
 }
 
-int
+_X_EXPORT int
 NumMotionEvents(void)
 {
     /* only called to fill data in initial connection reply.
@@ -1026,19 +1026,19 @@ NumMotionEvents(void)
     return inputInfo.pointer->valuator->numMotionEvents;
 }
 
-void
+_X_EXPORT void
 RegisterPointerDevice(DeviceIntPtr device)
 {
     RegisterOtherDevice(device);
 }
 
-void
+_X_EXPORT void
 RegisterKeyboardDevice(DeviceIntPtr device)
 {
     RegisterOtherDevice(device);
 }
 
-int
+_X_EXPORT int
 dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
 {
     DeviceIntPtr dev;
@@ -1062,7 +1062,7 @@ found:
     return rc;
 }
 
-void
+_X_EXPORT void
 QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
 {
     if (inputInfo.keyboard) {
@@ -1071,7 +1071,7 @@ QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
     }
 }
 
-Bool
+_X_EXPORT Bool
 SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 {
     int i, j;
@@ -1600,7 +1600,7 @@ SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
  *
  * @return TRUE if the device map is invalid, FALSE otherwise.
  */
-Bool
+_X_EXPORT Bool
 BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 {
     int i;
@@ -1617,7 +1617,7 @@ BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 AllModifierKeysAreUp(dev, map1, per1, map2, per2)
     DeviceIntPtr dev;
     CARD8 *map1, *map2;
@@ -1987,7 +1987,7 @@ ProcGetPointerMapping(ClientPtr client)
     return Success;
 }
 
-void
+_X_EXPORT void
 NoteLedState(DeviceIntPtr keybd, int led, Bool on)
 {
     KeybdCtrl *ctrl = &keybd->kbdfeed->ctrl;
@@ -2392,7 +2392,7 @@ ProcGetPointerControl(ClientPtr client)
     return Success;
 }
 
-void
+_X_EXPORT void
 MaybeStopHint(DeviceIntPtr dev, ClientPtr client)
 {
     GrabPtr grab = dev->deviceGrab.grab;
@@ -2509,7 +2509,7 @@ ProcQueryKeymap(ClientPtr client)
  * We don't allow multi-layer hierarchies right now. You can't attach a slave
  * to another slave.
  */
-int
+_X_EXPORT int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
     ScreenPtr screen;
@@ -2613,7 +2613,7 @@ GetPairedDevice(DeviceIntPtr dev)
  * Only allocates the devices, you will need to call ActivateDevice() and
  * EnableDevice() manually.
  */
-int
+_X_EXPORT int
 AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
 {
     DeviceIntPtr pointer;

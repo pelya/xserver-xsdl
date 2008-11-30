@@ -221,10 +221,10 @@ if (((numRects) < ((reg)->data->size >> 1)) && ((reg)->data->size > 50)) \
 _X_EXPORT BoxRec miEmptyBox = {0, 0, 0, 0};
 _X_EXPORT RegDataRec miEmptyData = {0, 0};
 
-RegDataRec  miBrokenData = {0, 0};
+_X_EXPORT RegDataRec  miBrokenData = {0, 0};
 static RegionRec   miBrokenRegion = { { 0, 0, 0, 0 }, &miBrokenData };
 
-extern void
+_X_EXPORT void
 InitRegions (void)
 {
     pixman_region_set_static_pointers (&miEmptyBox, &miEmptyData, &miBrokenData);
@@ -284,7 +284,7 @@ miRegionEqual(RegionPtr reg1, RegionPtr reg2)
 }
 
 #ifdef DEBUG
-Bool
+_X_EXPORT Bool
 miValidRegion(RegionPtr reg)
 {
     int i, numRects;
@@ -350,7 +350,7 @@ miRegionUninit(RegionPtr pReg)
     pixman_region_fini (pReg);
 }
 
-Bool
+_X_EXPORT Bool
 miRegionBreak (RegionPtr pReg)
 {
     xfreeData (pReg);
@@ -1586,7 +1586,7 @@ miRegionNotEmpty(RegionPtr pReg)
     return pixman_region_not_empty (pReg);
 }
 
-Bool
+_X_EXPORT Bool
 miRegionBroken(RegionPtr pReg)
 {
     good(pReg);

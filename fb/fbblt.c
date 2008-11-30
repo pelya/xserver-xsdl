@@ -39,7 +39,7 @@
     } \
 }
 
-void
+_X_EXPORT void
 fbBlt (FbBits   *srcLine,
        FbStride	srcStride,
        int	srcX,
@@ -568,7 +568,7 @@ fbBlt24Line (FbBits	    *src,
 #endif
 }
 
-void
+_X_EXPORT void
 fbBlt24 (FbBits	    *srcLine,
 	 FbStride   srcStride,
 	 int	    srcX,
@@ -873,7 +873,7 @@ fbSetBltOdd (FbStip	*stip,
 }
 #endif
 
-void
+_X_EXPORT void
 fbBltStip (FbStip   *src,
 	   FbStride srcStride,	    /* in FbStip units, not FbBits units */
 	   int	    srcX,

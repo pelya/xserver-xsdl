@@ -50,7 +50,7 @@ static void XAAGlyphBltTEColorExpansion(ScrnInfoPtr pScrn, int xInit,
 ********************************************************************/
 
 
-int
+_X_EXPORT int
 XAAPolyText8TEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -74,7 +74,7 @@ XAAPolyText8TEColorExpansion(
 }
 
 
-int
+_X_EXPORT int
 XAAPolyText16TEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -99,7 +99,7 @@ XAAPolyText16TEColorExpansion(
 }
 
 
-void
+_X_EXPORT void
 XAAImageText8TEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -123,7 +123,7 @@ XAAImageText8TEColorExpansion(
 }
 
 
-void
+_X_EXPORT void
 XAAImageText16TEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -158,7 +158,7 @@ XAAImageText16TEColorExpansion(
 ********************************************************************/
 
 
-void
+_X_EXPORT void
 XAAImageGlyphBltTEColorExpansion(
     DrawablePtr pDrawable,
     GCPtr pGC,
@@ -178,7 +178,7 @@ XAAImageGlyphBltTEColorExpansion(
 	pGC->pCompositeClip, nglyph, (unsigned char*)pglyphBase, ppci);
 }
 
-void
+_X_EXPORT void
 XAAPolyGlyphBltTEColorExpansion(
     DrawablePtr pDrawable,
     GCPtr pGC,

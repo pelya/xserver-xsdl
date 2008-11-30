@@ -29,7 +29,7 @@
 #ifdef FB_SCREEN_PRIVATE
 static int fbScreenPrivateKeyIndex;
 static DevPrivateKey fbScreenPrivateKey = &fbScreenPrivateKeyIndex;
-DevPrivateKey fbGetScreenPrivateKey(void)
+_X_EXPORT DevPrivateKey fbGetScreenPrivateKey(void)
 {
     return fbScreenPrivateKey;
 }
@@ -37,19 +37,19 @@ DevPrivateKey fbGetScreenPrivateKey(void)
 
 static int fbGCPrivateKeyIndex;
 static DevPrivateKey fbGCPrivateKey = &fbGCPrivateKeyIndex;
-DevPrivateKey fbGetGCPrivateKey(void)
+_X_EXPORT DevPrivateKey fbGetGCPrivateKey(void)
 {
     return fbGCPrivateKey;
 }
 
 static int fbWinPrivateKeyIndex;
 static DevPrivateKey fbWinPrivateKey = &fbWinPrivateKeyIndex;
-DevPrivateKey fbGetWinPrivateKey(void)
+_X_EXPORT DevPrivateKey fbGetWinPrivateKey(void)
 {
     return fbWinPrivateKey;
 }
 
-Bool
+_X_EXPORT Bool
 fbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCKey)
 {
     if (pGCKey)
@@ -71,6 +71,6 @@ fbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCKey)
 }
 
 #ifdef FB_ACCESS_WRAPPER
-ReadMemoryProcPtr wfbReadMemory;
-WriteMemoryProcPtr wfbWriteMemory;
+_X_EXPORT ReadMemoryProcPtr wfbReadMemory;
+_X_EXPORT WriteMemoryProcPtr wfbWriteMemory;
 #endif

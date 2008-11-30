@@ -175,7 +175,7 @@ CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
     *dest = '\0';
 }
 
-int
+_X_EXPORT int
 CompareISOLatin1Lowered(unsigned char *s1, int s1len, 
 			unsigned char *s2, int s2len)
 {
@@ -276,7 +276,7 @@ bad:
     return rc;
 }
 
-int
+_X_EXPORT int
 AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
                       Bool toRoot, Bool map)
 {
@@ -332,7 +332,7 @@ AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
     return(Success);
 }
 
-void
+_X_EXPORT void
 DeleteWindowFromAnySaveSet(WindowPtr pWin)
 {
     int i;
@@ -374,7 +374,7 @@ static Bool		handlerDeleted;
  *  \param pTimeout   DIX doesn't want to know how OS represents time
  *  \param pReadMask  nor how it represents the det of descriptors
  */
-void
+_X_EXPORT void
 BlockHandler(pointer pTimeout, pointer pReadmask)
 {
     int i, j;
@@ -408,7 +408,7 @@ BlockHandler(pointer pTimeout, pointer pReadmask)
  *  \param result    32 bits of undefined result from the wait
  *  \param pReadmask the resulting descriptor mask
  */
-void
+_X_EXPORT void
 WakeupHandler(int result, pointer pReadmask)
 {
     int i, j;
@@ -492,7 +492,7 @@ RemoveBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler,
 	}
 }
 
-void
+_X_EXPORT void
 InitBlockAndWakeupHandlers (void)
 {
     xfree (handlers);
@@ -509,7 +509,7 @@ InitBlockAndWakeupHandlers (void)
 WorkQueuePtr		workQueue;
 static WorkQueuePtr	*workQueueLast = &workQueue;
 
-void
+_X_EXPORT void
 ProcessWorkQueue(void)
 {
     WorkQueuePtr    q, *p;
@@ -537,7 +537,7 @@ ProcessWorkQueue(void)
     workQueueLast = p;
 }
 
-void
+_X_EXPORT void
 ProcessWorkQueueZombies(void)
 {
     WorkQueuePtr    q, *p;
@@ -653,7 +653,7 @@ ClientWakeup (ClientPtr client)
     }
 }
 
-Bool
+_X_EXPORT Bool
 ClientIsAsleep (ClientPtr client)
 {
     SleepQueuePtr   q;
@@ -869,21 +869,21 @@ DeleteCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
     return _DeleteCallback(pcbl, callback, data);
 }
 
-void 
+_X_EXPORT void 
 CallCallbacks(CallbackListPtr *pcbl, pointer call_data)
 {
     if (!pcbl || !*pcbl) return;
     _CallCallbacks(pcbl, call_data);
 }
 
-void
+_X_EXPORT void
 DeleteCallbackList(CallbackListPtr *pcbl)
 {
     if (!pcbl || !*pcbl) return;
     _DeleteCallbackList(pcbl);
 }
 
-void 
+_X_EXPORT void 
 InitCallbackManager(void)
 {
     int i;

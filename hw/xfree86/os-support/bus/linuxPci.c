@@ -531,7 +531,7 @@ xf86MapLegacyIO(struct pci_device *dev)
     return (IOADDRESS)DomainMmappedIO[domain];
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     struct pci_device *dev;

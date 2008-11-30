@@ -346,7 +346,7 @@ miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
  * Syncronize the sprite with the cursor - called from ProcessInputEvents
  */
 
-void
+_X_EXPORT void
 miPointerUpdateSprite (DeviceIntPtr pDev)
 {
     ScreenPtr		pScreen;
@@ -419,7 +419,7 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     }
 }
 
-void
+_X_EXPORT void
 miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 {
 	miPointerScreenPtr pScreenPriv;

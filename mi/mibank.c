@@ -2210,7 +2210,7 @@ miInitializeBanking(
  * cannot exist.  This function exists because the DDX needs to be able to
  * determine this width before initializing a frame buffer.
  */
-int
+_X_EXPORT int
 miScanLineWidth(
     unsigned int     xsize,         /* pixels */
     unsigned int     ysize,         /* pixels */

@@ -39,7 +39,7 @@ static void XAACopyPlaneNtoNColorExpand(DrawablePtr pSrc, DrawablePtr pDst,
 
 static unsigned long TmpBitPlane; 
 
-RegionPtr
+_X_EXPORT RegionPtr
 XAACopyPlaneColorExpansion(
     DrawablePtr	pSrc,
     DrawablePtr	pDst,
@@ -159,7 +159,7 @@ ALLOC_FAILED:
     }
 }
 
-void
+_X_EXPORT void
 XAAPushPixelsSolidColorExpansion(
     GCPtr	pGC,
     PixmapPtr	pBitMap,

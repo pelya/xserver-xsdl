@@ -9,7 +9,7 @@
 /* Stubs for the static server on platforms that don't support fbdev */
 
 
-Bool
+_X_EXPORT Bool
 fbdevHWGetRec(ScrnInfoPtr pScrn)
 {
 	return FALSE;
@@ -126,13 +126,13 @@ fbdevHWRestore(ScrnInfoPtr pScrn)
 {
 }
 
-void
+_X_EXPORT void
 fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 		 LOCO *colors, VisualPtr pVisual)
 {
 }
 
-ModeStatus
+_X_EXPORT ModeStatus
 fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	return MODE_ERROR;

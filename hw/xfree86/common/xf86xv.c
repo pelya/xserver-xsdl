@@ -113,7 +113,7 @@ static Bool xf86XVInitAdaptors(ScreenPtr, XF86VideoAdaptorPtr*, int);
 static int XF86XVWindowKeyIndex;
 static DevPrivateKey XF86XVWindowKey = &XF86XVWindowKeyIndex;
 static int XF86XvScreenKeyIndex;
-DevPrivateKey XF86XvScreenKey = &XF86XvScreenKeyIndex;
+_X_EXPORT DevPrivateKey XF86XvScreenKey = &XF86XvScreenKeyIndex;
 static unsigned long PortResource = 0;
 
 _X_EXPORT DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;

@@ -41,7 +41,7 @@
 /**************************************************************************
  * Video Memory Mapping section                                            
  ***************************************************************************/
-pointer 
+_X_EXPORT pointer 
 xf86MapVidMem(int ScreenNum,int Flags, unsigned long Base, unsigned long Size)
 {
     mach_port_t device,iopl_dev;
@@ -107,7 +107,7 @@ xf86UnMapVidMem(int ScreenNum,pointer Base,unsigned long Size)
     return;
 }
 
-Bool 
+_X_EXPORT Bool 
 xf86LinearVidMem()
 {
     return(TRUE);
@@ -123,7 +123,7 @@ xf86LinearVidMem()
  */
 extern int ioperm(unsigned long __from, unsigned long __num, int __turn_on);
 
-Bool
+_X_EXPORT Bool
 xf86EnableIO()
 {
     if (ioperm(0, 0x10000, 1)) {
@@ -135,20 +135,20 @@ xf86EnableIO()
     return TRUE;
 }
 	
-void
+_X_EXPORT void
 xf86DisableIO()
 {
     ioperm(0,0x10000,0);
     return;
 }
 
-void
+_X_EXPORT void
 xf86MapReadSideEffects(int ScreenNum, int Flags, pointer Base,
 	unsigned long Size)
 {
 }
 
-Bool
+_X_EXPORT Bool
 xf86CheckMTRR(int s)
 {
 	return FALSE;

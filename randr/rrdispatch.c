@@ -25,7 +25,7 @@
 #define SERVER_RANDR_MAJOR	1
 #define SERVER_RANDR_MINOR	3
 
-Bool
+_X_EXPORT Bool
 RRClientKnowsRates (ClientPtr	pClient)
 {
     rrClientPriv(pClient);
@@ -181,7 +181,7 @@ ProcRRSelectInput (ClientPtr client)
     return Success;
 }
 
-int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
+_X_EXPORT int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRQueryVersion,	/* 0 */
 /* we skip 1 to make old clients fail pretty immediately */
     NULL,			/* 1 ProcRandrOldGetScreenInfo */

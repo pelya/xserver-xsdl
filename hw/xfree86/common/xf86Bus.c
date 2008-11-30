@@ -64,7 +64,7 @@ noopEnableDisable(void *arg) { }
 
 xf86AccessRec AccessNULL = { noopEnableDisable, noopEnableDisable, NULL };
 
-xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
+_X_EXPORT xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
 BusRec primaryBus = { BUS_NONE, {{0}}};
 
@@ -100,7 +100,7 @@ static void notifyStateChange(xf86NotifyState state);
  * The only one available so far is for PCI and SBUS.
  */
 
-void
+_X_EXPORT void
 xf86BusProbe(void)
 {
     xf86PciProbe();
@@ -148,7 +148,7 @@ StringToBusType(const char* busID, const char **retID)
  * Entity related code.
  */
 
-void
+_X_EXPORT void
 xf86EntityInit(void)
 {
     int i;
@@ -231,7 +231,7 @@ xf86IsEntityPrimary(int entityIndex)
     }
 }
 	
-Bool
+_X_EXPORT Bool
 xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
 		   EntityProc leave, pointer private)
 {
@@ -244,7 +244,7 @@ xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86DriverHasEntities(DriverPtr drvp)
 {
     int i;
@@ -348,7 +348,7 @@ xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex)
  * xf86ClearEntitiesForScreen() - called when a screen is deleted
  * to mark it's entities unused. Called by xf86DeleteScreen().
  */
-void
+_X_EXPORT void
 xf86ClearEntityListForScreen(int scrnIndex)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -380,7 +380,7 @@ xf86ClearEntityListForScreen(int scrnIndex)
     pScrn->entityInstanceList = NULL;
 }
 
-void
+_X_EXPORT void
 xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
 {
     resPtr *pprev_next = &Acc;
@@ -402,7 +402,7 @@ xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
  * Add an extra device section (GDevPtr) to an entity.
  */
 
-void
+_X_EXPORT void
 xf86AddDevToEntity(int entityIndex, GDevPtr dev)
 {
     EntityPtr pEnt;
@@ -539,7 +539,7 @@ clearAccess(void)
  * xf86AccessInit() - set up everything needed for access control
  * called only once on first server generation.
  */
-void
+_X_EXPORT void
 xf86AccessInit(void)
 {
     initPciState();
@@ -554,7 +554,7 @@ xf86AccessInit(void)
  * xf86AccessEnter() -- gets called to save the text mode VGA IO 
  * resources when reentering the server after a VT switch.
  */
-void
+_X_EXPORT void
 xf86AccessEnter(void)
 {
     if (xf86ResAccessEnter) 
@@ -583,7 +583,7 @@ xf86AccessEnter(void)
  * This was split to call xf86AccessLeaveState() from
  * ddxGiveUp().
  */
-void
+_X_EXPORT void
 xf86AccessLeave(void)
 {
     if (!xf86ResAccessEnter)
@@ -594,7 +594,7 @@ xf86AccessLeave(void)
     EntityLeave();
 }
 
-void
+_X_EXPORT void
 xf86AccessLeaveState(void)
 {
     if (!xf86ResAccessEnter)
@@ -1098,7 +1098,7 @@ xf86JoinResLists(resPtr rlist1, resPtr rlist2)
     return rlist1;
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
 {
     resPtr new;
@@ -1264,7 +1264,7 @@ xf86PrintResList(int verb, resPtr list)
     }
 }
 
-resPtr
+_X_EXPORT resPtr
 xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 {
     while(pRange && pRange->type != ResEnd) {
@@ -1274,7 +1274,7 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
     return list;
 }
 
-void
+_X_EXPORT void
 xf86ResourceBrokerInit(void)
 {
     Acc = NULL;
@@ -1540,7 +1540,7 @@ SetSIGIOForState(xf86State state)
     }
 }
 
-void
+_X_EXPORT void
 xf86EnterServerState(xf86State state)
 {
     EntityPtr pEnt;
@@ -1817,7 +1817,7 @@ checkRoutingForScreens(xf86State state)
  * xf86PostProbe() -- Allocate all non conflicting resources
  * This function gets called by xf86Init().
  */
-void
+_X_EXPORT void
 xf86PostProbe(void)
 {
     memType val;
@@ -1931,7 +1931,7 @@ checkRequiredResources(int entityIndex)
 	pEnt->entityProp &= ~(unsigned long)NEED_IO_SHARED;
 }
 
-void
+_X_EXPORT void
 xf86PostPreInit()
 {
   if (doFramebufferMode) return;
@@ -1951,7 +1951,7 @@ xf86PostPreInit()
     xf86PrintResList(3, Acc);
 }
 
-void
+_X_EXPORT void
 xf86PostScreenInit(void)
 {
     int i,j;
@@ -2300,7 +2300,7 @@ findIntersect(resRange Range, resPtr list)
     return new;
 }
     
-resPtr
+_X_EXPORT resPtr
 xf86FindIntersectOfLists(resPtr l1, resPtr l2)
 {
     resPtr ret = NULL;
@@ -2365,7 +2365,7 @@ xf86ExtractTypeFromList(resPtr list, unsigned long type)
  * xf86FindPrimaryDevice() - Find the display device which
  * was active when the server was started.
  */
-void
+_X_EXPORT void
 xf86FindPrimaryDevice()
 {
     if (primaryBus.type != BUS_NONE) {
@@ -2394,7 +2394,7 @@ xf86FindPrimaryDevice()
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86NoSharedResources(int screenIndex,resType res)
 {
     int j;

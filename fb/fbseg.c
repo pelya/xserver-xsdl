@@ -33,7 +33,7 @@
 					((dir < 0) ? FbStipLeft(mask,bpp) : \
 					 FbStipRight(mask,bpp)))
 
-void
+_X_EXPORT void
 fbBresSolid (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     int	    dashOffset,
@@ -117,7 +117,7 @@ fbBresSolid (DrawablePtr    pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-void
+_X_EXPORT void
 fbBresDash (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		dashOffset,
@@ -203,7 +203,7 @@ fbBresDash (DrawablePtr	pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-void
+_X_EXPORT void
 fbBresFill (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		dashOffset,
@@ -255,7 +255,7 @@ fbSetFg (DrawablePtr	pDrawable,
     }
 }
 
-void
+_X_EXPORT void
 fbBresFillDash (DrawablePtr pDrawable,
 		GCPtr	    pGC,
 		int	    dashOffset,
@@ -513,7 +513,7 @@ fbBresDash24RRop (DrawablePtr	pDrawable,
  * based on the contents of the specified GC.
  */
 
-FbBres *
+_X_EXPORT FbBres *
 fbSelectBres (DrawablePtr   pDrawable,
 	      GCPtr	    pGC)
 {
@@ -575,7 +575,7 @@ fbSelectBres (DrawablePtr   pDrawable,
     return bres;
 }
 
-void
+_X_EXPORT void
 fbBres (DrawablePtr	pDrawable,
 	GCPtr		pGC,
 	int		dashOffset,
@@ -594,7 +594,7 @@ fbBres (DrawablePtr	pDrawable,
 				      e, e1, e3, len);
 }
 
-void
+_X_EXPORT void
 fbSegment (DrawablePtr	pDrawable,
 	   GCPtr	pGC,
 	   int		x1,

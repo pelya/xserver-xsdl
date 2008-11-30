@@ -100,7 +100,7 @@ static char *authorization_file = (char *)NULL;
 
 static Bool ShouldLoadAuth = TRUE;
 
-void
+_X_EXPORT void
 InitAuthorization (char *file_name)
 {
     authorization_file = file_name;
@@ -145,7 +145,7 @@ LoadAuthorization (void)
  * XdmcpInit calls this function to discover all authorization
  * schemes supported by the display
  */
-void
+_X_EXPORT void
 RegisterAuthorizations (void)
 {
     int	    i;
@@ -156,7 +156,7 @@ RegisterAuthorizations (void)
 }
 #endif
 
-XID
+_X_EXPORT XID
 CheckAuthorization (
     unsigned int name_length,
     char	*name,
@@ -221,7 +221,7 @@ CheckAuthorization (
     return (XID) ~0L;
 }
 
-void
+_X_EXPORT void
 ResetAuthorization (void)
 {
     int	i;
@@ -232,7 +232,7 @@ ResetAuthorization (void)
     ShouldLoadAuth = TRUE;
 }
 
-int
+_X_EXPORT int
 AuthorizationFromID (
 	XID 		id,
 	unsigned short	*name_lenp,
@@ -253,7 +253,7 @@ AuthorizationFromID (
     return 0;
 }
 
-int
+_X_EXPORT int
 RemoveAuthorization (
 	unsigned short	name_length,
 	char		*name,
@@ -273,7 +273,7 @@ RemoveAuthorization (
     return 0;
 }
 
-int
+_X_EXPORT int
 AddAuthorization (unsigned name_length, char *name, unsigned data_length, char *data)
 {
     int	i;
@@ -291,7 +291,7 @@ AddAuthorization (unsigned name_length, char *name, unsigned data_length, char *
 
 #ifdef XCSECURITY
 
-XID
+_X_EXPORT XID
 GenerateAuthorization(
 	unsigned name_length,
 	char	*name,

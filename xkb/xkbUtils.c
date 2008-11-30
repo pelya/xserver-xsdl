@@ -69,11 +69,11 @@ DEALINGS IN THE SOFTWARE.
 #include "xkbgeom.h"
 #include "xkb.h"
 
-int	XkbDisableLockActions = 0;
+_X_EXPORT int	XkbDisableLockActions = 0;
 
 /***====================================================================***/
 
-int
+_X_EXPORT int
 _XkbLookupAnyDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
 		    Mask access_mode, int *xkb_err)
 {
@@ -91,7 +91,7 @@ _XkbLookupAnyDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
     return rc;
 }
 
-int
+_X_EXPORT int
 _XkbLookupKeyboard(DeviceIntPtr *pDev, int id, ClientPtr client,
 		   Mask access_mode, int *xkb_err)
 {
@@ -114,7 +114,7 @@ _XkbLookupKeyboard(DeviceIntPtr *pDev, int id, ClientPtr client,
     return Success;
 }
 
-int
+_X_EXPORT int
 _XkbLookupBellDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
 		     Mask access_mode, int *xkb_err)
 {
@@ -134,7 +134,7 @@ _XkbLookupBellDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
     return Success;
 }
 
-int
+_X_EXPORT int
 _XkbLookupLedDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
 		    Mask access_mode, int *xkb_err)
 {
@@ -157,7 +157,7 @@ _XkbLookupLedDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
     return Success;
 }
 
-int
+_X_EXPORT int
 _XkbLookupButtonDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
 		       Mask access_mode, int *xkb_err)
 {
@@ -177,7 +177,7 @@ _XkbLookupButtonDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
     return Success;
 }
 
-void
+_X_EXPORT void
 XkbSetActionKeyMods(XkbDescPtr xkb,XkbAction *act,unsigned mods)
 {
 register unsigned	tmp;
@@ -199,7 +199,7 @@ register unsigned	tmp;
     return;
 }
 
-unsigned
+_X_EXPORT unsigned
 XkbMaskForVMask(XkbDescPtr xkb,unsigned vmask)
 {
 register int i,bit;
@@ -214,7 +214,7 @@ register unsigned mask;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbUpdateKeyTypesFromCore(	DeviceIntPtr	pXDev,
 				KeyCode	 	first,
 				CARD8	 	num,
@@ -268,7 +268,7 @@ XkbMapChangesPtr	mc;
     return;
 }
 
-void
+_X_EXPORT void
 XkbUpdateDescActions(	XkbDescPtr		xkb,
 			KeyCode		 	first,
 			CARD8		 	num,
@@ -327,7 +327,7 @@ register unsigned	key;
     return;
 }
 
-void
+_X_EXPORT void
 XkbUpdateActions(	DeviceIntPtr	 	pXDev,
 			KeyCode		 	first,
 			CARD8		 	num,
@@ -358,7 +358,7 @@ CARD8 *			repeat;
     return;
 }
 
-void
+_X_EXPORT void
 XkbUpdateCoreDescription(DeviceIntPtr keybd,Bool resize)
 {
 register int		key,tmp;
@@ -574,7 +574,7 @@ CARD8			keysPerMod[XkbNumModifiers];
     return;
 }
 
-void
+_X_EXPORT void
 XkbSetRepeatKeys(DeviceIntPtr pXDev,int key,int onoff)
 {
     if (pXDev && pXDev->key && pXDev->key->xkbInfo) {
@@ -598,7 +598,7 @@ XkbSetRepeatKeys(DeviceIntPtr pXDev,int key,int onoff)
     return;
 }
 
-void
+_X_EXPORT void
 XkbApplyMappingChange(	DeviceIntPtr	kbd,
 			CARD8		 request,
 			KeyCode		 firstKey,
@@ -640,7 +640,7 @@ unsigned	 	check;
     return;
 }
 
-void
+_X_EXPORT void
 XkbDisableComputedAutoRepeats(DeviceIntPtr dev,unsigned key)
 {
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
@@ -655,7 +655,7 @@ xkbMapNotify	mn;
     return;
 }
 
-unsigned
+_X_EXPORT unsigned
 XkbStateChangedFlags(XkbStatePtr old,XkbStatePtr new)
 {
 int		changed;
@@ -700,7 +700,7 @@ XkbCompatMapPtr	map;
     return;
 }
 
-unsigned
+_X_EXPORT unsigned
 XkbAdjustGroup(int group,XkbControlsPtr ctrls)
 {
 unsigned	act;
@@ -741,7 +741,7 @@ unsigned	act;
     return group;
 }
 
-void
+_X_EXPORT void
 XkbComputeDerivedState(XkbSrvInfoPtr xkbi)
 {
 XkbStatePtr	state= &xkbi->state;
@@ -773,7 +773,7 @@ unsigned char	grp;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbCheckSecondaryEffects(	XkbSrvInfoPtr		xkbi,
 				unsigned		which,
 				XkbChangesPtr 		changes,
@@ -793,7 +793,7 @@ XkbCheckSecondaryEffects(	XkbSrvInfoPtr		xkbi,
 
 /***====================================================================***/
 
-Bool
+_X_EXPORT Bool
 XkbEnableDisableControls(	XkbSrvInfoPtr		xkbi,
 				unsigned long		change,
 				unsigned long		newValues,
@@ -842,7 +842,7 @@ XkbSrvLedInfoPtr	sli;
 
 #define	MAX_TOC	16
 
-XkbGeometryPtr 
+_X_EXPORT XkbGeometryPtr
 XkbLookupNamedGeometry(DeviceIntPtr dev,Atom name,Bool *shouldFree)
 {
 XkbSrvInfoPtr	xkbi=	dev->key->xkbInfo;
@@ -860,7 +860,7 @@ XkbDescPtr	xkb=	xkbi->desc;
     return NULL;
 }
 
-void
+_X_EXPORT void
 XkbConvertCase(register KeySym sym, KeySym *lower, KeySym *upper)
 {
     *lower = sym;

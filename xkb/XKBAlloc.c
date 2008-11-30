@@ -41,7 +41,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /***===================================================================***/
 
 /*ARGSUSED*/
-Status
+_X_EXPORT Status
 XkbAllocCompatMap(XkbDescPtr xkb,unsigned which,unsigned nSI)
 {
 XkbCompatMapPtr	compat;
@@ -88,7 +88,7 @@ XkbSymInterpretRec *prev_interpret;
 }
 
 
-void
+_X_EXPORT void
 XkbFreeCompatMap(XkbDescPtr xkb,unsigned which,Bool freeMap)
 {
 register XkbCompatMapPtr compat;
@@ -115,7 +115,7 @@ register XkbCompatMapPtr compat;
 
 /***===================================================================***/
 
-Status
+_X_EXPORT Status
 XkbAllocNames(XkbDescPtr xkb,unsigned which,int nTotalRG,int nTotalAliases)
 {
 XkbNamesPtr	names;
@@ -195,7 +195,7 @@ XkbNamesPtr	names;
     return Success;
 }
 
-void
+_X_EXPORT void
 XkbFreeNames(XkbDescPtr xkb,unsigned which,Bool freeMap)
 {
 XkbNamesPtr	names;
@@ -244,7 +244,7 @@ XkbNamesPtr	names;
 /***===================================================================***/
 
 /*ARGSUSED*/
-Status
+_X_EXPORT Status
 XkbAllocControls(XkbDescPtr xkb,unsigned which)
 {
     if (xkb==NULL)
@@ -271,7 +271,7 @@ XkbFreeControls(XkbDescPtr xkb,unsigned which,Bool freeMap)
 
 /***===================================================================***/
 
-Status 
+_X_EXPORT Status 
 XkbAllocIndicatorMaps(XkbDescPtr xkb)
 {
     if (xkb==NULL)
@@ -296,7 +296,7 @@ XkbFreeIndicatorMaps(XkbDescPtr xkb)
 
 /***====================================================================***/
 
-XkbDescRec	*
+_X_EXPORT XkbDescRec	*
 XkbAllocKeyboard(void)
 {
 XkbDescRec *xkb;
@@ -307,7 +307,7 @@ XkbDescRec *xkb;
     return xkb;
 }
 
-void
+_X_EXPORT void
 XkbFreeKeyboard(XkbDescPtr xkb,unsigned which,Bool freeAll)
 {
     if (xkb==NULL)

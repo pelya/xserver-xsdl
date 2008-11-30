@@ -522,7 +522,7 @@ xf86tokenString (void)
 	return configRBuf;
 }
 
-int
+_X_EXPORT int
 xf86pathIsAbsolute(const char *path)
 {
 	if (path && path[0] == '/')
@@ -531,7 +531,7 @@ xf86pathIsAbsolute(const char *path)
 }
 
 /* A path is "safe" if it is relative and if it contains no ".." elements. */
-int
+_X_EXPORT int
 xf86pathIsSafe(const char *path)
 {
 	if (xf86pathIsAbsolute(path))
@@ -777,7 +777,7 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 							"%P/lib/X11/%X"
 #endif
 
-const char *
+_X_EXPORT const char *
 xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 {
 	char *pathcopy;
@@ -854,7 +854,7 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 	return configPath;
 }
 
-void
+_X_EXPORT void
 xf86closeConfigFile (void)
 {
 	xf86conffree (configPath);
@@ -873,7 +873,7 @@ xf86closeConfigFile (void)
 	}
 }
 
-void
+_X_EXPORT void
 xf86setBuiltinConfig(const char *config[])
 {
 	builtinConfig = config;
@@ -982,7 +982,7 @@ xf86nameCompare (const char *s1, const char *s2)
 	return (c1 - c2);
 }
 
-char *
+_X_EXPORT char *
 xf86addComment(char *cur, char *add)
 {
 	char *str;

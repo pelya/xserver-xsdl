@@ -171,7 +171,7 @@ miCreateScreenResources(ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 miScreenDevPrivateInit(ScreenPtr pScreen, int width, pointer pbits)
 {
     miScreenInitParmsPtr pScrInitParms;
@@ -296,7 +296,7 @@ miScreenInit(
 static int privateKeyIndex;
 static DevPrivateKey privateKey = &privateKeyIndex;
 
-DevPrivateKey
+_X_EXPORT DevPrivateKey
 miAllocateGCPrivateIndex()
 {
     return privateKey;

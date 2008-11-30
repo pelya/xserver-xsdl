@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-Bool
+_X_EXPORT Bool
 fbCreateWindow(WindowPtr pWin)
 {
     dixSetPrivate(&pWin->devPrivates, fbGetWinPrivateKey(),
@@ -40,31 +40,31 @@ fbCreateWindow(WindowPtr pWin)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbDestroyWindow(WindowPtr pWin)
 {
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbMapWindow(WindowPtr pWindow)
 {
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbPositionWindow(WindowPtr pWin, int x, int y)
 {
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbUnmapWindow(WindowPtr pWindow)
 {
     return TRUE;
 }
 
-void
+_X_EXPORT void
 fbCopyWindowProc (DrawablePtr	pSrcDrawable,
 		  DrawablePtr	pDstDrawable,
 		  GCPtr		pGC,
@@ -115,7 +115,7 @@ fbCopyWindowProc (DrawablePtr	pSrcDrawable,
     fbFinishAccess (pSrcDrawable);
 }
 
-void 
+_X_EXPORT void 
 fbCopyWindow(WindowPtr	    pWin, 
 	     DDXPointRec    ptOldOrg, 
 	     RegionPtr	    prgnSrc)
@@ -148,7 +148,7 @@ fbCopyWindow(WindowPtr	    pWin,
     fbValidateDrawable (&pWin->drawable);
 }
 
-Bool
+_X_EXPORT Bool
 fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
     PixmapPtr	pPixmap;
@@ -201,7 +201,7 @@ fbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 fbFillRegionSolid (DrawablePtr	pDrawable,
 		   RegionPtr	pRegion,
 		   FbBits	and,

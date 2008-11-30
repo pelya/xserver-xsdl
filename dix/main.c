@@ -144,7 +144,7 @@ NotImplemented(xEvent *from, xEvent *to)
  * Dummy entry for ReplySwapVector[]
  */
 
-void
+_X_EXPORT void
 ReplyNotSwappd(
 	ClientPtr pClient ,
 	int size ,
@@ -446,13 +446,13 @@ int main(int argc, char *argv[], char *envp[])
 static int  VendorRelease = VENDOR_RELEASE;
 static char *VendorString = VENDOR_NAME;
 
-void
+_X_EXPORT void
 SetVendorRelease(int release)
 {
     VendorRelease = release;
 }
 
-void
+_X_EXPORT void
 SetVendorString(char *string)
 {
     VendorString = string;
@@ -609,7 +609,7 @@ with its screen number, a pointer to its ScreenRec, argc, and argv.
 
 */
 
-int
+_X_EXPORT int
 AddScreen(
     Bool	(* pfnInit)(
 	int /*index*/,

@@ -35,7 +35,7 @@
 #include "BTPriv.h"
 #include "xf86RamDacPriv.h"
 
-void
+_X_EXPORT void
 BTramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 				    RamDacRegRecPtr ramdacReg)
 {
@@ -50,7 +50,7 @@ BTramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 						ramdacReg->DacRegs[i]);
 }
 
-void
+_X_EXPORT void
 BTramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr, 
 				 RamDacRegRecPtr ramdacReg)
 {
@@ -137,7 +137,7 @@ BTramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs/*, RamDacRecP
     return ramdacHelperPtr;
 }
 
-void
+_X_EXPORT void
 BTramdacSetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     /* We need to deal with Direct Colour visuals for 8bpp and other

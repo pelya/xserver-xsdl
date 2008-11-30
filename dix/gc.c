@@ -956,7 +956,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     return pGC;
 }
 
-void
+_X_EXPORT void
 FreeGCperDepth(int screenNum)
 {
     int i;
@@ -972,7 +972,7 @@ FreeGCperDepth(int screenNum)
 }
 
 
-Bool
+_X_EXPORT Bool
 CreateGCperDepth(int screenNum)
 {
     int i;
@@ -1005,7 +1005,7 @@ CreateGCperDepth(int screenNum)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 CreateDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen;
@@ -1042,14 +1042,14 @@ CreateDefaultStipple(int screenNum)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 FreeDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen = screenInfo.screens[screenNum];
     (*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 }
 
-int
+_X_EXPORT int
 SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
 {
     long i;
@@ -1155,7 +1155,7 @@ VerifyRectOrder(int nrects, xRectangle *prects, int ordering)
     return -1;
 }
 
-int
+_X_EXPORT int
 SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects, 
              xRectangle *prects, int ordering)
 {

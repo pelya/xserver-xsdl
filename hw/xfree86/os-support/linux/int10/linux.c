@@ -333,7 +333,7 @@ error0:
     return NULL;
 }
 
-Bool
+_X_EXPORT Bool
 MapCurrentInt10(xf86Int10InfoPtr pInt)
 {
     pointer addr;

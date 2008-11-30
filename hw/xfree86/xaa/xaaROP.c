@@ -14,7 +14,7 @@
 #include "xaalocal.h"
 
 
-int XAACopyROP[16] =
+_X_EXPORT int XAACopyROP[16] =
 {
    ROP_0,               /* GXclear */
    ROP_DSa,             /* GXand */
@@ -34,7 +34,7 @@ int XAACopyROP[16] =
    ROP_1                /* GXset */
 };
 
-int XAACopyROP_PM[16] =
+_X_EXPORT int XAACopyROP_PM[16] =
 {
    ROP_0,		/* not used */
    ROP_DSPnoa,
@@ -55,7 +55,7 @@ int XAACopyROP_PM[16] =
 };
 
 
-int XAAPatternROP[16]=
+_X_EXPORT int XAAPatternROP[16]=
 {
    ROP_0,
    ROP_DPa,
@@ -75,7 +75,7 @@ int XAAPatternROP[16]=
    ROP_1
 };
 
-int XAAPatternROP_PM[16] =
+_X_EXPORT int XAAPatternROP_PM[16] =
 {
    ROP_DPna,
    ROP_DPSnoa,

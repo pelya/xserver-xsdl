@@ -42,7 +42,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 _X_EXPORT int	XkbDfltRepeatDelay=	660;
 _X_EXPORT int	XkbDfltRepeatInterval=	40;
-pointer	XkbLastRepeatEvent=	NULL;
+_X_EXPORT pointer XkbLastRepeatEvent=	NULL;
 
 #define	DFLT_TIMEOUT_CTRLS (XkbAX_KRGMask|XkbStickyKeysMask|XkbMouseKeysMask)
 #define	DFLT_TIMEOUT_OPTS  (XkbAX_IndicatorFBMask)
@@ -55,7 +55,7 @@ static unsigned int XkbDfltAccessXTimeoutOptionsValues= 0;
 unsigned int	XkbDfltAccessXFeedback= XkbAccessXFeedbackMask;
 unsigned short	XkbDfltAccessXOptions=  XkbAX_AllOptionsMask & ~(XkbAX_IndicatorFBMask|XkbAX_SKReleaseFBMask|XkbAX_SKRejectFBMask);
 
-void
+_X_EXPORT void
 AccessXComputeCurveFactor(XkbSrvInfoPtr xkbi,XkbControlsPtr ctrls)
 {
     xkbi->mouseKeysCurve= 1.0+(((double)ctrls->mk_curve)*0.001);
@@ -64,7 +64,7 @@ AccessXComputeCurveFactor(XkbSrvInfoPtr xkbi,XkbControlsPtr ctrls)
     return;
 }
 
-void
+_X_EXPORT void
 AccessXInit(DeviceIntPtr keybd)
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
@@ -317,7 +317,7 @@ KeyCode		key;
     return xkbi->desc->ctrls->repeat_interval;
 }
 
-void
+_X_EXPORT void
 AccessXCancelRepeatKey(XkbSrvInfoPtr xkbi,KeyCode key)
 {
     if (xkbi->repeatKey==key)
@@ -442,7 +442,7 @@ XkbSrvLedInfoPtr	sli;
 /* Returns FALSE if the event needs further processing.			*/
 /*									*/
 /************************************************************************/
-Bool
+_X_EXPORT Bool
 AccessXFilterPressEvent(	register xEvent *	xE, 
 				register DeviceIntPtr	keybd, 
 				int			count)
@@ -572,7 +572,7 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 /* Returns FALSE if the event needs further processing.			*/
 /*									*/
 /************************************************************************/
-Bool
+_X_EXPORT Bool
 AccessXFilterReleaseEvent(	register xEvent *	xE, 
 				register DeviceIntPtr	keybd, 
 				int			count)
@@ -682,7 +682,7 @@ Bool		ignoreKeyEvent = FALSE;
 /************************************************************************/
 extern int xkbDevicePrivateIndex;
 extern void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, pointer);
-void
+_X_EXPORT void
 ProcessPointerEvent(	register xEvent  *	xE, 
 			register DeviceIntPtr	mouse, 
 			int		        count)

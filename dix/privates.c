@@ -295,7 +295,7 @@ dixLookupPrivateOffset(RESTYPE type)
     return offsets[type];
 }
 
-int
+_X_EXPORT int
 dixResetPrivates(void)
 {
     int i;

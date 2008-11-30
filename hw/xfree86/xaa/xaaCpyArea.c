@@ -21,7 +21,7 @@
  */
 
 
-RegionPtr
+_X_EXPORT RegionPtr
 XAACopyArea(
     DrawablePtr pSrcDrawable,
     DrawablePtr pDstDrawable,
@@ -74,7 +74,7 @@ XAACopyArea(
 }
 
 
-void
+_X_EXPORT void
 XAADoBitBlt(
     DrawablePtr	    pSrc, 
     DrawablePtr	    pDst,
@@ -193,7 +193,7 @@ XAADoBitBlt(
 
 }
 
-void
+_X_EXPORT void
 XAADoImageWrite(
     DrawablePtr	    pSrc, 
     DrawablePtr	    pDst,
@@ -222,7 +222,7 @@ XAADoImageWrite(
 }
 
 
-void
+_X_EXPORT void
 XAADoImageRead(
     DrawablePtr	    pSrc, 
     DrawablePtr	    pDst,
@@ -252,7 +252,7 @@ XAADoImageRead(
 }
 
 
-void 
+_X_EXPORT void 
 XAAScreenToScreenBitBlt(
     ScrnInfoPtr pScrn,
     int nbox,

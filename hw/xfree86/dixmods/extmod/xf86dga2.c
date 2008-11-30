@@ -62,9 +62,9 @@ static void DGAClientStateChange (CallbackListPtr*, pointer, pointer);
 
 static ClientPtr DGAClients[MAXSCREENS];
 
-unsigned char DGAReqCode = 0;
-int DGAErrorBase;
-int DGAEventBase;
+_X_EXPORT unsigned char DGAReqCode = 0;
+_X_EXPORT int DGAErrorBase;
+_X_EXPORT int DGAEventBase;
 
 static int DGAClientPrivateKeyIndex;
 static DevPrivateKey DGAClientPrivateKey = &DGAClientPrivateKeyIndex;

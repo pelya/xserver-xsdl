@@ -41,7 +41,7 @@
 #include "xf86sbusBus.h"
 #include "xf86Sbus.h"
 
-Bool sbusSlotClaimed = FALSE;
+_X_EXPORT Bool sbusSlotClaimed = FALSE;
 
 static int xf86nSbusInfo;
 
@@ -79,7 +79,7 @@ CheckSbusDevice(const char *device, int fbNum)
     psdp->fd = -1;
 }
 
-void
+_X_EXPORT void
 xf86SbusProbe(void)
 {
     int i, useProm = 0;

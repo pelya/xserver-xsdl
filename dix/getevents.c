@@ -73,8 +73,8 @@
  * DDX. The DDX is expected to call GetEventList() and then pass the list into
  * Get{Pointer|Keyboard}Events.
  */
-EventListPtr InputEventList = NULL;
-int InputEventListLen = 0;
+_X_EXPORT EventListPtr InputEventList = NULL;
+_X_EXPORT int InputEventListLen = 0;
 
 _X_EXPORT int
 GetEventList(EventListPtr* list)
@@ -117,7 +117,7 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
               (1 << (key_code & 7)));
 }
 
-void
+_X_EXPORT void
 CreateClassesChangedEvent(EventList* event,
                           DeviceIntPtr master,
                           DeviceIntPtr slave)
@@ -903,7 +903,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
  *
  * @param num_events Number of elements in list.
  */
-EventListPtr
+_X_EXPORT EventListPtr
 InitEventList(int num_events)
 {
     EventListPtr events;
@@ -1135,7 +1135,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
  * Used in cursor functions, e.g. when cursor confinement changes, and we need
  * to shift the pointer to get it inside the new bounds.
  */
-void
+_X_EXPORT void
 PostSyntheticMotion(DeviceIntPtr pDev,
                     int x,
                     int y,

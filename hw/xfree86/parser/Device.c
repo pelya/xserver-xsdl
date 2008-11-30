@@ -357,7 +357,7 @@ xf86freeDeviceList (XF86ConfDevicePtr ptr)
 	}
 }
 
-XF86ConfDevicePtr
+_X_EXPORT XF86ConfDevicePtr
 xf86findDevice (const char *ident, XF86ConfDevicePtr p)
 {
 	while (p)
@@ -370,7 +370,7 @@ xf86findDevice (const char *ident, XF86ConfDevicePtr p)
 	return (NULL);
 }
 
-char *
+_X_EXPORT char *
 xf86configStrdup (const char *s)
 {
 	char *tmp;

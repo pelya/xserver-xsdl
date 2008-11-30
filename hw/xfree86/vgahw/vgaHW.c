@@ -725,7 +725,7 @@ vgaHWSeqReset(vgaHWPtr hwp, Bool start)
 }
 
 
-void
+_X_EXPORT void
 vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
 #if SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
@@ -839,7 +839,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 }
 
 
-void
+_X_EXPORT void
 vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -871,7 +871,7 @@ vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 }
 
 
-void
+_X_EXPORT void
 vgaHWRestoreColormap(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -910,7 +910,7 @@ vgaHWRestore(ScrnInfoPtr scrninfp, vgaRegPtr restore, int flags)
 	vgaHWRestoreColormap(scrninfp, restore);
 }
 
-void
+_X_EXPORT void
 vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
 #if  SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
@@ -1011,7 +1011,7 @@ vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 #endif /* SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2 */
 }
 
-void
+_X_EXPORT void
 vgaHWSaveMode(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -1055,7 +1055,7 @@ vgaHWSaveMode(ScrnInfoPtr scrninfp, vgaRegPtr save)
 }
 
 
-void
+_X_EXPORT void
 vgaHWSaveColormap(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -1544,7 +1544,7 @@ vgaHWAllocDefaultRegs(vgaRegPtr regp)
 }
 
 
-Bool
+_X_EXPORT Bool
 vgaHWSetRegCounts(ScrnInfoPtr scrp, int numCRTC, int numSequencer,
 		  int numGraphics, int numAttribute)
 {
@@ -1837,7 +1837,7 @@ vgaHWEnable(vgaHWPtr hwp)
 }
 
 
-void
+_X_EXPORT void
 vgaHWDisable(vgaHWPtr hwp)
 {
     hwp->writeEnable(hwp, hwp->readEnable(hwp) & ~0x01);
@@ -1940,7 +1940,7 @@ struct _vgaDdcSave {
     unsigned char msr;
 };
 
-void
+_X_EXPORT void
 vgaHWddc1SetSpeed(ScrnInfoPtr pScrn, xf86ddcSpeed speed)
 {
     vgaHWPtr hwp = VGAHWPTR(pScrn);

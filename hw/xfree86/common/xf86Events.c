@@ -130,7 +130,7 @@ typedef struct x_IHRec {
 static IHPtr InputHandlers = NULL;
 
 
-Bool
+_X_EXPORT Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
@@ -141,7 +141,7 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
  *      Function used for screensaver purposes by the os module. Returns the
  *      time in milliseconds since there last was any input.
  */
-int
+_X_EXPORT int
 TimeSinceLastInputEvent()
 {
   if (xf86Info.lastEventTime == 0) {
@@ -166,7 +166,7 @@ SetTimeSinceLastInputEvent()
  *      correct chronological order. Only reads from the system pointer
  *      and keyboard.
  */
-void
+_X_EXPORT void
 ProcessInputEvents ()
 {
   int x, y;
@@ -251,7 +251,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
  */
 
 /* ARGSUSED */
-void
+_X_EXPORT void
 xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 {
     fd_set* LastSelectMask = (fd_set*)pReadmask;
@@ -359,7 +359,7 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
  * xf86SigHandler --
  *    Catch unexpected signals and exit or continue cleanly.
  */
-void
+_X_EXPORT void
 xf86SigHandler(int signo)
 {
   if ((signo == SIGILL) && xf86SigIllHandler) {
@@ -802,7 +802,7 @@ xf86EnableVTSwitch(Bool new)
     return old;
 }
 
-void
+_X_EXPORT void
 xf86ReloadInputDevs(int sig)
 {
   InputInfoPtr pInfo;

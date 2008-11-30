@@ -48,7 +48,7 @@
 #define TOP_TO_BOTTOM	2
 #define BOTTOM_TO_TOP	-2
 
-void
+_X_EXPORT void
 shadowUpdateRotatePacked (ScreenPtr	pScreen,
 			  shadowBufPtr	pBuf)
 {
@@ -308,6 +308,6 @@ shadowUpdateRotatePacked (ScreenPtr	pScreen,
     }
 }
 
-shadowUpdateProc shadowUpdateRotatePackedWeak(void) {
+_X_EXPORT shadowUpdateProc shadowUpdateRotatePackedWeak(void) {
     return shadowUpdateRotatePacked;
 }

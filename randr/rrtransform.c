@@ -23,7 +23,7 @@
 #include "randrstr.h"
 #include "rrtransform.h"
 
-void
+_X_EXPORT void
 RRTransformInit (RRTransformPtr transform)
 {
     pixman_transform_init_identity (&transform->transform);
@@ -34,14 +34,14 @@ RRTransformInit (RRTransformPtr transform)
     transform->nparams = 0;
 }
 
-void
+_X_EXPORT void
 RRTransformFini (RRTransformPtr transform)
 {
     if (transform->params)
 	xfree (transform->params);
 }
 
-Bool
+_X_EXPORT Bool
 RRTransformEqual (RRTransformPtr a, RRTransformPtr b)
 {
     if (a && pixman_transform_is_identity (&a->transform))
@@ -63,7 +63,7 @@ RRTransformEqual (RRTransformPtr a, RRTransformPtr b)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RRTransformSetFilter (RRTransformPtr	dst,
 		      PictFilterPtr	filter,
 		      xFixed		*params,
@@ -92,7 +92,7 @@ RRTransformSetFilter (RRTransformPtr	dst,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 {
     if (src && pixman_transform_is_identity (&src->transform))
@@ -127,7 +127,7 @@ RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
  *
  * Return TRUE if the resulting transform is not a simple translation.
  */
-Bool
+_X_EXPORT Bool
 RRTransformCompute (int			    x,
 		    int			    y,
 		    int			    width,

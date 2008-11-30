@@ -161,7 +161,7 @@ checkMtrrOption(VidMapPtr vp)
 	}
 }
 
-void
+_X_EXPORT void
 xf86MakeNewMapping(int ScreenNum, int Flags, unsigned long Base, unsigned long Size, pointer Vbase)
 {
 	VidMapPtr vp;
@@ -175,7 +175,7 @@ xf86MakeNewMapping(int ScreenNum, int Flags, unsigned long Base, unsigned long S
 	mp->flags = Flags;
 }
 
-void
+_X_EXPORT void
 xf86InitVidMem(void)
 {
 	if (!vidMemInfo.initialised) {

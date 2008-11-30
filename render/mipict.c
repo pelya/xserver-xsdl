@@ -37,20 +37,20 @@
 #define __inline
 #endif
 
-int
+_X_EXPORT int
 miCreatePicture (PicturePtr pPicture)
 {
     return Success;
 }
 
-void
+_X_EXPORT void
 miDestroyPicture (PicturePtr pPicture)
 {
     if (pPicture->freeCompClip)
 	REGION_DESTROY(pPicture->pDrawable->pScreen, pPicture->pCompositeClip);
 }
 
-void
+_X_EXPORT void
 miDestroyPictureClip (PicturePtr pPicture)
 {
     switch (pPicture->clientClipType) {
@@ -71,7 +71,7 @@ miDestroyPictureClip (PicturePtr pPicture)
     pPicture->clientClipType = CT_NONE;
 }    
 
-int
+_X_EXPORT int
 miChangePictureClip (PicturePtr    pPicture,
 		     int	   type,
 		     pointer	   value,
@@ -116,14 +116,14 @@ miChangePictureClip (PicturePtr    pPicture,
     return Success;
 }
 
-void
+_X_EXPORT void
 miChangePicture (PicturePtr pPicture,
 		 Mask       mask)
 {
     return;
 }
 
-void
+_X_EXPORT void
 miValidatePicture (PicturePtr pPicture,
 		   Mask       mask)
 {
@@ -248,14 +248,14 @@ miValidatePicture (PicturePtr pPicture,
     }
 }
 
-int
+_X_EXPORT int
 miChangePictureTransform (PicturePtr	pPicture,
 			  PictTransform *transform)
 {
     return Success;
 }
 
-int
+_X_EXPORT int
 miChangePictureFilter (PicturePtr pPicture,
 		       int	  filter,
 		       xFixed     *params,
@@ -341,7 +341,7 @@ miClipPictureSrc (RegionPtr	pRegion,
     }
 }
 
-void
+_X_EXPORT void
 miCompositeSourceValidate (PicturePtr	pPicture,
 			   INT16	x,
 			   INT16	y,
@@ -494,7 +494,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     return TRUE;
 }
 
-void
+_X_EXPORT void
 miRenderColorToPixel (PictFormatPtr format,
 		      xRenderColor  *color,
 		      CARD32	    *pixel)
@@ -545,7 +545,7 @@ miFillColor (CARD32 pixel, int bits)
     return (CARD16) pixel;
 }
 
-Bool
+_X_EXPORT Bool
 miIsSolidAlpha (PicturePtr pSrc)
 {
     ScreenPtr	pScreen;
@@ -579,7 +579,7 @@ miIsSolidAlpha (PicturePtr pSrc)
     }
 }
 
-void
+_X_EXPORT void
 miRenderPixelToColor (PictFormatPtr format,
 		      CARD32	    pixel,
 		      xRenderColor  *color)

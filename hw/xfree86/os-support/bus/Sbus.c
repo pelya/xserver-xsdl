@@ -41,7 +41,7 @@
 #include "xf86sbusBus.h"
 #include "xf86Sbus.h"
 
-int promRootNode;
+_X_EXPORT int promRootNode;
 
 static int promFd = -1;
 static int promCurrentNode;
@@ -51,7 +51,7 @@ static int promP1275 = -1;
 #define MAX_VAL		(4096-128-4)
 static struct openpromio *promOpio;
 
-sbusDevicePtr *xf86SbusInfo = NULL;
+_X_EXPORT sbusDevicePtr *xf86SbusInfo = NULL;
 
 struct sbus_devtable sbusDeviceTable[] = {
     { SBUS_DEVICE_BW2, FBTYPE_SUN2BW, "bwtwo", "sunbw2", "Sun Monochrome (bwtwo)" },
@@ -71,7 +71,7 @@ struct sbus_devtable sbusDeviceTable[] = {
     { 0, 0, NULL }
 };
 
-int
+_X_EXPORT int
 promGetSibling(int node)
 {
     promOpio->oprom_size = sizeof(int);
@@ -84,7 +84,7 @@ promGetSibling(int node)
     return *(int *)promOpio->oprom_array;
 }
 
-int
+_X_EXPORT int
 promGetChild(int node)
 {
     promOpio->oprom_size = sizeof(int);
@@ -97,7 +97,7 @@ promGetChild(int node)
     return *(int *)promOpio->oprom_array;
 }
 
-char *
+_X_EXPORT char *
 promGetProperty(const char *prop, int *lenp)
 {
     promOpio->oprom_size = MAX_VAL;
@@ -109,7 +109,7 @@ promGetProperty(const char *prop, int *lenp)
     return promOpio->oprom_array;
 }
 
-int
+_X_EXPORT int
 promGetBool(const char *prop)
 {
     promOpio->oprom_size = 0;
@@ -281,7 +281,7 @@ promWalkGetDriverName(int node, int oldnode)
     return NULL;
 }
 
-char *
+_X_EXPORT char *
 sparcDriverName(void)
 {
     char *name;
@@ -367,7 +367,7 @@ promWalkAssignNodes(int node, int oldnode, int flags, sbusDevicePtr *devicePtrs)
 	promWalkAssignNodes(nextnode, node, PROM_NODE_SIBLING | sbus, devicePtrs);
 }
 
-void
+_X_EXPORT void
 sparcPromAssignNodes(void)
 {
     sbusDevicePtr psdp, *psdpp;
@@ -509,7 +509,7 @@ promWalkNode2Pathname(char *path, int parent, int node, int searchNode, int type
     return 0;
 }
 
-char *
+_X_EXPORT char *
 sparcPromNode2Pathname(sbusPromNodePtr pnode)
 {
     char *ret;
@@ -578,7 +578,7 @@ promWalkPathname2Node(char *name, char *regstr, int parent, int type)
     }
 }
 
-int
+_X_EXPORT int
 sparcPromPathname2Node(const char *pathName)
 {
     int i;

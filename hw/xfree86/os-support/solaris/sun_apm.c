@@ -199,7 +199,7 @@ sunPMConfirmEventToOs(int fd, pmEvent event)
     }
 }
 
-PMClose
+_X_EXPORT PMClose
 xf86OSPMOpen(void)
 {
     int fd;

@@ -68,7 +68,7 @@ char *rtrn;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbAtomText(Atom atm,unsigned format)
 {
 char	*rtrn,*tmp;
@@ -100,7 +100,7 @@ char	*rtrn,*tmp;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbVModIndexText(XkbDescPtr xkb,unsigned ndx,unsigned format)
 {
 register int len;
@@ -134,7 +134,7 @@ char  numBuf[20];
     return rtrn;
 }
 
-char *
+_X_EXPORT char *
 XkbVModMaskText(        XkbDescPtr	xkb,
 			unsigned	modMask,
 			unsigned	mask,
@@ -216,7 +216,7 @@ static char *modNames[XkbNumModifiers] = {
     "Shift", "Lock", "Control", "Mod1", "Mod2", "Mod3", "Mod4", "Mod5"
 };
 
-char *
+_X_EXPORT char *
 XkbModIndexText(unsigned ndx,unsigned format)
 {
 char *	rtrn;
@@ -241,7 +241,7 @@ char	buf[100];
     return rtrn;
 }
 
-char *
+_X_EXPORT char *
 XkbModMaskText(unsigned mask,unsigned format)
 {
 register int i,bit;
@@ -281,7 +281,7 @@ char buf[64],*rtrn;
 /***====================================================================***/
 
 /*ARGSUSED*/
-char *
+_X_EXPORT char *
 XkbConfigText(unsigned config,unsigned format)
 {
 static char *buf;
@@ -328,7 +328,7 @@ static char *buf;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbKeysymText(KeySym sym,unsigned format)
 {
 static char buf[32],*rtrn;
@@ -339,7 +339,7 @@ static char buf[32],*rtrn;
     return rtrn;
 }
 
-char *
+_X_EXPORT char *
 XkbKeyNameText(char *name,unsigned format)
 {
 char *buf;
@@ -368,7 +368,7 @@ static char *siMatchText[5] = {
 	"NoneOf", "AnyOfOrNone", "AnyOf", "AllOf", "Exactly"
 };
 
-char *
+_X_EXPORT char *
 XkbSIMatchText(unsigned type,unsigned format)
 {
 static char buf[40];
@@ -402,7 +402,7 @@ static char *imWhichNames[]= {
 	"compat"
 };
 
-char *
+_X_EXPORT char *
 XkbIMWhichStateMaskText(unsigned use_which,unsigned format)
 {
 int		len;
@@ -461,7 +461,7 @@ static char *ctrlNames[] = {
 	"ignoreGroupLock"
 };
 
-char *
+_X_EXPORT char *
 XkbControlsMaskText(unsigned ctrls,unsigned format)
 {
 int		len;
@@ -508,7 +508,7 @@ char *		buf;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbStringText(char *str,unsigned format)
 {
 char *	buf;
@@ -568,7 +568,7 @@ Bool	ok;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbGeomFPText(int val,unsigned format)
 {
 int	whole,frac;
@@ -588,7 +588,7 @@ char *	buf;
     return buf;
 }
 
-char *
+_X_EXPORT char *
 XkbDoodadTypeText(unsigned type,unsigned format)
 {
 char *	buf;
@@ -628,7 +628,7 @@ static char *actionTypeNames[XkbSA_NumActions]= {
     "DeviceBtn",    "LockDeviceBtn"
 };
 
-char *
+_X_EXPORT char *
 XkbActionTypeText(unsigned type,unsigned format)
 {
 static char buf[32];
@@ -1125,7 +1125,7 @@ static actionCopy	copyActionArgs[XkbSA_NumActions] = {
 
 #define	ACTION_SZ	256
 
-char *
+_X_EXPORT char *
 XkbActionText(XkbDescPtr xkb,XkbAction *action,unsigned format)
 {
 char	buf[ACTION_SZ],*tmp;
@@ -1153,7 +1153,7 @@ int	sz;
     return tmp;
 }
 
-char *
+_X_EXPORT char *
 XkbBehaviorText(XkbDescPtr xkb,XkbBehavior *behavior,unsigned format)
 {
 char	buf[256],*tmp;
@@ -1210,7 +1210,7 @@ char	buf[256],*tmp;
 
 /***====================================================================***/
 
-char *
+_X_EXPORT char *
 XkbIndentText(unsigned size)
 {
 static char buf[32];

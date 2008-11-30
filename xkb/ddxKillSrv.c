@@ -38,7 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "windowstr.h"
 #include <xkbsrv.h>
 
-int
+_X_EXPORT int
 XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     if (dev != inputInfo.keyboard)

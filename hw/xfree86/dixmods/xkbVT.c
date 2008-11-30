@@ -45,7 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "xf86.h"
 
-int
+_X_EXPORT int
 XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     int scrnnum = XkbSAScreen(&act->screen);

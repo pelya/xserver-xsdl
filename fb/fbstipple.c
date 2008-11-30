@@ -56,7 +56,7 @@
  * Repeat a transparent stipple across a scanline n times
  */
 
-void
+_X_EXPORT void
 fbTransparentSpan (FbBits   *dst,
 		   FbBits   stip,
 		   FbBits   fgxor,
@@ -80,7 +80,7 @@ fbTransparentSpan (FbBits   *dst,
 }
 #endif
 
-void
+_X_EXPORT void
 fbEvenStipple (FbBits	*dst,
 	       FbStride	dstStride,
 	       int	dstX,
@@ -213,7 +213,7 @@ fbEvenStipple (FbBits	*dst,
     }
 }
 
-void
+_X_EXPORT void
 fbOddStipple (FbBits	*dst,
 	      FbStride	dstStride,
 	      int	dstX,
@@ -278,7 +278,7 @@ fbOddStipple (FbBits	*dst,
     }
 }
 
-void
+_X_EXPORT void
 fbStipple (FbBits	*dst,
 	   FbStride	dstStride,
 	   int		dstX,

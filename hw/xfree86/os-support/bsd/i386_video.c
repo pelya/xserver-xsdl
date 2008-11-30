@@ -448,7 +448,7 @@ xf86DisableIO()
 /***************************************************************************/
 /* Set TV output mode                                                      */
 /***************************************************************************/
-void
+_X_EXPORT void
 xf86SetTVOut(int mode)
 {    
     switch (xf86Info.consType)
@@ -473,7 +473,7 @@ xf86SetTVOut(int mode)
     return;
 }
 
-void
+_X_EXPORT void
 xf86SetRGBOut()
 {    
     switch (xf86Info.consType)

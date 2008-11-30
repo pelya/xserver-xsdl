@@ -67,7 +67,7 @@ SOFTWARE.
 #define BITCLEAR(buf, i) MASKWORD(buf, i) &= ~BITMASK(i)
 #define GETBIT(buf, i) (MASKWORD(buf, i) & BITMASK(i))
 
-GrabPtr
+_X_EXPORT GrabPtr
 CreateGrab(
     int client,
     DeviceIntPtr device,
@@ -128,7 +128,7 @@ FreeGrab(GrabPtr pGrab)
     xfree(pGrab);
 }
 
-int
+_X_EXPORT int
 DeletePassiveGrab(pointer value, XID id)
 {
     GrabPtr g, prev;
@@ -254,7 +254,7 @@ GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
  * ignored.
  * @return TRUE if the grabs match or FALSE otherwise.
  */
-Bool
+_X_EXPORT Bool
 GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 {
     if (!ignoreDevice &&
@@ -324,7 +324,7 @@ GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
  * 
  * @return Success or X error code on failure.
  */
-int
+_X_EXPORT int
 AddPassiveGrabToList(ClientPtr client, GrabPtr pGrab)
 {
     GrabPtr grab;
@@ -376,7 +376,7 @@ AddPassiveGrabToList(ClientPtr client, GrabPtr pGrab)
  * if any allocation fails
  */
 
-Bool
+_X_EXPORT Bool
 DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 {
     GrabPtr grab;

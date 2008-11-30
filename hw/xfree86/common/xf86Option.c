@@ -855,7 +855,7 @@ xf86NameCmp(const char *s1, const char *s2)
     return xf86nameCompare(s1, s2);
 }
 
-char *
+_X_EXPORT char *
 xf86NormalizeName(const char *s)
 {
     char *ret, *q;

@@ -136,7 +136,7 @@ typedef struct _ShapeEvent {
  *
  ****************/
 
-void
+_X_EXPORT void
 ShapeExtensionInit(void)
 {
     ExtensionEntry *extEntry;
@@ -238,7 +238,7 @@ RegionOperate (client, pWin, kind, destRgnp, srcRgn, op, xoff, yoff, create)
     return Success;
 }
 
-RegionPtr
+_X_EXPORT RegionPtr
 CreateBoundingShape (pWin)
     WindowPtr	pWin;
 {
@@ -251,7 +251,7 @@ CreateBoundingShape (pWin)
     return REGION_CREATE(pWin->drawable.pScreen, &extents, 1);
 }
 
-RegionPtr
+_X_EXPORT RegionPtr
 CreateClipShape (pWin)
     WindowPtr	pWin;
 {
@@ -895,7 +895,7 @@ ProcShapeSelectInput (client)
  * deliver the event
  */
 
-void
+_X_EXPORT void
 SendShapeNotify (pWin, which)
     WindowPtr	pWin;
     int		which;

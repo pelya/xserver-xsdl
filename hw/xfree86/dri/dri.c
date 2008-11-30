@@ -132,26 +132,26 @@ DRIOpenDRMCleanup(DRIEntPrivPtr pDRIEntPriv)
     }
 }
 
-int
+_X_EXPORT int
 DRIMasterFD(ScrnInfoPtr pScrn)
 {
     return DRI_ENT_PRIV(pScrn)->drmFD;
 }
 
-void *
+_X_EXPORT void *
 DRIMasterSareaPointer(ScrnInfoPtr pScrn)
 {
     return DRI_ENT_PRIV(pScrn)->pLSAREA;
 }
 
-drm_handle_t
+_X_EXPORT drm_handle_t
 DRIMasterSareaHandle(ScrnInfoPtr pScrn)
 {
     return DRI_ENT_PRIV(pScrn)->hLSAREA;
 }
 
 
-Bool
+_X_EXPORT Bool
 DRIOpenDRMMaster(ScrnInfoPtr pScrn,
 		 unsigned long sAreaSize,
 		 const char *busID,
@@ -785,7 +785,7 @@ drmServerInfo DRIDRMServerInfo =  {
   dri_drm_get_perms,
 };
 
-Bool
+_X_EXPORT Bool
 DRIExtensionInit(void)
 {
     if (!DRIScreenPrivKey || DRIGeneration != serverGeneration) {
@@ -800,7 +800,7 @@ DRIExtensionInit(void)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 DRIReset(void)
 {
     /*
@@ -880,7 +880,7 @@ DRIGetClientDriverName(ScreenPtr pScreen,
    DRICreateContextPriv returns a pointer to newly allocated
    DRIContextPriv, and returns the kernel drm_context_t in pHWContext. */
 
-DRIContextPrivPtr
+_X_EXPORT DRIContextPrivPtr
 DRICreateContextPriv(ScreenPtr pScreen,
 		     drm_context_t * pHWContext,
 		     DRIContextFlags flags)
@@ -894,7 +894,7 @@ DRICreateContextPriv(ScreenPtr pScreen,
     return DRICreateContextPrivFromHandle(pScreen, *pHWContext, flags);
 }
 
-DRIContextPrivPtr
+_X_EXPORT DRIContextPrivPtr
 DRICreateContextPrivFromHandle(ScreenPtr pScreen,
 			       drm_context_t hHWContext,
 			       DRIContextFlags flags)
@@ -940,7 +940,7 @@ DRICreateContextPrivFromHandle(ScreenPtr pScreen,
     return pDRIContextPriv;
 }
 
-Bool
+_X_EXPORT Bool
 DRIDestroyContextPriv(DRIContextPrivPtr pDRIContextPriv)
 {
     DRIScreenPrivPtr pDRIPriv;
@@ -1059,7 +1059,7 @@ DRIDestroyContext(ScreenPtr pScreen, XID context)
 }
 
 /* DRIContextPrivDelete is called by the resource manager. */
-Bool
+_X_EXPORT Bool
 DRIContextPrivDelete(pointer pResource, XID id)
 {
     DRIContextPrivPtr pDRIContextPriv = (DRIContextPrivPtr)pResource;
@@ -1361,7 +1361,7 @@ DRIDestroyDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRIDrawablePrivDelete(pointer pResource, XID id)
 {
     WindowPtr pWin;
@@ -1645,7 +1645,7 @@ DRIBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
     }
 }
 
-void
+_X_EXPORT void
 DRIDoWakeupHandler(int screenNum, pointer wakeupData,
                    unsigned long result, pointer pReadmask)
 {
@@ -1664,7 +1664,7 @@ DRIDoWakeupHandler(int screenNum, pointer wakeupData,
     }
 }
 
-void
+_X_EXPORT void
 DRIDoBlockHandler(int screenNum, pointer blockData,
                   pointer pTimeout, pointer pReadmask)
 {
@@ -1688,7 +1688,7 @@ DRIDoBlockHandler(int screenNum, pointer blockData,
     DRIUnlock(pScreen);
 }
 
-void
+_X_EXPORT void
 DRISwapContext(int drmFD, void *oldctx, void *newctx)
 {
     DRIContextPrivPtr oldContext      = (DRIContextPrivPtr)oldctx;
@@ -1835,13 +1835,13 @@ DRISwapContext(int drmFD, void *oldctx, void *newctx)
 					  newContextStore);
 }
 
-void* 
+_X_EXPORT void* 
 DRIGetContextStore(DRIContextPrivPtr context)
 {
     return((void *)context->pContextStore);
 }
 
-void
+_X_EXPORT void
 DRIWindowExposures(WindowPtr pWin, RegionPtr prgn, RegionPtr bsreg)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -1891,7 +1891,7 @@ DRITreeTraversal(WindowPtr pWin, pointer data)
     return WT_WALKCHILDREN;
 }
 
-Bool
+_X_EXPORT Bool
 DRIDestroyWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -1916,7 +1916,7 @@ DRIDestroyWindow(WindowPtr pWin)
     return retval;
 }
 
-void
+_X_EXPORT void
 DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -2055,7 +2055,7 @@ DRILockTree(ScreenPtr pScreen)
     }
 }
 
-int
+_X_EXPORT int
 DRIValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
 {
     ScreenPtr pScreen = pParent->drawable.pScreen;
@@ -2081,7 +2081,7 @@ DRIValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
     return returnValue;
 }
 
-void
+_X_EXPORT void
 DRIPostValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
 {
     ScreenPtr pScreen;
@@ -2107,7 +2107,7 @@ DRIPostValidateTree(WindowPtr pParent, WindowPtr pChild, VTKind kind)
     }
 }
 
-void
+_X_EXPORT void
 DRIClipNotify(WindowPtr pWin, int dx, int dy)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -2174,7 +2174,7 @@ DRIGetDrawableIndex(WindowPtr pWin)
     return index;
 }
 
-unsigned int
+_X_EXPORT unsigned int
 DRIGetDrawableStamp(ScreenPtr pScreen, CARD32 drawable_index)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2182,7 +2182,7 @@ DRIGetDrawableStamp(ScreenPtr pScreen, CARD32 drawable_index)
 }
 
 
-void
+_X_EXPORT void
 DRIPrintDrawableLock(ScreenPtr pScreen, char *msg)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
@@ -2271,7 +2271,7 @@ DRIGetTexOffsetFuncs(ScreenPtr pScreen,
  * call the lowerlevel functions, and choose whether they will be
  * called at every level of recursion (eg in validatetree).
  */
-DRIWrappedFuncsRec *
+_X_EXPORT DRIWrappedFuncsRec *
 DRIGetWrappedFuncs(ScreenPtr pScreen)
 {
     return &(DRI_SCREEN_PRIV(pScreen)->wrap);
@@ -2297,7 +2297,7 @@ _DRIAdjustFrame(ScrnInfoPtr pScrn, DRIScreenPrivPtr pDRIPriv, int x, int y)
     pDRIPriv->pSAREA->frame.height = pScrn->frameY1 - y + 1;
 }
 
-void
+_X_EXPORT void
 DRIAdjustFrame(int scrnIndex, int x, int y, int flags)
 {
     ScreenPtr        pScreen  = screenInfo.screens[scrnIndex];
@@ -2479,7 +2479,7 @@ static void drmSIGIOHandler(int interrupt, void *closure)
 }
 
 
-int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *))
+_X_EXPORT int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *))
 {
     drmHashEntry     *entry;
 
@@ -2489,7 +2489,7 @@ int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *))
     return xf86InstallSIGIOHandler(fd, drmSIGIOHandler, 0);
 }
 
-int drmRemoveSIGIOHandler(int fd)
+_X_EXPORT int drmRemoveSIGIOHandler(int fd)
 {
     drmHashEntry     *entry = drmGetEntry(fd);
 

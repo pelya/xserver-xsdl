@@ -160,7 +160,7 @@ XAAFillArcSliceSolid(DrawablePtr pDraw, GCPtr pGC, xArc *arc)
 }
 
 
-void
+_X_EXPORT void
 XAAPolyFillArcSolid(pDraw, pGC, narcs, parcs)
     DrawablePtr	pDraw;
     GCPtr	pGC;

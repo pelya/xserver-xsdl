@@ -341,7 +341,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 
 /* send GraphicsExpose events, or a NoExpose event, based on the region */
 
-void
+_X_EXPORT void
 miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
                       int major, int minor)
 {
@@ -388,7 +388,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
 }
 
 
-void
+_X_EXPORT void
 miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 {
     BoxPtr pBox;
@@ -514,7 +514,7 @@ miWindowExposures( WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
 	REGION_DESTROY( pWin->drawable.pScreen, exposures);
 }
 
-void
+_X_EXPORT void
 miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;

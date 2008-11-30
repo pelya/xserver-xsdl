@@ -215,7 +215,7 @@ _X_EXPORT CallbackListPtr DeviceEventCallback;
 
 #define DNPMCOUNT 8
 
-Mask DontPropagateMasks[DNPMCOUNT];
+_X_EXPORT Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
 
@@ -757,7 +757,7 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 
 #endif  /* PANORAMIX */
 
-void
+_X_EXPORT void
 SetMaskForEvent(int deviceid, Mask mask, int event)
 {
     int coretype;
@@ -781,7 +781,7 @@ SetCriticalEvent(int event)
     criticalEvents[event >> 3] |= 1 << (event & 7);
 }
 
-void
+_X_EXPORT void
 ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 {
     BoxRec box;
@@ -988,7 +988,7 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 /**
  * @returns true if b is a descendent of a
  */
-Bool
+_X_EXPORT Bool
 IsParent(WindowPtr a, WindowPtr b)
 {
     for (b = b->parent; b; b = b->parent)
@@ -1114,7 +1114,7 @@ MonthChangedOrBadTime(xEvent *xE)
     currentTime.milliseconds = (xE)->u.keyButtonPointer.time; \
     lastDeviceEventTime = currentTime; }
 
-void
+_X_EXPORT void
 NoticeEventTime(xEvent *xE)
 {
     if (!syncEvents.playingEvents)
@@ -1130,7 +1130,7 @@ NoticeEventTime(xEvent *xE)
  * Instead of delivering the events to the client, the event is tacked onto a
  * linked list for later delivery.
  */
-void
+_X_EXPORT void
 EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 {
     QdEventPtr	tail = *syncEvents.pendtail;
@@ -1400,7 +1400,7 @@ playmore:
 }
 
 #ifdef RANDR
-void
+_X_EXPORT void
 ScreenRestructured (ScreenPtr pScreen)
 {
     GrabPtr grab;
@@ -1526,7 +1526,7 @@ RestoreOldMaster(DeviceIntPtr dev)
  * @param autoGrab True if the grab was caused by a button down event and not
  * explicitely by a client.
  */
-void
+_X_EXPORT void
 ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
                     TimeStamp time, Bool autoGrab)
 {
@@ -1572,7 +1572,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
  *
  * Extension devices are set up for ActivateKeyboardGrab().
  */
-void
+_X_EXPORT void
 DeactivatePointerGrab(DeviceIntPtr mouse)
 {
     GrabPtr grab = mouse->deviceGrab.grab;
@@ -1615,7 +1615,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
  *
  * Extension devices have ActivateKeyboardGrab() set as their grabbing proc.
  */
-void
+_X_EXPORT void
 ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool passive)
 {
     GrabInfoPtr grabinfo = &keybd->deviceGrab;
@@ -1652,7 +1652,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
 /**
  * Delete keyboard grab for the given device.
  */
-void
+_X_EXPORT void
 DeactivateKeyboardGrab(DeviceIntPtr keybd)
 {
     GrabPtr grab = keybd->deviceGrab.grab;
@@ -1687,7 +1687,7 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     ComputeFreezes();
 }
 
-void
+_X_EXPORT void
 AllowSome(ClientPtr client,
           TimeStamp time,
           DeviceIntPtr thisDev,
@@ -1817,7 +1817,7 @@ AllowSome(ClientPtr client,
  *
  * Release some events from a frozen device.
  */
-int
+_X_EXPORT int
 ProcAllowEvents(ClientPtr client)
 {
     TimeStamp		time;
@@ -1867,7 +1867,7 @@ ProcAllowEvents(ClientPtr client)
 /**
  * Deactivate grabs from any device that has been grabbed by the client.
  */
-void
+_X_EXPORT void
 ReleaseActiveGrabs(ClientPtr client)
 {
     DeviceIntPtr dev;
@@ -2013,7 +2013,7 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
  *
  * @return Number of events delivered to various clients.
  */
-int
+_X_EXPORT int
 DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         *pEvents, int count, Mask filter, GrabPtr grab, int mskidx)
 {
@@ -2225,7 +2225,7 @@ XineramaTryClientEventsResult(
  * @param filter Mask based on event type.
  * @param dontClient Don't deliver to the dontClient.
  */
-int
+_X_EXPORT int
 MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
                            int count, Mask filter, ClientPtr dontClient)
 {
@@ -2355,7 +2355,7 @@ FixUpEventFromWindow(
  * @see DeliverGrabbedEvent
  * @see DeliverFocusedEvent
  */
-int
+_X_EXPORT int
 DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
                     WindowPtr stopAt, DeviceIntPtr dev, int count)
 {
@@ -2613,7 +2613,7 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
  *
  * @return TRUE if the sprite has moved or FALSE otherwise.
  */
-Bool
+_X_EXPORT Bool
 CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
     INT16     *rootX, *rootY;
@@ -2710,7 +2710,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
  * Windows have restructured, we need to update the sprite position and the
  * sprite's cursor.
  */
-void
+_X_EXPORT void
 WindowsRestructured(void)
 {
     DeviceIntPtr pDev = inputInfo.devices;
@@ -2728,7 +2728,7 @@ WindowsRestructured(void)
  * other than 0,0, the information in the private sprite structure must
  * be updated accordingly, or XYToWindow (and other routines) will not
  * compute correctly. */
-void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
+_X_EXPORT void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 {
     GrabPtr   grab;
     DeviceIntPtr pDev;
@@ -2782,7 +2782,7 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
  *
  * Should delete this now? -ds
  */
-void
+_X_EXPORT void
 DefineInitialRootWindow(WindowPtr win)
 {
 }
@@ -2802,7 +2802,7 @@ DefineInitialRootWindow(WindowPtr win)
  * @param pWin The window where to generate the sprite in.
  *
  */
-void
+_X_EXPORT void
 InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 {
     SpritePtr pSprite;
@@ -2918,7 +2918,7 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
  * reset the mouse pointer position.
  * @param win must be the new pScreen we are switching to.
  */
-void
+_X_EXPORT void
 UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     SpritePtr pSprite = NULL;
@@ -2970,7 +2970,7 @@ UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
  * between the one the pointer is in and the one that the last cursor was
  * instantiated from.
  */
-void
+_X_EXPORT void
 WindowHasNewCursor(WindowPtr pWin)
 {
     DeviceIntPtr pDev;
@@ -3139,7 +3139,7 @@ XineramaWarpPointer(ClientPtr client)
  * Server-side protocol handling for WarpPointer request.
  * Warps the cursor position to the coordinates given in the request.
  */
-int
+_X_EXPORT int
 ProcWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
@@ -3438,7 +3438,7 @@ CheckPassiveGrabsOnWindow(
  * @return TRUE if a grab has been activated or false otherwise.
 */
 
-Bool
+_X_EXPORT Bool
 CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
                  int checkFirst, int count)
 {
@@ -3512,7 +3512,7 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
  * @param window Window underneath the sprite.
  * @param count number of events in xE.
  */
-void
+_X_EXPORT void
 DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 {
     DeviceIntPtr pointer;
@@ -3570,7 +3570,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
  *
  * @param deactivateGrab True if the device's grab should be deactivated.
  */
-void
+_X_EXPORT void
 DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                     Bool deactivateGrab, int count)
 {
@@ -3742,7 +3742,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
  * @param keybd The device that caused an event.
  * @param count Number of elements in xE.
  */
-void
+_X_EXPORT void
 #ifdef XKB
 CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
 #else
@@ -3823,7 +3823,7 @@ ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
    this is only used when the pressing of keys does not cause
    the device's processInputProc to be called, as in for example Mouse Keys.
 */
-void
+_X_EXPORT void
 FixKeyState (xEvent *xE, DeviceIntPtr keybd)
 {
     int             key, bit;
@@ -3862,7 +3862,7 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
  * @param mouse The device that caused an event.
  * @param count Number of elements in xE.
  */
-void
+_X_EXPORT void
 #ifdef XKB
 CoreProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 #else
@@ -3969,7 +3969,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
  *
  * Traverses to siblings and parents of the window.
  */
-void
+_X_EXPORT void
 RecalculateDeliverableEvents(pWin)
     WindowPtr pWin;
 {
@@ -4010,7 +4010,7 @@ RecalculateDeliverableEvents(pWin)
  *
  *  \param value must conform to DeleteType
  */
-int
+_X_EXPORT int
 OtherClientGone(pointer value, XID id)
 {
     OtherClientsPtr other, prev;
@@ -4039,7 +4039,7 @@ OtherClientGone(pointer value, XID id)
     return -1; /* make compiler happy */
 }
 
-int
+_X_EXPORT int
 EventSelectForWindow(WindowPtr pWin, ClientPtr client, Mask mask)
 {
     Mask check;
@@ -4123,7 +4123,7 @@ maskSet:
     return Success;
 }
 
-int
+_X_EXPORT int
 EventSuppressForWindow(WindowPtr pWin, ClientPtr client,
                        Mask mask, Bool *checkOptional)
 {
@@ -4478,7 +4478,7 @@ FocusOutEvents(
 	FocusEvent(dev, FocusOut, mode, detail, ancestor);
 }
 
-void
+_X_EXPORT void
 DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 {
     int     out, in;		       /* for holding details for to/from
@@ -4622,7 +4622,7 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
  * @param ctime Specifies the time.
  * @param followOK True if pointer is allowed to follow the keyboard.
  */
-int
+_X_EXPORT int
 SetInputFocus(
     ClientPtr client,
     DeviceIntPtr dev,
@@ -4714,7 +4714,7 @@ SetInputFocus(
  *
  * Sets the input focus for the virtual core keyboard.
  */
-int
+_X_EXPORT int
 ProcSetInputFocus(client)
     ClientPtr client;
 {
@@ -4733,7 +4733,7 @@ ProcSetInputFocus(client)
  * Sends the current input focus for the client's keyboard back to the
  * client.
  */
-int
+_X_EXPORT int
 ProcGetInputFocus(ClientPtr client)
 {
     DeviceIntPtr kbd = PickKeyboard(client);
@@ -4766,7 +4766,7 @@ ProcGetInputFocus(ClientPtr client)
  * Sets an active grab on the client's ClientPointer and returns success
  * status to client.
  */
-int
+_X_EXPORT int
 ProcGrabPointer(ClientPtr client)
 {
     xGrabPointerReply rep;
@@ -4900,7 +4900,7 @@ ProcGrabPointer(ClientPtr client)
  * Changes properties of the grab hold by the client. If the client does not
  * hold an active grab on the device, nothing happens.
  */
-int
+_X_EXPORT int
 ProcChangeActivePointerGrab(ClientPtr client)
 {
     DeviceIntPtr device;
@@ -4955,7 +4955,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
  *
  * Deletes a pointer grab on a device the client has grabbed.
  */
-int
+_X_EXPORT int
 ProcUngrabPointer(ClientPtr client)
 {
     DeviceIntPtr device = PickPointer(client);
@@ -4993,7 +4993,7 @@ ProcUngrabPointer(ClientPtr client)
  *
  * @returns Success or BadValue.
  */
-int
+_X_EXPORT int
 GrabDevice(ClientPtr client, DeviceIntPtr dev,
            unsigned this_mode, unsigned other_mode, Window grabWindow,
            unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status,
@@ -5074,7 +5074,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
  *
  * Grabs the client's keyboard and returns success status to client.
  */
-int
+_X_EXPORT int
 ProcGrabKeyboard(ClientPtr client)
 {
     xGrabKeyboardReply rep;
@@ -5103,7 +5103,7 @@ ProcGrabKeyboard(ClientPtr client)
  *
  * Deletes a possible grab on the client's keyboard.
  */
-int
+_X_EXPORT int
 ProcUngrabKeyboard(ClientPtr client)
 {
     DeviceIntPtr device = PickKeyboard(client);
@@ -5130,7 +5130,7 @@ ProcUngrabKeyboard(ClientPtr client)
  * Returns the current state and position of the client's ClientPointer to the
  * client.
  */
-int
+_X_EXPORT int
 ProcQueryPointer(ClientPtr client)
 {
     xQueryPointerReply rep;
@@ -5198,7 +5198,7 @@ ProcQueryPointer(ClientPtr client)
  * Initializes the device list and the DIX sprite to sane values. Allocates
  * trace memory used for quick window traversal.
  */
-void
+_X_EXPORT void
 InitEvents(void)
 {
     int i;
@@ -5242,7 +5242,7 @@ InitEvents(void)
         FatalError("[dix] Failed to allocate input event list.\n");
 }
 
-void
+_X_EXPORT void
 CloseDownEvents(void)
 {
     int len;
@@ -5258,7 +5258,7 @@ CloseDownEvents(void)
  *
  * Locates the window to send the event to and forwards the event.
  */
-int
+_X_EXPORT int
 ProcSendEvent(ClientPtr client)
 {
     WindowPtr pWin;
@@ -5355,7 +5355,7 @@ ProcSendEvent(ClientPtr client)
  * Deletes a passive grab for the given key. Works on the
  * client's keyboard.
  */
-int
+_X_EXPORT int
 ProcUngrabKey(ClientPtr client)
 {
     REQUEST(xUngrabKeyReq);
@@ -5404,7 +5404,7 @@ ProcUngrabKey(ClientPtr client)
  * Creates a grab for the client's keyboard and adds it to the list of passive
  * grabs.
  */
-int
+_X_EXPORT int
 ProcGrabKey(ClientPtr client)
 {
     WindowPtr pWin;
@@ -5465,7 +5465,7 @@ ProcGrabKey(ClientPtr client)
  * Creates a grab for the client's ClientPointer and adds it as a passive grab
  * to the list.
  */
-int
+_X_EXPORT int
 ProcGrabButton(ClientPtr client)
 {
     WindowPtr pWin, confineTo;
@@ -5600,7 +5600,7 @@ ProcUngrabButton(ClientPtr client)
  * @param freeResources True if resources associated with the window should be
  * deleted.
  */
-void
+_X_EXPORT void
 DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 {
     WindowPtr		parent;
@@ -5741,7 +5741,7 @@ CheckCursorConfinement(WindowPtr pWin)
     }
 }
 
-Mask
+_X_EXPORT Mask
 EventMaskForClient(WindowPtr pWin, ClientPtr client)
 {
     OtherClientsPtr	other;
@@ -5759,7 +5759,7 @@ EventMaskForClient(WindowPtr pWin, ClientPtr client)
 /**
  * Server-side protocol handling for RecolorCursor request.
  */
-int
+_X_EXPORT int
 ProcRecolorCursor(ClientPtr client)
 {
     CursorPtr pCursor;
@@ -6026,7 +6026,7 @@ PickKeyboard(ClientPtr client)
  * Return true if a core event from the device would interfere and should not
  * be delivered.
  */
-Bool
+_X_EXPORT Bool
 IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
 {
     DeviceIntPtr it = inputInfo.devices;
@@ -6152,7 +6152,7 @@ ExtGrabDevice(ClientPtr client,
 /*
  * @return Zero if no devices has focus on the window, non-zero otherwise.
  */
-int
+_X_EXPORT int
 FocusSemaphoresIsset(WindowPtr win)
 {
     int set = 0;

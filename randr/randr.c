@@ -53,14 +53,14 @@ static int	RRNScreens;
 static int ProcRRDispatch (ClientPtr pClient);
 static int SProcRRDispatch (ClientPtr pClient);
 
-int	RREventBase;
-int	RRErrorBase;
-RESTYPE RRClientType, RREventType; /* resource types for event masks */
+_X_EXPORT int	RREventBase;
+_X_EXPORT int	RRErrorBase;
+_X_EXPORT RESTYPE RRClientType, RREventType; /* resource types for event masks */
 static int RRClientPrivateKeyIndex;
-DevPrivateKey RRClientPrivateKey = &RRClientPrivateKeyIndex;
+_X_EXPORT DevPrivateKey RRClientPrivateKey = &RRClientPrivateKeyIndex;
 
 static int rrPrivKeyIndex;
-DevPrivateKey rrPrivKey = &rrPrivKeyIndex;
+_X_EXPORT DevPrivateKey rrPrivKey = &rrPrivKeyIndex;
 
 static void
 RRClientCallback (CallbackListPtr	*list,
@@ -196,7 +196,7 @@ SRRNotifyEvent (xEvent *from,
 
 static int RRGeneration;
 
-Bool RRInit (void)
+_X_EXPORT Bool RRInit (void)
 {
     if (RRGeneration != serverGeneration)
     {
@@ -211,7 +211,7 @@ Bool RRInit (void)
     return TRUE;
 }
 
-Bool RRScreenInit(ScreenPtr pScreen)
+_X_EXPORT Bool RRScreenInit(ScreenPtr pScreen)
 {
     rrScrPrivPtr   pScrPriv;
 
@@ -314,7 +314,7 @@ RRFreeEvents (pointer data, XID id)
     return 1;
 }
 
-void
+_X_EXPORT void
 RRExtensionInit (void)
 {
     ExtensionEntry *extEntry;
@@ -398,7 +398,7 @@ TellChanged (WindowPtr pWin, pointer value)
 /*
  * Something changed; send events and adjust pointer position
  */
-void
+_X_EXPORT void
 RRTellChanged (ScreenPtr pScreen)
 {
     rrScrPriv (pScreen);
@@ -431,7 +431,7 @@ RRTellChanged (ScreenPtr pScreen)
  * Return the first output which is connected to an active CRTC
  * Used in emulating 1.0 behaviour
  */
-RROutputPtr
+_X_EXPORT RROutputPtr
 RRFirstOutput (ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
@@ -451,7 +451,7 @@ RRFirstOutput (ScreenPtr pScreen)
     return NULL;
 }
 
-CARD16
+_X_EXPORT CARD16
 RRVerticalRefresh (xRRModeInfo *mode)
 {
     CARD32  refresh;

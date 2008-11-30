@@ -191,7 +191,7 @@ YieldControlDeath(void)
     timesThisConnection = 0;
 }
 
-int
+_X_EXPORT int
 ReadRequestFromClient(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -465,7 +465,7 @@ ReadRequestFromClient(ClientPtr client)
  *
  **********************/
 
-Bool
+_X_EXPORT Bool
 InsertFakeRequest(ClientPtr client, char *data, int count)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -599,7 +599,7 @@ static const int padlength[4] = {0, 3, 2, 1};
  *
  **********************/
 
-void
+_X_EXPORT void
 FlushAllOutput(void)
 {
     register int index, base;
@@ -672,7 +672,7 @@ FlushAllOutput(void)
 #endif /* WIN32 */
 }
 
-void
+_X_EXPORT void
 FlushIfCriticalOutputPending(void)
 {
     if (CriticalOutputPending)
@@ -1087,7 +1087,7 @@ FreeOsBuffers(OsCommPtr oc)
     }
 }
 
-void
+_X_EXPORT void
 ResetOsBuffers(void)
 {
     ConnectionInputPtr oci;

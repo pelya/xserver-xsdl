@@ -263,10 +263,10 @@ WalkTree(ScreenPtr pScreen, VisitWindowProcPtr func, pointer data)
 }
 
 /* hack for forcing backing store on all windows */
-int	defaultBackingStore = NotUseful;
+_X_EXPORT int	defaultBackingStore = NotUseful;
 /* hack to force no backing store */
-Bool	disableBackingStore = FALSE;
-Bool	enableBackingStore = FALSE;
+_X_EXPORT Bool	disableBackingStore = FALSE;
+_X_EXPORT Bool	enableBackingStore = FALSE;
 
 static void
 SetWindowToDefaults(WindowPtr pWin)
@@ -356,7 +356,7 @@ MakeRootTile(WindowPtr pWin)
  *    Makes a window at initialization time for specified screen
  *****/
 
-Bool
+_X_EXPORT Bool
 CreateRootWindow(ScreenPtr pScreen)
 {
     WindowPtr	pWin;
@@ -469,7 +469,7 @@ CreateRootWindow(ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 InitRootWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -540,14 +540,14 @@ ClippedRegionFromBox(WindowPtr pWin, RegionPtr Rgn,
 
 static RealChildHeadProc realChildHeadProc = NULL;
 
-void
+_X_EXPORT void
 RegisterRealChildHeadProc (RealChildHeadProc proc)
 {
     realChildHeadProc = proc;
 }
 
 
-WindowPtr
+_X_EXPORT WindowPtr
 RealChildHead(WindowPtr pWin)
 {
     if (realChildHeadProc) {
@@ -933,7 +933,7 @@ CrushTree(WindowPtr pWin)
  *	 If wid is None, don't send any events
  *****/
 
-int
+_X_EXPORT int
 DeleteWindow(pointer value, XID wid)
  {
     WindowPtr pParent;
@@ -970,7 +970,7 @@ DeleteWindow(pointer value, XID wid)
     return Success;
 }
 
-int
+_X_EXPORT int
 DestroySubwindows(WindowPtr pWin, ClientPtr client)
 {
     /* XXX
@@ -1480,7 +1480,7 @@ PatchUp:
  *    Notice that this is different than ChangeWindowAttributes
  *****/
 
-void
+_X_EXPORT void
 GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply *wa)
 {
     wa->type = X_Reply;
@@ -1516,7 +1516,7 @@ GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply 
 }
 
 
-WindowPtr
+_X_EXPORT WindowPtr
 MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
 {
     WindowPtr pParent = pWin->parent;
@@ -1626,7 +1626,7 @@ CreateUnclippedWinSize (WindowPtr pWin)
     return pRgn;
 }
 
-void
+_X_EXPORT void
 SetWinSize (WindowPtr pWin)
 {
 #ifdef COMPOSITE
@@ -1667,7 +1667,7 @@ SetWinSize (WindowPtr pWin)
     }
 }
 
-void
+_X_EXPORT void
 SetBorderSize (WindowPtr pWin)
 {
     int	bw;
@@ -1771,7 +1771,7 @@ GravityTranslate (int x, int y, int oldx, int oldy,
 }
 
 /* XXX need to retile border on each window with ParentRelative origin */
-void
+_X_EXPORT void
 ResizeChildrenWinSize(WindowPtr pWin, int dx, int dy, int dw, int dh)
 {
     ScreenPtr pScreen;
@@ -2165,7 +2165,7 @@ ReflectStackChange(
  * ConfigureWindow
  *****/
 
-int
+_X_EXPORT int
 ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 {
 #define RESTACK_WIN    0
@@ -2427,7 +2427,7 @@ ActuallyDoSomething:
  *
  ******/
 
-int
+_X_EXPORT int
 CirculateWindow(WindowPtr pParent, int direction, ClientPtr client)
 {
     WindowPtr pWin, pHead, pFirst;
@@ -2499,7 +2499,7 @@ CompareWIDs(
  *  ReparentWindow
  *****/
 
-int
+_X_EXPORT int
 ReparentWindow(WindowPtr pWin, WindowPtr pParent,
                int x, int y, ClientPtr client)
 {
@@ -2622,7 +2622,7 @@ RealizeTree(WindowPtr pWin)
 
 static WindowPtr windowDisableMapUnmapEvents;
 
-void
+_X_EXPORT void
 DisableMapUnmapEvents(WindowPtr pWin)
 {
     assert (windowDisableMapUnmapEvents == NULL);
@@ -2630,7 +2630,7 @@ DisableMapUnmapEvents(WindowPtr pWin)
     windowDisableMapUnmapEvents = pWin;
 }
 
-void
+_X_EXPORT void
 EnableMapUnmapEvents(WindowPtr pWin)
 {
     assert (windowDisableMapUnmapEvents != NULL);
@@ -2742,7 +2742,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
  *    to bottom stacking order.
  *****/
 
-void
+_X_EXPORT void
 MapSubwindows(WindowPtr pParent, ClientPtr client)
 {
     WindowPtr	pWin;
@@ -2923,7 +2923,7 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
  *    children of the window, in bottom to top stacking order.
  *****/
 
-void
+_X_EXPORT void
 UnmapSubwindows(WindowPtr pWin)
 {
     WindowPtr pChild, pHead;
@@ -3001,7 +3001,7 @@ UnmapSubwindows(WindowPtr pWin)
 }
 
 
-void
+_X_EXPORT void
 HandleSaveSet(ClientPtr client)
 {
     WindowPtr pParent, pWin;
@@ -3051,7 +3051,7 @@ HandleSaveSet(ClientPtr client)
  *
  * \param x,y  in root
  */
-Bool
+_X_EXPORT Bool
 PointInWindowIsVisible(WindowPtr pWin, int x, int y)
 {
     BoxRec box;
@@ -3087,7 +3087,7 @@ NotClippedByChildren(WindowPtr pWin)
     return(pReg);
 }
 
-void
+_X_EXPORT void
 SendVisibilityNotify(WindowPtr pWin)
 {
     xEvent event;

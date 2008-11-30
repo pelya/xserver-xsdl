@@ -353,7 +353,7 @@ static ExtensionToggle ExtensionToggleList[] =
     { NULL, NULL }
 };
 
-Bool EnableDisableExtension(char *name, Bool enable)
+_X_EXPORT Bool EnableDisableExtension(char *name, Bool enable)
 {
     ExtensionToggle *ext = &ExtensionToggleList[0];
 
@@ -367,7 +367,7 @@ Bool EnableDisableExtension(char *name, Bool enable)
     return FALSE;
 }
 
-void EnableDisableExtensionError(char *name, Bool enable)
+_X_EXPORT void EnableDisableExtensionError(char *name, Bool enable)
 {
     ExtensionToggle *ext = &ExtensionToggleList[0];
 
@@ -381,7 +381,7 @@ void EnableDisableExtensionError(char *name, Bool enable)
 #ifndef XFree86LOADER
 
 /*ARGSUSED*/
-void
+_X_EXPORT void
 InitExtensions(int argc, char *argv[])
 {
     if (!noGEExtension) GEExtensionInit();

@@ -138,7 +138,7 @@ static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
 }
 
 /* Query the kvirt address (64bit) of a BAR range from size for a given TAG */
-unsigned long
+_X_EXPORT unsigned long
 xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 {
     unsigned int ndx;

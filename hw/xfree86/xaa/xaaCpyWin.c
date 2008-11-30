@@ -21,7 +21,7 @@
     Written by Harm Hanemaayer (H.Hanemaayer@inter.nl.net).
 */
 
-void 
+_X_EXPORT void 
 XAACopyWindow(
     WindowPtr pWin,
     DDXPointRec ptOldOrg,

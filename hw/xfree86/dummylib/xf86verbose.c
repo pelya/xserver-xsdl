@@ -8,5 +8,5 @@
 #include "xf86Priv.h"
 
 /* Dummy variables */
-int xf86Verbose = 0;
+_X_EXPORT int xf86Verbose = 0;
 

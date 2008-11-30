@@ -30,7 +30,7 @@
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
 
-void xorg_backtrace(void)
+_X_EXPORT void xorg_backtrace(void)
 {
     void *array[32]; /* deeper nesting than this means something's wrong */
     size_t size, i;
@@ -168,7 +168,7 @@ static int xorg_backtrace_pstack(void) {
 
 # if defined(HAVE_PSTACK) || defined(HAVE_WALKCONTEXT)
 
-void xorg_backtrace(void) {
+_X_EXPORT void xorg_backtrace(void) {
 
     ErrorF("\nBacktrace:\n");
 
@@ -195,7 +195,7 @@ void xorg_backtrace(void) {
 # else
 
 /* Default fallback if we can't find any way to get a backtrace */
-void xorg_backtrace(void) { return; }
+_X_EXPORT void xorg_backtrace(void) { return; }
 
 # endif
 #endif

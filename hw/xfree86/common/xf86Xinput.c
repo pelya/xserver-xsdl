@@ -96,7 +96,7 @@
 
 #include "os.h"
 
-EventListPtr xf86Events = NULL;
+_X_EXPORT EventListPtr xf86Events = NULL;
 
 /**
  * Eval config and modify DeviceVelocityRec accordingly
@@ -360,7 +360,7 @@ xf86ActivateDevice(LocalDevicePtr local)
  ***********************************************************************
  */
 
-void
+_X_EXPORT void
 OpenInputDevice(DeviceIntPtr	dev,
                 ClientPtr	client,
                 int		*status)
@@ -371,7 +371,7 @@ OpenInputDevice(DeviceIntPtr	dev,
     *status = Success;
 }
 
-void
+_X_EXPORT void
 CloseInputDevice(DeviceIntPtr dev,
                  ClientPtr client)
 {
@@ -390,7 +390,7 @@ CloseInputDevice(DeviceIntPtr dev,
  ***********************************************************************
  */
 
-int
+_X_EXPORT int
 SetDeviceMode (ClientPtr client, DeviceIntPtr dev, int mode)
 {
   LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
@@ -416,7 +416,7 @@ SetDeviceMode (ClientPtr client, DeviceIntPtr dev, int mode)
  ***********************************************************************
  */
 
-int
+_X_EXPORT int
 SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
                     int first_valuator, int num_valuators)
 {
@@ -439,7 +439,7 @@ SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
  ***********************************************************************
  */
 
-int
+_X_EXPORT int
 ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
 {
   LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
@@ -462,7 +462,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
   }
 }
 
-void
+_X_EXPORT void
 AddOtherInputDevices()
 {
 }

@@ -189,7 +189,7 @@ xf86validateInput (XF86ConfigPtr p)
 	return (TRUE);
 }
 
-XF86ConfInputPtr
+_X_EXPORT XF86ConfInputPtr
 xf86findInput (const char *ident, XF86ConfInputPtr p)
 {
 	while (p)
@@ -202,7 +202,7 @@ xf86findInput (const char *ident, XF86ConfInputPtr p)
 	return (NULL);
 }
 
-XF86ConfInputPtr
+_X_EXPORT XF86ConfInputPtr
 xf86findInputByDriver (const char *driver, XF86ConfInputPtr p)
 {
 	while (p)

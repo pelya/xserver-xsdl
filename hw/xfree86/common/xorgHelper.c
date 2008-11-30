@@ -16,7 +16,7 @@
 #include "xorgVersion.h"
 
 
-CARD32
+_X_EXPORT CARD32
 xorgGetVersion()
 {
     return XORG_VERSION_CURRENT;

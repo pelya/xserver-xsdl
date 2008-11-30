@@ -141,12 +141,12 @@ fd_set LastSelectMask;		/* mask returned from last select call */
 fd_set ClientsWithInput;	/* clients with FULL requests in buffer */
 fd_set ClientsWriteBlocked;	/* clients who cannot receive output */
 fd_set OutputPending;		/* clients with reply/event data ready to go */
-int MaxClients = 0;
+_X_EXPORT int MaxClients = 0;
 Bool NewOutputPending;		/* not yet attempted to write some new output */
 Bool AnyClientsWriteBlocked;	/* true if some client blocked on write */
 
 static Bool RunFromSmartParent;	/* send SIGUSR1 to parent process */
-Bool PartialNetwork;		/* continue even if unable to bind all addrs */
+_X_EXPORT Bool PartialNetwork;	/* continue even if unable to bind all addrs */
 static Pid_t ParentProcess;
 
 static Bool debug_conns = FALSE;
@@ -273,7 +273,7 @@ lookup_trans_conn (int fd)
 
 /* Set MaxClients and lastfdesc, and allocate ConnectionTranslation */
 
-void
+_X_EXPORT void
 InitConnectionLimits(void)
 {
     lastfdesc = -1;
@@ -358,7 +358,7 @@ InitParentProcess(void)
 #endif
 }
 
-void
+_X_EXPORT void
 NotifyParentProcess(void)
 {
 #if !defined(WIN32)
@@ -375,7 +375,7 @@ NotifyParentProcess(void)
  *    At initialization, create the sockets to listen on for new clients.
  *****************/
 
-void
+_X_EXPORT void
 CreateWellKnownSockets(void)
 {
     int		i;
@@ -442,7 +442,7 @@ CreateWellKnownSockets(void)
 #endif
 }
 
-void
+_X_EXPORT void
 ResetWellKnownSockets (void)
 {
     int i;
@@ -493,7 +493,7 @@ ResetWellKnownSockets (void)
 #endif
 }
 
-void
+_X_EXPORT void
 CloseWellKnownConnections(void)
 {
     int i;
@@ -618,7 +618,7 @@ AuthAudit (ClientPtr client, Bool letin,
 #endif	
 }
 
-XID
+_X_EXPORT XID
 AuthorizationIDOfClient(ClientPtr client)
 {
     if (client->osPrivate)
@@ -647,7 +647,7 @@ AuthorizationIDOfClient(ClientPtr client)
  *
  *****************************************************************/
 
-char * 
+_X_EXPORT char * 
 ClientAuthorized(ClientPtr client, 
     unsigned int proto_n, char *auth_proto, 
     unsigned int string_n, char *auth_string)
@@ -798,7 +798,7 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
  *****************/
 
 /*ARGSUSED*/
-Bool
+_X_EXPORT Bool
 EstablishNewConnections(ClientPtr clientUnused, pointer closure)
 {
     fd_set  readyconnections;     /* set of listeners that are ready */
@@ -980,7 +980,7 @@ CloseDownFileDescriptor(OsCommPtr oc)
  *    to check each and every socket individually.
  *****************/
 
-void
+_X_EXPORT void
 CheckConnections(void)
 {
 #ifndef WIN32
@@ -1040,7 +1040,7 @@ CheckConnections(void)
  *    Delete client from AllClients and free resources 
  *****************/
 
-void
+_X_EXPORT void
 CloseDownConnection(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1098,7 +1098,7 @@ RemoveEnabledDevice(int fd)
  *    This routine is "undone" by ListenToAllClients()
  *****************/
 
-int
+_X_EXPORT int
 OnlyListenToOneClient(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1135,7 +1135,7 @@ OnlyListenToOneClient(ClientPtr client)
  *    Undoes OnlyListentToOneClient()
  ****************/
 
-void
+_X_EXPORT void
 ListenToAllClients(void)
 {
     if (GrabInProgress)
@@ -1213,7 +1213,7 @@ AttendClient (ClientPtr client)
 
 /* make client impervious to grabs; assume only executing client calls this */
 
-void
+_X_EXPORT void
 MakeClientGrabImpervious(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -1232,7 +1232,7 @@ MakeClientGrabImpervious(ClientPtr client)
 
 /* make client pervious to grabs; assume only executing client calls this */
 
-void
+_X_EXPORT void
 MakeClientGrabPervious(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;

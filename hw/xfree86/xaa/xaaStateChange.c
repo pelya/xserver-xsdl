@@ -1497,7 +1497,7 @@ static Bool XAAStateWrapSetupForCPUToScreenTexture2(ScrnInfoPtr pScrn, int op,
 #endif
 
 /* Setup Function */
-Bool
+_X_EXPORT Bool
 XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 {
    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];

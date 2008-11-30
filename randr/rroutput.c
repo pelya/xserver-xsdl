@@ -23,12 +23,12 @@
 #include "randrstr.h"
 #include "registry.h"
 
-RESTYPE	RROutputType;
+_X_EXPORT RESTYPE	RROutputType;
 
 /*
  * Notify the output of some change
  */
-void
+_X_EXPORT void
 RROutputChanged (RROutputPtr output, Bool configChanged)
 {
     ScreenPtr	pScreen = output->pScreen;
@@ -47,7 +47,7 @@ RROutputChanged (RROutputPtr output, Bool configChanged)
  * Create an output
  */
 
-RROutputPtr
+_X_EXPORT RROutputPtr
 RROutputCreate (ScreenPtr   pScreen,
 		const char  *name,
 		int	    nameLength,
@@ -110,7 +110,7 @@ RROutputCreate (ScreenPtr   pScreen,
 /*
  * Notify extension that output parameters have been changed
  */
-Bool
+_X_EXPORT Bool
 RROutputSetClones (RROutputPtr  output,
 		   RROutputPtr  *clones,
 		   int		numClones)
@@ -143,7 +143,7 @@ RROutputSetClones (RROutputPtr  output,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RROutputSetModes (RROutputPtr	output,
 		  RRModePtr	*modes,
 		  int		numModes,
@@ -187,7 +187,7 @@ RROutputSetModes (RROutputPtr	output,
     return TRUE;
 }
 
-int
+_X_EXPORT int
 RROutputAddUserMode (RROutputPtr    output,
 		     RRModePtr	    mode)
 {
@@ -227,7 +227,7 @@ RROutputAddUserMode (RROutputPtr    output,
     return Success;
 }
 
-int
+_X_EXPORT int
 RROutputDeleteUserMode (RROutputPtr output,
 			RRModePtr   mode)
 {
@@ -256,7 +256,7 @@ RROutputDeleteUserMode (RROutputPtr output,
     return Success;
 }
 
-Bool
+_X_EXPORT Bool
 RROutputSetCrtcs (RROutputPtr	output,
 		  RRCrtcPtr	*crtcs,
 		  int		numCrtcs)
@@ -289,7 +289,7 @@ RROutputSetCrtcs (RROutputPtr	output,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection)
 {
@@ -300,7 +300,7 @@ RROutputSetConnection (RROutputPtr  output,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RROutputSetSubpixelOrder (RROutputPtr output,
 			  int	      subpixelOrder)
 {
@@ -312,7 +312,7 @@ RROutputSetSubpixelOrder (RROutputPtr output,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 RROutputSetPhysicalSize (RROutputPtr	output,
 			 int		mmWidth,
 			 int		mmHeight)
@@ -326,7 +326,7 @@ RROutputSetPhysicalSize (RROutputPtr	output,
 }
 
 
-void
+_X_EXPORT void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -362,7 +362,7 @@ RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 /*
  * Destroy a Output at shutdown
  */
-void
+_X_EXPORT void
 RROutputDestroy (RROutputPtr output)
 {
     FreeResource (output->id, 0);
@@ -415,7 +415,7 @@ RROutputDestroyResource (pointer value, XID pid)
 /*
  * Initialize output type
  */
-Bool
+_X_EXPORT Bool
 RROutputInit (void)
 {
     RROutputType = CreateNewResourceType (RROutputDestroyResource);
@@ -427,7 +427,7 @@ RROutputInit (void)
 
 #define OutputInfoExtra	(SIZEOF(xRRGetOutputInfoReply) - 32)
 				
-int
+_X_EXPORT int
 ProcRRGetOutputInfo (ClientPtr client)
 {
     REQUEST(xRRGetOutputInfoReq);

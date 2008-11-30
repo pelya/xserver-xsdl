@@ -100,7 +100,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 
 #ifdef DDXOSVERRORF
-void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
+_X_EXPORT void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
 #endif
 
 static FILE *logFile = NULL;
@@ -155,7 +155,7 @@ static Bool needBuffer = TRUE;
  * string.
  */
 
-const char *
+_X_EXPORT const char *
 LogInit(const char *fname, const char *backup)
 {
     char *logFileName = NULL;
@@ -217,7 +217,7 @@ LogInit(const char *fname, const char *backup)
     return logFileName;
 }
 
-void
+_X_EXPORT void
 LogClose(void)
 {
     if (logFile) {
@@ -226,7 +226,7 @@ LogClose(void)
     }
 }
 
-Bool
+_X_EXPORT Bool
 LogSetParameter(LogParameter param, int value)
 {
     switch (param) {
@@ -420,7 +420,7 @@ static int nrepeat = 0;
 static int oldlen = -1;
 static OsTimerPtr auditTimer = NULL;
 
-void 
+_X_EXPORT void 
 FreeAuditTimer(void)
 {
     if (auditTimer != NULL) {
@@ -451,7 +451,7 @@ AuditPrefix(void)
     return tmpBuf;
 }
 
-void
+_X_EXPORT void
 AuditF(const char * f, ...)
 {
     va_list args;
@@ -482,7 +482,7 @@ AuditFlush(OsTimerPtr timer, CARD32 now, pointer arg)
     }
 }
 
-void
+_X_EXPORT void
 VAuditF(const char *f, va_list args)
 {
     char *prefix;
@@ -577,7 +577,7 @@ Error(char *str)
 	LogWrite(-1, strerror(saveErrno));
 }
 
-void
+_X_EXPORT void
 LogPrintMarkers(void)
 {
     /* Show what the message marker symbols mean. */

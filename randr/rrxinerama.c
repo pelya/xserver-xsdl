@@ -425,7 +425,7 @@ SProcRRXineramaDispatch(ClientPtr client)
     return BadRequest;
 }
 
-void
+_X_EXPORT void
 RRXineramaExtensionInit(void)
 {
 #ifdef PANORAMIX

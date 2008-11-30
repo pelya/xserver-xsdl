@@ -35,19 +35,19 @@
  * No-op functions for OSs without VTs
  */
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchPending()
 {
 	return(FALSE);
 }
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchAway()
 {
 	return(FALSE);
 }
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchTo()
 {
 	return(TRUE);

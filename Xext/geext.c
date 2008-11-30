@@ -39,16 +39,16 @@
 
 #define rClient(obj) (clients[CLIENT_ID((obj)->resource)])
 
-int GEEventBase;
-int GEErrorBase;
+_X_EXPORT int GEEventBase;
+_X_EXPORT int GEErrorBase;
 static int GEClientPrivateKeyIndex;
-DevPrivateKey GEClientPrivateKey = &GEClientPrivateKeyIndex;
-int GEEventType; /* The opcode for all GenericEvents will have. */
+_X_EXPORT DevPrivateKey GEClientPrivateKey = &GEClientPrivateKeyIndex;
+_X_EXPORT int GEEventType; /* The opcode for all GenericEvents will have. */
 
 int RT_GECLIENT  = 0;
 
 
-GEExtension GEExtensions[MAXEXTENSIONS];
+_X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
 
 /* Major available requests */
 static const int version_requests[] = {
@@ -101,7 +101,7 @@ ProcGEQueryVersion(ClientPtr client)
     return(client->noClientException);
 }
 
-int (*ProcGEVector[GENumberRequests])(ClientPtr) = {
+_X_EXPORT int (*ProcGEVector[GENumberRequests])(ClientPtr) = {
     /* Version 1.0 */
     ProcGEQueryVersion
 };
@@ -122,7 +122,7 @@ SProcGEQueryVersion(ClientPtr client)
     return(*ProcGEVector[stuff->ReqType])(client);
 }
 
-int (*SProcGEVector[GENumberRequests])(ClientPtr) = {
+_X_EXPORT int (*SProcGEVector[GENumberRequests])(ClientPtr) = {
     /* Version 1.0 */
     SProcGEQueryVersion
 };
@@ -258,7 +258,7 @@ GEClientGone(WindowPtr pWin, XID id)
  * Since other extensions may rely on XGE (XInput does already), it is a good
  * idea to init XGE first, before any other extension.
  */
-void
+_X_EXPORT void
 GEExtensionInit(void)
 {
     ExtensionEntry *extEntry;
@@ -300,7 +300,7 @@ GEExtensionInit(void)
  * @param ev_fill Called for an event before delivery. The extension now has
  * the chance to fill in necessary fields for the event.
  */
-void
+_X_EXPORT void
 GERegisterExtension(int extension,
                     void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
                     void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
@@ -318,7 +318,7 @@ GERegisterExtension(int extension,
 /* Sets type and extension field for a generic event. This is just an
  * auxiliary function, extensions could do it manually too.
  */
-void
+_X_EXPORT void
 GEInitEvent(xGenericEvent* ev, int extension)
 {
     ev->type = GenericEvent;
@@ -356,7 +356,7 @@ GERecalculateWinMask(WindowPtr pWin)
 }
 
 /* Set generic event mask for given window. */
-void
+_X_EXPORT void
 GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
                 WindowPtr pWin, int extension, Mask mask)
 {
@@ -443,7 +443,7 @@ GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
  * @param extension Extension ID
  * @param mask Event mask
  */
-BOOL
+_X_EXPORT BOOL
 GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
                   int extension, Mask mask)
 {

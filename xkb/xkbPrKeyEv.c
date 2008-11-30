@@ -42,7 +42,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
 {
 KeyClassPtr	keyc = keybd->key;
@@ -187,7 +187,7 @@ int             xiEvent;
     return;
 }
 
-void
+_X_EXPORT void
 ProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
 {
 

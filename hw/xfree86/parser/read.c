@@ -90,7 +90,7 @@ xf86validateConfig (XF86ConfigPtr p)
 	return (TRUE);
 }
 
-XF86ConfigPtr
+_X_EXPORT XF86ConfigPtr
 xf86readConfigFile (void)
 {
 	int token;
@@ -240,7 +240,7 @@ xf86readConfigFile (void)
  * A pointer to the head of the list is returned to handle the addition of
  * the first item.
  */
-GenericListPtr
+_X_EXPORT GenericListPtr
 xf86addListItem (GenericListPtr head, GenericListPtr new)
 {
 	GenericListPtr p = head;
@@ -265,7 +265,7 @@ xf86addListItem (GenericListPtr head, GenericListPtr new)
  * Test if one chained list contains the other.
  * In this case both list have the same endpoint (provided they don't loop)
  */
-int
+_X_EXPORT int
 xf86itemNotSublist(GenericListPtr list_1, GenericListPtr list_2)
 {
 	GenericListPtr p = list_1;
@@ -285,7 +285,7 @@ xf86itemNotSublist(GenericListPtr list_1, GenericListPtr list_2)
 	return (!(last_1 == last_2));
 }
 
-void
+_X_EXPORT void
 xf86freeConfig (XF86ConfigPtr p)
 {
 	if (p == NULL)

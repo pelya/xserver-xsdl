@@ -34,7 +34,7 @@ static const OptionInfoRec INT10Options[] = {
 };
 
 #ifdef DEBUG
-void
+_X_EXPORT void
 dprint(unsigned long start, unsigned long size)
 {
     int i,j;
@@ -62,7 +62,7 @@ dprint(unsigned long start, unsigned long size)
  * BIOS. Most of this information was pulled from
  * dosemu.
  */
-void
+_X_EXPORT void
 setup_int_vect(xf86Int10InfoPtr pInt)
 {
     int i;
@@ -105,7 +105,7 @@ setup_int_vect(xf86Int10InfoPtr pInt)
 }
 #endif
 
-int
+_X_EXPORT int
 setup_system_bios(void *base_addr)
 {
     char *base = (char *) base_addr;
@@ -127,7 +127,7 @@ setup_system_bios(void *base_addr)
     return 1;
 }
 
-void
+_X_EXPORT void
 reset_int_vect(xf86Int10InfoPtr pInt)
 {
     /*
@@ -176,7 +176,7 @@ reset_int_vect(xf86Int10InfoPtr pInt)
     MEM_WW(pInt, (0x6D << 2) + 2, SYS_BIOS >> 4);
 }
 
-void
+_X_EXPORT void
 set_return_trap(xf86Int10InfoPtr pInt)
 {
     /*
@@ -191,7 +191,7 @@ set_return_trap(xf86Int10InfoPtr pInt)
     xf86Int10AllocPages(pInt, 1, &pInt->stackseg);
 }
 
-void *
+_X_EXPORT void *
 xf86HandleInt10Options(ScrnInfoPtr pScrn, int entityIndex)
 {
     EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
@@ -220,7 +220,7 @@ xf86HandleInt10Options(ScrnInfoPtr pScrn, int entityIndex)
     return options;
 }
 
-Bool
+_X_EXPORT Bool
 int10skip(const void* options)
 {
     Bool noint10 = FALSE;
@@ -231,7 +231,7 @@ int10skip(const void* options)
     return noint10;
 }
 
-Bool
+_X_EXPORT Bool
 int10_check_bios(int scrnIndex, int codeSeg, const unsigned char* vbiosMem)
 {
     int size;
@@ -258,7 +258,7 @@ int10_check_bios(int scrnIndex, int codeSeg, const unsigned char* vbiosMem)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 initPrimary(const void* options)
 {
     Bool initPrimary = FALSE;
@@ -269,7 +269,7 @@ initPrimary(const void* options)
     return initPrimary;
 }
 
-BusType
+_X_EXPORT BusType
 xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt)
 {
     BusType location_type;
@@ -290,7 +290,7 @@ xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt)
 	return FALSE; \
     }
 
-Bool
+_X_EXPORT Bool
 xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base)
 {
     unsigned i;

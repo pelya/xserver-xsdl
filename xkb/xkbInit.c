@@ -114,8 +114,8 @@ typedef struct	_SrvXkmInfo {
 #define	XKB_DFLT_RULES_PROP	True
 #endif
 
-char	*		XkbBaseDirectory=	XKB_BASE_DIRECTORY;
-char	*		XkbBinDirectory=	XKB_BIN_DIRECTORY;
+_X_EXPORT char	*	XkbBaseDirectory=	XKB_BASE_DIRECTORY;
+_X_EXPORT char	*	XkbBinDirectory=	XKB_BIN_DIRECTORY;
 static int	 	XkbWantAccessX=		0;	
 
 static Bool		rulesDefined=		False;
@@ -271,7 +271,7 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
     return;
 }
 
-void
+_X_EXPORT void
 XkbDeleteRulesDflts()
 {
     _XkbFree(XkbRulesFile);
@@ -474,7 +474,7 @@ XkbControlsPtr	ctrls;
     return Success;
 }
 
-void
+_X_EXPORT void
 XkbInitDevice(DeviceIntPtr pXDev)
 {
 int			i;
@@ -724,7 +724,7 @@ XkbDescPtr              xkb;
 	 * This function also computes the autorepeat accelerators for the
 	 * default indicator feedback.
 	 */
-int
+_X_EXPORT int
 XkbFinishDeviceInit(DeviceIntPtr pXDev)
 {
 XkbSrvInfoPtr		xkbi;
@@ -767,7 +767,7 @@ XkbSrvLedInfoPtr	sli;
 	 * fixed-size structures for the device.   Don't free anything that
 	 * is part of this larger block.
 	 */
-void
+_X_EXPORT void
 XkbFreeInfo(XkbSrvInfoPtr xkbi)
 {
     if (xkbi->radioGroups) {
@@ -817,7 +817,7 @@ extern unsigned int	XkbDfltAccessXTimeoutMask;
 extern unsigned int	XkbDfltAccessXFeedback;
 extern unsigned char	XkbDfltAccessXOptions;
 
-int
+_X_EXPORT int
 XkbProcessArguments(int argc,char *argv[],int i)
 {
     if (strcmp(argv[i],"-kb")==0) {
@@ -903,7 +903,7 @@ XkbProcessArguments(int argc,char *argv[],int i)
     return 0;
 }
 
-void
+_X_EXPORT void
 XkbUseMsg(void)
 {
     ErrorF("-kb                    disable the X Keyboard Extension\n");

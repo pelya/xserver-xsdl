@@ -142,7 +142,7 @@ static OsTimerPtr timers = NULL;
  *     pClientsReady is an array to store ready client->index values into.
  *****************/
 
-int
+_X_EXPORT int
 WaitForSomething(int *pClientsReady)
 {
     int i;
@@ -475,7 +475,7 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     return timer;
 }
 
-Bool
+_X_EXPORT Bool
 TimerForce(OsTimerPtr timer)
 {
     OsTimerPtr *prev;
@@ -518,7 +518,7 @@ TimerFree(OsTimerPtr timer)
     xfree(timer);
 }
 
-void
+_X_EXPORT void
 TimerCheck(void)
 {
     CARD32 now = GetTimeInMillis();
@@ -527,7 +527,7 @@ TimerCheck(void)
 	DoTimer(timers, now, &timers);
 }
 
-void
+_X_EXPORT void
 TimerInit(void)
 {
     OsTimerPtr timer;
@@ -626,7 +626,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
 
 static OsTimerPtr ScreenSaverTimer = NULL;
 
-void
+_X_EXPORT void
 FreeScreenSaverTimer(void)
 {
     if (ScreenSaverTimer) {
@@ -635,7 +635,7 @@ FreeScreenSaverTimer(void)
     }
 }
 
-void
+_X_EXPORT void
 SetScreenSaverTimer(void)
 {
     CARD32 timeout = 0;

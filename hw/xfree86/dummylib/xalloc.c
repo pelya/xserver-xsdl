@@ -94,7 +94,7 @@ Xstrdup(const char *s)
     return sd;
 }
 
-char *
+_X_EXPORT char *
 XNFstrdup(const char *s)
 {
     char *sd;

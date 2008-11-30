@@ -34,7 +34,7 @@
 #include "picturestr.h"
 #include "mipict.h"
 
-PicturePtr
+_X_EXPORT PicturePtr
 miCreateAlphaPicture (ScreenPtr	    pScreen, 
 		      PicturePtr    pDst,
 		      PictFormatPtr pPictFormat,
@@ -94,7 +94,7 @@ miLineFixedX (xLineFixed *l, xFixed y, Bool ceil)
     return l->p1.x + (xFixed) (ex / dy);
 }
 
-void
+_X_EXPORT void
 miTrapezoidBounds (int ntrap, xTrapezoid *traps, BoxPtr box)
 {
     box->y1 = MAXSHORT;
@@ -127,7 +127,7 @@ miTrapezoidBounds (int ntrap, xTrapezoid *traps, BoxPtr box)
     }
 }
 
-void
+_X_EXPORT void
 miTrapezoids (CARD8	    op,
 	      PicturePtr    pSrc,
 	      PicturePtr    pDst,

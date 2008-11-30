@@ -53,7 +53,7 @@
 #include "xf86RAC.h"
 
 /* Bus-specific globals */
-Bool pciSlotClaimed = FALSE;
+_X_EXPORT Bool pciSlotClaimed = FALSE;
 static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
 

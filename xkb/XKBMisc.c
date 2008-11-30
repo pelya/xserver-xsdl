@@ -46,7 +46,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	CORE_SYM(i)	(i<map_width?core_syms[i]:NoSymbol)
 #define	XKB_OFFSET(g,l)	(((g)*groupsWidth)+(l))
 
-int
+_X_EXPORT int
 XkbKeyTypesForCoreSymbols(	XkbDescPtr	xkb,
 				int		map_width,
 				KeySym *	core_syms,
@@ -318,7 +318,7 @@ unsigned	tmp;
 
 #define	IBUF_SIZE	8
 
-Bool
+_X_EXPORT Bool
 XkbApplyCompatMapToKey(XkbDescPtr xkb,KeyCode key,XkbChangesPtr changes)
 {
 KeySym *		syms;
@@ -467,7 +467,7 @@ unsigned		changed,tmp;
     return True;
 }
 
-Status
+_X_EXPORT Status
 XkbChangeTypesOfKey(	XkbDescPtr		 xkb,
 			int		 	 key,
 			int			 nGroups,
@@ -591,7 +591,7 @@ int		width,nOldGroups,oldWidth,newTypes[XkbNumKbdGroups];
 
 /***====================================================================***/
 
-Bool
+_X_EXPORT Bool
 XkbVirtualModsToReal(XkbDescPtr xkb,unsigned virtual_mask,unsigned *mask_rtrn)
 {
 register int i,bit;
@@ -689,7 +689,7 @@ unsigned int		mask;
     return;
 }
 
-Bool
+_X_EXPORT Bool
 XkbApplyVirtualModChanges(XkbDescPtr xkb,unsigned changed,XkbChangesPtr changes)
 {
 register int	i;

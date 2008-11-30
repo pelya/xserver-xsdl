@@ -321,7 +321,7 @@ UnmapVRam(xf86Int10InfoPtr pInt)
     xf86UnMapVidMem(screen, INTPriv(pInt)->vRam, size);
 }
 
-Bool
+_X_EXPORT Bool
 MapCurrentInt10(xf86Int10InfoPtr pInt)
 {
     /* nothing to do here */

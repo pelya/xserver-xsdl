@@ -107,20 +107,20 @@ SOFTWARE.
 
 static int XvScreenKeyIndex;
 static DevPrivateKey XvScreenKey = &XvScreenKeyIndex;
-unsigned long XvExtensionGeneration = 0;
-unsigned long XvScreenGeneration = 0;
-unsigned long XvResourceGeneration = 0;
+_X_EXPORT unsigned long XvExtensionGeneration = 0;
+_X_EXPORT unsigned long XvScreenGeneration = 0;
+_X_EXPORT unsigned long XvResourceGeneration = 0;
 
-int XvReqCode;
-int XvEventBase;
-int XvErrorBase;
+_X_EXPORT int XvReqCode;
+_X_EXPORT int XvEventBase;
+_X_EXPORT int XvErrorBase;
 
-unsigned long XvRTPort;
-unsigned long XvRTEncoding;
-unsigned long XvRTGrab;
-unsigned long XvRTVideoNotify;
-unsigned long XvRTVideoNotifyList;
-unsigned long XvRTPortNotify;
+_X_EXPORT unsigned long XvRTPort;
+_X_EXPORT unsigned long XvRTEncoding;
+_X_EXPORT unsigned long XvRTGrab;
+_X_EXPORT unsigned long XvRTVideoNotify;
+_X_EXPORT unsigned long XvRTVideoNotifyList;
+_X_EXPORT unsigned long XvRTPortNotify;
 
 
 
@@ -153,7 +153,7 @@ static int XvdiSendVideoNotify(XvPortPtr, DrawablePtr, int);
 **
 */
 
-void 
+_X_EXPORT void 
 XvExtensionInit(void)
 {
   ExtensionEntry *extEntry;
@@ -445,7 +445,7 @@ XvDestroyWindow(WindowPtr pWin)
    stopped in a port for reasons that the di layer had no control over; note
    that it doesn't call back into the dd layer */
 
-int
+_X_EXPORT int
 XvdiVideoStopped(XvPortPtr pPort, int reason)
 {
   
@@ -553,7 +553,7 @@ int reason;
 }
 
 
-int
+_X_EXPORT int
 XvdiSendPortNotify(
   XvPortPtr pPort,
   Atom attribute,
@@ -593,7 +593,7 @@ XvdiSendPortNotify(
 }
 
 
-int
+_X_EXPORT int
 XvdiPutVideo(   
    ClientPtr client,
    DrawablePtr pDraw,
@@ -646,7 +646,7 @@ XvdiPutVideo(
 
 }
 
-int
+_X_EXPORT int
 XvdiPutStill(   
    ClientPtr client,
    DrawablePtr pDraw,
@@ -684,7 +684,7 @@ XvdiPutStill(
 
 }
 
-int
+_X_EXPORT int
 XvdiPutImage(   
    ClientPtr client, 
    DrawablePtr pDraw, 
@@ -723,7 +723,7 @@ XvdiPutImage(
 }
 
 
-int
+_X_EXPORT int
 XvdiGetVideo(
    ClientPtr client,
    DrawablePtr pDraw,
@@ -776,7 +776,7 @@ XvdiGetVideo(
 
 }
 
-int
+_X_EXPORT int
 XvdiGetStill(
    ClientPtr client,
    DrawablePtr pDraw,
@@ -814,7 +814,7 @@ XvdiGetStill(
 
 }
 
-int
+_X_EXPORT int
 XvdiGrabPort(
    ClientPtr client,
    XvPortPtr pPort,
@@ -871,7 +871,7 @@ XvdiGrabPort(
 
 }
 
-int
+_X_EXPORT int
 XvdiUngrabPort(
   ClientPtr client,
   XvPortPtr pPort,
@@ -905,7 +905,7 @@ XvdiUngrabPort(
 }
 
 
-int
+_X_EXPORT int
 XvdiSelectVideoNotify(
   ClientPtr client,
   DrawablePtr pDraw,
@@ -983,7 +983,7 @@ XvdiSelectVideoNotify(
 
 }
 
-int
+_X_EXPORT int
 XvdiSelectPortNotify(
    ClientPtr client,
    XvPortPtr pPort,
@@ -1036,7 +1036,7 @@ XvdiSelectPortNotify(
 
 }
 
-int
+_X_EXPORT int
 XvdiStopVideo(
   ClientPtr client,
   XvPortPtr pPort,
@@ -1073,7 +1073,7 @@ XvdiStopVideo(
 
 }
 
-int
+_X_EXPORT int
 XvdiPreemptVideo(
   ClientPtr client,
   XvPortPtr pPort,
@@ -1097,7 +1097,7 @@ XvdiPreemptVideo(
 
 }
 
-int
+_X_EXPORT int
 XvdiMatchPort(
   XvPortPtr pPort,
   DrawablePtr pDraw
@@ -1130,7 +1130,7 @@ XvdiMatchPort(
 
 }
 
-int
+_X_EXPORT int
 XvdiSetPortAttribute(
   ClientPtr client,
   XvPortPtr pPort,
@@ -1145,7 +1145,7 @@ XvdiSetPortAttribute(
 
 }
 
-int
+_X_EXPORT int
 XvdiGetPortAttribute(
   ClientPtr client,
   XvPortPtr pPort,

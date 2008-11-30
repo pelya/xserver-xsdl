@@ -114,7 +114,7 @@ RegisterErrorName(unsigned error, char *name) {
     errors[error] = name;
 }
 
-void
+_X_EXPORT void
 RegisterExtensionNames(ExtensionEntry *extEntry)
 {
     char buf[256], *lineobj, *ptr;
@@ -196,7 +196,7 @@ RegisterExtensionNames(ExtensionEntry *extEntry)
  * Registration functions
  */
 
-void
+_X_EXPORT void
 RegisterResourceName(RESTYPE resource, char *name)
 {
     resource &= TypeMask;
@@ -214,7 +214,7 @@ RegisterResourceName(RESTYPE resource, char *name)
  * Lookup functions
  */
 
-const char *
+_X_EXPORT const char *
 LookupRequestName(int major, int minor)
 {
     if (major >= nmajor)
@@ -225,7 +225,7 @@ LookupRequestName(int major, int minor)
     return requests[major][minor] ? requests[major][minor] : XREGISTRY_UNKNOWN;
 }
 
-const char *
+_X_EXPORT const char *
 LookupMajorName(int major)
 {
     if (major < 128) {
@@ -244,7 +244,7 @@ LookupMajorName(int major)
     }
 }
 
-const char *
+_X_EXPORT const char *
 LookupEventName(int event)
 {
     event &= 127;
@@ -254,7 +254,7 @@ LookupEventName(int event)
     return events[event] ? events[event] : XREGISTRY_UNKNOWN;
 }
 
-const char *
+_X_EXPORT const char *
 LookupErrorName(int error)
 {
     if (error >= nerror)
@@ -263,7 +263,7 @@ LookupErrorName(int error)
     return errors[error] ? errors[error] : XREGISTRY_UNKNOWN;
 }
 
-const char *
+_X_EXPORT const char *
 LookupResourceName(RESTYPE resource)
 {
     resource &= TypeMask;
@@ -276,7 +276,7 @@ LookupResourceName(RESTYPE resource)
 /*
  * Setup and teardown
  */
-void
+_X_EXPORT void
 dixResetRegistry(void)
 {
     ExtensionEntry extEntry;

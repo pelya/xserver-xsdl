@@ -171,7 +171,7 @@ IBMramdac526CalculateMNPCForClock(
   return (ActualClock);
 }
 
-void
+_X_EXPORT void
 IBMramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 				    RamDacRegRecPtr ramdacReg)
 {
@@ -200,7 +200,7 @@ IBMramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 	    	(*ramdacPtr->WriteData)(pScrn, ramdacReg->DAC[i]);
 }
 
-void
+_X_EXPORT void
 IBMramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr, 
 				 RamDacRegRecPtr ramdacReg)
 {
@@ -318,7 +318,7 @@ IBMramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs/* , RamDacRe
     return ramdacHelperPtr;
 }
 
-void
+_X_EXPORT void
 IBMramdac526SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     ramdacReg->DacRegs[IBMRGB_key_control] = 0x00; /* Disable Chroma Key */
@@ -380,7 +380,7 @@ _X_EXPORT IBMramdac526SetBppProc *IBMramdac526SetBppWeak(void) {
     return IBMramdac526SetBpp;
 }
 
-void
+_X_EXPORT void
 IBMramdac640SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     unsigned char bpp = 0x00;
@@ -606,7 +606,7 @@ IBMramdac640UseHWCursor(ScreenPtr pScr, CursorPtr pCurs)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 IBMramdac526HWCursorInit(xf86CursorInfoPtr infoPtr)
 {
     infoPtr->MaxWidth = 64;
@@ -622,7 +622,7 @@ IBMramdac526HWCursorInit(xf86CursorInfoPtr infoPtr)
     infoPtr->UseHWCursor = IBMramdac526UseHWCursor;
 }
 
-void
+_X_EXPORT void
 IBMramdac640HWCursorInit(xf86CursorInfoPtr infoPtr)
 {
     infoPtr->MaxWidth = 64;

@@ -53,7 +53,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	 * any extension devices might be affected in check_devs_rtrn.
 	 */
 
-unsigned
+_X_EXPORT unsigned
 XkbIndicatorsToUpdate(	DeviceIntPtr	dev,
 			unsigned long 	state_changes,
 			Bool		enable_changes)
@@ -352,7 +352,7 @@ XkbSrvLedInfoPtr	sli;
 	 * ChangeKeyboardMapping request.
 	 */
 
-void
+_X_EXPORT void
 XkbSetIndicators(	DeviceIntPtr		dev,
 			CARD32			affect,
 			CARD32			values,
@@ -408,7 +408,7 @@ unsigned 			side_affected;
 	 * the state of any extension device indicators as necessary.
 	 */
 
-void
+_X_EXPORT void
 XkbUpdateIndicators(	DeviceIntPtr		dev,
 			register CARD32		update,
 			Bool			check_edevs,
@@ -439,7 +439,7 @@ XkbSrvLedInfoPtr	sli;
 	 * be affected by a particular change in keyboard state or controls.
 	 */
 
-void
+_X_EXPORT void
 XkbCheckIndicatorMaps(DeviceIntPtr dev,XkbSrvLedInfoPtr sli,unsigned which)
 {
 register unsigned	i,bit;
@@ -512,7 +512,7 @@ XkbDescPtr		xkb;
 	 * If 'needed_parts' is non-zero, this function makes sure that any
 	 * of the parts speicified therein are allocated.
 	 */
-XkbSrvLedInfoPtr
+_X_EXPORT XkbSrvLedInfoPtr
 XkbAllocSrvLedInfo(	DeviceIntPtr		dev,
 			KbdFeedbackPtr		kf,
 			LedFeedbackPtr		lf,
@@ -602,7 +602,7 @@ Bool			checkNames;
     return sli;
 }
 
-void
+_X_EXPORT void
 XkbFreeSrvLedInfo(XkbSrvLedInfoPtr sli)
 {
     if ((sli->flags&XkbSLI_IsDefault)==0) {
@@ -623,7 +623,7 @@ XkbFreeSrvLedInfo(XkbSrvLedInfoPtr sli)
  * thus the new copy behaves like the original one and can be freed with
  * XkbFreeSrvLedInfo.
  */
-XkbSrvLedInfoPtr
+_X_EXPORT XkbSrvLedInfoPtr
 XkbCopySrvLedInfo(	DeviceIntPtr		from,
 			XkbSrvLedInfoPtr	src,
 			KbdFeedbackPtr		kf,
@@ -668,7 +668,7 @@ finish:
 	 *
 	 */
 
-XkbSrvLedInfoPtr 
+_X_EXPORT XkbSrvLedInfoPtr 
 XkbFindSrvLedInfo(	DeviceIntPtr		dev,
 			unsigned		class,
 			unsigned		id,
@@ -724,7 +724,7 @@ XkbSrvLedInfoPtr	sli;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbFlushLedEvents(	DeviceIntPtr			dev,
 			DeviceIntPtr			kbd,
 			XkbSrvLedInfoPtr		sli,
@@ -757,7 +757,7 @@ XkbFlushLedEvents(	DeviceIntPtr			dev,
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbApplyLedNameChanges(	DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_names,
@@ -834,7 +834,7 @@ xkbExtensionDeviceNotify	my_ed;
 	 * request) for the change, as reported in some XKB events.
 	 */
 
-void
+_X_EXPORT void
 XkbApplyLedMapChanges(	DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_maps,
@@ -890,7 +890,7 @@ xkbExtensionDeviceNotify	my_ed;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbApplyLedStateChanges(DeviceIntPtr 			dev,
 			XkbSrvLedInfoPtr		sli,
 			unsigned			changed_leds,

@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-void
+_X_EXPORT void
 fbPushPattern (DrawablePtr  pDrawable,
 	       GCPtr	    pGC,
 	       
@@ -100,7 +100,7 @@ fbPushPattern (DrawablePtr  pDrawable,
     }
 }
 
-void
+_X_EXPORT void
 fbPushFill (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 
@@ -172,7 +172,7 @@ fbPushFill (DrawablePtr	pDrawable,
     }
 }
 	    
-void
+_X_EXPORT void
 fbPushImage (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     
@@ -223,7 +223,7 @@ fbPushImage (DrawablePtr    pDrawable,
     }
 }
 	     
-void
+_X_EXPORT void
 fbPushPixels (GCPtr	    pGC,
 	      PixmapPtr	    pBitmap,
 	      DrawablePtr   pDrawable,

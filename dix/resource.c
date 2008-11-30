@@ -244,7 +244,7 @@ static ClientResourceRec clientTable[MAXCLIENTS];
  *    in resource table
  *****************/
 
-Bool
+_X_EXPORT Bool
 InitClientResources(ClientPtr client)
 {
     int i, j;
@@ -339,7 +339,7 @@ AvailableID(
     return 0;
 }
 
-void
+_X_EXPORT void
 GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
 {
     XID id, maxid;
@@ -390,7 +390,7 @@ GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
  *  invented, but this will be used so rarely that this should suffice.
  */
 
-unsigned int
+_X_EXPORT unsigned int
 GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
 {
     unsigned int found = 0;
@@ -698,7 +698,7 @@ FindAllClientResources(
 }
 
 
-pointer
+_X_EXPORT pointer
 LookupClientResourceComplex(
     ClientPtr client,
     RESTYPE type,
@@ -725,7 +725,7 @@ LookupClientResourceComplex(
 }
 
 
-void
+_X_EXPORT void
 FreeClientNeverRetainResources(ClientPtr client)
 {
     ResourcePtr *resources;
@@ -762,7 +762,7 @@ FreeClientNeverRetainResources(ClientPtr client)
     }
 }
 
-void
+_X_EXPORT void
 FreeClientResources(ClientPtr client)
 {
     ResourcePtr *resources;
@@ -813,7 +813,7 @@ FreeClientResources(ClientPtr client)
     clientTable[client->index].buckets = 0;
 }
 
-void
+_X_EXPORT void
 FreeAllResources(void)
 {
     int	i;

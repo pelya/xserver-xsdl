@@ -42,7 +42,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 extern	int	DeviceValuator;
 
-void
+_X_EXPORT void
 XkbDDXFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
 {
 int *			devVal;

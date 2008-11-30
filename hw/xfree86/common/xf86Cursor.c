@@ -89,7 +89,7 @@ static Bool HardEdges;
  *      is valid if specified.
  */
 
-void
+_X_EXPORT void
 xf86InitViewport(ScrnInfoPtr pScr)
 {
 
@@ -185,7 +185,7 @@ xf86PointerMoved(int scrnIndex, int x, int y)
  *	Enable/disable ZoomViewport
  */
 
-void
+_X_EXPORT void
 xf86LockZoom(ScreenPtr pScreen, Bool lock)
 {
   XF86SCRNINFO(pScreen)->zoomLocked = lock;
@@ -322,7 +322,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
  *      Reinitialize the visual part of the screen for another mode.
  */
 
-void
+_X_EXPORT void
 xf86ZoomViewport(ScreenPtr pScreen, int zoom)
 {
   ScrnInfoPtr    pScr = XF86SCRNINFO(pScreen);
@@ -579,7 +579,7 @@ FillOutEdge(xf86EdgePtr pEdge, int limit)
  * on 32 bit architectures, 64 on 64 bit architectures.
  */
 
-void
+_X_EXPORT void
 xf86InitOrigins(void)
 {
     unsigned long screensLeft, prevScreensLeft, mask;

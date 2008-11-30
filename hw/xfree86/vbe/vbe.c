@@ -787,7 +787,7 @@ VBESetDisplayStart(vbeInfoPtr pVbe, int x, int y, Bool wait_retrace)
     return (TRUE);
 }
 
-Bool
+_X_EXPORT Bool
 VBEGetDisplayStart(vbeInfoPtr pVbe, int *x, int *y)
 {
     pVbe->pInt10->num = 0x10;
@@ -891,7 +891,7 @@ VBESetGetPaletteData(vbeInfoPtr pVbe, Bool set, int first, int num,
     return (data);
 }
 
-VBEpmi *
+_X_EXPORT VBEpmi *
 VBEGetVBEpmi(vbeInfoPtr pVbe)
 {
     VBEpmi *pmi;
@@ -977,7 +977,7 @@ VBECalcVbeModeIndex(vbeModeInfoPtr m, DisplayModePtr mode, int bpp)
 }
 #endif
 
-void
+_X_EXPORT void
 VBEVesaSaveRestore(vbeInfoPtr pVbe, vbeSaveRestorePtr vbe_sr,
 		  vbeSaveRestoreFunction function)
 {
@@ -1074,7 +1074,7 @@ VBEDPMSSet(vbeInfoPtr pVbe, int mode)
     return (R16(pVbe->pInt10->ax) == 0x4f);
 }
 
-void
+_X_EXPORT void
 VBEInterpretPanelID(int scrnIndex, struct vbePanelID *data)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -1103,7 +1103,7 @@ VBEInterpretPanelID(int scrnIndex, struct vbePanelID *data)
     xfree(mode);
 }
 
-struct vbePanelID *
+_X_EXPORT struct vbePanelID *
 VBEReadPanelID(vbeInfoPtr pVbe)
 {
     int RealOff = pVbe->real_mode_base;

@@ -33,8 +33,8 @@
 
 #include "xf86RamDacPriv.h"
 
-int RamDacHWPrivateIndex = -1;
-int RamDacScreenPrivateIndex = -1;
+_X_EXPORT int RamDacHWPrivateIndex = -1;
+_X_EXPORT int RamDacScreenPrivateIndex = -1;
 
 _X_EXPORT RamDacRecPtr
 RamDacCreateInfoRec()
@@ -62,7 +62,7 @@ RamDacDestroyInfoRec(RamDacRecPtr infoRec)
     xfree(infoRec);
 }
 
-void 
+_X_EXPORT void
 RamDacHelperDestroyInfoRec(RamDacHelperRecPtr infoRec)
 {
     xfree(infoRec);
@@ -147,7 +147,7 @@ RamDacGetHWIndex()
     return RamDacHWPrivateIndex;
 }
 
-int
+_X_EXPORT int
 RamDacGetScreenIndex()
 {
     return RamDacScreenPrivateIndex;

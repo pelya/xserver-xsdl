@@ -166,7 +166,7 @@ NameForAtom(Atom atom)
     return node->string;
 }
 
-void
+_X_EXPORT void
 AtomError(void)
 {
     FatalError("initializing atoms");
@@ -184,7 +184,7 @@ FreeAtom(NodePtr patom)
     xfree(patom);
 }
 
-void
+_X_EXPORT void
 FreeAllAtoms(void)
 {
     if(atomRoot == (NodePtr)NULL)
@@ -196,7 +196,7 @@ FreeAllAtoms(void)
     lastAtom = None;
 }
 
-void
+_X_EXPORT void
 InitAtoms(void)
 {
     FreeAllAtoms();

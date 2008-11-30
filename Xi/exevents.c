@@ -100,14 +100,14 @@ static Bool MakeInputMasks(WindowPtr	/* pWin */
 extern DevPrivateKey UnusedClassesPrivateKey;
 
 
-void
+_X_EXPORT void
 RegisterOtherDevice(DeviceIntPtr device)
 {
     device->public.processInputProc = ProcessOtherEvent;
     device->public.realInputProc = ProcessOtherEvent;
 }
 
-Bool
+_X_EXPORT Bool
 IsPointerEvent(xEvent* xE)
 {
     switch(xE->u.u.type)
@@ -137,7 +137,7 @@ IsPointerEvent(xEvent* xE)
  * @return the device matching the deviceid of the device set in the event, or
  * NULL if the event is not an XInput event.
  */
-DeviceIntPtr
+_X_EXPORT DeviceIntPtr
 XIGetDevice(xEvent* xE)
 {
     DeviceIntPtr pDev = NULL;
@@ -521,7 +521,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
  * Saves a few memory allocations.
  */
 
-void
+_X_EXPORT void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
     ClassesPtr classes;
@@ -789,7 +789,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 #define DEFAULT 0
 #define DONT_PROCESS 1
 #define IS_REPEAT 2
-int
+_X_EXPORT int
 UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 {
     int i;
@@ -994,7 +994,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
  * Called from when processing the events from the event queue.
  *
  */
-void
+_X_EXPORT void
 ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 {
     int i;
@@ -1233,7 +1233,7 @@ FixDeviceValuator(DeviceIntPtr dev, deviceValuator * ev, ValuatorClassPtr v,
     first += ev->num_valuators;
 }
 
-void
+_X_EXPORT void
 DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 		 WindowPtr pWin)
 {
@@ -1355,7 +1355,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     }
 }
 
-int
+_X_EXPORT int
 GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	   BYTE other_devices_mode, CARD16 modifiers,
 	   DeviceIntPtr modifier_device, CARD8 button, Window grabWindow,
@@ -1422,7 +1422,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     return AddPassiveGrabToList(client, grab);
 }
 
-int
+_X_EXPORT int
 GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	BYTE other_devices_mode, CARD16 modifiers,
 	DeviceIntPtr modifier_device, CARD8 key, Window grabWindow,
@@ -1477,7 +1477,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     return AddPassiveGrabToList(client, grab);
 }
 
-int
+_X_EXPORT int
 SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
 		Mask mask, Mask exclusivemasks, Mask validmasks)
 {
@@ -1538,7 +1538,7 @@ SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
     return Success;
 }
 
-int
+_X_EXPORT int
 AddExtensionClient(WindowPtr pWin, ClientPtr client, Mask mask, int mskidx)
 {
     InputClientsPtr others;
@@ -1571,7 +1571,7 @@ MakeInputMasks(WindowPtr pWin)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 RecalculateDeviceDeliverableEvents(WindowPtr pWin)
 {
     InputClientsPtr others;
@@ -1609,7 +1609,7 @@ RecalculateDeviceDeliverableEvents(WindowPtr pWin)
     }
 }
 
-int
+_X_EXPORT int
 InputClientGone(WindowPtr pWin, XID id)
 {
     InputClientsPtr other, prev;
@@ -1648,7 +1648,7 @@ InputClientGone(WindowPtr pWin, XID id)
     FatalError("client not on device event list");
 }
 
-int
+_X_EXPORT int
 SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 	  xEvent * ev, Mask mask, int count)
 {
@@ -1707,7 +1707,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
     return Success;
 }
 
-int
+_X_EXPORT int
 SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
 {
     int i;
@@ -1730,7 +1730,7 @@ SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
     return Success;
 }
 
-int
+_X_EXPORT int
 SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
 		   int numKeyPerModifier, KeyCode * inputMap, KeyClassPtr * k)
 {
@@ -1810,7 +1810,7 @@ SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
     return (MappingSuccess);
 }
 
-void
+_X_EXPORT void
 SendDeviceMappingNotify(ClientPtr client, CARD8 request,
 			KeyCode firstKeyCode, CARD8 count, DeviceIntPtr dev)
 {
@@ -1834,7 +1834,7 @@ SendDeviceMappingNotify(ClientPtr client, CARD8 request,
     SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) ev, 1);
 }
 
-int
+_X_EXPORT int
 ChangeKeyMapping(ClientPtr client,
 		 DeviceIntPtr dev,
 		 unsigned len,
@@ -1935,7 +1935,7 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 	    dev->valuator->motionHintWindow = NullWindow;
 }
 
-void
+_X_EXPORT void
 DeleteWindowFromAnyExtEvents(WindowPtr pWin, Bool freeResources)
 {
     int i;
@@ -1961,7 +1961,7 @@ DeleteWindowFromAnyExtEvents(WindowPtr pWin, Bool freeResources)
 	}
 }
 
-int
+_X_EXPORT int
 MaybeSendDeviceMotionNotifyHint(deviceKeyButtonPointer * pEvents, Mask mask)
 {
     DeviceIntPtr dev;
@@ -1984,7 +1984,7 @@ MaybeSendDeviceMotionNotifyHint(deviceKeyButtonPointer * pEvents, Mask mask)
     return (0);
 }
 
-void
+_X_EXPORT void
 CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
 			     deviceKeyButtonPointer * xE, GrabPtr grab,
 			     ClientPtr client, Mask deliveryMask)
@@ -2033,7 +2033,7 @@ DeviceEventMaskForClient(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
     return 0;
 }
 
-void
+_X_EXPORT void
 MaybeStopDeviceHint(DeviceIntPtr dev, ClientPtr client)
 {
     WindowPtr pWin;
@@ -2052,7 +2052,7 @@ MaybeStopDeviceHint(DeviceIntPtr dev, ClientPtr client)
 	dev->valuator->motionHintWindow = NullWindow;
 }
 
-int
+_X_EXPORT int
 DeviceEventSuppressForWindow(WindowPtr pWin, ClientPtr client, Mask mask,
 			     int maskndx)
 {
@@ -2123,7 +2123,7 @@ FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
  *
  */
 
-void
+_X_EXPORT void
 SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
 {
     int i;

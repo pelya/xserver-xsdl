@@ -166,7 +166,7 @@ CheckForEmptyMask(CursorBitsPtr bits)
  *  \param pmaskbits server-defined padding
  *  \param argb      no padding
  */
-int
+_X_EXPORT int
 AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
 		CARD32 *argb, CursorMetricPtr cm,
 		unsigned foreRed, unsigned foreGreen, unsigned foreBlue, 
@@ -280,7 +280,7 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
     return rc;
 }
 
-int
+_X_EXPORT int
 AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
                 unsigned foreRed, unsigned foreGreen, unsigned foreBlue, 
                 unsigned backRed, unsigned backGreen, unsigned backBlue,
@@ -515,7 +515,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
  * add the cursor to the resource table
  *************************************************************/
 
-CursorPtr 
+_X_EXPORT CursorPtr 
 CreateRootCursor(char *unused1, unsigned int unused2)
 {
     CursorPtr 	curs;

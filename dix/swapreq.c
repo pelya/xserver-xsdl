@@ -123,7 +123,7 @@ SwapShorts (short *list, unsigned long count)
 
 /* The following is used for all requests that have
    no fields to be swapped (except "length") */
-int
+_X_EXPORT int
 SProcSimpleReq(ClientPtr client)
 {
     char n;
@@ -136,7 +136,7 @@ SProcSimpleReq(ClientPtr client)
 /* The following is used for all requests that have
    only a single 32-bit field to be swapped, coming
    right after the "length" field */
-int
+_X_EXPORT int
 SProcResourceReq(ClientPtr client)
 {
     char n;
@@ -148,7 +148,7 @@ SProcResourceReq(ClientPtr client)
     return(*ProcVector[stuff->reqType])(client);
 }
 
-int
+_X_EXPORT int
 SProcCreateWindow(ClientPtr client)
 {
     char n;
@@ -170,7 +170,7 @@ SProcCreateWindow(ClientPtr client)
     return((* ProcVector[X_CreateWindow])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeWindowAttributes(ClientPtr client)
 {
     char n;
@@ -184,7 +184,7 @@ SProcChangeWindowAttributes(ClientPtr client)
     return((* ProcVector[X_ChangeWindowAttributes])(client));
 }
 
-int
+_X_EXPORT int
 SProcReparentWindow(ClientPtr client)
 {
     char n;
@@ -198,7 +198,7 @@ SProcReparentWindow(ClientPtr client)
     return((* ProcVector[X_ReparentWindow])(client));
 }
 
-int
+_X_EXPORT int
 SProcConfigureWindow(ClientPtr client)
 {
     char n;
@@ -213,7 +213,7 @@ SProcConfigureWindow(ClientPtr client)
 }
 
 
-int
+_X_EXPORT int
 SProcInternAtom(ClientPtr client)
 {
     char n;
@@ -224,7 +224,7 @@ SProcInternAtom(ClientPtr client)
     return((* ProcVector[X_InternAtom])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeProperty(ClientPtr client)
 {
     char n;
@@ -248,7 +248,7 @@ SProcChangeProperty(ClientPtr client)
     return((* ProcVector[X_ChangeProperty])(client));
 }
 
-int 
+_X_EXPORT int 
 SProcDeleteProperty(ClientPtr client)
 {
     char n;
@@ -261,7 +261,7 @@ SProcDeleteProperty(ClientPtr client)
               
 }
 
-int 
+_X_EXPORT int 
 SProcGetProperty(ClientPtr client)
 {
     char n;
@@ -276,7 +276,7 @@ SProcGetProperty(ClientPtr client)
     return((* ProcVector[X_GetProperty])(client));
 }
 
-int
+_X_EXPORT int
 SProcSetSelectionOwner(ClientPtr client)
 {
     char n;
@@ -289,7 +289,7 @@ SProcSetSelectionOwner(ClientPtr client)
     return((* ProcVector[X_SetSelectionOwner])(client));
 }
 
-int
+_X_EXPORT int
 SProcConvertSelection(ClientPtr client)
 {
     char n;
@@ -304,7 +304,7 @@ SProcConvertSelection(ClientPtr client)
     return((* ProcVector[X_ConvertSelection])(client));
 }
 
-int
+_X_EXPORT int
 SProcSendEvent(ClientPtr client)
 {
     char n;
@@ -326,7 +326,7 @@ SProcSendEvent(ClientPtr client)
     return((* ProcVector[X_SendEvent])(client));
 }
 
-int
+_X_EXPORT int
 SProcGrabPointer(ClientPtr client)
 {
     char n;
@@ -341,7 +341,7 @@ SProcGrabPointer(ClientPtr client)
     return((* ProcVector[X_GrabPointer])(client));
 }
 
-int
+_X_EXPORT int
 SProcGrabButton(ClientPtr client)
 {
     char n;
@@ -356,7 +356,7 @@ SProcGrabButton(ClientPtr client)
     return((* ProcVector[X_GrabButton])(client));
 }
 
-int
+_X_EXPORT int
 SProcUngrabButton(ClientPtr client)
 {
     char n;
@@ -368,7 +368,7 @@ SProcUngrabButton(ClientPtr client)
     return((* ProcVector[X_UngrabButton])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeActivePointerGrab(ClientPtr client)
 {
     char n;
@@ -381,7 +381,7 @@ SProcChangeActivePointerGrab(ClientPtr client)
     return((* ProcVector[X_ChangeActivePointerGrab])(client));
 }
 
-int
+_X_EXPORT int
 SProcGrabKeyboard(ClientPtr client)
 {
     char n;
@@ -393,7 +393,7 @@ SProcGrabKeyboard(ClientPtr client)
     return((* ProcVector[X_GrabKeyboard])(client));
 }
 
-int
+_X_EXPORT int
 SProcGrabKey(ClientPtr client)
 {
     char n;
@@ -405,7 +405,7 @@ SProcGrabKey(ClientPtr client)
     return((* ProcVector[X_GrabKey])(client));
 }
 
-int
+_X_EXPORT int
 SProcUngrabKey(ClientPtr client)
 {
     char n;
@@ -417,7 +417,7 @@ SProcUngrabKey(ClientPtr client)
     return((* ProcVector[X_UngrabKey])(client));
 }
 
-int
+_X_EXPORT int
 SProcGetMotionEvents(ClientPtr client)
 {
     char n;
@@ -430,7 +430,7 @@ SProcGetMotionEvents(ClientPtr client)
     return((* ProcVector[X_GetMotionEvents])(client));
 }
 
-int
+_X_EXPORT int
 SProcTranslateCoords(ClientPtr client)
 {
     char n;
@@ -444,7 +444,7 @@ SProcTranslateCoords(ClientPtr client)
     return((* ProcVector[X_TranslateCoords])(client));
 }
 
-int
+_X_EXPORT int
 SProcWarpPointer(ClientPtr client)
 {
     char n;
@@ -462,7 +462,7 @@ SProcWarpPointer(ClientPtr client)
     return((* ProcVector[X_WarpPointer])(client));
 }
 
-int
+_X_EXPORT int
 SProcSetInputFocus(ClientPtr client)
 {
     char n;
@@ -474,7 +474,7 @@ SProcSetInputFocus(ClientPtr client)
     return((* ProcVector[X_SetInputFocus])(client));
 }
 
-int
+_X_EXPORT int
 SProcOpenFont(ClientPtr client)
 {
     char n;
@@ -486,7 +486,7 @@ SProcOpenFont(ClientPtr client)
     return((* ProcVector[X_OpenFont])(client));
 }
 
-int
+_X_EXPORT int
 SProcListFonts(ClientPtr client)
 {
     char n;
@@ -498,7 +498,7 @@ SProcListFonts(ClientPtr client)
     return((* ProcVector[X_ListFonts])(client));
 }
 
-int
+_X_EXPORT int
 SProcListFontsWithInfo(ClientPtr client)
 {
     char n;
@@ -510,7 +510,7 @@ SProcListFontsWithInfo(ClientPtr client)
     return((* ProcVector[X_ListFontsWithInfo])(client));
 }
 
-int
+_X_EXPORT int
 SProcSetFontPath(ClientPtr client)
 {
     char n;
@@ -521,7 +521,7 @@ SProcSetFontPath(ClientPtr client)
     return((* ProcVector[X_SetFontPath])(client));
 }
 
-int
+_X_EXPORT int
 SProcCreatePixmap(ClientPtr client)
 {
     char n;
@@ -536,7 +536,7 @@ SProcCreatePixmap(ClientPtr client)
     return((* ProcVector[X_CreatePixmap])(client));
 }
 
-int
+_X_EXPORT int
 SProcCreateGC(ClientPtr client)
 {
     char n;
@@ -550,7 +550,7 @@ SProcCreateGC(ClientPtr client)
     return((* ProcVector[X_CreateGC])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeGC(ClientPtr client)
 {
     char n;
@@ -563,7 +563,7 @@ SProcChangeGC(ClientPtr client)
     return((* ProcVector[X_ChangeGC])(client));
 }
 
-int
+_X_EXPORT int
 SProcCopyGC(ClientPtr client)
 {
     char n;
@@ -576,7 +576,7 @@ SProcCopyGC(ClientPtr client)
     return((* ProcVector[X_CopyGC])(client));
 }
 
-int
+_X_EXPORT int
 SProcSetDashes(ClientPtr client)
 {
     char n;
@@ -590,7 +590,7 @@ SProcSetDashes(ClientPtr client)
 
 }
 
-int
+_X_EXPORT int
 SProcSetClipRectangles(ClientPtr client)
 {
     char n;
@@ -604,7 +604,7 @@ SProcSetClipRectangles(ClientPtr client)
     return((* ProcVector[X_SetClipRectangles])(client));
 }
 
-int
+_X_EXPORT int
 SProcClearToBackground(ClientPtr client)
 {
     char n;
@@ -619,7 +619,7 @@ SProcClearToBackground(ClientPtr client)
     return((* ProcVector[X_ClearArea])(client));
 }
 
-int
+_X_EXPORT int
 SProcCopyArea(ClientPtr client)
 {
     char n;
@@ -638,7 +638,7 @@ SProcCopyArea(ClientPtr client)
     return((* ProcVector[X_CopyArea])(client));
 }
 
-int
+_X_EXPORT int
 SProcCopyPlane(ClientPtr client)
 {
     char n;
@@ -660,7 +660,7 @@ SProcCopyPlane(ClientPtr client)
 
 /* The following routine is used for all Poly drawing requests
    (except FillPoly, which uses a different request format) */
-int
+_X_EXPORT int
 SProcPoly(ClientPtr client)
 {
     char n;
@@ -677,7 +677,7 @@ SProcPoly(ClientPtr client)
 /* cannot use SProcPoly for this one, because xFillPolyReq
    is longer than xPolyPointReq, and we don't want to swap
    the difference as shorts! */
-int
+_X_EXPORT int
 SProcFillPoly(ClientPtr client)
 {
     char n;
@@ -691,7 +691,7 @@ SProcFillPoly(ClientPtr client)
     return((* ProcVector[X_FillPoly])(client));
 }
 
-int
+_X_EXPORT int
 SProcPutImage(ClientPtr client)
 {
     char n;
@@ -709,7 +709,7 @@ SProcPutImage(ClientPtr client)
 
 }
 
-int
+_X_EXPORT int
 SProcGetImage(ClientPtr client)
 {
     char n;
@@ -727,7 +727,7 @@ SProcGetImage(ClientPtr client)
 
 /* ProcPolyText used for both PolyText8 and PolyText16 */
 
-int
+_X_EXPORT int
 SProcPolyText(ClientPtr client)
 {
     char n;
@@ -743,7 +743,7 @@ SProcPolyText(ClientPtr client)
 
 /* ProcImageText used for both ImageText8 and ImageText16 */
 
-int
+_X_EXPORT int
 SProcImageText(ClientPtr client)
 {
     char n;
@@ -757,7 +757,7 @@ SProcImageText(ClientPtr client)
     return((* ProcVector[stuff->reqType])(client));
 }
 
-int
+_X_EXPORT int
 SProcCreateColormap(ClientPtr client)
 {
     char n;
@@ -771,7 +771,7 @@ SProcCreateColormap(ClientPtr client)
 }
 
 
-int
+_X_EXPORT int
 SProcCopyColormapAndFree(ClientPtr client)
 {
     char n;
@@ -784,7 +784,7 @@ SProcCopyColormapAndFree(ClientPtr client)
 
 }
 
-int
+_X_EXPORT int
 SProcAllocColor(ClientPtr client)
 {
     char n;
@@ -798,7 +798,7 @@ SProcAllocColor(ClientPtr client)
     return((* ProcVector[X_AllocColor])(client));
 }
 
-int
+_X_EXPORT int
 SProcAllocNamedColor(ClientPtr client)
 {
     char n;
@@ -811,7 +811,7 @@ SProcAllocNamedColor(ClientPtr client)
     return((* ProcVector[X_AllocNamedColor])(client));
 }
 
-int
+_X_EXPORT int
 SProcAllocColorCells(ClientPtr client)
 {
     char n;
@@ -824,7 +824,7 @@ SProcAllocColorCells(ClientPtr client)
     return((* ProcVector[X_AllocColorCells])(client));
 }
 
-int
+_X_EXPORT int
 SProcAllocColorPlanes(ClientPtr client)
 {
     char n;
@@ -839,7 +839,7 @@ SProcAllocColorPlanes(ClientPtr client)
     return((* ProcVector[X_AllocColorPlanes])(client));
 }
 
-int
+_X_EXPORT int
 SProcFreeColors(ClientPtr client)
 {
     char n;
@@ -864,7 +864,7 @@ SwapColorItem(xColorItem *pItem)
     swaps(&pItem->blue, n);
 }
 
-int
+_X_EXPORT int
 SProcStoreColors(ClientPtr client)
 {
     char n;
@@ -881,7 +881,7 @@ SProcStoreColors(ClientPtr client)
     return((* ProcVector[X_StoreColors])(client));
 }
 
-int
+_X_EXPORT int
 SProcStoreNamedColor (ClientPtr client)
 {
     char n;
@@ -894,7 +894,7 @@ SProcStoreNamedColor (ClientPtr client)
     return((* ProcVector[X_StoreNamedColor])(client));
 }
 
-int
+_X_EXPORT int
 SProcQueryColors (ClientPtr client)
 {
     char n;
@@ -906,7 +906,7 @@ SProcQueryColors (ClientPtr client)
     return((* ProcVector[X_QueryColors])(client));
 } 
 
-int
+_X_EXPORT int
 SProcLookupColor (ClientPtr client)
 {
     char n;
@@ -918,7 +918,7 @@ SProcLookupColor (ClientPtr client)
     return((* ProcVector[X_LookupColor])(client));
 }
 
-int
+_X_EXPORT int
 SProcCreateCursor (ClientPtr client)
 {
     char n;
@@ -939,7 +939,7 @@ SProcCreateCursor (ClientPtr client)
     return((* ProcVector[X_CreateCursor])(client));
 }
 
-int
+_X_EXPORT int
 SProcCreateGlyphCursor (ClientPtr client)
 {
     char n;
@@ -961,7 +961,7 @@ SProcCreateGlyphCursor (ClientPtr client)
 }
 
 
-int
+_X_EXPORT int
 SProcRecolorCursor (ClientPtr client)
 {
     char n;
@@ -978,7 +978,7 @@ SProcRecolorCursor (ClientPtr client)
     return((* ProcVector[X_RecolorCursor])(client));
 }
 
-int
+_X_EXPORT int
 SProcQueryBestSize (ClientPtr client)
 {
     char n;
@@ -992,7 +992,7 @@ SProcQueryBestSize (ClientPtr client)
 
 }
 
-int
+_X_EXPORT int
 SProcQueryExtension (ClientPtr client)
 {
     char n;
@@ -1003,7 +1003,7 @@ SProcQueryExtension (ClientPtr client)
     return((* ProcVector[X_QueryExtension])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeKeyboardMapping (ClientPtr client)
 {
     char n;
@@ -1015,7 +1015,7 @@ SProcChangeKeyboardMapping (ClientPtr client)
 }
 
 
-int
+_X_EXPORT int
 SProcChangeKeyboardControl (ClientPtr client)
 {
     char n;
@@ -1027,7 +1027,7 @@ SProcChangeKeyboardControl (ClientPtr client)
     return((* ProcVector[X_ChangeKeyboardControl])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangePointerControl (ClientPtr client)
 {
     char n;
@@ -1041,7 +1041,7 @@ SProcChangePointerControl (ClientPtr client)
 }
 
 
-int
+_X_EXPORT int
 SProcSetScreenSaver (ClientPtr client)
 {
     char n;
@@ -1053,7 +1053,7 @@ SProcSetScreenSaver (ClientPtr client)
     return((* ProcVector[X_SetScreenSaver])(client));
 }
 
-int
+_X_EXPORT int
 SProcChangeHosts (ClientPtr client)
 {
     char n;
@@ -1066,7 +1066,7 @@ SProcChangeHosts (ClientPtr client)
 
 }
 
-int SProcRotateProperties (ClientPtr client)
+_X_EXPORT int SProcRotateProperties (ClientPtr client)
 {
     char n;
     REQUEST(xRotatePropertiesReq);
@@ -1079,7 +1079,7 @@ int SProcRotateProperties (ClientPtr client)
     return ((* ProcVector[X_RotateProperties])(client));
 }
 
-int
+_X_EXPORT int
 SProcNoOperation(ClientPtr client)
 {
     char n;
@@ -1088,7 +1088,7 @@ SProcNoOperation(ClientPtr client)
     return ((* ProcVector[X_NoOperation])(client));
 }
 
-void
+_X_EXPORT void
 SwapConnClientPrefix(xConnClientPrefix *pCCP)
 {
     char n;

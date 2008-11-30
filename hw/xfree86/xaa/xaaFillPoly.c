@@ -115,7 +115,7 @@
 	extents.
 */
 
-int
+_X_EXPORT int
 XAAIsEasyPolygon(
    DDXPointPtr ptsIn,
    int count, 
@@ -194,7 +194,7 @@ XAAIsEasyPolygon(
     return POLY_IS_EASY;
 }
 
-void
+_X_EXPORT void
 XAAFillPolygonSolid(
     DrawablePtr	pDraw,
     GCPtr	pGC,
@@ -343,7 +343,7 @@ XAAFillPolygonSolid(
 
 
 
-void
+_X_EXPORT void
 XAAFillPolygonHelper(
     ScrnInfoPtr pScrn,
     DDXPointPtr	ptsIn,
@@ -658,7 +658,7 @@ CacheBltRectHelper (
 	\**********************/
 
 
-void
+_X_EXPORT void
 XAAFillPolygonStippled(
     DrawablePtr	pDraw,
     GCPtr	pGC,
@@ -818,7 +818,7 @@ XAAFillPolygonStippled(
 	\*******************/
 
 
-void
+_X_EXPORT void
 XAAFillPolygonTiled(
     DrawablePtr	pDraw,
     GCPtr	pGC,

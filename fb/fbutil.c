@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-FbBits
+_X_EXPORT FbBits
 fbReplicatePixel (Pixel p, int bpp)
 {
     FbBits  b = p;
@@ -40,7 +40,7 @@ fbReplicatePixel (Pixel p, int bpp)
     return b;
 }
 
-void
+_X_EXPORT void
 fbReduceRasterOp (int rop, FbBits fg, FbBits pm, FbBits *andp, FbBits *xorp)
 {
     FbBits	and, xor;
@@ -122,7 +122,7 @@ fbReduceRasterOp (int rop, FbBits fg, FbBits pm, FbBits *andp, FbBits *xorp)
 #define O 0
 #define I FB_ALLONES
 
-const FbMergeRopRec FbMergeRopBits[16] = {
+_X_EXPORT const FbMergeRopRec FbMergeRopBits[16] = {
     { O,O,O,O },   /* clear	    0x0		0 */
     { I,O,O,O },   /* and	    0x1		src AND dst */
     { I,O,I,O },   /* andReverse    0x2		src AND NOT dst */
@@ -180,20 +180,20 @@ const FbMergeRopRec FbMergeRopBits[16] = {
 #if FB_UNIT == 16
 #define fbStipple16Bits 0
 #define fbStipple8Bits 0
-const FbBits fbStipple4Bits[16] = {
+_X_EXPORT const FbBits fbStipple4Bits[16] = {
     C4(  0,4), C4(  1,4), C4(  2,4), C4(  3,4), C4(  4,4), C4(  5,4),
     C4(  6,4), C4(  7,4), C4(  8,4), C4(  9,4), C4( 10,4), C4( 11,4),
     C4( 12,4), C4( 13,4), C4( 14,4), C4( 15,4),};
-const FbBits fbStipple2Bits[4] = {
+_X_EXPORT const FbBits fbStipple2Bits[4] = {
     C2(  0,8), C2(  1,8), C2(  2,8), C2(  3,8),
 };
-const FbBits fbStipple1Bits[2] = {
+_X_EXPORT const FbBits fbStipple1Bits[2] = {
     C1(  0,16), C1(  1,16),
 };
 #endif
 #if FB_UNIT == 32
 #define fbStipple16Bits 0
-const FbBits fbStipple8Bits[256] = {
+_X_EXPORT const FbBits fbStipple8Bits[256] = {
     C8(  0,4), C8(  1,4), C8(  2,4), C8(  3,4), C8(  4,4), C8(  5,4),
     C8(  6,4), C8(  7,4), C8(  8,4), C8(  9,4), C8( 10,4), C8( 11,4),
     C8( 12,4), C8( 13,4), C8( 14,4), C8( 15,4), C8( 16,4), C8( 17,4),
@@ -238,19 +238,19 @@ const FbBits fbStipple8Bits[256] = {
     C8(246,4), C8(247,4), C8(248,4), C8(249,4), C8(250,4), C8(251,4),
     C8(252,4), C8(253,4), C8(254,4), C8(255,4),
 };
-const FbBits fbStipple4Bits[16] = {
+_X_EXPORT const FbBits fbStipple4Bits[16] = {
     C4(  0,8), C4(  1,8), C4(  2,8), C4(  3,8), C4(  4,8), C4(  5,8),
     C4(  6,8), C4(  7,8), C4(  8,8), C4(  9,8), C4( 10,8), C4( 11,8),
     C4( 12,8), C4( 13,8), C4( 14,8), C4( 15,8),};
-const FbBits fbStipple2Bits[4] = {
+_X_EXPORT const FbBits fbStipple2Bits[4] = {
     C2(  0,16), C2(  1,16), C2(  2,16), C2(  3,16),
 };
-const FbBits fbStipple1Bits[2] = {
+_X_EXPORT const FbBits fbStipple1Bits[2] = {
     C1(  0,32), C1(  1,32),
 };
 #endif
 #if FB_UNIT == 64
-const FbBits fbStipple16Bits[256] = {
+_X_EXPORT const FbBits fbStipple16Bits[256] = {
     C8(  0,4), C8(  1,4), C8(  2,4), C8(  3,4), C8(  4,4), C8(  5,4),
     C8(  6,4), C8(  7,4), C8(  8,4), C8(  9,4), C8( 10,4), C8( 11,4),
     C8( 12,4), C8( 13,4), C8( 14,4), C8( 15,4), C8( 16,4), C8( 17,4),
@@ -295,7 +295,7 @@ const FbBits fbStipple16Bits[256] = {
     C8(246,4), C8(247,4), C8(248,4), C8(249,4), C8(250,4), C8(251,4),
     C8(252,4), C8(253,4), C8(254,4), C8(255,4),
 };
-const FbBits fbStipple8Bits[256] = {
+_X_EXPORT const FbBits fbStipple8Bits[256] = {
     C8(  0,8), C8(  1,8), C8(  2,8), C8(  3,8), C8(  4,8), C8(  5,8),
     C8(  6,8), C8(  7,8), C8(  8,8), C8(  9,8), C8( 10,8), C8( 11,8),
     C8( 12,8), C8( 13,8), C8( 14,8), C8( 15,8), C8( 16,8), C8( 17,8),
@@ -340,16 +340,16 @@ const FbBits fbStipple8Bits[256] = {
     C8(246,8), C8(247,8), C8(248,8), C8(249,8), C8(250,8), C8(251,8),
     C8(252,8), C8(253,8), C8(254,8), C8(255,8),
 };
-const FbBits fbStipple4Bits[16] = {
+_X_EXPORT const FbBits fbStipple4Bits[16] = {
     C4(  0,16), C4(  1,16), C4(  2,16), C4(  3,16), C4(  4,16), C4(  5,16),
     C4(  6,16), C4(  7,16), C4(  8,16), C4(  9,16), C4( 10,16), C4( 11,16),
     C4( 12,16), C4( 13,16), C4( 14,16), C4( 15,16),};
-const FbBits fbStipple2Bits[4] = {
+_X_EXPORT const FbBits fbStipple2Bits[4] = {
     C2(  0,32), C2(  1,32), C2(  2,32), C2(  3,32),
 };
 #define fbStipple1Bits 0
 #endif
-const FbBits	* const fbStippleTable[] = {
+_X_EXPORT const FbBits	* const fbStippleTable[] = {
     0,
     fbStipple1Bits,
     fbStipple2Bits,

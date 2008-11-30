@@ -314,7 +314,7 @@ Atom		name;
     return next;
 }
 
-int
+_X_EXPORT int
 XkbDDXAccessXBeep(DeviceIntPtr dev,unsigned what,unsigned which)
 {
 XkbSrvInfoRec	*xkbInfo= dev->key->xkbInfo;

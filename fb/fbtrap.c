@@ -33,7 +33,7 @@
 #include "renderedge.h"
 #include "fbpict.h"
 
-void
+_X_EXPORT void
 fbAddTraps (PicturePtr	pPicture,
 	    INT16	x_off,
 	    INT16	y_off,
@@ -50,7 +50,7 @@ fbAddTraps (PicturePtr	pPicture,
     free_pixman_pict (pPicture, image);
 }
 
-void
+_X_EXPORT void
 fbRasterizeTrapezoid (PicturePtr    pPicture,
 		      xTrapezoid  *trap,
 		      int	    x_off,
@@ -92,7 +92,7 @@ _Clockwise (xPointFixed *ref, xPointFixed *a, xPointFixed *b)
 }
 
 /* FIXME -- this could be made more efficient */
-void
+_X_EXPORT void
 fbAddTriangles (PicturePtr  pPicture,
 		INT16	    x_off,
 		INT16	    y_off,

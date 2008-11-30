@@ -411,7 +411,7 @@ xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86RandRInit (ScreenPtr    pScreen)
 {
     rrScrPrivPtr	rp;

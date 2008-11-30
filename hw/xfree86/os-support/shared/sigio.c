@@ -262,7 +262,7 @@ xf86UnblockSIGIO (int wasset)
     }
 }
 
-void
+_X_EXPORT void
 xf86AssertBlockedSIGIO (char *where)
 {
     sigset_t	set, old;
@@ -275,7 +275,7 @@ xf86AssertBlockedSIGIO (char *where)
 
 /* XXX This is a quick hack for the benefit of xf86SetSilkenMouse() */
 
-int
+_X_EXPORT int
 xf86SIGIOSupported (void)
 {
     return 1;

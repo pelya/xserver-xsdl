@@ -34,8 +34,8 @@
 #include "xf86Priv.h"
 #include "xf86Xinput.h"
 
-int (*xf86PMGetEventFromOs)(int fd,pmEvent *events,int num) = NULL;
-pmWait (*xf86PMConfirmEventToOs)(int fd,pmEvent event) = NULL;
+_X_EXPORT int (*xf86PMGetEventFromOs)(int fd,pmEvent *events,int num) = NULL;
+_X_EXPORT pmWait (*xf86PMConfirmEventToOs)(int fd,pmEvent event) = NULL;
 
 static Bool suspended = FALSE;
 
@@ -178,7 +178,7 @@ DoApmEvent(pmEvent event, Bool undo)
 
 #define MAX_NO_EVENTS 8
 
-void
+_X_EXPORT void
 xf86HandlePMEvents(int fd, pointer data)
 {
     pmEvent events[MAX_NO_EVENTS];

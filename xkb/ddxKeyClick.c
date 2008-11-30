@@ -39,7 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <xkbsrv.h>
 #include <X11/extensions/XI.h>
 
-void
+_X_EXPORT void
 XkbDDXKeyClick(DeviceIntPtr pXDev,int keycode,int synthetic)
 {
     return;

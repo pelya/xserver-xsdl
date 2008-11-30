@@ -31,7 +31,7 @@
 
 #define dummyScreen screenInfo.screens[0]
       
-Bool
+_X_EXPORT Bool
 fbGlyphIn (RegionPtr	pRegion,
 	   int		x,
 	   int		y,
@@ -253,7 +253,7 @@ fbGlyph24 (FbBits   *dstBits,
 #endif
 #endif
 
-void
+_X_EXPORT void
 fbPolyGlyphBlt (DrawablePtr	pDrawable,
 		GCPtr		pGC,
 		int		x, 
@@ -343,7 +343,7 @@ fbPolyGlyphBlt (DrawablePtr	pDrawable,
 }
 
 
-void
+_X_EXPORT void
 fbImageGlyphBlt (DrawablePtr	pDrawable,
 		 GCPtr		pGC,
 		 int		x, 

@@ -22,7 +22,7 @@
 #include "xaalocal.h"
 
 
-RegionPtr
+_X_EXPORT RegionPtr
 XAABitBlt(
     DrawablePtr pSrcDrawable,
     DrawablePtr pDstDrawable,

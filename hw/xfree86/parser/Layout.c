@@ -520,7 +520,7 @@ xf86validateLayout (XF86ConfigPtr p)
 	return (TRUE);
 }
 
-XF86ConfLayoutPtr
+_X_EXPORT XF86ConfLayoutPtr
 xf86findLayout (const char *name, XF86ConfLayoutPtr list)
 {
 	while (list)

@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-void
+_X_EXPORT void
 fbPolyFillRect(DrawablePtr  pDrawable, 
 	       GCPtr	    pGC, 
 	       int	    nrect,

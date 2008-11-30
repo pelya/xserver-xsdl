@@ -76,7 +76,7 @@ optionTypeToSting(OptionValueType type)
     }
 }
 
-void DoShowOptions (void) {
+_X_EXPORT void DoShowOptions (void) {
 	int  i = 0;
 	char **vlist  = 0;
 	char *pSymbol = 0;

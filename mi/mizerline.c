@@ -363,7 +363,7 @@ miZeroLine(
     xfree(pspanInit);
 }
 
-void
+_X_EXPORT void
 miZeroDashLine(
             DrawablePtr dst,
             GCPtr pgc,

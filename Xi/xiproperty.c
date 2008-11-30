@@ -93,7 +93,7 @@ XIInitKnownProperties(void)
  * property handler again.
  * @return The handler's identifier or 0 if an error occured.
  */
-long
+_X_EXPORT long
 XIRegisterPropertyHandler(DeviceIntPtr         dev,
                           int (*SetProperty) (DeviceIntPtr dev,
                                               Atom property,
@@ -120,7 +120,7 @@ XIRegisterPropertyHandler(DeviceIntPtr         dev,
     return new_handler->id;
 }
 
-void
+_X_EXPORT void
 XIUnRegisterPropertyHandler(DeviceIntPtr dev, long id)
 {
     XIPropertyHandlerPtr curr, prev = NULL;
@@ -186,7 +186,7 @@ XIDestroyDeviceProperty (XIPropertyPtr prop)
  * including removing all device handlers.
  * DO NOT CALL FROM THE DRIVER.
  */
-void
+_X_EXPORT void
 XIDeleteAllDeviceProperties (DeviceIntPtr device)
 {
     XIPropertyPtr               prop, next;
@@ -219,7 +219,7 @@ XIDeleteAllDeviceProperties (DeviceIntPtr device)
 }
 
 
-int
+_X_EXPORT int
 XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 {
     XIPropertyPtr               prop, *prev;
@@ -263,7 +263,7 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
     return Success;
 }
 
-int
+_X_EXPORT int
 XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                         int format, int mode, unsigned long len,
                         pointer value, Bool sendevent)
@@ -400,7 +400,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     return(Success);
 }
 
-int
+_X_EXPORT int
 XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
 {
     XIPropertyPtr   prop = XIFetchDeviceProperty (dev, property);
@@ -435,7 +435,7 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
     return Success;
 }
 
-int
+_X_EXPORT int
 XISetDevicePropertyDeletable(DeviceIntPtr dev, Atom property, Bool deletable)
 {
     XIPropertyPtr prop = XIFetchDeviceProperty(dev, property);

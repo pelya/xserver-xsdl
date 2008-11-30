@@ -198,13 +198,13 @@ _X_EXPORT Bool noGEExtension = FALSE;
 
 #include <errno.h>
 
-Bool CoreDump;
+_X_EXPORT Bool CoreDump;
 
 #ifdef PANORAMIX
-Bool PanoramiXExtensionDisabledHack = FALSE;
+_X_EXPORT Bool PanoramiXExtensionDisabledHack = FALSE;
 #endif
 
-int auditTrailLevel = 1;
+_X_EXPORT int auditTrailLevel = 1;
 
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
@@ -212,7 +212,7 @@ int auditTrailLevel = 1;
 
 static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
 
-OsSigHandlerPtr
+_X_EXPORT OsSigHandlerPtr
 OsSignal(sig, handler)
     int sig;
     OsSigHandlerPtr handler;
@@ -261,7 +261,7 @@ static Bool nolock = FALSE;
  *      contained inside is valid.  If so, then die.  Otherwise, create
  *      the lock file containing the PID.
  */
-void
+_X_EXPORT void
 LockServer(void)
 {
   char tmp[PATH_MAX], pid_str[12];
@@ -387,7 +387,7 @@ LockServer(void)
  * UnlockServer --
  *      Remove the server lock file.
  */
-void
+_X_EXPORT void
 UnlockServer(void)
 {
   if (nolock) return;
@@ -401,7 +401,7 @@ UnlockServer(void)
 /* Force connections to close on SIGHUP from init */
 
 /*ARGSUSED*/
-SIGVAL
+_X_EXPORT SIGVAL
 AutoResetServer (int sig)
 {
     int olderrno = errno;
@@ -471,7 +471,7 @@ AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
     }
 }
 
-void UseMsg(void)
+_X_EXPORT void UseMsg(void)
 {
     ErrorF("use: X [:<display>] [option]\n");
     ErrorF("-a #                   mouse acceleration (pixels)\n");
@@ -577,7 +577,7 @@ VerifyDisplayName(const char *d)
  * and allows ddx to handle additional fields.  It is not allowed to modify
  * argc or any of the strings pointed to by argv.
  */
-void
+_X_EXPORT void
 ProcessCommandLine(int argc, char *argv[])
 {
     int i, skip;
@@ -1167,7 +1167,7 @@ Xfree(pointer ptr)
 #endif /* !INTERNAL_MALLOC */
 
 
-char *
+_X_EXPORT char *
 Xstrdup(const char *s)
 {
     char *sd;
@@ -1205,7 +1205,7 @@ XNFstrdup(const char *s)
 #define SMART_SCHEDULE_TIMER		ITIMER_REAL
 #endif
 
-void
+_X_EXPORT void
 SmartScheduleStopTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1221,7 +1221,7 @@ SmartScheduleStopTimer (void)
 #endif
 }
 
-void
+_X_EXPORT void
 SmartScheduleStartTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1245,7 +1245,7 @@ SmartScheduleTimer (int sig)
 }
 #endif
 
-Bool
+_X_EXPORT Bool
 SmartScheduleInit (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1276,7 +1276,7 @@ static sigset_t	PreviousSignalMask;
 static int	BlockedSignalCount;
 #endif
 
-void
+_X_EXPORT void
 OsBlockSignals (void)
 {
 #ifdef SIG_BLOCK
@@ -1314,7 +1314,7 @@ OsBlockSignals (void)
 #endif
 }
 
-void
+_X_EXPORT void
 OsReleaseSignals (void)
 {
 #ifdef SIG_BLOCK
@@ -1336,7 +1336,7 @@ OsReleaseSignals (void)
  * as well.  As it is now, xkbcomp messages don't end up in the log file.
  */
 
-int
+_X_EXPORT int
 System(char *command)
 {
     int pid, p;
@@ -1395,7 +1395,7 @@ static struct pid {
 
 OsSigHandlerPtr old_alarm = NULL; /* XXX horrible awful hack */
 
-pointer
+_X_EXPORT pointer
 Popen(char *command, char *type)
 {
     struct pid *cur;
@@ -1480,7 +1480,7 @@ Popen(char *command, char *type)
 }
 
 /* fopen that drops privileges */
-pointer
+_X_EXPORT pointer
 Fopen(char *file, char *type)
 {
     FILE *iop;
@@ -1573,7 +1573,7 @@ Fopen(char *file, char *type)
 #endif /* HAS_SAVED_IDS_AND_SETEUID */
 }
 
-int
+_X_EXPORT int
 Pclose(pointer iop)
 {
     struct pid *cur, *last;
@@ -1613,7 +1613,7 @@ Pclose(pointer iop)
     return pid == -1 ? -1 : pstat;
 }
 
-int 
+_X_EXPORT int 
 Fclose(pointer iop)
 {
 #ifdef HAS_SAVED_IDS_AND_SETEUID
@@ -1701,7 +1701,7 @@ enum BadCode {
 #endif
 
 void
-CheckUserParameters(int argc, char **argv, char **envp)
+_X_EXPORT CheckUserParameters(int argc, char **argv, char **envp)
 {
     enum BadCode bad = NotBad;
     int i = 0, j;
@@ -1838,7 +1838,7 @@ CheckUserParameters(int argc, char **argv, char **envp)
 #include <pwd.h>
 #endif /* USE_PAM */
 
-void
+_X_EXPORT void
 CheckUserAuthorization(void)
 {
 #ifdef USE_PAM

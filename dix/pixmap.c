@@ -88,7 +88,7 @@ FreeScratchPixmapHeader(PixmapPtr pPixmap)
 }
 
 
-Bool
+_X_EXPORT Bool
 CreateScratchPixmapsForScreen(int scrnum)
 {
     /* let it be created on first use */
@@ -97,7 +97,7 @@ CreateScratchPixmapsForScreen(int scrnum)
 }
 
 
-void
+_X_EXPORT void
 FreeScratchPixmapsForScreen(int scrnum)
 {
     FreeScratchPixmapHeader(screenInfo.screens[scrnum]->pScratchPixmap);

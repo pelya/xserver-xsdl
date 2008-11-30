@@ -23,7 +23,7 @@
 #include "randrstr.h"
 #include "registry.h"
 
-RESTYPE	RRModeType;
+_X_EXPORT RESTYPE	RRModeType;
 
 static Bool
 RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
@@ -112,7 +112,7 @@ RRModeFindByName (const char	*name,
     return NULL;
 }
 
-RRModePtr
+_X_EXPORT RRModePtr
 RRModeGet (xRRModeInfo	*modeInfo,
 	   const char	*name)
 {
@@ -157,7 +157,7 @@ RRModeCreateUser (ScreenPtr	pScreen,
     return mode;
 }
 
-RRModePtr *
+_X_EXPORT RRModePtr *
 RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 {
     rrScrPriv(pScreen);
@@ -228,7 +228,7 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
     return screen_modes;
 }
 
-void
+_X_EXPORT void
 RRModeDestroy (RRModePtr mode)
 {
     int	m;
@@ -261,7 +261,7 @@ RRModeDestroyResource (pointer value, XID pid)
     return 1;
 }
 
-Bool
+_X_EXPORT Bool
 RRModeInit (void)
 {
     assert (num_modes == 0);
@@ -273,7 +273,7 @@ RRModeInit (void)
     return TRUE;
 }
 
-int
+_X_EXPORT int
 ProcRRCreateMode (ClientPtr client)
 {
     REQUEST(xRRCreateModeReq);
@@ -325,7 +325,7 @@ ProcRRCreateMode (ClientPtr client)
     return client->noClientException;
 }
 
-int
+_X_EXPORT int
 ProcRRDestroyMode (ClientPtr client)
 {
     REQUEST(xRRDestroyModeReq);
@@ -346,7 +346,7 @@ ProcRRDestroyMode (ClientPtr client)
     return Success;
 }
 
-int
+_X_EXPORT int
 ProcRRAddOutputMode (ClientPtr client)
 {
     REQUEST(xRRAddOutputModeReq);
@@ -372,7 +372,7 @@ ProcRRAddOutputMode (ClientPtr client)
     return RROutputAddUserMode (output, mode);
 }
 
-int
+_X_EXPORT int
 ProcRRDeleteOutputMode (ClientPtr client)
 {
     REQUEST(xRRDeleteOutputModeReq);

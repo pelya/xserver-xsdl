@@ -232,7 +232,7 @@ FindBestGray (miIndexedPtr pIndexed, Pixel *pixels, int num, int gray)
     return best;
 }
 
-Bool
+_X_EXPORT Bool
 miInitIndexed (ScreenPtr	pScreen,
 	       PictFormatPtr	pFormat)
 {
@@ -318,7 +318,7 @@ miInitIndexed (ScreenPtr	pScreen,
     return TRUE;
 }
 
-void
+_X_EXPORT void
 miCloseIndexed (ScreenPtr	pScreen,
 		PictFormatPtr	pFormat)
 {
@@ -334,7 +334,7 @@ miCloseIndexed (ScreenPtr	pScreen,
     }
 }
 
-void
+_X_EXPORT void
 miUpdateIndexed (ScreenPtr	pScreen,
 		 PictFormatPtr	pFormat,
 		 int		ndef,

@@ -613,7 +613,7 @@ check_for_matching_devices(DriverPtr drvp)
  * If a device can be successfully probed by the driver, \c TRUE is
  * returned.  Otherwise, \c FALSE is returned.
  */
-Bool
+_X_EXPORT Bool
 xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
 {
     Bool     foundScreen = FALSE;
@@ -719,7 +719,7 @@ DoProbe(void)
  *      That includes vt-manager setup, querying all possible devices and
  *      collecting the pixmap formats.
  */
-void
+_X_EXPORT void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
   int                    i, j, k, scr_index;
@@ -1305,7 +1305,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
  *      Initialize all supported input devices.
  */
 
-void
+_X_EXPORT void
 InitInput(argc, argv)
      int	  argc;
      char	  **argv;
@@ -1334,7 +1334,7 @@ InitInput(argc, argv)
  *      is called by dix before establishing the well known sockets.
  */
 
-void
+_X_EXPORT void
 OsVendorInit()
 {
   static Bool beenHere = FALSE;
@@ -1379,7 +1379,7 @@ OsVendorInit()
  *      checking here, since there should be restored as much as possible.
  */
 
-void
+_X_EXPORT void
 ddxGiveUp()
 {
     int i;
@@ -1424,7 +1424,7 @@ ddxGiveUp()
  *      are closed.
  */
 
-void
+_X_EXPORT void
 AbortDDX()
 {
   int i;
@@ -1460,7 +1460,7 @@ AbortDDX()
   ddxGiveUp();
 }
 
-void
+_X_EXPORT void
 OsVendorFatalError()
 {
 #ifdef VENDORSUPPORT
@@ -1476,7 +1476,7 @@ OsVendorFatalError()
     ErrorF("\n");
 }
 
-int
+_X_EXPORT int
 xf86SetVerbosity(int verb)
 {
     int save = xf86Verbose;
@@ -1486,7 +1486,7 @@ xf86SetVerbosity(int verb)
     return save;
 }
 
-int
+_X_EXPORT int
 xf86SetLogVerbosity(int verb)
 {
     int save = xf86LogVerbose;
@@ -1517,7 +1517,7 @@ xf86PrintDefaultLibraryPath(void)
  */
 
 /* ARGSUSED */
-int
+_X_EXPORT int
 ddxProcessArgument(int argc, char **argv, int i)
 {
   /*
@@ -1852,7 +1852,7 @@ ddxProcessArgument(int argc, char **argv, int i)
  *      Maybe the user now knows what really to do ...
  */
 
-void
+_X_EXPORT void
 ddxUseMsg()
 {
   ErrorF("\n");
@@ -1906,7 +1906,7 @@ ddxUseMsg()
 /*
  * xf86LoadModules iterates over a list that is being passed in.
  */
-Bool
+_X_EXPORT Bool
 xf86LoadModules(char **list, pointer *optlist)
 {
     int errmaj, errmin;

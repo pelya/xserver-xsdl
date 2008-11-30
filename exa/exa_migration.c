@@ -389,7 +389,7 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
     }
 }
 
-void
+_X_EXPORT void
 exaMoveOutPixmap (PixmapPtr pPixmap)
 {
     static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,

@@ -27,7 +27,7 @@
 #include "xf86fbman.h"
 #include "servermd.h"
 
-void
+_X_EXPORT void
 XAAMoveOutOffscreenPixmaps(ScreenPtr pScreen)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
@@ -44,7 +44,7 @@ XAAMoveOutOffscreenPixmaps(ScreenPtr pScreen)
 
 
 
-void
+_X_EXPORT void
 XAAMoveInOffscreenPixmaps(ScreenPtr pScreen)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
@@ -103,7 +103,7 @@ XAAMoveInOffscreenPixmaps(ScreenPtr pScreen)
 }
 
 
-void
+_X_EXPORT void
 XAARemoveAreaCallback(FBAreaPtr area)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(area->pScreen);
@@ -117,7 +117,7 @@ XAARemoveAreaCallback(FBAreaPtr area)
     DELIST_OFFSCREEN_PIXMAP(pPix);
 }
 
-void
+_X_EXPORT void
 XAAMoveOutOffscreenPixmap(PixmapPtr pPix) 
 {
     ScreenPtr pScreen = pPix->drawable.pScreen;

@@ -554,7 +554,7 @@ xf86validateScreen (XF86ConfigPtr p)
 	return (TRUE);
 }
 
-XF86ConfScreenPtr
+_X_EXPORT XF86ConfScreenPtr
 xf86findScreen (const char *ident, XF86ConfScreenPtr p)
 {
 	while (p)

@@ -163,7 +163,7 @@ xf86InterpretEDID(int scrnIndex, Uchar *block)
     return NULL;
 }
 
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86InterpretEEDID(int scrnIndex, Uchar *block)
 {
     xf86MonPtr m;

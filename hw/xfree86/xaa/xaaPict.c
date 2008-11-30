@@ -48,7 +48,7 @@
 #include "xf86fbman.h"
 #include "servermd.h"
 
-Bool
+_X_EXPORT Bool
 XAAGetPixelFromRGBA (
     CARD32 *pixel,
     CARD16 red,
@@ -91,7 +91,7 @@ XAAGetPixelFromRGBA (
 }
 
 
-Bool
+_X_EXPORT Bool
 XAAGetRGBAFromPixel(
     CARD32 pixel,
     CARD16 *red,
@@ -180,7 +180,7 @@ XAA_888_plus_PICT_a8_to_8888 (
     (pDraw->type == DRAWABLE_WINDOW || \
      (pDraw->type == DRAWABLE_PIXMAP && IS_OFFSCREEN_PIXMAP(pDraw)))
 
-Bool
+_X_EXPORT Bool
 XAADoComposite (
     CARD8      op,
     PicturePtr pSrc,
@@ -494,7 +494,7 @@ XAACompositeSrcCopy (PicturePtr pSrc,
     return;
 }
 
-void
+_X_EXPORT void
 XAAComposite (CARD8      op,
 	      PicturePtr pSrc,
 	      PicturePtr pMask,
@@ -562,7 +562,7 @@ XAAComposite (CARD8      op,
     XAA_RENDER_EPILOGUE(pScreen, Composite, XAAComposite);
 }
 
-Bool
+_X_EXPORT Bool
 XAADoGlyphs (CARD8         op,
 	   PicturePtr    pSrc,
 	   PicturePtr    pDst,
@@ -607,7 +607,7 @@ XAADoGlyphs (CARD8         op,
 }	   
 	 
 	
-void
+_X_EXPORT void
 XAAGlyphs (CARD8         op,
 	   PicturePtr    pSrc,
 	   PicturePtr    pDst,

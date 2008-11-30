@@ -1859,7 +1859,7 @@ damageCloseScreen (int i, ScreenPtr pScreen)
  * Public functions for consumption outside this file.
  */
 
-Bool
+_X_EXPORT Bool
 DamageSetup (ScreenPtr pScreen)
 {
     DamageScrPrivPtr	pScrPriv;
@@ -1898,7 +1898,7 @@ DamageSetup (ScreenPtr pScreen)
     return TRUE;
 }
 
-DamagePtr
+_X_EXPORT DamagePtr
 DamageCreate (DamageReportFunc  damageReport,
 	      DamageDestroyFunc	damageDestroy,
 	      DamageReportLevel	damageLevel,
@@ -1930,7 +1930,7 @@ DamageCreate (DamageReportFunc  damageReport,
     return pDamage;
 }
 
-void
+_X_EXPORT void
 DamageRegister (DrawablePtr pDrawable,
 		DamagePtr   pDamage)
 {
@@ -1958,7 +1958,7 @@ DamageRegister (DrawablePtr pDrawable,
     damageInsertDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
-void
+_X_EXPORT void
 DamageDrawInternal (ScreenPtr pScreen, Bool enable)
 {
     damageScrPriv (pScreen);
@@ -1966,7 +1966,7 @@ DamageDrawInternal (ScreenPtr pScreen, Bool enable)
     pScrPriv->internalLevel += enable ? 1 : -1;
 }
 
-void
+_X_EXPORT void
 DamageUnregister (DrawablePtr	    pDrawable,
 		  DamagePtr	    pDamage)
 {
@@ -2001,7 +2001,7 @@ DamageUnregister (DrawablePtr	    pDrawable,
     damageRemoveDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
-void
+_X_EXPORT void
 DamageDestroy (DamagePtr    pDamage)
 {
     if (pDamage->damageDestroy)
@@ -2011,7 +2011,7 @@ DamageDestroy (DamagePtr    pDamage)
     xfree (pDamage);
 }
 
-Bool
+_X_EXPORT Bool
 DamageSubtract (DamagePtr	    pDamage,
 		const RegionPtr	    pRegion)
 {
@@ -2044,7 +2044,7 @@ DamageSubtract (DamagePtr	    pDamage,
     return REGION_NOTEMPTY (pDrawable->pScreen, &pDamage->damage);
 }
 
-void
+_X_EXPORT void
 DamageEmpty (DamagePtr	    pDamage)
 {
     REGION_EMPTY (pDamage->pDrawable->pScreen, &pDamage->damage);

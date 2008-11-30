@@ -49,19 +49,19 @@ fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
     return miListInstalledColormaps(pScreen, pmaps);
 }
 
-void
+_X_EXPORT void
 fbInstallColormap(ColormapPtr pmap)
 {
     miInstallColormap(pmap);
 }
 
-void
+_X_EXPORT void
 fbUninstallColormap(ColormapPtr pmap)
 {
     miUninstallColormap(pmap);
 }
 
-void
+_X_EXPORT void
 fbResolveColor(unsigned short   *pred,
 	       unsigned short   *pgreen,
 	       unsigned short   *pblue,
@@ -70,7 +70,7 @@ fbResolveColor(unsigned short   *pred,
     miResolveColor(pred, pgreen, pblue, pVisual);
 }
 
-Bool
+_X_EXPORT Bool
 fbInitializeColormap(ColormapPtr pmap)
 {
     return miInitializeColormap(pmap);
@@ -91,19 +91,19 @@ fbCreateDefColormap(ScreenPtr pScreen)
     return miCreateDefColormap(pScreen);
 }
 
-void
+_X_EXPORT void
 fbClearVisualTypes(void)
 {
     miClearVisualTypes();
 }
 
-Bool
+_X_EXPORT Bool
 fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
 {
     return miSetVisualTypes(depth, visuals, bitsPerRGB, -1);
 }
 
-Bool
+_X_EXPORT Bool
 fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
                           Pixel redMask, Pixel greenMask, Pixel blueMask)
 {
@@ -116,7 +116,7 @@ fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
  * of visuals and depths for the screen which coorespond to
  * the set which can be used with this version of fb.
  */
-Bool
+_X_EXPORT Bool
 fbInitVisuals (VisualPtr    *visualp, 
 	       DepthPtr	    *depthp,
 	       int	    *nvisualp,

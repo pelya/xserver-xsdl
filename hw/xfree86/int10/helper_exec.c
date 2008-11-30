@@ -49,7 +49,7 @@ static void SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set);
 
 #define REG pInt
 
-int
+_X_EXPORT int
 setup_int(xf86Int10InfoPtr pInt)
 {
     if (pInt != Int10Current) {
@@ -78,7 +78,7 @@ setup_int(xf86Int10InfoPtr pInt)
     return xf86BlockSIGIO();
 }
 
-void
+_X_EXPORT void
 finish_int(xf86Int10InfoPtr pInt, int sig)
 {
     xf86UnblockSIGIO(sig);
@@ -98,20 +98,20 @@ finish_int(xf86Int10InfoPtr pInt, int sig)
 }
 
 /* general software interrupt handler */
-CARD32
+_X_EXPORT CARD32
 getIntVect(xf86Int10InfoPtr pInt,int num)
 {
     return MEM_RW(pInt, num << 2) + (MEM_RW(pInt, (num << 2) + 2) << 4);
 }
 
-void
+_X_EXPORT void
 pushw(xf86Int10InfoPtr pInt, CARD16 val)
 {
     X86_ESP -= 2;
     MEM_WW(pInt, ((CARD32) X86_SS << 4) + X86_SP, val);
 }
 
-int
+_X_EXPORT int
 run_bios_int(int num, xf86Int10InfoPtr pInt)
 {
     CARD32 eflags;
@@ -157,7 +157,7 @@ run_bios_int(int num, xf86Int10InfoPtr pInt)
 }
 
 /* Debugging stuff */
-void
+_X_EXPORT void
 dump_code(xf86Int10InfoPtr pInt)
 {
     int i;
@@ -172,7 +172,7 @@ dump_code(xf86Int10InfoPtr pInt)
     xf86ErrorFVerb(3, "\n");
 }
 
-void
+_X_EXPORT void
 dump_registers(xf86Int10InfoPtr pInt)
 {
     xf86DrvMsgVerb(pInt->scrnIndex, X_INFO, 3,
@@ -192,7 +192,7 @@ dump_registers(xf86Int10InfoPtr pInt)
 	(unsigned long)X86_EIP, (unsigned long)X86_EFLAGS);
 }
 
-void
+_X_EXPORT void
 stack_trace(xf86Int10InfoPtr pInt)
 {
     int i = 0;
@@ -212,7 +212,7 @@ stack_trace(xf86Int10InfoPtr pInt)
 	xf86ErrorFVerb(3, "\n");
 }
 
-int
+_X_EXPORT int
 port_rep_inb(xf86Int10InfoPtr pInt,
 	     CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -228,7 +228,7 @@ port_rep_inb(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-int
+_X_EXPORT int
 port_rep_inw(xf86Int10InfoPtr pInt,
 	     CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -244,7 +244,7 @@ port_rep_inw(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-int
+_X_EXPORT int
 port_rep_inl(xf86Int10InfoPtr pInt,
 	     CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -260,7 +260,7 @@ port_rep_inl(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-int
+_X_EXPORT int
 port_rep_outb(xf86Int10InfoPtr pInt,
 	      CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -276,7 +276,7 @@ port_rep_outb(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-int
+_X_EXPORT int
 port_rep_outw(xf86Int10InfoPtr pInt,
 	      CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -292,7 +292,7 @@ port_rep_outw(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-int
+_X_EXPORT int
 port_rep_outl(xf86Int10InfoPtr pInt,
 	      CARD16 port, CARD32 base, int d_f, CARD32 count)
 {
@@ -308,7 +308,7 @@ port_rep_outl(xf86Int10InfoPtr pInt,
     return dst - base;
 }
 
-CARD8
+_X_EXPORT CARD8
 x_inb(CARD16 port)
 {
     CARD8 val;
@@ -337,7 +337,7 @@ x_inb(CARD16 port)
     return val;
 }
 
-CARD16
+_X_EXPORT CARD16
 x_inw(CARD16 port)
 {
     CARD16 val;
@@ -359,7 +359,7 @@ x_inw(CARD16 port)
     return val;
 }
 
-void
+_X_EXPORT void
 x_outb(CARD16 port, CARD8 val)
 {
     if ((port == 0x43) && (val == 0)) {
@@ -390,7 +390,7 @@ x_outb(CARD16 port, CARD8 val)
     }
 }
 
-void
+_X_EXPORT void
 x_outw(CARD16 port, CARD16 val)
 {
 
@@ -401,7 +401,7 @@ x_outw(CARD16 port, CARD16 val)
     }
 }
 
-CARD32
+_X_EXPORT CARD32
 x_inl(CARD16 port)
 {
     CARD32 val;
@@ -414,7 +414,7 @@ x_inl(CARD16 port)
     return val;
 }
 
-void
+_X_EXPORT void
 x_outl(CARD16 port, CARD32 val)
 {
     if (!pciCfg1out(port, val)) {
@@ -424,37 +424,37 @@ x_outl(CARD16 port, CARD32 val)
     }
 }
 
-CARD8
+_X_EXPORT CARD8
 Mem_rb(CARD32 addr)
 {
     return (*Int10Current->mem->rb)(Int10Current, addr);
 }
 
-CARD16
+_X_EXPORT CARD16
 Mem_rw(CARD32 addr)
 {
     return (*Int10Current->mem->rw)(Int10Current, addr);
 }
 
-CARD32
+_X_EXPORT CARD32
 Mem_rl(CARD32 addr)
 {
     return (*Int10Current->mem->rl)(Int10Current, addr);
 }
 
-void
+_X_EXPORT void
 Mem_wb(CARD32 addr, CARD8 val)
 {
     (*Int10Current->mem->wb)(Int10Current, addr, val);
 }
 
-void
+_X_EXPORT void
 Mem_ww(CARD32 addr, CARD16 val)
 {
     (*Int10Current->mem->ww)(Int10Current, addr, val);
 }
 
-void
+_X_EXPORT void
 Mem_wl(CARD32 addr, CARD32 val)
 {
     (*Int10Current->mem->wl)(Int10Current, addr, val);
@@ -613,7 +613,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
     return 0;
 }
 
-CARD8
+_X_EXPORT CARD8
 bios_checksum(const CARD8 *start, int size)
 {
     CARD8 sum = 0;
@@ -641,7 +641,7 @@ bios_checksum(const CARD8 *start, int size)
  * the driver would have to load the vga-module prior to
  * doing int10.
  */
-void
+_X_EXPORT void
 LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
 {
     xf86SetCurrentAccess(FALSE, xf86Screens[pInt->scrnIndex]);
@@ -660,7 +660,7 @@ LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
     xf86SetCurrentAccess(TRUE, xf86Screens[pInt->scrnIndex]);
 }
 
-void
+_X_EXPORT void
 UnlockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
 {
     xf86SetCurrentAccess(FALSE, xf86Screens[pInt->scrnIndex]);
@@ -693,7 +693,7 @@ SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set)
     xf86UnMapVidMem(pInt->scrnIndex,base,pagesize);
 }
 
-void
+_X_EXPORT void
 xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
 {
     int pagesize = getpagesize();

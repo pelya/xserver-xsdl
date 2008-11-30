@@ -1080,7 +1080,7 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
 		      modreq, errmaj, errmin, LD_FLAG_GLOBAL);
 }
 
-void
+_X_EXPORT void
 UnloadModule(ModuleDescPtr mod)
 {
     UnloadModuleOrDriver(mod);

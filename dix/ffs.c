@@ -34,7 +34,7 @@ The Open Group.
 
 #include "dix.h"
 
-int
+_X_EXPORT int
 ffs(int i)
 {
     int j;

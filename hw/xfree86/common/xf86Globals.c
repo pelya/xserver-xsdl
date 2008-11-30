@@ -48,7 +48,7 @@
 
 /* Index into pScreen.devPrivates */
 static int xf86CreateRootWindowKeyIndex;
-DevPrivateKey xf86CreateRootWindowKey = &xf86CreateRootWindowKeyIndex;
+_X_EXPORT DevPrivateKey xf86CreateRootWindowKey = &xf86CreateRootWindowKeyIndex;
 /* Index of ScrnInfo in pScreen.devPrivates */
 static int xf86ScreenKeyIndex;
 _X_EXPORT DevPrivateKey xf86ScreenKey = &xf86ScreenKeyIndex;
@@ -92,7 +92,7 @@ _X_EXPORT const unsigned char byte_reversed[256] =
 };
 
 /* Globals that input drivers may access */
-InputInfoPtr xf86InputDevs = NULL;
+_X_EXPORT InputInfoPtr xf86InputDevs = NULL;
 
 
 /* Globals that video drivers may not access */
@@ -139,29 +139,29 @@ _X_EXPORT xf86InfoRec xf86Info = {
     .autoEnableDevices          = FALSE
 #endif
 };
-const char *xf86ConfigFile = NULL;
-const char *xf86InputDeviceList = NULL;
-const char *xf86ModulePath = DEFAULT_MODULE_PATH;
-MessageType xf86ModPathFrom = X_DEFAULT;
-const char *xf86LogFile = DEFAULT_LOGPREFIX;
-MessageType xf86LogFileFrom = X_DEFAULT;
-Bool xf86LogFileWasOpened = FALSE;
-serverLayoutRec xf86ConfigLayout = {NULL, };
+_X_EXPORT const char *xf86ConfigFile = NULL;
+_X_EXPORT const char *xf86InputDeviceList = NULL;
+_X_EXPORT const char *xf86ModulePath = DEFAULT_MODULE_PATH;
+_X_EXPORT MessageType xf86ModPathFrom = X_DEFAULT;
+_X_EXPORT const char *xf86LogFile = DEFAULT_LOGPREFIX;
+_X_EXPORT MessageType xf86LogFileFrom = X_DEFAULT;
+_X_EXPORT Bool xf86LogFileWasOpened = FALSE;
+_X_EXPORT serverLayoutRec xf86ConfigLayout = {NULL, };
 _X_EXPORT confDRIRec xf86ConfigDRI = {0, };
 XF86ConfigPtr xf86configptr = NULL;
-Bool xf86Resetting = FALSE;
-Bool xf86Initialising = FALSE;
-Bool xf86DoProbe = FALSE;
-Bool xf86DoConfigure = FALSE;
-Bool xf86DoShowOptions = FALSE;
-Bool xf86DoModalias = FALSE;
-DriverPtr *xf86DriverList = NULL;
-int xf86NumDrivers = 0;
+_X_EXPORT Bool xf86Resetting = FALSE;
+_X_EXPORT Bool xf86Initialising = FALSE;
+_X_EXPORT Bool xf86DoProbe = FALSE;
+_X_EXPORT Bool xf86DoConfigure = FALSE;
+_X_EXPORT Bool xf86DoShowOptions = FALSE;
+_X_EXPORT Bool xf86DoModalias = FALSE;
+_X_EXPORT DriverPtr *xf86DriverList = NULL;
+_X_EXPORT int xf86NumDrivers = 0;
 InputDriverPtr *xf86InputDriverList = NULL;
 int xf86NumInputDrivers = 0;
-int xf86NumScreens = 0;
+_X_EXPORT int xf86NumScreens = 0;
 
-const char *xf86VisualNames[] = {
+_X_EXPORT const char *xf86VisualNames[] = {
 	"StaticGray",
 	"GrayScale",
 	"StaticColor",
@@ -172,36 +172,36 @@ const char *xf86VisualNames[] = {
 
 /* Parameters set only from the command line */
 char *xf86ServerName = "no-name";
-Bool xf86fpFlag = FALSE;
-Bool xf86sFlag = FALSE;
-Bool xf86bsEnableFlag = FALSE;
-Bool xf86bsDisableFlag = FALSE;
-Bool xf86silkenMouseDisableFlag = FALSE;
+_X_EXPORT Bool xf86fpFlag = FALSE;
+_X_EXPORT Bool xf86sFlag = FALSE;
+_X_EXPORT Bool xf86bsEnableFlag = FALSE;
+_X_EXPORT Bool xf86bsDisableFlag = FALSE;
+_X_EXPORT Bool xf86silkenMouseDisableFlag = FALSE;
 #ifdef HAVE_ACPI
-Bool xf86acpiDisableFlag = FALSE;
+_X_EXPORT Bool xf86acpiDisableFlag = FALSE;
 #endif
-char *xf86LayoutName = NULL;
-char *xf86ScreenName = NULL;
-char *xf86PointerName = NULL;
-char *xf86KeyboardName = NULL;
-Bool xf86ProbeOnly = FALSE;
-int xf86Verbose = DEFAULT_VERBOSE;
-int xf86LogVerbose = DEFAULT_LOG_VERBOSE;
-int xf86FbBpp = -1;
-Pix24Flags xf86Pix24 = Pix24DontCare;
-int xf86Depth = -1;
-rgb xf86Weight = {0, 0, 0};
-Bool xf86FlipPixels = FALSE;
-Gamma xf86Gamma = {0.0, 0.0, 0.0};
-Bool xf86AllowMouseOpenFail = FALSE;
+_X_EXPORT char *xf86LayoutName = NULL;
+_X_EXPORT char *xf86ScreenName = NULL;
+_X_EXPORT char *xf86PointerName = NULL;
+_X_EXPORT char *xf86KeyboardName = NULL;
+_X_EXPORT Bool xf86ProbeOnly = FALSE;
+_X_EXPORT int xf86Verbose = DEFAULT_VERBOSE;
+_X_EXPORT int xf86LogVerbose = DEFAULT_LOG_VERBOSE;
+_X_EXPORT int xf86FbBpp = -1;
+_X_EXPORT Pix24Flags xf86Pix24 = Pix24DontCare;
+_X_EXPORT int xf86Depth = -1;
+_X_EXPORT rgb xf86Weight = {0, 0, 0};
+_X_EXPORT Bool xf86FlipPixels = FALSE;
+_X_EXPORT Gamma xf86Gamma = {0.0, 0.0, 0.0};
+_X_EXPORT Bool xf86AllowMouseOpenFail = FALSE;
 #ifdef XF86VIDMODE
-Bool xf86VidModeDisabled = FALSE;
-Bool xf86VidModeAllowNonLocal = FALSE;
+_X_EXPORT Bool xf86VidModeDisabled = FALSE;
+_X_EXPORT Bool xf86VidModeAllowNonLocal = FALSE;
 #endif
-RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
+_X_EXPORT RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 _X_EXPORT Bool xf86inSuspend = FALSE;
 _X_EXPORT Bool xorgHWAccess = FALSE;
 
-struct pci_slot_match xf86IsolateDevice = {
+_X_EXPORT struct pci_slot_match xf86IsolateDevice = {
     PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, 0
 };

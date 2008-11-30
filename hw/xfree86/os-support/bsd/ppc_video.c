@@ -123,7 +123,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	return rv;
 }
 
-Bool xf86EnableIO()
+_X_EXPORT Bool xf86EnableIO()
 {
         int fd = xf86Info.screenFd;
 
@@ -141,7 +141,7 @@ Bool xf86EnableIO()
 	return TRUE;
 }
 
-void xf86DisableIO()
+_X_EXPORT void xf86DisableIO()
 {
 
         if (ioBase != MAP_FAILED)

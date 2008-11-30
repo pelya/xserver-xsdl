@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-Bool
+_X_EXPORT Bool
 fbCloseScreen (int index, ScreenPtr pScreen)
 {
     int	    d;
@@ -43,19 +43,19 @@ fbCloseScreen (int index, ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbRealizeFont(ScreenPtr pScreen, FontPtr pFont)
 {
     return (TRUE);
 }
 
-Bool
+_X_EXPORT Bool
 fbUnrealizeFont(ScreenPtr pScreen, FontPtr pFont)
 {
     return (TRUE);
 }
 
-void
+_X_EXPORT void
 fbQueryBestSize (int class, 
 		 unsigned short *width, unsigned short *height,
 		 ScreenPtr pScreen)
@@ -81,7 +81,7 @@ fbQueryBestSize (int class,
     }
 }
 
-PixmapPtr
+_X_EXPORT PixmapPtr
 _fbGetWindowPixmap (WindowPtr pWindow)
 {
     return fbGetWindowPixmap (pWindow);
@@ -93,7 +93,7 @@ _fbSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
     dixSetPrivate(&pWindow->devPrivates, fbGetWinPrivateKey(), pPixmap);
 }
 
-Bool
+_X_EXPORT Bool
 fbSetupScreen(ScreenPtr	pScreen, 
 	      pointer	pbits,		/* pointer to screen bitmap */
 	      int	xsize, 		/* in pixels */
@@ -140,7 +140,7 @@ fbSetupScreen(ScreenPtr	pScreen,
 }
 
 #ifdef FB_ACCESS_WRAPPER
-Bool
+_X_EXPORT Bool
 wfbFinishScreenInit(ScreenPtr		pScreen,
 		    pointer		pbits,
 		    int			xsize,
@@ -255,7 +255,7 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 
 /* dts * (inch/dot) * (25.4 mm / inch) = mm */
 #ifdef FB_ACCESS_WRAPPER
-Bool
+_X_EXPORT Bool
 wfbScreenInit(ScreenPtr		pScreen,
 	      pointer		pbits,
 	      int		xsize,
@@ -275,7 +275,7 @@ wfbScreenInit(ScreenPtr		pScreen,
     return TRUE;
 }
 #else
-Bool
+_X_EXPORT Bool
 fbScreenInit(ScreenPtr	pScreen,
 	     pointer	pbits,
 	     int	xsize,

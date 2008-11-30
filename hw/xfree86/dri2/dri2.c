@@ -240,7 +240,7 @@ DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
@@ -268,7 +268,7 @@ DRI2ClipNotify(WindowPtr pWin, int dx, int dy)
     }
 }
 
-Bool
+_X_EXPORT Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
     DRI2ScreenPtr ds;
@@ -295,7 +295,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 DRI2CloseScreen(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);

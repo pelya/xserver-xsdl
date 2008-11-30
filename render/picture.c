@@ -46,14 +46,14 @@
 static int PictureScreenPrivateKeyIndex;
 _X_EXPORT DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKeyIndex;
 static int PictureWindowPrivateKeyIndex;
-DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKeyIndex;
+_X_EXPORT DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKeyIndex;
 static int	PictureGeneration;
-RESTYPE		PictureType;
-RESTYPE		PictFormatType;
-RESTYPE		GlyphSetType;
-int		PictureCmapPolicy = PictureCmapPolicyDefault;
+_X_EXPORT RESTYPE		PictureType;
+_X_EXPORT RESTYPE		PictFormatType;
+_X_EXPORT RESTYPE		GlyphSetType;
+_X_EXPORT int		PictureCmapPolicy = PictureCmapPolicyDefault;
 
-Bool
+_X_EXPORT Bool
 PictureDestroyWindow (WindowPtr pWindow)
 {
     ScreenPtr		pScreen = pWindow->drawable.pScreen;
@@ -75,7 +75,7 @@ PictureDestroyWindow (WindowPtr pWindow)
     return ret;
 }
 
-Bool
+_X_EXPORT Bool
 PictureCloseScreen (int index, ScreenPtr pScreen)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
@@ -95,7 +95,7 @@ PictureCloseScreen (int index, ScreenPtr pScreen)
     return ret;
 }
 
-void
+_X_EXPORT void
 PictureStoreColors (ColormapPtr pColormap, int ndef, xColorItem *pdef)
 {
     ScreenPtr		pScreen = pColormap->pScreen;
@@ -163,7 +163,7 @@ addFormat (FormatInitRec    formats[256],
 
 #define Mask(n)	((n) == 32 ? 0xffffffff : ((1 << (n))-1))
 
-PictFormatPtr
+_X_EXPORT PictFormatPtr
 PictureCreateDefaultFormats (ScreenPtr pScreen, int *nformatp)
 {
     int		    nformats, f;
@@ -401,7 +401,7 @@ PictureFindVisual (ScreenPtr pScreen, VisualID visual)
     return 0;
 }
 
-Bool
+_X_EXPORT Bool
 PictureInitIndexedFormat(ScreenPtr pScreen, PictFormatPtr format)
 {
     PictureScreenPtr ps = GetPictureScreenIfSet(pScreen);
@@ -441,7 +441,7 @@ PictureInitIndexedFormats (ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 PictureFinishInit (void)
 {
     int	    s;
@@ -478,7 +478,7 @@ PictureGetSubpixelOrder (ScreenPtr pScreen)
     return ps->subpixel;
 }
     
-PictFormatPtr
+_X_EXPORT PictFormatPtr
 PictureMatchVisual (ScreenPtr pScreen, int depth, VisualPtr pVisual)
 {
     PictureScreenPtr    ps = GetPictureScreenIfSet(pScreen);
@@ -531,7 +531,7 @@ PictureMatchVisual (ScreenPtr pScreen, int depth, VisualPtr pVisual)
     return 0;
 }
 
-PictFormatPtr
+_X_EXPORT PictFormatPtr
 PictureMatchFormat (ScreenPtr pScreen, int depth, CARD32 f)
 {
     PictureScreenPtr    ps = GetPictureScreenIfSet(pScreen);
@@ -551,7 +551,7 @@ PictureMatchFormat (ScreenPtr pScreen, int depth, CARD32 f)
     return 0;
 }
 
-int
+_X_EXPORT int
 PictureParseCmapPolicy (const char *name)
 {
     if ( strcmp (name, "default" ) == 0)
@@ -668,7 +668,7 @@ PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 SetPictureToDefaults (PicturePtr    pPicture)
 {
     pPicture->refcnt = 1;
@@ -702,7 +702,7 @@ SetPictureToDefaults (PicturePtr    pPicture)
     pPicture->pSourcePict = 0;
 }
 
-PicturePtr
+_X_EXPORT PicturePtr
 CreatePicture (Picture		pid,
 	       DrawablePtr	pDrawable,
 	       PictFormatPtr	pFormat,
@@ -797,7 +797,7 @@ static unsigned int INTERPOLATE_PIXEL_256(unsigned int x, unsigned int a,
     return x;
 }
 
-CARD32
+_X_EXPORT CARD32
 PictureGradientColor (PictGradientStopPtr stop1,
 		      PictGradientStopPtr stop2,
 		      CARD32	          x)
@@ -868,7 +868,7 @@ static PicturePtr createSourcePicture(void)
     return pPicture;
 }
 
-PicturePtr
+_X_EXPORT PicturePtr
 CreateSolidPicture (Picture pid, xRenderColor *color, int *error)
 {
     PicturePtr pPicture;
@@ -890,7 +890,7 @@ CreateSolidPicture (Picture pid, xRenderColor *color, int *error)
     return pPicture;
 }
 
-PicturePtr
+_X_EXPORT PicturePtr
 CreateLinearGradientPicture (Picture pid, xPointFixed *p1, xPointFixed *p2,
                              int nStops, xFixed *stops, xRenderColor *colors, int *error)
 {
@@ -929,7 +929,7 @@ CreateLinearGradientPicture (Picture pid, xPointFixed *p1, xPointFixed *p2,
 
 #define FixedToDouble(x) ((x)/65536.)
 
-PicturePtr
+_X_EXPORT PicturePtr
 CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer,
                              xFixed innerRadius, xFixed outerRadius,
                              int nStops, xFixed *stops, xRenderColor *colors, int *error)
@@ -979,7 +979,7 @@ CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer
     return pPicture;
 }
 
-PicturePtr
+_X_EXPORT PicturePtr
 CreateConicalGradientPicture (Picture pid, xPointFixed *center, xFixed angle,
                               int nStops, xFixed *stops, xRenderColor *colors, int *error)
 {
@@ -1020,7 +1020,7 @@ CreateConicalGradientPicture (Picture pid, xPointFixed *center, xFixed angle,
 
 #define NEXT_PTR(_type) ((_type) ulist++->ptr)
 
-int
+_X_EXPORT int
 ChangePicture (PicturePtr	pPicture,
 	       Mask		vmask,
 	       XID		*vlist,
@@ -1249,7 +1249,7 @@ ChangePicture (PicturePtr	pPicture,
     return error;
 }
 
-int
+_X_EXPORT int
 SetPictureClipRects (PicturePtr	pPicture,
 		     int	xOrigin,
 		     int	yOrigin,
@@ -1277,7 +1277,7 @@ SetPictureClipRects (PicturePtr	pPicture,
     return result;
 }
 
-int
+_X_EXPORT int
 SetPictureClipRegion (PicturePtr    pPicture,
                       int           xOrigin,
                       int           yOrigin,
@@ -1335,7 +1335,7 @@ transformIsIdentity(PictTransform *t)
             (t->matrix[2][1] == 0));
 }
 
-int
+_X_EXPORT int
 SetPictureTransform (PicturePtr	    pPicture,
 		     PictTransform  *transform)
 {
@@ -1374,7 +1374,7 @@ SetPictureTransform (PicturePtr	    pPicture,
     return Success;
 }
 
-void
+_X_EXPORT void
 CopyPicture (PicturePtr	pSrc,
 	     Mask	mask,
 	     PicturePtr	pDst)
@@ -1471,7 +1471,7 @@ ValidateOnePicture (PicturePtr pPicture)
     }
 }
 
-void
+_X_EXPORT void
 ValidatePicture(PicturePtr pPicture)
 {
     ValidateOnePicture (pPicture);
@@ -1479,7 +1479,7 @@ ValidatePicture(PicturePtr pPicture)
 	ValidateOnePicture (pPicture->alphaMap);
 }
 
-int
+_X_EXPORT int
 FreePicture (pointer	value,
 	     XID	pid)
 {
@@ -1535,7 +1535,7 @@ FreePicture (pointer	value,
     return Success;
 }
 
-int
+_X_EXPORT int
 FreePictFormat (pointer	pPictFormat,
 		XID     pid)
 {
@@ -1647,7 +1647,7 @@ ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst,
     return op;
 }
 
-void
+_X_EXPORT void
 CompositePicture (CARD8		op,
 		  PicturePtr	pSrc,
 		  PicturePtr	pMask,
@@ -1686,7 +1686,7 @@ CompositePicture (CARD8		op,
 		       height);
 }
 
-void
+_X_EXPORT void
 CompositeRects (CARD8		op,
 		PicturePtr	pDst,
 		xRenderColor	*color,
@@ -1699,7 +1699,7 @@ CompositeRects (CARD8		op,
     (*ps->CompositeRects) (op, pDst, color, nRect, rects);
 }
 
-void
+_X_EXPORT void
 CompositeTrapezoids (CARD8	    op,
 		     PicturePtr	    pSrc,
 		     PicturePtr	    pDst,
@@ -1716,7 +1716,7 @@ CompositeTrapezoids (CARD8	    op,
     (*ps->Trapezoids) (op, pSrc, pDst, maskFormat, xSrc, ySrc, ntrap, traps);
 }
 
-void
+_X_EXPORT void
 CompositeTriangles (CARD8	    op,
 		    PicturePtr	    pSrc,
 		    PicturePtr	    pDst,
@@ -1733,7 +1733,7 @@ CompositeTriangles (CARD8	    op,
     (*ps->Triangles) (op, pSrc, pDst, maskFormat, xSrc, ySrc, ntriangles, triangles);
 }
 
-void
+_X_EXPORT void
 CompositeTriStrip (CARD8	    op,
 		   PicturePtr	    pSrc,
 		   PicturePtr	    pDst,
@@ -1750,7 +1750,7 @@ CompositeTriStrip (CARD8	    op,
     (*ps->TriStrip) (op, pSrc, pDst, maskFormat, xSrc, ySrc, npoints, points);
 }
 
-void
+_X_EXPORT void
 CompositeTriFan (CARD8		op,
 		 PicturePtr	pSrc,
 		 PicturePtr	pDst,
@@ -1767,7 +1767,7 @@ CompositeTriFan (CARD8		op,
     (*ps->TriFan) (op, pSrc, pDst, maskFormat, xSrc, ySrc, npoints, points);
 }
 
-void
+_X_EXPORT void
 AddTraps (PicturePtr	pPicture,
 	  INT16		xOff,
 	  INT16		yOff,

@@ -47,7 +47,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "mipointer.h"
 #include "mipointrst.h"
 
-void
+_X_EXPORT void
 XkbDDXFakePointerMotion(unsigned flags,int x,int y)
 {
 int 		   oldX,oldY;

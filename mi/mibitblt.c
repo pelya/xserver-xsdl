@@ -73,7 +73,7 @@ extern int ffs(int);
  *     set them in the destination with SetSpans
  * We let SetSpans worry about clipping to the destination.
  */
-RegionPtr
+_X_EXPORT RegionPtr
 miCopyArea(DrawablePtr  pSrcDrawable,
            DrawablePtr  pDstDrawable,
            GCPtr        pGC,
@@ -548,7 +548,7 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
  * build a source clip
  * Use the bitmap we've built up as a Stipple for the destination 
  */
-RegionPtr
+_X_EXPORT RegionPtr
 miCopyPlane( DrawablePtr pSrcDrawable,
              DrawablePtr pDstDrawable,
              GCPtr pGC,

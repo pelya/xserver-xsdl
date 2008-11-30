@@ -1553,7 +1553,7 @@ DbeDestroyWindow(WindowPtr pWin)
  *
  *****************************************************************************/
 
-void
+_X_EXPORT void
 DbeExtensionInit(void)
 {
     ExtensionEntry	*extEntry;

@@ -518,7 +518,7 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86ModeIsReduced(const DisplayModeRec *mode)
 {
     if ((((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) &&

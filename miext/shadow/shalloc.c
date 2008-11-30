@@ -37,7 +37,7 @@
 #include    "gcstruct.h"
 #include    "shadow.h"
 
-void *
+_X_EXPORT void *
 shadowAlloc (int width, int height, int bpp)
 {
     int	    stride;

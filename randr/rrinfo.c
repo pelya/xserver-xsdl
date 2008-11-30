@@ -177,7 +177,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 /*
  * Poll the driver for changed information
  */
-Bool
+_X_EXPORT Bool
 RRGetInfo (ScreenPtr pScreen)
 {
     rrScrPriv (pScreen);
@@ -207,7 +207,7 @@ RRGetInfo (ScreenPtr pScreen)
 /*
  * Register the range of sizes for the screen
  */
-void
+_X_EXPORT void
 RRScreenSetSizeRange (ScreenPtr	pScreen,
 		      CARD16	minWidth,
 		      CARD16	minHeight,
@@ -248,7 +248,7 @@ RRScreenSizeMatches (RRScreenSizePtr  a,
     return TRUE;
 }
 
-RRScreenSizePtr
+_X_EXPORT RRScreenSizePtr
 RRRegisterSize (ScreenPtr	    pScreen,
 		short		    width, 
 		short		    height,
@@ -282,7 +282,7 @@ RRRegisterSize (ScreenPtr	    pScreen,
     return &pNew[pScrPriv->nSizes-1];
 }
 
-Bool RRRegisterRate (ScreenPtr		pScreen,
+_X_EXPORT Bool RRRegisterRate (ScreenPtr		pScreen,
 		     RRScreenSizePtr	pSize,
 		     int		rate)
 {
@@ -307,7 +307,7 @@ Bool RRRegisterRate (ScreenPtr		pScreen,
     return TRUE;
 }
 
-Rotation
+_X_EXPORT Rotation
 RRGetRotation(ScreenPtr pScreen)
 {
     RROutputPtr	output = RRFirstOutput (pScreen);
@@ -318,7 +318,7 @@ RRGetRotation(ScreenPtr pScreen)
     return output->crtc->rotation;
 }
 
-void
+_X_EXPORT void
 RRSetCurrentConfig (ScreenPtr		pScreen,
 		    Rotation		rotation,
 		    int			rate,

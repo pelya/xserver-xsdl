@@ -100,7 +100,7 @@ RRPointerToNearestCrtc (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, RRCr
     pScrPriv->pointerCrtc = nearest;
 }
 
-void
+_X_EXPORT void
 RRPointerMoved (ScreenPtr pScreen, int x, int y)
 {
     rrScrPriv (pScreen);
@@ -133,7 +133,7 @@ RRPointerMoved (ScreenPtr pScreen, int x, int y)
  * When the screen is reconfigured, move all pointers to the nearest
  * CRTC
  */
-void
+_X_EXPORT void
 RRPointerScreenConfigured (ScreenPtr pScreen)
 {
     WindowPtr	pRoot;

@@ -31,7 +31,7 @@
  * than FB_UNIT
  */
 
-void
+_X_EXPORT void
 fbEvenTile (FbBits	*dst,
 	    FbStride	dstStride,
 	    int		dstX,
@@ -107,7 +107,7 @@ fbEvenTile (FbBits	*dst,
     }
 }
 	    
-void
+_X_EXPORT void
 fbOddTile(FbBits    *dst,
 	  FbStride  dstStride,
 	  int	    dstX,
@@ -172,7 +172,7 @@ fbOddTile(FbBits    *dst,
     }
 }
 
-void
+_X_EXPORT void
 fbTile (FbBits	    *dst,
 	FbStride    dstStride,
 	int	    dstX,

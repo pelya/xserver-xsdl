@@ -79,16 +79,16 @@ SOFTWARE.
 
 extern char *display;
 #ifdef RLIMIT_DATA
-int limitDataSpace = -1;
+_X_EXPORT int limitDataSpace = -1;
 #endif
 #ifdef RLIMIT_STACK
-int limitStackSpace = -1;
+_X_EXPORT int limitStackSpace = -1;
 #endif
 #ifdef RLIMIT_NOFILE
-int limitNoFile = -1;
+_X_EXPORT int limitNoFile = -1;
 #endif
 
-void
+_X_EXPORT void
 OsInit(void)
 {
     static Bool been_here = FALSE;
@@ -202,7 +202,7 @@ OsInit(void)
 	    SmartScheduleDisable = TRUE;
 }
 
-void
+_X_EXPORT void
 OsCleanup(Bool terminating)
 {
     if (terminating)

@@ -168,7 +168,7 @@ static ClientPtr grabClient;
 static int grabState = GrabNone;
 static long grabWaiters[mskcnt];
 _X_EXPORT CallbackListPtr ServerGrabCallback = NULL;
-HWEventQueuePtr checkForInput[2];
+_X_EXPORT HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
 
 static void KillAllClients(void);
@@ -197,7 +197,7 @@ XID clientErrorValue;   /* XXX this is a kludge */
 #define SAME_SCREENS(a, b) (\
     (a.pScreen == b.pScreen))
 
-void
+_X_EXPORT void
 SetInputCheck(HWEventQueuePtr c0, HWEventQueuePtr c1)
 {
     checkForInput[0] = c0;
@@ -242,11 +242,11 @@ UpdateCurrentTimeIf(void)
 #define SMART_SCHEDULE_DEFAULT_INTERVAL	20	    /* ms */
 #define SMART_SCHEDULE_MAX_SLICE	200	    /* ms */
 
-Bool	    SmartScheduleDisable = FALSE;
-long	    SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
-long	    SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
-long	    SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
-long	    SmartScheduleTime;
+_X_EXPORT Bool SmartScheduleDisable = FALSE;
+_X_EXPORT long SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
+_X_EXPORT long SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
+_X_EXPORT long SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
+_X_EXPORT long SmartScheduleTime;
 static ClientPtr   SmartLastClient;
 static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
 
@@ -1239,7 +1239,7 @@ ProcListFontsWithInfo(ClientPtr client)
  *
  *  \param value must conform to DeleteType
  */
-int
+_X_EXPORT int
 dixDestroyPixmap(pointer value, XID pid)
 {
     PixmapPtr pPixmap = (PixmapPtr)value;
@@ -3356,9 +3356,9 @@ InitProcVectors(void)
  *  then killed again, the client is really destroyed.
  *********************/
 
-char dispatchExceptionAtReset = DE_RESET;
+_X_EXPORT char dispatchExceptionAtReset = DE_RESET;
 
-void
+_X_EXPORT void
 CloseDownClient(ClientPtr client)
 {
     Bool really_close_down = client->clientGone ||
@@ -3458,7 +3458,7 @@ KillAllClients(void)
         }
 }
 
-void InitClient(ClientPtr client, int i, pointer ospriv)
+_X_EXPORT void InitClient(ClientPtr client, int i, pointer ospriv)
 {
     client->index = i;
     client->sequence = 0; 
@@ -3504,7 +3504,7 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
  * Returns NULL if there are no free clients.
  *************************/
 
-ClientPtr NextAvailableClient(pointer ospriv)
+_X_EXPORT ClientPtr NextAvailableClient(pointer ospriv)
 {
     int i;
     ClientPtr client;
@@ -3720,7 +3720,7 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
     WriteEventsToClient (client, 1, (xEvent *)&rep);
 }
 
-void
+_X_EXPORT void
 MarkClientException(ClientPtr client)
 {
     client->noClientException = -1;

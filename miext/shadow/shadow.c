@@ -37,7 +37,7 @@
 #include    "shadow.h"
 
 static int shadowScrPrivateKeyIndex;
-DevPrivateKey shadowScrPrivateKey = &shadowScrPrivateKeyIndex;
+_X_EXPORT DevPrivateKey shadowScrPrivateKey = &shadowScrPrivateKeyIndex;
 
 #define wrap(priv, real, mem) {\
     priv->mem = real->mem; \
@@ -131,7 +131,7 @@ shadowReportFunc(DamagePtr pDamage, RegionPtr pRegion, void *closure)
 }
 #endif
 
-Bool
+_X_EXPORT Bool
 shadowSetup(ScreenPtr pScreen)
 {
     shadowBufPtr pBuf;
@@ -173,7 +173,7 @@ shadowSetup(ScreenPtr pScreen)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 shadowAdd(ScreenPtr pScreen, PixmapPtr pPixmap, ShadowUpdateProc update,
 	  ShadowWindowProc window, int randr, void *closure)
 {
@@ -210,7 +210,7 @@ shadowAdd(ScreenPtr pScreen, PixmapPtr pPixmap, ShadowUpdateProc update,
     return TRUE;
 }
 
-void
+_X_EXPORT void
 shadowRemove(ScreenPtr pScreen, PixmapPtr pPixmap)
 {
     shadowBuf(pScreen);
@@ -228,7 +228,7 @@ shadowRemove(ScreenPtr pScreen, PixmapPtr pPixmap)
 				 (pointer) pScreen);
 }
 
-Bool
+_X_EXPORT Bool
 shadowInit(ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
 {
     PixmapPtr pPixmap;

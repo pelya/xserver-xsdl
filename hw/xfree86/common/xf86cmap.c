@@ -1098,7 +1098,7 @@ xf86GetGammaRamp(
     return Success;
 }
 
-int
+_X_EXPORT int
 xf86ChangeGamma(
    ScreenPtr pScreen,
    Gamma gamma

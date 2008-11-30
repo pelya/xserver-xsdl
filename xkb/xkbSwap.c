@@ -531,7 +531,7 @@ register int	n;
     return ProcXkbSetDebuggingFlags(client);
 }
 
-int
+_X_EXPORT int
 SProcXkbDispatch (ClientPtr client)
 {
     REQUEST(xReq);

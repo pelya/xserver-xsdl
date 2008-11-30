@@ -304,11 +304,11 @@ Mask DeviceEnterWindowMask;
 Mask DeviceLeaveWindowMask;
 
 int DeviceValuator;
-int DeviceKeyPress;
-int DeviceKeyRelease;
-int DeviceButtonPress;
-int DeviceButtonRelease;
-int DeviceMotionNotify;
+_X_EXPORT int DeviceKeyPress;
+_X_EXPORT int DeviceKeyRelease;
+_X_EXPORT int DeviceButtonPress;
+_X_EXPORT int DeviceButtonRelease;
+_X_EXPORT int DeviceMotionNotify;
 int DeviceFocusIn;
 int DeviceFocusOut;
 int ProximityIn;
@@ -320,8 +320,8 @@ int DeviceMappingNotify;
 int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DevicePropertyNotify;
-int DeviceEnterNotify;
-int DeviceLeaveNotify;
+_X_EXPORT int DeviceEnterNotify;
+_X_EXPORT int DeviceLeaveNotify;
 
 int RT_INPUTCLIENT;
 
@@ -982,7 +982,7 @@ IResetProc(ExtensionEntry * unused)
  *
  */
 
-Bool
+_X_EXPORT Bool
 DeviceIsPointerType(DeviceIntPtr dev)
 {
     if (dev_type[1].type == dev->type)
@@ -998,7 +998,7 @@ DeviceIsPointerType(DeviceIntPtr dev)
  *
  */
 
-void
+_X_EXPORT void
 AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 {
     dev->type = type;
@@ -1127,7 +1127,7 @@ XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev,
  * XI is mandatory nowadays, so if we fail to init XI, we die.
  */
 
-void
+_X_EXPORT void
 XInputExtensionInit(void)
 {
     ExtensionEntry *extEntry;

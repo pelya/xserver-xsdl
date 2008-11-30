@@ -126,7 +126,7 @@ typedef struct {
 
 } fbdevHWRec, *fbdevHWPtr;
 
-Bool
+_X_EXPORT Bool
 fbdevHWGetRec(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr;
@@ -840,7 +840,7 @@ fbdevHWRestore(ScrnInfoPtr pScrn)
 /* -------------------------------------------------------------------- */
 /* callback for xf86HandleColormaps                                     */
 
-void
+_X_EXPORT void
 fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 		 LOCO *colors, VisualPtr pVisual)
 {
@@ -872,7 +872,7 @@ fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 /* -------------------------------------------------------------------- */
 /* these can be hooked directly into ScrnInfoRec                        */
 
-ModeStatus
+_X_EXPORT ModeStatus
 fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];

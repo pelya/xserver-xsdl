@@ -11,7 +11,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsInitialising()
 {
     return FALSE;

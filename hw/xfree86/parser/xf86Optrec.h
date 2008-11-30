@@ -65,6 +65,8 @@
 #define _xf86Optrec_h_
 #include <stdio.h>
 
+#include <X11/Xfuncproto.h>
+
 /* 
  * all records that need to be linked lists should contain a GenericList as
  * their first field.

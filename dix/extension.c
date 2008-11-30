@@ -207,7 +207,7 @@ CheckExtension(const char *extname)
 /*
  * Added as part of Xace.
  */
-ExtensionEntry *
+_X_EXPORT ExtensionEntry *
 GetExtensionEntry(int major)
 {    
     if (major < EXTENSION_BASE)
@@ -238,7 +238,7 @@ MinorOpcodeOfRequest(ClientPtr client)
     return (*extensions[major]->MinorOpcode)(client);
 }
 
-void
+_X_EXPORT void
 CloseDownExtensions(void)
 {
     int i,j;

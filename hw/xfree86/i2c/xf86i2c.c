@@ -451,7 +451,7 @@ xf86I2CWriteRead(I2CDevPtr d,
 /* Read a byte, the only readable register of a device.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CReadStatus(I2CDevPtr d, I2CByte *pbyte)
 {
     return xf86I2CWriteRead(d, NULL, 0, pbyte, 1);
@@ -480,7 +480,7 @@ xf86I2CReadBytes(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte, int n)
  * determined by its sub-address.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CReadWord(I2CDevPtr d, I2CByte subaddr, unsigned short *pword)
 {
     I2CByte rb[2];
@@ -510,7 +510,7 @@ xf86I2CWriteByte(I2CDevPtr d, I2CByte subaddr, I2CByte byte)
  * sub-address of the first register.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CWriteBytes(I2CDevPtr d, I2CByte subaddr, 
 		  I2CByte *WriteBuffer, int nWrite)
 {
@@ -536,7 +536,7 @@ xf86I2CWriteBytes(I2CDevPtr d, I2CByte subaddr,
  * determined by its sub-address.
  */
 
-Bool
+_X_EXPORT Bool
 xf86I2CWriteWord(I2CDevPtr d, I2CByte subaddr, unsigned short word)
 {
     I2CByte wb[3];

@@ -57,7 +57,7 @@ _X_EXPORT DevPrivateKey XAAGetGCKey(void) {
     return XAAGCKey;
 }
 
-DevPrivateKey XAAGetPixmapKey(void) {
+_X_EXPORT DevPrivateKey XAAGetPixmapKey(void) {
     return XAAPixmapKey;
 }
 

@@ -370,7 +370,7 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 				   mode, len, value, sendevent);
 }
 
-int
+_X_EXPORT int
 DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
 {
     PropertyPtr pProp, prevProp;
@@ -401,7 +401,7 @@ DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
     return rc;
 }
 
-void
+_X_EXPORT void
 DeleteAllWindowProperties(WindowPtr pWin)
 {
     PropertyPtr pProp, pNextProp;

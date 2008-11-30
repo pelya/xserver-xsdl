@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-void
+_X_EXPORT void
 fbSolid (FbBits	    *dst,
 	 FbStride   dstStride,
 	 int	    dstX,
@@ -82,7 +82,7 @@ fbSolid (FbBits	    *dst,
 }
 
 #ifdef FB_24BIT
-void
+_X_EXPORT void
 fbSolid24 (FbBits   *dst,
 	   FbStride dstStride,
 	   int	    dstX,

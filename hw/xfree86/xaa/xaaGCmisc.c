@@ -19,7 +19,7 @@
 #include "gcstruct.h"
 #include "pixmapstr.h"
 
-void
+_X_EXPORT void
 XAAValidateCopyArea(
    GCPtr         pGC,
    unsigned long changes,
@@ -37,7 +37,7 @@ XAAValidateCopyArea(
 	pGC->ops->CopyArea = XAAFallbackOps.CopyArea;
 }
 
-void
+_X_EXPORT void
 XAAValidatePutImage(
    GCPtr         pGC,
    unsigned long changes,
@@ -56,7 +56,7 @@ XAAValidatePutImage(
 	pGC->ops->PutImage = XAAFallbackOps.PutImage;
 }
 
-void
+_X_EXPORT void
 XAAValidateCopyPlane(
    GCPtr         pGC,
    unsigned long changes,
@@ -75,7 +75,7 @@ XAAValidateCopyPlane(
 	pGC->ops->CopyPlane = XAAFallbackOps.CopyPlane;
 }
 
-void
+_X_EXPORT void
 XAAValidatePushPixels(
    GCPtr         pGC,
    unsigned long changes,
@@ -106,7 +106,7 @@ XAAValidatePushPixels(
    Validate functions if it breaks this assumption */
 
 
-void
+_X_EXPORT void
 XAAValidateFillSpans(
    GCPtr         pGC,
    unsigned long changes,
@@ -182,7 +182,7 @@ XAAValidateFillSpans(
    these, it will need to supply a new Validate functions if it breaks
    this assumption */
 
-void
+_X_EXPORT void
 XAAValidatePolyGlyphBlt(
    GCPtr         pGC,
    unsigned long changes,
@@ -237,7 +237,7 @@ XAAValidatePolyGlyphBlt(
    }
 }
 
-void
+_X_EXPORT void
 XAAValidateImageGlyphBlt(
    GCPtr         pGC,
    unsigned long changes,
@@ -298,7 +298,7 @@ XAAValidateImageGlyphBlt(
 }
 
 
-void
+_X_EXPORT void
 XAAValidatePolylines(
    GCPtr         pGC,
    unsigned long changes,

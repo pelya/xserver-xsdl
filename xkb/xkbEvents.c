@@ -43,7 +43,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbSendNewKeyboardNotify(DeviceIntPtr kbd,xkbNewKeyboardNotify *pNKN)
 {		
 register int	i;
@@ -100,7 +100,7 @@ CARD16		changed;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbSendStateNotify(DeviceIntPtr kbd,xkbStateNotify *pSN)
 {
 XkbSrvInfoPtr	xkbi;
@@ -161,7 +161,7 @@ register CARD16	changed,bState;
 
 /***====================================================================***/
 
-void
+_X_EXPORT void
 XkbSendMapNotify(DeviceIntPtr kbd,xkbMapNotify *pMN)
 {
 int 		i;
@@ -203,7 +203,7 @@ CARD16		changed;
     return;
 }
 
-int
+_X_EXPORT int
 XkbComputeControlsNotify(	DeviceIntPtr	 	kbd,
 				XkbControlsPtr		old,
 				XkbControlsPtr		new,
@@ -282,7 +282,7 @@ CARD32 		changedControls;
     return 1;
 }
 
-void
+_X_EXPORT void
 XkbSendControlsNotify(DeviceIntPtr kbd,xkbControlsNotify *pCN)
 {
 int			initialized;
@@ -382,7 +382,7 @@ CARD32		state,changed;
 }
 
 
-void
+_X_EXPORT void
 XkbHandleBell(	BOOL		 force,
 		BOOL		 eventOnly,
 		DeviceIntPtr	 kbd,
@@ -467,7 +467,7 @@ XID		winID = 0;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendAccessXNotify(DeviceIntPtr kbd,xkbAccessXNotify *pEv)
 {
 int		initialized;
@@ -512,7 +512,7 @@ CARD16		sk_delay,db_delay;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendNamesNotify(DeviceIntPtr kbd,xkbNamesNotify *pEv)
 {
 int		initialized;
@@ -561,7 +561,7 @@ CARD32		changedIndicators;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendCompatMapNotify(DeviceIntPtr kbd,xkbCompatMapNotify *pEv)
 {
 int		initialized;
@@ -609,7 +609,7 @@ CARD16		firstSI = 0, nSI = 0, nTotalSI = 0;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendActionMessage(DeviceIntPtr kbd,xkbActionMessage *pEv)
 {
 int		 initialized;
@@ -652,7 +652,7 @@ Time 		 time = 0;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendExtensionDeviceNotify(	DeviceIntPtr 			dev,
 				ClientPtr			client,
 				xkbExtensionDeviceNotify *	pEv)
@@ -716,7 +716,7 @@ CARD16		 reason, supported = 0;
     return;
 }
 
-void
+_X_EXPORT void
 XkbSendNotification(	DeviceIntPtr		kbd,
 			XkbChangesPtr		pChanges,
 			XkbEventCausePtr	cause)
@@ -945,7 +945,7 @@ XkbSrvInfoPtr	xkbi;
 
 /***====================================================================***/
 
-XkbInterestPtr	
+_X_EXPORT XkbInterestPtr	
 XkbFindClientResource(DevicePtr inDev,ClientPtr client)
 {
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;
@@ -963,7 +963,7 @@ XkbInterestPtr	interest;
     return NULL;
 }
 
-XkbInterestPtr	
+_X_EXPORT XkbInterestPtr	
 XkbAddClientResource(DevicePtr inDev,ClientPtr client,XID id)
 {
 DeviceIntPtr	dev = (DeviceIntPtr)inDev;
@@ -997,7 +997,7 @@ XkbInterestPtr	interest;
     return NULL;
 }
 
-int
+_X_EXPORT int
 XkbRemoveResourceClient(DevicePtr inDev,XID id) 
 {
 XkbSrvInfoPtr	xkbi;

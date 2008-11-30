@@ -25,7 +25,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     return NULL;
 }
 
-Bool
+_X_EXPORT Bool
 MapCurrentInt10(xf86Int10InfoPtr pInt)
 {
     return FALSE;
@@ -50,7 +50,7 @@ xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
     return;
 }
 
-Bool
+_X_EXPORT Bool
 xf86Int10ExecSetup(xf86Int10InfoPtr pInt)
 {
     return FALSE;

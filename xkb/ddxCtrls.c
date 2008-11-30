@@ -39,7 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <xkbsrv.h>
 #include <X11/extensions/XI.h>
 
-void
+_X_EXPORT void
 XkbDDXKeybdCtrlProc(DeviceIntPtr dev,KeybdCtrl *ctrl)
 {
 int realRepeat;
@@ -54,7 +54,7 @@ int realRepeat;
 }
 
 
-int
+_X_EXPORT int
 XkbDDXUsesSoftRepeat(DeviceIntPtr pXDev)
 {
 #ifndef XKB_ALWAYS_USES_SOFT_REPEAT
@@ -80,7 +80,7 @@ XkbDDXUsesSoftRepeat(DeviceIntPtr pXDev)
 #endif
 }
 
-void
+_X_EXPORT void
 XkbDDXChangeControls(DeviceIntPtr dev,XkbControlsPtr old,XkbControlsPtr new)
 {
 unsigned	changed, i;

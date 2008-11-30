@@ -93,7 +93,7 @@ SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
 /**
  * Init struct so it should match the average case
  */
-void
+_X_EXPORT void
 InitVelocityData(DeviceVelocityPtr s)
 {
     memset(s, 0, sizeof(DeviceVelocityRec));
@@ -123,7 +123,7 @@ FreeVelocityData(DeviceVelocityPtr s){
 /*
  *  dix uninit helper, called through scheme
  */
-void
+_X_EXPORT void
 AccelerationDefaultCleanup(DeviceIntPtr pDev)
 {
     /*sanity check*/
@@ -149,7 +149,7 @@ and is being coupled to account for fast-changing input, or you have 'one for
 every situation'. You might want to have tighter coupling then, e.g. 0.1.
 In the filter stats, you can see if a reasonable filter useage emerges.
 */
-void
+_X_EXPORT void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages, int lutsize)
 {
     int fn;
@@ -787,7 +787,7 @@ GetDevicePredictableAccelData(
  * This version employs a velocity approximation algorithm to
  * enable fine-grained predictable acceleration profiles.
  */
-void
+_X_EXPORT void
 acceleratePointerPredictable(
     DeviceIntPtr pDev,
     int first_valuator,
@@ -863,7 +863,7 @@ acceleratePointerPredictable(
  * Originally a part of xf86PostMotionEvent; modifies valuators
  * in-place. Retained mostly for embedded scenarios.
  */
-void
+_X_EXPORT void
 acceleratePointerLightweight(
     DeviceIntPtr pDev,
     int first_valuator,

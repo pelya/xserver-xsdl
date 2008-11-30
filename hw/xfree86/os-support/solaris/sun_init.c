@@ -46,7 +46,7 @@ static char fb_dev[PATH_MAX] = "/dev/fb";
 static char fb_dev[PATH_MAX] = "/dev/console";
 #endif
 
-void
+_X_EXPORT void
 xf86OpenConsole(void)
 {
     int i;
@@ -209,7 +209,7 @@ xf86OpenConsole(void)
     }
 }
 
-void
+_X_EXPORT void
 xf86CloseConsole(void)
 {
 #ifdef HAS_USL_VTS
@@ -296,7 +296,7 @@ xf86CloseConsole(void)
     close(xf86Info.consoleFd);
 }
 
-int
+_X_EXPORT int
 xf86ProcessArgument(int argc, char **argv, int i)
 {
     /*
@@ -346,7 +346,7 @@ xf86ProcessArgument(int argc, char **argv, int i)
     return 0;
 }
 
-void xf86UseMsg()
+_X_EXPORT void xf86UseMsg()
 {
 #ifdef HAS_USL_VTS
     ErrorF("vtXX                   Use the specified VT number\n");

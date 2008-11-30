@@ -48,7 +48,7 @@
 #include "xkbgeom.h"
 #include "xkb.h"
 
-unsigned
+_X_EXPORT unsigned
 _XkbKSCheckCase(KeySym ks)
 {
 unsigned	set,rtrn;
@@ -157,7 +157,7 @@ _AddIncl(	FILE *		file,
     return;
 }
 
-Bool
+_X_EXPORT Bool
 XkbWriteXKBKeymapForNames(	FILE *			file,
 				XkbComponentNamesPtr	names,
 				XkbDescPtr		xkb,
@@ -354,7 +354,7 @@ unsigned	wantNames,wantConfig,wantDflts;
 
 /***====================================================================***/
 
-int
+_X_EXPORT int
 XkbFindKeycodeByName(XkbDescPtr xkb,char *name,Bool use_aliases)
 {
 register int	i;
@@ -387,7 +387,7 @@ register int	i;
 }
 
 
-unsigned
+_X_EXPORT unsigned
 XkbConvertGetByNameComponents(Bool toXkm,unsigned orig)
 {
 unsigned	rtrn;
@@ -423,7 +423,7 @@ static unsigned char componentSpecLegal[] = {
 	0xff, 0xff, 0x7f, 0xff, 0xff, 0xff, 0x7f, 0xff
 };
 
-void
+_X_EXPORT void
 XkbEnsureSafeMapName(char *name)
 {
    if (name==NULL)
@@ -440,7 +440,7 @@ XkbEnsureSafeMapName(char *name)
 
 #define	UNMATCHABLE(c)	(((c)=='(')||((c)==')')||((c)=='/'))
 
-Bool
+_X_EXPORT Bool
 XkbNameMatchesPattern(char *name,char *ptrn)
 {
     while (ptrn[0]!='\0') {

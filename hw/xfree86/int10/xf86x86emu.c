@@ -43,7 +43,7 @@ xf86ExecX86int10(xf86Int10InfoPtr pInt)
     finish_int(pInt, sig);
 }
 
-Bool
+_X_EXPORT Bool
 xf86Int10ExecSetup(xf86Int10InfoPtr pInt)
 {
     int i;

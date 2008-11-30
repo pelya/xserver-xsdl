@@ -38,7 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "windowstr.h"
 #include <xkbsrv.h>
 
-int
+_X_EXPORT int
 XkbDDXSwitchScreen(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     return 1;

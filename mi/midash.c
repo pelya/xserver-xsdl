@@ -52,7 +52,7 @@ SOFTWARE.
 #include "mistruct.h"
 #include "mifpoly.h"
 
-void
+_X_EXPORT void
 miStepDash (
     int dist,			/* distance to step */
     int *pDashIndex,		/* current dash */

@@ -420,7 +420,7 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
  *
  * \param value  must conform to DeleteType
  */
-int
+_X_EXPORT int
 FreeColormap (pointer value, XID mid)
 {
     int	i;
@@ -552,7 +552,7 @@ TellGainedMap (WindowPtr pwin, pointer value)
 }
 
   
-int
+_X_EXPORT int
 CopyColormapAndFree (Colormap mid, ColormapPtr pSrc, int client)
 {
     ColormapPtr	pmap = (ColormapPtr) NULL;
@@ -1203,7 +1203,7 @@ FindColorInRootCmap (ColormapPtr pmap, EntryPtr pentFirst, int size,
  * Starts looking at pentFirst + *pPixel, so if you want a specific pixel,
  * load *pPixel with that value, otherwise set it to 0
  */
-int
+_X_EXPORT int
 FindColor (ColormapPtr pmap, EntryPtr pentFirst, int size, xrgb *prgb, 
            Pixel *pPixel, int channel, int client, 
            ColorCompareProcPtr comp)
@@ -1548,7 +1548,7 @@ FreePixels(ColormapPtr pmap, int client)
  *  \param value  must conform to DeleteType
  *  \unused fakeid
  */
-int
+_X_EXPORT int
 FreeClientPixels (pointer value, XID fakeid)
 {
     ColormapPtr pmap;
@@ -1561,7 +1561,7 @@ FreeClientPixels (pointer value, XID fakeid)
     return Success;
 }
 
-int
+_X_EXPORT int
 AllocColorCells (int client, ColormapPtr pmap, int colors, int planes, 
                  Bool contig, Pixel *ppix, Pixel *masks)
 {
@@ -1633,7 +1633,7 @@ AllocColorCells (int client, ColormapPtr pmap, int colors, int planes,
 }
 
 
-int
+_X_EXPORT int
 AllocColorPlanes (int client, ColormapPtr pmap, int colors, 
                   int r, int g, int b, Bool contig, Pixel *pixels, 
                   Pixel *prmask, Pixel *pgmask, Pixel *pbmask)
@@ -2667,7 +2667,7 @@ StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
     return (errVal);
 }
 
-int
+_X_EXPORT int
 IsMapInstalled(Colormap map, WindowPtr pWin)
 {
     Colormap	*pmaps;

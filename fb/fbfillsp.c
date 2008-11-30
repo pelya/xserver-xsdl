@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-void
+_X_EXPORT void
 fbFillSpans (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     int	    n,

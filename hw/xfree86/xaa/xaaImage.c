@@ -16,7 +16,7 @@
 #include "xaa.h"
 #include "xaalocal.h"
 
-void XAAMoveDWORDS_FixedBase(
+_X_EXPORT void XAAMoveDWORDS_FixedBase(
    register CARD32* dest,
    register CARD32* src,
    register int dwords )
@@ -60,7 +60,7 @@ _X_EXPORT void XAAMoveDWORDS(
      *(dest + 2) = *(src + 2);
 }
 
-void XAAMoveDWORDS_FixedSrc(
+_X_EXPORT void XAAMoveDWORDS_FixedSrc(
    register CARD32* dest,
    register CARD32* src,
    register int dwords )
@@ -172,7 +172,7 @@ XAAWritePixmap32To24(
 
 }
 
-void 
+_X_EXPORT void 
 XAAWritePixmap (
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -305,7 +305,7 @@ BAD_ALIGNMENT:
 }
 
 
-void 
+_X_EXPORT void 
 XAAWritePixmapScanline (
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -388,7 +388,7 @@ BAD_ALIGNMENT:
 }
 
 
-void
+_X_EXPORT void
 XAAPutImage(
     DrawablePtr pDraw,
     GCPtr       pGC,

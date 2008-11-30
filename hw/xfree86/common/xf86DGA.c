@@ -334,7 +334,7 @@ DGAUninstallColormap(ColormapPtr pmap)
     pScreen->UninstallColormap = DGAUninstallColormap;
 }
 
-int
+_X_EXPORT int
 xf86SetDGAMode(
    int index,
    int num,
@@ -567,7 +567,7 @@ DGAActive(int index)
 
 /* Called by the event code in case the server is abruptly terminated */
 
-void 
+_X_EXPORT void 
 DGAShutdown()
 {
     ScrnInfoPtr pScrn;
@@ -892,7 +892,7 @@ DGACopyModeInfo(
 }
 
 
-Bool 
+_X_EXPORT Bool 
 DGAVTSwitch(void)
 {
     ScreenPtr pScreen;
@@ -914,7 +914,7 @@ DGAVTSwitch(void)
    return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
 {
    DGAScreenPtr pScreenPriv;
@@ -941,7 +941,7 @@ DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
 
 static int  DGAMouseX, DGAMouseY;
 
-Bool
+_X_EXPORT Bool
 DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
 {
    DGAScreenPtr pScreenPriv;
@@ -976,7 +976,7 @@ DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 DGAStealButtonEvent(DeviceIntPtr dev, int index, int button, int is_down)
 {
     DGAScreenPtr pScreenPriv;
@@ -1004,7 +1004,7 @@ DGAStealButtonEvent(DeviceIntPtr dev, int index, int button, int is_down)
 
 /* We have the power to steal or modify events that are about to get queued */
 
-Bool
+_X_EXPORT Bool
 DGAIsDgaEvent (xEvent *e)
 {
     int	    coreEquiv;

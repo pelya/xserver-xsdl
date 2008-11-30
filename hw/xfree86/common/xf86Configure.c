@@ -68,7 +68,7 @@ static DevToConfigPtr DevToConfig = NULL;
 static int nDevToConfig = 0, CurrentDriver;
 
 _X_EXPORT xf86MonPtr ConfiguredMonitor;
-Bool xf86DoConfigurePass1 = TRUE;
+_X_EXPORT Bool xf86DoConfigurePass1 = TRUE;
 static Bool foundMouse = FALSE;
 
 #if defined(__SCO__)
@@ -92,7 +92,7 @@ static char *DFLT_MOUSE_PROTO = "auto";
  * directly.  We allocate a GDevRec and fill it in as much as we can, letting
  * the caller fill in the rest and/or change it as it sees fit.
  */
-GDevPtr
+_X_EXPORT GDevPtr
 xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int chipset)
 {
     int i, j;
@@ -639,7 +639,7 @@ configureDDCMonitorSection (int screennum)
 # define PATH_MAX 1024
 #endif
 
-void
+_X_EXPORT void
 DoConfigure(void)
 {
     int i,j, screennum = -1;

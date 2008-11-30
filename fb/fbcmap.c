@@ -47,7 +47,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ColormapPtr FbInstalledMaps[MAXSCREENS];
 
-int
+_X_EXPORT int
 fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
@@ -57,7 +57,7 @@ fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 }
 
 
-void
+_X_EXPORT void
 fbInstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -75,7 +75,7 @@ fbInstallColormap(ColormapPtr pmap)
     }
 }
 
-void
+_X_EXPORT void
 fbUninstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -92,7 +92,7 @@ fbUninstallColormap(ColormapPtr pmap)
     }
 }
 
-void
+_X_EXPORT void
 fbResolveColor(unsigned short	*pred, 
 	       unsigned short	*pgreen, 
 	       unsigned short	*pblue,
@@ -116,7 +116,7 @@ fbResolveColor(unsigned short	*pred,
     }
 }
 
-Bool
+_X_EXPORT Bool
 fbInitializeColormap(ColormapPtr pmap)
 {
     register unsigned i;
@@ -216,7 +216,7 @@ fbInitializeColormap(ColormapPtr pmap)
     outdefs[i].blue = pmap->blue[blue >> pVisual->offsetBlue].co.local.blue; \
 }
 
-int
+_X_EXPORT int
 fbExpandDirectColors (ColormapPtr   pmap, 
 		      int	    ndef,
 		      xColorItem    *indefs,
@@ -387,7 +387,7 @@ maskShift (Pixel p)
     return s;
 }
 
-Bool
+_X_EXPORT Bool
 fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
 			  Pixel redMask, Pixel greenMask, Pixel blueMask)
 {
@@ -415,7 +415,7 @@ fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
     return TRUE;
 }
 
-Bool
+_X_EXPORT Bool
 fbHasVisualTypes (int depth)
 {
     fbVisualsPtr    v;
@@ -426,7 +426,7 @@ fbHasVisualTypes (int depth)
     return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
 {
     return fbSetVisualTypesAndMasks (depth, visuals, bitsPerRGB,
@@ -439,7 +439,7 @@ fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
  * the set which can be used with this version of fb.
  */
 
-Bool
+_X_EXPORT Bool
 fbInitVisuals (VisualPtr    *visualp, 
 	       DepthPtr	    *depthp,
 	       int	    *nvisualp,

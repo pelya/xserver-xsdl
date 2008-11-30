@@ -345,7 +345,7 @@ AnimCurRecolorCursor (DeviceIntPtr pDev,
     Wrap (as, pScreen, RecolorCursor, AnimCurRecolorCursor);
 }
 
-Bool
+_X_EXPORT Bool
 AnimCurInit (ScreenPtr pScreen)
 {
     AnimCurScreenPtr    as;
@@ -378,7 +378,7 @@ AnimCurInit (ScreenPtr pScreen)
     return TRUE;
 }
 
-int
+_X_EXPORT int
 AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor, ClientPtr client, XID cid)
 {
     CursorPtr	pCursor;

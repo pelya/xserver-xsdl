@@ -76,7 +76,7 @@ exaGetPixmapOffset(PixmapPtr pPix)
 	    (unsigned long)pExaScr->info->memoryBase);
 }
 
-void *
+_X_EXPORT void *
 exaGetPixmapDriverPrivate(PixmapPtr pPix)
 {
     ExaPixmapPriv(pPix);
@@ -100,7 +100,7 @@ exaGetPixmapPitch(PixmapPtr pPix)
  * exaGetPixmapSize() returns the size in bytes of the given pixmap in video
  * memory. Only valid when the pixmap is currently in framebuffer.
  */
-unsigned long
+_X_EXPORT unsigned long
 exaGetPixmapSize(PixmapPtr pPix)
 {
     ExaPixmapPrivPtr pExaPixmap;
@@ -463,7 +463,7 @@ exaPixmapIsOffscreen(PixmapPtr p)
 /**
  * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapIsOffscreen().
  */
-Bool
+_X_EXPORT Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable)
 {
     return exaPixmapIsOffscreen (exaGetDrawablePixmap (pDrawable));

@@ -41,7 +41,7 @@
  * This function is the signal handler for the VT-switching signal.  It
  * is only referenced inside the OS-support layer.
  */
-void
+_X_EXPORT void
 xf86VTRequest(int sig)
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
@@ -52,7 +52,7 @@ xf86VTRequest(int sig)
 	return;
 }
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchPending()
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
@@ -63,7 +63,7 @@ xf86VTSwitchPending()
 	return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchAway()
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
@@ -78,7 +78,7 @@ xf86VTSwitchAway()
 	return FALSE;
 }
 
-Bool
+_X_EXPORT Bool
 xf86VTSwitchTo()
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)

@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-void
+_X_EXPORT void
 fbZeroLine (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		mode,
@@ -61,7 +61,7 @@ fbZeroLine (DrawablePtr	pDrawable,
     }
 }
 
-void
+_X_EXPORT void
 fbZeroSegment (DrawablePtr  pDrawable,
 	       GCPtr	    pGC,
 	       int	    nseg,
@@ -85,7 +85,7 @@ fbZeroSegment (DrawablePtr  pDrawable,
     }
 }
 
-void
+_X_EXPORT void
 fbFixCoordModePrevious (int	    npt,
 			DDXPointPtr ppt)
 {
@@ -102,7 +102,7 @@ fbFixCoordModePrevious (int	    npt,
     }
 }
 
-void
+_X_EXPORT void
 fbPolyLine (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		mode,
@@ -140,7 +140,7 @@ fbPolyLine (DrawablePtr	pDrawable,
     (*line) (pDrawable, pGC, mode, npt, ppt);
 }
 
-void
+_X_EXPORT void
 fbPolySegment (DrawablePtr  pDrawable,
 	       GCPtr	    pGC,
 	       int	    nseg,

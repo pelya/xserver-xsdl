@@ -43,7 +43,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 /***====================================================================***/
 
-Status
+_X_EXPORT Status
 XkbAllocClientMap(XkbDescPtr xkb,unsigned which,unsigned nTotalTypes)
 {
 register int	i;
@@ -124,7 +124,7 @@ XkbClientMapPtr map;
     return Success;
 }
 
-Status
+_X_EXPORT Status
 XkbAllocServerMap(XkbDescPtr xkb,unsigned which,unsigned nNewActions)
 {
 register int	i;
@@ -259,7 +259,7 @@ XkbCopyKeyType(XkbKeyTypePtr from,XkbKeyTypePtr into)
     return Success;
 }
 
-Status
+_X_EXPORT Status
 XkbCopyKeyTypes(XkbKeyTypePtr from,XkbKeyTypePtr into,int num_types)
 {
 register int i,rtrn;
@@ -273,7 +273,7 @@ register int i,rtrn;
     return Success;
 }
 
-Status
+_X_EXPORT Status
 XkbResizeKeyType(	XkbDescPtr	xkb,
 			int		type_ndx,
 			int		map_count,
@@ -471,7 +471,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
     return Success;
 }
 
-KeySym *
+_X_EXPORT KeySym *
 XkbResizeKeySyms(XkbDescPtr xkb,int key,int needed)
 {
 register int i,nSyms,nKeySyms;
@@ -551,7 +551,7 @@ _ExtendRange(	unsigned int 	old_flags,
     return old_flags;
 }
 
-Status
+_X_EXPORT Status
 XkbChangeKeycodeRange(	XkbDescPtr	xkb,
 			int 		minKC,
 			int 		maxKC,
@@ -751,7 +751,7 @@ int	tmp;
     return Success;
 }
 
-XkbAction *
+_X_EXPORT XkbAction *
 XkbResizeKeyActions(XkbDescPtr xkb,int key,int needed)
 {
 register int i,nActs;
@@ -801,7 +801,7 @@ XkbAction *newActs;
     return &xkb->server->acts[xkb->server->key_acts[key]];
 }
 
-void
+_X_EXPORT void
 XkbFreeClientMap(XkbDescPtr xkb,unsigned what,Bool freeMap)
 {
 XkbClientMapPtr	map;
@@ -859,7 +859,7 @@ XkbClientMapPtr	map;
     return;
 }
 
-void
+_X_EXPORT void
 XkbFreeServerMap(XkbDescPtr xkb,unsigned what,Bool freeMap)
 {
 XkbServerMapPtr	map;

@@ -137,7 +137,7 @@ doWriteConfigFile (const char *filename, XF86ConfigPtr cptr)
 
 #ifndef HAS_NO_UIDS
 
-int
+_X_EXPORT int
 xf86writeConfigFile (const char *filename, XF86ConfigPtr cptr)
 {
 	int ret;

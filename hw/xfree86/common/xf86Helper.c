@@ -133,7 +133,7 @@ xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags)
     xf86InputDriverList[xf86NumInputDrivers - 1]->refCount = 0;
 }
 
-void
+_X_EXPORT void
 xf86DeleteInputDriver(int drvIndex)
 {
     if (xf86InputDriverList[drvIndex] && xf86InputDriverList[drvIndex]->module)
@@ -142,7 +142,7 @@ xf86DeleteInputDriver(int drvIndex)
     xf86InputDriverList[drvIndex] = NULL;
 }
 
-InputDriverPtr
+_X_EXPORT InputDriverPtr
 xf86LookupInputDriver(const char *name)
 {
     int i;
@@ -155,7 +155,7 @@ xf86LookupInputDriver(const char *name)
     return NULL;
 }
 
-InputInfoPtr
+_X_EXPORT InputInfoPtr
 xf86LookupInput(const char *name)
 {
     InputInfoPtr p;
@@ -1334,7 +1334,7 @@ xf86ErrorF(const char *format, ...)
 }
 
 
-void
+_X_EXPORT void
 xf86LogInit()
 {
     char *lf = NULL;
@@ -1365,7 +1365,7 @@ xf86LogInit()
     free(lf);
 }
 
-void
+_X_EXPORT void
 xf86CloseLog()
 {
     LogClose();
@@ -2143,7 +2143,7 @@ xf86ServerIsResetting()
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86ServerIsInitialising()
 {
     return xf86Initialising;
@@ -2583,7 +2583,7 @@ xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
     xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
 }
 
-void
+_X_EXPORT void
 xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
 			   EntityProc enter, EntityProc leave, pointer private)
 {
