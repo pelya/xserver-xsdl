@@ -1005,7 +1005,7 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     if (pRes->entityIndex > -1)
 	r_loc = xf86Entities[pRes->entityIndex]->busType;
 
-    if ((type & ResAccMask == ResShared) &&
+    if ((type & ResAccMask) == ResShared &&
 	(pRes->res_type & ResAccMask) == ResShared)
 	return FALSE;
 
@@ -1038,7 +1038,7 @@ checkConflict(resRange *rgp, resPtr pRes, int entityIndex,
 	case ResBlock:
 	    if (rgp->rEnd < rgp->rBegin) {
 		xf86Msg(X_ERROR,"end of block range 0x%lx < begin 0x%lx\n",
-			rgp->rEnd,rgp->rBegin);
+			(long)rgp->rEnd, (long)rgp->rBegin);
 		return 0;
 	    }
 	    if ((ret = checkConflictBlock(rgp, pRes))) {
@@ -1051,7 +1051,7 @@ checkConflict(resRange *rgp, resPtr pRes, int entityIndex,
 	    if ((rgp->rBase & rgp->rMask) != rgp->rBase) {
 		xf86Msg(X_ERROR,"sparse io range (base: 0x%lx  mask: 0x%lx)"
 			"doesn't satisfy (base & mask = mask)\n",
-			rgp->rBase, rgp->rMask);
+			(long)rgp->rBase, (long)rgp->rMask);
 		return 0;
 	    }
 	    if ((ret = checkConflictSparse(rgp, pRes))) {
@@ -1107,7 +1107,7 @@ xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
     case ResBlock:
 	if (range->rEnd < range->rBegin) {
 		xf86Msg(X_ERROR,"end of block range 0x%lx < begin 0x%lx\n",
-			range->rEnd,range->rBegin);
+			(long)range->rEnd, (long)range->rBegin);
 		return rlist;
 	}
 	break;
@@ -1115,7 +1115,7 @@ xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
 	if ((range->rBase & range->rMask) != range->rBase) {
 	    xf86Msg(X_ERROR,"sparse io range (base: 0x%lx  mask: 0x%lx)"
 		    "doesn't satisfy (base & mask = mask)\n",
-		    range->rBase, range->rMask);
+		    (long)range->rBase, (long)range->rMask);
 	    return rlist;
 	}
 	break;
@@ -1190,14 +1190,17 @@ xf86PrintResList(int verb, resPtr list)
 				   "\t[%d] %d\t%ld\t0x%08lx - 0x%08lx (0x%lx)",
 				   i, list->entityIndex,
 				   (list->res_type & ResDomain) >> 24,
-				   list->block_begin, list->block_end,
-				   list->block_end - list->block_begin + 1);
+				   (long)list->block_begin,
+				   (long)list->block_end,
+				   (long)(list->block_end -
+					  list->block_begin + 1));
 		    break;
 		case ResSparse:
 		    xf86ErrorFVerb(verb, "\t[%d] %d\t%ld\t0x%08lx - 0x%08lx ",
 				   i, list->entityIndex,
 				   (list->res_type & ResDomain) >> 24,
-				   list->sparse_base,list->sparse_mask);
+				   (long)list->sparse_base,
+				   (long)list->sparse_mask);
 		    break;
 		default:
 		    list = list->next;
@@ -1856,7 +1859,8 @@ xf86PostProbe(void)
 		resp = resp->next;
 		resp_x->next = tmp;
 		} else {
-		    xf86MsgVerb(X_INFO, 3, "Found conflict at: 0x%lx\n",val);
+		    xf86MsgVerb(X_INFO, 3, "Found conflict at: 0x%lx\n",
+				(long)val);
  		    resp->res_type &= ~ResEstimated;
 		    tmp = xf86Entities[i]->resources;
 		    xf86Entities[i]->resources = resp;

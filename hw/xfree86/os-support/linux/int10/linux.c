@@ -252,7 +252,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	for (cs = V_BIOS;  cs < SYS_BIOS;  cs += V_BIOS_SIZE)
 	    if (xf86ReadBIOS(cs, 0, (pointer)cs, V_BIOS_SIZE) < V_BIOS_SIZE)
 		xf86DrvMsg(screen, X_WARNING,
-			   "Unable to retrieve all of segment 0x%06lX.\n", cs);
+			   "Unable to retrieve all of segment 0x%06lX.\n",
+			   (long)cs);
 #ifdef DEBUG
 	ErrorF("done\n");
 #endif

@@ -441,7 +441,7 @@ xf86PciProbe(void)
 		    memdone = TRUE;
 		} else
 		    xf86ErrorF(", ");
-		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
+		xf86ErrorF("0x%08lx/%ld", (long)r->base_addr, (long)r->size);
 	    }
 	}
 
@@ -454,12 +454,12 @@ xf86PciProbe(void)
 		    iodone = TRUE;
 		} else
 		    xf86ErrorF(", ");
-		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
+		xf86ErrorF("0x%08lx/%ld", (long)r->base_addr, (long)r->size);
 	    }
 	}
 
 	if ( info->rom_size ) {
-	    xf86ErrorF(", BIOS @ 0x\?\?\?\?\?\?\?\?/%ld", info->rom_size);
+	    xf86ErrorF(", BIOS @ 0x\?\?\?\?\?\?\?\?/%ld", (long)info->rom_size);
 	}
 
 	xf86ErrorF("\n");

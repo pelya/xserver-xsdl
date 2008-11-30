@@ -307,17 +307,6 @@ extern unsigned	XkmReadFile(
     XkbDescPtr	        * /* result */
 );
 
-#ifdef _XKMFORMAT_H_
-
-extern Bool	XkmReadTOC(
-    FILE *              /* file */,
-    xkmFileInfo *       /* file_info */,
-    int                 /* max_toc */,
-    xkmSectionInfo *    /* toc */
-);
-
-#endif /* _XKMFORMAT_H  */
-
 _XFUNCPROTOEND
 
 #endif /* _XKBFILE_H_ */

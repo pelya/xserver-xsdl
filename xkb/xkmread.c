@@ -1043,7 +1043,7 @@ int	 nRead=0;
     return 1;
 }
 
-_X_EXPORT static Bool
+static Bool
 XkmReadTOC(FILE *file,xkmFileInfo* file_info,int max_toc,xkmSectionInfo *toc)
 {
 unsigned hdr,tmp;
