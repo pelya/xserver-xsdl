@@ -100,13 +100,11 @@ XF86OptionPtr xf86newOption(char *name, char *value);
 XF86OptionPtr xf86nextOption(XF86OptionPtr list);
 XF86OptionPtr xf86findOption(XF86OptionPtr list, const char *name);
 char *xf86findOptionValue(XF86OptionPtr list, const char *name);
-int xf86findOptionBoolean (XF86OptionPtr, const char *, int);
 XF86OptionPtr xf86optionListCreate(const char **options, int count, int used);
 XF86OptionPtr xf86optionListMerge(XF86OptionPtr head, XF86OptionPtr tail);
 char *xf86configStrdup (const char *s);
 int xf86nameCompare (const char *s1, const char *s2);
 char *xf86uLongToString(unsigned long i);
-void xf86debugListOptions(XF86OptionPtr);
 XF86OptionPtr xf86parseOption(XF86OptionPtr head);
 void xf86printOptionList(FILE *fp, XF86OptionPtr list, int tabs);
 

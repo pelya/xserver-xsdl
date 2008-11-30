@@ -1676,19 +1676,6 @@ fbPushFill (DrawablePtr	pDrawable,
 	    int		height);
 
 void
-fbPush1toN (DrawablePtr	pSrcDrawable,
-	    DrawablePtr	pDstDrawable,
-	    GCPtr	pGC,
-	    BoxPtr	pbox,
-	    int		nbox,
-	    int		dx,
-	    int		dy,
-	    Bool	reverse,
-	    Bool	upsidedown,
-	    Pixel	bitplane,
-	    void	*closure);
-
-void
 fbPushImage (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     
@@ -1788,9 +1775,6 @@ fbScreenInit(ScreenPtr	pScreen,
 	     int	dpiy,
 	     int	width,
 	     int	bpp);
-
-void
-fbInitializeBackingStore (ScreenPtr pScreen);
     
 /*
  * fbseg.c

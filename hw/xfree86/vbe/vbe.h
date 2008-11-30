@@ -307,12 +307,6 @@ typedef struct _vbeModeInfoRec {
     struct _vbeModeInfoRec *next;
 } vbeModeInfoRec, *vbeModeInfoPtr;
 
-vbeModeInfoPtr    VBEBuildVbeModeList(vbeInfoPtr pVbe, 
-			    VbeInfoBlock *vbe);
-
-unsigned short VBECalcVbeModeIndex(vbeModeInfoPtr m, 
-				   DisplayModePtr mode, int bpp);
-
 typedef struct {
     CARD8 *state;
     CARD8 *pstate;

@@ -64,7 +64,6 @@ extern DevPrivateKey xf86CreateRootWindowKey;
 extern DevPrivateKey xf86PixmapKey;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
-extern ScrnInfoPtr xf86CurrentScreen;
 extern Bool pciSlotClaimed;
 extern Bool fbSlotClaimed;
 #if defined(__sparc__) || defined(__sparc)
@@ -130,7 +129,6 @@ Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base);
 void xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
 			xf86SetAccessFuncPtr oldFuncs);
 Bool xf86IsEntityPrimary(int entityIndex);
-resPtr xf86ReallocatePciResources(int entityIndex, resPtr pRes);
 resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
 void xf86EnterServerState(xf86State state);
 ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
@@ -277,7 +275,6 @@ void xf86LoaderRefSymLists(const char **, ...);
 void xf86LoaderRefSymbols(const char *, ...);
 void xf86SetBackingStore(ScreenPtr pScreen);
 void xf86SetSilkenMouse(ScreenPtr pScreen);
-int xf86NewSerialNumber(WindowPtr p, pointer unused);
 pointer xf86FindXvOptions(int scrnIndex, int adapt_index, char *port_name,
 			  char **adaptor_name, pointer *adaptor_options);
 void xf86GetOS(const char **name, int *major, int *minor, int *teeny);
@@ -363,7 +360,6 @@ void xf86CollectOptions(ScrnInfoPtr pScrn, pointer extraOpts);
 /* xf86RandR.c */
 #ifdef RANDR
 Bool xf86RandRInit (ScreenPtr    pScreen);
-void xf86RandRSetInitialMode (ScreenPtr pScreen);
 Rotation xf86GetRotation(ScreenPtr pScreen);
 Bool xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
 			int newvirtX, int newvirtY,

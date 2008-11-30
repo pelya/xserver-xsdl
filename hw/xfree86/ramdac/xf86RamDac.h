@@ -113,8 +113,6 @@ RamDacHelperRecPtr RamDacHelperCreateInfoRec(void);
 void RamDacDestroyInfoRec(RamDacRecPtr RamDacRec);
 void RamDacHelperDestroyInfoRec(RamDacHelperRecPtr RamDacRec);
 Bool RamDacInit(ScrnInfoPtr pScrn, RamDacRecPtr RamDacRec);
-void RamDacSetGamma(ScrnInfoPtr pScrn, Bool Real8BitDac);
-void RamDacRestoreDACValues(ScrnInfoPtr pScrn);
 Bool RamDacHandleColormaps(ScreenPtr pScreen, int maxColors, int sigRGBbits,
 			   unsigned int flags);
 void RamDacFreeRec(ScrnInfoPtr pScrn);

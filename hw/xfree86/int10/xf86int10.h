@@ -129,7 +129,6 @@ int run_bios_int(int num, xf86Int10InfoPtr pInt);
 void dump_code(xf86Int10InfoPtr pInt);
 void dump_registers(xf86Int10InfoPtr pInt);
 void stack_trace(xf86Int10InfoPtr pInt);
-xf86Int10InfoPtr getInt10Rec(int entityIndex);
 CARD8 bios_checksum(const CARD8 *start, int size);
 void LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga);
 void UnlockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga);

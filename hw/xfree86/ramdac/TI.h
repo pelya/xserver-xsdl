@@ -10,10 +10,6 @@ void TIramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr RamDacRec, RamDacRegRecPtr Ram
 void TIramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr RamDacRec, RamDacRegRecPtr RamDacRegRec);
 void TIramdac3026SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr RamDacRegRec);
 void TIramdac3030SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr RamDacRegRec);
-unsigned long TIramdac3030CalculateMNPForClock(unsigned long RefClock,
-    unsigned long ReqClock, char IsPixClock, unsigned long MinClock,
-    unsigned long MaxClock, unsigned long *rM, unsigned long *rN,
-    unsigned long *rP);
 void TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr);
 void TIramdacLoadPalette( ScrnInfoPtr pScrn, int numColors, int *indices,
     LOCO *colors, VisualPtr pVisual);

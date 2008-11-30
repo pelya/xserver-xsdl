@@ -80,14 +80,6 @@ miChangePictureFilter (PicturePtr pPicture,
 		       xFixed     *params,
 		       int	  nparams);
 
-Bool
-miClipPicture (RegionPtr    pRegion,
-	       PicturePtr   pPicture,
-	       INT16	    xReg,
-	       INT16	    yReg,
-	       INT16	    xPict,
-	       INT16	    yPict);
-
 void
 miCompositeSourceValidate (PicturePtr	pPicture,
 			   INT16	x,
@@ -168,12 +160,6 @@ miPointFixedBounds (int npoint, xPointFixed *points, BoxPtr bounds);
     
 void
 miTriangleBounds (int ntri, xTriangle *tris, BoxPtr bounds);
-
-void
-miRasterizeTriangle (PicturePtr	pMask,
-		     xTriangle	*tri,
-		     int	x_off,
-		     int	y_off);
 
 void
 miTriangles (CARD8	    op,

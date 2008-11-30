@@ -295,8 +295,6 @@ extern int	XkbDisableLockActions;
 extern int	XkbKeyboardErrorCode;
 extern char *	XkbBaseDirectory;
 extern char *	XkbBinDirectory;
-extern char *	XkbInitialMap;
-extern unsigned	int XkbXIUnsupported;
 
 extern Bool	noXkbExtension;
 
@@ -482,12 +480,6 @@ extern  void XkbSetActionKeyMods(
 	XkbDescPtr		/* xkb */,
 	XkbAction *		/* act */,
 	unsigned int 		/* mods */
-);
-
-extern Bool XkbCheckActionVMods(
-	XkbDescPtr		/* xkb */,
-	XkbAction *		/* act */,
-	unsigned int 		/* changed */
 );
 
 extern	unsigned int XkbMaskForVMask(
@@ -705,11 +697,6 @@ extern	void XkbSendNamesNotify(
        xkbNamesNotify *	/* ev */
 );
 
-extern	void XkbSendCompatNotify(
-       DeviceIntPtr		/* kbd */,
-       xkbCompatMapNotify *	/* ev */
-);
-
 extern	void XkbSendActionMessage(
        DeviceIntPtr		/* kbd */,
        xkbActionMessage *	/* ev */
@@ -825,11 +812,6 @@ extern void XkbDDXUpdateDeviceIndicators(
 	DeviceIntPtr		/* dev */,
 	XkbSrvLedInfoPtr	/* sli */,
 	CARD32			/* newState */
-);
-
-extern void XkbDDXFakePointerButton(
-	int 		/* event */,
-	int		/* button */
 );
 
 extern void XkbDDXFakePointerMotion(
@@ -1035,16 +1017,6 @@ extern	Bool XkbDDXNamesFromRules(
 	char *			/* rules */,
 	XkbRF_VarDefsPtr	/* defs */,
 	XkbComponentNamesPtr	/* names */
-);
-
-extern	Bool XkbDDXApplyConfig(
-	void *	/* cfg_in */,
-	XkbSrvInfoPtr	/* xkbi */
-);
-
-extern	int _XkbStrCaseCmp(
-	char *			/* str1 */,
-	char *			/* str2 */
 );
 
 _XFUNCPROTOEND

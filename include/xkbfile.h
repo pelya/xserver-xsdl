@@ -76,11 +76,6 @@ typedef void	(*XkbFileAddOnFunc)(
 #define	_XkbErrXReqFailure		25
 #define	_XkbErrBadImplementation	26
 
-extern char *		_XkbErrMessages[];
-extern unsigned		_XkbErrCode;
-extern char *		_XkbErrLocation;
-extern unsigned		_XkbErrData;
-
 /***====================================================================***/
 
 _XFUNCPROTOBEGIN
@@ -149,16 +144,6 @@ extern char *	XkbIMWhichStateMaskText(
     unsigned	/* format */
 );
 
-extern char *	XkbAccessXDetailText(
-    unsigned	/* state */,
-    unsigned	/* format */
-);
-
-extern char *	XkbNKNDetailMaskText(
-    unsigned	/* detail */,
-    unsigned	/* format */
-);
-
 extern char *	XkbControlsMaskText(
     unsigned	/* ctrls */,
     unsigned	/* format */
@@ -212,22 +197,12 @@ extern	int	 XkbFindKeycodeByName(
     Bool	/* use_aliases */
 );
 
-extern	Bool	XkbLookupGroupAndLevel(
-    XkbDescPtr	/* xkb */,
-    int		/* key */,
-    int	*	/* mods_inout */,
-    int *	/* grp_inout */,
-    int	*	/* lvl_rtrn */
-);
-
 /***====================================================================***/
 
 extern	Atom	XkbInternAtom(
     char *	/* name */,
     Bool	/* onlyIfExists */
 );
-
-extern	void	XkbInitAtoms(void);
 
 /***====================================================================***/
 
@@ -246,27 +221,11 @@ typedef struct _XkbDrawable {
 	struct _XkbDrawable *	next;
 } XkbDrawableRec,*XkbDrawablePtr; 
 
-extern	XkbDrawablePtr
-XkbGetOrderedDrawables(
-    XkbGeometryPtr	/* geom */,
-    XkbSectionPtr	/* section */
-);
-
-extern	void
-XkbFreeOrderedDrawables(
-    XkbDrawablePtr	/* draw */
-);
-
 #endif
 
 /***====================================================================***/
 
 extern	unsigned	XkbConvertGetByNameComponents(
-    Bool		/* toXkm */,
-    unsigned 		/* orig */
-);
-
-extern	unsigned	XkbConvertXkbComponents(
     Bool		/* toXkm */,
     unsigned 		/* orig */
 );
@@ -323,56 +282,6 @@ extern	Bool	XkbWriteXKBGeometry(
     void *		/* priv */
 );
 
-extern	Bool	XkbWriteXKBSemantics(
-    FILE *		/* file */,
-    XkbDescPtr	/* result */,
-    Bool		/* topLevel */,
-    Bool		/* showImplicit */,
-    XkbFileAddOnFunc	/* addOn */,
-    void *		/* priv */
-);
-
-extern	Bool	XkbWriteXKBLayout(
-    FILE *		/* file */,
-    XkbDescPtr	/* result */,
-    Bool		/* topLevel */,
-    Bool		/* showImplicit */,
-    XkbFileAddOnFunc	/* addOn */,
-    void *		/* priv */
-);
-
-extern	Bool	XkbWriteXKBKeymap(
-    FILE *		/* file */,
-    XkbDescPtr	/* result */,
-    Bool		/* topLevel */,
-    Bool		/* showImplicit */,
-    XkbFileAddOnFunc	/* addOn */,
-    void *		/* priv */
-);
-
-extern	Bool	XkbWriteXKBFile(
-    FILE *		/* file */,
-    XkbDescPtr	/* result */,
-    Bool		/* showImplicit */,
-    XkbFileAddOnFunc	/* addOn */,
-    void *		/* priv */
-);
-
-extern	Bool	XkbWriteCFile(
-    FILE *		/* file */,
-    char *		/* name */,
-    XkbDescPtr	/* info */
-);
-
-extern	Bool	XkbWriteXKMFile(
-    FILE *		/* file */,
-    XkbDescPtr	/* result */
-);
-
-extern	Bool	XkbWriteToServer(
-    XkbDescPtr	/* result */
-);
-
 extern	void	XkbEnsureSafeMapName(
     char *		/* name */
 );
@@ -383,10 +292,6 @@ extern	Bool	XkbWriteXKBKeymapForNames(
     XkbDescPtr			/* xkb */,
     unsigned			/* want */,
     unsigned			/* need */
-);
-
-extern	Status	XkbMergeFile(
-    XkbDescPtr			/* xkb */
 );
 
 /***====================================================================***/
@@ -409,24 +314,6 @@ extern Bool	XkmReadTOC(
     xkmFileInfo *       /* file_info */,
     int                 /* max_toc */,
     xkmSectionInfo *    /* toc */
-);
-
-extern xkmSectionInfo *XkmFindTOCEntry(
-    xkmFileInfo *       /* finfo */,
-    xkmSectionInfo *    /* toc */,
-    unsigned            /* type */
-);
-
-extern Bool	XkmReadFileSection(
-    FILE *              /* file */,
-    xkmSectionInfo *    /* toc */,
-    XkbDescPtr       /* result */,
-    unsigned *          /* loaded_rtrn */
-);
-
-extern char *	XkmReadFileSectionName(
-    FILE *		/* file */,
-    xkmSectionInfo *	/* toc */
 );
 
 #endif /* _XKMFORMAT_H  */

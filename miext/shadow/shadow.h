@@ -95,9 +95,6 @@ shadowAdd (ScreenPtr	    pScreen,
 void
 shadowRemove (ScreenPtr pScreen, PixmapPtr pPixmap);
 
-shadowBufPtr
-shadowFindBuf (WindowPtr pWindow);
-
 Bool
 shadowInit (ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window);
 

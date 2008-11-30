@@ -110,10 +110,6 @@
 #define XF86_M_RNG		0x080	/* ring */
 #define XF86_M_DSR		0x100	/* data set ready */
 
-#ifdef XF86_OS_PRIVS
-extern void xf86WrapperInit(void);
-#endif
-
 #ifndef NO_OSLIB_PROTOTYPES
 /*
  * This is to prevent re-entrancy to FatalError() when aborting.
@@ -168,7 +164,6 @@ extern int xf86GetSerialModemState(int fd);
 extern int xf86SerialModemSetBits(int fd, int bits);
 extern int xf86SerialModemClearBits(int fd, int bits);
 extern int xf86LoadKernelModule(const char *pathname);
-extern void xf86RingBell(int volume, int pitch, int duration);
 
 /* AGP GART interface */
 

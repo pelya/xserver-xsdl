@@ -410,9 +410,6 @@ Bool
 miRRGetInfo (ScreenPtr pScreen, Rotation *rotations);
 
 Bool
-miRRGetScreenInfo (ScreenPtr pScreen);
-
-Bool
 miRRCrtcSet (ScreenPtr	pScreen,
 	     RRCrtcPtr	crtc,
 	     RRModePtr	mode,
@@ -503,12 +500,6 @@ Bool RRScreenInit (ScreenPtr pScreen);
 
 Rotation
 RRGetRotation (ScreenPtr pScreen);
-
-int
-RRSetScreenConfig (ScreenPtr		pScreen,
-		   Rotation		rotation,
-		   int			rate,
-		   RRScreenSizePtr	pSize);
 
 #endif					
 
@@ -698,9 +689,6 @@ RRClientKnowsRates (ClientPtr	pClient);
 RRModePtr
 RRModeGet (xRRModeInfo	*modeInfo,
 	   const char	*name);
-
-void
-RRModePruneUnused (ScreenPtr pScreen);
 
 /*
  * Destroy a mode.

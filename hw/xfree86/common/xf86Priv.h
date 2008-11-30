@@ -61,9 +61,6 @@ extern char *xf86LayoutName;
 extern char *xf86ScreenName;
 extern char *xf86PointerName;
 extern char *xf86KeyboardName;
-#ifdef KEEPBPP
-extern int xf86Bpp;
-#endif
 extern int xf86FbBpp;
 extern int xf86Depth;
 extern Pix24Flags xf86Pix24;
@@ -83,11 +80,6 @@ extern const char *xf86LogFile;
 extern MessageType xf86LogFileFrom;
 extern Bool xf86LogFileWasOpened;
 extern serverLayoutRec xf86ConfigLayout;
-extern Pix24Flags xf86ConfigPix24;
-
-extern unsigned short xf86MouseCflags[];
-extern Bool xf86SupportedMouseTypes[];
-extern int xf86NumMouseTypes;
 
 extern DriverPtr *xf86DriverList;
 extern int xf86NumDrivers;
@@ -123,13 +115,10 @@ extern RootWinPropPtr *xf86RegisteredPropertiesTable;
 /* xf86Bus.c */
 
 void xf86BusProbe(void);
-void xf86ChangeBusIndex(int oldIndex, int newIndex);
 void xf86AccessInit(void);
 void xf86AccessEnter(void);
 void xf86AccessLeave(void);
 void xf86EntityInit(void);
-void xf86EntityEnter(void);
-void xf86EntityLeave(void);
 void xf86AccessLeaveState(void);
 
 void xf86FindPrimaryDevice(void);

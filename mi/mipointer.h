@@ -110,14 +110,6 @@ extern void miPointerWarpCursor(
     int /*y*/
 ) _X_DEPRECATED;
 
-extern int miPointerGetMotionEvents(
-    DeviceIntPtr /*pPtr*/,
-    xTimecoord * /*coords*/,
-    unsigned long /*start*/,
-    unsigned long /*stop*/,
-    ScreenPtr /*pScreen*/
-);
-
 /* Deprecated in favour of miPointerSetPosition. */
 extern void miPointerAbsoluteCursor(
     int /*x*/,

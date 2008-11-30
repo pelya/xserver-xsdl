@@ -189,9 +189,6 @@ extern ExtensionModule *ExtensionModuleList;
 pointer LoadSubModule(pointer, const char *, const char **,
 		      const char **, pointer, const XF86ModReqInfo *,
 		      int *, int *);
-pointer LoadSubModuleLocal(pointer, const char *, const char **,
-			   const char **, pointer, const XF86ModReqInfo *,
-			   int *, int *);
 void UnloadSubModule(pointer);
 void UnloadModule (pointer);
 #endif
