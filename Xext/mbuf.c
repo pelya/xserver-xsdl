@@ -1314,7 +1314,7 @@ DeliverEventsToMultibuffer (pMultibuffer, pEvents, count, filter)
 
     /* maybe send event to owner */
     if ((attempt = TryClientEvents(
-	bClient(pMultibuffer), pEvents, count, pMultibuffer->eventMask, filter, (GrabPtr) 0)) != 0)
+	bClient(pMultibuffer), NULL, pEvents, count, pMultibuffer->eventMask, filter, (GrabPtr) 0)) != 0)
     {
 	if (attempt > 0)
 	    deliveries++;
@@ -1326,7 +1326,7 @@ DeliverEventsToMultibuffer (pMultibuffer, pEvents, count, filter)
     for (other = pMultibuffer->otherClients; other; other=other->next)
     {
 	if ((attempt = TryClientEvents(
-	      rClient(other), pEvents, count, other->mask, filter, (GrabPtr) 0)) != 0)
+	      rClient(other), NULL, pEvents, count, other->mask, filter, (GrabPtr) 0)) != 0)
 	{
 	    if (attempt > 0)
 		deliveries++;
