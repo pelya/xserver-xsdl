@@ -294,10 +294,14 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     } else
 	crtc->transformPresent = FALSE;
 
-    /* xf86CrtcFitsScreen() relies on these values being correct. */
-    /* This should ensure the values are always set at modeset time. */
-    pScreen->width = scrn->virtualX;
-    pScreen->height = scrn->virtualY;
+    /* We may hit this path during PreInit during load-detcect, at
+     * which point no pScreens exist yet, so avoid this step. */
+    if (pScreen) {
+	/* xf86CrtcFitsScreen() relies on these values being correct. */
+	/* This should ensure the values are always set at modeset time. */
+	pScreen->width = scrn->virtualX;
+	pScreen->height = scrn->virtualY;
+    }
 
     /* Shift offsets that move us out of virtual size */
     if (x + mode->HDisplay > xf86_config->maxWidth ||
