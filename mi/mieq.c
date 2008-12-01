@@ -80,6 +80,7 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec miEventQueue;
+static EventListPtr masterEvents; /* for use in mieqProcessInputEvents */
 
 Bool
 mieqInit(void)
@@ -98,6 +99,17 @@ mieqInit(void)
             FatalError("Could not allocate event queue.\n");
         miEventQueue.events[i].events = evlist;
     }
+
+    /* XXX: mE is just 1 event long, if we have Motion + Valuator they are
+     * squashed into the first event to make passing it into the event
+     * processing handlers easier. This should be fixed when the processing
+     * handlers switch to EventListPtr instead of xEvent */
+    masterEvents = InitEventList(1);
+    if (!masterEvents)
+        FatalError("Could not allocated MD event queue.\n");
+    SetMinimumEventSize(masterEvents, 1,
+                        (1 + MAX_VALUATOR_EVENTS) * sizeof(xEvent));
+
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
 }
@@ -275,28 +287,21 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
  */
 void
 CopyGetMasterEvent(DeviceIntPtr mdev, xEvent* original,
-                   xEvent** master, int count)
+                   EventListPtr master, int count)
 {
-    if (count > 1) {
-        *master = xcalloc(count, sizeof(xEvent));
-        if (!*master)
-            FatalError("[mi] No memory left for master event.\n");
-        while(count--)
-        {
-            memcpy(&(*master)[count], &original[count], sizeof(xEvent));
-            ChangeDeviceID(mdev, &(*master)[count]);
-        }
-    } else
-    {
-        int len = sizeof(xEvent);
-        if (original->u.u.type == GenericEvent)
-            len += GEV(original)->length * 4;
-        *master = xalloc(len);
-        if (!*master)
-            FatalError("[mi] No memory left for master event.\n");
-        memcpy(*master, original, len);
-        ChangeDeviceID(mdev, *master);
-    }
+    int len = count * sizeof(xEvent);
+
+    /* Assumption: GenericEvents always have count 1 */
+
+    if (GEV(original)->type == GenericEvent)
+        len += GEV(original)->length * 4;
+
+    if (master->evlen < len)
+        SetMinimumEventSize(master, 1, len);
+
+    memcpy(master->event, original, len);
+    while (count--)
+        ChangeDeviceID(mdev, &master->event[count]);
 }
 
 /* Call this from ProcessInputEvents(). */
@@ -308,8 +313,7 @@ mieqProcessInputEvents(void)
     int x = 0, y = 0;
     int type, nevents, evlen, i;
     ScreenPtr screen;
-    xEvent *event,
-           *master_event = NULL;
+    xEvent *event;
     DeviceIntPtr dev = NULL,
                  master = NULL;
 
@@ -358,10 +362,7 @@ mieqProcessInputEvents(void)
         }
         else {
             if (master)
-                CopyGetMasterEvent(master, event,
-                                   &master_event, nevents);
-            else
-                master_event = NULL;
+                CopyGetMasterEvent(master, event, masterEvents, nevents);
 
             /* If someone's registered a custom event handler, let them
              * steal it. */
@@ -370,19 +371,18 @@ mieqProcessInputEvents(void)
                 handler(DequeueScreen(dev)->myNum, event, dev, nevents);
                 if (master)
                     handler(DequeueScreen(master)->myNum,
-                            master_event, master, nevents);
+                            masterEvents->event, master, nevents);
             } else
             {
                 /* process slave first, then master */
                 dev->public.processInputProc(event, dev, nevents);
 
                 if (master)
-                    master->public.processInputProc(master_event, master,
+                    master->public.processInputProc(masterEvents->event, master,
                                                     nevents);
             }
 
             xfree(event);
-            xfree(master_event);
         }
 
         /* Update the sprite now. Next event may be from different device. */

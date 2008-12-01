@@ -42,13 +42,14 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 extern	int	DeviceValuator;
 
+static EventListPtr masterEvents = NULL;
+
 void
 XkbDDXFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
 {
 int *			devVal;
 INT32 *			evVal;
-xEvent			events[2],
-			*m_events = NULL; /* master dev */
+xEvent			events[2];
 deviceKeyButtonPointer *btn;
 deviceValuator *	val;
 int			x,y;
@@ -107,18 +108,22 @@ DeviceIntPtr		master = NULL;
      * cases, unless dev is both a keyboard and a mouse.
      */
     if (!dev->isMaster && dev->u.master) {
+        if (!masterEvents)
+        {
+            masterEvents = InitEventList(1);
+            SetMinimumEventSize(masterEvents, 1, (1 + MAX_VALUATOR_EVENTS) * sizeof(xEvent));
+        }
         master = dev->u.master;
         if (!IsPointerDevice(master))
             master = GetPairedDevice(dev->u.master);
 
-        CopyGetMasterEvent(master, &events, &m_events, count);
+        CopyGetMasterEvent(master, &events, masterEvents, count);
     }
 
     (*dev->public.processInputProc)((xEventPtr)btn, dev, count);
 
     if (master) {
-        (*master->public.processInputProc)(m_events, master, count);
-        xfree(m_events);
+        (*master->public.processInputProc)(masterEvents->event, master, count);
     }
     return;
 }
