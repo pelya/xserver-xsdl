@@ -68,12 +68,13 @@ typedef struct _GEExtension {
 /* All registered extensions and their handling functions. */
 extern _X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
 
-/* Returns the extension offset from the event */
-#define GEEXT(ev) (((xGenericEvent*)(ev))->extension)
-
-#define GEEXTIDX(ev) (GEEXT(ev) & 0x7F)
 /* Typecast to generic event */
 #define GEV(ev) ((xGenericEvent*)(ev))
+/* Returns the extension offset from the event */
+#define GEEXT(ev) (GEV(ev)->extension)
+
+/* Return zero-based extension offset (offset - 128). Only for use in arrays */
+#define GEEXTIDX(ev) (GEEXT(ev) & 0x7F)
 /* True if mask is set for extension on window */
 #define GEMaskIsSet(pWin, extension, mask) \
     ((pWin)->optional && \
@@ -89,9 +90,9 @@ extern _X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
     GEExtensions[GEEXTIDX(xE)].evfill
 
 #define GEIsType(ev, ext, ev_type) \
-        ((ev->u.u.type == GenericEvent) &&  \
-         ((xGenericEvent*)(ev))->extension == ext && \
-         ((xGenericEvent*)(ev))->evtype == ev_type)
+        ((GEV(ev)->type == GenericEvent) &&  \
+         GEEXT(ev) == (ext) && \
+         GEV(ev)->evtype == (ev_type))
 
 
 /* Interface for other extensions */
