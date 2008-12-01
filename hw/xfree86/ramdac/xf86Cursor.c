@@ -314,7 +314,8 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 
     /* only update for VCP, otherwise we get cursor jumps when removing a
        sprite. The second cursor is never HW rendered anyway. */
-    if (pDev == inputInfo.pointer)
+    if (pDev == inputInfo.pointer ||
+        (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
     {
 	ScreenPriv->CurrentCursor = pCurs;
 	ScreenPriv->x = x;
