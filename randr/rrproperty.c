@@ -59,7 +59,8 @@ DeliverPropertyEvent(WindowPtr pWin, void *value)
 
 static void RRDeliverPropertyEvent(ScreenPtr pScreen, xEvent *event)
 {
-    WalkTree(pScreen, DeliverPropertyEvent, event);
+    if (!(dispatchException & (DE_RESET | DE_TERMINATE)))
+	WalkTree(pScreen, DeliverPropertyEvent, event);
 }
 
 _X_EXPORT void
