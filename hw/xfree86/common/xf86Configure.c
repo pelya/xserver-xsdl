@@ -481,12 +481,9 @@ static XF86ConfModulePtr
 configureModuleSection (void)
 {
     char **elist, **el;
-    /* Find the list of extension modules. */
+    /* Find the list of extension & font modules. */
     const char *esubdirs[] = {
 	"extensions",
-	NULL
-    };
-    const char *fsubdirs[] = {
 	"fonts",
 	NULL
     };
@@ -501,28 +498,6 @@ configureModuleSection (void)
     	    module->load_name = *el;
             ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
                                 (glp)ptr->mod_load_lst, (glp)module);
-    	}
-	xfree(elist);
-    }
-
-    /* Process list of font backends separately to include only required ones */
-    elist = LoaderListDirs(fsubdirs, NULL);
-    if (elist) {
-	for (el = elist; *el; el++) {
-	    XF86LoadPtr module;
-
-    	    module = xf86confcalloc(1, sizeof(XF86LoadRec));
-    	    module->load_name = *el;
-
-            /* Add only those font backends which are referenced by fontpath */
-            /* 'strstr(dFP,"/dir")' is meant as 'dFP =~ m(/dir\W)' */
-    	    if (defaultFontPath && (
-		(strcmp(*el, "freetype")  == 0 &&
-		 strstr(defaultFontPath, "/TTF")) ||
-    	        (strcmp(*el, "type1")  == 0 &&
-		 strstr(defaultFontPath, "/Type1")))) 
-	    	ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
-					(glp)ptr->mod_load_lst, (glp)module);
     	}
 	xfree(elist);
     }
