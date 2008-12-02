@@ -2162,7 +2162,7 @@ General:
 .PP
 Display drivers:
 .BR apm (__drivermansuffix__),
-.\" .BR ati (__drivermansuffix__),
+.BR ati (__drivermansuffix__),
 .BR chips (__drivermansuffix__),
 .BR cirrus (__drivermansuffix__),
 .BR cyrix (__drivermansuffix__),
@@ -2171,11 +2171,12 @@ Display drivers:
 .BR glint (__drivermansuffix__),
 .BR i128 (__drivermansuffix__),
 .BR i740 (__drivermansuffix__),
-.BR i810 (__drivermansuffix__),
 .BR imstt (__drivermansuffix__),
+.BR intel (__drivermansuffix__),
 .BR mga (__drivermansuffix__),
 .BR neomagic (__drivermansuffix__),
 .BR nv (__drivermansuffix__),
+.BR openchrome (__drivermansuffix__),
 .BR r128 (__drivermansuffix__),
 .BR rendition (__drivermansuffix__),
 .BR savage (__drivermansuffix__),
@@ -2194,8 +2195,6 @@ Display drivers:
 .BR trident (__drivermansuffix__),
 .BR tseng (__drivermansuffix__),
 .BR vesa (__drivermansuffix__),
-.BR vga (__drivermansuffix__),
-.BR via (__drivermansuffix__),
 .BR vmware (__drivermansuffix__).
 .PP
 Input drivers:
