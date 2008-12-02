@@ -486,10 +486,6 @@ AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir
 				[ APPLE_APPLICATIONS_DIR="${withval}" ],
 				[ APPLE_APPLICATIONS_DIR="/Applications/Utilities" ])
 AC_SUBST([APPLE_APPLICATIONS_DIR])
-AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Path to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
-				[ launchagentsdir="${withval}" ],
-				[ launchagentsdir="/Library/LaunchAgents" ])
-AC_SUBST([launchagentsdir])
 AC_ARG_ENABLE(builddocs,      AS_HELP_STRING([--enable-builddocs], [Build docs (default: disabled)]),
                                 [BUILDDOCS=$enableval],
                                 [BUILDDOCS=no])
