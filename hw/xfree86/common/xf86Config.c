@@ -1018,7 +1018,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	} else if (!xf86NameCmp(s, "all")) {
 	    xf86Info.glxVisuals = XF86_GlxVisualsAll;
 	} else {
-	    xf86Msg(X_WARNING,"Unknown HandleSpecialKeys option\n");
+	    xf86Msg(X_WARNING,"Unknown GlxVisuals option\n");
 	}
     }
 
