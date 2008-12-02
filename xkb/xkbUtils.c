@@ -361,17 +361,19 @@ void
 XkbUpdateCoreDescription(DeviceIntPtr keybd,Bool resize)
 {
 register int		key,tmp;
-int			maxSymsPerKey,maxKeysPerMod;
+int			maxSymsPerKey,maxKeysPerMod, maxGroup1Width;
 int			first,last,firstCommon,lastCommon;
 XkbDescPtr		xkb;
 KeyClassPtr		keyc;
 CARD8			keysPerMod[XkbNumModifiers];
+int			maxNumberOfGroups;
 
     if (!keybd || !keybd->key || !keybd->key->xkbInfo)
 	return;
     xkb= keybd->key->xkbInfo->desc;
     keyc= keybd->key;
-    maxSymsPerKey= maxKeysPerMod= 0;
+    maxSymsPerKey= maxKeysPerMod= maxGroup1Width= 0;
+    maxNumberOfGroups = 0;
     bzero(keysPerMod,sizeof(keysPerMod));
     memcpy(keyc->modifierMap,xkb->map->modmap,xkb->max_key_code+1);
     if ((xkb->min_key_code==keyc->curKeySyms.minKeyCode)&&
@@ -419,6 +421,9 @@ CARD8			keysPerMod[XkbNumModifiers];
 		if ((w=XkbKeyGroupWidth(xkb,key,XkbGroup1Index))<=2)
 		     tmp+= 2;
 		else tmp+= w + 2;
+                /* remember highest G1 width */
+                if (w > maxGroup1Width)
+                    maxGroup1Width = w;
 	    }
 	    if (nGroups>1) {
                 if (tmp <= 2) {
@@ -436,6 +441,8 @@ CARD8			keysPerMod[XkbNumModifiers];
 		tmp+= XkbKeyGroupWidth(xkb,key,XkbGroup4Index);
 	    if (tmp>maxSymsPerKey)
 		maxSymsPerKey= tmp;
+            if (nGroups > maxNumberOfGroups)
+		maxNumberOfGroups = nGroups;
 	}
 	if (_XkbCoreKeycodeInRange(keyc,key)) {
 	    if (keyc->modifierMap[key]!=0) {
@@ -469,6 +476,14 @@ CARD8			keysPerMod[XkbNumModifiers];
     keyc->maxKeysPerModifier= maxKeysPerMod;
 
     if (maxSymsPerKey>0) {
+	/* See Section 12.4 of the XKB Protocol spec. Because of the
+	 * single-group distribution for multi-group keyboards, we have to
+	 * have enough symbols for the largest group 1 to replicate across the
+	 * number of groups on the keyboard. e.g. a single-group key with 4
+	 * symbols on a keyboard that has 3 groups -> 12 syms per key */
+	if (maxSymsPerKey < maxNumberOfGroups * maxGroup1Width)
+	    maxSymsPerKey = maxNumberOfGroups * maxGroup1Width;
+
 	tmp= maxSymsPerKey*_XkbCoreNumKeys(keyc);
 	keyc->curKeySyms.map= _XkbTypedRealloc(keyc->curKeySyms.map,tmp,KeySym);
 	if (keyc->curKeySyms.map==NULL)
