@@ -102,7 +102,7 @@ int DoGetProgramString(struct __GLXclientStateRec *cl, GLbyte *pc,
 	    CALL_by_offset(GET_DISPATCH(), 
 			   (void (GLAPIENTRYP)(GLuint, GLenum, GLubyte *)),
 			   get_program_string_offset,
-			   (target, pname, answer));
+			   (target, pname, (GLubyte *)answer));
 	}
 
 	if (__glXErrorOccured()) {
