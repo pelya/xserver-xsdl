@@ -242,6 +242,8 @@ BOOL		replicated = FALSE;
 	    Bool	identical;
 	    for (i=1,identical=True;identical&&(i<nGroups);i++) {
 		KeySym *syms;
+                if (nSyms[i] != nSyms[XkbGroup1Index])
+                    identical = False;
 		syms= &xkb_syms_rtrn[XKB_OFFSET(i,0)];
 		for (s=0;identical&&(s<nSyms[i]);s++) {
 		    if (syms[s]!=xkb_syms_rtrn[s])
