@@ -251,8 +251,3 @@ void __glXDisp_DrawArrays(GLbyte *pc)
     CALL_DisableClientState( GET_DISPATCH(), (GL_SECONDARY_COLOR_ARRAY) );
     CALL_DisableClientState( GET_DISPATCH(), (GL_FOG_COORD_ARRAY) );
 }
-
-void __glXDisp_DrawArraysEXT(GLbyte *pc)
-{
-   __glXDisp_DrawArrays(pc);
-}

@@ -362,8 +362,3 @@ void __glXDispSwap_DrawArrays(GLbyte *pc)
     CALL_DisableClientState( GET_DISPATCH(), (GL_SECONDARY_COLOR_ARRAY) );
     CALL_DisableClientState( GET_DISPATCH(), (GL_FOG_COORD_ARRAY) );
 }
-
-void __glXDispSwap_DrawArraysEXT(GLbyte *pc)
-{
-   __glXDispSwap_DrawArrays(pc);
-}
