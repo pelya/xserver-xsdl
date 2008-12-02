@@ -56,6 +56,7 @@ register int	i;
 unsigned int	empty;
 int		nSyms[XkbNumKbdGroups];
 int		nGroups,tmp,groupsWidth;
+BOOL		replicated = FALSE;
 
     /* Section 12.2 of the protocol describes this process in more detail */
     /* Step 1:  find the # of symbols in the core mapping per group */
@@ -89,27 +90,70 @@ int		nGroups,tmp,groupsWidth;
     for (i=2;i<nSyms[XkbGroup2Index];i++) {
 	xkb_syms_rtrn[XKB_OFFSET(XkbGroup2Index,i)]= CORE_SYM(tmp+i);
     }
-    tmp= nSyms[XkbGroup1Index]+nSyms[XkbGroup2Index];
-    if ((tmp>=map_width)&&
-	 ((protected&(XkbExplicitKeyType3Mask|XkbExplicitKeyType4Mask))==0)) {
+
+    /* Special case: if only the first group is explicit, and the symbols
+     * replicate across all groups, then we have a Section 12.4 replication */
+    if ((protected & ~XkbExplicitKeyType1Mask) == 0)
+    {
+        int j, width = nSyms[XkbGroup1Index];
+
+        replicated = TRUE;
+
+        /* Check ABAB in ABABCDECDEABCDE */
+        if ((width > 0 && CORE_SYM(0) != CORE_SYM(2)) ||
+            (width > 1 && CORE_SYM(1) != CORE_SYM(3)))
+            replicated = FALSE;
+
+        /* Check CDECDE in ABABCDECDEABCDE */
+        for (i = 2; i < width && replicated; i++)
+        {
+            if (CORE_SYM(2 + i) != CORE_SYM(i + width))
+                replicated = FALSE;
+        }
+
+        /* Check ABCDE in ABABCDECDEABCDE */
+        for (j = 2; replicated &&
+                    j < XkbNumKbdGroups &&
+                    map_width >= width * (j + 1); j++)
+        {
+            for (i = 0; i < width && replicated; i++)
+            {
+                if (CORE_SYM(((i < 2) ? i : 2 + i)) != CORE_SYM(i + width * j))
+                    replicated = FALSE;
+            }
+        }
+    }
+
+    if (replicated)
+    {
+	nSyms[XkbGroup2Index]= 0;
 	nSyms[XkbGroup3Index]= 0;
 	nSyms[XkbGroup4Index]= 0;
-	nGroups= 2;
-    }
-    else {
-    	nGroups= 3;
-	for (i=0;i<nSyms[XkbGroup3Index];i++,tmp++) {
-	    xkb_syms_rtrn[XKB_OFFSET(XkbGroup3Index,i)]= CORE_SYM(tmp);
-	}
-	if ((tmp<map_width)||(protected&XkbExplicitKeyType4Mask)) {
-	    nGroups= 4;
-	    for (i=0;i<nSyms[XkbGroup4Index];i++,tmp++) {
-		xkb_syms_rtrn[XKB_OFFSET(XkbGroup4Index,i)]= CORE_SYM(tmp);
-	    }
-	}
-	else {
-	    nSyms[XkbGroup4Index]= 0;
-	}
+	nGroups= 1;
+    } else
+    {
+        tmp= nSyms[XkbGroup1Index]+nSyms[XkbGroup2Index];
+        if ((tmp>=map_width)&&
+                ((protected&(XkbExplicitKeyType3Mask|XkbExplicitKeyType4Mask))==0)) {
+            nSyms[XkbGroup3Index]= 0;
+            nSyms[XkbGroup4Index]= 0;
+            nGroups= 2;
+        } else
+        {
+            nGroups= 3;
+            for (i=0;i<nSyms[XkbGroup3Index];i++,tmp++) {
+                xkb_syms_rtrn[XKB_OFFSET(XkbGroup3Index,i)]= CORE_SYM(tmp);
+            }
+            if ((tmp<map_width)||(protected&XkbExplicitKeyType4Mask)) {
+                nGroups= 4;
+                for (i=0;i<nSyms[XkbGroup4Index];i++,tmp++) {
+                    xkb_syms_rtrn[XKB_OFFSET(XkbGroup4Index,i)]= CORE_SYM(tmp);
+                }
+            }
+            else {
+                nSyms[XkbGroup4Index]= 0;
+            }
+        }
     }
     /* steps 3&4: alphanumeric expansion,  assign canonical types */
     empty= 0;
