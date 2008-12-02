@@ -129,7 +129,7 @@ fbGlyphIn (RegionPtr	pRegion,
 #define CASE(a,b,c,d)	(a | (b << 1) | (c << 2) | (d << 3))
 #endif
 
-void
+_X_EXPORT void
 fbGlyph24 (FbBits   *dstBits,
 	   FbStride dstStride,
 	   int	    dstBpp,

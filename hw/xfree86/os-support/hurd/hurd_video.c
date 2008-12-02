@@ -95,7 +95,7 @@ xf86MapVidMem(int ScreenNum,int Flags, unsigned long Base, unsigned long Size)
     return (pointer)addr;
 }
 
-void 
+_X_EXPORT void
 xf86UnMapVidMem(int ScreenNum,pointer Base,unsigned long Size)
 {
     kern_return_t err = vm_deallocate(mach_task_self(), (int)Base, Size);

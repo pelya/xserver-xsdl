@@ -1266,6 +1266,7 @@ if test "x$XORG" = xyes; then
 	    if test x$have_visibility != xno; then
 		symbol_visibility=$VISIBILITY_CFLAGS
 		XORG_CFLAGS="$XORG_CFLAGS $VISIBILITY_CFLAGS"
+		XSERVER_CFLAGS="$XSERVER_CFLAGS $VISIBILITY_CFLAGS"
 	    fi
 	fi
 	dnl added to xorg-server.pc

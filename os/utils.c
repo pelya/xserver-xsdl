@@ -175,7 +175,7 @@ _X_EXPORT Bool noXFree86VidModeExtension = FALSE;
 #ifdef XFIXES
 _X_EXPORT Bool noXFixesExtension = FALSE;
 #endif
-/* |noXkbExtension| is defined in xc/programs/Xserver/xkb/xkbInit.c */
+/* noXkbExtension is defined in xkb/xkbInit.c */
 #ifdef PANORAMIX
 /* Xinerama is disabled by default unless enabled via +xinerama */
 _X_EXPORT Bool noPanoramiXExtension = TRUE;

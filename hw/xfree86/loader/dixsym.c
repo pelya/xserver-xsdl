@@ -370,7 +370,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(noXFixesExtension)
 #endif
 #ifdef XKB
-/* |noXkbExtension| is defined in xc/programs/Xserver/xkb/xkbInit.c */
+/* noXkbExtension is defined in xkb/xkbInit.c */
     SYMVAR(noXkbExtension)
 #endif
 #ifdef PANORAMIX
