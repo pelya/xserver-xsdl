@@ -95,6 +95,7 @@ optionsdir = $(libdir)/X11
 dist_options_DATA = Options
 
 CPP_FILES_FLAGS = \
+	$(MANDEFS) \
 	-DLOCALFONTPATH="\"$(BASE_FONT_PATH)/local\"" \
 	-DMISCFONTPATH="\"$(BASE_FONT_PATH)/misc\"" \
 	-DT1FONTPATH="\"$(BASE_FONT_PATH)/Type1\"" \
