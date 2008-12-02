@@ -1,5 +1,5 @@
 AM_CPPFLAGS=-F/System/Library/Frameworks/ApplicationServices.framework/Frameworks
-AM_LDFLAGS=-L/usr/X11/lib -lX11 -lXfixes -lAppleWM -framework AppKit -framework Foundation -framework ApplicationServices
+AM_CFLAGS=$(XPBPROXY_CFLAGS)
 
 noinst_LTLIBRARIES = libxpbproxy.la
 libxpbproxy_la_SOURCES = \
@@ -7,6 +7,8 @@ libxpbproxy_la_SOURCES = \
 	main.m \
 	x-input.m \
 	x-selection.m
+
+libxpbproxy_la_LDFLAGS=$(XPBPROXY_LIBS)
 
 if STANDALONE_XPBPROXY
 

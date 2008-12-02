@@ -19,7 +19,7 @@ X11_LDADD = \
 	$(top_builddir)/dix/dixfonts.lo \
 	$(top_builddir)/miext/rootless/librootless.la \
 	$(top_builddir)/hw/xquartz/pbproxy/libxpbproxy.la \
-	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin -lX11
+	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
 X11_LDFLAGS =  \
 	-XCClinker -Objc \
