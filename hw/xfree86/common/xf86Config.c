@@ -803,8 +803,6 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_RENDER_COLORMAP_MODE,	"RenderColormapMode",		OPTV_STRING,
         {0}, FALSE },
-  { FLAG_HANDLE_SPECIAL_KEYS,	"HandleSpecialKeys",		OPTV_STRING,
-        {0}, FALSE },
   { FLAG_RANDR,			"RandR",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
@@ -975,22 +973,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	}
     }
 #endif
-    {
-	if ((s = xf86GetOptValString(FlagOptions, FLAG_HANDLE_SPECIAL_KEYS))) {
-	    if (!xf86NameCmp(s,"always")) {
-		xf86Msg(X_CONFIG, "Always handling special keys in DDX\n");
-		xf86Info.ddxSpecialKeys = SKAlways;
-	    } else if (!xf86NameCmp(s,"whenneeded")) {
-		xf86Msg(X_CONFIG, "Special keys handled in DDX only if needed\n");
-		xf86Info.ddxSpecialKeys = SKWhenNeeded;
-	    } else if (!xf86NameCmp(s,"never")) {
-		xf86Msg(X_CONFIG, "Never handling special keys in DDX\n");
-		xf86Info.ddxSpecialKeys = SKNever;
-	    } else {
-		xf86Msg(X_WARNING,"Unknown HandleSpecialKeys option\n");
-	    }
-        }
-    }
+
 #ifdef RANDR
     xf86Info.disableRandR = FALSE;
     xf86Info.randRFrom = X_DEFAULT;

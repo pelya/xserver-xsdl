@@ -432,16 +432,11 @@ server is normally configured to recognize various special combinations
 of key presses that instruct the server to perform some action, rather
 than just sending the key press event to a client application.  The
 default XKEYBOARD keymap defines the key combinations listed below.
-The server also has these key combinations builtin to its event handler
+The kbd (__drivermansuffix__) driver also has these key combinations
+builtin to its event handler
 for cases where the XKEYBOARD extension is not being used.  When using
 the XKEYBOARD extension, which key combinations perform which actions
 is completely configurable.
-.PP
-For more information about when the builtin event handler
-is used to recognize the special key combinations, see
-the documentation on the
-.B HandleSpecialKeys
-option in the __xconfigfile__(__filemansuffix__) man page.
 .PP
 The special combinations of key presses recognized directly
 by

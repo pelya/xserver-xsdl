@@ -101,7 +101,6 @@ _X_EXPORT xf86InfoRec xf86Info = {
     .consoleFd                  = -1,
     .vtno                       = -1,
     .vtSysreq                   = FALSE,
-    .ddxSpecialKeys             = SKWhenNeeded,
     .lastEventTime              = -1,
     .vtRequestsPending          = FALSE,
     .dontVTSwitch               = FALSE,
