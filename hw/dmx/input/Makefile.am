@@ -49,6 +49,7 @@ DMXSRCS = dmxinputinit.c \
 
 libdmxinput_a_SOURCES = ChkNotMaskEv.c \
                         ChkNotMaskEv.h \
+                        atKeynames.h \
                         $(RAWSRCS) \
                         $(USBSRCS) \
                         $(DRVSRCS) \
