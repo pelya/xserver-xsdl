@@ -491,16 +491,6 @@ This allows the xvidtune client (and other clients that use the VidMode
 extension) to connect from another host.
 Default: off.
 .TP 7
-.BI "Option \*qDisableModInDev\*q  \*q" boolean \*q
-This disables the parts of the XFree86\-Misc extension that can be used to
-modify the input device settings dynamically.
-Default: that functionality is enabled.
-.TP 7
-.BI "Option \*qAllowNonLocalModInDev\*q  \*q" boolean \*q
-This allows a client to connect from another host and change keyboard
-and mouse settings in the running server.
-Default: off.
-.TP 7
 .BI "Option \*qAllowMouseOpenFail\*q  \*q" boolean \*q
 This allows the server to start up even if the mouse device can't be
 opened/initialised.
@@ -624,30 +614,6 @@ Default: PM enabled on platforms that support it.
 .BI "Option \*qXinerama\*q  \*q" boolean \*q
 enable or disable XINERAMA extension.
 Default is disabled.
-.TP 7
-.BI "Option \*qAllowDeactivateGrabs\*q \*q" boolean \*q
-This option enables the use of the
-.B Ctrl+Alt+Keypad\-Divide
-key sequence to deactivate any active keyboard and mouse grabs.
-Default: off.
-.TP 7
-.BI "Option \*qAllowClosedownGrabs\*q \*q" boolean \*q
-This option enables the use of the
-.B Ctrl+Alt+Keypad\-Multiply
-key sequence to kill clients with an active keyboard or mouse grab as well
-as killing any application that may have locked the server, normally using
-the
-.BR XGrabServer(__libmansuffix__)
-Xlib function.
-Default: off.
-.br
-Note that the options
-.B AllowDeactivateGrabs
-and
-.B AllowClosedownGrabs
-will allow users to remove the grab used by screen saver/locker programs.
-Do not use them if you rely on the screen saver for security.
-Default: off.
 .TP 7
 .BI "Option \*qHandleSpecialKeys\*q \*q" when \*q
 This option controls when the server uses the builtin handler to process
@@ -802,7 +768,8 @@ __projectroot__/lib/modules/extensions
 .fi
 .RE
 .PP
-The \(lqbitmap\(rq font module is loaded automatically.
+The \(lqextmod\(rq, \(lqdbe\(rq, \(lqglx\(rq, and \(lqdri\(rq extension
+modules are loaded automatically, unless disabled with \*qDisable\*q entries.
 It is recommended
 that at very least the \(lqextmod\(rq extension module be loaded.
 If it isn't, some commonly used server extensions (like the SHAPE
@@ -862,9 +829,12 @@ or
 command line options, or if it is selected implicitly as the core pointer
 or keyboard device in the absence of such explicit references.
 The most commonly used input drivers are
-.BR keyboard (__drivermansuffix__)
+.BR evdev (__drivermansuffix__)
+on Linux systems, and
+.BR kbd (__drivermansuffix__)
 and
-.BR mouse (__drivermansuffix__).
+.BR mouse (__drivermansuffix__)
+on other platforms.
 .PP
 In the absence of an explicitly specified core input device, the first
 .B InputDevice
@@ -875,7 +845,7 @@ marked as
 is used.
 If there is no match there, the first
 .B InputDevice
-that uses the \(lqmouse\(rq (or \(lqkeyboard\(rq or \(lqkbd\(rq) driver is used.
+that uses the \(lqmouse\(rq (or \(lqkbd\(rq) driver is used.
 The final fallback is to use built\-in default configurations.
 .PP
 .B InputDevice
@@ -2158,7 +2128,7 @@ General:
 .BR cvt (__appmansuffix__),
 .BR gtf (__appmansuffix__).
 .PP
-.B Not all modules or interfaces are available on all platforms.
+.B "Not all modules or interfaces are available on all platforms."
 .PP
 Display drivers:
 .BR apm (__drivermansuffix__),
@@ -2178,11 +2148,13 @@ Display drivers:
 .BR nv (__drivermansuffix__),
 .BR openchrome (__drivermansuffix__),
 .BR r128 (__drivermansuffix__),
+.BR radeon (__drivermansuffix__),
 .BR rendition (__drivermansuffix__),
 .BR savage (__drivermansuffix__),
 .BR s3virge (__drivermansuffix__),
 .BR siliconmotion (__drivermansuffix__),
 .BR sis (__drivermansuffix__),
+.BR sisusb (__drivermansuffix__),
 .BR sunbw2 (__drivermansuffix__),
 .BR suncg14 (__drivermansuffix__),
 .BR suncg3 (__drivermansuffix__),
@@ -2191,35 +2163,43 @@ Display drivers:
 .BR sunleo (__drivermansuffix__),
 .BR suntcx (__drivermansuffix__),
 .BR tdfx (__drivermansuffix__),
-.BR tga (__drivermansuffix__),
+.\" .BR tga (__drivermansuffix__),
 .BR trident (__drivermansuffix__),
 .BR tseng (__drivermansuffix__),
 .BR vesa (__drivermansuffix__),
-.BR vmware (__drivermansuffix__).
+.BR vmware (__drivermansuffix__),
+.BR voodoo (__drivermansuffix__),
+.BR wsfb (__drivermansuffix__),
+.BR xgi (__drivermansuffix__),
+.BR xgixp (__drivermansuffix__).
 .PP
 Input drivers:
-.\" .BR acecad (__drivermansuffix__),
-.\" .BR calcomp (__drivermansuffix__),
+.BR acecad (__drivermansuffix__),
+.BR calcomp (__drivermansuffix__),
 .BR citron (__drivermansuffix__),
 .BR dmc (__drivermansuffix__),
 .BR dynapro (__drivermansuffix__),
 .BR elographics (__drivermansuffix__),
+.BR evdev (__drivermansuffix__),
 .BR fpit (__drivermansuffix__),
 .BR js_x (__drivermansuffix__),
+.BR joystick (__drivermansuffix__),
 .BR kbd (__drivermansuffix__),
-.BR keyboard (__drivermansuffix__),
-.\" .BR magictouch (__drivermansuffix__),
+.BR magictouch (__drivermansuffix__),
 .BR microtouch (__drivermansuffix__),
-.BR mouse (__drivermansuffix__),
+.BR mousedrv (__drivermansuffix__),
 .BR mutouch (__drivermansuffix__),
 .BR palmax (__drivermansuffix__),
 .BR penmount (__drivermansuffix__),
+.BR synaptics (__drivermansuffix__),
 .BR tek4957 (__drivermansuffix__),
-.\" .BR ur98 (__drivermansuffix__),
+.BR ur98 (__drivermansuffix__),
+.BR vmmouse (__drivermansuffix__),
 .BR void (__drivermansuffix__),
 .BR wacom (__drivermansuffix__).
 .PP
 Other modules and interfaces:
+.BR exa (__drivermansuffix__),
 .BR fbdevhw (__drivermansuffix__),
 .\" .BR shadowfb (__drivermansuffix__),
 .BR v4l (__drivermansuffix__).
