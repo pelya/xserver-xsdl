@@ -1535,9 +1535,11 @@ ddxProcessArgument(int argc, char **argv, int i)
     }
 
   /* First the options that are only allowed for root */
-  if (getuid() == 0 || geteuid() != 0)
-  {
-    if (!strcmp(argv[i], "-modulepath"))
+  if (!strcmp(argv[i], "-modulepath") || !strcmp(argv[i], "-logfile")) {
+    if ( (geteuid() == 0) && (getuid() != 0) ) {
+      FatalError("The '%s' option can only be used by root.\n", argv[i]);
+    }
+    else if (!strcmp(argv[i], "-modulepath"))
     {
       char *mp;
       CHECK_FOR_REQUIRED_ARGUMENT();
@@ -1561,8 +1563,6 @@ ddxProcessArgument(int argc, char **argv, int i)
       xf86LogFileFrom = X_CMDLINE;
       return 2;
     }
-  } else if (!strcmp(argv[i], "-modulepath") || !strcmp(argv[i], "-logfile")) {
-    FatalError("The '%s' option can only be used by root.\n", argv[i]);
   }
   if (!strcmp(argv[i], "-config") || !strcmp(argv[i], "-xf86config"))
   {
