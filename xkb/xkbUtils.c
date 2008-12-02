@@ -524,7 +524,7 @@ int			maxNumberOfGroups;
 	     */
 	    if (nGroups == 1)
 	    {
-		int idx;
+		int idx, j;
 
 		groupWidth = XkbKeyGroupWidth(xkb, key, XkbGroup1Index);
 
@@ -547,8 +547,9 @@ int			maxNumberOfGroups;
 		if (idx < 4)
 		    idx = 4;
 		/* 3 or more groups: ABABCDECDEABCDEABCDE */
-		for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
-		    pCore[idx++] = pXKB[n];
+                for (j = 3; j <= maxNumberOfGroups; j++)
+                    for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
+                        pCore[idx++] = pXKB[n];
 	    }
 
 	    pXKB+= XkbKeyGroupsWidth(xkb,key);
