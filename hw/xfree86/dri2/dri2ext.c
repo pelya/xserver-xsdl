@@ -243,10 +243,6 @@ ProcDRI2CopyRegion(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDRI2CopyRegionReq);
 
-    /* No optional values supported for DRI2 2.0 protocol. */
-    if (stuff->bitmask != 0)
-	    return BadValue;
-
     if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
 	return status;
 
@@ -266,7 +262,6 @@ ProcDRI2CopyRegion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.bitmask = 0;
 
     WriteToClient(client, sizeof(xDRI2CopyRegionReply), &rep);
 

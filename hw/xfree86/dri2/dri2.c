@@ -66,9 +66,7 @@ typedef struct _DRI2Screen {
     DRI2CreateBuffersProcPtr	 CreateBuffers;
     DRI2DestroyBuffersProcPtr	 DestroyBuffers;
     DRI2CopyRegionProcPtr	 CopyRegion;
-    DRI2WaitProcPtr		 Wait;
 
-    ClipNotifyProcPtr            ClipNotify;
     HandleExposuresProcPtr       HandleExposures;
 } DRI2ScreenRec, *DRI2ScreenPtr;
 
@@ -251,23 +249,6 @@ DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
     return TRUE;
 }
 
-static void
-DRI2ClipNotify(WindowPtr pWin, int dx, int dy)
-{
-    ScreenPtr           pScreen = pWin->drawable.pScreen;
-    DRI2ScreenPtr       ds = DRI2GetScreen(pScreen);
-    DRI2DrawablePtr     dd = DRI2GetDrawable(&pWin->drawable);
-
-    if (dd && ds->lastSequence < dd->pendingSequence && ds->Wait)
-	ds->Wait(pWin, dd->pendingSequence);
-
-    if (ds->ClipNotify) {
-	pScreen->ClipNotify = ds->ClipNotify;
-	pScreen->ClipNotify(pWin, dx, dy);
-	pScreen->ClipNotify = DRI2ClipNotify;
-    }
-}
-
 _X_EXPORT Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
@@ -283,10 +264,6 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     ds->CreateBuffers  = info->CreateBuffers;
     ds->DestroyBuffers = info->DestroyBuffers;
     ds->CopyRegion     = info->CopyRegion;
-    ds->Wait           = info->Wait;
-
-    ds->ClipNotify              = pScreen->ClipNotify;
-    pScreen->ClipNotify         = DRI2ClipNotify;
 
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, ds);
 
@@ -300,7 +277,6 @@ DRI2CloseScreen(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
-    pScreen->ClipNotify = ds->ClipNotify;
     xfree(ds);
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
 }
