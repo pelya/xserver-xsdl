@@ -74,7 +74,7 @@ xf86RandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 
     *rotations = RR_Rotate_0;
 
-    for (mode = scrp->modes; ; mode = mode->next)
+    for (mode = scrp->modes; mode != NULL ; mode = mode->next)
     {
 	int refresh = xf86RandRModeRefresh (mode);
 
