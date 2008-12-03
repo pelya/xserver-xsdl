@@ -53,7 +53,8 @@
 #ifdef HAVE_DIX_CONFIG_H
 
 #include <dix-config.h>
-#define PUBLIC
+#include <X11/Xfuncproto.h>
+#define PUBLIC _X_EXPORT
 
 #else
 

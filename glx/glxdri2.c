@@ -580,7 +580,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     return NULL;
 }
 
-__GLXprovider __glXDRI2Provider = {
+_X_EXPORT __GLXprovider __glXDRI2Provider = {
     __glXDRIscreenProbe,
     "DRI2",
     NULL
