@@ -877,6 +877,28 @@ if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
 	AC_SUBST(LIBDRM_LIBS)
 fi
 
+if test "x$DRI2" = xyes; then
+	save_CFLAGS=$CFLAGS
+	CFLAGS="$GL_CFLAGS $LIBDRM_CFLAGS -Wall"
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <GL/gl.h>
+#include <GL/internal/dri_interface.h>
+#ifndef __DRI_DRI2
+#error DRI2 extension not available.
+#endif]])],
+			  [HAVE_DRI2EXTENSION=yes],
+			  [HAVE_DRI2EXTENSION=no])
+	CFLAGS=$save_CFLAGS
+	if test "x$HAVE_DRI2EXTENSION" = xyes; then
+		AC_DEFINE(DRI2_AIGLX, 1, [Build DRI2 AIGLX loader])
+		DRI2_AIGLX=yes
+	else
+		AC_MSG_NOTICE([DRI2 AIGLX disabled, __DRI_DRI2 not defined in dri_interface.h.])
+		DRI2_AIGLX=no
+	fi
+fi
+AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" == xyes)
+
+
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
 if test "x$XINERAMA" = xyes; then
 	AC_DEFINE(XINERAMA, 1, [Support Xinerama extension])

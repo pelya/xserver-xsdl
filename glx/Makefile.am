@@ -24,7 +24,7 @@ INCLUDES = \
 	-I$(top_srcdir)/hw/xfree86/dri \
 	-I$(top_srcdir)/mi
 
-if DRI2
+if DRI2_AIGLX
 INCLUDES += -I$(top_srcdir)/hw/xfree86/dri2
 endif
 
@@ -53,7 +53,7 @@ libglxdri_la_SOURCES = \
         extension_string.c \
         extension_string.h
 
-if DRI2
+if DRI2_AIGLX
 libglxdri_la_SOURCES += glxdri2.c
 endif
 
