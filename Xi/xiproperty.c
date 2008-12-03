@@ -121,7 +121,7 @@ XIRegisterPropertyHandler(DeviceIntPtr         dev,
 }
 
 void
-XIUnRegisterPropertyHandler(DeviceIntPtr dev, long id)
+XIUnregisterPropertyHandler(DeviceIntPtr dev, long id)
 {
     XIPropertyHandlerPtr curr, prev = NULL;
 
