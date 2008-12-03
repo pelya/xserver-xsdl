@@ -602,12 +602,19 @@ xf86_reload_cursors (ScreenPtr screen)
     xf86CursorInfoPtr   cursor_info;
     CursorPtr		cursor;
     int			x, y;
+    xf86CursorScreenPtr cursor_screen_priv;
     
     /* initial mode setting will not have set a screen yet.
        May be called before the devices are initialised.
      */
     if (!screen || !inputInfo.pointer)
 	return;
+    cursor_screen_priv = dixLookupPrivate(&screen->devPrivates,
+					  xf86CursorScreenKey);
+    /* return if HW cursor is inactive, to avoid displaying two cursors */
+    if (!cursor_screen_priv->isUp)
+	return;
+
     scrn = xf86Screens[screen->myNum];
     xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
 
@@ -615,7 +622,7 @@ xf86_reload_cursors (ScreenPtr screen)
     cursor_info = xf86_config->cursor_info;
     if (!cursor_info)
 	return;
-    
+
     cursor = xf86_config->cursor;
     GetSpritePosition (inputInfo.pointer, &x, &y);
     if (!(cursor_info->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
@@ -636,7 +643,6 @@ xf86_reload_cursors (ScreenPtr screen)
 	    (*cursor_info->LoadCursorImage)(cursor_info->pScrn, src);
 
 	(*cursor_info->SetCursorPosition)(cursor_info->pScrn, x, y);
-	(*cursor_info->ShowCursor)(cursor_info->pScrn);
     }
 }
 
