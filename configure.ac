@@ -27,6 +27,7 @@ dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
 AC_INIT([xorg-server], 1.6.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+RELEASE_DATE="(unreleased)"
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -417,7 +418,6 @@ VENDOR_MAN_VERSION="Version ${PACKAGE_VERSION}"
 
 VENDOR_NAME="The X.Org Foundation"
 VENDOR_NAME_SHORT="X.Org"
-RELEASE_DATE="(unreleased)"
 VENDOR_WEB="http://wiki.x.org"
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
