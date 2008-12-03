@@ -55,6 +55,10 @@
 # define DO_PROTOTYPES
 #endif
 
+#ifndef _X_EXPORT
+# include <X11/Xfuncproto.h>
+#endif
+
 /* Allow drivers to use the GCC-supported __inline__ and/or __inline. */
 # ifndef __inline__
 #  if defined(__GNUC__)
