@@ -2442,13 +2442,14 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
         while(*dev)
         {
             if (strcmp((*dev)->driver, "kbd") == 0 ||
-                strcmp((*dev)->driver, "mouse") == 0)
+                strcmp((*dev)->driver, "mouse") == 0 ||
+                strcmp((*dev)->driver, "vmmouse") == 0)
             {
                 IDevPtr *current;
                 if (!warned)
                 {
                     xf86Msg(X_WARNING, "AllowEmptyInput is on, devices using "
-                            "drivers 'kbd' or 'mouse' will be disabled.\n");
+                            "drivers 'kbd', 'mouse' or 'vmmouse' will be disabled.\n");
                     warned = TRUE;
                 }
 

@@ -642,7 +642,7 @@ the X server to load. Disabled by default.
 If enabled, don't add the standard keyboard and mouse drivers, if there are no
 input devices in the config file.  Enabled by default if AutoAddDevices and
 AutoEnableDevices is enabled, otherwise disabled.
-If AllowEmptyInput is on, devices using the kbd or mouse driver are ignored.
+If AllowEmptyInput is on, devices using the kbd, mouse or vmmouse driver are ignored.
 .TP 7
 .BI "Option \*qAutoAddDevices\*q \*q" boolean \*q
 If this option is disabled, then no devices will be added from HAL events.
