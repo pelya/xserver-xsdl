@@ -93,7 +93,7 @@ typedef struct	_SrvXkmInfo {
 #define	XKB_BIN_DIRECTORY	XKB_BASE_DIRECTORY
 #endif
 #ifndef XKB_DFLT_RULES_FILE
-#define	XKB_DFLT_RULES_FILE	"rules"
+#define	XKB_DFLT_RULES_FILE	"base"
 #endif
 #ifndef XKB_DFLT_KB_LAYOUT
 #define	XKB_DFLT_KB_LAYOUT	"us"
@@ -240,14 +240,33 @@ XkbSetRulesUsed(XkbRF_VarDefsPtr defs)
     return;
 }
 
+/**
+ * Set the default RMLVO for the next device to be initialised.
+ * If a parameter is NULL, the previous setting will be used. Use empty
+ * strings if you want to delete a previous setting.
+ *
+ * If @rulesFile is NULL and no previous @rulesFile has been set, the
+ * built-in default is chosen as default.
+ */
 _X_EXPORT void
 XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 					char *variant,char *options)
 {
-    if (XkbRulesFile)
-	_XkbFree(XkbRulesFile);
-    XkbRulesFile= _XkbDupString(rulesFile);
-    rulesDefined= True;
+    if (!rulesFile && !XkbRulesFile)
+    {
+	LogMessage(X_WARNING, "[xkb] No rule given, and no previous rule "
+		              "defined. Defaulting to '%s'.\n",
+                              XKB_DFLT_RULES_FILE);
+	rulesFile = XKB_DFLT_RULES_FILE;
+    }
+
+    if (rulesFile) {
+	if (XkbRulesFile)
+	    _XkbFree(XkbRulesFile);
+	XkbRulesFile= _XkbDupString(rulesFile);
+	rulesDefined= True;
+    }
+
     if (model) {
 	if (XkbModelDflt)
 	    _XkbFree(XkbModelDflt);
