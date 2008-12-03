@@ -20,7 +20,7 @@
 static int vm86_rep(struct vm86_struct *ptr);
 static struct vm86_struct vm86_s;
 
-_X_EXPORT Bool
+Bool
 xf86Int10ExecSetup(xf86Int10InfoPtr pInt)
 {
 #define VM86S ((struct vm86_struct *)pInt->cpuRegs)
@@ -255,7 +255,7 @@ do_vm86(xf86Int10InfoPtr pInt)
     return 1;
 }
 
-_X_EXPORT void
+void
 xf86ExecX86int10(xf86Int10InfoPtr pInt)
 {
     int sig = setup_int(pInt);

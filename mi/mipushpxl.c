@@ -92,7 +92,7 @@ bitsizeof(int) padding and sacnline unit == bitsizeof(int).)
  * in order to have both (MSB_FIRST and LSB_FIRST) versions of this
  * in the server, we need to rename one of them
  */
-_X_EXPORT void
+void
 miPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDrawable,
              int dx, int dy, int xOrg, int yOrg)
 {

@@ -140,7 +140,7 @@
 
 pciBusFuncs_t *pciBusFuncs = NULL;
 
-_X_EXPORT ADDRESS
+ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
     if (pciBusFuncs && pciBusFuncs->pciAddrBusToHost)
@@ -149,7 +149,7 @@ pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 	return addr;
 }
 
-_X_EXPORT PCITAG
+PCITAG
 pciTag(int busnum, int devnum, int funcnum)
 {
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
@@ -161,7 +161,7 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 	return(addr);
 }
 
-_X_EXPORT Bool
+Bool
 xf86scanpci(void)
 {
     Bool  success = FALSE;

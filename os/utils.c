@@ -121,90 +121,90 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "picture.h"
 #endif
 
-_X_EXPORT Bool noTestExtensions;
+Bool noTestExtensions;
 #ifdef COMPOSITE
-_X_EXPORT Bool noCompositeExtension = FALSE;
+Bool noCompositeExtension = FALSE;
 #endif
 
 #ifdef DAMAGE
-_X_EXPORT Bool noDamageExtension = FALSE;
+Bool noDamageExtension = FALSE;
 #endif
 #ifdef DBE
-_X_EXPORT Bool noDbeExtension = FALSE;
+Bool noDbeExtension = FALSE;
 #endif
 #ifdef DPMSExtension
-_X_EXPORT Bool noDPMSExtension = FALSE;
+Bool noDPMSExtension = FALSE;
 #endif
 #ifdef GLXEXT
-_X_EXPORT Bool noGlxExtension = FALSE;
-_X_EXPORT Bool noGlxVisualInit = FALSE;
+Bool noGlxExtension = FALSE;
+Bool noGlxVisualInit = FALSE;
 #endif
 #ifdef SCREENSAVER
-_X_EXPORT Bool noScreenSaverExtension = FALSE;
+Bool noScreenSaverExtension = FALSE;
 #endif
 #ifdef MITSHM
-_X_EXPORT Bool noMITShmExtension = FALSE;
+Bool noMITShmExtension = FALSE;
 #endif
 #ifdef MULTIBUFFER
-_X_EXPORT Bool noMultibufferExtension = FALSE;
+Bool noMultibufferExtension = FALSE;
 #endif
 #ifdef RANDR
-_X_EXPORT Bool noRRExtension = FALSE;
+Bool noRRExtension = FALSE;
 #endif
 #ifdef RENDER
-_X_EXPORT Bool noRenderExtension = FALSE;
+Bool noRenderExtension = FALSE;
 #endif
 #ifdef XCSECURITY
-_X_EXPORT Bool noSecurityExtension = FALSE;
+Bool noSecurityExtension = FALSE;
 #endif
 #ifdef RES
-_X_EXPORT Bool noResExtension = FALSE;
+Bool noResExtension = FALSE;
 #endif
 #ifdef XF86BIGFONT
-_X_EXPORT Bool noXFree86BigfontExtension = FALSE;
+Bool noXFree86BigfontExtension = FALSE;
 #endif
 #ifdef XFreeXDGA
-_X_EXPORT Bool noXFree86DGAExtension = FALSE;
+Bool noXFree86DGAExtension = FALSE;
 #endif
 #ifdef XF86DRI
-_X_EXPORT Bool noXFree86DRIExtension = FALSE;
+Bool noXFree86DRIExtension = FALSE;
 #endif
 #ifdef XF86VIDMODE
-_X_EXPORT Bool noXFree86VidModeExtension = FALSE;
+Bool noXFree86VidModeExtension = FALSE;
 #endif
 #ifdef XFIXES
-_X_EXPORT Bool noXFixesExtension = FALSE;
+Bool noXFixesExtension = FALSE;
 #endif
 /* noXkbExtension is defined in xkb/xkbInit.c */
 #ifdef PANORAMIX
 /* Xinerama is disabled by default unless enabled via +xinerama */
-_X_EXPORT Bool noPanoramiXExtension = TRUE;
+Bool noPanoramiXExtension = TRUE;
 #endif
 #ifdef XSELINUX
-_X_EXPORT Bool noSELinuxExtension = FALSE;
-_X_EXPORT int selinuxEnforcingState = SELINUX_MODE_DEFAULT;
+Bool noSELinuxExtension = FALSE;
+int selinuxEnforcingState = SELINUX_MODE_DEFAULT;
 #endif
 #ifdef XV
-_X_EXPORT Bool noXvExtension = FALSE;
+Bool noXvExtension = FALSE;
 #endif
 #ifdef DRI2
-_X_EXPORT Bool noDRI2Extension = FALSE;
+Bool noDRI2Extension = FALSE;
 #endif
 
-_X_EXPORT Bool noGEExtension = FALSE;
+Bool noGEExtension = FALSE;
 
 #define X_INCLUDE_NETDB_H
 #include <X11/Xos_r.h>
 
 #include <errno.h>
 
-_X_EXPORT Bool CoreDump;
+Bool CoreDump;
 
 #ifdef PANORAMIX
-_X_EXPORT Bool PanoramiXExtensionDisabledHack = FALSE;
+Bool PanoramiXExtensionDisabledHack = FALSE;
 #endif
 
-_X_EXPORT int auditTrailLevel = 1;
+int auditTrailLevel = 1;
 
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
@@ -212,7 +212,7 @@ _X_EXPORT int auditTrailLevel = 1;
 
 static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
 
-_X_EXPORT OsSigHandlerPtr
+OsSigHandlerPtr
 OsSignal(sig, handler)
     int sig;
     OsSigHandlerPtr handler;
@@ -261,7 +261,7 @@ static Bool nolock = FALSE;
  *      contained inside is valid.  If so, then die.  Otherwise, create
  *      the lock file containing the PID.
  */
-_X_EXPORT void
+void
 LockServer(void)
 {
   char tmp[PATH_MAX], pid_str[12];
@@ -387,7 +387,7 @@ LockServer(void)
  * UnlockServer --
  *      Remove the server lock file.
  */
-_X_EXPORT void
+void
 UnlockServer(void)
 {
   if (nolock) return;
@@ -401,7 +401,7 @@ UnlockServer(void)
 /* Force connections to close on SIGHUP from init */
 
 /*ARGSUSED*/
-_X_EXPORT SIGVAL
+SIGVAL
 AutoResetServer (int sig)
 {
     int olderrno = errno;
@@ -414,7 +414,7 @@ AutoResetServer (int sig)
 /* Force connections to close and then exit on SIGTERM, SIGINT */
 
 /*ARGSUSED*/
-_X_EXPORT SIGVAL
+SIGVAL
 GiveUp(int sig)
 {
     int olderrno = errno;
@@ -425,13 +425,13 @@ GiveUp(int sig)
 }
 
 #if defined WIN32 && defined __MINGW32__
-_X_EXPORT CARD32
+CARD32
 GetTimeInMillis (void)
 {
   return GetTickCount ();
 }
 #else
-_X_EXPORT CARD32
+CARD32
 GetTimeInMillis(void)
 {
     struct timeval tv;
@@ -447,7 +447,7 @@ GetTimeInMillis(void)
 }
 #endif
 
-_X_EXPORT void
+void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
 {
     static struct timeval   delay_val;
@@ -471,7 +471,7 @@ AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
     }
 }
 
-_X_EXPORT void UseMsg(void)
+void UseMsg(void)
 {
     ErrorF("use: X [:<display>] [option]\n");
     ErrorF("-a #                   mouse acceleration (pixels)\n");
@@ -577,7 +577,7 @@ VerifyDisplayName(const char *d)
  * and allows ddx to handle additional fields.  It is not allowed to modify
  * argc or any of the strings pointed to by argv.
  */
-_X_EXPORT void
+void
 ProcessCommandLine(int argc, char *argv[])
 {
     int i, skip;
@@ -982,7 +982,7 @@ ProcessCommandLine(int argc, char *argv[])
 
 /* Implement a simple-minded font authorization scheme.  The authorization
    name is "hp-hostname-1", the contents are simply the host name. */
-_X_EXPORT int
+int
 set_font_authorizations(char **authorizations, int *authlen, pointer client)
 {
 #define AUTHORIZATION_NAME "hp-hostname-1"
@@ -1049,7 +1049,7 @@ set_font_authorizations(char **authorizations, int *authlen, pointer client)
 
 #ifndef INTERNAL_MALLOC
 
-_X_EXPORT void * 
+void *
 Xalloc(unsigned long amount)
 {
     void *ptr;
@@ -1068,7 +1068,7 @@ Xalloc(unsigned long amount)
  * "no failure" realloc
  *****************/
 
-_X_EXPORT void *
+void *
 XNFalloc(unsigned long amount)
 {
     void *ptr;
@@ -1087,7 +1087,7 @@ XNFalloc(unsigned long amount)
  * Xcalloc
  *****************/
 
-_X_EXPORT void *
+void *
 Xcalloc(unsigned long amount)
 {
     void *ret;
@@ -1102,7 +1102,7 @@ Xcalloc(unsigned long amount)
  * XNFcalloc
  *****************/
 
-_X_EXPORT void *
+void *
 XNFcalloc(unsigned long amount)
 {
     void *ret;
@@ -1119,7 +1119,7 @@ XNFcalloc(unsigned long amount)
  * Xrealloc
  *****************/
 
-_X_EXPORT void *
+void *
 Xrealloc(pointer ptr, unsigned long amount)
 {
     if ((long)amount <= 0)
@@ -1142,7 +1142,7 @@ Xrealloc(pointer ptr, unsigned long amount)
  * "no failure" realloc
  *****************/
 
-_X_EXPORT void *
+void *
 XNFrealloc(pointer ptr, unsigned long amount)
 {
     if ((ptr = Xrealloc(ptr, amount)) == NULL)
@@ -1158,7 +1158,7 @@ XNFrealloc(pointer ptr, unsigned long amount)
  *    calls free 
  *****************/    
 
-_X_EXPORT void
+void
 Xfree(pointer ptr)
 {
     if (ptr)
@@ -1167,7 +1167,7 @@ Xfree(pointer ptr)
 #endif /* !INTERNAL_MALLOC */
 
 
-_X_EXPORT char *
+char *
 Xstrdup(const char *s)
 {
     char *sd;
@@ -1182,7 +1182,7 @@ Xstrdup(const char *s)
 }
 
 
-_X_EXPORT char *
+char *
 XNFstrdup(const char *s)
 {
     char *sd;
@@ -1205,7 +1205,7 @@ XNFstrdup(const char *s)
 #define SMART_SCHEDULE_TIMER		ITIMER_REAL
 #endif
 
-_X_EXPORT void
+void
 SmartScheduleStopTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1221,7 +1221,7 @@ SmartScheduleStopTimer (void)
 #endif
 }
 
-_X_EXPORT void
+void
 SmartScheduleStartTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1245,7 +1245,7 @@ SmartScheduleTimer (int sig)
 }
 #endif
 
-_X_EXPORT Bool
+Bool
 SmartScheduleInit (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1276,7 +1276,7 @@ static sigset_t	PreviousSignalMask;
 static int	BlockedSignalCount;
 #endif
 
-_X_EXPORT void
+void
 OsBlockSignals (void)
 {
 #ifdef SIG_BLOCK
@@ -1314,7 +1314,7 @@ OsBlockSignals (void)
 #endif
 }
 
-_X_EXPORT void
+void
 OsReleaseSignals (void)
 {
 #ifdef SIG_BLOCK
@@ -1336,7 +1336,7 @@ OsReleaseSignals (void)
  * as well.  As it is now, xkbcomp messages don't end up in the log file.
  */
 
-_X_EXPORT int
+int
 System(char *command)
 {
     int pid, p;
@@ -1395,7 +1395,7 @@ static struct pid {
 
 OsSigHandlerPtr old_alarm = NULL; /* XXX horrible awful hack */
 
-_X_EXPORT pointer
+pointer
 Popen(char *command, char *type)
 {
     struct pid *cur;
@@ -1480,7 +1480,7 @@ Popen(char *command, char *type)
 }
 
 /* fopen that drops privileges */
-_X_EXPORT pointer
+pointer
 Fopen(char *file, char *type)
 {
     FILE *iop;
@@ -1573,7 +1573,7 @@ Fopen(char *file, char *type)
 #endif /* HAS_SAVED_IDS_AND_SETEUID */
 }
 
-_X_EXPORT int
+int
 Pclose(pointer iop)
 {
     struct pid *cur, *last;
@@ -1613,7 +1613,7 @@ Pclose(pointer iop)
     return pid == -1 ? -1 : pstat;
 }
 
-_X_EXPORT int 
+int
 Fclose(pointer iop)
 {
 #ifdef HAS_SAVED_IDS_AND_SETEUID
@@ -1701,7 +1701,7 @@ enum BadCode {
 #endif
 
 void
-_X_EXPORT CheckUserParameters(int argc, char **argv, char **envp)
+CheckUserParameters(int argc, char **argv, char **envp)
 {
     enum BadCode bad = NotBad;
     int i = 0, j;
@@ -1838,7 +1838,7 @@ _X_EXPORT CheckUserParameters(int argc, char **argv, char **envp)
 #include <pwd.h>
 #endif /* USE_PAM */
 
-_X_EXPORT void
+void
 CheckUserAuthorization(void)
 {
 #ifdef USE_PAM

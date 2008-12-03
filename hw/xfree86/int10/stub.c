@@ -13,56 +13,56 @@
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 
-_X_EXPORT xf86Int10InfoPtr
+xf86Int10InfoPtr
 xf86InitInt10(int entityIndex)
 {
     return xf86ExtendedInitInt10(entityIndex, 0);
 }
 
-_X_EXPORT xf86Int10InfoPtr
+xf86Int10InfoPtr
 xf86ExtendedInitInt10(int entityIndex, int Flags)
 {
     return NULL;
 }
 
-_X_EXPORT Bool
+Bool
 MapCurrentInt10(xf86Int10InfoPtr pInt)
 {
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86FreeInt10(xf86Int10InfoPtr pInt)
 {
     return;
 }
 
-_X_EXPORT void *
+void *
 xf86Int10AllocPages(xf86Int10InfoPtr pInt,int num, int *off)
 {
     *off = 0;
     return NULL;
 }
 
-_X_EXPORT void
+void
 xf86Int10FreePages(xf86Int10InfoPtr pInt, void *pbase, int num)
 {
     return;
 }
 
-_X_EXPORT Bool
+Bool
 xf86Int10ExecSetup(xf86Int10InfoPtr pInt)
 {
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86ExecX86int10(xf86Int10InfoPtr pInt)
 {
     return;
 }
 
-_X_EXPORT pointer
+pointer
 xf86int10Addr(xf86Int10InfoPtr pInt, CARD32 addr)
 {
     return 0;

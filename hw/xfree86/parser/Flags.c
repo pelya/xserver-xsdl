@@ -216,7 +216,7 @@ addNewOption2 (XF86OptionPtr head, char *name, char *val, int used)
 	return ((XF86OptionPtr) xf86addListItem ((glp) head, (glp) new));
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86addNewOption (XF86OptionPtr head, char *name, char *val)
 {
 	return addNewOption2(head, name, val, 0);
@@ -232,7 +232,7 @@ xf86freeFlags (XF86ConfFlagsPtr flags)
 	xf86conffree (flags);
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86optionListDup (XF86OptionPtr opt)
 {
 	XF86OptionPtr newopt = NULL;
@@ -249,7 +249,7 @@ xf86optionListDup (XF86OptionPtr opt)
 	return newopt;
 }
 
-_X_EXPORT void
+void
 xf86optionListFree (XF86OptionPtr opt)
 {
 	XF86OptionPtr prev;
@@ -265,7 +265,7 @@ xf86optionListFree (XF86OptionPtr opt)
 	}
 }
 
-_X_EXPORT char *
+char *
 xf86optionName(XF86OptionPtr opt)
 {
 	if (opt)
@@ -273,7 +273,7 @@ xf86optionName(XF86OptionPtr opt)
 	return 0;
 }
 
-_X_EXPORT char *
+char *
 xf86optionValue(XF86OptionPtr opt)
 {
 	if (opt)
@@ -281,7 +281,7 @@ xf86optionValue(XF86OptionPtr opt)
 	return 0;
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86newOption(char *name, char *value)
 {
 	XF86OptionPtr opt;
@@ -298,7 +298,7 @@ xf86newOption(char *name, char *value)
 	return opt;
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86nextOption(XF86OptionPtr list)
 {
 	if (!list)
@@ -312,7 +312,7 @@ xf86nextOption(XF86OptionPtr list)
  * NULL
  */
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86findOption (XF86OptionPtr list, const char *name)
 {
 	while (list)
@@ -331,7 +331,7 @@ xf86findOption (XF86OptionPtr list, const char *name)
  * returned.  If the option is not found, a NULL is returned.
  */
 
-_X_EXPORT char *
+char *
 xf86findOptionValue (XF86OptionPtr list, const char *name)
 {
 	XF86OptionPtr p = xf86findOption (list, name);
@@ -346,7 +346,7 @@ xf86findOptionValue (XF86OptionPtr list, const char *name)
 	return (NULL);
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86optionListCreate( const char **options, int count, int used )
 {
 	XF86OptionPtr p = NULL;
@@ -383,7 +383,7 @@ xf86optionListCreate( const char **options, int count, int used )
  * is used. The end result is a single valid list of options. Duplicates
  * are freed, and the original lists are no longer guaranteed to be complete.
  */
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86optionListMerge (XF86OptionPtr head, XF86OptionPtr tail)
 {
 	XF86OptionPtr a, b, ap = NULL, bp = NULL;
@@ -428,7 +428,7 @@ xf86optionListMerge (XF86OptionPtr head, XF86OptionPtr tail)
 	return (head);
 }
 
-_X_EXPORT char *
+char *
 xf86uLongToString(unsigned long i)
 {
 	char *s;
@@ -442,7 +442,7 @@ xf86uLongToString(unsigned long i)
 	return s;
 }
 
-_X_EXPORT XF86OptionPtr
+XF86OptionPtr
 xf86parseOption(XF86OptionPtr head)
 {
 	XF86OptionPtr option, cnew, old;
@@ -493,7 +493,7 @@ xf86parseOption(XF86OptionPtr head)
 	return (head);
 }
 
-_X_EXPORT void
+void
 xf86printOptionList(FILE *fp, XF86OptionPtr list, int tabs)
 {
 	int i;

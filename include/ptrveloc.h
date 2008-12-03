@@ -100,31 +100,31 @@ typedef struct _DeviceVelocityRec {
 } DeviceVelocityRec, *DeviceVelocityPtr;
 
 
-extern void
+extern _X_EXPORT void
 InitVelocityData(DeviceVelocityPtr s);
 
-extern void
+extern _X_EXPORT void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
                 int lutsize, int stages);
 
-extern int
+extern _X_EXPORT int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
 
-extern DeviceVelocityPtr
+extern _X_EXPORT DeviceVelocityPtr
 GetDevicePredictableAccelData(DeviceIntPtr pDev);
 
-extern void
+extern _X_EXPORT void
 SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr s,
                                      PointerAccelerationProfileFunc profile);
 
-extern void
+extern _X_EXPORT void
 AccelerationDefaultCleanup(DeviceIntPtr pDev);
 
-extern void
+extern _X_EXPORT void
 acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
                              int num_valuators, int *valuators, int evtime);
 
-extern void
+extern _X_EXPORT void
 acceleratePointerLightweight(DeviceIntPtr pDev, int first_valuator,
                          int num_valuators, int *valuators, int ignore);
 

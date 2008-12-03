@@ -93,7 +93,7 @@ drain_console(int fd, void *closure)
     tcflush(fd, TCIOFLUSH);
 }
 
-_X_EXPORT void
+void
 xf86OpenConsole(void)
 {
     int i, fd = -1;
@@ -347,7 +347,7 @@ xf86OpenConsole(void)
     return;
 }
 
-_X_EXPORT void
+void
 xf86CloseConsole()
 {
     struct vt_mode   VT;
@@ -419,7 +419,7 @@ xf86CloseConsole()
     return;
 }
 
-_X_EXPORT int
+int
 xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	/*
@@ -454,7 +454,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 	return(0);
 }
 
-_X_EXPORT void
+void
 xf86UseMsg()
 {
 	ErrorF("vtXX                   use the specified VT number\n");

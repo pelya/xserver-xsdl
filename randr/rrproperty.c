@@ -63,7 +63,7 @@ static void RRDeliverPropertyEvent(ScreenPtr pScreen, xEvent *event)
 	WalkTree(pScreen, DeliverPropertyEvent, event);
 }
 
-_X_EXPORT void
+void
 RRDeleteAllOutputProperties (RROutputPtr output)
 {
     RRPropertyPtr prop, next;
@@ -128,7 +128,7 @@ RRDestroyOutputProperty (RRPropertyPtr prop)
     xfree(prop);
 }
 
-_X_EXPORT void
+void
 RRDeleteOutputProperty (RROutputPtr output, Atom property)
 {
     RRPropertyPtr	prop, *prev;
@@ -151,7 +151,7 @@ RRDeleteOutputProperty (RROutputPtr output, Atom property)
     }
 }
 
-_X_EXPORT int
+int
 RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 			int format, int mode, unsigned long len,
 			pointer value, Bool sendevent, Bool pending)
@@ -276,7 +276,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
     return(Success);
 }
 
-_X_EXPORT Bool
+Bool
 RRPostPendingProperties (RROutputPtr output)
 {
     RRPropertyValuePtr	pending_value;
@@ -318,7 +318,7 @@ RRPostPendingProperties (RROutputPtr output)
     return ret;
 }
 
-_X_EXPORT RRPropertyPtr
+RRPropertyPtr
 RRQueryOutputProperty (RROutputPtr output, Atom property)
 {
     RRPropertyPtr   prop;
@@ -329,7 +329,7 @@ RRQueryOutputProperty (RROutputPtr output, Atom property)
     return NULL;
 }
 		       
-_X_EXPORT RRPropertyValuePtr
+RRPropertyValuePtr
 RRGetOutputProperty (RROutputPtr output, Atom property, Bool pending)
 {
     RRPropertyPtr   prop = RRQueryOutputProperty (output, property);
@@ -350,7 +350,7 @@ RRGetOutputProperty (RROutputPtr output, Atom property, Bool pending)
     }
 }
 
-_X_EXPORT int
+int
 RRConfigureOutputProperty (RROutputPtr output, Atom property,
 			   Bool pending, Bool range, Bool immutable,
 			   int num_values, INT32 *values)
@@ -407,7 +407,7 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
     return Success;
 }
 
-_X_EXPORT int
+int
 ProcRRListOutputProperties (ClientPtr client)
 {
     REQUEST(xRRListOutputPropertiesReq);
@@ -455,7 +455,7 @@ ProcRRListOutputProperties (ClientPtr client)
     return(client->noClientException);
 }
 
-_X_EXPORT int
+int
 ProcRRQueryOutputProperty (ClientPtr client)
 {
     REQUEST(xRRQueryOutputPropertyReq);
@@ -504,7 +504,7 @@ ProcRRQueryOutputProperty (ClientPtr client)
     return(client->noClientException);
 }
 
-_X_EXPORT int
+int
 ProcRRConfigureOutputProperty (ClientPtr client)
 {
     REQUEST(xRRConfigureOutputPropertyReq);
@@ -525,7 +525,7 @@ ProcRRConfigureOutputProperty (ClientPtr client)
 				      (INT32 *) (stuff + 1));
 }
 
-_X_EXPORT int
+int
 ProcRRChangeOutputProperty (ClientPtr client)
 {
     REQUEST(xRRChangeOutputPropertyReq);
@@ -582,7 +582,7 @@ ProcRRChangeOutputProperty (ClientPtr client)
 	return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRDeleteOutputProperty (ClientPtr client)
 {
     REQUEST(xRRDeleteOutputPropertyReq);
@@ -605,7 +605,7 @@ ProcRRDeleteOutputProperty (ClientPtr client)
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRGetOutputProperty (ClientPtr client)
 {
     REQUEST(xRRGetOutputPropertyReq);

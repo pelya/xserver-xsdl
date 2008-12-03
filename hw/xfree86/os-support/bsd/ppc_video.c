@@ -68,7 +68,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 }
 
 
-_X_EXPORT volatile unsigned char *ioBase = MAP_FAILED;
+volatile unsigned char *ioBase = MAP_FAILED;
 
 static pointer
 ppcMapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
@@ -97,7 +97,7 @@ ppcUnmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 	munmap(Base, Size);
 }
 
-_X_EXPORT int
+int
 xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	     int Len)
 {
@@ -123,7 +123,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	return rv;
 }
 
-_X_EXPORT Bool xf86EnableIO()
+Bool xf86EnableIO()
 {
         int fd = xf86Info.screenFd;
 
@@ -141,7 +141,7 @@ _X_EXPORT Bool xf86EnableIO()
 	return TRUE;
 }
 
-_X_EXPORT void xf86DisableIO()
+void xf86DisableIO()
 {
 
         if (ioBase != MAP_FAILED)

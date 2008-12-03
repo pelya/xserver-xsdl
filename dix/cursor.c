@@ -110,7 +110,7 @@ FreeCursorBits(CursorBitsPtr bits)
  *
  *  \param value must conform to DeleteType
  */
-_X_EXPORT int
+int
 FreeCursor(pointer value, XID cid)
 {
     int		nscr;
@@ -166,7 +166,7 @@ CheckForEmptyMask(CursorBitsPtr bits)
  *  \param pmaskbits server-defined padding
  *  \param argb      no padding
  */
-_X_EXPORT int
+int
 AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
 		CARD32 *argb, CursorMetricPtr cm,
 		unsigned foreRed, unsigned foreGreen, unsigned foreBlue, 
@@ -280,7 +280,7 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
     return rc;
 }
 
-_X_EXPORT int
+int
 AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
                 unsigned foreRed, unsigned foreGreen, unsigned foreBlue, 
                 unsigned backRed, unsigned backGreen, unsigned backBlue,
@@ -515,7 +515,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
  * add the cursor to the resource table
  *************************************************************/
 
-_X_EXPORT CursorPtr 
+CursorPtr
 CreateRootCursor(char *unused1, unsigned int unused2)
 {
     CursorPtr 	curs;

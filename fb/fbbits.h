@@ -67,7 +67,7 @@
  */
 
 #ifdef BRESSOLID
-_X_EXPORT void
+void
 BRESSOLID (DrawablePtr	pDrawable,
 	   GCPtr	pGC,
 	   int		dashOffset,
@@ -123,7 +123,7 @@ BRESSOLID (DrawablePtr	pDrawable,
 #endif
 
 #ifdef BRESDASH
-_X_EXPORT void
+void
 BRESDASH (DrawablePtr	pDrawable,
 	  GCPtr		pGC,
 	  int		dashOffset,
@@ -269,7 +269,7 @@ onOffOdd:
 #endif
 
 #ifdef DOTS
-_X_EXPORT void
+void
 DOTS (FbBits	    *dst,
       FbStride	    dstStride,
       int	    dstBpp,
@@ -329,7 +329,7 @@ DOTS (FbBits	    *dst,
 #define ARCCOPY(d)  STORE(d,xorBits)
 #define ARCRROP(d)  RROP(d,andBits,xorBits)
 
-_X_EXPORT void
+void
 ARC (FbBits	*dst,
      FbStride	dstStride,
      int	dstBpp,
@@ -557,7 +557,7 @@ ARC (FbBits	*dst,
 # define WRITE4(d,n,fg)	    (WRITE2(d,n,fg), WRITE2(d,(n)+2,fg))
 #endif
 
-_X_EXPORT void
+void
 GLYPH (FbBits	*dstBits,
    FbStride	dstStride,
    int	dstBpp,
@@ -659,7 +659,7 @@ GLYPH (FbBits	*dstBits,
 #endif
 
 #ifdef POLYLINE
-_X_EXPORT void
+void
 POLYLINE (DrawablePtr	pDrawable,
 	  GCPtr		pGC,
 	  int		mode,
@@ -797,7 +797,7 @@ POLYLINE (DrawablePtr	pDrawable,
 #endif
 
 #ifdef POLYSEGMENT
-_X_EXPORT void
+void
 POLYSEGMENT (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     int	    nseg,

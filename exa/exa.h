@@ -745,63 +745,63 @@ typedef struct _ExaDriver {
 /** @} */
 
 /* in exa.c */
-ExaDriverPtr
+extern _X_EXPORT ExaDriverPtr
 exaDriverAlloc(void);
 
-Bool
+extern _X_EXPORT Bool
 exaDriverInit(ScreenPtr      pScreen,
               ExaDriverPtr   pScreenInfo);
 
-void
+extern _X_EXPORT void
 exaDriverFini(ScreenPtr      pScreen);
 
-void
+extern _X_EXPORT void
 exaMarkSync(ScreenPtr pScreen);
-void
+extern _X_EXPORT void
 exaWaitSync(ScreenPtr pScreen);
 
-unsigned long
+extern _X_EXPORT unsigned long
 exaGetPixmapOffset(PixmapPtr pPix);
 
-unsigned long
+extern _X_EXPORT unsigned long
 exaGetPixmapPitch(PixmapPtr pPix);
 
-unsigned long
+extern _X_EXPORT unsigned long
 exaGetPixmapSize(PixmapPtr pPix);
 
-void *
+extern _X_EXPORT void *
 exaGetPixmapDriverPrivate(PixmapPtr p);
 
 
 /* in exa_offscreen.c */
-ExaOffscreenArea *
+extern _X_EXPORT ExaOffscreenArea *
 exaOffscreenAlloc(ScreenPtr pScreen, int size, int align,
                   Bool locked,
                   ExaOffscreenSaveProc save,
                   pointer privData);
 
-ExaOffscreenArea *
+extern _X_EXPORT ExaOffscreenArea *
 exaOffscreenFree(ScreenPtr pScreen, ExaOffscreenArea *area);
 
-void
+extern _X_EXPORT void
 ExaOffscreenMarkUsed (PixmapPtr pPixmap);
 
-void
+extern _X_EXPORT void
 exaEnableDisableFBAccess (int index, Bool enable);
 
-Bool
+extern _X_EXPORT Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable);
 
 /* in exa_migration.c */
-void
+extern _X_EXPORT void
 exaMoveInPixmap (PixmapPtr pPixmap);
 
-void
+extern _X_EXPORT void
 exaMoveOutPixmap (PixmapPtr pPixmap);
 
 
 /* in exa_unaccel.c */
-CARD32
+extern _X_EXPORT CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap);
 
 

@@ -64,7 +64,7 @@ noopEnableDisable(void *arg) { }
 
 xf86AccessRec AccessNULL = { noopEnableDisable, noopEnableDisable, NULL };
 
-_X_EXPORT xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
+xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
 BusRec primaryBus = { BUS_NONE, {{0}}};
 
@@ -75,16 +75,16 @@ static Bool xf86ResAccessEnter = FALSE;
 resPtr Acc = NULL;
 
 /* predefined special resources */
-_X_EXPORT resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
-_X_EXPORT resRange resVgaShared[] = {_VGA_SHARED, _END};
-_X_EXPORT resRange resVgaMemShared[] = {_VGA_SHARED_MEM,_END};
-_X_EXPORT resRange resVgaIoShared[] = {_VGA_SHARED_IO,_END};
-_X_EXPORT resRange resVgaUnusedExclusive[] = {_VGA_EXCLUSIVE_UNUSED, _END};
-_X_EXPORT resRange resVgaUnusedShared[] = {_VGA_SHARED_UNUSED, _END};
-_X_EXPORT resRange resVgaSparseExclusive[] = {_VGA_EXCLUSIVE_SPARSE, _END};
-_X_EXPORT resRange resVgaSparseShared[] = {_VGA_SHARED_SPARSE, _END};
-_X_EXPORT resRange res8514Exclusive[] = {_8514_EXCLUSIVE, _END};
-_X_EXPORT resRange res8514Shared[] = {_8514_SHARED, _END};
+resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
+resRange resVgaShared[] = {_VGA_SHARED, _END};
+resRange resVgaMemShared[] = {_VGA_SHARED_MEM,_END};
+resRange resVgaIoShared[] = {_VGA_SHARED_IO,_END};
+resRange resVgaUnusedExclusive[] = {_VGA_EXCLUSIVE_UNUSED, _END};
+resRange resVgaUnusedShared[] = {_VGA_SHARED_UNUSED, _END};
+resRange resVgaSparseExclusive[] = {_VGA_EXCLUSIVE_SPARSE, _END};
+resRange resVgaSparseShared[] = {_VGA_SHARED_SPARSE, _END};
+resRange res8514Exclusive[] = {_8514_EXCLUSIVE, _END};
+resRange res8514Shared[] = {_8514_SHARED, _END};
 
 /* Flag: do we need RAC ? */
 static Bool needRAC = FALSE;
@@ -100,7 +100,7 @@ static void notifyStateChange(xf86NotifyState state);
  * The only one available so far is for PCI and SBUS.
  */
 
-_X_EXPORT void
+void
 xf86BusProbe(void)
 {
     xf86PciProbe();
@@ -148,7 +148,7 @@ StringToBusType(const char* busID, const char **retID)
  * Entity related code.
  */
 
-_X_EXPORT void
+void
 xf86EntityInit(void)
 {
     int i;
@@ -214,7 +214,7 @@ EntityLeave(void)
 	}
 }
 
-_X_EXPORT Bool
+Bool
 xf86IsEntityPrimary(int entityIndex)
 {
     EntityPtr pEnt = xf86Entities[entityIndex];
@@ -231,7 +231,7 @@ xf86IsEntityPrimary(int entityIndex)
     }
 }
 	
-_X_EXPORT Bool
+Bool
 xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
 		   EntityProc leave, pointer private)
 {
@@ -244,7 +244,7 @@ xf86SetEntityFuncs(int entityIndex, EntityProc init, EntityProc enter,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 xf86DriverHasEntities(DriverPtr drvp)
 {
     int i;
@@ -255,7 +255,7 @@ xf86DriverHasEntities(DriverPtr drvp)
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
 {
     if (entityIndex == -1)
@@ -279,7 +279,7 @@ xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
     pScrn->domainIOBase = xf86Entities[entityIndex]->domainIO;
 }
 
-_X_EXPORT void
+void
 xf86SetEntityInstanceForScreen(ScrnInfoPtr pScrn, int entityIndex, int instance)
 {
     int i;
@@ -299,7 +299,7 @@ xf86SetEntityInstanceForScreen(ScrnInfoPtr pScrn, int entityIndex, int instance)
  * XXX  This needs to be updated for the case where a single entity may have
  * instances associated with more than one screen.
  */
-_X_EXPORT ScrnInfoPtr
+ScrnInfoPtr
 xf86FindScreenForEntity(int entityIndex)
 {
     int i,j;
@@ -317,7 +317,7 @@ xf86FindScreenForEntity(int entityIndex)
     return NULL;
 }
 
-_X_EXPORT void
+void
 xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex)
 {
     int i;
@@ -348,7 +348,7 @@ xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex)
  * xf86ClearEntitiesForScreen() - called when a screen is deleted
  * to mark it's entities unused. Called by xf86DeleteScreen().
  */
-_X_EXPORT void
+void
 xf86ClearEntityListForScreen(int scrnIndex)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
@@ -380,7 +380,7 @@ xf86ClearEntityListForScreen(int scrnIndex)
     pScrn->entityInstanceList = NULL;
 }
 
-_X_EXPORT void
+void
 xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
 {
     resPtr *pprev_next = &Acc;
@@ -402,7 +402,7 @@ xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type)
  * Add an extra device section (GDevPtr) to an entity.
  */
 
-_X_EXPORT void
+void
 xf86AddDevToEntity(int entityIndex, GDevPtr dev)
 {
     EntityPtr pEnt;
@@ -423,7 +423,7 @@ xf86AddDevToEntity(int entityIndex, GDevPtr dev)
  * EntityRec struct to the drivers. The EntityRec structure itself
  * remains invisible to the driver.
  */
-_X_EXPORT EntityInfoPtr
+EntityInfoPtr
 xf86GetEntityInfo(int entityIndex)
 {
     EntityInfoPtr pEnt;
@@ -451,7 +451,7 @@ xf86GetEntityInfo(int entityIndex)
     return pEnt;
 }
 
-_X_EXPORT int
+int
 xf86GetNumEntityInstances(int entityIndex)
 {
     if (entityIndex >= xf86NumEntities)
@@ -460,7 +460,7 @@ xf86GetNumEntityInstances(int entityIndex)
     return xf86Entities[entityIndex]->numInstances;
 }
 
-_X_EXPORT GDevPtr
+GDevPtr
 xf86GetDevFromEntity(int entityIndex, int instance)
 {
     int i;
@@ -539,7 +539,7 @@ clearAccess(void)
  * xf86AccessInit() - set up everything needed for access control
  * called only once on first server generation.
  */
-_X_EXPORT void
+void
 xf86AccessInit(void)
 {
     initPciState();
@@ -554,7 +554,7 @@ xf86AccessInit(void)
  * xf86AccessEnter() -- gets called to save the text mode VGA IO 
  * resources when reentering the server after a VT switch.
  */
-_X_EXPORT void
+void
 xf86AccessEnter(void)
 {
     if (xf86ResAccessEnter) 
@@ -583,7 +583,7 @@ xf86AccessEnter(void)
  * This was split to call xf86AccessLeaveState() from
  * ddxGiveUp().
  */
-_X_EXPORT void
+void
 xf86AccessLeave(void)
 {
     if (!xf86ResAccessEnter)
@@ -594,7 +594,7 @@ xf86AccessLeave(void)
     EntityLeave();
 }
 
-_X_EXPORT void
+void
 xf86AccessLeaveState(void)
 {
     if (!xf86ResAccessEnter)
@@ -632,7 +632,7 @@ xf86AccessRestoreState(void)
  * by other resources!
  */
 
-_X_EXPORT void
+void
 xf86EnableAccess(ScrnInfoPtr pScrn)
 {
     register EntityAccessPtr peAcc = (EntityAccessPtr) pScrn->access;
@@ -753,7 +753,7 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     }
 }
 
-_X_EXPORT void
+void
 xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
 {
     EntityAccessPtr pceAcc2 = NULL;
@@ -793,7 +793,7 @@ xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
     }
 }
 
-_X_EXPORT void
+void
 xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
 		   xf86SetAccessFuncPtr oldFuncs)
 {
@@ -1098,7 +1098,7 @@ xf86JoinResLists(resPtr rlist1, resPtr rlist2)
     return rlist1;
 }
 
-_X_EXPORT resPtr
+resPtr
 xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
 {
     resPtr new;
@@ -1135,7 +1135,7 @@ xf86AddResToList(resPtr rlist, resRange *range, int entityIndex)
     return new;
 }
 
-_X_EXPORT void
+void
 xf86FreeResList(resPtr rlist)
 {
     resPtr pRes;
@@ -1267,7 +1267,7 @@ xf86PrintResList(int verb, resPtr list)
     }
 }
 
-_X_EXPORT resPtr
+resPtr
 xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 {
     while(pRange && pRange->type != ResEnd) {
@@ -1277,7 +1277,7 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
     return list;
 }
 
-_X_EXPORT void
+void
 xf86ResourceBrokerInit(void)
 {
     Acc = NULL;
@@ -1323,7 +1323,7 @@ xf86ConvertListToHost(int entityIndex, resPtr list)
  * which we mean, NULL.
  */
 
-_X_EXPORT resPtr
+resPtr
 xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 {
     resRange range;
@@ -1543,7 +1543,7 @@ SetSIGIOForState(xf86State state)
     }
 }
 
-_X_EXPORT void
+void
 xf86EnterServerState(xf86State state)
 {
     EntityPtr pEnt;
@@ -1649,7 +1649,7 @@ xf86EnterServerState(xf86State state)
 /*
  * xf86SetOperatingState() -- Set ResOperMask for resources listed.
  */
-_X_EXPORT resPtr
+resPtr
 xf86SetOperatingState(resList list, int entityIndex, int mask)
 {
     resPtr acc;
@@ -1690,7 +1690,7 @@ xf86SetOperatingState(resList list, int entityIndex, int mask)
  * xf86ClaimFixedResources() is used to allocate non-relocatable resources.
  * This should only be done by a driver's Probe() function.
  */
-_X_EXPORT void
+void
 xf86ClaimFixedResources(resList list, int entityIndex)
 {
     resPtr ptr = NULL;
@@ -1820,7 +1820,7 @@ checkRoutingForScreens(xf86State state)
  * xf86PostProbe() -- Allocate all non conflicting resources
  * This function gets called by xf86Init().
  */
-_X_EXPORT void
+void
 xf86PostProbe(void)
 {
     memType val;
@@ -1935,7 +1935,7 @@ checkRequiredResources(int entityIndex)
 	pEnt->entityProp &= ~(unsigned long)NEED_IO_SHARED;
 }
 
-_X_EXPORT void
+void
 xf86PostPreInit()
 {
   if (doFramebufferMode) return;
@@ -1955,7 +1955,7 @@ xf86PostPreInit()
     xf86PrintResList(3, Acc);
 }
 
-_X_EXPORT void
+void
 xf86PostScreenInit(void)
 {
     int i,j;
@@ -2304,7 +2304,7 @@ findIntersect(resRange Range, resPtr list)
     return new;
 }
     
-_X_EXPORT resPtr
+resPtr
 xf86FindIntersectOfLists(resPtr l1, resPtr l2)
 {
     resPtr ret = NULL;
@@ -2369,7 +2369,7 @@ xf86ExtractTypeFromList(resPtr list, unsigned long type)
  * xf86FindPrimaryDevice() - Find the display device which
  * was active when the server was started.
  */
-_X_EXPORT void
+void
 xf86FindPrimaryDevice()
 {
     if (primaryBus.type != BUS_NONE) {
@@ -2398,7 +2398,7 @@ xf86FindPrimaryDevice()
     }
 }
 
-_X_EXPORT Bool
+Bool
 xf86NoSharedResources(int screenIndex,resType res)
 {
     int j;
@@ -2430,7 +2430,7 @@ xf86NoSharedResources(int screenIndex,resType res)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg)
 {
     StateChangeNotificationPtr ptr =
@@ -2442,7 +2442,7 @@ xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackF
     StateChangeNotificationList = ptr;
 }
 
-_X_EXPORT Bool
+Bool
 xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func)
 {
     StateChangeNotificationPtr *ptr = &StateChangeNotificationList;
@@ -2472,7 +2472,7 @@ notifyStateChange(xf86NotifyState state)
 
 /* Multihead accel sharing accessor functions and entity Private handling */
 
-_X_EXPORT int
+int
 xf86GetLastScrnFlag(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2482,7 +2482,7 @@ xf86GetLastScrnFlag(int entityIndex)
     }
 }
 
-_X_EXPORT void
+void
 xf86SetLastScrnFlag(int entityIndex, int scrnIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2490,7 +2490,7 @@ xf86SetLastScrnFlag(int entityIndex, int scrnIndex)
     }
 }
 
-_X_EXPORT Bool
+Bool
 xf86IsEntityShared(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2501,7 +2501,7 @@ xf86IsEntityShared(int entityIndex)
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86SetEntityShared(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2509,7 +2509,7 @@ xf86SetEntityShared(int entityIndex)
     }
 }
 
-_X_EXPORT Bool
+Bool
 xf86IsEntitySharable(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2520,7 +2520,7 @@ xf86IsEntitySharable(int entityIndex)
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86SetEntitySharable(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2528,7 +2528,7 @@ xf86SetEntitySharable(int entityIndex)
     }
 }
 
-_X_EXPORT Bool
+Bool
 xf86IsPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2539,7 +2539,7 @@ xf86IsPrimInitDone(int entityIndex)
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86SetPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2547,7 +2547,7 @@ xf86SetPrimInitDone(int entityIndex)
     }
 }
 
-_X_EXPORT void
+void
 xf86ClearPrimInitDone(int entityIndex)
 {
     if(entityIndex < xf86NumEntities) {
@@ -2560,7 +2560,7 @@ xf86ClearPrimInitDone(int entityIndex)
  * Allocate a private in the entities.
  */
 
-_X_EXPORT int
+int
 xf86AllocateEntityPrivateIndex(void)
 {
     int idx, i;
@@ -2579,7 +2579,7 @@ xf86AllocateEntityPrivateIndex(void)
     return idx;
 }
 
-_X_EXPORT DevUnion *
+DevUnion *
 xf86GetEntityPrivate(int entityIndex, int privIndex)
 {
     if (entityIndex >= xf86NumEntities || privIndex >= xf86EntityPrivateCount)

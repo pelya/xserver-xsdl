@@ -73,10 +73,10 @@
  * DDX. The DDX is expected to call GetEventList() and then pass the list into
  * Get{Pointer|Keyboard}Events.
  */
-_X_EXPORT EventListPtr InputEventList = NULL;
-_X_EXPORT int InputEventListLen = 0;
+EventListPtr InputEventList = NULL;
+int InputEventListLen = 0;
 
-_X_EXPORT int
+int
 GetEventList(EventListPtr* list)
 {
     *list = InputEventList;
@@ -86,7 +86,7 @@ GetEventList(EventListPtr* list)
 /**
  * Pick some arbitrary size for Xi motion history.
  */
-_X_EXPORT int
+int
 GetMotionHistorySize(void)
 {
     return MOTION_HISTORY_SIZE;
@@ -117,7 +117,7 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
               (1 << (key_code & 7)));
 }
 
-_X_EXPORT void
+void
 CreateClassesChangedEvent(EventList* event,
                           DeviceIntPtr master,
                           DeviceIntPtr slave)
@@ -232,7 +232,7 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 /**
  * Allocate the motion history buffer.
  */
-_X_EXPORT void
+void
 AllocateMotionHistory(DeviceIntPtr pDev)
 {
     int size;
@@ -268,7 +268,7 @@ AllocateMotionHistory(DeviceIntPtr pDev)
  *
  * If core is set, we only generate x/y, in INT16, scaled to screen coords.
  */
-_X_EXPORT int
+int
 GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                  unsigned long stop, ScreenPtr pScreen, BOOL core)
 {
@@ -475,7 +475,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  *
  * This MUST be absolutely constant, from init until exit.
  */
-_X_EXPORT int
+int
 GetMaximumEventsNum(void) {
     /* One base event -- device, plus valuator events.
      *  Multiply by two if we're doing non-XKB key repeats. */
@@ -783,7 +783,7 @@ countValuatorEvents(int num_valuators)
  * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
  * valuators.
  */
-_X_EXPORT int
+int
 GetKeyboardEvents(EventList *events, DeviceIntPtr pDev, int type, int key_code) {
     return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, 0, NULL);
 }
@@ -809,7 +809,7 @@ GetKeyboardEvents(EventList *events, DeviceIntPtr pDev, int type, int key_code) 
  * key press will trigger a matching KeyRelease, as well as the
  * KeyPresses.
  */
-_X_EXPORT int
+int
 GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int key_code, int first_valuator,
                           int num_valuators, int *valuators) {
@@ -906,7 +906,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
  *
  * @param num_events Number of elements in list.
  */
-_X_EXPORT EventListPtr
+EventListPtr
 InitEventList(int num_events)
 {
     EventListPtr events;
@@ -937,7 +937,7 @@ InitEventList(int num_events)
 /**
  * Allocs min_size memory for each event in the list.
  */
-_X_EXPORT void
+void
 SetMinimumEventSize(EventListPtr list, int num_events, int min_size)
 {
     if (!list)
@@ -964,7 +964,7 @@ SetMinimumEventSize(EventListPtr list, int num_events, int min_size)
  * @param list The list to be freed.
  * @param num_events Number of elements in list.
  */
-_X_EXPORT void
+void
 FreeEventList(EventListPtr list, int num_events)
 {
     if (!list)
@@ -993,7 +993,7 @@ FreeEventList(EventListPtr list, int num_events)
  *
  * master->last.valuators[x] for x > 2 is undefined.
  */
-_X_EXPORT int
+int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
@@ -1076,7 +1076,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
  */
-_X_EXPORT int
+int
 GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
@@ -1128,7 +1128,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
  * Used in cursor functions, e.g. when cursor confinement changes, and we need
  * to shift the pointer to get it inside the new bounds.
  */
-_X_EXPORT void
+void
 PostSyntheticMotion(DeviceIntPtr pDev,
                     int x,
                     int y,

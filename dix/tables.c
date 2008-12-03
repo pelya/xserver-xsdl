@@ -61,7 +61,7 @@ SOFTWARE.
 #include "swaprep.h"
 #include "swapreq.h"
 
-_X_EXPORT int (* InitialVector[3]) (
+int (* InitialVector[3]) (
 	ClientPtr /* client */
     ) =
 {
@@ -70,7 +70,7 @@ _X_EXPORT int (* InitialVector[3]) (
     ProcEstablishConnection
 };
 
-_X_EXPORT int (* ProcVector[256]) (
+int (* ProcVector[256]) (
 	ClientPtr /* client */
     ) =
 {
@@ -204,7 +204,7 @@ _X_EXPORT int (* ProcVector[256]) (
     ProcNoOperation    
 };
 
-_X_EXPORT int (* SwappedProcVector[256]) (
+int (* SwappedProcVector[256]) (
 	ClientPtr /* client */
     ) =
 {
@@ -338,7 +338,7 @@ _X_EXPORT int (* SwappedProcVector[256]) (
     SProcNoOperation
 };
 
-_X_EXPORT EventSwapPtr EventSwapVector[128] =
+EventSwapPtr EventSwapVector[128] =
 {
     (EventSwapPtr)SErrorEvent,
     NotImplemented,
@@ -378,7 +378,7 @@ _X_EXPORT EventSwapPtr EventSwapVector[128] =
 };
 
 
-_X_EXPORT ReplySwapPtr ReplySwapVector[256] =
+ReplySwapPtr ReplySwapVector[256] =
 {
     ReplyNotSwappd,
     ReplyNotSwappd,

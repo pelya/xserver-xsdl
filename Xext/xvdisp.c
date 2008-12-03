@@ -1349,7 +1349,7 @@ static int (*XvProcVector[xvNumRequests])(ClientPtr) = {
     ProcXvShmPutImage,
 };
 
-_X_EXPORT int
+int
 ProcXvDispatch(ClientPtr client)
 {
   REQUEST(xReq);
@@ -1673,7 +1673,7 @@ static int (*SXvProcVector[xvNumRequests])(ClientPtr) = {
     SProcXvShmPutImage,
 };
 
-_X_EXPORT int
+int
 SProcXvDispatch(ClientPtr client)
 {
   REQUEST(xReq);

@@ -384,7 +384,7 @@ SProcRRGetCrtcTransform (ClientPtr client)
     return BadImplementation; 
 }
 
-_X_EXPORT int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
+int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRQueryVersion,	/* 0 */
 /* we skip 1 to make old clients fail pretty immediately */
     NULL,			/* 1 SProcRandrOldGetScreenInfo */

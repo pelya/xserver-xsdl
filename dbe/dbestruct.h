@@ -74,7 +74,7 @@
 /* Marker for free elements in the buffer ID array. */
 #define DBE_FREE_ID_ELEMENT	0
 
-extern void DbeExtensionInit (void);
+extern _X_EXPORT void DbeExtensionInit (void);
 
 /* TYPEDEFS */
 

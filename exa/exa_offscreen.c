@@ -164,7 +164,7 @@ exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
  * requested version 2.1 or newer behavior.  In that case, the save callback is
  * still called.
  */
-_X_EXPORT ExaOffscreenArea *
+ExaOffscreenArea *
 exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
                    Bool locked,
                    ExaOffscreenSaveProc save,
@@ -365,7 +365,7 @@ ExaOffscreenSwapIn (ScreenPtr pScreen)
  * many drivers that could otherwise handle the lack of FB access while
  * swapped out.
  */
-_X_EXPORT void
+void
 exaEnableDisableFBAccess (int index, Bool enable)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
@@ -412,7 +412,7 @@ ExaOffscreenMerge (ExaOffscreenArea *area)
  * @return pointer to the newly freed area. This behavior should not be relied
  * on.
  */
-_X_EXPORT ExaOffscreenArea *
+ExaOffscreenArea *
 exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
 {
     ExaScreenPriv(pScreen);
@@ -453,7 +453,7 @@ exaOffscreenFree (ScreenPtr pScreen, ExaOffscreenArea *area)
     return area;
 }
 
-_X_EXPORT void
+void
 ExaOffscreenMarkUsed (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);

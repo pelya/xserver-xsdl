@@ -81,7 +81,7 @@ with the sample server.
 	use the bitmap in a call to PushPixels
 */
 
-_X_EXPORT void
+void
 miPolyGlyphBlt(
     DrawablePtr pDrawable,
     GC		*pGC,
@@ -197,7 +197,7 @@ miPolyGlyphBlt(
 }
 
 
-_X_EXPORT void
+void
 miImageGlyphBlt(
     DrawablePtr pDrawable,
     GC		*pGC,

@@ -693,7 +693,7 @@ xf86DDCDetectQuirks(int scrnIndex, xf86MonPtr DDC, Bool verbose)
  * Note that some quirks applying to the mode list are still implemented in
  * xf86DDCGetModes.
  */
-_X_EXPORT void
+void
 xf86DDCApplyQuirks(int scrnIndex, xf86MonPtr DDC)
 {
     ddc_quirk_t quirks = xf86DDCDetectQuirks (scrnIndex, DDC, FALSE);
@@ -759,7 +759,7 @@ xf86DDCSetPreferredRefresh(int scrnIndex, DisplayModePtr modes,
 	    best->type |= M_T_PREFERRED;
 }
 
-_X_EXPORT DisplayModePtr
+DisplayModePtr
 xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
     int		    i;
@@ -833,7 +833,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 /*
  * Fill out MonPtr with xf86MonPtr information.
  */
-_X_EXPORT void
+void
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;

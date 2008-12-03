@@ -73,7 +73,7 @@ the first one we find.
 cursor metrics.
 */
 
-_X_EXPORT int
+int
 ServerBitsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm, unsigned char **ppbits)
 {
     ScreenPtr pScreen;
@@ -138,7 +138,7 @@ ServerBitsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm, unsigned cha
 }
 
 
-_X_EXPORT Bool
+Bool
 CursorMetricsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm)
 {
     CharInfoPtr 	pci;

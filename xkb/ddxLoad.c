@@ -329,7 +329,7 @@ FILE *	file;
     return file;
 }
 
-_X_EXPORT unsigned
+unsigned
 XkbDDXLoadKeymapByNames(	DeviceIntPtr		keybd,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
@@ -379,7 +379,7 @@ unsigned	missing;
     return (need|want)&(~missing);
 }
 
-_X_EXPORT Bool
+Bool
 XkbDDXNamesFromRules(	DeviceIntPtr		keybd,
 			char *			rules_name,
 			XkbRF_VarDefsPtr	defs,

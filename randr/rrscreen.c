@@ -70,7 +70,7 @@ RREditConnectionInfo (ScreenPtr pScreen)
     root->mmHeight = pScreen->mmHeight;
 }
 
-_X_EXPORT void
+void
 RRSendConfigNotify (ScreenPtr pScreen)
 {
     WindowPtr	pWin = WindowTable[pScreen->myNum];
@@ -91,7 +91,7 @@ RRSendConfigNotify (ScreenPtr pScreen)
     DeliverEvents(pWin, &event, 1, NullWindow);
 }
 
-_X_EXPORT void
+void
 RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 {
     rrScrPriv (pScreen);
@@ -135,7 +135,7 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
  * The driver is responsible for calling this whenever it has changed
  * the size of the screen
  */
-_X_EXPORT void
+void
 RRScreenSizeNotify (ScreenPtr	pScreen)
 {
     rrScrPriv(pScreen);
@@ -170,7 +170,7 @@ RRScreenSizeNotify (ScreenPtr	pScreen)
 /*
  * Request that the screen be resized
  */
-_X_EXPORT Bool
+Bool
 RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD16	    width,
 		 CARD16	    height,
@@ -199,7 +199,7 @@ RRScreenSizeSet (ScreenPtr  pScreen,
 /*
  * Retrieve valid screen size range
  */
-_X_EXPORT int 
+int
 ProcRRGetScreenSizeRange (ClientPtr client)
 {
     REQUEST(xRRGetScreenSizeRangeReq);
@@ -251,7 +251,7 @@ ProcRRGetScreenSizeRange (ClientPtr client)
     return (client->noClientException);
 }
 
-_X_EXPORT int
+int
 ProcRRSetScreenSize (ClientPtr client)
 {
     REQUEST(xRRSetScreenSizeReq);
@@ -463,13 +463,13 @@ rrGetScreenResources(ClientPtr client, Bool query)
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRGetScreenResources (ClientPtr client)
 {
     return rrGetScreenResources(client, TRUE);
 }
     
-_X_EXPORT int
+int
 ProcRRGetScreenResourcesCurrent (ClientPtr client)
 {
     return rrGetScreenResources(client, FALSE);
@@ -578,7 +578,7 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
     return data;
 }
 
-_X_EXPORT int
+int
 ProcRRGetScreenInfo (ClientPtr client)
 {
     REQUEST(xRRGetScreenInfoReq);
@@ -732,7 +732,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     return (client->noClientException);
 }
 
-_X_EXPORT int
+int
 ProcRRSetScreenConfig (ClientPtr client)
 {
     REQUEST(xRRSetScreenConfigReq);

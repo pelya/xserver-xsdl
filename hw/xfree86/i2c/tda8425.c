@@ -13,7 +13,7 @@
 		I2C_WriteRead(&(t->d), data, 2, NULL, 0); \
 		}
 
-_X_EXPORT TDA8425Ptr Detect_tda8425(I2CBusPtr b, I2CSlaveAddr addr, Bool force)
+TDA8425Ptr Detect_tda8425(I2CBusPtr b, I2CSlaveAddr addr, Bool force)
 {
   TDA8425Ptr t;
   
@@ -44,7 +44,7 @@ _X_EXPORT TDA8425Ptr Detect_tda8425(I2CBusPtr b, I2CSlaveAddr addr, Bool force)
   return t;  
 }
 
-_X_EXPORT Bool tda8425_init(TDA8425Ptr t)
+Bool tda8425_init(TDA8425Ptr t)
 {
   t->stereo = 3; 	/* 3 = Spacial 2 = Linear 1 = Pseudo 0 = Forced mono */
   t->v_left = 0xFF; 	/* FF - C0 */
@@ -59,7 +59,7 @@ _X_EXPORT Bool tda8425_init(TDA8425Ptr t)
   return TRUE;
 }
 
-_X_EXPORT void tda8425_setaudio(TDA8425Ptr t)
+void tda8425_setaudio(TDA8425Ptr t)
 {
     I2CByte data[2];
 
@@ -71,7 +71,7 @@ _X_EXPORT void tda8425_setaudio(TDA8425Ptr t)
 	    t->mux); 
 }
 
-_X_EXPORT void tda8425_mute(TDA8425Ptr t, Bool mute)
+void tda8425_mute(TDA8425Ptr t, Bool mute)
 {
    t->mute = mute;
    tda8425_setaudio(t);

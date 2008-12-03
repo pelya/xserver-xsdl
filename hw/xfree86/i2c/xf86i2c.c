@@ -358,7 +358,7 @@ I2CAddress(I2CDevPtr d, I2CSlaveAddr addr)
  * Don't expect a read- or write-only device will respond otherwise.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CProbeAddress(I2CBusPtr b, I2CSlaveAddr addr)
 {
     int r;
@@ -439,7 +439,7 @@ I2CWriteRead(I2CDevPtr d,
 
 /* wrapper - for compatibility and convinience */
 
-_X_EXPORT Bool
+Bool
 xf86I2CWriteRead(I2CDevPtr d,
 		 I2CByte *WriteBuffer, int nWrite,
 		 I2CByte *ReadBuffer,  int nRead) 
@@ -451,7 +451,7 @@ xf86I2CWriteRead(I2CDevPtr d,
 /* Read a byte, the only readable register of a device.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CReadStatus(I2CDevPtr d, I2CByte *pbyte)
 {
     return xf86I2CWriteRead(d, NULL, 0, pbyte, 1);
@@ -460,7 +460,7 @@ xf86I2CReadStatus(I2CDevPtr d, I2CByte *pbyte)
 /* Read a byte from one of the registers determined by its sub-address.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CReadByte(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte)
 {
     return xf86I2CWriteRead(d, &subaddr, 1, pbyte, 1);
@@ -470,7 +470,7 @@ xf86I2CReadByte(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte)
  * sub-address of the first register.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CReadBytes(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte, int n)
 {
     return xf86I2CWriteRead(d, &subaddr, 1, pbyte, n);
@@ -480,7 +480,7 @@ xf86I2CReadBytes(I2CDevPtr d, I2CByte subaddr, I2CByte *pbyte, int n)
  * determined by its sub-address.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CReadWord(I2CDevPtr d, I2CByte subaddr, unsigned short *pword)
 {
     I2CByte rb[2];
@@ -495,7 +495,7 @@ xf86I2CReadWord(I2CDevPtr d, I2CByte subaddr, unsigned short *pword)
 /* Write a byte to one of the registers determined by its sub-address.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CWriteByte(I2CDevPtr d, I2CByte subaddr, I2CByte byte)
 {
     I2CByte wb[2];
@@ -510,7 +510,7 @@ xf86I2CWriteByte(I2CDevPtr d, I2CByte subaddr, I2CByte byte)
  * sub-address of the first register.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CWriteBytes(I2CDevPtr d, I2CByte subaddr, 
 		  I2CByte *WriteBuffer, int nWrite)
 {
@@ -536,7 +536,7 @@ xf86I2CWriteBytes(I2CDevPtr d, I2CByte subaddr,
  * determined by its sub-address.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CWriteWord(I2CDevPtr d, I2CByte subaddr, unsigned short word)
 {
     I2CByte wb[3];
@@ -555,7 +555,7 @@ xf86I2CWriteWord(I2CDevPtr d, I2CByte subaddr, unsigned short word)
  * remain uninitialized.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CWriteVec(I2CDevPtr d, I2CByte *vec, int nValues)
 {
     I2CBusPtr b = d->pI2CBus;
@@ -595,7 +595,7 @@ xf86I2CWriteVec(I2CDevPtr d, I2CByte *vec, int nValues)
  * the least significant bit, indicating a read or write access, to zero.
  */
 
-_X_EXPORT I2CDevPtr
+I2CDevPtr
 xf86CreateI2CDevRec(void) 
 {
     return xcalloc(1, sizeof(I2CDevRec));
@@ -605,7 +605,7 @@ xf86CreateI2CDevRec(void)
  * you should set <unalloc> to free it.
  */
 
-_X_EXPORT void
+void
 xf86DestroyI2CDevRec(I2CDevPtr d, Bool unalloc) 
 {
     if (d) {
@@ -640,7 +640,7 @@ xf86DestroyI2CDevRec(I2CDevPtr d, Bool unalloc)
  * the bus-wide defaults. The function returns TRUE on success.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CDevInit(I2CDevPtr d) 
 {
     I2CBusPtr b;
@@ -666,7 +666,7 @@ xf86I2CDevInit(I2CDevPtr d)
     return TRUE;
 }
 
-_X_EXPORT I2CDevPtr
+I2CDevPtr
 xf86I2CFindDev(I2CBusPtr b, I2CSlaveAddr addr) 
 {
     I2CDevPtr d;
@@ -690,7 +690,7 @@ static I2CBusPtr I2CBusList;
  * with safe defaults.
  */
 
-_X_EXPORT I2CBusPtr
+I2CBusPtr
 xf86CreateI2CBusRec(void) 
 {
     I2CBusPtr b;
@@ -716,7 +716,7 @@ xf86CreateI2CBusRec(void)
  * first, passing down the <unalloc> option.
  */
 
-_X_EXPORT void
+void
 xf86DestroyI2CBusRec(I2CBusPtr b, Bool unalloc, Bool devs_too) 
 {
     if (b) {
@@ -763,7 +763,7 @@ xf86DestroyI2CBusRec(I2CBusPtr b, Bool unalloc, Bool devs_too)
  * At this point there won't be any traffic on the I2C bus.
  */
 
-_X_EXPORT Bool
+Bool
 xf86I2CBusInit(I2CBusPtr b) 
 {
     /* I2C buses must be identified by a unique scrnIndex 
@@ -822,7 +822,7 @@ xf86I2CBusInit(I2CBusPtr b)
     return TRUE;
 }
 
-_X_EXPORT I2CBusPtr
+I2CBusPtr
 xf86I2CFindBus(int scrnIndex, char *name) 
 {
     I2CBusPtr p;
@@ -840,7 +840,7 @@ xf86I2CFindBus(int scrnIndex, char *name)
  * Return an array of I2CBusPtr's related to a screen.  The caller is
  * responsible for freeing the array.
  */
-_X_EXPORT int
+int
 xf86I2CGetScreenBuses(int scrnIndex, I2CBusPtr **pppI2CBus)
 {
     I2CBusPtr pI2CBus;

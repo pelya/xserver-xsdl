@@ -43,11 +43,11 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <X11/extensions/XI.h>
 
-_X_EXPORT int	XkbEventBase;
+int		XkbEventBase;
 static	int	XkbErrorBase;
-_X_EXPORT int	XkbReqCode;
-_X_EXPORT int	XkbKeyboardErrorCode;
-_X_EXPORT CARD32 xkbDebugFlags = 0;
+int		XkbReqCode;
+int		XkbKeyboardErrorCode;
+CARD32		xkbDebugFlags = 0;
 static CARD32	xkbDebugCtrls = 0;
 
 static RESTYPE	RT_XKBCLIENT;

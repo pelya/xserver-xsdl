@@ -65,7 +65,7 @@ SOFTWARE.
  *     See fillpoly.h for a complete description of the algorithm.
  */
 
-_X_EXPORT Bool
+Bool
 miFillGeneralPoly(
     DrawablePtr dst,
     GCPtr	pgc,

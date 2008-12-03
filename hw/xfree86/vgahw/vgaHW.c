@@ -328,7 +328,7 @@ stdWriteEnable(vgaHWPtr hwp, CARD8 value)
     outb(hwp->PIOOffset + VGA_ENABLE, value);
 }
 
-_X_EXPORT void
+void
 vgaHWSetStdFuncs(vgaHWPtr hwp)
 {
     hwp->writeCrtc		= stdWriteCrtc;
@@ -535,7 +535,7 @@ mmioWriteEnable(vgaHWPtr hwp, CARD8 value)
     moutb(VGA_ENABLE, value);
 }
 
-_X_EXPORT void
+void
 vgaHWSetMmioFuncs(vgaHWPtr hwp, CARD8 *base, int offset)
 {
     hwp->writeCrtc		= mmioWriteCrtc;
@@ -571,7 +571,7 @@ vgaHWSetMmioFuncs(vgaHWPtr hwp, CARD8 *base, int offset)
  *	Protect VGA registers and memory from corruption during loads.
  */
 
-_X_EXPORT void
+void
 vgaHWProtect(ScrnInfoPtr pScrn, Bool on)
 {
   vgaHWPtr hwp = VGAHWPTR(pScrn);
@@ -604,7 +604,7 @@ vgaHWProtect(ScrnInfoPtr pScrn, Bool on)
   }
 }
 
-_X_EXPORT vgaHWProtectProc *vgaHWProtectWeak(void) {
+vgaHWProtectProc *vgaHWProtectWeak(void) {
   return vgaHWProtect;
 }
 
@@ -612,7 +612,7 @@ _X_EXPORT vgaHWProtectProc *vgaHWProtectWeak(void) {
  * vgaHWBlankScreen -- blank the screen.
  */
 
-_X_EXPORT void
+void
 vgaHWBlankScreen(ScrnInfoPtr pScrn, Bool on)
 {
   vgaHWPtr hwp = VGAHWPTR(pScrn);
@@ -631,7 +631,7 @@ vgaHWBlankScreen(ScrnInfoPtr pScrn, Bool on)
   vgaHWSeqReset(hwp, FALSE);
 }
 
-_X_EXPORT vgaHWBlankScreenProc *vgaHWBlankScreenWeak(void) {
+vgaHWBlankScreenProc *vgaHWBlankScreenWeak(void) {
   return vgaHWBlankScreen;
 }  
 
@@ -639,7 +639,7 @@ _X_EXPORT vgaHWBlankScreenProc *vgaHWBlankScreenWeak(void) {
  * vgaHWSaveScreen -- blank the screen.
  */
 
-_X_EXPORT Bool
+Bool
 vgaHWSaveScreen(ScreenPtr pScreen, int mode)
 {
    ScrnInfoPtr pScrn = NULL;
@@ -670,7 +670,7 @@ vgaHWSaveScreen(ScreenPtr pScreen, int mode)
  * for this function must be written.
  */
 
-_X_EXPORT void
+void
 vgaHWDPMSSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags)
 {
   unsigned char seq1 = 0, crtc17 = 0;
@@ -715,7 +715,7 @@ vgaHWDPMSSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags)
  *      perform a sequencer reset.
  */
 
-_X_EXPORT void
+void
 vgaHWSeqReset(vgaHWPtr hwp, Bool start)
 {
   if (start)
@@ -725,7 +725,7 @@ vgaHWSeqReset(vgaHWPtr hwp, Bool start)
 }
 
 
-_X_EXPORT void
+void
 vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
 #if SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
@@ -839,7 +839,7 @@ vgaHWRestoreFonts(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 }
 
 
-_X_EXPORT void
+void
 vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -871,7 +871,7 @@ vgaHWRestoreMode(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 }
 
 
-_X_EXPORT void
+void
 vgaHWRestoreColormap(ScrnInfoPtr scrninfp, vgaRegPtr restore)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -897,7 +897,7 @@ vgaHWRestoreColormap(ScrnInfoPtr scrninfp, vgaRegPtr restore)
  *      restore the VGA state
  */
 
-_X_EXPORT void
+void
 vgaHWRestore(ScrnInfoPtr scrninfp, vgaRegPtr restore, int flags)
 {
     if (flags & VGA_SR_MODE)
@@ -910,7 +910,7 @@ vgaHWRestore(ScrnInfoPtr scrninfp, vgaRegPtr restore, int flags)
 	vgaHWRestoreColormap(scrninfp, restore);
 }
 
-_X_EXPORT void
+void
 vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
 #if  SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2
@@ -1011,7 +1011,7 @@ vgaHWSaveFonts(ScrnInfoPtr scrninfp, vgaRegPtr save)
 #endif /* SAVE_TEXT || SAVE_FONT1 || SAVE_FONT2 */
 }
 
-_X_EXPORT void
+void
 vgaHWSaveMode(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -1055,7 +1055,7 @@ vgaHWSaveMode(ScrnInfoPtr scrninfp, vgaRegPtr save)
 }
 
 
-_X_EXPORT void
+void
 vgaHWSaveColormap(ScrnInfoPtr scrninfp, vgaRegPtr save)
 {
     vgaHWPtr hwp = VGAHWPTR(scrninfp);
@@ -1156,7 +1156,7 @@ vgaHWSaveColormap(ScrnInfoPtr scrninfp, vgaRegPtr save)
  *      save the current VGA state
  */
 
-_X_EXPORT void
+void
 vgaHWSave(ScrnInfoPtr scrninfp, vgaRegPtr save, int flags)
 {
     if (save == NULL)
@@ -1179,7 +1179,7 @@ vgaHWSave(ScrnInfoPtr scrninfp, vgaRegPtr save, int flags)
  *      Return FALSE on failure.
  */
 
-_X_EXPORT Bool
+Bool
 vgaHWInit(ScrnInfoPtr scrninfp, DisplayModePtr mode)
 {
     unsigned int       i;
@@ -1399,7 +1399,7 @@ vgaHWInit(ScrnInfoPtr scrninfp, DisplayModePtr mode)
      * --  TSI @ UQV,  1998.08.21
      */
 
-_X_EXPORT CARD32
+CARD32
 vgaHWHBlankKGA(DisplayModePtr mode, vgaRegPtr regp, int nBits, 
 	       unsigned int Flags)
 {
@@ -1440,7 +1440,7 @@ vgaHWHBlankKGA(DisplayModePtr mode, vgaRegPtr regp, int nBits,
      * very first scanline in a double- or multi-scanned mode.  This last case
      * needs further investigation.
      */
-_X_EXPORT CARD32
+CARD32
 vgaHWVBlankKGA(DisplayModePtr mode, vgaRegPtr regp, int nBits, 
 	       unsigned int Flags)
 {
@@ -1532,7 +1532,7 @@ vgaHWAllocRegs(vgaRegPtr regp)
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWAllocDefaultRegs(vgaRegPtr regp)
 {
     regp->numCRTC = VGA_NUM_CRTC;
@@ -1544,7 +1544,7 @@ vgaHWAllocDefaultRegs(vgaRegPtr regp)
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWSetRegCounts(ScrnInfoPtr scrp, int numCRTC, int numSequencer,
 		  int numGraphics, int numAttribute)
 {
@@ -1614,7 +1614,7 @@ vgaHWSetRegCounts(ScrnInfoPtr scrp, int numCRTC, int numSequencer,
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWCopyReg(vgaRegPtr dst, vgaRegPtr src)
 {
     vgaHWFreeRegs(dst);
@@ -1633,7 +1633,7 @@ vgaHWCopyReg(vgaRegPtr dst, vgaRegPtr src)
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWGetHWRec(ScrnInfoPtr scrp)
 {
     vgaRegPtr regp;
@@ -1729,7 +1729,7 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
 }
 
 
-_X_EXPORT void
+void
 vgaHWFreeHWRec(ScrnInfoPtr scrp)
 {
     if (vgaHWPrivateIndex >= 0) {
@@ -1751,7 +1751,7 @@ vgaHWFreeHWRec(ScrnInfoPtr scrp)
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWMapMem(ScrnInfoPtr scrp)
 {
     vgaHWPtr hwp = VGAHWPTR(scrp);
@@ -1781,7 +1781,7 @@ vgaHWMapMem(ScrnInfoPtr scrp)
 }
 
 
-_X_EXPORT void
+void
 vgaHWUnmapMem(ScrnInfoPtr scrp)
 {
     vgaHWPtr hwp = VGAHWPTR(scrp);
@@ -1797,14 +1797,14 @@ vgaHWUnmapMem(ScrnInfoPtr scrp)
     hwp->Base = NULL;
 }
 
-_X_EXPORT int
+int
 vgaHWGetIndex()
 {
     return vgaHWPrivateIndex;
 }
 
 
-_X_EXPORT void
+void
 vgaHWGetIOBase(vgaHWPtr hwp)
 {
     hwp->IOBase = (hwp->readMiscOut(hwp) & 0x01) ?
@@ -1815,14 +1815,14 @@ vgaHWGetIOBase(vgaHWPtr hwp)
 }
 
 
-_X_EXPORT void
+void
 vgaHWLock(vgaHWPtr hwp)
 {
     /* Protect CRTC[0-7] */
     hwp->writeCrtc(hwp, 0x11, hwp->readCrtc(hwp, 0x11) | 0x80);
 }
 
-_X_EXPORT void
+void
 vgaHWUnlock(vgaHWPtr hwp)
 {
     /* Unprotect CRTC[0-7] */
@@ -1830,14 +1830,14 @@ vgaHWUnlock(vgaHWPtr hwp)
 }
 
 
-_X_EXPORT void
+void
 vgaHWEnable(vgaHWPtr hwp)
 {
     hwp->writeEnable(hwp, hwp->readEnable(hwp) | 0x01);
 }
 
 
-_X_EXPORT void
+void
 vgaHWDisable(vgaHWPtr hwp)
 {
     hwp->writeEnable(hwp, hwp->readEnable(hwp) & ~0x01);
@@ -1897,7 +1897,7 @@ vgaHWSetOverscan(ScrnInfoPtr pScrn, int overscan)
 }
 
 
-_X_EXPORT Bool
+Bool
 vgaHWHandleColormaps(ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -1940,7 +1940,7 @@ struct _vgaDdcSave {
     unsigned char msr;
 };
 
-_X_EXPORT void
+void
 vgaHWddc1SetSpeed(ScrnInfoPtr pScrn, xf86ddcSpeed speed)
 {
     vgaHWPtr hwp = VGAHWPTR(pScrn);
@@ -1999,13 +1999,13 @@ vgaHWddc1SetSpeed(ScrnInfoPtr pScrn, xf86ddcSpeed speed)
     }
 }
 
-_X_EXPORT DDC1SetSpeedProc
+DDC1SetSpeedProc
 vgaHWddc1SetSpeedWeak(void)
 {
     return vgaHWddc1SetSpeed;
 }
 
-_X_EXPORT SaveScreenProcPtr vgaHWSaveScreenWeak(void)
+SaveScreenProcPtr vgaHWSaveScreenWeak(void)
 {
     return vgaHWSaveScreen;
 }

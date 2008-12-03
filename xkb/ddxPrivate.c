@@ -8,7 +8,7 @@
 #include "windowstr.h"
 #include <xkbsrv.h>
 
-_X_EXPORT int
+int
 XkbDDXPrivate(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     return 0;

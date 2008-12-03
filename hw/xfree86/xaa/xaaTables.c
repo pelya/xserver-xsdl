@@ -6,7 +6,7 @@
  * bit order within a byte.
  */
 
-_X_EXPORT unsigned int byte_expand3[256] =
+unsigned int byte_expand3[256] =
 {
     0x000000, 0x000007, 0x000038, 0x00003F, 0x0001C0, 0x0001C7, 0x0001F8, 0x0001FF,
     0x000E00, 0x000E07, 0x000E38, 0x000E3F, 0x000FC0, 0x000FC7, 0x000FF8, 0x000FFF,
@@ -50,7 +50,7 @@ _X_EXPORT unsigned int byte_expand3[256] =
  * byte.
  */
 
-_X_EXPORT unsigned int byte_reversed_expand3[256] =
+unsigned int byte_reversed_expand3[256] =
 {
     0x000000, 0x0000E0, 0x00001C, 0x0000FC, 0x008003, 0x0080E3, 0x00801F, 0x0080FF,
     0x007000, 0x0070E0, 0x00701C, 0x0070FC, 0x00F003, 0x00F0E3, 0x00F01F, 0x00F0FF,

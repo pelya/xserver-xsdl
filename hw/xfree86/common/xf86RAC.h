@@ -6,7 +6,7 @@
 #include "misc.h"
 #include "xf86.h"
 
-Bool xf86RACInit(ScreenPtr pScreen, unsigned int flag);
+extern _X_EXPORT Bool xf86RACInit(ScreenPtr pScreen, unsigned int flag);
 
 /* flags */
 #define RAC_FB       0x01

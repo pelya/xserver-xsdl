@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-_X_EXPORT const GCFuncs fbGCFuncs = {
+const GCFuncs fbGCFuncs = {
     fbValidateGC,
     miChangeGC,
     miCopyGC,
@@ -38,7 +38,7 @@ _X_EXPORT const GCFuncs fbGCFuncs = {
     miCopyClip,
 };
 
-_X_EXPORT const GCOps	fbGCOps = {
+const GCOps	fbGCOps = {
     fbFillSpans,
     fbSetSpans,
     fbPutImage,
@@ -61,7 +61,7 @@ _X_EXPORT const GCOps	fbGCOps = {
     fbPushPixels
 };
 
-_X_EXPORT Bool
+Bool
 fbCreateGC(GCPtr pGC)
 {
     pGC->clientClip = NULL;
@@ -84,7 +84,7 @@ fbCreateGC(GCPtr pGC)
 /*
  * Pad pixmap to FB_UNIT bits wide
  */
-_X_EXPORT void
+void
 fbPadPixmap (PixmapPtr pPixmap)
 {
     int	    width;
@@ -193,7 +193,7 @@ fbCanEvenStipple (PixmapPtr pStipple, int bpp)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 fbValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
     FbGCPrivPtr	pPriv = fbGetGCPrivate(pGC);

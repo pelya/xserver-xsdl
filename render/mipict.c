@@ -37,20 +37,20 @@
 #define __inline
 #endif
 
-_X_EXPORT int
+int
 miCreatePicture (PicturePtr pPicture)
 {
     return Success;
 }
 
-_X_EXPORT void
+void
 miDestroyPicture (PicturePtr pPicture)
 {
     if (pPicture->freeCompClip)
 	REGION_DESTROY(pPicture->pDrawable->pScreen, pPicture->pCompositeClip);
 }
 
-_X_EXPORT void
+void
 miDestroyPictureClip (PicturePtr pPicture)
 {
     switch (pPicture->clientClipType) {
@@ -71,7 +71,7 @@ miDestroyPictureClip (PicturePtr pPicture)
     pPicture->clientClipType = CT_NONE;
 }    
 
-_X_EXPORT int
+int
 miChangePictureClip (PicturePtr    pPicture,
 		     int	   type,
 		     pointer	   value,
@@ -116,14 +116,14 @@ miChangePictureClip (PicturePtr    pPicture,
     return Success;
 }
 
-_X_EXPORT void
+void
 miChangePicture (PicturePtr pPicture,
 		 Mask       mask)
 {
     return;
 }
 
-_X_EXPORT void
+void
 miValidatePicture (PicturePtr pPicture,
 		   Mask       mask)
 {
@@ -248,14 +248,14 @@ miValidatePicture (PicturePtr pPicture,
     }
 }
 
-_X_EXPORT int
+int
 miChangePictureTransform (PicturePtr	pPicture,
 			  PictTransform *transform)
 {
     return Success;
 }
 
-_X_EXPORT int
+int
 miChangePictureFilter (PicturePtr pPicture,
 		       int	  filter,
 		       xFixed     *params,
@@ -341,7 +341,7 @@ miClipPictureSrc (RegionPtr	pRegion,
     }
 }
 
-_X_EXPORT void
+void
 miCompositeSourceValidate (PicturePtr	pPicture,
 			   INT16	x,
 			   INT16	y,
@@ -403,7 +403,7 @@ miCompositeSourceValidate (PicturePtr	pPicture,
  * an allocation failure, but rendering ignores those anyways.
  */
 
-_X_EXPORT Bool
+Bool
 miComputeCompositeRegion (RegionPtr	pRegion,
 			  PicturePtr	pSrc,
 			  PicturePtr	pMask,
@@ -494,7 +494,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     return TRUE;
 }
 
-_X_EXPORT void
+void
 miRenderColorToPixel (PictFormatPtr format,
 		      xRenderColor  *color,
 		      CARD32	    *pixel)
@@ -545,7 +545,7 @@ miFillColor (CARD32 pixel, int bits)
     return (CARD16) pixel;
 }
 
-_X_EXPORT Bool
+Bool
 miIsSolidAlpha (PicturePtr pSrc)
 {
     ScreenPtr	pScreen;
@@ -579,7 +579,7 @@ miIsSolidAlpha (PicturePtr pSrc)
     }
 }
 
-_X_EXPORT void
+void
 miRenderPixelToColor (PictFormatPtr format,
 		      CARD32	    pixel,
 		      xRenderColor  *color)
@@ -612,7 +612,7 @@ miRenderPixelToColor (PictFormatPtr format,
     }
 }
 
-_X_EXPORT Bool
+Bool
 miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 {
     PictureScreenPtr    ps;

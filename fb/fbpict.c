@@ -39,7 +39,7 @@
 
 #define mod(a,b) ((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
-_X_EXPORT void
+void
 fbWalkCompositeRegion (CARD8 op,
 		       PicturePtr pSrc,
 		       PicturePtr pMask,
@@ -143,7 +143,7 @@ fbWalkCompositeRegion (CARD8 op,
     REGION_UNINIT (pDst->pDrawable->pScreen, &region);
 }
 
-_X_EXPORT void
+void
 fbComposite (CARD8      op,
 	     PicturePtr pSrc,
 	     PicturePtr pMask,
@@ -192,7 +192,7 @@ fbComposite (CARD8      op,
     free_pixman_pict (pDst, dest);
 }
 
-_X_EXPORT void
+void
 fbCompositeGeneral (CARD8	op,
 		    PicturePtr	pSrc,
 		    PicturePtr	pMask,
@@ -400,7 +400,7 @@ set_image_properties (pixman_image_t *image, PicturePtr pict)
     pixman_image_set_source_clipping (image, TRUE);
 }
 
-_X_EXPORT pixman_image_t *
+pixman_image_t *
 image_from_pict (PicturePtr pict,
 		 Bool has_clip)
 {
@@ -440,14 +440,14 @@ image_from_pict (PicturePtr pict,
     return image;
 }
 
-_X_EXPORT void
+void
 free_pixman_pict (PicturePtr pict, pixman_image_t *image)
 {
     if (image && pixman_image_unref (image) && pict->pDrawable)
 	fbFinishAccess (pict->pDrawable);
 }
 
-_X_EXPORT Bool
+Bool
 fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 {
 

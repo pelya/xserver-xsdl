@@ -37,7 +37,7 @@ typedef void	(*FbArc) (FbBits    *dst,
 			  FbBits    and, 
 			  FbBits    xor);
 
-_X_EXPORT void
+void
 fbPolyArc (DrawablePtr	pDrawable,
 	   GCPtr	pGC,
 	   int		narcs,

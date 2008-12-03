@@ -43,19 +43,19 @@
 #include <assert.h>
 #include <mach.h>
 
-_X_EXPORT int 
+int
 xf86ProcessArgument( int argc,char **argv, int i )
 {
     return 0;
 }
-_X_EXPORT void 
+void
 xf86UseMsg()
 {
     return;
 }
 
 
-_X_EXPORT void 
+void
 xf86OpenConsole()
 {
     if( serverGeneration == 1 )
@@ -81,7 +81,7 @@ xf86OpenConsole()
     return;
 }
 
-_X_EXPORT void 
+void
 xf86CloseConsole()
 {
     close( xf86Info.consoleFd );

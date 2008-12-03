@@ -71,7 +71,7 @@ printModeRejectMessage(int index, DisplayModePtr p, int status)
  *	Find closest clock to given frequency (in kHz).  This assumes the
  *	number of clocks is greater than zero.
  */
-_X_EXPORT int
+int
 xf86GetNearestClock(ScrnInfoPtr scrp, int freq, Bool allowDiv2,
     int DivFactor, int MulFactor, int *divider)
 {
@@ -110,7 +110,7 @@ xf86GetNearestClock(ScrnInfoPtr scrp, int freq, Bool allowDiv2,
  * Convert a ModeStatus value to a printable message
  */
 
-_X_EXPORT const char *
+const char *
 xf86ModeStatusToString(ModeStatus status)
 {
     switch (status) {
@@ -199,7 +199,7 @@ xf86ModeStatusToString(ModeStatus status)
  * xf86ShowClockRanges() -- Print the clock ranges allowed
  * and the clock values scaled by ClockMulFactor and ClockDivFactor
  */
-_X_EXPORT void
+void
 xf86ShowClockRanges(ScrnInfoPtr scrp, ClockRangePtr clockRanges)
 {
     ClockRangePtr cp;
@@ -399,7 +399,7 @@ xf86HandleBuiltinMode(ScrnInfoPtr scrp,
  * reason.
  */
 
-_X_EXPORT ModeStatus
+ModeStatus
 xf86LookupMode(ScrnInfoPtr scrp, DisplayModePtr modep,
 	       ClockRangePtr clockRanges, LookupModeFlags strategy)
 {
@@ -643,7 +643,7 @@ xf86LookupMode(ScrnInfoPtr scrp, DisplayModePtr modep,
  * This function takes a mode and monitor description, and determines
  * if the mode is valid for the monitor.
  */
-_X_EXPORT ModeStatus
+ModeStatus
 xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
 {
     int i;
@@ -790,7 +790,7 @@ xf86CheckModeSize(ScrnInfoPtr scrp, int w, int x, int y)
  *    maxVValue    maximum vertical timing value
  */
 
-_X_EXPORT ModeStatus
+ModeStatus
 xf86InitialCheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode,
 			      ClockRangePtr clockRanges,
 			      LookupModeFlags strategy,
@@ -938,7 +938,7 @@ xf86InitialCheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode,
  *    clockRanges  allowable clock ranges
  */
 
-_X_EXPORT ModeStatus
+ModeStatus
 xf86CheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode, int flags)
 {
     ClockRangesPtr cp;
@@ -1185,7 +1185,7 @@ found:
  * if an unrecoverable error was encountered.
  */
 
-_X_EXPORT int
+int
 xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		  char **modeNames, ClockRangePtr clockRanges,
 		  int *linePitches, int minPitch, int maxPitch, int pitchInc,
@@ -1771,7 +1771,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
  *
  */
  
-_X_EXPORT void
+void
 xf86DeleteMode(DisplayModePtr *modeList, DisplayModePtr mode)
 {
     /* Catch the easy/insane cases */
@@ -1803,7 +1803,7 @@ xf86DeleteMode(DisplayModePtr *modeList, DisplayModePtr mode)
  * invalid.
  */
 
-_X_EXPORT void
+void
 xf86PruneDriverModes(ScrnInfoPtr scrp)
 {
     DisplayModePtr first, p, n;
@@ -1843,7 +1843,7 @@ xf86PruneDriverModes(ScrnInfoPtr scrp)
  * parameters for each mode.  The initialisation includes adjustments
  * for interlaced and double scan modes.
  */
-_X_EXPORT void
+void
 xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags)
 {
     DisplayModePtr p;
@@ -1883,7 +1883,7 @@ add(char **p, char *new)
     strcat(*p, new);
 }
 
-_X_EXPORT void
+void
 xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 {
     char tmp[256];
@@ -1920,7 +1920,7 @@ xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 }
 #endif
 
-_X_EXPORT void
+void
 xf86PrintModes(ScrnInfoPtr scrp)
 {
     DisplayModePtr p;
@@ -1995,7 +1995,7 @@ xf86PrintModes(ScrnInfoPtr scrp)
  *
  * \param modes doubly-linked mode list.
  */
-_X_EXPORT DisplayModePtr
+DisplayModePtr
 xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new)
 {
     if (modes == NULL)

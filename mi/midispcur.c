@@ -136,7 +136,7 @@ static miSpriteCursorFuncRec miDCFuncs = {
     miDCDeviceCleanup
 };
 
-_X_EXPORT Bool
+Bool
 miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
 {
     miDCScreenPtr   pScreenPriv;

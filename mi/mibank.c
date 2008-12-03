@@ -1985,7 +1985,7 @@ miBankCopyWindow(
     xfree(pBoxNew1);
 }
 
-_X_EXPORT Bool
+Bool
 miInitializeBanking(
     ScreenPtr     pScreen,
     unsigned int  xsize,
@@ -2210,7 +2210,7 @@ miInitializeBanking(
  * cannot exist.  This function exists because the DDX needs to be able to
  * determine this width before initializing a frame buffer.
  */
-_X_EXPORT int
+int
 miScanLineWidth(
     unsigned int     xsize,         /* pixels */
     unsigned int     ysize,         /* pixels */

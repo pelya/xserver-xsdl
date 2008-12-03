@@ -89,7 +89,7 @@ static Bool HardEdges;
  *      is valid if specified.
  */
 
-_X_EXPORT void
+void
 xf86InitViewport(ScrnInfoPtr pScr)
 {
 
@@ -133,7 +133,7 @@ xf86InitViewport(ScrnInfoPtr pScr)
  *      Scroll the visual part of the screen so the pointer is visible.
  */
 
-_X_EXPORT void
+void
 xf86SetViewport(ScreenPtr pScreen, int x, int y)
 {
   ScrnInfoPtr   pScr = XF86SCRNINFO(pScreen);
@@ -185,7 +185,7 @@ xf86PointerMoved(int scrnIndex, int x, int y)
  *	Enable/disable ZoomViewport
  */
 
-_X_EXPORT void
+void
 xf86LockZoom(ScreenPtr pScreen, Bool lock)
 {
   XF86SCRNINFO(pScreen)->zoomLocked = lock;
@@ -197,7 +197,7 @@ xf86LockZoom(ScreenPtr pScreen, Bool lock)
  *	set a new mode.
  */
 
-_X_EXPORT Bool
+Bool
 xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
 {
   ScrnInfoPtr pScr = XF86SCRNINFO(pScreen);
@@ -322,7 +322,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
  *      Reinitialize the visual part of the screen for another mode.
  */
 
-_X_EXPORT void
+void
 xf86ZoomViewport(ScreenPtr pScreen, int zoom)
 {
   ScrnInfoPtr    pScr = XF86SCRNINFO(pScreen);
@@ -480,7 +480,7 @@ xf86WarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 }
 
 
-_X_EXPORT void *
+void *
 xf86GetPointerScreenFuncs(void)
 {
     return (void *)&xf86PointerScreenFuncs;
@@ -579,7 +579,7 @@ FillOutEdge(xf86EdgePtr pEdge, int limit)
  * on 32 bit architectures, 64 on 64 bit architectures.
  */
 
-_X_EXPORT void
+void
 xf86InitOrigins(void)
 {
     unsigned long screensLeft, prevScreensLeft, mask;
@@ -845,7 +845,7 @@ xf86InitOrigins(void)
     }
 }
 
-_X_EXPORT void
+void
 xf86ReconfigureLayout(void)
 {
     int i;

@@ -42,7 +42,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "inputstr.h"
 
 static int miPointerScreenKeyIndex;
-_X_EXPORT DevPrivateKey miPointerScreenKey = &miPointerScreenKeyIndex;
+DevPrivateKey miPointerScreenKey = &miPointerScreenKeyIndex;
 
 #define GetScreenPrivate(s) ((miPointerScreenPtr) \
     dixLookupPrivate(&(s)->devPrivates, miPointerScreenKey))
@@ -81,7 +81,7 @@ static void miPointerDeviceCleanup(DeviceIntPtr pDev,
 
 static EventList* events; /* for WarpPointer MotionNotifies */
 
-_X_EXPORT Bool
+Bool
 miPointerInitialize (ScreenPtr                  pScreen,
                      miPointerSpriteFuncPtr     spriteFuncs,
                      miPointerScreenFuncPtr     screenFuncs,
@@ -297,7 +297,7 @@ miPointerDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 
 /* Once signals are ignored, the WarpCursor function can call this */
 
-_X_EXPORT void
+void
 miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     miPointerPtr pPointer;
@@ -346,7 +346,7 @@ miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
  * Syncronize the sprite with the cursor - called from ProcessInputEvents
  */
 
-_X_EXPORT void
+void
 miPointerUpdateSprite (DeviceIntPtr pDev)
 {
     ScreenPtr		pScreen;
@@ -419,7 +419,7 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     }
 }
 
-_X_EXPORT void
+void
 miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 {
 	miPointerScreenPtr pScreenPriv;
@@ -437,13 +437,13 @@ miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
         pPointer->limits.y2 = pScreen->height;
 }
 
-_X_EXPORT ScreenPtr
+ScreenPtr
 miPointerCurrentScreen ()
 {
     return miPointerGetScreen(inputInfo.pointer);
 }
 
-_X_EXPORT ScreenPtr
+ScreenPtr
 miPointerGetScreen(DeviceIntPtr pDev)
 {
     miPointerPtr pPointer = MIPOINTER(pDev);
@@ -453,7 +453,7 @@ miPointerGetScreen(DeviceIntPtr pDev)
 /* Move the pointer to x, y on the current screen, update the sprite, and
  * the motion history.  Generates no events.  Does not return changed x
  * and y if they are clipped; use miPointerSetPosition instead. */
-_X_EXPORT void
+void
 miPointerAbsoluteCursor (int x, int y, unsigned long time)
 {
     miPointerSetPosition(inputInfo.pointer, &x, &y);
@@ -487,7 +487,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,
     pPointer->pScreen = pScreen;
 }
 
-_X_EXPORT void
+void
 miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     miPointerScreenPtr	pScreenPriv;
@@ -540,7 +540,7 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y)
     miPointerMoved(pDev, pScreen, *x, *y);
 }
 
-_X_EXPORT void
+void
 miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     *x = MIPOINTER(pDev)->x;

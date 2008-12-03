@@ -80,7 +80,7 @@ SOFTWARE.
  *
  */
 
-_X_EXPORT void
+void
 CloseInputDevice(DeviceIntPtr d, ClientPtr client)
 {
 }
@@ -111,7 +111,7 @@ CloseInputDevice(DeviceIntPtr d, ClientPtr client)
  *
  */
 
-_X_EXPORT void
+void
 AddOtherInputDevices(void)
 {
     /**********************************************************************
@@ -151,7 +151,7 @@ AddOtherInputDevices(void)
  *
  */
 
-_X_EXPORT void
+void
 OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
 {
     *status = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess);
@@ -169,7 +169,7 @@ OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
  *
  */
 
-_X_EXPORT int
+int
 SetDeviceMode(ClientPtr client, DeviceIntPtr dev, int mode)
 {
     return BadMatch;
@@ -187,7 +187,7 @@ SetDeviceMode(ClientPtr client, DeviceIntPtr dev, int mode)
  *
  */
 
-_X_EXPORT int
+int
 SetDeviceValuators(ClientPtr client, DeviceIntPtr dev,
 		   int *valuators, int first_valuator, int num_valuators)
 {
@@ -202,7 +202,7 @@ SetDeviceValuators(ClientPtr client, DeviceIntPtr dev,
  *
  */
 
-_X_EXPORT int
+int
 ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
 		    xDeviceCtl * control)
 {
@@ -227,7 +227,7 @@ ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
  * Add a new device with the specified options.
  *
  */
-_X_EXPORT int
+int
 NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 {
     return BadValue;
@@ -240,7 +240,7 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
  * Remove the specified device previously added.
  *
  */
-_X_EXPORT void
+void
 DeleteInputDeviceRequest(DeviceIntPtr dev)
 {
 }

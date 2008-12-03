@@ -160,7 +160,7 @@ FreePixmapCachePrivate(XAAPixmapCachePrivatePtr pPriv)
     xfree(pPriv);
 }
 
-_X_EXPORT void
+void
 XAAClosePixmapCache(ScreenPtr pScreen)
 {
    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
@@ -630,7 +630,7 @@ GOT_EM:
 }
 
 
-_X_EXPORT void 
+void
 XAAInitPixmapCache(	
     ScreenPtr pScreen, 
     RegionPtr areas,
@@ -1097,7 +1097,7 @@ static CARD32 StippleMasks[4] = {
 };
 #endif
 
-_X_EXPORT Bool
+Bool
 XAACheckStippleReducibility(PixmapPtr pPixmap)
 {
     XAAPixmapPtr pPriv = XAA_GET_PIXMAP_PRIVATE(pPixmap);
@@ -1195,7 +1195,7 @@ XAACheckStippleReducibility(PixmapPtr pPixmap)
 }
 
 
-_X_EXPORT Bool
+Bool
 XAACheckTileReducibility(PixmapPtr pPixmap, Bool checkMono)
 {
     XAAPixmapPtr pPriv = XAA_GET_PIXMAP_PRIVATE(pPixmap);
@@ -1401,7 +1401,7 @@ XAACheckTileReducibility(PixmapPtr pPixmap, Bool checkMono)
 }
 
 
-_X_EXPORT void XAATileCache(
+void XAATileCache(
    ScrnInfoPtr pScrn, 
    XAACacheInfoPtr pCache,
    int w, int h
@@ -1433,7 +1433,7 @@ _X_EXPORT void XAATileCache(
    SET_SYNC_FLAG(infoRec);
 }
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACacheTile(ScrnInfoPtr pScrn, PixmapPtr pPix)
 {
    int w = pPix->drawable.width;
@@ -1495,7 +1495,7 @@ XAACacheTile(ScrnInfoPtr pScrn, PixmapPtr pPix)
    return pCache;
 }
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACacheMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
 {
    int w = pPix->drawable.width;
@@ -1593,7 +1593,7 @@ XAACacheMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
    return pCache;
 }
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACachePlanarMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
 {
    int w = pPix->drawable.width;
@@ -1657,13 +1657,13 @@ XAACachePlanarMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
    return pCache;
 }
 
-_X_EXPORT XAACachePlanarMonoStippleProc
-_X_EXPORT XAAGetCachePlanarMonoStipple(void)
+XAACachePlanarMonoStippleProc
+XAAGetCachePlanarMonoStipple(void)
 {
     return XAACachePlanarMonoStipple;
 }
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACacheStipple(ScrnInfoPtr pScrn, PixmapPtr pPix, int fg, int bg)
 {
    int w = pPix->drawable.width;
@@ -1742,7 +1742,7 @@ XAACacheStipple(ScrnInfoPtr pScrn, PixmapPtr pPix, int fg, int bg)
 
 
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACacheMono8x8Pattern(ScrnInfoPtr pScrn, int pat0, int pat1)
 {
    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);
@@ -1773,7 +1773,7 @@ XAACacheMono8x8Pattern(ScrnInfoPtr pScrn, int pat0, int pat1)
 
 
 
-_X_EXPORT XAACacheInfoPtr
+XAACacheInfoPtr
 XAACacheColor8x8Pattern(ScrnInfoPtr pScrn, PixmapPtr pPix, int fg, int bg)
 {
    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);
@@ -1843,7 +1843,7 @@ XAACacheColor8x8Pattern(ScrnInfoPtr pScrn, PixmapPtr pPix, int fg, int bg)
 }
 
 
-_X_EXPORT void 
+void
 XAAWriteBitmapToCache(
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -1857,7 +1857,7 @@ XAAWriteBitmapToCache(
 					0, fg, bg, GXcopy, ~0);
 }
 
-_X_EXPORT void 
+void
 XAAWriteBitmapToCacheLinear(
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -1895,7 +1895,7 @@ XAAWriteBitmapToCacheLinear(
 }
 
 
-_X_EXPORT void 
+void
 XAAWritePixmapToCache(
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -1911,7 +1911,7 @@ XAAWritePixmapToCache(
 
 
 
-_X_EXPORT void 
+void
 XAAWritePixmapToCacheLinear(
    ScrnInfoPtr pScrn,
    int x, int y, int w, int h,
@@ -1955,7 +1955,7 @@ XAAWritePixmapToCacheLinear(
 }
 
 
-_X_EXPORT void
+void
 XAAWriteMono8x8PatternToCache(
    ScrnInfoPtr pScrn, 
    XAACacheInfoPtr pCache
@@ -1997,7 +1997,7 @@ XAAWriteMono8x8PatternToCache(
    xfree(data);
 }
 
-_X_EXPORT void
+void
 XAAWriteColor8x8PatternToCache(
    ScrnInfoPtr pScrn, 
    PixmapPtr pPix, 
@@ -2093,7 +2093,7 @@ XAAWriteColor8x8PatternToCache(
 
 
 
-_X_EXPORT int
+int
 XAAStippledFillChooser(GCPtr pGC)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_GC(pGC);
@@ -2178,7 +2178,7 @@ XAAStippledFillChooser(GCPtr pGC)
 }
 
 
-_X_EXPORT int
+int
 XAAOpaqueStippledFillChooser(GCPtr pGC)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_GC(pGC);
@@ -2253,7 +2253,7 @@ XAAOpaqueStippledFillChooser(GCPtr pGC)
 
 
 
-_X_EXPORT int
+int
 XAATiledFillChooser(GCPtr pGC)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_GC(pGC);
@@ -2326,7 +2326,7 @@ static int RotateMasksY[4] = {
    0xFFFFFFFF, 0x00FFFFFF, 0x0000FFFF, 0x000000FF
 };
 
-_X_EXPORT void
+void
 XAARotateMonoPattern(
     int *pat0, int *pat1,
     int xorg, int yorg,
@@ -2355,7 +2355,7 @@ XAARotateMonoPattern(
 
 
 
-_X_EXPORT void
+void
 XAAInvalidatePixmapCache(ScreenPtr pScreen)
 {
    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);

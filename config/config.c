@@ -31,7 +31,7 @@
 #include "hotplug.h"
 #include "config-backends.h"
 
-_X_EXPORT void
+void
 config_init()
 {
 #if defined(CONFIG_DBUS_API) || defined(CONFIG_HAL)
@@ -51,7 +51,7 @@ config_init()
 #endif
 }
 
-_X_EXPORT void
+void
 config_fini()
 {
 #if defined(CONFIG_DBUS_API) || defined(CONFIG_HAL)

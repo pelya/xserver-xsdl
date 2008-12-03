@@ -17,7 +17,7 @@
 
 #define REG pInt
 
-_X_EXPORT xf86Int10InfoPtr Int10Current = NULL;
+xf86Int10InfoPtr Int10Current = NULL;
 
 static int int1A_handler(xf86Int10InfoPtr pInt);
 #ifndef _PC
@@ -27,7 +27,7 @@ static int intE6_handler(xf86Int10InfoPtr pInt);
 static struct pci_device *findPci(xf86Int10InfoPtr pInt, unsigned short bx);
 static CARD32 pciSlotBX( const struct pci_device * pvp );
 
-_X_EXPORT int
+int
 int_handler(xf86Int10InfoPtr pInt)
 {
     int num = pInt->num;

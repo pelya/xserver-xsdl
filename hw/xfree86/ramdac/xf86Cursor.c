@@ -52,7 +52,7 @@ static void xf86CursorQueryBestSize(int, unsigned short*, unsigned short*,
 static void xf86CursorEnableDisableFBAccess(int, Bool);
 static Bool xf86CursorSwitchMode(int, DisplayModePtr,int);
 
-_X_EXPORT Bool
+Bool
 xf86InitCursor(
    ScreenPtr pScreen,
    xf86CursorInfoPtr infoPtr
@@ -395,7 +395,7 @@ xf86CursorMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
         (*ScreenPriv->spriteFuncs->MoveCursor)(pDev, pScreen, x, y);
 }
 
-_X_EXPORT void
+void
 xf86ForceHWCursor (ScreenPtr pScreen, Bool on)
 {
     DeviceIntPtr pDev = inputInfo.pointer;
@@ -427,13 +427,13 @@ xf86ForceHWCursor (ScreenPtr pScreen, Bool on)
     }
 }
 
-_X_EXPORT xf86CursorInfoPtr
+xf86CursorInfoPtr
 xf86CreateCursorInfoRec(void)
 {
     return xcalloc(1, sizeof(xf86CursorInfoRec));
 }
 
-_X_EXPORT void
+void
 xf86DestroyCursorInfoRec(xf86CursorInfoPtr infoPtr)
 {
     xfree(infoPtr);

@@ -142,7 +142,7 @@ static OsTimerPtr timers = NULL;
  *     pClientsReady is an array to store ready client->index values into.
  *****************/
 
-_X_EXPORT int
+int
 WaitForSomething(int *pClientsReady)
 {
     int i;
@@ -421,7 +421,7 @@ DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev)
 	TimerSet(timer, 0, newTime, timer->callback, timer->arg);
 }
 
-_X_EXPORT OsTimerPtr
+OsTimerPtr
 TimerSet(OsTimerPtr timer, int flags, CARD32 millis, 
     OsTimerCallback func, pointer arg)
 {
@@ -475,7 +475,7 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     return timer;
 }
 
-_X_EXPORT Bool
+Bool
 TimerForce(OsTimerPtr timer)
 {
     OsTimerPtr *prev;
@@ -492,7 +492,7 @@ TimerForce(OsTimerPtr timer)
 }
 
 
-_X_EXPORT void
+void
 TimerCancel(OsTimerPtr timer)
 {
     OsTimerPtr *prev;
@@ -509,7 +509,7 @@ TimerCancel(OsTimerPtr timer)
     }
 }
 
-_X_EXPORT void
+void
 TimerFree(OsTimerPtr timer)
 {
     if (!timer)
@@ -518,7 +518,7 @@ TimerFree(OsTimerPtr timer)
     xfree(timer);
 }
 
-_X_EXPORT void
+void
 TimerCheck(void)
 {
     CARD32 now = GetTimeInMillis();
@@ -527,7 +527,7 @@ TimerCheck(void)
 	DoTimer(timers, now, &timers);
 }
 
-_X_EXPORT void
+void
 TimerInit(void)
 {
     OsTimerPtr timer;
@@ -626,7 +626,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
 
 static OsTimerPtr ScreenSaverTimer = NULL;
 
-_X_EXPORT void
+void
 FreeScreenSaverTimer(void)
 {
     if (ScreenSaverTimer) {
@@ -635,7 +635,7 @@ FreeScreenSaverTimer(void)
     }
 }
 
-_X_EXPORT void
+void
 SetScreenSaverTimer(void)
 {
     CARD32 timeout = 0;

@@ -42,7 +42,7 @@
  * Find the first occurrence of find in s, ignore case.
  */
 #ifdef NEED_STRCASESTR
-_X_EXPORT char *
+char *
 xstrcasestr(const char *s, const char *find)
 {
         char c, sc;

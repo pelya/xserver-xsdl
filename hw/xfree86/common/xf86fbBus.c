@@ -51,9 +51,9 @@
 
 #include "xf86RAC.h"
 
-_X_EXPORT Bool fbSlotClaimed = FALSE;
+Bool fbSlotClaimed = FALSE;
 
-_X_EXPORT int
+int
 xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 {
     EntityPtr p;
@@ -79,7 +79,7 @@ xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 /*
  * Get the list of FB "slots" claimed by a screen
  */
-_X_EXPORT int
+int
 xf86GetFbInfoForScreen(int scrnIndex)
 {
     int num = 0;

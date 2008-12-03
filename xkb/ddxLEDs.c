@@ -47,7 +47,7 @@ XkbDDXUpdateIndicators(DeviceIntPtr dev,CARD32 new)
     return;
 }
 
-_X_EXPORT void
+void
 XkbDDXUpdateDeviceIndicators(	DeviceIntPtr		dev,
 				XkbSrvLedInfoPtr 	sli,
 				CARD32 			new)

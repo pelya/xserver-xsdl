@@ -251,7 +251,7 @@ miFillRectPolyHelper (
     }
 }
 
-_X_EXPORT /* static */ int
+/* static */ int
 miPolyBuildEdge (
     double	x0,
     double	y0,
@@ -313,7 +313,7 @@ miPolyBuildEdge (
 
 #define StepAround(v, incr, max) (((v) + (incr) < 0) ? (max - 1) : ((v) + (incr) == max) ? 0 : ((v) + (incr)))
 
-_X_EXPORT /* static */ int
+/* static */ int
 miPolyBuildPoly (
     PolyVertexPtr	vertices,
     PolySlopePtr	slopes,
@@ -915,7 +915,7 @@ miRoundJoinFace (LineFacePtr face, PolyEdgePtr edge, Bool *leftEdge)
     return y;
 }
 
-_X_EXPORT void
+void
 miRoundJoinClip (LineFacePtr pLeft, LineFacePtr pRight,
 		 PolyEdgePtr edge1, PolyEdgePtr edge2,
 		 int *y1, int *y2, Bool *left1, Bool *left2)
@@ -938,7 +938,7 @@ miRoundJoinClip (LineFacePtr pLeft, LineFacePtr pRight,
     *y2 = miRoundJoinFace (pRight, edge2, left2);
 }
 
-_X_EXPORT int
+int
 miRoundCapClip (LineFacePtr face, Bool isInt, PolyEdgePtr edge, Bool *leftEdge)
 {
     int		y;
@@ -1524,7 +1524,7 @@ miCleanupSpanData (DrawablePtr pDrawable, GCPtr pGC, SpanDataPtr spanData)
     miFreeSpanGroup (&spanData->fgGroup);
 }
 
-_X_EXPORT void
+void
 miWideLine (DrawablePtr pDrawable, GCPtr pGC,
 	    int mode, int npt, DDXPointPtr pPts)
 {
@@ -2018,7 +2018,7 @@ miWideDashSegment (
     *pDashOffset = pDash[dashIndex] - dashRemain;
 }
 
-_X_EXPORT void
+void
 miWideDash (DrawablePtr pDrawable, GCPtr pGC,
 	    int mode, int npt, DDXPointPtr pPts)
 {

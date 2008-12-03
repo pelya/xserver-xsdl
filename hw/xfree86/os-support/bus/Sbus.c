@@ -41,7 +41,7 @@
 #include "xf86sbusBus.h"
 #include "xf86Sbus.h"
 
-_X_EXPORT int promRootNode;
+int promRootNode;
 
 static int promFd = -1;
 static int promCurrentNode;
@@ -51,7 +51,7 @@ static int promP1275 = -1;
 #define MAX_VAL		(4096-128-4)
 static struct openpromio *promOpio;
 
-_X_EXPORT sbusDevicePtr *xf86SbusInfo = NULL;
+sbusDevicePtr *xf86SbusInfo = NULL;
 
 struct sbus_devtable sbusDeviceTable[] = {
     { SBUS_DEVICE_BW2, FBTYPE_SUN2BW, "bwtwo", "sunbw2", "Sun Monochrome (bwtwo)" },
@@ -71,7 +71,7 @@ struct sbus_devtable sbusDeviceTable[] = {
     { 0, 0, NULL }
 };
 
-_X_EXPORT int
+int
 promGetSibling(int node)
 {
     promOpio->oprom_size = sizeof(int);
@@ -84,7 +84,7 @@ promGetSibling(int node)
     return *(int *)promOpio->oprom_array;
 }
 
-_X_EXPORT int
+int
 promGetChild(int node)
 {
     promOpio->oprom_size = sizeof(int);
@@ -97,7 +97,7 @@ promGetChild(int node)
     return *(int *)promOpio->oprom_array;
 }
 
-_X_EXPORT char *
+char *
 promGetProperty(const char *prop, int *lenp)
 {
     promOpio->oprom_size = MAX_VAL;
@@ -109,7 +109,7 @@ promGetProperty(const char *prop, int *lenp)
     return promOpio->oprom_array;
 }
 
-_X_EXPORT int
+int
 promGetBool(const char *prop)
 {
     promOpio->oprom_size = 0;
@@ -180,7 +180,7 @@ promIsP1275(void)
 #endif
 }
 
-_X_EXPORT void
+void
 sparcPromClose(void)
 {
     if (promOpenCount > 1) {
@@ -198,7 +198,7 @@ sparcPromClose(void)
     promOpenCount = 0;
 }
 
-_X_EXPORT int
+int
 sparcPromInit(void)
 {
     if (promOpenCount) {
@@ -224,7 +224,7 @@ sparcPromInit(void)
     return 0;
 }
 
-_X_EXPORT char *
+char *
 sparcPromGetProperty(sbusPromNodePtr pnode, const char *prop, int *lenp)
 {
     if (promSetNode(pnode))
@@ -232,7 +232,7 @@ sparcPromGetProperty(sbusPromNodePtr pnode, const char *prop, int *lenp)
     return promGetProperty(prop, lenp);
 }
 
-_X_EXPORT int
+int
 sparcPromGetBool(sbusPromNodePtr pnode, const char *prop)
 {
     if (promSetNode(pnode))
@@ -281,7 +281,7 @@ promWalkGetDriverName(int node, int oldnode)
     return NULL;
 }
 
-_X_EXPORT char *
+char *
 sparcDriverName(void)
 {
     char *name;
@@ -367,7 +367,7 @@ promWalkAssignNodes(int node, int oldnode, int flags, sbusDevicePtr *devicePtrs)
 	promWalkAssignNodes(nextnode, node, PROM_NODE_SIBLING | sbus, devicePtrs);
 }
 
-_X_EXPORT void
+void
 sparcPromAssignNodes(void)
 {
     sbusDevicePtr psdp, *psdpp;
@@ -509,7 +509,7 @@ promWalkNode2Pathname(char *path, int parent, int node, int searchNode, int type
     return 0;
 }
 
-_X_EXPORT char *
+char *
 sparcPromNode2Pathname(sbusPromNodePtr pnode)
 {
     char *ret;
@@ -578,7 +578,7 @@ promWalkPathname2Node(char *name, char *regstr, int parent, int type)
     }
 }
 
-_X_EXPORT int
+int
 sparcPromPathname2Node(const char *pathName)
 {
     int i;
@@ -609,7 +609,7 @@ sparcPromPathname2Node(const char *pathName)
     return i;
 }
 
-_X_EXPORT pointer
+pointer
 xf86MapSbusMem(sbusDevicePtr psdp, unsigned long offset, unsigned long size)
 {
     pointer ret;
@@ -636,7 +636,7 @@ xf86MapSbusMem(sbusDevicePtr psdp, unsigned long offset, unsigned long size)
     return (char *)ret + (offset - off);
 }
 
-_X_EXPORT void
+void
 xf86UnmapSbusMem(sbusDevicePtr psdp, pointer addr, unsigned long size)
 {
     unsigned long mask = getpagesize() - 1;
@@ -647,7 +647,7 @@ xf86UnmapSbusMem(sbusDevicePtr psdp, pointer addr, unsigned long size)
 }
 
 /* Tell OS that we are driving the HW cursor ourselves. */
-_X_EXPORT void
+void
 xf86SbusHideOsHwCursor(sbusDevicePtr psdp)
 {
     struct fbcursor fbcursor;
@@ -668,7 +668,7 @@ xf86SbusHideOsHwCursor(sbusDevicePtr psdp)
 }
 
 /* Set HW cursor colormap. */
-_X_EXPORT void
+void
 xf86SbusSetOsHwCursorCmap(sbusDevicePtr psdp, int bg, int fg)
 {
     struct fbcursor fbcursor;

@@ -150,12 +150,12 @@ WindowSeekDeviceCursor(WindowPtr pWin,
                        DevCursNodePtr* pNode, 
                        DevCursNodePtr* pPrev);
 
-_X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
+int screenIsSaved = SCREEN_SAVER_OFF;
 
-_X_EXPORT ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
+ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 
 static int FocusPrivatesKeyIndex;
-_X_EXPORT DevPrivateKey FocusPrivatesKey = &FocusPrivatesKeyIndex;
+DevPrivateKey FocusPrivatesKey = &FocusPrivatesKeyIndex;
 
 static Bool TileScreenSaver(int i, int kind);
 
@@ -221,7 +221,7 @@ PrintWindowTree(void)
 }
 #endif
 
-_X_EXPORT int
+int
 TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
 {
     int result;
@@ -256,17 +256,17 @@ TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
  *   exit WalkTree.  Does depth-first traverse.
  *****/
 
-_X_EXPORT int
+int
 WalkTree(ScreenPtr pScreen, VisitWindowProcPtr func, pointer data)
 {
     return(TraverseTree(WindowTable[pScreen->myNum], func, data));
 }
 
 /* hack for forcing backing store on all windows */
-_X_EXPORT int	defaultBackingStore = NotUseful;
+int	defaultBackingStore = NotUseful;
 /* hack to force no backing store */
-_X_EXPORT Bool	disableBackingStore = FALSE;
-_X_EXPORT Bool	enableBackingStore = FALSE;
+Bool	disableBackingStore = FALSE;
+Bool	enableBackingStore = FALSE;
 
 static void
 SetWindowToDefaults(WindowPtr pWin)
@@ -356,7 +356,7 @@ MakeRootTile(WindowPtr pWin)
  *    Makes a window at initialization time for specified screen
  *****/
 
-_X_EXPORT Bool
+Bool
 CreateRootWindow(ScreenPtr pScreen)
 {
     WindowPtr	pWin;
@@ -469,7 +469,7 @@ CreateRootWindow(ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 InitRootWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -540,14 +540,14 @@ ClippedRegionFromBox(WindowPtr pWin, RegionPtr Rgn,
 
 static RealChildHeadProc realChildHeadProc = NULL;
 
-_X_EXPORT void
+void
 RegisterRealChildHeadProc (RealChildHeadProc proc)
 {
     realChildHeadProc = proc;
 }
 
 
-_X_EXPORT WindowPtr
+WindowPtr
 RealChildHead(WindowPtr pWin)
 {
     if (realChildHeadProc) {
@@ -567,7 +567,7 @@ RealChildHead(WindowPtr pWin)
  *    Makes a window in response to client request 
  *****/
 
-_X_EXPORT WindowPtr
+WindowPtr
 CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
              unsigned h, unsigned bw, unsigned class, Mask vmask, XID *vlist,
              int depth, ClientPtr client, VisualID visual, int *error)
@@ -933,7 +933,7 @@ CrushTree(WindowPtr pWin)
  *	 If wid is None, don't send any events
  *****/
 
-_X_EXPORT int
+int
 DeleteWindow(pointer value, XID wid)
  {
     WindowPtr pParent;
@@ -970,7 +970,7 @@ DeleteWindow(pointer value, XID wid)
     return Success;
 }
 
-_X_EXPORT int
+int
 DestroySubwindows(WindowPtr pWin, ClientPtr client)
 {
     /* XXX
@@ -1004,7 +1004,7 @@ DestroySubwindows(WindowPtr pWin, ClientPtr client)
  *  to most significant bit in the mask.  
  *****/
  
-_X_EXPORT int
+int
 ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 {
     XID *pVlist;
@@ -1480,7 +1480,7 @@ PatchUp:
  *    Notice that this is different than ChangeWindowAttributes
  *****/
 
-_X_EXPORT void
+void
 GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply *wa)
 {
     wa->type = X_Reply;
@@ -1516,7 +1516,7 @@ GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply 
 }
 
 
-_X_EXPORT WindowPtr
+WindowPtr
 MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
 {
     WindowPtr pParent = pWin->parent;
@@ -1600,7 +1600,7 @@ MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
     return( pFirstChange );
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 CreateUnclippedWinSize (WindowPtr pWin)
 {
     RegionPtr	pRgn;
@@ -1626,7 +1626,7 @@ CreateUnclippedWinSize (WindowPtr pWin)
     return pRgn;
 }
 
-_X_EXPORT void
+void
 SetWinSize (WindowPtr pWin)
 {
 #ifdef COMPOSITE
@@ -1667,7 +1667,7 @@ SetWinSize (WindowPtr pWin)
     }
 }
 
-_X_EXPORT void
+void
 SetBorderSize (WindowPtr pWin)
 {
     int	bw;
@@ -1721,7 +1721,7 @@ SetBorderSize (WindowPtr pWin)
  *  \param destx,desty  position relative to gravity
  */
 
-_X_EXPORT void
+void
 GravityTranslate (int x, int y, int oldx, int oldy,
                   int dw, int dh, unsigned gravity,
                   int *destx, int *desty)
@@ -1771,7 +1771,7 @@ GravityTranslate (int x, int y, int oldx, int oldy,
 }
 
 /* XXX need to retile border on each window with ParentRelative origin */
-_X_EXPORT void
+void
 ResizeChildrenWinSize(WindowPtr pWin, int dx, int dy, int dw, int dh)
 {
     ScreenPtr pScreen;
@@ -2165,7 +2165,7 @@ ReflectStackChange(
  * ConfigureWindow
  *****/
 
-_X_EXPORT int
+int
 ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 {
 #define RESTACK_WIN    0
@@ -2427,7 +2427,7 @@ ActuallyDoSomething:
  *
  ******/
 
-_X_EXPORT int
+int
 CirculateWindow(WindowPtr pParent, int direction, ClientPtr client)
 {
     WindowPtr pWin, pHead, pFirst;
@@ -2499,7 +2499,7 @@ CompareWIDs(
  *  ReparentWindow
  *****/
 
-_X_EXPORT int
+int
 ReparentWindow(WindowPtr pWin, WindowPtr pParent,
                int x, int y, ClientPtr client)
 {
@@ -2622,7 +2622,7 @@ RealizeTree(WindowPtr pWin)
 
 static WindowPtr windowDisableMapUnmapEvents;
 
-_X_EXPORT void
+void
 DisableMapUnmapEvents(WindowPtr pWin)
 {
     assert (windowDisableMapUnmapEvents == NULL);
@@ -2630,7 +2630,7 @@ DisableMapUnmapEvents(WindowPtr pWin)
     windowDisableMapUnmapEvents = pWin;
 }
 
-_X_EXPORT void
+void
 EnableMapUnmapEvents(WindowPtr pWin)
 {
     assert (windowDisableMapUnmapEvents != NULL);
@@ -2652,7 +2652,7 @@ MapUnmapEventsEnabled(WindowPtr pWin)
  *    MapNotify event is generated.
  *****/
 
-_X_EXPORT int
+int
 MapWindow(WindowPtr pWin, ClientPtr client)
 {
     ScreenPtr pScreen;
@@ -2742,7 +2742,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
  *    to bottom stacking order.
  *****/
 
-_X_EXPORT void
+void
 MapSubwindows(WindowPtr pParent, ClientPtr client)
 {
     WindowPtr	pWin;
@@ -2874,7 +2874,7 @@ UnrealizeTree(
  *    generated.  Cannot unmap a root window.
  *****/
 
-_X_EXPORT int
+int
 UnmapWindow(WindowPtr pWin, Bool fromConfigure)
 {
     WindowPtr pParent;
@@ -2923,7 +2923,7 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
  *    children of the window, in bottom to top stacking order.
  *****/
 
-_X_EXPORT void
+void
 UnmapSubwindows(WindowPtr pWin)
 {
     WindowPtr pChild, pHead;
@@ -3001,7 +3001,7 @@ UnmapSubwindows(WindowPtr pWin)
 }
 
 
-_X_EXPORT void
+void
 HandleSaveSet(ClientPtr client)
 {
     WindowPtr pParent, pWin;
@@ -3051,7 +3051,7 @@ HandleSaveSet(ClientPtr client)
  *
  * \param x,y  in root
  */
-_X_EXPORT Bool
+Bool
 PointInWindowIsVisible(WindowPtr pWin, int x, int y)
 {
     BoxRec box;
@@ -3070,7 +3070,7 @@ PointInWindowIsVisible(WindowPtr pWin, int x, int y)
 }
 
 
-_X_EXPORT RegionPtr
+RegionPtr
 NotClippedByChildren(WindowPtr pWin)
 {
     ScreenPtr pScreen;
@@ -3087,7 +3087,7 @@ NotClippedByChildren(WindowPtr pWin)
     return(pReg);
 }
 
-_X_EXPORT void
+void
 SendVisibilityNotify(WindowPtr pWin)
 {
     xEvent event;
@@ -3165,7 +3165,7 @@ static void DrawLogo(
 );
 #endif
 
-_X_EXPORT int
+int
 dixSaveScreens(ClientPtr client, int on, int mode)
 {
     int rc, i, what, type;
@@ -3284,7 +3284,7 @@ dixSaveScreens(ClientPtr client, int on, int mode)
     return Success;
 }
 
-_X_EXPORT int
+int
 SaveScreens(int on, int mode)
 {
     return dixSaveScreens(serverClient, on, mode);
@@ -3409,7 +3409,7 @@ TileScreenSaver(int i, int kind)
  * contain the structure.
  */
 
-_X_EXPORT WindowPtr
+WindowPtr
 FindWindowWithOptional (WindowPtr w)
 {
     do
@@ -3426,7 +3426,7 @@ FindWindowWithOptional (WindowPtr w)
  * release the optional record
  */
 
-_X_EXPORT void
+void
 CheckWindowOptionalNeed (WindowPtr w)
 {
     WindowOptPtr optional;
@@ -3493,7 +3493,7 @@ CheckWindowOptionalNeed (WindowPtr w)
  * values.
  */
 
-_X_EXPORT Bool
+Bool
 MakeWindowOptional (WindowPtr pWin)
 {
     WindowOptPtr optional;
@@ -3565,7 +3565,7 @@ MakeWindowOptional (WindowPtr pWin)
  * Assumption: If there is a node for a device in the list, the device has a
  * cursor. If the cursor is set to None, it is inherited by the parent.
  */
-_X_EXPORT int
+int
 ChangeWindowDeviceCursor(WindowPtr pWin, 
                          DeviceIntPtr pDev, 
                          CursorPtr pCursor) 
@@ -3670,7 +3670,7 @@ ChangeWindowDeviceCursor(WindowPtr pWin,
 }
 
 /* Get device cursor for given device or None if none is set */
-_X_EXPORT CursorPtr 
+CursorPtr
 WindowGetDeviceCursor(WindowPtr pWin, DeviceIntPtr pDev)
 {
     DevCursorList pList;

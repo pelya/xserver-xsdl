@@ -24,7 +24,7 @@ static void XAARenderCacheBltRects(GCPtr, int, BoxPtr, int, int);
 static void XAARenderImageWriteRects(GCPtr, int, BoxPtr, int, int);
 static void XAARenderPixmapCopyRects(GCPtr, int, BoxPtr, int, int);
 
-_X_EXPORT void
+void
 XAAPolyFillRect(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -372,7 +372,7 @@ XAARenderPixmapCopyRects(
 	|   Solid    |
 	\************/
 
-_X_EXPORT void
+void
 XAAFillSolidRects(
     ScrnInfoPtr pScrn,
     int	fg, int rop,
@@ -399,7 +399,7 @@ XAAFillSolidRects(
 	\*********************/
 
 
-_X_EXPORT void
+void
 XAAFillMono8x8PatternRectsScreenOrigin(
     ScrnInfoPtr pScrn,
     int	fg, int bg, int rop,
@@ -449,7 +449,7 @@ XAAFillMono8x8PatternRectsScreenOrigin(
      SET_SYNC_FLAG(infoRec);
 }
 
-_X_EXPORT void
+void
 XAAFillMono8x8PatternRects(
     ScrnInfoPtr pScrn,
     int	fg, int bg, int rop,
@@ -511,7 +511,7 @@ XAAFillMono8x8PatternRects(
 	\**********************/
 
 
-_X_EXPORT void
+void
 XAAFillColor8x8PatternRectsScreenOrigin(
    ScrnInfoPtr pScrn,
    int rop,
@@ -546,7 +546,7 @@ XAAFillColor8x8PatternRectsScreenOrigin(
     SET_SYNC_FLAG(infoRec);
 }
 
-_X_EXPORT void
+void
 XAAFillColor8x8PatternRects(
    ScrnInfoPtr pScrn,
    int rop,
@@ -587,7 +587,7 @@ XAAFillColor8x8PatternRects(
 	|  Cache Blits  |
 	\***************/
 
-_X_EXPORT void 
+void
 XAAFillCacheBltRects(
    ScrnInfoPtr pScrn,
    int rop,
@@ -709,7 +709,7 @@ XAAFillCacheBltRects(
 
 
 
-_X_EXPORT void 
+void
 XAAFillCacheExpandRects(
    ScrnInfoPtr pScrn,
    int fg, int bg, int rop,
@@ -873,7 +873,7 @@ WriteColumn(
     }
 }
 
-_X_EXPORT void 
+void
 XAAFillImageWriteRects(
     ScrnInfoPtr pScrn,
     int rop,
@@ -928,7 +928,7 @@ XAAFillImageWriteRects(
 	\*************/
 
 
-_X_EXPORT void
+void
 XAAClipAndRenderRects(
    GCPtr pGC, 
    ClipAndRenderRectsFunc BoxFunc, 
@@ -1018,7 +1018,7 @@ XAAClipAndRenderRects(
 }
 
 
-_X_EXPORT int
+int
 XAAGetRectClipBoxes(
     GCPtr pGC,
     BoxPtr pboxClippedBase,

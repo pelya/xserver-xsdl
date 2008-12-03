@@ -94,7 +94,7 @@ DRI2GetDrawable(DrawablePtr pDraw)
     }
 }
 
-_X_EXPORT int
+int
 DRI2CreateDrawable(DrawablePtr pDraw)
 {
     WindowPtr	    pWin;
@@ -132,7 +132,7 @@ DRI2CreateDrawable(DrawablePtr pDraw)
     return Success;
 }
 
-_X_EXPORT DRI2BufferPtr
+DRI2BufferPtr
 DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
 	       unsigned int *attachments, int count, int *out_count)
 {
@@ -158,7 +158,7 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     return pPriv->buffers;
 }
 
-_X_EXPORT int
+int
 DRI2CopyRegion(DrawablePtr pDraw, RegionPtr pRegion,
 	       unsigned int dest, unsigned int src)
 {
@@ -188,7 +188,7 @@ DRI2CopyRegion(DrawablePtr pDraw, RegionPtr pRegion,
     return Success;
 }
 
-_X_EXPORT void
+void
 DRI2DestroyDrawable(DrawablePtr pDraw)
 {
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
@@ -219,7 +219,7 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
     }
 }
 
-_X_EXPORT Bool
+Bool
 DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
 	    const char **driverName, const char **deviceName)
 {
@@ -238,7 +238,7 @@ DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
@@ -249,7 +249,7 @@ DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
     DRI2ScreenPtr ds;
@@ -272,7 +272,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 DRI2CloseScreen(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);

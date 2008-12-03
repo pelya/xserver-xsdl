@@ -210,9 +210,9 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
     SProcRenderCreateConicalGradient
 };
 
-_X_EXPORT int	RenderErrBase;
+int	RenderErrBase;
 static int RenderClientPrivateKeyIndex;
-_X_EXPORT DevPrivateKey RenderClientPrivateKey = &RenderClientPrivateKeyIndex;
+DevPrivateKey RenderClientPrivateKey = &RenderClientPrivateKeyIndex;
 
 typedef struct _RenderClient {
     int	    major_version;
@@ -234,7 +234,7 @@ RenderClientCallback (CallbackListPtr	*list,
     pRenderClient->minor_version = 0;
 }
 
-_X_EXPORT void
+void
 RenderExtensionInit (void)
 {
     ExtensionEntry *extEntry;
@@ -3265,7 +3265,7 @@ PanoramiXRenderAddTraps (ClientPtr client)
     return result;
 }
 
-_X_EXPORT void
+void
 PanoramiXRenderInit (void)
 {
     int	    i;
@@ -3295,7 +3295,7 @@ PanoramiXRenderInit (void)
     ProcRenderVector[X_RenderAddTraps] = PanoramiXRenderAddTraps;
 }
 
-_X_EXPORT void
+void
 PanoramiXRenderReset (void)
 {
     int	    i;

@@ -78,7 +78,7 @@
 #endif
 							   
 #if FB_SHIFT == 6
-_X_EXPORT CARD8	fb8Lane[256] = {
+CARD8	fb8Lane[256] = {
 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
@@ -95,33 +95,33 @@ _X_EXPORT CARD8	fb8Lane[256] = {
 242, 243, 244,245,246,247,248,249,250,251,252,253,254,255,
 };
 
-_X_EXPORT CARD8	fb16Lane[256] = {
+CARD8	fb16Lane[256] = {
     0x00, 0x03, 0x0c, 0x0f,
     0x30, 0x33, 0x3c, 0x3f,
     0xc0, 0xc3, 0xcc, 0xcf,
     0xf0, 0xf3, 0xfc, 0xff,
 };
 
-_X_EXPORT CARD8	fb32Lane[16] = {
+CARD8	fb32Lane[16] = {
     0x00, 0x0f, 0xf0, 0xff,
 };
 #endif
 
 #if FB_SHIFT == 5
-_X_EXPORT CARD8	fb8Lane[16] = {
+CARD8	fb8Lane[16] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
 
-_X_EXPORT CARD8	fb16Lane[16] = {
+CARD8	fb16Lane[16] = {
     0, 3, 12, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 };
 
-_X_EXPORT CARD8	fb32Lane[16] = {
+CARD8	fb32Lane[16] = {
     0, 15,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 #endif
 
-_X_EXPORT CARD8	*fbLaneTable[33] = {
+CARD8	*fbLaneTable[33] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     fb8Lane,  0, 0, 0, 0, 0, 0, 0, 
     fb16Lane, 0, 0, 0, 0, 0, 0, 0,
@@ -130,7 +130,7 @@ _X_EXPORT CARD8	*fbLaneTable[33] = {
 };
 #endif
 
-_X_EXPORT void
+void
 fbBltOne (FbStip    *src,
 	  FbStride  srcStride,	    /* FbStip units per scanline */
 	  int	    srcX,	    /* bit position of source */
@@ -457,7 +457,7 @@ fbBltOne (FbStip    *src,
 #define FbStip24New(rot)    (2 + (rot != 0))
 #define FbStip24Len	    4
 
-_X_EXPORT const FbBits	fbStipple24Bits[3][1 << FbStip24Len] = {
+const FbBits	fbStipple24Bits[3][1 << FbStip24Len] = {
     /* rotate 0 */
     {
 	C4_24( 0, 0), C4_24( 1, 0), C4_24( 2, 0), C4_24( 3, 0),
@@ -569,7 +569,7 @@ const FbBits	fbStipple24Bits[3][1 << FbStip24Len] = {
  * have no acceleration so this code is used for stipples, copyplane
  * and text
  */
-_X_EXPORT void
+void
 fbBltOne24 (FbStip	*srcLine,
 	    FbStride	srcStride,  /* FbStip units per scanline */
 	    int		srcX,	    /* bit position of source */
@@ -754,7 +754,7 @@ fbBltOne24 (FbStip	*srcLine,
  * from an N bit image to a 1 bit image
  */
  
-_X_EXPORT void
+void
 fbBltPlane (FbBits	    *src,
 	    FbStride	    srcStride,
 	    int		    srcX,

@@ -80,7 +80,7 @@ void XaceHookAuditEnd(ClientPtr ptr, int result)
 
 /* Entry point for hook functions.  Called by Xserver.
  */
-_X_EXPORT int XaceHook(int hook, ...)
+int XaceHook(int hook, ...)
 {
     pointer calldata;	/* data passed to callback */
     int *prv = NULL;	/* points to return value from callback */

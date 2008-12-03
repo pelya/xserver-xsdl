@@ -40,15 +40,15 @@ typedef struct {
 #define TDA9885_ADDR_4   0x94
 
 #define xf86_Detect_tda9885		Detect_tda9885
-extern TDA9885Ptr Detect_tda9885(I2CBusPtr b, I2CSlaveAddr addr);
+extern _X_EXPORT TDA9885Ptr Detect_tda9885(I2CBusPtr b, I2CSlaveAddr addr);
 #define xf86_tda9885_init		tda9885_init
-extern Bool tda9885_init(TDA9885Ptr t);
+extern _X_EXPORT Bool tda9885_init(TDA9885Ptr t);
 #define xf86_tda9885_setparameters	tda9885_setparameters
-extern void tda9885_setparameters(TDA9885Ptr t);
+extern _X_EXPORT void tda9885_setparameters(TDA9885Ptr t);
 #define xf86_tda9885_getstatus		tda9885_getstatus
-extern void tda9885_getstatus(TDA9885Ptr t);
+extern _X_EXPORT void tda9885_getstatus(TDA9885Ptr t);
 #define xf86_tda9885_dumpstatus		tda9885_dumpstatus
-extern void tda9885_dumpstatus(TDA9885Ptr t);
+extern _X_EXPORT void tda9885_dumpstatus(TDA9885Ptr t);
 
 #define TDA9885SymbolsList  \
 		"Detect_tda9885", \

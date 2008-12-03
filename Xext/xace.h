@@ -59,8 +59,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
 
 /* Entry point for hook functions.  Called by Xserver.
+ * Required by libdbe and libextmod
  */
-extern int XaceHook(
+extern _X_EXPORT int XaceHook(
     int /*hook*/,
     ... /*appropriate args for hook*/
     ); 

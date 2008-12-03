@@ -46,7 +46,7 @@ static int  nfilterNames;
  * standard but not required filters don't have constant indices
  */
 
-_X_EXPORT int
+int
 PictureGetFilterId (char *filter, int len, Bool makeit)
 {
     int	    i;
@@ -102,7 +102,7 @@ PictureSetDefaultIds (void)
     return TRUE;
 }
 
-_X_EXPORT char *
+char *
 PictureGetFilterName (int id)
 {
     if (0 <= id && id < nfilterNames)
@@ -123,7 +123,7 @@ PictureFreeFilterIds (void)
     filterNames = 0;
 }
 
-_X_EXPORT int
+int
 PictureAddFilter (ScreenPtr			    pScreen,
 		  char				    *filter,
 		  PictFilterValidateParamsProcPtr   ValidateParams,
@@ -159,7 +159,7 @@ PictureAddFilter (ScreenPtr			    pScreen,
     return id;
 }
 
-_X_EXPORT Bool
+Bool
 PictureSetFilterAlias (ScreenPtr pScreen, char *filter, char *alias)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
@@ -193,7 +193,7 @@ PictureSetFilterAlias (ScreenPtr pScreen, char *filter, char *alias)
     return TRUE;
 }
 
-_X_EXPORT PictFilterPtr
+PictFilterPtr
 PictureFindFilter (ScreenPtr pScreen, char *name, int len)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
@@ -244,7 +244,7 @@ convolutionFilterValidateParams (ScreenPtr pScreen,
 }
 
 
-_X_EXPORT Bool
+Bool
 PictureSetDefaultFilters (ScreenPtr pScreen)
 {
     if (!filterNames)
@@ -268,7 +268,7 @@ PictureSetDefaultFilters (ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 PictureResetFilters (ScreenPtr pScreen)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
@@ -278,7 +278,7 @@ PictureResetFilters (ScreenPtr pScreen)
     PictureFreeFilterIds ();
 }
 
-_X_EXPORT int
+int
 SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int nparams)
 {
     PictFilterPtr	pFilter;
@@ -312,7 +312,7 @@ SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int 
     return SetPicturePictFilter (pPicture, pFilter, params, nparams);
 }
 
-_X_EXPORT int
+int
 SetPicturePictFilter (PicturePtr pPicture, PictFilterPtr pFilter,
 		      xFixed *params, int nparams)
 {

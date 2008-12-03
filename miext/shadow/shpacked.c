@@ -40,7 +40,7 @@
 #include    "shadow.h"
 #include    "fb.h"
 
-_X_EXPORT void
+void
 shadowUpdatePacked (ScreenPtr	    pScreen,
 		    shadowBufPtr    pBuf)
 {
@@ -112,7 +112,7 @@ shadowUpdatePacked (ScreenPtr	    pScreen,
     }
 }
 
-_X_EXPORT shadowUpdateProc
+shadowUpdateProc
 shadowUpdatePackedWeak(void) {
     return shadowUpdatePacked;
 }

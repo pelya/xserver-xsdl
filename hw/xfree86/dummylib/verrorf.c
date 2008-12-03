@@ -11,7 +11,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-_X_EXPORT void
+void
 VErrorF(const char *f, va_list args)
 {
     vfprintf(stderr, f, args);

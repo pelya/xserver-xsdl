@@ -73,7 +73,7 @@ static Bool CreateDefaultTile(GCPtr pGC);
 
 static unsigned char DefaultDash[2] = {4, 4};
 
-_X_EXPORT void
+void
 ValidateGC(DrawablePtr pDraw, GC *pGC)
 {
     (*pGC->funcs->ValidateGC) (pGC, pGC->stateChanges, pDraw);
@@ -145,7 +145,7 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
 #define NEXT_PTR(_type, _var) { \
     assert(pUnion); _var = (_type)pUnion->ptr; pUnion++; }
 
-_X_EXPORT int
+int
 dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
 {
     BITS32 	index2;
@@ -527,7 +527,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 
 /* Publically defined entry to ChangeGC.  Just calls dixChangeGC and tells
  * it that all of the entries are constants or IDs */
-_X_EXPORT int
+int
 ChangeGC(GC *pGC, BITS32 mask, XID *pval)
 {
     return (dixChangeGC(NullClient, pGC, mask, pval, NULL));
@@ -553,7 +553,7 @@ NOTE:
 	all values sent over the protocol for ChangeGC requests are
 32 bits long
 */
-_X_EXPORT int
+int
 DoChangeGC(GC *pGC, BITS32 mask, XID *pval, int fPointer)
 {
     if (fPointer)
@@ -573,7 +573,7 @@ BUG:
    should check for failure to create default tile
 
 */
-_X_EXPORT GCPtr
+GCPtr
 CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
 	 XID gcid, ClientPtr client)
 {
@@ -706,7 +706,7 @@ CreateDefaultTile (GCPtr pGC)
     return TRUE;
 }
 
-_X_EXPORT int
+int
 CopyGC(GC *pgcSrc, GC *pgcDst, BITS32 mask)
 {
     BITS32	index2;
@@ -870,7 +870,7 @@ CopyGC(GC *pgcSrc, GC *pgcDst, BITS32 mask)
  *
  *  \param value  must conform to DeleteType
  */
-_X_EXPORT int
+int
 FreeGC(pointer value, XID gid)
 {
     GCPtr pGC = (GCPtr)value;
@@ -904,7 +904,7 @@ is what fills the default tile.  (maybe this comment should
 go with CreateGC() or ChangeGC().)
 */
 
-_X_EXPORT GCPtr
+GCPtr
 CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
@@ -956,7 +956,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     return pGC;
 }
 
-_X_EXPORT void
+void
 FreeGCperDepth(int screenNum)
 {
     int i;
@@ -972,7 +972,7 @@ FreeGCperDepth(int screenNum)
 }
 
 
-_X_EXPORT Bool
+Bool
 CreateGCperDepth(int screenNum)
 {
     int i;
@@ -1005,7 +1005,7 @@ CreateGCperDepth(int screenNum)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 CreateDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen;
@@ -1042,14 +1042,14 @@ CreateDefaultStipple(int screenNum)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 FreeDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen = screenInfo.screens[screenNum];
     (*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 }
 
-_X_EXPORT int
+int
 SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
 {
     long i;
@@ -1105,7 +1105,7 @@ SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
     return Success;
 }
 
-_X_EXPORT int
+int
 VerifyRectOrder(int nrects, xRectangle *prects, int ordering)
 {
     xRectangle	*prectP, *prectN;
@@ -1155,7 +1155,7 @@ VerifyRectOrder(int nrects, xRectangle *prects, int ordering)
     return -1;
 }
 
-_X_EXPORT int
+int
 SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects, 
              xRectangle *prects, int ordering)
 {
@@ -1192,7 +1192,7 @@ SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects,
    if we can't, create one out of whole cloth (The Velveteen GC -- if
    you use it often enough it will become real.)
 */
-_X_EXPORT GCPtr
+GCPtr
 GetScratchGC(unsigned depth, ScreenPtr pScreen)
 {
     int i;
@@ -1241,7 +1241,7 @@ GetScratchGC(unsigned depth, ScreenPtr pScreen)
 mark it as available.
    if not, free it for real
 */
-_X_EXPORT void
+void
 FreeScratchGC(GCPtr pGC)
 {
     ScreenPtr pScreen = pGC->pScreen;

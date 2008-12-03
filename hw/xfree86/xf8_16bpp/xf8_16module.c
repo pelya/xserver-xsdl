@@ -34,7 +34,7 @@
 #include "fboverlay.h"
 #include "cfb8_16.h"
 
-_X_EXPORT Bool
+Bool
 cfb8_16ScreenInit(ScreenPtr pScreen, pointer pbits16, pointer pbits8,
                   int xsize, int ysize, int dpix, int dpiy,
                   int width16, int width8)

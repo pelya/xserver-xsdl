@@ -1118,7 +1118,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     return TRUE;
 }
 
-_X_EXPORT Bool xf86DRI2Enabled(void)
+Bool xf86DRI2Enabled(void)
 {
     return xf86Info.dri2;
 }
@@ -2608,7 +2608,7 @@ xf86HandleConfigFile(Bool autoconfig)
     return CONFIG_OK;
 }
 
-_X_EXPORT Bool
+Bool
 xf86PathIsSafe(const char *path)
 {
     return (xf86pathIsSafe(path) != 0);

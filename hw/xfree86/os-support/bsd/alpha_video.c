@@ -355,7 +355,7 @@ unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
  * Read BIOS via mmap()ing DEV_MEM
  */
 
-_X_EXPORT int
+int
 xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	     int Len)
 {
@@ -400,7 +400,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 
 extern int ioperm(unsigned long from, unsigned long num, int on);
 
-_X_EXPORT Bool
+Bool
 xf86EnableIO()
 {
     if (!ioperm(0, 65536, TRUE))
@@ -408,7 +408,7 @@ xf86EnableIO()
     return FALSE;
 }
 
-_X_EXPORT void
+void
 xf86DisableIO()
 {
 	return;
@@ -693,22 +693,22 @@ writeSparseNB32(int Value, pointer Base, register unsigned long Offset)
     return;
 }
 
-_X_EXPORT void (*xf86WriteMmio8)(int Value, pointer Base, unsigned long Offset) 
+void (*xf86WriteMmio8)(int Value, pointer Base, unsigned long Offset)
      = writeDense8;
-_X_EXPORT void (*xf86WriteMmio16)(int Value, pointer Base, unsigned long Offset)
+void (*xf86WriteMmio16)(int Value, pointer Base, unsigned long Offset)
      = writeDense16;
-_X_EXPORT void (*xf86WriteMmio32)(int Value, pointer Base, unsigned long Offset)
+void (*xf86WriteMmio32)(int Value, pointer Base, unsigned long Offset)
      = writeDense32;
-_X_EXPORT void (*xf86WriteMmioNB8)(int Value, pointer Base, unsigned long Offset) 
+void (*xf86WriteMmioNB8)(int Value, pointer Base, unsigned long Offset)
      = writeDenseNB8;
-_X_EXPORT void (*xf86WriteMmioNB16)(int Value, pointer Base, unsigned long Offset)
+void (*xf86WriteMmioNB16)(int Value, pointer Base, unsigned long Offset)
      = writeDenseNB16;
-_X_EXPORT void (*xf86WriteMmioNB32)(int Value, pointer Base, unsigned long Offset)
+void (*xf86WriteMmioNB32)(int Value, pointer Base, unsigned long Offset)
      = writeDenseNB32;
-_X_EXPORT int  (*xf86ReadMmio8)(pointer Base, unsigned long Offset) 
+int  (*xf86ReadMmio8)(pointer Base, unsigned long Offset)
      = readDense8;
-_X_EXPORT int  (*xf86ReadMmio16)(pointer Base, unsigned long Offset)
+int  (*xf86ReadMmio16)(pointer Base, unsigned long Offset)
      = readDense16;
-_X_EXPORT int  (*xf86ReadMmio32)(pointer Base, unsigned long Offset)
+int  (*xf86ReadMmio32)(pointer Base, unsigned long Offset)
      = readDense32;
 

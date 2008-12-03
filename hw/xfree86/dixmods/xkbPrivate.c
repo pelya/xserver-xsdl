@@ -17,7 +17,7 @@
 #include "os.h"
 #include "xf86.h"
 
-_X_EXPORT int
+int
 XkbDDXPrivate(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     XkbAnyAction *xf86act = &(act->any);

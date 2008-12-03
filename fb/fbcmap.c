@@ -47,7 +47,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ColormapPtr FbInstalledMaps[MAXSCREENS];
 
-_X_EXPORT int
+int
 fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
@@ -57,7 +57,7 @@ fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 }
 
 
-_X_EXPORT void
+void
 fbInstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -75,7 +75,7 @@ fbInstallColormap(ColormapPtr pmap)
     }
 }
 
-_X_EXPORT void
+void
 fbUninstallColormap(ColormapPtr pmap)
 {
     int index = pmap->pScreen->myNum;
@@ -92,7 +92,7 @@ fbUninstallColormap(ColormapPtr pmap)
     }
 }
 
-_X_EXPORT void
+void
 fbResolveColor(unsigned short	*pred, 
 	       unsigned short	*pgreen, 
 	       unsigned short	*pblue,
@@ -116,7 +116,7 @@ fbResolveColor(unsigned short	*pred,
     }
 }
 
-_X_EXPORT Bool
+Bool
 fbInitializeColormap(ColormapPtr pmap)
 {
     register unsigned i;
@@ -216,7 +216,7 @@ fbInitializeColormap(ColormapPtr pmap)
     outdefs[i].blue = pmap->blue[blue >> pVisual->offsetBlue].co.local.blue; \
 }
 
-_X_EXPORT int
+int
 fbExpandDirectColors (ColormapPtr   pmap, 
 		      int	    ndef,
 		      xColorItem    *indefs,
@@ -278,7 +278,7 @@ fbExpandDirectColors (ColormapPtr   pmap,
     return nresult;
 }
 
-_X_EXPORT Bool
+Bool
 fbCreateDefColormap(ScreenPtr pScreen)
 {
     unsigned short	zero = 0, ones = 0xFFFF;
@@ -387,7 +387,7 @@ maskShift (Pixel p)
     return s;
 }
 
-_X_EXPORT Bool
+Bool
 fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
 			  Pixel redMask, Pixel greenMask, Pixel blueMask)
 {
@@ -415,7 +415,7 @@ fbSetVisualTypesAndMasks (int depth, int visuals, int bitsPerRGB,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 fbHasVisualTypes (int depth)
 {
     fbVisualsPtr    v;
@@ -426,7 +426,7 @@ fbHasVisualTypes (int depth)
     return FALSE;
 }
 
-_X_EXPORT Bool
+Bool
 fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
 {
     return fbSetVisualTypesAndMasks (depth, visuals, bitsPerRGB,
@@ -439,7 +439,7 @@ fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
  * the set which can be used with this version of fb.
  */
 
-_X_EXPORT Bool
+Bool
 fbInitVisuals (VisualPtr    *visualp, 
 	       DepthPtr	    *depthp,
 	       int	    *nvisualp,

@@ -8,5 +8,5 @@
 #include "xf86Priv.h"
 
 /* Dummy variables */
-_X_EXPORT ScrnInfoPtr *xf86Screens = NULL;
+ScrnInfoPtr *xf86Screens = NULL;
 

@@ -55,7 +55,7 @@
 
 static unsigned char	XFixesReqCode;
 int		XFixesEventBase;
-_X_EXPORT int	XFixesErrorBase;
+int		XFixesErrorBase;
 
 static int XFixesClientPrivateKeyIndex;
 static DevPrivateKey XFixesClientPrivateKey = &XFixesClientPrivateKeyIndex;

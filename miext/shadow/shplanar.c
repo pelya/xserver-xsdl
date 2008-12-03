@@ -86,7 +86,7 @@
 }
 #endif
 
-_X_EXPORT void
+void
 shadowUpdatePlanar4 (ScreenPtr	    pScreen,
 		     shadowBufPtr   pBuf)
 {
@@ -171,10 +171,10 @@ shadowUpdatePlanar4 (ScreenPtr	    pScreen,
     }
 }
 
-_X_EXPORT shadowUpdateProc shadowUpdatePlanar4Weak(void) {
+shadowUpdateProc shadowUpdatePlanar4Weak(void) {
     return shadowUpdatePlanar4;
 }
 
-_X_EXPORT shadowUpdateProc shadowUpdatePlanar4x8Weak(void) {
+shadowUpdateProc shadowUpdatePlanar4x8Weak(void) {
     return shadowUpdatePlanar4x8;
 }

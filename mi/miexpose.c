@@ -127,7 +127,7 @@ exposing is done by the backing store's GraphicsExpose function, of course.
 
 */
 
-_X_EXPORT RegionPtr
+RegionPtr
 miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 		  GCPtr pGC, int srcx, int srcy, int width, int height,
 		  int dstx, int dsty, unsigned long plane)
@@ -341,7 +341,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 
 /* send GraphicsExpose events, or a NoExpose event, based on the region */
 
-_X_EXPORT void
+void
 miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
                       int major, int minor)
 {
@@ -388,7 +388,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
 }
 
 
-_X_EXPORT void
+void
 miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 {
     BoxPtr pBox;
@@ -448,7 +448,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
     xfree(pEvent);
 }
 
-_X_EXPORT void 
+void
 miWindowExposures( WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
 {
     RegionPtr   exposures = prgn;
@@ -514,7 +514,7 @@ miWindowExposures( WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
 	REGION_DESTROY( pWin->drawable.pScreen, exposures);
 }
 
-_X_EXPORT void
+void
 miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
@@ -636,7 +636,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 /* MICLEARDRAWABLE -- sets the entire drawable to the background color of
  * the GC.  Useful when we have a scratch drawable and need to initialize 
  * it. */
-_X_EXPORT void
+void
 miClearDrawable(DrawablePtr pDraw, GCPtr pGC)
 {
     XID fg = pGC->fgPixel;

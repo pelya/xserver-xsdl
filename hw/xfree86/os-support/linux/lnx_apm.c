@@ -133,7 +133,7 @@ lnxPMConfirmEventToOs(int fd, pmEvent event)
 
 #endif // HAVE_APM
 
-_X_EXPORT PMClose
+PMClose
 xf86OSPMOpen(void)
 {
 	PMClose ret = NULL;

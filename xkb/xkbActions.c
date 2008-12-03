@@ -43,9 +43,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define EXTENSION_EVENT_BASE 64
 
 static int xkbDevicePrivateKeyIndex;
-_X_EXPORT DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKeyIndex;
+DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKeyIndex;
 
-_X_EXPORT void
+void
 xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
                    pointer data)
 {
@@ -61,7 +61,7 @@ xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
 }
 
 
-_X_EXPORT void
+void
 XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)
 {
     xkbDeviceInfoPtr xkbPrivPtr;
@@ -1130,7 +1130,7 @@ register int	i,send;
     return send;
 }
 
-_X_EXPORT void
+void
 XkbHandleActions(DeviceIntPtr dev,DeviceIntPtr kbd,xEvent *xE,int count)
 {
 int		key,bit,i;
@@ -1315,7 +1315,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     return;
 }
 
-_X_EXPORT int
+int
 XkbLatchModifiers(DeviceIntPtr pXDev,CARD8 mask,CARD8 latches)
 {
 XkbSrvInfoPtr	xkbi;
@@ -1342,7 +1342,7 @@ unsigned	clear;
     return BadValue;
 }
 
-_X_EXPORT int
+int
 XkbLatchGroup(DeviceIntPtr pXDev,int group)
 {
 XkbSrvInfoPtr	xkbi;
@@ -1364,7 +1364,7 @@ XkbAction	act;
 
 /***====================================================================***/
 
-_X_EXPORT void
+void
 XkbClearAllLatchesAndLocks(	DeviceIntPtr		dev,
 				XkbSrvInfoPtr		xkbi,
 				Bool			genEv,

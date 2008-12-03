@@ -89,7 +89,7 @@
 }
 #endif
 
-_X_EXPORT void
+void
 shadowUpdatePlanar4x8 (ScreenPtr	pScreen,
 		       shadowBufPtr	pBuf)
 {

@@ -265,7 +265,7 @@ fb24_32BltUp (CARD8	    *srcLine,
 /*
  * Spans functions; probably unused.
  */
-_X_EXPORT void
+void
 fb24_32GetSpans(DrawablePtr	pDrawable, 
 		int		wMax, 
 		DDXPointPtr	ppt, 
@@ -308,7 +308,7 @@ fb24_32GetSpans(DrawablePtr	pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fb24_32SetSpans (DrawablePtr	    pDrawable,
 		 GCPtr		    pGC,
 		 char		    *src,
@@ -374,7 +374,7 @@ fb24_32SetSpans (DrawablePtr	    pDrawable,
 /*
  * Clip and put 32bpp Z-format images to a 24bpp drawable
  */
-_X_EXPORT void
+void
 fb24_32PutZImage (DrawablePtr	pDrawable,
 		  RegionPtr	pClip,
 		  int		alu,
@@ -436,7 +436,7 @@ fb24_32PutZImage (DrawablePtr	pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fb24_32GetImage (DrawablePtr     pDrawable,
 		 int             x,
 		 int             y,
@@ -472,7 +472,7 @@ fb24_32GetImage (DrawablePtr     pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fb24_32CopyMtoN (DrawablePtr pSrcDrawable,
 		 DrawablePtr pDstDrawable,
 		 GCPtr       pGC,
@@ -531,7 +531,7 @@ fb24_32CopyMtoN (DrawablePtr pSrcDrawable,
     fbFinishAccess (pDstDrawable);
 }
 
-_X_EXPORT PixmapPtr
+PixmapPtr
 fb24_32ReformatTile(PixmapPtr pOldTile, int bitsPerPixel)
 {
     ScreenPtr	pScreen = pOldTile->drawable.pScreen;
@@ -583,7 +583,7 @@ typedef struct {
     int width;   
 } miScreenInitParmsRec, *miScreenInitParmsPtr;
 
-_X_EXPORT Bool
+Bool
 fb24_32CreateScreenResources(ScreenPtr pScreen)
 {
     miScreenInitParmsPtr pScrInitParms;
@@ -604,7 +604,7 @@ fb24_32CreateScreenResources(ScreenPtr pScreen)
     return retval;
 }
 
-_X_EXPORT Bool
+Bool
 fb24_32ModifyPixmapHeader (PixmapPtr   pPixmap,
 			   int         width,
 			   int         height,

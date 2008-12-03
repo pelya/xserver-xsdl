@@ -73,7 +73,7 @@ extern int ffs(int);
  *     set them in the destination with SetSpans
  * We let SetSpans worry about clipping to the destination.
  */
-_X_EXPORT RegionPtr
+RegionPtr
 miCopyArea(DrawablePtr  pSrcDrawable,
            DrawablePtr  pDstDrawable,
            GCPtr        pGC,
@@ -548,7 +548,7 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
  * build a source clip
  * Use the bitmap we've built up as a Stipple for the destination 
  */
-_X_EXPORT RegionPtr
+RegionPtr
 miCopyPlane( DrawablePtr pSrcDrawable,
              DrawablePtr pDstDrawable,
              GCPtr pGC,
@@ -643,7 +643,7 @@ miCopyPlane( DrawablePtr pSrcDrawable,
  * XY format:
  * get the single plane specified in planemask
  */
-_X_EXPORT void
+void
 miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
             unsigned int format, unsigned long planeMask, char *pDst)
 {
@@ -741,7 +741,7 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
  * ZPixmap format:
  *	This part is simple, just call SetSpans
  */
-_X_EXPORT void
+void
 miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
             int x, int y, int w, int h,
             int leftPad, int format, char *pImage)

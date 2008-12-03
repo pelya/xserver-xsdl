@@ -456,7 +456,7 @@ static void write_all(BT829Ptr bt)
 /*
  * Public functions
  */
-_X_EXPORT BT829Ptr bt829_Detect(I2CBusPtr b, I2CSlaveAddr addr)
+BT829Ptr bt829_Detect(I2CBusPtr b, I2CSlaveAddr addr)
 {
   BT829Ptr bt;
   I2CByte a;
@@ -542,7 +542,7 @@ _X_EXPORT BT829Ptr bt829_Detect(I2CBusPtr b, I2CSlaveAddr addr)
   return bt;
 }
 
-_X_EXPORT int bt829_ATIInit(BT829Ptr bt)
+int bt829_ATIInit(BT829Ptr bt)
 {
   bt->code = 1;
   bt->len = 0;
@@ -555,7 +555,7 @@ _X_EXPORT int bt829_ATIInit(BT829Ptr bt)
   return 0;
 }
 
-_X_EXPORT int bt829_SetFormat(BT829Ptr bt, CARD8 format)
+int bt829_SetFormat(BT829Ptr bt, CARD8 format)
 {
   if ((format < 1) || (format > 7)) return -1;
   if ((BTVERSION <= BT819) &&
@@ -571,7 +571,7 @@ _X_EXPORT int bt829_SetFormat(BT829Ptr bt, CARD8 format)
   return 0;
 }
 
-_X_EXPORT int bt829_SetMux(BT829Ptr bt, CARD8 mux)
+int bt829_SetMux(BT829Ptr bt, CARD8 mux)
 {
   if ((mux < 1) || (mux > 3)) return -1;
   if (mux == bt->mux) return 0;
@@ -583,7 +583,7 @@ _X_EXPORT int bt829_SetMux(BT829Ptr bt, CARD8 mux)
   return 0;
 }
 
-_X_EXPORT void bt829_SetBrightness(BT829Ptr bt, int brightness)
+void bt829_SetBrightness(BT829Ptr bt, int brightness)
 {
   brightness = LIMIT(brightness,-1000,999); /* ensure -128 <= brightness <= 127 below */
   brightness = (128*brightness)/1000;
@@ -593,7 +593,7 @@ _X_EXPORT void bt829_SetBrightness(BT829Ptr bt, int brightness)
   btwrite_bright(bt);
 }
 
-_X_EXPORT void bt829_SetContrast(BT829Ptr bt, int contrast)
+void bt829_SetContrast(BT829Ptr bt, int contrast)
 {
   contrast = LIMIT(contrast,-1000,1000);
   contrast = (216*(contrast+1000))/1000;
@@ -604,7 +604,7 @@ _X_EXPORT void bt829_SetContrast(BT829Ptr bt, int contrast)
   btwrite_contrast_lo(bt);
 }
 
-_X_EXPORT void bt829_SetSaturation(BT829Ptr bt, int saturation)
+void bt829_SetSaturation(BT829Ptr bt, int saturation)
 {
   CARD16 sat_u, sat_v;
 
@@ -620,7 +620,7 @@ _X_EXPORT void bt829_SetSaturation(BT829Ptr bt, int saturation)
   btwrite_sat_v_lo(bt);
 }
 
-_X_EXPORT void bt829_SetTint(BT829Ptr bt, int hue)
+void bt829_SetTint(BT829Ptr bt, int hue)
 {
   hue = LIMIT(hue,-1000,999); /* ensure -128 <= hue <= 127 below */
   hue = (128*hue)/1000;
@@ -630,7 +630,7 @@ _X_EXPORT void bt829_SetTint(BT829Ptr bt, int hue)
   btwrite_hue(bt);
 }
 
-_X_EXPORT int bt829_SetCaptSize(BT829Ptr bt, int width, int height)
+int bt829_SetCaptSize(BT829Ptr bt, int width, int height)
 {
   if ((width > bt->htotal - 2 * HCROP) ||
       (16 * width < bt->htotal - 32 * HCROP)) return -1;
@@ -656,7 +656,7 @@ int bt829_SetCC(BT829Ptr bt) /* FIXME: should take ccmode as a parameter */
   return 0;
 }
 
-_X_EXPORT void bt829_SetOUT_EN(BT829Ptr bt, BOOL out_en)
+void bt829_SetOUT_EN(BT829Ptr bt, BOOL out_en)
 {
   out_en = (out_en != 0);
   if (out_en == bt->out_en) return;
@@ -665,7 +665,7 @@ _X_EXPORT void bt829_SetOUT_EN(BT829Ptr bt, BOOL out_en)
   btwrite_vpole(bt);
 }
 
-_X_EXPORT void bt829_SetP_IO(BT829Ptr bt, CARD8 p_io)
+void bt829_SetP_IO(BT829Ptr bt, CARD8 p_io)
 {
   if (p_io == bt->p_io) return;
   bt->p_io = p_io;

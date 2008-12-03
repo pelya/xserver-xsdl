@@ -41,7 +41,7 @@ const FI1236_parameters tuner_parms[NUM_TUNERS] =
 };
 
 
-_X_EXPORT FI1236Ptr Detect_FI1236(I2CBusPtr b, I2CSlaveAddr addr)
+FI1236Ptr Detect_FI1236(I2CBusPtr b, I2CSlaveAddr addr)
 {
    FI1236Ptr f;
    I2CByte a;
@@ -394,7 +394,7 @@ return TUNER_OFF;
 }
 
 /* this function is for external use only */
-_X_EXPORT int TUNER_get_afc_hint(FI1236Ptr f)
+int TUNER_get_afc_hint(FI1236Ptr f)
 {
 if(f->afc_timer_installed)return TUNER_STILL_TUNING;
 return f->last_afc_hint;
@@ -465,7 +465,7 @@ for(i=0;i<3;i++){
 xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "MT2032: failed to set frequency\n");
 }
 
-_X_EXPORT void FI1236_set_tuner_type(FI1236Ptr f, int type)
+void FI1236_set_tuner_type(FI1236Ptr f, int type)
 {
 f->type=type;
 if(type>=NUM_TUNERS)type = NUM_TUNERS-1;
@@ -532,7 +532,7 @@ void FI1236_tune(FI1236Ptr f, CARD32 frequency)
 				I2C_WriteRead(&(f->d), (I2CByte *)&(f->tuner_data), 4, NULL, 0);
 }
 
-_X_EXPORT void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
+void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
 {
     if(frequency < f->parm.min_freq) frequency = f->parm.min_freq;
     if(frequency > f->parm.max_freq) frequency = f->parm.max_freq;
@@ -558,7 +558,7 @@ _X_EXPORT void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency)
 }
 
 
-_X_EXPORT int FI1236_AFC(FI1236Ptr f)
+int FI1236_AFC(FI1236Ptr f)
 {
     #if 0
     xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "AFC: f=%p f->count=%d f->original_frequency=%d f->afc_delta=%d\n", f, f->afc_count, f->original_frequency, f->afc_delta);
@@ -601,7 +601,7 @@ _X_EXPORT int FI1236_AFC(FI1236Ptr f)
     return 0; /* done */
 }
 
-_X_EXPORT void fi1236_dump_status(FI1236Ptr f)
+void fi1236_dump_status(FI1236Ptr f)
 {
 if(f->type==TUNER_TYPE_MT2032){
 	MT2032_dump_status(f);

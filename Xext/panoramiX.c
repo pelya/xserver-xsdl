@@ -71,9 +71,9 @@ extern VisualPtr glxMatchVisual(ScreenPtr pScreen,
 
 int 		PanoramiXPixWidth = 0;
 int 		PanoramiXPixHeight = 0;
-_X_EXPORT int 	PanoramiXNumScreens = 0;
+int 		PanoramiXNumScreens = 0;
 
-_X_EXPORT PanoramiXData *panoramiXdataPtr = NULL;
+PanoramiXData *panoramiXdataPtr = NULL;
 static RegionRec   	PanoramiXScreenRegion = {{0, 0, 0, 0}, NULL};
 
 static int		PanoramiXNumDepths;
@@ -81,14 +81,14 @@ static DepthPtr		PanoramiXDepths;
 static int		PanoramiXNumVisuals;
 static VisualPtr	PanoramiXVisuals;
 
-_X_EXPORT unsigned long XRC_DRAWABLE;
-_X_EXPORT unsigned long XRT_WINDOW;
-_X_EXPORT unsigned long XRT_PIXMAP;
-_X_EXPORT unsigned long XRT_GC;
-_X_EXPORT unsigned long XRT_COLORMAP;
+unsigned long XRC_DRAWABLE;
+unsigned long XRT_WINDOW;
+unsigned long XRT_PIXMAP;
+unsigned long XRT_GC;
+unsigned long XRT_COLORMAP;
 
 static Bool VisualsEqual(VisualPtr, ScreenPtr, VisualPtr);
-_X_EXPORT XineramaVisualsEqualProcPtr XineramaVisualsEqualPtr = &VisualsEqual;
+XineramaVisualsEqualProcPtr XineramaVisualsEqualPtr = &VisualsEqual;
 
 /*
  *	Function prototypes
@@ -328,7 +328,7 @@ XineramaDestroyClip(GCPtr pGC)
     Xinerama_GC_FUNC_EPILOGUE (pGC);
 }
 
-_X_EXPORT int
+int
 XineramaDeleteResource(pointer data, XID id)
 {
     xfree(data);
@@ -371,7 +371,7 @@ typedef struct _connect_callback_list {
 
 static XineramaConnectionCallbackList *ConnectionCallbackList = NULL;
 
-_X_EXPORT Bool
+Bool
 XineramaRegisterConnectionBlockCallback(void (*func)(void))
 {
     XineramaConnectionCallbackList *newlist;
@@ -839,7 +839,7 @@ PanoramiXConsolidate(void)
     AddResource(defmap->info[0].id, XRT_COLORMAP, defmap);
 }
 
-_X_EXPORT VisualID
+VisualID
 PanoramiXTranslateVisualID(int screen, VisualID orig)
 {
     ScreenPtr pOtherScreen = screenInfo.screens[screen];

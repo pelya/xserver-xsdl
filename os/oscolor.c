@@ -1571,7 +1571,7 @@ static const BuiltinColor BuiltinColors[] = {
 
 #define NUM_BUILTIN_COLORS  (sizeof (BuiltinColors) / sizeof (BuiltinColors[0]))
 
-_X_EXPORT Bool
+Bool
 OsLookupColor(int		screen,
 	      char		*name,
 	      unsigned int	len,

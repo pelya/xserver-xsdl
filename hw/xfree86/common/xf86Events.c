@@ -102,7 +102,7 @@
  * This has been generalised to work with Linux and *BSD+syscons (DHD)
  */
 
-_X_EXPORT Bool VTSwitchEnabled = TRUE;	/* Allows run-time disabling for
+Bool VTSwitchEnabled = TRUE;		/* Allows run-time disabling for
                                          *BSD and for avoiding VT
                                          switches when using the DRI
                                          automatic full screen mode.*/
@@ -130,7 +130,7 @@ typedef struct x_IHRec {
 static IHPtr InputHandlers = NULL;
 
 
-_X_EXPORT Bool
+Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
@@ -141,7 +141,7 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
  *      Function used for screensaver purposes by the os module. Returns the
  *      time in milliseconds since there last was any input.
  */
-_X_EXPORT int
+int
 TimeSinceLastInputEvent()
 {
   if (xf86Info.lastEventTime == 0) {
@@ -154,7 +154,7 @@ TimeSinceLastInputEvent()
  * SetTimeSinceLastInputEvent --
  *      Set the lastEventTime to now.
  */
-_X_EXPORT void
+void
 SetTimeSinceLastInputEvent()
 {
   xf86Info.lastEventTime = GetTimeInMillis();
@@ -166,7 +166,7 @@ SetTimeSinceLastInputEvent()
  *      correct chronological order. Only reads from the system pointer
  *      and keyboard.
  */
-_X_EXPORT void
+void
 ProcessInputEvents ()
 {
   int x, y;
@@ -182,7 +182,7 @@ ProcessInputEvents ()
  * Handle keyboard events that cause some kind of "action"
  * (i.e., server termination, video mode changes, VT switches, etc.)
  */
-_X_EXPORT void
+void
 xf86ProcessActionEvent(ActionEvent action, void *arg)
 {
 #ifdef DEBUG
@@ -251,7 +251,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
  */
 
 /* ARGSUSED */
-_X_EXPORT void
+void
 xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 {
     fd_set* LastSelectMask = (fd_set*)pReadmask;
@@ -318,7 +318,7 @@ xf86SigioReadInput(int fd,
  * xf86AddEnabledDevice --
  *
  */
-_X_EXPORT void
+void
 xf86AddEnabledDevice(InputInfoPtr pInfo)
 {
     if (!xf86InstallSIGIOHandler (pInfo->fd, xf86SigioReadInput, pInfo)) {
@@ -330,7 +330,7 @@ xf86AddEnabledDevice(InputInfoPtr pInfo)
  * xf86RemoveEnabledDevice --
  *
  */
-_X_EXPORT void
+void
 xf86RemoveEnabledDevice(InputInfoPtr pInfo)
 {
     if (!xf86RemoveSIGIOHandler (pInfo->fd)) {
@@ -340,7 +340,7 @@ xf86RemoveEnabledDevice(InputInfoPtr pInfo)
 
 static int *xf86SignalIntercept = NULL;
 
-_X_EXPORT void
+void
 xf86InterceptSignals(int *signo)
 {
     if ((xf86SignalIntercept = signo))
@@ -349,7 +349,7 @@ xf86InterceptSignals(int *signo)
 
 static void (*xf86SigIllHandler)(void) = NULL;
 
-_X_EXPORT void
+void
 xf86InterceptSigIll(void (*sigillhandler)(void))
 {
     xf86SigIllHandler = sigillhandler;
@@ -359,7 +359,7 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
  * xf86SigHandler --
  *    Catch unexpected signals and exit or continue cleanly.
  */
-_X_EXPORT void
+void
 xf86SigHandler(int signo)
 {
   if ((signo == SIGILL) && xf86SigIllHandler) {
@@ -391,7 +391,7 @@ xf86SigHandler(int signo)
  * xf86PrintBacktrace --
  *    Print a stack backtrace for debugging purposes.
  */
-_X_EXPORT void
+void
 xf86PrintBacktrace(void)
 {
     xorg_backtrace();
@@ -650,7 +650,7 @@ addInputHandler(int fd, InputHandlerProc proc, pointer data)
     return ih;
 }
 
-_X_EXPORT pointer
+pointer
 xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data)
 {
     IHPtr ih = addInputHandler(fd, proc, data);
@@ -660,7 +660,7 @@ xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data)
     return ih;
 }
 
-_X_EXPORT pointer
+pointer
 xf86AddGeneralHandler(int fd, InputHandlerProc proc, pointer data)
 {
     IHPtr ih = addInputHandler(fd, proc, data);
@@ -687,7 +687,7 @@ removeInputHandler(IHPtr ih)
     xfree(ih);
 }
 
-_X_EXPORT int
+int
 xf86RemoveInputHandler(pointer handler)
 {
     IHPtr ih;
@@ -706,7 +706,7 @@ xf86RemoveInputHandler(pointer handler)
     return fd;
 }
 
-_X_EXPORT int
+int
 xf86RemoveGeneralHandler(pointer handler)
 {
     IHPtr ih;
@@ -725,7 +725,7 @@ xf86RemoveGeneralHandler(pointer handler)
     return fd;
 }
 
-_X_EXPORT void
+void
 xf86DisableInputHandler(pointer handler)
 {
     IHPtr ih;
@@ -739,7 +739,7 @@ xf86DisableInputHandler(pointer handler)
 	RemoveEnabledDevice(ih->fd);
 }
 
-_X_EXPORT void
+void
 xf86DisableGeneralHandler(pointer handler)
 {
     IHPtr ih;
@@ -753,7 +753,7 @@ xf86DisableGeneralHandler(pointer handler)
 	RemoveGeneralSocket(ih->fd);
 }
 
-_X_EXPORT void
+void
 xf86EnableInputHandler(pointer handler)
 {
     IHPtr ih;
@@ -767,7 +767,7 @@ xf86EnableInputHandler(pointer handler)
 	AddEnabledDevice(ih->fd);
 }
 
-_X_EXPORT void
+void
 xf86EnableGeneralHandler(pointer handler)
 {
     IHPtr ih;
@@ -784,7 +784,7 @@ xf86EnableGeneralHandler(pointer handler)
 /*
  * As used currently by the DRI, the return value is ignored.
  */
-_X_EXPORT Bool
+Bool
 xf86EnableVTSwitch(Bool new)
 {
     static Bool def = TRUE;
@@ -802,7 +802,7 @@ xf86EnableVTSwitch(Bool new)
     return old;
 }
 
-_X_EXPORT void
+void
 xf86ReloadInputDevs(int sig)
 {
   InputInfoPtr pInfo;
@@ -819,7 +819,7 @@ xf86ReloadInputDevs(int sig)
   return;
 }
 
-_X_EXPORT void
+void
 DDXRingBell(int volume, int pitch, int duration) {
     xf86OSRingBell(volume, pitch, duration);
 }

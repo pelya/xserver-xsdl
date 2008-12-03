@@ -132,7 +132,7 @@ handle_edid_quirks(xf86MonPtr m)
     }
 }
 
-_X_EXPORT xf86MonPtr
+xf86MonPtr
 xf86InterpretEDID(int scrnIndex, Uchar *block)
 {
     xf86MonPtr m;
@@ -163,7 +163,7 @@ xf86InterpretEDID(int scrnIndex, Uchar *block)
     return NULL;
 }
 
-_X_EXPORT xf86MonPtr
+xf86MonPtr
 xf86InterpretEEDID(int scrnIndex, Uchar *block)
 {
     xf86MonPtr m;
@@ -463,7 +463,7 @@ validate_version(int scrnIndex, struct edid_version *r)
 /*
  * Returns true if HDMI, false if definitely not or unknown.
  */
-_X_EXPORT Bool
+Bool
 xf86MonitorIsHDMI(xf86MonPtr mon)
 {
     int i = 0, version, offset;

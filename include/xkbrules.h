@@ -103,24 +103,24 @@ typedef struct _XkbRF_Rules {
 
 _XFUNCPROTOBEGIN
 
-extern Bool	XkbRF_GetComponents(
+extern _X_EXPORT Bool	XkbRF_GetComponents(
     XkbRF_RulesPtr		/* rules */,
     XkbRF_VarDefsPtr		/* var_defs */,
     XkbComponentNamesPtr	/* names */
 );
 
-extern XkbRF_RulePtr	XkbRF_AddRule(
+extern _X_EXPORT XkbRF_RulePtr	XkbRF_AddRule(
     XkbRF_RulesPtr	/* rules */
 );
 
-extern XkbRF_GroupPtr XkbRF_AddGroup(XkbRF_RulesPtr  rules);
+extern _X_EXPORT XkbRF_GroupPtr XkbRF_AddGroup(XkbRF_RulesPtr  rules);
 
-extern Bool	XkbRF_LoadRules(
+extern _X_EXPORT Bool	XkbRF_LoadRules(
     FILE *		/* file */,
     XkbRF_RulesPtr	/* rules */
 );
 
-extern Bool XkbRF_LoadRulesByName(
+extern _X_EXPORT Bool XkbRF_LoadRulesByName(
     char *		/* base */,
     char *		/* locale */,
     XkbRF_RulesPtr	/* rules */
@@ -128,46 +128,46 @@ extern Bool XkbRF_LoadRulesByName(
 
 /***====================================================================***/
 
-extern XkbRF_VarDescPtr	XkbRF_AddVarDesc(
+extern _X_EXPORT XkbRF_VarDescPtr	XkbRF_AddVarDesc(
     XkbRF_DescribeVarsPtr	/* vars */
 );
 
-extern XkbRF_VarDescPtr	XkbRF_AddVarDescCopy(
+extern _X_EXPORT XkbRF_VarDescPtr	XkbRF_AddVarDescCopy(
     XkbRF_DescribeVarsPtr	/* vars */,
     XkbRF_VarDescPtr		/* copy_from */
 );
 
-extern XkbRF_DescribeVarsPtr XkbRF_AddVarToDescribe(
+extern _X_EXPORT XkbRF_DescribeVarsPtr XkbRF_AddVarToDescribe(
     XkbRF_RulesPtr		/* rules */,
     char *			/* name */
 );
 
-extern Bool	XkbRF_LoadDescriptions(
+extern _X_EXPORT Bool	XkbRF_LoadDescriptions(
     FILE *		/* file */,
     XkbRF_RulesPtr	/* rules */
 );
 
-extern Bool XkbRF_LoadDescriptionsByName(
+extern _X_EXPORT Bool XkbRF_LoadDescriptionsByName(
     char *		/* base */,
     char *		/* locale */,
     XkbRF_RulesPtr	/* rules */
 );
 
-extern XkbRF_RulesPtr XkbRF_Load(
+extern _X_EXPORT XkbRF_RulesPtr XkbRF_Load(
     char *		/* base */,
     char *		/* locale */,
     Bool		/* wantDesc */,
     Bool		/* wantRules */
 );
 
-extern XkbRF_RulesPtr XkbRF_Create(
+extern _X_EXPORT XkbRF_RulesPtr XkbRF_Create(
     int			/* sz_rules */,
     int			/* sz_extra */
 );
 
 /***====================================================================***/
 
-extern void XkbRF_Free(
+extern _X_EXPORT void XkbRF_Free(
     XkbRF_RulesPtr	/* rules */,
     Bool		/* freeRules */
 );

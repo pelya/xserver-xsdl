@@ -9,7 +9,7 @@
 
 #include <time.h>
 
-_X_EXPORT void
+void
 xf86UDelay(long usec)
 {
 #if 0

@@ -80,97 +80,97 @@ typedef void	(*XkbFileAddOnFunc)(
 
 _XFUNCPROTOBEGIN
 
-extern	char *	XkbIndentText(
+extern _X_EXPORT char *	XkbIndentText(
     unsigned	/* size */
 );
 
-extern	char *	XkbAtomText(
+extern _X_EXPORT char *	XkbAtomText(
     Atom 	/* atm */,
     unsigned	/* format */
 );
 
-extern char *	XkbKeysymText(
+extern _X_EXPORT char *	XkbKeysymText(
     KeySym	/* sym */,
     unsigned	/* format */
 );
 
-extern char *	XkbStringText(
+extern _X_EXPORT char *	XkbStringText(
     char *	/* str */,
     unsigned	/* format */
 );
 
-extern char *	XkbKeyNameText(
+extern _X_EXPORT char *	XkbKeyNameText(
     char *	/* name */,
     unsigned	/* format */
 );
 
-extern char *
+extern _X_EXPORT char *
 XkbModIndexText(
     unsigned	/* ndx */,
     unsigned	/* format */
 );
 
-extern char *
+extern _X_EXPORT char *
 XkbModMaskText(
     unsigned	/* mask */,
     unsigned	/* format */
 );
 
-extern char *	XkbVModIndexText(
+extern _X_EXPORT char *	XkbVModIndexText(
     XkbDescPtr	/* xkb */,
     unsigned	/* ndx */,
     unsigned	/* format */
 );
 
-extern	char *	XkbVModMaskText(
+extern _X_EXPORT char *	XkbVModMaskText(
     XkbDescPtr	/* xkb */,
     unsigned	/* modMask */,
     unsigned	/* mask */,
     unsigned	/* format */
 );
 
-extern char *	XkbConfigText(
+extern _X_EXPORT char *	XkbConfigText(
     unsigned 	/* config */,
     unsigned 	/* format */
 );
 
-extern char *	XkbSIMatchText(
+extern _X_EXPORT char *	XkbSIMatchText(
     unsigned	/* type */,
     unsigned	/* format */
 );
 
-extern char *	XkbIMWhichStateMaskText(
+extern _X_EXPORT char *	XkbIMWhichStateMaskText(
     unsigned	/* use_which */,
     unsigned	/* format */
 );
 
-extern char *	XkbControlsMaskText(
+extern _X_EXPORT char *	XkbControlsMaskText(
     unsigned	/* ctrls */,
     unsigned	/* format */
 );
 
-extern char *	XkbGeomFPText(
+extern _X_EXPORT char *	XkbGeomFPText(
     int		/* val */,
     unsigned 	/* format */
 );
 
-extern char *	XkbDoodadTypeText(
+extern _X_EXPORT char *	XkbDoodadTypeText(
     unsigned	/* type */,
     unsigned	/* format */
 );
 
-extern char *	XkbActionTypeText(
+extern _X_EXPORT char *	XkbActionTypeText(
     unsigned	/* type */,
     unsigned	/* format */
 );
 
-extern char *	XkbActionText(
+extern _X_EXPORT char *	XkbActionText(
     XkbDescPtr	/* xkb */,
     XkbAction *	/* action */,
     unsigned	/* format */
 );
 
-extern char *	XkbBehaviorText(
+extern _X_EXPORT char *	XkbBehaviorText(
     XkbDescPtr 		/* xkb */,
     XkbBehavior *	/* behavior */,
     unsigned		/* format */
@@ -187,11 +187,11 @@ extern char *	XkbBehaviorText(
 #define	XkbKSIsDeadKey(k)	\
 		(((k)>=XK_dead_grave)&&((k)<=XK_dead_semivoiced_sound))
 
-extern	unsigned _XkbKSCheckCase(
+extern _X_EXPORT unsigned _XkbKSCheckCase(
    KeySym	/* sym */
 );
 
-extern	int	 XkbFindKeycodeByName(
+extern _X_EXPORT int	 XkbFindKeycodeByName(
     XkbDescPtr	/* xkb */,
     char *	/* name */,
     Bool	/* use_aliases */
@@ -199,7 +199,7 @@ extern	int	 XkbFindKeycodeByName(
 
 /***====================================================================***/
 
-extern	Atom	XkbInternAtom(
+extern _X_EXPORT Atom	XkbInternAtom(
     char *	/* name */,
     Bool	/* onlyIfExists */
 );
@@ -225,19 +225,19 @@ typedef struct _XkbDrawable {
 
 /***====================================================================***/
 
-extern	unsigned	XkbConvertGetByNameComponents(
+extern _X_EXPORT unsigned	XkbConvertGetByNameComponents(
     Bool		/* toXkm */,
     unsigned 		/* orig */
 );
 
-extern	Bool	XkbNameMatchesPattern(
+extern _X_EXPORT Bool	XkbNameMatchesPattern(
     char *		/* name */,
     char *		/* pattern */
 );
 
 /***====================================================================***/
 
-extern	Bool	XkbWriteXKBKeycodes(
+extern _X_EXPORT Bool	XkbWriteXKBKeycodes(
     FILE *		/* file */,
     XkbDescPtr          /* result */,
     Bool		/* topLevel */,
@@ -246,7 +246,7 @@ extern	Bool	XkbWriteXKBKeycodes(
     void *		/* priv */
 );
 
-extern	Bool	XkbWriteXKBKeyTypes(
+extern _X_EXPORT Bool	XkbWriteXKBKeyTypes(
     FILE *		/* file */,
     XkbDescPtr  	/* result */,
     Bool		/* topLevel */,
@@ -255,7 +255,7 @@ extern	Bool	XkbWriteXKBKeyTypes(
     void *		/* priv */
 );
 
-extern	Bool	XkbWriteXKBCompatMap(
+extern _X_EXPORT Bool	XkbWriteXKBCompatMap(
     FILE *		/* file */,
     XkbDescPtr	/* result */,
     Bool		/* topLevel */,
@@ -264,7 +264,7 @@ extern	Bool	XkbWriteXKBCompatMap(
     void *		/* priv */
 );
 
-extern	Bool	XkbWriteXKBSymbols(
+extern _X_EXPORT Bool	XkbWriteXKBSymbols(
     FILE *		/* file */,
     XkbDescPtr	/* result */,
     Bool		/* topLevel */,
@@ -273,7 +273,7 @@ extern	Bool	XkbWriteXKBSymbols(
     void *		/* priv */
 );
 
-extern	Bool	XkbWriteXKBGeometry(
+extern _X_EXPORT Bool	XkbWriteXKBGeometry(
     FILE *		/* file */,
     XkbDescPtr	/* result */,
     Bool		/* topLevel */,
@@ -282,11 +282,11 @@ extern	Bool	XkbWriteXKBGeometry(
     void *		/* priv */
 );
 
-extern	void	XkbEnsureSafeMapName(
+extern _X_EXPORT void	XkbEnsureSafeMapName(
     char *		/* name */
 );
 
-extern	Bool	XkbWriteXKBKeymapForNames(
+extern _X_EXPORT Bool	XkbWriteXKBKeymapForNames(
     FILE *			/* file */,
     XkbComponentNamesPtr	/* names */,
     XkbDescPtr			/* xkb */,
@@ -296,11 +296,11 @@ extern	Bool	XkbWriteXKBKeymapForNames(
 
 /***====================================================================***/
 
-extern Bool	XkmProbe(
+extern _X_EXPORT Bool	XkmProbe(
     FILE *		/* file */
 );
 
-extern unsigned	XkmReadFile(
+extern _X_EXPORT unsigned	XkmReadFile(
     FILE *		/* file */,
     unsigned		/* need */,
     unsigned		/* want */,

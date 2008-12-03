@@ -41,7 +41,7 @@
 #include "xf86sbusBus.h"
 #include "xf86Sbus.h"
 
-_X_EXPORT Bool sbusSlotClaimed = FALSE;
+Bool sbusSlotClaimed = FALSE;
 
 static int xf86nSbusInfo;
 
@@ -79,7 +79,7 @@ CheckSbusDevice(const char *device, int fbNum)
     psdp->fd = -1;
 }
 
-_X_EXPORT void
+void
 xf86SbusProbe(void)
 {
     int i, useProm = 0;
@@ -360,7 +360,7 @@ xf86ClaimSbusSlot(sbusDevicePtr psdp, DriverPtr drvp,
 	return -1;
 }
 
-_X_EXPORT int
+int
 xf86MatchSbusInstances(const char *driverName, int sbusDevId, 
 		       GDevPtr *devList, int numDevs, DriverPtr drvp,
 		       int **foundEntities)
@@ -536,7 +536,7 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 /*
  * xf86GetSbusInfoForEntity() -- Get the sbusDevicePtr of entity.
  */
-_X_EXPORT sbusDevicePtr
+sbusDevicePtr
 xf86GetSbusInfoForEntity(int entityIndex)
 {
     sbusDevicePtr *psdpp;
@@ -552,7 +552,7 @@ xf86GetSbusInfoForEntity(int entityIndex)
     return NULL;
 }
 
-_X_EXPORT int
+int
 xf86GetEntityForSbusInfo(sbusDevicePtr psdp)
 {
     int i;
@@ -567,7 +567,7 @@ xf86GetEntityForSbusInfo(sbusDevicePtr psdp)
     return -1;
 }
 
-_X_EXPORT void
+void
 xf86SbusUseBuiltinMode(ScrnInfoPtr pScrn, sbusDevicePtr psdp)
 {
     DisplayModePtr mode;
@@ -667,7 +667,7 @@ xf86SbusCmapCloseScreen(int i, ScreenPtr pScreen)
     return (*pScreen->CloseScreen) (i, pScreen);
 }    
 
-_X_EXPORT Bool
+Bool
 xf86SbusHandleColormaps(ScreenPtr pScreen, sbusDevicePtr psdp)
 {
     sbusCmapPtr cmap;

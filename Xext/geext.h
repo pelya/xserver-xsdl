@@ -66,7 +66,7 @@ typedef struct _GEExtension {
 
 
 /* All registered extensions and their handling functions. */
-extern GEExtension GEExtensions[MAXEXTENSIONS];
+extern _X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
 
 /* Returns the extension offset from the event */
 #define GEEXT(ev) (((xGenericEvent*)(ev))->extension)
@@ -95,20 +95,20 @@ extern GEExtension GEExtensions[MAXEXTENSIONS];
 
 
 /* Interface for other extensions */
-void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
+extern _X_EXPORT void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
                      WindowPtr pWin, int extension, Mask mask);
 
-void GERegisterExtension(
+extern _X_EXPORT void GERegisterExtension(
         int extension,
         void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to),
         void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
                         WindowPtr pWin, GrabPtr pGrab)
         );
 
-void GEInitEvent(xGenericEvent* ev, int extension);
-BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
+extern _X_EXPORT void GEInitEvent(xGenericEvent* ev, int extension);
+extern _X_EXPORT BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
                        int extension, Mask mask);
 
-void GEExtensionInit(void);
+extern _X_EXPORT void GEExtensionInit(void);
 
 #endif /* _GEEXT_H_ */

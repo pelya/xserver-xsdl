@@ -26,7 +26,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef DIXGRABS_H
 #define DIXGRABS_H 1
 
-extern GrabPtr CreateGrab(
+extern _X_EXPORT GrabPtr CreateGrab(
 	int /* client */,
 	DeviceIntPtr /* device */,
 	WindowPtr /* window */,
@@ -41,20 +41,20 @@ extern GrabPtr CreateGrab(
 	WindowPtr /* confineTo */,
 	CursorPtr /* cursor */);
 
-extern int DeletePassiveGrab(
+extern _X_EXPORT int DeletePassiveGrab(
 	pointer /* value */,
 	XID /* id */);
 
-extern Bool GrabMatchesSecond(
+extern _X_EXPORT Bool GrabMatchesSecond(
 	GrabPtr /* pFirstGrab */,
 	GrabPtr /* pSecondGrab */,
 	Bool /*ignoreDevice*/);
 
-extern int AddPassiveGrabToList(
+extern _X_EXPORT int AddPassiveGrabToList(
 	ClientPtr /* client */,
 	GrabPtr /* pGrab */);
 
-extern Bool DeletePassiveGrabFromList(
+extern _X_EXPORT Bool DeletePassiveGrabFromList(
 	GrabPtr /* pMinuendGrab */);
 
 #endif /* DIXGRABS_H */

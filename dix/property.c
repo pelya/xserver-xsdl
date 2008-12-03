@@ -90,7 +90,7 @@ PrintPropertys(WindowPtr pWin)
 }
 #endif
 
-_X_EXPORT int
+int
 dixLookupProperty(PropertyPtr *result, WindowPtr pWin, Atom propertyName,
 		  ClientPtr client, Mask access_mode)
 {
@@ -248,7 +248,7 @@ ProcChangeProperty(ClientPtr client)
 	return client->noClientException;
 }
 
-_X_EXPORT int
+int
 dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 			Atom type, int format, int mode, unsigned long len,
 			pointer value, Bool sendevent)
@@ -361,7 +361,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     return(Success);
 }
 
-_X_EXPORT int
+int
 ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format, 
 		     int mode, unsigned long len, pointer value, 
 		     Bool sendevent)
@@ -370,7 +370,7 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 				   mode, len, value, sendevent);
 }
 
-_X_EXPORT int
+int
 DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
 {
     PropertyPtr pProp, prevProp;
@@ -401,7 +401,7 @@ DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
     return rc;
 }
 
-_X_EXPORT void
+void
 DeleteAllWindowProperties(WindowPtr pWin)
 {
     PropertyPtr pProp, pNextProp;

@@ -94,7 +94,7 @@ SOFTWARE.
  */
 
 static int CoreDevicePrivateKeyIndex;
-_X_EXPORT DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
+DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
 /* Used to sture classes currently not in use by an MD */
 static int UnusedClassesPrivateKeyIndex;
 DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
@@ -184,7 +184,7 @@ NextFreePointerDevice(void)
  * @param deviceProc Callback for device control function (switch dev on/off).
  * @return The newly created device.
  */
-_X_EXPORT DeviceIntPtr
+DeviceIntPtr
 AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
@@ -258,7 +258,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
  * @param The device to be enabled.
  * @return TRUE on success or FALSE otherwise.
  */
-_X_EXPORT Bool
+Bool
 EnableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
@@ -356,7 +356,7 @@ EnableDevice(DeviceIntPtr dev)
  *
  * @return TRUE on success or FALSE otherwise.
  */
-_X_EXPORT Bool
+Bool
 DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev, other;
@@ -433,7 +433,7 @@ DisableDevice(DeviceIntPtr dev)
  *
  * @return Success or an error code on failure.
  */
-_X_EXPORT int
+int
 ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
@@ -597,7 +597,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
  * Note that the server MUST have two core devices at all times, even if there
  * is no physical device connected.
  */
-_X_EXPORT void
+void
 InitCoreDevices(void)
 {
     if (AllocMasterDevice(serverClient, "Virtual core",
@@ -624,7 +624,7 @@ InitCoreDevices(void)
  *
  * @return Success or error code on failure.
  */
-_X_EXPORT int
+int
 InitAndStartDevices()
 {
     DeviceIntPtr dev, next;
@@ -889,7 +889,7 @@ CloseDevice(DeviceIntPtr dev)
  * Shut down all devices, free all resources, etc.
  * Only useful if you're shutting down the server!
  */
-_X_EXPORT void
+void
 CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
@@ -929,7 +929,7 @@ CloseDownDevices(void)
  * Remove the cursor sprite for all devices. This needs to be done before any
  * resources are freed or any device is deleted.
  */
-_X_EXPORT void
+void
 UndisplayDevices()
 {
     DeviceIntPtr dev;
@@ -950,7 +950,7 @@ UndisplayDevices()
  * dev->init is FALSE it means the client never received a DeviceAdded event,
  * so let's not send a DeviceRemoved event either.
  */
-_X_EXPORT int
+int
 RemoveDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr prev,tmp,next;
@@ -1017,7 +1017,7 @@ RemoveDevice(DeviceIntPtr dev)
     return ret;
 }
 
-_X_EXPORT int
+int
 NumMotionEvents(void)
 {
     /* only called to fill data in initial connection reply.
@@ -1025,19 +1025,19 @@ NumMotionEvents(void)
     return inputInfo.pointer->valuator->numMotionEvents;
 }
 
-_X_EXPORT void
+void
 RegisterPointerDevice(DeviceIntPtr device)
 {
     RegisterOtherDevice(device);
 }
 
-_X_EXPORT void
+void
 RegisterKeyboardDevice(DeviceIntPtr device)
 {
     RegisterOtherDevice(device);
 }
 
-_X_EXPORT int
+int
 dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
 {
     DeviceIntPtr dev;
@@ -1061,7 +1061,7 @@ found:
     return rc;
 }
 
-_X_EXPORT void
+void
 QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
 {
     if (inputInfo.keyboard) {
@@ -1070,7 +1070,7 @@ QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
     }
 }
 
-_X_EXPORT Bool
+Bool
 SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 {
     int i, j;
@@ -1169,7 +1169,7 @@ InitModMap(KeyClassPtr keyc)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers[])
 {
     KeyClassPtr keyc;
@@ -1196,7 +1196,7 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
                             CARD8 *map)
 {
@@ -1213,7 +1213,7 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
                               int numMotionEvents, int mode)
 {
@@ -1269,7 +1269,7 @@ ValuatorAccelerationRec pointerAccelerationScheme[] = {
  * install an acceleration scheme. returns TRUE on success, and should not
  * change anything if unsuccessful.
  */
-_X_EXPORT Bool
+Bool
 InitPointerAccelerationScheme(DeviceIntPtr dev,
                               int scheme)
 {
@@ -1318,7 +1318,7 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 {
     AbsoluteClassPtr abs;
@@ -1349,7 +1349,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitFocusClassDeviceStruct(DeviceIntPtr dev)
 {
     FocusClassPtr focc;
@@ -1367,7 +1367,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc,
                                  KbdCtrlProcPtr controlProc)
 {
@@ -1395,7 +1395,7 @@ InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 {
     PtrFeedbackPtr feedc;
@@ -1430,7 +1430,7 @@ static IntegerCtrl defaultIntegerControl = {
 	DEFAULT_INT_DISPLAYED,
 	0};
 
-_X_EXPORT Bool
+Bool
 InitStringFeedbackClassDeviceStruct (
       DeviceIntPtr dev, StringCtrlProcPtr controlProc,
       int max_symbols, int num_symbols_supported, KeySym *symbols)
@@ -1470,7 +1470,7 @@ InitStringFeedbackClassDeviceStruct (
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc,
                                    BellCtrlProcPtr controlProc)
 {
@@ -1490,7 +1490,7 @@ InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitLedFeedbackClassDeviceStruct (DeviceIntPtr dev, LedCtrlProcPtr controlProc)
 {
     LedFeedbackPtr feedc;
@@ -1511,7 +1511,7 @@ InitLedFeedbackClassDeviceStruct (DeviceIntPtr dev, LedCtrlProcPtr controlProc)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr controlProc)
 {
     IntegerFeedbackPtr feedc;
@@ -1529,7 +1529,7 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
                         PtrCtrlProcPtr controlProc, int numMotionEvents,
                         int numAxes)
@@ -1542,7 +1542,7 @@ InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }
 
-_X_EXPORT Bool
+Bool
 InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms,
                          CARD8 pModifiers[], BellProcPtr bellProc,
                          KbdCtrlProcPtr controlProc)
@@ -1554,7 +1554,7 @@ InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms,
 	   InitKbdFeedbackClassDeviceStruct(dev, bellProc, controlProc));
 }
 
-_X_EXPORT void
+void
 SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
         unsigned count, ClientPtr client)
 {
@@ -1599,7 +1599,7 @@ SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
  *
  * @return TRUE if the device map is invalid, FALSE otherwise.
  */
-_X_EXPORT Bool
+Bool
 BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 {
     int i;
@@ -1616,7 +1616,7 @@ BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
     return FALSE;
 }
 
-_X_EXPORT Bool
+Bool
 AllModifierKeysAreUp(dev, map1, per1, map2, per2)
     DeviceIntPtr dev;
     CARD8 *map1, *map2;
@@ -1986,7 +1986,7 @@ ProcGetPointerMapping(ClientPtr client)
     return Success;
 }
 
-_X_EXPORT void
+void
 NoteLedState(DeviceIntPtr keybd, int led, Bool on)
 {
     KeybdCtrl *ctrl = &keybd->kbdfeed->ctrl;
@@ -1996,7 +1996,7 @@ NoteLedState(DeviceIntPtr keybd, int led, Bool on)
 	ctrl->leds &= ~((Leds)1 << (led - 1));
 }
 
-_X_EXPORT int
+int
 Ones(unsigned long mask)             /* HACKMEM 169 */
 {
     unsigned long y;
@@ -2391,7 +2391,7 @@ ProcGetPointerControl(ClientPtr client)
     return Success;
 }
 
-_X_EXPORT void
+void
 MaybeStopHint(DeviceIntPtr dev, ClientPtr client)
 {
     GrabPtr grab = dev->deviceGrab.grab;
@@ -2508,7 +2508,7 @@ ProcQueryKeymap(ClientPtr client)
  * We don't allow multi-layer hierarchies right now. You can't attach a slave
  * to another slave.
  */
-_X_EXPORT int
+int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
     ScreenPtr screen;
@@ -2597,7 +2597,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
  * Returns the device paired with the parent master if the given device is a
  * slave device.
  */
-_X_EXPORT DeviceIntPtr
+DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
     if (!dev->isMaster && dev->u.master)
@@ -2612,7 +2612,7 @@ GetPairedDevice(DeviceIntPtr dev)
  * Only allocates the devices, you will need to call ActivateDevice() and
  * EnableDevice() manually.
  */
-_X_EXPORT int
+int
 AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
 {
     DeviceIntPtr pointer;

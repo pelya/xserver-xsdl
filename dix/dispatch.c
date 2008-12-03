@@ -167,8 +167,8 @@ static ClientPtr grabClient;
 #define GrabKickout 2
 static int grabState = GrabNone;
 static long grabWaiters[mskcnt];
-_X_EXPORT CallbackListPtr ServerGrabCallback = NULL;
-_X_EXPORT HWEventQueuePtr checkForInput[2];
+CallbackListPtr ServerGrabCallback = NULL;
+HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
 
 static void KillAllClients(void);
@@ -177,15 +177,15 @@ static int nextFreeClientID; /* always MIN free client ID */
 
 static int	nClients;	/* number of authorized clients */
 
-_X_EXPORT CallbackListPtr ClientStateCallback;
+CallbackListPtr ClientStateCallback;
 
 /* dispatchException & isItTimeToYield must be declared volatile since they
  * are modified by signal handlers - otherwise optimizer may assume it doesn't
  * need to actually check value in memory when used and may miss changes from
  * signal handlers.
  */
-_X_EXPORT volatile char dispatchException = 0;
-_X_EXPORT volatile char isItTimeToYield;
+volatile char dispatchException = 0;
+volatile char isItTimeToYield;
 
 /* Various of the DIX function interfaces were not designed to allow
  * the client->errorValue to be set on BadValue and other errors.
@@ -197,14 +197,14 @@ XID clientErrorValue;   /* XXX this is a kludge */
 #define SAME_SCREENS(a, b) (\
     (a.pScreen == b.pScreen))
 
-_X_EXPORT void
+void
 SetInputCheck(HWEventQueuePtr c0, HWEventQueuePtr c1)
 {
     checkForInput[0] = c0;
     checkForInput[1] = c1;
 }
 
-_X_EXPORT void
+void
 UpdateCurrentTime(void)
 {
     TimeStamp systime;
@@ -223,7 +223,7 @@ UpdateCurrentTime(void)
 }
 
 /* Like UpdateCurrentTime, but can't call ProcessInputEvents */
-_X_EXPORT void
+void
 UpdateCurrentTimeIf(void)
 {
     TimeStamp systime;
@@ -242,11 +242,11 @@ UpdateCurrentTimeIf(void)
 #define SMART_SCHEDULE_DEFAULT_INTERVAL	20	    /* ms */
 #define SMART_SCHEDULE_MAX_SLICE	200	    /* ms */
 
-_X_EXPORT Bool SmartScheduleDisable = FALSE;
-_X_EXPORT long SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
-_X_EXPORT long SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
-_X_EXPORT long SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
-_X_EXPORT long SmartScheduleTime;
+Bool SmartScheduleDisable = FALSE;
+long SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
+long SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
+long SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
+long SmartScheduleTime;
 static ClientPtr   SmartLastClient;
 static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
 
@@ -470,7 +470,7 @@ Dispatch(void)
 
 #undef MAJOROP
 
-_X_EXPORT int
+int
 ProcBadRequest(ClientPtr client)
 {
     return (BadRequest);
@@ -1239,7 +1239,7 @@ ProcListFontsWithInfo(ClientPtr client)
  *
  *  \param value must conform to DeleteType
  */
-_X_EXPORT int
+int
 dixDestroyPixmap(pointer value, XID pid)
 {
     PixmapPtr pPixmap = (PixmapPtr)value;
@@ -3356,9 +3356,9 @@ InitProcVectors(void)
  *  then killed again, the client is really destroyed.
  *********************/
 
-_X_EXPORT char dispatchExceptionAtReset = DE_RESET;
+char dispatchExceptionAtReset = DE_RESET;
 
-_X_EXPORT void
+void
 CloseDownClient(ClientPtr client)
 {
     Bool really_close_down = client->clientGone ||
@@ -3458,7 +3458,7 @@ KillAllClients(void)
         }
 }
 
-_X_EXPORT void InitClient(ClientPtr client, int i, pointer ospriv)
+void InitClient(ClientPtr client, int i, pointer ospriv)
 {
     client->index = i;
     client->sequence = 0; 
@@ -3504,7 +3504,7 @@ _X_EXPORT void InitClient(ClientPtr client, int i, pointer ospriv)
  * Returns NULL if there are no free clients.
  *************************/
 
-_X_EXPORT ClientPtr NextAvailableClient(pointer ospriv)
+ClientPtr NextAvailableClient(pointer ospriv)
 {
     int i;
     ClientPtr client;
@@ -3704,7 +3704,7 @@ ProcEstablishConnection(ClientPtr client)
     return(client->noClientException);
 }
 
-_X_EXPORT void
+void
 SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode, 
                   XID resId, int errorCode)
 {
@@ -3720,7 +3720,7 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
     WriteEventsToClient (client, 1, (xEvent *)&rep);
 }
 
-_X_EXPORT void
+void
 MarkClientException(ClientPtr client)
 {
     client->noClientException = -1;

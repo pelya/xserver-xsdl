@@ -79,12 +79,12 @@ ModuleDescPtr LoadDriver(const char *, const char *, int, pointer, int *,
 ModuleDescPtr LoadModule(const char *, const char *, const char **,
 			 const char **, pointer, const XF86ModReqInfo *,
 			 int *, int *);
-ModuleDescPtr LoadSubModule(ModuleDescPtr, const char *,
-			    const char **, const char **, pointer,
-			    const XF86ModReqInfo *, int *, int *);
+pointer LoadSubModule(pointer, const char *,
+		      const char **, const char **, pointer,
+		      const XF86ModReqInfo *, int *, int *);
 ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
-void UnloadModule(ModuleDescPtr);
-void UnloadSubModule(ModuleDescPtr);
+void UnloadModule(pointer);
+void UnloadSubModule(pointer);
 void UnloadDriver(ModuleDescPtr);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);

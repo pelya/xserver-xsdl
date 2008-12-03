@@ -95,17 +95,17 @@ void FI1236_tune(FI1236Ptr f, CARD32 frequency);
 		"TUNER_set_frequency"
 
 #define xf86_Detect_FI1236		Detect_FI1236
-extern FI1236Ptr Detect_FI1236(I2CBusPtr b, I2CSlaveAddr addr);
+extern _X_EXPORT FI1236Ptr Detect_FI1236(I2CBusPtr b, I2CSlaveAddr addr);
 #define xf86_FI1236_set_tuner_type	FI1236_set_tuner_type
-extern void FI1236_set_tuner_type(FI1236Ptr f, int type);
+extern _X_EXPORT void FI1236_set_tuner_type(FI1236Ptr f, int type);
 #define xf86_TUNER_set_frequency	TUNER_set_frequency
-extern void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency);
+extern _X_EXPORT void TUNER_set_frequency(FI1236Ptr f, CARD32 frequency);
 
 #define xf86_FI1236_AFC			FI1236_AFC
-extern int FI1236_AFC(FI1236Ptr f);
+extern _X_EXPORT int FI1236_AFC(FI1236Ptr f);
 #define xf86_TUNER_get_afc_hint		TUNER_get_afc_hint
-extern int TUNER_get_afc_hint(FI1236Ptr f);
+extern _X_EXPORT int TUNER_get_afc_hint(FI1236Ptr f);
 #define xf86_fi1236_dump_status		fi1236_dump_status
-extern void fi1236_dump_status(FI1236Ptr f);
+extern _X_EXPORT void fi1236_dump_status(FI1236Ptr f);
 
 #endif

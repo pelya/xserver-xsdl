@@ -40,7 +40,7 @@
  */
 
 #ifndef __alpha__
-_X_EXPORT int
+int
 xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	     int Len)
 {

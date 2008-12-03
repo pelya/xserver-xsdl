@@ -66,7 +66,7 @@ SOFTWARE.
  * then call FillSpans to fill each rectangle.  We let FillSpans worry about
  * clipping to the destination
  */
-_X_EXPORT void
+void
 miPolyFillRect(
     DrawablePtr	pDrawable,
     GCPtr	pGC,

@@ -71,31 +71,31 @@ typedef struct {
 
 }  DRI2InfoRec, *DRI2InfoPtr;
 
-Bool DRI2ScreenInit(ScreenPtr	pScreen,
+extern _X_EXPORT Bool DRI2ScreenInit(ScreenPtr	pScreen,
 		    DRI2InfoPtr info);
 
-void DRI2CloseScreen(ScreenPtr pScreen);
+extern _X_EXPORT void DRI2CloseScreen(ScreenPtr pScreen);
 
-Bool DRI2Connect(ScreenPtr pScreen,
+extern _X_EXPORT Bool DRI2Connect(ScreenPtr pScreen,
 		 unsigned int driverType,
 		 int *fd,
 		 const char **driverName,
 		 const char **deviceName);
 
-Bool DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic);
+extern _X_EXPORT Bool DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic);
 
-int DRI2CreateDrawable(DrawablePtr pDraw);
+extern _X_EXPORT int DRI2CreateDrawable(DrawablePtr pDraw);
 
-void DRI2DestroyDrawable(DrawablePtr pDraw);
+extern _X_EXPORT void DRI2DestroyDrawable(DrawablePtr pDraw);
 
-DRI2BufferPtr DRI2GetBuffers(DrawablePtr pDraw,
+extern _X_EXPORT DRI2BufferPtr DRI2GetBuffers(DrawablePtr pDraw,
 			     int *width,
 			     int *height,
 			     unsigned int *attachments,
 			     int count,
 			     int *out_count);
 
-int DRI2CopyRegion(DrawablePtr pDraw,
+extern _X_EXPORT int DRI2CopyRegion(DrawablePtr pDraw,
 		   RegionPtr pRegion,
 		   unsigned int dest,
 		   unsigned int src);

@@ -58,7 +58,7 @@ static int PolyGlyphBltNonTEColorExpansion(ScrnInfoPtr pScrn,
 ********************************************************************/
 
 
-_X_EXPORT int
+int
 XAAPolyText8NonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr	pGC,
@@ -86,7 +86,7 @@ XAAPolyText8NonTEColorExpansion(
 }
 
 
-_X_EXPORT int
+int
 XAAPolyText16NonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr	pGC,
@@ -116,7 +116,7 @@ XAAPolyText16NonTEColorExpansion(
 }
 
 
-_X_EXPORT void
+void
 XAAImageText8NonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr	pGC,
@@ -141,7 +141,7 @@ XAAImageText8NonTEColorExpansion(
 }
 
 
-_X_EXPORT void
+void
 XAAImageText16NonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr	pGC,
@@ -177,7 +177,7 @@ XAAImageText16NonTEColorExpansion(
 ********************************************************************/
 
 
-_X_EXPORT void
+void
 XAAImageGlyphBltNonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -197,7 +197,7 @@ XAAImageGlyphBltNonTEColorExpansion(
 	pGC->pCompositeClip, nglyph, (unsigned char*)pglyphBase, ppci);
 }
 
-_X_EXPORT void
+void
 XAAPolyGlyphBltNonTEColorExpansion(
     DrawablePtr pDraw,
     GCPtr pGC,
@@ -541,7 +541,7 @@ PolyGlyphBltNonTEColorExpansion(
    indicates that part of the text string's bounding box is visible
    but not necessarily that any of the characters are visible */
 
-_X_EXPORT void XAANonTEGlyphRenderer(
+void XAANonTEGlyphRenderer(
    ScrnInfoPtr pScrn,
    int x, int y, int n,
    NonTEGlyphPtr glyphs,

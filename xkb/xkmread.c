@@ -43,7 +43,7 @@
 #include "xkbsrv.h"
 #include "xkbgeom.h"
 
-_X_EXPORT Atom
+Atom
 XkbInternAtom(char *str,Bool only_if_exists)
 {
     if (str==NULL)
@@ -51,7 +51,7 @@ XkbInternAtom(char *str,Bool only_if_exists)
     return MakeAtom(str,strlen(str),!only_if_exists);
 }
 
-_X_EXPORT char *
+char *
 _XkbDupString(char *str)
 {
 char *new;
@@ -1026,7 +1026,7 @@ XkbGeometrySizesRec	sizes;
     return nRead;
 }
 
-_X_EXPORT Bool
+Bool
 XkmProbe(FILE *file)
 {
 unsigned hdr,tmp;
@@ -1077,7 +1077,7 @@ unsigned i,size_toc;
 /***====================================================================***/
 
 #define	MAX_TOC	16
-_X_EXPORT unsigned
+unsigned
 XkmReadFile(FILE *file,unsigned need,unsigned want,XkbDescPtr *xkb)
 {
 register unsigned	i;

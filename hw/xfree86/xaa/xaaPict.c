@@ -48,7 +48,7 @@
 #include "xf86fbman.h"
 #include "servermd.h"
 
-_X_EXPORT Bool
+Bool
 XAAGetPixelFromRGBA (
     CARD32 *pixel,
     CARD16 red,
@@ -91,7 +91,7 @@ XAAGetPixelFromRGBA (
 }
 
 
-_X_EXPORT Bool
+Bool
 XAAGetRGBAFromPixel(
     CARD32 pixel,
     CARD16 *red,
@@ -154,7 +154,7 @@ XAAGetRGBAFromPixel(
 
 /* 8:8:8 + PICT_a8 -> 8:8:8:8 texture */
 
-_X_EXPORT void
+void
 XAA_888_plus_PICT_a8_to_8888 (
     CARD32 color,
     CARD8  *alphaPtr,   /* in bytes */
@@ -180,7 +180,7 @@ XAA_888_plus_PICT_a8_to_8888 (
     (pDraw->type == DRAWABLE_WINDOW || \
      (pDraw->type == DRAWABLE_PIXMAP && IS_OFFSCREEN_PIXMAP(pDraw)))
 
-_X_EXPORT Bool
+Bool
 XAADoComposite (
     CARD8      op,
     PicturePtr pSrc,
@@ -494,7 +494,7 @@ XAACompositeSrcCopy (PicturePtr pSrc,
     return;
 }
 
-_X_EXPORT void
+void
 XAAComposite (CARD8      op,
 	      PicturePtr pSrc,
 	      PicturePtr pMask,
@@ -562,7 +562,7 @@ XAAComposite (CARD8      op,
     XAA_RENDER_EPILOGUE(pScreen, Composite, XAAComposite);
 }
 
-_X_EXPORT Bool
+Bool
 XAADoGlyphs (CARD8         op,
 	   PicturePtr    pSrc,
 	   PicturePtr    pDst,
@@ -607,7 +607,7 @@ XAADoGlyphs (CARD8         op,
 }	   
 	 
 	
-_X_EXPORT void
+void
 XAAGlyphs (CARD8         op,
 	   PicturePtr    pSrc,
 	   PicturePtr    pDst,

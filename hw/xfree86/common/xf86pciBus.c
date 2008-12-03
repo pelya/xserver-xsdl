@@ -53,7 +53,7 @@
 #include "xf86RAC.h"
 
 /* Bus-specific globals */
-_X_EXPORT Bool pciSlotClaimed = FALSE;
+Bool pciSlotClaimed = FALSE;
 static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
 
@@ -97,7 +97,7 @@ static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw *
       || IS_VGA(c) )
 
 
-_X_EXPORT void
+void
 xf86FormatPciBusNumber(int busnum, char *buffer)
 {
     /* 'buffer' should be at least 8 characters long */
@@ -701,7 +701,7 @@ DisablePciBusAccess(void)
  * Otherwise, claim the slot for the screen requesting it.
  */
 
-_X_EXPORT int
+int
 xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
 		 int chipset, GDevPtr dev, Bool active)
 {
@@ -759,7 +759,7 @@ xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
  * in the correct format for a PCI bus id.
  */
 
-_X_EXPORT Bool
+Bool
 xf86ParsePciBusString(const char *busID, int *bus, int *device, int *func)
 {
     /*
@@ -833,7 +833,7 @@ xf86ParsePciBusString(const char *busID, int *bus, int *device, int *func)
  * Compare a BUS ID string with a PCI bus id.  Return TRUE if they match.
  */
 
-_X_EXPORT Bool
+Bool
 xf86ComparePciBusString(const char *busID, int bus, int device, int func)
 {
     int ibus, idevice, ifunc;
@@ -850,7 +850,7 @@ xf86ComparePciBusString(const char *busID, int bus, int device, int func)
  * is PCI and bus, dev and func numbers match.
  */
  
-_X_EXPORT Bool
+Bool
 xf86IsPrimaryPci(struct pci_device *pPci)
 {
     return ((primaryBus.type == BUS_PCI) && (pPci == primaryBus.id.pci));
@@ -859,7 +859,7 @@ xf86IsPrimaryPci(struct pci_device *pPci)
 /*
  * xf86GetPciInfoForEntity() -- Get the pciVideoRec of entity.
  */
-_X_EXPORT struct pci_device *
+struct pci_device *
 xf86GetPciInfoForEntity(int entityIndex)
 {
     EntityPtr p;
@@ -875,7 +875,7 @@ xf86GetPciInfoForEntity(int entityIndex)
  * xf86CheckPciMemBase() checks that the memory base value matches one of the
  * PCI base address register values for the given PCI device.
  */
-_X_EXPORT Bool
+Bool
 xf86CheckPciMemBase( struct pci_device * pPci, memType base )
 {
     int i;
@@ -890,7 +890,7 @@ xf86CheckPciMemBase( struct pci_device * pPci, memType base )
  * Check if the slot requested is free.  If it is already in use, return FALSE.
  */
 
-_X_EXPORT Bool
+Bool
 xf86CheckPciSlot(const struct pci_device *d)
 {
     int i;

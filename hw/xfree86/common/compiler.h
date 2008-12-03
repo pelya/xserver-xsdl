@@ -87,37 +87,37 @@
       && !(defined(__alpha__) && defined(linux)) \
       && !(defined(__ia64__) && defined(linux)) \
 
-extern void outb(unsigned short, unsigned char);
-extern void outw(unsigned short, unsigned short);
-extern void outl(unsigned short, unsigned int);
-extern unsigned int inb(unsigned short);
-extern unsigned int inw(unsigned short);
-extern unsigned int inl(unsigned short);
+extern _X_EXPORT void outb(unsigned short, unsigned char);
+extern _X_EXPORT void outw(unsigned short, unsigned short);
+extern _X_EXPORT void outl(unsigned short, unsigned int);
+extern _X_EXPORT unsigned int inb(unsigned short);
+extern _X_EXPORT unsigned int inw(unsigned short);
+extern _X_EXPORT unsigned int inl(unsigned short);
 
 #   else /* __sparc__,  __arm32__, __alpha__*/
 
-extern void outb(unsigned long, unsigned char);
-extern void outw(unsigned long, unsigned short);
-extern void outl(unsigned long, unsigned int);
-extern unsigned int inb(unsigned long);
-extern unsigned int inw(unsigned long);
-extern unsigned int inl(unsigned long);
+extern _X_EXPORT void outb(unsigned long, unsigned char);
+extern _X_EXPORT void outw(unsigned long, unsigned short);
+extern _X_EXPORT void outl(unsigned long, unsigned int);
+extern _X_EXPORT unsigned int inb(unsigned long);
+extern _X_EXPORT unsigned int inw(unsigned long);
+extern _X_EXPORT unsigned int inl(unsigned long);
 
 #   endif /* __sparc__,  __arm32__, __alpha__ */
 #  endif /* __arm__ */
 
-extern unsigned long ldq_u(unsigned long *);
-extern unsigned long ldl_u(unsigned int *);
-extern unsigned long ldw_u(unsigned short *);
-extern void stq_u(unsigned long, unsigned long *);
-extern void stl_u(unsigned long, unsigned int *);
-extern void stw_u(unsigned long, unsigned short *);
-extern void mem_barrier(void);
-extern void write_mem_barrier(void);
-extern void stl_brx(unsigned long, volatile unsigned char *, int);
-extern void stw_brx(unsigned short, volatile unsigned char *, int);
-extern unsigned long ldl_brx(volatile unsigned char *, int);
-extern unsigned short ldw_brx(volatile unsigned char *, int);
+extern _X_EXPORT unsigned long ldq_u(unsigned long *);
+extern _X_EXPORT unsigned long ldl_u(unsigned int *);
+extern _X_EXPORT unsigned long ldw_u(unsigned short *);
+extern _X_EXPORT void stq_u(unsigned long, unsigned long *);
+extern _X_EXPORT void stl_u(unsigned long, unsigned int *);
+extern _X_EXPORT void stw_u(unsigned long, unsigned short *);
+extern _X_EXPORT void mem_barrier(void);
+extern _X_EXPORT void write_mem_barrier(void);
+extern _X_EXPORT void stl_brx(unsigned long, volatile unsigned char *, int);
+extern _X_EXPORT void stw_brx(unsigned short, volatile unsigned char *, int);
+extern _X_EXPORT unsigned long ldl_brx(volatile unsigned char *, int);
+extern _X_EXPORT unsigned short ldw_brx(volatile unsigned char *, int);
 
 # endif
 
@@ -130,42 +130,42 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 /* note that the appropriate setup via "ioperm" needs to be done */
 /*  *before* any inx/outx is done. */
 
-extern void (*_alpha_outb)(char val, unsigned long port);
+extern _X_EXPORT void (*_alpha_outb)(char val, unsigned long port);
 static __inline__ void
 outb(unsigned long port, unsigned char val)
 {
     _alpha_outb(val, port);
 }
 
-extern void (*_alpha_outw)(short val, unsigned long port);
+extern _X_EXPORT void (*_alpha_outw)(short val, unsigned long port);
 static __inline__ void
 outw(unsigned long port, unsigned short val)
 {
     _alpha_outw(val, port);
 }
 
-extern void (*_alpha_outl)(int val, unsigned long port);
+extern _X_EXPORT void (*_alpha_outl)(int val, unsigned long port);
 static __inline__ void
 outl(unsigned long port, unsigned int val)
 {
     _alpha_outl(val, port);
 }
 
-extern unsigned int (*_alpha_inb)(unsigned long port);
+extern _X_EXPORT unsigned int (*_alpha_inb)(unsigned long port);
 static __inline__ unsigned int
 inb(unsigned long port)
 {
   return _alpha_inb(port);
 }
 
-extern unsigned int (*_alpha_inw)(unsigned long port);
+extern _X_EXPORT unsigned int (*_alpha_inw)(unsigned long port);
 static __inline__ unsigned int
 inw(unsigned long port)
 {
   return _alpha_inw(port);
 }
 
-extern unsigned int (*_alpha_inl)(unsigned long port);
+extern _X_EXPORT unsigned int (*_alpha_inl)(unsigned long port);
 static __inline__ unsigned int
 inl(unsigned long port)
 {
@@ -182,12 +182,12 @@ inl(unsigned long port)
 /* note that the appropriate setup via "ioperm" needs to be done */
 /*  *before* any inx/outx is done. */
 
-extern void outb(unsigned int port, unsigned char val);
-extern void outw(unsigned int port, unsigned short val);
-extern void outl(unsigned int port, unsigned int val);
-extern unsigned char inb(unsigned int port);
-extern unsigned short inw(unsigned int port);
-extern unsigned int inl(unsigned int port);
+extern _X_EXPORT void outb(unsigned int port, unsigned char val);
+extern _X_EXPORT void outw(unsigned int port, unsigned short val);
+extern _X_EXPORT void outl(unsigned int port, unsigned int val);
+extern _X_EXPORT unsigned char inb(unsigned int port);
+extern _X_EXPORT unsigned short inw(unsigned int port);
+extern _X_EXPORT unsigned int inl(unsigned int port);
 
 #    endif /* (__FreeBSD__ || __OpenBSD__ ) && !DO_PROTOTYPES */
 
@@ -458,12 +458,12 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    undef inb
 #    undef inw
 #    undef inl
-extern void outb(unsigned long port, unsigned char val);
-extern void outw(unsigned long port, unsigned short val);
-extern void outl(unsigned long port, unsigned int val);
-extern unsigned int inb(unsigned long port);
-extern unsigned int inw(unsigned long port);
-extern unsigned int inl(unsigned long port);
+extern _X_EXPORT void outb(unsigned long port, unsigned char val);
+extern _X_EXPORT void outw(unsigned long port, unsigned short val);
+extern _X_EXPORT void outl(unsigned long port, unsigned int val);
+extern _X_EXPORT unsigned int inb(unsigned long port);
+extern _X_EXPORT unsigned int inw(unsigned long port);
+extern _X_EXPORT unsigned int inl(unsigned long port);
  
 #   elif defined(linux) && defined(__amd64__)
  
@@ -870,7 +870,7 @@ static __inline__ void stw_u(unsigned long val, unsigned short *p)
 #     define PORT_SIZE short
 #    endif
 
-unsigned int IOPortBase;  /* Memory mapped I/O port area */
+_X_EXPORT unsigned int IOPortBase;  /* Memory mapped I/O port area */
 
 static __inline__ void
 outb(unsigned PORT_SIZE port, unsigned char val)
@@ -1038,7 +1038,7 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 #     define MAP_FAILED ((void *)-1)
 #    endif
 
-extern volatile unsigned char *ioBase;
+extern _X_EXPORT volatile unsigned char *ioBase;
 
 #if defined(linux) && defined(__powerpc64__)
 # include <linux/version.h>
@@ -1522,10 +1522,10 @@ inl(unsigned short port)
 
 # ifdef __alpha__
 /* entry points for Mmio memory access routines */
-extern int (*xf86ReadMmio8)(void *, unsigned long);
-extern int (*xf86ReadMmio16)(void *, unsigned long);
+extern _X_EXPORT int (*xf86ReadMmio8)(void *, unsigned long);
+extern _X_EXPORT int (*xf86ReadMmio16)(void *, unsigned long);
 #  ifndef STANDALONE_MMIO
-extern int (*xf86ReadMmio32)(void *, unsigned long);
+extern _X_EXPORT int (*xf86ReadMmio32)(void *, unsigned long);
 #  else
 /* Some DRI 3D drivers need MMIO_IN32. */
 static __inline__ int
@@ -1535,14 +1535,14 @@ xf86ReadMmio32(void *Base, unsigned long Offset)
 	return *(volatile unsigned int*)((unsigned long)Base+(Offset));
 }
 #  endif
-extern void (*xf86WriteMmio8)(int, void *, unsigned long);
-extern void (*xf86WriteMmio16)(int, void *, unsigned long);
-extern void (*xf86WriteMmio32)(int, void *, unsigned long);
-extern void (*xf86WriteMmioNB8)(int, void *, unsigned long);
-extern void (*xf86WriteMmioNB16)(int, void *, unsigned long);
-extern void (*xf86WriteMmioNB32)(int, void *, unsigned long);
-extern void xf86SlowBCopyFromBus(unsigned char *, unsigned char *, int);
-extern void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
+extern _X_EXPORT void (*xf86WriteMmio8)(int, void *, unsigned long);
+extern _X_EXPORT void (*xf86WriteMmio16)(int, void *, unsigned long);
+extern _X_EXPORT void (*xf86WriteMmio32)(int, void *, unsigned long);
+extern _X_EXPORT void (*xf86WriteMmioNB8)(int, void *, unsigned long);
+extern _X_EXPORT void (*xf86WriteMmioNB16)(int, void *, unsigned long);
+extern _X_EXPORT void (*xf86WriteMmioNB32)(int, void *, unsigned long);
+extern _X_EXPORT void xf86SlowBCopyFromBus(unsigned char *, unsigned char *, int);
+extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 
 /* Some macros to hide the system dependencies for MMIO accesses */
 /* Changed to kill noise generated by gcc's -Wcast-align */

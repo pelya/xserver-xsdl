@@ -785,7 +785,7 @@ XAALineJoin (
 }
 
 
-_X_EXPORT void
+void
 XAAPolylinesWideSolid (
    DrawablePtr  pDrawable,
    GCPtr        pGC,

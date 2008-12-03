@@ -132,7 +132,7 @@ xf86IsPipe (int fd)
     return S_ISFIFO(buf.st_mode);
 }
 
-_X_EXPORT int
+int
 xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
 {
     struct sigaction sa;
@@ -186,7 +186,7 @@ xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
     return 0;
 }
 
-_X_EXPORT int
+int
 xf86RemoveSIGIOHandler(int fd)
 {
     struct sigaction sa;
@@ -236,7 +236,7 @@ xf86RemoveSIGIOHandler(int fd)
     return ret;
 }
 
-_X_EXPORT int
+int
 xf86BlockSIGIO (void)
 {
     sigset_t	set, old;
@@ -249,7 +249,7 @@ xf86BlockSIGIO (void)
     return ret; 
 }
 
-_X_EXPORT void
+void
 xf86UnblockSIGIO (int wasset)
 {
     sigset_t	set;
@@ -262,7 +262,7 @@ xf86UnblockSIGIO (int wasset)
     }
 }
 
-_X_EXPORT void
+void
 xf86AssertBlockedSIGIO (char *where)
 {
     sigset_t	set, old;
@@ -275,7 +275,7 @@ xf86AssertBlockedSIGIO (char *where)
 
 /* XXX This is a quick hack for the benefit of xf86SetSilkenMouse() */
 
-_X_EXPORT int
+int
 xf86SIGIOSupported (void)
 {
     return 1;

@@ -179,7 +179,7 @@ SOFTWARE.
 #endif
 #endif
 
-_X_EXPORT Bool defeatAccessControl = FALSE;
+Bool defeatAccessControl = FALSE;
 
 #define acmp(a1, a2, len) memcmp((char *)(a1), (char *)(a2), len)
 #define acopy(a1, a2, len) memmove((char *)(a2), (char *)(a1), len)
@@ -240,7 +240,7 @@ static void siTypesInitialize(void);
  * local host to the access list
  */
 
-_X_EXPORT void
+void
 EnableLocalHost (void)
 {
     if (!UsingXdmcp)
@@ -253,7 +253,7 @@ EnableLocalHost (void)
 /*
  * called when authorization is enabled to keep us secure
  */
-_X_EXPORT void
+void
 DisableLocalHost (void)
 {
     HOST *self;
@@ -271,7 +271,7 @@ DisableLocalHost (void)
  * adds local hosts manually when needed
  */
 
-_X_EXPORT void
+void
 AccessUsingXdmcp (void)
 {
     UsingXdmcp = TRUE;
@@ -321,7 +321,7 @@ ifioctl (int fd, int cmd, char *arg)
  */
 
 #if !defined(SIOCGIFCONF) 
-_X_EXPORT void
+void
 DefineSelf (int fd)
 {
 #if !defined(TCPCONN) && !defined(STREAMSCONN) && !defined(UNIXCONN) && !defined(MNX_TCPCONN)
@@ -847,7 +847,7 @@ DefineSelf (int fd)
 #endif /* hpux && !HAS_IFREQ */
 
 #ifdef XDMCP
-_X_EXPORT void
+void
 AugmentSelf(pointer from, int len)
 {
     int family;
@@ -873,7 +873,7 @@ AugmentSelf(pointer from, int len)
 }
 #endif
 
-_X_EXPORT void
+void
 AddLocalHosts (void)
 {
     HOST    *self;
@@ -887,7 +887,7 @@ AddLocalHosts (void)
 }
 
 /* Reset access control list to initial hosts */
-_X_EXPORT void
+void
 ResetHosts (char *display)
 {
     register HOST	*host;
@@ -1095,7 +1095,7 @@ ResetHosts (char *display)
 }
 
 /* Is client on the local host */
-_X_EXPORT Bool LocalClient(ClientPtr client)
+Bool LocalClient(ClientPtr client)
 {
     int    		alen, family, notused;
     Xtransaddr		*from = NULL;
@@ -1132,7 +1132,7 @@ _X_EXPORT Bool LocalClient(ClientPtr client)
  * 
  * Used by XShm to test access rights to shared memory segments
  */
-_X_EXPORT int
+int
 LocalClientCred(ClientPtr client, int *pUid, int *pGid)
 {
     LocalClientCredRec *lcc;
@@ -1161,7 +1161,7 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
  * Used by localuser & localgroup ServerInterpreted access control forms below
  * Used by AuthAudit to log who local connections came from
  */
-_X_EXPORT int
+int
 GetLocalClientCreds(ClientPtr client, LocalClientCredRec **lccp)
 {
 #if defined(HAS_GETPEEREID) || defined(HAS_GETPEERUCRED) || defined(SO_PEERCRED)
@@ -1260,7 +1260,7 @@ GetLocalClientCreds(ClientPtr client, LocalClientCredRec **lccp)
 #endif
 }
 
-_X_EXPORT void
+void
 FreeLocalClientCreds(LocalClientCredRec *lcc)
 {
     if (lcc != NULL) {
@@ -1290,7 +1290,7 @@ AuthorizedClient(ClientPtr client)
 /* Add a host to the access control list.  This is the external interface
  * called from the dispatcher */
 
-_X_EXPORT int
+int
 AddHost (ClientPtr	client,
 	 int            family,
 	 unsigned       length,        /* of bytes in pAddr */
@@ -1335,7 +1335,7 @@ AddHost (ClientPtr	client,
     return BadAlloc;
 }
 
-_X_EXPORT Bool
+Bool
 ForEachHostInFamily (int	    family,
 		     Bool    (*func)(
 			 unsigned char * /* addr */,
@@ -1387,7 +1387,7 @@ NewHost (int		family,
 
 /* Remove a host from the access control list */
 
-_X_EXPORT int
+int
 RemoveHost (
     ClientPtr		client,
     int                 family,
@@ -1441,7 +1441,7 @@ RemoveHost (
 }
 
 /* Get all hosts in the access control list */
-_X_EXPORT int
+int
 GetHosts (
     pointer		*data,
     int			*pnHosts,
@@ -1540,7 +1540,7 @@ CheckAddr (
 /* Check if a host is not in the access control list. 
  * Returns 1 if host is invalid, 0 if we've found it. */
 
-_X_EXPORT int
+int
 InvalidHost (
     register struct sockaddr	*saddr,
     int				len,
@@ -1651,7 +1651,7 @@ ConvertAddr (
     }
 }
 
-_X_EXPORT int
+int
 ChangeAccessControl(
     ClientPtr client,
     int fEnabled)
@@ -1664,7 +1664,7 @@ ChangeAccessControl(
 }
 
 /* returns FALSE if xhost + in effect, else TRUE */
-_X_EXPORT int
+int
 GetAccessControl(void)
 {
     return AccessEnabled;

@@ -106,7 +106,7 @@ Equipment Corporation.
 /*
  * Compute the visibility of a shaped window
  */
-_X_EXPORT int
+int
 miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
                   BoxPtr rect, int x, int y)
 {
@@ -166,7 +166,7 @@ miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
 static GetRedirectBorderClipProcPtr	miGetRedirectBorderClipProc;
 static SetRedirectBorderClipProcPtr	miSetRedirectBorderClipProc;
 
-_X_EXPORT void
+void
 miRegisterRedirectBorderClipProc (SetRedirectBorderClipProcPtr setBorderClip,
 				  GetRedirectBorderClipProcPtr getBorderClip)
 {
@@ -589,7 +589,7 @@ miTreeObscured(
  *-----------------------------------------------------------------------
  */
 /*ARGSUSED*/
-_X_EXPORT int
+int
 miValidateTree (
     WindowPtr		pParent,    /* Parent to validate */
     WindowPtr		pChild,     /* First child of pParent that was

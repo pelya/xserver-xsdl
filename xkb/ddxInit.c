@@ -39,7 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <xkbsrv.h>
 #include <X11/extensions/XI.h>
 
-_X_EXPORT int
+int
 XkbDDXInitDevice(DeviceIntPtr dev)
 {
     return 1;

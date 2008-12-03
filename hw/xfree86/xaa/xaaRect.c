@@ -20,7 +20,7 @@
 */
 
 
-_X_EXPORT void
+void
 XAAPolyRectangleThinSolid(
     DrawablePtr  pDrawable,
     GCPtr        pGC,    

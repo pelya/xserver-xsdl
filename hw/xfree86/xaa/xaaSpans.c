@@ -32,7 +32,7 @@ static void XAARenderCacheExpandSpans(
 static void XAARenderPixmapCopySpans(
 	GCPtr, int, DDXPointPtr, int*, int, int, int);
 
-_X_EXPORT void
+void
 XAAFillSpans(
     DrawablePtr pDraw,
     GC		*pGC,
@@ -396,7 +396,7 @@ XAARenderPixmapCopySpans(
 	\****************/
 
 
-_X_EXPORT void 
+void
 XAAFillSolidSpans(
    ScrnInfoPtr pScrn,
    int fg, int rop,
@@ -432,7 +432,7 @@ XAAFillSolidSpans(
 	\***************/
 
 
-_X_EXPORT void 
+void
 XAAFillMono8x8PatternSpansScreenOrigin(
    ScrnInfoPtr pScrn,
    int fg, int bg, int rop,
@@ -491,7 +491,7 @@ XAAFillMono8x8PatternSpansScreenOrigin(
 }
 
 
-_X_EXPORT void 
+void
 XAAFillMono8x8PatternSpans(
    ScrnInfoPtr pScrn,
    int fg, int bg, int rop,
@@ -559,7 +559,7 @@ XAAFillMono8x8PatternSpans(
 	\****************/
 
 
-_X_EXPORT void 
+void
 XAAFillColor8x8PatternSpansScreenOrigin(
    ScrnInfoPtr pScrn,
    int rop,
@@ -605,7 +605,7 @@ XAAFillColor8x8PatternSpansScreenOrigin(
 }
 
 
-_X_EXPORT void 
+void
 XAAFillColor8x8PatternSpans(
    ScrnInfoPtr pScrn,
    int rop,
@@ -654,7 +654,7 @@ XAAFillColor8x8PatternSpans(
 	\*****************/
 
 
-_X_EXPORT void 
+void
 XAAFillCacheBltSpans(
    ScrnInfoPtr pScrn,
    int rop,
@@ -713,7 +713,7 @@ XAAFillCacheBltSpans(
 	\****************/
 
 
-_X_EXPORT void 
+void
 XAAFillCacheExpandSpans(
    ScrnInfoPtr pScrn,
    int fg, int bg, int rop,
@@ -774,7 +774,7 @@ XAAFillCacheExpandSpans(
 
 
 
-_X_EXPORT void
+void
 XAAClipAndRenderSpans(
     GCPtr pGC, 
     DDXPointPtr	ppt,

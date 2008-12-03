@@ -282,7 +282,7 @@ xf86freeVideoAdaptorList (XF86ConfVideoAdaptorPtr ptr)
 	}
 }
 
-_X_EXPORT XF86ConfVideoAdaptorPtr
+XF86ConfVideoAdaptorPtr
 xf86findVideoAdaptor (const char *ident, XF86ConfVideoAdaptorPtr p)
 {
 	while (p)

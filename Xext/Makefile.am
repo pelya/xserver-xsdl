@@ -62,6 +62,9 @@ endif
 XINERAMA_SRCS = panoramiX.c panoramiX.h panoramiXh.h panoramiXsrv.h panoramiXprocs.c panoramiXSwap.c 
 if XINERAMA
 BUILTIN_SRCS += $(XINERAMA_SRCS)
+if XORG
+sdk_HEADERS += panoramiXsrv.h panoramiX.h
+endif
 endif
 
 # X-ACE extension: provides hooks for building security policy extensions

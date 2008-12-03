@@ -8,5 +8,5 @@
 #include "xf86Priv.h"
 
 /* Dummy variables */
-_X_EXPORT xf86InfoRec xf86Info;
+xf86InfoRec xf86Info;
 

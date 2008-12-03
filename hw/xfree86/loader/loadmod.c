@@ -469,7 +469,7 @@ FindModule(const char *module, const char *dirname, const char **subdirlist,
     return name;
 }
 
-_X_EXPORT char **
+char **
 LoaderListDirs(const char **subdirlist, const char **patternlist)
 {
     char buf[PATH_MAX + 1];
@@ -563,7 +563,7 @@ LoaderListDirs(const char **subdirlist, const char **patternlist)
     return listing;
 }
 
-_X_EXPORT void
+void
 LoaderFreeDirList(char **list)
 {
     FreeStringList(list);
@@ -745,13 +745,14 @@ AddSibling(ModuleDescPtr head, ModuleDescPtr new)
     return (new);
 }
 
-_X_EXPORT ModuleDescPtr
-LoadSubModule(ModuleDescPtr parent, const char *module,
+pointer
+LoadSubModule(pointer _parent, const char *module,
 	      const char **subdirlist, const char **patternlist,
 	      pointer options, const XF86ModReqInfo * modreq,
 	      int *errmaj, int *errmin)
 {
     ModuleDescPtr submod;
+    ModuleDescPtr parent = (ModuleDescPtr)_parent;
 
     xf86MsgVerb(X_INFO, 3, "Loading sub module \"%s\"\n", module);
 
@@ -794,7 +795,7 @@ NewModuleDesc(const char *name)
     return (mdp);
 }
 
-_X_EXPORT ModuleDescPtr
+ModuleDescPtr
 DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
 {
     ModuleDescPtr ret;
@@ -1080,10 +1081,10 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
 		      modreq, errmaj, errmin, LD_FLAG_GLOBAL);
 }
 
-_X_EXPORT void
-UnloadModule(ModuleDescPtr mod)
+void
+UnloadModule(pointer mod)
 {
-    UnloadModuleOrDriver(mod);
+    UnloadModuleOrDriver((ModuleDescPtr)mod);
 }
 
 static void
@@ -1112,9 +1113,11 @@ UnloadModuleOrDriver(ModuleDescPtr mod)
 #endif
 }
 
-_X_EXPORT void
-UnloadSubModule(ModuleDescPtr mod)
+void
+UnloadSubModule(pointer _mod)
 {
+    ModuleDescPtr mod = (ModuleDescPtr)_mod;
+
     if (mod == NULL || mod->name == NULL)
 	return;
 
@@ -1160,7 +1163,7 @@ RemoveChild(ModuleDescPtr child)
     return;
 }
 
-_X_EXPORT void
+void
 LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 {
     const char *msg;

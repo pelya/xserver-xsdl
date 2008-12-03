@@ -60,7 +60,7 @@ typedef struct
 
 
 /* this plugs into pScreen->ModifyPixmapHeader */
-_X_EXPORT Bool
+Bool
 miModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
                      int bitsPerPixel, int devKind, pointer pPixData)
 {
@@ -132,7 +132,7 @@ miCloseScreen (int iScreen, ScreenPtr pScreen)
  * possible private-requesting modules have been inited; we create the
  * screen pixmap here.
  */
-_X_EXPORT Bool
+Bool
 miCreateScreenResources(ScreenPtr pScreen)
 {
     miScreenInitParmsPtr pScrInitParms;
@@ -171,7 +171,7 @@ miCreateScreenResources(ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 miScreenDevPrivateInit(ScreenPtr pScreen, int width, pointer pbits)
 {
     miScreenInitParmsPtr pScrInitParms;
@@ -202,7 +202,7 @@ miSetScreenPixmap(PixmapPtr pPix)
 	pPix->drawable.pScreen->devPrivate = (pointer)pPix;
 }
 
-_X_EXPORT Bool
+Bool
 miScreenInit(
     ScreenPtr pScreen,
     pointer pbits,		/* pointer to screen bits */
@@ -296,16 +296,16 @@ miScreenInit(
 static int privateKeyIndex;
 static DevPrivateKey privateKey = &privateKeyIndex;
 
-_X_EXPORT DevPrivateKey
+DevPrivateKey
 miAllocateGCPrivateIndex()
 {
     return privateKey;
 }
 
 static int miZeroLineScreenKeyIndex;
-_X_EXPORT DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKeyIndex;
+DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKeyIndex;
 
-_X_EXPORT void
+void
 miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)
 {
     dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);

@@ -27,14 +27,14 @@ static void XAAChangeClip(GCPtr pGC, int type, pointer pvalue, int nrects);
 static void XAADestroyClip(GCPtr pGC);
 static void XAACopyClip(GCPtr pgcDst, GCPtr pgcSrc);
 
-_X_EXPORT GCFuncs XAAGCFuncs = {
+GCFuncs XAAGCFuncs = {
     XAAValidateGC, XAAChangeGC, XAACopyGC, XAADestroyGC,
     XAAChangeClip, XAADestroyClip, XAACopyClip
 };
 
 extern GCOps XAAPixmapOps;
 
-_X_EXPORT Bool
+Bool
 XAACreateGC(GCPtr pGC)
 {
     ScreenPtr    pScreen = pGC->pScreen;

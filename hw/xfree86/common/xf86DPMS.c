@@ -54,7 +54,7 @@ static int DPMSCount = 0;
 #endif
 
 
-_X_EXPORT Bool
+Bool
 xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 {
 #ifdef DPMSExtension
@@ -144,7 +144,7 @@ DPMSClose(int i, ScreenPtr pScreen)
  *	Device dependent DPMS mode setting hook.  This is called whenever
  *	the DPMS mode is to be changed.
  */
-_X_EXPORT int
+int
 DPMSSet(ClientPtr client, int level)
 {
     int rc, i;
@@ -180,7 +180,7 @@ DPMSSet(ClientPtr client, int level)
  * DPMSSupported --
  *	Return TRUE if any screen supports DPMS.
  */
-_X_EXPORT Bool
+Bool
 DPMSSupported(void)
 {
     int i;
@@ -217,7 +217,7 @@ DPMSSupported(void)
  *	 2. It isn't clear that this function is ever used or what it should
  *	    return.
  */
-_X_EXPORT int
+int
 DPMSGet(int *level)
 {
     return DPMSPowerLevel;

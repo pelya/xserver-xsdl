@@ -262,7 +262,7 @@ static int RACGCKeyIndex;
 static DevPrivateKey RACGCKey = &RACGCKeyIndex;
 
 
-_X_EXPORT Bool 
+Bool
 xf86RACInit(ScreenPtr pScreen, unsigned int flag)
 {
     ScrnInfoPtr pScrn;

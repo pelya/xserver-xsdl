@@ -93,7 +93,7 @@ SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
 /**
  * Init struct so it should match the average case
  */
-_X_EXPORT void
+void
 InitVelocityData(DeviceVelocityPtr s)
 {
     memset(s, 0, sizeof(DeviceVelocityRec));
@@ -123,7 +123,7 @@ FreeVelocityData(DeviceVelocityPtr s){
 /*
  *  dix uninit helper, called through scheme
  */
-_X_EXPORT void
+void
 AccelerationDefaultCleanup(DeviceIntPtr pDev)
 {
     /*sanity check*/
@@ -149,7 +149,7 @@ and is being coupled to account for fast-changing input, or you have 'one for
 every situation'. You might want to have tighter coupling then, e.g. 0.1.
 In the filter stats, you can see if a reasonable filter useage emerges.
 */
-_X_EXPORT void
+void
 InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages, int lutsize)
 {
     int fn;
@@ -683,7 +683,7 @@ LinearProfile(
  * would be a good place, since FreeVelocityData() also calls this with -1.
  * returns FALSE (0) if profile number is unavailable.
  */
-_X_EXPORT int
+int
 SetAccelerationProfile(
     DeviceVelocityPtr s,
     int profile_num)
@@ -746,7 +746,7 @@ SetAccelerationProfile(
  * it should do init/uninit in the driver (ie. with DEVICE_INIT and friends).
  * Users may override or choose it.
  */
-_X_EXPORT void
+void
 SetDeviceSpecificAccelerationProfile(
         DeviceVelocityPtr s,
         PointerAccelerationProfileFunc profile)
@@ -759,7 +759,7 @@ SetDeviceSpecificAccelerationProfile(
  * Use this function to obtain a DeviceVelocityPtr for a device. Will return NULL if
  * the predictable acceleration scheme is not in effect.
  */
-_X_EXPORT DeviceVelocityPtr
+DeviceVelocityPtr
 GetDevicePredictableAccelData(
 	DeviceIntPtr pDev)
 {
@@ -787,7 +787,7 @@ GetDevicePredictableAccelData(
  * This version employs a velocity approximation algorithm to
  * enable fine-grained predictable acceleration profiles.
  */
-_X_EXPORT void
+void
 acceleratePointerPredictable(
     DeviceIntPtr pDev,
     int first_valuator,
@@ -863,7 +863,7 @@ acceleratePointerPredictable(
  * Originally a part of xf86PostMotionEvent; modifies valuators
  * in-place. Retained mostly for embedded scenarios.
  */
-_X_EXPORT void
+void
 acceleratePointerLightweight(
     DeviceIntPtr pDev,
     int first_valuator,

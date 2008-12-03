@@ -48,14 +48,14 @@
  * re-arm the signal here. All we need to do now is record the fact that
  * we got the signal. XFree86 handles the rest.
  */
-_X_EXPORT void
+void
 xf86VTRequest(int sig)
 {
   xf86Info.vtRequestsPending = TRUE;
   return;
 }
 
-_X_EXPORT Bool
+Bool
 xf86VTSwitchPending(void)
 {
   return(xf86Info.vtRequestsPending ? TRUE : FALSE);
@@ -69,7 +69,7 @@ xf86VTSwitchPending(void)
 static int sco_ledstatus = -1;
 static unsigned int sco_ledstate = 0;
 
-_X_EXPORT Bool
+Bool
 xf86VTSwitchAway(void)
 {
   ev_flush();
@@ -90,7 +90,7 @@ xf86VTSwitchAway(void)
  * and we need to restore the LED settings to what they were when we
  * switched away.
  */
-_X_EXPORT Bool
+Bool
 xf86VTSwitchTo(void)
 {
   ev_resume();

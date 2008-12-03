@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-_X_EXPORT void
+void
 fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
 	    GCPtr	pGC,
@@ -100,7 +100,7 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
     fbFinishAccess (pSrcDrawable);
 }
 
-_X_EXPORT void
+void
 fbCopy1toN (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
 	    GCPtr	pGC,
@@ -173,7 +173,7 @@ fbCopy1toN (DrawablePtr	pSrcDrawable,
     fbFinishAccess (pSrcDrawable);
 }
 
-_X_EXPORT void
+void
 fbCopyNto1 (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
 	    GCPtr	pGC,
@@ -289,7 +289,7 @@ fbCopyNto1 (DrawablePtr	pSrcDrawable,
     }
 }
 
-_X_EXPORT void
+void
 fbCopyRegion (DrawablePtr   pSrcDrawable,
 	      DrawablePtr   pDstDrawable,
 	      GCPtr	    pGC,
@@ -407,7 +407,7 @@ fbCopyRegion (DrawablePtr   pSrcDrawable,
 	xfree (pboxNew2);
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 fbDoCopy (DrawablePtr	pSrcDrawable,
 	  DrawablePtr	pDstDrawable,
 	  GCPtr		pGC,
@@ -612,7 +612,7 @@ fbDoCopy (DrawablePtr	pSrcDrawable,
     return prgnExposed;
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 fbCopyArea (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
 	    GCPtr	pGC,
@@ -635,7 +635,7 @@ fbCopyArea (DrawablePtr	pSrcDrawable,
 		     widthSrc, heightSrc, xOut, yOut, copy, 0, 0);
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 fbCopyPlane (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,
 	     GCPtr	    pGC,

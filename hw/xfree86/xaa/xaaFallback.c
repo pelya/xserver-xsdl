@@ -332,7 +332,7 @@ XAAPushPixelsFallback(
     XAA_GC_OP_EPILOGUE(pGC);
 }
 
-_X_EXPORT GCOps XAAFallbackOps = {
+GCOps XAAFallbackOps = {
     XAAFillSpansFallback, XAASetSpansFallback, 
     XAAPutImageFallback, XAACopyAreaFallback, 
     XAACopyPlaneFallback, XAAPolyPointFallback, 
@@ -346,7 +346,7 @@ _X_EXPORT GCOps XAAFallbackOps = {
     {NULL}		/* devPrivate */
 };
 
-_X_EXPORT GCOps *XAAGetFallbackOps(void)
+GCOps *XAAGetFallbackOps(void)
 {
     return &XAAFallbackOps;
 }

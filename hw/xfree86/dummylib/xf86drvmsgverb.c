@@ -12,7 +12,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-_X_EXPORT void
+void
 xf86DrvMsgVerb(int i, MessageType type, int verb, const char *format, ...)
 {
     va_list ap;

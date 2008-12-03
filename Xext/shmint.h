@@ -30,10 +30,14 @@
 #include "pixmap.h"
 #include "gc.h"
 
-void
+extern _X_EXPORT void
 ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs);
 
-void
+extern _X_EXPORT void
 ShmRegisterFbFuncs(ScreenPtr pScreen);
+
+extern _X_EXPORT RESTYPE ShmSegType;
+extern _X_EXPORT int ShmCompletionCode;
+extern _X_EXPORT int BadShmSegCode;
 
 #endif /* _SHMINT_H_ */

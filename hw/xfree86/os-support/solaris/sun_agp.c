@@ -66,7 +66,7 @@ static Bool initDone = FALSE;
  * Close /dev/agpgart.  This frees all associated memory allocated during
  * this server generation.
  */
-_X_EXPORT Bool
+Bool
 xf86GARTCloseScreen(int screenNum)
 {
 	if (gartFd != -1) {
@@ -110,14 +110,14 @@ GARTInit(int screenNum)
 	return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 xf86AgpGARTSupported(void)
 {
 	return (GARTInit(-1));
 
 }
 
-_X_EXPORT AgpInfoPtr
+AgpInfoPtr
 xf86GetAGPInfo(int screenNum)
 {
 	agp_info_t agpinf;
@@ -150,7 +150,7 @@ xf86GetAGPInfo(int screenNum)
 	return info;
 }
 
-_X_EXPORT Bool
+Bool
 xf86AcquireGART(int screenNum)
 {
 
@@ -171,7 +171,7 @@ xf86AcquireGART(int screenNum)
 	return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 xf86ReleaseGART(int screenNum)
 {
 
@@ -200,7 +200,7 @@ xf86ReleaseGART(int screenNum)
 	return FALSE;
 }
 
-_X_EXPORT int
+int
 xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 			unsigned long *physical)
 {
@@ -238,7 +238,7 @@ xf86AllocateGARTMemory(int screenNum, unsigned long size, int type,
 	return alloc.agpa_key;
 }
 
-_X_EXPORT Bool
+Bool
 xf86DeallocateGARTMemory(int screenNum, int key)
 {
 	if (!GARTInit(screenNum) || (acquiredScreen != screenNum))
@@ -255,7 +255,7 @@ xf86DeallocateGARTMemory(int screenNum, int key)
 }
 
 /* Bind GART memory with "key" at "offset" */
-_X_EXPORT Bool
+Bool
 xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 {
 	agp_bind_t bind;
@@ -291,7 +291,7 @@ xf86BindGARTMemory(int screenNum, int key, unsigned long offset)
 }
 
 /* Unbind GART memory with "key" */
-_X_EXPORT Bool
+Bool
 xf86UnbindGARTMemory(int screenNum, int key)
 {
 	agp_unbind_t unbind;
@@ -317,7 +317,7 @@ xf86UnbindGARTMemory(int screenNum, int key)
 
 
 /* XXX Interface may change. */
-_X_EXPORT Bool
+Bool
 xf86EnableAGP(int screenNum, CARD32 mode)
 {
 	agp_setup_t setup;

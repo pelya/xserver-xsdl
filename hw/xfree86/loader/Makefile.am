@@ -6,7 +6,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../dixmods/extmod \
 	   -I$(srcdir)/../ramdac
 
 #AM_LDFLAGS = -r
-AM_CFLAGS = -DIN_LOADER $(DIX_CFLAGS) $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 EXTRA_DIST = \
 	dlloader.h \

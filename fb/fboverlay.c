@@ -36,7 +36,7 @@
 static int fbOverlayScreenPrivateKeyIndex;
 static DevPrivateKey fbOverlayScreenPrivateKey = &fbOverlayScreenPrivateKeyIndex;
 
-_X_EXPORT DevPrivateKey fbOverlayGetScreenPrivateKey(void)
+DevPrivateKey fbOverlayGetScreenPrivateKey(void)
 {
     return fbOverlayScreenPrivateKey;
 }
@@ -45,7 +45,7 @@ _X_EXPORT DevPrivateKey fbOverlayGetScreenPrivateKey(void)
  * Replace this if you want something supporting
  * multiple overlays with the same depth
  */
-_X_EXPORT Bool
+Bool
 fbOverlayCreateWindow(WindowPtr pWin)
 {
     FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pWin->drawable.pScreen);
@@ -84,7 +84,7 @@ fbOverlayCreateWindow(WindowPtr pWin)
     return FALSE;
 }
 
-_X_EXPORT Bool
+Bool
 fbOverlayCloseScreen (int iScreen, ScreenPtr pScreen)
 {
     FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
@@ -101,7 +101,7 @@ fbOverlayCloseScreen (int iScreen, ScreenPtr pScreen)
 /*
  * Return layer containing this window
  */
-_X_EXPORT int
+int
 fbOverlayWindowLayer(WindowPtr pWin)
 {
     FbOverlayScrPrivPtr pScrPriv = fbOverlayGetScrPriv(pWin->drawable.pScreen);
@@ -114,7 +114,7 @@ fbOverlayWindowLayer(WindowPtr pWin)
     return 0;
 }
 
-_X_EXPORT Bool
+Bool
 fbOverlayCreateScreenResources(ScreenPtr pScreen)
 {
     int			i;
@@ -153,7 +153,7 @@ fbOverlayCreateScreenResources(ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 fbOverlayPaintKey (DrawablePtr	pDrawable,
 		   RegionPtr	pRegion,
 		   CARD32	pixel,
@@ -166,7 +166,7 @@ fbOverlayPaintKey (DrawablePtr	pDrawable,
 /*
  * Track visible region for each layer
  */
-_X_EXPORT void
+void
 fbOverlayUpdateLayerRegion (ScreenPtr	pScreen,
 			    int		layer,
 			    RegionPtr	prgn)
@@ -213,7 +213,7 @@ fbOverlayUpdateLayerRegion (ScreenPtr	pScreen,
 /*
  * Copy only areas in each layer containing real bits
  */
-_X_EXPORT void
+void
 fbOverlayCopyWindow(WindowPtr	pWin,
 		    DDXPointRec	ptOldOrg,
 		    RegionPtr	prgnSrc)
@@ -267,7 +267,7 @@ fbOverlayCopyWindow(WindowPtr	pWin,
     REGION_UNINIT(pScreen, &rgnDst);
 }   
 
-_X_EXPORT void
+void
 fbOverlayWindowExposures (WindowPtr	pWin,
 			  RegionPtr	prgn,
 			  RegionPtr	other_exposed)
@@ -278,7 +278,7 @@ fbOverlayWindowExposures (WindowPtr	pWin,
     miWindowExposures(pWin, prgn, other_exposed);
 }
 
-_X_EXPORT Bool
+Bool
 fbOverlaySetupScreen(ScreenPtr	pScreen,
 		     pointer	pbits1,
 		     pointer	pbits2,
@@ -325,7 +325,7 @@ fb24_32OverlayCreateScreenResources(ScreenPtr pScreen)
     return retval;
 }
 
-_X_EXPORT Bool
+Bool
 fbOverlayFinishScreenInit(ScreenPtr	pScreen,
 			  pointer	pbits1,
 			  pointer	pbits2,

@@ -34,7 +34,7 @@ extern int RenderErrBase;
 #include <gcstruct.h>
 #include <window.h>
 
-_X_EXPORT RESTYPE RegionResType;
+RESTYPE RegionResType;
 
 static int
 RegionResFree (pointer data, XID id)

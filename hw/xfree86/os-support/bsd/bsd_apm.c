@@ -108,7 +108,7 @@ bsdPMConfirmEventToOs(int fd, pmEvent event)
     }
 }
 
-_X_EXPORT PMClose
+PMClose
 xf86OSPMOpen(void)
 {
     int fd;

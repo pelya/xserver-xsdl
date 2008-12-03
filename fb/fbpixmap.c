@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-_X_EXPORT PixmapPtr
+PixmapPtr
 fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp,
 		   unsigned usage_hint)
 {
@@ -82,7 +82,7 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp,
     return pPixmap;
 }
 
-_X_EXPORT PixmapPtr
+PixmapPtr
 fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth,
 		unsigned usage_hint)
 {
@@ -95,7 +95,7 @@ fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth,
     return fbCreatePixmapBpp (pScreen, width, height, depth, bpp, usage_hint);
 }
 
-_X_EXPORT Bool
+Bool
 fbDestroyPixmap (PixmapPtr pPixmap)
 {
     if(--pPixmap->refcnt)
@@ -137,7 +137,7 @@ if (((rx1) < (rx2)) && ((ry1) < (ry2)) &&			\
  * Then it coalesces the current line with the previous if they have boxes
  * at the same X coordinates.
  */
-_X_EXPORT RegionPtr
+RegionPtr
 fbPixmapToRegion(PixmapPtr pPix)
 {
     register RegionPtr	pReg;
@@ -348,7 +348,7 @@ fbValidateBits (FbStip *bits, int stride, FbStip data)
     }
 }
 
-_X_EXPORT void
+void
 fbValidateDrawable (DrawablePtr pDrawable)
 {
     FbStip	*bits, *first, *last;
@@ -368,14 +368,14 @@ fbValidateDrawable (DrawablePtr pDrawable)
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fbSetBits (FbStip *bits, int stride, FbStip data)
 {
     while (stride--)
 	*bits++ = data;
 }
 
-_X_EXPORT void
+void
 fbInitializeDrawable (DrawablePtr pDrawable)
 {
     FbStip  *bits, *first, *last;

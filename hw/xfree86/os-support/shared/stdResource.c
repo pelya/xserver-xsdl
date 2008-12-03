@@ -48,7 +48,7 @@
 #define xf86StdAccResFromOS xf86AccResFromOS
 #endif
 
-_X_EXPORT resPtr
+resPtr
 xf86StdAccResFromOS(resPtr ret)
 {
     resRange range;

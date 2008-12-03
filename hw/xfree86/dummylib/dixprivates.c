@@ -11,7 +11,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-_X_EXPORT pointer *
+pointer *
 dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 {
     return NULL;	/* not used */

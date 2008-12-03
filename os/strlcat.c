@@ -30,7 +30,7 @@
  * Returns strlen(src) + MIN(siz, strlen(initial dst)).
  * If retval >= siz, truncation occurred.
  */
-_X_EXPORT size_t
+size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
 	register char *d = dst;

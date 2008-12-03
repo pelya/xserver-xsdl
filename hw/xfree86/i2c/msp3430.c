@@ -106,7 +106,7 @@ xf86DrvMsg(m->d.pI2CBus->scrnIndex, X_INFO, "MSP34xx: control=0x%02x%02x\n",
 #endif
 
 /* wrapper */
-_X_EXPORT void InitMSP3430(MSP3430Ptr m)
+void InitMSP3430(MSP3430Ptr m)
 {
   #if __MSPDEBUG__ > 1
   xf86DrvMsg(m->d.pI2CBus->scrnIndex,X_INFO,"InitMSP3430(m->connector=%d, m->standard=%d, m->chip_family=%d)\n",
@@ -129,7 +129,7 @@ _X_EXPORT void InitMSP3430(MSP3430Ptr m)
 | common functions for all MSP34xx chips 
 |----------------------------------------------------------------*/
 
-_X_EXPORT MSP3430Ptr DetectMSP3430(I2CBusPtr b, I2CSlaveAddr addr)
+MSP3430Ptr DetectMSP3430(I2CBusPtr b, I2CSlaveAddr addr)
 {
    MSP3430Ptr m;
    I2CByte a;
@@ -249,7 +249,7 @@ _X_EXPORT MSP3430Ptr DetectMSP3430(I2CBusPtr b, I2CSlaveAddr addr)
    return m;  
 }
 
-_X_EXPORT void ResetMSP3430(MSP3430Ptr m)
+void ResetMSP3430(MSP3430Ptr m)
 {
     /* Reset the MSP3430 */
     SetMSP3430Control(m, 0x00, 0x80, 0x00);
@@ -262,7 +262,7 @@ _X_EXPORT void ResetMSP3430(MSP3430Ptr m)
 	m->volume=0;
 }   
 
-_X_EXPORT void MSP3430SetVolume (MSP3430Ptr m, CARD8 value)
+void MSP3430SetVolume (MSP3430Ptr m, CARD8 value)
 {
     CARD8 result;
 #if 0
@@ -287,7 +287,7 @@ _X_EXPORT void MSP3430SetVolume (MSP3430Ptr m, CARD8 value)
 }
 
 
-_X_EXPORT void MSP3430SetSAP (MSP3430Ptr m, int mode)
+void MSP3430SetSAP (MSP3430Ptr m, int mode)
 {
 	xf86DrvMsg(m->d.pI2CBus->scrnIndex, X_INFO, "Put actual code to change SAP here\n");
 

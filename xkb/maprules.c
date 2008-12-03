@@ -833,7 +833,7 @@ int	len, ndx;
 
 /***====================================================================***/
 
-_X_EXPORT Bool
+Bool
 XkbRF_GetComponents(	XkbRF_RulesPtr		rules,
 			XkbRF_VarDefsPtr	defs,
 			XkbComponentNamesPtr	names)
@@ -868,7 +868,7 @@ XkbRF_GetComponents(	XkbRF_RulesPtr		rules,
 		names->compat && names->geometry ) || names->keymap;
 }
 
-_X_EXPORT XkbRF_RulePtr
+XkbRF_RulePtr
 XkbRF_AddRule(XkbRF_RulesPtr	rules)
 {
     if (rules->sz_rules<1) {
@@ -890,7 +890,7 @@ XkbRF_AddRule(XkbRF_RulesPtr	rules)
     return &rules->rules[rules->num_rules++];
 }
 
-_X_EXPORT XkbRF_GroupPtr
+XkbRF_GroupPtr
 XkbRF_AddGroup(XkbRF_RulesPtr	rules)
 {
     if (rules->sz_groups<1) {
@@ -912,7 +912,7 @@ XkbRF_AddGroup(XkbRF_RulesPtr	rules)
     return &rules->groups[rules->num_groups++];
 }
 
-_X_EXPORT Bool
+Bool
 XkbRF_LoadRules(FILE *file, XkbRF_RulesPtr rules)
 {
 InputLine	line;
@@ -945,7 +945,7 @@ XkbRF_GroupRec  tgroup,*group;
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbRF_LoadRulesByName(char *base,char *locale,XkbRF_RulesPtr rules)
 {
 FILE *		file;
@@ -986,7 +986,7 @@ Bool		ok;
 #define HEAD_OPTION	4
 #define	HEAD_EXTRA	5
 
-_X_EXPORT XkbRF_VarDescPtr
+XkbRF_VarDescPtr
 XkbRF_AddVarDesc(XkbRF_DescribeVarsPtr	vars)
 {
     if (vars->sz_desc<1) {
@@ -1008,7 +1008,7 @@ XkbRF_AddVarDesc(XkbRF_DescribeVarsPtr	vars)
     return &vars->desc[vars->num_desc++];
 }
 
-_X_EXPORT XkbRF_VarDescPtr
+XkbRF_VarDescPtr
 XkbRF_AddVarDescCopy(XkbRF_DescribeVarsPtr vars,XkbRF_VarDescPtr from)
 {
 XkbRF_VarDescPtr	nd;
@@ -1020,7 +1020,7 @@ XkbRF_VarDescPtr	nd;
     return nd;
 }
 
-_X_EXPORT XkbRF_DescribeVarsPtr 
+XkbRF_DescribeVarsPtr
 XkbRF_AddVarToDescribe(XkbRF_RulesPtr rules,char *name)
 {
     if (rules->sz_extra<1) {
@@ -1048,7 +1048,7 @@ XkbRF_AddVarToDescribe(XkbRF_RulesPtr rules,char *name)
     return &rules->extra[rules->num_extra++];
 }
 
-_X_EXPORT Bool
+Bool
 XkbRF_LoadDescriptions(FILE *file,XkbRF_RulesPtr rules)
 {
 InputLine		line;
@@ -1144,7 +1144,7 @@ int			len,headingtype,extra_ndx = 0;
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbRF_LoadDescriptionsByName(char *base,char *locale,XkbRF_RulesPtr rules)
 {
 FILE *		file;
@@ -1179,7 +1179,7 @@ Bool		ok;
 
 /***====================================================================***/
 
-_X_EXPORT XkbRF_RulesPtr
+XkbRF_RulesPtr
 XkbRF_Load(char *base,char *locale,Bool wantDesc,Bool wantRules)
 {
 XkbRF_RulesPtr	rules;
@@ -1199,7 +1199,7 @@ XkbRF_RulesPtr	rules;
     return rules;
 }
 
-_X_EXPORT XkbRF_RulesPtr
+XkbRF_RulesPtr
 XkbRF_Create(int szRules,int szExtra) 
 {
 XkbRF_RulesPtr rules;
@@ -1247,7 +1247,7 @@ register int i;
     return;
 }
 
-_X_EXPORT void
+void
 XkbRF_Free(XkbRF_RulesPtr rules,Bool freeRules)
 {
 int		i;

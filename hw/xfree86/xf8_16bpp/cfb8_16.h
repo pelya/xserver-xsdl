@@ -28,7 +28,7 @@
 
 /* this has to stay misnamed for ABI reasons */
 
-_X_EXPORT Bool
+extern _X_EXPORT Bool
 cfb8_16ScreenInit(ScreenPtr pScreen, pointer pbits16, pointer pbits8,
                   int xsize, int ysize, int dpix, int dpiy,
                   int width16, int width8);

@@ -93,15 +93,15 @@ typedef struct {
 /*----------------------------------------------------------*/
 
 #define xf86_InitMSP3430	InitMSP3430
-extern void InitMSP3430(MSP3430Ptr m);
+extern _X_EXPORT void InitMSP3430(MSP3430Ptr m);
 #define xf86_DetectMSP3430	DetectMSP3430
-extern MSP3430Ptr DetectMSP3430(I2CBusPtr b, I2CSlaveAddr addr);
+extern _X_EXPORT MSP3430Ptr DetectMSP3430(I2CBusPtr b, I2CSlaveAddr addr);
 #define xf86_ResetMSP3430	ResetMSP3430
-extern void ResetMSP3430(MSP3430Ptr m);
+extern _X_EXPORT void ResetMSP3430(MSP3430Ptr m);
 #define xf86_MSP3430SetVolume	MSP3430SetVolume
-extern void MSP3430SetVolume (MSP3430Ptr m, CARD8 value);
+extern _X_EXPORT void MSP3430SetVolume (MSP3430Ptr m, CARD8 value);
 #define xf86_MSP3430SetSAP	MSP3430SetSAP
-extern void MSP3430SetSAP (MSP3430Ptr m, int mode);
+extern _X_EXPORT void MSP3430SetSAP (MSP3430Ptr m, int mode);
 
 #define MSP3430SymbolsList \
 		"InitMSP3430", \

@@ -54,7 +54,7 @@ SOFTWARE.
 #include "mi.h"
 #include "inputstr.h"
 
-_X_EXPORT void
+void
 miRecolorCursor(DeviceIntPtr pDev, ScreenPtr pScr,
                 CursorPtr pCurs, Bool displayed)
 {

@@ -93,7 +93,7 @@
 
 #endif
 
-_X_EXPORT void
+void
 FUNC (ScreenPtr	    pScreen,
       shadowBufPtr  pBuf)
 {

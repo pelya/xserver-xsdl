@@ -181,22 +181,22 @@ _LoaderListPop(int handle)
 }
 
 /* These four are just ABI stubs */
-_X_EXPORT void
+void
 LoaderRefSymbols(const char *sym0, ...)
 {
 }
 
-_X_EXPORT void
+void
 LoaderRefSymLists(const char **list0, ...)
 {
 }
 
-_X_EXPORT void
+void
 LoaderReqSymLists(const char **list0, ...)
 {
 }
 
-_X_EXPORT void
+void
 LoaderReqSymbols(const char *sym0, ...)
 {
 }
@@ -299,14 +299,14 @@ LoaderHandleOpen(int handle)
     return handle;
 }
 
-_X_EXPORT void *
+void *
 LoaderSymbol(const char *sym)
 {
     return (DLFindSymbol(sym));
 }
 
 /* more stub */
-_X_EXPORT int
+int
 LoaderCheckUnresolved(int delay_flag)
 {
     return 0;
@@ -354,13 +354,13 @@ LoaderSetOptions(unsigned long opts)
     LoaderOptions |= opts;
 }
 
-_X_EXPORT Bool
+Bool
 LoaderShouldIgnoreABI(void)
 {
     return (LoaderOptions & LDR_OPT_ABI_MISMATCH_NONFATAL) != 0;
 }
 
-_X_EXPORT int
+int
 LoaderGetABIVersion(const char *abiclass)
 {
     struct {

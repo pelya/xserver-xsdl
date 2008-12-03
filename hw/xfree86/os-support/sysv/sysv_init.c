@@ -43,7 +43,7 @@ static Bool Protect0 = FALSE;
 static int VTnum = -1;
 
 
-_X_EXPORT void
+void
 xf86OpenConsole()
 {
     int fd;
@@ -186,7 +186,7 @@ xf86OpenConsole()
     return;
 }
 
-_X_EXPORT void
+void
 xf86CloseConsole()
 {
     struct vt_mode   VT;
@@ -205,7 +205,7 @@ xf86CloseConsole()
     return;
 }
 
-_X_EXPORT int
+int
 xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	/*
@@ -242,7 +242,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 	return(0);
 }
 
-_X_EXPORT void
+void
 xf86UseMsg()
 {
 	ErrorF("vtXX                   use the specified VT number\n");

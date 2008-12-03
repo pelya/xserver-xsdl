@@ -72,7 +72,7 @@ static void SwapFont(xQueryFontReply *pr, Bool hasGlyphs);
  *
  *  \param size size in bytes
  */
-_X_EXPORT void
+void
 Swap32Write(ClientPtr pClient, int size, CARD32 *pbuf)
 {
     int i;
@@ -92,7 +92,7 @@ Swap32Write(ClientPtr pClient, int size, CARD32 *pbuf)
  *
  * \param size size in bytes
  */
-_X_EXPORT void
+void
 CopySwap32Write(ClientPtr pClient, int size, CARD32 *pbuf)
 {
     int bufsize = size;
@@ -140,7 +140,7 @@ CopySwap32Write(ClientPtr pClient, int size, CARD32 *pbuf)
  *
  * \param size size in bytes
  */
-_X_EXPORT void
+void
 CopySwap16Write(ClientPtr pClient, int size, short *pbuf)
 {
     int bufsize = size;
@@ -186,7 +186,7 @@ CopySwap16Write(ClientPtr pClient, int size, short *pbuf)
 
 
 /* Extra-small reply */
-_X_EXPORT void
+void
 SGenericReply(ClientPtr pClient, int size, xGenericReply *pRep)
 {
     char n;
@@ -196,7 +196,7 @@ SGenericReply(ClientPtr pClient, int size, xGenericReply *pRep)
 }
 
 /* Extra-large reply */
-_X_EXPORT void
+void
 SGetWindowAttributesReply(ClientPtr pClient, int size,
                           xGetWindowAttributesReply *pRep)
 {
@@ -215,7 +215,7 @@ SGetWindowAttributesReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetGeometryReply(ClientPtr pClient, int size, xGetGeometryReply *pRep)
 {
     char n;
@@ -230,7 +230,7 @@ SGetGeometryReply(ClientPtr pClient, int size, xGetGeometryReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SQueryTreeReply(ClientPtr pClient, int size, xQueryTreeReply *pRep)
 {
     char n;
@@ -243,7 +243,7 @@ SQueryTreeReply(ClientPtr pClient, int size, xQueryTreeReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SInternAtomReply(ClientPtr pClient, int size, xInternAtomReply *pRep)
 {
     char n;
@@ -253,7 +253,7 @@ SInternAtomReply(ClientPtr pClient, int size, xInternAtomReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetAtomNameReply(ClientPtr pClient, int size, xGetAtomNameReply *pRep)
 {
     char n;
@@ -265,7 +265,7 @@ SGetAtomNameReply(ClientPtr pClient, int size, xGetAtomNameReply *pRep)
 }
 
 
-_X_EXPORT void
+void
 SGetPropertyReply(ClientPtr pClient, int size, xGetPropertyReply *pRep)
 {
     char n;
@@ -278,7 +278,7 @@ SGetPropertyReply(ClientPtr pClient, int size, xGetPropertyReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SListPropertiesReply(ClientPtr pClient, int size, xListPropertiesReply *pRep)
 {
     char n;
@@ -289,7 +289,7 @@ SListPropertiesReply(ClientPtr pClient, int size, xListPropertiesReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetSelectionOwnerReply(ClientPtr pClient, int size,
                         xGetSelectionOwnerReply *pRep)
 {
@@ -301,7 +301,7 @@ SGetSelectionOwnerReply(ClientPtr pClient, int size,
 }
 
 
-_X_EXPORT void
+void
 SQueryPointerReply(ClientPtr pClient, int size, xQueryPointerReply *pRep)
 {
     char n;
@@ -327,7 +327,7 @@ SwapTimecoord(xTimecoord* pCoord)
     swaps(&pCoord->y, n);
 }
 
-_X_EXPORT void
+void
 SwapTimeCoordWrite(ClientPtr pClient, int size, xTimecoord *pRep)
 {
     int	i, n;
@@ -343,7 +343,7 @@ SwapTimeCoordWrite(ClientPtr pClient, int size, xTimecoord *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 
 }
-_X_EXPORT void
+void
 SGetMotionEventsReply(ClientPtr pClient, int size, xGetMotionEventsReply *pRep)
 {
     char n;
@@ -354,7 +354,7 @@ SGetMotionEventsReply(ClientPtr pClient, int size, xGetMotionEventsReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 STranslateCoordsReply(ClientPtr pClient, int size, xTranslateCoordsReply *pRep)
 {
     char n;
@@ -366,7 +366,7 @@ STranslateCoordsReply(ClientPtr pClient, int size, xTranslateCoordsReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetInputFocusReply(ClientPtr pClient, int size, xGetInputFocusReply *pRep)
 {
     char n;
@@ -377,7 +377,7 @@ SGetInputFocusReply(ClientPtr pClient, int size, xGetInputFocusReply *pRep)
 }
 
 /* extra long reply */
-_X_EXPORT void
+void
 SQueryKeymapReply(ClientPtr pClient, int size, xQueryKeymapReply *pRep)
 {
     char n;
@@ -448,14 +448,14 @@ SwapFont(xQueryFontReply *pr, Bool hasGlyphs)
     }
 }
 
-_X_EXPORT void
+void
 SQueryFontReply(ClientPtr pClient, int size, xQueryFontReply *pRep)
 {
     SwapFont(pRep, TRUE);
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SQueryTextExtentsReply(ClientPtr pClient, int size, xQueryTextExtentsReply *pRep)
 {
     char n;
@@ -471,7 +471,7 @@ SQueryTextExtentsReply(ClientPtr pClient, int size, xQueryTextExtentsReply *pRep
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SListFontsReply(ClientPtr pClient, int size, xListFontsReply *pRep)
 {
     char n;
@@ -482,7 +482,7 @@ SListFontsReply(ClientPtr pClient, int size, xListFontsReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SListFontsWithInfoReply(ClientPtr pClient, int size,
                         xListFontsWithInfoReply *pRep)
 {
@@ -490,7 +490,7 @@ SListFontsWithInfoReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetFontPathReply(ClientPtr pClient, int size, xGetFontPathReply *pRep)
 {
     char n;
@@ -501,7 +501,7 @@ SGetFontPathReply(ClientPtr pClient, int size, xGetFontPathReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetImageReply(ClientPtr pClient, int size, xGetImageReply *pRep)
 {
     char n;
@@ -513,7 +513,7 @@ SGetImageReply(ClientPtr pClient, int size, xGetImageReply *pRep)
     /* Fortunately, image doesn't need swapping */
 }
 
-_X_EXPORT void
+void
 SListInstalledColormapsReply(ClientPtr pClient, int size,
                              xListInstalledColormapsReply *pRep)
 {
@@ -525,7 +525,7 @@ SListInstalledColormapsReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SAllocColorReply(pClient, size, pRep)
     ClientPtr		pClient;
     int			size;
@@ -541,7 +541,7 @@ SAllocColorReply(pClient, size, pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SAllocNamedColorReply(ClientPtr pClient, int size, xAllocNamedColorReply *pRep)
 {
     char n;
@@ -557,7 +557,7 @@ SAllocNamedColorReply(ClientPtr pClient, int size, xAllocNamedColorReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SAllocColorCellsReply(ClientPtr pClient, int size, xAllocColorCellsReply *pRep)
 {
     char n;
@@ -570,7 +570,7 @@ SAllocColorCellsReply(ClientPtr pClient, int size, xAllocColorCellsReply *pRep)
 }
 
 
-_X_EXPORT void
+void
 SAllocColorPlanesReply(ClientPtr pClient, int size, xAllocColorPlanesReply *pRep)
 {
     char n;
@@ -594,7 +594,7 @@ SwapRGB(xrgb *prgb)
     swaps(&prgb->blue, n);
 }
 
-_X_EXPORT void
+void
 SQColorsExtend(ClientPtr pClient, int size, xrgb *prgb)
 {
     int		i, n;
@@ -610,7 +610,7 @@ SQColorsExtend(ClientPtr pClient, int size, xrgb *prgb)
     (void)WriteToClient(pClient, size, (char *) prgb);
 }
 
-_X_EXPORT void
+void
 SQueryColorsReply(ClientPtr pClient, int size, xQueryColorsReply* pRep)
 {
     char n;
@@ -621,7 +621,7 @@ SQueryColorsReply(ClientPtr pClient, int size, xQueryColorsReply* pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SLookupColorReply(ClientPtr pClient, int size, xLookupColorReply *pRep)
 {
     char n;
@@ -636,7 +636,7 @@ SLookupColorReply(ClientPtr pClient, int size, xLookupColorReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SQueryBestSizeReply(ClientPtr pClient, int size, xQueryBestSizeReply *pRep)
 {
     char n;
@@ -647,7 +647,7 @@ SQueryBestSizeReply(ClientPtr pClient, int size, xQueryBestSizeReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SListExtensionsReply(ClientPtr pClient, int size, xListExtensionsReply *pRep)
 {
     char n;
@@ -657,7 +657,7 @@ SListExtensionsReply(ClientPtr pClient, int size, xListExtensionsReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetKeyboardMappingReply(ClientPtr pClient, int size,
                          xGetKeyboardMappingReply *pRep)
 {
@@ -668,7 +668,7 @@ SGetKeyboardMappingReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetPointerMappingReply(ClientPtr pClient, int size,
                         xGetPointerMappingReply *pRep)
 {
@@ -679,7 +679,7 @@ SGetPointerMappingReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetModifierMappingReply(ClientPtr pClient, int size,
                          xGetModifierMappingReply *pRep)
 {
@@ -690,7 +690,7 @@ SGetModifierMappingReply(ClientPtr pClient, int size,
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetKeyboardControlReply(ClientPtr pClient, int size, xGetKeyboardControlReply *pRep)
 {
     char n;
@@ -703,7 +703,7 @@ SGetKeyboardControlReply(ClientPtr pClient, int size, xGetKeyboardControlReply *
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetPointerControlReply(ClientPtr pClient, int size, xGetPointerControlReply *pRep)
 {
     char n;
@@ -715,7 +715,7 @@ SGetPointerControlReply(ClientPtr pClient, int size, xGetPointerControlReply *pR
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SGetScreenSaverReply(ClientPtr pClient, int size, xGetScreenSaverReply *pRep)
 {
     char n;
@@ -726,7 +726,7 @@ SGetScreenSaverReply(ClientPtr pClient, int size, xGetScreenSaverReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-_X_EXPORT void
+void
 SLHostsExtend(ClientPtr pClient, int size, char *buf)
 {
     char *bufT = buf;
@@ -741,7 +741,7 @@ SLHostsExtend(ClientPtr pClient, int size, char *buf)
     (void)WriteToClient (pClient, size, buf);
 }
 
-_X_EXPORT void
+void
 SListHostsReply(ClientPtr pClient, int size, xListHostsReply *pRep)
 {
     char n;
@@ -754,7 +754,7 @@ SListHostsReply(ClientPtr pClient, int size, xListHostsReply *pRep)
 
 
 
-_X_EXPORT void
+void
 SErrorEvent(xError *from, xError *to)
 {
     to->type = X_Error;
@@ -765,7 +765,7 @@ SErrorEvent(xError *from, xError *to)
     to->majorCode = from->majorCode;
 }
 
-_X_EXPORT void
+void
 SKeyButtonPtrEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -793,7 +793,7 @@ SKeyButtonPtrEvent(xEvent *from, xEvent *to)
 	from->u.keyButtonPointer.sameScreen;
 }
 
-_X_EXPORT void
+void
 SEnterLeaveEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -812,7 +812,7 @@ SEnterLeaveEvent(xEvent *from, xEvent *to)
     to->u.enterLeave.flags = from->u.enterLeave.flags;
 }
 
-_X_EXPORT void
+void
 SFocusEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -822,7 +822,7 @@ SFocusEvent(xEvent *from, xEvent *to)
     to->u.focus.mode = from->u.focus.mode;
 }
 
-_X_EXPORT void
+void
 SExposeEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -835,7 +835,7 @@ SExposeEvent(xEvent *from, xEvent *to)
     cpswaps(from->u.expose.count, to->u.expose.count);
 }
 
-_X_EXPORT void
+void
 SGraphicsExposureEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -858,7 +858,7 @@ SGraphicsExposureEvent(xEvent *from, xEvent *to)
     	from->u.graphicsExposure.majorEvent;
 }
 
-_X_EXPORT void
+void
 SNoExposureEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -868,7 +868,7 @@ SNoExposureEvent(xEvent *from, xEvent *to)
     to->u.noExposure.majorEvent = from->u.noExposure.majorEvent;
 }
 
-_X_EXPORT void
+void
 SVisibilityEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -877,7 +877,7 @@ SVisibilityEvent(xEvent *from, xEvent *to)
     to->u.visibility.state = from->u.visibility.state;
 }
 
-_X_EXPORT void
+void
 SCreateNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -893,7 +893,7 @@ SCreateNotifyEvent(xEvent *from, xEvent *to)
     to->u.createNotify.override = from->u.createNotify.override;
 }
 
-_X_EXPORT void
+void
 SDestroyNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -902,7 +902,7 @@ SDestroyNotifyEvent(xEvent *from, xEvent *to)
     cpswapl(from->u.destroyNotify.window, to->u.destroyNotify.window);
 }
 
-_X_EXPORT void
+void
 SUnmapNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -912,7 +912,7 @@ SUnmapNotifyEvent(xEvent *from, xEvent *to)
     to->u.unmapNotify.fromConfigure = from->u.unmapNotify.fromConfigure;
 }
 
-_X_EXPORT void
+void
 SMapNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -922,7 +922,7 @@ SMapNotifyEvent(xEvent *from, xEvent *to)
     to->u.mapNotify.override = from->u.mapNotify.override;
 }
 
-_X_EXPORT void
+void
 SMapRequestEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -931,7 +931,7 @@ SMapRequestEvent(xEvent *from, xEvent *to)
     cpswapl(from->u.mapRequest.window, to->u.mapRequest.window);
 }
 
-_X_EXPORT void
+void
 SReparentEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -944,7 +944,7 @@ SReparentEvent(xEvent *from, xEvent *to)
     to->u.reparent.override = from->u.reparent.override;
 }
 
-_X_EXPORT void
+void
 SConfigureNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -965,7 +965,7 @@ SConfigureNotifyEvent(xEvent *from, xEvent *to)
     to->u.configureNotify.override = from->u.configureNotify.override;
 }
 
-_X_EXPORT void
+void
 SConfigureRequestEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -990,7 +990,7 @@ SConfigureRequestEvent(xEvent *from, xEvent *to)
 }
 
 
-_X_EXPORT void
+void
 SGravityEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1001,7 +1001,7 @@ SGravityEvent(xEvent *from, xEvent *to)
     cpswaps(from->u.gravity.y, to->u.gravity.y);
 }
 
-_X_EXPORT void
+void
 SResizeRequestEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1011,7 +1011,7 @@ SResizeRequestEvent(xEvent *from, xEvent *to)
     cpswaps(from->u.resizeRequest.height, to->u.resizeRequest.height);
 }
 
-_X_EXPORT void
+void
 SCirculateEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1023,7 +1023,7 @@ SCirculateEvent(xEvent *from, xEvent *to)
     to->u.circulate.place = from->u.circulate.place;
 }
 
-_X_EXPORT void
+void
 SPropertyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1034,7 +1034,7 @@ SPropertyEvent(xEvent *from, xEvent *to)
     to->u.property.state = from->u.property.state;
 }
 
-_X_EXPORT void
+void
 SSelectionClearEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1044,7 +1044,7 @@ SSelectionClearEvent(xEvent *from, xEvent *to)
     cpswapl(from->u.selectionClear.atom, to->u.selectionClear.atom);
 }
 
-_X_EXPORT void
+void
 SSelectionRequestEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1062,7 +1062,7 @@ SSelectionRequestEvent(xEvent *from, xEvent *to)
 	to->u.selectionRequest.property);
 }
 
-_X_EXPORT void
+void
 SSelectionNotifyEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1078,7 +1078,7 @@ SSelectionNotifyEvent(xEvent *from, xEvent *to)
         to->u.selectionNotify.property);
 }
 
-_X_EXPORT void
+void
 SColormapEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1089,7 +1089,7 @@ SColormapEvent(xEvent *from, xEvent *to)
     to->u.colormap.state = from->u.colormap.state;
 }
 
-_X_EXPORT void
+void
 SMappingEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1100,7 +1100,7 @@ SMappingEvent(xEvent *from, xEvent *to)
     to->u.mappingNotify.count = from->u.mappingNotify.count;
 }
 
-_X_EXPORT void
+void
 SClientMessageEvent(xEvent *from, xEvent *to)
 {
     to->u.u.type = from->u.u.type;
@@ -1151,7 +1151,7 @@ SClientMessageEvent(xEvent *from, xEvent *to)
        }
 }
 
-_X_EXPORT void
+void
 SKeymapNotifyEvent(xEvent *from, xEvent *to)
 {
     /* Keymap notify events are special; they have no
@@ -1211,7 +1211,7 @@ SwapVisual(xVisualType *pVis, xVisualType *pVisT)
     cpswapl(pVis->blueMask, pVisT->blueMask);
 }
 
-_X_EXPORT void
+void
 SwapConnSetupInfo(
     char 	*pInfo,
     char 	*pInfoT
@@ -1262,7 +1262,7 @@ SwapConnSetupInfo(
     }
 }
 
-_X_EXPORT void
+void
 WriteSConnectionInfo(ClientPtr pClient, unsigned long size, char *pInfo)
 {
     char	*pInfoTBase;
@@ -1278,7 +1278,7 @@ WriteSConnectionInfo(ClientPtr pClient, unsigned long size, char *pInfo)
     xfree(pInfoTBase);
 }
 
-_X_EXPORT void
+void
 SwapConnSetupPrefix(xConnSetupPrefix *pcspFrom, xConnSetupPrefix *pcspTo)
 {
     pcspTo->success = pcspFrom->success;
@@ -1288,7 +1288,7 @@ SwapConnSetupPrefix(xConnSetupPrefix *pcspFrom, xConnSetupPrefix *pcspTo)
     cpswaps(pcspFrom->length, pcspTo->length);
 }
 
-_X_EXPORT void
+void
 WriteSConnSetupPrefix(ClientPtr pClient, xConnSetupPrefix *pcsp)
 {
     xConnSetupPrefix	cspT;

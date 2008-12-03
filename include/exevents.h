@@ -41,24 +41,24 @@ typedef struct _XIClientRec {
         int minor_version;
 } XIClientRec, *XIClientPtr;
 
-extern void RegisterOtherDevice (
+extern _X_EXPORT void RegisterOtherDevice (
 	DeviceIntPtr           /* device */);
 
-extern int
+extern _X_EXPORT int
 UpdateDeviceState (
 	DeviceIntPtr           /* device */,
 	xEventPtr              /*  xE    */,
         int                    /* count  */);
 
-extern void ProcessOtherEvent (
+extern _X_EXPORT void ProcessOtherEvent (
 	xEventPtr /* FIXME deviceKeyButtonPointer * xE */,
 	DeviceIntPtr           /* other */,
 	int                    /* count */);
 
-extern int InitProximityClassDeviceStruct(
+extern _X_EXPORT int InitProximityClassDeviceStruct(
 	DeviceIntPtr           /* dev */);
 
-extern void InitValuatorAxisStruct(
+extern _X_EXPORT void InitValuatorAxisStruct(
 	DeviceIntPtr           /* dev */,
 	int                    /* axnum */,
 	int                    /* minval */,
@@ -67,14 +67,14 @@ extern void InitValuatorAxisStruct(
 	int                    /* min_res */,
 	int                    /* max_res */);
 
-extern void DeviceFocusEvent(
+extern _X_EXPORT void DeviceFocusEvent(
 	DeviceIntPtr           /* dev */,
 	int                    /* type */,
 	int                    /* mode */,
 	int                    /* detail */,
 	WindowPtr              /* pWin */);
 
-extern int GrabButton(
+extern _X_EXPORT int GrabButton(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	BYTE                   /* this_device_mode */,
@@ -88,7 +88,7 @@ extern int GrabButton(
 	Window                 /* rconfineTo */,
 	Mask                   /* eventMask */);
 
-extern int GrabKey(
+extern _X_EXPORT int GrabKey(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	BYTE                   /* this_device_mode */,
@@ -100,7 +100,7 @@ extern int GrabKey(
 	BOOL                   /* ownerEvents */,
 	Mask                   /* mask */);
 
-extern int SelectForWindow(
+extern _X_EXPORT int SelectForWindow(
 	DeviceIntPtr           /* dev */,
 	WindowPtr              /* pWin */,
 	ClientPtr              /* client */,
@@ -108,20 +108,20 @@ extern int SelectForWindow(
 	Mask                   /* exclusivemasks */,
 	Mask                   /* validmasks */);
 
-extern int AddExtensionClient (
+extern _X_EXPORT int AddExtensionClient (
 	WindowPtr              /* pWin */,
 	ClientPtr              /* client */,
 	Mask                   /* mask */,
 	int                    /* mskidx */);
 
-extern void RecalculateDeviceDeliverableEvents(
+extern _X_EXPORT void RecalculateDeviceDeliverableEvents(
 	WindowPtr              /* pWin */);
 
-extern int InputClientGone(
+extern _X_EXPORT int InputClientGone(
 	WindowPtr              /* pWin */,
 	XID                    /* id */);
 
-extern int SendEvent (
+extern _X_EXPORT int SendEvent (
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* d */,
 	Window                 /* dest */,
@@ -130,13 +130,13 @@ extern int SendEvent (
 	Mask                   /* mask */,
 	int                    /* count */);
 
-extern int SetButtonMapping (
+extern _X_EXPORT int SetButtonMapping (
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	int                    /* nElts */,
 	BYTE *                 /* map */);
 
-extern int SetModifierMapping(
+extern _X_EXPORT int SetModifierMapping(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	int                    /* len */,
@@ -145,14 +145,14 @@ extern int SetModifierMapping(
 	KeyCode *              /* inputMap */,
 	KeyClassPtr *          /* k */);
 
-extern void SendDeviceMappingNotify(
+extern _X_EXPORT void SendDeviceMappingNotify(
         ClientPtr              /* client, */,
 	CARD8                  /* request, */,
 	KeyCode                /* firstKeyCode */,
 	CARD8                  /* count */,
 	DeviceIntPtr           /* dev */);
 
-extern int ChangeKeyMapping(
+extern _X_EXPORT int ChangeKeyMapping(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
 	unsigned               /* len */,
@@ -162,15 +162,15 @@ extern int ChangeKeyMapping(
 	CARD8                  /* keySymsPerKeyCode */,
 	KeySym *               /* map */);
 
-extern void DeleteWindowFromAnyExtEvents(
+extern _X_EXPORT void DeleteWindowFromAnyExtEvents(
 	WindowPtr              /* pWin */,
 	Bool                   /* freeResources */);
 
-extern int MaybeSendDeviceMotionNotifyHint (
+extern _X_EXPORT int MaybeSendDeviceMotionNotifyHint (
 	deviceKeyButtonPointer * /* pEvents */,
 	Mask                   /* mask */);
 
-extern void CheckDeviceGrabAndHintWindow (
+extern _X_EXPORT void CheckDeviceGrabAndHintWindow (
 	WindowPtr              /* pWin */,
 	int                    /* type */,
 	deviceKeyButtonPointer * /* xE */,
@@ -178,34 +178,34 @@ extern void CheckDeviceGrabAndHintWindow (
 	ClientPtr              /* client */,
 	Mask                   /* deliveryMask */);
 
-extern void MaybeStopDeviceHint(
+extern _X_EXPORT void MaybeStopDeviceHint(
 	DeviceIntPtr           /* dev */,
 	ClientPtr              /* client */);
 
-extern int DeviceEventSuppressForWindow(
+extern _X_EXPORT int DeviceEventSuppressForWindow(
 	WindowPtr              /* pWin */,
 	ClientPtr              /* client */,
 	Mask                   /* mask */,
 	int                    /* maskndx */);
 
-extern void SendEventToAllWindows(
+extern _X_EXPORT void SendEventToAllWindows(
         DeviceIntPtr           /* dev */,
         Mask                   /* mask */,
         xEvent *               /* ev */,
         int                    /* count */);
 
 /* Input device properties */
-extern void XIDeleteAllDeviceProperties(
+extern _X_EXPORT void XIDeleteAllDeviceProperties(
         DeviceIntPtr            /* device */
 );
 
-extern int XIDeleteDeviceProperty(
+extern _X_EXPORT int XIDeleteDeviceProperty(
         DeviceIntPtr            /* device */,
         Atom                    /* property */,
         Bool                    /* fromClient */
 );
 
-extern int XIChangeDeviceProperty(
+extern _X_EXPORT int XIChangeDeviceProperty(
         DeviceIntPtr            /* dev */,
         Atom                    /* property */,
         Atom                    /* type */,
@@ -216,19 +216,19 @@ extern int XIChangeDeviceProperty(
         Bool                    /* sendevent*/
         );
 
-extern int XIGetDeviceProperty(
+extern _X_EXPORT int XIGetDeviceProperty(
         DeviceIntPtr            /* dev */,
         Atom                    /* property */,
         XIPropertyValuePtr*     /* value */
 );
 
-extern int XISetDevicePropertyDeletable(
+extern _X_EXPORT int XISetDevicePropertyDeletable(
         DeviceIntPtr            /* dev */,
         Atom                    /* property */,
         Bool                    /* deletable */
 );
 
-extern long XIRegisterPropertyHandler(
+extern _X_EXPORT long XIRegisterPropertyHandler(
         DeviceIntPtr         dev,
         int (*SetProperty) (DeviceIntPtr dev,
                             Atom property,
@@ -240,15 +240,15 @@ extern long XIRegisterPropertyHandler(
                                Atom property)
 );
 
-extern void XIUnRegisterPropertyHandler(
+extern _X_EXPORT void XIUnRegisterPropertyHandler(
         DeviceIntPtr          dev,
         long                  id
 );
 
-extern Atom XIGetKnownProperty(
+extern _X_EXPORT Atom XIGetKnownProperty(
         char*                 name
 );
 
-extern DeviceIntPtr XIGetDevice(xEvent *ev);
+extern _X_EXPORT DeviceIntPtr XIGetDevice(xEvent *ev);
 
 #endif /* EXEVENTS_H */

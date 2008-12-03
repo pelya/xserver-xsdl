@@ -96,7 +96,7 @@ FreeGlyphPrivates (GlyphPtr glyph)
     glyph->devPrivates = NULL;
 }
 
-_X_EXPORT void
+void
 GlyphUninit (ScreenPtr pScreen)
 {
     PictureScreenPtr ps = GetPictureScreen (pScreen);
@@ -129,7 +129,7 @@ GlyphUninit (ScreenPtr pScreen)
     }
 }
 
-_X_EXPORT GlyphHashSetPtr
+GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled)
 {
     int	i;
@@ -140,7 +140,7 @@ FindGlyphHashSet (CARD32 filled)
     return 0;
 }
 
-_X_EXPORT GlyphRefPtr
+GlyphRefPtr
 FindGlyphRef (GlyphHashPtr	hash,
 	      CARD32		signature,
 	      Bool		match,
@@ -192,7 +192,7 @@ FindGlyphRef (GlyphHashPtr	hash,
     return gr;
 }
 
-_X_EXPORT int
+int
 HashGlyph (xGlyphInfo    *gi,
 	   CARD8	 *bits,
 	   unsigned long size,
@@ -229,7 +229,7 @@ HashGlyph (xGlyphInfo    *gi,
     return Success;
 }
 
-_X_EXPORT GlyphPtr
+GlyphPtr
 FindGlyphByHash (unsigned char sha1[20], int format)
 {
     GlyphRefPtr gr;
@@ -272,7 +272,7 @@ CheckDuplicates (GlyphHashPtr hash, char *where)
 #define DuplicateRef(a,b)
 #endif
 
-_X_EXPORT void
+void
 FreeGlyph (GlyphPtr glyph, int format)
 {
     CheckDuplicates (&globalGlyphs[format], "FreeGlyph");
@@ -321,7 +321,7 @@ FreeGlyph (GlyphPtr glyph, int format)
     }
 }
 
-_X_EXPORT void
+void
 AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 {
     GlyphRefPtr	    gr;
@@ -366,7 +366,7 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
     CheckDuplicates (&globalGlyphs[glyphSet->fdepth], "AddGlyph bottom");
 }
 
-_X_EXPORT Bool
+Bool
 DeleteGlyph (GlyphSetPtr glyphSet, Glyph id)
 {
     GlyphRefPtr     gr;
@@ -384,7 +384,7 @@ DeleteGlyph (GlyphSetPtr glyphSet, Glyph id)
     return FALSE;
 }
 
-_X_EXPORT GlyphPtr
+GlyphPtr
 FindGlyph (GlyphSetPtr glyphSet, Glyph id)
 {
     GlyphPtr        glyph;
@@ -395,7 +395,7 @@ FindGlyph (GlyphSetPtr glyphSet, Glyph id)
     return glyph;
 }
 
-_X_EXPORT GlyphPtr
+GlyphPtr
 AllocateGlyph (xGlyphInfo *gi, int fdepth)
 {
     PictureScreenPtr ps;
@@ -438,7 +438,7 @@ bail:
     return 0;
 }
     
-_X_EXPORT Bool
+Bool
 AllocateGlyphHash (GlyphHashPtr hash, GlyphHashSetPtr hashSet)
 {
     hash->table = xcalloc (hashSet->size, sizeof (GlyphRefRec));
@@ -449,7 +449,7 @@ AllocateGlyphHash (GlyphHashPtr hash, GlyphHashSetPtr hashSet)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 ResizeGlyphHash (GlyphHashPtr hash, CARD32 change, Bool global)
 {
     CARD32	    tableEntries;
@@ -492,14 +492,14 @@ ResizeGlyphHash (GlyphHashPtr hash, CARD32 change, Bool global)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 ResizeGlyphSet (GlyphSetPtr glyphSet, CARD32 change)
 {
     return (ResizeGlyphHash (&glyphSet->hash, change, FALSE) &&
 	    ResizeGlyphHash (&globalGlyphs[glyphSet->fdepth], change, TRUE));
 }
 			    
-_X_EXPORT GlyphSetPtr
+GlyphSetPtr
 AllocateGlyphSet (int fdepth, PictFormatPtr format)
 {
     GlyphSetPtr	glyphSet;
@@ -527,7 +527,7 @@ AllocateGlyphSet (int fdepth, PictFormatPtr format)
     return glyphSet;	
 }
 
-_X_EXPORT int
+int
 FreeGlyphSet (pointer	value,
 	      XID       gid)
 {
@@ -614,7 +614,7 @@ GlyphExtents (int		nlist,
 
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
-_X_EXPORT void
+void
 CompositeGlyphs (CARD8		op,
 		 PicturePtr	pSrc,
 		 PicturePtr	pDst,
@@ -632,20 +632,20 @@ CompositeGlyphs (CARD8		op,
     (*ps->Glyphs) (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, lists, glyphs);
 }
 
-_X_EXPORT Bool
+Bool
 miRealizeGlyph (ScreenPtr pScreen,
 		GlyphPtr  glyph)
 {
     return TRUE;
 }
 
-_X_EXPORT void
+void
 miUnrealizeGlyph (ScreenPtr pScreen,
 		  GlyphPtr  glyph)
 {
 }
 
-_X_EXPORT void
+void
 miGlyphs (CARD8		op,
 	  PicturePtr	pSrc,
 	  PicturePtr	pDst,

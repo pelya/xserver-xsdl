@@ -43,7 +43,7 @@
 # endif
 #endif
     
-_X_EXPORT char *
+char *
 Xvprintf(const char *format, va_list va)
 {
     char *ret;
@@ -63,7 +63,7 @@ Xvprintf(const char *format, va_list va)
     return ret;
 }
 
-_X_EXPORT char *Xprintf(const char *format, ...)
+char *Xprintf(const char *format, ...)
 {
     char *ret;
     va_list va;
@@ -73,7 +73,7 @@ _X_EXPORT char *Xprintf(const char *format, ...)
     return ret;
 }
 
-_X_EXPORT char *
+char *
 XNFvprintf(const char *format, va_list va)
 {
     char *ret;
@@ -93,7 +93,7 @@ XNFvprintf(const char *format, va_list va)
     return ret;
 }
 
-_X_EXPORT char *XNFprintf(const char *format, ...)
+char *XNFprintf(const char *format, ...)
 {
     char *ret;
     va_list va;

@@ -41,7 +41,7 @@
 /**************************************************************************
  * Video Memory Mapping section                                            
  ***************************************************************************/
-_X_EXPORT pointer 
+pointer
 xf86MapVidMem(int ScreenNum,int Flags, unsigned long Base, unsigned long Size)
 {
     mach_port_t device,iopl_dev;
@@ -95,7 +95,7 @@ xf86MapVidMem(int ScreenNum,int Flags, unsigned long Base, unsigned long Size)
     return (pointer)addr;
 }
 
-_X_EXPORT void
+void
 xf86UnMapVidMem(int ScreenNum,pointer Base,unsigned long Size)
 {
     kern_return_t err = vm_deallocate(mach_task_self(), (int)Base, Size);
@@ -107,7 +107,7 @@ xf86UnMapVidMem(int ScreenNum,pointer Base,unsigned long Size)
     return;
 }
 
-_X_EXPORT Bool 
+Bool
 xf86LinearVidMem()
 {
     return(TRUE);
@@ -123,7 +123,7 @@ xf86LinearVidMem()
  */
 extern int ioperm(unsigned long __from, unsigned long __num, int __turn_on);
 
-_X_EXPORT Bool
+Bool
 xf86EnableIO()
 {
     if (ioperm(0, 0x10000, 1)) {
@@ -135,20 +135,20 @@ xf86EnableIO()
     return TRUE;
 }
 	
-_X_EXPORT void
+void
 xf86DisableIO()
 {
     ioperm(0,0x10000,0);
     return;
 }
 
-_X_EXPORT void
+void
 xf86MapReadSideEffects(int ScreenNum, int Flags, pointer Base,
 	unsigned long Size)
 {
 }
 
-_X_EXPORT Bool
+Bool
 xf86CheckMTRR(int s)
 {
 	return FALSE;

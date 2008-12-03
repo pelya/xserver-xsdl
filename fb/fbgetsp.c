@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-_X_EXPORT void
+void
 fbGetSpans(DrawablePtr	pDrawable, 
 	   int		wMax, 
 	   DDXPointPtr	ppt, 

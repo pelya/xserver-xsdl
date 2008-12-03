@@ -65,7 +65,7 @@ Written by Joel McCormack, Summer 1989.
 */
 
 
-_X_EXPORT void miInitSpanGroup(spanGroup)
+void miInitSpanGroup(spanGroup)
     SpanGroup *spanGroup;
 {
     spanGroup->size = 0;
@@ -181,7 +181,7 @@ static void miSubtractSpans (SpanGroup *spanGroup, Spans *sub)
     }
 }
 
-_X_EXPORT void miAppendSpans(SpanGroup *spanGroup, SpanGroup *otherGroup, Spans *spans)
+void miAppendSpans(SpanGroup *spanGroup, SpanGroup *otherGroup, Spans *spans)
 {
     int ymin, ymax;
     int spansCount;
@@ -214,7 +214,7 @@ _X_EXPORT void miAppendSpans(SpanGroup *spanGroup, SpanGroup *otherGroup, Spans 
     }
 } /* AppendSpans */
 
-_X_EXPORT void miFreeSpanGroup(SpanGroup *spanGroup)
+void miFreeSpanGroup(SpanGroup *spanGroup)
 {
     if (spanGroup->group != NULL) xfree(spanGroup->group);
 }
@@ -372,7 +372,7 @@ miDisposeSpanGroup (SpanGroup *spanGroup)
     }
 }
 
-_X_EXPORT void miFillUniqueSpanGroup(DrawablePtr pDraw, GCPtr pGC, SpanGroup *spanGroup)
+void miFillUniqueSpanGroup(DrawablePtr pDraw, GCPtr pGC, SpanGroup *spanGroup)
 {
     int    		i;
     Spans  		*spans;

@@ -28,7 +28,7 @@
 
 #include "fb.h"
 
-_X_EXPORT void
+void
 fbPutImage (DrawablePtr	pDrawable,
 	    GCPtr	pGC,
 	    int		depth,
@@ -112,7 +112,7 @@ fbPutImage (DrawablePtr	pDrawable,
     }
 }
 
-_X_EXPORT void
+void
 fbPutZImage (DrawablePtr	pDrawable,
 	     RegionPtr		pClip,
 	     int		alu,
@@ -172,7 +172,7 @@ fbPutZImage (DrawablePtr	pDrawable,
     fbFinishAccess (pDrawable);
 }
 	     
-_X_EXPORT void
+void
 fbPutXYImage (DrawablePtr	pDrawable,
 	      RegionPtr		pClip,
 	      FbBits		fg,
@@ -281,7 +281,7 @@ fbPutXYImage (DrawablePtr	pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fbGetImage (DrawablePtr	    pDrawable,
 	    int		    x,
 	    int		    y,

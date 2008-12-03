@@ -114,8 +114,8 @@ typedef struct	_SrvXkmInfo {
 #define	XKB_DFLT_RULES_PROP	True
 #endif
 
-_X_EXPORT char	*	XkbBaseDirectory=	XKB_BASE_DIRECTORY;
-_X_EXPORT char	*	XkbBinDirectory=	XKB_BIN_DIRECTORY;
+char	*		XkbBaseDirectory=	XKB_BASE_DIRECTORY;
+char	*		XkbBinDirectory=	XKB_BIN_DIRECTORY;
 static int	 	XkbWantAccessX=		0;	
 
 static Bool		rulesDefined=		False;
@@ -132,7 +132,7 @@ static char *		XkbOptionsUsed=	NULL;
 
 static XkbDescPtr       xkb_cached_map = NULL;
 
-_X_EXPORT Bool		noXkbExtension=		XKB_DFLT_DISABLED;
+Bool			noXkbExtension=		XKB_DFLT_DISABLED;
 static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
@@ -248,7 +248,7 @@ XkbSetRulesUsed(XkbRF_VarDefsPtr defs)
  * If @rulesFile is NULL and no previous @rulesFile has been set, the
  * built-in default is chosen as default.
  */
-_X_EXPORT void
+void
 XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 					char *variant,char *options)
 {
@@ -290,7 +290,7 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
     return;
 }
 
-_X_EXPORT void
+void
 XkbDeleteRulesDflts()
 {
     _XkbFree(XkbRulesFile);
@@ -493,7 +493,7 @@ XkbControlsPtr	ctrls;
     return Success;
 }
 
-_X_EXPORT void
+void
 XkbInitDevice(DeviceIntPtr pXDev)
 {
 int			i;
@@ -585,7 +585,7 @@ XkbEventCauseRec	cause;
 #define XkbMaxKeyCount MAP_LENGTH
 #endif
 
-_X_EXPORT Bool
+Bool
 XkbInitKeyboardDeviceStruct(
     DeviceIntPtr		dev,
     XkbComponentNamesPtr	names,
@@ -743,7 +743,7 @@ XkbDescPtr              xkb;
 	 * This function also computes the autorepeat accelerators for the
 	 * default indicator feedback.
 	 */
-_X_EXPORT int
+int
 XkbFinishDeviceInit(DeviceIntPtr pXDev)
 {
 XkbSrvInfoPtr		xkbi;
@@ -786,7 +786,7 @@ XkbSrvLedInfoPtr	sli;
 	 * fixed-size structures for the device.   Don't free anything that
 	 * is part of this larger block.
 	 */
-_X_EXPORT void
+void
 XkbFreeInfo(XkbSrvInfoPtr xkbi)
 {
     if (xkbi->radioGroups) {
@@ -836,7 +836,7 @@ extern unsigned int	XkbDfltAccessXTimeoutMask;
 extern unsigned int	XkbDfltAccessXFeedback;
 extern unsigned char	XkbDfltAccessXOptions;
 
-_X_EXPORT int
+int
 XkbProcessArguments(int argc,char *argv[],int i)
 {
     if (strcmp(argv[i],"-kb")==0) {
@@ -922,7 +922,7 @@ XkbProcessArguments(int argc,char *argv[],int i)
     return 0;
 }
 
-_X_EXPORT void
+void
 XkbUseMsg(void)
 {
     ErrorF("-kb                    disable the X Keyboard Extension\n");

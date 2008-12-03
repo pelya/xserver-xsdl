@@ -78,7 +78,7 @@ static CARD32 *DrawTETextScanlineWidth9(CARD32 *base, unsigned int **glyphp,
 #define glyph_get_scanline_func EXPNAME(XAAGetGlyphScanlineFunc)
 
 
-_X_EXPORT GlyphScanlineFuncPtr glyph_scanline_func[32] = {
+GlyphScanlineFuncPtr glyph_scanline_func[32] = {
    DrawTETextScanlineGeneric, DrawTETextScanlineGeneric,  
    DrawTETextScanlineGeneric, DrawTETextScanlineGeneric,
    DrawTETextScanlineGeneric, 
@@ -126,7 +126,7 @@ _X_EXPORT GlyphScanlineFuncPtr glyph_scanline_func[32] = {
    DrawTETextScanlineGeneric, DrawTETextScanlineGeneric
 };
 
-_X_EXPORT GlyphScanlineFuncPtr *glyph_get_scanline_func(void) {
+GlyphScanlineFuncPtr *glyph_get_scanline_func(void) {
    return glyph_scanline_func;
 }
 
@@ -143,7 +143,7 @@ _X_EXPORT GlyphScanlineFuncPtr *glyph_get_scanline_func(void) {
 /* This gets built for MSBFIRST or LSBFIRST with FIXEDBASE or not.
 	A total of 4 versions */
 
-_X_EXPORT void
+void
 EXPNAME(XAATEGlyphRenderer)(
     ScrnInfoPtr pScrn,
     int x, int y, int w, int h, int skipleft, int startline, 
@@ -239,7 +239,7 @@ THE_END:
 
 ********************************************************************/
 
-_X_EXPORT void
+void
 EXPNAME(XAATEGlyphRenderer3)(
     ScrnInfoPtr pScrn,
     int x, int y, int w, int h, int skipleft, int startline, 
@@ -340,7 +340,7 @@ THE_END:
 #ifndef FIXEDBASE
 /*  Scanline version of above gets built for LSBFIRST and MSBFIRST */
 
-_X_EXPORT void
+void
 EXPNAME(XAATEGlyphRendererScanline)(
     ScrnInfoPtr pScrn,
     int x, int y, int w, int h, int skipleft, int startline, 
@@ -415,7 +415,7 @@ THE_END:
     SET_SYNC_FLAG(infoRec);
 }
 
-_X_EXPORT void
+void
 EXPNAME(XAATEGlyphRendererScanline3)(
     ScrnInfoPtr pScrn,
     int x, int y, int w, int h, int skipleft, int startline, 

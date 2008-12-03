@@ -45,7 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "xf86.h"
 
-_X_EXPORT int
+int
 XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
     if (dev != inputInfo.keyboard)

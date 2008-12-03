@@ -348,7 +348,7 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 }
 
-_X_EXPORT void
+void
 exaMoveInPixmap (PixmapPtr pPixmap)
 {
     static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,
@@ -389,7 +389,7 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
     }
 }
 
-_X_EXPORT void
+void
 exaMoveOutPixmap (PixmapPtr pPixmap)
 {
     static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,

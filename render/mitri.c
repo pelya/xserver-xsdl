@@ -33,7 +33,7 @@
 #include "picturestr.h"
 #include "mipict.h"
 
-_X_EXPORT void
+void
 miPointFixedBounds (int npoint, xPointFixed *points, BoxPtr bounds)
 {
     bounds->x1 = xFixedToInt (points->x);
@@ -61,13 +61,13 @@ miPointFixedBounds (int npoint, xPointFixed *points, BoxPtr bounds)
     }
 }
 
-_X_EXPORT void
+void
 miTriangleBounds (int ntri, xTriangle *tris, BoxPtr bounds)
 {
     miPointFixedBounds (ntri * 3, (xPointFixed *) tris, bounds);
 }
 
-_X_EXPORT void
+void
 miTriangles (CARD8	    op,
 	     PicturePtr	    pSrc,
 	     PicturePtr	    pDst,
@@ -126,7 +126,7 @@ miTriangles (CARD8	    op,
     }
 }
 
-_X_EXPORT void
+void
 miTriStrip (CARD8	    op,
 	    PicturePtr	    pSrc,
 	    PicturePtr	    pDst,
@@ -157,7 +157,7 @@ miTriStrip (CARD8	    op,
     xfree (tris);
 }
 
-_X_EXPORT void
+void
 miTriFan (CARD8		op,
 	  PicturePtr	pSrc,
 	  PicturePtr	pDst,

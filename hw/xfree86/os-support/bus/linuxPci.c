@@ -464,7 +464,7 @@ linuxOpenLegacy(struct pci_device *dev, char *name)
  * returns a pointer to it.  The pointer is saved for future use if it's in
  * the legacy ISA memory space (memory in a domain between 0 and 1MB).
  */
-_X_EXPORT pointer
+pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
 		    ADDRESS Base, unsigned long Size)
 {
@@ -531,7 +531,7 @@ xf86MapLegacyIO(struct pci_device *dev)
     return (IOADDRESS)DomainMmappedIO[domain];
 }
 
-_X_EXPORT resPtr
+resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     struct pci_device *dev;

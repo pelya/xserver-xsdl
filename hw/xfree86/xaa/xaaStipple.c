@@ -23,7 +23,7 @@ static CARD32* StippleOver32_Inverted(CARD32*, CARD32*, int, int, int);
 #define stipple_get_scanline_func EXPNAME(XAAGetStippleScanlineFunc)
 #endif
 
-_X_EXPORT StippleScanlineProcPtr stipple_scanline_func[6] = {
+StippleScanlineProcPtr stipple_scanline_func[6] = {
    StipplePowerOfTwo,
    StippleUpTo32,
    StippleOver32,
@@ -32,7 +32,7 @@ _X_EXPORT StippleScanlineProcPtr stipple_scanline_func[6] = {
    StippleOver32_Inverted
 };
 
-_X_EXPORT StippleScanlineProcPtr *stipple_get_scanline_func(void) {
+StippleScanlineProcPtr *stipple_get_scanline_func(void) {
    return stipple_scanline_func;
 }
 
@@ -83,7 +83,7 @@ _X_EXPORT StippleScanlineProcPtr *stipple_get_scanline_func(void) {
 
 #if !defined(FIXEDBASE) && !defined(MSBFIRST) && !defined(TRIPLE_BITS)
 
-_X_EXPORT unsigned int XAAShiftMasks[32] = {
+unsigned int XAAShiftMasks[32] = {
   /* gcc is rather pedantic about SHIFT_R(0xFFFFFFFF,32) */
           0x00000000    , SHIFT_R(0xFFFFFFFF,31),
   SHIFT_R(0xFFFFFFFF,30), SHIFT_R(0xFFFFFFFF,29),
@@ -105,7 +105,7 @@ _X_EXPORT unsigned int XAAShiftMasks[32] = {
 
 #endif
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAFillColorExpandRects3)(
 #else
@@ -241,7 +241,7 @@ SECOND_PASS:
 
 
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAFillColorExpandSpans3)(
 #else
@@ -352,7 +352,7 @@ SECOND_PASS:
 
 #ifndef FIXEDBASE
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAFillScanlineColorExpandRects3)(
 #else
@@ -465,7 +465,7 @@ SECOND_PASS:
      SET_SYNC_FLAG(infoRec);
 }
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAFillScanlineColorExpandSpans3)(
 #else

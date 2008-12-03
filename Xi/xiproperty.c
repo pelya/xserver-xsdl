@@ -57,7 +57,7 @@ static long XIPropHandlerID = 1;
  * Return the type assigned to the specified atom or 0 if the atom isn't known
  * to the DIX.
  */
-_X_EXPORT Atom
+Atom
 XIGetKnownProperty(char *name)
 {
     int i;
@@ -93,7 +93,7 @@ XIInitKnownProperties(void)
  * property handler again.
  * @return The handler's identifier or 0 if an error occured.
  */
-_X_EXPORT long
+long
 XIRegisterPropertyHandler(DeviceIntPtr         dev,
                           int (*SetProperty) (DeviceIntPtr dev,
                                               Atom property,
@@ -120,7 +120,7 @@ XIRegisterPropertyHandler(DeviceIntPtr         dev,
     return new_handler->id;
 }
 
-_X_EXPORT void
+void
 XIUnRegisterPropertyHandler(DeviceIntPtr dev, long id)
 {
     XIPropertyHandlerPtr curr, prev = NULL;
@@ -186,7 +186,7 @@ XIDestroyDeviceProperty (XIPropertyPtr prop)
  * including removing all device handlers.
  * DO NOT CALL FROM THE DRIVER.
  */
-_X_EXPORT void
+void
 XIDeleteAllDeviceProperties (DeviceIntPtr device)
 {
     XIPropertyPtr               prop, next;
@@ -219,7 +219,7 @@ XIDeleteAllDeviceProperties (DeviceIntPtr device)
 }
 
 
-_X_EXPORT int
+int
 XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
 {
     XIPropertyPtr               prop, *prev;
@@ -263,7 +263,7 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
     return Success;
 }
 
-_X_EXPORT int
+int
 XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                         int format, int mode, unsigned long len,
                         pointer value, Bool sendevent)
@@ -400,7 +400,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     return(Success);
 }
 
-_X_EXPORT int
+int
 XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
 {
     XIPropertyPtr   prop = XIFetchDeviceProperty (dev, property);
@@ -435,7 +435,7 @@ XIGetDeviceProperty (DeviceIntPtr dev, Atom property, XIPropertyValuePtr *value)
     return Success;
 }
 
-_X_EXPORT int
+int
 XISetDevicePropertyDeletable(DeviceIntPtr dev, Atom property, Bool deletable)
 {
     XIPropertyPtr prop = XIFetchDeviceProperty(dev, property);

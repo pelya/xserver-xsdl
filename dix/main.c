@@ -130,11 +130,11 @@ static
 #endif
 Bool CreateConnectionBlock(void);
 
-_X_EXPORT PaddingInfo PixmapWidthPaddingInfo[33];
+PaddingInfo PixmapWidthPaddingInfo[33];
 
 int connBlockScreenStart;
 
-_X_EXPORT void
+void
 NotImplemented(xEvent *from, xEvent *to)
 {
     FatalError("Not implemented");
@@ -144,7 +144,7 @@ NotImplemented(xEvent *from, xEvent *to)
  * Dummy entry for ReplySwapVector[]
  */
 
-_X_EXPORT void
+void
 ReplyNotSwappd(
 	ClientPtr pClient ,
 	int size ,
@@ -446,13 +446,13 @@ int main(int argc, char *argv[], char *envp[])
 static int  VendorRelease = VENDOR_RELEASE;
 static char *VendorString = VENDOR_NAME;
 
-_X_EXPORT void
+void
 SetVendorRelease(int release)
 {
     VendorRelease = release;
 }
 
-_X_EXPORT void
+void
 SetVendorString(char *string)
 {
     VendorString = string;
@@ -609,7 +609,7 @@ with its screen number, a pointer to its ScreenRec, argc, and argv.
 
 */
 
-_X_EXPORT int
+int
 AddScreen(
     Bool	(* pfnInit)(
 	int /*index*/,

@@ -38,7 +38,7 @@
 #define XF86_OS_PRIVS
 #include "xf86_OSproc.h"
 
-_X_EXPORT PMClose
+PMClose
 xf86OSPMOpen(void)
 {
 	return NULL;

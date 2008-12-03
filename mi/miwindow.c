@@ -57,7 +57,7 @@ SOFTWARE.
 #include "pixmapstr.h"
 #include "mivalidate.h"
 
-_X_EXPORT void
+void
 miClearToBackground(WindowPtr pWin,
                     int x, int y, int w, int h,
                     Bool generateExposures)
@@ -122,7 +122,7 @@ miClearToBackground(WindowPtr pWin,
 	REGION_DESTROY(pScreen, pBSReg);
 }
 
-_X_EXPORT void
+void
 miMarkWindow(WindowPtr pWin)
 {
     ValidatePtr val;
@@ -137,7 +137,7 @@ miMarkWindow(WindowPtr pWin)
     pWin->valdata = val;
 }
 
-_X_EXPORT Bool
+Bool
 miMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst, WindowPtr *ppLayerWin)
 {
     BoxPtr box;
@@ -223,7 +223,7 @@ miMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst, WindowPtr *ppLayerWin)
  *    regions, translate the regions, restore any backing store,
  *    and then send any regions still exposed to the client
  *****/
-_X_EXPORT void
+void
 miHandleValidateExposures(WindowPtr pWin)
 {
     WindowPtr pChild;
@@ -260,7 +260,7 @@ miHandleValidateExposures(WindowPtr pWin)
     }
 }
 
-_X_EXPORT void
+void
 miMoveWindow(WindowPtr pWin, int x, int y, WindowPtr pNextSib, VTKind kind)
 {
     WindowPtr pParent;
@@ -369,7 +369,7 @@ miRecomputeExposures (
     return WT_NOMATCH;
 }
 
-_X_EXPORT void
+void
 miSlideAndSizeWindow(WindowPtr pWin,
                      int x, int y,
                      unsigned int w, unsigned int h,
@@ -681,7 +681,7 @@ miSlideAndSizeWindow(WindowPtr pWin,
 	WindowsRestructured ();
 }
 
-_X_EXPORT WindowPtr
+WindowPtr
 miGetLayerWindow(WindowPtr pWin)
 {
     return pWin->firstChild;
@@ -694,7 +694,7 @@ miGetLayerWindow(WindowPtr pWin)
  *    and send appropriate exposure events
  */
 
-_X_EXPORT void
+void
 miSetShape(WindowPtr pWin)
 {
     Bool	WasViewable = (Bool)(pWin->viewable);
@@ -750,7 +750,7 @@ miSetShape(WindowPtr pWin)
 
 /* Keeps the same inside(!) origin */
 
-_X_EXPORT void
+void
 miChangeBorderWidth(WindowPtr pWin, unsigned int width)
 {
     int oldwidth;
@@ -804,7 +804,7 @@ miChangeBorderWidth(WindowPtr pWin, unsigned int width)
 	WindowsRestructured ();
 }
 
-_X_EXPORT void
+void
 miMarkUnrealizedWindow(WindowPtr pChild, WindowPtr pWin, Bool fromConfigure)
 {
     if ((pChild != pWin) || fromConfigure)
@@ -816,7 +816,7 @@ miMarkUnrealizedWindow(WindowPtr pChild, WindowPtr pWin, Bool fromConfigure)
     }
 }
 
-_X_EXPORT void
+void
 miSegregateChildren(WindowPtr pWin, RegionPtr pReg, int depth)
 {
     ScreenPtr pScreen;

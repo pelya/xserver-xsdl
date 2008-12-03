@@ -44,7 +44,7 @@
  * This function is the signal handler for the VT-switching signal.  It
  * is only referenced inside the OS-support layer.
  */
-_X_EXPORT void
+void
 xf86VTRequest(int sig)
 {
 	signal(sig, (void(*)(int))xf86VTRequest);
@@ -52,13 +52,13 @@ xf86VTRequest(int sig)
 	return;
 }
 
-_X_EXPORT Bool
+Bool
 xf86VTSwitchPending()
 {
     return(xf86Info.vtRequestsPending ? TRUE : FALSE);
 }
 
-_X_EXPORT Bool
+Bool
 xf86VTSwitchAway()
 {
 	xf86Info.vtRequestsPending = FALSE;
@@ -75,7 +75,7 @@ xf86VTSwitchAway()
 	}
 }
 
-_X_EXPORT Bool
+Bool
 xf86VTSwitchTo()
 {
 	xf86Info.vtRequestsPending = FALSE;

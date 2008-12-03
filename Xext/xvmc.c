@@ -664,7 +664,7 @@ SProcXvMCDispatch (ClientPtr client)
     return BadImplementation;
 }
 
-_X_EXPORT void
+void
 XvMCExtensionInit(void)
 {
    ExtensionEntry *extEntry;
@@ -705,7 +705,7 @@ XvMCCloseScreen (int i, ScreenPtr pScreen)
 }
 
 
-_X_EXPORT int
+int
 XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
 {
    XvMCScreenPtr pScreenPriv;
@@ -731,7 +731,7 @@ XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
    return Success;
 }
 
-_X_EXPORT XvImagePtr XvMCFindXvImage(XvPortPtr pPort, CARD32 id)
+XvImagePtr XvMCFindXvImage(XvPortPtr pPort, CARD32 id)
 {
     XvImagePtr pImage = NULL;
     ScreenPtr pScreen = pPort->pAdaptor->pScreen;
@@ -763,7 +763,7 @@ _X_EXPORT XvImagePtr XvMCFindXvImage(XvPortPtr pPort, CARD32 id)
     return pImage;
 }
 
-_X_EXPORT int
+int
 xf86XvMCRegisterDRInfo(ScreenPtr pScreen, char *name,
 		       char *busID, int major, int minor,
 		       int patchLevel)

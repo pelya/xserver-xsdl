@@ -35,7 +35,7 @@
 #include "dix.h"
 
 #ifdef NEED_STRCASECMP
-_X_EXPORT int
+int
 xstrcasecmp(const char *str1, const char *str2)
 {
     const u_char *us1 = (const u_char *)str1, *us2 = (const u_char *)str2;
@@ -51,7 +51,7 @@ xstrcasecmp(const char *str1, const char *str2)
 #endif
 
 #ifdef NEED_STRNCASECMP
-_X_EXPORT int
+int
 xstrncasecmp(const char *s1, const char *s2, size_t n)
 {
     if (n != 0) {

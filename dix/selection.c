@@ -65,10 +65,10 @@ SOFTWARE.
  *
  *****************************************************************/
 
-_X_EXPORT Selection *CurrentSelections;
-_X_EXPORT CallbackListPtr SelectionCallback;
+Selection *CurrentSelections;
+CallbackListPtr SelectionCallback;
 
-_X_EXPORT int
+int
 dixLookupSelection(Selection **result, Atom selectionName,
 		   ClientPtr client, Mask access_mode)
 {
@@ -86,7 +86,7 @@ dixLookupSelection(Selection **result, Atom selectionName,
     return rc;
 }
 
-_X_EXPORT void
+void
 InitSelections(void)
 {
     Selection *pSel, *pNextSel;
@@ -110,7 +110,7 @@ CallSelectionCallback(Selection *pSel, ClientPtr client,
     CallCallbacks(&SelectionCallback, &info);
 }
 
-_X_EXPORT void
+void
 DeleteWindowFromAnySelections(WindowPtr pWin)
 {
     Selection *pSel;
@@ -125,7 +125,7 @@ DeleteWindowFromAnySelections(WindowPtr pWin)
 	}
 }
 
-_X_EXPORT void
+void
 DeleteClientFromAnySelections(ClientPtr client)
 {
     Selection *pSel;

@@ -3,7 +3,7 @@ noinst_LTLIBRARIES = libmi.la
 if XORG
 sdk_HEADERS = mibank.h micmap.h miline.h mipointer.h mi.h mibstore.h \
               migc.h mipointrst.h mizerarc.h micoord.h mifillarc.h \
-              mispans.h miwideline.h mistruct.h mifpoly.h
+              mispans.h miwideline.h mistruct.h mifpoly.h mioverlay.h
 endif
 
 AM_CFLAGS = $(DIX_CFLAGS)

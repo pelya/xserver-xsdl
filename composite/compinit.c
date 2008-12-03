@@ -213,7 +213,6 @@ compRegisterAlternateVisuals (CompScreenPtr cs, VisualID *vids, int nVisuals)
     return TRUE;
 }
 
-_X_EXPORT
 Bool CompositeRegisterAlternateVisuals (ScreenPtr pScreen, VisualID *vids,
 					int nVisuals)
 {

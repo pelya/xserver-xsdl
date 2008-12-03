@@ -109,7 +109,7 @@ static XF86ModuleVersionInfo xaaVersRec =
 
 _X_EXPORT XF86ModuleData xaaModuleData = { &xaaVersRec, NULL, NULL };
 
-_X_EXPORT Bool
+Bool
 XAAInitAccel(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 {
     int index = pScreen->myNum;

@@ -34,7 +34,7 @@
 #include "randrstr.h"
 #include <stdio.h>
 
-_X_EXPORT Bool
+Bool
 miRRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     return TRUE;
@@ -44,7 +44,7 @@ miRRGetInfo (ScreenPtr pScreen, Rotation *rotations)
  * Any hardware that can actually change anything will need something
  * different here
  */
-_X_EXPORT Bool
+Bool
 miRRCrtcSet (ScreenPtr	pScreen,
 	     RRCrtcPtr	crtc,
 	     RRModePtr	mode,
@@ -64,7 +64,7 @@ miRRCrtcSetGamma (ScreenPtr	pScreen,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 miRROutputSetProperty (ScreenPtr	    pScreen,
 		       RROutputPtr	    output,
 		       Atom		    property,
@@ -73,7 +73,7 @@ miRROutputSetProperty (ScreenPtr	    pScreen,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 miRROutputGetProperty (ScreenPtr	    pScreen,
 		       RROutputPtr	    output,
 		       Atom		    property)
@@ -81,7 +81,7 @@ miRROutputGetProperty (ScreenPtr	    pScreen,
 	return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 miRROutputValidateMode (ScreenPtr	    pScreen,
 			RROutputPtr	    output,
 			RRModePtr	    mode)
@@ -89,7 +89,7 @@ miRROutputValidateMode (ScreenPtr	    pScreen,
     return FALSE;
 }
 
-_X_EXPORT void
+void
 miRRModeDestroy (ScreenPtr  pScreen,
 		 RRModePtr  mode)
 {
@@ -104,7 +104,7 @@ miRRModeDestroy (ScreenPtr  pScreen,
  * XXX what to do here....
  */
 
-_X_EXPORT Bool
+Bool
 miRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;

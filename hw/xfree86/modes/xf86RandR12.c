@@ -237,7 +237,7 @@ xf86RandR12SetMode (ScreenPtr	    pScreen,
     return ret;
 }
 
-_X_EXPORT Bool
+Bool
 xf86RandR12SetConfig (ScreenPtr		pScreen,
 		    Rotation		rotation,
 		    int			rate,
@@ -371,7 +371,7 @@ finish:
     return ret;
 }
 
-_X_EXPORT Rotation
+Rotation
 xf86RandR12GetRotation(ScreenPtr pScreen)
 {
     XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
@@ -379,7 +379,7 @@ xf86RandR12GetRotation(ScreenPtr pScreen)
     return randrp->rotation;
 }
 
-_X_EXPORT Bool
+Bool
 xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -484,7 +484,7 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 }
 
 
-_X_EXPORT Bool
+Bool
 xf86RandR12Init (ScreenPtr pScreen)
 {
     rrScrPrivPtr	rp;
@@ -542,7 +542,7 @@ xf86RandR12Init (ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
 {
     XF86RandRInfoPtr	randrp;
@@ -568,7 +568,7 @@ xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
     randrp->supported_rotations = rotations;
 }
 
-_X_EXPORT void
+void
 xf86RandR12SetTransformSupport (ScreenPtr pScreen, Bool transforms)
 {
     XF86RandRInfoPtr	randrp;
@@ -593,7 +593,7 @@ xf86RandR12SetTransformSupport (ScreenPtr pScreen, Bool transforms)
 #endif
 }
 
-_X_EXPORT void
+void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y)
 {
     ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
@@ -1162,7 +1162,7 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
  * to DGA, VidMode or hot key. Tell RandR
  */
 
-_X_EXPORT void
+void
 xf86RandR12TellChanged (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -1220,7 +1220,7 @@ xf86RandR12Init12 (ScreenPtr pScreen)
 
 #endif
 
-_X_EXPORT Bool
+Bool
 xf86RandR12PreInit (ScrnInfoPtr pScrn)
 {
     return TRUE;

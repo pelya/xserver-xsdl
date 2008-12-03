@@ -98,7 +98,7 @@ WriteXKBAction(FILE *file,XkbDescPtr xkb,XkbAnyAction *action)
 
 /***====================================================================***/
 
-_X_EXPORT Bool
+Bool
 XkbWriteXKBKeycodes(	FILE *			file,
 			XkbDescPtr		xkb,
 			Bool			topLevel,
@@ -158,7 +158,7 @@ char *			alternate;
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbWriteXKBKeyTypes(	FILE *			file,
 			XkbDescPtr              xkb,
 			Bool			topLevel,
@@ -265,7 +265,7 @@ WriteXKBIndicatorMap(	FILE *			file,
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbWriteXKBCompatMap(	FILE *			file,
 			XkbDescPtr              xkb,
 			Bool			topLevel,
@@ -340,7 +340,7 @@ XkbSymInterpretPtr	interp;
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbWriteXKBSymbols(	FILE *			file,
 			XkbDescPtr              xkb,
 			Bool			topLevel,
@@ -791,7 +791,7 @@ int		dfltKeyColor = 0;
     return True;
 }
 
-_X_EXPORT Bool
+Bool
 XkbWriteXKBGeometry(	FILE *			file,
 			XkbDescPtr              xkb,
 			Bool			topLevel,

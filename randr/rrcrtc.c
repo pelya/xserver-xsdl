@@ -24,12 +24,12 @@
 #include "swaprep.h"
 #include "registry.h"
 
-_X_EXPORT RESTYPE	RRCrtcType;
+RESTYPE	RRCrtcType;
 
 /*
  * Notify the CRTC of some change
  */
-_X_EXPORT void
+void
 RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged)
 {
     ScreenPtr	pScreen = crtc->pScreen;
@@ -51,7 +51,7 @@ RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged)
 /*
  * Create a CRTC
  */
-_X_EXPORT RRCrtcPtr
+RRCrtcPtr
 RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
 {
     RRCrtcPtr	    crtc;
@@ -108,7 +108,7 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
 /*
  * Set the allowed rotations on a CRTC
  */
-_X_EXPORT void
+void
 RRCrtcSetRotations (RRCrtcPtr crtc, Rotation rotations)
 {
     crtc->rotations = rotations;
@@ -117,7 +117,7 @@ RRCrtcSetRotations (RRCrtcPtr crtc, Rotation rotations)
 /*
  * Set whether transforms are allowed on a CRTC
  */
-_X_EXPORT void
+void
 RRCrtcSetTransformSupport (RRCrtcPtr crtc, Bool transforms)
 {
     crtc->transforms = transforms;
@@ -127,7 +127,7 @@ RRCrtcSetTransformSupport (RRCrtcPtr crtc, Bool transforms)
  * Notify the extension that the Crtc has been reconfigured,
  * the driver calls this whenever it has updated the mode
  */
-_X_EXPORT Bool
+Bool
 RRCrtcNotify (RRCrtcPtr	    crtc,
 	      RRModePtr	    mode,
 	      int	    x,
@@ -245,7 +245,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
     return TRUE;
 }
 
-_X_EXPORT void
+void
 RRDeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
@@ -298,7 +298,7 @@ RRCrtcPendingProperties (RRCrtcPtr crtc)
 /*
  * Request that the Crtc be reconfigured
  */
-_X_EXPORT Bool
+Bool
 RRCrtcSet (RRCrtcPtr    crtc,
 	   RRModePtr	mode,
 	   int		x,
@@ -390,7 +390,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 /*
  * Return crtc transform
  */
-_X_EXPORT RRTransformPtr
+RRTransformPtr
 RRCrtcGetTransform (RRCrtcPtr crtc)
 {
     RRTransformPtr  transform = &crtc->client_pending_transform;
@@ -403,7 +403,7 @@ RRCrtcGetTransform (RRCrtcPtr crtc)
 /*
  * Check whether the pending and current transforms are the same
  */
-_X_EXPORT Bool
+Bool
 RRCrtcPendingTransform (RRCrtcPtr crtc)
 {
     return memcmp (&crtc->client_current_transform.transform,
@@ -414,7 +414,7 @@ RRCrtcPendingTransform (RRCrtcPtr crtc)
 /*
  * Destroy a Crtc at shutdown
  */
-_X_EXPORT void
+void
 RRCrtcDestroy (RRCrtcPtr crtc)
 {
     FreeResource (crtc->id, 0);
@@ -454,7 +454,7 @@ RRCrtcDestroyResource (pointer value, XID pid)
  * Request that the Crtc gamma be changed
  */
 
-_X_EXPORT Bool
+Bool
 RRCrtcGammaSet (RRCrtcPtr   crtc,
 		CARD16	    *red,
 		CARD16	    *green,
@@ -485,7 +485,7 @@ RRCrtcGammaSet (RRCrtcPtr   crtc,
  * in the RRCrtcRec
  */
 
-_X_EXPORT Bool
+Bool
 RRCrtcGammaNotify (RRCrtcPtr	crtc)
 {
     return TRUE;    /* not much going on here */
@@ -516,7 +516,7 @@ RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
 /**
  * Returns the width/height that the crtc scans out from the framebuffer
  */
-_X_EXPORT void
+void
 RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
 {
     return RRModeGetScanoutSize (crtc->mode, &crtc->transform, width, height);
@@ -526,7 +526,7 @@ RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
  * Set the size of the gamma table at server startup time
  */
 
-_X_EXPORT Bool
+Bool
 RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 		    int		size)
 {
@@ -555,7 +555,7 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
  * Set the pending CRTC transformation
  */
 
-_X_EXPORT int
+int
 RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    PictTransformPtr	transform,
 		    struct pixman_f_transform *f_transform,
@@ -607,7 +607,7 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 /*
  * Initialize crtc type
  */
-_X_EXPORT Bool
+Bool
 RRCrtcInit (void)
 {
     RRCrtcType = CreateNewResourceType (RRCrtcDestroyResource);
@@ -617,7 +617,7 @@ RRCrtcInit (void)
     return TRUE;
 }
 
-_X_EXPORT int
+int
 ProcRRGetCrtcInfo (ClientPtr client)
 {
     REQUEST(xRRGetCrtcInfoReq);
@@ -724,7 +724,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRSetCrtcConfig (ClientPtr client)
 {
     REQUEST(xRRSetCrtcConfigReq);
@@ -977,7 +977,7 @@ sendReply:
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRGetCrtcGammaSize (ClientPtr client)
 {
     REQUEST(xRRGetCrtcGammaSizeReq);
@@ -1003,7 +1003,7 @@ ProcRRGetCrtcGammaSize (ClientPtr client)
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRGetCrtcGamma (ClientPtr client)
 {
     REQUEST(xRRGetCrtcGammaReq);
@@ -1046,7 +1046,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
     return client->noClientException;
 }
 
-_X_EXPORT int
+int
 ProcRRSetCrtcGamma (ClientPtr client)
 {
     REQUEST(xRRSetCrtcGammaReq);
@@ -1077,7 +1077,7 @@ ProcRRSetCrtcGamma (ClientPtr client)
 
 /* Version 1.3 additions */
 
-_X_EXPORT int
+int
 ProcRRSetCrtcTransform (ClientPtr client)
 {
     REQUEST(xRRSetCrtcTransformReq);
@@ -1165,7 +1165,7 @@ transform_encode (ClientPtr client, xRenderTransform *wire, PictTransform *pict)
 	SwapLongs ((CARD32 *) wire, sizeof (xRenderTransform));
 }
 
-_X_EXPORT int
+int
 ProcRRGetCrtcTransform (ClientPtr client)
 {
     REQUEST(xRRGetCrtcTransformReq);

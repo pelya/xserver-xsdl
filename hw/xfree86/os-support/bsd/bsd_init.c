@@ -152,7 +152,7 @@ static xf86ConsOpen_t xf86ConsTab[] = {
 };
 
 
-_X_EXPORT void
+void
 xf86OpenConsole()
 {
     int i, fd = -1;
@@ -644,7 +644,7 @@ xf86OpenWScons()
 
 #endif /* WSCONS_SUPPORT */
 
-_X_EXPORT void
+void
 xf86CloseConsole()
 {
 #if defined(SYSCONS_SUPPORT) || defined(PCVT_SUPPORT)
@@ -704,7 +704,7 @@ xf86CloseConsole()
     return;
 }
 
-_X_EXPORT int
+int
 xf86ProcessArgument(int argc, char *argv[], int i)
 {
 	/*
@@ -732,7 +732,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 	return(0);
 }
 
-_X_EXPORT void
+void
 xf86UseMsg()
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)

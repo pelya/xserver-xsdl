@@ -255,7 +255,7 @@ BitmapScanline_Shifted_Inverted_Careful(
     avoid the invert.
 */ 
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAWriteBitmapColorExpand3)(
 #else
@@ -373,7 +373,7 @@ SECOND_PASS:
 
 #ifndef FIXEDBASE
 
-_X_EXPORT void
+void
 #ifdef TRIPLE_BITS
 EXPNAME(XAAWriteBitmapScanlineColorExpand3)(
 #else

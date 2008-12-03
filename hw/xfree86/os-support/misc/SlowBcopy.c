@@ -24,7 +24,7 @@
 
 static int really_slow_bcopy;
 
-_X_EXPORT void
+void
 xf86SetReallySlowBcopy(void)
 {
 	really_slow_bcopy = 1;
@@ -42,7 +42,7 @@ static void xf86_really_slow_bcopy(unsigned char *src, unsigned char *dst, int l
 #endif
 
 /* The outb() isn't needed on my machine, but who knows ... -- ost */
-_X_EXPORT void
+void
 xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
 {
 #if defined(__i386__) || defined(__amd64__)
@@ -67,7 +67,7 @@ xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
 
 #endif
 
-_X_EXPORT void
+void
 xf86SlowBCopyFromBus(unsigned char *src, unsigned char *dst, int count)
 {
     unsigned long addr;
@@ -84,7 +84,7 @@ xf86SlowBCopyFromBus(unsigned char *src, unsigned char *dst, int count)
     }
 }
   
-_X_EXPORT void
+void
 xf86SlowBCopyToBus(unsigned char *src, unsigned char *dst, int count)
 {
     unsigned long addr;

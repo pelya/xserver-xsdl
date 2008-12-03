@@ -331,7 +331,7 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
     }
 }
 
-_X_EXPORT void
+void
 xf86RotateFreeShadow(ScrnInfoPtr pScrn)
 {
     xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -349,7 +349,7 @@ xf86RotateFreeShadow(ScrnInfoPtr pScrn)
    }
 }
 
-_X_EXPORT void
+void
 xf86RotateCloseScreen (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -387,7 +387,7 @@ xf86CrtcFitsScreen (xf86CrtcPtr crtc, struct pict_f_transform *crtc_to_fb)
 	    0 <= b.y1 && b.y2 <= pScreen->height);
 }
 
-_X_EXPORT Bool
+Bool
 xf86CrtcRotate (xf86CrtcPtr crtc)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;

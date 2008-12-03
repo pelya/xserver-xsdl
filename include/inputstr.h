@@ -63,7 +63,7 @@ SOFTWARE.
 
 #define EMASKSIZE	MAXDEVICES + 1
 
-extern DevPrivateKey CoreDevicePrivateKey;
+extern _X_EXPORT DevPrivateKey CoreDevicePrivateKey;
 
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
@@ -486,7 +486,7 @@ typedef struct {
     DeviceIntPtr	pointer;
 } InputInfo;
 
-extern InputInfo inputInfo;
+extern _X_EXPORT InputInfo inputInfo;
 
 /* for keeping the events for devices grabbed synchronously */
 typedef struct _QdEvent *QdEventPtr;

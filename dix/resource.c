@@ -186,13 +186,13 @@ typedef struct _ClientResource {
     XID		expectID;
 } ClientResourceRec;
 
-_X_EXPORT RESTYPE lastResourceType;
+RESTYPE lastResourceType;
 static RESTYPE lastResourceClass;
-_X_EXPORT RESTYPE TypeMask;
+RESTYPE TypeMask;
 
 static DeleteType *DeleteFuncs = (DeleteType *)NULL;
 
-_X_EXPORT CallbackListPtr ResourceStateCallback;
+CallbackListPtr ResourceStateCallback;
 
 static _X_INLINE void
 CallResourceStateCallback(ResourceState state, ResourceRec *res)
@@ -203,7 +203,7 @@ CallResourceStateCallback(ResourceState state, ResourceRec *res)
     }
 }
 
-_X_EXPORT RESTYPE
+RESTYPE
 CreateNewResourceType(DeleteType deleteFunc)
 {
     RESTYPE next = lastResourceType + 1;
@@ -224,7 +224,7 @@ CreateNewResourceType(DeleteType deleteFunc)
     return next;
 }
 
-_X_EXPORT RESTYPE
+RESTYPE
 CreateNewResourceClass(void)
 {
     RESTYPE next = lastResourceClass >> 1;
@@ -244,7 +244,7 @@ static ClientResourceRec clientTable[MAXCLIENTS];
  *    in resource table
  *****************/
 
-_X_EXPORT Bool
+Bool
 InitClientResources(ClientPtr client)
 {
     int i, j;
@@ -339,7 +339,7 @@ AvailableID(
     return 0;
 }
 
-_X_EXPORT void
+void
 GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
 {
     XID id, maxid;
@@ -390,7 +390,7 @@ GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
  *  invented, but this will be used so rarely that this should suffice.
  */
 
-_X_EXPORT unsigned int
+unsigned int
 GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
 {
     unsigned int found = 0;
@@ -417,7 +417,7 @@ GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
  * over-running another client.
  */
 
-_X_EXPORT XID
+XID
 FakeClientID(int client)
 {
     XID id, maxid;
@@ -438,7 +438,7 @@ FakeClientID(int client)
     return id;
 }
 
-_X_EXPORT Bool
+Bool
 AddResource(XID id, RESTYPE type, pointer value)
 {
     int client;
@@ -527,7 +527,7 @@ RebuildTable(int client)
     clientTable[client].resources = resources;
 }
 
-_X_EXPORT void
+void
 FreeResource(XID id, RESTYPE skipDeleteFuncType)
 {
     int		cid;
@@ -570,7 +570,7 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 }
 
 
-_X_EXPORT void
+void
 FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 {
     int		cid;
@@ -610,7 +610,7 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
  * data
  */
 
-_X_EXPORT Bool
+Bool
 ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
 {
     int    cid;
@@ -636,7 +636,7 @@ ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
  * add and delete an equal number of resources!
  */
 
-_X_EXPORT void
+void
 FindClientResourcesByType(
     ClientPtr client,
     RESTYPE type,
@@ -668,7 +668,7 @@ FindClientResourcesByType(
     }
 }
 
-_X_EXPORT void
+void
 FindAllClientResources(
     ClientPtr client,
     FindAllRes func,
@@ -698,7 +698,7 @@ FindAllClientResources(
 }
 
 
-_X_EXPORT pointer
+pointer
 LookupClientResourceComplex(
     ClientPtr client,
     RESTYPE type,
@@ -725,7 +725,7 @@ LookupClientResourceComplex(
 }
 
 
-_X_EXPORT void
+void
 FreeClientNeverRetainResources(ClientPtr client)
 {
     ResourcePtr *resources;
@@ -762,7 +762,7 @@ FreeClientNeverRetainResources(ClientPtr client)
     }
 }
 
-_X_EXPORT void
+void
 FreeClientResources(ClientPtr client)
 {
     ResourcePtr *resources;
@@ -813,7 +813,7 @@ FreeClientResources(ClientPtr client)
     clientTable[client->index].buckets = 0;
 }
 
-_X_EXPORT void
+void
 FreeAllResources(void)
 {
     int	i;
@@ -825,7 +825,7 @@ FreeAllResources(void)
     }
 }
 
-_X_EXPORT Bool
+Bool
 LegalNewID(XID id, ClientPtr client)
 {
 
@@ -845,7 +845,7 @@ LegalNewID(XID id, ClientPtr client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-_X_EXPORT int
+int
 dixLookupResource(pointer *result, XID id, RESTYPE rtype,
 		  ClientPtr client, Mask mode)
 {

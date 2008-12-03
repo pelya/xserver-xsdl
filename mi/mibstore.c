@@ -36,7 +36,7 @@
  * for the implementation.
  */
 
-_X_EXPORT void
+void
 miInitializeBackingStore (ScreenPtr pScreen)
 {
     pScreen->SaveDoomedAreas = NULL;

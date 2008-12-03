@@ -547,6 +547,6 @@ typedef struct {
   Uchar *rawData;
 } xf86Monitor, *xf86MonPtr;
 
-extern xf86MonPtr ConfiguredMonitor;
+extern _X_EXPORT xf86MonPtr ConfiguredMonitor;
 
 #endif /* _EDID_H_ */

@@ -383,7 +383,7 @@ typedef struct _FbComposeData {
     CARD16	height;
 } FbComposeData;
 
-void
+extern _X_EXPORT void
 fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer);
 
 typedef FASTCALL void (*CombineMaskU) (CARD32 *src, const CARD32 *mask, int width);
@@ -398,7 +398,7 @@ typedef struct _FbComposeFunctions {
 
 /* fbcompose.c */
 
-void
+extern _X_EXPORT void
 fbCompositeGeneral (CARD8	op,
 		    PicturePtr	pSrc,
 		    PicturePtr	pMask,
@@ -413,7 +413,7 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	height);
 
 /* fbpict.c */
-void
+extern _X_EXPORT void
 fbComposite (CARD8      op,
 	     PicturePtr pSrc,
 	     PicturePtr pMask,
@@ -440,7 +440,7 @@ typedef void	(*CompositeFunc) (CARD8      op,
 				  CARD16     width,
 				  CARD16     height);
 
-void
+extern _X_EXPORT void
 fbWalkCompositeRegion (CARD8 op,
 		       PicturePtr pSrc,
 		       PicturePtr pMask,
@@ -459,20 +459,20 @@ fbWalkCompositeRegion (CARD8 op,
 
 /* fbtrap.c */
 
-void
+extern _X_EXPORT void
 fbAddTraps (PicturePtr	pPicture,
 	    INT16	xOff,
 	    INT16	yOff,
 	    int		ntrap,
 	    xTrap	*traps);
 
-void
+extern _X_EXPORT void
 fbRasterizeTrapezoid (PicturePtr    alpha,
 		      xTrapezoid    *trap,
 		      int	    x_off,
 		      int	    y_off);
 
-void
+extern _X_EXPORT void
 fbAddTriangles (PicturePtr  pPicture,
 		INT16	    xOff,
 		INT16	    yOff,

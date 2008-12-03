@@ -14,7 +14,7 @@
 #include "xaalocal.h"
 
 
-_X_EXPORT int XAACopyROP[16] =
+int XAACopyROP[16] =
 {
    ROP_0,               /* GXclear */
    ROP_DSa,             /* GXand */
@@ -34,7 +34,7 @@ _X_EXPORT int XAACopyROP[16] =
    ROP_1                /* GXset */
 };
 
-_X_EXPORT int XAACopyROP_PM[16] =
+int XAACopyROP_PM[16] =
 {
    ROP_0,		/* not used */
    ROP_DSPnoa,
@@ -55,7 +55,7 @@ _X_EXPORT int XAACopyROP_PM[16] =
 };
 
 
-_X_EXPORT int XAAPatternROP[16]=
+int XAAPatternROP[16]=
 {
    ROP_0,
    ROP_DPa,
@@ -75,7 +75,7 @@ _X_EXPORT int XAAPatternROP[16]=
    ROP_1
 };
 
-_X_EXPORT int XAAPatternROP_PM[16] =
+int XAAPatternROP_PM[16] =
 {
    ROP_DPna,
    ROP_DPSnoa,
@@ -95,27 +95,27 @@ _X_EXPORT int XAAPatternROP_PM[16] =
    ROP_DPo
 };
 
-_X_EXPORT int XAAGetCopyROP(int i)
+int XAAGetCopyROP(int i)
 {
     return XAACopyROP[i];
 }
 
-_X_EXPORT int XAAGetCopyROP_PM(int i)
+int XAAGetCopyROP_PM(int i)
 {
     return XAACopyROP_PM[i];
 }
 
-_X_EXPORT int XAAGetPatternROP(int i)
+int XAAGetPatternROP(int i)
 {
     return XAAPatternROP[i];
 }
 
-_X_EXPORT int XAAGetPatternROP_PM(int i)
+int XAAGetPatternROP_PM(int i)
 {
     return XAAPatternROP_PM[i];
 }
 
-_X_EXPORT int
+int
 XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);
@@ -150,7 +150,7 @@ XAAHelpPatternROP(ScrnInfoPtr pScrn, int *fg, int *bg, int pm, int *rop)
 }
 
 
-_X_EXPORT int
+int
 XAAHelpSolidROP(ScrnInfoPtr pScrn, int *fg, int pm, int *rop)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCRNINFOPTR(pScrn);

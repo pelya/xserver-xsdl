@@ -97,7 +97,7 @@ SOFTWARE.
     }\
 }
 
-_X_EXPORT void
+void
 miZeroLine(
     DrawablePtr pDraw,
     GCPtr	pGC,
@@ -363,7 +363,7 @@ miZeroLine(
     xfree(pspanInit);
 }
 
-_X_EXPORT void
+void
 miZeroDashLine(
             DrawablePtr dst,
             GCPtr pgc,

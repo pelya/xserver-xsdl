@@ -82,8 +82,8 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "misc.h"
 
-_X_EXPORT CallbackListPtr       ReplyCallback;
-_X_EXPORT CallbackListPtr       FlushCallback;
+CallbackListPtr       ReplyCallback;
+CallbackListPtr       FlushCallback;
 
 static ConnectionInputPtr AllocateInputBuffer(void);
 static ConnectionOutputPtr AllocateOutputBuffer(void);
@@ -191,7 +191,7 @@ YieldControlDeath(void)
     timesThisConnection = 0;
 }
 
-_X_EXPORT int
+int
 ReadRequestFromClient(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -465,7 +465,7 @@ ReadRequestFromClient(ClientPtr client)
  *
  **********************/
 
-_X_EXPORT Bool
+Bool
 InsertFakeRequest(ClientPtr client, char *data, int count)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -539,7 +539,7 @@ InsertFakeRequest(ClientPtr client, char *data, int count)
  *
  **********************/
 
-_X_EXPORT void
+void
 ResetCurrentRequest(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
@@ -599,7 +599,7 @@ static const int padlength[4] = {0, 3, 2, 1};
  *
  **********************/
 
-_X_EXPORT void
+void
 FlushAllOutput(void)
 {
     register int index, base;
@@ -672,14 +672,14 @@ FlushAllOutput(void)
 #endif /* WIN32 */
 }
 
-_X_EXPORT void
+void
 FlushIfCriticalOutputPending(void)
 {
     if (CriticalOutputPending)
 	FlushAllOutput();
 }
 
-_X_EXPORT void
+void
 SetCriticalOutputPending(void)
 {
     CriticalOutputPending = TRUE;
@@ -696,7 +696,7 @@ SetCriticalOutputPending(void)
  *    this routine as int.
  *****************/
 
-_X_EXPORT int
+int
 WriteToClient (ClientPtr who, int count, const void *__buf)
 {
     OsCommPtr oc = (OsCommPtr)who->osPrivate;
@@ -1087,7 +1087,7 @@ FreeOsBuffers(OsCommPtr oc)
     }
 }
 
-_X_EXPORT void
+void
 ResetOsBuffers(void)
 {
     ConnectionInputPtr oci;

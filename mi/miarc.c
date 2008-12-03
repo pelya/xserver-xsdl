@@ -1041,7 +1041,7 @@ miFillWideEllipse(
  * fuller explanation of this.)
  */
 
-_X_EXPORT void
+void
 miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 {
     int		i;

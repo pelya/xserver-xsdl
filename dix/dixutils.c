@@ -102,7 +102,7 @@ Author:  Adobe Systems Incorporated
  * argument is less than, equal to or greater than the second argument.
  */
 
-_X_EXPORT int
+int
 CompareTimeStamps(TimeStamp a, TimeStamp b)
 {
     if (a.months < b.months)
@@ -121,7 +121,7 @@ CompareTimeStamps(TimeStamp a, TimeStamp b)
  */
 
 #define HALFMONTH ((unsigned long) 1<<31)
-_X_EXPORT TimeStamp
+TimeStamp
 ClientTimeToServerTime(CARD32 c)
 {
     TimeStamp ts;
@@ -165,7 +165,7 @@ ISOLatin1ToLower (unsigned char source)
 }
 
 
-_X_EXPORT void
+void
 CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
 {
     int i;
@@ -175,7 +175,7 @@ CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
     *dest = '\0';
 }
 
-_X_EXPORT int
+int
 CompareISOLatin1Lowered(unsigned char *s1, int s1len, 
 			unsigned char *s2, int s2len)
 {
@@ -203,7 +203,7 @@ CompareISOLatin1Lowered(unsigned char *s1, int s1len,
  * access mask values are defined in resource.h.  The type mask values are
  * defined in pixmap.h, with zero equivalent to M_DRAWABLE.
  */
-_X_EXPORT int
+int
 dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 		  Mask type, Mask access)
 {
@@ -229,7 +229,7 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
     return Success;
 }
 
-_X_EXPORT int
+int
 dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
 {
     int rc;
@@ -237,7 +237,7 @@ dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
     return (rc == BadDrawable) ? BadWindow : rc;
 }
 
-_X_EXPORT int
+int
 dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
 {
     GCPtr pTmp = (GCPtr)SecurityLookupIDByType(client, id, RT_GC, access);
@@ -250,7 +250,7 @@ dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
     return BadGC;
 }
 
-_X_EXPORT int
+int
 dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
     pointer pRes;
@@ -276,7 +276,7 @@ bad:
     return rc;
 }
 
-_X_EXPORT int
+int
 AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
                       Bool toRoot, Bool map)
 {
@@ -332,7 +332,7 @@ AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
     return(Success);
 }
 
-_X_EXPORT void
+void
 DeleteWindowFromAnySaveSet(WindowPtr pWin)
 {
     int i;
@@ -351,7 +351,7 @@ DeleteWindowFromAnySaveSet(WindowPtr pWin)
  * colormaps, if someone calls install colormap, it's easier to have a dummy
  * procedure to call than to check if there's a procedure 
  */
-_X_EXPORT void
+void
 NoopDDA(void)
 {
 }
@@ -374,7 +374,7 @@ static Bool		handlerDeleted;
  *  \param pTimeout   DIX doesn't want to know how OS represents time
  *  \param pReadMask  nor how it represents the det of descriptors
  */
-_X_EXPORT void
+void
 BlockHandler(pointer pTimeout, pointer pReadmask)
 {
     int i, j;
@@ -408,7 +408,7 @@ BlockHandler(pointer pTimeout, pointer pReadmask)
  *  \param result    32 bits of undefined result from the wait
  *  \param pReadmask the resulting descriptor mask
  */
-_X_EXPORT void
+void
 WakeupHandler(int result, pointer pReadmask)
 {
     int i, j;
@@ -441,7 +441,7 @@ WakeupHandler(int result, pointer pReadmask)
  * Reentrant with BlockHandler and WakeupHandler, except wakeup won't
  * get called until next time
  */
-_X_EXPORT Bool
+Bool
 RegisterBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler, 
                                 WakeupHandlerProcPtr wakeupHandler, 
                                 pointer blockData)
@@ -465,7 +465,7 @@ RegisterBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler,
     return TRUE;
 }
 
-_X_EXPORT void
+void
 RemoveBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler, 
                               WakeupHandlerProcPtr wakeupHandler, 
                               pointer blockData)
@@ -492,7 +492,7 @@ RemoveBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler,
 	}
 }
 
-_X_EXPORT void
+void
 InitBlockAndWakeupHandlers (void)
 {
     xfree (handlers);
@@ -509,7 +509,7 @@ InitBlockAndWakeupHandlers (void)
 WorkQueuePtr		workQueue;
 static WorkQueuePtr	*workQueueLast = &workQueue;
 
-_X_EXPORT void
+void
 ProcessWorkQueue(void)
 {
     WorkQueuePtr    q, *p;
@@ -537,7 +537,7 @@ ProcessWorkQueue(void)
     workQueueLast = p;
 }
 
-_X_EXPORT void
+void
 ProcessWorkQueueZombies(void)
 {
     WorkQueuePtr    q, *p;
@@ -560,7 +560,7 @@ ProcessWorkQueueZombies(void)
     workQueueLast = p;
 }
 
-_X_EXPORT Bool
+Bool
 QueueWorkProc (
     Bool (*function)(ClientPtr /* pClient */, pointer /* closure */),
     ClientPtr client, pointer closure)
@@ -596,7 +596,7 @@ typedef struct _SleepQueue {
 
 static SleepQueuePtr	sleepQueue = NULL;
 
-_X_EXPORT Bool
+Bool
 ClientSleep (ClientPtr client, ClientSleepProcPtr function, pointer closure)
 {
     SleepQueuePtr   q;
@@ -614,7 +614,7 @@ ClientSleep (ClientPtr client, ClientSleepProcPtr function, pointer closure)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 ClientSignal (ClientPtr client)
 {
     SleepQueuePtr   q;
@@ -627,7 +627,7 @@ ClientSignal (ClientPtr client)
     return FALSE;
 }
 
-_X_EXPORT void
+void
 ClientWakeup (ClientPtr client)
 {
     SleepQueuePtr   q, *prev;
@@ -653,7 +653,7 @@ ClientWakeup (ClientPtr client)
     }
 }
 
-_X_EXPORT Bool
+Bool
 ClientIsAsleep (ClientPtr client)
 {
     SleepQueuePtr   q;
@@ -673,7 +673,7 @@ ClientIsAsleep (ClientPtr client)
 static int numCallbackListsToCleanup = 0;
 static CallbackListPtr **listsToCleanup = NULL;
 
-static Bool 
+static Bool
 _AddCallback(
     CallbackListPtr *pcbl,
     CallbackProcPtr callback,
@@ -850,7 +850,7 @@ CreateCallbackList(CallbackListPtr *pcbl)
 
 /* ===== Public Procedures ===== */
 
-_X_EXPORT Bool 
+Bool
 AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
 {
     if (!pcbl) return FALSE;
@@ -862,28 +862,28 @@ AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
     return _AddCallback(pcbl, callback, data);
 }
 
-_X_EXPORT Bool 
+Bool
 DeleteCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
 {
     if (!pcbl || !*pcbl) return FALSE;
     return _DeleteCallback(pcbl, callback, data);
 }
 
-_X_EXPORT void 
+void
 CallCallbacks(CallbackListPtr *pcbl, pointer call_data)
 {
     if (!pcbl || !*pcbl) return;
     _CallCallbacks(pcbl, call_data);
 }
 
-_X_EXPORT void
+void
 DeleteCallbackList(CallbackListPtr *pcbl)
 {
     if (!pcbl || !*pcbl) return;
     _DeleteCallbackList(pcbl);
 }
 
-_X_EXPORT void 
+void
 InitCallbackManager(void)
 {
     int i;

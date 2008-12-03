@@ -253,7 +253,7 @@ typedef struct _colorResource
  * \param mid    resource to use for this colormap
  * \param alloc  1 iff all entries are allocated writable
  */
-_X_EXPORT int 
+int
 CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual, 
                 ColormapPtr *ppcmap, int alloc, int client)
 {
@@ -420,7 +420,7 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
  *
  * \param value  must conform to DeleteType
  */
-_X_EXPORT int
+int
 FreeColormap (pointer value, XID mid)
 {
     int	i;
@@ -502,7 +502,7 @@ TellNoMap (WindowPtr pwin, Colormap *pmid)
 }
 
 /* Tell window that pmid got uninstalled */
-_X_EXPORT int
+int
 TellLostMap (WindowPtr pwin, pointer value)
 {
     Colormap 	*pmid = (Colormap *)value;
@@ -527,7 +527,7 @@ TellLostMap (WindowPtr pwin, pointer value)
 }
 
 /* Tell window that pmid got installed */
-_X_EXPORT int
+int
 TellGainedMap (WindowPtr pwin, pointer value)
 {
     Colormap 	*pmid = (Colormap *)value;
@@ -552,7 +552,7 @@ TellGainedMap (WindowPtr pwin, pointer value)
 }
 
   
-_X_EXPORT int
+int
 CopyColormapAndFree (Colormap mid, ColormapPtr pSrc, int client)
 {
     ColormapPtr	pmap = (ColormapPtr) NULL;
@@ -800,7 +800,7 @@ UpdateColors (ColormapPtr pmap)
 /* Get a read-only color from a ColorMap (probably slow for large maps)
  * Returns by changing the value in pred, pgreen, pblue and pPix
  */
-_X_EXPORT int
+int
 AllocColor (ColormapPtr pmap, 
             unsigned short *pred, unsigned short *pgreen, unsigned short *pblue, 
             Pixel *pPix, int client)
@@ -985,7 +985,7 @@ AllocColor (ColormapPtr pmap,
  * is that this routine will never return failure.
  */
 
-_X_EXPORT void
+void
 FakeAllocColor (ColormapPtr pmap, xColorItem *item)
 {
     Pixel pixR, pixG, pixB;
@@ -1052,7 +1052,7 @@ FakeAllocColor (ColormapPtr pmap, xColorItem *item)
 }
 
 /* free a pixel value obtained from FakeAllocColor */
-_X_EXPORT void
+void
 FakeFreeColor(ColormapPtr pmap, Pixel pixel)
 {
     VisualPtr pVisual;
@@ -1203,7 +1203,7 @@ FindColorInRootCmap (ColormapPtr pmap, EntryPtr pentFirst, int size,
  * Starts looking at pentFirst + *pPixel, so if you want a specific pixel,
  * load *pPixel with that value, otherwise set it to 0
  */
-_X_EXPORT int
+int
 FindColor (ColormapPtr pmap, EntryPtr pentFirst, int size, xrgb *prgb, 
            Pixel *pPixel, int channel, int client, 
            ColorCompareProcPtr comp)
@@ -1415,7 +1415,7 @@ BlueComp (EntryPtr pent, xrgb *prgb)
 
 /* Read the color value of a cell */
 
-_X_EXPORT int
+int
 QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 {
     Pixel	*ppix, pixel;
@@ -1548,7 +1548,7 @@ FreePixels(ColormapPtr pmap, int client)
  *  \param value  must conform to DeleteType
  *  \unused fakeid
  */
-_X_EXPORT int
+int
 FreeClientPixels (pointer value, XID fakeid)
 {
     ColormapPtr pmap;
@@ -1561,7 +1561,7 @@ FreeClientPixels (pointer value, XID fakeid)
     return Success;
 }
 
-_X_EXPORT int
+int
 AllocColorCells (int client, ColormapPtr pmap, int colors, int planes, 
                  Bool contig, Pixel *ppix, Pixel *masks)
 {
@@ -1633,7 +1633,7 @@ AllocColorCells (int client, ColormapPtr pmap, int colors, int planes,
 }
 
 
-_X_EXPORT int
+int
 AllocColorPlanes (int client, ColormapPtr pmap, int colors, 
                   int r, int g, int b, Bool contig, Pixel *pixels, 
                   Pixel *prmask, Pixel *pgmask, Pixel *pbmask)
@@ -2206,7 +2206,7 @@ AllocShared (ColormapPtr pmap, Pixel *ppix, int c, int r, int g, int b,
 /** FreeColors
  * Free colors and/or cells (probably slow for large numbers) 
  */
-_X_EXPORT int
+int
 FreeColors (ColormapPtr pmap, int client, int count, Pixel *pixels, Pixel mask)
 {
     int		rval, result, class;
@@ -2400,7 +2400,7 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 
 
 /* Redefine color values */
-_X_EXPORT int
+int
 StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
 {
     Pixel 	pix;
@@ -2667,7 +2667,7 @@ StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
     return (errVal);
 }
 
-_X_EXPORT int
+int
 IsMapInstalled(Colormap map, WindowPtr pWin)
 {
     Colormap	*pmaps;

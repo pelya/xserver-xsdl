@@ -81,7 +81,7 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 
-_X_EXPORT Bool
+Bool
 mieqInit(void)
 {
     int i;
@@ -103,7 +103,7 @@ mieqInit(void)
 }
 
 /* Ensure all events in the EQ are at least size bytes. */
-_X_EXPORT void
+void
 mieqResizeEvents(int min_size)
 {
     int i;
@@ -119,7 +119,7 @@ mieqResizeEvents(int min_size)
  * called from regular code.
  */
 
-_X_EXPORT void
+void
 mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
     unsigned int           oldtail = miEventQueue.tail;
@@ -219,7 +219,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     miEventQueue.tail = (oldtail + 1) % QUEUE_SIZE;
 }
 
-_X_EXPORT void
+void
 mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 {
     EnqueueScreen(pDev) = pScreen;
@@ -227,7 +227,7 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 	DequeueScreen(pDev) = pScreen;
 }
 
-_X_EXPORT void
+void
 mieqSetHandler(int event, mieqHandler handler)
 {
     if (handler && miEventQueue.handlers[event])
@@ -300,7 +300,7 @@ CopyGetMasterEvent(DeviceIntPtr mdev, xEvent* original,
 }
 
 /* Call this from ProcessInputEvents(). */
-_X_EXPORT void
+void
 mieqProcessInputEvents(void)
 {
     mieqHandler handler;

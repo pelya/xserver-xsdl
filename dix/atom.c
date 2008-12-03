@@ -74,7 +74,7 @@ static NodePtr *nodeTable;
 
 void FreeAtom(NodePtr patom);
 
-_X_EXPORT Atom 
+Atom
 MakeAtom(char *string, unsigned len, Bool makeit)
 {
     NodePtr * np;
@@ -151,13 +151,13 @@ MakeAtom(char *string, unsigned len, Bool makeit)
 	return None;
 }
 
-_X_EXPORT Bool
+Bool
 ValidAtom(Atom atom)
 {
     return (atom != None) && (atom <= lastAtom);
 }
 
-_X_EXPORT char *
+char *
 NameForAtom(Atom atom)
 {
     NodePtr node;
@@ -166,7 +166,7 @@ NameForAtom(Atom atom)
     return node->string;
 }
 
-_X_EXPORT void
+void
 AtomError(void)
 {
     FatalError("initializing atoms");
@@ -184,7 +184,7 @@ FreeAtom(NodePtr patom)
     xfree(patom);
 }
 
-_X_EXPORT void
+void
 FreeAllAtoms(void)
 {
     if(atomRoot == (NodePtr)NULL)
@@ -196,7 +196,7 @@ FreeAllAtoms(void)
     lastAtom = None;
 }
 
-_X_EXPORT void
+void
 InitAtoms(void)
 {
     FreeAllAtoms();

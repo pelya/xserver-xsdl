@@ -1859,7 +1859,7 @@ damageCloseScreen (int i, ScreenPtr pScreen)
  * Public functions for consumption outside this file.
  */
 
-_X_EXPORT Bool
+Bool
 DamageSetup (ScreenPtr pScreen)
 {
     DamageScrPrivPtr	pScrPriv;
@@ -1898,7 +1898,7 @@ DamageSetup (ScreenPtr pScreen)
     return TRUE;
 }
 
-_X_EXPORT DamagePtr
+DamagePtr
 DamageCreate (DamageReportFunc  damageReport,
 	      DamageDestroyFunc	damageDestroy,
 	      DamageReportLevel	damageLevel,
@@ -1930,7 +1930,7 @@ DamageCreate (DamageReportFunc  damageReport,
     return pDamage;
 }
 
-_X_EXPORT void
+void
 DamageRegister (DrawablePtr pDrawable,
 		DamagePtr   pDamage)
 {
@@ -1958,7 +1958,7 @@ DamageRegister (DrawablePtr pDrawable,
     damageInsertDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
-_X_EXPORT void
+void
 DamageDrawInternal (ScreenPtr pScreen, Bool enable)
 {
     damageScrPriv (pScreen);
@@ -1966,7 +1966,7 @@ DamageDrawInternal (ScreenPtr pScreen, Bool enable)
     pScrPriv->internalLevel += enable ? 1 : -1;
 }
 
-_X_EXPORT void
+void
 DamageUnregister (DrawablePtr	    pDrawable,
 		  DamagePtr	    pDamage)
 {
@@ -2001,7 +2001,7 @@ DamageUnregister (DrawablePtr	    pDrawable,
     damageRemoveDamage (getDrawableDamageRef (pDrawable), pDamage);
 }
 
-_X_EXPORT void
+void
 DamageDestroy (DamagePtr    pDamage)
 {
     if (pDamage->damageDestroy)
@@ -2011,7 +2011,7 @@ DamageDestroy (DamagePtr    pDamage)
     xfree (pDamage);
 }
 
-_X_EXPORT Bool
+Bool
 DamageSubtract (DamagePtr	    pDamage,
 		const RegionPtr	    pRegion)
 {
@@ -2044,31 +2044,31 @@ DamageSubtract (DamagePtr	    pDamage,
     return REGION_NOTEMPTY (pDrawable->pScreen, &pDamage->damage);
 }
 
-_X_EXPORT void
+void
 DamageEmpty (DamagePtr	    pDamage)
 {
     REGION_EMPTY (pDamage->pDrawable->pScreen, &pDamage->damage);
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 DamageRegion (DamagePtr		    pDamage)
 {
     return &pDamage->damage;
 }
 
-_X_EXPORT RegionPtr
+RegionPtr
 DamagePendingRegion (DamagePtr	    pDamage)
 {
     return &pDamage->pendingDamage;
 }
 
-_X_EXPORT void
+void
 DamageRegionAppend (DrawablePtr pDrawable, RegionPtr pRegion)
 {
     damageRegionAppend (pDrawable, pRegion, FALSE, -1);
 }
 
-_X_EXPORT void
+void
 DamageRegionProcessPending (DrawablePtr pDrawable)
 {
     damageRegionProcessPending (pDrawable);
@@ -2077,7 +2077,7 @@ DamageRegionProcessPending (DrawablePtr pDrawable)
 /* If a damage marker is provided, then this function must be called after rendering is done. */
 /* Please do call back so any future enhancements can assume this function is called. */
 /* There are no strict timing requirements for calling this function, just as soon as (is cheaply) possible. */
-_X_EXPORT void
+void
 DamageRegionRendered (DrawablePtr pDrawable, DamagePtr pDamage, RegionPtr pOldDamage, RegionPtr pRegion)
 {
     if (pDamage->damageReportPostRendering)
@@ -2085,7 +2085,7 @@ DamageRegionRendered (DrawablePtr pDrawable, DamagePtr pDamage, RegionPtr pOldDa
 }
 
 /* This call is very odd, i'm leaving it intact for API sake, but please don't use it. */
-_X_EXPORT void
+void
 DamageDamageRegion (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion)
 {
@@ -2098,13 +2098,13 @@ DamageDamageRegion (DrawablePtr	pDrawable,
     damageRegionProcessPending (pDrawable);
 }
 
-_X_EXPORT void
+void
 DamageSetReportAfterOp (DamagePtr pDamage, Bool reportAfter)
 {
     pDamage->reportAfter = reportAfter;
 }
 
-_X_EXPORT void
+void
 DamageSetPostRenderingFunctions(DamagePtr pDamage, DamageReportFunc damageReportPostRendering,
 				DamageMarkerFunc damageMarker)
 {

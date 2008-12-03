@@ -72,9 +72,6 @@ OF THIS SOFTWARE.
  *
  */
 
-extern unsigned long globalSerialNumber;
-extern unsigned long serverGeneration;
-
 #include <X11/Xosdefs.h>
 #include <X11/Xfuncproto.h>
 #include <X11/Xmd.h>
@@ -227,17 +224,17 @@ typedef struct _xReq *xReqPtr;
 		 ((char *) &(dst))[0] = ((char *) &(src))[1];\
 		 ((char *) &(dst))[1] = ((char *) &(src))[0]; }
 
-extern void SwapLongs(
+extern _X_EXPORT void SwapLongs(
     CARD32 *list,
     unsigned long count);
 
-extern void SwapShorts(
+extern _X_EXPORT void SwapShorts(
     short *list,
     unsigned long count);
 
-extern void MakePredeclaredAtoms(void);
+extern _X_EXPORT void MakePredeclaredAtoms(void);
 
-extern int Ones(
+extern _X_EXPORT int Ones(
     unsigned long /*mask*/);
 
 typedef struct _xPoint *DDXPointPtr;
@@ -255,5 +252,8 @@ typedef struct _GrabRec *GrabPtr;
 typedef struct _CharInfo *CharInfoPtr; /* also in fonts/include/font.h */
 #define _XTYPEDEF_CHARINFOPTR
 #endif
+
+extern _X_EXPORT unsigned long globalSerialNumber;
+extern _X_EXPORT unsigned long serverGeneration;
 
 #endif /* MISC_H */

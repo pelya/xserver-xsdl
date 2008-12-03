@@ -106,16 +106,16 @@
 	{ResShrIoSparse | ResBios | ResBus, 0x02E8, 0x03F8}
 
 /* Predefined resources */
-extern resRange resVgaExclusive[];
-extern resRange resVgaShared[];
-extern resRange resVgaIoShared[];
-extern resRange resVgaMemShared[];
-extern resRange resVgaUnusedExclusive[];
-extern resRange resVgaUnusedShared[];
-extern resRange resVgaSparseExclusive[];
-extern resRange resVgaSparseShared[];
-extern resRange res8514Exclusive[];
-extern resRange res8514Shared[];
+extern _X_EXPORT resRange resVgaExclusive[];
+extern _X_EXPORT resRange resVgaShared[];
+extern _X_EXPORT resRange resVgaIoShared[];
+extern _X_EXPORT resRange resVgaMemShared[];
+extern _X_EXPORT resRange resVgaUnusedExclusive[];
+extern _X_EXPORT resRange resVgaUnusedShared[];
+extern _X_EXPORT resRange resVgaSparseExclusive[];
+extern _X_EXPORT resRange resVgaSparseShared[];
+extern _X_EXPORT resRange res8514Exclusive[];
+extern _X_EXPORT resRange res8514Shared[];
 
 /* Less misleading aliases for xf86SetOperatingState() */
 #define resVgaMem resVgaMemShared

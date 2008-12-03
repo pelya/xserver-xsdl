@@ -160,7 +160,7 @@ static void miSpriteSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
 static void miSpriteMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                int x, int y);
 
-_X_EXPORT miPointerSpriteFuncRec miSpritePointerFuncs = {
+miPointerSpriteFuncRec miSpritePointerFuncs = {
     miSpriteRealizeCursor,
     miSpriteUnrealizeCursor,
     miSpriteSetCursor,

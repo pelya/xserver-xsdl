@@ -11,7 +11,7 @@
  * Utility functions required by libxf86_os. 
  */
 
-_X_EXPORT int
+int
 xf86AllocateScrnInfoPrivateIndex()
 {
     return -1;

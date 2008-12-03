@@ -4,10 +4,9 @@
 #endif
 
 #include <X11/Xmd.h>
-#include <X11/Xfuncproto.h>
-CARD32 XAAReverseBitOrder(CARD32 v);
+#include "xaalocal.h"
 
-_X_EXPORT CARD32
+CARD32
 XAAReverseBitOrder(CARD32 v)
 {
  return (((0x01010101 & v) << 7) | ((0x02020202 & v) << 5) | 

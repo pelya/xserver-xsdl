@@ -31,12 +31,12 @@ Thanks to Linus Torvalds for contributing this code.
 
 static unsigned long __memcpy(unsigned long dest, unsigned long src, int n);
 
-_X_EXPORT void
+void
 xf86BusToMem(unsigned char *dst, unsigned char *src, int len)
 {
 	__memcpy((unsigned long)dst, (unsigned long)src, len);
 }
-_X_EXPORT void
+void
 xf86MemToBus(unsigned char *dst, unsigned char *src, int len)
 {
   if (len == sizeof(int))

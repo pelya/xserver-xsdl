@@ -42,7 +42,7 @@ static int sco_console_mode = -1;
 
 extern Bool mpxLock;
 
-_X_EXPORT void
+void
 xf86OpenConsole(void)
 {
   int i, ioctl_ret;
@@ -192,7 +192,7 @@ xf86OpenConsole(void)
  * to do a soft reset on the card, which really does help settle the
  * video card down again after coming out of Xfree86.
  */
-_X_EXPORT void
+void
 xf86CloseConsole(void)
 {
   struct vt_mode VT;
@@ -224,7 +224,7 @@ xf86CloseConsole(void)
   close(xf86Info.consoleFd); /* We're done with the device */
 }
 
-_X_EXPORT int
+int
 xf86ProcessArgument(int argc, char *argv[], int i)
 {
   /*
@@ -283,7 +283,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
   return(0);
 }
 
-_X_EXPORT void
+void
 xf86UseMsg(void)
 {
 	ErrorF("vtXX                   use the specified VT number\n");

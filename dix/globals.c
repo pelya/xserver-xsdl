@@ -61,8 +61,8 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "os.h"
 
-_X_EXPORT ScreenInfo screenInfo;
-_X_EXPORT KeybdCtrl defaultKeyboardControl = {
+ScreenInfo screenInfo;
+KeybdCtrl defaultKeyboardControl = {
 	DEFAULT_KEYBOARD_CLICK,
 	DEFAULT_BELL,
 	DEFAULT_BELL_PITCH,
@@ -72,27 +72,27 @@ _X_EXPORT KeybdCtrl defaultKeyboardControl = {
 	DEFAULT_LEDS,
 	0};
 
-_X_EXPORT PtrCtrl defaultPointerControl = {
+PtrCtrl defaultPointerControl = {
 	DEFAULT_PTR_NUMERATOR,
 	DEFAULT_PTR_DENOMINATOR,
 	DEFAULT_PTR_THRESHOLD,
 	0};
 
-_X_EXPORT ClientPtr  clients[MAXCLIENTS];
-_X_EXPORT ClientPtr  serverClient;
-_X_EXPORT int  currentMaxClients;   /* current size of clients array */
-_X_EXPORT long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
+ClientPtr  clients[MAXCLIENTS];
+ClientPtr  serverClient;
+int  currentMaxClients;   /* current size of clients array */
+long maxBigRequestSize = MAX_BIG_REQUEST_SIZE;
 
-_X_EXPORT WindowPtr WindowTable[MAXSCREENS];
+WindowPtr WindowTable[MAXSCREENS];
 
-_X_EXPORT unsigned long globalSerialNumber = 0;
-_X_EXPORT unsigned long serverGeneration = 0;
+unsigned long globalSerialNumber = 0;
+unsigned long serverGeneration = 0;
 
 /* these next four are initialized in main.c */
-_X_EXPORT CARD32 ScreenSaverTime;
-_X_EXPORT CARD32 ScreenSaverInterval;
-_X_EXPORT int ScreenSaverBlanking;
-_X_EXPORT int  ScreenSaverAllowExposures;
+CARD32 ScreenSaverTime;
+CARD32 ScreenSaverInterval;
+int ScreenSaverBlanking;
+int  ScreenSaverAllowExposures;
 
 #ifdef DPMSExtension
 # ifndef DEFAULT_STANDBY_TIME
@@ -107,52 +107,52 @@ _X_EXPORT int  ScreenSaverAllowExposures;
 # ifndef DEFAULT_DPMS_ENABLED
 #  define DEFAULT_DPMS_ENABLED TRUE
 # endif
-_X_EXPORT CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
-_X_EXPORT CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
-_X_EXPORT CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
-_X_EXPORT CARD16 DPMSPowerLevel = 0;
-_X_EXPORT Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
-_X_EXPORT Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
-_X_EXPORT Bool DPMSDisabledSwitch = FALSE; /* lind switch states */
-_X_EXPORT Bool DPMSCapableFlag = FALSE;
-_X_EXPORT CARD32 DPMSStandbyTime;
-_X_EXPORT CARD32 DPMSSuspendTime;
-_X_EXPORT CARD32 DPMSOffTime;
-_X_EXPORT Bool DPMSEnabled;
+CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
+CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
+CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
+CARD16 DPMSPowerLevel = 0;
+Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
+Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
+Bool DPMSDisabledSwitch = FALSE; /* lind switch states */
+Bool DPMSCapableFlag = FALSE;
+CARD32 DPMSStandbyTime;
+CARD32 DPMSSuspendTime;
+CARD32 DPMSOffTime;
+Bool DPMSEnabled;
 #endif
 
-_X_EXPORT CARD32 defaultScreenSaverTime = DEFAULT_SCREEN_SAVER_TIME;
-_X_EXPORT CARD32 defaultScreenSaverInterval = DEFAULT_SCREEN_SAVER_INTERVAL;
-_X_EXPORT int  defaultScreenSaverBlanking = DEFAULT_SCREEN_SAVER_BLANKING;
-_X_EXPORT int  defaultScreenSaverAllowExposures = DEFAULT_SCREEN_SAVER_EXPOSURES;
+CARD32 defaultScreenSaverTime = DEFAULT_SCREEN_SAVER_TIME;
+CARD32 defaultScreenSaverInterval = DEFAULT_SCREEN_SAVER_INTERVAL;
+int  defaultScreenSaverBlanking = DEFAULT_SCREEN_SAVER_BLANKING;
+int  defaultScreenSaverAllowExposures = DEFAULT_SCREEN_SAVER_EXPOSURES;
 #ifndef NOLOGOHACK
-_X_EXPORT int  logoScreenSaver = DEFAULT_LOGO_SCREEN_SAVER;
+int  logoScreenSaver = DEFAULT_LOGO_SCREEN_SAVER;
 #endif
 
 #ifdef SCREENSAVER
-_X_EXPORT Bool screenSaverSuspended = FALSE;
+Bool screenSaverSuspended = FALSE;
 #endif
 
-_X_EXPORT char *defaultFontPath = COMPILEDDEFAULTFONTPATH;
-_X_EXPORT char *defaultTextFont = COMPILEDDEFAULTFONT;
-_X_EXPORT char *defaultCursorFont = COMPILEDCURSORFONT;
+char *defaultFontPath = COMPILEDDEFAULTFONTPATH;
+char *defaultTextFont = COMPILEDDEFAULTFONT;
+char *defaultCursorFont = COMPILEDCURSORFONT;
 FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 			every compilation of dix code */
-_X_EXPORT CursorPtr rootCursor;
-_X_EXPORT Bool party_like_its_1989 = FALSE;
-_X_EXPORT Bool whiteRoot = FALSE;
+CursorPtr rootCursor;
+Bool party_like_its_1989 = FALSE;
+Bool whiteRoot = FALSE;
 
-_X_EXPORT int cursorScreenDevPriv[MAXSCREENS];
+int cursorScreenDevPriv[MAXSCREENS];
 
-_X_EXPORT TimeStamp currentTime;
-_X_EXPORT TimeStamp lastDeviceEventTime;
+TimeStamp currentTime;
+TimeStamp lastDeviceEventTime;
 
-_X_EXPORT int defaultColorVisualClass = -1;
-_X_EXPORT int monitorResolution = 0;
+int defaultColorVisualClass = -1;
+int monitorResolution = 0;
 
-_X_EXPORT char *display;
-_X_EXPORT char *ConnectionInfo;
+char *display;
+char *ConnectionInfo;
 
-_X_EXPORT CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
+CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
 
-_X_EXPORT DDXPointRec dixScreenOrigins[MAXSCREENS];
+DDXPointRec dixScreenOrigins[MAXSCREENS];

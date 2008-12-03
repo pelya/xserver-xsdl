@@ -96,7 +96,7 @@
 
 #include "os.h"
 
-_X_EXPORT EventListPtr xf86Events = NULL;
+EventListPtr xf86Events = NULL;
 
 /**
  * Eval config and modify DeviceVelocityRec accordingly
@@ -255,7 +255,7 @@ xf86SendDragEvents(DeviceIntPtr	device)
  *
  ***********************************************************************
  */
-_X_EXPORT void
+void
 xf86ProcessCommonOptions(LocalDevicePtr local,
                          pointer	list)
 {
@@ -293,7 +293,7 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
  * Returns TRUE on success, or FALSE otherwise.
  ***********************************************************************
  */
-_X_EXPORT int
+int
 xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
@@ -368,7 +368,7 @@ xf86ActivateDevice(LocalDevicePtr local)
  ***********************************************************************
  */
 
-_X_EXPORT void
+void
 OpenInputDevice(DeviceIntPtr	dev,
                 ClientPtr	client,
                 int		*status)
@@ -379,7 +379,7 @@ OpenInputDevice(DeviceIntPtr	dev,
     *status = Success;
 }
 
-_X_EXPORT void
+void
 CloseInputDevice(DeviceIntPtr dev,
                  ClientPtr client)
 {
@@ -398,7 +398,7 @@ CloseInputDevice(DeviceIntPtr dev,
  ***********************************************************************
  */
 
-_X_EXPORT int
+int
 SetDeviceMode (ClientPtr client, DeviceIntPtr dev, int mode)
 {
   LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
@@ -424,7 +424,7 @@ SetDeviceMode (ClientPtr client, DeviceIntPtr dev, int mode)
  ***********************************************************************
  */
 
-_X_EXPORT int
+int
 SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
                     int first_valuator, int num_valuators)
 {
@@ -447,7 +447,7 @@ SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
  ***********************************************************************
  */
 
-_X_EXPORT int
+int
 ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
 {
   LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
@@ -470,7 +470,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
   }
 }
 
-_X_EXPORT void
+void
 AddOtherInputDevices()
 {
 }
@@ -562,7 +562,7 @@ unwind:
     return rval;
 }
 
-_X_EXPORT int
+int
 NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 {
     IDevRec *idev = NULL;
@@ -646,7 +646,7 @@ unwind:
     return rval;
 }
 
-_X_EXPORT void
+void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
@@ -691,7 +691,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
  * convenient functions to post events
  */
 
-_X_EXPORT void
+void
 xf86PostMotionEvent(DeviceIntPtr	device,
                     int			is_absolute,
                     int			first_valuator,
@@ -716,7 +716,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     xf86PostMotionEventP(device, is_absolute, first_valuator, num_valuators, valuators);
 }
 
-_X_EXPORT void
+void
 xf86PostMotionEventP(DeviceIntPtr	device,
                     int			is_absolute,
                     int			first_valuator,
@@ -781,7 +781,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     }
 }
 
-_X_EXPORT void
+void
 xf86PostProximityEvent(DeviceIntPtr	device,
                        int		is_in,
                        int		first_valuator,
@@ -813,7 +813,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
 
 }
 
-_X_EXPORT void
+void
 xf86PostButtonEvent(DeviceIntPtr	device,
                     int			is_absolute,
                     int			button,
@@ -856,7 +856,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
 
 }
 
-_X_EXPORT void
+void
 xf86PostKeyEvent(DeviceIntPtr	device,
                  unsigned int	key_code,
                  int		is_down,
@@ -902,7 +902,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
         mieqEnqueue(device, (xf86Events + i)->event);
 }
 
-_X_EXPORT void
+void
 xf86PostKeyboardEvent(DeviceIntPtr      device,
                       unsigned int      key_code,
                       int               is_down)
@@ -931,7 +931,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
         mieqEnqueue(device, (xf86Events + i)->event);
 }
 
-_X_EXPORT LocalDevicePtr
+LocalDevicePtr
 xf86FirstLocalDevice()
 {
     return xf86InputDevs;
@@ -950,7 +950,7 @@ xf86FirstLocalDevice()
  * different orgins on the touch screen vs X.
  */
 
-_X_EXPORT int
+int
 xf86ScaleAxis(int	Cx,
               int	Sxhigh,
               int	Sxlow,
@@ -984,7 +984,7 @@ xf86ScaleAxis(int	Cx,
  * ReadInput function before any events are posted, if the device is screen
  * specific like a touch screen.
  */
-_X_EXPORT void
+void
 xf86XInputSetScreen(LocalDevicePtr	local,
 		    int			screen_number,
 		    int			x,
@@ -997,7 +997,7 @@ xf86XInputSetScreen(LocalDevicePtr	local,
 }
 
 
-_X_EXPORT void
+void
 xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 			   int resolution, int min_res, int max_res)
 {
@@ -1012,7 +1012,7 @@ xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
  * Set the valuator values to be in synch with dix/event.c
  * DefineInitialRootWindow().
  */
-_X_EXPORT void
+void
 xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 {
     if (axnum == 0) {
@@ -1038,7 +1038,7 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
  * 
  * @param panic True if device is unrecoverable and needs to be removed.
  */
-_X_EXPORT void
+void
 xf86DisableDevice(DeviceIntPtr dev, Bool panic)
 {
     devicePresenceNotify ev;
@@ -1066,7 +1066,7 @@ xf86DisableDevice(DeviceIntPtr dev, Bool panic)
  * out that the read error wasn't quite that bad after all.
  * Device will be re-activated, and an event sent to the client. 
  */
-_X_EXPORT void
+void
 xf86EnableDevice(DeviceIntPtr dev)
 {
     EnableDevice(dev);

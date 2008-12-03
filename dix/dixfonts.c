@@ -130,7 +130,7 @@ LoadGlyphs(ClientPtr client, FontPtr pfont, unsigned nchars, int item_size,
 /*
  * adding RT_FONT prevents conflict with default cursor font
  */
-_X_EXPORT Bool
+Bool
 SetDefaultFont(char *defaultfontname)
 {
     int         err;
@@ -158,7 +158,7 @@ SetDefaultFont(char *defaultfontname)
  * init_fpe() and free_fpe(), there shouldn't be any problem in using
  * freed data.
  */
-_X_EXPORT void
+void
 QueueFontWakeup(FontPathElementPtr fpe)
 {
     int         i;
@@ -182,7 +182,7 @@ QueueFontWakeup(FontPathElementPtr fpe)
     num_slept_fpes++;
 }
 
-_X_EXPORT void
+void
 RemoveFontWakeup(FontPathElementPtr fpe)
 {
     int         i,
@@ -199,7 +199,7 @@ RemoveFontWakeup(FontPathElementPtr fpe)
     }
 }
 
-_X_EXPORT void
+void
 FontWakeup(pointer data, int count, pointer LastSelectMask)
 {
     int         i;
@@ -389,7 +389,7 @@ bail:
     return TRUE;
 }
 
-_X_EXPORT int
+int
 OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontname)
 {
     OFclosurePtr c;
@@ -479,7 +479,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
  *
  *  \param value must conform to DeleteType
  */
-_X_EXPORT int
+int
 CloseFont(pointer value, XID fid)
 {
     int         nscr;
@@ -522,7 +522,7 @@ CloseFont(pointer value, XID fid)
  *
  *  \param pReply caller must allocate this storage
   */
-_X_EXPORT void
+void
 QueryFont(FontPtr pFont, xQueryFontReply *pReply, int nProtoCCIStructs)
 {
     FontPropPtr      pFP;
@@ -840,7 +840,7 @@ bail:
     return TRUE;
 }
 
-_X_EXPORT int
+int
 ListFonts(ClientPtr client, unsigned char *pattern, unsigned length, 
           unsigned max_names)
 {
@@ -894,7 +894,7 @@ ListFonts(ClientPtr client, unsigned char *pattern, unsigned length,
     return Success;
 }
 
-_X_EXPORT int
+int
 doListFontsWithInfo(ClientPtr client, LFWIclosurePtr c)
 {
     FontPathElementPtr fpe;
@@ -1175,7 +1175,7 @@ badAlloc:
 static XID clearGC[] = { CT_NONE };
 #define clearGCmask (GCClipMask)
 
-_X_EXPORT int
+int
 doPolyText(ClientPtr client, PTclosurePtr c)
 {
     FontPtr pFont = c->pGC->font, oldpFont;
@@ -1442,7 +1442,7 @@ bail:
     return TRUE;
 }
 
-_X_EXPORT int
+int
 PolyText(ClientPtr client, DrawablePtr pDraw, GC *pGC, unsigned char *pElt, 
          unsigned char *endReq, int xorg, int yorg, int reqType, XID did)
 {
@@ -1477,7 +1477,7 @@ PolyText(ClientPtr client, DrawablePtr pDraw, GC *pGC, unsigned char *pElt,
 #undef TextEltHeader
 #undef FontShiftSize
 
-_X_EXPORT int
+int
 doImageText(ClientPtr client, ITclosurePtr c)
 {
     int err = Success, lgerr;	/* err is in X error, not font error, space */
@@ -1598,7 +1598,7 @@ bail:
     return TRUE;
 }
 
-_X_EXPORT int
+int
 ImageText(ClientPtr client, DrawablePtr pDraw, GC *pGC, int nChars, 
           unsigned char *data, int xorg, int yorg, int reqType, XID did)
 {
@@ -1796,7 +1796,7 @@ bail:
 }
 
 /* XXX -- do we need to pass error down to each renderer? */
-_X_EXPORT int
+int
 SetFontPath(ClientPtr client, int npaths, unsigned char *paths, int *error)
 {
     int err = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
@@ -1812,7 +1812,7 @@ SetFontPath(ClientPtr client, int npaths, unsigned char *paths, int *error)
     return err;
 }
 
-_X_EXPORT int
+int
 SetDefaultFontPath(char *path)
 {
     unsigned char *cp,
@@ -1853,7 +1853,7 @@ SetDefaultFontPath(char *path)
     return err;
 }
 
-_X_EXPORT int
+int
 GetFontPath(ClientPtr client, int *count, int *length, unsigned char **result)
 {
     int			i;
@@ -1888,7 +1888,7 @@ GetFontPath(ClientPtr client, int *count, int *length, unsigned char **result)
     return Success;
 }
 
-_X_EXPORT void
+void
 DeleteClientFontStuff(ClientPtr client)
 {
     int			i;
@@ -1902,7 +1902,7 @@ DeleteClientFontStuff(ClientPtr client)
     }
 }
 
-_X_EXPORT void
+void
 InitFonts (void)
 {
     patternCache = MakeFontPatternCache();
@@ -1915,14 +1915,14 @@ InitFonts (void)
 #endif
 }
 
-_X_EXPORT int
+int
 GetDefaultPointSize ()
 {
     return 120;
 }
 
 
-_X_EXPORT FontResolutionPtr
+FontResolutionPtr
 GetClientResolutions (int *num)
 {
     static struct _FontResolution res;
@@ -1954,7 +1954,7 @@ GetClientResolutions (int *num)
  * should be called (only once!) by each type of fpe when initialized
  */
 
-_X_EXPORT int
+int
 RegisterFPEFunctions(NameCheckFunc name_func, 
 		     InitFpeFunc init_func, 
 		     FreeFpeFunc free_func, 
@@ -2003,7 +2003,7 @@ RegisterFPEFunctions(NameCheckFunc name_func,
     return num_fpe_types++;
 }
 
-_X_EXPORT void
+void
 FreeFonts(void)
 {
     if (patternCache) {
@@ -2020,32 +2020,32 @@ FreeFonts(void)
 
 /* convenience functions for FS interface */
 
-_X_EXPORT FontPtr
+FontPtr
 find_old_font(XID id)
 {
     return (FontPtr) SecurityLookupIDByType(NullClient, id, RT_NONE,
 					    DixUnknownAccess);
 }
 
-_X_EXPORT Font
+Font
 GetNewFontClientID()
 {
     return FakeClientID(0);
 }
 
-_X_EXPORT int
+int
 StoreFontClientFont(FontPtr pfont, Font id)
 {
     return AddResource(id, RT_NONE, (pointer) pfont);
 }
 
-_X_EXPORT void
+void
 DeleteFontClientID(Font id)
 {
     FreeResource(id, RT_NONE);
 }
 
-_X_EXPORT int
+int
 client_auth_generation(ClientPtr client)
 {
     return 0;
@@ -2054,7 +2054,7 @@ client_auth_generation(ClientPtr client)
 static int  fs_handlers_installed = 0;
 static unsigned int last_server_gen;
 
-_X_EXPORT int
+int
 init_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler)
 {
     /* if server has reset, make sure the b&w handlers are reinstalled */
@@ -2072,7 +2072,7 @@ init_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler)
     return Successful;
 }
 
-_X_EXPORT void
+void
 remove_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler, Bool all)
 {
     if (all) {

@@ -39,7 +39,7 @@ typedef void	(*FbDots)  (FbBits	*dst,
 			    FbBits	and,
 			    FbBits	xor);
 
-_X_EXPORT void
+void
 fbDots (FbBits	    *dstOrig,
 	FbStride    dstStride,
 	int	    dstBpp,
@@ -107,7 +107,7 @@ fbDots (FbBits	    *dstOrig,
     }
 }
 
-_X_EXPORT void
+void
 fbPolyPoint (DrawablePtr    pDrawable,
 	     GCPtr	    pGC,
 	     int	    mode,

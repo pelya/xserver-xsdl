@@ -26,7 +26,7 @@
 
 #include "fb.h"
 
-_X_EXPORT void
+void
 fbFill (DrawablePtr pDrawable,
 	GCPtr	    pGC,
 	int	    x,
@@ -165,7 +165,7 @@ fbFill (DrawablePtr pDrawable,
     fbFinishAccess (pDrawable);
 }
 
-_X_EXPORT void
+void
 fbSolidBoxClipped (DrawablePtr	pDrawable,
 		   RegionPtr	pClip,
 		   int		x1,

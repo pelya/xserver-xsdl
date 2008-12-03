@@ -33,10 +33,10 @@
 
 #include "xf86RamDacPriv.h"
 
-_X_EXPORT int RamDacHWPrivateIndex = -1;
-_X_EXPORT int RamDacScreenPrivateIndex = -1;
+int RamDacHWPrivateIndex = -1;
+int RamDacScreenPrivateIndex = -1;
 
-_X_EXPORT RamDacRecPtr
+RamDacRecPtr
 RamDacCreateInfoRec()
 {
     RamDacRecPtr infoRec;
@@ -46,7 +46,7 @@ RamDacCreateInfoRec()
     return infoRec;
 }
 
-_X_EXPORT RamDacHelperRecPtr
+RamDacHelperRecPtr
 RamDacHelperCreateInfoRec()
 {
     RamDacHelperRecPtr infoRec;
@@ -56,19 +56,19 @@ RamDacHelperCreateInfoRec()
     return infoRec;
 }
 
-_X_EXPORT void 
+void
 RamDacDestroyInfoRec(RamDacRecPtr infoRec)
 {
     xfree(infoRec);
 }
 
-_X_EXPORT void
+void
 RamDacHelperDestroyInfoRec(RamDacHelperRecPtr infoRec)
 {
     xfree(infoRec);
 }
 
-_X_EXPORT Bool
+Bool
 RamDacInit(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPriv)
 {
     RamDacScreenRecPtr ramdacScrPtr;
@@ -116,7 +116,7 @@ RamDacGetRec(ScrnInfoPtr scrp)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 RamDacFreeRec(ScrnInfoPtr pScrn)
 {
     RamDacHWRecPtr ramdacHWPtr;
@@ -141,13 +141,13 @@ RamDacFreeRec(ScrnInfoPtr pScrn)
     ramdacScrPtr = NULL;
 }
 
-_X_EXPORT int
+int
 RamDacGetHWIndex()
 {
     return RamDacHWPrivateIndex;
 }
 
-_X_EXPORT int
+int
 RamDacGetScreenIndex()
 {
     return RamDacScreenPrivateIndex;

@@ -364,7 +364,7 @@ xf86RandRCloseScreen (int index, ScreenPtr pScreen)
     return (*pScreen->CloseScreen) (index, pScreen);
 }
 
-_X_EXPORT Rotation
+Rotation
 xf86GetRotation(ScreenPtr pScreen)
 {
     if (xf86RandRKey == NULL)
@@ -374,7 +374,7 @@ xf86GetRotation(ScreenPtr pScreen)
 }
 
 /* Function to change RandR's idea of the virtual screen size */
-_X_EXPORT Bool
+Bool
 xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
 	int newvirtX, int newvirtY, int newmmWidth, int newmmHeight,
 	Bool resetMode)
@@ -411,7 +411,7 @@ xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 xf86RandRInit (ScreenPtr    pScreen)
 {
     rrScrPrivPtr	rp;

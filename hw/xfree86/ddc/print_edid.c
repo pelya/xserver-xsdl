@@ -460,7 +460,7 @@ print_number_sections(int scrnIndex, int num)
 		   num);
 }
 
-_X_EXPORT xf86MonPtr
+xf86MonPtr
 xf86PrintEDID(xf86MonPtr m)
 {
     CARD16 i, j, n;

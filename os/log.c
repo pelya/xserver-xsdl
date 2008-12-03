@@ -100,7 +100,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 
 #ifdef DDXOSVERRORF
-_X_EXPORT void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
+void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
 #endif
 
 static FILE *logFile = NULL;
@@ -155,7 +155,7 @@ static Bool needBuffer = TRUE;
  * string.
  */
 
-_X_EXPORT const char *
+const char *
 LogInit(const char *fname, const char *backup)
 {
     char *logFileName = NULL;
@@ -217,7 +217,7 @@ LogInit(const char *fname, const char *backup)
     return logFileName;
 }
 
-_X_EXPORT void
+void
 LogClose(void)
 {
     if (logFile) {
@@ -226,7 +226,7 @@ LogClose(void)
     }
 }
 
-_X_EXPORT Bool
+Bool
 LogSetParameter(LogParameter param, int value)
 {
     switch (param) {
@@ -249,7 +249,7 @@ LogSetParameter(LogParameter param, int value)
 
 /* This function does the actual log message writes. */
 
-_X_EXPORT void
+void
 LogVWrite(int verb, const char *f, va_list args)
 {
     static char tmpBuffer[1024];
@@ -298,7 +298,7 @@ LogVWrite(int verb, const char *f, va_list args)
     }
 }
 
-_X_EXPORT void
+void
 LogWrite(int verb, const char *f, ...)
 {
     va_list args;
@@ -308,7 +308,7 @@ LogWrite(int verb, const char *f, ...)
     va_end(args);
 }
 
-_X_EXPORT void
+void
 LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 {
     const char *s  = X_UNKNOWN_STRING;
@@ -373,7 +373,7 @@ LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 }
 
 /* Log message with verbosity level specified. */
-_X_EXPORT void
+void
 LogMessageVerb(MessageType type, int verb, const char *format, ...)
 {
     va_list ap;
@@ -384,7 +384,7 @@ LogMessageVerb(MessageType type, int verb, const char *format, ...)
 }
 
 /* Log a message with the standard verbosity level of 1. */
-_X_EXPORT void
+void
 LogMessage(MessageType type, const char *format, ...)
 {
     va_list ap;
@@ -420,7 +420,7 @@ static int nrepeat = 0;
 static int oldlen = -1;
 static OsTimerPtr auditTimer = NULL;
 
-_X_EXPORT void 
+void
 FreeAuditTimer(void)
 {
     if (auditTimer != NULL) {
@@ -451,7 +451,7 @@ AuditPrefix(void)
     return tmpBuf;
 }
 
-_X_EXPORT void
+void
 AuditF(const char * f, ...)
 {
     va_list args;
@@ -482,7 +482,7 @@ AuditFlush(OsTimerPtr timer, CARD32 now, pointer arg)
     }
 }
 
-_X_EXPORT void
+void
 VAuditF(const char *f, va_list args)
 {
     char *prefix;
@@ -510,7 +510,7 @@ VAuditF(const char *f, va_list args)
 	free(prefix);
 }
 
-_X_EXPORT void
+void
 FatalError(const char *f, ...)
 {
     va_list args;
@@ -535,7 +535,7 @@ FatalError(const char *f, ...)
     /*NOTREACHED*/
 }
 
-_X_EXPORT void
+void
 VErrorF(const char *f, va_list args)
 {
 #ifdef DDXOSVERRORF
@@ -548,7 +548,7 @@ VErrorF(const char *f, va_list args)
 #endif
 }
 
-_X_EXPORT void
+void
 ErrorF(const char * f, ...)
 {
     va_list args;
@@ -560,7 +560,7 @@ ErrorF(const char * f, ...)
 
 /* A perror() workalike. */
 
-_X_EXPORT void
+void
 Error(char *str)
 {
     char *err = NULL;
@@ -577,7 +577,7 @@ Error(char *str)
 	LogWrite(-1, strerror(saveErrno));
 }
 
-_X_EXPORT void
+void
 LogPrintMarkers(void)
 {
     /* Show what the message marker symbols mean. */

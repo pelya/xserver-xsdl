@@ -132,9 +132,9 @@ static DISPATCH_PROC(SProcShmPutImage);
 static DISPATCH_PROC(SProcShmQueryVersion);
 
 static unsigned char ShmReqCode;
-_X_EXPORT int ShmCompletionCode;
-_X_EXPORT int BadShmSegCode;
-_X_EXPORT RESTYPE ShmSegType;
+int ShmCompletionCode;
+int BadShmSegCode;
+RESTYPE ShmSegType;
 static ShmDescPtr Shmsegs;
 static Bool sharedPixmaps;
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
@@ -271,7 +271,7 @@ ShmResetProc(ExtensionEntry *extEntry)
     }
 }
 
-_X_EXPORT void
+void
 ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs)
 {
     shmFuncs[pScreen->myNum] = funcs;
@@ -298,7 +298,7 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     return ret;
 }
 
-_X_EXPORT void
+void
 ShmRegisterFbFuncs(ScreenPtr pScreen)
 {
     shmFuncs[pScreen->myNum] = &fbFuncs;

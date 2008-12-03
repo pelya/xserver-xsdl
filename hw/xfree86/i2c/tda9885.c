@@ -8,7 +8,7 @@
 #include "i2c_def.h"
 
 
-_X_EXPORT TDA9885Ptr Detect_tda9885(I2CBusPtr b, I2CSlaveAddr addr)
+TDA9885Ptr Detect_tda9885(I2CBusPtr b, I2CSlaveAddr addr)
 {
   TDA9885Ptr t;
   I2CByte a;
@@ -51,13 +51,13 @@ _X_EXPORT TDA9885Ptr Detect_tda9885(I2CBusPtr b, I2CSlaveAddr addr)
   return t;  
 }
 
-_X_EXPORT Bool tda9885_init(TDA9885Ptr t)
+Bool tda9885_init(TDA9885Ptr t)
 {
   t->forced_mute_audio=1;
   return TRUE;
 }
 
-_X_EXPORT void tda9885_getstatus(TDA9885Ptr t)
+void tda9885_getstatus(TDA9885Ptr t)
 {
 CARD8 value;
 
@@ -69,7 +69,7 @@ t->vif_level=(value >>6) & 1;
 t->afc_win=(value >> 7)&1;
 }
 
-_X_EXPORT void tda9885_setparameters(TDA9885Ptr t)
+void tda9885_setparameters(TDA9885Ptr t)
 {
 CARD8 data[4];
 
@@ -95,7 +95,7 @@ I2C_WriteRead(&(t->d), data, 4, NULL, 0);
 xf86DrvMsg(t->d.pI2CBus->scrnIndex,X_INFO,"TDA9885 setparam: B data: %x, C data: %x, E data: %x\n", data[1], data[2], data[3]);
 }
 
-_X_EXPORT void tda9885_dumpstatus(TDA9885Ptr t)
+void tda9885_dumpstatus(TDA9885Ptr t)
 {
 xf86DrvMsg(t->d.pI2CBus->scrnIndex,X_INFO,"TDA9885 status: after_reset=%d afc_status=%d (%3.1f kHz off) fm_carrier=%d vif_level=%d afc_win=%d %s\n",
 		t->after_reset, t->afc_status, 

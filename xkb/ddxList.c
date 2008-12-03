@@ -276,7 +276,7 @@ char	tmpname[PATH_MAX];
 /***====================================================================***/
 
 /* ARGSUSED */
-_X_EXPORT Status
+Status
 XkbDDXList(DeviceIntPtr	dev,XkbSrvListInfoPtr list,ClientPtr client)
 {
 Status	status;

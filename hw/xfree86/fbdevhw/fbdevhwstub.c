@@ -9,62 +9,62 @@
 /* Stubs for the static server on platforms that don't support fbdev */
 
 
-_X_EXPORT Bool
+Bool
 fbdevHWGetRec(ScrnInfoPtr pScrn)
 {
 	return FALSE;
 }
 
-_X_EXPORT void
+void
 fbdevHWFreeRec(ScrnInfoPtr pScrn)
 {
 }
 
 
-_X_EXPORT Bool
+Bool
 fbdevHWProbe(struct pci_device *pPci, char *device, char **namep)
 {
 	return FALSE;
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device *pPci, char *device)
 {
 	xf86Msg(X_ERROR, "fbdevhw is not available on this platform\n");
 	return FALSE;
 }
 
-_X_EXPORT char*
+char*
 fbdevHWGetName(ScrnInfoPtr pScrn)
 {
 	return NULL;
 }
 
-_X_EXPORT int
+int
 fbdevHWGetDepth(ScrnInfoPtr pScrn, int *fbbpp)
 {
 	return -1;
 }
 
-_X_EXPORT int
+int
 fbdevHWGetLineLength(ScrnInfoPtr pScrn)
 {
 	return -1;	/* Should cause something spectacular... */
 }
 
-_X_EXPORT int
+int
 fbdevHWGetType(ScrnInfoPtr pScrn)
 {
 	return -1;
 }
 
-_X_EXPORT int
+int
 fbdevHWGetVidmem(ScrnInfoPtr pScrn)
 {
 	return -1;
 }
 
-_X_EXPORT void
+void
 fbdevHWSetVideoModes(ScrnInfoPtr pScrn)
 {
 }
@@ -75,122 +75,122 @@ fbdevHWGetBuildinMode(ScrnInfoPtr pScrn)
 	return NULL;
 }
 
-_X_EXPORT void
+void
 fbdevHWUseBuildinMode(ScrnInfoPtr pScrn)
 {
 }
 
-_X_EXPORT void*
+void*
 fbdevHWMapVidmem(ScrnInfoPtr pScrn)
 {
 	return NULL;
 }
 
-_X_EXPORT int
+int
 fbdevHWLinearOffset(ScrnInfoPtr pScrn)
 {
 	return 0;
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWUnmapVidmem(ScrnInfoPtr pScrn)
 {
 	return FALSE;
 }
 
-_X_EXPORT void*
+void*
 fbdevHWMapMMIO(ScrnInfoPtr pScrn)
 {
 	return NULL;
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWUnmapMMIO(ScrnInfoPtr pScrn)
 {
 	return FALSE;
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 {	
 	return FALSE;
 }
 
-_X_EXPORT void
+void
 fbdevHWSave(ScrnInfoPtr pScrn)
 {
 }
 
-_X_EXPORT void
+void
 fbdevHWRestore(ScrnInfoPtr pScrn)
 {
 }
 
-_X_EXPORT void
+void
 fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 		 LOCO *colors, VisualPtr pVisual)
 {
 }
 
-_X_EXPORT ModeStatus
+ModeStatus
 fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	return MODE_ERROR;
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWSwitchMode(int scrnIndex, DisplayModePtr mode, int flags)
 {
 	return FALSE;
 }
 
-_X_EXPORT void
+void
 fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 {
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWEnterVT(int scrnIndex, int flags)
 {
 	return FALSE;
 }
 
-_X_EXPORT void
+void
 fbdevHWLeaveVT(int scrnIndex, int flags)
 {
 }
 
-_X_EXPORT void
+void
 fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
 {
 }
 
-_X_EXPORT Bool
+Bool
 fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
 {
 	return FALSE;
 }
 
-_X_EXPORT xf86SwitchModeProc *
+xf86SwitchModeProc *
 fbdevHWSwitchModeWeak(void) { return fbdevHWSwitchMode; }
 
-_X_EXPORT xf86AdjustFrameProc *
+xf86AdjustFrameProc *
 fbdevHWAdjustFrameWeak(void) { return fbdevHWAdjustFrame; }
 
-_X_EXPORT xf86EnterVTProc *
+xf86EnterVTProc *
 fbdevHWEnterVTWeak(void) { return fbdevHWEnterVT; }
 
-_X_EXPORT xf86LeaveVTProc *
+xf86LeaveVTProc *
 fbdevHWLeaveVTWeak(void) { return fbdevHWLeaveVT; }
 
-_X_EXPORT xf86ValidModeProc *
+xf86ValidModeProc *
 fbdevHWValidModeWeak(void) { return fbdevHWValidMode; }
 
-_X_EXPORT xf86DPMSSetProc *
+xf86DPMSSetProc *
 fbdevHWDPMSSetWeak(void) { return fbdevHWDPMSSet; }
 
-_X_EXPORT xf86LoadPaletteProc *
+xf86LoadPaletteProc *
 fbdevHWLoadPaletteWeak(void) { return fbdevHWLoadPalette; }
 
-_X_EXPORT SaveScreenProcPtr
+SaveScreenProcPtr
 fbdevHWSaveScreenWeak(void) { return fbdevHWSaveScreen; }

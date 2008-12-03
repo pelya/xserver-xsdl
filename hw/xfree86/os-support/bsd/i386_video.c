@@ -279,7 +279,7 @@ unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
  * Read BIOS via mmap()ing DEV_MEM
  */
 
-_X_EXPORT int
+int
 xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	     int Len)
 {
@@ -331,7 +331,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 
 static Bool ExtendedEnabled = FALSE;
 
-_X_EXPORT Bool
+Bool
 xf86EnableIO()
 {
 	if (ExtendedEnabled)
@@ -353,7 +353,7 @@ xf86EnableIO()
 	return TRUE;
 }
 	
-_X_EXPORT void
+void
 xf86DisableIO()
 {
 	if (!ExtendedEnabled)
@@ -448,7 +448,7 @@ xf86DisableIO()
 /***************************************************************************/
 /* Set TV output mode                                                      */
 /***************************************************************************/
-_X_EXPORT void
+void
 xf86SetTVOut(int mode)
 {    
     switch (xf86Info.consType)
@@ -473,7 +473,7 @@ xf86SetTVOut(int mode)
     return;
 }
 
-_X_EXPORT void
+void
 xf86SetRGBOut()
 {    
     switch (xf86Info.consType)

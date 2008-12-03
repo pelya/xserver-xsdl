@@ -70,7 +70,7 @@ static int GetFPolyYBounds(SppPointPtr pts, int n, double yFtrans,
  *	line algorithm with y as the major axis. There's some funny linear
  *	interpolation involved because of the subpixel postioning.
  */
-_X_EXPORT void
+void
 miFillSppPoly(
     DrawablePtr		dst,
     GCPtr		pgc,

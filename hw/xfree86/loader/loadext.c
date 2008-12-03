@@ -40,7 +40,7 @@
  * This should be static, but miinitext wants it.  FIXME: make extension
  * initialization not completely terrible.
  */
-_X_EXPORT ExtensionModule *ExtensionModuleList = NULL;
+ExtensionModule *ExtensionModuleList = NULL;
 static int numExtensionModules = 0;
 
 static ExtensionModule *
@@ -66,7 +66,7 @@ NewExtensionModule(void)
     }
 }
 
-_X_EXPORT void
+void
 LoadExtension(ExtensionModule * e, Bool builtin)
 {
     ExtensionModule *newext;

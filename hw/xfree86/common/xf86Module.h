@@ -181,31 +181,28 @@ typedef struct {
     const char **	initDependencies;
 } ExtensionModule;
 
-extern ExtensionModule *ExtensionModuleList;
+extern _X_EXPORT ExtensionModule *ExtensionModuleList;
 
 /* Prototypes for Loader functions that are exported to modules */
-#ifndef IN_LOADER
-/* Prototypes with opaque pointers for use by modules */
-pointer LoadSubModule(pointer, const char *, const char **,
+extern _X_EXPORT pointer LoadSubModule(pointer, const char *, const char **,
 		      const char **, pointer, const XF86ModReqInfo *,
 		      int *, int *);
-void UnloadSubModule(pointer);
-void UnloadModule (pointer);
-#endif
-pointer LoaderSymbol(const char *);
-pointer LoaderSymbolLocal(pointer module, const char *);
-char **LoaderListDirs(const char **, const char **);
-void LoaderFreeDirList(char **);
-void LoaderErrorMsg(const char *, const char *, int, int);
-void LoadExtension(ExtensionModule *, Bool);
-void LoaderRefSymLists(const char **, ...);
-void LoaderRefSymbols(const char *, ...);
-void LoaderReqSymLists(const char **, ...);
-void LoaderReqSymbols(const char *, ...);
-int LoaderCheckUnresolved(int);
-void LoaderGetOS(const char **name, int *major, int *minor, int *teeny);
-Bool LoaderShouldIgnoreABI(void);
-int LoaderGetABIVersion(const char *abiclass);
+extern _X_EXPORT void UnloadSubModule(pointer);
+extern _X_EXPORT void UnloadModule (pointer);
+extern _X_EXPORT pointer LoaderSymbol(const char *);
+extern _X_EXPORT pointer LoaderSymbolLocal(pointer module, const char *);
+extern _X_EXPORT char **LoaderListDirs(const char **, const char **);
+extern _X_EXPORT void LoaderFreeDirList(char **);
+extern _X_EXPORT void LoaderErrorMsg(const char *, const char *, int, int);
+extern _X_EXPORT void LoadExtension(ExtensionModule *, Bool);
+extern _X_EXPORT void LoaderRefSymLists(const char **, ...);
+extern _X_EXPORT void LoaderRefSymbols(const char *, ...);
+extern _X_EXPORT void LoaderReqSymLists(const char **, ...);
+extern _X_EXPORT void LoaderReqSymbols(const char *, ...);
+extern _X_EXPORT int LoaderCheckUnresolved(int);
+extern _X_EXPORT void LoaderGetOS(const char **name, int *major, int *minor, int *teeny);
+extern _X_EXPORT Bool LoaderShouldIgnoreABI(void);
+extern _X_EXPORT int LoaderGetABIVersion(const char *abiclass);
 
 typedef pointer (*ModuleSetupProc)(pointer, pointer, int *, int *);
 typedef void (*ModuleTearDownProc)(pointer);

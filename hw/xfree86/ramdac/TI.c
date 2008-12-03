@@ -42,7 +42,7 @@
 #define TI_MIN_VCO_FREQ  110000
 #define TI_MAX_VCO_FREQ  220000
 
-_X_EXPORT unsigned long
+unsigned long
 TIramdacCalculateMNPForClock(
     unsigned long RefClock,	/* In 100Hz units */
     unsigned long ReqClock,	/* In 100Hz units */
@@ -123,7 +123,7 @@ TIramdacCalculateMNPForClock(
     return (ActualClock);
 }
 
-_X_EXPORT void
+void
 TIramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 				   RamDacRegRecPtr ramdacReg)
 {
@@ -225,7 +225,7 @@ TIramdacRestore(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
 #endif
 }
 
-_X_EXPORT void
+void
 TIramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr, 
 				RamDacRegRecPtr ramdacReg)
 {
@@ -280,7 +280,7 @@ TIramdacSave(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPtr,
     TISAVE(TIDAC_ind_curs_ctrl);
 }
 
-_X_EXPORT RamDacHelperRecPtr
+RamDacHelperRecPtr
 TIramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs)
 {
     RamDacRecPtr ramdacPtr = RAMDACSCRPTR(pScrn);
@@ -353,7 +353,7 @@ TIramdacProbe(ScrnInfoPtr pScrn, RamDacSupportedInfoRecPtr ramdacs)
     return ramdacHelperPtr;
 }
 
-_X_EXPORT void
+void
 TIramdac3026SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     switch (pScrn->bitsPerPixel) {
@@ -470,7 +470,7 @@ TIramdac3026SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
     }
 }
 
-_X_EXPORT void
+void
 TIramdac3030SetBpp(ScrnInfoPtr pScrn, RamDacRegRecPtr ramdacReg)
 {
     switch (pScrn->bitsPerPixel) {
@@ -660,7 +660,7 @@ TIramdacUseHWCursor(ScreenPtr pScr, CursorPtr pCurs)
     return TRUE;
 }
 
-_X_EXPORT void
+void
 TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr)
 {
     infoPtr->MaxWidth = 64;
@@ -676,7 +676,7 @@ TIramdacHWCursorInit(xf86CursorInfoPtr infoPtr)
     infoPtr->UseHWCursor = TIramdacUseHWCursor;
 }
 
-_X_EXPORT void TIramdacLoadPalette(
+void TIramdacLoadPalette(
     ScrnInfoPtr pScrn, 
     int numColors, 
     int *indices,
@@ -714,6 +714,6 @@ _X_EXPORT void TIramdacLoadPalette(
 }
 }
 
-_X_EXPORT TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void) {
+TIramdacLoadPaletteProc *TIramdacLoadPaletteWeak(void) {
     return TIramdacLoadPalette;
 }
