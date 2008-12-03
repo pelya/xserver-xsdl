@@ -1008,6 +1008,12 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86Info.allowEmptyInput = (xf86Info.autoAddDevices && xf86Info.autoEnableDevices);
     xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &xf86Info.allowEmptyInput);
 
+    /* AEI on? Then we're not using kbd, so use the evdev rules set. */
+#ifdef XKB
+    XkbSetRulesDflts(((xf86Info.allowEmptyInput) ? "evdev" : "base"),
+                     "pc105", "us", NULL, NULL);
+#endif
+
     xf86Info.useDefaultFontPath = TRUE;
     xf86Info.useDefaultFontPathFrom = X_DEFAULT;
     if (xf86GetOptValBool(FlagOptions, FLAG_USE_DEFAULT_FONT_PATH, &value)) {

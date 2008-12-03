@@ -117,7 +117,11 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     if (!c->sendCore)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
-
+#ifdef XKB
+                    /* supplying NULL for rules simply means we re-use
+                       whatever ruleset we used for the previous devices. */
+                    XkbSetRulesDflts(NULL, "pc105", "us", NULL, NULL);
+#endif
                     ActivateDevice(ptr);
                     ActivateDevice(keybd);
 
