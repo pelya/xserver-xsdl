@@ -486,6 +486,9 @@ GetMaximumEventsNum(void) {
 #endif
         ret *= 2;
 
+    /* One possible DeviceClassesChangedEvent */
+    ret++;
+
     return ret;
 }
 
