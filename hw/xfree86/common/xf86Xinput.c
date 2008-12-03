@@ -650,8 +650,8 @@ void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
-    InputDriverPtr drv;
-    IDevRec *idev;
+    InputDriverPtr drv = NULL;
+    IDevRec *idev = NULL;
     IDevPtr *it;
     Bool isMaster = pDev->isMaster;
 
