@@ -328,10 +328,10 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 		    crtc->x, crtc->y);
     }
 
-    if (crtc->funcs->pan &&
+    if (crtc->funcs->set_origin &&
 	memcmp (mode, &saved_mode, sizeof(saved_mode)) == 0 &&
 	saved_rotation == rotation) {
-	crtc->funcs->pan (crtc, crtc->x, crtc->y);
+	crtc->funcs->set_origin (crtc, crtc->x, crtc->y);
 	ret = TRUE;
 	goto done;
     }
@@ -428,12 +428,12 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
  * Pans the screen, does not change the mode
  */
 _X_EXPORT void
-xf86CrtcPan (xf86CrtcPtr crtc, int x, int y)
+xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y)
 {
     crtc->x = x;
     crtc->y = y;
-    if (crtc->funcs->pan)
-	crtc->funcs->pan (crtc, x, y);
+    if (crtc->funcs->set_origin)
+	crtc->funcs->set_origin (crtc, x, y);
     else
 	xf86CrtcSetMode (crtc, &crtc->mode, crtc->rotation, x, y);
 }

@@ -164,7 +164,7 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
     if (newY <  crtc->panningTotalArea.y1)
 	newY =  crtc->panningTotalArea.y1;
     if (newX != crtc->x || newY != crtc->y)
-	xf86CrtcPan (crtc, newX, newY);
+	xf86CrtcSetOrigin (crtc, newX, newY);
 }
 
 static Bool

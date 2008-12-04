@@ -218,7 +218,7 @@ typedef struct _xf86CrtcFuncs {
      * Callback for panning. Doesn't change the mode.
      */
     void
-    (*pan)(xf86CrtcPtr crtc, int x, int y);
+    (*set_origin)(xf86CrtcPtr crtc, int x, int y);
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
@@ -695,7 +695,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y);
 
 void
-xf86CrtcPan (xf86CrtcPtr crtc, int x, int y);
+xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y);
 
 /*
  * Assign crtc rotation during mode set
