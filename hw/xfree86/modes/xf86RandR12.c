@@ -182,8 +182,8 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
 	return;
 
     if (! crtc->enabled						||
-	crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1	||
-	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1)
+	(crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1	&&
+	 crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1))
 	return;
 
     newX   = crtc->x;
@@ -191,26 +191,36 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
     width  = crtc->mode.HDisplay;
     height = crtc->mode.VDisplay;
 
-    if (x >= crtc->panningTrackingArea.x1 && x < crtc->panningTrackingArea.x2 &&
-    	y >= crtc->panningTrackingArea.y1 && y < crtc->panningTrackingArea.y2) {
-	if (x < crtc->x + crtc->panningBorder[0])
-	    newX = x - crtc->panningBorder[0];
-	if (x >= crtc->x + width - crtc->panningBorder[2])
-	    newX = x - width + crtc->panningBorder[2] + 1;
-	if (y < crtc->y + crtc->panningBorder[1])
-	    newY = y - crtc->panningBorder[1];
-	if (y >= crtc->y + height - crtc->panningBorder[3])
-	    newY = y - height + crtc->panningBorder[3] + 1;
+    if ((crtc->panningTrackingArea.x2 <= crtc->panningTrackingArea.x1 ||
+	 (x >= crtc->panningTrackingArea.x1 && x < crtc->panningTrackingArea.x2)) &&
+	(crtc->panningTrackingArea.y2 <= crtc->panningTrackingArea.y1 ||
+	 (y >= crtc->panningTrackingArea.y1 && y < crtc->panningTrackingArea.y2))) {
+	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1) {
+	    if (x < crtc->x + crtc->panningBorder[0])
+		newX = x - crtc->panningBorder[0];
+	    if (x >= crtc->x + width - crtc->panningBorder[2])
+		newX = x - width + crtc->panningBorder[2] + 1;
+	}
+	if (crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
+	    if (y < crtc->y + crtc->panningBorder[1])
+		newY = y - crtc->panningBorder[1];
+	    if (y >= crtc->y + height - crtc->panningBorder[3])
+		newY = y - height + crtc->panningBorder[3] + 1;
+	}
     }
     /* Validate against [xy]1 after [xy]2, to be sure that results are > 0 for [xy]1 > 0 */
-    if (newX >= crtc->panningTotalArea.x2 - width)
-	newX =  crtc->panningTotalArea.x2 - width - 1;
-    if (newX <  crtc->panningTotalArea.x1)
-	newX =  crtc->panningTotalArea.x1;
-    if (newY >= crtc->panningTotalArea.y2 - height)
-	newY =  crtc->panningTotalArea.y2 - height - 1;
-    if (newY <  crtc->panningTotalArea.y1)
-	newY =  crtc->panningTotalArea.y1;
+    if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1) {
+	if (newX >= crtc->panningTotalArea.x2 - width)
+	    newX =  crtc->panningTotalArea.x2 - width - 1;
+	if (newX <  crtc->panningTotalArea.x1)
+	    newX =  crtc->panningTotalArea.x1;
+    }
+    if (crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
+	if (newY >= crtc->panningTotalArea.y2 - height)
+	    newY =  crtc->panningTotalArea.y2 - height - 1;
+	if (newY <  crtc->panningTotalArea.y1)
+	    newY =  crtc->panningTotalArea.y1;
+    }
     if (newX != crtc->x || newY != crtc->y)
 	xf86CrtcSetOrigin (crtc, newX, newY);
 }
@@ -485,12 +495,16 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     /* Update panning information */
     for (c = 0; c < config->num_crtc; c++) {
 	xf86CrtcPtr crtc = config->crtc[c];
-	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1 &&
+	if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1 ||
 	    crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
-	    crtc->panningTotalArea.x2 += width  - pScreen->width;
-	    crtc->panningTotalArea.y2 += height - pScreen->height;
-	    crtc->panningTrackingArea.x2 += width  - pScreen->width;
-	    crtc->panningTrackingArea.y2 += height - pScreen->height;
+	    if (crtc->panningTotalArea.x2 > crtc->panningTrackingArea.x1)
+		crtc->panningTotalArea.x2 += width  - pScreen->width;
+	    if (crtc->panningTotalArea.y2 > crtc->panningTrackingArea.y1)
+		crtc->panningTotalArea.y2 += height - pScreen->height;
+	    if (crtc->panningTrackingArea.x2 > crtc->panningTrackingArea.x1)
+		crtc->panningTrackingArea.x2 += width  - pScreen->width;
+	    if (crtc->panningTrackingArea.y2 > crtc->panningTrackingArea.y1)
+		crtc->panningTrackingArea.y2 += height - pScreen->height;
 	    xf86RandR13VerifyPanningArea (crtc, width, height);
 	    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
 	}
