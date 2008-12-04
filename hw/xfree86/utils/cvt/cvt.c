@@ -25,6 +25,34 @@
 
 #include "xf86.h"
 
+/* xnfalloc implementation used by the server code we built in */
+pointer
+XNFalloc(unsigned long n)
+{
+    pointer r;
+
+    r = malloc(n);
+    if (!r) {
+        perror("malloc failed");
+        exit(1);
+    }
+    return r;
+}
+
+/* xnfcalloc implementation used by the server code we built in */
+pointer
+XNFcalloc(unsigned long n)
+{
+    pointer r;
+
+    r = calloc(1, n);
+    if (!r) {
+        perror("calloc failed");
+        exit(1);
+    }
+    return r;
+}
+
 /*
  * Quickly check wether this is a CVT standard mode.
  */
