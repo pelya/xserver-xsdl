@@ -1056,7 +1056,6 @@ ProcRRSetPanning (ClientPtr client)
     RRCrtcPtr		crtc;
     ScreenPtr		pScreen;
     rrScrPrivPtr	pScrPriv;
-    TimeStamp		configTime;
     TimeStamp		time;
     BoxRec		total;
     BoxRec		tracking;
@@ -1083,21 +1082,7 @@ ProcRRSetPanning (ClientPtr client)
     }
     
     time = ClientTimeToServerTime(stuff->timestamp);
-    configTime = ClientTimeToServerTime(stuff->configTimestamp);
     
-#if 0
-    /*
-     * if the client's config timestamp is not the same as the last config
-     * timestamp, then the config information isn't up-to-date and
-     * can't even be validated
-     */
-    if (CompareTimeStamps (configTime, pScrPriv->lastConfigTime) != 0)
-    {
-	rep.status = RRSetConfigInvalidConfigTime;
-	goto sendReply;
-    }
-#endif
-
     /*
      * Make sure the requested set-time is not older than
      * the last set-time
