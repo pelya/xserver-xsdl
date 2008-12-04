@@ -88,40 +88,88 @@ xf86RandR12ModeRefresh (DisplayModePtr mode)
 	return (int) (mode->Clock * 1000.0 / mode->HTotal / mode->VTotal + 0.5);
 }
 
+/* Adapt panning area; return TRUE if panning area was valid without adaption */
 static int
 xf86RandR13VerifyPanningArea (xf86CrtcPtr crtc, int screenWidth, int screenHeight)
 {
+    int ret = TRUE;
+
     if (crtc->version < 2)
 	return FALSE;
 
-    if (crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1				||
-	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1) {
-	memset (&crtc->panningTotalArea, 0, sizeof(BoxRec));
-	memset (&crtc->panningTrackingArea, 0, sizeof(BoxRec));
-	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
-	return TRUE;
+    if (crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1) {
+	/* Panning in X is disabled */
+	if (crtc->panningTotalArea.x1 || crtc->panningTotalArea.x2)
+	    /* Illegal configuration -> fail/disable */
+	    ret = FALSE;
+	crtc->panningTotalArea.x1    = crtc->panningTotalArea.x2    = 0;
+	crtc->panningTrackingArea.x1 = crtc->panningTrackingArea.x2 = 0;
+	crtc->panningBorder[0]       = crtc->panningBorder[2]       = 0;
+    } else {
+	/* Panning in X is enabled */
+	if (crtc->panningTotalArea.x1 < 0) {
+	    /* Panning region outside screen -> move inside */
+	    crtc->panningTotalArea.x2 -= crtc->panningTotalArea.x1;
+	    crtc->panningTotalArea.x1 = 0;
+	    ret = FALSE;
+	}
+	if (crtc->panningTotalArea.x2 < crtc->panningTotalArea.x1 + crtc->mode.HDisplay) {
+	    /* Panning region smaller than displayed area -> crop to displayed area */
+	    crtc->panningTotalArea.x2 = crtc->panningTotalArea.x1 + crtc->mode.HDisplay;
+	    ret = FALSE;
+	}
+	if (crtc->panningTotalArea.x2 > screenWidth) {
+	    /* Panning region larger than screen -> move inside, then crop to screen */
+	    crtc->panningTotalArea.x1 -= crtc->panningTotalArea.x2 - screenWidth;
+	    crtc->panningTotalArea.x2 = screenWidth;
+	    ret = FALSE;
+	    if (crtc->panningTotalArea.x1 < 0)
+		crtc->panningTotalArea.x1 = 0;
+	}
+	if (crtc->panningBorder[0] + crtc->panningBorder[2] > crtc->mode.HDisplay) {
+	    /* Borders too large -> set to 0 */
+	    crtc->panningBorder[0] = crtc->panningBorder[2] = 0;
+	    ret = FALSE;
+	}
     }
 
-    if (crtc->panningTotalArea.x2 <= crtc->panningTotalArea.x1				||
-	crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1				||
-	crtc->panningTotalArea.x1 < 0							||
-	crtc->panningTotalArea.y1 < 0							||
-	crtc->panningTotalArea.x2 < crtc->panningTotalArea.x1 + crtc->mode.HDisplay	||
-	crtc->panningTotalArea.y2 < crtc->panningTotalArea.y1 + crtc->mode.VDisplay	||
-	crtc->panningTotalArea.x2 > screenWidth				 		||
-	crtc->panningTotalArea.y2 > screenHeight)
-    {
-	memset (&crtc->panningTotalArea, 0, sizeof(BoxRec));
-	memset (&crtc->panningTrackingArea, 0, sizeof(BoxRec));
-	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
-	return FALSE;
+    if (crtc->panningTotalArea.y2 <= crtc->panningTotalArea.y1) {
+	/* Panning in Y is disabled */
+	if (crtc->panningTotalArea.y1 || crtc->panningTotalArea.y2)
+	    /* Illegal configuration -> fail/disable */
+	    ret = FALSE;
+	crtc->panningTotalArea.y1    = crtc->panningTotalArea.y2    = 0;
+	crtc->panningTrackingArea.y1 = crtc->panningTrackingArea.y2 = 0;
+	crtc->panningBorder[1]       = crtc->panningBorder[3]       = 0;
+    } else {
+	/* Panning in Y is enabled */
+	if (crtc->panningTotalArea.y1 < 0) {
+	    /* Panning region outside screen -> move inside */
+	    crtc->panningTotalArea.y2 -= crtc->panningTotalArea.y1;
+	    crtc->panningTotalArea.y1 = 0;
+	    ret = FALSE;
+	}
+	if (crtc->panningTotalArea.y2 < crtc->panningTotalArea.y1 + crtc->mode.VDisplay) {
+	    /* Panning region smaller than displayed area -> crop to displayed area */
+	    crtc->panningTotalArea.y2 = crtc->panningTotalArea.y1 + crtc->mode.VDisplay;
+	    ret = FALSE;
+	}
+	if (crtc->panningTotalArea.y2 > screenHeight) {
+	    /* Panning region larger than screen -> move inside, then crop to screen */
+	    crtc->panningTotalArea.y1 -= crtc->panningTotalArea.y2 - screenHeight;
+	    crtc->panningTotalArea.y2 = screenHeight;
+	    ret = FALSE;
+	    if (crtc->panningTotalArea.y1 < 0)
+		crtc->panningTotalArea.y1 = 0;
+	}
+	if (crtc->panningBorder[1] + crtc->panningBorder[3] > crtc->mode.VDisplay) {
+	    /* Borders too large -> set to 0 */
+	    crtc->panningBorder[1] = crtc->panningBorder[3] = 0;
+	    ret = FALSE;
+	}
     }
-    if (crtc->panningBorder[0] + crtc->panningBorder[2] > crtc->mode.HDisplay		||
-	crtc->panningBorder[1] + crtc->panningBorder[3] > crtc->mode.VDisplay) {
-	memset (&crtc->panningBorder, 0, 4*sizeof(INT16));
-	return FALSE;
-    }
-    return TRUE;
+
+    return ret;
 }
 
 static void
