@@ -846,6 +846,9 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     Bool value;
     MessageType from;
     const char *s;
+#ifdef XKB
+    char *rules = "base";
+#endif
 
     /*
      * Merge the ServerLayout and ServerFlags options.  The former have
@@ -1010,8 +1013,11 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     /* AEI on? Then we're not using kbd, so use the evdev rules set. */
 #ifdef XKB
-    XkbSetRulesDflts(((xf86Info.allowEmptyInput) ? "evdev" : "base"),
-                     "pc105", "us", NULL, NULL);
+#if defined(linux)
+    if (xf86Info.allowEmptyInput)
+        rules = "evdev";
+#endif
+    XkbSetRulesDflts(rules, "pc105", "us", NULL, NULL);
 #endif
 
     xf86Info.useDefaultFontPath = TRUE;
