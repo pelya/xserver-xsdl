@@ -1327,20 +1327,35 @@ xf86RandR13SetPanning (ScreenPtr           pScreen,
 {
     XF86RandRInfoPtr	randrp  = XF86RANDRINFO(pScreen);
     xf86CrtcPtr		crtc = randr_crtc->devPrivate;
-    int			ret;
+    BoxRec		oldTotalArea;
+    BoxRec		oldTrackingArea;
+    INT16		oldBorder[4];
+
 
     if (crtc->version < 2)
 	return FALSE;
+
+    memcpy (&oldTotalArea,    &crtc->panningTotalArea,    sizeof(BoxRec));
+    memcpy (&oldTrackingArea, &crtc->panningTrackingArea, sizeof(BoxRec));
+    memcpy (oldBorder,         crtc->panningBorder,       4*sizeof(INT16));
+
     if (totalArea)
 	memcpy (&crtc->panningTotalArea, totalArea, sizeof(BoxRec));
     if (trackingArea)
 	memcpy (&crtc->panningTrackingArea, trackingArea, sizeof(BoxRec));
     if (border)
 	memcpy (crtc->panningBorder, border, 4*sizeof(INT16));
-    ret = xf86RandR13VerifyPanningArea (crtc, pScreen->width, pScreen->height);
-    xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
 
-    return ret;
+    if (xf86RandR13VerifyPanningArea (crtc, pScreen->width, pScreen->height)) {
+	xf86RandR13Pan (crtc, randrp->pointerX, randrp->pointerY);
+	return TRUE;
+    } else {
+	/* Restore old settings */
+	memcpy (&crtc->panningTotalArea,    &oldTotalArea,    sizeof(BoxRec));
+	memcpy (&crtc->panningTrackingArea, &oldTrackingArea, sizeof(BoxRec));
+	memcpy (crtc->panningBorder,         oldBorder,       4*sizeof(INT16));
+	return FALSE;
+    }
 }
 
 static Bool
