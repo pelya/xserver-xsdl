@@ -427,7 +427,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 /**
  * Pans the screen, does not change the mode
  */
-_X_EXPORT void
+void
 xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y)
 {
     crtc->x = x;

@@ -694,7 +694,7 @@ extern _X_EXPORT Bool
 xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y);
 
-void
+extern _X_EXPORT void
 xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y);
 
 /*
