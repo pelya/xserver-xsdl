@@ -1,5 +1,4 @@
 AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
-DISTCHECK_CONFIGURE_FLAGS=--disable-xorgcfg
 
 if COMPOSITE
 COMPOSITE_DIR=composite
@@ -48,6 +47,7 @@ pkgconfig_DATA = xorg-server.pc
 
 EXTRA_DIST = xorg-server.pc.in xorg-server.m4 ChangeLog autogen.sh
 
+DISTCLEANFILES = doltcompile doltlibtool
 MAINTAINERCLEANFILES=ChangeLog
 
 .PHONY: ChangeLog
