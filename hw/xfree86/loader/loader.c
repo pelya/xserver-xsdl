@@ -74,7 +74,8 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "compiler.h"
-#include "sym.h"
+
+extern void *xorgLookupTab[];
 
 /*
  * handles are used to identify files that are loaded. Even archives
@@ -107,8 +108,8 @@ LoaderInit(void)
     }
 
     xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)
-		((long)dixLookupTab ^ (long)extLookupTab
-	        ^ (long)miLookupTab ^ (long)xfree86LookupTab));
+		((long)xorgLookupTab[0] ^ (long)xorgLookupTab[1]
+		 ^ (long)xorgLookupTab[2] ^ (long)xorgLookupTab[3]));
     xf86MsgVerb(X_INFO, 2, "Module ABI versions:\n");
     xf86ErrorFVerb(2, "\t%s: %d.%d\n", ABI_CLASS_ANSIC,
 		   GET_ABI_MAJOR(LoaderVersionInfo.ansicVersion),

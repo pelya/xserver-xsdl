@@ -19,4 +19,5 @@ libloader_a_SOURCES = \
 	loadext.c \
         loadmod.c \
         dlloader.c \
-	os.c
+	os.c \
+	xorgsym.c
