@@ -512,7 +512,7 @@ extern _X_EXPORT int FocusSemaphoresIsset(WindowPtr win);
 extern _X_EXPORT int NewInputDeviceRequest(
     InputOption *options,
     DeviceIntPtr *dev);
-extern void DeleteInputDeviceRequest(
+extern  _X_EXPORT void DeleteInputDeviceRequest(
     DeviceIntPtr dev);
 
 extern _X_EXPORT void DDXRingBell(

@@ -174,7 +174,11 @@ extern _X_EXPORT DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VR
 
 extern _X_EXPORT Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags);
 
-extern _X_EXPORT int DPMSSet(ClientPtr client, int level);	/* libextmod */
+#ifdef DPMSExtension
+extern _X_EXPORT int DPMSGet(int *level);
+extern _X_EXPORT int DPMSSet(ClientPtr client, int level);
+extern _X_EXPORT Bool DPMSSupported(void);
+#endif
 
 
 /* xf86DGA.c */

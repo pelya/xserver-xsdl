@@ -53,8 +53,6 @@
 #ifndef _LOADERPROCS_H
 #define _LOADERPROCS_H
 
-#undef IN_LOADER
-#define IN_LOADER
 #include "xf86Module.h"
 #include <X11/fonts/fontmod.h>
 
@@ -79,12 +77,7 @@ ModuleDescPtr LoadDriver(const char *, const char *, int, pointer, int *,
 ModuleDescPtr LoadModule(const char *, const char *, const char **,
 			 const char **, pointer, const XF86ModReqInfo *,
 			 int *, int *);
-pointer LoadSubModule(pointer, const char *,
-		      const char **, const char **, pointer,
-		      const XF86ModReqInfo *, int *, int *);
 ModuleDescPtr DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent);
-void UnloadModule(pointer);
-void UnloadSubModule(pointer);
 void UnloadDriver(ModuleDescPtr);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);

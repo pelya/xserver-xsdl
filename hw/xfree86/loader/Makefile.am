@@ -19,9 +19,4 @@ libloader_a_SOURCES = \
 	loadext.c \
         loadmod.c \
         dlloader.c \
-	os.c \
-	dixsym.c \
-	extsym.c \
-	misym.c \
-	xf86sym.c \
-	sym.h
+	os.c
