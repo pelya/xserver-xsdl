@@ -772,9 +772,9 @@ static int
 countValuatorEvents(int num_valuators)
 {
     if (num_valuators) {
-        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS;
-        return (num_valuators / 6) + 1;
+        if (((num_valuators - 1) / 6) + 1 > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS * 6;
+        return ((num_valuators - 1)/ 6) + 1;
     } else
         return 0;
 }
