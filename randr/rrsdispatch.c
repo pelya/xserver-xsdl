@@ -399,6 +399,43 @@ SProcRRGetCrtcTransform (ClientPtr client)
     return (*ProcRandrVector[stuff->randrReqType]) (client);
 }
 
+static int
+SProcRRGetPanning (ClientPtr client)
+{
+    int n;
+    REQUEST(xRRGetPanningReq);
+    
+    REQUEST_SIZE_MATCH(xRRGetPanningReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->crtc, n);
+    return (*ProcRandrVector[stuff->randrReqType]) (client);
+}
+
+static int
+SProcRRSetPanning (ClientPtr client)
+{
+    int n;
+    REQUEST(xRRSetPanningReq);
+    
+    REQUEST_SIZE_MATCH(xRRSetPanningReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->crtc, n);
+    swapl(&stuff->timestamp, n);
+    swaps(&stuff->left, n);
+    swaps(&stuff->top, n);
+    swaps(&stuff->width, n);
+    swaps(&stuff->height, n);
+    swaps(&stuff->track_left, n);
+    swaps(&stuff->track_top, n);
+    swaps(&stuff->track_width, n);
+    swaps(&stuff->track_height, n);
+    swaps(&stuff->border_left, n);
+    swaps(&stuff->border_top, n);
+    swaps(&stuff->border_right, n);
+    swaps(&stuff->border_bottom, n);
+    return (*ProcRandrVector[stuff->randrReqType]) (client);
+}
+
 int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRQueryVersion,	/* 0 */
 /* we skip 1 to make old clients fail pretty immediately */
@@ -433,5 +470,7 @@ int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRGetScreenResources,	/* 25 GetScreenResourcesCurrent */
     SProcRRSetCrtcTransform,	/* 26 */
     SProcRRGetCrtcTransform,	/* 27 */
+    SProcRRGetPanning,		/* 28 */
+    SProcRRSetPanning,		/* 29 */
 };
 
