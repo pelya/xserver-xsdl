@@ -12,6 +12,10 @@
 #ifndef _EDID_H_
 #define _EDID_H_ 
 
+#ifndef _X_EXPORT
+# include <X11/Xfuncproto.h>
+#endif
+
 /* read complete EDID record */
 #define EDID1_LEN 128
 #define BITS_PER_BYTE 9
