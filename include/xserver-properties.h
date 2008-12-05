@@ -26,6 +26,10 @@
 #ifndef _XSERVER_PROPERTIES_H_
 #define _XSERVER_PROPERTIES_H_
 
+/* Type for a 4 byte float. Storage format IEEE 754 in client's default
+ * byte-ordering. */
+#define XATOM_FLOAT "FLOAT"
+
 /* BOOL. 0 - device disabled, 1 - device enabled */
 #define XI_PROP_ENABLED      "Device Enabled"
 

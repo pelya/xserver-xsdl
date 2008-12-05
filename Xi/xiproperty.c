@@ -49,7 +49,8 @@ static struct dev_properties
     Atom type;
     char *name;
 } dev_properties[] = {
-    {0, XI_PROP_ENABLED}
+    {0, XI_PROP_ENABLED},
+    {0, XATOM_FLOAT}
 };
 
 static long XIPropHandlerID = 1;
@@ -137,6 +138,58 @@ XIPropToInt(XIPropertyValuePtr val, int *nelem_return, int **buf_return)
     return Success;
 }
 
+/**
+ * Convert the given property's value(s) into @nelem_return float values and
+ * store them in @buf_return. If @nelem_return is larger than the number of
+ * values in the property, @nelem_return is set to the number of values in the
+ * property.
+ *
+ * If *@buf_return is NULL and @nelem_return is 0, memory is allocated
+ * automatically and must be freed by the caller.
+ *
+ * Possible errors returned:
+ * Success
+ * BadMatch ... Wrong atom type, atom is not XA_FLOAT
+ * BadValue ... Wrong format, format is not 32
+ * BadAlloc ... NULL passed as buffer and allocation failed.
+ * BadLength ... @buff is NULL but @nelem_return is non-zero.
+ *
+ * @param val The property value
+ * @param nelem_return The maximum number of elements to return.
+ * @param buf_return Pointer to an array of at least @nelem_return values.
+ * @return Success or the error code if an error occured.
+ */
+_X_EXPORT int
+XIPropToFloat(XIPropertyValuePtr val, int *nelem_return, float **buf_return)
+{
+    int i;
+    float *buf;
+
+    if (!val->type || val->type != XIGetKnownProperty(XATOM_FLOAT))
+        return BadMatch;
+
+    if (val->format != 32)
+        return BadValue;
+    if (!*buf_return && *nelem_return)
+        return BadLength;
+
+    buf = *buf_return;
+
+    if (!buf && !(*nelem_return))
+    {
+        buf = xcalloc(val->size, sizeof(float));
+        if (!buf)
+            return BadAlloc;
+        *buf_return = buf;
+        *nelem_return = val->size;
+    } else if (val->size < *nelem_return)
+        *nelem_return = val->size;
+
+    for (i = 0; i < val->size && i < *nelem_return; i++)
+           buf[i] = ((float*)val->data)[i];
+
+    return Success;
+}
 
 /**
  * Init those properties that are allocated by the server and most likely used

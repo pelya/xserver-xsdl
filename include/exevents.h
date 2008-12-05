@@ -257,4 +257,10 @@ extern _X_EXPORT int XIPropToInt(
         int **buf_return
 );
 
+extern _X_EXPORT int XIPropToFloat(
+        XIPropertyValuePtr val,
+        int *nelem_return,
+        float **buf_return
+);
+
 #endif /* EXEVENTS_H */
