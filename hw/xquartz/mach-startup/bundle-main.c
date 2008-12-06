@@ -433,8 +433,6 @@ static void setup_env() {
         setenv("PATH", buf, TRUE);
     }
 
-    fprintf(stderr, "PATH: %s\n", getenv("PATH"));
-    
     /* cd $HOME */
     temp = getenv("HOME");
     if(temp != NULL && temp[0] != '\0')
