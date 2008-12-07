@@ -56,7 +56,9 @@ extern _X_EXPORT  Bool xf86sFlag;
 extern _X_EXPORT  Bool xf86bsEnableFlag;
 extern _X_EXPORT  Bool xf86bsDisableFlag;
 extern _X_EXPORT  Bool xf86silkenMouseDisableFlag;
+#ifdef HAVE_ACPI
 extern _X_EXPORT  Bool xf86acpiDisableFlag;
+#endif
 extern _X_EXPORT  char *xf86LayoutName;
 extern _X_EXPORT  char *xf86ScreenName;
 extern _X_EXPORT  char *xf86PointerName;
