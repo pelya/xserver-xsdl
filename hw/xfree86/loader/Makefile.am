@@ -1,7 +1,6 @@
-noinst_LIBRARIES = libloader.a
+noinst_LTLIBRARIES = libloader.la
 
-INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../dixmods/extmod \
-	   -I$(srcdir)/../vbe -I$(top_srcdir)/miext/cw -I$(srcdir)/../int10 \
+INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(top_srcdir)/miext/cw \
 	   -I$(srcdir)/../ddc -I$(srcdir)/../i2c -I$(srcdir)/../modes \
 	   -I$(srcdir)/../ramdac
 
@@ -13,11 +12,16 @@ EXTRA_DIST = \
 	loader.h \
 	loaderProcs.h
 
-libloader_a_SOURCES = \
+libloader_la_SOURCES = \
 	loader.c \
 	loaderProcs.h \
 	loadext.c \
         loadmod.c \
         dlloader.c \
 	os.c \
-	xorgsym.c
+	sdksyms.c
+
+CLEANFILES = sdksyms.c
+
+sdksyms.c:
+	./sdksyms.sh $(AM_CFLAGS) $(CFLAGS) $(INCLUDES)

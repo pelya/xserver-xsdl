@@ -142,8 +142,10 @@ extern _X_EXPORT void xf86MapReadSideEffects(int, int, pointer, unsigned long);
 extern _X_EXPORT int xf86ReadBIOS(unsigned long, unsigned long, unsigned char *, int);
 extern _X_EXPORT Bool xf86EnableIO(void);
 extern _X_EXPORT void xf86DisableIO(void);
+#ifdef __NetBSD__
 extern _X_EXPORT void xf86SetTVOut(int);
 extern _X_EXPORT void xf86SetRGBOut(void);
+#endif
 extern _X_EXPORT void xf86OSRingBell(int, int, int);
 extern _X_EXPORT void xf86BusToMem(unsigned char *, unsigned char *, int);
 extern _X_EXPORT void xf86MemToBus(unsigned char *, unsigned char *, int);

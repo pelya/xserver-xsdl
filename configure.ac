@@ -708,7 +708,7 @@ if test "x$CONFIG_NEED_DBUS" = xyes; then
         AC_DEFINE(CONFIG_NEED_DBUS, 1, [Use D-Bus for input hotplug])
 fi
 AM_CONDITIONAL(CONFIG_NEED_DBUS, [test "x$CONFIG_NEED_DBUS" = xyes])
-CONFIG_LIB='$(top_builddir)/config/libconfig.a'
+CONFIG_LIB='$(top_builddir)/config/libconfig.la'
 
 AC_MSG_CHECKING([for glibc...])
 AC_PREPROC_IFELSE([

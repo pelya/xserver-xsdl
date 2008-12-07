@@ -56,7 +56,7 @@ typedef struct sbus_device {
     char		*device;
 } sbusDevice, *sbusDevicePtr;
 
-extern struct sbus_devtable {
+extern _X_EXPORT struct sbus_devtable {
     int devId;
     int fbType;
     char *promName;

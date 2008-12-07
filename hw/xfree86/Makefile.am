@@ -25,43 +25,36 @@ DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
 	       utils doc
 
 bin_PROGRAMS = Xorg
+Xorg_SOURCES = xorg.c
 
 AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ 
 
-Xorg_SOURCES = xorg.c
-
-# libxorgos and libcommon need symbols from each other
-noinst_LTLIBRARIES = libosandcommon.la
-libosandcommon_la_SOURCES = osandcommon.c
-libosandcommon_la_LIBADD = \
+noinst_LTLIBRARIES = libxorg.la
+libxorg_la_SOURCES = libxorg.c
+libxorg_la_LIBADD = \
+            $(XSERVER_LIBS) \
+            loader/libloader.la \
             os-support/libxorgos.la \
-            common/libcommon.la
+            common/libcommon.la \
+            parser/libxf86config.la \
+            dixmods/libdixmods.la \
+            modes/libxf86modes.la \
+            ramdac/libramdac.la \
+            ddc/libddc.la \
+            i2c/libi2c.la \
+            dixmods/libxorgxkb.la \
+            $(top_builddir)/mi/libmi.la \
+            $(top_builddir)/os/libos.la \
+            @XORG_LIBS@
 
-osandcommon.c xorg.c:
+libxorg.c xorg.c:
 	touch $@
 
-DISTCLEANFILES = osandcommon.c xorg.c
+DISTCLEANFILES = libxorg.c xorg.c
 
-XORG_LIBS = \
-            $(XSERVER_LIBS) \
-            common/libinit.a \
-            loader/libloader.a \
-            libosandcommon.la \
-            parser/libxf86config.a \
-	    dixmods/libdixmods.la \
-	    modes/libxf86modes.a \
-	    ramdac/libramdac.a \
-	    ddc/libddc.a \
-	    i2c/libi2c.a \
-	    dixmods/libxorgxkb.la \
-	    $(top_builddir)/mi/libmi.la \
-	    $(top_builddir)/os/libos.la \
-	    @XORG_LIBS@ \
-	    dixmods/libxorgxkb.la
-
-Xorg_DEPENDENCIES = $(XORG_LIBS)
-Xorg_LDADD = $(XORG_LIBS) $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
+Xorg_DEPENDENCIES = libxorg.la
+Xorg_LDADD = libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 

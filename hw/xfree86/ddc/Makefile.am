@@ -1,8 +1,8 @@
 sdk_HEADERS = edid.h xf86DDC.h
 
-noinst_LIBRARIES = libddc.a
+noinst_LTLIBRARIES = libddc.la
 
-libddc_a_SOURCES = xf86DDC.c edid.c interpret_edid.c print_edid.c \
+libddc_la_SOURCES = xf86DDC.c edid.c interpret_edid.c print_edid.c \
                    ddcProperty.c
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c

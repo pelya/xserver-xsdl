@@ -41,10 +41,6 @@
 #include "propertyst.h"
 #include "input.h"
 
-#ifdef XF86VIDMODE
-# include "vidmodeproc.h"
-#endif
-
 /*
  * Parameters set ONLY from the command line options
  * The global state of these things is held in xf86InfoRec (when appropriate).

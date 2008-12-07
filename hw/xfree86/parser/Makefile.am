@@ -1,13 +1,13 @@
 if INSTALL_LIBXF86CONFIG
-lib_LIBRARIES = libxf86config.a
+lib_LTLIBRARIES = libxf86config.la
 LIBHEADERS = \
 	xf86Optrec.h \
 	xf86Parser.h
 else
-noinst_LIBRARIES = libxf86config.a
+noinst_LTLIBRARIES = libxf86config.la
 endif
 
-libxf86config_a_SOURCES = \
+libxf86config_la_SOURCES = \
 	Device.c \
 	Files.c \
 	Flags.c \
@@ -35,6 +35,5 @@ EXTRA_DIST = \
 	xf86tokens.h
 
 sdk_HEADERS = \
-	$(LIBHEADERS) \
 	xf86Parser.h \
 	xf86Optrec.h

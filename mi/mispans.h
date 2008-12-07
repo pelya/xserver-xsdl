@@ -45,6 +45,8 @@ SOFTWARE.
 
 ******************************************************************/
 
+#ifndef MISPANS_H
+#define MISPANS_H
 
 typedef struct {
     int         count;		/* number of spans		    */
@@ -97,3 +99,4 @@ extern _X_EXPORT int miClipSpans(
 #define miSpansCarefulRop(rop)	(((rop) & 0xc) == 0x8 || ((rop) & 0x3) == 0x2)
 #define miSpansEasyRop(rop)	(!miSpansCarefulRop(rop))
 
+#endif /* MISPANS_H */

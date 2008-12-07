@@ -190,7 +190,6 @@ extern _X_EXPORT pointer LoadSubModule(pointer, const char *, const char **,
 extern _X_EXPORT void UnloadSubModule(pointer);
 extern _X_EXPORT void UnloadModule (pointer);
 extern _X_EXPORT pointer LoaderSymbol(const char *);
-extern _X_EXPORT pointer LoaderSymbolLocal(pointer module, const char *);
 extern _X_EXPORT char **LoaderListDirs(const char **, const char **);
 extern _X_EXPORT void LoaderFreeDirList(char **);
 extern _X_EXPORT void LoaderErrorMsg(const char *, const char *, int, int);

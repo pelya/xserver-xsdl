@@ -95,7 +95,7 @@ extern _X_EXPORT void InitRootWindow(
 
 typedef WindowPtr (* RealChildHeadProc) (WindowPtr pWin);
 
-extern void _X_EXPORT RegisterRealChildHeadProc (RealChildHeadProc proc);
+extern _X_EXPORT void RegisterRealChildHeadProc (RealChildHeadProc proc);
 
 extern _X_EXPORT WindowPtr RealChildHead(
     WindowPtr /*pWin*/);

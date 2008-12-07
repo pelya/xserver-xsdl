@@ -55,6 +55,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include <X11/extensions/Xvproto.h>
 
+#ifndef XorgLoader
 extern _X_EXPORT unsigned long XvExtensionGeneration;
 extern _X_EXPORT unsigned long XvScreenGeneration;
 extern _X_EXPORT unsigned long XvResourceGeneration;
@@ -69,6 +70,7 @@ extern _X_EXPORT unsigned long XvRTGrab;
 extern _X_EXPORT unsigned long XvRTVideoNotify;
 extern _X_EXPORT unsigned long XvRTVideoNotifyList;
 extern _X_EXPORT unsigned long XvRTPortNotify;
+#endif
 
 typedef struct {
   int numerator;
@@ -234,6 +236,7 @@ typedef struct {
 #define _XvBadPort (XvBadPort+XvErrorBase)
 #define _XvBadEncoding (XvBadEncoding+XvErrorBase)
 
+#ifndef XorgLoader
 extern _X_EXPORT int ProcXvDispatch(ClientPtr);
 extern _X_EXPORT int SProcXvDispatch(ClientPtr);
 
@@ -270,6 +273,7 @@ extern _X_EXPORT int XvdiPreemptVideo(ClientPtr, XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiMatchPort(XvPortPtr, DrawablePtr);
 extern _X_EXPORT int XvdiGrabPort(ClientPtr, XvPortPtr, Time, int *);
 extern _X_EXPORT int XvdiUngrabPort( ClientPtr, XvPortPtr, Time);
+#endif /* XorgLoader */
 
 
 #if !defined(UNIXCPP)

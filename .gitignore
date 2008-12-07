@@ -124,6 +124,8 @@ hw/xfree86/xaa/mf3-xaaStipple.c
 hw/xfree86/xaa/s-xaaDashLine.c
 hw/xfree86/xaa/s-xaaLine.c
 hw/xfree86/xorg.c
+hw/xfree86/libxorg.c
+hw/xfree86/loader/sdksyms.c
 hw/xfree86/xorg.conf.example
 hw/xfree86/xorg.conf.example.pre
 hw/xnest/Xnest

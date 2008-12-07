@@ -819,6 +819,8 @@ fb24_32ModifyPixmapHeader (PixmapPtr   pPixmap,
 /*
  * fballpriv.c
  */
+extern _X_EXPORT DevPrivateKey fbGetWinPrivateKey(void);
+
 extern _X_EXPORT Bool
 fbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCIndex);
     

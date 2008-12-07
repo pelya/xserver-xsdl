@@ -1,4 +1,3 @@
-noinst_LIBRARIES = libinit.a
 noinst_LTLIBRARIES = libcommon.la
 
 if XORG_BUS_SPARC
@@ -7,7 +6,7 @@ endif
 
 if XV
 XVSOURCES = xf86xv.c xf86xvmc.c
-XVSDKINCS = xf86xv.h xf86xvmc.h
+XVSDKINCS = xf86xv.h xf86xvmc.h xf86xvpriv.h
 endif
 
 if XF86VIDMODE
@@ -32,14 +31,12 @@ AM_LDFLAGS = -r
 libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c xf86DGA.c xf86DPMS.c \
                       xf86Events.c xf86Globals.c xf86AutoConfig.c \
-                      xf86Option.c \
+                      xf86Option.c xf86Init.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86RAC.c xf86Xinput.c xisb.c \
                       xf86Mode.c xorgHelper.c \
                       $(XVSOURCES) $(BUSSOURCES) $(RANDRSOURCES)
-nodist_libcommon_la_SOURCES = xf86DefModeSet.c
-libinit_a_SOURCES = xf86Init.c
-nodist_libinit_a_SOURCES = xf86Build.h
+nodist_libcommon_la_SOURCES = xf86DefModeSet.c xf86Build.h
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
 	   -I$(srcdir)/../loader -I$(srcdir)/../rac -I$(srcdir)/../parser \
@@ -51,7 +48,7 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               xf86PciInfo.h xf86Priv.h xf86Privstr.h xf86Resources.h \
               xf86cmap.h xf86fbman.h xf86str.h xf86RAC.h xf86Xinput.h xisb.h \
               $(XVSDKINCS) $(XF86VMODE_SDK) xorgVersion.h \
-              xf86sbusBus.h xf86xv.h xf86xvmc.h xf86xvpriv.h
+              xf86sbusBus.h
 
 DISTCLEANFILES = xf86Build.h
 CLEANFILES = $(BUILT_SOURCES)

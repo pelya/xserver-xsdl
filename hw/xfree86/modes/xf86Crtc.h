@@ -744,12 +744,13 @@ xf86ProbeOutputModes (ScrnInfoPtr pScrn, int maxX, int maxY);
 extern _X_EXPORT void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
 
-extern _X_EXPORT
 #ifdef RANDR_13_INTERFACE
-int
+# define ScreenInitRetType	int
 #else
-Bool
+# define ScreenInitRetType	Bool
 #endif
+
+extern _X_EXPORT ScreenInitRetType
 xf86CrtcScreenInit (ScreenPtr pScreen);
 
 extern _X_EXPORT Bool

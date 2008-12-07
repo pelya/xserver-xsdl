@@ -93,7 +93,9 @@ typedef struct _NewClientRec *NewClientPtr;
 #define SIGVAL void
 #endif
 
+#ifdef DDXOSVERRORF
 extern _X_EXPORT void (*OsVendorVErrorFProc)(const char *, va_list args);
+#endif
 
 extern _X_EXPORT int WaitForSomething(
     int* /*pClientsReady*/
@@ -388,6 +390,7 @@ extern _X_EXPORT int AddAuthorization(
     unsigned int	/*data_length*/,
     char *		/*data*/);
 
+#ifdef XCSECURITY
 extern _X_EXPORT XID GenerateAuthorization(
     unsigned int   /* name_length */,
     char	*  /* name */,
@@ -395,6 +398,7 @@ extern _X_EXPORT XID GenerateAuthorization(
     char	*  /* data */,
     unsigned int * /* data_length_return */,
     char	** /* data_return */);
+#endif
 
 extern _X_EXPORT int ddxProcessArgument(int /*argc*/, char * /*argv*/ [], int /*i*/);
 

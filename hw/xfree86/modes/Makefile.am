@@ -1,6 +1,6 @@
-noinst_LIBRARIES = libxf86modes.a
+noinst_LTLIBRARIES = libxf86modes.la
 
-libxf86modes_a_SOURCES = \
+libxf86modes_la_SOURCES = \
 	xf86Crtc.c \
 	xf86Crtc.h \
 	xf86Cursors.c \
