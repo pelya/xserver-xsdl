@@ -318,7 +318,6 @@ case $host_cpu in
   i*86)
 	I386_VIDEO=yes
 	case $host_os in
-		*linux*)	DEFAULT_INT10=vm86 ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
 		*dragonfly*)	AC_DEFINE(USE_DEV_IO) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL)
