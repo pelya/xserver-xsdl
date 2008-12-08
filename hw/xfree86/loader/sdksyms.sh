@@ -341,7 +341,7 @@ BEGIN {
 
 	# type specifier may not be set, as in
 	#   extern _X_EXPORT unsigned name(...)
-	if ($n !~ /\W/)
+	if ($n !~ /[^[:alnum:]_]/)
 	    n++;
 
 	# match
@@ -349,12 +349,12 @@ BEGIN {
 	if ($n == "{")
 	    n--;
 	#    extern _X_EXPORT type (* name[])(...)
-	else if ($n ~ /^\W+$/)
+	else if ($n ~ /^[^[:alnum:]_]+$/)
 	    n++;
 
 	# match
 	#	extern _X_EXPORT const name *const ...
-	if ($n ~ /^(\W+)?const$/)
+	if ($n ~ /^([^[:alnum:]_]+)?const$/)
 	    n++;
 
 	# actual name may be in the next line, as in
@@ -370,10 +370,10 @@ BEGIN {
 	symbol = $n;
 
 	# remove starting non word chars
-	sub(/^\W+/, "",symbol);
+	sub(/^[^[:alnum:]_]+/, "",symbol);
 
 	# remove from first non word to end of line
-	sub(/\W.*/, "", symbol);
+	sub(/[^[:alnum:]_].*/, "", symbol);
 
 	#print;
 	printf("    &%s,\n", symbol);
