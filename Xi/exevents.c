@@ -850,8 +850,8 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
                  *      dev = event
                  *      event = delta
                  */
-		axisvals = v->axisVal;
                 int delta;
+                axisvals = v->axisVal;
                 if (v->mode == Relative) /* device reports relative */
                     change = TRUE;
 
