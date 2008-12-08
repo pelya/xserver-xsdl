@@ -386,7 +386,7 @@ mieqProcessInputEvents(void)
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (type == DeviceMotionNotify && master)
+        if (type == DeviceMotionNotify && (master || dev->isMaster))
             miPointerUpdateSprite(dev);
     }
 }
