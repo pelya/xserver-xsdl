@@ -1315,6 +1315,8 @@ InitInput(argc, argv)
 
     xf86Info.vtRequestsPending = FALSE;
 
+    mieqInit();
+
     /* Call the PreInit function for each input device instance. */
     for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
         /* Replace obsolete keyboard driver with kbd */
@@ -1326,8 +1328,6 @@ InitInput(argc, argv)
         if (xf86NewInputDevice(*pDev, &dev, TRUE) == BadAlloc)
             break;
     }
-
-    mieqInit();
 }
 
 /*
