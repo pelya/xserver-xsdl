@@ -413,12 +413,6 @@ CreateRootWindow(ScreenPtr pScreen)
         return FALSE;
     }
 
-    pWin->optional->access.perm = NULL;
-    pWin->optional->access.deny = NULL;
-    pWin->optional->access.nperm = 0;
-    pWin->optional->access.ndeny = 0;
-    pWin->optional->access.defaultRule = 0;
-
     pWin->optional->colormap = pScreen->defColormap;
     pWin->optional->visual = pScreen->rootVisual;
 
@@ -831,9 +825,6 @@ DisposeWindowOptional (WindowPtr pWin)
         }
         pWin->optional->deviceCursors = NULL;
     }
-
-    xfree(pWin->optional->access.perm);
-    xfree(pWin->optional->access.deny);
 
     /* Remove generic event mask allocations */
     if (pWin->optional->geMasks)
@@ -3467,9 +3458,6 @@ CheckWindowOptionalNeed (WindowPtr w)
             pNode = pNode->next;
         }
     }
-    if (optional->access.nperm != 0 ||
-            optional->access.ndeny != 0)
-        return;
 
     if (optional->geMasks != NULL)
         return;
@@ -3530,11 +3518,6 @@ MakeWindowOptional (WindowPtr pWin)
             optional->geMasks->eventMasks[i] = 0;
     }
 
-    optional->access.nperm = 0;
-    optional->access.ndeny = 0;
-    optional->access.perm = NULL;
-    optional->access.deny = NULL;
-    optional->access.defaultRule = 0;
     parentOptional = FindWindowWithOptional(pWin)->optional;
     optional->visual = parentOptional->visual;
     if (!pWin->cursorIsNone)

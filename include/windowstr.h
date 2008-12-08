@@ -89,14 +89,6 @@ typedef struct _GenericClientMasks {
     GenericMaskPtr      geClients;
 } GenericClientMasksRec, *GenericClientMasksPtr;
 
-typedef struct _WindowAccessRec {
-    int                  defaultRule;      /* WindowAccessDenyAll */
-    DeviceIntPtr*        perm;
-    int                  nperm;
-    DeviceIntPtr*        deny;
-    int                  ndeny;
-} WindowAccessRec, *WindowAccessPtr;
-
 typedef struct _WindowOpt {
     VisualID		visual;		   /* default: same as parent */
     CursorPtr		cursor;		   /* default: window.cursorNone */
@@ -114,7 +106,6 @@ typedef struct _WindowOpt {
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
     DevCursorList       deviceCursors;     /* default: NULL */
     struct _GenericClientMasks *geMasks;   /* default: NULL */
-    WindowAccessRec     access;
 } WindowOptRec, *WindowOptPtr;
 
 #define BackgroundPixel	    2L
