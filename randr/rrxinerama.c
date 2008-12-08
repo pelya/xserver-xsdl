@@ -260,6 +260,30 @@ ProcRRXineramaIsActive(ClientPtr client)
     return client->noClientException;
 }
 
+static void
+RRXineramaWriteCrtc(ClientPtr client, RRCrtcPtr crtc)
+{
+    xXineramaScreenInfo scratch;
+
+    if (RRXineramaCrtcActive (crtc))
+    {
+	int width, height;
+	RRCrtcGetScanoutSize (crtc, &width, &height);
+	scratch.x_org  = crtc->x;
+	scratch.y_org  = crtc->y;
+	scratch.width  = width;
+	scratch.height = height;
+	if(client->swapped) {
+	    register int n;
+	    swaps(&scratch.x_org, n);
+	    swaps(&scratch.y_org, n);
+	    swaps(&scratch.width, n);
+	    swaps(&scratch.height, n);
+	}
+	WriteToClient(client, sz_XineramaScreenInfo, &scratch);
+    }
+}
+
 int
 ProcRRXineramaQueryScreens(ClientPtr client)
 {
@@ -291,26 +315,16 @@ ProcRRXineramaQueryScreens(ClientPtr client)
 	rrScrPriv(pScreen);
 	xXineramaScreenInfo scratch;
 	int i;
+	int has_primary = (pScrPriv->primaryOutput != NULL);
+
+	if (has_primary) {
+	    RRXineramaWriteCrtc(client, pScrPriv->primaryOutput->crtc);
+	}
 
 	for(i = 0; i < pScrPriv->numCrtcs; i++) {
 	    RRCrtcPtr	crtc = pScrPriv->crtcs[i];
-	    if (RRXineramaCrtcActive (crtc))
-	    {
-	        int width, height;
-		RRCrtcGetScanoutSize (crtc, &width, &height);
-		scratch.x_org  = crtc->x;
-		scratch.y_org  = crtc->y;
-		scratch.width  = width;
-		scratch.height = height;
-		if(client->swapped) {
-		    register int n;
-		    swaps(&scratch.x_org, n);
-		    swaps(&scratch.y_org, n);
-		    swaps(&scratch.width, n);
-		    swaps(&scratch.height, n);
-		}
-		WriteToClient(client, sz_XineramaScreenInfo, (char *)&scratch);
-	    }
+	    if (!has_primary || (crtc != pScrPriv->primaryOutput->crtc))
+		RRXineramaWriteCrtc(client, crtc);
 	}
     }
 
