@@ -380,6 +380,9 @@ RROutputDestroyResource (pointer value, XID pid)
     {
 	rrScrPriv(pScreen);
 	int		i;
+
+	if (pScrPriv->primaryOutput == output)
+	    pScrPriv->primaryOutput = NULL;
     
 	for (i = 0; i < pScrPriv->numOutputs; i++)
 	{
