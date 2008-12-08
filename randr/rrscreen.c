@@ -324,7 +324,7 @@ rrGetScreenResources(ClientPtr client, Bool query)
     rrScrPrivPtr		pScrPriv;
     CARD8			*extra;
     unsigned long		extraLen;
-    int				i, n, rc;
+    int				i, n, rc, has_primary;
     RRCrtc			*crtcs;
     RROutput			*outputs;
     xRRModeInfo			*modeinfos;
@@ -401,12 +401,23 @@ rrGetScreenResources(ClientPtr client, Bool query)
 	outputs = (RROutput *) (crtcs + pScrPriv->numCrtcs);
 	modeinfos = (xRRModeInfo *) (outputs + pScrPriv->numOutputs);
 	names = (CARD8 *) (modeinfos + num_modes);
+
+	has_primary = (pScrPriv->primaryOutput != NULL);
+	if (pScrPriv->primaryOutput)
+	{
+	    crtcs[0] = pScrPriv->primaryOutput->id;
+	    if (client->swapped)
+		swapl (&crtcs[0], n);
+	}
 	
 	for (i = 0; i < pScrPriv->numCrtcs; i++)
 	{
-	    crtcs[i] = pScrPriv->crtcs[i]->id;
+	    if (pScrPriv->primaryOutput &&
+		pScrPriv->primaryOutput->crtc == pScrPriv->crtcs[i])
+		continue;
+	    crtcs[i + has_primary] = pScrPriv->crtcs[i]->id;
 	    if (client->swapped)
-		swapl (&crtcs[i], n);
+		swapl (&crtcs[i + has_primary], n);
 	}
 	
 	for (i = 0; i < pScrPriv->numOutputs; i++)
