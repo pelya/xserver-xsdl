@@ -278,8 +278,12 @@ static int create_socket(char *filename_out) {
     return 0;
 }
 
+static int launchd_socket_handed_off = 0;
+
 kern_return_t do_request_fd_handoff_socket(mach_port_t port, string_t filename) {
     socket_handoff_t *handoff_data;
+    
+    launchd_socket_handed_off = 1;
 
     handoff_data = (socket_handoff_t *)calloc(1,sizeof(socket_handoff_t));
     if(!handoff_data) {
@@ -317,6 +321,12 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
     char **_argv = alloca((argvCnt + 1) * sizeof(char *));
     char **_envp = alloca((envpCnt + 1) * sizeof(char *));
     size_t i;
+    
+    /* If we didn't get handed a launchd DISPLAY socket, we shoul
+     * unset DISPLAY or we can run into problems with pbproxy
+     */
+    if(!launchd_socket_handed_off)
+        unsetenv("DISPLAY");
     
     if(!_argv || !_envp) {
         return KERN_FAILURE;
