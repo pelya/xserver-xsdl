@@ -56,16 +56,17 @@ typedef struct sbus_device {
     char		*device;
 } sbusDevice, *sbusDevicePtr;
 
-extern _X_EXPORT struct sbus_devtable {
+struct sbus_devtable {
     int devId;
     int fbType;
     char *promName;
     char *driverName;
     char *descr;
-} sbusDeviceTable[];
+};
 
 extern _X_EXPORT void xf86SbusProbe(void);
 extern _X_EXPORT sbusDevicePtr *xf86SbusInfo;
+extern _X_EXPORT struct sbus_devtable sbusDeviceTable[];
 
 extern _X_EXPORT int xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 			   GDevPtr *devList, int numDevs, DriverPtr drvp,
