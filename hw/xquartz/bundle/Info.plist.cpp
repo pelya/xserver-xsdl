@@ -7,15 +7,15 @@
 	<key>CFBundleExecutable</key>
 		<string>X11</string>
 	<key>CFBundleGetInfoString</key>
-		<string>X11</string>
+		<string>APPLE_APPLICATION_NAME</string>
 	<key>CFBundleIconFile</key>
 		<string>X11.icns</string>
 	<key>CFBundleIdentifier</key>
-		<string>org.x.X11</string>
+		<string>APPLE_APPLICATION_ID</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 	<key>CFBundleName</key>
-		<string>X11</string>
+		<string>APPLE_APPLICATION_NAME</string>
 	<key>CFBundlePackageType</key>
 		<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

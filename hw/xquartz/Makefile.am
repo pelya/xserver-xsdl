@@ -7,7 +7,8 @@ AM_CPPFLAGS = \
 	-DINXQUARTZ \
 	-DUSE_NEW_CLUT \
 	-DXFree86Server \
-	-I$(top_srcdir)/miext/rootless
+	-I$(top_srcdir)/miext/rootless \
+	-DX11LIBDIR=\"$(libdir)\"
 
 if GLX
 GL_DIR = GL

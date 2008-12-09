@@ -54,7 +54,7 @@
 // pbproxy/pbproxy.h
 extern BOOL xpbproxy_init (void);
 
-#define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
+#define DEFAULTS_FILE X11LIBDIR"/X11/xserver/Xquartz.plist"
 
 #ifndef XSERVER_VERSION
 #define XSERVER_VERSION "?"

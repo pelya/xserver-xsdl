@@ -1,12 +1,23 @@
+include cpprules.in
+
+CPP_FILES_FLAGS = \
+	-DAPPLE_APPLICATION_ID="$(APPLE_APPLICATION_ID)" \
+	-DAPPLE_APPLICATION_NAME="$(APPLE_APPLICATION_NAME)"
+
 install-data-hook:
-	./mk_bundke.sh $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/X11.app
+	./mk_bundke.sh $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app
+
+noinst_PRE = Info.plist.cpp
+noinst_DATA = $(noinst_PRE:plist.cpp=plist)
+
+CLEANFILES = $(noinst_DATA)
 
 resourcedir=$(libdir)/X11/xserver
 resource_DATA = Xquartz.plist
 
 EXTRA_DIST = \
 	mk_bundke.sh \
-	Info.plist \
+	Info.plist.cpp \
 	PkgInfo \
 	$(resource_DATA) \
 	Resources/da.lproj/InfoPlist.strings \
