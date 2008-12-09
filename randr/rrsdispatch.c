@@ -436,6 +436,31 @@ SProcRRSetPanning (ClientPtr client)
     return (*ProcRandrVector[stuff->randrReqType]) (client);
 }
 
+static int
+SProcRRSetOutputPrimary (ClientPtr client)
+{
+    int n;
+    REQUEST(xRRSetOutputPrimaryReq);
+
+    REQUEST_SIZE_MATCH(xRRSetOutputPrimaryReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->window, n);
+    swapl(&stuff->output, n);
+    return ProcRandrVector[stuff->randrReqType](client);
+}
+
+static int
+SProcRRGetOutputPrimary (ClientPtr client)
+{
+    int n;
+    REQUEST(xRRSetOutputPrimaryReq);
+
+    REQUEST_SIZE_MATCH(xRRGetOutputPrimaryReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->window, n);
+    return ProcRandrVector[stuff->randrReqType](client);
+}
+
 int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRQueryVersion,	/* 0 */
 /* we skip 1 to make old clients fail pretty immediately */
@@ -472,5 +497,7 @@ int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRGetCrtcTransform,	/* 27 */
     SProcRRGetPanning,		/* 28 */
     SProcRRSetPanning,		/* 29 */
+    SProcRRSetOutputPrimary,	/* 30 */
+    SProcRRGetOutputPrimary,	/* 31 */
 };
 

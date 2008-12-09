@@ -217,5 +217,7 @@ int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRGetCrtcTransform,	/* 27 */
     ProcRRGetPanning,		/* 28 */
     ProcRRSetPanning,		/* 29 */
+    ProcRRSetOutputPrimary,	/* 30 */
+    ProcRRGetOutputPrimary,	/* 31 */
 };
 
