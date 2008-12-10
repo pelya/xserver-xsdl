@@ -279,7 +279,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
     
     switch(depth) {
         case -8: // broken
-            FatalError("Unsupported color depth %d\n", darwinDesiredDepth);
+            FatalError("Unsupported color depth %d %d\n", darwinDesiredDepth, depth);
             dfb->visuals = (1 << StaticGray) | (1 << GrayScale);
             dfb->preferredCVC = GrayScale;
             dfb->depth = 8;
@@ -320,7 +320,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
             dfb->blueMask  = 0x000000ff;
             break;
         default:
-            FatalError("Unsupported color depth %d\n", darwinDesiredDepth);
+            FatalError("Unsupported color depth %d %d\n", darwinDesiredDepth, depth);
     }
 
     if (noPseudoramiXExtension)
