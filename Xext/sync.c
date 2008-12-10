@@ -353,7 +353,7 @@ SyncAddTriggerToCounter(pTrigger)
 	    return Success;
     }
 
-    if (!(pCur = (SyncTriggerList *)xalloc(sizeof(SyncTriggerList))))
+    if (!(pCur = xalloc(sizeof(SyncTriggerList))))
 	return BadAlloc;
 
     pCur->pTrigger = pTrigger;
@@ -600,8 +600,7 @@ SyncSendCounterNotifyEvents(client, ppAwait, num_events)
 
     if (client->clientGone)
 	return;
-    pev = pEvents = (xSyncCounterNotifyEvent *)
-		 xalloc(num_events * sizeof(xSyncCounterNotifyEvent));
+    pev = pEvents = xalloc(num_events * sizeof(xSyncCounterNotifyEvent));
     if (!pEvents) 
 	return;
     UpdateCurrentTime();
@@ -732,7 +731,7 @@ SyncAwaitTriggerFired(pTrigger)
 
     pAwaitUnion = (SyncAwaitUnion *)pAwait->pHeader;
     numwaits = pAwaitUnion->header.num_waitconditions;
-    ppAwait = (SyncAwait **)xalloc(numwaits * sizeof(SyncAwait *));
+    ppAwait = xalloc(numwaits * sizeof(SyncAwait *));
     if (!ppAwait)
 	goto bail;
 
@@ -887,7 +886,7 @@ SyncEventSelectForAlarm(pAlarm, client, wantevents)
 
     /* add new client to pAlarm->pEventClients */
 
-    pClients = (SyncAlarmClientList *) xalloc(sizeof(SyncAlarmClientList));
+    pClients = xalloc(sizeof(SyncAlarmClientList));
     if (!pClients)
 	return BadAlloc;
 
@@ -1022,13 +1021,13 @@ SyncCreateCounter(client, id, initialvalue)
 {
     SyncCounter *pCounter;
 
-    if (!(pCounter = (SyncCounter *) xalloc(sizeof(SyncCounter))))
-	return (SyncCounter *)NULL;
+    if (!(pCounter = xalloc(sizeof(SyncCounter))))
+	return NULL;
 
     if (!AddResource(id, RTCounter, (pointer) pCounter))
     {
-	xfree((pointer) pCounter);
-	return (SyncCounter *)NULL;
+	xfree(pCounter);
+	return NULL;
     }
 
     pCounter->client = client;
@@ -1066,10 +1065,10 @@ SyncCreateSystemCounter(name, initial, resolution, counterType,
 {
     SyncCounter    *pCounter;
 
-    SysCounterList = (SyncCounter **)xrealloc(SysCounterList,
+    SysCounterList = xrealloc(SysCounterList,
 			    (SyncNumSystemCounters+1)*sizeof(SyncCounter *));
     if (!SysCounterList)
-	return (pointer)NULL;
+	return NULL;
 
     /* this function may be called before SYNC has been initialized, so we
      * have to make sure RTCounter is created.
@@ -1079,7 +1078,7 @@ SyncCreateSystemCounter(name, initial, resolution, counterType,
 	RTCounter = CreateNewResourceType(FreeCounter);
 	if (RTCounter == 0)
 	{
-	    return (pointer)NULL;
+	    return NULL;
 	}
     }
 
@@ -1089,11 +1088,11 @@ SyncCreateSystemCounter(name, initial, resolution, counterType,
     {
 	SysCounterInfo *psci;
 
-	psci = (SysCounterInfo *)xalloc(sizeof(SysCounterInfo));
+	psci = xalloc(sizeof(SysCounterInfo));
 	if (!psci)
 	{
 	    FreeResource(pCounter->id, RT_NONE);
-	    return (pointer) pCounter;
+	    return pCounter;
 	}
 	pCounter->pSysCounterInfo = psci;
 	psci->name = name;
@@ -1105,7 +1104,7 @@ SyncCreateSystemCounter(name, initial, resolution, counterType,
 	XSyncMinValue(&psci->bracket_less);
 	SysCounterList[SyncNumSystemCounters++] = pCounter;
     }
-    return (pointer) pCounter;
+    return pCounter;
 }
 
 void
@@ -1331,7 +1330,7 @@ FreeAlarmClient(value, id)
 	    else
 		pAlarm->pEventClients = pCur->next;
 	    xfree(pCur);
-	    return(Success);
+	    return Success;
 	}
     }
     FatalError("alarm client not on event list");
@@ -1367,7 +1366,7 @@ ProcSyncInitialize(client)
 	swaps(&rep.sequenceNumber, n);
     }
     WriteToClient(client, sizeof(rep), (char *) &rep);
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 /*
@@ -1396,7 +1395,7 @@ ProcSyncListSystemCounters(client)
 
     if (len)
     {
-	walklist = list = (xSyncSystemCounter *) xalloc(len);
+	walklist = list = xalloc(len);
 	if (!list)
 	    return BadAlloc;
     }
@@ -1445,7 +1444,7 @@ ProcSyncListSystemCounters(client)
 	xfree(list);
     }
 
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 /*
@@ -1521,7 +1520,7 @@ ProcSyncGetPriority(client)
 
     WriteToClient(client, sizeof(xSyncGetPriorityReply), (char *) &rep);
 
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 /*
@@ -1542,7 +1541,7 @@ ProcSyncCreateCounter(client)
     if (!SyncCreateCounter(client, stuff->cid, initial))
 	return BadAlloc;
 
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 /*
@@ -1558,8 +1557,8 @@ ProcSyncSetCounter(client)
 
     REQUEST_SIZE_MATCH(xSyncSetCounterReq);
 
-    pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->cid,
-					   RTCounter, DixWriteAccess);
+    pCounter = SecurityLookupIDByType(client, stuff->cid, RTCounter,
+				      DixWriteAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->cid;
@@ -1591,8 +1590,8 @@ ProcSyncChangeCounter(client)
 
     REQUEST_SIZE_MATCH(xSyncChangeCounterReq);
 
-    pCounter = (SyncCounter *) SecurityLookupIDByType(client, stuff->cid,
-					    RTCounter, DixWriteAccess);
+    pCounter = SecurityLookupIDByType(client, stuff->cid, RTCounter,
+				      DixWriteAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->cid;
@@ -1629,8 +1628,8 @@ ProcSyncDestroyCounter(client)
 
     REQUEST_SIZE_MATCH(xSyncDestroyCounterReq);
 
-    pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->counter,
-					   RTCounter, DixDestroyAccess);
+    pCounter = SecurityLookupIDByType(client, stuff->counter, RTCounter,
+				      DixDestroyAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->counter;
@@ -1682,7 +1681,7 @@ ProcSyncAwait(client)
     /*  all the memory for the entire await list is allocated 
      *  here in one chunk
      */
-    pAwaitUnion = (SyncAwaitUnion *)xalloc((items+1) * sizeof(SyncAwaitUnion));
+    pAwaitUnion = xalloc((items+1) * sizeof(SyncAwaitUnion));
     if (!pAwaitUnion)
 	return BadAlloc;
 
@@ -1775,8 +1774,8 @@ ProcSyncQueryCounter(client)
 
     REQUEST_SIZE_MATCH(xSyncQueryCounterReq);
 
-    pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->counter,
-					    RTCounter, DixReadAccess);
+    pCounter = SecurityLookupIDByType(client, stuff->counter, RTCounter,
+				      DixReadAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->counter;
@@ -1806,7 +1805,7 @@ ProcSyncQueryCounter(client)
 	swapl(&rep.value_lo, n);
     }
     WriteToClient(client, sizeof(xSyncQueryCounterReply), (char *) &rep);
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 
@@ -1833,7 +1832,7 @@ ProcSyncCreateAlarm(client)
     if (len != (Ones(vmask) + Ones(vmask & (XSyncCAValue|XSyncCADelta))))
 	return BadLength;
 
-    if (!(pAlarm = (SyncAlarm *) xalloc(sizeof(SyncAlarm))))
+    if (!(pAlarm = xalloc(sizeof(SyncAlarm))))
     {
 	return BadAlloc;
     }
@@ -1904,8 +1903,8 @@ ProcSyncChangeAlarm(client)
 
     REQUEST_AT_LEAST_SIZE(xSyncChangeAlarmReq);
 
-    if (!(pAlarm = (SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-					      RTAlarm, DixWriteAccess)))
+    if (!(pAlarm = SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
+					  DixWriteAccess)))
     {
 	client->errorValue = stuff->alarm;
 	return SyncErrorBase + XSyncBadAlarm;
@@ -1945,12 +1944,12 @@ ProcSyncQueryAlarm(client)
 
     REQUEST_SIZE_MATCH(xSyncQueryAlarmReq);
 
-    pAlarm = (SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-						RTAlarm, DixReadAccess);
+    pAlarm = SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
+				    DixReadAccess);
     if (!pAlarm)
     {
 	client->errorValue = stuff->alarm;
-	return (SyncErrorBase + XSyncBadAlarm);
+	return SyncErrorBase + XSyncBadAlarm;
     }
 
     rep.type = X_Reply;
@@ -1993,7 +1992,7 @@ ProcSyncQueryAlarm(client)
     }
 
     WriteToClient(client, sizeof(xSyncQueryAlarmReply), (char *) &rep);
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 
@@ -2005,15 +2004,15 @@ ProcSyncDestroyAlarm(client)
 
     REQUEST_SIZE_MATCH(xSyncDestroyAlarmReq);
 
-    if (!((SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-					      RTAlarm, DixDestroyAccess)))
+    if (!(SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
+				 DixDestroyAccess)))
     {
 	client->errorValue = stuff->alarm;
 	return SyncErrorBase + XSyncBadAlarm;
     }
 
     FreeResource(stuff->alarm, RT_NONE);
-    return (client->noClientException);
+    return client->noClientException;
 }
 
 /*
