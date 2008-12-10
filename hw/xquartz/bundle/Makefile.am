@@ -17,6 +17,7 @@ resource_DATA = Xquartz.plist
 
 EXTRA_DIST = \
 	mk_bundke.sh \
+	X11.sh \
 	Info.plist.cpp \
 	PkgInfo \
 	$(resource_DATA) \
