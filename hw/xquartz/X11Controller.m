@@ -314,65 +314,79 @@ BOOL xquartz_resetenv_display = NO;
 
 - (void) launch_client:(NSString *)filename
 {
-  const char *command = [filename UTF8String];
-  const char *argv[7];
-  int child1, child2 = 0;
-  int status;
-	
-  argv[0] = "/usr/bin/login";
-  argv[1] = "-fp";
-  argv[2] = getlogin();
-  argv[3] = [X11App prefs_get_string:@PREFS_LOGIN_SHELL default:"/bin/sh"];
-  argv[4] = "-c";
-  argv[5] = command;
-  argv[6] = NULL;
-
-  /* Do the fork-twice trick to avoid having to reap zombies */
+    const char *command = [filename UTF8String];
+    int child1, child2 = 0;
+    int status;
+    char newcommand[1024];
+    char *newargv[1024];
+    char buf[128];
+    size_t newargc;
+    char *s;
     
-  child1 = fork();
-    
-  switch (child1) {
-  case -1:                                /* error */
-    break;
-      
-  case 0:                                 /* child1 */
-    child2 = fork();
-      
-    switch (child2) {
-      int max_files, i;
-      char buf[1024], *temp;
-	
-    case -1:                            /* error */
-      _exit(1);
-	
-    case 0:                             /* child2 */
-      /* close all open files except for standard streams */
-      max_files = sysconf(_SC_OPEN_MAX);
-      for (i = 3; i < max_files; i++)	close(i);
-	
-      /* ensure stdin is on /dev/null */
-      close(0);
-      open("/dev/null", O_RDONLY);
-	
-      /* Setup environment */
-      temp = getenv("DISPLAY");
-      if (xquartz_resetenv_display || temp == NULL || temp[0] == 0) {
-    snprintf(buf, sizeof(buf), ":%s", display);
-	setenv("DISPLAY", buf, TRUE);
-      }
-
-      execvp(argv[0], (char **const) argv);
-	
-      _exit(2);
-	
-    default:                            /* parent (child1) */
-      _exit(0);
+    if(strlen(command) > 1023) {
+        fprintf(stderr, "Error: command is too long: %s\n", command);
+        return;
     }
-    break;
+    
+    strlcpy(newcommand, command, 1024);
+    
+    for(newargc=0, s=newcommand; *s; newargc++) {
+        for(; *s && *s == ' '; s++);
+        if(!*s)
+            break;
+        
+        newargv[newargc] = s;
+        for(; *s && *s != ' '; s++);
+        
+        if(*s) {
+            *s='\0';
+            s++;
+        }
+    }
+    newargv[newargc] = NULL;
+    
+    s = getenv("DISPLAY");
+    if (xquartz_resetenv_display || s == NULL || s[0] == 0) {
+        snprintf(buf, sizeof(buf), ":%s", display);
+        setenv("DISPLAY", buf, TRUE);
+    }
+
+    /* Do the fork-twice trick to avoid having to reap zombies */
+    child1 = fork();
+    switch (child1) {
+        case -1:                                /* error */
+            break;
       
-  default:                                /* parent */
-    waitpid(child1, &status, 0);
-  }
+        case 0:                                 /* child1 */
+            child2 = fork();
+      
+            switch (child2) {
+                int max_files, i;
+	
+                case -1:                            /* error */
+                    _exit(1);
+	 
+                case 0:                             /* child2 */
+                /* close all open files except for standard streams */
+                max_files = sysconf(_SC_OPEN_MAX);
+                for(i = 3; i < max_files; i++)
+                    close(i);
+	
+                /* ensure stdin is on /dev/null */
+                close(0);
+                open("/dev/null", O_RDONLY);
+	
+                execvp(newargv[0], (char **const) newargv);
+                _exit(2);
+	
+                default:                            /* parent (child1) */
+                _exit(0);
+            }
+            break;
+      
+        default:                                /* parent */
+            waitpid(child1, &status, 0);
+    }
 }
 
 - (void) app_selected:sender

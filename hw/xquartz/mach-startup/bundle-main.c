@@ -529,22 +529,39 @@ int main(int argc, char **argv, char **envp) {
     
     return EXIT_SUCCESS;
 }
-    
-static int execute(const char *command) {
-    const char *newargv[7];
-    const char **s;
 
-    newargv[0] = "/usr/bin/login";
-    newargv[1] = "-fp";
-    newargv[2] = getlogin();
-    newargv[3] = command_from_prefs("login_shell", DEFAULT_SHELL);
-    newargv[4] = "-c";
-    newargv[5] = command;
-    newargv[6] = NULL;
+static int execute(const char *command) {
+    char newcommand[1024];
+    char *newargv[1024];
+    size_t newargc;
+    char *s;
+    char **p;
+    
+    if(strlen(command) > 1023) {
+        fprintf(stderr, "Error: command is too long: %s\n", command);
+        return 1;
+    }
+    
+    strlcpy(newcommand, command, 1024);
+    
+    for(newargc=0, s=newcommand; *s; newargc++) {
+        for(; *s && *s == ' '; s++);
+        if(!*s)
+            break;
+        
+        newargv[newargc] = s;
+        for(; *s && *s != ' '; s++);
+        
+        if(*s) {
+            *s='\0';
+            s++;
+        }
+    }
+    newargv[newargc] = NULL;
     
     fprintf(stderr, "X11.app: Launching %s:\n", command);
-    for(s=newargv; *s; s++) {
-        fprintf(stderr, "\targv[%ld] = %s\n", (long int)(s - newargv), *s);
+    for(p=newargv; *p; p++) {
+        fprintf(stderr, "\targv[%ld] = %s\n", (long int)(p - newargv), *p);
     }
 
     execvp (newargv[0], (char * const *) newargv);
