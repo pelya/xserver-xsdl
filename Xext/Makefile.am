@@ -26,6 +26,7 @@ BUILTIN_SRCS =			\
 	sleepuntil.c		\
 	sleepuntil.h		\
 	sync.c			\
+	syncsrv.h		\
 	xcmisc.c		\
 	xtest.c
 
