@@ -93,7 +93,7 @@ mieqInit(void)
         miEventQueue.handlers[i] = NULL;
     for (i = 0; i < QUEUE_SIZE; i++)
     {
-        EventListPtr evlist = InitEventList(7); /* 1 + MAX_VALUATOR_EVENTS */
+        EventListPtr evlist = InitEventList(1 + MAX_VALUATOR_EVENTS);
         if (!evlist)
             FatalError("Could not allocate event queue.\n");
         miEventQueue.events[i].events = evlist;

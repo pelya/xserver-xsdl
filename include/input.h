@@ -69,7 +69,10 @@ SOFTWARE.
 #define PtrAccelLightweight     2
 #define PtrAccelDefault         PtrAccelPredictable
 
-#define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */
+#define MAX_VALUATORS 36
+/* Maximum number of valuators, divided by six, rounded up, to get number
+ * of events. */
+#define MAX_VALUATOR_EVENTS 6
 
 #define NO_AXIS_LIMITS -1
 
