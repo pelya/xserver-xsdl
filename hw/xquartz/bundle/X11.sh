@@ -1,3 +1,3 @@
 #!/bin/bash --login
 
-./X11 "${@}"
+"$(dirname $0)"/X11 "${@}"
