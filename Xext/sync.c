@@ -254,7 +254,7 @@ SyncCheckTriggerNegativeTransition(SyncTrigger *pTrigger, CARD64 oldval)
 }
 
 static int
-SyncInitTrigger(ClientPtr client, SyncTrigger pTrigger, XSyncCounter counter,
+SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XSyncCounter counter,
 		Mask changes)
 {
     SyncCounter *pCounter = pTrigger->pCounter;
