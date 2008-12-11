@@ -48,8 +48,8 @@ PERFORMANCE OF THIS SOFTWARE.
 
 ******************************************************************/
 
-#ifndef _SYNCSTR_H_
-#define _SYNCSTR_H_
+#ifndef _SYNCSRV_H_
+#define _SYNCSRV_H_
 
 #define CARD64 XSyncValue /* XXX temporary! need real 64 bit values for Alpha */
 
@@ -173,4 +173,4 @@ extern void SyncDestroySystemCounter(
 );
 extern void InitServertime(void);
 
-#endif /* _SYNCSTR_H_ */
+#endif /* _SYNCSRV_H_ */
