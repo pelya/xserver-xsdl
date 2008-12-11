@@ -2571,11 +2571,11 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
             /* XXX: reset to defaults */
             EventList event = { NULL, 0};
             char* classbuf;
+            deviceClassesChangedEvent *dcce;
 
             /* Send event to clients */
             CreateClassesChangedEvent(&event, oldmaster, oldmaster);
-            deviceClassesChangedEvent *dcce =
-                (deviceClassesChangedEvent*)event.event;
+            dcce = (deviceClassesChangedEvent*)event.event;
             dcce->deviceid = oldmaster->id;
             dcce->num_classes = 0;
             classbuf = (char*)&event.event[1];
