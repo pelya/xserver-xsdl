@@ -457,6 +457,7 @@ typedef enum {
     OPTION_MAX_CLOCK,
     OPTION_IGNORE,
     OPTION_ROTATE,
+    OPTION_PANNING,
 } OutputOpts;
 
 static OptionInfoRec xf86OutputOptions[] = {
@@ -472,6 +473,7 @@ static OptionInfoRec xf86OutputOptions[] = {
     {OPTION_MAX_CLOCK,	    "MaxClock",		OPTV_FREQ,    {0}, FALSE },
     {OPTION_IGNORE,	    "Ignore",		OPTV_BOOLEAN, {0}, FALSE },
     {OPTION_ROTATE,	    "Rotate",		OPTV_STRING,  {0}, FALSE },
+    {OPTION_PANNING,	    "Panning",		OPTV_STRING,  {0}, FALSE },
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
@@ -1318,6 +1320,56 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 	output->initial_y -= min_y;
     }
     return TRUE;
+}
+
+static void
+xf86InitialPanning (ScrnInfoPtr scrn)
+{
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			o;
+    
+    for (o = 0; o < config->num_output; o++)
+    {
+	xf86OutputPtr	output = config->output[o];
+	char	       *panning = xf86GetOptValString (output->options, OPTION_PANNING);
+	int		width, height, left, top;
+	int		track_width, track_height, track_left, track_top;
+	int		brdr[4];
+
+	memset (&output->initialTotalArea,    0, sizeof(BoxRec));
+	memset (&output->initialTrackingArea, 0, sizeof(BoxRec));
+	memset (output->initialBorder,        0, 4*sizeof(INT16));
+
+	if (! panning)
+	    continue;
+
+	switch (sscanf (panning, "%dx%d+%d+%d/%dx%d+%d+%d/%d/%d/%d/%d",
+			&width, &height, &left, &top,
+			&track_width, &track_height, &track_left, &track_top,
+			&brdr[0], &brdr[1], &brdr[2], &brdr[3])) {
+	case 12:
+	    memcpy (output->initialBorder, brdr, 4*sizeof(INT16));
+	    /* fall through */
+	case 8:
+	    output->initialTrackingArea.x1 = track_left;
+	    output->initialTrackingArea.y1 = track_top;
+	    output->initialTrackingArea.x2 = track_left + track_width;
+	    output->initialTrackingArea.y2 = track_top  + track_height;
+	    /* fall through */
+	case 4:
+	    output->initialTotalArea.x1 = left;
+	    output->initialTotalArea.y1 = top;
+	    /* fall through */
+	case 2:
+	    output->initialTotalArea.x2 = output->initialTotalArea.x1 + width;
+	    output->initialTotalArea.y2 = output->initialTotalArea.y1 + height;
+	    break;
+	default:
+	    xf86DrvMsg (output->scrn->scrnIndex, X_ERROR,
+			"Broken panning specification '%s' for output %s in config file\n",
+			panning, output->name);
+	}
+    }
 }
 
 /*
@@ -2246,6 +2298,11 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	xfree (modes);
 	return FALSE;
     }
+
+    /*
+     * Set initial panning of each output
+     */
+    xf86InitialPanning (scrn);
 	
     /*
      * Assign CRTCs to fit output configuration
@@ -2289,6 +2346,9 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	    crtc->enabled = TRUE;
 	    crtc->x = output->initial_x;
 	    crtc->y = output->initial_y;
+	    memcpy (&crtc->panningTotalArea,    &output->initialTotalArea,    sizeof(BoxRec));
+	    memcpy (&crtc->panningTrackingArea, &output->initialTrackingArea, sizeof(BoxRec));
+	    memcpy (crtc->panningBorder,        output->initialBorder,        4*sizeof(INT16));
 	    output->crtc = crtc;
 	} else {
 	    output->crtc = NULL;

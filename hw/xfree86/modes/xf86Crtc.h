@@ -466,7 +466,7 @@ typedef struct _xf86OutputFuncs {
 } xf86OutputFuncsRec, *xf86OutputFuncsPtr;
 
 
-#define XF86_OUTPUT_VERSION 1
+#define XF86_OUTPUT_VERSION 2
 
 struct _xf86Output {
     /**
@@ -574,6 +574,10 @@ struct _xf86Output {
 #else
     void		*randr_output;
 #endif
+    /** Desired initial panning */
+    BoxRec          initialTotalArea;
+    BoxRec          initialTrackingArea;
+    INT16           initialBorder[4];
 };
 
 typedef struct _xf86CrtcConfigFuncs {
