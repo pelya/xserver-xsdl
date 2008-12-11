@@ -1098,12 +1098,12 @@ ProcRRSetPanning (ClientPtr client)
 
     total.x1    = stuff->left;
     total.y1    = stuff->top;
-    total.x2    = stuff->width - total.x1;
-    total.y2    = stuff->height - total.y1;
+    total.x2    = total.x1 + stuff->width;
+    total.y2    = total.y1 + stuff->height;
     tracking.x1 = stuff->track_left;
     tracking.y1 = stuff->track_top;
-    tracking.x2 = stuff->track_width - tracking.x1;
-    tracking.y2 = stuff->track_height - tracking.y1;
+    tracking.x2 = tracking.x1 + stuff->track_width;
+    tracking.y2 = tracking.y1 + stuff->track_height;
     border[0]   = stuff->border_left;
     border[1]   = stuff->border_top;
     border[2]   = stuff->border_right;
