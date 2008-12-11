@@ -24,4 +24,4 @@ libloader_la_SOURCES = \
 CLEANFILES = sdksyms.c
 
 sdksyms.c: sdksyms.sh
-	$(srcdir)/sdksyms.sh $(AM_CFLAGS) $(CFLAGS) $(INCLUDES)
+	$(srcdir)/sdksyms.sh $(top_srcdir) $(AM_CFLAGS) $(CFLAGS) $(INCLUDES)

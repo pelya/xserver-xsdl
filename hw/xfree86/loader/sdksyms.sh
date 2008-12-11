@@ -319,18 +319,24 @@ cat > sdksyms.c << EOF
 
 EOF
 
-cpp -DXorgLoader $@ sdksyms.c | awk '
+topdir=$1
+shift
+cpp -DXorgLoader $@ sdksyms.c | awk -v topdir=$topdir '
 BEGIN {
     sdk = 0;
     print("/*");
     print(" * These symbols are referenced to ensure they");
     print(" * will be available in the X Server binary.");
     print(" */");
+    printf("/* topdir=%s */\n", topdir);
     print("_X_HIDDEN void *xorg_symbols[] = {");
 }
 /^# [0-9]+/ {
-    # only process text after a include in a relative path
-    sdk = $3 !~ /^"\//;
+    #   Process text after a include in a relative path or when the
+    # processed file has a basename matching $top_srcdir.
+    #   Note that indexing starts at 1; 0 means no match, and there
+    # is a starting ".
+    sdk = $3 !~ /^"\// || index($3, topdir) == 2;
 }
 
 /^extern[[:space:]]/  {
