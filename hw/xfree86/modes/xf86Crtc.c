@@ -1348,7 +1348,10 @@ xf86InitialPanning (ScrnInfoPtr scrn)
 			&track_width, &track_height, &track_left, &track_top,
 			&brdr[0], &brdr[1], &brdr[2], &brdr[3])) {
 	case 12:
-	    memcpy (output->initialBorder, brdr, 4*sizeof(INT16));
+	    output->initialBorder[0] = brdr[0];
+	    output->initialBorder[1] = brdr[1];
+	    output->initialBorder[2] = brdr[2];
+	    output->initialBorder[3] = brdr[3];
 	    /* fall through */
 	case 8:
 	    output->initialTrackingArea.x1 = track_left;
