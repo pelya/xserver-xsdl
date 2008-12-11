@@ -1365,7 +1365,7 @@ xf86InitialPanning (ScrnInfoPtr scrn)
 	    output->initialTotalArea.y2 = output->initialTotalArea.y1 + height;
 	    break;
 	default:
-	    xf86DrvMsg (output->scrn->scrnIndex, X_ERROR,
+	    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
 			"Broken panning specification '%s' for output %s in config file\n",
 			panning, output->name);
 	}
