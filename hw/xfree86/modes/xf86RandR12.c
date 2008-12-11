@@ -561,10 +561,16 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	int	    crtc_width = crtc->x + xf86ModeWidth (&crtc->mode, crtc->rotation);
 	int	    crtc_height = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
 	
-	if (crtc->enabled && crtc_width > width)
-	    width = crtc_width;
-	if (crtc->enabled && crtc_height > height)
-	    height = crtc_height;
+	if (crtc->enabled) {
+	    if (crtc_width > width)
+		width = crtc_width;
+	    if (crtc_height > height)
+		height = crtc_height;
+	    if (crtc->panningTotalArea.x2 > width)
+		width = crtc->panningTotalArea.x2;
+	    if (crtc->panningTotalArea.y2 > height)
+		height = crtc->panningTotalArea.y2;
+	}
     }
     
     if (width && height)
@@ -615,6 +621,13 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		   "Setting screen physical size to %d x %d\n",
 		   mmWidth, mmHeight);
+	/*
+	 * This is the initial setting of the screen size.
+	 * We have to pre-set it here, otherwise panning would be adapted
+	 * to the new screen size.
+	 */
+	pScreen->width  = width;
+	pScreen->height = height;
 	xf86RandR12ScreenSetSize (pScreen,
 				  width,
 				  height,
