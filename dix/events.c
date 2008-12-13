@@ -4300,6 +4300,7 @@ DeviceEnterLeaveEvent(
     /* we don't have enough bytes, so we squash flags and mode into
        one byte, and use the last byte for the deviceid. */
     devEnterLeave           = (deviceEnterNotify*)&event;
+    devEnterLeave->type     = type;
     devEnterLeave->detail   = detail;
     devEnterLeave->time     = currentTime.milliseconds;
     devEnterLeave->rootX    = mouse->spriteInfo->sprite->hot.x;
@@ -4308,7 +4309,6 @@ DeviceEnterLeaveEvent(
     sameScreen = event.u.keyButtonPointer.sameScreen;
 
     devEnterLeave->child    = child;
-    devEnterLeave->type     = type;
     devEnterLeave->deviceid = mouse->id;
     devEnterLeave->mode     = mode;
     devEnterLeave->mode    |= (sameScreen ?  (ELFlagSameScreen << 4) : 0);
