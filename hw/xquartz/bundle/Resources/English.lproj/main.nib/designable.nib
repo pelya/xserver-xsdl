@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.02">
+<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.03">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">9F33</string>
-		<string key="IBDocument.InterfaceBuilderVersion">672</string>
-		<string key="IBDocument.AppKitVersion">949.34</string>
-		<string key="IBDocument.HIToolboxVersion">352.00</string>
+		<string key="IBDocument.SystemVersion">9G55</string>
+		<string key="IBDocument.InterfaceBuilderVersion">677</string>
+		<string key="IBDocument.AppKitVersion">949.43</string>
+		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
 			<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+		</object>
+		<object class="NSMutableDictionary" key="IBDocument.Metadata">
+			<bool key="EncodedWithXMLCoder">YES</bool>
+			<object class="NSArray" key="dict.sortedKeys">
+				<bool key="EncodedWithXMLCoder">YES</bool>
+			</object>
+			<object class="NSMutableArray" key="dict.values">
+				<bool key="EncodedWithXMLCoder">YES</bool>
+			</object>
 		</object>
 		<object class="NSMutableArray" key="IBDocument.RootObjects" id="904585544">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -256,6 +265,15 @@
 							</object>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
+								<object class="NSMenuItem" id="984461797">
+									<reference key="NSMenu" ref="96874957"/>
+									<string key="NSTitle">Close</string>
+									<string key="NSKeyEquiv">w</string>
+									<int key="NSKeyEquivModMask">1048576</int>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="531645050"/>
+									<reference key="NSMixedImage" ref="351811234"/>
+								</object>
 								<object class="NSMenuItem" id="677652931">
 									<reference key="NSMenu" ref="96874957"/>
 									<string key="NSTitle">Minimize</string>
@@ -268,6 +286,17 @@
 								<object class="NSMenuItem" id="1066447520">
 									<reference key="NSMenu" ref="96874957"/>
 									<string key="NSTitle">Zoom</string>
+									<string key="NSKeyEquiv"/>
+									<int key="NSKeyEquivModMask">1048576</int>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="531645050"/>
+									<reference key="NSMixedImage" ref="351811234"/>
+								</object>
+								<object class="NSMenuItem" id="280172320">
+									<reference key="NSMenu" ref="96874957"/>
+									<bool key="NSIsDisabled">YES</bool>
+									<bool key="NSIsSeparator">YES</bool>
+									<string key="NSTitle"/>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -288,26 +317,6 @@
 									<string key="NSTitle">Reverse Cycle Through Windows</string>
 									<string key="NSKeyEquiv">~</string>
 									<int key="NSKeyEquivModMask">1179914</int>
-									<int key="NSMnemonicLoc">2147483647</int>
-									<reference key="NSOnImage" ref="531645050"/>
-									<reference key="NSMixedImage" ref="351811234"/>
-								</object>
-								<object class="NSMenuItem" id="280172320">
-									<reference key="NSMenu" ref="96874957"/>
-									<bool key="NSIsDisabled">YES</bool>
-									<bool key="NSIsSeparator">YES</bool>
-									<string key="NSTitle"/>
-									<string key="NSKeyEquiv"/>
-									<int key="NSKeyEquivModMask">1048576</int>
-									<int key="NSMnemonicLoc">2147483647</int>
-									<reference key="NSOnImage" ref="531645050"/>
-									<reference key="NSMixedImage" ref="351811234"/>
-								</object>
-								<object class="NSMenuItem" id="984461797">
-									<reference key="NSMenu" ref="96874957"/>
-									<string key="NSTitle">Close</string>
-									<string key="NSKeyEquiv">w</string>
-									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="531645050"/>
 									<reference key="NSMixedImage" ref="351811234"/>
@@ -1442,6 +1451,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 									</object>
 									<string key="NSFrame">{{1, 17}, {301, 198}}</string>
 									<reference key="NSSuperview" ref="1063387772"/>
+									<reference key="NSNextKeyView" ref="905092943"/>
 									<reference key="NSDocView" ref="905092943"/>
 									<reference key="NSBGColor" ref="812484075"/>
 									<int key="NScvFlags">4</int>
@@ -1474,6 +1484,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 									</object>
 									<string key="NSFrame">{{1, 0}, {301, 17}}</string>
 									<reference key="NSSuperview" ref="1063387772"/>
+									<reference key="NSNextKeyView" ref="792419186"/>
 									<reference key="NSDocView" ref="792419186"/>
 									<reference key="NSBGColor" ref="812484075"/>
 									<int key="NScvFlags">4</int>
@@ -1482,6 +1493,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 							</object>
 							<string key="NSFrame">{{20, 20}, {318, 231}}</string>
 							<reference key="NSSuperview" ref="85544634"/>
+							<reference key="NSNextKeyView" ref="580565898"/>
 							<int key="NSsFlags">50</int>
 							<reference key="NSVScroller" ref="842897584"/>
 							<reference key="NSHScroller" ref="17278747"/>
@@ -2195,11 +2207,11 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 							<reference ref="276216762"/>
 							<reference ref="1066447520"/>
 							<reference ref="1036389925"/>
-							<reference ref="280172320"/>
 							<reference ref="369641893"/>
-							<reference ref="984461797"/>
 							<reference ref="155085383"/>
 							<reference ref="444952046"/>
+							<reference ref="984461797"/>
+							<reference ref="280172320"/>
 						</object>
 						<reference key="parent" ref="931553638"/>
 					</object>
@@ -3626,7 +3638,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{204, 683}, {315, 153}}</string>
+					<string>{{349, 858}, {315, 153}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>{{271, 666}, {301, 153}}</string>
@@ -3634,7 +3646,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>{{437, 749}, {484, 308}}</string>
 					<reference ref="9"/>
 					<string>{{184, 290}, {481, 345}}</string>
-					<integer value="0"/>
+					<integer value="0" id="8"/>
 					<reference ref="9"/>
 					<string>{3.40282e+38, 3.40282e+38}</string>
 					<string>{320, 240}</string>
@@ -3654,13 +3666,13 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>{{68, 585}, {454, 271}}</string>
 					<reference ref="9"/>
 					<string>{{433, 406}, {486, 327}}</string>
-					<integer value="0"/>
+					<reference ref="8"/>
 					<reference ref="9"/>
 					<string>{3.40282e+38, 3.40282e+38}</string>
 					<string>{320, 240}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{8, 844}, {336, 20}}</string>
+					<string>{{145, 1011}, {336, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>{{67, 819}, {336, 20}}</string>
