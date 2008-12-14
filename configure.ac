@@ -863,9 +863,8 @@ AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.1 dri >= 7.1.0])
+	PKG_CHECK_MODULES([DRI], [glproto >= 1.4.1 dri >= 7.1.0])
 	AC_SUBST(DRIPROTO_CFLAGS)
-	AC_SUBST(GL_CFLAGS)
 fi
 
 PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.99.3],
@@ -1646,9 +1645,6 @@ dnl USB sources in DMX require <linux/input.h>
 dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
 			DMX_BUILD_LNX="no")
-	if test "x$GLX" = xyes; then
-		PKG_CHECK_MODULES([GL], [glproto])
-	fi
 	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
 	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
 	AC_SUBST(XDMXCONFIG_DEP_LIBS)

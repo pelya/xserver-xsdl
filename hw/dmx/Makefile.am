@@ -11,9 +11,8 @@ if GLX
 SUBDIRS += glxProxy
 GLX_LIBS = glxProxy/libglxproxy.a
 GLX_SRCS = $(PANORAMIX_SRCS) dmx_glxvisuals.c dmx_glxvisuals.h
-GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod \
-           -I@MESA_SOURCE@/include
-GLX_DEFS = @GL_CFLAGS@ 
+GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
+GLX_DEFS = @GL_CFLAGS@
 endif
 
 if BUILDDOCS
