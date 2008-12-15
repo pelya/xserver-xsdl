@@ -312,7 +312,8 @@ mieqProcessInputEvents(void)
     int x = 0, y = 0;
     int type, nevents, evlen, i;
     ScreenPtr screen;
-    xEvent *event;
+    static xEvent *event = NULL;
+    static size_t event_size = 0;
     DeviceIntPtr dev = NULL,
                  master = NULL;
 
@@ -322,7 +323,10 @@ mieqProcessInputEvents(void)
         /* GenericEvents always have nevents == 1 */
         nevents = e->nevents;
         evlen   = (nevents > 1) ? sizeof(xEvent) : e->events->evlen;
-        event   = xcalloc(nevents, evlen);
+        if((nevents * evlen) > event_size) {
+            event_size = nevents * evlen;
+            event = (xEvent *)xrealloc(event, event_size);
+        }
 
         if (!event)
             FatalError("[mi] No memory left for event processing.\n");
@@ -380,8 +384,6 @@ mieqProcessInputEvents(void)
                     master->public.processInputProc(masterEvents->event, master,
                                                     nevents);
             }
-
-            xfree(event);
         }
 
         /* Update the sprite now. Next event may be from different device. */
