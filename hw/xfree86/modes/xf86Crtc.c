@@ -988,7 +988,7 @@ xf86PickCrtcs (ScrnInfoPtr	scrn,
 	     * see if they can be cloned
 	     */
 	    if (xf86ModesEqual (modes[o], modes[n]) &&
-		config->output[0]->initial_rotation == config->output[n]->initial_rotation &&
+		config->output[o]->initial_rotation == config->output[n]->initial_rotation &&
 		config->output[o]->initial_x == config->output[n]->initial_x &&
 		config->output[o]->initial_y == config->output[n]->initial_y)
 	    {
