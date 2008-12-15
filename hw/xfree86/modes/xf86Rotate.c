@@ -364,12 +364,8 @@ static Bool
 xf86CrtcFitsScreen (xf86CrtcPtr crtc, struct pict_f_transform *crtc_to_fb)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;
-    /* if this is called during ScreenInit() we don't have pScrn->pScreen yet */
-    ScreenPtr		pScreen = screenInfo.screens[pScrn->scrnIndex];
     BoxRec		b;
 
-    if (!pScreen)
-	return TRUE;
     b.x1 = 0;
     b.y1 = 0;
     b.x2 = crtc->mode.HDisplay;
@@ -383,8 +379,8 @@ xf86CrtcFitsScreen (xf86CrtcPtr crtc, struct pict_f_transform *crtc_to_fb)
 	b.y2 += crtc->y;
     }
 
-    return (0 <= b.x1 && b.x2 <= pScreen->width &&
-	    0 <= b.y1 && b.y2 <= pScreen->height);
+    return (0 <= b.x1 && b.x2 <= pScrn->virtualX &&
+	    0 <= b.y1 && b.y2 <= pScrn->virtualY);
 }
 
 Bool
