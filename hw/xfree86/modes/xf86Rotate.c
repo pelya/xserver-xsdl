@@ -294,7 +294,7 @@ xf86RotateBlockHandler(int screenNum, pointer blockData,
     }
 }
 
-static void
+void
 xf86RotateDestroy (xf86CrtcPtr crtc)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;

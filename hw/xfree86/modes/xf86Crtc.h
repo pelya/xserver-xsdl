@@ -708,6 +708,13 @@ extern _X_EXPORT Bool
 xf86CrtcRotate (xf86CrtcPtr crtc);
 
 /*
+ * Clean up any rotation data, used when a crtc is turned off
+ * as well as when rotation is disabled.
+ */
+void
+xf86RotateDestroy (xf86CrtcPtr crtc);
+
+/*
  * free shadow memory allocated for all crtcs
  */
 extern _X_EXPORT void
