@@ -45,6 +45,7 @@ static int devConsoleFd = -1;
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 static int VTnum = -1;
 static int initialVT = -1;
+static Bool ShareVTs = FALSE;
 #endif
 
 #ifdef PCCONS_SUPPORT
@@ -269,44 +270,48 @@ xf86OpenConsole()
 	    }
 #endif
 acquire_vt:
-	    /*
-	     * now get the VT
-	     */
-	    SYSCALL(result =
-		    ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno));
-	    if (result != 0)
-	    {
-    	        xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
-	    }
-	    SYSCALL(result =
+	    if (!ShareVTs) {
+		    /*
+		     * now get the VT
+		     */
+		    SYSCALL(result =
+			    ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno));
+		    if (result != 0)
+		    {
+			xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed\n");
+		    }
+		    SYSCALL(result =
 		    ioctl(xf86Info.consoleFd, VT_WAITACTIVE, xf86Info.vtno));
-	    if (result != 0)
-	    {
-	        xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed\n");
-	    }
+		    if (result != 0)
+		    {
+			xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed\n");
+		    }
 
-	    signal(SIGUSR1, xf86VTRequest);
+		    signal(SIGUSR1, xf86VTRequest);
 
-	    vtmode.mode = VT_PROCESS;
-	    vtmode.relsig = SIGUSR1;
-	    vtmode.acqsig = SIGUSR1;
-	    vtmode.frsig = SIGUSR1;
-	    if (ioctl(xf86Info.consoleFd, VT_SETMODE, &vtmode) < 0) 
-	    {
-	        FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed");
-	    }
-#if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
-	    if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
-	    {
-	        FatalError("xf86OpenConsole: KDENABIO failed (%s)",
-		           strerror(errno));
-	    }
-#endif
-	    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
-	    {
-	        FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
-	    }
-   	    break; 
+		    vtmode.mode = VT_PROCESS;
+		    vtmode.relsig = SIGUSR1;
+		    vtmode.acqsig = SIGUSR1;
+		    vtmode.frsig = SIGUSR1;
+		    if (ioctl(xf86Info.consoleFd, VT_SETMODE, &vtmode) < 0) 
+		    {
+			FatalError("xf86OpenConsole: VT_SETMODE VT_PROCESS failed");
+		    }
+	#if !defined(USE_DEV_IO) && !defined(USE_I386_IOPL)
+		    if (ioctl(xf86Info.consoleFd, KDENABIO, 0) < 0)
+		    {
+			FatalError("xf86OpenConsole: KDENABIO failed (%s)",
+				   strerror(errno));
+		    }
+	#endif
+		    if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0)
+		    {
+			FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
+		    }
+	    } else { /* ShareVTs */
+		    close(xf86Info.consoleFd);
+	    }	
+  	    break; 
 #endif /* SYSCONS_SUPPORT || PCVT_SUPPORT */
 #ifdef WSCONS_SUPPORT
 	case WSCONS:
@@ -319,7 +324,7 @@ acquire_vt:
     {
 	/* serverGeneration != 1 */
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
-    	if (xf86Info.consType == SYSCONS || xf86Info.consType == PCVT)
+    	if (!ShareVTs) if (xf86Info.consType == SYSCONS || xf86Info.consType == PCVT)
     	{
 	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) != 0)
 	    {
@@ -392,6 +397,9 @@ xf86OpenSyscons()
 	    if (ioctl(fd, VT_GETACTIVE, &initialVT) < 0)
 		initialVT = -1;
 #endif
+            if (ShareVTs)
+		xf86Info.vtno = initialVT;
+
 	    if (xf86Info.vtno == -1)
 	    {
 		/*
@@ -651,6 +659,8 @@ xf86CloseConsole()
     struct vt_mode   VT;
 #endif
 
+    if (ShareVTs) return;
+
     switch (xf86Info.consType)
     {
 #ifdef PCCONS_SUPPORT
@@ -717,6 +727,11 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 		return(1);
 	}
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
+	if (!strcmp(argv[i], "-sharevts"))
+	{	
+		ShareVTs = TRUE;
+		return(1);
+	}
 	if ((argv[i][0] == 'v') && (argv[i][1] == 't'))
 	{
 		if (sscanf(argv[i], "vt%2d", &VTnum) == 0 ||
@@ -737,6 +752,7 @@ xf86UseMsg()
 {
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
 	ErrorF("vtXX                   use the specified VT number (1-12)\n");
+	ErrorF("-sharevts              share VTs with another X server\n");
 #endif /* SYSCONS_SUPPORT || PCVT_SUPPORT */
 	ErrorF("-keeptty               ");
 	ErrorF("don't detach controlling tty (for debugging only)\n");
