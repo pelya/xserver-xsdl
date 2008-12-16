@@ -147,7 +147,6 @@ videoPtrToDriverList(struct pci_device *dev,
     /*
      * things not handled yet:
      * cyrix/nsc.  should be merged into geode anyway.
-     * xgi.
      */
     int i;
     /* Add more entries here if we ever return more than 4 drivers for
@@ -168,6 +167,8 @@ videoPtrToDriverList(struct pci_device *dev,
 	case 0x1002:		    driverList[0] = "ati"; break;
 	case 0x102c:		    driverList[0] = "chips"; break;
 	case 0x1013:		    driverList[0] = "cirrus"; break;
+	case 0x3d3d:		    driverList[0] = "glint"; break;
+	case 0x105d:		    driverList[0] = "i128"; break;
 	case 0x8086:
 	    if ((dev->device_id == 0x00d1) || (dev->device_id == 0x7800)) {
 		driverList[0] = "i740";
@@ -178,8 +179,8 @@ videoPtrToDriverList(struct pci_device *dev,
 	    break;
 	case 0x102b:		    driverList[0] = "mga";	break;
 	case 0x10c8:		    driverList[0] = "neomagic"; break;
-	case 0x105d:		    driverList[0] = "i128";	break;
 	case 0x10de: case 0x12d2:   driverList[0] = "nv";	break;
+	case 0x1106:		    driverList[0] = "openchrome"; break;
 	case 0x1163:		    driverList[0] = "rendition"; break;
 	case 0x5333:
 	    switch (dev->device_id)
@@ -202,11 +203,11 @@ videoPtrToDriverList(struct pci_device *dev,
 	    else
 	        driverList[0] = "tdfx";
 	    break;
-	case 0x3d3d:		    driverList[0] = "glint";	break;
+	case 0x1011:		    driverList[0] = "tga"; break;
 	case 0x1023:		    driverList[0] = "trident"; break;
-	case 0x100c:		    driverList[0] = "tseng";	break;
-	case 0x1106:		    driverList[0] = "openchrome"; break;
-	case 0x15ad:		    driverList[0] = "vmware";	break;
+	case 0x100c:		    driverList[0] = "tseng"; break;
+	case 0x80ee:		    driverList[0] = "vboxvideo"; break;
+	case 0x15ad:		    driverList[0] = "vmware"; break;
 	case 0x18ca:
 	    if (dev->device_id == 0x47)
 		driverList[0] = "xgixp";
