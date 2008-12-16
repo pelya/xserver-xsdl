@@ -86,13 +86,13 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 
 
 /**
- * glamor_poly_line() checks if it can accelerate the lines as a group of
+ * glamor_poly_lines() checks if it can accelerate the lines as a group of
  * horizontal or vertical lines (rectangles), and uses existing rectangle fill
  * acceleration if so.
  */
 static void
-glamor_poly_line(DrawablePtr drawable, GCPtr gc, int mode, int n,
-		 DDXPointPtr points)
+glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
+		  DDXPointPtr points)
 {
     ScreenPtr screen = drawable->pScreen;
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
@@ -156,26 +156,26 @@ glamor_poly_line(DrawablePtr drawable, GCPtr gc, int mode, int n,
 }
 
 GCOps glamor_gc_ops = {
-    glamor_fill_spans,
-    glamor_set_spans,
-    glamor_put_image,
-    miCopyArea,
-    miCopyPlane,
-    miPolyPoint,
-    glamor_poly_line,
-    miPolySegment,
-    miPolyRectangle,
-    miPolyArc,
-    miFillPolygon,
-    miPolyFillRect,
-    miPolyFillArc,
-    miPolyText8,
-    miPolyText16,
-    miImageText8,
-    miImageText16,
-    miImageGlyphBlt,
-    miPolyGlyphBlt,
-    miPushPixels,
+    .FillSpans = glamor_fill_spans,
+    .SetSpans = glamor_set_spans,
+    .PutImage = glamor_put_image,
+    .CopyArea = miCopyArea,
+    .CopyPlane = miCopyPlane,
+    .PolyPoint = miPolyPoint,
+    .Polylines = glamor_poly_lines,
+    .PolySegment = miPolySegment,
+    .PolyRectangle = miPolyRectangle,
+    .PolyArc = miPolyArc,
+    .FillPolygon = miFillPolygon,
+    .PolyFillRect = miPolyFillRect,
+    .PolyFillArc = miPolyFillArc,
+    .PolyText8 = miPolyText8,
+    .PolyText16 = miPolyText16,
+    .ImageText8 = miImageText8,
+    .ImageText16 = miImageText16,
+    .ImageGlyphBlt = miImageGlyphBlt,
+    .PolyGlyphBlt = miPolyGlyphBlt,
+    .PushPixels = miPushPixels,
 };
 
 /**
