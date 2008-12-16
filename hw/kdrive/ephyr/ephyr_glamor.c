@@ -63,4 +63,5 @@ ephyr_glamor_disable(ScreenPtr screen)
 void
 ephyr_glamor_fini(ScreenPtr screen)
 {
+    glamor_fini(screen);
 }

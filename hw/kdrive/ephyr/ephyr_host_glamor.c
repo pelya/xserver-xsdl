@@ -25,17 +25,36 @@
  *
  */
 
-#ifndef GLAMOR_H
-#define GLAMOR_H
+#ifdef HAVE_CONFIG_H
+#include <kdrive-config.h>
+#endif
 
-#include "scrnintstr.h"
-#include "pixmapstr.h"
-#include "windowstr.h"
-#include "gcstruct.h"
-#include "picturestr.h"
-#include "fb.h"
+#include <err.h>
+#include "GL/glx.h"
 
-#endif /* GLAMOR_H */
+#include "hostx.h"
 
-Bool glamor_init(ScreenPtr screen);
-void glamor_fini(ScreenPtr screen);
+void
+ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
+{
+    Display *dpy = hostx_get_display();
+    int attribs[] = {GLX_RGBA,
+		     GLX_RED_SIZE, 1,
+		     GLX_GREEN_SIZE, 1,
+		     GLX_BLUE_SIZE, 1,
+		     None};
+    XVisualInfo *visual_info;
+    GLXContext ctx;
+
+    visual_info = glXChooseVisual(dpy, DefaultScreen(dpy), attribs);
+    if (visual_info == NULL)
+	errx(1, "Couldn't get RGB visual\n");
+
+    ctx = glXCreateContext(dpy, visual_info, NULL, True);
+    if (ctx == NULL)
+	errx(1, "glXCreateContext failed\n");
+
+    glXMakeCurrent(dpy, hostx_get_window(DefaultScreen(dpy)), ctx);
+
+    XFree(visual_info);
+}

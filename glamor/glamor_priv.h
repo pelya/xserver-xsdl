@@ -25,17 +25,29 @@
  *
  */
 
-#ifndef GLAMOR_H
-#define GLAMOR_H
+#ifndef GLAMOR_PRIV_H
+#define GLAMOR_PRIV_H
 
-#include "scrnintstr.h"
-#include "pixmapstr.h"
-#include "windowstr.h"
-#include "gcstruct.h"
-#include "picturestr.h"
-#include "fb.h"
+#include "glamor.h"
 
-#endif /* GLAMOR_H */
+typedef struct glamor_screen_private {
+    CreateGCProcPtr saved_create_gc;
+    CreatePixmapProcPtr saved_create_pixmap;
+    DestroyPixmapProcPtr saved_destroy_pixmap;
+} glamor_screen_private;
 
-Bool glamor_init(ScreenPtr screen);
-void glamor_fini(ScreenPtr screen);
+extern DevPrivateKey glamor_screen_private_key;
+static inline glamor_screen_private *
+glamor_get_screen_private(ScreenPtr screen)
+{
+    return (glamor_screen_private *)dixLookupPrivate(&screen->devPrivates,
+						     glamor_screen_private_key);
+}
+
+/* glamor.c */
+PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
+
+/* glamor_core.c */
+Bool glamor_create_gc(GCPtr gc);
+
+#endif /* GLAMOR_PRIV_H */

@@ -15,4 +15,5 @@ AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
 
 libglamor_la_SOURCES = \
 	glamor.c \
+	glamor_core.c \
 	glamor.h
