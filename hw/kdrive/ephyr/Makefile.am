@@ -80,6 +80,8 @@ Xephyr_LDADD = 						\
 Xephyr_DEPENDENCIES =	\
 	libxephyr.la					\
 	libxephyr-hostx.la				\
+	$(top_builddir)/exa/libexa.la			\
+	$(top_builddir)/glamor/libglamor.la		\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
 	@KDRIVE_LOCAL_LIBS@
