@@ -376,8 +376,10 @@ xf86CloseConsole()
 	xf86Msg(X_WARNING, "xf86CloseConsole: KDSETMODE failed: %s\n",
 		strerror(errno));
 
-    ioctl(xf86Info.consoleFd, KDSKBMODE, tty_mode);
-    tcsetattr(xf86Info.consoleFd, TCSANOW, &tty_attr);
+    if (xf86Info.allowEmptyInput) {
+	ioctl(xf86Info.consoleFd, KDSKBMODE, tty_mode);
+	tcsetattr(xf86Info.consoleFd, TCSANOW, &tty_attr);
+    }
 
     if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) < 0) 
 	xf86Msg(X_WARNING, "xf86CloseConsole: VT_GETMODE failed: %s\n",
