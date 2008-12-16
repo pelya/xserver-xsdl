@@ -24,3 +24,17 @@
  *    Eric Anholt <eric@anholt.net>
  *
  */
+
+#ifndef GLAMOR_H
+#define GLAMOR_H
+
+#include "scrnintstr.h"
+#include "pixmapstr.h"
+#include "windowstr.h"
+#include "gcstruct.h"
+#include "picturestr.h"
+#include "fb.h"
+
+#endif /* GLAMOR_H */
+
+Bool glamor_init(ScreenPtr screen);

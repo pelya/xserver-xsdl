@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006 Intel Corporation
+ * Copyright © 2008 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #endif
 
 #include "ephyr.h"
-/*#include "glamor.h"*/
+#include "glamor.h"
 
 /**
  * This function initializes EXA to use the fake acceleration implementation
@@ -38,22 +38,29 @@
  * correct driver with which to test changes to the EXA core.
  */
 Bool
-ephyr_glamor_init(ScreenPtr pScreen)
+ephyr_glamor_init(ScreenPtr screen)
 {
+    KdScreenPriv(screen);
+    KdScreenInfo *kd_screen = pScreenPriv->screen;
+
+    ephyr_glamor_host_create_context(kd_screen);
+
+    glamor_init(screen);
+
     return TRUE;
 }
 
 void
-ephyr_glamor_enable(ScreenPtr pScreen)
+ephyr_glamor_enable(ScreenPtr screen)
 {
 }
 
 void
-ephyr_glamor_disable(ScreenPtr pScreen)
+ephyr_glamor_disable(ScreenPtr screen)
 {
 }
 
 void
-ephyr_glamor_fini(ScreenPtr pScreen)
+ephyr_glamor_fini(ScreenPtr screen)
 {
 }

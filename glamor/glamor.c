@@ -25,7 +25,7 @@
  *
  */
 
-/** @file
+/** @file glamor.c
  * This file covers the initialization and teardown of glamor, and has various
  * functions not responsible for performing rendering.
  */
@@ -35,3 +35,13 @@
 #endif
 
 #include <stdlib.h>
+
+#include "glamor.h"
+
+/** Set up glamor for an already-configured GL context. */
+Bool
+glamor_init(ScreenPtr screen)
+{
+    return Success;
+}
+
