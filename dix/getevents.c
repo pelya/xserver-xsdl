@@ -119,6 +119,7 @@ CreateClassesChangedEvent(EventList* event,
     deviceClassesChangedEvent *dcce;
     int len = sizeof(xEvent);
     CARD32 ms = GetTimeInMillis();
+    int namelen = 0; /* dummy */
 
     dcce = (deviceClassesChangedEvent*)event->event;
     dcce->type = GenericEvent;
@@ -126,6 +127,7 @@ CreateClassesChangedEvent(EventList* event,
     dcce->evtype = XI_DeviceClassesChangedNotify;
     dcce->time = ms;
     dcce->new_slave = slave->id;
+    SizeDeviceInfo(slave, &namelen, &len);
     dcce->length = (len - sizeof(xEvent))/4;
 }
 
