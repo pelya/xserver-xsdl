@@ -38,6 +38,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
+	glamor \
 	config \
 	hw \
 	test
@@ -88,6 +89,7 @@ DIST_SUBDIRS = \
 	composite \
 	glx \
 	exa \
+	glamor \
 	config \
 	hw \
 	test

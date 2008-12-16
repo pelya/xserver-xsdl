@@ -7,7 +7,8 @@ INCLUDES = 			\
 	@XEPHYR_CFLAGS@		\
 	@DRIPROTO_CFLAGS@	\
 	-I$(top_srcdir)		\
-	-I$(top_srcdir)/exa
+	-I$(top_srcdir)/exa	\
+	-I$(top_srcdir)/glamor
 
 if XV
 LIBXEPHYR_HOSTXV=libxephyr-hostxv.la
@@ -47,6 +48,7 @@ XEPHYR_SRCS =			\
 	ephyr.h			\
 	ephyrlog.h		\
 	ephyr_draw.c		\
+	ephyr_glamor.c		\
 	os.c
 
 libxephyr_hostx_la_SOURCES = $(HOSTX_SRCS)
@@ -70,6 +72,7 @@ Xephyr_LDADD = 						\
 	$(LIBXEPHYR_HOSTXV)				\
 	$(LIBXEPHYR_HOSTDRI)				\
 	$(top_builddir)/exa/libexa.la			\
+	$(top_builddir)/glamor/libglamor.la		\
 	@KDRIVE_LIBS@					\
 	@XEPHYR_LIBS@
 

@@ -117,6 +117,7 @@ ddxUseMsg (void)
   ErrorF("-host-cursor         Re-use exisiting X host server cursor\n");
   ErrorF("-fullscreen          Attempt to run Xephyr fullscreen\n");
   ErrorF("-grayscale           Simulate 8bit grayscale\n");
+  ErrorF("-glamor              Enable 2D acceleration using glamor\n");
   ErrorF("-fakexa              Simulate acceleration using software rendering\n");
   ErrorF("-verbosity <level>   Set log verbosity level\n");
 #ifdef GLXEXT
@@ -218,6 +219,14 @@ ddxProcessArgument (int argc, char **argv, int i)
   else if (!strcmp (argv[i], "-grayscale"))
     {
       EphyrWantGrayScale = 1;      
+      return 1;
+    }
+  else if (!strcmp (argv[i], "-glamor"))
+    {
+      ephyrFuncs.initAccel = ephyr_glamor_init;
+      ephyrFuncs.enableAccel = ephyr_glamor_enable;
+      ephyrFuncs.disableAccel = ephyr_glamor_disable;
+      ephyrFuncs.finiAccel = ephyr_glamor_fini;
       return 1;
     }
   else if (!strcmp (argv[i], "-fakexa"))
