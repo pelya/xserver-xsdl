@@ -2748,7 +2748,7 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 
 #ifdef RANDR_12_INTERFACE
 
-#define EDID_ATOM_NAME		"EDID_DATA"
+#define EDID_ATOM_NAME		"EDID"
 
 /**
  * Set the RandR EDID property
