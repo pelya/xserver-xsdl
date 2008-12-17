@@ -337,6 +337,14 @@ struct _xf86Crtc {
     BoxRec          panningTotalArea;
     BoxRec          panningTrackingArea;
     INT16           panningBorder[4];
+
+    /**
+     * Current gamma, especially useful after initial config.
+     */
+    CARD16 *gamma_red;
+    CARD16 *gamma_green;
+    CARD16 *gamma_blue;
+    int gamma_size;
 };
 
 typedef struct _xf86OutputFuncs {
@@ -913,5 +921,13 @@ xf86_crtc_set_panning(ScrnInfoPtr pScrn,
 		      BoxPtr      totalArea,
 		      BoxPtr      TrackingArea,
 		      INT16      *border);
+
+
+/**
+ * Gamma
+ */
+
+Bool
+xf86_crtc_supports_gamma(ScrnInfoPtr pScrn);
 
 #endif /* _XF86CRTC_H_ */

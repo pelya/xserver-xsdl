@@ -1046,8 +1046,55 @@ xf86RandR12CrtcSetGamma (ScreenPtr    pScreen,
     if (!crtc->scrn->vtSema)
 	return TRUE;
 
-    crtc->funcs->gamma_set(crtc, randr_crtc->gammaRed, randr_crtc->gammaGreen,
-			   randr_crtc->gammaBlue, randr_crtc->gammaSize);
+    /* Realloc local gamma if needed. */
+    if (randr_crtc->gammaSize != crtc->gamma_size) {
+        CARD16 *tmp_ptr;
+        tmp_ptr = realloc(crtc->gamma_red, 3 * crtc->gamma_size * sizeof (CARD16));
+        if (!tmp_ptr)
+            return FALSE;
+        crtc->gamma_red = tmp_ptr;
+        crtc->gamma_green = crtc->gamma_red + crtc->gamma_size;
+        crtc->gamma_blue = crtc->gamma_green + crtc->gamma_size;
+    }
+
+    crtc->gamma_size = randr_crtc->gammaSize;
+    memcpy (crtc->gamma_red, randr_crtc->gammaRed, crtc->gamma_size * sizeof (CARD16));
+    memcpy (crtc->gamma_green, randr_crtc->gammaGreen, crtc->gamma_size * sizeof (CARD16));
+    memcpy (crtc->gamma_blue, randr_crtc->gammaBlue, crtc->gamma_size * sizeof (CARD16));
+
+    /* Use copied values, the perfect way to test if all went well. */
+    crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
+                                            crtc->gamma_blue, crtc->gamma_size);
+
+    return TRUE;
+}
+
+static Bool
+xf86RandR12CrtcGetGamma (ScreenPtr    pScreen,
+			 RRCrtcPtr    randr_crtc)
+{
+    xf86CrtcPtr crtc = randr_crtc->devPrivate;
+
+    if (!crtc->gamma_size)
+        return FALSE;
+
+    if (!crtc->gamma_red || !crtc->gamma_green || !crtc->gamma_blue)
+        return FALSE;
+
+    /* Realloc randr gamma if needed. */
+    if (randr_crtc->gammaSize != crtc->gamma_size) {
+        CARD16 *tmp_ptr;
+        tmp_ptr = realloc(randr_crtc->gammaRed, 3 * crtc->gamma_size * sizeof (CARD16));
+        if (!tmp_ptr)
+            return FALSE;
+        randr_crtc->gammaRed = tmp_ptr;
+        randr_crtc->gammaGreen = randr_crtc->gammaRed + crtc->gamma_size;
+        randr_crtc->gammaBlue = randr_crtc->gammaGreen + crtc->gamma_size;
+    }
+    randr_crtc->gammaSize = crtc->gamma_size;
+    memcpy (randr_crtc->gammaRed, crtc->gamma_red, crtc->gamma_size * sizeof (CARD16));
+    memcpy (randr_crtc->gammaGreen, crtc->gamma_green, crtc->gamma_size * sizeof (CARD16));
+    memcpy (randr_crtc->gammaBlue, crtc->gamma_blue, crtc->gamma_size * sizeof (CARD16));
 
     return TRUE;
 }
@@ -1443,6 +1490,7 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrScreenSetSize = xf86RandR12ScreenSetSize;
     rp->rrCrtcSet = xf86RandR12CrtcSet;
     rp->rrCrtcSetGamma = xf86RandR12CrtcSetGamma;
+    rp->rrCrtcGetGamma = xf86RandR12CrtcGetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
 #if RANDR_13_INTERFACE

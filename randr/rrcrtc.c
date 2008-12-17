@@ -480,6 +480,29 @@ RRCrtcGammaSet (RRCrtcPtr   crtc,
 }
 
 /*
+ * Request current gamma back from the DDX (if possible).
+ * This includes gamma size.
+ */
+Bool
+RRCrtcGammaGet(RRCrtcPtr crtc)
+{
+    Bool ret = TRUE;
+#if RANDR_12_INTERFACE
+    ScreenPtr	pScreen = crtc->pScreen;
+#endif
+
+#if RANDR_12_INTERFACE
+    if (pScreen)
+    {
+        rrScrPriv(pScreen);
+        if (pScrPriv->rrCrtcGetGamma)
+            ret = (*pScrPriv->rrCrtcGetGamma) (pScreen, crtc);
+    }
+#endif
+    return ret;
+}
+
+/*
  * Notify the extension that the Crtc gamma has been changed
  * The driver calls this whenever it has changed the gamma values
  * in the RRCrtcRec
@@ -1141,7 +1164,11 @@ ProcRRGetCrtcGammaSize (ClientPtr client)
     crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
-    
+
+    /* Gamma retrieval failed, any better error? */
+    if (!RRCrtcGammaGet(crtc))
+        return RRErrorBase + BadRRCrtc;
+
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
     reply.length = 0;
@@ -1169,7 +1196,11 @@ ProcRRGetCrtcGamma (ClientPtr client)
     crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
-    
+
+    /* Gamma retrieval failed, any better error? */
+    if (!RRCrtcGammaGet(crtc))
+        return RRErrorBase + BadRRCrtc;
+
     len = crtc->gammaSize * 3 * 2;
     
     if (crtc->gammaSize) {

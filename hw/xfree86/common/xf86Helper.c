@@ -60,6 +60,7 @@
 #include "mivalidate.h"
 #include "xf86RAC.h"
 #include "xf86Bus.h"
+#include "xf86Crtc.h"
 
 /* For xf86GetClocks */
 #if defined(CSRG_BASED) || defined(__GNU__)
@@ -918,6 +919,11 @@ Bool
 xf86SetGamma(ScrnInfoPtr scrp, Gamma gamma)
 {
     MessageType from = X_DEFAULT;
+    /* Pretend we succeeded if we support better a gamma system.
+     * This avoids a confusing message.
+     */
+    if (xf86_crtc_supports_gamma(scrp))
+	return TRUE;
 #if 0
     xf86MonPtr DDC = (xf86MonPtr)(scrp->monitor->DDC);
 #endif

@@ -173,6 +173,9 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
 				       RRCrtcPtr	crtc);
 
+typedef Bool (*RRCrtcGetGammaProcPtr) (ScreenPtr	pScreen,
+				       RRCrtcPtr	crtc);
+
 typedef Bool (*RROutputSetPropertyProcPtr) (ScreenPtr		pScreen,
 					    RROutputPtr		output,
 					    Atom		property,
@@ -245,6 +248,7 @@ typedef struct _rrScrPriv {
     RRScreenSetSizeProcPtr  rrScreenSetSize;
     RRCrtcSetProcPtr	    rrCrtcSet;
     RRCrtcSetGammaProcPtr   rrCrtcSetGamma;
+    RRCrtcGetGammaProcPtr   rrCrtcGetGamma;
     RROutputSetPropertyProcPtr	rrOutputSetProperty;
     RROutputValidateModeProcPtr	rrOutputValidateMode;
     RRModeDestroyProcPtr	rrModeDestroy;
@@ -584,6 +588,14 @@ RRCrtcGammaSet (RRCrtcPtr   crtc,
 		CARD16	    *red,
 		CARD16	    *green,
 		CARD16	    *blue);
+
+/*
+ * Request current gamma back from the DDX (if possible).
+ * This includes gamma size.
+ */
+ 
+extern _X_EXPORT Bool
+RRCrtcGammaGet(RRCrtcPtr crtc);
 
 /*
  * Notify the extension that the Crtc gamma has been changed

@@ -49,6 +49,7 @@
 #include "xf86_OSproc.h"
 #include "xf86str.h"
 #include "micmap.h"
+#include "xf86Crtc.h"
 
 #ifdef XFreeXDGA
 #define _XF86DGA_SERVER_
@@ -140,6 +141,10 @@ Bool xf86HandleColormaps(
     LOCO *gamma; 
     int *indices; 
     int elements;
+
+    /* If we support a better colormap system, then pretend we succeeded. */
+    if (xf86_crtc_supports_gamma(pScrn))
+	return TRUE;
 
     if(!maxColors || !sigRGBbits || !loadPalette)
 	return FALSE;
