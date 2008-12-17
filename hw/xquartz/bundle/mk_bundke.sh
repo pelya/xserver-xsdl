@@ -21,7 +21,7 @@ install -m 644 Info.plist ${BUNDLE_ROOT}/Contents
 install -m 644 PkgInfo ${BUNDLE_ROOT}/Contents
 
 mkdir -p ${BUNDLE_ROOT}/Contents/MacOS
-install -m 755 X11.sh ${BUNDLE_ROOT}/Contents/MacOS
+install -m 755 X11.sh ${BUNDLE_ROOT}/Contents/MacOS/X11
 
 if [[ $(id -u) == 0 ]] ; then
 	chown -R root:admin ${BUNDLE_ROOT}

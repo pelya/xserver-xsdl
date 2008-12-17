@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 		<string>English</string>
 	<key>CFBundleExecutable</key>
-		<string>X11.sh</string>
+		<string>X11</string>
 	<key>CFBundleGetInfoString</key>
 		<string>APPLE_APPLICATION_NAME</string>
 	<key>CFBundleIconFile</key>
