@@ -152,7 +152,7 @@ XWin_LDADD = $(XWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) $(XWIN_SYS_LIBS)
 .rc.o:
 	$(WINDRES) --use-temp-file -i $< --input-format=rc -o $@ -O coff -DPROJECT_NAME=\"$(VENDOR_NAME_SHORT)\"
 
-XWin_LDFLAGS = -mwindows -static
+XWin_LDFLAGS = -mwindows
 
 winprefsyacc.h: winprefsyacc.c
 winprefslex.c: winprefslex.l winprefsyacc.c winprefsyacc.h
