@@ -628,7 +628,7 @@ RootlessReorderWindow(WindowPtr pWin)
 {
     RootlessWindowRec *winRec = WINREC(pWin);
 
-    if (winRec != NULL && !winRec->is_reorder_pending) {
+    if (pWin->realized && winRec != NULL && !winRec->is_reorder_pending && !windows_hidden) {
         WindowPtr newPrevW;
         RootlessWindowRec *newPrev;
         RootlessFrameID newPrevID;
@@ -1567,7 +1567,10 @@ RootlessOrderAllWindows (void)
 {
     int i;
     WindowPtr pWin;
-    
+
+    if (windows_hidden)
+        return;    
+
     RL_DEBUG_MSG("RootlessOrderAllWindows() ");
     for (i = 0; i < screenInfo.numScreens; i++) {
       if (screenInfo.screens[i] == NULL) continue;
