@@ -275,7 +275,6 @@ winChangeWindowAttributesMultiWindow (WindowPtr pWin, unsigned long mask)
 {
   Bool			fResult = TRUE;
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
@@ -368,7 +367,6 @@ void
 winReparentWindowMultiWindow (WindowPtr pWin, WindowPtr pPriorParent)
 {
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG
@@ -392,12 +390,13 @@ winReparentWindowMultiWindow (WindowPtr pWin, WindowPtr pPriorParent)
 void
 winRestackWindowMultiWindow (WindowPtr pWin, WindowPtr pOldNextSib)
 {
+#if 0
   WindowPtr		pPrevWin;
   UINT			uFlags;
   HWND			hInsertAfter;
   HWND                  hWnd = NULL;
+#endif
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGMULTIWINDOW_DEBUG || CYGWINDOWING_DEBUG
@@ -854,7 +853,7 @@ winMinimizeWindow (Window id)
   ErrorF ("winMinimizeWindow\n");
 #endif
 
-  pWin = LookupIDByType (id, RT_WINDOW);
+  pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
   if (!pWin) 
   { 
       ErrorF("%s: NULL pWin. Leaving\n", __FUNCTION__); 
@@ -892,7 +891,6 @@ winCopyWindowMultiWindow (WindowPtr pWin, DDXPointRec oldpt,
 			  RegionPtr oldRegion)
 {
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGWINDOWING_DEBUG
@@ -912,7 +910,6 @@ winMoveWindowMultiWindow (WindowPtr pWin, int x, int y,
 			  WindowPtr pSib, VTKind kind)
 {
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGWINDOWING_DEBUG
@@ -933,7 +930,6 @@ winResizeWindowMultiWindow (WindowPtr pWin, int x, int y, unsigned int w,
 			    unsigned int h, WindowPtr pSib)
 {
   ScreenPtr		pScreen = pWin->drawable.pScreen;
-  winWindowPriv(pWin);
   winScreenPriv(pScreen);
 
 #if CYGWINDOWING_DEBUG

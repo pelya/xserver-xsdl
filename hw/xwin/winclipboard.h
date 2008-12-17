@@ -38,7 +38,7 @@
 #ifdef __CYGWIN__
 #include <sys/select.h>
 #else
-#include "Xwinsock.h"
+#include <X11/Xwinsock.h>
 #define HAS_WINSOCK
 #endif
 #include <fcntl.h>
@@ -53,8 +53,8 @@
  * are usually bad, so someone should investigate this.
  */
 #include <X11/Xproto.h>
-#include "X11/Xutil.h"
-#include "X11/Xlocale.h"
+#include <X11/Xutil.h>
+#include <X11/Xlocale.h>
 
 /* Fixups to prevent collisions between Windows and X headers */
 #define ATOM			DWORD
