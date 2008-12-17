@@ -1062,9 +1062,12 @@ xf86RandR12CrtcSetGamma (ScreenPtr    pScreen,
     memcpy (crtc->gamma_green, randr_crtc->gammaGreen, crtc->gamma_size * sizeof (CARD16));
     memcpy (crtc->gamma_blue, randr_crtc->gammaBlue, crtc->gamma_size * sizeof (CARD16));
 
-    /* Use copied values, the perfect way to test if all went well. */
-    crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
-                                            crtc->gamma_blue, crtc->gamma_size);
+    /* Only set it when the crtc is actually running.
+     * Otherwise it will be set when it's activated.
+     */
+    if (crtc->active)
+	crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
+						crtc->gamma_blue, crtc->gamma_size);
 
     return TRUE;
 }

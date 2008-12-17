@@ -222,7 +222,7 @@ typedef struct _xf86CrtcFuncs {
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
-#define XF86_CRTC_VERSION 2
+#define XF86_CRTC_VERSION 3
 
 struct _xf86Crtc {
     /**
@@ -236,9 +236,9 @@ struct _xf86Crtc {
     ScrnInfoPtr	    scrn;
     
     /**
-     * Active state of this CRTC
+     * Desired state of this CRTC
      *
-     * Set when this CRTC is driving one or more outputs 
+     * Set when this CRTC should be driving one or more outputs 
      */
     Bool	    enabled;
     
@@ -340,11 +340,20 @@ struct _xf86Crtc {
 
     /**
      * Current gamma, especially useful after initial config.
+     * Added in ABI version 3
      */
     CARD16 *gamma_red;
     CARD16 *gamma_green;
     CARD16 *gamma_blue;
     int gamma_size;
+
+    /**
+     * Actual state of this CRTC
+     *
+     * Set to TRUE after modesetting, set to FALSE if no outputs are connected
+     * Added in ABI version 3
+     */
+    Bool	    active;
 };
 
 typedef struct _xf86OutputFuncs {

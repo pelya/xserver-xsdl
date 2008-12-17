@@ -267,9 +267,11 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 
     crtc->enabled = xf86CrtcInUse (crtc);
 
+    /* We only hit this if someone explicitly sends a "disabled" modeset. */
     if (!crtc->enabled)
     {
-	/* XXX disable crtc? */
+	/* Check everything for stuff that should be off. */
+	xf86DisableUnusedFunctions(scrn);
 	return TRUE;
     }
 
@@ -378,6 +380,11 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 	    output->funcs->mode_set(output, mode, adjusted_mode);
     }
 
+    /* Only upload when needed, to avoid unneeded delays. */
+    if (!crtc->active)
+	crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
+                                            crtc->gamma_blue, crtc->gamma_size);
+
     /* Now, enable the clocks, plane, pipe, and outputs that we set up. */
     crtc->funcs->commit(crtc);
     for (i = 0; i < xf86_config->num_output; i++) 
@@ -387,8 +394,8 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 	    output->funcs->commit(output);
     }
 
-    /* XXX free adjustedmode */
     ret = TRUE;
+    crtc->active = TRUE;
     if (scrn->pScreen)
 	xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
 
@@ -402,6 +409,8 @@ done:
 	    RRTransformCopy (&crtc->transform, &saved_transform);
 	crtc->transformPresent = saved_transform_present;
     }
+
+    free(adjusted_mode);
 
     if (didLock)
 	crtc->funcs->unlock (crtc);
@@ -2265,8 +2274,7 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
     memcpy (crtc->gamma_blue, blue, crtc->gamma_size * sizeof (CARD16));
 
     /* Use copied values, the perfect way to test if all went well. */
-    crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
-                                            crtc->gamma_blue, crtc->gamma_size);
+    
 
     free(red);
 
@@ -2440,8 +2448,6 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	    crtc->desiredY = output->initial_y;
 	    crtc->desiredTransformPresent = FALSE;
 	    crtc->enabled = TRUE;
-	    crtc->x = output->initial_x;
-	    crtc->y = output->initial_y;
 	    memcpy (&crtc->panningTotalArea,    &output->initialTotalArea,    sizeof(BoxRec));
 	    memcpy (&crtc->panningTrackingArea, &output->initialTrackingArea, sizeof(BoxRec));
 	    memcpy (crtc->panningBorder,        output->initialBorder,        4*sizeof(INT16));
@@ -2846,6 +2852,7 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 	    crtc->funcs->dpms(crtc, DPMSModeOff);
 	    memset(&crtc->mode, 0, sizeof(crtc->mode));
 	    xf86RotateDestroy(crtc);
+	    crtc->active = FALSE;
 	}
     }
     if (pScrn->pScreen)
@@ -3141,15 +3148,13 @@ xf86_crtc_supports_gamma(ScrnInfoPtr pScrn)
 {
     xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
     xf86CrtcPtr crtc;
-    int c;
 
-    for (c = 0; c < xf86_config->num_crtc; c++) {
-        crtc = xf86_config->crtc[c];
-        if (crtc->funcs->gamma_set)
-            return TRUE;
-        else
-            return FALSE;
-    }
+    if (!xf86_config)
+	return FALSE;
 
-    return FALSE;
+    if (xf86_config->num_crtc == 0)
+	return FALSE;
+    crtc = xf86_config->crtc[0];
+
+    return (crtc->funcs->gamma_set != NULL);
 }
