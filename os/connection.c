@@ -602,8 +602,8 @@ AuthAudit (ClientPtr client, Bool letin,
     
 #ifdef XSERVER_DTRACE
     XSERVER_CLIENT_AUTH(client->index, addr, client_pid, client_zid);
-    if (auditTrailLevel > 1) {
 #endif
+    if (auditTrailLevel > 1) {
       if (proto_n)
 	AuditF("client %d %s from %s%s\n  Auth name: %.*s ID: %d\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
@@ -613,9 +613,7 @@ AuthAudit (ClientPtr client, Bool letin,
 	       client->index, letin ? "connected" : "rejected", addr,
 	       client_uid_string);
 
-#ifdef XSERVER_DTRACE
     }
-#endif	
 }
 
 XID
