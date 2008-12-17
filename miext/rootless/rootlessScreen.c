@@ -475,7 +475,7 @@ RootlessMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst,
     return result;
 }
 
-void expose_1 (WindowPtr pWin) {
+static void expose_1 (WindowPtr pWin) {
     WindowPtr pChild;
     
     if (!pWin->realized)
