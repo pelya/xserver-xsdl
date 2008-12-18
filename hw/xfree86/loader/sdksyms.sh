@@ -321,6 +321,8 @@ EOF
 
 topdir=$1
 shift
+LC_ALL=C
+export LC_ALL
 cpp -DXorgLoader $@ sdksyms.c | awk -v topdir=$topdir '
 BEGIN {
     sdk = 0;
@@ -339,7 +341,7 @@ BEGIN {
     sdk = $3 !~ /^"\// || index($3, topdir) == 2;
 }
 
-/^extern[[:space:]]/  {
+/^extern[ 	]/  {
     if (sdk) {
 	n = 3;
 
@@ -353,17 +355,17 @@ BEGIN {
 
 	# type specifier may not be set, as in
 	#   extern _X_EXPORT unsigned name(...)
-	if ($n !~ /[^[:alnum:]_]/)
+	if ($n !~ /[^a-zA-Z0-9_]/)
 	    n++;
 
 	# match
 	#    extern _X_EXPORT type (* name[])(...)
-	if ($n ~ /^[^[:alnum:]_]+$/)
+	if ($n ~ /^[^a-zA-Z0-9_]+$/)
 	    n++;
 
 	# match
 	#	extern _X_EXPORT const name *const ...
-	if ($n ~ /^([^[:alnum:]_]+)?const$/)
+	if ($n ~ /^([^a-zA-Z0-9_]+)?const$/)
 	    n++;
 
 	# actual name may be in the next line, as in
@@ -379,10 +381,10 @@ BEGIN {
 	symbol = $n;
 
 	# remove starting non word chars
-	sub(/^[^[:alnum:]_]+/, "",symbol);
+	sub(/^[^a-zA-Z0-9_]+/, "",symbol);
 
 	# remove from first non word to end of line
-	sub(/[^[:alnum:]_].*/, "", symbol);
+	sub(/[^a-zA-Z0-9_].*/, "", symbol);
 
 	#print;
 	printf("    &%s,\n", symbol);
