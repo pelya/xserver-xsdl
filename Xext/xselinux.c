@@ -50,9 +50,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "selection.h"
 #include "xacestr.h"
 #include "xselinux.h"
-#define XSERV_t
-#define TRANS_SERVER
-#include <X11/Xtrans/Xtrans.h>
 #include "../os/osdep.h"
 #include "modinit.h"
 
@@ -460,8 +457,7 @@ SELinuxDoCheck(SELinuxSubjectRec *subj, SELinuxObjectRec *obj,
 static void
 SELinuxLabelClient(ClientPtr client)
 {
-    XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    int fd = _XSERVTransGetConnectionNumber(ci);
+    int fd = XaceGetConnectionNumber(client);
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj;
     security_context_t ctx;
@@ -479,7 +475,7 @@ SELinuxLabelClient(ClientPtr client)
     }
 
     /* For local clients, try and determine the executable name */
-    if (_XSERVTransIsLocal(ci)) {
+    if (XaceIsLocal(client)) {
 	struct ucred creds;
 	socklen_t len = sizeof(creds);
 	char path[PATH_MAX + 1];
