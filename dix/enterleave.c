@@ -73,13 +73,12 @@ HasPointer(WindowPtr win)
 /**
  * Search for the first window below @win that has a pointer directly within
  * it's boundaries (excluding boundaries of its own descendants).
- * Windows including @exclude and its descendants are ignored.
  *
  * @return The child window that has the pointer within its boundaries or
  *         NULL.
  */
 static WindowPtr
-FirstPointerChild(WindowPtr win, WindowPtr exclude)
+FirstPointerChild(WindowPtr win)
 {
     static WindowPtr *queue = NULL;
     static int queue_size  = 256; /* allocated size of queue */
@@ -88,7 +87,7 @@ FirstPointerChild(WindowPtr win, WindowPtr exclude)
     int queue_len   = 0;          /* no of elements in queue */
     int queue_head  = 0;          /* pos of current element  */
 
-    if (!win || win == exclude || !win->firstChild)
+    if (!win || !win->firstChild)
         return NULL;
 
     if (!queue && !(queue = xcalloc(queue_size, sizeof(WindowPtr))))
@@ -100,12 +99,6 @@ FirstPointerChild(WindowPtr win, WindowPtr exclude)
 
     while (queue_len--)
     {
-        if (queue[queue_head] == exclude)
-        {
-            queue_head = (queue_head + 1) % queue_size;
-            continue;
-        }
-
         if (queue[queue_head] != win && HasPointer(queue[queue_head]))
             return queue[queue_head];
 
@@ -236,7 +229,7 @@ CoreEnterNotifies(DeviceIntPtr dev,
           may need to be changed from Virtual to NonlinearVirtual depending
           on the previous P(W). */
 
-    if (!HasPointer(parent) && !FirstPointerChild(parent, None))
+    if (!HasPointer(parent) && !FirstPointerChild(parent))
             CoreEnterLeaveEvent(dev, EnterNotify, mode, detail, parent,
                                 child->drawable.id);
 }
@@ -275,7 +268,7 @@ CoreLeaveNotifies(DeviceIntPtr dev,
 
         /* If one window has a pointer or a child with a pointer, skip some
          * work and exit. */
-        if (HasPointer(win) || FirstPointerChild(win, None))
+        if (HasPointer(win) || FirstPointerChild(win))
             return;
 
         CoreEnterLeaveEvent(dev, LeaveNotify, mode, detail, win, child->drawable.id);
@@ -340,7 +333,7 @@ CoreEnterLeaveNonLinear(DeviceIntPtr dev,
 
     if (!HasPointer(A))
     {
-        WindowPtr child = FirstPointerChild(A, None);
+        WindowPtr child = FirstPointerChild(A);
         if (child)
             CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyInferior, A, None);
         else
@@ -384,7 +377,7 @@ CoreEnterLeaveNonLinear(DeviceIntPtr dev,
 
      if (!HasPointer(B))
      {
-         WindowPtr child = FirstPointerChild(B, None);
+         WindowPtr child = FirstPointerChild(B);
          if (child)
              CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyInferior, B, None);
          else
@@ -422,7 +415,7 @@ CoreEnterLeaveToAncestor(DeviceIntPtr dev,
      */
     if (!HasPointer(A))
     {
-        WindowPtr child = FirstPointerChild(A, None);
+        WindowPtr child = FirstPointerChild(A);
         if (child)
             CoreEnterLeaveEvent(dev, LeaveNotify, mode, NotifyInferior, A, None);
         else
@@ -498,7 +491,7 @@ CoreEnterLeaveToDescendant(DeviceIntPtr dev,
 
      if (!HasPointer(B))
      {
-         WindowPtr child = FirstPointerChild(B, None);
+         WindowPtr child = FirstPointerChild(B);
          if (child)
              CoreEnterLeaveEvent(dev, EnterNotify, mode, NotifyInferior, B, None);
          else
