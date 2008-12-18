@@ -965,11 +965,15 @@ RemoveDevice(DeviceIntPtr dev)
         return BadImplementation;
 
     initialized = dev->inited;
-    if (DevHasCursor(dev))
-        screen->DisplayCursor(dev, screen, NullCursor);
-
     deviceid = dev->id;
-    DisableDevice(dev);
+
+    if (initialized)
+    {
+        if (DevHasCursor(dev))
+            screen->DisplayCursor(dev, screen, NullCursor);
+
+        DisableDevice(dev);
+    }
 
     prev = NULL;
     for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
