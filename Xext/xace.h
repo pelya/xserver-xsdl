@@ -61,19 +61,19 @@ extern CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
 /* Entry point for hook functions.  Called by Xserver.
  * Required by libdbe and libextmod
  */
-extern _X_EXPORT int XaceHook(
+_X_EXPORT int XaceHook(
     int /*hook*/,
     ... /*appropriate args for hook*/
     ); 
 
 /* Special-cased hook functions
  */
-extern int XaceHookDispatch(ClientPtr ptr, int major);
-extern int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
-				  PropertyPtr *ppProp, Mask access_mode);
-extern int XaceHookSelectionAccess(ClientPtr ptr,
+int XaceHookDispatch(ClientPtr ptr, int major);
+int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
+			   PropertyPtr *ppProp, Mask access_mode);
+int XaceHookSelectionAccess(ClientPtr ptr,
 				   Selection **ppSel, Mask access_mode);
-extern void XaceHookAuditEnd(ClientPtr ptr, int result);
+void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.
  */
@@ -89,7 +89,7 @@ extern void XaceHookAuditEnd(ClientPtr ptr, int result);
 /* From the original Security extension...
  */
 
-extern void XaceCensorImage(
+void XaceCensorImage(
     ClientPtr client,
     RegionPtr pVisibleRegion,
     long widthBytesLine,

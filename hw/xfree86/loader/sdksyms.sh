@@ -311,6 +311,7 @@ cat > sdksyms.c << EOF
 #include "validate.h"
 #include "window.h"
 #include "windowstr.h"
+#include "xace.h"
 #include "xkbfile.h"
 #include "xkbsrv.h"
 #include "xkbstr.h"

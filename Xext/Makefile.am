@@ -73,6 +73,9 @@ endif
 XACE_SRCS = xace.c xace.h xacestr.h
 if XACE
 BUILTIN_SRCS += $(XACE_SRCS)
+if XORG
+sdk_HEADERS += xace.h xacestr.h
+endif
 endif
 
 # SELinux extension: provides SELinux policy support for X objects

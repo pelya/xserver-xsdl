@@ -29,7 +29,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "gcstruct.h"
 #include "xacestr.h"
 
-CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
+_X_EXPORT CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
 
 /* Special-cased hook functions.  Called by Xserver.
  */
