@@ -183,7 +183,6 @@ typedef struct _Window {
      * FocusIn/Out events for multiple pointers/keyboards. Each device ID
      * corresponds to one bit. If set, the device is in the window/has focus.
      */
-    char                enterleave[(MAXDEVICES + 7)/8];
     char                focusinout[(MAXDEVICES + 7)/8];
 } WindowRec;
 

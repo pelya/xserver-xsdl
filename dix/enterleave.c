@@ -54,6 +54,8 @@
  * events may have a subwindow set to other than None.
  */
 
+static WindowPtr PointerWindows[MAXDEVICES];
+
 /**
  * Return TRUE if @win has a pointer within its boundaries, excluding child
  * window.
@@ -63,8 +65,8 @@ HasPointer(WindowPtr win)
 {
     int i;
 
-    for (i = 0; i < sizeof(win->enterleave); i++)
-        if (win->enterleave[i])
+    for (i = 0; i < MAXDEVICES; i++)
+        if (PointerWindows[i] == win)
             return TRUE;
 
     return FALSE;
@@ -80,57 +82,11 @@ HasPointer(WindowPtr win)
 static WindowPtr
 FirstPointerChild(WindowPtr win)
 {
-    static WindowPtr *queue = NULL;
-    static int queue_size  = 256; /* allocated size of queue */
-
-    WindowPtr child = NULL;
-    int queue_len   = 0;          /* no of elements in queue */
-    int queue_head  = 0;          /* pos of current element  */
-
-    if (!win || !win->firstChild)
-        return NULL;
-
-    if (!queue && !(queue = xcalloc(queue_size, sizeof(WindowPtr))))
-        FatalError("[dix] FirstPointerChild: OOM.\n");
-
-    queue[0] = win;
-    queue_head = 0;
-    queue_len  = 1;
-
-    while (queue_len--)
+    int i;
+    for (i = 0; i < MAXDEVICES; i++)
     {
-        if (queue[queue_head] != win && HasPointer(queue[queue_head]))
-            return queue[queue_head];
-
-        child = queue[queue_head]->firstChild;
-        /* pop children onto queue */
-        while(child)
-        {
-            queue_len++;
-            if (queue_len >= queue_size)
-            {
-                const int inc = 256;
-
-                queue = xrealloc(queue, (queue_size + inc) * sizeof(WindowPtr));
-                if (!queue)
-                    FatalError("[dix] FirstPointerChild: OOM.\n");
-
-                /* Are we wrapped around? */
-                if (queue_head + queue_len > queue_size)
-                {
-                    memmove(&queue[queue_head + inc], &queue[queue_head],
-                            (queue_size - queue_head) * sizeof(WindowPtr));
-                    queue_head += inc;
-                }
-
-                queue_size += inc;
-            }
-
-            queue[(queue_head + queue_len) % queue_size] = child;
-            child = child->nextSib;
-        }
-
-        queue_head = (queue_head + 1) % queue_size;
+        if (PointerWindows[i] && IsParent(win, PointerWindows[i]))
+            return PointerWindows[i];
     }
 
     return NULL;
@@ -143,7 +99,7 @@ FirstPointerChild(WindowPtr win)
 void
 EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 {
-    win->enterleave[dev->id/8] |= (1 << (dev->id % 8));
+    PointerWindows[dev->id] = win;
 }
 
 /**
@@ -152,7 +108,7 @@ EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 static void
 LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 {
-    win->enterleave[dev->id/8] &= ~(1 << (dev->id % 8));
+    PointerWindows[dev->id] = NULL;
 }
 
 
