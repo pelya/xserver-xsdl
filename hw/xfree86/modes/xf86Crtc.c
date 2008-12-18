@@ -120,6 +120,10 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
     /* Preallocate gamma at a sensible size. */
     crtc->gamma_size = 256;
     crtc->gamma_red = malloc(3 * crtc->gamma_size * sizeof (CARD16));
+    if (!crtc->gamma_red) {
+	xfree (crtc);
+	return NULL;
+    }
     crtc->gamma_green = crtc->gamma_red + crtc->gamma_size;
     crtc->gamma_blue = crtc->gamma_green + crtc->gamma_size;
 
