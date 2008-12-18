@@ -216,6 +216,7 @@ typedef struct _xf86CrtcFuncs {
 
     /**
      * Callback for panning. Doesn't change the mode.
+     * Added in ABI version 2
      */
     void
     (*set_origin)(xf86CrtcPtr crtc, int x, int y);
@@ -312,18 +313,19 @@ struct _xf86Crtc {
      * Current transformation matrix
      */
     PictTransform   crtc_to_framebuffer;
-    struct pict_f_transform f_crtc_to_framebuffer;
-    struct pict_f_transform f_framebuffer_to_crtc;
-    PictFilterPtr   filter;
-    xFixed	    *params;
-    int		    nparams;
-    int		    filter_width;
-    int		    filter_height;
+    /* framebuffer_to_crtc was removed in ABI 2 */
+    struct pict_f_transform f_crtc_to_framebuffer; /* ABI 2 */
+    struct pict_f_transform f_framebuffer_to_crtc; /* ABI 2 */
+    PictFilterPtr   filter; /* ABI 2 */
+    xFixed	    *params; /* ABI 2 */
+    int		    nparams; /* ABI 2 */
+    int		    filter_width; /* ABI 2 */
+    int		    filter_height; /* ABI 2 */
     Bool	    transform_in_use;
-    RRTransformRec  transform;
-    Bool	    transformPresent;
-    RRTransformRec  desiredTransform;
-    Bool	    desiredTransformPresent;
+    RRTransformRec  transform; /* ABI 2 */
+    Bool	    transformPresent; /* ABI 2 */
+    RRTransformRec  desiredTransform; /* ABI 2 */
+    Bool	    desiredTransformPresent; /* ABI 2 */
     /**
      * Bounding box in screen space
      */
@@ -333,6 +335,7 @@ struct _xf86Crtc {
      * TotalArea: total panning area, larger than CRTC's size
      * TrackingArea: Area of the pointer for which the CRTC is panned
      * border: Borders of the displayed CRTC area which induces panning if the pointer reaches them
+     * Added in ABI version 2
      */
     BoxRec          panningTotalArea;
     BoxRec          panningTrackingArea;
@@ -591,7 +594,10 @@ struct _xf86Output {
 #else
     void		*randr_output;
 #endif
-    /** Desired initial panning */
+    /** 
+     * Desired initial panning
+     * Added in ABI version 2
+     */
     BoxRec          initialTotalArea;
     BoxRec          initialTrackingArea;
     INT16           initialBorder[4];
