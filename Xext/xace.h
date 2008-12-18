@@ -85,6 +85,10 @@ void XaceHookAuditEnd(ClientPtr ptr, int result);
 #define XaceDeleteCallback(hook,callback,data) \
     DeleteCallback(XaceHooks+(hook), callback, data)
 
+/* XTrans wrappers for use by security modules
+ */
+_X_EXPORT int XaceGetConnectionNumber(ClientPtr ptr);
+_X_EXPORT int XaceIsLocal(ClientPtr ptr);
 
 /* From the original Security extension...
  */
