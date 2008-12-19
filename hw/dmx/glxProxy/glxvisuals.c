@@ -37,6 +37,7 @@
 #include "glxserver.h"
 #include "glxutil.h"
 #include "dmx_glxvisuals.h"
+#include <stdlib.h>
 
 static int                 numConfigs     = 0;
 static __GLXvisualConfig  *visualConfigs  = NULL;
