@@ -38,6 +38,13 @@ extern void DoEnterLeaveEvents(
     int mode
 );
 
+extern void DoFocusEvents(
+    DeviceIntPtr pDev,
+    WindowPtr fromWin,
+    WindowPtr toWin,
+    int mode
+);
+
 extern void EnterLeaveEvent(
     DeviceIntPtr mouse,
     int type,
@@ -67,4 +74,22 @@ extern void EnterWindow(DeviceIntPtr dev,
                         WindowPtr win,
                         int mode);
 
+
+extern void CoreFocusEvent(DeviceIntPtr kbd,
+                           int type,
+                           int mode,
+                           int detail,
+                           WindowPtr pWin);
+
+extern void DeviceFocusEvent(DeviceIntPtr kbd,
+                             int type,
+                             int mode,
+                             int detail,
+                             WindowPtr pWin);
+
+extern void SetFocusIn(DeviceIntPtr kbd,
+                       WindowPtr win);
+
+extern void SetFocusOut(DeviceIntPtr dev,
+                        WindowPtr win);
 #endif /* _ENTERLEAVE_H_ */

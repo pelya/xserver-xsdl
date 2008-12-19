@@ -4341,261 +4341,30 @@ DeviceEnterLeaveEvent(
 
 }
 
-static void
-FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
+void
+CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 {
     xEvent event;
-    int numFoci; /* zero if no device has focus on window */
-    Bool sendevent = FALSE;
 
-    if (dev != inputInfo.keyboard)
-	DeviceFocusEvent(dev, type, mode, detail, pWin);
-
-    /*
-     * Same procedure as for Enter/Leave events.
-     *
-     * Sending multiple core FocusIn/Out events to the same window may confuse
-     * the client.
-     * We can send multiple events that have detail NotifyVirtual,
-     * NotifyNonlinearVirtual, NotifyPointerRoot, NotifyDetailNone or
-     * NotifyPointer however.
-     *
-     * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
-     * we only send an FocusIn event for the first kbd to set the focus. A
-     * FocusOut event is sent for the last kbd to set the focus away from the
-     * window.
-     *
-     * For events with Virtual detail, we send them only to a window that does
-     * not have a focus from another keyboard.
-     *
-     * For a window tree in the form of
-     *
-     * A -> Bf -> C -> D
-     *  \               (where B and E have focus)
-     *    -> Ef
-     *
-     * If the focus changes from E into D, a FocusOut is sent to E, a
-     * FocusIn is sent to D, a FocusIn with detail
-     * NotifyNonlinearVirtual to C and nothing to B.
-     */
-
-    if (dev->isMaster && type == FocusOut &&
-            (detail != NotifyVirtual &&
-             detail != NotifyNonlinearVirtual &&
-             detail != NotifyPointer &&
-             detail != NotifyPointerRoot &&
-             detail != NotifyDetailNone))
-       FOCUS_SEMAPHORE_UNSET(pWin, dev);
-
-    numFoci = FocusSemaphoresIsset(pWin);
-
-    if (!numFoci)
-        sendevent = TRUE;
-    else if (mode == NotifyUngrab && FOCUS_SEMAPHORE_ISSET(pWin, dev))
-        sendevent = TRUE;
-
-    if (sendevent)
+    event.u.focus.mode = mode;
+    event.u.u.type = type;
+    event.u.u.detail = detail;
+    event.u.focus.window = pWin->drawable.id;
+    (void)DeliverEventsToWindow(dev, pWin, &event, 1,
+            filters[dev->id][type], NullGrab, 0);
+    if ((type == FocusIn) &&
+            ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
-        event.u.focus.mode = mode;
-        event.u.u.type = type;
-        event.u.u.detail = detail;
-        event.u.focus.window = pWin->drawable.id;
-        (void)DeliverEventsToWindow(dev, pWin, &event, 1,
-                                    filters[dev->id][type], NullGrab, 0);
-        if ((type == FocusIn) &&
-                ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
-        {
-            xKeymapEvent ke;
-            ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-            if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-                memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
-            else
-                bzero((char *)&ke.map[0], 31);
+        xKeymapEvent ke;
+        ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
+        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
+        else
+            bzero((char *)&ke.map[0], 31);
 
-            ke.type = KeymapNotify;
-            (void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
-                                        KeymapStateMask, NullGrab, 0);
-        }
-    }
-
-    if (dev->isMaster && type == FocusIn &&
-            (detail != NotifyVirtual &&
-             detail != NotifyNonlinearVirtual &&
-             detail != NotifyPointer &&
-             detail != NotifyPointerRoot &&
-             detail != NotifyDetailNone))
-        FOCUS_SEMAPHORE_SET(pWin, dev);
-}
-
- /*
-  * recursive because it is easier
-  * no-op if child not descended from ancestor
-  */
-static Bool
-FocusInEvents(
-    DeviceIntPtr dev,
-    WindowPtr ancestor, WindowPtr child, WindowPtr skipChild,
-    int mode, int detail,
-    Bool doAncestor)
-{
-    if (child == NullWindow)
-	return ancestor == NullWindow;
-    if (ancestor == child)
-    {
-	if (doAncestor)
-	    FocusEvent(dev, FocusIn, mode, detail, child);
-	return TRUE;
-    }
-    if (FocusInEvents(dev, ancestor, child->parent, skipChild, mode, detail,
-		      doAncestor))
-    {
-	if (child != skipChild)
-	    FocusEvent(dev, FocusIn, mode, detail, child);
-	return TRUE;
-    }
-    return FALSE;
-}
-
-/* dies horribly if ancestor is not an ancestor of child */
-static void
-FocusOutEvents(
-    DeviceIntPtr dev,
-    WindowPtr child, WindowPtr ancestor,
-    int mode, int detail,
-    Bool doAncestor)
-{
-    WindowPtr  pWin;
-
-    for (pWin = child; pWin != ancestor; pWin = pWin->parent)
-	FocusEvent(dev, FocusOut, mode, detail, pWin);
-    if (doAncestor)
-	FocusEvent(dev, FocusOut, mode, detail, ancestor);
-}
-
-void
-DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
-{
-    int     out, in;		       /* for holding details for to/from
-				          PointerRoot/None */
-    int     i;
-    SpritePtr pSprite = dev->spriteInfo->sprite;
-
-    if (fromWin == toWin)
-	return;
-    out = (fromWin == NoneWin) ? NotifyDetailNone : NotifyPointerRoot;
-    in = (toWin == NoneWin) ? NotifyDetailNone : NotifyPointerRoot;
- /* wrong values if neither, but then not referenced */
-
-    if ((toWin == NullWindow) || (toWin == PointerRootWin))
-    {
-	if ((fromWin == NullWindow) || (fromWin == PointerRootWin))
-	{
-	    if (fromWin == PointerRootWin)
-                FocusOutEvents(dev, pSprite->win, RootWindow(dev), mode,
-                               NotifyPointer, TRUE);
-	    /* Notify all the roots */
-#ifdef PANORAMIX
-	    if ( !noPanoramiXExtension )
-	        FocusEvent(dev, FocusOut, mode, out, WindowTable[0]);
-	    else
-#endif
-	        for (i=0; i<screenInfo.numScreens; i++)
-	            FocusEvent(dev, FocusOut, mode, out, WindowTable[i]);
-	}
-	else
-	{
-	    if (IsParent(fromWin, pSprite->win))
-	      FocusOutEvents(dev, pSprite->win, fromWin, mode, NotifyPointer,
-			     FALSE);
-	    FocusEvent(dev, FocusOut, mode, NotifyNonlinear, fromWin);
-	    /* next call catches the root too, if the screen changed */
-	    FocusOutEvents(dev, fromWin->parent, NullWindow, mode,
-			   NotifyNonlinearVirtual, FALSE);
-	}
-	/* Notify all the roots */
-#ifdef PANORAMIX
-	if ( !noPanoramiXExtension )
-	    FocusEvent(dev, FocusIn, mode, in, WindowTable[0]);
-	else
-#endif
-	    for (i=0; i<screenInfo.numScreens; i++)
-	        FocusEvent(dev, FocusIn, mode, in, WindowTable[i]);
-	if (toWin == PointerRootWin)
-	    (void)FocusInEvents(dev, RootWindow(dev), pSprite->win,
-				NullWindow, mode, NotifyPointer, TRUE);
-    }
-    else
-    {
-	if ((fromWin == NullWindow) || (fromWin == PointerRootWin))
-	{
-	    if (fromWin == PointerRootWin)
-		FocusOutEvents(dev, pSprite->win, RootWindow(dev), mode,
-			       NotifyPointer, TRUE);
-#ifdef PANORAMIX
-	    if ( !noPanoramiXExtension )
-	        FocusEvent(dev, FocusOut, mode, out, WindowTable[0]);
-	    else
-#endif
-	        for (i=0; i<screenInfo.numScreens; i++)
-	            FocusEvent(dev, FocusOut, mode, out, WindowTable[i]);
-	    if (toWin->parent != NullWindow)
-	      (void)FocusInEvents(dev, RootWindow(dev), toWin, toWin, mode,
-				  NotifyNonlinearVirtual, TRUE);
-	    FocusEvent(dev, FocusIn, mode, NotifyNonlinear, toWin);
-	    if (IsParent(toWin, pSprite->win))
-	       (void)FocusInEvents(dev, toWin, pSprite->win, NullWindow, mode,
-				   NotifyPointer, FALSE);
-	}
-	else
-	{
-	    if (IsParent(toWin, fromWin))
-	    {
-		FocusEvent(dev, FocusOut, mode, NotifyAncestor, fromWin);
-		FocusOutEvents(dev, fromWin->parent, toWin, mode,
-			       NotifyVirtual, FALSE);
-		FocusEvent(dev, FocusIn, mode, NotifyInferior, toWin);
-		if ((IsParent(toWin, pSprite->win)) &&
-			(pSprite->win != fromWin) &&
-			(!IsParent(fromWin, pSprite->win)) &&
-			(!IsParent(pSprite->win, fromWin)))
-		    (void)FocusInEvents(dev, toWin, pSprite->win, NullWindow,
-					mode, NotifyPointer, FALSE);
-	    }
-	    else
-		if (IsParent(fromWin, toWin))
-		{
-		    if ((IsParent(fromWin, pSprite->win)) &&
-			    (pSprite->win != fromWin) &&
-			    (!IsParent(toWin, pSprite->win)) &&
-			    (!IsParent(pSprite->win, toWin)))
-			FocusOutEvents(dev, pSprite->win, fromWin, mode,
-				       NotifyPointer, FALSE);
-		    FocusEvent(dev, FocusOut, mode, NotifyInferior, fromWin);
-		    (void)FocusInEvents(dev, fromWin, toWin, toWin, mode,
-					NotifyVirtual, FALSE);
-		    FocusEvent(dev, FocusIn, mode, NotifyAncestor, toWin);
-		}
-		else
-		{
-		/* neither fromWin or toWin is child of other */
-		    WindowPtr common = CommonAncestor(toWin, fromWin);
-		/* common == NullWindow ==> different screens */
-		    if (IsParent(fromWin, pSprite->win))
-			FocusOutEvents(dev, pSprite->win, fromWin, mode,
-				       NotifyPointer, FALSE);
-		    FocusEvent(dev, FocusOut, mode, NotifyNonlinear, fromWin);
-		    if (fromWin->parent != NullWindow)
-		      FocusOutEvents(dev, fromWin->parent, common, mode,
-				     NotifyNonlinearVirtual, FALSE);
-		    if (toWin->parent != NullWindow)
-		      (void)FocusInEvents(dev, common, toWin, toWin, mode,
-					  NotifyNonlinearVirtual, FALSE);
-		    FocusEvent(dev, FocusIn, mode, NotifyNonlinear, toWin);
-		    if (IsParent(toWin, pSprite->win))
-			(void)FocusInEvents(dev, toWin, pSprite->win, NullWindow,
-					    mode, NotifyPointer, FALSE);
-		}
-	}
+        ke.type = KeymapNotify;
+        (void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
+                KeymapStateMask, NullGrab, 0);
     }
 }
 
@@ -6142,20 +5911,5 @@ ExtGrabDevice(ClientPtr client,
 
     (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
     return GrabSuccess;
-}
-
-/*
- * @return Zero if no devices has focus on the window, non-zero otherwise.
- */
-int
-FocusSemaphoresIsset(WindowPtr win)
-{
-    int set = 0;
-    int i;
-
-    for (i = 0; i < (MAXDEVICES + 7)/8; i++)
-        set += win->focusinout[i];
-
-    return set;
 }
 

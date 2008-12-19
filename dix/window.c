@@ -300,8 +300,6 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->redirectDraw = RedirectDrawNone;
     pWin->forcedBG = FALSE;
 
-    memset(pWin->focusinout, 0, sizeof(pWin->focusinout));
-
 #ifdef ROOTLESS
     pWin->rootlessUnhittable = FALSE;
 #endif

@@ -509,8 +509,6 @@ extern _X_EXPORT int AllocMasterDevice(ClientPtr client,
 extern _X_EXPORT void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
 
-extern _X_EXPORT int FocusSemaphoresIsset(WindowPtr win);
-
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(
     InputOption *options,
