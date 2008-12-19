@@ -62,6 +62,11 @@ BUILT_SOURCES = xorg.conf.example
 DISTCLEANFILES += xorg.conf.example xorg.conf.example.pre
 EXTRA_DIST = xorgconf.cpp
 
+if XSERVER_DTRACE
+# Re-add dtrace object code that gets lost when building static libraries
+Xorg_LDADD += $(XSERVER_LIBS)
+endif
+
 if SOLARIS_ASM_INLINE
 # Needs to be built before any files are compiled when using Sun compilers
 # so in*/out* inline definitions are properly processed.
