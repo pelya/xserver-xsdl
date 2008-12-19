@@ -72,7 +72,7 @@ exaGetPixmapOffset(PixmapPtr pPix)
 {
     ExaScreenPriv (pPix->drawable.pScreen);
 
-    return ((unsigned long)ExaGetPixmapAddress(pPix) -
+    return ((unsigned long)(unsigned long *)ExaGetPixmapAddress(pPix) -
 	    (unsigned long)pExaScr->info->memoryBase);
 }
 
@@ -129,7 +129,7 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
 	return pDrawable->pScreen->GetWindowPixmap ((WindowPtr) pDrawable);
      else
 	return (PixmapPtr) pDrawable;
-}	
+}
 
 /**
  * Sets the offsets to add to coordinates to make them address the same bits in
@@ -166,7 +166,7 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
 
     if (!pExaPixmap || !pExaPixmap->pDamage)
 	return;
-	
+
     box.x1 = max(x1, 0);
     box.y1 = max(y1, 0);
     box.x2 = min(x2, pPix->drawable.width);
@@ -368,7 +368,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	/* This is used by exa to optimize migration. */
 	DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
     }
- 
+
     pExaPixmap->area = NULL;
 
     /* None of the pixmap bits are valid initially */
@@ -691,11 +691,11 @@ exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 static RegionPtr
 exaBitmapToRegion(PixmapPtr pPix)
 {
-  RegionPtr ret;
-  exaPrepareAccess(&pPix->drawable, EXA_PREPARE_SRC);
-  ret = fbPixmapToRegion(pPix);
-  exaFinishAccess(&pPix->drawable, EXA_PREPARE_SRC);
-  return ret;
+    RegionPtr ret;
+    exaPrepareAccess(&pPix->drawable, EXA_PREPARE_SRC);
+    ret = fbPixmapToRegion(pPix);
+    exaFinishAccess(&pPix->drawable, EXA_PREPARE_SRC);
+    return ret;
 }
 
 static Bool
