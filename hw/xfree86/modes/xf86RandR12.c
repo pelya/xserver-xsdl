@@ -210,14 +210,14 @@ xf86RandR13Pan (xf86CrtcPtr crtc, int x, int y)
     }
     /* Validate against [xy]1 after [xy]2, to be sure that results are > 0 for [xy]1 > 0 */
     if (crtc->panningTotalArea.x2 > crtc->panningTotalArea.x1) {
-	if (newX >= crtc->panningTotalArea.x2 - width)
-	    newX =  crtc->panningTotalArea.x2 - width - 1;
+	if (newX > crtc->panningTotalArea.x2 - width)
+	    newX =  crtc->panningTotalArea.x2 - width;
 	if (newX <  crtc->panningTotalArea.x1)
 	    newX =  crtc->panningTotalArea.x1;
     }
     if (crtc->panningTotalArea.y2 > crtc->panningTotalArea.y1) {
-	if (newY >= crtc->panningTotalArea.y2 - height)
-	    newY =  crtc->panningTotalArea.y2 - height - 1;
+	if (newY > crtc->panningTotalArea.y2 - height)
+	    newY =  crtc->panningTotalArea.y2 - height;
 	if (newY <  crtc->panningTotalArea.y1)
 	    newY =  crtc->panningTotalArea.y1;
     }
