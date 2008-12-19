@@ -275,17 +275,5 @@ extern _X_EXPORT int XvdiGrabPort(ClientPtr, XvPortPtr, Time, int *);
 extern _X_EXPORT int XvdiUngrabPort( ClientPtr, XvPortPtr, Time);
 #endif /* XorgLoader */
 
-
-#if !defined(UNIXCPP)
-
-#define XVCALL(name) Xv##name
-
-#else
-
-#define XVCALL(name) Xv/**/name
-
-#endif
-
-
 #endif /* XVDIX_H */
 

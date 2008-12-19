@@ -560,17 +560,15 @@ ProcXvPutVideo(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
     }
 
-  return XVCALL(diPutVideo)(client, pDraw, pPort, pGC,
-			    stuff->vid_x, stuff->vid_y,
-			    stuff->vid_w, stuff->vid_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h);
+  return XvdiPutVideo(client, pDraw, pPort, pGC, stuff->vid_x, stuff->vid_y,
+		      stuff->vid_w, stuff->vid_h, stuff->drw_x, stuff->drw_y,
+		      stuff->drw_w, stuff->drw_h);
 }
 
 static int
@@ -605,17 +603,15 @@ ProcXvPutStill(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
     }
 
-  return XVCALL(diPutStill)(client, pDraw, pPort, pGC,
-			    stuff->vid_x, stuff->vid_y,
-			    stuff->vid_w, stuff->vid_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h);
+  return XvdiPutStill(client, pDraw, pPort, pGC, stuff->vid_x, stuff->vid_y,
+		      stuff->vid_w, stuff->vid_h, stuff->drw_x, stuff->drw_y,
+		      stuff->drw_w, stuff->drw_h);
 }
 
 static int
@@ -650,17 +646,15 @@ ProcXvGetVideo(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
     }
 
-  return XVCALL(diGetVideo)(client, pDraw, pPort, pGC,
-			    stuff->vid_x, stuff->vid_y,
-			    stuff->vid_w, stuff->vid_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h);
+  return XvdiGetVideo(client, pDraw, pPort, pGC, stuff->vid_x, stuff->vid_y,
+		      stuff->vid_w, stuff->vid_h, stuff->drw_x, stuff->drw_y,
+		      stuff->drw_w, stuff->drw_h);
 }
 
 static int
@@ -695,17 +689,15 @@ ProcXvGetStill(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
     }
 
-  return XVCALL(diGetStill)(client, pDraw, pPort, pGC,
-			    stuff->vid_x, stuff->vid_y,
-			    stuff->vid_w, stuff->vid_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h);
+  return XvdiGetStill(client, pDraw, pPort, pGC, stuff->vid_x, stuff->vid_y,
+		      stuff->vid_w, stuff->vid_h, stuff->drw_x, stuff->drw_y,
+		      stuff->drw_w, stuff->drw_h);
 }
 
 static int
@@ -720,7 +712,7 @@ ProcXvSelectVideoNotify(ClientPtr client)
   if (rc != Success)
     return rc;
 
-  return XVCALL(diSelectVideoNotify)(client, pDraw, stuff->onoff);
+  return XvdiSelectVideoNotify(client, pDraw, stuff->onoff);
 }
 
 static int
@@ -743,7 +735,7 @@ ProcXvSelectPortNotify(ClientPtr client)
       return (status);
     }
 
-  return XVCALL(diSelectPortNotify)(client, pPort, stuff->onoff);
+  return XvdiSelectPortNotify(client, pPort, stuff->onoff);
 }
 
 static int
@@ -767,7 +759,7 @@ ProcXvGrabPort(ClientPtr client)
       return (status);
     }
 
-  status = XVCALL(diGrabPort)(client, pPort, stuff->time, &result);
+  status = XvdiGrabPort(client, pPort, stuff->time, &result);
 
   if (status != Success)
     {
@@ -804,7 +796,7 @@ ProcXvUngrabPort(ClientPtr client)
       return (status);
     }
 
-  return XVCALL(diUngrabPort)(client, pPort, stuff->time);
+  return XvdiUngrabPort(client, pPort, stuff->time);
 }
 
 static int
@@ -832,7 +824,7 @@ ProcXvStopVideo(ClientPtr client)
   if (rc != Success)
     return rc;
 
-  return XVCALL(diStopVideo)(client, pPort, pDraw);
+  return XvdiStopVideo(client, pPort, pDraw);
 }
 
 static int
@@ -861,8 +853,7 @@ ProcXvSetPortAttribute(ClientPtr client)
       return(BadAtom);
     }
 
-  status = XVCALL(diSetPortAttribute)(client, pPort, 
-				    stuff->attribute, stuff->value);
+  status = XvdiSetPortAttribute(client, pPort, stuff->attribute, stuff->value);
 
   if (status == BadMatch) 
       client->errorValue = stuff->attribute;
@@ -900,7 +891,7 @@ ProcXvGetPortAttribute(ClientPtr client)
       return(BadAtom);
     }
 
-  status = XVCALL(diGetPortAttribute)(client, pPort, stuff->attribute, &value);
+  status = XvdiGetPortAttribute(client, pPort, stuff->attribute, &value);
   if (status != Success)
     {
       client->errorValue = stuff->attribute;
@@ -1048,7 +1039,7 @@ ProcXvPutImage(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
@@ -1077,13 +1068,11 @@ ProcXvPutImage(ClientPtr client)
   if(client->req_len < size)
      return BadLength;
 
-  return XVCALL(diPutImage)(client, pDraw, pPort, pGC, 
-			    stuff->src_x, stuff->src_y,
-			    stuff->src_w, stuff->src_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h,
-			    pImage, (unsigned char*)(&stuff[1]), FALSE,
-			    stuff->width, stuff->height);
+  return XvdiPutImage(client, pDraw, pPort, pGC, stuff->src_x, stuff->src_y,
+		      stuff->src_w, stuff->src_h, stuff->drw_x, stuff->drw_y,
+		      stuff->drw_w, stuff->drw_h, pImage,
+		      (unsigned char*)(&stuff[1]), FALSE,
+		      stuff->width, stuff->height);
 }
 
 #ifdef MITSHM
@@ -1136,7 +1125,7 @@ ProcXvShmPutImage(ClientPtr client)
       return (BadMatch);
     }
 
-  status = XVCALL(diMatchPort)(pPort, pDraw);
+  status = XvdiMatchPort(pPort, pDraw);
   if (status != Success)
     {
       return status;
@@ -1168,13 +1157,11 @@ ProcXvShmPutImage(ClientPtr client)
   if((width < stuff->width) || (height < stuff->height))
      return BadValue;
      
-  status = XVCALL(diPutImage)(client, pDraw, pPort, pGC, 
-			    stuff->src_x, stuff->src_y,
-			    stuff->src_w, stuff->src_h,
-			    stuff->drw_x, stuff->drw_y,
-			    stuff->drw_w, stuff->drw_h, pImage,
-			    (unsigned char *)shmdesc->addr + stuff->offset, 
-			    stuff->send_event, stuff->width, stuff->height);
+  status = XvdiPutImage(client, pDraw, pPort, pGC, stuff->src_x, stuff->src_y,
+			stuff->src_w, stuff->src_h, stuff->drw_x, stuff->drw_y,
+			stuff->drw_w, stuff->drw_h, pImage,
+			(unsigned char *)shmdesc->addr + stuff->offset, 
+			stuff->send_event, stuff->width, stuff->height);
 
   if((status == Success) && stuff->send_event) {
         xShmCompletionEvent ev;

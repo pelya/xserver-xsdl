@@ -857,7 +857,7 @@ XvdiGrabPort(
 
   if ((pPort->pDraw) && (client != pPort->client))
     {
-      XVCALL(diStopVideo)((ClientPtr)NULL, pPort, pPort->pDraw);
+      XvdiStopVideo((ClientPtr)NULL, pPort, pPort->pDraw);
     }
 
   pPort->grab.client = client;
