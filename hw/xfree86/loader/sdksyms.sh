@@ -324,7 +324,7 @@ topdir=$1
 shift
 LC_ALL=C
 export LC_ALL
-cpp -DXorgLoader $@ sdksyms.c | awk -v topdir=$topdir '
+${CPP:-cpp} "$@" -DXorgLoader sdksyms.c | ${AWK:-awk} -v topdir=$topdir '
 BEGIN {
     sdk = 0;
     print("/*");
@@ -334,7 +334,7 @@ BEGIN {
     printf("/* topdir=%s */\n", topdir);
     print("_X_HIDDEN void *xorg_symbols[] = {");
 }
-/^# [0-9]+/ {
+/^# [0-9]+ "/ {
     #   Process text after a include in a relative path or when the
     # processed file has a basename matching $top_srcdir.
     #   Note that indexing starts at 1; 0 means no match, and there
