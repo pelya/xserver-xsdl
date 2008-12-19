@@ -55,6 +55,7 @@
  */
 
 static WindowPtr PointerWindows[MAXDEVICES];
+static WindowPtr FocusWindows[MAXDEVICES];
 
 /**
  * Return TRUE if @win has a pointer within its boundaries, excluding child
@@ -67,6 +68,17 @@ HasPointer(WindowPtr win)
 
     for (i = 0; i < MAXDEVICES; i++)
         if (PointerWindows[i] == win)
+            return TRUE;
+
+    return FALSE;
+}
+
+static BOOL
+HasFocus(WindowPtr win)
+{
+    int i;
+    for (i = 0; i < MAXDEVICES; i++)
+        if (FocusWindows[i] == win)
             return TRUE;
 
     return FALSE;
@@ -92,6 +104,28 @@ FirstPointerChild(WindowPtr win)
     return NULL;
 }
 
+/**
+ * Search for the first window below @win that has a pointer directly within
+ * it's boundaries (excluding boundaries of its own descendants).
+ *
+ * @return The child window that has the pointer within its boundaries or
+ *         NULL.
+ */
+static WindowPtr
+FirstFocusChild(WindowPtr win)
+{
+    int i;
+    for (i = 0; i < MAXDEVICES; i++)
+    {
+        if (FocusWindows[i] && FocusWindows[i] != PointerRootWin &&
+            IsParent(win, FocusWindows[i]))
+            return FocusWindows[i];
+    }
+
+    return NULL;
+}
+
+
 
 /**
  * Set the presence flag for @dev to mark that it is now in @win.
@@ -110,6 +144,26 @@ LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 {
     PointerWindows[dev->id] = NULL;
 }
+
+/**
+ * Set the presence flag for @dev to mark that it is now in @win.
+ */
+void
+SetFocusIn(DeviceIntPtr dev, WindowPtr win)
+{
+    FocusWindows[dev->id] = win;
+}
+
+/**
+ * Unset the presence flag for @dev to mark that it is not in @win anymore.
+ */
+void
+SetFocusOut(DeviceIntPtr dev, WindowPtr win)
+{
+    FocusWindows[dev->id] = NULL;
+}
+
+
 
 
 /**
