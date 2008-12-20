@@ -3929,7 +3929,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	    if (xE->u.u.detail == 0)
 		return;
             filters[mouse->id][Motion_Filter(butc)] = MotionNotify;
-	    if (!butc->state && mouse->deviceGrab.fromPassiveGrab)
+	    if (!butc->buttonsDown && mouse->deviceGrab.fromPassiveGrab)
 		deactivateGrab = TRUE;
 	    break;
 	default:
