@@ -72,8 +72,7 @@ exaGetPixmapOffset(PixmapPtr pPix)
 {
     ExaScreenPriv (pPix->drawable.pScreen);
 
-    return ((unsigned long)(unsigned long *)ExaGetPixmapAddress(pPix) -
-	    (unsigned long)pExaScr->info->memoryBase);
+    return (CARD8 *)ExaGetPixmapAddress(pPix) - pExaScr->info->memoryBase;
 }
 
 void *
