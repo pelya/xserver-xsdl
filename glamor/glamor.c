@@ -74,6 +74,18 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
     return fbDestroyPixmap(pixmap);
 }
 
+static void
+glamor_block_handler(void *data, OSTimePtr wt, void *last_select_mask)
+{
+    glFlush();
+}
+
+static void
+glamor_wakeup_handler(void *data, OSTimePtr wt, void *last_select_mask)
+{
+    glFlush();
+}
+
 /** Set up glamor for an already-configured GL context. */
 Bool
 glamor_init(ScreenPtr screen)
@@ -85,6 +97,14 @@ glamor_init(ScreenPtr screen)
 	return FALSE;
 
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, glamor_priv);
+
+    if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
+					glamor_wakeup_handler,
+					NULL)) {
+	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, NULL);
+	xfree(glamor_priv);
+	return FALSE;
+    }
 
     glamor_priv->saved_create_gc = screen->CreateGC;
     screen->CreateGC = glamor_create_gc;
