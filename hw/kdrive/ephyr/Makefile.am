@@ -24,8 +24,7 @@ bin_PROGRAMS = Xephyr
 
 HOSTX_SRCS =			\
 	hostx.c			\
-	hostx.h			\
-	ephyr_host_glamor.c
+	hostx.h
 
 HOSTVIDEO_SRCS =		\
 	ephyrvideo.c		\

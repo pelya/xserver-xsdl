@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <string.h> 		/* for memset */
 #include <time.h>
+#include <err.h>
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -61,6 +62,7 @@
 #include <GL/glx.h>
 #endif /* XF86DRI */
 #include "ephyrlog.h"
+#include "GL/glx.h"
 
 #ifdef XF86DRI
 extern Bool XF86DRIQueryExtension (Display *dpy,
@@ -1445,3 +1447,36 @@ hostx_has_glx (void)
 }
 
 #endif /* XF86DRI */
+
+void
+ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
+{
+    Display *dpy = hostx_get_display();
+    int attribs[] = {GLX_RGBA,
+		     GLX_RED_SIZE, 1,
+		     GLX_GREEN_SIZE, 1,
+		     GLX_BLUE_SIZE, 1,
+		     None};
+    XVisualInfo *visual_info;
+    GLXContext ctx;
+    struct EphyrHostScreen *host_screen;
+    int event_base = 0, error_base = 0;
+
+    host_screen = host_screen_from_screen_info(ephyr_screen);
+
+    if (!glXQueryExtension (dpy, &event_base, &error_base))
+        errx(1, "Couldn't find GLX extension\n");
+
+    visual_info = glXChooseVisual(dpy, DefaultScreen(dpy), attribs);
+    if (visual_info == NULL)
+	errx(1, "Couldn't get RGB visual\n");
+
+    ctx = glXCreateContext(dpy, visual_info, NULL, True);
+    if (ctx == NULL)
+	errx(1, "glXCreateContext failed\n");
+
+    if (!glXMakeCurrent(dpy, host_screen->win, ctx))
+	errx(1, "glXMakeCurrent failed\n");
+
+    XFree(visual_info);
+}
