@@ -36,22 +36,86 @@
 #endif
 
 #include <stdlib.h>
+#include "GL/gl.h"
 
 #include "glamor_priv.h"
 
 static void
-glamor_fill_spans(DrawablePtr drawable, GCPtr gc, int n,
-		  DDXPointPtr points, int *width, int sorted)
+glamor_set_color_from_fgpixel(PixmapPtr pixmap, unsigned long fg_pixel)
 {
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-    PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
+    glColor4ub((fg_pixel >> 16) & 0xff,
+	       (fg_pixel >> 8) & 0xff,
+	       (fg_pixel) & 0xff,
+	       (fg_pixel >> 24) & 0xff);
+}
 
-    if (1 || screen_pixmap != dest_pixmap) {
-	fbFillSpans(drawable, gc, n, points, width, sorted);
-    } else {
-	ErrorF("stub fill_spans\n");
+static Bool
+glamor_set_destination_pixmap(PixmapPtr pixmap)
+{
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+    if (pixmap != screen_pixmap) {
+	ErrorF("stubbed drawing to non-screen pixmap\n");
+	return FALSE;
     }
+
+    glViewport(0, 0,
+	       screen_pixmap->drawable.width,
+	       screen_pixmap->drawable.height);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, screen_pixmap->drawable.width,
+	    0, screen_pixmap->drawable.height,
+	    -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    return TRUE;
+}
+
+void
+glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+	     unsigned char alu, unsigned long planemask, unsigned long fg_pixel)
+{
+    int x1 = x;
+    int x2 = x + width;
+    int y1 = y;
+    int y2 = y + height;
+
+    if (!glamor_set_destination_pixmap(pixmap))
+	return;
+    glamor_set_color_from_fgpixel(pixmap, fg_pixel);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x1, y1);
+    glVertex2f(x1, y2);
+    glVertex2f(x2, y2);
+    glVertex2f(x2, y1);
+    glEnd();
+
+    glFlush();
+}
+
+void
+glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
+	       int x, int y, int width, int height,
+	       unsigned char alu, unsigned long planemask,
+	       unsigned long fg_pixel, unsigned long bg_pixel,
+	       int stipple_x, int stipple_y)
+{
+    ErrorF("stubbed out stipple\n");
+}
+
+void
+glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+	    int x, int y, int width, int height,
+	    unsigned char alu, unsigned long planemask,
+	    int tile_x, int tile_y)
+{
+    ErrorF("stubbed out tile\n");
 }
 
 static void
@@ -62,7 +126,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
 
-    if (1 || screen_pixmap != dest_pixmap) {
+    if (screen_pixmap != dest_pixmap) {
 	fbPutImage(drawable, gc, depth, x, y, w, h, leftPad, format, bits);
     } else {
 	ErrorF("stub put_image\n");
@@ -71,19 +135,29 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 static void
 glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
-		 DDXPointPtr points, int *width, int n, int sorted)
+		 DDXPointPtr points, int *widths, int n, int sorted)
 {
     ScreenPtr screen = drawable->pScreen;
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
 
-    if (1 || screen_pixmap != dest_pixmap) {
-	fbSetSpans(drawable, gc, src, points, width, n, sorted);
+    if (screen_pixmap != dest_pixmap) {
+	fbSetSpans(drawable, gc, src, points, widths, n, sorted);
     } else {
-	ErrorF("stub set_spans\n");
+	int i;
+
+	if (!glamor_set_destination_pixmap(dest_pixmap))
+	    return;
+	for (i = 0; i < n; i++) {
+	    glDrawPixels(points[i].x - dest_pixmap->screen_x,
+			 points[i].y - dest_pixmap->screen_y,
+			 widths[i],
+			 1,
+			 src);
+	    src += PixmapBytePad(widths[i], drawable->depth);
+	}
     }
 }
-
 
 /**
  * glamor_poly_lines() checks if it can accelerate the lines as a group of
@@ -104,7 +178,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0 || gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	if (1 || dest_pixmap != screen_pixmap)
+	if (dest_pixmap != screen_pixmap)
 	    fbPolyLine(drawable, gc, mode, n, points);
 	else
 	    ErrorF("stub poly_line\n");
@@ -126,7 +200,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 
 	if (x1 != x2 && y1 != y2) {
 	    xfree(rects);
-	    if (1 || dest_pixmap != screen_pixmap)
+	    if (dest_pixmap != screen_pixmap)
 		fbPolyLine(drawable, gc, mode, n, points);
 	    else
 		ErrorF("stub poly_line\n");

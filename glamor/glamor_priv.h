@@ -49,5 +49,33 @@ PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
 /* glamor_core.c */
 Bool glamor_create_gc(GCPtr gc);
+void glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+		  unsigned char alu, unsigned long planemask,
+		  unsigned long fg_pixel);
+void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
+		    int x, int y, int width, int height,
+		    unsigned char alu, unsigned long planemask,
+		    unsigned long fg_pixel, unsigned long bg_pixel,
+		    int stipple_x, int stipple_y);
+void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+		 int x, int y, int width, int height,
+		 unsigned char alu, unsigned long planemask,
+		 int tile_x, int tile_y);
+
+/* glamor_fill.c */
+void glamor_fill(DrawablePtr drawable,
+		 GCPtr gc,
+		 int x,
+		 int y,
+		 int width,
+		 int height);
+
+/* glamor_fillspans.c */
+void glamor_fill_spans(DrawablePtr drawable,
+		       GCPtr	gc,
+		       int n,
+		       DDXPointPtr points,
+		       int *widths,
+		       int sorted);
 
 #endif /* GLAMOR_PRIV_H */
