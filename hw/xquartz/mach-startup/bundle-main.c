@@ -531,33 +531,13 @@ int main(int argc, char **argv, char **envp) {
 }
 
 static int execute(const char *command) {
-    char newcommand[1024];
-    char *newargv[1024];
-    size_t newargc;
-    char *s;
-    char **p;
+    const char *newargv[4];
+    const char **p;
     
-    if(strlen(command) > 1023) {
-        fprintf(stderr, "Error: command is too long: %s\n", command);
-        return 1;
-    }
-    
-    strlcpy(newcommand, command, 1024);
-    
-    for(newargc=0, s=newcommand; *s; newargc++) {
-        for(; *s && *s == ' '; s++);
-        if(!*s)
-            break;
-        
-        newargv[newargc] = s;
-        for(; *s && *s != ' '; s++);
-        
-        if(*s) {
-            *s='\0';
-            s++;
-        }
-    }
-    newargv[newargc] = NULL;
+    newargv[0] = command_from_prefs("login_shell", DEFAULT_SHELL);
+    newargv[1] = "-c";
+    newargv[2] = command;
+    newargv[3] = NULL;
     
     fprintf(stderr, "X11.app: Launching %s:\n", command);
     for(p=newargv; *p; p++) {

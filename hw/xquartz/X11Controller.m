@@ -314,36 +314,16 @@ BOOL xquartz_resetenv_display = NO;
 
 - (void) launch_client:(NSString *)filename
 {
-    const char *command = [filename UTF8String];
     int child1, child2 = 0;
     int status;
-    char newcommand[1024];
-    char *newargv[1024];
+    const char *newargv[4];
     char buf[128];
-    size_t newargc;
     char *s;
     
-    if(strlen(command) > 1023) {
-        fprintf(stderr, "Error: command is too long: %s\n", command);
-        return;
-    }
-    
-    strlcpy(newcommand, command, 1024);
-    
-    for(newargc=0, s=newcommand; *s; newargc++) {
-        for(; *s && *s == ' '; s++);
-        if(!*s)
-            break;
-        
-        newargv[newargc] = s;
-        for(; *s && *s != ' '; s++);
-        
-        if(*s) {
-            *s='\0';
-            s++;
-        }
-    }
-    newargv[newargc] = NULL;
+    newargv[0] = [X11App prefs_get_string:@PREFS_LOGIN_SHELL default:"/bin/sh"];
+    newargv[1] = "-c";
+    newargv[2] = [filename UTF8String];
+    newargv[3] = NULL;
     
     s = getenv("DISPLAY");
     if (xquartz_resetenv_display || s == NULL || s[0] == 0) {
