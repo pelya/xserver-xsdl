@@ -76,7 +76,6 @@ extern BOOL xpbproxy_have_xfixes;
 
 /* from x-input.m */
 extern BOOL xpbproxy_input_register (void);
-extern void xpbproxy_input_run (void);
 
 #ifdef DEBUG
 /* BEWARE: this can cause a string memory leak, according to the leaks program. */

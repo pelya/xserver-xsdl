@@ -47,8 +47,8 @@ static CFRunLoopSourceRef xpbproxy_dpy_source;
 BOOL xpbproxy_prefs_reload = NO;
 #endif
 
-static pthread_mutex_t xpbproxy_dpy_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t xpbproxy_dpy_cond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t xpbproxy_dpy_rdy_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t xpbproxy_dpy_rdy_cond = PTHREAD_COND_INITIALIZER;
 
 static inline pthread_t create_thread(void *func, void *arg) {
     pthread_attr_t attr;
@@ -62,15 +62,6 @@ static inline pthread_t create_thread(void *func, void *arg) {
     
     return tid;
 }
-
-static void *xpbproxy_input_thread(void *args) {
-    pthread_mutex_lock(&xpbproxy_dpy_lock);
-    while(true) {
-        xpbproxy_input_run();
-        pthread_cond_wait(&xpbproxy_dpy_cond, &xpbproxy_dpy_lock);
-    }
-}
-
 
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
@@ -110,51 +101,60 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
     }
 }
 
-void xpbproxy_input_run (void) {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
-    if (nil == pool) 
-    {
-        fprintf(stderr, "unable to allocate/init auto release pool!\n");
-        return;
-    }
-    
-    while (XPending (xpbproxy_dpy) != 0) {
-        XEvent e;
-        XNextEvent (xpbproxy_dpy, &e);
+static void *xpbproxy_input_thread(void *args) {
+    pthread_mutex_lock(&xpbproxy_dpy_rdy_lock);
+    while(true) {
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
         
-        switch (e.type) {                
-            case SelectionClear:
-                if([xpbproxy_selection_object() is_active])
-                    [xpbproxy_selection_object () clear_event:&e.xselectionclear];
-                break;
-                
-            case SelectionRequest:
-                [xpbproxy_selection_object () request_event:&e.xselectionrequest];
-                break;
-                
-            case SelectionNotify:
-                [xpbproxy_selection_object () notify_event:&e.xselection];
-                break;
-                
-            case PropertyNotify:
-                [xpbproxy_selection_object () property_event:&e.xproperty];
-                break;
-                
-            default:
-                if(e.type >= xpbproxy_apple_wm_event_base &&
-                   e.type < xpbproxy_apple_wm_event_base + AppleWMNumberEvents) {
-                    x_event_apple_wm_notify((XAppleWMNotifyEvent *) &e);
-                } else if(e.type == xpbproxy_xfixes_event_base + XFixesSelectionNotify) {
-                    [xpbproxy_selection_object() xfixes_selection_notify:(XFixesSelectionNotifyEvent *)&e];
-                }
-                break;
+        if(pool == nil) {
+            fprintf(stderr, "unable to allocate/init auto release pool!\n");
+            break;
         }
         
-        XFlush(xpbproxy_dpy);
+        while (XPending(xpbproxy_dpy) != 0) {
+            XEvent e;
+            
+            pthread_mutex_unlock(&xpbproxy_dpy_rdy_lock);
+            XNextEvent (xpbproxy_dpy, &e);
+            
+            switch (e.type) {                
+                case SelectionClear:
+                    if([xpbproxy_selection_object() is_active])
+                        [xpbproxy_selection_object () clear_event:&e.xselectionclear];
+                    break;
+                    
+                case SelectionRequest:
+                    [xpbproxy_selection_object () request_event:&e.xselectionrequest];
+                    break;
+                    
+                case SelectionNotify:
+                    [xpbproxy_selection_object () notify_event:&e.xselection];
+                    break;
+                    
+                case PropertyNotify:
+                    [xpbproxy_selection_object () property_event:&e.xproperty];
+                    break;
+                    
+                default:
+                    if(e.type >= xpbproxy_apple_wm_event_base &&
+                       e.type < xpbproxy_apple_wm_event_base + AppleWMNumberEvents) {
+                        x_event_apple_wm_notify((XAppleWMNotifyEvent *) &e);
+                    } else if(e.type == xpbproxy_xfixes_event_base + XFixesSelectionNotify) {
+                        [xpbproxy_selection_object() xfixes_selection_notify:(XFixesSelectionNotifyEvent *)&e];
+                    }
+                    break;
+            }
+            
+            XFlush(xpbproxy_dpy);
+            pthread_mutex_lock(&xpbproxy_dpy_rdy_lock);
+        }
+        
+        [pool release];
+        
+        pthread_cond_wait(&xpbproxy_dpy_rdy_cond, &xpbproxy_dpy_rdy_lock);
     }
     
-    [pool release];
+    return NULL;
 }
 
 static BOOL add_input_socket (int sock, CFOptionFlags callback_types,
@@ -191,9 +191,9 @@ static void x_input_callback (CFSocketRef sock, CFSocketCallBackType type,
     }
 #endif
 
-    pthread_mutex_lock(&xpbproxy_dpy_lock);
-    pthread_cond_broadcast(&xpbproxy_dpy_cond);
-    pthread_mutex_unlock(&xpbproxy_dpy_lock);
+    pthread_mutex_lock(&xpbproxy_dpy_rdy_lock);
+    pthread_cond_broadcast(&xpbproxy_dpy_rdy_cond);
+    pthread_mutex_unlock(&xpbproxy_dpy_rdy_lock);
 }
 
 BOOL xpbproxy_input_register(void) {
