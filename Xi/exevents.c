@@ -946,10 +946,10 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         *kptr |= bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-        b->buttonsDown++;
-	b->motionMask = DeviceButtonMotionMask;
         if (!b->map[key])
             return DONT_PROCESS;
+        b->buttonsDown++;
+	b->motionMask = DeviceButtonMotionMask;
         if (b->map[key] <= 5)
 	    b->state |= (Button1Mask >> 1) << b->map[key];
 	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);
@@ -978,10 +978,10 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         *kptr &= ~bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-        if (b->buttonsDown >= 1 && !--b->buttonsDown)
-	    b->motionMask = 0;
         if (!b->map[key])
             return DONT_PROCESS;
+        if (b->buttonsDown >= 1 && !--b->buttonsDown)
+	    b->motionMask = 0;
 	if (b->map[key] <= 5)
 	    b->state &= ~((Button1Mask >> 1) << b->map[key]);
 	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);

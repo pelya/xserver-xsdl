@@ -185,7 +185,11 @@ typedef struct _ValuatorClassRec {
 
 typedef struct _ButtonClassRec {
     CARD8		numButtons;
-    CARD8		buttonsDown;	/* number of buttons currently down */
+    CARD8		buttonsDown;	/* number of buttons currently down
+                                           This counts logical buttons, not
+					   physical ones, i.e if some buttons
+					   are mapped to 0, they're not counted
+					   here */
     unsigned short	state;
     Mask		motionMask;
     CARD8		down[DOWN_LENGTH];
