@@ -517,9 +517,6 @@ AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symb
 				[SYMBOL_VISIBILITY=auto])
 
 dnl GLX build options
-AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
-                                [ MESA_SOURCE="$withval" ],
-                                [ MESA_SOURCE="" ])
 AC_ARG_WITH(dri-driver-path,  AS_HELP_STRING([--with-dri-driver-path=PATH], [Path to DRI drivers (default: ${libdir}/dri)]),
 				[ DRI_DRIVER_PATH="$withval" ],
 				[ DRI_DRIVER_PATH="${libdir}/dri" ])
@@ -844,7 +841,6 @@ else
         GLX=no
 fi
 AM_CONDITIONAL(GLX, test "x$GLX" = xyes)
-AC_SUBST([MESA_SOURCE])
 
 if test "x$AIGLX" = xyes -a "x$GLX" = xyes -a "x$DRI" = xyes; then
 	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
