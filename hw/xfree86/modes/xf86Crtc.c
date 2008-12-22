@@ -2248,24 +2248,23 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
      * So take the default gamma size for lack of something better.
      */
     for (i = 0; i < size; i++) {
-        /* Code partially borrowed from ComputeGamma(). */
         if (gamma_red == 1.0)
             red[i] = i << 8;
         else
-            red[i] = (CARD16)((pow((double)i/(double)size,
-                        gamma_red) * (double)size + 0.5)*256);
+            red[i] = (CARD16)(pow((double)i/(double)(size - 1),
+			(double)gamma_red) * (double)(size - 1) * 256);
 
         if (gamma_green == 1.0)
             green[i] = i << 8;
         else
-            green[i] = (CARD16)((pow((double)i/(double)size,
-                        gamma_green) * (double)size + 0.5)*256);
+            green[i] = (CARD16)(pow((double)i/(double)(size - 1),
+			(double)gamma_green) * (double)(size - 1) * 256);
 
         if (gamma_blue == 1.0)
             blue[i] = i << 8;
         else
-            blue[i] = (CARD16)((pow((double)i/(double)size,
-                        gamma_blue) * (double)size + 0.5)*256);
+            blue[i] = (CARD16)(pow((double)i/(double)(size - 1),
+			(double)gamma_blue) * (double)(size - 1) * 256);
     }
 
     /* Default size is 256, so anything else is failure. */
