@@ -1629,7 +1629,9 @@ AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 
 dnl DMX DDX
 
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES],
+    [xmuu xext x11 xrender xfixes xfont xi >= 1.2.99.1 dmxproto xau $XDMCP_MODULES],
+    [have_dmx=yes], [have_dmx=no])
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
