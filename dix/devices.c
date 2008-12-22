@@ -444,6 +444,8 @@ ActivateDevice(DeviceIntPtr dev)
 
     ret = (*dev->deviceProc) (dev, DEVICE_INIT);
     dev->inited = (ret == Success);
+    if (!dev->inited)
+        return ret;
 
     /* Initialize memory for sprites. */
     if (dev->isMaster && dev->spriteInfo->spriteOwner)
