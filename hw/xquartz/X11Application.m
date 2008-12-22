@@ -266,7 +266,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
         case NSKeyDown: case NSKeyUp:
             
             if(_x_active) {
-                static int swallow_up;
+                static BOOL do_swallow = NO;
+                static int swallow_keycode;
                 
                 if([e type] == NSKeyDown) {
                     /* Before that though, see if there are any global
@@ -274,17 +275,20 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 
                     if(darwinAppKitModMask & [e modifierFlags]) {
                         /* Override to force sending to Appkit */
-                        swallow_up = [e keyCode];
+                        swallow_keycode = [e keyCode];
+                        do_swallow = YES;
                         for_x = NO;
 #if XPLUGIN_VERSION >= 1
                     } else if(X11EnableKeyEquivalents &&
-                              xp_is_symbolic_hotkey_event([e eventRef])) {
-                        swallow_up = [e keyCode];
+                             xp_is_symbolic_hotkey_event([e eventRef])) {
+                        swallow_keycode = [e keyCode];
+                        do_swallow = YES;
                         for_x = NO;
 #endif
                     } else if(X11EnableKeyEquivalents &&
                               [[self mainMenu] performKeyEquivalent:e]) {
-                        swallow_up = [e keyCode];
+                        swallow_keycode = [e keyCode];
+                        do_swallow = YES;
                         for_appkit = NO;
                         for_x = NO;
                     } else if(!quartzEnableRootless
@@ -292,7 +296,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                               && ([e keyCode] == 0 /*a*/ || [e keyCode] == 53 /*Esc*/)) {
                         /* We have this here to force processing fullscreen 
                          * toggle even if X11EnableKeyEquivalents is disabled */
-                        swallow_up = [e keyCode];
+                        swallow_keycode = [e keyCode];
+                        do_swallow = YES;
                         for_x = NO;
                         for_appkit = NO;
                         DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
@@ -303,9 +308,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                 } else { /* KeyUp */
                     /* If we saw a key equivalent on the down, don't pass
                      * the up through to X. */
-                    
-                    if (swallow_up != 0 && [e keyCode] == swallow_up) {
-                        swallow_up = 0;
+                    if (do_swallow && [e keyCode] == swallow_keycode) {
+                        do_swallow = NO;
                         for_x = NO;
                     }
                 }
