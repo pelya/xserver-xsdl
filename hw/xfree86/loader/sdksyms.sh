@@ -333,6 +333,8 @@ BEGIN {
     print(" */");
     printf("/* topdir=%s */\n", topdir);
     print("_X_HIDDEN void *xorg_symbols[] = {");
+
+    printf("sdksyms.c:") > "sdksyms.dep";
 }
 /^# [0-9]+ "/ {
     #   Process text after a include in a relative path or when the
@@ -340,6 +342,15 @@ BEGIN {
     #   Note that indexing starts at 1; 0 means no match, and there
     # is a starting ".
     sdk = $3 !~ /^"\// || index($3, topdir) == 2;
+
+    if (sdk && $3 ~ /\.h"$/) {
+	# remove quotes
+	gsub(/"/, "", $3);
+	if (! headers[$3]) {
+	    printf(" \\\n  %s", $3) >> "sdksyms.dep";
+	    headers[$3] = 1;
+	}
+    }
 }
 
 /^extern[ 	]/  {
@@ -394,6 +405,8 @@ BEGIN {
 
 END {
     print("};");
+
+    print("") >> "sdksyms.dep";
 }' > _sdksyms.c
 
 STATUS=$?

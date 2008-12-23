@@ -21,7 +21,9 @@ libloader_la_SOURCES = \
 	os.c \
 	sdksyms.c
 
-CLEANFILES = sdksyms.c
+CLEANFILES = sdksyms.c sdksyms.dep
 
-sdksyms.c: sdksyms.sh
+sdksyms.dep sdksyms.c: sdksyms.sh
 	CPP='$(CPP)' AWK='$(AWK)' $(srcdir)/sdksyms.sh $(top_srcdir) $(AM_CFLAGS) $(CFLAGS) $(INCLUDES)
+
+sinclude sdksyms.dep
