@@ -549,10 +549,11 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
     ActivateDevice(dev);
     /* Enable it if it's properly initialised and we're currently in the VT */
     if (enable && dev->inited && dev->startup && xf86Screens[0]->vtSema)
+    {
         EnableDevice(dev);
-
-    /* send enter/leave event, update sprite window */
-    CheckMotion(NULL, dev);
+        /* send enter/leave event, update sprite window */
+        CheckMotion(NULL, dev);
+    }
 
     *pdev = dev;
     return Success;
