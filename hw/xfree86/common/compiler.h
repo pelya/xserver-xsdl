@@ -110,20 +110,22 @@ extern _X_EXPORT unsigned int inl(unsigned long);
 #   endif /* __sparc__,  __arm32__, __alpha__ */
 #  endif /* __arm__ */
 
-extern _X_EXPORT unsigned long ldq_u(unsigned long *);
-extern _X_EXPORT unsigned long ldl_u(unsigned int *);
-extern _X_EXPORT unsigned long ldw_u(unsigned short *);
-extern _X_EXPORT void stq_u(unsigned long, unsigned long *);
-extern _X_EXPORT void stl_u(unsigned long, unsigned int *);
-extern _X_EXPORT void stw_u(unsigned long, unsigned short *);
-extern _X_EXPORT void mem_barrier(void);
-extern _X_EXPORT void write_mem_barrier(void);
-extern _X_EXPORT void stl_brx(unsigned long, volatile unsigned char *, int);
-extern _X_EXPORT void stw_brx(unsigned short, volatile unsigned char *, int);
-extern _X_EXPORT unsigned long ldl_brx(volatile unsigned char *, int);
-extern _X_EXPORT unsigned short ldw_brx(volatile unsigned char *, int);
+#  if defined(__powerpc__) && !defined(__OpenBSD__)
+extern unsigned long ldq_u(unsigned long *);
+extern unsigned long ldl_u(unsigned int *);
+extern unsigned long ldw_u(unsigned short *);
+extern void stq_u(unsigned long, unsigned long *);
+extern void stl_u(unsigned long, unsigned int *);
+extern void stw_u(unsigned long, unsigned short *);
+extern void mem_barrier(void);
+extern void write_mem_barrier(void);
+extern void stl_brx(unsigned long, volatile unsigned char *, int);
+extern void stw_brx(unsigned short, volatile unsigned char *, int);
+extern unsigned long ldl_brx(volatile unsigned char *, int);
+extern unsigned short ldw_brx(volatile unsigned char *, int);
+#  endif /* __powerpc__ && !__OpenBSD */
 
-# endif
+# endif /* NO_INLINE || DO_PROTOTYPES */
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
