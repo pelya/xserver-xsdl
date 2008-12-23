@@ -216,20 +216,6 @@ xf86PrintBanner(void)
 #endif
   }
 #endif
-#if defined(CLOG_DATE) && (CLOG_DATE > 19000000)
-  {
-    struct tm t;
-    char buf[100];
-
-    bzero(&t, sizeof(t));
-    bzero(buf, sizeof(buf));
-    t.tm_mday = CLOG_DATE % 100;
-    t.tm_mon = (CLOG_DATE / 100) % 100 - 1;
-    t.tm_year = CLOG_DATE / 10000 - 1900;
-    if (strftime(buf, sizeof(buf), "%d %B %Y", &t))
-       ErrorF("Changelog Date: %s\n", buf);
-  }
-#endif
 #if defined(BUILDERSTRING)
   ErrorF("%s \n",BUILDERSTRING);
 #endif
