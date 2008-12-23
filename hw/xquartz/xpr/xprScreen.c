@@ -278,18 +278,17 @@ xprAddScreen(int index, ScreenPtr pScreen)
     }
     
     switch(depth) {
-        case -8: // broken
-            FatalError("Unsupported color depth %d %d\n", darwinDesiredDepth, depth);
-            dfb->visuals = (1 << StaticGray) | (1 << GrayScale);
-            dfb->preferredCVC = GrayScale;
-            dfb->depth = 8;
-            dfb->bitsPerRGB = 8;
-            dfb->bitsPerPixel = 8;
-            dfb->redMask = 0;
-            dfb->greenMask = 0;
-            dfb->blueMask = 0;
-            break;
-        case 8: // broken
+//        case -8: // broken
+//            dfb->visuals = (1 << StaticGray) | (1 << GrayScale);
+//            dfb->preferredCVC = GrayScale;
+//            dfb->depth = 8;
+//            dfb->bitsPerRGB = 8;
+//            dfb->bitsPerPixel = 8;
+//            dfb->redMask = 0;
+//            dfb->greenMask = 0;
+//            dfb->blueMask = 0;
+//            break;
+        case 8: // pseudo-working
             dfb->visuals = PseudoColorMask;
             dfb->preferredCVC = PseudoColor;
             dfb->depth = 8;
@@ -309,7 +308,10 @@ xprAddScreen(int index, ScreenPtr pScreen)
             dfb->greenMask = 0x03e0;
             dfb->blueMask  = 0x001f;
             break;
-        case 24:
+//        case 24:
+        default:
+            if(depth != 24)
+                ErrorF("Unsupported color depth requested.  Defaulting to 24bit. (depth=%d darwinDesiredDepth=%d CGDisplaySamplesPerPixel=%d CGDisplayBitsPerSample=%d)\n",  darwinDesiredDepth, depth, (int)CGDisplaySamplesPerPixel(kCGDirectMainDisplay), (int)CGDisplayBitsPerSample(kCGDirectMainDisplay));
             dfb->visuals = LARGE_VISUALS;
             dfb->preferredCVC = TrueColor;
             dfb->depth = 24;
@@ -319,8 +321,6 @@ xprAddScreen(int index, ScreenPtr pScreen)
             dfb->greenMask = 0x0000ff00;
             dfb->blueMask  = 0x000000ff;
             break;
-        default:
-            FatalError("Unsupported color depth %d %d\n", darwinDesiredDepth, depth);
     }
 
     if (noPseudoramiXExtension)
