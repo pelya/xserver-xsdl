@@ -67,7 +67,6 @@
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
 #include "xorgVersion.h"
-#include "xf86Date.h"
 #include "xf86Build.h"
 #include "mipointer.h"
 #include <X11/extensions/XI.h>
@@ -174,7 +173,7 @@ xf86PrintBanner(void)
   ErrorF(" (%s)", XORG_CUSTOM_VERSION);
 #endif
 #ifndef XORG_DATE
-#define XORG_DATE XF86_DATE
+# define XORG_DATE "Unknown"
 #endif
   ErrorF("\nRelease Date: %s\n", XORG_DATE);
   ErrorF("X Protocol Version %d, Revision %d\n",

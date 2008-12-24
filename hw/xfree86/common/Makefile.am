@@ -78,7 +78,6 @@ EXTRA_DIST = \
 	xf86xvpriv.h \
 	xisb.h \
 	xorgVersion.h \
-	xf86Date.h \
 	$(MODEDEFSOURCES) \
 	modeline2c.awk \
         $(DISTKBDSOURCES)
