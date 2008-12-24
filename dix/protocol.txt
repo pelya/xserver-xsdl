@@ -296,6 +296,13 @@ R021 RANDR:SetCrtcConfig
 R022 RANDR:GetCrtcGammaSize
 R023 RANDR:GetCrtcGamma
 R024 RANDR:SetCrtcGamma
+R025 RANDR:GetScreenResourcesCurrent
+R026 RANDR:SetCrtcTransform
+R027 RANDR:GetCrtcTransform
+R028 RANDR:GetPanning
+R029 RANDR:SetPanning
+R030 RANDR:SetOutputPrimary
+R031 RANDR:GetOutputPrimary
 V000 RANDR:ScreenChangeNotify
 V001 RANDR:Notify
 E000 RANDR:BadRROutput
