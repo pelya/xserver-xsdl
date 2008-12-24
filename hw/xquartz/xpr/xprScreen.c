@@ -364,9 +364,7 @@ xprSetupScreen(int index, ScreenPtr pScreen)
 {
     // Initialize accelerated rootless drawing
     // Note that this must be done before DamageSetup().
-
-    // These are crashing ugly... better to be stable and not crash for now.
-    //RootlessAccelInit(pScreen);
+    RootlessAccelInit(pScreen);
 
 #ifdef DAMAGE
     // The Damage extension needs to wrap underneath the
