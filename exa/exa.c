@@ -313,6 +313,11 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 
         datasize = h * paddedWidth;
 
+	/* Set this before driver hooks, to allow for !offscreen pixmaps.
+	 * !offscreen pixmaps have a valid pointer at all times.
+	 */
+	pPixmap->devPrivate.ptr = NULL;
+
         pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
         if (!pExaPixmap->driverPriv) {
              fbDestroyPixmap(pPixmap);
@@ -325,7 +330,6 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         pExaPixmap->fb_ptr = NULL;
         pExaPixmap->pDamage = NULL;
         pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
-        pPixmap->devPrivate.ptr = NULL;
 
     } else {
         pExaPixmap->driverPriv = NULL;
