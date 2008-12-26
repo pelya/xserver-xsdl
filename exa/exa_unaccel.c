@@ -57,9 +57,9 @@ void
 exaFinishAccessGC(GCPtr pGC)
 {
     if (pGC->fillStyle == FillTiled)
-	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_MASK);
+	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
     if (pGC->stipple)
-        exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_SRC);
+        exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
 }
 
 #if DEBUG_TRACE_FALL
