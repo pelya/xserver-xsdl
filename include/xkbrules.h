@@ -29,6 +29,14 @@
 
 /***====================================================================***/
 
+typedef struct _XkbRMLVOSet {
+        char *                  rules;
+        char *                  model;
+        char *                  layout;
+        char *                  variant;
+        char *                  options;
+} XkbRMLVOSet;
+
 typedef struct _XkbRF_VarDefs {
 	char *			model;
 	char *			layout;
@@ -103,10 +111,13 @@ typedef struct _XkbRF_Rules {
 
 _XFUNCPROTOBEGIN
 
+/* Seems preferable to dragging xkbstr.h in. */
+struct _XkbComponentNames;
+
 extern _X_EXPORT Bool	XkbRF_GetComponents(
     XkbRF_RulesPtr		/* rules */,
     XkbRF_VarDefsPtr		/* var_defs */,
-    XkbComponentNamesPtr	/* names */
+    struct _XkbComponentNames *	/* names */
 );
 
 extern _X_EXPORT XkbRF_RulePtr	XkbRF_AddRule(
