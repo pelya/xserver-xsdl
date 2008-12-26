@@ -428,3 +428,36 @@ XkbRF_RulesPtr	rules;
 
     return complete;
 }
+
+XkbDescPtr
+XkbCompileKeymap(DeviceIntPtr dev, XkbRMLVOSet *rmlvo)
+{
+    XkbComponentNamesRec kccgst;
+    XkbRF_VarDefsRec mlvo;
+    XkbDescPtr xkb;
+    char name[PATH_MAX];
+
+    if (!dev || !rmlvo) {
+        LogMessage(X_ERROR, "XKB: No device or RMLVO specified\n");
+        return NULL;
+    }
+
+    mlvo.model = rmlvo->model;
+    mlvo.layout = rmlvo->layout;
+    mlvo.variant = rmlvo->variant;
+    mlvo.options = rmlvo->options;
+
+    /* XDNFR already logs for us. */
+    if (!XkbDDXNamesFromRules(dev, rmlvo->rules, &mlvo, &kccgst))
+        return NULL;
+
+    /* XDLKBN too, but it might return 0 as well as allocating. */
+    if (!XkbDDXLoadKeymapByNames(dev, &kccgst, XkmAllIndicesMask, 0, &xkb, name,
+                                 PATH_MAX)) {
+        if (xkb)
+            XkbFreeKeyboard(xkb, 0, TRUE);
+        return NULL;
+    }
+
+    return xkb;
+}

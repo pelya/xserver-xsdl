@@ -54,6 +54,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbstr.h"
+#include "xkbrules.h"
 #include "inputstr.h"
 
 typedef struct _XkbInterest {
@@ -870,29 +871,16 @@ extern _X_EXPORT void XkbClearAllLatchesAndLocks(
 	XkbEventCausePtr	/* cause */
 );
 
+extern _X_EXPORT void	XkbGetRulesDflts(
+        XkbRMLVOSet *           /* rmlvo */
+);
+
 extern _X_EXPORT void	XkbSetRulesDflts(
-	char *			/* rulesFile */,
-	char *			/* model */,
-	char *			/* layout */,
-	char *			/* variant */,
-	char *			/* options */
+        XkbRMLVOSet *           /* rmlvo */
 );
 
 extern _X_EXPORT void	XkbDeleteRulesDflts(
 	void
-);
-
-extern _X_EXPORT void	XkbInitDevice(
-	DeviceIntPtr 	/* pXDev */
-);
-
-extern _X_EXPORT Bool	XkbInitKeyboardDeviceStruct(
-	DeviceIntPtr 		/* pXDev */,
-	XkbComponentNamesPtr	/* pNames */,
-	KeySymsPtr		/* pSyms */,
-	CARD8 			/* pMods */[],
-	BellProcPtr		/* bellProc */,
-	KbdCtrlProcPtr		/* ctrlProc */
 );
 
 extern _X_EXPORT int SProcXkbDispatch(
@@ -920,10 +908,6 @@ extern _X_EXPORT Status	 XkbChangeKeycodeRange(
 	int 			/* minKC */,
 	int 			/* maxKC */,
 	XkbChangesPtr		/* changes */
-);
-
-extern _X_EXPORT int XkbFinishDeviceInit(
-	DeviceIntPtr		/* pXDev */
 );
 
 extern _X_EXPORT void XkbFreeSrvLedInfo(
@@ -1019,6 +1003,11 @@ extern _X_EXPORT Bool XkbDDXNamesFromRules(
 	char *			/* rules */,
 	XkbRF_VarDefsPtr	/* defs */,
 	XkbComponentNamesPtr	/* names */
+);
+
+extern _X_EXPORT XkbDescPtr XkbCompileKeymap(
+        DeviceIntPtr    /* dev */,
+        XkbRMLVOSet *   /* rmlvo */
 );
 
 _XFUNCPROTOEND

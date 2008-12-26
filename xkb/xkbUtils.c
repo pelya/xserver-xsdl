@@ -382,10 +382,6 @@ int			maxNumberOfGroups;
     else if (resize) {
 	keyc->curKeySyms.minKeyCode= xkb->min_key_code;
 	keyc->curKeySyms.maxKeyCode= xkb->max_key_code;
-	tmp= keyc->curKeySyms.mapWidth*_XkbCoreNumKeys(keyc);
-	keyc->curKeySyms.map= _XkbTypedRealloc(keyc->curKeySyms.map,tmp,KeySym);
-	if (!keyc->curKeySyms.map)
-	   FatalError("Couldn't allocate keysyms\n");
 	first= firstCommon= xkb->min_key_code;
 	last= lastCommon= xkb->max_key_code;
     }
@@ -622,8 +618,6 @@ XkbEventCauseRec	cause;
 XkbChangesRec	 	changes;
 unsigned	 	check;
 
-    if (kbd->key->xkbInfo==NULL)
-	XkbInitDevice(kbd);
     bzero(&changes,sizeof(XkbChangesRec));
     check= 0;
     if (request==MappingKeyboard) {

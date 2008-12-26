@@ -93,36 +93,35 @@ char	*		XkbBaseDirectory=	XKB_BASE_DIRECTORY;
 char	*		XkbBinDirectory=	XKB_BIN_DIRECTORY;
 static int	 	XkbWantAccessX=		0;	
 
-static Bool		rulesDefined=		False;
-static char *		XkbRulesFile=		NULL;
+static char *		XkbRulesDflt=		NULL;
 static char *		XkbModelDflt=		NULL;
 static char *		XkbLayoutDflt=		NULL;
 static char *		XkbVariantDflt=		NULL;
 static char *		XkbOptionsDflt=		NULL;
 
+static char *           XkbRulesUsed=   NULL;
 static char *		XkbModelUsed=	NULL;
 static char *		XkbLayoutUsed=	NULL;
 static char *		XkbVariantUsed=	NULL;
 static char *		XkbOptionsUsed=	NULL;
 
-static XkbDescPtr       xkb_cached_map = NULL;
-
 static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
 
-static char *
-XkbGetRulesDflts(XkbRF_VarDefsPtr defs)
+void
+XkbGetRulesDflts(XkbRMLVOSet *rmlvo)
 {
-    if (XkbModelDflt)	defs->model= XkbModelDflt;
-    else		defs->model= XKB_DFLT_MODEL;
-    if (XkbLayoutDflt)	defs->layout= XkbLayoutDflt;
-    else		defs->layout= XKB_DFLT_LAYOUT;
-    if (XkbVariantDflt)	defs->variant= XkbVariantDflt;
-    else		defs->variant= XKB_DFLT_VARIANT;
-    if (XkbOptionsDflt)	defs->options= XkbOptionsDflt;
-    else		defs->options= XKB_DFLT_OPTIONS;
-    return (rulesDefined?XkbRulesFile:XKB_DFLT_RULES);
+    if (XkbRulesDflt)   rmlvo->rules = XkbRulesDflt;
+    else                rmlvo->rules = XKB_DFLT_RULES;
+    if (XkbModelDflt)	rmlvo->model= XkbModelDflt;
+    else		rmlvo->model= XKB_DFLT_MODEL;
+    if (XkbLayoutDflt)	rmlvo->layout= XkbLayoutDflt;
+    else		rmlvo->layout= XKB_DFLT_LAYOUT;
+    if (XkbVariantDflt)	rmlvo->variant= XkbVariantDflt;
+    else		rmlvo->variant= XKB_DFLT_VARIANT;
+    if (XkbOptionsDflt)	rmlvo->options= XkbOptionsDflt;
+    else		rmlvo->options= XKB_DFLT_OPTIONS;
 }
 
 static Bool
@@ -132,9 +131,7 @@ int 			len,out;
 Atom			name;
 char *			pval;
 
-    if (rulesDefined && (!XkbRulesFile))
-	return False;
-    len= (XkbRulesFile?strlen(XkbRulesFile):strlen(XKB_DFLT_RULES));
+    len= (XkbRulesUsed?strlen(XkbRulesUsed):0);
     len+= (XkbModelUsed?strlen(XkbModelUsed):0);
     len+= (XkbLayoutUsed?strlen(XkbLayoutUsed):0);
     len+= (XkbVariantUsed?strlen(XkbVariantUsed):0);
@@ -156,12 +153,9 @@ char *			pval;
 	return True;
     }
     out= 0;
-    if (XkbRulesFile) {
-	strcpy(&pval[out],XkbRulesFile);
-	out+= strlen(XkbRulesFile);
-    } else {
-	strcpy(&pval[out],XKB_DFLT_RULES);
-	out+= strlen(XKB_DFLT_RULES);
+    if (XkbRulesUsed) {
+	strcpy(&pval[out],XkbRulesUsed);
+	out+= strlen(XkbRulesUsed);
     }
     pval[out++]= '\0';
     if (XkbModelUsed) {
@@ -195,71 +189,55 @@ char *			pval;
 }
 
 static void
-XkbSetRulesUsed(XkbRF_VarDefsPtr defs)
+XkbSetRulesUsed(XkbRMLVOSet *rmlvo)
 {
+    if (XkbRulesUsed)
+        _XkbFree(XkbRulesUsed);
+    XkbRulesUsed= (rmlvo->rules?_XkbDupString(rmlvo->rules):NULL);
     if (XkbModelUsed)
 	_XkbFree(XkbModelUsed);
-    XkbModelUsed= (defs->model?_XkbDupString(defs->model):NULL);
+    XkbModelUsed= (rmlvo->model?_XkbDupString(rmlvo->model):NULL);
     if (XkbLayoutUsed)
 	_XkbFree(XkbLayoutUsed);
-    XkbLayoutUsed= (defs->layout?_XkbDupString(defs->layout):NULL);
+    XkbLayoutUsed= (rmlvo->layout?_XkbDupString(rmlvo->layout):NULL);
     if (XkbVariantUsed)
 	_XkbFree(XkbVariantUsed);
-    XkbVariantUsed= (defs->variant?_XkbDupString(defs->variant):NULL);
+    XkbVariantUsed= (rmlvo->variant?_XkbDupString(rmlvo->variant):NULL);
     if (XkbOptionsUsed)
 	_XkbFree(XkbOptionsUsed);
-    XkbOptionsUsed= (defs->options?_XkbDupString(defs->options):NULL);
+    XkbOptionsUsed= (rmlvo->options?_XkbDupString(rmlvo->options):NULL);
     if (XkbWantRulesProp)
 	QueueWorkProc(XkbWriteRulesProp,NULL,NULL);
     return;
 }
 
-/**
- * Set the default RMLVO for the next device to be initialised.
- * If a parameter is NULL, the previous setting will be used. Use empty
- * strings if you want to delete a previous setting.
- *
- * If @rulesFile is NULL and no previous @rulesFile has been set, the
- * built-in default is chosen as default.
- */
 void
-XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
-					char *variant,char *options)
+XkbSetRulesDflts(XkbRMLVOSet *rmlvo)
 {
-    if (!rulesFile && !XkbRulesFile)
-    {
-	LogMessage(X_WARNING, "[xkb] No rule given, and no previous rule "
-		              "defined. Defaulting to '%s'.\n",
-                              XKB_DFLT_RULES);
-	rulesFile = XKB_DFLT_RULES;
+    if (rmlvo->rules) {
+        if (XkbRulesDflt)
+	    _XkbFree(XkbRulesDflt);
+        XkbRulesDflt= _XkbDupString(rmlvo->rules);
     }
-
-    if (rulesFile) {
-	if (XkbRulesFile)
-	    _XkbFree(XkbRulesFile);
-	XkbRulesFile= _XkbDupString(rulesFile);
-	rulesDefined= True;
-    }
-
-    if (model) {
+    if (rmlvo->model) {
 	if (XkbModelDflt)
 	    _XkbFree(XkbModelDflt);
-	XkbModelDflt= _XkbDupString(model);
+	XkbModelDflt= _XkbDupString(rmlvo->model);
     }
-    if (layout) {
+    if (rmlvo->layout) {
 	if (XkbLayoutDflt)
 	    _XkbFree(XkbLayoutDflt);
-	XkbLayoutDflt= _XkbDupString(layout);
+	XkbLayoutDflt= _XkbDupString(rmlvo->layout);
     }
-    if (variant) {
+    if (rmlvo->variant) {
 	if (XkbVariantDflt)
 	    _XkbFree(XkbVariantDflt);
-	XkbVariantDflt= _XkbDupString(variant);
+	XkbVariantDflt= _XkbDupString(rmlvo->variant);
     }
-    if (options) {
+    if (rmlvo->options) {
 	if (XkbOptionsDflt)
 	    _XkbFree(XkbOptionsDflt);
-	XkbOptionsDflt= _XkbDupString(options);
+	XkbOptionsDflt= _XkbDupString(rmlvo->options);
     }
     return;
 }
@@ -267,8 +245,8 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 void
 XkbDeleteRulesDflts(void)
 {
-    _XkbFree(XkbRulesFile);
-    XkbRulesFile = NULL;
+    _XkbFree(XkbRulesDflt);
+    XkbRulesDflt = NULL;
     _XkbFree(XkbModelDflt);
     XkbModelDflt = NULL;
     _XkbFree(XkbLayoutDflt);
@@ -277,9 +255,6 @@ XkbDeleteRulesDflts(void)
     XkbVariantDflt = NULL;
     _XkbFree(XkbOptionsDflt);
     XkbOptionsDflt = NULL;
-
-    XkbFreeKeyboard(xkb_cached_map, XkbAllComponentsMask, True);
-    xkb_cached_map = NULL;
 }
 
 /***====================================================================***/
@@ -467,291 +442,122 @@ XkbControlsPtr	ctrls;
     return Success;
 }
 
-void
-XkbInitDevice(DeviceIntPtr pXDev)
+_X_EXPORT Bool
+InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
+                         BellProcPtr bell_func, KbdCtrlProcPtr ctrl_func)
 {
-int			i;
-XkbSrvInfoPtr		xkbi;
-XkbChangesRec		changes;
-unsigned		check;
-XkbEventCauseRec	cause;
+    int	i;
+    unsigned int check;
+    XkbSrvInfoPtr xkbi;
+    XkbDescPtr xkb;
+    XkbSrvLedInfoPtr sli;
+    XkbChangesRec changes;
+    XkbEventCauseRec cause;
 
-    bzero(&changes,sizeof(XkbChangesRec));
-    pXDev->key->xkbInfo= xkbi= _XkbTypedCalloc(1,XkbSrvInfoRec);
-    if ( xkbi ) {
-	XkbDescPtr	xkb;
-
-        if (xkb_cached_map) {
-            xkbi->desc = xkb_cached_map;
-            xkb_cached_map = NULL;
-        }
-        else {
-            xkbi->desc= XkbAllocKeyboard();
-            if (!xkbi->desc)
-                FatalError("Couldn't allocate keyboard description\n");
-            xkbi->desc->min_key_code = pXDev->key->curKeySyms.minKeyCode;
-            xkbi->desc->max_key_code = pXDev->key->curKeySyms.maxKeyCode;
-        }
-	xkb= xkbi->desc;
-	if (xkb->min_key_code == 0)
-	    xkb->min_key_code = pXDev->key->curKeySyms.minKeyCode;
-	if (xkb->max_key_code == 0)
-	    xkb->max_key_code = pXDev->key->curKeySyms.maxKeyCode;
-	if ((pXDev->key->curKeySyms.minKeyCode!=xkbi->desc->min_key_code)||
-	    (pXDev->key->curKeySyms.maxKeyCode!=xkbi->desc->max_key_code)) {
-	    /* 12/9/95 (ef) -- XXX! Maybe we should try to fix up one or */
-	    /*                 the other here, but for now just complain */
-	    /*                 can't just update the core range without */
-	    /*                 reallocating the KeySymsRec (pain)       */
-	    ErrorF("[xkb] Internal Error!! XKB and core keymap have different range\n");
-	}
-	if (XkbAllocClientMap(xkb,XkbAllClientInfoMask,0)!=Success)
-	    FatalError("Couldn't allocate client map in XkbInitDevice\n");
-	i= XkbNumKeys(xkb)/3+1;
-	if (XkbAllocServerMap(xkb,XkbAllServerInfoMask,i)!=Success)
-	    FatalError("Couldn't allocate server map in XkbInitDevice\n");
-
-	xkbi->dfltPtrDelta=1;
-	xkbi->device = pXDev;
-
-	XkbInitSemantics(xkb);
-	XkbInitNames(xkbi);
-	XkbInitRadioGroups(xkbi);
-
-	/* 12/31/94 (ef) -- XXX! Should check if state loaded from file */
-	bzero(&xkbi->state,sizeof(XkbStateRec));
-
-	XkbInitControls(pXDev,xkbi);
-
-        if (xkb->defined & XkmSymbolsMask)
-            memcpy(pXDev->key->modifierMap, xkb->map->modmap,
-                   xkb->max_key_code + 1);
-        else
-            memcpy(xkb->map->modmap, pXDev->key->modifierMap,
-                   xkb->max_key_code + 1);
-
-	XkbInitIndicatorMap(xkbi);
-
-	XkbDDXInitDevice(pXDev);
-
-        if (xkb->defined & XkmSymbolsMask)
-            XkbUpdateCoreDescription(pXDev, True);
-        else
-            XkbUpdateKeyTypesFromCore(pXDev, xkb->min_key_code,
-                                      XkbNumKeys(xkb), &changes);
-
-	XkbSetCauseUnknown(&cause);
-	XkbUpdateActions(pXDev,xkb->min_key_code, XkbNumKeys(xkb),&changes,
-								&check,&cause);
-        /* For sanity.  The first time the connection
-         * is opened, the client side min and max are set
-         * using QueryMinMaxKeyCodes() which grabs them 
-	 * from pXDev.
-	 */
-	pXDev->key->curKeySyms.minKeyCode = xkb->min_key_code;
-	pXDev->key->curKeySyms.maxKeyCode = xkb->max_key_code;
-    }
-    return;
-}
-
-#if MAP_LENGTH > XkbMaxKeyCount
-#undef  XkbMaxKeyCount
-#define XkbMaxKeyCount MAP_LENGTH
-#endif
-
-Bool
-XkbInitKeyboardDeviceStruct(
-    DeviceIntPtr		dev,
-    XkbComponentNamesPtr	names,
-    KeySymsPtr                  pSymsIn,
-    CARD8                       pModsIn[],
-    void                        (*bellProc)(
-        int /*percent*/,
-        DeviceIntPtr /*device*/,
-        pointer /*ctrl*/,
-        int),
-    void                        (*ctrlProc)(
-        DeviceIntPtr /*device*/,
-        KeybdCtrl * /*ctrl*/))
-{
-KeySymsRec		tmpSyms,*pSyms;
-CARD8			tmpMods[XkbMaxLegalKeyCode+1],*pMods;
-char			name[PATH_MAX],*rules;
-Bool			ok=False;
-XkbRF_VarDefsRec	defs;
-XkbDescPtr              xkb;
-
-    if ((dev->key!=NULL)||(dev->kbdfeed!=NULL))
+    if (dev->key || dev->kbdfeed || !rmlvo)
 	return False;
-    pSyms= pSymsIn;
-    pMods= pModsIn;
-    bzero(&defs,sizeof(XkbRF_VarDefsRec));
-    rules= XkbGetRulesDflts(&defs);
 
-    /*
-     * The strings are duplicated because it is not guaranteed that
-     * they are allocated, or that they are allocated for every server
-     * generation. Eventually they will be freed at the end of this
-     * function.
-     */
-    names->keymap = NULL;
-    if (names->keycodes) names->keycodes = _XkbDupString(names->keycodes);
-    if (names->types) names->types = _XkbDupString(names->types);
-    if (names->compat) names->compat = _XkbDupString(names->compat);
-    if (names->geometry) names->geometry = _XkbDupString(names->geometry);
-    if (names->symbols) names->symbols = _XkbDupString(names->symbols);
+    memset(&changes, 0, sizeof(changes));
+    XkbSetCauseUnknown(&cause);
 
-    if (defs.model && defs.layout && rules) {
-	XkbComponentNamesRec	rNames;
-	bzero(&rNames,sizeof(XkbComponentNamesRec));
-	if (XkbDDXNamesFromRules(dev,rules,&defs,&rNames)) {
-	    if (rNames.keycodes) {
-		if (!names->keycodes)
-		    names->keycodes =  rNames.keycodes;
-		else
-		    _XkbFree(rNames.keycodes);
-	    }
-	    if (rNames.types) {
-		if (!names->types)
-		    names->types = rNames.types;
-		else  _XkbFree(rNames.types);
-	    }
-	    if (rNames.compat) {
-		if (!names->compat) 
-		    names->compat =  rNames.compat;
-		else  _XkbFree(rNames.compat);
-	    }
-	    if (rNames.symbols) {
-		if (!names->symbols)
-		    names->symbols =  rNames.symbols;
-		else _XkbFree(rNames.symbols);
-	    }
-	    if (rNames.geometry) {
-		if (!names->geometry)
-		    names->geometry = rNames.geometry;
-		else _XkbFree(rNames.geometry);
-	    }
-	    XkbSetRulesUsed(&defs);
-	}
+    dev->key = xcalloc(1, sizeof(*dev->key));
+    if (!dev->key) {
+        ErrorF("XKB: Failed to allocate key class\n");
+        return False;
     }
 
-    ok = (Bool) XkbDDXLoadKeymapByNames(dev,names,XkmAllIndicesMask,0,
-                                        &xkb,name,PATH_MAX);
-
-    if (ok && (xkb!=NULL)) {
-	KeyCode		minKC,maxKC;
-
-	minKC= xkb->min_key_code;
-	maxKC= xkb->max_key_code;
-	if (XkbIsLegalKeycode(minKC)&&XkbIsLegalKeycode(maxKC)&&(minKC<=maxKC)&&
-	    ((minKC!=pSyms->minKeyCode)||(maxKC!=pSyms->maxKeyCode))) {
-	    if (xkb->map!=NULL) {
-		KeySym	*inSym,*outSym;
-		int	width= pSymsIn->mapWidth;
-
-		tmpSyms.minKeyCode= minKC;
-		tmpSyms.maxKeyCode= maxKC;
-
-		if (minKC<pSymsIn->minKeyCode)
-		    minKC= pSymsIn->minKeyCode;
-		if (maxKC>pSymsIn->maxKeyCode)
-		    maxKC= pSymsIn->maxKeyCode;
-
-		tmpSyms.mapWidth= width;
-		tmpSyms.map= _XkbTypedCalloc(width*XkbNumKeys(xkb),KeySym);
-		inSym= &pSymsIn->map[(minKC-pSymsIn->minKeyCode)*width];
-		outSym= &tmpSyms.map[(minKC-tmpSyms.minKeyCode)*width];
-		memcpy(outSym,inSym,((maxKC-minKC+1)*width)*sizeof(KeySym));
-		pSyms= &tmpSyms;
-	    }
-	    if ((xkb->map!=NULL)&&(xkb->map->modmap!=NULL)) {
-		bzero(tmpMods,XkbMaxKeyCount);
-		memcpy(tmpMods,xkb->map->modmap,maxKC+1);
-		pMods= tmpMods;
-	    }
-	}
-        /* Store the map here so we can pick it back up in XkbInitDevice.
-         * Sigh. */
-        xkb_cached_map = xkb;
-    }
-    else {
-	LogMessage(X_WARNING, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
-    }
-    ok= InitKeyboardDeviceStruct((DevicePtr)dev,pSyms,pMods,bellProc,ctrlProc);
-    xkb_cached_map = NULL;
-    if ((pSyms==&tmpSyms)&&(pSyms->map!=NULL)) {
-	_XkbFree(pSyms->map);
-	pSyms->map= NULL;
+    dev->kbdfeed = xcalloc(1, sizeof(*dev->kbdfeed));
+    if (!dev->kbdfeed) {
+        ErrorF("XKB: Failed to allocate key feedback class\n");
+        goto unwind_key;
     }
 
-    if (names->keycodes) _XkbFree(names->keycodes);
-    names->keycodes = NULL;
-    if (names->types) _XkbFree(names->types);
-    names->types = NULL;
-    if (names->compat) _XkbFree(names->compat);
-    names->compat = NULL;
-    if (names->geometry) _XkbFree(names->geometry);
-    names->geometry = NULL;
-    if (names->symbols) _XkbFree(names->symbols);
-    names->symbols = NULL;
+    xkbi = xcalloc(1, sizeof(*xkbi));
+    if (!xkbi) {
+        ErrorF("XKB: Failed to allocate XKB info\n");
+        goto unwind_kbdfeed;
+    }
+    dev->key->xkbInfo = xkbi;
 
-    return ok;
+    xkb = XkbCompileKeymap(dev, rmlvo);
+    if (!xkb) {
+        ErrorF("XKB: Failed to compile keymap\n");
+        goto unwind_info;
+    }
+    xkbi->desc = xkb;
+
+    if (xkb->min_key_code == 0)
+        xkb->min_key_code = 8;
+    if (xkb->max_key_code == 0)
+        xkb->max_key_code = 255;
+
+    i = XkbNumKeys(xkb) / 3 + 1;
+    if (XkbAllocClientMap(xkb, XkbAllClientInfoMask, 0) != Success)
+        goto unwind_desc;
+    if (XkbAllocServerMap(xkb, XkbAllServerInfoMask, i) != Success)
+        goto unwind_desc;
+
+    xkbi->dfltPtrDelta = 1;
+    xkbi->device = dev;
+
+    XkbInitSemantics(xkb);
+    XkbInitNames(xkbi);
+    XkbInitRadioGroups(xkbi);
+
+    XkbInitControls(dev, xkbi);
+
+    /* XXX: Doesn't XUCD make this redundant? */
+    memcpy(dev->key->modifierMap, xkb->map->modmap, xkb->max_key_code + 1);
+
+    XkbInitIndicatorMap(xkbi);
+
+    XkbDDXInitDevice(dev);
+
+    XkbUpdateCoreDescription(dev, True);
+
+    XkbUpdateActions(dev, xkb->min_key_code, XkbNumKeys(xkb), &changes,
+                     &check, &cause);
+    dev->key->curKeySyms.minKeyCode = xkb->min_key_code;
+    dev->key->curKeySyms.maxKeyCode = xkb->max_key_code;
+
+    InitFocusClassDeviceStruct(dev);
+
+    xkbi->kbdProc = ctrl_func;
+    dev->kbdfeed->CtrlProc = XkbDDXKeybdCtrlProc;
+
+    dev->kbdfeed->ctrl = defaultKeyboardControl;
+    if (dev->kbdfeed->ctrl.autoRepeat)
+        xkb->ctrls->enabled_ctrls |= XkbRepeatKeysMask;
+
+    memcpy(dev->kbdfeed->ctrl.autoRepeats, xkb->ctrls->per_key_repeat,
+           XkbPerKeyBitArraySize);
+
+    sli = XkbFindSrvLedInfo(dev, XkbDfltXIClass, XkbDfltXIId, 0);
+    if (sli)
+	XkbCheckIndicatorMaps(dev, sli, XkbAllIndicatorsMask);
+    else
+        DebugF("XKB: No indicator feedback in XkbFinishInit!\n");
+
+    dev->kbdfeed->CtrlProc(dev,&dev->kbdfeed->ctrl);
+
+    XkbSetRulesDflts(rmlvo);
+    XkbSetRulesUsed(rmlvo);
+
+    return TRUE;
+
+unwind_desc:
+    XkbFreeKeyboard(xkb, 0, TRUE);
+unwind_info:
+    xfree(xkbi);
+unwind_kbdfeed:
+    xfree(dev->kbdfeed);
+unwind_key:
+    xfree(dev->key);
+    return FALSE;
 }
+
 
 /***====================================================================***/
-
-	/*
-	 * InitKeyClassDeviceStruct initializes the key class before it
-	 * initializes the keyboard feedback class for a device. 
-	 * UpdateActions can't set up the correct autorepeat for keyboard 
-	 * initialization because the keyboard feedback isn't created yet.   
-	 * Instead, UpdateActions notes the "correct" autorepeat in the 
-	 * SrvInfo structure and InitKbdFeedbackClass calls UpdateAutoRepeat 
-	 * to apply the computed autorepeat once the feedback class exists.
-	 *
-	 * DIX will apply the changed autorepeat, so there's no need to
-	 * do so here.   This function returns True if both RepeatKeys and
-	 * the core protocol autorepeat ctrls are set (i.e. should use 
-	 * software autorepeat), false otherwise.
-	 *
-	 * This function also computes the autorepeat accelerators for the
-	 * default indicator feedback.
-	 */
-int
-XkbFinishDeviceInit(DeviceIntPtr pXDev)
-{
-XkbSrvInfoPtr		xkbi;
-XkbDescPtr		xkb;
-int			softRepeat;
-XkbSrvLedInfoPtr	sli;
-
-    xkbi = NULL;
-    if (pXDev && pXDev->key && pXDev->key->xkbInfo && pXDev->kbdfeed) {
-	xkbi= pXDev->key->xkbInfo;
-	xkb= xkbi->desc;
-        /* If we come from DeepCopyDeviceClasses, the CtrlProc was already set
-         * to XkbDDXKeybdCtrlProc, overwriting it leads to happy recursion.
-         */
-	if (pXDev->kbdfeed && pXDev->kbdfeed->CtrlProc != XkbDDXKeybdCtrlProc) {
-	    xkbi->kbdProc= pXDev->kbdfeed->CtrlProc;
-	    pXDev->kbdfeed->CtrlProc= XkbDDXKeybdCtrlProc;
-	}
-	if (pXDev->kbdfeed->ctrl.autoRepeat)
-	    xkb->ctrls->enabled_ctrls|= XkbRepeatKeysMask;
-	softRepeat= (xkb->ctrls->enabled_ctrls&XkbRepeatKeysMask)!=0;
-	if (pXDev->kbdfeed) {
-	    memcpy(pXDev->kbdfeed->ctrl.autoRepeats,
-		   xkb->ctrls->per_key_repeat,XkbPerKeyBitArraySize);
-	    softRepeat= softRepeat&&pXDev->kbdfeed->ctrl.autoRepeat;
-	}
-    }
-    else softRepeat= 0;
-    sli= XkbFindSrvLedInfo(pXDev,XkbDfltXIClass,XkbDfltXIId,0);
-    if (sli && xkbi)
-	XkbCheckIndicatorMaps(xkbi->device,sli,XkbAllIndicatorsMask);
-    else DebugF("[xkb] No indicator feedback in XkbFinishInit (shouldn't happen)!\n");
-    return softRepeat;
-}
 
 	/*
 	 * Be very careful about what does and doesn't get freed by this 

@@ -191,7 +191,6 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 {
     static DeviceIntPtr lastMapNotifyDevice = NULL;
     KeyClassPtr mk, dk; /* master, device */
-    BOOL sendNotify = FALSE;
     int i;
 
     if (device == master)
@@ -240,14 +239,8 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     for (i = 0; i < 8; i++)
         mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
-    if (dk->xkbInfo && dk->xkbInfo->desc) {
-        if (!mk->xkbInfo || !mk->xkbInfo->desc) {
-            XkbInitDevice(master);
-            XkbFinishDeviceInit(master);
-        }
-        if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
-            FatalError("Couldn't pivot keymap from device to core!\n");
-    }
+    if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
+        FatalError("Couldn't pivot keymap from device to core!\n");
 
     if (lastMapNotifyDevice != master) {
         SendMappingNotify(master, MappingKeyboard,

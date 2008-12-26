@@ -53,6 +53,7 @@ SOFTWARE.
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>
 #include "window.h"     /* for WindowPtr */
+#include "xkbrules.h"
 
 #define DEVICE_INIT	0
 #define DEVICE_ON	1
@@ -268,11 +269,6 @@ extern _X_EXPORT Bool SetKeySymsMap(
     KeySymsPtr /*dst*/,
     KeySymsPtr /*src*/);
 
-extern _X_EXPORT Bool InitKeyClassDeviceStruct(
-    DeviceIntPtr /*device*/,
-    KeySymsPtr /*pKeySyms*/,
-    CARD8 /*pModifiers*/[]);
-
 extern _X_EXPORT Bool InitButtonClassDeviceStruct(
     DeviceIntPtr /*device*/,
     int /*numButtons*/,
@@ -303,11 +299,6 @@ typedef void (*BellProcPtr)(
 typedef void (*KbdCtrlProcPtr)(
     DeviceIntPtr /*device*/,
     KeybdCtrl * /*ctrl*/);
-
-extern _X_EXPORT Bool InitKbdFeedbackClassDeviceStruct(
-    DeviceIntPtr /*device*/,
-    BellProcPtr /*bellProc*/,
-    KbdCtrlProcPtr /*controlProc*/);
 
 typedef void (*PtrCtrlProcPtr)(
     DeviceIntPtr /*device*/,
@@ -363,9 +354,8 @@ extern _X_EXPORT Bool InitPointerDeviceStruct(
     int /*numAxes*/);
 
 extern _X_EXPORT Bool InitKeyboardDeviceStruct(
-    DevicePtr /*device*/,
-    KeySymsPtr /*pKeySyms*/,
-    CARD8 /*pModifiers*/[],
+    DeviceIntPtr /*device*/,
+    XkbRMLVOSet * /*rmlvo*/,
     BellProcPtr /*bellProc*/,
     KbdCtrlProcPtr /*controlProc*/);
 

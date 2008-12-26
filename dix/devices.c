@@ -483,54 +483,24 @@ CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 static int
 CoreKeyboardProc(DeviceIntPtr pDev, int what)
 {
-    CARD8 *modMap;
-    KeySymsRec keySyms;
-    XkbComponentNamesRec names;
-    ClassesPtr classes;
+    XkbRMLVOSet rmlvo;
 
     switch (what) {
     case DEVICE_INIT:
-        if (!(classes = xcalloc(1, sizeof(ClassesRec))))
-        {
-            ErrorF("[dix] Could not allocate device classes.\n");
-            return BadAlloc;
-        }
+        XkbGetRulesDflts(&rmlvo);
+        InitKeyboardDeviceStruct(pDev, &rmlvo, CoreKeyboardBell,
+                                 CoreKeyboardCtl);
+        return Success;
 
-        keySyms.minKeyCode = 8;
-        keySyms.maxKeyCode = 255;
-        keySyms.mapWidth = 4;
-        keySyms.map = (KeySym *)xcalloc(sizeof(KeySym),
-                                        (keySyms.maxKeyCode -
-                                         keySyms.minKeyCode + 1) *
-                                        keySyms.mapWidth);
-        if (!keySyms.map) {
-            ErrorF("[dix] Couldn't allocate core keymap\n");
-            xfree(classes);
-            return BadAlloc;
-        }
-
-        modMap = xcalloc(1, MAP_LENGTH);
-        if (!modMap) {
-            ErrorF("[dix] Couldn't allocate core modifier map\n");
-            xfree(classes);
-            return BadAlloc;
-        }
-
-        bzero(&names, sizeof(names));
-        XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modMap,
-                                    CoreKeyboardBell, CoreKeyboardCtl);
-
-        xfree(keySyms.map);
-        xfree(modMap);
-        break;
+    case DEVICE_ON:
+    case DEVICE_OFF:
+        return Success;
 
     case DEVICE_CLOSE:
-        break;
-
-    default:
-        break;
+        return Success;
     }
-    return Success;
+
+    return BadMatch;
 }
 
 /**
@@ -1102,73 +1072,7 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
     return TRUE;
 }
 
-static Bool
-InitModMap(KeyClassPtr keyc)
-{
-    int i, j;
-    CARD8 keysPerModifier[8];
-    CARD8 mask;
-
-    keyc->maxKeysPerModifier = 0;
-    for (i = 0; i < 8; i++)
-	keysPerModifier[i] = 0;
-    for (i = 8; i < MAP_LENGTH; i++)
-    {
-	for (j = 0, mask = 1; j < 8; j++, mask <<= 1)
-	{
-	    if (mask & keyc->modifierMap[i])
-	    {
-		if (++keysPerModifier[j] > keyc->maxKeysPerModifier)
-		    keyc->maxKeysPerModifier = keysPerModifier[j];
-	    }
-	}
-    }
-    keyc->modifierKeyMap = xcalloc(8, keyc->maxKeysPerModifier);
-    if (!keyc->modifierKeyMap && keyc->maxKeysPerModifier)
-	return (FALSE);
-    for (i = 0; i < 8; i++)
-	keysPerModifier[i] = 0;
-    for (i = 8; i < MAP_LENGTH; i++)
-    {
-	for (j = 0, mask = 1; j < 8; j++, mask <<= 1)
-	{
-	    if (mask & keyc->modifierMap[i])
-	    {
-		keyc->modifierKeyMap[(j*keyc->maxKeysPerModifier) +
-				     keysPerModifier[j]] = i;
-		keysPerModifier[j]++;
-	    }
-	}
-    }
-    return TRUE;
-}
-
-Bool
-InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers[])
-{
-    KeyClassPtr keyc;
-
-    keyc = xcalloc(1, sizeof(KeyClassRec));
-    if (!keyc)
-	return FALSE;
-    keyc->curKeySyms.minKeyCode = pKeySyms->minKeyCode;
-    keyc->curKeySyms.maxKeyCode = pKeySyms->maxKeyCode;
-    if (pModifiers)
-	memmove((char *)keyc->modifierMap, (char *)pModifiers, MAP_LENGTH);
-    if (!SetKeySymsMap(&keyc->curKeySyms, pKeySyms) || !InitModMap(keyc))
-    {
-	xfree(keyc->curKeySyms.map);
-	xfree(keyc->modifierKeyMap);
-	xfree(keyc);
-	return FALSE;
-    }
-    dev->key = keyc;
-    dev->key->xkbInfo= NULL;
-    XkbInitDevice(dev);
-    return TRUE;
-}
-
-Bool
+_X_EXPORT Bool
 InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
                             CARD8 *map)
 {
@@ -1349,30 +1253,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
     return TRUE;
 }
 
-Bool
-InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc,
-                                 KbdCtrlProcPtr controlProc)
-{
-    KbdFeedbackPtr feedc;
-
-    feedc = (KbdFeedbackPtr)xalloc(sizeof(KbdFeedbackClassRec));
-    if (!feedc)
-	return FALSE;
-    feedc->BellProc = bellProc;
-    feedc->CtrlProc = controlProc;
-    defaultKeyboardControl.autoRepeat = TRUE;
-    feedc->ctrl = defaultKeyboardControl;
-    feedc->ctrl.id = 0;
-    if ((feedc->next = dev->kbdfeed) != 0)
-	feedc->ctrl.id = dev->kbdfeed->ctrl.id + 1;
-    dev->kbdfeed = feedc;
-    feedc->xkb_sli= NULL;
-    XkbFinishDeviceInit(dev);
-    (*dev->kbdfeed->CtrlProc)(dev,&dev->kbdfeed->ctrl);
-    return TRUE;
-}
-
-Bool
+_X_EXPORT Bool
 InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 {
     PtrFeedbackPtr feedc;
@@ -1517,19 +1398,7 @@ InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }
 
-Bool
-InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms,
-                         CARD8 pModifiers[], BellProcPtr bellProc,
-                         KbdCtrlProcPtr controlProc)
-{
-    DeviceIntPtr dev = (DeviceIntPtr)device;
-
-    return(InitKeyClassDeviceStruct(dev, pKeySyms, pModifiers) &&
-	   InitFocusClassDeviceStruct(dev) &&
-	   InitKbdFeedbackClassDeviceStruct(dev, bellProc, controlProc));
-}
-
-void
+_X_EXPORT void
 SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
         unsigned count, ClientPtr client)
 {

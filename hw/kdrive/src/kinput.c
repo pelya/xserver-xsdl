@@ -746,7 +746,7 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
     Atom xiclass;
-    XkbComponentNamesRec names;
+    XkbRMLVOSet rmlvo;
 
     if (!pDev)
 	return BadImplementation;
@@ -795,16 +795,13 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         KdInitModMap(ki);
         KdInitAutoRepeats(ki);
 
-        memset(&names, 0, sizeof(XkbComponentNamesRec));
-
-        XkbSetRulesDflts (ki->xkbRules, ki->xkbModel, ki->xkbLayout,
-                          ki->xkbVariant, ki->xkbOptions);
-
-        ret = XkbInitKeyboardDeviceStruct (pDevice,
-                                           &names,
-                                           &ki->keySyms,
-                                           ki->modmap,
-                                           KdBell, KdKbdCtrl);
+        memset(&rmlvo, 0, sizeof(rmlvo));
+        rmlvo.rules = ki->xkbRules;
+        rmlvo.model = ki->xkbModel;
+        rmlvo.layout = ki->xkbLayout;
+        rmlvo.variant = ki->xkbVariant;
+        rmlvo.options = ki->xkbOptions;
+        ret = InitKeyboardDeviceStruct (pDevice, &rmlvo, KdBell, KdKbdCtrl);
 	if (!ret) {
             ErrorF("Couldn't initialise keyboard %s\n", ki->name);
 	    return BadImplementation;

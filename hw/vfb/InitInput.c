@@ -259,21 +259,19 @@ GetLK201Mappings(KeySymsPtr pKeySyms, CARD8 *pModMap)
 static int
 vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
 {
-    KeySymsRec		keySyms;
-    CARD8 		modMap[MAP_LENGTH];
     DevicePtr pDev = (DevicePtr)pDevice;
+    XkbRMLVOSet rmlvo;
 
     switch (onoff)
     {
-    case DEVICE_INIT: 
-	GetLK201Mappings(&keySyms, modMap);
-	InitKeyboardDeviceStruct(pDev, &keySyms, modMap,
-			(BellProcPtr)NoopDDA, (KbdCtrlProcPtr)NoopDDA);
-	    break;
-    case DEVICE_ON: 
+    case DEVICE_INIT:
+        XkbGetRulesDflts(&rmlvo);
+	InitKeyboardDeviceStruct(pDevice, &rmlvo, NULL, NULL);
+        break;
+    case DEVICE_ON:
 	pDev->on = TRUE;
 	break;
-    case DEVICE_OFF: 
+    case DEVICE_OFF:
 	pDev->on = FALSE;
 	break;
     case DEVICE_CLOSE:
