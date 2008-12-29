@@ -32,6 +32,12 @@ Change the modifier keys used to emulate the second mouse button. By default,
 Command is used to emulate the second button. Any combination of the following
 modifier names may be used: {l,r,}shift, {l,r,}option, {l,r,}control, {l,r,}command, fn
 .TP 8
+.B defaults write org.x.X11 fullscreen_hotkeys -boolean true
+Enable OSX hotkeys while in fullscreen
+.TP 8
+.B defaults write org.x.X11 fullscreen_menu -boolean true
+Show the OSX menu while in fullscreen
+.TP 8
 .B defaults write org.x.X11 no_quit_alert -boolean true
 Disables the alert dialog displayed when attempting to quit X11.
 .TP 8
