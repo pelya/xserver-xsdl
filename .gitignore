@@ -1,3 +1,4 @@
+ChangeLog
 Makefile
 Makefile.in
 .deps
@@ -131,11 +132,12 @@ hw/xfree86/xorg.conf.example.pre
 hw/xnest/Xnest
 hw/xnest/Xnest.1x
 hw/xnest/Xnest.man
+hw/xquartz/bundle/Info.plist
 hw/xquartz/mach-startup/mach_startup.h
 hw/xquartz/mach-startup/mach_startupServer.c
 hw/xquartz/mach-startup/mach_startupServer.h
 hw/xquartz/mach-startup/mach_startupUser.c
-hw/xquartz/mach-startup/X11
+hw/xquartz/mach-startup/X11.bin
 hw/xquartz/mach-startup/Xquartz
 hw/xquartz/doc/Xquartz.1
 hw/xwin/winprefslex.c
