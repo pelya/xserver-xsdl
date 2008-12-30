@@ -2123,6 +2123,12 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     DeviceIntPtr pDev = NULL, tmpDev = NULL;
     xkbMapNotify mn;
     xkbNewKeyboardNotify nkn;
+    XkbEventCauseRec cause;
+    XkbChangesRec changes;
+    unsigned int check = 0;
+
+    memset(&changes, 0, sizeof(changes));
+    memset(&cause, 0, sizeof(cause));
 
     if (!src || !dst || src == dst)
         return FALSE;
@@ -2205,9 +2211,18 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 mn.firstVModMapKey = src->min_key_code;
                 mn.nVModMapKeys = XkbNumKeys(src);
                 mn.virtualMods = ~0; /* ??? */
-                mn.changed = XkbAllMapComponentsMask;                
+                mn.changed = XkbAllMapComponentsMask;
                 XkbSendMapNotify(pDev, &mn);
             }
+
+            XkbUpdateActions(pDev, dst->min_key_code,
+                             XkbNumKeys(pDev->key->xkbInfo->desc), &changes,
+                             &check, &cause);
+            if (check)
+                XkbCheckSecondaryEffects(pDev->key->xkbInfo, check, &changes,
+                                         &cause);
+            memcpy(pDev->kbdfeed->ctrl.autoRepeats, dst->ctrls->per_key_repeat,
+                   XkbPerKeyBitArraySize);
         }
     }
 
