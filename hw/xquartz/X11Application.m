@@ -921,6 +921,18 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
 @implementation X11Application (Private)
 extern int darwin_modifier_flags; // darwinEvents.c
 
+#ifdef NX_DEVICELCMDKEYMASK
+/* This is to workaround a bug in the VNC server where we sometimes see the L
+ * modifier and sometimes see no "side"
+ */
+static inline int ensure_flag(int flags, int device_independent, int device_dependents, int device_dependent_default) {
+    if( (flags & device_independent) &&
+       !(flags & device_dependents))
+        flags |= device_dependent_default;
+    return flags;
+}
+#endif
+
 - (void) sendX11NSEvent:(NSEvent *)e {
     NSRect screen;
     NSPoint location;
@@ -928,6 +940,7 @@ extern int darwin_modifier_flags; // darwinEvents.c
     int ev_button, ev_type;
     float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
     DeviceIntPtr pDev;
+    int modifierFlags;
 
     /* convert location to be relative to top-left of primary display */
     location = [e locationInWindow];
@@ -949,12 +962,32 @@ extern int darwin_modifier_flags; // darwinEvents.c
     tilt_x = 0;
     tilt_y = 0;
     
+    modifierFlags = [e modifierFlags];
+    
+    /* These are the "only" modifier keys we care about */
+    modifierFlags &= (NX_COMMANDMASK | NX_CONTROLMASK | NX_ALTERNATEMASK | NX_SHIFTMASK |
+                      NX_SECONDARYFNMASK | NX_ALPHASHIFTMASK | NX_NUMERICPADMASK |
+                      NX_HELPMASK | NX_DEVICELCTLKEYMASK | NX_DEVICELSHIFTKEYMASK |
+                      NX_DEVICERSHIFTKEYMASK | NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK |
+                      NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK | NX_DEVICERCTLKEYMASK);
+    
+#ifdef NX_DEVICELCMDKEYMASK
+    /* This is to workaround a bug in the VNC server where we sometimes see the L
+     * modifier and sometimes see no "side"
+     */
+    modifierFlags = ensure_flag(modifierFlags, NX_CONTROLMASK,   NX_DEVICELCTLKEYMASK   | NX_DEVICERCTLKEYMASK,     NX_DEVICELCTLKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_SHIFTMASK,     NX_DEVICELSHIFTKEYMASK | NX_DEVICERSHIFTKEYMASK,   NX_DEVICELSHIFTKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_COMMANDMASK,   NX_DEVICELCMDKEYMASK   | NX_DEVICERCMDKEYMASK,     NX_DEVICELCMDKEYMASK);
+    modifierFlags = ensure_flag(modifierFlags, NX_ALTERNATEMASK, NX_DEVICELALTKEYMASK   | NX_DEVICERALTKEYMASK,     NX_DEVICELALTKEYMASK);
+#endif
+
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state
      * on every event... ugg
      */
-    if(darwin_modifier_flags != [e modifierFlags])
-        DarwinUpdateModKeys([e modifierFlags]);
+    
+    if(darwin_modifier_flags != modifierFlags)
+        DarwinUpdateModKeys(modifierFlags);
     
 	switch ([e type]) {
 		case NSLeftMouseDown:     ev_button=1; ev_type=ButtonPress;   goto handle_mouse;
