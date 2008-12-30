@@ -63,6 +63,9 @@ extern BOOL xpbproxy_init (void);
 #define ProximityIn    0
 #define ProximityOut   1
 
+/* Stuck modifier / button state... force release when we context switch */
+static NSEventType keyState[NUM_KEYCODES];
+
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
@@ -179,29 +182,37 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 
 - (void) activateX:(OSX_BOOL)state {
     /* Create a TSM document that supports full Unicode input, and
-	 have it activated while X is active */
+     have it activated while X is active */
     static TSMDocumentID x11_document;
-	DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
+    size_t i;
+    DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-		DarwinSendDDXEvent(kXquartzActivate, 0);
+        DarwinSendDDXEvent(kXquartzActivate, 0);
 
-		if (!_x_active) {
-			if (x11_document == 0) {
-				OSType types[1];
-				types[0] = kUnicodeDocument;
-				NewTSMDocument (1, types, &x11_document, 0);
-			}
+        if (!_x_active) {
+            if (x11_document == 0) {
+                OSType types[1];
+                types[0] = kUnicodeDocument;
+                NewTSMDocument (1, types, &x11_document, 0);
+            }
 
-			if (x11_document != 0)	ActivateTSMDocument (x11_document);
-		}
+            if (x11_document != 0)	ActivateTSMDocument (x11_document);
+        }
     } else {
-		DarwinSendDDXEvent(kXquartzDeactivate, 0);
 
-		if (_x_active && x11_document != 0)
-			DeactivateTSMDocument (x11_document);
-	}
+        DarwinUpdateModKeys(0);
+        for(i=0; i < NUM_KEYCODES; i++) {
+            if(keyState[i] == NSKeyDown)
+                DarwinSendKeyboardEvents(KeyRelease, i);
+        }
+        
+        DarwinSendDDXEvent(kXquartzDeactivate, 0);
 
-	_x_active = state;
+        if (_x_active && x11_document != 0)
+            DeactivateTSMDocument (x11_document);
+    }
+
+    _x_active = state;
 }
 
 - (void) became_key:(NSWindow *)win {
@@ -1126,7 +1137,12 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                     DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
                 }
             }
-            
+
+            /* Avoid stuck keys on context switch */
+            if(keyState[[e keyCode]] == [e type])
+                return;
+            keyState[[e keyCode]] = [e type];
+
             DarwinSendKeyboardEvents(([e type] == NSKeyDown) ? KeyPress : KeyRelease, [e keyCode]);
             break;
             
