@@ -323,7 +323,9 @@ static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms) {
  */
 void DarwinKeyboardInit(DeviceIntPtr pDev) {
     KeySymsRec keySyms;
-	XkbComponentNamesRec names;
+    XkbComponentNamesRec names;
+    CFIndex value;
+    BOOL ok;
 
     // Open a shared connection to the HID System.
     // Note that the Event Status Driver is really just a wrapper
@@ -332,7 +334,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
     DarwinLoadKeyboardMapping(&keySyms);
 
-	bzero(&names, sizeof(names));
+    bzero(&names, sizeof(names));
 
     /* We need to really have rules... or something... */
     //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
@@ -342,8 +344,26 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
                                        QuartzBell, DarwinChangeKeyboardControl));
     pthread_mutex_unlock(&keyInfo_mutex);
 
-    // TODO: What do we do now in 1.6?
-	//SwitchCoreKeyboard(pDev);   
+    /* Get our key repeat settings from GlobalPreferences */
+    (void)CFPreferencesAppSynchronize(CFSTR(".GlobalPreferences"));
+    value = CFPreferencesGetAppIntegerValue(CFSTR("InitialKeyRepeat"), CFSTR(".GlobalPreferences"), &ok);
+    if(!ok)
+        value = 35;
+
+    if(value == 300000) { // off
+        XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOff);
+    } else {
+        pDev->key->xkbInfo->desc->ctrls->repeat_delay = value * 15;
+
+        value = CFPreferencesGetAppIntegerValue(CFSTR("KeyRepeat"), CFSTR(".GlobalPreferences"), &ok);
+        if(!ok)
+            value = 6;
+        pDev->key->xkbInfo->desc->ctrls->repeat_interval = value * 15;
+
+        XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
+    }
+	// TODO: What do we do now in 1.6?
+    //SwitchCoreKeyboard(pDev);   
 
     DarwinKeyboardSetDeviceKeyMap(&keySyms);
 }
