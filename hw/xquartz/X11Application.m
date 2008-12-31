@@ -977,13 +977,6 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     
     modifierFlags = [e modifierFlags];
     
-    /* These are the "only" modifier keys we care about */
-    modifierFlags &= (NX_COMMANDMASK | NX_CONTROLMASK | NX_ALTERNATEMASK | NX_SHIFTMASK |
-                      NX_SECONDARYFNMASK | NX_ALPHASHIFTMASK | NX_NUMERICPADMASK |
-                      NX_HELPMASK | NX_DEVICELCTLKEYMASK | NX_DEVICELSHIFTKEYMASK |
-                      NX_DEVICERSHIFTKEYMASK | NX_DEVICELCMDKEYMASK | NX_DEVICERCMDKEYMASK |
-                      NX_DEVICELALTKEYMASK | NX_DEVICERALTKEYMASK | NX_DEVICERCTLKEYMASK);
-    
 #ifdef NX_DEVICELCMDKEYMASK
     /* This is to workaround a bug in the VNC server where we sometimes see the L
      * modifier and sometimes see no "side"

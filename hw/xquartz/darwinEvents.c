@@ -145,7 +145,6 @@ static void DarwinPressModifierKey(int pressed, int key) {
  */
 
 static int modifier_mask_list[] = {
-    NX_SECONDARYFNMASK, NX_NUMERICPADMASK, NX_HELPMASK,
 #ifdef NX_DEVICELCMDKEYMASK
     NX_DEVICELCTLKEYMASK, NX_DEVICERCTLKEYMASK,
     NX_DEVICELSHIFTKEYMASK, NX_DEVICERSHIFTKEYMASK,
@@ -162,6 +161,7 @@ static void DarwinUpdateModifiers(
     int flags )         // modifier flags that have changed
 {
     int *f;
+    int key;
 
     /* Capslock is special.  This mask is the state of capslock (on/off),
      * not the state of the button.  Hopefully we can find a better solution.
@@ -172,8 +172,13 @@ static void DarwinUpdateModifiers(
     }
     
     for(f=modifier_mask_list; *f; f++)
-        if(*f & flags)
-            DarwinPressModifierKey(pressed, DarwinModifierNXMaskToNXKey(*f));
+        if(*f & flags) {
+            key = DarwinModifierNXMaskToNXKey(*f);
+            if(key == -1)
+                ErrorF("DarwinUpdateModifiers: Unsupported NXMask: 0x%x\n", *f);
+            else
+                DarwinPressModifierKey(pressed, key);
+        }
 }
 
 /* Generic handler for Xquartz-specifc events.  When possible, these should
