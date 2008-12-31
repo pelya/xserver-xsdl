@@ -132,9 +132,7 @@ xEvent		xE;
 	DebugF("[xkb] AXKE: Key %d %s\n",keyCode,(xE.u.u.type==KeyPress?"down":"up"));
     }
 
-    if (_XkbIsPressEvent(type))
-	XkbDDXKeyClick(keybd,keyCode,TRUE);
-    else if (isRepeat)
+    if (!_XkbIsPressEvent(type) && isRepeat)
 	XkbLastRepeatEvent=	(pointer)&xE;
     XkbProcessKeyboardEvent(&xE,keybd,1L);
     XkbLastRepeatEvent= NULL;

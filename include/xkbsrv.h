@@ -771,20 +771,10 @@ extern _X_EXPORT int XkbRemoveResourceClient(
        XID		/* id */
 );
 
-extern _X_EXPORT int XkbDDXInitDevice(
-    DeviceIntPtr        /* dev */
-);
-
 extern _X_EXPORT int XkbDDXAccessXBeep(
     DeviceIntPtr        /* dev */,
     unsigned int	/* what */,
     unsigned int	/* which */
-);
-
-extern _X_EXPORT void XkbDDXKeyClick(
-    DeviceIntPtr	/* dev */,
-    int			/* keycode */,
-    int			/* synthetic */
 );
 
 extern _X_EXPORT int XkbDDXUsesSoftRepeat(

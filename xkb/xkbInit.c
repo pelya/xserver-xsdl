@@ -508,8 +508,6 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
 
     XkbInitIndicatorMap(xkbi);
 
-    XkbDDXInitDevice(dev);
-
     XkbUpdateActions(dev, xkb->min_key_code, XkbNumKeys(xkb), &changes,
                      &check, &cause);
 
