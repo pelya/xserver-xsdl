@@ -202,8 +202,10 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 
         DarwinUpdateModKeys(0);
         for(i=0; i < NUM_KEYCODES; i++) {
-            if(keyState[i] == NSKeyDown)
+            if(keyState[i] == NSKeyDown) {
                 DarwinSendKeyboardEvents(KeyRelease, i);
+                keyState[i] = NSKeyUp;
+            }
         }
         
         DarwinSendDDXEvent(kXquartzDeactivate, 0);
