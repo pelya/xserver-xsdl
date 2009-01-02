@@ -27,9 +27,9 @@
 	<key>CSResourcesFileMapped</key>
 		<true/>
 	<key>NSHumanReadableCopyright</key>
-		<string>Copyright © 2003-2008, Apple Inc.
+		<string>Copyright © 2003-2009, Apple Inc.
 Copyright © 2003, XFree86 Project, Inc.
-Copyright © 2003-2008, X.org Foundation, Inc.
+Copyright © 2003-2009, X.org Foundation, Inc.
 </string>
 	<key>NSMainNibFile</key>
 		<string>main</string>
