@@ -68,7 +68,20 @@ static int x_error_handler (Display *dpy, XErrorEvent *errevent) {
     return 0;
 }
 
-BOOL xpbproxy_init (void) {
+static inline pthread_t create_thread(void *func, void *arg) {
+    pthread_attr_t attr;
+    pthread_t tid;
+    
+    pthread_attr_init(&attr);
+    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&tid, &attr, func, arg);
+    pthread_attr_destroy(&attr);
+    
+    return tid;
+}
+
+static void *xpbproxy_x_thread(void *args) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     size_t i;
 
@@ -89,7 +102,7 @@ BOOL xpbproxy_init (void) {
     if (xpbproxy_dpy == NULL) {
         fprintf (stderr, "xpbproxy: can't open default display\n");
         [pool release];
-        return FALSE;
+        return NULL;
     }
     
     XSetIOErrorHandler (x_io_error_handler);
@@ -99,7 +112,7 @@ BOOL xpbproxy_init (void) {
                                  &xpbproxy_apple_wm_error_base)) {
         fprintf (stderr, "xpbproxy: can't open AppleWM server extension\n");
         [pool release];
-        return FALSE;
+        return NULL;
     }
     
     xpbproxy_have_xfixes = XFixesQueryExtension(xpbproxy_dpy, &xpbproxy_xfixes_event_base, &xpbproxy_xfixes_error_base);
@@ -111,11 +124,17 @@ BOOL xpbproxy_init (void) {
     
     if(!xpbproxy_input_register()) {
         [pool release];
-        return FALSE;
+        return NULL;
     }
 
     [pool release];
-    
+ 
+    xpbproxy_input_loop();
+    return NULL;
+}
+
+BOOL xpbproxy_init (void) {
+    create_thread(xpbproxy_x_thread, NULL);
     return TRUE;
 }
 

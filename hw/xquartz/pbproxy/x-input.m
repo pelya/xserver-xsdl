@@ -50,19 +50,6 @@ BOOL xpbproxy_prefs_reload = NO;
 static pthread_mutex_t xpbproxy_dpy_rdy_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t xpbproxy_dpy_rdy_cond = PTHREAD_COND_INITIALIZER;
 
-static inline pthread_t create_thread(void *func, void *arg) {
-    pthread_attr_t attr;
-    pthread_t tid;
-    
-    pthread_attr_init(&attr);
-    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&tid, &attr, func, arg);
-    pthread_attr_destroy(&attr);
-    
-    return tid;
-}
-
 /* Timestamp when the X server last told us it's active */
 static Time last_activation_time;
 
@@ -101,7 +88,7 @@ static void x_event_apple_wm_notify(XAppleWMNotifyEvent *e) {
     }
 }
 
-static void *xpbproxy_input_thread(void *args) {
+void xpbproxy_input_loop() {
     pthread_mutex_lock(&xpbproxy_dpy_rdy_lock);
     while(true) {
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -153,8 +140,6 @@ static void *xpbproxy_input_thread(void *args) {
         
         pthread_cond_wait(&xpbproxy_dpy_rdy_cond, &xpbproxy_dpy_rdy_lock);
     }
-    
-    return NULL;
 }
 
 static BOOL add_input_socket (int sock, CFOptionFlags callback_types,
@@ -176,7 +161,7 @@ static BOOL add_input_socket (int sock, CFOptionFlags callback_types,
     if (*cf_source == NULL)
         return FALSE;
     
-    CFRunLoopAddSource (CFRunLoopGetCurrent (),
+    CFRunLoopAddSource (CFRunLoopGetMain (),
                         *cf_source, kCFRunLoopDefaultMode);
     return TRUE;
 }
@@ -197,8 +182,6 @@ static void x_input_callback (CFSocketRef sock, CFSocketCallBackType type,
 }
 
 BOOL xpbproxy_input_register(void) {
-    create_thread(xpbproxy_input_thread, NULL);
-
     return add_input_socket(ConnectionNumber(xpbproxy_dpy), kCFSocketReadCallBack,
                             x_input_callback, NULL, &xpbproxy_dpy_source);
 }
