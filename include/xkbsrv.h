@@ -974,6 +974,11 @@ extern _X_EXPORT void XkbSendNewKeyboardNotify(
 	xkbNewKeyboardNotify *	/* pNKN */
 );
 
+extern Bool XkbCopyKeymap(
+        XkbDescPtr              /* dst */,
+        XkbDescPtr              /* src */,
+        Bool                    /* sendNotifies */);
+
 #include "xkbfile.h"
 #include <X11/extensions/XKMformat.h>
 #include "xkbrules.h"

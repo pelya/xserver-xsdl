@@ -44,7 +44,7 @@
 
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
-#include <xkbsrv.h>
+#include "xkbsrv.h"
 #endif
 
 #ifdef PANORAMIX
