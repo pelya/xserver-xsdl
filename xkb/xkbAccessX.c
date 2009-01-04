@@ -33,6 +33,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
+#include "exglobals.h"
+#include <X11/extensions/XIproto.h>
 #include "inputstr.h"
 #include <xkbsrv.h>
 #if !defined(WIN32)
@@ -691,15 +693,16 @@ XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
 ProcessInputProc backupproc;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
+deviceKeyButtonPointer *kbp = xE;
 
     xkbi->shiftKeyCount = 0;
-    xkbi->lastPtrEventTime= xE->u.keyButtonPointer.time;
+    xkbi->lastPtrEventTime= kbp->time;
 
-    if (xE->u.u.type==ButtonPress) {
+    if (xE->u.u.type==DeviceButtonPress) {
 	    changed |= XkbPointerButtonMask;
     }
-    else if (xE->u.u.type==ButtonRelease) {
-	xkbi->lockedPtrButtons&= ~(1<<(xE->u.u.detail&0x7));
+    else if (xE->u.u.type==DeviceButtonRelease) {
+	xkbi->lockedPtrButtons&= ~(1<<(kbp->detail&0x7));
 	changed |= XkbPointerButtonMask;
     }
 
@@ -726,7 +729,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
     xkbi->state.ptr_buttons = mouse->button->state;
     
     /* clear any latched modifiers */
-    if ( xkbi->state.latched_mods && (xE->u.u.type==ButtonRelease) ) {
+    if ( xkbi->state.latched_mods && (kbp->type==DeviceButtonRelease) ) {
 	unsigned 		changed_leds;
 	XkbStateRec		oldState;
 	XkbSrvLedInfoPtr	sli;
@@ -741,7 +744,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
 	    changed_leds= XkbIndicatorsToUpdate(dev,changed,False);
 	    if (changed_leds) {
 		XkbEventCauseRec	cause;
-		XkbSetCauseKey(&cause,(xE->u.u.detail&0x7),xE->u.u.type);
+		XkbSetCauseKey(&cause,(kbp->detail&0x7),kbp->type);
 		XkbUpdateIndicators(dev,changed_leds,True,NULL,&cause);
 	    }
 	}
@@ -750,8 +753,8 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
 
     if (((xkbi->flags&_XkbStateNotifyInProgress)==0)&&(changed!=0)) {
 	xkbStateNotify	sn;
-	sn.keycode= xE->u.u.detail;
-	sn.eventType= xE->u.u.type;
+	sn.keycode= kbp->detail;
+	sn.eventType= kbp->type;
 	sn.requestMajor = sn.requestMinor = 0;
 	sn.changed= changed;
 	XkbSendStateNotify(dev,&sn);
