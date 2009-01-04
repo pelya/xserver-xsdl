@@ -74,12 +74,6 @@ XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)
     WRAP_PROCESS_INPUT_PROC(device, xkbPrivPtr, proc, xkbUnwrapProc);
 }
 
-extern	void	ProcessOtherEvent(
-    xEvent *		/* xE */,
-    DeviceIntPtr 	/* dev */,
-    int 		/* count */
-);
-
 /***====================================================================***/
 
 static XkbAction
