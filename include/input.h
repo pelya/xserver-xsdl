@@ -400,16 +400,6 @@ extern _X_EXPORT void ProcessKeyboardEvent(
     DeviceIntPtr /*keybd*/,
     int /*count*/);
 
-extern _X_EXPORT void CoreProcessPointerEvent(
-    xEventPtr /*xE*/,
-    DeviceIntPtr /*mouse*/,
-    int /*count*/) _X_DEPRECATED;
-
-extern _X_EXPORT _X_DEPRECATED void CoreProcessKeyboardEvent(
-    xEventPtr /*xE*/,
-    DeviceIntPtr /*keybd*/,
-    int /*count*/) _X_DEPRECATED;
-
 extern _X_EXPORT Bool LegalModifier(
     unsigned int /*key*/, 
     DeviceIntPtr /*pDev*/);
