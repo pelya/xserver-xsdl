@@ -678,6 +678,9 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 
       /* Remove our keyboard hook if it is installed */
       winRemoveKeyboardHookLL ();
+      if (!wParam)
+	/* Revert the X focus as well, but only if the Windows focus is going to another window */
+	DeleteWindowFromAnyEvents(pWin, FALSE);
       return 0;
 
     case WM_SYSDEADCHAR:      
