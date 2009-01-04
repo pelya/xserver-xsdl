@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
+ *Copyright (C) Colin Harrison 2005-2008
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +29,7 @@
  * Authors:	Kensuke Matsuzaki
  *		Earle F. Philhower, III
  *		Harold L Hunt II
+ *              Colin Harrison
  */
 
 #ifdef HAVE_XWIN_CONFIG_H
@@ -476,6 +478,7 @@ winCreateWindowsWindow (WindowPtr pWin)
   int			iWidth;
   int			iHeight;
   HWND			hWnd;
+  HWND			hFore = NULL;
   WNDCLASSEX		wc;
   winWindowPriv(pWin);
   HICON			hIcon;
@@ -486,6 +489,7 @@ winCreateWindowsWindow (WindowPtr pWin)
   static int		s_iWindowID = 0;
   winPrivScreenPtr	pScreenPriv = pWinPriv->pScreenPriv;
   WinXSizeHints         hints;
+  WindowPtr		pDaddy;
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winCreateWindowsWindow - pWin: %08x\n", pWin);
@@ -560,6 +564,15 @@ winCreateWindowsWindow (WindowPtr pWin)
   wc.lpszClassName = pszClass;
   RegisterClassEx (&wc);
 
+    if (winMultiWindowGetTransientFor (pWin, &pDaddy))
+    {
+      if (pDaddy)
+      {
+        hFore = GetForegroundWindow();
+        if (hFore && (pDaddy != (WindowPtr)GetProp(hFore, WIN_WID_PROP))) hFore = NULL;
+      }
+    }
+
   /* Create the window */
   /* Make it OVERLAPPED in create call since WS_POPUP doesn't support */
   /* CW_USEDEFAULT, change back to popup after creation */
@@ -571,7 +584,7 @@ winCreateWindowsWindow (WindowPtr pWin)
 			  iY,			/* Vertical position */
 			  iWidth,		/* Right edge */ 
 			  iHeight,		/* Bottom edge */
-			  (HWND) NULL,		/* No parent or owner window */
+			  hFore,		/* Null or Parent window if transient*/
 			  (HMENU) NULL,		/* No menu */
 			  GetModuleHandle (NULL), /* Instance handle */
 			  pWin);		/* ScreenPrivates */

@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 1994-2000 The XFree86 Project, Inc. All Rights Reserved.
+ *Copyright (C) Colin Harrison 2005-2008
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +29,7 @@
  * Authors:	Kensuke Matsuzaki
  *		Earle F. Philhower, III
  *		Harold L Hunt II
+ *              Colin Harrison
  */
 
 #ifdef HAVE_XWIN_CONFIG_H
@@ -653,6 +655,12 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
     case WM_SETFOCUS:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+
+      {
+	/* Get the parent window for transient handling */
+	HWND hParent = GetParent(hwnd);
+	if (hParent && IsIconic(hParent)) ShowWindow (hParent, SW_RESTORE);
+      }
 
       winRestoreModeKeyStates ();
 
