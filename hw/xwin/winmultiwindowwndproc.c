@@ -786,6 +786,10 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	    if (!pWin || !pWin->overrideRedirect) /* for OOo menus */
 	      winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
 	}
+      /* Prevent the mouse wheel from stalling when another window is minimized */
+      if (HIWORD(wParam) == 0 && LOWORD(wParam) == WA_ACTIVE &&
+	  (HWND)lParam != NULL && (HWND)lParam != (HWND)GetParent(hwnd))
+	SetFocus(hwnd);
       return 0;
 
     case WM_ACTIVATEAPP:
