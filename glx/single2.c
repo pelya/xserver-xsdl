@@ -335,6 +335,9 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
     string = (const char *) CALL_GetString( GET_DISPATCH(), (name) );
     client = cl->client;
 
+    if (string == NULL)
+      string = "";
+
     /*
     ** Restrict extensions to those that are supported by both the
     ** implementation and the connection.  That is, return the
