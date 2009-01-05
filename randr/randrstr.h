@@ -825,10 +825,10 @@ RROutputDestroy (RROutputPtr	output);
 extern _X_EXPORT int
 ProcRRGetOutputInfo (ClientPtr client);
 
-extern int
+extern _X_EXPORT int
 ProcRRSetOutputPrimary (ClientPtr client);
 
-extern int
+extern _X_EXPORT int
 ProcRRGetOutputPrimary (ClientPtr client);
 
 /*

@@ -56,24 +56,24 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XACE_AUDIT_END			16
 #define XACE_NUM_HOOKS			17
 
-extern CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
+extern _X_EXPORT CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
 
 /* Entry point for hook functions.  Called by Xserver.
  * Required by libdbe and libextmod
  */
-_X_EXPORT int XaceHook(
+extern _X_EXPORT int XaceHook(
     int /*hook*/,
     ... /*appropriate args for hook*/
     ); 
 
 /* Special-cased hook functions
  */
-int XaceHookDispatch(ClientPtr ptr, int major);
-int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
-			   PropertyPtr *ppProp, Mask access_mode);
-int XaceHookSelectionAccess(ClientPtr ptr,
+extern _X_EXPORT int XaceHookDispatch(ClientPtr ptr, int major);
+extern _X_EXPORT int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
+				   PropertyPtr *ppProp, Mask access_mode);
+extern _X_EXPORT int XaceHookSelectionAccess(ClientPtr ptr,
 				   Selection **ppSel, Mask access_mode);
-void XaceHookAuditEnd(ClientPtr ptr, int result);
+extern _X_EXPORT void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.
  */
@@ -87,13 +87,13 @@ void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* XTrans wrappers for use by security modules
  */
-_X_EXPORT int XaceGetConnectionNumber(ClientPtr ptr);
-_X_EXPORT int XaceIsLocal(ClientPtr ptr);
+extern _X_EXPORT int XaceGetConnectionNumber(ClientPtr ptr);
+extern _X_EXPORT int XaceIsLocal(ClientPtr ptr);
 
 /* From the original Security extension...
  */
 
-void XaceCensorImage(
+extern _X_EXPORT void XaceCensorImage(
     ClientPtr client,
     RegionPtr pVisibleRegion,
     long widthBytesLine,

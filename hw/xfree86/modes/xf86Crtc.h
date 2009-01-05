@@ -734,7 +734,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc);
  * Clean up any rotation data, used when a crtc is turned off
  * as well as when rotation is disabled.
  */
-void
+extern _X_EXPORT void
 xf86RotateDestroy (xf86CrtcPtr crtc);
 
 /*
@@ -925,26 +925,10 @@ extern _X_EXPORT void
 xf86_crtc_notify(ScreenPtr pScreen);
 
 /**
- * Panning
- */
-Bool
-xf86_crtc_get_panning(ScrnInfoPtr pScrn,
-		      BoxPtr      totalArea,
-		      BoxPtr      TrackingArea,
-		      INT16      *border);
-
-Bool
-xf86_crtc_set_panning(ScrnInfoPtr pScrn,
-		      BoxPtr      totalArea,
-		      BoxPtr      TrackingArea,
-		      INT16      *border);
-
-
-/**
  * Gamma
  */
 
-Bool
+extern _X_EXPORT Bool
 xf86_crtc_supports_gamma(ScrnInfoPtr pScrn);
 
 #endif /* _XF86CRTC_H_ */
