@@ -152,6 +152,14 @@ fbdevHWFreeRec(ScrnInfoPtr pScrn)
 	FBDEVHWPTRLVAL(pScrn) = NULL;
 }
 
+int
+fbdevHWGetFD(ScrnInfoPtr pScrn)
+{
+    fbdevHWPtr fPtr = fbdevHWGetRec(pScrn);
+
+    return fPtr->fd;
+}
+
 /* -------------------------------------------------------------------- */
 /* some helpers for printing debug informations                         */
 

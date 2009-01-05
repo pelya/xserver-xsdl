@@ -16,6 +16,8 @@
 extern _X_EXPORT Bool  fbdevHWGetRec(ScrnInfoPtr pScrn);
 extern _X_EXPORT void  fbdevHWFreeRec(ScrnInfoPtr pScrn);
 
+extern _X_EXPORT int   fbdevHWGetFD(ScrnInfoPtr pScrn);
+
 extern _X_EXPORT Bool  fbdevHWProbe(struct pci_device * pPci, char *device, char **namep);
 extern _X_EXPORT Bool  fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device * pPci, char *device);
 
