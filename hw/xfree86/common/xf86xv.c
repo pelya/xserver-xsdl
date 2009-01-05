@@ -1123,6 +1123,10 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 
      pPriv->pCompositeClip = NULL;
 
+     if (pPriv->AdaptorRec->ClipNotify)
+        (*pPriv->AdaptorRec->ClipNotify)(pPriv->pScrn, pPriv->DevPriv.ptr,
+                                         pWin, dx, dy);
+
      /* Stop everything except images, but stop them too if the
 	window isn't visible.  But we only remove the images. */
 

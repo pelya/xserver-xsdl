@@ -112,6 +112,8 @@ typedef int (* ReputImageFuncPtr)( ScrnInfoPtr pScrn, short drw_x, short drw_y,
 typedef int (*QueryImageAttributesFuncPtr)(ScrnInfoPtr pScrn, 
 	int image, unsigned short *width, unsigned short *height, 
 	int *pitches, int *offsets);
+typedef void (*ClipNotifyFuncPtr)(ScrnInfoPtr pScrn, pointer data,
+                                  WindowPtr window, int dx, int dy);
 
 typedef enum {
     XV_OFF,
@@ -165,6 +167,7 @@ typedef struct {
   PutImageFuncPtr PutImage;
   ReputImageFuncPtr ReputImage;
   QueryImageAttributesFuncPtr QueryImageAttributes;
+  ClipNotifyFuncPtr ClipNotify;
 } XF86VideoAdaptorRec, *XF86VideoAdaptorPtr;
 
 typedef struct {

@@ -59,6 +59,7 @@ typedef struct {
   PutImageFuncPtr PutImage;
   ReputImageFuncPtr ReputImage;
   QueryImageAttributesFuncPtr QueryImageAttributes;
+  ClipNotifyFuncPtr ClipNotify;
 } XvAdaptorRecPrivate, *XvAdaptorRecPrivatePtr;
 
 typedef struct {
