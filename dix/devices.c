@@ -1833,36 +1833,23 @@ static int
 DoSetPointerMapping(ClientPtr client, DeviceIntPtr device, BYTE *map, int n)
 {
     int rc, i = 0;
-    DeviceIntPtr dev = NULL;
 
     if (!device || !device->button)
         return BadDevice;
 
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
-	    if (rc != Success)
-		return rc;
-	}
-    }
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, device, DixManageAccess);
+    if (rc != Success)
+        return rc;
 
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
-            for (i = 0; i < n; i++) {
-                if ((device->button->map[i + 1] != map[i]) &&
-                        BitIsOn(device->button->down, i + 1)) {
-                    return MappingBusy;
-                }
-            }
+    for (i = 0; i < n; i++) {
+        if ((device->button->map[i + 1] != map[i]) &&
+            BitIsOn(device->button->down, i + 1)) {
+            return MappingBusy;
         }
     }
 
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
-            for (i = 0; i < n; i++)
-                dev->button->map[i + 1] = map[i];
-        }
-    }
+    for (i = 0; i < n; i++)
+        device->button->map[i + 1] = map[i];
 
     return Success;
 }
@@ -1919,7 +1906,6 @@ ProcSetPointerMapping(ClientPtr client)
         return Success;
     }
 
-    /* FIXME: Send mapping notifies for all the extended devices as well. */
     SendMappingNotify(ptr, MappingPointer, 0, 0, client);
     WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
     return Success;
