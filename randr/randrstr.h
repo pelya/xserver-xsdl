@@ -889,8 +889,10 @@ extern _X_EXPORT int
 ProcRRDeleteOutputProperty (ClientPtr client);
 
 /* rrxinerama.c */
+#ifdef XINERAMA
 extern _X_EXPORT void
 RRXineramaExtensionInit(void);
+#endif
 
 #endif /* _RANDRSTR_H_ */
 
