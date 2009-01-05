@@ -1359,7 +1359,9 @@ winMultiWindowXMsgProcErrorHandler (Display *pDisplay, XErrorEvent *pErr)
 		 pErr->error_code,
 		 pszErrorMsg,
 		 sizeof (pszErrorMsg));
+#if CYGMULTIWINDOW_DEBUG
   ErrorF ("winMultiWindowXMsgProcErrorHandler - ERROR: %s\n", pszErrorMsg);
+#endif
   
   return 0;
 }
