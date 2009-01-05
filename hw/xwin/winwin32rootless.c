@@ -49,8 +49,6 @@
  * Constant defines
  */
 
-#define MOUSE_POLLING_INTERVAL		500
-
 #ifndef ULW_COLORKEY
 #define ULW_COLORKEY	0x00000001
 #endif
