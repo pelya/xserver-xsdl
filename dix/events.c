@@ -5130,6 +5130,7 @@ ProcQueryPointer(ClientPtr client)
     xQueryPointerReply rep;
     WindowPtr pWin, t;
     DeviceIntPtr mouse = PickPointer(client);
+    DeviceIntPtr kbd = PickKeyboard(client);
     SpritePtr pSprite;
     int rc;
     REQUEST(xResourceReq);
@@ -5147,7 +5148,7 @@ ProcQueryPointer(ClientPtr client)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.mask = mouse->button->state | inputInfo.keyboard->key->state;
+    rep.mask = mouse->button->state | kbd->key->state;
     rep.length = 0;
     rep.root = (RootWindow(mouse))->drawable.id;
     rep.rootX = pSprite->hot.x;
