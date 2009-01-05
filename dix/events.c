@@ -2414,13 +2414,11 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
                 if (deliveries > 0)
                     return deliveries;
             }
-
-            if ((deliveries < 0) ||
-                    (pWin == stopAt) ||
-                    (inputMasks &&
-                     (filter & inputMasks->dontPropagateMask[mskidx])))
-                return 0;
         }
+
+        if ((deliveries < 0) || (pWin == stopAt) ||
+            (inputMasks && (filter & inputMasks->dontPropagateMask[mskidx])))
+            return 0;
 
         if (dev->isMaster && dev->coreEvents)
         {
@@ -2439,12 +2437,11 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
                     if (deliveries > 0)
                         return deliveries;
                 }
-
-                if ((deliveries < 0) ||
-                        (pWin == stopAt) ||
-                        (filter & wDontPropagateMask(pWin)))
-                    return 0;
             }
+
+            if ((deliveries < 0) || (pWin == stopAt) ||
+                (filter & wDontPropagateMask(pWin)))
+                return 0;
         }
 
         child = pWin->drawable.id;
