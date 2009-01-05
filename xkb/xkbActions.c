@@ -1074,7 +1074,7 @@ int		button;
 	switch (filter->upAction.type) {
 	    case XkbSA_LockDeviceBtn:
 		if ((filter->upAction.devbtn.flags&XkbSA_LockNoUnlock)||
-		    BitIsOn(dev->button->down, button))
+		    !BitIsOn(dev->button->down, button))
 		    return 0;
 		XkbDDXFakeDeviceButton(dev,False,button);
 		break;
