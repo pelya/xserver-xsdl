@@ -9,7 +9,8 @@ XWinrc\- XWin Server Resource Configuration File.
 The X Server for the X Window System on the Cygwin/X environment
 running on Microsoft Windows, \fIXWin\fP can be optionally configured
 with the \fIXWinrc\fP file.  A system-wide configuration file should
-be placed in \fI/usr/X11R6/lib/X11/system.XWinrc\fP, a per-user file
+be placed in \fI
+__sysconfdir__/X11/system.XWinrc\fP, a per-user file
 should be put at \fI$HOME/.XWinrc\fP.  The \fIsystem.XWinrc\fP file is
 read only if no \fI$HOME/.XWinrc\fP exist.
 .PP
@@ -54,7 +55,7 @@ There are four kinds of instructions: miscellaneous, menu, icon and style.
 .SH Miscellaneous instruction
 .TP 8
 .B DEBUG \fIString\fP
-The \fIString\fP is printed to the XWin.log file.
+The \fIString\fP is printed to the XWin log file.
 
 .TP 8
 .B TRAYICON \fIicon-specifier\fB

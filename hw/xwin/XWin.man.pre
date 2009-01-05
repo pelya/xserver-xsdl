@@ -48,14 +48,14 @@ operations on the individual X windows.
 .SH LOG
 As it runs \fIXWin\fP writes messages indicating the most relevant events
 to  the console
-from which it was called and to a log file that by default is located at
-\fI/tmp/XWin.log\fP.  This file is mainly for debugging purposes.
+from which it was called and to a log file that by default is located at \fI
+__logdir__/XWin.0.log\fP.  This file is mainly for debugging purposes.
 
 
 .SH PREFERENCES FILE
 On startup \fIXWin\fP looks for the file \fI$HOME/.XWinrc\fP or, if
-the previous file does not exist,
-\fI/usr/X11R6/lib/X11/system.XWinrc\fP.  \fI.XWinrc\fP allows setting
+the previous file does not exist, \fI
+__sysconfdir__/X11/system.XWinrc\fP.  \fI.XWinrc\fP allows setting
 preferences for the following:
 .br
 1- To include items into the menu associated with the \fIXWin\fP icon
@@ -102,7 +102,7 @@ respectively).
 .B "\-emulate3buttons \fItimeout\fP"
 Emulate a three button mouse; pressing both buttons within
 .I timeout
-milliseconds causes an emulated middle button press.  The default 
+milliseconds causes an emulated middle button press.  The default
 .I timeout
 is 50 milliseconds.  Note that most mice with scroll wheel have middle
 button functionality, usually you will need this option only if you have
@@ -155,8 +155,8 @@ prevents the Windows mouse cursor from being placed overtop of the X
 cursor.
 .TP 8
 .B "\-logfile \fIFile_Name\fP"
-Change the log file from the default located at \fI/tmp/XWin.log\fP to
-the one indicated by \fIFile_Name\fP.
+Change the log file from the default located at \fI
+__logdir__/XWin.0.log\fP to the one indicated by \fIFile_Name\fP.
 .TP 8
 .B "\-logverbose \fIlevel\fP"
 Control the degree of verbosity of the log messages with the integer
@@ -229,9 +229,10 @@ The \fIAlt-F4\fP key combination is enabled by default.
 .TP 8
 .B \-swcursor
 Disable the usage of the windows cursor and use the X11 software cursor instead.
+.TP 8
 .B \-silent-dup-error
-If another instance of XWin is found running, exit silently and don't display 
-the error messge.
+If another instance of XWin is found running, exit silently and don't display
+the error message.
 .TP 8
 .B "\-xkblayout \fIlayout\fP"
 .TP 8
@@ -244,8 +245,8 @@ the error messge.
 .B "\-xkbvariant \fIvariant\fp"
 These options implement the xkeyboard extension for loading
 a particular keyboard map as the X server starts.  The behavior is similar
-to the \fIsetxkbmap\fP program.  The layout data is located at
-\fI/usr/X11R6/lib/X11/xkb/\fP.  Additional information is found in the
+to the \fIsetxkbmap\fP program.  The layout data is located at \fI
+__datadir__/X11/xkb/\fP.  Additional information is found in the
 README files therein and in the man page of \fIsetxkbmap\fP.  For example
 in order to load a German layout for a pc105 keyboard one uses
 the options:
@@ -258,7 +259,7 @@ keyboard maps.
 
 
 .SH "SEE ALSO"
-X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), XWinrc(1), setxkbmap(1)
+X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), XWinrc(__filemansuffix__), setxkbmap(1)
 
 
 .SH BUGS
@@ -269,7 +270,7 @@ ones are:
 - The display mode can not be changed once the X server has started.
 .br
 - The XWin software is developing rapidly; it is therefore likely that
-this man page is not up to date.  It is always prudent to 
+this man page is not up to date.  It is always prudent to
 look also at the output of \fIXWin -help\fP and to the Cygwin/X User Guide
 at /usr/share/doc/cygwin-x-doc-x.x.x/ug/cygwin-x-ug.xxx in order to
 check the options that are operative.

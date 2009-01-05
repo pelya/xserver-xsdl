@@ -158,7 +158,7 @@ winprefsyacc.h: winprefsyacc.c
 winprefslex.c: winprefslex.l winprefsyacc.c winprefsyacc.h
 
 BUILT_SOURCES = winprefsyacc.h winprefsyacc.c winprefslex.c
-CLEANFILES = $(BUILT_SOURCES)
+CLEANFILES = $(BUILT_SOURCES) $(appman_DATA) $(fileman_DATA) XWin.man XWinrc.man
 
 AM_YFLAGS = -d
 AM_LFLAGS = -i
@@ -166,15 +166,34 @@ AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
             $(XWINMODULES_CFLAGS) \
             -DXFree86Server
 
-dist_man1_MANS = XWin.man XWinrc.man
-
 GLX_EXTRAS = \
 	glx/glwindows.h \
 	glx/glwrap.c \
 	glx/indirect.c
 
+MAN_SRCS = XWin.man.pre XWinrc.man.pre
+
+appmandir = $(APP_MAN_DIR)
+appman_DATA = XWin.$(APP_MAN_SUFFIX)
+
+filemandir = $(FILE_MAN_DIR)
+fileman_DATA = XWinrc.$(FILE_MAN_SUFFIX)
+
+XWin.$(APP_MAN_SUFFIX): XWin.man
+	-rm -f XWin.$(APP_MAN_SUFFIX)
+	$(LN_S) XWin.man XWin.$(APP_MAN_SUFFIX)
+
+XWinrc.$(FILE_MAN_SUFFIX): XWinrc.man
+	-rm -f XWinrc.$(FILE_MAN_SUFFIX)
+	$(LN_S) XWinrc.man XWinrc.$(FILE_MAN_SUFFIX)
+
+EXTRAMANDEFS = -D__logdir__=$(logdir) -D__sysconfdir__=$(sysconfdir) -D__datadir__=$(datadir)
+
+include $(top_srcdir)/cpprules.in
+
 EXTRA_DIST = \
 	$(GLX_EXTRAS) \
+	$(MAN_SRCS) \
 	_usr_X11R6_lib_X11_system.XWinrc \
 	X-boxed.ico \
 	X.ico \
