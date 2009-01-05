@@ -825,6 +825,7 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus);
  * Initialize dga for this screen
  */
 
+#ifdef XFreeXDGA
 extern _X_EXPORT Bool
 xf86DiDGAInit (ScreenPtr pScreen, unsigned long dga_address);
 
@@ -834,6 +835,7 @@ xf86DiDGAInit (ScreenPtr pScreen, unsigned long dga_address);
 
 extern _X_EXPORT Bool
 xf86DiDGAReInit (ScreenPtr pScreen);
+#endif
 
 /*
  * Set the subpixel order reported for the screen using

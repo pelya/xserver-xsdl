@@ -1220,7 +1220,9 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	 * don't, will wrap them.
 	 */
 	xf86Screens[i]->EnableDisableFBAccess = xf86EnableDisableFBAccess;
+#ifdef XFreeXDGA
 	xf86Screens[i]->SetDGAMode = xf86SetDGAMode;
+#endif
 	xf86Screens[i]->DPMSSet = NULL;
 	xf86Screens[i]->LoadPalette = NULL;
 	xf86Screens[i]->SetOverscan = NULL;
