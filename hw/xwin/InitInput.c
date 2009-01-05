@@ -48,7 +48,6 @@ DISPATCH_PROC(winProcSetSelectionOwner);
  * Local global declarations
  */
 
-CARD32				g_c32LastInputEventTime = 0;
 DeviceIntPtr g_pwinPointer;
 DeviceIntPtr g_pwinKeyboard;
 
@@ -107,15 +106,6 @@ void DDXRingBell(int volume, int pitch, int duration)
 {
   /* winKeybdBell is used instead */
   return;
-}
-
-
-int
-TimeSinceLastInputEvent ()
-{
-  if (g_c32LastInputEventTime == 0)
-    g_c32LastInputEventTime = GetTickCount ();
-  return GetTickCount () - g_c32LastInputEventTime;
 }
 
 
