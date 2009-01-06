@@ -10,7 +10,8 @@ AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 EXTRA_DIST = \
 	dlloader.h \
 	loader.h \
-	loaderProcs.h
+	loaderProcs.h \
+	sdksyms.sh
 
 libloader_la_SOURCES = \
 	loader.c \
