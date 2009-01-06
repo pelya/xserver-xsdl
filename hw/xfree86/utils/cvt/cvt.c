@@ -202,7 +202,7 @@ main (int argc, char *argv[])
 
     if ((argc < 3) || (argc > 7)) {
         PrintUsage(argv[0]);
-        return 0;
+        return 1;
     }
 
     /* This doesn't filter out bad flags properly. Bad flags get passed down
@@ -219,15 +219,30 @@ main (int argc, char *argv[])
         else if (!strcmp(argv[n], "-h") || !strcmp(argv[n], "--help")) {
             PrintUsage(argv[0]);
             return 0;
-        } else if (!HDisplay)
+        } else if (!HDisplay) {
             HDisplay = atoi(argv[n]);
-        else if (!VDisplay)
+	    if (!HDisplay) {
+		PrintUsage(argv[0]);
+		return 1;
+	    }
+	}
+        else if (!VDisplay) {
             VDisplay = atoi(argv[n]);
-        else if (!VRefresh)
+	    if (!VDisplay) {
+		PrintUsage(argv[0]);
+		return 1;
+	    }
+	}
+        else if (!VRefresh) {
             VRefresh = atof(argv[n]);
+	    if (!VRefresh) {
+		PrintUsage(argv[0]);
+		return 1;
+	    }
+	}
         else {
             PrintUsage(argv[0]);
-            return 0;
+            return 1;
         }
     }
 
