@@ -291,6 +291,8 @@ xf86RotateBlockHandler(int screenNum, pointer blockData,
 	/* Re-wrap if rotation is still happening */
 	xf86_config->BlockHandler = pScreen->BlockHandler;
 	pScreen->BlockHandler = xf86RotateBlockHandler;
+    } else {
+	xf86_config->BlockHandler = NULL;
     }
 }
 
@@ -477,8 +479,10 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
 		goto bail2;
 	    
 	    /* Wrap block handler */
-	    xf86_config->BlockHandler = pScreen->BlockHandler;
-	    pScreen->BlockHandler = xf86RotateBlockHandler;
+	    if (!xf86_config->BlockHandler) {
+		xf86_config->BlockHandler = pScreen->BlockHandler;
+		pScreen->BlockHandler = xf86RotateBlockHandler;
+	    }
 	}
 #ifdef RANDR_12_INTERFACE
 	if (transform)
