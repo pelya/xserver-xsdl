@@ -1186,19 +1186,6 @@ AC_DEFINE([SVR4],1,[Define to 1 on systems derived from System V Release 4])
 AC_MSG_RESULT([yes])], AC_MSG_RESULT([no]))
 
 XSERVER_CFLAGS="$XSERVER_CFLAGS $CORE_INCS $XEXT_INC $COMPOSITE_INC $DAMAGE_INC $FIXES_INC $XI_INC $MI_INC $MIEXT_SHADOW_INC $MIEXT_LAYER_INC $MIEXT_DAMAGE_INC $RENDER_INC $RANDR_INC $FB_INC"
-AC_DEFINE_UNQUOTED(_X_BYTE_ORDER,[$ENDIAN],[Endian order])
-AH_VERBATIM([X_BYTE_ORDER],[
-/* Deal with multiple architecture compiles on Mac OS X */
-#ifndef __APPLE_CC__
-#define X_BYTE_ORDER _X_BYTE_ORDER
-#else
-#ifdef __BIG_ENDIAN__
-#define X_BYTE_ORDER X_BIG_ENDIAN
-#else
-#define X_BYTE_ORDER X_LITTLE_ENDIAN
-#endif
-#endif
-])
 
 dnl ---------------------------------------------------------------------------
 dnl DDX section.
