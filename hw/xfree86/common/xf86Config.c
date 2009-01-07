@@ -110,8 +110,6 @@ extern DeviceAssocRec mouse_assoc;
 #define PROJECTROOT	"/usr/X11R6"
 #endif
 
-static char *fontPath = NULL;
-
 static ModuleDefault ModuleDefaults[] = {
     {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
     {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
@@ -586,90 +584,55 @@ xf86ConfigError(char *msg, ...)
 static void
 configFiles(XF86ConfFilesPtr fileconf)
 {
-  MessageType pathFrom = X_DEFAULT;
-  int countDirs;
-  char *temp_path;
-  char *log_buf;
+    MessageType	 pathFrom;
+    Bool	 must_copy;
+    int		 size, countDirs;
+    char	*temp_path, *log_buf, *start, *end;
 
-  /* FontPath */
-  /* Try XF86Config FontPath first */
-  if (!xf86fpFlag) {
-   if (fileconf) {
-    if (fileconf->file_fontpath) {
-      char *f = xf86ValidateFontPath(fileconf->file_fontpath);
-      pathFrom = X_CONFIG;
-      if (*f) {
-        if (xf86Info.useDefaultFontPath) {
-          char *g;
-          xf86Msg(X_DEFAULT, "Including the default font path %s.\n", defaultFontPath);
-	  g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
-          strcpy(g, f);
-          strcat(g, ",");
-          defaultFontPath = strcat(g, defaultFontPath);
-          xfree(f);
-        } else {
-          defaultFontPath = f;
-        }
-      } else {
-	xf86Msg(X_WARNING,
-	    "FontPath is completely invalid.  Using compiled-in default.\n");
-        fontPath = NULL;
-        pathFrom = X_DEFAULT;
-      }
-    } 
-   } else {
-      xf86Msg(X_DEFAULT,
-	    "No FontPath specified.  Using compiled-in default.\n");
-      pathFrom = X_DEFAULT;
-   }
-  } else {
-    /* Use fontpath specified with '-fp' */
-    if (fontPath)
-    {
-      fontPath = NULL;
+    /* FontPath */
+    must_copy = TRUE;
+
+    temp_path = defaultFontPath ? defaultFontPath : "";
+    if (xf86fpFlag)
+	pathFrom = X_CMDLINE;
+    else if (fileconf && fileconf->file_fontpath) {
+	pathFrom = X_CONFIG;
+	if (xf86Info.useDefaultFontPath) {
+	    defaultFontPath = Xprintf("%s%s%s",
+				      fileconf->file_fontpath,
+				      *temp_path ? "," : "", temp_path);
+	    must_copy = FALSE;
+	}
+	else
+	    defaultFontPath = fileconf->file_fontpath;
     }
-    pathFrom = X_CMDLINE;
-  }
-  if (!fileconf) {
-      /* xf86ValidateFontPath will write into it's arg, but defaultFontPath
-       could be static, so we make a copy. */
-    char *f = xnfalloc(strlen(defaultFontPath) + 1);
-    f[0] = '\0';
-    strcpy (f, defaultFontPath);
-    defaultFontPath = xf86ValidateFontPath(f);
-    xfree(f);
-  } else {
-   if (fileconf) {
-    if (!fileconf->file_fontpath) {
-      /* xf86ValidateFontPath will write into it's arg, but defaultFontPath
-       could be static, so we make a copy. */
-     char *f = xnfalloc(strlen(defaultFontPath) + 1);
-     f[0] = '\0';
-     strcpy (f, defaultFontPath);
-     defaultFontPath = xf86ValidateFontPath(f);
-     xfree(f);
+    else
+	pathFrom = X_DEFAULT;
+    temp_path = defaultFontPath ? defaultFontPath : "";
+
+    /* ensure defaultFontPath contains "built-ins" */
+    start = strstr(temp_path, "built-ins");
+    end = start + strlen("built-ins");
+    if (start == NULL ||
+	!((start == temp_path || start[-1] == ',') && (!*end || *end == ','))) {
+	defaultFontPath = Xprintf("%s%sbuilt-ins",
+				  temp_path, *temp_path ? "," : "");
+	must_copy = FALSE;
     }
-   }
-  }
+    /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
+    temp_path = must_copy ? XNFstrdup(defaultFontPath) : defaultFontPath;
+    defaultFontPath = xf86ValidateFontPath(temp_path);
+    free(temp_path);
 
-  /* If defaultFontPath is still empty, exit here */
+    /* make fontpath more readable in the logfiles */
+    countDirs = 1;
+    temp_path = defaultFontPath;
+    while ((temp_path = index(temp_path, ',')) != NULL) {
+	countDirs++;
+	temp_path++;
+    }
 
-  if (! *defaultFontPath)
-    FatalError("No valid FontPath could be found.");
-
-  /* make fontpath more readable in the logfiles */
-  countDirs = 1;
-  temp_path = defaultFontPath;
-  while((temp_path = index(temp_path, ',')) != NULL) {
-    countDirs++;
-    temp_path++;
-  }
-  log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
-  if(!log_buf) /* fallback to old method */
-    xf86Msg(pathFrom, "FontPath set to \"%s\"\n", defaultFontPath);
-  else {
-    char *start, *end;
-    int size;
+    log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
     temp_path = log_buf;
     start = defaultFontPath;
     while((end = index(start, ',')) != NULL) {
@@ -685,7 +648,6 @@ configFiles(XF86ConfFilesPtr fileconf)
     strcpy(temp_path, start);
     xf86Msg(pathFrom, "FontPath set to:\n%s\n", log_buf);
     xfree(log_buf);
-  }
 
 
   if (fileconf && fileconf->file_inputdevs) {

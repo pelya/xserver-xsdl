@@ -143,6 +143,11 @@ extern _X_EXPORT void InitGlyphCaching(void);
 extern _X_EXPORT void SetGlyphCachingMode(int /*newmode*/);
 
 /*
+ * libXfont/src/builtins/builtin.h
+ */
+extern _X_EXPORT void BuiltinRegisterFpeFunctions(void);
+
+/*
  * libXfont stubs.
  */
 extern _X_EXPORT int client_auth_generation(ClientPtr client);

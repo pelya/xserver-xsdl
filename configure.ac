@@ -507,9 +507,6 @@ AC_ARG_ENABLE(install-libxf86config,
 				[Install libxf86config (default: disabled)]),
 				[INSTALL_LIBXF86CONFIG=$enableval],
 				[INSTALL_LIBXF86CONFIG=no])
-AC_ARG_ENABLE(builtin-fonts,  AS_HELP_STRING([--enable-builtin-fonts], [Use only built-in fonts (default: yes)]),
-                                [BUILTIN_FONTS=$enableval],
-                                [BUILTIN_FONTS=yes])
 AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use an empty root cursor (default: use core cursor)]),
                                  [NULL_ROOT_CURSOR=$enableval],
                                  [NULL_ROOT_CURSOR=no])
@@ -961,11 +958,6 @@ fi
 AM_CONDITIONAL(DPMSExtension, [test "x$DPMSExtension" = xyes])
 if test "x$DPMSExtension" = xyes; then
 	AC_DEFINE(DPMSExtension, 1, [Support DPMS extension])
-fi
-
-if test "x$BUILTIN_FONTS" = xyes; then
-       AC_DEFINE(BUILTIN_FONTS, 1, [Use only built-in fonts])
-       FONTPATH="built-ins"
 fi
 
 if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
