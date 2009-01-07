@@ -207,6 +207,8 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
   WinXSizeHints sizeHints;
   RECT *rect;
   int iWidth, iHeight;
+  RECT rcClient, rcWindow;
+  int iBorderWidthX, iBorderWidthY;
 
   /* Invalid input checking */
   if (pWin==NULL || lParam==0)
@@ -228,19 +230,20 @@ ValidateSizing (HWND hwnd, WindowPtr pWin,
   iWidth = rect->right - rect->left;
   iHeight = rect->bottom - rect->top;
 
-  /* Now remove size of any borders */
-  iWidth -= 2 * GetSystemMetrics(SM_CXSIZEFRAME);
-  iHeight -= (GetSystemMetrics(SM_CYCAPTION)
-	      + 2 * GetSystemMetrics(SM_CYSIZEFRAME));
-	      
+  /* Now remove size of any borders and title bar */
+  GetClientRect(hwnd, &rcClient);
+  GetWindowRect(hwnd, &rcWindow);
+  iBorderWidthX = (rcWindow.right - rcWindow.left) - (rcClient.right - rcClient.left);
+  iBorderWidthY = (rcWindow.bottom - rcWindow.top) - (rcClient.bottom - rcClient.top);
+  iWidth -= iBorderWidthX;
+  iHeight -= iBorderWidthY;
 
   /* Constrain the size to legal values */
   ConstrainSize (sizeHints, &iWidth, &iHeight);
 
-  /* Add back the borders */
-  iWidth += 2 * GetSystemMetrics(SM_CXSIZEFRAME);
-  iHeight += (GetSystemMetrics(SM_CYCAPTION)
-	      + 2 * GetSystemMetrics(SM_CYSIZEFRAME));
+  /* Add back the size of borders and title bar */
+  iWidth += iBorderWidthX;
+  iHeight += iBorderWidthY;
 
   /* Adjust size according to where we're dragging from */
   switch(wParam) {
