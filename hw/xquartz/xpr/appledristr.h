@@ -154,7 +154,7 @@ typedef struct _AppleDRINotify {
 	BYTE	kind;
 	CARD16	sequenceNumber B16;
 	Time	time B32;	/* time of change */
-	CARD16	pad1 B16;
+	CARD32	pad1 B32;
 	CARD32	arg B32;
 	CARD32	pad3 B32;
 } xAppleDRINotifyEvent;
