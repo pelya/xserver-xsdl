@@ -1040,7 +1040,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     b = device->button;
     k = device->key;
 
-    if (device->isMaster)
+    if (device->isMaster || !device->u.master)
         CheckMotion(xE, device);
 
     if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
