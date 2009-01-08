@@ -620,9 +620,9 @@ configFiles(XF86ConfFilesPtr fileconf)
 	must_copy = FALSE;
     }
     /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
-    temp_path = must_copy ? XNFstrdup(defaultFontPath) : defaultFontPath;
+    temp_path = must_copy ? xnfstrdup(defaultFontPath) : defaultFontPath;
     defaultFontPath = xf86ValidateFontPath(temp_path);
-    free(temp_path);
+    xfree(temp_path);
 
     /* make fontpath more readable in the logfiles */
     countDirs = 1;
