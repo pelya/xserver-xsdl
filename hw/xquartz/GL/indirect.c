@@ -1137,7 +1137,7 @@ static __GLXconfig *CreateConfigs(int *numConfigsPtr, int screenNumber) {
 
 					/* SGIX_fbconfig / GLX 1.3 */
 					c->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
-					c->renderType = /*FIXME*/ GL_TRUE;
+					c->renderType = GLX_RGBA_BIT;
 					c->xRenderable = GL_TRUE;
 					c->fbconfigID = -1;
 					
