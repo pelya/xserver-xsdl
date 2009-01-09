@@ -1,8 +1,8 @@
 /*
  * GLX implementation that uses Apple's OpenGL.framework
- * (Indirect rendering path)
+ * (Indirect rendering path -- it's also used for some direct mode code too)
  *
- * Copyright (c) 2007 Apple Inc.
+ * Copyright (c) 2007, 2008, 2009 Apple Inc.
  * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
  * Copyright (c) 2002 Greg Parker. All Rights Reserved.
  *
@@ -75,6 +75,8 @@
 #include <GL/internal/glcore.h>
 #include "x-hash.h"
 #include "x-list.h"
+
+#include "capabilities.h"
 
 #include <dispatch.h>
 #define GLAPIENTRYP *
@@ -212,6 +214,7 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   return &context->base;
 }
 
+/* Nothing seems to use these anymore... */
 static __GLXextensionInfo __glDDXExtensionInfo = {
     GL_CORE_APPLE,
     glAquaResetExtension,
@@ -930,100 +933,6 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     return FALSE;
 }
 
-Bool enable_stereo = FALSE;
-/* based on code in i830_dri.c
-   This ends calling glAquaSetVisualConfigs to set the static
-   numconfigs, etc. */
-static void
-glAquaInitVisualConfigs(void)
-{
-#if 0
-    int                 lclNumConfigs     = 0;
-    __GLXvisualConfig  *lclVisualConfigs  = NULL;
-    void              **lclVisualPrivates = NULL;
-
-    int stereo, depth, aux, buffers, stencil, accum;
-    int i = 0;
-
-    GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs ");
-        
-    /* count num configs:
-        2 stereo (on, off) (optional)
-        2 Z buffer (0, 24 bit)
-        2 AUX buffer (0, 2)
-        2 buffers (single, double)
-        2 stencil (0, 8 bit)
-        2 accum (0, 64 bit)
-        = 64 configs with stereo, or 32 without */
-
-    if (enable_stereo) lclNumConfigs = 2 * 2 * 2 * 2 * 2 * 2; /* 64 */
-    else               lclNumConfigs = 2 * 2 * 2 * 2 * 2; /* 32 */
-
-    /* alloc */
-    lclVisualConfigs = xcalloc(sizeof(__GLXvisualConfig), lclNumConfigs);
-    lclVisualPrivates = xcalloc(sizeof(void *), lclNumConfigs);
-
-    /* fill in configs */
-    if (NULL != lclVisualConfigs) {
-        i = 0; /* current buffer */
-        for (stereo = 0; stereo < (enable_stereo ? 2 : 1); stereo++) {
-	  for (depth = 0; depth < 2; depth++) {
-            for (aux = 0; aux < 2; aux++) {
-	      for (buffers = 0; buffers < 2; buffers++) {
-		for (stencil = 0; stencil < 2; stencil++) {
-		  for (accum = 0; accum < 2; accum++) {
-		    lclVisualConfigs[i].vid = -1;
-		    lclVisualConfigs[i].class = -1;
-		    lclVisualConfigs[i].rgba = TRUE;
-		    lclVisualConfigs[i].redSize = -1;
-		    lclVisualConfigs[i].greenSize = -1;
-		    lclVisualConfigs[i].blueSize = -1;
-		    lclVisualConfigs[i].redMask = -1;
-		    lclVisualConfigs[i].greenMask = -1;
-		    lclVisualConfigs[i].blueMask = -1;
-		    lclVisualConfigs[i].alphaMask = 0;
-		    if (accum) {
-		      lclVisualConfigs[i].accumRedSize = 16;
-		      lclVisualConfigs[i].accumGreenSize = 16;
-		      lclVisualConfigs[i].accumBlueSize = 16;
-		      lclVisualConfigs[i].accumAlphaSize = 16;
-		    } else {
-		      lclVisualConfigs[i].accumRedSize = 0;
-		      lclVisualConfigs[i].accumGreenSize = 0;
-		      lclVisualConfigs[i].accumBlueSize = 0;
-		      lclVisualConfigs[i].accumAlphaSize = 0;
-		    }
-		    lclVisualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
-		    lclVisualConfigs[i].stereo = stereo ? TRUE : FALSE;
-		    lclVisualConfigs[i].bufferSize = -1;
-		    
-		    lclVisualConfigs[i].depthSize = depth? 24 : 0;
-		    lclVisualConfigs[i].stencilSize = stencil ? 8 : 0;
-		    lclVisualConfigs[i].auxBuffers = aux ? 2 : 0;
-		    lclVisualConfigs[i].level = 0;
-		    lclVisualConfigs[i].visualRating = GLX_NONE_EXT;
-		    lclVisualConfigs[i].transparentPixel = 0;
-		    lclVisualConfigs[i].transparentRed = 0;
-		    lclVisualConfigs[i].transparentGreen = 0;
-		    lclVisualConfigs[i].transparentBlue = 0;
-		    lclVisualConfigs[i].transparentAlpha = 0;
-		    lclVisualConfigs[i].transparentIndex = 0;
-		    i++;
-		  }
-		}
-	      }
-            }
-	  }
-	}
-    }
-    if (i != lclNumConfigs)
-        GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs failed to alloc visual configs");
-
-    GlxSetVisualConfigs(lclNumConfigs, lclVisualConfigs, lclVisualPrivates);
-#endif
-}
-
-
 static void glAquaSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs,
                                    void **privates)
 {
@@ -1044,9 +953,6 @@ static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
 {
     GLAQUA_DEBUG_MSG("glAquaInitVisuals\n");
     
-    if (numConfigs == 0) /* if no configs */
-        glAquaInitVisualConfigs(); /* ensure the visual configs are setup */
-
     /*
      * setup the visuals supported by this particular screen.
      */
@@ -1096,157 +1002,193 @@ static void __glXAquaScreenDestroy(__GLXscreen *screen) {
     xfree(screen);
 }
 
-static void init_screen_visuals(__GLXAquaScreen *screen) {
-#if 0
-  ScreenPtr pScreen = screen->base.pScreen;
-  __GLcontextModes *modes;
-  int *used;
-  int i, j;
-  
-    GLAQUA_DEBUG_MSG("init_screen_visuals\n");
+static __GLXconfig *CreateConfigs(int *numConfigsPtr, int screenNumber) {
+    __GLXconfig *c, *result;
+    struct glCapabilities cap;
+    struct glCapabilitiesConfig *conf = NULL;
+    int numConfigs = 0;
+    int i;
 
-    /* FIXME: Change 'used' to be a array of bits (rather than of ints),
-     * FIXME: create a stack array of 8 or 16 bytes.  If 'numVisuals' is less
-     * FIXME: than 64 or 128 the stack array can be used instead of calling
-     * FIXME: malloc / free.  If nothing else, convert 'used' to
-     * FIXME: array of bytes instead of ints!
-     */
-    used = (int *)malloc(pScreen->numVisuals * sizeof(int));
-    memset(used, 0, pScreen->numVisuals * sizeof(int));
+    if(getGlCapabilities(&cap))
+	FatalError("error from getGlCapabilities() in %s\n", __func__);
 
-    i = 0;
-    for ( modes = screen -> base.modes
-          ; modes != NULL
-          ; modes = modes->next ) {
-        const int vis_class = _gl_convert_to_x_visual_type( modes->visualType );
-        const int nplanes = (modes->rgbBits - modes->alphaBits);
-        const VisualPtr pVis = pScreen->visuals;
+    assert(NULL != cap.configurations);
 
-        for (j = 0; j < pScreen->numVisuals; j++) {
-            if (pVis[j].class     == vis_class &&
-                pVis[j].nplanes   == nplanes &&
-                pVis[j].redMask   == modes->redMask &&
-                pVis[j].greenMask == modes->greenMask &&
-                pVis[j].blueMask  == modes->blueMask &&
-                !used[j]) {
+    for(conf = cap.configurations; conf; conf = conf->next) {
+        if(conf->total_color_buffers <= 0)
+            continue;
 
-                    /* set the VisualID */
-                    modes->visualID = pVis[j].vid;
-
-                    /* Mark this visual used */
-                    used[j] = 1;
-                    break;
-            }
-        }
-        if ( j == pScreen->numVisuals ) {
-            ErrorF("No matching visual for __GLcontextMode with "
-                   "visual class = %d (%d), nplanes = %u\n",
-                   vis_class, 
-                   (int)modes->visualType,
-                   (unsigned int)(modes->rgbBits - modes->alphaBits) );
-        }
-        else if ( modes->visualID == -1 ) {
-            FatalError( "Matching visual found, but visualID still -1!\n" );
-        }
-
-        i++;
+        numConfigs += (conf->stereo ? 2 : 1) 
+            * (conf->aux_buffers ? 2 : 1) 
+            * conf->buffers
+            * ((conf->total_stencil_bit_depths > 0) ? 
+	       conf->total_stencil_bit_depths : 1)
+            * conf->total_color_buffers
+            * ((conf->total_accum_buffers > 0) ? conf->total_accum_buffers : 1)
+            * conf->total_depth_buffer_depths
+            * (conf->multisample_buffers + 1);
     }
 
-    free(used);
-#endif
-}
-
-/* This will eventually need to use the capabilities.c code.  
- * We can probably update the visualConfigs.c code to work with __GLXconfig.
- */
-static __GLXconfig *createConfigs(void) {
-    __GLXconfig *conf;
-
-    conf = xalloc(sizeof *conf);
+    *numConfigsPtr = numConfigs;
     
-    if(NULL == conf)
+    c = xalloc(sizeof(*c) * numConfigs);
+    
+    if(NULL == c)
 	return NULL;
 
-    conf->next = NULL;
-    conf->doubleBufferMode = GL_TRUE;
-    conf->stereoMode = GL_FALSE;
-    conf->redBits = 8;
-    conf->greenBits = 8;
-    conf->blueBits = 8;
-    conf->alphaBits = 0;
-
-    conf->redMask = -1;
-    conf->greenMask = -1;
-    conf->blueMask = -1;
-    conf->alphaMask = -1;
-
-    conf->rgbBits = conf->redBits + conf->greenBits + conf->blueBits + conf->alphaBits;
-    conf->indexBits = 0;
-
-    conf->accumRedBits = 0;
-    conf->accumGreenBits = 0;
-    conf->accumBlueBits = 0;
-    conf->accumAlphaBits = 0;
     
-    conf->depthBits = 24;
 
-    conf->stencilBits = 0;
+    result = c;
     
-    conf->numAuxBuffers = 0;
+    memset(result, 0, sizeof(*c) * numConfigs);
+
+    i = 0;
+
+    for(conf = cap.configurations; conf; conf = conf->next) {
+	int stereo, aux, buffers, stencil, color, accum, depth, msample;
+	
+	for(stereo = 0; stereo < (conf->stereo ? 2 : 1); ++stereo) {
+	    for(aux = 0; aux < (conf->aux_buffers ? 2 : 1); ++aux) {
+		for(buffers = 0; buffers < conf->buffers; ++buffers) {
+		    for(stencil = 0; stencil < ((conf->total_stencil_bit_depths > 0) ? 
+						conf->total_stencil_bit_depths : 1); ++stencil) {
+			for(color = 0; color < conf->total_color_buffers; ++color) {
+			    for(accum = 0; accum < ((conf->total_accum_buffers > 0) ?
+						    conf->total_accum_buffers : 1); ++accum) {
+				for(depth = 0; depth < conf->total_depth_buffer_depths; ++depth) {
+				    for(msample = 0; msample < (conf->multisample_buffers + 1); ++msample) {
+					if((i + 1) < numConfigs) {
+					    c->next = c + 1;
+					} else {
+					    c->next = NULL;
+					}
+
+					c->doubleBufferMode = buffers ? GL_TRUE : GL_FALSE;
+					c->stereoMode = stereo ? GL_TRUE : GL_FALSE;
+					
+					c->redBits = conf->color_buffers[color].r;
+					c->greenBits = conf->color_buffers[color].g;
+					c->blueBits = conf->color_buffers[color].b;
+					c->alphaBits = 0;
+					
+					if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->color_buffers[color].a) {
+					    c->alphaBits = conf->color_buffers[color].a;
+					}
+
+					c->redMask = -1;
+					c->greenMask = -1;
+					c->blueMask = -1;
+					c->alphaMask = -1;
+					
+					c->rgbBits = c->redBits + c->greenBits + c->blueBits + c->alphaBits;
+					c->indexBits = 0;
+	    
+					c->accumRedBits = 0;
+					c->accumGreenBits = 0;
+					c->accumBlueBits = 0;
+					c->accumAlphaBits = 0;
+					
+					if(conf->total_accum_buffers > 0) {
+					    c->accumRedBits = conf->accum_buffers[accum].r;
+					    c->accumGreenBits = conf->accum_buffers[accum].g;
+					    c->accumBlueBits = conf->accum_buffers[accum].b;
+					    if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->accum_buffers[accum].a) {
+						c->accumAlphaBits = conf->accum_buffers[accum].a;
+					    }
+					}
+
+					c->depthBits = conf->depth_buffers[depth];
+					
+					c->stencilBits = 0;
+	    
+					if(conf->total_stencil_bit_depths > 0) {
+					    c->stencilBits = conf->stencil_bit_depths[stencil];
+					}
+
+
+					c->numAuxBuffers = aux ? conf->aux_buffers : 0;
+
+					c->level = 0;
+					/*TODO what should this be? */
+					c->pixmapMode = 0;
+					
+					c->visualID = -1;
+					c->visualType = GLX_TRUE_COLOR;
+
+					if(conf->accelerated) {
+					    c->visualRating = GLX_NONE;
+					} else {
+					    c->visualRating = GLX_SLOW_VISUAL_EXT;
+					}
+	
+					c->transparentPixel = GLX_NONE;
+					c->transparentRed = GLX_NONE;
+					c->transparentGreen = GLX_NONE;
+					c->transparentAlpha = GLX_NONE;
+					c->transparentIndex = GLX_NONE;
+	    
+					c->sampleBuffers = 0;
+					c->samples = 0;
+
+					if(msample > 0) {
+					    c->sampleBuffers = conf->multisample_buffers;
+					    c->samples = conf->multisample_samples;
+					}
+
+					/* SGIX_fbconfig / GLX 1.3 */
+					c->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
+					c->renderType = /*FIXME*/ GL_TRUE;
+					c->xRenderable = GL_TRUE;
+					c->fbconfigID = -1;
+					
+					/*TODO add querying code to capabilities.c for the Pbuffer maximums.
+					 *I'm not sure we can even use CGL for Pbuffers yet...
+					 */
+					/* SGIX_pbuffer / GLX 1.3 */
+					c->maxPbufferWidth = 0;
+					c->maxPbufferHeight = 0;
+					c->maxPbufferPixels = 0;
+					c->optimalPbufferWidth = 0;
+					c->optimalPbufferHeight = 0;
+					c->visualSelectGroup = 0;
+					
+					c->swapMethod = GLX_SWAP_UNDEFINED_OML;
+	
+					c->screen = screenNumber;
+	    
+					/* EXT_texture_from_pixmap */
+					c->bindToTextureRgb = 0;
+					c->bindToTextureRgba = 0;
+					c->bindToMipmapTexture = 0;
+					c->bindToTextureTargets = 0;
+					c->yInverted = 0;
+
+					if(c->next)
+					    c = c->next;
+					
+					++i;
+				    }
+				}
+			    }
+			}
+		    }
+		}
+	    }	
+	}
+    }
+
+    if(i != numConfigs)
+	FatalError("The number of __GLXconfig generated does not match the initial calculation!\n");
     
-    conf->level = 0;
 
-    conf->pixmapMode = 0;
-    
-    conf->visualID = -1;
-    conf->visualType = GLX_TRUE_COLOR;
-    conf->visualRating = 0;
+    freeGlCapabilities(&cap);
 
-    conf->transparentPixel = 0;
-    conf->transparentRed = 0;
-    conf->transparentGreen = 0;
-    conf->transparentAlpha = 0;
-    conf->transparentIndex = 0;
-    
-    conf->sampleBuffers = 0;
-    conf->samples = 0;
-
-    /* SGIX_fbconfig / GLX 1.3 */
-    conf->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
-    conf->renderType = GL_TRUE;
-    conf->xRenderable = GL_TRUE;
-    conf->fbconfigID = -1;
-
-    /*TODO add querying code to capabilities.c for the Pbuffer maximums. */
-    /* SGIX_pbuffer / GLX 1.3 */
-    conf->maxPbufferWidth = 0;
-    conf->maxPbufferHeight = 0;
-    conf->maxPbufferPixels = 0;
-    conf->optimalPbufferWidth = 0;
-    conf->optimalPbufferHeight = 0;
-
-    conf->visualSelectGroup = 0;
-
-    conf->swapMethod = GLX_SWAP_UNDEFINED_OML;
-
-    /* FIXME */
-    conf->screen = 0;
-
-    /* EXT_texture_from_pixmap */
-    conf->bindToTextureRgb = 0;
-    conf->bindToTextureRgba = 0;
-    conf->bindToMipmapTexture = 0;
-    conf->bindToTextureTargets = 0;
-    conf->yInverted = 0;
-
-    return conf;
+    return result;
 }
-
 
 /* This is called by __glXInitScreens(). */
 static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     __GLXAquaScreen *screen;
-    __GLXconfig *configs;
 
     GLAQUA_DEBUG_MSG("glXAquaScreenProbe\n");
 
@@ -1265,41 +1207,28 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.swapBarrierFuncs = NULL;
     screen->base.pScreen       = pScreen;
     
-    configs = createConfigs();
-
-    screen->base.fbconfigs = configs;
-    screen->base.numFBConfigs = 1; 
-
-    screen->base.visuals = NULL;
-    screen->base.numVisuals = 0;
-
+    screen->base.fbconfigs = CreateConfigs(&screen->base.numFBConfigs, 
+					   pScreen->myNum);
+    
+    /* This seems odd, but visuals is a __GLXconfig too. */
+    screen->base.visuals = screen->base.fbconfigs;
+    screen->base.numVisuals = screen->base.numFBConfigs;
+ 
     GlxSetVisualConfig(GLX_ALL_VISUALS);
 
     __glXScreenInit(&screen->base, pScreen);
 
     /* __glXScreenInit initializes these, so the order here is important, if we need these... */
-    screen->base.GLextensions = "";
-    screen->base.GLXvendor = "Apple";
-    screen->base.GLXversion = "1.4";
-    screen->base.GLXextensions = "GLX_SGIX_fbconfig "
-	"GLX_SGIS_multisample "
-	"GLX_ARB_multisample "
-	"GLX_EXT_visual_info "
-	"GLX_EXT_import_context "
-	"GLX_EXT_texture_from_pixmap "; 
-    /*We may be able to add more GLXextensions at a later time. */
+    //  screen->base.GLextensions = "";
+    // screen->base.GLXvendor = "Apple";
+    screen->base.GLXversion = xstrdup("1.4");
+    screen->base.GLXextensions = xstrdup("GLX_SGIX_fbconfig "
+					 "GLX_SGIS_multisample "
+					 "GLX_ARB_multisample "
+					 "GLX_EXT_visual_info "
+					 "GLX_EXT_import_context ");
     
-
-    /* 
-     * These are both commented out, because they cause problems with
-     * the other visual config code, and visuals.
-     * This probe function is called normally on startup in direct
-     * mode too.
-     * They don't seem to be needed now that we have better visual
-     * setup.
-     */
-    //init_screen_visuals(screen);
-    //glAquaInitVisualConfigs();
+    /*We may be able to add more GLXextensions at a later time. */
     
     return &screen->base;
 }
@@ -1359,7 +1288,7 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   glxPriv->base.destroy       = __glXAquaDrawableDestroy;
   glxPriv->base.resize        = __glXAquaDrawableResize;
   glxPriv->base.swapBuffers   = __glXAquaDrawableSwapBuffers;
-  glxPriv->base.copySubBuffer = __glXAquaDrawableCopySubBuffer;
+  glxPriv->base.copySubBuffer = NULL; /* __glXAquaDrawableCopySubBuffer; */
 
   return &glxPriv->base;
 }
