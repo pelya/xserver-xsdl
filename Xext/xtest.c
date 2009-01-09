@@ -395,7 +395,7 @@ ProcXTestFakeInput(client)
 
     OsBlockSignals();
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(dev, events->event);
+        mieqEnqueue(dev, (events+i)->event);
     OsReleaseSignals();
 
     return client->noClientException;
