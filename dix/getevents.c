@@ -987,6 +987,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         ((num_valuators + first_valuator) > pDev->valuator->numAxes) ||
         (type != MotionNotify && type != ButtonPress && type != ButtonRelease) ||
         (type != MotionNotify && !pDev->button) ||
+        ((type == ButtonPress || type == ButtonRelease) && !buttons) ||
         (type == MotionNotify && num_valuators <= 0))
         return 0;
 
