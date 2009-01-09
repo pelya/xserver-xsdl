@@ -720,6 +720,9 @@ positionSprite(DeviceIntPtr dev, int *x, int *y,
                                  dev->valuator->axes + 1, scr->height);
     }
 
+    /* dropy x/y (device coordinates) back into valuators for next event */
+    dev->last.valuators[0] = *x;
+    dev->last.valuators[1] = *y;
 }
 
 /**
@@ -1006,9 +1009,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     positionSprite(pDev, &x, &y, scr, &cx, &cy);
     updateHistory(pDev, first_valuator, num_valuators, ms);
 
-    /* dropy x/y (device coordinates) back into valuators for next event */
-    pDev->last.valuators[0] = x;
-    pDev->last.valuators[1] = y;
 
     /* Update the valuators with the true value sent to the client*/
     if (num_valuators >= 1 && first_valuator == 0)
