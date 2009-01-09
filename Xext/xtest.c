@@ -213,7 +213,7 @@ ProcXTestFakeInput(client)
         } else
             firstValuator = 0;
 
-        if (nev == 1 && type == XI_DeviceMotionNotify && !dev->valuator)
+        if (nev > 1 && !dev->valuator)
         {
             client->errorValue = dv->first_valuator;
             return BadValue;
