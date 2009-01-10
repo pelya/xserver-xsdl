@@ -485,6 +485,26 @@ AC_ARG_WITH(xkb-path,         AS_HELP_STRING([--with-xkb-path=PATH], [Path to XK
 AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to XKB output dir (default: ${datadir}/X11/xkb/compiled)]),
 				[ XKBOUTPUT="$withval" ],
 				[ XKBOUTPUT="compiled" ])
+AC_ARG_WITH(default-xkb-rules, AS_HELP_STRING([--with-default-xkb-rules=RULES],
+                                   [Keyboard ruleset (default: base/evdev)]),
+                                [ XKB_RULES="$withval" ],
+                                [ XKB_RULES="" ])
+AC_ARG_WITH(default-xkb-model, AS_HELP_STRING([--with-default-xkb-model=MODEL],
+                                   [Keyboard model (default: pc104)]),
+                                [ XKB_MODEL="$withval" ],
+                                [ XKB_MODEL="pc104" ])
+AC_ARG_WITH(default-xkb-layout, AS_HELP_STRING([--with-default-xkb-layout=LAYOUT],
+                                   [Keyboard layout (default: us)]),
+                                [ XKB_LAYOUT="$withval" ],
+                                [ XKB_LAYOUT="us" ])
+AC_ARG_WITH(default-xkb-variant, AS_HELP_STRING([--with-default-xkb-variant=VARIANT],
+                                   [Keyboard variant (default: (none))]),
+                                [ XKB_VARIANT="$withval" ],
+                                [ XKB_VARIANT="" ])
+AC_ARG_WITH(default-xkb-options, AS_HELP_STRING([--with-default-xkb-options=OPTIONS],
+                                   [Keyboard layout options (default: (none))]),
+                                [ XKB_OPTIONS="$withval" ],
+                                [ XKB_OPTIONS="" ])
 AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH],
 				   [Directory where ancillary server config files are installed (default: ${libdir}/xorg)]),
 				[ SERVERCONFIG="$withval" ],
@@ -996,9 +1016,47 @@ AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 AC_DEFINE(XKB, 1, [Build XKB])
 AC_DEFINE(XKB_IN_SERVER, 1, [Build XKB server])
 AC_DEFINE(XKB_DFLT_DISABLED, 0, [Disable XKB per default])
-REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
+AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
+AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
+
+dnl Make sure XKM_OUTPUT_DIR is an absolute path
+XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
+if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
+   XKBOUTPUT="$XKB_BASE_DIRECTORY/$XKBOUTPUT"
+fi
+
+dnl XKM_OUTPUT_DIR (used in code) must end in / or file names get hosed
+dnl XKB_COMPILED_DIR (used in Makefiles) must not or install-sh gets confused
+
+XKBOUTPUT=`echo $XKBOUTPUT/ | sed 's|/*$|/|'`
+XKB_COMPILED_DIR=`echo $XKBOUTPUT | sed 's|/*$||'`
+AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
+AC_SUBST(XKB_COMPILED_DIR)
+
+if test "x$XKB_DFLT_RULES" = x; then
+    case $host_os in
+    linux*)
+        dnl doesn't take AutoAddDevices into account, but whatever.
+        if test "x$CONFIG_HAL" = xyes; then
+            XKB_DFLT_RULES="evdev"
+        else
+            XKB_DFLT_RULES="base"
+        fi
+        ;;
+    *)
+        XKB_DFLT_RULES="base"
+        ;;
+    esac
+fi
+AC_DEFINE_UNQUOTED(XKB_DFLT_RULES, ["$XKB_DFLT_RULES"], [Default XKB ruleset])
+AC_DEFINE_UNQUOTED(XKB_DFLT_MODEL, ["$XKB_DFLT_MODEL"], [Default XKB model])
+AC_DEFINE_UNQUOTED(XKB_DFLT_LAYOUT, ["$XKB_DFLT_LAYOUT"], [Default XKB layout])
+AC_DEFINE_UNQUOTED(XKB_DFLT_VARIANT, ["$XKB_DFLT_VARIANT"], [Default XKB variant])
+AC_DEFINE_UNQUOTED(XKB_DFLT_OPTIONS, ["$XKB_DFLT_OPTIONS"], [Default XKB options])
+
 XKB_LIB='$(top_builddir)/xkb/libxkb.la'
 XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
+REQUIRED_MODULES="$REQUIRED_MODULES xkbfile"
 
 AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
                                         [Do not have 'strcasecmp'.]))
@@ -1785,28 +1843,6 @@ AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
-
-dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
-AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
-AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
-AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
-
-# Make sure XKM_OUTPUT_DIR is an absolute path
-XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
-
-if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
-   XKBOUTPUT="$XKB_BASE_DIRECTORY/$XKBOUTPUT"
-fi
-
-# XKM_OUTPUT_DIR (used in code) must end in / or file names get hosed
-# XKB_COMPILED_DIR (used in Makefiles) must not or install-sh gets confused
-
-XKBOUTPUT=`echo $XKBOUTPUT/ | sed 's|/*$|/|'`
-XKB_COMPILED_DIR=`echo $XKBOUTPUT | sed 's|/*$||'`
-
-AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
-
-AC_SUBST(XKB_COMPILED_DIR)
 
 dnl and the rest of these are generic, so they're in config.h
 dnl 

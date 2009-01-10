@@ -85,27 +85,6 @@ typedef struct	_SrvXkmInfo {
 
 /***====================================================================***/
 
-#ifndef XKB_BASE_DIRECTORY
-#define	XKB_BASE_DIRECTORY	"/usr/lib/X11/xkb"
-#endif
-#ifndef XKB_BIN_DIRECTORY
-#define	XKB_BIN_DIRECTORY	XKB_BASE_DIRECTORY
-#endif
-#ifndef XKB_DFLT_RULES_FILE
-#define	XKB_DFLT_RULES_FILE	"base"
-#endif
-#ifndef XKB_DFLT_KB_LAYOUT
-#define	XKB_DFLT_KB_LAYOUT	"us"
-#endif
-#ifndef XKB_DFLT_KB_MODEL
-#define	XKB_DFLT_KB_MODEL	"dflt"
-#endif
-#ifndef XKB_DFLT_KB_VARIANT
-#define	XKB_DFLT_KB_VARIANT	NULL
-#endif
-#ifndef XKB_DFLT_KB_OPTIONS
-#define	XKB_DFLT_KB_OPTIONS	NULL
-#endif
 #ifndef XKB_DFLT_DISABLED
 #define	XKB_DFLT_DISABLED	True
 #endif
@@ -140,14 +119,14 @@ static char *
 XkbGetRulesDflts(XkbRF_VarDefsPtr defs)
 {
     if (XkbModelDflt)	defs->model= XkbModelDflt;
-    else		defs->model= XKB_DFLT_KB_MODEL;
+    else		defs->model= XKB_DFLT_MODEL;
     if (XkbLayoutDflt)	defs->layout= XkbLayoutDflt;
-    else		defs->layout= XKB_DFLT_KB_LAYOUT;
+    else		defs->layout= XKB_DFLT_LAYOUT;
     if (XkbVariantDflt)	defs->variant= XkbVariantDflt;
-    else		defs->variant= XKB_DFLT_KB_VARIANT;
+    else		defs->variant= XKB_DFLT_VARIANT;
     if (XkbOptionsDflt)	defs->options= XkbOptionsDflt;
-    else		defs->options= XKB_DFLT_KB_OPTIONS;
-    return (rulesDefined?XkbRulesFile:XKB_DFLT_RULES_FILE);
+    else		defs->options= XKB_DFLT_OPTIONS;
+    return (rulesDefined?XkbRulesFile:XKB_DFLT_RULES);
 }
 
 static Bool
@@ -159,7 +138,7 @@ char *			pval;
 
     if (rulesDefined && (!XkbRulesFile))
 	return False;
-    len= (XkbRulesFile?strlen(XkbRulesFile):strlen(XKB_DFLT_RULES_FILE));
+    len= (XkbRulesFile?strlen(XkbRulesFile):strlen(XKB_DFLT_RULES));
     len+= (XkbModelUsed?strlen(XkbModelUsed):0);
     len+= (XkbLayoutUsed?strlen(XkbLayoutUsed):0);
     len+= (XkbVariantUsed?strlen(XkbVariantUsed):0);
@@ -185,8 +164,8 @@ char *			pval;
 	strcpy(&pval[out],XkbRulesFile);
 	out+= strlen(XkbRulesFile);
     } else {
-	strcpy(&pval[out],XKB_DFLT_RULES_FILE);
-	out+= strlen(XKB_DFLT_RULES_FILE);
+	strcpy(&pval[out],XKB_DFLT_RULES);
+	out+= strlen(XKB_DFLT_RULES);
     }
     pval[out++]= '\0';
     if (XkbModelUsed) {
@@ -255,8 +234,8 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
     {
 	LogMessage(X_WARNING, "[xkb] No rule given, and no previous rule "
 		              "defined. Defaulting to '%s'.\n",
-                              XKB_DFLT_RULES_FILE);
-	rulesFile = XKB_DFLT_RULES_FILE;
+                              XKB_DFLT_RULES);
+	rulesFile = XKB_DFLT_RULES;
     }
 
     if (rulesFile) {
