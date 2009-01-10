@@ -636,6 +636,8 @@ AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
 dnl XQuartz DDX Detection... Yes, it's ugly to have it here... but we need to handle this early on
 case $host_os in
 	darwin*)
+		DRI2=no
+
 		if test x$XQUARTZ = xauto; then
 			AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
 		 		save_LDFLAGS=$LDFLAGS
