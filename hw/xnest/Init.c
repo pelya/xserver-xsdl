@@ -136,7 +136,9 @@ void OsVendorFatalError(void)
     return;
 }
 
+#if defined(DDXBEFORERESET)
 void ddxBeforeReset(void)
 {
     return;
 }
+#endif
