@@ -1292,9 +1292,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
  */
 
 void
-InitInput(argc, argv)
-     int	  argc;
-     char	  **argv;
+InitInput(int argc, char **argv)
 {
     IDevPtr* pDev;
     DeviceIntPtr dev;
@@ -1323,7 +1321,7 @@ InitInput(argc, argv)
  */
 
 void
-OsVendorInit()
+OsVendorInit(void)
 {
   static Bool beenHere = FALSE;
 
@@ -1368,7 +1366,7 @@ OsVendorInit()
  */
 
 void
-ddxGiveUp()
+ddxGiveUp(void)
 {
     int i;
 
@@ -1413,7 +1411,7 @@ ddxGiveUp()
  */
 
 void
-AbortDDX()
+AbortDDX(void)
 {
   int i;
 
@@ -1449,7 +1447,7 @@ AbortDDX()
 }
 
 void
-OsVendorFatalError()
+OsVendorFatalError(void)
 {
 #ifdef VENDORSUPPORT
     ErrorF("\nPlease refer to your Operating System Vendor support pages\n"
@@ -1841,7 +1839,7 @@ ddxProcessArgument(int argc, char **argv, int i)
  */
 
 void
-ddxUseMsg()
+ddxUseMsg(void)
 {
   ErrorF("\n");
   ErrorF("\n");

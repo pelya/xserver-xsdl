@@ -476,7 +476,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
 }
 
 void
-AddOtherInputDevices()
+AddOtherInputDevices(void)
 {
 }
 
@@ -941,7 +941,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
 }
 
 LocalDevicePtr
-xf86FirstLocalDevice()
+xf86FirstLocalDevice(void)
 {
     return xf86InputDevs;
 }

@@ -348,7 +348,7 @@ xf86OpenConsole(void)
 }
 
 void
-xf86CloseConsole()
+xf86CloseConsole(void)
 {
     struct vt_mode   VT;
 #if defined(DO_OS_FONTRESTORE)
@@ -457,7 +457,7 @@ xf86ProcessArgument(int argc, char *argv[], int i)
 }
 
 void
-xf86UseMsg()
+xf86UseMsg(void)
 {
 	ErrorF("vtXX                   use the specified VT number\n");
 	ErrorF("-keeptty               ");

@@ -387,7 +387,7 @@ tsort(void)
 }
 
 void
-LoaderSortExtensions()
+LoaderSortExtensions(void)
 {
     int i, j;
     ExtensionModule *ext, *newList;

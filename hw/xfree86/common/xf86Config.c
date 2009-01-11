@@ -362,7 +362,7 @@ xf86ModulelistFromConfig(pointer **optlist)
 
 
 char **
-xf86DriverlistFromConfig()
+xf86DriverlistFromConfig(void)
 {
     int count = 0;
     int j;
@@ -434,7 +434,7 @@ xf86DriverlistFromConfig()
 }
 
 char **
-xf86InputDriverlistFromConfig()
+xf86InputDriverlistFromConfig(void)
 {
     int count = 0;
     char **modulearray;

@@ -1341,7 +1341,7 @@ xf86ErrorF(const char *format, ...)
 
 
 void
-xf86LogInit()
+xf86LogInit(void)
 {
     char *lf = NULL;
 
@@ -1372,7 +1372,7 @@ xf86LogInit()
 }
 
 void
-xf86CloseLog()
+xf86CloseLog(void)
 {
     LogClose();
 }
@@ -2088,69 +2088,69 @@ xf86GetVisualName(int visual)
 
 
 int
-xf86GetVerbosity()
+xf86GetVerbosity(void)
 {
     return max(xf86Verbose, xf86LogVerbose);
 }
 
 Pix24Flags
-xf86GetPix24()
+xf86GetPix24(void)
 {
     return xf86Info.pixmap24;
 }
 
 
 int
-xf86GetDepth()
+xf86GetDepth(void)
 {
     return xf86Depth;
 }
 
 
 rgb
-xf86GetWeight()
+xf86GetWeight(void)
 {
     return xf86Weight;
 }
 
 
 Gamma
-xf86GetGamma()
+xf86GetGamma(void)
 {
     return xf86Gamma;
 }
 
 
 Bool
-xf86GetFlipPixels()
+xf86GetFlipPixels(void)
 {
     return xf86FlipPixels;
 }
 
 
 const char *
-xf86GetServerName()
+xf86GetServerName(void)
 {
     return xf86ServerName;
 }
 
 
 Bool
-xf86ServerIsExiting()
+xf86ServerIsExiting(void)
 {
     return (dispatchException & DE_TERMINATE) == DE_TERMINATE;
 }
 
 
 Bool
-xf86ServerIsResetting()
+xf86ServerIsResetting(void)
 {
     return xf86Resetting;
 }
 
 
 Bool
-xf86ServerIsInitialising()
+xf86ServerIsInitialising(void)
 {
     return xf86Initialising;
 }
@@ -2171,48 +2171,48 @@ xf86ServerIsOnlyProbing(void)
 
 
 Bool
-xf86CaughtSignal()
+xf86CaughtSignal(void)
 {
     return xf86Info.caughtSignal;
 }
 
 
 Bool
-xf86GetVidModeAllowNonLocal()
+xf86GetVidModeAllowNonLocal(void)
 {
     return xf86Info.vidModeAllowNonLocal;
 }
 
 
 Bool
-xf86GetVidModeEnabled()
+xf86GetVidModeEnabled(void)
 {
     return xf86Info.vidModeEnabled;
 }
 
 Bool
-xf86GetModInDevAllowNonLocal()
+xf86GetModInDevAllowNonLocal(void)
 {
     return xf86Info.miscModInDevAllowNonLocal;
 }
 
 
 Bool
-xf86GetModInDevEnabled()
+xf86GetModInDevEnabled(void)
 {
     return xf86Info.miscModInDevEnabled;
 }
 
 
 Bool
-xf86GetAllowMouseOpenFail()
+xf86GetAllowMouseOpenFail(void)
 {
     return xf86Info.allowMouseOpenFail;
 }
 
 
 Bool
-xf86IsPc98()
+xf86IsPc98(void)
 {
 #ifdef __i386__
     return xf86Info.pc98;
@@ -2222,7 +2222,7 @@ xf86IsPc98()
 }
 
 void
-xf86DisableRandR()
+xf86DisableRandR(void)
 {
     xf86Info.disableRandR = TRUE;
     xf86Info.randRFrom = X_PROBED;

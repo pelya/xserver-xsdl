@@ -568,7 +568,7 @@ DGAActive(int index)
 /* Called by the event code in case the server is abruptly terminated */
 
 void
-DGAShutdown()
+DGAShutdown(void)
 {
     ScrnInfoPtr pScrn;
     int i;

@@ -1798,7 +1798,7 @@ vgaHWUnmapMem(ScrnInfoPtr scrp)
 }
 
 int
-vgaHWGetIndex()
+vgaHWGetIndex(void)
 {
     return vgaHWPrivateIndex;
 }

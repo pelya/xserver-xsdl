@@ -153,7 +153,7 @@ LoaderInit(void)
 static loaderPtr listHead = (loaderPtr) 0;
 
 static loaderPtr
-_LoaderListPush()
+_LoaderListPush(void)
 {
     loaderPtr item = calloc(1, sizeof(struct _loader));
 

@@ -1936,7 +1936,7 @@ checkRequiredResources(int entityIndex)
 }
 
 void
-xf86PostPreInit()
+xf86PostPreInit(void)
 {
   if (doFramebufferMode) return;
 
@@ -2370,7 +2370,7 @@ xf86ExtractTypeFromList(resPtr list, unsigned long type)
  * was active when the server was started.
  */
 void
-xf86FindPrimaryDevice()
+xf86FindPrimaryDevice(void)
 {
     if (primaryBus.type != BUS_NONE) {
 	char *bus;

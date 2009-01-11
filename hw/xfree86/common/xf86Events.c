@@ -142,7 +142,7 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
  *      time in milliseconds since there last was any input.
  */
 int
-TimeSinceLastInputEvent()
+TimeSinceLastInputEvent(void)
 {
   if (xf86Info.lastEventTime == 0) {
     xf86Info.lastEventTime = GetTimeInMillis();
@@ -155,7 +155,7 @@ TimeSinceLastInputEvent()
  *      Set the lastEventTime to now.
  */
 void
-SetTimeSinceLastInputEvent()
+SetTimeSinceLastInputEvent(void)
 {
   xf86Info.lastEventTime = GetTimeInMillis();
 }
@@ -167,7 +167,7 @@ SetTimeSinceLastInputEvent()
  *      and keyboard.
  */
 void
-ProcessInputEvents ()
+ProcessInputEvents (void)
 {
   int x, y;
 
@@ -464,7 +464,7 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
  *      Handle requests for switching the vt.
  */
 static void
-xf86VTSwitch()
+xf86VTSwitch(void)
 {
   int i, prevSIGIO;
   InputInfoPtr pInfo;

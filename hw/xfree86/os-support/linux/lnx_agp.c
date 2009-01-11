@@ -117,7 +117,7 @@ GARTInit(int screenNum)
 }
 
 Bool
-xf86AgpGARTSupported()
+xf86AgpGARTSupported(void)
 {
 	return GARTInit(-1);
 }

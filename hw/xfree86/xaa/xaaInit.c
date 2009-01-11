@@ -65,7 +65,7 @@ DevPrivateKey XAAGetPixmapKey(void) {
 static Bool SwitchedOut = FALSE;
 
 XAAInfoRecPtr
-XAACreateInfoRec()
+XAACreateInfoRec(void)
 {
     XAAInfoRecPtr infoRec;
 
