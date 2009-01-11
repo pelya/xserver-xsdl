@@ -437,7 +437,7 @@ miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 }
 
 ScreenPtr
-miPointerCurrentScreen ()
+miPointerCurrentScreen (void)
 {
     return miPointerGetScreen(inputInfo.pointer);
 }

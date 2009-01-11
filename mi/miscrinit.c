@@ -297,7 +297,7 @@ static int privateKeyIndex;
 static DevPrivateKey privateKey = &privateKeyIndex;
 
 DevPrivateKey
-miAllocateGCPrivateIndex()
+miAllocateGCPrivateIndex(void)
 {
     return privateKey;
 }

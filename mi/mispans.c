@@ -65,8 +65,7 @@ Written by Joel McCormack, Summer 1989.
 */
 
 
-void miInitSpanGroup(spanGroup)
-    SpanGroup *spanGroup;
+void miInitSpanGroup(SpanGroup *spanGroup)
 {
     spanGroup->size = 0;
     spanGroup->count = 0;
