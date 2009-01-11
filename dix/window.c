@@ -3079,11 +3079,11 @@ void
 SendVisibilityNotify(WindowPtr pWin)
 {
     xEvent event;
-    if (!MapUnmapEventsEnabled(pWin))
-        return;
 #ifndef NO_XINERAMA_PORT
     unsigned int visibility = pWin->visibility;
 #endif
+    if (!MapUnmapEventsEnabled(pWin))
+        return;
 #ifdef PANORAMIX
     /* This is not quite correct yet, but it's close */
     if(!noPanoramiXExtension) {
