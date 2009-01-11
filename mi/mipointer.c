@@ -547,6 +547,12 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
     *y = MIPOINTER(pDev)->y;
 }
 
+#ifdef XQUARTZ
+#include <pthread.h>
+void darwinEvents_lock(void);
+void darwinEvents_unlock(void);
+#endif
+
 void
 miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
@@ -573,7 +579,13 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     nevents = GetPointerEvents(events, pDev, MotionNotify, 0, POINTER_ABSOLUTE, 0, 2, valuators);
 
     OsBlockSignals();
+#ifdef XQUARTZ
+    darwinEvents_lock();
+#endif
     for (i = 0; i < nevents; i++)
         mieqEnqueue(pDev, events[i].event);
+#ifdef XQUARTZ
+    darwinEvents_unlock();
+#endif
     OsReleaseSignals();
 }

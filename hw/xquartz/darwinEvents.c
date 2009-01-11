@@ -115,7 +115,8 @@ void darwinEvents_lock(void) {
     }
 }
 
-static inline void darwinEvents_unlock(void) {
+void darwinEvents_unlock(void);
+void darwinEvents_unlock(void) {
     int err;
     if((err = pthread_mutex_unlock(&mieq_lock))) {
         ErrorF("%s:%s:%d: Failed to unlock mieq_lock: %d\n",
