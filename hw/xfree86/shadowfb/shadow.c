@@ -102,7 +102,7 @@ static DevPrivateKey ShadowGCKey = &ShadowGCKeyIndex;
 #define GET_SCREEN_PRIVATE(pScreen) \
     (ShadowScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, ShadowScreenKey)
 #define GET_GC_PRIVATE(pGC) \
-    (ShadowGCPtr)dixLookupPrivate(&(pGC)->devPrivates, ShadowGCKey);
+    (ShadowGCPtr)dixLookupPrivate(&(pGC)->devPrivates, ShadowGCKey)
 
 #define SHADOW_GC_FUNC_PROLOGUE(pGC)\
     ShadowGCPtr pGCPriv = GET_GC_PRIVATE(pGC);\
