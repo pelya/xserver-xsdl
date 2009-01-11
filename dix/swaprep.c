@@ -524,10 +524,7 @@ SListInstalledColormapsReply(ClientPtr pClient, int size,
 }
 
 void
-SAllocColorReply(pClient, size, pRep)
-    ClientPtr		pClient;
-    int			size;
-    xAllocColorReply	*pRep;
+SAllocColorReply(ClientPtr pClient, int size, xAllocColorReply *pRep)
 {
     char n;
 

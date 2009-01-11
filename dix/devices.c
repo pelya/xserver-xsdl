@@ -625,7 +625,7 @@ InitCoreDevices(void)
  * @return Success or error code on failure.
  */
 int
-InitAndStartDevices()
+InitAndStartDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -930,7 +930,7 @@ CloseDownDevices(void)
  * resources are freed or any device is deleted.
  */
 void
-UndisplayDevices()
+UndisplayDevices(void)
 {
     DeviceIntPtr dev;
     ScreenPtr screen = screenInfo.screens[0];
@@ -1621,10 +1621,8 @@ BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 }
 
 Bool
-AllModifierKeysAreUp(dev, map1, per1, map2, per2)
-    DeviceIntPtr dev;
-    CARD8 *map1, *map2;
-    int per1, per2;
+AllModifierKeysAreUp(DeviceIntPtr dev, CARD8 *map1, int per1,
+                     CARD8 *map2, int per2)
 {
     int i, j, k;
     CARD8 *down = dev->key->down;

@@ -3964,8 +3964,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
  * Traverses to siblings and parents of the window.
  */
 void
-RecalculateDeliverableEvents(pWin)
-    WindowPtr pWin;
+RecalculateDeliverableEvents(WindowPtr pWin)
 {
     OtherClients *others;
     WindowPtr pChild;
@@ -4478,8 +4477,7 @@ SetInputFocus(
  * Sets the input focus for the virtual core keyboard.
  */
 int
-ProcSetInputFocus(client)
-    ClientPtr client;
+ProcSetInputFocus(ClientPtr client)
 {
     DeviceIntPtr kbd = PickKeyboard(client);
     REQUEST(xSetInputFocusReq);
