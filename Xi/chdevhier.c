@@ -48,6 +48,10 @@
 #include "geext.h"
 #include "xace.h"
 
+#ifdef XKB
+#include "xkbsrv.h"
+#endif
+
 #include "chdevhier.h"
 
 
