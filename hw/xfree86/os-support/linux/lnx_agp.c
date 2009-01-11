@@ -155,7 +155,7 @@ xf86GetAGPInfo(int screenNum)
 	info->systemPages = agpinf.pg_system;
 	info->usedPages = agpinf.pg_used;
 
-	xf86DrvMsg(screenNum, X_INFO, "Kernel reported %d total, %d used\n", agpinf.pg_total, agpinf.pg_used);
+	xf86DrvMsg(screenNum, X_INFO, "Kernel reported %zu total, %zu used\n", agpinf.pg_total, agpinf.pg_used);
 
 	return info;
 }
