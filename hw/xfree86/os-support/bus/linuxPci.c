@@ -52,6 +52,7 @@
 #include "compiler.h"
 #include "xf86.h"
 #include "xf86Priv.h"
+#define NEED_OS_RAC_PROTOS
 #include "xf86_OSlib.h"
 #include "Pci.h"
 #include <dirent.h>
