@@ -239,7 +239,6 @@ QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, 
     }
 }
 
-
 /*
  * QuartzMoveCursor
  *  Move the cursor. This is a noop for us.
@@ -248,25 +247,6 @@ static void
 QuartzMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
 }
-
-/* TODO: New for 1.6 ... probably noop */
-static Bool QuartzDeviceCursorInitialize(DeviceIntPtr pDev, ScreenPtr pScreen) {
-    return TRUE;
-}
-
-/* TODO: New for 1.6 ... probably noop */
-static void QuartzDeviceCursorCleanup(DeviceIntPtr pDev, ScreenPtr pScreen) {
-}
-
-static miPointerSpriteFuncRec quartzSpriteFuncsRec = {
-    QuartzRealizeCursor,
-    QuartzUnrealizeCursor,
-    QuartzSetCursor,
-    QuartzMoveCursor,
-    QuartzDeviceCursorInitialize,
-    QuartzDeviceCursorCleanup
-};
-
 
 /*
 ===========================================================================
@@ -387,12 +367,15 @@ QuartzInitCursor(ScreenPtr pScreen)
     PointPriv = dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
 
     ScreenPriv->spriteFuncs = PointPriv->spriteFuncs;
-    PointPriv->spriteFuncs = &quartzSpriteFuncsRec;
 
+    PointPriv->spriteFuncs->RealizeCursor = QuartzRealizeCursor;
+    PointPriv->spriteFuncs->UnrealizeCursor = QuartzUnrealizeCursor;
+    PointPriv->spriteFuncs->SetCursor = QuartzSetCursor;
+    PointPriv->spriteFuncs->MoveCursor = QuartzMoveCursor;
+    
     ScreenPriv->cursorVisible = TRUE;
     return TRUE;
 }
-
 
 /*
  * QuartzSuspendXCursor

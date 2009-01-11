@@ -362,8 +362,6 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
     }
-	// TODO: What do we do now in 1.6?
-    //SwitchCoreKeyboard(pDev);   
 
     DarwinKeyboardSetDeviceKeyMap(&keySyms);
 }
