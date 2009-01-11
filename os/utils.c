@@ -213,9 +213,7 @@ int auditTrailLevel = 1;
 static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
 
 OsSigHandlerPtr
-OsSignal(sig, handler)
-    int sig;
-    OsSigHandlerPtr handler;
+OsSignal(int sig, OsSigHandlerPtr handler)
 {
     struct sigaction act, oact;
 

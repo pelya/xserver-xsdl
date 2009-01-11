@@ -1590,9 +1590,7 @@ get_fromaddr_by_name(
 
 #if defined(IPv6) && defined(AF_INET6)
 static int
-get_mcast_options(argc, argv, i)
-    int	    argc, i;
-    char    **argv;
+get_mcast_options(int argc, char **argv, int i)
 {
     char *address = XDM_DEFAULT_MCAST_ADDR6;
     int hopcount = 1;
