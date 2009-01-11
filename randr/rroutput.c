@@ -538,7 +538,7 @@ ProcRRGetOutputInfo (ClientPtr client)
     return client->noClientException;
 }
 
-void
+static void
 RRSetPrimaryOutput(ScreenPtr pScreen, rrScrPrivPtr pScrPriv,
 		   RROutputPtr output)
 {
