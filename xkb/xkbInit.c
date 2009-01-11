@@ -290,7 +290,7 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 }
 
 void
-XkbDeleteRulesDflts()
+XkbDeleteRulesDflts(void)
 {
     _XkbFree(XkbRulesFile);
     XkbRulesFile = NULL;
