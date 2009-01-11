@@ -33,7 +33,7 @@
 void xorg_backtrace(void)
 {
     void *array[32]; /* deeper nesting than this means something's wrong */
-    size_t size, i;
+    int size, i;
     char **strings;
     ErrorF("\nBacktrace:\n");
     size = backtrace(array, 32);
