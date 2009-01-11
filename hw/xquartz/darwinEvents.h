@@ -78,4 +78,7 @@ enum {
 /* Send one of the above events to the server thread. */
 void DarwinSendDDXEvent(int type, int argc, ...);
 
+extern int darwin_modifier_mask_list[];
+extern int darwin_modifier_flags;
+
 #endif  /* _DARWIN_EVENTS_H */

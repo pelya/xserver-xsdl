@@ -65,6 +65,7 @@ extern BOOL xpbproxy_init (void);
 
 /* Stuck modifier / button state... force release when we context switch */
 static NSEventType keyState[NUM_KEYCODES];
+static int modifierFlagsMask;
 
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -200,7 +201,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
         }
     } else {
 
-        DarwinUpdateModKeys(0);
+        if(darwin_modifier_flags)
+            DarwinUpdateModKeys(0);
         for(i=0; i < NUM_KEYCODES; i++) {
             if(keyState[i] == NSKeyDown) {
                 DarwinSendKeyboardEvents(KeyRelease, i);
@@ -872,6 +874,7 @@ environment the next time you start X11?", @"Startup xinitrc dialog");
 
 void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool;
+    int *p;
 
 #ifdef DEBUG
     while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
@@ -916,6 +919,10 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
         fprintf(stderr, "X11ApplicationMain: Could not build a valid keymap.\n");
     }
 
+    for(p=darwin_modifier_mask_list, modifierFlagsMask=0; *p; p++) {
+        modifierFlagsMask |= *p;
+    }
+    
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
     
@@ -932,7 +939,6 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
 }
 
 @implementation X11Application (Private)
-extern int darwin_modifier_flags; // darwinEvents.c
 
 #ifdef NX_DEVICELCMDKEYMASK
 /* This is to workaround a bug in the VNC server where we sometimes see the L
@@ -986,6 +992,8 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     modifierFlags = ensure_flag(modifierFlags, NX_COMMANDMASK,   NX_DEVICELCMDKEYMASK   | NX_DEVICERCMDKEYMASK,     NX_DEVICELCMDKEYMASK);
     modifierFlags = ensure_flag(modifierFlags, NX_ALTERNATEMASK, NX_DEVICELALTKEYMASK   | NX_DEVICERALTKEYMASK,     NX_DEVICELALTKEYMASK);
 #endif
+
+    modifierFlags &= modifierFlagsMask;
 
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state

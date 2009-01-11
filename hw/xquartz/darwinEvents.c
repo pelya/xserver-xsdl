@@ -145,7 +145,7 @@ static void DarwinPressModifierKey(int pressed, int key) {
  *  Send events to update the modifier state.
  */
 
-static int modifier_mask_list[] = {
+int darwin_modifier_mask_list[] = {
 #ifdef NX_DEVICELCMDKEYMASK
     NX_DEVICELCTLKEYMASK, NX_DEVICERCTLKEYMASK,
     NX_DEVICELSHIFTKEYMASK, NX_DEVICERSHIFTKEYMASK,
@@ -172,7 +172,7 @@ static void DarwinUpdateModifiers(
         DarwinPressModifierKey(KeyRelease, NX_MODIFIERKEY_ALPHALOCK);
     }
     
-    for(f=modifier_mask_list; *f; f++)
+    for(f=darwin_modifier_mask_list; *f; f++)
         if(*f & flags) {
             key = DarwinModifierNXMaskToNXKey(*f);
             if(key == -1)
