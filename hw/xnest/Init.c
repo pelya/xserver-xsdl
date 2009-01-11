@@ -107,14 +107,14 @@ InitInput(int argc, char *argv[])
 /*
  * DDX - specific abort routine.  Called by AbortServer().
  */
-void AbortDDX()
+void AbortDDX(void)
 {
   xnestDoFullGeneration = True;
   xnestCloseDisplay();
 }
 
 /* Called by GiveUp(). */
-void ddxGiveUp()
+void ddxGiveUp(void)
 {
   AbortDDX();
 }
@@ -126,12 +126,12 @@ DarwinHandleGUI(int argc, char *argv[])
 }
 #endif
 
-void OsVendorInit()
+void OsVendorInit(void)
 {
     return;
 }
 
-void OsVendorFatalError()
+void OsVendorFatalError(void)
 {
     return;
 }

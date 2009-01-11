@@ -45,7 +45,7 @@ CARD32 lastEventTime = 0;
 extern EventList *xnestEvents;
 
 void
-ProcessInputEvents()
+ProcessInputEvents(void)
 {
   mieqProcessInputEvents();
 }
