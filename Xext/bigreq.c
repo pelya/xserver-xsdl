@@ -51,8 +51,7 @@ BigReqExtensionInit(INITARGS)
 }
 
 static int
-ProcBigReqDispatch (client)
-     ClientPtr	client;
+ProcBigReqDispatch (ClientPtr client)
 {
     REQUEST(xBigReqEnableReq);
     xBigReqEnableReply rep;

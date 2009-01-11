@@ -83,8 +83,7 @@ XTestExtensionInit(INITARGS)
 }
 
 static int
-ProcXTestGetVersion(client)
-    ClientPtr client;
+ProcXTestGetVersion(ClientPtr client)
 {
     xXTestGetVersionReply rep;
     int n;
@@ -104,8 +103,7 @@ ProcXTestGetVersion(client)
 }
 
 static int
-ProcXTestCompareCursor(client)
-    ClientPtr client;
+ProcXTestCompareCursor(ClientPtr client)
 {
     REQUEST(xXTestCompareCursorReq);
     xXTestCompareCursorReply rep;
@@ -143,8 +141,7 @@ ProcXTestCompareCursor(client)
 }
 
 static int
-ProcXTestFakeInput(client)
-    ClientPtr client;
+ProcXTestFakeInput(ClientPtr client)
 {
     REQUEST(xXTestFakeInputReq);
     int nev, n, type, rc;
@@ -402,8 +399,7 @@ ProcXTestFakeInput(client)
 }
 
 static int
-ProcXTestGrabControl(client)
-    ClientPtr client;
+ProcXTestGrabControl(ClientPtr client)
 {
     REQUEST(xXTestGrabControlReq);
 
@@ -421,8 +417,7 @@ ProcXTestGrabControl(client)
 }
 
 static int
-ProcXTestDispatch (client)
-    ClientPtr	client;
+ProcXTestDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)
@@ -441,8 +436,7 @@ ProcXTestDispatch (client)
 }
 
 static int
-SProcXTestGetVersion(client)
-    ClientPtr	client;
+SProcXTestGetVersion(ClientPtr client)
 {
     int n;
     REQUEST(xXTestGetVersionReq);
@@ -454,8 +448,7 @@ SProcXTestGetVersion(client)
 }
 
 static int
-SProcXTestCompareCursor(client)
-    ClientPtr	client;
+SProcXTestCompareCursor(ClientPtr client)
 {
     int n;
     REQUEST(xXTestCompareCursorReq);
@@ -468,9 +461,7 @@ SProcXTestCompareCursor(client)
 }
 
 static int
-XTestSwapFakeInput(client, req)
-    ClientPtr	client;
-    xReq *req;
+XTestSwapFakeInput(ClientPtr client, xReq *req)
 {
     int nev;
     xEvent *ev;
@@ -494,8 +485,7 @@ XTestSwapFakeInput(client, req)
 }
 
 static int
-SProcXTestFakeInput(client)
-    ClientPtr	client;
+SProcXTestFakeInput(ClientPtr client)
 {
     int n;
     REQUEST(xReq);
@@ -508,8 +498,7 @@ SProcXTestFakeInput(client)
 }
 
 static int
-SProcXTestGrabControl(client)
-    ClientPtr	client;
+SProcXTestGrabControl(ClientPtr client)
 {
     int n;
     REQUEST(xXTestGrabControlReq);
@@ -520,8 +509,7 @@ SProcXTestGrabControl(client)
 }
 
 static int
-SProcXTestDispatch (client)
-    ClientPtr	client;
+SProcXTestDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

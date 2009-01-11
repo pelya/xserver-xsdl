@@ -272,8 +272,7 @@ ScreenSaverExtensionInit(INITARGS)
 }
 
 static void
-CheckScreenPrivate (pScreen)
-    ScreenPtr	pScreen;
+CheckScreenPrivate (ScreenPtr pScreen)
 {
     SetupScreen (pScreen);
 
@@ -289,8 +288,7 @@ CheckScreenPrivate (pScreen)
 }
 
 static ScreenSaverScreenPrivatePtr
-MakeScreenPrivate (pScreen)
-    ScreenPtr	pScreen;
+MakeScreenPrivate (ScreenPtr pScreen)
 {
     SetupScreen (pScreen);
 
@@ -309,9 +307,7 @@ MakeScreenPrivate (pScreen)
 }
 
 static unsigned long
-getEventMask (pScreen, client)
-    ScreenPtr	pScreen;
-    ClientPtr	client;
+getEventMask (ScreenPtr pScreen, ClientPtr client)
 {
     SetupScreen(pScreen);
     ScreenSaverEventPtr	pEv;
@@ -325,10 +321,7 @@ getEventMask (pScreen, client)
 }
 
 static Bool
-setEventMask (pScreen, client, mask)
-    ScreenPtr	pScreen;
-    ClientPtr	client;
-    unsigned long   mask;
+setEventMask (ScreenPtr pScreen, ClientPtr client, unsigned long mask)
 {
     SetupScreen(pScreen);
     ScreenSaverEventPtr	pEv, *pPrev;
@@ -375,8 +368,7 @@ setEventMask (pScreen, client, mask)
 }
 
 static void
-FreeAttrs (pAttr)
-    ScreenSaverAttrPtr	pAttr;
+FreeAttrs (ScreenSaverAttrPtr pAttr)
 {
     PixmapPtr	    pPixmap;
     CursorPtr	    pCursor;
@@ -390,8 +382,7 @@ FreeAttrs (pAttr)
 }
 
 static void
-FreeScreenAttr (pAttr)
-    ScreenSaverAttrPtr	pAttr;
+FreeScreenAttr (ScreenSaverAttrPtr pAttr)
 {
     FreeAttrs (pAttr);
     xfree (pAttr->values);
@@ -399,9 +390,7 @@ FreeScreenAttr (pAttr)
 }
 
 static int
-ScreenSaverFreeEvents (value, id)
-    pointer value;
-    XID id;
+ScreenSaverFreeEvents (pointer value, XID id)
 {
     ScreenSaverEventPtr	pOld = (ScreenSaverEventPtr)value;
     ScreenPtr pScreen = pOld->screen;
@@ -422,9 +411,7 @@ ScreenSaverFreeEvents (value, id)
 }
 
 static int
-ScreenSaverFreeAttr (value, id)
-    pointer value;
-    XID id;
+ScreenSaverFreeAttr (pointer value, XID id)
 {
     ScreenSaverAttrPtr	pOldAttr = (ScreenSaverAttrPtr)value;
     ScreenPtr	pScreen = pOldAttr->screen;
@@ -485,10 +472,7 @@ ScreenSaverFreeSuspend (pointer value, XID id)
 }
 
 static void
-SendScreenSaverNotify (pScreen, state, forced)
-    ScreenPtr			pScreen;
-    int	    state;
-    Bool    forced;
+SendScreenSaverNotify (ScreenPtr pScreen, int state, Bool forced)
 {
     ScreenSaverScreenPrivatePtr	pPriv;
     ScreenSaverEventPtr		pEv;
@@ -531,8 +515,8 @@ SendScreenSaverNotify (pScreen, state, forced)
 }
 
 static void
-SScreenSaverNotifyEvent (from, to)
-    xScreenSaverNotifyEvent *from, *to;
+SScreenSaverNotifyEvent (xScreenSaverNotifyEvent *from,
+                         xScreenSaverNotifyEvent *to)
 {
     to->type = from->type;
     to->state = from->state;
@@ -545,8 +529,7 @@ SScreenSaverNotifyEvent (from, to)
 }
 
 static void
-UninstallSaverColormap (pScreen)
-    ScreenPtr	pScreen;
+UninstallSaverColormap (ScreenPtr pScreen)
 {
     SetupScreen(pScreen);
     ColormapPtr			pCmap;
@@ -562,8 +545,7 @@ UninstallSaverColormap (pScreen)
 }
 
 static Bool
-CreateSaverWindow (pScreen)
-    ScreenPtr	pScreen;
+CreateSaverWindow (ScreenPtr pScreen)
 {
     SetupScreen (pScreen);
     ScreenSaverStuffPtr		pSaver;
@@ -682,8 +664,7 @@ CreateSaverWindow (pScreen)
 }
 
 static Bool
-DestroySaverWindow (pScreen)
-    ScreenPtr	pScreen;
+DestroySaverWindow (ScreenPtr pScreen)
 {
     SetupScreen(pScreen);
     ScreenSaverStuffPtr		pSaver;
@@ -704,10 +685,7 @@ DestroySaverWindow (pScreen)
 }
 
 static Bool
-ScreenSaverHandle (pScreen, xstate, force)
-    ScreenPtr	pScreen;
-    int		xstate;
-    Bool	force;
+ScreenSaverHandle (ScreenPtr pScreen, int xstate, Bool force)
 {
     int				state = 0;
     Bool			ret = FALSE;
@@ -738,8 +716,7 @@ ScreenSaverHandle (pScreen, xstate, force)
 }
 
 static int
-ProcScreenSaverQueryVersion (client)
-    ClientPtr	client;
+ProcScreenSaverQueryVersion (ClientPtr client)
 {
     xScreenSaverQueryVersionReply	rep;
     int		n;
@@ -759,8 +736,7 @@ ProcScreenSaverQueryVersion (client)
 }
 
 static int
-ProcScreenSaverQueryInfo (client)
-    ClientPtr	client;
+ProcScreenSaverQueryInfo (ClientPtr client)
 {
     REQUEST(xScreenSaverQueryInfoReq);
     xScreenSaverQueryInfoReply	rep;
@@ -836,8 +812,7 @@ ProcScreenSaverQueryInfo (client)
 }
 
 static int
-ProcScreenSaverSelectInput (client)
-    ClientPtr	client;
+ProcScreenSaverSelectInput (ClientPtr client)
 {
     REQUEST(xScreenSaverSelectInputReq);
     DrawablePtr			pDraw;
@@ -1442,8 +1417,7 @@ static DISPATCH_PROC((*NormalVector[])) = {
 #define NUM_REQUESTS	((sizeof NormalVector) / (sizeof NormalVector[0]))
 
 static int
-ProcScreenSaverDispatch (client)
-    ClientPtr	client;
+ProcScreenSaverDispatch (ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -1453,8 +1427,7 @@ ProcScreenSaverDispatch (client)
 }
 
 static int
-SProcScreenSaverQueryVersion (client)
-    ClientPtr	client;
+SProcScreenSaverQueryVersion (ClientPtr client)
 {
     REQUEST(xScreenSaverQueryVersionReq);
     int	    n;
@@ -1465,8 +1438,7 @@ SProcScreenSaverQueryVersion (client)
 }
 
 static int
-SProcScreenSaverQueryInfo (client)
-    ClientPtr	client;
+SProcScreenSaverQueryInfo (ClientPtr client)
 {
     REQUEST(xScreenSaverQueryInfoReq);
     int	    n;
@@ -1478,8 +1450,7 @@ SProcScreenSaverQueryInfo (client)
 }
 
 static int
-SProcScreenSaverSelectInput (client)
-    ClientPtr	client;
+SProcScreenSaverSelectInput (ClientPtr client)
 {
     REQUEST(xScreenSaverSelectInputReq);
     int	    n;
@@ -1492,8 +1463,7 @@ SProcScreenSaverSelectInput (client)
 }
 
 static int
-SProcScreenSaverSetAttributes (client)
-    ClientPtr	client;
+SProcScreenSaverSetAttributes (ClientPtr client)
 {
     REQUEST(xScreenSaverSetAttributesReq);
     int	    n;
@@ -1513,8 +1483,7 @@ SProcScreenSaverSetAttributes (client)
 }
 
 static int
-SProcScreenSaverUnsetAttributes (client)
-    ClientPtr	client;
+SProcScreenSaverUnsetAttributes (ClientPtr client)
 {
     REQUEST(xScreenSaverUnsetAttributesReq);
     int	    n;
@@ -1547,8 +1516,7 @@ static DISPATCH_PROC((*SwappedVector[])) = {
 };
 
 static int
-SProcScreenSaverDispatch (client)
-    ClientPtr	client;
+SProcScreenSaverDispatch (ClientPtr client)
 {
     REQUEST(xReq);
 

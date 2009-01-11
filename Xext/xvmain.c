@@ -520,12 +520,7 @@ XvdiDestroyEncoding(pointer value, XID id)
 }
 
 static int
-XvdiSendVideoNotify(pPort, pDraw, reason)
-
-XvPortPtr pPort;
-DrawablePtr pDraw;
-int reason;
-
+XvdiSendVideoNotify(XvPortPtr pPort, DrawablePtr pDraw, int reason)
 {
   xvEvent event;
   XvVideoNotifyPtr pn;

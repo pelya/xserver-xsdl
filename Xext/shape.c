@@ -63,18 +63,6 @@ static void SShapeNotifyEvent(
 	xShapeNotifyEvent * /* from */,
 	xShapeNotifyEvent * /* to */
 	);
-static int
-RegionOperate (
-	ClientPtr /* client */,
-	WindowPtr /* pWin */,
-	int /* kind */,
-	RegionPtr * /* destRgnp */,
-	RegionPtr /* srcRgn */,
-	int /* op */,
-	int /* xoff */,
-	int /* yoff */,
-	CreateDftPtr /* create */
-	);
 
 /* SendShapeNotify, CreateBoundingShape and CreateClipShape are used
  * externally by the Xfixes extension and are now defined in window.h
@@ -152,14 +140,15 @@ ShapeExtensionInit(void)
 }
 
 static int
-RegionOperate (client, pWin, kind, destRgnp, srcRgn, op, xoff, yoff, create)
-    ClientPtr	client;
-    WindowPtr	pWin;
-    int		kind;
-    RegionPtr	*destRgnp, srcRgn;
-    int		op;
-    int		xoff, yoff;
-    CreateDftPtr create;	/* creates a reasonable *destRgnp */
+RegionOperate (
+	ClientPtr client,
+	WindowPtr pWin,
+	int kind,
+	RegionPtr *destRgnp,
+	RegionPtr srcRgn,
+	int op,
+	int xoff, int yoff,
+	CreateDftPtr create)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
 
@@ -237,8 +226,7 @@ RegionOperate (client, pWin, kind, destRgnp, srcRgn, op, xoff, yoff, create)
 }
 
 RegionPtr
-CreateBoundingShape (pWin)
-    WindowPtr	pWin;
+CreateBoundingShape (WindowPtr pWin)
 {
     BoxRec	extents;
 
@@ -250,8 +238,7 @@ CreateBoundingShape (pWin)
 }
 
 RegionPtr
-CreateClipShape (pWin)
-    WindowPtr	pWin;
+CreateClipShape (WindowPtr pWin)
 {
     BoxRec	extents;
 
@@ -263,8 +250,7 @@ CreateClipShape (pWin)
 }
 
 static int
-ProcShapeQueryVersion (client)
-    ClientPtr	client;
+ProcShapeQueryVersion (ClientPtr client)
 {
     xShapeQueryVersionReply	rep;
     int		n;
@@ -291,8 +277,7 @@ ProcShapeQueryVersion (client)
  *****************/
 
 static int
-ProcShapeRectangles (client)
-    ClientPtr client;
+ProcShapeRectangles (ClientPtr client)
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -391,8 +376,7 @@ ProcPanoramiXShapeRectangles(
 
 
 static int
-ProcShapeMask (client)
-    ClientPtr client;
+ProcShapeMask (ClientPtr client)
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -498,8 +482,7 @@ ProcPanoramiXShapeMask(
  ************/
 
 static int
-ProcShapeCombine (client)
-    ClientPtr client;
+ProcShapeCombine (ClientPtr client)
 {
     WindowPtr		pSrcWin, pDestWin;
     ScreenPtr		pScreen;
@@ -622,8 +605,7 @@ ProcPanoramiXShapeCombine(
  *************/
 
 static int
-ProcShapeOffset (client)
-    ClientPtr client;
+ProcShapeOffset (ClientPtr client)
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -687,8 +669,7 @@ ProcPanoramiXShapeOffset(
 
 
 static int
-ProcShapeQueryExtents (client)
-    ClientPtr	client;
+ProcShapeQueryExtents (ClientPtr client)
 {
     REQUEST(xShapeQueryExtentsReq);
     WindowPtr		pWin;
@@ -752,9 +733,7 @@ ProcShapeQueryExtents (client)
 
 /*ARGSUSED*/
 static int
-ShapeFreeClient (data, id)
-    pointer	    data;
-    XID		    id;
+ShapeFreeClient (pointer data, XID id)
 {
     ShapeEventPtr   pShapeEvent;
     WindowPtr	    pWin;
@@ -781,9 +760,7 @@ ShapeFreeClient (data, id)
 
 /*ARGSUSED*/
 static int
-ShapeFreeEvents (data, id)
-    pointer	    data;
-    XID		    id;
+ShapeFreeEvents (pointer data, XID id)
 {
     ShapeEventPtr   *pHead, pCur, pNext;
 
@@ -798,8 +775,7 @@ ShapeFreeEvents (data, id)
 }
 
 static int
-ProcShapeSelectInput (client)
-    ClientPtr	client;
+ProcShapeSelectInput (ClientPtr client)
 {
     REQUEST(xShapeSelectInputReq);
     WindowPtr		pWin;
@@ -894,9 +870,7 @@ ProcShapeSelectInput (client)
  */
 
 void
-SendShapeNotify (pWin, which)
-    WindowPtr	pWin;
-    int		which;
+SendShapeNotify (WindowPtr pWin, int which)
 {
     ShapeEventPtr	*pHead, pShapeEvent;
     ClientPtr		client;
@@ -970,8 +944,7 @@ SendShapeNotify (pWin, which)
 }
 
 static int
-ProcShapeInputSelected (client)
-    ClientPtr	client;
+ProcShapeInputSelected (ClientPtr client)
 {
     REQUEST(xShapeInputSelectedReq);
     WindowPtr		pWin;
@@ -1011,8 +984,7 @@ ProcShapeInputSelected (client)
 }
 
 static int
-ProcShapeGetRectangles (client)
-    ClientPtr	client;
+ProcShapeGetRectangles (ClientPtr client)
 {
     REQUEST(xShapeGetRectanglesReq);
     WindowPtr			pWin;
@@ -1097,8 +1069,7 @@ ProcShapeGetRectangles (client)
 }
 
 static int
-ProcShapeDispatch (client)
-    ClientPtr	client;
+ProcShapeDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data) {
@@ -1146,8 +1117,7 @@ ProcShapeDispatch (client)
 }
 
 static void
-SShapeNotifyEvent(from, to)
-    xShapeNotifyEvent *from, *to;
+SShapeNotifyEvent(xShapeNotifyEvent *from, xShapeNotifyEvent *to)
 {
     to->type = from->type;
     to->kind = from->kind;
@@ -1162,8 +1132,7 @@ SShapeNotifyEvent(from, to)
 }
 
 static int
-SProcShapeQueryVersion (client)
-    ClientPtr	client;
+SProcShapeQueryVersion (ClientPtr client)
 {
     int    n;
     REQUEST (xShapeQueryVersionReq);
@@ -1173,8 +1142,7 @@ SProcShapeQueryVersion (client)
 }
 
 static int
-SProcShapeRectangles (client)
-    ClientPtr	client;
+SProcShapeRectangles (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeRectanglesReq);
@@ -1189,8 +1157,7 @@ SProcShapeRectangles (client)
 }
 
 static int
-SProcShapeMask (client)
-    ClientPtr	client;
+SProcShapeMask (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeMaskReq);
@@ -1205,8 +1172,7 @@ SProcShapeMask (client)
 }
 
 static int
-SProcShapeCombine (client)
-    ClientPtr	client;
+SProcShapeCombine (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeCombineReq);
@@ -1221,8 +1187,7 @@ SProcShapeCombine (client)
 }
 
 static int
-SProcShapeOffset (client)
-    ClientPtr	client;
+SProcShapeOffset (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeOffsetReq);
@@ -1236,8 +1201,7 @@ SProcShapeOffset (client)
 }
 
 static int
-SProcShapeQueryExtents (client)
-    ClientPtr	client;
+SProcShapeQueryExtents (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeQueryExtentsReq);
@@ -1249,8 +1213,7 @@ SProcShapeQueryExtents (client)
 }
 
 static int
-SProcShapeSelectInput (client)
-    ClientPtr	client;
+SProcShapeSelectInput (ClientPtr client)
 {
     char   n;
     REQUEST (xShapeSelectInputReq);
@@ -1262,8 +1225,7 @@ SProcShapeSelectInput (client)
 }
 
 static int
-SProcShapeInputSelected (client)
-    ClientPtr	client;
+SProcShapeInputSelected (ClientPtr client)
 {
     int    n;
     REQUEST (xShapeInputSelectedReq);
@@ -1275,8 +1237,7 @@ SProcShapeInputSelected (client)
 }
 
 static int
-SProcShapeGetRectangles (client)
-    ClientPtr	client;
+SProcShapeGetRectangles (ClientPtr client)
 {
     REQUEST(xShapeGetRectanglesReq);
     char   n;
@@ -1288,8 +1249,7 @@ SProcShapeGetRectangles (client)
 }
 
 static int
-SProcShapeDispatch (client)
-    ClientPtr	client;
+SProcShapeDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data) {

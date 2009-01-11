@@ -78,8 +78,7 @@ DPMSExtensionInit(INITARGS)
 }
 
 static int
-ProcDPMSGetVersion(client)
-    ClientPtr client;
+ProcDPMSGetVersion(ClientPtr client)
 {
     /* REQUEST(xDPMSGetVersionReq); */
     xDPMSGetVersionReply rep;
@@ -123,8 +122,7 @@ ProcDPMSCapable(ClientPtr client)
 }
 
 static int
-ProcDPMSGetTimeouts(client)
-    ClientPtr client;
+ProcDPMSGetTimeouts(ClientPtr client)
 {
     /* REQUEST(xDPMSGetTimeoutsReq); */
     xDPMSGetTimeoutsReply rep;
@@ -150,8 +148,7 @@ ProcDPMSGetTimeouts(client)
 }
 
 static int
-ProcDPMSSetTimeouts(client)
-    ClientPtr client;
+ProcDPMSSetTimeouts(ClientPtr client)
 {
     REQUEST(xDPMSSetTimeoutsReq);
 
@@ -177,8 +174,7 @@ ProcDPMSSetTimeouts(client)
 }
 
 static int
-ProcDPMSEnable(client)
-    ClientPtr client;
+ProcDPMSEnable(ClientPtr client)
 {
     Bool was_enabled = DPMSEnabled;
 
@@ -194,8 +190,7 @@ ProcDPMSEnable(client)
 }
 
 static int
-ProcDPMSDisable(client)
-    ClientPtr client;
+ProcDPMSDisable(ClientPtr client)
 {
     /* REQUEST(xDPMSDisableReq); */
 
@@ -209,8 +204,7 @@ ProcDPMSDisable(client)
 }
 
 static int
-ProcDPMSForceLevel(client)
-    ClientPtr client;
+ProcDPMSForceLevel(ClientPtr client)
 {
     REQUEST(xDPMSForceLevelReq);
 
@@ -265,8 +259,7 @@ ProcDPMSInfo(ClientPtr client)
 }
 
 static int
-ProcDPMSDispatch (client)
-    ClientPtr	client;
+ProcDPMSDispatch (ClientPtr client)
 {
     REQUEST(xReq);
 
@@ -294,8 +287,7 @@ ProcDPMSDispatch (client)
 }
 
 static int
-SProcDPMSGetVersion(client)
-    ClientPtr	client;
+SProcDPMSGetVersion(ClientPtr client)
 {
     int n;
     REQUEST(xDPMSGetVersionReq);
@@ -320,8 +312,7 @@ SProcDPMSCapable(ClientPtr client)
 }
 
 static int
-SProcDPMSGetTimeouts(client)
-    ClientPtr client;
+SProcDPMSGetTimeouts(ClientPtr client)
 {
     REQUEST(xDPMSGetTimeoutsReq);
     int n;
@@ -333,8 +324,7 @@ SProcDPMSGetTimeouts(client)
 }
 
 static int
-SProcDPMSSetTimeouts(client)
-    ClientPtr client;
+SProcDPMSSetTimeouts(ClientPtr client)
 {
     REQUEST(xDPMSSetTimeoutsReq);
     int n;
@@ -349,8 +339,7 @@ SProcDPMSSetTimeouts(client)
 }
 
 static int
-SProcDPMSEnable(client)
-    ClientPtr client;
+SProcDPMSEnable(ClientPtr client)
 {
     REQUEST(xDPMSEnableReq);
     int n;
@@ -362,8 +351,7 @@ SProcDPMSEnable(client)
 }
 
 static int
-SProcDPMSDisable(client)
-    ClientPtr client;
+SProcDPMSDisable(ClientPtr client)
 {
     REQUEST(xDPMSDisableReq);
     int n;
@@ -375,8 +363,7 @@ SProcDPMSDisable(client)
 }
 
 static int
-SProcDPMSForceLevel(client)
-    ClientPtr client;
+SProcDPMSForceLevel(ClientPtr client)
 {
     REQUEST(xDPMSForceLevelReq);
     int n;
@@ -390,8 +377,7 @@ SProcDPMSForceLevel(client)
 }
 
 static int
-SProcDPMSInfo(client)
-    ClientPtr client;
+SProcDPMSInfo(ClientPtr client)
 {
     REQUEST(xDPMSInfoReq);
     int n;
@@ -403,8 +389,7 @@ SProcDPMSInfo(client)
 }
 
 static int
-SProcDPMSDispatch (client)
-    ClientPtr	client;
+SProcDPMSDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

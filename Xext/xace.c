@@ -244,15 +244,14 @@ int XaceHook(int hook, ...)
  *	region of the window will be destroyed (overwritten) in pBuf.
  */
 void
-XaceCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
-		format, pBuf)
-    ClientPtr client;
-    RegionPtr pVisibleRegion;
-    long widthBytesLine;
-    DrawablePtr pDraw;
-    int x, y, w, h;
-    unsigned int format;
-    char * pBuf;
+XaceCensorImage(
+	ClientPtr client,
+	RegionPtr pVisibleRegion,
+	long widthBytesLine,
+	DrawablePtr pDraw,
+	int x, int y, int w, int h,
+	unsigned int format,
+	char *pBuf)
 {
     ScreenPtr pScreen;
     RegionRec imageRegion;  /* region representing x,y,w,h */
