@@ -48,7 +48,7 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 }
 
 void
-ProcessInputEvents()
+ProcessInputEvents(void)
 {
     mieqProcessInputEvents();
 }

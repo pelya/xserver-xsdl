@@ -163,7 +163,7 @@ vfbBitsPerPixel(int depth)
 }
 
 void
-ddxGiveUp()
+ddxGiveUp(void)
 {
     int i;
 
@@ -214,7 +214,7 @@ ddxGiveUp()
 }
 
 void
-AbortDDX()
+AbortDDX(void)
 {
     ddxGiveUp();
 }
@@ -227,12 +227,12 @@ DarwinHandleGUI(int argc, char *argv[])
 #endif
 
 void
-OsVendorInit()
+OsVendorInit(void)
 {
 }
 
 void
-OsVendorFatalError()
+OsVendorFatalError(void)
 {
 }
 
@@ -244,7 +244,7 @@ void ddxBeforeReset(void)
 #endif
 
 void
-ddxUseMsg()
+ddxUseMsg(void)
 {
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
