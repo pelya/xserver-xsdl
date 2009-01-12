@@ -999,8 +999,20 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     events = updateFromMaster(events, pDev, &num_events);
 
     if (flags & POINTER_ABSOLUTE)
+    {
+        if (flags & POINTER_SCREEN) /* valuators are in screen coords */
+        {
+
+            valuators[0] = rescaleValuatorAxis(valuators[0], NULL,
+                                               pDev->valuator->axes + 0,
+                                               scr->width);
+            valuators[1] = rescaleValuatorAxis(valuators[1], NULL,
+                                               pDev->valuator->axes + 1,
+                                               scr->height);
+        }
+
         moveAbsolute(pDev, &x, &y, first_valuator, num_valuators, valuators);
-    else {
+    } else {
         if (flags & POINTER_ACCELERATE)
             accelPointer(pDev, first_valuator, num_valuators, valuators, ms);
         moveRelative(pDev, &x, &y, first_valuator, num_valuators, valuators);

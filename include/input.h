@@ -62,6 +62,7 @@ SOFTWARE.
 #define POINTER_RELATIVE (1 << 1)
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
+#define POINTER_SCREEN (1 << 4) /* Data in screen coordinates */
 
 /*int constants for pointer acceleration schemes*/
 #define PtrAccelNoOp            0

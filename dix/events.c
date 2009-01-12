@@ -3139,8 +3139,8 @@ ProcWarpPointer(ClientPtr client)
     WindowPtr	dest = NULL;
     int		x, y, rc;
     ScreenPtr	newScreen;
-    DeviceIntPtr dev = PickPointer(client);
-    SpritePtr   pSprite = dev->spriteInfo->sprite;
+    DeviceIntPtr dev;
+    SpritePtr   pSprite;
 
     REQUEST(xWarpPointerReq);
     REQUEST_SIZE_MATCH(xWarpPointerReq);
@@ -3153,6 +3153,12 @@ ProcWarpPointer(ClientPtr client)
 		return rc;
 	}
     }
+
+    dev = PickPointer(client);
+    if (dev->u.lastSlave)
+        dev = dev->u.lastSlave;
+    pSprite = dev->spriteInfo->sprite;
+
 #ifdef PANORAMIX
     if(!noPanoramiXExtension)
 	return XineramaWarpPointer(client);
@@ -3219,13 +3225,12 @@ ProcWarpPointer(ClientPtr client)
 	else if (y >= pSprite->physLimits.y2)
 	    y = pSprite->physLimits.y2 - 1;
 	if (pSprite->hotShape)
-	    ConfineToShape(PickPointer(client), pSprite->hotShape, &x, &y);
-        (*newScreen->SetCursorPosition)(PickPointer(client), newScreen, x, y,
-                                        TRUE);
+	    ConfineToShape(dev, pSprite->hotShape, &x, &y);
+        (*newScreen->SetCursorPosition)(dev, newScreen, x, y, TRUE);
     }
-    else if (!PointerConfinedToScreen(PickPointer(client)))
+    else if (!PointerConfinedToScreen(dev))
     {
-	NewCurrentScreen(PickPointer(client), newScreen, x, y);
+	NewCurrentScreen(dev, newScreen, x, y);
     }
     return Success;
 }

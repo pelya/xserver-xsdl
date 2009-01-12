@@ -576,7 +576,7 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
         }
     }
 
-    nevents = GetPointerEvents(events, pDev, MotionNotify, 0, POINTER_ABSOLUTE, 0, 2, valuators);
+    nevents = GetPointerEvents(events, pDev, MotionNotify, 0, POINTER_SCREEN | POINTER_ABSOLUTE, 0, 2, valuators);
 
     OsBlockSignals();
 #ifdef XQUARTZ
