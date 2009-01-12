@@ -1157,14 +1157,14 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	 *  the data that GetCurrentRootWindow relies on hasn't been
 	 *  updated yet.
 	 */
-	if (xE->u.u.type == MotionNotify)
+	if (xE->u.u.type == DeviceMotionNotify)
 	    XE_KBPTR.root =
 		WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
 	eventinfo.events = xE;
 	eventinfo.count = count;
 	CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
     }
-    if (xE->u.u.type == MotionNotify)
+    if (xE->u.u.type == DeviceMotionNotify)
     {
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension) {
@@ -1178,7 +1178,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	pSprite->hotPhys.y = XE_KBPTR.rootY;
 	/* do motion compression, but not if from different devices */
 	if (tail &&
-	    (tail->event->u.u.type == MotionNotify) &&
+	    (tail->event->u.u.type == DeviceMotionNotify) &&
             (tail->device == device) &&
 	    (tail->pScreen == pSprite->hotPhys.pScreen))
 	{
@@ -1245,7 +1245,7 @@ PlayReleasedEvents(void)
             pDev = qe->device;
 	    if (*syncEvents.pendtail == *prev)
 		syncEvents.pendtail = prev;
-	    if (qe->event->u.u.type == MotionNotify)
+	    if (qe->event->u.u.type == DeviceMotionNotify)
 		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
             /* XXX: Hack! We can't reliably get the time from GenericEvents,
