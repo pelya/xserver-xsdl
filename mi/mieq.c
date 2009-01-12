@@ -247,7 +247,14 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         evt->event->u.keyButtonPointer.time = miEventQueue.lastEventTime;
 
     miEventQueue.lastEventTime = evt->event->u.keyButtonPointer.time;
-    miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
+
+    /* Avoid possible crash when multithreaded and mieqEnqueue is called before 
+     * InitAndStartDevices finishes.
+     */
+    if(pDev && pDev->spriteInfo && pDev->spriteInfo->sprite)
+        miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
+    else 
+        miEventQueue.events[oldtail].pScreen = NULL;
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
@@ -403,7 +410,7 @@ mieqProcessInputEvents(void)
         /* Custom event handler */
         handler = miEventQueue.handlers[type];
 
-        if (screen != DequeueScreen(dev) && !handler) {
+        if (screen && screen != DequeueScreen(dev) && !handler) {
             /* Assumption - screen switching can only occur on motion events. */
             DequeueScreen(dev) = screen;
             x = event->u.keyButtonPointer.rootX;
