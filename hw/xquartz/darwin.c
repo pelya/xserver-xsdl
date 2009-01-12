@@ -511,17 +511,6 @@ void InitInput( int argc, char **argv )
 
     darwinTabletCurrent = darwinTabletStylus;
 
-    ActivateDevice(darwinKeyboard);
-    ActivateDevice(darwinPointer);
-    ActivateDevice(darwinTabletStylus);
-    ActivateDevice(darwinTabletCursor);
-    ActivateDevice(darwinTabletEraser);
-    EnableDevice(darwinKeyboard);
-    EnableDevice(darwinPointer);
-    EnableDevice(darwinTabletStylus);
-    EnableDevice(darwinTabletCursor);
-    EnableDevice(darwinTabletEraser);
-    
     DarwinEQInit();
 
     QuartzInitInput(argc, argv);
