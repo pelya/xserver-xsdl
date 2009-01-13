@@ -352,13 +352,15 @@ extern _X_EXPORT void AccessUsingXdmcp(void);
 
 extern _X_EXPORT void DefineSelf(int /*fd*/);
 
+#if XDMCP
 extern _X_EXPORT void AugmentSelf(pointer /*from*/, int /*len*/);
+
+extern _X_EXPORT void RegisterAuthorizations(void);
+#endif
 
 extern _X_EXPORT void InitAuthorization(char * /*filename*/);
 
 /* extern int LoadAuthorization(void); */
-
-extern _X_EXPORT void RegisterAuthorizations(void);
 
 extern _X_EXPORT int AuthorizationFromID (
 	XID 		id,
