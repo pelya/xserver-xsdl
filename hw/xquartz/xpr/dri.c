@@ -344,6 +344,121 @@ DRIUpdateSurface(DRIDrawablePrivPtr pDRIDrawablePriv, DrawablePtr pDraw)
     xp_configure_surface(pDRIDrawablePriv->sid, flags, &wc);
 }
 
+/* Return NULL if an error occurs. */
+static DRIDrawablePrivPtr
+CreateSurfaceForWindow(ScreenPtr pScreen, WindowPtr pWin, xp_window_id *widPtr) {
+    DRIDrawablePrivPtr pDRIDrawablePriv;
+    xp_window_id wid = 0;
+
+    *widPtr = 0;
+
+    pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+
+    if (pDRIDrawablePriv == NULL) {
+	xp_error err;
+	xp_window_changes wc;
+	
+	/* allocate a DRI Window Private record */
+	if (!(pDRIDrawablePriv = xalloc(sizeof(*pDRIDrawablePriv)))) {
+	    return NULL;
+	}
+	
+	pDRIDrawablePriv->pDraw = (DrawablePtr)pWin;
+	pDRIDrawablePriv->pScreen = pScreen;
+	pDRIDrawablePriv->refCount = 0;
+	pDRIDrawablePriv->drawableIndex = -1;
+	pDRIDrawablePriv->notifiers = NULL;
+	
+	/* find the physical window */
+	wid = x_cvt_vptr_to_uint(RootlessFrameForWindow(pWin, TRUE));
+
+	if (wid == 0) {
+	    xfree(pDRIDrawablePriv);
+	    return NULL;
+	}
+	
+	/* allocate the physical surface */
+	err = xp_create_surface(wid, &pDRIDrawablePriv->sid);
+
+	if (err != Success) {
+	    xfree(pDRIDrawablePriv);
+	    return NULL;
+	}
+
+	/* Make it visible */
+	wc.stack_mode = XP_MAPPED_ABOVE;
+	wc.sibling = 0;
+	err = xp_configure_surface(pDRIDrawablePriv->sid, XP_STACKING, &wc);
+
+	if (err != Success) {
+	    xp_destroy_surface(pDRIDrawablePriv->sid);
+	    xfree(pDRIDrawablePriv);
+	    return NULL;
+	}
+
+	/* save private off of preallocated index */
+	dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey,
+		      pDRIDrawablePriv);
+    }
+
+    *widPtr = wid;
+
+    return pDRIDrawablePriv;
+}
+
+/* Return FALSE if an error occurs. */
+static DRIDrawablePrivPtr
+CreateSurfaceForPixmap(ScreenPtr pScreen, PixmapPtr pPix) {
+    DRIDrawablePrivPtr pDRIDrawablePriv;
+     
+    pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix);
+
+    if (pDRIDrawablePriv == NULL) {
+	xp_error err;
+	xp_window_changes wc;
+
+	/* allocate a DRI Window Private record */
+	if (!(pDRIDrawablePriv = xcalloc(1, sizeof(*pDRIDrawablePriv)))) {
+	    return NULL;
+	}
+	
+	pDRIDrawablePriv->pDraw = (DrawablePtr)pPix;
+	pDRIDrawablePriv->pScreen = pScreen;
+	pDRIDrawablePriv->refCount = 0;
+	pDRIDrawablePriv->drawableIndex = -1;
+	pDRIDrawablePriv->notifiers = NULL;
+	
+	/* Passing a null window id to Xplugin in 10.3+ asks for
+	   an accelerated offscreen surface. */
+	
+	err = xp_create_surface(0, &pDRIDrawablePriv->sid);
+	if (err != Success) {
+	    xfree(pDRIDrawablePriv);
+	    return NULL;
+	}
+
+	wc.x = 0;
+        wc.y = 0;
+        wc.width = pPix->drawable.width;
+        wc.height = pPix->drawable.height;
+
+	err = xp_configure_surface(pDRIDrawablePriv->sid, XP_BOUNDS, &wc);
+
+	if(err != Success) {
+	    xp_destroy_surface(pDRIDrawablePriv->sid);
+	    xfree(pDRIDrawablePriv);
+	    return NULL;
+	}
+
+	/* save private off of preallocated index */
+	dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey,
+		      pDRIDrawablePriv);
+    }
+    
+    return pDRIDrawablePriv;
+}
+
+
 Bool
 DRICreateSurface(ScreenPtr pScreen, Drawable id,
                  DrawablePtr pDrawable, xp_client_id client_id,
@@ -351,98 +466,31 @@ DRICreateSurface(ScreenPtr pScreen, Drawable id,
                  void (*notify) (void *arg, void *data), void *notify_data)
 {
     DRIScreenPrivPtr    pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    DRIDrawablePrivPtr  pDRIDrawablePriv;
     xp_window_id        wid = 0;
+    DRIDrawablePrivPtr  pDRIDrawablePriv;
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
-        WindowPtr pWin = (WindowPtr)pDrawable;
+	pDRIDrawablePriv = CreateSurfaceForWindow(pScreen, 
+						  (WindowPtr)pDrawable, &wid);
 
-        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
-        if (pDRIDrawablePriv == NULL) {
-            xp_error err;
-            xp_window_changes wc;
-
-            /* allocate a DRI Window Private record */
-            if (!(pDRIDrawablePriv = xalloc(sizeof(DRIDrawablePrivRec)))) {
-                return FALSE;
-            }
-
-            pDRIDrawablePriv->pDraw = pDrawable;
-            pDRIDrawablePriv->pScreen = pScreen;
-            pDRIDrawablePriv->refCount = 0;
-            pDRIDrawablePriv->drawableIndex = -1;
-            pDRIDrawablePriv->notifiers = NULL;
-
-            /* find the physical window */
-            wid = x_cvt_vptr_to_uint(RootlessFrameForWindow(pWin, TRUE));
-            if (wid == 0) {
-                xfree(pDRIDrawablePriv);
-                return FALSE;
-            }
-
-            /* allocate the physical surface */
-            err = xp_create_surface(wid, &pDRIDrawablePriv->sid);
-            if (err != Success) {
-                xfree(pDRIDrawablePriv);
-                return FALSE;
-            }
-
-            /* Make it visible */
-            wc.stack_mode = XP_MAPPED_ABOVE;
-            wc.sibling = 0;
-            err = xp_configure_surface(pDRIDrawablePriv->sid, XP_STACKING, &wc);
-            if (err != Success)
-            {
-                xp_destroy_surface(pDRIDrawablePriv->sid);
-                xfree(pDRIDrawablePriv);
-                return FALSE;
-            }
-
-            /* save private off of preallocated index */
-	    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey,
-			  pDRIDrawablePriv);
-        }
+	if(NULL == pDRIDrawablePriv)
+	    return FALSE; /*error*/
     }
-
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
     else if (pDrawable->type == DRAWABLE_PIXMAP) {
-        PixmapPtr pPix = (PixmapPtr)pDrawable;
+	pDRIDrawablePriv = CreateSurfaceForPixmap(pScreen, 
+						  (PixmapPtr)pDrawable);
 
-        pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix);
-        if (pDRIDrawablePriv == NULL) {
-            xp_error err;
-
-            /* allocate a DRI Window Private record */
-            if (!(pDRIDrawablePriv = xcalloc(1, sizeof(DRIDrawablePrivRec)))) {
-                return FALSE;
-            }
-
-            pDRIDrawablePriv->pDraw = pDrawable;
-            pDRIDrawablePriv->pScreen = pScreen;
-            pDRIDrawablePriv->refCount = 0;
-            pDRIDrawablePriv->drawableIndex = -1;
-            pDRIDrawablePriv->notifiers = NULL;
-
-            /* Passing a null window id to Xplugin in 10.3+ asks for
-               an accelerated offscreen surface. */
-
-            err = xp_create_surface(0, &pDRIDrawablePriv->sid);
-            if (err != Success) {
-                xfree(pDRIDrawablePriv);
-                return FALSE;
-            }
-
-            /* save private off of preallocated index */
-	    dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey,
-			  pDRIDrawablePriv);
-        }
+	if(NULL == pDRIDrawablePriv)
+	    return FALSE; /*error*/
     }
 #endif
-
     else { /* for GLX 1.3, a PBuffer */
         /* NOT_DONE */
         return FALSE;
     }
+
+    
 
     /* Finish initialization of new surfaces */
     if (pDRIDrawablePriv->refCount == 0) {
@@ -450,8 +498,7 @@ DRICreateSurface(ScreenPtr pScreen, Drawable id,
         xp_error err;
 
         /* try to give the client access to the surface */
-        if (client_id != 0 && wid != 0)
-        {
+        if (client_id != 0 && wid != 0) {
             err = xp_export_surface(wid, pDRIDrawablePriv->sid,
                                     client_id, key);
             if (err != Success) {
