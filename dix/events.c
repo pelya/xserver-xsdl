@@ -3592,14 +3592,9 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
          * for the type of event, to see if we really want to deliver it to
          * the focus window. For pointer events, the answer is no.
          */
-        if (xE->u.u.type == DeviceButtonPress ||
-                xE->u.u.type == DeviceButtonRelease ||
-                xE->u.u.type == DeviceMotionNotify ||
-                xE->u.u.type == ProximityIn ||
-                xE->u.u.type == ProximityOut)
-        {
+        if (IsPointerEvent(xE))
             focus = PointerRootWin;
-        } else if (thisDev->focus)
+        else if (thisDev->focus)
 	{
 	    focus = thisDev->focus->win;
 	    if (focus == FollowKeyboardWin)
