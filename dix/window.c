@@ -403,13 +403,6 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->optional->inputShape = NULL;
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
-    pWin->optional->geMasks = (GenericClientMasksPtr)xcalloc(1, sizeof(GenericClientMasksRec));
-    if (!pWin->optional->geMasks)
-    {
-        xfree(pWin->optional);
-        return FALSE;
-    }
-
     pWin->optional->colormap = pScreen->defColormap;
     pWin->optional->visual = pScreen->rootVisual;
 
@@ -792,8 +785,6 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 static void
 DisposeWindowOptional (WindowPtr pWin)
 {
-    GenericMaskPtr gmask = NULL, next = NULL;
-
     if (!pWin->optional)
 	return;
     /*
@@ -823,17 +814,6 @@ DisposeWindowOptional (WindowPtr pWin)
         }
         pWin->optional->deviceCursors = NULL;
     }
-
-    /* Remove generic event mask allocations */
-    if (pWin->optional->geMasks)
-        gmask = pWin->optional->geMasks->geClients;
-    while(gmask)
-    {
-        next = gmask->next;
-        xfree(gmask);
-        gmask = next;
-    }
-    xfree (pWin->optional->geMasks);
 
     xfree (pWin->optional);
     pWin->optional = NULL;
@@ -3443,9 +3423,6 @@ CheckWindowOptionalNeed (WindowPtr w)
         }
     }
 
-    if (optional->geMasks != NULL)
-        return;
-
     parentOptional = FindWindowWithOptional(w)->optional;
     if (optional->visual != parentOptional->visual)
 	return;
@@ -3488,18 +3465,6 @@ MakeWindowOptional (WindowPtr pWin)
     optional->inputShape = NULL;
     optional->inputMasks = NULL;
     optional->deviceCursors = NULL;
-
-    optional->geMasks = xalloc(sizeof(GenericClientMasksRec));
-    if (!optional->geMasks)
-    {
-        xfree(optional);
-        return FALSE;
-    } else {
-        int i;
-        optional->geMasks->geClients = 0;
-        for (i = 0; i < MAXEXTENSIONS; i++)
-            optional->geMasks->eventMasks[i] = 0;
-    }
 
     parentOptional = FindWindowWithOptional(pWin)->optional;
     optional->visual = parentOptional->visual;

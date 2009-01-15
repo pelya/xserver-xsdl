@@ -72,7 +72,7 @@ ProcXiSelectEvent(ClientPtr client)
             return rc;
     }
 
-    GEWindowSetMask(client, pDev, pWin, IReqCode, stuff->mask);
+    /* XXX: THIS FUNCTION IS NOW DYSFUNCTIONAL */
 
     return Success;
 }

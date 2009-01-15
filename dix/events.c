@@ -396,13 +396,6 @@ static Mask filters[MAXDEVICES][128] = {
 }};
 
 
-/**
- * same principle as filters, but one set of filters for each extension.
- * The extension is responsible for setting the filters by calling
- * SetGenericFilter().
- */
-static Mask* generic_filters[MAXEXTENSIONS];
-
 static CARD8 criticalEvents[32] =
 {
     0x7c, 0x30, 0x40			/* key, button, expose, and configure events */
@@ -1466,13 +1459,6 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     mouse->deviceGrab.sync.state = NOT_GRABBED;
     mouse->deviceGrab.fromPassiveGrab = FALSE;
 
-    /* make sure the potential XGE event mask is freed too*/
-    if (grab->genericMasks)
-    {
-        xfree(grab->genericMasks);
-        grab->genericMasks = NULL;
-    }
-
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
 	if (dev->deviceGrab.sync.other == grab)
@@ -1550,11 +1536,6 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     keybd->deviceGrab.grab = NullGrab;
     keybd->deviceGrab.sync.state = NOT_GRABBED;
     keybd->deviceGrab.fromPassiveGrab = FALSE;
-    if (grab->genericMasks)
-    {
-        xfree(grab->genericMasks);
-        grab->genericMasks = NULL;
-    }
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
@@ -1937,43 +1918,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     }
     if (filter != CantBeFiltered)
     {
-        /* Handle generic events */
-        if (type == GenericEvent)
-        {
-            GenericMaskPtr gmask;
-            /* We don't do more than one GenericEvent at a time. */
-            if (count > 1)
-            {
-                ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
-                return 0;
-            }
-
-            /* if we get here, filter should be set to the GE specific mask.
-               check if any client wants it */
-            if (!GEDeviceMaskIsSet(pWin, pDev, GEEXT(pEvents), filter))
-                return 0;
-
-            /* run through all clients, deliver event */
-            for (gmask = GECLIENT(pWin); gmask; gmask = gmask->next)
-            {
-                if (gmask->eventMask[GEEXTIDX(pEvents)] & filter)
-                {
-                    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(gmask), pWin,
-                                pEvents, count))
-                        /* do nothing */;
-                    else if (TryClientEvents(rClient(gmask), pDev,
-                             pEvents, count,
-                             gmask->eventMask[GEEXTIDX(pEvents)],
-                             filter, grab) > 0)
-                    {
-                        deliveries++;
-                    } else
-                        nondeliveries--;
-                }
-            }
-        }
-        else {
-            /* Traditional event */
             if (type & EXTENSION_EVENT_BASE)
             {
                 OtherInputMasks *inputMasks;
@@ -2010,7 +1954,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                         nondeliveries--;
                 }
             }
-        }
     }
     /*
      * Note that since core events are delivered first, an implicit grab may
@@ -2039,21 +1982,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         inputMasks = wOtherInputMasks(pWin);
         tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
 
-        /* get the XGE event mask. */
-        tempGrab.genericMasks = NULL;
-        if (pWin->optional && pWin->optional->geMasks)
-        {
-            GenericClientMasksPtr gemasks = pWin->optional->geMasks;
-            GenericMaskPtr geclient = gemasks->geClients;
-            while(geclient && rClient(geclient) != client)
-                geclient = geclient->next;
-            if (geclient)
-            {
-                tempGrab.genericMasks = xcalloc(1, sizeof(GenericMaskRec));
-                *tempGrab.genericMasks = *geclient;
-                tempGrab.genericMasks->next = NULL;
-            }
-        }
 	(*pDev->deviceGrab.ActivateGrab)(pDev, &tempGrab,
                                         currentTime, TRUE | ImplicitGrabMask);
     }
@@ -2268,39 +2196,6 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
     type = xE->u.u.type;
     filter = filters[dev->id][type];
-
-    /* handle generic events */
-    /* XXX: Generic events aren't quite handled correctly yet. They should
-     * eventually fit in with the rest of the stuff
-     */
-    if (type == GenericEvent)
-    {
-        WindowPtr win = pWin;
-        xGenericEvent* ge = (xGenericEvent*)xE;
-
-        if (count > 1)
-        {
-            ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
-            deliveries = 0;
-            goto unwind;
-        }
-        filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
-
-        while(win)
-        {
-            if (GEDeviceMaskIsSet(win, dev, GEEXT(xE), filter))
-            {
-                if (GEExtensions[GEEXTIDX(xE)].evfill)
-                    GEExtensions[GEEXTIDX(xE)].evfill(ge, dev, win, grab);
-                deliveries = DeliverEventsToWindow(dev, win, xE, count,
-                        filter, grab, 0);
-                if (deliveries > 0)
-                    goto unwind;
-            }
-
-            win = win->parent;
-        }
-    }
 
     while (pWin && type != GenericEvent)
     {
@@ -3537,6 +3432,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
+        Mask mask;
         /* XXX: In theory, we could pass the internal events through to
          * everything and only convert just before hitting the wire. We can't
          * do that yet, so DGE is the last stop for internal events. From here
@@ -3552,80 +3448,63 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         } else if (count == 0) /* no XI/Core event for you */
             goto unwind;
 
-        if (xi->u.u.type == GenericEvent)
+        mask = grab->eventMask;
+
+        sendCore = (thisDev->isMaster && thisDev->coreEvents);
+        /* try core event */
+        if (sendCore && grab->coreGrab)
         {
-            /* find evmask for event's extension */
-            xGenericEvent* ge = ((xGenericEvent*)xi);
-            GenericMaskPtr    gemask = grab->genericMasks;
+            xEvent core;
 
-            if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
-                goto unwind;
-
-            if (GEEventFill(xi))
-                GEEventFill(xi)(ge, thisDev, grab->window, grab);
-            deliveries = TryClientEvents(rClient(grab), thisDev, xi,
-                    count, gemask->eventMask[GEEXTIDX(ge)],
-                    generic_filters[GEEXTIDX(ge)][ge->evtype],
-                    grab);
-        } else
-        {
-            Mask mask = grab->eventMask;
-
-            sendCore = (thisDev->isMaster && thisDev->coreEvents);
-            /* try core event */
-            if (sendCore && grab->coreGrab)
+            rc = EventToCore(event, &core);
+            if (rc != Success && rc != BadMatch)
             {
-                xEvent core;
-
-                rc = EventToCore(event, &core);
-                if (rc != Success && rc != BadMatch)
-                {
-                    ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
-                    goto unwind;
-                }
-
-                FixUpEventFromWindow(thisDev, &core, grab->window,
-                        None, TRUE);
-                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, &core, 1) ||
-                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, &core, 1))
-                    deliveries = 1; /* don't send, but pretend we did */
-                else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
-                {
-                    deliveries = TryClientEvents(rClient(grab), thisDev,
-                            &core, 1, mask,
-                            filters[thisDev->id][core.u.u.type],
-                            grab);
-                }
+                ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
+                goto unwind;
             }
 
-            if (!deliveries)
+            FixUpEventFromWindow(thisDev, &core, grab->window,
+                    None, TRUE);
+            if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                        grab->window, &core, 1) ||
+                    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                        grab->window, &core, 1))
+                deliveries = 1; /* don't send, but pretend we did */
+            else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
             {
-                /* try XI event */
-                if (grabinfo->fromPassiveGrab  &&
-                        grabinfo->implicitGrab)
-                    mask = grab->deviceMask;
-                FixUpEventFromWindow(thisDev, xi, grab->window,
-                        None, TRUE);
-
-                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, xi, count) ||
-                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, xi, count))
-                    deliveries = 1; /* don't send, but pretend we did */
-                else
-                {
-                    deliveries =
-                        TryClientEvents(rClient(grab), thisDev,
-                                xi, count,
-                                mask,
-                                filters[thisDev->id][xi->u.u.type],
-                                grab);
-                }
-
+                deliveries = TryClientEvents(rClient(grab), thisDev,
+                        &core, 1, mask,
+                        filters[thisDev->id][core.u.u.type],
+                        grab);
             }
         }
+
+        if (!deliveries)
+        {
+            /* try XI event */
+            if (grabinfo->fromPassiveGrab  &&
+                    grabinfo->implicitGrab)
+                mask = grab->deviceMask;
+            FixUpEventFromWindow(thisDev, xi, grab->window,
+                    None, TRUE);
+
+            if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                        grab->window, xi, count) ||
+                    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                        grab->window, xi, count))
+                deliveries = 1; /* don't send, but pretend we did */
+            else
+            {
+                deliveries =
+                    TryClientEvents(rClient(grab), thisDev,
+                            xi, count,
+                            mask,
+                            filters[thisDev->id][xi->u.u.type],
+                            grab);
+            }
+
+        }
+
         if (deliveries && (event->u.any.type == ET_Motion))
             thisDev->valuator->motionHintWindow = grab->window;
     }
@@ -4377,7 +4256,6 @@ ProcGrabPointer(ClientPtr client)
 	tempGrab.pointerMode = stuff->pointerMode;
 	tempGrab.device = device;
         tempGrab.coreGrab = True;
-        tempGrab.genericMasks = NULL;
 	(*device->deviceGrab.ActivateGrab)(device, &tempGrab, time, FALSE);
 	if (oldCursor)
 	    FreeCursor (oldCursor, (Cursor)0);
@@ -4554,7 +4432,6 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.device = dev;
         tempGrab.cursor = NULL;
         tempGrab.coreGrab = coreGrab;
-        tempGrab.genericMasks = NULL;
 
 	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
 	*status = GrabSuccess;
@@ -5569,87 +5446,3 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
 
     return FALSE;
 }
-
-/**
- * Set the filters for a extension.
- * The filters array needs to contain the Masks that are applicable for each
- * event type for the given extension.
- * e.g. if generic event type 2 should be let through for windows with
- * MyExampleMask set, make sure that filters[2] == MyExampleMask.
- */
-void
-SetGenericFilter(int extension, Mask* filters)
-{
-    generic_filters[extension & 0x7f] = filters;
-}
-
-
-/**
- * Grab a device for XI events and XGE events.
- * grabmode is used to ungrab a device.
- */
-int
-ExtGrabDevice(ClientPtr client,
-              DeviceIntPtr dev,
-              int device_mode,
-              WindowPtr grabWindow,
-              WindowPtr confineTo,
-              TimeStamp ctime,
-              Bool ownerEvents,
-              CursorPtr cursor,
-              Mask xi_mask,
-              GenericMaskPtr ge_masks)
-{
-    GrabInfoPtr grabinfo;
-    GrabRec     newGrab;
-
-    UpdateCurrentTime();
-
-    grabinfo = &dev->deviceGrab;
-
-    if (grabinfo->grab && !SameClient(grabinfo->grab, client))
-        return AlreadyGrabbed;
-
-    if (!grabWindow->realized)
-        return GrabNotViewable;
-
-    if ((CompareTimeStamps(ctime, currentTime) == LATER) ||
-            (CompareTimeStamps(ctime, grabinfo->grabTime) == EARLIER))
-        return GrabInvalidTime;
-
-    if (grabinfo->sync.frozen && grabinfo->sync.other &&
-            !SameClient(grabinfo->sync.other, client))
-        return GrabFrozen;
-
-    memset(&newGrab, 0, sizeof(GrabRec));
-    newGrab.window         = grabWindow;
-    newGrab.resource       = client->clientAsMask;
-    newGrab.ownerEvents    = ownerEvents;
-    newGrab.device         = dev;
-    newGrab.cursor         = cursor;
-    newGrab.confineTo      = confineTo;
-    newGrab.eventMask      = xi_mask;
-    newGrab.genericMasks   = NULL;
-    newGrab.next           = NULL;
-
-    if (ge_masks)
-    {
-        newGrab.genericMasks  = xcalloc(1, sizeof(GenericMaskRec));
-        *newGrab.genericMasks = *ge_masks;
-        newGrab.genericMasks->next = NULL;
-    }
-
-    if (IsPointerDevice(dev))
-    {
-        newGrab.keyboardMode = GrabModeAsync;
-        newGrab.pointerMode  = device_mode;
-    } else
-    {
-        newGrab.keyboardMode = device_mode;
-        newGrab.pointerMode  = GrabModeAsync;
-    }
-
-    (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
-    return GrabSuccess;
-}
-

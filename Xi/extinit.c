@@ -154,16 +154,6 @@ const Mask XIAllMasks                     = (1L << 21) - 1;
 int ExtEventIndex;
 Mask ExtExclusiveMasks[EMASKSIZE];
 
-
-/**
- * Filters for various generic events.
- * Evtype is index, mask is value at index.
- */
-static Mask xi_filters[] = {
-    XI_DeviceHierarchyChangedMask,
-    XI_DeviceClassesChangedMask,
-};
-
 static struct dev_type
 {
     Atom type;
@@ -671,6 +661,12 @@ SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
     }
 }
 
+/** Event swapping function for XI2 events. */
+static void
+XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
+{
+}
+
 /**************************************************************************
  *
  * Allow the specified event to have its propagation suppressed.
@@ -1034,36 +1030,6 @@ SEventIDispatch(xEvent * from, xEvent * to)
     }
 }
 
-/****************************************************************
- *
- * EventSwap for generic events coming from the GE extension.
- */
-
-static void
-XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
-{
-    int n;
-
-    swaps(&from->sequenceNumber, n);
-    switch(from->evtype)
-    {
-        case XI_DeviceClassesChangedNotify:
-            SDeviceClassesChangedEvent((deviceClassesChangedEvent*)from,
-                                       (deviceClassesChangedEvent*)to);
-            break;
-    }
-}
-
-/**
- * EventFill to fill various fields for events before they are delivered to
- * the client.
- */
-static void
-XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev,
-              WindowPtr pWin, GrabPtr grab)
-{
-}
-
 /**********************************************************************
  *
  * IExtensionInit - initialize the input extension.
@@ -1117,10 +1083,9 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 
-        /* init GE events */
-        GERegisterExtension(IReqCode, XIGEEventSwap, XIGEEventFill);
-        SetGenericFilter(IReqCode, xi_filters);
+	GERegisterExtension(IReqCode, XI2EventSwap, NULL);
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }
 }
+

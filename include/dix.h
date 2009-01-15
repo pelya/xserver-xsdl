@@ -611,16 +611,4 @@ extern _X_EXPORT ClientPtr LookupClient(
     XID id,
     ClientPtr client);
 
-/* GE stuff */
-extern _X_EXPORT void SetGenericFilter(int extension, Mask* filters);
-extern _X_EXPORT int ExtGrabDevice(ClientPtr client,
-                         DeviceIntPtr dev,
-                         int device_mode,
-                         WindowPtr grabWindow,
-                         WindowPtr confineTo,
-                         TimeStamp ctime,
-                         Bool ownerEvents,
-                         CursorPtr cursor, 
-                         Mask xi_mask,
-                         GenericMaskPtr ge_masks);
 #endif /* DIX_H */

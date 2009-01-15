@@ -79,16 +79,6 @@ typedef struct _DevCursorNode {
     struct _DevCursorNode*      next;
 } DevCursNodeRec, *DevCursNodePtr, *DevCursorList;
 
-/* Mask structure for GE extension as stored on the window.
- * Allows one mask per extension.
- *   .eventMask - Summary mask for all clients, used for quick checking.
- *   .geClients - list of clients with their specific mask.
- */
-typedef struct _GenericClientMasks {
-    Mask                eventMasks[MAXEXTENSIONS];
-    GenericMaskPtr      geClients;
-} GenericClientMasksRec, *GenericClientMasksPtr;
-
 typedef struct _WindowOpt {
     VisualID		visual;		   /* default: same as parent */
     CursorPtr		cursor;		   /* default: window.cursorNone */
@@ -105,7 +95,6 @@ typedef struct _WindowOpt {
     RegionPtr		inputShape;	   /* default: NULL */
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
     DevCursorList       deviceCursors;     /* default: NULL */
-    struct _GenericClientMasks *geMasks;   /* default: NULL */
 } WindowOptRec, *WindowOptPtr;
 
 #define BackgroundPixel	    2L

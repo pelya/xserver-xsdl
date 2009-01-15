@@ -175,7 +175,6 @@ typedef struct _GrabRec {
     CursorPtr		cursor;		/* always NULL for keyboards */
     Mask		eventMask;
     Mask                deviceMask;     
-    GenericMaskPtr      genericMasks;
 } GrabRec;
 
 typedef struct _KeyClassRec {

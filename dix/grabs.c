@@ -104,7 +104,6 @@ CreateGrab(
     grab->detail.pMask = NULL;
     grab->confineTo = confineTo;
     grab->cursor = cursor;
-    grab->genericMasks = NULL;
     grab->next = NULL;
     if (cursor)
 	cursor->refcnt++;
