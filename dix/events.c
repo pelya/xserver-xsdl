@@ -3256,7 +3256,7 @@ CheckPassiveGrabsOnWindow(
 	tempGrab.modifierDevice = grab->modifierDevice;
         tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
         /* ignore the device for core events when comparing grabs */
-	if (GrabMatchesSecond(&tempGrab, grab, (xE->u.u.type < LASTEvent)) &&
+	if (GrabMatchesSecond(&tempGrab, grab, (xE->u.u.type < GenericEvent)) &&
 	    (!grab->confineTo ||
 	     (grab->confineTo->realized &&
 				BorderSizeNotEmpty(device, grab->confineTo))))
@@ -3271,7 +3271,7 @@ CheckPassiveGrabsOnWindow(
                Since XGrabDeviceButton requires to specify the
                modifierDevice explicitly, we don't override this choice.
              */
-            if (xE->u.u.type < LASTEvent)
+            if (xE->u.u.type < GenericEvent)
             {
                 grab->device = device;
                 grab->modifierDevice = GetPairedDevice(device);
