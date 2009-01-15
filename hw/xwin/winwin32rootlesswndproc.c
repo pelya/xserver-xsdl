@@ -48,7 +48,6 @@
  * Constant defines
  */
 
-#define MOUSE_POLLING_INTERVAL		500
 #define MOUSE_ACTIVATE_DEFAULT		TRUE
 #define RAISE_ON_CLICK_DEFAULT		FALSE
 

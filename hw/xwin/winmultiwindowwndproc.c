@@ -61,7 +61,6 @@ static UINT_PTR		g_uipMousePollingTimerID = 0;
  * Constant defines
  */
 
-#define MOUSE_POLLING_INTERVAL		500
 #define WIN_MULTIWINDOW_SHAPE		YES
 
 

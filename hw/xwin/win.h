@@ -102,6 +102,7 @@
 #define WIN_E3B_TIMER_ID		1
 #define WIN_POLLING_MOUSE_TIMER_ID	2
 
+#define MOUSE_POLLING_INTERVAL		50
 
 #define WIN_E3B_OFF		-1
 #define WIN_FD_INVALID		-1
