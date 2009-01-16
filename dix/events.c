@@ -611,66 +611,6 @@ XineramaCheckVirtualMotion(
     }
 }
 
-
-static Bool
-XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
-{
-    WindowPtr prevSpriteWin;
-    SpritePtr pSprite = pDev->spriteInfo->sprite;
-
-    prevSpriteWin = pSprite->win;
-
-    if (xE && !syncEvents.playingEvents)
-    {
-	/* Motion events entering DIX get translated to Screen 0
-	   coordinates.  Replayed events have already been
-	   translated since they've entered DIX before */
-	XE_KBPTR.rootX += panoramiXdataPtr[pSprite->screen->myNum].x -
-			  panoramiXdataPtr[0].x;
-	XE_KBPTR.rootY += panoramiXdataPtr[pSprite->screen->myNum].y -
-			  panoramiXdataPtr[0].y;
-	pSprite->hot.x = XE_KBPTR.rootX;
-	pSprite->hot.y = XE_KBPTR.rootY;
-	if (pSprite->hot.x < pSprite->physLimits.x1)
-	    pSprite->hot.x = pSprite->physLimits.x1;
-	else if (pSprite->hot.x >= pSprite->physLimits.x2)
-	    pSprite->hot.x = pSprite->physLimits.x2 - 1;
-	if (pSprite->hot.y < pSprite->physLimits.y1)
-	    pSprite->hot.y = pSprite->physLimits.y1;
-	else if (pSprite->hot.y >= pSprite->physLimits.y2)
-	    pSprite->hot.y = pSprite->physLimits.y2 - 1;
-
-	if (pSprite->hotShape)
-	    ConfineToShape(pDev, pSprite->hotShape, &pSprite->hot.x, &pSprite->hot.y);
-
-	pSprite->hotPhys = pSprite->hot;
-	if ((pSprite->hotPhys.x != XE_KBPTR.rootX) ||
-	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
-	{
-	    XineramaSetCursorPosition(
-			pDev, pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
-	}
-	XE_KBPTR.rootX = pSprite->hot.x;
-	XE_KBPTR.rootY = pSprite->hot.y;
-    }
-
-    pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
-
-    if (pSprite->win != prevSpriteWin)
-    {
-	if (prevSpriteWin != NullWindow) {
-	    if (!xE)
-		UpdateCurrentTimeIf();
-            DoEnterLeaveEvents(pDev, prevSpriteWin, pSprite->win,
-                               NotifyNormal);
-        }
-	PostNewCursor(pDev);
-        return FALSE;
-    }
-    return TRUE;
-}
-
-
 static void
 XineramaConfineCursorToWindow(DeviceIntPtr pDev,
                               WindowPtr pWin,
@@ -2616,11 +2556,6 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 
     prevSpriteWin = pSprite->win;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension)
-	return XineramaCheckMotion(xE, pDev);
-#endif
-
     if (xE && !syncEvents.playingEvents)
     {
         /* GetPointerEvents() guarantees that pointer events have the correct
@@ -2646,11 +2581,27 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
                 return FALSE;
         }
 
-        if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
+
+#ifdef PANORAMIX
+        if (!noPanoramiXExtension)
         {
-            pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
-            RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
+            /* Motion events entering DIX get translated to Screen 0
+               coordinates.  Replayed events have already been
+               translated since they've entered DIX before */
+            *rootX += panoramiXdataPtr[pSprite->screen->myNum].x -
+                                       panoramiXdataPtr[0].x;
+            *rootY += panoramiXdataPtr[pSprite->screen->myNum].y -
+                                       panoramiXdataPtr[0].y;
+        } else
+#endif
+        {
+            if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
+            {
+                pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
+                RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
+            }
         }
+
         pSprite->hot.x = *rootX;
         pSprite->hot.y = *rootY;
         if (pSprite->hot.x < pSprite->physLimits.x1)
@@ -2668,9 +2619,18 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	if ((pSprite->hotPhys.x != *rootX) ||
 	    (pSprite->hotPhys.y != *rootY))
 	{
-	    (*pSprite->hotPhys.pScreen->SetCursorPosition)(
-                pDev, pSprite->hotPhys.pScreen,
-		pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
+#ifdef PANORAMIX
+            if (!noPanoramiXExtension)
+            {
+                XineramaSetCursorPosition(
+                        pDev, pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
+            } else
+#endif
+            {
+                (*pSprite->hotPhys.pScreen->SetCursorPosition)(
+                        pDev, pSprite->hotPhys.pScreen,
+                        pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
+            }
 	}
 
 	*rootX = pSprite->hot.x;
