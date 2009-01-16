@@ -2678,14 +2678,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
     }
 
     pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
-#ifdef notyet
-    if (!(pSprite->win->deliverableEvents &
-	  Motion_Filter(pDev->button))
-	!syncEvents.playingEvents)
-    {
-	/* XXX Do PointerNonInterestBox here */
-    }
-#endif
+
     if (pSprite->win != prevSpriteWin)
     {
 	if (prevSpriteWin != NullWindow) {
