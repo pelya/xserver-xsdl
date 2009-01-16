@@ -2,7 +2,9 @@
 #
 # 'Cause xcodebuild is hard to deal with
 
-BUNDLE_ROOT=$1
+SRCDIR=$1
+BUILDDIR=$2
+BUNDLE_ROOT=$3
 
 localities="Dutch English French German Italian Japanese Spanish da fi ko no pl pt pt_PT ru sv zh_CN zh_TW"
 for lang in ${localities} ; do
@@ -10,18 +12,18 @@ for lang in ${localities} ; do
     [ -d ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/main.nib ] || exit 1
 
     for f in InfoPlist.strings Localizable.strings main.nib/keyedobjects.nib ; do
-        install -m 644 Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
+        install -m 644 ${SRCDIR}/Resources/${lang}.lproj/$f ${BUNDLE_ROOT}/Contents/Resources/${lang}.lproj/${f}
     done
 done
 
-install -m 644 Resources/English.lproj/main.nib//designable.nib ${BUNDLE_ROOT}/Contents/Resources/English.lproj/main.nib
-install -m 644 Resources/X11.icns ${BUNDLE_ROOT}/Contents/Resources
+install -m 644 ${SRCDIR}/Resources/English.lproj/main.nib//designable.nib ${BUNDLE_ROOT}/Contents/Resources/English.lproj/main.nib
+install -m 644 ${SRCDIR}/Resources/X11.icns ${BUNDLE_ROOT}/Contents/Resources
 
-install -m 644 Info.plist ${BUNDLE_ROOT}/Contents
-install -m 644 PkgInfo ${BUNDLE_ROOT}/Contents
+install -m 644 ${BUILDDIR}/Info.plist ${BUNDLE_ROOT}/Contents
+install -m 644 ${SRCDIR}/PkgInfo ${BUNDLE_ROOT}/Contents
 
 mkdir -p ${BUNDLE_ROOT}/Contents/MacOS
-install -m 755 X11.sh ${BUNDLE_ROOT}/Contents/MacOS/X11
+install -m 755 ${SRCDIR}/X11.sh ${BUNDLE_ROOT}/Contents/MacOS/X11
 
 if [[ $(id -u) == 0 ]] ; then
 	chown -R root:admin ${BUNDLE_ROOT}

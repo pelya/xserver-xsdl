@@ -5,7 +5,10 @@ CPP_FILES_FLAGS = \
 	-DAPPLE_APPLICATION_NAME="$(APPLE_APPLICATION_NAME)"
 
 install-data-hook:
-	./mk_bundke.sh $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app
+	$(srcdir)/mk_bundke.sh $(srcdir) $(builddir) $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app install
+
+uninstall-hook:
+	$(RM) -rf $(DESTDIR)$(APPLE_APPLICATIONS_DIR)/$(APPLE_APPLICATION_NAME).app	
 
 noinst_PRE = Info.plist.cpp
 noinst_DATA = $(noinst_PRE:plist.cpp=plist)

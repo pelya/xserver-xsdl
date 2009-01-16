@@ -65,8 +65,8 @@ BUILT_SOURCES = \
 CLEANFILES = \
 	$(BUILT_SOURCES)
 
-$(BUILT_SOURCES): mach_startup.defs
-	mig -sheader mach_startupServer.h mach_startup.defs
+$(BUILT_SOURCES): $(srcdir)/mach_startup.defs
+	mig -sheader mach_startupServer.h $(srcdir)/mach_startup.defs
 
 EXTRA_DIST = \
 	launchd_fd.h \
