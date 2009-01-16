@@ -1537,6 +1537,7 @@ winDeinitMultiWindowWM (void)
 #define HINT_BORDER	(1L<<1)
 #define HINT_SIZEBOX	(1l<<2)
 #define HINT_CAPTION	(1l<<3)
+#define HINT_NOMAXIMIZE (1L<<4)
 /* These two are used on their own */
 #define HINT_MAX	(1L<<0)
 #define HINT_MIN	(1L<<1)
@@ -1618,7 +1619,32 @@ winApplyHints (Display *pDisplay, Window iWindow, HWND hWnd, HWND *zstyle)
     if (pAtom) XFree(pAtom);
   }
 
-  /* Apply Styles, overriding hint settings from above */
+  {
+    XSizeHints *normal_hint = XAllocSizeHints();
+    long supplied;
+    if (normal_hint && (XGetWMNormalHints(pDisplay, iWindow, normal_hint, &supplied) == Success))
+      {
+        if (normal_hint->flags & PMaxSize)
+          {
+            /* Not maximizable if a maximum size is specified */
+            hint |= HINT_NOMAXIMIZE;
+
+            if (normal_hint->flags & PMinSize)
+              {
+                /*
+                  If both minimum size and maximum size are specified and are the same,
+                  don't bother with a resizing frame
+                */
+                if ((normal_hint->min_width == normal_hint->max_width)
+                    && (normal_hint->min_height == normal_hint->max_height))
+                  hint = (hint & ~HINT_SIZEBOX);
+              }
+          }
+      }
+    XFree(normal_hint);
+  }
+
+  /* Override hint settings from above with settings from config file */
   style = winOverrideStyle((unsigned long)pWin);
   if (style & STYLE_TOPMOST) *zstyle = HWND_TOPMOST;
   else if (style & STYLE_MAXIMIZE) maxmin = (hint & ~HINT_MIN) | HINT_MAX;
@@ -1635,14 +1661,21 @@ winApplyHints (Display *pDisplay, Window iWindow, HWND hWnd, HWND *zstyle)
   else if (style & STYLE_NOFRAME)
 	hint = (hint & ~HINT_BORDER & ~HINT_CAPTION & ~HINT_SIZEBOX) | HINT_NOFRAME;
 
+  /* Now apply styles to window */
   style = GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_SIZEBOX; /* Just in case */
   if (!style) return;
-  if (!hint) /* All on, but no resize of children is allowed */
-    style = style | WS_CAPTION | (GetParent(hWnd) ? 0 : WS_SIZEBOX);
-  else if (hint & HINT_NOFRAME); /* All off, so do nothing */
+
+  if (!hint) /* All on */
+    style = style | WS_CAPTION | WS_SIZEBOX;
+  else if (hint & HINT_NOFRAME) /* All off */
+    style = style & ~WS_CAPTION & ~WS_SIZEBOX;
   else style = style | ((hint & HINT_BORDER) ? WS_BORDER : 0) |
-		((hint & HINT_SIZEBOX) ? (GetParent(hWnd) ? 0 : WS_SIZEBOX) : 0) |
+		((hint & HINT_SIZEBOX) ? WS_SIZEBOX : 0) |
 		((hint & HINT_CAPTION) ? WS_CAPTION : 0);
+
+  if (hint & HINT_NOMAXIMIZE)
+    style = style & ~WS_MAXIMIZEBOX;
+
   SetWindowLongPtr (hWnd, GWL_STYLE, style);
 }
 
