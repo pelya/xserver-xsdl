@@ -36,11 +36,6 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
-#ifdef XQUARTZ
-#include  <pthread.h>
-static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 # include   <X11/X.h>
 # include   <X11/Xmd.h>
 # include   <X11/Xproto.h>
@@ -85,6 +80,25 @@ typedef struct _EventQueue {
 
 static EventQueueRec miEventQueue;
 static EventListPtr masterEvents; /* for use in mieqProcessInputEvents */
+
+#ifdef XQUARTZ
+#include  <pthread.h>
+static pthread_mutex_t miEventQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+
+extern BOOL serverInitComplete;
+extern pthread_mutex_t serverInitCompleteMutex;
+extern pthread_cond_t serverInitCompleteCond;
+
+static inline void wait_for_server_init(void) {
+    /* If the server hasn't finished initializing, wait for it... */
+    if(!serverInitComplete) {
+        pthread_mutex_lock(&serverInitCompleteMutex);
+        while(!serverInitComplete)
+            pthread_cond_wait(&serverInitCompleteCond, &serverInitCompleteMutex);
+        pthread_mutex_unlock(&serverInitCompleteMutex);
+    }
+}
+#endif
 
 Bool
 mieqInit(void)
@@ -144,6 +158,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     int                    evlen;
 
 #ifdef XQUARTZ
+    wait_for_server_init();
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
 
@@ -247,14 +262,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         evt->event->u.keyButtonPointer.time = miEventQueue.lastEventTime;
 
     miEventQueue.lastEventTime = evt->event->u.keyButtonPointer.time;
-
-    /* Avoid possible crash when multithreaded and mieqEnqueue is called before 
-     * InitAndStartDevices finishes.
-     */
-    if(pDev && pDev->spriteInfo && pDev->spriteInfo->sprite)
-        miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
-    else 
-        miEventQueue.events[oldtail].pScreen = NULL;
+    miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
