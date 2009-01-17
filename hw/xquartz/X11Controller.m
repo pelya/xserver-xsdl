@@ -687,18 +687,19 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     [prefs_panel makeKeyAndOrderFront:sender];
 }
 
-- (IBAction) quit:sender
-{
-  DarwinSendDDXEvent(kXquartzQuit, 0);
+- (IBAction) quit:sender {
+    DarwinSendDDXEvent(kXquartzQuit, 0);
 }
 
-- (IBAction) x11_help:sender
-{
-  AHLookupAnchor ((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR ("mchlp2276"));
+- (IBAction) x11_help:sender {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+    AHLookupAnchor((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR("mchlp2276"));
+#else
+    AHLookupAnchor(CFSTR("com.apple.machelp"), CFSTR("mchlp2276"));
+#endif
 }
 
-- (OSX_BOOL) validateMenuItem:(NSMenuItem *)item
-{
+- (OSX_BOOL) validateMenuItem:(NSMenuItem *)item {
   NSMenu *menu = [item menu];
     
   if (item == toggle_fullscreen_item)
