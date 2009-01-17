@@ -604,7 +604,7 @@ Bool		ignoreKeyEvent = FALSE;
 	ev.keycode= key;
 	ev.slowKeysDelay= ctrls->slow_keys_delay;
 	ev.debounceDelay= ctrls->debounce_delay;
-	if (BitIsOn(keybd->key->down,key) | (xkbi->mouseKey == key)) {
+	if (BitIsOn(keybd->key->down,key) || (xkbi->mouseKey == key)) {
 	    ev.detail= XkbAXN_SKRelease;
 	    beep_type= _BEEP_SLOW_RELEASE;
 	}
