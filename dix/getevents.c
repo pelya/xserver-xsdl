@@ -1006,10 +1006,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->type = DeviceMotionNotify;
     }
     else {
-        if (type == ButtonPress)
+        if (type == ButtonPress) {
             kbp->type = DeviceButtonPress;
-        else if (type == ButtonRelease)
+            pDev->button->postdown[buttons >> 3] |= (1 << (buttons & 7));
+        }
+        else if (type == ButtonRelease) {
             kbp->type = DeviceButtonRelease;
+            pDev->button->postdown[buttons >> 3] &= ~(1 << (buttons & 7));
+        }
         kbp->detail = buttons;
     }
 

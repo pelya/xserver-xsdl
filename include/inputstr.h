@@ -181,6 +181,7 @@ typedef struct _ButtonClassRec {
     unsigned short	state;
     Mask		motionMask;
     CARD8		down[DOWN_LENGTH];
+    CARD8		postdown[DOWN_LENGTH];
     CARD8		map[MAP_LENGTH];
     union _XkbAction    *xkb_acts;
 } ButtonClassRec, *ButtonClassPtr;
