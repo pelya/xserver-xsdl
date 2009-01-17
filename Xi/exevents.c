@@ -705,11 +705,9 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
  * return values are
  *   DEFAULT ... process as normal
  *   DONT_PROCESS ... return immediately from caller
- *   IS_REPEAT .. event is a repeat event.
  */
 #define DEFAULT 0
 #define DONT_PROCESS 1
-#define IS_REPEAT 2
 int
 UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 {
@@ -813,9 +811,8 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
             return DONT_PROCESS;
 
 	kptr = &k->down[key >> 3];
-	if (*kptr & bit) {	/* allow ddx to generate multiple downs */
-	    return IS_REPEAT;
-	}
+	if (*kptr & bit)	/* don't allow ddx to generate multiple downs */
+	    return DONT_PROCESS;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
@@ -895,7 +892,6 @@ void
 ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 {
     int i;
-    CARD16 modifiers;
     GrabPtr grab = device->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, rootX, rootY;
@@ -973,17 +969,6 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     }
 
     if (xE->u.u.type == DeviceKeyPress) {
-        if (ret == IS_REPEAT) {	/* allow ddx to generate multiple downs */
-            modifiers = k->xkbInfo->desc->map->modmap[key];
-	    if (!modifiers) {
-		xE->u.u.type = DeviceKeyRelease;
-		ProcessOtherEvent(xE, device, count);
-		xE->u.u.type = DeviceKeyPress;
-		/* release can have side effects, don't fall through */
-		ProcessOtherEvent(xE, device, count);
-	    }
-	    return;
-	}
 	if (!grab && CheckDeviceGrabs(device, xE, 0, count)) {
 	    device->deviceGrab.activatingKey = key;
 	    return;
