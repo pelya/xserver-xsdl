@@ -753,10 +753,11 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
             int first = xV->first_valuator;
             BOOL change = FALSE;
 
-	    if (xV->num_valuators &&
-                (!v || (xV->num_valuators &&
-                      (first + xV->num_valuators > v->numAxes))))
-		FatalError("Bad valuators reported for device %s\n",
+	    if (xV->num_valuators && !v)
+                FatalError("Valuators reported for non-valuator device '%s'\n",
+                           device->name);
+            if (first + xV->num_valuators > v->numAxes)
+		FatalError("Too many valuators reported for device '%s'\n",
 			   device->name);
 	    if (v && v->axisVal) {
                 /* v->axisVal is always in absolute coordinates. Only the
