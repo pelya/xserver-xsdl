@@ -952,20 +952,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
     /* Valuator event handling */
     for (i = 1; i < count; i++) {
-	if ((++xV)->type == DeviceValuator) {
-	    int first = xV->first_valuator;
-	    if (xV->num_valuators
-		&& (!v
-		    || (xV->num_valuators
-			&& (first + xV->num_valuators > v->numAxes))))
-		FatalError("Bad valuators reported for device %s\n",
-			   device->name);
-	    xV->device_state = 0;
-	    if (k)
-		xV->device_state |= XkbStateFieldFromRec(&k->xkbInfo->state);
-	    if (b)
-		xV->device_state |= b->state;
-	}
+	if ((++xV)->type == DeviceValuator)
+	    xV->device_state = state;
     }
 
     if (xE->u.u.type == DeviceKeyPress) {
