@@ -165,7 +165,7 @@ winMWExtWMUpdateIcon (Window id)
   HICON			hIcon, hiconOld;
 
   pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
-  hIcon = (HICON)winOverrideIcon ((unsigned long)pWin);
+  hIcon = winOverrideIcon ((unsigned long)pWin);
 
   if (!hIcon)
     hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));

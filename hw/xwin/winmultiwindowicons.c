@@ -368,7 +368,7 @@ winUpdateIcon (Window id)
 
   pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
   if (!pWin) return;
-  hIcon = (HICON)winOverrideIcon ((unsigned long)pWin);
+  hIcon = winOverrideIcon ((unsigned long)pWin);
 
   if (!hIcon)
     hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));
@@ -410,8 +410,8 @@ void winInitGlobalIcons (void)
   /* Load default X icon in case it's not ready yet */
   if (!g_hIconX) 
     {  
-      g_hIconX = (HICON)winOverrideDefaultIcon(sm_cx);
-      g_hSmallIconX = (HICON)winOverrideDefaultIcon(sm_cxsm);
+      g_hIconX = winOverrideDefaultIcon(sm_cx);
+      g_hSmallIconX = winOverrideDefaultIcon(sm_cxsm);
     }
   
   if (!g_hIconX)

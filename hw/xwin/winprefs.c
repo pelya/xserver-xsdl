@@ -529,7 +529,7 @@ SetupRootMenu (unsigned long hmenuRoot)
 /*
  * Check for and return an overridden default ICON specified in the prefs
  */
-unsigned long
+HICON
 winOverrideDefaultIcon(int size)
 {
   HICON hicon;
@@ -541,7 +541,7 @@ winOverrideDefaultIcon(int size)
         ErrorF ("winOverrideDefaultIcon: LoadImageComma(%s) failed\n",
 		pref.defaultIconName);
 
-      return (unsigned long)hicon;
+      return hicon;
     }
 
   return 0;
@@ -551,7 +551,7 @@ winOverrideDefaultIcon(int size)
 /*
  * Return the HICON to use in the taskbar notification area
  */
-unsigned long
+HICON
 winTaskbarIcon(void)
 {
   HICON hicon;
@@ -575,7 +575,7 @@ winTaskbarIcon(void)
 				GetSystemMetrics (SM_CYSMICON),
 				0);
 
-  return (unsigned long)hicon;
+  return hicon;
 }
 
 
@@ -650,7 +650,7 @@ LoadImageComma (char *fname, int sx, int sy, int flags)
  * Check for a match of the window class to one specified in the
  * ICONS{} section in the prefs file, and load the icon from a file
  */
-unsigned long
+HICON
 winOverrideIcon (unsigned long longWin)
 {
   WindowPtr pWin = (WindowPtr) longWin;
@@ -686,8 +686,8 @@ winOverrideIcon (unsigned long longWin)
          ErrorF ("winOverrideIcon: LoadImageComma(%s) failed\n",
                   pref.icon[i].iconFile);
 
-	pref.icon[i].hicon = (unsigned long)hicon;
-	return (unsigned long)hicon;
+	pref.icon[i].hicon = hicon;
+	return hicon;
       }
   }
   
