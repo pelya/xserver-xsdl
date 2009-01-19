@@ -74,9 +74,6 @@ winMWExtWMSetNativeProperty (RootlessWindowPtr pFrame);
 
 Bool			g_fNoConfigureWindow = FALSE;
 
-
-extern void winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon);
-
 /*
  * Internal function to get the DIB format that is compatible with the screen
  * Fixme: Share code with winshadgdi.c

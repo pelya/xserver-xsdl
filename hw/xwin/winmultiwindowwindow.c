@@ -46,8 +46,6 @@
 
 extern HWND			g_hDlgDepthChange;
 
-extern void winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon);
-
 /*
  * Prototypes for local functions
  */

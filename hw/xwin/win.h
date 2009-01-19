@@ -1218,6 +1218,8 @@ winSetShapeRootless (WindowPtr pWindow);
 HICON
 winXIconToHICON (WindowPtr pWin, int iconSize);
 
+void
+winSelectIcons(WindowPtr pWin, HICON *pIcon, HICON *pSmallIcon);
 
 #ifdef XWIN_MULTIWINDOW
 /*
