@@ -42,10 +42,6 @@
 #include "winmsg.h"
 #include "inputstr.h"
 
-extern BOOL winCheckKeyPressed(WPARAM wParam, LPARAM lParam);
-extern void winFixShiftKeys (int iScanCode);
-
-
 /*
  * Global variables
  */

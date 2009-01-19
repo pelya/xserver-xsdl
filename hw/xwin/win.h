@@ -957,6 +957,11 @@ winKeybdReleaseKeys (void);
 void
 winSendKeyEvent (DWORD dwKey, Bool fDown);
 
+BOOL
+winCheckKeyPressed(WPARAM wParam, LPARAM lParam);
+
+void
+winFixShiftKeys (int iScanCode);
 
 /*
  * winkeyhook.c
