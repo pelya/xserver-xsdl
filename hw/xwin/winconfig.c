@@ -561,7 +561,7 @@ winConfigFiles ()
 }
 #else
 Bool
-winConfigFiles ()
+winConfigFiles (void)
 {
   MessageType from;
 
@@ -578,14 +578,14 @@ winConfigFiles ()
 
 
 Bool
-winConfigOptions ()
+winConfigOptions (void)
 {
   return TRUE;
 }
 
 
 Bool
-winConfigScreens ()
+winConfigScreens (void)
 {
   return TRUE;
 }

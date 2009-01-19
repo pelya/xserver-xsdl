@@ -1052,7 +1052,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
  */
 
 static Bool
-winCheckDisplayNumber ()
+winCheckDisplayNumber (void)
 {
   int			nDisp;
   HANDLE		mutex;

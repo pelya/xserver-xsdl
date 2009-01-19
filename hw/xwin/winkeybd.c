@@ -311,7 +311,7 @@ winInitializeModeKeyStates (void)
  */
 
 void
-winRestoreModeKeyStates ()
+winRestoreModeKeyStates (void)
 {
   DWORD			dwKeyState;
   BOOL			processEvents = TRUE;
@@ -499,7 +499,7 @@ winIsFakeCtrl_L (UINT message, WPARAM wParam, LPARAM lParam)
  */
 
 void
-winKeybdReleaseKeys ()
+winKeybdReleaseKeys (void)
 {
   int				i;
 

@@ -59,7 +59,7 @@ extern HWND			g_hwndClipboard;
  */
 
 Bool
-winInitClipboard ()
+winInitClipboard (void)
 {
   ErrorF ("winInitClipboard ()\n");
 
@@ -90,7 +90,7 @@ winInitClipboard ()
  */
 
 HWND
-winClipboardCreateMessagingWindow ()
+winClipboardCreateMessagingWindow (void)
 {
   WNDCLASS			wc;
   HWND				hwnd;

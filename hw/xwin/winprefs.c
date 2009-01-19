@@ -730,7 +730,7 @@ winIconIsOverride(unsigned hiconIn)
  * Load it into prefs structure for use by other functions
  */
 void
-LoadPreferences ()
+LoadPreferences (void)
 {
   char *home;
   char fname[PATH_MAX+NAME_MAX+2];
