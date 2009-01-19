@@ -563,8 +563,6 @@ winConfigFiles ()
 Bool
 winConfigFiles (void)
 {
-  MessageType from;
-
   /* Fontpath */
   if (g_cmdline.fontPath)
     {
