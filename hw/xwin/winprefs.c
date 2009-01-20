@@ -189,35 +189,28 @@ ReloadEnumWindowsProc (HWND hwnd, LPARAM lParam)
   /* It's our baby, either clean or dirty it */
   if (lParam==FALSE) 
     {
-      hicon = (HICON)GetClassLong(hwnd, GCL_HICON);
+      /* Reset the window's icon to undefined. */
+      hicon = (HICON)SendMessage(hwnd, WM_SETICON, ICON_BIG, 0);
 
-      /* Unselect any icon in the class structure */
-      SetClassLong (hwnd, GCL_HICON, (LONG)LoadIcon (NULL, IDI_APPLICATION));
-
-      /* If it's generated on-the-fly, get rid of it, will regen */
+      /* If the old icon is generated on-the-fly, get rid of it, will regen */
       winDestroyIcon (hicon);
-     
-      hicon = (HICON)GetClassLong(hwnd, GCL_HICONSM);
 
-      /* Unselect any icon in the class structure */
-      SetClassLong (hwnd, GCL_HICONSM, 0);
-
-      /* If it's generated on-the-fly, get rid of it, will regen */
+      /* Same for the small icon */
+      hicon = (HICON)SendMessage(hwnd, WM_SETICON, ICON_SMALL, 0);
       winDestroyIcon (hicon);
-      
-      /* Remove any menu additions, use bRevert flag */
+
+      /* Remove any menu additions; bRevert=TRUE destroys any modified menus */
       GetSystemMenu (hwnd, TRUE);
       
-      /* This window is now clean of our taint */
+      /* This window is now clean of our taint (but with undefined icons) */
     }
   else
     {
-      /* Make the icon default, dynamic, or from xwinrc */
-      SetClassLong (hwnd, GCL_HICON, (LONG)g_hIconX);
-      SetClassLong (hwnd, GCL_HICONSM, (LONG)g_hSmallIconX);
+      /* winUpdateIcon() will set the icon default, dynamic, or from xwinrc */
       wid = (Window)GetProp (hwnd, WIN_WID_PROP);
       if (wid)
 	winUpdateIcon (wid);
+
       /* Update the system menu for this window */
       SetupSysMenu ((unsigned long)hwnd);
 
@@ -241,8 +234,12 @@ ReloadPrefs (void)
   int i;
 
 #ifdef XWIN_MULTIWINDOW
-  /* First, iterate over all windows replacing their icon with system */
-  /* default one and deleting any custom system menus                 */
+  /* First, iterate over all windows, deleting their icons and custom menus.
+   * This is really only needed because winDestroyIcon() will try to
+   * destroy the old global icons, which will have changed.
+   * It is probably better to set a windows USER_DATA to flag locally defined
+   * icons, and use that to accurately know when to destroy old icons.
+   */
   EnumThreadWindows (g_dwCurrentThreadID, ReloadEnumWindowsProc, FALSE);
 #endif
   
