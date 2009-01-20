@@ -1588,32 +1588,6 @@ MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
     return( pFirstChange );
 }
 
-RegionPtr
-CreateUnclippedWinSize (WindowPtr pWin)
-{
-    RegionPtr	pRgn;
-    BoxRec	box;
-
-    box.x1 = pWin->drawable.x;
-    box.y1 = pWin->drawable.y;
-    box.x2 = pWin->drawable.x + (int) pWin->drawable.width;
-    box.y2 = pWin->drawable.y + (int) pWin->drawable.height;
-    pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
-    if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen;
-        pScreen = pWin->drawable.pScreen;
-
-	REGION_TRANSLATE(pScreen, pRgn, - pWin->drawable.x,
-			 - pWin->drawable.y);
-	if (wBoundingShape (pWin))
-	    REGION_INTERSECT(pScreen, pRgn, pRgn, wBoundingShape (pWin));
-	if (wClipShape (pWin))
-	    REGION_INTERSECT(pScreen, pRgn, pRgn, wClipShape (pWin));
-	REGION_TRANSLATE(pScreen, pRgn, pWin->drawable.x, pWin->drawable.y);
-    }
-    return pRgn;
-}
-
 void
 SetWinSize (WindowPtr pWin)
 {
