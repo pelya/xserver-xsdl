@@ -156,8 +156,6 @@ extern _X_EXPORT void GetWindowAttributes(
     ClientPtr /*client*/,
     xGetWindowAttributesReply* /* wa */);
 
-extern RegionPtr CreateUnclippedWinSize(WindowPtr);
-
 extern _X_EXPORT void GravityTranslate(
     int /*x*/,
     int /*y*/,

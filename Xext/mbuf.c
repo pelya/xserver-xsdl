@@ -1106,6 +1106,8 @@ SClobberNotifyEvent (from, to)
     to->state = from->state;
 }
 
+RegionPtr CreateUnclippedWinSize(WindowPtr pWin);
+
 RegionPtr
 CreateUnclippedWinSize (WindowPtr pWin)
 {
