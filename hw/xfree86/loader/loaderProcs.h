@@ -54,7 +54,6 @@
 #define _LOADERPROCS_H
 
 #include "xf86Module.h"
-#include <X11/fonts/fontmod.h>
 
 typedef struct module_desc {
     struct module_desc *child;
