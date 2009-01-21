@@ -487,24 +487,24 @@ AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to 
 				[ XKBOUTPUT="compiled" ])
 AC_ARG_WITH(default-xkb-rules, AS_HELP_STRING([--with-default-xkb-rules=RULES],
                                    [Keyboard ruleset (default: base/evdev)]),
-                                [ XKB_RULES="$withval" ],
-                                [ XKB_RULES="" ])
+                                [ XKB_DFLT_RULES="$withval" ],
+                                [ XKB_DFLT_RULES="" ])
 AC_ARG_WITH(default-xkb-model, AS_HELP_STRING([--with-default-xkb-model=MODEL],
                                    [Keyboard model (default: pc104)]),
-                                [ XKB_MODEL="$withval" ],
-                                [ XKB_MODEL="pc104" ])
+                                [ XKB_DFLT_MODEL="$withval" ],
+                                [ XKB_DFLT_MODEL="pc104" ])
 AC_ARG_WITH(default-xkb-layout, AS_HELP_STRING([--with-default-xkb-layout=LAYOUT],
                                    [Keyboard layout (default: us)]),
-                                [ XKB_LAYOUT="$withval" ],
-                                [ XKB_LAYOUT="us" ])
+                                [ XKB_DFLT_LAYOUT="$withval" ],
+                                [ XKB_DFLT_LAYOUT="us" ])
 AC_ARG_WITH(default-xkb-variant, AS_HELP_STRING([--with-default-xkb-variant=VARIANT],
                                    [Keyboard variant (default: (none))]),
-                                [ XKB_VARIANT="$withval" ],
-                                [ XKB_VARIANT="" ])
+                                [ XKB_DFLT_VARIANT="$withval" ],
+                                [ XKB_DFLT_VARIANT="" ])
 AC_ARG_WITH(default-xkb-options, AS_HELP_STRING([--with-default-xkb-options=OPTIONS],
                                    [Keyboard layout options (default: (none))]),
-                                [ XKB_OPTIONS="$withval" ],
-                                [ XKB_OPTIONS="" ])
+                                [ XKB_DFLT_OPTIONS="$withval" ],
+                                [ XKB_DFLT_OPTIONS="" ])
 AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH],
 				   [Directory where ancillary server config files are installed (default: ${libdir}/xorg)]),
 				[ SERVERCONFIG="$withval" ],
