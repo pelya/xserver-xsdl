@@ -59,29 +59,6 @@ extern	Status	XkbGetControls(
 	unsigned long		/* which */,
 	XkbDescPtr		/* desc */
 );
-
-#ifndef XKB_BASE_DIRECTORY
-#define	XKB_BASE_DIRECTORY	"/usr/X11R6/lib/X11/xkb/"
-#endif
-#ifndef XKB_CONFIG_FILE
-#define	XKB_CONFIG_FILE		"X0-config.keyboard"
-#endif
-#ifndef XKB_DFLT_RULES_FILE
-#define	XKB_DFLT_RULES_FILE	XKB_DFLT_RULES
-#endif
-#ifndef XKB_DFLT_KB_LAYOUT
-#define	XKB_DFLT_KB_LAYOUT	"us"
-#endif
-#ifndef XKB_DFLT_KB_MODEL
-#define	XKB_DFLT_KB_MODEL	"pc101"
-#endif
-#ifndef XKB_DFLT_KB_VARIANT
-#define	XKB_DFLT_KB_VARIANT	NULL
-#endif
-#ifndef XKB_DFLT_KB_OPTIONS
-#define	XKB_DFLT_KB_OPTIONS	NULL
-#endif
-
 #endif
 
 DeviceIntPtr xnestKeyboardDevice = NULL;
@@ -222,11 +199,11 @@ XkbError:
 	XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
 
 	memset(&names, 0, sizeof(XkbComponentNamesRec));
-	rules = XKB_DFLT_RULES_FILE;
-	model = XKB_DFLT_KB_MODEL;
-	layout = XKB_DFLT_KB_LAYOUT;
-	variants = XKB_DFLT_KB_VARIANT;
-	options = XKB_DFLT_KB_OPTIONS;
+	rules = XKB_DFLT_RULES;
+	model = XKB_DFLT_MODEL;
+	layout = XKB_DFLT_LAYOUT;
+	variants = XKB_DFLT_VARIANT;
+	options = XKB_DFLT_OPTIONS;
 
 	XkbSetRulesDflts(rules, model, layout, variants, options);
 	XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,

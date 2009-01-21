@@ -106,7 +106,10 @@
 /* Enable XKB per default */
 #undef XKB_DFLT_DISABLED
 
-/* Build XKB server */
+/* XKB default rules */
+#undef XKB_DFLT_RULES
+
+/* Build XKB support in server */
 #undef XKB_IN_SERVER
 
 /* Support loadable input and output drivers */
@@ -159,9 +162,6 @@
 
 /* Location of configuration file */
 #undef __XCONFIGFILE__
-
-/* XKB default rules */
-#undef __XKBDEFRULES__
 
 /* Name of X server */
 #undef __XSERVERNAME__
