@@ -67,7 +67,7 @@ extern	Status	XkbGetControls(
 #define	XKB_CONFIG_FILE		"X0-config.keyboard"
 #endif
 #ifndef XKB_DFLT_RULES_FILE
-#define	XKB_DFLT_RULES_FILE	__XKBDEFRULES__
+#define	XKB_DFLT_RULES_FILE	XKB_DFLT_RULES
 #endif
 #ifndef XKB_DFLT_KB_LAYOUT
 #define	XKB_DFLT_KB_LAYOUT	"us"
