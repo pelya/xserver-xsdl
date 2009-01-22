@@ -89,9 +89,6 @@ if INSTALL_SETUID
 	chmod u+s $(DESTDIR)$(bindir)/Xorg
 endif
 
-optionsdir = $(libdir)/X11
-dist_options_DATA = Options
-
 CPP_FILES_FLAGS = \
 	$(MANDEFS) \
 	-DLOCALFONTPATH="\"$(BASE_FONT_PATH)/local\"" \
