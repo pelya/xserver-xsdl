@@ -284,7 +284,7 @@ XaceCensorImage(
 
 	/* convert region to list-of-rectangles for PolyFillRect */
 
-	pRects = (xRectangle *)xalloc(nRects * sizeof(xRectangle));
+	pRects = xalloc(nRects * sizeof(xRectangle));
 	if (!pRects)
 	{
 	    failed = TRUE;

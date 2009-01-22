@@ -312,7 +312,7 @@ dixResetPrivates(void)
     if (offsets)
 	xfree(offsets);
     offsetsSize = sizeof(offsetDefaults);
-    offsets = (int *)xalloc(offsetsSize);
+    offsets = xalloc(offsetsSize);
     offsetsSize /= sizeof(int);
     if (!offsets)
 	return FALSE;

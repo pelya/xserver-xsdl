@@ -141,7 +141,7 @@ miPolyGlyphBlt(
     DoChangeGC(pGCtmp, GCFunction|GCForeground|GCBackground, gcvals, 0);
 
     nbyLine = BitmapBytePad(width);
-    pbits = (unsigned char *)xalloc(height*nbyLine);
+    pbits = xalloc(height*nbyLine);
     if (!pbits)
     {
 	(*pDrawable->pScreen->DestroyPixmap)(pPixmap);

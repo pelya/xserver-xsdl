@@ -1011,14 +1011,14 @@ AllocateInputBuffer(void)
 {
     ConnectionInputPtr oci;
 
-    oci = (ConnectionInputPtr)xalloc(sizeof(ConnectionInput));
+    oci = xalloc(sizeof(ConnectionInput));
     if (!oci)
-	return (ConnectionInputPtr)NULL;
-    oci->buffer = (char *)xalloc(BUFSIZE);
+	return NULL;
+    oci->buffer = xalloc(BUFSIZE);
     if (!oci->buffer)
     {
 	xfree(oci);
-	return (ConnectionInputPtr)NULL;
+	return NULL;
     }
     oci->size = BUFSIZE;
     oci->bufptr = oci->buffer;
@@ -1032,14 +1032,14 @@ AllocateOutputBuffer(void)
 {
     ConnectionOutputPtr oco;
 
-    oco = (ConnectionOutputPtr)xalloc(sizeof(ConnectionOutput));
+    oco = xalloc(sizeof(ConnectionOutput));
     if (!oco)
-	return (ConnectionOutputPtr)NULL;
-    oco->buf = (unsigned char *) xcalloc(1, BUFSIZE);
+	return NULL;
+    oco->buf = xcalloc(1, BUFSIZE);
     if (!oco->buf)
     {
 	xfree(oco);
-	return (ConnectionOutputPtr)NULL;
+	return NULL;
     }
     oco->size = BUFSIZE;
     oco->count = 0;

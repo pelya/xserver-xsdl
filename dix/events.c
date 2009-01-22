@@ -1131,7 +1131,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     if (xE->u.u.type == GenericEvent) /* count is 1 for GenericEvents */
 	eventlen += ((xGenericEvent*)xE)->length * 4;
 
-    qe = (QdEventPtr)xalloc(sizeof(QdEventRec) + eventlen);
+    qe = xalloc(sizeof(QdEventRec) + eventlen);
     if (!qe)
 	return;
     qe->next = (QdEventPtr)NULL;
@@ -3824,7 +3824,7 @@ EventSelectForWindow(WindowPtr pWin, ClientPtr client, Mask mask)
 	check = 0;
 	if (!pWin->optional && !MakeWindowOptional (pWin))
 	    return BadAlloc;
-	others = (OtherClients *) xalloc(sizeof(OtherClients));
+	others = xalloc(sizeof(OtherClients));
 	if (!others)
 	    return BadAlloc;
 	others->mask = mask;

@@ -407,7 +407,7 @@ SecurityEventSelectForAuthorization(
 	}
     }
     
-    pEventClient = (OtherClients *) xalloc(sizeof(OtherClients));
+    pEventClient = xalloc(sizeof(OtherClients));
     if (!pEventClient)
 	return BadAlloc;
     pEventClient->mask = mask;
@@ -539,7 +539,7 @@ ProcSecurityGenerateAuthorization(
 
     /* associate additional information with this auth ID */
 
-    pAuth = (SecurityAuthorizationPtr)xalloc(sizeof(SecurityAuthorizationRec));
+    pAuth = xalloc(sizeof(SecurityAuthorizationRec));
     if (!pAuth)
     {
 	err = BadAlloc;

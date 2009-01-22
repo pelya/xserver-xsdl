@@ -1514,7 +1514,7 @@ damageText (DrawablePtr	    pDrawable,
 
     imageblt = (textType == TT_IMAGE8) || (textType == TT_IMAGE16);
 
-    charinfo = (CharInfoPtr *) xalloc(count * sizeof(CharInfoPtr));
+    charinfo = xalloc(count * sizeof(CharInfoPtr));
     if (!charinfo)
 	return x;
 
@@ -1873,7 +1873,7 @@ DamageSetup (ScreenPtr pScreen)
     if (!dixRequestPrivate(damageGCPrivateKey, sizeof(DamageGCPrivRec)))
 	return FALSE;
 
-    pScrPriv = (DamageScrPrivPtr) xalloc (sizeof (DamageScrPrivRec));
+    pScrPriv = xalloc (sizeof (DamageScrPrivRec));
     if (!pScrPriv)
 	return FALSE;
 

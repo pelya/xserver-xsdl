@@ -900,7 +900,7 @@ miOverlayHandleExposures(WindowPtr pWin)
 	    REGION_UNINIT(pScreen, &val->after.borderExposed);
 	    REGION_UNINIT(pScreen, &val->after.exposed);
 	    xfree(val);
-	    pChild->valdata = (ValidatePtr)NULL;
+	    pChild->valdata = NULL;
 	    if (pChild->firstChild)
 	    {
 		pChild = pChild->firstChild;

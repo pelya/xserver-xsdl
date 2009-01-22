@@ -171,7 +171,7 @@ Equipment Corporation.
         ((r1)->y1 <= (r2)->y1) && \
         ((r1)->y2 >= (r2)->y2) )
 
-#define xallocData(n) (RegDataPtr)xalloc(REGION_SZOF(n))
+#define xallocData(n) xalloc(REGION_SZOF(n))
 #define xfreeData(reg) if ((reg)->data && (reg)->data->size) xfree((reg)->data)
 
 #define RECTALLOC_BAIL(pReg,n,bail) \
@@ -654,7 +654,7 @@ miRegionOp(
     assert(r1 != r1End);
     assert(r2 != r2End);
 
-    oldData = (RegDataPtr)NULL;
+    oldData = NULL;
     if (((newReg == reg1) && (newSize > 1)) ||
 	((newReg == reg2) && (numRects > 1)))
     {
@@ -808,7 +808,7 @@ miRegionOp(
     {
 	newReg->extents = *REGION_BOXPTR(newReg);
 	xfreeData(newReg);
-	newReg->data = (RegDataPtr)NULL;
+	newReg->data = NULL;
     }
     else
     {
@@ -1039,7 +1039,7 @@ miRegionAppend(RegionPtr dstrgn, RegionPtr rgn)
     if (!rgn->data && (dstrgn->data == &miEmptyData))
     {
 	dstrgn->extents = rgn->extents;
-	dstrgn->data = (RegDataPtr)NULL;
+	dstrgn->data = NULL;
 	return TRUE;
     }
 
@@ -1343,7 +1343,7 @@ miRegionValidate(RegionPtr badreg, Bool *pOverlap)
 	rit->prevBand = 0;
 	rit->curBand = 0;
 	rit->reg.extents = *box;
-	rit->reg.data = (RegDataPtr)NULL;
+	rit->reg.data = NULL;
 	if (!miRectAlloc(&rit->reg, (i+numRI) / numRI)) /* MUST force allocation */
 	    goto bail;
 NextRect: ;
@@ -1362,7 +1362,7 @@ NextRect: ;
 	if (reg->data->numRects == 1) /* keep unions happy below */
 	{
 	    xfreeData(reg);
-	    reg->data = (RegDataPtr)NULL;
+	    reg->data = NULL;
 	}
     }
 
@@ -1428,7 +1428,7 @@ miRectsToRegion(int nrects, xRectangle *prect, int ctype)
 	    pRgn->extents.y1 = y1;
 	    pRgn->extents.x2 = x2;
 	    pRgn->extents.y2 = y2;
-	    pRgn->data = (RegDataPtr)NULL;
+	    pRgn->data = NULL;
 	}
 	return pRgn;
     }

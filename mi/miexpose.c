@@ -207,7 +207,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 	box.y2 = pSrcDrawable->height;
 	prgnSrcClip = &rgnSrcRec;
 	REGION_INIT(pscr, prgnSrcClip, &box, 1);
-	pSrcWin = (WindowPtr)NULL;
+	pSrcWin = NULL;
     }
 
     if (pDstDrawable == pSrcDrawable)
@@ -354,7 +354,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
 
 	numRects = REGION_NUM_RECTS(pRgn);
 	pBox = REGION_RECTS(pRgn);
-	if(!(pEvent = (xEvent *)xalloc(numRects * sizeof(xEvent))))
+	if(!(pEvent = xalloc(numRects * sizeof(xEvent))))
 		return;
 	pe = pEvent;
 
@@ -397,7 +397,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 
     pBox = REGION_RECTS(pRgn);
     numRects = REGION_NUM_RECTS(pRgn);
-    if(!(pEvent = (xEvent *) xalloc(numRects * sizeof(xEvent))))
+    if(!(pEvent = xalloc(numRects * sizeof(xEvent))))
 	return;
 
     for (i=numRects, pe = pEvent; --i >= 0; pe++, pBox++)
@@ -600,8 +600,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 	gcmask |= GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin;
     }
 
-    prect = (xRectangle *)xalloc(REGION_NUM_RECTS(prgn) *
-					 sizeof(xRectangle));
+    prect = xalloc(REGION_NUM_RECTS(prgn) * sizeof(xRectangle));
     if (!prect)
 	return;
 

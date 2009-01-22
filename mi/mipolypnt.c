@@ -107,7 +107,7 @@ miPolyPoint(
 	DoChangeGC(pGC, GCFillStyle, &fsNew, 0);
 	ValidateGC(pDrawable, pGC);
     }
-    if(!(pwidthInit = (int *)xalloc(npt * sizeof(int))))
+    if(!(pwidthInit = xalloc(npt * sizeof(int))))
 	return;
     pwidth = pwidthInit;
     for(i = 0; i < npt; i++)

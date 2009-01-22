@@ -198,7 +198,7 @@ static Bool CheckForShmSyscall(void)
     if (shmid != -1)
     {
         /* Successful allocation - clean up */
-	shmctl(shmid, IPC_RMID, (struct shmid_ds *)NULL);
+	shmctl(shmid, IPC_RMID, NULL);
     }
     else
     {
@@ -265,7 +265,7 @@ ShmResetProc(ExtensionEntry *extEntry)
 
     for (i = 0; i < MAXSCREENS; i++)
     {
-	shmFuncs[i] = (ShmFuncsPtr)NULL;
+	shmFuncs[i] = NULL;
     }
 }
 
@@ -422,7 +422,7 @@ ProcShmAttach(ClientPtr client)
     }
     else
     {
-	shmdesc = (ShmDescPtr) xalloc(sizeof(ShmDescRec));
+	shmdesc = xalloc(sizeof(ShmDescRec));
 	if (!shmdesc)
 	    return BadAlloc;
 	shmdesc->addr = shmat(stuff->shmid, 0,
@@ -727,7 +727,7 @@ CreatePmap:
 
     VERIFY_SHMSIZE(shmdesc, stuff->offset, size, client);
 
-    if(!(newPix = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newPix = xalloc(sizeof(PanoramiXRes))))
 	return BadAlloc;
 
     newPix->type = XRT_PIXMAP;

@@ -883,7 +883,7 @@ SyncCreateSystemCounter(
 	}
     }
 
-    pCounter = SyncCreateCounter((ClientPtr)NULL, FakeClientID(0), initial);
+    pCounter = SyncCreateCounter(NULL, FakeClientID(0), initial);
 
     if (pCounter)
     {

@@ -227,7 +227,7 @@ void SetConnectionTranslation(int conn, int client)
             }
             node = &((*node)->next);
         }
-        *node = (struct _ct_node*)xalloc(sizeof(struct _ct_node));
+        *node = xalloc(sizeof(struct _ct_node));
         (*node)->next = NULL;
         (*node)->key = conn;
         (*node)->value = client;
@@ -407,7 +407,7 @@ CreateWellKnownSockets(void)
 	}
 	else
 	{
-	    ListenTransFds = (int *) xalloc (ListenTransCount * sizeof (int));
+	    ListenTransFds = xalloc (ListenTransCount * sizeof (int));
 
 	    for (i = 0; i < ListenTransCount; i++)
 	    {
@@ -689,7 +689,7 @@ ClientAuthorized(ClientPtr client,
 			proto_n, auth_proto, auth_id);
 	    }
 
-	    xfree ((char *) from);
+	    xfree (from);
 	}
 
 	if (auth_id == (XID) ~0L) {
@@ -711,7 +711,7 @@ ClientAuthorized(ClientPtr client,
 	    AuthAudit(client, TRUE, (struct sockaddr *) from, fromlen,
 		      proto_n, auth_proto, auth_id);
 
-	    xfree ((char *) from);
+	    xfree (from);
 	}
     }
     priv->auth_id = auth_id;
@@ -747,7 +747,7 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
 #endif
 	)
 	return NullClient;
-    oc = (OsCommPtr)xalloc(sizeof(OsCommRec));
+    oc = xalloc(sizeof(OsCommRec));
     if (!oc)
 	return NullClient;
     oc->trans_conn = trans_conn;

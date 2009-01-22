@@ -82,7 +82,7 @@ CreateGrab(
 {
     GrabPtr grab;
 
-    grab = (GrabPtr)xalloc(sizeof(GrabRec));
+    grab = xalloc(sizeof(GrabRec));
     if (!grab)
 	return (GrabPtr)NULL;
     grab->resource = FakeClientID(client);
@@ -158,7 +158,7 @@ DeleteDetailFromMask(Mask *pDetailMask, unsigned short detail)
     Mask *mask;
     int i;
 
-    mask = (Mask *)xalloc(sizeof(Mask) * MasksPerDetailMask);
+    mask = xalloc(sizeof(Mask) * MasksPerDetailMask);
     if (mask)
     {
 	if (pDetailMask)
@@ -395,10 +395,10 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	i++;
     if (!i)
 	return TRUE;
-    deletes = (GrabPtr *)xalloc(i * sizeof(GrabPtr));
-    adds = (GrabPtr *)xalloc(i * sizeof(GrabPtr));
-    updates = (Mask ***)xalloc(i * sizeof(Mask **));
-    details = (Mask **)xalloc(i * sizeof(Mask *));
+    deletes = xalloc(i * sizeof(GrabPtr));
+    adds = xalloc(i * sizeof(GrabPtr));
+    updates = xalloc(i * sizeof(Mask **));
+    details = xalloc(i * sizeof(Mask *));
     if (!deletes || !adds || !updates || !details)
     {
 	if (details) xfree(details);

@@ -109,7 +109,7 @@ MakeAtom(char *string, unsigned len, Bool makeit)
     {
 	NodePtr nd;
 
-	nd = (NodePtr) xalloc(sizeof(NodeRec));
+	nd = xalloc(sizeof(NodeRec));
 	if (!nd)
 	    return BAD_RESOURCE;
 	if (lastAtom < XA_LAST_PREDEFINED)
@@ -118,7 +118,7 @@ MakeAtom(char *string, unsigned len, Bool makeit)
 	}
 	else
 	{
-	    nd->string = (char *) xalloc(len + 1);
+	    nd->string = xalloc(len + 1);
 	    if (!nd->string) {
 		xfree(nd);
 		return BAD_RESOURCE;
@@ -201,7 +201,7 @@ InitAtoms(void)
 {
     FreeAllAtoms();
     tableLength = InitialTableSize;
-    nodeTable = (NodePtr *)xalloc(InitialTableSize*sizeof(NodePtr));
+    nodeTable = xalloc(InitialTableSize*sizeof(NodePtr));
     if (!nodeTable)
 	AtomError();
     nodeTable[None] = (NodePtr)NULL;

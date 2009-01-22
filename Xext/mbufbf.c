@@ -221,7 +221,7 @@ bufMultibufferInit(pScreen, pMBScreen)
     pMBScreen->WrapScreenFuncs = bufWrapScreenFuncs;
     pMBScreen->ResetProc = bufResetProc;
     /* Create devPrivate part */
-    pMBPriv = (mbufBufferPrivPtr) xalloc(sizeof *pMBPriv);
+    pMBPriv = xalloc(sizeof *pMBPriv);
     if (!pMBPriv)
 	return (FALSE);
 
@@ -611,8 +611,7 @@ bufDrawSelectPlane(pScreen, selectPlane, prgn, bufferNum)
     if (!pGC)
 	return;
 
-    prect = (xRectangle *)xalloc(REGION_NUM_RECTS(prgn) *
-					 sizeof(xRectangle));
+    prect = xalloc(REGION_NUM_RECTS(prgn) * sizeof(xRectangle));
     if (!prect)
     {
 	FreeScratchGC(pGC);

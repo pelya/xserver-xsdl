@@ -255,8 +255,7 @@ InitClientResources(ClientPtr client)
 	TypeMask = RC_LASTPREDEF - 1;
 	if (DeleteFuncs)
 	    xfree(DeleteFuncs);
-	DeleteFuncs = (DeleteType *)xalloc((lastResourceType + 1) *
-					   sizeof(DeleteType));
+	DeleteFuncs = xalloc((lastResourceType + 1) * sizeof(DeleteType));
 	if (!DeleteFuncs)
 	    return FALSE;
 	DeleteFuncs[RT_NONE & TypeMask] = (DeleteType)NoopDDA;
@@ -271,7 +270,7 @@ InitClientResources(ClientPtr client)
 	DeleteFuncs[RT_PASSIVEGRAB & TypeMask] = DeletePassiveGrab;
     }
     clientTable[i = client->index].resources =
-	(ResourcePtr *)xalloc(INITBUCKETS*sizeof(ResourcePtr));
+	xalloc(INITBUCKETS*sizeof(ResourcePtr));
     if (!clientTable[i].resources)
 	return FALSE;
     clientTable[i].buckets = INITBUCKETS;
@@ -459,7 +458,7 @@ AddResource(XID id, RESTYPE type, pointer value)
 	(rrec->hashsize < MAXHASHSIZE))
 	RebuildTable(client);
     head = &rrec->resources[Hash(client, id)];
-    res = (ResourcePtr)xalloc(sizeof(ResourceRec));
+    res = xalloc(sizeof(ResourceRec));
     if (!res)
     {
 	(*DeleteFuncs[type & TypeMask])(value, id);
@@ -491,10 +490,10 @@ RebuildTable(int client)
      */
 
     j = 2 * clientTable[client].buckets;
-    tails = (ResourcePtr **)xalloc(j * sizeof(ResourcePtr *));
+    tails = xalloc(j * sizeof(ResourcePtr *));
     if (!tails)
 	return;
-    resources = (ResourcePtr *)xalloc(j * sizeof(ResourcePtr));
+    resources = xalloc(j * sizeof(ResourcePtr));
     if (!resources)
     {
 	xfree(tails);

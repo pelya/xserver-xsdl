@@ -203,7 +203,7 @@ MultibufferExtensionInit()
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
-	if (!(pMultibufferScreen = (MultibufferScreenPtr) xalloc (sizeof (MultibufferScreenRec))))
+	if (!(pMultibufferScreen = xalloc (sizeof (MultibufferScreenRec))))
 	{
 	    for (j = 0; j < i; j++)
 		xfree (dixLookupPrivate(&screenInfo.screens[j]->devPrivates, MultibufferScreenPrivKey));
@@ -348,8 +348,7 @@ CreateImageBuffers (pWin, nbuf, ids, action, hint)
     xRectangle		clearRect;
 
     DestroyImageBuffers(pWin);
-    pMultibuffers = (MultibuffersPtr) xalloc (sizeof (MultibuffersRec) +
-					      nbuf * sizeof (MultibufferRec));
+    pMultibuffers = xalloc (sizeof (MultibuffersRec) + nbuf * sizeof (MultibufferRec));
     if (!pMultibuffers)
 	return BadAlloc;
     pMultibuffers->pWindow = pWin;
@@ -504,8 +503,8 @@ ProcDisplayImageBuffers (client)
 	return Success;
     minDelay = stuff->minDelay;
     ids = (XID *) &stuff[1];
-    ppMultibuffers = (MultibuffersPtr *) xalloc(nbuf * sizeof (MultibuffersPtr));
-    pMultibuffer = (MultibufferPtr *) xalloc(nbuf * sizeof (MultibufferPtr));
+    ppMultibuffers = xalloc(nbuf * sizeof (MultibuffersPtr));
+    pMultibuffer = xalloc(nbuf * sizeof (MultibufferPtr));
     if (!ppMultibuffers || !pMultibuffer)
     {
 	if (ppMultibuffers) xfree(ppMultibuffers);
@@ -645,7 +644,7 @@ ProcGetMBufferAttributes (client)
     pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
     if (!pMultibuffers)
 	return BadAccess;
-    ids = (XID *) xalloc (pMultibuffers->numMultibuffer * sizeof (XID));
+    ids = xalloc (pMultibuffers->numMultibuffer * sizeof (XID));
     if (!ids)
 	return BadAlloc;
     for (i = 0; i < pMultibuffers->numMultibuffer; i++)
@@ -782,8 +781,7 @@ ProcGetBufferInfo (client)
 	pDepth = &pScreen->allowedDepths[i];
 	nInfo += pDepth->numVids;
     }
-    pInfo = (xMbufBufferInfo *)
-		xalloc (nInfo * sizeof (xMbufBufferInfo));
+    pInfo = xalloc (nInfo * sizeof (xMbufBufferInfo));
     if (!pInfo)
 	return BadAlloc;
 
@@ -1264,8 +1262,8 @@ DisplayImageBuffers (ids, nbuf)
     MultibuffersPtr *pMultibuffers;
     int		    i, j;
 
-    pMultibuffer = (MultibufferPtr *) xalloc (nbuf * sizeof *pMultibuffer +
-				   nbuf * sizeof *pMultibuffers);
+    pMultibuffer = xalloc (nbuf * sizeof *pMultibuffer +
+			    nbuf * sizeof *pMultibuffers);
     if (!pMultibuffer)
 	return BadAlloc;
     pMultibuffers = (MultibuffersPtr *) (pMultibuffer + nbuf);
@@ -1390,7 +1388,7 @@ MultibufferExpose (pMultibuffer, pRegion)
 	numRects = REGION_NUM_RECTS(pRegion);
 	pBox = REGION_RECTS(pRegion);
 
-	pEvent = (xEvent *) xalloc(numRects * sizeof(xEvent));
+	pEvent = xalloc(numRects * sizeof(xEvent));
 	if (pEvent) {
 	    pe = pEvent;
 
@@ -1744,7 +1742,7 @@ EventSelectForMultibuffer (pMultibuffer, client, mask)
 	}
 	if (!other)
 	{ /* new client that never selected events on this buffer before */
-	    other = (OtherClients *) xalloc (sizeof (OtherClients));
+	    other = xalloc (sizeof (OtherClients));
 	    if (!other)
 		return BadAlloc;
 	    other->mask = mask;

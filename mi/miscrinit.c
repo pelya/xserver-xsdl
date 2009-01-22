@@ -180,7 +180,7 @@ miScreenDevPrivateInit(ScreenPtr pScreen, int width, pointer pbits)
      * to the screen, until CreateScreenResources can put them in the
      * screen pixmap.
      */
-    pScrInitParms = (miScreenInitParmsPtr)xalloc(sizeof(miScreenInitParmsRec));
+    pScrInitParms = xalloc(sizeof(miScreenInitParmsRec));
     if (!pScrInitParms)
 	return FALSE;
     pScrInitParms->pbits = pbits;

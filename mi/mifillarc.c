@@ -546,10 +546,10 @@ miFillEllipseI(
     int *widths;
     int *wids;
 
-    points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * arc->height);
+    points = xalloc(sizeof(DDXPointRec) * arc->height);
     if (!points)
 	return;
-    widths = (int *)xalloc(sizeof(int) * arc->height);
+    widths = xalloc(sizeof(int) * arc->height);
     if (!widths)
     {
 	xfree(points);
@@ -589,10 +589,10 @@ miFillEllipseD(
     int *widths;
     int *wids;
 
-    points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * arc->height);
+    points = xalloc(sizeof(DDXPointRec) * arc->height);
     if (!points)
 	return;
-    widths = (int *)xalloc(sizeof(int) * arc->height);
+    widths = xalloc(sizeof(int) * arc->height);
     if (!widths)
     {
 	xfree(points);
@@ -661,10 +661,10 @@ miFillArcSliceI(
     slw = arc->height;
     if (slice.flip_top || slice.flip_bot)
 	slw += (arc->height >> 1) + 1;
-    points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * slw);
+    points = xalloc(sizeof(DDXPointRec) * slw);
     if (!points)
 	return;
-    widths = (int *)xalloc(sizeof(int) * slw);
+    widths = xalloc(sizeof(int) * slw);
     if (!widths)
     {
 	xfree(points);
@@ -725,10 +725,10 @@ miFillArcSliceD(
     slw = arc->height;
     if (slice.flip_top || slice.flip_bot)
 	slw += (arc->height >> 1) + 1;
-    points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * slw);
+    points = xalloc(sizeof(DDXPointRec) * slw);
     if (!points)
 	return;
-    widths = (int *)xalloc(sizeof(int) * slw);
+    widths = xalloc(sizeof(int) * slw);
     if (!widths)
     {
 	xfree(points);

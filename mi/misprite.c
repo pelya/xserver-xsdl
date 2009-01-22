@@ -226,7 +226,7 @@ miSpriteInitialize (ScreenPtr               pScreen,
     if (!DamageSetup (pScreen))
 	return FALSE;
 
-    pScreenPriv = (miSpriteScreenPtr) xalloc (sizeof (miSpriteScreenRec));
+    pScreenPriv = xalloc (sizeof (miSpriteScreenRec));
     if (!pScreenPriv)
 	return FALSE;
 

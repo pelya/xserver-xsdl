@@ -1404,7 +1404,7 @@ Popen(char *command, char *type)
     if ((*type != 'r' && *type != 'w') || type[1])
 	return NULL;
 
-    if ((cur = (struct pid *)xalloc(sizeof(struct pid))) == NULL)
+    if ((cur = xalloc(sizeof(struct pid))) == NULL)
 	return NULL;
 
     if (pipe(pdes) < 0) {
@@ -1490,7 +1490,7 @@ Fopen(char *file, char *type)
     if ((*type != 'r' && *type != 'w') || type[1])
 	return NULL;
 
-    if ((cur = (struct pid *)xalloc(sizeof(struct pid))) == NULL)
+    if ((cur = xalloc(sizeof(struct pid))) == NULL)
 	return NULL;
 
     if (pipe(pdes) < 0) {

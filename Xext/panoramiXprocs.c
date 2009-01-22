@@ -116,7 +116,7 @@ int PanoramiXCreateWindow(ClientPtr client)
 	}
     }
 
-    if(!(newWin = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newWin = xalloc(sizeof(PanoramiXRes))))
         return BadAlloc;
 
     newWin->type = XRT_WINDOW;
@@ -644,7 +644,7 @@ int PanoramiXCreatePixmap(ClientPtr client)
 		client, stuff->drawable, XRC_DRAWABLE, DixReadAccess)))
 	return BadDrawable;
 
-    if(!(newPix = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newPix = xalloc(sizeof(PanoramiXRes))))
 	return BadAlloc;
 
     newPix->type = XRT_PIXMAP;
@@ -744,7 +744,7 @@ int PanoramiXCreateGC(ClientPtr client)
 	}
     }
 
-    if(!(newGC = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newGC = xalloc(sizeof(PanoramiXRes))))
         return BadAlloc;
 
     newGC->type = XRT_GC;
@@ -1256,7 +1256,7 @@ int PanoramiXPolyPoint(ClientPtr client)
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
     npoint = ((client->req_len << 2) - sizeof(xPolyPointReq)) >> 2;
     if (npoint > 0) {
-        origPts = (xPoint *) xalloc(npoint * sizeof(xPoint));
+        origPts = xalloc(npoint * sizeof(xPoint));
         memcpy((char *) origPts, (char *) &stuff[1], npoint * sizeof(xPoint));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1314,7 +1314,7 @@ int PanoramiXPolyLine(ClientPtr client)
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
     npoint = ((client->req_len << 2) - sizeof(xPolyLineReq)) >> 2;
     if (npoint > 0){
-        origPts = (xPoint *) xalloc(npoint * sizeof(xPoint));
+        origPts = xalloc(npoint * sizeof(xPoint));
         memcpy((char *) origPts, (char *) &stuff[1], npoint * sizeof(xPoint));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1375,7 +1375,7 @@ int PanoramiXPolySegment(ClientPtr client)
     if(nsegs & 4) return BadLength;
     nsegs >>= 3;
     if (nsegs > 0) {
-	origSegs = (xSegment *) xalloc(nsegs * sizeof(xSegment));
+	origSegs = xalloc(nsegs * sizeof(xSegment));
         memcpy((char *) origSegs, (char *) &stuff[1], nsegs * sizeof(xSegment));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1437,7 +1437,7 @@ int PanoramiXPolyRectangle(ClientPtr client)
     if(nrects & 4) return BadLength;
     nrects >>= 3;
     if (nrects > 0){
-	origRecs = (xRectangle *) xalloc(nrects * sizeof(xRectangle));
+	origRecs = xalloc(nrects * sizeof(xRectangle));
 	memcpy((char *)origRecs,(char *)&stuff[1],nrects * sizeof(xRectangle));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1497,7 +1497,7 @@ int PanoramiXPolyArc(ClientPtr client)
     if(narcs % sizeof(xArc)) return BadLength;
     narcs /= sizeof(xArc);
     if (narcs > 0){
-	origArcs = (xArc *) xalloc(narcs * sizeof(xArc));
+	origArcs = xalloc(narcs * sizeof(xArc));
 	memcpy((char *) origArcs, (char *) &stuff[1], narcs * sizeof(xArc));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1553,7 +1553,7 @@ int PanoramiXFillPoly(ClientPtr client)
 
     count = ((client->req_len << 2) - sizeof(xFillPolyReq)) >> 2;
     if (count > 0){
-	locPts = (DDXPointPtr) xalloc(count * sizeof(DDXPointRec));
+	locPts = xalloc(count * sizeof(DDXPointRec));
 	memcpy((char *)locPts, (char *)&stuff[1], count * sizeof(DDXPointRec));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1614,7 +1614,7 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
     if(things & 4) return BadLength;
     things >>= 3;
     if (things > 0){
-	origRects = (xRectangle *) xalloc(things * sizeof(xRectangle));
+	origRects = xalloc(things * sizeof(xRectangle));
 	memcpy((char*)origRects,(char*)&stuff[1], things * sizeof(xRectangle));
         FOR_NSCREENS_FORWARD(j){
 
@@ -1673,7 +1673,7 @@ int PanoramiXPolyFillArc(ClientPtr client)
     IF_RETURN((narcs % sizeof(xArc)), BadLength);
     narcs /= sizeof(xArc);
     if (narcs > 0) {
-	origArcs = (xArc *) xalloc(narcs * sizeof(xArc));
+	origArcs = xalloc(narcs * sizeof(xArc));
 	memcpy((char *) origArcs, (char *)&stuff[1], narcs * sizeof(xArc));
         FOR_NSCREENS_FORWARD(j){
 
@@ -2071,7 +2071,7 @@ int PanoramiXCreateColormap(ClientPtr client)
 		client, stuff->window, XRT_WINDOW, DixReadAccess)))
 	return BadWindow;    
 
-    if(!(newCmap = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newCmap = xalloc(sizeof(PanoramiXRes))))
         return BadAlloc;
 
     newCmap->type = XRT_COLORMAP;
@@ -2140,7 +2140,7 @@ PanoramiXCopyColormapAndFree(ClientPtr client)
 		DixReadAccess | DixWriteAccess)))
         return BadColor;
 
-    if(!(newCmap = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
+    if(!(newCmap = xalloc(sizeof(PanoramiXRes))))
         return BadAlloc;
 
     newCmap->type = XRT_COLORMAP;

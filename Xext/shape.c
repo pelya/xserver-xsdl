@@ -804,8 +804,7 @@ ProcShapeSelectInput (ClientPtr client)
 	}
 
 	/* build the entry */
-    	pNewShapeEvent = (ShapeEventPtr)
-			    xalloc (sizeof (ShapeEventRec));
+    	pNewShapeEvent = xalloc (sizeof (ShapeEventRec));
     	if (!pNewShapeEvent)
 	    return BadAlloc;
     	pNewShapeEvent->next = 0;
@@ -827,7 +826,7 @@ ProcShapeSelectInput (ClientPtr client)
      	 */
     	if (!pHead)
     	{
-	    pHead = (ShapeEventPtr *) xalloc (sizeof (ShapeEventPtr));
+	    pHead = xalloc (sizeof (ShapeEventPtr));
 	    if (!pHead ||
 	    	!AddResource (pWin->drawable.id, EventType, (pointer)pHead))
 	    {
@@ -1014,7 +1013,7 @@ ProcShapeGetRectangles (ClientPtr client)
     }
     if (!region) {
 	nrects = 1;
-	rects = (xRectangle *) xalloc (sizeof (xRectangle));
+	rects = xalloc (sizeof (xRectangle));
 	if (!rects)
 	    return BadAlloc;
 	switch (stuff->kind) {
@@ -1041,7 +1040,7 @@ ProcShapeGetRectangles (ClientPtr client)
 	BoxPtr box;
 	nrects = REGION_NUM_RECTS(region);
 	box = REGION_RECTS(region);
-	rects = (xRectangle *) xalloc (nrects * sizeof (xRectangle));
+	rects = xalloc (nrects * sizeof (xRectangle));
 	if (!rects && nrects)
 	    return BadAlloc;
 	for (i = 0; i < nrects; i++, box++) {

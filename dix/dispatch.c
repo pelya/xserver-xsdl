@@ -347,7 +347,7 @@ Dispatch(void)
     nextFreeClientID = 1;
     nClients = 0;
 
-    clientReady = (int *) xalloc(sizeof(int) * MaxClients);
+    clientReady = xalloc(sizeof(int) * MaxClients);
     if (!clientReady)
 	return;
 
@@ -848,7 +848,7 @@ ProcQueryTree(ClientPtr client)
     {
 	int curChild = 0;
 
-	childIDs = (Window *) xalloc(numChildren * sizeof(Window));
+	childIDs = xalloc(numChildren * sizeof(Window));
 	if (!childIDs)
 	    return BadAlloc;
 	for (pChild = pWin->lastChild; pChild != pHead; pChild = pChild->prevSib)
@@ -1142,7 +1142,7 @@ ProcQueryFont(ClientPtr client)
 	rlength = sizeof(xQueryFontReply) +
 	             FONTINFONPROPS(FONTCHARSET(pFont)) * sizeof(xFontProp)  +
 		     nprotoxcistructs * sizeof(xCharInfo);
-	reply = (xQueryFontReply *)xalloc(rlength);
+	reply = xalloc(rlength);
 	if(!reply)
 	{
 	    return(BadAlloc);
@@ -1970,7 +1970,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
     xgi.length = length;
 
     if (im_return) {
-	pBuf = (char *)xalloc(sz_xGetImageReply + length);
+	pBuf = xalloc(sz_xGetImageReply + length);
 	if (!pBuf)
 	    return (BadAlloc);
 	if (widthBytesLine == 0)
@@ -2008,7 +2008,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 		length += widthBytesLine;
 	    }
 	}
-	if(!(pBuf = (char *) xalloc(length)))
+	if(!(pBuf = xalloc(length)))
 	    return (BadAlloc);
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
@@ -2380,8 +2380,7 @@ ProcListInstalledColormaps(ClientPtr client)
     if (rc != Success)
 	goto out;
 
-    preply = (xListInstalledColormapsReply *) 
-		xalloc(sizeof(xListInstalledColormapsReply) +
+    preply = xalloc(sizeof(xListInstalledColormapsReply) +
 		     pWin->drawable.pScreen->maxInstalledCmaps *
 		     sizeof(Colormap));
     if(!preply)
@@ -2525,7 +2524,7 @@ ProcAllocColorCells (ClientPtr client)
 	}
 	nmasks = stuff->planes;
 	length = ((long)npixels + (long)nmasks) * sizeof(Pixel);
-	ppixels = (Pixel *)xalloc(length);
+	ppixels = xalloc(length);
 	if(!ppixels)
             return(BadAlloc);
 	pmasks = ppixels + npixels;
@@ -2594,7 +2593,7 @@ ProcAllocColorPlanes(ClientPtr client)
 	acpr.sequenceNumber = client->sequence;
 	acpr.nPixels = npixels;
 	length = (long)npixels * sizeof(Pixel);
-	ppixels = (Pixel *)xalloc(length);
+	ppixels = xalloc(length);
 	if(!ppixels)
             return(BadAlloc);
 	if( (rc = AllocColorPlanes(client->index, pcmp, npixels,
@@ -2747,7 +2746,7 @@ ProcQueryColors(ClientPtr client)
 	xQueryColorsReply	qcr;
 
 	count = ((client->req_len << 2) - sizeof(xQueryColorsReq)) >> 2;
-	prgbs = (xrgb *)xalloc(count * sizeof(xrgb));
+	prgbs = xalloc(count * sizeof(xrgb));
 	if(!prgbs && count)
             return(BadAlloc);
 	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs)) )
@@ -3504,7 +3503,7 @@ ClientPtr NextAvailableClient(pointer ospriv)
     i = nextFreeClientID;
     if (i == MAXCLIENTS)
 	return (ClientPtr)NULL;
-    clients[i] = client = (ClientPtr)xalloc(sizeof(ClientRec));
+    clients[i] = client = xalloc(sizeof(ClientRec));
     if (!client)
 	return (ClientPtr)NULL;
     InitClient(client, i, ospriv);

@@ -360,7 +360,7 @@ CreateRootWindow(ScreenPtr pScreen)
     BoxRec	box;
     PixmapFormatRec *format;
 
-    pWin = (WindowPtr)xalloc(sizeof(WindowRec));
+    pWin = xalloc(sizeof(WindowRec));
     if (!pWin)
 	return FALSE;
 
@@ -387,7 +387,7 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->parent = NullWindow;
     SetWindowToDefaults(pWin);
 
-    pWin->optional = (WindowOptRec *) xalloc (sizeof (WindowOptRec));
+    pWin->optional = xalloc (sizeof (WindowOptRec));
     if (!pWin->optional)
         return FALSE;
 
@@ -647,7 +647,7 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin = (WindowPtr)xalloc(sizeof(WindowRec));
+    pWin = xalloc(sizeof(WindowRec));
     if (!pWin)
     {
 	*error = BadAlloc;
@@ -3299,8 +3299,8 @@ TileScreenSaver(int i, int kind)
     cm.height=16;
     cm.xhot=8;
     cm.yhot=8;
-    srcbits = (unsigned char *)xalloc( BitmapBytePad(32)*16);
-    mskbits = (unsigned char *)xalloc( BitmapBytePad(32)*16);
+    srcbits = xalloc( BitmapBytePad(32)*16);
+    mskbits = xalloc( BitmapBytePad(32)*16);
     if (!srcbits || !mskbits)
     {
 	xfree(srcbits);
@@ -3460,7 +3460,7 @@ MakeWindowOptional (WindowPtr pWin)
 
     if (pWin->optional)
 	return TRUE;
-    optional = (WindowOptPtr) xalloc (sizeof (WindowOptRec));
+    optional = xalloc (sizeof (WindowOptRec));
     if (!optional)
 	return FALSE;
     optional->dontPropagateMask = DontPropagateMasks[pWin->dontPropagate];
@@ -3476,8 +3476,7 @@ MakeWindowOptional (WindowPtr pWin)
     optional->inputMasks = NULL;
     optional->deviceCursors = NULL;
 
-    optional->geMasks = 
-        (GenericClientMasksPtr)xalloc(sizeof(GenericClientMasksRec));
+    optional->geMasks = xalloc(sizeof(GenericClientMasksRec));
     if (!optional->geMasks)
     {
         xfree(optional);
@@ -3576,7 +3575,7 @@ ChangeWindowDeviceCursor(WindowPtr pWin,
         if (!pCursor)
             return Success;
 
-        pNewNode = (DevCursNodePtr)xalloc(sizeof(DevCursNodeRec));
+        pNewNode = xalloc(sizeof(DevCursNodeRec));
         pNewNode->dev = pDev;
         pNewNode->next = pWin->optional->deviceCursors;
         pWin->optional->deviceCursors = pNewNode;

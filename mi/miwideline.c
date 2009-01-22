@@ -95,10 +95,10 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     
     if (!spanData)
     {
-    	pptInit = (DDXPointPtr) xalloc (overall_height * sizeof(*ppt));
+    	pptInit = xalloc (overall_height * sizeof(*ppt));
     	if (!pptInit)
 	    return;
-    	pwidthInit = (int *) xalloc (overall_height * sizeof(*pwidth));
+    	pwidthInit = xalloc (overall_height * sizeof(*pwidth));
     	if (!pwidthInit)
     	{
 	    xfree (pptInit);
@@ -116,10 +116,10 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     }
     else
     {
-	spanRec.points = (DDXPointPtr) xalloc (overall_height * sizeof (*ppt));
+	spanRec.points = xalloc (overall_height * sizeof (*ppt));
 	if (!spanRec.points)
 	    return;
-	spanRec.widths = (int *) xalloc (overall_height * sizeof (int));
+	spanRec.widths = xalloc (overall_height * sizeof (int));
 	if (!spanRec.widths)
 	{
 	    xfree (spanRec.points);
@@ -221,10 +221,10 @@ miFillRectPolyHelper (
     }
     else
     {
-	spanRec.points = (DDXPointPtr) xalloc (h * sizeof (*ppt));
+	spanRec.points = xalloc (h * sizeof (*ppt));
 	if (!spanRec.points)
 	    return;
-	spanRec.widths = (int *) xalloc (h * sizeof (int));
+	spanRec.widths = xalloc (h * sizeof (int));
 	if (!spanRec.widths)
 	{
 	    xfree (spanRec.points);
@@ -1045,10 +1045,10 @@ miLineArc (
     }
     if (!spanData)
     {
-    	points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * pGC->lineWidth);
+    	points = xalloc(sizeof(DDXPointRec) * pGC->lineWidth);
     	if (!points)
 	    return;
-    	widths = (int *)xalloc(sizeof(int) * pGC->lineWidth);
+    	widths = xalloc(sizeof(int) * pGC->lineWidth);
     	if (!widths)
     	{
 	    xfree(points);
@@ -1064,10 +1064,10 @@ miLineArc (
     }
     else
     {
-	points = (DDXPointPtr) xalloc (pGC->lineWidth * sizeof (DDXPointRec));
+	points = xalloc (pGC->lineWidth * sizeof (DDXPointRec));
 	if (!points)
 	    return;
-	widths = (int *) xalloc (pGC->lineWidth * sizeof (int));
+	widths = xalloc (pGC->lineWidth * sizeof (int));
 	if (!widths)
 	{
 	    xfree (points);

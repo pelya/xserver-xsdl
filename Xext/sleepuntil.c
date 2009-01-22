@@ -93,7 +93,7 @@ ClientSleepUntil (ClientPtr client,
 	SertafiedGeneration = serverGeneration;
 	BlockHandlerRegistered = FALSE;
     }
-    pRequest = (SertafiedPtr) xalloc (sizeof (SertafiedRec));
+    pRequest = xalloc (sizeof (SertafiedRec));
     if (!pRequest)
 	return FALSE;
     pRequest->pClient = client;

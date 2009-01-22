@@ -136,8 +136,8 @@ ProcRotateProperties(ClientPtr client)
         return rc;
 
     atoms = (Atom *) & stuff[1];
-    props = (PropertyPtr *)xalloc(stuff->nAtoms * sizeof(PropertyPtr));
-    saved = (PropertyPtr)xalloc(stuff->nAtoms * sizeof(PropertyRec));
+    props = xalloc(stuff->nAtoms * sizeof(PropertyPtr));
+    saved = xalloc(stuff->nAtoms * sizeof(PropertyRec));
     if (!props || !saved) {
 	rc = BadAlloc;
 	goto out;
@@ -267,10 +267,10 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     {
 	if (!pWin->optional && !MakeWindowOptional (pWin))
 	    return(BadAlloc);
-        pProp = (PropertyPtr)xalloc(sizeof(PropertyRec));
+        pProp = xalloc(sizeof(PropertyRec));
 	if (!pProp)
 	    return(BadAlloc);
-        data = (pointer)xalloc(totalSize);
+        data = xalloc(totalSize);
 	if (!data && len)
 	{
 	    xfree(pProp);
@@ -339,7 +339,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	}
         else if (mode == PropModePrepend)
         {
-            data = (pointer)xalloc(sizeInBytes * (len + pProp->size));
+            data = xalloc(sizeInBytes * (len + pProp->size));
 	    if (!data)
 		return(BadAlloc);
 	    memmove(&((char *)data)[totalSize], (char *)pProp->data, 
@@ -581,7 +581,7 @@ ProcListProperties(ClientPtr client)
     for (pProp = wUserProps(pWin); pProp; pProp = pProp->next)
 	numProps++;
 
-    if (numProps && !(pAtoms = (Atom *)xalloc(numProps * sizeof(Atom))))
+    if (numProps && !(pAtoms = xalloc(numProps * sizeof(Atom))))
 	return BadAlloc;
 
     numProps = 0;

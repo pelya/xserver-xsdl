@@ -139,7 +139,7 @@ shadowSetup(ScreenPtr pScreen)
     if (!DamageSetup(pScreen))
 	return FALSE;
 
-    pBuf = (shadowBufPtr) xalloc(sizeof(shadowBufRec));
+    pBuf = xalloc(sizeof(shadowBufRec));
     if (!pBuf)
 	return FALSE;
 #ifdef BACKWARDS_COMPATIBILITY

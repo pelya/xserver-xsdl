@@ -710,7 +710,7 @@ XvMCScreenInit(ScreenPtr pScreen, int num, XvMCAdaptorPtr pAdapt)
 
    XvMCScreenKey = &XvMCScreenKeyIndex;
 
-   if(!(pScreenPriv = (XvMCScreenPtr)xalloc(sizeof(XvMCScreenRec))))
+   if(!(pScreenPriv = xalloc(sizeof(XvMCScreenRec))))
 	return BadAlloc;
 
    dixSetPrivate(&pScreen->devPrivates, XvMCScreenKey, pScreenPriv);

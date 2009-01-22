@@ -567,7 +567,7 @@ QueueWorkProc (
 {
     WorkQueuePtr    q;
 
-    q = (WorkQueuePtr) xalloc (sizeof *q);
+    q = xalloc (sizeof *q);
     if (!q)
 	return FALSE;
     q->function = function;
@@ -601,7 +601,7 @@ ClientSleep (ClientPtr client, ClientSleepProcPtr function, pointer closure)
 {
     SleepQueuePtr   q;
 
-    q = (SleepQueuePtr) xalloc (sizeof *q);
+    q = xalloc (sizeof *q);
     if (!q)
 	return FALSE;
 
@@ -681,7 +681,7 @@ _AddCallback(
 {
     CallbackPtr     cbr;
 
-    cbr = (CallbackPtr) xalloc(sizeof(CallbackRec));
+    cbr = xalloc(sizeof(CallbackRec));
     if (!cbr)
 	return FALSE;
     cbr->proc = callback;
@@ -824,7 +824,7 @@ CreateCallbackList(CallbackListPtr *pcbl)
     int i;
 
     if (!pcbl) return FALSE;
-    cbl = (CallbackListPtr) xalloc(sizeof(CallbackListRec));
+    cbl = xalloc(sizeof(CallbackListRec));
     if (!cbl) return FALSE;
     cbl->inCallback = 0;
     cbl->deleted = FALSE;

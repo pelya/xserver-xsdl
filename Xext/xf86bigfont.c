@@ -125,7 +125,7 @@ CheckForShmSyscall(void)
     if (shmid != -1)
     {
         /* Successful allocation - clean up */
-	shmctl(shmid, IPC_RMID, (struct shmid_ds *)NULL);
+	shmctl(shmid, IPC_RMID, NULL);
     }
     else
     {
@@ -229,7 +229,7 @@ shmalloc(
     if (size < 3500)
 	return (ShmDescPtr) NULL;
 
-    pDesc = (ShmDescRec *) xalloc(sizeof(ShmDescRec));
+    pDesc = xalloc(sizeof(ShmDescRec));
     if (!pDesc)
 	return (ShmDescPtr) NULL;
 
@@ -473,8 +473,7 @@ ProcXF86BigfontQueryFont(
 		shmid = pDesc->shmid;
 	    } else {
 #endif
-		pCI = (xCharInfo *)
-		      xalloc(nCharInfos * sizeof(xCharInfo));
+		pCI = xalloc(nCharInfos * sizeof(xCharInfo));
 		if (!pCI)
 		    return BadAlloc;
 #ifdef HAS_SHM
@@ -536,8 +535,7 @@ ProcXF86BigfontQueryFont(
 	    if (hashModulus > nCharInfos+1)
 		hashModulus = nCharInfos+1;
 
-	    tmp = (CARD16*)
-		  xalloc((4*nCharInfos+1) * sizeof(CARD16));
+	    tmp = xalloc((4*nCharInfos+1) * sizeof(CARD16));
 	    if (!tmp) {
 		if (!pDesc) xfree(pCI);
 		return BadAlloc;
@@ -621,8 +619,7 @@ ProcXF86BigfontQueryFont(
 	      ? nUniqCharInfos * sizeof(xCharInfo)
 	        + (nCharInfos+1)/2 * 2 * sizeof(CARD16)
 	      : 0);
-	xXF86BigfontQueryFontReply* reply =
-	   (xXF86BigfontQueryFontReply *) xalloc(rlength);
+	xXF86BigfontQueryFontReply* reply = xalloc(rlength);
 	char* p;
 	if (!reply) {
 	    if (nCharInfos > 0) {

@@ -86,10 +86,10 @@ AddExtension(char *name, int NumEvents, int NumErrors,
 	        (unsigned)(lastError + NumErrors > LAST_ERROR))
         return((ExtensionEntry *) NULL);
 
-    ext = (ExtensionEntry *) xalloc(sizeof(ExtensionEntry));
+    ext = xalloc(sizeof(ExtensionEntry));
     if (!ext)
-	return((ExtensionEntry *) NULL);
-    ext->name = (char *)xalloc(strlen(name) + 1);
+	return(NULL);
+    ext->name = xalloc(strlen(name) + 1);
     ext->num_aliases = 0;
     ext->aliases = (char **)NULL;
     ext->devPrivates = NULL;
@@ -156,7 +156,7 @@ Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
     if (!aliases)
 	return FALSE;
     ext->aliases = aliases;
-    name = (char *)xalloc(strlen(alias) + 1);
+    name = xalloc(strlen(alias) + 1);
     if (!name)
 	return FALSE;
     strcpy(name,  alias);
@@ -323,7 +323,7 @@ ProcListExtensions(ClientPtr client)
 		total_length += strlen(extensions[i]->aliases[j]) + 1;
 	}
         reply.length = (total_length + 3) >> 2;
-	buffer = bufptr = (char *)xalloc(total_length);
+	buffer = bufptr = xalloc(total_length);
 	if (!buffer)
 	    return(BadAlloc);
         for (i=0;  i<NumExtensions; i++)

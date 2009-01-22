@@ -235,7 +235,7 @@ static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
     dixSetPrivate(&(s)->devPrivates, ScreenPrivateKey, v);
 #define SetupScreen(s)	ScreenSaverScreenPrivatePtr pPriv = (s ? GetScreenPrivate(s) : NULL)
 
-#define New(t)	((t *) xalloc (sizeof (t)))
+#define New(t)	(xalloc (sizeof (t)))
 
 /****************
  * ScreenSaverExtensionInit
@@ -639,8 +639,7 @@ CreateSaverWindow (ScreenPtr pScreen)
     wantMap = wColormap (pWin);
     if (wantMap == None)
 	return TRUE;
-    installedMaps = (Colormap *) xalloc (pScreen->maxInstalledCmaps *
-						 sizeof (Colormap));
+    installedMaps = xalloc (pScreen->maxInstalledCmaps * sizeof (Colormap));
     numInstalled = (*pWin->drawable.pScreen->ListInstalledColormaps)
 						    (pScreen, installedMaps);
     for (i = 0; i < numInstalled; i++) 
@@ -977,7 +976,7 @@ ScreenSaverSetAttributes (ClientPtr client)
 	goto bail;
     }
     /* over allocate for override redirect */
-    values = (unsigned long *) xalloc ((len + 1) * sizeof (unsigned long));
+    values = xalloc ((len + 1) * sizeof (unsigned long));
     if (!values)
     {
 	ret = BadAlloc;
@@ -1379,7 +1378,7 @@ ProcScreenSaverSuspend (ClientPtr client)
      * to the record, so the screensaver will be reenabled and the record freed
      * if the client disconnects without reenabling it first.
      */
-    this = (ScreenSaverSuspensionPtr) xalloc (sizeof (ScreenSaverSuspensionRec));
+    this = xalloc (sizeof (ScreenSaverSuspensionRec));
 
     if (!this)
 	return BadAlloc;

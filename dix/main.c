@@ -285,7 +285,7 @@ int main(int argc, char *argv[], char *envp[])
 	    InitProcVectors();
 	    for (i=1; i<MAXCLIENTS; i++)
 		clients[i] = NullClient;
-	    serverClient = (ClientPtr)xalloc(sizeof(ClientRec));
+	    serverClient = xalloc(sizeof(ClientRec));
 	    if (!serverClient)
 		FatalError("couldn't create server client");
 	    InitClient(serverClient, 0, (pointer)NULL);
@@ -515,7 +515,7 @@ CreateConnectionBlock(void)
             ((setup.nbytesVendor + 3) & ~3) +
 	    (setup.numFormats * sizeof(xPixmapFormat)) +
             (setup.numRoots * sizeof(xWindowRoot));
-    ConnectionInfo = (char *) xalloc(lenofblock);
+    ConnectionInfo = xalloc(lenofblock);
     if (!ConnectionInfo)
 	return FALSE;
 

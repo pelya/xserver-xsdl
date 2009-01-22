@@ -216,7 +216,7 @@ typedef struct _host {
 	int		requested;
 } HOST;
 
-#define MakeHost(h,l)	(h)=(HOST *) xalloc(sizeof *(h)+(l));\
+#define MakeHost(h,l)	(h)=xalloc(sizeof *(h)+(l));\
 			if (h) { \
 			   (h)->addr=(unsigned char *) ((h) + 1);\
 			   (h)->requested = FALSE; \
@@ -1109,12 +1109,12 @@ Bool LocalClient(ClientPtr client)
 	    &alen, (pointer *)&addr);
 	if (family == -1)
 	{
-	    xfree ((char *) from);
+	    xfree (from);
 	    return FALSE;
 	}
 	if (family == FamilyLocal)
 	{
-	    xfree ((char *) from);
+	    xfree (from);
 	    return TRUE;
 	}
 	for (host = selfhosts; host; host = host->next)
@@ -1122,7 +1122,7 @@ Bool LocalClient(ClientPtr client)
 	    if (addrEqual (family, addr, alen, host))
 		return TRUE;
 	}
-	xfree ((char *) from);
+	xfree (from);
     }
     return FALSE;
 }
@@ -1462,7 +1462,7 @@ GetHosts (
     }
     if (n)
     {
-        *data = ptr = (pointer) xalloc (n);
+        *data = ptr = xalloc (n);
 	if (!ptr)
 	{
 	    return(BadAlloc);
@@ -1721,7 +1721,7 @@ siTypeAdd(const char *typeName, siAddrMatchFunc addrMatch,
 	}
     }
 
-    s = (struct siType *) xalloc(sizeof(struct siType));
+    s = xalloc(sizeof(struct siType));
     if (s == NULL)
 	return BadAlloc;
 

@@ -1170,7 +1170,7 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
         case PtrAccelPredictable:
         {
             DeviceVelocityPtr s;
-            s = (DeviceVelocityPtr)xalloc(sizeof(DeviceVelocityRec));
+            s = xalloc(sizeof(DeviceVelocityRec));
             if(!s)
         	return FALSE;
             InitVelocityData(s);
@@ -1202,7 +1202,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 {
     AbsoluteClassPtr abs;
 
-    abs = (AbsoluteClassPtr)xalloc(sizeof(AbsoluteClassRec));
+    abs = xalloc(sizeof(AbsoluteClassRec));
     if (!abs)
         return FALSE;
 
@@ -1233,7 +1233,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
 {
     FocusClassPtr focc;
 
-    focc = (FocusClassPtr)xalloc(sizeof(FocusClassRec));
+    focc = xalloc(sizeof(FocusClassRec));
     if (!focc)
 	return FALSE;
     focc->win = PointerRootWin;
@@ -1251,7 +1251,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 {
     PtrFeedbackPtr feedc;
 
-    feedc = (PtrFeedbackPtr)xalloc(sizeof(PtrFeedbackClassRec));
+    feedc = xalloc(sizeof(PtrFeedbackClassRec));
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;
@@ -1289,17 +1289,15 @@ InitStringFeedbackClassDeviceStruct (
     int i;
     StringFeedbackPtr feedc;
 
-    feedc = (StringFeedbackPtr)xalloc(sizeof(StringFeedbackClassRec));
+    feedc = xalloc(sizeof(StringFeedbackClassRec));
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;
     feedc->ctrl.num_symbols_supported = num_symbols_supported;
     feedc->ctrl.num_symbols_displayed = 0;
     feedc->ctrl.max_symbols = max_symbols;
-    feedc->ctrl.symbols_supported = (KeySym *)
-	xalloc (sizeof (KeySym) * num_symbols_supported);
-    feedc->ctrl.symbols_displayed = (KeySym *)
-	xalloc (sizeof (KeySym) * max_symbols);
+    feedc->ctrl.symbols_supported = xalloc (sizeof (KeySym) * num_symbols_supported);
+    feedc->ctrl.symbols_displayed = xalloc (sizeof (KeySym) * max_symbols);
     if (!feedc->ctrl.symbols_supported || !feedc->ctrl.symbols_displayed)
     {
 	if (feedc->ctrl.symbols_supported)
@@ -1327,7 +1325,7 @@ InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc,
 {
     BellFeedbackPtr feedc;
 
-    feedc = (BellFeedbackPtr)xalloc(sizeof(BellFeedbackClassRec));
+    feedc = xalloc(sizeof(BellFeedbackClassRec));
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;
@@ -1346,7 +1344,7 @@ InitLedFeedbackClassDeviceStruct (DeviceIntPtr dev, LedCtrlProcPtr controlProc)
 {
     LedFeedbackPtr feedc;
 
-    feedc = (LedFeedbackPtr)xalloc(sizeof(LedFeedbackClassRec));
+    feedc = xalloc(sizeof(LedFeedbackClassRec));
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;
@@ -1365,7 +1363,7 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
 {
     IntegerFeedbackPtr feedc;
 
-    feedc = (IntegerFeedbackPtr)xalloc(sizeof(IntegerFeedbackClassRec));
+    feedc = xalloc(sizeof(IntegerFeedbackClassRec));
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;

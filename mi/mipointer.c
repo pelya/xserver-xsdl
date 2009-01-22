@@ -88,7 +88,7 @@ miPointerInitialize (ScreenPtr                  pScreen,
 {
     miPointerScreenPtr	pScreenPriv;
 
-    pScreenPriv = (miPointerScreenPtr) xalloc (sizeof (miPointerScreenRec));
+    pScreenPriv = xalloc (sizeof (miPointerScreenRec));
     if (!pScreenPriv)
 	return FALSE;
     pScreenPriv->spriteFuncs = spriteFuncs;

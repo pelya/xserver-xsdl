@@ -397,7 +397,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
 
 #ifdef FONTDEBUG
     char *f;
-    f = (char *)xalloc(lenfname + 1);
+    f = xalloc(lenfname + 1);
     memmove(f, pfontname, lenfname);
     f[lenfname] = '\0';
     ErrorF("[dix] OpenFont: fontname is \"%s\"\n", f);
@@ -434,10 +434,10 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
 	    return Success;
 	}
     }
-    c = (OFclosurePtr) xalloc(sizeof(OFclosureRec));
+    c = xalloc(sizeof(OFclosureRec));
     if (!c)
 	return BadAlloc;
-    c->fontname = (char *) xalloc(lenfname);
+    c->fontname = xalloc(lenfname);
     c->origFontName = pfontname;
     c->origFontNameLen = lenfname;
     if (!c->fontname) {
@@ -448,8 +448,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
      * copy the current FPE list, so that if it gets changed by another client
      * while we're blocking, the request still appears atomic
      */
-    c->fpe_list = (FontPathElementPtr *)
-	xalloc(sizeof(FontPathElementPtr) * num_fpes);
+    c->fpe_list = xalloc(sizeof(FontPathElementPtr) * num_fpes);
     if (!c->fpe_list) {
 	xfree(c->fontname);
 	xfree(c);
@@ -683,7 +682,7 @@ doListFontsAndAliases(ClientPtr client, LFclosurePtr c)
 		}
 		if (err == FontNameAlias) {
 		    if (resolved) xfree(resolved);
-		    resolved = (char *) xalloc(resolvedlen + 1);
+		    resolved = xalloc(resolvedlen + 1);
 		    if (resolved)
 			memmove(resolved, tmpname, resolvedlen + 1);
 		}
@@ -738,7 +737,7 @@ doListFontsAndAliases(ClientPtr client, LFclosurePtr c)
 		    c->haveSaved = TRUE;
 		    if (c->savedName)
 			xfree(c->savedName);
-		    c->savedName = (char *)xalloc(namelen + 1);
+		    c->savedName = xalloc(namelen + 1);
 		    if (c->savedName)
 			memmove(c->savedName, name, namelen + 1);
 		    c->savedNameLen = namelen;
@@ -799,7 +798,7 @@ finish:
     reply.nFonts = nnames;
     reply.sequenceNumber = client->sequence;
 
-    bufptr = bufferStart = (char *) xalloc(reply.length << 2);
+    bufptr = bufferStart = xalloc(reply.length << 2);
 
     if (!bufptr && reply.length) {
 	SendErrorToClient(client, X_ListFonts, 0, 0, BadAlloc);
@@ -859,10 +858,9 @@ ListFonts(ClientPtr client, unsigned char *pattern, unsigned length,
     if (i != Success)
 	return i;
 
-    if (!(c = (LFclosurePtr) xalloc(sizeof *c)))
+    if (!(c = xalloc(sizeof *c)))
 	return BadAlloc;
-    c->fpe_list = (FontPathElementPtr *)
-	xalloc(sizeof(FontPathElementPtr) * num_fpes);
+    c->fpe_list = xalloc(sizeof(FontPathElementPtr) * num_fpes);
     if (!c->fpe_list) {
 	xfree(c);
 	return BadAlloc;
@@ -1001,7 +999,7 @@ doListFontsWithInfo(ClientPtr client, LFWIclosurePtr c)
 		c->savedNumFonts = numFonts;
 		if (c->savedName)
 		  xfree(c->savedName);
-		c->savedName = (char *)xalloc(namelen + 1);
+		c->savedName = xalloc(namelen + 1);
 		if (c->savedName)
 		  memmove(c->savedName, name, namelen + 1);
 		aliascount = 20;
@@ -1135,10 +1133,9 @@ StartListFontsWithInfo(ClientPtr client, int length, unsigned char *pattern,
     if (i != Success)
 	return i;
 
-    if (!(c = (LFWIclosurePtr) xalloc(sizeof *c)))
+    if (!(c = xalloc(sizeof *c)))
 	goto badAlloc;
-    c->fpe_list = (FontPathElementPtr *)
-	xalloc(sizeof(FontPathElementPtr) * num_fpes);
+    c->fpe_list = xalloc(sizeof(FontPathElementPtr) * num_fpes);
     if (!c->fpe_list)
     {
 	xfree(c);
@@ -1325,7 +1322,7 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 		    /* Step 1 */
 		    /* Allocate a malloc'd closure structure to replace
 		       the local one we were passed */
-		    new_closure = (PTclosurePtr) xalloc(sizeof(PTclosureRec));
+		    new_closure = xalloc(sizeof(PTclosureRec));
 		    if (!new_closure)
 		    {
 			err = BadAlloc;
@@ -1335,7 +1332,7 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 		    c = new_closure;
 
 		    len = c->endReq - c->pElt;
-		    c->data = (unsigned char *)xalloc(len);
+		    c->data = xalloc(len);
 		    if (!c->data)
 		    {
 			xfree(c);
@@ -1517,7 +1514,7 @@ doImageText(ClientPtr client, ITclosurePtr c)
 	       in doPolyText, but much simpler because the
 	       request structure is much simpler. */
 
-	    new_closure = (ITclosurePtr) xalloc(sizeof(ITclosureRec));
+	    new_closure = xalloc(sizeof(ITclosureRec));
 	    if (!new_closure)
 	    {
 		err = BadAlloc;
@@ -1526,7 +1523,7 @@ doImageText(ClientPtr client, ITclosurePtr c)
 	    *new_closure = *c;
 	    c = new_closure;
 
-	    data = (unsigned char *)xalloc(c->nChars * c->itemSize);
+	    data = xalloc(c->nChars * c->itemSize);
 	    if (!data)
 	    {
 		xfree(c);
@@ -1663,7 +1660,7 @@ FreeFontPath(FontPathElementPtr *list, int n, Bool force)
 	}
 	FreeFPE(list[i]);
     }
-    xfree((char *) list);
+    xfree(list);
 }
 
 static FontPathElementPtr
@@ -1690,8 +1687,7 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
     unsigned char *cp = paths;
     FontPathElementPtr fpe = NULL, *fplist;
 
-    fplist = (FontPathElementPtr *)
-	xalloc(sizeof(FontPathElementPtr) * npaths);
+    fplist = xalloc(sizeof(FontPathElementPtr) * npaths);
     if (!fplist) {
 	*bad = 0;
 	return BadAlloc;
@@ -1732,13 +1728,13 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
 	    /* if error or can't do it, act like it's a new one */
 	    if (!fpe)
 	    {
-		fpe = (FontPathElementPtr) xalloc(sizeof(FontPathElementRec));
+		fpe = xalloc(sizeof(FontPathElementRec));
 		if (!fpe) 
 		{
 		    err = BadAlloc;
 		    goto bail;
 		}
-		fpe->name = (char *) xalloc(len + 1);
+		fpe->name = xalloc(len + 1);
 		if (!fpe->name) 
 		{
 		    xfree(fpe);
@@ -1826,7 +1822,7 @@ SetDefaultFontPath(char *path)
 
     /* get enough for string, plus values -- use up commas */
     len = strlen(path) + 1;
-    nump = cp = newpath = (unsigned char *) xalloc(len);
+    nump = cp = newpath = xalloc(len);
     if (!newpath)
 	return BadAlloc;
     pp = (unsigned char *) path;
