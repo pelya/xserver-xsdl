@@ -458,9 +458,6 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  * Returns the maximum number of events GetKeyboardEvents,
  * GetKeyboardValuatorEvents, and GetPointerEvents will ever return.
  *
- * Should be used in DIX as:
- * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
- *
  * This MUST be absolutely constant, from init until exit.
  */
 int
