@@ -97,7 +97,7 @@ static struct dev_properties
 static long XIPropHandlerID = 1;
 
 /**
- * Return the type assigned to the specified atom or 0 if the atom isn't known
+ * Return the atom assigned to the specified string or 0 if the atom isn't known
  * to the DIX.
  */
 Atom
@@ -106,8 +106,16 @@ XIGetKnownProperty(char *name)
     int i;
     for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
     {
-        if (strcmp(name, dev_properties[i].name) == 0)
+        if (strcmp(name, dev_properties[i].name) == 0){
+            if (dev_properties[i].type == None){
+		dev_properties[i].type =
+			    MakeAtom(dev_properties[i].name,
+			             strlen(dev_properties[i].name),
+			             TRUE);
+            }
+
             return dev_properties[i].type;
+        }
     }
 
     return 0;
@@ -231,24 +239,6 @@ XIPropToFloat(XIPropertyValuePtr val, int *nelem_return, float **buf_return)
 
     return Success;
 }
-
-/**
- * Init those properties that are allocated by the server and most likely used
- * by the DIX or the DDX.
- */
-void
-XIInitKnownProperties(void)
-{
-    int i;
-    for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
-    {
-        dev_properties[i].type =
-            MakeAtom(dev_properties[i].name,
-                     strlen(dev_properties[i].name),
-                     TRUE);
-    }
-}
-
 
 /* Registers a new property handler on the given device and returns a unique
  * identifier for this handler. This identifier is required to unregister the

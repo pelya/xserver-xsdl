@@ -43,6 +43,4 @@ void SRepXListDeviceProperties(ClientPtr client, int size,
 void SRepXGetDeviceProperty(ClientPtr client, int size,
                             xGetDevicePropertyReply *rep);
 
-void XIInitKnownProperties(void);
-
 #endif /* XIPROPERTY_C */
