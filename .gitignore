@@ -150,3 +150,4 @@ include/xkb-config.h
 include/xorg-config.h
 include/xorg-server.h
 include/xwin-config.h
+sdksyms.dep
