@@ -246,6 +246,27 @@ ddxProcessArgument (int argc, char **argv, int i)
     {
       hostx_set_display_name(argv[i]);
     }
+  /* Xnest compatibility */
+  else if (!strcmp(argv[i], "-display"))
+  {
+      hostx_set_display_name(argv[i+1]);
+      return 2;
+  }
+  else if (!strcmp(argv[i], "-sync") ||
+	   !strcmp(argv[i], "-full") ||
+	   !strcmp(argv[i], "-sss") ||
+	   !strcmp(argv[i], "-install"))
+  {
+      return 1;
+  }
+  else if (!strcmp(argv[i], "-bw") ||
+	   !strcmp(argv[i], "-class") ||
+	   !strcmp(argv[i], "-geometry") ||
+	   !strcmp(argv[i], "-scrns"))
+  {
+      return 2;
+  }
+  /* end Xnest compat */
 
   return KdProcessArgument (argc, argv, i);
 }
