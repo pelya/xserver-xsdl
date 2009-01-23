@@ -75,6 +75,7 @@ SOFTWARE.
 /* Maximum number of valuators, divided by six, rounded up, to get number
  * of events. */
 #define MAX_VALUATOR_EVENTS 6
+#define MAX_BUTTONS 256 /* completely arbitrarily chosen */
 
 #define NO_AXIS_LIMITS -1
 
