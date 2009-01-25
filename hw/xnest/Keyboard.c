@@ -114,16 +114,15 @@ xnestChangeKeyboardControl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 int
 xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
 {
-  XModifierKeymap *modifier_keymap;
   KeySym *keymap;
   int mapWidth;
   int min_keycode, max_keycode;
   KeySymsRec keySyms;
-  int i, j;
+  int i;
   XKeyboardState values;
   XkbComponentNamesRec names;
   XkbDescPtr xkb;
-  char *rules, *model, *layout, *variants, *options;
+  XkbRMLVOSet rmlvo;
   int op, event, error, major, minor;
 
   switch (onoff)
@@ -168,15 +167,14 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
       XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
 
       memset(&names, 0, sizeof(XkbComponentNamesRec));
-      rules = XKB_DFLT_RULES;
-      model = XKB_DFLT_MODEL;
-      layout = XKB_DFLT_LAYOUT;
-      variants = XKB_DFLT_VARIANT;
-      options = XKB_DFLT_OPTIONS;
+      rmlvo.rules = XKB_DFLT_RULES;
+      rmlvo.model = XKB_DFLT_MODEL;
+      rmlvo.layout = XKB_DFLT_LAYOUT;
+      rmlvo.variant = XKB_DFLT_VARIANT;
+      rmlvo.options = XKB_DFLT_OPTIONS;
 
-      XkbSetRulesDflts(rules, model, layout, variants, options);
-      XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms,
-				  xnestBell, xnestChangeKeyboardControl);
+      InitKeyboardDeviceStruct(pDev, &rmlvo,
+			       xnestBell, xnestChangeKeyboardControl);
       XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
       XkbFreeKeyboard(xkb, 0, False);
       xfree(keymap);
@@ -217,11 +215,26 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 void
 xnestUpdateModifierState(unsigned int state)
 {
+#if 0
   DeviceIntPtr pDev = xnestKeyboardDevice;
   KeyClassPtr keyc = pDev->key;
   int i;
   CARD8 mask;
 
+  if (!pDev)
+      return;
+
+/* This is pretty broken.
+ *
+ * What should happen is that focus out should do as a VT switch does in
+ * traditional servers: fake releases for all keys (and buttons too, come
+ * to think of it) currently down.  Then, on focus in, get the state from
+ * the host, and fake keypresses for everything currently down.
+ *
+ * So I'm leaving this broken for a little while.  Sorry, folks.
+ *
+ * -daniels
+ */
   state = state & 0xff;
 
   if (keyc->state == state)
@@ -260,4 +273,5 @@ xnestUpdateModifierState(unsigned int state)
 	  break;
 	}
   }
+#endif
 }
