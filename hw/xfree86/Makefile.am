@@ -48,6 +48,8 @@ libxorg_la_LIBADD = \
             $(top_builddir)/os/libos.la \
             @XORG_LIBS@
 
+libxorg_la_DEPENDENCIES = $(libxorg_la_LIBADD)
+
 libxorg.c xorg.c:
 	touch $@
 
