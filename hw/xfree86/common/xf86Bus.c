@@ -792,24 +792,6 @@ xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
     }
 }
 
-void
-xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
-		   xf86SetAccessFuncPtr oldFuncs)
-{
-    AccessFuncPtr rac;
-
-    if (!xf86Entities[pEnt->index]->rac)
-	xf86Entities[pEnt->index]->rac = xnfcalloc(1,sizeof(AccessFuncRec));
-
-    rac = xf86Entities[pEnt->index]->rac;
-
-    rac->mem_new = funcs->mem;
-    rac->io_new = funcs->io;
-    rac->io_mem_new = funcs->io_mem;
-    
-    rac->old = oldFuncs;
-}
-
 /*
  * Conflict checking
  */
@@ -1392,30 +1374,11 @@ busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 static void
 setAccess(EntityPtr pEnt, xf86State state)
 {
-
     xf86AccessPtr acc_mem, acc_io, acc_mem_io;
-    xf86AccessPtr org_mem = NULL, org_io = NULL, org_mem_io = NULL;
     int prop;
     
     busTypeSpecific(pEnt, &acc_mem, &acc_io, &acc_mem_io);
 
-    /* The replacement function needs to handle _all_ shared resources */
-    /* unless they are handeled locally and disabled otherwise         */
-    if (pEnt->rac) {
-	if (pEnt->rac->io_new) {
-	    org_io = acc_io;
-	    acc_io = pEnt->rac->io_new;
-	}
-	if (pEnt->rac->mem_new) {
-	    org_mem = acc_mem;
-	    acc_mem = pEnt->rac->mem_new;
-	}	
-	if (pEnt->rac->io_mem_new) {
-	    org_mem_io = acc_mem_io;
-	    acc_mem_io = pEnt->rac->io_mem_new;
-	}   
-    }
-    
     if (state == OPERATING) {
 	prop = pEnt->entityProp;
 	switch(pEnt->entityProp & NEED_SHARED) {
@@ -1449,39 +1412,6 @@ setAccess(EntityPtr pEnt, xf86State state)
     default: /* no conflicts at all */
 	pEnt->access->pAccess =  NULL; /* remove from RAC */
 	break;
-    }
-
-    if (org_io) {
-	/* does the driver want the old access func? */
-	if (pEnt->rac->old) {
-	    /* give it to the driver, leave state disabled */
-	    pEnt->rac->old->io = org_io;
-	} else {
-	    /* driver doesn't want it - enable generic access */
-	    org_io->AccessEnable(org_io->arg);
-	}
-    }
-
-    if (org_mem_io) {
-	/* does the driver want the old access func? */
-	if (pEnt->rac->old) {
-	    /* give it to the driver, leave state disabled */
-	    pEnt->rac->old->io_mem = org_mem_io;
-	} else {
-	    /* driver doesn't want it - enable generic access */
-	    org_mem_io->AccessEnable(org_mem_io->arg);
-	}
-    }
-
-    if (org_mem) {
-	/* does the driver want the old access func? */
-	if (pEnt->rac->old) {
-	    /* give it to the driver, leave state disabled */
-	    pEnt->rac->old->mem = org_mem;
-	} else {
-	    /* driver doesn't want it - enable generic access */
-	    org_mem->AccessEnable(org_mem->arg);
-	}
     }
 
     if (!(prop & NEED_MEM_SHARED)){

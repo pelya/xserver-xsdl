@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -128,8 +127,6 @@ extern _X_EXPORT void xf86DeallocateResourcesForEntity(int entityIndex, unsigned
 extern _X_EXPORT resPtr xf86RegisterResources(int entityIndex, resList list,
 			     unsigned long Access);
 extern _X_EXPORT Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base);
-extern _X_EXPORT void xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
-			xf86SetAccessFuncPtr oldFuncs);
 extern _X_EXPORT Bool xf86IsEntityPrimary(int entityIndex);
 extern _X_EXPORT resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
 extern _X_EXPORT void xf86EnterServerState(xf86State state);

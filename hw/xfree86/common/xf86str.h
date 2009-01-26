@@ -582,12 +582,6 @@ typedef struct _AccessRec {
     void *arg;
 } xf86AccessRec, *xf86AccessPtr;
 
-typedef struct {
-    xf86AccessPtr mem;
-    xf86AccessPtr io;
-    xf86AccessPtr io_mem;
-} xf86SetAccessFuncRec, *xf86SetAccessFuncPtr;
-
 /*  bus-access-related types */
 typedef enum {
     NONE,

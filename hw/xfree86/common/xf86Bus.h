@@ -47,7 +47,6 @@ typedef struct racInfo {
     xf86AccessPtr mem_new;
     xf86AccessPtr io_new;
     xf86AccessPtr io_mem_new;
-    xf86SetAccessFuncPtr old;
 } AccessFuncRec, *AccessFuncPtr;
 
 
@@ -64,7 +63,6 @@ typedef struct {
     Bool                        inUse;
     BusRec                      bus;
     EntityAccessPtr             access;
-    AccessFuncPtr               rac;
     pointer                     busAcc;
     int                         lastScrnFlag;
     DevUnion *                  entityPrivates;
