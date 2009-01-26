@@ -37,6 +37,13 @@
 
 #include "dri.h"
 
+#include <AvailabilityMacros.h>
+
+/*  
+ * These define seem questionable to me, but I'm not sure why they were here
+ * in the first place.
+ */ 
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
 #define GL_EXT_histogram 1
 #define GL_EXT_polygon_offset 1
 #define GL_SGIS_pixel_texture 1
@@ -53,6 +60,7 @@
 #define GL_APPLE_fence 1
 #define GL_IBM_multimode_draw_arrays 1
 #define GL_EXT_fragment_shader 1
+#endif
 
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLContext.h>
@@ -904,12 +912,16 @@ static void setup_dispatch_table(void) {
   SET_ColorTable(disp, glColorTable);
   SET_ColorTableParameterfv(disp, glColorTableParameterfv);
   SET_ColorTableParameteriv(disp, glColorTableParameteriv);
+
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
   SET_CombinerInputNV(disp, glCombinerInputNV);
   SET_CombinerOutputNV(disp, glCombinerOutputNV);
   SET_CombinerParameterfNV(disp, glCombinerParameterfNV);
   SET_CombinerParameterfvNV(disp, glCombinerParameterfvNV);
   SET_CombinerParameteriNV(disp, glCombinerParameteriNV);
   SET_CombinerParameterivNV(disp, glCombinerParameterivNV);
+#endif
   SET_CompileShaderARB(disp, glCompileShaderARB);
   SET_CompressedTexImage1DARB(disp, glCompressedTexImage1DARB);
   SET_CompressedTexImage2DARB(disp, glCompressedTexImage2DARB);
@@ -987,7 +999,10 @@ static void setup_dispatch_table(void) {
   SET_EvalPoint2(disp, glEvalPoint2);
 //SET_ExecuteProgramNV(disp, glExecuteProgramNV);
   SET_FeedbackBuffer(disp, glFeedbackBuffer);
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
   SET_FinalCombinerInputNV(disp, glFinalCombinerInputNV);
+#endif
   SET_Finish(disp, glFinish);
   SET_FinishFenceNV(disp, glFinishFenceAPPLE);       // <-- APPLE -> NV
   SET_Flush(disp, glFlush);
@@ -1029,10 +1044,12 @@ static void setup_dispatch_table(void) {
   SET_GetColorTable(disp, glGetColorTable);
   SET_GetColorTableParameterfv(disp, glGetColorTableParameterfv);
   SET_GetColorTableParameteriv(disp, glGetColorTableParameteriv);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
   SET_GetCombinerInputParameterfvNV(disp, glGetCombinerInputParameterfvNV);
   SET_GetCombinerInputParameterivNV(disp, glGetCombinerInputParameterivNV);
   SET_GetCombinerOutputParameterfvNV(disp, glGetCombinerOutputParameterfvNV);
   SET_GetCombinerOutputParameterivNV(disp, glGetCombinerOutputParameterivNV);
+#endif
   SET_GetCompressedTexImageARB(disp, glGetCompressedTexImageARB);
   SET_GetConvolutionFilter(disp, glGetConvolutionFilter);
   SET_GetConvolutionParameterfv(disp, glGetConvolutionParameterfv);
@@ -1040,8 +1057,10 @@ static void setup_dispatch_table(void) {
   SET_GetDoublev(disp, glGetDoublev);
   SET_GetError(disp, glGetError);
 //SET_GetFenceivNV(disp, glGetFenceivNV);
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
   SET_GetFinalCombinerInputParameterfvNV(disp, glGetFinalCombinerInputParameterfvNV);
   SET_GetFinalCombinerInputParameterivNV(disp, glGetFinalCombinerInputParameterivNV);
+#endif
   SET_GetFloatv(disp, glGetFloatv);
   SET_GetFramebufferAttachmentParameterivEXT(disp, glGetFramebufferAttachmentParameterivEXT);
   SET_GetHandleARB(disp, glGetHandleARB);
