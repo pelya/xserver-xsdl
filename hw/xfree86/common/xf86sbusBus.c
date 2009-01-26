@@ -320,7 +320,7 @@ xf86CheckSbusSlot(int fbNum)
     for (i = 0; i < xf86NumEntities; i++) {
 	p = xf86Entities[i];
 	/* Check if this SBUS slot is taken */
-	if (p->busType == BUS_SBUS && p->sbusBusId.fbNum == fbNum)
+	if (p->bus.type == BUS_SBUS && p->bus.id.sbus.fbNum == fbNum)
 	    return FALSE;
     }
 
@@ -345,9 +345,9 @@ xf86ClaimSbusSlot(sbusDevicePtr psdp, DriverPtr drvp,
         p = xf86Entities[num];
         p->driver = drvp;
         p->chipset = -1;
-        p->busType = BUS_SBUS;
+        p->bus.type = BUS_SBUS;
         xf86AddDevToEntity(num, dev);
-        p->sbusBusId.fbNum = psdp->fbNum;
+        p->bus.id.sbus.fbNum = psdp->fbNum;
         p->active = active;
         p->inUse = FALSE;
         /* Here we initialize the access structure */
@@ -543,10 +543,10 @@ xf86GetSbusInfoForEntity(int entityIndex)
     EntityPtr p = xf86Entities[entityIndex];
 
     if (entityIndex >= xf86NumEntities
-	|| p->busType != BUS_SBUS) return NULL;
+	|| p->bus.type != BUS_SBUS) return NULL;
 
     for (psdpp = xf86SbusInfo; *psdpp != NULL; psdpp++) {
-	if (p->sbusBusId.fbNum == (*psdpp)->fbNum)
+	if (p->bus.id.sbus.fbNum == (*psdpp)->fbNum)
 	    return (*psdpp);
     }
     return NULL;
@@ -559,9 +559,9 @@ xf86GetEntityForSbusInfo(sbusDevicePtr psdp)
 
     for (i = 0; i < xf86NumEntities; i++) {
 	EntityPtr p = xf86Entities[i];
-	if (p->busType != BUS_SBUS) continue;
+	if (p->bus.type != BUS_SBUS) continue;
 
-	if (p->sbusBusId.fbNum == psdp->fbNum)
+	if (p->bus.id.sbus.fbNum == psdp->fbNum)
 	    return i;
     }
     return -1;

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2000-2002 by The XFree86 Project, Inc.
  *
@@ -61,7 +60,7 @@ xf86ClaimNoSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
     p = xf86Entities[num];
     p->driver = drvp;
     p->chipset = 0;
-    p->busType = BUS_NONE;
+    p->bus.type = BUS_NONE;
     p->active = active;
     p->inUse = FALSE;
     xf86AddDevToEntity(num, dev);

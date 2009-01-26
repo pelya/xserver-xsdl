@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2000-2001 by The XFree86 Project, Inc.
  *
@@ -63,7 +62,7 @@ xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
     p = xf86Entities[num];
     p->driver = drvp;
     p->chipset = 0;
-    p->busType = BUS_NONE;
+    p->bus.type = BUS_NONE;
     p->active = active;
     p->inUse = FALSE;
     xf86AddDevToEntity(num, dev);
@@ -88,7 +87,7 @@ xf86GetFbInfoForScreen(int scrnIndex)
     
     for (i = 0; i < xf86Screens[scrnIndex]->numEntities; i++) {
 	p = xf86Entities[xf86Screens[scrnIndex]->entityList[i]];
-  	if (p->busType == BUS_NONE) {
+  	if (p->bus.type == BUS_NONE) {
   	    num++;
   	}
     }

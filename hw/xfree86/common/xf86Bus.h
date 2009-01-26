@@ -89,10 +89,6 @@ typedef struct {
 
 #define NEED_SHARED (NEED_MEM_SHARED | NEED_IO_SHARED)
 
-#define busType bus.type
-#define isaBusId bus.id.isa
-#define sbusBusId bus.id.sbus
-
 struct x_BusAccRec;
 typedef void (*BusAccProcPtr)(struct x_BusAccRec *ptr);
 

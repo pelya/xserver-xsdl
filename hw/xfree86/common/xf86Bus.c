@@ -218,13 +218,13 @@ xf86IsEntityPrimary(int entityIndex)
 {
     EntityPtr pEnt = xf86Entities[entityIndex];
     
-    if (primaryBus.type != pEnt->busType) return FALSE;
+    if (primaryBus.type != pEnt->bus.type) return FALSE;
 
-    switch (pEnt->busType) {
+    switch (pEnt->bus.type) {
     case BUS_PCI:
 	return (pEnt->bus.id.pci == primaryBus.id.pci);
     case BUS_SBUS:
-	return (pEnt->sbusBusId.fbNum == primaryBus.id.sbus.fbNum);
+	return (pEnt->bus.id.sbus.fbNum == primaryBus.id.sbus.fbNum);
     default:
 	return FALSE;
     }
@@ -1000,9 +1000,9 @@ needCheck(resPtr pRes, unsigned long type, int entityIndex, xf86State state)
     }
     
     if (entityIndex > -1)
-	loc = xf86Entities[entityIndex]->busType;
+	loc = xf86Entities[entityIndex]->bus.type;
     if (pRes->entityIndex > -1)
-	r_loc = xf86Entities[pRes->entityIndex]->busType;
+	r_loc = xf86Entities[pRes->entityIndex]->bus.type;
 
     if ((type & ResAccMask) == ResShared &&
 	(pRes->res_type & ResAccMask) == ResShared)
@@ -1295,7 +1295,7 @@ static void
 convertRange2Host(int entityIndex, resRange *pRange)
 {
     if (pRange->type & ResBus) {
-	switch (xf86Entities[entityIndex]->busType) {
+	switch (xf86Entities[entityIndex]->bus.type) {
 	case BUS_PCI:
 	    pciConvertRange2Host(entityIndex,pRange);
 	    break;

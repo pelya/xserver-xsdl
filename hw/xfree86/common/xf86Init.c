@@ -483,7 +483,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 
 		    for ( k = 0; k < xf86NumEntities; k++ ) {
 			EntityPtr pEnt = xf86Entities[k];
-			if (pEnt->busType != BUS_PCI)
+			if (pEnt->bus.type != BUS_PCI)
 			  continue;
 
 			if (pEnt->bus.id.pci == pPci) {
