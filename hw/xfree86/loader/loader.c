@@ -201,12 +201,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     ErrorF("LoaderOpen(%s)\n", module);
 #endif
 
-    /*
-     * Check to see if the module is already loaded.
-     * Only if we are loading it into an existing namespace.
-     * If it is to be loaded into a new namespace, don't check.
-     * Note: We only have one namespace.
-     */
+    /* Is the module already loaded? */
     if (handle >= 0) {
 	tmp = listHead;
 	while (tmp) {
