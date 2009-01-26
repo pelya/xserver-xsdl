@@ -81,7 +81,6 @@ winInfoRec g_winInfo = {
    }
   ,
   {				/* xkb */
-   FALSE,			/* disable */
    NULL,			/* rules */
    NULL,			/* model */
    NULL,			/* layout */
@@ -222,25 +221,10 @@ winConfigKeyboard (DeviceIntPtr pDevice)
   char				*s = NULL;
 
   /* Setup defaults */
-  g_winInfo.xkb.disable = FALSE;
-# ifdef PC98 /* japanese */	/* not implemented */
-  g_winInfo.xkb.rules = "xfree98";
-  g_winInfo.xkb.model = "pc98";
-  g_winInfo.xkb.layout = "nex/jp";
-  g_winInfo.xkb.variant = NULL;
-  g_winInfo.xkb.options = NULL;
-# else
-  g_winInfo.xkb.rules = "xorg";
-  g_winInfo.xkb.model = "pc101";
-  g_winInfo.xkb.layout = "us";
-  g_winInfo.xkb.variant = NULL;
-  g_winInfo.xkb.options = NULL;
-# endif	/* PC98 */
+  XkbGetRulesDflts(&g_winInfo.xkb);
 
   /*
    * Query the windows autorepeat settings and change the xserver defaults.   
-   * If XKB is disabled then windows handles the autorepeat and the special 
-   * treatment is not needed
    */
   {
     int kbd_delay;
@@ -483,7 +467,6 @@ winConfigKeyboard (DeviceIntPtr pDevice)
 	    winMsg (from, "XKB: options: \"%s\"\n", s);
 	  }
 
-	}
 #ifdef XWIN_XF86CONFIG
     }
 #endif

@@ -305,16 +305,7 @@ typedef struct
     long rate;
   }
   keyboard;
-  struct
-  {
-    Bool disable;
-    char *rules;
-    char *model;
-    char *layout;
-    char *variant;
-    char *options;
-  }
-  xkb;
+  XkbRMLVOSet xkb;
   struct
   {
     Bool emulate3Buttons;

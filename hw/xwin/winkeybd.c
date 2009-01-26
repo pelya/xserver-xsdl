@@ -44,10 +44,6 @@
 
 static Bool g_winKeyState[NUM_KEYCODES];
 
-/* Stored to get internal mode key states.  Must be read-only.  */
-static unsigned short const *g_winInternalModeKeyStatesPtr = NULL;
-
-
 /*
  * Local prototypes
  */
@@ -204,7 +200,6 @@ winKeybdBell (int iPercent, DeviceIntPtr pDeviceInt,
 static void
 winKeybdCtrl (DeviceIntPtr pDevice, KeybdCtrl *pCtrl)
 {
-  g_winInternalModeKeyStatesPtr = &(pDevice->key->state);
 }
 
 
@@ -216,9 +211,7 @@ winKeybdCtrl (DeviceIntPtr pDevice, KeybdCtrl *pCtrl)
 int
 winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 {
-  KeySymsRec		keySyms;
   DevicePtr		pDevice = (DevicePtr) pDeviceInt;
-  XkbComponentNamesRec names;
   XkbSrvInfoPtr       xkbi;
   XkbControlsPtr      ctrl;
 
@@ -230,65 +223,40 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
       /* FIXME: Maybe we should use winGetKbdLeds () here? */
       defaultKeyboardControl.leds = g_winInfo.keyboard.leds;
 
-      if (g_winInfo.xkb.disable) 
-	{
-	  InitKeyboardDeviceStruct (pDevice,
-				    &keySyms,
-				    winKeybdBell,
-				    winKeybdCtrl);
-	} 
-      else 
-	{
+      winErrorFVerb(2, "Rules = \"%s\" Model = \"%s\" Layout = \"%s\""
+                    " Variant = \"%s\" Options = \"%s\"\n",
+                    g_winInfo.xkb.rules ? g_winInfo.xkb.rules : "none",
+                    g_winInfo.xkb.model ? g_winInfo.xkb.model : "none",
+                    g_winInfo.xkb.layout ? g_winInfo.xkb.layout : "none",
+                    g_winInfo.xkb.variant ? g_winInfo.xkb.variant : "none",
+                    g_winInfo.xkb.options ? g_winInfo.xkb.options : "none");
 
-          names.keymap = g_winInfo.xkb.keymap;
-          names.keycodes = g_winInfo.xkb.keycodes;
-          names.types = g_winInfo.xkb.types;
-          names.compat = g_winInfo.xkb.compat;
-          names.symbols = g_winInfo.xkb.symbols;
-          names.geometry = g_winInfo.xkb.geometry;
+      InitKeyboardDeviceStruct (pDeviceInt,
+                                &g_winInfo.xkb,
+                                winKeybdBell,
+                                winKeybdCtrl);
 
-	  winErrorFVerb(2, "Rules = \"%s\" Model = \"%s\" Layout = \"%s\""
-		 " Variant = \"%s\" Options = \"%s\"\n",
-		 g_winInfo.xkb.rules ? g_winInfo.xkb.rules : "none",
-		 g_winInfo.xkb.model ? g_winInfo.xkb.model : "none",
-		 g_winInfo.xkb.layout ? g_winInfo.xkb.layout : "none",
-		 g_winInfo.xkb.variant ? g_winInfo.xkb.variant : "none",
-		 g_winInfo.xkb.options ? g_winInfo.xkb.options : "none");
-          
-	  XkbSetRulesDflts (g_winInfo.xkb.rules, g_winInfo.xkb.model, 
-			    g_winInfo.xkb.layout, g_winInfo.xkb.variant, 
-			    g_winInfo.xkb.options);
-	  XkbInitKeyboardDeviceStruct (pDeviceInt, &names, &keySyms,
-				       winKeybdBell, winKeybdCtrl);
-	}
-
-      if (!g_winInfo.xkb.disable)
-        {  
-          xkbi = pDeviceInt->key->xkbInfo;
-          if (xkbi != NULL)
-            {  
-              ctrl = xkbi->desc->ctrls;
-              ctrl->repeat_delay = g_winInfo.keyboard.delay;
-              ctrl->repeat_interval = 1000/g_winInfo.keyboard.rate;
-            }
-          else
-            {  
-              winErrorFVerb (1, "winKeybdProc - Error initializing keyboard AutoRepeat (No XKB)\n");
-            }
+      xkbi = pDeviceInt->key->xkbInfo;
+      if ((xkbi != NULL) && (xkbi->desc != NULL))
+        {
+          ctrl = xkbi->desc->ctrls;
+          ctrl->repeat_delay = g_winInfo.keyboard.delay;
+          ctrl->repeat_interval = 1000/g_winInfo.keyboard.rate;
+        }
+      else
+        {
+          winErrorFVerb (1, "winKeybdProc - Error initializing keyboard AutoRepeat\n");
         }
 
-      g_winInternalModeKeyStatesPtr = &(pDeviceInt->key->state);
       break;
       
     case DEVICE_ON: 
       pDevice->on = TRUE;
-      g_winInternalModeKeyStatesPtr = &(pDeviceInt->key->state);
       break;
 
     case DEVICE_CLOSE:
     case DEVICE_OFF: 
       pDevice->on = FALSE;
-      g_winInternalModeKeyStatesPtr = NULL;
       break;
     }
 
@@ -350,7 +318,7 @@ winRestoreModeKeyStates ()
   unsigned short	internalKeyStates;
 
   /* X server is being initialized */
-  if (!g_winInternalModeKeyStatesPtr)
+  if (!inputInfo.keyboard)
     return;
 
   /* Only process events if the rootwindow is mapped. The keyboard events
@@ -363,7 +331,9 @@ winRestoreModeKeyStates ()
     mieqProcessInputEvents ();
   
   /* Read the mode key states of our X server */
-  internalKeyStates = *g_winInternalModeKeyStatesPtr;
+  /* (stored in the virtual core keyboard) */
+  internalKeyStates = XkbStateFieldFromRec(&inputInfo.keyboard->key->xkbInfo->state);
+  winDebug("winRestoreModeKeyStates: state %d\n", internalKeyStates);
 
   /* 
    * NOTE: The C XOR operator, ^, will not work here because it is

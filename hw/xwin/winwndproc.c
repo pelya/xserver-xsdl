@@ -1031,9 +1031,8 @@ winWindowProc (HWND hwnd, UINT message,
 
       /* 
        * Discard presses generated from Windows auto-repeat
-       * ago: Only discard them if XKB is not disabled 
        */
-      if (!g_winInfo.xkb.disable && (lParam & (1<<30)))
+      if (lParam & (1<<30))
       {
         switch (wParam)
         {
