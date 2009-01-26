@@ -124,9 +124,7 @@ LoaderInit(void)
         xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
     }
 
-    xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)
-		((long)xorg_symbols[0] ^ (long)xorg_symbols[1]
-		 ^ (long)xorg_symbols[2] ^ (long)xorg_symbols[3]));
+    xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)xorg_symbols);
     xf86MsgVerb(X_INFO, 2, "Module ABI versions:\n");
     xf86ErrorFVerb(2, "\t%s: %d.%d\n", ABI_CLASS_ANSIC,
 		   GET_ABI_MAJOR(LoaderVersionInfo.ansicVersion),
