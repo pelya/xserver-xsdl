@@ -39,6 +39,7 @@ from The Open Group.
 #include "mibstore.h"
 #include "mipointer.h"
 #include "lk201kbd.h"
+#include "xkbsrv.h"
 #include <X11/keysym.h>
 
 Bool
