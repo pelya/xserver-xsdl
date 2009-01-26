@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -131,8 +130,6 @@ extern EntityPtr *xf86Entities;
 extern int xf86NumEntities;
 extern xf86AccessRec AccessNULL;
 extern BusRec primaryBus;
-extern resPtr Acc;
-extern resPtr ResRange;
 extern BusAccPtr xf86BusAccInfo;
 
 int xf86AllocateEntity(void);

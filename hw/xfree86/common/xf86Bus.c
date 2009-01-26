@@ -70,9 +70,8 @@ BusRec primaryBus = { BUS_NONE, { 0 } };
 
 static Bool xf86ResAccessEnter = FALSE;
 
-
 /* resource lists */
-resPtr Acc = NULL;
+static resPtr Acc = NULL;
 
 /* predefined special resources */
 resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
