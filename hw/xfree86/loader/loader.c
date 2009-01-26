@@ -83,8 +83,36 @@ static int refCount[MAX_HANDLE];
 static int moduleseq = 0;
 
 /* Prototypes for static functions. */
-static loaderPtr _LoaderListPush(void);
-static loaderPtr _LoaderListPop(int);
+static loaderPtr listHead = NULL;
+
+static loaderPtr
+_LoaderListPush(void)
+{
+    loaderPtr item = calloc(1, sizeof(struct _loader));
+
+    item->next = listHead;
+    listHead = item;
+
+    return item;
+}
+
+static loaderPtr
+_LoaderListPop(int handle)
+{
+    loaderPtr item = listHead;
+    loaderPtr *bptr = &listHead;	/* pointer to previous node */
+
+    while (item) {
+	if (item->handle == handle) {
+	    *bptr = item->next;	/* remove this from the list */
+	    return item;
+	}
+	bptr = &(item->next);
+	item = item->next;
+    }
+
+    return 0;
+}
 
 void
 LoaderInit(void)
@@ -137,37 +165,6 @@ LoaderInit(void)
 	LoaderOpen (path, "libcrt", 0, &errmaj, &errmin, &wasLoaded);
     }
 #endif
-}
-
-static loaderPtr listHead = (loaderPtr) 0;
-
-static loaderPtr
-_LoaderListPush(void)
-{
-    loaderPtr item = calloc(1, sizeof(struct _loader));
-
-    item->next = listHead;
-    listHead = item;
-
-    return item;
-}
-
-static loaderPtr
-_LoaderListPop(int handle)
-{
-    loaderPtr item = listHead;
-    loaderPtr *bptr = &listHead;	/* pointer to previous node */
-
-    while (item) {
-	if (item->handle == handle) {
-	    *bptr = item->next;	/* remove this from the list */
-	    return item;
-	}
-	bptr = &(item->next);
-	item = item->next;
-    }
-
-    return 0;
 }
 
 /* These four are just ABI stubs */
