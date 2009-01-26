@@ -77,20 +77,9 @@
 
 extern void *xorg_symbols[];
 
-/*
- * handles are used to identify files that are loaded. Even archives
- * are counted as a single file.
- */
 #define MAX_HANDLE 256
-#define HANDLE_FREE 0
-#define HANDLE_USED 1
-static char freeHandles[MAX_HANDLE];
 static int refCount[MAX_HANDLE];
 
-/*
- * modules are used to identify compilation units (ie object modules).
- * Archives contain multiple modules, each of which is treated seperately.
- */
 static int moduleseq = 0;
 
 /* Prototypes for static functions. */
@@ -250,7 +239,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
      * Find a free handle.
      */
     new_handle = 1;
-    while (freeHandles[new_handle] && new_handle < MAX_HANDLE)
+    while (refCount[new_handle] && new_handle < MAX_HANDLE)
 	new_handle++;
 
     if (new_handle == MAX_HANDLE) {
@@ -262,7 +251,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 	return -1;
     }
 
-    freeHandles[new_handle] = HANDLE_USED;
     refCount[new_handle] = 1;
 
     tmp = _LoaderListPush();
@@ -276,7 +264,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     if ((tmp->private = DLLoadModule(tmp, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
 	_LoaderListPop(new_handle);
-	freeHandles[new_handle] = HANDLE_FREE;
+	refCount[new_handle] = 0;
 	if (errmaj)
 	    *errmaj = LDR_NOLOAD;
 	if (errmin)
@@ -293,7 +281,7 @@ LoaderHandleOpen(int handle)
     if (handle < 0 || handle >= MAX_HANDLE)
 	return -1;
 
-    if (freeHandles[handle] != HANDLE_USED)
+    if (!refCount[handle])
 	return -1;
 
     refCount[handle]++;
@@ -341,8 +329,6 @@ LoaderUnload(int handle)
 	free(tmp->cname);
 	free(tmp);
     }
-
-    freeHandles[handle] = HANDLE_FREE;
 
     return 0;
 }
