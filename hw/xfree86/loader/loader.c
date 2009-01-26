@@ -304,10 +304,7 @@ LoaderUnload(int handle)
      */
 
     while ((tmp = _LoaderListPop(handle)) != NULL) {
-	if (strchr(tmp->name, ':') == NULL) {
-	    /* It is not a member of an archive */
-	    xf86Msg(X_INFO, "Unloading %s\n", tmp->name);
-	}
+	xf86Msg(X_INFO, "Unloading %s\n", tmp->name);
 	DLUnloadModule(tmp->private);
 	free(tmp->name);
 	free(tmp->cname);
