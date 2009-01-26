@@ -117,8 +117,6 @@ _LoaderListPop(int handle)
 void
 LoaderInit(void)
 {
-    const char *osname = NULL;
-
     char *ld_bind_now = getenv("LD_BIND_NOW");
     if (ld_bind_now && *ld_bind_now) {
         xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
@@ -138,10 +136,6 @@ LoaderInit(void)
     xf86ErrorFVerb(2, "\t%s : %d.%d\n", ABI_CLASS_EXTENSION,
 		   GET_ABI_MAJOR(LoaderVersionInfo.extensionVersion),
 		   GET_ABI_MINOR(LoaderVersionInfo.extensionVersion));
-
-    LoaderGetOS(&osname, NULL, NULL, NULL);
-    if (osname)
-	xf86MsgVerb(X_INFO, 2, "Loader running on %s\n", osname);
 
 #if defined(__UNIXWARE__) && !defined(__GNUC__)
     /* For UnixWare we need to load the C Runtime libraries which are
