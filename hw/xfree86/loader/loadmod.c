@@ -1023,15 +1023,6 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     TestFree(name);
     TestFree(p);
 
-    /*
-     * If you need to do something to keep the
-     * instruction cache in sync with the main
-     * memory before jumping to that code, you may
-     * do it here.
-     */
-#ifdef __alpha__
-    istream_mem_barrier();
-#endif
     return ret;
 }
 
@@ -1108,9 +1099,6 @@ UnloadModuleOrDriver(ModuleDescPtr mod)
 	UnloadModuleOrDriver(mod->sib);
     TestFree(mod->name);
     xfree(mod);
-#ifdef __alpha__
-    istream_mem_barrier();
-#endif
 }
 
 void
