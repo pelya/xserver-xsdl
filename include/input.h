@@ -95,21 +95,6 @@ SOFTWARE.
 #define RevertToFollowKeyboard	3
 #endif
 
-/* Used for enter/leave and focus in/out semaphores */
-#define SEMAPHORE_FIELD_SET(win, dev, field) \
-    (win)->field[(dev)->id/8] |= (1 << ((dev)->id % 8)); \
-
-#define SEMAPHORE_FIELD_UNSET(win, dev, field) \
-    (win)->field[(dev)->id/8] &= ~(1 << ((dev)->id % 8));
-
-#define FOCUS_SEMAPHORE_SET(win, dev) \
-        SEMAPHORE_FIELD_SET(win, dev, focusinout);
-
-#define FOCUS_SEMAPHORE_UNSET(win, dev) \
-        SEMAPHORE_FIELD_UNSET(win, dev, focusinout);
-
-#define FOCUS_SEMAPHORE_ISSET(win, dev) \
-        (win)->focusinout[(dev)->id/8] & (1 << ((dev)->id % 8))
 
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;
