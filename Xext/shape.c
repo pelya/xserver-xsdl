@@ -95,7 +95,7 @@ static DISPATCH_PROC(SProcShapeSelectInput);
 #endif
 
 static int ShapeEventBase = 0;
-static RESTYPE ClientType, EventType; /* resource types for event masks */
+static RESTYPE ClientType, ShapeEventType; /* resource types for event masks */
 
 /*
  * each window has a list of clients requesting
@@ -128,8 +128,8 @@ ShapeExtensionInit(void)
     ExtensionEntry *extEntry;
 
     ClientType = CreateNewResourceType(ShapeFreeClient);
-    EventType = CreateNewResourceType(ShapeFreeEvents);
-    if (ClientType && EventType &&
+    ShapeEventType = CreateNewResourceType(ShapeFreeEvents);
+    if (ClientType && ShapeEventType &&
 	(extEntry = AddExtension(SHAPENAME, ShapeNumberEvents, 0,
 				 ProcShapeDispatch, SProcShapeDispatch,
 				 NULL, StandardMinorOpcode)))
@@ -741,7 +741,7 @@ ShapeFreeClient (pointer data, XID id)
 
     pShapeEvent = (ShapeEventPtr) data;
     pWin = pShapeEvent->window;
-    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, EventType);
+    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, ShapeEventType);
     if (pHead) {
 	pPrev = 0;
 	for (pCur = *pHead; pCur && pCur != pShapeEvent; pCur=pCur->next)
@@ -788,7 +788,7 @@ ProcShapeSelectInput (ClientPtr client)
     if (rc != Success)
 	return rc;
     pHead = (ShapeEventPtr *)SecurityLookupIDByType(client,
-			pWin->drawable.id, EventType, DixWriteAccess);
+			pWin->drawable.id, ShapeEventType, DixWriteAccess);
     switch (stuff->enable) {
     case xTrue:
 	if (pHead) {
@@ -828,7 +828,7 @@ ProcShapeSelectInput (ClientPtr client)
     	{
 	    pHead = xalloc (sizeof (ShapeEventPtr));
 	    if (!pHead ||
-	    	!AddResource (pWin->drawable.id, EventType, (pointer)pHead))
+		!AddResource (pWin->drawable.id, ShapeEventType, (pointer)pHead))
 	    {
 	    	FreeResource (clientResource, RT_NONE);
 	    	return BadAlloc;
@@ -878,7 +878,7 @@ SendShapeNotify (WindowPtr pWin, int which)
     RegionPtr		region;
     BYTE		shaped;
 
-    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, EventType);
+    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, ShapeEventType);
     if (!pHead)
 	return;
     switch (which) {
@@ -957,7 +957,7 @@ ProcShapeInputSelected (ClientPtr client)
     if (rc != Success)
 	return rc;
     pHead = (ShapeEventPtr *) SecurityLookupIDByType(client,
-			pWin->drawable.id, EventType, DixReadAccess);
+			pWin->drawable.id, ShapeEventType, DixReadAccess);
     enabled = xFalse;
     if (pHead) {
     	for (pShapeEvent = *pHead;
