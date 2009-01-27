@@ -4,7 +4,7 @@ INCLUDES = 					\
 
 AM_CFLAGS = -DHAVE_DIX_CONFIG_H
 
-noinst_LIBRARIES = liblinux.a
+noinst_LTLIBRARIES = liblinux.la
 
 if TSLIB
 TSLIB_C = tslib.c
@@ -19,7 +19,7 @@ KDRIVE_HW_SOURCES =	\
 	linux.c
 endif
 
-liblinux_a_SOURCES = 	\
+liblinux_la_SOURCES = 	\
 	bus.c		\
 	klinux.h	\
 	mouse.c		\
