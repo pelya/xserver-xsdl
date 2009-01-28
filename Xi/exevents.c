@@ -474,7 +474,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
     if (from->key)
     {
-        struct _XkbSrvInfo  *oldXkbInfo;
         if (!to->key)
         {
             classes = dixLookupPrivate(&to->devPrivates,
@@ -489,8 +488,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->key = NULL;
         }
 
-        oldXkbInfo      = to->key->xkbInfo;
-        to->key->xkbInfo        = oldXkbInfo;
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
     {
