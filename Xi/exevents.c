@@ -237,7 +237,14 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         {
             classes = dixLookupPrivate(&to->devPrivates,
                                        UnusedClassesPrivateKey);
+
             to->kbdfeed = classes->kbdfeed;
+            if (!to->kbdfeed)
+            {
+                XkbRMLVOSet rmlvo;
+                XkbGetRulesDflts(&rmlvo);
+                InitKeyboardDeviceStruct(to, &rmlvo, NULL, NULL);
+            }
         }
 
         k = &to->kbdfeed;
@@ -481,9 +488,9 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
             to->key = classes->key;
             if (!to->key)
             {
-                to->key = xcalloc(1, sizeof(KeyClassRec));
-                if (!to->key)
-                    FatalError("[Xi] no memory for class shift.\n");
+                XkbRMLVOSet rmlvo;
+                XkbGetRulesDflts(&rmlvo);
+                InitKeyboardDeviceStruct(to, &rmlvo, NULL, NULL);
             } else
                 classes->key = NULL;
         }
