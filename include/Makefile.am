@@ -57,7 +57,7 @@ sdk_HEADERS =		\
 	xkbrules.h      \
 	xserver-properties.h
 
-nodist_sdk_HEADERS = xorg-server.h events.h
+nodist_sdk_HEADERS = xorg-server.h events.h eventconvert.h
 endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
