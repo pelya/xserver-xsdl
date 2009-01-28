@@ -422,8 +422,10 @@ int			maxNumberOfGroups;
         maxSymsPerKey = maxNumberOfGroups * maxGroup1Width;
 
     syms->mapWidth = maxSymsPerKey;
+    syms->minKeyCode = xkb->min_key_code;
+    syms->maxKeyCode = xkb->max_key_code;
 
-    tmp = syms->mapWidth * (xkb->max_key_code - xkb->min_key_code);
+    tmp = syms->mapWidth * (xkb->max_key_code - xkb->min_key_code + 1);
     syms->map = xcalloc(tmp, sizeof(*syms->map));
     if (!syms->map) {
         xfree(syms);
@@ -455,7 +457,7 @@ int			maxNumberOfGroups;
 	 */
 	if (nGroups == 1)
 	{
-	    int idx;
+	    int idx, j;
 
 	    groupWidth = XkbKeyGroupWidth(xkb, key, XkbGroup1Index);
 
@@ -470,39 +472,16 @@ int			maxNumberOfGroups;
 	    while (groupWidth > 2 && idx < syms->mapWidth &&
 		   idx < groupWidth * 2)
 	    {
-		int idx, j;
-
-		groupWidth = XkbKeyGroupWidth(xkb, key, XkbGroup1Index);
-
-		/* AB..CDE... -> ABABCDE... */
-		if (groupWidth > 0 && maxSymsPerKey >= 3)
-		    pCore[2] = pCore[0];
-		if (groupWidth > 1 && maxSymsPerKey >= 4)
-		    pCore[3] = pCore[1];
-
-		/* ABABCDE... -> ABABCDECDE */
-		idx = 2 + groupWidth;
-		while (groupWidth > 2 &&
-			idx < maxSymsPerKey &&
-			idx < groupWidth * 2)
-		{
-		    pCore[idx] = pCore[idx - groupWidth + 2];
-		    idx++;
-		}
-		idx = 2 * groupWidth;
-		if (idx < 4)
-		    idx = 4;
-		/* 3 or more groups: ABABCDECDEABCDEABCDE */
-                for (j = 3; j <= maxNumberOfGroups; j++)
-                    for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
-                        pCore[idx++] = pXKB[n];
+		pCore[idx] = pCore[idx - groupWidth + 2];
+		idx++;
 	    }
 	    idx = 2 * groupWidth;
 	    if (idx < 4)
 		idx = 4;
 	    /* 3 or more groups: ABABCDECDEABCDEABCDE */
-	    for (n = 0; n < groupWidth && idx < syms->mapWidth; n++)
-		pCore[idx++] = pXKB[n];
+	    for (j = 3; j <= maxNumberOfGroups; j++)
+		for (n = 0; n < groupWidth && idx < maxSymsPerKey; n++)
+		    pCore[idx++] = pXKB[n];
 	}
 
 	pXKB+= XkbKeyGroupsWidth(xkb,key);
