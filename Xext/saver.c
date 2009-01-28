@@ -142,7 +142,7 @@ static int ScreenSaverFreeSuspend(
  * entry from the per-screen queue.
  */
 
-static RESTYPE EventType;   /* resource type for event masks */
+static RESTYPE SaverEventType;   /* resource type for event masks */
 
 typedef struct _ScreenSaverEvent *ScreenSaverEventPtr;
 
@@ -253,7 +253,7 @@ ScreenSaverExtensionInit(INITARGS)
     ScreenPtr	    pScreen;
 
     AttrType = CreateNewResourceType(ScreenSaverFreeAttr);
-    EventType = CreateNewResourceType(ScreenSaverFreeEvents);
+    SaverEventType = CreateNewResourceType(ScreenSaverFreeEvents);
     SuspendType = CreateNewResourceType(ScreenSaverFreeSuspend);
 
     for (i = 0; i < screenInfo.numScreens; i++)
@@ -261,7 +261,7 @@ ScreenSaverExtensionInit(INITARGS)
 	pScreen = screenInfo.screens[i];
 	SetScreenPrivate (pScreen, NULL);
     }
-    if (AttrType && EventType && SuspendType &&
+    if (AttrType && SaverEventType && SuspendType &&
 	(extEntry = AddExtension(ScreenSaverName, ScreenSaverNumberEvents, 0,
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 NULL, StandardMinorOpcode)))
@@ -339,7 +339,7 @@ setEventMask (ScreenPtr pScreen, ClientPtr client, unsigned long mask)
 	    break;
     if (mask == 0)
     {
-	FreeResource (pEv->resource, EventType);
+	FreeResource (pEv->resource, SaverEventType);
 	*pPrev = pEv->next;
 	xfree (pEv);
 	CheckScreenPrivate (pScreen);
@@ -359,7 +359,7 @@ setEventMask (ScreenPtr pScreen, ClientPtr client, unsigned long mask)
     	    pEv->client = client;
     	    pEv->screen = pScreen;
     	    pEv->resource = FakeClientID (client->index);
-	    if (!AddResource (pEv->resource, EventType, (pointer) pEv))
+	    if (!AddResource (pEv->resource, SaverEventType, (pointer) pEv))
 		return FALSE;
     	}
 	pEv->mask = mask;
