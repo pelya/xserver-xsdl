@@ -204,7 +204,7 @@ shadowAdd(ScreenPtr pScreen, PixmapPtr pPixmap, ShadowUpdateProc update,
     pBuf->update = update;
     pBuf->window = window;
     pBuf->randr = randr;
-    pBuf->closure = 0;
+    pBuf->closure = closure;
     pBuf->pPixmap = pPixmap;
     DamageRegister(&pPixmap->drawable, pBuf->pDamage);
     return TRUE;
