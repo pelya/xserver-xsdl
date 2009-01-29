@@ -191,8 +191,13 @@ winClipboardFlushXEvents (HWND hwnd,
 	  if (fUseUnicode
 	      && !IsClipboardFormatAvailable (CF_UNICODETEXT))
 	    {
-	      ErrorF ("winClipboardFlushXEvents - CF_UNICODETEXT is not "
-		      "available from Win32 clipboard.  Aborting.\n");
+	      static int count; /* Hack to stop acroread spamming the log */
+	      static HWND lasthwnd; /* I've not seen any other client get here repeatedly? */
+	      if (hwnd != lasthwnd) count = 0;
+	      count++;
+	      if (count < 6) ErrorF ("winClipboardFlushXEvents - CF_UNICODETEXT is not "
+		      "available from Win32 clipboard.  Aborting %d.\n", count);
+	      lasthwnd = hwnd;
 
 	      /* Abort */
 	      fAbort = TRUE;
