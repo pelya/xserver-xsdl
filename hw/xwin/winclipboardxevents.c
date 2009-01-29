@@ -311,6 +311,7 @@ winClipboardFlushXEvents (HWND hwnd,
 
 	  /* Initialize the text property */
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Create the text property from the text list */
 	  if (fUseUnicode)
@@ -371,10 +372,13 @@ winClipboardFlushXEvents (HWND hwnd,
 	  /* Release the clipboard data */
 	  GlobalUnlock (hGlobal);
 	  pszGlobalData = NULL;
+	  fCloseClipboard = FALSE;
+	  CloseClipboard ();
 
 	  /* Clean up */
 	  XFree (xtpText.value);
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Setup selection notify event */
 	  eventSelection.type = SelectionNotify;
@@ -405,7 +409,11 @@ winClipboardFlushXEvents (HWND hwnd,
 	winClipboardFlushXEvents_SelectionRequest_Done:
 	  /* Free allocated resources */
 	  if (xtpText.value)
+	  {
 	    XFree (xtpText.value);
+	    xtpText.value = NULL;
+	    xtpText.nitems = 0;
+	  }
 	  if (pszConvertData)
 	    free (pszConvertData);
 	  if (hGlobal && pszGlobalData)
@@ -446,7 +454,10 @@ winClipboardFlushXEvents (HWND hwnd,
 
 	  /* Close clipboard if it was opened */
 	  if (fCloseClipboard)
+	  {
+	    fCloseClipboard = FALSE;
 	    CloseClipboard ();
+	  }
 	  break;
 
 
@@ -628,6 +639,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	      /* Conversion succeeded or some unconvertible characters */
 	      if (ppszTextList != NULL)
 		{
+		  iReturnDataLen = 0;
 		  for (i = 0; i < iCount; i++)
 		    {
 		      iReturnDataLen += strlen(ppszTextList[i]);
@@ -673,6 +685,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  ppszTextList = NULL;
 	  XFree (xtpText.value);
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Convert the X clipboard string to DOS format */
 	  winClipboardUNIXtoDOS (&pszReturnData, strlen (pszReturnData));
@@ -786,7 +799,11 @@ winClipboardFlushXEvents (HWND hwnd,
 	  if (ppszTextList)
 	    XFreeStringList (ppszTextList);
 	  if (xtpText.value)
+	  {
 	    XFree (xtpText.value);
+	    xtpText.value = NULL;
+	    xtpText.nitems = 0;
+	  }
 	  if (pszConvertData)
 	    free (pszConvertData);
 	  if (pwszUnicodeStr)
