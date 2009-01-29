@@ -1,6 +1,7 @@
 /*
  * Copyright © 2006 Nokia Corporation
  * Copyright © 2006-2007 Daniel Stone
+ * Copyright © 2008 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +22,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *
- * Author: Daniel Stone <daniel@fooishbar.org>
+ * Authors: Daniel Stone <daniel@fooishbar.org>
+ *          Peter Hutterer <peter.hutterer@who-t.net>
  */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -41,6 +43,7 @@
 #include "globals.h"
 #include "dixevents.h"
 #include "mipointer.h"
+#include "events.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -122,24 +125,59 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
               (1 << (key_code & 7)));
 }
 
+static void
+init_event(DeviceIntPtr dev, DeviceEvent* event, Time ms)
+{
+    memset(event, 0, sizeof(DeviceEvent));
+    event->header = ET_Internal;
+    event->length = sizeof(DeviceEvent);
+    event->time = ms;
+    event->deviceid = dev->id;
+    event->sourceid = dev->id;
+}
+
+static void
+set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
+              int num_valuators, int *valuators)
+{
+    int i;
+
+    for (i = first_valuator; i < num_valuators; i++)
+        SetBit(event->valuators.mask, i);
+
+    /* FIXME: Set the current mode */
+
+    memcpy(&event->valuators.data[first_valuator],
+           valuators, num_valuators * sizeof(uint32_t));
+}
+
 void
 CreateClassesChangedEvent(EventList* event,
                           DeviceIntPtr master,
                           DeviceIntPtr slave)
 {
-    deviceClassesChangedEvent *dcce;
-    int len = sizeof(xEvent);
+    DeviceChangedEvent *dce;
     CARD32 ms = GetTimeInMillis();
-    int namelen = 0; /* dummy */
 
-    dcce = (deviceClassesChangedEvent*)event->event;
-    dcce->type = GenericEvent;
-    dcce->extension = IReqCode;
-    dcce->evtype = XI_DeviceClassesChangedNotify;
-    dcce->time = ms;
-    dcce->new_slave = slave->id;
-    SizeDeviceInfo(slave, &namelen, &len);
-    dcce->length = (len - sizeof(xEvent))/4;
+    dce = (DeviceChangedEvent*)event->event;
+    memset(dce, 0, sizeof(DeviceChangedEvent));
+    dce->header = ET_Internal;
+    dce->length = sizeof(DeviceChangedEvent);
+    dce->type = ET_DeviceChanged;
+    dce->time = ms;
+    if (master->u.lastSlave)
+    {
+        dce->flags |= HAS_OLD_SLAVE;
+        dce->old_slaveid = master->u.lastSlave->id;
+    }
+    dce->flags |= HAS_NEW_SLAVE;
+    dce->new_slaveid = slave->id;
+
+    /* FIXME: fill in new information about the device. We need to do this
+     * here to avoid race conditions if the device changes while the event
+     * slumbers in the EQ.
+     */
+
 }
 
 /**
@@ -797,7 +835,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int num_valuators, int *valuators) {
     int numEvents = 0;
     CARD32 ms = 0;
-    deviceKeyButtonPointer *kbp = NULL;
+    DeviceEvent *event;
 
     if (!events ||!pDev->key || !pDev->focus || !pDev->kbdfeed ||
        (type != KeyPress && type != KeyRelease) ||
@@ -807,8 +845,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     numEvents = 1;
 
     events = updateFromMaster(events, pDev, &numEvents);
-
-    numEvents += countValuatorEvents(num_valuators);
 
     /* Handle core repeating, via press/release/press/release. */
     if (type == KeyPress && key_is_down(pDev, key_code, KEY_POSTED)) {
@@ -820,28 +856,31 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
             return 0;
     }
 
+    if (num_valuators)
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
+
     ms = GetTimeInMillis();
 
-    kbp = (deviceKeyButtonPointer *) events->event;
-    kbp->time = ms;
-    kbp->deviceid = pDev->id;
-    kbp->detail = key_code;
+    event = (DeviceEvent*) events->event;
+    init_event(pDev, event, ms);
+    event->detail.key = key_code;
+
     if (type == KeyPress) {
-        kbp->type = DeviceKeyPress;
+        event->type = ET_KeyPress;
 	set_key_down(pDev, key_code, KEY_POSTED);
     }
     else if (type == KeyRelease) {
-        kbp->type = DeviceKeyRelease;
+        event->type = ET_KeyRelease;
 	set_key_up(pDev, key_code, KEY_POSTED);
     }
 
-    events++;
-    if (num_valuators) {
-        kbp->deviceid |= MORE_EVENTS;
+    if (num_valuators)
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
-    }
+
+    set_valuators(pDev, event, first_valuator, num_valuators, valuators);
+
+    /* XXX: temporary only */
+    numEvents = ConvertBackToXI(events - (numEvents - 1), numEvents);
 
     return numEvents;
 }
@@ -865,8 +904,8 @@ InitEventList(int num_events)
 
     for (i = 0; i < num_events; i++)
     {
-        events[i].evlen = sizeof(xEvent);
-        events[i].event = xcalloc(1, sizeof(xEvent));
+        events[i].evlen = sizeof(InternalEvent);
+        events[i].event = xcalloc(1, sizeof(InternalEvent));
         if (!events[i].event)
         {
             /* rollback */
@@ -946,7 +985,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int *valuators) {
     int num_events = 1;
     CARD32 ms;
-    deviceKeyButtonPointer *kbp = NULL;
+    DeviceEvent *event;
     int x, y, /* switches between device and screen coords */
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
@@ -960,8 +999,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         ((type == ButtonPress || type == ButtonRelease) && !buttons) ||
         (type == MotionNotify && num_valuators <= 0))
         return 0;
-
-    num_events += countValuatorEvents(num_valuators);
 
     events = updateFromMaster(events, pDev, &num_events);
 
@@ -995,36 +1032,36 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
         valuators[1 - first_valuator] = y;
 
-    kbp = (deviceKeyButtonPointer *) events->event;
-    kbp->time = ms;
-    kbp->deviceid = pDev->id;
+    if (num_valuators)
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
+
+    event = (DeviceEvent*) events->event;
+    init_event(pDev, event, ms);
 
     if (type == MotionNotify) {
-        kbp->type = DeviceMotionNotify;
+        event->type = ET_Motion;
+        event->detail.button = 0;
     }
     else {
         if (type == ButtonPress) {
-            kbp->type = DeviceButtonPress;
+            event->type = ET_ButtonPress;
             pDev->button->postdown[buttons >> 3] |= (1 << (buttons & 7));
         }
         else if (type == ButtonRelease) {
-            kbp->type = DeviceButtonRelease;
+            event->type = ET_ButtonRelease;
             pDev->button->postdown[buttons >> 3] &= ~(1 << (buttons & 7));
         }
-        kbp->detail = buttons;
+        event->detail.button = buttons;
     }
 
-    kbp->root_x = cx; /* root_x/y always in screen coords */
-    kbp->root_y = cy;
+    /* XXX: this should be 16.16 fixed point */
+    event->root_x = cx; /* root_x/y always in screen coords */
+    event->root_y = cy;
 
-    events++;
-    if (num_valuators) {
-        kbp->deviceid |= MORE_EVENTS;
-        if (flags & POINTER_ABSOLUTE)
-            clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
-    }
+    set_valuators(pDev, event, first_valuator, num_valuators, valuators);
+
+    /* XXX: temporary only */
+    num_events = ConvertBackToXI(events - (num_events - 1), num_events);
 
     return num_events;
 }
@@ -1042,7 +1079,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
     int num_events = 1;
-    deviceKeyButtonPointer *kbp;
+    DeviceEvent *event;
 
     /* Sanity checks. */
     if (type != ProximityIn && type != ProximityOut)
@@ -1066,19 +1103,17 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     events = updateFromMaster(events, pDev, &num_events);
 
-    kbp = (deviceKeyButtonPointer *) events->event;
-    kbp->type = type;
-    kbp->deviceid = pDev->id;
-    kbp->detail = 0;
-    kbp->time = GetTimeInMillis();
+    event = (DeviceEvent *) events->event;
+    init_event(pDev, event, GetTimeInMillis());
+    event->type = (type == ProximityIn) ? ET_ProximityIn : ET_ProximityOut;
 
-    if (num_valuators) {
-        kbp->deviceid |= MORE_EVENTS;
-        events++;
+    if (num_valuators)
         clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
-    }
+
+    set_valuators(pDev, event, first_valuator, num_valuators, valuators);
+
+    /* XXX: temporary only */
+    num_events = ConvertBackToXI(events - (num_events - 1), num_events);
 
     return num_events;
 }
