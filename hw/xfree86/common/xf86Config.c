@@ -801,9 +801,13 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     Bool value;
     MessageType from;
     const char *s;
-#ifdef XKB
-    char *rules = "base";
-#endif
+    XkbRMLVOSet set;
+    /* Default options. */
+    set.rules = "base";
+    set.model = "pc105";
+    set.layout = "us";
+    set.variant = NULL;
+    set.options = NULL;
 
     /*
      * Merge the ServerLayout and ServerFlags options.  The former have
@@ -957,13 +961,11 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &xf86Info.allowEmptyInput);
 
     /* AEI on? Then we're not using kbd, so use the evdev rules set. */
-#ifdef XKB
 #if defined(linux)
     if (xf86Info.allowEmptyInput)
-        rules = "evdev";
+        set.rules = "evdev";
 #endif
-    XkbSetRulesDflts(rules, "pc105", "us", NULL, NULL);
-#endif
+    XkbSetRulesDflts(&set);
 
     xf86Info.useDefaultFontPath = TRUE;
     xf86Info.useDefaultFontPathFrom = X_DEFAULT;

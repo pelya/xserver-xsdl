@@ -48,9 +48,7 @@
 #include "geext.h"
 #include "xace.h"
 
-#ifdef XKB
 #include "xkbsrv.h"
-#endif
 
 #include "chdevhier.h"
 
@@ -104,6 +102,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 {
                     xCreateMasterInfo* c = (xCreateMasterInfo*)any;
                     char* name;
+                    XkbRMLVOSet set;
 
                     SWAPIF(swaps(&c->namelen, n));
                     name = xcalloc(c->namelen + 1, sizeof(char));
@@ -119,11 +118,16 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     if (!c->sendCore)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
-#ifdef XKB
+
                     /* supplying NULL for rules simply means we re-use
                        whatever ruleset we used for the previous devices. */
-                    XkbSetRulesDflts(NULL, "pc105", "us", NULL, NULL);
-#endif
+                    set.rules = NULL;
+                    set.model = "pc105";
+                    set.layout = "us";
+                    set.variant = NULL;
+                    set.options = NULL;
+                    XkbSetRulesDflts(&set);
+
                     ActivateDevice(ptr);
                     ActivateDevice(keybd);
 

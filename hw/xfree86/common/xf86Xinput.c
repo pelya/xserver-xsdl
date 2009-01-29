@@ -92,9 +92,7 @@
 #include "dgaproc.h"
 #endif
 
-#ifdef XKB
 #include "xkbsrv.h"
-#endif
 
 #include "os.h"
 
