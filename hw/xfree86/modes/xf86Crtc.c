@@ -3117,22 +3117,29 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 xf86_crtc_notify_proc_ptr
 xf86_wrap_crtc_notify (ScreenPtr screen, xf86_crtc_notify_proc_ptr new)
 {
-    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
-    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
-    xf86_crtc_notify_proc_ptr	old;
-    
-    old = config->xf86_crtc_notify;
-    config->xf86_crtc_notify = new;
-    return old;
+    if (xf86CrtcConfigPrivateIndex != -1)
+    {
+	ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+	xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+	xf86_crtc_notify_proc_ptr	old;
+	
+	old = config->xf86_crtc_notify;
+	config->xf86_crtc_notify = new;
+	return old;
+    }
+    return NULL;
 }
 
 void
 xf86_unwrap_crtc_notify(ScreenPtr screen, xf86_crtc_notify_proc_ptr old)
 {
-    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
-    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
-
-    config->xf86_crtc_notify = old;
+    if (xf86CrtcConfigPrivateIndex != -1)
+    {
+	ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+	xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    
+	config->xf86_crtc_notify = old;
+    }
 }
 
 void
