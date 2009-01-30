@@ -149,6 +149,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int xoff, yoff;
     int bpp = pDrawable->bitsPerPixel;
     Bool access_prepared = FALSE;
+    Bool ret = TRUE;
 
     if (pExaPixmap->accel_blocked)
 	return FALSE;
@@ -210,33 +211,12 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
 	ok = pExaScr->info->UploadToScreen(pPix, x1 + xoff, y1 + yoff,
 					   x2 - x1, y2 - y1, src, src_stride);
-	/* If we fail to accelerate the upload, fall back to using unaccelerated
-	 * fb calls.
+	/* We have to fall back completely, and ignore what has already been completed.
+	 * Messing with the fb layer directly like we used to is completely unacceptable.
 	 */
 	if (!ok) {
-	    FbStip *dst;
-	    FbStride dst_stride;
-	    int	dstBpp;
-	    int	dstXoff, dstYoff;
-
-	    if (!access_prepared) {
-		ExaDoPrepareAccess(pDrawable, EXA_PREPARE_DEST);
-
-		access_prepared = TRUE;
-	    }
-
-	    fbGetStipDrawable(pDrawable, dst, dst_stride, dstBpp,
-			      dstXoff, dstYoff);
-
-	    fbBltStip((FbStip *)bits + (y1 - y) * (src_stride / sizeof(FbStip)),
-		      src_stride / sizeof(FbStip),
-		      (x1 - x) * dstBpp,
-		      dst + (y1 + dstYoff) * dst_stride,
-		      dst_stride,
-		      (x1 + dstXoff) * dstBpp,
-		      (x2 - x1) * dstBpp,
-		      y2 - y1,
-		      GXcopy, FB_ALLONES, dstBpp);
+	    ret = FALSE;
+	    break;
 	}
     }
 
@@ -245,7 +225,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     else
 	exaMarkSync(pDrawable->pScreen);
 
-    return TRUE;
+    return ret;
 }
 
 static void
