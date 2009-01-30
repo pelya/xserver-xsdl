@@ -974,29 +974,32 @@ XineramaGetCursorScreen(DeviceIntPtr pDev)
 #define TIMESLOP (5 * 60 * 1000) /* 5 minutes */
 
 static void
-MonthChangedOrBadTime(xEvent *xE)
+MonthChangedOrBadTime(InternalEvent *ev)
 {
     /* If the ddx/OS is careless about not processing timestamped events from
      * different sources in sorted order, then it's possible for time to go
      * backwards when it should not.  Here we ensure a decent time.
      */
-    if ((currentTime.milliseconds - XE_KBPTR.time) > TIMESLOP)
+    if ((currentTime.milliseconds - ev->u.any.time) > TIMESLOP)
 	currentTime.months++;
     else
-	XE_KBPTR.time = currentTime.milliseconds;
+        ev->u.any.time = currentTime.milliseconds;
 }
 
-#define NoticeTime(xE) { \
-    if ((xE)->u.keyButtonPointer.time < currentTime.milliseconds) \
-	MonthChangedOrBadTime(xE); \
-    currentTime.milliseconds = (xE)->u.keyButtonPointer.time; \
-    lastDeviceEventTime = currentTime; }
+static void
+NoticeTime(InternalEvent *ev)
+{
+    if (ev->u.any.time < currentTime.milliseconds)
+        MonthChangedOrBadTime(ev);
+    currentTime.milliseconds = ev->u.any.time;
+    lastDeviceEventTime = currentTime;
+}
 
 void
-NoticeEventTime(xEvent *xE)
+NoticeEventTime(InternalEvent *ev)
 {
     if (!syncEvents.playingEvents)
-	NoticeTime(xE);
+	NoticeTime(ev);
 }
 
 /**************************************************************************
@@ -1022,10 +1025,10 @@ EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
     static xEvent xi[1000]; /* enough bytes for the events we have atm */
     xEvent *xE = xi;
 
+
+    NoticeTime((InternalEvent*)event);
+
     nevents = ConvertBackToXI((InternalEvent*)ev, xE);
-
-    NoticeTime(xE);
-
 
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&

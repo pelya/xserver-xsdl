@@ -890,14 +890,12 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 void
 ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
 {
-    int i;
     GrabPtr grab = device->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, rootX, rootY;
     ButtonClassPtr b;
     KeyClassPtr k;
     ValuatorClassPtr v;
-    deviceValuator *xV;
     int ret = 0;
     int state;
     DeviceIntPtr mouse = NULL, kbd = NULL;
@@ -938,18 +936,27 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
     if (device->isMaster || !device->u.master)
         CheckMotion(event, device);
 
+
+    switch (event->type)
+    {
+        case ET_Motion:
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+        case ET_KeyPress:
+        case ET_KeyRelease:
+        case ET_ProximityIn:
+        case ET_ProximityOut:
+            GetSpritePosition(device, &rootX, &rootY);
+            event->root_x = rootX;
+            event->root_y = rootY;
+            NoticeEventTime((InternalEvent*)event);
+            event->corestate = state;
+            key = event->detail.key;
+            break;
+    }
+
     nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
-    if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
-	GetSpritePosition(device, &rootX, &rootY);
-	xE->u.keyButtonPointer.rootX = rootX;
-	xE->u.keyButtonPointer.rootY = rootY;
-	NoticeEventTime(xE);
-
-        xE->u.keyButtonPointer.state = state;
-
-        key = xE->u.u.detail;
-    }
     if (DeviceEventCallback) {
 	DeviceEventInfoRec eventinfo;
 
@@ -958,43 +965,41 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
 	CallCallbacks(&DeviceEventCallback, (pointer) & eventinfo);
     }
 
-    /* Valuator event handling */
-    xV = (deviceValuator*)xE;
-    for (i = 1; i < count; i++) {
-	if ((++xV)->type == DeviceValuator)
-	    xV->device_state = state;
-    }
-
-    if (xE->u.u.type == DeviceKeyPress) {
-	if (!grab && CheckDeviceGrabs(device, xE, 0, count)) {
-	    device->deviceGrab.activatingKey = key;
-	    return;
-	}
-    } else if (xE->u.u.type == DeviceKeyRelease) {
-	if (device->deviceGrab.fromPassiveGrab &&
-            (key == device->deviceGrab.activatingKey))
-	    deactivateDeviceGrab = TRUE;
-    } else if (xE->u.u.type == DeviceButtonPress) {
-	xE->u.u.detail = b->map[key];
-	if (xE->u.u.detail == 0) {
-	    xE->u.u.detail = key;
-	    return;
-	}
-        if (!grab && CheckDeviceGrabs(device, xE, 0, count))
-        {
-            /* if a passive grab was activated, the event has been sent
-             * already */
-            return;
-        }
-
-    } else if (xE->u.u.type == DeviceButtonRelease) {
-	xE->u.u.detail = b->map[key];
-	if (xE->u.u.detail == 0) {
-	    xE->u.u.detail = key;
-	    return;
-	}
-        if (!b->buttonsDown && device->deviceGrab.fromPassiveGrab)
-            deactivateDeviceGrab = TRUE;
+    switch(event->type)
+    {
+        case ET_KeyPress:
+            if (!grab && CheckDeviceGrabs(device, xE, 0, nevents)) {
+                device->deviceGrab.activatingKey = key;
+                return;
+            }
+            break;
+        case ET_KeyRelease:
+            if (device->deviceGrab.fromPassiveGrab &&
+                    (key == device->deviceGrab.activatingKey))
+                deactivateDeviceGrab = TRUE;
+            break;
+        case ET_ButtonPress:
+            event->detail.button = b->map[key];
+            if (!event->detail.button) { /* there's no button 0 */
+                event->detail.button = key;
+                xE->u.u.detail = key; /* XXX: temporary */
+                return;
+            }
+            if (!grab && CheckDeviceGrabs(device, xE, 0, nevents))
+            {
+                /* if a passive grab was activated, the event has been sent
+                 * already */
+                return;
+            }
+        case ET_ButtonRelease:
+            event->detail.button = b->map[key];
+            if (!event->detail.button) { /* there's no button 0 */
+                event->detail.button = key;
+                xE->u.u.detail = key; /* XXX: temporary */
+                return;
+            }
+            if (!b->buttonsDown && device->deviceGrab.fromPassiveGrab)
+                deactivateDeviceGrab = TRUE;
     }
 
     if (grab)
@@ -1007,7 +1012,7 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
-    xE->u.u.detail = key;
+    event->detail.key = key;
 }
 
 int

@@ -325,7 +325,7 @@ extern _X_EXPORT WindowPtr GetCurrentRootWindow(DeviceIntPtr pDev);
 extern _X_EXPORT WindowPtr GetSpriteWindow(DeviceIntPtr pDev);
 
 
-extern _X_EXPORT void NoticeEventTime(xEventPtr /* xE */);
+extern _X_EXPORT void NoticeEventTime(InternalEvent *ev);
 
 extern _X_EXPORT void EnqueueEvent(
     xEventPtr /* xE */,
