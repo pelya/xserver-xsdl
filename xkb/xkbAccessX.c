@@ -722,19 +722,10 @@ DeviceEvent     *event = (DeviceEvent*)xE;
      *          see. it's still steaming. told you. (whot)
      */
 
-    {
-        /* FIXME: temporary solution only. */
-        static int nevents;
-        static xEvent ev[1000]; /* enough bytes for the events we have atm */
-
-        nevents = ConvertBackToXI((InternalEvent*)xE, ev);
-
-
     UNWRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr, backupproc);
-    mouse->public.processInputProc(ev, mouse, nevents);
+    mouse->public.processInputProc(xE, mouse, count);
     COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
 				     backupproc, xkbUnwrapProc);
-    }
 
     xkbi->state.ptr_buttons = mouse->button->state;
     

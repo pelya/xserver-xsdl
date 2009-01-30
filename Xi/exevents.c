@@ -668,9 +668,10 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
  */
 static void
 ChangeMasterDeviceClasses(DeviceIntPtr device,
-                          deviceClassesChangedEvent *dcce)
+                          DeviceChangedEvent *dce)
 {
     DeviceIntPtr master = device->u.master;
+    deviceClassesChangedEvent *dcce;
     char* classbuff;
     int len = sizeof(xEvent);
     int namelen = 0; /* dummy */
@@ -681,19 +682,29 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
     if (!master) /* if device was set floating between SIGIO and now */
         return;
 
+    SizeDeviceInfo(device, &namelen, &len);
+    dcce = xalloc(len);
+    if (!dcce)
+    {
+        ErrorF("[Xi] BadAlloc in ChangeMasterDeviceClasses\n");
+        return;
+    }
+
+    dcce->type         = GenericEvent;
+    dcce->extension    = IReqCode;
+    dcce->evtype       = XI_DeviceClassesChangedNotify;
+    dcce->time         = GetTimeInMillis();
+    dcce->new_slave    = device->id;
     dcce->deviceid     = master->id;
     dcce->num_classes  = 0;
 
-    SizeDeviceInfo(device, &namelen, &len);
     dcce->length = (len - sizeof(xEvent))/4;
 
     master->public.devicePrivate = device->public.devicePrivate;
 
     DeepCopyDeviceClasses(device, master);
 
-    /* event is already correct size, see SetMinimumEventSize */
     classbuff = (char*)&dcce[1];
-
     /* we don't actually swap if there's a NullClient, swapping is done
      * later when event is delivered. */
     CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuff);
@@ -711,105 +722,78 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 #define DEFAULT 0
 #define DONT_PROCESS 1
 int
-UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
+UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 {
     int i;
     int key = 0,
-        bit = 0;
+        bit = 0,
+        last_valuator;
 
     KeyClassPtr k       = NULL;
     ButtonClassPtr b    = NULL;
     ValuatorClassPtr v  = NULL;
-    deviceValuator *xV  = (deviceValuator *) xE;
     BYTE *kptr          = NULL;
 
     /* This event is always the first we get, before the actual events with
      * the data. However, the way how the DDX is set up, "device" will
      * actually be the slave device that caused the event.
      */
-    if (GEIsType(xE, IReqCode, XI_DeviceClassesChangedNotify))
+    switch(event->type)
     {
-        ChangeMasterDeviceClasses(device, (deviceClassesChangedEvent*)xE);
-        return DONT_PROCESS; /* event has been sent already */
+        case ET_DeviceChanged:
+            ChangeMasterDeviceClasses(device, (DeviceChangedEvent*)event);
+            return DONT_PROCESS; /* event has been sent already */
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+        case ET_KeyPress:
+        case ET_KeyRelease:
+        case ET_ProximityIn:
+        case ET_ProximityOut:
+            break;
+        default:
+            /* other events don't update the device */
+            return DEFAULT;
     }
-
-    /* currently no other generic event modifies the device */
-    if (xE->u.u.type == GenericEvent)
-        return DEFAULT;
 
     k = device->key;
     v = device->valuator;
     b = device->button;
 
-
-    if (xE->u.u.type != DeviceValuator)
-    {
-        key = xE->u.u.detail;
-        bit = 1 << (key & 7);
-    }
+    key = event->detail.key;
+    bit = 1 << (key & 7);
 
     /* Update device axis */
-    for (i = 1; i < count; i++) {
-	if ((++xV)->type == DeviceValuator) {
-	    int *axisvals;
-            int first = xV->first_valuator;
-            BOOL change = FALSE;
-
-	    if (xV->num_valuators && !v)
-                FatalError("Valuators reported for non-valuator device '%s'\n",
-                           device->name);
-            if (first + xV->num_valuators > v->numAxes)
-		FatalError("Too many valuators reported for device '%s'\n",
-			   device->name);
-	    if (v && v->axisVal) {
-                /* v->axisVal is always in absolute coordinates. Only the
-                 * delivery mode changes.
-                 * If device is mode Absolute
-                 *     dev = event
-                 * If device is mode Relative
-                 *      swap = (event - device)
-                 *      dev = event
-                 *      event = delta
-                 */
-                int delta;
-                axisvals = v->axisVal;
-                if (v->mode == Relative) /* device reports relative */
-                    change = TRUE;
-
-                switch (xV->num_valuators) {
-                    case 6:
-                        if (change) delta = xV->valuator5 - *(axisvals + first + 5);
-                        *(axisvals + first + 5) = xV->valuator5;
-                        if (change) xV->valuator5 = delta;
-                    case 5:
-                        if (change) delta = xV->valuator4 - *(axisvals + first + 4);
-                        *(axisvals + first + 4) = xV->valuator4;
-                        if (change) xV->valuator4 = delta;
-                    case 4:
-                        if (change) delta = xV->valuator3 - *(axisvals + first + 3);
-                        *(axisvals + first + 3) = xV->valuator3;
-                        if (change) xV->valuator3 = delta;
-                    case 3:
-                        if (change) delta = xV->valuator2 - *(axisvals + first + 2);
-                        *(axisvals + first + 2) = xV->valuator2;
-                        if (change) xV->valuator2 = delta;
-                    case 2:
-                        if (change) delta = xV->valuator1 - *(axisvals + first + 1);
-                        *(axisvals + first + 1) = xV->valuator1;
-                        if (change) xV->valuator1 = delta;
-                    case 1:
-                        if (change) delta = xV->valuator0 - *(axisvals + first);
-                        *(axisvals + first) = xV->valuator0;
-                        if (change) xV->valuator0 = delta;
-                    case 0:
-                    default:
-                        break;
-                }
-	    }
-	}
+    /* Check valuators first */
+    last_valuator = 0;
+    for (i = 0; i < MAX_VALUATORS; i++)
+    {
+        if (BitIsOn(&event->valuators.mask, i))
+        {
+            if (!v)
+            {
+                ErrorF("[Xi] Valuators reported for non-valuator device '%s'. "
+                        "Ignoring event.\n", device->name);
+                return DONT_PROCESS;
+            } else if (v->numAxes < i)
+            {
+                ErrorF("[Xi] Too many valuators reported for device '%s'. "
+                        "Ignoring event.\n", device->name);
+                return DONT_PROCESS;
+            }
+            last_valuator = i;
+        }
     }
 
-    if (xE->u.u.type == DeviceKeyPress) {
+    for (i = 0; i < last_valuator && i < v->numAxes; i++)
+    {
+        if (BitIsOn(&event->valuators.mask, i))
+        {
+            /* XXX: Relative/Absolute mode */
+            v->axisVal[i] = event->valuators.data[i];
+        }
+    }
+
+    if (event->type == ET_KeyPress) {
         if (!k)
             return DONT_PROCESS;
 
@@ -819,7 +803,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
-    } else if (xE->u.u.type == DeviceKeyRelease) {
+    } else if (event->type == ET_KeyRelease) {
         if (!k)
             return DONT_PROCESS;
 
@@ -829,7 +813,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
-    } else if (xE->u.u.type == DeviceButtonPress) {
+    } else if (event->type == ET_ButtonPress) {
         Mask mask;
         if (!b)
             return DONT_PROCESS;
@@ -852,9 +836,8 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         SetMaskForEvent(device->id, mask, DeviceMotionNotify);
         mask = PointerMotionMask | b->state | b->motionMask;
         SetMaskForEvent(device->id, mask, MotionNotify);
-    } else if (xE->u.u.type == DeviceButtonRelease) {
+    } else if (event->type == ET_ButtonRelease) {
         Mask mask;
-
         if (!b)
             return DONT_PROCESS;
 
@@ -891,9 +874,9 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         SetMaskForEvent(device->id, mask, DeviceMotionNotify);
         mask = PointerMotionMask | b->state | b->motionMask;
         SetMaskForEvent(device->id, mask, MotionNotify);
-    } else if (xE->u.u.type == ProximityIn)
+    } else if (event->type == ET_ProximityIn)
 	device->valuator->mode &= ~OutOfProximity;
-    else if (xE->u.u.type == ProximityOut)
+    else if (event->type == ET_ProximityOut)
 	device->valuator->mode |= OutOfProximity;
 
     return DEFAULT;
@@ -905,7 +888,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
  *
  */
 void
-ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
+ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
 {
     int i;
     GrabPtr grab = device->deviceGrab.grab;
@@ -914,10 +897,16 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     ButtonClassPtr b;
     KeyClassPtr k;
     ValuatorClassPtr v;
-    deviceValuator *xV  = (deviceValuator *) xE;
+    deviceValuator *xV;
     int ret = 0;
     int state;
     DeviceIntPtr mouse = NULL, kbd = NULL;
+    DeviceEvent *event = (DeviceEvent*)ev;
+
+    /* FIXME: temporary solution only. */
+    static int nevents;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
+
 
     if (IsPointerDevice(device))
     {
@@ -937,9 +926,11 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     state = (kbd) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
     state |= (mouse) ? (mouse->button->state) : 0;
 
-    ret = UpdateDeviceState(device, xE, count);
+    ret = UpdateDeviceState(device, event);
     if (ret == DONT_PROCESS)
         return;
+
+    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     v = device->valuator;
     b = device->button;
@@ -967,6 +958,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     }
 
     /* Valuator event handling */
+    xV = (deviceValuator*)xE;
     for (i = 1; i < count; i++) {
 	if ((++xV)->type == DeviceValuator)
 	    xV->device_state = state;

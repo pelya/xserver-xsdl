@@ -1009,15 +1009,23 @@ NoticeEventTime(xEvent *xE)
  * linked list for later delivery.
  */
 void
-EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
+EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
 {
     QdEventPtr	tail = *syncEvents.pendtail;
     QdEventPtr	qe;
     SpritePtr	pSprite = device->spriteInfo->sprite;
     int		eventlen;
+    DeviceEvent *event = (DeviceEvent*)ev;
 
+    /* FIXME: temporary solution only. */
+    static int nevents;
+    static xEvent xi[1000]; /* enough bytes for the events we have atm */
+    xEvent *xE = xi;
+
+    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     NoticeTime(xE);
+
 
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&
@@ -1040,7 +1048,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	    XE_KBPTR.root =
 		WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
 	eventinfo.events = xE;
-	eventinfo.count = count;
+	eventinfo.count = nevents;
 	CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
     }
     if (xE->u.u.type == DeviceMotionNotify)
@@ -1069,7 +1077,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	}
     }
 
-    eventlen = count * sizeof(xEvent);
+    eventlen = nevents * sizeof(xEvent);
     if (xE->u.u.type == GenericEvent) /* count is 1 for GenericEvents */
 	eventlen += ((xGenericEvent*)xE)->length * 4;
 
@@ -1081,14 +1089,14 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     qe->pScreen = pSprite->hotPhys.pScreen;
     qe->months = currentTime.months;
     qe->event = (xEvent *)(qe + 1);
-    qe->evcount = count;
+    qe->evcount = nevents;
     if (xE->u.u.type == GenericEvent)
     {
 	memcpy(qe->event, xE, eventlen);
     } else
     {
 	xEvent	*qxE;
-	for (qxE = qe->event; --count >= 0; qxE++, xE++)
+	for (qxE = qe->event; --nevents >= 0; qxE++, xE++)
 	{
 	    *qxE = *xE;
 	}

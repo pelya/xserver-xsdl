@@ -177,14 +177,8 @@ ProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
 
     /* We're only interested in key events. */
     if (!is_press && !is_release) {
-        /* FIXME: temporary solution only. */
-        static int nevents;
-        static xEvent ev[1000]; /* enough bytes for the events we have atm */
-
-        nevents = ConvertBackToXI((InternalEvent*)xE, ev);
-
         UNWRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc);
-        keybd->public.processInputProc(ev, keybd, nevents);
+        keybd->public.processInputProc(xE, keybd, count);
         COND_WRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc,
                                      xkbUnwrapProc);
         return;

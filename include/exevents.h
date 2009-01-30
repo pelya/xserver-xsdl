@@ -48,8 +48,7 @@ extern _X_EXPORT void RegisterOtherDevice (
 extern _X_EXPORT int
 UpdateDeviceState (
 	DeviceIntPtr           /* device */,
-	xEventPtr              /*  xE    */,
-        int                    /* count  */);
+	DeviceEvent*           /*  xE    */);
 
 extern _X_EXPORT void ProcessOtherEvent (
 	xEventPtr /* FIXME deviceKeyButtonPointer * xE */,

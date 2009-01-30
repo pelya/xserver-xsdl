@@ -1211,20 +1211,10 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
         else
             tmpdev = GetPairedDevice(dev);
 
-        {
-
-
-        /* FIXME: temporary solution only. */
-        static int nevents;
-        static xEvent ev[1000]; /* enough bytes for the events we have atm */
-        nevents = ConvertBackToXI((InternalEvent*)event, ev);
-
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
-        dev->public.processInputProc(ev, tmpdev, nevents);
+        dev->public.processInputProc((xEvent*)event, tmpdev, 1);
         COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
                                      backupproc,xkbUnwrapProc);
-
-        }
     }
     else if (keyEvent) {
 	FixKeyState(event, dev);

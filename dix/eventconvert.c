@@ -322,11 +322,9 @@ GetXIType(InternalEvent *event)
 }
 
 /*
- * FIXME: A temporary solution to make the server bisectable. This code
- * allocates during SIGIO and makes a number of assumptions about what's in
- * events. Will be removed soon.
+ * FIXME: A temporary solution to make the server bisectable. Take the event
+ * @event and copy it into @ev, returning the number of events in @ev.
  */
-
 int
 ConvertBackToXI(InternalEvent *event, xEvent *ev)
 {
