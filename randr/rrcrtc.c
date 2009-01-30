@@ -655,6 +655,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
     RROutput			*possible;
     int				i, j, k, n;
     int				width, height;
+    BoxRec			panned_area;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcInfoReq);
     crtc = LookupCrtc(client, stuff->crtc, DixReadAccess);
@@ -675,11 +676,23 @@ ProcRRGetCrtcInfo (ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
-    rep.x = crtc->x;
-    rep.y = crtc->y;
-    RRCrtcGetScanoutSize (crtc, &width, &height);
-    rep.width = width;
-    rep.height = height;
+    if (pScrPriv->rrGetPanning &&
+	pScrPriv->rrGetPanning (pScreen, crtc, &panned_area, NULL, NULL) &&
+	(panned_area.x2 > panned_area.x1) && (panned_area.y2 > panned_area.y1))
+    {
+ 	rep.x = panned_area.x1;
+	rep.y = panned_area.y1;
+	rep.width = panned_area.x2 - panned_area.x1;
+	rep.height = panned_area.y2 - panned_area.y1;
+    }
+    else
+    {
+	RRCrtcGetScanoutSize (crtc, &width, &height);
+	rep.x = crtc->x;
+	rep.y = crtc->y;
+	rep.width = width;
+	rep.height = height;
+    }
     rep.mode = mode ? mode->mode.id : 0;
     rep.rotation = crtc->rotation;
     rep.rotations = crtc->rotations;
