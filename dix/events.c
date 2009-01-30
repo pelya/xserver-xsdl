@@ -550,24 +550,6 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
     CheckPhysLimits(pDev, pSprite->current, generateEvents, FALSE, NULL);
 }
 
-
-static void
-XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
-{
-    SpritePtr pSprite = pDev->spriteInfo->sprite;
-
-    if (cursor != pSprite->current)
-    {
-	if ((pSprite->current->bits->xhot != cursor->bits->xhot) ||
-		(pSprite->current->bits->yhot != cursor->bits->yhot))
-	    CheckPhysLimits(pDev, cursor, FALSE, FALSE, NULL);
-	(*pSprite->screen->DisplayCursor)(pDev, pSprite->screen, cursor);
-	FreeCursor(pSprite->current, (Cursor)0);
-	pSprite->current = cursor;
-	pSprite->current->refcnt++;
-    }
-}
-
 #else
 #define SyntheticMotion(dev, x, y) \
      PostSyntheticMotion(dev, x, y, \
@@ -849,13 +831,7 @@ static void
 ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
-
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
-	XineramaChangeToCursor(pDev, cursor);
-	return;
-    }
-#endif
+    ScreenPtr pScreen;
 
     if (cursor != pSprite->current)
     {
@@ -863,9 +839,15 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 		(pSprite->current->bits->yhot != cursor->bits->yhot))
 	    CheckPhysLimits(pDev, cursor, FALSE, pSprite->confined,
 			    (ScreenPtr)NULL);
-        (*pSprite->hotPhys.pScreen->DisplayCursor) (pDev,
-                                                   pSprite->hotPhys.pScreen,
-                                                   cursor);
+#ifdef PANORAMIX
+        /* XXX: is this really necessary?? (whot) */
+        if (!noPanoramiXExtension)
+            pScreen = pSprite->screen;
+        else
+#endif
+            pScreen = pSprite->hotPhys.pScreen;
+
+        (*pScreen->DisplayCursor)(pDev, pScreen, cursor);
 	FreeCursor(pSprite->current, (Cursor)0);
 	pSprite->current = cursor;
 	pSprite->current->refcnt++;
