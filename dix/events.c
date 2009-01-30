@@ -216,6 +216,11 @@ Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
 static void CheckVirtualMotion( DeviceIntPtr pDev, QdEventPtr qe, WindowPtr pWin);
+static void CheckPhysLimits(DeviceIntPtr pDev,
+                            CursorPtr cursor,
+                            Bool generateEvents,
+                            Bool confineToScreen,
+                            ScreenPtr pScreen);
 
 /**
  * Main input device struct.
@@ -472,49 +477,6 @@ XineramaConstrainCursor(DeviceIntPtr pDev)
     (* pScreen->ConstrainCursor)(pDev, pScreen, &newBox);
 }
 
-static void
-XineramaCheckPhysLimits(
-    DeviceIntPtr pDev,
-    CursorPtr cursor,
-    Bool generateEvents
-){
-    HotSpot new;
-    SpritePtr pSprite = pDev->spriteInfo->sprite;
-
-    if (!cursor)
-	return;
-
-    new = pSprite->hotPhys;
-
-    /* I don't care what the DDX has to say about it */
-    pSprite->physLimits = pSprite->hotLimits;
-
-    /* constrain the pointer to those limits */
-    if (new.x < pSprite->physLimits.x1)
-	new.x = pSprite->physLimits.x1;
-    else
-	if (new.x >= pSprite->physLimits.x2)
-	    new.x = pSprite->physLimits.x2 - 1;
-    if (new.y < pSprite->physLimits.y1)
-	new.y = pSprite->physLimits.y1;
-    else
-	if (new.y >= pSprite->physLimits.y2)
-	    new.y = pSprite->physLimits.y2 - 1;
-
-    if (pSprite->hotShape)  /* more work if the shape is a mess */
-	ConfineToShape(pDev, pSprite->hotShape, &new.x, &new.y);
-
-    if((new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
-    {
-	XineramaSetCursorPosition (pDev, new.x, new.y, generateEvents);
-	if (!generateEvents)
-	    SyntheticMotion(pDev, new.x, new.y);
-    }
-
-    /* Tell DDX what the limits are */
-    XineramaConstrainCursor(pDev);
-}
-
 
 static Bool
 XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
@@ -585,8 +547,7 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
     pSprite->confined = FALSE;
     pSprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
 
-    XineramaCheckPhysLimits(pDev, pSprite->current,
-            generateEvents);
+    CheckPhysLimits(pDev, pSprite->current, generateEvents, FALSE, NULL);
 }
 
 
@@ -599,7 +560,7 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
     {
 	if ((pSprite->current->bits->xhot != cursor->bits->xhot) ||
 		(pSprite->current->bits->yhot != cursor->bits->yhot))
-	    XineramaCheckPhysLimits(pDev, cursor, FALSE);
+	    CheckPhysLimits(pDev, cursor, FALSE, FALSE, NULL);
 	(*pSprite->screen->DisplayCursor)(pDev, pSprite->screen, cursor);
 	FreeCursor(pSprite->current, (Cursor)0);
 	pSprite->current = cursor;
@@ -684,8 +645,8 @@ CheckPhysLimits(
     DeviceIntPtr pDev,
     CursorPtr cursor,
     Bool generateEvents,
-    Bool confineToScreen,
-    ScreenPtr pScreen)
+    Bool confineToScreen, /* unused if PanoramiX on */
+    ScreenPtr pScreen)    /* unused if PanoramiX on */
 {
     HotSpot new;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
@@ -693,14 +654,24 @@ CheckPhysLimits(
     if (!cursor)
 	return;
     new = pSprite->hotPhys;
-    if (pScreen)
-	new.pScreen = pScreen;
+#ifdef PANORAMIX
+    if (!noPanoramiXExtension)
+        /* I don't care what the DDX has to say about it */
+        pSprite->physLimits = pSprite->hotLimits;
     else
-	pScreen = new.pScreen;
-    (*pScreen->CursorLimits) (pDev, pScreen, cursor, &pSprite->hotLimits,
-			      &pSprite->physLimits);
-    pSprite->confined = confineToScreen;
-    (* pScreen->ConstrainCursor)(pDev, pScreen, &pSprite->physLimits);
+#endif
+    {
+        if (pScreen)
+            new.pScreen = pScreen;
+        else
+            pScreen = new.pScreen;
+        (*pScreen->CursorLimits) (pDev, pScreen, cursor, &pSprite->hotLimits,
+                &pSprite->physLimits);
+        pSprite->confined = confineToScreen;
+        (* pScreen->ConstrainCursor)(pDev, pScreen, &pSprite->physLimits);
+    }
+
+    /* constrain the pointer to those limits */
     if (new.x < pSprite->physLimits.x1)
 	new.x = pSprite->physLimits.x1;
     else
@@ -716,13 +687,26 @@ CheckPhysLimits(
     if ((pScreen != pSprite->hotPhys.pScreen) ||
 	(new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
     {
-	if (pScreen != pSprite->hotPhys.pScreen)
-	    pSprite->hotPhys = new;
-        (*pScreen->SetCursorPosition)
-            (pDev, pScreen, new.x, new.y, generateEvents);
+#ifdef PANORAMIX
+        if (!noPanoramiXExtension)
+            XineramaSetCursorPosition (pDev, new.x, new.y, generateEvents);
+#endif
+        else
+        {
+            if (pScreen != pSprite->hotPhys.pScreen)
+                pSprite->hotPhys = new;
+            (*pScreen->SetCursorPosition)
+                (pDev, pScreen, new.x, new.y, generateEvents);
+        }
         if (!generateEvents)
-	    SyntheticMotion(pDev, new.x, new.y);
+            SyntheticMotion(pDev, new.x, new.y);
     }
+
+#ifdef PANORAMIX
+    /* Tell DDX what the limits are */
+    if (!noPanoramiXExtension)
+        XineramaConstrainCursor(pDev);
+#endif
 }
 
 static void
