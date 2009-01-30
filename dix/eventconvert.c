@@ -334,28 +334,25 @@ GetXIType(InternalEvent *event)
  * allocates during SIGIO and makes a number of assumptions about what's in
  * events. Will be removed soon.
  */
-static int
-ConvertBackToXI(EventListPtr events, int num_events)
+
+int
+ConvertBackToXI(InternalEvent *event, xEvent *ev)
 {
     int count = GetMaximumEventsNum();
-    int num = (num_events == 2) ? 1 : 0;
-    int i;
+    int evlen, i;
+
     EventListPtr tmp_list = InitEventList(count);
 
     SetMinimumEventSize(tmp_list, count, 1000); /* just to be sure */
 
-    if (num_events == 2) /* DCCE Event? */
-    {
-        if (EventToXI(events->event, tmp_list, &count))
-            ErrorF("[dix] conversion to XI failed\n");
-        memcpy(events->event, tmp_list->event, events->evlen);
-        events++;
-    }
-
-    if (EventToXI(events->event, tmp_list, &count))
+    if (EventToXI(event, tmp_list, &count))
         ErrorF("[dix] conversion to XI failed\n");
 
+    if (tmp_list->event->u.u.type == GenericEvent)
+        evlen = (GEV(tmp_list->event))->length * 4 + 32;
+    else
+        evlen = count *  32;
     for (i = 0; i < count; i++)
-        memcpy((events + i)->event, (tmp_list + i)->event, events->evlen);
-    return (count + num);
+        memcpy(&ev[i], (tmp_list + i)->event, evlen);
+    return count;
 }

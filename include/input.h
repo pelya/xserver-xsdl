@@ -108,7 +108,9 @@ typedef struct _EventList {
     int evlen; /* length of allocated memory for event in bytes.  This is not
                   the actual length of the event. The event's actual length is
                   32 for standard events or 32 +
-                  ((xGenericEvent*)event)->length * 4 for GenericEvents */
+                  ((xGenericEvent*)event)->length * 4 for GenericEvents.
+                  For events in the EQ, the length is
+                  ((InternalEvent*)event)->u.any.length */
 } EventList, *EventListPtr;
 
 /* The DIX stores incoming input events in this list */

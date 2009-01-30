@@ -879,9 +879,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
 
-    /* XXX: temporary only */
-    numEvents = ConvertBackToXI(events - (numEvents - 1), numEvents);
-
     return numEvents;
 }
 
@@ -1060,8 +1057,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
 
-    /* XXX: temporary only */
-    num_events = ConvertBackToXI(events - (num_events - 1), num_events);
 
     return num_events;
 }
@@ -1111,9 +1106,6 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         clipValuators(pDev, first_valuator, num_valuators, valuators);
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
-
-    /* XXX: temporary only */
-    num_events = ConvertBackToXI(events - (num_events - 1), num_events);
 
     return num_events;
 }
