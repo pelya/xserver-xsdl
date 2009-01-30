@@ -402,15 +402,21 @@ static CARD8 criticalEvents[32] =
     0x7c, 0x30, 0x40			/* key, button, expose, and configure events */
 };
 
+static void
+SyntheticMotion(DeviceIntPtr dev, int x, int y) {
+    int screenno = 0;
+
+#ifdef PANORAMIX
+    if (!noPanoramiXExtension)
+        screenno = dev->spriteInfo->sprite->screen->myNum;
+#endif
+    PostSyntheticMotion(dev, x, y, screenno,
+            (syncEvents.playingEvents) ?  syncEvents.time.milliseconds : currentTime.milliseconds);
+
+}
+
 #ifdef PANORAMIX
 static void PostNewCursor(DeviceIntPtr pDev);
-
-#define SyntheticMotion(dev, x, y) \
-    PostSyntheticMotion(dev, x, y, noPanoramiXExtension ? 0 : \
-                              dev->spriteInfo->sprite->screen->myNum, \
-                        syncEvents.playingEvents ? \
-                          syncEvents.time.milliseconds : \
-                          currentTime.milliseconds);
 
 static Bool
 XineramaSetCursorPosition(
@@ -549,14 +555,6 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 
     CheckPhysLimits(pDev, pSprite->current, generateEvents, FALSE, NULL);
 }
-
-#else
-#define SyntheticMotion(dev, x, y) \
-     PostSyntheticMotion(dev, x, y, \
-                         0, \
-                         syncEvents.playingEvents ? \
-                           syncEvents.time.milliseconds : \
-                           currentTime.milliseconds);
 
 #endif  /* PANORAMIX */
 
