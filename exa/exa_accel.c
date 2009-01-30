@@ -836,139 +836,6 @@ out:
     REGION_DESTROY(pScreen, pReg);
 }
 
-static void
-exaImageGlyphBlt (DrawablePtr	pDrawable,
-		  GCPtr		pGC,
-		  int		x,
-		  int		y,
-		  unsigned int	nglyph,
-		  CharInfoPtr	*ppciInit,
-		  pointer	pglyphBase)
-{
-    FbGCPrivPtr	    pPriv = fbGetGCPrivate(pGC);
-    CharInfoPtr	    *ppci;
-    CharInfoPtr	    pci;
-    unsigned char   *pglyph;		/* pointer bits in glyph */
-    int		    gWidth, gHeight;	/* width and height of glyph */
-    FbStride	    gStride;		/* stride of glyph */
-    Bool	    opaque;
-    int		    gx, gy;
-    void	    (*glyph) (FbBits *,
-			      FbStride,
-			      int,
-			      FbStip *,
-			      FbBits,
-			      int,
-			      int);
-    FbBits	    *dst;
-    FbStride	    dstStride;
-    int		    dstBpp;
-    int		    dstXoff, dstYoff;
-    FbBits	    depthMask;
-    PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
-    ExaPixmapPriv(pPixmap);
-    RegionPtr	    pending_damage = NULL;
-    BoxRec	    extents;
-    int		    xoff, yoff;
-
-    if (pExaPixmap->pDamage)
-	pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
-
-    if (pending_damage) {
-	extents = *REGION_EXTENTS(pScreen, pending_damage);
-
-	if (extents.x1 >= extents.x2 || extents.y1 >= extents.y2)
-	    return;
-
-	depthMask = FbFullMask(pDrawable->depth);
-    }
-
-    if (!pending_damage || (pGC->planemask & depthMask) != depthMask)
-    {
-	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
-	return;
-    }
-
-    glyph = NULL;
-    switch (pDrawable->bitsPerPixel) {
-    case 8:	glyph = fbGlyph8; break;
-    case 16:    glyph = fbGlyph16; break;
-    case 24:    glyph = fbGlyph24; break;
-    case 32:    glyph = fbGlyph32; break;
-    }
-
-    x += pDrawable->x;
-    y += pDrawable->y;
-
-    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
-    extents.x1 -= xoff;
-    extents.x2 -= xoff;
-    extents.y1 -= yoff;
-    extents.y2 -= yoff;
-
-    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pending_damage);
-
-    if (TERMINALFONT (pGC->font) && !glyph)
-    {
-	opaque = TRUE;
-    }
-    else
-    {
-	FbBits fg = fbReplicatePixel (pGC->bgPixel, pDrawable->bitsPerPixel);
-
-	fbSolidBoxClipped (pDrawable,
-			   fbGetCompositeClip(pGC),
-			   extents.x1,
-			   extents.y1,
-			   extents.x2,
-			   extents.y2,
-			   fbAnd (GXcopy, fg, pGC->planemask),
-			   fbXor (GXcopy, fg, pGC->planemask));
-
-	opaque = FALSE;
-    }
-
-    EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
-
-    exaPrepareAccessGC (pGC);
-
-    fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
-
-    for (ppci = ppciInit; nglyph; nglyph--, x += pci->metrics.characterWidth)
-    {
-	pci = *ppci++;
-	gWidth = GLYPHWIDTHPIXELS(pci);
-	gHeight = GLYPHHEIGHTPIXELS(pci);
-	gx = x + pci->metrics.leftSideBearing;
-	gy = y - pci->metrics.ascent;
-
-	if (!gWidth || !gHeight || (gx + gWidth) <= extents.x1 ||
-	    (gy + gHeight) <= extents.y1 || gx >= extents.x2 ||
-	    gy >= extents.y2)
-	    continue;
-
-	pglyph = FONTGLYPHBITS(pglyphBase, pci);
-
-	if (glyph && gWidth <= sizeof (FbStip) * 8 &&
-	    fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
-	{
-	    (*glyph) (dst + (gy + dstYoff) * dstStride, dstStride, dstBpp,
-		      (FbStip *) pglyph, pPriv->fg, gx + dstXoff, gHeight);
-	}
-	else
-	{
-	    RegionPtr pClip = fbGetCompositeClip(pGC);
-
-	    gStride = GLYPHWIDTHBYTESPADDED(pci) / sizeof (FbStip);
-	    fbPutXYImage (pDrawable, pClip, pPriv->fg, pPriv->bg, pPriv->pm,
-			  GXcopy, opaque, gx, gy, gWidth, gHeight,
-			  (FbStip *) pglyph, gStride, 0);
-	}
-    }
-    exaFinishAccessGC (pGC);
-    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
-}
-
 const GCOps exaOps = {
     exaFillSpans,
     ExaCheckSetSpans,
@@ -987,7 +854,7 @@ const GCOps exaOps = {
     miPolyText16,
     miImageText8,
     miImageText16,
-    exaImageGlyphBlt,
+    ExaCheckImageGlyphBlt,
     ExaCheckPolyGlyphBlt,
     ExaCheckPushPixels,
 };
