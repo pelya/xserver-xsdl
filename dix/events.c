@@ -708,13 +708,28 @@ CheckVirtualMotion(
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
     RegionPtr reg = NULL;
+    DeviceEvent *ev = NULL;
 
     if (qe)
     {
-	pSprite->hot.pScreen = qe->pScreen;
-	pSprite->hot.x = qe->event->u.keyButtonPointer.rootX;
-	pSprite->hot.y = qe->event->u.keyButtonPointer.rootY;
-	pWin = pDev->deviceGrab.grab ? pDev->deviceGrab.grab->confineTo : NullWindow;
+        ev = (DeviceEvent*)qe->event;
+        switch(ev->type)
+        {
+            case ET_Motion:
+            case ET_ButtonPress:
+            case ET_ButtonRelease:
+            case ET_KeyPress:
+            case ET_KeyRelease:
+            case ET_ProximityIn:
+            case ET_ProximityOut:
+                pSprite->hot.pScreen = qe->pScreen;
+                pSprite->hot.x = ev->root_x;
+                pSprite->hot.y = ev->root_y;
+                pWin = pDev->deviceGrab.grab ? pDev->deviceGrab.grab->confineTo : NullWindow;
+                break;
+            default:
+                break;
+        }
     }
     if (pWin)
     {
@@ -783,11 +798,11 @@ CheckVirtualMotion(
         if (reg)
             ConfineToShape(pDev, reg, &pSprite->hot.x, &pSprite->hot.y);
 
-	if (qe)
+	if (qe && ev)
 	{
 	    qe->pScreen = pSprite->hot.pScreen;
-	    qe->event->u.keyButtonPointer.rootX = pSprite->hot.x;
-	    qe->event->u.keyButtonPointer.rootY = pSprite->hot.y;
+	    ev->root_x = pSprite->hot.x;
+	    ev->root_y = pSprite->hot.y;
 	}
     }
 #ifdef PANORAMIX
@@ -1020,21 +1035,15 @@ EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
     int		eventlen;
     DeviceEvent *event = (DeviceEvent*)ev;
 
-    /* FIXME: temporary solution only. */
-    static int nevents;
-    static xEvent xi[1000]; /* enough bytes for the events we have atm */
-    xEvent *xE = xi;
-
-
     NoticeTime((InternalEvent*)event);
-
-    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&
-	xE->u.u.type == KeyRelease)
-	AccessXCancelRepeatKey(device->key->xkbInfo, xE->u.u.detail);
+        event->type == ET_KeyRelease)
+	AccessXCancelRepeatKey(device->key->xkbInfo, event->detail.key);
 
+#if 0
+        /* FIXME: I'm broken now. Please fix me. */
     if (DeviceEventCallback)
     {
 	DeviceEventInfoRec eventinfo;
@@ -1054,35 +1063,35 @@ EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
 	eventinfo.count = nevents;
 	CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
     }
-    if (xE->u.u.type == DeviceMotionNotify)
+#endif
+    if (event->type == ET_Motion)
     {
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension) {
-	    XE_KBPTR.rootX += panoramiXdataPtr[pSprite->screen->myNum].x -
+            event->root_x += panoramiXdataPtr[pSprite->screen->myNum].x -
 			      panoramiXdataPtr[0].x;
-	    XE_KBPTR.rootY += panoramiXdataPtr[pSprite->screen->myNum].y -
+	    event->root_y += panoramiXdataPtr[pSprite->screen->myNum].y -
 			      panoramiXdataPtr[0].y;
 	}
 #endif
-	pSprite->hotPhys.x = XE_KBPTR.rootX;
-	pSprite->hotPhys.y = XE_KBPTR.rootY;
+	pSprite->hotPhys.x = event->root_x;
+	pSprite->hotPhys.y = event->root_y;
 	/* do motion compression, but not if from different devices */
 	if (tail &&
-	    (tail->event->u.u.type == DeviceMotionNotify) &&
+	    (tail->event->u.any.type == ET_Motion) &&
             (tail->device == device) &&
 	    (tail->pScreen == pSprite->hotPhys.pScreen))
 	{
-	    tail->event->u.keyButtonPointer.rootX = pSprite->hotPhys.x;
-	    tail->event->u.keyButtonPointer.rootY = pSprite->hotPhys.y;
-	    tail->event->u.keyButtonPointer.time = XE_KBPTR.time;
+            DeviceEvent *tailev = (DeviceEvent*)tail->event;
+	    tailev->root_x = pSprite->hotPhys.x;
+	    tailev->root_y = pSprite->hotPhys.y;
+	    tailev->time = event->time;
 	    tail->months = currentTime.months;
 	    return;
 	}
     }
 
-    eventlen = nevents * sizeof(xEvent);
-    if (xE->u.u.type == GenericEvent) /* count is 1 for GenericEvents */
-	eventlen += ((xGenericEvent*)xE)->length * 4;
+    eventlen = event->length;
 
     qe = xalloc(sizeof(QdEventRec) + eventlen);
     if (!qe)
@@ -1091,19 +1100,8 @@ EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
     qe->device = device;
     qe->pScreen = pSprite->hotPhys.pScreen;
     qe->months = currentTime.months;
-    qe->event = (xEvent *)(qe + 1);
-    qe->evcount = nevents;
-    if (xE->u.u.type == GenericEvent)
-    {
-	memcpy(qe->event, xE, eventlen);
-    } else
-    {
-	xEvent	*qxE;
-	for (qxE = qe->event; --nevents >= 0; qxE++, xE++)
-	{
-	    *qxE = *xE;
-	}
-    }
+    qe->event = (InternalEvent *)(qe + 1);
+    memcpy(qe->event, event, eventlen);
     if (tail)
 	syncEvents.pendtail = &tail->next;
     *syncEvents.pendtail = qe;
@@ -1124,7 +1122,6 @@ PlayReleasedEvents(void)
     QdEventPtr *prev, qe;
     DeviceIntPtr dev;
     DeviceIntPtr pDev;
-    static CARD32 lastKnownMillis = 0; /* Hack, see comment below */
 
     prev = &syncEvents.pending;
     while ( (qe = *prev) )
@@ -1135,36 +1132,37 @@ PlayReleasedEvents(void)
             pDev = qe->device;
 	    if (*syncEvents.pendtail == *prev)
 		syncEvents.pendtail = prev;
-	    if (qe->event->u.u.type == DeviceMotionNotify)
+	    if (qe->event->u.any.type == ET_Motion)
 		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
-            /* XXX: Hack! We can't reliably get the time from GenericEvents,
-               since we don't know which struct it may be. So we store the time
-               when we know it, and re-use it when we can't get it. */
-            if (qe->event->u.u.type == GenericEvent)
-            {
-                syncEvents.time.milliseconds = lastKnownMillis;
-            } else
-            {
-                syncEvents.time.milliseconds = qe->event->u.keyButtonPointer.time;
-                lastKnownMillis = syncEvents.time.milliseconds;
-            }
+            syncEvents.time.milliseconds = qe->event->u.any.time;
 #ifdef PANORAMIX
 	   /* Translate back to the sprite screen since processInputProc
 	      will translate from sprite screen to screen 0 upon reentry
 	      to the DIX layer */
-            /* XXX: we can't do that for generic events */
 	    if(!noPanoramiXExtension) {
-		qe->event->u.keyButtonPointer.rootX +=
-			panoramiXdataPtr[0].x -
-			panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].x;
-		qe->event->u.keyButtonPointer.rootY +=
-			panoramiXdataPtr[0].y -
-			panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].y;
+                DeviceEvent *ev = (DeviceEvent*)(qe->event);
+                switch(ev->type)
+                {
+                    case ET_Motion:
+                    case ET_ButtonPress:
+                    case ET_ButtonRelease:
+                    case ET_KeyPress:
+                    case ET_KeyRelease:
+                    case ET_ProximityIn:
+                    case ET_ProximityOut:
+                        ev->root_x += panoramiXdataPtr[0].x -
+                            panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].x;
+                        ev->root_y += panoramiXdataPtr[0].y -
+                            panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].y;
+                        break;
+                    default:
+                        break;
+                }
+
 	    }
 #endif
-	    (*qe->device->public.processInputProc)(qe->event, qe->device,
-						   qe->evcount);
+	    (*qe->device->public.processInputProc)(qe->event, qe->device, 1);
 	    xfree(qe);
 	    for (dev = inputInfo.devices; dev && dev->deviceGrab.sync.frozen; dev = dev->next)
 		;

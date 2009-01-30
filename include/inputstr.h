@@ -516,8 +516,7 @@ typedef struct _QdEvent {
     DeviceIntPtr	device;
     ScreenPtr		pScreen;	/* what screen the pointer was on */
     unsigned long	months;		/* milliseconds is in the event */
-    xEvent		*event;
-    int			evcount;
-} QdEventRec;    
+    InternalEvent	*event;
+} QdEventRec;
 
 #endif /* INPUTSTRUCT_H */
