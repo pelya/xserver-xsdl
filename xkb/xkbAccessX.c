@@ -119,22 +119,26 @@ XkbControlsPtr	ctrls = xkbi->desc->ctrls;
 /************************************************************************/
 static void 
 AccessXKeyboardEvent(DeviceIntPtr	keybd,
-				 BYTE		type,
+				 int		type,
 				 BYTE		keyCode,
 				 Bool		isRepeat)
 {
-xEvent		xE;
-    
-    xE.u.u.type = type;
-    xE.u.u.detail = keyCode;
-    xE.u.keyButtonPointer.time = GetTimeInMillis();	    
+    DeviceEvent event;
+    memset(&event, 0, sizeof(DeviceEvent));
+    event.header = ET_Internal;
+    event.type = type;
+    event.detail.key = keyCode;
+    event.time = GetTimeInMillis();
+    event.length = sizeof(DeviceEvent);
+
     if (xkbDebugFlags&0x8) {
-	DebugF("[xkb] AXKE: Key %d %s\n",keyCode,(xE.u.u.type==KeyPress?"down":"up"));
+	DebugF("[xkb] AXKE: Key %d %s\n", keyCode,
+               (event->type == ET_KeyPress ? "down" : "up"));
     }
 
     if (!_XkbIsPressEvent(type) && isRepeat)
-	XkbLastRepeatEvent=	(pointer)&xE;
-    XkbProcessKeyboardEvent(&xE,keybd,1L);
+	XkbLastRepeatEvent=	(pointer)&event;
+    XkbProcessKeyboardEvent(&event, keybd);
     XkbLastRepeatEvent= NULL;
     return;
     
@@ -310,8 +314,8 @@ KeyCode		key;
 	return 0;
 
     key = xkbi->repeatKey;
-    AccessXKeyboardEvent(dev, DeviceKeyRelease, key, True);
-    AccessXKeyboardEvent(dev, DeviceKeyPress, key, True);
+    AccessXKeyboardEvent(dev, ET_KeyRelease, key, True);
+    AccessXKeyboardEvent(dev, ET_KeyPress, key, True);
 
     return xkbi->desc->ctrls->repeat_interval;
 }
@@ -346,7 +350,7 @@ XkbControlsPtr	ctrls;
 	XkbSendAccessXNotify(keybd,&ev);
 	if (XkbAX_NeedFeedback(ctrls,XkbAX_SKAcceptFBMask))
 	    XkbDDXAccessXBeep(keybd,_BEEP_SLOW_ACCEPT,XkbSlowKeysMask);
-	AccessXKeyboardEvent(keybd,DeviceKeyPress,xkbi->slowKey,False);
+	AccessXKeyboardEvent(keybd, ET_KeyPress,xkbi->slowKey,False);
 	/* check for magic sequences */
 	if ((ctrls->enabled_ctrls&XkbAccessXKeysMask) &&
 	    ((sym[0]==XK_Shift_R)||(sym[0]==XK_Shift_L)))
@@ -442,14 +446,13 @@ XkbSrvLedInfoPtr	sli;
 /*									*/
 /************************************************************************/
 Bool
-AccessXFilterPressEvent(	register xEvent *	xE, 
-				register DeviceIntPtr	keybd, 
-				int			count)
+AccessXFilterPressEvent(	DeviceEvent*	event,
+				DeviceIntPtr	keybd)
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
 XkbControlsPtr	ctrls = xkbi->desc->ctrls;
 Bool		ignoreKeyEvent = FALSE;
-KeyCode		key = xE->u.u.detail;
+KeyCode		key = event->detail.key;
 KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 
     if (ctrls->enabled_ctrls&XkbAccessXKeysMask) {
@@ -555,7 +558,7 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
     }
     
     if (!ignoreKeyEvent)
-	XkbProcessKeyboardEvent(xE,keybd,count);
+	XkbProcessKeyboardEvent(event, keybd);
     return ignoreKeyEvent;
 } /* AccessXFilterPressEvent */
 
@@ -572,13 +575,12 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 /*									*/
 /************************************************************************/
 Bool
-AccessXFilterReleaseEvent(	register xEvent *	xE, 
-				register DeviceIntPtr	keybd, 
-				int			count)
+AccessXFilterReleaseEvent(	DeviceEvent*	event,
+				DeviceIntPtr	keybd)
 {
 XkbSrvInfoPtr	xkbi = keybd->key->xkbInfo;
 XkbControlsPtr	ctrls = xkbi->desc->ctrls;
-KeyCode		key = xE->u.u.detail;
+KeyCode		key = event->detail.key;
 Bool		ignoreKeyEvent = FALSE;
     
     /* Don't transmit the KeyRelease if BounceKeys is on and
@@ -664,7 +666,7 @@ Bool		ignoreKeyEvent = FALSE;
     }
     
     if (!ignoreKeyEvent)
-	XkbProcessKeyboardEvent(xE,keybd,count);
+	XkbProcessKeyboardEvent(event, keybd);
     return ignoreKeyEvent;
     
 } /* AccessXFilterReleaseEvent */
@@ -691,16 +693,16 @@ XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
 ProcessInputProc backupproc;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
-deviceKeyButtonPointer *kbp = xE;
+DeviceEvent     *event = (DeviceEvent*)xE;
 
     xkbi->shiftKeyCount = 0;
-    xkbi->lastPtrEventTime= kbp->time;
+    xkbi->lastPtrEventTime= event->time;
 
-    if (xE->u.u.type==DeviceButtonPress) {
+    if (event->type == ET_ButtonPress) {
 	    changed |= XkbPointerButtonMask;
     }
-    else if (xE->u.u.type==DeviceButtonRelease) {
-	xkbi->lockedPtrButtons&= ~(1<<(kbp->detail&0x7));
+    else if (event->type == ET_ButtonRelease) {
+	xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
 	changed |= XkbPointerButtonMask;
     }
 
@@ -719,15 +721,25 @@ deviceKeyButtonPointer *kbp = xE;
      *
      *          see. it's still steaming. told you. (whot)
      */
+
+    {
+        /* FIXME: temporary solution only. */
+        static int nevents;
+        static xEvent ev[1000]; /* enough bytes for the events we have atm */
+
+        nevents = ConvertBackToXI((InternalEvent*)xE, ev);
+
+
     UNWRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr, backupproc);
-    mouse->public.processInputProc(xE, mouse, count);
+    mouse->public.processInputProc(ev, mouse, nevents);
     COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
 				     backupproc, xkbUnwrapProc);
+    }
 
     xkbi->state.ptr_buttons = mouse->button->state;
     
     /* clear any latched modifiers */
-    if ( xkbi->state.latched_mods && (kbp->type==DeviceButtonRelease) ) {
+    if ( xkbi->state.latched_mods && (event->type == ET_ButtonRelease) ) {
 	unsigned 		changed_leds;
 	XkbStateRec		oldState;
 	XkbSrvLedInfoPtr	sli;
@@ -742,7 +754,7 @@ deviceKeyButtonPointer *kbp = xE;
 	    changed_leds= XkbIndicatorsToUpdate(dev,changed,False);
 	    if (changed_leds) {
 		XkbEventCauseRec	cause;
-		XkbSetCauseKey(&cause,(kbp->detail&0x7),kbp->type);
+		XkbSetCauseKey(&cause,(event->detail.key & 0x7), event->type);
 		XkbUpdateIndicators(dev,changed_leds,True,NULL,&cause);
 	    }
 	}
@@ -750,8 +762,8 @@ deviceKeyButtonPointer *kbp = xE;
 
     if (((xkbi->flags&_XkbStateNotifyInProgress)==0)&&(changed!=0)) {
 	xkbStateNotify	sn;
-	sn.keycode= kbp->detail;
-	sn.eventType= kbp->type;
+	sn.keycode= event->detail.key;
+	sn.eventType= event->type;
 	sn.requestMajor = sn.requestMinor = 0;
 	sn.changed= changed;
 	XkbSendStateNotify(dev,&sn);

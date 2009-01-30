@@ -1068,7 +1068,7 @@ register int	i,send;
 }
 
 void
-XkbHandleActions(DeviceIntPtr dev,DeviceIntPtr kbd,xEvent *xE,int count)
+XkbHandleActions(DeviceIntPtr dev, DeviceIntPtr kbd, DeviceEvent* event)
 {
 int		key,bit,i;
 XkbSrvInfoPtr	xkbi;
@@ -1086,7 +1086,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 
     keyc= kbd->key;
     xkbi= keyc->xkbInfo;
-    key= xE->u.u.detail;
+    key= event->detail.key;
     /* The state may change, so if we're not in the middle of sending a state
      * notify, prepare for it */
     if ((xkbi->flags&_XkbStateNotifyInProgress)==0) {
@@ -1100,10 +1100,8 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     xkbi->groupChange = 0;
 
     sendEvent = 1;
-    keyEvent= ((xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress)||
-		(xE->u.u.type==KeyRelease)||(xE->u.u.type==DeviceKeyRelease));
-    pressEvent= (xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress)||
-		 (xE->u.u.type==ButtonPress)||(xE->u.u.type==DeviceButtonPress);
+    keyEvent= ((event->type == ET_KeyPress) || (event->type == ET_KeyRelease));
+    pressEvent= ((event->type == ET_KeyPress)|| (event->type == ET_ButtonPress));
 
     if (pressEvent) {
 	if (keyEvent)	
@@ -1213,13 +1211,23 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
         else
             tmpdev = GetPairedDevice(dev);
 
+        {
+
+
+        /* FIXME: temporary solution only. */
+        static int nevents;
+        static xEvent ev[1000]; /* enough bytes for the events we have atm */
+        nevents = ConvertBackToXI((InternalEvent*)event, ev);
+
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
-        dev->public.processInputProc(xE,tmpdev,count);
+        dev->public.processInputProc(ev, tmpdev, nevents);
         COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
                                      backupproc,xkbUnwrapProc);
+
+        }
     }
     else if (keyEvent) {
-	FixKeyState(xE,dev);
+	FixKeyState(event, dev);
     }
 
     xkbi->prev_state= oldState;
@@ -1229,7 +1237,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	if (changed) {
 	    xkbStateNotify	sn;
 	    sn.keycode= key;
-	    sn.eventType= xE->u.u.type;
+	    sn.eventType= event->type;
 	    sn.requestMajor = sn.requestMinor = 0;
 	    sn.changed= changed;
 	    XkbSendStateNotify(dev,&sn);
@@ -1239,7 +1247,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     changed= XkbIndicatorsToUpdate(dev,changed,False);
     if (changed) {
 	XkbEventCauseRec	cause;
-	XkbSetCauseKey(&cause,key,xE->u.u.type);
+	XkbSetCauseKey(&cause, key, event->type);
 	XkbUpdateIndicators(dev,changed,False,NULL,&cause);
     }
     return;

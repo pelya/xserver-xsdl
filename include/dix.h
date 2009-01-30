@@ -53,6 +53,7 @@ SOFTWARE.
 #include "input.h"
 #include "cursor.h"
 #include "geext.h"
+#include "events.h"
 #include <X11/extensions/XI.h>
 
 #define EARLIER -1
@@ -406,7 +407,7 @@ extern _X_EXPORT void DeliverGrabbedEvent(
     int /* count */);
 
 extern _X_EXPORT void FixKeyState(
-    xEvent * /* xE */,
+    DeviceEvent* /* event */,
     DeviceIntPtr /* keybd */);
 
 extern _X_EXPORT void RecalculateDeliverableEvents(

@@ -3586,26 +3586,24 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
    the device's processInputProc to be called, as in for example Mouse Keys.
 */
 void
-FixKeyState (xEvent *xE, DeviceIntPtr keybd)
+FixKeyState (DeviceEvent *event, DeviceIntPtr keybd)
 {
     int             key, bit;
     BYTE   *kptr;
     KeyClassPtr keyc = keybd->key;
 
-    key = xE->u.u.detail;
+    key = event->detail.key;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
 
-    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease)||
-         (xE->u.u.type==DeviceKeyPress)||(xE->u.u.type==DeviceKeyRelease))
-            ) {
+    if ((event->type == ET_KeyPress)||(event->type == ET_KeyRelease)) {
 	DebugF("FixKeyState: Key %d %s\n",key,
-               (((xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress))?"down":"up"));
+               (((event->type == ET_KeyPress)||(event->type == ET_DeviceKeyPress)) ? "down" : "up"));
     }
 
-    if (xE->u.u.type == KeyPress || xE->u.u.type == DeviceKeyPress)
+    if (event->type == ET_KeyPress)
 	    *kptr |= bit;
-    else if (xE->u.u.type == KeyRelease || xE->u.u.type == DeviceKeyRelease)
+    else if (event->type == ET_KeyRelease)
 	    *kptr &= ~bit;
     else
         FatalError("Impossible keyboard event");

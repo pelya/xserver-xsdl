@@ -56,6 +56,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "xkbstr.h"
 #include "xkbrules.h"
 #include "inputstr.h"
+#include "events.h"
 
 typedef struct _XkbInterest {
 	DeviceIntPtr		dev;
@@ -709,16 +710,14 @@ extern _X_EXPORT void XkbSendNotification(
 );
 
 extern _X_EXPORT void XkbProcessKeyboardEvent(
-    struct _xEvent * 		/* xE */,
-    DeviceIntPtr		/* keybd */,
-    int 			/* count */
+    DeviceEvent*		/* event */,
+    DeviceIntPtr		/* keybd */
 );
 
 extern _X_EXPORT void XkbHandleActions(
     DeviceIntPtr		/* dev */,
     DeviceIntPtr		/* kbd */,
-    struct _xEvent * 		/* xE */,
-    int 			/* count */
+    DeviceEvent*		/* event */
 );
 
 extern _X_EXPORT Bool XkbEnableDisableControls(
@@ -734,15 +733,13 @@ extern _X_EXPORT void AccessXInit(
 );
 
 extern _X_EXPORT Bool AccessXFilterPressEvent(
-    struct _xEvent *	/* xE */,
-    DeviceIntPtr	/* keybd */,
-    int				/* count */
+    DeviceEvent*	/* event */,
+    DeviceIntPtr	/* keybd */
 );
 
 extern _X_EXPORT Bool AccessXFilterReleaseEvent(
-    struct _xEvent *	/* xE */,
-    DeviceIntPtr	/* keybd */,
-    int				/* count */
+    DeviceEvent*	/* event */,
+    DeviceIntPtr	/* keybd */
 );
 
 extern _X_EXPORT void AccessXCancelRepeatKey(

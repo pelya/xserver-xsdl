@@ -400,20 +400,11 @@ mieqProcessInputEvents(void)
                             masterEvents->event, master, 1);
             } else
             {
-                /* FIXME: temporary solution only. */
-                static int nevents;
-                static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
-                nevents = ConvertBackToXI(event, xE);
-
                 /* process slave first, then master */
-                dev->public.processInputProc(xE, dev, nevents);
+                dev->public.processInputProc(event, dev, 1);
 
                 if (master)
-                {
-                    nevents = ConvertBackToXI((InternalEvent*)masterEvents->event, xE);
-                    master->public.processInputProc(xE, master, nevents);
-                }
+                    master->public.processInputProc(masterEvents->event, master, 1);
             }
         }
 
