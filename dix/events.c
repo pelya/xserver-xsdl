@@ -549,52 +549,44 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
-    if (syncEvents.playingEvents)
-    {
-	CheckVirtualMotion(pDev, (QdEventPtr)NULL, pWin);
-	SyntheticMotion(pDev, pSprite->hot.x, pSprite->hot.y);
+    int x, y, off_x, off_y, i;
+
+    if(!XineramaSetWindowPntrs(pDev, pWin))
+        return;
+
+    i = PanoramiXNumScreens - 1;
+
+    REGION_COPY(pSprite->screen, &pSprite->Reg1,
+            &pSprite->windows[i]->borderSize);
+    off_x = panoramiXdataPtr[i].x;
+    off_y = panoramiXdataPtr[i].y;
+
+    while(i--) {
+        x = off_x - panoramiXdataPtr[i].x;
+        y = off_y - panoramiXdataPtr[i].y;
+
+        if(x || y)
+            REGION_TRANSLATE(pSprite->screen, &pSprite->Reg1, x, y);
+
+        REGION_UNION(pSprite->screen, &pSprite->Reg1, &pSprite->Reg1,
+                &pSprite->windows[i]->borderSize);
+
+        off_x = panoramiXdataPtr[i].x;
+        off_y = panoramiXdataPtr[i].y;
     }
+
+    pSprite->hotLimits = *REGION_EXTENTS(pSprite->screen, &pSprite->Reg1);
+
+    if(REGION_NUM_RECTS(&pSprite->Reg1) > 1)
+        pSprite->hotShape = &pSprite->Reg1;
     else
-    {
-	int x, y, off_x, off_y, i;
+        pSprite->hotShape = NullRegion;
 
-	if(!XineramaSetWindowPntrs(pDev, pWin))
-	    return;
+    pSprite->confined = FALSE;
+    pSprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
 
-	i = PanoramiXNumScreens - 1;
-
-	REGION_COPY(pSprite->screen, &pSprite->Reg1,
-					&pSprite->windows[i]->borderSize);
-	off_x = panoramiXdataPtr[i].x;
-	off_y = panoramiXdataPtr[i].y;
-
-	while(i--) {
-	    x = off_x - panoramiXdataPtr[i].x;
-	    y = off_y - panoramiXdataPtr[i].y;
-
-	    if(x || y)
-		REGION_TRANSLATE(pSprite->screen, &pSprite->Reg1, x, y);
-
-	    REGION_UNION(pSprite->screen, &pSprite->Reg1, &pSprite->Reg1,
-					&pSprite->windows[i]->borderSize);
-
-	    off_x = panoramiXdataPtr[i].x;
-	    off_y = panoramiXdataPtr[i].y;
-	}
-
-	pSprite->hotLimits = *REGION_EXTENTS(pSprite->screen, &pSprite->Reg1);
-
-	if(REGION_NUM_RECTS(&pSprite->Reg1) > 1)
-	   pSprite->hotShape = &pSprite->Reg1;
-	else
-	   pSprite->hotShape = NullRegion;
-
-	pSprite->confined = FALSE;
-	pSprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
-
-        XineramaCheckPhysLimits(pDev, pSprite->current,
-                                generateEvents);
-    }
+    XineramaCheckPhysLimits(pDev, pSprite->current,
+            generateEvents);
 }
 
 
@@ -835,13 +827,6 @@ ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bo
     ScreenPtr pScreen = pWin->drawable.pScreen;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
-#ifdef PANORAMIX
-    if(!noPanoramiXExtension) {
-	XineramaConfineCursorToWindow(pDev, pWin, generateEvents);
-	return;
-    }
-#endif
-
     if (syncEvents.playingEvents)
     {
 	CheckVirtualMotion(pDev, (QdEventPtr)NULL, pWin);
@@ -849,6 +834,12 @@ ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bo
     }
     else
     {
+#ifdef PANORAMIX
+        if(!noPanoramiXExtension) {
+            XineramaConfineCursorToWindow(pDev, pWin, generateEvents);
+            return;
+        }
+#endif
 	pSprite->hotLimits = *REGION_EXTENTS( pScreen, &pWin->borderSize);
 	pSprite->hotShape = wBoundingShape(pWin) ? &pWin->borderSize
 					       : NullRegion;
