@@ -2493,35 +2493,24 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
  * @return TRUE if the sprite has moved or FALSE otherwise.
  */
 Bool
-CheckMotion(xEvent *xE, DeviceIntPtr pDev)
+CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 {
-    INT16     *rootX, *rootY;
     WindowPtr prevSpriteWin;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
     prevSpriteWin = pSprite->win;
 
-    if (xE && !syncEvents.playingEvents)
+    if (ev && !syncEvents.playingEvents)
     {
         /* GetPointerEvents() guarantees that pointer events have the correct
            rootX/Y set already. */
-        switch(xE->u.u.type)
+        switch (ev->type)
         {
-            case ButtonPress:
-            case ButtonRelease:
-            case MotionNotify:
-                rootX = &XE_KBPTR.rootX;
-                rootY = &XE_KBPTR.rootY;
+            case ET_ButtonPress:
+            case ET_ButtonRelease:
+            case ET_Motion:
                 break;
             default:
-                if (xE->u.u.type == DeviceButtonPress ||
-                        xE->u.u.type == DeviceButtonRelease ||
-                        xE->u.u.type == DeviceMotionNotify)
-                {
-                    rootX = &((deviceKeyButtonPointer*)xE)->root_x;
-                    rootY = &((deviceKeyButtonPointer*)xE)->root_y;
-                    break;
-                }
                 /* all other events return FALSE */
                 return FALSE;
         }
@@ -2533,9 +2522,9 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
             /* Motion events entering DIX get translated to Screen 0
                coordinates.  Replayed events have already been
                translated since they've entered DIX before */
-            *rootX += panoramiXdataPtr[pSprite->screen->myNum].x -
+            ev->root_x += panoramiXdataPtr[pSprite->screen->myNum].x -
                                        panoramiXdataPtr[0].x;
-            *rootY += panoramiXdataPtr[pSprite->screen->myNum].y -
+            ev->root_y += panoramiXdataPtr[pSprite->screen->myNum].y -
                                        panoramiXdataPtr[0].y;
         } else
 #endif
@@ -2547,8 +2536,8 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
             }
         }
 
-        pSprite->hot.x = *rootX;
-        pSprite->hot.y = *rootY;
+        pSprite->hot.x = ev->root_x;
+        pSprite->hot.y = ev->root_y;
         if (pSprite->hot.x < pSprite->physLimits.x1)
             pSprite->hot.x = pSprite->physLimits.x1;
         else if (pSprite->hot.x >= pSprite->physLimits.x2)
@@ -2561,8 +2550,8 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	    ConfineToShape(pDev, pSprite->hotShape, &pSprite->hot.x, &pSprite->hot.y);
 	pSprite->hotPhys = pSprite->hot;
 
-	if ((pSprite->hotPhys.x != *rootX) ||
-	    (pSprite->hotPhys.y != *rootY))
+	if ((pSprite->hotPhys.x != ev->root_x) ||
+	    (pSprite->hotPhys.y != ev->root_y))
 	{
 #ifdef PANORAMIX
             if (!noPanoramiXExtension)
@@ -2578,8 +2567,8 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
             }
 	}
 
-	*rootX = pSprite->hot.x;
-	*rootY = pSprite->hot.y;
+	ev->root_x = pSprite->hot.x;
+	ev->root_y = pSprite->hot.y;
     }
 
     pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
@@ -2587,7 +2576,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
     if (pSprite->win != prevSpriteWin)
     {
 	if (prevSpriteWin != NullWindow) {
-	    if (!xE)
+	    if (!ev)
 		UpdateCurrentTimeIf();
             DoEnterLeaveEvents(pDev, prevSpriteWin, pSprite->win,
                                NotifyNormal);
@@ -2609,7 +2598,7 @@ WindowsRestructured(void)
     while(pDev)
     {
         if (DevHasCursor(pDev))
-            CheckMotion((xEvent *)NULL, pDev);
+            CheckMotion(NULL, pDev);
         pDev = pDev->next;
     }
 }

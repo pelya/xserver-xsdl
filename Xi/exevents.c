@@ -930,14 +930,15 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
     if (ret == DONT_PROCESS)
         return;
 
-    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     v = device->valuator;
     b = device->button;
     k = device->key;
 
     if (device->isMaster || !device->u.master)
-        CheckMotion(xE, device);
+        CheckMotion(event, device);
+
+    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
 	GetSpritePosition(device, &rootX, &rootY);

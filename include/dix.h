@@ -466,7 +466,7 @@ extern _X_EXPORT int DeliverEvents(
 
 extern _X_EXPORT Bool
 CheckMotion(
-    xEvent* /* xE */, 
+    DeviceEvent* /* ev */,
     DeviceIntPtr /* pDev */);
 
 extern _X_EXPORT void WriteEventsToClient(
