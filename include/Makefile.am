@@ -62,3 +62,5 @@ endif
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
+EXTRA_DIST = 	\
+	dix-config-apple-verbatim.h
