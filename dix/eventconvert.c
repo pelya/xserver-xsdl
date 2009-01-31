@@ -288,3 +288,43 @@ eventToClassesChanged(DeviceChangedEvent *ev, EventListPtr events, int *count)
     *count = 1;
     return Success;
 }
+
+/**
+ * Return the corresponding core type for the given @event or 0 if no core
+ * equivalent exists.
+ */
+int
+GetCoreType(InternalEvent *event)
+{
+    int coretype = 0;
+    switch(event->u.any.type)
+    {
+        case ET_Motion:         coretype = MotionNotify;  break;
+        case ET_ButtonPress:    coretype = ButtonPress;   break;
+        case ET_ButtonRelease:  coretype = ButtonRelease; break;
+        case ET_KeyPress:       coretype = KeyPress;      break;
+        case ET_KeyRelease:     coretype = KeyRelease;    break;
+    }
+    return coretype;
+}
+
+/**
+ * Return the corresponding XI 1.x type for the given @event or 0 if no
+ * equivalent exists.
+ */
+int
+GetXIType(InternalEvent *event)
+{
+    int xitype = 0;
+    switch(event->u.any.type)
+    {
+        case ET_Motion:         xitype = DeviceMotionNotify;  break;
+        case ET_ButtonPress:    xitype = DeviceButtonPress;   break;
+        case ET_ButtonRelease:  xitype = DeviceButtonRelease; break;
+        case ET_KeyPress:       xitype = DeviceKeyPress;      break;
+        case ET_KeyRelease:     xitype = DeviceKeyRelease;    break;
+        case ET_ProximityIn:    xitype = ProximityIn;         break;
+        case ET_ProximityOut:   xitype = ProximityOut;        break;
+    }
+    return xitype;
+}
