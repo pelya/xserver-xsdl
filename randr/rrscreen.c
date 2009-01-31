@@ -224,7 +224,7 @@ ProcRRGetScreenSizeRange (ClientPtr client)
     
     if (pScrPriv) 
     {
-	if (!RRGetInfo (pScreen))
+	if (!RRGetInfo (pScreen, FALSE))
 	    return BadAlloc;
 	rep.minWidth  = pScrPriv->minWidth;
 	rep.minHeight = pScrPriv->minHeight;
@@ -340,7 +340,7 @@ rrGetScreenResources(ClientPtr client, Bool query)
     rep.pad = 0;
     
     if (query && pScrPriv)
-	if (!RRGetInfo (pScreen))
+	if (!RRGetInfo (pScreen, query))
 	    return BadAlloc;
 
     if (!pScrPriv)
@@ -612,7 +612,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     rep.pad = 0;
     
     if (pScrPriv)
-	if (!RRGetInfo (pScreen))
+	if (!RRGetInfo (pScreen, FALSE))
 	    return BadAlloc;
 
     output = RRFirstOutput (pScreen);
@@ -793,7 +793,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	rep.status = RRSetConfigFailed;
 	goto sendReply;
     }
-    if (!RRGetInfo (pScreen))
+    if (!RRGetInfo (pScreen, FALSE))
 	return BadAlloc;
     
     output = RRFirstOutput (pScreen);

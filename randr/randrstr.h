@@ -469,7 +469,7 @@ RRTellChanged (ScreenPtr pScreen);
  * Poll the driver for changed information
  */
 extern _X_EXPORT Bool
-RRGetInfo (ScreenPtr pScreen);
+RRGetInfo (ScreenPtr pScreen, Bool force_query);
 
 extern _X_EXPORT Bool RRInit (void);
 
