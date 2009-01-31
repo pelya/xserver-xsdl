@@ -188,6 +188,7 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
+    Bool ret;
 
     if (pPixmap->refcnt == 1)
     {
@@ -213,7 +214,12 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validSys);
 	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validFB);
     }
-    return fbDestroyPixmap (pPixmap);
+
+    swap(pExaScr, pScreen, DestroyPixmap);
+    ret = pScreen->DestroyPixmap (pPixmap);
+    swap(pExaScr, pScreen, DestroyPixmap);
+
+    return ret;
 }
 
 static int
@@ -286,12 +292,14 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
+    swap(pExaScr, pScreen, CreatePixmap);
     if (!pExaScr->info->CreatePixmap) {
-        pPixmap = fbCreatePixmap (pScreen, w, h, depth, usage_hint);
+        pPixmap = pScreen->CreatePixmap (pScreen, w, h, depth, usage_hint);
     } else {
         driver_alloc = 1;
-        pPixmap = fbCreatePixmap(pScreen, 0, 0, depth, usage_hint);
+        pPixmap = pScreen->CreatePixmap(pScreen, 0, 0, depth, usage_hint);
     }
+    swap(pExaScr, pScreen, CreatePixmap);
 
     if (!pPixmap)
         return NULL;
@@ -322,8 +330,10 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 
         pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
         if (!pExaPixmap->driverPriv) {
-             fbDestroyPixmap(pPixmap);
-             return NULL;
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    pScreen->DestroyPixmap (pPixmap);
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    return NULL;
         }
 
         (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
@@ -354,8 +364,10 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
 
         if (pExaPixmap->fb_pitch > 131071) {
-	     fbDestroyPixmap(pPixmap);
-	     return NULL;
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    pScreen->DestroyPixmap (pPixmap);
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    return NULL;
         }
 
 	/* Set up damage tracking */
@@ -364,7 +376,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 					    pScreen, pPixmap);
 
 	if (pExaPixmap->pDamage == NULL) {
-	    fbDestroyPixmap (pPixmap);
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    pScreen->DestroyPixmap (pPixmap);
+	    swap(pExaScr, pScreen, DestroyPixmap);
 	    return NULL;
 	}
 
@@ -774,6 +788,8 @@ static Bool
 exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
     Bool ret;
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ExaScreenPriv(pScreen);
 
     if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
         exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
@@ -781,7 +797,9 @@ exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
         exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
 
-    ret = fbChangeWindowAttributes(pWin, mask);
+    swap(pExaScr, pScreen, ChangeWindowAttributes);
+    ret = pScreen->ChangeWindowAttributes(pWin, mask);
+    swap(pExaScr, pScreen, ChangeWindowAttributes);
 
     if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
         exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
@@ -796,9 +814,15 @@ static RegionPtr
 exaBitmapToRegion(PixmapPtr pPix)
 {
     RegionPtr ret;
+    ScreenPtr pScreen = pPix->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+
     exaPrepareAccess(&pPix->drawable, EXA_PREPARE_SRC);
-    ret = fbPixmapToRegion(pPix);
+    swap(pExaScr, pScreen, BitmapToRegion);
+    ret = pScreen->BitmapToRegion(pPix);
+    swap(pExaScr, pScreen, BitmapToRegion);
     exaFinishAccess(&pPix->drawable, EXA_PREPARE_SRC);
+
     return ret;
 }
 
@@ -809,9 +833,9 @@ exaCreateScreenResources(ScreenPtr pScreen)
     PixmapPtr pScreenPixmap;
     Bool b;
 
-    pScreen->CreateScreenResources = pExaScr->SavedCreateScreenResources;
+    swap(pExaScr, pScreen, CreateScreenResources);
     b = pScreen->CreateScreenResources(pScreen);
-    pScreen->CreateScreenResources = exaCreateScreenResources;
+    swap(pExaScr, pScreen, CreateScreenResources);
 
     if (!b)
         return FALSE;
@@ -845,23 +869,26 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     if (ps->Glyphs == exaGlyphs)
 	exaGlyphsFini(pScreen);
 
-    pScreen->CreateGC = pExaScr->SavedCreateGC;
-    pScreen->CloseScreen = pExaScr->SavedCloseScreen;
-    pScreen->GetImage = pExaScr->SavedGetImage;
-    pScreen->GetSpans = pExaScr->SavedGetSpans;
-    pScreen->CreatePixmap = pExaScr->SavedCreatePixmap;
-    pScreen->DestroyPixmap = pExaScr->SavedDestroyPixmap;
-    pScreen->CopyWindow = pExaScr->SavedCopyWindow;
-    pScreen->ChangeWindowAttributes = pExaScr->SavedChangeWindowAttributes;
-    pScreen->BitmapToRegion = pExaScr->SavedBitmapToRegion;
-    pScreen->CreateScreenResources = pExaScr->SavedCreateScreenResources;
+    unwrap(pExaScr, pScreen, CreateGC);
+    unwrap(pExaScr, pScreen, CloseScreen);
+    unwrap(pExaScr, pScreen, GetImage);
+    unwrap(pExaScr, pScreen, GetSpans);
+    if (pExaScr->SavedCreatePixmap)
+	unwrap(pExaScr, pScreen, CreatePixmap);
+    if (pExaScr->SavedDestroyPixmap)
+	unwrap(pExaScr, pScreen, DestroyPixmap);
+    unwrap(pExaScr, pScreen, CopyWindow);
+    unwrap(pExaScr, pScreen, ChangeWindowAttributes);
+    unwrap(pExaScr, pScreen, BitmapToRegion);
+    unwrap(pExaScr, pScreen, CreateScreenResources);
 #ifdef RENDER
     if (ps) {
-	ps->Composite = pExaScr->SavedComposite;
-	ps->Glyphs = pExaScr->SavedGlyphs;
-	ps->Trapezoids = pExaScr->SavedTrapezoids;
-	ps->Triangles = pExaScr->SavedTriangles;
-	ps->AddTraps = pExaScr->SavedAddTraps;
+	unwrap(pExaScr, ps, Composite);
+	if (pExaScr->SavedGlyphs)
+	    unwrap(pExaScr, ps, Glyphs);
+	unwrap(pExaScr, ps, Trapezoids);
+	unwrap(pExaScr, ps, Triangles);
+	unwrap(pExaScr, ps, AddTraps);
     }
 #endif
 
@@ -1001,48 +1028,23 @@ exaDriverInit (ScreenPtr		pScreen,
     /*
      * Replace various fb screen functions
      */
-    pExaScr->SavedCloseScreen = pScreen->CloseScreen;
-    pScreen->CloseScreen = exaCloseScreen;
-
-    pExaScr->SavedCreateGC = pScreen->CreateGC;
-    pScreen->CreateGC = exaCreateGC;
-
-    pExaScr->SavedGetImage = pScreen->GetImage;
-    pScreen->GetImage = exaGetImage;
-
-    pExaScr->SavedGetSpans = pScreen->GetSpans;
-    pScreen->GetSpans = ExaCheckGetSpans;
-
-    pExaScr->SavedCopyWindow = pScreen->CopyWindow;
-    pScreen->CopyWindow = exaCopyWindow;
-
-    pExaScr->SavedChangeWindowAttributes = pScreen->ChangeWindowAttributes;
-    pScreen->ChangeWindowAttributes = exaChangeWindowAttributes;
-
-    pExaScr->SavedBitmapToRegion = pScreen->BitmapToRegion;
-    pScreen->BitmapToRegion = exaBitmapToRegion;
-
-    pExaScr->SavedCreateScreenResources = pScreen->CreateScreenResources;
-    pScreen->CreateScreenResources = exaCreateScreenResources;
+    wrap(pExaScr, pScreen, CreateGC, exaCreateGC);
+    wrap(pExaScr, pScreen, CloseScreen, exaCloseScreen);
+    wrap(pExaScr, pScreen, GetImage, exaGetImage);
+    wrap(pExaScr, pScreen, GetSpans, ExaCheckGetSpans);
+    wrap(pExaScr, pScreen, CopyWindow, exaCopyWindow);
+    wrap(pExaScr, pScreen, ChangeWindowAttributes, exaChangeWindowAttributes);
+    wrap(pExaScr, pScreen, BitmapToRegion, exaBitmapToRegion);
+    wrap(pExaScr, pScreen, CreateScreenResources, exaCreateScreenResources);
 
 #ifdef RENDER
     if (ps) {
-        pExaScr->SavedComposite = ps->Composite;
-	ps->Composite = exaComposite;
-
-	if (pScreenInfo->PrepareComposite) {
-	    pExaScr->SavedGlyphs = ps->Glyphs;
-	    ps->Glyphs = exaGlyphs;
-	}
-	
-	pExaScr->SavedTriangles = ps->Triangles;
-	ps->Triangles = exaTriangles;
-
-	pExaScr->SavedTrapezoids = ps->Trapezoids;
-	ps->Trapezoids = exaTrapezoids;
-
-	pExaScr->SavedAddTraps = ps->AddTraps;
-	ps->AddTraps = ExaCheckAddTraps;
+	wrap(pExaScr, ps, Composite, exaComposite);
+	if (pScreenInfo->PrepareComposite)
+	    wrap(pExaScr, ps, Glyphs, exaGlyphs);
+	wrap(pExaScr, ps, Trapezoids, exaTrapezoids);
+	wrap(pExaScr, ps, Triangles, exaTriangles);
+	wrap(pExaScr, ps, AddTraps, ExaCheckAddTraps);
     }
 #endif
 
@@ -1063,11 +1065,8 @@ exaDriverInit (ScreenPtr		pScreen,
 		       pScreen->myNum);
 	    return FALSE;
         }
-        pExaScr->SavedCreatePixmap = pScreen->CreatePixmap;
-	pScreen->CreatePixmap = exaCreatePixmap;
-
-        pExaScr->SavedDestroyPixmap = pScreen->DestroyPixmap;
-	pScreen->DestroyPixmap = exaDestroyPixmap;
+	wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap);
+	wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap);
 
 	pExaScr->SavedModifyPixmapHeader = pScreen->ModifyPixmapHeader;
 	pScreen->ModifyPixmapHeader = exaModifyPixmapHeader;
