@@ -1201,12 +1201,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     }
 
 fallback:
-    EXA_FALLBACK(("from %p (%c)\n", pDrawable,
-		  exaDrawableLocation(pDrawable)));
-
-    exaPrepareAccessReg (pDrawable, EXA_PREPARE_SRC, &Reg);
-    fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
-    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
+    ExaCheckGetImage(pDrawable, x, y, w, h, format, planeMask, d);
 
 out:
     REGION_UNINIT(pScreen, &Reg);

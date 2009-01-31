@@ -283,6 +283,36 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 }
 
 void
+ExaCheckGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
+		unsigned int format, unsigned long planeMask, char *d)
+{
+    BoxRec Box;
+    RegionRec Reg;
+    int xoff, yoff;
+    ScreenPtr pScreen = pDrawable->pScreen;
+    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+    ExaScreenPriv(pScreen);
+
+    EXA_FALLBACK(("from %p (%c)\n", pDrawable,
+		  exaDrawableLocation(pDrawable)));
+
+    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+
+    Box.x1 = pDrawable->y + x + xoff;
+    Box.y1 = pDrawable->y + y + yoff;
+    Box.x2 = Box.x1 + w;
+    Box.y2 = Box.y1 + h;
+
+    REGION_INIT(pScreen, &Reg, &Box, 1);
+
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_SRC, &Reg);
+    swap(pExaScr, pScreen, GetImage);
+    pScreen->GetImage (pDrawable, x, y, w, h, format, planeMask, d);
+    swap(pExaScr, pScreen, GetImage);
+    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
+}
+
+void
 ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int wMax,
 		 DDXPointPtr ppt,
