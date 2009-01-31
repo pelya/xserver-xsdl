@@ -41,6 +41,8 @@ static int exaScreenPrivateKeyIndex;
 DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKeyIndex;
 static int exaPixmapPrivateKeyIndex;
 DevPrivateKey exaPixmapPrivateKey = &exaPixmapPrivateKeyIndex;
+static int exaGCPrivateKeyIndex;
+DevPrivateKey exaGCPrivateKey = &exaGCPrivateKeyIndex;
 
 #ifdef MITSHM
 static ShmFuncs exaShmFuncs = { NULL, NULL };
@@ -661,6 +663,8 @@ static GCFuncs	exaGCFuncs = {
 static int
 exaCreateGC (GCPtr pGC)
 {
+    ExaGCPriv(pGC);
+
     if (!fbCreateGC (pGC))
 	return FALSE;
 
@@ -889,6 +893,13 @@ exaDriverInit (ScreenPtr		pScreen,
     pExaScr->migration = ExaMigrationAlways;
 
     exaDDXDriverInit(pScreen);
+
+    if (!dixRequestPrivate(exaGCPrivateKey, sizeof(ExaGCPrivRec))) {
+	LogMessage(X_WARNING,
+	       "EXA(%d): Failed to allocate GC private\n",
+	       pScreen->myNum);
+	return FALSE;
+    }
 
     /*
      * Replace various fb screen functions

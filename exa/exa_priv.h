@@ -173,8 +173,12 @@ typedef struct {
 
 extern DevPrivateKey exaScreenPrivateKey;
 extern DevPrivateKey exaPixmapPrivateKey;
+extern DevPrivateKey exaGCPrivateKey;
 #define ExaGetScreenPriv(s) ((ExaScreenPrivPtr)dixLookupPrivate(&(s)->devPrivates, exaScreenPrivateKey))
 #define ExaScreenPriv(s)	ExaScreenPrivPtr    pExaScr = ExaGetScreenPriv(s)
+
+#define ExaGetGCPriv(gc) ((ExaGCPrivPtr)dixLookupPrivate(&(gc)->devPrivates, exaGCPrivateKey))
+#define ExaGCPriv(gc) ExaGCPrivPtr pExaGC = ExaGetGCPriv(gc)
 
 /** Align an offset to an arbitrary alignment */
 #define EXA_ALIGN(offset, align) (((offset) + (align) - 1) - \
@@ -236,7 +240,13 @@ typedef struct {
      */
     void *driverPriv;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
- 
+
+typedef struct {
+    /* GC values from the layer below. */
+    GCOps *ops;
+    GCFuncs *funcs;
+} ExaGCPrivRec, *ExaGCPrivPtr;
+
 typedef struct _ExaMigrationRec {
     Bool as_dst;
     Bool as_src;
