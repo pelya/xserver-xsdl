@@ -290,9 +290,14 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart)
 {
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv(pScreen);
+
     EXA_FALLBACK(("from %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
     exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
-    fbGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
+    swap(pExaScr, pScreen, GetSpans);
+    pScreen->GetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
+    swap(pExaScr, pScreen, GetSpans);
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
@@ -310,6 +315,11 @@ ExaCheckComposite (CARD8      op,
                    CARD16     width,
                    CARD16     height)
 {
+    ScreenPtr pScreen = pDst->pDrawable->pScreen;
+#ifdef RENDER
+    PictureScreenPtr	ps = GetPictureScreen(pScreen);
+#endif /* RENDER */
+    ExaScreenPriv(pScreen);
     RegionRec region;
     int xoff, yoff;
 
@@ -338,7 +348,9 @@ ExaCheckComposite (CARD8      op,
 	exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
     if (pMask && pMask->pDrawable != NULL)
 	exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
-    fbComposite (op,
+#ifdef RENDER
+    swap(pExaScr, ps, Composite);
+    ps->Composite (op,
                  pSrc,
                  pMask,
                  pDst,
@@ -350,6 +362,8 @@ ExaCheckComposite (CARD8      op,
                  yDst,
                  width,
                  height);
+    swap(pExaScr, ps, Composite);
+#endif /* RENDER */
     if (pMask && pMask->pDrawable != NULL)
 	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
     if (pSrc->pDrawable != NULL)
@@ -366,10 +380,20 @@ ExaCheckAddTraps (PicturePtr	pPicture,
 		  int		ntrap,
 		  xTrap		*traps)
 {
+    ScreenPtr pScreen = pPicture->pDrawable->pScreen;
+#ifdef RENDER
+    PictureScreenPtr	ps = GetPictureScreen(pScreen);
+#endif /* RENDER */
+    ExaScreenPriv(pScreen);
+
     EXA_FALLBACK(("to pict %p (%c)\n",
 		  exaDrawableLocation(pPicture->pDrawable)));
     exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
-    fbAddTraps (pPicture, x_off, y_off, ntrap, traps);
+#ifdef RENDER
+    swap(pExaScr, ps, AddTraps);
+    ps->AddTraps (pPicture, x_off, y_off, ntrap, traps);
+    swap(pExaScr, ps, AddTraps);
+#endif /* RENDER */
     exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
 }
 
