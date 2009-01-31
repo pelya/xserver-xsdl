@@ -162,6 +162,7 @@ typedef const char *string;
 #include "geint.h"
 
 #include "enterleave.h"
+#include "eventconvert.h"
 
 /* Extension events type numbering starts at EXTENSION_EVENT_BASE.  */
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
@@ -1202,9 +1203,6 @@ FreezeThaw(DeviceIntPtr dev, Bool frozen)
  * runs up the sprite tree (spriteTrace) and searches for the window to replay
  * the events from. If it is found, it checks for passive grabs one down from
  * the window or delivers the events.
- *
- * Since the events in the EQ are always XI events, we need to emulate core
- * events here.
  */
 static void
 ComputeFreezes(void)
@@ -1212,10 +1210,12 @@ ComputeFreezes(void)
     DeviceIntPtr replayDev = syncEvents.replayDev;
     int i;
     WindowPtr w;
-    xEvent *xE;
-    int count;
     GrabPtr grab;
     DeviceIntPtr dev;
+
+    /* FIXME: temporary solution only. */
+    static int count;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
 	FreezeThaw(dev, dev->deviceGrab.sync.other ||
@@ -1225,18 +1225,21 @@ ComputeFreezes(void)
     syncEvents.playingEvents = TRUE;
     if (replayDev)
     {
-	xE = replayDev->deviceGrab.sync.event;
-	count = replayDev->deviceGrab.sync.evcount;
+        DeviceEvent* event = replayDev->deviceGrab.sync.event;
+
+        /* FIXME: temporary */
+        count = ConvertBackToXI(replayDev->deviceGrab.sync.event);
+
 	syncEvents.replayDev = (DeviceIntPtr)NULL;
 
-        w = XYToWindow(replayDev, XE_KBPTR.rootX, XE_KBPTR.rootY);
+        w = XYToWindow(replayDev, event->root_x, event->root_y);
 	for (i = 0; i < replayDev->spriteInfo->sprite->spriteTraceGood; i++)
 	{
 	    if (syncEvents.replayWin ==
 		replayDev->spriteInfo->sprite->spriteTrace[i])
 	    {
-		if (!CheckDeviceGrabs(replayDev, xE, i+1, count)) {
-		    if (replayDev->focus && !IsPointerEvent(xE))
+		if (!CheckDeviceGrabs(replayDev, event, i+1)) {
+		    if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
 			DeliverFocusedEvent(replayDev, xE, w, count);
 		    else
 			DeliverDeviceEvents(w, xE, NullGrab, NullWindow,
@@ -1246,7 +1249,7 @@ ComputeFreezes(void)
 	    }
 	}
 	/* must not still be in the same stack */
-	if (replayDev->focus && !IsPointerEvent(xE))
+	if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
 	    DeliverFocusedEvent(replayDev, xE, w, count);
 	else
 	    DeliverDeviceEvents(w, xE, NullGrab, NullWindow, replayDev, count);
@@ -3139,32 +3142,35 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
  *
  * @param pWin The window that may be subject to a passive grab.
  * @param device Device that caused the event.
- * @param xE List of events (multiple ones for DeviceMotionNotify)
- * @param count number of elements in xE.
- * @param store The event that will be stored on the device (always XI)
- * @param scount number of elements in store.
+ * @param event The current device event.
+ * @param checkCore Check for core grabs too.
  */
 
 static Bool
 CheckPassiveGrabsOnWindow(
     WindowPtr pWin,
     DeviceIntPtr device,
-    xEvent *xE,
-    int count,
-    xEvent *store,
-    int scount)
+    DeviceEvent *event,
+    BOOL checkCore)
 {
     GrabPtr grab = wPassiveGrabs(pWin);
     GrabRec tempGrab;
     GrabInfoPtr grabinfo;
-    xEvent *dxE;
+#define CORE_MATCH      0x1
+#define XI_MATCH        0x2
+    int match = 0;
+
+    /* FIXME: temporary solution only. */
+    static int count;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
 
     if (!grab)
 	return FALSE;
+    /* Fill out the grab details, but leave the type for later before
+     * comparing */
     tempGrab.window = pWin;
     tempGrab.device = device;
-    tempGrab.type = xE->u.u.type;
-    tempGrab.detail.exact = xE->u.u.detail;
+    tempGrab.detail.exact = event->detail.key;
     tempGrab.detail.pMask = NULL;
     tempGrab.modifiersDetail.pMask = NULL;
     tempGrab.next = NULL;
@@ -3185,14 +3191,23 @@ CheckPassiveGrabsOnWindow(
             xkbi= gdev->key->xkbInfo;
 	tempGrab.modifierDevice = grab->modifierDevice;
         tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
-        /* ignore the device for core events when comparing grabs */
-	if (GrabMatchesSecond(&tempGrab, grab, (xE->u.u.type < GenericEvent)) &&
-	    (!grab->confineTo ||
+
+        /* Check for XI grabs first */
+        tempGrab.type = GetXIType((InternalEvent*)event);
+	if (GrabMatchesSecond(&tempGrab, grab, FALSE))
+            match = XI_MATCH;
+        /* Check for a core grab (ignore the device when comparing) */
+        if (!match && checkCore &&
+            (tempGrab.type = GetCoreType((InternalEvent*)event)) &&
+            (GrabMatchesSecond(&tempGrab, grab, TRUE)))
+                match = CORE_MATCH;
+
+        if (match && (!grab->confineTo ||
 	     (grab->confineTo->realized &&
 				BorderSizeNotEmpty(device, grab->confineTo))))
 	{
-            XE_KBPTR.state &= 0x1f00;
-            XE_KBPTR.state |= tempGrab.modifiersDetail.exact&(~0x1f00);
+            event->corestate &= 0x1f00;
+            event->corestate |= tempGrab.modifiersDetail.exact & (~0x1f00);
             grabinfo = &device->deviceGrab;
             /* A passive grab may have been created for a different device
                than it is assigned to at this point in time.
@@ -3201,7 +3216,7 @@ CheckPassiveGrabsOnWindow(
                Since XGrabDeviceButton requires to specify the
                modifierDevice explicitly, we don't override this choice.
              */
-            if (xE->u.u.type < GenericEvent)
+            if (tempGrab.type < GenericEvent)
             {
                 grab->device = device;
                 grab->modifierDevice = GetPairedDevice(device);
@@ -3236,6 +3251,11 @@ CheckPassiveGrabsOnWindow(
             }
 
 
+            /* FIXME: temporary only */
+            count = ConvertBackToXI((InternalEvent*)event, xE);
+            if (match & CORE_MATCH)
+                xE->u.u.type = GetCoreType(event);
+
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
 
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
@@ -3246,21 +3266,17 @@ CheckPassiveGrabsOnWindow(
 
 	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
 	    {
-		if (grabinfo->sync.evcount < scount)
-		{
-		    grabinfo->sync.event = xrealloc(grabinfo->sync.event,
-						    scount * sizeof(xEvent));
-		}
-		grabinfo->sync.evcount = scount;
-                /* we always store the XI event, never the core event */
-		for (dxE = grabinfo->sync.event; --scount >= 0; dxE++, store++)
-		    *dxE = *store;
+                if (!grabinfo->sync.event)
+                    grabinfo->sync.event = xcalloc(1, sizeof(InternalEvent));
+                *grabinfo->sync.event = *event;
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
 	    return TRUE;
 	}
     }
     return FALSE;
+#undef CORE_MATCH
+#undef XI_MATCH
 }
 
 /**
@@ -3290,33 +3306,20 @@ CheckPassiveGrabsOnWindow(
 */
 
 Bool
-CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
-                 int checkFirst, int count)
+CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
 {
     int i;
     WindowPtr pWin = NULL;
-    FocusClassPtr focus = IsPointerEvent(xE) ? NULL : device->focus;
-    xEvent core;
+    FocusClassPtr focus = IsPointerEvent((InternalEvent*)event) ? NULL : device->focus;
     BOOL sendCore = (device->isMaster && device->coreEvents);
 
-    if ((xE->u.u.type == DeviceButtonPress)
-            && (device->button->buttonsDown != 1))
-	return FALSE;
-
-    if (xE->u.u.type < EXTENSION_EVENT_BASE)
-    {
-        ErrorF("[dix] Core event passed into CheckDeviceGrabs.\n");
+    if (event->type != ET_ButtonPress &&
+        event->type != ET_KeyPress)
         return FALSE;
-    }
 
-
-    if (sendCore)
-    {
-        core = *xE;
-        core.u.u.type = XItoCoreType(xE->u.u.type);
-        if(!core.u.u.type) /* probably a Proximity event, can't grab for those */
-            return FALSE;
-    }
+    if (event->type == ET_ButtonPress
+        && (device->button->buttonsDown != 1))
+	return FALSE;
 
     i = checkFirst;
 
@@ -3325,11 +3328,8 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
 	for (; i < focus->traceGood; i++)
 	{
 	    pWin = focus->trace[i];
-            /* XI grabs have precendence */
 	    if (pWin->optional &&
-	       (CheckPassiveGrabsOnWindow(pWin, device, xE, count, xE, count)
-                || (sendCore && CheckPassiveGrabsOnWindow(pWin, device, &core,
-                        1, xE, count))))
+	        CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
 		return TRUE;
 	}
 
@@ -3344,9 +3344,7 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
     {
 	pWin = device->spriteInfo->sprite->spriteTrace[i];
 	if (pWin->optional &&
-	    (CheckPassiveGrabsOnWindow(pWin, device, xE, count, xE, count) ||
-             (sendCore && CheckPassiveGrabsOnWindow(pWin, device, &core, 1,
-                                                    xE, count))))
+	    CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
 	    return TRUE;
     }
 
@@ -3566,6 +3564,8 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	case FREEZE_NEXT_EVENT:
 	    grabinfo->sync.state = FROZEN_WITH_EVENT;
 	    FreezeThaw(thisDev, TRUE);
+#if 0
+            /* FIXME: Sorry, frozen grabs are broken ATM */
 	    if (grabinfo->sync.evcount < count)
 	    {
 		grabinfo->sync.event = xrealloc(grabinfo->sync.event,
@@ -3574,6 +3574,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	    grabinfo->sync.evcount = count;
 	    for (dxE = grabinfo->sync.event; --count >= 0; dxE++, xE++)
 		*dxE = *xE;
+#endif
 	    break;
 	}
     }

@@ -426,8 +426,7 @@ typedef struct _GrabInfoRec {
 	Bool		frozen;
 	int		state;
 	GrabPtr		other;		/* if other grab has this frozen */
-	xEvent		*event;		/* saved to be replayed */
-	int		evcount;
+	DeviceEvent	*event;		/* saved to be replayed */
     } sync;
 } GrabInfoRec, *GrabInfoPtr;
 

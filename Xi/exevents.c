@@ -118,27 +118,15 @@ RegisterOtherDevice(DeviceIntPtr device)
 }
 
 Bool
-IsPointerEvent(xEvent* xE)
+IsPointerEvent(InternalEvent* event)
 {
-    switch(xE->u.u.type)
+    switch(event->u.any.type)
     {
-        case ButtonPress:
-        case ButtonRelease:
-        case MotionNotify:
-        case EnterNotify:
-        case LeaveNotify:
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+        case ET_Motion:
+            /* XXX: enter/leave ?? */
             return TRUE;
-        default:
-            if (xE->u.u.type == DeviceButtonPress ||
-                xE->u.u.type == DeviceButtonRelease ||
-                xE->u.u.type == DeviceMotionNotify ||
-                xE->u.u.type == DeviceEnterNotify ||
-                xE->u.u.type == DeviceLeaveNotify ||
-                xE->u.u.type == ProximityIn ||
-                xE->u.u.type == ProximityOut)
-            {
-                return TRUE;
-            }
     }
     return FALSE;
 }
@@ -955,8 +943,8 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
             break;
     }
 
-    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
-
+#if 0
+    /* FIXME: I'm broken. Please fix me. Thanks */
     if (DeviceEventCallback) {
 	DeviceEventInfoRec eventinfo;
 
@@ -964,11 +952,12 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
 	eventinfo.count = count;
 	CallCallbacks(&DeviceEventCallback, (pointer) & eventinfo);
     }
+#endif
 
     switch(event->type)
     {
         case ET_KeyPress:
-            if (!grab && CheckDeviceGrabs(device, xE, 0, nevents)) {
+            if (!grab && CheckDeviceGrabs(device, event, 0)) {
                 device->deviceGrab.activatingKey = key;
                 return;
             }
@@ -982,10 +971,9 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
             event->detail.button = b->map[key];
             if (!event->detail.button) { /* there's no button 0 */
                 event->detail.button = key;
-                xE->u.u.detail = key; /* XXX: temporary */
                 return;
             }
-            if (!grab && CheckDeviceGrabs(device, xE, 0, nevents))
+            if (!grab && CheckDeviceGrabs(device, event, 0))
             {
                 /* if a passive grab was activated, the event has been sent
                  * already */
@@ -995,12 +983,13 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
             event->detail.button = b->map[key];
             if (!event->detail.button) { /* there's no button 0 */
                 event->detail.button = key;
-                xE->u.u.detail = key; /* XXX: temporary */
                 return;
             }
             if (!b->buttonsDown && device->deviceGrab.fromPassiveGrab)
                 deactivateDeviceGrab = TRUE;
     }
+
+    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     if (grab)
         DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);

@@ -390,9 +390,8 @@ extern _X_EXPORT void WindowHasNewCursor(
 
 extern _X_EXPORT Bool CheckDeviceGrabs(
     DeviceIntPtr /* device */,
-    xEventPtr /* xE */,
-    int /* checkFirst */,
-    int /* count */);
+    DeviceEvent* /* event */,
+    int /* checkFirst */);
 
 extern _X_EXPORT void DeliverFocusedEvent(
     DeviceIntPtr /* keybd */,
@@ -584,7 +583,7 @@ extern _X_EXPORT int XItoCoreType(int xi_type);
 extern _X_EXPORT Bool DevHasCursor(DeviceIntPtr pDev);
 extern _X_EXPORT Bool IsPointerDevice( DeviceIntPtr dev);
 extern _X_EXPORT Bool IsKeyboardDevice(DeviceIntPtr dev);
-extern _X_EXPORT Bool IsPointerEvent(xEvent* xE);
+extern _X_EXPORT Bool IsPointerEvent(InternalEvent* event);
 
 /*
  * These are deprecated compatibility functions and will be removed soon!
