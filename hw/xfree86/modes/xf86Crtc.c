@@ -3159,9 +3159,6 @@ xf86_crtc_supports_gamma(ScrnInfoPtr pScrn)
 	xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 	xf86CrtcPtr crtc;
 
-	if (!xf86_config)
-	    return FALSE;
-
 	if (xf86_config->num_crtc == 0)
 	    return FALSE;
 	crtc = xf86_config->crtc[0];

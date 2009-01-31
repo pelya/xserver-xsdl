@@ -146,6 +146,8 @@ __glXContextDestroy(__GLXcontext *context)
 	    __glXUnrefDrawable(context->drawPriv);
 	if (context->readPriv)
 	    __glXUnrefDrawable(context->readPriv);
+	context->drawPriv = NULL;
+	context->readPriv = NULL;
     }
     __glXFlushContextCache();
 }
@@ -621,6 +623,8 @@ DoMakeCurrent(__GLXclientState *cl,
 		__glXUnrefDrawable(prevglxc->drawPriv);
 	    if (prevglxc->readPriv)
 		__glXUnrefDrawable(prevglxc->readPriv);
+	    prevglxc->drawPriv = NULL;
+	    prevglxc->readPriv = NULL;
 	}
     }
 	
