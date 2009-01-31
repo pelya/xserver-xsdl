@@ -588,11 +588,6 @@ ProcRRSetOutputPrimary(ClientPtr client)
 	    return RRErrorBase + BadRROutput;
 	}
 
-	if (output->crtc) {
-	    client->errorValue = stuff->output;
-	    return BadMatch;
-	}
-
 	if (output->pScreen != pWin->drawable.pScreen) {
 	    client->errorValue = stuff->window;
 	    return BadMatch;
