@@ -61,6 +61,13 @@
              string="Linux">
         <merge key="input.x11_driver" type="string">evdev</merge>
       </match>
+      <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
+             string="SunOS">
+       <match key="input.device" contains="usb">
+        <merge key="input.x11_options.StreamsModule" type="string">usbms</merge>
+        <merge key="input.x11_options.Protocol" type="string">VUID</merge>
+       </match>
+      </match>
     </match>
 
     <match key="info.capabilities" contains="input.keys">
@@ -74,6 +81,13 @@
              string="Linux">
         <merge key="input.x11_driver" type="string">evdev</merge>
         <merge key="input.x11_options.XkbModel" type="string">evdev</merge>
+      </match>
+      <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
+             string="SunOS">
+       <match key="input.device" contains="usb">
+        <merge key="input.x11_options.StreamsModule" type="string">usbkbm</merge>
+        <merge key="input.x11_options.Protocol" type="string">VUID</merge>
+       </match>
       </match>
 
       <merge key="input.x11_options.XkbLayout" type="string">us</merge>
