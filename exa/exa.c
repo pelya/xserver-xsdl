@@ -575,86 +575,178 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
 }
 
 /**
- * exaValidateGC() sets the ops to EXA's implementations, which may be
- * accelerated or may sync the card and fall back to fb.
+ * Here begins EXA's GC code.
+ * Do not ever access the fb/mi layer directly.
  */
+
 static void
-exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
+exaValidateGC(GCPtr pGC,
+		unsigned long changes,
+		DrawablePtr pDrawable);
+
+static void
+exaDestroyGC(GCPtr pGC);
+
+static void
+exaChangeGC (GCPtr pGC,
+		unsigned long mask);
+
+static void
+exaCopyGC (GCPtr pGCSrc,
+	      unsigned long mask,
+	      GCPtr	 pGCDst);
+
+static void
+exaChangeClip (GCPtr pGC,
+		int type,
+		pointer pvalue,
+		int nrects);
+
+static void
+exaCopyClip(GCPtr pGCDst, GCPtr pGCSrc);
+
+static void
+exaCopyClip(GCPtr pGCDst, GCPtr pGCSrc);
+
+static void
+exaDestroyClip(GCPtr pGC);
+
+const GCFuncs exaGCFuncs = {
+    exaValidateGC,
+    exaChangeGC,
+    exaCopyGC,
+    exaDestroyGC,
+    exaChangeClip,
+    exaDestroyClip,
+    exaCopyClip
+};
+
+/*
+ * This wrapper exists to allow fbValidateGC to work.
+ */
+static PixmapPtr
+exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
+		unsigned usage_hint)
+{
+    PixmapPtr pPixmap;
+    ExaScreenPriv(pScreen);
+
+    /* This swaps between this function and the real upper layer function.
+     * Normally this would swap to the fb layer pointer, this is a very special case.
+     */
+    swap(pExaScr, pScreen, CreatePixmap);
+    pPixmap = pScreen->CreatePixmap(pScreen, w, h, depth, usage_hint);
+    swap(pExaScr, pScreen, CreatePixmap);
+
+    if (!pPixmap)
+	return NULL;
+
+    /* We use MASK, because SRC is already taken. */
+    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_MASK);
+
+    return pPixmap;
+}
+
+static void
+exaValidateGC(GCPtr pGC,
+		unsigned long changes,
+		DrawablePtr pDrawable)
 {
     /* fbValidateGC will do direct access to pixmaps if the tiling has changed.
-     * Preempt fbValidateGC by doing its work and masking the change out, so
-     * that we can do the Prepare/FinishAccess.
+     * Do a few smart things so fbValidateGC can do it's work.
      */
-#ifdef FB_24_32BIT
-    if ((changes & GCTile) && fbGetRotatedPixmap(pGC)) {
-	(*pGC->pScreen->DestroyPixmap) (fbGetRotatedPixmap(pGC));
-	fbGetRotatedPixmap(pGC) = 0;
-    }
-	
-    if (pGC->fillStyle == FillTiled) {
-	PixmapPtr	pOldTile, pNewTile;
 
-	pOldTile = pGC->tile.pixmap;
-	if (pOldTile->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
-	{
-	    pNewTile = fbGetRotatedPixmap(pGC);
-	    if (!pNewTile ||
-		pNewTile ->drawable.bitsPerPixel != pDrawable->bitsPerPixel)
-	    {
-		if (pNewTile)
-		    (*pGC->pScreen->DestroyPixmap) (pNewTile);
-		/* fb24_32ReformatTile will do direct access of a newly-
-		 * allocated pixmap.  This isn't a problem yet, since we don't
-		 * put pixmaps in FB until at least one accelerated EXA op.
-		 */
-		exaPrepareAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
-		pNewTile = fb24_32ReformatTile (pOldTile,
-						pDrawable->bitsPerPixel);
-		exaPixmapDirty(pNewTile, 0, 0, pNewTile->drawable.width, pNewTile->drawable.height);
-		exaFinishAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
-	    }
-	    if (pNewTile)
-	    {
-		fbGetRotatedPixmap(pGC) = pOldTile;
-		pGC->tile.pixmap = pNewTile;
-		changes |= GCTile;
-	    }
-	}
-    }
-#endif
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv(pScreen);
+    CreatePixmapProcPtr old_ptr = NULL;
+    PixmapPtr pTile = NULL;
+    EXA_GC_PROLOGUE(pGC);
     if (changes & GCTile) {
-	if (!pGC->tileIsPixel && FbEvenTile (pGC->tile.pixmap->drawable.width *
-					     pDrawable->bitsPerPixel))
-	{
-	    exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
-	    fbPadPixmap (pGC->tile.pixmap);
-	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	/* save the "fb" pointer. */
+	old_ptr = pExaScr->SavedCreatePixmap;
+	/* create a new upper layer pointer. */
+	wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmapWithPrepare);
+	if (pGC->fillStyle == FillTiled)
+		pTile = pGC->tile.pixmap;
+	if (pTile)
+	    exaPrepareAccess(&pTile->drawable, EXA_PREPARE_SRC);
+    }
+    exaPrepareAccessGC(pGC);
+    (*pGC->funcs->ValidateGC)(pGC, changes, pDrawable);
+    exaFinishAccessGC(pGC);
+    if (changes & GCTile) {
+	/* switch back to the normal upper layer. */
+	unwrap(pExaScr, pScreen, CreatePixmap);
+	/* restore copy of fb layer pointer. */
+	pExaScr->SavedCreatePixmap = old_ptr;
+	if (pTile)
+	    exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
+
+	/* A new tile pixmap was created. */
+	if (pGC->tile.pixmap != pTile && pGC->fillStyle == FillTiled) {
+	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_MASK);
 	    exaPixmapDirty(pGC->tile.pixmap, 0, 0,
 			   pGC->tile.pixmap->drawable.width,
 			   pGC->tile.pixmap->drawable.height);
 	}
-	/* Mask out the GCTile change notification, now that we've done FB's
-	 * job for it.
-	 */
-	changes &= ~GCTile;
     }
-
-    exaPrepareAccessGC(pGC);
-    fbValidateGC (pGC, changes, pDrawable);
-    exaFinishAccessGC(pGC);
-
-    pGC->ops = (GCOps *) &exaOps;
+    EXA_GC_EPILOGUE(pGC);
 }
 
-static GCFuncs	exaGCFuncs = {
-    exaValidateGC,
-    miChangeGC,
-    miCopyGC,
-    miDestroyGC,
-    miChangeClip,
-    miDestroyClip,
-    miCopyClip
-};
+/* Is exaPrepareAccessGC() needed? */
+static void
+exaDestroyGC(GCPtr pGC)
+{
+    EXA_GC_PROLOGUE (pGC);
+    (*pGC->funcs->DestroyGC)(pGC);
+    EXA_GC_EPILOGUE (pGC);
+}
+
+static void
+exaChangeGC (GCPtr pGC,
+		unsigned long mask)
+{
+    EXA_GC_PROLOGUE (pGC);
+    (*pGC->funcs->ChangeGC) (pGC, mask);
+    EXA_GC_EPILOGUE (pGC);
+}
+
+static void
+exaCopyGC (GCPtr pGCSrc,
+	      unsigned long mask,
+	      GCPtr	 pGCDst)
+{
+    EXA_GC_PROLOGUE (pGCDst);
+    (*pGCDst->funcs->CopyGC) (pGCSrc, mask, pGCDst);
+    EXA_GC_EPILOGUE (pGCDst);
+}
+
+static void
+exaChangeClip (GCPtr pGC,
+		int type,
+		pointer pvalue,
+		int nrects)
+{
+    EXA_GC_PROLOGUE (pGC);
+    (*pGC->funcs->ChangeClip) (pGC, type, pvalue, nrects);
+    EXA_GC_EPILOGUE (pGC);
+}
+
+static void
+exaCopyClip(GCPtr pGCDst, GCPtr pGCSrc)
+{
+    EXA_GC_PROLOGUE (pGCDst);
+    (*pGCDst->funcs->CopyClip)(pGCDst, pGCSrc);
+    EXA_GC_EPILOGUE (pGCDst);
+}
+
+static void
+exaDestroyClip(GCPtr pGC)
+{
+    EXA_GC_PROLOGUE (pGC);
+    (*pGC->funcs->DestroyClip)(pGC);
+    EXA_GC_EPILOGUE (pGC);
+}
 
 /**
  * exaCreateGC makes a new GC and hooks up its funcs handler, so that
@@ -663,14 +755,19 @@ static GCFuncs	exaGCFuncs = {
 static int
 exaCreateGC (GCPtr pGC)
 {
+    ScreenPtr pScreen = pGC->pScreen;
+    ExaScreenPriv(pScreen);
     ExaGCPriv(pGC);
+    Bool ret;
 
-    if (!fbCreateGC (pGC))
-	return FALSE;
+    swap(pExaScr, pScreen, CreateGC);
+    if ((ret = (*pScreen->CreateGC) (pGC))) {
+	wrap(pExaGC, pGC, funcs, (GCFuncs *) &exaGCFuncs);
+	wrap(pExaGC, pGC, ops, (GCOps *) &exaOps);
+    }
+    swap(pExaScr, pScreen, CreateGC);
 
-    pGC->funcs = &exaGCFuncs;
-
-    return TRUE;
+    return ret;
 }
 
 static Bool

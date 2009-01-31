@@ -180,6 +180,33 @@ extern DevPrivateKey exaGCPrivateKey;
 #define ExaGetGCPriv(gc) ((ExaGCPrivPtr)dixLookupPrivate(&(gc)->devPrivates, exaGCPrivateKey))
 #define ExaGCPriv(gc) ExaGCPrivPtr pExaGC = ExaGetGCPriv(gc)
 
+/*
+ * Some macros to deal with function wrapping.
+ */
+#define wrap(priv, real, mem, func) {\
+    priv->Saved##mem = real->mem; \
+    real->mem = func; \
+}
+
+#define unwrap(priv, real, mem) {\
+    real->mem = priv->Saved##mem; \
+}
+
+#define swap(priv, real, mem) {\
+    void *tmp = priv->Saved##mem; \
+    priv->Saved##mem = real->mem; \
+    real->mem = tmp; \
+}
+
+#define EXA_GC_PROLOGUE(_gc_) \
+    ExaGCPriv(_gc_); \
+    swap(pExaGC, _gc_, funcs); \
+    swap(pExaGC, _gc_, ops);
+
+#define EXA_GC_EPILOGUE(_gc_) \
+    swap(pExaGC, _gc_, funcs); \
+    swap(pExaGC, _gc_, ops);
+
 /** Align an offset to an arbitrary alignment */
 #define EXA_ALIGN(offset, align) (((offset) + (align) - 1) - \
 	(((offset) + (align) - 1) % (align)))
@@ -243,8 +270,8 @@ typedef struct {
 
 typedef struct {
     /* GC values from the layer below. */
-    GCOps *ops;
-    GCFuncs *funcs;
+    GCOps *Savedops;
+    GCFuncs *Savedfuncs;
 } ExaGCPrivRec, *ExaGCPrivPtr;
 
 typedef struct _ExaMigrationRec {
@@ -446,6 +473,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     Bool	    upsidedown,
 	     Pixel	    bitplane,
 	     void	    *closure);
+
+extern const GCFuncs exaGCFuncs;
 
 /* exa_render.c */
 Bool
