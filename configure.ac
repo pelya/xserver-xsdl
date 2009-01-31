@@ -970,6 +970,7 @@ fi
 AM_CONDITIONAL(XF86BIGFONT, [test "x$XF86BIGFONT" = xyes])
 if test "x$XF86BIGFONT" = xyes; then
 	AC_DEFINE(XF86BIGFONT, 1, [Support XF86 Big font extension])
+	REQUIRED_MODULES="$REQUIRED_MODULES xf86bigfontproto"
 fi
 
 AM_CONDITIONAL(DPMSExtension, [test "x$DPMSExtension" = xyes])
