@@ -324,16 +324,21 @@ ProcRRXineramaQueryScreens(ClientPtr client)
     if(rep.number) {
 	rrScrPriv(pScreen);
 	int i;
-	int has_primary = (pScrPriv->primaryOutput != NULL);
+	int has_primary = 0;
 
-	if (has_primary) {
+	if (pScrPriv->primaryOutput && pScrPriv->primaryOutput->crtc) {
+	    has_primary = 1;
 	    RRXineramaWriteCrtc(client, pScrPriv->primaryOutput->crtc);
 	}
 
 	for(i = 0; i < pScrPriv->numCrtcs; i++) {
-	    RRCrtcPtr	crtc = pScrPriv->crtcs[i];
-	    if (!has_primary || (crtc != pScrPriv->primaryOutput->crtc))
-		RRXineramaWriteCrtc(client, crtc);
+	    if (has_primary &&
+		pScrPriv->primaryOutput->crtc == pScrPriv->crtcs[i])
+	    {
+		has_primary = 0;
+		continue;
+	    }
+	    RRXineramaWriteCrtc(client, pScrPriv->crtcs[i]);
 	}
     }
 

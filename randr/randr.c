@@ -436,7 +436,7 @@ RRFirstOutput (ScreenPtr pScreen)
     RROutputPtr		    output;
     int	i, j;
     
-    if (pScrPriv->primaryOutput)
+    if (pScrPriv->primaryOutput && pScrPriv->primaryOutput->crtc)
 	return pScrPriv->primaryOutput;
 
     for (i = 0; i < pScrPriv->numCrtcs; i++)
