@@ -889,11 +889,6 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = (DeviceEvent*)ev;
 
-    /* FIXME: temporary solution only. */
-    static int nevents;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
-
     if (IsPointerDevice(device))
     {
         kbd = GetPairedDevice(device);
@@ -989,15 +984,14 @@ ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
                 deactivateDeviceGrab = TRUE;
     }
 
-    nevents = ConvertBackToXI((InternalEvent*)ev, xE);
 
     if (grab)
-        DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
-    else if (device->focus && !IsPointerEvent(xE))
-	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
+        DeliverGrabbedEvent(event, device, deactivateDeviceGrab);
+    else if (device->focus && !IsPointerEvent((InternalEvent*)ev))
+	DeliverFocusedEvent(device, event, GetSpriteWindow(device));
     else
-	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,
-			    device, count);
+	DeliverDeviceEvents(GetSpriteWindow(device), event, NullGrab,
+                            NullWindow, device);
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);

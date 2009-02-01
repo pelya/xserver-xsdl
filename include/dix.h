@@ -371,11 +371,10 @@ extern _X_EXPORT int DeliverEventsToWindow(
 
 extern _X_EXPORT int DeliverDeviceEvents(
     WindowPtr /* pWin */,
-    xEventPtr /* xE */,
+    InternalEvent* /* event */,
     GrabPtr /* grab */,
     WindowPtr /* stopAt */,
-    DeviceIntPtr /* dev */,
-    int /* count */);
+    DeviceIntPtr /* dev */);
 
 extern _X_EXPORT void InitializeSprite(
     DeviceIntPtr /* pDev */,
@@ -395,15 +394,13 @@ extern _X_EXPORT Bool CheckDeviceGrabs(
 
 extern _X_EXPORT void DeliverFocusedEvent(
     DeviceIntPtr /* keybd */,
-    xEventPtr /* xE */,
-    WindowPtr /* window */,
-    int /* count */);
+    InternalEvent* /* event */,
+    WindowPtr /* window */);
 
 extern _X_EXPORT void DeliverGrabbedEvent(
-    xEventPtr /* xE */,
+    InternalEvent* /* event */,
     DeviceIntPtr /* thisDev */,
-    Bool /* deactivateGrab */,
-    int /* count */);
+    Bool /* deactivateGrab */);
 
 extern _X_EXPORT void FixKeyState(
     DeviceEvent* /* event */,

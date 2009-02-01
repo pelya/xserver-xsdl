@@ -1213,10 +1213,6 @@ ComputeFreezes(void)
     GrabPtr grab;
     DeviceIntPtr dev;
 
-    /* FIXME: temporary solution only. */
-    static int count;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
     for (dev = inputInfo.devices; dev; dev = dev->next)
 	FreezeThaw(dev, dev->deviceGrab.sync.other ||
                 (dev->deviceGrab.sync.state >= FROZEN));
@@ -1226,9 +1222,6 @@ ComputeFreezes(void)
     if (replayDev)
     {
         DeviceEvent* event = replayDev->deviceGrab.sync.event;
-
-        /* FIXME: temporary */
-        count = ConvertBackToXI(replayDev->deviceGrab.sync.event);
 
 	syncEvents.replayDev = (DeviceIntPtr)NULL;
 
@@ -1240,19 +1233,20 @@ ComputeFreezes(void)
 	    {
 		if (!CheckDeviceGrabs(replayDev, event, i+1)) {
 		    if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
-			DeliverFocusedEvent(replayDev, xE, w, count);
+			DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
 		    else
-			DeliverDeviceEvents(w, xE, NullGrab, NullWindow,
-					        replayDev, count);
+			DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
+                                            NullWindow, replayDev);
 		}
 		goto playmore;
 	    }
 	}
 	/* must not still be in the same stack */
 	if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
-	    DeliverFocusedEvent(replayDev, xE, w, count);
+	    DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
 	else
-	    DeliverDeviceEvents(w, xE, NullGrab, NullWindow, replayDev, count);
+	    DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
+                                NullWindow, replayDev);
     }
 playmore:
     for (dev = inputInfo.devices; dev; dev = dev->next)
@@ -2241,16 +2235,24 @@ FixUpEventFromWindow(
  * @see DeliverFocusedEvent
  */
 int
-DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
-                    WindowPtr stopAt, DeviceIntPtr dev, int count)
+DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
+                    WindowPtr stopAt, DeviceIntPtr dev)
 {
     Window child = None;
-    int type = xE->u.u.type;
-    Mask filter = filters[dev->id][type];
+    int type;
+    Mask filter;
     int deliveries = 0;
     OtherInputMasks *inputMasks;
     int mskidx = dev->id;
     xEvent core;
+    /* FIXME: temporary solution only. */
+    static int count;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
+
+    /* FIXME: temporary only */
+    count = ConvertBackToXI((InternalEvent*)event, xE);
+    type = xE->u.u.type;
+    filter = filters[dev->id][type];
 
     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
 	return 0;
@@ -3362,7 +3364,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
  * @param count number of events in xE.
  */
 void
-DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
+DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 {
     DeviceIntPtr pointer;
     WindowPtr focus = keybd->focus->win;
@@ -3370,18 +3372,25 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     xEvent core;
     int deliveries = 0;
 
+    /* FIXME: temporary solution only. */
+    static int count;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
+
+    /* FIXME: temporary only */
+    count = ConvertBackToXI((InternalEvent*)event, xE);
+
     if (focus == FollowKeyboardWin)
 	focus = inputInfo.keyboard->focus->win;
     if (!focus)
 	return;
     if (focus == PointerRootWin)
     {
-	DeliverDeviceEvents(window, xE, NullGrab, NullWindow, keybd, count);
+	DeliverDeviceEvents(window, event, NullGrab, NullWindow, keybd);
 	return;
     }
     if ((focus == window) || IsParent(focus, window))
     {
-	if (DeliverDeviceEvents(window, xE, NullGrab, focus, keybd, count))
+	if (DeliverDeviceEvents(window, event, NullGrab, focus, keybd))
 	    return;
     }
     pointer = GetPairedDevice(keybd);
@@ -3421,16 +3430,23 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
  * @param deactivateGrab True if the device's grab should be deactivated.
  */
 void
-DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
-                    Bool deactivateGrab, int count)
+DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
+                    Bool deactivateGrab)
 {
     GrabPtr grab;
     GrabInfoPtr grabinfo;
     int deliveries = 0;
     DeviceIntPtr dev;
-    xEvent *dxE, core;
+    xEvent core;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
     BOOL sendCore = FALSE;
+
+    /* FIXME: temporary solution only. */
+    static int count;
+    static xEvent xE[1000]; /* enough bytes for the events we have atm */
+
+    /* FIXME: temporary only */
+    count = ConvertBackToXI((InternalEvent*)event, xE);
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3443,7 +3459,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
          * for the type of event, to see if we really want to deliver it to
          * the focus window. For pointer events, the answer is no.
          */
-        if (IsPointerEvent(xE))
+        if (IsPointerEvent(event))
             focus = PointerRootWin;
         else if (thisDev->focus)
 	{
@@ -3454,15 +3470,15 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	else
 	    focus = PointerRootWin;
 	if (focus == PointerRootWin)
-	    deliveries = DeliverDeviceEvents(pSprite->win, xE, grab,
-                                             NullWindow, thisDev, count);
+	    deliveries = DeliverDeviceEvents(pSprite->win, event, grab,
+                                             NullWindow, thisDev);
 	else if (focus && (focus == pSprite->win ||
                     IsParent(focus, pSprite->win)))
-	    deliveries = DeliverDeviceEvents(pSprite->win, xE, grab, focus,
-					     thisDev, count);
+	    deliveries = DeliverDeviceEvents(pSprite->win, event, grab, focus,
+					     thisDev);
 	else if (focus)
-	    deliveries = DeliverDeviceEvents(focus, xE, grab, focus,
-					     thisDev, count);
+	    deliveries = DeliverDeviceEvents(focus, event, grab, focus,
+					     thisDev);
     }
     if (!deliveries)
     {
@@ -3538,12 +3554,10 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 
             }
         }
-        if (deliveries && (xE->u.u.type == MotionNotify
-                    || xE->u.u.type == DeviceMotionNotify))
+        if (deliveries && (event->u.any.type == ET_Motion))
             thisDev->valuator->motionHintWindow = grab->window;
     }
-    if (deliveries && !deactivateGrab &&
-       (xE->u.u.type != MotionNotify && xE->u.u.type != DeviceMotionNotify))
+    if (deliveries && !deactivateGrab && event->u.any.type != ET_Motion)
     {
 	switch (grabinfo->sync.state)
 	{
@@ -3564,17 +3578,9 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	case FREEZE_NEXT_EVENT:
 	    grabinfo->sync.state = FROZEN_WITH_EVENT;
 	    FreezeThaw(thisDev, TRUE);
-#if 0
-            /* FIXME: Sorry, frozen grabs are broken ATM */
-	    if (grabinfo->sync.evcount < count)
-	    {
-		grabinfo->sync.event = xrealloc(grabinfo->sync.event,
-						count * sizeof(xEvent));
-	    }
-	    grabinfo->sync.evcount = count;
-	    for (dxE = grabinfo->sync.event; --count >= 0; dxE++, xE++)
-		*dxE = *xE;
-#endif
+	    if (!grabinfo->sync.event)
+		grabinfo->sync.event = xcalloc(1, sizeof(InternalEvent));
+	    *grabinfo->sync.event = *(DeviceEvent*)event;
 	    break;
 	}
     }

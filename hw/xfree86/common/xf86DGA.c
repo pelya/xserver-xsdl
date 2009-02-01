@@ -1067,6 +1067,8 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	/* If the keyboard is actively grabbed, deliver a grabbed core event */
 	if (keybd->deviceGrab.grab && !keybd->deviceGrab.fromPassiveGrab)
 	{
+#if 0
+            /* FIXME: Hello. I am broken. Please fix me. Thanks. */
 	    xi.u.u.type                  = (IEventBase - 1) + coreEquiv;
 	    xi.u.u.detail                = de->u.u.detail;
 	    xi.u.keyButtonPointer.time   = de->u.event.time;
@@ -1077,6 +1079,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	    xi.u.keyButtonPointer.state  = de->u.event.state;
 	    ((deviceKeyButtonPointer*)&xi)->deviceid = keybd->id;
 	    DeliverGrabbedEvent (&xi, keybd, FALSE, 1);
+#endif
 	}
     }
 }
@@ -1118,6 +1121,8 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
 	/* If the pointer is actively grabbed, deliver a grabbed core event */
 	if (mouse->deviceGrab.grab && !mouse->deviceGrab.fromPassiveGrab)
 	{
+#if 0
+            /* FIXME: Hello. I am broken. Please fix me. Thanks. */
 	    xi.u.u.type                   = (IEventBase - 1 ) + coreEquiv;
 	    xi.u.u.detail                 = de->u.u.detail;
 	    xi.u.keyButtonPointer.time    = de->u.event.time;
@@ -1127,6 +1132,7 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
 	    xi.u.keyButtonPointer.rootY   = de->u.event.dy;
 	    xi.u.keyButtonPointer.state   = de->u.event.state;
 	    DeliverGrabbedEvent (&xi, mouse, FALSE, 1);
+#endif
 	}
     }
 }
