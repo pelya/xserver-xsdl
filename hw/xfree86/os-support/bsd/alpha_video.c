@@ -162,10 +162,15 @@ memory_base(void)
 	if (abw_count < 0)
 		init_abw();
 	
-	if (abw_count > 0) {
+	if (abw_count > 1) {
 		xf86Msg(X_INFO, "memory base = %#lx\n", 
 			abw[1].abw_abst.abst_sys_start); /* XXXX */
 		return abw[1].abw_abst.abst_sys_start;
+	} else if (abw_count == 1) {
+		/* assume memory_base == dense_base */
+		xf86Msg(X_INFO, "memory base = %#lx\n",
+			abw[0].abw_abst.abst_sys_start); /* XXXX */
+		return abw[0].abw_abst.abst_sys_start;
 	} else {
 		xf86Msg(X_INFO, "no memory base\n"); /* XXXX */
 		return 0;
