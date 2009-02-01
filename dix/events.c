@@ -3437,16 +3437,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     GrabInfoPtr grabinfo;
     int deliveries = 0;
     DeviceIntPtr dev;
-    xEvent core;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
     BOOL sendCore = FALSE;
-
-    /* FIXME: temporary solution only. */
-    static int count;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
-    /* FIXME: temporary only */
-    count = ConvertBackToXI((InternalEvent*)event, xE);
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3482,18 +3474,25 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-        if (xE->u.u.type == GenericEvent)
+        /* FIXME: temporary solution only. The event masks need a rework,
+         * especially for generic events. */
+        static int count;
+        static xEvent xi[1000]; /* enough bytes for the events we have atm */
+
+        count = ConvertBackToXI((InternalEvent*)event, xi);
+
+        if (xi->u.u.type == GenericEvent)
         {
             /* find evmask for event's extension */
-            xGenericEvent* ge = ((xGenericEvent*)xE);
+            xGenericEvent* ge = ((xGenericEvent*)xi);
             GenericMaskPtr    gemask = grab->genericMasks;
 
             if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
                 return;
 
-            if (GEEventFill(xE))
-                GEEventFill(xE)(ge, thisDev, grab->window, grab);
-            deliveries = TryClientEvents(rClient(grab), thisDev, xE,
+            if (GEEventFill(xi))
+                GEEventFill(xi)(ge, thisDev, grab->window, grab);
+            deliveries = TryClientEvents(rClient(grab), thisDev, xi,
                     count, gemask->eventMask[GEEXTIDX(ge)],
                     generic_filters[GEEXTIDX(ge)][ge->evtype],
                     grab);
@@ -3505,25 +3504,29 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             /* try core event */
             if (sendCore && grab->coreGrab)
             {
-		memset(&core, 0, sizeof(xEvent));
-                core = *xE;
-                core.u.u.type = XItoCoreType(xE->u.u.type);
-                if(core.u.u.type) {
-                    FixUpEventFromWindow(thisDev, &core, grab->window,
-                            None, TRUE);
-                    if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                                grab->window, &core, 1) ||
-                            XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                                grab->window, &core, 1))
-                        deliveries = 1; /* don't send, but pretend we did */
-                    else if (!IsInterferingGrab(rClient(grab), thisDev,
-                                &core))
-                    {
-                        deliveries = TryClientEvents(rClient(grab), thisDev,
-                                &core, 1, mask,
-                                filters[thisDev->id][core.u.u.type],
-                                grab);
-                    }
+                xEvent core;
+                int rc;
+
+                rc = EventToCore(event, &core);
+                if (rc != Success && rc != BadMatch)
+                {
+                    ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
+                    return;
+                }
+
+                FixUpEventFromWindow(thisDev, &core, grab->window,
+                        None, TRUE);
+                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                            grab->window, &core, 1) ||
+                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                            grab->window, &core, 1))
+                    deliveries = 1; /* don't send, but pretend we did */
+                else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
+                {
+                    deliveries = TryClientEvents(rClient(grab), thisDev,
+                            &core, 1, mask,
+                            filters[thisDev->id][core.u.u.type],
+                            grab);
                 }
             }
 
@@ -3531,24 +3534,23 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             {
                 /* try XI event */
                 if (grabinfo->fromPassiveGrab  &&
-                        grabinfo->implicitGrab &&
-                        (xE->u.u.type & EXTENSION_EVENT_BASE))
+                        grabinfo->implicitGrab)
                     mask = grab->deviceMask;
-                FixUpEventFromWindow(thisDev, xE, grab->window,
+                FixUpEventFromWindow(thisDev, xi, grab->window,
                         None, TRUE);
 
                 if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, xE, count) ||
+                            grab->window, xi, count) ||
                         XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, xE, count))
+                            grab->window, xi, count))
                     deliveries = 1; /* don't send, but pretend we did */
                 else
                 {
                     deliveries =
                         TryClientEvents(rClient(grab), thisDev,
-                                xE, count,
+                                xi, count,
                                 mask,
-                                filters[thisDev->id][xE->u.u.type],
+                                filters[thisDev->id][xi->u.u.type],
                                 grab);
                 }
 
