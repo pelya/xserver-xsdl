@@ -87,7 +87,7 @@ extern _X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
 
 /* Returns the event_fill for the given event */
 #define GEEventFill(ev) \
-    GEExtensions[GEEXTIDX(xE)].evfill
+    GEExtensions[GEEXTIDX(ev)].evfill
 
 #define GEIsType(ev, ext, ev_type) \
         ((GEV(ev)->type == GenericEvent) &&  \
