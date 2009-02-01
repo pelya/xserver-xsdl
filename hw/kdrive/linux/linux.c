@@ -91,8 +91,8 @@ LinuxInit (void)
 	{
 	    FatalError("xf86OpenConsole: Cannot find a free VT\n");
 	}
+	close(fd);
     }
-    close(fd);
 
     sprintf(vtname,"/dev/tty%d",vtno); /* /dev/tty1-64 */
 
