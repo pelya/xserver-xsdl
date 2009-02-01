@@ -855,7 +855,9 @@ static void setup_dispatch_table(void) {
   SET_BlendEquationSeparateEXT(disp, glBlendEquationSeparateEXT);
   SET_BlendFunc(disp, glBlendFunc);
   SET_BlendFuncSeparateEXT(disp, glBlendFuncSeparateEXT);
+#if MAC_OS_X_VERSION_MIN_REQUIRED > 1050
   SET_BlitFramebufferEXT(disp, glBlitFramebufferEXT);
+#endif
   SET_BufferDataARB(disp, glBufferDataARB);
   SET_BufferSubDataARB(disp, glBufferSubDataARB);
   SET_CallList(disp, glCallList);
