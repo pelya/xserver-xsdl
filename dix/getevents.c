@@ -1123,7 +1123,7 @@ PostSyntheticMotion(DeviceIntPtr pDev,
                     int screen,
                     unsigned long time)
 {
-    xEvent xE;
+    DeviceEvent ev;
 
 #ifdef PANORAMIX
     /* Translate back to the sprite screen since processInputProc
@@ -1135,11 +1135,12 @@ PostSyntheticMotion(DeviceIntPtr pDev,
     }
 #endif
 
-    memset(&xE, 0, sizeof(xEvent));
-    xE.u.u.type = MotionNotify;
-    xE.u.keyButtonPointer.rootX = x;
-    xE.u.keyButtonPointer.rootY = y;
-    xE.u.keyButtonPointer.time = time;
+    memset(&ev, 0, sizeof(DeviceEvent));
+    init_event(pDev, &ev, time);
+    ev.root_x = x;
+    ev.root_y = y;
+    ev.type = time;
 
-    (*pDev->public.processInputProc)(&xE, pDev, 1);
+    /* FIXME: MD/SD considerations? */
+    (*pDev->public.processInputProc)((InternalEvent*)&ev, pDev);
 }
