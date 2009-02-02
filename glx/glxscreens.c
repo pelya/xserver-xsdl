@@ -394,14 +394,20 @@ typedef struct {
 } FBConfigTemplateRec, *FBConfigTemplatePtr;
 
 static __GLXconfig *
-pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
+pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template,
+	     VisualPtr visual)
 {
     __GLXconfig *config;
 
     for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
+	if (config->redMask != visual->redMask ||
+	    config->greenMask != visual->greenMask ||
+	    config->blueMask != visual->blueMask ||
+	    config->rgbBits != visual->nplanes)
+	    continue;
 	if (config->visualRating != GLX_NONE)
 	    continue;
-	if (glxConvertToXVisualType(config->visualType) != class)
+	if (glxConvertToXVisualType(config->visualType) != visual->class)
 	    continue;
 	if ((config->doubleBufferMode > 0) != template->doubleBuffer)
 	    continue;
@@ -436,11 +442,11 @@ addMinimalSet(__GLXscreen *pGlxScreen)
     visuals = pGlxScreen->pScreen->visuals;
     for (i = 0, j = 0; i < pGlxScreen->pScreen->numVisuals; i++) {
 	if (visuals[i].nplanes == 32)
-	    config = pickFBConfig(pGlxScreen, &minimal, visuals[i].class);
+	    config = pickFBConfig(pGlxScreen, &minimal, &visuals[i]);
 	else {
-	    config = pickFBConfig(pGlxScreen, &best, visuals[i].class);
+	    config = pickFBConfig(pGlxScreen, &best, &visuals[i]);
 	    if (config == NULL)
-		config = pickFBConfig(pGlxScreen, &good, visuals[i].class);
+		config = pickFBConfig(pGlxScreen, &good, &visuals[i]);
         }
 	if (config == NULL)
 	    config = pGlxScreen->fbconfigs;
