@@ -44,9 +44,9 @@
 #include "listdev.h"
 
 static int countValuators(DeviceEvent *ev, int *first);
-static int getValuatorEvents(DeviceEvent *ev, EventListPtr xi);
-static int eventToKeyButtonPointer(DeviceEvent *ev, EventListPtr xi, int *count);
-static int eventToClassesChanged(DeviceChangedEvent *ev, EventListPtr dcce,
+static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
+static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
+static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce,
                                  int *count);
 
 /**
@@ -97,24 +97,15 @@ EventToCore(InternalEvent *event, xEvent *core)
 
 /**
  * Convert the given event @ev to the respective XI 1.x event and store it in
- * @xi. @xi must be allocated by the caller, @count specifies the number of
- * events in @xi.
- *
- *
- * If less than @count events are needed, @count is set to the events stored
- * in @xi and Success is returned.
- *
- * If more than @count events are needed, @count is set to the number of
- * events required, and BadAlloc is returned. @xi is untouched.
- *
- * If necessary, @xi is realloced using SetMinimumEventSize() to fit the
- * largest event being returned.
+ * @xi. @xi is allocated on demand and must be freed by the caller.
+ * @count returns the number of events in @xi. If @count is 1, and the type of
+ * @xi is GenericEvent, then @xi may be larger than 32 bytes.
  *
  * If the event cannot be converted into an XI event because of protocol
  * restrictions, @count is 0 and Success is returned.
  */
 int
-EventToXI(InternalEvent *ev, EventListPtr xi, int *count)
+EventToXI(InternalEvent *ev, xEvent **xi, int *count)
 {
     switch (ev->u.any.type)
     {
@@ -136,7 +127,7 @@ EventToXI(InternalEvent *ev, EventListPtr xi, int *count)
 }
 
 static int
-eventToKeyButtonPointer(DeviceEvent *ev, EventListPtr xi, int *count)
+eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
 {
     int num_events;
     int first; /* dummy */
@@ -152,15 +143,13 @@ eventToKeyButtonPointer(DeviceEvent *ev, EventListPtr xi, int *count)
     num_events = (countValuators(ev, &first) + 5)/6; /* valuator ev */
     num_events++; /* the actual event event */
 
-    if (*count < num_events)
+    *xi = xcalloc(num_events, sizeof(xEvent));
+    if (!(*xi))
     {
-        *count = num_events;
         return BadAlloc;
     }
 
-    SetMinimumEventSize(xi, *count, 32);
-
-    kbp = (deviceKeyButtonPointer*)xi->event;
+    kbp           = (deviceKeyButtonPointer*)(*xi);
     kbp->detail   = ev->detail.button;
     kbp->time     = ev->time;
     kbp->root     = ev->root;
@@ -183,10 +172,9 @@ eventToKeyButtonPointer(DeviceEvent *ev, EventListPtr xi, int *count)
         case ET_ProximityOut:  kbp->type = ProximityOut;        break;
     }
 
-
     if (num_events > 1)
     {
-        getValuatorEvents(ev, xi + 1);
+        getValuatorEvents(ev, (deviceValuator*)(kbp + 1));
     }
 
     *count = num_events;
@@ -224,17 +212,15 @@ countValuators(DeviceEvent *ev, int *first)
 }
 
 static int
-getValuatorEvents(DeviceEvent *ev, EventListPtr events)
+getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
 {
     int i;
-    deviceValuator *xv;
     int first_valuator, num_valuators;
 
     num_valuators = countValuators(ev, &first_valuator);
 
     /* FIXME: non-continuous valuator data in internal events*/
-    for (i = 0; i < num_valuators; i += 6, events++) {
-        xv = (deviceValuator*)events->event;
+    for (i = 0; i < num_valuators; i += 6, xv++) {
         xv->type = DeviceValuator;
         xv->first_valuator = first_valuator + i;
         xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
@@ -262,13 +248,14 @@ getValuatorEvents(DeviceEvent *ev, EventListPtr events)
 }
 
 static int
-eventToClassesChanged(DeviceChangedEvent *ev, EventListPtr events, int *count)
+eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi, int *count)
 {
     int len = sizeof(xEvent);
     int namelen = 0; /* dummy */
     DeviceIntPtr slave;
     int rc;
-    deviceClassesChangedEvent *dcce = (deviceClassesChangedEvent*)events->event;
+    deviceClassesChangedEvent *dcce;
+
 
     rc = dixLookupDevice(&slave, ev->new_slaveid,
                          serverClient, DixReadAccess);
@@ -278,6 +265,11 @@ eventToClassesChanged(DeviceChangedEvent *ev, EventListPtr events, int *count)
 
     SizeDeviceInfo(slave, &namelen, &len);
 
+    *xi = xcalloc(1, len);
+    if (!(*xi))
+        return BadAlloc;
+
+    dcce = (deviceClassesChangedEvent*)(*xi);
     dcce->type = GenericEvent;
     dcce->extension = IReqCode;
     dcce->evtype = XI_DeviceClassesChangedNotify;
@@ -338,21 +330,19 @@ GetXIType(InternalEvent *event)
 int
 ConvertBackToXI(InternalEvent *event, xEvent *ev)
 {
-    int count = GetMaximumEventsNum();
+    int count = 0;
     int evlen, i;
+    xEvent *xi =  NULL;
 
-    EventListPtr tmp_list = InitEventList(count);
 
-    SetMinimumEventSize(tmp_list, count, 1000); /* just to be sure */
-
-    if (EventToXI(event, tmp_list, &count))
+    if (EventToXI(event, &xi, &count))
         ErrorF("[dix] conversion to XI failed\n");
 
-    if (tmp_list->event->u.u.type == GenericEvent)
-        evlen = (GEV(tmp_list->event))->length * 4 + 32;
+    if (xi->u.u.type == GenericEvent)
+        evlen = (GEV(xi))->length * 4 + 32;
     else
         evlen = count *  32;
     for (i = 0; i < count; i++)
-        memcpy(&ev[i], (tmp_list + i)->event, evlen);
+        memcpy(&ev[i], &xi[i], evlen);
     return count;
 }
