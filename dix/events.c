@@ -3475,6 +3475,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     DeviceIntPtr dev;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
     BOOL sendCore = FALSE;
+    int rc, count = 0;
+    xEvent *xi = NULL;
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3510,12 +3512,20 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-        /* FIXME: temporary solution only. The event masks need a rework,
-         * especially for generic events. */
-        static int count;
-        static xEvent xi[1000]; /* enough bytes for the events we have atm */
+        /* XXX: In theory, we could pass the internal events through to
+         * everything and only convert just before hitting the wire. We can't
+         * do that yet, so DGE is the last stop for internal events. From here
+         * onwards, we deal with core/XI events.
+         */
 
-        count = ConvertBackToXI((InternalEvent*)event, xi);
+        rc = EventToXI(event, &xi, &count);
+        if (rc != Success)
+        {
+            ErrorF("[dix] %s: XI conversion failed in DGE (%d, %d). Skipping delivery.\n",
+                    thisDev->name, event->u.any.type, rc);
+            goto unwind;
+        } else if (count == 0) /* no XI/Core event for you */
+            goto unwind;
 
         if (xi->u.u.type == GenericEvent)
         {
@@ -3524,7 +3534,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             GenericMaskPtr    gemask = grab->genericMasks;
 
             if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
-                return;
+                goto unwind;
 
             if (GEEventFill(xi))
                 GEEventFill(xi)(ge, thisDev, grab->window, grab);
@@ -3541,13 +3551,12 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             if (sendCore && grab->coreGrab)
             {
                 xEvent core;
-                int rc;
 
                 rc = EventToCore(event, &core);
                 if (rc != Success && rc != BadMatch)
                 {
                     ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
-                    return;
+                    goto unwind;
                 }
 
                 FixUpEventFromWindow(thisDev, &core, grab->window,
@@ -3622,6 +3631,10 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	    break;
 	}
     }
+
+unwind:
+    if (xi)
+        xfree(xi);
 }
 
 /* This function is used to set the key pressed or key released state -
