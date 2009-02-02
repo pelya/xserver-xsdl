@@ -3355,29 +3355,25 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
 
 /**
  * Called for keyboard events to deliver event to whatever client owns the
- * focus. Event is delivered to the keyboard's focus window, the root window
- * or to the window owning the input focus.
+ * focus.
+ *
+ * The event is delivered to the keyboard's focus window, the root window or
+ * to the window owning the input focus.
  *
  * @param keybd The keyboard originating the event.
- * @param xE The event list.
+ * @param event The event, not yet in wire format.
  * @param window Window underneath the sprite.
- * @param count number of events in xE.
  */
 void
 DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 {
-    DeviceIntPtr pointer;
+    DeviceIntPtr ptr;
     WindowPtr focus = keybd->focus->win;
     BOOL sendCore = (keybd->isMaster && keybd->coreEvents);
     xEvent core;
+    xEvent *xE = NULL;
+    int count, rc;
     int deliveries = 0;
-
-    /* FIXME: temporary solution only. */
-    static int count;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
-    /* FIXME: temporary only */
-    count = ConvertBackToXI((InternalEvent*)event, xE);
 
     if (focus == FollowKeyboardWin)
 	focus = inputInfo.keyboard->focus->win;
@@ -3393,33 +3389,50 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 	if (DeliverDeviceEvents(window, event, NullGrab, focus, keybd))
 	    return;
     }
-    pointer = GetPairedDevice(keybd);
-    if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
-	return;
+    ptr = GetPairedDevice(keybd);
 
-    if (sendCore)
+
+    rc = EventToXI(event, &xE, &count);
+    if (rc != Success)
     {
-	memset(&core, 0, sizeof(xEvent));
-        core = *xE;
-        core.u.u.type = XItoCoreType(xE->u.u.type);
-    }
+        ErrorF("[dix] %s: XI conversion failed in DFE (%d, %d). Skipping delivery.\n",
+               keybd->name, event->u.any.type, rc);
+        goto unwind;
+    } else if (count == 0) /* no XI/Core event for you */
+        return;
+
+    if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
+	goto unwind;
 
     /* just deliver it to the focus window */
-    FixUpEventFromWindow(pointer, xE, focus, None, FALSE);
+    FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
     deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
                                        filters[keybd->id][xE->u.u.type],
                                        NullGrab, keybd->id);
 
     if (deliveries > 0)
-        return;
+        goto unwind;
 
-    if (sendCore && core.u.u.type)
+    if (sendCore)
     {
+        rc = EventToCore(event, &core);
+        if (rc != Success)
+        {
+            ErrorF("[dix] %s: core conversion failed DFE (%d, %d). Skipping delivery.\n",
+                    keybd->name, event->u.any.type, rc);
+            goto unwind;
+        }
+
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
                                            filters[keybd->id][core.u.u.type],
                                            NullGrab, 0);
     }
+
+unwind:
+    if (xE)
+        xfree(xE);
+    return;
 }
 
 /**
