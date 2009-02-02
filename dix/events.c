@@ -3479,7 +3479,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     {
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
-                                           filters[keybd->id][xE->u.u.type],
+                                           filters[keybd->id][core.u.u.type],
                                            NullGrab, 0);
     }
 }
