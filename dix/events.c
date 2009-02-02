@@ -3185,10 +3185,6 @@ CheckPassiveGrabsOnWindow(
 #define XI_MATCH        0x2
     int match = 0;
 
-    /* FIXME: temporary solution only. */
-    static int count;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
-
     if (!grab)
 	return FALSE;
     /* Fill out the grab details, but leave the type for later before
@@ -3231,6 +3227,10 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized &&
 				BorderSizeNotEmpty(device, grab->confineTo))))
 	{
+            int rc, count = 0;
+            xEvent *xE = NULL;
+            xEvent core;
+
             event->corestate &= 0x1f00;
             event->corestate |= tempGrab.modifiersDetail.exact & (~0x1f00);
             grabinfo = &device->deviceGrab;
@@ -3276,10 +3276,28 @@ CheckPassiveGrabsOnWindow(
             }
 
 
-            /* FIXME: temporary only */
-            count = ConvertBackToXI((InternalEvent*)event, xE);
             if (match & CORE_MATCH)
-                xE->u.u.type = GetCoreType(event);
+            {
+                rc = EventToCore((InternalEvent*)event, &core);
+                if (rc != Success && rc != BadMatch)
+                {
+                    ErrorF("[dix] %s: core conversion failed in CPGFW "
+                           "(%d, %d).\n", device->name, event->type, rc);
+                    continue;
+                }
+                xE = &core;
+                count = 1;
+            } else
+            {
+                rc = EventToXI((InternalEvent*)event, &xE, &count);
+                if (rc != Success)
+                {
+                    ErrorF("[dix] %s: XI conversion failed in CPGFW "
+                           "(%d, %d).\n", device->name, event->type, rc);
+                    continue;
+                }
+
+            }
 
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
 
@@ -3296,6 +3314,9 @@ CheckPassiveGrabsOnWindow(
                 *grabinfo->sync.event = *event;
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
+
+            if (match & XI_MATCH)
+                xfree(xE); /* on core match xE == &core */
 	    return TRUE;
 	}
     }
