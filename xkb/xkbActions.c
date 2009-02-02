@@ -798,7 +798,7 @@ _XkbFilterRedirectKey(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
-xEvent 		ev;
+DeviceEvent	ev;
 int		x,y;
 XkbStateRec	old;
 unsigned	mods,mask;
@@ -813,9 +813,11 @@ ProcessInputProc backupproc;
 	return 1;
 
     GetSpritePosition(inputInfo.pointer, &x,&y);
-    ev.u.keyButtonPointer.time = GetTimeInMillis();
-    ev.u.keyButtonPointer.rootX = x;
-    ev.u.keyButtonPointer.rootY = y;
+    ev.header = ET_Internal;
+    ev.length = sizeof(DeviceEvent);
+    ev.time = GetTimeInMillis();
+    ev.root_x = x;
+    ev.root_y = y;
 
     if (filter->keycode==0) {		/* initial press */
 	if ((pAction->redirect.new_key<xkbi->desc->min_key_code)||
@@ -829,9 +831,8 @@ ProcessInputProc backupproc;
 	filter->filter = _XkbFilterRedirectKey;
 	filter->upAction = *pAction;
 
-        /* XXX: what about DeviceKeyPress */
-	ev.u.u.type = KeyPress;
-	ev.u.u.detail = pAction->redirect.new_key;
+        ev.type = ET_KeyPress;
+        ev.detail.key = pAction->redirect.new_key;
 
         mask= pAction->redirect.vmods_mask;
         mods= pAction->redirect.vmods;
@@ -861,9 +862,8 @@ ProcessInputProc backupproc;
     }
     else if (filter->keycode==keycode) {
 
-        /* XXX: what about DeviceKeyRelease */
-	ev.u.u.type = KeyRelease;
-	ev.u.u.detail = filter->upAction.redirect.new_key;
+        ev.type = ET_KeyRelease;
+        ev.detail.key = filter->upAction.redirect.new_key;
 
         mask= filter->upAction.redirect.vmods_mask;
         mods= filter->upAction.redirect.vmods;
