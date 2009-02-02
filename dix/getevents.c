@@ -544,45 +544,6 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
         clipAxis(pDev, i + first_valuator, &(valuators[i]));
 }
 
-
-/**
- * Fills events with valuator events for pDev, as given by the other
- * parameters.
- */
-static EventList *
-getValuatorEvents(EventList *events, DeviceIntPtr pDev,
-        int first_valuator, int num_valuators, int *valuators) {
-    deviceValuator *xv;
-    int i;
-
-    for (i = 0; i < num_valuators; i += 6, events++) {
-        xv = (deviceValuator*)events->event;
-        xv->type = DeviceValuator;
-        xv->first_valuator = first_valuator + i;
-        xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
-        xv->deviceid = pDev->id;
-        switch (num_valuators - i) {
-        case 6:
-            xv->valuator5 = valuators[i + 5];
-        case 5:
-            xv->valuator4 = valuators[i + 4];
-        case 4:
-            xv->valuator3 = valuators[i + 3];
-        case 3:
-            xv->valuator2 = valuators[i + 2];
-        case 2:
-            xv->valuator1 = valuators[i + 1];
-        case 1:
-            xv->valuator0 = valuators[i + 0];
-        }
-
-        if (i + 6 < num_valuators)
-            xv->deviceid |= MORE_EVENTS;
-    }
-
-    return events;
-}
-
 /**
  * Create the DCCE event (does not update the master's device state yet, this
  * is done in the event processing).
@@ -780,23 +741,6 @@ updateHistory(DeviceIntPtr dev, int first, int num, CARD32 ms)
     if (dev->u.master)
         updateMotionHistory(dev->u.master, ms, first, num,
                             &dev->last.valuators[first]);
-}
-
-/**
- * Calculate how many DeviceValuator events are needed given a number of
- * valuators.
- * @param num_valuators Number of valuators to attach to event.
- * @return the number of DeviceValuator events needed.
- */
-static int
-countValuatorEvents(int num_valuators)
-{
-    if (num_valuators) {
-        if (((num_valuators - 1) / 6) + 1 > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS * 6;
-        return ((num_valuators - 1)/ 6) + 1;
-    } else
-        return 0;
 }
 
 /**
