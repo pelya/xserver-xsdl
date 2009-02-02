@@ -2215,8 +2215,8 @@ FixUpEventFromWindow(
 }
 
 /**
- * Deliver events caused by input devices. Called for both core input events
- * and XI events.
+ * Deliver events caused by input devices.
+ *
  * For events from a non-grabbed, non-focus device, DeliverDeviceEvents is
  * called directly from the processInputProc.
  * For grabbed devices, DeliverGrabbedEvent is called first, and _may_ call
@@ -2225,11 +2225,10 @@ FixUpEventFromWindow(
  * DeliverDeviceEvents.
  *
  * @param pWin Window to deliver event to.
- * @param xE Events to deliver.
+ * @param event The events to deliver, not yet in wire format.
  * @param grab Possible grab on a device.
  * @param stopAt Don't recurse up to the root window.
  * @param dev The device that is responsible for the event.
- * @param count number of events in xE.
  *
  * @see DeliverGrabbedEvent
  * @see DeliverFocusedEvent
@@ -2245,17 +2244,28 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     OtherInputMasks *inputMasks;
     int mskidx = dev->id;
     xEvent core;
-    /* FIXME: temporary solution only. */
-    static int count;
-    static xEvent xE[1000]; /* enough bytes for the events we have atm */
+    xEvent *xE = NULL;
+    int rc, count = 0;
 
-    /* FIXME: temporary only */
-    count = ConvertBackToXI((InternalEvent*)event, xE);
-    type = xE->u.u.type;
-    filter = filters[dev->id][type];
+    /* XXX: In theory, we could pass the internal events through to everything
+     * and only convert just before hitting the wire. We can't do that yet, so
+     * DDE is the last stop for internal events. From here onwards, we deal
+     * with core/XI events.
+     */
+    rc = EventToXI(event, &xE, &count);
+    if (rc != Success)
+    {
+        ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
+               dev->name, event->u.any.type, rc);
+        goto unwind;
+    } else if (count == 0) /* no XI/Core event for you */
+        goto unwind;
 
     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
-	return 0;
+	goto unwind;
+
+    type = xE->u.u.type;
+    filter = filters[dev->id][type];
 
     /* handle generic events */
     /* XXX: Generic events aren't quite handled correctly yet. They should
@@ -2269,7 +2279,8 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
         if (count > 1)
         {
             ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
-            return 0;
+            deliveries = 0;
+            goto unwind;
         }
         filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
 
@@ -2282,7 +2293,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 deliveries = DeliverEventsToWindow(dev, win, xE, count,
                         filter, grab, 0);
                 if (deliveries > 0)
-                    return deliveries;
+                    goto unwind;
             }
 
             win = win->parent;
@@ -2302,23 +2313,30 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
                                                    filter, grab, mskidx);
                 if (deliveries > 0)
-                    return deliveries;
+                    goto unwind;
             }
         }
 
         if ((deliveries < 0) || (pWin == stopAt) ||
             (inputMasks && (filter & inputMasks->dontPropagateMask[mskidx])))
-            return 0;
+        {
+            deliveries = 0;
+            goto unwind;
+        }
 
         if (dev->isMaster && dev->coreEvents)
         {
-
             /* no XI event delivered. Try core event */
-	    memset(&core, 0, sizeof(xEvent));
-            core = *xE;
-            core.u.u.type = XItoCoreType(xE->u.u.type);
+            rc = EventToCore(event, &core);
+            if (rc != Success)
+            {
+                if (rc != BadMatch)
+                    ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
+                            dev->name, event->u.any.type, rc);
+                goto unwind;
+            }
 
-            if (core.u.u.type && filter & pWin->deliverableEvents)
+            if (filter & pWin->deliverableEvents)
             {
                 if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
                 {
@@ -2326,20 +2344,25 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
                             filter, grab, 0);
                     if (deliveries > 0)
-                        return deliveries;
+                        goto unwind;
                 }
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
                 (filter & wDontPropagateMask(pWin)))
-                return 0;
+            {
+                deliveries = 0;
+                goto unwind;
+            }
         }
 
         child = pWin->drawable.id;
         pWin = pWin->parent;
     }
 
-    return 0;
+unwind:
+    xfree(xE);
+    return deliveries;
 }
 
 /**
