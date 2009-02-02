@@ -58,6 +58,9 @@ DeviceIntPtr		master = NULL;
     if (dev == inputInfo.pointer || !dev->public.on)
 	return;
 
+    ErrorF("[xkb] XkbDDXFakeDeviceButton. If you read this message in your "
+           "log file, Please file a bug on bugs.freedesktop.org.\n");
+#if 0
     nAxes = (dev->valuator?dev->valuator->numAxes:0);
     if (nAxes > 6)
 	nAxes = 6;
@@ -125,4 +128,5 @@ DeviceIntPtr		master = NULL;
         (*master->public.processInputProc)(masterEvents->event, master, count);
     }
     return;
+#endif
 }

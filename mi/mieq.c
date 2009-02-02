@@ -391,6 +391,7 @@ mieqProcessInputEvents(void)
 
             /* If someone's registered a custom event handler, let them
              * steal it. */
+#if 0
             if (handler)
             {
                 /* FIXME: this is broken now, InternalEvents! */
@@ -399,12 +400,15 @@ mieqProcessInputEvents(void)
                     handler(DequeueScreen(master)->myNum,
                             masterEvents->event, master, 1);
             } else
+#endif
             {
                 /* process slave first, then master */
-                dev->public.processInputProc(event, dev, 1);
+                dev->public.processInputProc(event, dev);
 
                 if (master)
-                    master->public.processInputProc(masterEvents->event, master, 1);
+                    master->public.processInputProc(
+                            (InternalEvent*)masterEvents->event,
+                            master);
             }
         }
 

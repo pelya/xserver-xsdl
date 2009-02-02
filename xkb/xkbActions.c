@@ -853,7 +853,7 @@ ProcessInputProc backupproc;
 	}
 
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
-	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
+	xkbi->device->public.processInputProc((InternalEvent*)&ev, xkbi->device);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
 				     backupproc,xkbUnwrapProc);
 	
@@ -884,7 +884,7 @@ ProcessInputProc backupproc;
 	}
 
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
-	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
+	xkbi->device->public.processInputProc((InternalEvent*)&ev, xkbi->device);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
 				     backupproc,xkbUnwrapProc);
 
@@ -1212,7 +1212,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
             tmpdev = GetPairedDevice(dev);
 
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
-        dev->public.processInputProc((xEvent*)event, tmpdev, 1);
+        dev->public.processInputProc((InternalEvent*)event, tmpdev);
         COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
                                      backupproc,xkbUnwrapProc);
     }

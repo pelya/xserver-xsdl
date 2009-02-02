@@ -328,9 +328,8 @@ extern _X_EXPORT WindowPtr GetSpriteWindow(DeviceIntPtr pDev);
 extern _X_EXPORT void NoticeEventTime(InternalEvent *ev);
 
 extern _X_EXPORT void EnqueueEvent(
-    xEventPtr /* xE */,
-    DeviceIntPtr /* device */,
-    int	/* count */);
+    InternalEvent * /* ev */,
+    DeviceIntPtr  /* device */);
 
 extern _X_EXPORT void ActivatePointerGrab(
     DeviceIntPtr /* mouse */,

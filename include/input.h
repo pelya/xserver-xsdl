@@ -96,6 +96,7 @@ SOFTWARE.
 #define RevertToFollowKeyboard	3
 #endif
 
+#include "events.h"
 
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;
@@ -122,9 +123,8 @@ typedef int (*DeviceProc)(
     int /*what*/);
 
 typedef void (*ProcessInputProc)(
-    xEventPtr /*events*/,
-    DeviceIntPtr /*device*/,
-    int /*count*/);
+    InternalEvent * /*event*/,
+    DeviceIntPtr /*device*/);
 
 typedef Bool (*DeviceHandleProc)(
     DeviceIntPtr /*device*/,
@@ -379,14 +379,12 @@ extern _X_EXPORT void MaybeStopHint(
     ClientPtr /*client*/);
 
 extern _X_EXPORT void ProcessPointerEvent(
-    xEventPtr /*xE*/,
-    DeviceIntPtr /*mouse*/,
-    int /*count*/);
+    InternalEvent* /* ev */,
+    DeviceIntPtr /*mouse*/);
 
 extern _X_EXPORT void ProcessKeyboardEvent(
-    xEventPtr /*xE*/,
-    DeviceIntPtr /*keybd*/,
-    int /*count*/);
+    InternalEvent* /*ev*/,
+    DeviceIntPtr   /*keybd*/);
 
 extern _X_EXPORT Bool LegalModifier(
     unsigned int /*key*/, 

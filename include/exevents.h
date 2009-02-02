@@ -51,9 +51,8 @@ UpdateDeviceState (
 	DeviceEvent*           /*  xE    */);
 
 extern _X_EXPORT void ProcessOtherEvent (
-	xEventPtr /* FIXME deviceKeyButtonPointer * xE */,
-	DeviceIntPtr           /* other */,
-	int                    /* count */);
+	InternalEvent*         /* ev */,
+	DeviceIntPtr           /* other */);
 
 extern _X_EXPORT int InitProximityClassDeviceStruct(
 	DeviceIntPtr           /* dev */);

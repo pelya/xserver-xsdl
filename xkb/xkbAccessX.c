@@ -684,16 +684,15 @@ Bool		ignoreKeyEvent = FALSE;
 extern int xkbDevicePrivateIndex;
 extern void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, pointer);
 void
-ProcessPointerEvent(	register xEvent  *	xE, 
-			register DeviceIntPtr	mouse, 
-			int		        count)
+ProcessPointerEvent(	InternalEvent   *ev,
+			DeviceIntPtr    mouse)
 {
 DeviceIntPtr	dev = GetPairedDevice(mouse);
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
 ProcessInputProc backupproc;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
-DeviceEvent     *event = (DeviceEvent*)xE;
+DeviceEvent     *event = (DeviceEvent*)ev;
 
     xkbi->shiftKeyCount = 0;
     xkbi->lastPtrEventTime= event->time;
@@ -723,7 +722,7 @@ DeviceEvent     *event = (DeviceEvent*)xE;
      */
 
     UNWRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr, backupproc);
-    mouse->public.processInputProc(xE, mouse, count);
+    mouse->public.processInputProc(ev, mouse);
     COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
 				     backupproc, xkbUnwrapProc);
 

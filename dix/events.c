@@ -1028,7 +1028,7 @@ NoticeEventTime(InternalEvent *ev)
  * linked list for later delivery.
  */
 void
-EnqueueEvent(xEvent *ev, DeviceIntPtr device, int count)
+EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 {
     QdEventPtr	tail = *syncEvents.pendtail;
     QdEventPtr	qe;
@@ -1163,7 +1163,7 @@ PlayReleasedEvents(void)
 
 	    }
 #endif
-	    (*qe->device->public.processInputProc)(qe->event, qe->device, 1);
+	    (*qe->device->public.processInputProc)(qe->event, qe->device);
 	    xfree(qe);
 	    for (dev = inputInfo.devices; dev && dev->deviceGrab.sync.frozen; dev = dev->next)
 		;

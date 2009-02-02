@@ -161,14 +161,14 @@ unsigned        ndx;
 }
 
 void
-ProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
+ProcessKeyboardEvent(InternalEvent *ev, DeviceIntPtr keybd)
 {
 
     KeyClassPtr keyc = keybd->key;
     XkbSrvInfoPtr xkbi = NULL;
     ProcessInputProc backup_proc;
     xkbDeviceInfoPtr xkb_priv = XKBDEVICEINFO(keybd);
-    DeviceEvent *event = (DeviceEvent*)xE;
+    DeviceEvent *event = (DeviceEvent*)ev;
     int is_press = (event->type == ET_KeyPress);
     int is_release = (event->type == ET_KeyRelease);
 
@@ -178,7 +178,7 @@ ProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
     /* We're only interested in key events. */
     if (!is_press && !is_release) {
         UNWRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc);
-        keybd->public.processInputProc(xE, keybd, count);
+        keybd->public.processInputProc(ev, keybd);
         COND_WRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc,
                                      xkbUnwrapProc);
         return;

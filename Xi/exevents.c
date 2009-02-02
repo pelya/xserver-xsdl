@@ -876,7 +876,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
  *
  */
 void
-ProcessOtherEvent(xEventPtr ev, DeviceIntPtr device, int count)
+ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 {
     GrabPtr grab = device->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
