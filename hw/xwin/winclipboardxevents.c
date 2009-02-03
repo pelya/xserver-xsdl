@@ -713,6 +713,8 @@ winClipboardFlushXEvents (HWND hwnd,
 	      hGlobal = GlobalAlloc (GMEM_MOVEABLE, iConvertDataLen);
 	    }
 
+	  free (pszReturnData);
+
 	  /* Check that global memory was allocated */
 	  if (!hGlobal)
 	    {
