@@ -273,7 +273,8 @@ winClipboardProc (void *pvNotUsed)
       /* PRIMARY */
       iReturn = XSetSelectionOwner (pDisplay, XA_PRIMARY,
 				    iWindow, CurrentTime);
-      if (iReturn == BadAtom || iReturn == BadWindow)
+      if (iReturn == BadAtom || iReturn == BadWindow ||
+	  XGetSelectionOwner (pDisplay, XA_PRIMARY) != iWindow)
 	{
 	  ErrorF ("winClipboardProc - Could not set PRIMARY owner\n");
 	  pthread_exit (NULL);
@@ -282,7 +283,8 @@ winClipboardProc (void *pvNotUsed)
       /* CLIPBOARD */
       iReturn = XSetSelectionOwner (pDisplay, atomClipboard,
 				    iWindow, CurrentTime);
-      if (iReturn == BadAtom || iReturn == BadWindow)
+      if (iReturn == BadAtom || iReturn == BadWindow ||
+	  XGetSelectionOwner (pDisplay, atomClipboard) != iWindow)
 	{
 	  ErrorF ("winClipboardProc - Could not set CLIPBOARD owner\n");
 	  pthread_exit (NULL);
