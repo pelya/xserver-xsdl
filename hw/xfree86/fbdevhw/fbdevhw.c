@@ -155,7 +155,10 @@ fbdevHWFreeRec(ScrnInfoPtr pScrn)
 int
 fbdevHWGetFD(ScrnInfoPtr pScrn)
 {
-    fbdevHWPtr fPtr = fbdevHWGetRec(pScrn);
+    fbdevHWPtr fPtr;
+
+    fbdevHWGetRec(pScrn);
+    fPtr = FBDEVHWPTR(pScrn);
 
     return fPtr->fd;
 }
