@@ -42,6 +42,7 @@
  * Constants
  */
 
+#define CLIP_NUM_CALLS			4
 #define CLIP_NUM_SELECTIONS		2
 #define CLIP_OWN_PRIMARY		0
 #define CLIP_OWN_CLIPBOARD		1
@@ -86,6 +87,8 @@ int
 winProcQueryTree (ClientPtr client)
 {
   int			iReturn;
+
+  ErrorF ("winProcQueryTree - Hello\n");
 
   /*
    * This procedure is only used for initialization.
@@ -186,7 +189,7 @@ winProcEstablishConnection (ClientPtr client)
   static int		s_iCallCount = 0;
   static unsigned long	s_ulServerGeneration = 0;
 
-  ErrorF ("winProcEstablishConnection - Hello\n");
+  if (s_iCallCount == 0 || s_iCallCount == CLIP_NUM_CALLS) ErrorF ("winProcEstablishConnection - Hello\n");
 
   /* Do nothing if clipboard is not enabled */
   if (!g_fClipboard)
@@ -214,13 +217,15 @@ winProcEstablishConnection (ClientPtr client)
   /* Increment call count */
   ++s_iCallCount;
 
-  /* Wait for second call when Xdmcp is enabled */
+  /* Wait for CLIP_NUM_CALLS when Xdmcp is enabled */
   if (g_fXdmcpEnabled
       && !g_fClipboardLaunched
-      && s_iCallCount < 4)
+      && s_iCallCount < CLIP_NUM_CALLS)
     {
-      ErrorF ("winProcEstablishConnection - Xdmcp enabled, waiting to "
-	      "start clipboard client until fourth call.\n");
+      if (s_iCallCount == 1) ErrorF ("winProcEstablishConnection - Xdmcp, waiting to "
+	      "start clipboard client until %dth call", CLIP_NUM_CALLS);
+      if (s_iCallCount == CLIP_NUM_CALLS - 1) ErrorF (".\n");
+      else ErrorF (".");
       return (*winProcEstablishConnectionOrig) (client);
     }
 
@@ -277,7 +282,7 @@ winProcEstablishConnection (ClientPtr client)
        * 8) Unfortunately, there is another problem.
        * 9) XDM walks the list of windows with XQueryTree,
        *    killing any client it finds with a window.
-       * 10)Thus, when using XDMCP we wait until the second call
+       * 10)Thus, when using XDMCP we wait until CLIP_NUM_CALLS
        *    to ProcEstablishCeonnection before we startup the clipboard
        *    client.  This should prevent XDM from finding the clipboard
        *    client, since it has not yet created a window.
@@ -337,8 +342,8 @@ winProcSetSelectionOwner (ClientPtr client)
   /* Abort if clipboard not completely initialized yet */
   if (!g_fClipboardStarted)
     {
-      ErrorF ("winProcSetSelectionOwner - Clipboard not yet started, "
-	      "aborting.\n");
+      /* ErrorF ("winProcSetSelectionOwner - Clipboard not yet started, "
+	      "aborting.\n"); */
       goto winProcSetSelectionOwner_Done;
     }
   
