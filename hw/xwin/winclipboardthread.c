@@ -233,15 +233,6 @@ winClipboardProc (void *pvNotUsed)
   iMaxDescriptor = iConnectionNumber + 1;
 #endif
 
-  /* Select event types to watch */
-  if (XSelectInput (pDisplay,
-		    DefaultRootWindow (pDisplay),
-		    SubstructureNotifyMask |
-		    StructureNotifyMask |
-		    PropertyChangeMask) == BadWindow)
-    ErrorF ("winClipboardProc - XSelectInput generated BadWindow "
-	    "on RootWindow\n\n");
-
   /* Create atoms */
   atomClipboard = XInternAtom (pDisplay, "CLIPBOARD", False);
   atomClipboardManager = XInternAtom (pDisplay, "CLIPBOARD_MANAGER", False);
@@ -259,6 +250,13 @@ winClipboardProc (void *pvNotUsed)
       ErrorF ("winClipboardProc - Could not create an X window.\n");
       pthread_exit (NULL);
     }
+
+  /* Select event types to watch */
+  if (XSelectInput (pDisplay,
+		    iWindow,
+		    PropertyChangeMask) == BadWindow)
+    ErrorF ("winClipboardProc - XSelectInput generated BadWindow "
+	    "on messaging window\n");
 
   /* Save the window in the screen privates */
   g_iClipboardWindow = iWindow;
