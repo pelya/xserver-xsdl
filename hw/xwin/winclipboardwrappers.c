@@ -1,5 +1,6 @@
 /*
  *Copyright (C) 2003-2004 Harold L Hunt II All Rights Reserved.
+ *Copyright (C) Colin Harrison 2005-2008
  *
  *Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -20,12 +21,13 @@
  *CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- *Except as contained in this notice, the name of Harold L Hunt II
- *shall not be used in advertising or otherwise to promote the sale, use
- *or other dealings in this Software without prior written authorization
- *from Harold L Hunt II.
+ *Except as contained in this notice, the name of the copyright holder(s)
+ *and author(s) shall not be used in advertising or otherwise to promote
+ *the sale, use or other dealings in this Software without prior written
+ *authorization from the copyright holder(s) and author(s).
  *
  * Authors:	Harold L Hunt II
+ *              Colin Harrison
  */
 
 #ifdef HAVE_XWIN_CONFIG_H
