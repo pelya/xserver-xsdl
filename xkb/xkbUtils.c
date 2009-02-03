@@ -358,7 +358,7 @@ KeySymsPtr
 XkbGetCoreMap(DeviceIntPtr keybd)
 {
 register int		key,tmp;
-int			maxSymsPerKey,maxKeysPerMod, maxGroup1Width;
+int			maxSymsPerKey, maxGroup1Width;
 XkbDescPtr		xkb;
 KeySymsPtr              syms;
 int			maxNumberOfGroups;

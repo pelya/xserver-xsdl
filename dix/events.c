@@ -4611,7 +4611,6 @@ ProcQueryPointer(ClientPtr client)
     xQueryPointerReply rep;
     WindowPtr pWin, t;
     DeviceIntPtr mouse = PickPointer(client);
-    DeviceIntPtr kbd = PickKeyboard(client);
     SpritePtr pSprite;
     int rc;
     REQUEST(xResourceReq);

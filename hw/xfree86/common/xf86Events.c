@@ -406,7 +406,6 @@ static void
 xf86ReleaseKeys(DeviceIntPtr pDev)
 {
     KeyClassPtr keyc;
-    xEvent ke;
     int i, j, nevents, sigstate;
 
     if (!pDev || !pDev->key)

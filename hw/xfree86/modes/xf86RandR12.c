@@ -588,7 +588,6 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	else
 	{
 	    xf86OutputPtr   output = config->output[config->compat_output];
-	    xf86CrtcPtr	    crtc = output->crtc;
 
 	    if (output->conf_monitor &&
 		(output->conf_monitor->mon_width  > 0 &&

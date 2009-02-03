@@ -126,8 +126,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     int screen;
     legacyVGARec vga;
  
-#ifdef _PC
-    int size;
+#if 0
     CARD32 cs;
 #endif
 
