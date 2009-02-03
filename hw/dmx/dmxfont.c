@@ -253,7 +253,7 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 {
     DMXScreenInfo  *dmxScreen = &dmxScreens[pScreen->myNum];
     dmxFontPrivPtr  pFontPriv = FontGetPrivate(pFont, dmxFontPrivateIndex);
-    char           *name;
+    const char     *name;
     char          **oldFontPath = NULL;
     int             nOldPaths;
     Atom            name_atom, value_atom;
@@ -415,7 +415,7 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
     }
     if (!value_atom) return FALSE;
 
-    name = (char *)NameForAtom(value_atom);
+    name = NameForAtom(value_atom);
     if (!name) return FALSE;
 
     pFontPriv->font[pScreen->myNum] = 

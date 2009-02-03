@@ -880,7 +880,7 @@ extern _X_EXPORT XkbGeometryPtr XkbLookupNamedGeometry(
 );
 
 extern _X_EXPORT char *	_XkbDupString(
-	char *			/* str */
+	const char *		/* str */
 );
 
 extern _X_EXPORT void	XkbConvertCase(

@@ -163,7 +163,7 @@ XkbWriteXKBKeymapForNames(	FILE *			file,
 				unsigned		want,
 				unsigned		need)
 {
-char *		tmp;
+const char *	tmp;
 unsigned	complete;
 XkbNamesPtr	old_names;
 int		multi_section;

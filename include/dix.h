@@ -280,14 +280,14 @@ extern _X_EXPORT Bool ClientIsAsleep(
 /* atom.c */
 
 extern _X_EXPORT Atom MakeAtom(
-    char * /*string*/,
+    const char * /*string*/,
     unsigned /*len*/,
     Bool /*makeit*/);
 
 extern _X_EXPORT Bool ValidAtom(
     Atom /*atom*/);
 
-extern _X_EXPORT char *NameForAtom(
+extern _X_EXPORT const char *NameForAtom(
     Atom /*atom*/);
 
 extern _X_EXPORT void AtomError(void);

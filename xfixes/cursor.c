@@ -457,7 +457,7 @@ ProcXFixesGetCursorName (ClientPtr client)
     CursorPtr			pCursor;
     xXFixesGetCursorNameReply	reply;
     REQUEST(xXFixesGetCursorNameReq);
-    char *str;
+    const char *str;
     int len;
 
     REQUEST_SIZE_MATCH(xXFixesGetCursorNameReq);
@@ -507,7 +507,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     CursorPtr			pCursor;
     CARD32			*image;
     int				npixels;
-    char			*name;
+    const char			*name;
     int				nbytes, nbytesRound;
     int				width, height;
     int				rc, x, y;

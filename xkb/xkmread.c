@@ -51,7 +51,7 @@ XkbInternAtom(char *str,Bool only_if_exists)
 }
 
 char *
-_XkbDupString(char *str)
+_XkbDupString(const char *str)
 {
 char *new;
    

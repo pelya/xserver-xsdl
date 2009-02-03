@@ -70,16 +70,17 @@ char *rtrn;
 char *
 XkbAtomText(Atom atm,unsigned format)
 {
+const char	*atmstr;
 char	*rtrn,*tmp;
 
-    tmp= XkbAtomGetString(atm);
-    if (tmp!=NULL) {
+    atmstr = XkbAtomGetString(atm);
+    if (atmstr != NULL) {
 	int	len;
-	len= strlen(tmp)+1;
+	len= strlen(atmstr)+1;
 	if (len>BUFFER_SIZE)
 	    len= BUFFER_SIZE-2;
 	rtrn= tbGetBuffer(len);
-	strncpy(rtrn,tmp,len);
+	strncpy(rtrn,atmstr,len);
 	rtrn[len]= '\0';
     }
     else {
@@ -104,7 +105,8 @@ XkbVModIndexText(XkbDescPtr xkb,unsigned ndx,unsigned format)
 {
 register int len;
 register Atom *vmodNames;
-char *rtrn,*tmp;
+char *rtrn;
+const char *tmp;
 char  numBuf[20];
 
     if (xkb && xkb->names)
@@ -116,8 +118,10 @@ char  numBuf[20];
 	 tmp= "illegal";
     else if (vmodNames&&(vmodNames[ndx]!=None))
 	 tmp= XkbAtomGetString(vmodNames[ndx]);
-    if (tmp==NULL)
-	sprintf(tmp=numBuf,"%d",ndx);
+    if (tmp==NULL) {
+	sprintf(numBuf,"%d",ndx);
+	tmp = numBuf;
+    }
 
     len= strlen(tmp)+1;
     if (format==XkbCFile)

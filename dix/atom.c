@@ -64,7 +64,7 @@ typedef struct _Node {
     struct _Node   *left,   *right;
     Atom a;
     unsigned int fingerPrint;
-    char   *string;
+    const char   *string;
 } NodeRec, *NodePtr;
 
 static Atom lastAtom = None;
@@ -75,7 +75,7 @@ static NodePtr *nodeTable;
 void FreeAtom(NodePtr patom);
 
 Atom
-MakeAtom(char *string, unsigned len, Bool makeit)
+MakeAtom(const char *string, unsigned len, Bool makeit)
 {
     NodePtr * np;
     unsigned i;
@@ -118,13 +118,14 @@ MakeAtom(char *string, unsigned len, Bool makeit)
 	}
 	else
 	{
-	    nd->string = xalloc(len + 1);
-	    if (!nd->string) {
+	    char *newstring = xalloc(len + 1);
+	    if (!newstring) {
 		xfree(nd);
 		return BAD_RESOURCE;
 	    }
-	    strncpy(nd->string, string, (int)len);
-	    nd->string[len] = 0;
+	    strncpy(newstring, string, (int)len);
+	    newstring[len] = 0;
+	    nd->string = newstring;
 	}
 	if ((lastAtom + 1) >= tableLength) {
 	    NodePtr *table;
@@ -157,7 +158,7 @@ ValidAtom(Atom atom)
     return (atom != None) && (atom <= lastAtom);
 }
 
-char *
+const char *
 NameForAtom(Atom atom)
 {
     NodePtr node;

@@ -901,7 +901,7 @@ ProcInternAtom(ClientPtr client)
 int
 ProcGetAtomName(ClientPtr client)
 {
-    char *str;
+    const char *str;
     xGetAtomNameReply reply;
     int len;
     REQUEST(xResourceReq);
