@@ -101,7 +101,7 @@ static void set_x11_path() {
             }
 
             ver = CFBundleGetVersionNumber(bundle);
-            if(ver < 0x02308000) {
+            if( !(ver >= 0x02308000 || (ver >= 0x02168000 && ver < 0x02208000))) {
                 CFStringRef versionStr = CFBundleGetValueForInfoDictionaryKey(bundle, kCFBundleVersionKey);
                 const char * versionCStr = "Unknown";
 
@@ -110,7 +110,7 @@ static void set_x11_path() {
 
                 fprintf(stderr, "Xquartz: Could not find a new enough X11.app LSFindApplicationForInfo() returned\n");
                 fprintf(stderr, "         X11.app = %s\n", x11_path);
-                fprintf(stderr, "         Version = %s (%x), Expected Version > 2.3.0\n", versionCStr, (unsigned)ver);
+                fprintf(stderr, "         Version = %s (%x), Expected Version > 2.3.0 or 2.1.6\n", versionCStr, (unsigned)ver);
                 exit(9);
             }
 
