@@ -34,6 +34,7 @@
 #include <xwin-config.h>
 #endif
 #include "winclipboard.h"
+#include "misc.h"
 
 
 /*
@@ -53,18 +54,20 @@ winClipboardFlushXEvents (HWND hwnd,
 			  Display *pDisplay,
 			  Bool fUseUnicode)
 {
-  Atom			atomLocalProperty = XInternAtom (pDisplay,
-							 WIN_LOCAL_PROPERTY,
-							 False);
-  Atom			atomUTF8String = XInternAtom (pDisplay,
-						      "UTF8_STRING",
-						      False);
-  Atom			atomCompoundText = XInternAtom (pDisplay,
-							"COMPOUND_TEXT",
-							False);
-  Atom			atomTargets = XInternAtom (pDisplay,
-						   "TARGETS",
-						   False);
+  static Atom atomLocalProperty;
+  static Atom atomCompoundText;
+  static Atom atomUTF8String;
+  static Atom atomTargets;
+  static int generation;
+
+  if (generation != serverGeneration)
+    {
+      generation = serverGeneration;
+      atomLocalProperty = XInternAtom (pDisplay, WIN_LOCAL_PROPERTY, False);
+      atomUTF8String = XInternAtom (pDisplay, "UTF8_STRING", False);
+      atomCompoundText = XInternAtom (pDisplay, "COMPOUND_TEXT", False);
+      atomTargets = XInternAtom (pDisplay, "TARGETS", False);
+    }
 
   /* Process all pending events */
   while (XPending (pDisplay))
