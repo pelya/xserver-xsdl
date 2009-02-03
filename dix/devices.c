@@ -1682,6 +1682,7 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
     int key = DO_ALL;
     BITS32 index2;
     int mask = vmask, i;
+    XkbEventCauseRec cause;
 
     ctrl = keybd->kbdfeed->ctrl;
     while (vmask) {
@@ -1765,7 +1766,6 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
 		return BadValue;
 	    }
 
-            XkbEventCauseRec cause;
             XkbSetCauseCoreReq(&cause,X_ChangeKeyboardControl,client);
             XkbSetIndicators(keybd,((led == DO_ALL) ? ~0L : (1L<<(led-1))),
  			     ctrl.leds, &cause);
