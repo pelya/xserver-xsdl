@@ -116,7 +116,7 @@ DeviceIntPtr		master = NULL;
         if (!IsPointerDevice(master))
             master = GetPairedDevice(dev->u.master);
 
-        CopyGetMasterEvent(master, dev, &events, masterEvents, count);
+        CopyGetMasterEvent(master, dev, events, masterEvents, count);
     }
 
     (*dev->public.processInputProc)((xEventPtr)btn, dev, count);
