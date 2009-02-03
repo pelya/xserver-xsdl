@@ -66,7 +66,7 @@ xf86AccessRec AccessNULL = { noopEnableDisable, noopEnableDisable, NULL };
 
 xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
-BusRec primaryBus = { BUS_NONE, {{0}}};
+BusRec primaryBus = { BUS_NONE, { 0 } };
 
 static Bool xf86ResAccessEnter = FALSE;
 
