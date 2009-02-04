@@ -488,8 +488,13 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
     switch (what) {
     case DEVICE_INIT:
         XkbGetRulesDflts(&rmlvo);
-        InitKeyboardDeviceStruct(pDev, &rmlvo, CoreKeyboardBell,
-                                 CoreKeyboardCtl);
+        if (!InitKeyboardDeviceStruct(pDev, &rmlvo, CoreKeyboardBell,
+                                      CoreKeyboardCtl))
+        {
+            ErrorF("Keyboard initialization failed. This could be a missing "
+                   "or incorrect setup of xkeyboard-config.\n");
+            return BadValue;
+        }
         return Success;
 
     case DEVICE_ON:
@@ -519,9 +524,14 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     case DEVICE_INIT:
         for (i = 1; i <= 32; i++)
             map[i] = i;
-        InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
+        if (!InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
                                 (PtrCtrlProcPtr)NoopDDA,
-                                GetMotionHistorySize(), 2);
+                                GetMotionHistorySize(), 2))
+        {
+            ErrorF("Could not initialize device '%s'. Out of memory.\n",
+                   pDev->name);
+            return BadAlloc; /* IPDS only fails on allocs */
+        }
         pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
         pDev->last.valuators[0] = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
@@ -554,11 +564,12 @@ InitCoreDevices(void)
                           &inputInfo.keyboard) != Success)
         FatalError("Failed to allocate core devices");
 
-    ActivateDevice(inputInfo.pointer);
-    ActivateDevice(inputInfo.keyboard);
-    EnableDevice(inputInfo.pointer);
-    EnableDevice(inputInfo.keyboard);
-
+    if (ActivateDevice(inputInfo.pointer) != Success ||
+        ActivateDevice(inputInfo.keyboard) != Success)
+        FatalError("Failed to activate core devices.");
+    if (!EnableDevice(inputInfo.pointer) ||
+        !EnableDevice(inputInfo.keyboard))
+        FatalError("Failed to enable core devices.");
 }
 
 /**
