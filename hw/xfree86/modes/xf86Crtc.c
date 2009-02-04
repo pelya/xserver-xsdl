@@ -306,33 +306,14 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     } else
 	crtc->transformPresent = FALSE;
 
-    /* Shift offsets that move us out of virtual size */
-    if (x + mode->HDisplay > xf86_config->maxWidth ||
-	y + mode->VDisplay > xf86_config->maxHeight)
-    {
-	if (x + mode->HDisplay > xf86_config->maxWidth)
-	    crtc->x = xf86_config->maxWidth - mode->HDisplay;
-	if (y + mode->VDisplay > xf86_config->maxHeight)
-	    crtc->y = xf86_config->maxHeight - mode->VDisplay;
-	if (crtc->x < 0 || crtc->y < 0)
-	{
-	    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
-			"Mode %dx%d does not fit virtual size %dx%d - "
-			"internal error\n", mode->HDisplay, mode->VDisplay,
-			xf86_config->maxWidth, xf86_config->maxHeight);
-	    goto done;
-	}
-	xf86DrvMsg (scrn->scrnIndex, X_ERROR,
-		    "Mode %dx%d+%d+%d does not fit virtual size %dx%d - "
-		    "offset updated to +%d+%d\n",
-		    mode->HDisplay, mode->VDisplay, x, y,
-		    xf86_config->maxWidth, xf86_config->maxHeight,
-		    crtc->x, crtc->y);
-    }
-
     if (crtc->funcs->set_origin &&
 	memcmp (mode, &saved_mode, sizeof(saved_mode)) == 0 &&
-	saved_rotation == rotation) {
+	saved_rotation == rotation &&
+	saved_transform_present == crtc->transformPresent &&
+	(!crtc->transformPresent || RRTransformEqual(&saved_transform, &crtc->transform)))
+    {
+	if (!xf86CrtcRotate (crtc))
+		goto done;
 	crtc->funcs->set_origin (crtc, crtc->x, crtc->y);
 	ret = TRUE;
 	goto done;
@@ -441,8 +422,11 @@ xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y)
 {
     crtc->x = x;
     crtc->y = y;
-    if (crtc->funcs->set_origin)
+    if (crtc->funcs->set_origin) {
+	if (!xf86CrtcRotate (crtc))
+	    return;
 	crtc->funcs->set_origin (crtc, x, y);
+    }
     else
 	xf86CrtcSetMode (crtc, &crtc->mode, crtc->rotation, x, y);
 }
