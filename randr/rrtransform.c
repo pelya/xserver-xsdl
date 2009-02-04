@@ -120,6 +120,22 @@ RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 
 #define F(x)	IntToxFixed(x)
 
+static void
+RRTransformRescale(struct pixman_f_transform *f_transform, double limit)
+{
+    double max = 0, v, scale;
+    int i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	    if ((v = abs (f_transform->m[j][i])) > max)
+		max = v;
+    scale = limit / max;
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	    f_transform->m[j][i] *= scale;
+}
+
 /*
  * Compute the complete transformation matrix including
  * client-specified transform, rotation/reflection values and the crtc 
@@ -141,6 +157,7 @@ RRTransformCompute (int			    x,
 {
     PictTransform	    t_transform, inverse;
     struct pixman_f_transform tf_transform, tf_inverse;
+    Bool		    overflow = FALSE;
 
     if (!transform) transform = &t_transform;
     if (!f_transform) f_transform = &tf_transform;
@@ -234,7 +251,8 @@ RRTransformCompute (int			    x,
 #ifdef RANDR_12_INTERFACE
     if (rr_transform)
     {
-        pixman_transform_multiply (transform, transform, &rr_transform->transform);
+        if (!pixman_transform_multiply (transform, transform, &rr_transform->transform))
+	    overflow = TRUE;
 	pixman_f_transform_multiply (f_transform, f_transform, &rr_transform->f_transform);
 	pixman_f_transform_multiply (f_inverse, &rr_transform->f_inverse, f_inverse);
     }
@@ -242,19 +260,26 @@ RRTransformCompute (int			    x,
     /*
      * Compute the class of the resulting transform
      */
-    if (pixman_transform_is_identity (transform))
+    if (!overflow && pixman_transform_is_identity (transform))
     {
 	pixman_transform_init_translate (transform, F ( x), F ( y));
 
-	pixman_f_transform_init_translate (f_transform, F( x), F( y));
-	pixman_f_transform_init_translate (f_inverse,   F(-x), F(-y));
+	pixman_f_transform_init_translate (f_transform,  x,  y);
+	pixman_f_transform_init_translate (f_inverse,   -x, -y);
 	return FALSE;
     }
     else
     {
-	pixman_transform_translate (&inverse, transform, x, y);
-	pixman_f_transform_translate (f_inverse, f_transform, x, y);
+	pixman_f_transform_translate (f_inverse, f_transform, -x, -y);
+	if (!pixman_transform_translate (&inverse, transform, F(-x), F(-y)))
+	    overflow = TRUE;
+	if (overflow)
+	{
+	    struct pixman_f_transform f_scaled;
+	    f_scaled = *f_transform;
+	    RRTransformRescale(&f_scaled, 16384.0);
+	    pixman_transform_from_pixman_f_transform(transform, &f_scaled);
+	}
 	return TRUE;
     }
 }
-
