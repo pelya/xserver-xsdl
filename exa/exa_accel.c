@@ -524,7 +524,7 @@ exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
                                  srcx, srcy, width, height, dstx, dsty);
     }
 
-    return  fbDoCopy (pSrcDrawable, pDstDrawable, pGC,
+    return  miDoCopy (pSrcDrawable, pDstDrawable, pGC,
                       srcx, srcy, width, height,
                       dstx, dsty, exaCopyNtoN, 0, NULL);
 }
@@ -879,7 +879,7 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 			  -pPixmap->screen_x, -pPixmap->screen_y);
 #endif
 
-    fbCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
+    miCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
 		  NULL,
 		  &rgnDst, dx, dy, exaCopyNtoN, 0, NULL);
 

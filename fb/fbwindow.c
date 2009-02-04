@@ -140,7 +140,7 @@ fbCopyWindow(WindowPtr	    pWin,
 			  -pPixmap->screen_x, -pPixmap->screen_y);
 #endif
 
-    fbCopyRegion (pDrawable, pDrawable,
+    miCopyRegion (pDrawable, pDrawable,
 		  0,
 		  &rgnDst, dx, dy, fbCopyWindowProc, 0, 0);
     

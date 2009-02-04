@@ -56,6 +56,7 @@ SOFTWARE.
 #include "input.h"
 #include "cursor.h"
 #include "privates.h"
+#include "colormap.h"
 
 #define MiBits	CARD32
 
@@ -122,6 +123,47 @@ extern _X_EXPORT void miPutImage(
     int /*format*/,
     char * /*pImage*/
 );
+
+/* micopy.c  */
+
+#define miGetCompositeClip(pGC) ((pGC)->pCompositeClip)
+
+typedef void	(*miCopyProc) (DrawablePtr  pSrcDrawable,
+			       DrawablePtr  pDstDrawable,
+			       GCPtr	    pGC,
+			       BoxPtr	    pDstBox,
+			       int	    nbox,
+			       int	    dx,
+			       int	    dy,
+			       Bool	    reverse,
+			       Bool	    upsidedown,
+			       Pixel	    bitplane,
+			       void	    *closure);
+
+extern _X_EXPORT void
+miCopyRegion (DrawablePtr   pSrcDrawable,
+	      DrawablePtr   pDstDrawable,
+	      GCPtr	    pGC,
+	      RegionPtr	    pDstRegion,
+	      int	    dx,
+	      int	    dy,
+	      miCopyProc    copyProc,
+	      Pixel	    bitPlane,
+	      void	    *closure);
+
+extern _X_EXPORT RegionPtr
+miDoCopy (DrawablePtr	pSrcDrawable,
+	  DrawablePtr	pDstDrawable,
+	  GCPtr		pGC,
+	  int		xIn, 
+	  int		yIn,
+	  int		widthSrc, 
+	  int		heightSrc,
+	  int		xOut, 
+	  int		yOut,
+	  miCopyProc	copyProc,
+	  Pixel		bitplane,
+	  void		*closure);
 
 /* micursor.c */
 

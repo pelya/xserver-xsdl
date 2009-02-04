@@ -53,7 +53,7 @@ typedef struct _fbOverlayLayer {
 typedef struct _fbOverlayScrPriv {
     int			    nlayers;
     fbOverlayPaintKeyProc   PaintKey;
-    fbCopyProc		    CopyWindow;
+    miCopyProc		    CopyWindow;
     FbOverlayLayer	    layer[FB_OVERLAY_MAX];
 } FbOverlayScrPrivRec, *FbOverlayScrPrivPtr;
 
