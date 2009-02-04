@@ -406,6 +406,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
     int			new_width = 0;
     int			new_height = 0;
     RRTransformPtr	transform = NULL;
+    Bool		damage = FALSE;
 
     if (crtc->transformPresent)
 	transform = &crtc->transform;
@@ -466,7 +467,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
 	else
 	{
 	    /* mark shadowed area as damaged so it will be repainted */
-	    xf86CrtcDamageShadow (crtc);
+	    damage = TRUE;
 	}
 
 	if (!xf86_config->rotation_damage)
@@ -539,6 +540,9 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
     crtc->bounds.y1 = 0;
     crtc->bounds.y2 = crtc->mode.VDisplay;
     pixman_f_transform_bounds (&f_crtc_to_fb, &crtc->bounds);
+
+    if (damage)
+        xf86CrtcDamageShadow (crtc);
 
     /* All done */
     return TRUE;
