@@ -688,8 +688,6 @@ XkbProcessArguments(int argc,char *argv[],int i)
 void
 XkbUseMsg(void)
 {
-    ErrorF("-kb                    disable the X Keyboard Extension\n");
-    ErrorF("+kb                    enable the X Keyboard Extension\n");
     ErrorF("[+-]accessx [ timeout [ timeout_mask [ feedback [ options_mask] ] ] ]\n");
     ErrorF("                       enable/disable accessx key sequences\n");
     ErrorF("-ardelay               set XKB autorepeat delay\n");

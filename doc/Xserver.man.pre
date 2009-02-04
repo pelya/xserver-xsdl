@@ -393,9 +393,6 @@ located in the XKB base directory or a subdirectory, and specified as the
 relative path from the XKB base directory.  The default XKB base directory is
 .IR __projectroot__/lib/X11/xkb .
 .TP 8
-.B [+-]kb
-enables(+) or disables(-) the XKEYBOARD extension.
-.TP 8
 .BR [+-]accessx " [ \fItimeout\fP [ \fItimeout_mask\fP [ \fIfeedback\fP [ \fIoptions_mask\fP ] ] ] ]"
 enables(+) or disables(-) AccessX key sequences.
 .TP 8
