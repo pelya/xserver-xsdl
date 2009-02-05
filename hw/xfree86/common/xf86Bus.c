@@ -2351,19 +2351,6 @@ xf86FindComplement(resRange Range)
 }
 #endif
 
-resPtr
-xf86ExtractTypeFromList(resPtr list, unsigned long type)
-{
-    resPtr ret = NULL;
-    
-    while (list) {
-	if ((list->res_type & ResTypeMask) == type)
-	    ret = xf86AddResToList(ret,&(list->val),list->entityIndex);
-	list = list->next;
-    }
-    return ret;
-}
-
 /*
  * xf86FindPrimaryDevice() - Find the display device which
  * was active when the server was started.

@@ -135,7 +135,5 @@ extern BusAccPtr xf86BusAccInfo;
 int xf86AllocateEntity(void);
 BusType StringToBusType(const char* busID, const char **retID);
 Bool xf86IsSubsetOf(resRange range, resPtr list);
-resPtr xf86ExtractTypeFromList(resPtr list, unsigned long type);
-resPtr xf86FindIntersect(resRange Range, resPtr list);
 
 #endif /* _XF86_BUS_H */
