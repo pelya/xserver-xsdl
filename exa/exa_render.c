@@ -851,6 +851,7 @@ exaComposite(CARD8	op,
 		     !pSrc->repeat &&
 		     !pSrc->transform)
 	    {
+		Bool ret;
 		xDst += pDst->pDrawable->x;
 		yDst += pDst->pDrawable->y;
 		xSrc += pSrc->pDrawable->x;
@@ -861,12 +862,20 @@ exaComposite(CARD8	op,
 					       yDst, width, height))
 		    goto done;
 
-
-		exaCopyNtoN (pSrc->pDrawable, pDst->pDrawable, NULL,
+		ret = exaHWCopyNtoN(pSrc->pDrawable, pDst->pDrawable, NULL,
 			     REGION_RECTS(&region), REGION_NUM_RECTS(&region),
-			     xSrc - xDst, ySrc - yDst,
-			     FALSE, FALSE, 0, NULL);
+			     xSrc - xDst, ySrc - yDst, FALSE, FALSE);
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+
+		/* Reset values to their original values. */
+		xDst -= pDst->pDrawable->x;
+		yDst -= pDst->pDrawable->y;
+		xSrc -= pSrc->pDrawable->x;
+		ySrc -= pSrc->pDrawable->y;
+
+		if (!ret)
+		    goto fallback;
+
 		goto done;
 	    }
 	    else if (pSrc->pDrawable != NULL &&

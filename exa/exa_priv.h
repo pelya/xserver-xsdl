@@ -127,6 +127,10 @@ typedef struct {
 
 #define EXA_NUM_GLYPH_CACHES 4
 
+#define EXA_FALLBACK_COPYWINDOW (1 << 0)
+#define EXA_ACCEL_COPYWINDOW (1 << 1)
+#define EXA_FALLBACK_NOGC (1 << 2)
+
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
@@ -155,6 +159,8 @@ typedef struct {
     unsigned			 disableFbCount;
     Bool			 optimize_migration;
     unsigned			 offScreenCounter;
+    /* Holds information on fallbacks that cannot be relayed otherwise. */
+    unsigned int fallback_flags;
 
     ExaGlyphCacheRec             glyphCaches[EXA_NUM_GLYPH_CACHES];
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
@@ -316,6 +322,11 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits);
 
+void
+ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
+	     BoxPtr	pbox, int nbox, int dx, int dy, Bool	reverse, 
+	     Bool upsidedown, Pixel bitplane, void *closure);
+
 RegionPtr
 ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty);
@@ -359,6 +370,9 @@ void
 ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		   DrawablePtr pDrawable,
 		   int w, int h, int x, int y);
+
+void
+ExaCheckCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 void
 ExaCheckGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
@@ -464,6 +478,17 @@ exaGetDrawablePixmap(DrawablePtr pDrawable);
 RegionPtr
 exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 	    int srcx, int srcy, int width, int height, int dstx, int dsty);
+
+Bool
+exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+	     DrawablePtr    pDstDrawable,
+	     GCPtr	    pGC,
+	     BoxPtr	    pbox,
+	     int	    nbox,
+	     int	    dx,
+	     int	    dy,
+	     Bool	    reverse,
+	     Bool	    upsidedown);
 
 void
 exaCopyNtoN (DrawablePtr    pSrcDrawable,

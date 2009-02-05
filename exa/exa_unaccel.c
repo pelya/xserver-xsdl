@@ -116,6 +116,40 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
     EXA_GC_EPILOGUE(pGC);
 }
 
+/* Sometimes we need a pGC to call a function, but don't actually want the lower
+ * layer to do something with the contents of this fake GC. */
+static inline GCPtr
+ExaCheckWantGC(DrawablePtr pDrawable, GCPtr pGC)
+{
+    ExaScreenPriv(pDrawable->pScreen);
+
+    if (pExaScr->fallback_flags & EXA_FALLBACK_NOGC)
+	return NULL;
+
+    return pGC;
+}
+
+void
+ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
+	     BoxPtr	pbox, int nbox, int dx, int dy, Bool	reverse, 
+	     Bool upsidedown, Pixel bitplane, void *closure)
+{
+    EXA_GC_PROLOGUE(pGC);
+    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
+		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
+    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+    /* This will eventually call fbCopyNtoN, with some calculation overhead. */
+    while (nbox--) {
+	pGC->ops->CopyArea (pSrc, pDst, ExaCheckWantGC(pDst, pGC), pbox->x1 - pSrc->x + dx, pbox->y1 - pSrc->y + dy, 
+			pbox->x2 - pbox->x1, pbox->y2 - pbox->y1, pbox->x1 - pDst->x, pbox->y1 - pDst->y);
+	pbox++;
+    }
+    exaFinishAccess (pSrc, EXA_PREPARE_SRC);
+    exaFinishAccess (pDst, EXA_PREPARE_DEST);
+    EXA_GC_EPILOGUE(pGC);
+}
+
 RegionPtr
 ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
@@ -280,6 +314,22 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
     exaFinishAccess (&pBitmap->drawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
     EXA_GC_EPILOGUE(pGC);
+}
+
+void
+ExaCheckCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
+{
+    DrawablePtr pDrawable = &pWin->drawable;
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv(pScreen);
+    EXA_FALLBACK(("from %p\n", pWin));
+
+    /* being both src and dest, src is safest. */
+    exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
+    swap(pExaScr, pScreen, CopyWindow);
+    pScreen->CopyWindow (pWin, ptOldOrg, prgnSrc);
+    swap(pExaScr, pScreen, CopyWindow);
+    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
 void

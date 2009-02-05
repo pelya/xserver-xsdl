@@ -359,8 +359,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     return TRUE;
 }
 
-void
-exaCopyNtoN (DrawablePtr    pSrcDrawable,
+Bool
+exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	     DrawablePtr    pDstDrawable,
 	     GCPtr	    pGC,
 	     BoxPtr	    pbox,
@@ -368,9 +368,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     int	    dx,
 	     int	    dy,
 	     Bool	    reverse,
-	     Bool	    upsidedown,
-	     Pixel	    bitplane,
-	     void	    *closure)
+	     Bool	    upsidedown)
 {
     ExaScreenPriv (pDstDrawable->pScreen);
     PixmapPtr pSrcPixmap, pDstPixmap;
@@ -380,10 +378,11 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     ExaMigrationRec pixmaps[2];
     RegionPtr srcregion = NULL, dstregion = NULL;
     xRectangle *rects;
+    Bool ret = TRUE;
 
     /* avoid doing copy operations if no boxes */
     if (nbox == 0)
-	return;
+	return TRUE;
 
     pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
     pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
@@ -492,15 +491,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     goto out;
 
 fallback:
-    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
-		  exaDrawableLocation(pSrcDrawable),
-		  exaDrawableLocation(pDstDrawable)));
-    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, dstregion);
-    exaPrepareAccessReg (pSrcDrawable, EXA_PREPARE_SRC, srcregion);
-    fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse,
-		upsidedown, bitplane, closure);
-    exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
-    exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
+    ret = FALSE;
 
 out:
     if (dstregion) {
@@ -510,6 +501,52 @@ out:
     if (srcregion) {
 	REGION_UNINIT(pScreen, srcregion);
 	REGION_DESTROY(pScreen, srcregion);
+    }
+
+    return ret;
+}
+
+void
+exaCopyNtoN (DrawablePtr    pSrcDrawable,
+	     DrawablePtr    pDstDrawable,
+	     GCPtr	    pGC,
+	     BoxPtr	    pbox,
+	     int	    nbox,
+	     int	    dx,
+	     int	    dy,
+	     Bool	    reverse,
+	     Bool	    upsidedown,
+	     Pixel	    bitplane,
+	     void	    *closure)
+{
+    ExaScreenPriv(pDstDrawable->pScreen);
+
+    if (pExaScr->fallback_flags & EXA_FALLBACK_COPYWINDOW)
+	return;
+
+    if (exaHWCopyNtoN(pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse, upsidedown))
+	return;
+
+    /* This is a CopyWindow, it's cleaner to fallback at the original call. */
+    if (pExaScr->fallback_flags & EXA_ACCEL_COPYWINDOW) {
+	pExaScr->fallback_flags |= EXA_FALLBACK_COPYWINDOW;
+	return;
+    }
+
+    /* We need a pGC to call our fallback. */
+    if (!pGC) {
+	pExaScr->fallback_flags |= EXA_FALLBACK_NOGC;
+	pGC = CreateScratchGC(pDstDrawable->pScreen, pDstDrawable->depth);
+	if (!pGC)
+	    return;
+    }
+
+    /* fallback */
+    ExaCheckCopyNtoN(pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse, upsidedown, bitplane, closure);
+
+    if (pExaScr->fallback_flags & EXA_FALLBACK_NOGC) {
+	pExaScr->fallback_flags &= ~EXA_FALLBACK_NOGC;
+	FreeScratchGC(pGC);
     }
 }
 
@@ -865,6 +902,7 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     RegionRec	rgnDst;
     int		dx, dy;
     PixmapPtr	pPixmap = (*pWin->drawable.pScreen->GetWindowPixmap) (pWin);
+    ExaScreenPriv(pWin->drawable.pScreen);
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
@@ -879,11 +917,19 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 			  -pPixmap->screen_x, -pPixmap->screen_y);
 #endif
 
+    pExaScr->fallback_flags |= EXA_ACCEL_COPYWINDOW;
     miCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
 		  NULL,
 		  &rgnDst, dx, dy, exaCopyNtoN, 0, NULL);
+    pExaScr->fallback_flags &= ~EXA_ACCEL_COPYWINDOW;
 
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
+
+    if (pExaScr->fallback_flags & EXA_FALLBACK_COPYWINDOW) {
+	pExaScr->fallback_flags &= ~EXA_FALLBACK_COPYWINDOW;
+	REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, dx, dy);
+	ExaCheckCopyWindow(pWin, ptOldOrg, prgnSrc);
+    }
 }
 
 static Bool
