@@ -463,7 +463,11 @@ exaMigrateTowardFb (ExaMigrationPtr migrate)
 	exaDoMoveInPixmap(migrate);
     }
 
-    ExaOffscreenMarkUsed (pPixmap);
+    if (exaPixmapIsOffscreen(pPixmap)) {
+	exaCopyDirtyToFb (migrate);
+	ExaOffscreenMarkUsed (pPixmap);
+    } else
+	exaCopyDirtyToSys (migrate);
 }
 
 /**
@@ -496,6 +500,12 @@ exaMigrateTowardSys (ExaMigrationPtr migrate)
 
     if (pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT && pExaPixmap->area)
 	exaDoMoveOutPixmap(migrate);
+
+    if (exaPixmapIsOffscreen(pPixmap)) {
+	exaCopyDirtyToFb (migrate);
+	ExaOffscreenMarkUsed (pPixmap);
+    } else
+	exaCopyDirtyToSys (migrate);
 }
 
 /**
