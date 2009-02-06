@@ -162,6 +162,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	if (pExaScr->optimize_migration) {
 	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
+#if DEBUG_MIGRATE
 	    if (REGION_NIL(pending_damage)) {
 		static Bool firsttime = TRUE;
 
@@ -170,6 +171,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 		    firsttime = FALSE;
 		}
 	    }
+#endif
 
 	    REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
 	}
