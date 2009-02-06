@@ -357,17 +357,7 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 #    endif
 }
 
-/* to flush the I-cache before jumping to code which just got loaded */
-#    define PAL_imb 134
-#    define istream_mem_barrier() \
-	__asm__ __volatile__("call_pal %0 #imb" : : "i" (PAL_imb) : "memory")
-#    define mem_barrier()        __asm__ __volatile__("mb"  : : : "memory")
-#    ifdef __ELF__
-#     define write_mem_barrier()  __asm__ __volatile__("wmb" : : : "memory")
-#    else  /*  ECOFF gas 2.6 doesn't know "wmb" :-(  */
-#     define write_mem_barrier()  mem_barrier()
-#    endif
-
+#    define write_mem_barrier()  __asm__ __volatile__("wmb" : : : "memory")
 
 #   elif defined(linux) && defined(__ia64__) 
  
