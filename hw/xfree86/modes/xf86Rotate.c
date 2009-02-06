@@ -113,22 +113,33 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 	SetPicturePictFilter (src, crtc->filter,
 			      crtc->params, crtc->nparams);
 
-    while (n--)
+    if (crtc->shadowClear)
     {
-	BoxRec	dst_box;
-
-	dst_box = *b;
-	dst_box.x1 -= crtc->filter_width >> 1;
-	dst_box.x2 += crtc->filter_width >> 1;
-	dst_box.y1 -= crtc->filter_height >> 1;
-	dst_box.y2 += crtc->filter_height >> 1;
-	pixman_f_transform_bounds (&crtc->f_framebuffer_to_crtc, &dst_box);
 	CompositePicture (PictOpSrc,
 			  src, NULL, dst,
-			  dst_box.x1, dst_box.y1, 0, 0, dst_box.x1, dst_box.y1,
-			  dst_box.x2 - dst_box.x1,
-			  dst_box.y2 - dst_box.y1);
-	b++;
+			  0, 0, 0, 0, 0, 0,
+			  crtc->mode.HDisplay, crtc->mode.VDisplay);
+	crtc->shadowClear = FALSE;
+    }
+    else
+    {
+	while (n--)
+	{
+	    BoxRec	dst_box;
+
+	    dst_box = *b;
+	    dst_box.x1 -= crtc->filter_width >> 1;
+	    dst_box.x2 += crtc->filter_width >> 1;
+	    dst_box.y1 -= crtc->filter_height >> 1;
+	    dst_box.y2 += crtc->filter_height >> 1;
+	    pixman_f_transform_bounds (&crtc->f_framebuffer_to_crtc, &dst_box);
+	    CompositePicture (PictOpSrc,
+			      src, NULL, dst,
+			      dst_box.x1, dst_box.y1, 0, 0, dst_box.x1, dst_box.y1,
+			      dst_box.x2 - dst_box.x1,
+			      dst_box.y2 - dst_box.y1);
+	    b++;
+	}
     }
     FreePicture (src, None);
     FreePicture (dst, None);
@@ -192,7 +203,7 @@ xf86CrtcDamageShadow (xf86CrtcPtr crtc)
     DamageRegionAppend (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
 			&damage_region);
     REGION_UNINIT (pScreen, &damage_region);
-    xf86CrtcShadowClear (crtc);
+    crtc->shadowClear = TRUE;
 }
 
 static void

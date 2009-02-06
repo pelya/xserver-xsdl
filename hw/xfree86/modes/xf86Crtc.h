@@ -357,6 +357,10 @@ struct _xf86Crtc {
      * Added in ABI version 3
      */
     Bool	    active;
+    /**
+     * Clear the shadow
+     */
+    Bool	    shadowClear;
 };
 
 typedef struct _xf86OutputFuncs {
