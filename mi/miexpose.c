@@ -254,6 +254,10 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     /* intersect with visible areas of dest */
     REGION_INTERSECT(pscr, &rgnExposed, &rgnExposed, prgnDstClip);
 
+    /* intersect with client clip region. */
+    if (pGC->clientClipType == CT_REGION)
+	REGION_INTERSECT(pscr, &rgnExposed, &rgnExposed, pGC->clientClip);
+
     /*
      * If we have LOTS of rectangles, we decide to take the extents
      * and force an exposure on that.  This should require much less
