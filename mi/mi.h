@@ -215,7 +215,12 @@ extern _X_EXPORT void mieqProcessInputEvents(
     void
 );
 
-typedef void (*mieqHandler)(int, xEventPtr, DeviceIntPtr, int);
+/**
+ * Custom input event handler. If you need to process input events in some
+ * other way than the default path, register an input event handler for the
+ * given internal event type.
+ */
+typedef void (*mieqHandler)(int screen, InternalEvent* event, DeviceIntPtr dev);
 void _X_EXPORT mieqSetHandler(int event, mieqHandler handler);
 
 /* miexpose.c */

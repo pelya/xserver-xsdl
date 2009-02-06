@@ -55,6 +55,9 @@ enum {
     ET_ProximityOut,
     ET_DeviceChanged,
     ET_Hierarchy,
+#if XFreeXDGA
+    ET_DGAEvent,
+#endif
     ET_Internal = 0xFF /* First byte */
 } EventType;
 
@@ -153,6 +156,36 @@ typedef struct
     /* FIXME: add the new capabilities here */
 } DeviceChangedEvent;
 
+#if XFreeXDGA
+/**
+ * DGAEvent, used by DGA to intercept and emulate input events.
+ *
+ * @header:     Always ET_Internal
+ * @type:       ET_DGAEvent
+ * @length:     Length in bytes
+ * @time:       Time in ms
+ * @subtype:    KeyPress, KeyRelease, ButtonPress, ButtonRelease, MotionNotify
+ * @detail:     Key code or button number.
+ * @dx:         Relative x coordinate
+ * @dy:         Relative y coordinate
+ * @screen:     Screen number this event applies to
+ * @state:      Core modifier/button state
+ */
+typedef struct
+{
+    unsigned char header;
+    int type;
+    int length;
+    Time time;
+    int subtype;
+    int detail;
+    int dx;
+    int dy;
+    int screen;
+    uint16_t state;
+} DGAEvent;
+#endif
+
 /**
  * InternalEvent, event type used inside the X server for input event
  * processing.
@@ -173,6 +206,9 @@ typedef struct
         } any;
         DeviceEvent device;
         DeviceChangedEvent changed;
+#if XFreeXDGA
+        DGAEvent dga;
+#endif
     } u;
 } InternalEvent;
 
