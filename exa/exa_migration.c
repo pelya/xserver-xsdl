@@ -231,7 +231,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 
     if (access_prepared)
 	exaFinishAccess(&pPixmap->drawable, fallback_index);
-    else if (need_sync)
+    else if (need_sync && sync)
 	sync (pPixmap->drawable.pScreen);
 
     pExaPixmap->offscreen = save_offscreen;
@@ -276,7 +276,7 @@ exaCopyDirtyToFb (ExaMigrationPtr migrate)
     exaCopyDirty(migrate, &pExaPixmap->validFB, &pExaPixmap->validSys,
 		 pExaScr->info->UploadToScreen, pExaPixmap->sys_ptr,
 		 pExaPixmap->fb_ptr, pExaPixmap->sys_pitch,
-		 pExaPixmap->fb_pitch, EXA_PREPARE_DEST, exaMarkSync);
+		 pExaPixmap->fb_pitch, EXA_PREPARE_DEST, NULL);
 }
 
 /**
