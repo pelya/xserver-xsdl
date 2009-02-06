@@ -406,7 +406,7 @@ CreateSurfaceForWindow(ScreenPtr pScreen, WindowPtr pWin, xp_window_id *widPtr) 
     return pDRIDrawablePriv;
 }
 
-/* Return FALSE if an error occurs. */
+/* Return NULL if an error occurs. */
 static DRIDrawablePrivPtr
 CreateSurfaceForPixmap(ScreenPtr pScreen, PixmapPtr pPix) {
     DRIDrawablePrivPtr pDRIDrawablePriv;
@@ -415,7 +415,6 @@ CreateSurfaceForPixmap(ScreenPtr pScreen, PixmapPtr pPix) {
 
     if (pDRIDrawablePriv == NULL) {
 	xp_error err;
-	xp_window_changes wc;
 
 	/* allocate a DRI Window Private record */
 	if (!(pDRIDrawablePriv = xcalloc(1, sizeof(*pDRIDrawablePriv)))) {
@@ -437,18 +436,10 @@ CreateSurfaceForPixmap(ScreenPtr pScreen, PixmapPtr pPix) {
 	    return NULL;
 	}
 
-	wc.x = 0;
-        wc.y = 0;
-        wc.width = pPix->drawable.width;
-        wc.height = pPix->drawable.height;
-
-	err = xp_configure_surface(pDRIDrawablePriv->sid, XP_BOUNDS, &wc);
-
-	if(err != Success) {
-	    xp_destroy_surface(pDRIDrawablePriv->sid);
-	    xfree(pDRIDrawablePriv);
-	    return NULL;
-	}
+	/* 
+	 * The DRIUpdateSurface will be called to resize the surface
+	 * after this function, if the export is successful.
+	 */
 
 	/* save private off of preallocated index */
 	dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey,
@@ -489,21 +480,39 @@ DRICreateSurface(ScreenPtr pScreen, Drawable id,
         /* NOT_DONE */
         return FALSE;
     }
-
     
-
+    
     /* Finish initialization of new surfaces */
     if (pDRIDrawablePriv->refCount == 0) {
         unsigned int key[2] = {0};
         xp_error err;
 
         /* try to give the client access to the surface */
-        if (client_id != 0 && wid != 0) {
+        if (client_id != 0) {
+	    /*
+	     * Xplugin accepts a 0 wid if the surface id is offscreen, such 
+	     * as for a pixmap.
+	     */
             err = xp_export_surface(wid, pDRIDrawablePriv->sid,
                                     client_id, key);
             if (err != Success) {
                 xp_destroy_surface(pDRIDrawablePriv->sid);
                 xfree(pDRIDrawablePriv);
+		
+		/* 
+		 * Now set the dix privates to NULL that were previously set.
+		 * This prevents reusing an invalid pointer.
+		 */
+		if(pDrawable->type == DRAWABLE_WINDOW) {
+		    WindowPtr pWin = (WindowPtr)pDrawable;
+		    
+		    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey, NULL);
+		} else if(pDrawable->type == DRAWABLE_PIXMAP) {
+		    PixmapPtr pPix = (PixmapPtr)pDrawable;
+		    
+		    dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey, NULL);
+		}
+		
                 return FALSE;
             }
         }
