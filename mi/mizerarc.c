@@ -709,7 +709,7 @@ miZeroPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
     int n, maxw = 0;
     xArc *arc;
     int i;
-    DDXPointPtr points, pts, oddPts;
+    DDXPointPtr points, pts, oddPts = NULL;
     DDXPointPtr pt;
     int numPts;
     Bool dospans;

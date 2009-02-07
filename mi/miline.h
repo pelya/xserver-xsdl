@@ -120,7 +120,7 @@ extern _X_EXPORT void miSetZeroLineBias(
         t = y1;  y1 = y2;  y2 = t;\
 }
 
-#define miGetZeroLineBias(_pScreen) ((unsigned long) \
+#define miGetZeroLineBias(_pScreen) ((unsigned long) (unsigned long*)\
     dixLookupPrivate(&(_pScreen)->devPrivates, miZeroLineScreenKey))
 
 #define CalcLineDeltas(_x1,_y1,_x2,_y2,_adx,_ady,_sx,_sy,_SX,_SY,_octant) \

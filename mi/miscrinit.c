@@ -308,5 +308,6 @@ DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKeyIndex;
 void
 miSetZeroLineBias(ScreenPtr pScreen, unsigned int bias)
 {
-    dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);
+    dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, 
+					(unsigned long *)(unsigned long)bias);
 }

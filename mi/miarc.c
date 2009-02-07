@@ -1884,7 +1884,7 @@ miComputeArcs (
 	int		arcsJoin;
 	int		selfJoin;
 
-	int		iDash = 0, dashRemaining;
+	int		iDash = 0, dashRemaining = 0;
 	int		iDashStart = 0, dashRemainingStart = 0, iphaseStart;
 	int		startAngle, spanAngle, endAngle, backwards = 0;
 	int		prevDashAngle, dashAngle;
