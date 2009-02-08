@@ -602,6 +602,8 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     pGC->fillStyle = FillSolid;
     pGC->fillRule = EvenOddRule;
     pGC->arcMode = ArcPieSlice;
+    pGC->tile.pixel = 0;
+    pGC->tile.pixmap = NullPixmap;
     if (mask & GCForeground)
     {
 	/*
@@ -609,12 +611,10 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
 	 * and snags the Foreground value to create a pseudo default-tile
 	 */
 	pGC->tileIsPixel = FALSE;
-	pGC->tile.pixmap = NullPixmap;
     }
     else
     {
 	pGC->tileIsPixel = TRUE;
-	pGC->tile.pixel = 0;
     }
 
     pGC->patOrg.x = 0;
@@ -932,6 +932,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 	pGC->font->refcnt++;
     pGC->tileIsPixel = TRUE;
     pGC->tile.pixel = 0;
+    pGC->tile.pixmap = NullPixmap;
     pGC->stipple = NullPixmap;
     pGC->patOrg.x = 0;
     pGC->patOrg.y = 0;

@@ -694,7 +694,6 @@ exaValidateGC(GCPtr pGC,
 
     /* Either of these conditions is enough to trigger access to a tile pixmap. */
     /* With pGC->tileIsPixel == 1, you run the risk of dereferencing an invalid tile pixmap pointer. */
-    /* XXX: find out who is forgetting to NULL these tile pixmap pointers. */
     if (pGC->fillStyle == FillTiled || ((changes & GCTile) && !pGC->tileIsPixel)) {
 	pTile = pGC->tile.pixmap;
 
