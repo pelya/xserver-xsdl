@@ -135,8 +135,6 @@ enum {
     GLX_ALL_VISUALS
 };
 
-void GlxSetVisualConfig(int config);
-
 void __glXsetEnterLeaveServerFuncs(void (*enter)(GLboolean),
 				   void (*leave)(GLboolean));
 void __glXenterServer(GLboolean rendering);
