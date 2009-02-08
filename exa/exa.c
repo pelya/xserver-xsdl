@@ -637,12 +637,15 @@ const GCFuncs exaGCFuncs = {
 
 /*
  * This wrapper exists to allow fbValidateGC to work.
+ * Note that we no longer assume newly created pixmaps to be in normal ram.
+ * This assumption is certainly not garuanteed with driver allocated pixmaps.
  */
 static PixmapPtr
 exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
 		unsigned usage_hint)
 {
     PixmapPtr pPixmap;
+    ExaMigrationRec pixmaps[1];
     ExaScreenPriv(pScreen);
 
     /* This swaps between this function and the real upper layer function.
@@ -655,8 +658,16 @@ exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
     if (!pPixmap)
 	return NULL;
 
-    /* We use MASK, because SRC is already taken. */
-    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_MASK);
+    /* We need to use DEST, but we don't actually want to migrate as dest. */
+    /* SRC is taken by tile, and MASK by stipple. */
+    pixmaps[0].as_dst = 0;
+    pixmaps[0].as_src = 1;
+    pixmaps[0].pPix = exaGetDrawablePixmap (&pPixmap->drawable);
+    pixmaps[0].pReg = NULL;
+
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
 
     return pPixmap;
 }
@@ -675,35 +686,50 @@ exaValidateGC(GCPtr pGC,
     CreatePixmapProcPtr old_ptr = NULL;
     PixmapPtr pTile = NULL;
     EXA_GC_PROLOGUE(pGC);
-    if (changes & GCTile) {
-	/* save the "fb" pointer. */
-	old_ptr = pExaScr->SavedCreatePixmap;
-	/* create a new upper layer pointer. */
-	wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmapWithPrepare);
-	if (pGC->fillStyle == FillTiled)
-		pTile = pGC->tile.pixmap;
-	if (pTile)
-	    exaPrepareAccess(&pTile->drawable, EXA_PREPARE_SRC);
-    }
-    exaPrepareAccessGC(pGC);
-    (*pGC->funcs->ValidateGC)(pGC, changes, pDrawable);
-    exaFinishAccessGC(pGC);
-    if (changes & GCTile) {
-	/* switch back to the normal upper layer. */
-	unwrap(pExaScr, pScreen, CreatePixmap);
-	/* restore copy of fb layer pointer. */
-	pExaScr->SavedCreatePixmap = old_ptr;
-	if (pTile)
-	    exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
 
-	/* A new tile pixmap was created. */
-	if (pGC->tile.pixmap != pTile && pGC->fillStyle == FillTiled) {
-	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_MASK);
-	    exaPixmapDirty(pGC->tile.pixmap, 0, 0,
-			   pGC->tile.pixmap->drawable.width,
-			   pGC->tile.pixmap->drawable.height);
+    /* save the "fb" pointer. */
+    old_ptr = pExaScr->SavedCreatePixmap;
+    /* create a new upper layer pointer. */
+    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmapWithPrepare);
+
+    /* Either of these conditions is enough to trigger access to a tile pixmap. */
+    /* With pGC->tileIsPixel == 1, you run the risk of dereferencing an invalid tile pixmap pointer. */
+    /* XXX: find out who is forgetting to NULL these tile pixmap pointers. */
+    if (pGC->fillStyle == FillTiled || ((changes & GCTile) && !pGC->tileIsPixel)) {
+	pTile = pGC->tile.pixmap;
+
+	/* Sometimes tile pixmaps are swapped, you need access to:
+	 * - The current tile if it depth matches.
+	 * - Or the rotated tile if that one matches depth and !(changes & GCTile).
+	 * - Or the current tile pixmap and a newly created one.
+	 */
+	if (pTile && pTile->drawable.depth != pDrawable->depth && !(changes & GCTile)) {
+	    PixmapPtr pRotatedTile = fbGetRotatedPixmap(pGC);
+	    if (pRotatedTile->drawable.depth == pDrawable->depth)
+		pTile = pRotatedTile;
 	}
     }
+
+    if (pGC->stipple)
+        exaPrepareAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
+    if (pTile)
+	exaPrepareAccess(&pTile->drawable, EXA_PREPARE_SRC);
+
+    (*pGC->funcs->ValidateGC)(pGC, changes, pDrawable);
+
+    if (pTile)
+	exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
+    if (pGC->stipple)
+        exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
+
+    /* switch back to the normal upper layer. */
+    unwrap(pExaScr, pScreen, CreatePixmap);
+    /* restore copy of fb layer pointer. */
+    pExaScr->SavedCreatePixmap = old_ptr;
+
+    if (pGC->fillStyle == FillTiled && pTile != pGC->tile.pixmap)
+	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_DEST);
+    
     EXA_GC_EPILOGUE(pGC);
 }
 
