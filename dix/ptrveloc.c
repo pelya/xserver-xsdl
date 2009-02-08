@@ -81,7 +81,8 @@ SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
                     float threshold, float acc);
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
-
+static short
+ProcessVelocityData(DeviceVelocityPtr s, float distance, int diff);
 
 /*#define PTRACCEL_DEBUGGING*/
 
@@ -519,38 +520,35 @@ GetAxis(int dx, int dy){
             return 1;
         if(dy == 1 || dy == -1)
             return 2;
-        return -1;
-    }else{
-        return -1;
     }
+    return -1;
 }
 
 
 /**
- * Perform velocity approximation
+ * Perform velocity approximation based on 2D 'mickeys' (mouse motion delta).
  * return true if non-visible state reset is suggested
  */
 static short
-ProcessVelocityData(
+ProcessVelocityData2D(
     DeviceVelocityPtr s,
     int dx,
     int dy,
     int time)
 {
-    float cvelocity;
+    float distance;
 
     int diff = time - s->lrm_time;
     int cur_ax, last_ax;
-    short reset = (diff >= s->reset_time);
+    BOOL reset;
 
-    /* remember last round's result */
-    s->last_velocity = s->velocity;
     cur_ax = GetAxis(dx, dy);
     last_ax = GetAxis(s->last_dx, s->last_dy);
 
-    if(cur_ax != last_ax && cur_ax != -1 && last_ax != -1 && !reset){
+    if(cur_ax != last_ax && cur_ax != -1 && last_ax != -1 &&
+	    diff < s->reset_time){
         /* correct for the error induced when diagonal movements are
-           reported as alternating axis mickeys */
+           reported as alternating axis-aligned mickeys */
         dx += s->last_dx;
         dy += s->last_dy;
         diff += s->last_diff;
@@ -560,6 +558,33 @@ ProcessVelocityData(
         s->last_diff = diff;
     }
 
+    distance = (float)sqrt(dx*dx + dy*dy);
+
+    s->lrm_time = time;
+
+    reset = ProcessVelocityData(s, distance, diff);
+
+    if(reset)
+	s->last_diff = 1;
+    return reset;
+}
+
+/**
+ * Perform velocity approximation given a one-dimensional delta.
+ * return true if non-visible state reset is suggested
+ */
+static short
+ProcessVelocityData(
+    DeviceVelocityPtr s,
+    float distance,
+    int diff)
+{
+    float cvelocity;
+    int phase;
+
+    /* remember previous result */
+    s->last_velocity = s->velocity;
+
     /*
      * cvelocity is not a real velocity yet, more a motion delta. constant
      * acceleration is multiplied here to make the velocity an on-screen
@@ -567,15 +592,31 @@ ProcessVelocityData(
      * make multiple devices with widely varying ConstantDecelerations respond
      * similar to acceleration controls.
      */
-    cvelocity = (float)sqrt(dx*dx + dy*dy) * s->const_acceleration;
-
-    s->lrm_time = time;
+    cvelocity = distance * s->const_acceleration;
 
     if (s->reset_time < 0 || diff < 0) { /* reset disabled or timer overrun? */
         /* simply set velocity from current movement, no reset. */
         s->velocity = cvelocity;
         return FALSE;
     }
+
+    /* try to determine 'phase', i.e. whether we process the first(0),
+     * second(1) or any following motion event of a stroke(2) */
+    if(diff >= s->reset_time && cvelocity < 10){
+	phase = 0;
+    }else{
+	switch(s->last_phase){
+	case 0:
+	case 1:
+	    phase = s->last_phase + 1;
+	    break;
+	default:
+	    phase = 2;
+	    break;
+	}
+    }
+    s->last_phase = phase;
+    DebugAccelF("(dix ptracc) phase: %i\n", phase);
 
     if (diff == 0)
         diff = 1; /* prevent div-by-zero, though it shouldn't happen anyway*/
@@ -584,47 +625,47 @@ ProcessVelocityData(
        so we multiply by some per-device adjustable factor) */
     cvelocity = cvelocity * s->corr_mul / (float)diff;
 
-    /* short-circuit: when nv-reset the rest can be skipped */
-    if(reset == TRUE){
+    switch(phase){
+    case 0:
 	/*
-	 * we don't really have a velocity here, since diff includes inactive
-	 * time. This is dealt with in ComputeAcceleration.
+	 * First event of a stroke.
+	 * We don't really have a velocity here, since diff includes inactive
+	 * time. This is dealt with in ComputeAcceleration. Here we cancel out
+	 * remnants from previous strokes which the user is presumably
+	 * not aware of (non-visible state reset).
 	 */
 	StuffFilterChain(s, cvelocity);
 	s->velocity = s->last_velocity = cvelocity;
-	s->last_reset = TRUE;
 	DebugAccelF("(dix ptracc) non-visible state reset\n");
 	return TRUE;
-    }
-
-    if(s->last_reset == TRUE){
+    case 1:
 	/*
 	 * when here, we're probably processing the second mickey of a starting
 	 * stroke. This happens to be the first time we can reasonably pretend
 	 * that cvelocity is an actual velocity. Thus, to opt precision, we
 	 * stuff that into the filter chain.
 	 */
-	s->last_reset = FALSE;
 	DebugAccelF("(dix ptracc) after-reset vel:%.3f\n", cvelocity);
 	StuffFilterChain(s, cvelocity);
 	s->velocity = cvelocity;
 	return FALSE;
+    default:
+	/* normal operarion: feed into filter chain */
+	FeedFilterChain(s, cvelocity, diff);
+
+	/* perform coupling and decide final value */
+	s->velocity = QueryFilterChain(s, cvelocity);
+
+	DebugAccelF(
+	       "(dix ptracc) guess: vel=%.3f diff=%d   %i|%i|%i|%i|%i|%i|%i|%i|%i\n",
+	       s->velocity, diff,
+	       s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
+	       s->statistics.filter_usecount[2], s->statistics.filter_usecount[3],
+	       s->statistics.filter_usecount[4], s->statistics.filter_usecount[5],
+	       s->statistics.filter_usecount[6], s->statistics.filter_usecount[7],
+	       s->statistics.filter_usecount[8]);
+	return FALSE;
     }
-
-    /* feed into filter chain */
-    FeedFilterChain(s, cvelocity, diff);
-
-    /* perform coupling and decide final value */
-    s->velocity = QueryFilterChain(s, cvelocity);
-
-    DebugAccelF("(dix ptracc) guess: vel=%.3f diff=%d   %i|%i|%i|%i|%i|%i|%i|%i|%i\n",
-           s->velocity, diff,
-           s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
-           s->statistics.filter_usecount[2], s->statistics.filter_usecount[3],
-           s->statistics.filter_usecount[4], s->statistics.filter_usecount[5],
-           s->statistics.filter_usecount[6], s->statistics.filter_usecount[7],
-           s->statistics.filter_usecount[8]);
-    return FALSE;
 }
 
 
@@ -696,7 +737,7 @@ ComputeAcceleration(
     float acc){
     float res;
 
-    if(vel->last_reset){
+    if(vel->last_phase == 0){
 	DebugAccelF("(dix ptracc) profile skipped\n");
         /*
          * This is intended to override the first estimate of a stroke,
@@ -1009,6 +1050,7 @@ acceleratePointerPredictable(
     DeviceVelocityPtr velocitydata =
 	(DeviceVelocityPtr) pDev->valuator->accelScheme.accelData;
     float fdx, fdy; /* no need to init */
+    Bool soften = TRUE;
 
     if (!num_valuators || !valuators || !velocitydata)
         return;
@@ -1023,16 +1065,15 @@ acceleratePointerPredictable(
     }
 
     if (dx || dy){
-        /* reset nonvisible state? */
-        if (ProcessVelocityData(velocitydata, dx , dy, evtime)) {
-            /* set to center of pixel. makes sense as long as there are no
-             * means of passing on sub-pixel values.
+        /* reset non-visible state? */
+        if (ProcessVelocityData2D(velocitydata, dx , dy, evtime)) {
+            /* if nv-reset: set to center of pixel.
+             * makes sense as long as there are no means of passing on
+             * sub-pixel values to apps(XI2?). If you remove it, make
+             * sure suitable rounding is applied below.
              */
             pDev->last.remainder[0] = pDev->last.remainder[1] = 0.5f;
-            /* prevent softening (somewhat quirky solution,
-            as it depends on the algorithm) */
-            velocitydata->last_dx = dx;
-            velocitydata->last_dy = dy;
+            soften = FALSE;
         }
 
         if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
@@ -1044,9 +1085,10 @@ acceleratePointerPredictable(
 
             if(mult != 1.0 || velocitydata->const_acceleration != 1.0) {
                 ApplySofteningAndConstantDeceleration( velocitydata,
-                                                       dx, dy,
-                                                       &fdx, &fdy,
-                                                       mult > 1.0);
+						       dx, dy,
+						       &fdx, &fdy,
+						       (mult > 1.0) && soften);
+
                 if (dx) {
                     pDev->last.remainder[0] = mult * fdx + pDev->last.remainder[0];
                     *px = (int)pDev->last.remainder[0];

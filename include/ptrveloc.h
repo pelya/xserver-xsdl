@@ -83,7 +83,7 @@ typedef struct _DeviceVelocityRec {
     int     lrm_time;       /* time the last motion event was processed  */
     int     last_dx, last_dy; /* last motion delta */
     int     last_diff;      /* last time-difference */
-    Bool    last_reset;     /* whether a nv-reset occurred just before */
+    int     last_phase;     /* phase of last/current estimate */
     float   corr_mul;       /* config: multiply this into velocity */
     float   const_acceleration;  /* config: (recipr.) const deceleration */
     float   min_acceleration;    /* config: minimum acceleration */
