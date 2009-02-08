@@ -533,21 +533,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	return;
     }
 
-    /* We need a pGC to call our fallback. */
-    if (!pGC) {
-	pExaScr->fallback_flags |= EXA_FALLBACK_NOGC;
-	pGC = CreateScratchGC(pDstDrawable->pScreen, pDstDrawable->depth);
-	if (!pGC)
-	    return;
-    }
-
     /* fallback */
     ExaCheckCopyNtoN(pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse, upsidedown, bitplane, closure);
-
-    if (pExaScr->fallback_flags & EXA_FALLBACK_NOGC) {
-	pExaScr->fallback_flags &= ~EXA_FALLBACK_NOGC;
-	FreeScratchGC(pGC);
-    }
 }
 
 RegionPtr

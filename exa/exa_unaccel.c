@@ -116,19 +116,6 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
     EXA_GC_EPILOGUE(pGC);
 }
 
-/* Sometimes we need a pGC to call a function, but don't actually want the lower
- * layer to do something with the contents of this fake GC. */
-static inline GCPtr
-ExaCheckWantGC(DrawablePtr pDrawable, GCPtr pGC)
-{
-    ExaScreenPriv(pDrawable->pScreen);
-
-    if (pExaScr->fallback_flags & EXA_FALLBACK_NOGC)
-	return NULL;
-
-    return pGC;
-}
-
 void
 ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
 	     BoxPtr	pbox, int nbox, int dx, int dy, Bool	reverse, 
@@ -141,7 +128,7 @@ ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
     exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
     /* This will eventually call fbCopyNtoN, with some calculation overhead. */
     while (nbox--) {
-	pGC->ops->CopyArea (pSrc, pDst, ExaCheckWantGC(pDst, pGC), pbox->x1 - pSrc->x + dx, pbox->y1 - pSrc->y + dy, 
+	pGC->ops->CopyArea (pSrc, pDst, pGC, pbox->x1 - pSrc->x + dx, pbox->y1 - pSrc->y + dy, 
 			pbox->x2 - pbox->x1, pbox->y2 - pbox->y1, pbox->x1 - pDst->x, pbox->y1 - pDst->y);
 	pbox++;
     }

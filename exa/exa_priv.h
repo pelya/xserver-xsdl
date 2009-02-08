@@ -129,7 +129,6 @@ typedef struct {
 
 #define EXA_FALLBACK_COPYWINDOW (1 << 0)
 #define EXA_ACCEL_COPYWINDOW (1 << 1)
-#define EXA_FALLBACK_NOGC (1 << 2)
 
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
