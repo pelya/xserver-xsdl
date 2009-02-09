@@ -1828,6 +1828,13 @@ ddxProcessArgument(int argc, char **argv, int i)
        FatalError("Invalid isolated device specification\n");
     }
   }
+  /* Notice cmdline xkbdir, but pass to dix as well */
+  if (!strcmp(argv[i], "-xkbdir"))
+  {
+    xf86xkbdirFlag = TRUE;
+    return 0;
+  }
+
   /* OS-specific processing */
   return xf86ProcessArgument(argc, argv, i);
 }

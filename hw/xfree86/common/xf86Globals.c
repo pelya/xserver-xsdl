@@ -176,6 +176,7 @@ Bool xf86sFlag = FALSE;
 Bool xf86bsEnableFlag = FALSE;
 Bool xf86bsDisableFlag = FALSE;
 Bool xf86silkenMouseDisableFlag = FALSE;
+Bool xf86xkbdirFlag = FALSE;
 #ifdef HAVE_ACPI
 Bool xf86acpiDisableFlag = FALSE;
 #endif

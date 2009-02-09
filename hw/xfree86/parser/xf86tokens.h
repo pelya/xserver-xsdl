@@ -100,6 +100,7 @@ typedef enum {
     MODULEPATH,
     INPUTDEVICES,
     LOGFILEPATH,
+    XKBDIR,
 
     /* Server Flag tokens.  These are deprecated in favour of generic Options */
     NOTRAPSIGNALS,

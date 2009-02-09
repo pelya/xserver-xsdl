@@ -56,6 +56,7 @@ extern _X_EXPORT  Bool xf86sFlag;
 extern _X_EXPORT  Bool xf86bsEnableFlag;
 extern _X_EXPORT  Bool xf86bsDisableFlag;
 extern _X_EXPORT  Bool xf86silkenMouseDisableFlag;
+extern _X_EXPORT  Bool xf86xkbdirFlag;
 #ifdef HAVE_ACPI
 extern _X_EXPORT  Bool xf86acpiDisableFlag;
 #endif

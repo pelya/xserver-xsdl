@@ -664,6 +664,11 @@ configFiles(XF86ConfFilesPtr fileconf)
 
   xf86Msg(xf86ModPathFrom, "ModulePath set to \"%s\"\n", xf86ModulePath);
 
+  if (!xf86xkbdirFlag && fileconf && fileconf->file_xkbdir) {
+    XkbBaseDirectory = fileconf->file_xkbdir;
+    xf86Msg(X_CONFIG, "XKB base directory set to \"%s\"\n",
+	    XkbBaseDirectory);
+  }
 #if 0
   /* LogFile */
   /*

@@ -72,6 +72,7 @@ static xf86ConfigSymTabRec FilesTab[] =
 	{MODULEPATH, "modulepath"},
 	{INPUTDEVICES, "inputdevices"},
 	{LOGFILEPATH, "logfile"},
+	{XKBDIR, "xkbdir"},
 	{-1, ""},
 };
 
@@ -180,6 +181,11 @@ xf86parseFilesSection (void)
 				Error (QUOTE_MSG, "LogFile");
 			ptr->file_logfile = val.str;
 			break;
+		case XKBDIR:
+			if (xf86getSubToken (&(ptr->file_xkbdir)) != STRING)
+				Error (QUOTE_MSG, "XkbDir");
+			ptr->file_xkbdir = val.str;
+			break;
 		case EOF_TOKEN:
 			Error (UNEXPECTED_EOF_MSG, NULL);
 			break;
@@ -255,6 +261,8 @@ xf86printFileSection (FILE * cf, XF86ConfFilesPtr ptr)
 		}
 		fprintf (cf, "\tFontPath     \"%s\"\n", s);
 	}
+	if (ptr->file_xkbdir)
+		fprintf (cf, "\tXkbDir		\"%s\"\n", ptr->file_xkbdir);
 }
 
 void
@@ -268,6 +276,7 @@ xf86freeFiles (XF86ConfFilesPtr p)
 	TestFree (p->file_inputdevs);
 	TestFree (p->file_fontpath);
 	TestFree (p->file_comment);
+	TestFree (p->file_xkbdir);
 
 	xf86conffree (p);
 }
