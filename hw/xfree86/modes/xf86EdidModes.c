@@ -474,26 +474,34 @@ DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
     int i;
 
     for (i = 0; i < STD_TIMINGS; i++) {
-        if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
-	    Mode = FindDMTMode(timing[i].hsize, timing[i].vsize,
-			       timing[i].refresh, rb);
+	hsize = timing[i].hsize;
+	vsize = timing[i].vsize;
+	refresh = timing[i].refresh;
+
+	/* HDTV hack.  Hooray. */
+	if (hsize == 1360 && vsize == 765 && refresh == 60) {
+	    Mode = xf86CVTMode(1366, 768, 60, FALSE, FALSE);
+	    Mode->HDisplay = 1366;
+	    Mode->VSyncStart--;
+	    Mode->VSyncEnd--;
+	} else if (hsize && vsize && refresh) {
+	    Mode = FindDMTMode(hsize, vsize, refresh, rb);
 
 	    if (!Mode) {
 		if (timing_level == LEVEL_CVT)
 		    /* pass rb here too? */
-		    Mode = xf86CVTMode(timing[i].hsize, timing[i].vsize,
-				       timing[i].refresh, FALSE, FALSE);
+		    Mode = xf86CVTMode(hsize, vsize, refresh, FALSE, FALSE);
 		else if (timing_level == LEVEL_GTF)
-		    Mode = xf86GTFMode(timing[i].hsize, timing[i].vsize,
-				       timing[i].refresh, FALSE, FALSE);
+		    Mode = xf86GTFMode(hsize, vsize, refresh, FALSE, FALSE);
 	    }
 
-	    if (!Mode)
-		continue;
+	}
 
+	if (Mode) {
 	    Mode->type = M_T_DRIVER;
-            Modes = xf86ModesAdd(Modes, Mode);
-        }
+	    Modes = xf86ModesAdd(Modes, Mode);
+	}
+	Mode = NULL;
     }
 
     return Modes;
