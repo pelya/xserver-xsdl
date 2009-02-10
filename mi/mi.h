@@ -211,6 +211,12 @@ extern _X_EXPORT void mieqSwitchScreen(
     Bool /*fromDIX*/
 );
 
+extern _X_EXPORT void mieqProcessDeviceEvent(
+    DeviceIntPtr /* dev*/,
+    InternalEvent* /* event */,
+    ScreenPtr /* screen*/
+);
+
 extern _X_EXPORT void mieqProcessInputEvents(
     void
 );

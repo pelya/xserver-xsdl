@@ -322,14 +322,64 @@ CopyGetMasterEvent(DeviceIntPtr mdev, DeviceIntPtr sdev,
     FixUpEventForMaster(mdev, sdev, original, mevent);
 }
 
+
+/**
+ * Post the given @event through the device hierarchy, as appropriate.
+ * Use this function if an event must be posted for a given device during the
+ * usual event processing cycle.
+ */
+void
+mieqProcessDeviceEvent(DeviceIntPtr dev,
+                       InternalEvent *event,
+                       ScreenPtr screen)
+{
+    mieqHandler handler;
+    int x = 0, y = 0;
+    DeviceIntPtr master;
+
+    /* Custom event handler */
+    handler = miEventQueue.handlers[event->u.any.type];
+
+    if (screen && screen != DequeueScreen(dev) && !handler) {
+        /* Assumption - screen switching can only occur on motion events. */
+        DequeueScreen(dev) = screen;
+        x = event->u.device.root_x;
+        y = event->u.device.root_y;
+        NewCurrentScreen (dev, DequeueScreen(dev), x, y);
+    }
+    else {
+        master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
+
+        if (master)
+            CopyGetMasterEvent(master, dev, event, masterEvents);
+
+        /* If someone's registered a custom event handler, let them
+         * steal it. */
+        if (handler)
+        {
+            handler(DequeueScreen(dev)->myNum, event, dev);
+            if (master)
+                handler(DequeueScreen(master)->myNum,
+                        (InternalEvent*)masterEvents->event, master);
+        } else
+        {
+            /* process slave first, then master */
+            dev->public.processInputProc(event, dev);
+
+            if (master)
+                master->public.processInputProc(
+                        (InternalEvent*)masterEvents->event,
+                        master);
+        }
+    }
+}
+
 /* Call this from ProcessInputEvents(). */
 void
 mieqProcessInputEvents(void)
 {
-    mieqHandler handler;
     EventRec *e = NULL;
-    int x = 0, y = 0;
-    int type, evlen, i;
+    int evlen;
     ScreenPtr screen;
     static InternalEvent *event = NULL;
     static size_t event_size = 0;
@@ -361,8 +411,7 @@ mieqProcessInputEvents(void)
 #ifdef XQUARTZ
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
-        
-        type    = event->u.any.type;
+
         master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
 
         if (screenIsSaved == SCREEN_SAVER_ON)
@@ -375,39 +424,7 @@ mieqProcessInputEvents(void)
             DPMSSet(serverClient, DPMSModeOn);
 #endif
 
-        /* Custom event handler */
-        handler = miEventQueue.handlers[type];
-
-        if (screen && screen != DequeueScreen(dev) && !handler) {
-            /* Assumption - screen switching can only occur on motion events. */
-            DequeueScreen(dev) = screen;
-            x = event->u.device.root_x;
-            y = event->u.device.root_y;
-            NewCurrentScreen (dev, DequeueScreen(dev), x, y);
-        }
-        else {
-            if (master)
-                CopyGetMasterEvent(master, dev, event, masterEvents);
-
-            /* If someone's registered a custom event handler, let them
-             * steal it. */
-            if (handler)
-            {
-                handler(DequeueScreen(dev)->myNum, event, dev);
-                if (master)
-                    handler(DequeueScreen(master)->myNum,
-                            (InternalEvent*)masterEvents->event, master);
-            } else
-            {
-                /* process slave first, then master */
-                dev->public.processInputProc(event, dev);
-
-                if (master)
-                    master->public.processInputProc(
-                            (InternalEvent*)masterEvents->event,
-                            master);
-            }
-        }
+        mieqProcessDeviceEvent(dev, event, screen);
 
         /* Update the sprite now. Next event may be from different device. */
         if (event->u.any.type == ET_Motion && (master || dev->isMaster))

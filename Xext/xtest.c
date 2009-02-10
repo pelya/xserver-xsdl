@@ -392,10 +392,8 @@ ProcXTestFakeInput(ClientPtr client)
             break;
     }
 
-    OsBlockSignals();
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(dev, (events+i)->event);
-    OsReleaseSignals();
+        mieqProcessDeviceEvent(dev, (events+i)->event, NULL);
 
     return client->noClientException;
 }
