@@ -153,8 +153,8 @@ typedef struct _Window {
     RegionRec		borderSize;
     DDXPointRec		origin;		/* position relative to parent */
     unsigned short	borderWidth;
-    unsigned short	deliverableEvents;
-    Mask		eventMask;
+    unsigned short	deliverableEvents; /* all masks from all clients */
+    Mask		eventMask;      /* mask from the creating client */
     PixUnion		background;
     PixUnion		border;
     pointer		backStorage;	/* null when BS disabled */

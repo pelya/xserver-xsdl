@@ -345,11 +345,20 @@ static Mask lastEventMask;
 
 extern int DeviceMotionNotify;
 
-/**
- * Event filters. One set of filters for each device, but only the first layer
- * is initialized. The rest is memcpy'd in InitEvents.
- */
 #define CantBeFiltered NoEventMask
+/**
+ * Event masks for each event type.
+ *
+ * One set of filters for each device, but only the first layer
+ * is initialized. The rest is memcpy'd in InitEvents.
+ *
+ * Filters are used whether a given event may be delivered to a client,
+ * usually in the form of if (window-event-mask & filter); then deliver event.
+ *
+ * One notable filter is for PointerMotion/DevicePointerMotion events. Each
+ * time a button is pressed, the filter is modified to also contain the
+ * matching ButtonXMotion mask.
+ */
 static Mask filters[MAXDEVICES][128] = {
 {
 	NoSuchEvent,		       /* 0 */
@@ -3621,7 +3630,7 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
  * The otherEventMasks on a WindowOptional is the combination of all event
  * masks set by all clients on the window.
  * deliverableEventMask is the combination of the eventMask and the
- * otherEventMask.
+ * otherEventMask plus the events that may be propagated to the parent.
  *
  * Traverses to siblings and parents of the window.
  */

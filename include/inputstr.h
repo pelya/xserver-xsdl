@@ -65,24 +65,66 @@ SOFTWARE.
 
 #define EMASKSIZE	MAXDEVICES + 1
 
-/* Kludge: OtherClients and InputClients must be compatible, see code */
-
+/**
+ * This struct stores the core event mask for each client except the client
+ * that created the window.
+ *
+ * Each window that has events selected from other clients has at least one of
+ * these masks. If multiple clients selected for events on the same window,
+ * these masks are in a linked list.
+ *
+ * The event mask for the client that created the window is stored in
+ * win->eventMask instead.
+ *
+ * The resource id is simply a fake client ID to associate this mask with a
+ * client.
+ *
+ * Kludge: OtherClients and InputClients must be compatible, see code.
+ */
 typedef struct _OtherClients {
-    OtherClientsPtr	next;
-    XID			resource; /* id for putting into resource manager */
-    Mask		mask;
+    OtherClientsPtr	next; /**< Pointer to the next mask */
+    XID			resource; /**< id for putting into resource manager */
+    Mask		mask; /**< Core event mask */
 } OtherClients;
 
+/**
+ * This struct stores the XI event mask for each client.
+ *
+ * Each window that has events selected has at least one of these masks. If
+ * multiple client selected for events on the same window, these masks are in
+ * a linked list.
+ */
 typedef struct _InputClients {
-    InputClientsPtr	next;
-    XID			resource; /* id for putting into resource manager */
-    Mask		mask[EMASKSIZE];
+    InputClientsPtr	next; /**< Pointer to the next mask */
+    XID			resource; /**< id for putting into resource manager */
+    Mask		mask[EMASKSIZE]; /**< Actual XI event mask, deviceid is index */
 } InputClients;
 
+/**
+ * Combined XI event masks from all devices.
+ *
+ * This is the XI equivalent of the deliverableEvents, eventMask and
+ * dontPropagate mask of the WindowRec (or WindowOptRec).
+ *
+ * A window that has an XI client selecting for events has exactly one
+ * OtherInputMasks struct and exactly one InputClients struct hanging off
+ * inputClients. Each further client appends to the inputClients list.
+ * Each Mask field is per-device, with the device id as the index.
+ * Exception: for non-device events (Presence events), the MAX_DEVICES
+ * deviceid is used.
+ */
 typedef struct _OtherInputMasks {
+    /**
+     * Bitwise OR of all masks by all clients and the window's parent's masks.
+     */
     Mask		deliverableEvents[EMASKSIZE];
+    /**
+     * Bitwise OR of all masks by all clients on this window.
+     */
     Mask		inputEvents[EMASKSIZE];
+    /** The do-not-propagate masks for each device. */
     Mask		dontPropagateMask[EMASKSIZE];
+    /** The clients that selected for events */
     InputClientsPtr	inputClients;
 } OtherInputMasks;
 
