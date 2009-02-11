@@ -66,7 +66,6 @@ SOFTWARE.
 #include "selectev.h"
 
 extern Mask ExtExclusiveMasks[];
-extern Mask ExtValidMasks[];
 
 static int
 HandleDevicePresenceMask(ClientPtr client, WindowPtr win,
@@ -173,10 +172,13 @@ ProcXSelectExtensionEvent(ClientPtr client)
 
     for (i = 0; i < EMASKSIZE; i++)
 	if (tmp[i].dev != NULL) {
+            if (tmp[i].mask & ~XIAllMasks) {
+                client->errorValue = tmp[i].mask;
+                return BadValue;
+            }
 	    if ((ret =
 		 SelectForWindow((DeviceIntPtr) tmp[i].dev, pWin, client,
-				 tmp[i].mask, ExtExclusiveMasks[i],
-				 ExtValidMasks[i])) != Success)
+				 tmp[i].mask, ExtExclusiveMasks[i]))!= Success)
 		return ret;
 	}
 

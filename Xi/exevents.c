@@ -1353,17 +1353,13 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 
 int
 SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
-		Mask mask, Mask exclusivemasks, Mask validmasks)
+		Mask mask, Mask exclusivemasks)
 {
     int mskidx = dev->id;
     int i, ret;
     Mask check;
     InputClientsPtr others;
 
-    if (mask & ~validmasks) {
-	client->errorValue = mask;
-	return BadValue;
-    }
     check = (mask & exclusivemasks);
     if (wOtherInputMasks(pWin)) {
 	if (check & wOtherInputMasks(pWin)->inputEvents[mskidx]) {	/* It is illegal for two different

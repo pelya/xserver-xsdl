@@ -121,9 +121,37 @@ SOFTWARE.
 #include "xiproperty.h"
 
 
-static Mask lastExtEventMask = 1;
+/* Masks for XI events have to be aligned with core event (partially anyway).
+ * If DeviceButtonMotionMask is != ButtonMotionMask, event delivery
+ * breaks down. The device needs the dev->button->motionMask. If DBMM is
+ * the same as BMM, we can ensure that both core and device events can be
+ * delivered, without the need for extra structures in the DeviceIntRec. */
+const Mask DeviceKeyPressMask             = KeyPressMask;
+const Mask DeviceKeyReleaseMask           = KeyReleaseMask;
+const Mask DeviceButtonPressMask          = ButtonPressMask;
+const Mask DeviceButtonReleaseMask        = ButtonReleaseMask;
+const Mask DeviceProximityMask            = (1L << 4);
+const Mask DeviceStateNotifyMask          = (1L << 5);
+const Mask DevicePointerMotionMask        = PointerMotionMask;
+const Mask DevicePointerMotionHintMask    = PointerMotionHintMask;
+const Mask DeviceButton1MotionMask        = Button1MotionMask;
+const Mask DeviceButton2MotionMask        = Button2MotionMask;
+const Mask DeviceButton3MotionMask        = Button3MotionMask;
+const Mask DeviceButton4MotionMask        = Button4MotionMask;
+const Mask DeviceButton5MotionMask        = Button5MotionMask;
+const Mask DeviceButtonMotionMask         = ButtonMotionMask;
+const Mask DeviceFocusChangeMask          = (1L << 14);
+const Mask DeviceMappingNotifyMask        = (1L << 15);
+const Mask ChangeDeviceNotifyMask         = (1L << 16);
+const Mask DeviceButtonGrabMask           = (1L << 17);
+const Mask DeviceOwnerGrabButtonMask      = (1L << 17);
+const Mask DevicePresenceNotifyMask       = (1L << 18);
+const Mask DeviceEnterWindowMask          = (1L << 18);
+const Mask DeviceLeaveWindowMask          = (1L << 19);
+const Mask DevicePropertyNotifyMask       = (1L << 20);
+const Mask XIAllMasks                     = (1L << 21) - 1;
+
 int ExtEventIndex;
-Mask ExtValidMasks[EMASKSIZE];
 Mask ExtExclusiveMasks[EMASKSIZE];
 
 
@@ -286,20 +314,6 @@ static int BadEvent = 1;
 int BadMode = 2;
 int DeviceBusy = 3;
 int BadClass = 4;
-
-Mask DevicePointerMotionMask;
-Mask DevicePointerMotionHintMask;
-Mask DeviceFocusChangeMask;
-Mask DeviceStateNotifyMask;
-static Mask ChangeDeviceNotifyMask;
-Mask DeviceMappingNotifyMask;
-Mask DeviceOwnerGrabButtonMask;
-Mask DeviceButtonGrabMask;
-Mask DeviceButtonMotionMask;
-Mask DevicePresenceNotifyMask;
-Mask DevicePropertyNotifyMask;
-Mask DeviceEnterWindowMask;
-Mask DeviceLeaveWindowMask;
 
 int DeviceValuator;
 int DeviceKeyPress;
@@ -675,28 +689,6 @@ AllowPropagateSuppress(Mask mask)
 
 /**************************************************************************
  *
- * Return the next available extension event mask.
- *
- */
-
-static Mask
-GetNextExtEventMask(void)
-{
-    int i;
-    Mask mask = lastExtEventMask;
-
-    if (lastExtEventMask == 0) {
-	FatalError("GetNextExtEventMask: no more events are available.");
-    }
-    lastExtEventMask <<= 1;
-
-    for (i = 0; i < MAXDEVICES; i++)
-	ExtValidMasks[i] |= mask;
-    return mask;
-}
-
-/**************************************************************************
- *
  * Record an event mask where there is no unique corresponding event type.
  * We can't call SetMaskForEvent, since that would clobber the existing
  * mask for that event.  MotionHint and ButtonMotion are examples.
@@ -762,8 +754,6 @@ SetMaskForExtEvent(Mask mask, int event)
 static void
 FixExtensionEvents(ExtensionEntry * extEntry)
 {
-    Mask mask;
-
     DeviceValuator = extEntry->eventBase;
     DeviceKeyPress = DeviceValuator + 1;
     DeviceKeyRelease = DeviceKeyPress + 1;
@@ -797,88 +787,50 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DeviceBusy += extEntry->errorBase;
     BadClass += extEntry->errorBase;
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, DeviceKeyPress);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DeviceKeyPressMask, DeviceKeyPress);
+    AllowPropagateSuppress(DeviceKeyPressMask);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, DeviceKeyRelease);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DeviceKeyReleaseMask, DeviceKeyRelease);
+    AllowPropagateSuppress(DeviceKeyReleaseMask);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, DeviceButtonPress);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DeviceButtonPressMask, DeviceButtonPress);
+    AllowPropagateSuppress(DeviceButtonPressMask);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, DeviceButtonRelease);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DeviceButtonReleaseMask, DeviceButtonRelease);
+    AllowPropagateSuppress(DeviceButtonReleaseMask);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, ProximityIn);
-    SetMaskForExtEvent(mask, ProximityOut);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DeviceProximityMask, ProximityIn);
+    SetMaskForExtEvent(DeviceProximityMask, ProximityOut);
 
-    mask = GetNextExtEventMask();
-    DeviceStateNotifyMask = mask;
-    SetMaskForExtEvent(mask, DeviceStateNotify);
+    SetMaskForExtEvent(DeviceStateNotifyMask, DeviceStateNotify);
 
-    mask = GetNextExtEventMask();
-    DevicePointerMotionMask = mask;
-    SetMaskForExtEvent(mask, DeviceMotionNotify);
-    AllowPropagateSuppress(mask);
+    SetMaskForExtEvent(DevicePointerMotionMask, DeviceMotionNotify);
+    AllowPropagateSuppress(DevicePointerMotionMask);
 
-    DevicePointerMotionHintMask = GetNextExtEventMask();
     SetEventInfo(DevicePointerMotionHintMask, _devicePointerMotionHint);
-    SetEventInfo(GetNextExtEventMask(), _deviceButton1Motion);
-    SetEventInfo(GetNextExtEventMask(), _deviceButton2Motion);
-    SetEventInfo(GetNextExtEventMask(), _deviceButton3Motion);
-    SetEventInfo(GetNextExtEventMask(), _deviceButton4Motion);
-    SetEventInfo(GetNextExtEventMask(), _deviceButton5Motion);
-
-    /* If DeviceButtonMotionMask is != ButtonMotionMask, event delivery
-     * breaks down. The device needs the dev->button->motionMask. If DBMM is
-     * the same as BMM, we can ensure that both core and device events can be
-     * delivered, without the need for extra structures in the DeviceIntRec.
-     */
-    DeviceButtonMotionMask = GetNextExtEventMask();
+    SetEventInfo(DeviceButton1MotionMask, _deviceButton1Motion);
+    SetEventInfo(DeviceButton2MotionMask, _deviceButton2Motion);
+    SetEventInfo(DeviceButton3MotionMask, _deviceButton3Motion);
+    SetEventInfo(DeviceButton4MotionMask, _deviceButton4Motion);
+    SetEventInfo(DeviceButton5MotionMask, _deviceButton5Motion);
     SetEventInfo(DeviceButtonMotionMask, _deviceButtonMotion);
-    if (DeviceButtonMotionMask != ButtonMotionMask)
-    {
-        /* This should never happen, but if it does, hide under the
-         * bed and cry for help. */
-        ErrorF("[Xi] DeviceButtonMotionMask != ButtonMotionMask. Trouble!\n");
-    }
 
-    DeviceFocusChangeMask = GetNextExtEventMask();
     SetMaskForExtEvent(DeviceFocusChangeMask, DeviceFocusIn);
     SetMaskForExtEvent(DeviceFocusChangeMask, DeviceFocusOut);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, DeviceMappingNotify);
-    DeviceMappingNotifyMask = mask;
+    SetMaskForExtEvent(DeviceMappingNotifyMask, DeviceMappingNotify);
+    SetMaskForExtEvent(ChangeDeviceNotifyMask, ChangeDeviceNotify);
 
-    mask = GetNextExtEventMask();
-    SetMaskForExtEvent(mask, ChangeDeviceNotify);
-    ChangeDeviceNotifyMask = mask;
-
-    DeviceButtonGrabMask = GetNextExtEventMask();
     SetEventInfo(DeviceButtonGrabMask, _deviceButtonGrab);
     SetExclusiveAccess(DeviceButtonGrabMask);
 
-    DeviceOwnerGrabButtonMask = GetNextExtEventMask();
     SetEventInfo(DeviceOwnerGrabButtonMask, _deviceOwnerGrabButton);
-
-    DevicePresenceNotifyMask = GetNextExtEventMask();
     SetEventInfo(DevicePresenceNotifyMask, _devicePresence);
-
-    DevicePropertyNotifyMask = GetNextExtEventMask();
     SetMaskForExtEvent(DevicePropertyNotifyMask, DevicePropertyNotify);
 
-    DeviceEnterWindowMask = GetNextExtEventMask();
     SetMaskForExtEvent(DeviceEnterWindowMask, DeviceEnterNotify);
     AllowPropagateSuppress(DeviceEnterWindowMask);
 
-    DeviceLeaveWindowMask = GetNextExtEventMask();
     SetMaskForExtEvent(DeviceLeaveWindowMask, DeviceLeaveNotify);
     AllowPropagateSuppress(DeviceLeaveWindowMask);
 
@@ -910,7 +862,6 @@ RestoreExtensionEvents(void)
 	EventInfo[i].type = 0;
     }
     ExtEventIndex = 0;
-    lastExtEventMask = 1;
     DeviceValuator = 0;
     DeviceKeyPress = 1;
     DeviceKeyRelease = 2;

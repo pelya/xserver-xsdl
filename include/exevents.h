@@ -101,13 +101,12 @@ extern _X_EXPORT int GrabKey(
 	BOOL                   /* ownerEvents */,
 	Mask                   /* mask */);
 
-extern _X_EXPORT int SelectForWindow(
+extern int SelectForWindow(
 	DeviceIntPtr           /* dev */,
 	WindowPtr              /* pWin */,
 	ClientPtr              /* client */,
 	Mask                   /* mask */,
-	Mask                   /* exclusivemasks */,
-	Mask                   /* validmasks */);
+	Mask                   /* exclusivemasks */);
 
 extern _X_EXPORT int AddExtensionClient (
 	WindowPtr              /* pWin */,
