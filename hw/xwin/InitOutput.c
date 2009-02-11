@@ -956,7 +956,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
   if (!winReadConfigfile ())
     winErrorFVerb (1, "InitOutput - Error reading config file\n");
 #else
-  winMsg(X_INFO, "XF86Config is not supported\n");
+  winMsg(X_INFO, "xorg.conf is not supported\n");
   winMsg(X_INFO, "See http://x.cygwin.com/docs/faq/cygwin-x-faq.html "
          "for more information\n");
   winConfigFiles ();
