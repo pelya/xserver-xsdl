@@ -1306,6 +1306,19 @@ fbInitVisuals (VisualPtr    *visualp,
  * fbcopy.c
  */
 
+/* Compatibility definition, to be removed at next ABI change. */
+typedef void   (*fbCopyProc) (DrawablePtr  pSrcDrawable,
+                              DrawablePtr  pDstDrawable,
+                              GCPtr        pGC,
+                              BoxPtr       pDstBox,
+                              int          nbox,
+                              int          dx,
+                              int          dy,
+                              Bool         reverse,
+                              Bool         upsidedown,
+                              Pixel        bitplane,
+                              void         *closure);
+
 extern _X_EXPORT void
 fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	    DrawablePtr	pDstDrawable,
@@ -1318,6 +1331,33 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	    Bool	upsidedown,
 	    Pixel	bitplane,
 	    void	*closure);
+
+/* Compatibility wrapper, to be removed at next ABI change. */
+extern _X_EXPORT void
+fbCopyRegion (DrawablePtr   pSrcDrawable,
+             DrawablePtr   pDstDrawable,
+             GCPtr         pGC,
+             RegionPtr     pDstRegion,
+             int           dx,
+             int           dy,
+             fbCopyProc    copyProc,
+             Pixel         bitPlane,
+             void          *closure);
+
+/* Compatibility wrapper, to be removed at next ABI change. */
+extern _X_EXPORT RegionPtr
+fbDoCopy (DrawablePtr  pSrcDrawable,
+         DrawablePtr   pDstDrawable,
+         GCPtr         pGC,
+         int           xIn,
+         int           yIn,
+         int           widthSrc,
+         int           heightSrc,
+         int           xOut,
+         int           yOut,
+         fbCopyProc    copyProc,
+         Pixel         bitplane,
+         void          *closure);
 
 extern _X_EXPORT void
 fbCopy1toN (DrawablePtr	pSrcDrawable,
