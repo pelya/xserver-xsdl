@@ -177,6 +177,7 @@ static char GLXServerExtensions[] =
                         "GLX_SGIX_swap_barrier "
 #endif
 			"GLX_SGIX_fbconfig "
+			"GLX_SGIX_pbuffer "
 			"GLX_MESA_copy_sub_buffer "
 			;
 
