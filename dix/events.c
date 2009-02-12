@@ -187,6 +187,10 @@ typedef const char *string;
 #define LastEventMask OwnerGrabButtonMask
 #define AllEventMasks (LastEventMask|(LastEventMask-1))
 
+
+#define CORE_EVENT(event) \
+    (!((event)->u.u.type & EXTENSION_EVENT_BASE) && \
+      (event)->u.u.type != GenericEvent)
 /**
  * Used to indicate a implicit passive grab created by a ButtonPress event.
  * See DeliverEventsToWindow().
@@ -1888,17 +1892,16 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 		              this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
 
-    /* CantBeFiltered means only window owner gets the event */
-    if ((filter == CantBeFiltered) ||
-            (!(type & EXTENSION_EVENT_BASE) && type != GenericEvent))
+
+    /* Deliver to window owner */
+    if ((filter == CantBeFiltered) || CORE_EVENT(pEvents))
     {
 	/* if nobody ever wants to see this event, skip some work */
 	if (filter != CantBeFiltered &&
 	    !((wOtherEventMasks(pWin)|pWin->eventMask) & filter))
 	    return 0;
 
-        if (!(type & EXTENSION_EVENT_BASE) &&
-            IsInterferingGrab(wClient(pWin), pDev, pEvents))
+        if (IsInterferingGrab(wClient(pWin), pDev, pEvents))
                 return 0;
 
 	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
@@ -1916,44 +1919,44 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 		nondeliveries--;
 	}
     }
+
+    /* CantBeFiltered means only window owner gets the event */
     if (filter != CantBeFiltered)
     {
-            if (type & EXTENSION_EVENT_BASE)
-            {
-                OtherInputMasks *inputMasks;
+        if (CORE_EVENT(pEvents))
+            other = (InputClients *)wOtherClients(pWin);
+        else {
+            OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
+            /* Has any client selected for the event? */
+            if (!inputMasks ||
+                !(inputMasks->inputEvents[mskidx] & filter))
+                return 0;
 
-                inputMasks = wOtherInputMasks(pWin);
-                if (!inputMasks ||
-                        !(inputMasks->inputEvents[mskidx] & filter))
-                    return 0;
-                other = inputMasks->inputClients;
-            }
-            else
-                other = (InputClients *)wOtherClients(pWin);
-            for (; other; other = other->next)
-            {
-                /* core event? check for grab interference */
-                if (!(type & EXTENSION_EVENT_BASE) &&
-                        IsInterferingGrab(rClient(other), pDev, pEvents))
-                    continue;
+            other = inputMasks->inputClients;
+        }
 
-                if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin,
-                             pEvents, count))
-                    /* do nothing */;
-                else if ( (attempt = TryClientEvents(rClient(other), pDev,
-                                                     pEvents, count,
-                                                     other->mask[mskidx],
-                                                     filter, grab)) )
+        for (; other; other = other->next)
+        {
+            if (IsInterferingGrab(rClient(other), pDev, pEvents))
+                continue;
+
+            if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin,
+                        pEvents, count))
+                /* do nothing */;
+            else if ( (attempt = TryClientEvents(rClient(other), pDev,
+                            pEvents, count,
+                            other->mask[mskidx],
+                            filter, grab)) )
+            {
+                if (attempt > 0)
                 {
-                    if (attempt > 0)
-                    {
-                        deliveries++;
-                        client = rClient(other);
-                        deliveryMask = other->mask[mskidx];
-                    } else
-                        nondeliveries--;
-                }
+                    deliveries++;
+                    client = rClient(other);
+                    deliveryMask = other->mask[mskidx];
+                } else
+                    nondeliveries--;
             }
+        }
     }
     /*
      * Note that since core events are delivered first, an implicit grab may
@@ -5455,9 +5458,6 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
 {
     DeviceIntPtr it = inputInfo.devices;
 
-    if (dev->deviceGrab.grab && SameClient(dev->deviceGrab.grab, client))
-        return FALSE;
-
     switch(event->u.u.type)
     {
         case KeyPress:
@@ -5471,6 +5471,9 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
         default:
             return FALSE;
     }
+
+    if (dev->deviceGrab.grab && SameClient(dev->deviceGrab.grab, client))
+        return FALSE;
 
     while(it)
     {
