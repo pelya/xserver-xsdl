@@ -107,7 +107,7 @@ of the copyright holder.
 
 ******************************************************************/
 
-/** @file
+/** @file events.c
  * This file handles event delivery and a big part of the server-side protocol
  * handling (the parts for input devices).
  */
@@ -163,9 +163,7 @@ typedef const char *string;
 
 #include "enterleave.h"
 
-/**
- * Extension events type numbering starts at EXTENSION_EVENT_BASE.
- */
+/* Extension events type numbering starts at EXTENSION_EVENT_BASE.  */
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
 #define StructureAndSubMask ( StructureNotifyMask | SubstructureNotifyMask )
 #define AllButtonsMask ( \
@@ -246,30 +244,35 @@ InputInfo inputInfo;
 
 /**
  * syncEvents is the global structure for queued events.
+ *
  * Devices can be frozen through GrabModeSync pointer grabs. If this is the
  * case, events from these devices are added to "pending" instead of being
  * processed normally. When the device is unfrozen, events in "pending" are
  * replayed and processed as if they would come from the device directly.
- *
- * pending ... list of queued events
- * pendtail ... last event in list
- * replayDev ... The device to replay events for. Only set in AllowEvents, in
- *               which case it is set to the device specified in the request.
- * replayWin ... the window the events are supposed to be replayed on. This
- *               window may be set to the grab's window (but only when
- *               Replay{Pointer|Keyboard} is given in the XAllowEvents
- *               request.
- * playingEvents ... flag to indicate whether we're in the process of
- *                   replaying events. Only set in ComputeFreezes().
  */
 static struct {
-    QdEventPtr		pending, *pendtail;
+    QdEventPtr		pending, /**<  list of queued events */
+                        *pendtail; /**< last event in list */
+    /** The device to replay events for. Only set in AllowEvents(), in which
+     * case it is set to the device specified in the request. */
     DeviceIntPtr	replayDev;	/* kludgy rock to put flag for */
+
+    /**
+     * The window the events are supposed to be replayed on.
+     * This window may be set to the grab's window (but only when
+     * Replay{Pointer|Keyboard} is given in the XAllowEvents()
+     * request. */
     WindowPtr		replayWin;	/*   ComputeFreezes            */
+    /**
+     * Flag to indicate whether we're in the process of
+     * replaying events. Only set in ComputeFreezes(). */
     Bool		playingEvents;
     TimeStamp		time;
 } syncEvents;
 
+/**
+ * The root window the given device is currently on.
+ */
 #define RootWindow(dev) dev->spriteInfo->sprite->spriteTrace[0]
 
 static xEvent* swapEvent = NULL;
@@ -277,6 +280,7 @@ static int swapEventLen = 0;
 
 /**
  * Convert the given event type from an XI event to a core event.
+ * @param[in] The XI 1.x event type.
  * @return The matching core event type or 0 if there is none.
  */
 int
@@ -298,8 +302,8 @@ XItoCoreType(int xitype)
 }
 
 /**
- * True if device owns a cursor, false if device shares a cursor sprite with
- * another device.
+ * @return true if the device owns a cursor, false if device shares a cursor
+ * sprite with another device.
  */
 Bool
 DevHasCursor(DeviceIntPtr pDev)
@@ -308,7 +312,7 @@ DevHasCursor(DeviceIntPtr pDev)
 }
 
 /*
- * Return true if a device is a pointer, check is the same as used by XI to
+ * @return true if a device is a pointer, check is the same as used by XI to
  * fill the 'use' field.
  */
 Bool
@@ -318,7 +322,7 @@ IsPointerDevice(DeviceIntPtr dev)
 }
 
 /*
- * Return true if a device is a keyboard, check is the same as used by XI to
+ * @return true if a device is a keyboard, check is the same as used by XI to
  * fill the 'use' field.
  *
  * Some pointer devices have keys as well (e.g. multimedia keys). Try to not
