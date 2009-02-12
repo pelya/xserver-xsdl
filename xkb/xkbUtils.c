@@ -1955,9 +1955,9 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
 
             strcpy(dst->geom->label_font, src->geom->label_font);
             i = XkbGeomColorIndex(src->geom, src->geom->label_color);
-            dst->geom->label_color = &(src->geom->colors[i]);
+            dst->geom->label_color = &(dst->geom->colors[i]);
             i = XkbGeomColorIndex(src->geom, src->geom->base_color);
-            dst->geom->base_color = &(src->geom->colors[i]);
+            dst->geom->base_color = &(dst->geom->colors[i]);
         }
         else {
             if (dst->geom->label_font) {
