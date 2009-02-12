@@ -376,9 +376,6 @@ extern _X_EXPORT int DeliverDeviceEvents(
     DeviceIntPtr /* dev */,
     int /* count */);
 
-extern _X_EXPORT void DefineInitialRootWindow(
-    WindowPtr /* win */);
-
 extern _X_EXPORT void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);

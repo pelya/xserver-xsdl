@@ -362,7 +362,6 @@ int main(int argc, char *argv[], char *envp[])
 
 	for (i = 0; i < screenInfo.numScreens; i++)
 	    InitRootWindow(WindowTable[i]);
-	DefineInitialRootWindow(WindowTable[0]);
 
         InitCoreDevices();
 	InitInput(argc, argv);

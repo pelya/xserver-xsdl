@@ -2662,17 +2662,6 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 #endif
 
 /**
- * Called from main() with the root window on the first screen. Used to do a
- * lot more when MPX wasn't around yet. Things change.
- *
- * Should delete this now? -ds
- */
-void
-DefineInitialRootWindow(WindowPtr win)
-{
-}
-
-/**
  * Initialize a sprite for the given device and set it to some sane values. If
  * the device already has a sprite alloc'd, don't realloc but just reset to
  * default values.
