@@ -183,7 +183,8 @@ typedef const char *string;
 #define AllModifiersMask ( \
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
 	Mod3Mask | Mod4Mask | Mod5Mask )
-#define AllEventMasks (lastEventMask|(lastEventMask-1))
+#define LastEventMask OwnerGrabButtonMask
+#define AllEventMasks (LastEventMask|(LastEventMask-1))
 
 /**
  * Used to indicate a implicit passive grab created by a ButtonPress event.
@@ -337,8 +338,6 @@ static WindowPtr XYToWindow(
  * Max event opcode.
  */
 extern int lastEvent;
-
-static Mask lastEventMask;
 
 extern int DeviceMotionNotify;
 
@@ -4616,7 +4615,6 @@ InitEvents(void)
     inputInfo.off_devices = (DeviceIntPtr)NULL;
     inputInfo.keyboard = (DeviceIntPtr)NULL;
     inputInfo.pointer = (DeviceIntPtr)NULL;
-    lastEventMask = OwnerGrabButtonMask;
     /* The mask for pointer motion events may have changed in the last server
      * generation. See comment above definition of filters. */
     filters[0][PointerMotionMask] = MotionNotify;
