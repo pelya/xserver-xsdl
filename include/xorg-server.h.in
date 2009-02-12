@@ -100,9 +100,6 @@
 /* Support X Input extension */
 #undef XINPUT
 
-/* Build XKB */
-#undef XKB
-
 /* XKB default rules */
 #undef XKB_DFLT_RULES
 

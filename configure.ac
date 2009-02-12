@@ -1012,7 +1012,6 @@ AM_CONDITIONAL(XF86UTILS, test "x$XF86UTILS" = xyes)
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
-AC_DEFINE(XKB, 1, [Build XKB])
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
 AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
 
