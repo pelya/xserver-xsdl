@@ -34,8 +34,11 @@
 #include "exglobals.h"
 #include "enterleave.h"
 
-/* @file This file describes the model for sending core enter/leave events and
- * focus in/out in the case of multiple pointers/keyboard foci
+/**
+ * @file
+ * This file describes the model for sending core enter/leave events and
+ * focus in/out in the case of multiple pointers/keyboard foci.
+ *
  * Since we can't send more than one Enter or Leave/Focus in or out event per
  * window to a core client without confusing it, this is a rather complicated
  * approach.
@@ -49,7 +52,7 @@
  * http://lists.freedesktop.org/archives/xorg/2008-December/041740.html
  *
  * Additional notes:
- * -) The core protocol spec says that "In a LeaveNotify event, if a child of the
+ * - The core protocol spec says that "In a LeaveNotify event, if a child of the
  * event window contains the initial position of the pointer, then the child
  * component is set to that child. Otherwise, it is None.  For an EnterNotify
  * event, if a child of the event window contains the final pointer position,
@@ -58,7 +61,7 @@
  * By inference, this means that only NotifyVirtual or NotifyNonlinearVirtual
  * events may have a subwindow set to other than None.
  *
- * -) NotifyPointer events may be sent if the focus changes from window A to
+ * - NotifyPointer events may be sent if the focus changes from window A to
  * B. The assumption used in this model is that NotifyPointer events are only
  * sent for the pointer paired with the keyboard that is involved in the focus
  * events. For example, if F(W) changes because of keyboard 2, then
@@ -69,7 +72,7 @@ static WindowPtr PointerWindows[MAXDEVICES];
 static WindowPtr FocusWindows[MAXDEVICES];
 
 /**
- * Return TRUE if @win has a pointer within its boundaries, excluding child
+ * Return TRUE if 'win' has a pointer within its boundaries, excluding child
  * window.
  */
 static BOOL
@@ -85,7 +88,7 @@ HasPointer(WindowPtr win)
 }
 
 /**
- * Return TRUE if at least one keyboard focus is set to @win (excluding
+ * Return TRUE if at least one keyboard focus is set to 'win' (excluding
  * descendants of win).
  */
 static BOOL
@@ -100,7 +103,7 @@ HasFocus(WindowPtr win)
 }
 
 /**
- * Return the window the device @dev is currently on.
+ * Return the window the device dev is currently on.
  */
 static WindowPtr
 PointerWin(DeviceIntPtr dev)
@@ -109,7 +112,7 @@ PointerWin(DeviceIntPtr dev)
 }
 
 /**
- * Search for the first window below @win that has a pointer directly within
+ * Search for the first window below 'win' that has a pointer directly within
  * it's boundaries (excluding boundaries of its own descendants).
  *
  * @return The child window that has the pointer within its boundaries or
@@ -129,7 +132,7 @@ FirstPointerChild(WindowPtr win)
 }
 
 /**
- * Search for the first window below @win that has a focus directly within
+ * Search for the first window below 'win' that has a focus directly within
  * it's boundaries (excluding boundaries of its own descendants).
  *
  * @return The child window that has the pointer within its boundaries or
@@ -150,7 +153,7 @@ FirstFocusChild(WindowPtr win)
 }
 
 /**
- * Set the presence flag for @dev to mark that it is now in @win.
+ * Set the presence flag for dev to mark that it is now in 'win'.
  */
 void
 EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
@@ -159,7 +162,7 @@ EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 }
 
 /**
- * Unset the presence flag for @dev to mark that it is not in @win anymore.
+ * Unset the presence flag for dev to mark that it is not in 'win' anymore.
  */
 static void
 LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
@@ -168,7 +171,7 @@ LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 }
 
 /**
- * Set the presence flag for @dev to mark that it is now in @win.
+ * Set the presence flag for dev to mark that it is now in 'win'.
  */
 void
 SetFocusIn(DeviceIntPtr dev, WindowPtr win)
@@ -177,7 +180,7 @@ SetFocusIn(DeviceIntPtr dev, WindowPtr win)
 }
 
 /**
- * Unset the presence flag for @dev to mark that it is not in @win anymore.
+ * Unset the presence flag for dev to mark that it is not in 'win' anymore.
  */
 void
 SetFocusOut(DeviceIntPtr dev, WindowPtr win)
@@ -189,7 +192,11 @@ SetFocusOut(DeviceIntPtr dev, WindowPtr win)
 
 
 /**
- * @return The window that is the first ancestor of both a and b.
+ * Return the common ancestor of 'a' and 'b' (if one exists).
+ * @param a A window with the same ancestor as b.
+ * @param b A window with the same ancestor as a.
+ * @return The window that is the first ancestor of both 'a' and 'b', or the
+ *         NullWindow if they do not have a common ancestor.
  */
 WindowPtr
 CommonAncestor(
@@ -203,10 +210,11 @@ CommonAncestor(
 
 
 /**
- * Send enter notifies to all windows between @ancestor and @child (excluding
+ * Send enter notifies to all windows between 'ancestor' and 'child' (excluding
  * both). Events are sent running up the window hierarchy. This function
  * recurses.
- * If @core is TRUE, core events are sent, otherwise XI events will be sent.
+ *
+ * @param core If TRUE, core events are sent, otherwise XI events will be sent.
  */
 static void
 DeviceEnterNotifies(DeviceIntPtr dev,
@@ -225,7 +233,7 @@ DeviceEnterNotifies(DeviceIntPtr dev,
 }
 
 /**
- * Send enter notifies to all windows between @ancestor and @child (excluding
+ * Send enter notifies to all windows between 'ancestor' and 'child' (excluding
  * both). Events are sent running down the window hierarchy. This function
  * recurses.
  */
@@ -310,7 +318,7 @@ CoreLeaveNotifies(DeviceIntPtr dev,
 }
 
 /**
- * Send leave notifies to all windows between @child and @ancestor.
+ * Send leave notifies to all windows between 'child' and 'ancestor'.
  * Events are sent running up the hierarchy.
  */
 static void
@@ -333,8 +341,8 @@ DeviceLeaveNotifies(DeviceIntPtr dev,
 }
 
 /**
- * Pointer @dev moves from @A to @B and @A neither a descendant of @B nor is
- * @B a descendant of @A.
+ * Pointer dev moves from A to B and A neither a descendant of B nor is
+ * B a descendant of A.
  */
 static void
 CoreEnterLeaveNonLinear(DeviceIntPtr dev,
@@ -418,7 +426,7 @@ CoreEnterLeaveNonLinear(DeviceIntPtr dev,
 }
 
 /**
- * Pointer @dev moves from @A to @B and @A is a descendant of @B.
+ * Pointer dev moves from A to B and A is a descendant of B.
  */
 static void
 CoreEnterLeaveToAncestor(DeviceIntPtr dev,
@@ -476,7 +484,7 @@ CoreEnterLeaveToAncestor(DeviceIntPtr dev,
 
 
 /**
- * Pointer @dev moves from @A to @B and @B is a descendant of @A.
+ * Pointer dev moves from A to B and B is a descendant of A.
  */
 static void
 CoreEnterLeaveToDescendant(DeviceIntPtr dev,
@@ -605,7 +613,7 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
 }
 
 /**
- * Send focus out events to all windows between @child and @ancestor.
+ * Send focus out events to all windows between 'child' and 'ancestor'.
  * Events are sent running up the hierarchy.
  */
 static void
@@ -625,7 +633,7 @@ DeviceFocusOutEvents(DeviceIntPtr dev,
 
 
 /**
- * Send enter notifies to all windows between @ancestor and @child (excluding
+ * Send enter notifies to all windows between 'ancestor' and 'child' (excluding
  * both). Events are sent running up the window hierarchy. This function
  * recurses.
  */
@@ -645,7 +653,7 @@ DeviceFocusInEvents(DeviceIntPtr dev,
 }
 
 /**
- * Send FocusIn events to all windows between @ancestor and @child (excluding
+ * Send FocusIn events to all windows between 'ancestor' and 'child' (excluding
  * both). Events are sent running down the window hierarchy. This function
  * recurses.
  */
@@ -727,13 +735,13 @@ CoreFocusOutEvents(DeviceIntPtr dev,
 
 /**
  * Send FocusOut(NotifyPointer) events from the current pointer window (which
- * is a descendant of @pwin_parent) up to (excluding) @pwin_parent.
+ * is a descendant of pwin_parent) up to (excluding) pwin_parent.
  *
- * NotifyPointer events are only sent for the device paired with @dev.
+ * NotifyPointer events are only sent for the device paired with dev.
  *
- * If the current pointer window is a descendat of @exclude or an ancestor of
- * @exclude, no events are sent. Note: If the current pointer IS @exclude,
- * events are sent!
+ * If the current pointer window is a descendant of 'exclude' or an ancestor of
+ * 'exclude', no events are sent. If the current pointer IS 'exclude', events
+ * are sent!
  */
 static void
 CoreFocusOutNotifyPointerEvents(DeviceIntPtr dev,
@@ -782,13 +790,13 @@ CoreFocusInRecurse(DeviceIntPtr dev,
 
 
 /**
- * Send FocusIn(NotifyPointer) events from @pwin_parent down to
- * including the current pointer window (which is a descendant of @pwin_parent).
- * If @inclusive is TRUE, @pwin_parent will receive the event too.
+ * Send FocusIn(NotifyPointer) events from pwin_parent down to
+ * including the current pointer window (which is a descendant of pwin_parent).
  *
- * @pwin is the pointer window.
- *
- * If the current pointer window is a child of @exclude, no events are sent.
+ * @param pwin The pointer window.
+ * @param exclude If the pointer window is a child of 'exclude', no events are
+ *                sent.
+ * @param inclusive If TRUE, pwin_parent will receive the event too.
  */
 static void
 CoreFocusInNotifyPointerEvents(DeviceIntPtr dev,
@@ -812,8 +820,8 @@ CoreFocusInNotifyPointerEvents(DeviceIntPtr dev,
 
 
 /**
- * Focus of @dev moves from @A to @B and @A neither a descendant of @B nor is
- * @B a descendant of @A.
+ * Focus of dev moves from A to B and A neither a descendant of B nor is
+ * B a descendant of A.
  */
 static void
 CoreFocusNonLinear(DeviceIntPtr dev,
@@ -910,7 +918,7 @@ CoreFocusNonLinear(DeviceIntPtr dev,
 
 
 /**
- * Focus of @dev moves from @A to @B and @A is a descendant of @B.
+ * Focus of dev moves from A to B and A is a descendant of B.
  */
 static void
 CoreFocusToAncestor(DeviceIntPtr dev,
@@ -971,7 +979,7 @@ CoreFocusToAncestor(DeviceIntPtr dev,
 }
 
 /**
- * Focus of @dev moves from @A to @B and @B is a descendant of @A.
+ * Focus of dev moves from A to B and B is a descendant of A.
  */
 static void
 CoreFocusToDescendant(DeviceIntPtr dev,
@@ -1068,7 +1076,7 @@ CoreFocusPointerRootNoneSwitch(DeviceIntPtr dev,
         if (!HasOtherPointer(root, GetPairedDevice(dev)) && !FirstFocusChild(root))
         {
             /* If pointer was on PointerRootWin and changes to NoneWin, and
-             * the pointer paired with @dev is below the current root window,
+             * the pointer paired with dev is below the current root window,
              * do a NotifyPointer run. */
             if (dev->focus && dev->focus->win == PointerRootWin &&
                 B != PointerRootWin)
@@ -1087,8 +1095,8 @@ CoreFocusPointerRootNoneSwitch(DeviceIntPtr dev,
 }
 
 /**
- * Focus moves from window @A to PointerRoot or to None.
- * Assumption: @A is a valid window and not PointerRoot or None.
+ * Focus moves from window A to PointerRoot or to None.
+ * Assumption: A is a valid window and not PointerRoot or None.
  */
 static void
 CoreFocusToPointerRootOrNone(DeviceIntPtr dev,
@@ -1136,8 +1144,8 @@ CoreFocusToPointerRootOrNone(DeviceIntPtr dev,
 }
 
 /**
- * Focus moves from PointerRoot or None to a window @to.
- * Assumption: @to is a valid window and not PointerRoot or None.
+ * Focus moves from PointerRoot or None to a window B.
+ * Assumption: B is a valid window and not PointerRoot or None.
  */
 static void
 CoreFocusFromPointerRootOrNone(DeviceIntPtr dev,
@@ -1160,7 +1168,7 @@ CoreFocusFromPointerRootOrNone(DeviceIntPtr dev,
         if (!HasFocus(root) && !FirstFocusChild(root))
         {
             /* If pointer was on PointerRootWin and changes to NoneWin, and
-             * the pointer paired with @dev is below the current root window,
+             * the pointer paired with dev is below the current root window,
              * do a NotifyPointer run. */
             if (dev->focus && dev->focus->win == PointerRootWin &&
                 B != PointerRootWin)
@@ -1229,6 +1237,9 @@ CoreFocusEvents(DeviceIntPtr dev,
     SetFocusIn(dev, to);
 }
 
+/**
+ * The root window the given device is currently on.
+ */
 #define RootWindow(dev) dev->spriteInfo->sprite->spriteTrace[0]
 
 static void
