@@ -537,9 +537,6 @@ Libraries.
 .B __projectroot__/lib/X11/fonts/\(**
 Fonts.
 .TP 30
-.B __projectroot__/share/X11/rgb.txt
-Color names to RGB mapping.
-.TP 30
 .B __projectroot__/share/X11/XErrorDB
 Client error message database.
 .TP 30

@@ -557,9 +557,6 @@ Bitmap font directories
 .IR __projectroot__/lib/X11/fonts/TTF , __projectroot__/lib/X11/fonts/Type1
 Outline font directories
 .TP 30
-.I __projectroot__/share/X11/rgb.txt
-Color database
-.TP 30
 .I /tmp/.X11-unix/X\fBn\fP
 Unix domain socket for display number \fBn\fP
 .TP 30
