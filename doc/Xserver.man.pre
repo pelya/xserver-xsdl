@@ -117,10 +117,6 @@ sets key-click volume (allowable range: 0-100).
 sets the visual class for the root window of color screens.
 The class numbers are as specified in the X protocol.
 Not obeyed by all servers.
-.TP 8
-.B \-co \fIfilename\fP
-sets name of RGB color database.  The default is
-.IR __projectroot__/share/X11/rgb .
 .ig
 .TP 8
 .B \-config \fIfilename\fP
