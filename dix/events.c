@@ -2143,6 +2143,66 @@ FixUpEventFromWindow(
 }
 
 /**
+ * Return masks for EventIsDeliverable.
+ * @defgroup EventIsDeliverable return flags
+ * @{
+ */
+#define XI_MASK                 (1 << 0) /**< XI mask set on window */
+#define CORE_MASK               (1 << 1) /**< Core mask set on window */
+#define DONT_PROPAGATE_MASK     (1 << 2) /**< DontPropagate mask set on window */
+/* @} */
+
+/**
+ * Check if a given event is deliverable at all on a given window.
+ *
+ * This function only checks if any client wants it, not for a specific
+ * client.
+ *
+ * @param[in] dev The device this event is being sent for.
+ * @param[in] event The event that is to be sent.
+ * @param[in] win The current event window.
+ * @param[out] filter_out The event filter for this event.
+ *
+ * @return Bitmask of ::XI_MASK, ::CORE_MASK, and ::DONT_PROPAGATE_MASK.
+ */
+static int
+EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win,
+                   Mask *filter_out)
+{
+    int rc = 0;
+    int filter = 0;
+    int type;
+    OtherInputMasks *inputMasks;
+
+    type = GetXIType(event);
+    filter = filters[dev->id][type];
+
+    /* Check for XI mask */
+    if (type && (inputMasks = wOtherInputMasks(win)) &&
+        (inputMasks->deliverableEvents[dev->id] & filter) &&
+        (inputMasks->inputEvents[dev->id] & filter))
+        rc |= XI_MASK;
+
+    /* Check for XI DontPropagate mask */
+    if (type && inputMasks &&
+        (inputMasks->dontPropagateMask[dev->id] & filter))
+        rc |= DONT_PROPAGATE_MASK;
+
+    /* Check for core mask */
+    type = GetCoreType(event);
+    if (type && (win->deliverableEvents & filter) &&
+        ((wOtherEventMasks(win) | win->eventMask) & filter))
+        rc |= CORE_MASK;
+
+    /* Check for core DontPropagate mask */
+    if (type && (filter & wDontPropagateMask(win)))
+        rc |= DONT_PROPAGATE_MASK;
+
+    *filter_out = filter;
+    return rc;
+}
+
+/**
  * Deliver events caused by input devices.
  *
  * For events from a non-grabbed, non-focus device, DeliverDeviceEvents is
@@ -2166,14 +2226,11 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     WindowPtr stopAt, DeviceIntPtr dev)
 {
     Window child = None;
-    int type;
     Mask filter;
     int deliveries = 0;
-    OtherInputMasks *inputMasks;
-    int mskidx = dev->id;
     xEvent core;
     xEvent *xE = NULL;
-    int rc, count = 0;
+    int rc, mask, count = 0;
 
     CHECKEVENT(event);
 
@@ -2194,59 +2251,41 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
 	goto unwind;
 
-    type = xE->u.u.type;
-    filter = filters[dev->id][type];
-
-    while (pWin && type != GenericEvent)
+    while (pWin)
     {
-        /* First try XI event delivery */
-        inputMasks = wOtherInputMasks(pWin);
-        if (inputMasks && (filter & inputMasks->deliverableEvents[mskidx]))
+        if ((mask = EventIsDeliverable(dev, event, pWin, &filter)))
         {
-
-            if (inputMasks && (inputMasks->inputEvents[mskidx] & filter))
+            /* XI events first */
+            if (mask & XI_MASK)
             {
                 FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                   filter, grab, mskidx);
+                                                   filter, grab, dev->id);
                 if (deliveries > 0)
                     goto unwind;
             }
-        }
 
-        if ((deliveries < 0) || (pWin == stopAt) ||
-            (inputMasks && (filter & inputMasks->dontPropagateMask[mskidx])))
-        {
-            deliveries = 0;
-            goto unwind;
-        }
-
-        if (dev->isMaster && dev->coreEvents)
-        {
-            /* no XI event delivered. Try core event */
-            rc = EventToCore(event, &core);
-            if (rc != Success)
+            /* Core event */
+            if ((mask & CORE_MASK) && dev->isMaster && dev->coreEvents)
             {
-                if (rc != BadMatch)
-                    ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
-                            dev->name, event->u.any.type, rc);
-                goto unwind;
-            }
-
-            if (filter & pWin->deliverableEvents)
-            {
-                if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
+                rc = EventToCore(event, &core);
+                if (rc != Success)
                 {
-                    FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
-                    deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
-                            filter, grab, 0);
-                    if (deliveries > 0)
-                        goto unwind;
+                    if (rc != BadMatch)
+                        ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
+                                dev->name, event->u.any.type, rc);
+                    goto unwind;
                 }
+
+                FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
+                deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
+                                                   filter, grab, dev->id);
+                if (deliveries > 0)
+                    goto unwind;
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
-                (filter & wDontPropagateMask(pWin)))
+                (mask & DONT_PROPAGATE_MASK))
             {
                 deliveries = 0;
                 goto unwind;
@@ -2261,6 +2300,10 @@ unwind:
     xfree(xE);
     return deliveries;
 }
+
+#undef XI_MASK
+#undef CORE_MASK
+#undef DONT_PROPAGATE_MASK
 
 /**
  * Deliver event to a window and it's immediate parent. Used for most window
