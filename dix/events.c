@@ -190,13 +190,6 @@ typedef const char *string;
  * See DeliverEventsToWindow().
  */
 #define ImplicitGrabMask (1 << 7)
-/*
- * The following relies on the fact that the Button<n>MotionMasks are equal
- * to the corresponding Button<n>Masks from the current modifier/button state.
- */
-#define Motion_Filter(class) (PointerMotionMask | \
-			      (class)->state | (class)->motionMask)
-
 
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 
@@ -571,20 +564,26 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 
 #endif  /* PANORAMIX */
 
+/**
+ * Modifies the filter for the given protocol event type to the given masks.
+ *
+ * There's only two callers: UpdateDeviceState() and XI's SetMaskForExtEvent().
+ * The latter initialises masks for the matching XI events, it's a once-off
+ * setting.
+ * UDS however changes the mask for MotionNotify and DeviceMotionNotify each
+ * time a button is pressed to include the matching ButtonXMotion mask in the
+ * filter.
+ *
+ * @param[in] deviceid The device to modify the filter for.
+ * @param[in] mask The new filter mask.
+ * @param[in] event Protocol event type.
+ */
 void
 SetMaskForEvent(int deviceid, Mask mask, int event)
 {
-    int coretype;
     if (deviceid < 0 || deviceid > MAXDEVICES)
         FatalError("SetMaskForEvent: bogus device id");
-    if ((event < LASTEvent) || (event >= 128))
-	FatalError("SetMaskForEvent: bogus event number");
     filters[deviceid][event] = mask;
-
-    /* Need to change the mask for the core events too */
-    coretype = XItoCoreType(event);
-    if (coretype)
-        filters[deviceid][coretype] = mask;
 }
 
 void
@@ -4618,6 +4617,8 @@ InitEvents(void)
     inputInfo.keyboard = (DeviceIntPtr)NULL;
     inputInfo.pointer = (DeviceIntPtr)NULL;
     lastEventMask = OwnerGrabButtonMask;
+    /* The mask for pointer motion events may have changed in the last server
+     * generation. See comment above definition of filters. */
     filters[0][PointerMotionMask] = MotionNotify;
     for (i = 1; i < MAXDEVICES; i++)
     {

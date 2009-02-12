@@ -83,8 +83,6 @@ SOFTWARE.
 	Mod3Mask | Mod4Mask | Mod5Mask )
 #define AllButtonsMask ( \
 	Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask )
-#define Motion_Filter(class) (DevicePointerMotionMask | \
-			      (class)->state | (class)->motionMask)
 
 Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
 				 Bool	/* ignoreSelectedEvents */
@@ -832,6 +830,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
     } else if (xE->u.u.type == DeviceButtonPress) {
+        Mask mask;
         if (!b)
             return DONT_PROCESS;
 
@@ -847,8 +846,15 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	b->motionMask = DeviceButtonMotionMask;
         if (b->map[key] <= 5)
 	    b->state |= (Button1Mask >> 1) << b->map[key];
-	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);
+
+        /* Add state and motionMask to the filter for this event */
+        mask = DevicePointerMotionMask | b->state | b->motionMask;
+        SetMaskForEvent(device->id, mask, DeviceMotionNotify);
+        mask = PointerMotionMask | b->state | b->motionMask;
+        SetMaskForEvent(device->id, mask, MotionNotify);
     } else if (xE->u.u.type == DeviceButtonRelease) {
+        Mask mask;
+
         if (!b)
             return DONT_PROCESS;
 
@@ -879,7 +885,12 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	    b->motionMask = 0;
 	if (b->map[key] <= 5)
 	    b->state &= ~((Button1Mask >> 1) << b->map[key]);
-	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);
+
+        /* Add state and motionMask to the filter for this event */
+        mask = DevicePointerMotionMask | b->state | b->motionMask;
+        SetMaskForEvent(device->id, mask, DeviceMotionNotify);
+        mask = PointerMotionMask | b->state | b->motionMask;
+        SetMaskForEvent(device->id, mask, MotionNotify);
     } else if (xE->u.u.type == ProximityIn)
 	device->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)

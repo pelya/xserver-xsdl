@@ -304,7 +304,7 @@ extern _X_EXPORT void SetVendorString(char *string);
 
 /* events.c */
 
-extern _X_EXPORT void SetMaskForEvent(
+extern void SetMaskForEvent(
     int /* deviceid */,
     Mask /* mask */,
     int /* event */);
