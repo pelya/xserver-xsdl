@@ -266,6 +266,7 @@ ProcRenderQueryVersion (ClientPtr client)
     pRenderClient->minor_version = stuff->minorVersion;
 
     REQUEST_SIZE_MATCH(xRenderQueryVersionReq);
+    memset(&rep, 0, sizeof(xRenderQueryVersionReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -363,7 +364,7 @@ ProcRenderQueryPictFormats (ClientPtr client)
 	       ndepth * sizeof (xPictDepth) +
 	       nvisual * sizeof (xPictVisual) +
 	       numSubpixel * sizeof (CARD32));
-    reply = (xRenderQueryPictFormatsReply *) xalloc (rlength);
+    reply = (xRenderQueryPictFormatsReply *) xcalloc (1, rlength);
     if (!reply)
 	return BadAlloc;
     reply->type = X_Reply;

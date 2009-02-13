@@ -1466,6 +1466,7 @@ ProcGetModifierMapping(ClientPtr client)
     if (ret != Success)
         return ret;
 
+    memset(&rep, 0, sizeof(xGetModifierMappingReply));
     rep.type = X_Reply;
     rep.numKeyPerModifier = max_keys_per_mod;
     rep.sequenceNumber = client->sequence;
@@ -1621,6 +1622,7 @@ ProcGetKeyboardMapping(ClientPtr client)
     if (!syms)
         return BadAlloc;
 
+    memset(&rep, 0, sizeof(xGetKeyboardMappingReply));
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.keySymsPerKeyCode = syms->mapWidth;

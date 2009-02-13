@@ -2300,6 +2300,7 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
         {
 
             /* no XI event delivered. Try core event */
+	    memset(&core, 0, sizeof(xEvent));
             core = *xE;
             core.u.u.type = XItoCoreType(xE->u.u.type);
 
@@ -3393,6 +3394,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 
     if (sendCore)
     {
+	memset(&core, 0, sizeof(xEvent));
         core = *xE;
         core.u.u.type = XItoCoreType(xE->u.u.type);
     }
@@ -3491,6 +3493,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
             /* try core event */
             if (sendCore && grab->coreGrab)
             {
+		memset(&core, 0, sizeof(xEvent));
                 core = *xE;
                 core.u.u.type = XItoCoreType(xE->u.u.type);
                 if(core.u.u.type) {
@@ -3869,6 +3872,7 @@ CoreEnterLeaveEvent(
 	mask = pWin->eventMask | wOtherEventMasks(pWin);
     }
 
+    memset(&event, 0, sizeof(xEvent));
     event.u.u.type = type;
     event.u.u.detail = detail;
     event.u.enterLeave.time = currentTime.milliseconds;
@@ -3949,6 +3953,7 @@ DeviceEnterLeaveEvent(
 
     /* we don't have enough bytes, so we squash flags and mode into
        one byte, and use the last byte for the deviceid. */
+    memset(&event, 0, sizeof(xEvent));
     devEnterLeave           = (deviceEnterNotify*)&event;
     devEnterLeave->type     = type;
     devEnterLeave->detail   = detail;
@@ -3990,6 +3995,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 {
     xEvent event;
 
+    memset(&event, 0, sizeof(xEvent));
     event.u.focus.mode = mode;
     event.u.u.type = type;
     event.u.u.detail = detail;
@@ -4153,6 +4159,7 @@ ProcGetInputFocus(ClientPtr client)
     if (rc != Success)
 	return rc;
 
+    memset(&rep, 0, sizeof(xGetInputFocusReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -4243,6 +4250,7 @@ ProcGrabPointer(ClientPtr client)
 
 	/* at this point, some sort of reply is guaranteed. */
     time = ClientTimeToServerTime(stuff->time);
+    memset(&rep, 0, sizeof(xGrabPointerReply));
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
@@ -4490,6 +4498,7 @@ ProcGrabKeyboard(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
+    memset(&rep, 0, sizeof(xGrabKeyboardReply));
     result = GrabDevice(client, keyboard, stuff->keyboardMode,
             stuff->pointerMode, stuff->grabWindow,
             stuff->ownerEvents, stuff->time,
@@ -4557,6 +4566,7 @@ ProcQueryPointer(ClientPtr client)
     pSprite = mouse->spriteInfo->sprite;
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
+    memset(&rep, 0, sizeof(xQueryPointerReply));
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.mask = mouse->button->state;

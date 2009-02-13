@@ -381,6 +381,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
     else
     {
         xEvent event;
+	memset(&event, 0, sizeof(xEvent));
 	event.u.u.type = NoExpose;
 	event.u.noExposure.drawable = drawable;
 	event.u.noExposure.majorEvent = major;
@@ -401,7 +402,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 
     pBox = REGION_RECTS(pRgn);
     numRects = REGION_NUM_RECTS(pRgn);
-    if(!(pEvent = xalloc(numRects * sizeof(xEvent))))
+    if(!(pEvent = xcalloc(1, numRects * sizeof(xEvent))))
 	return;
 
     for (i=numRects, pe = pEvent; --i >= 0; pe++, pBox++)

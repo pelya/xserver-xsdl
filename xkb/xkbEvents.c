@@ -838,6 +838,7 @@ XkbSrvLedInfoPtr	sli;
     }
     if (pChanges->map.changed) {
 	xkbMapNotify mn;
+	memset(&mn, 0, sizeof(xkbMapNotify));
 	mn.changed= pChanges->map.changed;
 	mn.firstType= pChanges->map.first_type;
 	mn.nTypes= pChanges->map.num_types;
@@ -859,6 +860,7 @@ XkbSrvLedInfoPtr	sli;
     if ((pChanges->ctrls.changed_ctrls)||
 	(pChanges->ctrls.enabled_ctrls_changes)) {
 	xkbControlsNotify cn;
+	memset(&cn, 0, sizeof(xkbControlsNotify));
 	cn.changedControls= pChanges->ctrls.changed_ctrls;
 	cn.enabledControlChanges= pChanges->ctrls.enabled_ctrls_changes;
 	cn.keycode= cause->kc;
@@ -871,6 +873,7 @@ XkbSrvLedInfoPtr	sli;
 	xkbIndicatorNotify in;
 	if (sli==NULL)
 	    sli= XkbFindSrvLedInfo(kbd,XkbDfltXIClass,XkbDfltXIId,0);
+	memset(&in, 0, sizeof(xkbIndicatorNotify));
 	in.state= sli->effectiveState;
 	in.changed= pChanges->indicators.map_changes;
 	XkbSendIndicatorNotify(kbd,XkbIndicatorMapNotify,&in);
@@ -879,12 +882,14 @@ XkbSrvLedInfoPtr	sli;
 	xkbIndicatorNotify in;
 	if (sli==NULL)
 	    sli= XkbFindSrvLedInfo(kbd,XkbDfltXIClass,XkbDfltXIId,0);
+	memset(&in, 0, sizeof(xkbIndicatorNotify));
 	in.state= sli->effectiveState;
 	in.changed= pChanges->indicators.state_changes;
 	XkbSendIndicatorNotify(kbd,XkbIndicatorStateNotify,&in);
     }
     if (pChanges->names.changed) {
 	xkbNamesNotify nn;
+	memset(&nn, 0, sizeof(xkbNamesNotify));
 	nn.changed= pChanges->names.changed;
 	nn.firstType= pChanges->names.first_type;
 	nn.nTypes= pChanges->names.num_types;
@@ -897,6 +902,7 @@ XkbSrvLedInfoPtr	sli;
     }
     if ((pChanges->compat.changed_groups)||(pChanges->compat.num_si>0)) {
 	xkbCompatMapNotify cmn;
+	memset(&cmn, 0, sizeof(xkbCompatMapNotify));
 	cmn.changedGroups= pChanges->compat.changed_groups;
 	cmn.firstSI= pChanges->compat.first_si;
 	cmn.nSI= pChanges->compat.num_si;

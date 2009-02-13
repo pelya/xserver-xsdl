@@ -489,8 +489,9 @@ CreateConnectionBlock(void)
         sizesofar = 0;
     char *pBuf;
 
-    
-    /* Leave off the ridBase and ridMask, these must be sent with 
+
+    memset(&setup, 0, sizeof(xConnSetup));
+    /* Leave off the ridBase and ridMask, these must be sent with
        connection */
 
     setup.release = VendorRelease;
@@ -529,7 +530,8 @@ CreateConnectionBlock(void)
     sizesofar += i;
     while (--i >= 0)
 	*pBuf++ = 0;
-    
+
+    memset(&format, 0, sizeof(xPixmapFormat));
     for (i=0; i<screenInfo.numPixmapFormats; i++)
     {
 	format.depth = screenInfo.formats[i].depth;
@@ -541,7 +543,9 @@ CreateConnectionBlock(void)
     }
 
     connBlockScreenStart = sizesofar;
-    for (i=0; i<screenInfo.numScreens; i++) 
+    memset(&depth, 0, sizeof(xDepth));
+    memset(&visual, 0, sizeof(xVisualType));
+    for (i=0; i<screenInfo.numScreens; i++)
     {
 	ScreenPtr	pScreen;
 	DepthPtr	pDepth;

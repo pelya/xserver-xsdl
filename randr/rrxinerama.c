@@ -245,7 +245,8 @@ ProcRRXineramaIsActive(ClientPtr client)
     xXineramaIsActiveReply	rep;
 
     REQUEST_SIZE_MATCH(xXineramaIsActiveReq);
-	
+
+    memset(&rep, 0, sizeof(xXineramaIsActiveReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

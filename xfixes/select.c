@@ -83,6 +83,7 @@ XFixesSelectionCallback (CallbackListPtr *callbacks, pointer data, pointer args)
 	{
 	    xXFixesSelectionNotifyEvent	ev;
 
+	    memset(&ev, 0, sizeof(xXFixesSelectionNotifyEvent));
 	    ev.type = XFixesEventBase + XFixesSelectionNotify;
 	    ev.subtype = subtype;
 	    ev.sequenceNumber = e->pClient->sequence;

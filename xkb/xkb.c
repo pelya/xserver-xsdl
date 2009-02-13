@@ -179,6 +179,7 @@ ProcXkbUseExtension(ClientPtr client)
 					stuff->wantedMajor,stuff->wantedMinor,
 					XkbMajorVersion,XkbMinorVersion);
     }
+    memset(&rep, 0, sizeof(xkbUseExtensionReply));
     rep.type = X_Reply;
     rep.supported = supported;
     rep.length = 0;
@@ -1363,7 +1364,7 @@ unsigned	i,len;
 char		*desc,*start;
 
     len= (rep->length*4)-(SIZEOF(xkbGetMapReply)-SIZEOF(xGenericReply));
-    start= desc= (char *)xalloc(len);
+    start= desc= (char *)xcalloc(1, len);
     if (!start)
 	return BadAlloc;
     if ( rep->nTypes>0 )
@@ -3773,6 +3774,7 @@ ProcXkbGetNames(ClientPtr client)
     CHK_MASK_LEGAL(0x01,stuff->which,XkbAllNamesMask);
 
     xkb = dev->key->xkbInfo->desc;
+    memset(&rep, 0, sizeof(xkbGetNamesReply));
     rep.type= X_Reply;
     rep.sequenceNumber= client->sequence;
     rep.length = 0;
@@ -5353,6 +5355,7 @@ ProcXkbPerClientFlags(ClientPtr client)
     CHK_MASK_MATCH(0x02,stuff->change,stuff->value);
 
     interest = XkbFindClientResource((DevicePtr)dev,client);
+    memset(&rep, 0, sizeof(xkbPerClientFlagsReply));
     rep.type= X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

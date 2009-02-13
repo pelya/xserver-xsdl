@@ -111,6 +111,7 @@ deliverPropertyNotifyEvent(WindowPtr pWin, int state, Atom atom)
 {
     xEvent event;
 
+    memset(&event, 0, sizeof(xEvent));
     event.u.u.type = PropertyNotify;
     event.u.property.window = pWin->drawable.id;
     event.u.property.state = state;
@@ -479,6 +480,7 @@ ProcGetProperty(ClientPtr client)
 	return(BadAtom);
     }
 
+    memset(&reply, 0, sizeof(xGetPropertyReply));
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
 

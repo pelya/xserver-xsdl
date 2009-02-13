@@ -69,6 +69,7 @@ ProcXFixesQueryVersion(ClientPtr client)
     REQUEST(xXFixesQueryVersionReq);
 
     REQUEST_SIZE_MATCH(xXFixesQueryVersionReq);
+    memset(&rep, 0, sizeof(xXFixesQueryVersionReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

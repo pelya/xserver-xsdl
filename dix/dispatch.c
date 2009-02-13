@@ -548,6 +548,7 @@ ProcGetWindowAttributes(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->id, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
+    memset(&wa, 0, sizeof(xGetWindowAttributesReply));
     GetWindowAttributes(pWin, client, &wa);
     WriteReplyToClient(client, sizeof(xGetWindowAttributesReply), &wa);
     return(client->noClientException);
@@ -809,6 +810,7 @@ ProcGetGeometry(ClientPtr client)
     xGetGeometryReply rep;
     int status;
 
+    memset(&rep, 0, sizeof(xGetGeometryReply));
     if ((status = GetGeometry(client, &rep)) != Success)
 	return status;
 
@@ -830,6 +832,7 @@ ProcQueryTree(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->id, client, DixListAccess);
     if (rc != Success)
         return rc;
+    memset(&reply, 0, sizeof(xQueryTreeReply));
     reply.type = X_Reply;
     reply.root = WindowTable[pWin->drawable.pScreen->myNum]->drawable.id;
     reply.sequenceNumber = client->sequence;
@@ -883,6 +886,7 @@ ProcInternAtom(ClientPtr client)
     if (atom != BAD_RESOURCE)
     {
 	xInternAtomReply reply;
+	memset(&reply, 0, sizeof(xInternAtomReply));
 	reply.type = X_Reply;
 	reply.length = 0;
 	reply.sequenceNumber = client->sequence;
@@ -906,6 +910,7 @@ ProcGetAtomName(ClientPtr client)
     if ( (str = NameForAtom(stuff->id)) )
     {
 	len = strlen(str);
+	memset(&reply, 0, sizeof(xGetAtomNameReply));
 	reply.type = X_Reply;
 	reply.length = (len + 3) >> 2;
 	reply.sequenceNumber = client->sequence;
@@ -1002,6 +1007,7 @@ ProcTranslateCoords(ClientPtr client)
     rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
+    memset(&rep, 0, sizeof(xTranslateCoordsReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -1138,7 +1144,7 @@ ProcQueryFont(ClientPtr client)
 	rlength = sizeof(xQueryFontReply) +
 	             FONTINFONPROPS(FONTCHARSET(pFont)) * sizeof(xFontProp)  +
 		     nprotoxcistructs * sizeof(xCharInfo);
-	reply = xalloc(rlength);
+	reply = xcalloc(1, rlength);
 	if(!reply)
 	{
 	    return(BadAlloc);
@@ -1915,6 +1921,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
     if (rc != Success)
 	return rc;
 
+    memset(&xgi, 0, sizeof(xGetImageReply));
     if(pDraw->type == DRAWABLE_WINDOW)
     {
       if( /* check for being viewable */
@@ -1966,7 +1973,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
     xgi.length = length;
 
     if (im_return) {
-	pBuf = xalloc(sz_xGetImageReply + length);
+	pBuf = xcalloc(1, sz_xGetImageReply + length);
 	if (!pBuf)
 	    return (BadAlloc);
 	if (widthBytesLine == 0)
@@ -2004,7 +2011,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 		length += widthBytesLine;
 	    }
 	}
-	if(!(pBuf = xalloc(length)))
+	if(!(pBuf = xcalloc(1, length)))
 	    return (BadAlloc);
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
@@ -2742,7 +2749,7 @@ ProcQueryColors(ClientPtr client)
 	xQueryColorsReply	qcr;
 
 	count = ((client->req_len << 2) - sizeof(xQueryColorsReq)) >> 2;
-	prgbs = xalloc(count * sizeof(xrgb));
+	prgbs = xcalloc(1, count * sizeof(xrgb));
 	if(!prgbs && count)
             return(BadAlloc);
 	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs)) )
@@ -2756,6 +2763,7 @@ ProcQueryColors(ClientPtr client)
 	        return rc;
 	    }
 	}
+	memset(&qcr, 0, sizeof(xQueryColorsReply));
 	qcr.type = X_Reply;
 	qcr.length = (count * sizeof(xrgb)) >> 2;
 	qcr.sequenceNumber = client->sequence;
@@ -2983,6 +2991,7 @@ ProcQueryBestSize (ClientPtr client)
 	return rc;
     (* pScreen->QueryBestSize)(stuff->class, &stuff->width,
 			       &stuff->height, pScreen);
+    memset(&reply, 0, sizeof(xQueryBestSizeReply));
     reply.type = X_Reply;
     reply.length = 0;
     reply.sequenceNumber = client->sequence;
@@ -3696,6 +3705,7 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
 {
     xError rep;
 
+    memset(&rep, 0, sizeof(xError));
     rep.type = X_Error;
     rep.sequenceNumber = client->sequence;
     rep.errorCode = errorCode;

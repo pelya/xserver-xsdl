@@ -116,6 +116,7 @@ ProcXGetExtensionVersion(ClientPtr client)
         pXIClient->minor_version = stuff->minorVersion;
     } /* else version unknown, leave it at 0.0 */
 
+    memset(&rep, 0, sizeof(xGetExtensionVersionReply));
     rep.repType = X_Reply;
     rep.RepType = X_GetExtensionVersion;
     rep.length = 0;

@@ -256,6 +256,7 @@ ProcShapeQueryVersion (ClientPtr client)
     int		n;
 
     REQUEST_SIZE_MATCH (xShapeQueryVersionReq);
+    memset(&rep, 0, sizeof(xShapeQueryVersionReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -682,6 +683,7 @@ ProcShapeQueryExtents (ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
+    memset(&rep, 0, sizeof(xShapeQueryExtentsReply));
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

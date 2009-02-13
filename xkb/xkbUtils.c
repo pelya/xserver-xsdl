@@ -2097,6 +2097,7 @@ XkbCopyDeviceKeymap(DeviceIntPtr dst, DeviceIntPtr src)
     if (!dst->key || !src->key)
         return FALSE;
 
+    memset(&nkn, 0, sizeof(xkbNewKeyboardNotify));
     nkn.oldMinKeyCode = dst->key->xkbInfo->desc->min_key_code;
     nkn.oldMaxKeyCode = dst->key->xkbInfo->desc->max_key_code;
     nkn.deviceID = dst->id;
