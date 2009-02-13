@@ -733,7 +733,11 @@ DoConfigure(void)
     snprintf(filename, sizeof(filename), "%s%s" XF86CONFIGFILE ".new",
 	     home, addslash);
 
-    xf86writeConfigFile(filename, xf86config);
+    if (xf86writeConfigFile(filename, xf86config) == 0) {
+	xf86Msg(X_ERROR, "Unable to write config file: \"%s\": %s\n",
+		filename, strerror(errno));
+	goto bail;
+    }
 
     xf86DoConfigurePass1 = FALSE;
     /* Try to get DDC information filled in */
@@ -829,7 +833,11 @@ DoConfigure(void)
 		(glp)xf86config->conf_screen_lst, (glp)ScreenPtr);
     }
 
-    xf86writeConfigFile(filename, xf86config);
+    if (xf86writeConfigFile(filename, xf86config) == 0) {
+	xf86Msg(X_ERROR, "Unable to write config file: \"%s\": %s\n",
+		filename, strerror(errno));
+	goto bail;
+    }
 
     ErrorF("\n");
 
