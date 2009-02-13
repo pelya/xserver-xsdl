@@ -2448,10 +2448,9 @@ xf86HandleConfigFile(Bool autoconfig)
 	    xf86MsgVerb(from, 0, "Using config file: \"%s\"\n", filename);
 	    xf86ConfigFile = xnfstrdup(filename);
 	} else {
-	    xf86Msg(X_WARNING, "Unable to locate/open config file");
 	    if (xf86ConfigFile)
-		xf86ErrorFVerb(0, ": \"%s\"", xf86ConfigFile);
-	    xf86ErrorFVerb(0, "\n");
+		xf86Msg(X_ERROR, "Unable to locate/open config file: \"%s\"\n",
+			xf86ConfigFile);
 	    return CONFIG_NOFILE;
 	}
     }
