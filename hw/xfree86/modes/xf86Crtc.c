@@ -1660,8 +1660,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	}
 
 	if (add_default_modes)
-	    default_modes = xf86GetDefaultModes (output->interlaceAllowed,
-						 output->doubleScanAllowed);
+	    default_modes = xf86GetDefaultModes ();
 
 	/*
 	 * If this is not an RB monitor, remove RB modes from the default
@@ -1698,11 +1697,17 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	output->probed_modes = xf86ModesAdd (output->probed_modes, default_modes);
 	
 	/*
-	 * Check all modes against max size
+	 * Check all modes against max size, interlace, and doublescan
 	 */
 	if (maxX && maxY)
 	    xf86ValidateModesSize (scrn, output->probed_modes,
 				       maxX, maxY, 0);
+
+	{
+	    int flags = (output->interlaceAllowed ? V_INTERLACE : 0) |
+			(output->doubleScanAllowed ? V_DBLSCAN : 0);
+	    xf86ValidateModesFlags (scrn, output->probed_modes, flags);
+	}
 	 
 	/*
 	 * Check all modes against output

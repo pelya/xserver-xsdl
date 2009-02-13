@@ -351,6 +351,9 @@ xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 {
     DisplayModePtr mode;
 
+    if (flags == (V_INTERLACE | V_DBLSCAN))
+	return;
+
     for (mode = modeList; mode != NULL; mode = mode->next) {
 	if (mode->Flags & V_INTERLACE && !(flags & V_INTERLACE))
 	    mode->status = MODE_NO_INTERLACE;
@@ -691,7 +694,7 @@ xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor)
  * Build a mode list containing all of the default modes
  */
 DisplayModePtr
-xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
+xf86GetDefaultModes (void)
 {
     DisplayModePtr  head = NULL, mode;
     int		    i;
@@ -700,13 +703,7 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
     {
 	const DisplayModeRec	*defMode = &xf86DefaultModes[i];
 	
-	if (!interlaceAllowed && (defMode->Flags & V_INTERLACE))
-	    continue;
-	if (!doubleScanAllowed && (defMode->Flags & V_DBLSCAN))
-	    continue;
-
 	mode = xf86DuplicateMode(defMode);
-
 	head = xf86ModesAdd(head, mode);
     }
     return head;

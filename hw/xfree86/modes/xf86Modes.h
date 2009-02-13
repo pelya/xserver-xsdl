@@ -106,7 +106,7 @@ extern _X_EXPORT DisplayModePtr
 xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor);
 
 extern _X_EXPORT DisplayModePtr
-xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed);
+xf86GetDefaultModes (void);
 
 extern _X_EXPORT void
 xf86DDCApplyQuirks(int scrnIndex, xf86MonPtr DDC);
