@@ -130,10 +130,6 @@ int ProcInitialConnection();
 #include "dispatch.h"
 #include "swaprep.h"
 #include "swapreq.h"
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
-#endif
 #include "privates.h"
 #include "xace.h"
 #include "inputstr.h"

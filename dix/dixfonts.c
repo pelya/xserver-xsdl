@@ -70,10 +70,6 @@ Equipment Corporation.
 #include	<stdio.h>
 #endif
 
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#endif
-
 #ifdef XF86BIGFONT
 #define _XF86BIGFONT_SERVER_
 #include <X11/extensions/xf86bigfont.h>
