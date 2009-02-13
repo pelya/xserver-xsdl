@@ -920,37 +920,6 @@ pciConvertRange2Host(int entityIndex, resRange *pRange)
     if (!(pRange->type & ResBus))
 	return;
 
-    switch(pRange->type & ResPhysMask) {
-    case ResMem:
-	switch(pRange->type & ResExtMask) {
-	case ResBlock:
-	    pRange->rBegin = pciBusAddrToHostAddr(tag,PCI_MEM, pRange->rBegin);
-	    pRange->rEnd = pciBusAddrToHostAddr(tag,PCI_MEM, pRange->rEnd);
-	    break;
-	case ResSparse:
-	    pRange->rBase = pciBusAddrToHostAddr(tag,PCI_MEM_SPARSE_BASE,
-						  pRange->rBegin);
-	    pRange->rMask = pciBusAddrToHostAddr(tag,PCI_MEM_SPARSE_MASK,
-						pRange->rEnd);
-	    break;
-	}
-	break;
-    case ResIo:
-	switch(pRange->type & ResExtMask) {
-	case ResBlock:
-	    pRange->rBegin = pciBusAddrToHostAddr(tag,PCI_IO, pRange->rBegin);
-	    pRange->rEnd = pciBusAddrToHostAddr(tag,PCI_IO, pRange->rEnd);
-	    break;
-	case ResSparse:
-	    pRange->rBase = pciBusAddrToHostAddr(tag,PCI_IO_SPARSE_BASE
-						  , pRange->rBegin);
-	    pRange->rMask = pciBusAddrToHostAddr(tag,PCI_IO_SPARSE_MASK
-						, pRange->rEnd);
-	    break;
-	}
-	break;
-    }
-
     /* Set domain number */
     pRange->type &= ~(ResDomain | ResBus);
     pRange->type |= pvp->domain << 24;

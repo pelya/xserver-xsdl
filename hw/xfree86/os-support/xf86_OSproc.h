@@ -224,8 +224,6 @@ extern _X_EXPORT resPtr xf86StdAccResFromOS(resPtr ret);
 extern _X_EXPORT resPtr xf86AccResFromOS(resPtr ret);
 #endif /* NEED_OS_RAC_PROTOS */
 
-extern _X_EXPORT unsigned long xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base);
-
 extern _X_EXPORT void xf86MakeNewMapping(int, int, unsigned long, unsigned long, pointer);
 extern _X_EXPORT void xf86InitVidMem(void);
 

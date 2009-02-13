@@ -138,27 +138,10 @@
 
 /* Global data */
 
-pciBusFuncs_t *pciBusFuncs = NULL;
-
-ADDRESS
-pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-    if (pciBusFuncs && pciBusFuncs->pciAddrBusToHost)
-	return pciBusFuncs->pciAddrBusToHost(tag, type, addr);
-    else
-	return addr;
-}
-
 PCITAG
 pciTag(int busnum, int devnum, int funcnum)
 {
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
-}
-
-ADDRESS
-pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-	return(addr);
 }
 
 Bool

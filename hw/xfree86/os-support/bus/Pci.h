@@ -183,17 +183,4 @@
 
 extern void ARCH_PCI_INIT(void);
 
-/*
- * Table of functions used to access a specific PCI bus domain
- * (e.g. a primary PCI bus and all of its secondaries)
- */
-typedef struct pci_bus_funcs {
-	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
-} pciBusFuncs_t, *pciBusFuncs_p;
-
-/* Generic PCI service functions and helpers */
-ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
-
-extern pciBusFuncs_t  *pciBusFuncs;
-
 #endif /* _PCI_H */

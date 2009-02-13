@@ -57,29 +57,6 @@
 #include "Pci.h"
 #include <dirent.h>
 
-/*
- * linux platform specific PCI access functions -- using /proc/bus/pci
- * needs kernel version 2.2.x
- */
-static ADDRESS linuxTransAddrBusToHost(PCITAG tag, PciAddrType type, ADDRESS addr);
-#if defined(__powerpc__)
-static ADDRESS linuxPpcBusAddrToHostAddr(PCITAG, PciAddrType, ADDRESS);
-#endif
-
-static pciBusFuncs_t linuxFuncs0 = {
-#if defined(__powerpc__)
-/* pciAddrBusToHost */	linuxPpcBusAddrToHostAddr,
-#else
-/* linuxTransAddrBusToHost is busted on sparc64 but the PCI rework tree
- * makes it all moot, so we kludge it for now */
-#if defined(__sparc__)
-/* pciAddrBusToHost */  pciAddrNOOP,
-#else
-/* pciAddrBusToHost */	linuxTransAddrBusToHost,
-#endif /* __sparc64__ */
-#endif
-};
-
 static const struct pci_id_match match_host_bridge = {
     PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
     (PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_HOST << 8),
@@ -95,13 +72,6 @@ linuxPciInit(void)
     struct stat st;
 
     memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
-
-    if (-1 == stat("/proc/bus/pci", &st)) {
-	/* when using this as default for all linux architectures,
-	   we'll need a fallback for 2.0 kernels here */
-	return;
-    }
-    pciBusFuncs	   = &linuxFuncs0;
 }
 
 /**
@@ -177,53 +147,6 @@ linuxPciOpenFile(struct pci_device *dev, Bool write)
 
     return fd;
 }
-
-/*
- * This function will convert a BAR address into a host address
- * suitable for passing into the mmap function of a /proc/bus
- * device.
- */
-ADDRESS linuxTransAddrBusToHost(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-    ADDRESS ret = xf86GetOSOffsetFromPCI(tag, PCI_MEM|PCI_IO, addr);
-
-    if (ret)
-	return ret;
-
-    /*
-     * if it is not a BAR address, it must be legacy, (or wrong)
-     * return it as is..
-     */
-    return addr;
-}
-
-
-#if defined(__powerpc__)
-
-#ifndef __NR_pciconfig_iobase
-#define __NR_pciconfig_iobase   200
-#endif
-
-static ADDRESS
-linuxPpcBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-    if (type == PCI_MEM)
-    {
-	ADDRESS membase = syscall(__NR_pciconfig_iobase, 1,
-		    PCI_BUS_FROM_TAG(tag), PCI_DFN_FROM_TAG(tag));
-	return (addr + membase);
-    }
-    else if (type == PCI_IO)
-    {
-	ADDRESS iobase = syscall(__NR_pciconfig_iobase, 2,
-		    PCI_BUS_FROM_TAG(tag), PCI_DFN_FROM_TAG(tag));
-	return (addr + iobase);
-    }
-    else return addr;
-}
-
-#endif /* __powerpc__ */
-
 
 /*
  * Compiling the following simply requires the presence of <linux/pci.c>.
