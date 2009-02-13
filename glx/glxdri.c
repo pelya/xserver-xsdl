@@ -647,7 +647,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 	if (visual->vid == glxConfig->visualID)
 	    break;
     if (i == pScreen->numVisuals)
-	return GL_FALSE;
+	return NULL;
 
     context->hwContextID = FakeClientID(0);
 
@@ -655,6 +655,9 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     retval = DRICreateContext(baseScreen->pScreen, visual,
 			      context->hwContextID, &hwContext);
     __glXleaveServer(GL_FALSE);
+
+    if (!retval)
+    	return NULL;
 
     context->driContext =
 	screen->legacy->createNewContext(screen->driScreen,
@@ -706,6 +709,11 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     retval = DRICreateDrawable(screen->pScreen, serverClient,
 			       pDraw, &hwDrawable);
     __glXleaveServer(GL_FALSE);
+
+    if (!retval) {
+    	xfree(private);
+    	return NULL;
+    }
 
     /* The last argument is 'attrs', which is used with pbuffers which
      * we currently don't support. */
