@@ -399,6 +399,24 @@ static Mask filters[MAXDEVICES][128] = {
 	CantBeFiltered		       /* MappingNotify */
 }};
 
+/**
+ * For the given event, return the matching event filter. This filter may then
+ * be AND'ed with the selected event mask.
+ *
+ * @param[in] dev The device the event belongs to, may be NULL.
+ * @param[in] event The event to get the filter for. Only the type of the
+ *                  event matters, or the extension + evtype for GenericEvents.
+ * @return The filter mask for the given event.
+ */
+static Mask
+GetEventFilter(DeviceIntPtr dev, xEvent *event)
+{
+    if (event->u.u.type != GenericEvent)
+        return filters[dev ? dev->id : 0][event->u.u.type];
+    ErrorF("[dix] Unknown device type %d. No filter\n", event->u.u.type);
+    return 0;
+}
+
 
 static CARD8 criticalEvents[32] =
 {
@@ -2176,9 +2194,11 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win,
     int filter = 0;
     int type;
     OtherInputMasks *inputMasks;
+    xEvent ev;
 
     type = GetXIType(event);
-    filter = filters[dev->id][type];
+    ev.u.u.type = type; /* GetEventFilter only cares about type */
+    filter = GetEventFilter(dev, &ev);
 
     /* Check for XI mask */
     if (type && (inputMasks = wOtherInputMasks(win)) &&
@@ -2337,7 +2357,7 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
 	return 0;
     /* We don't know a device here. However, this should only ever be called
        for a non-device event so we are safe to use 0*/
-    filter = filters[0][xE->u.u.type];
+    filter = GetEventFilter(NULL, xE);
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
     if (filter != StructureAndSubMask)
@@ -3249,8 +3269,8 @@ CheckPassiveGrabsOnWindow(
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
 	    TryClientEvents(rClient(grab), device, xE, count,
-				   filters[device->id][xE->u.u.type],
-				   filters[device->id][xE->u.u.type],  grab);
+                                   GetEventFilter(device, xE),
+                                   GetEventFilter(device, xE), grab);
 
 	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
 	    {
@@ -3396,7 +3416,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     /* just deliver it to the focus window */
     FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
     deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
-                                       filters[keybd->id][xE->u.u.type],
+                                       GetEventFilter(keybd, xE),
                                        NullGrab, keybd->id);
 
     if (deliveries > 0)
@@ -3414,7 +3434,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
-                                           filters[keybd->id][core.u.u.type],
+                                           GetEventFilter(keybd, &core),
                                            NullGrab, 0);
     }
 
@@ -3520,7 +3540,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             {
                 deliveries = TryClientEvents(rClient(grab), thisDev,
                         &core, 1, mask,
-                        filters[thisDev->id][core.u.u.type],
+                        GetEventFilter(thisDev, &core),
                         grab);
             }
         }
@@ -3545,7 +3565,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                     TryClientEvents(rClient(grab), thisDev,
                             xi, count,
                             mask,
-                            filters[thisDev->id][xi->u.u.type],
+                            GetEventFilter(thisDev, xi),
                             grab);
             }
 
@@ -3899,14 +3919,15 @@ CoreEnterLeaveEvent(
              IsParent(focus, pWin)))
         event.u.enterLeave.flags |= ELFlagFocus;
 
-    if ((mask & filters[mouse->id][type]))
+    if ((mask & GetEventFilter(mouse, &event)))
     {
         if (grab)
             TryClientEvents(rClient(grab), mouse, &event, 1, mask,
-                                  filters[mouse->id][type], grab);
+                            GetEventFilter(mouse, &event), grab);
         else
             DeliverEventsToWindow(mouse, pWin, &event, 1,
-                                  filters[mouse->id][type], NullGrab, 0);
+                                  GetEventFilter(mouse, &event),
+                                  NullGrab, 0);
     }
 
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -3979,16 +4000,17 @@ DeviceEnterLeaveEvent(
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
     if (inputMasks &&
-       (filters[mouse->id][devEnterLeave->type] &
+       (GetEventFilter(mouse, (xEvent*)devEnterLeave) &
             inputMasks->deliverableEvents[mskidx]))
     {
         if (grab)
             TryClientEvents(rClient(grab), mouse,
                             (xEvent*)devEnterLeave, 1, mask,
-                            filters[mouse->id][devEnterLeave->type], grab);
+                            GetEventFilter(mouse, (xEvent*)devEnterLeave),
+                            grab);
         else
             DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave, 1,
-                                  filters[mouse->id][devEnterLeave->type],
+                                  GetEventFilter(mouse, (xEvent*)devEnterLeave),
                                   NullGrab, mouse->id);
     }
 
@@ -4004,8 +4026,9 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     event.u.u.type = type;
     event.u.u.detail = detail;
     event.u.focus.window = pWin->drawable.id;
-    (void)DeliverEventsToWindow(dev, pWin, &event, 1,
-            filters[dev->id][type], NullGrab, 0);
+
+    DeliverEventsToWindow(dev, pWin, &event, 1,
+                          GetEventFilter(dev, &event), NullGrab, 0);
     if ((type == FocusIn) &&
             ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
@@ -5492,3 +5515,4 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
 
     return FALSE;
 }
+
