@@ -615,7 +615,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     rep.pad = 0;
     
     if (pScrPriv)
-	if (!RRGetInfo (pScreen, FALSE))
+	if (!RRGetInfo (pScreen, TRUE))
 	    return BadAlloc;
 
     output = RRFirstOutput (pScreen);
