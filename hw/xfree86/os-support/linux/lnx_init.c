@@ -39,12 +39,6 @@
 
 #include <sys/stat.h>
 
-#ifdef USE_DEV_FB
-extern char *getenv(const char *);
-#include <linux/fb.h>
-char *fb_dev_name;
-#endif
-
 static Bool KeepTty = FALSE;
 static int VTnum = -1;
 static Bool VTSwitch = TRUE;
@@ -100,10 +94,6 @@ xf86OpenConsole(void)
     struct vt_mode VT;
     struct vt_stat vts;
     MessageType from = X_PROBED;
-#ifdef USE_DEV_FB
-    struct fb_var_screeninfo var;
-    int fbfd;
-#endif
     char *tty0[] = { "/dev/tty0", "/dev/vc/0", NULL };
     char *vcs[] = { "/dev/vc/%d", "/dev/tty%d", NULL };
 
@@ -150,22 +140,6 @@ xf86OpenConsole(void)
 	    close(fd);
 	}
 
-#ifdef USE_DEV_FB
-        if (!ShareVTs)
-        {
-	    fb_dev_name=getenv("FRAMEBUFFER");
-	    if (!fb_dev_name)
-	        fb_dev_name="/dev/fb0current";
-	
-	    if ((fbfd = open(fb_dev_name, O_RDONLY)) < 0)
-	        FatalError("xf86OpenConsole: Cannot open %s (%s)\n",
-		           fb_dev_name, strerror(errno));
-
-	    if (ioctl(fbfd, FBIOGET_VSCREENINFO, &var) < 0)
-	        FatalError("xf86OpenConsole: Unable to get screen info %s\n",
-		           strerror(errno));
-        }
-#endif
 	xf86Msg(from, "using VT number %d\n\n", xf86Info.vtno);
 
 	if (!KeepTty) {
@@ -309,14 +283,6 @@ xf86OpenConsole(void)
 	    /* we really should have a InitOSInputDevices() function instead
 	     * of Init?$#*&Device(). So I just place it here */
 	
-#ifdef USE_DEV_FB
-	    /* copy info to new console */
-	    var.yoffset=0;
-	    var.xoffset=0;
-	    if (ioctl(fbfd, FBIOPUT_VSCREENINFO, &var))
-	        FatalError("Unable to set screen info\n");
-	    close(fbfd);
-#endif
         } else { /* ShareVTs */
             close(xf86Info.consoleFd);
         }
