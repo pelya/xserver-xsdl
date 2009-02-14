@@ -471,7 +471,7 @@ DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
 			   int timing_level, Bool rb)
 {
     DisplayModePtr Modes = NULL, Mode = NULL;
-    int i;
+    int i, hsize, vsize, refresh;
 
     for (i = 0; i < STD_TIMINGS; i++) {
 	hsize = timing[i].hsize;
