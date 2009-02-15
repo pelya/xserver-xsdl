@@ -813,7 +813,7 @@ The most commonly used input drivers are
 on Linux systems, and
 .BR kbd (__drivermansuffix__)
 and
-.BR mouse (__drivermansuffix__)
+.BR mousedrv (__drivermansuffix__)
 on other platforms.
 .PP
 In the absence of an explicitly specified core input device, the first
