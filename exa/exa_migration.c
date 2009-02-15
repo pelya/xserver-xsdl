@@ -173,7 +173,27 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	    }
 #endif
 
-	    REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
+	    /* Try to prevent destination valid region from growing too many
+	     * rects by filling it up to the extents of the union of the
+	     * destination valid region and the pending damage region.
+	     */
+	    if (REGION_NUM_RECTS(pValidDst) > 10) {
+		BoxRec box;
+		BoxPtr pValidExt, pDamageExt;
+		RegionRec closure;
+
+		pValidExt = REGION_EXTENTS(pScreen, pValidDst);
+		pDamageExt = REGION_EXTENTS(pScreen, pending_damage);
+
+		box.x1 = min(pValidExt->x1, pDamageExt->x1);
+		box.y1 = min(pValidExt->y1, pDamageExt->y1);
+		box.x2 = max(pValidExt->x2, pDamageExt->x2);
+		box.y2 = max(pValidExt->y2, pDamageExt->y2);
+
+		REGION_INIT(pScreen, &closure, &box, 0);
+		REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, &closure);
+	    } else
+		REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
 	}
 
 	/* The caller may provide a region to be subtracted from the calculated
@@ -236,6 +256,13 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 
     pExaPixmap->offscreen = save_offscreen;
     pPixmap->devKind = save_pitch;
+
+    /* Try to prevent source valid region from growing too many rects by
+     * removing parts of it which are also in the destination valid region.
+     * Removing anything beyond that would lead to data loss.
+     */
+    if (REGION_NUM_RECTS(pValidSrc) > 10)
+	REGION_SUBTRACT(pScreen, pValidSrc, pValidSrc, pValidDst);
 
     /* The copied bits are now valid in destination */
     REGION_UNION(pScreen, pValidDst, pValidDst, &CopyReg);
