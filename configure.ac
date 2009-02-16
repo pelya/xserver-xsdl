@@ -371,7 +371,6 @@ AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
-KDRIVE_HW=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd* | *dragonfly*)
@@ -398,7 +397,6 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
-	KDRIVE_HW=yes
 	;;
   *solaris*)
 	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
@@ -407,7 +405,6 @@ case $host_os in
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
 	;;
 esac
-AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
 XORG_RELEASE_VERSION
 dnl augment XORG_RELEASE_VERSION for our snapshot number and to expose the
