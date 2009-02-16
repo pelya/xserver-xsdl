@@ -251,7 +251,6 @@ typedef enum {
 
 
 /* Public PCI access functions */
-extern _X_EXPORT ADDRESS pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 extern _X_EXPORT PCITAG pciTag(int busnum, int devnum, int funcnum);
 extern _X_EXPORT Bool xf86scanpci(void);
 
