@@ -257,13 +257,6 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     pExaPixmap->offscreen = save_offscreen;
     pPixmap->devKind = save_pitch;
 
-    /* Try to prevent source valid region from growing too many rects by
-     * removing parts of it which are also in the destination valid region.
-     * Removing anything beyond that would lead to data loss.
-     */
-    if (REGION_NUM_RECTS(pValidSrc) > 10)
-	REGION_SUBTRACT(pScreen, pValidSrc, pValidSrc, pValidDst);
-
     /* The copied bits are now valid in destination */
     REGION_UNION(pScreen, pValidDst, pValidDst, &CopyReg);
 

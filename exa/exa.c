@@ -285,6 +285,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 {
     PixmapPtr		pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
+    BoxRec box;
     int                 driver_alloc = 0;
     int			bpp;
     ExaScreenPriv(pScreen);
@@ -390,9 +391,17 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 
     pExaPixmap->area = NULL;
 
-    /* None of the pixmap bits are valid initially */
-    REGION_NULL(pScreen, &pExaPixmap->validSys);
-    REGION_NULL(pScreen, &pExaPixmap->validFB);
+    /* We set the initial pixmap as completely valid for a simple reason.
+     * Imagine a 1000x1000 pixmap, it has 1 million pixels, 250000 of which
+     * could form single pixel rects as part of a region. Setting the complete region
+     * as valid is a natural defragmentation of the region.
+     */
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = w;
+    box.y2 = h;
+    REGION_INIT(pScreen, &pExaPixmap->validSys, &box, 0);
+    REGION_INIT(pScreen, &pExaPixmap->validFB, &box, 0);
 
     exaSetAccelBlock(pExaScr, pExaPixmap,
                      w, h, bpp);
