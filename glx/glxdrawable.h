@@ -49,6 +49,8 @@ struct __GLXdrawable {
     GLboolean (*swapBuffers)(__GLXdrawable *);
     void      (*copySubBuffer)(__GLXdrawable *drawable,
 			       int x, int y, int w, int h);
+    void      (*waitX)(__GLXdrawable *);
+    void      (*waitGL)(__GLXdrawable *);
 
     DrawablePtr pDraw;
     XID drawId;

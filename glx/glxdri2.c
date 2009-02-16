@@ -139,6 +139,39 @@ __glXDRIdrawableSwapBuffers(__GLXdrawable *drawable)
     return TRUE;
 }
 
+static void
+__glXDRIdrawableWaitX(__GLXdrawable *drawable)
+{
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
+    BoxRec box;
+    RegionRec region;
+
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = private->width;
+    box.y2 = private->height;
+    REGION_INIT(drawable->pDraw->pScreen, &region, &box, 0);
+
+    DRI2CopyRegion(drawable->pDraw, &region,
+		   DRI2BufferFakeFrontLeft, DRI2BufferFrontLeft);
+}
+
+static void
+__glXDRIdrawableWaitGL(__GLXdrawable *drawable)
+{
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
+    BoxRec box;
+    RegionRec region;
+
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = private->width;
+    box.y2 = private->height;
+    REGION_INIT(drawable->pDraw->pScreen, &region, &box, 0);
+
+    DRI2CopyRegion(drawable->pDraw, &region,
+		   DRI2BufferFrontLeft, DRI2BufferFakeFrontLeft);
+}
 
 static int
 __glXDRIdrawableSwapInterval(__GLXdrawable *drawable, int interval)
@@ -337,6 +370,8 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     private->base.destroy       = __glXDRIdrawableDestroy;
     private->base.swapBuffers   = __glXDRIdrawableSwapBuffers;
     private->base.copySubBuffer = __glXDRIdrawableCopySubBuffer;
+    private->base.waitGL	= __glXDRIdrawableWaitGL;
+    private->base.waitX		= __glXDRIdrawableWaitX;
 
     if (DRI2CreateDrawable(pDraw)) {
 	    xfree(private);
