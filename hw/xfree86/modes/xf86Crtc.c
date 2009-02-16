@@ -475,7 +475,7 @@ enum {
 };
 
 static OptionInfoRec xf86DeviceOptions[] = {
-    {OPTION_MODEDEBUG,	    "ModeDebug",	OPTV_STRING,  {0}, FALSE },
+    {OPTION_MODEDEBUG,	    "ModeDebug",	OPTV_BOOLEAN,  {0}, FALSE },
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
