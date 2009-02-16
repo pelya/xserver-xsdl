@@ -162,6 +162,8 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     pthread_mutex_lock(&miEventQueueMutex);
 #endif
 
+    CHECKEVENT(e);
+
     /* avoid merging events from different devices */
     if (e->u.any.type == ET_Motion)
         isMotion = pDev->id;
@@ -285,6 +287,8 @@ static void
 FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
                     InternalEvent* original, InternalEvent *master)
 {
+    CHECKEVENT(original);
+    CHECKEVENT(master);
     /* Ensure chained button mappings, i.e. that the detail field is the
      * value of the mapped button on the SD, not the physical button */
     if (original->u.any.type == ET_ButtonPress ||
@@ -312,6 +316,8 @@ CopyGetMasterEvent(DeviceIntPtr mdev, DeviceIntPtr sdev,
     int len = original->u.any.length;
     InternalEvent *mevent;
 
+    CHECKEVENT(original);
+
     if (master->evlen < len)
         SetMinimumEventSize(master, 1, len);
 
@@ -336,6 +342,8 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     mieqHandler handler;
     int x = 0, y = 0;
     DeviceIntPtr master;
+
+    CHECKEVENT(event);
 
     /* Custom event handler */
     handler = miEventQueue.handlers[event->u.any.type];

@@ -2247,6 +2247,8 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     xEvent *xE = NULL;
     int rc, count = 0;
 
+    CHECKEVENT(event);
+
     /* XXX: In theory, we could pass the internal events through to everything
      * and only convert just before hitting the wire. We can't do that yet, so
      * DDE is the last stop for internal events. From here onwards, we deal
@@ -2526,6 +2528,8 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 {
     WindowPtr prevSpriteWin;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
+
+    CHECKEVENT(ev);
 
     prevSpriteWin = pSprite->win;
 

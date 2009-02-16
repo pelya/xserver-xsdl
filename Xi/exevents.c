@@ -891,6 +891,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = (DeviceEvent*)ev;
 
+    CHECKEVENT(ev);
+
     if (IsPointerDevice(device))
     {
         kbd = GetPairedDevice(device);
