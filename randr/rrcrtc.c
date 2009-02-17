@@ -1038,30 +1038,31 @@ ProcRRGetPanning (ClientPtr client)
     pScreen = crtc->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
 
-    if (!pScrPriv || !pScrPriv->rrGetPanning)
+    if (!pScrPriv)
 	return RRErrorBase + BadRRCrtc;
 
+    memset(&rep, 0, sizeof(rep));
     rep.type = X_Reply;
     rep.status = RRSetConfigSuccess;
     rep.sequenceNumber = client->sequence;
     rep.length = 1;
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
 
-    if (! pScrPriv->rrGetPanning (pScreen, crtc, &total, &tracking, border))
-	return RRErrorBase + BadRRCrtc;
-
-    rep.left          = total.x1;
-    rep.top           = total.y1;
-    rep.width         = total.x2 - total.x1;
-    rep.height        = total.y2 - total.y1;
-    rep.track_left    = tracking.x1;
-    rep.track_top     = tracking.y1;
-    rep.track_width   = tracking.x2 - tracking.x1;
-    rep.track_height  = tracking.y2 - tracking.y1;
-    rep.border_left   = border[0];
-    rep.border_top    = border[1];
-    rep.border_right  = border[2];
-    rep.border_bottom = border[3];
+    if (pScrPriv->rrGetPanning &&
+	pScrPriv->rrGetPanning (pScreen, crtc, &total, &tracking, border)) {
+	rep.left          = total.x1;
+	rep.top           = total.y1;
+	rep.width         = total.x2 - total.x1;
+	rep.height        = total.y2 - total.y1;
+	rep.track_left    = tracking.x1;
+	rep.track_top     = tracking.y1;
+	rep.track_width   = tracking.x2 - tracking.x1;
+	rep.track_height  = tracking.y2 - tracking.y1;
+	rep.border_left   = border[0];
+	rep.border_top    = border[1];
+	rep.border_right  = border[2];
+	rep.border_bottom = border[3];
+    }
 
     if (client->swapped) {
 	swaps(&rep.sequenceNumber, n);
