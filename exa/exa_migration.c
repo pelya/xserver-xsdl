@@ -174,13 +174,23 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 #endif
 
 	    /* Try to prevent destination valid region from growing too many
-	     * rects by filling it up to the extents of the pending damage region.
+	     * rects by filling it up to the extents of the union of the
+	     * destination valid region and the pending damage region.
 	     */
 	    if (REGION_NUM_RECTS(pValidDst) > 10) {
-		BoxPtr pDamageExt = REGION_EXTENTS(pScreen, pending_damage);
+		BoxRec box;
+		BoxPtr pValidExt, pDamageExt;
 		RegionRec closure;
 
-		REGION_INIT(pScreen, &closure, pDamageExt, 0);
+		pValidExt = REGION_EXTENTS(pScreen, pValidDst);
+		pDamageExt = REGION_EXTENTS(pScreen, pending_damage);
+
+		box.x1 = min(pValidExt->x1, pDamageExt->x1);
+		box.y1 = min(pValidExt->y1, pDamageExt->y1);
+		box.x2 = max(pValidExt->x2, pDamageExt->x2);
+		box.y2 = max(pValidExt->y2, pDamageExt->y2);
+
+		REGION_INIT(pScreen, &closure, &box, 0);
 		REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, &closure);
 	    } else
 		REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
