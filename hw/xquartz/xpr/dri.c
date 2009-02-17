@@ -2,7 +2,7 @@
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
 Copyright 2000 VA Linux Systems, Inc.
-Copyright (c) 2002 Apple Computer, Inc.
+Copyright (c) 2002, 2009 Apple Computer, Inc.
 All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -48,6 +48,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -66,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rootless.h"
 #include "x-hash.h"
 #include "x-hook.h"
+#include "driWrap.h"
 
 #include <AvailabilityMacros.h>
 
@@ -75,10 +80,14 @@ static int DRIWindowPrivKeyIndex;
 static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKeyIndex;
 static int DRIPixmapPrivKeyIndex;
 static DevPrivateKey DRIPixmapPrivKey = &DRIPixmapPrivKeyIndex;
+static int DRIPixmapBufferPrivKeyIndex;
+static DevPrivateKey DRIPixmapBufferPrivKey = &DRIPixmapBufferPrivKeyIndex;
 
 static RESTYPE DRIDrawablePrivResType;
 
 static x_hash_table *surface_hash;      /* maps surface ids -> drawablePrivs */
+
+static Bool DRIFreePixmapImp(DrawablePtr pDrawable);
 
 /* FIXME: don't hardcode this? */
 #define CG_INFO_FILE "/System/Library/Frameworks/ApplicationServices.framework/Frameworks/CoreGraphics.framework/Resources/Info-macos.plist"
@@ -87,6 +96,18 @@ static x_hash_table *surface_hash;      /* maps surface ids -> drawablePrivs */
 #define CG_REQUIRED_MAJOR 1
 #define CG_REQUIRED_MINOR 157
 #define CG_REQUIRED_MICRO 11
+
+typedef struct {
+    DrawablePtr pDrawable;
+    int refCount;
+    int bytesPerPixel;
+    int width;
+    int height;
+    char shmPath[PATH_MAX];
+    int fd; /* From shm_open (for now) */
+    size_t length; /* length of buffer */
+    void *buffer;       
+} DRIPixmapBuffer, *DRIPixmapBufferPtr;
 
 /* Returns version as major.minor.micro in 10.10.10 fixed form */
 static unsigned int
@@ -239,7 +260,7 @@ DRIFinishScreenInit(ScreenPtr pScreen)
 
     //    ErrorF("[DRI] screen %d installation complete\n", pScreen->myNum);
 
-    return TRUE;
+    return DRIWrapInit(pScreen);
 }
 
 void
@@ -598,8 +619,9 @@ DRIDrawablePrivDelete(pointer pResource, XID id)
         pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix);
     }
 
-    if (pDRIDrawablePriv == NULL)
-        return FALSE;
+    if (pDRIDrawablePriv == NULL) {
+	return DRIFreePixmapImp(pDrawable);
+    }
 
     if (pDRIDrawablePriv->drawableIndex != -1) {
         /* release drawable table entry */
@@ -791,4 +813,140 @@ DRISurfaceNotify(xp_surface_id id, int kind)
         FreeResourceByType(pDRIDrawablePriv->pDraw->id,
                            DRIDrawablePrivResType, FALSE);
     }
+}
+
+Bool DRICreatePixmap(ScreenPtr pScreen, Drawable id,
+		     DrawablePtr pDrawable, char *path,
+		     size_t pathmax) 
+{
+    DRIPixmapBufferPtr shared;
+    PixmapPtr pPix;
+    
+    if(pDrawable->type != DRAWABLE_PIXMAP)
+	return FALSE;
+
+    pPix = (PixmapPtr)pDrawable;
+
+    shared = xalloc(sizeof(*shared));
+    if(NULL == shared) {
+        FatalError("failed to allocate DRIPixmapBuffer in %s\n", __func__);
+    }
+        
+    shared->pDrawable = pDrawable;
+    shared->refCount = 1;
+
+    if(pDrawable->bitsPerPixel >= 24) {
+	shared->bytesPerPixel = 4;
+    } else if(pDrawable->bitsPerPixel <= 16) {
+	shared->bytesPerPixel = 2;
+    }
+    
+    shared->width = pDrawable->width;
+    shared->height = pDrawable->height;
+    
+    if(-1 == snprintf(shared->shmPath, sizeof(shared->shmPath),
+                      "%d_0x%lx", getpid(),
+                      (unsigned long)id)) {
+        FatalError("buffer overflow in %s\n", __func__);
+    }
+    
+    shared->fd = shm_open(shared->shmPath, 
+                          O_RDWR | O_EXCL | O_CREAT, 
+                          S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
+    
+    if(-1 == shared->fd) {
+	xfree(shared);
+        return FALSE;
+    }   
+    
+    shared->length = shared->width * shared->height * shared->bytesPerPixel;
+    
+    if(-1 == ftruncate(shared->fd, shared->length)) {
+	ErrorF("failed to ftruncate (extend) file.");
+	shm_unlink(shared->shmPath);
+	close(shared->fd);
+	xfree(shared);
+	return FALSE;
+    }
+
+    shared->buffer = mmap(NULL, shared->length,
+                          PROT_READ | PROT_WRITE,
+                          MAP_FILE | MAP_SHARED, shared->fd, 0);
+    
+    if(MAP_FAILED == shared->buffer) {
+	ErrorF("failed to mmap shared memory.");
+	shm_unlink(shared->shmPath);
+	close(shared->fd);
+	xfree(shared);
+	return FALSE;
+    }
+    
+    strncpy(path, shared->shmPath, pathmax);
+    path[pathmax - 1] = '\0';
+    
+    dixSetPrivate(&pPix->devPrivates, DRIPixmapBufferPrivKey, shared);
+
+    AddResource(id, DRIDrawablePrivResType, (pointer)pDrawable);
+
+    return TRUE;
+}
+
+
+Bool DRIGetPixmapData(DrawablePtr pDrawable, int *width, int *height,
+		      int *pitch, int *bpp, void **ptr) {
+    PixmapPtr pPix;
+    DRIPixmapBufferPtr shared;
+
+    if(pDrawable->type != DRAWABLE_PIXMAP)
+	return FALSE;
+
+    pPix = (PixmapPtr)pDrawable;
+
+    shared = dixLookupPrivate(&pPix->devPrivates, DRIPixmapBufferPrivKey);
+
+    if(NULL == shared)
+	return FALSE;
+
+    assert(pDrawable->width == shared->width);
+    assert(pDrawable->height == shared->height);
+    
+    *width = shared->width;
+    *height = shared->height;
+    *bpp = shared->bytesPerPixel;
+    *pitch = shared->width * shared->bytesPerPixel;
+    *ptr = shared->buffer;    
+
+    return TRUE;
+}
+
+static Bool
+DRIFreePixmapImp(DrawablePtr pDrawable) {
+    DRIPixmapBufferPtr shared;
+    PixmapPtr pPix;
+
+    if(pDrawable->type != DRAWABLE_PIXMAP)
+	return FALSE;
+
+    pPix = (PixmapPtr)pDrawable;
+
+    shared = dixLookupPrivate(&pPix->devPrivates, DRIPixmapBufferPrivKey);
+
+    if(NULL == shared)
+	return FALSE;
+
+    close(shared->fd);
+    munmap(shared->buffer, shared->length);
+    shm_unlink(shared->shmPath);
+    xfree(shared);
+
+    dixSetPrivate(&pPix->devPrivates, DRIPixmapBufferPrivKey, (pointer)NULL);
+
+    return TRUE;
+}
+
+void 
+DRIDestroyPixmap(DrawablePtr pDrawable) {
+    if(DRIFreePixmapImp(pDrawable))
+	FreeResourceByType(pDrawable->id, DRIDrawablePrivResType, FALSE);
+
 }
