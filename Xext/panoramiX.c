@@ -57,6 +57,8 @@ Equipment Corporation.
 #endif
 #include "modinit.h"
 
+#define SERVER_PANORAMIX_MAJOR_VERSION	1
+#define SERVER_PANORAMIX_MINOR_VERSION	1
 
 #ifdef GLXPROXY
 extern VisualPtr glxMatchVisual(ScreenPtr pScreen,
@@ -902,8 +904,8 @@ ProcPanoramiXQueryVersion (ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = PANORAMIX_MAJOR_VERSION;
-    rep.minorVersion = PANORAMIX_MINOR_VERSION;   
+    rep.majorVersion = SERVER_PANORAMIX_MAJOR_VERSION;
+    rep.minorVersion = SERVER_PANORAMIX_MINOR_VERSION;
     if (client->swapped) { 
         swaps(&rep.sequenceNumber, n);
         swapl(&rep.length, n);     
