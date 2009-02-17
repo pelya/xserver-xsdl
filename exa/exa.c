@@ -160,13 +160,8 @@ exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
 void
 exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
 {
-    ExaPixmapPriv(pPix);
     BoxRec box;
-    RegionPtr pDamageReg;
     RegionRec region;
-
-    if (!pExaPixmap || !pExaPixmap->pDamage)
-	return;
 
     box.x1 = max(x1, 0);
     box.y1 = max(y1, 0);
@@ -176,10 +171,9 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
     if (box.x1 >= box.x2 || box.y1 >= box.y2)
 	return;
 
-    pDamageReg = DamageRegion(pExaPixmap->pDamage);
-
     REGION_INIT(pScreen, &region, &box, 1);
-    REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
+    DamageRegionAppend(&pPix->drawable, &region);
+    DamageRegionProcessPending(&pPix->drawable);
     REGION_UNINIT(pScreen, &region);
 }
 
