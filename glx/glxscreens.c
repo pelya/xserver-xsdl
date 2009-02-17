@@ -354,7 +354,7 @@ static __GLXconfig *
 pickFBConfig(__GLXscreen *pGlxScreen, VisualPtr visual)
 {
     __GLXconfig *best = NULL, *config;
-    int best_score;
+    int best_score = 0;
 
     for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
 	int score = 0;
