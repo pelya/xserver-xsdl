@@ -410,7 +410,7 @@ XORG_RELEASE_VERSION
 dnl augment XORG_RELEASE_VERSION for our snapshot number and to expose the
 dnl major number
 PVMAJOR=`echo $PACKAGE_VERSION | cut -d . -f 1`
-PVS=`echo $PACKAGE_VERSION | cut -d . -f 4`
+PVS=`echo $PACKAGE_VERSION | cut -d . -f 4 | cut -d - -f 1`
 if test "x$PVS" = "x"; then
 	PVS="0"
 fi
