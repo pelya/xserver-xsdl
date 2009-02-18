@@ -70,11 +70,11 @@ static xf86ConfigSymTabRec FilesTab[] =
 	{ENDSECTION, "endsection"},
 	{FONTPATH, "fontpath"},
 	{MODULEPATH, "modulepath"},
-	{INPUTDEVICES, "inputdevices"},
 	{LOGFILEPATH, "logfile"},
 	{XKBDIR, "xkbdir"},
 	/* Obsolete keywords that aren't used but shouldn't cause errors: */
 	{OBSOLETE_TOKEN, "rgbpath"},
+	{OBSOLETE_TOKEN, "inputdevices"},
 	{-1, ""},
 };
 
@@ -151,33 +151,6 @@ xf86parseFilesSection (void)
 			strcat (ptr->file_modulepath, str);
 			xf86conffree (val.str);
 			break;
-		case INPUTDEVICES:
-			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
-				Error (QUOTE_MSG, "InputDevices");
-			l = FALSE;
-			str = val.str;
-			if (ptr->file_inputdevs == NULL)
-			{
-				ptr->file_inputdevs = xf86confmalloc (1);
-				ptr->file_inputdevs[0] = '\0';
-				k = strlen (str) + 1;
-			}
-			else
-			{
-				k = strlen (ptr->file_inputdevs) + strlen (str) + 1;
-				if (ptr->file_inputdevs[strlen (ptr->file_inputdevs) - 1] != ',')
-				{
-					k++;
-					l = TRUE;
-				}
-			}
-			ptr->file_inputdevs = xf86confrealloc (ptr->file_inputdevs, k);
-			if (l)
-				strcat (ptr->file_inputdevs, ",");
-
-			strcat (ptr->file_inputdevs, str);
-			xf86conffree (val.str);
-			break;
 		case LOGFILEPATH:
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
 				Error (QUOTE_MSG, "LogFile");
@@ -237,21 +210,6 @@ xf86printFileSection (FILE * cf, XF86ConfFilesPtr ptr)
 		}
 		fprintf (cf, "\tModulePath   \"%s\"\n", s);
 	}
-	if (ptr->file_inputdevs)
-	{
-		s = ptr->file_inputdevs;
-		p = index (s, ',');
-		while (p)
-		{
-			*p = '\000';
-			fprintf (cf, "\tInputDevices   \"%s\"\n", s);
-			*p = ',';
-			s = p;
-			s++;
-			p = index (s, ',');
-		}
-		fprintf (cf, "\tInputDevices   \"%s\"\n", s);
-	}
 	if (ptr->file_fontpath)
 	{
 		s = ptr->file_fontpath;
@@ -279,7 +237,6 @@ xf86freeFiles (XF86ConfFilesPtr p)
 
 	TestFree (p->file_logfile);
 	TestFree (p->file_modulepath);
-	TestFree (p->file_inputdevs);
 	TestFree (p->file_fontpath);
 	TestFree (p->file_comment);
 	TestFree (p->file_xkbdir);

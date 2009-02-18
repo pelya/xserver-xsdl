@@ -644,14 +644,6 @@ configFiles(XF86ConfFilesPtr fileconf)
     strcpy(temp_path, start);
     xf86Msg(pathFrom, "FontPath set to:\n%s\n", log_buf);
     xfree(log_buf);
-
-
-  if (fileconf && fileconf->file_inputdevs) {
-      xf86InputDeviceList = fileconf->file_inputdevs;
-      xf86Msg(X_CONFIG, "Input device list set to \"%s\"\n",
-	  xf86InputDeviceList);
-  }
-  
   
   /* ModulePath */
 

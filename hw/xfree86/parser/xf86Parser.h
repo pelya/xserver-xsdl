@@ -72,7 +72,6 @@ typedef struct
 {
 	char *file_logfile;
 	char *file_modulepath;
-	char *file_inputdevs;
 	char *file_fontpath;
 	char *file_comment;
 	char *file_xkbdir;
