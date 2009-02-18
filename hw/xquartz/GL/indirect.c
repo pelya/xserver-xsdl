@@ -723,8 +723,6 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.fbconfigs = CreateConfigs(&screen->base.numFBConfigs, 
 					   pScreen->myNum);
     
-    GlxSetVisualConfig(GLX_ALL_VISUALS);
-
     __glXScreenInit(&screen->base, pScreen);
 
     /* __glXScreenInit initializes these, so the order here is important, if we need these... */
