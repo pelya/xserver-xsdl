@@ -3969,7 +3969,7 @@ DeviceEnterLeaveEvent(
     devEnterLeave->mode    |= (sameScreen ?  (ELFlagSameScreen << 4) : 0);
 
     devEnterLeave->state = mouse->button->state & 0x1f00;
-    if (keybd)
+    if (keybd && keybd->key)
         devEnterLeave->state |= XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
 
     mskidx = mouse->id;
