@@ -70,6 +70,7 @@
 
 typedef enum {
     /* errno-style tokens */
+    OBSOLETE_TOKEN	= -5,
     EOF_TOKEN		= -4,
     LOCK_TOKEN		= -3,
     ERROR_TOKEN		= -2,

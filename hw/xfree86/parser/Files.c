@@ -73,6 +73,8 @@ static xf86ConfigSymTabRec FilesTab[] =
 	{INPUTDEVICES, "inputdevices"},
 	{LOGFILEPATH, "logfile"},
 	{XKBDIR, "xkbdir"},
+	/* Obsolete keywords that aren't used but shouldn't cause errors: */
+	{OBSOLETE_TOKEN, "rgbpath"},
 	{-1, ""},
 };
 
@@ -188,6 +190,10 @@ xf86parseFilesSection (void)
 			break;
 		case EOF_TOKEN:
 			Error (UNEXPECTED_EOF_MSG, NULL);
+			break;
+		case OBSOLETE_TOKEN:
+			xf86parseError (OBSOLETE_MSG, xf86tokenString ());
+			xf86getSubToken (&(ptr->file_comment));
 			break;
 		default:
 			Error (INVALID_KEYWORD_MSG, xf86tokenString ());
