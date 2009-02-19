@@ -226,7 +226,7 @@ typedef struct {
 typedef struct {
     CARD8 reqType; /*1*/
     CARD8 driReqType; /*2*/
-    CARD16 length; /*4*/
+    CARD16 length B16; /*4*/
     CARD32 drawable B32; /*8*/
 } xAppleDRIDestroyPixmapReq;
 

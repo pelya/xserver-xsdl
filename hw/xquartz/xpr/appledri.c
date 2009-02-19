@@ -331,7 +331,7 @@ ProcAppleDRIDestroyPixmap(ClientPtr client)
     DrawablePtr pDrawable;
     int rc;
     REQUEST(xAppleDRIDestroyPixmapReq);
-    REQUEST_SIZE_MATCH(xAppleDRICreatePixmapReq);
+    REQUEST_SIZE_MATCH(xAppleDRIDestroyPixmapReq);
 
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
 			    DixReadAccess);
