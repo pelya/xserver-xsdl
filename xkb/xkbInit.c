@@ -105,6 +105,8 @@ static char *		XkbLayoutUsed=	NULL;
 static char *		XkbVariantUsed=	NULL;
 static char *		XkbOptionsUsed=	NULL;
 
+static XkbDescPtr	xkb_cached_map = NULL;
+
 static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
@@ -255,7 +257,26 @@ XkbDeleteRulesDflts(void)
     XkbVariantDflt = NULL;
     _XkbFree(XkbOptionsDflt);
     XkbOptionsDflt = NULL;
+
+    XkbFreeKeyboard(xkb_cached_map, XkbAllComponentsMask, True);
+    xkb_cached_map = NULL;
 }
+
+#define DIFFERS(a, b) (strcmp((a) ? (a) : "", (b) ? (b) : "") != 0)
+
+static Bool
+XkbCompareUsedRMLVO(XkbRMLVOSet *rmlvo)
+{
+    if (DIFFERS(rmlvo->rules, XkbRulesUsed) ||
+        DIFFERS(rmlvo->model, XkbModelUsed) ||
+        DIFFERS(rmlvo->layout, XkbLayoutUsed) ||
+        DIFFERS(rmlvo->variant, XkbVariantUsed) ||
+        DIFFERS(rmlvo->options, XkbOptionsUsed))
+        return FALSE;
+    return TRUE;
+}
+
+#undef DIFFERS
 
 /***====================================================================***/
 
@@ -479,11 +500,34 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
     }
     dev->key->xkbInfo = xkbi;
 
-    xkb = XkbCompileKeymap(dev, rmlvo);
+    if (xkb_cached_map && !XkbCompareUsedRMLVO(rmlvo)) {
+        XkbFreeKeyboard(xkb_cached_map, XkbAllComponentsMask, True);
+        xkb_cached_map = NULL;
+    }
+
+    if (xkb_cached_map)
+        LogMessageVerb(X_INFO, 4, "XKB: Reusing cached keymap\n");
+    else {
+        xkb_cached_map = XkbCompileKeymap(dev, rmlvo);
+        if (!xkb_cached_map) {
+            ErrorF("XKB: Failed to compile keymap\n");
+            goto unwind_info;
+        }
+    }
+
+    xkb = XkbAllocKeyboard();
     if (!xkb) {
-        ErrorF("XKB: Failed to compile keymap\n");
+        ErrorF("XKB: Failed to allocate keyboard description\n");
         goto unwind_info;
     }
+
+    if (!XkbCopyKeymap(xkb, xkb_cached_map)) {
+        ErrorF("XKB: Failed to copy keymap\n");
+        goto unwind_desc;
+    }
+    xkb->defined = xkb_cached_map->defined;
+    xkb->flags = xkb_cached_map->flags;
+    xkb->device_spec = xkb_cached_map->device_spec;
     xkbi->desc = xkb;
 
     if (xkb->min_key_code == 0)
