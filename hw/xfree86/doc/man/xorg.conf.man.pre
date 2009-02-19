@@ -115,6 +115,7 @@ The section names are:
 .BR "Files          " "File pathnames"
 .BR "ServerFlags    " "Server flags"
 .BR "Module         " "Dynamic module loading"
+.BR "Extensions     " "Extension enabling"
 .BR "InputDevice    " "Input device description"
 .BR "Device         " "Graphics device description"
 .BR "VideoAdaptor   " "Xv video adaptor description"
@@ -313,7 +314,7 @@ where
 .I <identifier>
 is an alphanumeric identifier,
 .I [attribute]
-is an attribute wich will be passed to the underlying FPE and
+is an attribute which will be passed to the underlying FPE and
 .I <priority>
 is a number used to order the fontfile FPEs. Examples:
 .PP
@@ -754,6 +755,32 @@ It is recommended
 that at very least the \(lqextmod\(rq extension module be loaded.
 If it isn't, some commonly used server extensions (like the SHAPE
 extension) will not be available.
+.SH "EXTENSIONS SECTION"
+The
+.B Extensions
+section is used to specify which X11 protocol extensions should be enabled
+or disabled.
+The
+.B Extensions
+section is optional, as are all of the entries that may be specified in
+it.
+.PP
+Entries in this section are listed as Option statements with the name of
+the extension as the first argument, and a boolean value as the second.
+The extension name is case\-sensitive, and matches the form shown in the output
+of \*qXorg -extension ?\*q.
+.PP
+.RS 7
+Example: the MIT-SHM extension can be disabled with the following entry:
+.PP
+.RS 4
+.nf
+.B "Section \*qExtensions\*q"
+.B "    Option \*qMIT-SHM\*q \*qDisable\*q"
+.B "EndSection"
+.fi
+.RE
+.RE
 .SH "INPUTDEVICE SECTION"
 The config file may have multiple
 .B InputDevice
