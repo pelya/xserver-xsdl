@@ -475,8 +475,8 @@ typedef struct _DeviceIntRec {
     DeviceUnwrapProc    unwrapProc;
     SpriteInfoPtr       spriteInfo;
     union {
-    DeviceIntPtr        master;       /* master device */
-    DeviceIntPtr        lastSlave;    /* last slave device used */
+        DeviceIntPtr        master;     /* master device */
+        DeviceIntPtr        lastSlave;  /* last slave device used */
     } u;
 
     /* last valuator values recorded, not posted to client;
