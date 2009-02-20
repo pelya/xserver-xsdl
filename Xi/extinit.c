@@ -103,6 +103,7 @@ SOFTWARE.
 #include "opendev.h"
 #include "querydp.h"
 #include "queryst.h"
+#include "queryversion.h"
 #include "selectev.h"
 #include "sendexev.h"
 #include "chgkmap.h"
@@ -234,7 +235,8 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXChangeDeviceHierarchy,             /* 43 */
         ProcXSetClientPointer,                  /* 44 */
         ProcXGetClientPointer,                  /* 45 */
-        ProcXiSelectEvent                       /* 46 */
+        ProcXiSelectEvent,                      /* 46 */
+        ProcXIQueryVersion                      /* 47 */
 };
 
 /* For swapped clients */
@@ -285,7 +287,8 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXChangeDeviceHierarchy,             /* 43 */
         SProcXSetClientPointer,                  /* 44 */
         SProcXGetClientPointer,                  /* 45 */
-        SProcXiSelectEvent                       /* 46 */
+        SProcXiSelectEvent,                      /* 46 */
+        SProcXIQueryVersion                      /* 47 */
 };
 
 /*****************************************************************
