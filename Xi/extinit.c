@@ -82,7 +82,6 @@ SOFTWARE.
 #include "chgprop.h"
 #include "chgptr.h"
 #include "closedev.h"
-#include "extgrbdev.h"
 #include "devbell.h"
 #include "getbmap.h"
 #include "getbmap.h"
@@ -235,8 +234,7 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXChangeDeviceHierarchy,             /* 43 */
         ProcXSetClientPointer,                  /* 44 */
         ProcXGetClientPointer,                  /* 45 */
-        ProcXiSelectEvent,                      /* 46 */
-        ProcXExtendedGrabDevice                 /* 47 */
+        ProcXiSelectEvent                       /* 46 */
 };
 
 /* For swapped clients */
@@ -287,8 +285,7 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXChangeDeviceHierarchy,             /* 43 */
         SProcXSetClientPointer,                  /* 44 */
         SProcXGetClientPointer,                  /* 45 */
-        SProcXiSelectEvent,                      /* 46 */
-        SProcXExtendedGrabDevice                 /* 47 */
+        SProcXiSelectEvent                       /* 46 */
 };
 
 /*****************************************************************
@@ -479,8 +476,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 				(xQueryDevicePointerReply *) rep);
     else if (rep->RepType == X_GetClientPointer)
         SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
-    else if (rep->RepType == X_ExtendedGrabDevice)
-        SRepXExtendedGrabDevice(client, len, (xExtendedGrabDeviceReply*) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }
