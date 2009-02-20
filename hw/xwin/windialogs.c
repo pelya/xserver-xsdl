@@ -311,7 +311,7 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
   
   /* Set focus to the Cancel button */
   PostMessage (g_hDlgExit, WM_NEXTDLGCTL,
-	       (int) GetDlgItem (g_hDlgExit, IDCANCEL), TRUE);
+	       GetDlgItem (g_hDlgExit, IDCANCEL), TRUE);
 }
 
 #define CONNECTED_CLIENTS_FORMAT	"There are currently %d clients connected."
@@ -579,7 +579,7 @@ winDisplayAboutDialog (winPrivScreenPtr pScreenPriv)
   
   /* Set focus to the OK button */
   PostMessage (g_hDlgAbout, WM_NEXTDLGCTL,
-	       (int) GetDlgItem (g_hDlgAbout, IDOK), TRUE);
+	       GetDlgItem (g_hDlgAbout, IDOK), TRUE);
 }
 
 
@@ -660,7 +660,7 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 
 	case ID_ABOUT_CHANGELOG:
 	  {
-	    int			iReturn;
+	    HINSTANCE iReturn;
 #ifdef __CYGWIN__
 	    const char *	pszCygPath = "/usr/X11R6/share/doc/"
 	      "xorg-x11-xwin/changelog.html";
@@ -673,12 +673,12 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 		    "devel/server/changelog.html";
 #endif
 	    
-	    iReturn = (int) ShellExecute (NULL,
-					  "open",
-					  pszWinPath,
-					  NULL,
-					  NULL,
-					  SW_MAXIMIZE);
+	    iReturn = ShellExecute (NULL,
+                                    "open",
+                                    pszWinPath,
+                                    NULL,
+                                    NULL,
+                                    SW_MAXIMIZE);
 	    if (iReturn < 32)
 	      {
 		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_CHANGELOG - "
@@ -693,12 +693,12 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 	    const char *	pszPath = "http://x.cygwin.com/";
 	    int			iReturn;
 	    
-	    iReturn = (int) ShellExecute (NULL,
-					  "open",
-					  pszPath,
-					  NULL,
-					  NULL,
-					  SW_MAXIMIZE);
+	    iReturn = ShellExecute (NULL,
+                                    "open",
+                                    pszPath,
+                                    NULL,
+                                    NULL,
+                                    SW_MAXIMIZE);
 	    if (iReturn < 32)
 	      {
 		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_WEBSITE - "
@@ -713,12 +713,12 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 	    const char *	pszPath = "http://x.cygwin.com/docs/ug/";
 	    int			iReturn;
 	    
-	    iReturn = (int) ShellExecute (NULL,
-					  "open",
-					  pszPath,
-					  NULL,
-					  NULL,
-					  SW_MAXIMIZE);
+	    iReturn = ShellExecute (NULL,
+                                    "open",
+                                    pszPath,
+                                    NULL,
+                                    NULL,
+                                    SW_MAXIMIZE);
 	    if (iReturn < 32)
 	      {
 		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_UG - "
@@ -733,12 +733,12 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 	    const char *	pszPath = "http://x.cygwin.com/docs/faq/";
 	    int			iReturn;
 	    
-	    iReturn = (int) ShellExecute (NULL,
-					  "open",
-					  pszPath,
-					  NULL,
-					  NULL,
-					  SW_MAXIMIZE);
+	    iReturn = ShellExecute (NULL,
+                                    "open",
+                                    pszPath,
+                                    NULL,
+                                    NULL,
+                                    SW_MAXIMIZE);
 	    if (iReturn < 32)
 	      {
 		ErrorF ("winAboutDlgProc - WM_COMMAND - ID_ABOUT_FAQ - "

@@ -38,9 +38,6 @@
 #include "winclipboard.h"
 #include "misc.h"
 
-extern void		winFixClipboardChain();
-
-
 /*
  * Constants
  */

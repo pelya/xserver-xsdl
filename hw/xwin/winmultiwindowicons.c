@@ -37,6 +37,9 @@
 #include "winprefs.h"
 
 
+#include "propertyst.h"
+#include "windowstr.h"
+
 /*
  * External global variables
  */
