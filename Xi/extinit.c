@@ -343,7 +343,7 @@ int RT_INPUTCLIENT;
  *
  */
 
-extern XExtensionVersion AllExtensionVersions[];
+extern XExtensionVersion XIVersion;
 
 
 Mask PropagateMask[MAXDEVICES];
@@ -1092,7 +1092,7 @@ XInputExtensionInit(void)
     if (extEntry) {
 	IReqCode = extEntry->base;
 	IEventBase = extEntry->eventBase;
-	AllExtensionVersions[IReqCode - 128] = thisversion;
+	XIVersion = thisversion;
 	MakeDeviceTypeAtoms();
 	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone);
 	RegisterResourceName(RT_INPUTCLIENT, "INPUTCLIENT");

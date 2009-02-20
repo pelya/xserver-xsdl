@@ -62,7 +62,7 @@ SOFTWARE.
 
 #include "getvers.h"
 
-XExtensionVersion AllExtensionVersions[128];
+XExtensionVersion XIVersion;
 
 /***********************************************************************
  *
@@ -122,8 +122,8 @@ ProcXGetExtensionVersion(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.present = TRUE;
-    rep.major_version = AllExtensionVersions[IReqCode - 128].major_version;
-    rep.minor_version = AllExtensionVersions[IReqCode - 128].minor_version;
+    rep.major_version = XIVersion.major_version;
+    rep.minor_version = XIVersion.minor_version;
 
     WriteReplyToClient(client, sizeof(xGetExtensionVersionReply), &rep);
 
