@@ -219,7 +219,7 @@ SizeDeviceClasses(DeviceIntPtr dev)
  * Write button information into info.
  * @return Number of bytes written into info.
  */
-static int
+int
 ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
 {
     info->type = ButtonClass;
@@ -250,7 +250,7 @@ SwapButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
  * Write key information into info.
  * @return Number of bytes written into info.
  */
-static int
+int
 ListKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
 {
     int i;
@@ -288,7 +288,7 @@ SwapKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
  *
  * @return The number of bytes written into info.
  */
-static int
+int
 ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber)
 {
     ValuatorClassPtr v = dev->valuator;

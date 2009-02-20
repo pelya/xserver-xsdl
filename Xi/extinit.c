@@ -627,49 +627,111 @@ SDeviceLeaveNotifyEvent (xXILeaveEvent *from, xXILeaveEvent *to)
 }
 
 static void
-SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
-                           deviceClassesChangedEvent* to)
+SDeviceChangedEvent(xXIDeviceChangedEvent* from, xXIDeviceChangedEvent* to)
 {
     char n;
     int i, j;
-    xAnyClassPtr any;
+    xXIAnyInfo *any;
 
     *to = *from;
     memcpy(&to[1], &from[1], from->length * 4);
 
     swaps(&to->sequenceNumber, n);
     swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
     swapl(&to->time, n);
-   
+    swaps(&to->num_classes, n);
+    swaps(&to->sourceid, n);
+
     /* now swap the actual classes */
-    any = (xAnyClassPtr)&to[1];
+    any = (xXIAnyInfo*)&to[1];
     for (i = 0; i < to->num_classes; i++)
     {
-        switch(any->class)
+        swaps(&any->type, n);
+        swaps(&any->length, n);
+        switch(any->type)
         {
             case KeyClass:
-                swaps(&((xKeyInfoPtr)any)->num_keys, n);
+                {
+                    xXIKeyInfo *ki = (xXIKeyInfo*)any;
+                    uint32_t *key = (uint32_t*)&ki[1];
+                    for (j = 0; j < ki->num_keycodes; j++, key++)
+                        swapl(key, n);
+                    swaps(&ki->num_keycodes, n);
+                }
                 break;
             case ButtonClass:
-                swaps(&((xButtonInfoPtr)any)->num_buttons, n);
+                {
+                    xXIButtonInfo *bi = (xXIButtonInfo*)any;
+                    for (j = 0; j < bi->num_buttons; j++)
+                        swapl(&bi[1 + j], n);
+                    swaps(&bi->num_buttons, n);
+                }
                 break;
             case ValuatorClass:
                 {
-                    xValuatorInfoPtr v = (xValuatorInfoPtr)any;
-                    xAxisInfoPtr a = (xAxisInfoPtr)&v[1];
-
-                    swapl(&v->motion_buffer_size, n);
-                    for (j = 0; j < v->num_axes; j++)
-                    {
-                        swapl(&a->min_value, n);
-                        swapl(&a->max_value, n);
-                        swapl(&a->resolution, n);
-                        a++;
-                    }
+                    xXIValuatorInfo* ai = (xXIValuatorInfo*)any;
+                    swapl(&ai->name, n);
+                    swapl(&ai->min.integral, n);
+                    swapl(&ai->min.frac, n);
+                    swapl(&ai->max.integral, n);
+                    swapl(&ai->max.frac, n);
+                    swapl(&ai->resolution, n);
+                    swaps(&ai->number, n);
                 }
                 break;
         }
-        any = (xAnyClassPtr)((char*)any + any->length);
+        any = (xXIAnyInfo*)((char*)any + any->length * 4);
+    }
+}
+
+static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
+{
+    int i;
+    char n;
+    char *ptr;
+    char *vmask;
+
+    *to = *from;
+    memcpy(&to[1], &from[1], from->length * 4);
+
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
+    swapl(&to->time, n);
+    swapl(&to->root, n);
+    swapl(&to->event, n);
+    swapl(&to->child, n);
+    swapl(&to->root_x.integral, n);
+    swapl(&to->root_x.frac, n);
+    swapl(&to->root_y.integral, n);
+    swapl(&to->root_y.frac, n);
+    swapl(&to->event_x.integral, n);
+    swapl(&to->event_x.frac, n);
+    swapl(&to->event_y.integral, n);
+    swapl(&to->event_y.frac, n);
+    swaps(&to->buttons_len, n);
+    swaps(&to->valuators_len, n);
+    swaps(&to->sourceid, n);
+    swapl(&to->mods.base_mods, n);
+    swapl(&to->mods.latched_mods, n);
+    swapl(&to->mods.locked_mods, n);
+
+    ptr = (char*)(&to[1]);
+    ptr += from->buttons_len;
+    vmask = ptr; /* valuator mask */
+    ptr += from->valuators_len;
+    for (i = 0; i < from->valuators_len * 32; i++)
+    {
+        if (BitIsOn(vmask, i))
+        {
+            swapl(((uint32_t*)ptr), n);
+            ptr += 4;
+            swapl(((uint32_t*)ptr), n);
+            ptr += 4;
+        }
     }
 }
 
@@ -682,6 +744,13 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_Enter:
         case XI_Leave:
             SDeviceLeaveNotifyEvent((xXILeaveEvent*)from, (xXILeaveEvent*)to);
+            break;
+        case XI_DeviceChanged:
+            SDeviceChangedEvent((xXIDeviceChangedEvent*)from,
+                                (xXIDeviceChangedEvent*)to);
+            break;
+        default:
+            SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
             break;
     }
 }

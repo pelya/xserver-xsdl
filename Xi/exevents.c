@@ -56,12 +56,13 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include "inputstr.h"
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/extensions/geproto.h>
-#include "inputstr.h"
 #include "windowstr.h"
 #include "miscstruct.h"
 #include "region.h"
@@ -73,6 +74,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xace.h"
+#include "querydev.h" /* For List*Info */
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -654,15 +656,78 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
  * @param device The slave device
  * @param dcce Pointer to the event struct.
  */
+void
+XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChangedEvent *dce)
+{
+    xXIDeviceChangedEvent *dcce;
+    int len = sizeof(xXIDeviceChangedEvent);
+    int nkeys;
+    char *ptr;
+
+    if (dce->buttons.num_buttons)
+    {
+        len += sizeof(xXIButtonInfo);
+        len += dce->buttons.num_buttons * sizeof(Atom); /* button names */
+    }
+    if (dce->num_valuators)
+        len += sizeof(xXIValuatorInfo) * dce->num_valuators;
+
+    nkeys = (dce->keys.max_keycode > 0) ?
+                dce->keys.max_keycode - dce->keys.min_keycode + 1 : 0;
+    if (nkeys > 0)
+    {
+        len += sizeof(xXIKeyInfo);
+        len += sizeof(CARD32) * nkeys; /* keycodes */
+    }
+
+    dcce = xalloc(len);
+    if (!dcce)
+    {
+        ErrorF("[Xi] BadAlloc in SendDeviceChangedEvent.\n");
+        return;
+    }
+
+    dcce->type         = GenericEvent;
+    dcce->extension    = IReqCode;
+    dcce->evtype       = XI_DeviceChanged;
+    dcce->time         = GetTimeInMillis();
+    dcce->deviceid     = master->id;
+    dcce->sourceid     = device->id;
+    dcce->reason       = SlaveSwitch;
+    dcce->num_classes  = 0;
+    dcce->length = (len - sizeof(xEvent))/4;
+
+    ptr = (char*)&dcce[1];
+    if (dce->buttons.num_buttons)
+    {
+        dcce->num_classes++;
+        ptr += ListButtonInfo(device, (xXIButtonInfo*)ptr);
+    }
+
+    if (nkeys)
+    {
+        dcce->num_classes++;
+        ptr += ListKeyInfo(device, (xXIKeyInfo*)ptr);
+    }
+
+    if (dce->num_valuators)
+    {
+        int i;
+
+        dcce->num_classes += dce->num_valuators;
+        for (i = 0; i < dce->num_valuators; i++)
+            ptr += ListValuatorInfo(device, (xXIValuatorInfo*)ptr, i);
+    }
+
+    /* we don't actually swap if there's a NullClient, swapping is done
+     * later when event is delivered. */
+    SendEventToAllWindows(master, XI_DeviceChangedMask, (xEvent*)dcce, 1);
+}
+
 static void
-ChangeMasterDeviceClasses(DeviceIntPtr device,
-                          DeviceChangedEvent *dce)
+ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 {
     DeviceIntPtr master = device->u.master;
-    deviceClassesChangedEvent *dcce;
-    char* classbuff;
-    int len = sizeof(xEvent);
-    int namelen = 0; /* dummy */
 
     if (device->isMaster)
         return;
@@ -670,34 +735,11 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
     if (!master) /* if device was set floating between SIGIO and now */
         return;
 
-    SizeDeviceInfo(device, &namelen, &len);
-    dcce = xalloc(len);
-    if (!dcce)
-    {
-        ErrorF("[Xi] BadAlloc in ChangeMasterDeviceClasses\n");
-        return;
-    }
-
-    dcce->type         = GenericEvent;
-    dcce->extension    = IReqCode;
-    dcce->evtype       = XI_DeviceClassesChangedNotify;
-    dcce->time         = GetTimeInMillis();
-    dcce->new_slave    = device->id;
-    dcce->deviceid     = master->id;
-    dcce->num_classes  = 0;
-
-    dcce->length = (len - sizeof(xEvent))/4;
-
     master->public.devicePrivate = device->public.devicePrivate;
 
+    /* FIXME: the classes may have changed since we generated the event. */
     DeepCopyDeviceClasses(device, master);
-
-    classbuff = (char*)&dcce[1];
-    /* we don't actually swap if there's a NullClient, swapping is done
-     * later when event is delivered. */
-    CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuff);
-    SendEventToAllWindows(master, XI_DeviceClassesChangedMask,
-                          (xEvent*)dcce, 1);
+    XISendDeviceChangedEvent(device, master, dce);
 }
 
 /**

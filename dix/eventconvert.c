@@ -45,13 +45,12 @@
 #include "events.h"
 #include "exglobals.h"
 #include "eventconvert.h"
-#include "listdev.h"
+#include "querydev.h"
 
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
-static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce,
-                                 int *count);
+static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce);
 static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
 /**
  * Convert the given event to the respective core event.
@@ -127,8 +126,9 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_ProximityOut:
             return eventToKeyButtonPointer((DeviceEvent*)ev, xi, count);
         case ET_DeviceChanged:
-            return eventToClassesChanged((DeviceChangedEvent*)ev, xi, count);
-            break;
+            *count = 0;
+            *xi = NULL;
+            return Success;
     }
 
     ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->u.any.type);
@@ -162,6 +162,9 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_ProximityOut:
             *xi = NULL;
             return Success;
+        case ET_DeviceChanged:
+            return eventToClassesChanged((DeviceChangedEvent*)ev, xi);
+
     }
 
     ErrorF("[dix] EventToXI2: Not implemented for %d \n", ev->u.any.type);
@@ -290,14 +293,12 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
 }
 
 static int
-eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi, int *count)
+eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi)
 {
     int len = sizeof(xEvent);
-    int namelen = 0; /* dummy */
     DeviceIntPtr slave;
     int rc;
-    deviceClassesChangedEvent *dcce;
-
+    xXIDeviceChangedEvent *dce;
 
     rc = dixLookupDevice(&slave, ev->new_slaveid,
                          serverClient, DixReadAccess);
@@ -305,21 +306,25 @@ eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi, int *count)
     if (rc != Success)
         return rc;
 
-    SizeDeviceInfo(slave, &namelen, &len);
+    len += SizeDeviceClasses(slave);
 
     *xi = xcalloc(1, len);
     if (!(*xi))
         return BadAlloc;
 
-    dcce = (deviceClassesChangedEvent*)(*xi);
-    dcce->type = GenericEvent;
-    dcce->extension = IReqCode;
-    dcce->evtype = XI_DeviceClassesChangedNotify;
-    dcce->time = GetTimeInMillis();
-    dcce->new_slave = slave->id;
-    dcce->length = (len - sizeof(xEvent))/4;
+    dce = (xXIDeviceChangedEvent*)(*xi);
+    dce->type = GenericEvent;
+    dce->extension = IReqCode;
+    dce->evtype = XI_DeviceChanged;
+    dce->time = GetTimeInMillis();
+    dce->sourceid = slave->id;
+    dce->reason = SlaveSwitch;
+    dce->length = (len - sizeof(xEvent))/4;
 
-    *count = 1;
+    /* FIXME: this should come from the event, not from the device. See
+     * CreateClassesChangedEvent */
+    ListDeviceClasses(slave, (char*)&dce[1], &dce->num_classes);
+
     return Success;
 }
 
@@ -349,7 +354,6 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     int i, btlen, vallen;
     char *ptr;
     int32_t *axisval;
-
 
     /* FIXME: this should just send the buttons we have, not MAX_BUTTONs. Same
      * with MAX_VALUATORS below */

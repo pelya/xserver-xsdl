@@ -250,4 +250,8 @@ extern _X_EXPORT int XIPropToFloat(
  * would it merely be irrelevant and confusing? */
 extern _X_EXPORT int XIShouldNotify(ClientPtr client, DeviceIntPtr dev);
 
+extern void
+XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master,
+                         DeviceChangedEvent *dce);
+
 #endif /* EXEVENTS_H */

@@ -93,7 +93,7 @@ SProcXListInputDevices(ClientPtr client)
  *
  */
 
-void
+static void
 SizeDeviceInfo(DeviceIntPtr d, int *namesize, int *size)
 {
     int chunks;
@@ -273,22 +273,7 @@ CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
     return (i);
 }
 
-/***********************************************************************
- *
- * This procedure lists information to be returned for an input device.
- *
- */
-
 static void
-ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
-	       char **devbuf, char **classbuf, char **namebuf)
-{
-    CopyDeviceName(namebuf, d->name);
-    CopySwapDevice(client, d, 0, devbuf);
-    CopySwapClasses(client, d, &dev->num_classes, classbuf);
-}
-
-void
 CopySwapClasses(ClientPtr client, DeviceIntPtr dev, CARD8 *num_classes,
                 char** classbuf)
 {
@@ -305,6 +290,22 @@ CopySwapClasses(ClientPtr client, DeviceIntPtr dev, CARD8 *num_classes,
 	    CopySwapValuatorClass(client, dev->valuator, classbuf);
     }
 }
+
+/***********************************************************************
+ *
+ * This procedure lists information to be returned for an input device.
+ *
+ */
+
+static void
+ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
+	       char **devbuf, char **classbuf, char **namebuf)
+{
+    CopyDeviceName(namebuf, d->name);
+    CopySwapDevice(client, d, 0, devbuf);
+    CopySwapClasses(client, d, &dev->num_classes, classbuf);
+}
+
 
 /***********************************************************************
  *
