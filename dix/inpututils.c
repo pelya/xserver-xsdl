@@ -119,24 +119,6 @@ ApplyPointerMapping(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
         return ret;
     do_butmap_change(dev, map, len, client);
 
-    /* Change any attached masters/slaves. */
-    if (dev->isMaster) {
-        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-            if (!tmp->isMaster && tmp->u.master == dev)
-                if (check_butmap_change(tmp, map, len, NULL, client) == Success)
-                    do_butmap_change(tmp, map, len, client);
-        }
-    }
-    else {
-        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-            if (tmp->isMaster && tmp->u.lastSlave == dev) {
-                /* If this fails, expect the results to be weird. */
-                if (check_butmap_change(tmp, map, len, NULL, client) == Success)
-                    do_butmap_change(tmp, map, len, client);
-            }
-        }
-    }
-
     return Success;
 }
 
