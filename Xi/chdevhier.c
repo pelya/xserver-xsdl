@@ -40,7 +40,7 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/extensions/geproto.h>
 #include "extnsionst.h"
 #include "exevents.h"
@@ -60,33 +60,33 @@
  *
  */
 
-int SProcXChangeDeviceHierarchy(ClientPtr client)
+int SProcXIChangeDeviceHierarchy(ClientPtr client)
 {
     char n;
 
-    REQUEST(xChangeDeviceHierarchyReq);
+    REQUEST(xXIChangeDeviceHierarchyReq);
     swaps(&stuff->length, n);
-    return (ProcXChangeDeviceHierarchy(client));
+    return (ProcXIChangeDeviceHierarchy(client));
 }
 
 #define SWAPIF(cmd) if (client->swapped) { cmd; }
 
 int
-ProcXChangeDeviceHierarchy(ClientPtr client)
+ProcXIChangeDeviceHierarchy(ClientPtr client)
 {
     DeviceIntPtr ptr, keybd;
     DeviceIntRec dummyDev;
-    xAnyHierarchyChangeInfo *any;
-    int required_len = sizeof(xChangeDeviceHierarchyReq);
+    xXIAnyHierarchyChangeInfo *any;
+    int required_len = sizeof(xXIChangeDeviceHierarchyReq);
     char n;
     int rc = Success;
     int nchanges = 0;
-    deviceHierarchyChangedEvent ev;
+    xXIDeviceHierarchyEvent ev;
 
-    REQUEST(xChangeDeviceHierarchyReq);
-    REQUEST_AT_LEAST_SIZE(xChangeDeviceHierarchyReq);
+    REQUEST(xXIChangeDeviceHierarchyReq);
+    REQUEST_AT_LEAST_SIZE(xXIChangeDeviceHierarchyReq);
 
-    any = (xAnyHierarchyChangeInfo*)&stuff[1];
+    any = (xXIAnyHierarchyChangeInfo*)&stuff[1];
     while(stuff->num_changes--)
     {
         SWAPIF(swapl(&any->type, n));
@@ -100,12 +100,12 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
         {
             case CH_CreateMasterDevice:
                 {
-                    xCreateMasterInfo* c = (xCreateMasterInfo*)any;
+                    xXICreateMasterInfo* c = (xXICreateMasterInfo*)any;
                     char* name;
 
-                    SWAPIF(swaps(&c->namelen, n));
-                    name = xcalloc(c->namelen + 1, sizeof(char));
-                    strncpy(name, (char*)&c[1], c->namelen);
+                    SWAPIF(swaps(&c->name_len, n));
+                    name = xcalloc(c->name_len + 1, sizeof(char));
+                    strncpy(name, (char*)&c[1], c->name_len);
 
 
                     rc = AllocMasterDevice(client, name, &ptr, &keybd);
@@ -115,7 +115,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    if (!c->sendCore)
+                    if (!c->send_core)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
 
                     ActivateDevice(ptr);
@@ -132,10 +132,10 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 break;
             case CH_RemoveMasterDevice:
                 {
-                    xRemoveMasterInfo* r = (xRemoveMasterInfo*)any;
+                    xXIRemoveMasterInfo* r = (xXIRemoveMasterInfo*)any;
 
-                    if (r->returnMode != AttachToMaster &&
-                            r->returnMode != Floating)
+                    if (r->return_mode != AttachToMaster &&
+                            r->return_mode != Floating)
                         return BadValue;
 
                     rc = dixLookupDevice(&ptr, r->deviceid, client,
@@ -182,32 +182,32 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     /* Disabling sends the devices floating, reattach them if
                      * desired. */
-                    if (r->returnMode == AttachToMaster)
+                    if (r->return_mode == AttachToMaster)
                     {
                         DeviceIntPtr attached,
                                      newptr,
                                      newkeybd;
 
-                        rc = dixLookupDevice(&newptr, r->returnPointer,
+                        rc = dixLookupDevice(&newptr, r->return_pointer,
                                              client, DixWriteAccess);
                         if (rc != Success)
                             goto unwind;
 
                         if (!newptr->isMaster)
                         {
-                            client->errorValue = r->returnPointer;
+                            client->errorValue = r->return_pointer;
                             rc = BadDevice;
                             goto unwind;
                         }
 
-                        rc = dixLookupDevice(&newkeybd, r->returnKeyboard,
+                        rc = dixLookupDevice(&newkeybd, r->return_keyboard,
                                              client, DixWriteAccess);
                         if (rc != Success)
                             goto unwind;
 
                         if (!newkeybd->isMaster)
                         {
-                            client->errorValue = r->returnKeyboard;
+                            client->errorValue = r->return_keyboard;
                             rc = BadDevice;
                             goto unwind;
                         }
@@ -236,9 +236,9 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     nchanges++;
                 }
                 break;
-            case CH_ChangeAttachment:
+            case CH_DetachSlave:
                 {
-                    xChangeAttachmentInfo* c = (xChangeAttachmentInfo*)any;
+                    xXIDetachSlaveInfo* c = (xXIDetachSlaveInfo*)any;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixWriteAccess);
@@ -252,38 +252,53 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    if (c->changeMode == Floating)
-                        AttachDevice(client, ptr, NULL);
-                    else
-                    {
-                        DeviceIntPtr newmaster;
-                        rc = dixLookupDevice(&newmaster, c->newMaster,
-                                             client, DixWriteAccess);
-                        if (rc != Success)
-                            goto unwind;
-                        if (!newmaster->isMaster)
-                        {
-                            client->errorValue = c->newMaster;
-                            rc = BadDevice;
-                            goto unwind;
-                        }
+                    AttachDevice(client, ptr, NULL);
+                    nchanges++;
+                }
+                break;
+            case CH_AttachSlave:
+                {
+                    xXIAttachSlaveInfo* c = (xXIAttachSlaveInfo*)any;
+                    DeviceIntPtr newmaster;
 
-                        if (!((IsPointerDevice(newmaster) &&
+                    rc = dixLookupDevice(&ptr, c->deviceid, client,
+                                          DixWriteAccess);
+                    if (rc != Success)
+                       goto unwind;
+
+                    if (ptr->isMaster)
+                    {
+                        client->errorValue = c->deviceid;
+                        rc = BadDevice;
+                        goto unwind;
+                    }
+
+                    rc = dixLookupDevice(&newmaster, c->new_master,
+                            client, DixWriteAccess);
+                    if (rc != Success)
+                        goto unwind;
+                    if (!newmaster->isMaster)
+                    {
+                        client->errorValue = c->new_master;
+                        rc = BadDevice;
+                        goto unwind;
+                    }
+
+                    if (!((IsPointerDevice(newmaster) &&
                                     IsPointerDevice(ptr)) ||
                                 (IsKeyboardDevice(newmaster) &&
                                  IsKeyboardDevice(ptr))))
-                        {
-                            rc = BadDevice;
-                            goto unwind;
-                        }
-                        AttachDevice(client, ptr, newmaster);
+                    {
+                        rc = BadDevice;
+                        goto unwind;
                     }
+                    AttachDevice(client, ptr, newmaster);
                     nchanges++;
                 }
                 break;
         }
 
-        any = (xAnyHierarchyChangeInfo*)((char*)any + any->length);
+        any = (xXIAnyHierarchyChangeInfo*)((char*)any + any->length * 4);
     }
 
 unwind:
@@ -294,7 +309,7 @@ unwind:
         ev.type = GenericEvent;
         ev.extension = IReqCode;
         ev.length = 0;
-        ev.evtype = XI_DeviceHierarchyChangedNotify;
+        ev.evtype = XI_HierarchyChanged;
         ev.time = GetTimeInMillis();
 
         SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask,

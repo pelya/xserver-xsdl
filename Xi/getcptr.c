@@ -33,7 +33,7 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
@@ -47,29 +47,29 @@
  */
 
 int
-SProcXGetClientPointer(ClientPtr client)
+SProcXIGetClientPointer(ClientPtr client)
 {
     char n;
-    REQUEST(xGetClientPointerReq);
+    REQUEST(xXIGetClientPointerReq);
 
     swaps(&stuff->length, n);
     swapl(&stuff->win, n);
-    return ProcXGetClientPointer(client);
+    return ProcXIGetClientPointer(client);
 }
 
-int ProcXGetClientPointer(ClientPtr client)
+int ProcXIGetClientPointer(ClientPtr client)
 {
     int err;
     WindowPtr win;
     ClientPtr winclient;
-    xGetClientPointerReply rep;
-    REQUEST(xGetClientPointerReq);
-    REQUEST_SIZE_MATCH(xGetClientPointerReq);
+    xXIGetClientPointerReply rep;
+    REQUEST(xXIGetClientPointerReq);
+    REQUEST_SIZE_MATCH(xXIGetClientPointerReq);
 
     err = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
     if (err != Success)
     {
-        SendErrorToClient(client, IReqCode, X_GetClientPointer,
+        SendErrorToClient(client, IReqCode, X_XIGetClientPointer,
                 stuff->win, err);
         return Success;
     }
@@ -77,13 +77,13 @@ int ProcXGetClientPointer(ClientPtr client)
     winclient = wClient(win);
 
     rep.repType = X_Reply;
-    rep.RepType = X_GetClientPointer;
+    rep.RepType = X_XIGetClientPointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.set = (winclient->clientPtr != NULL);
     rep.deviceid = (winclient->clientPtr) ? winclient->clientPtr->id : 0;
 
-    WriteReplyToClient(client, sizeof(xGetClientPointerReply), &rep);
+    WriteReplyToClient(client, sizeof(xXIGetClientPointerReply), &rep);
     return Success;
 }
 
@@ -95,8 +95,8 @@ int ProcXGetClientPointer(ClientPtr client)
  */
 
 void
-SRepXGetClientPointer(ClientPtr client, int size,
-        xGetClientPointerReply* rep)
+SRepXIGetClientPointer(ClientPtr client, int size,
+        xXIGetClientPointerReply* rep)
 {
     char n;
     swaps(&rep->sequenceNumber, n);

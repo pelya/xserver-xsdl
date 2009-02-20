@@ -30,10 +30,7 @@
 #ifndef CHDEVCUR_H
 #define CHDEVCUR_H 1
 
-int SProcXChangeDeviceCursor(ClientPtr	/* client */
-    );
-
-int ProcXChangeDeviceCursor(ClientPtr	/* client */
-    );
+int SProcXIChangeDeviceCursor(ClientPtr	/* client */);
+int ProcXIChangeDeviceCursor(ClientPtr	/* client */);
 
 #endif /* CHDEVCUR_H */

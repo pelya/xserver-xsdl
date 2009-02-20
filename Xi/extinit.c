@@ -61,6 +61,7 @@ SOFTWARE.
 #include "extnsionst.h"	/* extension entry   */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/extensions/geproto.h>
 #include "geext.h" /* extension interfaces for ge */
 
@@ -229,12 +230,12 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXDeleteDeviceProperty,              /* 38 */
         ProcXGetDeviceProperty,                 /* 39 */
         /* XI 2 */
-        ProcXQueryDevicePointer,                /* 40 */
-        ProcXWarpDevicePointer,                 /* 41 */
-        ProcXChangeDeviceCursor,                /* 42 */
-        ProcXChangeDeviceHierarchy,             /* 43 */
-        ProcXSetClientPointer,                  /* 44 */
-        ProcXGetClientPointer,                  /* 45 */
+        ProcXIQueryDevicePointer,               /* 40 */
+        ProcXIWarpDevicePointer,                /* 41 */
+        ProcXIChangeDeviceCursor,               /* 42 */
+        ProcXIChangeDeviceHierarchy,            /* 43 */
+        ProcXISetClientPointer,                 /* 44 */
+        ProcXIGetClientPointer,                 /* 45 */
         ProcXiSelectEvent,                      /* 46 */
         ProcXIQueryVersion                      /* 47 */
 };
@@ -281,12 +282,12 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXChangeDeviceProperty,              /* 37 */
         SProcXDeleteDeviceProperty,              /* 38 */
         SProcXGetDeviceProperty,                 /* 39 */
-        SProcXQueryDevicePointer,                /* 40 */
-        SProcXWarpDevicePointer,                 /* 41 */
-        SProcXChangeDeviceCursor,                /* 42 */
-        SProcXChangeDeviceHierarchy,             /* 43 */
-        SProcXSetClientPointer,                  /* 44 */
-        SProcXGetClientPointer,                  /* 45 */
+        SProcXIQueryDevicePointer,               /* 40 */
+        SProcXIWarpDevicePointer,                /* 41 */
+        SProcXIChangeDeviceCursor,               /* 42 */
+        SProcXIChangeDeviceHierarchy,            /* 43 */
+        SProcXISetClientPointer,                 /* 44 */
+        SProcXIGetClientPointer,                 /* 45 */
         SProcXiSelectEvent,                      /* 46 */
         SProcXIQueryVersion                      /* 47 */
 };
@@ -474,11 +475,11 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
         SRepXListDeviceProperties(client, len, (xListDevicePropertiesReply*)rep);
     else if (rep->RepType == X_GetDeviceProperty)
 	SRepXGetDeviceProperty(client, len, (xGetDevicePropertyReply *) rep);
-    else if (rep->RepType == X_QueryDevicePointer)
-	SRepXQueryDevicePointer(client, len,
-				(xQueryDevicePointerReply *) rep);
-    else if (rep->RepType == X_GetClientPointer)
-        SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
+    else if (rep->RepType == X_XIQueryDevicePointer)
+	SRepXIQueryDevicePointer(client, len,
+				(xXIQueryDevicePointerReply *) rep);
+    else if (rep->RepType == X_XIGetClientPointer)
+        SRepXIGetClientPointer(client, len, (xXIGetClientPointerReply*) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

@@ -38,7 +38,7 @@
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
@@ -57,26 +57,26 @@
  */
 
 int
-SProcXQueryDevicePointer(ClientPtr client)
+SProcXIQueryDevicePointer(ClientPtr client)
 {
     char n;
 
-    REQUEST(xQueryDevicePointerReq);
+    REQUEST(xXIQueryDevicePointerReq);
     swaps(&stuff->length, n);
-    return (ProcXQueryDevicePointer(client));
+    return (ProcXIQueryDevicePointer(client));
 }
 
 int
-ProcXQueryDevicePointer(ClientPtr client)
+ProcXIQueryDevicePointer(ClientPtr client)
 {
     int rc;
-    xQueryDevicePointerReply rep;
+    xXIQueryDevicePointerReply rep;
     DeviceIntPtr pDev, kbd;
     WindowPtr pWin, t;
     SpritePtr pSprite;
 
-    REQUEST(xQueryDevicePointerReq);
-    REQUEST_SIZE_MATCH(xQueryDevicePointerReq);
+    REQUEST(xXIQueryDevicePointerReq);
+    REQUEST_SIZE_MATCH(xXIQueryDevicePointerReq);
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
     if (rc != Success)
@@ -91,7 +91,7 @@ ProcXQueryDevicePointer(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->win, client, DixReadAccess);
     if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_QueryDevicePointer,
+        SendErrorToClient(client, IReqCode, X_XIQueryDevicePointer,
                 stuff->win, rc);
         return Success;
     }
@@ -103,23 +103,23 @@ ProcXQueryDevicePointer(ClientPtr client)
 
     pSprite = pDev->spriteInfo->sprite;
     rep.repType = X_Reply;
-    rep.RepType = X_QueryDevicePointer;
+    rep.RepType = X_XIQueryDevicePointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.mask = pDev->button->state;
     if (kbd && kbd->key)
         rep.mask |= XkbStateFieldFromRec(&kbd->key->xkbInfo->state);
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
-    rep.rootX = pSprite->hot.x;
-    rep.rootY = pSprite->hot.y;
+    rep.root_x.integral = pSprite->hot.x;
+    rep.root_y.integral = pSprite->hot.y;
     rep.child = None;
     rep.deviceid = pDev->id;
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
-        rep.sameScreen = xTrue;
-        rep.winX = pSprite->hot.x - pWin->drawable.x;
-        rep.winY = pSprite->hot.y - pWin->drawable.y;
+        rep.same_screen = xTrue;
+        rep.win_x.integral = pSprite->hot.x - pWin->drawable.x;
+        rep.win_y.integral = pSprite->hot.y - pWin->drawable.y;
         for (t = pSprite->win; t; t = t->parent)
             if (t->parent == pWin)
             {
@@ -128,37 +128,37 @@ ProcXQueryDevicePointer(ClientPtr client)
             }
     } else
     {
-        rep.sameScreen = xFalse;
-        rep.winX = 0;
-        rep.winY = 0;
+        rep.same_screen = xFalse;
+        rep.win_x.integral = 0;
+        rep.win_y.integral = 0;
     }
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-        rep.rootX += panoramiXdataPtr[0].x;
-        rep.rootY += panoramiXdataPtr[0].y;
+        rep.root_x.integral += panoramiXdataPtr[0].x;
+        rep.root_y.integral += panoramiXdataPtr[0].y;
         if (stuff->win == rep.root)
         {
-            rep.winX += panoramiXdataPtr[0].x;
-            rep.winY += panoramiXdataPtr[0].y;
+            rep.win_x.integral += panoramiXdataPtr[0].x;
+            rep.win_y.integral += panoramiXdataPtr[0].y;
         }
     }
 #endif
 
-    WriteReplyToClient(client, sizeof(xQueryDevicePointerReply), &rep);
+    WriteReplyToClient(client, sizeof(xXIQueryDevicePointerReply), &rep);
     return Success;
 }
 
 /***********************************************************************
  *
- * This procedure writes the reply for the XQueryDevicePointer function,
+ * This procedure writes the reply for the XIQueryDevicePointer function,
  * if the client and server have a different byte ordering.
  *
  */
 
 void
-SRepXQueryDevicePointer(ClientPtr client, int size,
-        xQueryDevicePointerReply * rep)
+SRepXIQueryDevicePointer(ClientPtr client, int size,
+        xXIQueryDevicePointerReply * rep)
 {
     char n;
 

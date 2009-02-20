@@ -36,7 +36,7 @@
 #ifndef CHDEVHIER_H
 #define CHDEVHIER_H 1
 
-int SProcXChangeDeviceHierarchy(ClientPtr /* client */);
-int ProcXChangeDeviceHierarchy(ClientPtr /* client */);
+int SProcXIChangeDeviceHierarchy(ClientPtr /* client */);
+int ProcXIChangeDeviceHierarchy(ClientPtr /* client */);
 
 #endif

@@ -41,7 +41,7 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
@@ -49,25 +49,25 @@
 #include "setcptr.h"
 
 int
-SProcXSetClientPointer(ClientPtr client)
+SProcXISetClientPointer(ClientPtr client)
 {
     char n;
 
-    REQUEST(xSetClientPointerReq);
+    REQUEST(xXISetClientPointerReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(xSetClientPointerReq);
-    return (ProcXSetClientPointer(client));
+    REQUEST_SIZE_MATCH(xXISetClientPointerReq);
+    return (ProcXISetClientPointer(client));
 }
 
 int
-ProcXSetClientPointer(ClientPtr client)
+ProcXISetClientPointer(ClientPtr client)
 {
     DeviceIntPtr pDev;
     ClientPtr targetClient;
     int rc;
 
-    REQUEST(xSetClientPointerReq);
-    REQUEST_SIZE_MATCH(xSetClientPointerReq);
+    REQUEST(xXISetClientPointerReq);
+    REQUEST_SIZE_MATCH(xXISetClientPointerReq);
 
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);

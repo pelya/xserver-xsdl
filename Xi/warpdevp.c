@@ -39,7 +39,7 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
@@ -54,17 +54,17 @@
  */
 
 int
-SProcXWarpDevicePointer(ClientPtr client)
+SProcXIWarpDevicePointer(ClientPtr client)
 {
     char n;
 
-    REQUEST(xWarpDevicePointerReq);
+    REQUEST(xXIWarpDevicePointerReq);
     swaps(&stuff->length, n);
-    return (ProcXWarpDevicePointer(client));
+    return (ProcXIWarpDevicePointer(client));
 }
 
 int
-ProcXWarpDevicePointer(ClientPtr client)
+ProcXIWarpDevicePointer(ClientPtr client)
 {
     int rc;
     int x, y;
@@ -73,8 +73,8 @@ ProcXWarpDevicePointer(ClientPtr client)
     SpritePtr pSprite;
     ScreenPtr newScreen;
 
-    REQUEST(xWarpDevicePointerReq);
-    REQUEST_SIZE_MATCH(xWarpDevicePointerReq);
+    REQUEST(xXIWarpDevicePointerReq);
+    REQUEST_SIZE_MATCH(xXIWarpDevicePointerReq);
 
     /* FIXME: panoramix stuff is missing, look at ProcWarpPointer */
 

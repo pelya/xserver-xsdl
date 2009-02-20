@@ -39,7 +39,7 @@
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
-#include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
@@ -54,25 +54,25 @@
  */
 
 int
-SProcXChangeDeviceCursor(ClientPtr client)
+SProcXIChangeDeviceCursor(ClientPtr client)
 {
     char n;
 
-    REQUEST(xChangeDeviceCursorReq);
+    REQUEST(xXIChangeDeviceCursorReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(xChangeDeviceCursorReq);
-    return (ProcXChangeDeviceCursor(client));
+    REQUEST_SIZE_MATCH(xXIChangeDeviceCursorReq);
+    return (ProcXIChangeDeviceCursor(client));
 }
 
-int ProcXChangeDeviceCursor(ClientPtr client)
+int ProcXIChangeDeviceCursor(ClientPtr client)
 {
     int rc;
     WindowPtr pWin    = NULL;
     DeviceIntPtr pDev = NULL;
     CursorPtr pCursor = NULL;
 
-    REQUEST(xChangeDeviceCursorReq);
-    REQUEST_SIZE_MATCH(xChangeDeviceCursorReq);
+    REQUEST(xXIChangeDeviceCursorReq);
+    REQUEST_SIZE_MATCH(xXIChangeDeviceCursorReq);
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
     if (rc != Success)
