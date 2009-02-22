@@ -1146,6 +1146,8 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     if (rec->type != RT_WINDOW)
 	return;
+    if (rec->state != ResourceStateAdding)
+	return;
 
     pWin = (WindowPtr)rec->value;
     subj = dixLookupPrivate(&wClient(pWin)->devPrivates, subjectKey);
