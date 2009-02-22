@@ -296,12 +296,13 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
 static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms, CARD8 *modmap) {
     DeviceIntPtr pDev;
 
+    pthread_mutex_lock(&keyInfo_mutex);
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
-            XkbApplyMappingChange(pDev, XkbKeySymsMask | XkbModifierMapMask,
-                                  keysyms, keysyms.minKeyCode,
-                                  keysyms.maxKeyCode - keysyms.minKeyCode + 1,
+            XkbApplyMappingChange(pDev, keySyms, keySyms->minKeyCode,
+                                  keySyms->maxKeyCode - keySyms->minKeyCode + 1,
                                   modmap, serverClient);
+    pthread_mutex_unlock(&keyInfo_mutex);
 }
 
 /*
@@ -315,6 +316,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     XkbComponentNamesRec names;
     CFIndex value;
     BOOL ok;
+    XkbRMLVOSet rmlvo;
 
     // Open a shared connection to the HID System.
     // Note that the Event Status Driver is really just a wrapper
@@ -325,20 +327,9 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
     bzero(&names, sizeof(names));
 
-    /* We need to really have rules... or something... */
-    //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
-    
-    pthread_mutex_lock(&keyInfo_mutex);
-    assert(XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, QuartzBell,
-                                       DarwinChangeKeyboardControl));
-    assert(keyInfo.modMap!=NULL);
-    pthread_mutex_unlock(&keyInfo_mutex);
-
-    pthread_mutex_lock(&keyInfo_mutex);
-    assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
-                                      QuartzBell,
-                                      DarwinChangeKeyboardControl ));
-    pthread_mutex_unlock(&keyInfo_mutex);
+    XkbGetRulesDflts(&rmlvo);
+    InitKeyboardDeviceStruct(pDev, &rmlvo, QuartzBell,
+                             DarwinChangeKeyboardControl);
 
     /* Get our key repeat settings from GlobalPreferences */
     (void)CFPreferencesAppSynchronize(CFSTR(".GlobalPreferences"));
@@ -366,13 +357,13 @@ void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev,
     KeySymsRec keySyms;
 
     DEBUG_LOG("DarwinKeyboardReloadHandler\n");
-    if (pDev->key) {
-        if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
-        xfree(pDev->key);
-    }
+//    if (pDev->key) {
+//        if (pDev->key->curKeySyms.map) xfree(pDev->key->curKeySyms.map);
+//        xfree(pDev->key);
+//    }
 
     DarwinLoadKeyboardMapping(&keySyms);
-    DarwinKeyboardSetDeviceKeyMap(&keySyms);
+    DarwinKeyboardSetDeviceKeyMap(&keySyms, keyInfo.modMap);
 }
 
 //-----------------------------------------------------------------------------
