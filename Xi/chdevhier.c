@@ -102,7 +102,6 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 {
                     xCreateMasterInfo* c = (xCreateMasterInfo*)any;
                     char* name;
-                    XkbRMLVOSet set;
 
                     SWAPIF(swaps(&c->namelen, n));
                     name = xcalloc(c->namelen + 1, sizeof(char));
@@ -118,15 +117,6 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     if (!c->sendCore)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
-
-                    /* supplying NULL for rules simply means we re-use
-                       whatever ruleset we used for the previous devices. */
-                    set.rules = NULL;
-                    set.model = "pc105";
-                    set.layout = "us";
-                    set.variant = NULL;
-                    set.options = NULL;
-                    XkbSetRulesDflts(&set);
 
                     ActivateDevice(ptr);
                     ActivateDevice(keybd);
