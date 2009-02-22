@@ -720,7 +720,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     OsBlockSignals();
     RemoveDevice(pDev);
 
-    if (!isMaster)
+    if (!isMaster && pInfo != NULL)
     {
         if(drv->UnInit)
             drv->UnInit(drv, pInfo, 0);
