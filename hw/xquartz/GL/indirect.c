@@ -167,7 +167,7 @@ __glXAquaScreenCreateContext(__GLXscreen *screen,
   
     GLAQUA_DEBUG_MSG("glXAquaScreenCreateContext\n");
     
-    context = xalloc (sizeof (__GLXAquaContext));
+    context = xcalloc(1, sizeof (__GLXAquaContext));
     
     if (context == NULL)
 	return NULL;
