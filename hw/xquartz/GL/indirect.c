@@ -648,21 +648,37 @@ static __GLXconfig *CreateConfigs(int *numConfigsPtr, int screenNumber) {
 					    c->samples = conf->multisample_samples;
 					}
 
+					/* 
+					 * The Apple libGL supports GLXPixmaps and 
+					 * GLXPbuffers in direct mode.
+					 */
 					/* SGIX_fbconfig / GLX 1.3 */
-					c->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
+					c->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT
+					    | GLX_PBUFFER_BIT;
 					c->renderType = GLX_RGBA_BIT;
 					c->xRenderable = GL_TRUE;
 					c->fbconfigID = -1;
 					
-					/*TODO add querying code to capabilities.c for the Pbuffer maximums.
-					 *I'm not sure we can even use CGL for Pbuffers yet...
-					 */
 					/* SGIX_pbuffer / GLX 1.3 */
-					c->maxPbufferWidth = 0;
-					c->maxPbufferHeight = 0;
-					c->maxPbufferPixels = 0;
+					
+					/* 
+					 * The CGL layer provides a way of retrieving
+					 * the maximum pbuffer width/height, but only
+					 * if we create a context and call glGetIntegerv.
+					 * 
+					 * The following values are from a test program
+					 * that does so.
+					 */
+					c->maxPbufferWidth = 8192;
+					c->maxPbufferHeight = 8192;
+					c->maxPbufferPixels = /*Do we need this?*/ 0;
+					/* 
+					 * There is no introspection for this sort of thing
+					 * with CGL.  What should we do realistically?
+					 */
 					c->optimalPbufferWidth = 0;
 					c->optimalPbufferHeight = 0;
+					
 					c->visualSelectGroup = 0;
 					
 					c->swapMethod = GLX_SWAP_UNDEFINED_OML;
@@ -708,7 +724,8 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     if (pScreen == NULL) 
 	return NULL;
 
-    screen = xalloc(sizeof *screen);
+    screen = xcalloc(1, sizeof *screen);
+
     if(NULL == screen)
 	return NULL;
     
@@ -723,11 +740,13 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.fbconfigs = CreateConfigs(&screen->base.numFBConfigs, 
 					   pScreen->myNum);
     
+    /* This is set by __glXScreenInit: */
+    screen->base.visuals = NULL;
+    /* This is to be initialized prior to the call to __glXScreenInit: */
+    screen->base.numVisuals = 0;
+
     __glXScreenInit(&screen->base, pScreen);
 
-    /* __glXScreenInit initializes these, so the order here is important, if we need these... */
-    //  screen->base.GLextensions = "";
-    // screen->base.GLXvendor = "Apple";
     screen->base.GLXversion = xstrdup("1.4");
     screen->base.GLXextensions = xstrdup("GLX_SGIX_fbconfig "
 					 "GLX_SGIS_multisample "
