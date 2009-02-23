@@ -327,26 +327,3 @@ GetXIType(InternalEvent *event)
     return xitype;
 }
 
-/*
- * FIXME: A temporary solution to make the server bisectable. Take the event
- * @event and copy it into @ev, returning the number of events in @ev.
- */
-int
-ConvertBackToXI(InternalEvent *event, xEvent *ev)
-{
-    int count = 0;
-    int evlen, i;
-    xEvent *xi =  NULL;
-
-
-    if (EventToXI(event, &xi, &count))
-        ErrorF("[dix] conversion to XI failed\n");
-
-    if (xi->u.u.type == GenericEvent)
-        evlen = (GEV(xi))->length * 4 + 32;
-    else
-        evlen = count *  32;
-    for (i = 0; i < count; i++)
-        memcpy(&ev[i], &xi[i], evlen);
-    return count;
-}
