@@ -55,6 +55,7 @@ SOFTWARE.
 #include "cursorstr.h"
 #include "geext.h"
 #include "privates.h"
+#include <X11/extensions/XI2proto.h>
 
 #define BitIsOn(ptr, bit) (((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
 #define SetBit(ptr, bit)  (((BYTE *) (ptr))[(bit)>>3] |= (1 << ((bit) & 7)))
@@ -63,7 +64,8 @@ SOFTWARE.
 #define SameClient(obj,client) \
 	(CLIENT_BITS((obj)->resource) == (client)->clientAsMask)
 
-#define EMASKSIZE	MAXDEVICES + 1
+#define EMASKSIZE	MAXDEVICES + 2
+#define XI2MASKSIZE     ((XI_LASTEVENT + 7)/8) /* no of bits for masks */
 
 /**
  * This struct stores the core event mask for each client except the client
@@ -98,6 +100,8 @@ typedef struct _InputClients {
     InputClientsPtr	next; /**< Pointer to the next mask */
     XID			resource; /**< id for putting into resource manager */
     Mask		mask[EMASKSIZE]; /**< Actual XI event mask, deviceid is index */
+    /** XI2 event masks. One per device, each bit is a mask of (1 << type) */
+    unsigned char       xi2mask[EMASKSIZE][XI2MASKSIZE];
 } InputClients;
 
 /**
@@ -126,6 +130,8 @@ typedef struct _OtherInputMasks {
     Mask		dontPropagateMask[EMASKSIZE];
     /** The clients that selected for events */
     InputClientsPtr	inputClients;
+    /* XI2 event masks. One per device, each bit is a mask of (1 << type) */
+    unsigned char       xi2mask[EMASKSIZE][XI2MASKSIZE];
 } OtherInputMasks;
 
 /*

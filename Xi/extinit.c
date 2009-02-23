@@ -119,7 +119,7 @@ SOFTWARE.
 #include "ungrdevb.h"
 #include "ungrdevk.h"
 #include "warpdevp.h"
-#include "xiselev.h"
+#include "xiselectev.h"
 #include "xiproperty.h"
 
 
@@ -237,7 +237,7 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXIChangeDeviceHierarchy,            /* 43 */
         ProcXISetClientPointer,                 /* 44 */
         ProcXIGetClientPointer,                 /* 45 */
-        ProcXiSelectEvent,                      /* 46 */
+        ProcXISelectEvent,                      /* 46 */
         ProcXIQueryVersion,                     /* 47 */
         ProcXIQueryDevice                       /* 48 */
 };
@@ -290,7 +290,7 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXIChangeDeviceHierarchy,            /* 43 */
         SProcXISetClientPointer,                 /* 44 */
         SProcXIGetClientPointer,                 /* 45 */
-        SProcXiSelectEvent,                      /* 46 */
+        SProcXISelectEvent,                      /* 46 */
         SProcXIQueryVersion,                     /* 47 */
         SProcXIQueryDevice                       /* 48 */
 };

@@ -1499,15 +1499,20 @@ RecalculateDeviceDeliverableEvents(WindowPtr pWin)
     InputClientsPtr others;
     struct _OtherInputMasks *inputMasks;	/* default: NULL */
     WindowPtr pChild, tmp;
-    int i;
+    int i, j;
 
     pChild = pWin;
     while (1) {
 	if ((inputMasks = wOtherInputMasks(pChild)) != 0) {
+            for (i = 0; i < EMASKSIZE; i++)
+                memset(inputMasks->xi2mask[i], 0, sizeof(inputMasks->xi2mask[i]));
 	    for (others = inputMasks->inputClients; others;
 		 others = others->next) {
 		for (i = 0; i < EMASKSIZE; i++)
 		    inputMasks->inputEvents[i] |= others->mask[i];
+                for (i = 0; i < EMASKSIZE; i++)
+                    for (j = 0; j < XI2MASKSIZE; j++)
+                        inputMasks->xi2mask[i][j] |= others->xi2mask[i][j];
 	    }
 	    for (i = 0; i < EMASKSIZE; i++)
 		inputMasks->deliverableEvents[i] = inputMasks->inputEvents[i];
@@ -1955,3 +1960,41 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
     }
 }
 
+/**
+ * Set the XI2 mask for the given client on the given window.
+ * @param dev The device to set the mask for.
+ * @param win The window to set the mask on.
+ * @param client The client setting the mask.
+ * @param len Number of bytes in mask.
+ * @param mask Event mask in the form of (1 << eventtype)
+ */
+void
+XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
+               unsigned int len, unsigned char* mask)
+{
+    OtherInputMasks *masks;
+    InputClientsPtr others = NULL;
+
+    masks = wOtherInputMasks(win);
+    if (masks)
+    {
+	for (others = wOtherInputMasks(win)->inputClients; others;
+	     others = others->next) {
+	    if (SameClient(others, client)) {
+                memset(others->xi2mask[dev->id], 0,
+                       sizeof(others->xi2mask[dev->id]));
+                break;
+            }
+        }
+    }
+
+    if (!others && len)
+    {
+        AddExtensionClient(win, client, 0, 0);
+        others= wOtherInputMasks(win)->inputClients;
+    }
+
+    memcpy(others->xi2mask[dev->id], mask, len);
+
+    RecalculateDeviceDeliverableEvents(win);
+}
