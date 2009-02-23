@@ -23,8 +23,9 @@
  */
 
 /**
- * @file This file contains event conversion routines from InternalEvent to
- * the matching protocol events.
+ * @file eventconvert.c
+ * This file contains event conversion routines from InternalEvent to the
+ * matching protocol events.
  */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -50,14 +51,15 @@ static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce,
                                  int *count);
 
 /**
- * Convert the given event @ev to the respective core event and store it in
- * @core.
+ * Convert the given event to the respective core event.
  *
  * Return values:
- * Success ... @core contains the matching core event.
+ * Success ... core contains the matching core event.
  * BadValue .. One or more values in the internal event are invalid.
  * BadMatch .. The event has no core equivalent.
  *
+ * @param[in] event The event to convert into a core event.
+ * @param[in] core The memory location to store the core event at.
  * @return Success or the matching error code.
  */
 int
@@ -96,13 +98,17 @@ EventToCore(InternalEvent *event, xEvent *core)
 }
 
 /**
- * Convert the given event @ev to the respective XI 1.x event and store it in
- * @xi. @xi is allocated on demand and must be freed by the caller.
- * @count returns the number of events in @xi. If @count is 1, and the type of
- * @xi is GenericEvent, then @xi may be larger than 32 bytes.
+ * Convert the given event to the respective XI 1.x event and store it in
+ * xi. xi is allocated on demand and must be freed by the caller.
+ * count returns the number of events in xi. If count is 1, and the type of
+ * xi is GenericEvent, then xi may be larger than 32 bytes.
  *
  * If the event cannot be converted into an XI event because of protocol
- * restrictions, @count is 0 and Success is returned.
+ * restrictions, count is 0 and Success is returned.
+ *
+ * @param[in] ev The event to convert into an XI 1 event.
+ * @param[out] xi Future memory location for the XI event.
+ * @param[out] count Number of elements in xi.
  */
 int
 EventToXI(InternalEvent *ev, xEvent **xi, int *count)
@@ -183,8 +189,8 @@ eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
 
 
 /**
- * Set @first to the first valuator in the event @ev and return the number of
- * valuators from @first to the last set valuator.
+ * Set first to the first valuator in the event ev and return the number of
+ * valuators from first to the last set valuator.
  */
 static int
 countValuators(DeviceEvent *ev, int *first)
@@ -282,7 +288,7 @@ eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi, int *count)
 }
 
 /**
- * Return the corresponding core type for the given @event or 0 if no core
+ * Return the corresponding core type for the given event or 0 if no core
  * equivalent exists.
  */
 int
@@ -301,7 +307,7 @@ GetCoreType(InternalEvent *event)
 }
 
 /**
- * Return the corresponding XI 1.x type for the given @event or 0 if no
+ * Return the corresponding XI 1.x type for the given event or 0 if no
  * equivalent exists.
  */
 int

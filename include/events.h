@@ -26,7 +26,8 @@
 #define EVENTS_H
 
 /**
- * @file This file describes the event structures used internally by the X
+ * @file events.h
+ * This file describes the event structures used internally by the X
  * server during event generation and event processing.
  *
  * When are internal events used?
@@ -62,69 +63,44 @@ enum {
 } EventType;
 
 /**
- * Device event, used for ALL input device events internal in the server until
+ * Used for ALL input device events internal in the server until
  * copied into the matching protocol event.
  *
  * Note: We only use the device id because the DeviceIntPtr may become invalid while
  * the event is in the EQ.
- *
- * @header:     Always ET_Internal
- * @type:       One of EventType.
- * @length:     Length in bytes.
- * @time:       Time in ms.
- * @deviceid:   Device to post this event for.
- * @sourceid:   The physical source device.
- * @key:        Keycode of the event
- * @button:     Button number of the event.
- * @root_x:     Position relative to root window in 16.16 fixed point
- *              screen coordinates
- * @root_y:     Position relative to root window in 16.16 fixed point
- *              screen coordinates
- * @buttons:    Button mask.
- * @valuators.mask:  Valuator mask.
- * @valuators.mode:  Valuator mode. Bit set for Absolute mode, unset for relative.
- * @valuators.data:  Valuator data. Only set for valuators listed in @mask.
- * @mods.base:       XKB Base modifiers
- * @mods.latched:    XKB latched modifiers.
- * @mods.locked:     XKB locked modifiers.
- * @group.base:      XKB Base modifiers
- * @group.latched:   XKB latched modifiers.
- * @group.locked:    XKB locked modifiers.
- * @root:       Root window of the event.
- * @corestate:  Core key/button state BEFORE this event applied.
  */
 typedef struct
 {
-    unsigned char header;
-    int type;
-    int length;
-    Time time;
-    int deviceid;
-    int sourceid;
+    unsigned char header; /**< Always ET_Internal */
+    int type;             /**< One of EventType */
+    int length;           /**< Length in bytes */
+    Time time;            /**< Time in ms */
+    int deviceid;         /**< Device to post this event for */
+    int sourceid;         /**< The physical source device */
     union {
-        uint32_t button;
-        uint32_t key;
+        uint32_t button;  /**< Button number */
+        uint32_t key;     /**< Key code */
     } detail;
-    uint32_t root_x;
-    uint32_t root_y;
-    uint8_t    buttons[(MAX_BUTTONS + 7)/8];
+    uint32_t root_x;      /**< Pos relative to root window in 16.16 fixed pt */
+    uint32_t root_y;      /**< Pos relative to root window in 16.16 fixed pt */
+    uint8_t    buttons[(MAX_BUTTONS + 7)/8]; /**< Button mask */
     struct {
-        uint8_t  mask[(MAX_VALUATORS + 7)/8];
-        uint8_t  mode[(MAX_VALUATORS + 7)/8];
-        uint32_t data[MAX_VALUATORS];
+        uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */
+        uint8_t  mode[(MAX_VALUATORS + 7)/8]; /**< Valuator mode (Abs or Rel)*/
+        uint32_t data[MAX_VALUATORS];         /**< Valuator data */
     } valuators;
     struct {
-        uint32_t base;
-        uint32_t latched;
-        uint32_t locked;
+        uint32_t base;    /**< XKB base modifiers */
+        uint32_t latched; /**< XKB latched modifiers */
+        uint32_t locked;  /**< XKB locked modifiers */
     } mods;
     struct {
-        uint8_t base;
-        uint8_t latched;
-        uint8_t locked;
+        uint8_t base;    /**< XKB base group */
+        uint8_t latched; /**< XKB latched group */
+        uint8_t locked;  /**< XKB locked group */
     } group;
-    Window      root;
-    int corestate;
+    Window      root; /**< Root window of the event */
+    int corestate;    /**< Core key/button state BEFORE the event */
 } DeviceEvent;
 
 
@@ -133,25 +109,20 @@ typedef struct
 #define HAS_NEW_SLAVE 0x2
 
 /**
- * DeviceChangedEvent, sent whenever a device's capabilities have changed.
- *
- * @header:     Always ET_Internal
- * @type:       ET_DeviceChanged
- * @length:     Length in bytes
- * @time:       Time in ms.
- * @flags:      Mask of HAS_OLD_SLAVE (if @old_slaveid specifies the previous
- *              SD) and HAS_NEW_SLAVE (if @new_slaveid specifies the new SD).
- * @old_slaveid: Specifies the device previously attached to the MD.
- * @new_slaveid: Specifies the device now attached to the SD.
+ * Sent whenever a device's capabilities have changed.
  */
 typedef struct
 {
-    unsigned char header;
-    int type;
-    int length;
-    Time time;
-    int flags;
+    unsigned char header; /**< Always ET_Internal */
+    int type;             /**< ET_DeviceChanged */
+    int length;           /**< Length in bytes */
+    Time time;            /**< Time in ms */
+    int flags;            /**< Mask of ::HAS_OLD_SLAVE or ::HAS_NEW_SLAVE */
+    /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies SD previously
+     * attached to this device. */
     int old_slaveid;
+    /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies device now
+     * attached to this device. */
     int new_slaveid;
     /* FIXME: add the new capabilities here */
 } DeviceChangedEvent;
@@ -159,50 +130,35 @@ typedef struct
 #if XFreeXDGA
 /**
  * DGAEvent, used by DGA to intercept and emulate input events.
- *
- * @header:     Always ET_Internal
- * @type:       ET_DGAEvent
- * @length:     Length in bytes
- * @time:       Time in ms
- * @subtype:    KeyPress, KeyRelease, ButtonPress, ButtonRelease, MotionNotify
- * @detail:     Key code or button number.
- * @dx:         Relative x coordinate
- * @dy:         Relative y coordinate
- * @screen:     Screen number this event applies to
- * @state:      Core modifier/button state
  */
 typedef struct
 {
-    unsigned char header;
-    int type;
-    int length;
-    Time time;
-    int subtype;
-    int detail;
-    int dx;
-    int dy;
-    int screen;
-    uint16_t state;
+    unsigned char header; /**<  Always ET_Internal */
+    int type;             /**<  ET_DGAEvent */
+    int length;           /**<  Length in bytes */
+    Time time;            /**<  Time in ms */
+    int subtype;          /**<  KeyPress, KeyRelease, ButtonPress,
+                                ButtonRelease, MotionNotify */
+    int detail;           /**<  Relative x coordinate */
+    int dx;               /**<  Relative x coordinate */
+    int dy;               /**<  Relative y coordinate */
+    int screen;           /**<  Screen number this event applies to */
+    uint16_t state;       /**<  Core modifier/button state */
 } DGAEvent;
 #endif
 
 /**
- * InternalEvent, event type used inside the X server for input event
+ * Event type used inside the X server for input event
  * processing.
- *
- * @header:     Always ET_Internal
- * @type:       One of ET_*
- * @length:     Length in bytes
- * @time:       Time in ms.
  */
 typedef struct
 {
     union {
         struct {
-            unsigned char header;
-            int type;
-            int length;
-            Time time;
+            unsigned char header; /**< Always ET_Internal */
+            int type;             /**< One of ET_* */
+            int length;           /**< Length in bytes */
+            Time time;            /**< Time in ms. */
         } any;
         DeviceEvent device;
         DeviceChangedEvent changed;
