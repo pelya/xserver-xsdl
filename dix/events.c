@@ -3994,14 +3994,12 @@ DeviceEnterLeaveEvent(
     WindowPtr pWin,
     Window child)
 {
-    xEvent              event;
     GrabPtr             grab = mouse->deviceGrab.grab;
-    deviceEnterNotify   *devEnterLeave;
+    xXIEnterEvent       event;
     int                 mskidx;
     OtherInputMasks     *inputMasks;
     Mask                mask;
-    DeviceIntPtr        keybd = GetPairedDevice(mouse);
-    BOOL                sameScreen;
+    xEvent              dummy;
 
     if (grab) {
         mask = (pWin == grab->window) ? grab->eventMask : 0;
@@ -4011,41 +4009,40 @@ DeviceEnterLeaveEvent(
         mask = pWin->eventMask | wOtherEventMasks(pWin);
     }
 
-    /* we don't have enough bytes, so we squash flags and mode into
-       one byte, and use the last byte for the deviceid. */
-    memset(&event, 0, sizeof(xEvent));
-    devEnterLeave           = (deviceEnterNotify*)&event;
-    devEnterLeave->type     = type;
-    devEnterLeave->detail   = detail;
-    devEnterLeave->time     = currentTime.milliseconds;
-    devEnterLeave->rootX    = mouse->spriteInfo->sprite->hot.x;
-    devEnterLeave->rootY    = mouse->spriteInfo->sprite->hot.y;
-    FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
-    sameScreen = event.u.keyButtonPointer.sameScreen;
+    memset(&event, 0, sizeof(event));
+    event.type        = GenericEvent;
+    event.extension   = IReqCode;
+    event.evtype      = type;
+    event.detail      = detail;
+    event.time        = currentTime.milliseconds;
+    event.deviceid    = mouse->id;
+    event.sourceid    = 0; /*XXX */
+    event.mode        = mode;
+    event.root_x.integral      = mouse->spriteInfo->sprite->hot.x;
+    event.root_y.integral      = mouse->spriteInfo->sprite->hot.y;
 
-    devEnterLeave->child    = child;
-    devEnterLeave->deviceid = mouse->id;
-    devEnterLeave->mode     = mode;
-    devEnterLeave->mode    |= (sameScreen ?  (ELFlagSameScreen << 4) : 0);
+    /* We use FUEFW to fill in dummy, then copy the values */
+    FixUpEventFromWindow(mouse, &dummy, pWin, None, FALSE);
 
-    devEnterLeave->state = mouse->button->state & 0x1f00;
-    if (keybd && keybd->key)
-        devEnterLeave->state |= XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
+    event.same_screen = dummy.u.keyButtonPointer.sameScreen;
+    event.child       = dummy.u.keyButtonPointer.child;
+    event.event_x.integral     = dummy.u.keyButtonPointer.eventX;
+    event.event_y.integral     = dummy.u.keyButtonPointer.eventY;
 
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
     if (inputMasks &&
-       (GetEventFilter(mouse, (xEvent*)devEnterLeave) &
+       (GetEventFilter(mouse, (xEvent*)&event) &
             inputMasks->deliverableEvents[mskidx]))
     {
         if (grab)
             TryClientEvents(rClient(grab), mouse,
-                            (xEvent*)devEnterLeave, 1, mask,
-                            GetEventFilter(mouse, (xEvent*)devEnterLeave),
+                            (xEvent*)&event, 1, mask,
+                            GetEventFilter(mouse, (xEvent*)&event),
                             grab);
         else
-            DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave, 1,
-                                  GetEventFilter(mouse, (xEvent*)devEnterLeave),
+            DeliverEventsToWindow(mouse, pWin, (xEvent*)&event, 1,
+                                  GetEventFilter(mouse, (xEvent*)&event),
                                   NullGrab, mouse->id);
     }
 

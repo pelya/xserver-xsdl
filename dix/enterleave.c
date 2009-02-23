@@ -29,6 +29,7 @@
 #endif
 
 #include <X11/X.h>
+#include <X11/extensions/XI2.h>
 #include "windowstr.h"
 #include "scrnintstr.h"
 #include "exglobals.h"
@@ -228,7 +229,7 @@ DeviceEnterNotifies(DeviceIntPtr dev,
     if (ancestor == parent)
 	return;
     DeviceEnterNotifies(dev, ancestor, parent, mode, detail);
-    DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, detail, parent,
+    DeviceEnterLeaveEvent(dev, XI_Enter, mode, detail, parent,
                           child->drawable.id);
 }
 
@@ -334,7 +335,7 @@ DeviceLeaveNotifies(DeviceIntPtr dev,
 	return;
     for (win = child->parent; win != ancestor; win = win->parent)
     {
-        DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, detail, win,
+        DeviceEnterLeaveEvent(dev, XI_Leave, mode, detail, win,
                                   child->drawable.id);
         child = win;
     }
@@ -568,24 +569,24 @@ DeviceEnterLeaveEvents(DeviceIntPtr dev,
 {
     if (IsParent(from, to))
     {
-        DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyInferior, from, None);
+        DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyInferior, from, None);
         DeviceEnterNotifies(dev, from, to, mode, NotifyVirtual);
-        DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyAncestor, to, None);
+        DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyAncestor, to, None);
     }
     else if (IsParent(to, from))
     {
-	DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyAncestor, from, None);
+	DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyAncestor, from, None);
 	DeviceLeaveNotifies(dev, from, to, mode, NotifyVirtual);
-	DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyInferior, to, None);
+	DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyInferior, to, None);
     }
     else
     { /* neither from nor to is descendent of the other */
 	WindowPtr common = CommonAncestor(to, from);
 	/* common == NullWindow ==> different screens */
-        DeviceEnterLeaveEvent(dev, DeviceLeaveNotify, mode, NotifyNonlinear, from, None);
+        DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyNonlinear, from, None);
         DeviceLeaveNotifies(dev, from, common, mode, NotifyNonlinearVirtual);
         DeviceEnterNotifies(dev, common, to, mode, NotifyNonlinearVirtual);
-        DeviceEnterLeaveEvent(dev, DeviceEnterNotify, mode, NotifyNonlinear, to, None);
+        DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyNonlinear, to, None);
     }
 }
 

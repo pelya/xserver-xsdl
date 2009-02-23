@@ -602,20 +602,28 @@ SDevicePropertyNotifyEvent (devicePropertyNotify *from, devicePropertyNotify *to
 }
 
 static void
-SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
+SDeviceLeaveNotifyEvent (xXILeaveEvent *from, xXILeaveEvent *to)
 {
     char n;
 
     *to = *from;
     swaps(&to->sequenceNumber,n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
     swapl(&to->time, n);
     swapl(&to->root, n);
     swapl(&to->event, n);
     swapl(&to->child, n);
-    swaps(&to->rootX, n);
-    swaps(&to->rootY, n);
-    swaps(&to->eventX, n);
-    swaps(&to->eventY, n);
+    swaps(&to->root_x.integral, n);
+    swaps(&to->root_x.frac, n);
+    swaps(&to->root_y.integral, n);
+    swaps(&to->root_y.frac, n);
+    swaps(&to->event_x.integral, n);
+    swaps(&to->event_x.frac, n);
+    swaps(&to->event_y.integral, n);
+    swaps(&to->event_y.frac, n);
+    swaps(&to->sourceid, n);
 }
 
 static void
@@ -669,6 +677,13 @@ SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
 static void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
 {
+    switch(from->evtype)
+    {
+        case XI_Enter:
+        case XI_Leave:
+            SDeviceLeaveNotifyEvent((xXILeaveEvent*)from, (xXILeaveEvent*)to);
+            break;
+    }
 }
 
 /**************************************************************************
@@ -1025,10 +1040,6 @@ SEventIDispatch(xEvent * from, xEvent * to)
 	DO_SWAP(SDevicePresenceNotifyEvent, devicePresenceNotify);
     else if (type == DevicePropertyNotify)
 	DO_SWAP(SDevicePropertyNotifyEvent, devicePropertyNotify);
-    else if (type == DeviceEnterNotify)
-        DO_SWAP(SDeviceLeaveNotifyEvent, deviceEnterNotify);
-    else if (type == DeviceLeaveNotify)
-        DO_SWAP(SDeviceLeaveNotifyEvent, deviceLeaveNotify);
     else {
 	FatalError("XInputExtension: Impossible event!\n");
     }
@@ -1084,8 +1095,6 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceMappingNotify] = SEventIDispatch;
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
 	EventSwapVector[DevicePresenceNotify] = SEventIDispatch;
-	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
-	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 
 	GERegisterExtension(IReqCode, XI2EventSwap);
     } else {
