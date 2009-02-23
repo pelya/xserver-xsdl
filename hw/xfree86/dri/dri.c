@@ -1289,7 +1289,7 @@ DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 	    *hHWDrawable = pDRIDrawablePriv->hwDrawable;
 	}
     }
-    else { /* pixmap (or for GLX 1.3, a PBuffer) */
+    else if (pDrawable->type != DRAWABLE_PIXMAP) { /* PBuffer */
 	/* NOT_DONE */
 	return FALSE;
     }
