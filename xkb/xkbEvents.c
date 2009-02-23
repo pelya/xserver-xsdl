@@ -1037,10 +1037,6 @@ XkbSrvInfoPtr	xkbi;
 		     new|= xkbi->state.compat_lookup_mods;
 		else new|= xkbi->state.compat_grab_mods;
                 kbp->state= new;
-            } else if ((type==DeviceEnterNotify)||(type==DeviceLeaveNotify)) {
-                deviceEnterNotify *del = (deviceEnterNotify*)&xE[i];
-                del->state&=0x1F00;
-                del->state|= xkbi->state.compat_grab_mods;
             }
 	    button_mask = 1 << xE[i].u.u.detail;
 	    if (type == ButtonPress &&
