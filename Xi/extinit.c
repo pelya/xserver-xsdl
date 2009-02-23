@@ -104,6 +104,7 @@ SOFTWARE.
 #include "opendev.h"
 #include "querydp.h"
 #include "queryst.h"
+#include "querydev.h"
 #include "queryversion.h"
 #include "selectev.h"
 #include "sendexev.h"
@@ -237,7 +238,8 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXISetClientPointer,                 /* 44 */
         ProcXIGetClientPointer,                 /* 45 */
         ProcXiSelectEvent,                      /* 46 */
-        ProcXIQueryVersion                      /* 47 */
+        ProcXIQueryVersion,                     /* 47 */
+        ProcXIQueryDevice                       /* 48 */
 };
 
 /* For swapped clients */
@@ -289,7 +291,8 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXISetClientPointer,                 /* 44 */
         SProcXIGetClientPointer,                 /* 45 */
         SProcXiSelectEvent,                      /* 46 */
-        SProcXIQueryVersion                      /* 47 */
+        SProcXIQueryVersion,                     /* 47 */
+        SProcXIQueryDevice                       /* 48 */
 };
 
 /*****************************************************************
@@ -480,6 +483,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 				(xXIQueryDevicePointerReply *) rep);
     else if (rep->RepType == X_XIGetClientPointer)
         SRepXIGetClientPointer(client, len, (xXIGetClientPointerReply*) rep);
+    else if (rep->RepType == X_XIQueryDevice)
+        SRepXIQueryDevice(client, len, (xXIQueryDeviceReply*)rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

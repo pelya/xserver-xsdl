@@ -78,7 +78,7 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
-#include "listdev.h" /* for CopySwapXXXClass */
+#include "querydev.h" /* for SizeDeviceClasses */
 #include "xiproperty.h"
 #include "enterleave.h" /* for EnterWindow() */
 #include "xserver-properties.h"
@@ -274,7 +274,6 @@ EnableDevice(DeviceIntPtr dev)
     DeviceIntPtr *prev;
     int ret;
     DeviceIntPtr other;
-    int namelen = 0; /* dummy */
     int evsize  = sizeof(xEvent);
     int listlen;
     EventListPtr evlist;
@@ -316,7 +315,7 @@ EnableDevice(DeviceIntPtr dev)
      * device
      */
 
-    SizeDeviceInfo(dev, &namelen, &evsize);
+    evsize += SizeDeviceClasses(dev);
 
     listlen = GetEventList(&evlist);
     OsBlockSignals();

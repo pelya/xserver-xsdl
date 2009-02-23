@@ -60,6 +60,8 @@ libXi_la_SOURCES =	\
 	listdev.h \
 	opendev.c \
 	opendev.h \
+	querydev.c \
+	querydev.h \
 	queryversion.h \
 	queryversion.c \
 	querydp.c \
