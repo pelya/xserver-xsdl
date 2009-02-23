@@ -1164,15 +1164,58 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 		 WindowPtr pWin)
 {
     deviceFocus event;
+    xXIFocusInEvent *xi2event;
+    DeviceIntPtr mouse;
+    int btlen, len, i;
 
-    if (type == FocusIn)
-	type = DeviceFocusIn;
-    else
-	type = DeviceFocusOut;
+    mouse = (dev->isMaster || dev->u.master) ? GetPairedDevice(dev) : NULL;
 
+    /* XI 2 event */
+    btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
+    btlen = (btlen + 3)/4;
+    len = sizeof(xXIFocusInEvent) + btlen * 4;
+
+    xi2event = xcalloc(1, len);
+    xi2event->type         = GenericEvent;
+    xi2event->extension    = IReqCode;
+    xi2event->evtype       = type;
+    xi2event->length       = (len - sizeof(xEvent))/4;
+    xi2event->buttons_len  = btlen;
+    xi2event->detail       = detail;
+    xi2event->time         = currentTime.milliseconds;
+    xi2event->deviceid     = dev->id;
+    xi2event->sourceid     = 0; /*XXX */
+    xi2event->mode         = mode;
+    xi2event->root_x.integral      = mouse->spriteInfo->sprite->hot.x;
+    xi2event->root_y.integral      = mouse->spriteInfo->sprite->hot.y;
+
+    for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
+        if (BitIsOn(mouse->button->down, i))
+            SetBit(&xi2event[1], i);
+
+    if (dev->key)
+    {
+        xi2event->mods.base_mods = dev->key->xkbInfo->state.base_mods;
+        xi2event->mods.latched_mods = dev->key->xkbInfo->state.latched_mods;
+        xi2event->mods.locked_mods = dev->key->xkbInfo->state.locked_mods;
+
+        xi2event->group.base_group = dev->key->xkbInfo->state.base_group;
+        xi2event->group.latched_group = dev->key->xkbInfo->state.latched_group;
+        xi2event->group.locked_group = dev->key->xkbInfo->state.locked_group;
+    }
+
+    FixUpEventFromWindow(dev, (xEvent*)xi2event, pWin, None, FALSE);
+
+    DeliverEventsToWindow(dev, pWin, (xEvent*)xi2event, 1,
+                          GetWindowXI2Mask(dev, pWin, xi2event), NullGrab,
+                          dev->id);
+
+    xfree(xi2event);
+
+    /* XI 1.x event */
     event.deviceid = dev->id;
     event.mode = mode;
-    event.type = type;
+    event.type = (type == XI_FocusIn) ? DeviceFocusIn : DeviceFocusOut;
     event.detail = detail;
     event.window = pWin->drawable.id;
     event.time = currentTime.milliseconds;

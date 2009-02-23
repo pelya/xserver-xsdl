@@ -2160,7 +2160,7 @@ static Window FindChildForEvent(DeviceIntPtr dev, WindowPtr event)
  * @param child Child window setting for event (if applicable)
  * @param calcChild If True, calculate the child window.
  */
-static void
+void
 FixUpEventFromWindow(
     DeviceIntPtr pDev,
     xEvent *xE,
