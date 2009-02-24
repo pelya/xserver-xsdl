@@ -111,7 +111,6 @@ _X_EXPORT int
 ApplyPointerMapping(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
 {
     int ret;
-    DeviceIntPtr tmp;
 
     /* If we can't perform the change on the requested device, bail out. */
     ret = check_butmap_change(dev, map, len, &client->errorValue, client);
