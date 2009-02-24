@@ -142,7 +142,7 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
 {
     int i;
 
-    for (i = first_valuator; i < num_valuators; i++)
+    for (i = first_valuator; i < first_valuator + num_valuators; i++)
         SetBit(event->valuators.mask, i);
 
     /* FIXME: Set the current mode */
