@@ -128,7 +128,26 @@ typedef struct
     /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies device now
      * attached to this device. */
     int new_slaveid;
-    /* FIXME: add the new capabilities here */
+
+    struct {
+        int num_buttons;        /**< Number of buttons */
+        Atom names[MAX_BUTTONS];/**< Button names */
+    } buttons;
+
+    int num_valuators;          /**< Number of axes */
+    struct {
+        uint32_t min;           /**< Minimum value */
+        uint32_t max;           /**< Maximum value */
+        /* FIXME: frac parts of min/max */
+        uint32_t resolution;    /**< Resolution counts/m */
+        uint8_t mode;           /**< Relative or Absolute */
+        Atom name;              /**< Axis name */
+    } valuators[MAX_VALUATORS];
+
+    struct {
+        int min_keycode;
+        int max_keycode;
+    } keys;
 } DeviceChangedEvent;
 
 #if XFreeXDGA

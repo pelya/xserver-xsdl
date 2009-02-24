@@ -158,6 +158,7 @@ CreateClassesChangedEvent(EventList* event,
                           DeviceIntPtr master,
                           DeviceIntPtr slave)
 {
+    int i;
     DeviceChangedEvent *dce;
     CARD32 ms = GetTimeInMillis();
 
@@ -175,11 +176,30 @@ CreateClassesChangedEvent(EventList* event,
     dce->flags |= HAS_NEW_SLAVE;
     dce->new_slaveid = slave->id;
 
-    /* FIXME: fill in new information about the device. We need to do this
-     * here to avoid race conditions if the device changes while the event
-     * slumbers in the EQ.
-     */
-
+    if (slave->button)
+    {
+        dce->buttons.num_buttons = slave->button->numButtons;
+        for (i = 0; i < dce->buttons.num_buttons; i++)
+            dce->buttons.names[i] = 0; /* FIXME */
+    }
+    if (slave->valuator)
+    {
+        dce->num_valuators = slave->valuator->numAxes;
+        for (i = 0; i < dce->num_valuators; i++)
+        {
+            dce->valuators[i].min = slave->valuator->axes[i].min_value;
+            dce->valuators[i].max = slave->valuator->axes[i].max_value;
+            dce->valuators[i].resolution = slave->valuator->axes[i].resolution;
+            /* This should, eventually, be a per-axis mode */
+            dce->valuators[i].mode = slave->valuator->mode;
+            dce->valuators[i].name = 0; /* FIXME: */
+        }
+    }
+    if (slave->key)
+    {
+        dce->keys.min_keycode = slave->key->xkbInfo->desc->min_key_code;
+        dce->keys.max_keycode = slave->key->xkbInfo->desc->max_key_code;
+    }
 }
 
 /**
