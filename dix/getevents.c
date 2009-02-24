@@ -143,9 +143,11 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
     int i;
 
     for (i = first_valuator; i < first_valuator + num_valuators; i++)
+    {
         SetBit(event->valuators.mask, i);
-
-    /* FIXME: Set the current mode */
+        if (dev->valuator->mode == Absolute)
+            SetBit(event->valuators.mode, i);
+    }
 
     memcpy(&event->valuators.data[first_valuator],
            valuators, num_valuators * sizeof(uint32_t));
