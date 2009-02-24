@@ -342,7 +342,6 @@ exaTryDriverCompositeRects(CARD8	       op,
     int src_off_x, src_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pDstPix;
     ExaPixmapPrivPtr pSrcExaPix, pDstExaPix;
-    struct _Pixmap scratch;
     ExaMigrationRec pixmaps[2];
 
     if (!pExaScr->info->PrepareComposite)
@@ -386,13 +385,6 @@ exaTryDriverCompositeRects(CARD8	       op,
     if (!exaPixmapIsOffscreen(pDstPix))
 	return 0;
     
-    if (!pSrcPix && pExaScr->info->UploadToScratch)
-    {
-	pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
-	if ((*pExaScr->info->UploadToScratch) (pSrcPix, &scratch))
-	    pSrcPix = &scratch;
-    }
-
     if (!pSrcPix)
 	return 0;
 
@@ -573,7 +565,6 @@ exaTryDriverComposite(CARD8		op,
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
     ExaPixmapPrivPtr pSrcExaPix, pMaskExaPix = NULL, pDstExaPix;
-    struct _Pixmap scratch;
     ExaMigrationRec pixmaps[3];
 
     pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
@@ -650,16 +641,6 @@ exaTryDriverComposite(CARD8		op,
     if (!exaPixmapIsOffscreen(pDstPix)) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
-    }
-
-    if (!pSrcPix && (!pMask || pMaskPix) && pExaScr->info->UploadToScratch) {
-	pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
-	if ((*pExaScr->info->UploadToScratch) (pSrcPix, &scratch))
-	    pSrcPix = &scratch;
-    } else if (pSrcPix && pMask && !pMaskPix && pExaScr->info->UploadToScratch) {
-	pMaskPix = exaGetDrawablePixmap (pMask->pDrawable);
-	if ((*pExaScr->info->UploadToScratch) (pMaskPix, &scratch))
-	    pMaskPix = &scratch;
     }
 
     if (!pSrcPix || (pMask && !pMaskPix)) {

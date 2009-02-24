@@ -12,7 +12,8 @@ INCLUDES = \
 	$(XORG_INCS) \
 	-I$(srcdir)/../miext/cw
 
-AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
+# Use an arbitrary high major version here to satisfy any driver checks in exa.h
+AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS) -DEXA_DRIVER_KNOWN_MAJOR=99
 
 libexa_la_SOURCES = \
 	exa.c \

@@ -433,12 +433,6 @@ ExaCheckComposite (CARD8      op,
 #endif
 
 /* exa_offscreen.c */
-void
-ExaOffscreenSwapOut (ScreenPtr pScreen);
-
-void
-ExaOffscreenSwapIn (ScreenPtr pScreen);
-
 Bool
 exaOffscreenInit(ScreenPtr pScreen);
 
