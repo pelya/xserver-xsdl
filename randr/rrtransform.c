@@ -270,8 +270,8 @@ RRTransformCompute (int			    x,
     }
     else
     {
-	pixman_f_transform_translate (f_inverse, f_transform, -x, -y);
-	if (!pixman_transform_translate (&inverse, transform, F(-x), F(-y)))
+	pixman_f_transform_translate (f_transform, f_inverse, x, y);
+	if (!pixman_transform_translate (transform, &inverse, F(x), F(y)))
 	    overflow = TRUE;
 	if (overflow)
 	{
