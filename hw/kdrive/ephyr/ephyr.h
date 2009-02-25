@@ -33,6 +33,7 @@
 #include "os.h"  		/* for OsSignal() */
 #include "kdrive.h"
 #include "hostx.h"
+#define EXA_DRIVER_KNOWN_MAJOR 3
 #include "exa.h"
 
 #ifdef RANDR
