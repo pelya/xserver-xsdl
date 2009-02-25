@@ -1059,6 +1059,11 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                 pDev = darwinTabletCurrent;
             }
 
+/* Seems this has somehow triggered 100% CPU usage while X11.app is in the
+ * background on some obscure HW configurations.
+ * http://xquartz.macosforge.org/trac/ticket/241
+ */
+#if 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
 #ifdef XPLUGIN_VERSION
 #if XPLUGIN_VERSION > 0
@@ -1077,6 +1082,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                     wid == 0)
                     return;        
             }
+#endif
 #endif
 #endif
             
