@@ -208,24 +208,6 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
                                          s->average_accel);
 
     s->reset_time = xf86SetIntOption(list, "VelocityReset", s->reset_time);
-
-    tempf = xf86SetRealOption(list, "ExpectedRate", 0);
-    if(tempf > 0){
-        s->corr_mul = 1000.0 / tempf;
-    }else{
-        s->corr_mul = xf86SetRealOption(list, "VelocityScale", s->corr_mul);
-    }
-
-    /* select profile by number */
-    tempi= xf86SetIntOption(list, "AccelerationProfile",
-                            s->statistics.profile_number);
-
-    if(SetAccelerationProfile(s, tempi)){
-        xf86Msg(X_CONFIG, "%s: (accel) set acceleration profile %i\n", devname, tempi);
-    }else{
-        xf86Msg(X_CONFIG, "%s: (accel) acceleration profile %i is unknown\n",
-                devname, tempi);
-    }
 }
 
 static void
