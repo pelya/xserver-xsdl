@@ -545,9 +545,9 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     ExaPixmapPriv (pPixmap);
     CARD8 *dst, *src;
     RegionRec ValidReg;
-    int dst_pitch, src_pitch, cpp, y, nbox;
+    int dst_pitch, src_pitch, cpp, y, nbox, save_pitch;
     BoxPtr pBox;
-    Bool ret = TRUE;
+    Bool ret = TRUE, save_offscreen;
 
     if (exaPixmapIsPinned(pPixmap) || pExaPixmap->area == NULL)
 	return ret;
@@ -566,7 +566,14 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     src_pitch = pExaPixmap->fb_pitch;
     cpp = pPixmap->drawable.bitsPerPixel / 8;
 
-    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    save_offscreen = pExaPixmap->offscreen;
+    save_pitch = pPixmap->devKind;
+    pExaPixmap->offscreen = TRUE;
+    pPixmap->devKind = pExaPixmap->fb_pitch;
+
+    if (!ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC))
+	goto skip;
+
     while (nbox--) {
 	    int rowbytes;
 
@@ -579,7 +586,7 @@ exaAssertNotDirty (PixmapPtr pPixmap)
 		continue;
 
 	    rowbytes = (pBox->x2 - pBox->x1) * cpp;
-	    src = pExaPixmap->fb_ptr + pBox->y1 * src_pitch + pBox->x1 * cpp;
+	    src = (CARD8 *) pPixmap->devPrivate.ptr + pBox->y1 * src_pitch + pBox->x1 * cpp;
 	    dst = pExaPixmap->sys_ptr + pBox->y1 * dst_pitch + pBox->x1 * cpp;
 
 	    for (y = pBox->y1; y < pBox->y2;
@@ -592,7 +599,12 @@ exaAssertNotDirty (PixmapPtr pPixmap)
 		}
 	    }
     }
+
+skip:
     exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+
+    pExaPixmap->offscreen = save_offscreen;
+    pPixmap->devKind = save_pitch;
 
 out:
     REGION_UNINIT(pScreen, &ValidReg);

@@ -517,7 +517,10 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 	return NULL;
 }
 
-void
+/**
+ * Returns TRUE if pixmap can be accessed offscreen.
+ */
+Bool
 ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
@@ -531,12 +534,12 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     }
 
     if (!offscreen)
-	return;
+	return FALSE;
 
     exaWaitSync (pDrawable->pScreen);
 
     if (pExaScr->info->PrepareAccess == NULL)
-	return;
+	return TRUE;
 
     if (index >= EXA_PREPARE_AUX0 &&
 	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
@@ -549,7 +552,11 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
 	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
 	exaMoveOutPixmap (pPixmap);
+
+	return FALSE;
     }
+
+    return TRUE;
 }
 
 void

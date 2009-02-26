@@ -449,7 +449,7 @@ void
 ExaOffscreenFini (ScreenPtr pScreen);
 
 /* exa.c */
-void
+Bool
 ExaDoPrepareAccess(DrawablePtr pDrawable, int index);
 
 void
