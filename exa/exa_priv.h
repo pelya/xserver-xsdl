@@ -287,8 +287,11 @@ typedef struct _ExaMigrationRec {
 } ExaMigrationRec, *ExaMigrationPtr;
 
 typedef struct {
+    PicturePtr pDst;
     INT16 xSrc;
     INT16 ySrc;
+    INT16 xMask;
+    INT16 yMask;
     INT16 xDst;
     INT16 yDst;
     INT16 width;
@@ -519,6 +522,7 @@ exaComposite(CARD8	op,
 void
 exaCompositeRects(CARD8	              op,
 		  PicturePtr	      Src,
+		  PicturePtr	      pMask,
 		  PicturePtr	      pDst,
 		  int                 nrect,
 		  ExaCompositeRectPtr rects);
