@@ -525,8 +525,8 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
     }
 
     rect->pDst = pDst;
-    rect->xDst = xDst - pGlyph->info.x;
-    rect->yDst = yDst - pGlyph->info.y;
+    rect->xDst = xDst;
+    rect->yDst = yDst;
     rect->width = pGlyph->info.width;
     rect->height = pGlyph->info.height;
 
@@ -603,8 +603,8 @@ exaBufferGlyph(ScreenPtr         pScreen,
     rect->ySrc = ySrc;
     rect->xMask = xMask;
     rect->yMask = yMask;
-    rect->xDst = xDst - pGlyph->info.x;
-    rect->yDst = yDst - pGlyph->info.y;
+    rect->xDst = xDst;
+    rect->yDst = yDst;
     rect->width = width;
     rect->height = height;
 
@@ -706,7 +706,7 @@ exaGlyphs (CARD8 	 op,
     ScreenPtr   pScreen = pDst->pDrawable->pScreen;
     int		width = 0, height = 0;
     int		x, y;
-    int		xDst = list->xOff, yDst = list->yOff;
+    int		first_xOff = list->xOff, first_yOff = list->yOff;
     int		n;
     GlyphPtr	glyph;
     int		error;
@@ -777,27 +777,28 @@ exaGlyphs (CARD8 	 op,
 
 	    if (glyph->info.width > 0 && glyph->info.height > 0)
 	    {
+		/* pGlyph->info.{x,y} compensate for empty space in the glyph. */
 		if (maskFormat)
 		{
 		    if (exaBufferGlyph(pScreen, &buffer, glyph, NULL, pMask,
-				       0, 0, 0, 0, x, y) == ExaGlyphNeedFlush)
+				       0, 0, 0, 0, x - glyph->info.x, y - glyph->info.y) == ExaGlyphNeedFlush)
 		    {
 			exaGlyphsToMask(pMask, &buffer);
 			exaBufferGlyph(pScreen, &buffer, glyph, NULL, pMask,
-				       0, 0, 0, 0, x, y);
+				       0, 0, 0, 0, x - glyph->info.x, y - glyph->info.y);
 		    }
 		}
 		else
 		{
 		    if (exaBufferGlyph(pScreen, &buffer, glyph, pSrc, pDst,
-				       xSrc + x - xDst, ySrc + y - yDst,
-				       x, y, x + extents.x1, y + extents.y1)
+				       xSrc + (x - glyph->info.x) - first_xOff, ySrc + (y - glyph->info.y) - first_yOff,
+				       0, 0, x - glyph->info.x, y - glyph->info.y)
 			== ExaGlyphNeedFlush)
 		    {
 			exaGlyphsToDst(pSrc, pDst, &buffer);
 			exaBufferGlyph(pScreen, &buffer, glyph, pSrc, pDst,
-				       xSrc + x - xDst, ySrc + y - yDst,
-				       x, y, x + extents.x1, y + extents.y1);
+				       xSrc + (x - glyph->info.x) - first_xOff, ySrc + (y - glyph->info.y) - first_yOff,
+				       0, 0, x - glyph->info.x, y - glyph->info.y);
 		    }
 		}
 	    }
@@ -823,8 +824,8 @@ exaGlyphs (CARD8 	 op,
 			  pSrc,
 			  pMask,
 			  pDst,
-			  xSrc + x - xDst,
-			  ySrc + y - yDst,
+			  xSrc + x - first_xOff,
+			  ySrc + y - first_yOff,
 			  0, 0,
 			  x, y,
 			  width, height);
