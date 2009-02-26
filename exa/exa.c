@@ -431,6 +431,15 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
             exaSetAccelBlock(pExaScr, pExaPixmap,
                              width, height, bitsPerPixel);
         }
+
+	/* Pixmaps subject to ModifyPixmapHeader will be pinned to system or
+	 * offscreen memory, so there's no need to track damage.
+	 */
+	if (pExaPixmap->pDamage) {
+	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+	    DamageDestroy(pExaPixmap->pDamage);
+	    pExaPixmap->pDamage = NULL;
+	}
     }
 
 
