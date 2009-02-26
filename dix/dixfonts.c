@@ -1906,7 +1906,7 @@ InitFonts (void)
 }
 
 int
-GetDefaultPointSize ()
+GetDefaultPointSize (void)
 {
     return 120;
 }
@@ -2018,7 +2018,7 @@ find_old_font(XID id)
 }
 
 Font
-GetNewFontClientID()
+GetNewFontClientID(void)
 {
     return FakeClientID(0);
 }
