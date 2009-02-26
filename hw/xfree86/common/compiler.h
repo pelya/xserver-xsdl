@@ -462,7 +462,7 @@ extern _X_EXPORT unsigned int inb(unsigned long port);
 extern _X_EXPORT unsigned int inw(unsigned long port);
 extern _X_EXPORT unsigned int inl(unsigned long port);
  
-#   elif defined(linux) && defined(__amd64__)
+#   elif (defined(linux) || defined(__FreeBSD__)) && defined(__amd64__)
  
 #    include <inttypes.h>
 
