@@ -176,9 +176,9 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled. */
 	if (((oldtail + 1) % QUEUE_SIZE) == miEventQueue.head) {
-            ErrorF("[mi] EQ overflowing. The server is probably stuck "
-                   "in an infinite loop.\n");
 	    if (!stuck) {
+                ErrorF("[mi] EQ overflowing. The server is probably stuck "
+                        "in an infinite loop.\n");
 		xorg_backtrace();
 		stuck = 1;
 	    }
