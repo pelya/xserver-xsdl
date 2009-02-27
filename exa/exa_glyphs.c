@@ -469,7 +469,9 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 		y = CACHE_Y(pos);
 
 		for (i = 0; i < buffer->count; i++) {
-		    if (buffer->rects[i].xSrc == x && buffer->rects[i].ySrc == y) {
+		    if (pSrc ?
+			(buffer->rects[i].xMask == x && buffer->rects[i].yMask == y) :
+			(buffer->rects[i].xSrc == x && buffer->rects[i].ySrc == y)) {
 			DBG_GLYPH_CACHE(("  must flush buffer\n"));
 			return ExaGlyphNeedFlush;
 		    }
