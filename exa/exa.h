@@ -672,6 +672,13 @@ typedef struct _ExaDriver {
 	 * from.
 	 */
 	#define EXA_PREPARE_MASK	2
+	/**
+	 * EXA_PREPARE_AUX* are additional indices for other purposes, e.g.
+	 * separate alpha maps with Composite operations.
+	 */
+	#define EXA_PREPARE_AUX0	3
+	#define EXA_PREPARE_AUX1	4
+	#define EXA_PREPARE_AUX2	5
 	/** @} */
 
     /**
@@ -741,6 +748,13 @@ typedef struct _ExaDriver {
  * all pixmap addressing and migration.
  */
 #define EXA_HANDLES_PIXMAPS             (1 << 3)
+
+/**
+ * EXA_SUPPORTS_PREPARE_AUX indicates to EXA that the driver can handle the
+ * EXA_PREPARE_AUX* indices in the Prepare/FinishAccess hooks. If there are no
+ * such hooks, this flag has no effect.
+ */
+#define EXA_SUPPORTS_PREPARE_AUX        (1 << 4)
 
 /** @} */
 

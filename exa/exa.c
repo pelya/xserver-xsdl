@@ -538,6 +538,12 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     if (pExaScr->info->PrepareAccess == NULL)
 	return;
 
+    if (index >= EXA_PREPARE_AUX0 &&
+	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
+	exaMoveOutPixmap (pPixmap);
+	return;
+    }
+
     if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
 	ExaPixmapPriv (pPixmap);
 	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
@@ -596,6 +602,13 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
 
     if (!exaPixmapIsOffscreen (pPixmap))
 	return;
+
+    if (index >= EXA_PREPARE_AUX0 &&
+	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
+	ErrorF("EXA bug: Trying to call driver FinishAccess hook with "
+	       "unsupported index EXA_PREPARE_AUX*\n");
+	return;
+    }
 
     (*pExaScr->info->FinishAccess) (pPixmap, index);
 }

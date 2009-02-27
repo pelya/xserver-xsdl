@@ -392,6 +392,15 @@ ExaCheckComposite (CARD8      op,
 
     REGION_NULL(pScreen, &region);
 
+    /* We need to prepare access to any separate alpha maps first, in case the
+     * driver doesn't support EXA_PREPARE_AUX*, in which case EXA_PREPARE_SRC
+     * may be used for moving them out.
+     */
+    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+	exaPrepareAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX2);
+    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+	exaPrepareAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX1);
+
     if (!exaOpReadsDestination(op)) {
 	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 				       xSrc, ySrc, xMask, yMask, xDst, yDst,
@@ -404,9 +413,17 @@ ExaCheckComposite (CARD8      op,
 
 	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
 
+	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+	    exaPrepareAccessReg(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX0,
+				&region);
+
 	exaPrepareAccessReg (pDst->pDrawable, EXA_PREPARE_DEST, &region);
-    } else
+    } else {
+	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+	    exaPrepareAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX0);
+
 	exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+    }
 
     EXA_FALLBACK(("from picts %p/%p to pict %p\n",
 		 pSrc, pMask, pDst));
@@ -433,9 +450,15 @@ ExaCheckComposite (CARD8      op,
 #endif /* RENDER */
     if (pMask && pMask->pDrawable != NULL)
 	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
+    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+	exaFinishAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX1);
     if (pSrc->pDrawable != NULL)
 	exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+	exaFinishAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX2);
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+    if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+	exaFinishAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX0);
 
     REGION_UNINIT(pScreen, &region);
 }
