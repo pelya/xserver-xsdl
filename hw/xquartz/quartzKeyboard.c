@@ -148,6 +148,7 @@ const static struct {
     {XK_apostrophe, XK_dead_acute},             /* US:"=" on a Czech keyboard */
     {XK_acute, XK_dead_acute},
     {UKEYSYM (0x384), XK_dead_acute},           /* US:";" on a Greek keyboard */
+//    {XK_Greek_accentdieresis, XK_dead_diaeresis},   /* US:"opt+;" on a Greek keyboard ... replace with dead_accentdieresis if there is one */
     {XK_asciicircum, XK_dead_circumflex},
     {UKEYSYM (0x2c6), XK_dead_circumflex},	/* MODIFIER LETTER CIRCUMFLEX ACCENT */
     {XK_asciitilde, XK_dead_tilde},
@@ -709,9 +710,8 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
             }
 #endif
         }
-	
+
         if (k[3] == k[2]) k[3] = NoSymbol;
-        if (k[2] == k[1]) k[2] = NoSymbol;
         if (k[1] == k[0]) k[1] = NoSymbol;
         if (k[0] == k[2] && k[1] == k[3]) k[2] = k[3] = NoSymbol;
     }
