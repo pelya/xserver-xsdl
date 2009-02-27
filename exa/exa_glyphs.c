@@ -187,7 +187,6 @@ exaRealizeGlyphCaches(ScreenPtr    pScreen,
     }
 
     /* Now allocate the pixmap and picture */
-       
     pPixmap = (*pScreen->CreatePixmap) (pScreen,
 					CACHE_PICTURE_WIDTH,
 					height, depth, 0);
@@ -205,7 +204,6 @@ exaRealizeGlyphCaches(ScreenPtr    pScreen,
 	return FALSE;
 
     /* And store the picture in all the caches for the format */
-    
     for (i = 0; i < EXA_NUM_GLYPH_CACHES; i++) {
 	ExaGlyphCachePtr cache = &pExaScr->glyphCaches[i];
 	int j;
@@ -458,13 +456,12 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	     * already in the output buffer were at this position in
 	     * the cache
 	     */
-	    
 	    pos = cache->evictionPosition;
 	    DBG_GLYPH_CACHE(("  evicting glyph at %d\n", pos));
 	    if (buffer->count) {
 		int x, y;
 		int i;
-		
+
 		x = CACHE_X(pos);
 		y = CACHE_Y(pos);
 
