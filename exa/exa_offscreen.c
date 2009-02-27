@@ -285,6 +285,36 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
     return area;
 }
 
+/**
+ * Ejects all offscreen areas, and uninitializes the offscreen memory manager.
+ */
+void
+ExaOffscreenSwapOut (ScreenPtr pScreen)
+{
+    ExaScreenPriv (pScreen);
+
+    ExaOffscreenValidate (pScreen);
+    /* loop until a single free area spans the space */
+    for (;;)
+    {
+	ExaOffscreenArea *area = pExaScr->info->offScreenAreas;
+
+	if (!area)
+	    break;
+	if (area->state == ExaOffscreenAvail)
+	{
+	    area = area->next;
+	    if (!area)
+		break;
+	}
+	assert (area->state != ExaOffscreenAvail);
+	(void) ExaOffscreenKickOut (pScreen, area);
+	ExaOffscreenValidate (pScreen);
+    }
+    ExaOffscreenValidate (pScreen);
+    ExaOffscreenFini (pScreen);
+}
+
 /** Ejects all pixmaps managed by EXA. */
 static void
 ExaOffscreenEjectPixmaps (ScreenPtr pScreen)
@@ -314,14 +344,26 @@ ExaOffscreenEjectPixmaps (ScreenPtr pScreen)
     ExaOffscreenValidate (pScreen);
 }
 
+void
+ExaOffscreenSwapIn (ScreenPtr pScreen)
+{
+    exaOffscreenInit (pScreen);
+}
+
 /**
  * Prepares EXA for disabling of FB access, or restoring it.
  *
- * The disabling results in pixmaps being ejected, while other allocations
- * remain.  With this plus the prevention of migration while swappedOut is
- * set, EXA by itself should not cause any access of the framebuffer to occur
- * while swapped out.  Any remaining issues are the responsibility of the
- * driver.
+ * In version 2.1, the disabling results in pixmaps being ejected, while other
+ * allocations remain.  With this plus the prevention of migration while
+ * swappedOut is set, EXA by itself should not cause any access of the
+ * framebuffer to occur while swapped out.  Any remaining issues are the
+ * responsibility of the driver.
+ *
+ * Prior to version 2.1, all allocations, including locked ones, are ejected
+ * when access is disabled, and the allocator is torn down while swappedOut
+ * is set.  This is more drastic, and caused implementation difficulties for
+ * many drivers that could otherwise handle the lack of FB access while
+ * swapped out.
  */
 void
 exaEnableDisableFBAccess (int index, Bool enable)
@@ -330,11 +372,16 @@ exaEnableDisableFBAccess (int index, Bool enable)
     ExaScreenPriv (pScreen);
 
     if (!enable && pExaScr->disableFbCount++ == 0) {
-	ExaOffscreenEjectPixmaps (pScreen);
+	if (pExaScr->info->exa_minor < 1)
+	    ExaOffscreenSwapOut (pScreen);
+	else
+	    ExaOffscreenEjectPixmaps (pScreen);
 	pExaScr->swappedOut = TRUE;
     }
     
     if (enable && --pExaScr->disableFbCount == 0) {
+	if (pExaScr->info->exa_minor < 1)
+	    ExaOffscreenSwapIn (pScreen);
 	pExaScr->swappedOut = FALSE;
     }
 }

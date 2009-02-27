@@ -38,17 +38,8 @@
 #include "picturestr.h"
 #include "fb.h"
 
-/* If the driver can't seem to handle this major version, abort compilation with
- * instructions how to fix it.
- */
-#if !defined(EXA_DRIVER_KNOWN_MAJOR) || EXA_DRIVER_KNOWN_MAJOR < 3
-#error Make sure this EXA driver either does not have Prepare/FinishAccess \
-    hooks or that they can handle EXA_PREPARE_AUX*, and	\
-    #define EXA_DRIVER_KNOWN_MAJOR 3 before including exa.h
-#endif
-
-#define EXA_VERSION_MAJOR   3
-#define EXA_VERSION_MINOR   0
+#define EXA_VERSION_MAJOR   2
+#define EXA_VERSION_MINOR   4
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -508,6 +499,32 @@ typedef struct _ExaDriver {
                                    int                  src_pitch);
 
     /**
+     * UploadToScratch() is used to upload a pixmap to a scratch area for
+     * acceleration.
+     *
+     * @param pSrc source pixmap in host memory
+     * @param pDst fake, scratch pixmap to be set up in offscreen memory.
+     *
+     * The UploadToScratch() call was added to support Xati before Xati had
+     * support for hostdata uploads and before exaGlyphs() was written.  It
+     * behaves incorrectly (uses an invalid pixmap as pDst),
+     * and UploadToScreen() should be implemented instead.
+     *
+     * Drivers implementing UploadToScratch() had to set up space (likely in a
+     * statically allocated area) in offscreen memory, copy pSrc to that
+     * scratch area, and adust pDst->devKind for the pitch and
+     * pDst->devPrivate.ptr for the pointer to that scratch area.  The driver
+     * was responsible for syncing (as it was implemented using memcpy() in
+     * Xati), and only the data from the last UploadToScratch() was guaranteed
+     * to be valid at any given time.
+     *
+     * UploadToScratch() should not be implemented by drivers, and will likely
+     * be removed in a future version of EXA.
+     */
+    Bool        (*UploadToScratch) (PixmapPtr           pSrc,
+                                    PixmapPtr           pDst);
+
+    /**
      * DownloadFromScreen() loads a rectangle of data from pSrc into dst
      *
      * @param pSrc source pixmap
@@ -655,13 +672,6 @@ typedef struct _ExaDriver {
 	 * from.
 	 */
 	#define EXA_PREPARE_MASK	2
-	/**
-	 * EXA_PREPARE_AUX* are additional indices for other purposes, e.g.
-	 * separate alpha maps with Composite operations.
-	 */
-	#define EXA_PREPARE_AUX0	3
-	#define EXA_PREPARE_AUX1	4
-	#define EXA_PREPARE_AUX2	5
 	/** @} */
 
     /**
