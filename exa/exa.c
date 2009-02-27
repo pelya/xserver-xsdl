@@ -541,10 +541,10 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     if (pExaScr->info->PrepareAccess == NULL)
 	return TRUE;
 
-    if (index >= EXA_PREPARE_AUX0 &&
+    if (index >= EXA_PREPARE_AUX_DEST &&
 	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
 	exaMoveOutPixmap (pPixmap);
-	return;
+	return FALSE;
     }
 
     if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
@@ -564,8 +564,13 @@ exaPrepareAccessReg(DrawablePtr pDrawable, int index, RegionPtr pReg)
 {
     ExaMigrationRec pixmaps[1];
 
-    pixmaps[0].as_dst = index == EXA_PREPARE_DEST;
-    pixmaps[0].as_src = index != EXA_PREPARE_DEST;
+    if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+    } else {
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+    }
     pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
     pixmaps[0].pReg = pReg;
 
@@ -610,7 +615,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     if (!exaPixmapIsOffscreen (pPixmap))
 	return;
 
-    if (index >= EXA_PREPARE_AUX0 &&
+    if (index >= EXA_PREPARE_AUX_DEST &&
 	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
 	ErrorF("EXA bug: Trying to call driver FinishAccess hook with "
 	       "unsupported index EXA_PREPARE_AUX*\n");
@@ -677,7 +682,6 @@ exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
 		unsigned usage_hint)
 {
     PixmapPtr pPixmap;
-    ExaMigrationRec pixmaps[1];
     ExaScreenPriv(pScreen);
 
     /* This swaps between this function and the real upper layer function.
@@ -690,16 +694,7 @@ exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
     if (!pPixmap)
 	return NULL;
 
-    /* We need to use DEST, but we don't actually want to migrate as dest. */
-    /* SRC is taken by tile, and MASK by stipple. */
-    pixmaps[0].as_dst = 0;
-    pixmaps[0].as_src = 1;
-    pixmaps[0].pPix = exaGetDrawablePixmap (&pPixmap->drawable);
-    pixmaps[0].pReg = NULL;
-
-    exaDoMigration(pixmaps, 1, FALSE);
-
-    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_SRC);
 
     return pPixmap;
 }
@@ -759,7 +754,7 @@ exaValidateGC(GCPtr pGC,
     pExaScr->SavedCreatePixmap = old_ptr;
 
     if (pGC->fillStyle == FillTiled && pTile != pGC->tile.pixmap)
-	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_DEST);
+	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_AUX_SRC);
     
     EXA_GC_EPILOGUE(pGC);
 }

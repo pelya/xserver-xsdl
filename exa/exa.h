@@ -657,9 +657,9 @@ typedef struct _ExaDriver {
 	 * EXA_PREPARE_AUX* are additional indices for other purposes, e.g.
 	 * separate alpha maps with Composite operations.
 	 */
-	#define EXA_PREPARE_AUX0	3
-	#define EXA_PREPARE_AUX1	4
-	#define EXA_PREPARE_AUX2	5
+	#define EXA_PREPARE_AUX_DEST	3
+	#define EXA_PREPARE_AUX_SRC	4
+	#define EXA_PREPARE_AUX_MASK	5
 	/** @} */
 
     /**
