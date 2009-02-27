@@ -499,27 +499,8 @@ typedef struct _ExaDriver {
                                    int                  src_pitch);
 
     /**
-     * UploadToScratch() is used to upload a pixmap to a scratch area for
-     * acceleration.
-     *
-     * @param pSrc source pixmap in host memory
-     * @param pDst fake, scratch pixmap to be set up in offscreen memory.
-     *
-     * The UploadToScratch() call was added to support Xati before Xati had
-     * support for hostdata uploads and before exaGlyphs() was written.  It
-     * behaves incorrectly (uses an invalid pixmap as pDst),
-     * and UploadToScreen() should be implemented instead.
-     *
-     * Drivers implementing UploadToScratch() had to set up space (likely in a
-     * statically allocated area) in offscreen memory, copy pSrc to that
-     * scratch area, and adust pDst->devKind for the pitch and
-     * pDst->devPrivate.ptr for the pointer to that scratch area.  The driver
-     * was responsible for syncing (as it was implemented using memcpy() in
-     * Xati), and only the data from the last UploadToScratch() was guaranteed
-     * to be valid at any given time.
-     *
-     * UploadToScratch() should not be implemented by drivers, and will likely
-     * be removed in a future version of EXA.
+     * UploadToScratch() is no longer used and will be removed next time the EXA
+     * major version needs to be bumped.
      */
     Bool        (*UploadToScratch) (PixmapPtr           pSrc,
                                     PixmapPtr           pDst);
