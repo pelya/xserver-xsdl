@@ -43,16 +43,18 @@
 
 /**
  * Returns TRUE if the pixmap is not movable.  This is the case where it's a
- * fake pixmap for the frontbuffer (no pixmap private) or it's a scratch
- * pixmap created by some other X Server internals (the score says it's
- * pinned).
+ * pixmap which has no private (almost always bad) or it's a scratch pixmap created by
+ * some X Server internal component (the score says it's pinned).
  */
 static Bool
 exaPixmapIsPinned (PixmapPtr pPix)
 {
     ExaPixmapPriv (pPix);
 
-    return pExaPixmap == NULL || pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
+    if (pExaPixmap == NULL)
+	EXA_FatalErrorDebugWithRet(("EXA bug: exaPixmapIsPinned was called on a non-exa pixmap.\n"), TRUE);
+
+    return pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
 }
 
 /**
@@ -86,8 +88,10 @@ exaPixmapIsDirty (PixmapPtr pPix)
 {
     ExaPixmapPriv (pPix);
 
-    return pExaPixmap == NULL ||
-	REGION_NOTEMPTY (pScreen, DamageRegion(pExaPixmap->pDamage)) ||
+    if (pExaPixmap == NULL)
+	EXA_FatalErrorDebugWithRet(("EXA bug: exaPixmapIsDirty was called on a non-exa pixmap.\n"), TRUE);
+
+    return REGION_NOTEMPTY (pScreen, DamageRegion(pExaPixmap->pDamage)) ||
 	!REGION_EQUAL(pScreen, &pExaPixmap->validSys, &pExaPixmap->validFB);
 }
 
@@ -460,13 +464,6 @@ exaMigrateTowardFb (ExaMigrationPtr migrate)
     PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
 
-    if (pExaPixmap == NULL) {
-	DBG_MIGRATE(("UseScreen: ignoring exa-uncontrolled pixmap %p (%s)\n",
-		     (pointer)pPixmap,
-		     exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
-	return;
-    }
-
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED) {
 	DBG_MIGRATE(("UseScreen: not migrating pinned pixmap %p\n",
 		     (pointer)pPixmap));
@@ -506,13 +503,6 @@ exaMigrateTowardSys (ExaMigrationPtr migrate)
 {
     PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
-
-    if (pExaPixmap == NULL) {
-	DBG_MIGRATE(("UseMem: ignoring exa-uncontrolled pixmap %p (%s)\n",
-		     (pointer)pPixmap,
-		     exaPixmapIsOffscreen(pPixmap) ? "s" : "m"));
-	return;
-    }
 
     DBG_MIGRATE(("UseMem: %p score %d\n", (pointer)pPixmap, pExaPixmap->score));
 
@@ -625,6 +615,8 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 
     if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
         return;
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return;
 
     /* If this debugging flag is set, check each pixmap for whether it is marked
      * as clean, and if so, actually check if that's the case.  This should help
