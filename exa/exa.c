@@ -73,8 +73,9 @@ unsigned long
 exaGetPixmapOffset(PixmapPtr pPix)
 {
     ExaScreenPriv (pPix->drawable.pScreen);
+    ExaPixmapPriv (pPix);
 
-    return (CARD8 *)ExaGetPixmapAddress(pPix) - pExaScr->info->memoryBase;
+    return (CARD8 *)pExaPixmap->fb_ptr - pExaScr->info->memoryBase;
 }
 
 void *
@@ -424,6 +425,13 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
         if (devKind > 0)
             pExaPixmap->sys_pitch = devKind;
 
+	/* Is this the framebuffer (for classic exa)? */
+	if (pPixData && pPixData == pExaScr->info->memoryBase) {
+	    pExaPixmap->fb_ptr = pPixData;
+	    pExaPixmap->fb_pitch = devKind;
+	    pExaPixmap->offscreen = TRUE;
+	}
+
         if (width > 0 && height > 0 && bitsPerPixel > 0) {
             exaSetFbPitch(pExaScr, pExaPixmap,
                           width, height, bitsPerPixel);
@@ -471,22 +479,14 @@ exaPixmapIsOffscreen(PixmapPtr p)
     ScreenPtr	pScreen = p->drawable.pScreen;
     ExaScreenPriv(pScreen);
     ExaPixmapPriv(p);
-    void *save_ptr;
     Bool ret;
 
-    save_ptr = p->devPrivate.ptr;
-
-    if (!save_ptr && pExaPixmap && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS))
+    if (pExaScr->info->PixmapIsOffscreen) {
 	p->devPrivate.ptr = ExaGetPixmapAddress(p);
-
-    if (pExaScr->info->PixmapIsOffscreen)
 	ret = pExaScr->info->PixmapIsOffscreen(p);
-    else
-       ret = ((unsigned long) ((CARD8 *) p->devPrivate.ptr -
-			       (CARD8 *) pExaScr->info->memoryBase) <
-	      pExaScr->info->memorySize);
-
-    p->devPrivate.ptr = save_ptr;
+	p->devPrivate.ptr = NULL;
+    } else
+	ret = (pExaPixmap->offscreen && pExaPixmap->fb_ptr);
 
     return ret;
 }
