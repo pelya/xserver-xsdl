@@ -978,6 +978,8 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 	unwrap(pExaScr, pScreen, CreatePixmap);
     if (pExaScr->SavedDestroyPixmap)
 	unwrap(pExaScr, pScreen, DestroyPixmap);
+    if (pExaScr->SavedModifyPixmapHeader)
+	unwrap(pExaScr, pScreen, ModifyPixmapHeader);
     unwrap(pExaScr, pScreen, CopyWindow);
     unwrap(pExaScr, pScreen, ChangeWindowAttributes);
     unwrap(pExaScr, pScreen, BitmapToRegion);
@@ -1104,7 +1106,6 @@ exaDriverInit (ScreenPtr		pScreen,
 #endif
 
     pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
-
     if (!pExaScr) {
         LogMessage(X_WARNING, "EXA(%d): Failed to allocate screen private\n",
 		   pScreen->myNum);
@@ -1169,8 +1170,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap);
 	wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap);
 
-	pExaScr->SavedModifyPixmapHeader = pScreen->ModifyPixmapHeader;
-	pScreen->ModifyPixmapHeader = exaModifyPixmapHeader;
+	wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader);
 	if (!pExaScr->info->CreatePixmap) {
 	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
 		       pScreen->myNum,
