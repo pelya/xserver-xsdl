@@ -695,6 +695,11 @@ typedef struct _ExaDriver {
     /* Hooks to allow driver to its own pixmap memory management */
     void *(*CreatePixmap)(ScreenPtr pScreen, int size, int align);
     void (*DestroyPixmap)(ScreenPtr pScreen, void *driverPriv);
+    /**
+     * Returning a pixmap with non-NULL devPrivate.ptr implies a pixmap which is
+     * not offscreen, which will never be accelerated and Prepare/FinishAccess won't
+     * be called.
+     */
     Bool (*ModifyPixmapHeader)(PixmapPtr pPixmap, int width, int height,
                               int depth, int bitsPerPixel, int devKind,
                               pointer pPixData);

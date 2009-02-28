@@ -450,15 +450,28 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
 	}
     }
 
-
     if (pExaScr->info->ModifyPixmapHeader) {
 	ret = pExaScr->info->ModifyPixmapHeader(pPixmap, width, height, depth,
 						bitsPerPixel, devKind, pPixData);
+	/* For EXA_HANDLES_PIXMAPS, we set pPixData to NULL.
+	 * If pPixmap->devPrivate.ptr is non-NULL, then we've got a non-offscreen pixmap.
+	 * We need to store the pointer, because PrepareAccess won't be called.
+	 */
+	if (!pPixData && pPixmap->devPrivate.ptr && pPixmap->devKind) {
+	    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+	    pExaPixmap->sys_pitch = pPixmap->devKind;
+	}
 	if (ret == TRUE)
-	    return ret;
+	    goto out;
     }
-    return pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
+    ret = pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
 					    bitsPerPixel, devKind, pPixData);
+
+out:
+    /* Always NULL this, we don't want lingering pointers. */
+    pPixmap->devPrivate.ptr = NULL;
+
+    return ret;
 }
 
 /**
@@ -523,15 +536,42 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 Bool
 ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 {
-    ScreenPtr	    pScreen = pDrawable->pScreen;
-    ExaScreenPriv  (pScreen);
-    PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
-    Bool	    offscreen = exaPixmapIsOffscreen(pPixmap);
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv (pScreen);
+    PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv(pPixmap);
+    Bool offscreen;
 
-    /* Unhide pixmap pointer */
-    if (pPixmap->devPrivate.ptr == NULL && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
-	pPixmap->devPrivate.ptr = ExaGetPixmapAddress(pPixmap);
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return FALSE;
+
+    if (pExaPixmap == NULL)
+	EXA_FatalErrorDebugWithRet(("EXA bug: ExaDoPrepareAccess was called on a non-exa pixmap.\n"), FALSE);
+
+    /* Check if we're dealing SRC == DST or similar.
+     * In that case the first PrepareAccess has already set pPixmap->devPrivate.ptr.
+     */
+    if (pPixmap->devPrivate.ptr != NULL) {
+	int i;
+	for (i = 0; i < 6; i++)
+	    if (pExaScr->prepare_access[i] == pPixmap)
+		break;
+
+	/* No known PrepareAccess or double prepare on the same index. */
+	if (i == 6 || i == index)
+	    EXA_FatalErrorDebug(("EXA bug: pPixmap->devPrivate.ptr was %p, but should have been NULL.\n",
+		pPixmap->devPrivate.ptr));
     }
+
+    offscreen = exaPixmapIsOffscreen(pPixmap);
+
+    if (offscreen)
+	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+    else
+	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+
+    /* Store so we can check SRC and DEST being the same. */
+    pExaScr->prepare_access[index] = pPixmap;
 
     if (!offscreen)
 	return FALSE;
@@ -548,9 +588,8 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     }
 
     if (!(*pExaScr->info->PrepareAccess) (pPixmap, index)) {
-	ExaPixmapPriv (pPixmap);
 	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
-	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
+	    FatalError("Driver failed PrepareAccess on a pinned pixmap.\n");
 	exaMoveOutPixmap (pPixmap);
 
 	return FALSE;
@@ -604,10 +643,20 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
     ExaPixmapPriv  (pPixmap);
 
-    /* Rehide pixmap pointer if we're doing that. */
-    if (pExaPixmap && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
-	pPixmap->devPrivate.ptr = NULL;
-    }
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return;
+
+    if (pExaPixmap == NULL)
+	EXA_FatalErrorDebugWithRet(("EXA bug: exaFinishAccesss was called on a non-exa pixmap.\n"),);
+
+    /* Avoid mismatching indices. */
+    if (pExaScr->prepare_access[index] != pPixmap)
+	EXA_FatalErrorDebug(("EXA bug: Calling FinishAccess on pixmap %p with index %d while "
+			"it should have been %p.\n", pPixmap, index, pExaScr->prepare_access[index]));
+    pExaScr->prepare_access[index] = NULL;
+
+    /* We always hide the devPrivate.ptr. */
+    pPixmap->devPrivate.ptr = NULL;
 
     if (pExaScr->info->FinishAccess == NULL)
 	return;

@@ -85,6 +85,18 @@ exaDrawableLocation(DrawablePtr pDrawable);
 #define EXA_MAX_FB   FB_OVERLAY_MAX
 #endif
 
+#ifdef DEBUG
+#define EXA_FatalErrorDebug(x) FatalError x
+#define EXA_FatalErrorDebugWithRet(x, ret) FatalError x
+#else
+#define EXA_FatalErrorDebug(x) ErrorF x
+#define EXA_FatalErrorDebugWithRet(x, ret) \
+do { \
+    ErrorF x; \
+    return ret; \
+} while (0)
+#endif
+
 /**
  * This is the list of migration heuristics supported by EXA.  See
  * exaDoMigration() for what their implementations do.
@@ -158,6 +170,10 @@ typedef struct {
     unsigned			 disableFbCount;
     Bool			 optimize_migration;
     unsigned			 offScreenCounter;
+
+    /* Store all accessed pixmaps, so we can check for duplicates. */
+    PixmapPtr prepare_access[6];
+
     /* Holds information on fallbacks that cannot be relayed otherwise. */
     unsigned int fallback_flags;
 
