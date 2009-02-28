@@ -1,6 +1,6 @@
 /*
  *
- * Copyright © 2006-2008 Simon Thum             simon dot thum at gmx dot de
+ * Copyright © 2006-2009 Simon Thum             simon dot thum at gmx dot de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 /*****************************************************************************
  * Predictable pointer acceleration
  *
- * 2006-2008 by Simon Thum (simon [dot] thum [at] gmx de)
+ * 2006-2009 by Simon Thum (simon [dot] thum [at] gmx de)
  *
  * Serves 3 complementary functions:
  * 1) provide a sophisticated ballistic velocity estimate to improve
@@ -63,26 +63,13 @@
  ****************************************************************************/
 
 /* fwds */
-static inline void
-FeedFilterStage(FilterStagePtr s, float value, int tdiff);
-extern void
-InitFilterStage(FilterStagePtr s, float rdecay, int lutsize);
-void
-CleanupFilterChain(DeviceVelocityPtr s);
 int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
-void
-InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
-                int stages, int lutsize);
-void
-CleanupFilterChain(DeviceVelocityPtr s);
 static float
 SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
                     float threshold, float acc);
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
-static short
-ProcessVelocityData(DeviceVelocityPtr s, float distance, int diff);
 
 /*#define PTRACCEL_DEBUGGING*/
 
@@ -109,10 +96,12 @@ InitVelocityData(DeviceVelocityPtr s)
     s->reset_time = 300;
     s->use_softening = 1;
     s->min_acceleration = 1.0; /* don't decelerate */
-    s->coupling = 0.25;
+    s->max_rel_diff = 0.2;
+    s->max_diff = 1.0;
+    s->initial_range = 1;
     s->average_accel = TRUE;
     SetAccelerationProfile(s, AccelProfileClassic);
-    InitFilterChain(s, (float)1.0/20.0, 1, 1, 40);
+    InitTrackers(s, 16);
 }
 
 
@@ -121,7 +110,7 @@ InitVelocityData(DeviceVelocityPtr s)
  */
 static void
 FreeVelocityData(DeviceVelocityPtr s){
-    CleanupFilterChain(s);
+    xfree(s->tracker);
     SetAccelerationProfile(s, -1);
 }
 
@@ -333,7 +322,7 @@ AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
 BOOL
 InitializePredictableAccelerationProperties(DeviceIntPtr device)
 {
-    DeviceVelocityPtr  pVel        = GetDevicePredictableAccelData(device);
+    DeviceVelocityPtr  pVel = GetDevicePredictableAccelData(device);
 
     if(!pVel)
 	return FALSE;
@@ -346,184 +335,219 @@ InitializePredictableAccelerationProperties(DeviceIntPtr device)
 }
 
 /*********************
- * Filtering logic
+ * Tracking logic
  ********************/
 
-/**
-Initialize a filter chain.
-Expected result is a series of filters, each progressively more integrating.
-
-This allows for two strategies: Either you have one filter which is reasonable
-and is being coupled to account for fast-changing input, or you have 'one for
-every situation'. You might want to have tighter coupling then, e.g. 0.1.
-In the filter stats, you can see if a reasonable filter useage emerges.
-*/
 void
-InitFilterChain(DeviceVelocityPtr s, float rdecay, float progression, int stages, int lutsize)
+InitTrackers(DeviceVelocityPtr s, int ntracker)
 {
-    int fn;
-    if((stages > 1 && progression < 1.0f) || 0 == progression){
-	ErrorF("(dix ptracc) invalid filter chain progression specified\n");
+    if(ntracker < 1){
+	ErrorF("(dix ptracc) invalid number of trackers\n");
 	return;
     }
-    /* Block here to support runtime filter adjustment */
-    OsBlockSignals();
-    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
-	if(fn < stages){
-	    InitFilterStage(&s->filters[fn], rdecay, lutsize);
+    xfree(s->tracker);
+    s->tracker = (MotionTrackerPtr)xalloc(ntracker * sizeof(MotionTracker));
+    memset(s->tracker, 0, ntracker * sizeof(MotionTracker));
+    s->num_tracker = ntracker;
+}
+
+/**
+ * return a bit field of possible directions.
+ * 0 = N, 2 = E, 4 = S, 6 = W, in-between is as you guess.
+ * There's no reason against widening to more precise directions (<45 degrees),
+ * should it not perform well. All this is needed for is sort out non-linear
+ * motion, so precision isn't paramount. However, one should not flag direction
+ * too narrow, since it would then cut the linear segment to zero size way too
+ * often.
+ */
+static int
+DoGetDirection(int dx, int dy){
+    float r;
+    int i1, i2;
+    /* on insignificant mickeys, flag 135 degrees */
+    if(abs(dx) < 2 && abs(dy < 2)){
+	/* first check diagonal cases */
+	if(dx > 0 && dy > 0)
+	    return 4+8+16;
+	if(dx > 0 && dy < 0)
+	    return 1+2+4;
+	if(dx < 0 && dy < 0)
+	    return 1+128+64;
+	if(dx < 0 && dy > 0)
+	    return 16+32+64;
+        /* check axis-aligned directions */
+	if(dx > 0)
+            return 2+4+8; /*E*/
+        if(dx < 0)
+            return 128+64+32; /*W*/
+        if(dy > 0)
+            return 32+16+8; /*S*/
+        if(dy < 0)
+            return 128+1+2; /*N*/
+        return 255; /* shouldn't happen */
+    }
+    /* else, compute angle and set appropriate flags */
+#ifdef _ISOC99_SOURCE
+    r = atan2f(dy, dx);
+#else
+    r = atan2(dy, dx);
+#endif
+    /* find direction. We avoid r to become negative,
+     * since C has no well-defined modulo for such cases. */
+    r = (r+(M_PI*2.5))/(M_PI/4);
+    /* this intends to flag 2 directions (90 degrees),
+     * except on very well-aligned mickeys. */
+    i1 = (int)(r+0.1) % 8;
+    i2 = (int)(r+0.9) % 8;
+    if(i1 < 0 || i1 > 7 || i2 < 0 || i2 > 7)
+	return 255; /* shouldn't happen */
+    return 1 << i1 | 1 << i2;
+}
+
+#define DIRECTION_CACHE_RANGE 5
+#define DIRECTION_CACHE_SIZE (DIRECTION_CACHE_RANGE*2+1)
+
+/* cache DoGetDirection(). */
+static int
+GetDirection(int dx, int dy){
+    static int cache[DIRECTION_CACHE_SIZE][DIRECTION_CACHE_SIZE];
+    int i;
+    if (abs(dx) <= DIRECTION_CACHE_RANGE &&
+	abs(dy) <= DIRECTION_CACHE_RANGE) {
+	/* cacheable */
+	i = cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy];
+	if(i != 0){
+	    return i;
 	}else{
-	    InitFilterStage(&s->filters[fn], 0, 0);
+	    i = DoGetDirection(dx, dy);
+	    cache[DIRECTION_CACHE_RANGE+dx][DIRECTION_CACHE_RANGE+dy] = i;
+	    return i;
 	}
-	rdecay /= progression;
-    }
-    /* release again. Should the input loop be threaded, we also need
-     * memory release here (in principle).
-     */
-    OsReleaseSignals();
-}
-
-
-void
-CleanupFilterChain(DeviceVelocityPtr s)
-{
-    int fn;
-
-    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++)
-	InitFilterStage(&s->filters[fn], 0, 0);
-}
-
-static inline void
-StuffFilterChain(DeviceVelocityPtr s, float value)
-{
-    int fn;
-
-    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
-	if(s->filters[fn].rdecay != 0)
-	    s->filters[fn].current = value;
-	else break;
-    }
-}
-
-
-/**
- * Adjust weighting decay and lut for a stage
- * The weight fn is designed so its integral 0->inf is unity, so we end
- * up with a stable (basically IIR) filter. It always draws
- * towards its more current input values, which have more weight the older
- * the last input value is.
- */
-void
-InitFilterStage(FilterStagePtr s, float rdecay, int lutsize)
-{
-    int x;
-    float *newlut;
-    float *oldlut;
-
-    s->fading_lut_size  = 0; /* prevent access */
-
-    if(lutsize > 0){
-        newlut = xalloc (sizeof(float)* lutsize);
-        if(!newlut)
-            return;
-        for(x = 0; x < lutsize; x++)
-            newlut[x] = pow(0.5, ((float)x) * rdecay);
     }else{
-        newlut = NULL;
+	/* non-cacheable */
+	return DoGetDirection(dx, dy);
     }
-    oldlut = s->fading_lut;
-    s->fading_lut = newlut;
-    s->rdecay = rdecay;
-    s->fading_lut_size = lutsize;
-    s->current = 0;
-    if(oldlut != NULL)
-        xfree(oldlut);
 }
 
+#undef DIRECTION_CACHE_RANGE
+#undef DIRECTION_CACHE_SIZE
+
+
+/* convert offset (age) to array index */
+#define TRACKER_INDEX(s, d) (((s)->num_tracker + (s)->cur_tracker - (d)) % (s)->num_tracker)
 
 static inline void
-FeedFilterChain(DeviceVelocityPtr s, float value, int tdiff)
+FeedTrackers(DeviceVelocityPtr s, int dx, int dy, int cur_t)
 {
-    int fn;
-
-    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
-	if(s->filters[fn].rdecay != 0)
-	    FeedFilterStage(&s->filters[fn], value, tdiff);
-	else break;
+    int n;
+    for(n = 0; n < s->num_tracker; n++){
+	s->tracker[n].dx += dx;
+	s->tracker[n].dy += dy;
     }
-}
-
-
-static inline void
-FeedFilterStage(FilterStagePtr s, float value, int tdiff){
-    float fade;
-    if(tdiff < s->fading_lut_size)
-        fade = s->fading_lut[tdiff];
-    else
-        fade = pow(0.5, ((float)tdiff) * s->rdecay);
-    s->current *= fade;    /* fade out old velocity */
-    s->current += value * (1.0f - fade);    /* and add up current */
+    n = (s->cur_tracker + 1) % s->num_tracker;
+    s->tracker[n].dx = dx;
+    s->tracker[n].dy = dy;
+    s->tracker[n].time = cur_t;
+    s->tracker[n].dir = GetDirection(dx, dy);
+    DebugAccelF("(dix prtacc) motion [dx: %i dy: %i dir:%i diff: %i]\n",
+                dx, dy, s->tracker[n].dir,
+                cur_t - s->tracker[s->cur_tracker].time);
+    s->cur_tracker = n;
 }
 
 /**
- * Select the most filtered matching result. Also, the first
- * mismatching filter may be set to value (coupling).
+ * calc velocity for given tracker, with
+ * velocity scaling.
+ * This assumes linear motion.
  */
-static inline float
-QueryFilterChain(
-    DeviceVelocityPtr s,
-    float value)
-{
-    int fn, rfn = 0, cfn = -1;
-    float cur, result = value;
+static float
+CalcTracker(DeviceVelocityPtr s, int offset, int cur_t){
+    int index = TRACKER_INDEX(s, offset);
+    float dist = sqrt(  s->tracker[index].dx * s->tracker[index].dx
+                      + s->tracker[index].dy * s->tracker[index].dy);
+    int dtime = cur_t - s->tracker[TRACKER_INDEX(s, offset+1)].time;
+    if(dtime > 0)
+	return (dist / dtime);
+    else
+	return 0;/* synonymous for NaN, since we're not C99 */
+}
 
-    /* try to retrieve most integrated result 'within range'
-     * Assumption: filter are in order least to most integrating */
-    for(fn = 0; fn < MAX_VELOCITY_FILTERS; fn++){
-	if(0.0f == s->filters[fn].rdecay)
+/* find the most plausible velocity. That is, the most distant
+ * (in time) tracker which isn't too old, beyond a linear partition,
+ * or simply too much off initial velocity.
+ *
+ * min_t should be (now - ~100-600 ms). May return 0.
+ */
+static float
+QueryTrackers(DeviceVelocityPtr s, int min_t, int cur_t){
+    int n, offset, dir = 255, i = -1;
+    /* initial velocity: a low-offset, valid velocity */
+    float iveloc = 0, res = 0, tmp, vdiff;
+    float vfac =  s->corr_mul * s->const_acceleration; /* premultiply */
+    /* loop from current to older data */
+    for(offset = 0; offset < s->num_tracker-1; offset++){
+	n = TRACKER_INDEX(s, offset);
+
+	/* bail out if data is too old */
+	if(s->tracker[TRACKER_INDEX(s, offset+1)].time < min_t){
+	    DebugAccelF("(dix prtacc) query: tracker too old\n");
 	    break;
-	cur = s->filters[fn].current;
+	}
 
-	if (fabs(value - cur) <= (s->coupling * (value + cur))){
-	    result = cur;
-	    rfn = fn + 1; /*remember result determining filter */
-	} else if(cfn == -1){
-	    cfn = fn; /* remember first mismatching filter */
+	/*
+	 * this heuristic avoids using the linear-motion velocity formula
+	 * in CalcTracker() on motion that isn't exactly linear. So to get
+	 * even more precision we could subdivide as a final step, so possible
+	 * non-linearities are accounted for.
+	 */
+	dir &= s->tracker[n].dir;
+	if(dir == 0){
+	    DebugAccelF("(dix prtacc) query: no longer linear\n");
+	    /* instead of breaking it we might also inspect the partition after,
+	     * but actual improvement with this is probably rare. */
+	    break;
+	}
+
+	tmp = CalcTracker(s, offset, cur_t) * vfac;
+
+	if ((iveloc == 0 || offset <= s->initial_range) && tmp != 0) {
+	    /* set initial velocity and result */
+	    res = iveloc = tmp;
+	    i = offset;
+	} else if (iveloc != 0 && tmp != 0) {
+	    vdiff = fabs(iveloc - tmp);
+	    if (vdiff <= s->max_diff ||
+		vdiff/(iveloc + tmp) < s->max_rel_diff) {
+		/* we're in range with the initial velocity,
+		 * so this result is likely better
+		 * (it contains more information). */
+		res = tmp;
+		i = offset;
+	    }else{
+		/* we're not in range, quit - it won't get better. */
+		DebugAccelF("(dix prtacc) query: tracker too different:"
+		            " old %2.2f initial %2.2f diff: %2.2f\n",
+		            tmp, iveloc, vdiff);
+		break;
+	    }
 	}
     }
-
-    s->statistics.filter_usecount[rfn]++;
-    DebugAccelF("(dix ptracc) result from stage %i,  input %.2f, output %.2f\n",
-           rfn, value, result);
-
-    /* override first mismatching current (coupling) so the filter
-     * catches up quickly. */
-    if(cfn != -1)
-        s->filters[cfn].current = result;
-
-    return result;
-}
-
-/********************************
- *  velocity computation
- *******************************/
-
-/**
- * return the axis if mickey is insignificant and axis-aligned,
- * -1 otherwise
- * 1 for x-axis
- * 2 for y-axis
- */
-static inline short
-GetAxis(int dx, int dy){
-    if(dx == 0 || dy == 0){
-        if(dx == 1 || dx == -1)
-            return 1;
-        if(dy == 1 || dy == -1)
-            return 2;
+    if(offset == s->num_tracker){
+	DebugAccelF("(dix prtacc) query: last tracker in effect\n");
+	i = s->num_tracker-1;
     }
-    return -1;
+    if(i>=0){
+        n = TRACKER_INDEX(s, i);
+	DebugAccelF("(dix prtacc) result: offset %i [dx: %i dy: %i diff: %i]\n",
+	            i,
+	            s->tracker[n].dx,
+	            s->tracker[n].dy,
+	            cur_t - s->tracker[n].time);
+    }
+    return res;
 }
 
+#undef TRACKER_INDEX
 
 /**
  * Perform velocity approximation based on 2D 'mickeys' (mouse motion delta).
@@ -536,138 +560,17 @@ ProcessVelocityData2D(
     int dy,
     int time)
 {
-    float distance;
+    float velocity;
 
-    int diff = time - s->lrm_time;
-    int cur_ax, last_ax;
-    BOOL reset;
-
-    cur_ax = GetAxis(dx, dy);
-    last_ax = GetAxis(s->last_dx, s->last_dy);
-
-    if(cur_ax != last_ax && cur_ax != -1 && last_ax != -1 &&
-	    diff < s->reset_time){
-        /* correct for the error induced when diagonal movements are
-           reported as alternating axis-aligned mickeys */
-        dx += s->last_dx;
-        dy += s->last_dy;
-        diff += s->last_diff;
-        s->last_diff = time - s->lrm_time; /* prevent repeating add-up */
-        DebugAccelF("(dix ptracc) axial correction\n");
-    }else{
-        s->last_diff = diff;
-    }
-
-    distance = (float)sqrt(dx*dx + dy*dy);
-
-    s->lrm_time = time;
-
-    reset = ProcessVelocityData(s, distance, diff);
-
-    if(reset)
-	s->last_diff = 1;
-    return reset;
-}
-
-/**
- * Perform velocity approximation given a one-dimensional delta.
- * return true if non-visible state reset is suggested
- */
-static short
-ProcessVelocityData(
-    DeviceVelocityPtr s,
-    float distance,
-    int diff)
-{
-    float cvelocity;
-    int phase;
-
-    /* remember previous result */
     s->last_velocity = s->velocity;
 
-    /*
-     * cvelocity is not a real velocity yet, more a motion delta. constant
-     * acceleration is multiplied here to make the velocity an on-screen
-     * velocity (pix/t as opposed to [insert unit]/t). This is intended to
-     * make multiple devices with widely varying ConstantDecelerations respond
-     * similar to acceleration controls.
-     */
-    cvelocity = distance * s->const_acceleration;
+    FeedTrackers(s, dx, dy, time);
 
-    if (s->reset_time < 0 || diff < 0) { /* reset disabled or timer overrun? */
-        /* simply set velocity from current movement, no reset. */
-        s->velocity = cvelocity;
-        return FALSE;
-    }
+    velocity = QueryTrackers(s, time - s->reset_time, time);
 
-    /* try to determine 'phase', i.e. whether we process the first(0),
-     * second(1) or any following motion event of a stroke(2) */
-    if(diff >= s->reset_time && cvelocity < 10){
-	phase = 0;
-    }else{
-	switch(s->last_phase){
-	case 0:
-	case 1:
-	    phase = s->last_phase + 1;
-	    break;
-	default:
-	    phase = 2;
-	    break;
-	}
-    }
-    s->last_phase = phase;
-    DebugAccelF("(dix ptracc) phase: %i\n", phase);
-
-    if (diff == 0)
-        diff = 1; /* prevent div-by-zero, though it shouldn't happen anyway*/
-
-    /* translate velocity to dots/ms (somewhat intractable in integers,
-       so we multiply by some per-device adjustable factor) */
-    cvelocity = cvelocity * s->corr_mul / (float)diff;
-
-    switch(phase){
-    case 0:
-	/*
-	 * First event of a stroke.
-	 * We don't really have a velocity here, since diff includes inactive
-	 * time. This is dealt with in ComputeAcceleration. Here we cancel out
-	 * remnants from previous strokes which the user is presumably
-	 * not aware of (non-visible state reset).
-	 */
-	StuffFilterChain(s, cvelocity);
-	s->velocity = s->last_velocity = cvelocity;
-	DebugAccelF("(dix ptracc) non-visible state reset\n");
-	return TRUE;
-    case 1:
-	/*
-	 * when here, we're probably processing the second mickey of a starting
-	 * stroke. This happens to be the first time we can reasonably pretend
-	 * that cvelocity is an actual velocity. Thus, to opt precision, we
-	 * stuff that into the filter chain.
-	 */
-	DebugAccelF("(dix ptracc) after-reset vel:%.3f\n", cvelocity);
-	StuffFilterChain(s, cvelocity);
-	s->velocity = cvelocity;
-	return FALSE;
-    default:
-	/* normal operarion: feed into filter chain */
-	FeedFilterChain(s, cvelocity, diff);
-
-	/* perform coupling and decide final value */
-	s->velocity = QueryFilterChain(s, cvelocity);
-
-	DebugAccelF(
-	       "(dix ptracc) guess: vel=%.3f diff=%d   %i|%i|%i|%i|%i|%i|%i|%i|%i\n",
-	       s->velocity, diff,
-	       s->statistics.filter_usecount[0], s->statistics.filter_usecount[1],
-	       s->statistics.filter_usecount[2], s->statistics.filter_usecount[3],
-	       s->statistics.filter_usecount[4], s->statistics.filter_usecount[5],
-	       s->statistics.filter_usecount[6], s->statistics.filter_usecount[7],
-	       s->statistics.filter_usecount[8]);
-	return FALSE;
-    }
+    s->velocity = velocity;
+    return velocity == 0;
 }
-
 
 /**
  * this flattens significant ( > 1) mickeys a little bit for more steady
@@ -737,12 +640,10 @@ ComputeAcceleration(
     float acc){
     float res;
 
-    if(vel->last_phase == 0){
+    if(vel->velocity <= 0){
 	DebugAccelF("(dix ptracc) profile skipped\n");
         /*
-         * This is intended to override the first estimate of a stroke,
-         * which is too low (see ProcessVelocityData). 1 should make sure
-         * the mickey is seen on screen.
+         * If we have no idea about device velocity, don't pretend it.
          */
 	return 1;
     }
@@ -1072,7 +973,7 @@ acceleratePointerPredictable(
              * sub-pixel values to apps(XI2?). If you remove it, make
              * sure suitable rounding is applied below.
              */
-            pDev->last.remainder[0] = pDev->last.remainder[1] = 0.5f;
+            pDev->last.remainder[0] = pDev->last.remainder[1] = 0;
             soften = FALSE;
         }
 
@@ -1090,12 +991,12 @@ acceleratePointerPredictable(
 						       (mult > 1.0) && soften);
 
                 if (dx) {
-                    pDev->last.remainder[0] = mult * fdx + pDev->last.remainder[0];
+                    pDev->last.remainder[0] = roundf(mult * fdx + pDev->last.remainder[0]);
                     *px = (int)pDev->last.remainder[0];
                     pDev->last.remainder[0] = pDev->last.remainder[0] - (float)*px;
                 }
                 if (dy) {
-                    pDev->last.remainder[1] = mult * fdy + pDev->last.remainder[1];
+                    pDev->last.remainder[1] = roundf(mult * fdy + pDev->last.remainder[1]);
                     *py = (int)pDev->last.remainder[1];
                     pDev->last.remainder[1] = pDev->last.remainder[1] - (float)*py;
                 }

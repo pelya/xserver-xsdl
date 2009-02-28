@@ -27,11 +27,6 @@
 
 #include <input.h> /* DeviceIntPtr */
 
-/* maximum number of filters to approximate velocity.
- * ABI-breaker!
- */
-#define MAX_VELOCITY_FILTERS 8
-
 /* constants for acceleration profiles;
  * see  */
 
@@ -57,46 +52,41 @@ typedef float (*PointerAccelerationProfileFunc)
                float /*velocity*/, float /*threshold*/, float /*acc*/);
 
 /**
- * a filter stage contains the data for adaptive IIR filtering.
- * To improve results, one may run several parallel filters
- * which have different decays. Since more integration means more
- * delay, a given filter only does good matches in a specific phase of
- * a stroke.
- *
- * Basically, the coupling feature makes one filter fairly enough,
- * so that is the default.
+ * a motion history, with just enough information to
+ * calc mean velocity and decide which motion was along
+ * a more or less straight line
  */
-typedef struct _FilterStage {
-    float*  fading_lut;     /* lookup for adaptive IIR filter */
-    int     fading_lut_size; /* size of lookup table */
-    float   rdecay;     /* reciprocal weighting halflife in ms */
-    float   current;
-} FilterStage, *FilterStagePtr;
+typedef struct _MotionTracker {
+    int dx, dy;     /* accumulated delta for each axis */
+    int time;         /* time of creation */
+    int dir;        /* initial direction bitfield */
+} MotionTracker, *MotionTrackerPtr;
 
 /**
  * Contains all data needed to implement mouse ballistics
  */
 typedef struct _DeviceVelocityRec {
-    FilterStage filters[MAX_VELOCITY_FILTERS];
+    MotionTrackerPtr tracker;
+    int num_tracker;
+    int cur_tracker;        /* current index */
     float   velocity;       /* velocity as guessed by algorithm */
     float   last_velocity;  /* previous velocity estimate */
-    int     lrm_time;       /* time the last motion event was processed  */
-    int     last_dx, last_dy; /* last motion delta */
-    int     last_diff;      /* last time-difference */
-    int     last_phase;     /* phase of last/current estimate */
+    int     last_dx;      /* last time-difference */
+    int     last_dy ;     /* phase of last/current estimate */
     float   corr_mul;       /* config: multiply this into velocity */
     float   const_acceleration;  /* config: (recipr.) const deceleration */
     float   min_acceleration;    /* config: minimum acceleration */
     short   reset_time;     /* config: reset non-visible state after # ms */
     short   use_softening;  /* config: use softening of mouse values */
-    float   coupling;       /* config: max. divergence before coupling */
+    float   max_rel_diff;   /* config: max. relative difference */
+    float   max_diff;       /* config: max. difference */
+    int     initial_range;  /* config: max. offset used as initial velocity */
     Bool    average_accel;  /* config: average acceleration over velocity */
     PointerAccelerationProfileFunc Profile;
     PointerAccelerationProfileFunc deviceSpecificProfile;
     void*   profile_private;/* extended data, see  SetAccelerationProfile() */
     struct {   /* to be able to query this information */
         int     profile_number;
-        int     filter_usecount[MAX_VELOCITY_FILTERS +1];
     } statistics;
 } DeviceVelocityRec, *DeviceVelocityPtr;
 
@@ -104,12 +94,11 @@ typedef struct _DeviceVelocityRec {
 extern _X_EXPORT void
 InitVelocityData(DeviceVelocityPtr s);
 
+extern _X_EXPORT void
+InitTrackers(DeviceVelocityPtr s, int ntracker);
+
 extern _X_EXPORT BOOL
 InitializePredictableAccelerationProperties(DeviceIntPtr pDev);
-
-extern _X_EXPORT void
-InitFilterChain(DeviceVelocityPtr s, float rdecay, float degression,
-                int lutsize, int stages);
 
 extern _X_EXPORT int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);

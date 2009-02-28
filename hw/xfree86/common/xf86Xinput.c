@@ -104,8 +104,8 @@ static void
 ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
                              DeviceVelocityPtr s)
 {
-    int tempi, i;
-    float tempf, tempf2;
+    int tempi;
+    float tempf;
     Atom float_prop = XIGetKnownProperty(XATOM_FLOAT);
     Atom prop;
 
@@ -150,10 +150,6 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
     tempf = xf86SetRealOption(list, "ExpectedRate", 0);
     prop = XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING);
     if(tempf > 0){
-        if(tempf > 300){
-            xf86Msg(X_WARNING, "%s: (accel) Using ExpectedRate > 300 may not "
-                    "yield good controllability!\n", devname);
-        }
         tempf = 1000.0 / tempf;
         XIChangeDeviceProperty(pDev, prop, float_prop, 32,
                                PropModeReplace, 1, &tempf, FALSE);
@@ -163,38 +159,21 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
                                PropModeReplace, 1, &tempf, FALSE);
     }
 
-    /* advanced stuff, best kept in .fdi's */
-    tempf = xf86SetRealOption(list, "FilterHalflife", -1);
-    if(tempf > 0)
-        tempf = 1.0 / tempf;   /* set reciprocal if possible */
-
-    tempf2 = xf86SetRealOption(list, "FilterChainProgression", 2.0);
-    xf86Msg(X_CONFIG, "%s: (accel) filter chain progression: %.2f\n",
-            devname, tempf2);
-    if(tempf2 < 1)
-        tempf2 = 2;
-
-    tempi = xf86SetIntOption(list, "FilterChainLength", 1);
-    if(tempi < 1 || tempi > MAX_VELOCITY_FILTERS)
-	tempi = 1;
-
-    if(tempf > 0.0f && tempi >= 1 && tempf2 >= 1.0f)
-	InitFilterChain(s, tempf, tempf2, tempi, 40);
-
-    /* dump filter setup to log */
-    for(i = 0; i < MAX_VELOCITY_FILTERS; i++){
-	if(s->filters[i].rdecay <= 0)
-	    break;
-
-        xf86Msg(X_CONFIG, "%s: (accel) filter stage %i: %.2f ms\n",
-                devname, i, 1.0f / (s->filters[i].rdecay));
+    tempi = xf86SetIntOption(list, "VelocityTrackerCount", -1);
+    if(tempi > 1){
+	InitTrackers(s, tempi);
     }
 
-    tempf = xf86SetRealOption(list, "VelocityCoupling", -1);
+    s->initial_range = xf86SetIntOption(list, "VelocityInitialRange",
+                                        s->initial_range);
+
+    s->max_diff = xf86SetRealOption(list, "VelocityAbsDiff", s->max_diff);
+
+    tempf = xf86SetRealOption(list, "VelocityRelDiff", -1);
     if(tempf >= 0){
-	xf86Msg(X_CONFIG, "%s: (accel) velocity coupling is %.1f%%\n", devname,
-                tempf*100.0);
-	s->coupling = tempf;
+	xf86Msg(X_CONFIG, "%s: (accel) max rel. velocity difference: %.1f%%\n",
+	        devname, tempf*100.0);
+	s->max_rel_diff = tempf;
     }
 
     /*  Configure softening. If const deceleration is used, this is expected
