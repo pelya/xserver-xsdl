@@ -405,7 +405,7 @@ ExaCheckComposite (CARD8      op,
 	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 				       xSrc, ySrc, xMask, yMask, xDst, yDst,
 				       width, height))
-	    return;
+	    goto skip;
 
 	exaGetDrawableDeltas (pDst->pDrawable,
 			      exaGetDrawablePixmap(pDst->pDrawable),
@@ -450,15 +450,17 @@ ExaCheckComposite (CARD8      op,
 #endif /* RENDER */
     if (pMask && pMask->pDrawable != NULL)
 	exaFinishAccess (pMask->pDrawable, EXA_PREPARE_MASK);
-    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
-	exaFinishAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
     if (pSrc->pDrawable != NULL)
 	exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
-    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
-	exaFinishAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
     if (pDst->alphaMap && pDst->alphaMap->pDrawable)
 	exaFinishAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX_DEST);
+
+skip:
+    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+	exaFinishAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
+    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+	exaFinishAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
 
     REGION_UNINIT(pScreen, &region);
 }
