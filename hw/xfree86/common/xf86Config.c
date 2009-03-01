@@ -1670,7 +1670,7 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         idp = (XF86ConfInactivePtr)idp->list.next;
     }
 #ifdef DEBUG
-    ErrorF("Found %d inactive devices in the layout section %s",
+    ErrorF("Found %d inactive devices in the layout section %s\n",
            count, conf_layout->lay_identifier);
 #endif
     gdp = xnfalloc((count + 1) * sizeof(GDevRec));
@@ -1695,7 +1695,7 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         irp = (XF86ConfInputrefPtr)irp->list.next;
     }
 #ifdef DEBUG
-    ErrorF("Found %d input devices in the layout section %s",
+    ErrorF("Found %d input devices in the layout section %s\n",
            count, conf_layout->lay_identifier);
 #endif
     indp = xnfcalloc((count + 1), sizeof(IDevPtr));
