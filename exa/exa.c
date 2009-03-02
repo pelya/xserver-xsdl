@@ -743,9 +743,44 @@ exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
     if (!pPixmap)
 	return NULL;
 
-    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_SRC);
+    /* Note the usage of ExaDoPrepareAccess, this allowed because:
+     * The pixmap is new, so not offscreen in the classic exa case.
+     * For EXA_HANDLES_PIXMAPS the driver will handle whatever is needed.
+     * We want to signal that the pixmaps will be used as destination.
+     */
+    if (pExaScr->prepare_access[EXA_PREPARE_DEST] == NULL) {
+	ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+	pExaScr->prepare_access[EXA_PREPARE_DEST] = pPixmap;
+    } else if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST] == NULL) {
+	ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_DEST);
+	pExaScr->prepare_access[EXA_PREPARE_AUX_DEST] = pPixmap;
+    } else {
+	FatalError("exaCreatePixmapWithPrepare can only accomodate two pixmaps, we're at three.\n");
+    }
 
     return pPixmap;
+}
+
+static Bool
+exaDestroyPixmapWithFinish(PixmapPtr pPixmap)
+{
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+    int i;
+    Bool ret;
+
+    for (i = 0; i < 6; i++)
+	if (pExaScr->prepare_access[i] == pPixmap)
+	    exaFinishAccess(&pPixmap->drawable, i);
+
+    /* This swaps between this function and the real upper layer function.
+     * Normally this would swap to the fb layer pointer, this is a very special case.
+     */
+    swap(pExaScr, pScreen, DestroyPixmap);
+    ret = pScreen->DestroyPixmap(pPixmap);
+    swap(pExaScr, pScreen, DestroyPixmap);
+
+    return ret;
 }
 
 static void
@@ -760,6 +795,7 @@ exaValidateGC(GCPtr pGC,
     ScreenPtr pScreen = pDrawable->pScreen;
     ExaScreenPriv(pScreen);
     CreatePixmapProcPtr old_ptr = NULL;
+    DestroyPixmapProcPtr old_ptr2 = NULL;
     PixmapPtr pTile = NULL;
     EXA_GC_PROLOGUE(pGC);
 
@@ -767,6 +803,11 @@ exaValidateGC(GCPtr pGC,
     old_ptr = pExaScr->SavedCreatePixmap;
     /* create a new upper layer pointer. */
     wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmapWithPrepare);
+
+    /* save the "fb" pointer. */
+    old_ptr2 = pExaScr->SavedDestroyPixmap;
+    /* create a new upper layer pointer. */
+    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmapWithFinish);
 
     /* Either of these conditions is enough to trigger access to a tile pixmap. */
     /* With pGC->tileIsPixel == 1, you run the risk of dereferencing an invalid tile pixmap pointer. */
@@ -792,8 +833,8 @@ exaValidateGC(GCPtr pGC,
 
     (*pGC->funcs->ValidateGC)(pGC, changes, pDrawable);
 
-    if (pTile)
-	exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
+    if (pExaScr->prepare_access[EXA_PREPARE_SRC]) /* tile */
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_SRC]->drawable, EXA_PREPARE_SRC);
     if (pGC->stipple)
         exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
 
@@ -802,9 +843,18 @@ exaValidateGC(GCPtr pGC,
     /* restore copy of fb layer pointer. */
     pExaScr->SavedCreatePixmap = old_ptr;
 
-    if (pGC->fillStyle == FillTiled && pTile != pGC->tile.pixmap)
-	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_AUX_SRC);
-    
+    /* switch back to the normal upper layer. */
+    unwrap(pExaScr, pScreen, DestroyPixmap);
+    /* restore copy of fb layer pointer. */
+    pExaScr->SavedDestroyPixmap = old_ptr2;
+
+    if (pExaScr->prepare_access[EXA_PREPARE_DEST])
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_DEST]->drawable,
+		EXA_PREPARE_DEST);
+    if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST])
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_AUX_DEST]->drawable,
+		EXA_PREPARE_AUX_DEST);
+
     EXA_GC_EPILOGUE(pGC);
 }
 
@@ -891,22 +941,50 @@ exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     Bool ret;
     ScreenPtr pScreen = pWin->drawable.pScreen;
     ExaScreenPriv(pScreen);
+    CreatePixmapProcPtr old_ptr = NULL;
+    DestroyPixmapProcPtr old_ptr2 = NULL;
+
+    /* save the "fb" pointer. */
+    old_ptr = pExaScr->SavedCreatePixmap;
+    /* create a new upper layer pointer. */
+    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmapWithPrepare);
+
+    /* save the "fb" pointer. */
+    old_ptr2 = pExaScr->SavedDestroyPixmap;
+    /* create a new upper layer pointer. */
+    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmapWithFinish);
 
     if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
-        exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+	exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
 
     if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
-        exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
+	exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
 
     swap(pExaScr, pScreen, ChangeWindowAttributes);
     ret = pScreen->ChangeWindowAttributes(pWin, mask);
     swap(pExaScr, pScreen, ChangeWindowAttributes);
 
-    if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
-        exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
+    if (pExaScr->prepare_access[EXA_PREPARE_SRC]) /* background */
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_SRC]->drawable, EXA_PREPARE_SRC);
+    if (pExaScr->prepare_access[EXA_PREPARE_MASK]) /* border */
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_MASK]->drawable, EXA_PREPARE_MASK);
 
-    if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
-        exaFinishAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+    /* switch back to the normal upper layer. */
+    unwrap(pExaScr, pScreen, CreatePixmap);
+    /* restore copy of fb layer pointer. */
+    pExaScr->SavedCreatePixmap = old_ptr;
+
+    /* switch back to the normal upper layer. */
+    unwrap(pExaScr, pScreen, DestroyPixmap);
+    /* restore copy of fb layer pointer. */
+    pExaScr->SavedDestroyPixmap = old_ptr2;
+
+    if (pExaScr->prepare_access[EXA_PREPARE_DEST])
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_DEST]->drawable,
+		EXA_PREPARE_DEST);
+    if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST])
+	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_AUX_DEST]->drawable,
+		EXA_PREPARE_AUX_DEST);
 
     return ret;
 }
