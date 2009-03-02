@@ -2085,9 +2085,9 @@ xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
 		     (float)config->output[p]->mm_height;
 
 	if (aspect)
-	    preferred_match[0] = bestModeForAspect(config, enabled, aspect);
+	    preferred_match[p] = bestModeForAspect(config, enabled, aspect);
 
-	if (preferred_match[0])
+	if (preferred_match[p])
 	    ret = TRUE;
 
     } while (0);
