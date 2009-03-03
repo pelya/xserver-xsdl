@@ -133,7 +133,7 @@ AccessXKeyboardEvent(DeviceIntPtr	keybd,
 
     if (xkbDebugFlags&0x8) {
 	DebugF("[xkb] AXKE: Key %d %s\n", keyCode,
-               (event->type == ET_KeyPress ? "down" : "up"));
+               (event.type == ET_KeyPress ? "down" : "up"));
     }
 
     if (!_XkbIsPressEvent(type) && isRepeat)

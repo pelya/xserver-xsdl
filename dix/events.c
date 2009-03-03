@@ -3673,9 +3673,9 @@ FixKeyState (DeviceEvent *event, DeviceIntPtr keybd)
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
 
-    if ((event->type == ET_KeyPress)||(event->type == ET_KeyRelease)) {
+    if (event->type == ET_KeyPress) {
 	DebugF("FixKeyState: Key %d %s\n",key,
-               (((event->type == ET_KeyPress)||(event->type == ET_DeviceKeyPress)) ? "down" : "up"));
+               ((event->type == ET_KeyPress) ? "down" : "up"));
     }
 
     if (event->type == ET_KeyPress)
