@@ -609,7 +609,8 @@ SELinuxAudit(void *auditdata,
 {
     SELinuxAuditRec *audit = auditdata;
     ClientPtr client = audit->client;
-    char idNum[16], *propertyName, *selectionName;
+    char idNum[16];
+    const char *propertyName, *selectionName;
     int major = -1, minor = -1;
 
     if (client) {
