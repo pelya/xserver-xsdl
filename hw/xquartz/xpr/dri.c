@@ -728,8 +728,13 @@ DRISurfaceNotify(xp_surface_id id, int kind)
 
     if (kind == AppleDRISurfaceNotifyDestroyed)
     {
-	xp_destroy_surface(pDRIDrawablePriv->sid);
+	xp_error error;
 	
+	error = xp_destroy_surface(pDRIDrawablePriv->sid);
+	
+	if(error) 
+	    ErrorF("%s: xp_destroy_surface failed: %d\n", __func__, error);
+		
 	/* Guard against reuse, even though we are freeing after this. */
 	pDRIDrawablePriv->sid = 0;
 
