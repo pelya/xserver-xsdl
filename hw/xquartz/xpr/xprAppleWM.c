@@ -104,14 +104,18 @@ static int xprFrameDraw(
     return Success;
 }
 
-
 static AppleWMProcsRec xprAppleWMProcs = {
     xp_disable_update,
     xp_reenable_update,
     xprSetWindowLevel,
     xp_frame_get_rect,
     xp_frame_hit_test,
-    xprFrameDraw
+    xprFrameDraw,
+#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 2
+    xp_set_dock_proxy
+#else
+    NULL
+#endif
 };
 
 

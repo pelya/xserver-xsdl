@@ -493,6 +493,24 @@ ProcAppleWMSetWindowLevel(register ClientPtr client)
 }
 
 static int
+ProcAppleWMSendPSN(register ClientPtr client)
+{
+    REQUEST(xAppleWMSendPSNReq);
+    int err;
+    
+    REQUEST_SIZE_MATCH(xAppleWMSendPSNReq);
+    
+    if(appleWMProcs->SendPSN) {
+        err = appleWMProcs->SendPSN(stuff->psn_hi, stuff->psn_lo);
+        if (err != Success) {
+            return err;
+        }
+    }
+
+    return (client->noClientException);
+}
+
+static int
 ProcAppleWMSetCanQuit(
     register ClientPtr client
 )
@@ -652,6 +670,8 @@ ProcAppleWMDispatch (
         return ProcAppleWMFrameHitTest(client);
     case X_AppleWMFrameDraw:
         return ProcAppleWMFrameDraw(client);
+    case X_AppleWMSendPSN:
+        return ProcAppleWMSendPSN(client);
     default:
         return BadRequest;
     }

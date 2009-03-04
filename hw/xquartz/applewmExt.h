@@ -45,6 +45,7 @@ typedef int (*FrameDrawProc)(WindowPtr pWin, int class, unsigned int attr,
                              const BoxRec *outer, const BoxRec *inner,
                              unsigned int title_len,
                              const unsigned char *title_bytes);
+typedef int (*SendPSNProc)(uint32_t hi, uint32_t lo);
 
 /*
  * AppleWM implementation function list
@@ -56,6 +57,7 @@ typedef struct _AppleWMProcs {
     FrameGetRectProc FrameGetRect;
     FrameHitTestProc FrameHitTest;
     FrameDrawProc FrameDraw;
+    SendPSNProc SendPSN;
 } AppleWMProcsRec, *AppleWMProcsPtr;
 
 void AppleWMExtensionInit(
