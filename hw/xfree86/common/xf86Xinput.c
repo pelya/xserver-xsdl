@@ -74,7 +74,6 @@
 #include "exevents.h"	/* AddInputDevice */
 #include "exglobals.h"
 
-#define EXTENSION_PROC_ARGS void *
 #include "extnsionst.h"
 
 #include "windowstr.h"	/* screenIsSaved */

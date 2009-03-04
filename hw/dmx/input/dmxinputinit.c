@@ -76,7 +76,6 @@
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
-#define EXTENSION_PROC_ARGS void *
 #include "extinit.h"
 
 /* From XI.h */

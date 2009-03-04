@@ -51,7 +51,6 @@
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
-#define EXTENSION_PROC_ARGS void *
 #include "extnsionst.h"
 #include "opaque.h"
 
