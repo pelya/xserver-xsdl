@@ -320,7 +320,6 @@ int
 ProcXListInputDevices(ClientPtr client)
 {
     xListInputDevicesReply rep;
-    XIClientPtr pXIClient;
     int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
     int rc, size = 0;
@@ -340,21 +339,15 @@ ProcXListInputDevices(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    pXIClient = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
 
     AddOtherInputDevices();
 
     for (d = inputInfo.devices; d; d = d->next) {
-        if (pXIClient->major_version < XI_2_Major)
-        {
-            if (d->isMaster &&
+        if (d->isMaster &&
                 d != inputInfo.pointer &&
                 d != inputInfo.keyboard)
-                continue; /* don't send master devices other than VCP/VCK */
+            continue; /* don't send master devices other than VCP/VCK */
 
-            if (!d->isMaster && d->u.master)
-                continue; /* don't send attached SDs */
-        }
         rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
         if (rc != Success)
             return rc;
@@ -363,10 +356,10 @@ ProcXListInputDevices(ClientPtr client)
     }
 
     for (d = inputInfo.off_devices; d; d = d->next) {
-        if (pXIClient->major_version < XI_2_Major &&
-            !d->isMaster &&
-            d->u.master) /* XXX can off_devices be attached? */
-                continue; /* don't send attached SDs */
+        if (d->isMaster &&
+                d != inputInfo.pointer &&
+                d != inputInfo.keyboard)
+            continue; /* don't send master devices other than VCP/VCK */
 
         rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
         if (rc != Success)
@@ -384,25 +377,20 @@ ProcXListInputDevices(ClientPtr client)
     dev = (xDeviceInfoPtr) devbuf;
     for (d = inputInfo.devices; d; d = d->next)
     {
-        if (pXIClient->major_version < XI_2_Major)
-        {
-            if (d->isMaster &&
-                    d != inputInfo.pointer &&
-                    d != inputInfo.keyboard)
-                continue; /* don't count master devices other than VCP/VCK */
+        if (d->isMaster &&
+                d != inputInfo.pointer &&
+                d != inputInfo.keyboard)
+            continue; /* don't count master devices other than VCP/VCK */
 
-            if (!d->isMaster && d->u.master)
-                continue; /* don't count attached SDs */
-        }
         ListDeviceInfo(client, d, dev++, &devbuf, &classbuf, &namebuf);
     }
 
     for (d = inputInfo.off_devices; d; d = d->next)
     {
-        if (pXIClient->major_version < XI_2_Major &&
-                !d->isMaster &&
-                d->u.master) /* XXX can off_devices be attached? */
-            continue; /* don't send attached SDs */
+        if (d->isMaster &&
+                d != inputInfo.pointer &&
+                d != inputInfo.keyboard)
+            continue; /* don't count master devices other than VCP/VCK */
 
         ListDeviceInfo(client, d, dev++, &devbuf, &classbuf, &namebuf);
     }
