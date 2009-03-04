@@ -183,10 +183,12 @@ extern _X_EXPORT Bool DPMSSupported(void);
 
 /* xf86DGA.c */
 
+#ifdef XFreeXDGA
 extern _X_EXPORT Bool DGAInit(ScreenPtr pScreen, DGAFunctionPtr funcs, DGAModePtr modes,
 			int num);
 extern _X_EXPORT Bool DGAReInitModes(ScreenPtr pScreen, DGAModePtr modes, int num);
 extern _X_EXPORT xf86SetDGAModeProc xf86SetDGAMode;
+#endif
 
 /* xf86Events.c */
 
