@@ -96,10 +96,6 @@ OsInit(void)
     static char* devnull = "/dev/null";
     char fname[PATH_MAX];
 
-#ifdef macII
-    set42sig();
-#endif
-
     if (!been_here) {
 #if !defined(__SCO__) && !defined(__CYGWIN__) && !defined(__UNIXWARE__)
 	fclose(stdin);
