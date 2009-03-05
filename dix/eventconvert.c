@@ -32,9 +32,12 @@
 #include <dix-config.h>
 #endif
 
+#include <stdint.h>
 #include <X11/X.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 
 #include "dix.h"
 #include "inputstr.h"
@@ -49,7 +52,7 @@ static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
 static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce,
                                  int *count);
-
+static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
 /**
  * Convert the given event to the respective core event.
  *
@@ -129,6 +132,39 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
     }
 
     ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->u.any.type);
+    return BadImplementation;
+}
+
+/**
+ * Convert the given event to the respective XI 2.x event and store it in xi.
+ * xi is allocated on demand and must be freed by the caller.
+ *
+ * If the event cannot be converted into an XI event because of protocol
+ * restrictions, xi is NULL and Success is returned.
+ *
+ * @param[in] ev The event to convert into an XI2 event
+ * @param[out] xi Future memory location for the XI2 event.
+ *
+ * @return Success or the error code.
+ */
+int
+EventToXI2(InternalEvent *ev, xEvent **xi)
+{
+    switch (ev->u.any.type)
+    {
+        case ET_Motion:
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+        case ET_KeyPress:
+        case ET_KeyRelease:
+            return eventToDeviceEvent((DeviceEvent*)ev, xi);
+        case ET_ProximityIn:
+        case ET_ProximityOut:
+            *xi = NULL;
+            return Success;
+    }
+
+    ErrorF("[dix] EventToXI2: Not implemented for %d \n", ev->u.any.type);
     return BadImplementation;
 }
 
@@ -287,6 +323,91 @@ eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi, int *count)
     return Success;
 }
 
+static int count_bits(unsigned char* ptr, int len)
+{
+    int bits = 0;
+    unsigned int i;
+    unsigned char x;
+
+    for (i = 0; i < len; i++)
+    {
+        x = ptr[i];
+        while(x > 0)
+        {
+            bits += (x & 0x1);
+            x >>= 1;
+        }
+    }
+    return bits;
+}
+
+static int
+eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
+{
+    int len = sizeof(xXIDeviceEvent);
+    xXIDeviceEvent *xde;
+    int i, btlen, vallen;
+    char *ptr;
+    int32_t *axisval;
+
+
+    /* FIXME: this should just send the buttons we have, not MAX_BUTTONs. Same
+     * with MAX_VALUATORS below */
+    /* btlen is in 4 byte units */
+    btlen = (((MAX_BUTTONS + 7)/8) + 3)/4;
+    len += btlen * 4; /* buttonmask len */
+
+
+    vallen = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask)/sizeof(ev->valuators.mask[0]));
+    len += vallen * 2 * sizeof(uint32_t); /* axisvalues */
+    vallen = (((MAX_VALUATORS + 7)/8) + 3)/4;
+    len += vallen * 4; /* valuators mask */
+
+    *xi = xcalloc(1, len);
+    xde = (xXIDeviceEvent*)*xi;
+    xde->type           = GenericEvent;
+    xde->extension      = IReqCode;
+    xde->evtype         = GetXI2Type((InternalEvent*)ev);
+    xde->time           = ev->time;
+    xde->length         = (len - sizeof(xEvent) + 3)/4;
+    xde->detail         = ev->detail.button;
+    xde->root           = ev->root;
+    xde->buttons_len    = btlen;
+    xde->valuators_len  = vallen;
+    xde->deviceid       = ev->deviceid;
+    xde->sourceid       = ev->sourceid;
+
+    xde->mods.base_mods         = ev->mods.base;
+    xde->mods.latched_mods      = ev->mods.latched;
+    xde->mods.locked_mods       = ev->mods.locked;
+
+    xde->group.base_group       = ev->group.base;
+    xde->group.latched_group    = ev->group.latched;
+    xde->group.locked_group     = ev->group.locked;
+
+    ptr = (char*)&xde[1];
+    for (i = 0; i < sizeof(ev->buttons) * 8; i++)
+    {
+        if (BitIsOn(ev->buttons, i))
+            SetBit(ptr, i);
+    }
+
+    ptr += xde->buttons_len * 4;
+    axisval = (int32_t*)(ptr + xde->valuators_len * 4);
+    for (i = 0; i < sizeof(ev->valuators.mask) * 8; i++)
+    {
+        if (BitIsOn(ev->valuators.mask, i))
+        {
+            SetBit(ptr, i);
+            *axisval = ev->valuators.data[i];
+            axisval++;
+            axisval++; /* FIXME: this should be the frac. part */
+        }
+    }
+
+    return Success;
+}
+
 /**
  * Return the corresponding core type for the given event or 0 if no core
  * equivalent exists.
@@ -327,3 +448,28 @@ GetXIType(InternalEvent *event)
     return xitype;
 }
 
+/**
+ * Return the corresponding XI 2.x type for the given event or 0 if no
+ * equivalent exists.
+ */
+int
+GetXI2Type(InternalEvent *event)
+{
+    int xi2type = 0;
+
+    switch(event->u.any.type)
+    {
+        case ET_Motion:         xi2type = XI_Motion;           break;
+        case ET_ButtonPress:    xi2type = XI_ButtonPress;      break;
+        case ET_ButtonRelease:  xi2type = XI_ButtonRelease;    break;
+        case ET_KeyPress:       xi2type = XI_KeyPress;         break;
+        case ET_KeyRelease:     xi2type = XI_KeyRelease;       break;
+        case ET_Enter:          xi2type = XI_Enter;            break;
+        case ET_Leave:          xi2type = XI_Leave;            break;
+        case ET_Hierarchy:      xi2type = XI_HierarchyChanged; break;
+        case ET_DeviceChanged:  xi2type = XI_DeviceChanged;    break;
+        default:
+            break;
+    }
+    return xi2type;
+}

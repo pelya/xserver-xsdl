@@ -30,7 +30,9 @@
 
 _X_INTERNAL int EventToCore(InternalEvent *event, xEvent *core);
 _X_INTERNAL int EventToXI(InternalEvent *ev, xEvent **xi, int *count);
+_X_INTERNAL int EventToXI2(InternalEvent *ev, xEvent **xi);
 _X_INTERNAL int GetCoreType(InternalEvent* ev);
 _X_INTERNAL int GetXIType(InternalEvent* ev);
+_X_INTERNAL int GetXI2Type(InternalEvent* ev);
 
 #endif /* _EVENTCONVERT_H_ */
