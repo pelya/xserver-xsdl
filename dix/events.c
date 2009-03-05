@@ -3303,7 +3303,7 @@ CheckPassiveGrabsOnWindow(
 
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
-	    (void) TryClientEvents(rClient(grab), device, xE, count,
+	    TryClientEvents(rClient(grab), device, xE, count,
 				   filters[device->id][xE->u.u.type],
 				   filters[device->id][xE->u.u.type],  grab);
 
@@ -4088,7 +4088,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
             bzero((char *)&ke.map[0], 31);
 
         ke.type = KeymapNotify;
-        (void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
+        DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
                 KeymapStateMask, NullGrab, 0);
     }
 }
@@ -4837,7 +4837,7 @@ ProcSendEvent(ClientPtr client)
 	}
     }
     else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, &stuff->event, 1))
-        (void)DeliverEventsToWindow(PickPointer(client), pWin, &stuff->event,
+        DeliverEventsToWindow(PickPointer(client), pWin, &stuff->event,
                                     1, stuff->eventMask, NullGrab, 0);
     return Success;
 }
@@ -5410,7 +5410,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	    (*EventSwapVector[eventFrom->u.u.type & 0177])
 		(eventFrom, eventTo);
 
-	    (void)WriteToClient(pClient, eventlength, (char *)eventTo);
+	    WriteToClient(pClient, eventlength, (char *)eventTo);
 	}
     }
     else
@@ -5418,7 +5418,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
         /* only one GenericEvent, remember? that means either count is 1 and
          * eventlength is arbitrary or eventlength is 32 and count doesn't
          * matter. And we're all set. Woohoo. */
-	(void)WriteToClient(pClient, count * eventlength, (char *) events);
+	WriteToClient(pClient, count * eventlength, (char *) events);
     }
 }
 
