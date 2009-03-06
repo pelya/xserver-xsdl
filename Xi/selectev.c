@@ -58,6 +58,7 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "exglobals.h"
@@ -103,10 +104,9 @@ HandleDevicePresenceMask(ClientPtr client, WindowPtr win,
     if (mask == 0)
         return Success;
 
-    /* We always only use mksidx = MAXDEVICES for events not bound to
+    /* We always only use mksidx = AllDevices for events not bound to
      * devices */
-
-    if (AddExtensionClient (win, client, mask, MAXDEVICES) != Success)
+    if (AddExtensionClient (win, client, mask, AllDevices) != Success)
         return BadAlloc;
 
     RecalculateDeviceDeliverableEvents(win);

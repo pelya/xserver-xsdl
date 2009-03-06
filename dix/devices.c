@@ -74,6 +74,7 @@ SOFTWARE.
 #include "mipointer.h"
 
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
@@ -186,13 +187,13 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     char devind[MAXDEVICES];
     BOOL enabled;
 
-    /* Find next available id */
+    /* Find next available id, 0 and 1 are reserved */
     memset(devind, 0, sizeof(char)*MAXDEVICES);
     for (devtmp = inputInfo.devices; devtmp; devtmp = devtmp->next)
 	devind[devtmp->id]++;
     for (devtmp = inputInfo.off_devices; devtmp; devtmp = devtmp->next)
 	devind[devtmp->id]++;
-    for (devid = 0; devid < MAXDEVICES && devind[devid]; devid++)
+    for (devid = 2; devid < MAXDEVICES && devind[devid]; devid++)
 	;
 
     if (devid >= MAXDEVICES)
@@ -250,7 +251,7 @@ SendDevicePresenceEvent(int deviceid, int type)
     ev.time = currentTime.milliseconds;
     ev.devchange = type;
     ev.deviceid = deviceid;
-    dummyDev.id = MAXDEVICES;
+    dummyDev.id = AllDevices;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent*)&ev, 1);
 }

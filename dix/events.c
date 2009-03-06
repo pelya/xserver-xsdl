@@ -148,6 +148,7 @@ typedef const char *string;
 
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 #include "exglobals.h"
 #include "exevents.h"
 #include "exglobals.h"
@@ -2347,6 +2348,7 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
 {
     Mask filter;
     int     deliveries;
+    DeviceIntRec dummy;
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum)
@@ -2355,27 +2357,27 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
 
     if (!count)
 	return 0;
-    /* We don't know a device here. However, this should only ever be called
-       for a non-device event so we are safe to use 0*/
-    filter = GetEventFilter(NULL, xE);
+
+    dummy.id = AllDevices;
+    filter = GetEventFilter(&dummy, xE);
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
     if (filter != StructureAndSubMask)
-	return DeliverEventsToWindow(inputInfo.pointer, pWin, xE, count, filter, NullGrab, 0);
-    deliveries = DeliverEventsToWindow(inputInfo.pointer, pWin, xE, count, StructureNotifyMask,
-				       NullGrab, 0);
+	return DeliverEventsToWindow(&dummy, pWin, xE, count, filter, NullGrab, dummy.id);
+    deliveries = DeliverEventsToWindow(&dummy, pWin, xE, count, StructureNotifyMask,
+				       NullGrab, dummy.id);
     if (pWin->parent)
     {
 	xE->u.destroyNotify.event = pWin->parent->drawable.id;
-	deliveries += DeliverEventsToWindow(inputInfo.pointer, pWin->parent, xE, count,
+	deliveries += DeliverEventsToWindow(&dummy, pWin->parent, xE, count,
 					    SubstructureNotifyMask, NullGrab,
-					    0);
+					    dummy.id);
 	if (xE->u.u.type == ReparentNotify)
 	{
 	    xE->u.destroyNotify.event = otherParent->drawable.id;
-            deliveries += DeliverEventsToWindow(inputInfo.pointer,
+            deliveries += DeliverEventsToWindow(&dummy,
                     otherParent, xE, count, SubstructureNotifyMask,
-						NullGrab, 0);
+						NullGrab, dummy.id);
 	}
     }
     return deliveries;
@@ -3435,7 +3437,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
                                            GetEventFilter(keybd, &core),
-                                           NullGrab, 0);
+                                           NullGrab, keybd->id);
     }
 
 unwind:
@@ -3927,7 +3929,7 @@ CoreEnterLeaveEvent(
         else
             DeliverEventsToWindow(mouse, pWin, &event, 1,
                                   GetEventFilter(mouse, &event),
-                                  NullGrab, 0);
+                                  NullGrab, mouse->id);
     }
 
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -3946,7 +3948,7 @@ CoreEnterLeaveEvent(
                             mask, KeymapStateMask, grab);
         else
             DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
-                                  KeymapStateMask, NullGrab, 0);
+                                  KeymapStateMask, NullGrab, mouse->id);
     }
 }
 
@@ -4028,7 +4030,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     event.u.focus.window = pWin->drawable.id;
 
     DeliverEventsToWindow(dev, pWin, &event, 1,
-                          GetEventFilter(dev, &event), NullGrab, 0);
+                          GetEventFilter(dev, &event), NullGrab, dev->id);
     if ((type == FocusIn) &&
             ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
@@ -4041,7 +4043,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
-                KeymapStateMask, NullGrab, 0);
+                KeymapStateMask, NullGrab, dev->id);
     }
 }
 
@@ -4781,8 +4783,8 @@ ProcSendEvent(ClientPtr client)
 	    if (XaceHook(XACE_SEND_ACCESS, client, NULL, pWin,
 			 &stuff->event, 1))
 		return Success;
-            if (DeliverEventsToWindow(PickPointer(client), pWin,
-                        &stuff->event, 1, stuff->eventMask, NullGrab, 0))
+            if (DeliverEventsToWindow(dev, pWin,
+                        &stuff->event, 1, stuff->eventMask, NullGrab, dev->id))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -4792,8 +4794,8 @@ ProcSendEvent(ClientPtr client)
 	}
     }
     else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, &stuff->event, 1))
-        DeliverEventsToWindow(PickPointer(client), pWin, &stuff->event,
-                                    1, stuff->eventMask, NullGrab, 0);
+        DeliverEventsToWindow(dev, pWin, &stuff->event,
+                                    1, stuff->eventMask, NullGrab, dev->id);
     return Success;
 }
 

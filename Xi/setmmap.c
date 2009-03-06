@@ -56,6 +56,7 @@ SOFTWARE.
 
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "exglobals.h"
