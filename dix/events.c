@@ -459,7 +459,9 @@ GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
     if (XI2_EVENT(event))
     {
         int byte = ((xGenericEvent*)event)->evtype / 8;
-        return other->xi2mask[dev->id][byte];
+        return (other->xi2mask[dev->id][byte] |
+                other->xi2mask[AllDevices][byte] |
+                (dev->isMaster? other->xi2mask[AllMasterDevices][byte] : 0));
     } else if (CORE_EVENT(event))
         return other->mask[AllDevices];
     else
@@ -1995,10 +1997,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         else if (XI2_EVENT(pEvents))
         {
             OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
-            int evtype = ((xGenericEvent*)pEvents)->evtype;
             /* Has any client selected for the event? */
-            if (!inputMasks ||
-                !(inputMasks->xi2mask[mskidx][evtype/8] & filter))
+            if (!GetWindowXI2Mask(pDev, pWin, pEvents))
                 return 0;
             other = inputMasks->inputClients;
         } else {
@@ -2291,7 +2291,9 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     ((xGenericEvent*)&ev)->evtype = type;
     filter = GetEventFilter(dev, &ev);
     if (type && (inputMasks = wOtherInputMasks(win)) &&
-        inputMasks->xi2mask[dev->id][type / 8] & filter)
+        ((inputMasks->xi2mask[AllDevices][type/8] & filter) ||
+         ((inputMasks->xi2mask[AllMasterDevices][type/8] & filter) && dev->isMaster) ||
+         (inputMasks->xi2mask[dev->id][type/8] & filter)))
         rc |= XI2_MASK;
 
     type = GetXIType(event);

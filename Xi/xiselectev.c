@@ -67,6 +67,7 @@ ProcXISelectEvent(ClientPtr client)
     int rc, num_masks, i;
     WindowPtr win;
     DeviceIntPtr dev;
+    DeviceIntRec dummy;
     xXIDeviceEventMask *evmask;
     int *types = NULL;
 
@@ -109,7 +110,13 @@ ProcXISelectEvent(ClientPtr client)
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
-        dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
+        if (evmask->deviceid == AllDevices ||
+            evmask->deviceid == AllMasterDevices)
+        {
+            dummy.id = evmask->deviceid;
+            dev = &dummy;
+        } else
+            dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
         XISetEventMask(dev, win, client, evmask->mask_len * 4, (unsigned char*)&evmask[1]);
         evmask = (xXIDeviceEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
     }
