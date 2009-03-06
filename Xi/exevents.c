@@ -885,7 +885,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     KeyClassPtr k;
     ValuatorClassPtr v;
     int ret = 0;
-    int state;
+    int state, i;
     DeviceIntPtr mouse = NULL, kbd = NULL;
     DeviceEvent *event = (DeviceEvent*)ev;
 
@@ -907,10 +907,13 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     state = (kbd) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
     state |= (mouse) ? (mouse->button->state) : 0;
 
+    for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
+        if (BitIsOn(mouse->button->down, i))
+            SetBit(event->buttons, i);
+
     ret = UpdateDeviceState(device, event);
     if (ret == DONT_PROCESS)
         return;
-
 
     v = device->valuator;
     b = device->button;
