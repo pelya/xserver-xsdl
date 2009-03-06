@@ -409,16 +409,24 @@ static Mask filters[MAXDEVICES][128] = {
  * For the given event, return the matching event filter. This filter may then
  * be AND'ed with the selected event mask.
  *
+ * For XI2 events, the returned filter is simply the byte containing the event
+ * mask we're interested in. E.g. for a mask of (1 << 13), this would be
+ * byte[1].
+ *
  * @param[in] dev The device the event belongs to, may be NULL.
  * @param[in] event The event to get the filter for. Only the type of the
  *                  event matters, or the extension + evtype for GenericEvents.
  * @return The filter mask for the given event.
+ *
+ * @see GetEventMask
  */
 static Mask
 GetEventFilter(DeviceIntPtr dev, xEvent *event)
 {
     if (event->u.u.type != GenericEvent)
         return filters[dev ? dev->id : 0][event->u.u.type];
+    else if (XI2_EVENT(event))
+        return (1 << (((xXIDeviceEvent*)event)->evtype % 8));
     ErrorF("[dix] Unknown device type %d. No filter\n", event->u.u.type);
     return 0;
 }
@@ -443,6 +451,21 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
             inputMasks->xi2mask[AllDevices][evtype/8] ||
             (inputMasks->xi2mask[AllMasterDevices][evtype/8] && dev->isMaster));
 }
+
+static Mask
+GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
+{
+    /* XI2 filters are only ever 8 bit, so let's return a 8 bit mask */
+    if (XI2_EVENT(event))
+    {
+        int byte = ((xGenericEvent*)event)->evtype / 8;
+        return other->xi2mask[dev->id][byte];
+    } else if (CORE_EVENT(event))
+        return other->mask[AllDevices];
+    else
+        return other->mask[dev->id];
+}
+
 
 static CARD8 criticalEvents[32] =
 {
@@ -1969,7 +1992,16 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     {
         if (CORE_EVENT(pEvents))
             other = (InputClients *)wOtherClients(pWin);
-        else {
+        else if (XI2_EVENT(pEvents))
+        {
+            OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
+            int evtype = ((xGenericEvent*)pEvents)->evtype;
+            /* Has any client selected for the event? */
+            if (!inputMasks ||
+                !(inputMasks->xi2mask[mskidx][evtype/8] & filter))
+                return 0;
+            other = inputMasks->inputClients;
+        } else {
             OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
             /* Has any client selected for the event? */
             if (!inputMasks ||
@@ -1981,22 +2013,24 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 
         for (; other; other = other->next)
         {
+            Mask mask;
             if (IsInterferingGrab(rClient(other), pDev, pEvents))
                 continue;
+
+            mask = GetEventMask(pDev, pEvents, other);
 
             if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin,
                         pEvents, count))
                 /* do nothing */;
             else if ( (attempt = TryClientEvents(rClient(other), pDev,
                             pEvents, count,
-                            other->mask[mskidx],
-                            filter, grab)) )
+                            mask, filter, grab)) )
             {
                 if (attempt > 0)
                 {
                     deliveries++;
                     client = rClient(other);
-                    deliveryMask = other->mask[mskidx];
+                    deliveryMask = mask;
                 } else
                     nondeliveries--;
             }
@@ -2225,6 +2259,7 @@ FixUpEventFromWindow(
 #define XI_MASK                 (1 << 0) /**< XI mask set on window */
 #define CORE_MASK               (1 << 1) /**< Core mask set on window */
 #define DONT_PROPAGATE_MASK     (1 << 2) /**< DontPropagate mask set on window */
+#define XI2_MASK                (1 << 3) /**< XI2 mask set on window */
 /* @} */
 
 /**
@@ -2236,13 +2271,12 @@ FixUpEventFromWindow(
  * @param[in] dev The device this event is being sent for.
  * @param[in] event The event that is to be sent.
  * @param[in] win The current event window.
- * @param[out] filter_out The event filter for this event.
  *
- * @return Bitmask of ::XI_MASK, ::CORE_MASK, and ::DONT_PROPAGATE_MASK.
+ * @return Bitmask of ::XI2_MASK, ::XI_MASK, ::CORE_MASK, and
+ * ::DONT_PROPAGATE_MASK.
  */
 static int
-EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win,
-                   Mask *filter_out)
+EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
 {
     int rc = 0;
     int filter = 0;
@@ -2250,12 +2284,22 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win,
     OtherInputMasks *inputMasks;
     xEvent ev;
 
+    /* XXX: this makes me gag */
+    type = GetXI2Type(event);
+    ev.u.u.type = GenericEvent; /* GetEventFilter only cares about type and evtype*/
+    ((xGenericEvent*)&ev)->extension = IReqCode;
+    ((xGenericEvent*)&ev)->evtype = type;
+    filter = GetEventFilter(dev, &ev);
+    if (type && (inputMasks = wOtherInputMasks(win)) &&
+        inputMasks->xi2mask[dev->id][type / 8] & filter)
+        rc |= XI2_MASK;
+
     type = GetXIType(event);
-    ev.u.u.type = type; /* GetEventFilter only cares about type */
+    ev.u.u.type = type;
     filter = GetEventFilter(dev, &ev);
 
     /* Check for XI mask */
-    if (type && (inputMasks = wOtherInputMasks(win)) &&
+    if (type && inputMasks &&
         (inputMasks->deliverableEvents[dev->id] & filter) &&
         (inputMasks->inputEvents[dev->id] & filter))
         rc |= XI_MASK;
@@ -2275,7 +2319,6 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win,
     if (type && (filter & wDontPropagateMask(win)))
         rc |= DONT_PROPAGATE_MASK;
 
-    *filter_out = filter;
     return rc;
 }
 
@@ -2330,11 +2373,31 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
     while (pWin)
     {
-        if ((mask = EventIsDeliverable(dev, event, pWin, &filter)))
+        if ((mask = EventIsDeliverable(dev, event, pWin)))
         {
+            if (mask & XI2_MASK)
+            {
+                xEvent *xi2 = NULL;
+                rc = EventToXI2(event, &xi2);
+                if (rc != Success)
+                {
+                    ErrorF("[dix] %s: XI2 conversion failed in DDE (%d).\n",
+                            dev->name, rc);
+                    goto unwind;
+                }
+                filter = GetEventFilter(dev, xi2);
+                FixUpEventFromWindow(dev, xi2, pWin, child, FALSE);
+                deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
+                                                   filter, grab, dev->id);
+                xfree(xi2);
+                if (deliveries > 0)
+                    goto unwind;
+            }
+
             /* XI events first */
             if (mask & XI_MASK)
             {
+                filter = GetEventFilter(dev, xE);
                 FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
                                                    filter, grab, dev->id);
@@ -2354,6 +2417,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     goto unwind;
                 }
 
+                filter = GetEventFilter(dev, &core);
                 FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
                                                    filter, grab, dev->id);
@@ -3232,6 +3296,7 @@ CheckPassiveGrabsOnWindow(
             xkbi= gdev->key->xkbInfo;
 	tempGrab.modifierDevice = grab->modifierDevice;
         tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
+        /* FIXME: check for xi2 grabs */
 
         /* Check for XI grabs first */
         tempGrab.type = GetXIType((InternalEvent*)event);
@@ -3435,7 +3500,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     WindowPtr focus = keybd->focus->win;
     BOOL sendCore = (keybd->isMaster && keybd->coreEvents);
     xEvent core;
-    xEvent *xE = NULL;
+    xEvent *xE = NULL, *xi2 = NULL;
     int count, rc;
     int deliveries = 0;
 
@@ -3455,7 +3520,6 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     }
     ptr = GetPairedDevice(keybd);
 
-
     rc = EventToXI(event, &xE, &count);
     if (rc != Success)
     {
@@ -3467,6 +3531,23 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 
     if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
 	goto unwind;
+
+    rc = EventToXI2(event, &xi2);
+    if (rc != Success)
+    {
+        ErrorF("[dix] %s: XI2 conversion failed in DFE (%d, %d). Skipping delivery.\n",
+               keybd->name, event->u.any.type, rc);
+        goto unwind;
+    } else if (xi2)
+    {
+        int filter = GetEventFilter(keybd, xi2);
+        /* just deliver it to the focus window */
+        FixUpEventFromWindow(ptr, xi2, focus, None, FALSE);
+        deliveries = DeliverEventsToWindow(keybd, focus, xi2, 1,
+                                           filter, NullGrab, keybd->id);
+        if (deliveries > 0)
+            goto unwind;
+    }
 
     /* just deliver it to the focus window */
     FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
@@ -3496,6 +3577,8 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 unwind:
     if (xE)
         xfree(xE);
+    if (xi2)
+        xfree(xi2);
     return;
 }
 
@@ -3518,6 +3601,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     BOOL sendCore = FALSE;
     int rc, count = 0;
     xEvent *xi = NULL;
+    xEvent *xi2 = NULL;
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3554,11 +3638,20 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     if (!deliveries)
     {
         Mask mask;
+
         /* XXX: In theory, we could pass the internal events through to
          * everything and only convert just before hitting the wire. We can't
          * do that yet, so DGE is the last stop for internal events. From here
          * onwards, we deal with core/XI events.
          */
+
+        rc = EventToXI2(event, &xi2);
+        if (rc != Success)
+        {
+            ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
+                    thisDev->name, event->u.any.type, rc);
+            goto unwind;
+        }
 
         rc = EventToXI(event, &xi, &count);
         if (rc != Success)
@@ -3660,6 +3753,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 unwind:
     if (xi)
         xfree(xi);
+    if (xi2)
+        xfree(xi2);
 }
 
 /* This function is used to set the key pressed or key released state -
