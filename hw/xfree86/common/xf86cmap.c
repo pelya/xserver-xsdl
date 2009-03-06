@@ -562,8 +562,8 @@ CMapRefreshColors(ColormapPtr pmap, int defs, int* indices)
 
     switch(pVisual->class) {
     case StaticGray:
-	for(i = 0; i <= numColors - 1; i++) { 
-	    index = i * maxValue / numColors;
+	for(i = 0; i < numColors; i++) { 
+	    index = (i+1) * maxValue / numColors;
 	    colors[i].red   = gamma[index].red;
 	    colors[i].green = gamma[index].green;
 	    colors[i].blue  = gamma[index].blue;
