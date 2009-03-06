@@ -911,6 +911,17 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
         if (BitIsOn(mouse->button->down, i))
             SetBit(event->buttons, i);
 
+    if (kbd && kbd->key)
+    {
+        event->mods.base = kbd->key->xkbInfo->state.base_mods;
+        event->mods.latched = kbd->key->xkbInfo->state.latched_mods;
+        event->mods.locked = kbd->key->xkbInfo->state.locked_mods;
+
+        event->group.base = kbd->key->xkbInfo->state.base_group;
+        event->group.latched = kbd->key->xkbInfo->state.latched_group;
+        event->group.locked = kbd->key->xkbInfo->state.locked_group;
+    }
+
     ret = UpdateDeviceState(device, event);
     if (ret == DONT_PROCESS)
         return;
