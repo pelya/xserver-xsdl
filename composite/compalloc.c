@@ -134,6 +134,8 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	}
 
 	REGION_NULL (pScreen, &cw->borderClip);
+	cw->borderClipX = 0;
+	cw->borderClipY = 0;
 	cw->update = CompositeRedirectAutomatic;
 	cw->clients = 0;
 	cw->oldx = COMP_ORIGIN_INVALID;
