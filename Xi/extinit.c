@@ -739,6 +739,32 @@ static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
     }
 }
 
+static void SDeviceHierarchyEvent(xXIDeviceHierarchyEvent *from,
+                                  xXIDeviceHierarchyEvent *to)
+{
+    int i;
+    char n;
+    xXIHierarchyInfo *info;
+
+    *to = *from;
+    memcpy(&to[1], &from[1], from->length * 4);
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
+    swapl(&to->time, n);
+    swapl(&to->flags, n);
+    swaps(&to->num_devices, n);
+
+    info = (xXIHierarchyInfo*)&to[1];
+    for (i = 0; i< from->num_devices; i++)
+    {
+        swaps(&info->deviceid, n);
+        swaps(&info->attachment, n);
+        info++;
+    }
+}
+
 /** Event swapping function for XI2 events. */
 static void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
@@ -753,6 +779,9 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
             SDeviceChangedEvent((xXIDeviceChangedEvent*)from,
                                 (xXIDeviceChangedEvent*)to);
             break;
+        case XI_HierarchyChanged:
+            SDeviceHierarchyEvent((xXIDeviceHierarchyEvent*)from,
+                                  (xXIDeviceHierarchyEvent*)to);
         default:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
             break;

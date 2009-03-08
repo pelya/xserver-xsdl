@@ -39,4 +39,6 @@
 int SProcXIChangeDeviceHierarchy(ClientPtr /* client */);
 int ProcXIChangeDeviceHierarchy(ClientPtr /* client */);
 
+void XISendDeviceHierarchyEvent(int flags);
+
 #endif

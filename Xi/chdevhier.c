@@ -1,5 +1,6 @@
 /*
  * Copyright 2007-2008 Peter Hutterer
+ * Copyright 2009 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,10 +48,54 @@
 #include "exglobals.h"
 #include "geext.h"
 #include "xace.h"
+#include "querydev.h" /* for GetDeviceUse */
 
 #include "xkbsrv.h"
 
 #include "chdevhier.h"
+
+/**
+ * Send the current state of the device hierarchy to all clients.
+ */
+void XISendDeviceHierarchyEvent(int flags)
+{
+    xXIDeviceHierarchyEvent *ev;
+    xXIHierarchyInfo *info;
+    DeviceIntRec dummyDev;
+    DeviceIntPtr dev;
+
+    if (!flags)
+        return;
+
+    ev = xcalloc(1, sizeof(xXIDeviceHierarchyEvent) + inputInfo.numDevices *
+            sizeof(xXIHierarchyInfo));
+    ev->type = GenericEvent;
+    ev->extension = IReqCode;
+    ev->evtype = XI_HierarchyChanged;
+    ev->time = GetTimeInMillis();
+    ev->flags = flags;
+    ev->num_devices = inputInfo.numDevices;
+    ev->length = (ev->num_devices * sizeof(xXIHierarchyInfo))/4;
+
+    info = (xXIHierarchyInfo*)&ev[1];
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        info->deviceid = dev->id;
+        info->enabled = dev->enabled;
+        info->use = GetDeviceUse(dev, &info->attachment);
+        info++;
+    }
+    for (dev = inputInfo.off_devices; dev; dev = dev->next)
+    {
+        info->deviceid = dev->id;
+        info->enabled = dev->enabled;
+        info->use = GetDeviceUse(dev, &info->attachment);
+        info++;
+    }
+
+    dummyDev.id = AllDevices;
+    SendEventToAllWindows(&dummyDev, (XI_HierarchyChangedMask >> 8), (xEvent*)ev, 1);
+}
 
 
 /***********************************************************************
@@ -75,16 +120,17 @@ int
 ProcXIChangeDeviceHierarchy(ClientPtr client)
 {
     DeviceIntPtr ptr, keybd;
-    DeviceIntRec dummyDev;
     xXIAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xXIChangeDeviceHierarchyReq);
     char n;
     int rc = Success;
-    int nchanges = 0;
-    xXIDeviceHierarchyEvent ev;
+    int flags = 0;
 
     REQUEST(xXIChangeDeviceHierarchyReq);
     REQUEST_AT_LEAST_SIZE(xXIChangeDeviceHierarchyReq);
+
+    if (!stuff->num_changes)
+        return rc;
 
     any = (xXIAnyHierarchyChangeInfo*)&stuff[1];
     while(stuff->num_changes--)
@@ -127,7 +173,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         EnableDevice(keybd);
                     }
                     xfree(name);
-                    nchanges++;
+                    flags |= HF_MasterAdded;
                 }
                 break;
             case CH_RemoveMasterDevice:
@@ -233,7 +279,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
                     RemoveDevice(keybd);
                     RemoveDevice(ptr);
-                    nchanges++;
+                    flags |= HF_MasterRemoved;
                 }
                 break;
             case CH_DetachSlave:
@@ -253,7 +299,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     }
 
                     AttachDevice(client, ptr, NULL);
-                    nchanges++;
+                    flags |= HF_SlaveDetached;
                 }
                 break;
             case CH_AttachSlave:
@@ -293,7 +339,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
                     AttachDevice(client, ptr, newmaster);
-                    nchanges++;
+                    flags |= HF_SlaveAttached;
                 }
                 break;
         }
@@ -303,18 +349,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
 unwind:
 
-    if (nchanges > 0) /* even if an error occured, we need to send an event if
-                       we changed anything in the hierarchy. */
-    {
-        ev.type = GenericEvent;
-        ev.extension = IReqCode;
-        ev.length = 0;
-        ev.evtype = XI_HierarchyChanged;
-        ev.time = GetTimeInMillis();
-
-        SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask,
-                (xEvent*)&ev, 1);
-    }
+    XISendDeviceHierarchyEvent(flags);
     return rc;
 }
 
