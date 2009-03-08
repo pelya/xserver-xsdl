@@ -172,11 +172,17 @@ static long XIPropHandlerID = 1;
 /**
  * Return the atom assigned to the specified string or 0 if the atom isn't known
  * to the DIX.
+ *
+ * If name is NULL, None is returned.
  */
 Atom
 XIGetKnownProperty(char *name)
 {
     int i;
+
+    if (!name)
+        return None;
+
     for (i = 0; i < (sizeof(dev_properties)/sizeof(struct dev_properties)); i++)
     {
         if (strcmp(name, dev_properties[i].name) == 0){
