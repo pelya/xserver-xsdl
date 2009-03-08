@@ -1117,7 +1117,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     event.window = pWin->drawable.id;
     event.time = currentTime.milliseconds;
 
-    (void)DeliverEventsToWindow(dev, pWin, (xEvent *) & event, 1,
+    DeliverEventsToWindow(dev, pWin, (xEvent *) & event, 1,
 				DeviceFocusChangeMask, NullGrab, dev->id);
 
     if ((type == DeviceFocusIn) &&
@@ -1214,7 +1214,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 	    }
 	}
 
-	(void)DeliverEventsToWindow(dev, pWin, (xEvent *) sev, evcount,
+	DeliverEventsToWindow(dev, pWin, (xEvent *) sev, evcount,
 				    DeviceStateNotifyMask, NullGrab, dev->id);
 	xfree(sev);
     }
@@ -1565,7 +1565,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 		break;
 	}
     } else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, ev, count))
-	(void)(DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id));
+	DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id);
     return Success;
 }
 
@@ -1870,7 +1870,7 @@ FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
 
     while (p1) {
         p2 = p1->firstChild;
-        (void)DeliverEventsToWindow(dev, p1, ev, count, mask, NullGrab, dev->id);
+        DeliverEventsToWindow(dev, p1, ev, count, mask, NullGrab, dev->id);
         FindInterestedChildren(dev, p2, mask, ev, count);
         p1 = p1->nextSib;
     }
@@ -1892,7 +1892,7 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
         pWin = WindowTable[i];
         if (!pWin)
             continue;
-        (void)DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab, dev->id);
+        DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab, dev->id);
         p1 = pWin->firstChild;
         FindInterestedChildren(dev, p1, mask, ev, count);
     }
