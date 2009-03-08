@@ -2101,6 +2101,37 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
     return 2;
 }
 
+static Window FindChildForEvent(DeviceIntPtr dev, WindowPtr event)
+{
+    SpritePtr pSprite = dev->spriteInfo->sprite;
+    WindowPtr w = pSprite->spriteTrace[pSprite->spriteTraceGood-1];
+    Window child;
+
+    /* If the search ends up past the root should the child field be
+       set to none or should the value in the argument be passed
+       through. It probably doesn't matter since everyone calls
+       this function with child == None anyway. */
+    while (w)
+    {
+        /* If the source window is same as event window, child should be
+           none.  Don't bother going all all the way back to the root. */
+
+        if (w == event)
+        {
+            child = None;
+            break;
+        }
+
+        if (w->parent == event)
+        {
+            child = w->drawable.id;
+            break;
+        }
+        w = w->parent;
+    }
+    return child;
+}
+
 /**
  * Adjust event fields to comply with the window properties.
  *
@@ -2119,53 +2150,50 @@ FixUpEventFromWindow(
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
-    if (xE->u.u.type == GenericEvent) /* just a safety barrier */
-        return;
-
     if (calcChild)
-    {
-        WindowPtr w= pSprite->spriteTrace[pSprite->spriteTraceGood-1];
-	/* If the search ends up past the root should the child field be
-		set to none or should the value in the argument be passed
-		through. It probably doesn't matter since everyone calls
-		this function with child == None anyway. */
+        child = FindChildForEvent(pDev, pWin);
 
-        while (w)
+    if (XI2_EVENT(xE))
+    {
+        xXIDeviceEvent* event = (xXIDeviceEvent*)xE;
+        event->root = RootWindow(pDev)->drawable.id;
+        event->event = pWin->drawable.id;
+        if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
-            /* If the source window is same as event window, child should be
-		none.  Don't bother going all all the way back to the root. */
-
-	    if (w == pWin)
-	    {
-		child = None;
-		break;
-	    }
-
-	    if (w->parent == pWin)
-	    {
-		child = w->drawable.id;
-		break;
-            }
-	    w = w->parent;
+            event->event_x.integral = event->root_x.integral - pWin->drawable.x;
+            event->event_y.integral = event->root_y.integral - pWin->drawable.y;
+            event->child = child;
+        } else
+        {
+            event->event_x.integral = 0;
+            event->event_y.integral = 0;
+            event->child = None;
         }
-    }
-    XE_KBPTR.root = RootWindow(pDev)->drawable.id;
-    XE_KBPTR.event = pWin->drawable.id;
-    if (pSprite->hot.pScreen == pWin->drawable.pScreen)
+
+        if (event->evtype == XI_Enter || event->evtype == XI_Leave)
+            ((xXIEnterEvent*)event)->same_screen =
+                (pSprite->hot.pScreen == pWin->drawable.pScreen);
+
+    } else
     {
-	XE_KBPTR.sameScreen = xTrue;
-	XE_KBPTR.child = child;
-	XE_KBPTR.eventX =
-	XE_KBPTR.rootX - pWin->drawable.x;
-	XE_KBPTR.eventY =
-	XE_KBPTR.rootY - pWin->drawable.y;
-    }
-    else
-    {
-	XE_KBPTR.sameScreen = xFalse;
-	XE_KBPTR.child = None;
-	XE_KBPTR.eventX = 0;
-	XE_KBPTR.eventY = 0;
+        XE_KBPTR.root = RootWindow(pDev)->drawable.id;
+        XE_KBPTR.event = pWin->drawable.id;
+        if (pSprite->hot.pScreen == pWin->drawable.pScreen)
+        {
+            XE_KBPTR.sameScreen = xTrue;
+            XE_KBPTR.child = child;
+            XE_KBPTR.eventX =
+                XE_KBPTR.rootX - pWin->drawable.x;
+            XE_KBPTR.eventY =
+                XE_KBPTR.rootY - pWin->drawable.y;
+        }
+        else
+        {
+            XE_KBPTR.sameScreen = xFalse;
+            XE_KBPTR.child = None;
+            XE_KBPTR.eventX = 0;
+            XE_KBPTR.eventY = 0;
+        }
     }
 }
 
