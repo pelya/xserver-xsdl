@@ -380,23 +380,25 @@ InstallSignalHandlers(void)
      */
     xf86Info.caughtSignal=FALSE;
     if (!xf86Info.notrapSignals) {
-       signal(SIGSEGV,xf86SigHandler);
-       signal(SIGILL,xf86SigHandler);
+	OsRegisterSigWrapper(xf86SigWrapper);
+    } else {
+	signal(SIGSEGV, SIG_DFL);
+	signal(SIGILL, SIG_DFL);
 #ifdef SIGEMT
-       signal(SIGEMT,xf86SigHandler);
+	signal(SIGEMT, SIG_DFL);
 #endif
-       signal(SIGFPE,xf86SigHandler);
+	signal(SIGFPE, SIG_DFL);
 #ifdef SIGBUS
-       signal(SIGBUS,xf86SigHandler);
+	signal(SIGBUS, SIG_DFL);
 #endif
 #ifdef SIGSYS
-       signal(SIGSYS,xf86SigHandler);
+	signal(SIGSYS, SIG_DFL);
 #endif
 #ifdef SIGXCPU
-       signal(SIGXCPU,xf86SigHandler);
+	signal(SIGXCPU, SIG_DFL);
 #endif
 #ifdef SIGXFSZ
-       signal(SIGXFSZ,xf86SigHandler);
+	signal(SIGXFSZ, SIG_DFL);
 #endif
     }
 }

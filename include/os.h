@@ -228,8 +228,10 @@ extern _X_EXPORT char *XNFprintf(const char *fmt, ...);
 extern _X_EXPORT char *XNFvprintf(const char *fmt, va_list va);
 
 typedef void (*OsSigHandlerPtr)(int /* sig */);
+typedef int (*OsSigWrapperPtr)(int /* sig */);
 
 extern _X_EXPORT OsSigHandlerPtr OsSignal(int /* sig */, OsSigHandlerPtr /* handler */);
+extern _X_EXPORT OsSigWrapperPtr OsRegisterSigWrapper(OsSigWrapperPtr newWrap);
 
 extern _X_EXPORT int auditTrailLevel;
 

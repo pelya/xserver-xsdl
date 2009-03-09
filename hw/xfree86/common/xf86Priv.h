@@ -147,7 +147,7 @@ extern _X_EXPORT void DoShowOptions(void);
 /* xf86Events.c */
 
 extern _X_EXPORT void xf86Wakeup(pointer blockData, int err, pointer pReadmask);
-extern _X_EXPORT void xf86SigHandler(int signo);
+extern _X_HIDDEN int xf86SigWrapper(int signo);
 extern _X_EXPORT void xf86HandlePMEvents(int fd, pointer data);
 extern _X_EXPORT int (*xf86PMGetEventFromOs)(int fd,pmEvent *events,int num);
 extern _X_EXPORT pmWait (*xf86PMConfirmEventToOs)(int fd,pmEvent event);

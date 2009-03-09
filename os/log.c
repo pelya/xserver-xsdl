@@ -98,6 +98,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #define getpid(x) _getpid(x)
 #endif
 
+#ifdef XF86BIGFONT
+#define _XF86BIGFONT_SERVER_
+#include <X11/extensions/xf86bigfont.h>
+#endif
 
 #ifdef DDXOSVERRORF
 void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
@@ -401,6 +405,9 @@ void AbortServer(void) __attribute__((noreturn));
 void
 AbortServer(void)
 {
+#ifdef XF86BIGFONT
+    XF86BigfontCleanup();
+#endif
     CloseWellKnownConnections();
     OsCleanup(TRUE);
     CloseDownDevices();
