@@ -2040,7 +2040,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
      * Note that since core events are delivered first, an implicit grab may
      * be activated on a core grab, stopping the XI events.
      */
-    if ((type == DeviceButtonPress || type == ButtonPress)
+    if ((type == DeviceButtonPress || type == ButtonPress ||
+        ((XI2_EVENT(pEvents) && ((xGenericEvent*)pEvents)->evtype == XI_ButtonPress)))
             && deliveries
             && (!grab))
     {
@@ -2059,9 +2060,13 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	tempGrab.cursor = NullCursor;
         tempGrab.coreGrab = (type == ButtonPress);
 
-        /* get the XI device mask */
+        /* get the XI and XI2 device mask */
         inputMasks = wOtherInputMasks(pWin);
         tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
+
+        if (inputMasks)
+            memcpy(tempGrab.xi2mask, inputMasks->xi2mask,
+                    sizeof(tempGrab.xi2mask));
 
 	(*pDev->deviceGrab.ActivateGrab)(pDev, &tempGrab,
                                         currentTime, TRUE | ImplicitGrabMask);
@@ -3693,6 +3698,19 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                         GetEventFilter(thisDev, &core),
                         grab);
             }
+        }
+
+        if (!deliveries)
+        {
+            int evtype = ((xGenericEvent*)xi2)->evtype;
+            mask = grab->xi2mask[AllDevices][evtype/8] |
+                   grab->xi2mask[AllMasterDevices][evtype/8] |
+                   grab->xi2mask[thisDev->id][evtype/8];
+            /* try XI2 event */
+            FixUpEventFromWindow(thisDev, xi2, grab->window, None, TRUE);
+            /* XXX: XACE */
+            deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask,
+                                         GetEventFilter(thisDev, xi2), grab);
         }
 
         if (!deliveries)

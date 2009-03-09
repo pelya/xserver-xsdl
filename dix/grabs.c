@@ -82,7 +82,7 @@ CreateGrab(
 {
     GrabPtr grab;
 
-    grab = xalloc(sizeof(GrabRec));
+    grab = xcalloc(1, sizeof(GrabRec));
     if (!grab)
 	return (GrabPtr)NULL;
     grab->resource = FakeClientID(client);
