@@ -423,6 +423,26 @@ GetEventFilter(DeviceIntPtr dev, xEvent *event)
     return 0;
 }
 
+/**
+ * Return the windows complete XI2 mask for the given XI2 event type.
+ */
+Mask
+GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
+{
+    OtherInputMasks *inputMasks = wOtherInputMasks(win);
+    int filter;
+    int evtype;
+
+    if (!inputMasks || !XI2_EVENT(ev))
+        return 0;
+
+    evtype = ((xGenericEvent*)ev)->evtype;
+    filter = GetEventFilter(dev, ev);
+
+    return ((inputMasks->xi2mask[dev->id][evtype/8] & filter) ||
+            inputMasks->xi2mask[AllDevices][evtype/8] ||
+            (inputMasks->xi2mask[AllMasterDevices][evtype/8] && dev->isMaster));
+}
 
 static CARD8 criticalEvents[32] =
 {
