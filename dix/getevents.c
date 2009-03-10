@@ -779,7 +779,7 @@ int
 GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int key_code, int first_valuator,
                           int num_valuators, int *valuators) {
-    int numEvents = 0;
+    int num_events = 0;
     CARD32 ms = 0;
     DeviceEvent *event;
 
@@ -788,9 +788,9 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
        (key_code < 8 || key_code > 255))
         return 0;
 
-    numEvents = 1;
+    num_events = 1;
 
-    events = updateFromMaster(events, pDev, &numEvents);
+    events = updateFromMaster(events, pDev, &num_events);
 
     /* Handle core repeating, via press/release/press/release. */
     if (type == KeyPress && key_is_down(pDev, key_code, KEY_POSTED)) {
@@ -825,7 +825,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
 
-    return numEvents;
+    return num_events;
 }
 
 /**
