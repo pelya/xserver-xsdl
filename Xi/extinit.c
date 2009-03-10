@@ -1083,7 +1083,7 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 
-	GERegisterExtension(IReqCode, XI2EventSwap, NULL);
+	GERegisterExtension(IReqCode, XI2EventSwap);
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }

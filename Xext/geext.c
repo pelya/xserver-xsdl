@@ -261,16 +261,13 @@ GEExtensionInit(void)
  */
 void
 GERegisterExtension(int extension,
-                    void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
-                    void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
-                                    WindowPtr pWin, GrabPtr pGrab))
+                    void (*ev_swap)(xGenericEvent* from, xGenericEvent* to))
 {
     if ((extension & 0x7F) >=  MAXEXTENSIONS)
         FatalError("GE: extension > MAXEXTENSIONS. This should not happen.\n");
 
     /* extension opcodes are > 128, might as well save some space here */
     GEExtensions[extension & 0x7f].evswap = ev_swap;
-    GEExtensions[extension & 0x7f].evfill = ev_fill;
 }
 
 

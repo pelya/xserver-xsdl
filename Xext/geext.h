@@ -34,18 +34,10 @@ from the author.
 #define _GEEXT_H_
 #include <X11/extensions/geproto.h>
 
-/* Struct to keep information about registered extensions
- *
- * evswap ... use to swap event fields for different byte ordered clients.
- * evfill ... use to fill various event fields from the given parameters.
- */
+/** Struct to keep information about registered extensions */
 typedef struct _GEExtension {
+    /** Event swapping routine */
     void (*evswap)(xGenericEvent* from, xGenericEvent* to);
-    void (*evfill)(xGenericEvent* ev,
-                    DeviceIntPtr pDev,  /* device */
-                    WindowPtr pWin,     /* event window */
-                    GrabPtr pGrab       /* current grab, may be NULL */
-                    );
 } GEExtension, *GEExtensionPtr;
 
 
@@ -82,10 +74,7 @@ extern _X_EXPORT GEExtension GEExtensions[MAXEXTENSIONS];
 /* Interface for other extensions */
 extern _X_EXPORT void GERegisterExtension(
         int extension,
-        void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to),
-        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev,
-                        WindowPtr pWin, GrabPtr pGrab)
-        );
+        void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to));
 
 extern _X_EXPORT void GEInitEvent(xGenericEvent* ev, int extension);
 
