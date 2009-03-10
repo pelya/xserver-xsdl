@@ -4015,57 +4015,62 @@ DeviceEnterLeaveEvent(
     Window child)
 {
     GrabPtr             grab = mouse->deviceGrab.grab;
-    xXIEnterEvent       event;
-    int                 mskidx;
-    OtherInputMasks     *inputMasks;
+    xXIEnterEvent       *event;
     Mask                mask;
-    xEvent              dummy;
+    int                 filter;
+    int                 btlen, len, i;
+    DeviceIntPtr        kbd;
 
-    if (grab) {
-        mask = (pWin == grab->window) ? grab->eventMask : 0;
-        if (grab->ownerEvents)
-            mask |= EventMaskForClient(pWin, rClient(grab));
-    } else {
-        mask = pWin->eventMask | wOtherEventMasks(pWin);
-    }
+    btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
+    btlen = (btlen + 3)/4;
+    len = sizeof(xXIEnterEvent) + btlen * 4;
 
-    memset(&event, 0, sizeof(event));
-    event.type        = GenericEvent;
-    event.extension   = IReqCode;
-    event.evtype      = type;
-    event.detail      = detail;
-    event.time        = currentTime.milliseconds;
-    event.deviceid    = mouse->id;
-    event.sourceid    = 0; /*XXX */
-    event.mode        = mode;
-    event.root_x.integral      = mouse->spriteInfo->sprite->hot.x;
-    event.root_y.integral      = mouse->spriteInfo->sprite->hot.y;
+    event = xcalloc(1, len);
+    event->type         = GenericEvent;
+    event->extension    = IReqCode;
+    event->evtype       = type;
+    event->length       = (len - sizeof(xEvent))/4;
+    event->buttons_len  = btlen;
+    event->detail       = detail;
+    event->time         = currentTime.milliseconds;
+    event->deviceid     = mouse->id;
+    event->sourceid     = 0; /*XXX */
+    event->mode         = mode;
+    event->root_x.integral      = mouse->spriteInfo->sprite->hot.x;
+    event->root_y.integral      = mouse->spriteInfo->sprite->hot.y;
 
-    /* We use FUEFW to fill in dummy, then copy the values */
-    FixUpEventFromWindow(mouse, &dummy, pWin, None, FALSE);
+    for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
+        if (BitIsOn(mouse->button->down, i))
+            SetBit(&event[1], i);
 
-    event.same_screen = dummy.u.keyButtonPointer.sameScreen;
-    event.child       = dummy.u.keyButtonPointer.child;
-    event.event_x.integral     = dummy.u.keyButtonPointer.eventX;
-    event.event_y.integral     = dummy.u.keyButtonPointer.eventY;
-
-    mskidx = mouse->id;
-    inputMasks = wOtherInputMasks(pWin);
-    if (inputMasks &&
-       (GetEventFilter(mouse, (xEvent*)&event) &
-            inputMasks->deliverableEvents[mskidx]))
+    kbd = (mouse->isMaster || mouse->u.master) ? GetPairedDevice(mouse) : NULL;
+    if (kbd && kbd->key)
     {
-        if (grab)
-            TryClientEvents(rClient(grab), mouse,
-                            (xEvent*)&event, 1, mask,
-                            GetEventFilter(mouse, (xEvent*)&event),
-                            grab);
-        else
-            DeliverEventsToWindow(mouse, pWin, (xEvent*)&event, 1,
-                                  GetEventFilter(mouse, (xEvent*)&event),
-                                  NullGrab, mouse->id);
+        event->mods.base_mods = kbd->key->xkbInfo->state.base_mods;
+        event->mods.latched_mods = kbd->key->xkbInfo->state.latched_mods;
+        event->mods.locked_mods = kbd->key->xkbInfo->state.locked_mods;
+
+        event->group.base_group = kbd->key->xkbInfo->state.base_group;
+        event->group.latched_group = kbd->key->xkbInfo->state.latched_group;
+        event->group.locked_group = kbd->key->xkbInfo->state.locked_group;
     }
 
+    FixUpEventFromWindow(mouse, (xEvent*)event, pWin, None, FALSE);
+
+
+    if (!GetWindowXI2Mask(mouse, pWin, (xEvent*)event))
+        return;
+
+    filter = GetEventFilter(mouse, (xEvent*)event);
+    mask = 0x0; /* FIXME: we should handle grabs, once we can */
+
+    if (grab)
+        TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask,
+                        filter, grab);
+    else
+        DeliverEventsToWindow(mouse, pWin, (xEvent*)event, 1, filter,
+                              NullGrab, mouse->id);
+    xfree(event);
 }
 
 void

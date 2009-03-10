@@ -624,6 +624,10 @@ SDeviceLeaveNotifyEvent (xXILeaveEvent *from, xXILeaveEvent *to)
     swaps(&to->event_y.integral, n);
     swaps(&to->event_y.frac, n);
     swaps(&to->sourceid, n);
+    swaps(&to->buttons_len, n);
+    swapl(&to->mods.base_mods, n);
+    swapl(&to->mods.latched_mods, n);
+    swapl(&to->mods.locked_mods, n);
 }
 
 static void
