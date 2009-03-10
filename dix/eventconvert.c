@@ -52,6 +52,7 @@ static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
 static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce);
 static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
+static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
 /**
  * Convert the given event to the respective core event.
  *
@@ -126,6 +127,7 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_ProximityOut:
             return eventToKeyButtonPointer((DeviceEvent*)ev, xi, count);
         case ET_DeviceChanged:
+        case ET_Raw:
             *count = 0;
             *xi = NULL;
             return Success;
@@ -164,6 +166,8 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
             return Success;
         case ET_DeviceChanged:
             return eventToClassesChanged((DeviceChangedEvent*)ev, xi);
+        case ET_Raw:
+            return eventToRawEvent((RawDeviceEvent*)ev, xi);
 
     }
 
@@ -412,6 +416,50 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     return Success;
 }
 
+static int
+eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
+{
+    xXIRawDeviceEvent* raw;
+    int vallen, nvals;
+    int i, len = sizeof(xXIRawDeviceEvent);
+    char *ptr;
+    FP3232 *axisval;
+
+    nvals = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask)/sizeof(ev->valuators.mask[0]));
+    len += nvals * (2 * sizeof(uint32_t)) * 2; /* 8 byte per valuator, once
+                                                   raw, once processed */
+    vallen = (((MAX_VALUATORS + 7)/8) + 3)/4;
+    len += vallen * 4; /* valuators mask */
+
+    *xi = xcalloc(1, len);
+    raw = (xXIRawDeviceEvent*)*xi;
+    raw->type           = GenericEvent;
+    raw->extension      = IReqCode;
+    raw->evtype         = GetXI2Type((InternalEvent*)ev);
+    raw->time           = ev->time;
+    raw->length         = (len - sizeof(xEvent) + 3)/4;
+    raw->eventtype      = ev->subtype;
+    raw->detail         = ev->detail.button;
+    raw->deviceid       = ev->deviceid;
+    raw->valuators_len  = vallen;
+
+    ptr = (char*)&raw[1];
+    axisval = (FP3232*)(ptr + raw->valuators_len * 4);
+    for (i = 0; i < sizeof(ev->valuators.mask) * 8; i++)
+    {
+        if (BitIsOn(ev->valuators.mask, i))
+        {
+            SetBit(ptr, i);
+            axisval->integral = ev->valuators.data[i];
+            (axisval + nvals)->integral = ev->valuators.data_raw[i];
+            axisval++;
+            /* FIXME: frac part */
+        }
+    }
+
+    return Success;
+}
+
 /**
  * Return the corresponding core type for the given event or 0 if no core
  * equivalent exists.
@@ -472,6 +520,7 @@ GetXI2Type(InternalEvent *event)
         case ET_Leave:          xi2type = XI_Leave;            break;
         case ET_Hierarchy:      xi2type = XI_HierarchyChanged; break;
         case ET_DeviceChanged:  xi2type = XI_DeviceChanged;    break;
+        case ET_Raw:            xi2type = XI_RawEvent;         break;
         default:
             break;
     }

@@ -420,7 +420,7 @@ static Mask filters[MAXDEVICES][128] = {
  *
  * @see GetEventMask
  */
-static Mask
+Mask
 GetEventFilter(DeviceIntPtr dev, xEvent *event)
 {
     if (event->u.u.type != GenericEvent)
@@ -2215,6 +2215,10 @@ FixUpEventFromWindow(
     if (XI2_EVENT(xE))
     {
         xXIDeviceEvent* event = (xXIDeviceEvent*)xE;
+
+        if (event->evtype == XI_RawEvent)
+            return;
+
         event->root = RootWindow(pDev)->drawable.id;
         event->event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)

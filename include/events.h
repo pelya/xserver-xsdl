@@ -59,6 +59,7 @@ enum {
 #if XFreeXDGA
     ET_DGAEvent,
 #endif
+    ET_Raw,
     ET_Internal = 0xFF /* First byte */
 } EventType;
 
@@ -171,6 +172,30 @@ typedef struct
 #endif
 
 /**
+ * Raw event, contains the data as posted by the device.
+ */
+typedef struct
+{
+    unsigned char header; /**<  Always ET_Internal */
+    int type;             /**<  ET_Raw */
+    int length;           /**<  Length in bytes */
+    Time time;            /**<  Time in ms */
+    int subtype;          /**<  KeyPress, KeyRelease, ButtonPress,
+                                ButtonRelease, MotionNotify */
+    int deviceid;         /**< Device to post this event for */
+    int sourceid;         /**< The physical source device */
+    union {
+        uint32_t button;  /**< Button number */
+        uint32_t key;     /**< Key code */
+    } detail;
+    struct {
+        uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */
+        int32_t  data[MAX_VALUATORS];         /**< Valuator data */
+        int32_t  data_raw[MAX_VALUATORS];     /**< Valuator data as posted */
+    } valuators;
+} RawDeviceEvent;
+
+/**
  * Event type used inside the X server for input event
  * processing.
  */
@@ -188,6 +213,7 @@ typedef struct
 #if XFreeXDGA
         DGAEvent dga;
 #endif
+        RawDeviceEvent raw;
     } u;
 } InternalEvent;
 

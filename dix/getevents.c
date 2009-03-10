@@ -137,6 +137,33 @@ init_event(DeviceIntPtr dev, DeviceEvent* event, Time ms)
 }
 
 static void
+init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int subtype,
+         int detail)
+{
+    memset(event, 0, sizeof(RawDeviceEvent));
+    event->header = ET_Internal;
+    event->length = sizeof(RawDeviceEvent);
+    event->type = ET_Raw;
+    event->subtype = subtype;
+    event->time = ms;
+    event->deviceid = dev->id;
+    event->sourceid = dev->id;
+    event->detail.button = detail;
+}
+
+static void
+set_raw_valuators(RawDeviceEvent *event, int first, int num, int *valuators, int32_t* data)
+{
+    int i;
+    for (i = first; i < first + num; i++)
+    {
+        SetBit(event->valuators.mask, i);
+        data[i] = valuators[i - first];
+    }
+}
+
+
+static void
 set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
               int num_valuators, int *valuators)
 {
@@ -802,6 +829,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     int num_events = 0;
     CARD32 ms = 0;
     DeviceEvent *event;
+    RawDeviceEvent *raw;
 
     if (!events ||!pDev->key || !pDev->focus || !pDev->kbdfeed ||
        (type != KeyPress && type != KeyRelease) ||
@@ -822,10 +850,21 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
             return 0;
     }
 
+    ms = GetTimeInMillis();
+
+    raw = (RawDeviceEvent*)events->event;
+    events++;
+    num_events++;
+
+    init_raw(pDev, raw, ms, type, key_code);
+    set_raw_valuators(raw, first_valuator, num_valuators, valuators,
+                      raw->valuators.data_raw);
+
     if (num_valuators)
         clipValuators(pDev, first_valuator, num_valuators, valuators);
 
-    ms = GetTimeInMillis();
+    set_raw_valuators(raw, first_valuator, num_valuators, valuators,
+                      raw->valuators.data);
 
     event = (DeviceEvent*) events->event;
     init_event(pDev, event, ms);
@@ -949,6 +988,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     int num_events = 1;
     CARD32 ms;
     DeviceEvent *event;
+    RawDeviceEvent    *raw;
     int x, y, /* switches between device and screen coords */
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
@@ -964,6 +1004,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     events = updateFromMaster(events, pDev, &num_events);
+
+    raw = (RawDeviceEvent*)events->event;
+    events++;
+    num_events++;
+
+    init_raw(pDev, raw, ms, type, buttons);
+    set_raw_valuators(raw, first_valuator, num_valuators, valuators,
+                      raw->valuators.data_raw);
 
     if (flags & POINTER_ABSOLUTE)
     {
@@ -985,9 +1033,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         moveRelative(pDev, &x, &y, first_valuator, num_valuators, valuators);
     }
 
+    set_raw_valuators(raw, first_valuator, num_valuators, valuators,
+                      raw->valuators.data);
+
     positionSprite(pDev, &x, &y, scr, &cx, &cy);
     updateHistory(pDev, first_valuator, num_valuators, ms);
-
 
     /* Update the valuators with the true value sent to the client*/
     if (num_valuators >= 1 && first_valuator == 0)
@@ -1022,7 +1072,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     event->root_y = cy;
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
-
 
     return num_events;
 }

@@ -75,6 +75,7 @@ SOFTWARE.
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xace.h"
 #include "querydev.h" /* For List*Info */
+#include "eventconvert.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -914,6 +915,33 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
     return DEFAULT;
 }
 
+static void
+ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
+{
+    GrabPtr grab = device->deviceGrab.grab;
+
+    if (grab)
+        DeliverGrabbedEvent(ev, device, FALSE);
+    else { /* deliver to all root windows */
+        xEvent *xi;
+        int i;
+
+        i = EventToXI2((InternalEvent*)ev, (xEvent**)&xi);
+        if (i != Success)
+        {
+            ErrorF("[Xi] %s: XI2 conversion failed in ProcessRawEvent (%d)\n",
+                    device->name, i);
+            return;
+        }
+
+        for (i = 0; i < screenInfo.numScreens; i++)
+            DeliverEventsToWindow(device, WindowTable[i], xi, 1,
+                                  GetEventFilter(device, xi), NULL,
+                                  device->id);
+        xfree(xi);
+    }
+}
+
 /**
  * Main device event processing function.
  * Called from when processing the events from the event queue.
@@ -934,6 +962,12 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     DeviceEvent *event = (DeviceEvent*)ev;
 
     CHECKEVENT(ev);
+
+    if (ev->u.any.type == ET_Raw)
+    {
+        ProcessRawEvent((RawDeviceEvent*)ev, device);
+        return;
+    }
 
     if (IsPointerDevice(device))
     {
