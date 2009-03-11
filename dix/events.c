@@ -2233,7 +2233,8 @@ FixUpEventFromWindow(
             event->child = None;
         }
 
-        if (event->evtype == XI_Enter || event->evtype == XI_Leave)
+        if (event->evtype == XI_Enter || event->evtype == XI_Leave ||
+            event->evtype == XI_FocusIn || event->evtype == XI_FocusOut)
             ((xXIEnterEvent*)event)->same_screen =
                 (pSprite->hot.pScreen == pWin->drawable.pScreen);
 
