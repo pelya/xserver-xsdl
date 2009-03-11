@@ -481,6 +481,15 @@ extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
 extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
                          int max_keys_per_mod);
 
+/* misc event helpers */
+extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);
+extern Mask GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev);
+void FixUpEventFromWindow(DeviceIntPtr pDev,
+                          xEvent *xE,
+                          WindowPtr pWin,
+                          Window child,
+                          Bool calcChild);
+
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(
     InputOption *options,
