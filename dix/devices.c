@@ -2198,11 +2198,23 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         dev->spriteInfo->spriteOwner = FALSE;
         dev->spriteInfo->paired = dev;
 
+        /* Floating an SD makes it appear to XI 1 clients */
+        SendDevicePresenceEvent(dev->id, DeviceAdded);
+        if (dev->enabled)
+            SendDevicePresenceEvent(dev->id, DeviceEnabled);
     } else
     {
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
         dev->spriteInfo->paired = master;
         dev->spriteInfo->spriteOwner = FALSE;
+
+        if (!oldmaster)
+        {
+            /* Attaching a floating SD makes it disappear to XI 1 clients */
+            if (dev->enabled)
+                SendDevicePresenceEvent(dev->id, DeviceDisabled);
+            SendDevicePresenceEvent(dev->id, DeviceRemoved);
+        }
     }
 
     /* If we were connected to master device before, this MD may need to
