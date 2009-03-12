@@ -82,6 +82,7 @@ SOFTWARE.
 #include "xiproperty.h"
 #include "enterleave.h" /* for EnterWindow() */
 #include "xserver-properties.h"
+#include "chdevhier.h" /* For XISendDeviceHierarchyEvent */
 
 /** @file
  * This file handles input device-related stuff.
@@ -343,6 +344,7 @@ EnableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceEnabled);
+    XISendDeviceHierarchyEvent(HF_DeviceEnabled);
 
     return TRUE;
 }
@@ -413,6 +415,7 @@ DisableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceDisabled);
+    XISendDeviceHierarchyEvent(HF_DeviceDisabled);
     return TRUE;
 }
 
@@ -444,6 +447,7 @@ ActivateDevice(DeviceIntPtr dev)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
     SendDevicePresenceEvent(dev->id, DeviceAdded);
+    XISendDeviceHierarchyEvent(HF_SlaveAdded);
     return ret;
 }
 
@@ -941,6 +945,7 @@ RemoveDevice(DeviceIntPtr dev)
     if (ret == Success && initialized) {
         inputInfo.numDevices--;
         SendDevicePresenceEvent(deviceid, DeviceRemoved);
+        XISendDeviceHierarchyEvent(HF_SlaveRemoved);
     }
 
     return ret;
