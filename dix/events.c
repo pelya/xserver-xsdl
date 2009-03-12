@@ -147,6 +147,7 @@ typedef const char *string;
 #endif
 
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XI2.h>
 #include "exglobals.h"
@@ -192,6 +193,10 @@ typedef const char *string;
 #define CORE_EVENT(event) \
     (!((event)->u.u.type & EXTENSION_EVENT_BASE) && \
       (event)->u.u.type != GenericEvent)
+#define XI2_EVENT(event) \
+    (((event)->u.u.type == GenericEvent) && \
+    ((xGenericEvent*)(event))->extension == IReqCode)
+
 /**
  * Used to indicate a implicit passive grab created by a ButtonPress event.
  * See DeliverEventsToWindow().
