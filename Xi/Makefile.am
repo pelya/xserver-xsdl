@@ -95,6 +95,8 @@ libXi_la_SOURCES =	\
 	xiproperty.c \
 	xiproperty.h \
 	xiselectev.c \
-	xiselectev.h
+	xiselectev.h \
+	xisetdevfocus.c \
+	xisetdevfocus.h
 
 EXTRA_DIST = stubs.c

@@ -1241,7 +1241,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     FixUpEventFromWindow(dev, (xEvent*)xi2event, pWin, None, FALSE);
 
     DeliverEventsToWindow(dev, pWin, (xEvent*)xi2event, 1,
-                          GetWindowXI2Mask(dev, pWin, xi2event), NullGrab,
+                          GetEventFilter(dev, (xEvent*)xi2event), NullGrab,
                           dev->id);
 
     xfree(xi2event);
