@@ -2377,11 +2377,14 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
         ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
                dev->name, event->u.any.type, rc);
         goto unwind;
-    } else if (count == 0) /* no XI/Core event for you */
-        goto unwind;
+    } else if (count > 0)
+    {
+        if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
+            goto unwind;
+        /* if count is 0, we might still have XI2 events, don't have XACE for
+         * that yet */
+    }
 
-    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
-	goto unwind;
 
     while (pWin)
     {
