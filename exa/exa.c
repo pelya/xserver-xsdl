@@ -332,12 +332,14 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	    return NULL;
         }
 
-        (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
-                                       paddedWidth, NULL);
-        pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
-        pExaPixmap->fb_ptr = NULL;
-        pExaPixmap->pDamage = NULL;
-        pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+	/* Allow ModifyPixmapHeader to set sys_ptr appropriately. */
+	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+	pExaPixmap->fb_ptr = NULL;
+	pExaPixmap->pDamage = NULL;
+	pExaPixmap->sys_ptr = NULL;
+
+	(*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
+					paddedWidth, NULL);
 
     } else {
         pExaPixmap->driverPriv = NULL;
