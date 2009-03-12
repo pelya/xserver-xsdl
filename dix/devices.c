@@ -239,6 +239,22 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     return dev;
 }
 
+static void
+SendDevicePresenceEvent(int deviceid, int type)
+{
+    DeviceIntRec dummyDev;
+    devicePresenceNotify ev;
+
+    memset(&dummyDev, 0, sizeof(DeviceIntRec));
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = type;
+    ev.deviceid = deviceid;
+    dummyDev.id = MAXDEVICES;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          (xEvent*)&ev, 1);
+}
+
 /**
  * Enable the device through the driver, add the device to the device list.
  * Switch device ON through the driver and push it onto the global device
@@ -256,9 +272,7 @@ EnableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
     int ret;
-    DeviceIntRec dummyDev;
     DeviceIntPtr other;
-    devicePresenceNotify ev;
     int namelen = 0; /* dummy */
     int evsize  = sizeof(xEvent);
     int listlen;
@@ -328,13 +342,7 @@ EnableDevice(DeviceIntPtr dev)
                            XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            TRUE);
 
-    ev.type = DevicePresenceNotify;
-    ev.time = currentTime.milliseconds;
-    ev.devchange = DeviceEnabled;
-    ev.deviceid = dev->id;
-    dummyDev.id = MAXDEVICES;
-    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                          (xEvent *) &ev, 1);
+    SendDevicePresenceEvent(dev->id, DeviceEnabled);
 
     return TRUE;
 }
@@ -353,8 +361,6 @@ Bool
 DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev, other;
-    DeviceIntRec dummyDev;
-    devicePresenceNotify ev;
     BOOL enabled;
 
     for (prev = &inputInfo.devices;
@@ -406,14 +412,7 @@ DisableDevice(DeviceIntPtr dev)
                            XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            TRUE);
 
-    ev.type = DevicePresenceNotify;
-    ev.time = currentTime.milliseconds;
-    ev.devchange = DeviceDisabled;
-    ev.deviceid = dev->id;
-    dummyDev.id = MAXDEVICES;
-    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                          (xEvent *) &ev, 1);
-
+    SendDevicePresenceEvent(dev->id, DeviceDisabled);
     return TRUE;
 }
 
@@ -430,8 +429,6 @@ int
 ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
-    devicePresenceNotify ev;
-    DeviceIntRec dummyDev;
     ScreenPtr pScreen = screenInfo.screens[0];
 
     if (!dev || !dev->deviceProc)
@@ -446,16 +443,7 @@ ActivateDevice(DeviceIntPtr dev)
     if (dev->isMaster && dev->spriteInfo->spriteOwner)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
-    ev.type = DevicePresenceNotify;
-    ev.time = currentTime.milliseconds;
-    ev.devchange = DeviceAdded;
-    ev.deviceid = dev->id;
-
-    memset(&dummyDev, 0, sizeof(DeviceIntRec));
-    dummyDev.id = MAXDEVICES;
-    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                          (xEvent *) &ev, 1);
-
+    SendDevicePresenceEvent(dev->id, DeviceAdded);
     return ret;
 }
 
@@ -900,8 +888,6 @@ RemoveDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr prev,tmp,next;
     int ret = BadMatch;
-    devicePresenceNotify ev;
-    DeviceIntRec dummyDev;
     ScreenPtr screen = screenInfo.screens[0];
     int deviceid;
     int initialized;
@@ -954,13 +940,7 @@ RemoveDevice(DeviceIntPtr dev)
 
     if (ret == Success && initialized) {
         inputInfo.numDevices--;
-        ev.type = DevicePresenceNotify;
-        ev.time = currentTime.milliseconds;
-        ev.devchange = DeviceRemoved;
-        ev.deviceid = deviceid;
-        dummyDev.id = MAXDEVICES;
-        SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                              (xEvent *) &ev, 1);
+        SendDevicePresenceEvent(deviceid, DeviceRemoved);
     }
 
     return ret;
