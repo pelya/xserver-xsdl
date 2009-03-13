@@ -457,15 +457,6 @@ miPointerGetScreen(DeviceIntPtr pDev)
     return (pPointer) ? pPointer->pScreen : NULL;
 }
 
-/* Move the pointer to x, y on the current screen, update the sprite, and
- * the motion history.  Generates no events.  Does not return changed x
- * and y if they are clipped; use miPointerSetPosition instead. */
-void
-miPointerAbsoluteCursor (int x, int y, unsigned long time)
-{
-    miPointerSetPosition(inputInfo.pointer, &x, &y);
-}
-
 /* Move the pointer on the current screen,  and update the sprite. */
 static void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,

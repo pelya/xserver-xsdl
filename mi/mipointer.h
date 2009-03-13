@@ -110,13 +110,6 @@ extern _X_EXPORT void miPointerWarpCursor(
     int /*y*/
 ) _X_DEPRECATED;
 
-/* Deprecated in favour of miPointerSetPosition. */
-extern _X_EXPORT void miPointerAbsoluteCursor(
-    int /*x*/,
-    int /*y*/,
-    unsigned long /*time*/
-) _X_DEPRECATED;
-
 /* Deprecated in favour of miPointerGetScreen. */
 extern _X_EXPORT ScreenPtr miPointerCurrentScreen(
     void
