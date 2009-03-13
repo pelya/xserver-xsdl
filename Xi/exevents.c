@@ -1717,8 +1717,6 @@ DeleteWindowFromAnyExtEvents(WindowPtr pWin, Bool freeResources)
     struct _OtherInputMasks *inputMasks;
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-	if (dev == inputInfo.pointer || dev == inputInfo.keyboard)
-	    continue;
 	DeleteDeviceFromAnyExtEvents(pWin, dev);
     }
 
