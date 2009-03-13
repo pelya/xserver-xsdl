@@ -4880,7 +4880,7 @@ ProcUngrabKey(ClientPtr client)
     tempGrab.window = pWin;
     tempGrab.modifiersDetail.exact = stuff->modifiers;
     tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.modifierDevice = inputInfo.keyboard;
+    tempGrab.modifierDevice = GetPairedDevice(keybd);
     tempGrab.type = KeyPress;
     tempGrab.detail.exact = stuff->key;
     tempGrab.detail.pMask = NULL;
@@ -5055,6 +5055,7 @@ ProcUngrabButton(ClientPtr client)
     WindowPtr pWin;
     GrabRec tempGrab;
     int rc;
+    DeviceIntPtr ptr;
 
     REQUEST_SIZE_MATCH(xUngrabButtonReq);
     if ((stuff->modifiers != AnyModifier) &&
@@ -5066,12 +5067,15 @@ ProcUngrabButton(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
     if (rc != Success)
 	return rc;
+
+    ptr = PickPointer(client);
+
     tempGrab.resource = client->clientAsMask;
-    tempGrab.device = PickPointer(client);
+    tempGrab.device = ptr;
     tempGrab.window = pWin;
     tempGrab.modifiersDetail.exact = stuff->modifiers;
     tempGrab.modifiersDetail.pMask = NULL;
-    tempGrab.modifierDevice = inputInfo.keyboard;
+    tempGrab.modifierDevice = GetPairedDevice(ptr);
     tempGrab.type = ButtonPress;
     tempGrab.detail.exact = stuff->button;
     tempGrab.detail.pMask = NULL;

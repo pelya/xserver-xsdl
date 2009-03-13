@@ -1824,13 +1824,16 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
 #undef DO_ALL
 }
 
+/**
+ * Changes kbd control on the ClientPointer and all attached SDs.
+ */
 int
 ProcChangeKeyboardControl (ClientPtr client)
 {
     XID *vlist;
     BITS32 vmask;
     int ret = Success, error = Success;
-    DeviceIntPtr pDev = NULL;
+    DeviceIntPtr pDev = NULL, keyboard;
     REQUEST(xChangeKeyboardControlReq);
 
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardControlReq);
@@ -1841,8 +1844,10 @@ ProcChangeKeyboardControl (ClientPtr client)
     if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
 	return BadLength;
 
+    keyboard = PickKeyboard(client);
+
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
+        if ((pDev == keyboard || (!pDev->isMaster && pDev->u.master == keyboard)) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (ret != Success)
@@ -1851,7 +1856,7 @@ ProcChangeKeyboardControl (ClientPtr client)
     }
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
+        if ((pDev == keyboard || (!pDev->isMaster && pDev->u.master == keyboard)) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = DoChangeKeyboardControl(client, pDev, vlist, vmask);
             if (ret != Success)
@@ -1893,7 +1898,7 @@ ProcGetKeyboardControl (ClientPtr client)
 int
 ProcBell(ClientPtr client)
 {
-    DeviceIntPtr keybd = PickKeyboard(client);
+    DeviceIntPtr dev, keybd = PickKeyboard(client);
     int base = keybd->kbdfeed->ctrl.bell;
     int newpercent;
     int rc;
@@ -1920,14 +1925,14 @@ ProcBell(ClientPtr client)
 	newpercent = base - newpercent + stuff->percent;
 
     for (keybd = inputInfo.devices; keybd; keybd = keybd->next) {
-        if ((keybd->coreEvents || keybd == inputInfo.keyboard) &&
+        if ((dev == keybd || (!dev->isMaster && dev->u.master == keybd)) &&
             keybd->kbdfeed && keybd->kbdfeed->BellProc) {
 
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixBellAccess);
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixBellAccess);
 	    if (rc != Success)
 		return rc;
             XkbHandleBell(FALSE, FALSE, keybd, newpercent,
-                          &keybd->kbdfeed->ctrl, 0, None, NULL, client);
+                          &dev->kbdfeed->ctrl, 0, None, NULL, client);
         }
     }
 
