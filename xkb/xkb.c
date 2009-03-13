@@ -604,8 +604,7 @@ ProcXkbLatchLockState(ClientPtr client)
     status = Success;
 
     for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-        if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
-            tmpd == dev) {
+        if ((tmpd == dev) || (!tmpd->isMaster && tmpd->u.master == dev)) {
             if (!tmpd->key->xkbInfo)
                 continue;
 
@@ -744,10 +743,8 @@ ProcXkbSetControls(ClientPtr client)
     CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_MASK_LEGAL(0x01, stuff->changeCtrls, XkbAllControlsMask);
 
-    for (tmpd = inputInfo.keyboard; tmpd; tmpd = tmpd->next) {
-        if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
-            tmpd == dev) {
-
+    for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+        if ((tmpd == dev) || (!tmpd->isMaster && tmpd->u.master == dev)) {
             xkbi = tmpd->key->xkbInfo;
             ctrl = xkbi->desc->ctrls;
             new = *ctrl;
@@ -5834,9 +5831,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 	xkb->ctrls->num_groups= nTG;
 
         for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-            if (tmpd == dev ||
-                (dev->id == inputInfo.keyboard->id && tmpd->key &&
-                 tmpd->coreEvents)) {
+            if ((tmpd == dev) || (!tmpd->isMaster && tmpd->u.master == dev)) {
                 if (tmpd != dev)
                     XkbCopyDeviceKeymap(tmpd, dev);
 
