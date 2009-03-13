@@ -918,15 +918,14 @@ Bool
 XkbFilterEvents(ClientPtr pClient,int nEvents,xEvent *xE)
 {
 int	i, button_mask;
-DeviceIntPtr pXDev = inputInfo.keyboard;
+DeviceIntPtr pXDev = NULL;
 XkbSrvInfoPtr	xkbi;
 
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
-    {
         pXDev = XIGetDevice(xE);
-        if (!pXDev)
-            pXDev = inputInfo.keyboard;
-    }
+
+    if (!pXDev)
+        pXDev = PickKeyboard(pClient);
 
     xkbi= (pXDev->key) ? pXDev->key->xkbInfo : NULL;
 
