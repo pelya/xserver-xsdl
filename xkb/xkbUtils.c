@@ -232,7 +232,7 @@ XkbMapChangesPtr	mc;
 
     mc= (changes?(&changes->map):NULL);
 
-    syms= &pCore->map[(first-xkb->min_key_code)*pCore->mapWidth];
+    syms= &pCore->map[(first - pCore->minKeyCode) * pCore->mapWidth];
     for (key=first; key<(first+num); key++,syms+= pCore->mapWidth) {
         explicit= xkb->server->explicit[key]&XkbExplicitKeyTypesMask;
         types[XkbGroup1Index]= XkbKeyKeyTypeIndex(xkb,key,XkbGroup1Index);
