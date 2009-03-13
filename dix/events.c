@@ -1517,7 +1517,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     else
 	oldWin = keybd->spriteInfo->sprite->win;
     if (oldWin == FollowKeyboardWin)
-	oldWin = inputInfo.keyboard->focus->win;
+	oldWin = keybd->focus->win;
     if (keybd->valuator)
 	keybd->valuator->motionHintWindow = NullWindow;
     DoFocusEvents(keybd, oldWin, grab->window, NotifyGrab);
