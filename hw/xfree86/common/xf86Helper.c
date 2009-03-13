@@ -1959,6 +1959,30 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     return numFound;
 }
 
+static void
+xf86SetPriority(Bool up)
+{
+    static int saved_nice;
+
+    if (up) {
+#ifdef HAS_SETPRIORITY
+	saved_nice = getpriority(PRIO_PROCESS, 0);
+	setpriority(PRIO_PROCESS, 0, -20);
+#endif
+#if defined(SYSV) || defined(SVR4) || defined(linux)
+	saved_nice = nice(0);
+	nice(-20 - saved_nice);
+#endif
+    } else {
+#ifdef HAS_SETPRIORITY
+	setpriority(PRIO_PROCESS, 0, saved_nice);
+#endif
+#if defined(SYSV) || defined(SVR4) || defined(linux)
+	nice(20 + saved_nice);
+#endif
+    }
+}
+
 /*
  * xf86GetClocks -- get the dot-clocks via a BIG BAD hack ...
  */
@@ -2051,30 +2075,6 @@ finish:
 
     /* Restore registers that were written on */
     (*ClockFunc)(pScrn, CLK_REG_RESTORE);
-}
-
-void
-xf86SetPriority(Bool up)
-{
-    static int saved_nice;
-
-    if (up) {
-#ifdef HAS_SETPRIORITY
-	saved_nice = getpriority(PRIO_PROCESS, 0);
-	setpriority(PRIO_PROCESS, 0, -20);
-#endif
-#if defined(SYSV) || defined(SVR4) || defined(linux)
-	saved_nice = nice(0);
-	nice(-20 - saved_nice);
-#endif
-    } else {
-#ifdef HAS_SETPRIORITY
-	setpriority(PRIO_PROCESS, 0, saved_nice);
-#endif
-#if defined(SYSV) || defined(SVR4) || defined(linux)
-	nice(20 + saved_nice);
-#endif
-    }
 }
 
 const char *

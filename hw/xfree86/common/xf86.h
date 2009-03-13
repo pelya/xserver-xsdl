@@ -251,7 +251,6 @@ extern _X_EXPORT void xf86GetClocks(ScrnInfoPtr pScrn, int num,
 		   void (*BlankScreen)(ScrnInfoPtr, Bool),
 		   IOADDRESS vertsyncreg, int maskval,
 		   int knownclkindex, int knownclkvalue);
-extern _X_EXPORT void xf86SetPriority(Bool up);
 extern _X_EXPORT const char *xf86GetVisualName(int visual);
 extern _X_EXPORT int xf86GetVerbosity(void);
 extern _X_EXPORT Pix24Flags xf86GetPix24(void);
