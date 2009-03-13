@@ -1937,7 +1937,7 @@ ProcBell(ClientPtr client)
 int
 ProcChangePointerControl(ClientPtr client)
 {
-    DeviceIntPtr mouse = PickPointer(client);
+    DeviceIntPtr dev, mouse = PickPointer(client);
     PtrCtrl ctrl;		/* might get BadValue part way through */
     int rc;
     REQUEST(xChangePointerControlReq);
@@ -1991,20 +1991,20 @@ ProcChangePointerControl(ClientPtr client)
         }
     }
 
-    for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
-        if ((mouse->coreEvents || mouse == inputInfo.pointer) &&
-            mouse->ptrfeed && mouse->ptrfeed->CtrlProc) {
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixManageAccess);
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if ((dev == mouse || (!dev->isMaster && dev->u.master == mouse)) &&
+            dev->ptrfeed && dev->ptrfeed->CtrlProc) {
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
 	    if (rc != Success)
 		return rc;
 	}
     }
 
-    for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
-        if ((mouse->coreEvents || mouse == PickPointer(client)) &&
-            mouse->ptrfeed && mouse->ptrfeed->CtrlProc) {
-            mouse->ptrfeed->ctrl = ctrl;
-            (*mouse->ptrfeed->CtrlProc)(mouse, &mouse->ptrfeed->ctrl);
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if ((dev == mouse || (!dev->isMaster && dev->u.master == mouse)) &&
+            dev->ptrfeed && dev->ptrfeed->CtrlProc) {
+            dev->ptrfeed->ctrl = ctrl;
+            (*dev->ptrfeed->CtrlProc)(dev, &mouse->ptrfeed->ctrl);
         }
     }
 
