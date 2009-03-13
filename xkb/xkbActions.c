@@ -812,7 +812,7 @@ ProcessInputProc backupproc;
     if ((filter->keycode!=0)&&(filter->keycode!=keycode))
 	return 1;
 
-    GetSpritePosition(inputInfo.pointer, &x,&y);
+    GetSpritePosition(xkbi->device, &x,&y);
     ev.header = ET_Internal;
     ev.length = sizeof(DeviceEvent);
     ev.time = GetTimeInMillis();
