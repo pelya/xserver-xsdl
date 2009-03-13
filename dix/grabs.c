@@ -97,8 +97,6 @@ CreateGrab(
     grab->modifiersDetail.exact = modifiers;
     grab->modifiersDetail.pMask = NULL;
     grab->modifierDevice = modDevice;
-    grab->coreMods = ((modDevice == inputInfo.keyboard) ||
-		      (modDevice == inputInfo.pointer));
     grab->type = type;
     grab->detail.exact = keybut;
     grab->detail.pMask = NULL;

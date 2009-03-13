@@ -172,7 +172,6 @@ typedef struct _GrabRec {
     unsigned		keyboardMode:1;
     unsigned		pointerMode:1;
     unsigned		coreGrab:1;	/* grab is on core device */
-    unsigned		coreMods:1;	/* modifiers are on core keyboard */
     CARD8		type;		/* event type */
     DetailRec		modifiersDetail;
     DeviceIntPtr	modifierDevice;
