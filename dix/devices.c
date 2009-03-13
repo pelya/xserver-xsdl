@@ -1495,7 +1495,6 @@ ProcChangeKeyboardMapping(ClientPtr client)
     keysyms.mapWidth = stuff->keySymsPerKeyCode;
     keysyms.map = (KeySym *) &stuff[1];
 
-    pDev = PickKeyboard(client);
     rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
     if (rc != Success)
         return rc;
