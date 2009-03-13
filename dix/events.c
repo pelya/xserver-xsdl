@@ -5233,7 +5233,7 @@ CheckCursorConfinement(WindowPtr pWin)
             if (grab && (confineTo = grab->confineTo))
             {
                 if (!BorderSizeNotEmpty(pDev, confineTo))
-                    (*inputInfo.pointer->deviceGrab.DeactivateGrab)(pDev);
+                    (*pDev->deviceGrab.DeactivateGrab)(pDev);
                 else if ((pWin == confineTo) || IsParent(pWin, confineTo))
                     ConfineCursorToWindow(pDev, confineTo, TRUE, TRUE);
             }
