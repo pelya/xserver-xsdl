@@ -3044,22 +3044,22 @@ ProcWarpPointer(ClientPtr client)
     WindowPtr	dest = NULL;
     int		x, y, rc;
     ScreenPtr	newScreen;
-    DeviceIntPtr dev;
+    DeviceIntPtr dev, tmp;
     SpritePtr   pSprite;
 
     REQUEST(xWarpPointerReq);
     REQUEST_SIZE_MATCH(xWarpPointerReq);
 
-    /* XXX XACE ??*/
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
+    dev = PickPointer(client);
+
+    for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
+        if ((tmp == dev) || (!tmp->isMaster && tmp->u.master == dev)) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixWriteAccess);
 	    if (rc != Success)
 		return rc;
 	}
     }
 
-    dev = PickPointer(client);
     if (dev->u.lastSlave)
         dev = dev->u.lastSlave;
     pSprite = dev->spriteInfo->sprite;
