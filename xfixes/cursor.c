@@ -404,7 +404,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
 	swapl (&rep->cursorSerial, n);
 	SwapLongs (image, npixels);
     }
-    (void) WriteToClient(client, sizeof (xXFixesGetCursorImageReply) +
+    WriteToClient(client, sizeof (xXFixesGetCursorImageReply) +
 			 (npixels << 2), (char *) rep);
     xfree (rep);
     return client->noClientException;
@@ -482,7 +482,7 @@ ProcXFixesGetCursorName (ClientPtr client)
 	swaps (&reply.nbytes, n);
     }
     WriteReplyToClient(client, sizeof(xXFixesGetCursorNameReply), &reply);
-    (void)WriteToClient(client, len, str);
+    WriteToClient(client, len, str);
     
     return(client->noClientException);
 }
@@ -564,7 +564,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
 	swaps (&rep->nbytes, n);
 	SwapLongs (image, npixels);
     }
-    (void) WriteToClient(client, sizeof (xXFixesGetCursorImageAndNameReply) +
+    WriteToClient(client, sizeof (xXFixesGetCursorImageAndNameReply) +
 			 (npixels << 2) + nbytesRound, (char *) rep);
     xfree (rep);
     return client->noClientException;
@@ -893,7 +893,7 @@ ProcXFixesHideCursor (ClientPtr client)
     ret = createCursorHideCount(client, pWin->drawable.pScreen);
 
     if (ret == Success) {
-        (void) CursorDisplayCursor(PickPointer(client), pWin->drawable.pScreen, CursorCurrent);
+        CursorDisplayCursor(PickPointer(client), pWin->drawable.pScreen, CursorCurrent);
     }
 
     return ret;
@@ -987,7 +987,7 @@ CursorFreeHideCount (pointer data, XID id)
     ScreenPtr pScreen = pChc->pScreen;
 
     deleteCursorHideCount(pChc, pChc->pScreen);
-    (void) CursorDisplayCursor(inputInfo.pointer, pScreen, CursorCurrent);
+    CursorDisplayCursor(inputInfo.pointer, pScreen, CursorCurrent);
 
     return 1;
 }
