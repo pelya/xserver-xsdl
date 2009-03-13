@@ -157,7 +157,7 @@ AnimCurCursorLimits (DeviceIntPtr pDev,
     }
     else
     {
-        (*pScreen->CursorLimits) (inputInfo.pointer, pScreen, pCursor,
+        (*pScreen->CursorLimits) (pDev, pScreen, pCursor,
                                   pHotBox, pTopLeftBox); 
     }
     Wrap (as, pScreen, CursorLimits, AnimCurCursorLimits);
