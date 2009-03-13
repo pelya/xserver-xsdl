@@ -227,8 +227,6 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
       if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
           break;
   }
-  if (!dev)
-      dev = inputInfo.pointer;
 
   pCursorScreen = miPointerGetScreen(dev);
   if (pScreen == pCursorScreen)
