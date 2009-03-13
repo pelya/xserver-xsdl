@@ -327,7 +327,7 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr    pScreenPriv;
-    DeviceIntPtr    pDev = inputInfo.pointer;
+    DeviceIntPtr    pDev;
     miCursorInfoPtr pCursorInfo;
 
     SCREEN_PROLOGUE (pScreen, GetImage);
@@ -363,7 +363,7 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr	    pScreenPriv;
-    DeviceIntPtr            pDev = inputInfo.pointer;
+    DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
     SCREEN_PROLOGUE (pScreen, GetSpans);
@@ -417,7 +417,7 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
     miSpriteScreenPtr	    pScreenPriv;
-    DeviceIntPtr            pDev = inputInfo.pointer;
+    DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
     SCREEN_PROLOGUE (pScreen, SourceValidate);
@@ -452,7 +452,7 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     ScreenPtr	pScreen = pWindow->drawable.pScreen;
     miSpriteScreenPtr	    pScreenPriv;
-    DeviceIntPtr            pDev = inputInfo.pointer;
+    DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
     SCREEN_PROLOGUE (pScreen, CopyWindow);
@@ -487,7 +487,7 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
 {
     ScreenPtr		pScreen = screenInfo.screens[i];
     miSpriteScreenPtr	pPriv;
-    DeviceIntPtr            pDev = inputInfo.pointer;
+    DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
     pPriv = (miSpriteScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
@@ -570,7 +570,7 @@ miSpriteStoreColors (ColormapPtr pMap, int ndef, xColorItem *pdef)
     int			i;
     int			updated;
     VisualPtr		pVisual;
-    DeviceIntPtr        pDev = inputInfo.pointer;
+    DeviceIntPtr        pDev;
     miCursorInfoPtr     pCursorInfo;
 
     pPriv = (miSpriteScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
