@@ -585,6 +585,8 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 
     if (index >= EXA_PREPARE_AUX_DEST &&
 	!(pExaScr->info->flags & EXA_SUPPORTS_PREPARE_AUX)) {
+	if (pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED)
+	    FatalError("Unsupported AUX indices used on a pinned pixmap.\n");
 	exaMoveOutPixmap (pPixmap);
 	return FALSE;
     }
