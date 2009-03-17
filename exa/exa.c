@@ -258,9 +258,9 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
               int w, int h, int bpp)
 {
     if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
-        pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
+        pExaPixmap->fb_pitch = ((1 << (exaLog2(w - 1) + 1)) * bpp + 7) / 8;
     else
-        pExaPixmap->fb_pitch = w * bpp / 8;
+        pExaPixmap->fb_pitch = (w * bpp + 7) / 8;
 
     pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
                                      pExaScr->info->pixmapPitchAlign);
