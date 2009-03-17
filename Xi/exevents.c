@@ -843,6 +843,8 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
             for (sd = inputInfo.devices; sd; sd = sd->next) {
                 if (sd->isMaster || sd->u.master != device)
                     continue;
+                if (!sd->button)
+                    continue;
                 if ((sd->button->down[key>>3] & bit) != 0)
                     return DONT_PROCESS;
             }
