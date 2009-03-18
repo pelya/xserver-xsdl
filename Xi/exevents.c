@@ -936,8 +936,7 @@ ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
 
         for (i = 0; i < screenInfo.numScreens; i++)
             DeliverEventsToWindow(device, WindowTable[i], xi, 1,
-                                  GetEventFilter(device, xi), NULL,
-                                  device->id);
+                                  GetEventFilter(device, xi), NULL);
         xfree(xi);
     }
 }
@@ -1241,8 +1240,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     FixUpEventFromWindow(dev, (xEvent*)xi2event, pWin, None, FALSE);
 
     DeliverEventsToWindow(dev, pWin, (xEvent*)xi2event, 1,
-                          GetEventFilter(dev, (xEvent*)xi2event), NullGrab,
-                          dev->id);
+                          GetEventFilter(dev, (xEvent*)xi2event), NullGrab);
 
     xfree(xi2event);
 
@@ -1255,7 +1253,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     event.time = currentTime.milliseconds;
 
     DeliverEventsToWindow(dev, pWin, (xEvent *) & event, 1,
-				DeviceFocusChangeMask, NullGrab, dev->id);
+				DeviceFocusChangeMask, NullGrab);
 
     if ((type == DeviceFocusIn) &&
 	(wOtherInputMasks(pWin)) &&
@@ -1352,7 +1350,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 	}
 
 	DeliverEventsToWindow(dev, pWin, (xEvent *) sev, evcount,
-				    DeviceStateNotifyMask, NullGrab, dev->id);
+				    DeviceStateNotifyMask, NullGrab);
 	xfree(sev);
     }
 }
@@ -1697,7 +1695,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
     ev->u.u.type |= 0x80;
     if (propagate) {
 	for (; pWin; pWin = pWin->parent) {
-	    if (DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id))
+	    if (DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -1707,7 +1705,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 		break;
 	}
     } else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, ev, count))
-	DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id);
+	DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab);
     return Success;
 }
 
@@ -2009,7 +2007,7 @@ FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
 
     while (p1) {
         p2 = p1->firstChild;
-        DeliverEventsToWindow(dev, p1, ev, count, mask, NullGrab, dev->id);
+        DeliverEventsToWindow(dev, p1, ev, count, mask, NullGrab);
         FindInterestedChildren(dev, p2, mask, ev, count);
         p1 = p1->nextSib;
     }
@@ -2031,7 +2029,7 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
         pWin = WindowTable[i];
         if (!pWin)
             continue;
-        DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab, dev->id);
+        DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab);
         p1 = pWin->firstChild;
         FindInterestedChildren(dev, p1, mask, ev, count);
     }

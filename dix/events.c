@@ -1945,13 +1945,12 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
  * @param count Number of elements in pEvents.
  * @param filter Mask based on event type.
  * @param grab Possible grab on the device that caused the event.
- * @param mskidx Mask index, depending on device that caused event.
  *
  * @return Number of events delivered to various clients.
  */
 int
 DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
-        *pEvents, int count, Mask filter, GrabPtr grab, int mskidx)
+        *pEvents, int count, Mask filter, GrabPtr grab)
 {
     int deliveries = 0, nondeliveries = 0;
     int attempt;
@@ -2005,7 +2004,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
             OtherInputMasks *inputMasks = wOtherInputMasks(pWin);
             /* Has any client selected for the event? */
             if (!inputMasks ||
-                !(inputMasks->inputEvents[mskidx] & filter))
+                !(inputMasks->inputEvents[pDev->id] & filter))
                 return 0;
 
             other = inputMasks->inputClients;
@@ -2403,7 +2402,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 filter = GetEventFilter(dev, xi2);
                 FixUpEventFromWindow(dev, xi2, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
-                                                   filter, grab, dev->id);
+                                                   filter, grab);
                 xfree(xi2);
                 if (deliveries > 0)
                     goto unwind;
@@ -2415,7 +2414,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 filter = GetEventFilter(dev, xE);
                 FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                   filter, grab, dev->id);
+                                                   filter, grab);
                 if (deliveries > 0)
                     goto unwind;
             }
@@ -2435,7 +2434,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 filter = GetEventFilter(dev, &core);
                 FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
                 deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
-                                                   filter, grab, dev->id);
+                                                   filter, grab);
                 if (deliveries > 0)
                     goto unwind;
             }
@@ -2495,21 +2494,20 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
     if (filter != StructureAndSubMask)
-	return DeliverEventsToWindow(&dummy, pWin, xE, count, filter, NullGrab, dummy.id);
-    deliveries = DeliverEventsToWindow(&dummy, pWin, xE, count, StructureNotifyMask,
-				       NullGrab, dummy.id);
+	return DeliverEventsToWindow(&dummy, pWin, xE, count, filter, NullGrab);
+    deliveries = DeliverEventsToWindow(&dummy, pWin, xE, count,
+                                       StructureNotifyMask, NullGrab);
     if (pWin->parent)
     {
 	xE->u.destroyNotify.event = pWin->parent->drawable.id;
 	deliveries += DeliverEventsToWindow(&dummy, pWin->parent, xE, count,
-					    SubstructureNotifyMask, NullGrab,
-					    dummy.id);
+					    SubstructureNotifyMask, NullGrab);
 	if (xE->u.u.type == ReparentNotify)
 	{
 	    xE->u.destroyNotify.event = otherParent->drawable.id;
             deliveries += DeliverEventsToWindow(&dummy,
                     otherParent, xE, count, SubstructureNotifyMask,
-						NullGrab, dummy.id);
+						NullGrab);
 	}
     }
     return deliveries;
@@ -3559,7 +3557,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
         /* just deliver it to the focus window */
         FixUpEventFromWindow(ptr, xi2, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, xi2, 1,
-                                           filter, NullGrab, keybd->id);
+                                           filter, NullGrab);
         if (deliveries > 0)
             goto unwind;
     }
@@ -3568,7 +3566,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
     deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
                                        GetEventFilter(keybd, xE),
-                                       NullGrab, keybd->id);
+                                       NullGrab);
 
     if (deliveries > 0)
         goto unwind;
@@ -3586,7 +3584,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
         FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
                                            GetEventFilter(keybd, &core),
-                                           NullGrab, keybd->id);
+                                           NullGrab);
     }
 
 unwind:
@@ -4105,7 +4103,7 @@ CoreEnterLeaveEvent(
         else
             DeliverEventsToWindow(mouse, pWin, &event, 1,
                                   GetEventFilter(mouse, &event),
-                                  NullGrab, mouse->id);
+                                  NullGrab);
     }
 
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -4124,7 +4122,7 @@ CoreEnterLeaveEvent(
                             mask, KeymapStateMask, grab);
         else
             DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
-                                  KeymapStateMask, NullGrab, mouse->id);
+                                  KeymapStateMask, NullGrab);
     }
 }
 
@@ -4192,7 +4190,7 @@ DeviceEnterLeaveEvent(
                         filter, grab);
     else
         DeliverEventsToWindow(mouse, pWin, (xEvent*)event, 1, filter,
-                              NullGrab, mouse->id);
+                              NullGrab);
     xfree(event);
 }
 
@@ -4208,7 +4206,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     event.u.focus.window = pWin->drawable.id;
 
     DeliverEventsToWindow(dev, pWin, &event, 1,
-                          GetEventFilter(dev, &event), NullGrab, dev->id);
+                          GetEventFilter(dev, &event), NullGrab);
     if ((type == FocusIn) &&
             ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
@@ -4221,7 +4219,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
-                KeymapStateMask, NullGrab, dev->id);
+                KeymapStateMask, NullGrab);
     }
 }
 
@@ -4962,7 +4960,7 @@ ProcSendEvent(ClientPtr client)
 			 &stuff->event, 1))
 		return Success;
             if (DeliverEventsToWindow(dev, pWin,
-                        &stuff->event, 1, stuff->eventMask, NullGrab, dev->id))
+                        &stuff->event, 1, stuff->eventMask, NullGrab))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -4973,7 +4971,7 @@ ProcSendEvent(ClientPtr client)
     }
     else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, &stuff->event, 1))
         DeliverEventsToWindow(dev, pWin, &stuff->event,
-                                    1, stuff->eventMask, NullGrab, dev->id);
+                                    1, stuff->eventMask, NullGrab);
     return Success;
 }
 
