@@ -434,8 +434,10 @@ extern _X_EXPORT int GrabDevice(
     unsigned /* ownerEvents */,
     Time /* ctime */,
     Mask /* mask */,
-    CARD8 * /* status */,
-    Bool /* coreGrab */);
+    Bool /* coreGrab */,
+    Cursor /* curs */,
+    Window /* confineToWin */,
+    CARD8 * /* status */);
 
 extern _X_EXPORT void InitEvents(void);
 

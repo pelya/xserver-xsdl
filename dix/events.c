@@ -4390,40 +4390,21 @@ ProcGrabPointer(ClientPtr client)
     xGrabPointerReply rep;
     DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
-    WindowPtr pWin, confineTo;
-    CursorPtr cursor, oldCursor;
+    WindowPtr confineTo;
+    CursorPtr oldCursor;
     REQUEST(xGrabPointerReq);
     TimeStamp time;
-    Mask access_mode = DixGrabAccess;
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabPointerReq);
     UpdateCurrentTime();
-    if ((stuff->pointerMode != GrabModeSync) &&
-	(stuff->pointerMode != GrabModeAsync))
-    {
-	client->errorValue = stuff->pointerMode;
-        return BadValue;
-    }
-    if ((stuff->keyboardMode != GrabModeSync) &&
-	(stuff->keyboardMode != GrabModeAsync))
-    {
-	client->errorValue = stuff->keyboardMode;
-        return BadValue;
-    }
-    if ((stuff->ownerEvents != xFalse) && (stuff->ownerEvents != xTrue))
-    {
-	client->errorValue = stuff->ownerEvents;
-        return BadValue;
-    }
+
     if (stuff->eventMask & ~PointerGrabMask)
     {
 	client->errorValue = stuff->eventMask;
         return BadValue;
     }
-    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixSetAttrAccess);
-    if (rc != Success)
-	return rc;
+
     if (stuff->confineTo == None)
 	confineTo = NullWindow;
     else
@@ -4433,81 +4414,32 @@ ProcGrabPointer(ClientPtr client)
 	if (rc != Success)
 	    return rc;
     }
-    if (stuff->cursor == None)
-	cursor = NullCursor;
-    else
-    {
-	rc = dixLookupResourceByType((pointer *)&cursor, stuff->cursor, RT_CURSOR,
-			       client, DixUseAccess);
-	if (rc != Success)
-	{
-	    client->errorValue = stuff->cursor;
-	    return (rc == BadValue) ? BadCursor : rc;
-	}
-	access_mode |= DixForceAccess;
-    }
-    if (stuff->pointerMode == GrabModeSync ||
-	stuff->keyboardMode == GrabModeSync)
-	access_mode |= DixFreezeAccess;
-    rc = XaceHook(XACE_DEVICE_ACCESS, client, device, access_mode);
-    if (rc != Success)
-	return rc;
 
-	/* at this point, some sort of reply is guaranteed. */
-    time = ClientTimeToServerTime(stuff->time);
     memset(&rep, 0, sizeof(xGrabPointerReply));
+    oldCursor = NullCursor;
+    grab = device->deviceGrab.grab;
+
+    if (grab)
+    {
+        if (grab->confineTo && !confineTo)
+            ConfineCursorToWindow(device, RootWindow(device), FALSE, FALSE);
+        oldCursor = grab->cursor;
+    }
+
+    rc = GrabDevice(client, device, stuff->pointerMode, stuff->keyboardMode,
+                    stuff->grabWindow, stuff->ownerEvents, stuff->time,
+                    stuff->eventMask, TRUE, stuff->cursor,
+                    stuff->confineTo, &rep.status);
+    if (rc != Success)
+        return rc;
+
+    if (oldCursor)
+        FreeCursor (oldCursor, (Cursor)0);
+
+    time = ClientTimeToServerTime(stuff->time);
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
-
-    grab = device->deviceGrab.grab;
-    /* check for
-       1. other client has a grab on the device already.
-       2. window is viewable
-       3. other client has this device as frozen "other" device
-       4. times are screwed.
-     */
-    if ((grab) && !SameClient(grab, client))
-	rep.status = AlreadyGrabbed;
-    else if ((!pWin->realized) ||
-             (confineTo &&
-                !(confineTo->realized
-                    && BorderSizeNotEmpty(device, confineTo))))
-	rep.status = GrabNotViewable;
-    else if (device->deviceGrab.sync.frozen &&
-	     device->deviceGrab.sync.other &&
-             !SameClient(device->deviceGrab.sync.other, client))
-	rep.status = GrabFrozen;
-    else if ((CompareTimeStamps(time, currentTime) == LATER) ||
-	     (CompareTimeStamps(time, device->deviceGrab.grabTime) == EARLIER))
-	rep.status = GrabInvalidTime;
-    else
-    {
-	GrabRec tempGrab;
-
-	oldCursor = NullCursor;
-	if (grab)
-	{
-	    if (grab->confineTo && !confineTo)
-		ConfineCursorToWindow(device, RootWindow(device), FALSE, FALSE);
-	    oldCursor = grab->cursor;
-	}
-        tempGrab.next = NULL;
-	tempGrab.cursor = cursor;
-	tempGrab.resource = client->clientAsMask;
-	tempGrab.ownerEvents = stuff->ownerEvents;
-	tempGrab.eventMask = stuff->eventMask;
-	tempGrab.confineTo = confineTo;
-	tempGrab.window = pWin;
-	tempGrab.keyboardMode = stuff->keyboardMode;
-	tempGrab.pointerMode = stuff->pointerMode;
-	tempGrab.device = device;
-        tempGrab.coreGrab = True;
-	(*device->deviceGrab.ActivateGrab)(device, &tempGrab, time, FALSE);
-	if (oldCursor)
-	    FreeCursor (oldCursor, (Cursor)0);
-	rep.status = GrabSuccess;
-    }
     WriteReplyToClient(client, sizeof(xGrabPointerReply), &rep);
     return Success;
 }
@@ -4613,26 +4545,27 @@ ProcUngrabPointer(ClientPtr client)
  */
 int
 GrabDevice(ClientPtr client, DeviceIntPtr dev,
-           unsigned this_mode, unsigned other_mode, Window grabWindow,
-           unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status,
-           Bool coreGrab)
+           unsigned pointer_mode, unsigned keyboard_mode, Window grabWindow,
+           unsigned ownerEvents, Time ctime, Mask mask,
+           Bool coreGrab, Cursor curs, Window confineToWin, CARD8 *status)
 {
-    WindowPtr pWin;
+    WindowPtr pWin, confineTo;
     GrabPtr grab;
     TimeStamp time;
     Mask access_mode = DixGrabAccess;
     int rc;
     GrabInfoPtr grabInfo = &dev->deviceGrab;
+    CursorPtr cursor;
 
     UpdateCurrentTime();
-    if ((this_mode != GrabModeSync) && (this_mode != GrabModeAsync))
+    if ((keyboard_mode != GrabModeSync) && (keyboard_mode != GrabModeAsync))
     {
-	client->errorValue = this_mode;
+	client->errorValue = keyboard_mode;
         return BadValue;
     }
-    if ((other_mode != GrabModeSync) && (other_mode != GrabModeAsync))
+    if ((pointer_mode != GrabModeSync) && (pointer_mode != GrabModeAsync))
     {
-	client->errorValue = other_mode;
+	client->errorValue = pointer_mode;
         return BadValue;
     }
     if ((ownerEvents != xFalse) && (ownerEvents != xTrue))
@@ -4644,7 +4577,32 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     rc = dixLookupWindow(&pWin, grabWindow, client, DixSetAttrAccess);
     if (rc != Success)
 	return rc;
-    if (this_mode == GrabModeSync || other_mode == GrabModeSync)
+
+    if (confineToWin == None)
+	confineTo = NullWindow;
+    else
+    {
+	rc = dixLookupWindow(&confineTo, confineToWin, client,
+			     DixSetAttrAccess);
+	if (rc != Success)
+	    return rc;
+    }
+
+    if (curs == None)
+	cursor = NullCursor;
+    else
+    {
+	rc = dixLookupResourceByType((pointer *)&cursor, curs, RT_CURSOR,
+			       client, DixUseAccess);
+	if (rc != Success)
+	{
+	    client->errorValue = curs;
+	    return (rc == BadValue) ? BadCursor : rc;
+	}
+	access_mode |= DixForceAccess;
+    }
+
+    if (keyboard_mode == GrabModeSync || pointer_mode == GrabModeSync)
 	access_mode |= DixFreezeAccess;
     rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, access_mode);
     if (rc != Success)
@@ -4654,7 +4612,10 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     grab = grabInfo->grab;
     if (grab && !SameClient(grab, client))
 	*status = AlreadyGrabbed;
-    else if (!pWin->realized)
+    else if ((!pWin->realized) ||
+             (confineTo &&
+                !(confineTo->realized
+                    && BorderSizeNotEmpty(dev, confineTo))))
 	*status = GrabNotViewable;
     else if ((CompareTimeStamps(time, currentTime) == LATER) ||
 	     (CompareTimeStamps(time, grabInfo->grabTime) == EARLIER))
@@ -4673,13 +4634,13 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.window = pWin;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = ownerEvents;
-	tempGrab.keyboardMode = this_mode;
-	tempGrab.pointerMode = other_mode;
+	tempGrab.keyboardMode = keyboard_mode;
+	tempGrab.pointerMode = pointer_mode;
 	tempGrab.eventMask = mask;
 	tempGrab.device = dev;
-        tempGrab.cursor = NULL;
-        tempGrab.coreGrab = coreGrab;
-
+	tempGrab.cursor = cursor;
+	tempGrab.confineTo = confineTo;
+	tempGrab.coreGrab = coreGrab;
 	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
 	*status = GrabSuccess;
     }
@@ -4702,10 +4663,10 @@ ProcGrabKeyboard(ClientPtr client)
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
     memset(&rep, 0, sizeof(xGrabKeyboardReply));
-    result = GrabDevice(client, keyboard, stuff->keyboardMode,
-            stuff->pointerMode, stuff->grabWindow,
-            stuff->ownerEvents, stuff->time,
-            KeyPressMask | KeyReleaseMask, &rep.status, TRUE);
+    result = GrabDevice(client, keyboard, stuff->pointerMode,
+            stuff->keyboardMode, stuff->grabWindow, stuff->ownerEvents,
+            stuff->time, KeyPressMask | KeyReleaseMask, TRUE, None, None,
+            &rep.status);
 
     if (result != Success)
 	return result;
