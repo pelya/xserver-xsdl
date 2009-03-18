@@ -75,8 +75,6 @@ extern int DeviceMappingNotify;
 extern int ChangeDeviceNotify;
 extern int DevicePresenceNotify;
 extern int DevicePropertyNotify;
-extern int DeviceEnterNotify;
-extern int DeviceLeaveNotify;
 
 extern int RT_INPUTCLIENT;
 

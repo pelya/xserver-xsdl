@@ -331,8 +331,6 @@ int DeviceMappingNotify;
 int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DevicePropertyNotify;
-int DeviceEnterNotify;
-int DeviceLeaveNotify;
 
 int RT_INPUTCLIENT;
 
@@ -893,8 +891,6 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DeviceButtonStateNotify = DeviceKeyStateNotify + 1;
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
     DevicePropertyNotify = DevicePresenceNotify + 1;
-    DeviceEnterNotify = DevicePropertyNotify + 1;
-    DeviceLeaveNotify = DeviceEnterNotify + 1;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
@@ -950,12 +946,6 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     SetEventInfo(DevicePresenceNotifyMask, _devicePresence);
     SetMaskForExtEvent(DevicePropertyNotifyMask, DevicePropertyNotify);
 
-    SetMaskForExtEvent(DeviceEnterWindowMask, DeviceEnterNotify);
-    AllowPropagateSuppress(DeviceEnterWindowMask);
-
-    SetMaskForExtEvent(DeviceLeaveWindowMask, DeviceLeaveNotify);
-    AllowPropagateSuppress(DeviceLeaveWindowMask);
-
     SetEventInfo(0, _noExtensionEvent);
 }
 
@@ -1001,8 +991,6 @@ RestoreExtensionEvents(void)
     DeviceButtonStateNotify = 13;
     DevicePresenceNotify = 14;
     DevicePropertyNotify = 15;
-    DeviceEnterNotify = 16;
-    DeviceLeaveNotify = 17;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -1042,8 +1030,6 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[ChangeDeviceNotify] = NotImplemented;
     EventSwapVector[DevicePresenceNotify] = NotImplemented;
     EventSwapVector[DevicePropertyNotify] = NotImplemented;
-    EventSwapVector[DeviceEnterNotify] = NotImplemented;
-    EventSwapVector[DeviceLeaveNotify] = NotImplemented;
     RestoreExtensionEvents();
 }
 

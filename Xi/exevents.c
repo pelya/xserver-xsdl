@@ -146,8 +146,6 @@ XIGetDevice(xEvent* xE)
     if (xE->u.u.type == DeviceButtonPress ||
         xE->u.u.type == DeviceButtonRelease ||
         xE->u.u.type == DeviceMotionNotify ||
-        xE->u.u.type == DeviceEnterNotify ||
-        xE->u.u.type == DeviceLeaveNotify ||
         xE->u.u.type == ProximityIn ||
         xE->u.u.type == ProximityOut ||
         xE->u.u.type == DevicePropertyNotify)
