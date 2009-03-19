@@ -4759,7 +4759,9 @@ ProcSendEvent(ClientPtr client)
 {
     WindowPtr pWin;
     WindowPtr effectiveFocus = NullWindow; /* only set if dest==InputFocus */
-    SpritePtr pSprite = PickPointer(client)->spriteInfo->sprite;
+    DeviceIntPtr dev = PickPointer(client);
+    DeviceIntPtr keybd = GetPairedDevice(dev);
+    SpritePtr pSprite = dev->spriteInfo->sprite;
     REQUEST(xSendEventReq);
 
     REQUEST_SIZE_MATCH(xSendEventReq);
@@ -4793,7 +4795,7 @@ ProcSendEvent(ClientPtr client)
 	pWin = pSprite->win;
     else if (stuff->destination == InputFocus)
     {
-	WindowPtr inputFocus = inputInfo.keyboard->focus->win;
+	WindowPtr inputFocus = (keybd) ? keybd->focus->win : NoneWin;
 
 	if (inputFocus == NoneWin)
 	    return Success;
