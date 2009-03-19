@@ -115,8 +115,8 @@ typedef struct _EventList {
 } EventList, *EventListPtr;
 
 /* The DIX stores incoming input events in this list */
-extern _X_EXPORT EventListPtr InputEventList;
-extern _X_EXPORT int InputEventListLen;
+extern EventListPtr InputEventList;
+extern int InputEventListLen;
 
 typedef int (*DeviceProc)(
     DeviceIntPtr /*device*/,
@@ -219,7 +219,7 @@ extern void set_key_down(DeviceIntPtr pDev, int key_code, int type);
 extern void set_key_up(DeviceIntPtr pDev, int key_code, int type);
 extern int key_is_down(DeviceIntPtr pDev, int key_code, int type);
 
-extern _X_EXPORT void InitCoreDevices(void);
+extern void InitCoreDevices(void);
 
 extern _X_EXPORT DeviceIntPtr AddInputDevice(
     ClientPtr /*client*/,
@@ -235,21 +235,21 @@ extern _X_EXPORT Bool ActivateDevice(
 extern _X_EXPORT Bool DisableDevice(
     DeviceIntPtr /*device*/);
 
-extern _X_EXPORT int InitAndStartDevices(void);
+extern int InitAndStartDevices(void);
 
-extern _X_EXPORT void CloseDownDevices(void);
+extern void CloseDownDevices(void);
 
-extern _X_EXPORT void UndisplayDevices(void);
+extern void UndisplayDevices(void);
 
 extern _X_EXPORT int RemoveDevice(
     DeviceIntPtr /*dev*/);
 
 extern _X_EXPORT int NumMotionEvents(void);
 
-extern _X_EXPORT void RegisterPointerDevice(
+extern void RegisterPointerDevice(
     DeviceIntPtr /*device*/);
 
-extern _X_EXPORT void RegisterKeyboardDevice(
+extern void RegisterKeyboardDevice(
     DeviceIntPtr /*device*/);
 
 extern _X_EXPORT int dixLookupDevice(
@@ -362,31 +362,31 @@ extern _X_EXPORT int ApplyPointerMapping(
     int          /* len */,
     ClientPtr	/* client */);
 
-extern _X_EXPORT Bool BadDeviceMap(
+extern Bool BadDeviceMap(
     BYTE* /*buff*/,
     int /*length*/,
     unsigned /*low*/,
     unsigned /*high*/,
     XID* /*errval*/);
 
-extern _X_EXPORT void NoteLedState(
+extern void NoteLedState(
     DeviceIntPtr /*keybd*/,
     int /*led*/,
     Bool /*on*/);
 
-extern _X_EXPORT void MaybeStopHint(
+extern void MaybeStopHint(
     DeviceIntPtr /*device*/,
     ClientPtr /*client*/);
 
-extern _X_EXPORT void ProcessPointerEvent(
+extern void ProcessPointerEvent(
     InternalEvent* /* ev */,
     DeviceIntPtr /*mouse*/);
 
-extern _X_EXPORT void ProcessKeyboardEvent(
+extern void ProcessKeyboardEvent(
     InternalEvent* /*ev*/,
     DeviceIntPtr   /*keybd*/);
 
-extern _X_EXPORT Bool LegalModifier(
+extern Bool LegalModifier(
     unsigned int /*key*/, 
     DeviceIntPtr /*pDev*/);
 
@@ -405,10 +405,10 @@ extern _X_EXPORT void SetMinimumEventSize(EventListPtr list,
                                 int min_size);
 extern _X_EXPORT void FreeEventList(EventListPtr list, int num_events);
 
-extern _X_EXPORT void CreateClassesChangedEvent(EventListPtr event,
+extern void CreateClassesChangedEvent(EventListPtr event,
                                       DeviceIntPtr master,
                                       DeviceIntPtr slave);
-extern _X_EXPORT int GetPointerEvents(
+extern int GetPointerEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,
@@ -418,13 +418,13 @@ extern _X_EXPORT int GetPointerEvents(
     int num_valuators,
     int *valuators);
 
-extern _X_EXPORT int GetKeyboardEvents(
+extern int GetKeyboardEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,
     int key_code);
 
-extern _X_EXPORT int GetKeyboardValuatorEvents(
+extern int GetKeyboardValuatorEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,
@@ -433,7 +433,7 @@ extern _X_EXPORT int GetKeyboardValuatorEvents(
     int num_valuator,
     int *valuators);
 
-extern _X_EXPORT int GetProximityEvents(
+extern int GetProximityEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
     int type,
@@ -441,7 +441,7 @@ extern _X_EXPORT int GetProximityEvents(
     int num_valuators,
     int *valuators);
 
-extern _X_EXPORT void PostSyntheticMotion(
+extern void PostSyntheticMotion(
     DeviceIntPtr pDev,
     int x,
     int y,
@@ -462,17 +462,17 @@ extern _X_EXPORT int GetMotionHistory(
     ScreenPtr pScreen,
     BOOL core);
 
-extern _X_EXPORT int AttachDevice(ClientPtr client,
+extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr slave,
                         DeviceIntPtr master);
 
 extern _X_EXPORT DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
-extern _X_EXPORT int AllocMasterDevice(ClientPtr client,
+extern int AllocMasterDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd);
-extern _X_EXPORT void DeepCopyDeviceClasses(DeviceIntPtr from,
+extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
 
 /* Helper functions. */

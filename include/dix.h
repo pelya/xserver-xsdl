@@ -327,36 +327,36 @@ extern _X_EXPORT WindowPtr GetSpriteWindow(DeviceIntPtr pDev);
 
 extern _X_EXPORT void NoticeEventTime(InternalEvent *ev);
 
-extern _X_EXPORT void EnqueueEvent(
+extern void EnqueueEvent(
     InternalEvent * /* ev */,
     DeviceIntPtr  /* device */);
 
-extern _X_EXPORT void ActivatePointerGrab(
+extern void ActivatePointerGrab(
     DeviceIntPtr /* mouse */,
     GrabPtr /* grab */,
     TimeStamp /* time */,
     Bool /* autoGrab */);
 
-extern _X_EXPORT void DeactivatePointerGrab(
+extern void DeactivatePointerGrab(
     DeviceIntPtr /* mouse */);
 
-extern _X_EXPORT void ActivateKeyboardGrab(
+extern void ActivateKeyboardGrab(
     DeviceIntPtr /* keybd */,
     GrabPtr /* grab */,
     TimeStamp /* time */,
     Bool /* passive */);
 
-extern _X_EXPORT void DeactivateKeyboardGrab(
+extern void DeactivateKeyboardGrab(
     DeviceIntPtr /* keybd */);
 
-extern _X_EXPORT void AllowSome(
+extern void AllowSome(
     ClientPtr	/* client */,
     TimeStamp /* time */,
     DeviceIntPtr /* thisDev */,
     int /* newState */,
     Bool /* core */);
 
-extern _X_EXPORT void ReleaseActiveGrabs(
+extern void ReleaseActiveGrabs(
     ClientPtr client);
 
 extern _X_EXPORT int DeliverEventsToWindow(
@@ -367,57 +367,57 @@ extern _X_EXPORT int DeliverEventsToWindow(
     Mask /* filter */,
     GrabPtr /* grab */);
 
-extern _X_EXPORT int DeliverDeviceEvents(
+extern int DeliverDeviceEvents(
     WindowPtr /* pWin */,
     InternalEvent* /* event */,
     GrabPtr /* grab */,
     WindowPtr /* stopAt */,
     DeviceIntPtr /* dev */);
 
-extern _X_EXPORT void InitializeSprite(
+extern void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);
 
-extern _X_EXPORT void UpdateSpriteForScreen(
+extern void UpdateSpriteForScreen(
     DeviceIntPtr /* pDev */,
     ScreenPtr /* pScreen */);
 
 extern _X_EXPORT void WindowHasNewCursor(
     WindowPtr /* pWin */);
 
-extern _X_EXPORT Bool CheckDeviceGrabs(
+extern Bool CheckDeviceGrabs(
     DeviceIntPtr /* device */,
     DeviceEvent* /* event */,
     int /* checkFirst */);
 
-extern _X_EXPORT void DeliverFocusedEvent(
+extern void DeliverFocusedEvent(
     DeviceIntPtr /* keybd */,
     InternalEvent* /* event */,
     WindowPtr /* window */);
 
-extern _X_EXPORT void DeliverGrabbedEvent(
+extern void DeliverGrabbedEvent(
     InternalEvent* /* event */,
     DeviceIntPtr /* thisDev */,
     Bool /* deactivateGrab */);
 
-extern _X_EXPORT void FixKeyState(
+extern void FixKeyState(
     DeviceEvent* /* event */,
     DeviceIntPtr /* keybd */);
 
-extern _X_EXPORT void RecalculateDeliverableEvents(
+extern void RecalculateDeliverableEvents(
     WindowPtr /* pWin */);
 
 extern _X_EXPORT int OtherClientGone(
     pointer /* value */,
     XID /* id */);
 
-extern _X_EXPORT void DoFocusEvents(
+extern void DoFocusEvents(
     DeviceIntPtr /* dev */,
     WindowPtr /* fromWin */,
     WindowPtr /* toWin */,
     int /* mode */);
 
-extern _X_EXPORT int SetInputFocus(
+extern int SetInputFocus(
     ClientPtr /* client */,
     DeviceIntPtr /* dev */,
     Window /* focusID */,
@@ -425,7 +425,7 @@ extern _X_EXPORT int SetInputFocus(
     Time /* ctime */,
     Bool /* followOK */);
 
-extern _X_EXPORT int GrabDevice(
+extern int GrabDevice(
     ClientPtr /* client */,
     DeviceIntPtr /* dev */,
     unsigned /* this_mode */,
@@ -439,16 +439,16 @@ extern _X_EXPORT int GrabDevice(
     Window /* confineToWin */,
     CARD8 * /* status */);
 
-extern _X_EXPORT void InitEvents(void);
+extern void InitEvents(void);
 
-extern _X_EXPORT void CloseDownEvents(void);
+extern void CloseDownEvents(void);
 
-extern _X_EXPORT void DeleteWindowFromAnyEvents(
+extern void DeleteWindowFromAnyEvents(
     WindowPtr	/* pWin */,
     Bool /* freeResources */);
 
 
-extern _X_EXPORT Mask EventMaskForClient(
+extern Mask EventMaskForClient(
     WindowPtr /* pWin */,
     ClientPtr /* client */);
 
@@ -460,8 +460,7 @@ extern _X_EXPORT int DeliverEvents(
     int /*count*/,
     WindowPtr /*otherParent*/);
 
-extern _X_EXPORT Bool
-CheckMotion(
+extern Bool CheckMotion(
     DeviceEvent* /* ev */,
     DeviceIntPtr /* pDev */);
 
@@ -481,7 +480,7 @@ extern _X_EXPORT int TryClientEvents(
 
 extern _X_EXPORT void WindowsRestructured(void);
 
-extern _X_EXPORT Bool SetClientPointer(
+extern Bool SetClientPointer(
         ClientPtr /* client */, 
         ClientPtr /* setter */, 
         DeviceIntPtr /* device */);
@@ -492,7 +491,7 @@ extern _X_EXPORT DeviceIntPtr PickPointer(
 extern _X_EXPORT DeviceIntPtr PickKeyboard(
     ClientPtr /* client */);
 
-extern _X_EXPORT Bool IsInterferingGrab(
+extern Bool IsInterferingGrab(
         ClientPtr /* client */,
         DeviceIntPtr /* dev */,
         xEvent* /* events */);
@@ -576,11 +575,11 @@ typedef struct {
     int count;
 } DeviceEventInfoRec;
 
-extern _X_EXPORT int XItoCoreType(int xi_type);
-extern _X_EXPORT Bool DevHasCursor(DeviceIntPtr pDev);
-extern _X_EXPORT Bool IsPointerDevice( DeviceIntPtr dev);
-extern _X_EXPORT Bool IsKeyboardDevice(DeviceIntPtr dev);
-extern _X_EXPORT Bool IsPointerEvent(InternalEvent* event);
+extern int XItoCoreType(int xi_type);
+extern Bool DevHasCursor(DeviceIntPtr pDev);
+extern Bool IsPointerDevice( DeviceIntPtr dev);
+extern Bool IsKeyboardDevice(DeviceIntPtr dev);
+extern Bool IsPointerEvent(InternalEvent *event);
 
 /*
  * These are deprecated compatibility functions and will be removed soon!
