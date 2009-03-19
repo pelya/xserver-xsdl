@@ -643,7 +643,7 @@ XkbCopySrvLedInfo(	DeviceIntPtr		from,
     else
 	sli_new->fb.lf = lf;
 
-    if (sli_new->flags & XkbSLI_IsDefault) {
+    if (!(sli_new->flags & XkbSLI_IsDefault)) {
 	sli_new->names= _XkbTypedCalloc(XkbNumIndicators,Atom);
 	sli_new->maps= _XkbTypedCalloc(XkbNumIndicators,XkbIndicatorMapRec);
     } /* else sli_new->names/maps is pointing to
