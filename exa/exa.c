@@ -427,11 +427,19 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
         if (devKind > 0)
             pExaPixmap->sys_pitch = devKind;
 
-	/* Is this the framebuffer (for classic exa)? */
-	if (pPixData && pPixData == pExaScr->info->memoryBase) {
-	    pExaPixmap->fb_ptr = pPixData;
-	    pExaPixmap->fb_pitch = devKind;
-	    pExaPixmap->offscreen = TRUE;
+	/* Classic EXA:
+	 * - Framebuffer.
+	 * - Scratch pixmap with offscreen memory.
+	 */
+	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS) &&
+		pExaScr->info->memoryBase && pPixData) {
+	    if ((CARD8 *)pPixData >= pExaScr->info->memoryBase &&
+		((CARD8 *)pPixData - pExaScr->info->memoryBase) <
+				pExaScr->info->memorySize) {
+		pExaPixmap->fb_ptr = pPixData;
+		pExaPixmap->fb_pitch = devKind;
+		pExaPixmap->offscreen = TRUE;
+	    }
 	}
 
         if (width > 0 && height > 0 && bitsPerPixel > 0) {
