@@ -3635,12 +3635,12 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 		if (dev == thisDev)
 		    continue;
 		FreezeThaw(dev, TRUE);
-		if ((grabinfo->sync.state == FREEZE_BOTH_NEXT_EVENT) &&
+		if ((dev->deviceGrab.sync.state == FREEZE_BOTH_NEXT_EVENT) &&
 		    (CLIENT_BITS(grab->resource) ==
-		     CLIENT_BITS(grab->resource)))
-		    grabinfo->sync.state = FROZEN_NO_EVENT;
+		     CLIENT_BITS(dev->deviceGrab.sync.other->resource)))
+		    dev->deviceGrab.sync.state = FROZEN_NO_EVENT;
 		else
-		    grabinfo->sync.other = grab;
+                    dev->deviceGrab.sync.other = grab;
 	    }
 	    /* fall through */
 	case FREEZE_NEXT_EVENT:
