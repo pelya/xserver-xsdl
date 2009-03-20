@@ -1085,7 +1085,8 @@ PostSyntheticMotion(DeviceIntPtr pDev,
     init_event(pDev, &ev, time);
     ev.root_x = x;
     ev.root_y = y;
-    ev.type = time;
+    ev.type = ET_Motion;
+    ev.time = time;
 
     /* FIXME: MD/SD considerations? */
     (*pDev->public.processInputProc)((InternalEvent*)&ev, pDev);
