@@ -172,7 +172,6 @@ int *ConnectionTranslation = NULL;
 #define MAXSOCKS 500
 #undef MAXSELECT
 #define MAXSELECT 500
-#define MAXFD 500
 
 struct _ct_node {
     struct _ct_node *next;
