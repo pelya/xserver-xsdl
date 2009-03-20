@@ -1905,6 +1905,11 @@ ProcBell(ClientPtr client)
     REQUEST(xBellReq);
     REQUEST_SIZE_MATCH(xBellReq);
 
+    if (stuff->percent < -100 || stuff->percent > 100) {
+	client->errorValue = stuff->percent;
+	return BadValue;
+    }
+
     /* Seems like no keyboard actually has the BellProc set. Returning
      * BadDevice (previous code) will make apps crash badly. The man pages
      * doesn't say anything about a BadDevice being returned either.
@@ -1912,11 +1917,6 @@ ProcBell(ClientPtr client)
      */
     if (!keybd->kbdfeed->BellProc)
         return Success;
-
-    if (stuff->percent < -100 || stuff->percent > 100) {
-	client->errorValue = stuff->percent;
-	return BadValue;
-    }
 
     newpercent = (base * stuff->percent) / 100;
     if (stuff->percent < 0)
