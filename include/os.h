@@ -52,8 +52,6 @@ SOFTWARE.
 #include "misc.h"
 #include <stdarg.h>
 
-#define NullFID ((FID) 0)
-
 #define SCREEN_SAVER_ON   0
 #define SCREEN_SAVER_OFF  1
 #define SCREEN_SAVER_FORCER 2
@@ -66,7 +64,6 @@ SOFTWARE.
 #define MAX_BIG_REQUEST_SIZE 4194303
 #endif
 
-typedef pointer	FID;
 typedef struct _FontPathRec *FontPathPtr;
 typedef struct _NewClientRec *NewClientPtr;
 
