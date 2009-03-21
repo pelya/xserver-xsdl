@@ -968,12 +968,6 @@ acceleratePointerPredictable(
     if (dx || dy){
         /* reset non-visible state? */
         if (ProcessVelocityData2D(velocitydata, dx , dy, evtime)) {
-            /* if nv-reset: set to center of pixel.
-             * makes sense as long as there are no means of passing on
-             * sub-pixel values to apps(XI2?). If you remove it, make
-             * sure suitable rounding is applied below.
-             */
-            pDev->last.remainder[0] = pDev->last.remainder[1] = 0;
             soften = FALSE;
         }
 
