@@ -1505,6 +1505,8 @@ ProcChangeKeyboardMapping(ClientPtr client)
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
         if (tmp->isMaster || tmp->u.master != pDev)
             continue;
+        if (!tmp->key)
+            continue;
 
         rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
         if (rc != Success)
