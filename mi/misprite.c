@@ -422,23 +422,24 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
 
     SCREEN_PROLOGUE (pScreen, SourceValidate);
 
-    pScreenPriv = (miSpriteScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
-						      miSpriteScreenKey);
-
-    for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+    if (pDrawable->type == DRAWABLE_WINDOW)
     {
-        if (DevHasCursor(pDev))
-        {
-            pCursorInfo = MISPRITE(pDev);
-            if (pDrawable->type == DRAWABLE_WINDOW && pCursorInfo->isUp &&
-                    pCursorInfo->pScreen == pScreen &&
-                    ORG_OVERLAP(&pCursorInfo->saved, pDrawable->x, pDrawable->y,
-                        x, y, width, height))
-            {
-                SPRITE_DEBUG (("SourceValidate remove\n"));
-                miSpriteRemoveCursor (pDev, pScreen);
-            }
-        }
+	pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
+
+	for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+	{
+	    if (DevHasCursor(pDev))
+	    {
+		pCursorInfo = MISPRITE(pDev);
+		if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen &&
+		    ORG_OVERLAP(&pCursorInfo->saved, pDrawable->x, pDrawable->y,
+				x, y, width, height))
+		{
+		    SPRITE_DEBUG (("SourceValidate remove\n"));
+		    miSpriteRemoveCursor (pDev, pScreen);
+		}
+	    }
+	}
     }
 
     if (pScreen->SourceValidate)
