@@ -235,6 +235,9 @@ static int build_modmap_from_modkeymap(CARD8 *modmap, KeyCode *modkeymap,
         if (!modkeymap[i])
             continue;
 
+        if (modkeymap[i] >= MAP_LENGTH)
+            return BadValue;
+
         if (modmap[modkeymap[i]])
             return BadValue;
 
