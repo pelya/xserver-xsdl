@@ -302,9 +302,10 @@ xf86CursorSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCurs,
 
 
     if (pCurs == NullCursor) {	/* means we're supposed to remove the cursor */
-        if (ScreenPriv->SWCursor || pDev != inputInfo.pointer)
-            (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor,
-                                                  x, y);
+        if (ScreenPriv->SWCursor ||
+            !(pDev == inputInfo.pointer || !IsMaster(pDev) &&
+                GetMaster(pDev->u.master, MASTER_POINTER) == inputInfo.pointer))
+                (*ScreenPriv->spriteFuncs->SetCursor)(pDev, pScreen, NullCursor, x, y);
         else if (ScreenPriv->isUp) {
             xf86SetCursor(pScreen, NullCursor, x, y);
             ScreenPriv->isUp = FALSE;
