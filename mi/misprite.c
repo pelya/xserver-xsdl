@@ -56,8 +56,6 @@ in this Software without prior written authorization from The Open Group.
 #endif
 # include   "damage.h"
 
-
-
 #define SPRITE_DEBUG_ENABLE 0
 #if SPRITE_DEBUG_ENABLE
 #define SPRITE_DEBUG(x)	ErrorF x
@@ -65,29 +63,26 @@ in this Software without prior written authorization from The Open Group.
 #define SPRITE_DEBUG(x)
 #endif
 
-
 #define MISPRITE(dev) \
     ((DevHasCursor(dev)) ? \
        (miCursorInfoPtr)dixLookupPrivate(&dev->devPrivates, miSpriteDevPrivatesKey) : \
        (miCursorInfoPtr)dixLookupPrivate(&dev->u.master->devPrivates, miSpriteDevPrivatesKey))
 
-static int damageRegister = 0;
-
 static void
 miSpriteDisableDamage(ScreenPtr pScreen, miSpriteScreenPtr pScreenPriv)
 {
-    if (damageRegister) {
+    if (pScreenPriv->damageRegistered) {
 	DamageUnregister (&(pScreen->GetScreenPixmap(pScreen)->drawable),
 			  pScreenPriv->pDamage);
-	damageRegister = 0;
+	pScreenPriv->damageRegistered = 0;
     }
 }
 
 static void
 miSpriteEnableDamage(ScreenPtr pScreen, miSpriteScreenPtr pScreenPriv)
 {
-    if (!damageRegister) {
-	damageRegister = 1;
+    if (!pScreenPriv->damageRegistered) {
+	pScreenPriv->damageRegistered = 1;
 	DamageRegister (&(pScreen->GetScreenPixmap(pScreen)->drawable),
 			pScreenPriv->pDamage);
     }
@@ -269,6 +264,8 @@ miSpriteInitialize (ScreenPtr               pScreen,
     pScreenPriv->colors[MASK_COLOR].red = 0;
     pScreenPriv->colors[MASK_COLOR].green = 0;
     pScreenPriv->colors[MASK_COLOR].blue = 0;
+    pScreenPriv->damageRegistered = 0;
+
     dixSetPrivate(&pScreen->devPrivates, miSpriteScreenKey, pScreenPriv);
 
     pScreen->CloseScreen = miSpriteCloseScreen;
@@ -281,8 +278,6 @@ miSpriteInitialize (ScreenPtr               pScreen,
     pScreen->StoreColors = miSpriteStoreColors;
 
     pScreen->BlockHandler = miSpriteBlockHandler;
-
-    damageRegister = 0;
 
     return TRUE;
 }
