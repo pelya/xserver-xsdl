@@ -54,6 +54,7 @@
 
 extern int DeviceValuator;
 extern int DeviceMotionNotify;
+extern DevPrivateKey XTstDevicePrivateKey;
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -160,6 +161,7 @@ ProcXTestFakeInput(ClientPtr client)
     int i;
     int base = 0;
     int flags = 0;
+    DeviceIntPtr xtstdevice;
 
     nev = (stuff->length << 2) - sizeof(xReq);
     if ((nev % sizeof(xEvent)) || !nev)
@@ -268,6 +270,8 @@ ProcXTestFakeInput(ClientPtr client)
 
     } else
     {
+        DeviceIntPtr it;
+
         if (nev != 1)
             return BadLength;
         switch (type)
@@ -294,8 +298,14 @@ ProcXTestFakeInput(ClientPtr client)
                 return BadValue;
         }
 
-        if (dev->u.lastSlave)
-            dev = dev->u.lastSlave;
+        /* When faking core events through XTest, we always fake through the
+         * virtual test device.
+         */
+        for(it = inputInfo.devices; it ; it = it->next )
+            if( !it->isMaster && it->u.master == dev &&
+                    dixLookupPrivate(&it->devPrivates, XTstDevicePrivateKey ))
+                break;
+        dev= it;
     }
 
     /* If the event has a time set, wait for it to pass */
@@ -403,6 +413,7 @@ ProcXTestFakeInput(ClientPtr client)
     for (i = 0; i < nevents; i++)
         mieqProcessDeviceEvent(dev, (events+i)->event, NULL);
 
+    miPointerUpdateSprite(dev);
     return client->noClientException;
 }
 

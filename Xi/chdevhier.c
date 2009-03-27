@@ -52,6 +52,8 @@
 
 #include "chdevhier.h"
 
+extern DevPrivateKey XTstDevicePrivateKey;
+
 
 /***********************************************************************
  *
@@ -74,7 +76,7 @@ int SProcXChangeDeviceHierarchy(ClientPtr client)
 int
 ProcXChangeDeviceHierarchy(ClientPtr client)
 {
-    DeviceIntPtr ptr, keybd;
+    DeviceIntPtr ptr, keybd, xtstptr, xtstkeybd;
     DeviceIntRec dummyDev;
     xAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xChangeDeviceHierarchyReq);
@@ -118,14 +120,33 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     if (!c->sendCore)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
 
+		    /* Allocate virtual slave devices for xtest events */
+                    rc = AllocXtstDevice(client, name, &xtstptr, &xtstkeybd);
+                    if (rc != Success)
+                    {
+
+                        xfree(name);
+                        goto unwind;
+                    }
+
                     ActivateDevice(ptr);
                     ActivateDevice(keybd);
+                    ActivateDevice(xtstptr);
+                    ActivateDevice(xtstkeybd);
 
                     if (c->enable)
                     {
                         EnableDevice(ptr);
                         EnableDevice(keybd);
+                        EnableDevice(xtstptr);
+                        EnableDevice(xtstkeybd);
                     }
+
+                    /* Attach the XTest virtual devices to the newly
+                       created master device */
+                    AttachDevice(NULL, xtstptr, ptr);
+                    AttachDevice(NULL, xtstkeybd, keybd);
+
                     xfree(name);
                     nchanges++;
                 }
@@ -133,6 +154,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
             case CH_RemoveMasterDevice:
                 {
                     xRemoveMasterInfo* r = (xRemoveMasterInfo*)any;
+                    DeviceIntPtr xtstdevice;
 
                     if (r->returnMode != AttachToMaster &&
                             r->returnMode != Floating)
@@ -158,7 +180,17 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    /* disable keyboards first */
+                    for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
+                        if( !xtstdevice->isMaster && xtstdevice->u.master == ptr &&
+                            dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
+                            break;
+
+                    rc = dixLookupDevice(&xtstptr, xtstdevice->id, client,
+                                         DixDestroyAccess);
+                    if (rc != Success)
+                        goto unwind;
+
+                    /* find keyboards to destroy */
                     if (IsPointerDevice(ptr))
                     {
                         rc = dixLookupDevice(&keybd,
@@ -167,6 +199,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                              DixDestroyAccess);
                         if (rc != Success)
                             goto unwind;
+
                     }
                     else
                     {
@@ -177,8 +210,47 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                              DixDestroyAccess);
                         if (rc != Success)
                             goto unwind;
+
                     }
 
+                    /* handle xtst pointer / keyboard slave devices */
+                    if ( IsPointerDevice(xtstptr))
+                    {
+                        /* Search the matching keyboard */
+                        for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
+                            if( !xtstdevice->isMaster &&
+                                xtstdevice->u.master == keybd &&
+                                IsKeyboardDevice(xtstdevice) &&
+                                dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
+                                break;
+
+                        rc = dixLookupDevice(&xtstkeybd,
+                                             xtstdevice->id,
+                                             client,
+                                             DixDestroyAccess);
+
+                        if (rc != Success)
+                            goto unwind;
+                    }
+                    else
+                    {
+                        xtstkeybd = xtstptr;
+                        /* Search the matching pointer */
+                        for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
+                            if( !xtstdevice->isMaster &&
+                                xtstdevice->u.master == ptr &&
+                                IsPointerDevice(xtstdevice) &&
+                                dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey )
+                              )
+                                break;
+                        rc = dixLookupDevice(&xtstptr,
+                                             xtstdevice->id,
+                                             client,
+                                             DixDestroyAccess);
+
+                        if (rc != Success)
+                            goto unwind;
+                    }
 
                     /* Disabling sends the devices floating, reattach them if
                      * desired. */
@@ -228,9 +300,18 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     /* can't disable until we removed pairing */
                     keybd->spriteInfo->paired = NULL;
                     ptr->spriteInfo->paired = NULL;
+                    xtstptr->spriteInfo->paired = NULL;
+                    xtstkeybd->spriteInfo->paired = NULL;
+
+                    /* disable the remove the devices, xtst devices must be done first
+                       else the sprites they rely on will be destroyed  */
+                    DisableDevice(xtstptr);
+                    DisableDevice(xtstkeybd);
                     DisableDevice(keybd);
                     DisableDevice(ptr);
 
+                    RemoveDevice(xtstptr);
+                    RemoveDevice(xtstkeybd);
                     RemoveDevice(keybd);
                     RemoveDevice(ptr);
                     nchanges++;
@@ -238,6 +319,8 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 break;
             case CH_ChangeAttachment:
                 {
+                    DeviceIntPtr *xtstdevice;
+
                     xChangeAttachmentInfo* c = (xChangeAttachmentInfo*)any;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
@@ -246,6 +329,17 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                        goto unwind;
 
                     if (ptr->isMaster)
+                    {
+                        client->errorValue = c->deviceid;
+                        rc = BadDevice;
+                        goto unwind;
+                    }
+
+                    xtstdevice = dixLookupPrivate( &ptr->devPrivates,
+                                                   XTstDevicePrivateKey );
+
+                    /* Don't allow changes to Xtst Devices, these are fixed */
+                    if( xtstdevice )
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;

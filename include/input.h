@@ -481,6 +481,10 @@ extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
                               KeyCode **modkeymap, int *max_keys_per_mod);
 extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
                          int max_keys_per_mod);
+extern int AllocXtstDevice(ClientPtr client,
+                             char* name,
+                             DeviceIntPtr* ptr,
+                             DeviceIntPtr* keybd);
 
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(
