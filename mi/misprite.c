@@ -329,21 +329,22 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
 
     SCREEN_PROLOGUE (pScreen, GetImage);
 
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
-    for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+    if (pDrawable->type == DRAWABLE_WINDOW)
     {
-        if (DevHasCursor(pDev))
+        pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
+        for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
-             pCursorInfo = MISPRITE(pDev);
-             if (pDrawable->type == DRAWABLE_WINDOW &&
-                     pCursorInfo->isUp &&
-                     pCursorInfo->pScreen == pScreen &&
-                     ORG_OVERLAP(&pCursorInfo->saved,pDrawable->x,pDrawable->y,
-                         sx, sy, w, h))
-             {
-                 SPRITE_DEBUG (("GetImage remove\n"));
-                 miSpriteRemoveCursor (pDev, pScreen);
-             }
+            if (DevHasCursor(pDev))
+            {
+                 pCursorInfo = MISPRITE(pDev);
+                 if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen &&
+                      ORG_OVERLAP(&pCursorInfo->saved,pDrawable->x,pDrawable->y,
+                                  sx, sy, w, h))
+                 {
+                     SPRITE_DEBUG (("GetImage remove\n"));
+                     miSpriteRemoveCursor (pDev, pScreen);
+                 }
+            }
         }
     }
 
@@ -364,37 +365,38 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 
     SCREEN_PROLOGUE (pScreen, GetSpans);
 
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
-
-    for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+    if (pDrawable->type == DRAWABLE_WINDOW)
     {
-        if (DevHasCursor(pDev))
+        pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
+
+        for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
-            pCursorInfo = MISPRITE(pDev);
-
-            if (pDrawable->type == DRAWABLE_WINDOW &&
-                    pCursorInfo->isUp &&
-                    pCursorInfo->pScreen == pScreen)
+            if (DevHasCursor(pDev))
             {
-                DDXPointPtr    pts;
-                int    	       *widths;
-                int    	       nPts;
-                int    	       xorg,
-                               yorg;
+                pCursorInfo = MISPRITE(pDev);
 
-                xorg = pDrawable->x;
-                yorg = pDrawable->y;
-
-                for (pts = ppt, widths = pwidth, nPts = nspans;
-                        nPts--;
-                        pts++, widths++)
+                if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen)
                 {
-                    if (SPN_OVERLAP(&pCursorInfo->saved,pts->y+yorg,
-                                pts->x+xorg,*widths))
+                    DDXPointPtr    pts;
+                    int    	       *widths;
+                    int    	       nPts;
+                    int    	       xorg,
+                                   yorg;
+
+                    xorg = pDrawable->x;
+                    yorg = pDrawable->y;
+
+                    for (pts = ppt, widths = pwidth, nPts = nspans;
+                            nPts--;
+                            pts++, widths++)
                     {
-                        SPRITE_DEBUG (("GetSpans remove\n"));
-                        miSpriteRemoveCursor (pDev, pScreen);
-                        break;
+                        if (SPN_OVERLAP(&pCursorInfo->saved,pts->y+yorg,
+                                    pts->x+xorg,*widths))
+                        {
+                            SPRITE_DEBUG (("GetSpans remove\n"));
+                            miSpriteRemoveCursor (pDev, pScreen);
+                            break;
+                        }
                     }
                 }
             }
