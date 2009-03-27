@@ -111,8 +111,8 @@ miSpriteIsDown(miCursorInfoPtr pDevCursor)
 
 static int miSpriteScreenKeyIndex;
 static DevPrivateKey miSpriteScreenKey = &miSpriteScreenKeyIndex;
-static int mmiSpriteDevPrivatesKeyIndex;
-static DevPrivateKey miSpriteDevPrivatesKey = &mmiSpriteDevPrivatesKeyIndex;
+static int miSpriteDevPrivatesKeyIndex;
+static DevPrivateKey miSpriteDevPrivatesKey = &miSpriteDevPrivatesKeyIndex;
 
 static Bool	    miSpriteCloseScreen(int i, ScreenPtr pScreen);
 static void	    miSpriteGetImage(DrawablePtr pDrawable, int sx, int sy,
