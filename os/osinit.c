@@ -56,6 +56,9 @@ SOFTWARE.
 #include <X11/Xos.h>
 #include <signal.h>
 #include <errno.h>
+#ifdef HAVE_DLFCN_H
+# include <dlfcn.h>
+#endif
 
 #include "dixstruct.h"
 
@@ -113,6 +116,14 @@ OsSigHandler(int signo, siginfo_t *sip, void *unused)
 OsSigHandler(int signo)
 #endif
 {
+#ifdef RTLD_DI_SETSIGNAL
+  const char *dlerr = dlerror();
+
+  if (dlerr) {
+      LogMessage(X_ERROR, "Dynamic loader error: %s\n", dlerr);
+  }
+#endif /* RTLD_DI_SETSIGNAL */
+
   if (OsSigWrapper != NULL) {
       if (OsSigWrapper(signo) == 0) {
 	  /* ddx handled signal and wants us to continue */
@@ -179,6 +190,15 @@ OsInit(void)
 		       siglist[i], strerror(errno));
 	    }
 	}
+
+#ifdef RTLD_DI_SETSIGNAL
+	/* Tell runtime linker to send a signal we can catch instead of SIGKILL
+	 * for failures to load libraries/modules at runtime so we can clean up
+	 * after ourselves.
+	 */
+	int failure_signal = SIGQUIT;
+	dlinfo(RTLD_SELF, RTLD_DI_SETSIGNAL, &failure_signal);
+#endif
 
 #if !defined(__SCO__) && !defined(__CYGWIN__) && !defined(__UNIXWARE__)
 	fclose(stdin);
