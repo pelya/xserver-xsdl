@@ -57,7 +57,6 @@ libmi_la_SOURCES = 	\
 	mispans.h	\
 	misprite.c	\
 	misprite.h	\
-	mispritest.h	\
 	mistruct.h	\
 	mivaltree.c	\
 	mivalidate.h	\

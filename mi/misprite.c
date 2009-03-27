@@ -33,28 +33,107 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
-# include   <X11/X.h>
-# include   <X11/Xproto.h>
-# include   "misc.h"
-# include   "pixmapstr.h"
-# include   "input.h"
-# include   "mi.h"
-# include   "cursorstr.h"
-# include   <X11/fonts/font.h>
-# include   "scrnintstr.h"
-# include   "colormapst.h"
-# include   "windowstr.h"
-# include   "gcstruct.h"
-# include   "mipointer.h"
-# include   "mispritest.h"
-# include   "dixfontstr.h"
-# include   <X11/fonts/fontstruct.h>
-# include   "inputstr.h"
+#include   <X11/X.h>
+#include   <X11/Xproto.h>
+#include   "misc.h"
+#include   "pixmapstr.h"
+#include   "input.h"
+#include   "mi.h"
+#include   "cursorstr.h"
+#include   <X11/fonts/font.h>
+#include   "scrnintstr.h"
+#include   "colormapst.h"
+#include   "windowstr.h"
+#include   "gcstruct.h"
+#include   "mipointer.h"
+#include   "misprite.h"
+#include   "dixfontstr.h"
+#include   <X11/fonts/fontstruct.h>
+#include   "inputstr.h"
+#include   "damage.h"
 
-#ifdef RENDER
-# include   "mipict.h"
-#endif
-# include   "damage.h"
+typedef struct {
+    CursorPtr	    pCursor;
+    int		    x;			/* cursor hotspot */
+    int		    y;
+    BoxRec	    saved;		/* saved area from the screen */
+    Bool	    isUp;		/* cursor in frame buffer */
+    Bool	    shouldBeUp;		/* cursor should be displayed */
+    WindowPtr	    pCacheWin;		/* window the cursor last seen in */
+    Bool	    isInCacheWin;
+    Bool	    checkPixels;	/* check colormap collision */
+    ScreenPtr       pScreen;
+} miCursorInfoRec, *miCursorInfoPtr;
+
+/*
+ * per screen information
+ */
+
+typedef struct {
+    /* screen procedures */
+    CloseScreenProcPtr			CloseScreen;
+    GetImageProcPtr			GetImage;
+    GetSpansProcPtr			GetSpans;
+    SourceValidateProcPtr		SourceValidate;
+    
+    /* window procedures */
+    CopyWindowProcPtr			CopyWindow;
+    
+    /* colormap procedures */
+    InstallColormapProcPtr		InstallColormap;
+    StoreColorsProcPtr			StoreColors;
+    
+    /* os layer procedures */
+    ScreenBlockHandlerProcPtr		BlockHandler;
+    
+    /* device cursor procedures */
+    DeviceCursorInitializeProcPtr       DeviceCursorInitialize;
+    DeviceCursorCleanupProcPtr          DeviceCursorCleanup;
+
+    xColorItem	    colors[2];
+    ColormapPtr     pInstalledMap;
+    ColormapPtr     pColormap;
+    VisualPtr	    pVisual;
+    miSpriteCursorFuncPtr    funcs;
+    DamagePtr	    pDamage;		/* damage tracking structure */
+    Bool            damageRegistered;
+} miSpriteScreenRec, *miSpriteScreenPtr;
+
+#define SOURCE_COLOR	0
+#define MASK_COLOR	1
+
+/*
+ * Overlap BoxPtr and Box elements
+ */
+#define BOX_OVERLAP(pCbox,X1,Y1,X2,Y2) \
+ 	(((pCbox)->x1 <= (X2)) && ((X1) <= (pCbox)->x2) && \
+	 ((pCbox)->y1 <= (Y2)) && ((Y1) <= (pCbox)->y2))
+
+/*
+ * Overlap BoxPtr, origins, and rectangle
+ */
+#define ORG_OVERLAP(pCbox,xorg,yorg,x,y,w,h) \
+    BOX_OVERLAP((pCbox),(x)+(xorg),(y)+(yorg),(x)+(xorg)+(w),(y)+(yorg)+(h))
+
+/*
+ * Overlap BoxPtr, origins and RectPtr
+ */
+#define ORGRECT_OVERLAP(pCbox,xorg,yorg,pRect) \
+    ORG_OVERLAP((pCbox),(xorg),(yorg),(pRect)->x,(pRect)->y, \
+		(int)((pRect)->width), (int)((pRect)->height))
+/*
+ * Overlap BoxPtr and horizontal span
+ */
+#define SPN_OVERLAP(pCbox,y,x,w) BOX_OVERLAP((pCbox),(x),(y),(x)+(w),(y))
+
+#define LINE_SORT(x1,y1,x2,y2) \
+{ int _t; \
+  if (x1 > x2) { _t = x1; x1 = x2; x2 = _t; } \
+  if (y1 > y2) { _t = y1; y1 = y2; y2 = _t; } }
+
+#define LINE_OVERLAP(pCbox,x1,y1,x2,y2,lw2) \
+    BOX_OVERLAP((pCbox), (x1)-(lw2), (y1)-(lw2), (x2)+(lw2), (y2)+(lw2))
+
 
 #define SPRITE_DEBUG_ENABLE 0
 #if SPRITE_DEBUG_ENABLE
