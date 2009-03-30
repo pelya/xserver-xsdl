@@ -89,6 +89,7 @@ typedef struct _Window *SaveSetElt;
 #define SaveSetAssignMap(ss,m)
 #endif
 
+/* The unused_ members are ABI spacing.  Please reuse them. */
 typedef struct _Client {
     int         index;
     Mask        clientAsMask;
@@ -104,7 +105,7 @@ typedef struct _Client {
 					 * killed */
     SaveSetElt	*saveSet;
     int         numSaved;
-    pointer     screenPrivate[MAXSCREENS];
+    void	*unused_screenPrivate[16];
     int         (**requestVector) (
 		ClientPtr /* pClient */);
     CARD32	req_len;		/* length of current request */
@@ -118,15 +119,9 @@ typedef struct _Client {
     unsigned short	vMajor,vMinor;
     KeyCode		minKC,maxKC;
 
-#ifdef DEBUG
-    unsigned char requestLog[MAX_REQUEST_LOG];
-    int         requestLogIndex;
-#endif
     unsigned long replyBytesRemaining;
-    void *appgroup; /* Can't remove, ABI */
-    struct _FontResolution * (*fontResFunc) (    /* no need for font.h */
-		ClientPtr	/* pClient */,
-		int *		/* num */);
+    void *unused_appgroup;
+    void *unused_fontResFunc;
     int	    smart_priority;
     long    smart_start_tick;
     long    smart_stop_tick;
