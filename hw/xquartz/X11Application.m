@@ -961,26 +961,34 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     DeviceIntPtr pDev;
     int modifierFlags;
 
+    static NSPoint lastpt;
+
     /* convert location to be relative to top-left of primary display */
-    location = [e locationInWindow];
     window = [e window];
-    screen = [[[NSScreen screens] objectAtIndex:0] frame];
 
     if (window != nil)	{
         NSRect frame = [window frame];
-        pointer_x = location.x + frame.origin.x;
-        pointer_y = (screen.origin.y + screen.size.height)
-                    - (location.y + frame.origin.y);
+        location = [e locationInWindow];
+        location.x += frame.origin.x;
+        location.y += frame.origin.y;
+        lastpt = location;
     } else {
-        pointer_x = location.x;
-        pointer_y = (screen.origin.y + screen.size.height) - location.y;
+        location.x = lastpt.x + [e deltaX];
+        location.y = lastpt.y - [e deltaY];
+        lastpt = [NSEvent mouseLocation];
     }
-
+    
+    /* Convert coordinate system */
+    screen = [[[NSScreen screens] objectAtIndex:0] frame];
+    location.y = (screen.origin.y + screen.size.height) - location.y;
+    
     /* Setup our valuators.  These will range from 0 to 1 */
     pressure = 0;
     tilt_x = 0;
     tilt_y = 0;
-    
+    pointer_x = location.x;
+    pointer_y = location.y;
+
     modifierFlags = [e modifierFlags];
     
 #ifdef NX_DEVICELCMDKEYMASK
