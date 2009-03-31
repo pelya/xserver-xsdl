@@ -184,7 +184,6 @@ lnxAPMOpen(void)
 	xf86MsgVerb(X_INFO,3,"Open APM successful\n");
 	return lnxCloseAPM;
     }
-    xf86MsgVerb(X_INFO,3,"No APM support in BIOS or kernel\n");
     return NULL;
 }
 
