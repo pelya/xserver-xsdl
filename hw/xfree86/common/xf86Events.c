@@ -771,23 +771,6 @@ xf86EnableVTSwitch(Bool new)
 }
 
 void
-xf86ReloadInputDevs(int sig)
-{
-  InputInfoPtr pInfo;
-
-  signal(sig, (void(*)(int))xf86ReloadInputDevs);
-
-  pInfo = xf86InputDevs;
-  while (pInfo) {
-    DisableDevice(pInfo->dev);
-    EnableDevice(pInfo->dev);
-    pInfo = pInfo->next;
-  }
-
-  return;
-}
-
-void
 DDXRingBell(int volume, int pitch, int duration) {
     xf86OSRingBell(volume, pitch, duration);
 }
