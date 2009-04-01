@@ -1067,7 +1067,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                 pDev = darwinTabletCurrent;
             }
 
-            if(!quartzServerVisible) {
+            if(!quartzServerVisible && noTestExtensions) {
 #if 0
 /* Seems this has somehow triggered 100% CPU usage while X11.app is in the
  * background on some obscure HW configurations.
