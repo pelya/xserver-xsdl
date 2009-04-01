@@ -98,7 +98,7 @@ InitVelocityData(DeviceVelocityPtr s)
     s->min_acceleration = 1.0; /* don't decelerate */
     s->max_rel_diff = 0.2;
     s->max_diff = 1.0;
-    s->initial_range = 1;
+    s->initial_range = 2;
     s->average_accel = TRUE;
     SetAccelerationProfile(s, AccelProfileClassic);
     InitTrackers(s, 16);
@@ -445,8 +445,8 @@ FeedTrackers(DeviceVelocityPtr s, int dx, int dy, int cur_t)
 	s->tracker[n].dy += dy;
     }
     n = (s->cur_tracker + 1) % s->num_tracker;
-    s->tracker[n].dx = dx;
-    s->tracker[n].dy = dy;
+    s->tracker[n].dx = 0;
+    s->tracker[n].dy = 0;
     s->tracker[n].time = cur_t;
     s->tracker[n].dir = GetDirection(dx, dy);
     DebugAccelF("(dix prtacc) motion [dx: %i dy: %i dir:%i diff: %i]\n",
@@ -465,7 +465,7 @@ CalcTracker(DeviceVelocityPtr s, int offset, int cur_t){
     int index = TRACKER_INDEX(s, offset);
     float dist = sqrt(  s->tracker[index].dx * s->tracker[index].dx
                       + s->tracker[index].dy * s->tracker[index].dy);
-    int dtime = cur_t - s->tracker[TRACKER_INDEX(s, offset+1)].time;
+    int dtime = cur_t - s->tracker[index].time;
     if(dtime > 0)
 	return (dist / dtime);
     else
@@ -476,20 +476,22 @@ CalcTracker(DeviceVelocityPtr s, int offset, int cur_t){
  * (in time) tracker which isn't too old, beyond a linear partition,
  * or simply too much off initial velocity.
  *
- * min_t should be (now - ~100-600 ms). May return 0.
+ * May return 0.
  */
 static float
-QueryTrackers(DeviceVelocityPtr s, int min_t, int cur_t){
-    int n, offset, dir = 255, i = -1;
+QueryTrackers(DeviceVelocityPtr s, int cur_t){
+    int n, offset, dir = 255, i = -1, age_ms;
     /* initial velocity: a low-offset, valid velocity */
     float iveloc = 0, res = 0, tmp, vdiff;
     float vfac =  s->corr_mul * s->const_acceleration; /* premultiply */
     /* loop from current to older data */
-    for(offset = 0; offset < s->num_tracker-1; offset++){
+    for(offset = 1; offset < s->num_tracker; offset++){
 	n = TRACKER_INDEX(s, offset);
 
-	/* bail out if data is too old */
-	if(s->tracker[TRACKER_INDEX(s, offset+1)].time < min_t){
+	age_ms = cur_t - s->tracker[n].time;
+
+	/* bail out if data is too old and protect from overrun */
+	if (age_ms >= s->reset_time || age_ms < 0) {
 	    DebugAccelF("(dix prtacc) query: tracker too old\n");
 	    break;
 	}
@@ -566,7 +568,7 @@ ProcessVelocityData2D(
 
     FeedTrackers(s, dx, dy, time);
 
-    velocity = QueryTrackers(s, time - s->reset_time, time);
+    velocity = QueryTrackers(s, time);
 
     s->velocity = velocity;
     return velocity == 0;
