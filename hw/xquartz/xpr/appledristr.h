@@ -157,8 +157,11 @@ typedef struct _AppleDRINotify {
 	CARD32	pad1 B32;
 	CARD32	arg B32;
 	CARD32	pad3 B32;
+	CARD32	pad4 B32;
+	CARD32	pad5 B32;
+	CARD32	pad6 B32;
 } xAppleDRINotifyEvent;
-#define sz_xAppleDRINotifyEvent	20
+#define sz_xAppleDRINotifyEvent	32
 
 
 typedef struct {
