@@ -1106,7 +1106,11 @@ DoCreateGLXPixmap(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *config
     int err;
 
     err = dixLookupDrawable(&pDraw, drawableId, client, 0, DixAddAccess);
-    if (err != Success || pDraw->type != DRAWABLE_PIXMAP) {
+    if (err != Success) {
+	client->errorValue = drawableId;
+	return err;
+    }
+    if (pDraw->type != DRAWABLE_PIXMAP) {
 	client->errorValue = drawableId;
 	return BadPixmap;
     }
