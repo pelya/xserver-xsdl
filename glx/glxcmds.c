@@ -138,6 +138,22 @@ validGlxFBConfigForWindow(ClientPtr client, __GLXconfig *config,
     return TRUE;
 }
 
+static int
+validGlxContext(ClientPtr client, XID id, int access_mode,
+		__GLXcontext **context, int *err)
+{
+    *err = dixLookupResourceByType((pointer *) context, id,
+				   __glXContextRes, client, access_mode);
+    if (err != Success) {
+	client->errorValue = id;
+	if (*err == BadValue)
+	    *err = __glXError(GLXBadContext);
+	return FALSE;
+    }
+
+    return TRUE;
+}
+
 void
 __glXContextDestroy(__GLXcontext *context)
 {
@@ -189,7 +205,8 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
 {
     ClientPtr client = cl->client;
     __GLXcontext *glxc, *shareglxc;
-
+    int err;
+    
     LEGAL_NEW_RESOURCE(gcId, client);
 
     /*
@@ -204,11 +221,10 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     if (shareList == None) {
 	shareglxc = 0;
     } else {
-	shareglxc = (__GLXcontext *) LookupIDByType(shareList, __glXContextRes);
-	if (!shareglxc) {
-	    client->errorValue = shareList;
-	    return __glXError(GLXBadContext);
-	}
+	if (!validGlxContext(client, shareList, DixReadAccess,
+			     &shareglxc, &err))
+	    return err;
+
 	if (shareglxc->isDirect) {
 	    /*
 	    ** NOTE: no support for sharing display lists between direct
@@ -321,25 +337,16 @@ int __glXDisp_CreateContextWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
 }
 int __glXDisp_DestroyContext(__GLXclientState *cl, GLbyte *pc)
 {
-    ClientPtr client = cl->client;
     xGLXDestroyContextReq *req = (xGLXDestroyContextReq *) pc;
-    GLXContextID gcId = req->context;
     __GLXcontext *glxc;
-    
-    glxc = (__GLXcontext *) LookupIDByType(gcId, __glXContextRes);
-    if (glxc) {
-	/*
-	** Just free the resource; don't actually destroy the context,
-	** because it might be in use.  The
-	** destroy method will be called by the resource destruction routine
-	** if necessary.
-	*/
-	FreeResourceByType(gcId, __glXContextRes, FALSE);
-	return Success;
-    } else {
-	client->errorValue = gcId;
-	return __glXError(GLXBadContext);
-    }
+    int err;
+
+    if (!validGlxContext(cl->client, req->context, DixDestroyAccess,
+			 &glxc, &err))
+	    return err;
+
+    FreeResourceByType(req->context, __glXContextRes, FALSE);
+    return Success;
 }
 
 /*****************************************************************************/
@@ -528,7 +535,7 @@ DoMakeCurrent(__GLXclientState *cl,
     __GLXcontext *glxc, *prevglxc;
     __GLXdrawable *drawPriv = NULL;
     __GLXdrawable *readPriv = NULL;
-    GLint error;
+    int error;
     GLuint  mask;
 
     /*
@@ -569,11 +576,8 @@ DoMakeCurrent(__GLXclientState *cl,
     if (contextId != None) {
 	int  status;
 
-	glxc = (__GLXcontext *) LookupIDByType(contextId, __glXContextRes);
-	if (!glxc) {
-	    client->errorValue = contextId;
-	    return __glXError(GLXBadContext);
-	}
+	if (!validGlxContext(client, contextId, DixUseAccess, &glxc, &error))
+	    return error;
 	if ((glxc != prevglxc) && glxc->isCurrent) {
 	    /* Context is current to somebody else */
 	    return BadAccess;
@@ -702,15 +706,10 @@ int __glXDisp_IsDirect(__GLXclientState *cl, GLbyte *pc)
     xGLXIsDirectReq *req = (xGLXIsDirectReq *) pc;
     xGLXIsDirectReply reply;
     __GLXcontext *glxc;
+    int err;
 
-    /*
-    ** Find the GL context.
-    */
-    glxc = (__GLXcontext *) LookupIDByType(req->context, __glXContextRes);
-    if (!glxc) {
-	client->errorValue = req->context;
-	return __glXError(GLXBadContext);
-    }
+    if (!validGlxContext(cl->client, req->context, DixReadAccess, &glxc, &err))
+	return err;
 
     reply.isDirect = glxc->isDirect;
     reply.length = 0;
@@ -814,19 +813,10 @@ int __glXDisp_CopyContext(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext *src, *dst;
     int error;
 
-    /*
-    ** Check that each context exists.
-    */
-    src = (__GLXcontext *) LookupIDByType(source, __glXContextRes);
-    if (!src) {
-	client->errorValue = source;
-	return __glXError(GLXBadContext);
-    }
-    dst = (__GLXcontext *) LookupIDByType(dest, __glXContextRes);
-    if (!dst) {
-	client->errorValue = dest;
-	return __glXError(GLXBadContext);
-    }
+    if (!validGlxContext(cl->client, source, DixReadAccess, &src, &error))
+	return error;
+    if (!validGlxContext(cl->client, dest, DixWriteAccess, &dst, &error))
+	return error;
 
     /*
     ** They must be in the same address space, and same screen.
@@ -1475,12 +1465,10 @@ DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
     int nProps;
     int *sendBuf, *pSendBuf;
     int nReplyBytes;
+    int err;
 
-    ctx = (__GLXcontext *) LookupIDByType(gcId, __glXContextRes);
-    if (!ctx) {
-	client->errorValue = gcId;
-	return __glXError(GLXBadContext);
-    }
+    if (!validGlxContext(cl->client, gcId, DixReadAccess, &ctx, &err))
+	return err;
 
     nProps = 3;
     reply.length = nProps << 1;
