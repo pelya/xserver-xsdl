@@ -198,25 +198,4 @@ DPMSSupported(void)
     return FALSE;
 }
 
-
-/*
- * DPMSGet --
- *	Device dependent DPMS mode getting hook.  This returns the current
- *	DPMS mode, or -1 if DPMS is not supported.
- *
- *	This should hook in to the appropriate driver-level function, which
- *	will be added to the ScrnInfoRec.
- *
- *	NOTES:
- *	 1. the calling interface should be changed to specify which
- *	    screen to check.
- *	 2. It isn't clear that this function is ever used or what it should
- *	    return.
- */
-int
-DPMSGet(int *level)
-{
-    return DPMSPowerLevel;
-}
-
 #endif /* DPMSExtension */

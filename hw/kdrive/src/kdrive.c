@@ -1371,12 +1371,6 @@ DPMSSet(ClientPtr client, int level)
 {
 }
 
-int
-DPMSGet (int *level)
-{
-    return -1;
-}
-
 Bool
 DPMSSupported (void)
 {
