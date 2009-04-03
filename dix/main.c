@@ -269,10 +269,10 @@ int main(int argc, char *argv[], char *envp[])
 	ScreenSaverBlanking = defaultScreenSaverBlanking;
 	ScreenSaverAllowExposures = defaultScreenSaverAllowExposures;
 #ifdef DPMSExtension
-	DPMSStandbyTime = defaultDPMSStandbyTime;
-	DPMSSuspendTime = defaultDPMSSuspendTime;
-	DPMSOffTime = defaultDPMSOffTime;
-	DPMSEnabled = defaultDPMSEnabled;
+	DPMSStandbyTime = DEFAULT_SCREEN_SAVER_TIME;
+	DPMSSuspendTime = DEFAULT_SCREEN_SAVER_TIME;
+	DPMSOffTime = DEFAULT_SCREEN_SAVER_TIME;
+	DPMSEnabled = TRUE;
 	DPMSPowerLevel = 0;
 #endif
 	InitBlockAndWakeupHandlers();

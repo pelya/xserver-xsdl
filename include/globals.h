@@ -28,14 +28,10 @@ extern _X_EXPORT DDXPointRec dixScreenOrigins[MAXSCREENS];
 extern _X_EXPORT char *ConnectionInfo;
 
 #ifdef DPMSExtension
-extern CARD32 defaultDPMSStandbyTime;
-extern CARD32 defaultDPMSSuspendTime;
-extern CARD32 defaultDPMSOffTime;
 extern CARD32 DPMSStandbyTime;
 extern CARD32 DPMSSuspendTime;
 extern CARD32 DPMSOffTime;
 extern CARD16 DPMSPowerLevel;
-extern Bool defaultDPMSEnabled;
 extern Bool DPMSEnabled;
 extern Bool DPMSDisabledSwitch;
 extern Bool DPMSCapableFlag;

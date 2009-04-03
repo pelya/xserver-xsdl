@@ -83,7 +83,7 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
     }
     else {
 	enabled_from = X_DEFAULT;
-	DPMSEnabled = defaultDPMSEnabled;
+	DPMSEnabled = TRUE;
     }
     if (DPMSEnabled)
 	xf86DrvMsg(pScreen->myNum, enabled_from, "DPMS enabled\n");

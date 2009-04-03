@@ -986,21 +986,21 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_STANDBYTIME, &i);
     if ((i >= 0) && (i < MAX_TIME_IN_MIN))
-	DPMSStandbyTime = defaultDPMSStandbyTime = i * MILLI_PER_MIN;
+	DPMSStandbyTime = i * MILLI_PER_MIN;
     else if (i != -1)
 	xf86ConfigError("StandbyTime value %d outside legal range of 0 - %d minutes",
 			i, MAX_TIME_IN_MIN);
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_SUSPENDTIME, &i);
     if ((i >= 0) && (i < MAX_TIME_IN_MIN))
-	DPMSSuspendTime = defaultDPMSSuspendTime = i * MILLI_PER_MIN;
+	DPMSSuspendTime = i * MILLI_PER_MIN;
     else if (i != -1)
 	xf86ConfigError("SuspendTime value %d outside legal range of 0 - %d minutes",
 			i, MAX_TIME_IN_MIN);
     i = -1;
     xf86GetOptValInteger(FlagOptions, FLAG_DPMS_OFFTIME, &i);
     if ((i >= 0) && (i < MAX_TIME_IN_MIN))
-	DPMSOffTime = defaultDPMSOffTime = i * MILLI_PER_MIN;
+	DPMSOffTime = i * MILLI_PER_MIN;
     else if (i != -1)
 	xf86ConfigError("OffTime value %d outside legal range of 0 - %d minutes",
 			i, MAX_TIME_IN_MIN);
