@@ -737,10 +737,10 @@ LinuxKeyboardInit (KdKeyboardInfo *ki)
 
     if (ki->path)
         xfree(ki->path);
-    ki->path = KdSaveString("console");
+    ki->path = strdup("console");
     if (ki->name)
         xfree(ki->name);
-    ki->name = KdSaveString("Linux console keyboard");
+    ki->name = strdup("Linux console keyboard");
 
     readKernelMapping (ki);
 

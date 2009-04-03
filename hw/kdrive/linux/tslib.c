@@ -169,7 +169,7 @@ TslibInit (KdPointerInfo *pi)
     /* hacktastic */
     private->phys_screen = 0;
     pi->nAxes = 3;
-    pi->name = KdSaveString("Touchscreen");
+    pi->name = strdup("Touchscreen");
     pi->inputClass = KD_TOUCHSCREEN;
 
     return Success;

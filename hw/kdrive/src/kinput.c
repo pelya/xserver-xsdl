@@ -870,9 +870,9 @@ KdNewKeyboard (void)
     ki->bellDuration = 200;
     ki->next = NULL;
     ki->options = NULL;
-    ki->xkbRules = KdSaveString("base");
-    ki->xkbModel = KdSaveString("pc105");
-    ki->xkbLayout = KdSaveString("us");
+    ki->xkbRules = strdup("base");
+    ki->xkbModel = strdup("pc105");
+    ki->xkbLayout = strdup("us");
     ki->xkbVariant = NULL;
     ki->xkbOptions = NULL;
 
@@ -1065,7 +1065,7 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
         else if (strcasecmp(option->key, "XkbOptions") == 0)
             ki->xkbOptions = option->value;
         else if (!strcasecmp (option->key, "device"))
-            ki->path = KdSaveString(option->value);
+            ki->path = strdup(option->value);
         else
            ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
@@ -1161,7 +1161,7 @@ KdParsePointerOptions (KdPointerInfo *pi)
         else if (!strcmp (option->key, "rawcoord"))
             pi->transformCoordinates = FALSE;
         else if (!strcasecmp (option->key, "device"))
-            pi->path = KdSaveString(option->value);
+            pi->path = strdup(option->value);
         else
             ErrorF("Pointer option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
@@ -2280,9 +2280,9 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
     for (option = options; option; option = option->next) {
         if (strcmp(option->key, "device") == 0) {
             if (pi && option->value)
-                pi->path = KdSaveString(option->value);
+                pi->path = strdup(option->value);
             else if (ki && option->value)
-                ki->path = KdSaveString(option->value);
+                ki->path = strdup(option->value);
         }
         else if (strcmp(option->key, "driver") == 0) {
             if (pi) {
