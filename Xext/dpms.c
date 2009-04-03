@@ -26,13 +26,6 @@ Equipment Corporation.
 
 ******************************************************************/
 
-/*
- * HISTORY
- *
- * @(#)RCSfile: dpms.c,v Revision: 1.1.4.5  (DEC) Date: 1996/03/04 15:27:00
- */
-
-
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -49,33 +42,6 @@ Equipment Corporation.
 #include <X11/extensions/dpmsstr.h>
 #include "dpmsproc.h"
 #include "modinit.h"
-
-static DISPATCH_PROC(ProcDPMSDispatch);
-static DISPATCH_PROC(SProcDPMSDispatch);
-static DISPATCH_PROC(ProcDPMSGetVersion);
-static DISPATCH_PROC(SProcDPMSGetVersion);
-static DISPATCH_PROC(ProcDPMSGetTimeouts);
-static DISPATCH_PROC(SProcDPMSGetTimeouts);
-static DISPATCH_PROC(ProcDPMSSetTimeouts);
-static DISPATCH_PROC(SProcDPMSSetTimeouts);
-static DISPATCH_PROC(ProcDPMSEnable);
-static DISPATCH_PROC(SProcDPMSEnable);
-static DISPATCH_PROC(ProcDPMSDisable);
-static DISPATCH_PROC(SProcDPMSDisable);
-static DISPATCH_PROC(ProcDPMSForceLevel);
-static DISPATCH_PROC(SProcDPMSForceLevel);
-static DISPATCH_PROC(ProcDPMSInfo);
-static DISPATCH_PROC(SProcDPMSInfo);
-static DISPATCH_PROC(ProcDPMSCapable);
-static DISPATCH_PROC(SProcDPMSCapable);
-
-void
-DPMSExtensionInit(INITARGS)
-{
-    AddExtension(DPMSExtensionName, 0, 0,
-		 ProcDPMSDispatch, SProcDPMSDispatch,
-		 NULL, StandardMinorOpcode);
-}
 
 static int
 ProcDPMSGetVersion(ClientPtr client)
@@ -413,4 +379,12 @@ SProcDPMSDispatch (ClientPtr client)
     default:
 	return BadRequest;
     }
+}
+
+void
+DPMSExtensionInit(INITARGS)
+{
+    AddExtension(DPMSExtensionName, 0, 0,
+		 ProcDPMSDispatch, SProcDPMSDispatch,
+		 NULL, StandardMinorOpcode);
 }
