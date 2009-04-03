@@ -64,8 +64,6 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 
     DPMSKey = &DPMSKeyIndex;
 
-    if (DPMSDisabledSwitch)
-	DPMSEnabled = FALSE;
     if (!dixSetPrivate(&pScreen->devPrivates, DPMSKey,
 		       xcalloc(sizeof(DPMSRec), 1)))
 	return FALSE;
@@ -74,9 +72,9 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
     pScrn->DPMSSet = set;
     pDPMS->Flags = flags;
     DPMSOpt = xf86FindOption(pScrn->options, "dpms");
-    if (DPMSEnabledSwitch || DPMSDisabledSwitch) {
+    if (DPMSDisabledSwitch) {
 	enabled_from = X_CMDLINE;
-	DPMSEnabled = !DPMSDisabledSwitch && DPMSEnabledSwitch;
+	DPMSEnabled = FALSE;
     }
     else if (DPMSOpt) {
 	enabled_from = X_CONFIG;

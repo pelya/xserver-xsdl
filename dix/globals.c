@@ -100,8 +100,7 @@ CARD32 defaultDPMSSuspendTime = DEFAULT_SCREEN_SAVER_TIME;
 CARD32 defaultDPMSOffTime = DEFAULT_SCREEN_SAVER_TIME;
 CARD16 DPMSPowerLevel = 0;
 Bool defaultDPMSEnabled = TRUE;
-Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
-Bool DPMSDisabledSwitch = FALSE; /* line switch states */
+Bool DPMSDisabledSwitch = FALSE;
 Bool DPMSCapableFlag = FALSE;
 CARD32 DPMSStandbyTime;
 CARD32 DPMSSuspendTime;
