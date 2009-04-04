@@ -113,7 +113,7 @@ endif
 # DPMS extension
 DPMS_SRCS = dpms.c dpmsproc.h
 if DPMSExtension
-BUILTIN_SRCS += $(DPMS_SRCS)
+MODULE_SRCS += $(DPMS_SRCS)
 endif
 
 # Now take all of the above, mix well, bake for 10 minutes and get libXext*.la
