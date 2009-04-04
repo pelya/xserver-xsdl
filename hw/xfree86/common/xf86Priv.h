@@ -108,9 +108,6 @@ extern _X_EXPORT  RootWinPropPtr *xf86RegisteredPropertiesTable;
 #define DEFAULT_DPI		96
 #endif
 
-#define DEFAULT_UNRESOLVED	TRUE
-#define DEFAULT_BEST_REFRESH	FALSE
-
 /* Function Prototypes */
 #ifndef _NO_XF86_PROTOTYPES
 
