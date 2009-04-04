@@ -28,13 +28,13 @@ extern _X_EXPORT DDXPointRec dixScreenOrigins[MAXSCREENS];
 extern _X_EXPORT char *ConnectionInfo;
 
 #ifdef DPMSExtension
-extern CARD32 DPMSStandbyTime;
-extern CARD32 DPMSSuspendTime;
-extern CARD32 DPMSOffTime;
-extern CARD16 DPMSPowerLevel;
-extern Bool DPMSEnabled;
-extern Bool DPMSDisabledSwitch;
-extern Bool DPMSCapableFlag;
+extern _X_EXPORT CARD32 DPMSStandbyTime;
+extern _X_EXPORT CARD32 DPMSSuspendTime;
+extern _X_EXPORT CARD32 DPMSOffTime;
+extern _X_EXPORT CARD16 DPMSPowerLevel;
+extern _X_EXPORT Bool DPMSEnabled;
+extern _X_EXPORT Bool DPMSDisabledSwitch;
+extern _X_EXPORT Bool DPMSCapableFlag;
 #endif
 
 #ifdef PANORAMIX
