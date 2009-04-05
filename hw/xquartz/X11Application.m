@@ -80,6 +80,11 @@ static KeyboardLayoutRef last_key_layout;
 
 extern int darwinFakeButtons;
 
+/* Store the mouse location while in the background, and update X11's pointer
+ * location when we become the foreground application
+ */
+static NSPoint bgMouseLocation;
+
 X11Application *X11App;
 
 CFStringRef app_prefs_domain_cfstr = NULL;
@@ -188,6 +193,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
+        DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
         DarwinSendDDXEvent(kXquartzActivate, 0);
 
         if (!_x_active) {
@@ -954,10 +960,10 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 
 - (void) sendX11NSEvent:(NSEvent *)e {
     NSRect screen;
-    NSPoint location;
+    NSPoint location, tilt;
     NSWindow *window;
     int ev_button, ev_type;
-    float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
+    float pressure;
     DeviceIntPtr pDev;
     int modifierFlags;
 
@@ -984,10 +990,8 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     
     /* Setup our valuators.  These will range from 0 to 1 */
     pressure = 0;
-    tilt_x = 0;
-    tilt_y = 0;
-    pointer_x = location.x;
-    pointer_y = location.y;
+    tilt.x = 0.0;
+    tilt.y = 0.0;
 
     modifierFlags = [e modifierFlags];
     
@@ -1055,14 +1059,13 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                 pDev = darwinTabletCurrent;                
                  */
 
-                DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
-                                          pointer_x, pointer_y);
+                DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
+                                          location.x, location.y);
             }
 
 			if ([e type] == NSTabletPoint || [e subtype] == NSTabletPointEventSubtype) {
                 pressure = [e pressure];
-                tilt_x   = [e tilt].x;
-                tilt_y   = [e tilt].y;
+                tilt     = [e tilt];
                 
                 pDev = darwinTabletCurrent;
             }
@@ -1076,23 +1079,29 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 //#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
                 xp_window_id wid;
+                xp_error e;
 
                 /* Sigh. Need to check that we're really over one of
                  * our windows. (We need to receive pointer events while
                  * not in the foreground, but we don't want to receive them
                  * when another window is over us or we might show a tooltip)
                  */
-                
+
                 wid = 0;
-                
-                if (xp_find_window(pointer_x, pointer_y, 0, &wid) == XP_Success &&
-                    wid == 0)
+                e = xp_find_window(location.x, location.y, 0, &wid);
+
+                if (e == XP_Success && wid == 0) {
+                    bgMouseLocation = location;
+                    return;
+                }
+#else
+                bgMouseLocation = location;
+                return;
 #endif
-                    return;        
             }
             
-            DarwinSendPointerEvents(pDev, ev_type, ev_button, pointer_x, pointer_y,
-                                    pressure, tilt_x, tilt_y);
+            DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x, location.y,
+                                    pressure, tilt.x, tilt.y);
             
             break;
             
@@ -1111,13 +1120,13 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                     break;
             }
             
-			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
-                                      pointer_x, pointer_y);
+			DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
+                                      location.x, location.y);
             break;
             
 		case NSScrollWheel:
-			DarwinSendScrollEvents([e deltaX], [e deltaY], pointer_x, pointer_y,
-                                   pressure, tilt_x, tilt_y);
+			DarwinSendScrollEvents([e deltaX], [e deltaY], location.x, location.y,
+                                   pressure, tilt.x, tilt.y);
             break;
             
         case NSKeyDown: case NSKeyUp:
