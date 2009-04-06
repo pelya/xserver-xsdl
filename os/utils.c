@@ -400,8 +400,7 @@ UnlockServer(void)
 
 /* Force connections to close on SIGHUP from init */
 
-/*ARGSUSED*/
-SIGVAL
+void
 AutoResetServer (int sig)
 {
     int olderrno = errno;
@@ -413,8 +412,7 @@ AutoResetServer (int sig)
 
 /* Force connections to close and then exit on SIGTERM, SIGINT */
 
-/*ARGSUSED*/
-SIGVAL
+void
 GiveUp(int sig)
 {
     int olderrno = errno;
