@@ -186,15 +186,15 @@ xf86parsePointerSection (void)
 					Error (ZAXISMAPPING_MSG, NULL);
 				s1 = xf86uLongToString(val.num);
 				if (xf86getSubToken (&(ptr->inp_comment)) != NUMBER || val.num < 0) {
-					xf86conffree(s1);
+					free(s1);
 					Error (ZAXISMAPPING_MSG, NULL);
 				}
 				s2 = xf86uLongToString(val.num);
 				l = strlen(s1) + 1 + strlen(s2) + 1;
-				s = xf86confmalloc(l);
+				s = malloc(l);
 				sprintf(s, "%s %s", s1, s2);
-				xf86conffree(s1);
-				xf86conffree(s2);
+				free(s1);
+				free(s2);
 				break;
 			case XAXIS:
 				s = strdup("x");

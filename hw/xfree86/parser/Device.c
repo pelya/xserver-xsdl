@@ -353,7 +353,7 @@ xf86freeDeviceList (XF86ConfDevicePtr ptr)
 
 		prev = ptr;
 		ptr = ptr->list.next;
-		xf86conffree (prev);
+		free (prev);
 	}
 }
 
