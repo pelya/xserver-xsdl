@@ -548,6 +548,7 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
     if (rval != Success)
     {
         xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
+        RemoveDevice(dev);
         goto unwind;
     }
 
