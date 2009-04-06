@@ -1,5 +1,4 @@
 /* 
- * 
  * Copyright (c) 1997  Metro Link Incorporated
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -134,7 +133,7 @@ xf86parseFlagsSection (void)
 					{
 						char *valstr = NULL;
 						/* can't use strdup because it calls malloc */
-						tmp = xf86configStrdup (ServerFlagsTab[i].name);
+						tmp = strdup (ServerFlagsTab[i].name);
 						if (hasvalue)
 						{
 							tokentype = xf86getSubToken(&(ptr->flg_comment));
@@ -239,11 +238,11 @@ xf86optionListDup (XF86OptionPtr opt)
 
 	while (opt)
 	{
-		newopt = xf86addNewOption(newopt, xf86configStrdup(opt->opt_name), 
-					  xf86configStrdup(opt->opt_val));
+		newopt = xf86addNewOption(newopt, strdup(opt->opt_name), 
+					  strdup(opt->opt_val));
 		newopt->opt_used = opt->opt_used;
 		if (opt->opt_comment)
-			newopt->opt_comment = xf86configStrdup(opt->opt_comment);
+			newopt->opt_comment = strdup(opt->opt_comment);
 		opt = opt->list.next;
 	}
 	return newopt;

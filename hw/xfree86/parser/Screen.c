@@ -544,7 +544,7 @@ xf86validateScreen (XF86ConfigPtr p)
 				return (FALSE);
 			}
 
-			adaptor->al_adaptor->va_fwdref = xf86configStrdup(screen->scrn_identifier);
+			adaptor->al_adaptor->va_fwdref = strdup(screen->scrn_identifier);
 			adaptor = adaptor->list.next;
 		}
 

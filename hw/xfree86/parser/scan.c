@@ -877,7 +877,7 @@ void
 xf86setBuiltinConfig(const char *config[])
 {
 	builtinConfig = config;
-	configPath = xf86configStrdup("<builtin configuration>");
+	configPath = strdup("<builtin configuration>");
 	configBuf = xf86confmalloc (CONFIG_BUF_LEN);
 	configRBuf = xf86confmalloc (CONFIG_BUF_LEN);
 	configBuf[0] = '\0';		/* sanity ... */

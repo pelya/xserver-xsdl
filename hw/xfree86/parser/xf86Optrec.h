@@ -64,6 +64,7 @@
 #ifndef _xf86Optrec_h_
 #define _xf86Optrec_h_
 #include <stdio.h>
+#include <string.h>
 
 #include <X11/Xfuncproto.h>
 
@@ -102,7 +103,6 @@ extern _X_EXPORT XF86OptionPtr xf86findOption(XF86OptionPtr list, const char *na
 extern _X_EXPORT char *xf86findOptionValue(XF86OptionPtr list, const char *name);
 extern _X_EXPORT XF86OptionPtr xf86optionListCreate(const char **options, int count, int used);
 extern _X_EXPORT XF86OptionPtr xf86optionListMerge(XF86OptionPtr head, XF86OptionPtr tail);
-extern _X_EXPORT char *xf86configStrdup (const char *s);
 extern _X_EXPORT int xf86nameCompare (const char *s1, const char *s2);
 extern _X_EXPORT char *xf86uLongToString(unsigned long i);
 extern _X_EXPORT XF86OptionPtr xf86parseOption(XF86OptionPtr head);
