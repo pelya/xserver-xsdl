@@ -257,22 +257,12 @@ xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid)
 
     if (nextWid == NULL)
     {
-#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 3
-        WindowPtr pWin = xprGetXWindow((xp_window_id)wid);
-        wc.stack_mode = (pWin && pWin->overrideRedirect) ? XP_MAPPED_ABOVE_CURRENT_SPACE : XP_MAPPED_ABOVE;
-#else
         wc.stack_mode = XP_MAPPED_ABOVE;
-#endif
         wc.sibling = 0;
     }
     else
     {
-#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 3
-        WindowPtr pWin = xprGetXWindow((xp_window_id)wid);
-        wc.stack_mode = (pWin && pWin->overrideRedirect) ? XP_MAPPED_BELOW_CURRENT_SPACE : XP_MAPPED_BELOW;
-#else
         wc.stack_mode = XP_MAPPED_BELOW;
-#endif
         wc.sibling = x_cvt_vptr_to_uint(nextWid);
     }
 
