@@ -1427,7 +1427,7 @@ ProcSetModifierMapping(ClientPtr client)
     rc = change_modmap(client, PickKeyboard(client), (KeyCode *)&stuff[1],
                        stuff->numKeyPerModifier);
     if (rc == MappingFailed || rc == -1)
-        rc = BadValue;
+        return BadValue;
     if (rc != Success && rc != MappingSuccess && rc != MappingFailed &&
         rc != MappingBusy)
 	return rc;
@@ -1509,6 +1509,8 @@ ProcChangeKeyboardMapping(ClientPtr client)
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
         if (tmp->isMaster || tmp->u.master != pDev)
+            continue;
+        if (!tmp->key)
             continue;
 
         rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);

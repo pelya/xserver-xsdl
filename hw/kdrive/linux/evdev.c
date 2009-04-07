@@ -209,7 +209,7 @@ EvdevPtrInit (KdPointerInfo *pi)
         for (i = 0; i < NUM_DEFAULT_EVDEV; i++) {
             fd = open (kdefaultEvdev[i], 2);
             if (fd >= 0) {
-                pi->path = KdSaveString (kdefaultEvdev[i]);
+                pi->path = strdup (kdefaultEvdev[i]);
                 break;
             }
         }
@@ -224,7 +224,7 @@ EvdevPtrInit (KdPointerInfo *pi)
 
     close(fd);
 
-    pi->name = KdSaveString("Evdev mouse");
+    pi->name = strdup("Evdev mouse");
 
     return Success;
 }
@@ -411,7 +411,7 @@ EvdevKbdInit (KdKeyboardInfo *ki)
 
     close (fd);
 
-    ki->name = KdSaveString("Evdev keyboard");
+    ki->name = strdup("Evdev keyboard");
 
     readMapping(ki);
 

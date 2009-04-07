@@ -521,17 +521,6 @@ KdParseScreen (KdScreenInfo *screen,
  *	{NMO}	    Reorder buttons
  */
 
-char *
-KdSaveString (char *str)
-{
-    char    *n = (char *) xalloc (strlen (str) + 1);
-
-    if (!n)
-	return 0;
-    strcpy (n, str);
-    return n;
-}
-
 void
 KdParseRgba (char *rgba)
 {
@@ -1380,12 +1369,6 @@ OsVendorFatalError(void)
 int
 DPMSSet(ClientPtr client, int level)
 {
-}
-
-int
-DPMSGet (int *level)
-{
-    return -1;
 }
 
 Bool

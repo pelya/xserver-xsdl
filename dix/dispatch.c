@@ -3459,37 +3459,16 @@ KillAllClients(void)
 
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
+    memset(client, 0, sizeof(*client));
     client->index = i;
-    client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
-    client->clientGone = FALSE;
     client->closeDownMode = i ? DestroyAll : RetainPermanent;
-    client->numSaved = 0;
-    client->saveSet = (SaveSetElt *)NULL;
-    client->noClientException = Success;
-#ifdef DEBUG
-    client->requestLogIndex = 0;
-#endif
     client->requestVector = InitialVector;
     client->osPrivate = ospriv;
-    client->swapped = FALSE;
-    client->big_requests = FALSE;
-    client->priority = 0;
-    client->clientState = ClientStateInitial;
-    client->devPrivates = NULL;
-    client->xkbClientFlags = 0;
-    client->mapNotifyMask = 0;
-    client->newKeyboardNotifyMask = 0;
-    client->vMinor = client->vMajor = 0;
     QueryMinMaxKeyCodes(&client->minKC,&client->maxKC);
-    client->replyBytesRemaining = 0;
-    client->fontResFunc = NULL;
-    client->smart_priority = 0;
     client->smart_start_tick = SmartScheduleTime;
     client->smart_stop_tick = SmartScheduleTime;
     client->smart_check_tick = SmartScheduleTime;
-
-    client->clientPtr = NULL;
 }
 
 /************************

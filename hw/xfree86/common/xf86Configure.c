@@ -260,7 +260,7 @@ configureInputSection (void)
 #endif
     }
 
-    mouse = xf86confcalloc(1, sizeof(XF86ConfInputRec));
+    mouse = calloc(1, sizeof(XF86ConfInputRec));
     mouse->inp_identifier = "Mouse0";
     mouse->inp_driver = "mouse";
     mouse->inp_option_lst = 
@@ -285,18 +285,18 @@ configureScreenSection (int screennum)
     int depths[] = { 1, 4, 8, 15, 16, 24/*, 32*/ };
     parsePrologue (XF86ConfScreenPtr, XF86ConfScreenRec)
 
-    ptr->scrn_identifier = xf86confmalloc(18);
+    ptr->scrn_identifier = malloc(18);
     sprintf(ptr->scrn_identifier, "Screen%d", screennum);
-    ptr->scrn_monitor_str = xf86confmalloc(19);
+    ptr->scrn_monitor_str = malloc(19);
     sprintf(ptr->scrn_monitor_str, "Monitor%d", screennum);
-    ptr->scrn_device_str = xf86confmalloc(16);
+    ptr->scrn_device_str = malloc(16);
     sprintf(ptr->scrn_device_str, "Card%d", screennum);
 
     for (i=0; i<sizeof(depths)/sizeof(depths[0]); i++)
     {
 	XF86ConfDisplayPtr display;
 
-	display = xf86confcalloc(1, sizeof(XF86ConfDisplayRec));
+	display = calloc(1, sizeof(XF86ConfDisplayRec));
 	display->disp_depth = depths[i];
 	display->disp_black.red = display->disp_white.red = -1;
 	display->disp_black.green = display->disp_white.green = -1;
@@ -419,7 +419,7 @@ configureLayoutSection (void)
     {
 	XF86ConfInputrefPtr iptr;
 
-	iptr = xf86confmalloc (sizeof (XF86ConfInputrefRec));
+	iptr = malloc (sizeof (XF86ConfInputrefRec));
 	iptr->list.next = NULL;
 	iptr->iref_option_lst = NULL;
 	iptr->iref_inputdev_str = "Mouse0";
@@ -432,7 +432,7 @@ configureLayoutSection (void)
     {
 	XF86ConfInputrefPtr iptr;
 
-	iptr = xf86confmalloc (sizeof (XF86ConfInputrefRec));
+	iptr = malloc (sizeof (XF86ConfInputrefRec));
 	iptr->list.next = NULL;
 	iptr->iref_option_lst = NULL;
 	iptr->iref_inputdev_str = "Keyboard0";
@@ -445,7 +445,7 @@ configureLayoutSection (void)
     for (scrnum = 0;  scrnum < nDevToConfig;  scrnum++) {
 	XF86ConfAdjacencyPtr aptr;
 
-	aptr = xf86confmalloc (sizeof (XF86ConfAdjacencyRec));
+	aptr = malloc (sizeof (XF86ConfAdjacencyRec));
 	aptr->list.next = NULL;
 	aptr->adj_x = 0;
 	aptr->adj_y = 0;
@@ -494,7 +494,7 @@ configureModuleSection (void)
 	for (el = elist; *el; el++) {
 	    XF86LoadPtr module;
 
-    	    module = xf86confcalloc(1, sizeof(XF86LoadRec));
+    	    module = calloc(1, sizeof(XF86LoadRec));
     	    module->load_name = *el;
             ptr->mod_load_lst = (XF86LoadPtr)xf86addListItem(
                                 (glp)ptr->mod_load_lst, (glp)module);
@@ -523,7 +523,7 @@ configureMonitorSection (int screennum)
 {
     parsePrologue (XF86ConfMonitorPtr, XF86ConfMonitorRec)
 
-    ptr->mon_identifier = xf86confmalloc(19);
+    ptr->mon_identifier = malloc(19);
     sprintf(ptr->mon_identifier, "Monitor%d", screennum);
     ptr->mon_vendor = strdup("Monitor Vendor");
     ptr->mon_modelname = strdup("Monitor Model");
@@ -542,10 +542,10 @@ configureDDCMonitorSection (int screennum)
 
     parsePrologue (XF86ConfMonitorPtr, XF86ConfMonitorRec)
 
-    ptr->mon_identifier = xf86confmalloc(19);
+    ptr->mon_identifier = malloc(19);
     sprintf(ptr->mon_identifier, "Monitor%d", screennum);
     ptr->mon_vendor = strdup(ConfiguredMonitor->vendor.name);
-    ptr->mon_modelname = xf86confmalloc(12);
+    ptr->mon_modelname = malloc(12);
     sprintf(ptr->mon_modelname, "%x", ConfiguredMonitor->vendor.prod_id);
 
     /* features in centimetres, we want millimetres */
@@ -570,8 +570,7 @@ configureDDCMonitorSection (int screennum)
 	  len = 0;
 	}
 	if ((ptr->mon_comment =
-	     xf86confrealloc(ptr->mon_comment, 
-			     len+strlen(displaySize_string)))) {
+	     realloc(ptr->mon_comment, len+strlen(displaySize_string)))) {
 	  strcpy(ptr->mon_comment + len, displaySize_string);
 	}
       }
@@ -581,7 +580,7 @@ configureDDCMonitorSection (int screennum)
     for (i=0;i<4;i++) {
 	switch (ConfiguredMonitor->det_mon[i].type) {
 	    case DS_NAME:
-		ptr->mon_modelname  = xf86confrealloc(ptr->mon_modelname, 
+		ptr->mon_modelname  = realloc(ptr->mon_modelname, 
 		  strlen((char*)(ConfiguredMonitor->det_mon[i].section.name))
 		    + 1);
 		strcpy(ptr->mon_modelname,

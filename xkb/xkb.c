@@ -605,7 +605,7 @@ ProcXkbLatchLockState(ClientPtr client)
 
     for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
         if ((tmpd == dev) || (!tmpd->isMaster && tmpd->u.master == dev)) {
-            if (!tmpd->key->xkbInfo)
+            if (!tmpd->key || !tmpd->key->xkbInfo)
                 continue;
 
             oldState = tmpd->key->xkbInfo->state;
@@ -744,6 +744,8 @@ ProcXkbSetControls(ClientPtr client)
     CHK_MASK_LEGAL(0x01, stuff->changeCtrls, XkbAllControlsMask);
 
     for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+        if (!tmpd->key || !tmpd->key->xkbInfo)
+            continue;
         if ((tmpd == dev) || (!tmpd->isMaster && tmpd->u.master == dev)) {
             xkbi = tmpd->key->xkbInfo;
             ctrl = xkbi->desc->ctrls;

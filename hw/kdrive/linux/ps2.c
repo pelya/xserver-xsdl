@@ -123,7 +123,7 @@ Ps2Init (KdPointerInfo *pi)
         for (i = 0; i < NUM_PS2_NAMES; i++) {
             ps2Port = open (Ps2Names[i], 0);
             if (ps2Port >= 0) {
-                pi->path = KdSaveString (Ps2Names[i]);
+                pi->path = strdup (Ps2Names[i]);
                 break;
             }
 	}
@@ -137,7 +137,7 @@ Ps2Init (KdPointerInfo *pi)
 
     close(ps2Port);
     if (!pi->name)
-        pi->name = KdSaveString ("PS/2 Mouse");
+        pi->name = strdup ("PS/2 Mouse");
 
     return Success;
 }

@@ -1134,6 +1134,7 @@ static void
 determineTextureTarget(XID glxDrawableID, CARD32 *attribs, CARD32 numAttribs)
 {
     GLenum target = 0;
+    GLenum format = 0;
     int i;
     __GLXdrawable *pGlxDraw;
 
@@ -1150,6 +1151,9 @@ determineTextureTarget(XID glxDrawableID, CARD32 *attribs, CARD32 numAttribs)
 		break;
 	    }
 	}
+
+	if (attribs[2 * i] == GLX_TEXTURE_FORMAT_EXT)
+		format = attribs[2 * i + 1];
     }
  
     if (!target) {
@@ -1162,6 +1166,7 @@ determineTextureTarget(XID glxDrawableID, CARD32 *attribs, CARD32 numAttribs)
     }
 
     pGlxDraw->target = target;
+    pGlxDraw->format = format;
 }
 
 int __glXDisp_CreateGLXPixmap(__GLXclientState *cl, GLbyte *pc)

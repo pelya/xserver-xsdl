@@ -1971,6 +1971,10 @@ SELinuxExtensionInit(INITARGS)
 	return;
     }
 
+    /* Don't init unless there's something to do */
+    if (!security_get_boolean_active("xserver_object_manager"))
+        return;
+
     /* Check SELinux mode in configuration file */
     switch(selinuxEnforcingState) {
     case SELINUX_MODE_DISABLED:

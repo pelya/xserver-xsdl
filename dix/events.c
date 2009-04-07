@@ -1734,7 +1734,7 @@ AllowSome(ClientPtr client,
 		{
 		    if (dev == thisDev)
 			continue;
-                    devgrabinfo = (core) ? &dev->deviceGrab : &dev->deviceGrab;
+                    devgrabinfo = &dev->deviceGrab;
 		    if (devgrabinfo->grab
                             && SameClient(devgrabinfo->grab, client))
 			devgrabinfo->sync.state = THAWED;

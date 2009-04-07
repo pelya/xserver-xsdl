@@ -944,7 +944,7 @@ MouseInit (KdPointerInfo *pi)
         for (i = 0; i < NUM_DEFAULT_MOUSE; i++) {
             fd = open (kdefaultMouse[i], 2);
             if (fd >= 0) {
-                pi->path = KdSaveString (kdefaultMouse[i]);
+                pi->path = strdup (kdefaultMouse[i]);
                 break;
             }
         }

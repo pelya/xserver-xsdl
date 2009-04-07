@@ -500,11 +500,12 @@ ProcAppleWMSendPSN(register ClientPtr client)
     
     REQUEST_SIZE_MATCH(xAppleWMSendPSNReq);
     
-    if(appleWMProcs->SendPSN) {
-        err = appleWMProcs->SendPSN(stuff->psn_hi, stuff->psn_lo);
-        if (err != Success) {
-            return err;
-        }
+    if(!appleWMProcs->SendPSN)
+        return BadRequest;
+
+    err = appleWMProcs->SendPSN(stuff->psn_hi, stuff->psn_lo);
+    if (err != Success) {
+        return err;
     }
 
     return (client->noClientException);

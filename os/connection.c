@@ -172,7 +172,6 @@ int *ConnectionTranslation = NULL;
 #define MAXSOCKS 500
 #undef MAXSELECT
 #define MAXSELECT 500
-#define MAXFD 500
 
 struct _ct_node {
     struct _ct_node *next;
@@ -346,15 +345,6 @@ InitParentProcess(void)
 	RunFromSmartParent = TRUE;
     OsSignal(SIGUSR1, handler);
     ParentProcess = getppid ();
-#ifdef __UNIXOS2__
-    /*
-     * fg030505: under OS/2, xinit is not the parent process but
-     * the "grant parent" process of the server because execvpe()
-     * presents us an additional process number;
-     * GetPPID(pid) is part of libemxfix
-     */
-    ParentProcess = GetPPID (ParentProcess);
-#endif /* __UNIXOS2__ */
 #endif
 }
 

@@ -95,25 +95,8 @@ int ScreenSaverBlanking;
 int  ScreenSaverAllowExposures;
 
 #ifdef DPMSExtension
-# ifndef DEFAULT_STANDBY_TIME
-#  define DEFAULT_STANDBY_TIME DEFAULT_SCREEN_SAVER_TIME * 2
-# endif
-# ifndef DEFAULT_SUSPEND_TIME
-#  define DEFAULT_SUSPEND_TIME DEFAULT_SCREEN_SAVER_TIME * 3
-# endif
-# ifndef DEFAULT_OFF_TIME
-#  define DEFAULT_OFF_TIME DEFAULT_SCREEN_SAVER_TIME * 4
-# endif
-# ifndef DEFAULT_DPMS_ENABLED
-#  define DEFAULT_DPMS_ENABLED TRUE
-# endif
-CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
-CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
-CARD32 defaultDPMSOffTime = DEFAULT_OFF_TIME;
 CARD16 DPMSPowerLevel = 0;
-Bool defaultDPMSEnabled = DEFAULT_DPMS_ENABLED;
-Bool DPMSEnabledSwitch = FALSE;  /* these denote the DPMS command */
-Bool DPMSDisabledSwitch = FALSE; /* lind switch states */
+Bool DPMSDisabledSwitch = FALSE;
 Bool DPMSCapableFlag = FALSE;
 CARD32 DPMSStandbyTime;
 CARD32 DPMSSuspendTime;

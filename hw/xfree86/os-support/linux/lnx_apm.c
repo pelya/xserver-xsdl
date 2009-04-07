@@ -180,11 +180,10 @@ lnxAPMOpen(void)
 	    close(pfd);
 	xf86PMGetEventFromOs = lnxPMGetEventFromOs;
 	xf86PMConfirmEventToOs = lnxPMConfirmEventToOs;
-	APMihPtr = xf86AddInputHandler(fd,xf86HandlePMEvents,NULL);
+	APMihPtr = xf86AddGeneralHandler(fd, xf86HandlePMEvents, NULL);
 	xf86MsgVerb(X_INFO,3,"Open APM successful\n");
 	return lnxCloseAPM;
     }
-    xf86MsgVerb(X_INFO,3,"No APM support in BIOS or kernel\n");
     return NULL;
 }
 
@@ -197,7 +196,7 @@ lnxCloseAPM(void)
    ErrorF("APM: Closing device\n");
 #endif
     if (APMihPtr) {
-	fd = xf86RemoveInputHandler(APMihPtr);
+	fd = xf86RemoveGeneralHandler(APMihPtr);
 	close(fd);
 	APMihPtr = NULL;
     }

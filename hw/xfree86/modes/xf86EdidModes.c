@@ -155,6 +155,11 @@ static Bool quirk_detailed_v_in_cm (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 13600)
 	return TRUE;
 
+    /* Bug #21000: LGPhilipsLCD LP154W01-TLAJ */
+    if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
+	DDC->vendor.prod_id == 47360)
+	return TRUE;
+
     return FALSE;
 }
 

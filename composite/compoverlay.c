@@ -125,13 +125,13 @@ compCreateOverlayWindow (ScreenPtr pScreen)
     CompScreenPtr   cs = GetCompScreen(pScreen);
     WindowPtr	    pRoot = WindowTable[pScreen->myNum];
     WindowPtr	    pWin;
-    XID		    overrideRedirect = TRUE;
+    XID		    attrs[] = { None, TRUE }; /* backPixmap, overrideRedirect */
     int		    result;
 
     pWin = cs->pOverlayWin = 
 	CreateWindow (cs->overlayWid, pRoot,
 		      0, 0, pScreen->width, pScreen->height, 0, 
-		      InputOutput, CWOverrideRedirect, &overrideRedirect,
+		      InputOutput, CWBackPixmap | CWOverrideRedirect, &attrs[0],
 		      pRoot->drawable.depth, 
 		      serverClient, pScreen->rootVisual, &result);
     if (pWin == NULL)

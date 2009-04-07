@@ -52,8 +52,6 @@ SOFTWARE.
 #include "misc.h"
 #include <stdarg.h>
 
-#define NullFID ((FID) 0)
-
 #define SCREEN_SAVER_ON   0
 #define SCREEN_SAVER_OFF  1
 #define SCREEN_SAVER_FORCER 2
@@ -66,7 +64,6 @@ SOFTWARE.
 #define MAX_BIG_REQUEST_SIZE 4194303
 #endif
 
-typedef pointer	FID;
 typedef struct _FontPathRec *FontPathPtr;
 typedef struct _NewClientRec *NewClientPtr;
 
@@ -85,13 +82,6 @@ typedef struct _NewClientRec *NewClientPtr;
 
 #include <stdio.h>
 #include <stdarg.h>
-
-/* have to put $(SIGNAL_DEFINES) in DEFINES in Imakefile to get this right */
-#ifdef SIGNALRETURNSINT
-#define SIGVAL int
-#else
-#define SIGVAL void
-#endif
 
 #ifdef DDXOSVERRORF
 extern _X_EXPORT void (*OsVendorVErrorFProc)(const char *, va_list args);
@@ -205,9 +195,9 @@ extern _X_EXPORT void TimerFree(OsTimerPtr /* pTimer */);
 extern _X_EXPORT void SetScreenSaverTimer(void);
 extern _X_EXPORT void FreeScreenSaverTimer(void);
 
-extern _X_EXPORT SIGVAL AutoResetServer(int /*sig*/);
+extern _X_EXPORT void AutoResetServer(int /*sig*/);
 
-extern _X_EXPORT SIGVAL GiveUp(int /*sig*/);
+extern _X_EXPORT void GiveUp(int /*sig*/);
 
 extern _X_EXPORT void UseMsg(void);
 
@@ -237,7 +227,7 @@ extern _X_EXPORT char *Xvprintf(const char *fmt, va_list va);
 extern _X_EXPORT char *XNFprintf(const char *fmt, ...);
 extern _X_EXPORT char *XNFvprintf(const char *fmt, va_list va);
 
-typedef SIGVAL (*OsSigHandlerPtr)(int /* sig */);
+typedef void (*OsSigHandlerPtr)(int /* sig */);
 
 extern _X_EXPORT OsSigHandlerPtr OsSignal(int /* sig */, OsSigHandlerPtr /* handler */);
 

@@ -77,7 +77,7 @@ BusInit (KdPointerInfo *pi)
                 close(fd);
                 if (pi->path)
                     xfree(pi->path);
-                pi->path = KdSaveString(BusNames[i]);
+                pi->path = strdup(BusNames[i]);
                 return Success;
             }
         }

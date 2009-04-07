@@ -868,7 +868,8 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
 	if (!strcmp (m, *cim))
 	{
 	    xf86MsgVerb(X_INFO, 3, "Module \"%s\" already built-in\n", m);
-	    return (ModuleDescPtr) 1;
+	    ret = (ModuleDescPtr) 1;
+	    goto LoadModule_exit;
 	}
 
     if (!name) {

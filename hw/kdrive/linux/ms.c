@@ -100,9 +100,9 @@ MsInit (KdPointerInfo *pi)
         return BadImplementation;
 
     if (!pi->path || strcmp(pi->path, "auto"))
-        pi->path = KdSaveString("/dev/mouse");
+        pi->path = strdup("/dev/mouse");
     if (!pi->name)
-        pi->name = KdSaveString("Microsoft protocol mouse");
+        pi->name = strdup("Microsoft protocol mouse");
     
     return Success; 
 }

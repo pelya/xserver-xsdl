@@ -964,9 +964,6 @@ DestroySubwindows(WindowPtr pWin, ClientPtr client)
     return Success;
 }
 
-#define DeviceEventMasks (KeyPressMask | KeyReleaseMask | ButtonPressMask | \
-    ButtonReleaseMask | PointerMotionMask)
-
 /*****
  *  ChangeWindowAttributes
  *   

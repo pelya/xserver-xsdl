@@ -251,9 +251,16 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     if (texBuffer == NULL)
         return Success;
 
-    texBuffer->setTexBuffer(context->driContext,
-			    glxPixmap->target,
-			    drawable->driDrawable);
+    if (texBuffer->base.version >= 2 && texBuffer->setTexBuffer2 != NULL) {
+	(*texBuffer->setTexBuffer2)(context->driContext,
+				    glxPixmap->target,
+				    glxPixmap->format,
+				    drawable->driDrawable);
+    } else {
+	texBuffer->setTexBuffer(context->driContext,
+				glxPixmap->target,
+				drawable->driDrawable);
+    }
 
     return Success;
 }

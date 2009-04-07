@@ -80,6 +80,11 @@ static KeyboardLayoutRef last_key_layout;
 
 extern int darwinFakeButtons;
 
+/* Store the mouse location while in the background, and update X11's pointer
+ * location when we become the foreground application
+ */
+static NSPoint bgMouseLocation;
+
 X11Application *X11App;
 
 CFStringRef app_prefs_domain_cfstr = NULL;
@@ -188,6 +193,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
+        DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
         DarwinSendDDXEvent(kXquartzActivate, 0);
 
         if (!_x_active) {
@@ -954,33 +960,39 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 
 - (void) sendX11NSEvent:(NSEvent *)e {
     NSRect screen;
-    NSPoint location;
+    NSPoint location, tilt;
     NSWindow *window;
     int ev_button, ev_type;
-    float pointer_x, pointer_y, pressure, tilt_x, tilt_y;
+    float pressure;
     DeviceIntPtr pDev;
     int modifierFlags;
 
+    static NSPoint lastpt;
+
     /* convert location to be relative to top-left of primary display */
-    location = [e locationInWindow];
     window = [e window];
-    screen = [[[NSScreen screens] objectAtIndex:0] frame];
 
     if (window != nil)	{
         NSRect frame = [window frame];
-        pointer_x = location.x + frame.origin.x;
-        pointer_y = (screen.origin.y + screen.size.height)
-                    - (location.y + frame.origin.y);
+        location = [e locationInWindow];
+        location.x += frame.origin.x;
+        location.y += frame.origin.y;
+        lastpt = location;
     } else {
-        pointer_x = location.x;
-        pointer_y = (screen.origin.y + screen.size.height) - location.y;
+        location.x = lastpt.x + [e deltaX];
+        location.y = lastpt.y - [e deltaY];
+        lastpt = [NSEvent mouseLocation];
     }
-
+    
+    /* Convert coordinate system */
+    screen = [[[NSScreen screens] objectAtIndex:0] frame];
+    location.y = (screen.origin.y + screen.size.height) - location.y;
+    
     /* Setup our valuators.  These will range from 0 to 1 */
     pressure = 0;
-    tilt_x = 0;
-    tilt_y = 0;
-    
+    tilt.x = 0.0;
+    tilt.y = 0.0;
+
     modifierFlags = [e modifierFlags];
     
 #ifdef NX_DEVICELCMDKEYMASK
@@ -1047,47 +1059,49 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                 pDev = darwinTabletCurrent;                
                  */
 
-                DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
-                                          pointer_x, pointer_y);
+                DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
+                                          location.x, location.y);
             }
 
 			if ([e type] == NSTabletPoint || [e subtype] == NSTabletPointEventSubtype) {
                 pressure = [e pressure];
-                tilt_x   = [e tilt].x;
-                tilt_y   = [e tilt].y;
+                tilt     = [e tilt];
                 
                 pDev = darwinTabletCurrent;
             }
 
+            if(!quartzServerVisible && noTestExtensions) {
+#if 0
 /* Seems this has somehow triggered 100% CPU usage while X11.app is in the
  * background on some obscure HW configurations.
  * http://xquartz.macosforge.org/trac/ticket/241
  */
-#if 0
+//#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
-#ifdef XPLUGIN_VERSION
-#if XPLUGIN_VERSION > 0
-            if(!quartzServerVisible) {
                 xp_window_id wid;
+                xp_error e;
 
                 /* Sigh. Need to check that we're really over one of
                  * our windows. (We need to receive pointer events while
                  * not in the foreground, but we don't want to receive them
                  * when another window is over us or we might show a tooltip)
                  */
-                
+
                 wid = 0;
-                
-                if (xp_find_window(pointer_x, pointer_y, 0, &wid) == XP_Success &&
-                    wid == 0)
-                    return;        
+                e = xp_find_window(location.x, location.y, 0, &wid);
+
+                if (e == XP_Success && wid == 0) {
+                    bgMouseLocation = location;
+                    return;
+                }
+#else
+                bgMouseLocation = location;
+                return;
+#endif
             }
-#endif
-#endif
-#endif
             
-            DarwinSendPointerEvents(pDev, ev_type, ev_button, pointer_x, pointer_y,
-                                    pressure, tilt_x, tilt_y);
+            DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x, location.y,
+                                    pressure, tilt.x, tilt.y);
             
             break;
             
@@ -1106,13 +1120,13 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                     break;
             }
             
-			DarwinSendProximityEvents([e isEnteringProximity]?ProximityIn:ProximityOut,
-                                      pointer_x, pointer_y);
+			DarwinSendProximityEvents([e isEnteringProximity] ? ProximityIn : ProximityOut,
+                                      location.x, location.y);
             break;
             
 		case NSScrollWheel:
-			DarwinSendScrollEvents([e deltaX], [e deltaY], pointer_x, pointer_y,
-                                   pressure, tilt_x, tilt_y);
+			DarwinSendScrollEvents([e deltaX], [e deltaY], location.x, location.y,
+                                   pressure, tilt.x, tilt.y);
             break;
             
         case NSKeyDown: case NSKeyUp:

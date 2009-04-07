@@ -103,7 +103,7 @@ xf86parseFilesSection (void)
 			str = val.str;
 			if (ptr->file_fontpath == NULL)
 			{
-				ptr->file_fontpath = xf86confmalloc (1);
+				ptr->file_fontpath = malloc (1);
 				ptr->file_fontpath[0] = '\0';
 				i = strlen (str) + 1;
 			}
@@ -117,12 +117,12 @@ xf86parseFilesSection (void)
 				}
 			}
 			ptr->file_fontpath =
-				xf86confrealloc (ptr->file_fontpath, i);
+				realloc (ptr->file_fontpath, i);
 			if (j)
 				strcat (ptr->file_fontpath, ",");
 
 			strcat (ptr->file_fontpath, str);
-			xf86conffree (val.str);
+			free (val.str);
 			break;
 		case MODULEPATH:
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
@@ -131,7 +131,7 @@ xf86parseFilesSection (void)
 			str = val.str;
 			if (ptr->file_modulepath == NULL)
 			{
-				ptr->file_modulepath = xf86confmalloc (1);
+				ptr->file_modulepath = malloc (1);
 				ptr->file_modulepath[0] = '\0';
 				k = strlen (str) + 1;
 			}
@@ -144,12 +144,12 @@ xf86parseFilesSection (void)
 					l = TRUE;
 				}
 			}
-			ptr->file_modulepath = xf86confrealloc (ptr->file_modulepath, k);
+			ptr->file_modulepath = realloc (ptr->file_modulepath, k);
 			if (l)
 				strcat (ptr->file_modulepath, ",");
 
 			strcat (ptr->file_modulepath, str);
-			xf86conffree (val.str);
+			free (val.str);
 			break;
 		case LOGFILEPATH:
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
@@ -241,5 +241,5 @@ xf86freeFiles (XF86ConfFilesPtr p)
 	TestFree (p->file_comment);
 	TestFree (p->file_xkbdir);
 
-	xf86conffree (p);
+	free (p);
 }
