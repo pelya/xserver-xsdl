@@ -357,7 +357,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xXIDeviceEvent *xde;
     int i, btlen, vallen;
     char *ptr;
-    int32_t *axisval;
+    FP3232 *axisval;
 
     /* FIXME: this should just send the buttons we have, not MAX_BUTTONs. Same
      * with MAX_VALUATORS below */
@@ -401,15 +401,15 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     }
 
     ptr += xde->buttons_len * 4;
-    axisval = (int32_t*)(ptr + xde->valuators_len * 4);
+    axisval = (FP3232*)(ptr + xde->valuators_len * 4);
     for (i = 0; i < sizeof(ev->valuators.mask) * 8; i++)
     {
         if (BitIsOn(ev->valuators.mask, i))
         {
             SetBit(ptr, i);
-            *axisval = ev->valuators.data[i];
+            axisval->integral = ev->valuators.data[i];
+            axisval->frac = ev->valuators.data_frac[i];
             axisval++;
-            axisval++; /* FIXME: this should be the frac. part */
         }
     }
 
@@ -451,9 +451,10 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
         {
             SetBit(ptr, i);
             axisval->integral = ev->valuators.data[i];
+            axisval->frac = ev->valuators.data_frac[i];
             (axisval + nvals)->integral = ev->valuators.data_raw[i];
+            (axisval + nvals)->frac = ev->valuators.data_raw_frac[i];
             axisval++;
-            /* FIXME: frac part */
         }
     }
 

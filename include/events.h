@@ -93,6 +93,7 @@ typedef struct
         uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */
         uint8_t  mode[(MAX_VALUATORS + 7)/8]; /**< Valuator mode (Abs or Rel)*/
         uint32_t data[MAX_VALUATORS];         /**< Valuator data */
+        int32_t  data_frac[MAX_VALUATORS];    /**< Fractional part for data */
     } valuators;
     struct {
         uint32_t base;    /**< XKB base modifiers */
@@ -191,7 +192,9 @@ typedef struct
     struct {
         uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */
         int32_t  data[MAX_VALUATORS];         /**< Valuator data */
+        int32_t  data_frac[MAX_VALUATORS];    /**< Fractional part for data */
         int32_t  data_raw[MAX_VALUATORS];     /**< Valuator data as posted */
+        int32_t  data_raw_frac[MAX_VALUATORS];/**< Fractional part for data_raw */
     } valuators;
 } RawDeviceEvent;
 

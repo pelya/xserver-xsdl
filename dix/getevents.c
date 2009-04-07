@@ -174,10 +174,13 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
         SetBit(event->valuators.mask, i);
         if (dev->valuator->mode == Absolute)
             SetBit(event->valuators.mode, i);
+        event->valuators.data_frac[first_valuator + i] =
+            dev->last.remainder[first_valuator + i] * (1 << 16) * (1 << 16);
     }
 
     memcpy(&event->valuators.data[first_valuator],
            valuators, num_valuators * sizeof(uint32_t));
+
 }
 
 void
