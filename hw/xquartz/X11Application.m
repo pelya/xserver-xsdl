@@ -1054,8 +1054,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                  * NSTabletProximityEventSubtype will come from NSTabletPoint
                  * rather than NSMouseMoved.
                 pressure = [e pressure];
-                tilt_x   = [e tilt].x;
-                tilt_y   = [e tilt].y;
+                tilt     = [e tilt];
                 pDev = darwinTabletCurrent;                
                  */
 
@@ -1071,6 +1070,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             }
 
             if(!quartzServerVisible && noTestExtensions) {
+                if(ev_button == 0) {
 #if 0
 /* Seems this has somehow triggered 100% CPU usage while X11.app is in the
  * background on some obscure HW configurations.
@@ -1078,28 +1078,29 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
  */
 //#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
-                xp_window_id wid;
-                xp_error e;
+                    xp_window_id wid = 0;
+                    xp_error e;
 
-                /* Sigh. Need to check that we're really over one of
-                 * our windows. (We need to receive pointer events while
-                 * not in the foreground, but we don't want to receive them
-                 * when another window is over us or we might show a tooltip)
-                 */
+                    /* Sigh. Need to check that we're really over one of
+                     * our windows. (We need to receive pointer events while
+                     * not in the foreground, but we don't want to receive them
+                     * when another window is over us or we might show a tooltip)
+                     */
 
-                wid = 0;
-                e = xp_find_window(location.x, location.y, 0, &wid);
+                    e = xp_find_window(location.x, location.y, 0, &wid);
 
-                if (e == XP_Success && wid == 0) {
-                    bgMouseLocation = location;
-                    return;
-                }
-#else
-                bgMouseLocation = location;
-                return;
+                    if (e == XP_Success && wid == 0)
 #endif
+                    {
+                        bgMouseLocation = location;
+                        return;
+                    }
+                } else {
+                    DarwinSendPointerEvents(pDev, MotionNotify, 0, location.x,
+                                            location.y, pressure, tilt.x, tilt.y);
+                }
             }
-            
+
             DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x, location.y,
                                     pressure, tilt.x, tilt.y);
             
@@ -1125,6 +1126,16 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             break;
             
 		case NSScrollWheel:
+//#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
+#if 1 /* Strange 100% CPU issue, so always enabling.  see above */
+            /* If we're in the background, we need to send a MotionNotify event
+             * first, since we aren't getting them on background mouse motion
+             */
+            if(!quartzServerVisible && noTestExtensions) {
+                DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, location.x,
+                                        location.y, pressure, tilt.x, tilt.y);
+            }
+#endif
 			DarwinSendScrollEvents([e deltaX], [e deltaY], location.x, location.y,
                                    pressure, tilt.x, tilt.y);
             break;
