@@ -581,7 +581,7 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     darwinEvents_lock();
 #endif
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDev, events[i].event);
+        mieqEnqueue(pDev, (InternalEvent*)events[i].event);
 #ifdef XQUARTZ
     darwinEvents_unlock();
 #endif
