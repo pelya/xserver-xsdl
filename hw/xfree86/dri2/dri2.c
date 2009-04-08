@@ -139,6 +139,42 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
     DRI2BufferPtr   buffers;
+    unsigned int temp_buf[32];
+    unsigned int *temp = temp_buf;
+
+
+    /* If the drawable is a window and the front-buffer is requested, silently
+     * add the fake front-buffer to the list of requested attachments.  The
+     * counting logic in the loop accounts for the case where the client
+     * requests both the fake and real front-buffer.
+     */
+    if (pDraw->type == DRAWABLE_WINDOW) {
+	int need_fake_front = 0;
+	int i;
+
+	if ((count + 1) > 32) {
+	    temp = xalloc((count + 1) * sizeof(temp[0]));
+	}
+
+	for (i = 0; i < count; i++) {
+	    if (attachments[i] == DRI2BufferFrontLeft) {
+		need_fake_front++;
+	    }
+
+	    if (attachments[i] == DRI2BufferFakeFrontLeft) {
+		need_fake_front--;
+	    }
+
+	    temp[i] = attachments[i];
+	}
+
+	if (need_fake_front > 0) {
+	    temp[i] = DRI2BufferFakeFrontLeft;
+	    count++;
+	    attachments = temp;
+	}
+    }
+
 
     if (pPriv->buffers == NULL ||
 	pDraw->width != pPriv->width || pDraw->height != pPriv->height)
@@ -149,6 +185,10 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
 	pPriv->bufferCount = count;
 	pPriv->width = pDraw->width;
 	pPriv->height = pDraw->height;
+    }
+
+    if (temp != temp_buf) {
+	xfree(temp);
     }
 
     *width = pPriv->width;
