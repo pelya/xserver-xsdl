@@ -69,8 +69,6 @@ static pointer DomainMmappedIO[MAX_DOMAINS];
 void
 linuxPciInit(void)
 {
-    struct stat st;
-
     memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
 }
 
