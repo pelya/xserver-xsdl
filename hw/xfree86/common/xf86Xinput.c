@@ -792,7 +792,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
         /* Don't post core motion events for devices not registered to send
          * drag events. */
         if (xE->u.u.type != MotionNotify || drag) {
-            mieqEnqueue(device, (xf86Events + i)->event);
+            mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
         }
     }
 }
@@ -825,7 +825,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
                                  is_in ? ProximityIn : ProximityOut, 
                                  first_valuator, num_valuators, valuators);
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (xf86Events + i)->event);
+        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
 
 }
 
@@ -868,7 +868,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                                first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (xf86Events + i)->event);
+        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
 
 }
 
@@ -915,7 +915,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     }
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (xf86Events + i)->event);
+        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
 }
 
 void
@@ -944,7 +944,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (xf86Events + i)->event);
+        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
 }
 
 LocalDevicePtr

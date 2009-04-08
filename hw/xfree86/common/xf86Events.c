@@ -428,7 +428,7 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
             sigstate = xf86BlockSIGIO ();
             nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
             for (j = 0; j < nevents; j++)
-                mieqEnqueue(pDev, (xf86Events + j)->event);
+                mieqEnqueue(pDev, (InternalEvent*)(xf86Events + j)->event);
             xf86UnblockSIGIO(sigstate);
         }
     }
