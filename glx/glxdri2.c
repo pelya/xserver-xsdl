@@ -82,6 +82,8 @@ struct __GLXDRIcontext {
     __DRIcontext	*driContext;
 };
 
+#define MAX_DRAWABLE_BUFFERS 5
+
 struct __GLXDRIdrawable {
     __GLXdrawable	 base;
     __DRIdrawable	*driDrawable;
@@ -90,7 +92,7 @@ struct __GLXDRIdrawable {
     /* Dimensions as last reported by DRI2GetBuffers. */
     int width;
     int height;
-    __DRIbuffer buffers[5];
+    __DRIbuffer buffers[MAX_DRAWABLE_BUFFERS];
     int count;
 };
 
@@ -407,7 +409,7 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
 
     buffers = DRI2GetBuffers(private->base.pDraw,
 			     width, height, attachments, count, out_count);
-    if (*out_count > 5) {
+    if (*out_count > MAX_DRAWABLE_BUFFERS) {
 	*out_count = 0;
 	return NULL;
     }
