@@ -54,6 +54,9 @@ dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
 dnl kdrive-config.h covers the kdrive DDX
 AC_CONFIG_HEADERS(include/kdrive-config.h)
+dnl version-config.h covers the version numbers so they can be bumped without
+dnl forcing an entire recompile.x
+AC_CONFIG_HEADERS(include/version-config.h)
 
 AC_PROG_CC
 AM_PROG_AS
@@ -1120,10 +1123,11 @@ AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
 
-AC_SUBST([VENDOR_NAME])
 AC_SUBST([VENDOR_NAME_SHORT])
-AC_SUBST([VENDOR_RELEASE])
-AC_SUBST([VENDOR_MAN_VERSION])
+AC_DEFINE_UNQUOTED(VENDOR_NAME, ["$VENDOR_NAME"], [Vendor name])
+AC_DEFINE_UNQUOTED(VENDOR_NAME_SHORT, ["$VENDOR_NAME_SHORT"], [Vendor name])
+AC_DEFINE_UNQUOTED(VENDOR_RELEASE, [$VENDOR_RELEASE], [Vendor release])
+AC_DEFINE_UNQUOTED(VENDOR_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 
 AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
 

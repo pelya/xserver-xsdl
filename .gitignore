@@ -146,6 +146,7 @@ hw/xwin/winprefsyacc.c
 hw/xwin/winprefsyacc.h
 include/dix-config.h
 include/kdrive-config.h
+include/version-config.h
 include/xkb-config.h
 include/xorg-config.h
 include/xorg-server.h

@@ -1,8 +1,6 @@
 noinst_LTLIBRARIES = libdix.la
 
-AM_CFLAGS = $(DIX_CFLAGS) \
-	-DVENDOR_NAME=\""@VENDOR_NAME@"\" \
-	-DVENDOR_RELEASE="@VENDOR_RELEASE@"
+AM_CFLAGS = $(DIX_CFLAGS)
 
 libdix_la_SOURCES = 	\
 	atom.c		\
