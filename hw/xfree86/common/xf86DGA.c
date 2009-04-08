@@ -1088,7 +1088,6 @@ static void
 DGAProcessPointerEvent (ScreenPtr pScreen, DGAEvent *event, DeviceIntPtr mouse)
 {
     ButtonClassPtr  butc = mouse->button;
-    int		    coreEquiv;
     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
     DeviceEvent     ev;
 
@@ -1107,7 +1106,11 @@ DGAProcessPointerEvent (ScreenPtr pScreen, DGAEvent *event, DeviceIntPtr mouse)
     if (pScreenPriv->client)
     {
         dgaEvent        de;
-        de.u.u.type = *XDGAEventBase + GetCoreType((InternalEvent*)&ev);
+        int		coreEquiv;
+
+        coreEquiv = GetCoreType((InternalEvent*)&ev);
+
+        de.u.u.type = *XDGAEventBase + coreEquiv;
         de.u.u.detail = event->detail;
         de.u.event.time = event->time;
         de.u.event.dx = 0;
