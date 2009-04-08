@@ -950,7 +950,7 @@ acceleratePointerPredictable(
     int *px = NULL, *py = NULL;
     DeviceVelocityPtr velocitydata =
 	(DeviceVelocityPtr) pDev->valuator->accelScheme.accelData;
-    float fdx, fdy; /* no need to init */
+    float fdx, fdy, tmp; /* no need to init */
     Bool soften = TRUE;
 
     if (!num_valuators || !valuators || !velocitydata)
@@ -985,14 +985,14 @@ acceleratePointerPredictable(
 						       (mult > 1.0) && soften);
 
                 if (dx) {
-                    pDev->last.remainder[0] = roundf(mult * fdx + pDev->last.remainder[0]);
-                    *px = (int)pDev->last.remainder[0];
-                    pDev->last.remainder[0] = pDev->last.remainder[0] - (float)*px;
+                    tmp = mult * fdx + pDev->last.remainder[0];
+                    *px = (int)roundf(tmp);
+                    pDev->last.remainder[0] = tmp - (float)*px;
                 }
                 if (dy) {
-                    pDev->last.remainder[1] = roundf(mult * fdy + pDev->last.remainder[1]);
-                    *py = (int)pDev->last.remainder[1];
-                    pDev->last.remainder[1] = pDev->last.remainder[1] - (float)*py;
+                    tmp = mult * fdy + pDev->last.remainder[1];
+                    *py = (int)roundf(tmp);
+                    pDev->last.remainder[1] = tmp - (float)*py;
                 }
             }
         }
