@@ -1925,14 +1925,14 @@ ProcBell(ClientPtr client)
     else
 	newpercent = base - newpercent + stuff->percent;
 
-    for (keybd = inputInfo.devices; keybd; keybd = keybd->next) {
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
         if ((dev == keybd || (!dev->isMaster && dev->u.master == keybd)) &&
-            keybd->kbdfeed && keybd->kbdfeed->BellProc) {
+            dev->kbdfeed && dev->kbdfeed->BellProc) {
 
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixBellAccess);
 	    if (rc != Success)
 		return rc;
-            XkbHandleBell(FALSE, FALSE, keybd, newpercent,
+            XkbHandleBell(FALSE, FALSE, dev, newpercent,
                           &dev->kbdfeed->ctrl, 0, None, NULL, client);
         }
     }
