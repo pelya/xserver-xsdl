@@ -35,6 +35,8 @@ install-sh
 libtool
 ltmain.sh
 missing
+shave
+shave-libtool
 TAGS
 tags
 cscope*
