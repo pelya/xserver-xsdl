@@ -42,7 +42,6 @@ SProcXISelectEvent(ClientPtr client)
     char n;
     int i;
     xXIDeviceEventMask* evmask;
-    uint16_t *evtype;
 
     REQUEST(xXISelectEventsReq);
     swaps(&stuff->length, n);
@@ -55,7 +54,7 @@ SProcXISelectEvent(ClientPtr client)
     {
         swaps(&evmask->deviceid, n);
         swaps(&evmask->mask_len, n);
-        evmask = (xXIDeviceEventMask*)(((char*)evtype) + evmask->mask_len * 4);
+        evmask = (xXIDeviceEventMask*)(((char*)evmask) + evmask->mask_len * 4);
     }
 
     return (ProcXISelectEvent(client));
