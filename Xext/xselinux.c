@@ -1567,7 +1567,7 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
     CARD32 *buf;
 
     buf = xcalloc(size, sizeof(CARD32));
-    if (!buf) {
+    if (size && !buf) {
 	rc = BadAlloc;
 	goto out;
     }
@@ -1639,7 +1639,7 @@ ProcSELinuxListProperties(ClientPtr client)
     for (pProp = wUserProps(pWin); pProp; pProp = pProp->next)
 	count++;
     items = xcalloc(count, sizeof(SELinuxListItemRec));
-    if (!items)
+    if (count && !items)
 	return BadAlloc;
 
     /* Fill in the items and calculate size */
@@ -1673,7 +1673,7 @@ ProcSELinuxListSelections(ClientPtr client)
     for (pSel = CurrentSelections; pSel; pSel = pSel->next)
 	count++;
     items = xcalloc(count, sizeof(SELinuxListItemRec));
-    if (!items)
+    if (count && !items)
 	return BadAlloc;
 
     /* Fill in the items and calculate size */
