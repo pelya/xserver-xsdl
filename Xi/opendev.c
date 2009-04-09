@@ -97,7 +97,6 @@ ProcXOpenDevice(ClientPtr client)
     int status = Success;
     xOpenDeviceReply rep;
     DeviceIntPtr dev;
-    XIClientPtr pXIClient;
 
     REQUEST(xOpenDeviceReq);
     REQUEST_SIZE_MATCH(xOpenDeviceReq);
