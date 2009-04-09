@@ -82,7 +82,7 @@ typedef struct _miPointerScreenFuncRec {
                     );
     void	(*EnqueueEvent)(
                     DeviceIntPtr /* pDev */,
-                    xEventPtr /* event */
+                    InternalEvent* /* event */
                     );
     void	(*NewEventScreen)(
 		    DeviceIntPtr /* pDev */,
