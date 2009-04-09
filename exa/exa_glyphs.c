@@ -713,6 +713,7 @@ exaGlyphs (CARD8 	 op,
 
     if (maskFormat)
     {
+	ExaScreenPriv(pScreen);
 	GCPtr	    pGC;
 	xRectangle  rect;
 
@@ -739,10 +740,38 @@ exaGlyphs (CARD8 	 op,
 	pMask = CreatePicture (0, &pMaskPixmap->drawable,
 			       maskFormat, CPComponentAlpha, &component_alpha,
 			       serverClient, &error);
-	if (!pMask)
+	if (!pMask ||
+	    (!component_alpha && pExaScr->info->CheckComposite &&
+	     !(*pExaScr->info->CheckComposite) (PictOpAdd, pSrc, NULL, pMask)))
 	{
+	    PictFormatPtr argbFormat;
+
 	    (*pScreen->DestroyPixmap) (pMaskPixmap);
-	    return;
+
+	    if (!pMask)
+		return;
+
+	    /* The driver can't seem to composite to a8, let's try argb (but
+	     * without component-alpha) */
+	    FreePicture ((pointer) pMask, (XID) 0);
+
+	    argbFormat = PictureMatchFormat (pScreen, 32, PICT_a8r8g8b8);
+
+	    if (argbFormat)
+		maskFormat = argbFormat;
+	    
+	    pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
+						    maskFormat->depth,
+						    CREATE_PIXMAP_USAGE_SCRATCH);
+	    if (!pMaskPixmap)
+		return;
+
+	    pMask = CreatePicture (0, &pMaskPixmap->drawable, maskFormat, 0, 0,
+				   serverClient, &error);
+	    if (!pMask) {
+		(*pScreen->DestroyPixmap) (pMaskPixmap);
+		return;
+	    }
 	}
 	pGC = GetScratchGC (pMaskPixmap->drawable.depth, pScreen);
 	ValidateGC (&pMaskPixmap->drawable, pGC);
