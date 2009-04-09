@@ -50,6 +50,7 @@
 ** from the server's perspective.
 */
 __GLXcontext *__glXLastContext;
+__GLXcontext *__glXContextList;
 
 /*
 ** X resources.
@@ -111,31 +112,46 @@ static int ContextGone(__GLXcontext* cx, XID id)
     return True;
 }
 
+static __GLXcontext *glxPendingDestroyContexts;
+static __GLXcontext *glxAllContexts;
+static int glxServerLeaveCount;
+static int glxBlockClients;
+
 /*
 ** Destroy routine that gets called when a drawable is freed.  A drawable
 ** contains the ancillary buffers needed for rendering.
 */
 static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
 {
-    ScreenPtr pScreen = glxPriv->pDraw->pScreen;
+    __GLXcontext *c;
 
-    switch (glxPriv->type) {
-	case GLX_DRAWABLE_PIXMAP:
-	case GLX_DRAWABLE_PBUFFER:
-	    (*pScreen->DestroyPixmap)((PixmapPtr) glxPriv->pDraw);
-	    break;
+    for (c = glxAllContexts; c; c = c->next) {
+	if (c->drawPriv == glxPriv)
+	    c->drawPriv = NULL;
+	if (c->readPriv == glxPriv)
+	    c->readPriv = NULL;
     }
 
-    glxPriv->pDraw = NULL;
-    glxPriv->drawId = 0;
-    __glXUnrefDrawable(glxPriv);
+    glxPriv->destroy(glxPriv);
 
     return True;
 }
 
-static __GLXcontext *glxPendingDestroyContexts;
-static int glxServerLeaveCount;
-static int glxBlockClients;
+void __glXAddToContextList(__GLXcontext *cx)
+{
+    cx->next = glxAllContexts;
+    glxAllContexts = cx;
+}
+
+void __glXRemoveFromContextList(__GLXcontext *cx)
+{
+    __GLXcontext *c, **prev;
+
+    prev = &glxAllContexts;
+    for (c = glxAllContexts; c; c = c->next)
+	if (c == cx)
+	    *prev = c->next;
+}
 
 /*
 ** Free a context.
@@ -149,6 +165,8 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
     if (cx == __glXLastContext) {
 	__glXFlushContextCache();
     }
+
+    __glXRemoveFromContextList(cx);
 
     /* We can get here through both regular dispatching from
      * __glXDispatch() or as a callback from the resource manager.  In

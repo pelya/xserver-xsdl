@@ -193,17 +193,8 @@ validGlxDrawable(ClientPtr client, XID id, int type, int access_mode,
 void
 __glXContextDestroy(__GLXcontext *context)
 {
-    if (!context->isDirect) {
-	if (context->drawPriv)
-	    __glXUnrefDrawable(context->drawPriv);
-	if (context->readPriv)
-	    __glXUnrefDrawable(context->readPriv);
-	context->drawPriv = NULL;
-	context->readPriv = NULL;
-    }
     __glXFlushContextCache();
 }
-
 
 static void __glXdirectContextDestroy(__GLXcontext *context)
 {
@@ -319,6 +310,8 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     glxc->isCurrent = GL_FALSE;
     glxc->isDirect = isDirect;
     glxc->renderMode = GL_RENDER;
+
+    __glXAddToContextList(glxc);
 
     return Success;
 }
@@ -639,10 +632,6 @@ DoMakeCurrent(__GLXclientState *cl,
 	}
 	__glXFlushContextCache();
 	if (!prevglxc->isDirect) {
-	    if (prevglxc->drawPriv)
-		__glXUnrefDrawable(prevglxc->drawPriv);
-	    if (prevglxc->readPriv)
-		__glXUnrefDrawable(prevglxc->readPriv);
 	    prevglxc->drawPriv = NULL;
 	    prevglxc->readPriv = NULL;
 	}
@@ -662,8 +651,6 @@ DoMakeCurrent(__GLXclientState *cl,
 	}
 
 	glxc->isCurrent = GL_TRUE;
-	__glXRefDrawable(glxc->drawPriv);
-	__glXRefDrawable(glxc->readPriv);
     }
 
     if (prevglxc) {
@@ -1088,6 +1075,33 @@ int __glXDisp_GetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXGetFBConfigsSGIXReq *req = (xGLXGetFBConfigsSGIXReq *) pc;
     return DoGetFBConfigs(cl, req->screen);
+}
+
+GLboolean
+__glXDrawableInit(__GLXdrawable *drawable,
+		  __GLXscreen *screen, DrawablePtr pDraw, int type,
+		  XID drawId, __GLXconfig *config)
+{
+    drawable->pDraw = pDraw;
+    drawable->type = type;
+    drawable->drawId = drawId;
+    drawable->config = config;
+    drawable->eventMask = 0;
+
+    return GL_TRUE;
+}
+
+void
+__glXDrawableRelease(__GLXdrawable *drawable)
+{
+    ScreenPtr pScreen = drawable->pDraw->pScreen;
+
+    switch (drawable->type) {
+    case GLX_DRAWABLE_PIXMAP:
+    case GLX_DRAWABLE_PBUFFER:
+	(*pScreen->DestroyPixmap)((PixmapPtr) drawable->pDraw);
+	break;
+    }
 }
 
 static int 

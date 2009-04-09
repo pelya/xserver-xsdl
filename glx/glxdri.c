@@ -238,6 +238,8 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 	__glXleaveServer(GL_FALSE);
     }
 
+    __glXDrawableRelease(drawable);
+
     xfree(private);
 }
 
