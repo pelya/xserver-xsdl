@@ -235,11 +235,12 @@ XF86OptionPtr
 xf86optionListDup (XF86OptionPtr opt)
 {
 	XF86OptionPtr newopt = NULL;
+	char *val;
 
 	while (opt)
 	{
-		newopt = xf86addNewOption(newopt, strdup(opt->opt_name), 
-					  strdup(opt->opt_val));
+		val = opt->opt_val ? strdup(opt->opt_val) : NULL;
+		newopt = xf86addNewOption(newopt, strdup(opt->opt_name), val);
 		newopt->opt_used = opt->opt_used;
 		if (opt->opt_comment)
 			newopt->opt_comment = strdup(opt->opt_comment);
