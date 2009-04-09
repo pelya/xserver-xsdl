@@ -221,6 +221,13 @@ extern _X_EXPORT void mieqProcessInputEvents(
     void
 );
 
+extern void CopyGetMasterEvent(
+    DeviceIntPtr /* mdev */,
+    DeviceIntPtr /* sdev */,
+    InternalEvent* /* original */,
+    EventListPtr /* master */
+);
+
 /**
  * Custom input event handler. If you need to process input events in some
  * other way than the default path, register an input event handler for the
