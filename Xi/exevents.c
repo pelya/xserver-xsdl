@@ -1002,12 +1002,13 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
 
     if (grab)
-        DeliverGrabbedEvent(event, device, deactivateDeviceGrab);
+        DeliverGrabbedEvent((InternalEvent*)event, device, deactivateDeviceGrab);
     else if (device->focus && !IsPointerEvent((InternalEvent*)ev))
-	DeliverFocusedEvent(device, event, GetSpriteWindow(device));
+        DeliverFocusedEvent(device, (InternalEvent*)event,
+                            GetSpriteWindow(device));
     else
-	DeliverDeviceEvents(GetSpriteWindow(device), event, NullGrab,
-                            NullWindow, device);
+        DeliverDeviceEvents(GetSpriteWindow(device), (InternalEvent*)event,
+                            NullGrab, NullWindow, device);
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
