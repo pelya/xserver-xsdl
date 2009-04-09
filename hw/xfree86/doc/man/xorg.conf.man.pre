@@ -464,12 +464,11 @@ Default: off.
 .TP 7
 .BI "Option \*qDontZap\*q  \*q" boolean \*q
 This disallows the use of the
-.B Ctrl+Alt+Backspace
-sequence.
-That sequence is normally used to terminate the __xservername__ server.
-When this option is enabled (as per default), that key sequence has no
-special meaning.
-Default: on.
+.B Terminate_Server
+XKB action (usually on Ctrl+Alt+Backspace, depending on XKB options).
+This action is normally used to terminate the __xservername__ server.
+When this option is enabled, the action has no effect.
+Default: off.
 .TP 7
 .BI "Option \*qDontZoom\*q  \*q" boolean \*q
 This disallows the use of the
