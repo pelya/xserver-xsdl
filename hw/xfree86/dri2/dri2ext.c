@@ -202,6 +202,7 @@ ProcDRI2GetBuffers(ClientPtr client)
     int i, status, width, height, count;
     unsigned int *attachments;
     xDRI2Buffer buffer;
+    int skip;
 
     REQUEST_FIXED_SIZE(xDRI2GetBuffersReq, stuff->count * 4);
     if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
@@ -211,15 +212,34 @@ ProcDRI2GetBuffers(ClientPtr client)
     buffers = DRI2GetBuffers(pDrawable, &width, &height,
 			     attachments, stuff->count, &count);
 
+    skip = 0;
+    if (pDrawable->type == DRAWABLE_WINDOW) {
+	for (i = 0; i < count; i++) {
+	    /* Do not send the real front buffer of a window to the client.
+	     */
+	    if (buffers[i].attachment == DRI2BufferFrontLeft) {
+		skip++;
+		continue;
+	    }
+	}
+    }
+
     rep.type = X_Reply;
-    rep.length = count * sizeof(xDRI2Buffer) / 4;
+    rep.length = (count - skip) * sizeof(xDRI2Buffer) / 4;
     rep.sequenceNumber = client->sequence;
     rep.width = width;
     rep.height = height;
-    rep.count = count;
+    rep.count = count - skip;
     WriteToClient(client, sizeof(xDRI2GetBuffersReply), &rep);
 
     for (i = 0; i < count; i++) {
+	/* Do not send the real front buffer of a window to the client.
+	 */
+	if ((pDrawable->type == DRAWABLE_WINDOW)
+	    && (buffers[i].attachment == DRI2BufferFrontLeft)) {
+	    continue;
+	}
+
 	buffer.attachment = buffers[i].attachment;
 	buffer.name = buffers[i].name;
 	buffer.pitch = buffers[i].pitch;
