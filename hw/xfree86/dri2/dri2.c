@@ -141,6 +141,7 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     DRI2BufferPtr   buffers;
     unsigned int temp_buf[32];
     unsigned int *temp = temp_buf;
+    int have_fake_front = 0;
 
 
     /* If the drawable is a window and the front-buffer is requested, silently
@@ -163,6 +164,7 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
 
 	    if (attachments[i] == DRI2BufferFakeFrontLeft) {
 		need_fake_front--;
+		have_fake_front = 1;
 	    }
 
 	    temp[i] = attachments[i];
@@ -171,6 +173,7 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
 	if (need_fake_front > 0) {
 	    temp[i] = DRI2BufferFakeFrontLeft;
 	    count++;
+	    have_fake_front = 1;
 	    attachments = temp;
 	}
     }
@@ -194,6 +197,25 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     *width = pPriv->width;
     *height = pPriv->height;
     *out_count = pPriv->bufferCount;
+
+
+    /* If the client is getting a fake front-buffer, pre-fill it with the
+     * contents of the real front-buffer.  This ensures correct operation of
+     * applications that call glXWaitX before calling glDrawBuffer.
+     */
+    if (have_fake_front) {
+	BoxRec box;
+	RegionRec region;
+
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = pPriv->width;
+	box.y2 = pPriv->height;
+	REGION_INIT(pDraw->pScreen, &region, &box, 0);
+
+	DRI2CopyRegion(pDraw, &region, DRI2BufferFakeFrontLeft,
+		       DRI2BufferFrontLeft);
+    }
 
     return pPriv->buffers;
 }
