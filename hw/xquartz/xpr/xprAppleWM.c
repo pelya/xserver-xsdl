@@ -38,6 +38,7 @@
 
 #include "applewmExt.h"
 #include "rootless.h"
+#include "rootlessCommon.h"
 #include <Xplugin.h>
 #include <X11/X.h>
 #include "quartz.h"
@@ -49,13 +50,24 @@ static int xprSetWindowLevel(
 {
     xp_window_id wid;
     xp_window_changes wc;
+    RootlessWindowRec *winRec;
 
+    // AppleWMNumWindowLevels is allowed, but is only set by the server
+    // for the root window.
+    if (level < 0 || level >= AppleWMNumWindowLevels) {
+        return BadValue;
+    }
+    
     wid = x_cvt_vptr_to_uint(RootlessFrameForWindow (pWin, TRUE));
     if (wid == 0)
         return BadWindow;
 
     RootlessStopDrawing (pWin, FALSE);
-
+    winRec = WINREC(pWin);
+ 
+    if(!winRec)
+        return BadWindow;
+    
     if(quartzEnableRootless)
         wc.window_level = normal_window_levels[level];
     else
@@ -64,6 +76,8 @@ static int xprSetWindowLevel(
     if (xp_configure_window (wid, XP_WINDOW_LEVEL, &wc) != Success) {
         return BadValue;
     }
+
+    winRec->level = level;
 
     return Success;
 }
