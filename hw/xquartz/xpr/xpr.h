@@ -47,8 +47,10 @@ Bool QuartzInitCursor(ScreenPtr pScreen);
 void QuartzSuspendXCursor(ScreenPtr pScreen);
 void QuartzResumeXCursor(ScreenPtr pScreen, int x, int y);
 
-/* This lookup table came straight from the Tiger X11 source.  I tried to figure
- * it out based on CGWindowLevel.h, but I dunno... -JH
+/* If we are rooted, we need the root window and desktop levels to be below
+ * the menubar (24) but above native windows.  Normal window level is 0.
+ * Floating window level is 3.  The rest are filled in as appropriate.
+ * See CGWindowLevel.h
  */
 
 #define _APPLEWM_SERVER_
@@ -57,7 +59,7 @@ static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
 0, 3, 4, 5, INT_MIN + 30, INT_MIN + 29,
 };
 static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
-202, 203, 204, 205, 201, 200
+20, 21, 22, 23, 19, 18,
 };
 
 #endif /* XPR_H */
