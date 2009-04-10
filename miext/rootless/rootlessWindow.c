@@ -48,8 +48,6 @@ extern int darwinMainScreenX, darwinMainScreenY;
 #endif
 #include "fb.h"
 
-#define AppleWMNumWindowLevels 5
-
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
 
@@ -104,12 +102,6 @@ current_time_in_seconds (void)
 
   return t;
   } */
-
-static inline Bool
-rootlessHasRoot (ScreenPtr pScreen)
-{
-  return WINREC (WindowTable[pScreen->myNum]) != NULL;
-}
 
 void
 RootlessNativeWindowStateChanged (WindowPtr pWin, unsigned int state)

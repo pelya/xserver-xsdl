@@ -42,6 +42,7 @@
 #include "dix.h"
 #include <X11/Xatom.h>
 #include "windowstr.h"
+#include "quartz.h"
 
 #include "threadSafety.h"
 
@@ -160,6 +161,12 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
         wc.shape_tx = wc.shape_ty = 0;
         mask |= XP_SHAPE;
     }
+
+    if(quartzEnableRootless)
+        wc.window_level = normal_window_levels[!IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels];
+    else
+        wc.window_level = rooted_window_levels[!IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels];
+    mask |= XP_WINDOW_LEVEL;
 
     err = xp_create_window(mask, &wc, (xp_window_id *) &pFrame->wid);
 

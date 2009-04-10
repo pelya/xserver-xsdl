@@ -47,4 +47,17 @@ Bool QuartzInitCursor(ScreenPtr pScreen);
 void QuartzSuspendXCursor(ScreenPtr pScreen);
 void QuartzResumeXCursor(ScreenPtr pScreen, int x, int y);
 
+/* This lookup table came straight from the Tiger X11 source.  I tried to figure
+ * it out based on CGWindowLevel.h, but I dunno... -JH
+ */
+
+#define _APPLEWM_SERVER_
+#include <X11/extensions/applewm.h>
+static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
+0, 3, 4, 5, INT_MIN + 30, INT_MIN + 29,
+};
+static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
+202, 203, 204, 205, 201, 200
+};
+
 #endif /* XPR_H */
