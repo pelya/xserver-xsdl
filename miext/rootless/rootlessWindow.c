@@ -478,6 +478,7 @@ RootlessEnsureFrame(WindowPtr pWin)
     winRec->is_reorder_pending = FALSE;
     winRec->pixmap = NULL;
     winRec->wid = NULL;
+    winRec->level = 0;
 
     SETWINREC(pWin, winRec);
 

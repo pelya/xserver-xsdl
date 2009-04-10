@@ -162,10 +162,12 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
         mask |= XP_SHAPE;
     }
 
+    pFrame->level = !IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels;
+
     if(quartzEnableRootless)
-        wc.window_level = normal_window_levels[!IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels];
+        wc.window_level = normal_window_levels[pFrame->level];
     else
-        wc.window_level = rooted_window_levels[!IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels];
+        wc.window_level = rooted_window_levels[pFrame->level];
     mask |= XP_WINDOW_LEVEL;
 
     err = xp_create_window(mask, &wc, (xp_window_id *) &pFrame->wid);
@@ -252,28 +254,36 @@ xprResizeFrame(RootlessFrameID wid, ScreenPtr pScreen,
 /*
  * Change frame stacking.
  */
-static void
-xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid)
-{
+static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
     xp_window_changes wc;
+    unsigned int mask = XP_STACKING;
 
     TA_SERVER();
     
-   /* Stack frame below nextWid it if it exists, or raise
+    /* Stack frame below nextWid it if it exists, or raise
        frame above everything otherwise. */
 
-    if (nextWid == NULL)
-    {
+    if(nextWid == NULL) {
         wc.stack_mode = XP_MAPPED_ABOVE;
         wc.sibling = 0;
-    }
-    else
-    {
+    } else {
         wc.stack_mode = XP_MAPPED_BELOW;
         wc.sibling = x_cvt_vptr_to_uint(nextWid);
     }
 
-    xprConfigureWindow(x_cvt_vptr_to_uint(wid), XP_STACKING, &wc);
+    if(window_hash) {
+        RootlessWindowRec *winRec = x_hash_table_lookup(window_hash, x_cvt_uint_to_vptr((xp_window_id)wid), NULL);
+
+        if(winRec) {
+            if(quartzEnableRootless)
+                wc.window_level = normal_window_levels[winRec->level];
+            else
+                wc.window_level = rooted_window_levels[winRec->level];
+            mask |= XP_WINDOW_LEVEL;
+        }
+    }
+
+    xprConfigureWindow(x_cvt_vptr_to_uint(wid), mask, &wc);
 }
 
 
