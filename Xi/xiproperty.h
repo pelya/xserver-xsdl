@@ -23,8 +23,8 @@
  * Author: Peter Hutterer
  */
 
-#ifndef XIPROPERTY_C
-#define XIPROPERTY_C
+#ifndef XIPROPERTY_H
+#define XIPROPERTY_H
 
 int ProcXListDeviceProperties     (ClientPtr client);
 int ProcXChangeDeviceProperty     (ClientPtr client);
@@ -43,4 +43,4 @@ void SRepXListDeviceProperties(ClientPtr client, int size,
 void SRepXGetDeviceProperty(ClientPtr client, int size,
                             xGetDevicePropertyReply *rep);
 
-#endif /* XIPROPERTY_C */
+#endif /* XIPROPERTY_H */
