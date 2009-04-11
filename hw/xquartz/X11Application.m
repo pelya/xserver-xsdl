@@ -65,7 +65,6 @@ extern BOOL xpbproxy_init (void);
 
 /* Stuck modifier / button state... force release when we context switch */
 static NSEventType keyState[NUM_KEYCODES];
-static int modifierFlagsMask;
 
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -207,7 +206,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
         }
     } else {
 
-        if(darwin_modifier_flags)
+        if(darwin_all_modifier_flags)
             DarwinUpdateModKeys(0);
         for(i=0; i < NUM_KEYCODES; i++) {
             if(keyState[i] == NSKeyDown) {
@@ -880,7 +879,6 @@ environment the next time you start X11?", @"Startup xinitrc dialog");
 
 void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool;
-    int *p;
 
 #ifdef DEBUG
     while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
@@ -925,10 +923,6 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
         fprintf(stderr, "X11ApplicationMain: Could not build a valid keymap.\n");
     }
 
-    for(p=darwin_modifier_mask_list, modifierFlagsMask=0; *p; p++) {
-        modifierFlagsMask |= *p;
-    }
-    
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
     
@@ -1005,14 +999,14 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     modifierFlags = ensure_flag(modifierFlags, NX_ALTERNATEMASK, NX_DEVICELALTKEYMASK   | NX_DEVICERALTKEYMASK,     NX_DEVICELALTKEYMASK);
 #endif
 
-    modifierFlags &= modifierFlagsMask;
+    modifierFlags &= darwin_all_modifier_mask;
 
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state
      * on every event... ugg
      */
     
-    if(darwin_modifier_flags != modifierFlags)
+    if(darwin_all_modifier_flags != modifierFlags)
         DarwinUpdateModKeys(modifierFlags);
     
 	switch ([e type]) {

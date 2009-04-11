@@ -74,7 +74,9 @@ in this Software without prior written authorization from The Open Group.
 /* FIXME: Abstract this better */
 void QuartzModeEQInit(void);
 
-int darwin_modifier_flags = 0;  // last known modifier state
+int darwin_all_modifier_flags = 0;  // last known modifier state
+int darwin_all_modifier_mask = 0;
+int darwin_x11_modifier_mask = 0;
 
 #define FD_ADD_MAX 128
 static int fd_add[FD_ADD_MAX];
@@ -145,7 +147,7 @@ static void DarwinPressModifierKey(int pressed, int key) {
  *  Send events to update the modifier state.
  */
 
-int darwin_modifier_mask_list[] = {
+static int darwin_x11_modifier_mask_list[] = {
 #ifdef NX_DEVICELCMDKEYMASK
     NX_DEVICELCTLKEYMASK, NX_DEVICERCTLKEYMASK,
     NX_DEVICELSHIFTKEYMASK, NX_DEVICERSHIFTKEYMASK,
@@ -154,9 +156,11 @@ int darwin_modifier_mask_list[] = {
 #else
     NX_CONTROLMASK, NX_SHIFTMASK, NX_COMMANDMASK, NX_ALTERNATEMASK,
 #endif
-    NX_ALPHASHIFTMASK, NX_SECONDARYFNMASK
+    NX_ALPHASHIFTMASK,
     0
 };
+
+static int darwin_all_modifier_mask_additions[] = { NX_SECONDARYFNMASK, };
 
 static void DarwinUpdateModifiers(
     int pressed,        // KeyPress or KeyRelease
@@ -173,11 +177,8 @@ static void DarwinUpdateModifiers(
         DarwinPressModifierKey(KeyRelease, NX_MODIFIERKEY_ALPHALOCK);
     }
     
-    for(f=darwin_modifier_mask_list; *f; f++)
-        /* NX_ALPHASHIFTMASK is handled above and NX_SECONDARYFNMASK is not
-         * mapped to a key (it is just useful for 3button mouse simulation
-         */
-        if(*f & flags && *f != NX_ALPHASHIFTMASK && *f != NX_SECONDARYFNMASK) {
+    for(f=darwin_x11_modifier_mask_list; *f; f++)
+        if(*f & flags && *f != NX_ALPHASHIFTMASK) {
             key = DarwinModifierNXMaskToNXKey(*f);
             if(key == -1)
                 ErrorF("DarwinUpdateModifiers: Unsupported NXMask: 0x%x\n", *f);
@@ -309,6 +310,16 @@ static void kXquartzListenOnOpenFDHandler(int screenNum, xEventPtr xe, DeviceInt
 }
 
 Bool DarwinEQInit(void) { 
+    int *p;
+
+    for(p=darwin_x11_modifier_mask_list, darwin_all_modifier_mask=0; *p; p++) {
+        darwin_x11_modifier_mask |= *p;
+    }
+    
+    for(p=darwin_all_modifier_mask_additions, darwin_all_modifier_mask= darwin_x11_modifier_mask; *p; p++) {
+        darwin_all_modifier_mask |= *p;
+    }
+    
     mieqInit();
     mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
@@ -437,14 +448,14 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
             DarwinSendPointerEvents(pDev, ButtonRelease, darwinFakeMouseButtonDown, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
             darwinFakeMouseButtonDown=0;
         }
-		if (darwin_modifier_flags & darwinFakeMouse2Mask) {
+		if (darwin_all_modifier_flags & darwinFakeMouse2Mask) {
             ev_button = 2;
 			darwinFakeMouseButtonDown = 2;
-            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse2Mask);
-		} else if (darwin_modifier_flags & darwinFakeMouse3Mask) {
+            DarwinUpdateModKeys(darwin_all_modifier_flags & ~darwinFakeMouse2Mask);
+		} else if (darwin_all_modifier_flags & darwinFakeMouse3Mask) {
             ev_button = 3;
 			darwinFakeMouseButtonDown = 3;
-            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse3Mask);
+            DarwinUpdateModKeys(darwin_all_modifier_flags & ~darwinFakeMouse3Mask);
 		}
 	}
 
@@ -454,9 +465,9 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
         }
 
         if(darwinFakeMouseButtonDown == 2) {
-            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse2Mask);
+            DarwinUpdateModKeys(darwin_all_modifier_flags & ~darwinFakeMouse2Mask);
         } else if(darwinFakeMouseButtonDown == 3) {
-            DarwinUpdateModKeys(darwin_modifier_flags & ~darwinFakeMouse3Mask);
+            DarwinUpdateModKeys(darwin_all_modifier_flags & ~darwinFakeMouse3Mask);
         }
 
         darwinFakeMouseButtonDown = 0;
@@ -546,9 +557,9 @@ void DarwinSendScrollEvents(float count_x, float count_y,
 /* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
    reflect changing modifier flags (alt, control, meta, etc) */
 void DarwinUpdateModKeys(int flags) {
-	DarwinUpdateModifiers(KeyRelease, darwin_modifier_flags & ~flags);
-	DarwinUpdateModifiers(KeyPress, ~darwin_modifier_flags & flags);
-	darwin_modifier_flags = flags;
+	DarwinUpdateModifiers(KeyRelease, darwin_all_modifier_flags & ~flags & darwin_x11_modifier_mask);
+	DarwinUpdateModifiers(KeyPress, ~darwin_all_modifier_flags & flags & darwin_x11_modifier_mask);
+	darwin_all_modifier_flags = flags;
 }
 
 /*
