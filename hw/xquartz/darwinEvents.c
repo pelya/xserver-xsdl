@@ -154,7 +154,7 @@ int darwin_modifier_mask_list[] = {
 #else
     NX_CONTROLMASK, NX_SHIFTMASK, NX_COMMANDMASK, NX_ALTERNATEMASK,
 #endif
-    NX_ALPHASHIFTMASK,
+    NX_ALPHASHIFTMASK, NX_SECONDARYFNMASK
     0
 };
 
@@ -174,7 +174,10 @@ static void DarwinUpdateModifiers(
     }
     
     for(f=darwin_modifier_mask_list; *f; f++)
-        if(*f & flags && *f != NX_ALPHASHIFTMASK) {
+        /* NX_ALPHASHIFTMASK is handled above and NX_SECONDARYFNMASK is not
+         * mapped to a key (it is just useful for 3button mouse simulation
+         */
+        if(*f & flags && *f != NX_ALPHASHIFTMASK && *f != NX_SECONDARYFNMASK) {
             key = DarwinModifierNXMaskToNXKey(*f);
             if(key == -1)
                 ErrorF("DarwinUpdateModifiers: Unsupported NXMask: 0x%x\n", *f);
