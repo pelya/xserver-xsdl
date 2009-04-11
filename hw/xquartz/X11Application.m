@@ -44,6 +44,7 @@
 #define _APPLEWM_SERVER_
 #include "X11/extensions/applewm.h"
 #include "micmap.h"
+#include "exglobals.h"
 
 #include <mach/mach.h>
 #include <unistd.h>
@@ -59,9 +60,6 @@ extern BOOL xpbproxy_init (void);
 #ifndef XSERVER_VERSION
 #define XSERVER_VERSION "?"
 #endif
-
-#define ProximityIn    0
-#define ProximityOut   1
 
 /* Stuck modifier / button state... force release when we context switch */
 static NSEventType keyState[NUM_KEYCODES];
