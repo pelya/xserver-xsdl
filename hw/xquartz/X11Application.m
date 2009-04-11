@@ -83,6 +83,7 @@ extern int darwinFakeButtons;
  * location when we become the foreground application
  */
 static NSPoint bgMouseLocation;
+static BOOL bgMouseLocationUpdated = FALSE;
 
 X11Application *X11App;
 
@@ -192,7 +193,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-        DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
+        if(bgMouseLocationUpdated)
+            DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
         DarwinSendDDXEvent(kXquartzActivate, 0);
 
         if (!_x_active) {
@@ -1087,9 +1089,11 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 #endif
                     {
                         bgMouseLocation = location;
+                        bgMouseLocationUpdated = TRUE;
                         return;
                     }
                 } else {
+                    bgMouseLocationUpdated = FALSE;
                     DarwinSendPointerEvents(pDev, MotionNotify, 0, location.x,
                                             location.y, pressure, tilt.x, tilt.y);
                 }
