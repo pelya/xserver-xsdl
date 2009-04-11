@@ -1067,12 +1067,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 
             if(!quartzServerVisible && noTestExtensions) {
                 if(ev_button == 0) {
-#if 0
-/* Seems this has somehow triggered 100% CPU usage while X11.app is in the
- * background on some obscure HW configurations.
- * http://xquartz.macosforge.org/trac/ticket/241
- */
-//#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
+#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
                     xp_window_id wid = 0;
                     xp_error e;
@@ -1124,8 +1119,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             break;
             
 		case NSScrollWheel:
-//#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
-#if 1 /* Strange 100% CPU issue, so always enabling.  see above */
+#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
             /* If we're in the background, we need to send a MotionNotify event
              * first, since we aren't getting them on background mouse motion
              */
