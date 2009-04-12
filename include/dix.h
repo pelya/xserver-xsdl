@@ -434,7 +434,7 @@ extern int GrabDevice(
     unsigned /* ownerEvents */,
     Time /* ctime */,
     Mask /* mask */,
-    Bool /* coreGrab */,
+    int /* grabtype */,
     Cursor /* curs */,
     Window /* confineToWin */,
     CARD8 * /* status */);

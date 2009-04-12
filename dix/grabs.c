@@ -76,6 +76,7 @@ CreateGrab(
     DeviceIntPtr modDevice,
     unsigned short modifiers,
     int type,
+    int grabtype,
     KeyCode keybut,	/* key or button */
     WindowPtr confineTo,
     CursorPtr cursor)
@@ -87,7 +88,6 @@ CreateGrab(
 	return (GrabPtr)NULL;
     grab->resource = FakeClientID(client);
     grab->device = device;
-    grab->coreGrab = (type < LASTEvent);
     grab->window = window;
     grab->eventMask = eventMask;
     grab->deviceMask = 0;
@@ -98,6 +98,7 @@ CreateGrab(
     grab->modifiersDetail.pMask = NULL;
     grab->modifierDevice = modDevice;
     grab->type = type;
+    grab->grabtype = grabtype;
     grab->detail.exact = keybut;
     grab->detail.pMask = NULL;
     grab->confineTo = confineTo;
@@ -411,7 +412,8 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	 grab = grab->next)
     {
 	if ((CLIENT_BITS(grab->resource) != CLIENT_BITS(pMinuendGrab->resource)) ||
-	    !GrabMatchesSecond(grab, pMinuendGrab, (grab->coreGrab)))
+	    !GrabMatchesSecond(grab, pMinuendGrab,
+                               (grab->grabtype == GRABTYPE_CORE)))
 	    continue;
 	if (GrabSupersedesSecond(pMinuendGrab, grab))
 	{
@@ -442,6 +444,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 				  (Bool)grab->pointerMode,
 				  grab->modifierDevice,
 				  AnyModifier, (int)grab->type,
+                                  grab->grabtype,
 				  pMinuendGrab->detail.exact,
 				  grab->confineTo, grab->cursor);
 	    if (!pNewGrab)

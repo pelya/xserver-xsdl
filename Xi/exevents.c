@@ -1415,7 +1415,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     grab = CreateGrab(client->index, dev, pWin, eventMask,
 		      (Bool) ownerEvents, (Bool) this_device_mode,
 		      (Bool) other_devices_mode, modifier_device, modifiers,
-		      DeviceButtonPress, button, confineTo, cursor);
+		      DeviceButtonPress, GRABTYPE_XI, button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);
@@ -1470,8 +1470,8 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 
     grab = CreateGrab(client->index, dev, pWin,
 		      mask, ownerEvents, this_device_mode, other_devices_mode,
-		      modifier_device, modifiers, DeviceKeyPress, key,
-		      NullWindow, NullCursor);
+		      modifier_device, modifiers, DeviceKeyPress, GRABTYPE_XI,
+		      key, NullWindow, NullCursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);

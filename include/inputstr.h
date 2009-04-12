@@ -150,6 +150,12 @@ typedef struct _DetailRec {		/* Grab details may be bit masks */
     Mask                *pMask;
 } DetailRec;
 
+typedef enum {
+    GRABTYPE_CORE,
+    GRABTYPE_XI,
+    GRABTYPE_XI2
+} GrabType;
+
 /**
  * Central struct for device grabs. 
  * The same struct is used for both core grabs and device grabs, with
@@ -171,7 +177,7 @@ typedef struct _GrabRec {
     unsigned		ownerEvents:1;
     unsigned		keyboardMode:1;
     unsigned		pointerMode:1;
-    unsigned		coreGrab:1;	/* grab is on core device */
+    GrabType		grabtype;
     CARD8		type;		/* event type */
     DetailRec		modifiersDetail;
     DeviceIntPtr	modifierDevice;

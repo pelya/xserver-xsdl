@@ -2057,7 +2057,12 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
-        tempGrab.coreGrab = (type == ButtonPress);
+        if (type == ButtonPress)
+            tempGrab.grabtype = GRABTYPE_CORE;
+        else if (type == DeviceButtonPress)
+            tempGrab.grabtype = GRABTYPE_XI;
+        else
+            tempGrab.grabtype = GRABTYPE_XI2;
 
         /* get the XI and XI2 device mask */
         inputMasks = wOtherInputMasks(pWin);
@@ -3298,7 +3303,7 @@ CheckPassiveGrabsOnWindow(
 	XkbSrvInfoPtr	xkbi = NULL;
 
 	gdev= grab->modifierDevice;
-        if (grab->coreGrab)
+        if (grab->grabtype == GRABTYPE_CORE)
         {
             if (IsPointerDevice(device))
                 gdev = GetPairedDevice(device);
@@ -3351,14 +3356,14 @@ CheckPassiveGrabsOnWindow(
              * device.
              */
 
-            if (grab->coreGrab)
+            if (grab->grabtype == GRABTYPE_CORE)
             {
                 DeviceIntPtr other;
                 BOOL interfering = FALSE;
                 for (other = inputInfo.devices; other; other = other->next)
                 {
                     GrabPtr othergrab = other->deviceGrab.grab;
-                    if (othergrab && othergrab->coreGrab &&
+                    if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
                         SameClient(grab, rClient(othergrab)) &&
                         ((IsPointerDevice(grab->device) &&
                          IsPointerDevice(othergrab->device)) ||
@@ -3679,7 +3684,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 
         sendCore = (thisDev->isMaster && thisDev->coreEvents);
         /* try core event */
-        if (sendCore && grab->coreGrab)
+        if (sendCore && grab->grabtype == GRABTYPE_CORE)
         {
             xEvent core;
 
@@ -4428,7 +4433,7 @@ ProcGrabPointer(ClientPtr client)
 
     rc = GrabDevice(client, device, stuff->pointerMode, stuff->keyboardMode,
                     stuff->grabWindow, stuff->ownerEvents, stuff->time,
-                    stuff->eventMask, TRUE, stuff->cursor,
+                    stuff->eventMask, GRABTYPE_CORE, stuff->cursor,
                     stuff->confineTo, &rep.status);
     if (rc != Success)
         return rc;
@@ -4547,7 +4552,7 @@ int
 GrabDevice(ClientPtr client, DeviceIntPtr dev,
            unsigned pointer_mode, unsigned keyboard_mode, Window grabWindow,
            unsigned ownerEvents, Time ctime, Mask mask,
-           Bool coreGrab, Cursor curs, Window confineToWin, CARD8 *status)
+           int grabtype, Cursor curs, Window confineToWin, CARD8 *status)
 {
     WindowPtr pWin, confineTo;
     GrabPtr grab;
@@ -4610,6 +4615,8 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 
     time = ClientTimeToServerTime(ctime);
     grab = grabInfo->grab;
+    if (grab && grab->grabtype != grabtype)
+        *status = AlreadyGrabbed;
     if (grab && !SameClient(grab, client))
 	*status = AlreadyGrabbed;
     else if ((!pWin->realized) ||
@@ -4640,7 +4647,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.device = dev;
 	tempGrab.cursor = cursor;
 	tempGrab.confineTo = confineTo;
-	tempGrab.coreGrab = coreGrab;
+	tempGrab.grabtype = grabtype;
 	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
 	*status = GrabSuccess;
     }
@@ -4665,7 +4672,7 @@ ProcGrabKeyboard(ClientPtr client)
     memset(&rep, 0, sizeof(xGrabKeyboardReply));
     result = GrabDevice(client, keyboard, stuff->pointerMode,
             stuff->keyboardMode, stuff->grabWindow, stuff->ownerEvents,
-            stuff->time, KeyPressMask | KeyReleaseMask, TRUE, None, None,
+            stuff->time, KeyPressMask | KeyReleaseMask, GRABTYPE_CORE, None, None,
             &rep.status);
 
     if (result != Success)
@@ -4698,7 +4705,7 @@ ProcUngrabKeyboard(ClientPtr client)
     time = ClientTimeToServerTime(stuff->id);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
 	(CompareTimeStamps(time, device->deviceGrab.grabTime) != EARLIER) &&
-	(grab) && SameClient(grab, client) && grab->coreGrab)
+	(grab) && SameClient(grab, client) && grab->grabtype == GRABTYPE_CORE)
 	(*device->deviceGrab.DeactivateGrab)(device);
     return Success;
 }
@@ -5038,7 +5045,7 @@ ProcGrabKey(ClientPtr client)
     grab = CreateGrab(client->index, keybd, pWin,
 	(Mask)(KeyPressMask | KeyReleaseMask), (Bool)stuff->ownerEvents,
 	(Bool)stuff->keyboardMode, (Bool)stuff->pointerMode,
-	keybd, stuff->modifiers, KeyPress, stuff->key,
+	keybd, stuff->modifiers, KeyPress, GRABTYPE_CORE, stuff->key,
 	NullWindow, NullCursor);
     if (!grab)
 	return BadAlloc;
@@ -5130,7 +5137,7 @@ ProcGrabButton(ClientPtr client)
     grab = CreateGrab(client->index, ptr, pWin,
         (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,
         (Bool) stuff->keyboardMode, (Bool)stuff->pointerMode,
-        modifierDevice, stuff->modifiers, ButtonPress,
+        modifierDevice, stuff->modifiers, ButtonPress, GRABTYPE_CORE,
         stuff->button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
@@ -5564,7 +5571,7 @@ PickPointer(ClientPtr client)
     for(it = inputInfo.devices; it; it = it->next)
     {
         GrabPtr grab = it->deviceGrab.grab;
-        if (grab && grab->coreGrab && SameClient(grab, client))
+        if (grab && grab->grabtype == GRABTYPE_CORE && SameClient(grab, client))
         {
             if (!IsPointerDevice(it))
                 it = GetPairedDevice(it);

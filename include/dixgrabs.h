@@ -37,6 +37,7 @@ extern _X_EXPORT GrabPtr CreateGrab(
 	DeviceIntPtr /* modDevice */,
 	unsigned short /* modifiers */,
 	int /* type */,
+	int /* grabtype */,
 	KeyCode /* keybut */,
 	WindowPtr /* confineTo */,
 	CursorPtr /* cursor */);
