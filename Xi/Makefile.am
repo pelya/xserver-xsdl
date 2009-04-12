@@ -92,6 +92,8 @@ libXi_la_SOURCES =	\
 	ungrdevk.h \
 	warpdevp.c \
 	warpdevp.h \
+	xigrabdev.c \
+	xigrabdev.h \
 	xiproperty.c \
 	xiproperty.h \
 	xiselectev.c \
