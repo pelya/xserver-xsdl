@@ -63,7 +63,8 @@ ProcXIGrabDevice(ClientPtr client)
     DeviceIntPtr dev;
     xXIGrabDeviceReply rep;
     int ret = Success;
-    int status;
+    uint8_t status;
+    GrabMask mask;
 
     REQUEST(xXIGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIGetDeviceFocusReq);
@@ -75,14 +76,17 @@ ProcXIGrabDevice(ClientPtr client)
     if (!dev->isMaster)
         stuff->paired_device_mode = GrabModeAsync;
 
+    memset(mask.xi2mask, 0, sizeof(mask.xi2mask));
+    memcpy(mask.xi2mask, (char*)&stuff[1], stuff->mask_len * 4);
+
     ret = GrabDevice(client, dev, stuff->grab_mode,
                      stuff->paired_device_mode,
                      stuff->grab_window,
                      stuff->owner_events,
                      stuff->time,
-                     0 /* mask */,
+                     &mask,
                      GRABTYPE_XI2,
-                     None /* cursor */,
+                     stuff->cursor,
                      None /* confineTo */,
                      &status);
 
@@ -100,3 +104,50 @@ ProcXIGrabDevice(ClientPtr client)
     return ret;
 }
 
+int
+SProcXIUngrabDevice(ClientPtr client)
+{
+    char n;
+
+    REQUEST(xXIUngrabDeviceReq);
+
+    swaps(&stuff->length, n);
+    swaps(&stuff->deviceid, n);
+    swapl(&stuff->time, n);
+
+    return ProcXIUngrabDevice(client);
+}
+
+int
+ProcXIUngrabDevice(ClientPtr client)
+{
+    DeviceIntPtr dev;
+    GrabPtr grab;
+    int ret = Success;
+    TimeStamp time;
+
+    REQUEST(xXIUngrabDeviceReq);
+
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
+    if (ret != Success)
+	return ret;
+
+    grab = dev->deviceGrab.grab;
+
+    time = ClientTimeToServerTime(stuff->time);
+    if ((CompareTimeStamps(time, currentTime) != LATER) &&
+	(CompareTimeStamps(time, dev->deviceGrab.grabTime) != EARLIER) &&
+	(grab) && SameClient(grab, client) && grab->grabtype == GRABTYPE_XI2)
+	(*dev->deviceGrab.DeactivateGrab) (dev);
+
+    return Success;
+}
+
+void SRepXIGrabDevice(ClientPtr client, int size, xXIGrabDeviceReply * rep)
+{
+    char n;
+
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    WriteToClient(client, size, (char *)rep);
+}

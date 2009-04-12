@@ -120,6 +120,7 @@ SOFTWARE.
 #include "ungrdevk.h"
 #include "warpdevp.h"
 #include "xiselectev.h"
+#include "xigrabdev.h"
 #include "xisetdevfocus.h"
 #include "xiproperty.h"
 
@@ -242,7 +243,9 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXIQueryVersion,                     /* 47 */
         ProcXIQueryDevice,                      /* 48 */
         ProcXISetDeviceFocus,                   /* 49 */
-        ProcXIGetDeviceFocus                    /* 50 */
+        ProcXIGetDeviceFocus,                   /* 50 */
+        ProcXIGrabDevice,                       /* 51 */
+        ProcXIUngrabDevice                      /* 52 */
 };
 
 /* For swapped clients */
@@ -297,7 +300,9 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXIQueryVersion,                     /* 47 */
         SProcXIQueryDevice,                      /* 48 */
         SProcXISetDeviceFocus,                   /* 49 */
-        SProcXIGetDeviceFocus                    /* 50 */
+        SProcXIGetDeviceFocus,                   /* 50 */
+        SProcXIGrabDevice,                       /* 51 */
+        SProcXIUngrabDevice                      /* 52 */
 };
 
 /*****************************************************************
@@ -488,6 +493,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
         SRepXIGetClientPointer(client, len, (xXIGetClientPointerReply*) rep);
     else if (rep->RepType == X_XIQueryDevice)
         SRepXIQueryDevice(client, len, (xXIQueryDeviceReply*)rep);
+    else if (rep->RepType == X_XIGrabDevice)
+	SRepXIGrabDevice(client, len, (xXIGrabDeviceReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }
