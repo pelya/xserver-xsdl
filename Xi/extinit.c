@@ -391,7 +391,7 @@ static int
 ProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data > IREQUESTS || !ProcIVector[stuff->data])
+    if (stuff->data > (IREQUESTS + XI2REQUESTS) || !ProcIVector[stuff->data])
         return BadRequest;
 
     return (*ProcIVector[stuff->data])(client);
