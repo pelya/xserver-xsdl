@@ -103,6 +103,7 @@ typedef struct _OtherClients *OtherClientsPtr;
 typedef struct _InputClients *InputClientsPtr;
 typedef struct _DeviceIntRec *DeviceIntPtr;
 typedef struct _ClassesRec *ClassesPtr;
+typedef union _GrabMask GrabMask;
 
 typedef struct _EventList {
     xEvent* event;

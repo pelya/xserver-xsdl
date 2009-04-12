@@ -433,7 +433,7 @@ extern int GrabDevice(
     Window /* grabWindow */,
     unsigned /* ownerEvents */,
     Time /* ctime */,
-    Mask /* mask */,
+    GrabMask* /* mask */,
     int /* grabtype */,
     Cursor /* curs */,
     Window /* confineToWin */,

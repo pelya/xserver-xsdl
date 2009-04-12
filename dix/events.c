@@ -4395,6 +4395,7 @@ ProcGrabPointer(ClientPtr client)
     xGrabPointerReply rep;
     DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
+    GrabMask mask;
     WindowPtr confineTo;
     CursorPtr oldCursor;
     REQUEST(xGrabPointerReq);
@@ -4431,9 +4432,11 @@ ProcGrabPointer(ClientPtr client)
         oldCursor = grab->cursor;
     }
 
+    mask.core = stuff->eventMask;
+
     rc = GrabDevice(client, device, stuff->pointerMode, stuff->keyboardMode,
                     stuff->grabWindow, stuff->ownerEvents, stuff->time,
-                    stuff->eventMask, GRABTYPE_CORE, stuff->cursor,
+                    &mask, GRABTYPE_CORE, stuff->cursor,
                     stuff->confineTo, &rep.status);
     if (rc != Success)
         return rc;
@@ -4551,7 +4554,7 @@ ProcUngrabPointer(ClientPtr client)
 int
 GrabDevice(ClientPtr client, DeviceIntPtr dev,
            unsigned pointer_mode, unsigned keyboard_mode, Window grabWindow,
-           unsigned ownerEvents, Time ctime, Mask mask,
+           unsigned ownerEvents, Time ctime, GrabMask *mask,
            int grabtype, Cursor curs, Window confineToWin, CARD8 *status)
 {
     WindowPtr pWin, confineTo;
@@ -4643,7 +4646,12 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.ownerEvents = ownerEvents;
 	tempGrab.keyboardMode = keyboard_mode;
 	tempGrab.pointerMode = pointer_mode;
-	tempGrab.eventMask = mask;
+	if (grabtype == GRABTYPE_CORE)
+	    tempGrab.eventMask = mask->core;
+	else if (grabtype == GRABTYPE_XI)
+	    tempGrab.eventMask = mask->xi;
+	else
+	    memcpy(tempGrab.xi2mask, mask->xi2mask, sizeof(tempGrab.xi2mask));
 	tempGrab.device = dev;
 	tempGrab.cursor = cursor;
 	tempGrab.confineTo = confineTo;
@@ -4666,13 +4674,16 @@ ProcGrabKeyboard(ClientPtr client)
     REQUEST(xGrabKeyboardReq);
     int result;
     DeviceIntPtr keyboard = PickKeyboard(client);
+    GrabMask mask;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
     memset(&rep, 0, sizeof(xGrabKeyboardReply));
+    mask.core = KeyPressMask | KeyReleaseMask;
+
     result = GrabDevice(client, keyboard, stuff->pointerMode,
             stuff->keyboardMode, stuff->grabWindow, stuff->ownerEvents,
-            stuff->time, KeyPressMask | KeyReleaseMask, GRABTYPE_CORE, None, None,
+            stuff->time, &mask, GRABTYPE_CORE, None, None,
             &rep.status);
 
     if (result != Success)

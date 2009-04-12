@@ -156,6 +156,12 @@ typedef enum {
     GRABTYPE_XI2
 } GrabType;
 
+union _GrabMask {
+    Mask core;
+    Mask xi;
+    char xi2mask[EMASKSIZE][XI2MASKSIZE];
+};
+
 /**
  * Central struct for device grabs. 
  * The same struct is used for both core grabs and device grabs, with

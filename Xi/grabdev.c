@@ -104,6 +104,7 @@ ProcXGrabDevice(ClientPtr client)
     int rc;
     xGrabDeviceReply rep;
     DeviceIntPtr dev;
+    GrabMask mask;
     struct tmask tmp[EMASKSIZE];
 
     REQUEST(xGrabDeviceReq);
@@ -126,10 +127,12 @@ ProcXGrabDevice(ClientPtr client)
 				 X_GrabDevice)) != Success)
 	return rc;
 
+    mask.xi = tmp[stuff->deviceid].mask;
+
     rc = GrabDevice(client, dev, stuff->other_devices_mode,
                     stuff->this_device_mode, stuff->grabWindow,
 		    stuff->ownerEvents, stuff->time,
-		    tmp[stuff->deviceid].mask, FALSE, None, None,
+		    &mask, FALSE, None, None,
 		    &rep.status);
 
     if (rc != Success)
