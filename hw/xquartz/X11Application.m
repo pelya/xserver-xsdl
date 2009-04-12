@@ -191,8 +191,10 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-        if(bgMouseLocationUpdated)
+        if(bgMouseLocationUpdated) {
             DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
+            bgMouseLocationUpdated = FALSE;
+        }
         DarwinSendDDXEvent(kXquartzActivate, 0);
 
         if (!_x_active) {
@@ -1064,32 +1066,34 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             }
 
             if(!quartzServerVisible && noTestExtensions) {
-                if(ev_button == 0) {
 #if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
-                    xp_window_id wid = 0;
-                    xp_error e;
+                xp_window_id wid = 0;
+                xp_error e;
 
-                    /* Sigh. Need to check that we're really over one of
-                     * our windows. (We need to receive pointer events while
-                     * not in the foreground, but we don't want to receive them
-                     * when another window is over us or we might show a tooltip)
-                     */
+                /* Sigh. Need to check that we're really over one of
+                 * our windows. (We need to receive pointer events while
+                 * not in the foreground, but we don't want to receive them
+                 * when another window is over us or we might show a tooltip)
+                 */
 
-                    e = xp_find_window(location.x, location.y, 0, &wid);
+                e = xp_find_window(location.x, location.y, 0, &wid);
 
-                    if (e == XP_Success && wid == 0)
+                if (e != XP_Success || (e == XP_Success && wid == 0))
 #endif
-                    {
-                        bgMouseLocation = location;
-                        bgMouseLocationUpdated = TRUE;
-                        return;
-                    }
-                } else {
-                    bgMouseLocationUpdated = FALSE;
+                {
+                    bgMouseLocation = location;
+                    bgMouseLocationUpdated = TRUE;
+                    return;
+                }
+            }
+            
+            if(bgMouseLocationUpdated) {
+                if(!(ev_type == MotionNotify && ev_button == 0)) {
                     DarwinSendPointerEvents(pDev, MotionNotify, 0, location.x,
                                             location.y, pressure, tilt.x, tilt.y);
                 }
+                bgMouseLocationUpdated = FALSE;
             }
 
             DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x, location.y,
@@ -1122,6 +1126,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
              * first, since we aren't getting them on background mouse motion
              */
             if(!quartzServerVisible && noTestExtensions) {
+                bgMouseLocationUpdated = FALSE;
                 DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, location.x,
                                         location.y, pressure, tilt.x, tilt.y);
             }
