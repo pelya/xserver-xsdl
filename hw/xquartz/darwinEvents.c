@@ -478,7 +478,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
         num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
                                       POINTER_ABSOLUTE, 0, pDev==darwinTabletCurrent?5:2, valuators);
         for(i=0; i<num_events; i++) mieqEnqueue (pDev, darwinEvents[i].event);
-        DarwinPokeEQ();
+        if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
@@ -493,7 +493,7 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
     darwinEvents_lock(); {
         num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
         for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,darwinEvents[i].event);
-        DarwinPokeEQ();
+        if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
@@ -521,7 +521,7 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
         num_events = GetProximityEvents(darwinEvents, pDev, ev_type,
                                         0, 5, valuators);
         for(i=0; i<num_events; i++) mieqEnqueue (pDev,darwinEvents[i].event);
-        DarwinPokeEQ();
+        if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();
 }
 
