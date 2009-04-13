@@ -1282,7 +1282,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      */
     for (devs = servlayoutp->inputs; devs && *devs; devs++) {
 	if (!strcmp((*devs)->driver, "void") || !strcmp((*devs)->driver, "mouse") ||
-            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev")) {
+            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev") ||
+            !strcmp((*devs)->driver, "synaptics")) {
 	    found = 1; break;
 	}
     }
