@@ -226,11 +226,7 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 
             to->kbdfeed = classes->kbdfeed;
             if (!to->kbdfeed)
-            {
-                XkbRMLVOSet rmlvo;
-                XkbGetRulesDflts(&rmlvo);
-                InitKeyboardDeviceStruct(to, &rmlvo, NULL, NULL);
-            }
+                InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
         }
 
         k = &to->kbdfeed;
@@ -473,11 +469,8 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                                        UnusedClassesPrivateKey);
             to->key = classes->key;
             if (!to->key)
-            {
-                XkbRMLVOSet rmlvo;
-                XkbGetRulesDflts(&rmlvo);
-                InitKeyboardDeviceStruct(to, &rmlvo, NULL, NULL);
-            } else
+                InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
+            else
                 classes->key = NULL;
         }
 

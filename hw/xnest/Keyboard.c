@@ -121,7 +121,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   int i;
   XKeyboardState values;
   XkbDescPtr xkb;
-  XkbRMLVOSet rmlvo;
   int op, event, error, major, minor;
 
   switch (onoff)
@@ -165,13 +164,7 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
       }
       XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
 
-      rmlvo.rules = XKB_DFLT_RULES;
-      rmlvo.model = XKB_DFLT_MODEL;
-      rmlvo.layout = XKB_DFLT_LAYOUT;
-      rmlvo.variant = XKB_DFLT_VARIANT;
-      rmlvo.options = XKB_DFLT_OPTIONS;
-
-      InitKeyboardDeviceStruct(pDev, &rmlvo,
+      InitKeyboardDeviceStruct(pDev, NULL,
 			       xnestBell, xnestChangeKeyboardControl);
       XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
       XkbFreeKeyboard(xkb, 0, False);

@@ -474,9 +474,17 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
     XkbSrvLedInfoPtr sli;
     XkbChangesRec changes;
     XkbEventCauseRec cause;
+    XkbRMLVOSet rmlvo_dflts = { NULL };
 
-    if (dev->key || dev->kbdfeed || !rmlvo)
+    if (dev->key || dev->kbdfeed)
 	return False;
+
+    if (!rmlvo)
+    {
+        rmlvo = &rmlvo_dflts;
+        XkbGetRulesDflts(rmlvo);
+    }
+
 
     memset(&changes, 0, sizeof(changes));
     XkbSetCauseUnknown(&cause);
