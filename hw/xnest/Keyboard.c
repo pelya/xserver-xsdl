@@ -120,7 +120,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   KeySymsRec keySyms;
   int i;
   XKeyboardState values;
-  XkbComponentNamesRec names;
   XkbDescPtr xkb;
   XkbRMLVOSet rmlvo;
   int op, event, error, major, minor;
@@ -166,7 +165,6 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
       }
       XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
 
-      memset(&names, 0, sizeof(XkbComponentNamesRec));
       rmlvo.rules = XKB_DFLT_RULES;
       rmlvo.model = XKB_DFLT_MODEL;
       rmlvo.layout = XKB_DFLT_LAYOUT;
