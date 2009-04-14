@@ -490,6 +490,8 @@ XdmcpRegisterConnection (
 	    return;
 	}
     }
+    if (ConnectionAddresses.length + 1 == 256)
+	return;
     newAddress = xalloc (addrlen * sizeof (CARD8));
     if (!newAddress)
 	return;
