@@ -111,6 +111,10 @@ static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
 
+/**
+ * Get the current default XKB rules.
+ * Caller must free the data in rmlvo.
+ */
 void
 XkbGetRulesDflts(XkbRMLVOSet *rmlvo)
 {
@@ -124,6 +128,12 @@ XkbGetRulesDflts(XkbRMLVOSet *rmlvo)
     else		rmlvo->variant= XKB_DFLT_VARIANT;
     if (XkbOptionsDflt)	rmlvo->options= XkbOptionsDflt;
     else		rmlvo->options= XKB_DFLT_OPTIONS;
+
+    rmlvo->rules = strdup(rmlvo->rules);
+    rmlvo->model = strdup(rmlvo->model);
+    rmlvo->layout = strdup(rmlvo->layout);
+    rmlvo->variant = strdup(rmlvo->variant);
+    rmlvo->options = strdup(rmlvo->options);
 }
 
 static Bool
@@ -585,6 +595,17 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
 
     XkbSetRulesDflts(rmlvo);
     XkbSetRulesUsed(rmlvo);
+
+    if (rmlvo_dflts.rules)
+        xfree(rmlvo_dflts.rules);
+    if (rmlvo_dflts.model)
+        xfree(rmlvo_dflts.model);
+    if (rmlvo_dflts.layout)
+        xfree(rmlvo_dflts.layout);
+    if (rmlvo_dflts.variant)
+        xfree(rmlvo_dflts.variant);
+    if (rmlvo_dflts.options)
+        xfree(rmlvo_dflts.options);
 
     return TRUE;
 
