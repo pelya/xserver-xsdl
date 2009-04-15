@@ -119,6 +119,7 @@ SOFTWARE.
 #include "ungrdevb.h"
 #include "ungrdevk.h"
 #include "warpdevp.h"
+#include "xiallowev.h"
 #include "xiselectev.h"
 #include "xigrabdev.h"
 #include "xisetdevfocus.h"
@@ -245,7 +246,8 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXISetDeviceFocus,                   /* 49 */
         ProcXIGetDeviceFocus,                   /* 50 */
         ProcXIGrabDevice,                       /* 51 */
-        ProcXIUngrabDevice                      /* 52 */
+        ProcXIUngrabDevice,                     /* 52 */
+        ProcXIAllowEvents                       /* 53 */
 };
 
 /* For swapped clients */
@@ -302,7 +304,8 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXISetDeviceFocus,                   /* 49 */
         SProcXIGetDeviceFocus,                   /* 50 */
         SProcXIGrabDevice,                       /* 51 */
-        SProcXIUngrabDevice                      /* 52 */
+        SProcXIUngrabDevice,                     /* 52 */
+        SProcXIAllowEvents                       /* 53 */
 };
 
 /*****************************************************************
