@@ -897,7 +897,7 @@ case "$DRI2,$HAVE_DRI2PROTO" in
 		DRI2=yes
 		;;
 esac
-AM_CONDITIONAL(DRI2, test "x$DRI2" == xyes)
+AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
 if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
@@ -924,7 +924,7 @@ if test "x$DRI2" = xyes; then
 		DRI2_AIGLX=no
 	fi
 fi
-AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" == xyes)
+AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" = xyes)
 
 
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
