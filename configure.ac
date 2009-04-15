@@ -439,6 +439,9 @@ AC_ARG_ENABLE(werror,        AS_HELP_STRING([--enable-werror],
 AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 				  [Enable debugging (default: disabled)]),
 			        [DEBUGGING=$enableval], [DEBUGGING=no])
+AC_ARG_ENABLE(unit-tests,    AS_HELP_STRING([--enable-unit-tests],
+                                  [Enable unit-tests (default: enabled)]),
+                                [UNITTESTS=$enableval], [UNITTESTS=yes])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
@@ -1140,6 +1143,14 @@ if test "x$DEBUGGING" = xyes; then
        AC_DEFINE(DEBUG, 1, [Enable debugging code])
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
+
+if test "x$UNITTESTS" = xyes; then
+       AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
+       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16])
+       AC_SUBST([GLIB_LIBS])
+       AC_SUBST([GLIB_CFLAGS])
+fi
+AM_CONDITIONAL(UNITTESTS, [test "x$UNITTESTS" = xyes])
 
 AC_DEFINE(XTEST, 1, [Support XTest extension])
 AC_DEFINE(XSYNC, 1, [Support XSync extension])
@@ -1980,5 +1991,6 @@ hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/sdl/Makefile
 hw/kdrive/src/Makefile
+test/Makefile
 xorg-server.pc
 ])
