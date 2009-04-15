@@ -353,8 +353,7 @@ extern _X_EXPORT void AllowSome(
     ClientPtr	/* client */,
     TimeStamp /* time */,
     DeviceIntPtr /* thisDev */,
-    int /* newState */,
-    Bool /* core */);
+    int /* newState */);
 
 extern _X_EXPORT void ReleaseActiveGrabs(
     ClientPtr client);
