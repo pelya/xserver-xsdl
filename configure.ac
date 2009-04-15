@@ -1455,6 +1455,9 @@ if test "x$XORG" = xyes; then
 	  gnu*)
 	  	XORG_OS="gnu"
 		XORG_OS_SUBDIR="hurd"
+		# Use the same stubs as BSD for old functions, since we now
+		# use libpciaccess for PCI
+		xorg_bus_bsdpci="yes"
 		;;
 	  *)
 	  	XORG_OS="unknown"

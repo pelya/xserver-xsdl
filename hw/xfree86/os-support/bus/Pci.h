@@ -169,7 +169,7 @@
 #endif /* !defined(DEBUGPCI) */
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
-	defined(__DragonFly__) || defined(__sun)
+	defined(__DragonFly__) || defined(__sun) || defined(__GNU__)
 #define ARCH_PCI_INIT bsdPciInit
 #endif
 
