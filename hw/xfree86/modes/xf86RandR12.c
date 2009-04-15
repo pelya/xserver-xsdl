@@ -754,8 +754,8 @@ Bool
 xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
-    xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
-    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
+    xf86CrtcConfigPtr   config;
+    XF86RandRInfoPtr	randrp;
     int			c;
     int			width, height;
     int			mmWidth, mmHeight;
@@ -765,6 +765,8 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	return TRUE;
 #endif
 
+    config = XF86_CRTC_CONFIG_PTR(pScrn);
+    randrp = XF86RANDRINFO(pScreen);
     /*
      * Compute size of screen
      */
