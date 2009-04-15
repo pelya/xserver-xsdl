@@ -353,8 +353,7 @@ extern void AllowSome(
     ClientPtr	/* client */,
     TimeStamp /* time */,
     DeviceIntPtr /* thisDev */,
-    int /* newState */,
-    Bool /* core */);
+    int /* newState */);
 
 extern void ReleaseActiveGrabs(
     ClientPtr client);
