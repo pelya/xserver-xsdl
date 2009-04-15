@@ -408,7 +408,7 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
     __GLXDRIdrawable *private = loaderPrivate;
     DRI2BufferPtr buffers;
     int i;
-    int skip = 0;
+    int j;
 
     buffers = DRI2GetBuffers(private->base.pDraw,
 			     width, height, attachments, count, out_count);
@@ -422,23 +422,24 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
 
     /* This assumes the DRI2 buffer attachment tokens matches the
      * __DRIbuffer tokens. */
+    j = 0;
     for (i = 0; i < *out_count; i++) {
 	/* Do not send the real front buffer of a window to the client.
 	 */
 	if ((private->base.pDraw->type == DRAWABLE_WINDOW)
 	    && (buffers[i].attachment == DRI2BufferFrontLeft)) {
-	    skip++;
 	    continue;
 	}
 
-	private->buffers[i].attachment = buffers[i].attachment;
-	private->buffers[i].name = buffers[i].name;
-	private->buffers[i].pitch = buffers[i].pitch;
-	private->buffers[i].cpp = buffers[i].cpp;
-	private->buffers[i].flags = buffers[i].flags;
+	private->buffers[j].attachment = buffers[i].attachment;
+	private->buffers[j].name = buffers[i].name;
+	private->buffers[j].pitch = buffers[i].pitch;
+	private->buffers[j].cpp = buffers[i].cpp;
+	private->buffers[j].flags = buffers[i].flags;
+	j++;
     }
 
-    *out_count -= skip;
+    *out_count = j;
     return private->buffers;
 }
 
