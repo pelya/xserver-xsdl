@@ -1037,6 +1037,8 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 
     if (!dev || !dev->valuator || minval > maxval)
         return;
+    if (axnum >= dev->valuator->numAxes)
+        return;
 
     ax = dev->valuator->axes + axnum;
 
