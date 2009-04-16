@@ -136,6 +136,24 @@ XkbGetRulesDflts(XkbRMLVOSet *rmlvo)
     rmlvo->options = strdup(rmlvo->options);
 }
 
+void
+XkbFreeRMLVOSet(XkbRMLVOSet *rmlvo, Bool freeRMLVO)
+{
+    if (!rmlvo)
+        return;
+
+    xfree(rmlvo->rules);
+    xfree(rmlvo->model);
+    xfree(rmlvo->layout);
+    xfree(rmlvo->variant);
+    xfree(rmlvo->options);
+
+    if (freeRMLVO)
+        xfree(rmlvo);
+    else
+        memset(rmlvo, 0, sizeof(XkbRMLVOSet));
+}
+
 static Bool
 XkbWriteRulesProp(ClientPtr client, pointer closure)
 {
@@ -595,17 +613,7 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
 
     XkbSetRulesDflts(rmlvo);
     XkbSetRulesUsed(rmlvo);
-
-    if (rmlvo_dflts.rules)
-        xfree(rmlvo_dflts.rules);
-    if (rmlvo_dflts.model)
-        xfree(rmlvo_dflts.model);
-    if (rmlvo_dflts.layout)
-        xfree(rmlvo_dflts.layout);
-    if (rmlvo_dflts.variant)
-        xfree(rmlvo_dflts.variant);
-    if (rmlvo_dflts.options)
-        xfree(rmlvo_dflts.options);
+    XkbFreeRMLVOSet(&rmlvo_dflts, FALSE);
 
     return TRUE;
 
