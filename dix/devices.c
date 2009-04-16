@@ -1088,6 +1088,14 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     if (!dev)
         return FALSE;
 
+    if (numAxes >= MAX_VALUATORS)
+    {
+        LogMessage(X_WARNING,
+                   "Device '%s' has %d axes, only using first %d.\n",
+                   dev->name, numAxes, MAX_VALUATORS);
+        numAxes = MAX_VALUATORS;
+    }
+
     valc = (ValuatorClassPtr)xcalloc(1, sizeof(ValuatorClassRec) +
 				    numAxes * sizeof(AxisInfo) +
 				    numAxes * sizeof(unsigned int));
