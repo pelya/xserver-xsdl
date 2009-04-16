@@ -371,6 +371,9 @@ exaEnableDisableFBAccess (int index, Bool enable)
     ScreenPtr pScreen = screenInfo.screens[index];
     ExaScreenPriv (pScreen);
 
+    if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
+	return;
+
     if (!enable && pExaScr->disableFbCount++ == 0) {
 	if (pExaScr->info->exa_minor < 1)
 	    ExaOffscreenSwapOut (pScreen);
