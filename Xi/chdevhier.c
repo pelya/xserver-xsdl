@@ -108,7 +108,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     strncpy(name, (char*)&c[1], c->namelen);
 
 
-                    rc = AllocMasterDevice(client, name, &ptr, &keybd);
+                    rc = AllocDevicePair(client, name, &ptr, &keybd, TRUE);
                     if (rc != Success)
                     {
                         xfree(name);

@@ -545,9 +545,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
-    if (AllocMasterDevice(serverClient, "Virtual core",
-                          &inputInfo.pointer,
-                          &inputInfo.keyboard) != Success)
+    if (AllocDevicePair(serverClient, "Virtual core",
+                        &inputInfo.pointer, &inputInfo.keyboard,
+                        TRUE) != Success)
         FatalError("Failed to allocate core devices");
 
     if (ActivateDevice(inputInfo.pointer) != Success ||
@@ -2270,12 +2270,16 @@ GetPairedDevice(DeviceIntPtr dev)
 
 
 /**
- * Create a new master device (== one pointer, one keyboard device).
+ * Create a new device pair (== one pointer, one keyboard device).
  * Only allocates the devices, you will need to call ActivateDevice() and
  * EnableDevice() manually.
+ * Either a master or a slave device can be created depending on
+ * the value for master.
  */
 int
-AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+AllocDevicePair (ClientPtr client, char* name,
+			    DeviceIntPtr* ptr, DeviceIntPtr* keybd,
+			    Bool master)
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
@@ -2299,7 +2303,7 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
     pointer->spriteInfo->spriteOwner = TRUE;
 
     pointer->u.lastSlave = NULL;
-    pointer->isMaster = TRUE;
+    pointer->isMaster = master;
 
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
@@ -2321,7 +2325,7 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
     keyboard->spriteInfo->spriteOwner = FALSE;
 
     keyboard->u.lastSlave = NULL;
-    keyboard->isMaster = TRUE;
+    keyboard->isMaster = master;
 
 
     /* The ClassesRec stores the device classes currently not used. */

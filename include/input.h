@@ -468,10 +468,11 @@ extern _X_EXPORT int AttachDevice(ClientPtr client,
 
 extern _X_EXPORT DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
-extern _X_EXPORT int AllocMasterDevice(ClientPtr client,
+extern _X_EXPORT int AllocDevicePair(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
-                             DeviceIntPtr* keybd);
+                             DeviceIntPtr* keybd,
+                             Bool master);
 extern _X_EXPORT void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
 
