@@ -1,5 +1,5 @@
 if UNITTESTS
-check_PROGRAMS = xkb
+check_PROGRAMS = xkb input
 check_LTLIBRARIES = libxservertest.la
 
 TESTS=$(check_PROGRAMS)
@@ -9,7 +9,7 @@ INCLUDES = @XORG_INCS@
 TEST_LDADD=libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLIB_LIBS)
 
 xkb_LDADD=$(TEST_LDADD)
-
+input_LDADD=$(TEST_LDADD)
 
 libxservertest_la_LIBADD = \
             $(XSERVER_LIBS) \
