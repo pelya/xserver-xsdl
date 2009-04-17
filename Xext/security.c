@@ -61,10 +61,10 @@ typedef struct {
 } SecurityStateRec;
 
 /* Extensions that untrusted clients shouldn't have access to */
-static char *SecurityUntrustedExtensions[] = {
-    "RandR",
-    "SECURITY",
-    "XFree86-DGA",
+static char *SecurityTrustedExtensions[] = {
+    "XC-MISC",
+    "BIG-REQUESTS",
+    "XpExtension",
     NULL
 };
 
@@ -852,16 +852,18 @@ SecurityExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
 
-    if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
-	while (SecurityUntrustedExtensions[i])
-	    if (!strcmp(SecurityUntrustedExtensions[i++], rec->ext->name)) {
-		SecurityAudit("Security: denied client %d access to extension "
-			      "%s on request %s\n",
-			      rec->client->index, rec->ext->name,
-			      SecurityLookupRequestName(rec->client));
-		rec->status = BadAccess;
-		return;
-	    }
+    if (subj->haveState && subj->trustLevel == XSecurityClientTrusted)
+	return;
+
+    while (SecurityTrustedExtensions[i])
+	if (!strcmp(SecurityTrustedExtensions[i++], rec->ext->name))
+	    return;
+
+    SecurityAudit("Security: denied client %d access to extension "
+		  "%s on request %s\n",
+		  rec->client->index, rec->ext->name,
+		  SecurityLookupRequestName(rec->client));
+    rec->status = BadAccess;
 }
 
 static void
