@@ -1918,8 +1918,8 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
     }
     else {
 	if (pi->transformCoordinates) {
-	    x = matrix[0][0] * rx + matrix[0][1] * ry;
-	    y = matrix[1][0] * rx + matrix[1][1] * ry;
+	    x = matrix[0][0] * rx + matrix[0][1] * ry + matrix[0][2];
+	    y = matrix[1][0] * rx + matrix[1][1] * ry + matrix[1][2];
 	}
 	else {
 	    x = rx;
