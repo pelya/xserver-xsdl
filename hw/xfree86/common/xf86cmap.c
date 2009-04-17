@@ -85,6 +85,7 @@ typedef struct {
   Bool				(*EnterVT)(int, int);
   Bool				(*SwitchMode)(int, DisplayModePtr, int);
   int				(*SetDGAMode)(int, int, DGADevicePtr);
+  xf86ChangeGammaProc		*ChangeGamma;
   int				maxColors;
   int				sigRGBbits;
   int				gammaElements;
@@ -195,6 +196,7 @@ Bool xf86HandleColormaps(
     pScreenPriv->EnterVT = pScrn->EnterVT;
     pScreenPriv->SwitchMode = pScrn->SwitchMode;
     pScreenPriv->SetDGAMode = pScrn->SetDGAMode;    
+    pScreenPriv->ChangeGamma = pScrn->ChangeGamma;
 
     if (!(flags & CMAP_LOAD_EVEN_IF_OFFSCREEN)) {
 	pScrn->EnterVT = CMapEnterVT;
@@ -824,6 +826,7 @@ CMapUnwrapScreen(ScreenPtr pScreen)
     pScrn->EnterVT = pScreenPriv->EnterVT; 
     pScrn->SwitchMode = pScreenPriv->SwitchMode; 
     pScrn->SetDGAMode = pScreenPriv->SetDGAMode; 
+    pScrn->ChangeGamma = pScreenPriv->ChangeGamma;
 
     xfree(pScreenPriv->gamma);
     xfree(pScreenPriv->PreAllocIndices);
@@ -889,6 +892,7 @@ CMapChangeGamma(
    int index,
    Gamma gamma
 ){
+    int ret = Success;
     ScrnInfoPtr pScrn = xf86Screens[index];
     ScreenPtr pScreen = pScrn->pScreen;
     CMapColormapPtr pColPriv;
@@ -954,7 +958,12 @@ CMapChangeGamma(
 	    CMapReinstallMap(pMap);
     }
 
-    return Success;
+    pScrn->ChangeGamma = pScreenPriv->ChangeGamma;
+    if (pScrn->ChangeGamma)
+	ret = pScrn->ChangeGamma(index, gamma);
+    pScrn->ChangeGamma = CMapChangeGamma;
+
+    return ret;
 }
 
 
@@ -1113,5 +1122,5 @@ xf86ChangeGamma(
     if(pScrn->ChangeGamma)
 	return (*pScrn->ChangeGamma)(pScreen->myNum, gamma);
 
-    return Success; /* Success? */
+    return BadImplementation;
 }

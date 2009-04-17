@@ -1689,6 +1689,60 @@ xf86RandR13SetPanning (ScreenPtr           pScreen,
     }
 }
 
+/*
+ * Compatibility with XF86VidMode's gamma changer.  This necessarily clobbers
+ * any per-crtc setup.  You asked for it...
+ */
+
+static void
+gamma_to_ramp(float gamma, CARD16 *ramp, int size)
+{
+    int i;
+
+    for (i = 0; i < size; i++) {
+	if (gamma == 1.0)
+	    ramp[i] = i << 8;
+	else
+	    ramp[i] = (CARD16)(pow((double)i / (double)(size - 1), gamma)
+			       * (double)(size - 1) * 256);
+    }
+}
+
+static int
+xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
+{
+    int i, size = 0;
+    CARD16 *points, *red, *green, *blue;
+    ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
+    rrScrPrivPtr rp = rrGetScrPriv(pScrn->pScreen);
+
+    for (i = 0; i < rp->numCrtcs; i++)
+	size = max(size, rp->crtcs[i]->gammaSize);
+
+    if (!size)
+	return Success;
+
+    points = xcalloc(size, 3 * sizeof(CARD16));
+    if (!points)
+	return BadAlloc;
+
+    red = points;
+    green = points + size;
+    blue = points + 2 * size;
+
+    for (i = 0; i < rp->numCrtcs; i++) {
+	gamma_to_ramp(gamma.red, red, rp->crtcs[i]->gammaSize);
+	gamma_to_ramp(gamma.green, green, rp->crtcs[i]->gammaSize);
+	gamma_to_ramp(gamma.blue, blue, rp->crtcs[i]->gammaSize);
+	RRCrtcGammaSet(rp->crtcs[i], red, green, blue);
+	memset(points, 0, 3 * size * sizeof(CARD16));
+    }
+
+    xfree(points);
+
+    return Success;
+}
+
 static Bool
 xf86RandR12Init12 (ScreenPtr pScreen)
 {
@@ -1710,6 +1764,7 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
+    pScrn->ChangeGamma = xf86RandR12ChangeGamma;
     if (!xf86RandR12CreateObjects12 (pScreen))
 	return FALSE;
 

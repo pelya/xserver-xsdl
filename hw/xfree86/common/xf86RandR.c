@@ -30,6 +30,7 @@
 #include "mibank.h"
 #include "globals.h"
 #include "xf86.h"
+#include "xf86str.h"
 #include "xf86Priv.h"
 #include "xf86DDC.h"
 #include "mipointer.h"
