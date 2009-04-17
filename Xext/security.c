@@ -74,6 +74,7 @@ static char *SecurityTrustedExtensions[] = {
 static const Mask SecurityResourceMask =
     DixGetAttrAccess | DixReceiveAccess | DixListPropAccess |
     DixGetPropAccess | DixListAccess;
+static const Mask SecurityWindowExtraMask = DixRemoveAccess;
 static const Mask SecurityRootWindowExtraMask =
     DixReceiveAccess | DixSendAccess | DixAddAccess | DixRemoveAccess;
 static const Mask SecurityDeviceMask =
@@ -816,6 +817,10 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     if ((requested & DixCreateAccess) && (rec->rtype == RT_WINDOW))
 	if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
 	    ((WindowPtr)rec->res)->forcedBG = TRUE;
+
+    /* additional permissions for specific resource types */
+    if (rec->rtype == RT_WINDOW)
+	allowed |= SecurityWindowExtraMask;
 
     /* special checks for server-owned resources */
     if (cid == 0) {
