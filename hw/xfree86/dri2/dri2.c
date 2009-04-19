@@ -139,6 +139,45 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
     DRI2BufferPtr   buffers;
+    unsigned int temp_buf[32];
+    unsigned int *temp = temp_buf;
+    int have_fake_front = 0;
+
+
+    /* If the drawable is a window and the front-buffer is requested, silently
+     * add the fake front-buffer to the list of requested attachments.  The
+     * counting logic in the loop accounts for the case where the client
+     * requests both the fake and real front-buffer.
+     */
+    if (pDraw->type == DRAWABLE_WINDOW) {
+	int need_fake_front = 0;
+	int i;
+
+	if ((count + 1) > 32) {
+	    temp = xalloc((count + 1) * sizeof(temp[0]));
+	}
+
+	for (i = 0; i < count; i++) {
+	    if (attachments[i] == DRI2BufferFrontLeft) {
+		need_fake_front++;
+	    }
+
+	    if (attachments[i] == DRI2BufferFakeFrontLeft) {
+		need_fake_front--;
+		have_fake_front = 1;
+	    }
+
+	    temp[i] = attachments[i];
+	}
+
+	if (need_fake_front > 0) {
+	    temp[i] = DRI2BufferFakeFrontLeft;
+	    count++;
+	    have_fake_front = 1;
+	    attachments = temp;
+	}
+    }
+
 
     if (pPriv->buffers == NULL ||
 	pDraw->width != pPriv->width || pDraw->height != pPriv->height)
@@ -151,9 +190,32 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
 	pPriv->height = pDraw->height;
     }
 
+    if (temp != temp_buf) {
+	xfree(temp);
+    }
+
     *width = pPriv->width;
     *height = pPriv->height;
     *out_count = pPriv->bufferCount;
+
+
+    /* If the client is getting a fake front-buffer, pre-fill it with the
+     * contents of the real front-buffer.  This ensures correct operation of
+     * applications that call glXWaitX before calling glDrawBuffer.
+     */
+    if (have_fake_front) {
+	BoxRec box;
+	RegionRec region;
+
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = pPriv->width;
+	box.y2 = pPriv->height;
+	REGION_INIT(pDraw->pScreen, &region, &box, 0);
+
+	DRI2CopyRegion(pDraw, &region, DRI2BufferFakeFrontLeft,
+		       DRI2BufferFrontLeft);
+    }
 
     return pPriv->buffers;
 }

@@ -256,6 +256,9 @@ xprDisplayInit(void)
 
     AppleDRIExtensionInit();
     xprAppleWMInit();
+
+    if (!quartzEnableRootless)
+        RootlessHideAllWindows();
 }
 
 /*

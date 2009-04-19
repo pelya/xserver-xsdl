@@ -857,6 +857,11 @@ extern _X_EXPORT void	XkbGetRulesDflts(
         XkbRMLVOSet *           /* rmlvo */
 );
 
+extern _X_EXPORT void   XkbFreeRMLVOSet(
+        XkbRMLVOSet *           /* rmlvo */,
+        Bool                    /* freeRMLVO */
+);
+
 extern _X_EXPORT void	XkbSetRulesDflts(
         XkbRMLVOSet *           /* rmlvo */
 );

@@ -136,21 +136,30 @@ ProcCompositeQueryVersion (ClientPtr client)
     return(client->noClientException);
 }
 
+#define VERIFY_WINDOW(pWindow, wid, client, mode)			\
+    do {								\
+	int err;							\
+	err = dixLookupResourceByType((pointer *) &pWindow, wid,	\
+				      RT_WINDOW, client, mode);		\
+	if (err == BadValue) {						\
+	    client->errorValue = wid;					\
+	    return BadWindow;						\
+	} else if (err != Success) {					\
+	    client->errorValue = wid;					\
+	    return err;							\
+	}								\
+    } while (0)
+
 static int
 ProcCompositeRedirectWindow (ClientPtr client)
 {
     WindowPtr	pWin;
-    int rc;
     REQUEST(xCompositeRedirectWindowReq);
 
     REQUEST_SIZE_MATCH(xCompositeRedirectWindowReq);
-    rc = dixLookupResourceByType((pointer *)&pWin, stuff->window, RT_WINDOW, client,
-			   DixSetAttrAccess|DixManageAccess|DixBlendAccess);
-    if (rc != Success)
-    {
-	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client,
+		  DixSetAttrAccess|DixManageAccess|DixBlendAccess);
+
     return compRedirectWindow (client, pWin, stuff->update);
 }
 
@@ -158,17 +167,12 @@ static int
 ProcCompositeRedirectSubwindows (ClientPtr client)
 {
     WindowPtr	pWin;
-    int rc;
     REQUEST(xCompositeRedirectSubwindowsReq);
 
     REQUEST_SIZE_MATCH(xCompositeRedirectSubwindowsReq);
-    rc = dixLookupResourceByType((pointer *)&pWin, stuff->window, RT_WINDOW, client,
-			   DixSetAttrAccess|DixManageAccess|DixBlendAccess);
-    if (rc != Success)
-    {
-	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client,
+		  DixSetAttrAccess|DixManageAccess|DixBlendAccess);
+
     return compRedirectSubwindows (client, pWin, stuff->update);
 }
 
@@ -179,12 +183,9 @@ ProcCompositeUnredirectWindow (ClientPtr client)
     REQUEST(xCompositeUnredirectWindowReq);
 
     REQUEST_SIZE_MATCH(xCompositeUnredirectWindowReq);
-    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
-    if (!pWin)
-    {
-	client->errorValue = stuff->window;
-	return BadWindow;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client,
+		  DixSetAttrAccess|DixManageAccess|DixBlendAccess);
+
     return compUnredirectWindow (client, pWin, stuff->update);
 }
 
@@ -195,12 +196,9 @@ ProcCompositeUnredirectSubwindows (ClientPtr client)
     REQUEST(xCompositeUnredirectSubwindowsReq);
 
     REQUEST_SIZE_MATCH(xCompositeUnredirectSubwindowsReq);
-    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
-    if (!pWin)
-    {
-	client->errorValue = stuff->window;
-	return BadWindow;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client,
+		  DixSetAttrAccess|DixManageAccess|DixBlendAccess);
+
     return compUnredirectSubwindows (client, pWin, stuff->update);
 }
 
@@ -210,18 +208,10 @@ ProcCompositeCreateRegionFromBorderClip (ClientPtr client)
     WindowPtr	    pWin;
     CompWindowPtr   cw;
     RegionPtr	    pBorderClip, pRegion;
-    int rc;
     REQUEST(xCompositeCreateRegionFromBorderClipReq);
 
     REQUEST_SIZE_MATCH(xCompositeCreateRegionFromBorderClipReq);
-    rc = dixLookupResourceByType((pointer *)&pWin, stuff->window, RT_WINDOW, client,
-			   DixGetAttrAccess);
-    if (rc != Success)
-    {
-	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
-    }
-    
+    VERIFY_WINDOW(pWin, stuff->window, client, DixGetAttrAccess);
     LEGAL_NEW_RESOURCE (stuff->region, client);
     
     cw = GetCompWindow (pWin);
@@ -250,13 +240,7 @@ ProcCompositeNameWindowPixmap (ClientPtr client)
     REQUEST(xCompositeNameWindowPixmapReq);
 
     REQUEST_SIZE_MATCH(xCompositeNameWindowPixmapReq);
-    rc = dixLookupResourceByType((pointer *)&pWin, stuff->window, RT_WINDOW, client,
-			   DixGetAttrAccess);
-    if (rc != Success)
-    {
-	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client, DixGetAttrAccess);
 
     if (!pWin->viewable)
 	return BadMatch;
@@ -298,13 +282,7 @@ ProcCompositeGetOverlayWindow (ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xCompositeGetOverlayWindowReq);
-    rc = dixLookupResourceByType((pointer *)&pWin, stuff->window, RT_WINDOW, client,
-			   DixGetAttrAccess);
-    if (rc != Success)
-    {
-	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client, DixGetAttrAccess);
     pScreen = pWin->drawable.pScreen;
 
     /* 
@@ -360,12 +338,7 @@ ProcCompositeReleaseOverlayWindow (ClientPtr client)
     CompOverlayClientPtr pOc;
 
     REQUEST_SIZE_MATCH(xCompositeReleaseOverlayWindowReq);
-    pWin = (WindowPtr) LookupIDByType (stuff->window, RT_WINDOW);
-    if (!pWin)
-    {
-	client->errorValue = stuff->window;
-	return BadWindow;
-    }
+    VERIFY_WINDOW(pWin, stuff->window, client, DixGetAttrAccess);
     pScreen = pWin->drawable.pScreen;
 
     /* 

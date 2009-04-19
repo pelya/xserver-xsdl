@@ -64,14 +64,19 @@ static DevPrivateKey CursorScreenPrivateKey = &CursorScreenPrivateKeyIndex;
 
 static void deleteCursorHideCountsForScreen (ScreenPtr pScreen);
 
-#define VERIFY_CURSOR(pCursor, cursor, client, access) { \
-    pCursor = (CursorPtr)SecurityLookupIDByType((client), (cursor), \
-					RT_CURSOR, (access)); \
-    if (!pCursor) { \
-	(client)->errorValue = (cursor); \
-	return BadCursor; \
-    } \
-}
+#define VERIFY_CURSOR(pCursor, cursor, client, access)			\
+    do {								\
+	int err;							\
+	err = dixLookupResourceByType((pointer *) &pCursor, cursor,	\
+				      RT_CURSOR, client, access);	\
+	if (err == BadValue) {						\
+	    client->errorValue = cursor;				\
+	    return BadCursor;						\
+	} else if (err != Success) {					\
+	    client->errorValue = cursor;				\
+	    return err;							\
+	}								\
+    } while (0)
 
 /*
  * There is a global list of windows selecting for cursor events

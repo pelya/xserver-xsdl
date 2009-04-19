@@ -1258,6 +1258,17 @@ typedef struct {
     CARD32 id;
 } SELinuxListItemRec;
 
+static security_context_t
+SELinuxCopyContext(char *ptr, unsigned len)
+{
+    security_context_t copy = xalloc(len + 1);
+    if (!copy)
+	return NULL;
+    strncpy(copy, ptr, len);
+    copy[len] = '\0';
+    return copy;
+}
+
 static int
 ProcSELinuxQueryVersion(ClientPtr client)
 {
@@ -1315,29 +1326,34 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 {
     PrivateRec **privPtr = &client->devPrivates;
     security_id_t *pSid;
-    security_context_t ctx;
+    security_context_t ctx = NULL;
     char *ptr;
+    int rc;
 
     REQUEST(SELinuxSetCreateContextReq);
     REQUEST_FIXED_SIZE(SELinuxSetCreateContextReq, stuff->context_len);
 
-    ctx = (char *)(stuff + 1);
-    if (stuff->context_len > 0 && ctx[stuff->context_len - 1])
-	return BadLength;
+    if (stuff->context_len > 0) {
+	ctx = SELinuxCopyContext((char *)(stuff + 1), stuff->context_len);
+	if (!ctx)
+	    return BadAlloc;
+    }
 
     if (offset == CTX_DEV) {
 	/* Device create context currently requires manage permission */
-	int rc = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
+	rc = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
 	if (rc != Success)
-	    return rc;
+	    goto out;
 	privPtr = &serverClient->devPrivates;
     }
     else if (offset == USE_SEL) {
 	/* Selection use context currently requires no selections owned */
 	Selection *pSel;
 	for (pSel = CurrentSelections; pSel; pSel = pSel->next)
-	    if (pSel->client == client)
-		return BadMatch;
+	    if (pSel->client == client) {
+		rc = BadMatch;
+		goto out;
+	    }
     }
 
     ptr = dixLookupPrivate(privPtr, subjectKey);
@@ -1345,13 +1361,15 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
     sidput(*pSid);
     *pSid = NULL;
 
+    rc = Success;
     if (stuff->context_len > 0) {
-	if (security_check_context_raw(ctx) < 0)
-	    return BadValue;
-	if (avc_context_to_sid_raw(ctx, pSid) < 0)
-	    return BadValue;
+	if (security_check_context_raw(ctx) < 0 ||
+	    avc_context_to_sid_raw(ctx, pSid) < 0)
+	    rc = BadValue;
     }
-    return Success;
+out:
+    xfree(ctx);
+    return rc;
 }
 
 static int
@@ -1384,18 +1402,21 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     REQUEST(SELinuxSetContextReq);
     REQUEST_FIXED_SIZE(SELinuxSetContextReq, stuff->context_len);
 
-    ctx = (char *)(stuff + 1);
-    if (stuff->context_len < 1 || ctx[stuff->context_len - 1])
+    if (stuff->context_len < 1)
 	return BadLength;
+    ctx = SELinuxCopyContext((char *)(stuff + 1), stuff->context_len);
+    if (!ctx)
+	return BadAlloc;
 
     rc = dixLookupDevice(&dev, stuff->id, client, DixManageAccess);
     if (rc != Success)
-	return rc;
+	goto out;
 
-    if (security_check_context_raw(ctx) < 0)
-	return BadValue;
-    if (avc_context_to_sid_raw(ctx, &sid) < 0)
-	return BadValue;
+    if (security_check_context_raw(ctx) < 0 ||
+	avc_context_to_sid_raw(ctx, &sid) < 0) {
+	rc = BadValue;
+	goto out;
+    }
 
     subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
     sidput(subj->sid);
@@ -1404,7 +1425,10 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     sidput(obj->sid);
     sidget(obj->sid = sid);
 
-    return Success;
+    rc = Success;
+out:
+    xfree(ctx);
+    return rc;
 }
 
 static int
@@ -1543,7 +1567,7 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
     CARD32 *buf;
 
     buf = xcalloc(size, sizeof(CARD32));
-    if (!buf) {
+    if (size && !buf) {
 	rc = BadAlloc;
 	goto out;
     }
@@ -1615,7 +1639,7 @@ ProcSELinuxListProperties(ClientPtr client)
     for (pProp = wUserProps(pWin); pProp; pProp = pProp->next)
 	count++;
     items = xcalloc(count, sizeof(SELinuxListItemRec));
-    if (!items)
+    if (count && !items)
 	return BadAlloc;
 
     /* Fill in the items and calculate size */
@@ -1649,7 +1673,7 @@ ProcSELinuxListSelections(ClientPtr client)
     for (pSel = CurrentSelections; pSel; pSel = pSel->next)
 	count++;
     items = xcalloc(count, sizeof(SELinuxListItemRec));
-    if (!items)
+    if (count && !items)
 	return BadAlloc;
 
     /* Fill in the items and calculate size */

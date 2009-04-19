@@ -597,7 +597,9 @@ configFiles(XF86ConfFilesPtr fileconf)
 	    defaultFontPath = Xprintf("%s%s%s",
 				      fileconf->file_fontpath,
 				      *temp_path ? "," : "", temp_path);
-	    must_copy = FALSE;
+	    if (defaultFontPath != NULL) {
+		must_copy = FALSE;
+	    }
 	}
 	else
 	    defaultFontPath = fileconf->file_fontpath;
@@ -613,7 +615,14 @@ configFiles(XF86ConfFilesPtr fileconf)
 	!((start == temp_path || start[-1] == ',') && (!*end || *end == ','))) {
 	defaultFontPath = Xprintf("%s%sbuilt-ins",
 				  temp_path, *temp_path ? "," : "");
-	must_copy = FALSE;
+	if (must_copy == TRUE) {
+	    if (defaultFontPath != NULL) {
+		must_copy = FALSE;
+	    }
+	} else {
+	    /* already made a copy of the font path */
+	    xfree(temp_path);
+	}
     }
     /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
     temp_path = must_copy ? xnfstrdup(defaultFontPath) : defaultFontPath;
@@ -1273,7 +1282,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      */
     for (devs = servlayoutp->inputs; devs && *devs; devs++) {
 	if (!strcmp((*devs)->driver, "void") || !strcmp((*devs)->driver, "mouse") ||
-            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev")) {
+            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev") ||
+            !strcmp((*devs)->driver, "synaptics")) {
 	    found = 1; break;
 	}
     }

@@ -61,10 +61,10 @@ typedef struct {
 } SecurityStateRec;
 
 /* Extensions that untrusted clients shouldn't have access to */
-static char *SecurityUntrustedExtensions[] = {
-    "RandR",
-    "SECURITY",
-    "XFree86-DGA",
+static char *SecurityTrustedExtensions[] = {
+    "XC-MISC",
+    "BIG-REQUESTS",
+    "XpExtension",
     NULL
 };
 
@@ -74,6 +74,7 @@ static char *SecurityUntrustedExtensions[] = {
 static const Mask SecurityResourceMask =
     DixGetAttrAccess | DixReceiveAccess | DixListPropAccess |
     DixGetPropAccess | DixListAccess;
+static const Mask SecurityWindowExtraMask = DixRemoveAccess;
 static const Mask SecurityRootWindowExtraMask =
     DixReceiveAccess | DixSendAccess | DixAddAccess | DixRemoveAccess;
 static const Mask SecurityDeviceMask =
@@ -817,6 +818,10 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
 	    ((WindowPtr)rec->res)->forcedBG = TRUE;
 
+    /* additional permissions for specific resource types */
+    if (rec->rtype == RT_WINDOW)
+	allowed |= SecurityWindowExtraMask;
+
     /* special checks for server-owned resources */
     if (cid == 0) {
 	if (rec->rtype & RC_DRAWABLE)
@@ -852,16 +857,18 @@ SecurityExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
 
-    if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
-	while (SecurityUntrustedExtensions[i])
-	    if (!strcmp(SecurityUntrustedExtensions[i++], rec->ext->name)) {
-		SecurityAudit("Security: denied client %d access to extension "
-			      "%s on request %s\n",
-			      rec->client->index, rec->ext->name,
-			      SecurityLookupRequestName(rec->client));
-		rec->status = BadAccess;
-		return;
-	    }
+    if (subj->haveState && subj->trustLevel == XSecurityClientTrusted)
+	return;
+
+    while (SecurityTrustedExtensions[i])
+	if (!strcmp(SecurityTrustedExtensions[i++], rec->ext->name))
+	    return;
+
+    SecurityAudit("Security: denied client %d access to extension "
+		  "%s on request %s\n",
+		  rec->client->index, rec->ext->name,
+		  SecurityLookupRequestName(rec->client));
+    rec->status = BadAccess;
 }
 
 static void
@@ -946,9 +953,10 @@ SecuritySend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 		SecurityAudit("Security: denied client %d from sending event "
 			      "of type %s to window 0x%x of client %d\n",
-			      rec->client->index, rec->pWin->drawable.id,
-			      wClient(rec->pWin)->index,
-			      LookupEventName(rec->events[i].u.u.type));
+			      rec->client->index,
+			      LookupEventName(rec->events[i].u.u.type),
+			      rec->pWin->drawable.id,
+			      wClient(rec->pWin)->index);
 		rec->status = BadAccess;
 		return;
 	    }

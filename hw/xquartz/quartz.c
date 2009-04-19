@@ -352,13 +352,20 @@ void QuartzSetRootless(Bool state) {
     /* When in rootless, the menubar is not part of the screen, so we need to update our screens on toggle */    
     QuartzUpdateScreens();
 
-    if (!quartzEnableRootless && !quartzHasRoot) {
-        RootlessHideAllWindows();
-    } else if (quartzEnableRootless && !quartzHasRoot) {
-        RootlessShowAllWindows();
+    if(!quartzHasRoot) {
+        if(!quartzEnableRootless) {
+            RootlessHideAllWindows();
+        } else {
+            RootlessShowAllWindows();
+        }
     }
 
+    X11ApplicationShowHideMenubar(!quartzHasRoot);
+
     xp_reenable_update();
+
+    if (!quartzEnableRootless && quartzFullscreenDisableHotkeys)
+        xp_disable_hot_keys(quartzHasRoot);
 }
 
 /*

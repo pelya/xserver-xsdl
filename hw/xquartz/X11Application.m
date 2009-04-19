@@ -44,6 +44,7 @@
 #define _APPLEWM_SERVER_
 #include "X11/extensions/applewm.h"
 #include "micmap.h"
+#include "exglobals.h"
 
 #include <mach/mach.h>
 #include <unistd.h>
@@ -60,12 +61,8 @@ extern BOOL xpbproxy_init (void);
 #define XSERVER_VERSION "?"
 #endif
 
-#define ProximityIn    0
-#define ProximityOut   1
-
 /* Stuck modifier / button state... force release when we context switch */
 static NSEventType keyState[NUM_KEYCODES];
-static int modifierFlagsMask;
 
 int X11EnableKeyEquivalents = TRUE, quartzFullscreenMenu = FALSE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -84,6 +81,7 @@ extern int darwinFakeButtons;
  * location when we become the foreground application
  */
 static NSPoint bgMouseLocation;
+static BOOL bgMouseLocationUpdated = FALSE;
 
 X11Application *X11App;
 
@@ -193,7 +191,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-        DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
+        if(bgMouseLocationUpdated)
+            DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, bgMouseLocation.x, bgMouseLocation.y, 0.0, 0.0, 0.0);
         DarwinSendDDXEvent(kXquartzActivate, 0);
 
         if (!_x_active) {
@@ -207,7 +206,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
         }
     } else {
 
-        if(darwin_modifier_flags)
+        if(darwin_all_modifier_flags)
             DarwinUpdateModKeys(0);
         for(i=0; i < NUM_KEYCODES; i++) {
             if(keyState[i] == NSKeyDown) {
@@ -880,7 +879,6 @@ environment the next time you start X11?", @"Startup xinitrc dialog");
 
 void X11ApplicationMain (int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool;
-    int *p;
 
 #ifdef DEBUG
     while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
@@ -925,10 +923,6 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
         fprintf(stderr, "X11ApplicationMain: Could not build a valid keymap.\n");
     }
 
-    for(p=darwin_modifier_mask_list, modifierFlagsMask=0; *p; p++) {
-        modifierFlagsMask |= *p;
-    }
-    
     /* Tell the server thread that it can proceed */
     QuartzInitServer(argc, argv, envp);
     
@@ -1005,14 +999,14 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     modifierFlags = ensure_flag(modifierFlags, NX_ALTERNATEMASK, NX_DEVICELALTKEYMASK   | NX_DEVICERALTKEYMASK,     NX_DEVICELALTKEYMASK);
 #endif
 
-    modifierFlags &= modifierFlagsMask;
+    modifierFlags &= darwin_all_modifier_mask;
 
     /* We don't receive modifier key events while out of focus, and 3button
      * emulation mucks this up, so we need to check our modifier flag state
      * on every event... ugg
      */
     
-    if(darwin_modifier_flags != modifierFlags)
+    if(darwin_all_modifier_flags != modifierFlags)
         DarwinUpdateModKeys(modifierFlags);
     
 	switch ([e type]) {
@@ -1054,8 +1048,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
                  * NSTabletProximityEventSubtype will come from NSTabletPoint
                  * rather than NSMouseMoved.
                 pressure = [e pressure];
-                tilt_x   = [e tilt].x;
-                tilt_y   = [e tilt].y;
+                tilt     = [e tilt];
                 pDev = darwinTabletCurrent;                
                  */
 
@@ -1071,35 +1064,34 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             }
 
             if(!quartzServerVisible && noTestExtensions) {
-#if 0
-/* Seems this has somehow triggered 100% CPU usage while X11.app is in the
- * background on some obscure HW configurations.
- * http://xquartz.macosforge.org/trac/ticket/241
- */
-//#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
+                if(ev_button == 0) {
+#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION > 0
 /* Older libXplugin (Tiger/"Stock" Leopard) aren't thread safe, so we can't call xp_find_window from the Appkit thread */
-                xp_window_id wid;
-                xp_error e;
+                    xp_window_id wid = 0;
+                    xp_error e;
 
-                /* Sigh. Need to check that we're really over one of
-                 * our windows. (We need to receive pointer events while
-                 * not in the foreground, but we don't want to receive them
-                 * when another window is over us or we might show a tooltip)
-                 */
+                    /* Sigh. Need to check that we're really over one of
+                     * our windows. (We need to receive pointer events while
+                     * not in the foreground, but we don't want to receive them
+                     * when another window is over us or we might show a tooltip)
+                     */
 
-                wid = 0;
-                e = xp_find_window(location.x, location.y, 0, &wid);
+                    e = xp_find_window(location.x, location.y, 0, &wid);
 
-                if (e == XP_Success && wid == 0) {
-                    bgMouseLocation = location;
-                    return;
-                }
-#else
-                bgMouseLocation = location;
-                return;
+                    if (e == XP_Success && wid == 0)
 #endif
+                    {
+                        bgMouseLocation = location;
+                        bgMouseLocationUpdated = TRUE;
+                        return;
+                    }
+                } else {
+                    bgMouseLocationUpdated = FALSE;
+                    DarwinSendPointerEvents(pDev, MotionNotify, 0, location.x,
+                                            location.y, pressure, tilt.x, tilt.y);
+                }
             }
-            
+
             DarwinSendPointerEvents(pDev, ev_type, ev_button, location.x, location.y,
                                     pressure, tilt.x, tilt.y);
             
@@ -1125,6 +1117,15 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             break;
             
 		case NSScrollWheel:
+#if !defined(XPLUGIN_VERSION) || XPLUGIN_VERSION == 0
+            /* If we're in the background, we need to send a MotionNotify event
+             * first, since we aren't getting them on background mouse motion
+             */
+            if(!quartzServerVisible && noTestExtensions) {
+                DarwinSendPointerEvents(darwinPointer, MotionNotify, 0, location.x,
+                                        location.y, pressure, tilt.x, tilt.y);
+            }
+#endif
 			DarwinSendScrollEvents([e deltaX], [e deltaY], location.x, location.y,
                                    pressure, tilt.x, tilt.y);
             break;

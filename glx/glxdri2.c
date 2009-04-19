@@ -82,6 +82,8 @@ struct __GLXDRIcontext {
     __DRIcontext	*driContext;
 };
 
+#define MAX_DRAWABLE_BUFFERS 5
+
 struct __GLXDRIdrawable {
     __GLXdrawable	 base;
     __DRIdrawable	*driDrawable;
@@ -90,7 +92,7 @@ struct __GLXDRIdrawable {
     /* Dimensions as last reported by DRI2GetBuffers. */
     int width;
     int height;
-    __DRIbuffer buffers[5];
+    __DRIbuffer buffers[MAX_DRAWABLE_BUFFERS];
     int count;
 };
 
@@ -106,6 +108,8 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
      * aready have taken care of this, so only call if pDraw isn't NULL. */
     if (drawable->pDraw != NULL)
 	DRI2DestroyDrawable(drawable->pDraw);
+
+    __glXDrawableRelease(drawable);
 
     xfree(private);
 }
@@ -251,12 +255,15 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     if (texBuffer == NULL)
         return Success;
 
+#if __DRI_TEX_BUFFER_VERSION >= 2
     if (texBuffer->base.version >= 2 && texBuffer->setTexBuffer2 != NULL) {
 	(*texBuffer->setTexBuffer2)(context->driContext,
 				    glxPixmap->target,
 				    glxPixmap->format,
 				    drawable->driDrawable);
-    } else {
+    } else
+#endif
+    {
 	texBuffer->setTexBuffer(context->driContext,
 				glxPixmap->target,
 				drawable->driDrawable);
@@ -401,10 +408,11 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
     __GLXDRIdrawable *private = loaderPrivate;
     DRI2BufferPtr buffers;
     int i;
+    int j;
 
     buffers = DRI2GetBuffers(private->base.pDraw,
 			     width, height, attachments, count, out_count);
-    if (*out_count > 5) {
+    if (*out_count > MAX_DRAWABLE_BUFFERS) {
 	*out_count = 0;
 	return NULL;
     }
@@ -414,14 +422,24 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
 
     /* This assumes the DRI2 buffer attachment tokens matches the
      * __DRIbuffer tokens. */
+    j = 0;
     for (i = 0; i < *out_count; i++) {
-	private->buffers[i].attachment = buffers[i].attachment;
-	private->buffers[i].name = buffers[i].name;
-	private->buffers[i].pitch = buffers[i].pitch;
-	private->buffers[i].cpp = buffers[i].cpp;
-	private->buffers[i].flags = buffers[i].flags;
+	/* Do not send the real front buffer of a window to the client.
+	 */
+	if ((private->base.pDraw->type == DRAWABLE_WINDOW)
+	    && (buffers[i].attachment == DRI2BufferFrontLeft)) {
+	    continue;
+	}
+
+	private->buffers[j].attachment = buffers[i].attachment;
+	private->buffers[j].name = buffers[i].name;
+	private->buffers[j].pitch = buffers[i].pitch;
+	private->buffers[j].cpp = buffers[i].cpp;
+	private->buffers[j].flags = buffers[i].flags;
+	j++;
     }
 
+    *out_count = j;
     return private->buffers;
 }
 

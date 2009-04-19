@@ -466,27 +466,59 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	goto fallback;
     }
 
-    if (!exaPixmapIsOffscreen(pSrcPixmap) ||
-	!exaPixmapIsOffscreen(pDstPixmap) ||
-	!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
-					upsidedown ? -1 : 1,
-					pGC ? pGC->alu : GXcopy,
-					pGC ? pGC->planemask : FB_ALLONES)) {
+    if (exaPixmapIsOffscreen(pDstPixmap)) {
+	/* Normal blitting. */
+	if (exaPixmapIsOffscreen(pSrcPixmap)) {
+	    if (!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
+						upsidedown ? -1 : 1,
+						pGC ? pGC->alu : GXcopy,
+						pGC ? pGC->planemask : FB_ALLONES)) {
+		goto fallback;
+	    }
+
+	    while (nbox--)
+	    {
+		(*pExaScr->info->Copy) (pDstPixmap,
+					pbox->x1 + dx + src_off_x,
+					pbox->y1 + dy + src_off_y,
+					pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+					pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
+		pbox++;
+	    }
+
+	    (*pExaScr->info->DoneCopy) (pDstPixmap);
+	    exaMarkSync (pDstDrawable->pScreen);
+	/* UTS: mainly for SHM PutImage's secondary path. */
+	} else {
+	    int bpp = pSrcDrawable->bitsPerPixel;
+	    int src_stride = exaGetPixmapPitch(pSrcPixmap);
+	    CARD8 *src = NULL;
+
+	    if (!pExaScr->info->UploadToScreen)
+		goto fallback;
+
+	    if (pSrcDrawable->bitsPerPixel != pDstDrawable->bitsPerPixel)
+		goto fallback;
+
+	    if (pSrcDrawable->bitsPerPixel < 8)
+		goto fallback;
+
+	    if (pGC && !(pGC->alu == GXcopy && EXA_PM_IS_SOLID(pSrcDrawable,  pGC->planemask)))
+		goto fallback;
+
+	    while (nbox--)
+	    {
+		src = pSrcExaPixmap->sys_ptr + (pbox->y1 + dy + src_off_y) * src_stride + (pbox->x1 + dx + src_off_x) * (bpp / 8);
+		if (!pExaScr->info->UploadToScreen(pDstPixmap, pbox->x1 + dst_off_x,
+				pbox->y1 + dst_off_y, pbox->x2 - pbox->x1, pbox->y2 - pbox->y1,
+				(char *) src, src_stride))
+		    goto fallback;
+
+		pbox++;
+	    }
+	}
+    } else
 	goto fallback;
-    }
-
-    while (nbox--)
-    {
-	(*pExaScr->info->Copy) (pDstPixmap,
-				pbox->x1 + dx + src_off_x,
-				pbox->y1 + dy + src_off_y,
-				pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-				pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
-	pbox++;
-    }
-
-    (*pExaScr->info->DoneCopy) (pDstPixmap);
-    exaMarkSync (pDstDrawable->pScreen);
 
     goto out;
 

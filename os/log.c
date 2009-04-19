@@ -98,6 +98,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #define getpid(x) _getpid(x)
 #endif
 
+#ifdef XF86BIGFONT
+#define _XF86BIGFONT_SERVER_
+#include <X11/extensions/xf86bigfont.h>
+#endif
 
 #ifdef DDXOSVERRORF
 void (*OsVendorVErrorFProc)(const char *, va_list args) = NULL;
@@ -312,7 +316,7 @@ void
 LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 {
     const char *s  = X_UNKNOWN_STRING;
-    char *tmpBuf = NULL;
+    char tmpBuf[1024];
 
     /* Ignore verbosity for X_ERROR */
     if (logVerbosity >= verb || logFileVerbosity >= verb || type == X_ERROR) {
@@ -354,21 +358,11 @@ LogVMessageVerb(MessageType type, int verb, const char *format, va_list args)
 	    break;
 	}
 
-	/*
-	 * Prefix the format string with the message type.  We do it this way
-	 * so that LogVWrite() is only called once per message.
-	 */
-	if (s) {
-	    tmpBuf = malloc(strlen(format) + strlen(s) + 1 + 1);
-	    /* Silently return if malloc fails here. */
-	    if (!tmpBuf)
-		return;
-	    sprintf(tmpBuf, "%s ", s);
-	    strcat(tmpBuf, format);
-	    LogVWrite(verb, tmpBuf, args);
-	    free(tmpBuf);
-	} else
-	    LogVWrite(verb, format, args);
+        /* if s is not NULL we need a space before format */
+        snprintf(tmpBuf, sizeof(tmpBuf), "%s%s%s", s ? s : "",
+                                                   s ? " " : "",
+                                                   format);
+        LogVWrite(verb, tmpBuf, args);
     }
 }
 
@@ -401,6 +395,9 @@ void AbortServer(void) __attribute__((noreturn));
 void
 AbortServer(void)
 {
+#ifdef XF86BIGFONT
+    XF86BigfontCleanup();
+#endif
     CloseWellKnownConnections();
     OsCleanup(TRUE);
     CloseDownDevices();

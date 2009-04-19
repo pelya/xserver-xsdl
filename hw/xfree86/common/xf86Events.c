@@ -79,11 +79,6 @@
 #include "xkbsrv.h"
 #include "xkbstr.h"
 
-#ifdef XF86BIGFONT
-#define _XF86BIGFONT_SERVER_
-#include <X11/extensions/xf86bigfont.h>
-#endif
-
 #ifdef DPMSExtension
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
@@ -356,35 +351,24 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
 }
 
 /*
- * xf86SigHandler --
+ * xf86SigWrapper --
  *    Catch unexpected signals and exit or continue cleanly.
  */
-void
-xf86SigHandler(int signo)
+int
+xf86SigWrapper(int signo)
 {
   if ((signo == SIGILL) && xf86SigIllHandler) {
     (*xf86SigIllHandler)();
-    /* Re-arm handler just in case we unexpectedly return here */
-    (void) signal(signo, xf86SigHandler);
-    return;
+    return 0; /* continue */
   }
 
   if (xf86SignalIntercept && (*xf86SignalIntercept < 0)) {
     *xf86SignalIntercept = signo;
-    /* Re-arm handler just in case */
-    (void) signal(signo, xf86SigHandler);
-    return;
+    return 0; /* continue */
   }
 
-  signal(signo,SIG_IGN);
   xf86Info.caughtSignal = TRUE;
-#ifdef XF86BIGFONT
-  XF86BigfontCleanup();
-#endif
-
-  xorg_backtrace();
-
-  FatalError("Caught signal %d.  Server aborting\n", signo);
+  return 1; /* abort */
 }
 
 /*

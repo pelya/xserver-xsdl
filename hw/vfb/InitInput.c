@@ -66,13 +66,11 @@ static int
 vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
 {
     DevicePtr pDev = (DevicePtr)pDevice;
-    XkbRMLVOSet rmlvo;
 
     switch (onoff)
     {
     case DEVICE_INIT:
-        XkbGetRulesDflts(&rmlvo);
-	InitKeyboardDeviceStruct(pDevice, &rmlvo, NULL, NULL);
+	InitKeyboardDeviceStruct(pDevice, NULL, NULL, NULL);
         break;
     case DEVICE_ON:
 	pDev->on = TRUE;

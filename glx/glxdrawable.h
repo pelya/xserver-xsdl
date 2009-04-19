@@ -41,7 +41,8 @@
 enum {
     GLX_DRAWABLE_WINDOW,
     GLX_DRAWABLE_PIXMAP,
-    GLX_DRAWABLE_PBUFFER
+    GLX_DRAWABLE_PBUFFER,
+    GLX_DRAWABLE_ANY
 };
 
 struct __GLXdrawable {
@@ -65,11 +66,6 @@ struct __GLXdrawable {
     ** Configuration of the visual to which this drawable was created.
     */
     __GLXconfig *config;
-
-    /*
-    ** reference count
-    */
-    int refCount;
 
     GLenum target;
     GLenum format;

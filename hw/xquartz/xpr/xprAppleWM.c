@@ -38,20 +38,11 @@
 
 #include "applewmExt.h"
 #include "rootless.h"
+#include "rootlessCommon.h"
 #include <Xplugin.h>
 #include <X11/X.h>
 #include "quartz.h"
 #include "x-hash.h"
-
-/* This lookup table came straight from the Tiger X11 source.  I tried to figure
- * it out based on CGWindowLevel.h, but I dunno... -JH
- */
-static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
-0, 3, 4, 5, INT_MIN + 30, INT_MIN + 29,
-};
-static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
-202, 203, 204, 205, 201, 200
-};
 
 static int xprSetWindowLevel(
     WindowPtr pWin,
@@ -59,15 +50,25 @@ static int xprSetWindowLevel(
 {
     xp_window_id wid;
     xp_window_changes wc;
+    RootlessWindowRec *winRec;
 
+    // AppleWMNumWindowLevels is allowed, but is only set by the server
+    // for the root window.
+    if (level < 0 || level >= AppleWMNumWindowLevels) {
+        return BadValue;
+    }
+    
     wid = x_cvt_vptr_to_uint(RootlessFrameForWindow (pWin, TRUE));
     if (wid == 0)
         return BadWindow;
 
     RootlessStopDrawing (pWin, FALSE);
-
-    //if (WINREC(WindowTable[pWin->drawable.pScreen->myNum]) == NULL)
-    if (quartzHasRoot)
+    winRec = WINREC(pWin);
+ 
+    if(!winRec)
+        return BadWindow;
+    
+    if(quartzEnableRootless)
         wc.window_level = normal_window_levels[level];
     else
         wc.window_level = rooted_window_levels[level];
@@ -75,6 +76,8 @@ static int xprSetWindowLevel(
     if (xp_configure_window (wid, XP_WINDOW_LEVEL, &wc) != Success) {
         return BadValue;
     }
+
+    winRec->level = level;
 
     return Success;
 }

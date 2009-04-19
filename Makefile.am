@@ -1,4 +1,5 @@
 AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
+ACLOCAL_AMFLAGS = -I m4
 
 if COMPOSITE
 COMPOSITE_DIR=composite

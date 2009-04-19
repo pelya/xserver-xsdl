@@ -35,18 +35,11 @@
  * Silicon Graphics, Inc.
  */
 
-/* relate contexts with drawables */
-extern void __glXAssociateContext(__GLXcontext *glxc);
-extern void __glXDeassociateContext(__GLXcontext *glxc);
-
-/* drawable management */
-extern void __glXRefDrawable(__GLXdrawable *glxPriv);
-extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
-
 extern GLboolean __glXDrawableInit(__GLXdrawable *drawable,
 				   __GLXscreen *screen,
 				   DrawablePtr pDraw, int type, XID drawID,
 				   __GLXconfig *config);
+extern void __glXDrawableRelease(__GLXdrawable *drawable);
 
 /* context helper routines */
 extern __GLXcontext *__glXLookupContextByTag(__GLXclientState*, GLXContextTag);

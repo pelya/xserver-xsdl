@@ -317,7 +317,6 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     XkbComponentNamesRec names;
     CFIndex value;
     BOOL ok;
-    XkbRMLVOSet rmlvo;
 
     // Open a shared connection to the HID System.
     // Note that the Event Status Driver is really just a wrapper
@@ -328,8 +327,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
     bzero(&names, sizeof(names));
 
-    XkbGetRulesDflts(&rmlvo);
-    InitKeyboardDeviceStruct(pDev, &rmlvo, QuartzBell,
+    InitKeyboardDeviceStruct(pDev, NULL, QuartzBell,
                              DarwinChangeKeyboardControl);
 
     /* Get our key repeat settings from GlobalPreferences */

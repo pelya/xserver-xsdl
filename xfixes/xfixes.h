@@ -32,13 +32,19 @@
 extern _X_EXPORT RESTYPE RegionResType;
 extern _X_EXPORT int XFixesErrorBase;
 
-#define VERIFY_REGION(pRegion, rid, client, mode) { \
-    pRegion = SecurityLookupIDByType (client, rid, RegionResType, mode); \
-    if (!pRegion) { \
-	client->errorValue = rid; \
-	return XFixesErrorBase + BadRegion; \
-    } \
-}
+#define VERIFY_REGION(pRegion, rid, client, mode)			\
+    do {								\
+	int err;							\
+	err = dixLookupResourceByType((pointer *) &pRegion, rid,	\
+				      RegionResType, client, mode);	\
+	if (err == BadValue) {						\
+	    client->errorValue = rid;					\
+	    return XFixesErrorBase + BadRegion;				\
+	} else if (err != Success) {					\
+	    client->errorValue = rid;					\
+	    return err;							\
+	}								\
+    } while (0)
 
 #define VERIFY_REGION_OR_NONE(pRegion, rid, client, mode) { \
     pRegion = 0; \

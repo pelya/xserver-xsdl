@@ -254,6 +254,7 @@ AddScreenVisuals(ScreenPtr pScreen, int count, int d)
     VisualPtr	 visuals;
     ColormapPtr	 installedCmap;
     DepthPtr	 depth;
+    int		 rc;
 
     depth = NULL;
     for (i = 0; i < pScreen->numDepths; i++) {
@@ -294,8 +295,10 @@ AddScreenVisuals(ScreenPtr pScreen, int count, int d)
      * for all colormaps.
      */
     for (i = 0; i < numInstalledCmaps; i++) {
-	installedCmap = LookupIDByType (installedCmaps[i], RT_COLORMAP);
-	if (!installedCmap)
+	rc = dixLookupResourceByType((pointer *)&installedCmap,
+				     installedCmaps[i], RT_COLORMAP,
+				     serverClient, DixReadAccess);
+	if (rc != Success)
 	    continue;
 	j = installedCmap->pVisual - pScreen->visuals;
 	installedCmap->pVisual = &visuals[j];

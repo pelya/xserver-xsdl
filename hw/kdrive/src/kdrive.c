@@ -1279,38 +1279,12 @@ KdDepthToFb (ScreenPtr	pScreen, int depth)
 
 #endif
 
-#ifdef HAVE_BACKTRACE
-/* shamelessly ripped from xf86Events.c */
-void
-KdBacktrace (int signum)
-{
-    void *array[32]; /* more than 32 and you have bigger problems */
-    size_t size, i;
-    char **strings;
-
-    signal(signum, SIG_IGN);
-
-    size = backtrace (array, 32);
-    fprintf (stderr, "\nBacktrace (%d deep):\n", size);
-    strings = backtrace_symbols (array, size);
-    for (i = 0; i < size; i++)
-        fprintf (stderr, "%d: %s\n", i, strings[i]);
-    free (strings);
-    
-    kdCaughtSignal = TRUE;    
-    if (signum == SIGSEGV)
-        FatalError("Segmentation fault caught\n");
-    else if (signum > 0)
-        FatalError("Signal %d caught\n", signum);
-}
-#else
-void
-KdBacktrace (int signum)
+static int
+KdSignalWrapper (int signum)
 {
     kdCaughtSignal = TRUE;
-    FatalError("Segmentation fault caught\n");
+    return 1; /* use generic OS layer cleanup & abort */
 }
-#endif
 
 void
 KdInitOutput (ScreenInfo    *pScreenInfo,
@@ -1357,7 +1331,7 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
 	for (screen = card->screenList; screen; screen = screen->next)
 	    KdAddScreen (pScreenInfo, screen, argc, argv);
 
-    signal(SIGSEGV, KdBacktrace);
+    OsRegisterSigWrapper(KdSignalWrapper);
 }
 
 void

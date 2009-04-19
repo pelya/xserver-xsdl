@@ -32,6 +32,11 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
 
+AC_CONFIG_FILES([
+	shave
+	shave-libtool
+])
+
 # Require xorg-macros version 1.2.0 or newer for XORG_CHANGELOG and
 # XORG_CWARNFLAGS
 m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.2 or later before running autoconf/autogen])])
@@ -54,6 +59,9 @@ dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
 dnl kdrive-config.h covers the kdrive DDX
 AC_CONFIG_HEADERS(include/kdrive-config.h)
+dnl version-config.h covers the version numbers so they can be bumped without
+dnl forcing an entire recompile.x
+AC_CONFIG_HEADERS(include/version-config.h)
 
 AC_PROG_CC
 AM_PROG_AS
@@ -105,7 +113,7 @@ AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -889,7 +897,7 @@ case "$DRI2,$HAVE_DRI2PROTO" in
 		DRI2=yes
 		;;
 esac
-AM_CONDITIONAL(DRI2, test "x$DRI2" == xyes)
+AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
 if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
@@ -916,7 +924,7 @@ if test "x$DRI2" = xyes; then
 		DRI2_AIGLX=no
 	fi
 fi
-AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" == xyes)
+AM_CONDITIONAL(DRI2_AIGLX, test "x$DRI2_AIGLX" = xyes)
 
 
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
@@ -1120,10 +1128,11 @@ AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
 
-AC_SUBST([VENDOR_NAME])
 AC_SUBST([VENDOR_NAME_SHORT])
-AC_SUBST([VENDOR_RELEASE])
-AC_SUBST([VENDOR_MAN_VERSION])
+AC_DEFINE_UNQUOTED(VENDOR_NAME, ["$VENDOR_NAME"], [Vendor name])
+AC_DEFINE_UNQUOTED(VENDOR_NAME_SHORT, ["$VENDOR_NAME_SHORT"], [Vendor name])
+AC_DEFINE_UNQUOTED(VENDOR_RELEASE, [$VENDOR_RELEASE], [Vendor release])
+AC_DEFINE_UNQUOTED(VENDOR_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 
 AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
 
@@ -1446,6 +1455,9 @@ if test "x$XORG" = xyes; then
 	  gnu*)
 	  	XORG_OS="gnu"
 		XORG_OS_SUBDIR="hurd"
+		# Use the same stubs as BSD for old functions, since we now
+		# use libpciaccess for PCI
+		xorg_bus_bsdpci="yes"
 		;;
 	  *)
 	  	XORG_OS="unknown"
@@ -1873,6 +1885,8 @@ AC_SUBST([prefix])
 # Man page sections - used in config utils & generating man pages
 XORG_MANPAGE_SECTIONS
 XORG_CHANGELOG
+
+SHAVE_INIT([.], [enable])
 
 AC_OUTPUT([
 Makefile

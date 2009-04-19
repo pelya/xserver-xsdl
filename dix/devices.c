@@ -475,12 +475,10 @@ CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 static int
 CoreKeyboardProc(DeviceIntPtr pDev, int what)
 {
-    XkbRMLVOSet rmlvo;
 
     switch (what) {
     case DEVICE_INIT:
-        XkbGetRulesDflts(&rmlvo);
-        if (!InitKeyboardDeviceStruct(pDev, &rmlvo, CoreKeyboardBell,
+        if (!InitKeyboardDeviceStruct(pDev, NULL, CoreKeyboardBell,
                                       CoreKeyboardCtl))
         {
             ErrorF("Keyboard initialization failed. This could be a missing "
