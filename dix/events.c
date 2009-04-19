@@ -2226,13 +2226,13 @@ FixUpEventFromWindow(
         event->event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
-            event->event_x.integral = event->root_x.integral - pWin->drawable.x;
-            event->event_y.integral = event->root_y.integral - pWin->drawable.y;
+            event->event_x = FP1616(event->root_x - pWin->drawable.x, 0);
+            event->event_y = FP1616(event->root_y - pWin->drawable.y, 0);
             event->child = child;
         } else
         {
-            event->event_x.integral = 0;
-            event->event_y.integral = 0;
+            event->event_x = 0;
+            event->event_y = 0;
             event->child = None;
         }
 
@@ -4161,8 +4161,8 @@ DeviceEnterLeaveEvent(
     event->deviceid     = mouse->id;
     event->sourceid     = 0; /*XXX */
     event->mode         = mode;
-    event->root_x.integral      = mouse->spriteInfo->sprite->hot.x;
-    event->root_y.integral      = mouse->spriteInfo->sprite->hot.y;
+    event->root_x       = FP1616(mouse->spriteInfo->sprite->hot.x, 0);
+    event->root_y       = FP1616(mouse->spriteInfo->sprite->hot.y, 0);
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))

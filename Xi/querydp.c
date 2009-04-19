@@ -42,6 +42,7 @@
 #include "extnsionst.h"
 #include "exevents.h"
 #include "exglobals.h"
+#include "eventconvert.h"
 #include "xkbsrv.h"
 
 #ifdef PANORAMIX
@@ -110,16 +111,16 @@ ProcXIQueryDevicePointer(ClientPtr client)
     if (kbd && kbd->key)
         rep.mask |= XkbStateFieldFromRec(&kbd->key->xkbInfo->state);
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
-    rep.root_x.integral = pSprite->hot.x;
-    rep.root_y.integral = pSprite->hot.y;
+    rep.root_x = FP1616(pSprite->hot.x, 0);
+    rep.root_y = FP1616(pSprite->hot.y, 0);
     rep.child = None;
     rep.deviceid = pDev->id;
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
         rep.same_screen = xTrue;
-        rep.win_x.integral = pSprite->hot.x - pWin->drawable.x;
-        rep.win_y.integral = pSprite->hot.y - pWin->drawable.y;
+        rep.win_x = FP1616(pSprite->hot.x - pWin->drawable.x, 0);
+        rep.win_y = FP1616(pSprite->hot.y - pWin->drawable.y, 0);
         for (t = pSprite->win; t; t = t->parent)
             if (t->parent == pWin)
             {
@@ -129,18 +130,18 @@ ProcXIQueryDevicePointer(ClientPtr client)
     } else
     {
         rep.same_screen = xFalse;
-        rep.win_x.integral = 0;
-        rep.win_y.integral = 0;
+        rep.win_x = 0;
+        rep.win_y = 0;
     }
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-        rep.root_x.integral += panoramiXdataPtr[0].x;
-        rep.root_y.integral += panoramiXdataPtr[0].y;
+        rep.root_x += FP1616(panoramiXdataPtr[0].x, 0);
+        rep.root_y += FP1616(panoramiXdataPtr[0].y, 0);
         if (stuff->win == rep.root)
         {
-            rep.win_x.integral += panoramiXdataPtr[0].x;
-            rep.win_y.integral += panoramiXdataPtr[0].y;
+            rep.win_x += FP1616(panoramiXdataPtr[0].x, 0);
+            rep.win_y += FP1616(panoramiXdataPtr[0].y, 0);
         }
     }
 #endif

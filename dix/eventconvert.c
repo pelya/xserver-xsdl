@@ -47,6 +47,7 @@
 #include "eventconvert.h"
 #include "querydev.h"
 
+
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
@@ -384,8 +385,8 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->valuators_len  = vallen;
     xde->deviceid       = ev->deviceid;
     xde->sourceid       = ev->sourceid;
-    xde->root_x.integral = ev->root_x;
-    xde->root_y.integral = ev->root_y;
+    xde->root_x         = FP1616(ev->root_x, 0);
+    xde->root_y         = FP1616(ev->root_y, 0);
 
     xde->mods.base_mods         = ev->mods.base;
     xde->mods.latched_mods      = ev->mods.latched;

@@ -1220,8 +1220,8 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     xi2event->deviceid     = dev->id;
     xi2event->sourceid     = 0; /*XXX */
     xi2event->mode         = mode;
-    xi2event->root_x.integral      = mouse->spriteInfo->sprite->hot.x;
-    xi2event->root_y.integral      = mouse->spriteInfo->sprite->hot.y;
+    xi2event->root_x       = FP1616(mouse->spriteInfo->sprite->hot.x, 0);
+    xi2event->root_y       = FP1616(mouse->spriteInfo->sprite->hot.y, 0);
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))
