@@ -384,6 +384,8 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->valuators_len  = vallen;
     xde->deviceid       = ev->deviceid;
     xde->sourceid       = ev->sourceid;
+    xde->root_x.integral = ev->root_x;
+    xde->root_y.integral = ev->root_y;
 
     xde->mods.base_mods         = ev->mods.base;
     xde->mods.latched_mods      = ev->mods.latched;
