@@ -72,23 +72,26 @@ ProcXIAllowEvents(ClientPtr client)
     time = ClientTimeToServerTime(stuff->time);
 
     switch (stuff->mode) {
-    case ReplayThisDevice:
+    case ReplayDevice:
 	AllowSome(client, time, dev, NOT_GRABBED);
 	break;
-    case SyncThisDevice:
+    case SyncDevice:
 	AllowSome(client, time, dev, FREEZE_NEXT_EVENT);
 	break;
-    case AsyncThisDevice:
+    case AsyncDevice:
 	AllowSome(client, time, dev, THAWED);
 	break;
-    case AsyncOtherDevices:
-	AllowSome(client, time, dev, THAW_OTHERS);
+    case AsyncPairedDevice:
+        if (dev->isMaster)
+            AllowSome(client, time, dev, THAW_OTHERS);
 	break;
-    case SyncAll:
-	AllowSome(client, time, dev, FREEZE_BOTH_NEXT_EVENT);
+    case SyncPair:
+        if (dev->isMaster)
+            AllowSome(client, time, dev, FREEZE_BOTH_NEXT_EVENT);
 	break;
-    case AsyncAll:
-	AllowSome(client, time, dev, THAWED_BOTH);
+    case AsyncPair:
+        if (dev->isMaster)
+            AllowSome(client, time, dev, THAWED_BOTH);
 	break;
     default:
 	client->errorValue = stuff->mode;
