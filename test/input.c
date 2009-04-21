@@ -32,6 +32,7 @@
 #include <X11/Xatom.h>
 #include "windowstr.h"
 #include "inputstr.h"
+#include "eventconvert.h"
 
 #include <glib.h>
 
@@ -72,12 +73,155 @@ static void dix_init_valuators(void)
     g_assert(dev.last.numValuators == num_axes);
 }
 
+
+/**
+ * Convert various internal events to the matching core event and verify the
+ * parameters.
+ */
+static void dix_event_to_core(int type)
+{
+    DeviceEvent ev;
+    xEvent core;
+    int time;
+    int x, y;
+    int rc;
+    int state;
+    int detail;
+
+    /* EventToCore memsets the event to 0 */
+#define test_event() \
+    g_assert(rc == Success); \
+    g_assert(core.u.u.type == type); \
+    g_assert(core.u.u.detail == detail); \
+    g_assert(core.u.keyButtonPointer.time == time); \
+    g_assert(core.u.keyButtonPointer.rootX == x); \
+    g_assert(core.u.keyButtonPointer.rootY == y); \
+    g_assert(core.u.keyButtonPointer.state == state); \
+    g_assert(core.u.keyButtonPointer.eventX == 0); \
+    g_assert(core.u.keyButtonPointer.eventY == 0); \
+    g_assert(core.u.keyButtonPointer.root == 0); \
+    g_assert(core.u.keyButtonPointer.event == 0); \
+    g_assert(core.u.keyButtonPointer.child == 0); \
+    g_assert(core.u.keyButtonPointer.sameScreen == FALSE);
+
+    x = 0;
+    y = 0;
+    time = 12345;
+    state = 0;
+    detail = 0;
+
+    ev.header   = 0xFF;
+    ev.length   = sizeof(DeviceEvent);
+    ev.time     = time;
+    ev.root_y   = x;
+    ev.root_x   = y;
+    ev.corestate = state;
+    ev.detail.key = detail;
+
+    ev.type = type;
+    ev.detail.key = 0;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    x = 1;
+    y = 2;
+    ev.root_x = x;
+    ev.root_y = y;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    x = 0x7FFF;
+    y = 0x7FFF;
+    ev.root_x = x;
+    ev.root_y = y;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    x = 0x8000; /* too high */
+    y = 0x8000; /* too high */
+    ev.root_x = x;
+    ev.root_y = y;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(core.u.keyButtonPointer.rootX != x);
+    g_assert(core.u.keyButtonPointer.rootY != y);
+
+    x = 0x7FFF;
+    y = 0x7FFF;
+    ev.root_x = x;
+    ev.root_y = y;
+    time = 0;
+    ev.time = time;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    detail = 1;
+    ev.detail.key = detail;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    detail = 0xFF; /* highest value */
+    ev.detail.key = detail;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    detail = 0xFFF; /* too big */
+    ev.detail.key = detail;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadMatch);
+
+    detail = 0xFF; /* too big */
+    ev.detail.key = detail;
+    state = 0xFFFF; /* highest value */
+    ev.corestate = state;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    test_event();
+
+    state = 0x10000; /* too big */
+    ev.corestate = state;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(core.u.keyButtonPointer.state != state);
+    g_assert(core.u.keyButtonPointer.state == (state & 0xFFFF));
+
+#undef test_event
+}
+
+static void dix_event_to_core_conversion(void)
+{
+    DeviceEvent ev;
+    xEvent core;
+    int rc;
+
+    ev.header   = 0xFF;
+    ev.length   = sizeof(DeviceEvent);
+
+    ev.type     = 0;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadImplementation);
+
+    ev.type     = 1;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadImplementation);
+
+    ev.type     = ET_ProximityOut + 1;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadImplementation);
+
+    dix_event_to_core(ET_KeyPress);
+    dix_event_to_core(ET_KeyRelease);
+    dix_event_to_core(ET_ButtonPress);
+    dix_event_to_core(ET_ButtonRelease);
+    dix_event_to_core(ET_Motion);
+    dix_event_to_core(ET_ProximityIn);
+    dix_event_to_core(ET_ProximityOut);
+}
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
     g_test_bug_base("https://bugzilla.freedesktop.org/show_bug.cgi?id=");
 
     g_test_add_func("/dix/input/init-valuators", dix_init_valuators);
+    g_test_add_func("/dix/input/event-core-conversion", dix_event_to_core_conversion);
 
     return g_test_run();
 }
