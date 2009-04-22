@@ -85,6 +85,7 @@ XDMX_LIBS = \
 	$(GLX_LIBS) \
         input/libdmxinput.a \
         config/libdmxconfig.a \
+	$(MAIN_LIB) \
 	$(XSERVER_LIBS)
 
 Xdmx_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)

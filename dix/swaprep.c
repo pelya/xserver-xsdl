@@ -1291,3 +1291,18 @@ WriteSConnSetupPrefix(ClientPtr pClient, xConnSetupPrefix *pcsp)
     SwapConnSetupPrefix(pcsp, &cspT);
     (void)WriteToClient(pClient, sizeof(cspT), (char *) &cspT);
 }
+
+/*
+ * Dummy entry for ReplySwapVector[]
+ */
+
+void
+ReplyNotSwappd(
+	ClientPtr pClient ,
+	int size ,
+	void * pbuf
+	)
+{
+    FatalError("Not implemented");
+}
+
