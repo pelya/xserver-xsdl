@@ -273,6 +273,12 @@ static struct {
 static xEvent* swapEvent = NULL;
 static int swapEventLen = 0;
 
+void
+NotImplemented(xEvent *from, xEvent *to)
+{
+    FatalError("Not implemented");
+}
+
 /**
  * Convert the given event type from an XI event to a core event.
  * @param[in] The XI 1.x event type.

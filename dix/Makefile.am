@@ -1,6 +1,9 @@
-noinst_LTLIBRARIES = libdix.la
+noinst_LTLIBRARIES = libdix.la libmain.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
+
+libmain_la_SOURCES =    \
+	main.c
 
 libdix_la_SOURCES = 	\
 	atom.c		\
@@ -26,7 +29,6 @@ libdix_la_SOURCES = 	\
 	grabs.c		\
 	initatoms.c	\
 	inpututils.c	\
-	main.c		\
 	pixmap.c	\
 	privates.c	\
 	property.c	\

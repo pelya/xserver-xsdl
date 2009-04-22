@@ -56,7 +56,7 @@ libxorg.c xorg.c:
 DISTCLEANFILES = libxorg.c xorg.c
 
 Xorg_DEPENDENCIES = libxorg.la
-Xorg_LDADD = libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
+Xorg_LDADD = $(MAIN_LIB) libxorg.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 

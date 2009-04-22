@@ -170,6 +170,7 @@ extern _X_EXPORT void SendErrorToClient(
 extern _X_EXPORT void MarkClientException(
     ClientPtr /*client*/);
 
+extern _X_HIDDEN Bool CreateConnectionBlock(void);
 /* dixutils.c */
 
 extern _X_EXPORT void CopyISOLatin1Lowered(
