@@ -289,7 +289,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	return NullPixmap;
 
     swap(pExaScr, pScreen, CreatePixmap);
-    if (!pExaScr->info->CreatePixmap) {
+    if (!pExaScr->info->CreatePixmap && !pExaScr->info->CreatePixmap2) {
         pPixmap = pScreen->CreatePixmap (pScreen, w, h, depth, usage_hint);
     } else {
         driver_alloc = 1;
@@ -324,7 +324,10 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
 	 */
 	pPixmap->devPrivate.ptr = NULL;
 
-        pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
+	if (pExaScr->info->CreatePixmap2)
+        	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp);
+	else
+        	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
         if (!pExaPixmap->driverPriv) {
 	    swap(pExaScr, pScreen, DestroyPixmap);
 	    pScreen->DestroyPixmap (pPixmap);
@@ -1261,7 +1264,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap);
 
 	wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader);
-	if (!pExaScr->info->CreatePixmap) {
+	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
 		       pScreen->myNum,
 		       pExaScr->info->memorySize - pExaScr->info->offScreenBase);
@@ -1274,7 +1277,7 @@ exaDriverInit (ScreenPtr		pScreen,
     else
         LogMessage(X_INFO, "EXA(%d): No offscreen pixmaps\n", pScreen->myNum);
 
-    if (!pExaScr->info->CreatePixmap) {
+    if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->offScreenBase,
 		    pExaScr->info->memorySize));
 	if (pExaScr->info->offScreenBase < pExaScr->info->memorySize) {
