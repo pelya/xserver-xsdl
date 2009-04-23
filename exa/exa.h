@@ -705,6 +705,9 @@ typedef struct _ExaDriver {
                               pointer pPixData);
 
     /** @} */
+    void *(*CreatePixmap2)(ScreenPtr pScreen, int width, int height,
+                           int depth, int usage_hint, int bitsPerPixel);
+
 } ExaDriverRec, *ExaDriverPtr;
 
 /** @name EXA driver flags
