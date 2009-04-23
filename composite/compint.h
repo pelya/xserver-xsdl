@@ -225,10 +225,6 @@ CompositeExtensionInit (void);
  */
 
 Bool
-CompositeRegisterAlternateVisuals (ScreenPtr pScreen,
-				   VisualID *vids, int nVisuals);
-
-Bool
 compScreenInit (ScreenPtr pScreen);
 
 /*

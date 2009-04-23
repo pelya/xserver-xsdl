@@ -45,6 +45,7 @@
 #endif
 
 #include "compint.h"
+#include "compositeext.h"
 
 static int CompScreenPrivateKeyIndex;
 DevPrivateKey CompScreenPrivateKey = &CompScreenPrivateKeyIndex;
