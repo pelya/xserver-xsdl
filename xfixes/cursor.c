@@ -129,6 +129,8 @@ typedef struct _CursorScreen {
 /* The cursor doesn't show up until the first XDefineCursor() */
 static Bool CursorVisible = FALSE;
 
+Bool EnableCursor = TRUE;
+
 static Bool
 CursorDisplayCursor (DeviceIntPtr pDev,
                      ScreenPtr pScreen,
@@ -144,7 +146,7 @@ CursorDisplayCursor (DeviceIntPtr pDev,
      * initial root window setup.  Not a great way to do it, I admit.
      */
     if (ConnectionInfo)
-	CursorVisible = TRUE;
+	CursorVisible = EnableCursor;
 
     if (cs->pCursorHideCounts != NULL || !CursorVisible) {
         ret = ((*pScreen->RealizeCursor)(pDev, pScreen, pInvisibleCursor) &&
@@ -1052,7 +1054,7 @@ XFixesCursorInit (void)
     int	i;
 
     if (party_like_its_1989)
-	CursorVisible = TRUE;
+	CursorVisible = EnableCursor;
     
     for (i = 0; i < screenInfo.numScreens; i++)
     {

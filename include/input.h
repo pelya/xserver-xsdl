@@ -498,4 +498,8 @@ extern _X_EXPORT void DDXRingBell(
     int pitch,
     int duration);
 
+/* Set to TRUE by default - os/utils.c sets it to FALSE on user request,
+   xfixes/cursor.c uses it to determine if the cursor is enabled */
+extern Bool EnableCursor;
+
 #endif /* INPUT_H */
