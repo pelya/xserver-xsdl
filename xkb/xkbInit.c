@@ -594,6 +594,7 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
     InitFocusClassDeviceStruct(dev);
 
     xkbi->kbdProc = ctrl_func;
+    dev->kbdfeed->BellProc = bell_func;
     dev->kbdfeed->CtrlProc = XkbDDXKeybdCtrlProc;
 
     dev->kbdfeed->ctrl = defaultKeyboardControl;

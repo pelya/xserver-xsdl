@@ -1086,7 +1086,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     if (!DRIGetDeviceInfo(pScreen, &hFB, &junk,
 			  &framebuffer.size, &framebuffer.stride,
 			  &framebuffer.dev_priv_size, &framebuffer.dev_priv)) {
-	LogMessage(X_ERROR, "AIGLX error: XF86DRIGetDeviceInfo failed");
+	LogMessage(X_ERROR, "AIGLX error: XF86DRIGetDeviceInfo failed\n");
 	goto handle_error;
     }
 
@@ -1097,7 +1097,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     status = drmMap(fd, hFB, framebuffer.size, 
 		    (drmAddressPtr)&framebuffer.base);
     if (status != 0) {
-	LogMessage(X_ERROR, "AIGLX error: drmMap of framebuffer failed (%s)",
+	LogMessage(X_ERROR, "AIGLX error: drmMap of framebuffer failed (%s)\n",
 		   strerror(-status));
 	goto handle_error;
     }
@@ -1107,7 +1107,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
      */
     status = drmMap(fd, hSAREA, SAREA_MAX, &pSAREA);
     if (status != 0) {
-	LogMessage(X_ERROR, "AIGLX error: drmMap of SAREA failed (%s)",
+	LogMessage(X_ERROR, "AIGLX error: drmMap of SAREA failed (%s)\n",
 		   strerror(-status));
 	goto handle_error;
     }
@@ -1125,7 +1125,8 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 					   screen);
 
     if (screen->driScreen == NULL) {
-	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");
+	LogMessage(X_ERROR,
+		   "AIGLX error: Calling driver entry point failed\n");
 	goto handle_error;
     }
 

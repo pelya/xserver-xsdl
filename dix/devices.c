@@ -90,9 +90,24 @@ SOFTWARE.
 
 static int CoreDevicePrivateKeyIndex;
 DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKeyIndex;
-/* Used to sture classes currently not in use by an MD */
+/* Used to store classes currently not in use by an MD */
 static int UnusedClassesPrivateKeyIndex;
 DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
+/* Used to store if a device is an XTest Virtual device */
+static int XTstDevicePrivateKeyIndex;
+DevPrivateKey XTstDevicePrivateKey = &XTstDevicePrivateKeyIndex;
+
+/**
+ * vxtstpointer
+ * is the virtual pointer for XTest. It is the first slave
+ * device of the VCP.
+ * vxtstkeyboard
+ * is the virtual keyboard for XTest. It is the first slave
+ * device of the VCK
+ *
+ * Neither of these devices can be deleted.
+ */
+DeviceIntPtr vxtstpointer, vxtstkeyboard;
 
 
 /**
@@ -549,9 +564,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
-    if (AllocMasterDevice(serverClient, "Virtual core",
-                          &inputInfo.pointer,
-                          &inputInfo.keyboard) != Success)
+    if (AllocDevicePair(serverClient, "Virtual core",
+                        &inputInfo.pointer, &inputInfo.keyboard,
+                        TRUE) != Success)
         FatalError("Failed to allocate core devices");
 
     if (ActivateDevice(inputInfo.pointer) != Success ||
@@ -560,6 +575,25 @@ InitCoreDevices(void)
     if (!EnableDevice(inputInfo.pointer) ||
         !EnableDevice(inputInfo.keyboard))
         FatalError("Failed to enable core devices.");
+
+    /*
+      Allocate an virtual slave device for xtest events, this
+      is a slave device to inputInfo master devices
+     */
+    if(AllocXtstDevice(serverClient, "Virtual core",
+                       &vxtstpointer,
+                       &vxtstkeyboard) != Success)
+        FatalError("Failed to allocate XTst devices");
+
+    if (ActivateDevice(vxtstpointer) != Success ||
+        ActivateDevice(vxtstkeyboard) != Success)
+        FatalError("Failed to activate xtst core devices.");
+    if (!EnableDevice(vxtstpointer) ||
+        !EnableDevice(vxtstkeyboard))
+        FatalError("Failed to enable xtst core devices.");
+
+    AttachDevice(NULL, vxtstpointer, inputInfo.pointer);
+    AttachDevice(NULL, vxtstkeyboard, inputInfo.keyboard);
 }
 
 /**
@@ -2273,12 +2307,16 @@ GetPairedDevice(DeviceIntPtr dev)
 
 
 /**
- * Create a new master device (== one pointer, one keyboard device).
+ * Create a new device pair (== one pointer, one keyboard device).
  * Only allocates the devices, you will need to call ActivateDevice() and
  * EnableDevice() manually.
+ * Either a master or a slave device can be created depending on
+ * the value for master.
  */
 int
-AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+AllocDevicePair (ClientPtr client, char* name,
+			    DeviceIntPtr* ptr, DeviceIntPtr* keybd,
+			    Bool master)
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
@@ -2302,7 +2340,7 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
     pointer->spriteInfo->spriteOwner = TRUE;
 
     pointer->u.lastSlave = NULL;
-    pointer->isMaster = TRUE;
+    pointer->isMaster = master;
 
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
@@ -2324,7 +2362,7 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
     keyboard->spriteInfo->spriteOwner = FALSE;
 
     keyboard->u.lastSlave = NULL;
-    keyboard->isMaster = TRUE;
+    keyboard->isMaster = master;
 
 
     /* The ClassesRec stores the device classes currently not used. */
@@ -2337,4 +2375,32 @@ AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr*
     *keybd = keyboard;
 
     return Success;
+}
+
+/**
+ * Allocate a device pair that is initialised as a slave
+ * device with properties that identify the devices as belonging
+ * to XTest subsystem.
+ * This only creates the pair, Activate/Enable Device
+ * still need to be called.
+ */
+int AllocXtstDevice (ClientPtr client, char* name,
+		 DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+{
+    int retval;
+    int len = strlen(name);
+    char *xtstname = xcalloc(len + 6, 1 );
+
+    strncpy( xtstname, name, len);
+    strncat( xtstname, " Xtst", 5 );
+
+    retval = AllocDevicePair( client, xtstname, ptr, keybd, FALSE);
+    if ( retval == Success ){
+	dixSetPrivate(&((*ptr)->devPrivates), XTstDevicePrivateKey, (void *)True );
+	dixSetPrivate(&((*keybd)->devPrivates), XTstDevicePrivateKey,(void *)True);
+    }
+
+    xfree( xtstname );
+
+    return retval;
 }

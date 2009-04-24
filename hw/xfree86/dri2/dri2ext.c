@@ -79,8 +79,8 @@ ProcDRI2QueryVersion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = DRI2_MAJOR;
-    rep.minorVersion = DRI2_MINOR;
+    rep.majorVersion = 1;
+    rep.minorVersion = 0;
 
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);

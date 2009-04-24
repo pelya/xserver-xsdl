@@ -39,7 +39,7 @@
 #include "fb.h"
 
 #define EXA_VERSION_MAJOR   2
-#define EXA_VERSION_MINOR   4
+#define EXA_VERSION_MINOR   5
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -704,6 +704,8 @@ typedef struct _ExaDriver {
                               int depth, int bitsPerPixel, int devKind,
                               pointer pPixData);
 
+    void *(*CreatePixmap2)(ScreenPtr pScreen, int width, int height,
+			   int depth, int usage_hint, int bitsPerPixel);
     /** @} */
 } ExaDriverRec, *ExaDriverPtr;
 

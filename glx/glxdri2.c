@@ -443,9 +443,17 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
     return private->buffers;
 }
 
+static void 
+dri2FlushFrontBuffer(__DRIdrawable *driDrawable, void *loaderPrivate)
+{
+    (void) driDrawable;
+    __glXDRIdrawableWaitGL((__GLXdrawable *) loaderPrivate);
+}
+
 static const __DRIdri2LoaderExtension loaderExtension = {
     { __DRI_DRI2_LOADER, __DRI_DRI2_LOADER_VERSION },
     dri2GetBuffers,
+    dri2FlushFrontBuffer,
 };
 
 static const __DRIextension *loader_extensions[] = {

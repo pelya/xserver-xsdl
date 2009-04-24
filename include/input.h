@@ -469,10 +469,11 @@ extern int AttachDevice(ClientPtr client,
 
 extern _X_EXPORT DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
-extern int AllocMasterDevice(ClientPtr client,
+extern int AllocDevicePair(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
-                             DeviceIntPtr* keybd);
+                             DeviceIntPtr* keybd,
+                             Bool master);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
 
@@ -481,6 +482,10 @@ extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
                               KeyCode **modkeymap, int *max_keys_per_mod);
 extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
                          int max_keys_per_mod);
+extern int AllocXtstDevice(ClientPtr client,
+                             char* name,
+                             DeviceIntPtr* ptr,
+                             DeviceIntPtr* keybd);
 
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);
