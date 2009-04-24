@@ -157,7 +157,7 @@ xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
 		xf86Msg(X_WARNING, "fcntl(%d, O_ASYNC): %s\n",
 			fd, strerror(errno));
 	    } else {
-		if (fcntl(fd, F_SETOWN, getpid()) != -1) {
+		if (fcntl(fd, F_SETOWN, getpid()) == -1) {
 		    xf86Msg(X_WARNING, "fcntl(%d, F_SETOWN): %s\n",
 			    fd, strerror(errno));
 		} else {
