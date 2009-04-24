@@ -41,6 +41,7 @@ typedef struct {
     unsigned int pitch;
     unsigned int cpp;
     unsigned int flags;
+    unsigned int format;
     void *driverPrivate;
 } DRI2BufferRec, *DRI2BufferPtr;
 
@@ -58,8 +59,19 @@ typedef void		(*DRI2CopyRegionProcPtr)(DrawablePtr pDraw,
 typedef void		(*DRI2WaitProcPtr)(WindowPtr pWin,
 					   unsigned int sequence);
 
+typedef DRI2BufferPtr	(*DRI2CreateBufferProcPtr)(DrawablePtr pDraw,
+						   unsigned int attachment,
+						   unsigned int format);
+typedef void		(*DRI2DestroyBufferProcPtr)(DrawablePtr pDraw,
+						    DRI2BufferPtr buffer);
+
+/**
+ * Version of the DRI2InfoRec structure defined in this header
+ */
+#define DRI2INFOREC_VERSION 2
+
 typedef struct {
-    unsigned int version;	/* Version of this struct */
+    unsigned int version;	/**< Version of this struct */
     int fd;
     const char *driverName;
     const char *deviceName;
@@ -68,6 +80,14 @@ typedef struct {
     DRI2DestroyBuffersProcPtr	DestroyBuffers;
     DRI2CopyRegionProcPtr	CopyRegion;
     DRI2WaitProcPtr		Wait;
+
+    /**
+     * \name Fields added in version 2 of the structure.
+     */
+    /*@{*/
+    DRI2CreateBufferProcPtr	CreateBuffer;
+    DRI2DestroyBufferProcPtr	DestroyBuffer;
+    /*@}*/
 
 }  DRI2InfoRec, *DRI2InfoPtr;
 
@@ -88,7 +108,7 @@ extern _X_EXPORT int DRI2CreateDrawable(DrawablePtr pDraw);
 
 extern _X_EXPORT void DRI2DestroyDrawable(DrawablePtr pDraw);
 
-extern _X_EXPORT DRI2BufferPtr DRI2GetBuffers(DrawablePtr pDraw,
+extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffers(DrawablePtr pDraw,
 			     int *width,
 			     int *height,
 			     unsigned int *attachments,
@@ -117,5 +137,9 @@ extern _X_EXPORT int DRI2CopyRegion(DrawablePtr pDraw,
  * its existance by calling \c xf86LoaderCheckSymbol.
  */
 extern _X_EXPORT void DRI2Version(int *major, int *minor);
+
+extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffersWithFormat(DrawablePtr pDraw,
+	int *width, int *height, unsigned int *attachments, int count,
+	int *out_count);
 
 #endif

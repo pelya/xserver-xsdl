@@ -886,7 +886,7 @@ if test "x$DRI" = xyes; then
 	AC_SUBST(DRIPROTO_CFLAGS)
 fi
 
-PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.99.3],
+PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 2.1],
                   [HAVE_DRI2PROTO=yes], [HAVE_DRI2PROTO=no])
 case "$DRI2,$HAVE_DRI2PROTO" in
 	yes,no)

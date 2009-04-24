@@ -53,7 +53,7 @@ typedef struct _DRI2Drawable {
     unsigned int	 refCount;
     int			 width;
     int			 height;
-    DRI2BufferPtr	 buffers;
+    DRI2BufferPtr	*buffers;
     int			 bufferCount;
     unsigned int	 pendingSequence;
 } DRI2DrawableRec, *DRI2DrawablePtr;
@@ -63,8 +63,8 @@ typedef struct _DRI2Screen {
     const char			*deviceName;
     int				 fd;
     unsigned int		 lastSequence;
-    DRI2CreateBuffersProcPtr	 CreateBuffers;
-    DRI2DestroyBuffersProcPtr	 DestroyBuffers;
+    DRI2CreateBufferProcPtr	 CreateBuffer;
+    DRI2DestroyBufferProcPtr	 DestroyBuffer;
     DRI2CopyRegionProcPtr	 CopyRegion;
 
     HandleExposuresProcPtr       HandleExposures;
@@ -132,71 +132,130 @@ DRI2CreateDrawable(DrawablePtr pDraw)
     return Success;
 }
 
-DRI2BufferPtr
-DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
-	       unsigned int *attachments, int count, int *out_count)
+static int
+find_attachment(DRI2BufferPtr *buffer_list, int count, unsigned attachment)
+{
+    int i;
+
+    if (buffer_list == NULL) {
+	return -1;
+    }
+
+    for (i = 0; i < count; i++) {
+	if ((buffer_list[i] != NULL)
+	    && (buffer_list[i]->attachment == attachment)) {
+	    return i;
+	}
+    }
+
+    return -1;
+}
+
+static DRI2BufferPtr
+allocate_or_reuse_buffer(DrawablePtr pDraw, DRI2ScreenPtr ds,
+			 DRI2DrawablePtr pPriv,
+			 unsigned int attachment, unsigned int format,
+			 int dimensions_match)
+{
+    DRI2BufferPtr buffer;
+    int old_buf;
+
+    old_buf = find_attachment(pPriv->buffers, pPriv->bufferCount, attachment);
+
+    if ((old_buf < 0)
+	|| !dimensions_match
+	|| (pPriv->buffers[old_buf]->format != format)) {
+	buffer = (*ds->CreateBuffer)(pDraw, attachment, format);
+    } else {
+	buffer = pPriv->buffers[old_buf];
+	pPriv->buffers[old_buf] = NULL;
+    }
+
+    return buffer;
+}
+
+static DRI2BufferPtr *
+do_get_buffers(DrawablePtr pDraw, int *width, int *height,
+	       unsigned int *attachments, int count, int *out_count,
+	       int has_format)
 {
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
-    DRI2BufferPtr   buffers;
-    unsigned int temp_buf[32];
-    unsigned int *temp = temp_buf;
+    DRI2BufferPtr  *buffers;
+    int need_real_front = 0;
+    int need_fake_front = 0;
     int have_fake_front = 0;
+    int front_format = 0;
+    const int dimensions_match = (pDraw->width == pPriv->width)
+	&& (pDraw->height == pPriv->height);
+    int i;
 
 
-    /* If the drawable is a window and the front-buffer is requested, silently
-     * add the fake front-buffer to the list of requested attachments.  The
-     * counting logic in the loop accounts for the case where the client
-     * requests both the fake and real front-buffer.
-     */
-    if (pDraw->type == DRAWABLE_WINDOW) {
-	int need_fake_front = 0;
-	int i;
+    buffers = xalloc((count + 1) * sizeof(buffers[0]));
 
-	if ((count + 1) > 32) {
-	    temp = xalloc((count + 1) * sizeof(temp[0]));
-	}
+    for (i = 0; i < count; i++) {
+	const unsigned attachment = *(attachments++);
+	const unsigned format = (has_format) ? *(attachments++) : 0;
 
-	for (i = 0; i < count; i++) {
-	    if (attachments[i] == DRI2BufferFrontLeft) {
-		need_fake_front++;
+	buffers[i] = allocate_or_reuse_buffer(pDraw, ds, pPriv, attachment,
+					      format, dimensions_match);
+
+
+	/* If the drawable is a window and the front-buffer is requested,
+	 * silently add the fake front-buffer to the list of requested
+	 * attachments.  The counting logic in the loop accounts for the case
+	 * where the client requests both the fake and real front-buffer.
+	 */
+	if (pDraw->type == DRAWABLE_WINDOW) {
+	    if (attachment == DRI2BufferBackLeft) {
+		need_real_front++;
+		front_format = format;
 	    }
 
-	    if (attachments[i] == DRI2BufferFakeFrontLeft) {
+	    if (attachment == DRI2BufferFrontLeft) {
+		need_real_front--;
+		need_fake_front++;
+		front_format = format;
+	    }
+
+	    if (attachment == DRI2BufferFakeFrontLeft) {
 		need_fake_front--;
 		have_fake_front = 1;
 	    }
-
-	    temp[i] = attachments[i];
-	}
-
-	if (need_fake_front > 0) {
-	    temp[i] = DRI2BufferFakeFrontLeft;
-	    count++;
-	    have_fake_front = 1;
-	    attachments = temp;
 	}
     }
 
-
-    if (pPriv->buffers == NULL ||
-	pDraw->width != pPriv->width || pDraw->height != pPriv->height)
-    {
-	buffers = (*ds->CreateBuffers)(pDraw, attachments, count);
-	(*ds->DestroyBuffers)(pDraw, pPriv->buffers, pPriv->bufferCount);
-	pPriv->buffers = buffers;
-	pPriv->bufferCount = count;
-	pPriv->width = pDraw->width;
-	pPriv->height = pDraw->height;
+    if (need_real_front > 0) {
+	buffers[i++] = allocate_or_reuse_buffer(pDraw, ds, pPriv,
+						DRI2BufferFrontLeft,
+						front_format, dimensions_match);
     }
 
-    if (temp != temp_buf) {
-	xfree(temp);
+    if (need_fake_front > 0) {
+	buffers[i++] = allocate_or_reuse_buffer(pDraw, ds, pPriv,
+						DRI2BufferFakeFrontLeft,
+						front_format, dimensions_match);
+	have_fake_front = 1;
     }
 
+    *out_count = i;
+
+
+    if (pPriv->buffers != NULL) {
+	for (i = 0; i < pPriv->bufferCount; i++) {
+	    if (pPriv->buffers[i] != NULL) {
+		(*ds->DestroyBuffer)(pDraw, pPriv->buffers[i]);
+	    }
+	}
+
+	xfree(pPriv->buffers);
+    }
+
+
+    pPriv->buffers = buffers;
+    pPriv->bufferCount = *out_count;
     *width = pPriv->width;
     *height = pPriv->height;
-    *out_count = pPriv->bufferCount;
 
 
     /* If the client is getting a fake front-buffer, pre-fill it with the
@@ -220,6 +279,22 @@ DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
     return pPriv->buffers;
 }
 
+DRI2BufferPtr *
+DRI2GetBuffers(DrawablePtr pDraw, int *width, int *height,
+	       unsigned int *attachments, int count, int *out_count)
+{
+    return do_get_buffers(pDraw, width, height, attachments, count,
+			  out_count, FALSE);
+}
+
+DRI2BufferPtr *
+DRI2GetBuffersWithFormat(DrawablePtr pDraw, int *width, int *height,
+			 unsigned int *attachments, int count, int *out_count)
+{
+    return do_get_buffers(pDraw, width, height, attachments, count,
+			  out_count, TRUE);
+}
+
 int
 DRI2CopyRegion(DrawablePtr pDraw, RegionPtr pRegion,
 	       unsigned int dest, unsigned int src)
@@ -237,10 +312,10 @@ DRI2CopyRegion(DrawablePtr pDraw, RegionPtr pRegion,
     pSrcBuffer = NULL;
     for (i = 0; i < pPriv->bufferCount; i++)
     {
-	if (pPriv->buffers[i].attachment == dest)
-	    pDestBuffer = &pPriv->buffers[i];
-	if (pPriv->buffers[i].attachment == src)
-	    pSrcBuffer = &pPriv->buffers[i];
+	if (pPriv->buffers[i]->attachment == dest)
+	    pDestBuffer = pPriv->buffers[i];
+	if (pPriv->buffers[i]->attachment == src)
+	    pSrcBuffer = pPriv->buffers[i];
     }
     if (pSrcBuffer == NULL || pDestBuffer == NULL)
 	return BadValue;
@@ -266,7 +341,16 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
     if (pPriv->refCount > 0)
 	return;
 
-    (*ds->DestroyBuffers)(pDraw, pPriv->buffers, pPriv->bufferCount);
+    if (pPriv->buffers != NULL) {
+	int i;
+
+	for (i = 0; i < pPriv->bufferCount; i++) {
+	    (*ds->DestroyBuffer)(pDraw, pPriv->buffers[i]);
+	}
+
+	xfree(pPriv->buffers);
+    }
+
     xfree(pPriv);
 
     if (pDraw->type == DRAWABLE_WINDOW)
@@ -320,11 +404,18 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     if (!ds)
 	return FALSE;
 
+    if ((info->version < 2)
+	|| (info->CreateBuffer == NULL)
+	|| (info->DestroyBuffer == NULL)) {
+	return FALSE;
+    }
+
+
     ds->fd	       = info->fd;
     ds->driverName     = info->driverName;
     ds->deviceName     = info->deviceName;
-    ds->CreateBuffers  = info->CreateBuffers;
-    ds->DestroyBuffers = info->DestroyBuffers;
+    ds->CreateBuffer   = info->CreateBuffer;
+    ds->DestroyBuffer  = info->DestroyBuffer;
     ds->CopyRegion     = info->CopyRegion;
 
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, ds);
@@ -371,7 +462,7 @@ static XF86ModuleVersionInfo DRI2VersRec =
     MODINFOSTRING1,
     MODINFOSTRING2,
     XORG_VERSION_CURRENT,
-    1, 0, 0,
+    1, 1, 0,
     ABI_CLASS_EXTENSION,
     ABI_EXTENSION_VERSION,
     MOD_CLASS_NONE,
