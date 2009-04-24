@@ -399,7 +399,7 @@ BEGIN {
 	sub(/[^a-zA-Z0-9_].*/, "", symbol);
 
 	#print;
-	printf("    &%s,\n", symbol);
+	printf("    (void *) &%s,\n", symbol);
     }
 }
 
