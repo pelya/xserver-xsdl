@@ -380,3 +380,12 @@ static XF86ModuleVersionInfo DRI2VersRec =
 
 _X_EXPORT XF86ModuleData dri2ModuleData = { &DRI2VersRec, DRI2Setup, NULL };
 
+void
+DRI2Version(int *major, int *minor)
+{
+    if (major != NULL)
+	*major = DRI2VersRec.majorversion;
+
+    if (minor != NULL)
+	*minor = DRI2VersRec.minorversion;
+}
