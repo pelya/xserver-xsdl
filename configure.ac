@@ -113,7 +113,7 @@ AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h stropts.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

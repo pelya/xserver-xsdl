@@ -21,7 +21,8 @@ noinst_LTLIBRARIES = libsolaris.la
 libsolaris_la_SOURCES = sun_init.c \
 	sun_vid.c sun_bell.c $(AGP_SRC) sun_apm.c \
 	$(srcdir)/../shared/kmod_noop.c \
-	$(srcdir)/../shared/posix_tty.c $(srcdir)/../shared/sigiostubs.c \
+	$(srcdir)/../shared/posix_tty.c \
+	$(srcdir)/../shared/sigio.c \
 	$(srcdir)/../shared/stdResource.c \
 	$(srcdir)/../shared/vidmem.c \
 	$(VTSW_SRC)

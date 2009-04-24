@@ -54,6 +54,9 @@
 /* Solaris 8 or later? */
 #undef __SOL8__
 
+/* Define to 1 if you have the <stropts.h> header file. */
+#undef HAVE_STROPTS_H
+
 /* Define to 1 if you have the <sys/kd.h> header file. */
 #undef HAVE_SYS_KD_H
 
