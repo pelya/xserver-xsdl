@@ -319,7 +319,7 @@ KdDisableInput (void)
 void
 KdEnableInput (void)
 {
-    xEvent xE;
+    InternalEvent ev;
     KdKeyboardInfo *ki;
     KdPointerInfo *pi;
     
@@ -336,8 +336,8 @@ KdEnableInput (void)
     }
 
     /* reset screen saver */
-    xE.u.keyButtonPointer.time = GetTimeInMillis ();
-    NoticeEventTime (&xE);
+    ev.any.time = GetTimeInMillis ();
+    NoticeEventTime (&ev);
 
     KdUnblockSigio ();
 }
@@ -1655,7 +1655,7 @@ char *kdActionNames[] = {
 #endif /* DEBUG */
 
 static void
-KdQueueEvent (DeviceIntPtr pDev, xEvent *ev)
+KdQueueEvent (DeviceIntPtr pDev, InternalEvent *ev)
 {
     KdAssertSigioBlocked ("KdQueueEvent");
     mieqEnqueue (pDev, ev);
@@ -1833,7 +1833,7 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 
         nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
         for (i = 0; i < nEvents; i++)
-            KdQueueEvent(ki->dixdev, (kdEvents + i)->event);
+            KdQueueEvent(ki->dixdev, (InternalEvent *)((kdEvents + i)->event));
     }
     else {
         ErrorF("driver %s wanted to post scancode %d outside of [%d, %d]!\n",
@@ -1943,7 +1943,7 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
     nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel,
                                0, 3, valuators);
     for (i = 0; i < nEvents; i++)
-        KdQueueEvent(pi->dixdev, (kdEvents + i)->event);
+        KdQueueEvent(pi->dixdev, (InternalEvent *)((kdEvents + i)->event));
 }
 
 void
@@ -2134,7 +2134,7 @@ miPointerScreenFuncRec kdPointerScreenFuncs =
 };
 
 void
-ProcessInputEvents ()
+ProcessInputEvents (void)
 {
     mieqProcessInputEvents();
     miPointerUpdateSprite(inputInfo.pointer);
@@ -2271,16 +2271,16 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 
     if (pi) {
         if (KdAddPointer(pi) != Success ||
-            ActivateDevice(pi->dixdev) != Success ||
-            EnableDevice(pi->dixdev) != TRUE) {
+            ActivateDevice(pi->dixdev, TRUE) != Success ||
+            EnableDevice(pi->dixdev, TRUE) != TRUE) {
             ErrorF("couldn't add or enable pointer\n");
             return BadImplementation;
         }
     }
     else if (ki) {
         if (KdAddKeyboard(ki) != Success ||
-            ActivateDevice(ki->dixdev) != Success ||
-            EnableDevice(ki->dixdev) != TRUE) {
+            ActivateDevice(ki->dixdev, TRUE) != Success ||
+            EnableDevice(ki->dixdev, TRUE) != TRUE) {
             ErrorF("couldn't add or enable keyboard\n");
             return BadImplementation;
         }
@@ -2298,5 +2298,5 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
-    RemoveDevice(pDev);
+    RemoveDevice(pDev, TRUE);
 }

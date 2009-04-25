@@ -99,7 +99,6 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     WindowPtr	pChild;
     Bool	WasViewable;
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = 0;
     WindowPtr   pLayerWin;
     BoxRec	box;
 
@@ -340,7 +339,7 @@ AbortDDX(void)
 }
 
 void
-ddxGiveUp ()
+ddxGiveUp (void)
 {
     AbortDDX ();
 }
@@ -1316,10 +1315,10 @@ OsVendorFatalError(void)
 {
 }
 
-#ifdef DPMSExtension
 int
 DPMSSet(ClientPtr client, int level)
 {
+    return Success;
 }
 
 Bool
@@ -1327,5 +1326,3 @@ DPMSSupported (void)
 {
     return FALSE;
 }
-#endif
-
