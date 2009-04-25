@@ -136,8 +136,8 @@ OsSigHandler(int signo)
 
 #ifdef SA_SIGINFO
   if (sip->si_code == SI_USER) {
-      ErrorF("Recieved signal %ld sent by process %ld, uid %ld\n",
-              (long) sip->si_code, (long) sip->si_pid, (long) sip->si_uid);
+      ErrorF("Recieved signal %d sent by process %ld, uid %ld\n",
+	     signo, (long) sip->si_pid, (long) sip->si_uid);
   } else {
       switch (signo) {
           case SIGSEGV:
@@ -179,10 +179,12 @@ OsInit(void)
 #endif
 			  0 /* must be last */ };
 	sigemptyset(&act.sa_mask);
-	act.sa_handler = OsSigHandler;
-	act.sa_flags = 0;
 #ifdef SA_SIGINFO
-	act.sa_flags |= SA_SIGINFO;
+	act.sa_sigaction = OsSigHandler;
+	act.sa_flags = SA_SIGINFO;
+#else
+        act.sa_handler = OsSigHandler;
+        act.sa_flags = 0;
 #endif
 	for (i = 0; siglist[i] != 0; i++) {
 	    if (sigaction(siglist[i], &act, &oact)) {
