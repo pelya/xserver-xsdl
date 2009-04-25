@@ -1070,6 +1070,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
                  * already */
                 return;
             }
+            break;
         case ET_ButtonRelease:
             event->detail.button = b->map[key];
             if (!event->detail.button) { /* there's no button 0 */
