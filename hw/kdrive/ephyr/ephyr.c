@@ -429,9 +429,7 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
   RRScreenSizePtr	    pSize;
   Rotation		    randr;
   int			    n = 0;
-  
-  EPHYR_LOG("mark");
-  
+ 
   struct { int width, height; } sizes[] = 
     {
       { 1600, 1200 },
@@ -451,6 +449,8 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
       { 160, 160 }, 
       { 0, 0 }
     };
+
+  EPHYR_LOG("mark");
 
   *rotations = RR_Rotate_All|RR_Reflect_All;
 
@@ -743,6 +743,7 @@ ephyrScreenFini (KdScreenInfo *screen)
 void
 ephyrUpdateModifierState(unsigned int state)
 {
+#if 0
   DeviceIntPtr pkeydev;
   KeyClassPtr  keyc;
   int          i;
@@ -764,7 +765,7 @@ ephyrUpdateModifierState(unsigned int state)
  *
  * -daniels
  */
-#if 0
+
   keyc = pkeydev->key;
   
   state = state & 0xff;
@@ -1120,13 +1121,8 @@ EphyrKeyboardInit (KdKeyboardInfo *ki)
       ErrorF("Couldn't load keymap from host\n");
       return BadAlloc;
   }
-  ki->keySyms.minKeyCode = ephyrKeySyms.minKeyCode;
-  ki->keySyms.maxKeyCode = ephyrKeySyms.maxKeyCode;
-  ki->minScanCode = ki->keySyms.minKeyCode;
-  ki->maxScanCode = ki->keySyms.maxKeyCode;
-  ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
-  xfree(ki->keySyms.map);
-  ki->keySyms.map = ephyrKeySyms.map;
+  ki->minScanCode = ephyrKeySyms.minKeyCode;
+  ki->maxScanCode = ephyrKeySyms.maxKeyCode;
   ki->name = strdup("Xephyr virtual keyboard");
   ephyrKbd = ki;
   return Success;
@@ -1149,8 +1145,6 @@ EphyrKeyboardDisable (KdKeyboardInfo *ki)
 static void
 EphyrKeyboardFini (KdKeyboardInfo *ki)
 {
-    /* not xfree: we call malloc from hostx.c. */
-    free(ki->keySyms.map);
     ephyrKbd = NULL;
     return;
 }

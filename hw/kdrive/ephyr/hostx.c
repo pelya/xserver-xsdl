@@ -595,7 +595,7 @@ hostx_calculate_color_shift(unsigned long mask)
 {
     int shift = 1;
     /* count # of bits in mask */
-    while (mask=(mask>>1)) shift++;
+    while ((mask = (mask >> 1))) shift++;
     /* cmap entry is an unsigned char so adjust it by size of that */
     shift = shift - sizeof(unsigned char) * 8;
     if (shift < 0) shift = 0;

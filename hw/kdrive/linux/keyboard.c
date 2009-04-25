@@ -42,8 +42,6 @@
 #include <sys/ioctl.h>
 
 extern int LinuxConsoleFd;
-static unsigned char mediumraw_data, mediumraw_up;
-static enum { DEFAULT, EXTBYTE1, EXTBYTE2 } mediumraw_state = DEFAULT;
 
 static const KeySym linux_to_x[256] = {
 	NoSymbol,	NoSymbol,	NoSymbol,	NoSymbol,
@@ -136,6 +134,7 @@ static const KeySym linux_to_x[256] = {
    for the core X keyboard protocol has to be AT-scancode based so that it
    corresponds to the Xkb keymap.
 */
+#if 0
 static unsigned char at2lnx[] =
 {
 	0x0,    /* no valid scancode */
@@ -215,10 +214,12 @@ static unsigned char tbl[KD_MAX_WIDTH] =
     (1 << KG_ALTGR),
     (1 << KG_ALTGR) | (1 << KG_SHIFT)
 };
+#endif
 
 static void
 readKernelMapping(KdKeyboardInfo *ki)
 {
+#if 0
     KeySym	    *k;
     int		    i, j;
     struct kbentry  kbe;
@@ -484,6 +485,7 @@ readKernelMapping(KdKeyboardInfo *ki)
     }
     ki->minScanCode = minKeyCode;
     ki->maxScanCode = maxKeyCode;
+#endif
 }
 
 /*

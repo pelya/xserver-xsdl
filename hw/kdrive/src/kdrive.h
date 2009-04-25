@@ -275,11 +275,6 @@ typedef struct {
     int    modbit;
 } KdKeySymModsRec;
 
-extern const KeySym       kdDefaultKeymap[KD_MAX_LENGTH * KD_MAX_WIDTH];
-extern const int          kdDefaultKeymapWidth;
-extern const CARD8        kdDefaultModMap[MAP_LENGTH];
-extern const KeySymsRec   kdDefaultKeySyms;
-
 typedef struct _KdKeyboardInfo KdKeyboardInfo;
 
 typedef struct _KdKeyboardDriver {
@@ -308,10 +303,8 @@ struct _KdKeyboardInfo {
     char                *xkbOptions;
     int                 LockLed;
 
-    CARD8               keyState[KD_KEY_COUNT/8];
     int                 minScanCode;
     int                 maxScanCode;
-    KeySymsRec          keySyms; 
 
     int                 leds;
     int                 bellPitch;

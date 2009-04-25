@@ -846,23 +846,9 @@ KdKeyboardInfo *
 KdNewKeyboard (void)
 {
     KdKeyboardInfo *ki = xcalloc(sizeof(KdKeyboardInfo), 1);
-
     if (!ki)
         return NULL;
-    
-    ki->keySyms.map = (KeySym *)xcalloc(sizeof(KeySym),
-                                        KD_MAX_LENGTH *
-                                         kdDefaultKeySyms.mapWidth);
-    if (!ki->keySyms.map) {
-        xfree(ki);
-        return NULL;
-    }
 
-    memcpy(ki->keySyms.map, kdDefaultKeySyms.map,
-           sizeof(KeySym) * (KD_MAX_LENGTH * kdDefaultKeySyms.mapWidth));
-    ki->keySyms.minKeyCode = kdDefaultKeySyms.minKeyCode;
-    ki->keySyms.maxKeyCode = kdDefaultKeySyms.maxKeyCode;
-    ki->keySyms.mapWidth = kdDefaultKeySyms.mapWidth;
     ki->minScanCode = 0;
     ki->maxScanCode = 0;
     ki->leds = 0;
@@ -1770,41 +1756,10 @@ KdReceiveTimeout (KdPointerInfo *pi)
 
 extern int nClients;
 
-/*
- * kdEnqueueKeyboardEvent
- *
- * This function converts hardware keyboard event information into an X event
- * and enqueues it using MI.  It wakes up the server before returning so that
- * the event will be processed normally.
- *
- */
-
-static void
-KdHandleKeyboardEvent (KdKeyboardInfo *ki, int type, int key)
-{
-    int           byte;
-    CARD8         bit;
-    KdPointerInfo *pi;
-    
-    byte = key >> 3;
-    bit = 1 << (key & 7);
-
-    switch (type) {
-    case KeyPress:
-	ki->keyState[byte] |= bit;
-	break;
-    case KeyRelease:
-	ki->keyState[byte] &= ~bit;
-	break;
-    }
-
-    for (pi = kdPointers; pi; pi = pi->next)
-	KdRunMouseMachine (pi, keyboard, 0, 0, 0, 0, 0, 0);
-}
-
 void
 KdReleaseAllKeys (void)
 {
+#if 0
     int	key, nEvents, i;
     KdKeyboardInfo *ki;
 
@@ -1824,6 +1779,7 @@ KdReleaseAllKeys (void)
     }
 
     KdUnblockSigio ();
+#endif
 }
 
 static void

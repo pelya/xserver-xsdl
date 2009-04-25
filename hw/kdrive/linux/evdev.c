@@ -233,6 +233,8 @@ static Status
 EvdevPtrEnable (KdPointerInfo *pi)
 {        
     int fd;
+    unsigned long   ev[NBITS(EV_MAX)];
+    Kevdev            *ke;
 
     if (!pi || !pi->path)
         return BadImplementation;
@@ -241,8 +243,6 @@ EvdevPtrEnable (KdPointerInfo *pi)
     if (fd < 0)
         return BadMatch;
 
-    unsigned long   ev[NBITS(EV_MAX)];
-    Kevdev            *ke;
         
     if (ioctl (fd, EVIOCGBIT(0 /*EV*/, sizeof (ev)), ev) < 0)
     {
@@ -352,18 +352,11 @@ EvdevPtrFini (KdPointerInfo *pi)
 static void
 readMapping (KdKeyboardInfo *ki)
 {
-    int             minScanCode, maxScanCode;
-
     if (!ki)
         return;
 
-    minScanCode = 0;
-    maxScanCode = 193;
-
-    ki->keySyms.mapWidth = 2;
-
-    ki->minScanCode = minScanCode;
-    ki->maxScanCode = maxScanCode;		
+    ki->minScanCode = 0;
+    ki->maxScanCode = 193;
 }
 
 static void

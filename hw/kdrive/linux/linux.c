@@ -448,7 +448,7 @@ LinuxFini (void)
 }
 
 void
-KdOsAddInputDrivers ()
+KdOsAddInputDrivers (void)
 {
     KdAddPointerDriver(&LinuxMouseDriver);
     KdAddPointerDriver(&MsMouseDriver);
