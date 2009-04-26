@@ -1349,18 +1349,10 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     }
 }
 
-int
-GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
-	   BYTE other_devices_mode, CARD16 modifiers,
-	   DeviceIntPtr modifier_device, CARD8 button, Window grabWindow,
-	   BOOL ownerEvents, Cursor rcursor, Window rconfineTo, Mask eventMask)
+static int
+CheckGrabValues(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
+                BYTE other_devices_mode, CARD16 modifiers, BOOL ownerEvents)
 {
-    WindowPtr pWin, confineTo;
-    CursorPtr cursor;
-    GrabPtr grab;
-    Mask access_mode = DixGrabAccess;
-    int rc;
-
     if ((this_device_mode != GrabModeSync) &&
 	(this_device_mode != GrabModeAsync)) {
 	client->errorValue = this_device_mode;
@@ -1379,7 +1371,23 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = ownerEvents;
 	return BadValue;
     }
-    rc = dixLookupWindow(&pWin, grabWindow, client, DixSetAttrAccess);
+    return Success;
+}
+
+int
+GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
+	   BYTE other_devices_mode, CARD16 modifiers,
+	   DeviceIntPtr modifier_device, CARD8 button, Window grabWindow,
+	   BOOL ownerEvents, Cursor rcursor, Window rconfineTo, Mask eventMask)
+{
+    WindowPtr pWin, confineTo;
+    CursorPtr cursor;
+    GrabPtr grab;
+    int rc;
+    Mask access_mode = DixGrabAccess;
+
+    rc = CheckGrabValues(client, dev, this_device_mode, other_devices_mode,
+                         modifiers, ownerEvents);
     if (rc != Success)
 	return rc;
     if (rconfineTo == None)
@@ -1406,6 +1414,10 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, access_mode);
     if (rc != Success)
 	return rc;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
+
 
     grab = CreateGrab(client->index, dev, pWin, eventMask,
 		      (Bool) ownerEvents, (Bool) this_device_mode,
@@ -1428,31 +1440,17 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     Mask access_mode = DixGrabAccess;
     int rc;
 
+    rc = CheckGrabValues(client, dev, this_device_mode, other_devices_mode,
+                         modifiers, ownerEvents);
+    if (rc != Success)
+        return rc;
     if (k == NULL)
 	return BadMatch;
-    if ((other_devices_mode != GrabModeSync) &&
-	(other_devices_mode != GrabModeAsync)) {
-	client->errorValue = other_devices_mode;
-	return BadValue;
-    }
-    if ((this_device_mode != GrabModeSync) &&
-	(this_device_mode != GrabModeAsync)) {
-	client->errorValue = this_device_mode;
-	return BadValue;
-    }
     if ((key > k->xkbInfo->desc->max_key_code ||
          key < k->xkbInfo->desc->min_key_code)
 	&& (key != AnyKey)) {
 	client->errorValue = key;
         return BadValue;
-    }
-    if ((modifiers != AnyModifier) && (modifiers & ~AllModifiersMask)) {
-	client->errorValue = modifiers;
-	return BadValue;
-    }
-    if ((ownerEvents != xTrue) && (ownerEvents != xFalse)) {
-	client->errorValue = ownerEvents;
-	return BadValue;
     }
     rc = dixLookupWindow(&pWin, grabWindow, client, DixSetAttrAccess);
     if (rc != Success)
