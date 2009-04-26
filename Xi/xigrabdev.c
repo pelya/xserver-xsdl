@@ -51,6 +51,7 @@ SProcXIGrabDevice(ClientPtr client)
     swaps(&stuff->length, n);
     swaps(&stuff->deviceid, n);
     swapl(&stuff->grab_window, n);
+    swapl(&stuff->cursor, n);
     swapl(&stuff->time, n);
     swaps(&stuff->mask_len, n);
 
