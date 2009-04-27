@@ -206,18 +206,21 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	 * attachments.  The counting logic in the loop accounts for the case
 	 * where the client requests both the fake and real front-buffer.
 	 */
-	if (pDraw->type == DRAWABLE_WINDOW) {
-	    if (attachment == DRI2BufferBackLeft) {
-		need_real_front++;
-		front_format = format;
-	    }
+	if (attachment == DRI2BufferBackLeft) {
+	    need_real_front++;
+	    front_format = format;
+	}
 
-	    if (attachment == DRI2BufferFrontLeft) {
-		need_real_front--;
+	if (attachment == DRI2BufferFrontLeft) {
+	    need_real_front--;
+	    front_format = format;
+
+	    if (pDraw->type == DRAWABLE_WINDOW) {
 		need_fake_front++;
-		front_format = format;
 	    }
+	}
 
+	if (pDraw->type == DRAWABLE_WINDOW) {
 	    if (attachment == DRI2BufferFakeFrontLeft) {
 		need_fake_front--;
 		have_fake_front = 1;
