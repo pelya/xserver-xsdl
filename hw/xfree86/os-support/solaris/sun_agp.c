@@ -34,8 +34,6 @@
  * of the copyright holder.
  */
 
-#pragma ident	"@(#)sun_agp.c	1.1	05/04/04 SMI"
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -49,11 +47,8 @@
 #include <sys/ioccom.h>
 #include <sys/types.h>
 #include <fcntl.h>
-#include "agpgart.h"
+#include <sys/agpgart.h>
 
-#ifndef	AGP_DEVICE
-#define	AGP_DEVICE		"/dev/agpgart"
-#endif
 /* AGP page size is independent of the host page size. */
 #ifndef	AGP_PAGE_SIZE
 #define	AGP_PAGE_SIZE		4096

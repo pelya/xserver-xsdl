@@ -222,7 +222,7 @@ AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
 dnl AGPGART headers
-AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h], AGP=yes)
+AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h sys/agpgart.h], AGP=yes)
 AM_CONDITIONAL(AGP, [test "x$AGP" = xyes])
 
 dnl APM header
