@@ -5022,25 +5022,21 @@ ProcGrabKey(ClientPtr client)
     GrabPtr grab;
     DeviceIntPtr keybd = PickKeyboard(client);
     int rc;
+    GrabParameters param;
+    GrabMask mask;
 
     REQUEST_SIZE_MATCH(xGrabKeyReq);
-    if ((stuff->ownerEvents != xTrue) && (stuff->ownerEvents != xFalse))
-    {
-	client->errorValue = stuff->ownerEvents;
-	return(BadValue);
-    }
-    if ((stuff->pointerMode != GrabModeSync) &&
-	(stuff->pointerMode != GrabModeAsync))
-    {
-	client->errorValue = stuff->pointerMode;
-        return BadValue;
-    }
-    if ((stuff->keyboardMode != GrabModeSync) &&
-	(stuff->keyboardMode != GrabModeAsync))
-    {
-	client->errorValue = stuff->keyboardMode;
-        return BadValue;
-    }
+
+    memset(&param, 0, sizeof(param));
+    param.ownerEvents = stuff->ownerEvents;
+    param.this_device_mode = stuff->keyboardMode;
+    param.other_devices_mode = stuff->pointerMode;
+    param.modifiers = stuff->modifiers;
+
+    rc = CheckGrabValues(client, &param);
+    if (rc != Success)
+        return rc;
+
     if (((stuff->key > keybd->key->xkbInfo->desc->max_key_code) ||
 	 (stuff->key < keybd->key->xkbInfo->desc->min_key_code))
 	&& (stuff->key != AnyKey))
@@ -5048,21 +5044,15 @@ ProcGrabKey(ClientPtr client)
 	client->errorValue = stuff->key;
         return BadValue;
     }
-    if ((stuff->modifiers != AnyModifier) &&
-	(stuff->modifiers & ~AllModifiersMask))
-    {
-	client->errorValue = stuff->modifiers;
-	return BadValue;
-    }
     rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixSetAttrAccess);
     if (rc != Success)
 	return rc;
 
-    grab = CreateGrab(client->index, keybd, pWin,
-	(Mask)(KeyPressMask | KeyReleaseMask), (Bool)stuff->ownerEvents,
-	(Bool)stuff->keyboardMode, (Bool)stuff->pointerMode,
-	keybd, stuff->modifiers, KeyPress, GRABTYPE_CORE, stuff->key,
-	NullWindow, NullCursor);
+
+    mask.core = (KeyPressMask | KeyReleaseMask);
+
+    grab = CreateGrab(client->index, keybd, keybd, pWin, GRABTYPE_CORE, &mask,
+                      &param, KeyPress, stuff->key, NullWindow, NullCursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);
@@ -5084,6 +5074,8 @@ ProcGrabButton(ClientPtr client)
     GrabPtr grab;
     DeviceIntPtr ptr, modifierDevice;
     Mask access_mode = DixGrabAccess;
+    GrabMask mask;
+    GrabParameters param;
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabButtonReq);
@@ -5150,11 +5142,17 @@ ProcGrabButton(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    grab = CreateGrab(client->index, ptr, pWin,
-        (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,
-        (Bool) stuff->keyboardMode, (Bool)stuff->pointerMode,
-        modifierDevice, stuff->modifiers, ButtonPress, GRABTYPE_CORE,
-        stuff->button, confineTo, cursor);
+    memset(&param, 0, sizeof(param));
+    param.ownerEvents = stuff->ownerEvents;
+    param.this_device_mode = stuff->keyboardMode;
+    param.other_devices_mode = stuff->pointerMode;
+    param.modifiers = stuff->modifiers;
+
+    mask.core = stuff->eventMask;
+
+    grab = CreateGrab(client->index, ptr, modifierDevice, pWin,
+                      GRABTYPE_CORE, &mask, &param, ButtonPress,
+                      stuff->button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);

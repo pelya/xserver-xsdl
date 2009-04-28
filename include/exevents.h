@@ -42,6 +42,18 @@ typedef struct _XIClientRec {
         int minor_version;
 } XIClientRec, *XIClientPtr;
 
+
+typedef struct _GrabParameters {
+    unsigned int        ownerEvents;
+    unsigned int        this_device_mode;
+    unsigned int        other_devices_mode;
+    Window              grabWindow;
+    Window              confineTo;
+    Cursor              cursor;
+    unsigned int        modifiers;
+} GrabParameters;
+
+
 extern _X_EXPORT void RegisterOtherDevice (
 	DeviceIntPtr           /* device */);
 
@@ -73,31 +85,27 @@ extern _X_EXPORT void DeviceFocusEvent(
 	int                    /* detail */,
 	WindowPtr              /* pWin */);
 
-extern _X_EXPORT int GrabButton(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	BYTE                   /* this_device_mode */,
-	BYTE                   /* other_devices_mode */,
-	CARD16                 /* modifiers */,
-	DeviceIntPtr           /* modifier_device */,
-	CARD8                  /* button */,
-	Window                 /* grabWindow */,
-	BOOL                   /* ownerEvents */,
-	Cursor                 /* rcursor */,
-	Window                 /* rconfineTo */,
-	Mask                   /* eventMask */);
+extern int CheckGrabValues(
+        ClientPtr              /* client */,
+        GrabParameters*        /* param */);
 
-extern _X_EXPORT int GrabKey(
+extern int GrabButton(
 	ClientPtr              /* client */,
 	DeviceIntPtr           /* dev */,
-	BYTE                   /* this_device_mode */,
-	BYTE                   /* other_devices_mode */,
-	CARD16                 /* modifiers */,
 	DeviceIntPtr           /* modifier_device */,
-	CARD8                  /* key */,
-	Window                 /* grabWindow */,
-	BOOL                   /* ownerEvents */,
-	Mask                   /* mask */);
+	int                    /* button */,
+        GrabParameters*        /* param */,
+        GrabType               /* grabtype */,
+	GrabMask*              /* eventMask */);
+
+extern int GrabKey(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	DeviceIntPtr           /* modifier_device */,
+	int                    /* key */,
+        GrabParameters*        /* param */,
+        GrabType               /* grabtype */,
+	GrabMask*              /* eventMask */);
 
 extern int SelectForWindow(
 	DeviceIntPtr           /* dev */,

@@ -101,6 +101,8 @@ ProcXGrabDeviceKey(ClientPtr client)
     DeviceIntPtr mdev;
     XEventClass *class;
     struct tmask tmp[EMASKSIZE];
+    GrabParameters param;
+    GrabMask mask;
 
     REQUEST(xGrabDeviceKeyReq);
     REQUEST_AT_LEAST_SIZE(xGrabDeviceKeyReq);
@@ -133,10 +135,16 @@ ProcXGrabDeviceKey(ClientPtr client)
 				  X_GrabDeviceKey)) != Success)
 	return ret;
 
-    ret = GrabKey(client, dev, stuff->this_device_mode,
-		  stuff->other_devices_mode, stuff->modifiers, mdev,
-		  stuff->key, stuff->grabWindow, stuff->ownerEvents,
-		  tmp[stuff->grabbed_device].mask);
+
+    memset(&param, 0, sizeof(param));
+    param.ownerEvents = stuff->ownerEvents;
+    param.this_device_mode = stuff->this_device_mode;
+    param.other_devices_mode = stuff->other_devices_mode;
+    param.grabWindow = stuff->grabWindow;
+    param.modifiers = stuff->modifiers;
+    mask.xi = tmp[stuff->grabbed_device].mask;
+
+    ret = GrabKey(client, dev, mdev, stuff->key, &param, GRABTYPE_XI, &mask);
 
     return ret;
 }

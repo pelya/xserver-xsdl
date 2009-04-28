@@ -58,6 +58,7 @@ SOFTWARE.
 #include "cursorstr.h"
 #include "dixgrabs.h"
 #include "xace.h"
+#include "exevents.h"
 
 #define BITMASK(i) (((Mask)1) << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
@@ -70,13 +71,12 @@ GrabPtr
 CreateGrab(
     int client,
     DeviceIntPtr device,
-    WindowPtr window,
-    Mask eventMask,
-    Bool ownerEvents, Bool keyboardMode, Bool pointerMode,
     DeviceIntPtr modDevice,
-    unsigned short modifiers,
+    WindowPtr window,
+    GrabType grabtype,
+    GrabMask *mask,
+    GrabParameters *param,
     int type,
-    int grabtype,
     KeyCode keybut,	/* key or button */
     WindowPtr confineTo,
     CursorPtr cursor)
@@ -89,12 +89,12 @@ CreateGrab(
     grab->resource = FakeClientID(client);
     grab->device = device;
     grab->window = window;
-    grab->eventMask = eventMask;
+    grab->eventMask = mask->core; /* same for XI */
     grab->deviceMask = 0;
-    grab->ownerEvents = ownerEvents;
-    grab->keyboardMode = keyboardMode;
-    grab->pointerMode = pointerMode;
-    grab->modifiersDetail.exact = modifiers;
+    grab->ownerEvents = param->ownerEvents;
+    grab->keyboardMode = param->this_device_mode;
+    grab->pointerMode = param->other_devices_mode;
+    grab->modifiersDetail.exact = param->modifiers;
     grab->modifiersDetail.pMask = NULL;
     grab->modifierDevice = modDevice;
     grab->type = type;
@@ -434,17 +434,21 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 		 && (pMinuendGrab->modifiersDetail.exact != AnyModifier))
 	{
 	    GrabPtr pNewGrab;
+            GrabParameters param;
 
 	    UPDATE(grab->detail.pMask, pMinuendGrab->detail.exact);
 
+            memset(&param, 0, sizeof(param));
+            param.ownerEvents = grab->ownerEvents;
+            param.this_device_mode = grab->keyboardMode;
+            param.other_devices_mode = grab->pointerMode;
+            param.modifiers = AnyModifier;
+
 	    pNewGrab = CreateGrab(CLIENT_ID(grab->resource), grab->device,
-				  grab->window, (Mask)grab->eventMask,
-				  (Bool)grab->ownerEvents,
-				  (Bool)grab->keyboardMode,
-				  (Bool)grab->pointerMode,
-				  grab->modifierDevice,
-				  AnyModifier, (int)grab->type,
+				  grab->modifierDevice, grab->window,
                                   grab->grabtype,
+				  (GrabMask*)grab->eventMask,
+                                  &param, (int)grab->type,
 				  pMinuendGrab->detail.exact,
 				  grab->confineTo, grab->cursor);
 	    if (!pNewGrab)

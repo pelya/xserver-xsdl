@@ -33,6 +33,7 @@
 #include "windowstr.h"
 #include "inputstr.h"
 #include "eventconvert.h"
+#include "exevents.h"
 
 #include <glib.h>
 
@@ -71,6 +72,66 @@ static void dix_init_valuators(void)
     }
 
     g_assert(dev.last.numValuators == num_axes);
+}
+
+/* just check the known success cases, and that error cases set the client's
+ * error value correctly. */
+static void dix_check_grab_values(void)
+{
+    ClientRec client;
+    GrabParameters param;
+    int rc;
+
+    memset(&client, 0, sizeof(client));
+
+    param.this_device_mode = GrabModeSync;
+    param.other_devices_mode = GrabModeSync;
+    param.modifiers = AnyModifier;
+    param.ownerEvents = FALSE;
+
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == Success);
+
+    param.this_device_mode = GrabModeAsync;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == Success);
+
+    param.this_device_mode = GrabModeAsync + 1;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == BadValue);
+    g_assert(client.errorValue == param.this_device_mode);
+    g_assert(client.errorValue == GrabModeAsync + 1);
+
+    param.this_device_mode = GrabModeSync;
+    param.other_devices_mode = GrabModeAsync;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == Success);
+
+    param.other_devices_mode = GrabModeAsync + 1;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == BadValue);
+    g_assert(client.errorValue == param.other_devices_mode);
+    g_assert(client.errorValue == GrabModeAsync + 1);
+
+    param.other_devices_mode = GrabModeSync;
+
+    param.modifiers = 1 << 13;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == BadValue);
+    g_assert(client.errorValue == param.modifiers);
+    g_assert(client.errorValue == (1 << 13));
+
+
+    param.modifiers = AnyModifier;
+    param.ownerEvents = TRUE;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == Success);
+
+    param.ownerEvents = 3;
+    rc = CheckGrabValues(&client, &param);
+    g_assert(rc == BadValue);
+    g_assert(client.errorValue == param.ownerEvents);
+    g_assert(client.errorValue == 3);
 }
 
 
@@ -222,6 +283,7 @@ int main(int argc, char** argv)
 
     g_test_add_func("/dix/input/init-valuators", dix_init_valuators);
     g_test_add_func("/dix/input/event-core-conversion", dix_event_to_core_conversion);
+    g_test_add_func("/dix/input/check-grab-values", dix_check_grab_values);
 
     return g_test_run();
 }

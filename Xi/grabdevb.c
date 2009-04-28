@@ -103,6 +103,8 @@ ProcXGrabDeviceButton(ClientPtr client)
     DeviceIntPtr mdev;
     XEventClass *class;
     struct tmask tmp[EMASKSIZE];
+    GrabParameters param;
+    GrabMask mask;
 
     REQUEST(xGrabDeviceButtonReq);
     REQUEST_AT_LEAST_SIZE(xGrabDeviceButtonReq);
@@ -135,10 +137,17 @@ ProcXGrabDeviceButton(ClientPtr client)
 				  stuff->event_count, tmp, dev,
 				  X_GrabDeviceButton)) != Success)
 	return ret;
-    ret = GrabButton(client, dev, stuff->this_device_mode,
-		     stuff->other_devices_mode, stuff->modifiers, mdev,
-		     stuff->button, stuff->grabWindow, stuff->ownerEvents,
-		     (Cursor) 0, (Window) 0, tmp[stuff->grabbed_device].mask);
+
+    memset(&param, 0, sizeof(param));
+    param.ownerEvents = stuff->ownerEvents;
+    param.this_device_mode = stuff->this_device_mode;
+    param.other_devices_mode = stuff->other_devices_mode;
+    param.grabWindow = stuff->grabWindow;
+    param.modifiers = stuff->modifiers;
+    mask.xi = tmp[stuff->grabbed_device].mask;
+
+    ret = GrabButton(client, dev, mdev, stuff->button, &param,
+                     GRABTYPE_XI, &mask);
 
     return ret;
 }
