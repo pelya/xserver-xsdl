@@ -68,7 +68,7 @@ ProcXIGrabDevice(ClientPtr client)
     GrabMask mask;
 
     REQUEST(xXIGrabDeviceReq);
-    REQUEST_AT_LEAST_SIZE(xXIGetDeviceFocusReq);
+    REQUEST_AT_LEAST_SIZE(xXIGrabDeviceReq);
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
     if (ret != Success)
