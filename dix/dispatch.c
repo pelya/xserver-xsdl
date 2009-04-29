@@ -1252,12 +1252,13 @@ int
 ProcCloseFont(ClientPtr client)
 {
     FontPtr pFont;
+    int rc;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pFont = (FontPtr)SecurityLookupIDByType(client, stuff->id, RT_FONT,
-					    DixDestroyAccess);
-    if ( pFont != (FontPtr)NULL)	/* id was valid */
+    rc = dixLookupResourceByType((pointer *)&pFont, stuff->id, RT_FONT,
+				 client, DixDestroyAccess);
+    if (rc == Success)
     {
         FreeResource(stuff->id, RT_NONE);
 	return(client->noClientException);
@@ -1265,7 +1266,7 @@ ProcCloseFont(ClientPtr client)
     else
     {
 	client->errorValue = stuff->id;
-        return (BadFont);
+        return (rc == BadValue) ? BadFont : rc;
     }
 }
 

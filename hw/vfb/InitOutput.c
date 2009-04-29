@@ -508,8 +508,10 @@ vfbUninstallColormap(ColormapPtr pmap)
     {
 	if (pmap->mid != pmap->pScreen->defColormap)
 	{
-	    curpmap = (ColormapPtr) LookupIDByType(pmap->pScreen->defColormap,
-						   RT_COLORMAP);
+	    dixLookupResourceByType((pointer *)&curpmap,
+				    pmap->pScreen->defColormap,
+				    RT_COLORMAP, serverClient,
+				    DixInstallAccess);
 	    (*pmap->pScreen->InstallColormap)(curpmap);
 	}
     }

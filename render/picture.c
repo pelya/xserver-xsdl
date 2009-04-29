@@ -410,8 +410,9 @@ PictureInitIndexedFormat(ScreenPtr pScreen, PictFormatPtr format)
 	return TRUE;
 
     if (format->index.vid == pScreen->rootVisual) {
-	format->index.pColormap =
-	    (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
+	dixLookupResourceByType((pointer *)&format->index.pColormap,
+				pScreen->defColormap, RT_COLORMAP,
+				serverClient, DixGetAttrAccess);
     } else {
 	VisualPtr pVisual = PictureFindVisual(pScreen, format->index.vid);
 	if (CreateColormap(FakeClientID (0), pScreen, pVisual,

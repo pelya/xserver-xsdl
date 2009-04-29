@@ -1363,11 +1363,12 @@ Bool
 DRIDrawablePrivDelete(pointer pResource, XID id)
 {
     WindowPtr pWin;
+    int rc;
 
     id = (XID)pResource;
-    pWin = LookupIDByType(id, RT_WINDOW);
+    rc = dixLookupWindow(&pWin, id, serverClient, DixGetAttrAccess);
 
-    if (pWin) {
+    if (rc == Success) {
 	DRIDrawablePrivPtr pDRIDrwPriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
 
 	if (!pDRIDrwPriv)

@@ -354,9 +354,12 @@ PanoramiXRes *
 PanoramiXFindIDByScrnum(RESTYPE type, XID id, int screen)
 {
     PanoramiXSearchData data;
+    pointer val;
 
-    if(!screen) 
-	return LookupIDByType(id, type);
+    if(!screen) {
+	dixLookupResourceByType(&val, id, type, serverClient, DixReadAccess);
+	return val;
+    }
 
     data.screen = screen;
     data.id = id;

@@ -533,11 +533,14 @@ UninstallSaverColormap (ScreenPtr pScreen)
 {
     SetupScreen(pScreen);
     ColormapPtr			pCmap;
+    int rc;
 
     if (pPriv && pPriv->installedMap != None)
     {
-	pCmap = (ColormapPtr) LookupIDByType (pPriv->installedMap, RT_COLORMAP);
-	if (pCmap)
+	rc = dixLookupResourceByType((pointer *)&pCmap, pPriv->installedMap,
+				     RT_COLORMAP, serverClient,
+				     DixUninstallAccess);
+	if (rc == Success)
 	    (*pCmap->pScreen->UninstallColormap) (pCmap);
 	pPriv->installedMap = None;
 	CheckScreenPrivate (pScreen);
@@ -651,8 +654,9 @@ CreateSaverWindow (ScreenPtr pScreen)
     if (i < numInstalled)
 	return TRUE;
 
-    pCmap = (ColormapPtr) LookupIDByType (wantMap, RT_COLORMAP);
-    if (!pCmap)
+    result = dixLookupResourceByType((pointer *)&pCmap, wantMap, RT_COLORMAP,
+				     serverClient, DixInstallAccess);
+    if (result != Success)
 	return TRUE;
 
     pPriv->installedMap = wantMap;
@@ -1252,15 +1256,16 @@ ProcScreenSaverSetAttributes (ClientPtr client)
        PanoramiXRes *backPix = NULL;
        PanoramiXRes *bordPix = NULL;
        PanoramiXRes *cmap    = NULL;
-       int i, status = 0, len;
+       int i, status, len;
        int  pback_offset = 0, pbord_offset = 0, cmap_offset = 0;
        XID orig_visual, tmp;
 
        REQUEST_AT_LEAST_SIZE (xScreenSaverSetAttributesReq);
 
-       if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                   client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
-           return BadDrawable;
+       status = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
+					 XRC_DRAWABLE, client, DixWriteAccess);
+       if (status != Success)
+           return (status == BadValue) ? BadDrawable : status;
 
        len = stuff->length -  (sizeof(xScreenSaverSetAttributesReq) >> 2);
        if (Ones(stuff->mask) != len)
@@ -1270,9 +1275,11 @@ ProcScreenSaverSetAttributes (ClientPtr client)
           pback_offset = Ones((Mask)stuff->mask & (CWBackPixmap - 1));
           tmp = *((CARD32 *) &stuff[1] + pback_offset);
           if ((tmp != None) && (tmp != ParentRelative)) {
-             if(!(backPix = (PanoramiXRes*) SecurityLookupIDByType(
-                  client, tmp, XRT_PIXMAP, DixReadAccess)))
-                return BadPixmap;
+	      status = dixLookupResourceByType((pointer *)&backPix, tmp,
+					       XRT_PIXMAP, client,
+					       DixReadAccess);
+	      if (status != Success)
+		  return (status == BadValue) ? BadPixmap : status;
           }
        }
 
@@ -1280,9 +1287,11 @@ ProcScreenSaverSetAttributes (ClientPtr client)
           pbord_offset = Ones((Mask)stuff->mask & (CWBorderPixmap - 1));
           tmp = *((CARD32 *) &stuff[1] + pbord_offset);
           if (tmp != CopyFromParent) {
-             if(!(bordPix = (PanoramiXRes*) SecurityLookupIDByType(
-                  client, tmp, XRT_PIXMAP, DixReadAccess)))
-                return BadPixmap;
+	      status = dixLookupResourceByType((pointer *)&bordPix, tmp,
+					       XRT_PIXMAP, client,
+					       DixReadAccess);
+	      if (status != Success)
+		  return (status == BadValue) ? BadPixmap : status;
           }
        }
 
@@ -1290,9 +1299,11 @@ ProcScreenSaverSetAttributes (ClientPtr client)
            cmap_offset = Ones((Mask)stuff->mask & (CWColormap - 1));
            tmp = *((CARD32 *) &stuff[1] + cmap_offset);
            if ((tmp != CopyFromParent) && (tmp != None)) {
-             if(!(cmap = (PanoramiXRes*) SecurityLookupIDByType(
-                  client, tmp, XRT_COLORMAP, DixReadAccess)))
-                 return BadColor;
+	       status = dixLookupResourceByType((pointer *)&cmap, tmp,
+						XRT_COLORMAP, client,
+						DixReadAccess);
+	       if (status != Success)
+		   return (status == BadValue) ? BadColor : status;
            }
        }
 
@@ -1327,11 +1338,12 @@ ProcScreenSaverUnsetAttributes (ClientPtr client)
     if(!noPanoramiXExtension) {
        REQUEST(xScreenSaverUnsetAttributesReq);
        PanoramiXRes *draw;
-       int i;
+       int rc, i;
 
-       if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                   client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
-           return BadDrawable;
+       rc = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
+				     XRC_DRAWABLE, client, DixWriteAccess);
+       if (rc != Success)
+           return (rc == BadValue) ? BadDrawable : rc;
 
        for(i = PanoramiXNumScreens - 1; i > 0; i--) {
             stuff->drawable = draw->info[i].id;

@@ -2795,6 +2795,7 @@ UnrealizeTree(
     WindowPtr pChild;
     UnrealizeWindowProcPtr Unrealize;
     MarkUnrealizedWindowProcPtr MarkUnrealizedWindow;
+    int rc;
 
     Unrealize = pWin->drawable.pScreen->UnrealizeWindow;
     MarkUnrealizedWindow = pWin->drawable.pScreen->MarkUnrealizedWindow;
@@ -2808,9 +2809,10 @@ UnrealizeTree(
 #ifdef PANORAMIX
 	    if(!noPanoramiXExtension && !pChild->drawable.pScreen->myNum) {
 		PanoramiXRes *win;
-		win = (PanoramiXRes*)LookupIDByType(pChild->drawable.id,
-							XRT_WINDOW);
-		if(win)
+		rc = dixLookupResourceByType((pointer *)&win,
+					     pChild->drawable.id, XRT_WINDOW,
+					     serverClient, DixWriteAccess);
+		if (rc == Success)
 		   win->u.win.visibility = VisibilityNotViewable;
 	    } 
 #endif
@@ -3072,7 +3074,7 @@ SendVisibilityNotify(WindowPtr pWin)
     if(!noPanoramiXExtension) {
 	PanoramiXRes *win;
 	WindowPtr pWin2;
-	int i, Scrnum;
+	int rc, i, Scrnum;
 
 	Scrnum = pWin->drawable.pScreen->myNum;
 	
@@ -3086,9 +3088,10 @@ SendVisibilityNotify(WindowPtr pWin)
 	    for(i = 0; i < PanoramiXNumScreens; i++) {
 		if(i == Scrnum) continue;
 
-		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);
+		rc = dixLookupWindow(&pWin2, win->info[i].id, serverClient,
+				     DixWriteAccess);
 
-		if (pWin2) {
+		if (rc == Success) {
 		    if(pWin2->visibility == VisibilityPartiallyObscured)
 		   	return;
 
@@ -3098,17 +3101,19 @@ SendVisibilityNotify(WindowPtr pWin)
 	    break;
 	case VisibilityPartiallyObscured:
 	    if(Scrnum) {
-	        pWin2 = (WindowPtr)LookupIDByType(win->info[0].id, RT_WINDOW);
-		if (pWin2) pWin = pWin2;
+		rc = dixLookupWindow(&pWin2, win->info[0].id, serverClient,
+				     DixWriteAccess);
+		if (rc == Success) pWin = pWin2;
 	    }
 	    break;
 	case VisibilityFullyObscured:
 	    for(i = 0; i < PanoramiXNumScreens; i++) {
 		if(i == Scrnum) continue;
 
-		pWin2 = (WindowPtr)LookupIDByType(win->info[i].id, RT_WINDOW);
+		rc = dixLookupWindow(&pWin2, win->info[i].id, serverClient,
+				     DixWriteAccess);
 		
-		if (pWin2) {
+		if (rc == Success) {
 		    if(pWin2->visibility != VisibilityFullyObscured)
 		    	return;
 
@@ -3739,7 +3744,7 @@ DrawLogo(WindowPtr pWin)
     int x, y;
     unsigned int width, height, size;
     GC *pGC;
-    int thin, gap, d31;
+    int rc, thin, gap, d31;
     DDXPointRec poly[4];
     ChangeGCVal fore[2], back[2];
     xrgb rgb[2];
@@ -3760,20 +3765,23 @@ DrawLogo(WindowPtr pWin)
 	fore[0].val = pScreen->whitePixel;
     else
 	fore[0].val = pScreen->blackPixel;
-    if ((pWin->backgroundState == BackgroundPixel) &&
-	(cmap = (ColormapPtr)LookupIDByType(wColormap (pWin), RT_COLORMAP))) {
-	Pixel querypixels[2];
+    if (pWin->backgroundState == BackgroundPixel) {
+	rc = dixLookupResourceByType((pointer *)&cmap, wColormap(pWin),
+				     RT_COLORMAP, serverClient, DixReadAccess);
+	if (rc == Success) {
+	    Pixel querypixels[2];
 
-	querypixels[0] = fore[0].val;
-	querypixels[1] = pWin->background.pixel;
-	QueryColors(cmap, 2, querypixels, rgb);
-	if ((rgb[0].red == rgb[1].red) &&
-	    (rgb[0].green == rgb[1].green) &&
-	    (rgb[0].blue == rgb[1].blue)) {
-	    if (fore[0].val == pScreen->blackPixel)
-		fore[0].val = pScreen->whitePixel;
-	    else
-		fore[0].val = pScreen->blackPixel;
+	    querypixels[0] = fore[0].val;
+	    querypixels[1] = pWin->background.pixel;
+	    QueryColors(cmap, 2, querypixels, rgb);
+	    if ((rgb[0].red == rgb[1].red) &&
+		(rgb[0].green == rgb[1].green) &&
+		(rgb[0].blue == rgb[1].blue)) {
+		if (fore[0].val == pScreen->blackPixel)
+		    fore[0].val = pScreen->whitePixel;
+		else
+		    fore[0].val = pScreen->blackPixel;
+	    }
 	}
     }
     fore[1].val = FillSolid;

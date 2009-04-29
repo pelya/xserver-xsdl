@@ -211,8 +211,8 @@ Bool xf86HandleColormaps(
     ComputeGamma(pScreenPriv);
 
     /* get the default map */
-
-    pDefMap = (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
+    dixLookupResourceByType((pointer *)&pDefMap, pScreen->defColormap,
+			    RT_COLORMAP, serverClient, DixInstallAccess);
     
     if(!CMapAllocateColormapPrivate(pDefMap)) {
         CMapUnwrapScreen(pScreen);

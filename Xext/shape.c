@@ -353,13 +353,14 @@ ProcPanoramiXShapeRectangles(
 {
     REQUEST(xShapeRectanglesReq);
     PanoramiXRes	*win;
-    int        		j, result = 0;
+    int        		j, result;
 
     REQUEST_AT_LEAST_SIZE (xShapeRectanglesReq);
 
-    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
-	return BadWindow;
+    result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
+				     client, DixWriteAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadWindow : result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;
@@ -451,18 +452,20 @@ ProcPanoramiXShapeMask(
 {
     REQUEST(xShapeMaskReq);
     PanoramiXRes	*win, *pmap;
-    int 		j, result = 0;
+    int 		j, result;
 
     REQUEST_SIZE_MATCH (xShapeMaskReq);
 
-    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
-	return BadWindow;
+    result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
+				     client, DixWriteAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadWindow : result;
 
     if(stuff->src != None) {
-	if(!(pmap = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->src, XRT_PIXMAP, DixReadAccess)))
-	    return BadPixmap;
+	result = dixLookupResourceByType((pointer *)&pmap, stuff->src,
+					 XRT_PIXMAP, client, DixReadAccess);
+	if (result != Success)
+	    return (result == BadValue) ? BadPixmap : result;
     } else
 	pmap = NULL;
 
@@ -579,17 +582,19 @@ ProcPanoramiXShapeCombine(
 {
     REQUEST(xShapeCombineReq);
     PanoramiXRes	*win, *win2;
-    int 		j, result = 0;
+    int 		j, result;
 
     REQUEST_AT_LEAST_SIZE (xShapeCombineReq);
 
-    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
-	return BadWindow;
+    result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
+				     client, DixWriteAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadWindow : result;
 
-    if(!(win2 = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->src, XRT_WINDOW, DixReadAccess)))
-	return BadWindow;
+    result = dixLookupResourceByType((pointer *)&win2, stuff->src, XRT_WINDOW,
+				     client, DixReadAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadWindow : result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;
@@ -651,13 +656,14 @@ ProcPanoramiXShapeOffset(
 {
     REQUEST(xShapeOffsetReq);
     PanoramiXRes *win;
-    int j, result = 0;
+    int j, result;
 
     REQUEST_AT_LEAST_SIZE (xShapeOffsetReq);
    
-    if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
-	return BadWindow;
+    result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
+				     client, DixWriteAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadWindow : result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;
@@ -740,11 +746,13 @@ ShapeFreeClient (pointer data, XID id)
     ShapeEventPtr   pShapeEvent;
     WindowPtr	    pWin;
     ShapeEventPtr   *pHead, pCur, pPrev;
+    int rc;
 
     pShapeEvent = (ShapeEventPtr) data;
     pWin = pShapeEvent->window;
-    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, ShapeEventType);
-    if (pHead) {
+    rc = dixLookupResourceByType((pointer *)&pHead, pWin->drawable.id,
+				 ShapeEventType, serverClient, DixReadAccess);
+    if (rc == Success) {
 	pPrev = 0;
 	for (pCur = *pHead; pCur && pCur != pShapeEvent; pCur=pCur->next)
 	    pPrev = pCur;
@@ -789,8 +797,11 @@ ProcShapeSelectInput (ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixReceiveAccess);
     if (rc != Success)
 	return rc;
-    pHead = (ShapeEventPtr *)SecurityLookupIDByType(client,
-			pWin->drawable.id, ShapeEventType, DixWriteAccess);
+    rc = dixLookupResourceByType((pointer *)&pHead, pWin->drawable.id,
+				 ShapeEventType, client, DixWriteAccess);
+    if (rc != Success && rc != BadValue)
+	return rc;
+
     switch (stuff->enable) {
     case xTrue:
 	if (pHead) {
@@ -879,9 +890,11 @@ SendShapeNotify (WindowPtr pWin, int which)
     BoxRec		extents;
     RegionPtr		region;
     BYTE		shaped;
+    int rc;
 
-    pHead = (ShapeEventPtr *) LookupIDByType(pWin->drawable.id, ShapeEventType);
-    if (!pHead)
+    rc = dixLookupResourceByType((pointer *)&pHead, pWin->drawable.id,
+				 ShapeEventType, serverClient, DixReadAccess);
+    if (rc != Success)
 	return;
     switch (which) {
     case ShapeBounding:
@@ -958,8 +971,10 @@ ProcShapeInputSelected (ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
-    pHead = (ShapeEventPtr *) SecurityLookupIDByType(client,
-			pWin->drawable.id, ShapeEventType, DixReadAccess);
+    rc = dixLookupResourceByType((pointer *)&pHead, pWin->drawable.id,
+				 ShapeEventType, client, DixReadAccess);
+    if (rc != Success && rc != BadValue)
+	return rc;
     enabled = xFalse;
     if (pHead) {
     	for (pShapeEvent = *pHead;

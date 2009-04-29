@@ -409,11 +409,10 @@ extern _X_EXPORT RESTYPE	GlyphSetType;
 #define SetPictureWindow(w,p) dixSetPrivate(&(w)->devPrivates, PictureWindowPrivateKey, p)
 
 #define VERIFY_PICTURE(pPicture, pid, client, mode, err) {\
-    pPicture = SecurityLookupIDByType(client, pid, PictureType, mode);\
-    if (!pPicture) { \
-	client->errorValue = pid; \
-	return err; \
-    } \
+    int rc = dixLookupResourceByType((pointer)&(pPicture), pid,\
+	                             PictureType, client, mode);\
+    if (rc != Success)\
+	return (rc == BadValue) ? err : rc;\
 }
 
 #define VERIFY_ALPHA(pPicture, pid, client, mode, err) {\

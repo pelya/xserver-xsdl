@@ -623,13 +623,16 @@ ProcSecurityRevokeAuthorization(
 {
     REQUEST(xSecurityRevokeAuthorizationReq);
     SecurityAuthorizationPtr pAuth;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSecurityRevokeAuthorizationReq);
 
-    pAuth = (SecurityAuthorizationPtr)SecurityLookupIDByType(client,
-	stuff->authId, SecurityAuthorizationResType, DixDestroyAccess);
-    if (!pAuth)
-	return SecurityErrorBase + XSecurityBadAuthorization;
+    rc = dixLookupResourceByType((pointer *)&pAuth, stuff->authId,
+				 SecurityAuthorizationResType, client,
+				 DixDestroyAccess);
+    if (rc != Success)
+	return (rc == BadValue) ?
+	    SecurityErrorBase + XSecurityBadAuthorization : rc;
 
     FreeResource(stuff->authId, RT_NONE);
     return Success;

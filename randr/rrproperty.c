@@ -31,7 +31,8 @@ DeliverPropertyEvent(WindowPtr pWin, void *value)
     RREventPtr *pHead, pRREvent;
     ClientPtr client;
 
-    pHead = LookupIDByType(pWin->drawable.id, RREventType);
+    dixLookupResourceByType((pointer *)&pHead, pWin->drawable.id,
+			    RREventType, serverClient, DixReadAccess);
     if (!pHead)
 	return WT_WALKCHILDREN;
 
@@ -419,10 +420,7 @@ ProcRRListOutputProperties (ClientPtr client)
     
     REQUEST_SIZE_MATCH(xRRListOutputPropertiesReq);
 
-    output = LookupOutput (client, stuff->output, DixReadAccess);
-    
-    if (!output)
-        return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
 
     for (prop = output->properties; prop; prop = prop->next)
 	numProps++;
@@ -466,10 +464,7 @@ ProcRRQueryOutputProperty (ClientPtr client)
     
     REQUEST_SIZE_MATCH(xRRQueryOutputPropertyReq);
 
-    output = LookupOutput (client, stuff->output, DixReadAccess);
-    
-    if (!output)
-        return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
     
     prop = RRQueryOutputProperty (output, stuff->property);
     if (!prop)
@@ -513,10 +508,7 @@ ProcRRConfigureOutputProperty (ClientPtr client)
     
     REQUEST_AT_LEAST_SIZE(xRRConfigureOutputPropertyReq);
 
-    output = LookupOutput (client, stuff->output, DixReadAccess);
-    
-    if (!output)
-        return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
     
     num_valid = stuff->length - (sizeof (xRRConfigureOutputPropertyReq) >> 2);
     return RRConfigureOutputProperty (output, stuff->property,
@@ -558,9 +550,7 @@ ProcRRChangeOutputProperty (ClientPtr client)
     totalSize = len * sizeInBytes;
     REQUEST_FIXED_SIZE(xRRChangeOutputPropertyReq, totalSize);
 
-    output = LookupOutput (client, stuff->output, DixWriteAccess);
-    if (!output)
-	return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
     
     if (!ValidAtom(stuff->property))
     {
@@ -590,9 +580,7 @@ ProcRRDeleteOutputProperty (ClientPtr client)
               
     REQUEST_SIZE_MATCH(xRRDeleteOutputPropertyReq);
     UpdateCurrentTime();
-    output = LookupOutput (client, stuff->output, DixWriteAccess);
-    if (!output)
-        return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
     
     if (!ValidAtom(stuff->property))
     {
@@ -619,11 +607,8 @@ ProcRRGetOutputProperty (ClientPtr client)
     REQUEST_SIZE_MATCH(xRRGetOutputPropertyReq);
     if (stuff->delete)
 	UpdateCurrentTime();
-    output = LookupOutput (client, stuff->output, 
-			   stuff->delete ? DixWriteAccess :
-			   DixReadAccess);
-    if (!output)
-	return RRErrorBase + BadRROutput;
+    VERIFY_RR_OUTPUT(stuff->output, output,
+		     stuff->delete ? DixWriteAccess : DixReadAccess);
 
     if (!ValidAtom(stuff->property))
     {

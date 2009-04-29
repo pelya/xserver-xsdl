@@ -203,6 +203,8 @@ XFixesSelectCursorInput (ClientPtr	pClient,
 			 CARD32		eventMask)
 {
     CursorEventPtr	*prev, e;
+    pointer val;
+    int rc;
 
     for (prev = &cursorEvents; (e = *prev); prev = &e->next)
     {
@@ -235,7 +237,10 @@ XFixesSelectCursorInput (ClientPtr	pClient,
 	 * Add a resource hanging from the window to
 	 * catch window destroy
 	 */
-	if (!LookupIDByType(pWindow->drawable.id, CursorWindowType))
+	rc = dixLookupResourceByType( &val, pWindow->drawable.id,
+				      CursorWindowType, serverClient,
+				      DixGetAttrAccess);
+	if (rc != Success)
 	    if (!AddResource (pWindow->drawable.id, CursorWindowType,
 			      (pointer) pWindow))
 	    {

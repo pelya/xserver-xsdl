@@ -88,7 +88,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
 {
     xExtendedGrabDeviceReply rep;
     DeviceIntPtr             dev;
-    int                      rc = Success,
+    int                      rc,
                              errval = 0,
                              i;
     WindowPtr                grab_window,
@@ -145,14 +145,12 @@ ProcXExtendedGrabDevice(ClientPtr client)
 
     if (stuff->cursor)
     {
-        cursor = (CursorPtr)SecurityLookupIDByType(client,
-                                                    stuff->cursor,
-                                                    RT_CURSOR,
-                                                    DixReadAccess);
-        if (!cursor)
-        {
+	rc = dixLookupResourceByType((pointer *)&cursor, stuff->cursor,
+				     RT_CURSOR, client, DixReadAccess);
+	if (rc != Success)
+	{
             errval = stuff->cursor;
-            rc = BadCursor;
+            rc = (rc == BadValue) ? BadCursor : rc;
             goto cleanup;
         }
     }

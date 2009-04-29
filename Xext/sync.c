@@ -1339,16 +1339,14 @@ ProcSyncSetCounter(ClientPtr client)
     REQUEST(xSyncSetCounterReq);
     SyncCounter    *pCounter;
     CARD64	   newvalue;
+    int	rc;
 
     REQUEST_SIZE_MATCH(xSyncSetCounterReq);
 
-    pCounter = SecurityLookupIDByType(client, stuff->cid, RTCounter,
-				      DixWriteAccess);
-    if (pCounter == NULL)
-    {
-	client->errorValue = stuff->cid;
-	return SyncErrorBase + XSyncBadCounter;
-    }
+    rc = dixLookupResourceByType((pointer *)&pCounter, stuff->cid, RTCounter,
+				 client, DixWriteAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
 
     if (IsSystemCounter(pCounter))
     {
@@ -1371,16 +1369,14 @@ ProcSyncChangeCounter(ClientPtr client)
     SyncCounter    *pCounter;
     CARD64          newvalue;
     Bool	    overflow;
+    int	rc;
 
     REQUEST_SIZE_MATCH(xSyncChangeCounterReq);
 
-    pCounter = SecurityLookupIDByType(client, stuff->cid, RTCounter,
-				      DixWriteAccess);
-    if (pCounter == NULL)
-    {
-	client->errorValue = stuff->cid;
-	return SyncErrorBase + XSyncBadCounter;
-    }
+    rc = dixLookupResourceByType((pointer *)&pCounter, stuff->cid, RTCounter,
+				 client, DixWriteAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
 
     if (IsSystemCounter(pCounter))
     {
@@ -1408,16 +1404,15 @@ ProcSyncDestroyCounter(ClientPtr client)
 {
     REQUEST(xSyncDestroyCounterReq);
     SyncCounter    *pCounter;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSyncDestroyCounterReq);
 
-    pCounter = SecurityLookupIDByType(client, stuff->counter, RTCounter,
-				      DixDestroyAccess);
-    if (pCounter == NULL)
-    {
-	client->errorValue = stuff->counter;
-	return SyncErrorBase + XSyncBadCounter;
-    }
+    rc = dixLookupResourceByType((pointer *)&pCounter, stuff->counter, RTCounter,
+				 client, DixDestroyAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+
     if (IsSystemCounter(pCounter))
     {
 	client->errorValue = stuff->counter;
@@ -1552,16 +1547,14 @@ ProcSyncQueryCounter(ClientPtr client)
     REQUEST(xSyncQueryCounterReq);
     xSyncQueryCounterReply rep;
     SyncCounter    *pCounter;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSyncQueryCounterReq);
 
-    pCounter = SecurityLookupIDByType(client, stuff->counter, RTCounter,
-				      DixReadAccess);
-    if (pCounter == NULL)
-    {
-	client->errorValue = stuff->counter;
-	return SyncErrorBase + XSyncBadCounter;
-    }
+    rc = dixLookupResourceByType((pointer *)&pCounter, stuff->counter,
+				 RTCounter, client, DixReadAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
 
     rep.type = X_Reply;
     rep.length = 0;
@@ -1682,12 +1675,10 @@ ProcSyncChangeAlarm(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xSyncChangeAlarmReq);
 
-    if (!(pAlarm = SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
-					  DixWriteAccess)))
-    {
-	client->errorValue = stuff->alarm;
-	return SyncErrorBase + XSyncBadAlarm;
-    }
+    status = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
+				     client, DixWriteAccess);
+    if (status != Success)
+	return (status == BadValue) ? SyncErrorBase + XSyncBadAlarm : status;
 
     vmask = stuff->valueMask;
     len = client->req_len - (sizeof(xSyncChangeAlarmReq) >> 2);
@@ -1719,16 +1710,14 @@ ProcSyncQueryAlarm(ClientPtr client)
     SyncAlarm      *pAlarm;
     xSyncQueryAlarmReply rep;
     SyncTrigger    *pTrigger;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSyncQueryAlarmReq);
 
-    pAlarm = SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
-				    DixReadAccess);
-    if (!pAlarm)
-    {
-	client->errorValue = stuff->alarm;
-	return SyncErrorBase + XSyncBadAlarm;
-    }
+    rc = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
+				 client, DixReadAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
 
     rep.type = X_Reply;
     rep.length = (sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply)) >> 2;
@@ -1776,16 +1765,15 @@ ProcSyncQueryAlarm(ClientPtr client)
 static int
 ProcSyncDestroyAlarm(ClientPtr client)
 {
+    SyncAlarm *pAlarm;
+    int rc;
     REQUEST(xSyncDestroyAlarmReq);
 
     REQUEST_SIZE_MATCH(xSyncDestroyAlarmReq);
 
-    if (!(SecurityLookupIDByType(client, stuff->alarm, RTAlarm,
-				 DixDestroyAccess)))
-    {
-	client->errorValue = stuff->alarm;
-	return SyncErrorBase + XSyncBadAlarm;
-    }
+    rc = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
+				 client, DixDestroyAccess);
+	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
 
     FreeResource(stuff->alarm, RT_NONE);
     return client->noClientException;

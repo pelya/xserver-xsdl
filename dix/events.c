@@ -506,16 +506,17 @@ XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 				PanoramiXNumScreens*sizeof(WindowPtr));
     } else {
 	PanoramiXRes *win;
-	int i;
+	int rc, i;
 
-	win = (PanoramiXRes*)LookupIDByType(pWin->drawable.id, XRT_WINDOW);
-
-	if(!win)
+	rc = dixLookupResourceByType((pointer *)&win, pWin->drawable.id,
+				     XRT_WINDOW, serverClient, DixReadAccess);
+	if (rc != Success)
 	    return FALSE;
 
 	for(i = 0; i < PanoramiXNumScreens; i++) {
-	   pSprite->windows[i] = LookupIDByType(win->info[i].id, RT_WINDOW);
-	   if(!pSprite->windows[i])  /* window is being unmapped */
+	    rc = dixLookupWindow(pSprite->windows + i, win->info[i].id,
+				 serverClient, DixReadAccess);
+	    if (rc != Success)  /* window is being unmapped */
 		return FALSE;
 	}
     }

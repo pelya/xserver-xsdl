@@ -545,8 +545,9 @@ CreateRootCursor(char *unused1, unsigned int unused2)
     if (err != Success)
 	return NullCursor;
 
-    cursorfont = (FontPtr)LookupIDByType(fontID, RT_FONT);
-    if (!cursorfont)
+    err = dixLookupResourceByType((pointer *)&cursorfont, fontID, RT_FONT,
+				  serverClient, DixReadAccess);
+    if (err != Success)
 	return NullCursor;
     if (AllocGlyphCursor(fontID, 0, fontID, 1, 0, 0, 0, ~0, ~0, ~0,
 			 &curs, serverClient, (XID)0) != Success)
