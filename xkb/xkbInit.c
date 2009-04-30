@@ -51,6 +51,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKMformat.h>
 #include "xkbfile.h"
 #include "xkb.h"
+#include "exevents.h"
 
 #define	CREATE_ATOM(s)	MakeAtom(s,sizeof(s)-1,1)
 
@@ -154,18 +155,22 @@ XkbFreeRMLVOSet(XkbRMLVOSet *rmlvo, Bool freeRMLVO)
         memset(rmlvo, 0, sizeof(XkbRMLVOSet));
 }
 
+/**
+ * Write the given used rules to the device, or (if device is NULL) to the
+ * root window property.
+ */
 static Bool
-XkbWriteRulesProp(ClientPtr client, pointer closure)
+XkbWriteRulesProp(DeviceIntPtr dev, XkbRMLVOSet *rmlvo)
 {
 int 			len,out;
 Atom			name;
 char *			pval;
 
-    len= (XkbRulesUsed?strlen(XkbRulesUsed):0);
-    len+= (XkbModelUsed?strlen(XkbModelUsed):0);
-    len+= (XkbLayoutUsed?strlen(XkbLayoutUsed):0);
-    len+= (XkbVariantUsed?strlen(XkbVariantUsed):0);
-    len+= (XkbOptionsUsed?strlen(XkbOptionsUsed):0);
+    len= (rmlvo->rules ? strlen(rmlvo->rules) : 0);
+    len+= (rmlvo->model ? strlen(rmlvo->model) : 0);
+    len+= (rmlvo->layout ? strlen(rmlvo->layout) : 0);
+    len+= (rmlvo->variant ? strlen(rmlvo->variant) : 0);
+    len+= (rmlvo->options ? strlen(rmlvo->options) : 0);
     if (len<1)
 	return True;
 
@@ -183,39 +188,55 @@ char *			pval;
 	return True;
     }
     out= 0;
-    if (XkbRulesUsed) {
-	strcpy(&pval[out],XkbRulesUsed);
-	out+= strlen(XkbRulesUsed);
+    if (rmlvo->rules) {
+	strcpy(&pval[out],rmlvo->rules);
+	out+= strlen(rmlvo->rules);
     }
     pval[out++]= '\0';
-    if (XkbModelUsed) {
-	strcpy(&pval[out],XkbModelUsed);
-	out+= strlen(XkbModelUsed);
-    } 
-    pval[out++]= '\0';
-    if (XkbLayoutUsed) {
-	strcpy(&pval[out],XkbLayoutUsed);
-	out+= strlen(XkbLayoutUsed);
+    if (rmlvo->model) {
+	strcpy(&pval[out],rmlvo->model);
+	out+= strlen(rmlvo->model);
     }
     pval[out++]= '\0';
-    if (XkbVariantUsed) {
-	strcpy(&pval[out],XkbVariantUsed);
-	out+= strlen(XkbVariantUsed);
+    if (rmlvo->layout) {
+	strcpy(&pval[out],rmlvo->layout);
+	out+= strlen(rmlvo->layout);
     }
     pval[out++]= '\0';
-    if (XkbOptionsUsed) {
-	strcpy(&pval[out],XkbOptionsUsed);
-	out+= strlen(XkbOptionsUsed);
+    if (rmlvo->variant) {
+	strcpy(&pval[out],rmlvo->variant);
+	out+= strlen(rmlvo->variant);
+    }
+    pval[out++]= '\0';
+    if (rmlvo->options) {
+	strcpy(&pval[out],rmlvo->options);
+	out+= strlen(rmlvo->options);
     }
     pval[out++]= '\0';
     if (out!=len) {
 	ErrorF("[xkb] Internal Error! bad size (%d!=%d) for _XKB_RULES_NAMES\n",
 								out,len);
     }
-    dixChangeWindowProperty(serverClient, WindowTable[0], name, XA_STRING, 8,
-			    PropModeReplace, len, pval, True);
+    if (dev)
+        XIChangeDeviceProperty(dev, name, XA_STRING, 8, PropModeReplace, len,
+                               pval, True);
+    else
+        dixChangeWindowProperty(serverClient, WindowTable[0], name, XA_STRING, 8,
+                                PropModeReplace, len, pval, True);
+
     xfree(pval);
     return True;
+}
+
+static Bool
+XkbWriteRootWindowRulesProp(ClientPtr client, pointer closure)
+{
+    Bool rc;
+    XkbRMLVOSet *rmlvo = (XkbRMLVOSet*)closure;
+
+    rc = XkbWriteRulesProp(NULL, rmlvo);
+    XkbFreeRMLVOSet(rmlvo, TRUE);
+    return rc;
 }
 
 static void
@@ -237,7 +258,18 @@ XkbSetRulesUsed(XkbRMLVOSet *rmlvo)
 	_XkbFree(XkbOptionsUsed);
     XkbOptionsUsed= (rmlvo->options?_XkbDupString(rmlvo->options):NULL);
     if (XkbWantRulesProp)
-	QueueWorkProc(XkbWriteRulesProp,NULL,NULL);
+    {
+        XkbRMLVOSet* rmlvo_used = xcalloc(1, sizeof(XkbRMLVOSet));
+        if (rmlvo_used)
+        {
+            rmlvo_used->rules = _XkbDupString(XkbRulesUsed);
+            rmlvo_used->model = _XkbDupString(XkbModelUsed);
+            rmlvo_used->layout = _XkbDupString(XkbLayoutUsed);
+            rmlvo_used->variant = _XkbDupString(XkbVariantUsed);
+            rmlvo_used->options = _XkbDupString(XkbOptionsUsed);
+            QueueWorkProc(XkbWriteRootWindowRulesProp,NULL,rmlvo_used);
+        }
+    }
     return;
 }
 
@@ -614,6 +646,7 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
 
     XkbSetRulesDflts(rmlvo);
     XkbSetRulesUsed(rmlvo);
+    XkbWriteRulesProp(dev, rmlvo);
     XkbFreeRMLVOSet(&rmlvo_dflts, FALSE);
 
     return TRUE;
