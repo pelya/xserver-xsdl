@@ -620,12 +620,11 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         /* Right now, the only automatic config we know of is HAL. */
         if (strcmp(option->key, "_source") == 0 &&
             strcmp(option->value, "server/hal") == 0) {
+            is_auto = 1;
             if (!xf86Info.autoAddDevices) {
                 rval = BadMatch;
                 goto unwind;
             }
-
-            is_auto = 1;
         }
     }
     if (!idev->driver || !idev->identifier) {
@@ -654,6 +653,8 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         return Success;
 
 unwind:
+    if (is_auto && !xf86Info.autoAddDevices)
+        xf86Msg(X_INFO, "AutoAddDevices is off - not adding device.\n");
     if(idev->driver)
         xfree(idev->driver);
     if(idev->identifier)
