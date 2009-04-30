@@ -28,11 +28,8 @@
 
 #include <math.h>
 #include <ptrveloc.h>
-#include <inputstr.h>
 #include <exevents.h>
 #include <X11/Xatom.h>
-#include <assert.h>
-#include <os.h>
 
 #include <xserver-properties.h>
 
