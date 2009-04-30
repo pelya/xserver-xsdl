@@ -367,6 +367,9 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
 
     pPointer = MIPOINTER(pDev);
 
+    if (!pPointer)
+        return;
+
     pScreen = pPointer->pScreen;
     if (!pScreen)
 	return;
