@@ -994,14 +994,20 @@ acceleratePointerPredictable(
 
                 if (dx) {
                     tmp = mult * fdx + pDev->last.remainder[0];
-                    *px = (int)roundf(tmp);
+                    /* Since it may not be apparent: lrintf() does not offer
+                     * strong statements about rounding; however because we
+                     * process each axis conditionally, there's no danger
+                     * of a toggling remainder. Its lack of guarantees hopefully
+                     * makes it faster on the average target. */
+                    *px = lrintf(tmp);
                     pDev->last.remainder[0] = tmp - (float)*px;
                 }
                 if (dy) {
                     tmp = mult * fdy + pDev->last.remainder[1];
-                    *py = (int)roundf(tmp);
+                    *py = lrintf(tmp);
                     pDev->last.remainder[1] = tmp - (float)*py;
                 }
+                DebugAccelF("pos (%i | %i) remainders x: %.3f y: %.3f delta x:%.3f y:%.3f\n", *px, *py, pDev->last.remainder[0], pDev->last.remainder[1], fdx, fdy);
             }
         }
     }
