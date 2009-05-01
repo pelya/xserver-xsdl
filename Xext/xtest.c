@@ -50,6 +50,7 @@
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
+#include "mipointer.h"
 
 #include "modinit.h"
 
@@ -162,7 +163,6 @@ ProcXTestFakeInput(ClientPtr client)
     int i;
     int base = 0;
     int flags = 0;
-    DeviceIntPtr xtstdevice;
 
     nev = (stuff->length << 2) - sizeof(xReq);
     if ((nev % sizeof(xEvent)) || !nev)
@@ -415,7 +415,7 @@ ProcXTestFakeInput(ClientPtr client)
     }
 
     for (i = 0; i < nevents; i++)
-        mieqProcessDeviceEvent(dev, (events+i)->event, NULL);
+        mieqProcessDeviceEvent(dev, (InternalEvent*)(events+i)->event, NULL);
 
     miPointerUpdateSprite(dev);
     return client->noClientException;
