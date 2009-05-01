@@ -376,12 +376,6 @@ ProcXTestFakeInput(ClientPtr client)
             break;
         case ButtonPress:
         case ButtonRelease:
-            if (!extension)
-            {
-                dev = PickPointer(client);
-                if (dev->u.lastSlave)
-                    dev = dev->u.lastSlave;
-            }
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;
