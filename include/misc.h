@@ -86,7 +86,7 @@ OF THIS SOFTWARE.
 #define MAXCLIENTS	256
 #define MAXEXTENSIONS   128
 #define MAXFORMATS	8
-#define MAXDEVICES	20 /* input devices */
+#define MAXDEVICES	40 /* input devices */
 
 #define EXTENSION_EVENT_BASE 64
 #define EXTENSION_BASE 128
