@@ -49,6 +49,7 @@
 #include <X11/extensions/xteststr.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include "exglobals.h"
 
 #include "modinit.h"
 
@@ -342,6 +343,9 @@ ProcXTestFakeInput(ClientPtr client)
     {
         case KeyPress:
         case KeyRelease:
+            if (!dev->key)
+                return BadDevice;
+
             if (ev->u.u.detail < dev->key->xkbInfo->desc->min_key_code ||
                 ev->u.u.detail > dev->key->xkbInfo->desc->max_key_code)
             {
@@ -350,6 +354,9 @@ ProcXTestFakeInput(ClientPtr client)
             }
             break;
         case MotionNotify:
+            if (!dev->valuator)
+                return BadDevice;
+
             /* broken lib, XI events have root uninitialized */
             if (extension || ev->u.keyButtonPointer.root == None)
                 root = GetCurrentRootWindow(dev);
@@ -376,6 +383,9 @@ ProcXTestFakeInput(ClientPtr client)
             break;
         case ButtonPress:
         case ButtonRelease:
+            if (!dev->button)
+                return BadDevice;
+
             if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
             {
                 client->errorValue = ev->u.u.detail;
