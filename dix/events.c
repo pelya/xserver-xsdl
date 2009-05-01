@@ -4446,7 +4446,7 @@ ProcGrabPointer(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    if (oldCursor)
+    if (oldCursor && rep.status == GrabSuccess)
         FreeCursor (oldCursor, (Cursor)0);
 
     time = ClientTimeToServerTime(stuff->time);
