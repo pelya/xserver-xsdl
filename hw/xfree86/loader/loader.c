@@ -223,7 +223,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
      * Find a free handle.
      */
     new_handle = 1;
-    while (refCount[new_handle] && new_handle < MAX_HANDLE)
+    while (new_handle < MAX_HANDLE && refCount[new_handle])
 	new_handle++;
 
     if (new_handle == MAX_HANDLE) {

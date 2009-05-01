@@ -364,7 +364,7 @@ GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
 
     extension = (extension & 0x7F);
 
-    if (extension > MAXEXTENSIONS)
+    if (extension >= MAXEXTENSIONS)
     {
         ErrorF("Invalid extension number.\n");
         return;

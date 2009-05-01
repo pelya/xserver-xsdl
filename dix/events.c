@@ -588,7 +588,7 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 void
 SetMaskForEvent(int deviceid, Mask mask, int event)
 {
-    if (deviceid < 0 || deviceid > MAXDEVICES)
+    if (deviceid < 0 || deviceid >= MAXDEVICES)
         FatalError("SetMaskForEvent: bogus device id");
     filters[deviceid][event] = mask;
 }
