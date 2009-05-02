@@ -3433,6 +3433,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
         for (other = inputInfo.devices; other; other = other->next)
         {
             if ((other != dev) && !other->isMaster && (other->u.master == dev) &&
+                (other->kbdfeed || other->leds) &&
                 (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
             {
                 rc = _XkbCreateIndicatorMap(other, stuff->indicator,
@@ -3456,6 +3457,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
         for (other = inputInfo.devices; other; other = other->next)
         {
             if ((other != dev) && !other->isMaster && (other->u.master == dev) &&
+                (other->kbdfeed || other->leds) &&
                 (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
             {
                 _XkbSetNamedIndicator(client, other, stuff);
