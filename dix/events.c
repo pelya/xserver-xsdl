@@ -5003,6 +5003,7 @@ ProcUngrabKey(ClientPtr client)
     tempGrab.modifiersDetail.pMask = NULL;
     tempGrab.modifierDevice = GetPairedDevice(keybd);
     tempGrab.type = KeyPress;
+    tempGrab.grabtype = GRABTYPE_CORE;
     tempGrab.detail.exact = stuff->key;
     tempGrab.detail.pMask = NULL;
     tempGrab.next = NULL;
@@ -5197,6 +5198,7 @@ ProcUngrabButton(ClientPtr client)
     tempGrab.modifierDevice = GetPairedDevice(ptr);
     tempGrab.type = ButtonPress;
     tempGrab.detail.exact = stuff->button;
+    tempGrab.grabtype = GRABTYPE_CORE;
     tempGrab.detail.pMask = NULL;
     tempGrab.next = NULL;
 
