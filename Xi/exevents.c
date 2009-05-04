@@ -1388,7 +1388,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     WindowPtr pWin, confineTo;
     CursorPtr cursor;
     GrabPtr grab;
-    int rc;
+    int rc, type;
     Mask access_mode = DixGrabAccess;
 
     rc = CheckGrabValues(client, param);
@@ -1422,14 +1422,22 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     if (rc != Success)
 	return rc;
 
+    if (grabtype == GRABTYPE_XI)
+        type = DeviceButtonPress;
+    else if (grabtype == GRABTYPE_XI2)
+        type = XI_ButtonPress;
 
     grab = CreateGrab(client->index, dev, modifier_device, pWin, grabtype,
-                      mask, param, DeviceButtonPress, button, confineTo, cursor);
+                      mask, param, type, button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);
 }
 
+/**
+ * Grab the given key. If grabtype is GRABTYPE_XI, the key is a keycode. If
+ * grabtype is GRABTYPE_XI2, the key is a keysym.
+ */
 int
 GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
         int key, GrabParameters *param, GrabType grabtype, GrabMask *mask)
@@ -1438,19 +1446,25 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     GrabPtr grab;
     KeyClassPtr k = dev->key;
     Mask access_mode = DixGrabAccess;
-    int rc;
+    int rc, type;
 
     rc = CheckGrabValues(client, param);
     if (rc != Success)
         return rc;
     if (k == NULL)
 	return BadMatch;
-    if ((key > k->xkbInfo->desc->max_key_code ||
-         key < k->xkbInfo->desc->min_key_code)
-	&& (key != AnyKey)) {
-	client->errorValue = key;
-        return BadValue;
-    }
+    if (grabtype == GRABTYPE_XI)
+    {
+        if ((key > k->xkbInfo->desc->max_key_code ||
+                    key < k->xkbInfo->desc->min_key_code)
+                && (key != AnyKey)) {
+            client->errorValue = key;
+            return BadValue;
+        }
+        type = DeviceKeyPress;
+    } else if (grabtype == GRABTYPE_XI2)
+        type = XI_KeyPress;
+
     rc = dixLookupWindow(&pWin, param->grabWindow, client, DixSetAttrAccess);
     if (rc != Success)
 	return rc;
@@ -1461,7 +1475,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
 	return rc;
 
     grab = CreateGrab(client->index, dev, modifier_device, pWin, grabtype,
-                      mask, param, DeviceKeyPress, key, NULL, NULL);
+                      mask, param, type, key, NULL, NULL);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(client, grab);

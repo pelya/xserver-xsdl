@@ -948,6 +948,10 @@ extern Bool XkbCopyDeviceKeymap(
         DeviceIntPtr            /* dst */,
         DeviceIntPtr            /* src */);
 
+extern int XkbGetKeysym(
+        DeviceIntPtr            /* dev */,
+        DeviceEvent*            /* event*/);
+
 #include "xkbfile.h"
 #include <X11/extensions/XKMformat.h>
 #include "xkbrules.h"

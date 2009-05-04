@@ -1,0 +1,269 @@
+/*
+ * Copyright © 2009 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Author: Peter Hutterer
+ */
+
+/***********************************************************************
+ *
+ * Request to grab or ungrab input device.
+ *
+ */
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
+#include "inputstr.h"	/* DeviceIntPtr      */
+#include "windowstr.h"	/* window structure  */
+#include <X11/extensions/XI2.h>
+#include <X11/extensions/XI2proto.h>
+#include "swaprep.h"
+
+#include "exglobals.h" /* BadDevice */
+#include "exevents.h"
+#include "xipassivegrab.h"
+#include "dixgrabs.h"
+
+int
+SProcXIPassiveGrabDevice(ClientPtr client)
+{
+    int i;
+    char n;
+    xXIModifierInfo *mods;
+
+    REQUEST(xXIPassiveGrabDeviceReq);
+
+    swaps(&stuff->length, n);
+    swaps(&stuff->deviceid, n);
+    swapl(&stuff->grab_window, n);
+    swapl(&stuff->cursor, n);
+    swapl(&stuff->time, n);
+    swapl(&stuff->detail, n);
+    swaps(&stuff->mask_len, n);
+    swaps(&stuff->num_modifiers, n);
+
+    mods = (xXIModifierInfo*)&stuff[1];
+
+    for (i = 0; i < stuff->num_modifiers; i++, mods++)
+    {
+        swapl(&mods->base_mods, n);
+        swapl(&mods->latched_mods, n);
+        swapl(&mods->locked_mods, n);
+    }
+
+    return ProcXIPassiveGrabDevice(client);
+}
+
+int
+ProcXIPassiveGrabDevice(ClientPtr client)
+{
+    DeviceIntPtr dev, mod_dev;
+    xXIPassiveGrabDeviceReply rep;
+    int i, ret = Success;
+    uint8_t status;
+    uint32_t *modifiers;
+    xXIGrabModifierInfo *modifiers_failed;
+    GrabMask mask;
+    GrabParameters param;
+
+    REQUEST(xXIPassiveGrabDeviceReq);
+    REQUEST_AT_LEAST_SIZE(xXIPassiveGrabDeviceReq);
+
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+    if (ret != Success)
+	return ret;
+
+    if (stuff->grab_type != GrabtypeButton &&
+        stuff->grab_type != GrabtypeKeysym)
+    {
+        client->errorValue = stuff->grab_type;
+        return BadValue;
+    }
+
+    /* Can't grab for modifiers on an attached slave device */
+    if (!dev->isMaster)
+    {
+        if (!dev->u.master)
+            stuff->paired_device_mode = GrabModeAsync;
+        else if (dev->u.master && stuff->num_modifiers)
+            return BadDevice;
+    }
+    if ((stuff->mask_len * 4) > XI_LASTEVENT)
+    {
+        unsigned char *bits = (unsigned char*)&stuff[1];
+        for (i = XI_LASTEVENT; i < stuff->mask_len * 4; i++)
+        {
+            if (BitIsOn(bits, i))
+                return BadValue;
+        }
+    }
+
+    memset(mask.xi2mask, 0, sizeof(mask.xi2mask));
+    memcpy(mask.xi2mask[stuff->deviceid], &stuff[1], stuff->mask_len * 4);
+
+    rep.repType = X_Reply;
+    rep.RepType = X_XIPassiveGrabDevice;
+    rep.length = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.num_modifiers = 0;
+
+    memset(&param, 0, sizeof(param));
+    param.ownerEvents = stuff->owner_events;
+    param.this_device_mode = stuff->grab_mode;
+    param.other_devices_mode = stuff->paired_device_mode;
+    param.grabWindow = stuff->grab_window;
+    param.cursor = stuff->cursor;
+
+    modifiers = (uint32_t*)&stuff[1] + stuff->mask_len;
+    modifiers_failed = xcalloc(stuff->num_modifiers, sizeof(xXIGrabModifierInfo));
+    if (!modifiers_failed)
+        return BadAlloc;
+
+    if (dev->isMaster)
+        mod_dev = GetPairedDevice(dev);
+    else
+        mod_dev = dev;
+
+    for (i = 0; i < stuff->num_modifiers; i++, modifiers++)
+    {
+        param.modifiers = *modifiers;
+        switch(stuff->grab_type)
+        {
+            case GrabtypeButton:
+                status = GrabButton(client, dev, mod_dev, stuff->detail,
+                                    &param, GRABTYPE_XI2, &mask);
+                break;
+            case GrabtypeKeysym:
+                status = GrabKey(client, dev, mod_dev, stuff->detail,
+                                 &param, GRABTYPE_XI2, &mask);
+                break;
+        }
+
+        if (status != GrabSuccess)
+        {
+            xXIGrabModifierInfo *info = modifiers_failed + rep.num_modifiers;
+
+            info->status = status;
+            info->modifiers = *modifiers;
+            rep.num_modifiers++;
+        }
+    }
+
+    WriteReplyToClient(client, sizeof(rep), &rep);
+    if (rep.num_modifiers)
+    {
+	client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
+        WriteSwappedDataToClient(client, rep.num_modifiers * 4, (char*)modifiers_failed);
+    }
+    xfree(modifiers_failed);
+    return ret;
+}
+
+void
+SRepXIPassiveGrabDevice(ClientPtr client, int size,
+                        xXIPassiveGrabDeviceReply * rep)
+{
+    char n;
+
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swaps(&rep->num_modifiers, n);
+
+    WriteToClient(client, size, (char *)rep);
+}
+
+int
+SProcXIPassiveUngrabDevice(ClientPtr client)
+{
+    char n;
+    int i;
+    uint32_t *modifiers;
+
+    REQUEST(xXIPassiveUngrabDeviceReq);
+
+    swaps(&stuff->length, n);
+    swapl(&stuff->grab_window, n);
+    swaps(&stuff->deviceid, n);
+    swapl(&stuff->detail, n);
+    swaps(&stuff->num_modifiers, n);
+
+    modifiers = (uint32_t*)&stuff[1];
+
+    for (i = 0; i < stuff->num_modifiers; i++, modifiers++)
+        swapl(modifiers, n);
+
+    return ProcXIPassiveUngrabDevice(client);
+}
+
+int
+ProcXIPassiveUngrabDevice(ClientPtr client)
+{
+    DeviceIntPtr dev, mod_dev;
+    WindowPtr win;
+    GrabRec tempGrab;
+    uint32_t* modifiers;
+    int i, rc;
+
+    REQUEST(xXIPassiveUngrabDeviceReq);
+    REQUEST_AT_LEAST_SIZE(xXIPassiveUngrabDeviceReq);
+
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+    if (rc != Success)
+	return rc;
+
+    if (stuff->grab_type != GrabtypeButton &&
+        stuff->grab_type != GrabtypeKeysym)
+    {
+        client->errorValue = stuff->grab_type;
+        return BadValue;
+    }
+
+    rc = dixLookupWindow(&win, stuff->grab_window, client, DixSetAttrAccess);
+    if (rc != Success)
+        return rc;
+
+    if (dev->isMaster)
+        mod_dev = GetPairedDevice(dev);
+    else
+        mod_dev = dev;
+
+    tempGrab.device = dev;
+    tempGrab.window = win;
+    tempGrab.type =
+        (stuff->grab_type == GrabtypeButton) ? XI_ButtonPress : XI_KeyPress;
+    tempGrab.grabtype = GRABTYPE_XI2;
+    tempGrab.modifierDevice = mod_dev;
+    tempGrab.modifiersDetail.pMask = NULL;
+    tempGrab.detail.exact = stuff->detail;
+    tempGrab.detail.pMask = NULL;
+
+    modifiers = (uint32_t*)&stuff[1];
+
+    for (i = 0; i < stuff->num_modifiers; i++, modifiers++)
+    {
+        tempGrab.modifiersDetail.exact = *modifiers;
+        DeletePassiveGrabFromList(&tempGrab);
+    }
+
+    return Success;
+}

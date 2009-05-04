@@ -3290,6 +3290,7 @@ CheckPassiveGrabsOnWindow(
     GrabInfoPtr grabinfo;
 #define CORE_MATCH      0x1
 #define XI_MATCH        0x2
+#define XI2_MATCH        0x4
     int match = 0;
 
     if (!grab)
@@ -3319,13 +3320,24 @@ CheckPassiveGrabsOnWindow(
             xkbi= gdev->key->xkbInfo;
 	tempGrab.modifierDevice = grab->modifierDevice;
         tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
-        /* FIXME: check for xi2 grabs */
 
-        /* Check for XI grabs first */
-        tempGrab.type = GetXIType((InternalEvent*)event);
-        tempGrab.grabtype = GRABTYPE_XI;
-	if (GrabMatchesSecond(&tempGrab, grab, FALSE))
-            match = XI_MATCH;
+        /* Check for XI2 and XI grabs first */
+        tempGrab.type = GetXI2Type((InternalEvent*)event);
+        tempGrab.grabtype = GRABTYPE_XI2;
+        if (event->type == ET_KeyPress)
+            tempGrab.detail.exact = XkbGetKeysym(device, event);
+        if (GrabMatchesSecond(&tempGrab, grab, FALSE))
+            match = XI2_MATCH;
+
+        tempGrab.detail.exact = event->detail.key;
+        if (!match)
+        {
+            tempGrab.type = GetXIType((InternalEvent*)event);
+            tempGrab.grabtype = GRABTYPE_XI;
+            if (GrabMatchesSecond(&tempGrab, grab, FALSE))
+                match = XI_MATCH;
+        }
+
         /* Check for a core grab (ignore the device when comparing) */
         if (!match && checkCore)
         {
@@ -3399,6 +3411,15 @@ CheckPassiveGrabsOnWindow(
                 }
                 xE = &core;
                 count = 1;
+            } else if (match & XI2_MATCH)
+            {
+                rc = EventToXI2((InternalEvent*)event, &xE);
+                if (rc != Success)
+                {
+                    ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
+                           "(%d, %d).\n", device->name, event->type, rc);
+                    continue;
+                }
             } else
             {
                 rc = EventToXI((InternalEvent*)event, &xE, &count);
@@ -3427,7 +3448,7 @@ CheckPassiveGrabsOnWindow(
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
 
-            if (match & XI_MATCH)
+            if (match & (XI_MATCH | XI2_MATCH))
                 xfree(xE); /* on core match xE == &core */
 	    return TRUE;
 	}
@@ -3435,6 +3456,7 @@ CheckPassiveGrabsOnWindow(
     return FALSE;
 #undef CORE_MATCH
 #undef XI_MATCH
+#undef XI2_MATCH
 }
 
 /**

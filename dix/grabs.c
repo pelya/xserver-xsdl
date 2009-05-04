@@ -104,6 +104,9 @@ CreateGrab(
     grab->confineTo = confineTo;
     grab->cursor = cursor;
     grab->next = NULL;
+
+    if (grabtype == GRABTYPE_XI2)
+        memcpy(grab->xi2mask, mask->xi2mask, sizeof(mask->xi2mask));
     if (cursor)
 	cursor->refcnt++;
     return grab;

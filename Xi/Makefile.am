@@ -96,6 +96,8 @@ libXi_la_SOURCES =	\
 	xiallowev.h \
 	xigrabdev.c \
 	xigrabdev.h \
+	xipassivegrab.h \
+	xipassivegrab.c \
 	xiproperty.c \
 	xiproperty.h \
 	xiselectev.c \
