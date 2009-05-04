@@ -25,10 +25,12 @@
 #include <dix-config.h>
 #endif
 
+#include <stdint.h>
 #include <X11/X.h>
 #include "misc.h"
 #include "resource.h"
 #include <X11/Xproto.h>
+#include <X11/extensions/XI2proto.h>
 #include <X11/Xatom.h>
 #include "windowstr.h"
 #include "inputstr.h"
@@ -276,6 +278,31 @@ static void dix_event_to_core_conversion(void)
     dix_event_to_core(ET_ProximityOut);
 }
 
+static void xi2_struct_sizes(void)
+{
+#define compare(req) \
+    g_assert(sizeof(req) == sz_##req);
+
+    compare(xXIQueryVersionReq);
+    compare(xXIWarpDevicePointerReq);
+    compare(xXIChangeDeviceCursorReq);
+    compare(xXIChangeDeviceHierarchyReq);
+    compare(xXISetClientPointerReq);
+    compare(xXIGetClientPointerReq);
+    compare(xXISelectEventsReq);
+    compare(xXIQueryVersionReq);
+    compare(xXIQueryDeviceReq);
+    compare(xXISetDeviceFocusReq);
+    compare(xXIGetDeviceFocusReq);
+    compare(xXIGrabDeviceReq);
+    compare(xXIUngrabDeviceReq);
+    compare(xXIAllowEventsReq);
+    compare(xXIPassiveGrabDeviceReq);
+    compare(xXIPassiveUngrabDeviceReq);
+#undef compare
+}
+
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -284,6 +311,7 @@ int main(int argc, char** argv)
     g_test_add_func("/dix/input/init-valuators", dix_init_valuators);
     g_test_add_func("/dix/input/event-core-conversion", dix_event_to_core_conversion);
     g_test_add_func("/dix/input/check-grab-values", dix_check_grab_values);
+    g_test_add_func("/dix/input/xi2-struct-sizes", xi2_struct_sizes);
 
     return g_test_run();
 }
