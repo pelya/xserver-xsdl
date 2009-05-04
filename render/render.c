@@ -1857,7 +1857,7 @@ ProcRenderCreateAnimCursor (ClientPtr client)
     elt = (xAnimCursorElt *) (stuff + 1);
     for (i = 0; i < ncursor; i++)
     {
-	ret = dixLookupResourceByType((pointer *)(cursors + 1), elt->cursor,
+	ret = dixLookupResourceByType((pointer *)(cursors + i), elt->cursor,
 				      RT_CURSOR, client, DixReadAccess);
 	if (ret != Success)
 	{
