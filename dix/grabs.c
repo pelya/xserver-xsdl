@@ -254,6 +254,10 @@ GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 Bool
 GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 {
+
+    if (pFirstGrab->grabtype != pSecondGrab->grabtype)
+        return FALSE;
+
     if (!ignoreDevice &&
             ((pFirstGrab->device != pSecondGrab->device) ||
              (pFirstGrab->modifierDevice != pSecondGrab->modifierDevice)))
@@ -288,6 +292,9 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 static Bool
 GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 {
+    if (pFirstGrab->grabtype != pSecondGrab->grabtype)
+        return FALSE;
+
     if (pFirstGrab->device != pSecondGrab->device || 
 	(pFirstGrab->modifierDevice != pSecondGrab->modifierDevice) ||
 	(pFirstGrab->type != pSecondGrab->type))

@@ -3323,13 +3323,17 @@ CheckPassiveGrabsOnWindow(
 
         /* Check for XI grabs first */
         tempGrab.type = GetXIType((InternalEvent*)event);
+        tempGrab.grabtype = GRABTYPE_XI;
 	if (GrabMatchesSecond(&tempGrab, grab, FALSE))
             match = XI_MATCH;
         /* Check for a core grab (ignore the device when comparing) */
-        if (!match && checkCore &&
-            (tempGrab.type = GetCoreType((InternalEvent*)event)) &&
-            (GrabMatchesSecond(&tempGrab, grab, TRUE)))
+        if (!match && checkCore)
+        {
+            tempGrab.grabtype = GRABTYPE_CORE;
+            if ((tempGrab.type = GetCoreType((InternalEvent*)event)) &&
+                (GrabMatchesSecond(&tempGrab, grab, TRUE)))
                 match = CORE_MATCH;
+        }
 
         if (match && (!grab->confineTo ||
 	     (grab->confineTo->realized &&
