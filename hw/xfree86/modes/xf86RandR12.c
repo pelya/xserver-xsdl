@@ -55,6 +55,13 @@ typedef struct _xf86RandR12Info {
     int				    pointerY;
     Rotation			    rotation; /* current mode */
     Rotation                        supported_rotations; /* driver supported */
+
+    /* Used to wrap EnterVT so we can re-probe the outputs when a laptop unsuspends
+     * (actually, any time that we switch back into our VT).
+     *
+     * See https://bugs.freedesktop.org/show_bug.cgi?id=21554
+     */
+    xf86EnterVTProc *orig_EnterVT;
 } XF86RandRInfoRec, *XF86RandRInfoPtr;
 
 #ifdef RANDR_12_INTERFACE
@@ -1746,10 +1753,25 @@ xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
 }
 
 static Bool
+xf86RandR12EnterVT (int screen_index, int flags)
+{
+    ScreenPtr        pScreen = screenInfo.screens[screen_index];
+    XF86RandRInfoPtr randrp  = XF86RANDRINFO(pScreen);
+
+    if (randrp->orig_EnterVT) {
+	if (!randrp->orig_EnterVT (screen_index, flags))
+	    return FALSE;
+    }
+
+    return RRGetInfo (pScreen, TRUE); /* force a re-probe of outputs and notify clients about changes */
+}
+
+static Bool
 xf86RandR12Init12 (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     rrScrPrivPtr	rp = rrGetScrPriv(pScreen);
+    XF86RandRInfoPtr	randrp  = XF86RANDRINFO(pScreen);
 
     rp->rrGetInfo = xf86RandR12GetInfo12;
     rp->rrScreenSetSize = xf86RandR12ScreenSetSize;
@@ -1767,6 +1789,10 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
+
+    randrp->orig_EnterVT = pScrn->EnterVT;
+    pScrn->EnterVT = xf86RandR12EnterVT;
+
     if (!xf86RandR12CreateObjects12 (pScreen))
 	return FALSE;
 
