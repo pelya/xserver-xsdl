@@ -1075,7 +1075,6 @@ XkbSrvInfoPtr	xkbi;
 KeyClassPtr	keyc;
 int		changed,sendEvent;
 Bool		genStateNotify;
-XkbStateRec	oldState;
 XkbAction	act;
 XkbFilterPtr	filter;
 Bool		keyEvent;
@@ -1090,7 +1089,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     /* The state may change, so if we're not in the middle of sending a state
      * notify, prepare for it */
     if ((xkbi->flags&_XkbStateNotifyInProgress)==0) {
-	oldState= xkbi->state;
+	xkbi->prev_state = xkbi->state;
 	xkbi->flags|= _XkbStateNotifyInProgress;
 	genStateNotify= True;
     }
@@ -1220,9 +1219,8 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	FixKeyState(event, dev);
     }
 
-    xkbi->prev_state= oldState;
     XkbComputeDerivedState(xkbi);
-    changed = XkbStateChangedFlags(&oldState,&xkbi->state);
+    changed = XkbStateChangedFlags(&xkbi->prev_state,&xkbi->state);
     if (genStateNotify) {
 	if (changed) {
 	    xkbStateNotify	sn;
