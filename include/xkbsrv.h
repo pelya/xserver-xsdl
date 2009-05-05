@@ -334,8 +334,6 @@ extern	_X_EXPORT int	DeviceEnterNotify,DeviceLeaveNotify;
 #define	False	FALSE
 #endif
 
-_XFUNCPROTOBEGIN
-
 extern _X_EXPORT void XkbUseMsg(
     void
 );
@@ -999,8 +997,6 @@ extern _X_EXPORT XkbDescPtr XkbCompileKeymap(
         DeviceIntPtr    /* dev */,
         XkbRMLVOSet *   /* rmlvo */
 );
-
-_XFUNCPROTOEND
 
 #define	XkbAtomGetString(s)	NameForAtom(s)
 
