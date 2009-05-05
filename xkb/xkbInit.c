@@ -222,19 +222,19 @@ static void
 XkbSetRulesUsed(XkbRMLVOSet *rmlvo)
 {
     if (XkbRulesUsed)
-        _XkbFree(XkbRulesUsed);
+        xfree(XkbRulesUsed);
     XkbRulesUsed= (rmlvo->rules?_XkbDupString(rmlvo->rules):NULL);
     if (XkbModelUsed)
-	_XkbFree(XkbModelUsed);
+	xfree(XkbModelUsed);
     XkbModelUsed= (rmlvo->model?_XkbDupString(rmlvo->model):NULL);
     if (XkbLayoutUsed)
-	_XkbFree(XkbLayoutUsed);
+	xfree(XkbLayoutUsed);
     XkbLayoutUsed= (rmlvo->layout?_XkbDupString(rmlvo->layout):NULL);
     if (XkbVariantUsed)
-	_XkbFree(XkbVariantUsed);
+	xfree(XkbVariantUsed);
     XkbVariantUsed= (rmlvo->variant?_XkbDupString(rmlvo->variant):NULL);
     if (XkbOptionsUsed)
-	_XkbFree(XkbOptionsUsed);
+	xfree(XkbOptionsUsed);
     XkbOptionsUsed= (rmlvo->options?_XkbDupString(rmlvo->options):NULL);
     if (XkbWantRulesProp)
 	QueueWorkProc(XkbWriteRulesProp,NULL,NULL);
@@ -246,27 +246,27 @@ XkbSetRulesDflts(XkbRMLVOSet *rmlvo)
 {
     if (rmlvo->rules) {
         if (XkbRulesDflt)
-	    _XkbFree(XkbRulesDflt);
+	    xfree(XkbRulesDflt);
         XkbRulesDflt= _XkbDupString(rmlvo->rules);
     }
     if (rmlvo->model) {
 	if (XkbModelDflt)
-	    _XkbFree(XkbModelDflt);
+	    xfree(XkbModelDflt);
 	XkbModelDflt= _XkbDupString(rmlvo->model);
     }
     if (rmlvo->layout) {
 	if (XkbLayoutDflt)
-	    _XkbFree(XkbLayoutDflt);
+	    xfree(XkbLayoutDflt);
 	XkbLayoutDflt= _XkbDupString(rmlvo->layout);
     }
     if (rmlvo->variant) {
 	if (XkbVariantDflt)
-	    _XkbFree(XkbVariantDflt);
+	    xfree(XkbVariantDflt);
 	XkbVariantDflt= _XkbDupString(rmlvo->variant);
     }
     if (rmlvo->options) {
 	if (XkbOptionsDflt)
-	    _XkbFree(XkbOptionsDflt);
+	    xfree(XkbOptionsDflt);
 	XkbOptionsDflt= _XkbDupString(rmlvo->options);
     }
     return;
@@ -275,15 +275,15 @@ XkbSetRulesDflts(XkbRMLVOSet *rmlvo)
 void
 XkbDeleteRulesDflts(void)
 {
-    _XkbFree(XkbRulesDflt);
+    xfree(XkbRulesDflt);
     XkbRulesDflt = NULL;
-    _XkbFree(XkbModelDflt);
+    xfree(XkbModelDflt);
     XkbModelDflt = NULL;
-    _XkbFree(XkbLayoutDflt);
+    xfree(XkbLayoutDflt);
     XkbLayoutDflt = NULL;
-    _XkbFree(XkbVariantDflt);
+    xfree(XkbVariantDflt);
     XkbVariantDflt = NULL;
-    _XkbFree(XkbOptionsDflt);
+    xfree(XkbOptionsDflt);
     XkbOptionsDflt = NULL;
 
     XkbFreeKeyboard(xkb_cached_map, XkbAllComponentsMask, True);
@@ -643,7 +643,7 @@ void
 XkbFreeInfo(XkbSrvInfoPtr xkbi)
 {
     if (xkbi->radioGroups) {
-	_XkbFree(xkbi->radioGroups);
+	xfree(xkbi->radioGroups);
 	xkbi->radioGroups= NULL;
     }
     if (xkbi->mouseKeyTimer) {
@@ -675,7 +675,7 @@ XkbFreeInfo(XkbSrvInfoPtr xkbi)
 	XkbFreeKeyboard(xkbi->desc,XkbAllComponentsMask,True);
 	xkbi->desc= NULL;
     }
-    _XkbFree(xkbi);
+    xfree(xkbi);
     return;
 }
 

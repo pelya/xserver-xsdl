@@ -507,7 +507,7 @@ unsigned		changed,tmp;
 	mc->changed|= changed;
     }
     if (interps!=ibuf)
-	_XkbFree(interps);
+	xfree(interps);
     return True;
 }
 

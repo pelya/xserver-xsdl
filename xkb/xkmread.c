@@ -57,7 +57,7 @@ char *new;
    
    if (str==NULL)
 	return NULL;
-   new= (char *)_XkbCalloc(strlen(str)+1,sizeof(char));
+   new= xcalloc(strlen(str)+1,sizeof(char));
    if (new)
 	strcpy(new,str);
    return new;
@@ -73,10 +73,10 @@ int	newCount= *newCountRtrn;
     if (oldPtr==NULL) {
 	if (newCount==0)
 	    return NULL;
-	oldPtr= _XkbCalloc(newCount,elemSize);
+	oldPtr= xcalloc(newCount,elemSize);
     }
     else if (oldCount<newCount) {
-	oldPtr= _XkbRealloc(oldPtr,newCount*elemSize);
+	oldPtr= xrealloc(oldPtr,newCount*elemSize);
 	if (oldPtr!=NULL) {
 	    char *tmp= (char *)oldPtr;
 	    bzero(&tmp[oldCount*elemSize],(newCount-oldCount)*elemSize);
