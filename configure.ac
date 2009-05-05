@@ -440,8 +440,8 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 				  [Enable debugging (default: disabled)]),
 			        [DEBUGGING=$enableval], [DEBUGGING=no])
 AC_ARG_ENABLE(unit-tests,    AS_HELP_STRING([--enable-unit-tests],
-                                  [Enable unit-tests (default: enabled)]),
-                                [UNITTESTS=$enableval], [UNITTESTS=yes])
+                                  [Enable unit-tests (default: auto)]),
+                                [UNITTESTS=$enableval], [UNITTESTS=auto])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
@@ -1144,6 +1144,9 @@ if test "x$DEBUGGING" = xyes; then
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
+if test "x$UNITTESTS" = xauto; then
+       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16], [UNITTESTS=yes], [UNITTESTS=no])
+fi
 if test "x$UNITTESTS" = xyes; then
        AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
        PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16])
