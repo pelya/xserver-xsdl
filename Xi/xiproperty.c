@@ -169,6 +169,165 @@ static struct dev_properties
 
 static long XIPropHandlerID = 1;
 
+static int list_atoms(DeviceIntPtr dev, int *natoms, Atom **atoms_return)
+{
+    XIPropertyPtr prop;
+    Atom *atoms         = NULL;
+    int nprops          = 0;
+
+    for (prop = dev->properties.properties; prop; prop = prop->next)
+        nprops++;
+    if (nprops)
+    {
+        Atom *a;
+
+        atoms = xalloc(nprops * sizeof(Atom));
+        if(!atoms)
+            return BadAlloc;
+        a = atoms;
+        for (prop = dev->properties.properties; prop; prop = prop->next, a++)
+            *a = prop->propertyName;
+    }
+
+    *natoms = nprops;
+    *atoms_return = atoms;
+    return Success;
+}
+
+static int
+get_property(ClientPtr client, DeviceIntPtr dev, Atom property, Atom type,
+             BOOL delete, int offset, int length,
+             int *bytes_after, Atom *type_return, int *format, int *nitems,
+             int *length_return, char **data)
+{
+    unsigned long n, len, ind;
+    int rc;
+    XIPropertyPtr prop;
+    XIPropertyValuePtr prop_value;
+
+    if (!ValidAtom(property))
+    {
+        client->errorValue = property;
+        return(BadAtom);
+    }
+    if ((delete != xTrue) && (delete != xFalse))
+    {
+        client->errorValue = delete;
+        return(BadValue);
+    }
+
+    if ((type != AnyPropertyType) && !ValidAtom(type))
+    {
+        client->errorValue = type;
+        return(BadAtom);
+    }
+
+    for (prop = dev->properties.properties; prop; prop = prop->next)
+        if (prop->propertyName == property)
+            break;
+
+    if (!prop)
+    {
+        *bytes_after = 0;
+        *type_return = None;
+        *format = 0;
+        *nitems = 0;
+        *length_return = 0;
+        return Success;
+    }
+
+    rc = XIGetDeviceProperty(dev, property, &prop_value);
+    if (rc != Success)
+    {
+        client->errorValue = property;
+        return rc;
+    }
+
+    /* If the request type and actual type don't match. Return the
+    property information, but not the data. */
+
+    if (((type != prop_value->type) && (type != AnyPropertyType)))
+    {
+        *bytes_after = prop_value->size;
+        *format = prop_value->format;
+        *length_return = 0;
+        *nitems = 0;
+        *type_return = prop_value->type;
+        return Success;
+    }
+
+    /* Return type, format, value to client */
+    n = (prop_value->format/8) * prop_value->size; /* size (bytes) of prop */
+    ind = offset << 2;
+
+   /* If offset is invalid such that it causes "len" to
+            be negative, it's a value error. */
+
+    if (n < ind)
+    {
+        client->errorValue = offset;
+        return BadValue;
+    }
+
+    len = min(n - ind, 4 * length);
+
+    *bytes_after = n - (ind + len);
+    *format = prop_value->format;
+    *length_return = len;
+    if (prop_value->format)
+        *nitems = len / (prop_value->format / 8);
+    else
+        *nitems = 0;
+    *type_return = prop_value->type;
+
+    *data = (char*)prop_value->data + ind;
+
+    return Success;
+}
+
+static int
+check_change_property(ClientPtr client, Atom property, Atom type, int format,
+                      int mode, int nitems)
+{
+    if ((mode != PropModeReplace) && (mode != PropModeAppend) &&
+        (mode != PropModePrepend))
+    {
+        client->errorValue = mode;
+        return BadValue;
+    }
+    if ((format != 8) && (format != 16) && (format != 32))
+    {
+        client->errorValue = format;
+        return BadValue;
+    }
+
+    if (!ValidAtom(property))
+    {
+        client->errorValue = property;
+        return(BadAtom);
+    }
+    if (!ValidAtom(type))
+    {
+        client->errorValue = type;
+        return(BadAtom);
+    }
+
+    return Success;
+}
+
+static int
+change_property(ClientPtr client, DeviceIntPtr dev, Atom property, Atom type,
+                int format, int mode, int len, void *data)
+{
+    int rc = Success;
+
+    rc = XIChangeDeviceProperty(dev, property, type, format, mode, len, data, TRUE);
+    if (rc != Success)
+        client->errorValue = property;
+
+    return rc;
+}
+
 /**
  * Return the atom assigned to the specified string or 0 if the atom isn't known
  * to the DIX.
@@ -681,11 +840,10 @@ XISetDevicePropertyDeletable(DeviceIntPtr dev, Atom property, Bool deletable)
 int
 ProcXListDeviceProperties (ClientPtr client)
 {
-    Atom                        *pAtoms = NULL, *temppAtoms;
+    Atom                        *atoms;
     xListDevicePropertiesReply  rep;
-    int                         numProps = 0;
+    int                         natoms;
     DeviceIntPtr                dev;
-    XIPropertyPtr               prop;
     int                         rc = Success;
 
     REQUEST(xListDevicePropertiesReq);
@@ -695,27 +853,22 @@ ProcXListDeviceProperties (ClientPtr client)
     if (rc != Success)
         return rc;
 
-    for (prop = dev->properties.properties; prop; prop = prop->next)
-        numProps++;
-    if (numProps)
-        if(!(pAtoms = (Atom *)xalloc(numProps * sizeof(Atom))))
-            return(BadAlloc);
+    rc = list_atoms(dev, &natoms, &atoms);
+    if (rc != Success)
+        return rc;
 
     rep.repType = X_Reply;
     rep.RepType = X_ListDeviceProperties;
-    rep.length = (numProps * sizeof(Atom)) >> 2;
+    rep.length = natoms;
     rep.sequenceNumber = client->sequence;
-    rep.nAtoms = numProps;
-    temppAtoms = pAtoms;
-    for (prop = dev->properties.properties; prop; prop = prop->next)
-        *temppAtoms++ = prop->propertyName;
+    rep.nAtoms = natoms;
 
     WriteReplyToClient(client, sizeof(xListDevicePropertiesReply), &rep);
-    if (numProps)
+    if (natoms)
     {
         client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
-        WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
-        xfree(pAtoms);
+        WriteSwappedDataToClient(client, natoms * sizeof(Atom), atoms);
+        xfree(atoms);
     }
     return rc;
 }
@@ -725,55 +878,29 @@ ProcXChangeDeviceProperty (ClientPtr client)
 {
     REQUEST(xChangeDevicePropertyReq);
     DeviceIntPtr        dev;
-    char                format, mode;
     unsigned long       len;
-    int                 sizeInBytes;
     int                 totalSize;
     int                 rc;
 
     REQUEST_AT_LEAST_SIZE(xChangeDevicePropertyReq);
     UpdateCurrentTime();
-    format = stuff->format;
-    mode = stuff->mode;
-    if ((mode != PropModeReplace) && (mode != PropModeAppend) &&
-        (mode != PropModePrepend))
-    {
-        client->errorValue = mode;
-        return BadValue;
-    }
-    if ((format != 8) && (format != 16) && (format != 32))
-    {
-        client->errorValue = format;
-        return BadValue;
-    }
-    len = stuff->nUnits;
-    if (len > ((0xffffffff - sizeof(xChangeDevicePropertyReq)) >> 2))
-        return BadLength;
-    sizeInBytes = format>>3;
-    totalSize = len * sizeInBytes;
-    REQUEST_FIXED_SIZE(xChangeDevicePropertyReq, totalSize);
 
     rc = dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
     if (rc != Success)
         return rc;
 
-    if (!ValidAtom(stuff->property))
-    {
-        client->errorValue = stuff->property;
-        return(BadAtom);
-    }
-    if (!ValidAtom(stuff->type))
-    {
-        client->errorValue = stuff->type;
-        return(BadAtom);
-    }
+    rc = check_change_property(client, stuff->property, stuff->type,
+                               stuff->format, stuff->mode, stuff->nUnits);
 
-    rc = XIChangeDeviceProperty(dev, stuff->property,
-                                 stuff->type, (int)format,
-                                 (int)mode, len, (pointer)&stuff[1], TRUE);
+    len = stuff->nUnits;
+    if (len > ((0xffffffff - sizeof(xChangeDevicePropertyReq)) >> 2))
+        return BadLength;
 
-    if (rc != Success)
-        client->errorValue = stuff->property;
+    totalSize = len * (stuff->format/8);
+    REQUEST_FIXED_SIZE(xChangeDevicePropertyReq, totalSize);
+
+    rc = change_property(client, dev, stuff->property, stuff->type,
+                         stuff->format, stuff->mode, len, (void*)&stuff[1]);
     return rc;
 }
 
@@ -804,12 +931,12 @@ int
 ProcXGetDeviceProperty (ClientPtr client)
 {
     REQUEST(xGetDevicePropertyReq);
-    XIPropertyPtr               prop, *prev;
-    XIPropertyValuePtr          prop_value;
-    unsigned long               n, len, ind;
     DeviceIntPtr                dev;
+    int                         length;
+    int                         rc, format, nitems, bytes_after;
+    char                        *data;
+    Atom                        type;
     xGetDevicePropertyReply     reply;
-    int                         rc;
 
     REQUEST_SIZE_MATCH(xGetDevicePropertyReq);
     if (stuff->delete)
@@ -820,121 +947,74 @@ ProcXGetDeviceProperty (ClientPtr client)
     if (rc != Success)
         return rc;
 
-    if (!ValidAtom(stuff->property))
-    {
-        client->errorValue = stuff->property;
-        return(BadAtom);
-    }
-    if ((stuff->delete != xTrue) && (stuff->delete != xFalse))
-    {
-        client->errorValue = stuff->delete;
-        return(BadValue);
-    }
-    if ((stuff->type != AnyPropertyType) && !ValidAtom(stuff->type))
-    {
-        client->errorValue = stuff->type;
-        return(BadAtom);
-    }
+    rc = get_property(client, dev, stuff->property, stuff->type,
+            stuff->delete, stuff->longOffset, stuff->longLength,
+            &bytes_after, &type, &format, &nitems, &length, &data);
 
-    for (prev = &dev->properties.properties; (prop = *prev); prev = &prop->next)
-        if (prop->propertyName == stuff->property)
-            break;
+    if (rc != Success)
+        return rc;
 
     reply.repType = X_Reply;
     reply.RepType = X_GetDeviceProperty;
     reply.sequenceNumber = client->sequence;
     reply.deviceid = dev->id;
-    if (!prop)
-    {
-        reply.nItems = 0;
-        reply.length = 0;
-        reply.bytesAfter = 0;
-        reply.propertyType = None;
-        reply.format = 0;
-        WriteReplyToClient(client, sizeof(xGetDevicePropertyReply), &reply);
-        return(client->noClientException);
-    }
-
-    rc = XIGetDeviceProperty(dev, stuff->property, &prop_value);
-    if (rc != Success)
-    {
-        client->errorValue = stuff->property;
-        return rc;
-    }
-
-    /* If the request type and actual type don't match. Return the
-    property information, but not the data. */
-
-    if (((stuff->type != prop_value->type) &&
-         (stuff->type != AnyPropertyType))
-       )
-    {
-        reply.bytesAfter = prop_value->size;
-        reply.format = prop_value->format;
-        reply.length = 0;
-        reply.nItems = 0;
-        reply.propertyType = prop_value->type;
-        WriteReplyToClient(client, sizeof(xGetDevicePropertyReply), &reply);
-        return(client->noClientException);
-    }
-
-/*
- *  Return type, format, value to client
- */
-    n = (prop_value->format/8) * prop_value->size; /* size (bytes) of prop */
-    ind = stuff->longOffset << 2;
-
-   /* If longOffset is invalid such that it causes "len" to
-            be negative, it's a value error. */
-
-    if (n < ind)
-    {
-        client->errorValue = stuff->longOffset;
-        return BadValue;
-    }
-
-    len = min(n - ind, 4 * stuff->longLength);
-
-    reply.bytesAfter = n - (ind + len);
-    reply.format = prop_value->format;
-    reply.length = (len + 3) >> 2;
-    if (prop_value->format)
-        reply.nItems = len / (prop_value->format / 8);
-    else
-        reply.nItems = 0;
-    reply.propertyType = prop_value->type;
+    reply.nItems = nitems;
+    reply.format = format;
+    reply.bytesAfter = bytes_after;
+    reply.propertyType = type;
+    reply.length = (length + 3) >> 2;
 
     if (stuff->delete && (reply.bytesAfter == 0))
     {
         devicePropertyNotify    event;
+        xXIPropertyEvent        xi2;
 
         event.type      = DevicePropertyNotify;
         event.deviceid  = dev->id;
         event.state     = PropertyDelete;
-        event.atom      = prop->propertyName;
+        event.atom      = stuff->property;
         event.time      = currentTime.milliseconds;
         SendEventToAllWindows(dev, DevicePropertyNotifyMask,
                               (xEvent*)&event, 1);
+
+        xi2.type        = GenericEvent;
+        xi2.extension   = IReqCode;
+        xi2.length      = 0;
+        xi2.evtype      = XI_PropertyEvent;
+        xi2.deviceid    = dev->id;
+        xi2.time        = currentTime.milliseconds;
+        xi2.property    = stuff->property;
+        xi2.what        = XIPropertyDeleted;
+        SendEventToAllWindows(dev, XI_PropertyEventMask, (xEvent*)&xi2, 1);
     }
 
     WriteReplyToClient(client, sizeof(xGenericReply), &reply);
-    if (len)
+
+    if (length)
     {
         switch (reply.format) {
-        case 32: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write; break;
-        case 16: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write; break;
-        default: client->pSwapReplyFunc = (ReplySwapPtr)WriteToClient; break;
+            case 32: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap32Write; break;
+            case 16: client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write; break;
+            default: client->pSwapReplyFunc = (ReplySwapPtr)WriteToClient; break;
         }
-        WriteSwappedDataToClient(client, len,
-                                 (char *)prop_value->data + ind);
+        WriteSwappedDataToClient(client, length, data);
     }
 
+    /* delete the Property */
     if (stuff->delete && (reply.bytesAfter == 0))
-    { /* delete the Property */
-        *prev = prop->next;
-        XIDestroyDeviceProperty (prop);
+    {
+        XIPropertyPtr prop, *prev;
+        for (prev = &dev->properties.properties; (prop = *prev); prev = &prop->next)
+        {
+            if (prop->propertyName == stuff->property)
+            {
+                *prev = prop->next;
+                XIDestroyDeviceProperty(prop);
+                break;
+            }
+        }
     }
-    return(client->noClientException);
+    return Success;
 }
 
 
