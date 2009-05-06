@@ -743,7 +743,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     int i = 0, nevents = 0;
     int dx = 0, dy = 0;
     Bool drag = xf86SendDragEvents(device);
-    xEvent *xE = NULL;
+    DeviceEvent *event;
     int index;
     int flags = 0;
 
@@ -789,10 +789,11 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                                valuators);
 
     for (i = 0; i < nevents; i++) {
-        xE = (xf86Events + i)->event;
+        event = (DeviceEvent*)((xf86Events + i)->event);
         /* Don't post core motion events for devices not registered to send
          * drag events. */
-        if (xE->u.u.type != MotionNotify || drag) {
+        if (event->header == ET_Internal &&
+            (event->type != ET_Motion || drag)) {
             mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
         }
     }
