@@ -65,7 +65,7 @@ ProcXIAllowEvents(ClientPtr client)
     REQUEST(xXIAllowEventsReq);
     REQUEST_SIZE_MATCH(xXIAllowEventsReq);
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
     if (ret != Success)
 	return ret;
 

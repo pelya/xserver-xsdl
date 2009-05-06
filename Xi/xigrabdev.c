@@ -70,7 +70,7 @@ ProcXIGrabDevice(ClientPtr client)
     REQUEST(xXIGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIGrabDeviceReq);
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
     if (ret != Success)
 	return ret;
 

@@ -95,7 +95,7 @@ ProcXIGetDeviceFocus(ClientPtr client)
     REQUEST(xXIGetDeviceFocusReq);
     REQUEST_AT_LEAST_SIZE(xXIGetDeviceFocusReq);
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetFocusAccess);
     if (ret != Success)
 	return ret;
     if (!dev->focus)
