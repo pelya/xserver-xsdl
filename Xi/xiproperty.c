@@ -706,13 +706,6 @@ ProcXListDeviceProperties (ClientPtr client)
     rep.length = (numProps * sizeof(Atom)) >> 2;
     rep.sequenceNumber = client->sequence;
     rep.nAtoms = numProps;
-    if (client->swapped)
-    {
-        int n;
-        swaps (&rep.sequenceNumber, n);
-        swapl (&rep.length, n);
-        swaps (&rep.nAtoms, n);
-    }
     temppAtoms = pAtoms;
     for (prop = dev->properties.properties; prop; prop = prop->next)
         *temppAtoms++ = prop->propertyName;
