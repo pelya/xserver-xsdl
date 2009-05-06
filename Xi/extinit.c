@@ -794,6 +794,7 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_HierarchyChanged:
             SDeviceHierarchyEvent((xXIDeviceHierarchyEvent*)from,
                                   (xXIDeviceHierarchyEvent*)to);
+            break;
         default:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
             break;
