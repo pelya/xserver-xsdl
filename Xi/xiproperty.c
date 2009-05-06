@@ -747,7 +747,7 @@ ProcXChangeDeviceProperty (ClientPtr client)
         return BadValue;
     }
     len = stuff->nUnits;
-    if (len > ((0xffffffff - sizeof(xChangePropertyReq)) >> 2))
+    if (len > ((0xffffffff - sizeof(xChangeDevicePropertyReq)) >> 2))
         return BadLength;
     sizeInBytes = format>>3;
     totalSize = len * sizeInBytes;
