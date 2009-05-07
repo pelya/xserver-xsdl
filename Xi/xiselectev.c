@@ -82,7 +82,8 @@ ProcXISelectEvent(ClientPtr client)
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
-        if (evmask->deviceid != AllDevices && evmask->deviceid != AllMasterDevices)
+        if (evmask->deviceid != XIAllDevices &&
+            evmask->deviceid != XIAllMasterDevices)
             rc = dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
         else {
             /* XXX: XACE here? */
@@ -109,8 +110,8 @@ ProcXISelectEvent(ClientPtr client)
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
-        if (evmask->deviceid == AllDevices ||
-            evmask->deviceid == AllMasterDevices)
+        if (evmask->deviceid == XIAllDevices ||
+            evmask->deviceid == XIAllMasterDevices)
         {
             dummy.id = evmask->deviceid;
             dev = &dummy;

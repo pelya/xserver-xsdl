@@ -323,7 +323,7 @@ eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi)
     dce->evtype = XI_DeviceChanged;
     dce->time = GetTimeInMillis();
     dce->sourceid = slave->id;
-    dce->reason = SlaveSwitch;
+    dce->reason = XISlaveSwitch;
     dce->length = (len - sizeof(xEvent))/4;
 
     /* FIXME: this should come from the event, not from the device. See

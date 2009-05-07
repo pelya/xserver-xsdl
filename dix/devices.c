@@ -267,7 +267,7 @@ SendDevicePresenceEvent(int deviceid, int type)
     ev.time = currentTime.milliseconds;
     ev.devchange = type;
     ev.deviceid = deviceid;
-    dummyDev.id = AllDevices;
+    dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent*)&ev, 1);
 }
@@ -359,7 +359,7 @@ EnableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceEnabled);
-    XISendDeviceHierarchyEvent(HF_DeviceEnabled);
+    XISendDeviceHierarchyEvent(XIDeviceEnabled);
 
     return TRUE;
 }
@@ -430,7 +430,7 @@ DisableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceDisabled);
-    XISendDeviceHierarchyEvent(HF_DeviceDisabled);
+    XISendDeviceHierarchyEvent(XIDeviceDisabled);
     return TRUE;
 }
 
@@ -462,7 +462,7 @@ ActivateDevice(DeviceIntPtr dev)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
     SendDevicePresenceEvent(dev->id, DeviceAdded);
-    XISendDeviceHierarchyEvent(HF_SlaveAdded);
+    XISendDeviceHierarchyEvent(XISlaveAdded);
     return ret;
 }
 
@@ -977,7 +977,7 @@ RemoveDevice(DeviceIntPtr dev)
     if (ret == Success && initialized) {
         inputInfo.numDevices--;
         SendDevicePresenceEvent(deviceid, DeviceRemoved);
-        XISendDeviceHierarchyEvent(HF_SlaveRemoved);
+        XISendDeviceHierarchyEvent(XISlaveRemoved);
     }
 
     return ret;

@@ -95,7 +95,7 @@ void XISendDeviceHierarchyEvent(int flags)
         info++;
     }
 
-    dummyDev.id = AllDevices;
+    dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, (XI_HierarchyChangedMask >> 8), (xEvent*)ev, 1);
 }
 
@@ -146,7 +146,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
         switch(any->type)
         {
-            case CH_CreateMasterDevice:
+            case XICreateMasterDevice:
                 {
                     xXICreateMasterInfo* c = (xXICreateMasterInfo*)any;
                     char* name;
@@ -194,16 +194,16 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     AttachDevice(NULL, xtstkeybd, keybd);
 
                     xfree(name);
-                    flags |= HF_MasterAdded;
+                    flags |= XIMasterAdded;
                 }
                 break;
-            case CH_RemoveMasterDevice:
+            case XIRemoveMasterDevice:
                 {
                     xXIRemoveMasterInfo* r = (xXIRemoveMasterInfo*)any;
                     DeviceIntPtr xtstdevice;
 
-                    if (r->return_mode != AttachToMaster &&
-                            r->return_mode != Floating)
+                    if (r->return_mode != XIAttachToMaster &&
+                            r->return_mode != XIFloating)
                         return BadValue;
 
                     rc = dixLookupDevice(&ptr, r->deviceid, client,
@@ -300,7 +300,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
                     /* Disabling sends the devices floating, reattach them if
                      * desired. */
-                    if (r->return_mode == AttachToMaster)
+                    if (r->return_mode == XIAttachToMaster)
                     {
                         DeviceIntPtr attached,
                                      newptr,
@@ -360,10 +360,10 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     RemoveDevice(xtstkeybd);
                     RemoveDevice(keybd);
                     RemoveDevice(ptr);
-                    flags |= HF_MasterRemoved;
+                    flags |= XIMasterRemoved;
                 }
                 break;
-            case CH_DetachSlave:
+            case XIDetachSlave:
                 {
                     xXIDetachSlaveInfo* c = (xXIDetachSlaveInfo*)any;
                     DeviceIntPtr *xtstdevice;
@@ -392,10 +392,10 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     }
 
                     AttachDevice(client, ptr, NULL);
-                    flags |= HF_SlaveDetached;
+                    flags |= XISlaveDetached;
                 }
                 break;
-            case CH_AttachSlave:
+            case XIAttachSlave:
                 {
                     xXIAttachSlaveInfo* c = (xXIAttachSlaveInfo*)any;
                     DeviceIntPtr newmaster;
@@ -444,7 +444,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
                     AttachDevice(client, ptr, newmaster);
-                    flags |= HF_SlaveAttached;
+                    flags |= XISlaveAttached;
                 }
                 break;
         }

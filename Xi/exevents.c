@@ -685,7 +685,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
     dcce->time         = GetTimeInMillis();
     dcce->deviceid     = master->id;
     dcce->sourceid     = device->id;
-    dcce->reason       = SlaveSwitch;
+    dcce->reason       = XISlaveSwitch;
     dcce->num_classes  = 0;
     dcce->length = (len - sizeof(xEvent))/4;
 

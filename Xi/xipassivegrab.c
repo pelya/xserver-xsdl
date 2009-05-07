@@ -93,8 +93,8 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     if (ret != Success)
 	return ret;
 
-    if (stuff->grab_type != GrabtypeButton &&
-        stuff->grab_type != GrabtypeKeysym)
+    if (stuff->grab_type != XIGrabtypeButton &&
+        stuff->grab_type != XIGrabtypeKeysym)
     {
         client->errorValue = stuff->grab_type;
         return BadValue;
@@ -149,11 +149,11 @@ ProcXIPassiveGrabDevice(ClientPtr client)
         param.modifiers = *modifiers;
         switch(stuff->grab_type)
         {
-            case GrabtypeButton:
+            case XIGrabtypeButton:
                 status = GrabButton(client, dev, mod_dev, stuff->detail,
                                     &param, GRABTYPE_XI2, &mask);
                 break;
-            case GrabtypeKeysym:
+            case XIGrabtypeKeysym:
                 status = GrabKey(client, dev, mod_dev, stuff->detail,
                                  &param, GRABTYPE_XI2, &mask);
                 break;
@@ -231,8 +231,8 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    if (stuff->grab_type != GrabtypeButton &&
-        stuff->grab_type != GrabtypeKeysym)
+    if (stuff->grab_type != XIGrabtypeButton &&
+        stuff->grab_type != XIGrabtypeKeysym)
     {
         client->errorValue = stuff->grab_type;
         return BadValue;
@@ -250,7 +250,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     tempGrab.device = dev;
     tempGrab.window = win;
     tempGrab.type =
-        (stuff->grab_type == GrabtypeButton) ? XI_ButtonPress : XI_KeyPress;
+        (stuff->grab_type == XIGrabtypeButton) ? XI_ButtonPress : XI_KeyPress;
     tempGrab.grabtype = GRABTYPE_XI2;
     tempGrab.modifierDevice = mod_dev;
     tempGrab.modifiersDetail.pMask = NULL;

@@ -70,7 +70,7 @@ ProcXIQueryDevice(ClientPtr client)
     REQUEST(xXIQueryDeviceReq);
     REQUEST_SIZE_MATCH(xXIQueryDeviceReq);
 
-    if (stuff->deviceid != AllDevices && stuff->deviceid != AllMasterDevices)
+    if (stuff->deviceid != XIAllDevices && stuff->deviceid != XIAllMasterDevices)
     {
         rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
         if (rc != Success)
@@ -87,15 +87,15 @@ ProcXIQueryDevice(ClientPtr client)
         len = 0;
         for (dev = inputInfo.devices; dev; dev = dev->next)
         {
-            if (stuff->deviceid == AllDevices ||
-                (stuff->deviceid == AllMasterDevices && dev->isMaster))
+            if (stuff->deviceid == XIAllDevices ||
+                (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
                 len += SizeDeviceInfo(dev);
         }
 
         for (dev = inputInfo.off_devices; dev; dev = dev->next)
         {
-            if (stuff->deviceid == AllDevices ||
-                (stuff->deviceid == AllMasterDevices && dev->isMaster))
+            if (stuff->deviceid == XIAllDevices ||
+                (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
                 len += SizeDeviceInfo(dev);
         }
 
@@ -125,8 +125,8 @@ ProcXIQueryDevice(ClientPtr client)
     {
         for (dev = inputInfo.devices; dev; dev = dev->next)
         {
-            if (stuff->deviceid == AllDevices ||
-                    (stuff->deviceid == AllMasterDevices && dev->isMaster))
+            if (stuff->deviceid == XIAllDevices ||
+                    (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -138,8 +138,8 @@ ProcXIQueryDevice(ClientPtr client)
 
         for (dev = inputInfo.off_devices; dev; dev = dev->next)
         {
-            if (stuff->deviceid == AllDevices ||
-                    (stuff->deviceid == AllMasterDevices && dev->isMaster))
+            if (stuff->deviceid == XIAllDevices ||
+                    (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -329,14 +329,14 @@ int GetDeviceUse(DeviceIntPtr dev, uint16_t *attachment)
     if (dev->isMaster)
     {
         DeviceIntPtr paired = GetPairedDevice(dev);
-        use = IsPointerDevice(dev) ? MasterPointer : MasterKeyboard;
+        use = IsPointerDevice(dev) ? XIMasterPointer : XIMasterKeyboard;
         *attachment = (paired ? paired->id : 0);
     } else if (master)
     {
-        use = IsPointerDevice(master) ? SlavePointer : SlaveKeyboard;
+        use = IsPointerDevice(master) ? XISlavePointer : XISlaveKeyboard;
         *attachment = master->id;
     } else
-        use = FloatingSlave;
+        use = XIFloatingSlave;
 
     return use;
 }

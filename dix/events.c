@@ -454,8 +454,8 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
     filter = GetEventFilter(dev, ev);
 
     return ((inputMasks->xi2mask[dev->id][evtype/8] & filter) ||
-            inputMasks->xi2mask[AllDevices][evtype/8] ||
-            (inputMasks->xi2mask[AllMasterDevices][evtype/8] && dev->isMaster));
+            inputMasks->xi2mask[XIAllDevices][evtype/8] ||
+            (inputMasks->xi2mask[XIAllMasterDevices][evtype/8] && dev->isMaster));
 }
 
 static Mask
@@ -466,10 +466,10 @@ GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
     {
         int byte = ((xGenericEvent*)event)->evtype / 8;
         return (other->xi2mask[dev->id][byte] |
-                other->xi2mask[AllDevices][byte] |
-                (dev->isMaster? other->xi2mask[AllMasterDevices][byte] : 0));
+                other->xi2mask[XIAllDevices][byte] |
+                (dev->isMaster? other->xi2mask[XIAllMasterDevices][byte] : 0));
     } else if (CORE_EVENT(event))
-        return other->mask[AllDevices];
+        return other->mask[XIAllDevices];
     else
         return other->mask[dev->id];
 }
@@ -2310,8 +2310,8 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     ((xGenericEvent*)&ev)->evtype = type;
     filter = GetEventFilter(dev, &ev);
     if (type && (inputMasks = wOtherInputMasks(win)) &&
-        ((inputMasks->xi2mask[AllDevices][type/8] & filter) ||
-         ((inputMasks->xi2mask[AllMasterDevices][type/8] & filter) && dev->isMaster) ||
+        ((inputMasks->xi2mask[XIAllDevices][type/8] & filter) ||
+         ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && dev->isMaster) ||
          (inputMasks->xi2mask[dev->id][type/8] & filter)))
         rc |= XI2_MASK;
 
@@ -2499,7 +2499,7 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
     if (!count)
 	return 0;
 
-    dummy.id = AllDevices;
+    dummy.id = XIAllDevices;
     filter = GetEventFilter(&dummy, xE);
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
@@ -3745,8 +3745,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         if (!deliveries)
         {
             int evtype = ((xGenericEvent*)xi2)->evtype;
-            mask = grab->xi2mask[AllDevices][evtype/8] |
-                   grab->xi2mask[AllMasterDevices][evtype/8] |
+            mask = grab->xi2mask[XIAllDevices][evtype/8] |
+                   grab->xi2mask[XIAllMasterDevices][evtype/8] |
                    grab->xi2mask[thisDev->id][evtype/8];
             /* try XI2 event */
             FixUpEventFromWindow(thisDev, xi2, grab->window, None, TRUE);

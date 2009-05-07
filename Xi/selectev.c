@@ -106,7 +106,7 @@ HandleDevicePresenceMask(ClientPtr client, WindowPtr win,
 
     /* We always only use mksidx = AllDevices for events not bound to
      * devices */
-    if (AddExtensionClient (win, client, mask, AllDevices) != Success)
+    if (AddExtensionClient (win, client, mask, XIAllDevices) != Success)
         return BadAlloc;
 
     RecalculateDeviceDeliverableEvents(win);
