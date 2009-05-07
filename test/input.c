@@ -299,6 +299,10 @@ static void xi2_struct_sizes(void)
     compare(xXIAllowEventsReq);
     compare(xXIPassiveGrabDeviceReq);
     compare(xXIPassiveUngrabDeviceReq);
+    compare(xXIListPropertiesReq);
+    compare(xXIChangePropertyReq);
+    compare(xXIDeletePropertyReq);
+    compare(xXIGetPropertyReq);
 #undef compare
 }
 

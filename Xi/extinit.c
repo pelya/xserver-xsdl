@@ -250,7 +250,11 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXIUngrabDevice,                     /* 52 */
         ProcXIAllowEvents,                      /* 53 */
         ProcXIPassiveGrabDevice,                /* 54 */
-        ProcXIPassiveUngrabDevice               /* 55 */
+        ProcXIPassiveUngrabDevice,              /* 55 */
+        ProcXIListProperties,                   /* 56 */
+        ProcXIChangeProperty,                   /* 57 */
+        ProcXIDeleteProperty,                   /* 58 */
+        ProcXIGetProperty                       /* 59 */
 };
 
 /* For swapped clients */
@@ -310,7 +314,11 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXIUngrabDevice,                     /* 52 */
         SProcXIAllowEvents,                      /* 53 */
         SProcXIPassiveGrabDevice,                /* 54 */
-        SProcXIPassiveUngrabDevice               /* 55 */
+        SProcXIPassiveUngrabDevice,              /* 55 */
+        SProcXIListProperties,                   /* 56 */
+        SProcXIChangeProperty,                   /* 57 */
+        SProcXIDeleteProperty,                   /* 58 */
+        SProcXIGetProperty                       /* 59 */
 };
 
 /*****************************************************************
@@ -505,6 +513,10 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 	SRepXIGrabDevice(client, len, (xXIGrabDeviceReply *) rep);
     else if (rep->RepType == X_XIGrabDevice)
 	SRepXIPassiveGrabDevice(client, len, (xXIPassiveGrabDeviceReply *) rep);
+    else if (rep->RepType == X_XIListProperties)
+	SRepXIListProperties(client, len, (xXIListPropertiesReply *) rep);
+    else if (rep->RepType == X_XIGetProperty)
+	SRepXIGetProperty(client, len, (xXIGetPropertyReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }
@@ -777,6 +789,18 @@ static void SDeviceHierarchyEvent(xXIDeviceHierarchyEvent *from,
     }
 }
 
+static void SXIPropertyEvent(xXIPropertyEvent *from, xXIPropertyEvent *to)
+{
+    char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
+    swapl(&to->property, n);
+}
+
 /** Event swapping function for XI2 events. */
 static void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
@@ -794,6 +818,10 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_HierarchyChanged:
             SDeviceHierarchyEvent((xXIDeviceHierarchyEvent*)from,
                                   (xXIDeviceHierarchyEvent*)to);
+            break;
+        case XI_PropertyEvent:
+            SXIPropertyEvent((xXIPropertyEvent*)from,
+                           (xXIPropertyEvent*)to);
             break;
         default:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
