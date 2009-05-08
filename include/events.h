@@ -86,8 +86,10 @@ typedef struct
         uint32_t button;  /**< Button number */
         uint32_t key;     /**< Key code */
     } detail;
-    uint32_t root_x;      /**< Pos relative to root window in 16.16 fixed pt */
-    uint32_t root_y;      /**< Pos relative to root window in 16.16 fixed pt */
+    uint16_t root_x;      /**< Pos relative to root window in integral data */
+    float root_x_frac;    /**< Pos relative to root window in frac part */
+    uint16_t root_y;      /**< Pos relative to root window in integral part */
+    float root_y_frac;    /**< Pos relative to root window in frac part */
     uint8_t    buttons[(MAX_BUTTONS + 7)/8]; /**< Button mask */
     struct {
         uint8_t  mask[(MAX_VALUATORS + 7)/8]; /**< Valuator mask */

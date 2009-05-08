@@ -44,6 +44,7 @@
 #include "dixevents.h"
 #include "mipointer.h"
 #include "events.h"
+#include "eventconvert.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
@@ -1070,9 +1071,10 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         event->detail.button = buttons;
     }
 
-    /* XXX: this should be 16.16 fixed point */
     event->root_x = cx; /* root_x/y always in screen coords */
     event->root_y = cy;
+    event->root_x_frac = pDev->last.remainder[0];
+    event->root_y_frac = pDev->last.remainder[1];
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
 
