@@ -183,9 +183,7 @@ ProcessInputEvents (void)
 void
 xf86ProcessActionEvent(ActionEvent action, void *arg)
 {
-#ifdef DEBUG
-    ErrorF("ProcessActionEvent(%d,%x)\n", (int) action, arg);
-#endif
+    DebugF("ProcessActionEvent(%d,%x)\n", (int) action, arg);
     switch (action) {
     case ACTION_TERMINATE:
 	if (!xf86Info.dontZap) {
@@ -429,9 +427,7 @@ xf86VTSwitch(void)
   InputInfoPtr pInfo;
   IHPtr ih;
 
-#ifdef DEBUG
-  ErrorF("xf86VTSwitch()\n");
-#endif
+  DebugF("xf86VTSwitch()\n");
 
 #ifdef XFreeXDGA
   if(!DGAVTSwitch())
@@ -444,10 +440,8 @@ xf86VTSwitch(void)
    */
   if (xf86Screens[0]->vtSema) {
 
-#ifdef DEBUG
-    ErrorF("xf86VTSwitch: Leaving, xf86Exiting is %s\n",
+    DebugF("xf86VTSwitch: Leaving, xf86Exiting is %s\n",
 	   BOOLTOSTRING((dispatchException & DE_TERMINATE) ? TRUE : FALSE));
-#endif
 #ifdef DPMSExtension
     if (DPMSPowerLevel != DPMSModeOn)
 	DPMSSet(serverClient, DPMSModeOn);
@@ -483,9 +477,7 @@ xf86VTSwitch(void)
        * switch failed
        */
 
-#ifdef DEBUG
-      ErrorF("xf86VTSwitch: Leave failed\n");
-#endif
+      DebugF("xf86VTSwitch: Leave failed\n");
       prevSIGIO = xf86BlockSIGIO();
       xf86AccessEnter();
       xf86EnterServerState(SETUP);
@@ -534,9 +526,7 @@ xf86VTSwitch(void)
     }
   } else {
 
-#ifdef DEBUG
-    ErrorF("xf86VTSwitch: Entering\n");
-#endif
+    DebugF("xf86VTSwitch: Entering\n");
     if (!xf86VTSwitchTo()) return;
 
     prevSIGIO = xf86BlockSIGIO();

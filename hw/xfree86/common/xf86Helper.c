@@ -212,15 +212,13 @@ xf86AllocateScreen(DriverPtr drv, int flags)
     xf86Screens[i]->CurrentAccess = &xf86CurrentAccess;
     xf86Screens[i]->resourceType = MEM_IO;
 
-#ifdef DEBUG
     /* OOps -- What's this ? */
-    ErrorF("xf86AllocateScreen - xf86Screens[%d]->pScreen = %p\n",
+    DebugF("xf86AllocateScreen - xf86Screens[%d]->pScreen = %p\n",
 	   i, xf86Screens[i]->pScreen );
     if ( NULL != xf86Screens[i]->pScreen ) {
-      ErrorF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
+      DebugF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
 	     i, xf86Screens[i]->pScreen->CreateWindow );
     }
-#endif
 
     xf86Screens[i]->DriverFunc = drv->driverFunc;
 
@@ -1735,9 +1733,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     }
 
 
-#ifdef DEBUG
-    ErrorF("%s instances found: %d\n", driverName, allocatedInstances);
-#endif
+    DebugF("%s instances found: %d\n", driverName, allocatedInstances);
 
    /*
     * Check for devices that need duplicated instances.  This is required
@@ -1820,9 +1816,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    instances[i].dev = dev;
 	}
     }
-#ifdef DEBUG
-    ErrorF("%s instances found: %d\n", driverName, numClaimedInstances);
-#endif
+    DebugF("%s instances found: %d\n", driverName, numClaimedInstances);
     /*
      * Now check that a chipset or chipID override in the device section
      * is valid.  Chipset has precedence over chipID.
@@ -1926,11 +1920,9 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
         if (instances[i].screen == 0 && !xf86CheckPciSlot( pPci ))
 	    continue;
 
-#ifdef DEBUG
-	ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
+	DebugF("%s: card at %d:%d:%d is claimed by a Device section\n",
 	       driverName, pPci->bus, pPci->dev, pPci->func);
-#endif
-	
+
 	/* Allocate an entry in the lists to be returned */
 	numFound++;
 	retEntities = xnfrealloc(retEntities, numFound * sizeof(int));
@@ -2621,10 +2613,8 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
     int i;
     Bool existing = FALSE;
 
-#ifdef DEBUG
-    ErrorF("xf86RegisterRootWindowProperty(%d, %ld, %ld, %d, %ld, %p)\n",
+    DebugF("xf86RegisterRootWindowProperty(%d, %ld, %ld, %d, %ld, %p)\n",
 	   ScrnIndex, property, type, format, len, value);
-#endif
 
     if (ScrnIndex<0 || ScrnIndex>=xf86NumScreens) {
       return(BadMatch);
@@ -2660,15 +2650,11 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
     pNewProp->size = len;
     pNewProp->data = value;
 
-#ifdef DEBUG
-    ErrorF("new property filled\n");
-#endif
+    DebugF("new property filled\n");
 
     if (NULL==xf86RegisteredPropertiesTable) {
-#ifdef DEBUG
-      ErrorF("creating xf86RegisteredPropertiesTable[] size %d\n",
+      DebugF("creating xf86RegisteredPropertiesTable[] size %d\n",
 	     xf86NumScreens);
-#endif
       if ( NULL==(xf86RegisteredPropertiesTable=(RootWinPropPtr*)xnfcalloc(sizeof(RootWinProp),xf86NumScreens) )) {
 	return(BadAlloc);
       }
@@ -2677,12 +2663,10 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       }
     }
 
-#ifdef DEBUG
-    ErrorF("xf86RegisteredPropertiesTable %p\n",
+    DebugF("xf86RegisteredPropertiesTable %p\n",
 	   (void *)xf86RegisteredPropertiesTable);
-    ErrorF("xf86RegisteredPropertiesTable[%d] %p\n",
+    DebugF("xf86RegisteredPropertiesTable[%d] %p\n",
 	   ScrnIndex, (void *)xf86RegisteredPropertiesTable[ScrnIndex]);
-#endif
 
     if (!existing) {
       if ( xf86RegisteredPropertiesTable[ScrnIndex] == NULL) {
@@ -2690,17 +2674,13 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       } else {
 	pRegProp = xf86RegisteredPropertiesTable[ScrnIndex];
 	while (pRegProp->next != NULL) {
-#ifdef DEBUG
-	  ErrorF("- next %p\n", (void *)pRegProp);
-#endif
+	  DebugF("- next %p\n", (void *)pRegProp);
 	  pRegProp = pRegProp->next;
         }
 	pRegProp->next = pNewProp;
       }
     }
-#ifdef DEBUG
-    ErrorF("xf86RegisterRootWindowProperty succeeded\n");
-#endif
+    DebugF("xf86RegisterRootWindowProperty succeeded\n");
     return(Success);
 }
 

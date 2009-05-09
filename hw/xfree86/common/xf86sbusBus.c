@@ -435,9 +435,7 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 	return actualcards;
     }
 
-#ifdef DEBUG
-    ErrorF("%s instances found: %d\n", driverName, allocatedInstances);
-#endif
+    DebugF("%s instances found: %d\n", driverName, allocatedInstances);
 
     for (i = 0; i < allocatedInstances; i++) {
 	char *promPath = NULL;
@@ -494,9 +492,7 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 	    xfree(promPath);
     }
 
-#ifdef DEBUG
-    ErrorF("%s instances found: %d\n", driverName, numClaimedInstances);
-#endif
+    DebugF("%s instances found: %d\n", driverName, numClaimedInstances);
 
     /*
      * Of the claimed instances, check that another driver hasn't already
@@ -510,11 +506,9 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 	if (!xf86CheckSbusSlot(psdp->fbNum))
 	    continue;
 
-#ifdef DEBUG
-	ErrorF("%s: card at fb%d %08x is claimed by a Device section\n",
+	DebugF("%s: card at fb%d %08x is claimed by a Device section\n",
 	       driverName, psdp->fbNum, psdp->node.node);
-#endif
-	
+
 	/* Allocate an entry in the lists to be returned */
 	numFound++;
 	retEntities = xnfrealloc(retEntities, numFound * sizeof(int));

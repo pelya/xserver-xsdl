@@ -1519,10 +1519,8 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         adjp = (XF86ConfAdjacencyPtr)adjp->list.next;
     }
 
-#ifdef DEBUG
-    ErrorF("Found %d screens in the layout section %s",
+    DebugF("Found %d screens in the layout section %s",
            count, conf_layout->lay_identifier);
-#endif
     if (!count) /* alloc enough storage even if no screen is specified */
         count = 1;
 
@@ -1679,10 +1677,8 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         count++;
         idp = (XF86ConfInactivePtr)idp->list.next;
     }
-#ifdef DEBUG
-    ErrorF("Found %d inactive devices in the layout section %s\n",
+    DebugF("Found %d inactive devices in the layout section %s\n",
            count, conf_layout->lay_identifier);
-#endif
     gdp = xnfalloc((count + 1) * sizeof(GDevRec));
     gdp[count].identifier = NULL;
     idp = conf_layout->lay_inactive_lst;
@@ -1704,10 +1700,8 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         count++;
         irp = (XF86ConfInputrefPtr)irp->list.next;
     }
-#ifdef DEBUG
-    ErrorF("Found %d input devices in the layout section %s\n",
+    DebugF("Found %d input devices in the layout section %s\n",
            count, conf_layout->lay_identifier);
-#endif
     indp = xnfcalloc((count + 1), sizeof(IDevPtr));
     indp[count] = NULL;
     irp = conf_layout->lay_input_lst;

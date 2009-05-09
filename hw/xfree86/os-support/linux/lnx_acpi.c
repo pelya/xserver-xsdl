@@ -135,15 +135,11 @@ lnxACPIOpen(void)
     int r = -1;
     static int warned = 0;
 
-#ifdef DEBUG
-    ErrorF("ACPI: OSPMOpen called\n");
-#endif
+    DebugF("ACPI: OSPMOpen called\n");
     if (ACPIihPtr || !xf86Info.pmFlag)
 	return NULL;
    
-#ifdef DEBUG
-    ErrorF("ACPI: Opening device\n");
-#endif
+    DebugF("ACPI: Opening device\n");
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) > -1) {
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
@@ -172,10 +168,8 @@ static void
 lnxCloseACPI(void)
 {
     int fd;
-    
-#ifdef DEBUG
-   ErrorF("ACPI: Closing device\n");
-#endif
+
+    DebugF("ACPI: Closing device\n");
     if (ACPIihPtr) {
 	fd = xf86RemoveGeneralHandler(ACPIihPtr);
 	shutdown(fd, 2);

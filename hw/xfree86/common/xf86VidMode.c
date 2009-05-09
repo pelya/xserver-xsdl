@@ -56,12 +56,6 @@ static Bool VidModeClose(int i, ScreenPtr pScreen);
 
 #endif
 
-#ifdef DEBUG
-# define DEBUG_P(x) ErrorF(x"\n");
-#else
-# define DEBUG_P(x) /**/
-#endif
-
 Bool
 VidModeExtensionInit(ScreenPtr pScreen)
 {
@@ -69,7 +63,7 @@ VidModeExtensionInit(ScreenPtr pScreen)
     VidModePtr pVidMode;
     
     if (!xf86GetVidModeEnabled()) {
-	DEBUG_P("!xf86GetVidModeEnabled()");
+	DebugF("!xf86GetVidModeEnabled()\n");
 	return FALSE;
     }
 
@@ -77,7 +71,7 @@ VidModeExtensionInit(ScreenPtr pScreen)
 
     if (!dixSetPrivate(&pScreen->devPrivates, VidModeKey,
 		       xcalloc(sizeof(VidModeRec), 1))) {
-	DEBUG_P("xcalloc failed");
+	DebugF("xcalloc failed\n");
 	return FALSE;
     }
 
@@ -89,7 +83,7 @@ VidModeExtensionInit(ScreenPtr pScreen)
     VidModeCount++;
     return TRUE;
 #else
-    DEBUG_P("no vidmode extension");
+    DebugF("no vidmode extension\n");
     return FALSE;
 #endif
 }
@@ -123,13 +117,13 @@ VidModeAvailable(int scrnIndex)
     VidModePtr pVidMode;
 
     if (VidModeKey == NULL) {
-	DEBUG_P("VidModeKey == NULL");
+	DebugF("VidModeKey == NULL\n");
 	return FALSE;
     }
  
     pScrn = xf86Screens[scrnIndex];
     if (pScrn == NULL) {
-	DEBUG_P("pScrn == NULL");
+	DebugF("pScrn == NULL\n");
 	return FALSE;
     }
     
@@ -137,7 +131,7 @@ VidModeAvailable(int scrnIndex)
     if (pVidMode)
 	return TRUE;
     else {
-	DEBUG_P("pVidMode == NULL");
+	DebugF("pVidMode == NULL\n");
 	return FALSE;
     }
 }

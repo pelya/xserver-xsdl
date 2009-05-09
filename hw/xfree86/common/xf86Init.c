@@ -316,9 +316,7 @@ xf86CreateRootWindow(WindowPtr pWin)
   CreateWindowProcPtr CreateWindow = (CreateWindowProcPtr)
       dixLookupPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey);
 
-#ifdef DEBUG
-  ErrorF("xf86CreateRootWindow(%p)\n", pWin);
-#endif
+  DebugF("xf86CreateRootWindow(%p)\n", pWin);
 
   if ( pScreen->CreateWindow != xf86CreateRootWindow ) {
     /* Can't find hook we are hung on */
@@ -365,9 +363,7 @@ xf86CreateRootWindow(WindowPtr pWin)
     }
   }
 
-#ifdef DEBUG
-  ErrorF("xf86CreateRootWindow() returns %d\n", ret);
-#endif
+  DebugF("xf86CreateRootWindow() returns %d\n", ret);
   return (ret);
 }
 
@@ -471,10 +467,8 @@ probe_devices_from_device_sections(DriverPtr drvp)
 		if ( (devList[i]->screen == 0) && !xf86CheckPciSlot( pPci ) )
 		  continue;
 
-#ifdef DEBUG
-		ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
+		DebugF("%s: card at %d:%d:%d is claimed by a Device section\n",
 		       drvp->driverName, pPci->bus, pPci->dev, pPci->func);
-#endif
 
 		/* Allocate an entry in the lists to be returned */
 		entry = xf86ClaimPciSlot(pPci, drvp, device_id,
@@ -1246,12 +1240,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	FatalError("AddScreen/ScreenInit failed for driver %d\n", i);
       }
 
-#ifdef DEBUG
-      ErrorF("InitOutput - xf86Screens[%d]->pScreen = %p\n",
+      DebugF("InitOutput - xf86Screens[%d]->pScreen = %p\n",
 	     i, xf86Screens[i]->pScreen );
-      ErrorF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
+      DebugF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
 	     i, xf86Screens[i]->pScreen->CreateWindow );
-#endif
 
       dixSetPrivate(&screenInfo.screens[scr_index]->devPrivates,
 		    xf86CreateRootWindowKey,
