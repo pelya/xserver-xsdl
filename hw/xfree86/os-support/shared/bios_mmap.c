@@ -68,10 +68,8 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 		close(fd);
 		return(-1);
 	}
-#ifdef DEBUG
-	ErrorF("xf86ReadBIOS: BIOS at 0x%08x has signature 0x%04x\n",
+	DebugF("xf86ReadBIOS: BIOS at 0x%08x has signature 0x%04x\n",
 		Base, ptr[0] | (ptr[1] << 8));
-#endif
 	(void)memcpy(Buf, (void *)(ptr + Offset), Len);
 	(void)munmap((caddr_t)ptr, mlen);
 	(void)close(fd);

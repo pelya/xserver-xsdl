@@ -654,10 +654,8 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
 	return MODE_ERROR;
     }
 
-#ifdef DEBUG
-    ErrorF("xf86CheckModeForMonitor(%p %s, %p %s)\n",
+    DebugF("xf86CheckModeForMonitor(%p %s, %p %s)\n",
 	   mode, mode->name, monitor, monitor->id);
-#endif
 
     /* Some basic mode validity checks */
     if (0 >= mode->HDisplay || mode->HDisplay > mode->HSyncStart ||
@@ -808,10 +806,8 @@ xf86InitialCheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode,
 	return MODE_ERROR;
     }
 
-#ifdef DEBUG
-    ErrorF("xf86InitialCheckModeForDriver(%p, %p %s, %p, 0x%x, %d, %d, %d)\n",
+    DebugF("xf86InitialCheckModeForDriver(%p, %p %s, %p, 0x%x, %d, %d, %d)\n",
 	   scrp, mode, mode->name , clockRanges, strategy, maxPitch,  virtualX, virtualY);
-#endif
 
     /* Some basic mode validity checks */
     if (0 >= mode->HDisplay || mode->HDisplay > mode->HSyncStart ||
@@ -1210,14 +1206,12 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     range vrefresh[MAX_VREFRESH];
     Bool inferred_virtual = FALSE;
 
-#ifdef DEBUG
-    ErrorF("xf86ValidateModes(%p, %p, %p, %p,\n\t\t  %p, %d, %d, %d, %d, %d, %d, %d, %d, 0x%x)\n",
+    DebugF("xf86ValidateModes(%p, %p, %p, %p,\n\t\t  %p, %d, %d, %d, %d, %d, %d, %d, %d, 0x%x)\n",
 	   scrp, availModes, modeNames, clockRanges,
 	   linePitches, minPitch, maxPitch, pitchInc,
 	   minHeight, maxHeight, virtualX, virtualY,
 	   apertureSize, strategy
 	   );
-#endif
 
     /* Some sanity checking */
     if (scrp == NULL || scrp->name == NULL || !scrp->monitor ||
@@ -1860,15 +1854,13 @@ xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags)
 
     do {
 	xf86SetModeCrtc(p, adjustFlags);
-#ifdef DEBUG
-	ErrorF("%sMode %s: %d (%d) %d %d (%d) %d %d (%d) %d %d (%d) %d\n",
+	DebugF("%sMode %s: %d (%d) %d %d (%d) %d %d (%d) %d %d (%d) %d\n",
 	       (p->type & M_T_DEFAULT) ? "Default " : "",
 	       p->name, p->CrtcHDisplay, p->CrtcHBlankStart,
 	       p->CrtcHSyncStart, p->CrtcHSyncEnd, p->CrtcHBlankEnd,
 	       p->CrtcHTotal, p->CrtcVDisplay, p->CrtcVBlankStart,
 	       p->CrtcVSyncStart, p->CrtcVSyncEnd, p->CrtcVBlankEnd,
 	       p->CrtcVTotal);
-#endif
 	p = p->next;
     } while (p != NULL && p != scrp->modes);
 }

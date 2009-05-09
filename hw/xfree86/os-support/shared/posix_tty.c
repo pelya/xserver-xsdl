@@ -400,17 +400,14 @@ int
 xf86ReadSerial (int fd, void *buf, int count)
 {
 	int r;
-#ifdef DEBUG
 	int i;
-#endif
+
 	SYSCALL (r = read (fd, buf, count));
-#ifdef DEBUG
-	ErrorF("ReadingSerial: 0x%x",
+	DebugF("ReadingSerial: 0x%x",
 	       (unsigned char)*(((unsigned char *)buf)));
 	for (i = 1; i < r; i++)
-	    ErrorF(", 0x%x",(unsigned char)*(((unsigned char *)buf) + i));
-	ErrorF("\n");
-#endif
+	    DebugF(", 0x%x",(unsigned char)*(((unsigned char *)buf) + i));
+	DebugF("\n");
 	return (r);
 }
 
@@ -418,14 +415,12 @@ int
 xf86WriteSerial (int fd, const void *buf, int count)
 {
 	int r;
-#ifdef DEBUG
 	int i;
 
-	ErrorF("WritingSerial: 0x%x",(unsigned char)*(((unsigned char *)buf)));
+	DebugF("WritingSerial: 0x%x",(unsigned char)*(((unsigned char *)buf)));
 	for (i = 1; i < count; i++)
 	    ErrorF(", 0x%x",(unsigned char)*(((unsigned char *)buf) + i));
-	ErrorF("\n");
-#endif
+	DebugF("\n");
 	SYSCALL (r = write (fd, buf, count));
 	return (r);
 }
@@ -482,9 +477,7 @@ xf86FlushInput(int fd)
 	struct timeval timeout;
 	char c[4];
 
-#ifdef DEBUG
-	ErrorF("FlushingSerial\n");
-#endif
+	DebugF("FlushingSerial\n");
 	if (tcflush(fd, TCIFLUSH) == 0)
 		return 0;
 
