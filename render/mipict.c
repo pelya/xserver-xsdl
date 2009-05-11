@@ -358,8 +358,6 @@ miCompositeSourceValidate (PicturePtr	pPicture,
     
     if (pScreen->SourceValidate)
     {
-        x -= pPicture->pDrawable->x;
-        y -= pPicture->pDrawable->y;
 	if (pPicture->transform)
 	{
 	    xPoint	    points[4];
@@ -394,6 +392,8 @@ miCompositeSourceValidate (PicturePtr	pPicture,
 	    width = xmax - xmin;
 	    height = ymax - ymin;
 	}
+        x += pPicture->pDrawable->x;
+        y += pPicture->pDrawable->y;
 	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
     }
 }
