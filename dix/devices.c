@@ -224,6 +224,8 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     /* device grab defaults */
     dev->deviceGrab.grabTime = currentTime;
+    dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+    dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
 
     dev->coreEvents = TRUE;
 
