@@ -257,6 +257,8 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 
     pPriv->buffers = buffers;
     pPriv->bufferCount = *out_count;
+    pPriv->width = pDraw->width;
+    pPriv->height = pDraw->height;
     *width = pPriv->width;
     *height = pPriv->height;
 
