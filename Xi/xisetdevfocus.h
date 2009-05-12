@@ -26,10 +26,10 @@
 #ifndef XISETDEVFOCUS_H
 #define XISETDEVFOCUS_H 1
 
-int SProcXISetDeviceFocus(ClientPtr client);
-int ProcXISetDeviceFocus(ClientPtr client);
+int SProcXISetFocus(ClientPtr client);
+int ProcXISetFocus(ClientPtr client);
 
-int SProcXIGetDeviceFocus(ClientPtr client);
-int ProcXIGetDeviceFocus(ClientPtr client);
+int SProcXIGetFocus(ClientPtr client);
+int ProcXIGetFocus(ClientPtr client);
 
 #endif /* XISETDEVFOCUS_H */

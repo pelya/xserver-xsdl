@@ -41,7 +41,7 @@ SProcXISelectEvent(ClientPtr client)
 {
     char n;
     int i;
-    xXIDeviceEventMask* evmask;
+    xXIEventMask* evmask;
 
     REQUEST(xXISelectEventsReq);
     swaps(&stuff->length, n);
@@ -49,12 +49,12 @@ SProcXISelectEvent(ClientPtr client)
     swapl(&stuff->window, n);
     swaps(&stuff->num_masks, n);
 
-    evmask = (xXIDeviceEventMask*)&stuff[1];
+    evmask = (xXIEventMask*)&stuff[1];
     for (i = 0; i < stuff->num_masks; i++)
     {
         swaps(&evmask->deviceid, n);
         swaps(&evmask->mask_len, n);
-        evmask = (xXIDeviceEventMask*)(((char*)evmask) + evmask->mask_len * 4);
+        evmask = (xXIEventMask*)(((char*)evmask) + evmask->mask_len * 4);
     }
 
     return (ProcXISelectEvent(client));
@@ -67,7 +67,7 @@ ProcXISelectEvent(ClientPtr client)
     WindowPtr win;
     DeviceIntPtr dev;
     DeviceIntRec dummy;
-    xXIDeviceEventMask *evmask;
+    xXIEventMask *evmask;
     int *types = NULL;
 
     REQUEST(xXISelectEventsReq);
@@ -78,7 +78,7 @@ ProcXISelectEvent(ClientPtr client)
         return rc;
 
     /* check request validity */
-    evmask = (xXIDeviceEventMask*)&stuff[1];
+    evmask = (xXIEventMask*)&stuff[1];
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
@@ -102,11 +102,11 @@ ProcXISelectEvent(ClientPtr client)
             }
         }
 
-        evmask = (xXIDeviceEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
+        evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
     }
 
     /* Set masks on window */
-    evmask = (xXIDeviceEventMask*)&stuff[1];
+    evmask = (xXIEventMask*)&stuff[1];
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
@@ -118,7 +118,7 @@ ProcXISelectEvent(ClientPtr client)
         } else
             dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
         XISetEventMask(dev, win, client, evmask->mask_len * 4, (unsigned char*)&evmask[1]);
-        evmask = (xXIDeviceEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
+        evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
     }
 
     RecalculateDeliverableEvents(win);

@@ -36,8 +36,8 @@
 #ifndef CHDEVHIER_H
 #define CHDEVHIER_H 1
 
-int SProcXIChangeDeviceHierarchy(ClientPtr /* client */);
-int ProcXIChangeDeviceHierarchy(ClientPtr /* client */);
+int SProcXIChangeHierarchy(ClientPtr /* client */);
+int ProcXIChangeHierarchy(ClientPtr /* client */);
 
 void XISendDeviceHierarchyEvent(int flags[]);
 

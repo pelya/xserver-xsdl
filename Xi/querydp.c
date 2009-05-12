@@ -58,26 +58,26 @@
  */
 
 int
-SProcXIQueryDevicePointer(ClientPtr client)
+SProcXIQueryPointer(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXIQueryDevicePointerReq);
+    REQUEST(xXIQueryPointerReq);
     swaps(&stuff->length, n);
-    return (ProcXIQueryDevicePointer(client));
+    return (ProcXIQueryPointer(client));
 }
 
 int
-ProcXIQueryDevicePointer(ClientPtr client)
+ProcXIQueryPointer(ClientPtr client)
 {
     int rc;
-    xXIQueryDevicePointerReply rep;
+    xXIQueryPointerReply rep;
     DeviceIntPtr pDev, kbd;
     WindowPtr pWin, t;
     SpritePtr pSprite;
 
-    REQUEST(xXIQueryDevicePointerReq);
-    REQUEST_SIZE_MATCH(xXIQueryDevicePointerReq);
+    REQUEST(xXIQueryPointerReq);
+    REQUEST_SIZE_MATCH(xXIQueryPointerReq);
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
     if (rc != Success)
@@ -92,7 +92,7 @@ ProcXIQueryDevicePointer(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->win, client, DixReadAccess);
     if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_XIQueryDevicePointer,
+        SendErrorToClient(client, IReqCode, X_XIQueryPointer,
                 stuff->win, rc);
         return Success;
     }
@@ -104,7 +104,7 @@ ProcXIQueryDevicePointer(ClientPtr client)
 
     pSprite = pDev->spriteInfo->sprite;
     rep.repType = X_Reply;
-    rep.RepType = X_XIQueryDevicePointer;
+    rep.RepType = X_XIQueryPointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.mask = pDev->button->state;
@@ -146,20 +146,20 @@ ProcXIQueryDevicePointer(ClientPtr client)
     }
 #endif
 
-    WriteReplyToClient(client, sizeof(xXIQueryDevicePointerReply), &rep);
+    WriteReplyToClient(client, sizeof(xXIQueryPointerReply), &rep);
     return Success;
 }
 
 /***********************************************************************
  *
- * This procedure writes the reply for the XIQueryDevicePointer function,
+ * This procedure writes the reply for the XIQueryPointer function,
  * if the client and server have a different byte ordering.
  *
  */
 
 void
-SRepXIQueryDevicePointer(ClientPtr client, int size,
-        xXIQueryDevicePointerReply * rep)
+SRepXIQueryPointer(ClientPtr client, int size,
+                   xXIQueryPointerReply * rep)
 {
     char n;
 

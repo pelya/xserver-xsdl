@@ -235,17 +235,17 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXDeleteDeviceProperty,              /* 38 */
         ProcXGetDeviceProperty,                 /* 39 */
         /* XI 2 */
-        ProcXIQueryDevicePointer,               /* 40 */
-        ProcXIWarpDevicePointer,                /* 41 */
-        ProcXIChangeDeviceCursor,               /* 42 */
-        ProcXIChangeDeviceHierarchy,            /* 43 */
+        ProcXIQueryPointer,                     /* 40 */
+        ProcXIWarpPointer,                      /* 41 */
+        ProcXIChangeCursor,                     /* 42 */
+        ProcXIChangeHierarchy,                  /* 43 */
         ProcXISetClientPointer,                 /* 44 */
         ProcXIGetClientPointer,                 /* 45 */
         ProcXISelectEvent,                      /* 46 */
         ProcXIQueryVersion,                     /* 47 */
         ProcXIQueryDevice,                      /* 48 */
-        ProcXISetDeviceFocus,                   /* 49 */
-        ProcXIGetDeviceFocus,                   /* 50 */
+        ProcXISetFocus,                         /* 49 */
+        ProcXIGetFocus,                         /* 50 */
         ProcXIGrabDevice,                       /* 51 */
         ProcXIUngrabDevice,                     /* 52 */
         ProcXIAllowEvents,                      /* 53 */
@@ -299,17 +299,17 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXChangeDeviceProperty,              /* 37 */
         SProcXDeleteDeviceProperty,              /* 38 */
         SProcXGetDeviceProperty,                 /* 39 */
-        SProcXIQueryDevicePointer,               /* 40 */
-        SProcXIWarpDevicePointer,                /* 41 */
-        SProcXIChangeDeviceCursor,               /* 42 */
-        SProcXIChangeDeviceHierarchy,            /* 43 */
+        SProcXIQueryPointer,                     /* 40 */
+        SProcXIWarpPointer,                      /* 41 */
+        SProcXIChangeCursor,                     /* 42 */
+        SProcXIChangeHierarchy,                  /* 43 */
         SProcXISetClientPointer,                 /* 44 */
         SProcXIGetClientPointer,                 /* 45 */
         SProcXISelectEvent,                      /* 46 */
         SProcXIQueryVersion,                     /* 47 */
         SProcXIQueryDevice,                      /* 48 */
-        SProcXISetDeviceFocus,                   /* 49 */
-        SProcXIGetDeviceFocus,                   /* 50 */
+        SProcXISetFocus,                         /* 49 */
+        SProcXIGetFocus,                         /* 50 */
         SProcXIGrabDevice,                       /* 51 */
         SProcXIUngrabDevice,                     /* 52 */
         SProcXIAllowEvents,                      /* 53 */
@@ -502,9 +502,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
         SRepXListDeviceProperties(client, len, (xListDevicePropertiesReply*)rep);
     else if (rep->RepType == X_GetDeviceProperty)
 	SRepXGetDeviceProperty(client, len, (xGetDevicePropertyReply *) rep);
-    else if (rep->RepType == X_XIQueryDevicePointer)
-	SRepXIQueryDevicePointer(client, len,
-				(xXIQueryDevicePointerReply *) rep);
+    else if (rep->RepType == X_XIQueryPointer)
+	SRepXIQueryPointer(client, len, (xXIQueryPointerReply *) rep);
     else if (rep->RepType == X_XIGetClientPointer)
         SRepXIGetClientPointer(client, len, (xXIGetClientPointerReply*) rep);
     else if (rep->RepType == X_XIQueryDevice)
@@ -763,8 +762,8 @@ static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
     }
 }
 
-static void SDeviceHierarchyEvent(xXIDeviceHierarchyEvent *from,
-                                  xXIDeviceHierarchyEvent *to)
+static void SDeviceHierarchyEvent(xXIHierarchyEvent *from,
+                                  xXIHierarchyEvent *to)
 {
     int i;
     char n;
@@ -816,8 +815,7 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
                                 (xXIDeviceChangedEvent*)to);
             break;
         case XI_HierarchyChanged:
-            SDeviceHierarchyEvent((xXIDeviceHierarchyEvent*)from,
-                                  (xXIDeviceHierarchyEvent*)to);
+            SDeviceHierarchyEvent((xXIHierarchyEvent*)from, (xXIHierarchyEvent*)to);
             break;
         case XI_PropertyEvent:
             SXIPropertyEvent((xXIPropertyEvent*)from,

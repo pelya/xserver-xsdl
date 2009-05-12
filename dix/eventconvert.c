@@ -422,9 +422,9 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
 static int
 eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
 {
-    xXIRawDeviceEvent* raw;
+    xXIRawEvent* raw;
     int vallen, nvals;
-    int i, len = sizeof(xXIRawDeviceEvent);
+    int i, len = sizeof(xXIRawEvent);
     char *ptr;
     FP3232 *axisval;
 
@@ -435,7 +435,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     len += vallen * 4; /* valuators mask */
 
     *xi = xcalloc(1, len);
-    raw = (xXIRawDeviceEvent*)*xi;
+    raw = (xXIRawEvent*)*xi;
     raw->type           = GenericEvent;
     raw->extension      = IReqCode;
     raw->evtype         = GetXI2Type((InternalEvent*)ev);

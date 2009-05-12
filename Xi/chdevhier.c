@@ -61,7 +61,7 @@ extern DevPrivateKey XTstDevicePrivateKey;
  */
 void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
 {
-    xXIDeviceHierarchyEvent *ev;
+    xXIHierarchyEvent *ev;
     xXIHierarchyInfo *info;
     DeviceIntRec dummyDev;
     DeviceIntPtr dev;
@@ -70,7 +70,7 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
     if (!flags)
         return;
 
-    ev = xcalloc(1, sizeof(xXIDeviceHierarchyEvent) +
+    ev = xcalloc(1, sizeof(xXIHierarchyEvent) +
                  MAXDEVICES * sizeof(xXIHierarchyInfo));
     ev->type = GenericEvent;
     ev->extension = IReqCode;
@@ -128,29 +128,29 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
  *
  */
 
-int SProcXIChangeDeviceHierarchy(ClientPtr client)
+int SProcXIChangeHierarchy(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXIChangeDeviceHierarchyReq);
+    REQUEST(xXIChangeHierarchyReq);
     swaps(&stuff->length, n);
-    return (ProcXIChangeDeviceHierarchy(client));
+    return (ProcXIChangeHierarchy(client));
 }
 
 #define SWAPIF(cmd) if (client->swapped) { cmd; }
 
 int
-ProcXIChangeDeviceHierarchy(ClientPtr client)
+ProcXIChangeHierarchy(ClientPtr client)
 {
     DeviceIntPtr ptr, keybd, xtstptr, xtstkeybd;
     xXIAnyHierarchyChangeInfo *any;
-    int required_len = sizeof(xXIChangeDeviceHierarchyReq);
+    int required_len = sizeof(xXIChangeHierarchyReq);
     char n;
     int rc = Success;
     int flags[MAXDEVICES] = {0};
 
-    REQUEST(xXIChangeDeviceHierarchyReq);
-    REQUEST_AT_LEAST_SIZE(xXIChangeDeviceHierarchyReq);
+    REQUEST(xXIChangeHierarchyReq);
+    REQUEST_AT_LEAST_SIZE(xXIChangeHierarchyReq);
 
     if (!stuff->num_changes)
         return rc;
@@ -167,7 +167,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
         switch(any->type)
         {
-            case XICreateMasterDevice:
+            case XICreateMaster:
                 {
                     xXICreateMasterInfo* c = (xXICreateMasterInfo*)any;
                     char* name;
@@ -229,7 +229,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     xfree(name);
                 }
                 break;
-            case XIRemoveMasterDevice:
+            case XIRemoveMaster:
                 {
                     xXIRemoveMasterInfo* r = (xXIRemoveMasterInfo*)any;
                     DeviceIntPtr xtstdevice;

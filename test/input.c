@@ -284,16 +284,16 @@ static void xi2_struct_sizes(void)
     g_assert(sizeof(req) == sz_##req);
 
     compare(xXIQueryVersionReq);
-    compare(xXIWarpDevicePointerReq);
-    compare(xXIChangeDeviceCursorReq);
-    compare(xXIChangeDeviceHierarchyReq);
+    compare(xXIWarpPointerReq);
+    compare(xXIChangeCursorReq);
+    compare(xXIChangeHierarchyReq);
     compare(xXISetClientPointerReq);
     compare(xXIGetClientPointerReq);
     compare(xXISelectEventsReq);
     compare(xXIQueryVersionReq);
     compare(xXIQueryDeviceReq);
-    compare(xXISetDeviceFocusReq);
-    compare(xXIGetDeviceFocusReq);
+    compare(xXISetFocusReq);
+    compare(xXIGetFocusReq);
     compare(xXIGrabDeviceReq);
     compare(xXIUngrabDeviceReq);
     compare(xXIAllowEventsReq);

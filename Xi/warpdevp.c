@@ -54,17 +54,17 @@
  */
 
 int
-SProcXIWarpDevicePointer(ClientPtr client)
+SProcXIWarpPointer(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXIWarpDevicePointerReq);
+    REQUEST(xXIWarpPointerReq);
     swaps(&stuff->length, n);
-    return (ProcXIWarpDevicePointer(client));
+    return (ProcXIWarpPointer(client));
 }
 
 int
-ProcXIWarpDevicePointer(ClientPtr client)
+ProcXIWarpPointer(ClientPtr client)
 {
     int rc;
     int x, y;
@@ -73,8 +73,8 @@ ProcXIWarpDevicePointer(ClientPtr client)
     SpritePtr pSprite;
     ScreenPtr newScreen;
 
-    REQUEST(xXIWarpDevicePointerReq);
-    REQUEST_SIZE_MATCH(xXIWarpDevicePointerReq);
+    REQUEST(xXIWarpPointerReq);
+    REQUEST_SIZE_MATCH(xXIWarpPointerReq);
 
     /* FIXME: panoramix stuff is missing, look at ProcWarpPointer */
 

@@ -54,25 +54,25 @@
  */
 
 int
-SProcXIChangeDeviceCursor(ClientPtr client)
+SProcXIChangeCursor(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXIChangeDeviceCursorReq);
+    REQUEST(xXIChangeCursorReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(xXIChangeDeviceCursorReq);
-    return (ProcXIChangeDeviceCursor(client));
+    REQUEST_SIZE_MATCH(xXIChangeCursorReq);
+    return (ProcXIChangeCursor(client));
 }
 
-int ProcXIChangeDeviceCursor(ClientPtr client)
+int ProcXIChangeCursor(ClientPtr client)
 {
     int rc;
     WindowPtr pWin    = NULL;
     DeviceIntPtr pDev = NULL;
     CursorPtr pCursor = NULL;
 
-    REQUEST(xXIChangeDeviceCursorReq);
-    REQUEST_SIZE_MATCH(xXIChangeDeviceCursorReq);
+    REQUEST(xXIChangeCursorReq);
+    REQUEST_SIZE_MATCH(xXIChangeCursorReq);
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
     if (rc != Success)

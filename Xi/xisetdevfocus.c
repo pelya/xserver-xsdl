@@ -41,39 +41,39 @@
 #include "xisetdevfocus.h"
 
 int
-SProcXISetDeviceFocus(ClientPtr client)
+SProcXISetFocus(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXISetDeviceFocusReq);
+    REQUEST(xXISetFocusReq);
     swaps(&stuff->length, n);
     swaps(&stuff->deviceid, n);
     swapl(&stuff->focus, n);
     swapl(&stuff->time, n);
 
-    return ProcXISetDeviceFocus(client);
+    return ProcXISetFocus(client);
 }
 
 int
-SProcXIGetDeviceFocus(ClientPtr client)
+SProcXIGetFocus(ClientPtr client)
 {
     char n;
 
-    REQUEST(xXIGetDeviceFocusReq);
+    REQUEST(xXIGetFocusReq);
     swaps(&stuff->length, n);
     swaps(&stuff->deviceid, n);
 
-    return ProcXIGetDeviceFocus(client);
+    return ProcXIGetFocus(client);
 }
 
 int
-ProcXISetDeviceFocus(ClientPtr client)
+ProcXISetFocus(ClientPtr client)
 {
     DeviceIntPtr dev;
     int ret;
 
-    REQUEST(xXISetDeviceFocusReq);
-    REQUEST_AT_LEAST_SIZE(xXISetDeviceFocusReq);
+    REQUEST(xXISetFocusReq);
+    REQUEST_AT_LEAST_SIZE(xXISetFocusReq);
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
     if (ret != Success)
@@ -86,14 +86,14 @@ ProcXISetDeviceFocus(ClientPtr client)
 }
 
 int
-ProcXIGetDeviceFocus(ClientPtr client)
+ProcXIGetFocus(ClientPtr client)
 {
-    xXIGetDeviceFocusReply rep;
+    xXIGetFocusReply rep;
     DeviceIntPtr dev;
     int ret;
 
-    REQUEST(xXIGetDeviceFocusReq);
-    REQUEST_AT_LEAST_SIZE(xXIGetDeviceFocusReq);
+    REQUEST(xXIGetFocusReq);
+    REQUEST_AT_LEAST_SIZE(xXIGetFocusReq);
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetFocusAccess);
     if (ret != Success)
@@ -102,7 +102,7 @@ ProcXIGetDeviceFocus(ClientPtr client)
 	return BadDevice;
 
     rep.repType = X_Reply;
-    rep.RepType = X_XIGetDeviceFocus;
+    rep.RepType = X_XIGetFocus;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
@@ -115,6 +115,6 @@ ProcXIGetDeviceFocus(ClientPtr client)
     else
 	rep.focus = dev->focus->win->drawable.id;
 
-    WriteReplyToClient(client, sizeof(xXIGetDeviceFocusReply), &rep);
+    WriteReplyToClient(client, sizeof(xXIGetFocusReply), &rep);
     return Success;
 }

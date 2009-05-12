@@ -30,10 +30,10 @@
 #ifndef QUERYDP_H
 #define QUERYDP_H 1
 
-int SProcXIQueryDevicePointer(ClientPtr	/* client */);
-int ProcXIQueryDevicePointer(ClientPtr	/* client */);
-void SRepXIQueryDevicePointer(ClientPtr /* client */ ,
-			   int /* size */ ,
-			   xXIQueryDevicePointerReply *	/* rep */);
+int SProcXIQueryPointer(ClientPtr /* client */);
+int ProcXIQueryPointer(ClientPtr /* client */);
+void SRepXIQueryPointer(ClientPtr /* client */ ,
+			int /* size */ ,
+			xXIQueryPointerReply *	/* rep */);
 
 #endif /* QUERYDP_H */
