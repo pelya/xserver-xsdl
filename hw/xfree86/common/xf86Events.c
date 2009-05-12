@@ -462,7 +462,7 @@ xf86VTSwitch(void)
       if (pInfo->dev) {
           xf86ReleaseKeys(pInfo->dev);
           ProcessInputEvents();
-          DisableDevice(pInfo->dev);
+          DisableDevice(pInfo->dev, TRUE);
       }
     }
     xf86EnterServerState(SETUP);
@@ -497,7 +497,7 @@ xf86VTSwitch(void)
       pInfo = xf86InputDevs;
       while (pInfo) {
         if (pInfo->dev)
-            EnableDevice(pInfo->dev);
+            EnableDevice(pInfo->dev, TRUE);
 	pInfo = pInfo->next;
       }
       for (ih = InputHandlers; ih; ih = ih->next)
@@ -555,7 +555,7 @@ xf86VTSwitch(void)
     pInfo = xf86InputDevs;
     while (pInfo) {
       if (pInfo->dev)
-          EnableDevice(pInfo->dev);
+          EnableDevice(pInfo->dev, TRUE);
       pInfo = pInfo->next;
     }
 

@@ -130,9 +130,9 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
         if (!checkonly)
         {
             if ((*((CARD8*)prop->data)) && !dev->enabled)
-                EnableDevice(dev);
+                EnableDevice(dev, TRUE);
             else if (!(*((CARD8*)prop->data)) && dev->enabled)
-                DisableDevice(dev);
+                DisableDevice(dev, TRUE);
         }
     }
 
@@ -284,10 +284,11 @@ SendDevicePresenceEvent(int deviceid, int type)
  * device.
  *
  * @param The device to be enabled.
+ * @param sendevent True if an XI2 event should be sent.
  * @return TRUE on success or FALSE otherwise.
  */
 Bool
-EnableDevice(DeviceIntPtr dev)
+EnableDevice(DeviceIntPtr dev, BOOL sendevent)
 {
     DeviceIntPtr *prev;
     int ret;
@@ -362,8 +363,11 @@ EnableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceEnabled);
-    flags[dev->id] |= XIDeviceEnabled;
-    XISendDeviceHierarchyEvent(flags);
+    if (sendevent)
+    {
+        flags[dev->id] |= XIDeviceEnabled;
+        XISendDeviceHierarchyEvent(flags);
+    }
 
     return TRUE;
 }
@@ -376,10 +380,11 @@ EnableDevice(DeviceIntPtr dev)
  * Master keyboard devices have to be disabled before master pointer devices
  * otherwise things turn bad.
  *
+ * @param sendevent True if an XI2 event should be sent.
  * @return TRUE on success or FALSE otherwise.
  */
 Bool
-DisableDevice(DeviceIntPtr dev)
+DisableDevice(DeviceIntPtr dev, BOOL sendevent)
 {
     DeviceIntPtr *prev, other;
     BOOL enabled;
@@ -438,8 +443,11 @@ DisableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceDisabled);
-    flags[dev->id] = XIDeviceDisabled;
-    XISendDeviceHierarchyEvent(flags);
+    if (sendevent)
+    {
+        flags[dev->id] = XIDeviceDisabled;
+        XISendDeviceHierarchyEvent(flags);
+    }
     return TRUE;
 }
 
@@ -450,14 +458,14 @@ DisableDevice(DeviceIntPtr dev)
  * Must be called before EnableDevice.
  * The device will NOT send events until it is enabled!
  *
+ * @param sendevent True if an XI2 event should be sent.
  * @return Success or an error code on failure.
  */
 int
-ActivateDevice(DeviceIntPtr dev)
+ActivateDevice(DeviceIntPtr dev, BOOL sendevent)
 {
     int ret = Success;
     ScreenPtr pScreen = screenInfo.screens[0];
-    int flags[MAXDEVICES];
 
     if (!dev || !dev->deviceProc)
         return BadImplementation;
@@ -472,8 +480,12 @@ ActivateDevice(DeviceIntPtr dev)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
     SendDevicePresenceEvent(dev->id, DeviceAdded);
-    flags[dev->id] = XISlaveAdded;
-    XISendDeviceHierarchyEvent(flags);
+    if (sendevent)
+    {
+        int flags[MAXDEVICES] = {0};
+        flags[dev->id] = XISlaveAdded;
+        XISendDeviceHierarchyEvent(flags);
+    }
     return ret;
 }
 
@@ -580,11 +592,11 @@ InitCoreDevices(void)
                         TRUE) != Success)
         FatalError("Failed to allocate core devices");
 
-    if (ActivateDevice(inputInfo.pointer) != Success ||
-        ActivateDevice(inputInfo.keyboard) != Success)
+    if (ActivateDevice(inputInfo.pointer, TRUE) != Success ||
+        ActivateDevice(inputInfo.keyboard, TRUE) != Success)
         FatalError("Failed to activate core devices.");
-    if (!EnableDevice(inputInfo.pointer) ||
-        !EnableDevice(inputInfo.keyboard))
+    if (!EnableDevice(inputInfo.pointer, TRUE) ||
+        !EnableDevice(inputInfo.keyboard, TRUE))
         FatalError("Failed to enable core devices.");
 
     /*
@@ -596,11 +608,11 @@ InitCoreDevices(void)
                        &vxtstkeyboard) != Success)
         FatalError("Failed to allocate XTst devices");
 
-    if (ActivateDevice(vxtstpointer) != Success ||
-        ActivateDevice(vxtstkeyboard) != Success)
+    if (ActivateDevice(vxtstpointer, TRUE) != Success ||
+        ActivateDevice(vxtstkeyboard, TRUE) != Success)
         FatalError("Failed to activate xtst core devices.");
-    if (!EnableDevice(vxtstpointer) ||
-        !EnableDevice(vxtstkeyboard))
+    if (!EnableDevice(vxtstpointer, TRUE) ||
+        !EnableDevice(vxtstkeyboard, TRUE))
         FatalError("Failed to enable xtst core devices.");
 
     AttachDevice(NULL, vxtstpointer, inputInfo.pointer);
@@ -627,7 +639,7 @@ InitAndStartDevices(void)
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
         if (!dev->inited)
-            ActivateDevice(dev);
+            ActivateDevice(dev, TRUE);
     }
 
     /* enable real devices */
@@ -636,7 +648,7 @@ InitAndStartDevices(void)
         DebugF("(dix) enabling device %d\n", dev->id);
 	next = dev->next;
 	if (dev->inited && dev->startup)
-	    (void)EnableDevice(dev);
+	    EnableDevice(dev, TRUE);
     }
 
     return Success;
@@ -929,9 +941,11 @@ UndisplayDevices(void)
  * happen if a malloc fails during the addition of master devices. If
  * dev->init is FALSE it means the client never received a DeviceAdded event,
  * so let's not send a DeviceRemoved event either.
+ *
+ * @param sendevent True if an XI2 event should be sent.
  */
 int
-RemoveDevice(DeviceIntPtr dev)
+RemoveDevice(DeviceIntPtr dev, BOOL sendevent)
 {
     DeviceIntPtr prev,tmp,next;
     int ret = BadMatch;
@@ -953,7 +967,7 @@ RemoveDevice(DeviceIntPtr dev)
         if (DevHasCursor(dev))
             screen->DisplayCursor(dev, screen, NullCursor);
 
-        DisableDevice(dev);
+        DisableDevice(dev, sendevent);
         flags[dev->id] = XIDeviceDisabled;
     }
 
@@ -992,7 +1006,8 @@ RemoveDevice(DeviceIntPtr dev)
     if (ret == Success && initialized) {
         inputInfo.numDevices--;
         SendDevicePresenceEvent(deviceid, DeviceRemoved);
-        XISendDeviceHierarchyEvent(flags);
+        if (sendevent)
+            XISendDeviceHierarchyEvent(flags);
     }
 
     return ret;
@@ -2360,7 +2375,7 @@ AllocDevicePair (ClientPtr client, char* name,
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
     {
-        RemoveDevice(pointer);
+        RemoveDevice(pointer, FALSE);
         return BadAlloc;
     }
 

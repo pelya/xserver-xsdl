@@ -377,7 +377,7 @@ OpenInputDevice(DeviceIntPtr	dev,
                 int		*status)
 {
     if (!dev->inited)
-        ActivateDevice(dev);
+        ActivateDevice(dev, TRUE);
 
     *status = Success;
 }
@@ -544,18 +544,18 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
     }
 
     dev = pInfo->dev;
-    rval = ActivateDevice(dev);
+    rval = ActivateDevice(dev, TRUE);
     if (rval != Success)
     {
         xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
-        RemoveDevice(dev);
+        RemoveDevice(dev, TRUE);
         goto unwind;
     }
 
     /* Enable it if it's properly initialised and we're currently in the VT */
     if (enable && dev->inited && dev->startup && xf86Screens[0]->vtSema)
     {
-        EnableDevice(dev);
+        EnableDevice(dev, TRUE);
         if (!dev->enabled)
         {
             xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
@@ -680,7 +680,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     }
 
     OsBlockSignals();
-    RemoveDevice(pDev);
+    RemoveDevice(pDev, TRUE);
 
     if (!isMaster && pInfo != NULL)
     {
@@ -1065,7 +1065,7 @@ xf86DisableDevice(DeviceIntPtr dev, Bool panic)
 
     if(!panic)
     {
-        DisableDevice(dev);
+        DisableDevice(dev, TRUE);
     } else
     {
         ev.type = DevicePresenceNotify;
@@ -1088,7 +1088,7 @@ xf86DisableDevice(DeviceIntPtr dev, Bool panic)
 void
 xf86EnableDevice(DeviceIntPtr dev)
 {
-    EnableDevice(dev);
+    EnableDevice(dev, TRUE);
 }
 
 /* end of xf86Xinput.c */

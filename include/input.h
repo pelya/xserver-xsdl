@@ -228,13 +228,16 @@ extern _X_EXPORT DeviceIntPtr AddInputDevice(
     Bool /*autoStart*/);
 
 extern _X_EXPORT Bool EnableDevice(
-    DeviceIntPtr /*device*/);
+    DeviceIntPtr /*device*/,
+    BOOL /* sendevent */);
 
 extern _X_EXPORT Bool ActivateDevice(
-    DeviceIntPtr /*device*/);
+    DeviceIntPtr /*device*/,
+    BOOL /* sendevent */);
 
 extern _X_EXPORT Bool DisableDevice(
-    DeviceIntPtr /*device*/);
+    DeviceIntPtr /*device*/,
+    BOOL /* sendevent */);
 
 extern int InitAndStartDevices(void);
 
@@ -243,7 +246,8 @@ extern void CloseDownDevices(void);
 extern void UndisplayDevices(void);
 
 extern _X_EXPORT int RemoveDevice(
-    DeviceIntPtr /*dev*/);
+    DeviceIntPtr /*dev*/,
+    BOOL /* sendevent */);
 
 extern _X_EXPORT int NumMotionEvents(void);
 

@@ -76,7 +76,7 @@ suspend (pmEvent event, Bool undo)
     }
     pInfo = xf86InputDevs;
     while (pInfo) {
-	DisableDevice(pInfo->dev);
+	DisableDevice(pInfo->dev, TRUE);
 	pInfo = pInfo->next;
     }
     xf86EnterServerState(SETUP);
@@ -119,7 +119,7 @@ resume(pmEvent event, Bool undo)
     dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
     pInfo = xf86InputDevs;
     while (pInfo) {
-	EnableDevice(pInfo->dev);
+	EnableDevice(pInfo->dev, TRUE);
 	pInfo = pInfo->next;
     }
     xf86inSuspend = FALSE;

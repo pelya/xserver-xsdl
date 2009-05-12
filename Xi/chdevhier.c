@@ -196,25 +196,25 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    ActivateDevice(ptr);
-                    ActivateDevice(keybd);
+                    ActivateDevice(ptr, FALSE);
+                    ActivateDevice(keybd, FALSE);
                     flags[ptr->id] |= XIMasterAdded;
                     flags[keybd->id] |= XIMasterAdded;
 
-                    ActivateDevice(xtstptr);
-                    ActivateDevice(xtstkeybd);
+                    ActivateDevice(xtstptr, FALSE);
+                    ActivateDevice(xtstkeybd, FALSE);
                     flags[xtstptr->id] |= XISlaveAdded;
                     flags[xtstkeybd->id] |= XISlaveAdded;
 
                     if (c->enable)
                     {
-                        EnableDevice(ptr);
-                        EnableDevice(keybd);
+                        EnableDevice(ptr, FALSE);
+                        EnableDevice(keybd, FALSE);
                         flags[ptr->id] |= XIDeviceEnabled;
                         flags[keybd->id] |= XIDeviceEnabled;
 
-                        EnableDevice(xtstptr);
-                        EnableDevice(xtstkeybd);
+                        EnableDevice(xtstptr, FALSE);
+                        EnableDevice(xtstkeybd, FALSE);
                         flags[xtstptr->id] |= XIDeviceEnabled;
                         flags[xtstkeybd->id] |= XIDeviceEnabled;
                     }
@@ -389,19 +389,19 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
                     /* disable the remove the devices, xtst devices must be done first
                        else the sprites they rely on will be destroyed  */
-                    DisableDevice(xtstptr);
-                    DisableDevice(xtstkeybd);
-                    DisableDevice(keybd);
-                    DisableDevice(ptr);
+                    DisableDevice(xtstptr, FALSE);
+                    DisableDevice(xtstkeybd, FALSE);
+                    DisableDevice(keybd, FALSE);
+                    DisableDevice(ptr, FALSE);
                     flags[xtstptr->id] |= XIDeviceDisabled | XISlaveDetached;
                     flags[xtstkeybd->id] |= XIDeviceDisabled | XISlaveDetached;
                     flags[keybd->id] |= XIDeviceDisabled;
                     flags[ptr->id] |= XIDeviceDisabled;
 
-                    RemoveDevice(xtstptr);
-                    RemoveDevice(xtstkeybd);
-                    RemoveDevice(keybd);
-                    RemoveDevice(ptr);
+                    RemoveDevice(xtstptr, FALSE);
+                    RemoveDevice(xtstkeybd, FALSE);
+                    RemoveDevice(keybd, FALSE);
+                    RemoveDevice(ptr, FALSE);
                     flags[xtstptr->id] |= XISlaveRemoved;
                     flags[xtstkeybd->id] |= XISlaveRemoved;
                     flags[keybd->id] |= XIMasterRemoved;
