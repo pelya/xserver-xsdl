@@ -59,25 +59,25 @@ extern DevPrivateKey XTstDevicePrivateKey;
 /**
  * Send the current state of the device hierarchy to all clients.
  */
-void XISendDeviceHierarchyEvent(int flags)
+void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
 {
     xXIDeviceHierarchyEvent *ev;
     xXIHierarchyInfo *info;
     DeviceIntRec dummyDev;
     DeviceIntPtr dev;
+    int i;
 
     if (!flags)
         return;
 
-    ev = xcalloc(1, sizeof(xXIDeviceHierarchyEvent) + inputInfo.numDevices *
-            sizeof(xXIHierarchyInfo));
+    ev = xcalloc(1, sizeof(xXIDeviceHierarchyEvent) +
+                 MAXDEVICES * sizeof(xXIHierarchyInfo));
     ev->type = GenericEvent;
     ev->extension = IReqCode;
     ev->evtype = XI_HierarchyChanged;
     ev->time = GetTimeInMillis();
-    ev->flags = flags;
+    ev->flags = 0;
     ev->num_devices = inputInfo.numDevices;
-    ev->length = (ev->num_devices * sizeof(xXIHierarchyInfo))/4;
 
     info = (xXIHierarchyInfo*)&ev[1];
     for (dev = inputInfo.devices; dev; dev = dev->next)
@@ -85,6 +85,8 @@ void XISendDeviceHierarchyEvent(int flags)
         info->deviceid = dev->id;
         info->enabled = dev->enabled;
         info->use = GetDeviceUse(dev, &info->attachment);
+        info->flags = flags[dev->id];
+        ev->flags |= info->flags;
         info++;
     }
     for (dev = inputInfo.off_devices; dev; dev = dev->next)
@@ -92,8 +94,27 @@ void XISendDeviceHierarchyEvent(int flags)
         info->deviceid = dev->id;
         info->enabled = dev->enabled;
         info->use = GetDeviceUse(dev, &info->attachment);
+        info->flags = flags[dev->id];
+        ev->flags |= info->flags;
         info++;
     }
+
+
+    for (i = 0; i < MAXDEVICES; i++)
+    {
+        if (flags[i] & (XIMasterRemoved | XISlaveRemoved))
+        {
+            info->deviceid = i;
+            info->enabled = FALSE;
+            info->flags = flags[i];
+            info->use = 0;
+            ev->flags |= info->flags;
+            ev->num_devices++;
+            info++;
+        }
+    }
+
+    ev->length = (ev->num_devices * sizeof(xXIHierarchyInfo))/4;
 
     dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, (XI_HierarchyChangedMask >> 8), (xEvent*)ev, 1);
@@ -126,7 +147,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
     int required_len = sizeof(xXIChangeDeviceHierarchyReq);
     char n;
     int rc = Success;
-    int flags = 0;
+    int flags[MAXDEVICES] = {0};
 
     REQUEST(xXIChangeDeviceHierarchyReq);
     REQUEST_AT_LEAST_SIZE(xXIChangeDeviceHierarchyReq);
@@ -177,24 +198,35 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
 
                     ActivateDevice(ptr);
                     ActivateDevice(keybd);
+                    flags[ptr->id] |= XIMasterAdded;
+                    flags[keybd->id] |= XIMasterAdded;
+
                     ActivateDevice(xtstptr);
                     ActivateDevice(xtstkeybd);
+                    flags[xtstptr->id] |= XISlaveAdded;
+                    flags[xtstkeybd->id] |= XISlaveAdded;
 
                     if (c->enable)
                     {
                         EnableDevice(ptr);
                         EnableDevice(keybd);
+                        flags[ptr->id] |= XIDeviceEnabled;
+                        flags[keybd->id] |= XIDeviceEnabled;
+
                         EnableDevice(xtstptr);
                         EnableDevice(xtstkeybd);
+                        flags[xtstptr->id] |= XIDeviceEnabled;
+                        flags[xtstkeybd->id] |= XIDeviceEnabled;
                     }
 
                     /* Attach the XTest virtual devices to the newly
                        created master device */
                     AttachDevice(NULL, xtstptr, ptr);
                     AttachDevice(NULL, xtstkeybd, keybd);
+                    flags[xtstptr->id] |= XISlaveAttached;
+                    flags[xtstkeybd->id] |= XISlaveAttached;
 
                     xfree(name);
-                    flags |= XIMasterAdded;
                 }
                 break;
             case XIRemoveMasterDevice:
@@ -336,9 +368,15 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         {
                             if (!attached->isMaster) {
                                 if (attached->u.master == ptr)
+                                {
                                     AttachDevice(client, attached, newptr);
+                                    flags[attached->id] |= XISlaveAttached;
+                                }
                                 if (attached->u.master == keybd)
+                                {
                                     AttachDevice(client, attached, newkeybd);
+                                    flags[attached->id] |= XISlaveAttached;
+                                }
                             }
                         }
                     }
@@ -355,12 +393,19 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     DisableDevice(xtstkeybd);
                     DisableDevice(keybd);
                     DisableDevice(ptr);
+                    flags[xtstptr->id] |= XIDeviceDisabled | XISlaveDetached;
+                    flags[xtstkeybd->id] |= XIDeviceDisabled | XISlaveDetached;
+                    flags[keybd->id] |= XIDeviceDisabled;
+                    flags[ptr->id] |= XIDeviceDisabled;
 
                     RemoveDevice(xtstptr);
                     RemoveDevice(xtstkeybd);
                     RemoveDevice(keybd);
                     RemoveDevice(ptr);
-                    flags |= XIMasterRemoved;
+                    flags[xtstptr->id] |= XISlaveRemoved;
+                    flags[xtstkeybd->id] |= XISlaveRemoved;
+                    flags[keybd->id] |= XIMasterRemoved;
+                    flags[ptr->id] |= XIMasterRemoved;
                 }
                 break;
             case XIDetachSlave:
@@ -392,7 +437,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                     }
 
                     AttachDevice(client, ptr, NULL);
-                    flags |= XISlaveDetached;
+                    flags[ptr->id] |= XISlaveDetached;
                 }
                 break;
             case XIAttachSlave:
@@ -444,7 +489,7 @@ ProcXIChangeDeviceHierarchy(ClientPtr client)
                         goto unwind;
                     }
                     AttachDevice(client, ptr, newmaster);
-                    flags |= XISlaveAttached;
+                    flags[ptr->id] |= XISlaveAttached;
                 }
                 break;
         }

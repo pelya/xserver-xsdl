@@ -296,6 +296,7 @@ EnableDevice(DeviceIntPtr dev)
     int listlen;
     EventListPtr evlist;
     BOOL enabled;
+    int flags[MAXDEVICES] = {0};
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
@@ -361,7 +362,8 @@ EnableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceEnabled);
-    XISendDeviceHierarchyEvent(XIDeviceEnabled);
+    flags[dev->id] |= XIDeviceEnabled;
+    XISendDeviceHierarchyEvent(flags);
 
     return TRUE;
 }
@@ -381,6 +383,7 @@ DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev, other;
     BOOL enabled;
+    int flags[MAXDEVICES] = {0};
 
     for (prev = &inputInfo.devices;
 	 *prev && (*prev != dev);
@@ -395,7 +398,10 @@ DisableDevice(DeviceIntPtr dev)
         for (other = inputInfo.devices; other; other = other->next)
         {
             if (other->u.master == dev)
+            {
                 AttachDevice(NULL, other, NULL);
+                flags[other->id] |= XISlaveDetached;
+            }
         }
     }
     else
@@ -432,7 +438,8 @@ DisableDevice(DeviceIntPtr dev)
                            TRUE);
 
     SendDevicePresenceEvent(dev->id, DeviceDisabled);
-    XISendDeviceHierarchyEvent(XIDeviceDisabled);
+    flags[dev->id] = XIDeviceDisabled;
+    XISendDeviceHierarchyEvent(flags);
     return TRUE;
 }
 
@@ -450,6 +457,7 @@ ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
     ScreenPtr pScreen = screenInfo.screens[0];
+    int flags[MAXDEVICES];
 
     if (!dev || !dev->deviceProc)
         return BadImplementation;
@@ -464,7 +472,8 @@ ActivateDevice(DeviceIntPtr dev)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
     SendDevicePresenceEvent(dev->id, DeviceAdded);
-    XISendDeviceHierarchyEvent(XISlaveAdded);
+    flags[dev->id] = XISlaveAdded;
+    XISendDeviceHierarchyEvent(flags);
     return ret;
 }
 
@@ -929,6 +938,7 @@ RemoveDevice(DeviceIntPtr dev)
     ScreenPtr screen = screenInfo.screens[0];
     int deviceid;
     int initialized;
+    int flags[MAXDEVICES] = {0};
 
     DebugF("(dix) removing device %d\n", dev->id);
 
@@ -944,6 +954,7 @@ RemoveDevice(DeviceIntPtr dev)
             screen->DisplayCursor(dev, screen, NullCursor);
 
         DisableDevice(dev);
+        flags[dev->id] = XIDeviceDisabled;
     }
 
     prev = NULL;
@@ -956,6 +967,7 @@ RemoveDevice(DeviceIntPtr dev)
 	    else
 		prev->next = next;
 
+	    flags[tmp->id] = (tmp->isMaster) ? XIMasterRemoved : XISlaveRemoved;
 	    CloseDevice(tmp);
 	    ret = Success;
 	}
@@ -965,6 +977,7 @@ RemoveDevice(DeviceIntPtr dev)
     for (tmp = inputInfo.off_devices; tmp; (prev = tmp), (tmp = next)) {
 	next = tmp->next;
 	if (tmp == dev) {
+	    flags[tmp->id] = (tmp->isMaster) ? XIMasterRemoved : XISlaveRemoved;
 	    CloseDevice(tmp);
 
 	    if (prev == NULL)
@@ -979,7 +992,7 @@ RemoveDevice(DeviceIntPtr dev)
     if (ret == Success && initialized) {
         inputInfo.numDevices--;
         SendDevicePresenceEvent(deviceid, DeviceRemoved);
-        XISendDeviceHierarchyEvent(XISlaveRemoved);
+        XISendDeviceHierarchyEvent(flags);
     }
 
     return ret;
