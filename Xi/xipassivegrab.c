@@ -166,6 +166,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
             info->status = status;
             info->modifiers = *modifiers;
             rep.num_modifiers++;
+            rep.length++;
         }
     }
 
