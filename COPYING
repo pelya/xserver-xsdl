@@ -11,10 +11,11 @@ Copyright © 1998 Egbert Eich
 Copyright © 2006-2007 Intel Corporation
 Copyright © 2006 Nokia Corporation
 Copyright © 2006-2008 Peter Hutterer
+Copyright © 2009 NVIDIA Corporation
 Copyright © 1999 Keith Packard
-Copyright © 2007-2008 Red Hat, Inc.
-Copyright © 2005-2007 Daniel Stone
-Copyright © 2006-2008 Simon Thum
+Copyright © 2007-2009 Red Hat, Inc.
+Copyright © 2005-2008 Daniel Stone
+Copyright © 2006-2009 Simon Thum
 Copyright © 2006 Luc Verhaegen
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -45,6 +46,7 @@ licenses.
 
 
 Copyright (C) 1994-2003 The XFree86 Project, Inc.  All Rights Reserved.
+Copyright (C) Colin Harrison 2005-2008
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -68,16 +70,16 @@ be used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from the XFree86 Project.
 
 
-Copyright 1997-2003 by The XFree86 Project, Inc.
+Copyright 1997 by The XFree86 Project, Inc.
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
 the above copyright notice appear in all copies and that both that
 copyright notice and this permission notice appear in supporting
-documentation, and that the names of Orest Zborowski and David Wexelblat
+documentation, and that the name of the XFree86 Project, Inc.
 not be used in advertising or publicity pertaining to distribution of
-the software without specific, written prior permission.  Orest Zborowski
-and David Wexelblat make no representations about the suitability of this
+the software without specific, written prior permission.  The Xfree86
+Project, Inc. makes no representations about the suitability of this
 software for any purpose.  It is provided "as is" without express or
 implied warranty.
 
@@ -597,7 +599,7 @@ authorization from the X Consortium.
 
 Copyright 1998-2000 Precision Insight, Inc., Cedar Park, Texas.
 Copyright 2000 VA Linux Systems, Inc.
-Copyright (c) 2002 Apple Computer, Inc.
+Copyright (c) 2002, 2008, 2009 Apple Computer, Inc.
 Copyright (c) 2003-2004 Torrey T. Lyons.
 All Rights Reserved.
 
@@ -1001,8 +1003,8 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 
-Copyright (C) 2001-2004 Harold L Hunt II
-All Rights Reserved.
+Copyright (C) 2001-2004 Harold L Hunt II All Rights Reserved.
+Copyright (C) Colin Harrison 2005-2008
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1278,29 +1280,6 @@ CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
 DATA  OR PROFITS, WHETHER  IN  AN ACTION OF  CONTRACT,  NEGLIGENCE OR OTHER
 TORTIOUS  ACTION, ARISING    OUT OF OR   IN  CONNECTION  WITH THE USE    OR
 PERFORMANCE OF THIS SOFTWARE.
-
-
-Copyright (C) 1999 Jeff Hartmann
-Copyright (C) 1999 Precision Insight, Inc.
-Copyright (C) 1999 Xi Graphics, Inc.
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-JEFF HARTMANN, OR ANY OTHER CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 Copyright 1992 by Rich Murphey <Rich@Rice.edu>
