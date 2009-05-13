@@ -3420,6 +3420,7 @@ CheckPassiveGrabsOnWindow(
                            "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
+                count = 1;
             } else
             {
                 rc = EventToXI((InternalEvent*)event, &xE, &count);
