@@ -1740,6 +1740,8 @@ xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
 
     xfree(points);
 
+    pScrn->gamma = gamma;
+
     return Success;
 }
 
