@@ -43,7 +43,8 @@
 /* Avoid Imakefile changes */
 #include "bus/Pci.h"
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
+	defined(__NetBSD__) || defined(__OpenBSD__) || \
 	defined(__DragonFly__) || defined(__sun) || defined(__GNU__)
 #define xf86StdAccResFromOS xf86AccResFromOS
 #endif
