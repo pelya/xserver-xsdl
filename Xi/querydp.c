@@ -107,7 +107,7 @@ ProcXIQueryPointer(ClientPtr client)
     pSprite = pDev->spriteInfo->sprite;
     rep.repType = X_Reply;
     rep.RepType = X_XIQueryPointer;
-    rep.length = 0;
+    rep.length = 5;
     rep.sequenceNumber = client->sequence;
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
     rep.root_x = FP1616(pSprite->hot.x, 0);
