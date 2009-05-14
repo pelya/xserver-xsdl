@@ -75,6 +75,8 @@ ProcXIQueryPointer(ClientPtr client)
     DeviceIntPtr pDev, kbd;
     WindowPtr pWin, t;
     SpritePtr pSprite;
+    XkbStatePtr state;
+    char *buttons = NULL;
 
     REQUEST(xXIQueryPointerReq);
     REQUEST_SIZE_MATCH(xXIQueryPointerReq);
@@ -107,14 +109,40 @@ ProcXIQueryPointer(ClientPtr client)
     rep.RepType = X_XIQueryPointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.mask = pDev->button->state;
-    if (kbd && kbd->key)
-        rep.mask |= XkbStateFieldFromRec(&kbd->key->xkbInfo->state);
     rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
     rep.root_x = FP1616(pSprite->hot.x, 0);
     rep.root_y = FP1616(pSprite->hot.y, 0);
     rep.child = None;
-    rep.deviceid = pDev->id;
+
+    state = &kbd->key->xkbInfo->prev_state;
+    rep.mods.base_mods = state->base_mods;
+    rep.mods.latched_mods = state->latched_mods;
+    rep.mods.locked_mods = state->locked_mods;
+
+    rep.group.base_group = state->base_group;
+    rep.group.latched_group = state->latched_group;
+    rep.group.locked_group = state->locked_group;
+
+    if (pDev->button)
+    {
+        int i, down;
+        rep.buttons_len = ((pDev->button->numButtons/8) + 3)/4;
+        buttons = xcalloc(rep.buttons_len, 4);
+        if (!buttons)
+            return BadAlloc;
+
+        down = pDev->button->buttonsDown;
+
+        for (i = 0; i < pDev->button->numButtons && down; i++)
+        {
+            if (BitIsOn(pDev->button->down, i))
+            {
+                SetBit(buttons, i);
+                down--;
+            }
+        }
+    } else
+        rep.buttons_len = 0;
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
@@ -147,6 +175,11 @@ ProcXIQueryPointer(ClientPtr client)
 #endif
 
     WriteReplyToClient(client, sizeof(xXIQueryPointerReply), &rep);
+    if (buttons)
+        WriteToClient(client, rep.buttons_len * 4, buttons);
+
+    xfree(buttons);
+
     return Success;
 }
 
