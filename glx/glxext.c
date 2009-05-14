@@ -126,6 +126,10 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
     __GLXcontext *c;
 
     for (c = glxAllContexts; c; c = c->next) {
+	if (c->isCurrent && (c->drawPriv == glxPriv || c->readPriv == glxPriv)) {
+	    (*c->loseCurrent)(c);
+	    __glXFlushContextCache();
+	}
 	if (c->drawPriv == glxPriv)
 	    c->drawPriv = NULL;
 	if (c->readPriv == glxPriv)
