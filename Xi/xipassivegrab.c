@@ -85,6 +85,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     xXIGrabModifierInfo *modifiers_failed;
     GrabMask mask;
     GrabParameters param;
+    void *tmp;
 
     REQUEST(xXIPassiveGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIPassiveGrabDeviceReq);
@@ -133,6 +134,23 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     param.other_devices_mode = stuff->paired_device_mode;
     param.grabWindow = stuff->grab_window;
     param.cursor = stuff->cursor;
+
+    if (stuff->cursor != None)
+    {
+        status = dixLookupResourceByType(&tmp, stuff->cursor,
+                                         RT_CURSOR, client, DixUseAccess);
+	if (status != Success)
+	{
+	    client->errorValue = stuff->cursor;
+	    return (status == BadValue) ? BadCursor : status;
+	}
+    }
+
+    status = dixLookupWindow((WindowPtr*)&tmp, stuff->grab_window, client, DixSetAttrAccess);
+    if (status != Success)
+	return status;
+
+    status = CheckGrabValues(client, &param);
 
     modifiers = (uint32_t*)&stuff[1] + stuff->mask_len;
     modifiers_failed = xcalloc(stuff->num_modifiers, sizeof(xXIGrabModifierInfo));
