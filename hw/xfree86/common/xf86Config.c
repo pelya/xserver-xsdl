@@ -1091,8 +1091,8 @@ Bool xf86DRI2Enabled(void)
  *  2. The "CorePointer" and "CoreKeyboard" InputDevices referred to by
  *     the active ServerLayout.
  *  3. The first InputDevices marked as "CorePointer" and "CoreKeyboard".
- *  4. The first InputDevices that use the 'mouse' and 'keyboard' or 'kbd'
- *     drivers.
+ *  4. The first InputDevices that use 'keyboard' or 'kbd' and a valid mouse
+ *     driver (mouse, synaptics, evdev, vmmouse, void)
  *  5. Default devices with an empty (default) configuration.  These defaults
  *     will reference the 'mouse' and 'keyboard' drivers.
  */
@@ -1111,6 +1111,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     int count = 0;
     MessageType from = X_DEFAULT;
     int found = 0;
+    const char *mousedrivers[] = { "mouse", "synaptics", "evdev", "vmmouse",
+				   "void", NULL };
 
     /*
      * First check if a core pointer or core keyboard have been specified
@@ -1220,13 +1222,15 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	}
     }
 
-    /* 4. First pointer with 'mouse' as the driver. */
+    /* 4. First pointer with an allowed mouse driver. */
     if (!foundPointer && !xf86Info.allowEmptyInput) {
+	const char **driver = mousedrivers;
 	confInput = xf86findInput(CONF_IMPLICIT_POINTER,
 				  xf86configptr->conf_input_lst);
-	if (!confInput) {
-	    confInput = xf86findInputByDriver("mouse",
+	while (driver && !confInput) {
+	    confInput = xf86findInputByDriver(*driver,
 					      xf86configptr->conf_input_lst);
+	    driver++;
 	}
 	if (confInput) {
 	    foundPointer = TRUE;
@@ -1281,10 +1285,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * section ... deal.
      */
     for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-	if (!strcmp((*devs)->driver, "void") || !strcmp((*devs)->driver, "mouse") ||
-            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev") ||
-            !strcmp((*devs)->driver, "synaptics")) {
-	    found = 1; break;
+	const char **driver = mousedrivers;
+	while(*driver) {
+	    if (!strcmp((*devs)->driver, *driver)) {
+		found = 1;
+		break;
+	    }
+	    driver++;
 	}
     }
     if (!found && !xf86Info.allowEmptyInput) {
