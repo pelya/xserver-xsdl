@@ -157,7 +157,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     if (!modifiers_failed)
         return BadAlloc;
 
-    if (dev->isMaster)
+    if (IsPointerDevice(dev) && dev->isMaster)
         mod_dev = GetPairedDevice(dev);
     else
         mod_dev = dev;
