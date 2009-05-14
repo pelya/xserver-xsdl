@@ -357,7 +357,8 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 #    endif
 }
 
-#    define write_mem_barrier()  __asm__ __volatile__("wmb" : : : "memory")
+#    define mem_barrier() __asm__ __volatile__("mb" : : : "memory")
+#    define write_mem_barrier() __asm__ __volatile__("wmb" : : : "memory")
 
 #   elif defined(linux) && defined(__ia64__) 
  
