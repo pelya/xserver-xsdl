@@ -160,6 +160,11 @@ static Bool quirk_detailed_v_in_cm (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 47360)
 	return TRUE;
 
+    /* Bug #21750: Samsung Syncmaster 2333HD */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 1157)
+	return TRUE;
+
     return FALSE;
 }
 
