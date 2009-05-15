@@ -415,11 +415,12 @@ ExaCheckAddTraps (PicturePtr	pPicture,
 
 static _X_INLINE Bool
 exaGCReadsDestination(DrawablePtr pDrawable, unsigned long planemask,
-		      unsigned int fillStyle, unsigned char alu)
+		      unsigned int fillStyle, unsigned char alu,
+		      unsigned int clientClipType)
 {
-    return ((alu != GXcopy && alu != GXclear &&alu != GXset &&
+    return ((alu != GXcopy && alu != GXclear && alu != GXset &&
 	     alu != GXcopyInverted) || fillStyle == FillStippled ||
-	    !EXA_PM_IS_SOLID(pDrawable, planemask));
+	    clientClipType != CT_NONE || !EXA_PM_IS_SOLID(pDrawable, planemask));
 }
 
 void
@@ -427,7 +428,8 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 Bool
 exaFillRegionTiled (DrawablePtr	pDrawable, RegionPtr pRegion, PixmapPtr pTile,
-		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu);
+		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu,
+		    unsigned int clientClipType);
 
 void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,

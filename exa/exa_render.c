@@ -945,7 +945,7 @@ exaComposite(CARD8	op,
 
 		ret = exaFillRegionTiled(pDst->pDrawable, &region,
 					 (PixmapPtr)pSrc->pDrawable,
-					 &patOrg, FB_ALLONES, GXcopy);
+					 &patOrg, FB_ALLONES, GXcopy, CT_NONE);
 
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 
