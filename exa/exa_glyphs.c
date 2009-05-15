@@ -354,8 +354,14 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
  * is to use the UploadToScreen() driver hook; this allows us to
  * pipeline glyph uploads and to avoid creating offscreen pixmaps for
  * glyphs that we'll never use again.
+ *
+ * If we can't do it with UploadToScreen (because the glyph is offscreen, etc),
+ * we fall back to CompositePicture.
+ *
+ * We need to damage the cache pixmap manually in either case because the damage
+ * layer unwrapped the picture screen before calling exaGlyphs.
  */
-static Bool
+static void
 exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 			 ExaGlyphCachePtr  cache,
 			 int               pos,
@@ -369,16 +375,16 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     ExaMigrationRec pixmaps[1];
 
     if (!pExaScr->info->UploadToScreen || pExaScr->swappedOut || pExaPixmap->accel_blocked)
-	return FALSE;
+	goto composite;
 
     /* If the glyph pixmap is already uploaded, no point in doing
      * things this way */
     if (exaPixmapIsOffscreen(pGlyphPixmap))
-	return FALSE;
+	goto composite;
 
     /* UploadToScreen only works if bpp match */
     if (pGlyphPixmap->drawable.bitsPerPixel != pCachePixmap->drawable.bitsPerPixel)
-	return FALSE;
+	goto composite;
 
     /* cache pixmap must be offscreen. */
     pixmaps[0].as_dst = TRUE;
@@ -388,26 +394,37 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     exaDoMigration (pixmaps, 1, TRUE);
 
     if (!exaPixmapIsOffscreen(pCachePixmap))
-	return FALSE;
+	goto composite;
 
     /* CACHE_{X,Y} are in pixmap coordinates, no need for cache{X,Y}off */
-    if (!pExaScr->info->UploadToScreen(pCachePixmap,
-				       CACHE_X(pos),
-				       CACHE_Y(pos),
-				       pGlyph->info.width,
-				       pGlyph->info.height,
-				       (char *)pExaPixmap->sys_ptr,
-				       pExaPixmap->sys_pitch))
-	return FALSE;
+    if (pExaScr->info->UploadToScreen(pCachePixmap,
+				      CACHE_X(pos),
+				      CACHE_Y(pos),
+				      pGlyph->info.width,
+				      pGlyph->info.height,
+				      (char *)pExaPixmap->sys_ptr,
+				      pExaPixmap->sys_pitch))
+	goto damage;
 
-    /* This pixmap should never be bound to a window, so no need to offset coordinates. */
+composite:
+    CompositePicture (PictOpSrc,
+		      pGlyphPicture,
+		      None,
+		      cache->picture,
+		      0, 0,
+		      0, 0,
+		      CACHE_X(pos),
+		      CACHE_Y(pos),
+		      pGlyph->info.width,
+		      pGlyph->info.height);
+
+damage:
+    /* The cache pixmap isn't a window, so no need to offset coordinates. */
     exaPixmapDirty (pCachePixmap,
 		    CACHE_X(pos),
 		    CACHE_Y(pos),
-		    CACHE_X(pos) + pGlyph->info.width,
-		    CACHE_Y(pos) + pGlyph->info.height);
-
-    return TRUE;
+		    CACHE_X(pos) + cache->glyphWidth,
+		    CACHE_Y(pos) + cache->glyphHeight);
 }
 
 static ExaGlyphCacheResult
@@ -483,23 +500,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	    cache->evictionPosition = rand() % cache->size;
 	}
 
-	/* Now actually upload the glyph into the cache picture; if
-	 * we can't do it with UploadToScreen (because the glyph is
-	 * offscreen, etc), we fall back to CompositePicture.
-	 */
-	if (!exaGlyphCacheUploadGlyph(pScreen, cache, pos, pGlyph)) {
-	    CompositePicture (PictOpSrc,
-			      GlyphPicture(pGlyph)[pScreen->myNum],
-			      None,
-			      cache->picture,
-			      0, 0,
-			      0, 0,
-			      CACHE_X(pos),
-			      CACHE_Y(pos),
-			      pGlyph->info.width,
-			      pGlyph->info.height);
-	}
-
+	exaGlyphCacheUploadGlyph(pScreen, cache, pos, pGlyph);
     }
 
     buffer->mask = cache->picture;
