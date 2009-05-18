@@ -95,8 +95,16 @@ winPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
       return;
     }
 
-  /* Only update the Windows cursor position if we are active */
-  if (pScreenPriv->hwndScreen == GetForegroundWindow ())
+  /*
+     Only update the Windows cursor position if root window is active,
+     or we are in a rootless mode
+  */
+  if ((pScreenPriv->hwndScreen == GetForegroundWindow ())
+      || pScreenPriv->pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOW
+      || pScreenPriv->pScreenInfo->fMultiWindow
+#endif
+      )
     {
       /* Get the client area coordinates */
       GetClientRect (pScreenPriv->hwndScreen, &rcClient);
