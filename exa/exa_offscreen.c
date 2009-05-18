@@ -93,7 +93,7 @@ exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
 {
     ExaOffscreenArea *begin, *end, *best;
     unsigned cost, best_cost;
-    int avail, real_size, tmp;
+    int avail, real_size;
 
     best_cost = UINT_MAX;
     begin = end = pExaScr->info->offScreenAreas;
@@ -111,10 +111,7 @@ exaFindAreaToEvict(ExaScreenPrivPtr pExaScr, int size, int align)
 	    break;
 
 	/* adjust size needed to account for alignment loss for this area */
-	real_size = size;
-	tmp = begin->base_offset % align;
-	if (tmp)
-	    real_size += (align - tmp);
+	real_size = size + (begin->base_offset + begin->size - size) % align;
 
 	while (avail < real_size && end != NULL)
 	{
@@ -172,7 +169,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 {
     ExaOffscreenArea *area;
     ExaScreenPriv (pScreen);
-    int tmp, real_size = 0, free_total = 0, largest_avail = 0;
+    int real_size = 0, free_total = 0, largest_avail = 0;
 #if DEBUG_OFFSCREEN
     static int number = 0;
     ErrorF("================= ============ allocating a new pixmap %d\n", ++number);
@@ -205,10 +202,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	    continue;
 
 	/* adjust size to match alignment requirement */
-	real_size = size;
-	tmp = area->base_offset % align;
-	if (tmp)
-	    real_size += (align - tmp);
+	real_size = size + (area->base_offset + area->size - size) % align;
 
 	/* does it fit? */
 	if (real_size <= area->size)
@@ -232,10 +226,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 
 	    if (area) {
 		/* adjust size to match alignment requirement */
-		real_size = size;
-		tmp = area->base_offset % align;
-		if (tmp)
-		    real_size += (align - tmp);
+		real_size = size + (area->base_offset + area->size - size) % align;
 
 		/* does it fit? */
 		if (real_size > area->size)
@@ -257,10 +248,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	}
 
 	/* adjust size needed to account for alignment loss for this area */
-	real_size = size;
-	tmp = area->base_offset % align;
-	if (tmp)
-	    real_size += (align - tmp);
+	real_size = size + (area->base_offset + area->size - size) % align;
 
 	/*
 	 * Kick out first area if in use
@@ -283,13 +271,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	ExaOffscreenArea   *new_area = xalloc (sizeof (ExaOffscreenArea));
 	if (!new_area)
 	    return NULL;
-	new_area->base_offset = area->base_offset + real_size;
-
-#if DEBUG_OFFSCREEN
-	if (new_area->base_offset >= pExaScr->info->memorySize)
-	    ErrorF("new_area->base_offset = 0x%08x >= memorySize!\n",
-		   new_area->base_offset);
-#endif
+	new_area->base_offset = area->base_offset;
 
 	new_area->offset = new_area->base_offset;
 	new_area->align = 0;
@@ -298,13 +280,14 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	new_area->save = NULL;
 	new_area->last_use = 0;
 	new_area->eviction_cost = 0;
-	new_area->next = area->next;
-	if (area->next)
-	    area->next->prev = new_area;
+	new_area->next = area;
+	new_area->prev = area->prev;
+	if (area->prev->next)
+	    area->prev->next = new_area;
 	else
-	    pExaScr->info->offScreenAreas->prev = new_area;
-	area->next = new_area;
-	new_area->prev = area;
+	    pExaScr->info->offScreenAreas = new_area;
+	area->prev = new_area;
+	area->base_offset = new_area->base_offset + new_area->size;
 	area->size = real_size;
     } else
 	pExaScr->numOffscreenAvailable--;
