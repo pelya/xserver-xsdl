@@ -453,6 +453,14 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       HandleCustomWM_INITMENU ((unsigned long)hwnd, wParam);
       break;
 
+    case WM_ERASEBKGND:
+      /*
+       * Pretend that we did erase the background but we don't care,
+       * since we repaint the entire region anyhow
+       * This avoids some flickering when resizing.
+       */
+      return TRUE;
+
     case WM_PAINT:
       /* Only paint if our window handle is valid */
       if (hwndScreen == NULL)
