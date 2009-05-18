@@ -127,6 +127,7 @@ ProcXIQueryPointer(ClientPtr client)
     {
         int i, down;
         rep.buttons_len = ((pDev->button->numButtons/8) + 3)/4;
+        rep.length += rep.buttons_len;
         buttons = xcalloc(rep.buttons_len, 4);
         if (!buttons)
             return BadAlloc;
