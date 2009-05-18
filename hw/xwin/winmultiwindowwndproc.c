@@ -290,6 +290,20 @@ static void winRaiseWindow(WindowPtr pWin)
   }
 }
 
+static
+void winStartMousePolling(winPrivScreenPtr s_pScreenPriv)
+{
+  /*
+   * Timer to poll mouse position.  This is needed to make
+   * programs like xeyes follow the mouse properly when the
+   * mouse pointer is outside of any X window.
+   */
+  if (g_uipMousePollingTimerID == 0)
+    g_uipMousePollingTimerID = SetTimer (s_pScreenPriv->hwndScreen,
+					 WIN_POLLING_MOUSE_TIMER_ID,
+					 MOUSE_POLLING_INTERVAL,
+					 NULL);
+}
 
 /*
  * winTopLevelWindowProc - Window procedure for all top-level Windows windows.
@@ -565,15 +579,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	  ShowCursor (TRUE);
 	}
 
-      /*
-       * Timer to poll mouse events.  This is needed to make
-       * programs like xeyes follow the mouse properly.
-       */
-      if (g_uipMousePollingTimerID == 0)
-	g_uipMousePollingTimerID = SetTimer (s_pScreenPriv->hwndScreen,
-					     WIN_POLLING_MOUSE_TIMER_ID,
-					     MOUSE_POLLING_INTERVAL,
-					     NULL);
+      winStartMousePolling(s_pScreenPriv);
+
       break;
 
     case WM_MOUSELEAVE:
@@ -589,15 +596,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	  ShowCursor (TRUE);
 	}
 
-      /*
-       * Timer to poll mouse events.  This is needed to make
-       * programs like xeyes follow the mouse properly.
-       */
-      if (g_uipMousePollingTimerID == 0)
-	g_uipMousePollingTimerID = SetTimer (s_pScreenPriv->hwndScreen,
-					     WIN_POLLING_MOUSE_TIMER_ID,
-					     MOUSE_POLLING_INTERVAL,
-					     NULL);
+      winStartMousePolling(s_pScreenPriv);
+
       return 0;
 
     case WM_LBUTTONDBLCLK:
@@ -605,12 +605,15 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[0] = TRUE;
+      SetCapture(hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button1, wParam);
-      
+
     case WM_LBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[0] = FALSE;
+      ReleaseCapture();
+      winStartMousePolling(s_pScreenPriv);
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button1, wParam);
 
     case WM_MBUTTONDBLCLK:
@@ -618,35 +621,45 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[1] = TRUE;
+      SetCapture(hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button2, wParam);
-      
+
     case WM_MBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[1] = FALSE;
+      ReleaseCapture();
+      winStartMousePolling(s_pScreenPriv);
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button2, wParam);
-      
+
     case WM_RBUTTONDBLCLK:
     case WM_RBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[2] = TRUE;
+      SetCapture(hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, Button3, wParam);
-      
+
     case WM_RBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
       g_fButton[2] = FALSE;
+      ReleaseCapture();
+      winStartMousePolling(s_pScreenPriv);
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, Button3, wParam);
 
     case WM_XBUTTONDBLCLK:
     case WM_XBUTTONDOWN:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+	SetCapture(hwnd);
       return winMouseButtonsHandle (s_pScreen, ButtonPress, HIWORD(wParam) + 5, wParam);
+
     case WM_XBUTTONUP:
       if (s_pScreenPriv == NULL || s_pScreenInfo->fIgnoreInput)
 	break;
+      ReleaseCapture();
+      winStartMousePolling(s_pScreenPriv);
       return winMouseButtonsHandle (s_pScreen, ButtonRelease, HIWORD(wParam) + 5, wParam);
 
     case WM_MOUSEWHEEL:
@@ -935,6 +948,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       /* Tell our Window Manager thread to map the window */
       if (fWMMsgInitialized)
 	winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
+
+      winStartMousePolling(s_pScreenPriv);
 
       return 0;
 
