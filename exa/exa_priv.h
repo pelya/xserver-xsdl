@@ -145,6 +145,8 @@ typedef struct {
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
+    ScreenBlockHandlerProcPtr	 SavedBlockHandler;
+    ScreenWakeupHandlerProcPtr	 SavedWakeupHandler;
     CreateGCProcPtr 		 SavedCreateGC;
     CloseScreenProcPtr 		 SavedCloseScreen;
     GetImageProcPtr 		 SavedGetImage;
@@ -170,6 +172,9 @@ typedef struct {
     unsigned			 disableFbCount;
     Bool			 optimize_migration;
     unsigned			 offScreenCounter;
+    unsigned			 numOffscreenAvailable;
+    CARD32			 lastDefragment;
+    CARD32			 nextDefragment;
 
     /* Store all accessed pixmaps, so we can check for duplicates. */
     PixmapPtr prepare_access[6];
@@ -459,6 +464,9 @@ ExaOffscreenSwapOut (ScreenPtr pScreen);
 
 void
 ExaOffscreenSwapIn (ScreenPtr pScreen);
+
+ExaOffscreenArea*
+ExaOffscreenDefragment (ScreenPtr pScreen);
 
 Bool
 exaOffscreenInit(ScreenPtr pScreen);
