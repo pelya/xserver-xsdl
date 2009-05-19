@@ -4088,10 +4088,10 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     {
         xKeymapEvent ke;
         ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
-        else
+        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess))
             bzero((char *)&ke.map[0], 31);
+        else
+            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
