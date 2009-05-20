@@ -326,15 +326,8 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->isMaster = FALSE;
         dev->spriteInfo->spriteOwner = FALSE;
 
-        if (DeviceIsPointerType(dev))
-        {
-            dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
-            dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
-        } else 
-        {
-            dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
-            dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
-        }
+        dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+        dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
 
         RegisterOtherDevice(dev);
         XkbSetExtension(dev, ProcessKeyboardEvent);

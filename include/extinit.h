@@ -37,11 +37,6 @@ XInputExtensionInit(
 	void
 	);
 
-extern _X_EXPORT Bool
-DeviceIsPointerType(
-        DeviceIntPtr dev
-        );
-
 extern _X_EXPORT void
 AssignTypeAndName (
 	DeviceIntPtr           /* dev */,
