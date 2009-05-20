@@ -125,6 +125,7 @@ typedef struct
     int type;             /**< ET_DeviceChanged */
     int length;           /**< Length in bytes */
     Time time;            /**< Time in ms */
+    int deviceid;         /**< Device whose capabilities have changed */
     int flags;            /**< Mask of ::HAS_OLD_SLAVE or ::HAS_NEW_SLAVE */
     /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies SD previously
      * attached to this device. */
