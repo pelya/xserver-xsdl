@@ -1308,7 +1308,7 @@ XkbSizeVirtualModMap(XkbDescPtr xkb,xkbGetMapReply *rep)
 	rep->totalVModMapKeys= 0;
 	return 0;
     }
-    for (nRtrn=i=0;i<rep->nVModMapKeys-1;i++) {
+    for (nRtrn=i=0;i<rep->nVModMapKeys;i++) {
 	if (xkb->server->vmodmap[i+rep->firstVModMapKey]!=0)
 	    nRtrn++;
     }
@@ -1327,7 +1327,7 @@ unsigned short *	pMap;
 
     wire= (xkbVModMapWireDesc *)buf;
     pMap= &xkb->server->vmodmap[rep->firstVModMapKey];
-    for (i=0;i<rep->nVModMapKeys-1;i++,pMap++) {
+    for (i=0;i<rep->nVModMapKeys;i++,pMap++) {
 	if (*pMap!=0) {
 	    wire->key= i+rep->firstVModMapKey;
 	    wire->vmods= *pMap;
@@ -5668,7 +5668,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    mrep.present = 0;
 	    mrep.totalSyms = mrep.totalActs =
 		mrep.totalKeyBehaviors= mrep.totalKeyExplicit= 
-		mrep.totalModMapKeys= 0;
+		mrep.totalModMapKeys= mrep.totalVModMapKeys= 0;
 	    if (rep.reported&(XkbGBN_TypesMask|XkbGBN_ClientSymbolsMask)) {
 		mrep.present|= XkbKeyTypesMask;
 		mrep.firstType = 0;
@@ -5694,6 +5694,8 @@ ProcXkbGetKbdByName(ClientPtr client)
 			mrep.firstKeyExplicit = new->min_key_code;
 		mrep.nKeyActs = mrep.nKeyBehaviors = 
 			mrep.nKeyExplicit = XkbNumKeys(new);
+		mrep.firstVModMapKey= new->min_key_code;
+		mrep.nVModMapKeys= XkbNumKeys(new);
 	    }
 	    else {
 		mrep.virtualMods= 0;
