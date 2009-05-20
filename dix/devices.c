@@ -433,6 +433,18 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
 
     (void)(*dev->deviceProc)(dev, DEVICE_OFF);
     dev->enabled = FALSE;
+
+    /* now that the device is disabled, we can reset the signal handler's
+     * last.slave */
+    OsBlockSignals();
+    for (other = inputInfo.devices; other; other = other->next)
+    {
+        if (other->last.slave == dev)
+            other->last.slave = NULL;
+    }
+    OsReleaseSignals();
+
+
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
@@ -2367,6 +2379,7 @@ AllocDevicePair (ClientPtr client, char* name,
     pointer->spriteInfo->spriteOwner = TRUE;
 
     pointer->u.lastSlave = NULL;
+    pointer->last.slave = NULL;
     pointer->isMaster = master;
 
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
@@ -2389,6 +2402,7 @@ AllocDevicePair (ClientPtr client, char* name,
     keyboard->spriteInfo->spriteOwner = FALSE;
 
     keyboard->u.lastSlave = NULL;
+    keyboard->last.slave = NULL;
     keyboard->isMaster = master;
 
 

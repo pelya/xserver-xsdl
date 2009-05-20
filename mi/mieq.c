@@ -370,8 +370,11 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         {
             handler(DequeueScreen(dev)->myNum, event, dev);
             if (master)
+            {
+                master->u.lastSlave = dev;
                 handler(DequeueScreen(master)->myNum,
                         (InternalEvent*)masterEvents->event, master);
+            }
         } else
         {
             /* process slave first, then master */

@@ -1010,7 +1010,6 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     if (device->isMaster || !device->u.master)
         CheckMotion(event, device);
 
-
     switch (event->type)
     {
         case ET_Motion:

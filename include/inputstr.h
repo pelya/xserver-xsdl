@@ -507,6 +507,7 @@ typedef struct _DeviceIntRec {
         int             valuators[MAX_VALUATORS];
         float           remainder[MAX_VALUATORS];
         int             numValuators;
+        DeviceIntPtr    slave;
     } last;
 
     /* Input device property handling. */

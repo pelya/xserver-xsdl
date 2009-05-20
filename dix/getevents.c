@@ -199,10 +199,10 @@ CreateClassesChangedEvent(EventList* event,
     dce->length = sizeof(DeviceChangedEvent);
     dce->type = ET_DeviceChanged;
     dce->time = ms;
-    if (master->u.lastSlave)
+    if (master->last.slave)
     {
         dce->flags |= DEVCHANGE_HAS_OLD_SLAVE;
-        dce->old_slaveid = master->u.lastSlave->id;
+        dce->old_slaveid = master->last.slave->id;
     }
     dce->flags |= DEVCHANGE_HAS_NEW_SLAVE;
     dce->new_slaveid = slave->id;
@@ -294,7 +294,7 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
      * slave-device. If the old slave had less axes than this one,
      * last.valuators is reset to 0.
      */
-    if ((lastSlave = master->u.lastSlave) && lastSlave->valuator) {
+    if ((lastSlave = master->last.slave) && lastSlave->valuator) {
         for (i = 2; i < pDev->valuator->numAxes; i++) {
             if (i >= lastSlave->valuator->numAxes)
                 pDev->last.valuators[i] = 0;
@@ -612,11 +612,11 @@ static EventListPtr
 updateFromMaster(EventListPtr events, DeviceIntPtr dev, int *num_events)
 {
     DeviceIntPtr master = dev->u.master;
-    if (master && master->u.lastSlave != dev)
+    if (master && master->last.slave != dev)
     {
         CreateClassesChangedEvent(events, master, dev);
         updateSlaveDeviceCoords(master, dev);
-        master->u.lastSlave = dev;
+        master->last.slave = dev;
         master->last.numValuators = dev->last.numValuators;
         (*num_events)++;
         events++;
