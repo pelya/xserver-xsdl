@@ -835,6 +835,10 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     DeviceEvent *event;
     RawDeviceEvent *raw;
 
+    /* refuse events from disabled devices */
+    if (!pDev->enabled)
+        return 0;
+
     if (!events ||!pDev->key || !pDev->focus || !pDev->kbdfeed ||
        (type != KeyPress && type != KeyRelease) ||
        (key_code < 8 || key_code > 255))
@@ -997,6 +1001,10 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
 
+    /* refuse events from disabled devices */
+    if (!pDev->enabled)
+        return 0;
+
     ms = GetTimeInMillis(); /* before pointer update to help precision */
 
     if (!scr || !pDev->valuator || first_valuator < 0 ||
@@ -1095,6 +1103,10 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
 {
     int num_events = 1;
     DeviceEvent *event;
+
+    /* refuse events from disabled devices */
+    if (!pDev->enabled)
+        return 0;
 
     /* Sanity checks. */
     if (type != ProximityIn && type != ProximityOut)
