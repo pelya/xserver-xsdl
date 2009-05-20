@@ -112,9 +112,9 @@ typedef struct
 } DeviceEvent;
 
 
-/* Flags used in DeviceChangedEvent to signal if new/old slave is present */
-#define HAS_OLD_SLAVE 0x1
-#define HAS_NEW_SLAVE 0x2
+/* Flags used in DeviceChangedEvent to signal if new/old slave is present. */
+#define DEVCHANGE_HAS_OLD_SLAVE 0x1
+#define DEVCHANGE_HAS_NEW_SLAVE 0x2
 
 /**
  * Sent whenever a device's capabilities have changed.

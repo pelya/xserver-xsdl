@@ -201,10 +201,10 @@ CreateClassesChangedEvent(EventList* event,
     dce->time = ms;
     if (master->u.lastSlave)
     {
-        dce->flags |= HAS_OLD_SLAVE;
+        dce->flags |= DEVCHANGE_HAS_OLD_SLAVE;
         dce->old_slaveid = master->u.lastSlave->id;
     }
-    dce->flags |= HAS_NEW_SLAVE;
+    dce->flags |= DEVCHANGE_HAS_NEW_SLAVE;
     dce->new_slaveid = slave->id;
 
     if (slave->button)
