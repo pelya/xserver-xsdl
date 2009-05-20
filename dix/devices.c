@@ -2320,7 +2320,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
             /* XXX: reset master back to defaults */
             event = InitEventList(1);
             SetMinimumEventSize(event, 1, sizeof(DeviceChangedEvent));
-            CreateClassesChangedEvent(event, oldmaster, oldmaster);
+            CreateClassesChangedEvent(event, oldmaster, oldmaster,
+                                      DEVCHANGE_POINTER_EVENT | DEVCHANGE_KEYBOARD_EVENT);
             XISendDeviceChangedEvent(oldmaster, oldmaster,
                                      (DeviceChangedEvent*)event->event);
             FreeEventList(event, 1);

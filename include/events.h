@@ -115,6 +115,10 @@ typedef struct
 /* Flags used in DeviceChangedEvent to signal if new/old slave is present. */
 #define DEVCHANGE_HAS_OLD_SLAVE 0x1
 #define DEVCHANGE_HAS_NEW_SLAVE 0x2
+/* Flags used in DeviceChangedEvent to signal whether the event was a
+ * pointer event or a keyboard event */
+#define DEVCHANGE_POINTER_EVENT 0x4
+#define DEVCHANGE_KEYBOARD_EVENT 0x8
 
 /**
  * Sent whenever a device's capabilities have changed.
@@ -126,7 +130,8 @@ typedef struct
     int length;           /**< Length in bytes */
     Time time;            /**< Time in ms */
     int deviceid;         /**< Device whose capabilities have changed */
-    int flags;            /**< Mask of ::HAS_OLD_SLAVE or ::HAS_NEW_SLAVE */
+    int flags;            /**< Mask of ::HAS_OLD_SLAVE, ::HAS_NEW_SLAVE,
+                               ::POINTER_EVENT, ::KEYBOARD_EVENT */
     /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies SD previously
      * attached to this device. */
     int old_slaveid;

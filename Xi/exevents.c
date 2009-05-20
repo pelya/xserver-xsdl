@@ -216,83 +216,6 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
     ClassesPtr classes;
 
-    if (from->kbdfeed)
-    {
-        KbdFeedbackPtr *k, it;
-
-        if (!to->kbdfeed)
-        {
-            classes = dixLookupPrivate(&to->devPrivates,
-                                       UnusedClassesPrivateKey);
-
-            to->kbdfeed = classes->kbdfeed;
-            if (!to->kbdfeed)
-                InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
-        }
-
-        k = &to->kbdfeed;
-        for(it = from->kbdfeed; it; it = it->next)
-        {
-            if (!(*k))
-            {
-                *k = xcalloc(1, sizeof(KbdFeedbackClassRec));
-                if (!*k)
-                {
-                    ErrorF("[Xi] Cannot alloc memory for class copy.");
-                    return;
-                }
-            }
-            (*k)->BellProc = it->BellProc;
-            (*k)->CtrlProc = it->CtrlProc;
-            (*k)->ctrl     = it->ctrl;
-            if ((*k)->xkb_sli)
-                XkbFreeSrvLedInfo((*k)->xkb_sli);
-            (*k)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, *k, NULL);
-
-            k = &(*k)->next;
-        }
-    } else if (to->kbdfeed && !from->kbdfeed)
-    {
-        ClassesPtr classes;
-        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
-        classes->kbdfeed = to->kbdfeed;
-        to->kbdfeed      = NULL;
-    }
-
-    if (from->ptrfeed)
-    {
-        PtrFeedbackPtr *p, it;
-        if (!to->ptrfeed)
-        {
-            classes = dixLookupPrivate(&to->devPrivates,
-                                       UnusedClassesPrivateKey);
-            to->ptrfeed = classes->ptrfeed;
-        }
-
-        p = &to->ptrfeed;
-        for (it = from->ptrfeed; it; it = it->next)
-        {
-            if (!(*p))
-            {
-                *p = xcalloc(1, sizeof(PtrFeedbackClassRec));
-                if (!*p)
-                {
-                    ErrorF("[Xi] Cannot alloc memory for class copy.");
-                    return;
-                }
-            }
-            (*p)->CtrlProc = it->CtrlProc;
-            (*p)->ctrl     = it->ctrl;
-
-            p = &(*p)->next;
-        }
-    } else if (to->ptrfeed && !from->ptrfeed)
-    {
-        ClassesPtr classes;
-        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
-        classes->ptrfeed = to->ptrfeed;
-        to->ptrfeed      = NULL;
-    }
 
     if (from->intfeed)
     {
@@ -443,31 +366,63 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 }
 
-/**
- * Copies the CONTENT of the classes of device from into the classes in device
- * to. From and to are identical after finishing.
- *
- * If to does not have classes from currenly has, the classes are stored in
- * to's devPrivates system. Later, we recover it again from there if needed.
- * Saves a few memory allocations.
- */
-
-void
-DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
+static void
+DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
     ClassesPtr classes;
 
     /* XkbInitDevice (->XkbInitIndicatorMap->XkbFindSrvLedInfo) relies on the
      * kbdfeed to be set up properly, so let's do the feedback classes first.
      */
-    DeepCopyFeedbackClasses(from, to);
+    if (from->kbdfeed)
+    {
+        KbdFeedbackPtr *k, it;
+
+        if (!to->kbdfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+
+            to->kbdfeed = classes->kbdfeed;
+            if (!to->kbdfeed)
+                InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
+        }
+
+        k = &to->kbdfeed;
+        for(it = from->kbdfeed; it; it = it->next)
+        {
+            if (!(*k))
+            {
+                *k = xcalloc(1, sizeof(KbdFeedbackClassRec));
+                if (!*k)
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
+            (*k)->BellProc = it->BellProc;
+            (*k)->CtrlProc = it->CtrlProc;
+            (*k)->ctrl     = it->ctrl;
+            if ((*k)->xkb_sli)
+                XkbFreeSrvLedInfo((*k)->xkb_sli);
+            (*k)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, *k, NULL);
+
+            k = &(*k)->next;
+        }
+    } else if (to->kbdfeed && !from->kbdfeed)
+    {
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->kbdfeed = to->kbdfeed;
+        to->kbdfeed      = NULL;
+    }
 
     if (from->key)
     {
         if (!to->key)
         {
             classes = dixLookupPrivate(&to->devPrivates,
-                                       UnusedClassesPrivateKey);
+                    UnusedClassesPrivateKey);
             to->key = classes->key;
             if (!to->key)
                 InitKeyboardDeviceStruct(to, NULL, NULL, NULL);
@@ -482,6 +437,89 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
         classes->key = to->key;
         to->key      = NULL;
+    }
+
+    /* We can't just copy over the focus class. When an app sets the focus,
+     * it'll do so on the master device. Copying the SDs focus means losing
+     * the focus.
+     * So we only copy the focus class if the device didn't have one,
+     * otherwise we leave it as it is.
+     */
+    if (from->focus)
+    {
+        if (!to->focus)
+        {
+            WindowPtr *oldTrace;
+
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->focus = classes->focus;
+            if (!to->focus)
+            {
+                to->focus = xcalloc(1, sizeof(FocusClassRec));
+                if (!to->focus)
+                    FatalError("[Xi] no memory for class shift.\n");
+            } else
+                classes->focus = NULL;
+
+            oldTrace = to->focus->trace;
+            memcpy(to->focus, from->focus, sizeof(FocusClassRec));
+            to->focus->trace = xrealloc(oldTrace,
+                                  to->focus->traceSize * sizeof(WindowPtr));
+            if (!to->focus->trace && to->focus->traceSize)
+                FatalError("[Xi] no memory for trace.\n");
+            memcpy(to->focus->trace, from->focus->trace,
+                    from->focus->traceSize * sizeof(WindowPtr));
+        }
+    } else if (to->focus)
+    {
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->focus = to->focus;
+        to->focus      = NULL;
+    }
+
+}
+
+static void
+DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
+{
+    ClassesPtr classes;
+
+    /* Feedback classes must be copied first */
+    if (from->ptrfeed)
+    {
+        PtrFeedbackPtr *p, it;
+        if (!to->ptrfeed)
+        {
+            classes = dixLookupPrivate(&to->devPrivates,
+                                       UnusedClassesPrivateKey);
+            to->ptrfeed = classes->ptrfeed;
+        }
+
+        p = &to->ptrfeed;
+        for (it = from->ptrfeed; it; it = it->next)
+        {
+            if (!(*p))
+            {
+                *p = xcalloc(1, sizeof(PtrFeedbackClassRec));
+                if (!*p)
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
+            (*p)->CtrlProc = it->CtrlProc;
+            (*p)->ctrl     = it->ctrl;
+
+            p = &(*p)->next;
+        }
+    } else if (to->ptrfeed && !from->ptrfeed)
+    {
+        ClassesPtr classes;
+        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
+        classes->ptrfeed = to->ptrfeed;
+        to->ptrfeed      = NULL;
     }
 
     if (from->valuator)
@@ -552,47 +590,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         to->button      = NULL;
     }
 
-
-    /* We can't just copy over the focus class. When an app sets the focus,
-     * it'll do so on the master device. Copying the SDs focus means losing
-     * the focus.
-     * So we only copy the focus class if the device didn't have one,
-     * otherwise we leave it as it is.
-     */
-    if (from->focus)
-    {
-        if (!to->focus)
-        {
-            WindowPtr *oldTrace;
-
-            classes = dixLookupPrivate(&to->devPrivates,
-                                       UnusedClassesPrivateKey);
-            to->focus = classes->focus;
-            if (!to->focus)
-            {
-                to->focus = xcalloc(1, sizeof(FocusClassRec));
-                if (!to->focus)
-                    FatalError("[Xi] no memory for class shift.\n");
-            } else
-                classes->focus = NULL;
-
-            oldTrace = to->focus->trace;
-            memcpy(to->focus, from->focus, sizeof(FocusClassRec));
-            to->focus->trace = xrealloc(oldTrace,
-                                  to->focus->traceSize * sizeof(WindowPtr));
-            if (!to->focus->trace && to->focus->traceSize)
-                FatalError("[Xi] no memory for trace.\n");
-            memcpy(to->focus->trace, from->focus->trace,
-                    from->focus->traceSize * sizeof(WindowPtr));
-        }
-    } else if (to->focus)
-    {
-        ClassesPtr classes;
-        classes = dixLookupPrivate(&to->devPrivates, UnusedClassesPrivateKey);
-        classes->focus = to->focus;
-        to->focus      = NULL;
-    }
-
     if (from->proximity)
     {
         if (!to->proximity)
@@ -641,6 +638,27 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         to->absolute      = NULL;
     }
 }
+
+/**
+ * Copies the CONTENT of the classes of device from into the classes in device
+ * to. From and to are identical after finishing.
+ *
+ * If to does not have classes from currenly has, the classes are stored in
+ * to's devPrivates system. Later, we recover it again from there if needed.
+ * Saves a few memory allocations.
+ */
+void
+DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to, DeviceChangedEvent *dce)
+{
+    /* generic feedback classes, not tied to pointer and/or keyboard */
+    DeepCopyFeedbackClasses(from, to);
+
+    if ((dce->flags & DEVCHANGE_KEYBOARD_EVENT))
+        DeepCopyKeyboardClasses(from, to);
+    if ((dce->flags & DEVCHANGE_POINTER_EVENT))
+        DeepCopyPointerClasses(from, to);
+}
+
 
 /**
  * Change MD to look like SD by copying all classes over. An event is sent to
@@ -727,10 +745,14 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
     if (!master) /* if device was set floating between SIGIO and now */
         return;
 
+
+    master = GetMaster(device,
+             (dce->flags & DEVCHANGE_POINTER_EVENT) ? MASTER_POINTER : MASTER_KEYBOARD);
+
     master->public.devicePrivate = device->public.devicePrivate;
 
     /* FIXME: the classes may have changed since we generated the event. */
-    DeepCopyDeviceClasses(device, master);
+    DeepCopyDeviceClasses(device, master, dce);
     XISendDeviceChangedEvent(device, master, dce);
 }
 

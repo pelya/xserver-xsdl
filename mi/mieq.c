@@ -307,28 +307,53 @@ FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
 
 /**
  * Copy the given event into master.
- * @param mdev The master device
  * @param sdev The slave device the original event comes from
  * @param original The event as it came from the EQ
  * @param master The event after being copied
+ * @return The master device or NULL if the device is a floating slave.
  */
-void
-CopyGetMasterEvent(DeviceIntPtr mdev, DeviceIntPtr sdev,
-                   InternalEvent* original, EventListPtr master)
+DeviceIntPtr
+CopyGetMasterEvent(DeviceIntPtr sdev,
+                   InternalEvent* original, EventListPtr mlist)
 {
+    DeviceIntPtr mdev;
     int len = original->any.length;
     InternalEvent *mevent;
 
     CHECKEVENT(original);
 
-    if (master->evlen < len)
-        SetMinimumEventSize(master, 1, len);
+    if (!sdev->u.master)
+        return NULL;
 
-    mevent = (InternalEvent*)master->event;
+    switch(original->any.type)
+    {
+        case ET_KeyPress:
+        case ET_KeyRelease:
+            mdev = GetMaster(sdev, MASTER_KEYBOARD);
+            break;
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+        case ET_Motion:
+        case ET_ProximityIn:
+        case ET_ProximityOut:
+            mdev = GetMaster(sdev, MASTER_POINTER);
+            break;
+        default:
+            mdev = sdev->u.master;
+            break;
+    }
+
+
+    if (mlist->evlen < len)
+        SetMinimumEventSize(mlist, 1, len);
+
+    mevent = (InternalEvent*)mlist->event;
 
     memcpy(mevent, original, len);
     ChangeDeviceID(mdev, mevent);
     FixUpEventForMaster(mdev, sdev, original, mevent);
+
+    return mdev;
 }
 
 
@@ -359,10 +384,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         NewCurrentScreen (dev, DequeueScreen(dev), x, y);
     }
     else {
-        master  = (!IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
-
-        if (master)
-            CopyGetMasterEvent(master, dev, event, masterEvents);
+        master = CopyGetMasterEvent(dev, event, masterEvents);
 
         /* If someone's registered a custom event handler, let them
          * steal it. */

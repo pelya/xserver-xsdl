@@ -221,11 +221,10 @@ extern _X_EXPORT void mieqProcessInputEvents(
     void
 );
 
-extern void CopyGetMasterEvent(
-    DeviceIntPtr /* mdev */,
+extern DeviceIntPtr CopyGetMasterEvent(
     DeviceIntPtr /* sdev */,
     InternalEvent* /* original */,
-    EventListPtr /* master */
+    EventListPtr /* mlist */
 );
 
 /**

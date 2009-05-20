@@ -187,7 +187,8 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
 void
 CreateClassesChangedEvent(EventList* event,
                           DeviceIntPtr master,
-                          DeviceIntPtr slave)
+                          DeviceIntPtr slave,
+                          int type)
 {
     int i;
     DeviceChangedEvent *dce;
@@ -200,6 +201,7 @@ CreateClassesChangedEvent(EventList* event,
     dce->length = sizeof(DeviceChangedEvent);
     dce->type = ET_DeviceChanged;
     dce->time = ms;
+    dce->flags = type;
     if (master->last.slave)
     {
         dce->flags |= DEVCHANGE_HAS_OLD_SLAVE;
@@ -605,12 +607,13 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
  *
  * @param events Pointer to a pre-allocated event list.
  * @param dev The slave device that generated an event.
+ * @param type Either DEVCHANGE_POINTER_EVENT and/or DEVCHANGE_KEYBOARD_EVENT
  * @param num_events The current number of events, returns the number of
  *        events if a DCCE was generated.
  * @return The updated @events pointer.
  */
 static EventListPtr
-updateFromMaster(EventListPtr events, DeviceIntPtr dev, int *num_events)
+updateFromMaster(EventListPtr events, DeviceIntPtr dev, int type, int *num_events)
 {
     DeviceIntPtr master;
 
@@ -618,7 +621,7 @@ updateFromMaster(EventListPtr events, DeviceIntPtr dev, int *num_events)
 
     if (master && master->last.slave != dev)
     {
-        CreateClassesChangedEvent(events, master, dev);
+        CreateClassesChangedEvent(events, master, dev, type);
         updateSlaveDeviceCoords(master, dev);
         master->last.slave = dev;
         master->last.numValuators = dev->last.numValuators;
@@ -852,7 +855,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     num_events = 1;
 
-    events = updateFromMaster(events, pDev, &num_events);
+    events = updateFromMaster(events, pDev, DEVCHANGE_KEYBOARD_EVENT, &num_events);
 
     /* Handle core repeating, via press/release/press/release. */
     if (type == KeyPress && key_is_down(pDev, key_code, KEY_POSTED)) {
@@ -1021,7 +1024,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         (type == MotionNotify && num_valuators <= 0))
         return 0;
 
-    events = updateFromMaster(events, pDev, &num_events);
+    events = updateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
     raw = (RawDeviceEvent*)events->event;
     events++;
@@ -1134,7 +1137,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
         (num_valuators + first_valuator) > pDev->valuator->numAxes)
         return 0;
 
-    events = updateFromMaster(events, pDev, &num_events);
+    events = updateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
     event = (DeviceEvent *) events->event;
     init_event(pDev, event, GetTimeInMillis());

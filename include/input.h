@@ -412,7 +412,8 @@ extern _X_EXPORT void FreeEventList(EventListPtr list, int num_events);
 
 extern void CreateClassesChangedEvent(EventListPtr event,
                                       DeviceIntPtr master,
-                                      DeviceIntPtr slave);
+                                      DeviceIntPtr slave,
+                                      int type);
 extern int GetPointerEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
@@ -480,7 +481,8 @@ extern int AllocDevicePair(ClientPtr client,
                              DeviceIntPtr* keybd,
                              Bool master);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
-                                  DeviceIntPtr to);
+                                  DeviceIntPtr to,
+                                  DeviceChangedEvent *dce);
 
 /* Helper functions. */
 extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
