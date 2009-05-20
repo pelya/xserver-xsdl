@@ -2346,6 +2346,41 @@ GetPairedDevice(DeviceIntPtr dev)
 
 
 /**
+ * Returns the right master for the type of event needed. If the event is a
+ * keyboard event.
+ * This function may be called with a master device as argument. If so, the
+ * returned master is either the device itself or the paired master device.
+ * If dev is a floating slave device, NULL is returned.
+ *
+ * @type ::MASTER_KEYBOARD or ::MASTER_POINTER
+ */
+DeviceIntPtr
+GetMaster(DeviceIntPtr dev, int which)
+{
+    DeviceIntPtr master;
+
+    if (IsMaster(dev))
+        master = dev;
+    else
+        master = dev->u.master;
+
+    if (master)
+    {
+        if (which == MASTER_KEYBOARD)
+        {
+            if (master->type != MASTER_KEYBOARD)
+                master = GetPairedDevice(master);
+        } else
+        {
+            if (master->type != MASTER_POINTER)
+                master = GetPairedDevice(master);
+        }
+    }
+
+    return master;
+}
+
+/**
  * Create a new device pair (== one pointer, one keyboard device).
  * Only allocates the devices, you will need to call ActivateDevice() and
  * EnableDevice() manually.

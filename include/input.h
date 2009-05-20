@@ -472,6 +472,7 @@ extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr master);
 
 extern _X_EXPORT DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
+extern DeviceIntPtr GetMaster(DeviceIntPtr dev, int type);
 
 extern int AllocDevicePair(ClientPtr client,
                              char* name,

@@ -612,7 +612,10 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
 static EventListPtr
 updateFromMaster(EventListPtr events, DeviceIntPtr dev, int *num_events)
 {
-    DeviceIntPtr master = dev->u.master;
+    DeviceIntPtr master;
+
+    master = GetMaster(dev, (type & DEVCHANGE_POINTER_EVENT) ?  MASTER_POINTER : MASTER_KEYBOARD);
+
     if (master && master->last.slave != dev)
     {
         CreateClassesChangedEvent(events, master, dev);
@@ -793,8 +796,10 @@ updateHistory(DeviceIntPtr dev, int first, int num, CARD32 ms)
 {
     updateMotionHistory(dev, ms, first, num, &dev->last.valuators[first]);
     if (dev->u.master)
-        updateMotionHistory(dev->u.master, ms, first, num,
-                            &dev->last.valuators[first]);
+    {
+        DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
+        updateMotionHistory(master, ms, first, num, &dev->last.valuators[first]);
+    }
 }
 
 /**
