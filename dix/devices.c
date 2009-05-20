@@ -538,9 +538,6 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 
 /**
  * Device control function for the Virtual Core Pointer.
- *
- * Aside from initialisation, it backs up the original device classes into the
- * devicePrivates. This only needs to be done for master devices.
  */
 static int
 CorePointerProc(DeviceIntPtr pDev, int what)
