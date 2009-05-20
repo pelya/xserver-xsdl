@@ -152,7 +152,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
         return BadDevice;
 
     /* Don't allow pairing for slave devices */
-    if (!ptr->isMaster || !kbd->isMaster)
+    if (!IsMaster(ptr) || !IsMaster(kbd))
         return BadDevice;
 
     if (ptr->spriteInfo->paired)
@@ -180,7 +180,7 @@ NextFreePointerDevice(void)
 {
     DeviceIntPtr dev;
     for (dev = inputInfo.devices; dev; dev = dev->next)
-        if (dev->isMaster &&
+        if (IsMaster(dev) &&
                 dev->spriteInfo->spriteOwner &&
                 !dev->spriteInfo->paired)
             return dev;
@@ -306,7 +306,7 @@ EnableDevice(DeviceIntPtr dev, BOOL sendevent)
 
     if (!dev->spriteInfo->sprite)
     {
-        if (dev->isMaster)
+        if (IsMaster(dev))
         {
             /* Sprites appear on first root window, so we can hardcode it */
             if (dev->spriteInfo->spriteOwner)
@@ -398,7 +398,7 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
 	return FALSE;
 
     /* float attached devices */
-    if (dev->isMaster)
+    if (IsMaster(dev))
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
@@ -413,12 +413,12 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-	    if (other->isMaster && other->u.lastSlave == dev)
+	    if (IsMaster(other) && other->u.lastSlave == dev)
 		other->u.lastSlave = NULL;
 	}
     }
 
-    if (dev->isMaster && dev->spriteInfo->sprite)
+    if (IsMaster(dev) && dev->spriteInfo->sprite)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
@@ -488,7 +488,7 @@ ActivateDevice(DeviceIntPtr dev, BOOL sendevent)
         return ret;
 
     /* Initialize memory for sprites. */
-    if (dev->isMaster && dev->spriteInfo->spriteOwner)
+    if (IsMaster(dev) && dev->spriteInfo->spriteOwner)
         pScreen->DeviceCursorInitialize(dev, pScreen);
 
     SendDevicePresenceEvent(dev->id, DeviceAdded);
@@ -847,7 +847,7 @@ CloseDevice(DeviceIntPtr dev)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
 
     /* free sprite memory */
-    if (dev->isMaster && dev->spriteInfo->sprite)
+    if (IsMaster(dev) && dev->spriteInfo->sprite)
         screen->DeviceCursorCleanup(dev, screen);
 
     /* free acceleration info */
@@ -859,7 +859,7 @@ CloseDevice(DeviceIntPtr dev)
     classes = (ClassesPtr)&dev->key;
     FreeAllDeviceClasses(classes);
 
-    if (dev->isMaster)
+    if (IsMaster(dev))
     {
         classes = dixLookupPrivate(&dev->devPrivates, UnusedClassesPrivateKey);
         FreeAllDeviceClasses(classes);
@@ -904,7 +904,7 @@ CloseDownDevices(void)
      */
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        if (!dev->isMaster && dev->u.master)
+        if (!IsMaster(dev) && dev->u.master)
             dev->u.master = NULL;
     }
 
@@ -990,7 +990,7 @@ RemoveDevice(DeviceIntPtr dev, BOOL sendevent)
 	    else
 		prev->next = next;
 
-	    flags[tmp->id] = (tmp->isMaster) ? XIMasterRemoved : XISlaveRemoved;
+	    flags[tmp->id] = IsMaster(tmp) ? XIMasterRemoved : XISlaveRemoved;
 	    CloseDevice(tmp);
 	    ret = Success;
 	}
@@ -1000,7 +1000,7 @@ RemoveDevice(DeviceIntPtr dev, BOOL sendevent)
     for (tmp = inputInfo.off_devices; tmp; (prev = tmp), (tmp = next)) {
 	next = tmp->next;
 	if (tmp == dev) {
-	    flags[tmp->id] = (tmp->isMaster) ? XIMasterRemoved : XISlaveRemoved;
+	    flags[tmp->id] = IsMaster(tmp) ? XIMasterRemoved : XISlaveRemoved;
 	    CloseDevice(tmp);
 
 	    if (prev == NULL)
@@ -1194,7 +1194,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     }
 
     dev->last.numValuators = numAxes;
-    if(dev->isMaster) /* master devs do not accelerate */
+    if(IsMaster(dev)) /* master devs do not accelerate */
 	InitPointerAccelerationScheme(dev, PtrAccelNoOp);
     else
 	InitPointerAccelerationScheme(dev, PtrAccelDefault);
@@ -1226,7 +1226,7 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
     if(!val)
 	return FALSE;
 
-    if(dev->isMaster && (scheme != PtrAccelNoOp))
+    if(IsMaster(dev) && (scheme != PtrAccelNoOp))
         scheme = PtrAccelNoOp; /* no accel for master devices */
 
     for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
@@ -1587,7 +1587,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
                           stuff->keyCodes, NULL, client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if (tmp->isMaster || tmp->u.master != pDev)
+        if (IsMaster(tmp) || tmp->u.master != pDev)
             continue;
         if (!tmp->key)
             continue;
@@ -1932,7 +1932,7 @@ ProcChangeKeyboardControl (ClientPtr client)
     keyboard = PickKeyboard(client);
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev == keyboard || (!pDev->isMaster && pDev->u.master == keyboard)) &&
+        if ((pDev == keyboard || (!IsMaster(keyboard) && pDev->u.master == keyboard)) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (ret != Success)
@@ -1941,7 +1941,7 @@ ProcChangeKeyboardControl (ClientPtr client)
     }
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev == keyboard || (!pDev->isMaster && pDev->u.master == keyboard)) &&
+        if ((pDev == keyboard || (!IsMaster(keyboard) && pDev->u.master == keyboard)) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
             ret = DoChangeKeyboardControl(client, pDev, vlist, vmask);
             if (ret != Success)
@@ -2010,7 +2010,7 @@ ProcBell(ClientPtr client)
 	newpercent = base - newpercent + stuff->percent;
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == keybd || (!dev->isMaster && dev->u.master == keybd)) &&
+        if ((dev == keybd || (!IsMaster(dev) && dev->u.master == keybd)) &&
             dev->kbdfeed && dev->kbdfeed->BellProc) {
 
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixBellAccess);
@@ -2082,7 +2082,7 @@ ProcChangePointerControl(ClientPtr client)
     }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == mouse || (!dev->isMaster && dev->u.master == mouse)) &&
+        if ((dev == mouse || (!IsMaster(dev) && dev->u.master == mouse)) &&
             dev->ptrfeed && dev->ptrfeed->CtrlProc) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
 	    if (rc != Success)
@@ -2091,7 +2091,7 @@ ProcChangePointerControl(ClientPtr client)
     }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if ((dev == mouse || (!dev->isMaster && dev->u.master == mouse)) &&
+        if ((dev == mouse || (!IsMaster(dev) && dev->u.master == mouse)) &&
             dev->ptrfeed && dev->ptrfeed->CtrlProc) {
             dev->ptrfeed->ctrl = ctrl;
             (*dev->ptrfeed->CtrlProc)(dev, &mouse->ptrfeed->ctrl);
@@ -2246,10 +2246,10 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
     ScreenPtr screen;
     DeviceIntPtr oldmaster;
-    if (!dev || dev->isMaster)
+    if (!dev || IsMaster(dev))
         return BadDevice;
 
-    if (master && !master->isMaster) /* can't attach to slaves */
+    if (master && !IsMaster(master)) /* can't attach to slaves */
         return BadDevice;
 
     /* set from floating to floating? */
@@ -2310,7 +2310,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     {
         DeviceIntPtr it;
         for (it = inputInfo.devices; it; it = it->next)
-            if (!it->isMaster && it->u.master == oldmaster)
+            if (!IsMaster(it) && it->u.master == oldmaster)
                 break;
 
         if (!it)  /* no dev is paired with old master */
@@ -2338,7 +2338,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
-    if (!dev->isMaster && dev->u.master)
+    if (!IsMaster(dev) && dev->u.master)
         dev = dev->u.master;
 
     return dev->spriteInfo->paired;
@@ -2380,7 +2380,7 @@ AllocDevicePair (ClientPtr client, char* name,
 
     pointer->u.lastSlave = NULL;
     pointer->last.slave = NULL;
-    pointer->isMaster = master;
+    pointer->type = (master) ? MASTER_POINTER : SLAVE;
 
     keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
@@ -2403,7 +2403,7 @@ AllocDevicePair (ClientPtr client, char* name,
 
     keyboard->u.lastSlave = NULL;
     keyboard->last.slave = NULL;
-    keyboard->isMaster = master;
+    keyboard->type = (master) ? MASTER_KEYBOARD : SLAVE;
 
 
     /* The ClassesRec stores the device classes currently not used. */

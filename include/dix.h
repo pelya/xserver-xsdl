@@ -580,6 +580,7 @@ extern Bool DevHasCursor(DeviceIntPtr pDev);
 extern Bool IsPointerDevice( DeviceIntPtr dev);
 extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 extern Bool IsPointerEvent(InternalEvent *event);
+extern Bool IsMaster(DeviceIntPtr dev);
 
 /*
  * These are deprecated compatibility functions and will be removed soon!

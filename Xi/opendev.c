@@ -112,7 +112,7 @@ ProcXOpenDevice(ClientPtr client)
     } else if (status != Success)
 	return status;
 
-    if (dev->isMaster)
+    if (IsMaster(dev))
             return BadDevice;
 
     OpenInputDevice(dev, client, &status);

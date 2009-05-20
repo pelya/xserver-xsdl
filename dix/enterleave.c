@@ -546,7 +546,7 @@ CoreEnterLeaveEvents(DeviceIntPtr dev,
                      WindowPtr to,
                      int mode)
 {
-    if (!dev->isMaster)
+    if (!IsMaster(dev))
         return;
 
     LeaveWindow(dev, from, mode);
@@ -1216,7 +1216,7 @@ CoreFocusEvents(DeviceIntPtr dev,
                 WindowPtr to,
                 int mode)
 {
-    if (!dev->isMaster)
+    if (!IsMaster(dev))
         return;
 
     SetFocusOut(dev, from);

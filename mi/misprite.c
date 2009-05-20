@@ -764,7 +764,7 @@ miSpriteRealizeCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
     miCursorInfoPtr pCursorInfo;
 
     pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteRealizeCursor called for floating device.\n");
         return FALSE;
@@ -795,7 +795,7 @@ miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
 
     pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
 
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteSetCursor called for floating device.\n");
         return;
@@ -912,7 +912,7 @@ miSpriteMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     CursorPtr pCursor;
 
     pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteMoveCursor called for floating device.\n");
         return;
@@ -980,7 +980,7 @@ miSpriteRemoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
     miCursorInfoPtr     pCursorInfo;
 
 
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteRemoveCursor called for floating device.\n");
         return;
@@ -1020,7 +1020,7 @@ miSpriteSaveUnderCursor(DeviceIntPtr pDev, ScreenPtr pScreen)
     CursorPtr		pCursor;
     miCursorInfoPtr     pCursorInfo;
 
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteSaveUnderCursor called for floating device.\n");
         return;
@@ -1063,7 +1063,7 @@ miSpriteRestoreCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
     CursorPtr		pCursor;
     miCursorInfoPtr     pCursorInfo;
 
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteRestoreCursor called for floating device.\n");
         return;
@@ -1107,7 +1107,7 @@ miSpriteComputeSaved (DeviceIntPtr pDev, ScreenPtr pScreen)
     CursorPtr	    pCursor;
     miCursorInfoPtr pCursorInfo;
 
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!IsMaster(pDev) && !pDev->u.master)
     {
         ErrorF("[mi] miSpriteComputeSaved called for floating device.\n");
         return;

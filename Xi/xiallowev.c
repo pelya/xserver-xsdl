@@ -82,15 +82,15 @@ ProcXIAllowEvents(ClientPtr client)
 	AllowSome(client, time, dev, THAWED);
 	break;
     case XIAsyncPairedDevice:
-        if (dev->isMaster)
+        if (IsMaster(dev))
             AllowSome(client, time, dev, THAW_OTHERS);
 	break;
     case XISyncPair:
-        if (dev->isMaster)
+        if (IsMaster(dev))
             AllowSome(client, time, dev, FREEZE_BOTH_NEXT_EVENT);
 	break;
     case XIAsyncPair:
-        if (dev->isMaster)
+        if (IsMaster(dev))
             AllowSome(client, time, dev, THAWED_BOTH);
 	break;
     default:

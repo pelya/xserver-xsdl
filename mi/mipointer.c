@@ -51,7 +51,7 @@ static int miPointerPrivKeyIndex;
 static DevPrivateKey miPointerPrivKey = &miPointerPrivKeyIndex;
 
 #define MIPOINTER(dev) \
-    ((DevHasCursor((dev)) || (!dev->isMaster && !dev->u.master)) ? \
+    ((DevHasCursor((dev)) || (!IsMaster(isMaster) && !dev->u.master)) ? \
         (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
         (miPointerPtr)dixLookupPrivate(&(dev)->u.master->devPrivates, miPointerPrivKey))
 
@@ -186,8 +186,8 @@ miPointerDisplayCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
     miPointerPtr pPointer;
 
     /* return for keyboards */
-    if ((pDev->isMaster && !DevHasCursor(pDev)) ||
-        (!pDev->isMaster && pDev->u.master && !DevHasCursor(pDev->u.master)))
+    if ((IsMaster(pDev) && !DevHasCursor(pDev)) ||
+        (!IsMaster(pDev) && pDev->u.master && !DevHasCursor(pDev->u.master)))
             return FALSE;
 
     pPointer = MIPOINTER(pDev);
@@ -286,7 +286,7 @@ miPointerDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     SetupScreen(pScreen);
 
-    if (!pDev->isMaster && pDev->u.master)
+    if (!IsMaster(pDev) && pDev->u.master)
         return;
 
     (*pScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
@@ -474,7 +474,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen,
      * VCP, as this may cause a non-HW rendered cursor to be rendered during
      * SIGIO. This again leads to allocs during SIGIO which leads to SIGABRT.
      */
-    if ((pDev == inputInfo.pointer || (!pDev->isMaster && pDev->u.master == inputInfo.pointer))
+    if ((pDev == inputInfo.pointer || (!IsMaster(pDev) && pDev->u.master == inputInfo.pointer))
         && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
     {
 	pPointer->devx = x;

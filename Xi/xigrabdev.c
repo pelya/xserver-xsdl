@@ -74,7 +74,7 @@ ProcXIGrabDevice(ClientPtr client)
     if (ret != Success)
 	return ret;
 
-    if (!dev->isMaster)
+    if (!IsMaster(dev))
         stuff->paired_device_mode = GrabModeAsync;
 
     memset(mask.xi2mask, 0, sizeof(mask.xi2mask));

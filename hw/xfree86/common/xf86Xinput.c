@@ -323,7 +323,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
-        dev->isMaster = FALSE;
+        dev->type = SLAVE;
         dev->spriteInfo->spriteOwner = FALSE;
 
         dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
@@ -664,7 +664,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     InputDriverPtr drv = NULL;
     IDevRec *idev = NULL;
     IDevPtr *it;
-    Bool isMaster = pDev->isMaster;
+    Bool isMaster = IsMaster(pDev);
 
     if (pInfo) /* need to get these before RemoveDevice */
     {

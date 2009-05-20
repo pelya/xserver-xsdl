@@ -268,9 +268,9 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
     do_modmap_change(client, dev, modmap);
 
     /* Change any attached masters/slaves. */
-    if (dev->isMaster) {
+    if (IsMaster(dev)) {
         for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-            if (!tmp->isMaster && tmp->u.master == dev)
+            if (!IsMaster(tmp) && tmp->u.master == dev)
                 if (check_modmap_change_slave(client, dev, tmp, modmap))
                     do_modmap_change(client, tmp, modmap);
         }

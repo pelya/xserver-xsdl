@@ -243,7 +243,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     if (rc != Success)
                         goto unwind;
 
-                    if (!ptr->isMaster)
+                    if (!IsMaster(ptr))
                     {
                         client->errorValue = r->deviceid;
                         rc = BadDevice;
@@ -259,7 +259,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     }
 
                     for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                        if( !xtstdevice->isMaster && xtstdevice->u.master == ptr &&
+                        if( !IsMaster(xtstdevice) && xtstdevice->u.master == ptr &&
                             dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
                             break;
 
@@ -296,7 +296,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     {
                         /* Search the matching keyboard */
                         for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if( !xtstdevice->isMaster &&
+                            if( !IsMaster(xtstdevice) &&
                                 xtstdevice->u.master == keybd &&
                                 IsKeyboardDevice(xtstdevice) &&
                                 dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
@@ -315,7 +315,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         xtstkeybd = xtstptr;
                         /* Search the matching pointer */
                         for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if( !xtstdevice->isMaster &&
+                            if( !IsMaster(xtstdevice) &&
                                 xtstdevice->u.master == ptr &&
                                 IsPointerDevice(xtstdevice) &&
                                 dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey )
@@ -343,7 +343,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         if (rc != Success)
                             goto unwind;
 
-                        if (!newptr->isMaster)
+                        if (!IsMaster(newptr))
                         {
                             client->errorValue = r->return_pointer;
                             rc = BadDevice;
@@ -355,7 +355,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         if (rc != Success)
                             goto unwind;
 
-                        if (!newkeybd->isMaster)
+                        if (!IsMaster(newkeybd))
                         {
                             client->errorValue = r->return_keyboard;
                             rc = BadDevice;
@@ -366,7 +366,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                                 attached;
                                 attached = attached->next)
                         {
-                            if (!attached->isMaster) {
+                            if (!IsMaster(attached)) {
                                 if (attached->u.master == ptr)
                                 {
                                     AttachDevice(client, attached, newptr);
@@ -418,7 +418,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     if (rc != Success)
                        goto unwind;
 
-                    if (ptr->isMaster)
+                    if (IsMaster(ptr))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;
@@ -451,7 +451,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     if (rc != Success)
                        goto unwind;
 
-                    if (ptr->isMaster)
+                    if (IsMaster(ptr))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;
@@ -473,7 +473,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                             client, DixWriteAccess);
                     if (rc != Success)
                         goto unwind;
-                    if (!newmaster->isMaster)
+                    if (!IsMaster(newmaster))
                     {
                         client->errorValue = c->new_master;
                         rc = BadDevice;

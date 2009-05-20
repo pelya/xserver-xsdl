@@ -359,7 +359,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         NewCurrentScreen (dev, DequeueScreen(dev), x, y);
     }
     else {
-        master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
+        master  = (!IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
 
         if (master)
             CopyGetMasterEvent(master, dev, event, masterEvents);
@@ -426,7 +426,7 @@ mieqProcessInputEvents(void)
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 
-        master  = (!dev->isMaster && dev->u.master) ? dev->u.master : NULL;
+        master  = (!IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
 
         if (screenIsSaved == SCREEN_SAVER_ON)
             dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);

@@ -102,7 +102,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     }
 
     /* Can't grab for modifiers on an attached slave device */
-    if (!dev->isMaster)
+    if (!IsMaster(dev))
     {
         if (!dev->u.master)
             stuff->paired_device_mode = GrabModeAsync;
@@ -157,7 +157,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     if (!modifiers_failed)
         return BadAlloc;
 
-    if (IsPointerDevice(dev) && dev->isMaster)
+    if (IsPointerDevice(dev) && IsMaster(dev))
         mod_dev = GetPairedDevice(dev);
     else
         mod_dev = dev;
@@ -261,7 +261,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    if (dev->isMaster)
+    if (IsMaster(dev))
         mod_dev = GetPairedDevice(dev);
     else
         mod_dev = dev;

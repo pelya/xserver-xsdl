@@ -329,7 +329,7 @@ DevHasCursor(DeviceIntPtr pDev)
 Bool
 IsPointerDevice(DeviceIntPtr dev)
 {
-    return (dev->valuator && dev->button);
+    return (dev->type == MASTER_POINTER) || (dev->valuator && dev->button);
 }
 
 /*
@@ -342,7 +342,14 @@ IsPointerDevice(DeviceIntPtr dev)
 Bool
 IsKeyboardDevice(DeviceIntPtr dev)
 {
-    return (dev->key && dev->kbdfeed) && !IsPointerDevice(dev);
+    return (dev->type == MASTER_KEYBOARD) ||
+            ((dev->key && dev->kbdfeed) && !IsPointerDevice(dev));
+}
+
+Bool
+IsMaster(DeviceIntPtr dev)
+{
+    return (dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD);
 }
 
 static WindowPtr XYToWindow(
@@ -455,7 +462,7 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
 
     return ((inputMasks->xi2mask[dev->id][evtype/8] & filter) ||
             inputMasks->xi2mask[XIAllDevices][evtype/8] ||
-            (inputMasks->xi2mask[XIAllMasterDevices][evtype/8] && dev->isMaster));
+            (inputMasks->xi2mask[XIAllMasterDevices][evtype/8] && IsMaster(dev)));
 }
 
 static Mask
@@ -467,7 +474,7 @@ GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
         int byte = ((xGenericEvent*)event)->evtype / 8;
         return (other->xi2mask[dev->id][byte] |
                 other->xi2mask[XIAllDevices][byte] |
-                (dev->isMaster? other->xi2mask[XIAllMasterDevices][byte] : 0));
+                (IsMaster(dev)? other->xi2mask[XIAllMasterDevices][byte] : 0));
     } else if (CORE_EVENT(event))
         return other->mask[XIAllDevices];
     else
@@ -1404,7 +1411,7 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
         The correct thing to do would be to freeze all SDs attached to the
         paired master device.
      */
-    if (thisDev->isMaster)
+    if (IsMaster(thisDev))
     {
         dev = GetPairedDevice(thisDev);
         if (otherMode == GrabModeSync)
@@ -1453,7 +1460,7 @@ RestoreOldMaster(DeviceIntPtr dev)
 {
     GrabMemoryPtr gm;
 
-    if (dev->isMaster)
+    if (IsMaster(dev))
         return;
 
     gm = (GrabMemoryPtr)dixLookupPrivate(&dev->devPrivates, GrabPrivateKey);
@@ -1491,7 +1498,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     Bool isPassive = autoGrab & ~ImplicitGrabMask;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!isPassive && !mouse->isMaster)
+    if (!isPassive && !IsMaster(mouse))
     {
         SaveOldMaster(mouse);
         AttachDevice(NULL, mouse, NULL);
@@ -1569,7 +1576,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     WindowPtr oldWin;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!passive && !keybd->isMaster)
+    if (!passive && !IsMaster(keybd))
     {
         SaveOldMaster(keybd);
         AttachDevice(NULL, keybd, NULL);
@@ -2311,7 +2318,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     filter = GetEventFilter(dev, &ev);
     if (type && (inputMasks = wOtherInputMasks(win)) &&
         ((inputMasks->xi2mask[XIAllDevices][type/8] & filter) ||
-         ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && dev->isMaster) ||
+         ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && IsMaster(dev)) ||
          (inputMasks->xi2mask[dev->id][type/8] & filter)))
         rc |= XI2_MASK;
 
@@ -2430,7 +2437,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             }
 
             /* Core event */
-            if ((mask & CORE_MASK) && dev->isMaster && dev->coreEvents)
+            if ((mask & CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
                 rc = EventToCore(event, &core);
                 if (rc != Success)
@@ -3160,7 +3167,7 @@ ProcWarpPointer(ClientPtr client)
     dev = PickPointer(client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if ((tmp == dev) || (!tmp->isMaster && tmp->u.master == dev)) {
+        if ((tmp == dev) || (!IsMaster(tmp) && tmp->u.master == dev)) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixWriteAccess);
 	    if (rc != Success)
 		return rc;
@@ -3492,7 +3499,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
     int i;
     WindowPtr pWin = NULL;
     FocusClassPtr focus = IsPointerEvent((InternalEvent*)event) ? NULL : device->focus;
-    BOOL sendCore = (device->isMaster && device->coreEvents);
+    BOOL sendCore = (IsMaster(device) && device->coreEvents);
 
     if (event->type != ET_ButtonPress &&
         event->type != ET_KeyPress)
@@ -3548,7 +3555,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 {
     DeviceIntPtr ptr;
     WindowPtr focus = keybd->focus->win;
-    BOOL sendCore = (keybd->isMaster && keybd->coreEvents);
+    BOOL sendCore = (IsMaster(keybd) && keybd->coreEvents);
     xEvent core;
     xEvent *xE = NULL, *xi2 = NULL;
     int count, rc;
@@ -3714,7 +3721,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 
         mask = grab->eventMask;
 
-        sendCore = (thisDev->isMaster && thisDev->coreEvents);
+        sendCore = (IsMaster(thisDev) && thisDev->coreEvents);
         /* try core event */
         if (sendCore && grab->grabtype == GRABTYPE_CORE)
         {
@@ -4201,7 +4208,7 @@ DeviceEnterLeaveEvent(
         if (BitIsOn(mouse->button->down, i))
             SetBit(&event[1], i);
 
-    kbd = (mouse->isMaster || mouse->u.master) ? GetPairedDevice(mouse) : NULL;
+    kbd = (IsMaster(mouse) || mouse->u.master) ? GetPairedDevice(mouse) : NULL;
     if (kbd && kbd->key)
     {
         event->mods.base_mods = kbd->key->xkbInfo->state.base_mods;
@@ -5583,7 +5590,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 Bool
 SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
 {
-    if (!device->isMaster)
+    if (!IsMaster(device))
     {
         ErrorF("[dix] Need master device for ClientPointer. This is a bug.\n");
         return FALSE;
@@ -5627,7 +5634,7 @@ PickPointer(ClientPtr client)
         DeviceIntPtr it = inputInfo.devices;
         while (it)
         {
-            if (it->isMaster && it->spriteInfo->spriteOwner)
+            if (IsMaster(it) && it->spriteInfo->spriteOwner)
             {
                 client->clientPtr = it;
                 break;

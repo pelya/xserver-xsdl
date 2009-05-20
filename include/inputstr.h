@@ -458,6 +458,11 @@ typedef struct _SpriteInfoRec {
                                         pointer that owns the sprite. */ 
 } SpriteInfoRec, *SpriteInfoPtr;
 
+/* device types */
+#define MASTER_POINTER          1
+#define MASTER_KEYBOARD         2
+#define SLAVE                   3
+
 typedef struct _DeviceIntRec {
     DeviceRec	public;
     DeviceIntPtr next;
@@ -470,7 +475,7 @@ typedef struct _DeviceIntRec {
     Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
     GrabInfoRec deviceGrab;             /* grab on the device */
-    Bool        isMaster;               /* TRUE if device is master */
+    int         type;                   /* MASTER_POINTER, MASTER_KEYBOARD, SLAVE */
     Atom		xinput_type;
     char		*name;
     CARD8		id;

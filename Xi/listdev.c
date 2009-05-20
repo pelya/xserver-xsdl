@@ -177,9 +177,9 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
     dev->id = d->id;
     dev->type = d->xinput_type;
     dev->num_classes = num_classes;
-    if (d->isMaster && IsKeyboardDevice(d))
+    if (IsMaster(d) && IsKeyboardDevice(d))
 	dev->use = IsXKeyboard;
-    else if (d->isMaster && IsPointerDevice(d))
+    else if (IsMaster(d) && IsPointerDevice(d))
 	dev->use = IsXPointer;
     else if (d->key && d->kbdfeed)
         dev->use = IsXExtensionKeyboard;
@@ -344,7 +344,7 @@ ProcXListInputDevices(ClientPtr client)
     AddOtherInputDevices();
 
     for (d = inputInfo.devices; d; d = d->next) {
-        if (d->isMaster &&
+        if (IsMaster(d) &&
                 d != inputInfo.pointer &&
                 d != inputInfo.keyboard)
             continue; /* don't send master devices other than VCP/VCK */
@@ -357,7 +357,7 @@ ProcXListInputDevices(ClientPtr client)
     }
 
     for (d = inputInfo.off_devices; d; d = d->next) {
-        if (d->isMaster &&
+        if (IsMaster(d) &&
                 d != inputInfo.pointer &&
                 d != inputInfo.keyboard)
             continue; /* don't send master devices other than VCP/VCK */
@@ -378,7 +378,7 @@ ProcXListInputDevices(ClientPtr client)
     dev = (xDeviceInfoPtr) devbuf;
     for (d = inputInfo.devices; d; d = d->next)
     {
-        if (d->isMaster &&
+        if (IsMaster(d) &&
                 d != inputInfo.pointer &&
                 d != inputInfo.keyboard)
             continue; /* don't count master devices other than VCP/VCK */
@@ -388,7 +388,7 @@ ProcXListInputDevices(ClientPtr client)
 
     for (d = inputInfo.off_devices; d; d = d->next)
     {
-        if (d->isMaster &&
+        if (IsMaster(d) &&
                 d != inputInfo.pointer &&
                 d != inputInfo.keyboard)
             continue; /* don't count master devices other than VCP/VCK */

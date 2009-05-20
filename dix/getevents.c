@@ -325,7 +325,7 @@ AllocateMotionHistory(DeviceIntPtr pDev)
      * potential valuators, plus the respective range of the valuators.
      * 3 * INT32 for (min_val, max_val, curr_val))
      */
-    if (pDev->isMaster)
+    if (IsMaster(pDev))
         size = sizeof(INT32) * 3 * MAX_VALUATORS;
     else
         size = sizeof(INT32) * pDev->valuator->numAxes;
@@ -369,7 +369,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
     if (core && !pScreen)
         return 0;
 
-    if (pDev->isMaster)
+    if (IsMaster(pDev))
         size = (sizeof(INT32) * 3 * MAX_VALUATORS) + sizeof(Time);
     else
         size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
@@ -421,7 +421,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                 coord = rescaleValuatorAxis(coord, &from, to, pScreen->height);
                 memcpy(corebuf, &coord, sizeof(INT16));
 
-            } else if (pDev->isMaster)
+            } else if (IsMaster(pDev))
             {
                 memcpy(obuff, ibuff, sizeof(Time)); /* copy timestamp */
 
@@ -497,7 +497,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
         return;
 
     v = pDev->valuator;
-    if (pDev->isMaster)
+    if (IsMaster(pDev))
     {
         buff += ((sizeof(INT32) * 3 * MAX_VALUATORS) + sizeof(CARD32)) *
                 v->last_motion;

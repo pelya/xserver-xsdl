@@ -303,7 +303,7 @@ ProcXTestFakeInput(ClientPtr client)
          * virtual test device.
          */
         for(it = inputInfo.devices; it ; it = it->next )
-            if( !it->isMaster && it->u.master == dev &&
+            if( !IsMaster(it) && it->u.master == dev &&
                     dixLookupPrivate(&it->devPrivates, XTstDevicePrivateKey ))
                 break;
         dev= it;

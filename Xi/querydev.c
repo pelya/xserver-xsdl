@@ -88,14 +88,14 @@ ProcXIQueryDevice(ClientPtr client)
         for (dev = inputInfo.devices; dev; dev = dev->next)
         {
             if (stuff->deviceid == XIAllDevices ||
-                (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
+                (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
                 len += SizeDeviceInfo(dev);
         }
 
         for (dev = inputInfo.off_devices; dev; dev = dev->next)
         {
             if (stuff->deviceid == XIAllDevices ||
-                (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
+                (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
                 len += SizeDeviceInfo(dev);
         }
 
@@ -126,7 +126,7 @@ ProcXIQueryDevice(ClientPtr client)
         for (dev = inputInfo.devices; dev; dev = dev->next)
         {
             if (stuff->deviceid == XIAllDevices ||
-                    (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
+                    (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -139,7 +139,7 @@ ProcXIQueryDevice(ClientPtr client)
         for (dev = inputInfo.off_devices; dev; dev = dev->next)
         {
             if (stuff->deviceid == XIAllDevices ||
-                    (stuff->deviceid == XIAllMasterDevices && dev->isMaster))
+                    (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -326,7 +326,7 @@ int GetDeviceUse(DeviceIntPtr dev, uint16_t *attachment)
     DeviceIntPtr master = dev->u.master;
     int use;
 
-    if (dev->isMaster)
+    if (IsMaster(dev))
     {
         DeviceIntPtr paired = GetPairedDevice(dev);
         use = IsPointerDevice(dev) ? XIMasterPointer : XIMasterKeyboard;

@@ -721,7 +721,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 {
     DeviceIntPtr master = device->u.master;
 
-    if (device->isMaster)
+    if (IsMaster(device))
         return;
 
     if (!master) /* if device was set floating between SIGIO and now */
@@ -866,7 +866,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         kptr = &b->down[key>>3];
         if (!(*kptr & bit))
             return DONT_PROCESS;
-        if (device->isMaster) {
+        if (IsMaster(device)) {
             DeviceIntPtr sd;
 
             /*
@@ -875,7 +875,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
              * event being delivered through the slave first
              */
             for (sd = inputInfo.devices; sd; sd = sd->next) {
-                if (sd->isMaster || sd->u.master != device)
+                if (IsMaster(sd) || sd->u.master != device)
                     continue;
                 if (!sd->button)
                     continue;
@@ -1007,7 +1007,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     b = device->button;
     k = device->key;
 
-    if (device->isMaster || !device->u.master)
+    if (IsMaster(device) || !device->u.master)
         CheckMotion(event, device);
 
     switch (event->type)
@@ -1201,7 +1201,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     DeviceIntPtr mouse;
     int btlen, len, i;
 
-    mouse = (dev->isMaster || dev->u.master) ? GetPairedDevice(dev) : NULL;
+    mouse = (IsMaster(dev) || dev->u.master) ? GetPairedDevice(dev) : NULL;
 
     /* XI 2 event */
     btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
