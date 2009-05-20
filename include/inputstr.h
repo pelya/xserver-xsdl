@@ -471,7 +471,7 @@ typedef struct _DeviceIntRec {
     Bool        coreEvents;             /* TRUE if device also sends core */
     GrabInfoRec deviceGrab;             /* grab on the device */
     Bool        isMaster;               /* TRUE if device is master */
-    Atom		type;
+    Atom		xinput_type;
     char		*name;
     CARD8		id;
     KeyClassPtr		key;

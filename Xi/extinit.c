@@ -1079,7 +1079,7 @@ IResetProc(ExtensionEntry * unused)
 void
 AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 {
-    dev->type = type;
+    dev->xinput_type = type;
     dev->name = (char *)xalloc(strlen(name) + 1);
     strcpy(dev->name, name);
 }

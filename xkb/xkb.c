@@ -6117,7 +6117,7 @@ char *			str;
     if (dev->button)
 	 rep.totalBtns= dev->button->numButtons;
     else rep.totalBtns= 0;
-    rep.devType=	dev->type;
+    rep.devType=	dev->xinput_type;
     rep.hasOwnState=	(dev->key && dev->key->xkbInfo);
     rep.nDeviceLedFBs = 0;
     if (dev->kbdfeed)	rep.dfltKbdFB= dev->kbdfeed->ctrl.id;
