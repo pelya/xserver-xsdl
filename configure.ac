@@ -1617,6 +1617,7 @@ fi
 AC_MSG_RESULT([$XWIN])
 
 if test "x$XWIN" = xyes; then
+	PKG_CHECK_EXISTS([windowswmproto], [WINDOWSWM=yes], [WINDOWSWM=no])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_CHECK_TOOL(WINDRES, windres)
 	case $host_os in
@@ -1625,7 +1626,7 @@ if test "x$XWIN" = xyes; then
 			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
 			AC_DEFINE(ROOTLESS,1,[Build Rootless code])
-			CFLAGS="$CFLAGS -DFD_SETSIZE=256"
+			CFLAGS="$CFLAGS -DFD_SETSIZE=256 -DROOTLESS_WORKAROUND"
 			;;
 		mingw*)
 			XWIN_SERVER_NAME=Xming
@@ -1658,7 +1659,7 @@ if test "x$XWIN" = xyes; then
 fi
 AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
-AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test "x$XWIN" = xyes && test "x$WINDOWSWM" = xyes])
 AM_CONDITIONAL(XWIN_CLIPBOARD, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes && false])
 AM_CONDITIONAL(XWIN_NATIVEGDI, [test "x$XWIN" = xyes && false])

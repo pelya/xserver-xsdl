@@ -50,7 +50,7 @@ static DISPATCH_PROC(SProcWindowsWMDispatch);
 static unsigned char WMReqCode = 0;
 static int WMEventBase = 0;
 
-static RESTYPE ClientType, EventType; /* resource types for event masks */
+static RESTYPE ClientType, eventResourceType; /* resource types for event masks */
 static XID eventResource;
 
 /* Currently selected events */
@@ -85,10 +85,10 @@ winWindowsWMExtensionInit ()
   ExtensionEntry* extEntry;
 
   ClientType = CreateNewResourceType(WMFreeClient);
-  EventType = CreateNewResourceType(WMFreeEvents);
+  eventResourceType = CreateNewResourceType(WMFreeEvents);
   eventResource = FakeClientID(0);
 
-  if (ClientType && EventType &&
+  if (ClientType && eventResourceType &&
       (extEntry = AddExtension(WINDOWSWMNAME,
 			       WindowsWMNumberEvents,
 			       WindowsWMNumberErrors,
@@ -147,7 +147,7 @@ WMFreeClient (pointer data, XID id)
   WMEventPtr   *pHead, pCur, pPrev;
 
   pEvent = (WMEventPtr) data;
-  pHead = (WMEventPtr *) LookupIDByType(eventResource, EventType);
+  pHead = (WMEventPtr *) LookupIDByType(eventResource, eventResourceType);
   if (pHead)
     {
       pPrev = 0;
@@ -193,7 +193,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 
   REQUEST_SIZE_MATCH (xWindowsWMSelectInputReq);
   pHead = (WMEventPtr *)SecurityLookupIDByType(client, eventResource,
-					       EventType, DixWriteAccess);
+					       eventResourceType, DixWriteAccess);
   if (stuff->mask != 0)
     {
       if (pHead)
@@ -235,7 +235,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 	{
 	  pHead = (WMEventPtr *) xalloc (sizeof (WMEventPtr));
 	  if (!pHead ||
-	      !AddResource (eventResource, EventType, (pointer)pHead))
+	      !AddResource (eventResource, eventResourceType, (pointer)pHead))
 	    {
 	      FreeResource (clientResource, RT_NONE);
 	      return BadAlloc;
@@ -293,7 +293,7 @@ winWindowsWMSendEvent (int type, unsigned int mask, int which, int arg,
   ErrorF ("winWindowsWMSendEvent %d %d %d %d,  %d %d - %d %d\n",
 	  type, mask, which, arg, x, y, w, h);
 #endif
-  pHead = (WMEventPtr *) LookupIDByType(eventResource, EventType);
+  pHead = (WMEventPtr *) LookupIDByType(eventResource, eventResourceType);
   if (!pHead)
     return;
   for (pEvent = *pHead; pEvent; pEvent = pEvent->next)
