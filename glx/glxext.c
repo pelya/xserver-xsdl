@@ -36,6 +36,7 @@
 #include "glxserver.h"
 #include <windowstr.h>
 #include <propertyst.h>
+#include <registry.h>
 #include "privates.h"
 #include <os.h>
 #include "g_disptab.h"
@@ -316,6 +317,10 @@ void GlxExtensionInit(void)
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
     __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
+
+    RegisterResourceName(__glXContextRes, "GLXContext");
+    RegisterResourceName(__glXDrawableRes, "GLXDrawable");
+    RegisterResourceName(__glXSwapBarrierRes, "GLXSwapBarrier");
 
     if (!dixRequestPrivate(glxClientPrivateKey, sizeof (__GLXclientState)))
 	return;
