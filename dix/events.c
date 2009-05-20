@@ -1075,18 +1075,18 @@ MonthChangedOrBadTime(InternalEvent *ev)
      * different sources in sorted order, then it's possible for time to go
      * backwards when it should not.  Here we ensure a decent time.
      */
-    if ((currentTime.milliseconds - ev->u.any.time) > TIMESLOP)
+    if ((currentTime.milliseconds - ev->any.time) > TIMESLOP)
 	currentTime.months++;
     else
-        ev->u.any.time = currentTime.milliseconds;
+        ev->any.time = currentTime.milliseconds;
 }
 
 static void
 NoticeTime(InternalEvent *ev)
 {
-    if (ev->u.any.time < currentTime.milliseconds)
+    if (ev->any.time < currentTime.milliseconds)
         MonthChangedOrBadTime(ev);
-    currentTime.milliseconds = ev->u.any.time;
+    currentTime.milliseconds = ev->any.time;
     lastDeviceEventTime = currentTime;
 }
 
@@ -1158,7 +1158,7 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 	pSprite->hotPhys.y = event->root_y;
 	/* do motion compression, but not if from different devices */
 	if (tail &&
-	    (tail->event->u.any.type == ET_Motion) &&
+	    (tail->event->any.type == ET_Motion) &&
             (tail->device == device) &&
 	    (tail->pScreen == pSprite->hotPhys.pScreen))
 	{
@@ -1212,10 +1212,10 @@ PlayReleasedEvents(void)
             pDev = qe->device;
 	    if (*syncEvents.pendtail == *prev)
 		syncEvents.pendtail = prev;
-	    if (qe->event->u.any.type == ET_Motion)
+	    if (qe->event->any.type == ET_Motion)
 		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
-            syncEvents.time.milliseconds = qe->event->u.any.time;
+            syncEvents.time.milliseconds = qe->event->any.time;
 #ifdef PANORAMIX
 	   /* Translate back to the sprite screen since processInputProc
 	      will translate from sprite screen to screen 0 upon reentry
@@ -2391,7 +2391,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     if (rc != Success)
     {
         ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
-               dev->name, event->u.any.type, rc);
+               dev->name, event->any.type, rc);
         goto unwind;
     } else if (count > 0)
     {
@@ -2444,7 +2444,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 {
                     if (rc != BadMatch)
                         ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
-                                dev->name, event->u.any.type, rc);
+                                dev->name, event->any.type, rc);
                     goto unwind;
                 }
 
@@ -3581,7 +3581,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     if (rc != Success)
     {
         ErrorF("[dix] %s: XI conversion failed in DFE (%d, %d). Skipping delivery.\n",
-               keybd->name, event->u.any.type, rc);
+               keybd->name, event->any.type, rc);
         goto unwind;
     } else if (count == 0) /* no XI/Core event for you */
         return;
@@ -3593,7 +3593,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     if (rc != Success)
     {
         ErrorF("[dix] %s: XI2 conversion failed in DFE (%d, %d). Skipping delivery.\n",
-               keybd->name, event->u.any.type, rc);
+               keybd->name, event->any.type, rc);
         goto unwind;
     } else if (xi2)
     {
@@ -3621,7 +3621,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
         if (rc != Success)
         {
             ErrorF("[dix] %s: core conversion failed DFE (%d, %d). Skipping delivery.\n",
-                    keybd->name, event->u.any.type, rc);
+                    keybd->name, event->any.type, rc);
             goto unwind;
         }
 
@@ -3706,7 +3706,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         if (rc != Success)
         {
             ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                    thisDev->name, event->u.any.type, rc);
+                    thisDev->name, event->any.type, rc);
             goto unwind;
         }
 
@@ -3714,7 +3714,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         if (rc != Success)
         {
             ErrorF("[dix] %s: XI conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                    thisDev->name, event->u.any.type, rc);
+                    thisDev->name, event->any.type, rc);
             goto unwind;
         } else if (count == 0) /* no XI/Core event for you */
             goto unwind;
@@ -3789,10 +3789,10 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 
         }
 
-        if (deliveries && (event->u.any.type == ET_Motion))
+        if (deliveries && (event->any.type == ET_Motion))
             thisDev->valuator->motionHintWindow = grab->window;
     }
-    if (deliveries && !deactivateGrab && event->u.any.type != ET_Motion)
+    if (deliveries && !deactivateGrab && event->any.type != ET_Motion)
     {
 	switch (grabinfo->sync.state)
 	{

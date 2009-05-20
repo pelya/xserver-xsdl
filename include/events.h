@@ -63,9 +63,9 @@ enum {
     ET_Internal = 0xFF /* First byte */
 } EventType;
 
-#define CHECKEVENT(ev) if (ev && ((InternalEvent*)(ev))->u.any.header != 0xFF) \
+#define CHECKEVENT(ev) if (ev && ((InternalEvent*)(ev))->any.header != 0xFF) \
                           FatalError("Wrong event type %d.\n", \
-                                     ((InternalEvent*)(ev))->u.any.header);
+                                     ((InternalEvent*)(ev))->any.header);
 
 /**
  * Used for ALL input device events internal in the server until
@@ -204,9 +204,7 @@ typedef struct
  * Event type used inside the X server for input event
  * processing.
  */
-typedef struct
-{
-    union {
+typedef union {
         struct {
             unsigned char header; /**< Always ET_Internal */
             int type;             /**< One of ET_* */
@@ -219,7 +217,6 @@ typedef struct
         DGAEvent dga;
 #endif
         RawDeviceEvent raw;
-    } u;
 } InternalEvent;
 
 #endif

@@ -165,7 +165,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
     CHECKEVENT(e);
 
     /* avoid merging events from different devices */
-    if (e->u.any.type == ET_Motion)
+    if (e->any.type == ET_Motion)
         isMotion = pDev->id;
 
     if (isMotion && isMotion == miEventQueue.lastMotion &&
@@ -192,7 +192,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 	stuck = 0;
     }
 
-    evlen = e->u.any.length;
+    evlen = e->any.length;
     evt = miEventQueue.events[oldtail].events;
     if (evt->evlen < evlen)
     {
@@ -210,14 +210,14 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
     memcpy(evt->event, e, evlen);
 
-    time = e->u.any.time;
+    time = e->any.time;
     /* Make sure that event times don't go backwards - this
      * is "unnecessary", but very useful. */
     if (time < miEventQueue.lastEventTime &&
         miEventQueue.lastEventTime - time < 10000)
-        e->u.any.time = miEventQueue.lastEventTime;
+        e->any.time = miEventQueue.lastEventTime;
 
-    miEventQueue.lastEventTime = ((InternalEvent*)evt->event)->u.any.time;
+    miEventQueue.lastEventTime = ((InternalEvent*)evt->event)->any.time;
     miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
     miEventQueue.events[oldtail].pDev = pDev;
 
@@ -264,7 +264,7 @@ mieqSetHandler(int event, mieqHandler handler)
 static void
 ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
 {
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_Motion:
         case ET_KeyPress:
@@ -275,14 +275,14 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
         case ET_ProximityOut:
         case ET_Hierarchy:
         case ET_DeviceChanged:
-            event->u.device.deviceid = dev->id;
+            event->device.deviceid = dev->id;
             break;
         case ET_Raw:
-            event->u.raw.deviceid = dev->id;
+            event->raw.deviceid = dev->id;
             break;
         default:
             ErrorF("[mi] Unknown event type (%d), cannot change id.\n",
-                   event->u.any.type);
+                   event->any.type);
     }
 }
 
@@ -294,14 +294,14 @@ FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
     CHECKEVENT(master);
     /* Ensure chained button mappings, i.e. that the detail field is the
      * value of the mapped button on the SD, not the physical button */
-    if (original->u.any.type == ET_ButtonPress ||
-        original->u.any.type == ET_ButtonRelease)
+    if (original->any.type == ET_ButtonPress ||
+        original->any.type == ET_ButtonRelease)
     {
-        int btn = original->u.device.detail.button;
+        int btn = original->device.detail.button;
         if (!sdev->button)
             return; /* Should never happen */
 
-        master->u.device.detail.button = sdev->button->map[btn];
+        master->device.detail.button = sdev->button->map[btn];
     }
 }
 
@@ -316,7 +316,7 @@ void
 CopyGetMasterEvent(DeviceIntPtr mdev, DeviceIntPtr sdev,
                    InternalEvent* original, EventListPtr master)
 {
-    int len = original->u.any.length;
+    int len = original->any.length;
     InternalEvent *mevent;
 
     CHECKEVENT(original);
@@ -349,13 +349,13 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     CHECKEVENT(event);
 
     /* Custom event handler */
-    handler = miEventQueue.handlers[event->u.any.type];
+    handler = miEventQueue.handlers[event->any.type];
 
     if (screen && screen != DequeueScreen(dev) && !handler) {
         /* Assumption - screen switching can only occur on motion events. */
         DequeueScreen(dev) = screen;
-        x = event->u.device.root_x;
-        y = event->u.device.root_y;
+        x = event->device.root_x;
+        y = event->device.root_y;
         NewCurrentScreen (dev, DequeueScreen(dev), x, y);
     }
     else {
@@ -441,7 +441,7 @@ mieqProcessInputEvents(void)
         mieqProcessDeviceEvent(dev, event, screen);
 
         /* Update the sprite now. Next event may be from different device. */
-        if (event->u.any.type == ET_Motion && master)
+        if (event->any.type == ET_Motion && master)
             miPointerUpdateSprite(dev);
 
 #ifdef XQUARTZ

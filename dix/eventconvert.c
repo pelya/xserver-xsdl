@@ -69,7 +69,7 @@ static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
 int
 EventToCore(InternalEvent *event, xEvent *core)
 {
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_Motion:
         case ET_ButtonPress:
@@ -117,7 +117,7 @@ EventToCore(InternalEvent *event, xEvent *core)
 int
 EventToXI(InternalEvent *ev, xEvent **xi, int *count)
 {
-    switch (ev->u.any.type)
+    switch (ev->any.type)
     {
         case ET_Motion:
         case ET_ButtonPress:
@@ -134,7 +134,7 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
             return Success;
     }
 
-    ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->u.any.type);
+    ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->any.type);
     return BadImplementation;
 }
 
@@ -153,7 +153,7 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
 int
 EventToXI2(InternalEvent *ev, xEvent **xi)
 {
-    switch (ev->u.any.type)
+    switch (ev->any.type)
     {
         case ET_Motion:
         case ET_ButtonPress:
@@ -172,7 +172,7 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
 
     }
 
-    ErrorF("[dix] EventToXI2: Not implemented for %d \n", ev->u.any.type);
+    ErrorF("[dix] EventToXI2: Not implemented for %d \n", ev->any.type);
     return BadImplementation;
 }
 
@@ -472,7 +472,7 @@ int
 GetCoreType(InternalEvent *event)
 {
     int coretype = 0;
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_Motion:         coretype = MotionNotify;  break;
         case ET_ButtonPress:    coretype = ButtonPress;   break;
@@ -491,7 +491,7 @@ int
 GetXIType(InternalEvent *event)
 {
     int xitype = 0;
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_Motion:         xitype = DeviceMotionNotify;  break;
         case ET_ButtonPress:    xitype = DeviceButtonPress;   break;
@@ -513,7 +513,7 @@ GetXI2Type(InternalEvent *event)
 {
     int xi2type = 0;
 
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_Motion:         xi2type = XI_Motion;           break;
         case ET_ButtonPress:    xi2type = XI_ButtonPress;      break;

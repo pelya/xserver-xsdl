@@ -123,7 +123,7 @@ RegisterOtherDevice(DeviceIntPtr device)
 Bool
 IsPointerEvent(InternalEvent* event)
 {
-    switch(event->u.any.type)
+    switch(event->any.type)
     {
         case ET_ButtonPress:
         case ET_ButtonRelease:
@@ -953,7 +953,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
     CHECKEVENT(ev);
 
-    if (ev->u.any.type == ET_Raw)
+    if (ev->any.type == ET_Raw)
     {
         ProcessRawEvent((RawDeviceEvent*)ev, device);
         return;
