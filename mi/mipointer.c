@@ -51,9 +51,9 @@ static int miPointerPrivKeyIndex;
 static DevPrivateKey miPointerPrivKey = &miPointerPrivKeyIndex;
 
 #define MIPOINTER(dev) \
-    ((DevHasCursor((dev)) || (!IsMaster(isMaster) && !dev->u.master)) ? \
+    ((!IsMaster(dev) && !dev->u.master) ? \
         (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
-        (miPointerPtr)dixLookupPrivate(&(dev)->u.master->devPrivates, miPointerPrivKey))
+        (miPointerPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miPointerPrivKey))
 
 static Bool miPointerRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);

@@ -143,9 +143,9 @@ typedef struct {
 #endif
 
 #define MISPRITE(dev) \
-    ((DevHasCursor(dev)) ? \
+    ((!IsMaster(dev) && !dev->u.master) ? \
        (miCursorInfoPtr)dixLookupPrivate(&dev->devPrivates, miSpriteDevPrivatesKey) : \
-       (miCursorInfoPtr)dixLookupPrivate(&dev->u.master->devPrivates, miSpriteDevPrivatesKey))
+       (miCursorInfoPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miSpriteDevPrivatesKey))
 
 static void
 miSpriteDisableDamage(ScreenPtr pScreen, miSpriteScreenPtr pScreenPriv)
