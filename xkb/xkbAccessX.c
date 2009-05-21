@@ -726,7 +726,7 @@ DeviceEvent     *event = (DeviceEvent*)ev;
     COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
 				     backupproc, xkbUnwrapProc);
 
-    xkbi->state.ptr_buttons = mouse->button->state;
+    xkbi->state.ptr_buttons = (mouse->button) ? mouse->button->state : 0;
     
     /* clear any latched modifiers */
     if ( xkbi->state.latched_mods && (event->type == ET_ButtonRelease) ) {

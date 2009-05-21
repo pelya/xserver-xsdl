@@ -996,8 +996,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     }
 
     /* State needs to be assembled BEFORE the device is updated. */
-    state = (kbd) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
-    state |= (mouse) ? (mouse->button->state) : 0;
+    state = (kbd && kbd->key) ? XkbStateFieldFromRec(&kbd->key->xkbInfo->state) : 0;
+    state |= (mouse && mouse->button) ? (mouse->button->state) : 0;
 
     for (i = 0; mouse && mouse->button && i < mouse->button->numButtons; i++)
         if (BitIsOn(mouse->button->down, i))

@@ -4128,7 +4128,7 @@ CoreEnterLeaveEvent(
     event.u.enterLeave.child = child;
     event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
         ELFlagSameScreen : 0;
-    event.u.enterLeave.state = mouse->button->state & 0x1f00;
+    event.u.enterLeave.state = mouse->button ? (mouse->button->state & 0x1f00) : 0;
     if (keybd)
         event.u.enterLeave.state |=
                 XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
@@ -4793,7 +4793,7 @@ ProcQueryPointer(ClientPtr client)
     memset(&rep, 0, sizeof(xQueryPointerReply));
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.mask = mouse->button->state;
+    rep.mask = mouse->button ? (mouse->button->state) : 0;
     rep.mask |= XkbStateFieldFromRec(&keyboard->key->xkbInfo->state);
     rep.length = 0;
     rep.root = (RootWindow(mouse))->drawable.id;
