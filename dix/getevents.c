@@ -576,6 +576,9 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
     AxisInfoPtr axis = pDev->valuator->axes + axisNum;
     /* InitValuatoraAxisStruct ensures that (min < max). */
 
+    if (axisNum >= pDev->valuator->numAxes)
+        return;
+
     /* If a value range is defined, clip. If not, do nothing */
     if (axis->max_value <= axis->min_value)
         return;
@@ -751,8 +754,16 @@ positionSprite(DeviceIntPtr dev, int *x, int *y,
                ScreenPtr scr, int *screenx, int *screeny)
 {
     /* scale x&y to screen */
-    *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL, scr->width);
-    *screeny = rescaleValuatorAxis(*y, dev->valuator->axes + 1, NULL, scr->height);
+    if (dev->valuator->numAxes > 0)
+        *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL, scr->width);
+    else
+        *screenx = dev->last.valuators[0];
+
+    if (dev->valuator->numAxes > 1 )
+        *screeny = rescaleValuatorAxis(*y, dev->valuator->axes + 1, NULL, scr->height);
+    else
+        *screeny = dev->last.valuators[1];
+
     dev->last.valuators[0] = *screenx;
     dev->last.valuators[1] = *screeny;
 
@@ -1006,7 +1017,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     CARD32 ms;
     DeviceEvent *event;
     RawDeviceEvent    *raw;
-    int x, y, /* switches between device and screen coords */
+    int x = 0, y = 0, /* switches between device and screen coords */
         cx, cy; /* only screen coordinates */
     ScreenPtr scr = miPointerGetScreen(pDev);
 
@@ -1040,11 +1051,12 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         {
 
             valuators[0] = rescaleValuatorAxis(valuators[0], NULL,
-                                               pDev->valuator->axes + 0,
-                                               scr->width);
-            valuators[1] = rescaleValuatorAxis(valuators[1], NULL,
-                                               pDev->valuator->axes + 1,
-                                               scr->height);
+                    pDev->valuator->axes + 0,
+                    scr->width);
+            if (num_valuators > 1)
+                valuators[1] = rescaleValuatorAxis(valuators[1], NULL,
+                        pDev->valuator->axes + 1,
+                        scr->height);
         }
 
         moveAbsolute(pDev, &x, &y, first_valuator, num_valuators, valuators);
@@ -1055,7 +1067,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     set_raw_valuators(raw, first_valuator, num_valuators, valuators,
-                      raw->valuators.data);
+            raw->valuators.data);
 
     positionSprite(pDev, &x, &y, scr, &cx, &cy);
     updateHistory(pDev, first_valuator, num_valuators, ms);
