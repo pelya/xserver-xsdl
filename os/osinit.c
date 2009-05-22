@@ -136,8 +136,8 @@ OsSigHandler(int signo)
 
 #ifdef SA_SIGINFO
   if (sip->si_code == SI_USER) {
-      ErrorF("Recieved signal %d sent by process %ld, uid %ld\n",
-	     (long) sip->si_pid, (long) sip->si_uid);
+      ErrorF("Recieved signal %ld sent by process %ld, uid %ld\n",
+              (long) sip->si_code, (long) sip->si_pid, (long) sip->si_uid);
   } else {
       switch (signo) {
           case SIGSEGV:
