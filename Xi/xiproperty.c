@@ -197,7 +197,8 @@ static void send_property_event(DeviceIntPtr dev, Atom property, int what)
         xi2.time        = currentTime.milliseconds;
         xi2.property    = property;
         xi2.what        = what;
-        SendEventToAllWindows(dev, GetEventFilter(dev, &xi2), (xEvent*)&xi2, 1);
+        SendEventToAllWindows(dev, GetEventFilter(dev, (xEvent*)&xi2),
+                              (xEvent*)&xi2, 1);
 }
 
 static int list_atoms(DeviceIntPtr dev, int *natoms, Atom **atoms_return)

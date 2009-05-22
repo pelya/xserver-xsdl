@@ -94,12 +94,10 @@ int ProcXIChangeCursor(ClientPtr client)
     }
     else
     {
-        pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-                                RT_CURSOR, DixReadAccess);
-        if (!pCursor)
-        {
-            return BadCursor;
-        }
+	rc = dixLookupResourceByType((pointer*)&pCursor, stuff->cursor,
+				     RT_CURSOR, client, DixReadAccess);
+        if (rc != Success)
+            return rc;
     }
 
     ChangeWindowDeviceCursor(pWin, pDev, pCursor);
