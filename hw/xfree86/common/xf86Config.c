@@ -1226,7 +1226,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	const char **driver = mousedrivers;
 	confInput = xf86findInput(CONF_IMPLICIT_POINTER,
 				  xf86configptr->conf_input_lst);
-	while (driver && !confInput) {
+	while (*driver && !confInput) {
 	    confInput = xf86findInputByDriver(*driver,
 					      xf86configptr->conf_input_lst);
 	    driver++;
