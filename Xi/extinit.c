@@ -254,7 +254,8 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXIListProperties,                   /* 56 */
         ProcXIChangeProperty,                   /* 57 */
         ProcXIDeleteProperty,                   /* 58 */
-        ProcXIGetProperty                       /* 59 */
+        ProcXIGetProperty,                      /* 59 */
+        ProcXIGetSelectedEvents                 /* 60 */
 };
 
 /* For swapped clients */
@@ -318,7 +319,8 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXIListProperties,                   /* 56 */
         SProcXIChangeProperty,                   /* 57 */
         SProcXIDeleteProperty,                   /* 58 */
-        SProcXIGetProperty                       /* 59 */
+        SProcXIGetProperty,                      /* 59 */
+        SProcXIGetSelectedEvents                 /* 60 */
 };
 
 /*****************************************************************
@@ -516,6 +518,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 	SRepXIListProperties(client, len, (xXIListPropertiesReply *) rep);
     else if (rep->RepType == X_XIGetProperty)
 	SRepXIGetProperty(client, len, (xXIGetPropertyReply *) rep);
+    else if (rep->RepType == X_XIGetSelectedEvents)
+	SRepXIGetSelectedEvents(client, len, (xXIGetSelectedEventsReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

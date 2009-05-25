@@ -29,3 +29,7 @@
 
 int SProcXISelectEvent(ClientPtr client);
 int ProcXISelectEvent(ClientPtr client);
+int SProcXIGetSelectedEvents(ClientPtr client);
+int ProcXIGetSelectedEvents(ClientPtr client);
+void SRepXIGetSelectedEvents(ClientPtr client,
+                             int len, xXIGetSelectedEventsReply *rep);

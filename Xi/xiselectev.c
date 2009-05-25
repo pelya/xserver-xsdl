@@ -128,3 +128,119 @@ ProcXISelectEvent(ClientPtr client)
     xfree(types);
     return Success;
 }
+
+
+int
+SProcXIGetSelectedEvents(ClientPtr client)
+{
+    char n;
+
+    REQUEST(xXIGetSelectedEventsReq);
+    swaps(&stuff->length, n);
+    REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
+    swapl(&stuff->window, n);
+
+    return (ProcXIGetSelectedEvents(client));
+}
+
+int
+ProcXIGetSelectedEvents(ClientPtr client)
+{
+    int rc, i;
+    WindowPtr win;
+    char n;
+    char *buffer = NULL;
+    xXIGetSelectedEventsReply reply;
+    OtherInputMasks *masks;
+    InputClientsPtr others = NULL;
+    xXIEventMask *evmask = NULL;
+
+    REQUEST(xXIGetSelectedEventsReq);
+    REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
+
+    rc = dixLookupWindow(&win, stuff->window, client, DixReceiveAccess);
+    if (rc != Success)
+        return rc;
+
+    reply.repType = X_Reply;
+    reply.RepType = X_XIGetSelectedEvents;
+    reply.length = 0;
+    reply.sequenceNumber = client->sequence;
+    reply.num_masks = 0;
+
+    masks = wOtherInputMasks(win);
+    if (masks)
+    {
+	for (others = wOtherInputMasks(win)->inputClients; others;
+	     others = others->next) {
+	    if (SameClient(others, client)) {
+                break;
+            }
+        }
+    }
+
+    if (!others)
+    {
+        WriteReplyToClient(client, sizeof(xXIGetSelectedEventsReply), &reply);
+        return Success;
+    }
+
+    buffer = xcalloc(MAXDEVICES, sizeof(xXIEventMask) + XI2MASKSIZE);
+    if (!buffer)
+        return BadAlloc;
+
+    evmask = (xXIEventMask*)buffer;
+    for (i = 0; i < MAXDEVICES; i++)
+    {
+        int j;
+        unsigned char *devmask = others->xi2mask[i];
+
+        for (j = XI2MASKSIZE - 1; j >= 0; j--)
+        {
+            if (devmask[j] != 0)
+            {
+                evmask->deviceid = i;
+                evmask->mask_len = (j + 4)/4; /* j is an index, hence + 4,
+                                                 not + 3 */
+
+                reply.num_masks++;
+                reply.length += sizeof(xXIEventMask)/4 + evmask->mask_len;
+
+                if (client->swapped)
+                {
+                    swaps(&evmask->deviceid, n);
+                    swaps(&evmask->mask_len, n);
+                }
+
+                memcpy(&evmask[1], devmask, j + 1);
+                evmask = (xXIEventMask*)((char*)evmask +
+                           sizeof(xXIEventMask) + evmask->mask_len * 4);
+                break;
+            }
+        }
+    }
+
+    WriteReplyToClient(client, sizeof(xXIGetSelectedEventsReply), &reply);
+
+    if (reply.num_masks)
+    {
+        WriteSwappedDataToClient(client, reply.length * 4, buffer);
+    }
+
+
+    xfree(buffer);
+    return Success;
+}
+
+void SRepXIGetSelectedEvents(ClientPtr client,
+                            int len, xXIGetSelectedEventsReply *rep)
+{
+    char n;
+
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swaps(&rep->num_masks, n);
+    WriteToClient(client, len, (char *)rep);
+}
+
+
