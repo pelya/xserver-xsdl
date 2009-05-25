@@ -103,6 +103,7 @@ ProcXISelectEvent(ClientPtr client)
         }
 
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
+        evmask++;
     }
 
     /* Set masks on window */
@@ -119,6 +120,7 @@ ProcXISelectEvent(ClientPtr client)
             dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
         XISetEventMask(dev, win, client, evmask->mask_len * 4, (unsigned char*)&evmask[1]);
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
+        evmask++;
     }
 
     RecalculateDeliverableEvents(win);
