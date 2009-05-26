@@ -457,7 +457,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	    pNewGrab = CreateGrab(CLIENT_ID(grab->resource), grab->device,
 				  grab->modifierDevice, grab->window,
                                   grab->grabtype,
-				  (GrabMask*)grab->eventMask,
+				  (GrabMask*)&grab->eventMask,
                                   &param, (int)grab->type,
 				  pMinuendGrab->detail.exact,
 				  grab->confineTo, grab->cursor);
