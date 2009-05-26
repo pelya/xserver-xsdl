@@ -1070,8 +1070,11 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             }
             break;
         case ET_KeyRelease:
-            if (device->deviceGrab.fromPassiveGrab &&
-                    (key == device->deviceGrab.activatingKey))
+            if (grab && device->deviceGrab.fromPassiveGrab &&
+                (key == device->deviceGrab.activatingKey) &&
+                (device->deviceGrab.grab->type == KeyPress ||
+                 device->deviceGrab.grab->type == DeviceKeyPress ||
+                 device->deviceGrab.grab->type == XI_KeyPress))
                 deactivateDeviceGrab = TRUE;
             break;
         case ET_ButtonPress:
@@ -1092,7 +1095,11 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
                 event->detail.button = key;
                 return;
             }
-            if (!b->buttonsDown && device->deviceGrab.fromPassiveGrab)
+            if (grab && !b->buttonsDown &&
+                device->deviceGrab.fromPassiveGrab &&
+                (device->deviceGrab.grab->type == ButtonPress ||
+                 device->deviceGrab.grab->type == DeviceButtonPress ||
+                 device->deviceGrab.grab->type == XI_ButtonPress))
                 deactivateDeviceGrab = TRUE;
     }
 
