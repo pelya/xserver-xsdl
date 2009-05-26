@@ -1846,16 +1846,20 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 	    dev->focus->traceGood = 0;
 	    break;
 	case RevertToFollowKeyboard:
-	    if (inputInfo.keyboard->focus->win) {
-		DoFocusEvents(dev, pWin, inputInfo.keyboard->focus->win,
-			      focusEventMode);
+            {
+                DeviceIntPtr kbd = GetMaster(dev, MASTER_KEYBOARD);
+                if (!kbd || (kbd == dev && kbd != inputInfo.keyboard))
+                    kbd = inputInfo.keyboard;
+	    if (kbd->focus->win) {
+		DoFocusEvents(dev, pWin, kbd->focus->win, focusEventMode);
 		dev->focus->win = FollowKeyboardWin;
 		dev->focus->traceGood = 0;
 	    } else {
-		DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
+                DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
 		dev->focus->win = NoneWin;
 		dev->focus->traceGood = 0;
 	    }
+            }
 	    break;
 	}
     }
