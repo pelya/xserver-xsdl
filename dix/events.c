@@ -4182,7 +4182,6 @@ DeviceEnterLeaveEvent(
 {
     GrabPtr             grab = mouse->deviceGrab.grab;
     xXIEnterEvent       *event;
-    Mask                mask;
     int                 filter;
     int                 btlen, len, i;
     DeviceIntPtr        kbd;
@@ -4223,19 +4222,22 @@ DeviceEnterLeaveEvent(
 
     FixUpEventFromWindow(mouse, (xEvent*)event, pWin, None, FALSE);
 
-
-    if (!GetWindowXI2Mask(mouse, pWin, (xEvent*)event))
-        return;
-
     filter = GetEventFilter(mouse, (xEvent*)event);
-    mask = 0x0; /* FIXME: we should handle grabs, once we can */
 
     if (grab)
+    {
+        Mask mask;
+        mask = grab->xi2mask[XIAllDevices][type/8] |
+               grab->xi2mask[XIAllMasterDevices][type/8] |
+               grab->xi2mask[mouse->id][type/8];
         TryClientEvents(rClient(grab), mouse, (xEvent*)event, 1, mask,
                         filter, grab);
-    else
+    } else {
+        if (!GetWindowXI2Mask(mouse, pWin, (xEvent*)event))
+            return;
         DeliverEventsToWindow(mouse, pWin, (xEvent*)event, 1, filter,
                               NullGrab);
+    }
     xfree(event);
 }
 
