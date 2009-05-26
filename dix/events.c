@@ -2240,8 +2240,8 @@ FixUpEventFromWindow(
         event->event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
-            event->event_x = FP1616(event->root_x - pWin->drawable.x, 0);
-            event->event_y = FP1616(event->root_y - pWin->drawable.y, 0);
+            event->event_x = event->root_x - FP1616(pWin->drawable.x, 0);
+            event->event_y = event->root_y - FP1616(pWin->drawable.y, 0);
             event->child = child;
         } else
         {
