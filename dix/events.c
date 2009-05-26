@@ -224,6 +224,10 @@ static void CheckPhysLimits(DeviceIntPtr pDev,
                             Bool generateEvents,
                             Bool confineToScreen,
                             ScreenPtr pScreen);
+static Bool CheckPassiveGrabsOnWindow(WindowPtr pWin,
+                                      DeviceIntPtr device,
+                                      DeviceEvent *event,
+                                      BOOL checkCore);
 
 /**
  * Main input device struct.
@@ -2624,6 +2628,74 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 }
 
 /**
+ * Ungrab a currently FocusIn grabbed device and grab the device on the
+ * given window. If the win given is the NoneWin, the device is ungrabbed if
+ * applicable and FALSE is returned.
+ *
+ * @returns TRUE if the device has been grabbed, or FALSE otherwise.
+ */
+BOOL
+ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr win)
+{
+    DeviceEvent event;
+
+    if (dev->deviceGrab.grab &&
+        dev->deviceGrab.fromPassiveGrab &&
+        dev->deviceGrab.grab->type == XI_Enter)
+    {
+        if (dev->deviceGrab.grab->window == win ||
+            IsParent(dev->deviceGrab.grab->window, win))
+            return FALSE;
+        (*dev->deviceGrab.DeactivateGrab)(dev);
+    }
+
+    if (win == NoneWin || win == PointerRootWin)
+        return FALSE;
+
+    memset(&event, 0, sizeof(DeviceEvent));
+    event.header = ET_Internal;
+    event.type = ET_FocusIn;
+    event.length = sizeof(DeviceEvent);
+    event.time = GetTimeInMillis();
+    event.deviceid = dev->id;
+    event.sourceid = dev->id;
+    event.detail.button = 0;
+    return CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+}
+
+/**
+ * Ungrab a currently Enter grabbed device and grab the deice for the given
+ * window.
+ *
+ * @returns TRUE if the device has been grabbed, or FALSE otherwise.
+ */
+static BOOL
+ActivateEnterGrab(DeviceIntPtr dev, WindowPtr win)
+{
+    DeviceEvent event;
+
+    if (dev->deviceGrab.grab &&
+        dev->deviceGrab.fromPassiveGrab &&
+        dev->deviceGrab.grab->type == XI_Enter)
+    {
+        if (dev->deviceGrab.grab->window == win ||
+            IsParent(dev->deviceGrab.grab->window, win))
+            return FALSE;
+        (*dev->deviceGrab.DeactivateGrab)(dev);
+    }
+
+    memset(&event, 0, sizeof(DeviceEvent));
+    event.header = ET_Internal;
+    event.type = ET_Enter;
+    event.length = sizeof(DeviceEvent);
+    event.time = GetTimeInMillis();
+    event.deviceid = dev->id;
+    event.sourceid = dev->id;
+    event.detail.button = 0;
+    return CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+}
+
+/**
  * Update the sprite coordinates based on the event. Update the cursor
  * position, then update the event with the new coordinates that may have been
  * changed. If the window underneath the sprite has changed, change to new
@@ -2637,7 +2709,7 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 Bool
 CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 {
-    WindowPtr prevSpriteWin;
+    WindowPtr prevSpriteWin, newSpriteWin;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
     CHECKEVENT(ev);
@@ -2715,17 +2787,23 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 	ev->root_y = pSprite->hot.y;
     }
 
-    pSprite->win = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
+    newSpriteWin = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
 
-    if (pSprite->win != prevSpriteWin)
+    if (newSpriteWin != prevSpriteWin)
     {
+        if (!ev)
+            UpdateCurrentTimeIf();
+
 	if (prevSpriteWin != NullWindow) {
-	    if (!ev)
-		UpdateCurrentTimeIf();
-            DoEnterLeaveEvents(pDev, prevSpriteWin, pSprite->win,
-                               NotifyNormal);
+            if (!ActivateEnterGrab(pDev, newSpriteWin))
+                DoEnterLeaveEvents(pDev, prevSpriteWin,
+                                   newSpriteWin, NotifyNormal);
         }
-	PostNewCursor(pDev);
+        /* set pSprite->win after ActivateEnterGrab, otherwise
+           sprite window == grab_window and no enter/leave events are
+           sent. */
+        pSprite->win = newSpriteWin;
+        PostNewCursor(pDev);
         return FALSE;
     }
     return TRUE;
@@ -3443,11 +3521,14 @@ CheckPassiveGrabsOnWindow(
 
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
 
-	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
+            if (xE)
+            {
+                FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
-	    TryClientEvents(rClient(grab), device, xE, count,
-                                   GetEventFilter(device, xE),
-                                   GetEventFilter(device, xE), grab);
+                TryClientEvents(rClient(grab), device, xE, count,
+                                       GetEventFilter(device, xE),
+                                       GetEventFilter(device, xE), grab);
+            }
 
 	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
 	    {
@@ -4344,9 +4425,14 @@ SetInputFocus(
 	return Success;
     mode = (dev->deviceGrab.grab) ? NotifyWhileGrabbed : NotifyNormal;
     if (focus->win == FollowKeyboardWin)
-	DoFocusEvents(dev, keybd->focus->win, focusWin, mode);
-    else
-	DoFocusEvents(dev, focus->win, focusWin, mode);
+    {
+        if (!ActivateFocusInGrab(dev, focusWin))
+            DoFocusEvents(dev, keybd->focus->win, focusWin, mode);
+    } else
+    {
+        if (!ActivateFocusInGrab(dev, focusWin))
+            DoFocusEvents(dev, focus->win, focusWin, mode);
+    }
     focus->time = time;
     focus->revert = revertTo;
     if (focusID == FollowKeyboard)
@@ -5327,12 +5413,14 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
                                 || clients[CLIENT_ID(parent->drawable.id)]->clientGone
 #endif
                                 );
-                        DoFocusEvents(keybd, pWin, parent, focusEventMode);
+                        if (!ActivateFocusInGrab(keybd, parent))
+                            DoFocusEvents(keybd, pWin, parent, focusEventMode);
                         focus->win = parent;
                         focus->revert = RevertToNone;
                         break;
                     case RevertToPointerRoot:
-                        DoFocusEvents(keybd, pWin, PointerRootWin, focusEventMode);
+                        if (!ActivateFocusInGrab(keybd, PointerRootWin))
+                            DoFocusEvents(keybd, pWin, PointerRootWin, focusEventMode);
                         focus->win = PointerRootWin;
                         focus->traceGood = 0;
                         break;

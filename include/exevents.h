@@ -107,6 +107,13 @@ extern int GrabKey(
         GrabType               /* grabtype */,
 	GrabMask*              /* eventMask */);
 
+extern int GrabWindow(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	int                    /* type */,
+	GrabParameters*        /* param */,
+	GrabMask*              /* eventMask */);
+
 extern int SelectForWindow(
 	DeviceIntPtr           /* dev */,
 	WindowPtr              /* pWin */,

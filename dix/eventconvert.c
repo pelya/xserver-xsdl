@@ -155,6 +155,12 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
 {
     switch (ev->any.type)
     {
+        /* Enter/FocusIn are for grabs. We don't need an actual event, since
+         * the real events delivered are triggered elsewhere */
+        case ET_Enter:
+        case ET_FocusIn:
+            *xi = NULL;
+            return Success;
         case ET_Motion:
         case ET_ButtonPress:
         case ET_ButtonRelease:
@@ -525,6 +531,8 @@ GetXI2Type(InternalEvent *event)
         case ET_Hierarchy:      xi2type = XI_HierarchyChanged; break;
         case ET_DeviceChanged:  xi2type = XI_DeviceChanged;    break;
         case ET_Raw:            xi2type = XI_RawEvent;         break;
+        case ET_FocusIn:        xi2type = XI_FocusIn;          break;
+        case ET_FocusOut:       xi2type = XI_FocusOut;         break;
         default:
             break;
     }

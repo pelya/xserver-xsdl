@@ -962,7 +962,7 @@ ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
 void
 ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 {
-    GrabPtr grab = device->deviceGrab.grab;
+    GrabPtr grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, rootX, rootY;
     ButtonClassPtr b;
@@ -1060,6 +1060,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 	CallCallbacks(&DeviceEventCallback, (pointer) & eventinfo);
     }
 #endif
+    grab = device->deviceGrab.grab;
 
     switch(event->type)
     {
@@ -1509,6 +1510,52 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     return AddPassiveGrabToList(client, grab);
 }
 
+/* Enter/FocusIn grab */
+int
+GrabWindow(ClientPtr client, DeviceIntPtr dev, int type,
+           GrabParameters *param, GrabMask *mask)
+{
+    WindowPtr pWin;
+    CursorPtr cursor;
+    GrabPtr grab;
+    Mask access_mode = DixGrabAccess;
+    int rc;
+
+    rc = CheckGrabValues(client, param);
+    if (rc != Success)
+        return rc;
+
+    rc = dixLookupWindow(&pWin, param->grabWindow, client, DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
+    if (param->cursor == None)
+	cursor = NullCursor;
+    else {
+	rc = dixLookupResourceByType((pointer *)&cursor, param->cursor,
+				     RT_CURSOR, client, DixUseAccess);
+	if (rc != Success)
+	{
+	    client->errorValue = param->cursor;
+	    return (rc == BadValue) ? BadCursor : rc;
+	}
+	access_mode |= DixForceAccess;
+    }
+    if (param->this_device_mode == GrabModeSync || param->other_devices_mode == GrabModeSync)
+	access_mode |= DixFreezeAccess;
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, access_mode);
+    if (rc != Success)
+	return rc;
+
+    grab = CreateGrab(client->index, dev, dev, pWin, GRABTYPE_XI2,
+                      mask, param, (type == XIGrabtypeEnter) ? XI_Enter : XI_FocusIn,
+                      0, NULL, cursor);
+
+    if (!grab)
+        return BadAlloc;
+
+    return AddPassiveGrabToList(client, grab);
+}
+
 int
 SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
 		Mask mask, Mask exclusivemasks)
@@ -1825,7 +1872,8 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 
 	switch (dev->focus->revert) {
 	case RevertToNone:
-	    DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
+	    if (!ActivateFocusInGrab(dev, NoneWin))
+		DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
 	    dev->focus->win = NoneWin;
 	    dev->focus->traceGood = 0;
 	    break;
@@ -1836,12 +1884,14 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 		dev->focus->traceGood--;
 	    }
 	    while (!parent->realized);
-	    DoFocusEvents(dev, pWin, parent, focusEventMode);
+	    if (!ActivateFocusInGrab(dev, parent))
+		DoFocusEvents(dev, pWin, parent, focusEventMode);
 	    dev->focus->win = parent;
 	    dev->focus->revert = RevertToNone;
 	    break;
 	case RevertToPointerRoot:
-	    DoFocusEvents(dev, pWin, PointerRootWin, focusEventMode);
+	    if (!ActivateFocusInGrab(dev, PointerRootWin))
+		DoFocusEvents(dev, pWin, PointerRootWin, focusEventMode);
 	    dev->focus->win = PointerRootWin;
 	    dev->focus->traceGood = 0;
 	    break;
@@ -1851,11 +1901,13 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
                 if (!kbd || (kbd == dev && kbd != inputInfo.keyboard))
                     kbd = inputInfo.keyboard;
 	    if (kbd->focus->win) {
-		DoFocusEvents(dev, pWin, kbd->focus->win, focusEventMode);
+		if (!ActivateFocusInGrab(dev, kbd->focus->win))
+		    DoFocusEvents(dev, pWin, kbd->focus->win, focusEventMode);
 		dev->focus->win = FollowKeyboardWin;
 		dev->focus->traceGood = 0;
 	    } else {
-                DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
+                if (!ActivateFocusInGrab(dev, NoneWin))
+                    DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
 		dev->focus->win = NoneWin;
 		dev->focus->traceGood = 0;
 	    }

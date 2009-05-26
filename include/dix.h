@@ -350,6 +350,10 @@ extern void ActivateKeyboardGrab(
 extern void DeactivateKeyboardGrab(
     DeviceIntPtr /* keybd */);
 
+extern BOOL ActivateFocusInGrab(
+    DeviceIntPtr /* dev */,
+    WindowPtr /* win */);
+
 extern void AllowSome(
     ClientPtr	/* client */,
     TimeStamp /* time */,
@@ -581,6 +585,7 @@ extern Bool IsPointerDevice( DeviceIntPtr dev);
 extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 extern Bool IsPointerEvent(InternalEvent *event);
 extern Bool IsMaster(DeviceIntPtr dev);
+
 
 /*
  * These are deprecated compatibility functions and will be removed soon!
