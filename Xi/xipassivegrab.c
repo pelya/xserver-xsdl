@@ -266,6 +266,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     else
         mod_dev = dev;
 
+    tempGrab.resource = client->clientAsMask;
     tempGrab.device = dev;
     tempGrab.window = win;
     tempGrab.type =
