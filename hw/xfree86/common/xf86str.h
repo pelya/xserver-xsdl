@@ -342,21 +342,6 @@ typedef struct _DriverRec {
  */
 #define HaveDriverFuncs 1
 
-
-/*
- * The optional module list struct. This allows modules exporting helping
- * functions to configuration tools, the Xserver, or any other
- * application/module interested in such information.
- */
-_X_DEPRECATED typedef struct _ModuleInfoRec {
-    int			moduleVersion;
-    char *		moduleName;
-    pointer		module;
-    int			refCount;
-    const OptionInfoRec * (*AvailableOptions)(void *unused);
-    pointer		unused[8];	/* leave some space for more fields */
-} ModuleInfoRec, *ModuleInfoPtr;
-
 /*
  * These are the private bus types.  New types can be added here.  Types
  * required for the public interface should be added to xf86str.h, with

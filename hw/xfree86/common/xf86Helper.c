@@ -169,17 +169,6 @@ xf86LookupInput(const char *name)
     return NULL;
 }
 
-/* ABI stubs of despair */
-void
-xf86AddModuleInfo(pointer info, pointer module)
-{
-}
-
-void
-xf86DeleteModuleInfo(int idx)
-{
-}
-
 /* Allocate a new ScrnInfoRec in xf86Screens */
 
 ScrnInfoPtr

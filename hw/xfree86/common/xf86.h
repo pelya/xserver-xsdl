@@ -315,9 +315,6 @@ extern _X_EXPORT int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	propert
 				    pointer value);
 extern _X_EXPORT Bool xf86IsUnblank(int mode);
 
-extern _X_EXPORT _X_DEPRECATED void xf86AddModuleInfo(pointer info, pointer module);
-extern _X_EXPORT _X_DEPRECATED void xf86DeleteModuleInfo(int idx);
-
 /* xf86Init.c */
 
 extern _X_EXPORT PixmapFormatPtr xf86GetPixFormat(ScrnInfoPtr pScrn, int depth);
