@@ -459,8 +459,8 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     if (pSrc->alphaMap)
     {
 	if (!miClipPictureSrc (pRegion, pSrc->alphaMap,
-			       xDst - (xSrc + pSrc->alphaOrigin.x),
-			       yDst - (ySrc + pSrc->alphaOrigin.y)))
+			       xDst - (xSrc - pSrc->alphaOrigin.x),
+			       yDst - (ySrc - pSrc->alphaOrigin.y)))
 	{
 	    pixman_region_fini (pRegion);
 	    return FALSE;
@@ -477,8 +477,8 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 	if (pMask->alphaMap)
 	{
 	    if (!miClipPictureSrc (pRegion, pMask->alphaMap,
-				   xDst - (xMask + pMask->alphaOrigin.x),
-				   yDst - (yMask + pMask->alphaOrigin.y)))
+				   xDst - (xMask - pMask->alphaOrigin.x),
+				   yDst - (yMask - pMask->alphaOrigin.y)))
 	    {
 		pixman_region_fini (pRegion);
 		return FALSE;
