@@ -915,6 +915,8 @@ KdAddKeyboard (KdKeyboardInfo *ki)
         return !Success;
     }
 
+    ki->dixdev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+    ki->dixdev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
     RegisterOtherDevice(ki->dixdev);
 
 #ifdef DEBUG
@@ -984,6 +986,8 @@ KdAddPointer (KdPointerInfo *pi)
         return BadDevice;
     }
 
+    pi->dixdev->deviceGrab.ActivateGrab = ActivatePointerGrab;
+    pi->dixdev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
     RegisterOtherDevice(pi->dixdev);
 
     for (prev = &kdPointers; *prev; prev = &(*prev)->next);

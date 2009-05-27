@@ -106,7 +106,7 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
     EXA_GC_PROLOGUE(pGC);
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
     if (exaGCReadsDestination(pDrawable, pGC->planemask, pGC->fillStyle,
-			      pGC->alu))
+			      pGC->alu, pGC->clientClipType))
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     else
 	exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pExaPixmap->pDamage ?

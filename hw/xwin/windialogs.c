@@ -181,32 +181,64 @@ winUnoverrideURLButton (HWND hwnd, int id)
 
 /*
  * Center a dialog window in the desktop window
+ * and set small and large icons to X icons.
  */
 
 static void
-winCenterDialog (HWND hwndDlg)
+winInitDialog (HWND hwndDlg)
 {
   HWND hwndDesk; 
-  RECT rc, rcDlg, rcDesk; 
+  RECT rc, rcDlg, rcDesk;
+  HICON hIcon, hIconSmall;
  
   hwndDesk = GetParent (hwndDlg);
   if (!hwndDesk || IsIconic (hwndDesk))
     hwndDesk = GetDesktopWindow (); 
   
-  GetWindowRect (hwndDesk, &rcDesk); 
-  GetWindowRect (hwndDlg, &rcDlg); 
-  CopyRect (&rc, &rcDesk); 
-  
-  OffsetRect (&rcDlg, -rcDlg.left, -rcDlg.top); 
-  OffsetRect (&rc, -rc.left, -rc.top); 
-  OffsetRect (&rc, -rcDlg.right, -rcDlg.bottom); 
-  
-  SetWindowPos (hwndDlg, 
-		HWND_TOP, 
-		rcDesk.left + (rc.right / 2), 
-		rcDesk.top + (rc.bottom / 2), 
+  /* Remove minimize and maximize buttons */
+  SetWindowLong (hwndDlg, GWL_STYLE,
+		 GetWindowLong (hwndDlg, GWL_STYLE)
+		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
+
+  /* Set Window not to show in the task bar */
+  SetWindowLong (hwndDlg, GWL_EXSTYLE,
+		 GetWindowLong (hwndDlg, GWL_EXSTYLE) & ~WS_EX_APPWINDOW );
+
+  /* Center dialog window in the screen. Not done for multi-monitor systems, where
+   * it is likely to end up split across the screens. In that case, it appears
+   * near the Tray icon.
+   */
+  if (GetSystemMetrics(SM_CMONITORS)>1) {
+    /* Still need to refresh the frame change. */
+    SetWindowPos (hwndDlg, HWND_TOPMOST, 0,0,0,0,
+		SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+  } else {
+    GetWindowRect (hwndDesk, &rcDesk);
+    GetWindowRect (hwndDlg, &rcDlg);
+    CopyRect (&rc, &rcDesk);
+
+    OffsetRect (&rcDlg, -rcDlg.left, -rcDlg.top);
+    OffsetRect (&rc, -rc.left, -rc.top);
+    OffsetRect (&rc, -rcDlg.right, -rcDlg.bottom);
+
+    SetWindowPos (hwndDlg,
+		HWND_TOPMOST,
+		rcDesk.left + (rc.right / 2),
+		rcDesk.top + (rc.bottom / 2),
 		0, 0,
-		SWP_NOSIZE | SWP_NOZORDER); 
+		SWP_NOSIZE | SWP_FRAMECHANGED);
+  }
+
+  /* Set icon to standard app icon */
+  hIcon = LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN));
+  hIconSmall = LoadImage (g_hInstance,
+                        MAKEINTRESOURCE(IDI_XWIN), IMAGE_ICON,
+                        GetSystemMetrics(SM_CXSMICON),
+                        GetSystemMetrics(SM_CYSMICON),
+                        LR_SHARED);
+
+  PostMessage (hwndDlg, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+  PostMessage (hwndDlg, WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
 }
 
 
@@ -271,15 +303,6 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
 				  winExitDlgProc,
 				  (int) pScreenPriv);
 
-  /* Drop minimize and maximize buttons */
-  SetWindowLong (g_hDlgExit, GWL_STYLE,
-		 GetWindowLong (g_hDlgExit, GWL_STYLE)
-		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
-  SetWindowLong (g_hDlgExit, GWL_EXSTYLE,
-		 GetWindowLong (g_hDlgExit, GWL_EXSTYLE) & ~WS_EX_APPWINDOW );
-  SetWindowPos (g_hDlgExit, HWND_TOPMOST, 0, 0, 0, 0,
-		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE); 
- 
   /* Show the dialog box */
   ShowWindow (g_hDlgExit, SW_SHOW);
   
@@ -314,14 +337,7 @@ winExitDlgProc (HWND hDialog, UINT message,
 	/* Store pointers to private structures for future use */
 	s_pScreenPriv = (winPrivScreenPtr) lParam;
 	
-	winCenterDialog (hDialog);
-	
-	/* Set icon to standard app icon */
-	PostMessage (hDialog,
-		     WM_SETICON,
-		     ICON_SMALL,
-		     (LPARAM) LoadIcon (g_hInstance,
-					MAKEINTRESOURCE(IDI_XWIN)));
+	winInitDialog (hDialog);
 
 	/* Format the connected clients string */
 	pszConnectedClients = Xprintf (CONNECTED_CLIENTS_FORMAT,
@@ -413,17 +429,6 @@ winDisplayDepthChangeDialog (winPrivScreenPtr pScreenPriv)
 					 pScreenPriv->hwndScreen,
 					 winChangeDepthDlgProc,
 					 (int) pScreenPriv);
- 
-  /* Drop minimize and maximize buttons */
-  SetWindowLong (g_hDlgDepthChange, GWL_STYLE,
-		 GetWindowLong (g_hDlgDepthChange, GWL_STYLE)
-		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
-  SetWindowLong (g_hDlgDepthChange, GWL_EXSTYLE,
-		 GetWindowLong (g_hDlgDepthChange, GWL_EXSTYLE)
-		 & ~WS_EX_APPWINDOW );
-  SetWindowPos (g_hDlgDepthChange, 0, 0, 0, 0, 0,
-		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER | SWP_NOSIZE); 
-
   /* Show the dialog box */
   ShowWindow (g_hDlgDepthChange, SW_SHOW);
   
@@ -480,13 +485,7 @@ winChangeDepthDlgProc (HWND hwndDialog, UINT message,
 	      s_pScreenPriv->dwLastWindowsBitsPixel);
 #endif
       
-      winCenterDialog( hwndDialog );
-
-      /* Set icon to standard app icon */
-      PostMessage (hwndDialog,
-		   WM_SETICON,
-		   ICON_SMALL,
-		   (LPARAM) LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN)));
+      winInitDialog( hwndDialog );
 
       return TRUE;
 
@@ -572,15 +571,6 @@ winDisplayAboutDialog (winPrivScreenPtr pScreenPriv)
 				   winAboutDlgProc,
 				   (int) pScreenPriv);
  
-  /* Drop minimize and maximize buttons */
-  SetWindowLong (g_hDlgAbout, GWL_STYLE,
-		 GetWindowLong (g_hDlgAbout, GWL_STYLE)
-		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
-  SetWindowLong (g_hDlgAbout, GWL_EXSTYLE,
-		 GetWindowLong (g_hDlgAbout, GWL_EXSTYLE) & ~WS_EX_APPWINDOW);
-  SetWindowPos (g_hDlgAbout, 0, 0, 0, 0, 0,
-		SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE); 
-
   /* Show the dialog box */
   ShowWindow (g_hDlgAbout, SW_SHOW);
 
@@ -622,13 +612,7 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
       s_pScreenInfo = s_pScreenPriv->pScreenInfo;
       s_pScreen = s_pScreenInfo->pScreen;
 
-      winCenterDialog (hwndDialog);
-
-      /* Set icon to standard app icon */
-      PostMessage (hwndDialog,
-		   WM_SETICON,
-		   ICON_SMALL,
-		   (LPARAM) LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN)));
+      winInitDialog (hwndDialog);
 
       /* Override the URL buttons */
       winOverrideURLButton (hwndDialog, ID_ABOUT_CHANGELOG);

@@ -275,14 +275,10 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
                     do_modmap_change(client, tmp, modmap);
         }
     }
-    else {
-        for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-            if (tmp->isMaster && tmp->u.lastSlave == dev) {
-                /* If this fails, expect the results to be weird. */
-                if (check_modmap_change(client, tmp, modmap))
-                    do_modmap_change(client, tmp, modmap);
-            }
-        }
+    else if (dev->u.master && dev->u.master->u.lastSlave == dev) {
+        /* If this fails, expect the results to be weird. */
+        if (check_modmap_change(client, dev->u.master, modmap))
+            do_modmap_change(client, dev->u.master, modmap);
     }
 
     return Success;

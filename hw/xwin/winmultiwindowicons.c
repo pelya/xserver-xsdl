@@ -364,43 +364,37 @@ void
 winUpdateIcon (Window id)
 {
   WindowPtr		pWin;
-  HICON			hIcon, hiconOld;
+  HICON			hIcon, hIconSmall=NULL, hIconOld;
 
   pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
   if (!pWin) return;
-  hIcon = winOverrideIcon ((unsigned long)pWin);
-
-  if (!hIcon)
-    hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));
-
-  if (hIcon)
-    {
-      winWindowPriv(pWin);
-
-      if (pWinPriv->hWnd)
-	{
-	  hiconOld = (HICON) SetClassLong (pWinPriv->hWnd,
-					   GCL_HICON,
-					   (int) hIcon);
-	  
-	  /* Delete the icon if its not the default */
-	  winDestroyIcon(hiconOld);
-	}
+  winWindowPriv(pWin);
+  if (pWinPriv->hWnd) {
+    hIcon = winOverrideIcon ((unsigned long)pWin);
+    if (!hIcon) {
+      hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXICON));
+      if (!hIcon) {
+        hIcon = g_hIconX;
+        hIconSmall = g_hSmallIconX;
+      } else {
+        /* Leave undefined if not found */
+        hIconSmall = winXIconToHICON (pWin, GetSystemMetrics(SM_CXSMICON));
+      }
     }
- 
-  hIcon = winXIconToHICON (pWin, GetSystemMetrics(SM_CXSMICON));
-  if (hIcon)
-    {
-      winWindowPriv(pWin);
 
-      if (pWinPriv->hWnd)
-	{
-	  hiconOld = (HICON) SetClassLong (pWinPriv->hWnd,
-					   GCL_HICONSM,
-					   (int) hIcon);
-	  winDestroyIcon (hiconOld);
-	}
-    }
+    /* Set the large icon */
+    hIconOld = (HICON) SendMessage (pWinPriv->hWnd,
+                     WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+
+    /* Delete the icon if its not the default */
+    winDestroyIcon(hIconOld);
+
+    /* Same for the small icon */
+    hIconOld = (HICON) SendMessage (pWinPriv->hWnd,
+                    WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
+    winDestroyIcon(hIconOld);
+
+  }
 }
 
 void winInitGlobalIcons (void)

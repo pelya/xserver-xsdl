@@ -639,9 +639,7 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     register xf86AccessPtr pAcc;
     EntityAccessPtr tmp;
 
-#ifdef DEBUG
-    ErrorF("Enable access %i\n",pScrn->scrnIndex);
-#endif
+    DebugF("Enable access %i\n",pScrn->scrnIndex);
 
     /* Entity is not under access control or currently enabled */
     if (!pScrn->access) {
@@ -844,10 +842,8 @@ checkConflictBlock(resRange *range, resPtr pRes)
     case ResBlock:
 	if (range->rBegin < pRes->block_end &&
 	    range->rEnd > pRes->block_begin) {
-#ifdef DEBUG
-	    ErrorF("b-b conflict w: %lx %lx\n",
+	    DebugF("b-b conflict w: %lx %lx\n",
 		   pRes->block_begin,pRes->block_end);
-#endif
 	    return pRes->block_end < range->rEnd ?
 		pRes->block_end : range->rEnd;
 	}
@@ -856,12 +852,10 @@ checkConflictBlock(resRange *range, resPtr pRes)
 	if (pRes->sparse_base > range->rEnd) return 0;
 	
 	val = (~pRes->sparse_mask | pRes->sparse_base) & getMask(range->rEnd);
-#ifdef DEBUG
-	ErrorF("base = 0x%lx, mask = 0x%lx, begin = 0x%lx, end = 0x%lx ,"
+	DebugF("base = 0x%lx, mask = 0x%lx, begin = 0x%lx, end = 0x%lx ,"
 	       "val = 0x%lx\n",
 		pRes->sparse_base, pRes->sparse_mask, range->rBegin,
 		range->rEnd, val);
-#endif
 	i = sizeof(memType) * 8;
 	tmp = prev = pRes->sparse_base;
 	
@@ -873,11 +867,9 @@ checkConflictBlock(resRange *range, resPtr pRes)
 		prev = tmp;
 	}
 	if (tmp >= range->rBegin) {
-#ifdef DEBUG
-	    ErrorF("conflict found at: 0x%lx\n",tmp);
-	    ErrorF("b-d conflict w: %lx %lx\n",
+	    DebugF("conflict found at: 0x%lx\n",tmp);
+	    DebugF("b-d conflict w: %lx %lx\n",
 		   pRes->sparse_base,pRes->sparse_mask);
-#endif
 	    return tmp;
 	}
 	else
@@ -902,10 +894,8 @@ checkConflictSparse(resRange *range, resPtr pRes)
     case ResSparse:
 	tmp = pRes->sparse_mask & range->rMask;
 	if ((tmp & pRes->sparse_base) == (tmp & range->rBase)) {
-#ifdef DEBUG
-	    ErrorF("s-b conflict w: %lx %lx\n",
+	    DebugF("s-b conflict w: %lx %lx\n",
 		   pRes->sparse_base,pRes->sparse_mask);
-#endif
 	    return pRes->sparse_mask;
 	}
 	return 0;
@@ -918,9 +908,7 @@ checkConflictSparse(resRange *range, resPtr pRes)
 	tmp = prev = range->rBase;
 	
 	while (i) {
-#ifdef DEBUG
-	    ErrorF("tmp = 0x%lx\n",tmp);
-#endif
+	    DebugF("tmp = 0x%lx\n",tmp);
 	    tmp |= 1<< (--i) & val;
 	    if (tmp > pRes->block_end)
 		tmp = prev;
@@ -947,11 +935,9 @@ checkConflictSparse(resRange *range, resPtr pRes)
 		m_mask = mask > m_mask ? mask : m_mask;
 		base = base + mask + 1;
 	    }
-#ifdef DEBUG
-	    ErrorF("conflict found at: 0x%lx\n",tmp);
-	    ErrorF("b-b conflict w: %lx %lx\n",
+	    DebugF("conflict found at: 0x%lx\n",tmp);
+	    DebugF("b-b conflict w: %lx %lx\n",
 		   pRes->block_begin,pRes->block_end);
-#endif
 	    return ~m_mask; 
 	}
     }
@@ -1557,12 +1543,10 @@ xf86EnterServerState(xf86State state)
      * We take care not to call xf86BlockSIGIO() twice. 
      */
     SetSIGIOForState(state);
-#ifdef DEBUG
     if (state == SETUP)
-	ErrorF("Entering SETUP state\n");
+	DebugF("Entering SETUP state\n");
     else
-	ErrorF("Entering OPERATING state\n");
-#endif
+	DebugF("Entering OPERATING state\n");
 
     /* When servicing a dumb framebuffer we don't need to do anything */
     if (doFramebufferMode) return;
@@ -1620,10 +1604,8 @@ xf86EnterServerState(xf86State state)
 		xf86Screens[i]->busAccess = NULL;
 	}
 	
-#ifdef DEBUG
 	if (xf86Screens[i]->busAccess)
-	    ErrorF("Screen %i setting vga route\n",i);
-#endif
+	    DebugF("Screen %i setting vga route\n",i);
 	switch (rt) {
 	case MEM_IO:
 	    xf86MsgVerb(X_INFO, 3, "Screen %i shares mem & io resources\n",i);
@@ -1967,9 +1949,7 @@ xf86PostScreenInit(void)
 	return;
     }
 
-#ifdef DEBUG
-    ErrorF("PostScreenInit  generation: %i\n",serverGeneration);
-#endif
+    DebugF("PostScreenInit  generation: %i\n",serverGeneration);
     if (serverGeneration == 1) {
 	checkRoutingForScreens(OPERATING);
 	for (i=0; i<xf86NumEntities; i++) {

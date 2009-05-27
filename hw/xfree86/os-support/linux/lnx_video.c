@@ -292,9 +292,7 @@ mtrr_add_wc_region(int screenNum, unsigned long base, unsigned long size,
 		 lbase = lbase >> 1, d_size <<= 1);
 	    while (d_size > n_size)
 		d_size = d_size >> 1;
-#ifdef DEBUG
-	    ErrorF("WC_BASE: 0x%lx WC_END: 0x%lx\n",base,base+d_size-1);
-#endif
+	    DebugF("WC_BASE: 0x%lx WC_END: 0x%lx\n",base,base+d_size-1);
 	    n_base += d_size;
 	    n_size -= d_size;
 	    if (n_size) {
@@ -424,11 +422,9 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 
     realBase = Base & ~(getpagesize() - 1);
     alignOff = Base - realBase;
-#ifdef DEBUG
-    ErrorF("base: %lx, realBase: %lx, alignOff: %lx \n",
+    DebugF("base: %lx, realBase: %lx, alignOff: %lx \n",
 	   Base,realBase,alignOff);
-#endif
-    
+
 #if defined(__ia64__) || defined(__arm__) || defined(__s390__)
 #ifndef MAP_WRITECOMBINED
 #define MAP_WRITECOMBINED 0x00010000
@@ -469,9 +465,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 		   " (0x%08lx,0x%lx) (%s)\n", Base, Size,
 		   strerror(errno));
     }
-#ifdef DEBUG
-    ErrorF("base: %lx aligned base: %lx\n",base, base + alignOff);
-#endif
+    DebugF("base: %lx aligned base: %lx\n",base, base + alignOff);
     return (char *)base + alignOff;
 }
 #endif /* !(__sparc__) */
@@ -481,10 +475,8 @@ unmapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 {
     memType alignOff = (memType)Base 
 	- ((memType)Base & ~(getpagesize() - 1));
-    
-#ifdef DEBUG
-    ErrorF("alignment offset: %lx\n",alignOff);
-#endif
+
+    DebugF("alignment offset: %lx\n",alignOff);
     munmap((caddr_t)((memType)Base - alignOff), (Size + alignOff));
 }
 

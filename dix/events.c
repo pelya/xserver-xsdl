@@ -3989,8 +3989,7 @@ CoreEnterLeaveEvent(
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
         xKeymapEvent ke;
-        ClientPtr client = grab ? rClient(grab)
-            : clients[CLIENT_ID(pWin->drawable.id)];
+        ClientPtr client = grab ? rClient(grab) : wClient(pWin);
         if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
             bzero((char *)&ke.map[0], 31);
         else
@@ -4087,11 +4086,11 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
             ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
         xKeymapEvent ke;
-        ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
-        else
+        ClientPtr client = wClient(pWin);
+        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess))
             bzero((char *)&ke.map[0], 31);
+        else
+            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
@@ -5181,7 +5180,7 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
                                    to None
                                  */
 #ifdef NOTDEF
-                                || clients[CLIENT_ID(parent->drawable.id)]->clientGone
+				 || wClient(parent)->clientGone
 #endif
                                 );
                         DoFocusEvents(keybd, pWin, parent, focusEventMode);

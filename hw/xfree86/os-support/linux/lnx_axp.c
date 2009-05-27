@@ -69,21 +69,15 @@ lnxGetAXP(void)
     switch (count) {
     case 1:
       sscanf(res, "cpu model : %s",cpu);
-#ifdef DEBUG
-      ErrorF("CPU %s\n",cpu);
-#endif
+      DebugF("CPU %s\n",cpu);
       break;
     case 5:
       sscanf(res, "system type : %s",systype);
-#ifdef DEBUG
-      ErrorF("system type : %s\n",systype);
-#endif
+      DebugF("system type : %s\n",systype);
       break;
     case 6:
       sscanf(res, "system variation : %s",sysvari);
-#ifdef DEBUG
-      ErrorF("system variation: %s\n",sysvari);
-#endif
+      DebugF("system variation: %s\n",sysvari);
       break;
     }
     count++;

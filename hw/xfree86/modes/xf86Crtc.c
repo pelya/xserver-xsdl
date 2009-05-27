@@ -353,7 +353,7 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     }
 
     /* Only upload when needed, to avoid unneeded delays. */
-    if (!crtc->active)
+    if (crtc->active)
 	crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
                                             crtc->gamma_blue, crtc->gamma_size);
 
@@ -2228,19 +2228,19 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
             red[i] = i << 8;
         else
             red[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_red) * (double)(size - 1) * 256);
+			1. / (double)gamma_red) * (double)(size - 1) * 256);
 
         if (gamma_green == 1.0)
             green[i] = i << 8;
         else
             green[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_green) * (double)(size - 1) * 256);
+			1. / (double)gamma_green) * (double)(size - 1) * 256);
 
         if (gamma_blue == 1.0)
             blue[i] = i << 8;
         else
             blue[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_blue) * (double)(size - 1) * 256);
+			1. / (double)gamma_blue) * (double)(size - 1) * 256);
     }
 
     /* Default size is 256, so anything else is failure. */

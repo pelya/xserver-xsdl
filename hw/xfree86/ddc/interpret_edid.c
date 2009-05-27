@@ -3,22 +3,23 @@
  * Copyright 2007 Red Hat, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software")
- * to deal in the software without restriction, including without limitation
- * on the rights to use, copy, modify, merge, publish, distribute, sub
- * license, and/or sell copies of the Software, and to permit persons to whom
- * them Software is furnished to do so, subject to the following conditions:
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice (including the next
  * paragraph) shall be included in all copies or substantial portions of the
  * Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTIBILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
  * interpret_edid.c: interpret a primary EDID block
  */
@@ -284,6 +285,8 @@ get_std_timing_section(Uchar *c, struct std_timings *r,
     }
 }
 
+static const unsigned char empty_block[18];
+
 static void
 get_dt_md_section(Uchar *c, struct edid_version *ver, 
 		  struct detailed_monitor_section *det_mon)
@@ -327,6 +330,7 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
 	break;
       case ADD_EST_TIMINGS:
 	det_mon[i].type = DS_EST_III;
+	memcpy(det_mon[i].section.est_iii, c + 6, 6);
 	break;
       case ADD_DUMMY:
 	det_mon[i].type = DS_DUMMY;
@@ -335,10 +339,10 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
         det_mon[i].type = DS_UNKOWN;
         break;
       }
-      if (c[3] <= 0x0F) {
+      if (c[3] <= 0x0F && memcmp(c, empty_block, sizeof(empty_block))) {
 	det_mon[i].type = DS_VENDOR + c[3];
       }
-    } else { 
+    } else {
       det_mon[i].type = DT;
       get_detailed_timing_section(c,&det_mon[i].section.d_timings);
     }

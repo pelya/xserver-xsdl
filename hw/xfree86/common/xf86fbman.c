@@ -802,10 +802,10 @@ LinearRemoveCBWrapper(FBAreaPtr area)
    xfree(pLink);
 }
 
-#ifdef DEBUG
 static void
-Dump(FBLinearLinkPtr pLink)
+DumpDebug(FBLinearLinkPtr pLink)
 {
+#ifdef DEBUG
    if (!pLink) ErrorF("MMmm, PLINK IS NULL!\n");
 
    while (pLink) {
@@ -817,8 +817,8 @@ Dump(FBLinearLinkPtr pLink)
 
 	 pLink = pLink->next;
    }
-}
 #endif
+}
 
 static FBLinearPtr
 AllocateLinear(
@@ -889,9 +889,7 @@ AllocateLinear(
    linear->linear.RemoveLinearCallback = NULL;
    linear->linear.devPrivate.ptr = NULL;
 
-#ifdef DEBUG
-   Dump(offman->LinearAreas);
-#endif
+   DumpDebug(offman->LinearAreas);
 
    return &(linear->linear);
 }
@@ -916,15 +914,11 @@ localAllocateOffscreenLinear(
 					   xf86FBScreenKey);
 
    /* Try to allocate from linear memory first...... */
-#ifdef DEBUG
-   ErrorF("ALLOCATING LINEAR\n");
-#endif
+   DebugF("ALLOCATING LINEAR\n");
    if ((linear = AllocateLinear(offman, length, gran, privData)))
   	return linear;
 
-#ifdef DEBUG
-   ErrorF("NOPE, ALLOCATING AREA\n");
-#endif
+   DebugF("NOPE, ALLOCATING AREA\n");
 
    if(!(link = xalloc(sizeof(FBLinearLink))))
      return NULL;
@@ -978,9 +972,7 @@ localAllocateOffscreenLinear(
    } else 
 	xfree(link);
 
-#ifdef DEBUG
-   Dump(offman->LinearAreas);
-#endif
+   DumpDebug(offman->LinearAreas);
 
    return linear;
 }
@@ -1005,17 +997,13 @@ localFreeOffscreenLinear(FBLinearPtr linear)
    }
 
    if(pLink->area) {  /* really an XY area */
-#ifdef DEBUG
-	ErrorF("FREEING AREA\n");
-#endif
+	DebugF("FREEING AREA\n");
 	localFreeOffscreenArea(pLink->area);
    	if(pLinkPrev)
 	    pLinkPrev->next = pLink->next;
    	else offman->LinearAreas = pLink->next;
    	xfree(pLink); 
-#ifdef DEBUG
-   	Dump(offman->LinearAreas);
-#endif
+	DumpDebug(offman->LinearAreas);
 	return;
    }
 
@@ -1037,10 +1025,8 @@ localFreeOffscreenLinear(FBLinearPtr linear)
     	}
    } 
    
-#ifdef DEBUG
-   ErrorF("FREEING LINEAR\n");
-   Dump(offman->LinearAreas);
-#endif
+   DebugF("FREEING LINEAR\n");
+   DumpDebug(offman->LinearAreas);
 }
 
 

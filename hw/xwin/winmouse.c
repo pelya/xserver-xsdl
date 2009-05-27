@@ -354,7 +354,6 @@ winMouseButtonsHandle (ScreenPtr pScreen,
 void winEnqueueMotion(int x, int y)
 {
   miPointerSetPosition(g_pwinPointer, &x, &y);
-  g_c32LastInputEventTime = GetTickCount();
 
   int i, nevents;
   int valuators[2];

@@ -66,6 +66,9 @@ struct _ExaOffscreenArea {
     ExaOffscreenArea    *next;
 
     unsigned            eviction_cost;
+
+    ExaOffscreenArea    *prev;          /* Double-linked list for defragmentation */
+    int                 align;          /* required alignment */
 };
 
 /**
@@ -743,6 +746,16 @@ typedef struct _ExaDriver {
  * such hooks, this flag has no effect.
  */
 #define EXA_SUPPORTS_PREPARE_AUX        (1 << 4)
+
+/**
+ * EXA_SUPPORTS_OFFSCREEN_OVERLAPS indicates to EXA that the driver Copy hooks
+ * can handle the source and destination occupying overlapping offscreen memory
+ * areas. This allows the offscreen memory defragmentation code to defragment
+ * areas where the defragmented position overlaps the fragmented position.
+ *
+ * Typically this is supported by traditional 2D engines but not by 3D engines.
+ */
+#define EXA_SUPPORTS_OFFSCREEN_OVERLAPS (1 << 5)
 
 /** @} */
 

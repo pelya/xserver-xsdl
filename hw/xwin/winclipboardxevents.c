@@ -34,6 +34,7 @@
 #include <xwin-config.h>
 #endif
 #include "winclipboard.h"
+#include "misc.h"
 
 
 /*
@@ -53,18 +54,20 @@ winClipboardFlushXEvents (HWND hwnd,
 			  Display *pDisplay,
 			  Bool fUseUnicode)
 {
-  Atom			atomLocalProperty = XInternAtom (pDisplay,
-							 WIN_LOCAL_PROPERTY,
-							 False);
-  Atom			atomUTF8String = XInternAtom (pDisplay,
-						      "UTF8_STRING",
-						      False);
-  Atom			atomCompoundText = XInternAtom (pDisplay,
-							"COMPOUND_TEXT",
-							False);
-  Atom			atomTargets = XInternAtom (pDisplay,
-						   "TARGETS",
-						   False);
+  static Atom atomLocalProperty;
+  static Atom atomCompoundText;
+  static Atom atomUTF8String;
+  static Atom atomTargets;
+  static int generation;
+
+  if (generation != serverGeneration)
+    {
+      generation = serverGeneration;
+      atomLocalProperty = XInternAtom (pDisplay, WIN_LOCAL_PROPERTY, False);
+      atomUTF8String = XInternAtom (pDisplay, "UTF8_STRING", False);
+      atomCompoundText = XInternAtom (pDisplay, "COMPOUND_TEXT", False);
+      atomTargets = XInternAtom (pDisplay, "TARGETS", False);
+    }
 
   /* Process all pending events */
   while (XPending (pDisplay))
@@ -188,8 +191,13 @@ winClipboardFlushXEvents (HWND hwnd,
 	  if (fUseUnicode
 	      && !IsClipboardFormatAvailable (CF_UNICODETEXT))
 	    {
-	      ErrorF ("winClipboardFlushXEvents - CF_UNICODETEXT is not "
-		      "available from Win32 clipboard.  Aborting.\n");
+	      static int count; /* Hack to stop acroread spamming the log */
+	      static HWND lasthwnd; /* I've not seen any other client get here repeatedly? */
+	      if (hwnd != lasthwnd) count = 0;
+	      count++;
+	      if (count < 6) ErrorF ("winClipboardFlushXEvents - CF_UNICODETEXT is not "
+		      "available from Win32 clipboard.  Aborting %d.\n", count);
+	      lasthwnd = hwnd;
 
 	      /* Abort */
 	      fAbort = TRUE;
@@ -303,6 +311,7 @@ winClipboardFlushXEvents (HWND hwnd,
 
 	  /* Initialize the text property */
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Create the text property from the text list */
 	  if (fUseUnicode)
@@ -363,10 +372,13 @@ winClipboardFlushXEvents (HWND hwnd,
 	  /* Release the clipboard data */
 	  GlobalUnlock (hGlobal);
 	  pszGlobalData = NULL;
+	  fCloseClipboard = FALSE;
+	  CloseClipboard ();
 
 	  /* Clean up */
 	  XFree (xtpText.value);
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Setup selection notify event */
 	  eventSelection.type = SelectionNotify;
@@ -397,7 +409,11 @@ winClipboardFlushXEvents (HWND hwnd,
 	winClipboardFlushXEvents_SelectionRequest_Done:
 	  /* Free allocated resources */
 	  if (xtpText.value)
+	  {
 	    XFree (xtpText.value);
+	    xtpText.value = NULL;
+	    xtpText.nitems = 0;
+	  }
 	  if (pszConvertData)
 	    free (pszConvertData);
 	  if (hGlobal && pszGlobalData)
@@ -438,7 +454,10 @@ winClipboardFlushXEvents (HWND hwnd,
 
 	  /* Close clipboard if it was opened */
 	  if (fCloseClipboard)
+	  {
+	    fCloseClipboard = FALSE;
 	    CloseClipboard ();
+	  }
 	  break;
 
 
@@ -620,6 +639,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	      /* Conversion succeeded or some unconvertible characters */
 	      if (ppszTextList != NULL)
 		{
+		  iReturnDataLen = 0;
 		  for (i = 0; i < iCount; i++)
 		    {
 		      iReturnDataLen += strlen(ppszTextList[i]);
@@ -665,6 +685,7 @@ winClipboardFlushXEvents (HWND hwnd,
 	  ppszTextList = NULL;
 	  XFree (xtpText.value);
 	  xtpText.value = NULL;
+	  xtpText.nitems = 0;
 
 	  /* Convert the X clipboard string to DOS format */
 	  winClipboardUNIXtoDOS (&pszReturnData, strlen (pszReturnData));
@@ -778,7 +799,11 @@ winClipboardFlushXEvents (HWND hwnd,
 	  if (ppszTextList)
 	    XFreeStringList (ppszTextList);
 	  if (xtpText.value)
+	  {
 	    XFree (xtpText.value);
+	    xtpText.value = NULL;
+	    xtpText.nitems = 0;
+	  }
 	  if (pszConvertData)
 	    free (pszConvertData);
 	  if (pwszUnicodeStr)
