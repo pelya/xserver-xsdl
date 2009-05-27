@@ -2635,8 +2635,9 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
  * @returns TRUE if the device has been grabbed, or FALSE otherwise.
  */
 BOOL
-ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr win)
+ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
 {
+    BOOL rc = FALSE;
     DeviceEvent event;
 
     if (dev->deviceGrab.grab &&
@@ -2646,6 +2647,7 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr win)
         if (dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
+        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
         (*dev->deviceGrab.DeactivateGrab)(dev);
     }
 
@@ -2660,18 +2662,22 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    return CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    if (rc)
+        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
+    return rc;
 }
 
 /**
- * Ungrab a currently Enter grabbed device and grab the deice for the given
+ * Ungrab a currently Enter grabbed device and grab the device for the given
  * window.
  *
  * @returns TRUE if the device has been grabbed, or FALSE otherwise.
  */
 static BOOL
-ActivateEnterGrab(DeviceIntPtr dev, WindowPtr win)
+ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
 {
+    BOOL rc = FALSE;
     DeviceEvent event;
 
     if (dev->deviceGrab.grab &&
@@ -2681,6 +2687,7 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr win)
         if (dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
+        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
         (*dev->deviceGrab.DeactivateGrab)(dev);
     }
 
@@ -2692,7 +2699,11 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    return CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    if (rc)
+        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveGrab);
+
+    return rc;
 }
 
 /**
@@ -2795,7 +2806,7 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
             UpdateCurrentTimeIf();
 
 	if (prevSpriteWin != NullWindow) {
-            if (!ActivateEnterGrab(pDev, newSpriteWin))
+            if (!ActivateEnterGrab(pDev, prevSpriteWin, newSpriteWin))
                 DoEnterLeaveEvents(pDev, prevSpriteWin,
                                    newSpriteWin, NotifyNormal);
         }
@@ -4267,6 +4278,10 @@ DeviceEnterLeaveEvent(
     int                 btlen, len, i;
     DeviceIntPtr        kbd;
 
+    if ((mode == XINotifyPassiveGrab && type == XI_Leave) ||
+        (mode == XINotifyPassiveUngrab && type == XI_Enter))
+        return;
+
     btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
     btlen = (btlen + 3)/4;
     len = sizeof(xXIEnterEvent) + btlen * 4;
@@ -4426,11 +4441,11 @@ SetInputFocus(
     mode = (dev->deviceGrab.grab) ? NotifyWhileGrabbed : NotifyNormal;
     if (focus->win == FollowKeyboardWin)
     {
-        if (!ActivateFocusInGrab(dev, focusWin))
+        if (!ActivateFocusInGrab(dev, keybd->focus->win, focusWin))
             DoFocusEvents(dev, keybd->focus->win, focusWin, mode);
     } else
     {
-        if (!ActivateFocusInGrab(dev, focusWin))
+        if (!ActivateFocusInGrab(dev, focus->win, focusWin))
             DoFocusEvents(dev, focus->win, focusWin, mode);
     }
     focus->time = time;
@@ -5413,13 +5428,13 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
                                 || clients[CLIENT_ID(parent->drawable.id)]->clientGone
 #endif
                                 );
-                        if (!ActivateFocusInGrab(keybd, parent))
+                        if (!ActivateFocusInGrab(keybd, pWin, parent))
                             DoFocusEvents(keybd, pWin, parent, focusEventMode);
                         focus->win = parent;
                         focus->revert = RevertToNone;
                         break;
                     case RevertToPointerRoot:
-                        if (!ActivateFocusInGrab(keybd, PointerRootWin))
+                        if (!ActivateFocusInGrab(keybd, pWin, PointerRootWin))
                             DoFocusEvents(keybd, pWin, PointerRootWin, focusEventMode);
                         focus->win = PointerRootWin;
                         focus->traceGood = 0;

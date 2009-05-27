@@ -1872,7 +1872,7 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 
 	switch (dev->focus->revert) {
 	case RevertToNone:
-	    if (!ActivateFocusInGrab(dev, NoneWin))
+	    if (!ActivateFocusInGrab(dev, pWin, NoneWin))
 		DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
 	    dev->focus->win = NoneWin;
 	    dev->focus->traceGood = 0;
@@ -1884,13 +1884,13 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 		dev->focus->traceGood--;
 	    }
 	    while (!parent->realized);
-	    if (!ActivateFocusInGrab(dev, parent))
+	    if (!ActivateFocusInGrab(dev, pWin, parent))
 		DoFocusEvents(dev, pWin, parent, focusEventMode);
 	    dev->focus->win = parent;
 	    dev->focus->revert = RevertToNone;
 	    break;
 	case RevertToPointerRoot:
-	    if (!ActivateFocusInGrab(dev, PointerRootWin))
+	    if (!ActivateFocusInGrab(dev, pWin, PointerRootWin))
 		DoFocusEvents(dev, pWin, PointerRootWin, focusEventMode);
 	    dev->focus->win = PointerRootWin;
 	    dev->focus->traceGood = 0;
@@ -1901,12 +1901,12 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
                 if (!kbd || (kbd == dev && kbd != inputInfo.keyboard))
                     kbd = inputInfo.keyboard;
 	    if (kbd->focus->win) {
-		if (!ActivateFocusInGrab(dev, kbd->focus->win))
+		if (!ActivateFocusInGrab(dev, pWin, kbd->focus->win))
 		    DoFocusEvents(dev, pWin, kbd->focus->win, focusEventMode);
 		dev->focus->win = FollowKeyboardWin;
 		dev->focus->traceGood = 0;
 	    } else {
-                if (!ActivateFocusInGrab(dev, NoneWin))
+                if (!ActivateFocusInGrab(dev, pWin, NoneWin))
                     DoFocusEvents(dev, pWin, NoneWin, focusEventMode);
 		dev->focus->win = NoneWin;
 		dev->focus->traceGood = 0;

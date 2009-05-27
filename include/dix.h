@@ -352,6 +352,7 @@ extern void DeactivateKeyboardGrab(
 
 extern BOOL ActivateFocusInGrab(
     DeviceIntPtr /* dev */,
+    WindowPtr /* old */,
     WindowPtr /* win */);
 
 extern void AllowSome(

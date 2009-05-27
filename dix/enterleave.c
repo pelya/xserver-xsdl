@@ -609,7 +609,8 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
     if (fromWin == toWin)
 	return;
 
-    CoreEnterLeaveEvents(pDev, fromWin, toWin, mode);
+    if (mode != XINotifyPassiveGrab && mode != XINotifyPassiveUngrab)
+        CoreEnterLeaveEvents(pDev, fromWin, toWin, mode);
     DeviceEnterLeaveEvents(pDev, fromWin, toWin, mode);
 }
 
