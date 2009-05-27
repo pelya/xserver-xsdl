@@ -157,8 +157,8 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     if (!modifiers_failed)
         return BadAlloc;
 
-    if (IsPointerDevice(dev) && IsMaster(dev))
-        mod_dev = GetPairedDevice(dev);
+    if (!IsMaster(dev) && dev->u.master)
+        mod_dev = GetMaster(dev, MASTER_KEYBOARD);
     else
         mod_dev = dev;
 
@@ -261,8 +261,8 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    if (IsMaster(dev))
-        mod_dev = GetPairedDevice(dev);
+    if (!IsMaster(dev) && dev->u.master)
+        mod_dev = GetMaster(dev, MASTER_KEYBOARD);
     else
         mod_dev = dev;
 
