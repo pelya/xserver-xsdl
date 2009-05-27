@@ -2069,6 +2069,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
+        tempGrab.type = type;
         if (type == ButtonPress)
             tempGrab.grabtype = GRABTYPE_CORE;
         else if (type == DeviceButtonPress)
