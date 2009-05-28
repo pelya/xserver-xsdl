@@ -978,6 +978,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
     rep.status = RRSetConfigSuccess;
+    pScrPriv->lastSetTime = time;
     
 sendReply:
     if (outputs)
@@ -987,7 +988,7 @@ sendReply:
     /* rep.status has already been filled in */
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.newTimestamp = pScrPriv->lastConfigTime.milliseconds;
+    rep.newTimestamp = pScrPriv->lastSetTime.milliseconds;
 
     if (client->swapped) 
     {
@@ -1129,6 +1130,8 @@ ProcRRSetPanning (ClientPtr client)
 
     if (! pScrPriv->rrSetPanning (pScreen, crtc, &total, &tracking, border))
 	return BadMatch;
+
+    pScrPriv->lastSetTime = time;
 
     rep.status = RRSetConfigSuccess;
 

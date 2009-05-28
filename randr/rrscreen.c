@@ -946,8 +946,10 @@ ProcRRSetScreenConfig (ClientPtr client)
 
     if (!RRCrtcSet (crtc, mode, 0, 0, stuff->rotation, 1, &output))
 	rep.status = RRSetConfigFailed;
-    else
+    else {
+	pScrPriv->lastSetTime = time;
 	rep.status = RRSetConfigSuccess;
+    }
 
     /*
      * XXX Configure other crtcs to mirror as much as possible
