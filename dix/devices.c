@@ -1194,7 +1194,9 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     }
 
     dev->last.numValuators = numAxes;
-    if(IsMaster(dev)) /* master devs do not accelerate */
+
+    if (IsMaster(dev) || /* do not accelerate master or xtest devices */
+	dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey ))
 	InitPointerAccelerationScheme(dev, PtrAccelNoOp);
     else
 	InitPointerAccelerationScheme(dev, PtrAccelDefault);
@@ -1226,8 +1228,8 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
     if(!val)
 	return FALSE;
 
-    if(IsMaster(dev) && (scheme != PtrAccelNoOp))
-        scheme = PtrAccelNoOp; /* no accel for master devices */
+    if(IsMaster(dev) && scheme != PtrAccelNoOp)
+        return FALSE;
 
     for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
         if(pointerAccelerationScheme[x].number == scheme){
