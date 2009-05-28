@@ -2290,28 +2290,6 @@ xf86LoaderCheckSymbol(const char *name)
     return LoaderSymbol(name) != NULL;
 }
 
-/* These two are just ABI stubs, they don't do anything in dlloader world */
-void
-xf86LoaderReqSymLists(const char **list0, ...)
-{
-}
-
-void
-xf86LoaderReqSymbols(const char *sym0, ...)
-{
-}
-
-void
-xf86LoaderRefSymLists(const char **list0, ...)
-{
-}
-
-void
-xf86LoaderRefSymbols(const char *sym0, ...)
-{
-}
-
-
 typedef enum {
    OPTION_BACKING_STORE
 } BSOpts;

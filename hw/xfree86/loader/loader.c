@@ -159,27 +159,6 @@ LoaderInit(void)
 #endif
 }
 
-/* These four are just ABI stubs */
-void
-LoaderRefSymbols(const char *sym0, ...)
-{
-}
-
-void
-LoaderRefSymLists(const char **list0, ...)
-{
-}
-
-void
-LoaderReqSymLists(const char **list0, ...)
-{
-}
-
-void
-LoaderReqSymbols(const char *sym0, ...)
-{
-}
-
 /* Public Interface to the loader. */
 
 int
