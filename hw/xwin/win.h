@@ -636,7 +636,6 @@ extern DevPrivateKey		g_iGCPrivateKey;
 extern DevPrivateKey		g_iPixmapPrivateKey;
 extern DevPrivateKey		g_iWindowPrivateKey;
 extern unsigned long		g_ulServerGeneration;
-extern CARD32			g_c32LastInputEventTime;
 extern DWORD			g_dwEnginesSupported;
 extern HINSTANCE		g_hInstance;
 extern int                      g_copyROP[];

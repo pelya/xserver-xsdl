@@ -127,11 +127,10 @@ static int numEnabledRCAPs;
  *  returns an error.
  */
 #define VERIFY_CONTEXT(_pContext, _contextid, _client) { \
-    (_pContext) = (RecordContextPtr)LookupIDByType((_contextid), RTContext); \
-    if (!(_pContext)) { \
-        (_client)->errorValue = (_contextid); \
-	return RecordErrorBase + XRecordBadContext; \
-    } \
+    int rc = dixLookupResourceByType((pointer *)&(_pContext), _contextid, \
+                                     RTContext, _client, DixUseAccess); \
+    if (rc != Success) \
+	return (rc == BadValue) ? RecordErrorBase + XRecordBadContext : rc; \
 }
 
 static int RecordDeleteContext(

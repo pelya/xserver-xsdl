@@ -58,11 +58,10 @@ typedef struct _DamageExt {
 } DamageExtRec, *DamageExtPtr;
 
 #define VERIFY_DAMAGEEXT(pDamageExt, rid, client, mode) { \
-    pDamageExt = SecurityLookupIDByType (client, rid, DamageExtType, mode); \
-    if (!pDamageExt) { \
-	client->errorValue = rid; \
-	return DamageErrorBase + BadDamage; \
-    } \
+    int rc = dixLookupResourceByType((pointer *)&(pDamageExt), rid, \
+                                     DamageExtType, client, mode); \
+    if (rc != Success) \
+        return (rc == BadValue) ? DamageErrorBase + BadDamage : rc; \
 }
 
 void

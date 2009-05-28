@@ -144,12 +144,11 @@ static ShmFuncs fbFuncs = {fbShmCreatePixmap, NULL};
 
 #define VERIFY_SHMSEG(shmseg,shmdesc,client) \
 { \
-    shmdesc = (ShmDescPtr)LookupIDByType(shmseg, ShmSegType); \
-    if (!shmdesc) \
-    { \
-	client->errorValue = shmseg; \
-	return BadShmSegCode; \
-    } \
+    int rc; \
+    rc = dixLookupResourceByType((pointer *)&(shmdesc), shmseg, ShmSegType, \
+                                 client, DixReadAccess); \
+    if (rc != Success) \
+	return (rc == BadValue) ? BadShmSegCode : rc; \
 }
 
 #define VERIFY_SHMPTR(shmseg,offset,needwrite,shmdesc,client) \
@@ -513,20 +512,22 @@ doShmPutImage(DrawablePtr dst, GCPtr pGC,
 static int 
 ProcPanoramiXShmPutImage(ClientPtr client)
 {
-    int			 j, result = 0, orig_x, orig_y;
+    int			 j, result, orig_x, orig_y;
     PanoramiXRes	*draw, *gc;
     Bool		 sendEvent, isRoot;
 
     REQUEST(xShmPutImageReq);
     REQUEST_SIZE_MATCH(xShmPutImageReq);
 
-    if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
-        return BadDrawable;
+    result = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
+				      XRC_DRAWABLE, client, DixWriteAccess);
+    if (result != Success)
+        return (result == BadValue) ? BadDrawable : result;
 
-    if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, DixReadAccess)))
-        return BadGC;
+    result = dixLookupResourceByType((pointer *)&gc, stuff->gc,
+				     XRT_GC, client, DixReadAccess);
+    if (result != Success)
+        return (result == BadValue) ? BadGC : result;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
@@ -570,9 +571,10 @@ ProcPanoramiXShmGetImage(ClientPtr client)
         return(BadValue);
     }
 
-    if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-		client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
-	return BadDrawable;
+    rc = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
+				  XRC_DRAWABLE, client, DixWriteAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? BadDrawable : rc;
 
     if (draw->type == XRT_PIXMAP)
 	return ProcShmGetImage(client);

@@ -392,13 +392,16 @@ unsigned int
 GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
 {
     unsigned int found = 0;
-    XID id = pClient->clientAsMask;
+    XID rc, id = pClient->clientAsMask;
     XID maxid;
+    pointer val;
 
     maxid = id | RESOURCE_ID_MASK;
     while ( (found < count) && (id <= maxid) )
     {
-	if (!LookupIDByClass(id, RC_ANY))
+	rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
+				      DixGetAttrAccess);
+	if (rc == BadValue)
 	{
 	    pids[found++] = id;
 	}
@@ -826,6 +829,8 @@ FreeAllResources(void)
 Bool
 LegalNewID(XID id, ClientPtr client)
 {
+    pointer val;
+    int rc;
 
 #ifdef PANORAMIX
     XID 	minid, maxid;
@@ -838,9 +843,16 @@ LegalNewID(XID id, ClientPtr client)
 	        return TRUE;
 	}
 #endif /* PANORAMIX */
-	return ((client->clientAsMask == (id & ~RESOURCE_ID_MASK)) &&
-	    ((clientTable[client->index].expectID <= id) ||
-	     !LookupIDByClass(id, RC_ANY)));
+	if (client->clientAsMask == (id & ~RESOURCE_ID_MASK))
+	{
+	    if (clientTable[client->index].expectID <= id)
+		return TRUE;
+
+	    rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
+					  DixGetAttrAccess);
+	    return (rc == BadValue);
+	}
+	return FALSE;
 }
 
 int

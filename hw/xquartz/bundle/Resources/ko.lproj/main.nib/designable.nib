@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.050000190734863">
+<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.05">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
 		<string key="IBDocument.SystemVersion">10A222</string>
@@ -12,7 +12,6 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="348"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -398,10 +397,10 @@
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="941366957">
-					<reference key="NSNextResponder"/>
+					<nil key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
@@ -475,9 +474,9 @@ mCDsnojsirXri4jri6QuA</string>
 														<int key="NSColorSpace">6</int>
 														<string key="NSCatalogName">System</string>
 														<string key="NSColorName">controlColor</string>
-														<object class="NSColor" key="NSColor" id="136819958">
+														<object class="NSColor" key="NSColor" id="241249183">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2OQA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2NwA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
@@ -1026,7 +1025,7 @@ teuLiOuLpC4gA</string>
 												<object class="NSButtonCell" key="NSCell" id="259618205">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">67mE7Zmc7ISxIOyciOuPhOyasCDtgbTrpq0g66y07IucA</string>
+													<string type="base64-UTF8" key="NSContents">67mE7Zmc7ISxIOyciOuPhOyasCDtgbTrpq0</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="657659108"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1049,8 +1048,8 @@ teuLiOuLpC4gA</string>
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
 													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY7JeI7J2EIOuVjCDruYTtmZzshLEg7JyI64+E7Jqw66W8IO2BtOumre2VmOuptCDr
-p4jsmrDsiqQg7YG066at7J20IOu5hO2ZnOyEsSDsnIjrj4TsmrDrpbwg7Ya16rO87ZWY7JesIO2ZnOyE
-se2ZlOuQnCDsnIjrj4TsmrDrpbwg7YG066at7ZWp64uI64ukLg</string>
+p4jsmrDsiqQg7YG066at7J20IOu5hO2ZnOyEsSDsnIjrj4TsmrDroZwg7Ya16rO865CgIOu/kOunjCDs
+lYTri4jrnbwg67mE7Zmc7ISxIOyciOuPhOyasOqwgCAg7Zmc7ISx7ZmU65Cp64uI64ukLg</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="290578835"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1128,8 +1127,8 @@ soPsnYAg7J2867aAIOyXreq4sOuKpeydhCDqsIDsp4Dqs6Ag7J6I7Iq164uI64ukLg</string>
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
 													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY7JeI7J2EIOuVjCDsg4jroZzsmrQgWDExIOyciOuPhOyasOulvCDsg53shLHtlZjr
-qbQoRmluZGVyLmFwcCDrsI8gVGVybWluYWwuYXBwIOuTsSDrjIDsi6ApIFgxMS5hcHDqsIAg66eoIOyV
-nuycvOuhnCDsnbTrj5nrkKnri4jri6QuA</string>
+qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
+7JWe7Jy866GcIOydtOuPmeuQqeuLiOuLpC4</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="57161931"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1222,8 +1221,8 @@ nbQg7Jyg7Zqo7ZWY7KeAIOyViuqyjCDrkJjslrQgWDExIOydkeyaqSDtlITroZzqt7jrnqjsnbQg7Iuk
 												<object class="NSTextFieldCell" key="NSCell" id="390084685">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY66m0LCDsi5zsiqTthZwg67O07JWI7J2EIO2ZleyduO2VmOq4sCDsnITtlbQg7J24
-7KadIOyXsOqysOuPhCDtmZzshLHtmZTrkJjslrTslbwg7ZWp64uI64ukLiDruYTtmZzshLHtmZTrkJjr
+													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY66m0LCDsi5zsiqTthZwg67O07JWI7J2EIO2ZleyduO2VmOq4sCDsnITtlbQg7Jew
+6rKwIOyduOymneuPhCDtmZzshLHtmZTrkJjslrTslbwg7ZWp64uI64ukLiDruYTtmZzshLHtmZTrkJjr
 qbQsIOybkOqyqSDsnZHsmqkg7ZSE66Gc6re4656oIOyXsOqysOydtCDtl4jsmqnrkJjsp4Ag7JWK7Iq1
 64uI64ukLg</string>
 													<reference key="NSSupport" ref="26"/>
@@ -1271,11 +1270,10 @@ i6QuA</string>
 						</object>
 					</object>
 					<string key="NSFrameSize">{484, 308}</string>
-					<reference key="NSSuperview"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
 			</object>
 			<object class="NSWindowTemplate" id="604417141">
@@ -1288,7 +1286,7 @@ i6QuA</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="85544634">
 					<nil key="NSNextResponder"/>
@@ -1470,7 +1468,7 @@ i6QuA</string>
 															<int key="NSColorSpace">6</int>
 															<string key="NSCatalogName">System</string>
 															<string key="NSColorName">controlBackgroundColor</string>
-															<reference key="NSColor" ref="136819958"/>
+															<reference key="NSColor" ref="241249183"/>
 														</object>
 														<reference key="NSTextColor" ref="930815747"/>
 													</object>
@@ -1583,7 +1581,7 @@ i6QuA</string>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">

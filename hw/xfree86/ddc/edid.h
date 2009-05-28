@@ -533,7 +533,7 @@ struct detailed_monitor_section {
     struct whitePoints wp[2];		/* 32 */
     /* color management data */
     struct cvt_timings cvt[4];		/* 64 */
-    /* established timings III */
+    Uchar est_iii[6];			/* 6 */
   } section;				/* max: 80 */
 };
 

@@ -340,15 +340,29 @@ extern _X_EXPORT RESTYPE RRClientType, RREventType; /* resource types for event 
 extern _X_EXPORT DevPrivateKey RRClientPrivateKey;
 extern _X_EXPORT RESTYPE RRCrtcType, RRModeType, RROutputType;
 
-#define LookupOutput(client,id,a) ((RROutputPtr) \
-				   (SecurityLookupIDByType (client, id, \
-							    RROutputType, a)))
-#define LookupCrtc(client,id,a) ((RRCrtcPtr) \
-				 (SecurityLookupIDByType (client, id, \
-							  RRCrtcType, a)))
-#define LookupMode(client,id,a) ((RRModePtr) \
-				 (SecurityLookupIDByType (client, id, \
-							  RRModeType, a)))
+#define VERIFY_RR_OUTPUT(id, ptr, a)\
+    {\
+	int rc = dixLookupResourceByType((pointer *)&(ptr), id,\
+	                                 RROutputType, client, a);\
+	if (rc != Success)\
+	    return (rc == BadValue) ? RRErrorBase + BadRROutput : rc;\
+    }
+
+#define VERIFY_RR_CRTC(id, ptr, a)\
+    {\
+	int rc = dixLookupResourceByType((pointer *)&(ptr), id,\
+	                                 RRCrtcType, client, a);\
+	if (rc != Success)\
+	    return (rc == BadValue) ? RRErrorBase + BadRRCrtc : rc;\
+    }
+
+#define VERIFY_RR_MODE(id, ptr, a)\
+    {\
+	int rc = dixLookupResourceByType((pointer *)&(ptr), id,\
+	                                 RRModeType, client, a);\
+	if (rc != Success)\
+	    return (rc == BadValue) ? RRErrorBase + BadRRMode : rc;\
+    }
 
 #define GetRRClient(pClient)    ((RRClientPtr)dixLookupPrivate(&(pClient)->devPrivates, RRClientPrivateKey))
 #define rrClientPriv(pClient)	RRClientPtr pRRClient = GetRRClient(pClient)

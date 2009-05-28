@@ -113,7 +113,7 @@ AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h])
+AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h dlfcn.h stropts.h])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -222,7 +222,7 @@ AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
 dnl AGPGART headers
-AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h], AGP=yes)
+AC_CHECK_HEADERS([linux/agpgart.h sys/agpio.h sys/agpgart.h], AGP=yes)
 AM_CONDITIONAL(AGP, [test "x$AGP" = xyes])
 
 dnl APM header
@@ -440,8 +440,8 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 				  [Enable debugging (default: disabled)]),
 			        [DEBUGGING=$enableval], [DEBUGGING=no])
 AC_ARG_ENABLE(unit-tests,    AS_HELP_STRING([--enable-unit-tests],
-                                  [Enable unit-tests (default: enabled)]),
-                                [UNITTESTS=$enableval], [UNITTESTS=yes])
+                                  [Enable unit-tests (default: auto)]),
+                                [UNITTESTS=$enableval], [UNITTESTS=auto])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
@@ -889,7 +889,7 @@ if test "x$DRI" = xyes; then
 	AC_SUBST(DRIPROTO_CFLAGS)
 fi
 
-PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.99.3],
+PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 2.1],
                   [HAVE_DRI2PROTO=yes], [HAVE_DRI2PROTO=no])
 case "$DRI2,$HAVE_DRI2PROTO" in
 	yes,no)
@@ -1144,6 +1144,9 @@ if test "x$DEBUGGING" = xyes; then
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
+if test "x$UNITTESTS" = xauto; then
+       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16], [UNITTESTS=yes], [UNITTESTS=no])
+fi
 if test "x$UNITTESTS" = xyes; then
        AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
        PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16])
@@ -1843,7 +1846,7 @@ if test "$KDRIVE" = yes; then
 	    ;;
     esac
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.la'
-    KDRIVE_LOCAL_LIBS="$DIX_LIB $MAIN_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
+    KDRIVE_LOCAL_LIBS="$MAIN_LIB $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
     KDRIVE_LIBS="$TSLIB_LIBS $KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $GLX_SYS_LIBS"

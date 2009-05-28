@@ -1,23 +1,30 @@
 /*
- * Copyright © 2006 Sun Microsystems
+ * Copyright © 2006 Sun Microsystems, Inc.  All rights reserved.
  *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Sun Microsystems not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Sun Microsystems makes no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, and/or sell copies of the Software, and to permit persons
+ * to whom the Software is furnished to do so, provided that the above
+ * copyright notice(s) and this permission notice appear in all copies of
+ * the Software and that both the above copyright notice(s) and this
+ * permission notice appear in supporting documentation.
  *
- * SUN MICROSYSTEMS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
- * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
- * EVENT SHALL SUN MICROSYSTEMS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+ * OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL
+ * INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * Except as contained in this notice, the name of a copyright holder
+ * shall not be used in advertising or otherwise to promote the sale, use
+ * or other dealings in this Software without prior written authorization
+ * of the copyright holder.
  *
  * Copyright © 2002 Keith Packard
  *
@@ -129,6 +136,8 @@ typedef struct _CursorScreen {
 /* The cursor doesn't show up until the first XDefineCursor() */
 static Bool CursorVisible = FALSE;
 
+Bool EnableCursor = TRUE;
+
 static Bool
 CursorDisplayCursor (DeviceIntPtr pDev,
                      ScreenPtr pScreen,
@@ -144,7 +153,7 @@ CursorDisplayCursor (DeviceIntPtr pDev,
      * initial root window setup.  Not a great way to do it, I admit.
      */
     if (ConnectionInfo)
-	CursorVisible = TRUE;
+	CursorVisible = EnableCursor;
 
     if (cs->pCursorHideCounts != NULL || !CursorVisible) {
         ret = ((*pScreen->RealizeCursor)(pDev, pScreen, pInvisibleCursor) &&
@@ -201,6 +210,8 @@ XFixesSelectCursorInput (ClientPtr	pClient,
 			 CARD32		eventMask)
 {
     CursorEventPtr	*prev, e;
+    pointer val;
+    int rc;
 
     for (prev = &cursorEvents; (e = *prev); prev = &e->next)
     {
@@ -233,7 +244,10 @@ XFixesSelectCursorInput (ClientPtr	pClient,
 	 * Add a resource hanging from the window to
 	 * catch window destroy
 	 */
-	if (!LookupIDByType(pWindow->drawable.id, CursorWindowType))
+	rc = dixLookupResourceByType( &val, pWindow->drawable.id,
+				      CursorWindowType, serverClient,
+				      DixGetAttrAccess);
+	if (rc != Success)
 	    if (!AddResource (pWindow->drawable.id, CursorWindowType,
 			      (pointer) pWindow))
 	    {
@@ -1052,7 +1066,7 @@ XFixesCursorInit (void)
     int	i;
 
     if (party_like_its_1989)
-	CursorVisible = TRUE;
+	CursorVisible = EnableCursor;
     
     for (i = 0; i < screenInfo.numScreens; i++)
     {

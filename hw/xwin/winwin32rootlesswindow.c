@@ -177,12 +177,12 @@ winMWExtWMUpdateIcon (Window id)
 
       if (pRLWinPriv->hWnd)
 	{
-	  hiconOld = (HICON) SetClassLong (pRLWinPriv->hWnd,
-					   GCL_HICON,
-					   (int) hIcon);
-	  
+
+          hiconOld = (HICON) SendMessage (pRLWinPriv->hWnd,
+                     WM_SETICON, ICON_BIG, (LPARAM) hIcon);
           winDestroyIcon(hiconOld);
 	}
+      hIcon=NULL;
     }
 }
 

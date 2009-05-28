@@ -1363,7 +1363,7 @@ unsigned	i,len;
 char		*desc,*start;
 
     len= (rep->length*4)-(SIZEOF(xkbGetMapReply)-SIZEOF(xGenericReply));
-    start= desc= (char *)xcalloc(1, len);
+    start= desc= xcalloc(1, len);
     if (!start)
 	return BadAlloc;
     if ( rep->nTypes>0 )
@@ -2184,8 +2184,8 @@ unsigned	 first,last;
     if (maxRG>(int)xkbi->nRadioGroups) {
         int sz = maxRG*sizeof(XkbRadioGroupRec);
         if (xkbi->radioGroups)
-             xkbi->radioGroups=(XkbRadioGroupPtr)_XkbRealloc(xkbi->radioGroups,sz);
-        else xkbi->radioGroups= (XkbRadioGroupPtr)_XkbCalloc(1, sz);
+             xkbi->radioGroups= xrealloc(xkbi->radioGroups,sz);
+        else xkbi->radioGroups= xcalloc(1, sz);
         if (xkbi->radioGroups) {
              if (xkbi->nRadioGroups)
                 bzero(&xkbi->radioGroups[xkbi->nRadioGroups],
@@ -2627,7 +2627,7 @@ int		size;
 
     size= rep->length*4;
     if (size>0) {
-	data = (char *)xalloc(size);
+	data = xalloc(size);
 	if (data) {
 	    register unsigned i,bit;
 	    xkbModsWireDesc *	grp;
@@ -2994,7 +2994,7 @@ register unsigned	bit;
     length = rep->length*4;
     if (length>0) {
 	CARD8 *to;
-	to= map= (CARD8 *)xalloc(length);
+	to= map= xalloc(length);
 	if (map) {
 	    xkbIndicatorMapWireDesc  *wire = (xkbIndicatorMapWireDesc *)to;
 	    for (i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
@@ -3433,6 +3433,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
         for (other = inputInfo.devices; other; other = other->next)
         {
             if ((other != dev) && !IsMaster(other) && (other->u.master == dev) &&
+                (other->kbdfeed || other->leds) &&
                 (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
             {
                 rc = _XkbCreateIndicatorMap(other, stuff->indicator,
@@ -3456,6 +3457,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
         for (other = inputInfo.devices; other; other = other->next)
         {
             if ((other != dev) && !IsMaster(other) && (other->u.master == dev) &&
+                (other->kbdfeed || other->leds) &&
                 (XaceHook(XACE_DEVICE_ACCESS, client, other, DixSetAttrAccess) == Success))
             {
                 _XkbSetNamedIndicator(client, other, stuff);
@@ -3628,7 +3630,7 @@ register int            n;
 	swapl(&rep->indicators,n);
     }
 
-    start = desc = (char *)xalloc(length);
+    start = desc = xalloc(length);
     if ( !start )
 	return BadAlloc;
     if (xkb->names) {
@@ -4114,7 +4116,7 @@ _XkbSetNames(ClientPtr client, DeviceIntPtr dev, xkbSetNamesReq *stuff)
             tmp+= stuff->nKeyAliases*2;
         }
         else if (names->key_aliases!=NULL) {
-            _XkbFree(names->key_aliases);
+            xfree(names->key_aliases);
             names->key_aliases= NULL;
             names->num_key_aliases= 0;
         }
@@ -4133,7 +4135,7 @@ _XkbSetNames(ClientPtr client, DeviceIntPtr dev, xkbSetNamesReq *stuff)
             tmp+= stuff->nRadioGroups;
         }
         else if (names->radio_groups) {
-            _XkbFree(names->radio_groups);
+            xfree(names->radio_groups);
             names->radio_groups= NULL;
             names->num_rg= 0;
         }
@@ -4733,7 +4735,7 @@ XkbSendGeometry(	ClientPtr		client,
 
     if (geom!=NULL) {
 	len= rep->length*4;
-	start= desc= (char *)xalloc(len);
+	start= desc= xalloc(len);
 	if (!start)
 	    return BadAlloc;
 	desc=  XkbWriteCountedString(desc,geom->label_font,client->swapped);
@@ -4827,7 +4829,7 @@ CARD16	len,*plen;
 	swaps(plen,n);
     }
     len= *plen;
-    str= (char *)_XkbAlloc(len+1);
+    str= xalloc(len+1);
     if (str) {
 	memcpy(str,&wire[2],len);
 	str[len]= '\0';
@@ -5442,7 +5444,7 @@ unsigned char	*wire,*str,*tmp,*legal;
     wire= *pWire;
     len= (*(unsigned char *)wire++);
     if (len>0) {
-	str= (unsigned char *)_XkbCalloc(1, len+1);
+	str= xcalloc(1, len+1);
 	if (str) {
 	    tmp= str;
 	    for (i=0;i<len;i++) {
@@ -5453,7 +5455,7 @@ unsigned char	*wire,*str,*tmp,*legal;
 	    if (tmp!=str)
 		*tmp++= '\0';
 	    else {
-		_XkbFree(str);
+		xfree(str);
 		str= NULL;
 	    }
 	}
@@ -5504,7 +5506,7 @@ ProcXkbListComponents(ClientPtr client)
 	return BadLength;
     if ((status=XkbDDXList(dev,&list,client))!=Success) {
 	if (list.pool) {
-	    _XkbFree(list.pool);
+	    xfree(list.pool);
 	    list.pool= NULL;
 	}
 	return status;
@@ -5538,7 +5540,7 @@ ProcXkbListComponents(ClientPtr client)
     WriteToClient(client,SIZEOF(xkbListComponentsReply),(char *)&rep);
     if (list.nPool && list.pool) {
 	WriteToClient(client,XkbPaddedSize(list.nPool), (char *)list.pool);
-	_XkbFree(list.pool);
+	xfree(list.pool);
 	list.pool= NULL;
     }
     return client->noClientException;
@@ -5869,11 +5871,11 @@ ProcXkbGetKbdByName(ClientPtr client)
 	XkbFreeKeyboard(new,XkbAllComponentsMask,True);
 	new= NULL;
     }
-    if (names.keycodes)	{ _XkbFree(names.keycodes); names.keycodes= NULL; }
-    if (names.types)	{ _XkbFree(names.types); names.types= NULL; }
-    if (names.compat)	{ _XkbFree(names.compat); names.compat= NULL; }
-    if (names.symbols)	{ _XkbFree(names.symbols); names.symbols= NULL; }
-    if (names.geometry)	{ _XkbFree(names.geometry); names.geometry= NULL; }
+    if (names.keycodes)	{ xfree(names.keycodes); names.keycodes= NULL; }
+    if (names.types)	{ xfree(names.types); names.types= NULL; }
+    if (names.compat)	{ xfree(names.compat); names.compat= NULL; }
+    if (names.symbols)	{ xfree(names.symbols); names.symbols= NULL; }
+    if (names.geometry)	{ xfree(names.geometry); names.geometry= NULL; }
     return client->noClientException;
 }
 
@@ -6188,7 +6190,7 @@ char *			str;
     }
     WriteToClient(client,SIZEOF(xkbGetDeviceInfoReply), (char *)&rep);
 
-    str= (char*) xalloc(nameLen);
+    str= xalloc(nameLen);
     if (!str) 
 	return BadAlloc;
     XkbWriteCountedString(str,dev->name,client->swapped);

@@ -133,6 +133,7 @@ XFixesSelectSelectionInput (ClientPtr	pClient,
 			    WindowPtr	pWindow,
 			    CARD32	eventMask)
 {
+    pointer val;
     int rc;
     SelectionEventPtr	*prev, e;
 
@@ -173,7 +174,10 @@ XFixesSelectSelectionInput (ClientPtr	pClient,
 	 * Add a resource hanging from the window to
 	 * catch window destroy
 	 */
-	if (!LookupIDByType(pWindow->drawable.id, SelectionWindowType))
+	rc = dixLookupResourceByType (&val, pWindow->drawable.id,
+				      SelectionWindowType, serverClient,
+				      DixGetAttrAccess);
+	if (rc != Success)
 	    if (!AddResource (pWindow->drawable.id, SelectionWindowType,
 			      (pointer) pWindow))
 	    {

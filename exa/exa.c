@@ -1048,6 +1048,50 @@ exaCreateScreenResources(ScreenPtr pScreen)
     return TRUE;
 }
 
+static void
+ExaBlockHandler(int screenNum, pointer blockData, pointer pTimeout,
+		pointer pReadmask)
+{
+    ScreenPtr pScreen = screenInfo.screens[screenNum];
+    ExaScreenPriv(pScreen);
+
+    unwrap(pExaScr, pScreen, BlockHandler);
+    (*pScreen->BlockHandler) (screenNum, blockData, pTimeout, pReadmask);
+    wrap(pExaScr, pScreen, BlockHandler, ExaBlockHandler);
+
+    /* Try and keep the offscreen memory area tidy every now and then (at most 
+     * once per second) when the server has been idle for at least 100ms.
+     */
+    if (pExaScr->numOffscreenAvailable > 1) {
+	CARD32 now = GetTimeInMillis();
+
+	pExaScr->nextDefragment = now +
+	    max(100, (INT32)(pExaScr->lastDefragment + 1000 - now));
+	AdjustWaitForDelay(pTimeout, pExaScr->nextDefragment - now);
+    }
+}
+
+static void
+ExaWakeupHandler(int screenNum, pointer wakeupData, unsigned long result,
+		 pointer pReadmask)
+{
+    ScreenPtr pScreen = screenInfo.screens[screenNum];
+    ExaScreenPriv(pScreen);
+
+    unwrap(pExaScr, pScreen, WakeupHandler);
+    (*pScreen->WakeupHandler) (screenNum, wakeupData, result, pReadmask);
+    wrap(pExaScr, pScreen, WakeupHandler, ExaWakeupHandler);
+
+    if (result == 0 && pExaScr->numOffscreenAvailable > 1) {
+	CARD32 now = GetTimeInMillis();
+
+	if ((int)(now - pExaScr->nextDefragment) > 0) {
+	    ExaOffscreenDefragment(pScreen);
+	    pExaScr->lastDefragment = now;
+	}
+    }
+}
+
 /**
  * exaCloseScreen() unwraps its wrapped screen functions and tears down EXA's
  * screen private, before calling down to the next CloseSccreen.
@@ -1063,6 +1107,10 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     if (ps->Glyphs == exaGlyphs)
 	exaGlyphsFini(pScreen);
 
+    if (pScreen->BlockHandler == ExaBlockHandler)
+	unwrap(pExaScr, pScreen, BlockHandler);
+    if (pScreen->WakeupHandler == ExaWakeupHandler)
+	unwrap(pExaScr, pScreen, WakeupHandler);
     unwrap(pExaScr, pScreen, CreateGC);
     unwrap(pExaScr, pScreen, CloseScreen);
     unwrap(pExaScr, pScreen, GetImage);
@@ -1223,6 +1271,11 @@ exaDriverInit (ScreenPtr		pScreen,
     /*
      * Replace various fb screen functions
      */
+    if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
+	!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
+	wrap(pExaScr, pScreen, BlockHandler, ExaBlockHandler);
+	wrap(pExaScr, pScreen, WakeupHandler, ExaWakeupHandler);
+    }
     wrap(pExaScr, pScreen, CreateGC, exaCreateGC);
     wrap(pExaScr, pScreen, CloseScreen, exaCloseScreen);
     wrap(pExaScr, pScreen, GetImage, exaGetImage);

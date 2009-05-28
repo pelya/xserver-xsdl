@@ -137,8 +137,9 @@ SetDefaultFont(char *defaultfontname)
 		   (unsigned) strlen(defaultfontname), defaultfontname);
     if (err != Success)
 	return FALSE;
-    pf = (FontPtr) LookupIDByType(fid, RT_FONT);
-    if (pf == (FontPtr) NULL)
+    err = dixLookupResourceByType((pointer *)&pf, fid, RT_FONT, serverClient,
+				  DixReadAccess);
+    if (err != Success)
 	return FALSE;
     defaultFont = pf;
     return TRUE;
@@ -1201,17 +1202,18 @@ doPolyText(ClientPtr client, PTclosurePtr c)
     }
 
     /* Make sure our drawable hasn't disappeared while we slept. */
-    if (c->slept &&
-	c->pDraw &&
-	c->pDraw != (DrawablePtr)SecurityLookupIDByClass(client, c->did,
-					RC_DRAWABLE, DixWriteAccess))
+    if (c->slept && c->pDraw)
     {
-	/* Our drawable has disappeared.  Treat like client died... ask
-	   the FPE code to clean up after client and avoid further
-	   rendering while we clean up after ourself.  */
-	fpe = c->pGC->font->fpe;
-	(*fpe_functions[fpe->type].client_died) ((pointer) client, fpe);
-	c->pDraw = (DrawablePtr)0;
+	DrawablePtr pDraw;
+	dixLookupDrawable(&pDraw, c->did, client, 0, DixWriteAccess);
+	if (c->pDraw != pDraw) {
+	    /* Our drawable has disappeared.  Treat like client died... ask
+	       the FPE code to clean up after client and avoid further
+	       rendering while we clean up after ourself.  */
+	    fpe = c->pGC->font->fpe;
+	    (*fpe_functions[fpe->type].client_died) ((pointer) client, fpe);
+	    c->pDraw = (DrawablePtr)0;
+	}
     }
 
     client_state = c->slept ? SLEEPING : NEVER_SLEPT;
@@ -1233,12 +1235,11 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 		 | ((Font)*(c->pElt+3)) << 8
 		 | ((Font)*(c->pElt+2)) << 16
 		 | ((Font)*(c->pElt+1)) << 24;
-	    pFont = (FontPtr)SecurityLookupIDByType(client, fid, RT_FONT,
-						    DixReadAccess);
-	    if (!pFont)
+	    err = dixLookupResourceByType((pointer *)&pFont, fid, RT_FONT,
+					  client, DixReadAccess);
+	    if (err != Success)
 	    {
-		client->errorValue = fid;
-		err = BadFont;
+		err = (err == BadValue) ? BadFont : err;
 		/* restore pFont and fid for step 4 (described below) */
 		pFont = oldpFont;
 		fid = oldfid;
@@ -1486,17 +1487,18 @@ doImageText(ClientPtr client, ITclosurePtr c)
     }
 
     /* Make sure our drawable hasn't disappeared while we slept. */
-    if (c->slept &&
-	c->pDraw &&
-	c->pDraw != (DrawablePtr)SecurityLookupIDByClass(client, c->did,
-					RC_DRAWABLE, DixWriteAccess))
+    if (c->slept && c->pDraw)
     {
-	/* Our drawable has disappeared.  Treat like client died... ask
-	   the FPE code to clean up after client. */
-	fpe = c->pGC->font->fpe;
-	(*fpe_functions[fpe->type].client_died) ((pointer) client, fpe);
-	err = Success;
-	goto bail;
+	DrawablePtr pDraw;
+	dixLookupDrawable(&pDraw, c->did, client, 0, DixWriteAccess);
+	if (c->pDraw != pDraw) {
+	    /* Our drawable has disappeared.  Treat like client died... ask
+	       the FPE code to clean up after client. */
+	    fpe = c->pGC->font->fpe;
+	    (*fpe_functions[fpe->type].client_died) ((pointer) client, fpe);
+	    err = Success;
+	    goto bail;
+	}
     }
 
     lgerr = LoadGlyphs(client, c->pGC->font, c->nChars, c->itemSize, c->data);
@@ -2013,8 +2015,9 @@ FreeFonts(void)
 FontPtr
 find_old_font(XID id)
 {
-    return (FontPtr) SecurityLookupIDByType(NullClient, id, RT_NONE,
-					    DixUnknownAccess);
+    pointer pFont;
+    dixLookupResourceByType(&pFont, id, RT_NONE, serverClient, DixReadAccess);
+    return (FontPtr)pFont;
 }
 
 Font

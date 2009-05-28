@@ -436,7 +436,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 		return;
 	    }
 	    realWin = win->info[0].id;
-	    pWin = LookupIDByType(realWin, RT_WINDOW);
+	    dixLookupWindow(&pWin, realWin, serverClient, DixSendAccess);
 	}
 	if(x || y || scrnum)
 	  for (i = 0; i < numRects; i++) {

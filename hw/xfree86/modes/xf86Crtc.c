@@ -353,7 +353,7 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     }
 
     /* Only upload when needed, to avoid unneeded delays. */
-    if (!crtc->active)
+    if (crtc->active)
 	crtc->funcs->gamma_set(crtc, crtc->gamma_red, crtc->gamma_green,
                                             crtc->gamma_blue, crtc->gamma_size);
 
@@ -2228,19 +2228,19 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
             red[i] = i << 8;
         else
             red[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_red) * (double)(size - 1) * 256);
+			1. / (double)gamma_red) * (double)(size - 1) * 256);
 
         if (gamma_green == 1.0)
             green[i] = i << 8;
         else
             green[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_green) * (double)(size - 1) * 256);
+			1. / (double)gamma_green) * (double)(size - 1) * 256);
 
         if (gamma_blue == 1.0)
             blue[i] = i << 8;
         else
             blue[i] = (CARD16)(pow((double)i/(double)(size - 1),
-			(double)gamma_blue) * (double)(size - 1) * 256);
+			1. / (double)gamma_blue) * (double)(size - 1) * 256);
     }
 
     /* Default size is 256, so anything else is failure. */
@@ -2549,17 +2549,22 @@ Bool
 xf86SetDesiredModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
+    xf86CrtcPtr         crtc = config->crtc[0];
     int			c;
 
-    xf86PrepareOutputs(scrn);
-    xf86PrepareCrtcs(scrn);
+    /* A driver with this hook will take care of this */
+    if (!crtc->funcs->set_mode_major) {
+	xf86PrepareOutputs(scrn);
+	xf86PrepareCrtcs(scrn);
+    }
 
     for (c = 0; c < config->num_crtc; c++)
     {
-	xf86CrtcPtr	crtc = config->crtc[c];
 	xf86OutputPtr	output = NULL;
 	int		o;
 	RRTransformPtr	transform;
+
+	crtc = config->crtc[c];
 
 	/* Skip disabled CRTCs */
 	if (!crtc->enabled)

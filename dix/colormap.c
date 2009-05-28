@@ -893,9 +893,9 @@ AllocColor (ColormapPtr pmap,
 	if (pmap->mid != pmap->pScreen->defColormap &&
 	    pmap->pVisual->vid == pmap->pScreen->rootVisual)
 	{
-	    ColormapPtr prootmap = (ColormapPtr)
-		SecurityLookupIDByType (clients[client], pmap->pScreen->defColormap,
-					 RT_COLORMAP, DixReadAccess);
+	    ColormapPtr prootmap;
+	    dixLookupResourceByType((pointer *)&prootmap, pmap->pScreen->defColormap,
+				    RT_COLORMAP, clients[client], DixReadAccess);
 
 	    if (pmap->class == prootmap->class)
 		FindColorInRootCmap (prootmap, prootmap->red, entries, &rgb, 
@@ -910,9 +910,9 @@ AllocColor (ColormapPtr pmap,
 	if (pmap->mid != pmap->pScreen->defColormap &&
 	    pmap->pVisual->vid == pmap->pScreen->rootVisual)
 	{
-	    ColormapPtr prootmap = (ColormapPtr)
-		SecurityLookupIDByType (clients[client], pmap->pScreen->defColormap,
-					 RT_COLORMAP, DixReadAccess);
+	    ColormapPtr prootmap;
+	    dixLookupResourceByType((pointer *)&prootmap, pmap->pScreen->defColormap,
+				    RT_COLORMAP, clients[client], DixReadAccess);
 
 	    if (pmap->class == prootmap->class)
 	    {
@@ -1550,12 +1550,14 @@ FreePixels(ColormapPtr pmap, int client)
 int
 FreeClientPixels (pointer value, XID fakeid)
 {
-    ColormapPtr pmap;
-    colorResource *pcr = (colorResource *)value;
+    pointer pmap;
+    colorResource *pcr = value;
+    int rc;
 
-    pmap = (ColormapPtr) LookupIDByType(pcr->mid, RT_COLORMAP);
-    if (pmap)
-	FreePixels(pmap, pcr->client);
+    rc = dixLookupResourceByType(&pmap, pcr->mid, RT_COLORMAP, serverClient,
+				 DixRemoveAccess);
+    if (rc == Success)
+	FreePixels((ColormapPtr)pmap, pcr->client);
     xfree(pcr);
     return Success;
 }

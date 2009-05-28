@@ -148,14 +148,18 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes,
 pointer
 LookupIDByType(XID id, RESTYPE rtype)
 {
-    return SecurityLookupIDByType(NullClient, id, rtype, DixUnknownAccess);
+    pointer val;
+    dixLookupResourceByType(&val, id, rtype, NullClient, DixUnknownAccess);
+    return val;
 }
 
 /* replaced by dixLookupResourceByClass */
 pointer
 LookupIDByClass(XID id, RESTYPE classes)
 {
-    return SecurityLookupIDByClass(NullClient, id, classes, DixUnknownAccess);
+    pointer val;
+    dixLookupResourceByClass(&val, id, classes, NullClient, DixUnknownAccess);
+    return val;
 }
 
 /* replaced by dixLookupResourceBy{Type,Class} */

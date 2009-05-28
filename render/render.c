@@ -509,7 +509,7 @@ static int
 ProcRenderQueryPictIndexValues (ClientPtr client)
 {
     PictFormatPtr   pFormat;
-    int		    num;
+    int		    rc, num;
     int		    rlength;
     int		    i, n;
     REQUEST(xRenderQueryPictIndexValuesReq);
@@ -518,16 +518,11 @@ ProcRenderQueryPictIndexValues (ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xRenderQueryPictIndexValuesReq);
 
-    pFormat = (PictFormatPtr) SecurityLookupIDByType (client, 
-						      stuff->format,
-						      PictFormatType,
-						      DixReadAccess);
+    rc = dixLookupResourceByType((pointer *)&pFormat, stuff->format,
+				 PictFormatType, client, DixReadAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
 
-    if (!pFormat)
-    {
-	client->errorValue = stuff->format;
-	return RenderErrBase + BadPictFormat;
-    }
     if (pFormat->type != PictTypeIndexed)
     {
 	client->errorValue = stuff->format;
@@ -592,15 +587,11 @@ ProcRenderCreatePicture (ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    pFormat = (PictFormatPtr) SecurityLookupIDByType (client, 
-						      stuff->format,
-						      PictFormatType,
-						      DixReadAccess);
-    if (!pFormat)
-    {
-	client->errorValue = stuff->format;
-	return RenderErrBase + BadPictFormat;
-    }
+    rc = dixLookupResourceByType((pointer *)&pFormat, stuff->format,
+				 PictFormatType, client, DixReadAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
+
     if (pFormat->depth != pDrawable->depth)
 	return BadMatch;
     len = client->req_len - (sizeof(xRenderCreatePictureReq) >> 2);
@@ -740,7 +731,7 @@ ProcRenderScale (ClientPtr client)
 static int
 ProcRenderTrapezoids (ClientPtr client)
 {
-    int		ntraps;
+    int		rc, ntraps;
     PicturePtr	pSrc, pDst;
     PictFormatPtr   pFormat;
     REQUEST(xRenderTrapezoidsReq);
@@ -761,15 +752,10 @@ ProcRenderTrapezoids (ClientPtr client)
 	return BadMatch;
     if (stuff->maskFormat)
     {
-	pFormat = (PictFormatPtr) SecurityLookupIDByType (client,
-							  stuff->maskFormat,
-							  PictFormatType,
-							  DixReadAccess);
-	if (!pFormat)
-	{
-	    client->errorValue = stuff->maskFormat;
-	    return RenderErrBase + BadPictFormat;
-	}
+	rc = dixLookupResourceByType((pointer *)&pFormat, stuff->maskFormat,
+				     PictFormatType, client, DixReadAccess);
+	if (rc != Success)
+	    return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
     }
     else
 	pFormat = 0;
@@ -787,7 +773,7 @@ ProcRenderTrapezoids (ClientPtr client)
 static int
 ProcRenderTriangles (ClientPtr client)
 {
-    int		ntris;
+    int		rc, ntris;
     PicturePtr	pSrc, pDst;
     PictFormatPtr   pFormat;
     REQUEST(xRenderTrianglesReq);
@@ -808,15 +794,10 @@ ProcRenderTriangles (ClientPtr client)
 	return BadMatch;
     if (stuff->maskFormat)
     {
-	pFormat = (PictFormatPtr) SecurityLookupIDByType (client,
-							  stuff->maskFormat,
-							  PictFormatType,
-							  DixReadAccess);
-	if (!pFormat)
-	{
-	    client->errorValue = stuff->maskFormat;
-	    return RenderErrBase + BadPictFormat;
-	}
+	rc = dixLookupResourceByType((pointer *)&pFormat, stuff->maskFormat,
+				     PictFormatType, client, DixReadAccess);
+	if (rc != Success)
+	    return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
     }
     else
 	pFormat = 0;
@@ -834,7 +815,7 @@ ProcRenderTriangles (ClientPtr client)
 static int
 ProcRenderTriStrip (ClientPtr client)
 {
-    int		npoints;
+    int		rc, npoints;
     PicturePtr	pSrc, pDst;
     PictFormatPtr   pFormat;
     REQUEST(xRenderTrianglesReq);
@@ -855,15 +836,10 @@ ProcRenderTriStrip (ClientPtr client)
 	return BadMatch;
     if (stuff->maskFormat)
     {
-	pFormat = (PictFormatPtr) SecurityLookupIDByType (client,
-							  stuff->maskFormat,
-							  PictFormatType,
-							  DixReadAccess);
-	if (!pFormat)
-	{
-	    client->errorValue = stuff->maskFormat;
-	    return RenderErrBase + BadPictFormat;
-	}
+	rc = dixLookupResourceByType((pointer *)&pFormat, stuff->maskFormat,
+				     PictFormatType, client, DixReadAccess);
+	if (rc != Success)
+	    return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
     }
     else
 	pFormat = 0;
@@ -881,7 +857,7 @@ ProcRenderTriStrip (ClientPtr client)
 static int
 ProcRenderTriFan (ClientPtr client)
 {
-    int		npoints;
+    int		rc, npoints;
     PicturePtr	pSrc, pDst;
     PictFormatPtr   pFormat;
     REQUEST(xRenderTrianglesReq);
@@ -902,15 +878,10 @@ ProcRenderTriFan (ClientPtr client)
 	return BadMatch;
     if (stuff->maskFormat)
     {
-	pFormat = (PictFormatPtr) SecurityLookupIDByType (client,
-							  stuff->maskFormat,
-							  PictFormatType,
-							  DixReadAccess);
-	if (!pFormat)
-	{
-	    client->errorValue = stuff->maskFormat;
-	    return RenderErrBase + BadPictFormat;
-	}
+	rc = dixLookupResourceByType((pointer *)&pFormat, stuff->maskFormat,
+				     PictFormatType, client, DixReadAccess);
+	if (rc != Success)
+	    return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
     }
     else
 	pFormat = 0;
@@ -954,15 +925,11 @@ ProcRenderCreateGlyphSet (ClientPtr client)
     REQUEST_SIZE_MATCH(xRenderCreateGlyphSetReq);
 
     LEGAL_NEW_RESOURCE(stuff->gsid, client);
-    format = (PictFormatPtr) SecurityLookupIDByType (client,
-						     stuff->format,
-						     PictFormatType,
-						     DixReadAccess);
-    if (!format)
-    {
-	client->errorValue = stuff->format;
-	return RenderErrBase + BadPictFormat;
-    }
+    rc = dixLookupResourceByType((pointer *)&format, stuff->format,
+				 PictFormatType, client, DixReadAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
+
     switch (format->depth) {
     case 1:
 	f = GlyphFormat1;
@@ -1300,7 +1267,7 @@ ProcRenderCompositeGlyphs (ClientPtr client)
     int		    nlist;
     int		    space;
     int		    size;
-    int		    n;
+    int		    rc, n;
     
     REQUEST(xRenderCompositeGlyphsReq);
 
@@ -1327,28 +1294,18 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 	return BadMatch;
     if (stuff->maskFormat)
     {
-	pFormat = (PictFormatPtr) SecurityLookupIDByType (client,
-							  stuff->maskFormat,
-							  PictFormatType,
-							  DixReadAccess);
-	if (!pFormat)
-	{
-	    client->errorValue = stuff->maskFormat;
-	    return RenderErrBase + BadPictFormat;
-	}
+	rc = dixLookupResourceByType((pointer *)&pFormat, stuff->maskFormat,
+				     PictFormatType, client, DixReadAccess);
+	if (rc != Success)
+	    return (rc == BadValue) ? RenderErrBase + BadPictFormat : rc;
     }
     else
 	pFormat = 0;
 
-    glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
-						     stuff->glyphset,
-						     GlyphSetType,
-						     DixUseAccess);
-    if (!glyphSet)
-    {
-	client->errorValue = stuff->glyphset;
-	return RenderErrBase + BadGlyphSet;
-    }
+    rc = dixLookupResourceByType((pointer *)&glyphSet, stuff->glyphset,
+				 GlyphSetType, client, DixUseAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? RenderErrBase + BadGlyphSet : rc;
 
     buffer = (CARD8 *) (stuff + 1);
     end = (CARD8 *) stuff + (client->req_len << 2);
@@ -1402,18 +1359,16 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 	    if (buffer + sizeof (GlyphSet) < end)
 	    {
                 memcpy(&gs, buffer, sizeof(GlyphSet));
-		glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
-								 gs,
-								 GlyphSetType,
-								 DixUseAccess);
-		if (!glyphSet)
+		rc = dixLookupResourceByType((pointer *)&glyphSet, gs,
+					     GlyphSetType, client,
+					     DixUseAccess);
+		if (rc != Success)
 		{
-		    client->errorValue = gs;
 		    if (glyphsBase != glyphsLocal)
 			xfree (glyphsBase);
 		    if (listsBase != listsLocal)
 			xfree (listsBase);
-		    return RenderErrBase + BadGlyphSet;
+		    return (rc == BadValue) ? RenderErrBase + BadGlyphSet : rc;
 		}
 	    }
 	    buffer += 4;
@@ -1902,13 +1857,12 @@ ProcRenderCreateAnimCursor (ClientPtr client)
     elt = (xAnimCursorElt *) (stuff + 1);
     for (i = 0; i < ncursor; i++)
     {
-	cursors[i] = (CursorPtr)SecurityLookupIDByType(client, elt->cursor,
-						       RT_CURSOR, DixReadAccess);
-	if (!cursors[i])
+	ret = dixLookupResourceByType((pointer *)(cursors + i), elt->cursor,
+				      RT_CURSOR, client, DixReadAccess);
+	if (ret != Success)
 	{
 	    xfree (cursors);
-	    client->errorValue = elt->cursor;
-	    return BadCursor;
+	    return (ret == BadValue) ? BadCursor : ret;
 	}
 	deltas[i] = elt->delay;
 	elt++;
@@ -2689,11 +2643,10 @@ SProcRenderDispatch (ClientPtr client)
 #include "panoramiXsrv.h"
 
 #define VERIFY_XIN_PICTURE(pPicture, pid, client, mode, err) {\
-    pPicture = SecurityLookupIDByType(client, pid, XRT_PICTURE, mode);\
-    if (!pPicture) { \
-	client->errorValue = pid; \
-	return err; \
-    } \
+    int rc = dixLookupResourceByType((pointer *)&(pPicture), pid,\
+                                     XRT_PICTURE, client, mode);\
+    if (rc != Success)\
+	return (rc == BadValue) ? err : rc;\
 }
 
 #define VERIFY_XIN_ALPHA(pPicture, pid, client, mode, err) {\
@@ -2713,12 +2666,13 @@ PanoramiXRenderCreatePicture (ClientPtr client)
 {
     REQUEST(xRenderCreatePictureReq);
     PanoramiXRes    *refDraw, *newPict;
-    int		    result = Success, j;
+    int		    result, j;
 
     REQUEST_AT_LEAST_SIZE(xRenderCreatePictureReq);
-    if(!(refDraw = (PanoramiXRes *)SecurityLookupIDByClass(
-		client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
-	return BadDrawable;
+    result = dixLookupResourceByClass((pointer *)&refDraw, stuff->drawable,
+				      XRC_DRAWABLE, client, DixWriteAccess);
+    if (result != Success)
+	return (result == BadValue) ? BadDrawable : result;
     if(!(newPict = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
 	return BadAlloc;
     newPict->type = XRT_PICTURE;

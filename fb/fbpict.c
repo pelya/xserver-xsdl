@@ -159,22 +159,9 @@ fbComposite (CARD8      op,
 {
     pixman_image_t *src, *mask, *dest;
     
-    xDst += pDst->pDrawable->x;
-    yDst += pDst->pDrawable->y;
-    if (pSrc->pDrawable)
-    {
-        xSrc += pSrc->pDrawable->x;
-        ySrc += pSrc->pDrawable->y;
-    }
-    if (pMask && pMask->pDrawable)
-    {
-	xMask += pMask->pDrawable->x;
-	yMask += pMask->pDrawable->y;
-    }
-
-    miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
+    miCompositeSourceValidate (pSrc, xSrc - xDst, ySrc - yDst, width, height);
     if (pMask)
-	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
+	miCompositeSourceValidate (pMask, xMask - xDst, yMask - yDst, width, height);
     
     src = image_from_pict (pSrc, TRUE);
     mask = image_from_pict (pMask, TRUE);
@@ -292,7 +279,8 @@ create_bits_picture (PicturePtr pict,
     
     fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
 
-    bits = (FbBits*)((CARD8*)bits + yoff * stride * sizeof(FbBits) + xoff * (bpp / 8));
+    bits = (FbBits*)((CARD8*)bits +
+		     pict->pDrawable->y * stride * sizeof(FbBits) + pict->pDrawable->x * (bpp / 8));
 
     image = pixman_image_create_bits (
 	pict->format,
@@ -321,8 +309,12 @@ create_bits_picture (PicturePtr pict,
     {
 	if (pict->clientClipType != CT_NONE)
 	    pixman_image_set_has_client_clip (image, TRUE);
+
+	pixman_region_translate (pict->pCompositeClip, - pict->pDrawable->x, - pict->pDrawable->y);
 	
 	pixman_image_set_clip_region (image, pict->pCompositeClip);
+
+	pixman_region_translate (pict->pCompositeClip, pict->pDrawable->x, pict->pDrawable->y);
     }
     
     /* Indexed table */

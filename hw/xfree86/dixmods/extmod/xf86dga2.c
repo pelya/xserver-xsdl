@@ -420,6 +420,7 @@ static int
 ProcXDGAInstallColormap(ClientPtr client)
 {
     ColormapPtr cmap;
+    int rc;
     REQUEST(xXDGAInstallColormapReq);
 
     if (stuff->screen > screenInfo.numScreens)
@@ -430,13 +431,13 @@ ProcXDGAInstallColormap(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXDGAInstallColormapReq);
 
-    cmap = (ColormapPtr)LookupIDByType(stuff->cmap, RT_COLORMAP);
-    if (cmap) {
+    rc = dixLookupResourceByType((pointer *)&cmap, stuff->cmap, RT_COLORMAP,
+				 client, DixInstallAccess);
+    if (rc == Success) {
         DGAInstallCmap(cmap);
         return (client->noClientException);
     } else {
-        client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 
     return (client->noClientException);
@@ -858,6 +859,7 @@ static int
 ProcXF86DGAInstallColormap(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xXF86DGAInstallColormapReq);
 
     if (stuff->screen > screenInfo.numScreens)
@@ -871,13 +873,13 @@ ProcXF86DGAInstallColormap(ClientPtr client)
     if (!DGAActive(stuff->screen))
 	return (DGAErrorBase + XF86DGADirectNotActivated);
 
-    pcmp = (ColormapPtr  )LookupIDByType(stuff->id, RT_COLORMAP);
-    if (pcmp) {
+    rc = dixLookupResourceByType((pointer *)&pcmp, stuff->id, RT_COLORMAP,
+				 client, DixInstallAccess);
+    if (rc == Success) {
 	DGAInstallCmap(pcmp);
         return (client->noClientException);
     } else {
-        client->errorValue = stuff->id;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 

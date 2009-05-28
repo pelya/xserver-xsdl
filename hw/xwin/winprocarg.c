@@ -1448,13 +1448,13 @@ winLogCommandLine (int argc, char *argv[])
   for (i = 0, iCurrLen = 0; i < argc; ++i)
     if (argv[i])
       {
-	/* Add a character for lines that overflow */
+	/* Adds two characters for lines that overflow */
 	if ((strlen (argv[i]) < CHARS_PER_LINE
 	    && iCurrLen + strlen (argv[i]) > CHARS_PER_LINE)
 	    || strlen (argv[i]) > CHARS_PER_LINE)
 	  {
 	    iCurrLen = 0;
-	    ++iSize;
+	    iSize += 2;
 	  }
 	
 	/* Add space for item and trailing space */
@@ -1484,7 +1484,7 @@ winLogCommandLine (int argc, char *argv[])
 	iCurrLen = 0;
 	
 	/* Add line break if it fits */
-	strncat (g_pszCommandLine, "\n", iSize - strlen (g_pszCommandLine));
+	strncat (g_pszCommandLine, "\n ", iSize - strlen (g_pszCommandLine));
       }
       
       strncat (g_pszCommandLine, argv[i], iSize - strlen (g_pszCommandLine));

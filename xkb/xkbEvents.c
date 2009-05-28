@@ -1132,7 +1132,7 @@ ClientPtr	client = NULL;
 	    autoCtrls= interest->autoCtrls;
 	    autoValues= interest->autoCtrlValues;
 	    client= interest->client;
-	    _XkbFree(interest);
+	    xfree(interest);
 	    found= True;
 	}
 	while ((!found)&&(interest->next)) {
@@ -1142,7 +1142,7 @@ ClientPtr	client = NULL;
 		autoCtrls= victim->autoCtrls;
 		autoValues= victim->autoCtrlValues;
 		client= victim->client;
-		_XkbFree(victim);
+		xfree(victim);
 		found= True;
 	    }
 	    interest = interest->next;

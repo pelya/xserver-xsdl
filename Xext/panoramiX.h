@@ -97,6 +97,4 @@ typedef struct {
 
 #define IS_SHARED_PIXMAP(r) (((r)->type == XRT_PIXMAP) && (r)->u.pix.shared)
 
-#define SKIP_FAKE_WINDOW(a) if(!LookupIDByType(a, XRT_WINDOW)) return
-
 #endif /* _PANORAMIX_H_ */

@@ -523,7 +523,8 @@ XvdiSendVideoNotify(XvPortPtr pPort, DrawablePtr pDraw, int reason)
   xvEvent event;
   XvVideoNotifyPtr pn;
 
-  pn = (XvVideoNotifyPtr)LookupIDByType(pDraw->id, XvRTVideoNotifyList);
+  dixLookupResourceByType((pointer *)&pn, pDraw->id, XvRTVideoNotifyList,
+			  serverClient, DixReadAccess);
 
   while (pn) 
     {
@@ -905,10 +906,14 @@ XvdiSelectVideoNotify(
   BOOL onoff
 ){
   XvVideoNotifyPtr pn,tpn,fpn;
+  int rc;
 
   /* FIND VideoNotify LIST */
 
-  pn = (XvVideoNotifyPtr)LookupIDByType(pDraw->id, XvRTVideoNotifyList);
+  rc = dixLookupResourceByType((pointer *)&pn, pDraw->id, XvRTVideoNotifyList,
+			       client, DixWriteAccess);
+  if (rc != Success && rc != BadValue)
+      return rc;
 
   /* IF ONE DONES'T EXIST AND NO MASK, THEN JUST RETURN */
 

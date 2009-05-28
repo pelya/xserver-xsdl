@@ -37,10 +37,6 @@ SOFTWARE.
  *      translation from client ids to server addresses.
  */
 
-#ifdef DEBUG
-#define MAX_REQUEST_LOG 100
-#endif
-
 extern _X_EXPORT CallbackListPtr ClientStateCallback;
 
 typedef struct {

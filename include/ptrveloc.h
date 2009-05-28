@@ -27,9 +27,9 @@
 
 #include <input.h> /* DeviceIntPtr */
 
-/* constants for acceleration profiles;
- * see  */
+/* constants for acceleration profiles */
 
+#define AccelProfileNone -1
 #define AccelProfileClassic  0
 #define AccelProfileDeviceSpecific 1
 #define AccelProfilePolynomial 2
@@ -37,8 +37,7 @@
 #define AccelProfileSimple 4
 #define AccelProfilePower 5
 #define AccelProfileLinear 6
-#define AccelProfileReserved 7
-#define AccelProfileLAST AccelProfileReserved
+#define AccelProfileLAST AccelProfileLinear
 
 /* fwd */
 struct _DeviceVelocityRec;

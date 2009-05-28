@@ -917,11 +917,6 @@ Bool
 xf86SetGamma(ScrnInfoPtr scrp, Gamma gamma)
 {
     MessageType from = X_DEFAULT;
-    /* Pretend we succeeded if we support better a gamma system.
-     * This avoids a confusing message.
-     */
-    if (xf86_crtc_supports_gamma(scrp))
-	return TRUE;
 #if 0
     xf86MonPtr DDC = (xf86MonPtr)(scrp->monitor->DDC);
 #endif
@@ -953,6 +948,11 @@ xf86SetGamma(ScrnInfoPtr scrp, Gamma gamma)
 	scrp->gamma.green = 1.0;
 	scrp->gamma.blue = 1.0;
     }
+    /* Pretend we succeeded if we support better a gamma system.
+     * This avoids a confusing message.
+     */
+    if (xf86_crtc_supports_gamma(scrp))
+	return TRUE;
     xf86DrvMsg(scrp->scrnIndex, from,
 	       "Using gamma correction (%.1f, %.1f, %.1f)\n",
 	       scrp->gamma.red, scrp->gamma.green, scrp->gamma.blue);

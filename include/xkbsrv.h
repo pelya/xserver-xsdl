@@ -301,15 +301,11 @@ extern _X_EXPORT pointer	XkbLastRepeatEvent;
 
 extern _X_EXPORT CARD32	xkbDebugFlags;
 
-#define	_XkbAlloc(s)		xalloc((s))
-#define	_XkbCalloc(n,s)		Xcalloc((n)*(s))
-#define	_XkbRealloc(o,s)	Xrealloc((o),(s))
 #define	_XkbTypedAlloc(t)	((t *)xalloc(sizeof(t)))
 #define	_XkbTypedCalloc(n,t)	((t *)Xcalloc((n)*sizeof(t)))
 #define	_XkbTypedRealloc(o,n,t) \
 	((o)?(t *)Xrealloc((o),(n)*sizeof(t)):_XkbTypedCalloc(n,t))
 #define	_XkbClearElems(a,f,l,t)	bzero(&(a)[f],((l)-(f)+1)*sizeof(t))
-#define	_XkbFree(p)		Xfree(p)
 
 #define	_XkbLibError(c,l,d) /* Epoch fail */
 #define	_XkbErrCode2(a,b) ((XID)((((unsigned int)(a))<<24)|((b)&0xffffff)))
@@ -332,8 +328,6 @@ extern	_X_EXPORT int	DeviceButtonPress,DeviceButtonRelease;
 #define	True	TRUE
 #define	False	FALSE
 #endif
-
-_XFUNCPROTOBEGIN
 
 extern _X_EXPORT void XkbUseMsg(
     void
@@ -1002,8 +996,6 @@ extern _X_EXPORT XkbDescPtr XkbCompileKeymap(
         DeviceIntPtr    /* dev */,
         XkbRMLVOSet *   /* rmlvo */
 );
-
-_XFUNCPROTOEND
 
 #define	XkbAtomGetString(s)	NameForAtom(s)
 

@@ -411,20 +411,23 @@ ProcDbeDeallocateBackBufferName(ClientPtr client)
 {
     REQUEST(xDbeDeallocateBackBufferNameReq);
     DbeWindowPrivPtr	pDbeWindowPriv;
-    int			i;
+    int			rc, i;
+    pointer val;
 
 
     REQUEST_SIZE_MATCH(xDbeDeallocateBackBufferNameReq);
 
     /* Buffer name must be valid */
-    if (!(pDbeWindowPriv = (DbeWindowPrivPtr)SecurityLookupIDByType(client,
-		stuff->buffer, dbeWindowPrivResType, DixDestroyAccess)) ||
-        !(SecurityLookupIDByType(client, stuff->buffer, dbeDrawableResType,
-				 DixDestroyAccess)))
-    {
-        client->errorValue = stuff->buffer;
-        return(dbeErrorBase + DbeBadBuffer);
-    }
+    rc = dixLookupResourceByType((pointer *)&pDbeWindowPriv, stuff->buffer,
+				 dbeWindowPrivResType, client,
+				 DixDestroyAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? dbeErrorBase + DbeBadBuffer : rc;
+
+    rc = dixLookupResourceByType(&val, stuff->buffer, dbeDrawableResType,
+				 client, DixDestroyAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? dbeErrorBase + DbeBadBuffer : rc;
 
     /* Make sure that the id is valid for the window.
      * This is paranoid code since we already looked up the ID by type
@@ -833,19 +836,21 @@ ProcDbeGetBackBufferAttributes(ClientPtr client)
     REQUEST(xDbeGetBackBufferAttributesReq);
     xDbeGetBackBufferAttributesReply	rep;
     DbeWindowPrivPtr			pDbeWindowPriv;
-    int					n;
+    int					rc, n;
 
 
     REQUEST_SIZE_MATCH(xDbeGetBackBufferAttributesReq);
 
-    if (!(pDbeWindowPriv = (DbeWindowPrivPtr)SecurityLookupIDByType(client,
-		stuff->buffer, dbeWindowPrivResType, DixGetAttrAccess)))
+    rc = dixLookupResourceByType((pointer *)&pDbeWindowPriv, stuff->buffer,
+				 dbeWindowPrivResType, client,
+				 DixGetAttrAccess);
+    if (rc == Success)
     {
-        rep.attributes = None;
+        rep.attributes = pDbeWindowPriv->pWindow->drawable.id;
     }
     else
     {
-        rep.attributes = pDbeWindowPriv->pWindow->drawable.id;
+        rep.attributes = None;
     }
         
     rep.type           = X_Reply;

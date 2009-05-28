@@ -240,14 +240,9 @@ dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
 int
 dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
 {
-    GCPtr pTmp = (GCPtr)SecurityLookupIDByType(client, id, RT_GC, access);
-    if (pTmp) {
-	*pGC = pTmp;
-	return Success;
-    }
-    client->errorValue = id;
-    *pGC = NULL;
-    return BadGC;
+    int rc;
+    rc = dixLookupResourceByType((pointer *)pGC, id, RT_GC, client, access);
+    return (rc == BadValue) ? BadGC : rc;
 }
 
 int

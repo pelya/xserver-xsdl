@@ -201,17 +201,13 @@ typedef struct _XvPortRec {
   DevUnion devPriv;
 } XvPortRec, *XvPortPtr;
 
-#define LOOKUP_PORT(_id, client)\
-     ((XvPortPtr)LookupIDByType(_id, XvRTPort))
-
-#define LOOKUP_ENCODING(_id, client)\
-     ((XvEncodingPtr)LookupIDByType(_id, XvRTEncoding))
-
-#define LOOKUP_VIDEONOTIFY_LIST(_id, client)\
-     ((XvVideoNotifyPtr)LookupIDByType(_id, XvRTVideoNotifyList))
-
-#define LOOKUP_PORTNOTIFY_LIST(_id, client)\
-     ((XvPortNotifyPtr)LookupIDByType(_id, XvRTPortNotifyList))
+#define VALIDATE_XV_PORT(portID, pPort, mode)\
+    {\
+	int rc = dixLookupResourceByType((pointer *)&(pPort), portID,\
+	                                 XvRTPort, client, mode);\
+	if (rc != Success)\
+	    return (rc == BadValue) ? _XvBadPort : rc;\
+    }
 
 typedef struct {
   int version, revision;

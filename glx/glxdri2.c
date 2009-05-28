@@ -406,7 +406,7 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
 	       int *out_count, void *loaderPrivate)
 {
     __GLXDRIdrawable *private = loaderPrivate;
-    DRI2BufferPtr buffers;
+    DRI2BufferPtr *buffers;
     int i;
     int j;
 
@@ -427,15 +427,59 @@ dri2GetBuffers(__DRIdrawable *driDrawable,
 	/* Do not send the real front buffer of a window to the client.
 	 */
 	if ((private->base.pDraw->type == DRAWABLE_WINDOW)
-	    && (buffers[i].attachment == DRI2BufferFrontLeft)) {
+	    && (buffers[i]->attachment == DRI2BufferFrontLeft)) {
 	    continue;
 	}
 
-	private->buffers[j].attachment = buffers[i].attachment;
-	private->buffers[j].name = buffers[i].name;
-	private->buffers[j].pitch = buffers[i].pitch;
-	private->buffers[j].cpp = buffers[i].cpp;
-	private->buffers[j].flags = buffers[i].flags;
+	private->buffers[j].attachment = buffers[i]->attachment;
+	private->buffers[j].name = buffers[i]->name;
+	private->buffers[j].pitch = buffers[i]->pitch;
+	private->buffers[j].cpp = buffers[i]->cpp;
+	private->buffers[j].flags = buffers[i]->flags;
+	j++;
+    }
+
+    *out_count = j;
+    return private->buffers;
+}
+
+static __DRIbuffer *
+dri2GetBuffersWithFormat(__DRIdrawable *driDrawable,
+			 int *width, int *height,
+			 unsigned int *attachments, int count,
+			 int *out_count, void *loaderPrivate)
+{
+    __GLXDRIdrawable *private = loaderPrivate;
+    DRI2BufferPtr *buffers;
+    int i;
+    int j = 0;
+
+    buffers = DRI2GetBuffersWithFormat(private->base.pDraw,
+				       width, height, attachments, count,
+				       out_count);
+    if (*out_count > MAX_DRAWABLE_BUFFERS) {
+	*out_count = 0;
+	return NULL;
+    }
+
+    private->width = *width;
+    private->height = *height;
+
+    /* This assumes the DRI2 buffer attachment tokens matches the
+     * __DRIbuffer tokens. */
+    for (i = 0; i < *out_count; i++) {
+	/* Do not send the real front buffer of a window to the client.
+	 */
+	if ((private->base.pDraw->type == DRAWABLE_WINDOW)
+	    && (buffers[i]->attachment == DRI2BufferFrontLeft)) {
+	    continue;
+	}
+
+	private->buffers[j].attachment = buffers[i]->attachment;
+	private->buffers[j].name = buffers[i]->name;
+	private->buffers[j].pitch = buffers[i]->pitch;
+	private->buffers[j].cpp = buffers[i]->cpp;
+	private->buffers[j].flags = buffers[i]->flags;
 	j++;
     }
 
@@ -454,6 +498,7 @@ static const __DRIdri2LoaderExtension loaderExtension = {
     { __DRI_DRI2_LOADER, __DRI_DRI2_LOADER_VERSION },
     dri2GetBuffers,
     dri2FlushFrontBuffer,
+    dri2GetBuffersWithFormat,
 };
 
 static const __DRIextension *loader_extensions[] = {

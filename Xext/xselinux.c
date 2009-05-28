@@ -1346,15 +1346,6 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 	    goto out;
 	privPtr = &serverClient->devPrivates;
     }
-    else if (offset == USE_SEL) {
-	/* Selection use context currently requires no selections owned */
-	Selection *pSel;
-	for (pSel = CurrentSelections; pSel; pSel = pSel->next)
-	    if (pSel->client == client) {
-		rc = BadMatch;
-		goto out;
-	    }
-    }
 
     ptr = dixLookupPrivate(privPtr, subjectKey);
     pSid = (security_id_t *)(ptr + offset);

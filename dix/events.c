@@ -583,16 +583,17 @@ XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 				PanoramiXNumScreens*sizeof(WindowPtr));
     } else {
 	PanoramiXRes *win;
-	int i;
+	int rc, i;
 
-	win = (PanoramiXRes*)LookupIDByType(pWin->drawable.id, XRT_WINDOW);
-
-	if(!win)
+	rc = dixLookupResourceByType((pointer *)&win, pWin->drawable.id,
+				     XRT_WINDOW, serverClient, DixReadAccess);
+	if (rc != Success)
 	    return FALSE;
 
 	for(i = 0; i < PanoramiXNumScreens; i++) {
-	   pSprite->windows[i] = LookupIDByType(win->info[i].id, RT_WINDOW);
-	   if(!pSprite->windows[i])  /* window is being unmapped */
+	    rc = dixLookupWindow(pSprite->windows + i, win->info[i].id,
+				 serverClient, DixReadAccess);
+	    if (rc != Success)  /* window is being unmapped */
 		return FALSE;
 	}
     }
@@ -664,7 +665,7 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 void
 SetMaskForEvent(int deviceid, Mask mask, int event)
 {
-    if (deviceid < 0 || deviceid > MAXDEVICES)
+    if (deviceid < 0 || deviceid >= MAXDEVICES)
         FatalError("SetMaskForEvent: bogus device id");
     filters[deviceid][event] = mask;
 }
@@ -4246,8 +4247,7 @@ CoreEnterLeaveEvent(
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
         xKeymapEvent ke;
-        ClientPtr client = grab ? rClient(grab)
-            : clients[CLIENT_ID(pWin->drawable.id)];
+        ClientPtr client = grab ? rClient(grab) : wClient(pWin);
         if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
             bzero((char *)&ke.map[0], 31);
         else
@@ -4354,11 +4354,11 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
             ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
         xKeymapEvent ke;
-        ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
-        else
+        ClientPtr client = wClient(pWin);
+        if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess))
             bzero((char *)&ke.map[0], 31);
+        else
+            memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 
         ke.type = KeymapNotify;
         DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
@@ -5425,7 +5425,7 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
                                    to None
                                  */
 #ifdef NOTDEF
-                                || clients[CLIENT_ID(parent->drawable.id)]->clientGone
+				 || wClient(parent)->clientGone
 #endif
                                 );
                         if (!ActivateFocusInGrab(keybd, pWin, parent))

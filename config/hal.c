@@ -493,12 +493,14 @@ connect_and_register(DBusConnection *connection, struct config_hal_info *info)
     }
     if (!libhal_ctx_init(info->hal_ctx, &error)) {
         LogMessage(X_ERROR, "config/hal: couldn't initialise context: %s (%s)\n",
-               error.name, error.message);
+		   error.name ? error.name : "unknown error",
+		   error.message ? error.message : "null");
         goto out_ctx;
     }
     if (!libhal_device_property_watch_all(info->hal_ctx, &error)) {
         LogMessage(X_ERROR, "config/hal: couldn't watch all properties: %s (%s)\n",
-               error.name, error.message);
+		   error.name ? error.name : "unknown error",
+		   error.message ? error.message : "null");
         goto out_ctx2;
     }
     libhal_ctx_set_device_added(info->hal_ctx, device_added);
@@ -518,7 +520,8 @@ connect_and_register(DBusConnection *connection, struct config_hal_info *info)
 out_ctx2:
     if (!libhal_ctx_shutdown(info->hal_ctx, &error))
         LogMessage(X_WARNING, "config/hal: couldn't shut down context: %s (%s)\n",
-               error.name, error.message);
+		   error.name ? error.name : "unknown error",
+		   error.message ? error.message : "null");
 out_ctx:
     libhal_ctx_free(info->hal_ctx);
 out_err:

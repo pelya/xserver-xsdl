@@ -145,6 +145,8 @@ typedef struct {
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
+    ScreenBlockHandlerProcPtr	 SavedBlockHandler;
+    ScreenWakeupHandlerProcPtr	 SavedWakeupHandler;
     CreateGCProcPtr 		 SavedCreateGC;
     CloseScreenProcPtr 		 SavedCloseScreen;
     GetImageProcPtr 		 SavedGetImage;
@@ -170,6 +172,9 @@ typedef struct {
     unsigned			 disableFbCount;
     Bool			 optimize_migration;
     unsigned			 offScreenCounter;
+    unsigned			 numOffscreenAvailable;
+    CARD32			 lastDefragment;
+    CARD32			 nextDefragment;
 
     /* Store all accessed pixmaps, so we can check for duplicates. */
     PixmapPtr prepare_access[6];
@@ -415,11 +420,12 @@ ExaCheckAddTraps (PicturePtr	pPicture,
 
 static _X_INLINE Bool
 exaGCReadsDestination(DrawablePtr pDrawable, unsigned long planemask,
-		      unsigned int fillStyle, unsigned char alu)
+		      unsigned int fillStyle, unsigned char alu,
+		      unsigned int clientClipType)
 {
-    return ((alu != GXcopy && alu != GXclear &&alu != GXset &&
+    return ((alu != GXcopy && alu != GXclear && alu != GXset &&
 	     alu != GXcopyInverted) || fillStyle == FillStippled ||
-	    !EXA_PM_IS_SOLID(pDrawable, planemask));
+	    clientClipType != CT_NONE || !EXA_PM_IS_SOLID(pDrawable, planemask));
 }
 
 void
@@ -427,7 +433,8 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 Bool
 exaFillRegionTiled (DrawablePtr	pDrawable, RegionPtr pRegion, PixmapPtr pTile,
-		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu);
+		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu,
+		    unsigned int clientClipType);
 
 void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
@@ -457,6 +464,9 @@ ExaOffscreenSwapOut (ScreenPtr pScreen);
 
 void
 ExaOffscreenSwapIn (ScreenPtr pScreen);
+
+ExaOffscreenArea*
+ExaOffscreenDefragment (ScreenPtr pScreen);
 
 Bool
 exaOffscreenInit(ScreenPtr pScreen);

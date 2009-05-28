@@ -77,8 +77,11 @@ GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
 #endif
 
 /********************************
- *  Init/Uninit etc
+ *  Init/Uninit
  *******************************/
+
+/* some int which is not a profile number */
+#define PROFILE_UNINITIALIZE (-100)
 
 /**
  * Init struct so it should match the average case
@@ -108,7 +111,7 @@ InitVelocityData(DeviceVelocityPtr s)
 static void
 FreeVelocityData(DeviceVelocityPtr s){
     xfree(s->tracker);
-    SetAccelerationProfile(s, -1);
+    SetAccelerationProfile(s, PROFILE_UNINITIALIZE);
 }
 
 
@@ -824,6 +827,16 @@ LinearProfile(
 }
 
 
+static float
+NoProfile(
+    DeviceVelocityPtr pVel,
+    float velocity,
+    float threshold,
+    float acc)
+{
+    return 1.0f;
+}
+
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(
     DeviceVelocityPtr s,
@@ -844,8 +857,8 @@ GetAccelerationProfile(
             return PowerProfile;
         case AccelProfileLinear:
             return LinearProfile;
-        case AccelProfileReserved:
-            /* reserved for future use, e.g. a user-defined profile */
+        case AccelProfileNone:
+            return NoProfile;
         default:
             return NULL;
     }
@@ -856,8 +869,10 @@ GetAccelerationProfile(
  * Intended to make profiles exchangeable at runtime.
  * If you created a profile, give it a number here and in the header to
  * make it selectable. In case some profile-specific init is needed, here
- * would be a good place, since FreeVelocityData() also calls this with -1.
- * returns FALSE (0) if profile number is unavailable.
+ * would be a good place, since FreeVelocityData() also calls this with
+ * PROFILE_UNINITIALIZE.
+ *
+ * returns FALSE if profile number is unavailable, TRUE otherwise.
  */
 int
 SetAccelerationProfile(
@@ -867,7 +882,7 @@ SetAccelerationProfile(
     PointerAccelerationProfileFunc profile;
     profile = GetAccelerationProfile(s, profile_num);
 
-    if(profile == NULL && profile_num != -1)
+    if(profile == NULL && profile_num != PROFILE_UNINITIALIZE)
 	return FALSE;
 
     if(s->profile_private != NULL){
@@ -955,6 +970,11 @@ acceleratePointerPredictable(
     if (!num_valuators || !valuators || !velocitydata)
         return;
 
+    if (velocitydata->statistics.profile_number == AccelProfileNone &&
+	velocitydata->const_acceleration == 1.0f) {
+	return; /*we're inactive anyway, so skip the whole thing.*/
+    }
+
     if (first_valuator == 0) {
         dx = valuators[0];
         px = &valuators[0];
@@ -988,7 +1008,7 @@ acceleratePointerPredictable(
                     /* Since it may not be apparent: lrintf() does not offer
                      * strong statements about rounding; however because we
                      * process each axis conditionally, there's no danger
-                     * of a toggling remainder. Its lack of guarantees hopefully
+                     * of a toggling remainder. Its lack of guarantees likely
                      * makes it faster on the average target. */
                     *px = lrintf(tmp);
                     pDev->last.remainder[0] = tmp - (float)*px;

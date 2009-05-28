@@ -277,8 +277,8 @@ vgaUninstallColormap(pmap)
   if ( pmap != miInstalledMaps[pmap->pScreen->myNum] )
     return;
 
-  defColormap = (ColormapPtr) LookupIDByType( pmap->pScreen->defColormap,
-					      RT_COLORMAP);
+  dixLookupResourceByType((pointer *)&defColormap, pmap->pScreen->defColormap,
+			  RT_COLORMAP, serverClient, DixInstallAccess);
 
   if (defColormap == miInstalledMaps[pmap->pScreen->myNum])
     return;

@@ -160,6 +160,11 @@ static Bool quirk_detailed_v_in_cm (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 47360)
 	return TRUE;
 
+    /* Bug #21750: Samsung Syncmaster 2333HD */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 1157)
+	return TRUE;
+
     return FALSE;
 }
 
@@ -636,6 +641,85 @@ DDCModesFromCVT(int scrnIndex, struct cvt_timings *t)
 }
 #endif
 
+static const struct {
+    short w;
+    short h;
+    short r;
+    short rb;
+} EstIIIModes[] = {
+    /* byte 6 */
+    { 640, 350, 85, 0 },
+    { 640, 400, 85, 0 },
+    { 720, 400, 85, 0 },
+    { 640, 480, 85, 0 },
+    { 848, 480, 60, 0 },
+    { 800, 600, 85, 0 },
+    { 1024, 768, 85, 0 },
+    { 1152, 864, 75, 0 },
+    /* byte 7 */
+    { 1280, 768, 60, 1 },
+    { 1280, 768, 60, 0 },
+    { 1280, 768, 75, 0 },
+    { 1280, 768, 85, 0 },
+    { 1280, 960, 60, 0 },
+    { 1280, 960, 85, 0 },
+    { 1280, 1024, 60, 0 },
+    { 1280, 1024, 85, 0 },
+    /* byte 8 */
+    { 1360, 768, 60, 0 },
+    { 1440, 900, 60, 1 },
+    { 1440, 900, 60, 0 },
+    { 1440, 900, 75, 0 },
+    { 1440, 900, 85, 0 },
+    { 1400, 1050, 60, 1 },
+    { 1400, 1050, 60, 0 },
+    { 1400, 1050, 75, 0 },
+    /* byte 9 */
+    { 1400, 1050, 85, 0 },
+    { 1680, 1050, 60, 1 },
+    { 1680, 1050, 60, 0 },
+    { 1680, 1050, 75, 0 },
+    { 1680, 1050, 85, 0 },
+    { 1600, 1200, 60, 0 },
+    { 1600, 1200, 65, 0 },
+    { 1600, 1200, 70, 0 },
+    /* byte 10 */
+    { 1600, 1200, 75, 0 },
+    { 1600, 1200, 85, 0 },
+    { 1792, 1344, 60, 0 },
+    { 1792, 1344, 85, 0 },
+    { 1856, 1392, 60, 0 },
+    { 1856, 1392, 75, 0 },
+    { 1920, 1200, 60, 1 },
+    { 1920, 1200, 60, 0 },
+    /* byte 11 */
+    { 1920, 1200, 75, 0 },
+    { 1920, 1200, 85, 0 },
+    { 1920, 1440, 60, 0 },
+    { 1920, 1440, 75, 0 },
+};
+
+static DisplayModePtr
+DDCModesFromEstIII(unsigned char *est)
+{
+    DisplayModePtr modes = NULL;
+    int i, j, m;
+
+    for (i = 0; i < 6; i++) {
+	for (j = 7; j > 0; j--) {
+	    if (est[i] & (1 << j)) {
+		m = (i * 8) + (7 - j);
+		modes = xf86ModesAdd(modes,
+				     FindDMTMode(EstIIIModes[m].w,
+						 EstIIIModes[m].h,
+						 EstIIIModes[m].r,
+						 EstIIIModes[m].rb));
+	    }
+	}
+    }
+
+    return modes;
+}
 
 /*
  * This is only valid when the sink claims to be continuous-frequency
@@ -806,6 +890,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     for (i = 0; i < DET_TIMINGS; i++) {
 	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
 
+	Mode = NULL;
         switch (det_mon->type) {
         case DT:
             Mode = DDCModeFromDetailedTiming(scrnIndex,
@@ -813,22 +898,23 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 					     preferred,
 					     quirks);
 	    preferred = FALSE;
-            Modes = xf86ModesAdd(Modes, Mode);
             break;
         case DS_STD_TIMINGS:
             Mode = DDCModesFromStandardTiming(det_mon->section.std_t,
 					      quirks, timing_level, rb);
-            Modes = xf86ModesAdd(Modes, Mode);
             break;
 #if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
 	case DS_CVT:
 	    Mode = DDCModesFromCVT(scrnIndex, det_mon->section.cvt);
-	    Modes = xf86ModesAdd(Modes, Mode);
 	    break;
 #endif
+	case DS_EST_III:
+	    Mode = DDCModesFromEstIII(det_mon->section.est_iii);
+	    break;
         default:
             break;
         }
+	Modes = xf86ModesAdd(Modes, Mode);
     }
 
     /* Add established timings */

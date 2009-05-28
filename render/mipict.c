@@ -358,8 +358,6 @@ miCompositeSourceValidate (PicturePtr	pPicture,
     
     if (pScreen->SourceValidate)
     {
-        x -= pPicture->pDrawable->x;
-        y -= pPicture->pDrawable->y;
 	if (pPicture->transform)
 	{
 	    xPoint	    points[4];
@@ -394,6 +392,8 @@ miCompositeSourceValidate (PicturePtr	pPicture,
 	    width = xmax - xmin;
 	    height = ymax - ymin;
 	}
+        x += pPicture->pDrawable->x;
+        y += pPicture->pDrawable->y;
 	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
     }
 }
@@ -459,8 +459,8 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     if (pSrc->alphaMap)
     {
 	if (!miClipPictureSrc (pRegion, pSrc->alphaMap,
-			       xDst - (xSrc + pSrc->alphaOrigin.x),
-			       yDst - (ySrc + pSrc->alphaOrigin.y)))
+			       xDst - (xSrc - pSrc->alphaOrigin.x),
+			       yDst - (ySrc - pSrc->alphaOrigin.y)))
 	{
 	    pixman_region_fini (pRegion);
 	    return FALSE;
@@ -477,8 +477,8 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 	if (pMask->alphaMap)
 	{
 	    if (!miClipPictureSrc (pRegion, pMask->alphaMap,
-				   xDst - (xMask + pMask->alphaOrigin.x),
-				   yDst - (yMask + pMask->alphaOrigin.y)))
+				   xDst - (xMask - pMask->alphaOrigin.x),
+				   yDst - (yMask - pMask->alphaOrigin.y)))
 	    {
 		pixman_region_fini (pRegion);
 		return FALSE;

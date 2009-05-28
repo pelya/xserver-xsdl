@@ -136,10 +136,7 @@ ProcXvMCListSurfaceTypes(ClientPtr client)
     REQUEST(xvmcListSurfaceTypesReq);
     REQUEST_SIZE_MATCH(xvmcListSurfaceTypesReq);
 
-    if(!(pPort = LOOKUP_PORT(stuff->port, client))) {
-        client->errorValue = stuff->port;
-        return _XvBadPort;
-    }
+    VALIDATE_XV_PORT(stuff->port, pPort, DixReadAccess);
 
     if(XvMCScreenKey) { /* any adaptors at all */
        ScreenPtr pScreen = pPort->pAdaptor->pScreen;
@@ -192,10 +189,7 @@ ProcXvMCCreateContext(ClientPtr client)
     REQUEST(xvmcCreateContextReq);
     REQUEST_SIZE_MATCH(xvmcCreateContextReq);
 
-    if(!(pPort = LOOKUP_PORT(stuff->port, client))) {
-	client->errorValue = stuff->port;
-	return _XvBadPort;
-    }
+    VALIDATE_XV_PORT(stuff->port, pPort, DixReadAccess);
 
     pScreen = pPort->pAdaptor->pScreen;
 
@@ -273,11 +267,15 @@ ProcXvMCCreateContext(ClientPtr client)
 static int 
 ProcXvMCDestroyContext(ClientPtr client)
 {
+    pointer val;
+    int rc;
     REQUEST(xvmcDestroyContextReq);
     REQUEST_SIZE_MATCH(xvmcDestroyContextReq);
 
-    if(!LookupIDByType(stuff->context_id, XvMCRTContext))
-	return (XvMCBadContext + XvMCErrorBase);
+    rc = dixLookupResourceByType(&val, stuff->context_id, XvMCRTContext,
+				 client, DixDestroyAccess);
+    if (rc != Success)
+	return (rc == BadValue) ? XvMCBadContext + XvMCErrorBase : rc;
 
     FreeResource(stuff->context_id, RT_NONE); 
 
@@ -297,8 +295,10 @@ ProcXvMCCreateSurface(ClientPtr client)
     REQUEST(xvmcCreateSurfaceReq);
     REQUEST_SIZE_MATCH(xvmcCreateSurfaceReq);
 
-    if(!(pContext = LookupIDByType(stuff->context_id, XvMCRTContext)))
-        return (XvMCBadContext + XvMCErrorBase);
+    result = dixLookupResourceByType((pointer *)&pContext, stuff->context_id,
+				     XvMCRTContext, client, DixUseAccess);
+    if (result != Success)
+        return (result == BadValue) ? XvMCBadContext + XvMCErrorBase : result;
 
     pScreenPriv = XVMC_GET_PRIVATE(pContext->pScreen);
 
@@ -337,11 +337,15 @@ ProcXvMCCreateSurface(ClientPtr client)
 static int 
 ProcXvMCDestroySurface(ClientPtr client)
 {
+    pointer val;
+    int rc;
     REQUEST(xvmcDestroySurfaceReq);
     REQUEST_SIZE_MATCH(xvmcDestroySurfaceReq);
 
-    if(!LookupIDByType(stuff->surface_id, XvMCRTSurface))
-        return (XvMCBadSurface + XvMCErrorBase);
+    rc = dixLookupResourceByType(&val, stuff->surface_id, XvMCRTSurface,
+				 client, DixDestroyAccess);
+    if (rc != Success)
+        return (rc == BadValue) ? XvMCBadSurface + XvMCErrorBase : rc;
 
     FreeResource(stuff->surface_id, RT_NONE);
 
@@ -363,8 +367,10 @@ ProcXvMCCreateSubpicture(ClientPtr client)
     REQUEST(xvmcCreateSubpictureReq);
     REQUEST_SIZE_MATCH(xvmcCreateSubpictureReq);
 
-    if(!(pContext = LookupIDByType(stuff->context_id, XvMCRTContext)))
-        return (XvMCBadContext + XvMCErrorBase);
+    result = dixLookupResourceByType((pointer *)&pContext, stuff->context_id,
+				     XvMCRTContext, client, DixUseAccess);
+    if (result != Success)
+        return (result == BadValue) ? XvMCBadContext + XvMCErrorBase : result;
 
     pScreenPriv = XVMC_GET_PRIVATE(pContext->pScreen);
 
@@ -448,11 +454,15 @@ ProcXvMCCreateSubpicture(ClientPtr client)
 static int 
 ProcXvMCDestroySubpicture(ClientPtr client)
 {
+    pointer val;
+    int rc;
     REQUEST(xvmcDestroySubpictureReq);
     REQUEST_SIZE_MATCH(xvmcDestroySubpictureReq);
 
-    if(!LookupIDByType(stuff->subpicture_id, XvMCRTSubpicture))
-        return (XvMCBadSubpicture + XvMCErrorBase);
+    rc = dixLookupResourceByType(&val, stuff->subpicture_id, XvMCRTSubpicture,
+				 client, DixDestroyAccess);
+    if (rc != Success)
+        return (rc == BadValue) ? XvMCBadSubpicture + XvMCErrorBase : rc;
 
     FreeResource(stuff->subpicture_id, RT_NONE);
 
@@ -475,10 +485,7 @@ ProcXvMCListSubpictureTypes(ClientPtr client)
     REQUEST(xvmcListSubpictureTypesReq);
     REQUEST_SIZE_MATCH(xvmcListSubpictureTypesReq);
 
-    if(!(pPort = LOOKUP_PORT(stuff->port, client))) {
-        client->errorValue = stuff->port;
-        return _XvBadPort;
-    }
+    VALIDATE_XV_PORT(stuff->port, pPort, DixReadAccess);
 
     pScreen = pPort->pAdaptor->pScreen;
 
@@ -571,11 +578,7 @@ ProcXvMCGetDRInfo(ClientPtr client)
     REQUEST(xvmcGetDRInfoReq);
     REQUEST_SIZE_MATCH(xvmcGetDRInfoReq);
 
-
-    if(!(pPort = LOOKUP_PORT(stuff->port, client))) {
-	client->errorValue = stuff->port;
-	return _XvBadPort;
-    }
+    VALIDATE_XV_PORT(stuff->port, pPort, DixReadAccess);
 
     pScreen = pPort->pAdaptor->pScreen;
     pScreenPriv = XVMC_GET_PRIVATE(pScreen);
