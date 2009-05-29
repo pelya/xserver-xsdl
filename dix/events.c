@@ -2313,7 +2313,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     int rc = 0;
     int filter = 0;
     int type;
-    OtherInputMasks *inputMasks;
+    OtherInputMasks *inputMasks = NULL;
     xEvent ev;
 
     /* XXX: this makes me gag */
