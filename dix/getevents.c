@@ -1138,12 +1138,6 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
     if ((pDev->valuator->mode & 1) == Relative)
         num_valuators = 0;
 
-    if (num_valuators) {
-        if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS * 6;
-        num_events += ((num_valuators - 1) / 6) + 1;
-    }
-
     /* You fail. */
     if (first_valuator < 0 ||
         (num_valuators + first_valuator) > pDev->valuator->numAxes)
