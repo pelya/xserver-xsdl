@@ -55,7 +55,6 @@
 #define GL_GLEXT_PROTOTYPES /* we want prototypes */
 #include <GL/gl.h>
 #include <GL/glxproto.h>
-#include <GL/glxint.h>
 
 /* For glxscreens.h */
 typedef struct __GLXdrawable __GLXdrawable;
@@ -93,7 +92,7 @@ extern __GLXclientState *glxGetClient(ClientPtr pClient);
 void GlxExtensionInit(void);
 
 void GlxSetVisualConfigs(int nconfigs, 
-                         __GLXvisualConfig *configs, void **privates);
+                         void *configs, void **privates);
 
 struct _glapi_table;
 void GlxSetRenderTables (struct _glapi_table *table);
