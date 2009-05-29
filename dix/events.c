@@ -3863,6 +3863,9 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             if (grabinfo->fromPassiveGrab  &&
                     grabinfo->implicitGrab)
                 mask = grab->deviceMask;
+            else
+                mask = grab->eventMask;
+
             FixUpEventFromWindow(thisDev, xi, grab->window,
                     None, TRUE);
 
