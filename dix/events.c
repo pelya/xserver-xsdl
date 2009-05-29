@@ -1605,6 +1605,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     grabinfo->activeGrab = *grab;
     grabinfo->grab = &grabinfo->activeGrab;
     grabinfo->fromPassiveGrab = passive;
+    grabinfo->implicitGrab = passive & ImplicitGrabMask;
     CheckGrabForSyncs(keybd, (Bool)grab->keyboardMode, (Bool)grab->pointerMode);
 }
 
