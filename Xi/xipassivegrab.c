@@ -110,14 +110,6 @@ ProcXIPassiveGrabDevice(ClientPtr client)
         return BadValue;
     }
 
-    /* Can't grab for modifiers on an attached slave device */
-    if (!IsMaster(dev))
-    {
-        if (!dev->u.master)
-            stuff->paired_device_mode = GrabModeAsync;
-        else if (dev->u.master && stuff->num_modifiers)
-            return BadDevice;
-    }
     if ((stuff->mask_len * 4) > XI_LASTEVENT)
     {
         unsigned char *bits = (unsigned char*)&stuff[1];
