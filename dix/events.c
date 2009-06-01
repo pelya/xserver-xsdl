@@ -2065,6 +2065,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	GrabRec tempGrab;
         OtherInputMasks *inputMasks;
 
+        memset(&tempGrab, 0, sizeof(GrabRec));
         tempGrab.next = NULL;
 	tempGrab.device = pDev;
 	tempGrab.resource = client->clientAsMask;
