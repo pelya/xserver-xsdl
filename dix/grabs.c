@@ -154,7 +154,7 @@ DeletePassiveGrab(pointer value, XID id)
 }
 
 static Mask *
-DeleteDetailFromMask(Mask *pDetailMask, unsigned short detail)
+DeleteDetailFromMask(Mask *pDetailMask, unsigned int detail)
 {
     Mask *mask;
     int i;
@@ -177,7 +177,7 @@ static Bool
 IsInGrabMask(
     DetailRec firstDetail,
     DetailRec secondDetail,
-    unsigned short exception)
+    unsigned int exception)
 {
     if (firstDetail.exact == exception)
     {
@@ -197,9 +197,9 @@ IsInGrabMask(
 
 static Bool 
 IdenticalExactDetails(
-    unsigned short firstExact,
-    unsigned short secondExact,
-    unsigned short exception)
+    unsigned int firstExact,
+    unsigned int secondExact,
+    unsigned int exception)
 {
     if ((firstExact == exception) || (secondExact == exception))
 	return FALSE;
@@ -214,7 +214,7 @@ static Bool
 DetailSupersedesSecond(
     DetailRec firstDetail,
     DetailRec secondDetail,
-    unsigned short exception)
+    unsigned int exception)
 {
     if (IsInGrabMask(firstDetail, secondDetail, exception))
 	return TRUE;
@@ -231,11 +231,11 @@ GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 {
     if (!DetailSupersedesSecond(pFirstGrab->modifiersDetail,
 				pSecondGrab->modifiersDetail, 
-				(unsigned short)AnyModifier))
+				(unsigned int)AnyModifier))
 	return FALSE;
 
     if (DetailSupersedesSecond(pFirstGrab->detail,
-			       pSecondGrab->detail, (unsigned short)AnyKey))
+			       pSecondGrab->detail, (unsigned int)AnyKey))
 	return TRUE;
  
     return FALSE;
@@ -274,19 +274,19 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 	return TRUE;
  
     if (DetailSupersedesSecond(pSecondGrab->detail, pFirstGrab->detail,
-			       (unsigned short)AnyKey) 
+			       (unsigned int)AnyKey)
 	&& 
 	DetailSupersedesSecond(pFirstGrab->modifiersDetail,
 			       pSecondGrab->modifiersDetail,
-			       (unsigned short)AnyModifier))
+			       (unsigned int)AnyModifier))
 	return TRUE;
 
     if (DetailSupersedesSecond(pFirstGrab->detail, pSecondGrab->detail,
-			       (unsigned short)AnyKey)
+			       (unsigned int)AnyKey)
 	&& 
 	DetailSupersedesSecond(pSecondGrab->modifiersDetail,
 			       pFirstGrab->modifiersDetail,
-			       (unsigned short)AnyModifier))
+			       (unsigned int)AnyModifier))
 	return TRUE;
 
     return FALSE;
@@ -305,18 +305,18 @@ GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 
     if (!(DetailSupersedesSecond(pFirstGrab->detail, 
                                pSecondGrab->detail, 
-                               (unsigned short)AnyKey) && 
+                               (unsigned int)AnyKey) &&
         DetailSupersedesSecond(pSecondGrab->detail,
                                pFirstGrab->detail,
-                               (unsigned short)AnyKey)))
+                               (unsigned int)AnyKey)))
         return FALSE;
 
     if (!(DetailSupersedesSecond(pFirstGrab->modifiersDetail, 
                                pSecondGrab->modifiersDetail, 
-                               (unsigned short)AnyModifier) && 
+                               (unsigned int)AnyModifier) &&
         DetailSupersedesSecond(pSecondGrab->modifiersDetail,
                                pFirstGrab->modifiersDetail,
-                               (unsigned short)AnyModifier)))
+                               (unsigned int)AnyModifier)))
         return FALSE;
 
     return TRUE;

@@ -146,7 +146,7 @@ typedef struct _OtherInputMasks {
                                            3 buttons. */
 
 typedef struct _DetailRec {		/* Grab details may be bit masks */
-    unsigned short      exact;
+    unsigned int        exact;
     Mask                *pMask;
 } DetailRec;
 
