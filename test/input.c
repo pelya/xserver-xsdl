@@ -36,6 +36,7 @@
 #include "inputstr.h"
 #include "eventconvert.h"
 #include "exevents.h"
+#include "dixgrabs.h"
 
 #include <glib.h>
 
@@ -309,6 +310,367 @@ static void xi2_struct_sizes(void)
 }
 
 
+static void dix_grab_matching(void)
+{
+    DeviceIntRec xi_all_devices, xi_all_master_devices, dev1, dev2;
+    GrabRec a, b;
+    BOOL rc;
+
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
+
+    /* different grabtypes must fail */
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_XI2;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI2;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_CORE;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* XI2 grabs for different devices must fail, regardless of ignoreDevice
+     * XI2 grabs for master devices must fail against a slave */
+    memset(&xi_all_devices, 0, sizeof(DeviceIntRec));
+    memset(&xi_all_master_devices, 0, sizeof(DeviceIntRec));
+    memset(&dev1, 0, sizeof(DeviceIntRec));
+    memset(&dev2, 0, sizeof(DeviceIntRec));
+
+    xi_all_devices.id = XIAllDevices;
+    xi_all_master_devices.id = XIAllMasterDevices;
+    dev1.id = 10;
+    dev1.type = SLAVE;
+    dev2.id = 11;
+    dev2.type = SLAVE;
+
+    inputInfo.all_devices = &xi_all_devices;
+    inputInfo.all_master_devices = &xi_all_master_devices;
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.device = &dev1;
+    b.device = &dev2;
+
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+
+    a.device = &dev2;
+    b.device = &dev1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    a.device = inputInfo.all_master_devices;
+    b.device = &dev1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    a.device = &dev1;
+    b.device = inputInfo.all_master_devices;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    /* ignoreDevice FALSE must fail for different devices for CORE and XI */
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.device = &dev1;
+    b.device = &dev2;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.device = &dev1;
+    b.device = &dev2;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+
+    /* ignoreDevice FALSE must fail for different modifier devices for CORE
+     * and XI */
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev2;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev2;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+
+    /* different event type must fail */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    a.type = XI_KeyPress;
+    b.type = XI_KeyRelease;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    a.type = XI_KeyPress;
+    b.type = XI_KeyRelease;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    a.type = XI_KeyPress;
+    b.type = XI_KeyRelease;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&a, &b, TRUE);
+    g_assert(rc == FALSE);
+
+    /* different modifiers must fail */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.device = &dev1;
+    b.device = &dev1;
+    a.modifierDevice = &dev1;
+    b.modifierDevice = &dev1;
+    a.type = XI_KeyPress;
+    b.type = XI_KeyPress;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 2;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* AnyModifier must fail for XI2 */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.modifiersDetail.exact = AnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* XIAnyModifier must fail for CORE and XI */
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.modifiersDetail.exact = XIAnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.modifiersDetail.exact = XIAnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* different detail must fail */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.detail.exact = 1;
+    b.detail.exact = 2;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* detail of AnyModifier must fail */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.detail.exact = AnyModifier;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* detail of XIAnyModifier must fail */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.detail.exact = XIAnyModifier;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == FALSE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == FALSE);
+
+    /* XIAnyModifier or AnyModifer must succeed */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.detail.exact = 1;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = XIAnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.detail.exact = 1;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = AnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.detail.exact = 1;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = AnyModifier;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+
+    /* AnyKey or XIAnyKeysym must succeed */
+    a.grabtype = GRABTYPE_XI2;
+    b.grabtype = GRABTYPE_XI2;
+    a.detail.exact = XIAnyKeysym;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+
+    a.grabtype = GRABTYPE_CORE;
+    b.grabtype = GRABTYPE_CORE;
+    a.detail.exact = AnyKey;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+
+    a.grabtype = GRABTYPE_XI;
+    b.grabtype = GRABTYPE_XI;
+    a.detail.exact = AnyKey;
+    b.detail.exact = 1;
+    a.modifiersDetail.exact = 1;
+    b.modifiersDetail.exact = 1;
+    rc = GrabMatchesSecond(&a, &b, FALSE);
+    g_assert(rc == TRUE);
+    rc = GrabMatchesSecond(&b, &a, FALSE);
+    g_assert(rc == TRUE);
+}
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -318,6 +680,7 @@ int main(int argc, char** argv)
     g_test_add_func("/dix/input/event-core-conversion", dix_event_to_core_conversion);
     g_test_add_func("/dix/input/check-grab-values", dix_check_grab_values);
     g_test_add_func("/dix/input/xi2-struct-sizes", xi2_struct_sizes);
+    g_test_add_func("/dix/input/grab_matching", dix_grab_matching);
 
     return g_test_run();
 }
