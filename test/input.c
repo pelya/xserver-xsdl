@@ -303,6 +303,7 @@ static void xi2_struct_sizes(void)
     compare(xXIChangePropertyReq);
     compare(xXIDeletePropertyReq);
     compare(xXIGetPropertyReq);
+    compare(xXIGetSelectedEventsReq);
 #undef compare
 }
 
