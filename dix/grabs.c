@@ -267,7 +267,25 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
     if (pFirstGrab->grabtype != pSecondGrab->grabtype)
         return FALSE;
 
-    if (!ignoreDevice &&
+    if (pFirstGrab->grabtype == GRABTYPE_XI2)
+    {
+        if (pFirstGrab->device == inputInfo.all_devices ||
+            pSecondGrab->device == inputInfo.all_devices)
+        {
+            /* do nothing */
+        } else if (pFirstGrab->device == inputInfo.all_master_devices)
+        {
+            if (pSecondGrab->device != inputInfo.all_master_devices &&
+                !IsMaster(pSecondGrab->device))
+                return FALSE;
+        } else if (pSecondGrab->device == inputInfo.all_master_devices)
+        {
+            if (pFirstGrab->device != inputInfo.all_master_devices &&
+                !IsMaster(pFirstGrab->device))
+                return FALSE;
+        } else if (pSecondGrab->device != pFirstGrab->device)
+            return FALSE;
+    } else if (!ignoreDevice &&
             ((pFirstGrab->device != pSecondGrab->device) ||
              (pFirstGrab->modifierDevice != pSecondGrab->modifierDevice)))
             return FALSE;

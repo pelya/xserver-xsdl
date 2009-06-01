@@ -90,9 +90,16 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     REQUEST(xXIPassiveGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIPassiveGrabDeviceReq);
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
-    if (ret != Success)
-	return ret;
+    if (stuff->deviceid == XIAllDevices)
+        dev = inputInfo.all_devices;
+    else if (stuff->deviceid == XIAllMasterDevices)
+        dev = inputInfo.all_master_devices;
+    else
+    {
+        ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+        if (ret != Success)
+            return ret;
+    }
 
     if (stuff->grab_type != XIGrabtypeButton &&
         stuff->grab_type != XIGrabtypeKeysym &&

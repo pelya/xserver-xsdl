@@ -188,6 +188,9 @@ static struct dev_type
 CARD8 event_base[numInputClasses];
 XExtEventInfo EventInfo[32];
 
+static DeviceIntRec xi_all_devices;
+static DeviceIntRec xi_all_master_devices;
+
 /**
  * Dispatch vector. Functions defined in here will be called when the matching
  * request arrives.
@@ -1215,6 +1218,17 @@ XInputExtensionInit(void)
 	EventSwapVector[DevicePresenceNotify] = SEventIDispatch;
 
 	GERegisterExtension(IReqCode, XI2EventSwap);
+
+
+	memset(&xi_all_devices, 0, sizeof(xi_all_devices));
+	memset(&xi_all_master_devices, 0, sizeof(xi_all_master_devices));
+	xi_all_devices.id = XIAllDevices;
+	xi_all_devices.name = "XIAllDevices";
+	xi_all_master_devices.id = XIAllMasterDevices;
+	xi_all_master_devices.name = "XIAllMasterDevices";
+
+	inputInfo.all_devices = &xi_all_devices;
+	inputInfo.all_master_devices = &xi_all_master_devices;
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }

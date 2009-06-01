@@ -528,6 +528,8 @@ typedef struct {
     DeviceIntPtr	off_devices;	/* all devices turned off */
     DeviceIntPtr	keyboard;	/* the main one for the server */
     DeviceIntPtr	pointer;
+    DeviceIntPtr	all_devices;
+    DeviceIntPtr	all_master_devices;
 } InputInfo;
 
 extern _X_EXPORT InputInfo inputInfo;

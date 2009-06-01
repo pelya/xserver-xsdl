@@ -248,6 +248,18 @@ static Bool CheckPassiveGrabsOnWindow(WindowPtr pWin,
  *
  *     inputInfo.numDevices
  *     Total number of devices.
+ *
+ *     inputInfo.all_devices
+ *     Virtual device used for XIAllDevices passive grabs. This device is
+ *     not part of the inputInfo.devices list and mostly unset except for
+ *     the deviceid. It exists because passivegrabs need a valid device
+ *     reference.
+ *
+ *     inputInfo.all_master_devices
+ *     Virtual device used for XIAllMasterDevices passive grabs. This device
+ *     is not part of the inputInfo.devices list and mostly unset except for
+ *     the deviceid. It exists because passivegrabs need a valid device
+ *     reference.
  */
 InputInfo inputInfo;
 
