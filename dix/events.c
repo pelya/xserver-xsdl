@@ -3461,19 +3461,6 @@ CheckPassiveGrabsOnWindow(
             event->corestate &= 0x1f00;
             event->corestate |= tempGrab.modifiersDetail.exact & (~0x1f00);
             grabinfo = &device->deviceGrab;
-            /* A passive grab may have been created for a different device
-               than it is assigned to at this point in time.
-               Update the grab's device and modifier device to reflect the
-               current state.
-               Since XGrabDeviceButton requires to specify the
-               modifierDevice explicitly, we don't override this choice.
-             */
-            if (tempGrab.type < GenericEvent)
-            {
-                grab->device = device;
-                grab->modifierDevice = GetPairedDevice(device);
-            }
-
             /* In some cases a passive core grab may exist, but the client
              * already has a core grab on some other device. In this case we
              * must not get the grab, otherwise we may never ungrab the
@@ -3484,6 +3471,20 @@ CheckPassiveGrabsOnWindow(
             {
                 DeviceIntPtr other;
                 BOOL interfering = FALSE;
+
+                /* A passive grab may have been created for a different device
+                   than it is assigned to at this point in time.
+                   Update the grab's device and modifier device to reflect the
+                   current state.
+                   Since XGrabDeviceButton requires to specify the
+                   modifierDevice explicitly, we don't override this choice.
+                   */
+                if (tempGrab.type < GenericEvent)
+                {
+                    grab->device = device;
+                    grab->modifierDevice = GetPairedDevice(device);
+                }
+
                 for (other = inputInfo.devices; other; other = other->next)
                 {
                     GrabPtr othergrab = other->deviceGrab.grab;
