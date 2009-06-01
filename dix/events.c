@@ -3393,6 +3393,9 @@ CheckPassiveGrabsOnWindow(
 #define XI2_MATCH        0x4
     int match = 0;
 
+    if (device->deviceGrab.grab)
+        return FALSE;
+
     if (!grab)
 	return FALSE;
     /* Fill out the grab details, but leave the type for later before
