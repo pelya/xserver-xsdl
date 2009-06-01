@@ -54,7 +54,7 @@ static void dix_init_valuators(void)
 
 
     memset(&dev, 0, sizeof(DeviceIntRec));
-    dev.isMaster = TRUE; /* claim it's a master to stop ptracccel */
+    dev.type = MASTER_POINTER; /* claim it's a master to stop ptracccel */
 
     g_assert(InitValuatorClassDeviceStruct(NULL, 0, 0, 0) == FALSE);
     g_assert(InitValuatorClassDeviceStruct(&dev, num_axes, 0, Absolute));
