@@ -1506,7 +1506,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     Bool isPassive = autoGrab & ~ImplicitGrabMask;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!isPassive && !IsMaster(mouse))
+    if (!(autoGrab & ImplicitGrabMask) && !IsMaster(mouse))
         DetachFromMaster(mouse);
 
     if (grab->confineTo)
@@ -1543,7 +1543,8 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
 {
     GrabPtr grab = mouse->deviceGrab.grab;
     DeviceIntPtr dev;
-    Bool  wasPassive= mouse->deviceGrab.fromPassiveGrab;
+    Bool wasImplicit = (mouse->deviceGrab.fromPassiveGrab &&
+                        mouse->deviceGrab.implicitGrab);
 
     mouse->valuator->motionHintWindow = NullWindow;
     mouse->deviceGrab.grab = NullGrab;
@@ -1563,7 +1564,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     if (grab->cursor)
 	FreeCursor(grab->cursor, (Cursor)0);
 
-    if (!wasPassive)
+    if (!wasImplicit)
         ReattachToOldMaster(mouse);
 
     ComputeFreezes();
@@ -1581,7 +1582,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     WindowPtr oldWin;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!passive && !IsMaster(keybd))
+    if (!(passive & ImplicitGrabMask) && !IsMaster(keybd))
         DetachFromMaster(keybd);
 
     if (grabinfo->grab)
@@ -1616,7 +1617,8 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     DeviceIntPtr dev;
     WindowPtr focusWin = keybd->focus ? keybd->focus->win
                                            : keybd->spriteInfo->sprite->win;
-    Bool wasPassive = keybd->deviceGrab.fromPassiveGrab;
+    Bool wasImplicit = (keybd->deviceGrab.fromPassiveGrab &&
+                        keybd->deviceGrab.implicitGrab);
 
     if (focusWin == FollowKeyboardWin)
 	focusWin = inputInfo.keyboard->focus->win;
@@ -1633,7 +1635,7 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     }
     DoFocusEvents(keybd, grab->window, focusWin, NotifyUngrab);
 
-    if (!wasPassive)
+    if (!wasImplicit)
         ReattachToOldMaster(keybd);
 
     ComputeFreezes();
