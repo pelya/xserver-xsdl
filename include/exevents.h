@@ -44,6 +44,7 @@ typedef struct _XIClientRec {
 
 
 typedef struct _GrabParameters {
+    int                 grabtype;               /* GRABTYPE_CORE, etc. */
     unsigned int        ownerEvents;
     unsigned int        this_device_mode;
     unsigned int        other_devices_mode;

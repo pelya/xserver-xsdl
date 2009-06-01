@@ -1388,6 +1388,14 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 int
 CheckGrabValues(ClientPtr client, GrabParameters* param)
 {
+    if (param->grabtype != GRABTYPE_CORE &&
+        param->grabtype != GRABTYPE_XI &&
+        param->grabtype != GRABTYPE_XI2)
+    {
+        ErrorF("[Xi] grabtype is invalid. This is a bug.\n");
+        return BadImplementation;
+    }
+
     if ((param->this_device_mode != GrabModeSync) &&
 	(param->this_device_mode != GrabModeAsync)) {
 	client->errorValue = param->this_device_mode;

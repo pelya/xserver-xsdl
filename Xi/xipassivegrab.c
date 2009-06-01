@@ -130,6 +130,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     rep.num_modifiers = 0;
 
     memset(&param, 0, sizeof(param));
+    param.grabtype = GRABTYPE_XI2;
     param.ownerEvents = stuff->owner_events;
     param.this_device_mode = stuff->grab_mode;
     param.other_devices_mode = stuff->paired_device_mode;

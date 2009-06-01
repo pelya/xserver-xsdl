@@ -137,6 +137,7 @@ ProcXGrabDeviceKey(ClientPtr client)
 
 
     memset(&param, 0, sizeof(param));
+    param.grabtype = GRABTYPE_XI;
     param.ownerEvents = stuff->ownerEvents;
     param.this_device_mode = stuff->this_device_mode;
     param.other_devices_mode = stuff->other_devices_mode;

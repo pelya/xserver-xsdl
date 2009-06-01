@@ -86,6 +86,7 @@ static void dix_check_grab_values(void)
 
     memset(&client, 0, sizeof(client));
 
+    param.grabtype = GRABTYPE_CORE;
     param.this_device_mode = GrabModeSync;
     param.other_devices_mode = GrabModeSync;
     param.modifiers = AnyModifier;

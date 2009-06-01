@@ -5172,6 +5172,7 @@ ProcGrabKey(ClientPtr client)
     REQUEST_SIZE_MATCH(xGrabKeyReq);
 
     memset(&param, 0, sizeof(param));
+    param.grabtype = GRABTYPE_CORE;
     param.ownerEvents = stuff->ownerEvents;
     param.this_device_mode = stuff->keyboardMode;
     param.other_devices_mode = stuff->pointerMode;
@@ -5287,6 +5288,7 @@ ProcGrabButton(ClientPtr client)
 	return rc;
 
     memset(&param, 0, sizeof(param));
+    param.grabtype = GRABTYPE_CORE;
     param.ownerEvents = stuff->ownerEvents;
     param.this_device_mode = stuff->keyboardMode;
     param.other_devices_mode = stuff->pointerMode;
