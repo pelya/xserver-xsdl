@@ -560,9 +560,6 @@ Outline font directories
 .I /tmp/.X11-unix/X\fBn\fP
 Unix domain socket for display number \fBn\fP
 .TP 30
-.IR /tmp/rcX\fBn\fP
-Kerberos 5 replay cache for display number \fBn\fP
-.TP 30
 .I /usr/adm/X\fBn\fPmsgs
 Error log file for display number \fBn\fP if run from \fIinit\fP(__adminmansuffix__)
 .TP 30
