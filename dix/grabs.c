@@ -229,9 +229,12 @@ DetailSupersedesSecond(
 static Bool
 GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 {
+    unsigned int any_modifier = (pFirstGrab->grabtype == GRABTYPE_XI2) ?
+                                (unsigned int)XIAnyModifier :
+                                (unsigned int)AnyModifier;
     if (!DetailSupersedesSecond(pFirstGrab->modifiersDetail,
 				pSecondGrab->modifiersDetail, 
-				(unsigned int)AnyModifier))
+				any_modifier))
 	return FALSE;
 
     if (DetailSupersedesSecond(pFirstGrab->detail,
@@ -257,6 +260,9 @@ GrabSupersedesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 Bool
 GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 {
+    unsigned int any_modifier = (pFirstGrab->grabtype == GRABTYPE_XI2) ?
+                                (unsigned int)XIAnyModifier :
+                                (unsigned int)AnyModifier;
 
     if (pFirstGrab->grabtype != pSecondGrab->grabtype)
         return FALSE;
@@ -278,7 +284,7 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 	&& 
 	DetailSupersedesSecond(pFirstGrab->modifiersDetail,
 			       pSecondGrab->modifiersDetail,
-			       (unsigned int)AnyModifier))
+			       any_modifier))
 	return TRUE;
 
     if (DetailSupersedesSecond(pFirstGrab->detail, pSecondGrab->detail,
@@ -286,7 +292,7 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 	&& 
 	DetailSupersedesSecond(pSecondGrab->modifiersDetail,
 			       pFirstGrab->modifiersDetail,
-			       (unsigned int)AnyModifier))
+			       any_modifier))
 	return TRUE;
 
     return FALSE;
@@ -295,6 +301,10 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab, Bool ignoreDevice)
 static Bool
 GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
 {
+    unsigned int any_modifier = (pFirstGrab->grabtype == GRABTYPE_XI2) ?
+                                (unsigned int)XIAnyModifier :
+                                (unsigned int)AnyModifier;
+
     if (pFirstGrab->grabtype != pSecondGrab->grabtype)
         return FALSE;
 
@@ -311,12 +321,13 @@ GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
                                (unsigned int)AnyKey)))
         return FALSE;
 
+
     if (!(DetailSupersedesSecond(pFirstGrab->modifiersDetail, 
                                pSecondGrab->modifiersDetail, 
-                               (unsigned int)AnyModifier) &&
+                               any_modifier) &&
         DetailSupersedesSecond(pSecondGrab->modifiersDetail,
                                pFirstGrab->modifiersDetail,
-                               (unsigned int)AnyModifier)))
+                               any_modifier)))
         return FALSE;
 
     return TRUE;
@@ -391,6 +402,8 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
     Mask ***updates, **details;
     int i, ndels, nadds, nups;
     Bool ok;
+    unsigned int any_modifier;
+    unsigned int any_key;
 
 #define UPDATE(mask,exact) \
 	if (!(details[nups] = DeleteDetailFromMask(mask, exact))) \
@@ -415,6 +428,11 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	if (deletes) xfree(deletes);
 	return FALSE;
     }
+
+    any_modifier = (pMinuendGrab->grabtype == GRABTYPE_XI2) ?
+                   (unsigned int)XIAnyModifier : (unsigned int)AnyModifier;
+    any_key = (pMinuendGrab->grabtype == GRABTYPE_XI2) ?
+                   (unsigned int)XIAnyKeysym : (unsigned int)AnyKey;
     ndels = nadds = nups = 0;
     ok = TRUE;
     for (grab = wPassiveGrabs(pMinuendGrab->window);
@@ -429,19 +447,19 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	{
 	    deletes[ndels++] = grab;
 	}
-	else if ((grab->detail.exact == AnyKey)
-		 && (grab->modifiersDetail.exact != AnyModifier))
+	else if ((grab->detail.exact == any_key)
+		 && (grab->modifiersDetail.exact != any_modifier))
 	{
 	    UPDATE(grab->detail.pMask, pMinuendGrab->detail.exact);
 	}
-	else if ((grab->modifiersDetail.exact == AnyModifier) 
-		 && (grab->detail.exact != AnyKey))
+	else if ((grab->modifiersDetail.exact == any_modifier)
+		 && (grab->detail.exact != any_key))
 	{
 	    UPDATE(grab->modifiersDetail.pMask,
 		   pMinuendGrab->modifiersDetail.exact);
 	}
-	else if ((pMinuendGrab->detail.exact != AnyKey)
-		 && (pMinuendGrab->modifiersDetail.exact != AnyModifier))
+	else if ((pMinuendGrab->detail.exact != any_key)
+		 && (pMinuendGrab->modifiersDetail.exact != any_modifier))
 	{
 	    GrabPtr pNewGrab;
             GrabParameters param;
@@ -452,7 +470,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
             param.ownerEvents = grab->ownerEvents;
             param.this_device_mode = grab->keyboardMode;
             param.other_devices_mode = grab->pointerMode;
-            param.modifiers = AnyModifier;
+            param.modifiers = any_modifier;
 
 	    pNewGrab = CreateGrab(CLIENT_ID(grab->resource), grab->device,
 				  grab->modifierDevice, grab->window,
@@ -479,7 +497,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	    else
 		adds[nadds++] = pNewGrab;
 	}   
-	else if (pMinuendGrab->detail.exact == AnyKey)
+	else if (pMinuendGrab->detail.exact == any_key)
 	{
 	    UPDATE(grab->modifiersDetail.pMask,
 		   pMinuendGrab->modifiersDetail.exact);

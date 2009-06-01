@@ -1406,10 +1406,13 @@ CheckGrabValues(ClientPtr client, GrabParameters* param)
 	client->errorValue = param->other_devices_mode;
 	return BadValue;
     }
-    if ((param->modifiers != AnyModifier) && (param->modifiers & ~AllModifiersMask)) {
+
+    if (param->grabtype != GRABTYPE_XI2 && (param->modifiers != AnyModifier) &&
+        (param->modifiers & ~AllModifiersMask)) {
 	client->errorValue = param->modifiers;
 	return BadValue;
     }
+
     if ((param->ownerEvents != xFalse) && (param->ownerEvents != xTrue)) {
 	client->errorValue = param->ownerEvents;
 	return BadValue;
