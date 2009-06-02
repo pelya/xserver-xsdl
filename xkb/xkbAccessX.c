@@ -687,21 +687,28 @@ void
 ProcessPointerEvent(	InternalEvent   *ev,
 			DeviceIntPtr    mouse)
 {
-DeviceIntPtr	dev = GetPairedDevice(mouse);
-XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
+DeviceIntPtr	dev;
+XkbSrvInfoPtr	xkbi = NULL;
 unsigned 	changed = 0;
 ProcessInputProc backupproc;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
 DeviceEvent     *event = (DeviceEvent*)ev;
 
-    xkbi->shiftKeyCount = 0;
-    xkbi->lastPtrEventTime= event->time;
+    dev = (IsMaster(mouse) || mouse->u.master) ? GetMaster(mouse, MASTER_KEYBOARD) : mouse;
+
+    if (dev && dev->key)
+    {
+	xkbi = dev->key->xkbInfo;
+	xkbi->shiftKeyCount = 0;
+	xkbi->lastPtrEventTime= event->time;
+    }
 
     if (event->type == ET_ButtonPress) {
 	    changed |= XkbPointerButtonMask;
     }
     else if (event->type == ET_ButtonRelease) {
-	xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
+	if (xkbi)
+	    xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
 	changed |= XkbPointerButtonMask;
     }
 
@@ -725,6 +732,9 @@ DeviceEvent     *event = (DeviceEvent*)ev;
     mouse->public.processInputProc(ev, mouse);
     COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
 				     backupproc, xkbUnwrapProc);
+
+    if (!xkbi)
+	return;
 
     xkbi->state.ptr_buttons = (mouse->button) ? mouse->button->state : 0;
     
