@@ -1435,44 +1435,47 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 /* Only ever used if a grab is called on an attached slave device. */
 static int GrabPrivateKeyIndex;
 static DevPrivateKey GrabPrivateKey = &GrabPrivateKeyIndex;
-typedef struct _GrabMemoryRec {
-    DeviceIntPtr oldmaster;
-} GrabMemoryRec, *GrabMemoryPtr;
 
 /**
  * Save the device's master device in the devPrivates. This needs to be done
  * if a client directly grabs a slave device that is attached to a master. For
  * the duration of the grab, the device is detached, ungrabbing re-attaches it
  * though.
+ *
+ * We store the ID of the master device only in case the master disappears
+ * while the device has a grab.
  */
 static void
-SaveOldMaster(DeviceIntPtr dev)
+DetachFromMaster(DeviceIntPtr dev)
 {
-    GrabMemoryPtr gm;
-
-    if (!(gm = xalloc(sizeof(GrabMemoryRec))))
-    {
-        ErrorF("[dix] Cannot allocate grab private. Grab not "
-                "possible on device.\n");
+    int id;
+    if (!dev->u.master)
         return;
-    }
-    gm->oldmaster = dev->u.master;
-    dixSetPrivate(&dev->devPrivates, GrabPrivateKey, gm);
+
+    id = dev->u.master->id;
+
+    dixSetPrivate(&dev->devPrivates, GrabPrivateKey, (void *)id);
+    AttachDevice(NULL, dev, NULL);
 }
 
 static void
-RestoreOldMaster(DeviceIntPtr dev)
+ReattachToOldMaster(DeviceIntPtr dev)
 {
-    GrabMemoryPtr gm;
+    int id;
+    void *p;
+    DeviceIntPtr master = NULL;
 
     if (IsMaster(dev))
         return;
 
-    gm = (GrabMemoryPtr)dixLookupPrivate(&dev->devPrivates, GrabPrivateKey);
-    if (gm)
+
+    p = dixLookupPrivate(&dev->devPrivates, GrabPrivateKey);
+    id = (int)p; /* silence gcc warnings */
+    dixLookupDevice(&master, id, serverClient, DixUseAccess);
+
+    if (master)
     {
-        dev->u.master = gm->oldmaster;
-        xfree(gm);
+        AttachDevice(serverClient, dev, master);
         dixSetPrivate(&dev->devPrivates, GrabPrivateKey, NULL);
     }
 }
@@ -1504,10 +1507,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
 
     /* slave devices need to float for the duration of the grab. */
     if (!isPassive && !IsMaster(mouse))
-    {
-        SaveOldMaster(mouse);
-        AttachDevice(NULL, mouse, NULL);
-    }
+        DetachFromMaster(mouse);
 
     if (grab->confineTo)
     {
@@ -1564,7 +1564,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
 	FreeCursor(grab->cursor, (Cursor)0);
 
     if (!wasPassive)
-        RestoreOldMaster(mouse);
+        ReattachToOldMaster(mouse);
 
     ComputeFreezes();
 }
@@ -1582,10 +1582,7 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
 
     /* slave devices need to float for the duration of the grab. */
     if (!passive && !IsMaster(keybd))
-    {
-        SaveOldMaster(keybd);
-        AttachDevice(NULL, keybd, NULL);
-    }
+        DetachFromMaster(keybd);
 
     if (grabinfo->grab)
 	oldWin = grabinfo->grab->window;
@@ -1637,7 +1634,7 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     DoFocusEvents(keybd, grab->window, focusWin, NotifyUngrab);
 
     if (!wasPassive)
-        RestoreOldMaster(keybd);
+        ReattachToOldMaster(keybd);
 
     ComputeFreezes();
 }
