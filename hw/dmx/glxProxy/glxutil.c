@@ -28,7 +28,6 @@
  * Silicon Graphics, Inc.
  */
 
-#define FONT_PCF
 #include "glxserver.h"
 #include <GL/glxtokens.h>
 #include <pixmapstr.h>

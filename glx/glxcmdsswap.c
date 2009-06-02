@@ -28,7 +28,6 @@
  * Silicon Graphics, Inc.
  */
 
-#define FONT_PCF
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
