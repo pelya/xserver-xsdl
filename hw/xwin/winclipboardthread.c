@@ -39,6 +39,7 @@
 #include <errno.h>
 #endif
 #include "X11/Xauth.h"
+#include "misc.h"
 
 
 /*
