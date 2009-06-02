@@ -2326,7 +2326,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     int rc = 0;
     int filter = 0;
     int type;
-    OtherInputMasks *inputMasks = NULL;
+    OtherInputMasks *inputMasks = wOtherInputMasks(win);
     xEvent ev;
 
     /* XXX: this makes me gag */
@@ -2335,7 +2335,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     ((xGenericEvent*)&ev)->extension = IReqCode;
     ((xGenericEvent*)&ev)->evtype = type;
     filter = GetEventFilter(dev, &ev);
-    if (type && (inputMasks = wOtherInputMasks(win)) &&
+    if (type && inputMasks &&
         ((inputMasks->xi2mask[XIAllDevices][type/8] & filter) ||
          ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && IsMaster(dev)) ||
          (inputMasks->xi2mask[dev->id][type/8] & filter)))
