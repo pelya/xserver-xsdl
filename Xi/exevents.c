@@ -1231,7 +1231,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     DeviceIntPtr mouse;
     int btlen, len, i;
 
-    mouse = (IsMaster(dev) || dev->u.master) ? GetPairedDevice(dev) : NULL;
+    mouse = (IsMaster(dev) || dev->u.master) ? GetMaster(dev, MASTER_POINTER) : dev;
 
     /* XI 2 event */
     btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
