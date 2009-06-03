@@ -28,7 +28,6 @@
  * Silicon Graphics, Inc.
  */
 
-#define FONT_PCF
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -877,6 +876,14 @@ int __glXDisp_CopyContext(__GLXclientState *cl, GLbyte *pc)
     return Success;
 }
 
+enum {
+    GLX_VIS_CONFIG_UNPAIRED = 18,
+    GLX_VIS_CONFIG_PAIRED = 20
+};
+
+enum {
+    GLX_VIS_CONFIG_TOTAL = GLX_VIS_CONFIG_UNPAIRED + GLX_VIS_CONFIG_PAIRED
+};
 
 int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 {
@@ -885,7 +892,7 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
     xGLXGetVisualConfigsReply reply;
     __GLXscreen *pGlxScreen;
     __GLXconfig *modes;
-    CARD32 buf[__GLX_TOTAL_CONFIG];
+    CARD32 buf[GLX_VIS_CONFIG_TOTAL];
     int p, i, err;
     __GLX_DECLARE_SWAP_VARIABLES;
     __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
@@ -894,8 +901,8 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	return err;
 
     reply.numVisuals = pGlxScreen->numVisuals;
-    reply.numProps = __GLX_TOTAL_CONFIG;
-    reply.length = (reply.numVisuals * __GLX_SIZE_CARD32 * __GLX_TOTAL_CONFIG) >> 2;
+    reply.numProps = GLX_VIS_CONFIG_TOTAL;
+    reply.length = (reply.numVisuals * __GLX_SIZE_CARD32 * GLX_VIS_CONFIG_TOTAL) >> 2;
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
 
@@ -933,6 +940,8 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	buf[p++] = modes->stencilBits;
 	buf[p++] = modes->numAuxBuffers;
 	buf[p++] = modes->level;
+
+	assert(p == GLX_VIS_CONFIG_UNPAIRED);
 	/* 
 	** Add token/value pairs for extensions.
 	*/
@@ -957,11 +966,11 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	buf[p++] = 0; /* copy over visualSelectGroup (GLX_VISUAL_SELECT_GROUP_SGIX)? */
 	buf[p++] = 0;
 
+	assert(p == GLX_VIS_CONFIG_TOTAL);
 	if (client->swapped) {
-	    __GLX_SWAP_INT_ARRAY(buf, __GLX_TOTAL_CONFIG);
+	    __GLX_SWAP_INT_ARRAY(buf, p);
 	}
-	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_TOTAL_CONFIG, 
-		(char *)buf);
+	WriteToClient(client, __GLX_SIZE_CARD32 * p, (char *)buf);
     }
     return Success;
 }

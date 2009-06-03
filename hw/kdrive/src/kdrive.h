@@ -220,6 +220,7 @@ struct _KdPointerInfo {
     DeviceIntPtr          dixdev;
     char                  *name;
     char                  *path;
+    char                  *protocol;
     InputOption           *options;
     int                   inputClass;
 

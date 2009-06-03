@@ -589,7 +589,7 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: no)]), [XNEST=$enableval], [XNEST=no])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
-AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addigion to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
+AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
@@ -1666,7 +1666,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
 
-	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
+	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
 
 	PKG_CHECK_MODULES(XPBPROXY, [applewmproto >= 1.2] [applewm >= 1.2] xfixes fixesproto x11)
 

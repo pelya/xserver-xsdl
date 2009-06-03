@@ -1166,6 +1166,8 @@ KdParsePointerOptions (KdPointerInfo *pi)
             pi->transformCoordinates = FALSE;
         else if (!strcasecmp (option->key, "device"))
             pi->path = strdup(option->value);
+        else if (!strcasecmp (option->key, "protocol"))
+            pi->protocol = strdup(option->value);
         else
             ErrorF("Pointer option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
@@ -1186,6 +1188,7 @@ KdParsePointer (char *arg)
         return NULL;
     pi->emulateMiddleButton = kdEmulateMiddleButton;
     pi->transformCoordinates = !kdRawPointerCoordinates;
+    pi->protocol = NULL;
     pi->nButtons = 5; /* XXX should not be hardcoded */
     pi->inputClass = KD_MOUSE;
 

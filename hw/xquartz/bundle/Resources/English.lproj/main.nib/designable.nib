@@ -2,9 +2,9 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.03">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">9G55</string>
+		<string key="IBDocument.SystemVersion">9J61</string>
 		<string key="IBDocument.InterfaceBuilderVersion">677</string>
-		<string key="IBDocument.AppKitVersion">949.43</string>
+		<string key="IBDocument.AppKitVersion">949.46</string>
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -857,7 +857,7 @@ Lg</string>
 												<object class="NSButtonCell" key="NSCell" id="501304422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Update CLIPBOARD when Pasteboard changes.</string>
+													<string key="NSContents">Update CLIPBOARD when Pasteboard changes</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477050998"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -878,7 +878,7 @@ Lg</string>
 												<object class="NSButtonCell" key="NSCell" id="510771323">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Update PRIMARY (middle-click) when Pasteboard changes.</string>
+													<string key="NSContents">Update PRIMARY (middle-click) when Pasteboard changes</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="765780304"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -899,7 +899,7 @@ Lg</string>
 												<object class="NSButtonCell" key="NSCell" id="897099877">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Update Pasteboard immediately when new text is selected.</string>
+													<string key="NSContents">Update Pasteboard immediately when new text is selected</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="1002778833"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -920,7 +920,7 @@ Lg</string>
 												<object class="NSButtonCell" key="NSCell" id="619977658">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Update Pasteboard when CLIPBOARD changes.</string>
+													<string key="NSContents">Update Pasteboard when CLIPBOARD changes</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="487809555"/>
 													<int key="NSButtonFlags">1211912703</int>

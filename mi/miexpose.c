@@ -522,7 +522,7 @@ void
 miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
-    ChangeGCVal gcval[5];
+    ChangeGCVal gcval[6];
     BITS32	gcmask;
     GCPtr	pGC;
     int		i;
@@ -590,18 +590,35 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     gcval[0].val = GXcopy;
     gcmask = GCFunction;
 
+#ifdef ROOTLESS_SAFEALPHA
+/* Bit mask for alpha channel with a particular number of bits per
+ * pixel. Note that we only care for 32bpp data. Mac OS X uses planar
+ * alpha for 16bpp.
+ */
+#define RootlessAlphaMask(bpp) ((bpp) == 32 ? 0xFF000000 : 0)
+#endif
+    
     if (solid)
     {
+#ifdef ROOTLESS_SAFEALPHA
+	gcval[1].val = fill.pixel | RootlessAlphaMask(pWin->drawable.bitsPerPixel);
+#else
 	gcval[1].val = fill.pixel;
+#endif
 	gcval[2].val  = FillSolid;
 	gcmask |= GCForeground | GCFillStyle;
     }
     else
     {
-	gcval[1].val = FillTiled;
-	gcval[2].ptr = (pointer)fill.pixmap;
-	gcval[3].val = tile_x_off;
-	gcval[4].val = tile_y_off;
+	int c=1;
+#ifdef ROOTLESS_SAFEALPHA
+	gcval[c++].val = ((CARD32)-1) & ~RootlessAlphaMask(pWin->drawable.bitsPerPixel);
+	gcmask |= GCPlaneMask;
+#endif
+	gcval[c++].val = FillTiled;
+	gcval[c++].ptr = (pointer)fill.pixmap;
+	gcval[c++].val = tile_x_off;
+	gcval[c++].val = tile_y_off;
 	gcmask |= GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin;
     }
 

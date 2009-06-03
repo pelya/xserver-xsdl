@@ -277,10 +277,6 @@ extern _X_EXPORT pointer xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name);
 extern _X_EXPORT pointer xf86LoadOneModule(char *name, pointer optlist);
 extern _X_EXPORT void xf86UnloadSubModule(pointer mod);
 extern _X_EXPORT Bool xf86LoaderCheckSymbol(const char *name);
-extern _X_EXPORT void xf86LoaderReqSymLists(const char **, ...);
-extern _X_EXPORT void xf86LoaderReqSymbols(const char *, ...);
-extern _X_EXPORT void xf86LoaderRefSymLists(const char **, ...);
-extern _X_EXPORT void xf86LoaderRefSymbols(const char *, ...);
 extern _X_EXPORT void xf86SetBackingStore(ScreenPtr pScreen);
 extern _X_EXPORT void xf86SetSilkenMouse(ScreenPtr pScreen);
 extern _X_EXPORT pointer xf86FindXvOptions(int scrnIndex, int adapt_index, char *port_name,
@@ -314,9 +310,6 @@ extern _X_EXPORT int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	propert
 				    int format, unsigned long len,
 				    pointer value);
 extern _X_EXPORT Bool xf86IsUnblank(int mode);
-
-extern _X_EXPORT _X_DEPRECATED void xf86AddModuleInfo(pointer info, pointer module);
-extern _X_EXPORT _X_DEPRECATED void xf86DeleteModuleInfo(int idx);
 
 /* xf86Init.c */
 

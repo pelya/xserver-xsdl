@@ -481,8 +481,7 @@ static void expose_1 (WindowPtr pWin) {
     if (!pWin->realized)
         return;
     
-    (*pWin->drawable.pScreen->PaintWindowBackground) (pWin, &pWin->borderClip,
-                                                      PW_BACKGROUND);
+    miPaintWindow(pWin, &pWin->borderClip, PW_BACKGROUND);
     
     /* FIXME: comments in windowstr.h indicate that borderClip doesn't
      include subwindow visibility. But I'm not so sure.. so we may

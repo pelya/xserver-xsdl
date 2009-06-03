@@ -961,7 +961,11 @@ MouseInit (KdPointerInfo *pi)
     km = (Kmouse *) xalloc (sizeof (Kmouse));
     if (km) {
         km->iob.avail = km->iob.used = 0;
-        MouseFirstProtocol(km, "exps/2");
+        MouseFirstProtocol(km, pi->protocol ? pi->protocol : "exps/2");
+        /* MouseFirstProtocol sets state to MouseBroken for later protocol
+         * checks. Skip these checks if a protocol was supplied */
+        if (pi->protocol)
+                km->state = MouseWorking;
         km->i_prot = 0;
         km->tty = isatty (fd);
         km->iob.fd = -1;
