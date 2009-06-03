@@ -3935,10 +3935,6 @@ static int indexForScanlinePad[ 65 ] = {
 	 3		/* 64 bits per scanline pad unit */
 };
 
-#ifndef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
 /*
 	grow the array of screenRecs if necessary.
 	call the device-supplied initialization procedure
