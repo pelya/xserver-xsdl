@@ -93,6 +93,8 @@ EventToCore(InternalEvent *event, xEvent *core)
                 core->u.keyButtonPointer.state = e->corestate;
             }
             break;
+        case ET_Raw:
+            return BadMatch;
         default:
             /* XXX: */
             ErrorF("[dix] EventToCore: Not implemented yet \n");
@@ -107,12 +109,16 @@ EventToCore(InternalEvent *event, xEvent *core)
  * count returns the number of events in xi. If count is 1, and the type of
  * xi is GenericEvent, then xi may be larger than 32 bytes.
  *
- * If the event cannot be converted into an XI event because of protocol
- * restrictions, count is 0 and Success is returned.
+ * Return values:
+ * Success ... core contains the matching core event.
+ * BadValue .. One or more values in the internal event are invalid.
+ * BadMatch .. The event has no XI equivalent.
  *
  * @param[in] ev The event to convert into an XI 1 event.
  * @param[out] xi Future memory location for the XI event.
  * @param[out] count Number of elements in xi.
+ *
+ * @return Success or the error code.
  */
 int
 EventToXI(InternalEvent *ev, xEvent **xi, int *count)
@@ -131,7 +137,7 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_Raw:
             *count = 0;
             *xi = NULL;
-            return Success;
+            return BadMatch;
     }
 
     ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->any.type);
@@ -142,8 +148,10 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
  * Convert the given event to the respective XI 2.x event and store it in xi.
  * xi is allocated on demand and must be freed by the caller.
  *
- * If the event cannot be converted into an XI event because of protocol
- * restrictions, xi is NULL and Success is returned.
+ * Return values:
+ * Success ... core contains the matching core event.
+ * BadValue .. One or more values in the internal event are invalid.
+ * BadMatch .. The event has no XI2 equivalent.
  *
  * @param[in] ev The event to convert into an XI2 event
  * @param[out] xi Future memory location for the XI2 event.
@@ -170,7 +178,7 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_ProximityIn:
         case ET_ProximityOut:
             *xi = NULL;
-            return Success;
+            return BadMatch;
         case ET_DeviceChanged:
             return eventToClassesChanged((DeviceChangedEvent*)ev, xi);
         case ET_Raw:

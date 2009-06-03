@@ -2401,78 +2401,64 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
 
     CHECKEVENT(event);
 
-    /* XXX: In theory, we could pass the internal events through to everything
-     * and only convert just before hitting the wire. We can't do that yet, so
-     * DDE is the last stop for internal events. From here onwards, we deal
-     * with core/XI events.
-     */
-    rc = EventToXI(event, &xE, &count);
-    if (rc != Success)
-    {
-        ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
-               dev->name, event->any.type, rc);
-        goto unwind;
-    } else if (count > 0)
-    {
-        if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
-            goto unwind;
-        /* if count is 0, we might still have XI2 events, don't have XACE for
-         * that yet */
-    }
-
-
     while (pWin)
     {
         if ((mask = EventIsDeliverable(dev, event, pWin)))
         {
+            /* XI2 events first */
             if (mask & XI2_MASK)
             {
                 xEvent *xi2 = NULL;
                 rc = EventToXI2(event, &xi2);
-                if (rc != Success)
+                if (rc == Success)
                 {
+                    /* XXX: XACE */
+                    filter = GetEventFilter(dev, xi2);
+                    FixUpEventFromWindow(dev, xi2, pWin, child, FALSE);
+                    deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
+                                                       filter, grab);
+                    xfree(xi2);
+                    if (deliveries > 0)
+                        goto unwind;
+                } else if (rc != BadMatch)
                     ErrorF("[dix] %s: XI2 conversion failed in DDE (%d).\n",
                             dev->name, rc);
-                    goto unwind;
-                }
-                filter = GetEventFilter(dev, xi2);
-                FixUpEventFromWindow(dev, xi2, pWin, child, FALSE);
-                deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
-                                                   filter, grab);
-                xfree(xi2);
-                if (deliveries > 0)
-                    goto unwind;
             }
 
-            /* XI events first */
+            /* XI events */
             if (mask & XI_MASK)
             {
-                filter = GetEventFilter(dev, xE);
-                FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-                deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                   filter, grab);
-                if (deliveries > 0)
-                    goto unwind;
+                rc = EventToXI(event, &xE, &count);
+                if (rc == Success &&
+                    XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count) == Success)
+                {
+                    filter = GetEventFilter(dev, xE);
+                    FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
+                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
+                                                       filter, grab);
+                    if (deliveries > 0)
+                        goto unwind;
+                } else if (rc != BadMatch)
+                    ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
+                            dev->name, event->any.type, rc);
             }
 
             /* Core event */
             if ((mask & CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
                 rc = EventToCore(event, &core);
-                if (rc != Success)
+                if (rc == Success &&
+                    XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, &core, 1) == Success)
                 {
-                    if (rc != BadMatch)
+                    filter = GetEventFilter(dev, &core);
+                    FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
+                    deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
+                            filter, grab);
+                    if (deliveries > 0)
+                        goto unwind;
+                } else if (rc != BadMatch)
                         ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
                                 dev->name, event->any.type, rc);
-                    goto unwind;
-                }
-
-                filter = GetEventFilter(dev, &core);
-                FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
-                deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
-                                                   filter, grab);
-                if (deliveries > 0)
-                    goto unwind;
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
@@ -3528,10 +3514,11 @@ CheckPassiveGrabsOnWindow(
             if (match & CORE_MATCH)
             {
                 rc = EventToCore((InternalEvent*)event, &core);
-                if (rc != Success && rc != BadMatch)
+                if (rc != Success)
                 {
-                    ErrorF("[dix] %s: core conversion failed in CPGFW "
-                           "(%d, %d).\n", device->name, event->type, rc);
+                    if (rc != BadMatch)
+                        ErrorF("[dix] %s: core conversion failed in CPGFW "
+                                "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
                 xE = &core;
@@ -3541,8 +3528,9 @@ CheckPassiveGrabsOnWindow(
                 rc = EventToXI2((InternalEvent*)event, &xE);
                 if (rc != Success)
                 {
-                    ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
-                           "(%d, %d).\n", device->name, event->type, rc);
+                    if (rc != BadMatch)
+                        ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
+                                "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
                 count = 1;
@@ -3551,11 +3539,11 @@ CheckPassiveGrabsOnWindow(
                 rc = EventToXI((InternalEvent*)event, &xE, &count);
                 if (rc != Success)
                 {
-                    ErrorF("[dix] %s: XI conversion failed in CPGFW "
-                           "(%d, %d).\n", device->name, event->type, rc);
+                    if (rc != BadMatch)
+                        ErrorF("[dix] %s: XI conversion failed in CPGFW "
+                                "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
-
             }
 
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
@@ -3696,60 +3684,53 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 	if (DeliverDeviceEvents(window, event, NullGrab, focus, keybd))
 	    return;
     }
+
+    /* just deliver it to the focus window */
     ptr = GetPairedDevice(keybd);
 
-    rc = EventToXI(event, &xE, &count);
-    if (rc != Success)
-    {
-        ErrorF("[dix] %s: XI conversion failed in DFE (%d, %d). Skipping delivery.\n",
-               keybd->name, event->any.type, rc);
-        goto unwind;
-    } else if (count == 0) /* no XI/Core event for you */
-        return;
-
-    if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
-	goto unwind;
 
     rc = EventToXI2(event, &xi2);
-    if (rc != Success)
+    if (rc == Success)
     {
-        ErrorF("[dix] %s: XI2 conversion failed in DFE (%d, %d). Skipping delivery.\n",
-               keybd->name, event->any.type, rc);
-        goto unwind;
-    } else if (xi2)
-    {
+        /* XXX: XACE */
         int filter = GetEventFilter(keybd, xi2);
-        /* just deliver it to the focus window */
         FixUpEventFromWindow(ptr, xi2, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, xi2, 1,
                                            filter, NullGrab);
         if (deliveries > 0)
             goto unwind;
-    }
+    } else if (rc != BadMatch)
+        ErrorF("[dix] %s: XI2 conversion failed in DFE (%d, %d). Skipping delivery.\n",
+               keybd->name, event->any.type, rc);
 
-    /* just deliver it to the focus window */
-    FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
-    deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
-                                       GetEventFilter(keybd, xE),
-                                       NullGrab);
+    rc = EventToXI(event, &xE, &count);
+    if (rc == Success &&
+        XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count) == Success)
+    {
+        FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
+        deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
+                GetEventFilter(keybd, xE),
+                NullGrab);
 
-    if (deliveries > 0)
-        goto unwind;
+        if (deliveries > 0)
+            goto unwind;
+    } else if (rc != BadMatch)
+        ErrorF("[dix] %s: XI conversion failed in DFE (%d, %d). Skipping delivery.\n",
+               keybd->name, event->any.type, rc);
 
     if (sendCore)
     {
         rc = EventToCore(event, &core);
-        if (rc != Success)
+        if (rc == Success &&
+            XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, core, 1) == Success)
         {
+            FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
+            deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
+                                               GetEventFilter(keybd, &core),
+                                               NullGrab);
+        } else if (rc != BadMatch)
             ErrorF("[dix] %s: core conversion failed DFE (%d, %d). Skipping delivery.\n",
                     keybd->name, event->any.type, rc);
-            goto unwind;
-        }
-
-        FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
-        deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
-                                           GetEventFilter(keybd, &core),
-                                           NullGrab);
     }
 
 unwind:
@@ -3823,23 +3804,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
          * onwards, we deal with core/XI events.
          */
 
-        rc = EventToXI2(event, &xi2);
-        if (rc != Success)
-        {
-            ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                    thisDev->name, event->any.type, rc);
-            goto unwind;
-        }
-
-        rc = EventToXI(event, &xi, &count);
-        if (rc != Success)
-        {
-            ErrorF("[dix] %s: XI conversion failed in DGE (%d, %d). Skipping delivery.\n",
-                    thisDev->name, event->any.type, rc);
-            goto unwind;
-        } else if (count == 0) /* no XI/Core event for you */
-            goto unwind;
-
         mask = grab->eventMask;
 
         sendCore = (IsMaster(thisDev) && thisDev->coreEvents);
@@ -3849,68 +3813,77 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             xEvent core;
 
             rc = EventToCore(event, &core);
-            if (rc != Success && rc != BadMatch)
+            if (rc == Success)
             {
-                ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
-                goto unwind;
-            }
-
-            FixUpEventFromWindow(thisDev, &core, grab->window,
-                    None, TRUE);
-            if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                        grab->window, &core, 1) ||
-                    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                        grab->window, &core, 1))
-                deliveries = 1; /* don't send, but pretend we did */
-            else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
-            {
-                deliveries = TryClientEvents(rClient(grab), thisDev,
-                        &core, 1, mask,
-                        GetEventFilter(thisDev, &core),
-                        grab);
-            }
-        }
-
-        if (!deliveries)
-        {
-            int evtype = ((xGenericEvent*)xi2)->evtype;
-            mask = grab->xi2mask[XIAllDevices][evtype/8] |
-                   grab->xi2mask[XIAllMasterDevices][evtype/8] |
-                   grab->xi2mask[thisDev->id][evtype/8];
-            /* try XI2 event */
-            FixUpEventFromWindow(thisDev, xi2, grab->window, None, TRUE);
-            /* XXX: XACE */
-            deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask,
-                                         GetEventFilter(thisDev, xi2), grab);
-        }
-
-        if (!deliveries)
-        {
-            /* try XI event */
-            if (grabinfo->fromPassiveGrab  &&
-                    grabinfo->implicitGrab)
-                mask = grab->deviceMask;
-            else
-                mask = grab->eventMask;
-
-            FixUpEventFromWindow(thisDev, xi, grab->window,
-                    None, TRUE);
-
-            if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                        grab->window, xi, count) ||
-                    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                        grab->window, xi, count))
-                deliveries = 1; /* don't send, but pretend we did */
-            else
-            {
-                deliveries =
-                    TryClientEvents(rClient(grab), thisDev,
-                            xi, count,
-                            mask,
-                            GetEventFilter(thisDev, xi),
+                FixUpEventFromWindow(thisDev, &core, grab->window,
+                        None, TRUE);
+                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                            grab->window, &core, 1) ||
+                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                            grab->window, &core, 1))
+                    deliveries = 1; /* don't send, but pretend we did */
+                else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
+                {
+                    deliveries = TryClientEvents(rClient(grab), thisDev,
+                            &core, 1, mask,
+                            GetEventFilter(thisDev, &core),
                             grab);
-            }
+                }
+            } else if (rc != BadMatch)
+                ErrorF("[dix] DeliverGrabbedEvent. Core conversion failed.\n");
+        }
 
+        if (!deliveries)
+        {
+            rc = EventToXI2(event, &xi2);
+            if (rc == Success)
+            {
+                int evtype = ((xGenericEvent*)xi2)->evtype;
+                mask = grab->xi2mask[XIAllDevices][evtype/8] |
+                    grab->xi2mask[XIAllMasterDevices][evtype/8] |
+                    grab->xi2mask[thisDev->id][evtype/8];
+                /* try XI2 event */
+                FixUpEventFromWindow(thisDev, xi2, grab->window, None, TRUE);
+                /* XXX: XACE */
+                deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask,
+                        GetEventFilter(thisDev, xi2), grab);
+            } else if (rc != BadMatch)
+                ErrorF("[dix] %s: XI2 conversion failed in DGE (%d, %d). Skipping delivery.\n",
+                        thisDev->name, event->any.type, rc);
+        }
+
+        if (!deliveries)
+        {
+            rc = EventToXI(event, &xi, &count);
+            if (rc == Success)
+            {
+                /* try XI event */
+                if (grabinfo->fromPassiveGrab  &&
+                        grabinfo->implicitGrab)
+                    mask = grab->deviceMask;
+                else
+                    mask = grab->eventMask;
+
+                FixUpEventFromWindow(thisDev, xi, grab->window,
+                        None, TRUE);
+
+                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                            grab->window, xi, count) ||
+                        XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                            grab->window, xi, count))
+                    deliveries = 1; /* don't send, but pretend we did */
+                else
+                {
+                    deliveries =
+                        TryClientEvents(rClient(grab), thisDev,
+                                xi, count,
+                                mask,
+                                GetEventFilter(thisDev, xi),
+                                grab);
+                }
+            } else if (rc != BadMatch)
+                ErrorF("[dix] %s: XI conversion failed in DGE (%d, %d). Skipping delivery.\n",
+                        thisDev->name, event->any.type, rc);
         }
 
         if (deliveries && (event->any.type == ET_Motion))
@@ -3944,7 +3917,6 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	}
     }
 
-unwind:
     if (xi)
         xfree(xi);
     if (xi2)
