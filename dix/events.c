@@ -5733,8 +5733,7 @@ PickPointer(ClientPtr client)
         GrabPtr grab = it->deviceGrab.grab;
         if (grab && grab->grabtype == GRABTYPE_CORE && SameClient(grab, client))
         {
-            if (!IsPointerDevice(it))
-                it = GetPairedDevice(it);
+            it = GetMaster(it, MASTER_POINTER);
             return it; /* Always return a core grabbed device */
         }
     }
@@ -5763,7 +5762,7 @@ DeviceIntPtr
 PickKeyboard(ClientPtr client)
 {
     DeviceIntPtr ptr = PickPointer(client);
-    DeviceIntPtr kbd = ptr->spriteInfo->paired;
+    DeviceIntPtr kbd = GetMaster(ptr, MASTER_KEYBOARD);
 
     if (!kbd)
     {
