@@ -46,6 +46,7 @@
 #include "exglobals.h"
 #include "eventconvert.h"
 #include "querydev.h"
+#include "xkbsrv.h"
 
 
 static int countValuators(DeviceEvent *ev, int *first);
@@ -279,9 +280,19 @@ static int
 getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
 {
     int i;
+    int state = 0;
     int first_valuator, num_valuators;
 
+
     num_valuators = countValuators(ev, &first_valuator);
+    if (num_valuators > 0)
+    {
+        DeviceIntPtr dev = NULL;
+        dixLookupDevice(&dev, ev->deviceid, serverClient, DixUseAccess);
+        /* State needs to be assembled BEFORE the device is updated. */
+        state = (dev && dev->key) ? XkbStateFieldFromRec(&dev->key->xkbInfo->state) : 0;
+        state |= (dev && dev->button) ? (dev->button->state) : 0;
+    }
 
     /* FIXME: non-continuous valuator data in internal events*/
     for (i = 0; i < num_valuators; i += 6, xv++) {
@@ -289,6 +300,7 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
         xv->first_valuator = first_valuator + i;
         xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
         xv->deviceid = ev->deviceid;
+        xv->device_state = state;
         switch (xv->num_valuators) {
         case 6:
             xv->valuator5 = ev->valuators.data[i + 5];
