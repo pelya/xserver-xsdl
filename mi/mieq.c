@@ -402,7 +402,9 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
             /* process slave first, then master */
             dev->public.processInputProc(event, dev);
 
-            if (master)
+            /* Check for the SD's master in case the device got detached
+             * during event processing */
+            if (master && dev->u.master)
                 master->public.processInputProc(
                         (InternalEvent*)masterEvents->event,
                         master);
