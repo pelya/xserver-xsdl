@@ -10,6 +10,7 @@ TEST_LDADD=libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLIB_LIBS)
 
 xkb_LDADD=$(TEST_LDADD)
 input_LDADD=$(TEST_LDADD)
+input_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,ErrorF
 
 libxservertest_la_LIBADD = \
             $(XSERVER_LIBS) \

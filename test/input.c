@@ -40,6 +40,10 @@
 
 #include <glib.h>
 
+void __wrap_ErrorF(const char *f, ...)
+{
+}
+
 /**
  * Init a device with axes.
  * Verify values set on the device.
@@ -254,36 +258,36 @@ static void dix_event_to_core_conversion(void)
 {
     DeviceEvent ev;
     xEvent core;
-    int rc;
+    int rc, i;
 
     ev.header   = 0xFF;
     ev.length   = sizeof(DeviceEvent);
 
-    ev.type     = 0;
-    rc = EventToCore((InternalEvent*)&ev, &core);
-    g_assert(rc == BadImplementation);
-
-    ev.type     = 1;
-    rc = EventToCore((InternalEvent*)&ev, &core);
-    g_assert(rc == BadImplementation);
-
-    ev.type     = ET_ProximityOut + 1;
-    rc = EventToCore((InternalEvent*)&ev, &core);
-    g_assert(rc == BadImplementation);
-
-    ev.type     = ET_ProximityIn;
-    rc = EventToCore((InternalEvent*)&ev, &core);
-    g_assert(rc == BadMatch);
-
-    ev.type     = ET_ProximityOut;
-    rc = EventToCore((InternalEvent*)&ev, &core);
-    g_assert(rc == BadMatch);
-
-    dix_event_to_core(ET_KeyPress);
-    dix_event_to_core(ET_KeyRelease);
-    dix_event_to_core(ET_ButtonPress);
-    dix_event_to_core(ET_ButtonRelease);
-    dix_event_to_core(ET_Motion);
+    for (i = INT_MIN; i < INT_MAX; i++)
+    {
+        switch(i)
+        {
+            case ET_KeyPress:
+            case ET_KeyRelease:
+            case ET_ButtonPress:
+            case ET_ButtonRelease:
+            case ET_Motion:
+                dix_event_to_core(i);
+                break;
+            case ET_Raw:
+            case ET_ProximityIn:
+            case ET_ProximityOut:
+                ev.type = i;
+                rc = EventToCore((InternalEvent*)&ev, &core);
+                g_assert(rc == BadMatch);
+                break;
+            default:
+                ev.type = i;
+                rc = EventToCore((InternalEvent*)&ev, &core);
+                g_assert(rc == BadImplementation);
+                break;
+        }
+    }
 }
 
 static void xi2_struct_sizes(void)
