@@ -39,13 +39,9 @@
 #include <cursorstr.h>
 #include <mipointrst.h>
 #include <servermd.h>
+#include "misc.h"
 
 extern Bool	g_fSoftwareCursor;
-
-
-#ifndef MIN
-#define MIN(x,y) ((x)<(y)?(x):(y))
-#endif
 
 #define BYTE_COUNT(x) (((x) + 7) / 8)
 
@@ -198,8 +194,8 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
   nBytes = BYTE_COUNT(pScreenPriv->cursor.sm_cx) * pScreenPriv->cursor.sm_cy;
 
   /* Get the effective width and height */
-  nCX = MIN(pScreenPriv->cursor.sm_cx, pCursor->bits->width);
-  nCY = MIN(pScreenPriv->cursor.sm_cy, pCursor->bits->height);
+  nCX = min(pScreenPriv->cursor.sm_cx, pCursor->bits->width);
+  nCY = min(pScreenPriv->cursor.sm_cy, pCursor->bits->height);
 
   /* Allocate memory for the bitmaps */
   pAnd = malloc (nBytes);
