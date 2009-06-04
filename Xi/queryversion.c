@@ -62,6 +62,13 @@ ProcXIQueryVersion(ClientPtr client)
     REQUEST(xXIQueryVersionReq);
     REQUEST_SIZE_MATCH(xXIQueryVersionReq);
 
+    /* This request only exists after XI2 */
+    if (stuff->major_version < 2)
+    {
+        client->errorValue = stuff->major_version;
+        return BadValue;
+    }
+
     pXIClient = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
 
     major = min(XIVersion.major_version, stuff->major_version);
