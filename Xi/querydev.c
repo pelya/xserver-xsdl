@@ -359,8 +359,9 @@ ListDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
     info->enabled = dev->enabled;
     total_len = sizeof(xXIDeviceInfo);
 
-    strncpy(any, dev->name, info->name_len);
     len = ((info->name_len + 3)/4) * 4;
+    memset(any, 0, len);
+    strncpy(any, dev->name, info->name_len);
     any += len;
     total_len += len;
 
