@@ -271,13 +271,19 @@ static void dix_event_to_core_conversion(void)
     rc = EventToCore((InternalEvent*)&ev, &core);
     g_assert(rc == BadImplementation);
 
+    ev.type     = ET_ProximityIn;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadMatch);
+
+    ev.type     = ET_ProximityOut;
+    rc = EventToCore((InternalEvent*)&ev, &core);
+    g_assert(rc == BadMatch);
+
     dix_event_to_core(ET_KeyPress);
     dix_event_to_core(ET_KeyRelease);
     dix_event_to_core(ET_ButtonPress);
     dix_event_to_core(ET_ButtonRelease);
     dix_event_to_core(ET_Motion);
-    dix_event_to_core(ET_ProximityIn);
-    dix_event_to_core(ET_ProximityOut);
 }
 
 static void xi2_struct_sizes(void)
