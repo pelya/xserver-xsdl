@@ -43,6 +43,7 @@
 #include "exglobals.h"
 #include "exevents.h"
 #include "queryversion.h"
+#include "misc.h"
 
 extern XExtensionVersion XIVersion; /* defined in getvers.c */
 /**
@@ -56,22 +57,26 @@ ProcXIQueryVersion(ClientPtr client)
 {
     xXIQueryVersionReply rep;
     XIClientPtr pXIClient;
+    int major, minor;
 
     REQUEST(xXIQueryVersionReq);
     REQUEST_SIZE_MATCH(xXIQueryVersionReq);
 
     pXIClient = dixLookupPrivate(&client->devPrivates, XIClientPrivateKey);
 
-    pXIClient->major_version = stuff->major_version;
-    pXIClient->minor_version = stuff->minor_version;
+    major = min(XIVersion.major_version, stuff->major_version);
+    minor = min(XIVersion.minor_version, stuff->minor_version);
+
+    pXIClient->major_version = major;
+    pXIClient->minor_version = minor;
 
     memset(&rep, 0, sizeof(xXIQueryVersionReply));
     rep.repType = X_Reply;
     rep.RepType = X_XIQueryVersion;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.major_version = XIVersion.major_version;
-    rep.minor_version = XIVersion.minor_version;
+    rep.major_version = major;
+    rep.minor_version = minor;
 
     WriteReplyToClient(client, sizeof(xXIQueryVersionReply), &rep);
 
