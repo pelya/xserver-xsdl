@@ -3722,7 +3722,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     {
         rc = EventToCore(event, &core);
         if (rc == Success &&
-            XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, core, 1) == Success)
+            XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, &core, 1) == Success)
         {
             FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
             deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
