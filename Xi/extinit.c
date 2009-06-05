@@ -511,6 +511,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 	SRepXIQueryPointer(client, len, (xXIQueryPointerReply *) rep);
     else if (rep->RepType == X_XIGetClientPointer)
         SRepXIGetClientPointer(client, len, (xXIGetClientPointerReply*) rep);
+    else if (rep->RepType == X_XIQueryVersion)
+        SRepXIQueryVersion(client, len, (xXIQueryVersionReply*)rep);
     else if (rep->RepType == X_XIQueryDevice)
         SRepXIQueryDevice(client, len, (xXIQueryDeviceReply*)rep);
     else if (rep->RepType == X_XIGrabDevice)
