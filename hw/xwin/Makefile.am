@@ -169,7 +169,6 @@ AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
 dist_man1_MANS = XWin.man XWinrc.man
 
 GLX_EXTRAS = \
-	glx/ChangeLog \
 	glx/glwindows.h \
 	glx/glwrap.c \
 	glx/indirect.c
