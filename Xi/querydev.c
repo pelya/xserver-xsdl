@@ -70,6 +70,12 @@ ProcXIQueryDevice(ClientPtr client)
     REQUEST(xXIQueryDeviceReq);
     REQUEST_SIZE_MATCH(xXIQueryDeviceReq);
 
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
+
     if (stuff->deviceid != XIAllDevices && stuff->deviceid != XIAllMasterDevices)
     {
         rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);

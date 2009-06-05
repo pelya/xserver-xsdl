@@ -90,6 +90,9 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     REQUEST(xXIPassiveGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIPassiveGrabDeviceReq);
 
+    if (stuff->deviceid > 0xFF) /* FIXME */
+        return BadImplementation;
+
     if (stuff->deviceid == XIAllDevices)
         dev = inputInfo.all_devices;
     else if (stuff->deviceid == XIAllMasterDevices)
@@ -259,6 +262,12 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
 
     REQUEST(xXIPassiveUngrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIPassiveUngrabDeviceReq);
+
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
 
     rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
     if (rc != Success)

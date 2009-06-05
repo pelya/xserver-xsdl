@@ -238,6 +238,12 @@ ProcXIChangeHierarchy(ClientPtr client)
                             r->return_mode != XIFloating)
                         return BadValue;
 
+                    if (r->deviceid > 0xFF) /* FIXME */
+                    {
+                        client->errorValue = r->deviceid;
+                        return BadImplementation;
+                    }
+
                     rc = dixLookupDevice(&ptr, r->deviceid, client,
                                          DixDestroyAccess);
                     if (rc != Success)
@@ -338,6 +344,12 @@ ProcXIChangeHierarchy(ClientPtr client)
                                      newptr,
                                      newkeybd;
 
+                        if (r->return_pointer > 0xFF) /* FIXME */
+                        {
+                            client->errorValue = r->deviceid;
+                            return BadImplementation;
+                        }
+
                         rc = dixLookupDevice(&newptr, r->return_pointer,
                                              client, DixWriteAccess);
                         if (rc != Success)
@@ -348,6 +360,12 @@ ProcXIChangeHierarchy(ClientPtr client)
                             client->errorValue = r->return_pointer;
                             rc = BadDevice;
                             goto unwind;
+                        }
+
+                        if (r->return_keyboard > 0xFF) /* FIXME */
+                        {
+                            client->errorValue = r->deviceid;
+                            return BadImplementation;
                         }
 
                         rc = dixLookupDevice(&newkeybd, r->return_keyboard,
@@ -413,6 +431,12 @@ ProcXIChangeHierarchy(ClientPtr client)
                     xXIDetachSlaveInfo* c = (xXIDetachSlaveInfo*)any;
                     DeviceIntPtr *xtstdevice;
 
+                    if (c->deviceid > 0xFF) /* FIXME */
+                    {
+                        client->errorValue = c->deviceid;
+                        return BadImplementation;
+                    }
+
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixWriteAccess);
                     if (rc != Success)
@@ -445,6 +469,17 @@ ProcXIChangeHierarchy(ClientPtr client)
                     xXIAttachSlaveInfo* c = (xXIAttachSlaveInfo*)any;
                     DeviceIntPtr newmaster;
                     DeviceIntPtr *xtstdevice;
+
+                    if (c->deviceid > 0xFF) /* FIXME */
+                    {
+                        client->errorValue = c->deviceid;
+                        return BadImplementation;
+                    }
+                    if (c->new_master > 0xFF) /* FIXME */
+                    {
+                        client->errorValue = c->new_master;
+                        return BadImplementation;
+                    }
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixWriteAccess);

@@ -1102,6 +1102,12 @@ ProcXIListProperties(ClientPtr client)
     REQUEST(xXIListPropertiesReq);
     REQUEST_SIZE_MATCH(xXIListPropertiesReq);
 
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
+
     rc = dixLookupDevice (&dev, stuff->deviceid, client, DixReadAccess);
     if (rc != Success)
         return rc;
@@ -1136,6 +1142,12 @@ ProcXIChangeProperty(ClientPtr client)
 
     REQUEST(xXIChangePropertyReq);
     REQUEST_AT_LEAST_SIZE(xXIChangePropertyReq);
+
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
     UpdateCurrentTime();
 
     rc = dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
@@ -1164,6 +1176,13 @@ ProcXIDeleteProperty(ClientPtr client)
     REQUEST(xXIDeletePropertyReq);
 
     REQUEST_SIZE_MATCH(xXIDeletePropertyReq);
+
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
+
     UpdateCurrentTime();
     rc =  dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
     if (rc != Success)
@@ -1192,6 +1211,13 @@ ProcXIGetProperty(ClientPtr client)
     Atom                        type;
 
     REQUEST_SIZE_MATCH(xXIGetPropertyReq);
+
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
+
     if (stuff->delete)
         UpdateCurrentTime();
     rc = dixLookupDevice (&dev, stuff->deviceid, client,
