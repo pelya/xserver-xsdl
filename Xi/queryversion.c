@@ -112,7 +112,7 @@ SProcXIQueryVersion(ClientPtr client)
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xXIQueryVersionReq);
     swaps(&stuff->major_version, n);
-    swaps(&stuff->major_version, n);
+    swaps(&stuff->minor_version, n);
     return (ProcXIQueryVersion(client));
 }
 
