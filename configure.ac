@@ -1145,11 +1145,19 @@ fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
 if test "x$UNITTESTS" = xauto; then
-       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16], [UNITTESTS=yes], [UNITTESTS=no])
+       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16], [HAVE_GLIB=yes], [HAVE_GLIB=no])
+       if test "x$HAVE_GLIB" = xyes && test "x$with_gnu_ld" = xyes; then
+           UNITTESTS=yes
+       else
+           UNITTESTS=no
+       fi
 fi
 if test "x$UNITTESTS" = xyes; then
        AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
        PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16])
+       if test "x$with_gnu_ld" = xno; then
+           AC_MSG_ERROR([GNU ld required to build unit tests])
+       fi
        AC_SUBST([GLIB_LIBS])
        AC_SUBST([GLIB_CFLAGS])
 fi
