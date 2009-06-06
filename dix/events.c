@@ -2093,7 +2093,10 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         else if (type == DeviceButtonPress)
             tempGrab.grabtype = GRABTYPE_XI;
         else
+        {
+            tempGrab.type = ((xGenericEvent*)pEvents)->evtype;
             tempGrab.grabtype = GRABTYPE_XI2;
+        }
 
         /* get the XI and XI2 device mask */
         inputMasks = wOtherInputMasks(pWin);
