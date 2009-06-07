@@ -1724,10 +1724,11 @@ ProcGetPointerMapping(ClientPtr client)
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.nElts = butc->numButtons;
+    rep.nElts = (butc) ? butc->numButtons : 0;
     rep.length = ((unsigned)rep.nElts + (4-1))/4;
     WriteReplyToClient(client, sizeof(xGetPointerMappingReply), &rep);
-    (void)WriteToClient(client, (int)rep.nElts, (char *)&butc->map[1]);
+    if (butc)
+        WriteToClient(client, (int)rep.nElts, (char *)&butc->map[1]);
     return Success;
 }
 
