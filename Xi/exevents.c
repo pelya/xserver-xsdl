@@ -199,6 +199,8 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     if (device == master)
         return;
 
+    mk->sourceid = device->id;
+
     for (i = 0; i < 8; i++)
         mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
@@ -470,6 +472,7 @@ DeepCopyKeyboardClasses(DeviceIntPtr from, DeviceIntPtr to)
                 FatalError("[Xi] no memory for trace.\n");
             memcpy(to->focus->trace, from->focus->trace,
                     from->focus->traceSize * sizeof(WindowPtr));
+            to->focus->sourceid = from->id;
         }
     } else if (to->focus)
     {
@@ -546,6 +549,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
         memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
 
         v->axisVal = (int*)(v->axes + from->valuator->numAxes);
+        v->sourceid = from->id;
     } else if (to->valuator && !from->valuator)
     {
         ClassesPtr classes;
@@ -582,6 +586,8 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
                     sizeof(XkbAction));
         } else
             xfree(to->button->xkb_acts);
+
+        to->button->sourceid = from->id;
     } else if (to->button && !from->button)
     {
         ClassesPtr classes;
@@ -606,6 +612,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->proximity = NULL;
         }
         memcpy(to->proximity, from->proximity, sizeof(ProximityClassRec));
+        to->proximity->sourceid = from->id;
     } else if (to->proximity)
     {
         ClassesPtr classes;
@@ -630,6 +637,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->absolute = NULL;
         }
         memcpy(to->absolute, from->absolute, sizeof(AbsoluteClassRec));
+        to->absolute->sourceid = from->id;
     } else if (to->absolute)
     {
         ClassesPtr classes;
@@ -1127,6 +1135,7 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
     proxc = (ProximityClassPtr) xalloc(sizeof(ProximityClassRec));
     if (!proxc)
 	return FALSE;
+    proxc->sourceid = dev->id;
     dev->proximity = proxc;
     return TRUE;
 }

@@ -231,6 +231,7 @@ ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
     info->type = ButtonClass;
     info->num_buttons = dev->button->numButtons;
     info->length = 2 + info->num_buttons;
+    info->sourceid = dev->button->sourceid;
 
     /** XXX: button labels */
 
@@ -245,6 +246,7 @@ SwapButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
     int i;
     swaps(&info->type, n);
     swaps(&info->length, n);
+    swaps(&info->sourceid, n);
 
     for (i = 0, btn = (Atom*)&info[1]; i < info->num_buttons; i++, btn++)
         swaps(btn, n);
@@ -266,6 +268,7 @@ ListKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
     info->type = KeyClass;
     info->num_keycodes = xkb->max_key_code - xkb->min_key_code + 1;
     info->length = 2 + info->num_keycodes;
+    info->sourceid = dev->key->sourceid;
 
     kc = (uint32_t*)&info[1];
     for (i = xkb->min_key_code; i <= xkb->max_key_code; i++, kc++)
@@ -282,6 +285,7 @@ SwapKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
     int i;
     swaps(&info->type, n);
     swaps(&info->length, n);
+    swaps(&info->sourceid, n);
 
     for (i = 0, key = (uint32_t*)&info[1]; i < info->num_keycodes; i++, key++)
         swapl(key, n);
@@ -309,6 +313,7 @@ ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber)
     info->resolution = v->axes[axisnumber].resolution;
     info->number = axisnumber;
     info->mode = v->mode; /* Server doesn't have per-axis mode yet */
+    info->sourceid = v->sourceid;
 
     return info->length * 4;
 }
@@ -325,6 +330,7 @@ SwapValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info)
     swapl(&info->max.integral, n);
     swapl(&info->max.frac, n);
     swaps(&info->number, n);
+    swaps(&info->sourceid, n);
 }
 
 int GetDeviceUse(DeviceIntPtr dev, uint16_t *attachment)

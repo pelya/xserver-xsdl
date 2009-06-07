@@ -1143,6 +1143,7 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
     if (!butc)
 	return FALSE;
     butc->numButtons = numButtons;
+    butc->sourceid = dev->id;
     for (i = 1; i <= numButtons; i++)
 	butc->map[i] = map[i];
     dev->button = butc;
@@ -1173,6 +1174,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     if (!valc)
 	return FALSE;
 
+    valc->sourceid = dev->id;
     valc->motion = NULL;
     valc->first_motion = 0;
     valc->last_motion = 0;
@@ -1300,6 +1302,8 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
     abs->following = 0;
     abs->screen = 0;
 
+    abs->sourceid = dev->id;
+
     dev->absolute = abs;
 
     return TRUE;
@@ -1319,6 +1323,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
     focc->trace = (WindowPtr *)NULL;
     focc->traceSize = 0;
     focc->traceGood = 0;
+    focc->sourceid = dev->id;
     dev->focus = focc;
     return TRUE;
 }

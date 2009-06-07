@@ -522,6 +522,7 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
         ErrorF("XKB: Failed to allocate key class\n");
         return False;
     }
+    dev->key->sourceid = dev->id;
 
     dev->kbdfeed = xcalloc(1, sizeof(*dev->kbdfeed));
     if (!dev->kbdfeed) {

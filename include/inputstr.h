@@ -202,6 +202,7 @@ typedef struct _GrabRec {
 } GrabRec;
 
 typedef struct _KeyClassRec {
+    int			sourceid;
     CARD8		down[DOWN_LENGTH];
     CARD8		postdown[DOWN_LENGTH];
     int                 modifierKeyCount[8];
@@ -224,6 +225,7 @@ typedef struct _ValuatorAccelerationRec {
 } ValuatorAccelerationRec, *ValuatorAccelerationPtr;
 
 typedef struct _ValuatorClassRec {
+    int                   sourceid;
     int		 	  numMotionEvents;
     int                   first_motion;
     int                   last_motion;
@@ -239,6 +241,7 @@ typedef struct _ValuatorClassRec {
 } ValuatorClassRec, *ValuatorClassPtr;
 
 typedef struct _ButtonClassRec {
+    int			sourceid;
     CARD8		numButtons;
     CARD8		buttonsDown;	/* number of buttons currently down
                                            This counts logical buttons, not
@@ -254,6 +257,7 @@ typedef struct _ButtonClassRec {
 } ButtonClassRec, *ButtonClassPtr;
 
 typedef struct _FocusClassRec {
+    int		sourceid;
     WindowPtr	win; /* May be set to a int constant (e.g. PointerRootWin)! */
     int		revert;
     TimeStamp	time;
@@ -263,10 +267,12 @@ typedef struct _FocusClassRec {
 } FocusClassRec, *FocusClassPtr;
 
 typedef struct _ProximityClassRec {
+    int		sourceid;
     char	pad;
 } ProximityClassRec, *ProximityClassPtr;
 
 typedef struct _AbsoluteClassRec {
+    int         sourceid;
     /* Calibration. */
     int         min_x;
     int         max_x;
