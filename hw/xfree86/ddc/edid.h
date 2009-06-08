@@ -538,8 +538,15 @@ struct detailed_monitor_section {
 };
 
 /* flags */
-#define EDID_COMPLETE_RAWDATA	0x1
+#define MONITOR_EDID_COMPLETE_RAWDATA	0x01
+/* old, don't use */
+#define EDID_COMPLETE_RAWDATA		0x01
+#define MONITOR_DISPLAYID		0x02
 
+/*
+ * For DisplayID devices, only the scrnIndex, flags, and rawData fields
+ * are meaningful.  For EDID, they all are.
+ */
 typedef struct {
   int scrnIndex;
   struct vendor vendor;
