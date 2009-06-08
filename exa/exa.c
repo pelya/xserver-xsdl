@@ -1190,7 +1190,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	return FALSE;
     }
 
-    if (!pScreenInfo->CreatePixmap) {
+    if (!pScreenInfo->CreatePixmap && !pScreenInfo->CreatePixmap2) {
 	if (!pScreenInfo->memoryBase) {
 	    LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase "
 		       "must be non-zero\n", pScreen->myNum);
