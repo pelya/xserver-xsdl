@@ -97,6 +97,13 @@ ProcXISelectEvent(ClientPtr client)
         if (rc != Success)
             return rc;
 
+        /* hierarchy event mask is not allowed on devices */
+        if (evmask->deviceid != XIAllDevices && evmask->mask_len >= 1)
+        {
+            unsigned char *bits = (unsigned char*)&evmask[1];
+            if (BitIsOn(bits, XI_HierarchyChanged))
+                return BadValue;
+        }
 
         if ((evmask->mask_len * 4) > XI_LASTEVENT)
         {
