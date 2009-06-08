@@ -4,10 +4,10 @@
  */
 
 /*
- * Note that DDC1 does not define any method for returning blocks beyond
- * the first.  DDC2 does, but the original implementation would only ever
- * read the first block.  If you want to read and parse all blocks, use
- * xf86DoEEDID().
+ * A note on terminology.  DDC1 is the original dumb serial protocol, and
+ * can only do up to 128 bytes of EDID.  DDC2 is I2C-encapsulated and
+ * introduces extension blocks.  EDID is the old display identification
+ * block, DisplayID is the new one.
  */
 
 #ifdef HAVE_XORG_CONFIG_H
