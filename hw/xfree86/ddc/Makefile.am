@@ -2,11 +2,10 @@ sdk_HEADERS = edid.h xf86DDC.h
 
 noinst_LTLIBRARIES = libddc.la
 
-libddc_la_SOURCES = xf86DDC.c edid.c interpret_edid.c print_edid.c \
-                   ddcProperty.c
+libddc_la_SOURCES = xf86DDC.c interpret_edid.c print_edid.c ddcProperty.c
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
 AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
-EXTRA_DIST = ddcPriv.h DDC.HOWTO
+EXTRA_DIST = DDC.HOWTO
