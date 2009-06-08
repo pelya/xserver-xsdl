@@ -167,9 +167,9 @@ ProcXIChangeHierarchy(ClientPtr client)
 
         switch(any->type)
         {
-            case XICreateMaster:
+            case XIAddMaster:
                 {
-                    xXICreateMasterInfo* c = (xXICreateMasterInfo*)any;
+                    xXIAddMasterInfo* c = (xXIAddMasterInfo*)any;
                     char* name;
 
                     SWAPIF(swaps(&c->name_len, n));
