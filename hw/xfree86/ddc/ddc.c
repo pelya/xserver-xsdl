@@ -426,7 +426,7 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, Bool complete)
     }
 
     if (tmp && complete)
-	tmp->flags |= EDID_COMPLETE_RAWDATA;
+	tmp->flags |= MONITOR_EDID_COMPLETE_RAWDATA;
 
     return tmp;
 }
@@ -446,4 +446,62 @@ xf86MonPtr
 xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
     return xf86DoEEDID(scrnIndex, pBus, FALSE);
+}
+
+/* XXX write me */
+static void *
+DDC2ReadDisplayID(void)
+{
+    return FALSE;
+}
+
+/**
+ * Attempts to probe the monitor for DisplayID information, if NoDDC and
+ * NoDDC2 are unset.  DisplayID blocks are interpreted and the results
+ * returned in an xf86MonPtr.
+ *
+ * This function does not affect the list of modes used by drivers -- it is up
+ * to the driver to decide policy on what to do with DisplayID information.
+ *
+ * @return pointer to a new xf86MonPtr containing the DisplayID information.
+ * @return NULL if no monitor attached or failure to interpret the DisplayID.
+ */
+xf86MonPtr
+xf86DoDisplayID(int scrnIndex, I2CBusPtr pBus)
+{
+    ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
+    unsigned char *did = NULL;
+    xf86MonPtr tmp = NULL;
+    I2CDevPtr dev = NULL;
+    /* Default DDC and DDC2 to enabled. */
+    Bool noddc = FALSE, noddc2 = FALSE;
+    OptionInfoPtr options;
+
+    options = xalloc(sizeof(DDCOptions));
+    if (!options)
+	return NULL;
+    memcpy(options, DDCOptions, sizeof(DDCOptions));
+    xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, options);
+
+    xf86GetOptValBool(options, DDCOPT_NODDC, &noddc);
+    xf86GetOptValBool(options, DDCOPT_NODDC2, &noddc2);
+    xfree(options);
+
+    if (noddc || noddc2)
+	return NULL;
+
+    if (!(dev = DDC2Init(scrnIndex, pBus)))
+	return NULL;
+
+    if ((did = DDC2ReadDisplayID())) {
+	tmp = xcalloc(1, sizeof(*tmp));
+	if (!tmp)
+	    return NULL;
+
+	tmp->scrnIndex = scrnIndex;
+	tmp->flags |= MONITOR_DISPLAYID;
+	tmp->rawData = did;
+    }
+
+    return tmp;
 }
