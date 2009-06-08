@@ -23,22 +23,6 @@
 
 #define RETRIES 4
 
-static unsigned char *EDIDRead_DDC1(
-    ScrnInfoPtr pScrn,
-    DDC1SetSpeedProc,
-    unsigned int (*)(ScrnInfoPtr)
-);
-
-static Bool TestDDC1(
-    ScrnInfoPtr pScrn,
-    unsigned int (*)(ScrnInfoPtr)
-);
-
-static unsigned int *FetchEDID_DDC1(
-    ScrnInfoPtr,
-    register unsigned int (*)(ScrnInfoPtr)
-);
-
 typedef enum {
     DDCOPT_NODDC1,
     DDCOPT_NODDC2,
@@ -51,6 +35,73 @@ static const OptionInfoRec DDCOptions[] = {
     { DDCOPT_NODDC,	"NoDDC",	OPTV_BOOLEAN,	{0},	FALSE },
     { -1,		NULL,		OPTV_NONE,	{0},	FALSE },
 };
+
+/* fetch entire EDID record; DDC bit needs to be masked */
+static unsigned int * 
+FetchEDID_DDC1(register ScrnInfoPtr pScrn,
+	       register unsigned int (*read_DDC)(ScrnInfoPtr))
+{
+    int count = NUM;
+    unsigned int *ptr, *xp;
+
+    ptr=xp=xalloc(sizeof(int)*NUM); 
+
+    if (!ptr)  return NULL;
+    do {
+	/* wait for next retrace */
+	*xp = read_DDC(pScrn);
+	xp++;
+    } while(--count);
+    return (ptr);
+}
+
+/* test if DDC1  return 0 if not */
+static Bool
+TestDDC1(ScrnInfoPtr pScrn, unsigned int (*read_DDC)(ScrnInfoPtr))
+{
+    int old, count;
+
+    old = read_DDC(pScrn);
+    count = HEADER * BITS_PER_BYTE;
+    do {
+	/* wait for next retrace */
+	if (old != read_DDC(pScrn)) break;
+    } while(count--);
+    return (count);
+}
+
+/* 
+ * read EDID record , pass it to callback function to interpret.
+ * callback function will store it for further use by calling
+ * function; it will also decide if we need to reread it 
+ */
+static unsigned char *
+EDIDRead_DDC1(ScrnInfoPtr pScrn, DDC1SetSpeedProc DDCSpeed, 
+              unsigned int (*read_DDC)(ScrnInfoPtr))
+{
+    unsigned char *EDID_block = NULL;
+    int count = RETRIES;
+
+    if (!read_DDC) { 
+	xf86DrvMsg(pScrn->scrnIndex, X_PROBED, 
+		   "chipset doesn't support DDC1\n");
+	return NULL; 
+    };
+
+    if (TestDDC1(pScrn,read_DDC)==-1) { 
+	xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "No DDC signal\n"); 
+	return NULL; 
+    };
+
+    if (DDCSpeed) DDCSpeed(pScrn,DDC_FAST);
+    do {
+	EDID_block = GetEDID_DDC1(FetchEDID_DDC1(pScrn,read_DDC)); 
+	count --;
+    } while (!EDID_block && count);
+    if (DDCSpeed) DDCSpeed(pScrn,DDC_SLOW);
+
+    return EDID_block;
+}
 
 /**
  * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC1 are
@@ -276,71 +327,4 @@ xf86MonPtr
 xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
     return xf86DoEEDID(scrnIndex, pBus, FALSE);
-}
-
-/* 
- * read EDID record , pass it to callback function to interpret.
- * callback function will store it for further use by calling
- * function; it will also decide if we need to reread it 
- */
-static unsigned char *
-EDIDRead_DDC1(ScrnInfoPtr pScrn, DDC1SetSpeedProc DDCSpeed, 
-              unsigned int (*read_DDC)(ScrnInfoPtr))
-{
-    unsigned char *EDID_block = NULL;
-    int count = RETRIES;
-
-    if (!read_DDC) { 
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED, 
-		   "chipset doesn't support DDC1\n");
-	return NULL; 
-    };
-
-    if (TestDDC1(pScrn,read_DDC)==-1) { 
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "No DDC signal\n"); 
-	return NULL; 
-    };
-
-    if (DDCSpeed) DDCSpeed(pScrn,DDC_FAST);
-    do {
-	EDID_block = GetEDID_DDC1(FetchEDID_DDC1(pScrn,read_DDC)); 
-	count --;
-    } while (!EDID_block && count);
-    if (DDCSpeed) DDCSpeed(pScrn,DDC_SLOW);
-
-    return EDID_block;
-}
-
-/* test if DDC1  return 0 if not */
-static Bool
-TestDDC1(ScrnInfoPtr pScrn, unsigned int (*read_DDC)(ScrnInfoPtr))
-{
-    int old, count;
-
-    old = read_DDC(pScrn);
-    count = HEADER * BITS_PER_BYTE;
-    do {
-	/* wait for next retrace */
-	if (old != read_DDC(pScrn)) break;
-    } while(count--);
-    return (count);
-}
-
-/* fetch entire EDID record; DDC bit needs to be masked */
-static unsigned int * 
-FetchEDID_DDC1(register ScrnInfoPtr pScrn,
-	       register unsigned int (*read_DDC)(ScrnInfoPtr))
-{
-    int count = NUM;
-    unsigned int *ptr, *xp;
-
-    ptr=xp=xalloc(sizeof(int)*NUM); 
-
-    if (!ptr)  return NULL;
-    do {
-	/* wait for next retrace */
-	*xp = read_DDC(pScrn);
-	xp++;
-    } while(--count);
-    return (ptr);
 }
