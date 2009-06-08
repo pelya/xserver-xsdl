@@ -786,10 +786,10 @@ static void SDeviceHierarchyEvent(xXIHierarchyEvent *from,
     swaps(&to->deviceid, n);
     swapl(&to->time, n);
     swapl(&to->flags, n);
-    swaps(&to->num_devices, n);
+    swaps(&to->num_info, n);
 
     info = (xXIHierarchyInfo*)&to[1];
-    for (i = 0; i< from->num_devices; i++)
+    for (i = 0; i< from->num_info; i++)
     {
         swaps(&info->deviceid, n);
         swaps(&info->attachment, n);

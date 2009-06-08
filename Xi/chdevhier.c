@@ -77,7 +77,7 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
     ev->evtype = XI_HierarchyChanged;
     ev->time = GetTimeInMillis();
     ev->flags = 0;
-    ev->num_devices = inputInfo.numDevices;
+    ev->num_info = inputInfo.numDevices;
 
     info = (xXIHierarchyInfo*)&ev[1];
     for (dev = inputInfo.devices; dev; dev = dev->next)
@@ -109,12 +109,12 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
             info->flags = flags[i];
             info->use = 0;
             ev->flags |= info->flags;
-            ev->num_devices++;
+            ev->num_info++;
             info++;
         }
     }
 
-    ev->length = (ev->num_devices * sizeof(xXIHierarchyInfo))/4;
+    ev->length = (ev->num_info * sizeof(xXIHierarchyInfo))/4;
 
     dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, (XI_HierarchyChangedMask >> 8), (xEvent*)ev, 1);
