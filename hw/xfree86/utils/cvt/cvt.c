@@ -261,11 +261,14 @@ main (int argc, char *argv[])
         HDisplay += 8;
     }
 
-    if (Reduced && (VRefresh != 60.0)) {
-        fprintf(stderr, "\nERROR: 60Hz refresh rate required for reduced"
-                " blanking.\n");
-        PrintUsage(argv[0]);
-        return 0;
+    if (Reduced) {
+	if ((VRefresh / 60.0) != floor(VRefresh / 60.0)) {
+	    fprintf(stderr,
+		    "\nERROR: Multiple of 60Hz refresh rate required for "
+		    " reduced blanking.\n");
+	    PrintUsage(argv[0]);
+	    return 0;
+	}
     }
 
     IsCVT = CVTCheckStandard(HDisplay, VDisplay, VRefresh, Reduced, Verbose);
