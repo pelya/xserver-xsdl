@@ -73,6 +73,9 @@ ProcXISelectEvent(ClientPtr client)
     REQUEST(xXISelectEventsReq);
     REQUEST_AT_LEAST_SIZE(xXISelectEventsReq);
 
+    if (stuff->num_masks == 0)
+        return BadValue;
+
     rc = dixLookupWindow(&win, stuff->window, client, DixReceiveAccess);
     if (rc != Success)
         return rc;
