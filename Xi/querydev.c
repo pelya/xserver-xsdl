@@ -284,7 +284,7 @@ SwapKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
     swaps(&info->length, n);
 
     for (i = 0, key = (uint32_t*)&info[1]; i < info->num_keycodes; i++, key++)
-        swaps(key, n);
+        swapl(key, n);
 
     swaps(&info->num_keycodes, n);
 }
