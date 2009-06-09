@@ -45,7 +45,7 @@ SProcXISelectEvent(ClientPtr client)
 
     REQUEST(xXISelectEventsReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(xXISelectEventsReq);
+    REQUEST_AT_LEAST_SIZE(xXISelectEventsReq);
     swapl(&stuff->window, n);
     swaps(&stuff->num_masks, n);
 
