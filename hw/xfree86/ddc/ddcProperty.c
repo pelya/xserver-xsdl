@@ -45,7 +45,10 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
     Bool makeEDID1prop = FALSE;
     Bool makeEDID2prop = FALSE;
 
-    if (DDC->ver.version == 1) {
+    if (DDC->flags & MONITOR_DISPLAYID) {
+	/* Don't bother, use RANDR already */
+	return;
+    } else if (DDC->ver.version == 1) {
 	makeEDID1prop = TRUE;
     } else if (DDC->ver.version == 2) {
 	int checksum1;
