@@ -428,13 +428,13 @@ SwapDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
         int len = ((xXIAnyInfo*)any)->length;
         switch(((xXIAnyInfo*)any)->type)
         {
-            case ButtonClass:
+            case XIButtonClass:
                 SwapButtonInfo(dev, (xXIButtonInfo*)any);
                 break;
-            case KeyClass:
+            case XIKeyClass:
                 SwapKeyInfo(dev, (xXIKeyInfo*)any);
                 break;
-            case ValuatorClass:
+            case XIValuatorClass:
                 SwapValuatorInfo(dev, (xXIValuatorInfo*)any);
                 break;
         }
