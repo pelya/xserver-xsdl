@@ -114,7 +114,10 @@ xf86SetDDCproperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
     if (!pScrn || !pScrn->monitor || !DDC)
         return FALSE;
 
-    xf86DDCMonitorSet(pScrn->scrnIndex, pScrn->monitor, DDC);
+    if (DDC->flags & MONITOR_DISPLAYID)
+	;
+    else
+	xf86EdidMonitorSet(pScrn->scrnIndex, pScrn->monitor, DDC);
 
     addRootWindowProperties(pScrn, DDC);
 

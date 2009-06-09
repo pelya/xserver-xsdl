@@ -943,7 +943,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
  * Fill out MonPtr with xf86MonPtr information.
  */
 void
-xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
+xf86EdidMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
