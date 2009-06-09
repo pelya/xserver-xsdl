@@ -115,11 +115,11 @@ SRRScreenChangeNotifyEvent(xRRScreenChangeNotifyEvent *from,
     cpswapl(from->root, to->root);
     cpswapl(from->window, to->window);
     cpswaps(from->sizeID, to->sizeID);
+    cpswaps(from->subpixelOrder, to->subpixelOrder);
     cpswaps(from->widthInPixels, to->widthInPixels);
     cpswaps(from->heightInPixels, to->heightInPixels);
     cpswaps(from->widthInMillimeters, to->widthInMillimeters);
     cpswaps(from->heightInMillimeters, to->heightInMillimeters);
-    cpswaps(from->subpixelOrder, to->subpixelOrder);
 }
 
 static void
@@ -133,8 +133,8 @@ SRRCrtcChangeNotifyEvent(xRRCrtcChangeNotifyEvent *from,
     cpswapl(from->window, to->window);
     cpswapl(from->crtc, to->crtc);
     cpswapl(from->mode, to->mode);
-    cpswapl(from->window, to->window);
     cpswaps(from->rotation, to->rotation);
+    /* pad1 */
     cpswaps(from->x, to->x);
     cpswaps(from->y, to->y);
     cpswaps(from->width, to->width);
@@ -155,6 +155,8 @@ SRROutputChangeNotifyEvent(xRROutputChangeNotifyEvent *from,
     cpswapl(from->crtc, to->crtc);
     cpswapl(from->mode, to->mode);
     cpswaps(from->rotation, to->rotation);
+    to->connection = from->connection;
+    to->subpixelOrder = from->subpixelOrder;
 }
 
 static void
@@ -168,6 +170,11 @@ SRROutputPropertyNotifyEvent(xRROutputPropertyNotifyEvent *from,
     cpswapl(from->output, to->output);
     cpswapl(from->atom, to->atom);
     cpswapl(from->timestamp, to->timestamp);
+    to->state = from->state;
+    /* pad1 */
+    /* pad2 */
+    /* pad3 */
+    /* pad4 */
 }
 
 static void
