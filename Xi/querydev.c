@@ -425,6 +425,7 @@ SwapDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
 
     for (i = 0; i < info->num_classes; i++)
     {
+        int len = ((xXIAnyInfo*)any)->length;
         switch(((xXIAnyInfo*)any)->type)
         {
             case ButtonClass:
@@ -438,7 +439,7 @@ SwapDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
                 break;
         }
 
-        any += (((xXIAnyInfo*)any)->length * 4);
+        any += len * 4;
     }
 
     swaps(&info->deviceid, n);
