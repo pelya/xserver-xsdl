@@ -266,9 +266,6 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     RRTransformRec	saved_transform;
     Bool		saved_transform_present;
 
-    if (crtc->funcs->set_mode_major)
-	return crtc->funcs->set_mode_major(crtc, mode, rotation, x, y);
-
     crtc->enabled = xf86CrtcInUse (crtc);
 
     /* We only hit this if someone explicitly sends a "disabled" modeset. */
@@ -305,6 +302,11 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 	crtc->transformPresent = TRUE;
     } else
 	crtc->transformPresent = FALSE;
+
+    if (crtc->funcs->set_mode_major) {
+	ret = crtc->funcs->set_mode_major(crtc, mode, rotation, x, y);
+	goto done;
+    }
 
     /* Pass our mode to the outputs and the CRTC to give them a chance to
      * adjust it according to limitations or output properties, and also
