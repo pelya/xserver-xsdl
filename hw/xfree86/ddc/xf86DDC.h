@@ -62,4 +62,15 @@ extern _X_EXPORT DisplayModePtr xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC);
 extern _X_EXPORT Bool
 xf86MonitorIsHDMI(xf86MonPtr mon);
 
+extern _X_EXPORT xf86MonPtr
+xf86DoDisplayID(int scrnIndex, I2CBusPtr pBus);
+
+extern _X_EXPORT void
+xf86DisplayIDMonitorSet(int scrnIndex, MonPtr mon, xf86MonPtr DDC);
+
+extern _X_EXPORT DisplayModePtr
+FindDMTMode(int hsize, int vsize, int refresh, Bool rb);
+
+extern _X_EXPORT const DisplayModeRec DMTModes[];
+
 #endif
