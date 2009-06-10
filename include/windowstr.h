@@ -59,7 +59,6 @@ SOFTWARE.
 #include "miscstruct.h"
 #include <X11/Xprotostr.h>
 #include "opaque.h"
-#include "inputstr.h"
 
 #define GuaranteeNothing	0
 #define GuaranteeVisBack	1
