@@ -150,12 +150,18 @@ void __glXAddToContextList(__GLXcontext *cx)
 
 void __glXRemoveFromContextList(__GLXcontext *cx)
 {
-    __GLXcontext *c, **prev;
+    __GLXcontext *c, *prev;
 
-    prev = &glxAllContexts;
-    for (c = glxAllContexts; c; c = c->next)
-	if (c == cx)
-	    *prev = c->next;
+    if (cx == glxAllContexts)
+	glxAllContexts = cx->next;
+    else {
+	prev = glxAllContexts;
+	for (c = glxAllContexts; c; c = c->next) {
+	    if (c == cx)
+		prev->next = c->next;
+	    prev = c;
+	}
+    }
 }
 
 /*
