@@ -31,6 +31,7 @@
 #endif
 #include "win.h"
 #include "dixstruct.h"
+#include "inputstr.h"
 
 
 /*
