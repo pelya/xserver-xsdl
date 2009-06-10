@@ -122,6 +122,7 @@ extern int            monitorResolution;
 
 char           *ephyrResName = NULL;
 int             ephyrResNameFromCmd = 0;
+char	       *ephyrTitle = NULL;
 
 static void
 hostx_set_fullscreen_hint(void);
@@ -222,20 +223,25 @@ hostx_set_screen_number(EphyrScreenInfo screen, int number)
 void
 hostx_set_win_title (EphyrScreenInfo screen, char *extra_text)
 {
-  struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
-#define BUF_LEN 256
-  char buf[BUF_LEN+1];
+    struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
 
-  if (!host_screen)
+    if (!host_screen)
     return;
 
-  memset (buf, 0, BUF_LEN+1) ;
-  snprintf (buf, BUF_LEN, "Xephyr on %s.%d %s", 
-            HostX.server_dpy_name, 
-            host_screen->mynum,
-            (extra_text != NULL) ? extra_text : "");
+    if (ephyrTitle) {
+      XStoreName(HostX.dpy, host_screen->win, ephyrTitle);
+    } else {
+#define BUF_LEN 256
+      char buf[BUF_LEN+1];
 
-  XStoreName (HostX.dpy, host_screen->win, buf);
+      memset (buf, 0, BUF_LEN+1) ;
+      snprintf (buf, BUF_LEN, "Xephyr on %s.%d %s", 
+		HostX.server_dpy_name, 
+		host_screen->mynum,
+		(extra_text != NULL) ? extra_text : "");
+
+      XStoreName (HostX.dpy, host_screen->win, buf);
+    }
 }
 
 int
@@ -317,6 +323,12 @@ hostx_use_resname (char *name, int fromcmd)
 {
   ephyrResName = name;
   ephyrResNameFromCmd = fromcmd;
+}
+
+void
+hostx_set_title (char *title)
+{
+  ephyrTitle = title;
 }
 
 int

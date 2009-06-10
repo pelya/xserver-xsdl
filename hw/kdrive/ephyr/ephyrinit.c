@@ -110,6 +110,7 @@ ddxUseMsg (void)
 #endif
   ErrorF("-noxv                do not use XV\n");
   ErrorF("-name [name]         define the name in the WM_CLASS property\n");
+  ErrorF("-title [title]       set the window title in the WM_NAME property\n");
   ErrorF("\n");
 
   exit(1);
@@ -234,6 +235,19 @@ ddxProcessArgument (int argc, char **argv, int i)
        if (i+1 < argc && argv[i+1][0] != '-')
          {
            hostx_use_resname(argv[i+1], 1);
+           return 2;
+         }
+       else
+         {
+           UseMsg();
+           return 0;
+         }
+   }
+  else if (!strcmp (argv[i], "-title"))
+   {
+       if (i+1 < argc && argv[i+1][0] != '-')
+         {
+           hostx_set_title(argv[i+1]);
            return 2;
          }
        else
