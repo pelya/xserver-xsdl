@@ -707,7 +707,8 @@ LookupClientResourceComplex(
     pointer cdata
 ){
     ResourcePtr *resources;
-    ResourcePtr this;
+    ResourcePtr this, next;
+    pointer value;
     int i;
 
     if (!client)
@@ -715,10 +716,13 @@ LookupClientResourceComplex(
 
     resources = clientTable[client->index].resources;
     for (i = 0; i < clientTable[client->index].buckets; i++) {
-        for (this = resources[i]; this; this = this->next) {
+        for (this = resources[i]; this; this = next) {
+	    next = this->next;
 	    if (!type || this->type == type) {
-		if((*func)(this->value, this->id, cdata))
-		    return this->value;
+		/* workaround func freeing the type as DRI1 does */
+		value = this->value;
+		if((*func)(value, this->id, cdata))
+		    return value;
 	    }
 	}
     }
