@@ -27,8 +27,8 @@
 #include <dix-config.h>
 #endif
 
-int SProcXISelectEvent(ClientPtr client);
-int ProcXISelectEvent(ClientPtr client);
+int SProcXISelectEvents(ClientPtr client);
+int ProcXISelectEvents(ClientPtr client);
 int SProcXIGetSelectedEvents(ClientPtr client);
 int ProcXIGetSelectedEvents(ClientPtr client);
 void SRepXIGetSelectedEvents(ClientPtr client,

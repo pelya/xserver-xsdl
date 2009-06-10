@@ -37,7 +37,7 @@
 #include "xiselectev.h"
 
 int
-SProcXISelectEvent(ClientPtr client)
+SProcXISelectEvents(ClientPtr client)
 {
     char n;
     int i;
@@ -57,11 +57,11 @@ SProcXISelectEvent(ClientPtr client)
         evmask = (xXIEventMask*)(((char*)evmask) + evmask->mask_len * 4);
     }
 
-    return (ProcXISelectEvent(client));
+    return (ProcXISelectEvents(client));
 }
 
 int
-ProcXISelectEvent(ClientPtr client)
+ProcXISelectEvents(ClientPtr client)
 {
     int rc, num_masks, i;
     WindowPtr win;

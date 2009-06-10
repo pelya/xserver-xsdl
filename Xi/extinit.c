@@ -244,7 +244,7 @@ static int (*ProcIVector[])(ClientPtr) = {
         ProcXIChangeHierarchy,                  /* 43 */
         ProcXISetClientPointer,                 /* 44 */
         ProcXIGetClientPointer,                 /* 45 */
-        ProcXISelectEvent,                      /* 46 */
+        ProcXISelectEvents,                     /* 46 */
         ProcXIQueryVersion,                     /* 47 */
         ProcXIQueryDevice,                      /* 48 */
         ProcXISetFocus,                         /* 49 */
@@ -309,7 +309,7 @@ static int (*SProcIVector[])(ClientPtr) = {
         SProcXIChangeHierarchy,                  /* 43 */
         SProcXISetClientPointer,                 /* 44 */
         SProcXIGetClientPointer,                 /* 45 */
-        SProcXISelectEvent,                      /* 46 */
+        SProcXISelectEvents,                     /* 46 */
         SProcXIQueryVersion,                     /* 47 */
         SProcXIQueryDevice,                      /* 48 */
         SProcXISetFocus,                         /* 49 */
