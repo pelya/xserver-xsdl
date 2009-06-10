@@ -542,7 +542,6 @@ void
 KdUseMsg (void)
 {
     ErrorF("\nTinyX Device Dependent Usage:\n");
-    ErrorF("-card pcmcia     Use PCMCIA card as additional screen\n");
     ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
     ErrorF("-rgba rgb/bgr/vrgb/vbgr/none   Specify subpixel ordering for LCD panels\n");
     ErrorF("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
@@ -569,14 +568,6 @@ KdProcessArgument (int argc, char **argv, int i)
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
 
-    if (!strcmp (argv[i], "-card"))
-    {
-	if ((i+1) < argc)
-	    InitCard (argv[i+1]);
-	else
-	    UseMsg ();
-	return 2;
-    }
     if (!strcmp (argv[i], "-screen"))
     {
 	if ((i+1) < argc)
