@@ -239,10 +239,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
     WriteReplyToClient(client, sizeof(xXIGetSelectedEventsReply), &reply);
 
     if (reply.num_masks)
-    {
-        WriteSwappedDataToClient(client, reply.length * 4, buffer);
-    }
-
+        WriteToClient(client, reply.length * 4, buffer);
 
     xfree(buffer);
     return Success;
