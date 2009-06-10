@@ -120,10 +120,10 @@ ProcXIPassiveGrabDevice(ClientPtr client)
         return BadValue;
     }
 
-    if ((stuff->mask_len * 4) > XI_LASTEVENT)
+    if ((stuff->mask_len * 4) > XI2LASTEVENT)
     {
         unsigned char *bits = (unsigned char*)&stuff[1];
-        for (i = XI_LASTEVENT; i < stuff->mask_len * 4; i++)
+        for (i = XI2LASTEVENT; i < stuff->mask_len * 4; i++)
         {
             if (BitIsOn(bits, i))
                 return BadValue;

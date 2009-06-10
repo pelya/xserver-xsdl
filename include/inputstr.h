@@ -55,7 +55,6 @@ SOFTWARE.
 #include "cursorstr.h"
 #include "geext.h"
 #include "privates.h"
-#include <X11/extensions/XI2proto.h>
 
 #define BitIsOn(ptr, bit) (((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
 #define SetBit(ptr, bit)  (((BYTE *) (ptr))[(bit)>>3] |= (1 << ((bit) & 7)))
@@ -65,7 +64,13 @@ SOFTWARE.
 	(CLIENT_BITS((obj)->resource) == (client)->clientAsMask)
 
 #define EMASKSIZE	MAXDEVICES + 2
-#define XI2MASKSIZE     ((XI_LASTEVENT + 7)/8) /* no of bits for masks */
+
+/* This is the last XI2 event supported by the server. If you add
+ * events to the protocol, the server will not support these events until
+ * this number here is bumped.
+ */
+#define XI2LASTEVENT    13 /* XI_PropertyEvent */
+#define XI2MASKSIZE     ((XI2LASTEVENT + 7)/8) /* no of bits for masks */
 
 /**
  * This struct stores the core event mask for each client except the client

@@ -108,10 +108,10 @@ ProcXISelectEvents(ClientPtr client)
                 return BadValue;
         }
 
-        if ((evmask->mask_len * 4) >= (XI_LASTEVENT + 8)/8)
+        if ((evmask->mask_len * 4) >= (XI2LASTEVENT + 8)/8)
         {
             unsigned char *bits = (unsigned char*)&evmask[1];
-            for (i = XI_LASTEVENT + 1; i < evmask->mask_len * 4; i++)
+            for (i = XI2LASTEVENT + 1; i < evmask->mask_len * 4; i++)
             {
                 if (BitIsOn(bits, i))
                     return BadValue;

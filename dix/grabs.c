@@ -53,6 +53,7 @@ SOFTWARE.
 #include <X11/X.h>
 #include "misc.h"
 #include <X11/Xproto.h>
+#include <X11/extensions/XI2.h>
 #include "windowstr.h"
 #include "inputstr.h"
 #include "cursorstr.h"
