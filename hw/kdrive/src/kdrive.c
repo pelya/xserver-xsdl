@@ -24,9 +24,6 @@
 #include <kdrive-config.h>
 #endif
 #include "kdrive.h"
-#ifdef PSEUDO8
-#include "pseudo8/pseudo8.h"
-#endif
 #include <mivalidate.h>
 #include <dixstruct.h>
 #include "privates.h"
@@ -557,9 +554,6 @@ KdUseMsg (void)
     ErrorF("-switchCmd       Command to execute on vt switch\n");
     ErrorF("-zap             Terminate server on Ctrl+Alt+Backspace\n");
     ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
-#ifdef PSEUDO8
-    p8UseMsg ();
-#endif
 }
 
 int
@@ -684,11 +678,7 @@ KdProcessArgument (int argc, char **argv, int i)
         return 2;
     }
 
-#ifdef PSEUDO8
-    return p8ProcessArgument (argc, argv, i);
-#else
     return 0;
-#endif
 }
 
 /*
@@ -1058,10 +1048,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     if (!screen->dumb && card->cfuncs->initAccel)
 	if (!(*card->cfuncs->initAccel) (pScreen))
 	    screen->dumb = TRUE;
-    
-#ifdef PSEUDO8
-    (void) p8Init (pScreen, PSEUDO8_USE_DEFAULT);
-#endif
     
     if (card->cfuncs->finishInitScreen)
 	if (!(*card->cfuncs->finishInitScreen) (pScreen))
