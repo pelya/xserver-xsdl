@@ -2167,7 +2167,10 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
         others= wOtherInputMasks(win)->inputClients;
     }
 
-    memcpy(others->xi2mask[dev->id], mask, len);
+    if (!len)
+        memset(others->xi2mask[dev->id], 0, sizeof(others->xi2mask[dev->id]));
+    else
+        memcpy(others->xi2mask[dev->id], mask, len);
 
     RecalculateDeviceDeliverableEvents(win);
 }
