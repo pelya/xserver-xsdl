@@ -79,13 +79,18 @@ ProcXISetClientPointer(ClientPtr client)
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
     if (rc != Success)
+    {
+        client->errorValue = stuff->deviceid;
         return rc;
+    }
 
-    if (!IsPointerDevice(pDev) || !IsMaster(pDev))
+    if (!IsMaster(pDev))
     {
         client->errorValue = stuff->deviceid;
         return BadDevice;
     }
+
+    pDev = GetMaster(pDev, MASTER_POINTER);
 
     if (stuff->win != None)
     {
@@ -93,15 +98,15 @@ ProcXISetClientPointer(ClientPtr client)
                 DixWriteAccess);
 
         if (rc != Success)
-            return rc;
+            return BadWindow;
 
     } else
         targetClient = client;
 
     if (!SetClientPointer(targetClient, client, pDev))
     {
-        client->errorValue = stuff->win;
-        return BadAccess;
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
     }
 
     return Success;
