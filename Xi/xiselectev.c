@@ -224,10 +224,9 @@ ProcXIGetSelectedEvents(ClientPtr client)
         {
             if (devmask[j] != 0)
             {
+                int mask_len = (j + 4)/4; /* j is an index, hence + 4, not + 3 */
                 evmask->deviceid = i;
-                evmask->mask_len = (j + 4)/4; /* j is an index, hence + 4,
-                                                 not + 3 */
-
+                evmask->mask_len = mask_len;
                 reply.num_masks++;
                 reply.length += sizeof(xXIEventMask)/4 + evmask->mask_len;
 
@@ -239,7 +238,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
 
                 memcpy(&evmask[1], devmask, j + 1);
                 evmask = (xXIEventMask*)((char*)evmask +
-                           sizeof(xXIEventMask) + evmask->mask_len * 4);
+                           sizeof(xXIEventMask) + mask_len * 4);
                 break;
             }
         }
