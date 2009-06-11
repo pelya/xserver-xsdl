@@ -5691,8 +5691,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 }
 
 /*
- * Set the client pointer for the given client. Second parameter setter could
- * be used in the future to determine access rights. Unused for now.
+ * Set the client pointer for the given client.
  *
  * A client can have exactly one ClientPointer. Each time a
  * request/reply/event is processed and the choice of devices is ambiguous
@@ -5701,7 +5700,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
  * If a keyboard is needed, the first keyboard paired with the CP is used.
  */
 Bool
-SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
+SetClientPointer(ClientPtr client, DeviceIntPtr device)
 {
     if (!IsMaster(device))
     {
