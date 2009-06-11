@@ -202,7 +202,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
         return Success;
     }
 
-    buffer = xcalloc(MAXDEVICES, sizeof(xXIEventMask) + XI2MASKSIZE);
+    buffer = xcalloc(MAXDEVICES, sizeof(xXIEventMask) + ((XI2MASKSIZE + 3)/4) * 4);
     if (!buffer)
         return BadAlloc;
 
