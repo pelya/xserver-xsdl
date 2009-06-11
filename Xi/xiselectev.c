@@ -170,6 +170,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
     OtherInputMasks *masks;
     InputClientsPtr others = NULL;
     xXIEventMask *evmask = NULL;
+    DeviceIntPtr dev;
 
     REQUEST(xXIGetSelectedEventsReq);
     REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
@@ -210,6 +211,14 @@ ProcXIGetSelectedEvents(ClientPtr client)
     {
         int j;
         unsigned char *devmask = others->xi2mask[i];
+
+        if (i > 2)
+        {
+            rc = dixLookupDevice(&dev, i, client, DixReadAccess);
+            if (rc != Success)
+                continue;
+        }
+
 
         for (j = XI2MASKSIZE - 1; j >= 0; j--)
         {
