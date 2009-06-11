@@ -892,6 +892,12 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
 				   (1 << DirectColor)),
 				  8, TrueColor, 0xff0000, 0x00ff00, 0x0000ff);
 	break;
+    case 30:
+	miSetVisualTypesAndMasks (30,
+				  ((1 << TrueColor) |
+				   (1 << DirectColor)),
+				  10, TrueColor, 0x3ff00000, 0x000ffc00, 0x000003ff);
+	break;
     }
 
     miSetPixmapDepths ();
