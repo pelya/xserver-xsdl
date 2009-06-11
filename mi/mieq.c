@@ -277,6 +277,10 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
         case ET_DeviceChanged:
             event->device.deviceid = dev->id;
             break;
+#if XFreeXDGA
+	case ET_DGAEvent:
+	    break;
+#endif
         case ET_Raw:
             event->raw.deviceid = dev->id;
             break;
