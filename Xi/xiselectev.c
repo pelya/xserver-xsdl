@@ -46,7 +46,7 @@ SProcXISelectEvents(ClientPtr client)
     REQUEST(xXISelectEventsReq);
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xXISelectEventsReq);
-    swapl(&stuff->window, n);
+    swapl(&stuff->win, n);
     swaps(&stuff->num_masks, n);
 
     evmask = (xXIEventMask*)&stuff[1];
@@ -76,7 +76,7 @@ ProcXISelectEvents(ClientPtr client)
     if (stuff->num_masks == 0)
         return BadValue;
 
-    rc = dixLookupWindow(&win, stuff->window, client, DixReceiveAccess);
+    rc = dixLookupWindow(&win, stuff->win, client, DixReceiveAccess);
     if (rc != Success)
         return rc;
 
@@ -154,7 +154,7 @@ SProcXIGetSelectedEvents(ClientPtr client)
     REQUEST(xXIGetSelectedEventsReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
-    swapl(&stuff->window, n);
+    swapl(&stuff->win, n);
 
     return (ProcXIGetSelectedEvents(client));
 }
@@ -175,7 +175,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
     REQUEST(xXIGetSelectedEventsReq);
     REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
 
-    rc = dixLookupWindow(&win, stuff->window, client, DixReceiveAccess);
+    rc = dixLookupWindow(&win, stuff->win, client, DixReceiveAccess);
     if (rc != Success)
         return rc;
 
