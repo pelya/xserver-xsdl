@@ -2012,5 +2012,6 @@ hw/kdrive/linux/Makefile
 hw/kdrive/sdl/Makefile
 hw/kdrive/src/Makefile
 test/Makefile
+test/xi2/Makefile
 xorg-server.pc
 ])

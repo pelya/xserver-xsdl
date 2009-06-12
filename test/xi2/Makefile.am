@@ -1,0 +1,6 @@
+if UNITTESTS
+AM_CFLAGS = $(DIX_CFLAGS) $(GLIB_CFLAGS) @XORG_CFLAGS@
+INCLUDES = @XORG_INCS@
+TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLIB_LIBS)
+COMMON_SOURCES=protocol-common.h protocol-common.c
+endif
