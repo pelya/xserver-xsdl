@@ -3,7 +3,8 @@ check_PROGRAMS =  \
 	protocol-xiqueryversion \
 	protocol-xiquerydevice \
 	protocol-xiselectevents \
-	protocol-xigetselectedevents
+	protocol-xigetselectedevents \
+        protocol-xisetclientpointer
 
 TESTS=$(check_PROGRAMS)
 
@@ -16,14 +17,17 @@ protocol_xiqueryversion_LDADD=$(TEST_LDADD)
 protocol_xiquerydevice_LDADD=$(TEST_LDADD)
 protocol_xiselectevents_LDADD=$(TEST_LDADD)
 protocol_xigetselectedevents_LDADD=$(TEST_LDADD)
+protocol_xisetclientpointer_LDADD=$(TEST_LDADD)
 
 protocol_xiqueryversion_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient
 protocol_xiquerydevice_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient
 protocol_xiselectevents_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,dixLookupWindow -Wl,-wrap,XISetEventMask
 protocol_xigetselectedevents_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow -Wl,-wrap,AddResource
+protocol_xisetclientpointer_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,dixLookupClient
 
 protocol_xiqueryversion_SOURCES=$(COMMON_SOURCES) protocol-xiqueryversion.c
 protocol_xiquerydevice_SOURCES=$(COMMON_SOURCES) protocol-xiquerydevice.c
 protocol_xiselectevents_SOURCES=$(COMMON_SOURCES) protocol-xiselectevents.c
 protocol_xigetselectedevents_SOURCES=$(COMMON_SOURCES) protocol-xigetselectedevents.c
+protocol_xisetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xisetclientpointer.c
 endif
