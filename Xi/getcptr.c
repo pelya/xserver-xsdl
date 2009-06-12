@@ -59,22 +59,21 @@ SProcXIGetClientPointer(ClientPtr client)
 
 int ProcXIGetClientPointer(ClientPtr client)
 {
-    int err;
-    WindowPtr win;
+    int rc;
     ClientPtr winclient;
     xXIGetClientPointerReply rep;
     REQUEST(xXIGetClientPointerReq);
     REQUEST_SIZE_MATCH(xXIGetClientPointerReq);
 
-    err = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
-    if (err != Success)
+    if (stuff->win != None)
     {
-        SendErrorToClient(client, IReqCode, X_XIGetClientPointer,
-                stuff->win, err);
-        return Success;
-    }
+        rc = dixLookupClient(&winclient, stuff->win, client,
+                DixWriteAccess);
 
-    winclient = wClient(win);
+        if (rc != Success)
+            return BadWindow;
+    } else
+        winclient = client;
 
     rep.repType = X_Reply;
     rep.RepType = X_XIGetClientPointer;
