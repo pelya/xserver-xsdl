@@ -313,32 +313,24 @@ miClipPictureSrc (RegionPtr	pRegion,
 		  int		dx,
 		  int		dy)
 {
-    /* XXX what to do with clipping from transformed pictures? */
-    if (pPicture->transform || !pPicture->pDrawable)
-	return TRUE;
-    if (pPicture->repeat)
+    if (pPicture->clientClipType != CT_NONE)
     {
-	if (pPicture->clientClipType != CT_NONE)
-	{
-	    pixman_region_translate ( pRegion, 
-			     dx - pPicture->clipOrigin.x,
-			     dy - pPicture->clipOrigin.y);
-	    if (!REGION_INTERSECT (pScreen, pRegion, pRegion, 
-				   (RegionPtr) pPicture->pCompositeClip)) // clientClip))
-		return FALSE;
-	    pixman_region_translate ( pRegion, 
-			     - (dx - pPicture->clipOrigin.x),
-			     - (dy - pPicture->clipOrigin.y));
-	}
-	return TRUE;
+	Bool result;
+	
+	pixman_region_translate ( pPicture->clientClip,
+				  pPicture->clipOrigin.x - dx,
+				  pPicture->clipOrigin.y - dy);
+
+	result = REGION_INTERSECT (pScreen, pRegion, pRegion, pPicture->clientClip);
+	
+	pixman_region_translate ( pPicture->clientClip,
+				  - (pPicture->clipOrigin.x - dx),
+				  - (pPicture->clipOrigin.y - dy));
+
+	if (!result)
+	    return FALSE;
     }
-    else
-    {
-	return miClipPictureReg (pRegion,
-				 pPicture->pCompositeClip,
-				 dx,
-				 dy);
-    }
+    return TRUE;
 }
 
 void
