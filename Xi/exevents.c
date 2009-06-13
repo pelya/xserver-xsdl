@@ -686,6 +686,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
     {
         len += sizeof(xXIButtonInfo);
         len += dce->buttons.num_buttons * sizeof(Atom); /* button names */
+        len += ((((dce->buttons.num_buttons + 7)/8) + 3)/4) * 4;
     }
     if (dce->num_valuators)
         len += sizeof(xXIValuatorInfo) * dce->num_valuators;

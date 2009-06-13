@@ -205,6 +205,7 @@ SizeDeviceClasses(DeviceIntPtr dev)
     {
         len += sizeof(xXIButtonInfo);
         len += dev->button->numButtons * sizeof(Atom);
+        len += ((((dev->button->numButtons + 7)/8) + 3)/4) * 4;
     }
 
     if (dev->key)
@@ -228,10 +229,23 @@ SizeDeviceClasses(DeviceIntPtr dev)
 int
 ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
 {
+    unsigned char *bits;
+    int mask_len;
+    int i;
+
+    mask_len = (((dev->button->numButtons + 7)/8) + 3)/4; /* 4-byte units*/
+
     info->type = ButtonClass;
     info->num_buttons = dev->button->numButtons;
-    info->length = 2 + info->num_buttons;
+    info->length = 2 + mask_len + info->num_buttons;
     info->sourceid = dev->button->sourceid;
+
+    bits = (unsigned char*)&info[1];
+    memset(bits, 0, mask_len * 4);
+
+    for (i = 0; dev && dev->button && i < dev->button->numButtons; i++)
+        if (BitIsOn(dev->button->down, i))
+            SetBit(bits, i);
 
     /** XXX: button labels */
 
