@@ -50,9 +50,6 @@ SOFTWARE.
  *
  */
 
-#define IsOn(ptr, bit) \
-	(((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
-
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
