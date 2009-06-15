@@ -219,7 +219,7 @@ port_rep_inb(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -1 : 1;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_insb(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_insb(%#x) %ld bytes at %8.8lx %s\n",
 		port, count, base, d_f ? "up" : "down");
     while (count--) {
 	MEM_WB(pInt, dst, x_inb(port));
@@ -235,7 +235,7 @@ port_rep_inw(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -2 : 2;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_insw(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_insw(%#x) %ld bytes at %8.8lx %s\n",
 	     port, count, base, d_f ? "up" : "down");
     while (count--) {
 	MEM_WW(pInt, dst, x_inw(port));
@@ -251,7 +251,7 @@ port_rep_inl(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -4 : 4;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_insl(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_insl(%#x) %ld bytes at %8.8lx %s\n",
 	     port, count, base, d_f ? "up" : "down");
     while (count--) {
 	MEM_WL(pInt, dst, x_inl(port));
@@ -267,7 +267,7 @@ port_rep_outb(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -1 : 1;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_outb(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_outb(%#x) %ld bytes at %8.8lx %s\n",
 	     port, count, base, d_f ? "up" : "down");
     while (count--) {
 	x_outb(port, MEM_RB(pInt, dst));
@@ -283,7 +283,7 @@ port_rep_outw(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -2 : 2;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_outw(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_outw(%#x) %ld bytes at %8.8lx %s\n",
 	     port, count, base, d_f ? "up" : "down");
     while (count--) {
 	x_outw(port, MEM_RW(pInt, dst));
@@ -299,7 +299,7 @@ port_rep_outl(xf86Int10InfoPtr pInt,
     register int inc = d_f ? -4 : 4;
     CARD32 dst = base;
     if (PRINT_PORT && DEBUG_IO_TRACE())
-	ErrorF(" rep_outl(%#x) %d bytes at %8.8x %s\n",
+	ErrorF(" rep_outl(%#x) %ld bytes at %8.8lx %s\n",
 	     port, count, base, d_f ? "up" : "down");
     while (count--) {
 	x_outl(port, MEM_RL(pInt, dst));
@@ -409,7 +409,7 @@ x_inl(CARD16 port)
     if (!pciCfg1in(port, &val)) {
 	val = inl(Int10Current->ioBase + port);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" inl(%#x) = %8.8x\n", port, val);
+	    ErrorF(" inl(%#x) = %8.8lx\n", port, val);
     }
     return val;
 }
@@ -419,7 +419,7 @@ x_outl(CARD16 port, CARD32 val)
 {
     if (!pciCfg1out(port, val)) {
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" outl(%#x, %8.8x)\n", port, val);
+	    ErrorF(" outl(%#x, %8.8lx)\n", port, val);
 	outl(Int10Current->ioBase + port, val);
     }
 }
@@ -500,7 +500,7 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	pci_device_cfg_read_u32(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr));
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_inl(%#x) = %8.8x\n", PciCfg1Addr, *val);
+	    ErrorF(" cfg_inl(%#lx) = %8.8lx\n", PciCfg1Addr, *val);
 	return 1;
     }
     return 0;
@@ -515,7 +515,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
     }
     if (addr == 0xCFC) {
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_outl(%#x, %8.8x)\n", PciCfg1Addr, val);
+	    ErrorF(" cfg_outl(%#lx, %8.8lx)\n", PciCfg1Addr, val);
 	pci_device_cfg_write_u32(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr));
 	return 1;
@@ -539,7 +539,7 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 	pci_device_cfg_read_u16(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_inw(%#x) = %4.4x\n", PciCfg1Addr + offset, *val);
+	    ErrorF(" cfg_inw(%#lx) = %4.4x\n", PciCfg1Addr + offset, *val);
 	return 1;
     }
     return 0;
@@ -560,7 +560,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 	const unsigned offset = addr - 0xCFC;
 
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_outw(%#x, %4.4x)\n", PciCfg1Addr + offset, val);
+	    ErrorF(" cfg_outw(%#lx, %4.4x)\n", PciCfg1Addr + offset, val);
 	pci_device_cfg_write_u16(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	return 1;
@@ -584,7 +584,7 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 	pci_device_cfg_read_u8(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_inb(%#x) = %2.2x\n", PciCfg1Addr + offset, *val);
+	    ErrorF(" cfg_inb(%#lx) = %2.2x\n", PciCfg1Addr + offset, *val);
 	return 1;
     }
     return 0;
@@ -605,7 +605,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 	const unsigned offset = addr - 0xCFC;
 
 	if (PRINT_PORT && DEBUG_IO_TRACE())
-	    ErrorF(" cfg_outb(%#x, %2.2x)\n", PciCfg1Addr + offset, val);
+	    ErrorF(" cfg_outb(%#lx, %2.2x)\n", PciCfg1Addr + offset, val);
 	pci_device_cfg_write_u8(pci_device_for_cfg_address(PciCfg1Addr),
 			val, PCI_OFFSET(PciCfg1Addr) + offset);
 	return 1;
