@@ -453,7 +453,7 @@ static int
 SProcRRGetOutputPrimary (ClientPtr client)
 {
     int n;
-    REQUEST(xRRSetOutputPrimaryReq);
+    REQUEST(xRRGetOutputPrimaryReq);
 
     REQUEST_SIZE_MATCH(xRRGetOutputPrimaryReq);
     swaps(&stuff->length, n);
