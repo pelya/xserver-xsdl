@@ -1540,7 +1540,7 @@ static int
 ProcXF86VidModeGetGammaRamp(ClientPtr client)
 {
     CARD16 *ramp = NULL;
-    int n, length, i;
+    int n, length;
     size_t ramplen;
     xXF86VidModeGetGammaRampReply rep;
     REQUEST(xXF86VidModeGetGammaRampReq);
@@ -1575,7 +1575,7 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
 	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.length, n);
 	swaps(&rep.size, n);
-	SwapShorts(ramp, length * 3);
+	SwapShorts((short*)ramp, length * 3);
     }
     WriteToClient(client, sizeof(xXF86VidModeGetGammaRampReply), (char *)&rep);
 
