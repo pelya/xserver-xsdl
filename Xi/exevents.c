@@ -539,7 +539,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         to->valuator = xrealloc(to->valuator, sizeof(ValuatorClassRec) +
                 from->valuator->numAxes * sizeof(AxisInfo) +
-                from->valuator->numAxes * sizeof(unsigned int));
+                from->valuator->numAxes * sizeof(double));
         v = to->valuator;
         if (!v)
             FatalError("[Xi] no memory for class shift.\n");
@@ -548,7 +548,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
         v->axes = (AxisInfoPtr)&v[1];
         memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
 
-        v->axisVal = (int*)(v->axes + from->valuator->numAxes);
+        v->axisVal = (double*)(v->axes + from->valuator->numAxes);
         v->sourceid = from->id;
     } else if (to->valuator && !from->valuator)
     {
@@ -844,6 +844,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         {
             /* XXX: Relative/Absolute mode */
             v->axisVal[i] = event->valuators.data[i];
+            v->axisVal[i] += event->valuators.data_frac[i];
         }
     }
 

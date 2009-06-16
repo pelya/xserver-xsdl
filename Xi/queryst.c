@@ -85,7 +85,7 @@ ProcXQueryDeviceState(ClientPtr client)
     xValuatorState *tv;
     xQueryDeviceStateReply rep;
     DeviceIntPtr dev;
-    int *values;
+    double *values;
 
     REQUEST(xQueryDeviceStateReq);
     REQUEST_SIZE_MATCH(xQueryDeviceStateReq);

@@ -1170,7 +1170,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 
     valc = (ValuatorClassPtr)xcalloc(1, sizeof(ValuatorClassRec) +
 				    numAxes * sizeof(AxisInfo) +
-				    numAxes * sizeof(unsigned int));
+				    numAxes * sizeof(double));
     if (!valc)
 	return FALSE;
 
@@ -1184,7 +1184,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->numAxes = numAxes;
     valc->mode = mode;
     valc->axes = (AxisInfoPtr)(valc + 1);
-    valc->axisVal = (int *)(valc->axes + numAxes);
+    valc->axisVal = (double *)(valc->axes + numAxes);
     dev->valuator = valc;
 
     AllocateMotionHistory(dev);

@@ -235,7 +235,7 @@ typedef struct _ValuatorClassRec {
 
     AxisInfoPtr 	  axes;
     unsigned short	  numAxes;
-    int			  *axisVal; /* always absolute, but device-coord system */
+    double		  *axisVal; /* always absolute, but device-coord system */
     CARD8	 	  mode;
     ValuatorAccelerationRec	accelScheme;
 } ValuatorClassRec, *ValuatorClassPtr;
