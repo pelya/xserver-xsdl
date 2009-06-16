@@ -38,6 +38,8 @@
 
 #if defined(XFree86Server)
 #include "inputstr.h"
+#include "exevents.h" /* for button/axes labels */
+#include "xserver-properties.h"
 
 /* Peek the internal button mapping */
 static CARD8 const *g_winMouseButtonMap = NULL;
@@ -70,6 +72,8 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
   int			lngWheelEvents = 2;
   CARD8			*map;
   DevicePtr		pDevice = (DevicePtr) pDeviceInt;
+  Atom *btn_labels;
+  Atom axes_labels[2];
 
   switch (iState)
     {
@@ -97,13 +101,27 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       map[0] = 0;
       for (i=1; i <= lngMouseButtons + lngWheelEvents; i++)
       	map[i] = i;
+
+      btn_labels = calloc((lngMouseButtons + lngWheelEvents), sizeof(Atom));
+      btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+      btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+      btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+      btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+      btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+
+      axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+      axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
       InitPointerDeviceStruct (pDevice,
+			       btn_labels,
 			       map,
 			       lngMouseButtons + lngWheelEvents,
 			       winMouseCtrl,
 			       GetMotionHistorySize(),
-			       2);
+			       2,
+			       axes_labels);
       free(map);
+      free(btn_labels);
 
 #if defined(XFree86Server)
       g_winMouseButtonMap = pDeviceInt->button->map;

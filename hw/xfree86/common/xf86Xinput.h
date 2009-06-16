@@ -171,7 +171,7 @@ extern _X_EXPORT LocalDevicePtr xf86FirstLocalDevice(void);
 extern _X_EXPORT int xf86ScaleAxis(int Cx, int Sxhigh, int Sxlow, int Rxhigh, int Rxlow);
 extern _X_EXPORT void xf86XInputSetScreen(LocalDevicePtr local, int screen_number, int x, int y);
 extern _X_EXPORT void xf86ProcessCommonOptions(InputInfoPtr pInfo, pointer options);
-extern _X_EXPORT void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval,
+extern _X_EXPORT void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval,
 				int maxval, int resolution, int min_res,
 				int max_res);
 extern _X_EXPORT void xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum);

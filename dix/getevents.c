@@ -214,7 +214,7 @@ CreateClassesChangedEvent(EventList* event,
     {
         dce->buttons.num_buttons = slave->button->numButtons;
         for (i = 0; i < dce->buttons.num_buttons; i++)
-            dce->buttons.names[i] = 0; /* FIXME */
+            dce->buttons.names[i] = slave->button->labels[i];
     }
     if (slave->valuator)
     {
@@ -226,7 +226,7 @@ CreateClassesChangedEvent(EventList* event,
             dce->valuators[i].resolution = slave->valuator->axes[i].resolution;
             /* This should, eventually, be a per-axis mode */
             dce->valuators[i].mode = slave->valuator->mode;
-            dce->valuators[i].name = 0; /* FIXME: */
+            dce->valuators[i].name = slave->valuator->axes[i].label;
         }
     }
     if (slave->key)

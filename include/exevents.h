@@ -73,6 +73,7 @@ extern _X_EXPORT int InitProximityClassDeviceStruct(
 extern _X_EXPORT void InitValuatorAxisStruct(
 	DeviceIntPtr           /* dev */,
 	int                    /* axnum */,
+	Atom                   /* label */,
 	int                    /* minval */,
 	int                    /* maxval */,
 	int                    /* resolution */,

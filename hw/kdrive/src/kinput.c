@@ -46,6 +46,7 @@
 #include "exevents.h"
 #include "extinit.h"
 #include "exglobals.h"
+#include "xserver-properties.h"
 
 #define AtomFromName(x) MakeAtom(x, strlen(x), 1)
 
@@ -382,6 +383,8 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
     DevicePtr       pDev = (DevicePtr)pDevice;
     KdPointerInfo   *pi;
     Atom            xiclass;
+    Atom            *btn_labels;
+    Atom            *axes_labels;
 
     if (!pDev)
 	return BadImplementation;
@@ -429,9 +432,47 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
             return !Success;
         }
 
-	InitPointerDeviceStruct(pDev, pi->map, pi->nButtons,
+	btn_labels = xcalloc(pi->nButtons, sizeof(Atom));
+	if (!btn_labels)
+	    return BadAlloc;
+	axes_labels = xcalloc(pi->nAxes, sizeof(Atom));
+	if (!axes_labels) {
+	    xfree(btn_labels);
+	    return BadAlloc;
+	}
+
+	switch(pi->nAxes)
+	{
+	    default:
+	    case 7:
+		btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+	    case 6:
+		btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+	    case 5:
+		btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+	    case 4:
+		btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+	    case 3:
+		btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+	    case 2:
+		btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+	    case 1:
+		btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+	    case 0:
+		break;
+	}
+
+	if (pi->nAxes >= 2) {
+	    axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+	    axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+	}
+
+	InitPointerDeviceStruct(pDev, pi->map, pi->nButtons, btn_labels,
 	    (PtrCtrlProcPtr)NoopDDA,
-	    GetMotionHistorySize(), pi->nAxes);
+	    GetMotionHistorySize(), pi->nAxes, axes_labels);
+
+        xfree(btn_labels);
+        xfree(axes_labels);
 
         if (pi->inputClass == KD_TOUCHSCREEN) {
             InitAbsoluteClassDeviceStruct(pDevice);

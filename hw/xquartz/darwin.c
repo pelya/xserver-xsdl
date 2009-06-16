@@ -51,6 +51,8 @@
 #include "exevents.h"
 #include "extinit.h"
 
+#include "xserver-properties.h"
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/syslimits.h>
@@ -336,17 +338,35 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
  * DarwinMouseProc: Handle the initialization, etc. of a mouse
  */
 static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
+#define NBUTTONS 7
+#define NAXES 2
 	// 7 buttons: left, right, middle, then four scroll wheel "buttons"
-    CARD8 map[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-    
+    CARD8 map[NBUTTONS + 1] = {0, 1, 2, 3, 4, 5, 6, 7};
+    Atom btn_labels[NAXES] = {0};
+    Atom axes_labels[NBUTTONS] = {0};
+
     switch (what) {
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
-            
+
+            btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+            btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+            btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+            btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+            btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+            btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+            btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+
+            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
+
             // Set button map.
-            InitPointerDeviceStruct((DevicePtr)pPointer, map, 7,
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, NBUTTONS,
+                                    btn_labels,
                                     (PtrCtrlProcPtr)NoopDDA,
-                                    GetMotionHistorySize(), 2);
+                                    GetMotionHistorySize(), NAXES,
+                                    axes_labels);
             pPointer->valuator->mode = Absolute; // Relative
             InitAbsoluteClassDeviceStruct(pPointer);
 //            InitValuatorAxisStruct(pPointer, 0, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
@@ -364,28 +384,43 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
     }
     
     return Success;
+#undef NBUTTONS
+#undef NAXES
 }
 
 static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
-    CARD8 map[4] = {0, 1, 2, 3};
-    
+#define NBUTTONS 3
+#define NAXES 5
+    CARD8 map[NBUTTONS + 1] = {0, 1, 2, 3};
+    Atom axes_labels[NAXES] = {0};
+    Atom btn_labels[NBUTTONS] = {0};
+
     switch (what) {
         case DEVICE_INIT:
             pPointer->public.on = FALSE;
-            
+
+            btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+            btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+            btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+
+            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
+            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+
             // Set button map.
-            InitPointerDeviceStruct((DevicePtr)pPointer, map, 3,
+            InitPointerDeviceStruct((DevicePtr)pPointer, map, NBUTTONS,
+                                    btn_labels,
                                     (PtrCtrlProcPtr)NoopDDA,
-                                    GetMotionHistorySize(), 5);
+                                    GetMotionHistorySize(), NAXES,
+                                    axes_labels);
             pPointer->valuator->mode = Absolute; // Relative
             InitProximityClassDeviceStruct(pPointer);
 			InitAbsoluteClassDeviceStruct(pPointer);
 
-            InitValuatorAxisStruct(pPointer, 0, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 1, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 2, 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 3, -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
-            InitValuatorAxisStruct(pPointer, 4, -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 0, axes_labels[0], 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 1, axes_labels[1], 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 2, axes_labels[2], 0, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 3, axes_labels[3], -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
+            InitValuatorAxisStruct(pPointer, 4, axes_labels[4], -XQUARTZ_VALUATOR_LIMIT, XQUARTZ_VALUATOR_LIMIT, 1, 0, 1);
 //          pPointer->use = IsXExtensionDevice;
             break;
         case DEVICE_ON:
@@ -399,6 +434,8 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
             return Success;
     }
     return Success;
+#undef NBUTTONS
+#undef NAXES
 }
 
 /*

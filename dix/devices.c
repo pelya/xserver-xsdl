@@ -554,16 +554,33 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 static int
 CorePointerProc(DeviceIntPtr pDev, int what)
 {
-    BYTE map[33];
+#define NBUTTONS 32
+#define NAXES 2
+    BYTE map[NBUTTONS + 1];
     int i = 0;
+    Atom btn_labels[NBUTTONS] = {0};
+    Atom axes_labels[NAXES] = {0};
 
     switch (what) {
     case DEVICE_INIT:
-        for (i = 1; i <= 32; i++)
+        for (i = 1; i <= NBUTTONS; i++)
             map[i] = i;
-        if (!InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
+
+	btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+	btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+	btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+	btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+	btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+	btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+	btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+	/* don't know about the rest */
+
+	axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+	axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
+        if (!InitPointerDeviceStruct((DevicePtr)pDev, map, NBUTTONS, btn_labels,
                                 (PtrCtrlProcPtr)NoopDDA,
-                                GetMotionHistorySize(), 2))
+                                GetMotionHistorySize(), NAXES, axes_labels))
         {
             ErrorF("Could not initialize device '%s'. Out of memory.\n",
                    pDev->name);
@@ -583,6 +600,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     }
 
     return Success;
+
+#undef NBUTTONS
+#undef NAXES
 }
 
 /**
@@ -1133,7 +1153,7 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 }
 
 _X_EXPORT Bool
-InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
+InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, Atom* labels,
                             CARD8 *map)
 {
     ButtonClassPtr butc;
@@ -1146,12 +1166,13 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
     butc->sourceid = dev->id;
     for (i = 1; i <= numButtons; i++)
 	butc->map[i] = map[i];
+    memcpy(butc->labels, labels, numButtons * sizeof(Atom));
     dev->button = butc;
     return TRUE;
 }
 
 Bool
-InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
+InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
                               int numMotionEvents, int mode)
 {
     int i;
@@ -1190,7 +1211,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     AllocateMotionHistory(dev);
 
     for (i=0; i<numAxes; i++) {
-        InitValuatorAxisStruct(dev, i, NO_AXIS_LIMITS, NO_AXIS_LIMITS,
+        InitValuatorAxisStruct(dev, i, labels[i], NO_AXIS_LIMITS, NO_AXIS_LIMITS,
                                0, 0, 0);
 	valc->axisVal[i]=0;
     }
@@ -1459,14 +1480,14 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
 }
 
 Bool
-InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
+InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons, Atom* btn_labels,
                         PtrCtrlProcPtr controlProc, int numMotionEvents,
-                        int numAxes)
+                        int numAxes, Atom *axes_labels)
 {
     DeviceIntPtr dev = (DeviceIntPtr)device;
 
-    return(InitButtonClassDeviceStruct(dev, numButtons, map) &&
-	   InitValuatorClassDeviceStruct(dev, numAxes,
+    return(InitButtonClassDeviceStruct(dev, numButtons, btn_labels, map) &&
+	   InitValuatorClassDeviceStruct(dev, numAxes, axes_labels,
 					 numMotionEvents, 0) &&
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }

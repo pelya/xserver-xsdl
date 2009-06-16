@@ -41,6 +41,8 @@ from The Open Group.
 #include "lk201kbd.h"
 #include "xkbsrv.h"
 #include <X11/keysym.h>
+#include "xserver-properties.h"
+#include "exevents.h"
 
 Bool
 LegalModifier(unsigned int key, DeviceIntPtr pDev)
@@ -87,8 +89,13 @@ vfbKeybdProc(DeviceIntPtr pDevice, int onoff)
 static int
 vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 {
-    BYTE map[4];
+#define NBUTTONS 3
+#define NAXES 2
+
+    BYTE map[NBUTTONS + 1];
     DevicePtr pDev = (DevicePtr)pDevice;
+    Atom btn_labels[NBUTTONS] = {0};
+    Atom axes_labels[NAXES] = {0};
 
     switch (onoff)
     {
@@ -96,8 +103,16 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	    map[1] = 1;
 	    map[2] = 2;
 	    map[3] = 3;
-	    InitPointerDeviceStruct(pDev, map, 3,
-		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
+
+            btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+            btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+            btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+
+            axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+            axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+
+	    InitPointerDeviceStruct(pDev, map, NBUTTONS, btn_labels,
+		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), NAXES, axes_labels);
 	    break;
 
     case DEVICE_ON:
@@ -112,6 +127,9 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	break;
     }
     return Success;
+
+#undef NBUTTONS
+#undef NAXES
 }
 
 void

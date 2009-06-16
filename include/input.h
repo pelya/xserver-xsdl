@@ -274,11 +274,13 @@ extern _X_EXPORT Bool SetKeySymsMap(
 extern _X_EXPORT Bool InitButtonClassDeviceStruct(
     DeviceIntPtr /*device*/,
     int /*numButtons*/,
+    Atom* /* labels */,
     CARD8* /*map*/);
 
 extern _X_EXPORT Bool InitValuatorClassDeviceStruct(
     DeviceIntPtr /*device*/,
     int /*numAxes*/,
+    Atom* /* labels */,
     int /*numMotionEvents*/,
     int /*mode*/);
 
@@ -351,9 +353,11 @@ extern _X_EXPORT Bool InitPointerDeviceStruct(
     DevicePtr /*device*/,
     CARD8* /*map*/,
     int /*numButtons*/,
+    Atom* /* btn_labels */,
     PtrCtrlProcPtr /*controlProc*/,
     int /*numMotionEvents*/,
-    int /*numAxes*/);
+    int /*numAxes*/,
+    Atom* /* axes_labels */);
 
 extern _X_EXPORT Bool InitKeyboardDeviceStruct(
     DeviceIntPtr /*device*/,

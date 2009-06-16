@@ -1153,7 +1153,7 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
  * @see InitValuatorClassDeviceStruct
  */
 void
-InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
+InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
     AxisInfoPtr ax;
@@ -1170,6 +1170,7 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
     ax->resolution = resolution;
     ax->min_resolution = min_res;
     ax->max_resolution = max_res;
+    ax->label = label;
 }
 
 static void
