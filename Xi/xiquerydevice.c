@@ -237,7 +237,7 @@ ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
 
     info->type = ButtonClass;
     info->num_buttons = dev->button->numButtons;
-    info->length = 2 + mask_len + info->num_buttons;
+    info->length = sizeof(xXIButtonInfo)/4 + mask_len + info->num_buttons;
     info->sourceid = dev->button->sourceid;
 
     bits = (unsigned char*)&info[1];
@@ -281,7 +281,7 @@ ListKeyInfo(DeviceIntPtr dev, xXIKeyInfo* info)
 
     info->type = KeyClass;
     info->num_keycodes = xkb->max_key_code - xkb->min_key_code + 1;
-    info->length = 2 + info->num_keycodes;
+    info->length = sizeof(xXIKeyInfo)/4 + info->num_keycodes;
     info->sourceid = dev->key->sourceid;
 
     kc = (uint32_t*)&info[1];
