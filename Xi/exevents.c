@@ -550,6 +550,7 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         v->axisVal = (double*)(v->axes + from->valuator->numAxes);
         v->sourceid = from->id;
+        v->mode = from->valuator->mode;
     } else if (to->valuator && !from->valuator)
     {
         ClassesPtr classes;
