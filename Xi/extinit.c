@@ -712,7 +712,7 @@ SDeviceChangedEvent(xXIDeviceChangedEvent* from, xXIDeviceChangedEvent* to)
             case ValuatorClass:
                 {
                     xXIValuatorInfo* ai = (xXIValuatorInfo*)any;
-                    swapl(&ai->name, n);
+                    swapl(&ai->label, n);
                     swapl(&ai->min.integral, n);
                     swapl(&ai->min.frac, n);
                     swapl(&ai->max.integral, n);

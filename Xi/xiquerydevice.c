@@ -314,7 +314,7 @@ ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber)
 
     info->type = ValuatorClass;
     info->length = sizeof(xXIValuatorInfo)/4;
-    info->name = v->axes[axisnumber].label;
+    info->label = v->axes[axisnumber].label;
     info->min.integral = v->axes[axisnumber].min_value;
     info->min.frac = 0;
     info->max.integral = v->axes[axisnumber].max_value;
@@ -335,7 +335,7 @@ SwapValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info)
     char n;
     swaps(&info->type, n);
     swaps(&info->length, n);
-    swapl(&info->name, n);
+    swapl(&info->label, n);
     swapl(&info->min.integral, n);
     swapl(&info->min.frac, n);
     swapl(&info->max.integral, n);
