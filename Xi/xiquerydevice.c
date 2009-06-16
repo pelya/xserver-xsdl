@@ -324,6 +324,8 @@ ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber)
     info->min.frac = 0;
     info->max.integral = v->axes[axisnumber].max_value;
     info->max.frac = 0;
+    info->value.integral = (int)v->axisVal[axisnumber];
+    info->value.frac = (int)(v->axisVal[axisnumber] * (1 << 16) * (1 << 16));
     info->resolution = v->axes[axisnumber].resolution;
     info->number = axisnumber;
     info->mode = v->mode; /* Server doesn't have per-axis mode yet */
