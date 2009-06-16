@@ -81,12 +81,6 @@ ProcXIQueryPointer(ClientPtr client)
     REQUEST(xXIQueryPointerReq);
     REQUEST_SIZE_MATCH(xXIQueryPointerReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
-
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
     if (rc != Success)
         return rc;

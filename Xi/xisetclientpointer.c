@@ -71,11 +71,6 @@ ProcXISetClientPointer(ClientPtr client)
     REQUEST(xXISetClientPointerReq);
     REQUEST_SIZE_MATCH(xXISetClientPointerReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
     if (rc != Success)

@@ -75,12 +75,6 @@ ProcXISetFocus(ClientPtr client)
     REQUEST(xXISetFocusReq);
     REQUEST_AT_LEAST_SIZE(xXISetFocusReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
-
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetFocusAccess);
     if (ret != Success)
 	return ret;
@@ -100,12 +94,6 @@ ProcXIGetFocus(ClientPtr client)
 
     REQUEST(xXIGetFocusReq);
     REQUEST_AT_LEAST_SIZE(xXIGetFocusReq);
-
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetFocusAccess);
     if (ret != Success)

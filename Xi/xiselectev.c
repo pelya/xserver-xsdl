@@ -85,12 +85,6 @@ ProcXISelectEvents(ClientPtr client)
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
-        if (evmask->deviceid > 0xFF) /* FIXME */
-        {
-            client->errorValue = evmask->deviceid;
-            return BadImplementation;
-        }
-
         if (evmask->deviceid != XIAllDevices &&
             evmask->deviceid != XIAllMasterDevices)
             rc = dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);

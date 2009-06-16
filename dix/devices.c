@@ -1050,11 +1050,11 @@ dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
     *pDev = NULL;
 
     for (dev=inputInfo.devices; dev; dev=dev->next) {
-        if (dev->id == (CARD8)id)
+        if (dev->id == id)
             goto found;
     }
     for (dev=inputInfo.off_devices; dev; dev=dev->next) {
-        if (dev->id == (CARD8)id)
+        if (dev->id == id)
 	    goto found;
     }
     return BadDevice;

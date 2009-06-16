@@ -74,12 +74,6 @@ int ProcXIChangeCursor(ClientPtr client)
     REQUEST(xXIChangeCursorReq);
     REQUEST_SIZE_MATCH(xXIChangeCursorReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
-
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
     if (rc != Success)
         return rc;

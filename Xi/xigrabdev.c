@@ -70,9 +70,6 @@ ProcXIGrabDevice(ClientPtr client)
     REQUEST(xXIGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIGrabDeviceReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-        return BadImplementation;
-
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
     if (ret != Success)
 	return ret;
@@ -131,12 +128,6 @@ ProcXIUngrabDevice(ClientPtr client)
     TimeStamp time;
 
     REQUEST(xXIUngrabDeviceReq);
-
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
     if (ret != Success)

@@ -489,7 +489,7 @@ typedef struct _DeviceIntRec {
     int         type;                   /* MASTER_POINTER, MASTER_KEYBOARD, SLAVE */
     Atom		xinput_type;
     char		*name;
-    CARD8		id;
+    int			id;
     KeyClassPtr		key;
     ValuatorClassPtr	valuator;
     ButtonClassPtr	button;

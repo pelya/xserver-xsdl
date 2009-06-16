@@ -76,12 +76,6 @@ ProcXIWarpPointer(ClientPtr client)
     REQUEST(xXIWarpPointerReq);
     REQUEST_SIZE_MATCH(xXIWarpPointerReq);
 
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
-
     /* FIXME: panoramix stuff is missing, look at ProcWarpPointer */
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
