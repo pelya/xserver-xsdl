@@ -74,7 +74,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xace.h"
-#include "querydev.h" /* For List*Info */
+#include "xiquerydevice.h" /* For List*Info */
 #include "eventconvert.h"
 
 #include <X11/extensions/XKBproto.h>

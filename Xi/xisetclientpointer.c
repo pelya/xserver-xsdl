@@ -23,6 +23,14 @@
  * Author: Peter Hutterer, University of South Australia, NICTA
  */
 
+/***********************************************************************
+ *
+ * Request to set the client pointer for the owner of the given window.
+ * All subsequent calls that are ambiguous will choose the client pointer as
+ * default value.
+ */
+
+
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -35,72 +43,71 @@
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
-#include "getcptr.h"
-
-/***********************************************************************
- * This procedure allows a client to query another client's client pointer
- * setting.
- */
+#include "xisetclientpointer.h"
 
 int
-SProcXIGetClientPointer(ClientPtr client)
+SProcXISetClientPointer(ClientPtr client)
 {
     char n;
-    REQUEST(xXIGetClientPointerReq);
 
+    REQUEST(xXISetClientPointerReq);
     swaps(&stuff->length, n);
     swapl(&stuff->win, n);
-    return ProcXIGetClientPointer(client);
+    swaps(&stuff->deviceid, n);
+    REQUEST_SIZE_MATCH(xXISetClientPointerReq);
+    return (ProcXISetClientPointer(client));
 }
 
-int ProcXIGetClientPointer(ClientPtr client)
+int
+ProcXISetClientPointer(ClientPtr client)
 {
+    DeviceIntPtr pDev;
+    ClientPtr targetClient;
     int rc;
-    ClientPtr winclient;
-    xXIGetClientPointerReply rep;
-    REQUEST(xXIGetClientPointerReq);
-    REQUEST_SIZE_MATCH(xXIGetClientPointerReq);
+
+    REQUEST(xXISetClientPointerReq);
+    REQUEST_SIZE_MATCH(xXISetClientPointerReq);
+
+    if (stuff->deviceid > 0xFF) /* FIXME */
+    {
+        client->errorValue = stuff->deviceid;
+        return BadImplementation;
+    }
+
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+    if (rc != Success)
+    {
+        client->errorValue = stuff->deviceid;
+        return rc;
+    }
+
+    if (!IsMaster(pDev))
+    {
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
+    }
+
+    pDev = GetMaster(pDev, MASTER_POINTER);
 
     if (stuff->win != None)
     {
-        rc = dixLookupClient(&winclient, stuff->win, client,
+        rc = dixLookupClient(&targetClient, stuff->win, client,
                 DixWriteAccess);
 
         if (rc != Success)
             return BadWindow;
+
     } else
-        winclient = client;
+        targetClient = client;
 
-    rep.repType = X_Reply;
-    rep.RepType = X_XIGetClientPointer;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-    rep.set = (winclient->clientPtr != NULL);
-    rep.deviceid = (winclient->clientPtr) ? winclient->clientPtr->id : 0;
+    if (!SetClientPointer(targetClient, pDev))
+    {
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
+    }
 
-    WriteReplyToClient(client, sizeof(xXIGetClientPointerReply), &rep);
     return Success;
 }
-
-/***********************************************************************
- *
- * This procedure writes the reply for the XGetClientPointer function,
- * if the client and server have a different byte ordering.
- *
- */
-
-void
-SRepXIGetClientPointer(ClientPtr client, int size,
-        xXIGetClientPointerReply* rep)
-{
-    char n;
-    swaps(&rep->sequenceNumber, n);
-    swapl(&rep->length, n);
-    swaps(&rep->deviceid, n);
-    WriteToClient(client, size, (char *)rep);
-}
-

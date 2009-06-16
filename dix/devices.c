@@ -78,11 +78,11 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
-#include "querydev.h" /* for SizeDeviceClasses */
+#include "xiquerydevice.h" /* for SizeDeviceClasses */
 #include "xiproperty.h"
 #include "enterleave.h" /* for EnterWindow() */
 #include "xserver-properties.h"
-#include "chdevhier.h" /* For XISendDeviceHierarchyEvent */
+#include "xichangehierarchy.h" /* For XISendDeviceHierarchyEvent */
 
 /** @file
  * This file handles input device-related stuff.

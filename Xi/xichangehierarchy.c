@@ -48,11 +48,11 @@
 #include "exglobals.h"
 #include "geext.h"
 #include "xace.h"
-#include "querydev.h" /* for GetDeviceUse */
+#include "xiquerydevice.h" /* for GetDeviceUse */
 
 #include "xkbsrv.h"
 
-#include "chdevhier.h"
+#include "xichangehierarchy.h"
 
 extern DevPrivateKey XTstDevicePrivateKey;
 

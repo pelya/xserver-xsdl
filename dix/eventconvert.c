@@ -45,7 +45,7 @@
 #include "events.h"
 #include "exglobals.h"
 #include "eventconvert.h"
-#include "querydev.h"
+#include "xiquerydevice.h"
 #include "xkbsrv.h"
 
 

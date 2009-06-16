@@ -25,7 +25,7 @@
  */
 
 /**
- * @file queryversion.c
+ * @file xiqueryversion.c
  * Protocol handling for the XIQueryVersion request/reply.
  */
 
@@ -42,7 +42,7 @@
 
 #include "exglobals.h"
 #include "exevents.h"
-#include "queryversion.h"
+#include "xiqueryversion.h"
 #include "misc.h"
 
 extern XExtensionVersion XIVersion; /* defined in getvers.c */

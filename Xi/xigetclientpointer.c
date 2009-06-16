@@ -23,12 +23,6 @@
  * Author: Peter Hutterer, University of South Australia, NICTA
  */
 
-/***********************************************************************
- *
- * Request to change a given device pointer's cursor.
- *
- */
-
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -41,73 +35,72 @@
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XI2proto.h>
 #include "extnsionst.h"
+#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
-#include "input.h"
 
-#include "chdevcur.h"
+#include "xigetclientpointer.h"
 
 /***********************************************************************
- *
- * This procedure allows a client to set one pointer's cursor.
- *
+ * This procedure allows a client to query another client's client pointer
+ * setting.
  */
 
 int
-SProcXIChangeCursor(ClientPtr client)
+SProcXIGetClientPointer(ClientPtr client)
 {
     char n;
+    REQUEST(xXIGetClientPointerReq);
 
-    REQUEST(xXIChangeCursorReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(xXIChangeCursorReq);
-    return (ProcXIChangeCursor(client));
+    swapl(&stuff->win, n);
+    return ProcXIGetClientPointer(client);
 }
 
-int ProcXIChangeCursor(ClientPtr client)
+int ProcXIGetClientPointer(ClientPtr client)
 {
     int rc;
-    WindowPtr pWin    = NULL;
-    DeviceIntPtr pDev = NULL;
-    CursorPtr pCursor = NULL;
-
-    REQUEST(xXIChangeCursorReq);
-    REQUEST_SIZE_MATCH(xXIChangeCursorReq);
-
-    if (stuff->deviceid > 0xFF) /* FIXME */
-    {
-        client->errorValue = stuff->deviceid;
-        return BadImplementation;
-    }
-
-    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
-    if (rc != Success)
-        return rc;
+    ClientPtr winclient;
+    xXIGetClientPointerReply rep;
+    REQUEST(xXIGetClientPointerReq);
+    REQUEST_SIZE_MATCH(xXIGetClientPointerReq);
 
     if (stuff->win != None)
     {
-        rc = dixLookupWindow(&pWin, stuff->win, client, DixSetAttrAccess);
+        rc = dixLookupClient(&winclient, stuff->win, client,
+                DixWriteAccess);
+
         if (rc != Success)
-            return rc;
-    }
+            return BadWindow;
+    } else
+        winclient = client;
 
-    if (stuff->cursor == None)
-    {
-        if (pWin == WindowTable[pWin->drawable.pScreen->myNum])
-            pCursor = rootCursor;
-        else
-            pCursor = (CursorPtr)None;
-    }
-    else
-    {
-	rc = dixLookupResourceByType((pointer *)&pCursor, stuff->cursor,
-				     RT_CURSOR, client, DixReadAccess);
-	if (rc != Success)
-	    return (rc == BadValue) ? BadCursor : rc;
-    }
+    rep.repType = X_Reply;
+    rep.RepType = X_XIGetClientPointer;
+    rep.length = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.set = (winclient->clientPtr != NULL);
+    rep.deviceid = (winclient->clientPtr) ? winclient->clientPtr->id : 0;
 
-    ChangeWindowDeviceCursor(pWin, pDev, pCursor);
-
+    WriteReplyToClient(client, sizeof(xXIGetClientPointerReply), &rep);
     return Success;
+}
+
+/***********************************************************************
+ *
+ * This procedure writes the reply for the XGetClientPointer function,
+ * if the client and server have a different byte ordering.
+ *
+ */
+
+void
+SRepXIGetClientPointer(ClientPtr client, int size,
+        xXIGetClientPointerReply* rep)
+{
+    char n;
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swaps(&rep->deviceid, n);
+    WriteToClient(client, size, (char *)rep);
 }
 

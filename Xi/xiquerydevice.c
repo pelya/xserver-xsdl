@@ -40,7 +40,7 @@
 #include "xserver-properties.h"
 #include "exevents.h"
 
-#include "querydev.h"
+#include "xiquerydevice.h"
 
 static int ListDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info);
 static int SizeDeviceInfo(DeviceIntPtr dev);

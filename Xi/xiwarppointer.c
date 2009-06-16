@@ -46,7 +46,7 @@
 #include "mipointer.h" /* for miPointerUpdateSprite */
 
 
-#include "warpdevp.h"
+#include "xiwarppointer.h"
 /***********************************************************************
  *
  * This procedure allows a client to warp the pointer of a device.

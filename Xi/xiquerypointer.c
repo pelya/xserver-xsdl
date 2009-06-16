@@ -49,7 +49,7 @@
 #include "panoramiXsrv.h"
 #endif
 
-#include "querydp.h"
+#include "xiquerypointer.h"
 
 /***********************************************************************
  *
