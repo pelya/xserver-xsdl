@@ -818,7 +818,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
 
     /* Update device axis */
     /* Check valuators first */
-    last_valuator = 0;
+    last_valuator = -1;
     for (i = 0; i < MAX_VALUATORS; i++)
     {
         if (BitIsOn(&event->valuators.mask, i))
@@ -838,7 +838,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         }
     }
 
-    for (i = 0; i < last_valuator && i < v->numAxes; i++)
+    for (i = 0; i <= last_valuator && i < v->numAxes; i++)
     {
         if (BitIsOn(&event->valuators.mask, i))
         {
