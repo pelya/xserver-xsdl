@@ -34,6 +34,7 @@
 
 #include "inputstr.h"
 #include <X11/X.h>
+#include <X11/Xatom.h>
 #include <X11/extensions/XI2proto.h>
 #include "xkbstr.h"
 #include "xkbsrv.h"
@@ -240,8 +241,8 @@ ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
     for (i = 0; dev && dev->button && i < dev->button->numButtons; i++)
         if (BitIsOn(dev->button->down, i))
             SetBit(bits, i);
-
-    /** XXX: button labels */
+    bits += mask_len * 4;
+    memcpy(bits, dev->button->labels, dev->button->numButtons * sizeof(Atom));
 
     return info->length * 4;
 }
@@ -313,7 +314,7 @@ ListValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info, int axisnumber)
 
     info->type = ValuatorClass;
     info->length = sizeof(xXIValuatorInfo)/4;
-    info->name = XIGetKnownProperty(AXIS_LABEL_PROP_REL_MISC); /* XXX */
+    info->name = v->axes[axisnumber].label;
     info->min.integral = v->axes[axisnumber].min_value;
     info->min.frac = 0;
     info->max.integral = v->axes[axisnumber].max_value;
