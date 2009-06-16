@@ -398,8 +398,12 @@ print_detailed_monitor_section(int scrnIndex,
 		if (r->supported_scaling & SCALING_VSTRETCH)
 		    xf86ErrorF(" vstretch");
 		xf86ErrorF("\n");
-		xf86DrvMsg(scrnIndex, X_INFO, "Preferred refresh rate: %d\n",
-			   r->preferred_refresh);
+		if (r->preferred_refresh)
+		    xf86DrvMsg(scrnIndex, X_INFO, "Preferred refresh rate: %d\n",
+			       r->preferred_refresh);
+		else
+		    xf86DrvMsg(scrnIndex, X_INFO, "Buggy monitor, no preferred "
+			       "refresh rate given\n");
 	    } else if (r->max_clock != 0) {
 		xf86ErrorF(" PixClock max %i MHz\n", r->max_clock);
 	    } else {
