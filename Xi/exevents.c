@@ -796,6 +796,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         case ET_DeviceChanged:
             ChangeMasterDeviceClasses(device, (DeviceChangedEvent*)event);
             return DONT_PROCESS; /* event has been sent already */
+        case ET_Motion:
         case ET_ButtonPress:
         case ET_ButtonRelease:
         case ET_KeyPress:
