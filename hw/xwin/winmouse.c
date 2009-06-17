@@ -113,9 +113,9 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
 
       InitPointerDeviceStruct (pDevice,
-			       btn_labels,
 			       map,
 			       lngMouseButtons + lngWheelEvents,
+			       btn_labels,
 			       winMouseCtrl,
 			       GetMotionHistorySize(),
 			       2,
