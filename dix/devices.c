@@ -554,7 +554,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 static int
 CorePointerProc(DeviceIntPtr pDev, int what)
 {
-#define NBUTTONS 32
+#define NBUTTONS 7
 #define NAXES 2
     BYTE map[NBUTTONS + 1];
     int i = 0;
