@@ -204,7 +204,7 @@ extern Bool AnyClientsWriteBlocked;
 
 extern WorkQueuePtr workQueue;
 
-/* added by raphael */
+/* in WaitFor.c */
 #ifdef WIN32
 typedef long int fd_mask;
 #endif

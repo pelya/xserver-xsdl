@@ -827,7 +827,7 @@ EstablishNewConnections(ClientPtr clientUnused, pointer closure)
 	int status;
 
 #ifndef WIN32
-	curconn = ffs (readyconnections.fds_bits[i]) - 1;
+	curconn = mffs (readyconnections.fds_bits[i]) - 1;
 	readyconnections.fds_bits[i] &= ~((fd_mask)1 << curconn);
 	curconn += (i * (sizeof(fd_mask)*8));
 #else
@@ -992,7 +992,7 @@ CheckConnections(void)
 	mask = AllClients.fds_bits[i];
         while (mask)
     	{
-	    curoff = ffs (mask) - 1;
+	    curoff = mffs (mask) - 1;
 	    curclient = curoff + (i * (sizeof(fd_mask)*8));
             FD_ZERO(&tmask);
             FD_SET(curclient, &tmask);
