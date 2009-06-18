@@ -109,6 +109,7 @@ DevPrivateKey XTstDevicePrivateKey = &XTstDevicePrivateKeyIndex;
  */
 DeviceIntPtr vxtstpointer, vxtstkeyboard;
 
+static void RecalculateMasterButtons(DeviceIntPtr slave);
 
 /**
  * DIX property handler.
@@ -369,6 +370,8 @@ EnableDevice(DeviceIntPtr dev, BOOL sendevent)
         XISendDeviceHierarchyEvent(flags);
     }
 
+    RecalculateMasterButtons(dev);
+
     return TRUE;
 }
 
@@ -460,6 +463,9 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
         flags[dev->id] = XIDeviceDisabled;
         XISendDeviceHierarchyEvent(flags);
     }
+
+    RecalculateMasterButtons(dev);
+
     return TRUE;
 }
 
@@ -2260,6 +2266,77 @@ ProcQueryKeymap(ClientPtr client)
    return Success;
 }
 
+
+/**
+ * Recalculate the number of buttons for the master device. The number of
+ * buttons on the master device is equal to the number of buttons on the
+ * slave device with the highest number of buttons.
+ */
+static void
+RecalculateMasterButtons(DeviceIntPtr slave)
+{
+    DeviceIntPtr dev, master;
+    int maxbuttons = 0;
+
+    if (!slave->button || IsMaster(slave))
+        return;
+
+    master = GetMaster(slave, MASTER_POINTER);
+    if (!master)
+        return;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (IsMaster(dev) ||
+            dev->u.master != master ||
+            !dev->button)
+            continue;
+
+        maxbuttons = max(maxbuttons, dev->button->numButtons);
+    }
+
+    if (master->button->numButtons != maxbuttons)
+    {
+        int i;
+        DeviceChangedEvent event;
+
+        memset(&event, 0, sizeof(event));
+
+        master->button->numButtons = maxbuttons;
+
+        event.header = ET_Internal;
+        event.type = ET_DeviceChanged;
+        event.time = CurrentTime;
+        event.deviceid = master->id;
+        event.flags = DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE;
+        event.buttons.num_buttons = maxbuttons;
+        memcpy(&event.buttons.names, master->button->labels, maxbuttons *
+                sizeof(Atom));
+
+        if (master->valuator)
+        {
+            event.num_valuators = master->valuator->numAxes;
+            for (i = 0; i < event.num_valuators; i++)
+            {
+                event.valuators[i].min = master->valuator->axes[i].min_value;
+                event.valuators[i].max = master->valuator->axes[i].max_value;
+                event.valuators[i].resolution = master->valuator->axes[i].resolution;
+                /* This should, eventually, be a per-axis mode */
+                event.valuators[i].mode = master->valuator->mode;
+                event.valuators[i].name = master->valuator->axes[i].label;
+            }
+        }
+
+        if (master->key)
+        {
+            event.keys.min_keycode = master->key->xkbInfo->desc->min_key_code;
+            event.keys.max_keycode = master->key->xkbInfo->desc->max_key_code;
+        }
+
+        XISendDeviceChangedEvent(master, master, &event);
+    }
+}
+
 /**
  * Attach device 'dev' to device 'master'.
  * Client is set to the client that issued the request, or NULL if it comes
@@ -2322,6 +2399,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
         dev->spriteInfo->paired = master;
         dev->spriteInfo->spriteOwner = FALSE;
+
+        RecalculateMasterButtons(master);
 
         if (!oldmaster)
         {

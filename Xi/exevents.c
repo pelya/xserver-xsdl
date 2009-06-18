@@ -588,6 +588,8 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
         } else
             xfree(to->button->xkb_acts);
 
+         memcpy(to->button->labels, from->button->labels,
+                from->button->numButtons * sizeof(Atom));
         to->button->sourceid = from->id;
     } else if (to->button && !from->button)
     {
@@ -670,10 +672,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to, DeviceChangedEvent *dc
 
 
 /**
- * Change MD to look like SD by copying all classes over. An event is sent to
- * all interested clients.
- * @param device The slave device
- * @param dcce Pointer to the event struct.
+ * Send an XI2 DeviceChangedEvent to all interested clients.
  */
 void
 XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChangedEvent *dce)
@@ -700,7 +699,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
         len += sizeof(CARD32) * nkeys; /* keycodes */
     }
 
-    dcce = xalloc(len);
+    dcce = xcalloc(1, len);
     if (!dcce)
     {
         ErrorF("[Xi] BadAlloc in SendDeviceChangedEvent.\n");
@@ -713,7 +712,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
     dcce->time         = GetTimeInMillis();
     dcce->deviceid     = master->id;
     dcce->sourceid     = device->id;
-    dcce->reason       = XISlaveSwitch;
+    dcce->reason       = (dce->flags & DEVCHANGE_DEVICE_CHANGE) ? XIDeviceChange : XISlaveSwitch;
     dcce->num_classes  = 0;
     dcce->length = (len - sizeof(xEvent))/4;
 

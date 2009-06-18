@@ -119,6 +119,8 @@ typedef struct
  * pointer event or a keyboard event */
 #define DEVCHANGE_POINTER_EVENT 0x4
 #define DEVCHANGE_KEYBOARD_EVENT 0x8
+/* device capabilities changed */
+#define DEVCHANGE_DEVICE_CHANGE 0x10
 
 /**
  * Sent whenever a device's capabilities have changed.
