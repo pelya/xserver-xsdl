@@ -377,14 +377,14 @@ static struct security_class_mapping map[] = {
           "",			/* DixCreateAccess */
           "getattr",		/* DixGetAttrAccess */
           "setattr",		/* DixSetAttrAccess */
-          "",			/* DixListPropAccess */
-          "",			/* DixGetPropAccess */
-          "",			/* DixSetPropAccess */
+          "list_property",	/* DixListPropAccess */
+          "get_property",	/* DixGetPropAccess */
+          "set_property",	/* DixSetPropAccess */
           "getfocus",		/* DixGetFocusAccess */
           "setfocus",		/* DixSetFocusAccess */
           "",			/* DixListAccess */
-          "",			/* DixAddAccess */
-          "",			/* DixRemoveAccess */
+          "add",		/* DixAddAccess */
+          "remove",		/* DixRemoveAccess */
           "",			/* DixHideAccess */
           "",			/* DixShowAccess */
           "",			/* DixBlendAccess */
