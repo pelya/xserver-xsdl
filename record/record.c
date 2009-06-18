@@ -1166,10 +1166,12 @@ RecordDeleteClientFromContext(RecordContextPtr pContext, XID clientspec)
  * Side Effects: none.
  */
 static int
-RecordSanityCheckClientSpecifiers(XID *clientspecs, int nspecs, XID errorspec)
+RecordSanityCheckClientSpecifiers(ClientPtr client, XID *clientspecs, int nspecs, XID errorspec)
 {
     int i;
     int clientIndex;
+    int rc;
+    pointer value;
 
     for (i = 0; i < nspecs; i++)
     {
@@ -1185,8 +1187,10 @@ RecordSanityCheckClientSpecifiers(XID *clientspecs, int nspecs, XID errorspec)
 	{
 	    if (clientspecs[i] == clients[clientIndex]->clientAsMask)
 		continue;
-	    if (!LookupIDByClass(clientspecs[i], RC_ANY))
-		return BadMatch;
+            rc = dixLookupResourceByClass(&value, clientspecs[i], RC_ANY,
+                                          client, DixGetAttrAccess);
+            if (rc != Success)
+                return rc;
 	}
 	else
 	    return BadMatch;
@@ -1342,8 +1346,8 @@ RecordSanityCheckRegisterClients(RecordContextPtr pContext, ClientPtr client, xR
 
     recordingClient = pContext->pRecordingClient ?
 		      pContext->pRecordingClient->clientAsMask : 0;
-    err = RecordSanityCheckClientSpecifiers((XID *)&stuff[1], stuff->nClients,
-					    recordingClient);
+    err = RecordSanityCheckClientSpecifiers(client, (XID *)&stuff[1],
+					    stuff->nClients, recordingClient);
     if (err != Success) return err;
 
     pRange = (xRecordRange *)(((XID *)&stuff[1]) + stuff->nClients);
@@ -1958,7 +1962,7 @@ ProcRecordUnregisterClients(ClientPtr client)
 	4 * stuff->nClients)
 	return BadLength;
     VERIFY_CONTEXT(pContext, stuff->context, client);
-    err = RecordSanityCheckClientSpecifiers((XID *)&stuff[1],
+    err = RecordSanityCheckClientSpecifiers(client, (XID *)&stuff[1],
 					    stuff->nClients, 0);
     if (err != Success)
 	return err;
