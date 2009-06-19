@@ -40,9 +40,11 @@
 #include "xkbsrv.h"
 #include "xserver-properties.h"
 #include "exevents.h"
+#include "xace.h"
 
 #include "xiquerydevice.h"
 
+static Bool ShouldSkipDevice(ClientPtr client, int deviceid, DeviceIntPtr d);
 static int ListDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info);
 static int SizeDeviceInfo(DeviceIntPtr dev);
 static void SwapDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info);
@@ -65,8 +67,9 @@ ProcXIQueryDevice(ClientPtr client)
     xXIQueryDeviceReply rep;
     DeviceIntPtr dev = NULL;
     int rc = Success;
-    int len = 0;
+    int i = 0, len = 0;
     char *info, *ptr;
+    Bool *skip = NULL;
 
     REQUEST(xXIQueryDeviceReq);
     REQUEST_SIZE_MATCH(xXIQueryDeviceReq);
@@ -79,28 +82,27 @@ ProcXIQueryDevice(ClientPtr client)
             client->errorValue = stuff->deviceid;
             return rc;
         }
-    }
-
-    if (dev)
         len += SizeDeviceInfo(dev);
+    }
     else
     {
-        len = 0;
-        for (dev = inputInfo.devices; dev; dev = dev->next)
+        skip = xcalloc(sizeof(Bool), inputInfo.numDevices);
+        if (!skip)
+            return BadAlloc;
+
+        for (dev = inputInfo.devices; dev; dev = dev->next, i++)
         {
-            if (stuff->deviceid == XIAllDevices ||
-                (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
+            skip[i] = ShouldSkipDevice(client, stuff->deviceid, dev);
+            if (!skip[i])
                 len += SizeDeviceInfo(dev);
         }
 
-        for (dev = inputInfo.off_devices; dev; dev = dev->next)
+        for (dev = inputInfo.off_devices; dev; dev = dev->next, i++)
         {
-            if (stuff->deviceid == XIAllDevices ||
-                (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
+            skip[i] = ShouldSkipDevice(client, stuff->deviceid, dev);
+            if (!skip[i])
                 len += SizeDeviceInfo(dev);
         }
-
-        dev = NULL;
     }
 
     info = xcalloc(1, len);
@@ -124,10 +126,10 @@ ProcXIQueryDevice(ClientPtr client)
         rep.num_devices = 1;
     } else
     {
-        for (dev = inputInfo.devices; dev; dev = dev->next)
+        i = 0;
+        for (dev = inputInfo.devices; dev; dev = dev->next, i++)
         {
-            if (stuff->deviceid == XIAllDevices ||
-                    (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
+            if (!skip[i])
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -137,10 +139,9 @@ ProcXIQueryDevice(ClientPtr client)
             }
         }
 
-        for (dev = inputInfo.off_devices; dev; dev = dev->next)
+        for (dev = inputInfo.off_devices; dev; dev = dev->next, i++)
         {
-            if (stuff->deviceid == XIAllDevices ||
-                    (stuff->deviceid == XIAllMasterDevices && IsMaster(dev)))
+            if (!skip[i])
             {
                 len = ListDeviceInfo(dev, (xXIDeviceInfo*)info);
                 if (client->swapped)
@@ -154,6 +155,7 @@ ProcXIQueryDevice(ClientPtr client)
     WriteReplyToClient(client, sizeof(xXIQueryDeviceReply), &rep);
     WriteToClient(client, rep.length * 4, ptr);
     xfree(ptr);
+    xfree(skip);
     return rc;
 }
 
@@ -172,6 +174,21 @@ SRepXIQueryDevice(ClientPtr client, int size, xXIQueryDeviceReply *rep)
 }
 
 
+/**
+ * @return Whether the device should be included in the returned list.
+ */
+static Bool
+ShouldSkipDevice(ClientPtr client, int deviceid, DeviceIntPtr dev)
+{
+    /* if all devices are not being queried, only master devices are */
+    if (deviceid == XIAllDevices || IsMaster(dev))
+    {
+        int rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixGetAttrAccess);
+        if (rc == Success)
+            return FALSE;
+    }
+    return TRUE;
+}
 
 /**
  * @return The number of bytes needed to store this device's xXIDeviceInfo

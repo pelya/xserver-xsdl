@@ -306,6 +306,25 @@ ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
     CopySwapClasses(client, d, &dev->num_classes, classbuf);
 }
 
+/***********************************************************************
+ *
+ * This procedure checks if a device should be left off the list.
+ *
+ */
+
+static Bool
+ShouldSkipDevice(ClientPtr client, DeviceIntPtr d)
+{
+    /* don't send master devices other than VCP/VCK */
+    if (!IsMaster(d) || d == inputInfo.pointer || d == inputInfo.keyboard)
+    {
+        int rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
+        if (rc == Success)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 
 /***********************************************************************
  *
@@ -323,12 +342,10 @@ ProcXListInputDevices(ClientPtr client)
     xListInputDevicesReply rep;
     int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
-    int rc, size = 0;
+    int i = 0, size = 0;
     int total_length;
-    char *devbuf;
-    char *classbuf;
-    char *namebuf;
-    char *savbuf;
+    char *devbuf, *classbuf, *namebuf, *savbuf;
+    Bool *skip;
     xDeviceInfo *dev;
     DeviceIntPtr d;
 
@@ -343,55 +360,51 @@ ProcXListInputDevices(ClientPtr client)
 
     AddOtherInputDevices();
 
-    for (d = inputInfo.devices; d; d = d->next) {
-        if (IsMaster(d) &&
-                d != inputInfo.pointer &&
-                d != inputInfo.keyboard)
-            continue; /* don't send master devices other than VCP/VCK */
+    /* allocate space for saving skip value */
+    skip = xcalloc(sizeof(Bool), inputInfo.numDevices);
+    if (!skip)
+        return BadAlloc;
 
-        rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
-        if (rc != Success)
-            return rc;
+    /* figure out which devices to skip */
+    numdevs = 0;
+    for (d = inputInfo.devices; d; d = d->next, i++) {
+        skip[i] = ShouldSkipDevice(client, d);
+        if (skip[i])
+            continue;
+
         SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
     }
 
-    for (d = inputInfo.off_devices; d; d = d->next) {
-        if (IsMaster(d) &&
-                d != inputInfo.pointer &&
-                d != inputInfo.keyboard)
-            continue; /* don't send master devices other than VCP/VCK */
+    for (d = inputInfo.off_devices; d; d = d->next, i++) {
+        skip[i] = ShouldSkipDevice(client, d);
+        if (skip[i])
+            continue;
 
-        rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
-        if (rc != Success)
-            return rc;
         SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
     }
 
+    /* allocate space for reply */
     total_length = numdevs * sizeof(xDeviceInfo) + size + namesize;
     devbuf = (char *)xcalloc(1, total_length);
     classbuf = devbuf + (numdevs * sizeof(xDeviceInfo));
     namebuf = classbuf + size;
     savbuf = devbuf;
 
+    /* fill in and send reply */
+    i = 0;
     dev = (xDeviceInfoPtr) devbuf;
-    for (d = inputInfo.devices; d; d = d->next)
-    {
-        if (IsMaster(d) &&
-                d != inputInfo.pointer &&
-                d != inputInfo.keyboard)
-            continue; /* don't count master devices other than VCP/VCK */
+    for (d = inputInfo.devices; d; d = d->next, i++) {
+        if (skip[i])
+            continue;
 
         ListDeviceInfo(client, d, dev++, &devbuf, &classbuf, &namebuf);
     }
 
-    for (d = inputInfo.off_devices; d; d = d->next)
-    {
-        if (IsMaster(d) &&
-                d != inputInfo.pointer &&
-                d != inputInfo.keyboard)
-            continue; /* don't count master devices other than VCP/VCK */
+    for (d = inputInfo.off_devices; d; d = d->next, i++) {
+        if (skip[i])
+            continue;
 
         ListDeviceInfo(client, d, dev++, &devbuf, &classbuf, &namebuf);
     }
@@ -400,6 +413,7 @@ ProcXListInputDevices(ClientPtr client)
     WriteReplyToClient(client, sizeof(xListInputDevicesReply), &rep);
     WriteToClient(client, total_length, savbuf);
     xfree(savbuf);
+    xfree(skip);
     return Success;
 }
 
