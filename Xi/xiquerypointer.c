@@ -91,7 +91,7 @@ ProcXIQueryPointer(ClientPtr client)
         return BadDevice;
     }
 
-    rc = dixLookupWindow(&pWin, stuff->win, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->win, client, DixGetAttrAccess);
     if (rc != Success)
     {
         SendErrorToClient(client, IReqCode, X_XIQueryPointer,

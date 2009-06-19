@@ -116,14 +116,14 @@ ProcXGrabDeviceKey(ClientPtr client)
 
     if (stuff->modifier_device != UseXKeyboard) {
 	ret = dixLookupDevice(&mdev, stuff->modifier_device, client,
-			      DixReadAccess);
+			      DixUseAccess);
 	if (ret != Success)
 	    return ret;
 	if (mdev->key == NULL)
 	    return BadMatch;
     } else {
 	mdev = PickKeyboard(client);
-	ret = XaceHook(XACE_DEVICE_ACCESS, client, mdev, DixReadAccess);
+	ret = XaceHook(XACE_DEVICE_ACCESS, client, mdev, DixUseAccess);
 	if (ret != Success)
 	    return ret;
     }

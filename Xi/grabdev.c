@@ -184,7 +184,7 @@ CreateMaskFromList(ClientPtr client, XEventClass * list, int count,
 	if (device > 255) /* FIXME: we only use 7 bit for devices? */
 	    return BadClass;
 
-	rc = dixLookupDevice(&tdev, device, client, DixReadAccess);
+	rc = dixLookupDevice(&tdev, device, client, DixUseAccess);
 	if (rc != BadDevice && rc != Success)
 	    return rc;
 	if (rc == BadDevice || (dev != NULL && tdev != dev))

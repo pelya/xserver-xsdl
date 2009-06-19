@@ -95,7 +95,7 @@ int ProcXIChangeCursor(ClientPtr client)
     else
     {
 	rc = dixLookupResourceByType((pointer *)&pCursor, stuff->cursor,
-				     RT_CURSOR, client, DixReadAccess);
+				     RT_CURSOR, client, DixUseAccess);
 	if (rc != Success)
 	    return (rc == BadValue) ? BadCursor : rc;
     }

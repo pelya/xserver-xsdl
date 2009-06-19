@@ -858,7 +858,7 @@ ProcXListDeviceProperties (ClientPtr client)
     REQUEST(xListDevicePropertiesReq);
     REQUEST_SIZE_MATCH(xListDevicePropertiesReq);
 
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixReadAccess);
+    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixListPropAccess);
     if (rc != Success)
         return rc;
 
@@ -894,7 +894,7 @@ ProcXChangeDeviceProperty (ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xChangeDevicePropertyReq);
     UpdateCurrentTime();
 
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
+    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixSetPropAccess);
     if (rc != Success)
         return rc;
 
@@ -922,7 +922,7 @@ ProcXDeleteDeviceProperty (ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDeleteDevicePropertyReq);
     UpdateCurrentTime();
-    rc =  dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
+    rc =  dixLookupDevice (&dev, stuff->deviceid, client, DixSetPropAccess);
     if (rc != Success)
         return rc;
 
@@ -951,8 +951,8 @@ ProcXGetDeviceProperty (ClientPtr client)
     if (stuff->delete)
         UpdateCurrentTime();
     rc = dixLookupDevice (&dev, stuff->deviceid, client,
-                           stuff->delete ? DixWriteAccess :
-                           DixReadAccess);
+                           stuff->delete ? DixSetPropAccess :
+                           DixGetPropAccess);
     if (rc != Success)
         return rc;
 
@@ -1102,7 +1102,7 @@ ProcXIListProperties(ClientPtr client)
     REQUEST(xXIListPropertiesReq);
     REQUEST_SIZE_MATCH(xXIListPropertiesReq);
 
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixReadAccess);
+    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixListPropAccess);
     if (rc != Success)
         return rc;
 
@@ -1138,7 +1138,7 @@ ProcXIChangeProperty(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xXIChangePropertyReq);
     UpdateCurrentTime();
 
-    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
+    rc = dixLookupDevice (&dev, stuff->deviceid, client, DixSetPropAccess);
     if (rc != Success)
         return rc;
 
@@ -1165,7 +1165,7 @@ ProcXIDeleteProperty(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXIDeletePropertyReq);
     UpdateCurrentTime();
-    rc =  dixLookupDevice (&dev, stuff->deviceid, client, DixWriteAccess);
+    rc =  dixLookupDevice (&dev, stuff->deviceid, client, DixSetPropAccess);
     if (rc != Success)
         return rc;
 
@@ -1195,8 +1195,8 @@ ProcXIGetProperty(ClientPtr client)
     if (stuff->delete)
         UpdateCurrentTime();
     rc = dixLookupDevice (&dev, stuff->deviceid, client,
-                           stuff->delete ? DixWriteAccess :
-                           DixReadAccess);
+                           stuff->delete ? DixSetPropAccess :
+                           DixGetPropAccess);
     if (rc != Success)
         return rc;
 

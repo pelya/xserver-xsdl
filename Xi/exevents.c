@@ -2000,7 +2000,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
     DeviceIntPtr dev;
 
     dixLookupDevice(&dev, xE->deviceid & DEVICE_BITS, serverClient,
-		    DixReadAccess);
+		    DixGrabAccess);
     if (!dev)
         return;
 

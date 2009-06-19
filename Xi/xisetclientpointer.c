@@ -72,7 +72,7 @@ ProcXISetClientPointer(ClientPtr client)
     REQUEST_SIZE_MATCH(xXISetClientPointerReq);
 
 
-    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixManageAccess);
     if (rc != Success)
     {
         client->errorValue = stuff->deviceid;
@@ -90,7 +90,7 @@ ProcXISetClientPointer(ClientPtr client)
     if (stuff->win != None)
     {
         rc = dixLookupClient(&targetClient, stuff->win, client,
-                DixWriteAccess);
+                DixManageAccess);
 
         if (rc != Success)
             return BadWindow;

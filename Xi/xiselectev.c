@@ -87,7 +87,7 @@ ProcXISelectEvents(ClientPtr client)
     {
         if (evmask->deviceid != XIAllDevices &&
             evmask->deviceid != XIAllMasterDevices)
-            rc = dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
+            rc = dixLookupDevice(&dev, evmask->deviceid, client, DixUseAccess);
         else {
             /* XXX: XACE here? */
         }
@@ -127,7 +127,7 @@ ProcXISelectEvents(ClientPtr client)
             dummy.id = evmask->deviceid;
             dev = &dummy;
         } else
-            dixLookupDevice(&dev, evmask->deviceid, client, DixReadAccess);
+            dixLookupDevice(&dev, evmask->deviceid, client, DixUseAccess);
         XISetEventMask(dev, win, client, evmask->mask_len * 4, (unsigned char*)&evmask[1]);
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
         evmask++;
@@ -169,7 +169,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
     REQUEST(xXIGetSelectedEventsReq);
     REQUEST_SIZE_MATCH(xXIGetSelectedEventsReq);
 
-    rc = dixLookupWindow(&win, stuff->win, client, DixReceiveAccess);
+    rc = dixLookupWindow(&win, stuff->win, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
 
@@ -208,7 +208,7 @@ ProcXIGetSelectedEvents(ClientPtr client)
 
         if (i > 2)
         {
-            rc = dixLookupDevice(&dev, i, client, DixReadAccess);
+            rc = dixLookupDevice(&dev, i, client, DixGetAttrAccess);
             if (rc != Success)
                 continue;
         }

@@ -68,7 +68,7 @@ int ProcXIGetClientPointer(ClientPtr client)
     if (stuff->win != None)
     {
         rc = dixLookupClient(&winclient, stuff->win, client,
-                DixWriteAccess);
+                DixGetAttrAccess);
 
         if (rc != Success)
             return BadWindow;

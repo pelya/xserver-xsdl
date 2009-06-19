@@ -85,7 +85,7 @@ ProcXIWarpPointer(ClientPtr client)
 
     if (stuff->dst_win != None)
     {
-        rc = dixLookupWindow(&dest, stuff->dst_win, client, DixReadAccess);
+        rc = dixLookupWindow(&dest, stuff->dst_win, client, DixGetAttrAccess);
         if (rc != Success)
         {
             return rc;
@@ -101,7 +101,7 @@ ProcXIWarpPointer(ClientPtr client)
         int winX, winY;
         WindowPtr src;
 
-        rc = dixLookupWindow(&src, stuff->src_win, client, DixReadAccess);
+        rc = dixLookupWindow(&src, stuff->src_win, client, DixGetAttrAccess);
         if (rc != Success)
         {
             return rc;

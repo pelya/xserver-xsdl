@@ -340,7 +340,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                                      newkeybd;
 
                         rc = dixLookupDevice(&newptr, r->return_pointer,
-                                             client, DixWriteAccess);
+                                             client, DixAddAccess);
                         if (rc != Success)
                             goto unwind;
 
@@ -352,7 +352,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         }
 
                         rc = dixLookupDevice(&newkeybd, r->return_keyboard,
-                                             client, DixWriteAccess);
+                                             client, DixAddAccess);
                         if (rc != Success)
                             goto unwind;
 
@@ -415,7 +415,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     DeviceIntPtr *xtstdevice;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
-                                          DixWriteAccess);
+                                          DixManageAccess);
                     if (rc != Success)
                        goto unwind;
 
@@ -448,7 +448,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     DeviceIntPtr *xtstdevice;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
-                                          DixWriteAccess);
+                                          DixManageAccess);
                     if (rc != Success)
                        goto unwind;
 
@@ -471,7 +471,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     }
 
                     rc = dixLookupDevice(&newmaster, c->new_master,
-                            client, DixWriteAccess);
+                            client, DixAddAccess);
                     if (rc != Success)
                         goto unwind;
                     if (!IsMaster(newmaster))

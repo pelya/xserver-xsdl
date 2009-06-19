@@ -153,7 +153,7 @@ AddOtherInputDevices(void)
 void
 OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
 {
-    *status = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess);
+    *status = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixUseAccess);
 }
 
 /****************************************************************************
