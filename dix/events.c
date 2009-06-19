@@ -5699,21 +5699,25 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
  * PickPointer()).
  * If a keyboard is needed, the first keyboard paired with the CP is used.
  */
-Bool
+int
 SetClientPointer(ClientPtr client, DeviceIntPtr device)
 {
+    int rc = XaceHook(XACE_DEVICE_ACCESS, client, device, DixUseAccess);
+    if (rc != Success)
+	return rc;
+
     if (!IsMaster(device))
     {
         ErrorF("[dix] Need master device for ClientPointer. This is a bug.\n");
-        return FALSE;
+        return BadDevice;
     } else if (!device->spriteInfo->spriteOwner)
     {
         ErrorF("[dix] Device %d does not have a sprite. "
                 "Cannot be ClientPointer\n", device->id);
-        return FALSE;
+        return BadDevice;
     }
     client->clientPtr = device;
-    return TRUE;
+    return Success;
 }
 
 /* PickPointer will pick an appropriate pointer for the given client.

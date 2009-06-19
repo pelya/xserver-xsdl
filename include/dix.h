@@ -485,7 +485,7 @@ extern _X_EXPORT int TryClientEvents(
 
 extern _X_EXPORT void WindowsRestructured(void);
 
-extern Bool SetClientPointer(
+extern int SetClientPointer(
         ClientPtr /* client */,
         DeviceIntPtr /* device */);
 

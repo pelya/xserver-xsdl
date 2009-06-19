@@ -98,10 +98,11 @@ ProcXISetClientPointer(ClientPtr client)
     } else
         targetClient = client;
 
-    if (!SetClientPointer(targetClient, pDev))
+    rc = SetClientPointer(targetClient, pDev);
+    if (rc != Success)
     {
         client->errorValue = stuff->deviceid;
-        return BadDevice;
+        return rc;
     }
 
     return Success;
