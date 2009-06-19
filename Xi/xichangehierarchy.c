@@ -118,6 +118,7 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
 
     dummyDev.id = XIAllDevices;
     SendEventToAllWindows(&dummyDev, (XI_HierarchyChangedMask >> 8), (xEvent*)ev, 1);
+    xfree(ev);
 }
 
 
