@@ -218,7 +218,7 @@ xf86PrintBanner(void)
 #if defined(BUILDERSTRING)
   ErrorF("%s \n",BUILDERSTRING);
 #endif
-  ErrorF("Current version of pixman: %s\n", PIXMAN_VERSION_STRING);
+  ErrorF("Current version of pixman: %s\n", pixman_version_string());
   ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
 }
