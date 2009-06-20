@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.05">
+<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.10">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">10A222</string>
-		<string key="IBDocument.InterfaceBuilderVersion">708</string>
-		<string key="IBDocument.AppKitVersion">994.5</string>
-		<string key="IBDocument.HIToolboxVersion">404.00</string>
+		<string key="IBDocument.SystemVersion">10A354</string>
+		<string key="IBDocument.InterfaceBuilderVersion">728</string>
+		<string key="IBDocument.AppKitVersion">1019</string>
+		<string key="IBDocument.HIToolboxVersion">421.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
-			<string key="NS.object.0">708</string>
+			<string key="NS.object.0">728</string>
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -19,7 +19,7 @@
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.Metadata">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<object class="NSArray" key="dict.sortedKeys">
+			<object class="NSArray" key="dict.sortedKeys" id="0">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 			</object>
 			<object class="NSMutableArray" key="dict.values">
@@ -120,7 +120,7 @@
 								</object>
 								<object class="NSMenuItem" id="6876565">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">VmFpaGRhIGtva28gbsOkeXTDtm4gdGlsYQ</string>
+									<string key="NSTitle">Vaihda koko näytön tila</string>
 									<string key="NSKeyEquiv">a</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -140,7 +140,7 @@
 								</object>
 								<object class="NSMenuItem" id="301008465">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">S8OkdGtlIFgxMQ</string>
+									<string key="NSTitle">Kätke X11</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -150,7 +150,7 @@
 								</object>
 								<object class="NSMenuItem" id="206802571">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">S8OkdGtlIG11dXQ</string>
+									<string key="NSTitle">Kätke muut</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -159,7 +159,7 @@
 								</object>
 								<object class="NSMenuItem" id="1023546148">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">TsOkeXTDpCBrYWlra2k</string>
+									<string key="NSTitle">Näytä kaikki</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -276,7 +276,7 @@
 								</object>
 								<object class="NSMenuItem" id="677652931">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">UGllbmVubsOkA</string>
+									<string key="NSTitle">Pienennä</string>
 									<string key="NSKeyEquiv">m</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -285,7 +285,7 @@
 								</object>
 								<object class="NSMenuItem" id="1066447520">
 									<reference key="NSMenu" ref="96874957"/>
-									<string key="NSTitle">Zoomaus</string>
+									<string key="NSTitle">Zoomaa</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -305,18 +305,18 @@
 								</object>
 								<object class="NSMenuItem" id="1036389925">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">S8OkeSBpa2t1bm9pdGEgbMOkcGk</string>
-									<string key="NSKeyEquiv">`</string>
-									<int key="NSKeyEquivModMask">1048840</int>
+									<string key="NSTitle">Käy ikkunoita läpi</string>
+									<string key="NSKeyEquiv">&lt;</string>
+									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="531645050"/>
 									<reference key="NSMixedImage" ref="351811234"/>
 								</object>
 								<object class="NSMenuItem" id="369641893">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">S8OkeSBpa2t1bm9pdGEgbMOkcGkga8Okw6RudGVpc2Vzc8OkIGrDpHJqZXN0eWtzZXNzw6Q</string>
-									<string key="NSKeyEquiv">~</string>
-									<int key="NSKeyEquivModMask">1179914</int>
+									<string key="NSTitle">Käy ikkunoita läpi käänteisessä järjestyksessä</string>
+									<string key="NSKeyEquiv">&gt;</string>
+									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="531645050"/>
 									<reference key="NSMixedImage" ref="351811234"/>
@@ -397,7 +397,7 @@
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
+				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="941366957">
 					<nil key="NSNextResponder"/>
@@ -429,7 +429,7 @@
 												<object class="NSButtonCell" key="NSCell" id="990762273">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">RW11bG9pIGtvbG1lbsOkcHDDpGltaXN0w6QgaGlpcnTDpA</string>
+													<string key="NSContents">Emuloi kolmenäppäimistä hiirtä</string>
 													<object class="NSFont" key="NSSupport" id="463863101">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">13</double>
@@ -460,9 +460,7 @@
 												<object class="NSTextFieldCell" key="NSCell" id="391919450">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">S3VuIGvDpHl0w7Zzc8OkLCB2YWxpa2tvcml2aW4gbsOkcHDDpGludmFzdGluZWV0IHNhYXR0YXZhdCBo
-w6Rpcml0w6QgWDExLW9oamVsbWlhLCBqb3RrYSBrw6R5dHTDpHbDpHQgTWV0YS1tdXVudG9uw6RwcMOk
-aW50w6QuA</string>
+													<string key="NSContents">Kun käytössä, valikkorivin näppäinvastineet saattavat häiritä X11-ohjelmia, jotka käyttävät Meta-muuntonäppäintä.</string>
 													<object class="NSFont" key="NSSupport" id="26">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">11</double>
@@ -476,7 +474,7 @@ aW50w6QuA</string>
 														<string key="NSColorName">controlColor</string>
 														<object class="NSColor" key="NSColor" id="402953799">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2NwA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2ODY1AA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
@@ -517,7 +515,7 @@ dGFpIEtvbWVudG8tbsOkcHDDpGltacOkIHBhaW5ldHR1bmEgb3NvaXRldHRhZXNzYS4KA</string>
 												<object class="NSButtonCell" key="NSCell" id="940564599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">T3RhIGvDpHl0dMO2w7ZuIG7DpHBww6RpbnZhc3RpbmVldCBYMTE6c3PDpA</string>
+													<string key="NSContents">Ota käyttöön näppäinvastineet X11:ssä</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="842100515"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -539,8 +537,7 @@ dGFpIEtvbWVudG8tbsOkcHDDpGltacOkIHBhaW5ldHR1bmEgb3NvaXRldHRhZXNzYS4KA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="666057093">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">U2FsbGkgc3nDtnR0w7Z2YWxpa29uIG11dXRvc3RlbiBrb3J2YXRhIG55a3lpbmVuIFgxMS1uw6RwcMOk
-aW5rYXJ0dGEuA</string>
+													<string key="NSContents">Salli syöttövalikon muutosten korvata nykyinen X11-näppäinkartta.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="31160162"/>
@@ -557,7 +554,7 @@ aW5rYXJ0dGEuA</string>
 												<object class="NSButtonCell" key="NSCell" id="967619578">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">Tm91ZGF0YSBqw6RyamVzdGVsbcOkbiBuw6RwcMOkaW5hc2V0dGVsdWE</string>
+													<string key="NSContents">Noudata järjestelmän näppäinasettelua</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="179949713"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -574,7 +571,7 @@ aW5rYXJ0dGEuA</string>
 										<string key="NSFrame">{{10, 33}, {474, 261}}</string>
 										<reference key="NSSuperview" ref="448510093"/>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">U3nDtnRlA</string>
+									<string key="NSLabel">Syöte</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -596,7 +593,7 @@ aW5rYXJ0dGEuA</string>
 												<object class="NSButtonCell" key="NSCell" id="1016069354">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">S8OkeXTDpCBqw6RyamVzdGVsbcOkbiB2YXJvaXR1c3RlaG9zdGV0dGE</string>
+													<string key="NSContents">Käytä järjestelmän varoitustehostetta</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="418227126"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -618,9 +615,7 @@ aW5rYXJ0dGEuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="624655599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExOm4gw6TDpG5pbWVya2l0IGvDpHl0dMOkdsOkdCBub3JtYWFsaWEgasOkcmplc3RlbG3DpHZhcm9p
-dHVzdGEsIGpva2EgbcOkw6RyaXRlbGzDpMOkbiDDhMOkbml0ZWhvc3RlZXQtasOkcmplc3RlbG3DpGFz
-ZXR1c3BhbmVlbGlzc2EuA</string>
+													<string key="NSContents">X11:n äänimerkit käyttävät normaalia järjestelmävaroitusta, joka määritellään Äänitehosteet-järjestelmäasetuspaneelissa.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="1039016593"/>
@@ -654,7 +649,7 @@ ZXR1c3BhbmVlbGlzc2EuA</string>
 													<int key="NSPeriodicInterval">75</int>
 													<object class="NSMenuItem" key="NSMenuItem" id="616492372">
 														<reference key="NSMenu" ref="341113515"/>
-														<string type="base64-UTF8" key="NSTitle">TsOkeXTDtmx0w6Q</string>
+														<string key="NSTitle">Näytöltä</string>
 														<string key="NSKeyEquiv"/>
 														<int key="NSKeyEquivModMask">1048576</int>
 														<int key="NSMnemonicLoc">2147483647</int>
@@ -675,7 +670,7 @@ ZXR1c3BhbmVlbGlzc2EuA</string>
 															<reference ref="616492372"/>
 															<object class="NSMenuItem" id="759499526">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">MjU2IHbDpHJpw6Q</string>
+																<string key="NSTitle">256 väriä</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -744,8 +739,7 @@ ZXR1c3BhbmVlbGlzc2EuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="311969422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">VMOkbcOkIHZhbGludGEgdHVsZWUgdm9pbWFhbiwga3VuIFgxMSBhdmF0YWFuIHNldXJhYXZhbiBrZXJy
-YW4uA</string>
+													<string key="NSContents">Tämä valinta tulee voimaan, kun X11 avataan seuraavan kerran.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="86150604"/>
@@ -762,7 +756,7 @@ YW4uA</string>
 												<object class="NSButtonCell" key="NSCell" id="631531164">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">S29rbyBuw6R5dMO2biB0aWxhA</string>
+													<string key="NSContents">Koko näytön tila</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477203622"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -784,7 +778,7 @@ YW4uA</string>
 												<object class="NSButtonCell" key="NSCell" id="917248662">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">TsOkeXTDpCB2YWxpa2tvcml2aSBhdXRvbWFhdHRpc2VzdGkga29rbyBuw6R5dMO2biB0aWxhc3NhA</string>
+													<string key="NSContents">Näytä valikkorivi automaattisesti koko näytön tilassa</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="57246850"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -806,8 +800,7 @@ YW4uA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="761107402">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">T3R0YWEga8OkeXR0w7bDtm4gWDExOm4ganV1cmktaWtrdW5hbi4gVm9pdCBzaWlydHnDpCBrb2tvIG7D
-pHl0w7ZuIHRpbGFhbiBqYSBzaWl0w6QgcG9pcyBwYWluYW1hbGxhIEtvbWVudG8tT3B0aW8tQS4</string>
+													<string key="NSContents">Ottaa käyttöön X11:n juuri-ikkunan. Voit siirtyä koko näytön tilaan ja siitä pois painamalla Komento-Optio-A.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="298603383"/>
@@ -840,7 +833,7 @@ pHl0w7ZuIHRpbGFhbiBqYSBzaWl0w6QgcG9pcyBwYWluYW1hbGxhIEtvbWVudG8tT3B0aW8tQS4</str
 												<object class="NSButtonCell" key="NSCell" id="718083688">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">T3RhIHN5bmtyb25vaW50aSBrw6R5dHTDtsO2bg</string>
+													<string key="NSContents">Ota synkronointi käyttöön</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="878106058"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -862,9 +855,7 @@ pHl0w7ZuIHRpbGFhbiBqYSBzaWl0w6QgcG9pcyBwYWluYW1hbGxhIEtvbWVudG8tT3B0aW8tQS4</str
 												<object class="NSTextFieldCell" key="NSCell" id="572508492">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">T3R0YWEga8OkeXR0w7bDtm4gS29waW9pLXZhbGlra29rb2h0ZWVuIGphIG1haGRvbGxpc3RhYSBzeW5r
-cm9ub2lubmluIE1hYyBPUyBYOm4gbGVpa2Vww7Z5ZMOkbiBqYSBYMTE6biBsZWlrZXDDtnlkw6RuIGph
-IGVuc2lzaWphaXNlbiB2YWxpbm5hbiBwdXNrdXJpbiB2w6RsaWxsw6QuA</string>
+													<string key="NSContents">Ottaa käyttöön Kopioi-valikkokohteen ja mahdollistaa synkronoinnin Mac OS X:n leikepöydän ja X11:n leikepöydän ja ensisijaisen valinnan puskurin välillä.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="386152084"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -880,8 +871,7 @@ IGVuc2lzaWphaXNlbiB2YWxpbm5hbiBwdXNrdXJpbiB2w6RsaWxsw6QuA</string>
 												<object class="NSButtonCell" key="NSCell" id="501304422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">UMOkaXZpdMOkIFgxMTpuIGxlaWtlcMO2eXTDpCwga3VuIE1hYyBPUyBYOm4gbGVpa2Vww7Z5dMOkIG11
-dXR0dXUuA</string>
+													<string key="NSContents">Päivitä X11:n leikepöytä, kun Mac OS X:n leikepöytä muuttuu.</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477050998"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -903,8 +893,7 @@ dXR0dXUuA</string>
 												<object class="NSButtonCell" key="NSCell" id="510771323">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">UMOkaXZpdMOkIFgxMTpuIGVuc2lzaWphaW5lbiB2YWxpbnRhIChrZXNraW9zb2l0dXMpLCBrdW4gTWFj
-IE9TIFg6biBsZWlrZXDDtnl0w6QgbXV1dHR1dS4</string>
+													<string key="NSContents">Päivitä X11:n ensisijainen valinta (keskiosoitus), kun Mac OS X:n leikepöytä muuttuu.</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="765780304"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -926,8 +915,7 @@ IE9TIFg6biBsZWlrZXDDtnl0w6QgbXV1dHR1dS4</string>
 												<object class="NSButtonCell" key="NSCell" id="897099877">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">UMOkaXZpdMOkIE1hYyBPUyBYOm4gbGVpa2Vww7Z5dMOkIGhldGksIGt1biB1dXR0YSB0ZWtzdGnDpCB2
-YWxpdGFhbi4</string>
+													<string key="NSContents">Päivitä Mac OS X:n leikepöytä heti, kun uutta tekstiä valitaan.</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="1002778833"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -949,8 +937,7 @@ YWxpdGFhbi4</string>
 												<object class="NSButtonCell" key="NSCell" id="619977658">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">UMOkaXZpdMOkIE1hYyBPUyBYOm4gbGVpa2Vww7Z5dMOkIGhldGksIGt1biBYMTE6biBsZWlrZXDDtnl0
-w6QgbXV1dHR1dS4</string>
+													<string key="NSContents">Päivitä Mac OS X:n leikepöytä heti, kun X11:n leikepöytä muuttuu.</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="487809555"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -972,8 +959,7 @@ w6QgbXV1dHR1dS4</string>
 												<object class="NSTextFieldCell" key="NSCell" id="461823902">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">UG9pc3RhIHTDpG3DpCB2YWxpbnRhIGvDpHl0w7ZzdMOkLCBqb3MgaGFsdWF0IGvDpHl0dMOkw6QgeGNs
-aXBib2FyZGlhLCBrbGlwcGVyacOkIHRhaSBtdXV0YSBYMTEtbGVpa2Vww7Z5dMOkb2hqZWxtYWEuA</string>
+													<string key="NSContents">Poista tämä valinta käytöstä, jos haluat käyttää xclipboardia, klipperiä tai muuta X11-leikepöytäohjelmaa.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="620944856"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -989,8 +975,7 @@ aXBib2FyZGlhLCBrbGlwcGVyacOkIHRhaSBtdXV0YSBYMTEtbGVpa2Vww7Z5dMOkb2hqZWxtYWEuA</s
 												<object class="NSTextFieldCell" key="NSCell" id="994587858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExLXByb3Rva29sbGFuIHJham9pdHVzdGVuIHZ1b2tzaSB0w6Rtw6QgdmFsaW50YSBlaSB2w6RsdHTD
-pG3DpHR0w6QgYWluYSB0b2ltaSBrYWlraXNzYSBvaGplbG1pc3NhLg</string>
+													<string key="NSContents">X11-protokollan rajoitusten vuoksi tämä valinta ei välttämättä aina toimi kaikissa ohjelmissa.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="522511724"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1000,7 +985,7 @@ pG3DpHR0w6QgYWluYSB0b2ltaSBrYWlraXNzYSBvaGplbG1pc3NhLg</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {474, 261}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">TGVpa2Vww7Z5dMOkA</string>
+									<string key="NSLabel">Leikepöytä</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1016,13 +1001,13 @@ pG3DpHR0w6QgYWluYSB0b2ltaSBrYWlraXNzYSBvaGplbG1pc3NhLg</string>
 											<object class="NSButton" id="657659108">
 												<reference key="NSNextResponder" ref="184765684"/>
 												<int key="NSvFlags">256</int>
-												<string key="NSFrame">{{15, 227}, {245, 18}}</string>
+												<string key="NSFrame">{{15, 227}, {299, 18}}</string>
 												<reference key="NSSuperview" ref="184765684"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="259618205">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">T3NvaXRhIGluYWt0aWl2aXN0ZW4gaWtrdW5vaWRlbiBsw6RwaQ</string>
+													<string key="NSContents">Huomioi osoitukset ei-aktiivisiin ikkunoihin</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="657659108"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1044,9 +1029,7 @@ pG3DpHR0w6QgYWluYSB0b2ltaSBrYWlraXNzYSBvaGplbG1pc3NhLg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="399127858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">S3VuIGvDpHl0w7Zzc8OkLCBpbmFrdGlpdmlzZW4gaWtrdW5hbiBvc29pdHRhbWluZW4gc2FhIGhpaXJl
-biBvc29pdHVrc2VuIGt1bGtlbWFhbiBreXNlaXNlbGxlIGlra3VuYWxsZSBzZW4gYWt0aXZvaW1pc2Vu
-IGxpc8Oka3NpLg</string>
+													<string key="NSContents">Kun käytössä, ei-aktiivisen ikkunan osoittaminen saa hiiren osoituksen kulkemaan kyseiselle ikkunalle sen aktivoimisen lisäksi.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="290578835"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1062,7 +1045,7 @@ IGxpc8Oka3NpLg</string>
 												<object class="NSButtonCell" key="NSCell" id="959555182">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">S29oZGlzdHVzIHNldXJhYSBoaWlydMOkA</string>
+													<string key="NSContents">Kohdistus seuraa hiirtä</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="992839333"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1084,8 +1067,7 @@ IGxpc8Oka3NpLg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="183409141">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExOm4gaWtrdW5ha29oZGlzdHVzIHNldXJhYSBvc29pdGludGEuIFTDpGxsw6Qgb24gam9pdGFraW4g
-aGFpdHRhdmFpa3V0dWtzaWEuA</string>
+													<string key="NSContents">X11:n ikkunakohdistus seuraa osoitinta. Tällä on joitakin haittavaikutuksia.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="138261120"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1123,9 +1105,7 @@ aGFpdHRhdmFpa3V0dWtzaWEuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="989804990">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">S3VuIGvDpHl0w7Zzc8OkLCB1dWRlbiBYMTEtaWtrdW5hbiBsdW9taW5lbiBzYWEgWDExLmFwcGluIHNp
-aXJ0eW3DpMOkbiBldHVhbGFsbGUgKEZpbmRlci5hcHBpbiwgUMOkw6R0ZS5hcHBpbiBqbmUuIHNpamFz
-dGEpLg</string>
+													<string key="NSContents">Kun käytössä, uuden X11-ikkunan luominen saa X11.appin siirtymään etualalle (Finder.appin, Pääte.appin jne. sijasta).</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="57161931"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1198,10 +1178,7 @@ dGEpLg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="53243865">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExOm4gYXZhYW1pbmVuIGx1byBYYXV0aG9yaXR5LXDDpMOkc3luaGFsbGludGEtYXZhaW1pYS4gSm9z
-IGrDpHJqZXN0ZWxtw6RuIElQLW9zb2l0ZSBtdXV0dHV1LCBuw6Rpc3TDpCBhdmFpbWlzdGEgdHVsZWUg
-dmlyaGVlbGxpc2nDpCwgbWlrw6Qgc2FhdHRhYSBlc3TDpMOkIFgxMS1vaGplbG1pYSBhdmF1dHVtYXN0
-YS4</string>
+													<string key="NSContents">X11:n avaaminen luo Xauthority-pääsynhallinta-avaimia. Jos järjestelmän IP-osoite muuttuu, näistä avaimista tulee virheellisiä, mikä saattaa estää X11-ohjelmia avautumasta.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="168436707"/>
@@ -1218,10 +1195,7 @@ YS4</string>
 												<object class="NSTextFieldCell" key="NSCell" id="390084685">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">Sm9zIHTDpG3DpCBvdGV0YWFuIGvDpHl0dMO2w7ZuLCDigJ1Ub2Rlbm5hIHlodGV5ZGV04oCdIHBpdMOk
-w6QgbXnDtnMgb3R0YWEga8OkeXR0w7bDtm4gasOkcmplc3RlbG3DpG4gdHVydmFsbGlzdXVkZW4gdmFy
-bWlzdGFtaXNla3NpLiBLdW4gdMOkbcOkIG9uIHBvaXMga8OkeXTDtnN0w6QsIHlodGV5a3Npw6QgZXTD
-pG9oamVsbWlzdGEgZWkgc2FsbGl0YS4</string>
+													<string key="NSContents">Jos tämä otetaan käyttöön, ”Todenna yhteydet” pitää myös ottaa käyttöön järjestelmän turvallisuuden varmistamiseksi. Kun tämä on pois käytöstä, yhteyksiä etäohjelmista ei sallita.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="363817195"/>
@@ -1238,8 +1212,7 @@ pG9oamVsbWlzdGEgZWkgc2FsbGl0YS4</string>
 												<object class="NSTextFieldCell" key="NSCell" id="283628678">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">TsOkbcOkIHZhbGlubmF0IHR1bGV2YXQgdm9pbWFhbiwga3VuIFgxMSBhdmF0YWFuIHNldXJhYXZhbiBr
-ZXJyYW4uA</string>
+													<string key="NSContents">Nämä valinnat tulevat voimaan, kun X11 avataan seuraavan kerran.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="223835729"/>
@@ -1270,7 +1243,7 @@ ZXJyYW4uA</string>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
+				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
 			</object>
 			<object class="NSWindowTemplate" id="604417141">
@@ -1283,7 +1256,7 @@ ZXJyYW4uA</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
+				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="85544634">
 					<nil key="NSNextResponder"/>
@@ -1368,17 +1341,17 @@ ZXJyYW4uA</string>
 											<object class="NSMutableArray" key="NSTableColumns">
 												<bool key="EncodedWithXMLCoder">YES</bool>
 												<object class="NSTableColumn" id="938444323">
-													<double key="NSWidth">121.73099999999999</double>
-													<double key="NSMinWidth">62.731000000000002</double>
+													<double key="NSWidth">121.73100280761719</double>
+													<double key="NSMinWidth">62.730998992919922</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
 														<string key="NSContents">Nimi</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor" id="113872566">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC4zMzMzMzI5OQA</bytes>
+															<bytes key="NSWhite">MC4zMzMzMzI5ODU2AA</bytes>
 														</object>
 														<object class="NSColor" key="NSTextColor" id="249576247">
 															<int key="NSColorSpace">6</int>
@@ -1410,8 +1383,8 @@ ZXJyYW4uA</string>
 													<double key="NSMinWidth">40</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
 														<string key="NSContents">Komento</string>
 														<reference key="NSSupport" ref="26"/>
 														<reference key="NSBackgroundColor" ref="113872566"/>
@@ -1437,8 +1410,8 @@ ZXJyYW4uA</string>
 													<double key="NSMinWidth">10</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">67239424</int>
-														<int key="NSCellFlags2">0</int>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
 														<string key="NSContents">Oikotie</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor">
@@ -1495,6 +1468,7 @@ ZXJyYW4uA</string>
 											<int key="NSDraggingSourceMaskForLocal">-1</int>
 											<int key="NSDraggingSourceMaskForNonLocal">0</int>
 											<bool key="NSAllowsTypeSelect">YES</bool>
+											<int key="NSTableViewDraggingDestinationStyle">0</int>
 										</object>
 									</object>
 									<string key="NSFrame">{{1, 17}, {301, 198}}</string>
@@ -1511,7 +1485,7 @@ ZXJyYW4uA</string>
 									<reference key="NSSuperview" ref="1063387772"/>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.99492380000000002</double>
+									<double key="NSPercent">0.99492377042770386</double>
 								</object>
 								<object class="NSScroller" id="17278747">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1521,7 +1495,7 @@ ZXJyYW4uA</string>
 									<int key="NSsFlags">1</int>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.68852460000000004</double>
+									<double key="NSPercent">0.68852460384368896</double>
 								</object>
 								<object class="NSClipView" id="672307654">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1559,7 +1533,7 @@ ZXJyYW4uA</string>
 							<object class="NSButtonCell" key="NSCell" id="1025474039">
 								<int key="NSCellFlags">-2080244224</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">TGlzw6TDpCBrb2hkZQ</string>
+								<string key="NSContents">Lisää kohde</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="758204686"/>
 								<int key="NSButtonFlags">-2038284033</int>
@@ -1578,7 +1552,7 @@ ZXJyYW4uA</string>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
+				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">
@@ -1622,7 +1596,7 @@ ZXJyYW4uA</string>
 								</object>
 								<object class="NSMenuItem" id="1032342329">
 									<reference key="NSMenu" ref="48278059"/>
-									<string type="base64-UTF8" key="NSTitle">TXVva2thYeKApg</string>
+									<string key="NSTitle">Muokkaa…</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -2197,28 +2171,26 @@ ZXJyYW4uA</string>
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="IBObjectRecord">
 						<int key="objectID">0</int>
-						<object class="NSArray" key="object" id="330408435">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-						</object>
+						<reference key="object" ref="0"/>
 						<reference key="children" ref="904585544"/>
 						<nil key="parent"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-2</int>
 						<reference key="object" ref="815810918"/>
-						<reference key="parent" ref="330408435"/>
-						<string type="base64-UTF8" key="objectName">RmlsZSdzIE93bmVyA</string>
+						<reference key="parent" ref="0"/>
+						<string key="objectName">File's Owner</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-1</int>
 						<reference key="object" ref="941939442"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">First Responder</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-3</int>
 						<reference key="object" ref="951368722"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">Application</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2232,7 +2204,7 @@ ZXJyYW4uA</string>
 							<reference ref="868031522"/>
 							<reference ref="551174276"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">MainMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2477,7 +2449,7 @@ ZXJyYW4uA</string>
 					<object class="IBObjectRecord">
 						<int key="objectID">196</int>
 						<reference key="object" ref="485884620"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">X11Controller</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2487,7 +2459,7 @@ ZXJyYW4uA</string>
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="941366957"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">PrefsPanel</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2751,7 +2723,7 @@ ZXJyYW4uA</string>
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="85544634"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">EditPrograms</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2774,7 +2746,7 @@ ZXJyYW4uA</string>
 							<reference ref="318286212"/>
 							<reference ref="511651072"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">DockMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -3328,6 +3300,7 @@ ZXJyYW4uA</string>
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<object class="NSArray" key="dict.sortedKeys">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>-3.IBPluginDependency</string>
 					<string>-3.ImportedFromIB2</string>
 					<string>100292.IBPluginDependency</string>
 					<string>100293.IBPluginDependency</string>
@@ -3701,6 +3674,7 @@ ZXJyYW4uA</string>
 				</object>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -3773,7 +3747,7 @@ ZXJyYW4uA</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="3"/>
 					<integer value="1"/>
-					<string>{{349, 858}, {315, 153}}</string>
+					<string>{{363, 683}, {389, 153}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{271, 666}, {301, 153}}</string>
@@ -4075,9 +4049,7 @@ ZXJyYW4uA</string>
 			</object>
 			<object class="NSMutableDictionary" key="unlocalizedProperties">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -4085,9 +4057,7 @@ ZXJyYW4uA</string>
 			<nil key="activeLocalization"/>
 			<object class="NSMutableDictionary" key="localizations">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -4125,6 +4095,15 @@ ZXJyYW4uA</string>
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
+			<integer value="1050" key="NS.object.0"/>
+		</object>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.InterfaceBuilder3</string>
+			<integer value="3000" key="NS.object.0"/>
+		</object>
+		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<string key="IBDocument.LastKnownRelativeProjectPath">../X11.xcodeproj</string>
 		<int key="IBDocument.defaultPropertyAccessControl">1</int>
 	</data>

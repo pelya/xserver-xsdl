@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.050000190734863">
+<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.10">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">10A222</string>
-		<string key="IBDocument.InterfaceBuilderVersion">708</string>
-		<string key="IBDocument.AppKitVersion">994.5</string>
-		<string key="IBDocument.HIToolboxVersion">404.00</string>
+		<string key="IBDocument.SystemVersion">10A314</string>
+		<string key="IBDocument.InterfaceBuilderVersion">718</string>
+		<string key="IBDocument.AppKitVersion">1013</string>
+		<string key="IBDocument.HIToolboxVersion">415.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
-			<string key="NS.object.0">708</string>
+			<string key="NS.object.0">718</string>
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -19,7 +19,7 @@
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.Metadata">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<object class="NSArray" key="dict.sortedKeys">
+			<object class="NSArray" key="dict.sortedKeys" id="0">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 			</object>
 			<object class="NSMutableArray" key="dict.values">
@@ -64,7 +64,7 @@
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="139290918">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">5YWz5LqOIFgxMQ</string>
+									<string key="NSTitle">关于 X11</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="531645050"/>
@@ -72,7 +72,7 @@
 								</object>
 								<object class="NSMenuItem" id="386173216">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">5YGP5aW96K6+572u4oCmA</string>
+									<string key="NSTitle">偏好设置…</string>
 									<string key="NSKeyEquiv">,</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -92,7 +92,7 @@
 								</object>
 								<object class="NSMenuItem" id="32285361">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">5pyN5YqhA</string>
+									<string key="NSTitle">服务</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -100,7 +100,7 @@
 									<reference key="NSMixedImage" ref="351811234"/>
 									<string key="NSAction">submenuAction:</string>
 									<object class="NSMenu" key="NSSubmenu" id="821388474">
-										<string type="base64-UTF8" key="NSTitle">5pyN5YqhA</string>
+										<string key="NSTitle">服务</string>
 										<object class="NSMutableArray" key="NSMenuItems">
 											<bool key="EncodedWithXMLCoder">YES</bool>
 										</object>
@@ -120,7 +120,7 @@
 								</object>
 								<object class="NSMenuItem" id="6876565">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">5byA5YWz5YWo5bGP5bmVA</string>
+									<string key="NSTitle">开关全屏幕</string>
 									<string key="NSKeyEquiv">a</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -140,7 +140,7 @@
 								</object>
 								<object class="NSMenuItem" id="301008465">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">6ZqQ6JePIFgxMQ</string>
+									<string key="NSTitle">隐藏 X11</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -150,7 +150,7 @@
 								</object>
 								<object class="NSMenuItem" id="206802571">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">6ZqQ6JeP5YW25LuWA</string>
+									<string key="NSTitle">隐藏其他</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -159,7 +159,7 @@
 								</object>
 								<object class="NSMenuItem" id="1023546148">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">5YWo6YOo5pi+56S6A</string>
+									<string key="NSTitle">全部显示</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -180,7 +180,7 @@
 								</object>
 								<object class="NSMenuItem" id="274138642">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">6YCA5Ye6IFgxMQ</string>
+									<string key="NSTitle">退出 X11</string>
 									<string key="NSKeyEquiv">q</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -193,7 +193,7 @@
 					</object>
 					<object class="NSMenuItem" id="868031522">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">5bqU55So56iL5bqPA</string>
+						<string key="NSTitle">应用程序</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -201,7 +201,7 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="981161348">
-							<string type="base64-UTF8" key="NSTitle">5bqU55So56iL5bqPA</string>
+							<string key="NSTitle">应用程序</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="390088328">
@@ -217,7 +217,7 @@
 								</object>
 								<object class="NSMenuItem" id="1065386165">
 									<reference key="NSMenu" ref="981161348"/>
-									<string type="base64-UTF8" key="NSTitle">6Ieq5a6a4oCmA</string>
+									<string key="NSTitle">自定…</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -229,7 +229,7 @@
 					</object>
 					<object class="NSMenuItem" id="200491363">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">57yW6L6RA</string>
+						<string key="NSTitle">编辑</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -237,12 +237,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="526778998">
-							<string type="base64-UTF8" key="NSTitle">57yW6L6RA</string>
+							<string key="NSTitle">编辑</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="185296989">
 									<reference key="NSMenu" ref="526778998"/>
-									<string type="base64-UTF8" key="NSTitle">5ou36LSdA</string>
+									<string key="NSTitle">拷贝</string>
 									<string key="NSKeyEquiv">c</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -254,7 +254,7 @@
 					</object>
 					<object class="NSMenuItem" id="931553638">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">56qX5Y+jA</string>
+						<string key="NSTitle">窗口</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -262,12 +262,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="96874957">
-							<string type="base64-UTF8" key="NSTitle">56qX5Y+jA</string>
+							<string key="NSTitle">窗口</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="984461797">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">5YWz6ZetA</string>
+									<string key="NSTitle">关闭</string>
 									<string key="NSKeyEquiv">w</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -276,7 +276,7 @@
 								</object>
 								<object class="NSMenuItem" id="677652931">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">5pyA5bCP5YyWA</string>
+									<string key="NSTitle">最小化</string>
 									<string key="NSKeyEquiv">m</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -285,7 +285,7 @@
 								</object>
 								<object class="NSMenuItem" id="1066447520">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">57yp5pS+A</string>
+									<string key="NSTitle">缩放</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -305,7 +305,7 @@
 								</object>
 								<object class="NSMenuItem" id="1036389925">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">5b6q546v5pi+56S656qX5Y+jA</string>
+									<string key="NSTitle">循环显示窗口</string>
 									<string key="NSKeyEquiv">`</string>
 									<int key="NSKeyEquivModMask">1048840</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -314,7 +314,7 @@
 								</object>
 								<object class="NSMenuItem" id="369641893">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">5b6q546v5pi+56S656qX5Y+jA</string>
+									<string key="NSTitle">循环显示窗口</string>
 									<string key="NSKeyEquiv">~</string>
 									<int key="NSKeyEquivModMask">1179914</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -334,7 +334,7 @@
 								</object>
 								<object class="NSMenuItem" id="276216762">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">5YmN572u5YWo6YOo56qX5Y+jA</string>
+									<string key="NSTitle">前置全部窗口</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -358,7 +358,7 @@
 					</object>
 					<object class="NSMenuItem" id="551174276">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">5biu5YqpA</string>
+						<string key="NSTitle">帮助</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -366,12 +366,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="511848303">
-							<string type="base64-UTF8" key="NSTitle">5biu5YqpA</string>
+							<string key="NSTitle">帮助</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="504984881">
 									<reference key="NSMenu" ref="511848303"/>
-									<string type="base64-UTF8" key="NSTitle">WDExIOW4ruWKqQ</string>
+									<string key="NSTitle">X11 帮助</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -392,15 +392,15 @@
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{240, 335}, {484, 308}}</string>
 				<int key="NSWTFlags">1350041600</int>
-				<string type="base64-UTF8" key="NSWindowTitle">WDExIOWBj+Wlveiuvue9rg</string>
+				<string key="NSWindowTitle">X11 偏好设置</string>
 				<string key="NSWindowClass">NSPanel</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="941366957">
-					<reference key="NSNextResponder"/>
+					<nil key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
@@ -409,7 +409,6 @@
 							<int key="NSvFlags">256</int>
 							<string key="NSFrame">{{13, 10}, {458, 292}}</string>
 							<reference key="NSSuperview" ref="941366957"/>
-							<reference key="NSWindow"/>
 							<object class="NSMutableArray" key="NSTabViewItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSTabViewItem" id="287591690">
@@ -426,12 +425,11 @@
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{18, 210}, {402, 18}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="990762273">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5qih5ouf5LiJ5oyJ6ZSu6byg5qCHA</string>
+													<string key="NSContents">模拟三按键鼠标</string>
 													<object class="NSFont" key="NSSupport" id="463863101">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">13</double>
@@ -458,13 +456,11 @@
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{36, 45}, {385, 31}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSTextFieldCell" key="NSCell" id="391919450">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55So5pe277yM6I+c5Y2V5qCP562J5pWI6ZSu5Y+v6IO95Lya5bmy5omw5L2/55So5YWD5L+u6aWw
-6ZSu55qEIFgxMSDlupTnlKjnqIvluo/jgII</string>
+													<string key="NSContents">启用时，菜单栏等效键可能会干扰使用元修饰键的 X11 应用程序。</string>
 													<object class="NSFont" key="NSSupport" id="26">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">11</double>
@@ -478,7 +474,7 @@
 														<string key="NSColorName">controlColor</string>
 														<object class="NSColor" key="NSColor" id="379024898">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2OQA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2NjY3AA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
@@ -497,7 +493,6 @@
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{36, 162}, {385, 42}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSTextFieldCell" key="NSCell" id="649334366">
 													<int key="NSCellFlags">67239424</int>
@@ -516,12 +511,11 @@ moTpvKDmoIfmjInplK7jgIIKA</string>
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{18, 82}, {402, 18}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="940564599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5ZyoIFgxMSDnjq/looPkuIvlkK/nlKjnrYnmlYjplK4</string>
+													<string key="NSContents">在 X11 环境下启用等效键</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="842100515"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -539,13 +533,11 @@ moTpvKDmoIfmjInplK7jgIIKA</string>
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{36, 126}, {385, 14}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSTextFieldCell" key="NSCell" id="666057093">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5YWB6K646L+b6KGM6L6T5YWl6I+c5Y2V5pu05pS55Lul6KaG55uW5b2T5YmN55qEIFgxMSDplK7nm5jm
-mKDlsITjgII</string>
+													<string key="NSContents">允许进行输入菜单更改以覆盖当前的 X11 键盘映射。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="31160162"/>
@@ -558,12 +550,11 @@ mKDlsITjgII</string>
 												<int key="NSvFlags">256</int>
 												<string key="NSFrame">{{18, 146}, {402, 18}}</string>
 												<reference key="NSSuperview" ref="596750588"/>
-												<reference key="NSWindow"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="967619578">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5L6d54Wn57O757uf6ZSu55uY5biD5bGAA</string>
+													<string key="NSContents">依照系统键盘布局</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="179949713"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -579,9 +570,8 @@ mKDlsITjgII</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 										<reference key="NSSuperview" ref="448510093"/>
-										<reference key="NSWindow"/>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">6L6T5YWlA</string>
+									<string key="NSLabel">输入</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -603,7 +593,7 @@ mKDlsITjgII</string>
 												<object class="NSButtonCell" key="NSCell" id="1016069354">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5L2/55So57O757uf6K2m5oql5pWI5p6cA</string>
+													<string key="NSContents">使用系统警报效果</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="418227126"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -625,8 +615,7 @@ mKDlsITjgII</string>
 												<object class="NSTextFieldCell" key="NSCell" id="624655599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIOitpuesm+WwhuS9v+eUqOagh+WHhueahOezu+e7n+itpuaKpe+8jOWFt+S9k+WmguKAnOWjsOmf
-s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
+													<string key="NSContents">X11 警笛将使用标准的系统警报，具体如“声音效果”系统偏好设置面板中所定义。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="1039016593"/>
@@ -660,7 +649,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 													<int key="NSPeriodicInterval">75</int>
 													<object class="NSMenuItem" key="NSMenuItem" id="616492372">
 														<reference key="NSMenu" ref="341113515"/>
-														<string type="base64-UTF8" key="NSTitle">5LuO5pi+56S65ZmoA</string>
+														<string key="NSTitle">从显示器</string>
 														<string key="NSKeyEquiv"/>
 														<int key="NSKeyEquivModMask">1048576</int>
 														<int key="NSMnemonicLoc">2147483647</int>
@@ -681,7 +670,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 															<reference ref="616492372"/>
 															<object class="NSMenuItem" id="759499526">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">MjU2IOenjeminOiJsg</string>
+																<string key="NSTitle">256 种颜色</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -693,7 +682,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 															</object>
 															<object class="NSMenuItem" id="543935434">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">5LiK5LiH56eNA</string>
+																<string key="NSTitle">上万种</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -705,7 +694,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 															</object>
 															<object class="NSMenuItem" id="836673018">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">5LiK5Y2D5LiH56eNA</string>
+																<string key="NSTitle">上千万种</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -750,7 +739,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="311969422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5q2k6YCJ6aG55Lya5Zyo5YaN5qyh5byA5ZCvIFgxMSDml7bnlJ/mlYjjgII</string>
+													<string key="NSContents">此选项会在再次开启 X11 时生效。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="86150604"/>
@@ -767,7 +756,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="631531164">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5YWo5bGP5bmV5qih5byPA</string>
+													<string key="NSContents">全屏幕模式</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477203622"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -789,7 +778,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="917248662">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5Lul5YWo5bGP5bmV5qih5byP6Ieq5Yqo5pi+56S66I+c5Y2V5qCPA</string>
+													<string key="NSContents">以全屏幕模式自动显示菜单栏</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="57246850"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -811,8 +800,7 @@ s+aViOaenOKAneezu+e7n+WBj+Wlveiuvue9rumdouadv+S4reaJgOWumuS5ieOAgg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="761107402">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55SoIFgxMSDmoLnnqpflj6PjgILkvb/nlKggQ29tbWFuZC1PcHRpb24tQSDlh7vplK7mnaXov5vl
-haXlkoznprvlvIDlhajlsY/luZXmqKHlvI/jgII</string>
+													<string key="NSContents">启用 X11 根窗口。使用 Command-Option-A 击键来进入和离开全屏幕模式。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="298603383"/>
@@ -823,7 +811,7 @@ haXlkoznprvlvIDlhajlsY/luZXmqKHlvI/jgII</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">6L6T5Ye6A</string>
+									<string key="NSLabel">输出</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -845,7 +833,7 @@ haXlkoznprvlvIDlhajlsY/luZXmqKHlvI/jgII</string>
 												<object class="NSButtonCell" key="NSCell" id="718083688">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55So5ZCM5q2lA</string>
+													<string key="NSContents">启用同步</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="878106058"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -867,8 +855,7 @@ haXlkoznprvlvIDlhajlsY/luZXmqKHlvI/jgII</string>
 												<object class="NSTextFieldCell" key="NSCell" id="572508492">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55So4oCc5ou36LSd4oCd6I+c5Y2V6aG55bm25YWB6K64IE9TWOKAnOeymOi0tOadv+KAneS4jiBY
-MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
+													<string key="NSContents">启用“拷贝”菜单项并允许 OSX“粘贴板”与 X11 CLIPBOARD 和 PRIMARY 缓冲区之间同步。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="386152084"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -884,7 +871,7 @@ MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="501304422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">4oCc57KY6LS05p2/4oCd5Y+Y5YyW5pe25pu05pawIENMSVBCT0FSROOAgg</string>
+													<string key="NSContents">“粘贴板”变化时更新 CLIPBOARD。</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477050998"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -906,7 +893,7 @@ MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="510771323">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">4oCc57KY6LS05p2/4oCd5Y+Y5YyW5pe25pu05pawIFBSSU1BUlnvvIjkuK3plK7ngrnmjInvvInjgII</string>
+													<string key="NSContents">“粘贴板”变化时更新 PRIMARY（中键点按）。</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="765780304"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -928,7 +915,7 @@ MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="897099877">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">6YCJ5a6a5paw5paH5pys5pe256uL5Y2z5pu05paw4oCc57KY6LS05p2/4oCd44CCA</string>
+													<string key="NSContents">选定新文本时立即更新“粘贴板”。</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="1002778833"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -950,7 +937,7 @@ MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="619977658">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">Q0xJUEJPQVJEIOWPmOWMluaXtuabtOaWsOKAnOeymOi0tOadv+KAneOAgg</string>
+													<string key="NSContents">CLIPBOARD 变化时更新“粘贴板”。</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="487809555"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -972,8 +959,7 @@ MTEgQ0xJUEJPQVJEIOWSjCBQUklNQVJZIOe8k+WGsuWMuuS5i+mXtOWQjOatpeOAgg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="461823902">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5aaC5p6c5oKo5oOz6KaB5L2/55SoIHhjbGlwYm9hcmTjgIFrbGlwcGVyIOaIluWFtuS7luS7u+S9lSBY
-MTEg5aS557q45p2/566h55CG56iL5bqP77yM6K+35YGc55So5q2k6YCJ6aG544CCA</string>
+													<string key="NSContents">如果您想要使用 xclipboard、klipper 或其他任何 X11 夹纸板管理程序，请停用此选项。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="620944856"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -989,8 +975,7 @@ MTEg5aS557q45p2/566h55CG56iL5bqP77yM6K+35YGc55So5q2k6YCJ6aG544CCA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="994587858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">55Sx5LqOIFgxMSDljY/orq7kuK3nmoTpmZDliLbvvIzmraTpgInpobnlnKjmn5DkupvlupTnlKjnqIvl
-uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
+													<string key="NSContents">由于 X11 协议中的限制，此选项在某些应用程序中可能无法工作。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="522511724"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1000,7 +985,7 @@ uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">57KY6LS05p2/A</string>
+									<string key="NSLabel">粘贴板</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1022,7 +1007,7 @@ uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
 												<object class="NSButtonCell" key="NSCell" id="259618205">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">54K55oyJ5ZCE5Liq5LiN5rS76LeD56qX5Y+jA</string>
+													<string key="NSContents">点按各个不活跃窗口</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="657659108"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1044,8 +1029,7 @@ uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
 												<object class="NSTextFieldCell" key="NSCell" id="399127858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55So5pe277yM54K55oyJ5LiN5rS76LeD56qX5Y+j5Lya5r+A5rS756qX5Y+j77yM6Zmk5q2k5Lul
-5aSW77yM6L+Y5bCG5a+86Ie06byg5qCH54K55oyJ5Lyg6YCS5Yiw6K+l56qX5Y+j44CCA</string>
+													<string key="NSContents">启用时，点按不活跃窗口会激活窗口，除此以外，还将导致鼠标点按传递到该窗口。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="290578835"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1061,7 +1045,7 @@ uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
 												<object class="NSButtonCell" key="NSCell" id="959555182">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">54Sm54K56Lef6ZqP6byg5qCHA</string>
+													<string key="NSContents">焦点跟随鼠标</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="992839333"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1083,8 +1067,7 @@ uo/kuK3lj6/og73ml6Dms5Xlt6XkvZzjgII</string>
 												<object class="NSTextFieldCell" key="NSCell" id="183409141">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIOeql+WPo+eEpueCuei3n+maj+WFieagh+OAgui/meS8muS6p+eUn+S4gOS6m+S4jeWlveeahOaV
-iOaenOOAgg</string>
+													<string key="NSContents">X11 窗口焦点跟随光标。这会产生一些不好的效果。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="138261120"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1100,7 +1083,7 @@ iOaenOOAgg</string>
 												<object class="NSButtonCell" key="NSCell" id="556463187">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">6IGa54Sm5paw56qX5Y+jA</string>
+													<string key="NSContents">聚焦新窗口</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="128352289"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1122,9 +1105,7 @@ iOaenOOAgg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="989804990">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5ZCv55So5pe277yM5Yib5bu65pawIFgxMSDnqpflj6PlsIblr7zoh7QgWDExLmFwcCDnp7vliLDmnIDl
-iY3pnaLvvIjogIzkuI3mmK8gRmluZGVyLmFwcOOAgee7iOerry5hcHAg562J5bqU55So56iL5bqP56e7
-5Yiw5pyA5YmN6Z2i77yJ44CCA</string>
+													<string key="NSContents">启用时，创建新 X11 窗口将导致 X11.app 移到最前面（而不是 Finder.app、终端.app 等应用程序移到最前面）。</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="57161931"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1134,7 +1115,7 @@ iY3pnaLvvIjogIzkuI3mmK8gRmluZGVyLmFwcOOAgee7iOerry5hcHAg562J5bqU55So56iL5bqP56e7
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">56qX5Y+jA</string>
+									<string key="NSLabel">窗口</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1153,7 +1134,7 @@ iY3pnaLvvIjogIzkuI3mmK8gRmluZGVyLmFwcOOAgee7iOerry5hcHAg562J5bqU55So56iL5bqP56e7
 												<object class="NSButtonCell" key="NSCell" id="189594322">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">6Ym05a6a6L+e5o6lA</string>
+													<string key="NSContents">鉴定连接</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="989050925"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1175,7 +1156,7 @@ iY3pnaLvvIjogIzkuI3mmK8gRmluZGVyLmFwcOOAgee7iOerry5hcHAg562J5bqU55So56iL5bqP56e7
 												<object class="NSButtonCell" key="NSCell" id="489340979">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">5YWB6K645LuO572R57uc5a6i5oi356uv6L+e5o6lA</string>
+													<string key="NSContents">允许从网络客户端连接</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="700826966"/>
 													<int key="NSButtonFlags">1211912703</int>
@@ -1197,9 +1178,7 @@ iY3pnaLvvIjogIzkuI3mmK8gRmluZGVyLmFwcOOAgee7iOerry5hcHAg562J5bqU55So56iL5bqP56e7
 												<object class="NSTextFieldCell" key="NSCell" id="53243865">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5byA5ZCvIFgxMSDlsIbliJvlu7ogWGF1dGhvcml0eSDorr/pl67mjqfliLbmjInplK7jgILlpoLmnpzn
-s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
-77yM6L+Z5Y+v6IO95Lya6Zi75q2iIFgxMSDlupTnlKjnqIvluo/lvIDlkK/jgII</string>
+													<string key="NSContents">开启 X11 将创建 Xauthority 访问控制按键。如果系统的 IP 地址已更改，这些按键会变成无效的，这可能会阻止 X11 应用程序开启。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="168436707"/>
@@ -1216,9 +1195,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 												<object class="NSTextFieldCell" key="NSCell" id="390084685">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">5aaC5p6c5bey5ZCv55So77yM5YiZ5b+F6aG75Lmf5ZCv55So6Ym05a6a6L+e5o6l5Lul56Gu5L+d57O7
-57uf5a6J5YWo44CC5ZCv55So5pe277yM5LiN5YWB6K645LuO6L+c56iL5bqU55So56iL5bqP6L+e5o6l
-44CCA</string>
+													<string key="NSContents">如果已启用，则必须也启用鉴定连接以确保系统安全。停用时，不允许远程应用程序的连接。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="363817195"/>
@@ -1235,7 +1212,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 												<object class="NSTextFieldCell" key="NSCell" id="283628678">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">6L+Z5Lqb6YCJ6aG55Lya5Zyo5LiL5LiA5qyh5byA5ZCvIFgxMSDml7bnlJ/mlYjjgII</string>
+													<string key="NSContents">这些选项会在下一次开启 X11 时生效。</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="223835729"/>
@@ -1246,7 +1223,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">5a6J5YWo5oCnA</string>
+									<string key="NSLabel">安全性</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1263,12 +1240,10 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 						</object>
 					</object>
 					<string key="NSFrameSize">{484, 308}</string>
-					<reference key="NSSuperview"/>
-					<reference key="NSWindow"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
 			</object>
 			<object class="NSWindowTemplate" id="604417141">
@@ -1276,12 +1251,12 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{279, 416}, {454, 271}}</string>
 				<int key="NSWTFlags">1350041600</int>
-				<string type="base64-UTF8" key="NSWindowTitle">WDExIOW6lOeUqOeoi+W6j+iPnOWNlQ</string>
+				<string key="NSWindowTitle">X11 应用程序菜单</string>
 				<string key="NSWindowClass">NSPanel</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="85544634">
 					<nil key="NSNextResponder"/>
@@ -1297,7 +1272,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<object class="NSButtonCell" key="NSCell" id="143554520">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">5aSN5Yi2A</string>
+								<string key="NSContents">复制</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="671954382"/>
 								<int key="NSButtonFlags">-2038284033</int>
@@ -1320,7 +1295,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<object class="NSButtonCell" key="NSCell" id="8201128">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">5Y675o6JA</string>
+								<string key="NSContents">去掉</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="492358940"/>
 								<int key="NSButtonFlags">-2038284033</int>
@@ -1370,9 +1345,9 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 													<double key="NSMinWidth">62.730998992919922</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">5ZCN56ewA</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">名称</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor" id="113872566">
 															<int key="NSColorSpace">3</int>
@@ -1409,9 +1384,9 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 													<double key="NSMinWidth">40</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">5ZG95LukA</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">命令</string>
 														<reference key="NSSupport" ref="26"/>
 														<reference key="NSBackgroundColor" ref="113872566"/>
 														<reference key="NSTextColor" ref="249576247"/>
@@ -1437,9 +1412,9 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 													<double key="NSMinWidth">10</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">67239424</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">5b+r5o23A</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">快捷</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor">
 															<int key="NSColorSpace">6</int>
@@ -1496,6 +1471,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 											<int key="NSDraggingSourceMaskForLocal">-1</int>
 											<int key="NSDraggingSourceMaskForNonLocal">0</int>
 											<bool key="NSAllowsTypeSelect">YES</bool>
+											<int key="NSTableViewDraggingDestinationStyle">0</int>
 										</object>
 									</object>
 									<string key="NSFrame">{{1, 17}, {301, 198}}</string>
@@ -1560,7 +1536,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<object class="NSButtonCell" key="NSCell" id="1025474039">
 								<int key="NSCellFlags">-2080244224</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">5re75Yqg6aG5A</string>
+								<string key="NSContents">添加项</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="758204686"/>
 								<int key="NSButtonFlags">-2038284033</int>
@@ -1579,11 +1555,11 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">
-				<string type="base64-UTF8" key="NSTitle">6I+c5Y2VA</string>
+				<string key="NSTitle">菜单</string>
 				<object class="NSMutableArray" key="NSMenuItems">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="NSMenuItem" id="318286212">
@@ -1599,7 +1575,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 					</object>
 					<object class="NSMenuItem" id="511651072">
 						<reference key="NSMenu" ref="294137138"/>
-						<string type="base64-UTF8" key="NSTitle">5bqU55So56iL5bqPA</string>
+						<string key="NSTitle">应用程序</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -1607,7 +1583,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="48278059">
-							<string type="base64-UTF8" key="NSTitle">5bqU55So56iL5bqPA</string>
+							<string key="NSTitle">应用程序</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="563798000">
@@ -1623,7 +1599,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 								</object>
 								<object class="NSMenuItem" id="1032342329">
 									<reference key="NSMenu" ref="48278059"/>
-									<string type="base64-UTF8" key="NSTitle">6Ieq5a6a4oCmA</string>
+									<string key="NSTitle">自定…</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -2198,28 +2174,26 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="IBObjectRecord">
 						<int key="objectID">0</int>
-						<object class="NSArray" key="object" id="330408435">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-						</object>
+						<reference key="object" ref="0"/>
 						<reference key="children" ref="904585544"/>
 						<nil key="parent"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-2</int>
 						<reference key="object" ref="815810918"/>
-						<reference key="parent" ref="330408435"/>
-						<string type="base64-UTF8" key="objectName">RmlsZSdzIE93bmVyA</string>
+						<reference key="parent" ref="0"/>
+						<string key="objectName">File's Owner</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-1</int>
 						<reference key="object" ref="941939442"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">First Responder</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-3</int>
 						<reference key="object" ref="951368722"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">Application</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2233,7 +2207,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<reference ref="868031522"/>
 							<reference ref="551174276"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">MainMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2478,7 +2452,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 					<object class="IBObjectRecord">
 						<int key="objectID">196</int>
 						<reference key="object" ref="485884620"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">X11Controller</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2488,7 +2462,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="941366957"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">PrefsPanel</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2752,7 +2726,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="85544634"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">EditPrograms</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2775,7 +2749,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 							<reference ref="318286212"/>
 							<reference ref="511651072"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">DockMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -3329,6 +3303,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<object class="NSArray" key="dict.sortedKeys">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>-3.IBPluginDependency</string>
 					<string>-3.ImportedFromIB2</string>
 					<string>100292.IBPluginDependency</string>
 					<string>100293.IBPluginDependency</string>
@@ -3616,6 +3591,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 				</object>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -3904,9 +3880,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 			</object>
 			<object class="NSMutableDictionary" key="unlocalizedProperties">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -3914,9 +3888,7 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 			<nil key="activeLocalization"/>
 			<object class="NSMutableDictionary" key="localizations">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -3954,6 +3926,15 @@ s7vnu5/nmoQgSVAg5Zyw5Z2A5bey5pu05pS577yM6L+Z5Lqb5oyJ6ZSu5Lya5Y+Y5oiQ5peg5pWI55qE
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
+			<integer value="1050" key="NS.object.0"/>
+		</object>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.InterfaceBuilder3</string>
+			<integer value="3000" key="NS.object.0"/>
+		</object>
+		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<string key="IBDocument.LastKnownRelativeProjectPath">../X11.xcodeproj</string>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 	</data>
