@@ -106,7 +106,7 @@ BasicComputeAcceleration(DeviceIntPtr dev, DeviceVelocityPtr vel,
 extern _X_EXPORT void
 FreeVelocityData(DeviceVelocityPtr vel);
 
-extern _X_EXPORT BOOL
+extern _X_INTERNAL BOOL
 InitializePredictableAccelerationProperties(DeviceIntPtr dev);
 
 extern _X_EXPORT int
@@ -119,14 +119,14 @@ extern _X_EXPORT void
 SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr vel,
                                      PointerAccelerationProfileFunc profile);
 
-extern _X_EXPORT void
+extern _X_INTERNAL void
 AccelerationDefaultCleanup(DeviceIntPtr dev);
 
-extern _X_EXPORT void
+extern _X_INTERNAL void
 acceleratePointerPredictable(DeviceIntPtr dev, int first_valuator,
                              int num_valuators, int *valuators, int evtime);
 
-extern _X_EXPORT void
+extern _X_INTERNAL void
 acceleratePointerLightweight(DeviceIntPtr dev, int first_valuator,
                              int num_valuators, int *valuators, int ignored);
 
