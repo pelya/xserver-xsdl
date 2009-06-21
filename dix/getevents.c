@@ -607,10 +607,9 @@ static void
 clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
               int *valuators)
 {
-    AxisInfoPtr axes = pDev->valuator->axes + first_valuator;
     int i;
 
-    for (i = 0; i < num_valuators; i++, axes++)
+    for (i = 0; i < num_valuators; i++)
         clipAxis(pDev, i + first_valuator, &(valuators[i]));
 }
 
