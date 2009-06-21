@@ -240,10 +240,11 @@ CreateClassesChangedEvent(EventList* event,
  * Rescale the coord between the two axis ranges.
  */
 static int
-rescaleValuatorAxis(int coord, AxisInfoPtr from, AxisInfoPtr to,
+rescaleValuatorAxis(int coord, float remainder, float *remainder_return, AxisInfoPtr from, AxisInfoPtr to,
                     int defmax)
 {
-    int fmin = 0, tmin = 0, fmax = defmax, tmax = defmax;
+    int fmin = 0, tmin = 0, fmax = defmax, tmax = defmax, coord_return;
+    float value;
 
     if(from && from->min_value < from->max_value) {
         fmin = from->min_value;
@@ -254,14 +255,23 @@ rescaleValuatorAxis(int coord, AxisInfoPtr from, AxisInfoPtr to,
         tmax = to->max_value;
     }
 
-    if(fmin == tmin && fmax == tmax)
+    if(fmin == tmin && fmax == tmax) {
+        if (remainder_return)
+            *remainder_return = remainder;
         return coord;
+    }
 
-    if(fmax == fmin) /* avoid division by 0 */
+    if(fmax == fmin) { /* avoid division by 0 */
+        if (remainder_return)
+            *remainder_return = 0.0;
         return 0;
+    }
 
-    return lroundf(((float)(coord - fmin)) * (tmax - tmin) /
-                 (fmax - fmin)) + tmin;
+    value = (coord + remainder - fmin) * (tmax - tmin) / (fmax - fmin) + tmin;
+    coord_return = lroundf(value);
+    if (remainder_return)
+        *remainder_return = value - coord_return;
+    return coord_return;
 }
 
 /**
@@ -289,9 +299,11 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
 
     /* scale back to device coordinates */
     if(pDev->valuator->numAxes > 0)
-        pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0], NULL, pDev->valuator->axes + 0, scr->width);
+        pDev->last.valuators[0] = rescaleValuatorAxis(pDev->last.valuators[0], pDev->last.remainder[0],
+                        &pDev->last.remainder[0], NULL, pDev->valuator->axes + 0, scr->width);
     if(pDev->valuator->numAxes > 1)
-        pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1], NULL, pDev->valuator->axes + 1, scr->height);
+        pDev->last.valuators[1] = rescaleValuatorAxis(pDev->last.valuators[1], pDev->last.remainder[1],
+                        &pDev->last.remainder[0], NULL, pDev->valuator->axes + 1, scr->height);
 
     /* calculate the other axis as well based on info from the old
      * slave-device. If the old slave had less axes than this one,
@@ -304,6 +316,8 @@ updateSlaveDeviceCoords(DeviceIntPtr master, DeviceIntPtr pDev)
             else
                 pDev->last.valuators[i] =
                     rescaleValuatorAxis(pDev->last.valuators[i],
+                            pDev->last.remainder[i],
+                            &pDev->last.remainder[i],
                             lastSlave->valuator->axes + i,
                             pDev->valuator->axes + i, 0);
         }
@@ -410,7 +424,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                 /* scale to screen coords */
                 to = &core_axis;
                 to->max_value = pScreen->width;
-                coord = rescaleValuatorAxis(coord, &from, to, pScreen->width);
+                coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, pScreen->width);
 
                 memcpy(corebuf, &coord, sizeof(INT16));
                 corebuf++;
@@ -421,7 +435,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                 memcpy(&coord, icbuf++, sizeof(INT32));
 
                 to->max_value = pScreen->height;
-                coord = rescaleValuatorAxis(coord, &from, to, pScreen->height);
+                coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, pScreen->height);
                 memcpy(corebuf, &coord, sizeof(INT16));
 
             } else if (IsMaster(pDev))
@@ -456,7 +470,7 @@ GetMotionHistory(DeviceIntPtr pDev, xTimecoord **buff, unsigned long start,
                         dflt = 0;
 
                     /* scale from stored range into current range */
-                    coord = rescaleValuatorAxis(coord, &from, to, 0);
+                    coord = rescaleValuatorAxis(coord, 0.0, NULL, &from, to, 0);
                     memcpy(ocbuf, &coord, sizeof(INT32));
                     ocbuf++;
                 }
@@ -745,26 +759,36 @@ accelPointer(DeviceIntPtr dev, int first, int num, int *valuators, CARD32 ms)
  * @param dev The device to be moved.
  * @param x Pointer to current x-axis value, may be modified.
  * @param y Pointer to current y-axis value, may be modified.
+ * @param x_frac Fractional part of current x-axis value, may be modified.
+ * @param y_frac Fractional part of current y-axis value, may be modified.
  * @param scr Screen the device's sprite is currently on.
  * @param screenx Screen x coordinate the sprite is on after the update.
  * @param screeny Screen y coordinate the sprite is on after the update.
+ * @param screenx_frac Fractional part of screen x coordinate, as above.
+ * @param screeny_frac Fractional part of screen y coordinate, as above.
  */
 static void
-positionSprite(DeviceIntPtr dev, int *x, int *y,
-               ScreenPtr scr, int *screenx, int *screeny)
+positionSprite(DeviceIntPtr dev, int *x, int *y, float x_frac, float y_frac,
+               ScreenPtr scr, int *screenx, int *screeny, float *screenx_frac, float *screeny_frac)
 {
     int old_screenx, old_screeny;
 
     /* scale x&y to screen */
-    if (dev->valuator->numAxes > 0)
-        *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL, scr->width);
-    else
+    if (dev->valuator->numAxes > 0) {
+        *screenx = rescaleValuatorAxis(*x, x_frac, screenx_frac,
+                dev->valuator->axes + 0, NULL, scr->width);
+    } else {
         *screenx = dev->last.valuators[0];
+        *screenx_frac = dev->last.remainder[0];
+    }
 
-    if (dev->valuator->numAxes > 1 )
-        *screeny = rescaleValuatorAxis(*y, dev->valuator->axes + 1, NULL, scr->height);
-    else
+    if (dev->valuator->numAxes > 1) {
+        *screeny = rescaleValuatorAxis(*y, y_frac, screeny_frac,
+                dev->valuator->axes + 1, NULL, scr->height);
+    } else {
         *screeny = dev->last.valuators[1];
+        *screeny_frac = dev->last.remainder[1];
+    }
 
     old_screenx = *screenx;
     old_screeny = *screeny;
@@ -773,27 +797,31 @@ positionSprite(DeviceIntPtr dev, int *x, int *y,
     miPointerSetPosition(dev, screenx, screeny);
 
     if (dev->u.master) {
-        dev->u.master->last.valuators[0] = dev->last.valuators[0];
-        dev->u.master->last.valuators[1] = dev->last.valuators[1];
+        dev->u.master->last.valuators[0] = *screenx;
+        dev->u.master->last.valuators[1] = *screeny;
+        dev->u.master->last.remainder[0] = *screenx_frac;
+        dev->u.master->last.remainder[1] = *screeny_frac;
     }
 
     /* Crossed screen? Scale back to device coordiantes */
     if(*screenx != old_screenx)
     {
         scr = miPointerGetScreen(dev);
-        *x = rescaleValuatorAxis(*screenx, NULL,
+        *x = rescaleValuatorAxis(*screenx, *screenx_frac, &x_frac, NULL,
                                 dev->valuator->axes + 0, scr->width);
     }
     if(*screeny != old_screeny)
     {
         scr = miPointerGetScreen(dev);
-        *y = rescaleValuatorAxis(*screeny, NULL,
+        *y = rescaleValuatorAxis(*screeny, *screeny_frac, &y_frac, NULL,
                                  dev->valuator->axes + 1, scr->height);
     }
 
     /* dropy x/y (device coordinates) back into valuators for next event */
     dev->last.valuators[0] = *x;
     dev->last.valuators[1] = *y;
+    dev->last.remainder[0] = x_frac;
+    dev->last.remainder[1] = y_frac;
 }
 
 /**
@@ -1018,6 +1046,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     RawDeviceEvent    *raw;
     int x = 0, y = 0, /* device coords */
         cx, cy; /* only screen coordinates */
+    float x_frac = 0.0, y_frac = 0.0, cx_frac, cy_frac;
     ScreenPtr scr = miPointerGetScreen(pDev);
 
     /* refuse events from disabled devices */
@@ -1050,26 +1079,31 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         {
 
             if (num_valuators >= 1 && first_valuator == 0)
-                valuators[0] = rescaleValuatorAxis(valuators[0], NULL,
+                valuators[0] = rescaleValuatorAxis(valuators[0], 0.0, &x_frac, NULL,
                         pDev->valuator->axes + 0,
                         scr->width);
             if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                valuators[1 - first_valuator] = rescaleValuatorAxis(valuators[1 - first_valuator], NULL,
+                valuators[1 - first_valuator] = rescaleValuatorAxis(valuators[1 - first_valuator], 0.0, &y_frac, NULL,
                         pDev->valuator->axes + 1,
                         scr->height);
         }
 
         moveAbsolute(pDev, &x, &y, first_valuator, num_valuators, valuators);
     } else {
-        if (flags & POINTER_ACCELERATE)
+        if (flags & POINTER_ACCELERATE) {
             accelPointer(pDev, first_valuator, num_valuators, valuators, ms);
+            /* The pointer acceleration code modifies the fractional part
+             * in-place, so we need to extract this information first */
+            x_frac = pDev->last.remainder[0];
+            y_frac = pDev->last.remainder[1];
+        }
         moveRelative(pDev, &x, &y, first_valuator, num_valuators, valuators);
     }
 
     set_raw_valuators(raw, first_valuator, num_valuators, valuators,
             raw->valuators.data);
 
-    positionSprite(pDev, &x, &y, scr, &cx, &cy);
+    positionSprite(pDev, &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
     updateHistory(pDev, first_valuator, num_valuators, ms);
 
     /* Update the valuators with the true value sent to the client*/
@@ -1102,8 +1136,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     event->root_x = cx; /* root_x/y always in screen coords */
     event->root_y = cy;
-    event->root_x_frac = pDev->last.remainder[0];
-    event->root_y_frac = pDev->last.remainder[1];
+    event->root_x_frac = cx_frac;
+    event->root_y_frac = cy_frac;
 
     set_valuators(pDev, event, first_valuator, num_valuators, valuators);
 
