@@ -753,6 +753,8 @@ static void
 positionSprite(DeviceIntPtr dev, int *x, int *y,
                ScreenPtr scr, int *screenx, int *screeny)
 {
+    int old_screenx, old_screeny;
+
     /* scale x&y to screen */
     if (dev->valuator->numAxes > 0)
         *screenx = rescaleValuatorAxis(*x, dev->valuator->axes + 0, NULL, scr->width);
@@ -764,12 +766,11 @@ positionSprite(DeviceIntPtr dev, int *x, int *y,
     else
         *screeny = dev->last.valuators[1];
 
-    dev->last.valuators[0] = *screenx;
-    dev->last.valuators[1] = *screeny;
-
+    old_screenx = *screenx;
+    old_screeny = *screeny;
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen. */
-    miPointerSetPosition(dev, &dev->last.valuators[0], &dev->last.valuators[1]);
+    miPointerSetPosition(dev, screenx, screeny);
 
     if (dev->u.master) {
         dev->u.master->last.valuators[0] = dev->last.valuators[0];
@@ -777,18 +778,16 @@ positionSprite(DeviceIntPtr dev, int *x, int *y,
     }
 
     /* Crossed screen? Scale back to device coordiantes */
-    if(*screenx != dev->last.valuators[0])
+    if(*screenx != old_screenx)
     {
         scr = miPointerGetScreen(dev);
-        *x = rescaleValuatorAxis(dev->last.valuators[0], NULL,
+        *x = rescaleValuatorAxis(*screenx, NULL,
                                 dev->valuator->axes + 0, scr->width);
-        *screenx = dev->last.valuators[0];
     }
-    if(*screeny != dev->last.valuators[1])
+    if(*screeny != old_screeny)
     {
         scr = miPointerGetScreen(dev);
-        *screeny = dev->last.valuators[1];
-        *y = rescaleValuatorAxis(dev->last.valuators[1], NULL,
+        *y = rescaleValuatorAxis(*screeny, NULL,
                                  dev->valuator->axes + 1, scr->height);
     }
 
