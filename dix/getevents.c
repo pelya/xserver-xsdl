@@ -1050,11 +1050,12 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         if (flags & POINTER_SCREEN) /* valuators are in screen coords */
         {
 
-            valuators[0] = rescaleValuatorAxis(valuators[0], NULL,
-                    pDev->valuator->axes + 0,
-                    scr->width);
-            if (num_valuators > 1)
-                valuators[1] = rescaleValuatorAxis(valuators[1], NULL,
+            if (num_valuators >= 1 && first_valuator == 0)
+                valuators[0] = rescaleValuatorAxis(valuators[0], NULL,
+                        pDev->valuator->axes + 0,
+                        scr->width);
+            if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+                valuators[1 - first_valuator] = rescaleValuatorAxis(valuators[1 - first_valuator], NULL,
                         pDev->valuator->axes + 1,
                         scr->height);
         }
