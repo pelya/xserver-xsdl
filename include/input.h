@@ -497,6 +497,7 @@ extern int AllocXtstDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd);
+extern BOOL IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master);
 
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);

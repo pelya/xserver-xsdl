@@ -2589,3 +2589,16 @@ int AllocXtstDevice (ClientPtr client, char* name,
 
     return retval;
 }
+
+/**
+ * If master is NULL, return TRUE if the given device is an xtest device or
+ * FALSE otherwise.
+ * If master is not NULL, return TRUE if the given device is this master's
+ * xtest device.
+ */
+BOOL
+IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master)
+{
+    return (!IsMaster(dev) && (!master || dev->u.master == master) &&
+           ( dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey) != NULL));
+}

@@ -54,8 +54,6 @@
 
 #include "xichangehierarchy.h"
 
-extern DevPrivateKey XTstDevicePrivateKey;
-
 /**
  * Send the current state of the device hierarchy to all clients.
  */
@@ -260,8 +258,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     }
 
                     for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                        if( !IsMaster(xtstdevice) && xtstdevice->u.master == ptr &&
-                            dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
+                        if (IsXtstDevice(xtstdevice, ptr))
                             break;
 
                     rc = dixLookupDevice(&xtstptr, xtstdevice->id, client,
@@ -297,10 +294,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                     {
                         /* Search the matching keyboard */
                         for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if( !IsMaster(xtstdevice) &&
-                                xtstdevice->u.master == keybd &&
-                                IsKeyboardDevice(xtstdevice) &&
-                                dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey ))
+                            if(IsKeyboardDevice(xtstdevice) && IsXtstDevice(xtstdevice, keybd))
                                 break;
 
                         rc = dixLookupDevice(&xtstkeybd,
@@ -316,11 +310,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         xtstkeybd = xtstptr;
                         /* Search the matching pointer */
                         for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if( !IsMaster(xtstdevice) &&
-                                xtstdevice->u.master == ptr &&
-                                IsPointerDevice(xtstdevice) &&
-                                dixLookupPrivate(&xtstdevice->devPrivates, XTstDevicePrivateKey )
-                              )
+                            if(IsPointerDevice(xtstdevice) && IsXtstDevice(xtstdevice, ptr))
                                 break;
                         rc = dixLookupDevice(&xtstptr,
                                              xtstdevice->id,
@@ -412,7 +402,6 @@ ProcXIChangeHierarchy(ClientPtr client)
             case XIDetachSlave:
                 {
                     xXIDetachSlaveInfo* c = (xXIDetachSlaveInfo*)any;
-                    DeviceIntPtr *xtstdevice;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixManageAccess);
@@ -426,11 +415,8 @@ ProcXIChangeHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    xtstdevice = dixLookupPrivate( &ptr->devPrivates,
-                                                   XTstDevicePrivateKey );
-
                     /* Don't allow changes to Xtst Devices, these are fixed */
-                    if( xtstdevice )
+                    if (IsXtstDevice(ptr, NULL))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;
@@ -445,7 +431,6 @@ ProcXIChangeHierarchy(ClientPtr client)
                 {
                     xXIAttachSlaveInfo* c = (xXIAttachSlaveInfo*)any;
                     DeviceIntPtr newmaster;
-                    DeviceIntPtr *xtstdevice;
 
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixManageAccess);
@@ -459,11 +444,8 @@ ProcXIChangeHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    xtstdevice = dixLookupPrivate( &ptr->devPrivates,
-                                                   XTstDevicePrivateKey );
-
                     /* Don't allow changes to Xtst Devices, these are fixed */
-                    if( xtstdevice )
+                    if (IsXtstDevice(ptr, NULL))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;
