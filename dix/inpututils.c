@@ -54,12 +54,6 @@ check_butmap_change(DeviceIntPtr dev, CARD8 *map, int len, CARD32 *errval_out,
     for (i = 0; i < len; i++) {
         if (dev->button->map[i + 1] != map[i] && dev->button->down[i + 1])
             return MappingBusy;
-
-        if (map[i] < 1 || map[i] > 255) {
-            if (errval_out)
-                *errval_out = map[i];
-            return -1;
-        }
     }
 
     return Success;
