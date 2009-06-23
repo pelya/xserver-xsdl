@@ -56,7 +56,6 @@
 
 extern int DeviceValuator;
 extern int DeviceMotionNotify;
-extern DevPrivateKey XTstDevicePrivateKey;
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -299,14 +298,7 @@ ProcXTestFakeInput(ClientPtr client)
                 return BadValue;
         }
 
-        /* When faking core events through XTest, we always fake through the
-         * virtual test device.
-         */
-        for(it = inputInfo.devices; it ; it = it->next )
-            if( !IsMaster(it) && it->u.master == dev &&
-                    dixLookupPrivate(&it->devPrivates, XTstDevicePrivateKey ))
-                break;
-        dev= it;
+        dev = GetXtstDevice(dev);
     }
 
     /* If the event has a time set, wait for it to pass */

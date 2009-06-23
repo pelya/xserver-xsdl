@@ -496,8 +496,11 @@ extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
 extern int AllocXtstDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
-                             DeviceIntPtr* keybd);
+                             DeviceIntPtr* keybd,
+                             DeviceIntPtr master_ptr,
+                             DeviceIntPtr master_keybd);
 extern BOOL IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master);
+extern DeviceIntPtr GetXtstDevice(DeviceIntPtr master);
 
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);

@@ -186,8 +186,9 @@ ProcXIChangeHierarchy(ClientPtr client)
                     if (!c->send_core)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
 
-		    /* Allocate virtual slave devices for xtest events */
-                    rc = AllocXtstDevice(client, name, &xtstptr, &xtstkeybd);
+                    /* Allocate virtual slave devices for xtest events */
+                    rc = AllocXtstDevice(client, name, &xtstptr, &xtstkeybd,
+                                         ptr, keybd);
                     if (rc != Success)
                     {
 
@@ -231,7 +232,6 @@ ProcXIChangeHierarchy(ClientPtr client)
             case XIRemoveMaster:
                 {
                     xXIRemoveMasterInfo* r = (xXIRemoveMasterInfo*)any;
-                    DeviceIntPtr xtstdevice;
 
                     if (r->return_mode != XIAttachToMaster &&
                             r->return_mode != XIFloating)
@@ -257,69 +257,33 @@ ProcXIChangeHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                        if (IsXtstDevice(xtstdevice, ptr))
-                            break;
 
-                    rc = dixLookupDevice(&xtstptr, xtstdevice->id, client,
+                    ptr = GetMaster(ptr, MASTER_POINTER);
+                    rc = dixLookupDevice(&ptr,
+                                         ptr->id,
+                                         client,
+                                         DixDestroyAccess);
+                    if (rc != Success)
+                        goto unwind;
+                    keybd = GetMaster(ptr, MASTER_KEYBOARD);
+                    rc = dixLookupDevice(&keybd,
+                                         keybd->id,
+                                         client,
                                          DixDestroyAccess);
                     if (rc != Success)
                         goto unwind;
 
-                    /* find keyboards to destroy */
-                    if (IsPointerDevice(ptr))
-                    {
-                        rc = dixLookupDevice(&keybd,
-                                             ptr->spriteInfo->paired->id,
-                                             client,
-                                             DixDestroyAccess);
-                        if (rc != Success)
-                            goto unwind;
+                    xtstptr = GetXtstDevice(ptr);
+                    rc = dixLookupDevice(&xtstptr, xtstptr->id, client,
+                                         DixDestroyAccess);
+                    if (rc != Success)
+                        goto unwind;
 
-                    }
-                    else
-                    {
-                        keybd = ptr;
-                        rc = dixLookupDevice(&ptr,
-                                             keybd->spriteInfo->paired->id,
-                                             client,
-                                             DixDestroyAccess);
-                        if (rc != Success)
-                            goto unwind;
-
-                    }
-
-                    /* handle xtst pointer / keyboard slave devices */
-                    if ( IsPointerDevice(xtstptr))
-                    {
-                        /* Search the matching keyboard */
-                        for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if(IsKeyboardDevice(xtstdevice) && IsXtstDevice(xtstdevice, keybd))
-                                break;
-
-                        rc = dixLookupDevice(&xtstkeybd,
-                                             xtstdevice->id,
-                                             client,
-                                             DixDestroyAccess);
-
-                        if (rc != Success)
-                            goto unwind;
-                    }
-                    else
-                    {
-                        xtstkeybd = xtstptr;
-                        /* Search the matching pointer */
-                        for(xtstdevice = inputInfo.devices; xtstdevice ; xtstdevice = xtstdevice->next )
-                            if(IsPointerDevice(xtstdevice) && IsXtstDevice(xtstdevice, ptr))
-                                break;
-                        rc = dixLookupDevice(&xtstptr,
-                                             xtstdevice->id,
-                                             client,
-                                             DixDestroyAccess);
-
-                        if (rc != Success)
-                            goto unwind;
-                    }
+                    xtstkeybd = GetXtstDevice(keybd);
+                    rc = dixLookupDevice(&xtstkeybd, xtstkeybd->id, client,
+                                         DixDestroyAccess);
+                    if (rc != Success)
+                        goto unwind;
 
                     /* Disabling sends the devices floating, reattach them if
                      * desired. */

@@ -639,8 +639,8 @@ InitCoreDevices(void)
       is a slave device to inputInfo master devices
      */
     if(AllocXtstDevice(serverClient, "Virtual core",
-                       &vxtstpointer,
-                       &vxtstkeyboard) != Success)
+                       &vxtstpointer, &vxtstkeyboard,
+                       inputInfo.pointer, inputInfo.keyboard) != Success)
         FatalError("Failed to allocate XTst devices");
 
     if (ActivateDevice(vxtstpointer, TRUE) != Success ||
@@ -2570,7 +2570,8 @@ AllocDevicePair (ClientPtr client, char* name,
  * still need to be called.
  */
 int AllocXtstDevice (ClientPtr client, char* name,
-		 DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+                     DeviceIntPtr* ptr, DeviceIntPtr* keybd,
+                     DeviceIntPtr master_ptr, DeviceIntPtr master_keybd)
 {
     int retval;
     int len = strlen(name);
@@ -2581,8 +2582,8 @@ int AllocXtstDevice (ClientPtr client, char* name,
 
     retval = AllocDevicePair( client, xtstname, ptr, keybd, FALSE);
     if ( retval == Success ){
-	dixSetPrivate(&((*ptr)->devPrivates), XTstDevicePrivateKey, (void *)True );
-	dixSetPrivate(&((*keybd)->devPrivates), XTstDevicePrivateKey,(void *)True);
+        dixSetPrivate(&((*ptr)->devPrivates), XTstDevicePrivateKey, (void *)master_ptr->id);
+        dixSetPrivate(&((*keybd)->devPrivates), XTstDevicePrivateKey, (void *)master_keybd->id);
     }
 
     xfree( xtstname );
@@ -2599,6 +2600,33 @@ int AllocXtstDevice (ClientPtr client, char* name,
 BOOL
 IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master)
 {
-    return (!IsMaster(dev) && (!master || dev->u.master == master) &&
-           ( dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey) != NULL));
+    int mid;
+    void *tmp; /* shut up, gcc! */
+
+    if (IsMaster(dev))
+        return FALSE;
+
+    tmp = dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey);
+    mid = (int)tmp;
+
+    return (!master || mid == master->id);
 }
+
+/**
+ * @return The X Test virtual device for the given master.
+ */
+DeviceIntPtr
+GetXtstDevice(DeviceIntPtr master)
+{
+    DeviceIntPtr it;
+
+    for (it = inputInfo.devices; it; it = it->next)
+    {
+        if (IsXtstDevice(it, master))
+            return it;
+    }
+
+    /* This only happens if master is a slave device. don't do that */
+    return NULL;
+}
+
