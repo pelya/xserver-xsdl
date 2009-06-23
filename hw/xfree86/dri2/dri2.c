@@ -186,10 +186,18 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
     int need_fake_front = 0;
     int have_fake_front = 0;
     int front_format = 0;
-    const int dimensions_match = (pDraw->width == pPriv->width)
-	&& (pDraw->height == pPriv->height);
+    int dimensions_match;
     int i;
 
+    if (!pPriv) {
+	*width = pDraw->width;
+	*height = pDraw->height;
+	*out_count = 0;
+	return NULL;
+    }
+
+    dimensions_match = (pDraw->width == pPriv->width)
+	&& (pDraw->height == pPriv->height);
 
     buffers = xalloc((count + 1) * sizeof(buffers[0]));
 
