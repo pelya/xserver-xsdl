@@ -187,4 +187,7 @@
 /* Use libpciaccess */
 #undef XSERVER_LIBPCIACCESS
 
+/* X Access Control Extension */
+#undef XACE
+
 #endif /* _XORG_SERVER_H_ */
