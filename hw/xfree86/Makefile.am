@@ -12,15 +12,19 @@ if XF86UTILS
 XF86UTILS_SUBDIR = utils
 endif
 
+if XAA
+XAA_SUBDIR = xaa
+endif
+
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support parser \
-	  ramdac shadowfb vbe vgahw xaa \
+	  ramdac shadowfb vbe vgahw $(XAA_SUBDIR) \
 	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support \
-               parser ramdac shadowfb vbe vgahw xaa \
+               parser ramdac shadowfb vbe vgahw $(XAA_SUBDIR) \
                xf8_16bpp loader dixmods dri dri2 exa modes \
 	       utils doc
 
