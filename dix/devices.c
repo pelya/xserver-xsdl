@@ -2563,6 +2563,19 @@ AllocDevicePair (ClientPtr client, char* name,
 }
 
 /**
+ * Don't allow changing the Xtst property.
+ */
+static int
+DeviceSetXtstProperty(DeviceIntPtr dev, Atom property,
+                      XIPropertyValuePtr prop, BOOL checkonly)
+{
+    if (property == XIGetKnownProperty(XI_PROP_XTST_DEVICE))
+        return BadAccess;
+
+    return Success;
+}
+
+/**
  * Allocate a device pair that is initialised as a slave
  * device with properties that identify the devices as belonging
  * to XTest subsystem.
@@ -2576,6 +2589,7 @@ int AllocXtstDevice (ClientPtr client, char* name,
     int retval;
     int len = strlen(name);
     char *xtstname = xcalloc(len + 6, 1 );
+    char dummy = 1;
 
     strncpy( xtstname, name, len);
     strncat( xtstname, " Xtst", 5 );
@@ -2587,6 +2601,17 @@ int AllocXtstDevice (ClientPtr client, char* name,
     }
 
     xfree( xtstname );
+
+    XIChangeDeviceProperty(*ptr, XIGetKnownProperty(XI_PROP_XTST_DEVICE),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dummy,
+                           FALSE);
+    XISetDevicePropertyDeletable(*ptr, XIGetKnownProperty(XI_PROP_XTST_DEVICE), FALSE);
+    XIRegisterPropertyHandler(*ptr, DeviceSetXtstProperty, NULL, NULL);
+    XIChangeDeviceProperty(*keybd, XIGetKnownProperty(XI_PROP_XTST_DEVICE),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dummy,
+                           FALSE);
+    XISetDevicePropertyDeletable(*keybd, XIGetKnownProperty(XI_PROP_XTST_DEVICE), FALSE);
+    XIRegisterPropertyHandler(*keybd, DeviceSetXtstProperty, NULL, NULL);
 
     return retval;
 }
