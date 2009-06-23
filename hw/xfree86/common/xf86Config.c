@@ -108,12 +108,18 @@ extern DeviceAssocRec mouse_assoc;
 
 static ModuleDefault ModuleDefaults[] = {
     {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
+#ifdef DBE
     {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
+#endif
+#ifdef GLXEXT
     {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
+#endif
 #ifdef XRECORD
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
 #endif
+#ifdef XF86DRI
     {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+#endif
 #ifdef DRI2
     {.name = "dri2",     .toLoad = TRUE,    .load_opt=NULL},
 #endif
