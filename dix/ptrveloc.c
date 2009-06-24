@@ -63,7 +63,7 @@
 int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
 static float
-SimpleSmoothProfile(DeviceVelocityPtr pVel, float velocity,
+SimpleSmoothProfile(DeviceIntPtr dev, DeviceVelocityPtr vel, float velocity,
                     float threshold, float acc);
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
@@ -108,7 +108,7 @@ InitVelocityData(DeviceVelocityPtr s)
 /**
  * Clean up
  */
-static void
+void
 FreeVelocityData(DeviceVelocityPtr s){
     xfree(s->tracker);
     SetAccelerationProfile(s, PROFILE_UNINITIALIZE);
@@ -555,7 +555,7 @@ QueryTrackers(DeviceVelocityPtr s, int cur_t){
  * Perform velocity approximation based on 2D 'mickeys' (mouse motion delta).
  * return true if non-visible state reset is suggested
  */
-static short
+short
 ProcessVelocityData2D(
     DeviceVelocityPtr s,
     int dx,
@@ -616,19 +616,20 @@ ApplySofteningAndConstantDeceleration(
 /*
  * compute the acceleration for given velocity and enforce min_acceleartion
  */
-static float
+float
 BasicComputeAcceleration(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc){
 
     float result;
-    result = pVel->Profile(pVel, velocity, threshold, acc);
+    result = vel->Profile(dev, vel, velocity, threshold, acc);
 
     /* enforce min_acceleration */
-    if (result < pVel->min_acceleration)
-	result = pVel->min_acceleration;
+    if (result < vel->min_acceleration)
+	result = vel->min_acceleration;
     return result;
 }
 
@@ -637,6 +638,7 @@ BasicComputeAcceleration(
  */
 static float
 ComputeAcceleration(
+    DeviceIntPtr dev,
     DeviceVelocityPtr vel,
     float threshold,
     float acc){
@@ -655,9 +657,11 @@ ComputeAcceleration(
 	 * current and previous velocity.
 	 * Though being the more natural choice, it causes a minor delay
 	 * in comparison, so it can be disabled. */
-	res = BasicComputeAcceleration(vel, vel->velocity, threshold, acc);
-	res += BasicComputeAcceleration(vel, vel->last_velocity, threshold, acc);
-	res += 4.0f * BasicComputeAcceleration(vel,
+	res = BasicComputeAcceleration(
+	          dev, vel, vel->velocity, threshold, acc);
+	res += BasicComputeAcceleration(
+	          dev, vel, vel->last_velocity, threshold, acc);
+	res += 4.0f * BasicComputeAcceleration(dev, vel,
 	                   (vel->last_velocity + vel->velocity) / 2,
 	                   threshold, acc);
 	res /= 6.0f;
@@ -665,7 +669,8 @@ ComputeAcceleration(
 	            vel->velocity, vel->last_velocity, res);
         return res;
     }else{
-	res = BasicComputeAcceleration(vel, vel->velocity, threshold, acc);
+	res = BasicComputeAcceleration(dev, vel,
+	                               vel->velocity, threshold, acc);
 	DebugAccelF("(dix ptracc) profile sample [%.2f] is %.3f\n",
                vel->velocity, res);
 	return res;
@@ -682,7 +687,8 @@ ComputeAcceleration(
  */
 static float
 PolynomialAccelerationProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float ignored,
     float acc)
@@ -697,18 +703,21 @@ PolynomialAccelerationProfile(
  */
 static float
 ClassicProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
 {
-    if (threshold) {
-	return SimpleSmoothProfile (pVel,
+    if (threshold > 0) {
+	return SimpleSmoothProfile (dev,
+	                            vel,
 	                            velocity,
                                     threshold,
                                     acc);
     } else {
-	return PolynomialAccelerationProfile (pVel,
+	return PolynomialAccelerationProfile (dev,
+	                                      vel,
 	                                      velocity,
                                               0,
                                               acc);
@@ -726,7 +735,8 @@ ClassicProfile(
  */
 static float
 PowerProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
@@ -736,9 +746,9 @@ PowerProfile(
     acc = (acc-1.0) * 0.1f + 1.0; /* without this, acc of 2 is unuseable */
 
     if (velocity <= threshold)
-        return pVel->min_acceleration;
+        return vel->min_acceleration;
     vel_dist = velocity - threshold;
-    return (pow(acc, vel_dist)) * pVel->min_acceleration;
+    return (pow(acc, vel_dist)) * vel->min_acceleration;
 }
 
 
@@ -763,7 +773,8 @@ CalcPenumbralGradient(float x){
  */
 static float
 SimpleSmoothProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
@@ -788,7 +799,8 @@ SimpleSmoothProfile(
  */
 static float
 SmoothLinearProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
@@ -811,14 +823,15 @@ SmoothLinearProfile(
         res = nv * 2.0f / M_PI  /* steepness of gradient at 0.5 */
               + 1.0f; /* gradient crosses 2|1 */
     }
-    res += pVel->min_acceleration;
+    res += vel->min_acceleration;
     return res;
 }
 
 
 static float
 LinearProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
@@ -829,7 +842,8 @@ LinearProfile(
 
 static float
 NoProfile(
-    DeviceVelocityPtr pVel,
+    DeviceIntPtr dev,
+    DeviceVelocityPtr vel,
     float velocity,
     float threshold,
     float acc)
@@ -992,7 +1006,7 @@ acceleratePointerPredictable(
 
         if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
             /* invoke acceleration profile to determine acceleration */
-            mult = ComputeAcceleration (velocitydata,
+            mult = ComputeAcceleration (pDev, velocitydata,
 					pDev->ptrfeed->ctrl.threshold,
 					(float)pDev->ptrfeed->ctrl.num /
 					(float)pDev->ptrfeed->ctrl.den);

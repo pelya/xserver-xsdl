@@ -1,6 +1,6 @@
 /*
  *
- * Copyright © 2006-2008 Simon Thum             simon dot thum at gmx dot de
+ * Copyright © 2006-2009 Simon Thum             simon dot thum at gmx dot de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,8 @@ struct _DeviceVelocityRec;
  * returns actual acceleration depending on velocity, acceleration control,...
  */
 typedef float (*PointerAccelerationProfileFunc)
-              (struct _DeviceVelocityRec* /*pVel*/,
-               float /*velocity*/, float /*threshold*/, float /*acc*/);
+              (DeviceIntPtr dev, struct _DeviceVelocityRec* vel,
+               float velocity, float threshold, float accelCoeff);
 
 /**
  * a motion history, with just enough information to
@@ -96,8 +96,18 @@ InitVelocityData(DeviceVelocityPtr s);
 extern _X_EXPORT void
 InitTrackers(DeviceVelocityPtr s, int ntracker);
 
+extern _X_EXPORT short
+ProcessVelocityData2D(DeviceVelocityPtr vel, int dx, int dy, int time);
+
+extern _X_EXPORT float
+BasicComputeAcceleration(DeviceIntPtr dev, DeviceVelocityPtr vel,
+    float velocity, float threshold, float acc);
+
+extern _X_EXPORT void
+FreeVelocityData(DeviceVelocityPtr vel);
+
 extern _X_EXPORT BOOL
-InitializePredictableAccelerationProperties(DeviceIntPtr pDev);
+InitializePredictableAccelerationProperties(DeviceIntPtr dev);
 
 extern _X_EXPORT int
 SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
