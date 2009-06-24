@@ -61,12 +61,12 @@
 
 /* fwds */
 int
-SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
+SetAccelerationProfile(DeviceVelocityPtr vel, int profile_num);
 static float
 SimpleSmoothProfile(DeviceIntPtr dev, DeviceVelocityPtr vel, float velocity,
                     float threshold, float acc);
 static PointerAccelerationProfileFunc
-GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
+GetAccelerationProfile(DeviceVelocityPtr vel, int profile_num);
 
 /*#define PTRACCEL_DEBUGGING*/
 
@@ -87,21 +87,21 @@ GetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
  * Init struct so it should match the average case
  */
 void
-InitVelocityData(DeviceVelocityPtr s)
+InitVelocityData(DeviceVelocityPtr vel)
 {
-    memset(s, 0, sizeof(DeviceVelocityRec));
+    memset(vel, 0, sizeof(DeviceVelocityRec));
 
-    s->corr_mul = 10.0;      /* dots per 10 milisecond should be usable */
-    s->const_acceleration = 1.0;   /* no acceleration/deceleration  */
-    s->reset_time = 300;
-    s->use_softening = 1;
-    s->min_acceleration = 1.0; /* don't decelerate */
-    s->max_rel_diff = 0.2;
-    s->max_diff = 1.0;
-    s->initial_range = 2;
-    s->average_accel = TRUE;
-    SetAccelerationProfile(s, AccelProfileClassic);
-    InitTrackers(s, 16);
+    vel->corr_mul = 10.0;      /* dots per 10 milisecond should be usable */
+    vel->const_acceleration = 1.0;   /* no acceleration/deceleration  */
+    vel->reset_time = 300;
+    vel->use_softening = 1;
+    vel->min_acceleration = 1.0; /* don't decelerate */
+    vel->max_rel_diff = 0.2;
+    vel->max_diff = 1.0;
+    vel->initial_range = 2;
+    vel->average_accel = TRUE;
+    SetAccelerationProfile(vel, AccelProfileClassic);
+    InitTrackers(vel, 16);
 }
 
 
@@ -109,9 +109,9 @@ InitVelocityData(DeviceVelocityPtr s)
  * Clean up
  */
 void
-FreeVelocityData(DeviceVelocityPtr s){
-    xfree(s->tracker);
-    SetAccelerationProfile(s, PROFILE_UNINITIALIZE);
+FreeVelocityData(DeviceVelocityPtr vel){
+    xfree(vel->tracker);
+    SetAccelerationProfile(vel, PROFILE_UNINITIALIZE);
 }
 
 
@@ -119,15 +119,15 @@ FreeVelocityData(DeviceVelocityPtr s){
  *  dix uninit helper, called through scheme
  */
 void
-AccelerationDefaultCleanup(DeviceIntPtr pDev)
+AccelerationDefaultCleanup(DeviceIntPtr dev)
 {
     /*sanity check*/
-    if( pDev->valuator->accelScheme.AccelSchemeProc == acceleratePointerPredictable
-            && pDev->valuator->accelScheme.accelData != NULL){
-        pDev->valuator->accelScheme.AccelSchemeProc = NULL;
-        FreeVelocityData(pDev->valuator->accelScheme.accelData);
-        xfree(pDev->valuator->accelScheme.accelData);
-        pDev->valuator->accelScheme.accelData = NULL;
+    if( dev->valuator->accelScheme.AccelSchemeProc == acceleratePointerPredictable
+            && dev->valuator->accelScheme.accelData != NULL){
+        dev->valuator->accelScheme.AccelSchemeProc = NULL;
+        FreeVelocityData(dev->valuator->accelScheme.accelData);
+        xfree(dev->valuator->accelScheme.accelData);
+        dev->valuator->accelScheme.accelData = NULL;
     }
 }
 
@@ -143,7 +143,7 @@ static int
 AccelSetProfileProperty(DeviceIntPtr dev, Atom atom,
                         XIPropertyValuePtr val, BOOL checkOnly)
 {
-    DeviceVelocityPtr pVel;
+    DeviceVelocityPtr vel;
     int profile, *ptr = &profile;
     int rc;
     int nelem = 1;
@@ -151,8 +151,8 @@ AccelSetProfileProperty(DeviceIntPtr dev, Atom atom,
     if (atom != XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER))
         return Success;
 
-    pVel = GetDevicePredictableAccelData(dev);
-    if (!pVel)
+    vel = GetDevicePredictableAccelData(dev);
+    if (!vel)
         return BadValue;
     rc = XIPropToInt(val, &nelem, &ptr);
 
@@ -161,18 +161,18 @@ AccelSetProfileProperty(DeviceIntPtr dev, Atom atom,
         if (rc)
             return rc;
 
-        if (GetAccelerationProfile(pVel, profile) == NULL)
+        if (GetAccelerationProfile(vel, profile) == NULL)
             return BadValue;
     } else
-	SetAccelerationProfile(pVel, profile);
+	SetAccelerationProfile(vel, profile);
 
     return Success;
 }
 
 static void
-AccelInitProfileProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+AccelInitProfileProperty(DeviceIntPtr dev, DeviceVelocityPtr vel)
 {
-    int profile = pVel->statistics.profile_number;
+    int profile = vel->statistics.profile_number;
     Atom prop_profile_number = XIGetKnownProperty(ACCEL_PROP_PROFILE_NUMBER);
 
     XIChangeDeviceProperty(dev, prop_profile_number, XA_INTEGER, 32,
@@ -188,7 +188,7 @@ static int
 AccelSetDecelProperty(DeviceIntPtr dev, Atom atom,
                       XIPropertyValuePtr val, BOOL checkOnly)
 {
-    DeviceVelocityPtr pVel;
+    DeviceVelocityPtr vel;
     float v, *ptr = &v;
     int rc;
     int nelem = 1;
@@ -196,8 +196,8 @@ AccelSetDecelProperty(DeviceIntPtr dev, Atom atom,
     if (atom != XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION))
         return Success;
 
-    pVel = GetDevicePredictableAccelData(dev);
-    if (!pVel)
+    vel = GetDevicePredictableAccelData(dev);
+    if (!vel)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
 
@@ -209,15 +209,15 @@ AccelSetDecelProperty(DeviceIntPtr dev, Atom atom,
     }
 
     if(v >= 1.0f)
-	pVel->const_acceleration = 1/v;
+	vel->const_acceleration = 1/v;
 
     return Success;
 }
 
 static void
-AccelInitDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+AccelInitDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr vel)
 {
-    float fval = 1.0/pVel->const_acceleration;
+    float fval = 1.0/vel->const_acceleration;
     Atom prop_const_decel = XIGetKnownProperty(ACCEL_PROP_CONSTANT_DECELERATION);
     XIChangeDeviceProperty(dev, prop_const_decel,
                            XIGetKnownProperty(XATOM_FLOAT), 32,
@@ -234,7 +234,7 @@ static int
 AccelSetAdaptDecelProperty(DeviceIntPtr dev, Atom atom,
                            XIPropertyValuePtr val, BOOL checkOnly)
 {
-    DeviceVelocityPtr pVel;
+    DeviceVelocityPtr veloc;
     float v, *ptr = &v;
     int rc;
     int nelem = 1;
@@ -242,8 +242,8 @@ AccelSetAdaptDecelProperty(DeviceIntPtr dev, Atom atom,
     if (atom != XIGetKnownProperty(ACCEL_PROP_ADAPTIVE_DECELERATION))
         return Success;
 
-    pVel = GetDevicePredictableAccelData(dev);
-    if (!pVel)
+    veloc = GetDevicePredictableAccelData(dev);
+    if (!veloc)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
 
@@ -255,15 +255,15 @@ AccelSetAdaptDecelProperty(DeviceIntPtr dev, Atom atom,
     }
 
     if(v >= 1.0f)
-	pVel->min_acceleration = 1/v;
+	veloc->min_acceleration = 1/v;
 
     return Success;
 }
 
 static void
-AccelInitAdaptDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+AccelInitAdaptDecelProperty(DeviceIntPtr dev, DeviceVelocityPtr vel)
 {
-    float fval = 1.0/pVel->min_acceleration;
+    float fval = 1.0/vel->min_acceleration;
     Atom prop_adapt_decel = XIGetKnownProperty(ACCEL_PROP_ADAPTIVE_DECELERATION);
 
     XIChangeDeviceProperty(dev, prop_adapt_decel, XIGetKnownProperty(XATOM_FLOAT), 32,
@@ -280,7 +280,7 @@ static int
 AccelSetScaleProperty(DeviceIntPtr dev, Atom atom,
                       XIPropertyValuePtr val, BOOL checkOnly)
 {
-    DeviceVelocityPtr pVel;
+    DeviceVelocityPtr vel;
     float v, *ptr = &v;
     int rc;
     int nelem = 1;
@@ -288,8 +288,8 @@ AccelSetScaleProperty(DeviceIntPtr dev, Atom atom,
     if (atom != XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING))
         return Success;
 
-    pVel = GetDevicePredictableAccelData(dev);
-    if (!pVel)
+    vel = GetDevicePredictableAccelData(dev);
+    if (!vel)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
 
@@ -302,15 +302,15 @@ AccelSetScaleProperty(DeviceIntPtr dev, Atom atom,
     }
 
     if(v > 0)
-	pVel->corr_mul = v;
+	vel->corr_mul = v;
 
     return Success;
 }
 
 static void
-AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
+AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr vel)
 {
-    float fval = pVel->corr_mul;
+    float fval = vel->corr_mul;
     Atom prop_velo_scale = XIGetKnownProperty(ACCEL_PROP_VELOCITY_SCALING);
 
     XIChangeDeviceProperty(dev, prop_velo_scale, XIGetKnownProperty(XATOM_FLOAT), 32,
@@ -320,17 +320,17 @@ AccelInitScaleProperty(DeviceIntPtr dev, DeviceVelocityPtr pVel)
 }
 
 BOOL
-InitializePredictableAccelerationProperties(DeviceIntPtr device)
+InitializePredictableAccelerationProperties(DeviceIntPtr dev)
 {
-    DeviceVelocityPtr  pVel = GetDevicePredictableAccelData(device);
+    DeviceVelocityPtr  vel = GetDevicePredictableAccelData(dev);
 
-    if(!pVel)
+    if(!vel)
 	return FALSE;
 
-    AccelInitProfileProperty(device, pVel);
-    AccelInitDecelProperty(device, pVel);
-    AccelInitAdaptDecelProperty(device, pVel);
-    AccelInitScaleProperty(device, pVel);
+    AccelInitProfileProperty(dev, vel);
+    AccelInitDecelProperty(dev, vel);
+    AccelInitAdaptDecelProperty(dev, vel);
+    AccelInitScaleProperty(dev, vel);
     return TRUE;
 }
 
@@ -339,16 +339,16 @@ InitializePredictableAccelerationProperties(DeviceIntPtr device)
  ********************/
 
 void
-InitTrackers(DeviceVelocityPtr s, int ntracker)
+InitTrackers(DeviceVelocityPtr vel, int ntracker)
 {
     if(ntracker < 1){
 	ErrorF("(dix ptracc) invalid number of trackers\n");
 	return;
     }
-    xfree(s->tracker);
-    s->tracker = (MotionTrackerPtr)xalloc(ntracker * sizeof(MotionTracker));
-    memset(s->tracker, 0, ntracker * sizeof(MotionTracker));
-    s->num_tracker = ntracker;
+    xfree(vel->tracker);
+    vel->tracker = (MotionTrackerPtr)xalloc(ntracker * sizeof(MotionTracker));
+    memset(vel->tracker, 0, ntracker * sizeof(MotionTracker));
+    vel->num_tracker = ntracker;
 }
 
 /**
@@ -437,22 +437,22 @@ GetDirection(int dx, int dy){
 #define TRACKER_INDEX(s, d) (((s)->num_tracker + (s)->cur_tracker - (d)) % (s)->num_tracker)
 
 static inline void
-FeedTrackers(DeviceVelocityPtr s, int dx, int dy, int cur_t)
+FeedTrackers(DeviceVelocityPtr vel, int dx, int dy, int cur_t)
 {
     int n;
-    for(n = 0; n < s->num_tracker; n++){
-	s->tracker[n].dx += dx;
-	s->tracker[n].dy += dy;
+    for(n = 0; n < vel->num_tracker; n++){
+	vel->tracker[n].dx += dx;
+	vel->tracker[n].dy += dy;
     }
-    n = (s->cur_tracker + 1) % s->num_tracker;
-    s->tracker[n].dx = 0;
-    s->tracker[n].dy = 0;
-    s->tracker[n].time = cur_t;
-    s->tracker[n].dir = GetDirection(dx, dy);
+    n = (vel->cur_tracker + 1) % vel->num_tracker;
+    vel->tracker[n].dx = 0;
+    vel->tracker[n].dy = 0;
+    vel->tracker[n].time = cur_t;
+    vel->tracker[n].dir = GetDirection(dx, dy);
     DebugAccelF("(dix prtacc) motion [dx: %i dy: %i dir:%i diff: %i]\n",
-                dx, dy, s->tracker[n].dir,
-                cur_t - s->tracker[s->cur_tracker].time);
-    s->cur_tracker = n;
+                dx, dy, vel->tracker[n].dir,
+                cur_t - vel->tracker[vel->cur_tracker].time);
+    vel->cur_tracker = n;
 }
 
 /**
@@ -461,11 +461,11 @@ FeedTrackers(DeviceVelocityPtr s, int dx, int dy, int cur_t)
  * This assumes linear motion.
  */
 static float
-CalcTracker(DeviceVelocityPtr s, int offset, int cur_t){
-    int index = TRACKER_INDEX(s, offset);
-    float dist = sqrt(  s->tracker[index].dx * s->tracker[index].dx
-                      + s->tracker[index].dy * s->tracker[index].dy);
-    int dtime = cur_t - s->tracker[index].time;
+CalcTracker(DeviceVelocityPtr vel, int offset, int cur_t){
+    int index = TRACKER_INDEX(vel, offset);
+    float dist = sqrt(  vel->tracker[index].dx * vel->tracker[index].dx
+                      + vel->tracker[index].dy * vel->tracker[index].dy);
+    int dtime = cur_t - vel->tracker[index].time;
     if(dtime > 0)
 	return (dist / dtime);
     else
@@ -479,19 +479,19 @@ CalcTracker(DeviceVelocityPtr s, int offset, int cur_t){
  * May return 0.
  */
 static float
-QueryTrackers(DeviceVelocityPtr s, int cur_t){
+QueryTrackers(DeviceVelocityPtr vel, int cur_t){
     int n, offset, dir = 255, i = -1, age_ms;
     /* initial velocity: a low-offset, valid velocity */
     float iveloc = 0, res = 0, tmp, vdiff;
-    float vfac =  s->corr_mul * s->const_acceleration; /* premultiply */
+    float vfac =  vel->corr_mul * vel->const_acceleration; /* premultiply */
     /* loop from current to older data */
-    for(offset = 1; offset < s->num_tracker; offset++){
-	n = TRACKER_INDEX(s, offset);
+    for(offset = 1; offset < vel->num_tracker; offset++){
+	n = TRACKER_INDEX(vel, offset);
 
-	age_ms = cur_t - s->tracker[n].time;
+	age_ms = cur_t - vel->tracker[n].time;
 
 	/* bail out if data is too old and protect from overrun */
-	if (age_ms >= s->reset_time || age_ms < 0) {
+	if (age_ms >= vel->reset_time || age_ms < 0) {
 	    DebugAccelF("(dix prtacc) query: tracker too old\n");
 	    break;
 	}
@@ -502,7 +502,7 @@ QueryTrackers(DeviceVelocityPtr s, int cur_t){
 	 * even more precision we could subdivide as a final step, so possible
 	 * non-linearities are accounted for.
 	 */
-	dir &= s->tracker[n].dir;
+	dir &= vel->tracker[n].dir;
 	if(dir == 0){
 	    DebugAccelF("(dix prtacc) query: no longer linear\n");
 	    /* instead of breaking it we might also inspect the partition after,
@@ -510,16 +510,16 @@ QueryTrackers(DeviceVelocityPtr s, int cur_t){
 	    break;
 	}
 
-	tmp = CalcTracker(s, offset, cur_t) * vfac;
+	tmp = CalcTracker(vel, offset, cur_t) * vfac;
 
-	if ((iveloc == 0 || offset <= s->initial_range) && tmp != 0) {
+	if ((iveloc == 0 || offset <= vel->initial_range) && tmp != 0) {
 	    /* set initial velocity and result */
 	    res = iveloc = tmp;
 	    i = offset;
 	} else if (iveloc != 0 && tmp != 0) {
 	    vdiff = fabs(iveloc - tmp);
-	    if (vdiff <= s->max_diff ||
-		vdiff/(iveloc + tmp) < s->max_rel_diff) {
+	    if (vdiff <= vel->max_diff ||
+		vdiff/(iveloc + tmp) < vel->max_rel_diff) {
 		/* we're in range with the initial velocity,
 		 * so this result is likely better
 		 * (it contains more information). */
@@ -534,17 +534,17 @@ QueryTrackers(DeviceVelocityPtr s, int cur_t){
 	    }
 	}
     }
-    if(offset == s->num_tracker){
+    if(offset == vel->num_tracker){
 	DebugAccelF("(dix prtacc) query: last tracker in effect\n");
-	i = s->num_tracker-1;
+	i = vel->num_tracker-1;
     }
     if(i>=0){
-        n = TRACKER_INDEX(s, i);
+        n = TRACKER_INDEX(vel, i);
 	DebugAccelF("(dix prtacc) result: offset %i [dx: %i dy: %i diff: %i]\n",
 	            i,
-	            s->tracker[n].dx,
-	            s->tracker[n].dy,
-	            cur_t - s->tracker[n].time);
+	            vel->tracker[n].dx,
+	            vel->tracker[n].dy,
+	            cur_t - vel->tracker[n].time);
     }
     return res;
 }
@@ -557,20 +557,20 @@ QueryTrackers(DeviceVelocityPtr s, int cur_t){
  */
 short
 ProcessVelocityData2D(
-    DeviceVelocityPtr s,
+    DeviceVelocityPtr vel,
     int dx,
     int dy,
     int time)
 {
     float velocity;
 
-    s->last_velocity = s->velocity;
+    vel->last_velocity = vel->velocity;
 
-    FeedTrackers(s, dx, dy, time);
+    FeedTrackers(vel, dx, dy, time);
 
-    velocity = QueryTrackers(s, time);
+    velocity = QueryTrackers(vel, time);
 
-    s->velocity = velocity;
+    vel->velocity = velocity;
     return velocity == 0;
 }
 
@@ -594,23 +594,23 @@ ApplySimpleSoftening(int od, int d)
 
 static void
 ApplySofteningAndConstantDeceleration(
-        DeviceVelocityPtr s,
+        DeviceVelocityPtr vel,
         int dx,
         int dy,
         float* fdx,
         float* fdy,
         short do_soften)
 {
-    if (do_soften && s->use_softening) {
-        *fdx = ApplySimpleSoftening(s->last_dx, dx);
-        *fdy = ApplySimpleSoftening(s->last_dy, dy);
+    if (do_soften && vel->use_softening) {
+        *fdx = ApplySimpleSoftening(vel->last_dx, dx);
+        *fdy = ApplySimpleSoftening(vel->last_dy, dy);
     } else {
         *fdx = dx;
         *fdy = dy;
     }
 
-    *fdx *= s->const_acceleration;
-    *fdy *= s->const_acceleration;
+    *fdx *= vel->const_acceleration;
+    *fdy *= vel->const_acceleration;
 }
 
 /*
@@ -853,14 +853,14 @@ NoProfile(
 
 static PointerAccelerationProfileFunc
 GetAccelerationProfile(
-    DeviceVelocityPtr s,
+    DeviceVelocityPtr vel,
     int profile_num)
 {
     switch(profile_num){
         case AccelProfileClassic:
             return ClassicProfile;
         case AccelProfileDeviceSpecific:
-            return s->deviceSpecificProfile;
+            return vel->deviceSpecificProfile;
         case AccelProfilePolynomial:
             return PolynomialAccelerationProfile;
         case AccelProfileSmoothLinear:
@@ -890,23 +890,23 @@ GetAccelerationProfile(
  */
 int
 SetAccelerationProfile(
-    DeviceVelocityPtr s,
+    DeviceVelocityPtr vel,
     int profile_num)
 {
     PointerAccelerationProfileFunc profile;
-    profile = GetAccelerationProfile(s, profile_num);
+    profile = GetAccelerationProfile(vel, profile_num);
 
     if(profile == NULL && profile_num != PROFILE_UNINITIALIZE)
 	return FALSE;
 
-    if(s->profile_private != NULL){
+    if(vel->profile_private != NULL){
         /* Here one could free old profile-private data */
-        xfree(s->profile_private);
-        s->profile_private = NULL;
+        xfree(vel->profile_private);
+        vel->profile_private = NULL;
     }
     /* Here one could init profile-private data */
-    s->Profile = profile;
-    s->statistics.profile_number = profile_num;
+    vel->Profile = profile;
+    vel->statistics.profile_number = profile_num;
     return TRUE;
 }
 
@@ -926,11 +926,11 @@ SetAccelerationProfile(
  */
 void
 SetDeviceSpecificAccelerationProfile(
-        DeviceVelocityPtr s,
+        DeviceVelocityPtr vel,
         PointerAccelerationProfileFunc profile)
 {
-    if(s)
-	s->deviceSpecificProfile = profile;
+    if(vel)
+	vel->deviceSpecificProfile = profile;
 }
 
 /**
@@ -939,19 +939,19 @@ SetDeviceSpecificAccelerationProfile(
  */
 DeviceVelocityPtr
 GetDevicePredictableAccelData(
-	DeviceIntPtr pDev)
+	DeviceIntPtr dev)
 {
     /*sanity check*/
-    if(!pDev){
+    if(!dev){
 	ErrorF("[dix] accel: DeviceIntPtr was NULL");
 	return NULL;
     }
-    if( pDev->valuator &&
-	pDev->valuator->accelScheme.AccelSchemeProc ==
+    if( dev->valuator &&
+	dev->valuator->accelScheme.AccelSchemeProc ==
 	    acceleratePointerPredictable &&
-	pDev->valuator->accelScheme.accelData != NULL){
+	dev->valuator->accelScheme.accelData != NULL){
 
-	return (DeviceVelocityPtr)pDev->valuator->accelScheme.accelData;
+	return (DeviceVelocityPtr)dev->valuator->accelScheme.accelData;
     }
     return NULL;
 }
@@ -967,7 +967,7 @@ GetDevicePredictableAccelData(
  */
 void
 acceleratePointerPredictable(
-    DeviceIntPtr pDev,
+    DeviceIntPtr dev,
     int first_valuator,
     int num_valuators,
     int *valuators,
@@ -977,7 +977,7 @@ acceleratePointerPredictable(
     int dx = 0, dy = 0;
     int *px = NULL, *py = NULL;
     DeviceVelocityPtr velocitydata =
-	(DeviceVelocityPtr) pDev->valuator->accelScheme.accelData;
+	(DeviceVelocityPtr) dev->valuator->accelScheme.accelData;
     float fdx, fdy, tmp; /* no need to init */
     Bool soften = TRUE;
 
@@ -1004,12 +1004,12 @@ acceleratePointerPredictable(
             soften = FALSE;
         }
 
-        if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
+        if (dev->ptrfeed && dev->ptrfeed->ctrl.num) {
             /* invoke acceleration profile to determine acceleration */
-            mult = ComputeAcceleration (pDev, velocitydata,
-					pDev->ptrfeed->ctrl.threshold,
-					(float)pDev->ptrfeed->ctrl.num /
-					(float)pDev->ptrfeed->ctrl.den);
+            mult = ComputeAcceleration (dev, velocitydata,
+					dev->ptrfeed->ctrl.threshold,
+					(float)dev->ptrfeed->ctrl.num /
+					(float)dev->ptrfeed->ctrl.den);
 
             if(mult != 1.0 || velocitydata->const_acceleration != 1.0) {
                 ApplySofteningAndConstantDeceleration( velocitydata,
@@ -1018,21 +1018,22 @@ acceleratePointerPredictable(
 						       (mult > 1.0) && soften);
 
                 if (dx) {
-                    tmp = mult * fdx + pDev->last.remainder[0];
+                    tmp = mult * fdx + dev->last.remainder[0];
                     /* Since it may not be apparent: lrintf() does not offer
                      * strong statements about rounding; however because we
                      * process each axis conditionally, there's no danger
                      * of a toggling remainder. Its lack of guarantees likely
                      * makes it faster on the average target. */
                     *px = lrintf(tmp);
-                    pDev->last.remainder[0] = tmp - (float)*px;
+                    dev->last.remainder[0] = tmp - (float)*px;
                 }
                 if (dy) {
-                    tmp = mult * fdy + pDev->last.remainder[1];
+                    tmp = mult * fdy + dev->last.remainder[1];
                     *py = lrintf(tmp);
-                    pDev->last.remainder[1] = tmp - (float)*py;
+                    dev->last.remainder[1] = tmp - (float)*py;
                 }
-                DebugAccelF("pos (%i | %i) remainders x: %.3f y: %.3f delta x:%.3f y:%.3f\n", *px, *py, pDev->last.remainder[0], pDev->last.remainder[1], fdx, fdy);
+                DebugAccelF("pos (%i | %i) remainders x: %.3f y: %.3f delta x:%.3f y:%.3f\n",
+                            *px, *py, dev->last.remainder[0], dev->last.remainder[1], fdx, fdy);
             }
         }
     }
@@ -1049,7 +1050,7 @@ acceleratePointerPredictable(
  */
 void
 acceleratePointerLightweight(
-    DeviceIntPtr pDev,
+    DeviceIntPtr dev,
     int first_valuator,
     int num_valuators,
     int *valuators,
@@ -1074,48 +1075,48 @@ acceleratePointerLightweight(
     if (!dx && !dy)
         return;
 
-    if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
+    if (dev->ptrfeed && dev->ptrfeed->ctrl.num) {
         /* modeled from xf86Events.c */
-        if (pDev->ptrfeed->ctrl.threshold) {
-            if ((abs(dx) + abs(dy)) >= pDev->ptrfeed->ctrl.threshold) {
-                pDev->last.remainder[0] = ((float)dx *
-                                             (float)(pDev->ptrfeed->ctrl.num)) /
-                                             (float)(pDev->ptrfeed->ctrl.den) +
-                                            pDev->last.remainder[0];
+        if (dev->ptrfeed->ctrl.threshold) {
+            if ((abs(dx) + abs(dy)) >= dev->ptrfeed->ctrl.threshold) {
+                dev->last.remainder[0] = ((float)dx *
+                                             (float)(dev->ptrfeed->ctrl.num)) /
+                                             (float)(dev->ptrfeed->ctrl.den) +
+                                            dev->last.remainder[0];
                 if (px) {
-                    *px = (int)pDev->last.remainder[0];
-                    pDev->last.remainder[0] = pDev->last.remainder[0] -
+                    *px = (int)dev->last.remainder[0];
+                    dev->last.remainder[0] = dev->last.remainder[0] -
                                                 (float)(*px);
                 }
 
-                pDev->last.remainder[1] = ((float)dy *
-                                             (float)(pDev->ptrfeed->ctrl.num)) /
-                                             (float)(pDev->ptrfeed->ctrl.den) +
-                                            pDev->last.remainder[1];
+                dev->last.remainder[1] = ((float)dy *
+                                             (float)(dev->ptrfeed->ctrl.num)) /
+                                             (float)(dev->ptrfeed->ctrl.den) +
+                                            dev->last.remainder[1];
                 if (py) {
-                    *py = (int)pDev->last.remainder[1];
-                    pDev->last.remainder[1] = pDev->last.remainder[1] -
+                    *py = (int)dev->last.remainder[1];
+                    dev->last.remainder[1] = dev->last.remainder[1] -
                                                 (float)(*py);
                 }
             }
         }
         else {
 	    mult = pow((float)dx * (float)dx + (float)dy * (float)dy,
-                       ((float)(pDev->ptrfeed->ctrl.num) /
-                        (float)(pDev->ptrfeed->ctrl.den) - 1.0) /
+                       ((float)(dev->ptrfeed->ctrl.num) /
+                        (float)(dev->ptrfeed->ctrl.den) - 1.0) /
                        2.0) / 2.0;
             if (dx) {
-                pDev->last.remainder[0] = mult * (float)dx +
-                                            pDev->last.remainder[0];
-                *px = (int)pDev->last.remainder[0];
-                pDev->last.remainder[0] = pDev->last.remainder[0] -
+                dev->last.remainder[0] = mult * (float)dx +
+                                            dev->last.remainder[0];
+                *px = (int)dev->last.remainder[0];
+                dev->last.remainder[0] = dev->last.remainder[0] -
                                             (float)(*px);
             }
             if (dy) {
-                pDev->last.remainder[1] = mult * (float)dy +
-                                            pDev->last.remainder[1];
-                *py = (int)pDev->last.remainder[1];
-                pDev->last.remainder[1] = pDev->last.remainder[1] -
+                dev->last.remainder[1] = mult * (float)dy +
+                                            dev->last.remainder[1];
+                *py = (int)dev->last.remainder[1];
+                dev->last.remainder[1] = dev->last.remainder[1] -
                                             (float)(*py);
             }
         }

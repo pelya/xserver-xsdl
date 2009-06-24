@@ -91,10 +91,10 @@ typedef struct _DeviceVelocityRec {
 
 
 extern _X_EXPORT void
-InitVelocityData(DeviceVelocityPtr s);
+InitVelocityData(DeviceVelocityPtr vel);
 
 extern _X_EXPORT void
-InitTrackers(DeviceVelocityPtr s, int ntracker);
+InitTrackers(DeviceVelocityPtr vel, int ntracker);
 
 extern _X_EXPORT short
 ProcessVelocityData2D(DeviceVelocityPtr vel, int dx, int dy, int time);
@@ -110,24 +110,24 @@ extern _X_EXPORT BOOL
 InitializePredictableAccelerationProperties(DeviceIntPtr dev);
 
 extern _X_EXPORT int
-SetAccelerationProfile(DeviceVelocityPtr s, int profile_num);
+SetAccelerationProfile(DeviceVelocityPtr vel, int profile_num);
 
 extern _X_EXPORT DeviceVelocityPtr
-GetDevicePredictableAccelData(DeviceIntPtr pDev);
+GetDevicePredictableAccelData(DeviceIntPtr dev);
 
 extern _X_EXPORT void
-SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr s,
+SetDeviceSpecificAccelerationProfile(DeviceVelocityPtr vel,
                                      PointerAccelerationProfileFunc profile);
 
 extern _X_EXPORT void
-AccelerationDefaultCleanup(DeviceIntPtr pDev);
+AccelerationDefaultCleanup(DeviceIntPtr dev);
 
 extern _X_EXPORT void
-acceleratePointerPredictable(DeviceIntPtr pDev, int first_valuator,
+acceleratePointerPredictable(DeviceIntPtr dev, int first_valuator,
                              int num_valuators, int *valuators, int evtime);
 
 extern _X_EXPORT void
-acceleratePointerLightweight(DeviceIntPtr pDev, int first_valuator,
-                         int num_valuators, int *valuators, int ignore);
+acceleratePointerLightweight(DeviceIntPtr dev, int first_valuator,
+                             int num_valuators, int *valuators, int ignored);
 
 #endif  /* POINTERVELOCITY_H */
