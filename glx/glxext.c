@@ -171,7 +171,7 @@ void __glXAddToContextList(__GLXcontext *cx)
     glxAllContexts = cx;
 }
 
-void __glXRemoveFromContextList(__GLXcontext *cx)
+static void __glXRemoveFromContextList(__GLXcontext *cx)
 {
     __GLXcontext *c, *prev;
 
