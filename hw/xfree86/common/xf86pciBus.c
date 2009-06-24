@@ -753,6 +753,25 @@ xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
 }
 
 /*
+ * Unclaim PCI slot, e.g. if probing failed, so that a different driver can claim.
+ */
+void
+xf86UnclaimPciSlot(struct pci_device *d)
+{
+    int i;
+
+    for (i = 0; i < xf86NumEntities; i++) {
+	const EntityPtr p = xf86Entities[i];
+
+	if ((p->bus.type == BUS_PCI) && (p->bus.id.pci == d)) {
+	    /* Probably the slot should be deallocated? */
+	    p->bus.type = BUS_NONE;
+	    return;
+	}
+    }
+}
+
+/*
  * Parse a BUS ID string, and return the PCI bus parameters if it was
  * in the correct format for a PCI bus id.
  */

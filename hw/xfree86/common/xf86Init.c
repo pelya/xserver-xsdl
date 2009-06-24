@@ -495,7 +495,8 @@ probe_devices_from_device_sections(DriverPtr drvp)
 		    if ((*drvp->PciProbe)(drvp, entry, pPci,
 					  devices[j].match_data)) {
 			foundScreen = TRUE;
-		    }
+		    } else
+			xf86UnclaimPciSlot(pPci);
 		}
 
 		break;

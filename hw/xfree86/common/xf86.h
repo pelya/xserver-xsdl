@@ -97,6 +97,7 @@ extern _X_EXPORT Bool VTSwitchEnabled;	/* kbd driver */
 extern _X_EXPORT Bool xf86CheckPciSlot( const struct pci_device * );
 extern _X_EXPORT int xf86ClaimPciSlot( struct pci_device *, DriverPtr drvp,
 		     int chipset, GDevPtr dev, Bool active);
+extern _X_EXPORT void xf86UnclaimPciSlot(struct pci_device *);
 extern _X_EXPORT Bool xf86ParsePciBusString(const char *busID, int *bus, int *device,
 			   int *func);
 extern _X_EXPORT Bool xf86ComparePciBusString(const char *busID, int bus, int device, int func);
