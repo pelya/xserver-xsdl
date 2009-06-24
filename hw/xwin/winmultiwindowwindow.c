@@ -44,7 +44,9 @@
  * External global variables
  */
 
-extern HWND			g_hDlgDepthChange;
+extern HICON		g_hIconX;
+extern HICON		g_hSmallIconX;
+extern HWND		g_hDlgDepthChange;
 
 /*
  * Prototypes for local functions
@@ -74,6 +76,34 @@ winFindWindow (pointer value, XID id, pointer cdata);
 
 #define SubStrSend(pWin,pParent) (StrSend(pWin) || SubSend(pParent))
 
+void winInitMultiWindowClass(void)
+{
+  static wATOM atomXWinClass=0;
+  WNDCLASSEX wcx;
+
+  if (atomXWinClass==0)
+  {
+    /* Setup our window class */
+    wcx.cbSize=sizeof(WNDCLASSEX);
+    wcx.style = CS_HREDRAW | CS_VREDRAW;
+    wcx.lpfnWndProc = winTopLevelWindowProc;
+    wcx.cbClsExtra = 0;
+    wcx.cbWndExtra = 0;
+    wcx.hInstance = g_hInstance;
+    wcx.hIcon = g_hIconX;
+    wcx.hCursor = 0;
+    wcx.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
+    wcx.lpszMenuName = NULL;
+    wcx.lpszClassName = WINDOW_CLASS_X;
+    wcx.hIconSm = g_hSmallIconX;
+
+#if CYGMULTIWINDOW_DEBUG
+    ErrorF ("winCreateWindowsWindow - Creating class: %s\n", WINDOW_CLASS_X);
+#endif
+
+    atomXWinClass = RegisterClassEx (&wcx);
+  }
+}
 
 /*
  * CreateWindow - See Porting Layer Definition - p. 37
@@ -477,17 +507,14 @@ winCreateWindowsWindow (WindowPtr pWin)
   int			iHeight;
   HWND			hWnd;
   HWND			hFore = NULL;
-  WNDCLASSEX		wc;
   winWindowPriv(pWin);
   HICON			hIcon;
   HICON			hIconSmall;
-#define CLASS_NAME_LENGTH 512
-  char                  pszClass[CLASS_NAME_LENGTH], pszWindowID[12];
-  char                  *res_name, *res_class, *res_role;
-  static int		s_iWindowID = 0;
   winPrivScreenPtr	pScreenPriv = pWinPriv->pScreenPriv;
   WinXSizeHints         hints;
   WindowPtr		pDaddy;
+
+  winInitMultiWindowClass();
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("winCreateWindowsWindow - pWin: %08x\n", pWin);
@@ -510,58 +537,6 @@ winCreateWindowsWindow (WindowPtr pWin)
   iWidth = pWin->drawable.width;
   iHeight = pWin->drawable.height;
 
-  winSelectIcons(pWin, &hIcon, &hIconSmall); 
-
-  /* Set standard class name prefix so we can identify window easily */
-  strncpy (pszClass, WINDOW_CLASS_X, sizeof(pszClass));
-
-  if (winMultiWindowGetClassHint (pWin, &res_name, &res_class))
-    {
-      strncat (pszClass, "-", 1);
-      strncat (pszClass, res_name, CLASS_NAME_LENGTH - strlen (pszClass));
-      strncat (pszClass, "-", 1);
-      strncat (pszClass, res_class, CLASS_NAME_LENGTH - strlen (pszClass));
-      
-      /* Check if a window class is provided by the WM_WINDOW_ROLE property,
-       * if not use the WM_CLASS information.
-       * For further information see:
-       * http://tronche.com/gui/x/icccm/sec-5.html
-       */ 
-      if (winMultiWindowGetWindowRole (pWin, &res_role) )
-	{
-	  strcat (pszClass, "-");
-	  strcat (pszClass, res_role);
-	  free (res_role);
-	}
-
-      free (res_name);
-      free (res_class);
-    }
-
-  /* Add incrementing window ID to make unique class name */
-  snprintf (pszWindowID, sizeof(pszWindowID), "-%x", s_iWindowID++);
-  pszWindowID[sizeof(pszWindowID)-1] = 0;
-  strcat (pszClass, pszWindowID);
-
-#if CYGMULTIWINDOW_DEBUG
-  ErrorF ("winCreateWindowsWindow - Creating class: %s\n", pszClass);
-#endif
-
-  /* Setup our window class */
-  wc.cbSize = sizeof(wc);
-  wc.style = CS_HREDRAW | CS_VREDRAW;
-  wc.lpfnWndProc = winTopLevelWindowProc;
-  wc.cbClsExtra = 0;
-  wc.cbWndExtra = 0;
-  wc.hInstance = g_hInstance;
-  wc.hIcon = hIcon;
-  wc.hIconSm = hIconSmall;
-  wc.hCursor = 0;
-  wc.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
-  wc.lpszMenuName = NULL;
-  wc.lpszClassName = pszClass;
-  RegisterClassEx (&wc);
-
     if (winMultiWindowGetTransientFor (pWin, &pDaddy))
     {
       if (pDaddy)
@@ -575,7 +550,7 @@ winCreateWindowsWindow (WindowPtr pWin)
   /* Make it OVERLAPPED in create call since WS_POPUP doesn't support */
   /* CW_USEDEFAULT, change back to popup after creation */
   hWnd = CreateWindowExA (WS_EX_TOOLWINDOW,	/* Extended styles */
-			  pszClass,		/* Class name */
+			  WINDOW_CLASS_X,	/* Class name */
 			  WINDOW_TITLE_X,	/* Window name */
 			  WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 			  iX,			/* Horizontal position */
@@ -591,6 +566,12 @@ winCreateWindowsWindow (WindowPtr pWin)
       ErrorF ("winCreateWindowsWindow - CreateWindowExA () failed: %d\n",
 	      (int) GetLastError ());
     }
+  pWinPriv->hWnd = hWnd;
+
+  /* Set application or .XWinrc defined Icons */
+  winSelectIcons(pWin, &hIcon, &hIconSmall);
+  if (hIcon) SendMessage (hWnd, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+  if (hIconSmall) SendMessage (hWnd, WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
  
   /* Change style back to popup, already placed... */
   SetWindowLong (hWnd, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
@@ -599,15 +580,13 @@ winCreateWindowsWindow (WindowPtr pWin)
   /* Make sure it gets the proper system menu for a WS_POPUP, too */
   GetSystemMenu (hWnd, TRUE);
 
-  pWinPriv->hWnd = hWnd;
-
   /* Cause any .XWinrc menus to be added in main WNDPROC */
   PostMessage (hWnd, WM_INIT_SYS_MENU, 0, 0);
   
-  SetProp (pWinPriv->hWnd, WIN_WID_PROP, (HANDLE) winGetWindowID(pWin));
+  SetProp (hWnd, WIN_WID_PROP, (HANDLE) winGetWindowID(pWin));
 
   /* Flag that this Windows window handles its own activation */
-  SetProp (pWinPriv->hWnd, WIN_NEEDMANAGE_PROP, (HANDLE) 0);
+  SetProp (hWnd, WIN_NEEDMANAGE_PROP, (HANDLE) 0);
 
   /* Call engine-specific create window procedure */
   (*pScreenPriv->pwinFinishCreateWindowsWindow) (pWin);
@@ -624,11 +603,6 @@ winDestroyWindowsWindow (WindowPtr pWin)
 {
   MSG			msg;
   winWindowPriv(pWin);
-  HICON			hiconClass;
-  HICON			hiconSmClass;
-  HMODULE		hInstance;
-  int			iReturn;
-  char			pszClass[512];
   BOOL			oldstate = winInDestroyWindowsWindow;
   
 #if CYGMULTIWINDOW_DEBUG
@@ -641,12 +615,6 @@ winDestroyWindowsWindow (WindowPtr pWin)
 
   winInDestroyWindowsWindow = TRUE;
 
-  /* Store the info we need to destroy after this window is gone */
-  hInstance = (HINSTANCE) GetClassLong (pWinPriv->hWnd, GCL_HMODULE);
-  hiconClass = (HICON) GetClassLong (pWinPriv->hWnd, GCL_HICON);
-  hiconSmClass = (HICON) GetClassLong (pWinPriv->hWnd, GCL_HICONSM);
-  iReturn = GetClassName (pWinPriv->hWnd, pszClass, 512);
-  
   SetProp (pWinPriv->hWnd, WIN_WINDOW_PROP, NULL);
   /* Destroy the Windows window */
   DestroyWindow (pWinPriv->hWnd);
@@ -661,22 +629,6 @@ winDestroyWindowsWindow (WindowPtr pWin)
 	{
 	  DispatchMessage (&msg);
 	}
-    }
-
-  /* Only if we were able to get the name */
-  if (iReturn)
-    { 
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winDestroyWindowsWindow - Unregistering %s: ", pszClass);
-#endif
-      iReturn = UnregisterClass (pszClass, hInstance);
-      
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("winDestroyWindowsWindow - %d Deleting Icon: ", iReturn);
-#endif
-      
-      winDestroyIcon(hiconClass);
-      winDestroyIcon(hiconSmClass);
     }
 
   winInDestroyWindowsWindow = oldstate;

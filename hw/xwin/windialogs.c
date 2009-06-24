@@ -54,6 +54,10 @@ extern Bool			g_fClipboardStarted;
 #endif
 extern Bool			g_fSoftwareCursor;
 
+#if defined(XWIN_MULTIWINDOW)
+extern HICON                    g_hIconX;
+extern HICON                    g_hSmallIconX;
+#endif
 
 /*
  * Local function prototypes
@@ -229,8 +233,16 @@ winInitDialog (HWND hwndDlg)
 		SWP_NOSIZE | SWP_FRAMECHANGED);
   }
 
-  /* Set icon to standard app icon */
+#ifdef XWIN_MULTIWINDOW
+  if (g_hIconX) hIcon=g_hIconX;
+  else
+#endif
   hIcon = LoadIcon (g_hInstance, MAKEINTRESOURCE(IDI_XWIN));
+
+#ifdef XWIN_MULTIWINDOW
+  if (g_hSmallIconX) hIconSmall=g_hSmallIconX;
+  else
+#endif
   hIconSmall = LoadImage (g_hInstance,
                         MAKEINTRESOURCE(IDI_XWIN), IMAGE_ICON,
                         GetSystemMetrics(SM_CXSMICON),
@@ -252,7 +264,7 @@ winDisplayExitDialog (winPrivScreenPtr pScreenPriv)
   int i;
   int liveClients = 0;
 
-  /* Count up running clinets (clients[0] is serverClient) */
+  /* Count up running clients (clients[0] is serverClient) */
   for (i = 1; i < currentMaxClients; i++)
     if (clients[i] != NullClient)	
       liveClients++;
