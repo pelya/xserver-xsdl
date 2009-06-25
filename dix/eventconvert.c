@@ -417,10 +417,12 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->mods.base_mods         = ev->mods.base;
     xde->mods.latched_mods      = ev->mods.latched;
     xde->mods.locked_mods       = ev->mods.locked;
+    xde->mods.effective_mods    = ev->mods.effective;
 
     xde->group.base_group       = ev->group.base;
     xde->group.latched_group    = ev->group.latched;
     xde->group.locked_group     = ev->group.locked;
+    xde->group.effective_group  = ev->group.effective;
 
     ptr = (char*)&xde[1];
     for (i = 0; i < sizeof(ev->buttons) * 8; i++)

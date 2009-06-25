@@ -101,11 +101,13 @@ typedef struct
         uint32_t base;    /**< XKB base modifiers */
         uint32_t latched; /**< XKB latched modifiers */
         uint32_t locked;  /**< XKB locked modifiers */
+        uint32_t effective;/**< XKB effective modifiers */
     } mods;
     struct {
         uint8_t base;    /**< XKB base group */
         uint8_t latched; /**< XKB latched group */
         uint8_t locked;  /**< XKB locked group */
+        uint8_t effective;/**< XKB effective group */
     } group;
     Window      root; /**< Root window of the event */
     int corestate;    /**< Core key/button state BEFORE the event */

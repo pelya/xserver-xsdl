@@ -1026,10 +1026,12 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
         event->mods.base = state->base_mods;
         event->mods.latched = state->latched_mods;
         event->mods.locked = state->locked_mods;
+        event->mods.effective = state->mods;
 
         event->group.base = state->base_group;
         event->group.latched = state->latched_group;
         event->group.locked = state->locked_group;
+        event->group.effective = state->group;
     }
 
     ret = UpdateDeviceState(device, event);
@@ -1274,10 +1276,12 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
         xi2event->mods.base_mods = dev->key->xkbInfo->state.base_mods;
         xi2event->mods.latched_mods = dev->key->xkbInfo->state.latched_mods;
         xi2event->mods.locked_mods = dev->key->xkbInfo->state.locked_mods;
+        xi2event->mods.effective_mods = dev->key->xkbInfo->state.mods;
 
         xi2event->group.base_group = dev->key->xkbInfo->state.base_group;
         xi2event->group.latched_group = dev->key->xkbInfo->state.latched_group;
         xi2event->group.locked_group = dev->key->xkbInfo->state.locked_group;
+        xi2event->group.effective_group = dev->key->xkbInfo->state.group;
     }
 
     FixUpEventFromWindow(dev, (xEvent*)xi2event, pWin, None, FALSE);
