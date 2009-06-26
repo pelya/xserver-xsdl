@@ -913,6 +913,10 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     security_id_t tsid;
     int rc;
 
+    /* Don't care about the new content check */
+    if (rec->access_mode & DixPostAccess)
+	return;
+
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
     obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
 
