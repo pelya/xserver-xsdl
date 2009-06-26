@@ -253,6 +253,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 			pointer value, Bool sendevent)
 {
     PropertyPtr pProp;
+    PropertyRec savedProp;
     int sizeInBytes, totalSize, rc;
     pointer data;
     Mask access_mode;
@@ -307,15 +308,16 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    return(BadMatch);
         if ((pProp->type != type) && (mode != PropModeReplace))
             return(BadMatch);
+
+	/* save the old values for later */
+	savedProp = *pProp;
+
         if (mode == PropModeReplace)
         {
-	    if (totalSize != pProp->size * (pProp->format >> 3))
-	    {
-	    	data = (pointer)xrealloc(pProp->data, totalSize);
-	    	if (!data && len)
-		    return(BadAlloc);
-            	pProp->data = data;
-	    }
+	    data = xalloc(totalSize);
+	    if (!data && len)
+		return(BadAlloc);
+	    pProp->data = data;
 	    if (len)
 		memmove((char *)pProp->data, (char *)value, totalSize);
 	    pProp->size = len;
@@ -328,10 +330,10 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	}
         else if (mode == PropModeAppend)
         {
-	    data = (pointer)xrealloc(pProp->data,
-				     sizeInBytes * (len + pProp->size));
+	    data = xalloc((pProp->size + len) * sizeInBytes);
 	    if (!data)
 		return(BadAlloc);
+	    memcpy(data, pProp->data, pProp->size * sizeInBytes);
             pProp->data = data;
 	    memmove(&((char *)data)[pProp->size * sizeInBytes], 
 		    (char *)value,
@@ -346,9 +348,19 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    memmove(&((char *)data)[totalSize], (char *)pProp->data, 
 		  (int)(pProp->size * sizeInBytes));
             memmove((char *)data, (char *)value, totalSize);
-	    xfree(pProp->data);
             pProp->data = data;
             pProp->size += len;
+	}
+
+	/* Allow security modules to check the new content */
+	access_mode |= DixPostAccess;
+	rc = XaceHookPropertyAccess(pClient, pWin, &pProp, access_mode);
+	if (rc == Success)
+	    xfree(savedProp.data);
+	else {
+	    xfree(pProp->data);
+	    *pProp = savedProp;
+	    return rc;
 	}
     }
     else
