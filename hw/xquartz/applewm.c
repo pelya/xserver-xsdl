@@ -137,7 +137,7 @@ AppleWMSetScreenOrigin(
     WindowPtr pWin
 )
 {
-    long data[2];
+    int32_t data[2];
 
     data[0] = (dixScreenOrigins[pWin->drawable.pScreen->myNum].x
                 + darwinMainScreenX);
