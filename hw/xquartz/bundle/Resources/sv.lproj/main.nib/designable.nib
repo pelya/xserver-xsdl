@@ -3,12 +3,12 @@
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
 		<string key="IBDocument.SystemVersion">10A354</string>
-		<string key="IBDocument.InterfaceBuilderVersion">728</string>
+		<string key="IBDocument.InterfaceBuilderVersion">729</string>
 		<string key="IBDocument.AppKitVersion">1019</string>
 		<string key="IBDocument.HIToolboxVersion">421.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
-			<string key="NS.object.0">728</string>
+			<string key="NS.object.0">729</string>
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -397,7 +397,7 @@
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="941366957">
 					<nil key="NSNextResponder"/>
@@ -474,7 +474,7 @@
 														<string key="NSColorName">controlColor</string>
 														<object class="NSColor" key="NSColor" id="832012125">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2ODY1AA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2NjY3AA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
@@ -1248,7 +1248,7 @@ cmthIGlubmVow6VsbGV0Lgo</string>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
 			</object>
 			<object class="NSWindowTemplate" id="604417141">
@@ -1261,7 +1261,7 @@ cmthIGlubmVow6VsbGV0Lgo</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="85544634">
 					<nil key="NSNextResponder"/>
@@ -1560,7 +1560,7 @@ cmthIGlubmVow6VsbGV0Lgo</string>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">
