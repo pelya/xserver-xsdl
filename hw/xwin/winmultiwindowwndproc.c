@@ -51,6 +51,8 @@ extern Bool			g_fKeyboardHookLL;
 extern Bool			g_fSoftwareCursor;
 extern Bool			g_fButton[3];
 
+extern void winUpdateWindowPosition (HWND hWnd, Bool reshape, HWND *zstyle);
+
 
 /*
  * Local globals
@@ -420,6 +422,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       hRgnWindow = CreateRectRgnIndirect(&rWindow);
       SetWindowRgn (hwnd, hRgnWindow, TRUE);
       DeleteObject(hRgnWindow);
+
+      SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)XMING_SIGNATURE);
 
       return 0;
 
@@ -865,94 +869,51 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       if (!wParam)
 	return 0;
 
-      /* Tell X to map the window */
-      MapWindow (pWin, wClient(pWin));
-
       /* */
       if (!pWin->overrideRedirect)
 	{
-	  DWORD		dwExStyle;
-	  DWORD		dwStyle;
-	  RECT		rcNew;
-	  int		iDx, iDy;
-	      
 	  /* Flag that this window needs to be made active when clicked */
 	  SetProp (hwnd, WIN_NEEDMANAGE_PROP, (HANDLE) 1);
 
-	  /* Get the standard and extended window style information */
-	  dwExStyle = GetWindowLongPtr (hwnd, GWL_EXSTYLE);
-	  dwStyle = GetWindowLongPtr (hwnd, GWL_STYLE);
-
-	  /* */
-	  if (dwExStyle != WS_EX_APPWINDOW)
+	  if (!(GetWindowLongPtr (hwnd, GWL_EXSTYLE) & WS_EX_APPWINDOW))
 	    {
-	      /* Setup a rectangle with the X window position and size */
-	      SetRect (&rcNew,
-		       pDraw->x,
-		       pDraw->y,
-		       pDraw->x + pDraw->width,
-		       pDraw->y + pDraw->height);
-
-#if 0
-	      ErrorF ("winTopLevelWindowProc - (%d, %d)-(%d, %d)\n",
-		      rcNew.left, rcNew.top,
-		      rcNew.right, rcNew.bottom);
-#endif
-
-	      /* */
-	      AdjustWindowRectEx (&rcNew,
-				  WS_POPUP | WS_SIZEBOX | WS_OVERLAPPEDWINDOW,
-				  FALSE,
-				  WS_EX_APPWINDOW);
-
-	      /* Calculate position deltas */
-	      iDx = pDraw->x - rcNew.left;
-	      iDy = pDraw->y - rcNew.top;
-
-	      /* Calculate new rectangle */
-	      rcNew.left += iDx;
-	      rcNew.right += iDx;
-	      rcNew.top += iDy;
-	      rcNew.bottom += iDy;
-
-#if 0
-	      ErrorF ("winTopLevelWindowProc - (%d, %d)-(%d, %d)\n",
-		      rcNew.left, rcNew.top,
-		      rcNew.right, rcNew.bottom);
-#endif
+	      HWND		zstyle = HWND_NOTOPMOST;
 
 	      /* Set the window extended style flags */
 	      SetWindowLongPtr (hwnd, GWL_EXSTYLE, WS_EX_APPWINDOW);
 
+	      /* Set the transient style flags */
+	      if (GetParent(hwnd)) SetWindowLongPtr (hwnd, GWL_STYLE,
+		   WS_POPUP | WS_OVERLAPPED | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 	      /* Set the window standard style flags */
-	      SetWindowLongPtr (hwnd, GWL_STYLE,
-				WS_POPUP | WS_SIZEBOX | WS_OVERLAPPEDWINDOW);
+	      else SetWindowLongPtr (hwnd, GWL_STYLE,
+		   (WS_POPUP | WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS)
+		   & ~WS_CAPTION & ~WS_SIZEBOX);
 
-	      /* Position the Windows window */
-	      SetWindowPos (hwnd, HWND_TOP,
-			    rcNew.left, rcNew.top,
-			    rcNew.right - rcNew.left, rcNew.bottom - rcNew.top,
-			    SWP_NOMOVE | SWP_FRAMECHANGED
-			    | SWP_SHOWWINDOW | SWP_NOACTIVATE);
-
-	      /* Bring the Windows window to the foreground */
+	      winUpdateWindowPosition (hwnd, FALSE, &zstyle);
 	      SetForegroundWindow (hwnd);
 	    }
+	  wmMsg.msg = WM_WM_MAP3;
 	}
       else /* It is an overridden window so make it top of Z stack */
 	{
 #if CYGWINDOWING_DEBUG
 	  ErrorF ("overridden window is shown\n");
 #endif
-	  SetWindowPos (hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	  HWND forHwnd = GetForegroundWindow();
+	  if (forHwnd != NULL)
+	  {
+	    if (GetWindowLongPtr(forHwnd, GWLP_USERDATA) & (LONG_PTR)XMING_SIGNATURE)
+	    {
+	      if (GetWindowLongPtr(forHwnd, GWL_EXSTYLE) & WS_EX_TOPMOST)
+		SetWindowPos (hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	      else
+		SetWindowPos (hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	    }
+	  }
+	  wmMsg.msg = WM_WM_MAP2;
 	}
 	  
-      /* Setup the Window Manager message */
-      wmMsg.msg = WM_WM_MAP;
-      wmMsg.iWidth = pDraw->width;
-      wmMsg.iHeight = pDraw->height;
-
       /* Tell our Window Manager thread to map the window */
       if (fWMMsgInitialized)
 	winSendMessageToWM (s_pScreenPriv->pWMInfo, &wmMsg);
