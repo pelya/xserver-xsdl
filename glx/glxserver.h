@@ -94,9 +94,6 @@ void GlxExtensionInit(void);
 void GlxSetVisualConfigs(int nconfigs, 
                          void *configs, void **privates);
 
-struct _glapi_table;
-void GlxSetRenderTables (struct _glapi_table *table);
-
 void __glXScreenInitVisuals(__GLXscreen *screen);
 
 /*

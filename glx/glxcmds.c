@@ -51,12 +51,6 @@
 #include "indirect_table.h"
 #include "indirect_util.h"
 
-void
-GlxSetRenderTables (struct _glapi_table *table)
-{
-    _glapi_set_dispatch (table);
-}
-
 static int
 validGlxScreen(ClientPtr client, int screen, __GLXscreen **pGlxScreen, int *err)
 {
