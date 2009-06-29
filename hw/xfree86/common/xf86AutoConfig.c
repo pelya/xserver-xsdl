@@ -271,7 +271,7 @@ xf86AutoConfig(void)
     return (ret == CONFIG_OK);
 }
 
-int 
+static int
 xchomp(char *line)
 {
     size_t len = 0;
@@ -285,46 +285,6 @@ xchomp(char *line)
         line[len - 1] = '\0';
     }
     return 0;
-}
-
-GDevPtr
-autoConfigDevice(GDevPtr preconf_device)
-{
-    GDevPtr ptr = NULL;
-
-    if (!xf86configptr) {
-        return NULL;
-    }
-
-    /* If there's a configured section with no driver chosen, use it */
-    if (preconf_device) {
-        ptr = preconf_device;
-    } else {
-        ptr = xcalloc(1, sizeof(GDevRec));
-        if (!ptr) {
-            return NULL;
-        }
-        ptr->chipID = -1;
-        ptr->chipRev = -1;
-        ptr->irq = -1;
-
-        ptr->active = TRUE;
-        ptr->claimed = FALSE;
-        ptr->identifier = "Autoconfigured Video Device";
-        ptr->driver = NULL;
-    }
-    if (!ptr->driver) {
-        ptr->driver = chooseVideoDriver();
-    }
-
-    /* TODO Handle multiple screen sections */
-    if (xf86ConfigLayout.screens && !xf86ConfigLayout.screens->screen->device) {   
-        xf86ConfigLayout.screens->screen->device = ptr;
-        ptr->myScreenSection = xf86ConfigLayout.screens->screen;
-    }
-    xf86Msg(X_DEFAULT, "Assigned the driver to the xf86ConfigLayout\n");
-
-    return ptr;
 }
 
 #ifdef __linux__
@@ -531,7 +491,7 @@ listPossibleVideoDrivers(char *matches[], int nmatches)
     }
 }
 
-char*
+static char*
 chooseVideoDriver(void)
 {
     char *chosen_driver = NULL;
@@ -553,4 +513,44 @@ chooseVideoDriver(void)
     }
 
     return chosen_driver;
+}
+
+GDevPtr
+autoConfigDevice(GDevPtr preconf_device)
+{
+    GDevPtr ptr = NULL;
+
+    if (!xf86configptr) {
+        return NULL;
+    }
+
+    /* If there's a configured section with no driver chosen, use it */
+    if (preconf_device) {
+        ptr = preconf_device;
+    } else {
+        ptr = xcalloc(1, sizeof(GDevRec));
+        if (!ptr) {
+            return NULL;
+        }
+        ptr->chipID = -1;
+        ptr->chipRev = -1;
+        ptr->irq = -1;
+
+        ptr->active = TRUE;
+        ptr->claimed = FALSE;
+        ptr->identifier = "Autoconfigured Video Device";
+        ptr->driver = NULL;
+    }
+    if (!ptr->driver) {
+        ptr->driver = chooseVideoDriver();
+    }
+
+    /* TODO Handle multiple screen sections */
+    if (xf86ConfigLayout.screens && !xf86ConfigLayout.screens->screen->device) {
+        xf86ConfigLayout.screens->screen->device = ptr;
+        ptr->myScreenSection = xf86ConfigLayout.screens->screen;
+    }
+    xf86Msg(X_DEFAULT, "Assigned the driver to the xf86ConfigLayout\n");
+
+    return ptr;
 }

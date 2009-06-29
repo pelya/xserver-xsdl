@@ -68,7 +68,5 @@ ConfigStatus xf86HandleConfigFile(Bool);
 
 Bool xf86AutoConfig(void);
 GDevPtr autoConfigDevice(GDevPtr preconf_device);
-char* chooseVideoDriver(void);
-int xchomp(char *line);
 
 #endif /* _xf86_config_h */
