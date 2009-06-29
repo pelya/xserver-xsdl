@@ -180,6 +180,36 @@ typedef struct _xReq *xReqPtr;
 
 #endif
 
+/**
+ * Calculate the number of bytes needed to hold bits.
+ * @param bits The minimum number of bits needed.
+ * @return The number of bytes needed to hold bits.
+ */
+static inline int
+bits_to_bytes(const int bits) {
+    return ((bits + 7) >> 3);
+}
+/**
+ * Calculate the number of 4-byte units needed to hold the given number of
+ * bytes.
+ * @param bytes The minimum number of bytes needed.
+ * @return The number of 4-byte units needed to hold bytes.
+ */
+static inline int
+bytes_to_int32(const int bytes) {
+    return (((bytes) + 3) >> 2);
+}
+
+/**
+ * Calculate the number of bytes (in multiples of 4) needed to hold bytes.
+ * @param bytes The minimum number of bytes needed.
+ * @return The closest multiple of 4 that is equal or higher than bytes.
+ */
+static inline int
+pad_to_int32(const int bytes) {
+    return (((bytes) + 3) & ~3);
+}
+
 /* some macros to help swap requests, replies, and events */
 
 #define LengthRestB(stuff) \

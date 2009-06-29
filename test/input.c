@@ -678,6 +678,44 @@ static void dix_grab_matching(void)
     g_assert(rc == TRUE);
 }
 
+static void include_byte_padding_macros(void)
+{
+    int i;
+    g_test_message("Testing bits_to_bytes()");
+
+    /* the macros don't provide overflow protection */
+    for (i = 0; i < INT_MAX - 7; i++)
+    {
+        int expected_bytes;
+        expected_bytes = (i + 7)/8;
+
+        g_assert(bits_to_bytes(i) >= i/8);
+        g_assert((bits_to_bytes(i) * 8) - i <= 7);
+    }
+
+    g_test_message("Testing bytes_to_int32()");
+    for (i = 0; i < INT_MAX - 3; i++)
+    {
+        int expected_4byte;
+        expected_4byte = (i + 3)/4;
+
+        g_assert(bytes_to_int32(i) <= i);
+        g_assert((bytes_to_int32(i) * 4) - i <= 3);
+    }
+
+    g_test_message("Testing pad_to_int32");
+
+    for (i = 0; i < INT_MAX - 3; i++)
+    {
+        int expected_bytes;
+        expected_bytes = ((i + 3)/4) * 4;
+
+        g_assert(pad_to_int32(i) >= i);
+        g_assert(pad_to_int32(i) - i <= 3);
+    }
+
+}
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -688,6 +726,7 @@ int main(int argc, char** argv)
     g_test_add_func("/dix/input/check-grab-values", dix_check_grab_values);
     g_test_add_func("/dix/input/xi2-struct-sizes", xi2_struct_sizes);
     g_test_add_func("/dix/input/grab_matching", dix_grab_matching);
+    g_test_add_func("/include/byte_padding_macros", include_byte_padding_macros);
 
     return g_test_run();
 }
