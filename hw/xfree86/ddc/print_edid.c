@@ -231,7 +231,7 @@ print_established_timings(int scrnIndex, struct established_timings *t)
     unsigned char c;
 
     if (t->t1 || t->t2 || t->t_manu)
-	xf86DrvMsg(scrnIndex,X_INFO,"Supported VESA Video Modes:\n");
+	xf86DrvMsg(scrnIndex,X_INFO,"Supported established timings:\n");
     c=t->t1;
     if (c&0x80) xf86DrvMsg(scrnIndex,X_INFO,"720x400@70Hz\n");
     if (c&0x40) xf86DrvMsg(scrnIndex,X_INFO,"720x400@88Hz\n");
@@ -263,7 +263,7 @@ print_std_timings(int scrnIndex, struct std_timings *t)
     for (i=0;i<STD_TIMINGS;i++) {
 	if (t[i].hsize > 256) {  /* sanity check */
 	    if (!done) {
-		xf86DrvMsg(scrnIndex,X_INFO,"Supported Future Video Modes:\n");
+		xf86DrvMsg(scrnIndex,X_INFO,"Supported standard timings:\n");
 		done = 1;
 	    }
 	    xf86DrvMsg(scrnIndex,X_INFO,
@@ -296,7 +296,7 @@ print_detailed_timings(int scrnIndex, struct detailed_timings *t)
 {
 
     if (t->clock > 15000000) {  /* sanity check */
-	xf86DrvMsg(scrnIndex,X_INFO,"Supported additional Video Mode:\n");
+	xf86DrvMsg(scrnIndex,X_INFO,"Supported detailed timing:\n");
 	xf86DrvMsg(scrnIndex,X_INFO,"clock: %.1f MHz   ",t->clock/1000000.0);
 	xf86ErrorF("Image Size:  %i x %i mm\n",t->h_size,t->v_size); 
 	xf86DrvMsg(scrnIndex,X_INFO,
