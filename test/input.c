@@ -52,13 +52,14 @@ static void dix_init_valuators(void)
     ValuatorClassPtr val;
     const int num_axes = 2;
     int i;
+    Atom atoms[MAX_VALUATORS] = { 0 };
 
 
     memset(&dev, 0, sizeof(DeviceIntRec));
     dev.type = MASTER_POINTER; /* claim it's a master to stop ptracccel */
 
-    g_assert(InitValuatorClassDeviceStruct(NULL, 0, 0, 0) == FALSE);
-    g_assert(InitValuatorClassDeviceStruct(&dev, num_axes, 0, Absolute));
+    g_assert(InitValuatorClassDeviceStruct(NULL, 0, atoms, 0, 0) == FALSE);
+    g_assert(InitValuatorClassDeviceStruct(&dev, num_axes, atoms, 0, Absolute));
 
     val = dev.valuator;
     g_assert(val);
