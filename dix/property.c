@@ -255,7 +255,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     PropertyPtr pProp;
     PropertyRec savedProp;
     int sizeInBytes, totalSize, rc;
-    pointer data;
+    unsigned char *data;
     Mask access_mode;
 
     sizeInBytes = format>>3;
@@ -278,12 +278,11 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    xfree(pProp);
 	    return(BadAlloc);
 	}
+        memcpy(data, value, totalSize);
         pProp->propertyName = property;
         pProp->type = type;
         pProp->format = format;
         pProp->data = data;
-	if (len)
-	    memmove((char *)data, (char *)value, totalSize);
 	pProp->size = len;
 	pProp->devPrivates = NULL;
 	rc = XaceHookPropertyAccess(pClient, pWin, &pProp,
@@ -317,9 +316,8 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    data = xalloc(totalSize);
 	    if (!data && len)
 		return(BadAlloc);
+	    memcpy(data, value, totalSize);
 	    pProp->data = data;
-	    if (len)
-		memmove((char *)pProp->data, (char *)value, totalSize);
 	    pProp->size = len;
     	    pProp->type = type;
 	    pProp->format = format;
@@ -334,10 +332,8 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    if (!data)
 		return(BadAlloc);
 	    memcpy(data, pProp->data, pProp->size * sizeInBytes);
+	    memcpy(data + pProp->size * sizeInBytes, value, totalSize);
             pProp->data = data;
-	    memmove(&((char *)data)[pProp->size * sizeInBytes], 
-		    (char *)value,
-		  totalSize);
             pProp->size += len;
 	}
         else if (mode == PropModePrepend)
@@ -345,9 +341,8 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
             data = xalloc(sizeInBytes * (len + pProp->size));
 	    if (!data)
 		return(BadAlloc);
-	    memmove(&((char *)data)[totalSize], (char *)pProp->data, 
-		  (int)(pProp->size * sizeInBytes));
-            memmove((char *)data, (char *)value, totalSize);
+            memcpy(data + totalSize, pProp->data, pProp->size * sizeInBytes);
+            memcpy(data, value, totalSize);
             pProp->data = data;
             pProp->size += len;
 	}
