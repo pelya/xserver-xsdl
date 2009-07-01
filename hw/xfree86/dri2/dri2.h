@@ -35,15 +35,26 @@
 
 #include <X11/extensions/dri2tokens.h>
 
+/* Version 1 structure (for ABI compatibility) */
 typedef struct {
     unsigned int attachment;
     unsigned int name;
     unsigned int pitch;
     unsigned int cpp;
     unsigned int flags;
-    unsigned int format;
     void *driverPrivate;
 } DRI2BufferRec, *DRI2BufferPtr;
+
+/* Version 2 structure (with format at the end) */
+typedef struct {
+    unsigned int attachment;
+    unsigned int name;
+    unsigned int pitch;
+    unsigned int cpp;
+    unsigned int flags;
+    void *driverPrivate;
+    unsigned int format;
+} DRI2Buffer2Rec, *DRI2Buffer2Ptr;
 
 typedef DRI2BufferPtr	(*DRI2CreateBuffersProcPtr)(DrawablePtr pDraw,
 						    unsigned int *attachments,
@@ -59,11 +70,11 @@ typedef void		(*DRI2CopyRegionProcPtr)(DrawablePtr pDraw,
 typedef void		(*DRI2WaitProcPtr)(WindowPtr pWin,
 					   unsigned int sequence);
 
-typedef DRI2BufferPtr	(*DRI2CreateBufferProcPtr)(DrawablePtr pDraw,
+typedef DRI2Buffer2Ptr	(*DRI2CreateBufferProcPtr)(DrawablePtr pDraw,
 						   unsigned int attachment,
 						   unsigned int format);
 typedef void		(*DRI2DestroyBufferProcPtr)(DrawablePtr pDraw,
-						    DRI2BufferPtr buffer);
+						    DRI2Buffer2Ptr buffer);
 
 /**
  * Version of the DRI2InfoRec structure defined in this header
@@ -108,7 +119,7 @@ extern _X_EXPORT int DRI2CreateDrawable(DrawablePtr pDraw);
 
 extern _X_EXPORT void DRI2DestroyDrawable(DrawablePtr pDraw);
 
-extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffers(DrawablePtr pDraw,
+extern _X_EXPORT DRI2Buffer2Ptr *DRI2GetBuffers(DrawablePtr pDraw,
 			     int *width,
 			     int *height,
 			     unsigned int *attachments,
@@ -138,7 +149,7 @@ extern _X_EXPORT int DRI2CopyRegion(DrawablePtr pDraw,
  */
 extern _X_EXPORT void DRI2Version(int *major, int *minor);
 
-extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffersWithFormat(DrawablePtr pDraw,
+extern _X_EXPORT DRI2Buffer2Ptr *DRI2GetBuffersWithFormat(DrawablePtr pDraw,
 	int *width, int *height, unsigned int *attachments, int count,
 	int *out_count);
 
