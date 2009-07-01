@@ -41,7 +41,7 @@
 /*
  * global structure that holds the result of parsing the config file
  */
-extern XF86ConfigPtr xf86configptr;
+extern _X_EXPORT XF86ConfigPtr xf86configptr;
 #endif
 
 typedef enum _ConfigStatus {

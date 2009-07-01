@@ -43,6 +43,7 @@
 #include "xf86Parser.h"
 #include "xf86Xinput.h"
 #include "xf86InPriv.h"
+#include "xf86Config.h"
 
 /* Globals that video drivers may access */
 
