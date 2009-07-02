@@ -2625,16 +2625,23 @@ int AllocXtstDevice (ClientPtr client, char* name,
 BOOL
 IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master)
 {
+    int is_xtst = FALSE;
     int mid;
     void *tmp; /* shut up, gcc! */
 
     if (IsMaster(dev))
-        return FALSE;
+        return is_xtst;
 
     tmp = dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey);
     mid = (int)tmp;
 
-    return (!master || mid == master->id);
+    /* deviceid 0 is reserved for XIAllDevices, non-zero mid means xtst
+     * device */
+    if ((!master && mid) ||
+        (master && mid == master->id))
+        is_xtst = TRUE;
+
+    return is_xtst;
 }
 
 /**
