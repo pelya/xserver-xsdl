@@ -551,6 +551,15 @@ initializeExtensions(__GLXDRIscreen *screen)
     LogMessage(X_INFO, "AIGLX: enabled GLX_MESA_copy_sub_buffer\n");
 
     for (i = 0; extensions[i]; i++) {
+#ifdef __DRI_READ_DRAWABLE
+	if (strcmp(extensions[i]->name, __DRI_READ_DRAWABLE) == 0) {
+	    __glXEnableExtension(screen->glx_enable_bits,
+				 "GLX_SGI_make_current_read");
+
+	    LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_make_current_read\n");
+	}
+#endif
+
 #ifdef __DRI_SWAP_CONTROL
 	if (strcmp(extensions[i]->name, __DRI_SWAP_CONTROL) == 0) {
 	    screen->swapControl =
