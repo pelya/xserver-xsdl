@@ -1172,6 +1172,8 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, Atom* labels,
     butc->sourceid = dev->id;
     for (i = 1; i <= numButtons; i++)
 	butc->map[i] = map[i];
+    for (i = numButtons + 1; i < MAP_LENGTH; i++)
+        butc->map[i] = i;
     memcpy(butc->labels, labels, numButtons * sizeof(Atom));
     dev->button = butc;
     return TRUE;
