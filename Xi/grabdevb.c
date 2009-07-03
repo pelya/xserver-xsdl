@@ -110,7 +110,7 @@ ProcXGrabDeviceButton(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xGrabDeviceButtonReq);
 
     if (stuff->length !=
-	(sizeof(xGrabDeviceButtonReq) >> 2) + stuff->event_count)
+	bytes_to_int32(sizeof(xGrabDeviceButtonReq)) + stuff->event_count)
 	return BadLength;
 
     ret = dixLookupDevice(&dev, stuff->grabbed_device, client, DixGrabAccess);

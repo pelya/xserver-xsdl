@@ -94,8 +94,8 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     REQUEST(xSetDeviceButtonMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceButtonMappingReq);
 
-    if (stuff->length != (sizeof(xSetDeviceButtonMappingReq) +
-			  stuff->map_length + 3) >> 2)
+    if (stuff->length !=
+        bytes_to_int32(sizeof(xSetDeviceButtonMappingReq) + stuff->map_length))
 	return BadLength;
 
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);

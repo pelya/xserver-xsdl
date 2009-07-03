@@ -150,7 +150,7 @@ ProcXOpenDevice(ClientPtr client)
     }
     evbase[j].class = OtherClass;
     evbase[j++].event_type_base = event_base[OtherClass];
-    rep.length = (j * sizeof(xInputClassInfo) + 3) >> 2;
+    rep.length = bytes_to_int32(j * sizeof(xInputClassInfo));
     rep.num_classes = j;
     WriteReplyToClient(client, sizeof(xOpenDeviceReply), &rep);
     WriteToClient(client, j * sizeof(xInputClassInfo), (char *)evbase);

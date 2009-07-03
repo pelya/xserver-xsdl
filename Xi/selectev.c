@@ -154,7 +154,7 @@ ProcXSelectExtensionEvent(ClientPtr client)
     REQUEST(xSelectExtensionEventReq);
     REQUEST_AT_LEAST_SIZE(xSelectExtensionEventReq);
 
-    if (stuff->length != (sizeof(xSelectExtensionEventReq) >> 2) + stuff->count)
+    if (stuff->length != bytes_to_int32(sizeof(xSelectExtensionEventReq)) + stuff->count)
 	return BadLength;
 
     ret = dixLookupWindow(&pWin, stuff->window, client, DixReceiveAccess);

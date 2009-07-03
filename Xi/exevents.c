@@ -686,7 +686,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
     {
         len += sizeof(xXIButtonInfo);
         len += dce->buttons.num_buttons * sizeof(Atom); /* button names */
-        len += ((((dce->buttons.num_buttons + 7)/8) + 3)/4) * 4;
+        len += pad_to_int32(bits_to_bytes(dce->buttons.num_buttons));
     }
     if (dce->num_valuators)
         len += sizeof(xXIValuatorInfo) * dce->num_valuators;
@@ -714,7 +714,7 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
     dcce->sourceid     = device->id;
     dcce->reason       = (dce->flags & DEVCHANGE_DEVICE_CHANGE) ? XIDeviceChange : XISlaveSwitch;
     dcce->num_classes  = 0;
-    dcce->length = (len - sizeof(xEvent))/4;
+    dcce->length = bytes_to_int32(len - sizeof(xEvent));
 
     ptr = (char*)&dcce[1];
     if (dce->buttons.num_buttons)
@@ -1249,15 +1249,15 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     mouse = (IsMaster(dev) || dev->u.master) ? GetMaster(dev, MASTER_POINTER) : dev;
 
     /* XI 2 event */
-    btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
-    btlen = (btlen + 3)/4;
+    btlen = (mouse->button) ? bits_to_bytes(mouse->button->numButtons) : 0;
+    btlen = bytes_to_int32(btlen);
     len = sizeof(xXIFocusInEvent) + btlen * 4;
 
     xi2event = xcalloc(1, len);
     xi2event->type         = GenericEvent;
     xi2event->extension    = IReqCode;
     xi2event->evtype       = type;
-    xi2event->length       = (len - sizeof(xEvent))/4;
+    xi2event->length       = bytes_to_int32(len - sizeof(xEvent));
     xi2event->buttons_len  = btlen;
     xi2event->detail       = detail;
     xi2event->time         = currentTime.milliseconds;

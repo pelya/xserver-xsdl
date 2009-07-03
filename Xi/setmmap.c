@@ -96,8 +96,8 @@ ProcXSetDeviceModifierMapping(ClientPtr client)
     REQUEST(xSetDeviceModifierMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceModifierMappingReq);
 
-    if (stuff->length != ((sizeof(xSetDeviceModifierMappingReq) >> 2) +
-                          (stuff->numKeyPerModifier << 1)))
+    if (stuff->length != bytes_to_int32(sizeof(xSetDeviceModifierMappingReq)) +
+                          (stuff->numKeyPerModifier << 1))
         return BadLength;
 
     rep.repType = X_Reply;

@@ -100,7 +100,7 @@ ProcXSetDeviceValuators(ClientPtr client)
     rep.status = Success;
     rep.sequenceNumber = client->sequence;
 
-    if (stuff->length != (sizeof(xSetDeviceValuatorsReq) >> 2) +
+    if (stuff->length != bytes_to_int32(sizeof(xSetDeviceValuatorsReq)) +
 	stuff->num_valuators)
 	return BadLength;
 

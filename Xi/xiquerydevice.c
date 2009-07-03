@@ -200,7 +200,7 @@ SizeDeviceInfo(DeviceIntPtr dev)
     int len = sizeof(xXIDeviceInfo);
 
     /* 4-padded name */
-    len += (((strlen(dev->name) + 3)/4)*4);
+    len += pad_to_int32(strlen(dev->name));
 
     return len + SizeDeviceClasses(dev);
 
@@ -218,7 +218,7 @@ SizeDeviceClasses(DeviceIntPtr dev)
     {
         len += sizeof(xXIButtonInfo);
         len += dev->button->numButtons * sizeof(Atom);
-        len += ((((dev->button->numButtons + 7)/8) + 3)/4) * 4;
+        len += pad_to_int32(bits_to_bytes(dev->button->numButtons));
     }
 
     if (dev->key)
@@ -246,11 +246,12 @@ ListButtonInfo(DeviceIntPtr dev, xXIButtonInfo* info)
     int mask_len;
     int i;
 
-    mask_len = (((dev->button->numButtons + 7)/8) + 3)/4; /* 4-byte units*/
+    mask_len = bytes_to_int32(bits_to_bytes(dev->button->numButtons));
 
     info->type = ButtonClass;
     info->num_buttons = dev->button->numButtons;
-    info->length = sizeof(xXIButtonInfo)/4 + mask_len + info->num_buttons;
+    info->length = bytes_to_int32(sizeof(xXIButtonInfo)) +
+                   info->num_buttons + mask_len;
     info->sourceid = dev->button->sourceid;
 
     bits = (unsigned char*)&info[1];
@@ -400,7 +401,7 @@ ListDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
     info->enabled = dev->enabled;
     total_len = sizeof(xXIDeviceInfo);
 
-    len = ((info->name_len + 3)/4) * 4;
+    len = pad_to_int32(info->name_len);
     memset(any, 0, len);
     strncpy(any, dev->name, info->name_len);
     any += len;
@@ -456,7 +457,7 @@ SwapDeviceInfo(DeviceIntPtr dev, xXIDeviceInfo* info)
     int i;
 
     /* Skip over name */
-    any += (((info->name_len + 3)/4) * 4);
+    any += pad_to_int32(info->name_len);
 
     for (i = 0; i < info->num_classes; i++)
     {

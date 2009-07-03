@@ -136,7 +136,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
 					(ScreenPtr) NULL, FALSE);
     }
     if (rep.nEvents > 0) {
-	length = (rep.nEvents * size + 3) >> 2;
+	length = bytes_to_int32(rep.nEvents * size);
 	rep.length = length;
     }
     nEvents = rep.nEvents;

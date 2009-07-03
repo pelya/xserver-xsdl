@@ -96,8 +96,8 @@ ProcXGetExtensionVersion(ClientPtr client)
     REQUEST(xGetExtensionVersionReq);
     REQUEST_AT_LEAST_SIZE(xGetExtensionVersionReq);
 
-    if (stuff->length != (sizeof(xGetExtensionVersionReq) +
-			  stuff->nbytes + 3) >> 2)
+    if (stuff->length != bytes_to_int32(sizeof(xGetExtensionVersionReq) +
+			  stuff->nbytes))
 	return BadLength;
 
     memset(&rep, 0, sizeof(xGetExtensionVersionReply));

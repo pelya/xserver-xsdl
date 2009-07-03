@@ -306,7 +306,7 @@ ProcXGetDeviceControl(ClientPtr client)
 	break;
     }
 
-    rep.length = (total_length + 3) >> 2;
+    rep.length = bytes_to_int32(total_length);
     WriteReplyToClient(client, sizeof(xGetDeviceControlReply), &rep);
     WriteToClient(client, total_length, savbuf);
     xfree(savbuf);

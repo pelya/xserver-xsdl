@@ -903,7 +903,7 @@ ProcXChangeDeviceProperty (ClientPtr client)
                                stuff->format, stuff->mode, stuff->nUnits);
 
     len = stuff->nUnits;
-    if (len > ((0xffffffff - sizeof(xChangeDevicePropertyReq)) >> 2))
+    if (len > (bytes_to_int32(0xffffffff - sizeof(xChangeDevicePropertyReq))))
         return BadLength;
 
     totalSize = len * (stuff->format/8);
@@ -972,7 +972,7 @@ ProcXGetDeviceProperty (ClientPtr client)
     reply.format = format;
     reply.bytesAfter = bytes_after;
     reply.propertyType = type;
-    reply.length = (length + 3) >> 2;
+    reply.length = bytes_to_int32(length);
 
     if (stuff->delete && (reply.bytesAfter == 0))
         send_property_event(dev, stuff->property, XIPropertyDeleted);
@@ -1146,7 +1146,7 @@ ProcXIChangeProperty(ClientPtr client)
     rc = check_change_property(client, stuff->property, stuff->type,
                                stuff->format, stuff->mode, stuff->num_items);
     len = stuff->num_items;
-    if (len > ((0xffffffff - sizeof(xXIChangePropertyReq)) >> 2))
+    if (len > bytes_to_int32(0xffffffff - sizeof(xXIChangePropertyReq)))
         return BadLength;
 
     totalSize = len * (stuff->format/8);
@@ -1215,7 +1215,7 @@ ProcXIGetProperty(ClientPtr client)
     reply.format = format;
     reply.bytes_after = bytes_after;
     reply.type = type;
-    reply.length = (length + 3)/4;
+    reply.length = bytes_to_int32(length);
 
     if (length && stuff->delete && (reply.bytes_after == 0))
         send_property_event(dev, stuff->property, XIPropertyDeleted);

@@ -107,7 +107,7 @@ ProcXChangeDeviceKeyMapping(ClientPtr client)
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
 	return ret;
-    len = stuff->length - (sizeof(xChangeDeviceKeyMappingReq) >> 2);
+    len = stuff->length - bytes_to_int32(sizeof(xChangeDeviceKeyMappingReq));
 
     ret = ChangeKeyMapping(client, dev, len, DeviceMappingNotify,
 			   stuff->firstKeyCode, stuff->keyCodes,

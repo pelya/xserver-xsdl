@@ -161,7 +161,7 @@ ProcXQueryDeviceState(ClientPtr client)
     }
 
     rep.num_classes = num_classes;
-    rep.length = (total_length + 3) >> 2;
+    rep.length = bytes_to_int32(total_length);
     WriteReplyToClient(client, sizeof(xQueryDeviceStateReply), &rep);
     if (total_length > 0)
 	WriteToClient(client, total_length, savbuf);

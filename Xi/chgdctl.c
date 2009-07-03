@@ -142,7 +142,7 @@ ProcXChangeDeviceControl(ClientPtr client)
     REQUEST(xChangeDeviceControlReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
 
-    len = stuff->length - (sizeof(xChangeDeviceControlReq) >> 2);
+    len = stuff->length - bytes_to_int32(sizeof(xChangeDeviceControlReq));
     ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
         goto out;
@@ -155,8 +155,8 @@ ProcXChangeDeviceControl(ClientPtr client)
     switch (stuff->control) {
     case DEVICE_RESOLUTION:
 	r = (xDeviceResolutionCtl *) & stuff[1];
-	if ((len < (sizeof(xDeviceResolutionCtl) >> 2)) ||
-	    (len != (sizeof(xDeviceResolutionCtl) >> 2) + r->num_valuators)) {
+	if ((len < bytes_to_int32(sizeof(xDeviceResolutionCtl))) ||
+	    (len != bytes_to_int32(sizeof(xDeviceResolutionCtl)) + r->num_valuators)) {
             ret = BadLength;
             goto out;
 	}
