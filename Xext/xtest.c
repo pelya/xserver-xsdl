@@ -270,8 +270,6 @@ ProcXTestFakeInput(ClientPtr client)
 
     } else
     {
-        DeviceIntPtr it;
-
         if (nev != 1)
             return BadLength;
         switch (type)
