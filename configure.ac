@@ -935,7 +935,7 @@ AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
 if test "x$XINERAMA" = xyes; then
 	AC_DEFINE(XINERAMA, 1, [Support Xinerama extension])
 	AC_DEFINE(PANORAMIX, 1, [Internal define for Xinerama])
-	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto xinerama"
+	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto"
 fi
 
 AM_CONDITIONAL(XACE, [test "x$XACE" = xyes])
