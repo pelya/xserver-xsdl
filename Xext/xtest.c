@@ -189,11 +189,34 @@ ProcXTestFakeInput(ClientPtr client)
         switch (type) {
             case XI_DeviceKeyPress:
             case XI_DeviceKeyRelease:
+                if (!dev->key)
+                {
+                    client->errorValue = ev->u.u.type;
+                    return BadValue;
+                }
+                break;
             case XI_DeviceButtonPress:
             case XI_DeviceButtonRelease:
+                if (!dev->button)
+                {
+                    client->errorValue = ev->u.u.type;
+                    return BadValue;
+                }
+                break;
             case XI_DeviceMotionNotify:
+                if (!dev->valuator)
+                {
+                    client->errorValue = ev->u.u.type;
+                    return BadValue;
+                }
+                break;
             case XI_ProximityIn:
             case XI_ProximityOut:
+                if (!dev->proximity)
+                {
+                    client->errorValue = ev->u.u.type;
+                    return BadValue;
+                }
                 break;
             default:
                 client->errorValue = ev->u.u.type;
