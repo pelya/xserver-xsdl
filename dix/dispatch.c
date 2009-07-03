@@ -513,7 +513,7 @@ CreateConnectionBlock(void)
     QueryMinMaxKeyCodes(&setup.minKeyCode, &setup.maxKeyCode);
 
     lenofblock = sizeof(xConnSetup) +
-            ((setup.nbytesVendor + 3) & ~3) +
+            pad_to_int32(setup.nbytesVendor) +
 	    (setup.numFormats * sizeof(xPixmapFormat)) +
             (setup.numRoots * sizeof(xWindowRoot));
     ConnectionInfo = xalloc(lenofblock);
@@ -638,7 +638,7 @@ ProcCreateWindow(ClientPtr client)
     rc = dixLookupWindow(&pParent, stuff->parent, client, DixAddAccess);
     if (rc != Success)
         return rc;
-    len = client->req_len - (sizeof(xCreateWindowReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xCreateWindowReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
     if (!stuff->width || !stuff->height)
@@ -681,7 +681,7 @@ ProcChangeWindowAttributes(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->window, client, access_mode);
     if (rc != Success)
         return rc;
-    len = client->req_len - (sizeof(xChangeWindowAttributesReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xChangeWindowAttributesReq));
     if (len != Ones(stuff->valueMask))
         return BadLength;
     result =  ChangeWindowAttributes(pWin, 
@@ -885,7 +885,7 @@ ProcConfigureWindow(ClientPtr client)
 			 DixManageAccess|DixSetAttrAccess);
     if (rc != Success)
         return rc;
-    len = client->req_len - (sizeof(xConfigureWindowReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xConfigureWindowReq));
     if (Ones((Mask)stuff->mask) != len)
         return BadLength;
     result =  ConfigureWindow(pWin, (Mask)stuff->mask, (XID *) &stuff[1], 
@@ -1013,7 +1013,7 @@ ProcQueryTree(ClientPtr client)
     }
     
     reply.nChildren = numChildren;
-    reply.length = (numChildren * sizeof(Window)) >> 2;
+    reply.length = bytes_to_int32(numChildren * sizeof(Window));
     
     WriteReplyToClient(client, sizeof(xQueryTreeReply), &reply);
     if (numChildren)
@@ -1070,7 +1070,7 @@ ProcGetAtomName(ClientPtr client)
 	len = strlen(str);
 	memset(&reply, 0, sizeof(xGetAtomNameReply));
 	reply.type = X_Reply;
-	reply.length = (len + 3) >> 2;
+	reply.length = bytes_to_int32(len);
 	reply.sequenceNumber = client->sequence;
 	reply.nameLength = len;
 	WriteReplyToClient(client, sizeof(xGetAtomNameReply), &reply);
@@ -1310,7 +1310,7 @@ ProcQueryFont(ClientPtr client)
 	}
 
 	reply->type = X_Reply;
-	reply->length = (rlength - sizeof(xGenericReply)) >> 2;
+	reply->length = bytes_to_int32(rlength - sizeof(xGenericReply));
 	reply->sequenceNumber = client->sequence;
 	QueryFont( pFont, reply, nprotoxcistructs);
 
@@ -1344,7 +1344,7 @@ ProcQueryTextExtents(ClientPtr client)
     if (rc != Success)
 	return (rc == BadValue) ? BadFont: rc;
 
-    length = client->req_len - (sizeof(xQueryTextExtentsReq) >> 2);
+    length = client->req_len - bytes_to_int32(sizeof(xQueryTextExtentsReq));
     length = length << 1;
     if (stuff->oddLength)
     {
@@ -1512,7 +1512,7 @@ ProcCreateGC(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    len = client->req_len -  (sizeof(xCreateGCReq) >> 2);
+    len = client->req_len -  bytes_to_int32(sizeof(xCreateGCReq));
     if (len != Ones(stuff->mask))
         return BadLength;
     pGC = (GC *)CreateGC(pDraw, stuff->mask, (XID *) &stuff[1], &error,
@@ -1537,7 +1537,7 @@ ProcChangeGC(ClientPtr client)
     if (result != Success)
 	return result;
 
-    len = client->req_len -  (sizeof(xChangeGCReq) >> 2);
+    len = client->req_len -  bytes_to_int32(sizeof(xChangeGCReq));
     if (len != Ones(stuff->mask))
         return BadLength;
 
@@ -1787,7 +1787,7 @@ ProcPolyPoint(ClientPtr client)
         return BadValue;
     }
     VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess); 
-    npoint = ((client->req_len << 2) - sizeof(xPolyPointReq)) >> 2;
+    npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyPointReq));
     if (npoint)
         (*pGC->ops->PolyPoint)(pDraw, pGC, stuff->coordMode, npoint,
 			  (xPoint *) &stuff[1]);
@@ -1810,7 +1810,7 @@ ProcPolyLine(ClientPtr client)
         return BadValue;
     }
     VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
-    npoint = ((client->req_len << 2) - sizeof(xPolyLineReq)) >> 2;
+    npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyLineReq));
     if (npoint > 1)
 	(*pGC->ops->Polylines)(pDraw, pGC, stuff->coordMode, npoint, 
 			      (DDXPointPtr) &stuff[1]);
@@ -1898,7 +1898,7 @@ ProcFillPoly(ClientPtr client)
     }
 
     VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
-    things = ((client->req_len << 2) - sizeof(xFillPolyReq)) >> 2;
+    things = bytes_to_int32((client->req_len << 2) - sizeof(xFillPolyReq));
     if (things)
         (*pGC->ops->FillPolygon) (pDraw, pGC, stuff->shape,
 			 stuff->coordMode, things,
@@ -2042,8 +2042,8 @@ ProcPutImage(ClientPtr client)
     tmpImage = (char *)&stuff[1];
     lengthProto = length;
 	
-    if (((((lengthProto * stuff->height) + (unsigned)3) >> 2) + 
-	(sizeof(xPutImageReq) >> 2)) != client->req_len)
+    if ((bytes_to_int32(lengthProto * stuff->height) +
+	bytes_to_int32(sizeof(xPutImageReq))) != client->req_len)
 	return BadLength;
 
     ReformatImage (tmpImage, lengthProto * stuff->height, 
@@ -2143,7 +2143,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	*(xGetImageReply *)pBuf = xgi;
 	pBuf += sz_xGetImageReply;
     } else {
-	xgi.length = (xgi.length + 3) >> 2;
+	xgi.length = bytes_to_int32(xgi.length);
 	if (widthBytesLine == 0 || height == 0)
 	    linesPerBuf = 0;
 	else if (widthBytesLine >= IMAGE_BUFSIZE)
@@ -2705,7 +2705,7 @@ ProcAllocColorCells (ClientPtr client)
 #endif
 	{
 	    accr.type = X_Reply;
-	    accr.length = length >> 2;
+	    accr.length = bytes_to_int32(length);
 	    accr.sequenceNumber = client->sequence;
 	    accr.nPixels = npixels;
 	    accr.nMasks = nmasks;
@@ -2769,7 +2769,7 @@ ProcAllocColorPlanes(ClientPtr client)
 	    else
 	        return rc;
 	}
-	acpr.length = length >> 2;
+	acpr.length = bytes_to_int32(length);
 #ifdef PANORAMIX
 	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
 #endif
@@ -2804,7 +2804,7 @@ ProcFreeColors(ClientPtr client)
 
 	if(pcmp->flags & AllAllocated)
 	    return(BadAccess);
-	count = ((client->req_len << 2)- sizeof(xFreeColorsReq)) >> 2;
+	count = bytes_to_int32((client->req_len << 2) - sizeof(xFreeColorsReq));
 	rc = FreeColors(pcmp, client->index, count,
 	    (Pixel *)&stuff[1], (Pixel)stuff->planeMask);
         if (client->noClientException != Success)
@@ -2907,7 +2907,7 @@ ProcQueryColors(ClientPtr client)
 	xrgb 			*prgbs;
 	xQueryColorsReply	qcr;
 
-	count = ((client->req_len << 2) - sizeof(xQueryColorsReq)) >> 2;
+	count = bytes_to_int32((client->req_len << 2) - sizeof(xQueryColorsReq));
 	prgbs = xcalloc(1, count * sizeof(xrgb));
 	if(!prgbs && count)
             return(BadAlloc);
@@ -2924,7 +2924,7 @@ ProcQueryColors(ClientPtr client)
 	}
 	memset(&qcr, 0, sizeof(xQueryColorsReply));
 	qcr.type = X_Reply;
-	qcr.length = (count * sizeof(xrgb)) >> 2;
+	qcr.length = bytes_to_int32(count * sizeof(xrgb));
 	qcr.sequenceNumber = client->sequence;
 	qcr.nColors = count;
 	WriteReplyToClient(client, sizeof(xQueryColorsReply), &qcr);
@@ -3294,7 +3294,7 @@ ProcListHosts(ClientPtr client)
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
     reply.nHosts = nHosts;
-    reply.length = len >> 2;
+    reply.length = bytes_to_int32(len);
     WriteReplyToClient(client, sizeof(xListHostsReply), &reply);
     if (nHosts)
     {
@@ -3427,7 +3427,7 @@ ProcGetFontPath(ClientPtr client)
 
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
-    reply.length = (stringLens + numpaths + 3) >> 2;
+    reply.length = bytes_to_int32(stringLens + numpaths);
     reply.nPaths = numpaths;
 
     WriteReplyToClient(client, sizeof(xGetFontPathReply), &reply);
@@ -3656,7 +3656,7 @@ ClientPtr NextAvailableClient(pointer ospriv)
 	return (ClientPtr)NULL;
     }
     data.reqType = 1;
-    data.length = (sz_xReq + sz_xConnClientPrefix) >> 2;
+    data.length = bytes_to_int32(sz_xReq + sz_xConnClientPrefix);
     if (!InsertFakeRequest(client, (char *)&data, sz_xReq))
     {
 	FreeClientResources(client);
@@ -3696,8 +3696,8 @@ ProcInitialConnection(ClientPtr client)
 	SwapConnClientPrefix(prefix);
     }
     stuff->reqType = 2;
-    stuff->length += ((prefix->nbytesAuthProto + (unsigned)3) >> 2) +
-		     ((prefix->nbytesAuthString + (unsigned)3) >> 2);
+    stuff->length += bytes_to_int32(prefix->nbytesAuthProto) +
+		     bytes_to_int32(prefix->nbytesAuthString);
     if (client->swapped)
     {
 	swaps(&stuff->length, whichbyte);
@@ -3721,7 +3721,7 @@ SendConnSetup(ClientPtr client, char *reason)
 
 	csp.success = xFalse;
 	csp.lengthReason = strlen(reason);
-	csp.length = (csp.lengthReason + (unsigned)3) >> 2;
+	csp.length = bytes_to_int32(csp.lengthReason);
 	csp.majorVersion = X_PROTOCOL;
 	csp.minorVersion = X_PROTOCOL_REVISION;
 	if (client->swapped)
@@ -3812,7 +3812,7 @@ ProcEstablishConnection(ClientPtr client)
 
     prefix = (xConnClientPrefix *)((char *)stuff + sz_xReq);
     auth_proto = (char *)prefix + sz_xConnClientPrefix;
-    auth_string = auth_proto + ((prefix->nbytesAuthProto + 3) & ~3);
+    auth_string = auth_proto + pad_to_int32(prefix->nbytesAuthProto);
     if ((prefix->majorVersion != X_PROTOCOL) ||
 	(prefix->minorVersion != X_PROTOCOL_REVISION))
 	reason = "Protocol version mismatch";

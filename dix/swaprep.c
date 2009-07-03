@@ -731,7 +731,7 @@ SLHostsExtend(ClientPtr pClient, int size, char *buf)
 	int len = host->length;
         char n;
 	swaps (&host->length, n);
-	bufT += sizeof (xHostEntry) + (((len + 3) >> 2) << 2);
+	bufT += sizeof (xHostEntry) + pad_to_int32(len);
 	}
     (void)WriteToClient (pClient, size, buf);
 }
@@ -1222,7 +1222,7 @@ SwapConnSetupInfo(
     pInfoT += sizeof(xConnSetup);
 
     /* Copy the vendor string */
-    i = (pConnSetup->nbytesVendor + 3) & ~3;
+    i = pad_to_int32(pConnSetup->nbytesVendor);
     memcpy(pInfoT, pInfo, i);
     pInfo += i;
     pInfoT += i;

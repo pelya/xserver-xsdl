@@ -792,7 +792,7 @@ finish:
 
     memset(&reply, 0, sizeof(xListFontsReply));
     reply.type = X_Reply;
-    reply.length = (stringLens + nnames + 3) >> 2;
+    reply.length = bytes_to_int32(stringLens + nnames);
     reply.nFonts = nnames;
     reply.sequenceNumber = client->sequence;
 
@@ -817,7 +817,7 @@ finish:
 	}
     }
     nnames = reply.nFonts;
-    reply.length = (stringLens + nnames + 3) >> 2;
+    reply.length = bytes_to_int32(stringLens + nnames);
     client->pSwapReplyFunc = ReplySwapVector[X_ListFonts];
     WriteSwappedDataToClient(client, sizeof(xListFontsReply), &reply);
     (void) WriteToClient(client, stringLens + nnames, bufferStart);
@@ -1057,9 +1057,9 @@ doListFontsWithInfo(ClientPtr client, LFWIclosurePtr c)
 		namelen = strlen(name);
 	    }
 	    reply->type = X_Reply;
-	    reply->length = (sizeof *reply - sizeof(xGenericReply) +
+	    reply->length = bytes_to_int32(sizeof *reply - sizeof(xGenericReply) +
 			     pFontInfo->nprops * sizeof(xFontProp) +
-			     namelen + 3) >> 2;
+			     namelen);
 	    reply->sequenceNumber = client->sequence;
 	    reply->nameLength = namelen;
 	    reply->minBounds = pFontInfo->ink_minbounds;
@@ -1097,8 +1097,8 @@ finish:
     bzero((char *) &finalReply, sizeof(xListFontsWithInfoReply));
     finalReply.type = X_Reply;
     finalReply.sequenceNumber = client->sequence;
-    finalReply.length = (sizeof(xListFontsWithInfoReply)
-		     - sizeof(xGenericReply)) >> 2;
+    finalReply.length = bytes_to_int32(sizeof(xListFontsWithInfoReply)
+		     - sizeof(xGenericReply));
     WriteSwappedDataToClient(client, length, &finalReply);
 bail:
     if (c->slept)

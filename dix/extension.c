@@ -324,7 +324,7 @@ ProcListExtensions(ClientPtr client)
 	    for (j = extensions[i]->num_aliases; --j >= 0;)
 		total_length += strlen(extensions[i]->aliases[j]) + 1;
 	}
-        reply.length = (total_length + 3) >> 2;
+        reply.length = bytes_to_int32(total_length);
 	buffer = bufptr = xalloc(total_length);
 	if (!buffer)
 	    return(BadAlloc);

@@ -1457,8 +1457,8 @@ GetWindowAttributes(WindowPtr pWin, ClientPtr client, xGetWindowAttributesReply 
 	wa->backingStore = NotUseful;
     else
 	wa->backingStore = pWin->backingStore;
-    wa->length = (sizeof(xGetWindowAttributesReply) -
-		 sizeof(xGenericReply)) >> 2;
+    wa->length = bytes_to_int32(sizeof(xGetWindowAttributesReply) -
+		 sizeof(xGenericReply));
     wa->sequenceNumber = client->sequence;
     wa->backingBitPlanes =  wBackingBitPlanes (pWin);
     wa->backingPixel =  wBackingPixel (pWin);

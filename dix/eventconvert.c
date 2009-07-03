@@ -389,13 +389,13 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     /* FIXME: this should just send the buttons we have, not MAX_BUTTONs. Same
      * with MAX_VALUATORS below */
     /* btlen is in 4 byte units */
-    btlen = (((MAX_BUTTONS + 7)/8) + 3)/4;
+    btlen = bytes_to_int32(bits_to_bytes(MAX_BUTTONS));
     len += btlen * 4; /* buttonmask len */
 
 
     vallen = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask)/sizeof(ev->valuators.mask[0]));
     len += vallen * 2 * sizeof(uint32_t); /* axisvalues */
-    vallen = (((MAX_VALUATORS + 7)/8) + 3)/4;
+    vallen = bytes_to_int32(bits_to_bytes(MAX_VALUATORS));
     len += vallen * 4; /* valuators mask */
 
     *xi = xcalloc(1, len);
@@ -404,7 +404,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->extension      = IReqCode;
     xde->evtype         = GetXI2Type((InternalEvent*)ev);
     xde->time           = ev->time;
-    xde->length         = (len - sizeof(xEvent) + 3)/4;
+    xde->length         = bytes_to_int32(len - sizeof(xEvent));
     xde->detail         = ev->detail.button;
     xde->root           = ev->root;
     xde->buttons_len    = btlen;
@@ -459,7 +459,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     nvals = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask)/sizeof(ev->valuators.mask[0]));
     len += nvals * (2 * sizeof(uint32_t)) * 2; /* 8 byte per valuator, once
                                                    raw, once processed */
-    vallen = (((MAX_VALUATORS + 7)/8) + 3)/4;
+    vallen = bytes_to_int32(bits_to_bytes(MAX_VALUATORS));
     len += vallen * 4; /* valuators mask */
 
     *xi = xcalloc(1, len);
@@ -468,7 +468,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     raw->extension      = IReqCode;
     raw->evtype         = GetXI2Type((InternalEvent*)ev);
     raw->time           = ev->time;
-    raw->length         = (len - sizeof(xEvent) + 3)/4;
+    raw->length         = bytes_to_int32(len - sizeof(xEvent));
     raw->eventtype      = ev->subtype;
     raw->detail         = ev->detail.button;
     raw->deviceid       = ev->deviceid;

@@ -218,7 +218,7 @@ ProcChangeProperty(ClientPtr client)
         return BadValue;
     }
     len = stuff->nUnits;
-    if (len > ((0xffffffff - sizeof(xChangePropertyReq)) >> 2))
+    if (len > bytes_to_int32(0xffffffff - sizeof(xChangePropertyReq)))
 	return BadLength;
     sizeInBytes = format>>3;
     totalSize = len * sizeInBytes;
@@ -532,7 +532,7 @@ ProcGetProperty(ClientPtr client)
 
     reply.bytesAfter = n - (ind + len);
     reply.format = pProp->format;
-    reply.length = (len + 3) >> 2;
+    reply.length = bytes_to_int32(len);
     reply.nItems = len / (pProp->format / 8 );
     reply.propertyType = pProp->type;
 
@@ -606,7 +606,7 @@ ProcListProperties(ClientPtr client)
 
     xlpr.type = X_Reply;
     xlpr.nProperties = numProps;
-    xlpr.length = (numProps * sizeof(Atom)) >> 2;
+    xlpr.length = bytes_to_int32(numProps * sizeof(Atom));
     xlpr.sequenceNumber = client->sequence;
     WriteReplyToClient(client, sizeof(xGenericReply), &xlpr);
     if (numProps)

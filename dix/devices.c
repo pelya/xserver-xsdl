@@ -1532,7 +1532,7 @@ ProcSetModifierMapping(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
 
     if (client->req_len != ((stuff->numKeyPerModifier << 1) +
-			    (sizeof (xSetModifierMappingReq) >> 2)))
+                bytes_to_int32(sizeof(xSetModifierMappingReq))))
 	return BadLength;
 
     rep.type = X_Reply;
@@ -1591,7 +1591,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     int rc;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
 
-    len = client->req_len - (sizeof(xChangeKeyboardMappingReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xChangeKeyboardMappingReq));
     if (len != (stuff->keyCodes * stuff->keySymsPerKeyCode))
             return BadLength;
 
@@ -1650,7 +1650,8 @@ ProcSetPointerMapping(ClientPtr client)
     REQUEST(xSetPointerMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetPointerMappingReq);
 
-    if (client->req_len != (sizeof(xSetPointerMappingReq)+stuff->nElts+3) >> 2)
+    if (client->req_len !=
+            bytes_to_int32(sizeof(xSetPointerMappingReq) + stuff->nElts))
 	return BadLength;
     rep.type = X_Reply;
     rep.length = 0;
@@ -2229,7 +2230,7 @@ ProcGetMotionEvents(ClientPtr client)
 		nEvents++;
 	    }
     }
-    rep.length = nEvents * (sizeof(xTimecoord) >> 2);
+    rep.length = nEvents * bytes_to_int32(sizeof(xTimecoord));
     rep.nEvents = nEvents;
     WriteReplyToClient(client, sizeof(xGetMotionEventsReply), &rep);
     if (nEvents)

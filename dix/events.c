@@ -4221,8 +4221,8 @@ DeviceEnterLeaveEvent(
         (mode == XINotifyPassiveUngrab && type == XI_Enter))
         return;
 
-    btlen = (mouse->button) ? (mouse->button->numButtons + 7)/8 : 0;
-    btlen = (btlen + 3)/4;
+    btlen = (mouse->button) ? bits_to_bytes(mouse->button->numButtons) : 0;
+    btlen = bytes_to_int32(btlen);
     len = sizeof(xXIEnterEvent) + btlen * 4;
 
     event = xcalloc(1, len);
