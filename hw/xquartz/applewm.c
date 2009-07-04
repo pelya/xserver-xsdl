@@ -512,6 +512,36 @@ ProcAppleWMSendPSN(register ClientPtr client)
 }
 
 static int
+ProcAppleWMAttachTransient(register ClientPtr client)
+{
+    WindowPtr pWinChild, pWinParent;
+    REQUEST(xAppleWMAttachTransientReq);
+    int err;
+    
+    REQUEST_SIZE_MATCH(xAppleWMAttachTransientReq);
+    
+    if(!appleWMProcs->AttachTransient)
+        return BadRequest;
+
+    if (Success != dixLookupWindow(&pWinChild, stuff->child, client, DixReadAccess))
+        return BadValue;
+
+    if(stuff->parent) {
+        if(Success != dixLookupWindow(&pWinParent, stuff->parent, client, DixReadAccess))
+            return BadValue;
+    } else {
+        pWinParent = NULL;
+    }
+
+    err = appleWMProcs->AttachTransient(pWinChild, pWinParent);
+    if (err != Success) {
+        return err;
+    }
+
+    return (client->noClientException);
+}
+
+static int
 ProcAppleWMSetCanQuit(
     register ClientPtr client
 )
@@ -673,6 +703,8 @@ ProcAppleWMDispatch (
         return ProcAppleWMFrameDraw(client);
     case X_AppleWMSendPSN:
         return ProcAppleWMSendPSN(client);
+    case X_AppleWMAttachTransient:
+        return ProcAppleWMAttachTransient(client);
     default:
         return BadRequest;
     }

@@ -82,6 +82,34 @@ static int xprSetWindowLevel(
     return Success;
 }
 
+#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 3
+static int xprAttachTransient(WindowPtr pWinChild, WindowPtr pWinParent) {
+    xp_window_id child_wid, parent_wid; 
+    xp_window_changes wc;
+
+    child_wid = x_cvt_vptr_to_uint(RootlessFrameForWindow(pWinChild, TRUE));
+    if (child_wid == 0)
+        return BadWindow;
+
+    if(pWinParent) {
+        parent_wid = x_cvt_vptr_to_uint(RootlessFrameForWindow(pWinParent, TRUE));
+        if (parent_wid == 0)
+            return BadWindow;
+    } else {
+        parent_wid = 0;
+    }
+     
+    wc.transient_for = parent_wid;
+
+    RootlessStopDrawing (pWinChild, FALSE);
+
+    if (xp_configure_window(child_wid, XP_ATTACH_TRANSIENT, &wc) != Success) {
+        return BadValue;
+    }
+
+    return Success;    
+}
+#endif
 
 static int xprFrameDraw(
     WindowPtr pWin,
@@ -114,9 +142,14 @@ static AppleWMProcsRec xprAppleWMProcs = {
     xp_frame_get_rect,
     xp_frame_hit_test,
     xprFrameDraw,
-#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 2
-    xp_set_dock_proxy
+#if defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 3
+    xp_set_dock_proxy,
+    xprAttachTransient
+#elif defined(XPLUGIN_VERSION) && XPLUGIN_VERSION >= 2
+    xp_set_dock_proxy,
+    NULL
 #else
+    NULL,
     NULL
 #endif
 };
