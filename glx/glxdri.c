@@ -38,6 +38,7 @@
 
 #include <windowstr.h>
 #include <os.h>
+#include <damage.h>
 
 #define _XF86DRI_SERVER_
 #include <drm_sarea.h>

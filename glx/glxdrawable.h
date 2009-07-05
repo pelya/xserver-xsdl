@@ -35,8 +35,6 @@
  * Silicon Graphics, Inc.
  */
 
-#include <damage.h>
-
 /* We just need to avoid clashing with DRAWABLE_{WINDOW,PIXMAP} */
 enum {
     GLX_DRAWABLE_WINDOW,
