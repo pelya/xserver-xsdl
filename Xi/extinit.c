@@ -1018,15 +1018,19 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 
     SetMaskForExtEvent(DeviceKeyPressMask, DeviceKeyPress);
     AllowPropagateSuppress(DeviceKeyPressMask);
+    SetCriticalEvent(DeviceKeyPress);
 
     SetMaskForExtEvent(DeviceKeyReleaseMask, DeviceKeyRelease);
     AllowPropagateSuppress(DeviceKeyReleaseMask);
+    SetCriticalEvent(DeviceKeyRelease);
 
     SetMaskForExtEvent(DeviceButtonPressMask, DeviceButtonPress);
     AllowPropagateSuppress(DeviceButtonPressMask);
+    SetCriticalEvent(DeviceButtonPress);
 
     SetMaskForExtEvent(DeviceButtonReleaseMask, DeviceButtonRelease);
     AllowPropagateSuppress(DeviceButtonReleaseMask);
+    SetCriticalEvent(DeviceButtonRelease);
 
     SetMaskForExtEvent(DeviceProximityMask, ProximityIn);
     SetMaskForExtEvent(DeviceProximityMask, ProximityOut);
@@ -1035,6 +1039,7 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 
     SetMaskForExtEvent(DevicePointerMotionMask, DeviceMotionNotify);
     AllowPropagateSuppress(DevicePointerMotionMask);
+    SetCriticalEvent(DeviceMotionNotify);
 
     SetEventInfo(DevicePointerMotionHintMask, _devicePointerMotionHint);
     SetEventInfo(DeviceButton1MotionMask, _deviceButton1Motion);
