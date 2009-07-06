@@ -488,7 +488,7 @@ ProcXFixesGetCursorName (ClientPtr client)
     len = strlen (str);
     
     reply.type = X_Reply;
-    reply.length = (len + 3) >> 2;
+    reply.length = bytes_to_int32(len);
     reply.sequenceNumber = client->sequence;
     reply.atom = pCursor->name;
     reply.nbytes = len;
@@ -545,7 +545,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     npixels = width * height;
     name = pCursor->name ? NameForAtom (pCursor->name) : "";
     nbytes = strlen (name);
-    nbytesRound = (nbytes + 3) & ~3;
+    nbytesRound = pad_to_int32(nbytes);
     rep = xalloc (sizeof (xXFixesGetCursorImageAndNameReply) +
 		  npixels * sizeof (CARD32) + nbytesRound);
     if (!rep)
@@ -553,7 +553,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
 
     rep->type = X_Reply;
     rep->sequenceNumber = client->sequence;
-    rep->length = npixels + (nbytesRound >> 2);
+    rep->length = npixels + bytes_to_int32(nbytesRound);
     rep->width = width;
     rep->height = height;
     rep->x = x;
