@@ -369,7 +369,7 @@ ProcRenderQueryPictFormats (ClientPtr client)
 	return BadAlloc;
     reply->type = X_Reply;
     reply->sequenceNumber = client->sequence;
-    reply->length = (rlength - sizeof(xGenericReply)) >> 2;
+    reply->length = bytes_to_int32(rlength - sizeof(xGenericReply));
     reply->numFormats = nformat;
     reply->numScreens = numScreens;
     reply->numDepths = ndepth;
@@ -537,7 +537,7 @@ ProcRenderQueryPictIndexValues (ClientPtr client)
 
     reply->type = X_Reply;
     reply->sequenceNumber = client->sequence;
-    reply->length = (rlength - sizeof(xGenericReply)) >> 2;
+    reply->length = bytes_to_int32(rlength - sizeof(xGenericReply));
     reply->numIndexValues = num;
 
     values = (xIndexValue *) (reply + 1);
@@ -594,7 +594,7 @@ ProcRenderCreatePicture (ClientPtr client)
 
     if (pFormat->depth != pDrawable->depth)
 	return BadMatch;
-    len = client->req_len - (sizeof(xRenderCreatePictureReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xRenderCreatePictureReq));
     if (Ones(stuff->mask) != len)
 	return BadLength;
     
@@ -623,7 +623,7 @@ ProcRenderChangePicture (ClientPtr client)
     VERIFY_PICTURE (pPicture, stuff->picture, client, DixSetAttrAccess,
 		    RenderErrBase + BadPicture);
 
-    len = client->req_len - (sizeof(xRenderChangePictureReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xRenderChangePictureReq));
     if (Ones(stuff->mask) != len)
 	return BadLength;
     
@@ -1235,7 +1235,7 @@ ProcRenderFreeGlyphs (ClientPtr client)
 	client->errorValue = stuff->glyphset;
 	return (rc == BadValue) ? RenderErrBase + BadGlyphSet : rc;
     }
-    nglyph = ((client->req_len << 2) - sizeof (xRenderFreeGlyphsReq)) >> 2;
+    nglyph = bytes_to_int32((client->req_len << 2) - sizeof (xRenderFreeGlyphsReq));
     gids = (CARD32 *) (stuff + 1);
     while (nglyph-- > 0)
     {
@@ -1735,7 +1735,7 @@ ProcRenderQueryFilters (ClientPtr client)
 	    nbytesName += 1 + strlen (ps->filterAliases[i].alias);
 	nnames = ps->nfilters + ps->nfilterAliases;
     }
-    len = ((nnames + 1) >> 1) + ((nbytesName + 3) >> 2);
+    len = ((nnames + 1) >> 1) + bytes_to_int32(nbytesName);
     total_bytes = sizeof (xRenderQueryFiltersReply) + (len << 2);
     reply = (xRenderQueryFiltersReply *) xalloc (total_bytes);
     if (!reply)
@@ -1827,7 +1827,7 @@ ProcRenderSetPictureFilter (ClientPtr client)
     VERIFY_PICTURE (pPicture, stuff->picture, client, DixSetAttrAccess,
 		    RenderErrBase + BadPicture);
     name = (char *) (stuff + 1);
-    params = (xFixed *) (name + ((stuff->nbytes + 3) & ~3));
+    params = (xFixed *) (name + pad_to_int32(stuff->nbytes));
     nparams = ((xFixed *) stuff + client->req_len) - params;
     result = SetPictureFilter (pPicture, name, stuff->nbytes, params, nparams);
     return result;
@@ -1849,7 +1849,7 @@ ProcRenderCreateAnimCursor (ClientPtr client)
     LEGAL_NEW_RESOURCE(stuff->cid, client);
     if (client->req_len & 1)
 	return BadLength;
-    ncursor = (client->req_len - (SIZEOF(xRenderCreateAnimCursorReq) >> 2)) >> 1;
+    ncursor = (client->req_len - (bytes_to_int32(sizeof(xRenderCreateAnimCursorReq)))) >> 1;
     cursors = xalloc (ncursor * (sizeof (CursorPtr) + sizeof (CARD32)));
     if (!cursors)
 	return BadAlloc;
