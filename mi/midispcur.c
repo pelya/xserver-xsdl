@@ -51,7 +51,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "picturestr.h"
 #endif
 
-# include "inputstr.h" /* for MAX_DEVICES */
+# include "inputstr.h"
 
 /* per-screen private data */
 static int miDCScreenKeyIndex;

@@ -75,11 +75,11 @@
 #  define O_ASYNC FASYNC
 #endif
 
-#ifdef MAX_DEVICES
-/* MAX_DEVICES represents the maximimum number of input devices usable
+#ifdef MAXDEVICES
+/* MAXDEVICES represents the maximimum number of input devices usable
  * at the same time plus one entry for DRM support.
  */
-# define MAX_FUNCS   (MAX_DEVICES + 1)
+# define MAX_FUNCS   (MAXDEVICES + 1)
 #else
 # define MAX_FUNCS 16
 #endif

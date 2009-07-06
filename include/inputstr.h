@@ -119,7 +119,7 @@ typedef struct _InputClients {
  * OtherInputMasks struct and exactly one InputClients struct hanging off
  * inputClients. Each further client appends to the inputClients list.
  * Each Mask field is per-device, with the device id as the index.
- * Exception: for non-device events (Presence events), the MAX_DEVICES
+ * Exception: for non-device events (Presence events), the MAXDEVICES
  * deviceid is used.
  */
 typedef struct _OtherInputMasks {
