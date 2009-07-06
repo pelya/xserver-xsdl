@@ -372,7 +372,8 @@ RecordAProtocolElement(RecordContextPtr pContext, ClientPtr pClient,
 
 	replylen = pRep->length;
 	if (recordingClientSwapped) swapl(&replylen, n);
-	replylen += numElemHeaders + (datalen >> 2) + (futurelen >> 2);
+	replylen += numElemHeaders + bytes_to_int32(datalen) +
+            bytes_to_int32(futurelen);
 	if (recordingClientSwapped) swapl(&replylen, n);
 	pRep->length = replylen;
     } /* end if not continued reply */
@@ -480,7 +481,7 @@ RecordABigRequest(RecordContextPtr pContext, ClientPtr client, xReq *stuff)
 			   (pointer)stuff, SIZEOF(xReq), bytesLeft);
 
     /* reinsert the extended length field that was squished out */
-    bigLength = client->req_len + (sizeof(bigLength) >> 2);
+    bigLength = client->req_len + bytes_to_int32(sizeof(bigLength));
     if (client->swapped)
 	swapl(&bigLength, n);
     RecordAProtocolElement(pContext, client, XRecordFromClient,
@@ -2279,8 +2280,8 @@ ProcRecordGetContext(ClientPtr client)
     {
 	rep.nClients += pRCAP->numClients;
 	rep.length += pRCAP->numClients *
-		( (sizeof(xRecordClientInfo) >> 2) +
-		  pri->nRanges * (sizeof(xRecordRange) >> 2));
+		( bytes_to_int32(sizeof(xRecordClientInfo)) +
+		  pri->nRanges * bytes_to_int32(sizeof(xRecordRange)));
     }
 
     /* write the reply header */
@@ -2579,13 +2580,13 @@ SwapCreateRegister(xRecordRegisterClientsReq *stuff)
     swapl(&stuff->nClients, n);
     swapl(&stuff->nRanges, n);
     pClientID = (XID *)&stuff[1];
-    if (stuff->nClients > stuff->length - (sz_xRecordRegisterClientsReq >> 2))
+    if (stuff->nClients > stuff->length - bytes_to_int32(sz_xRecordRegisterClientsReq))
 	return BadLength;
     for (i = 0; i < stuff->nClients; i++, pClientID++)
     {
 	swapl(pClientID, n);
     }
-    if (stuff->nRanges > stuff->length - (sz_xRecordRegisterClientsReq >> 2)
+    if (stuff->nRanges > stuff->length - bytes_to_int32(sz_xRecordRegisterClientsReq)
 	- stuff->nClients)
 	return BadLength;
     RecordSwapRanges((xRecordRange *)pClientID, stuff->nRanges);
