@@ -236,7 +236,7 @@ exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
     pExaPixmap->accel_blocked = 0;
 
     if (pExaScr->info->maxPitchPixels) {
-        int max_pitch = pExaScr->info->maxPitchPixels * (bpp + 7) / 8;
+        int max_pitch = pExaScr->info->maxPitchPixels * bits_to_bytes(bpp);
 
         if (pExaPixmap->fb_pitch > max_pitch)
             pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
@@ -258,9 +258,9 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
               int w, int h, int bpp)
 {
     if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
-        pExaPixmap->fb_pitch = ((1 << (exaLog2(w - 1) + 1)) * bpp + 7) / 8;
+        pExaPixmap->fb_pitch = bits_to_bytes((1 << (exaLog2(w - 1) + 1)) * bpp);
     else
-        pExaPixmap->fb_pitch = (w * bpp + 7) / 8;
+        pExaPixmap->fb_pitch = bits_to_bytes(w * bpp);
 
     pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
                                      pExaScr->info->pixmapPitchAlign);
