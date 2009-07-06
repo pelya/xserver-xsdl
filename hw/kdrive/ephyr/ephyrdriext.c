@@ -701,8 +701,8 @@ ProcXF86DRIOpenConnection (register ClientPtr client)
     rep.busIdStringLength = 0;
     if (busIdString)
 	rep.busIdStringLength = strlen(busIdString);
-    rep.length = (SIZEOF(xXF86DRIOpenConnectionReply) - SIZEOF(xGenericReply) +
-                  ((rep.busIdStringLength + 3) & ~3)) >> 2;
+    rep.length = bytes_to_int32(SIZEOF(xXF86DRIOpenConnectionReply) - SIZEOF(xGenericReply) +
+                  pad_to_int32(rep.busIdStringLength));
 
     rep.hSAREALow  = (CARD32)(hSAREA & 0xffffffff);
 #if defined(LONG64) && !defined(__linux__)
@@ -789,9 +789,9 @@ ProcXF86DRIGetClientDriverName (register ClientPtr client)
     rep.clientDriverNameLength = 0;
     if (clientDriverName)
 	rep.clientDriverNameLength = strlen(clientDriverName);
-    rep.length = (SIZEOF(xXF86DRIGetClientDriverNameReply) - 
+    rep.length = bytes_to_int32(SIZEOF(xXF86DRIGetClientDriverNameReply) -
 			SIZEOF(xGenericReply) +
-			((rep.clientDriverNameLength + 3) & ~3)) >> 2;
+			pad_to_int32(rep.clientDriverNameLength));
 
     WriteToClient(client, 
 	sizeof(xXF86DRIGetClientDriverNameReply), (char *)&rep);
@@ -1235,7 +1235,7 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     EPHYR_LOG ("num host clip rects:%d\n", (int)rep.numClipRects) ;
     EPHYR_LOG ("num host back clip rects:%d\n", (int)rep.numBackClipRects) ;
 
-    rep.length = ((rep.length + 3) & ~3) >> 2;
+    rep.length = bytes_to_int32(rep.length);
 
     WriteToClient(client, sizeof(xXF86DRIGetDrawableInfoReply), (char *)&rep);
 
@@ -1297,9 +1297,9 @@ ProcXF86DRIGetDeviceInfo (register ClientPtr client)
 
     rep.length = 0;
     if (rep.devPrivateSize) {
-        rep.length = (SIZEOF(xXF86DRIGetDeviceInfoReply) - 
+        rep.length = bytes_to_int32(SIZEOF(xXF86DRIGetDeviceInfoReply) -
                 SIZEOF(xGenericReply) +
-                ((rep.devPrivateSize + 3) & ~3)) >> 2;
+                pad_to_int32(rep.devPrivateSize));
     }
 
     WriteToClient(client, sizeof(xXF86DRIGetDeviceInfoReply), (char *)&rep);
