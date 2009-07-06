@@ -741,7 +741,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
 
     rep.type           = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.length         = length >> 2;
+    rep.length         = bytes_to_int32(length);
     rep.m              = count;
 
     if (client->swapped)
