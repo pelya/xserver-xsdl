@@ -429,7 +429,7 @@ ProcRRListOutputProperties (ClientPtr client)
             return(BadAlloc);
 
     rep.type = X_Reply;
-    rep.length = (numProps * sizeof(Atom)) >> 2;
+    rep.length = bytes_to_int32(numProps * sizeof(Atom));
     rep.sequenceNumber = client->sequence;
     rep.nAtoms = numProps;
     if (client->swapped) 
@@ -510,7 +510,7 @@ ProcRRConfigureOutputProperty (ClientPtr client)
 
     VERIFY_RR_OUTPUT(stuff->output, output, DixReadAccess);
     
-    num_valid = stuff->length - (sizeof (xRRConfigureOutputPropertyReq) >> 2);
+    num_valid = stuff->length - bytes_to_int32(sizeof (xRRConfigureOutputPropertyReq));
     return RRConfigureOutputProperty (output, stuff->property,
 				      stuff->pending, stuff->range,
 				      FALSE, num_valid, 
@@ -544,7 +544,7 @@ ProcRRChangeOutputProperty (ClientPtr client)
         return BadValue;
     }
     len = stuff->nUnits;
-    if (len > ((0xffffffff - sizeof(xChangePropertyReq)) >> 2))
+    if (len > bytes_to_int32((0xffffffff - sizeof(xChangePropertyReq))))
 	return BadLength;
     sizeInBytes = format>>3;
     totalSize = len * sizeInBytes;
@@ -708,7 +708,7 @@ ProcRRGetOutputProperty (ClientPtr client)
     }
     reply.bytesAfter = n - (ind + len);
     reply.format = prop_value->format;
-    reply.length = (len + 3) >> 2;
+    reply.length = bytes_to_int32(len);
     if (prop_value->format)
 	reply.nItems = len / (prop_value->format / 8);
     else

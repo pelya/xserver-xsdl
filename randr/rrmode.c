@@ -297,10 +297,10 @@ ProcRRCreateMode (ClientPtr client)
     
     modeInfo = &stuff->modeInfo;
     name = (char *) (stuff + 1);
-    units_after = (stuff->length - (sizeof (xRRCreateModeReq) >> 2));
+    units_after = (stuff->length - bytes_to_int32(sizeof (xRRCreateModeReq)));
 
     /* check to make sure requested name fits within the data provided */
-    if ((int) (modeInfo->nameLength + 3) >> 2 > units_after)
+    if (bytes_to_int32(modeInfo->nameLength) > units_after)
 	return BadLength;
 
     mode = RRModeCreateUser (pScreen, modeInfo, name, &error);

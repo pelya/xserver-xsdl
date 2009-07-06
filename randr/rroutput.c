@@ -455,7 +455,7 @@ ProcRRGetOutputInfo (ClientPtr client)
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.length = OutputInfoExtra >> 2;
+    rep.length = bytes_to_int32(OutputInfoExtra);
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
     rep.crtc = output->crtc ? output->crtc->id : None;
     rep.mmWidth = output->mmWidth;
@@ -468,14 +468,14 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.nClones = output->numClones;
     rep.nameLength = output->nameLength;
     
-    extraLen = ((output->numCrtcs + 
+    extraLen = ((output->numCrtcs +
 		 output->numModes + output->numUserModes +
 		 output->numClones +
-		 ((rep.nameLength + 3) >> 2)) << 2);
+		 bytes_to_int32(rep.nameLength)) << 2);
 
     if (extraLen)
     {
-	rep.length += extraLen >> 2;
+	rep.length += bytes_to_int32(extraLen);
 	extra = xalloc (extraLen);
 	if (!extra)
 	    return BadAlloc;

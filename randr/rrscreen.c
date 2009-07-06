@@ -381,8 +381,8 @@ rrGetScreenResources(ClientPtr client, Bool query)
 
 	rep.length = (pScrPriv->numCrtcs + 
 		      pScrPriv->numOutputs + 
-		      num_modes * (SIZEOF(xRRModeInfo) >> 2) +
-		      ((rep.nbytesNames + 3) >> 2));
+		      num_modes * bytes_to_int32(SIZEOF(xRRModeInfo)) +
+		      bytes_to_int32(rep.nbytesNames));
 	
 	extraLen = rep.length << 2;
 	if (extraLen)
@@ -455,7 +455,7 @@ rrGetScreenResources(ClientPtr client, Bool query)
 	    names += mode->mode.nameLength;
 	}
     	xfree (modes);
-	assert (((((char *) names - (char *) extra) + 3) >> 2) == rep.length);
+	assert (bytes_to_int32((char *) names - (char *) extra) == rep.length);
     }
     
     if (client->swapped) {
@@ -726,7 +726,7 @@ ProcRRGetScreenInfo (ClientPtr client)
 	if (data8 - (CARD8 *) extra != extraLen)
 	    FatalError ("RRGetScreenInfo bad extra len %ld != %ld\n",
 			(unsigned long)(data8 - (CARD8 *) extra), extraLen);
-	rep.length =  (extraLen + 3) >> 2;
+	rep.length =  bytes_to_int32(extraLen);
     }
     if (client->swapped) {
 	swaps(&rep.sequenceNumber, n);

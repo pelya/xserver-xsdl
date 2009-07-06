@@ -775,7 +775,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
     int			    rc, i, j;
     
     REQUEST_AT_LEAST_SIZE(xRRSetCrtcConfigReq);
-    numOutputs = (stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2));
+    numOutputs = (stuff->length - bytes_to_int32(SIZEOF (xRRSetCrtcConfigReq)));
     
     VERIFY_RR_CRTC(stuff->crtc, crtc, DixSetAttrAccess);
 
@@ -1205,7 +1205,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
 
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
-    reply.length = (len + 3) >> 2;
+    reply.length = bytes_to_int32(len);
     reply.size = crtc->gammaSize;
     if (client->swapped) {
 	swaps (&reply.sequenceNumber, n);
@@ -1234,7 +1234,7 @@ ProcRRSetCrtcGamma (ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xRRSetCrtcGammaReq);
     VERIFY_RR_CRTC(stuff->crtc, crtc, DixReadAccess);
     
-    len = client->req_len - (sizeof (xRRSetCrtcGammaReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof (xRRSetCrtcGammaReq));
     if (len < (stuff->size * 3 + 1) >> 1)
 	return BadLength;
 
@@ -1274,7 +1274,7 @@ ProcRRSetCrtcTransform (ClientPtr client)
 
     filter = (char *) (stuff + 1);
     nbytes = stuff->nbytesFilter;
-    params = (xFixed *) (filter + ((nbytes + 3) & ~3));
+    params = (xFixed *) (filter + pad_to_int32(nbytes));
     nparams = ((xFixed *) stuff + client->req_len) - params;
     if (nparams < 0)
 	return BadLength;
@@ -1295,7 +1295,7 @@ transform_filter_length (RRTransformPtr transform)
 	return 0;
     nbytes = strlen (transform->filter->name);
     nparams = transform->nparams;
-    return ((nbytes + 3) & ~3) + (nparams * sizeof (xFixed));
+    return pad_to_int32(nbytes) + (nparams * sizeof (xFixed));
 }
 
 static int
@@ -1334,7 +1334,7 @@ transform_encode (ClientPtr client, xRenderTransform *wire, PictTransform *pict)
 {
     xRenderTransform_from_PictTransform (wire, pict);
     if (client->swapped)
-	SwapLongs ((CARD32 *) wire, sizeof (xRenderTransform) >> 2);
+	SwapLongs ((CARD32 *) wire, bytes_to_int32(sizeof(xRenderTransform)));
 }
 
 int
@@ -1363,7 +1363,7 @@ ProcRRGetCrtcTransform (ClientPtr client)
     extra = (char *) (reply + 1);
     reply->type = X_Reply;
     reply->sequenceNumber = client->sequence;
-    reply->length = (CrtcTransformExtra + nextra) >> 2;
+    reply->length = bytes_to_int32(CrtcTransformExtra + nextra);
 
     reply->hasTransforms = crtc->transforms;
 
