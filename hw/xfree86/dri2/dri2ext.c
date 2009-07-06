@@ -195,7 +195,7 @@ ProcDRI2DestroyDrawable(ClientPtr client)
 
 static void
 send_buffers_reply(ClientPtr client, DrawablePtr pDrawable,
-		   DRI2Buffer2Ptr *buffers, int count, int width, int height)
+		   DRI2BufferPtr *buffers, int count, int width, int height)
 {
     xDRI2GetBuffersReply rep;
     int skip = 0;
@@ -245,7 +245,7 @@ ProcDRI2GetBuffers(ClientPtr client)
 {
     REQUEST(xDRI2GetBuffersReq);
     DrawablePtr pDrawable;
-    DRI2Buffer2Ptr *buffers;
+    DRI2BufferPtr *buffers;
     int status, width, height, count;
     unsigned int *attachments;
 
@@ -268,7 +268,7 @@ ProcDRI2GetBuffersWithFormat(ClientPtr client)
 {
     REQUEST(xDRI2GetBuffersReq);
     DrawablePtr pDrawable;
-    DRI2Buffer2Ptr *buffers;
+    DRI2BufferPtr *buffers;
     int status, width, height, count;
     unsigned int *attachments;
 
