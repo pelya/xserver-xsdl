@@ -667,8 +667,8 @@ ProcXkbGetControls(ClientPtr client)
     
     xkb = dev->key->xkbInfo->desc->ctrls;
     rep.type = X_Reply;
-    rep.length = (SIZEOF(xkbGetControlsReply)-
-		  SIZEOF(xGenericReply)) >> 2;
+    rep.length = bytes_to_int32(SIZEOF(xkbGetControlsReply)-
+		  SIZEOF(xGenericReply));
     rep.sequenceNumber = client->sequence;
     rep.deviceID = ((DeviceIntPtr)dev)->id;
     rep.numGroups = xkb->num_groups;
