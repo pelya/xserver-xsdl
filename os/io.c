@@ -273,7 +273,7 @@ ReadRequestFromClient(ClientPtr client)
 	    if (gotnow < sizeof(xBigReq))
 	    {
 		/* Still need more data to tell just how big. */
-		needed = sizeof(xBigReq) >> 2; /* needed is in CARD32s now */
+		needed = bytes_to_int32(sizeof(xBigReq)); /* needed is in CARD32s now */
 		need_header = TRUE;
 	    }
 	    else
@@ -377,7 +377,7 @@ ReadRequestFromClient(ClientPtr client)
 	    {
 		move_header = TRUE;
 		if (gotnow < sizeof(xBigReq))
-		    needed = sizeof(xBigReq) >> 2;
+		    needed = bytes_to_int32(sizeof(xBigReq));
 		else
 		    needed = get_big_req_len(request, client);
 	    }
@@ -445,7 +445,7 @@ ReadRequestFromClient(ClientPtr client)
 	oci->bufptr += (sizeof(xBigReq) - sizeof(xReq));
 	*(xReq *)oci->bufptr = *request;
 	oci->lenLastReq -= (sizeof(xBigReq) - sizeof(xReq));
-	client->req_len -= (sizeof(xBigReq) - sizeof(xReq)) >> 2;
+	client->req_len -= bytes_to_int32(sizeof(xBigReq) - sizeof(xReq));
     }
     client->requestBuffer = (pointer)oci->bufptr;
 #ifdef DEBUG_COMMUNICATION

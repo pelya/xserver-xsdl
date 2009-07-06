@@ -1458,7 +1458,7 @@ GetHosts (
     for (host = validhosts; host; host = host->next)
     {
 	nHosts++;
-	n += (((host->len + 3) >> 2) << 2) + sizeof(xHostEntry);
+	n += pad_to_int32(host->len) + sizeof(xHostEntry);
     }
     if (n)
     {
@@ -1474,7 +1474,7 @@ GetHosts (
 	    ((xHostEntry *)ptr)->length = len;
 	    ptr += sizeof(xHostEntry);
 	    acopy (host->addr, ptr, len);
-	    ptr += ((len + 3) >> 2) << 2;
+	    ptr += pad_to_int32(len);
         }
     } else {
 	*data = NULL;
