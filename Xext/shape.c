@@ -1069,7 +1069,7 @@ ProcShapeGetRectangles (ClientPtr client)
     }
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.length = (nrects * sizeof (xRectangle)) >> 2;
+    rep.length = bytes_to_int32(nrects * sizeof (xRectangle));
     rep.ordering = YXBanded;
     rep.nrects = nrects;
     if (client->swapped) {

@@ -629,7 +629,7 @@ ProcXF86BigfontQueryFont(
 	    return BadAlloc;
 	}
 	reply->type = X_Reply;
-	reply->length = (rlength - sizeof(xGenericReply)) >> 2;
+	reply->length = bytes_to_int32(rlength - sizeof(xGenericReply));
 	reply->sequenceNumber = client->sequence;
 	reply->minBounds = pFont->info.ink_minbounds;
 	reply->maxBounds = pFont->info.ink_maxbounds;

@@ -1179,7 +1179,7 @@ ProcSyncListSystemCounters(ClientPtr client)
     {
 	char *name = SysCounterList[i]->pSysCounterInfo->name;
 	/* pad to 4 byte boundary */
-	len += (sz_xSyncSystemCounter + strlen(name) + 3) & ~3;
+	len += pad_to_int32(sz_xSyncSystemCounter + strlen(name));
     }
 
     if (len)
@@ -1189,7 +1189,7 @@ ProcSyncListSystemCounters(ClientPtr client)
 	    return BadAlloc;
     }
 
-    rep.length = len >> 2;
+    rep.length = bytes_to_int32(len);
 
     if (client->swapped)
     {
@@ -1223,7 +1223,7 @@ ProcSyncListSystemCounters(ClientPtr client)
 	pname_in_reply = ((char *)walklist) + sz_xSyncSystemCounter;
 	strncpy(pname_in_reply, psci->name, namelen);
 	walklist = (xSyncSystemCounter *) (((char *)walklist) +
-				((sz_xSyncSystemCounter + namelen + 3) & ~3));
+				pad_to_int32(sz_xSyncSystemCounter + namelen));
     }
 
     WriteToClient(client, sizeof(rep), (char *) &rep);
@@ -1600,7 +1600,7 @@ ProcSyncCreateAlarm(ClientPtr client)
     LEGAL_NEW_RESOURCE(stuff->id, client);
 
     vmask = stuff->valueMask;
-    len = client->req_len - (sizeof(xSyncCreateAlarmReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xSyncCreateAlarmReq));
     /* the "extra" call to Ones accounts for the presence of 64 bit values */
     if (len != (Ones(vmask) + Ones(vmask & (XSyncCAValue|XSyncCADelta))))
 	return BadLength;
@@ -1681,7 +1681,7 @@ ProcSyncChangeAlarm(ClientPtr client)
 	return (status == BadValue) ? SyncErrorBase + XSyncBadAlarm : status;
 
     vmask = stuff->valueMask;
-    len = client->req_len - (sizeof(xSyncChangeAlarmReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xSyncChangeAlarmReq));
     /* the "extra" call to Ones accounts for the presence of 64 bit values */
     if (len != (Ones(vmask) + Ones(vmask & (XSyncCAValue|XSyncCADelta))))
 	return BadLength;
@@ -1720,7 +1720,7 @@ ProcSyncQueryAlarm(ClientPtr client)
 	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
 
     rep.type = X_Reply;
-    rep.length = (sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply)) >> 2;
+    rep.length = bytes_to_int32(sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply));
     rep.sequenceNumber = client->sequence;
 
     pTrigger = &pAlarm->trigger;

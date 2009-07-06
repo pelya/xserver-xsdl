@@ -423,12 +423,12 @@ ProcXvQueryAdaptors(ClientPtr client)
   pa = pxvs->pAdaptors;
   while (na--)
     {
-      totalSize += (strlen(pa->name) + 3) & ~3;
+      totalSize += pad_to_int32(strlen(pa->name));
       totalSize += pa->nFormats * sz_xvFormat;
       pa++;
     }
 
-  rep.length = totalSize >> 2;
+  rep.length = bytes_to_int32(totalSize);
 
   _WriteQueryAdaptorsReply(client, &rep);
 
@@ -498,11 +498,11 @@ ProcXvQueryEncodings(ClientPtr client)
   totalSize = ne * sz_xvEncodingInfo;
   while (ne--)
     {
-      totalSize += (strlen(pe->name) + 3) & ~3;
+      totalSize += pad_to_int32(strlen(pe->name));
       pe++;
     }
 
-  rep.length = totalSize >> 2;
+  rep.length = bytes_to_int32(totalSize);
 
   _WriteQueryEncodingsReply(client, &rep);
 
@@ -923,7 +923,7 @@ ProcXvQueryPortAttributes(ClientPtr client)
   for(i = 0, pAtt = pPort->pAdaptor->pAttributes; 
       i < pPort->pAdaptor->nAttributes; i++, pAtt++) 
   {    
-      rep.text_size += (strlen(pAtt->name) + 1 + 3) & ~3L;
+      rep.text_size += pad_to_int32(strlen(pAtt->name) + 1);
   }
 
   rep.length = (pPort->pAdaptor->nAttributes * sz_xvAttributeInfo)
@@ -939,7 +939,7 @@ ProcXvQueryPortAttributes(ClientPtr client)
       Info.flags = pAtt->flags;
       Info.min = pAtt->min_value;
       Info.max = pAtt->max_value;
-      Info.size = (size + 3) & ~3L;
+      Info.size = pad_to_int32(size);
 
       _WriteAttributeInfo(client, &Info);
 
@@ -999,7 +999,7 @@ ProcXvPutImage(ClientPtr client)
   size = (*pPort->pAdaptor->ddQueryImageAttributes)(client, 
 			pPort, pImage, &width, &height, NULL, NULL);
   size += sizeof(xvPutImageReq);
-  size = (size + 3) >> 2;
+  size = bytes_to_int32(size);
   
   if((width < stuff->width) || (height < stuff->height))
      return BadValue;
@@ -1203,7 +1203,7 @@ ProcXvListImageFormats(ClientPtr client)
   rep.type = X_Reply;
   rep.sequenceNumber = client->sequence;
   rep.num_formats = pPort->pAdaptor->nImages;
-  rep.length = pPort->pAdaptor->nImages * sz_xvImageFormatInfo >> 2;
+  rep.length = bytes_to_int32(pPort->pAdaptor->nImages * sz_xvImageFormatInfo);
 
   _WriteListImageFormatsReply(client, &rep);
 

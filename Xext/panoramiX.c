@@ -669,7 +669,7 @@ Bool PanoramiXCreateConnectionBlock(void)
 	length += (depth->nVisuals * sizeof(xVisualType));
     }
 
-    connSetupPrefix.length = length >> 2;
+    connSetupPrefix.length = bytes_to_int32(length);
 
     for (i = 0; i < PanoramiXNumDepths; i++)
 	xfree(PanoramiXDepths[i].vids);
@@ -1053,7 +1053,7 @@ ProcXineramaQueryScreens(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.number = (noPanoramiXExtension) ? 0 : PanoramiXNumScreens;
-    rep.length = rep.number * sz_XineramaScreenInfo >> 2;
+    rep.length = bytes_to_int32(rep.number * sz_XineramaScreenInfo);
     if (client->swapped) {
 	int n;
 	swaps (&rep.sequenceNumber, n);

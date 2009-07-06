@@ -153,7 +153,7 @@ ProcXvMCListSurfaceTypes(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.num = (adaptor) ? adaptor->num_surfaces : 0;
-    rep.length = rep.num * sizeof(xvmcSurfaceInfo) >> 2;
+    rep.length = bytes_to_int32(rep.num * sizeof(xvmcSurfaceInfo));
  
     WriteToClient(client, sizeof(xvmcListSurfaceTypesReply), (char*)&rep);
 
@@ -519,7 +519,7 @@ ProcXvMCListSubpictureTypes(ClientPtr client)
     if(surface->compatible_subpictures) 
 	rep.num = surface->compatible_subpictures->num_xvimages;
 
-    rep.length = rep.num * sizeof(xvImageFormatInfo) >> 2;
+    rep.length = bytes_to_int32(rep.num * sizeof(xvImageFormatInfo));
 
     WriteToClient(client, sizeof(xvmcListSubpictureTypesReply), (char*)&rep);
 
@@ -588,8 +588,8 @@ ProcXvMCGetDRInfo(ClientPtr client)
     rep.major = pScreenPriv->major;
     rep.minor = pScreenPriv->minor;
     rep.patchLevel = pScreenPriv->patchLevel;
-    rep.nameLen = (strlen(pScreenPriv->clientDriverName) + 4) >> 2;
-    rep.busIDLen = (strlen(pScreenPriv->busID) + 4) >> 2;
+    rep.nameLen = bytes_to_int32(strlen(pScreenPriv->clientDriverName) + 1);
+    rep.busIDLen = bytes_to_int32(strlen(pScreenPriv->busID) + 1);
 
     rep.length = rep.nameLen + rep.busIDLen;
     rep.nameLen <<=2;

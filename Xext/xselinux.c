@@ -1283,7 +1283,7 @@ SELinuxSendContextReply(ClientPtr client, security_id_t sid)
     }
 
     rep.type = X_Reply;
-    rep.length = (len + 3) >> 2;
+    rep.length = bytes_to_int32(len);
     rep.sequenceNumber = client->sequence;
     rep.context_len = len;
 
@@ -1510,8 +1510,8 @@ SELinuxPopulateItem(SELinuxListItemRec *i, PrivateRec **privPtr, CARD32 id,
 	return BadValue;
 
     i->id = id;
-    i->octx_len = (strlen(i->octx) + 4) >> 2;
-    i->dctx_len = (strlen(i->dctx) + 4) >> 2;
+    i->octx_len = bytes_to_int32(strlen(i->octx) + 1);
+    i->dctx_len = bytes_to_int32(strlen(i->dctx) + 1);
 
     *size += i->octx_len + i->dctx_len + 3;
     return Success;

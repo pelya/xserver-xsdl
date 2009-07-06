@@ -74,7 +74,7 @@ int PanoramiXCreateWindow(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xCreateWindowReq);
     
-    len = client->req_len - (sizeof(xCreateWindowReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xCreateWindowReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
 
@@ -179,7 +179,7 @@ int PanoramiXChangeWindowAttributes(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
     
-    len = client->req_len - (sizeof(xChangeWindowAttributesReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xChangeWindowAttributesReq));
     if (Ones(stuff->valueMask) != len)
         return BadLength;
 
@@ -456,7 +456,7 @@ int PanoramiXConfigureWindow(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xConfigureWindowReq);
 
-    len = client->req_len - (sizeof(xConfigureWindowReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xConfigureWindowReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
 
@@ -734,7 +734,7 @@ int PanoramiXCreateGC(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xCreateGCReq);
     
     client->errorValue = stuff->gc;
-    len = client->req_len - (sizeof(xCreateGCReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xCreateGCReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
 
@@ -813,7 +813,7 @@ int PanoramiXChangeGC(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xChangeGCReq);
     
-    len = client->req_len - (sizeof(xChangeGCReq) >> 2);
+    len = client->req_len - bytes_to_int32(sizeof(xChangeGCReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
 
@@ -1299,7 +1299,7 @@ int PanoramiXPolyPoint(ClientPtr client)
 	return (result == BadValue) ? BadGC : result;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
-    npoint = ((client->req_len << 2) - sizeof(xPolyPointReq)) >> 2;
+    npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyPointReq));
     if (npoint > 0) {
         origPts = xalloc(npoint * sizeof(xPoint));
         memcpy((char *) origPts, (char *) &stuff[1], npoint * sizeof(xPoint));
@@ -1359,7 +1359,7 @@ int PanoramiXPolyLine(ClientPtr client)
 	return (result == BadValue) ? BadGC : result;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
-    npoint = ((client->req_len << 2) - sizeof(xPolyLineReq)) >> 2;
+    npoint = bytes_to_int32((client->req_len << 2) - sizeof(xPolyLineReq));
     if (npoint > 0){
         origPts = xalloc(npoint * sizeof(xPoint));
         memcpy((char *) origPts, (char *) &stuff[1], npoint * sizeof(xPoint));
@@ -1605,7 +1605,7 @@ int PanoramiXFillPoly(ClientPtr client)
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
 
-    count = ((client->req_len << 2) - sizeof(xFillPolyReq)) >> 2;
+    count = bytes_to_int32((client->req_len << 2) - sizeof(xFillPolyReq));
     if (count > 0){
 	locPts = xalloc(count * sizeof(DDXPointRec));
 	memcpy((char *)locPts, (char *)&stuff[1], count * sizeof(DDXPointRec));
@@ -1895,7 +1895,7 @@ int PanoramiXGetImage(ClientPtr client)
 
     }
 
-    xgi.length = (length + 3) >> 2;
+    xgi.length = bytes_to_int32(length);
 
     if (widthBytesLine == 0 || h == 0)
 	linesPerBuf = 0;

@@ -875,7 +875,7 @@ ScreenSaverSetAttributes (ClientPtr client)
     if (ret != Success)
 	return ret;
 
-    len = stuff->length -  (sizeof(xScreenSaverSetAttributesReq) >> 2);
+    len = stuff->length -  bytes_to_int32(sizeof(xScreenSaverSetAttributesReq));
     if (Ones(stuff->mask) != len)
         return BadLength;
     if (!stuff->width || !stuff->height)
@@ -1267,7 +1267,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
        if (status != Success)
            return (status == BadValue) ? BadDrawable : status;
 
-       len = stuff->length -  (sizeof(xScreenSaverSetAttributesReq) >> 2);
+       len = stuff->length -  bytes_to_int32(sizeof(xScreenSaverSetAttributesReq));
        if (Ones(stuff->mask) != len)
            return BadLength;
 
