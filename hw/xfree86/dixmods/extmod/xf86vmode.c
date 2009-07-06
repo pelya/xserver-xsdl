@@ -414,11 +414,11 @@ ProcXF86VidModeGetModeLine(ClientPtr client)
     REQUEST_SIZE_MATCH(xXF86VidModeGetModeLineReq);
     rep.type = X_Reply;
     if (ver < 2) {
-	rep.length = (SIZEOF(xXF86OldVidModeGetModeLineReply) -
-			SIZEOF(xGenericReply)) >> 2;
+	rep.length = bytes_to_int32(SIZEOF(xXF86OldVidModeGetModeLineReply) -
+			SIZEOF(xGenericReply));
     } else {
-	rep.length = (SIZEOF(xXF86VidModeGetModeLineReply) -
-			SIZEOF(xGenericReply)) >> 2;
+	rep.length = bytes_to_int32(SIZEOF(xXF86VidModeGetModeLineReply) -
+			SIZEOF(xGenericReply));
     }
     rep.sequenceNumber = client->sequence;
 
@@ -670,10 +670,10 @@ ProcXF86VidModeAddModeLine(ClientPtr client)
 
     if (ver < 2) {
 	REQUEST_AT_LEAST_SIZE(xXF86OldVidModeAddModeLineReq);
-	len = client->req_len - (sizeof(xXF86OldVidModeAddModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86OldVidModeAddModeLineReq));
     } else {
 	REQUEST_AT_LEAST_SIZE(xXF86VidModeAddModeLineReq);
-	len = client->req_len - (sizeof(xXF86VidModeAddModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86VidModeAddModeLineReq));
     }
     if (len != stuff->privsize)
 	return BadLength;
@@ -809,10 +809,10 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 
     if (ver < 2) {
 	REQUEST_AT_LEAST_SIZE(xXF86OldVidModeDeleteModeLineReq);
-	len = client->req_len - (sizeof(xXF86OldVidModeDeleteModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86OldVidModeDeleteModeLineReq));
     } else {
 	REQUEST_AT_LEAST_SIZE(xXF86VidModeDeleteModeLineReq);
-	len = client->req_len - (sizeof(xXF86VidModeDeleteModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86VidModeDeleteModeLineReq));
     }
     if (len != stuff->privsize) {
 	if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY) {
@@ -923,10 +923,10 @@ ProcXF86VidModeModModeLine(ClientPtr client)
 
     if (ver < 2) {
 	REQUEST_AT_LEAST_SIZE(xXF86OldVidModeModModeLineReq);
-	len = client->req_len - (sizeof(xXF86OldVidModeModModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86OldVidModeModModeLineReq));
     } else {
 	REQUEST_AT_LEAST_SIZE(xXF86VidModeModModeLineReq);
-	len = client->req_len - (sizeof(xXF86VidModeModModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86VidModeModModeLineReq));
     }
     if (len != stuff->privsize)
 	return BadLength;
@@ -1052,10 +1052,10 @@ ProcXF86VidModeValidateModeLine(ClientPtr client)
     if (ver < 2) {
 	REQUEST_AT_LEAST_SIZE(xXF86OldVidModeValidateModeLineReq);
 	len = client->req_len -
-			(sizeof(xXF86OldVidModeValidateModeLineReq) >> 2);
+			bytes_to_int32(sizeof(xXF86OldVidModeValidateModeLineReq));
     } else {
 	REQUEST_AT_LEAST_SIZE(xXF86VidModeValidateModeLineReq);
-	len = client->req_len - (sizeof(xXF86VidModeValidateModeLineReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86VidModeValidateModeLineReq));
     }
     if (len != stuff->privsize)
 	return BadLength;
@@ -1107,8 +1107,8 @@ status_reply:
       xfree(modetmp);
 
     rep.type = X_Reply;
-    rep.length = (SIZEOF(xXF86VidModeValidateModeLineReply)
-   			 - SIZEOF(xGenericReply)) >> 2;
+    rep.length = bytes_to_int32(SIZEOF(xXF86VidModeValidateModeLineReply)
+			 - SIZEOF(xGenericReply));
     rep.sequenceNumber = client->sequence;
     rep.status = status;
     if (client->swapped) {
@@ -1185,10 +1185,10 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 
     if (ver < 2) {
 	REQUEST_AT_LEAST_SIZE(xXF86OldVidModeSwitchToModeReq);
-	len = client->req_len - (sizeof(xXF86OldVidModeSwitchToModeReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86OldVidModeSwitchToModeReq));
     } else {
 	REQUEST_AT_LEAST_SIZE(xXF86VidModeSwitchToModeReq);
-	len = client->req_len - (sizeof(xXF86VidModeSwitchToModeReq) >> 2);
+	len = client->req_len - bytes_to_int32(sizeof(xXF86VidModeSwitchToModeReq));
     }
     if (len != stuff->privsize)
 	return BadLength;
@@ -1289,10 +1289,10 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
 				  VIDMODE_MON_MODEL, 0)).ptr);
     else
 	rep.modelLength = 0;
-    rep.length = (SIZEOF(xXF86VidModeGetMonitorReply) - SIZEOF(xGenericReply) +
+    rep.length = bytes_to_int32(SIZEOF(xXF86VidModeGetMonitorReply) - SIZEOF(xGenericReply) +
 		  (nHsync + nVrefresh) * sizeof(CARD32) +
-	          ((rep.vendorLength + 3) & ~3) +
-		  ((rep.modelLength + 3) & ~3)) >> 2;
+	          pad_to_int32(rep.vendorLength) +
+		  pad_to_int32(rep.modelLength));
     rep.sequenceNumber = client->sequence;
     rep.nhsync = nHsync;
     rep.nvsync = nVrefresh;
@@ -1413,8 +1413,8 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
     numClocks = VidModeGetNumOfClocks(stuff->screen, &ClockProg);
 
     rep.type = X_Reply;
-    rep.length = (SIZEOF(xXF86VidModeGetDotClocksReply)
-		    - SIZEOF(xGenericReply) + numClocks) >> 2;
+    rep.length = bytes_to_int32(SIZEOF(xXF86VidModeGetDotClocksReply)
+		    - SIZEOF(xGenericReply) + numClocks);
     rep.sequenceNumber = client->sequence;
     rep.clocks = numClocks;
     rep.maxclocks = MAXCLOCKS;

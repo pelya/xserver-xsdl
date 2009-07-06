@@ -1556,7 +1556,7 @@ XAACacheMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
    } else 		funcNo = 2;
 
    pad = BitmapBytePad(pCache->w * bpp);
-   dwords = pad >> 2;
+   dwords = bytes_to_int32(pad);
    dstPtr = data = (unsigned char*)xalloc(pad * pCache->h);
    srcPtr = (unsigned char*)pPix->devPrivate.ptr;
 

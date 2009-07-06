@@ -1178,7 +1178,7 @@ DGAGetOldDGAMode(int index)
 
    w = pScrn->currentMode->HDisplay;
    h = pScrn->currentMode->VDisplay;
-   p = ((pScrn->displayWidth * (pScrn->bitsPerPixel >> 3)) + 3) & ~3L;
+   p = pad_to_int32(pScrn->displayWidth * bits_to_bytes(pScrn->bitsPerPixel));
 
    for(i = 0; i < pScreenPriv->numModes; i++) {
 	mode = &(pScreenPriv->modes[i]);

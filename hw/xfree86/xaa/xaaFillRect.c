@@ -812,7 +812,7 @@ WriteColumn(
 
     src = pSrc + (yoff * srcwidth);
 
-    dwords = ((w * Bpp) + 3) >> 2;
+    dwords = bytes_to_int32(w * Bpp);
 
     if((infoRec->ImageWriteFlags & CPU_TRANSFER_PAD_QWORD) && 
                                                 ((dwords * h) & 0x01)) {

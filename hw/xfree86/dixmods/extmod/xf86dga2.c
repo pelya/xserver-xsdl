@@ -159,7 +159,7 @@ ProcXDGAOpenFramebuffer(ClientPtr client)
     }
 
     nameSize = deviceName ? (strlen(deviceName) + 1) : 0;
-    rep.length = (nameSize + 3) >> 2;
+    rep.length = bytes_to_int32(nameSize);
 
     WriteToClient(client, sizeof(xXDGAOpenFramebufferReply), (char *)&rep);
     if(rep.length)
@@ -225,10 +225,10 @@ ProcXDGAQueryModes(ClientPtr client)
 
     size = num * sz_xXDGAModeInfo;
     for(i = 0; i < num; i++)
-	size += (strlen(mode[i].name) + 4) & ~3L;  /* plus NULL */
+	size += pad_to_int32(strlen(mode[i].name) + 1);  /* plus NULL */
 
     rep.number = num;
-    rep.length = size >> 2;
+    rep.length = bytes_to_int32(size);
 
     WriteToClient(client, sz_xXDGAQueryModesReply, (char*)&rep);
 
@@ -389,7 +389,7 @@ ProcXDGASetMode(ClientPtr client)
     info.reserved1 = mode.reserved1;
     info.reserved2 = mode.reserved2;
 
-    rep.length = (sz_xXDGAModeInfo + info.name_size) >> 2;
+    rep.length = bytes_to_int32(sz_xXDGAModeInfo + info.name_size);
 
     WriteToClient(client, sz_xXDGASetModeReply, (char*)&rep);
     WriteToClient(client, sz_xXDGAModeInfo, (char*)(&info));

@@ -168,7 +168,7 @@ lnx_savefont(void)
 	return FALSE;
     }
 
-    size = (width + 7)/8 * 32 * charcount;
+    size = bits_to_bytes(width) * 32 * charcount;
     fontdata = (unsigned char *)xnfalloc(size);
     if (!fontdata) {
 	xf86Msg(X_WARNING,

@@ -123,7 +123,7 @@ unsigned int
 xf86ModeBandwidth(DisplayModePtr mode, int depth)
 {
     float a_active, a_total, active_percent, pixels_per_second;
-    int bytes_per_pixel = (depth + 7) / 8;
+    int bytes_per_pixel = bits_to_bytes(depth);
 
     if (!mode->HTotal || !mode->VTotal || !mode->Clock)
 	return 0;
