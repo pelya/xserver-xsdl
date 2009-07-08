@@ -100,114 +100,104 @@ int XaceHook(int hook, ...)
     switch (hook)
     {
 	case XACE_RESOURCE_ACCESS: {
-	    XaceResourceAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, XID),
-		va_arg(ap, RESTYPE),
-		va_arg(ap, pointer),
-		va_arg(ap, RESTYPE),
-		va_arg(ap, pointer),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
+	    XaceResourceAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.id = va_arg(ap, XID);
+	    rec.rtype = va_arg(ap, RESTYPE);
+	    rec.res = va_arg(ap, pointer);
+	    rec.ptype = va_arg(ap, RESTYPE);
+	    rec.parent = va_arg(ap, pointer);
+	    rec.access_mode = va_arg(ap, Mask);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_DEVICE_ACCESS: {
-	    XaceDeviceAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
+	    XaceDeviceAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.dev = va_arg(ap, DeviceIntPtr);
+	    rec.access_mode = va_arg(ap, Mask);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_SEND_ACCESS: {
-	    XaceSendAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, WindowPtr),
-		va_arg(ap, xEventPtr),
-		va_arg(ap, int),
-		Success /* default allow */
-	    };
+	    XaceSendAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.dev = va_arg(ap, DeviceIntPtr);
+	    rec.pWin = va_arg(ap, WindowPtr);
+	    rec.events = va_arg(ap, xEventPtr);
+	    rec.count = va_arg(ap, int);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_RECEIVE_ACCESS: {
-	    XaceReceiveAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, WindowPtr),
-		va_arg(ap, xEventPtr),
-		va_arg(ap, int),
-		Success /* default allow */
-	    };
+	    XaceReceiveAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.pWin = va_arg(ap, WindowPtr);
+	    rec.events = va_arg(ap, xEventPtr);
+	    rec.count = va_arg(ap, int);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_CLIENT_ACCESS: {
-	    XaceClientAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, ClientPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
+	    XaceClientAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.target = va_arg(ap, ClientPtr);
+	    rec.access_mode = va_arg(ap, Mask);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_EXT_ACCESS: {
-	    XaceExtAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, ExtensionEntry*),
-		DixGetAttrAccess,
-		Success /* default allow */
-	    };
+	    XaceExtAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.ext = va_arg(ap, ExtensionEntry*);
+	    rec.access_mode = DixGetAttrAccess;
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_SERVER_ACCESS: {
-	    XaceServerAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
+	    XaceServerAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.access_mode = va_arg(ap, Mask);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_SCREEN_ACCESS:
 	case XACE_SCREENSAVER_ACCESS: {
-	    XaceScreenAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, ScreenPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
+	    XaceScreenAccessRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.screen = va_arg(ap, ScreenPtr);
+	    rec.access_mode = va_arg(ap, Mask);
+	    rec.status = Success; /* default allow */
 	    calldata = &rec;
 	    prv = &rec.status;
 	    break;
 	}
 	case XACE_AUTH_AVAIL: {
-	    XaceAuthAvailRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, XID)
-	    };
+	    XaceAuthAvailRec rec;
+	    rec.client = va_arg(ap, ClientPtr);
+	    rec.authId = va_arg(ap, XID);
 	    calldata = &rec;
 	    break;
 	}
 	case XACE_KEY_AVAIL: {
-	    XaceKeyAvailRec rec = {
-		va_arg(ap, xEventPtr),
-		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, int)
-	    };
+	    XaceKeyAvailRec rec;
+	    rec.event = va_arg(ap, xEventPtr);
+	    rec.keybd = va_arg(ap, DeviceIntPtr);
+	    rec.count = va_arg(ap, int);
 	    calldata = &rec;
 	    break;
 	}
