@@ -1503,6 +1503,7 @@ winDeinitMultiWindowWM(void)
 #define HINT_NOMAXIMIZE (1L<<4)
 #define HINT_NOMINIMIZE (1L<<5)
 #define HINT_NOSYSMENU  (1L<<6)
+#define HINT_SKIPTASKBAR (1L<<7)
 /* These two are used on their own */
 #define HINT_MAX	(1L<<0)
 #define HINT_MIN	(1L<<1)
@@ -1511,12 +1512,14 @@ static void
 winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
 {
     static Atom windowState, motif_wm_hints, windowType;
-    static Atom hiddenState, fullscreenState, belowState, aboveState;
+    static Atom hiddenState, fullscreenState, belowState, aboveState,
+        skiptaskbarState;
     static Atom dockWindow;
     static int generation;
     Atom type, *pAtom = NULL;
     int format;
-    unsigned long hint = 0, maxmin = 0, style, nitems = 0, left = 0;
+    unsigned long hint = 0, maxmin = 0, nitems = 0, left = 0;
+    unsigned long style, exStyle;
     MwmHints *mwm_hint = NULL;
 
     if (!hWnd)
@@ -1535,6 +1538,8 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
         belowState = XInternAtom(pDisplay, "_NET_WM_STATE_BELOW", False);
         aboveState = XInternAtom(pDisplay, "_NET_WM_STATE_ABOVE", False);
         dockWindow = XInternAtom(pDisplay, "_NET_WM_WINDOW_TYPE_DOCK", False);
+        skiptaskbarState =
+            XInternAtom(pDisplay, "_NET_WM_STATE_SKIP_TASKBAR", False);
     }
 
     if (XGetWindowProperty(pDisplay, iWindow, windowState, 0L,
@@ -1542,6 +1547,8 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
                            &nitems, &left,
                            (unsigned char **) &pAtom) == Success) {
         if (pAtom && nitems == 1) {
+            if (*pAtom == skiptaskbarState)
+                hint |= HINT_SKIPTASKBAR;
             if (*pAtom == hiddenState)
                 maxmin |= HINT_MIN;
             else if (*pAtom == fullscreenState)
@@ -1700,13 +1707,15 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
             HINT_NOFRAME;
 
     /* Now apply styles to window */
-    style = GetWindowLongPtr(hWnd, GWL_STYLE) & ~WS_CAPTION & ~WS_SIZEBOX;      /* Just in case */
+    style = GetWindowLongPtr(hWnd, GWL_STYLE);
     if (!style)
-        return;
+        return;                 /* GetWindowLongPointer returns 0 on failure, we hope this isn't a valid style */
 
-    if (!hint)                  /* All on */
+    style &= ~WS_CAPTION & ~WS_SIZEBOX; /* Just in case */
+
+    if (!(hint & ~HINT_SKIPTASKBAR))    /* No hints, default */
         style = style | WS_CAPTION | WS_SIZEBOX;
-    else if (hint & HINT_NOFRAME)       /* All off */
+    else if (hint & HINT_NOFRAME)       /* No frame, no decorations */
         style = style & ~WS_CAPTION & ~WS_SIZEBOX;
     else
         style = style | ((hint & HINT_BORDER) ? WS_BORDER : 0) |
@@ -1723,6 +1732,17 @@ winApplyHints(Display * pDisplay, Window iWindow, HWND hWnd, HWND * zstyle)
         style = style & ~WS_SYSMENU;
 
     SetWindowLongPtr(hWnd, GWL_STYLE, style);
+
+    exStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
+    if (hint & HINT_SKIPTASKBAR)
+        exStyle = (exStyle & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW;
+    else
+        exStyle = (exStyle & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW;
+    SetWindowLongPtr(hWnd, GWL_EXSTYLE, exStyle);
+
+    winDebug
+        ("winApplyHints: iWindow 0x%08x hints 0x%08x style 0x%08x exstyle 0x%08x\n",
+         iWindow, hint, style, exStyle);
 }
 
 void
