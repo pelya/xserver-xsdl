@@ -176,7 +176,6 @@ videoPtrToDriverList(struct pci_device *dev,
                 break; /* "hooray" for poulsbo */
 	    } else {
 		driverList[0] = "intel";
-		driverList[1] = "i810";
 	    }
 	    break;
 	case 0x102b:		    driverList[0] = "mga";	break;
