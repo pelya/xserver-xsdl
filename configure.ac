@@ -1583,12 +1583,10 @@ if test "x$XORG" = xyes; then
 	abi_videodrv=`extract_abi VIDEODRV`
 	abi_xinput=`extract_abi XINPUT`
 	abi_extension=`extract_abi EXTENSION`
-	abi_font=`extract_abi FONT`
 	AC_SUBST([abi_ansic])
 	AC_SUBST([abi_videodrv])
 	AC_SUBST([abi_xinput])
 	AC_SUBST([abi_extension])
-	AC_SUBST([abi_font])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
