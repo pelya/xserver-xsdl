@@ -24,9 +24,13 @@ if VBE
 VBE_SUBDIR = vbe
 endif
 
+if INT10MODULE
+INT10_SUBDIR = int10
+endif
+
 DOC_SUBDIR = doc
 
-SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support parser \
+SUBDIRS = common ddc i2c x86emu $(INT10MODULE) fbdevhw os-support parser \
 	  ramdac shadowfb $(VBE_SUBDIR) $(VGAHW_SUBDIR) $(XAA_SUBDIR) \
 	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
