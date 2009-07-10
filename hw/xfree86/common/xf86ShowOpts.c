@@ -45,7 +45,6 @@
 #include "xf86Parser.h"
 #include "xf86tokens.h"
 #include "Configint.h"
-#include "vbe.h"
 #include "xf86DDC.h"
 #if defined(__sparc__) && !defined(__OpenBSD__)
 #include "xf86Bus.h"
