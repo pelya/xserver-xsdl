@@ -457,7 +457,8 @@ XkbAction               *act;
             act->mods.flags = wire.actionData[0];
             act->mods.mask = wire.actionData[1];
             act->mods.real_mods = wire.actionData[2];
-            act->mods.vmods = (wire.actionData[3] << 8) | wire.actionData[4];
+            act->mods.vmods1 = wire.actionData[3];
+            act->mods.vmods2 = wire.actionData[4];
             break;
         case XkbSA_SetGroup:
         case XkbSA_LatchGroup:
@@ -467,8 +468,10 @@ XkbAction               *act;
             break;
         case XkbSA_MovePtr:
             act->ptr.flags = wire.actionData[0];
-            act->ptr.x = (wire.actionData[1] << 8) | wire.actionData[2];
-            act->ptr.y = (wire.actionData[3] << 8) | wire.actionData[4];
+            act->ptr.high_XXX = wire.actionData[1];
+            act->ptr.low_XXX = wire.actionData[2];
+            act->ptr.high_YYY = wire.actionData[3];
+            act->ptr.low_YYY = wire.actionData[4];
             break;
         case XkbSA_PtrBtn:
         case XkbSA_LockPtrBtn:
@@ -494,7 +497,8 @@ XkbAction               *act;
             act->iso.real_mods = wire.actionData[2];
             act->iso.group_XXX = wire.actionData[3];
             act->iso.affect = wire.actionData[4];
-            act->iso.vmods = (wire.actionData[5] << 8) | wire.actionData[6];
+            act->iso.vmods1 = wire.actionData[5];
+            act->iso.vmods2 = wire.actionData[6];
             break;
         case XkbSA_SwitchScreen:
             act->screen.flags = wire.actionData[0];
@@ -503,19 +507,19 @@ XkbAction               *act;
         case XkbSA_SetControls:
         case XkbSA_LockControls:
             act->ctrls.flags = wire.actionData[0];
-            act->ctrls.ctrls = (wire.actionData[1] << 24) | \
-                               (wire.actionData[2] << 16) | \
-                               (wire.actionData[3] << 8) | \
-                               wire.actionData[4];
+            act->ctrls.ctrls3 = wire.actionData[1];
+            act->ctrls.ctrls2 = wire.actionData[2];
+            act->ctrls.ctrls1 = wire.actionData[3];
+            act->ctrls.ctrls0 = wire.actionData[4];
             break;
         case XkbSA_RedirectKey:
             act->redirect.new_key = wire.actionData[0];
             act->redirect.mods_mask = wire.actionData[1];
             act->redirect.mods = wire.actionData[2];
-            act->redirect.vmods_mask = (wire.actionData[3] << 8) | \
-                                       wire.actionData[4];
-            act->redirect.vmods = (wire.actionData[5] << 8) | \
-                                  wire.actionData[6];
+            act->redirect.vmods_mask0 = wire.actionData[3];
+            act->redirect.vmods_mask1 = wire.actionData[4];
+            act->redirect.vmods0 = wire.actionData[4];
+            act->redirect.vmods1 = wire.actionData[5];
             break;
         case XkbSA_DeviceValuator:
             act->devval.device = wire.actionData[0];

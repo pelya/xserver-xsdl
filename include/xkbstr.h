@@ -123,8 +123,14 @@ typedef struct _XkbModAction {
 	unsigned char	flags;
 	unsigned char	mask;
 	unsigned char	real_mods;
-        unsigned int    vmods;
+        /* FIXME: Make this an int. */
+	unsigned char	vmods1;
+	unsigned char	vmods2;
 } XkbModAction;
+#define	XkbModActionVMods(a) ((short) (((a)->vmods1 << 8) | (a)->vmods2))
+#define	XkbSetModActionVMods(a,v) \
+	((a)->vmods1 = (((v) >> 8) & 0xff), \
+         (a)->vmods2 = (v) & 0xff)
 
 typedef struct _XkbGroupAction {
 	unsigned char	type;
@@ -143,15 +149,23 @@ typedef struct _XkbISOAction {
         /* FIXME: Make this an int. */
 	char		group_XXX;
 	unsigned char	affect;
-	unsigned int	vmods;
+	unsigned char	vmods1;
+	unsigned char	vmods2;
 } XkbISOAction;
 
 typedef struct _XkbPtrAction {
 	unsigned char	type;
 	unsigned char	flags;
-	int	        x;
-	int	        y;
+        /* FIXME: Make this an int. */
+	unsigned char	high_XXX;
+	unsigned char	low_XXX;
+	unsigned char	high_YYY;
+	unsigned char	low_YYY;
 } XkbPtrAction;
+#define	XkbPtrActionX(a)      (Xkb2CharsToInt((a)->high_XXX,(a)->low_XXX))
+#define	XkbPtrActionY(a)      (Xkb2CharsToInt((a)->high_YYY,(a)->low_YYY))
+#define	XkbSetPtrActionX(a,x) (XkbIntTo2Chars(x,(a)->high_XXX,(a)->low_XXX))
+#define	XkbSetPtrActionY(a,y) (XkbIntTo2Chars(y,(a)->high_YYY,(a)->low_YYY))
 
 typedef struct _XkbPtrBtnAction {
 	unsigned char	type;
@@ -180,8 +194,20 @@ typedef struct _XkbSwitchScreenAction {
 typedef struct _XkbCtrlsAction {
 	unsigned char	type;
 	unsigned char	flags;
-	unsigned long	ctrls;
+        /* FIXME: Make this an int. */
+	unsigned char	ctrls3;
+	unsigned char	ctrls2;
+	unsigned char	ctrls1;
+	unsigned char	ctrls0;
 } XkbCtrlsAction;
+#define	XkbActionSetCtrls(a, c) ((a)->ctrls3 = ((c) >> 24) & 0xff, \
+                                 (a)->ctrls2 = ((c) >> 16) & 0xff, \
+                                 (a)->ctrls1 = ((c) >> 8) & 0xff, \
+                                 (a)->ctrls0 = (c) & 0xff)
+#define	XkbActionCtrls(a) ((((unsigned int)(a)->ctrls3)<<24)|\
+			   (((unsigned int)(a)->ctrls2)<<16)|\
+			   (((unsigned int)(a)->ctrls1)<<8)|\
+                           ((unsigned int) (a)->ctrls0))
 
 typedef struct _XkbMessageAction {
 	unsigned char	type;
@@ -194,9 +220,22 @@ typedef struct	_XkbRedirectKeyAction {
 	unsigned char	new_key;
 	unsigned char	mods_mask;
 	unsigned char	mods;
-	unsigned int	vmods_mask;
-	unsigned int	vmods;
+        /* FIXME: Make this an int. */
+	unsigned char	vmods_mask0;
+	unsigned char	vmods_mask1;
+	unsigned char	vmods0;
+	unsigned char	vmods1;
 } XkbRedirectKeyAction;
+
+#define	XkbSARedirectVMods(a)		((((unsigned int)(a)->vmods1)<<8)|\
+					((unsigned int)(a)->vmods0))
+/* FIXME: This is blatantly not setting vmods.   Yeesh. */
+#define	XkbSARedirectSetVMods(a,m)	(((a)->vmods_mask1=(((m)>>8)&0xff)),\
+					 ((a)->vmods_mask0=((m)&0xff)))
+#define	XkbSARedirectVModsMask(a)	((((unsigned int)(a)->vmods_mask1)<<8)|\
+					((unsigned int)(a)->vmods_mask0))
+#define	XkbSARedirectSetVModsMask(a,m)	(((a)->vmods_mask1=(((m)>>8)&0xff)),\
+					 ((a)->vmods_mask0=((m)&0xff)))
 
 typedef struct _XkbDeviceBtnAction {
 	unsigned char	type;

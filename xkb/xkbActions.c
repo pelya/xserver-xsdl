@@ -523,15 +523,15 @@ Bool	accel;
 	xkbi->mouseKeysCounter= 0;
 	xkbi->mouseKey= keycode;
 	accel= ((pAction->ptr.flags&XkbSA_NoAcceleration)==0);
-	x= pAction->ptr.x;
-	y= pAction->ptr.y;
+	x= XkbPtrActionX(&pAction->ptr);
+	y= XkbPtrActionY(&pAction->ptr);
 	XkbDDXFakePointerMotion(pAction->ptr.flags,x,y);
 	AccessXCancelRepeatKey(xkbi,keycode);
 	xkbi->mouseKeysAccel= accel&&
 		(xkbi->desc->ctrls->enabled_ctrls&XkbMouseKeysAccelMask);
 	xkbi->mouseKeysFlags= pAction->ptr.flags;
-	xkbi->mouseKeysDX= x;
-	xkbi->mouseKeysDY= y;
+	xkbi->mouseKeysDX= XkbPtrActionX(&pAction->ptr);
+	xkbi->mouseKeysDY= XkbPtrActionY(&pAction->ptr);
 	xkbi->mouseKeyTimer= TimerSet(xkbi->mouseKeyTimer, 0,
 				xkbi->desc->ctrls->mk_delay,
 				_XkbPtrAccelExpire,(pointer)xkbi);
@@ -671,7 +671,7 @@ XkbEventCauseRec	cause;
 	filter->keycode = keycode;
 	filter->active = 1;
 	filter->filterOthers = 0;
-	change= pAction->ctrls.ctrls;
+	change= XkbActionCtrls(&pAction->ctrls);
 	filter->priv = change;
 	filter->filter = _XkbFilterControls;
 	filter->upAction = *pAction;
@@ -834,8 +834,8 @@ ProcessInputProc backupproc;
         ev.type = ET_KeyPress;
         ev.detail.key = pAction->redirect.new_key;
 
-        mask= pAction->redirect.vmods_mask;
-        mods= pAction->redirect.vmods;
+        mask= XkbSARedirectVModsMask(&pAction->redirect);
+        mods= XkbSARedirectVMods(&pAction->redirect);
         if (mask) XkbVirtualModsToReal(xkbi->desc,mask,&mask);
         if (mods) XkbVirtualModsToReal(xkbi->desc,mods,&mods);
         mask|= pAction->redirect.mods_mask;
@@ -865,8 +865,8 @@ ProcessInputProc backupproc;
         ev.type = ET_KeyRelease;
         ev.detail.key = filter->upAction.redirect.new_key;
 
-        mask= filter->upAction.redirect.vmods_mask;
-        mods= filter->upAction.redirect.vmods;
+        mask= XkbSARedirectVModsMask(&filter->upAction.redirect);
+        mods= XkbSARedirectVMods(&filter->upAction.redirect);
         if (mask) XkbVirtualModsToReal(xkbi->desc,mask,&mask);
         if (mods) XkbVirtualModsToReal(xkbi->desc,mods,&mods);
         mask|= filter->upAction.redirect.mods_mask;

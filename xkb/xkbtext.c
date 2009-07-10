@@ -682,7 +682,7 @@ XkbModAction *	act;
 unsigned	tmp;
 
     act= &action->mods;
-    tmp= act->vmods;
+    tmp= XkbModActionVMods(act);
     TryCopyStr(buf,"modifiers=",sz);
     if (act->flags&XkbSA_UseModMapMods)
 	  TryCopyStr(buf,"modMapMods",sz);
@@ -735,8 +735,8 @@ int		x,y;
 char		tbuf[32];
 
     act= &action->ptr;
-    x= act->x;
-    y= act->y;
+    x= XkbPtrActionX(act);
+    y= XkbPtrActionY(act);
     if ((act->flags&XkbSA_MoveAbsoluteX)||(x<0))
 	 sprintf(tbuf,"x=%d",x);
     else sprintf(tbuf,"x=+%d",x);
@@ -822,7 +822,7 @@ char		tbuf[64];
     }
     else {
 	unsigned tmp;
-	tmp= act->vmods;
+	tmp= XkbModActionVMods(act);
 	TryCopyStr(buf,"modifiers=",sz);
 	if (act->flags&XkbSA_UseModMapMods)
 	     TryCopyStr(buf,"modMapMods",sz);
@@ -894,7 +894,7 @@ unsigned		tmp;
 char			tbuf[32];
 
     act= &action->ctrls;
-    tmp= act->ctrls;
+    tmp= XkbActionCtrls(act);
     TryCopyStr(buf,"controls=",sz);
     if (tmp==0)
 	TryCopyStr(buf,"none",sz);
@@ -1010,8 +1010,8 @@ unsigned		vmods,vmods_mask;
 
     act= &action->redirect;
     kc= act->new_key;
-    vmods= act->vmods;
-    vmods_mask= act->vmods_mask;
+    vmods= XkbSARedirectVMods(act);
+    vmods_mask= XkbSARedirectVModsMask(act);
     if (xkb && xkb->names && xkb->names->keys && (kc<=xkb->max_key_code) &&
 				(xkb->names->keys[kc].name[0]!='\0')) {
 	char *kn;
