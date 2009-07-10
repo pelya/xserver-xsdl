@@ -20,10 +20,14 @@ if VGAHW
 VGAHW_SUBDIR = vgahw
 endif
 
+if VBE
+VBE_SUBDIR = vbe
+endif
+
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc i2c x86emu int10 fbdevhw os-support parser \
-	  ramdac shadowfb vbe $(VGAHW_SUBDIR) $(XAA_SUBDIR) \
+	  ramdac shadowfb $(VBE_SUBDIR) $(VGAHW_SUBDIR) $(XAA_SUBDIR) \
 	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(DRI2_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 

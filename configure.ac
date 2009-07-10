@@ -584,6 +584,7 @@ AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL 
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 AC_ARG_ENABLE(xaa,               AS_HELP_STRING([--enable-xaa], [Build XAA (default: enabled)]), [XAA=$enableval], [XAA=yes])
 AC_ARG_ENABLE(vgahw,          AS_HELP_STRING([--enable-vgahw], [Build Xorg with vga access (default: enabled)]), [VGAHW=$enableval], [VGAHW=yes])
+AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VBE module (default: enabled)]), [VBE=$enableval], [VBE=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1025,6 +1026,7 @@ XI_INC='-I$(top_srcdir)/Xi'
 AM_CONDITIONAL(XF86UTILS, test "x$XF86UTILS" = xyes)
 AM_CONDITIONAL(XAA, test "x$XAA" = xyes)
 AM_CONDITIONAL(VGAHW, test "x$VGAHW" = xyes)
+AM_CONDITIONAL(VBE, test "x$VBE" = xyes)
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
