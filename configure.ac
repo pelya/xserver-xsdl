@@ -583,6 +583,7 @@ AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--enable-config-dbus], [Build D-BU
 AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 AC_ARG_ENABLE(xaa,               AS_HELP_STRING([--enable-xaa], [Build XAA (default: enabled)]), [XAA=$enableval], [XAA=yes])
+AC_ARG_ENABLE(vgahw,          AS_HELP_STRING([--enable-vgahw], [Build Xorg with vga access (default: enabled)]), [VGAHW=$enableval], [VGAHW=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1023,6 +1024,7 @@ XI_INC='-I$(top_srcdir)/Xi'
 
 AM_CONDITIONAL(XF86UTILS, test "x$XF86UTILS" = xyes)
 AM_CONDITIONAL(XAA, test "x$XAA" = xyes)
+AM_CONDITIONAL(VGAHW, test "x$VGAHW" = xyes)
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
@@ -1557,7 +1559,6 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(XF86CONFIGFILE, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
@@ -1565,6 +1566,9 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 	AC_DEFINE(XSERVER_LIBPCIACCESS, 1, [Use libpciaccess for all pci manipulation])
+	if test "x$VGAHW" = xyes; then
+		AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
+	fi
 
 	driverdir="$moduledir/drivers"
 	AC_SUBST([moduledir])
