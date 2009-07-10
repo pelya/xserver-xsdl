@@ -43,8 +43,6 @@
 
 extern Bool	g_fSoftwareCursor;
 
-#define BYTE_COUNT(x) (((x) + 7) / 8)
-
 #define BRIGHTNESS(x) (x##Red * 0.299 + x##Green * 0.587 + x##Blue * 0.114)
 
 #if 0
@@ -199,7 +197,7 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
   /* Get the number of bytes required to store the whole cursor image 
    * This is roughly (sm_cx * sm_cy) / 8 
    * round up to 8 pixel boundary so we can convert whole bytes */
-  nBytes = BYTE_COUNT(pScreenPriv->cursor.sm_cx) * pScreenPriv->cursor.sm_cy;
+  nBytes = bits_to_bytes(pScreenPriv->cursor.sm_cx) * pScreenPriv->cursor.sm_cy;
 
   /* Get the effective width and height */
   nCX = min(pScreenPriv->cursor.sm_cx, pCursor->bits->width);
@@ -214,11 +212,11 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
    * The first is for an empty mask */
   if (pCursor->bits->emptyMask)
     {
-      int x, y, xmax = BYTE_COUNT(nCX);
+      int x, y, xmax = bits_to_bytes(nCX);
       for (y = 0; y < nCY; ++y)
 	for (x = 0; x < xmax; ++x)
 	  {
-	    int nWinPix = BYTE_COUNT(pScreenPriv->cursor.sm_cx) * y + x;
+	    int nWinPix = bits_to_bytes(pScreenPriv->cursor.sm_cx) * y + x;
 	    int nXPix = BitmapBytePad(pCursor->bits->width) * y + x;
 
 	    pAnd[nWinPix] = 0;
@@ -230,11 +228,11 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
     }
   else
     {
-      int x, y, xmax = BYTE_COUNT(nCX);
+      int x, y, xmax = bits_to_bytes(nCX);
       for (y = 0; y < nCY; ++y)
 	for (x = 0; x < xmax; ++x)
 	  {
-	    int nWinPix = BYTE_COUNT(pScreenPriv->cursor.sm_cx) * y + x;
+	    int nWinPix = bits_to_bytes(pScreenPriv->cursor.sm_cx) * y + x;
 	    int nXPix = BitmapBytePad(pCursor->bits->width) * y + x;
 
 	    unsigned char mask = pCursor->bits->mask[nXPix];
@@ -323,7 +321,7 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
 		    (*pCur++) = 0;
 		  else /* Within X11 icon bounds */
 		    {
-		      int nWinPix = BYTE_COUNT(pScreenPriv->cursor.sm_cx) * y + (x/8);
+		      int nWinPix = bits_to_bytes(pScreenPriv->cursor.sm_cx) * y + (x/8);
 
 		      bit = pAnd[nWinPix];
 		      bit = bit & (1<<(7-(x&7)));
