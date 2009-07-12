@@ -1012,6 +1012,16 @@ winMultiWindowXMsgProc (void *pArg)
 			      "WM_CHANGE_STATE",
 			      False);
 
+  /*
+    iiimxcf had a bug until 2009-04-27, assuming that the
+    WM_STATE atom exists, causing clients to fail with
+    a BadAtom X error if it doesn't.
+
+    Since this is on in the default Solaris 10 install,
+    workaround this by making sure it does exist...
+   */
+  XInternAtom(pProcArg->pDisplay, "WM_STATE", 0);
+
   /* Loop until we explicitly break out */
   while (1)
     {
