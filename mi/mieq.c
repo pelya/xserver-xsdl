@@ -281,7 +281,11 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
 	case ET_DGAEvent:
 	    break;
 #endif
-        case ET_Raw:
+        case ET_RawKeyPress:
+        case ET_RawKeyRelease:
+        case ET_RawButtonPress:
+        case ET_RawButtonRelease:
+        case ET_RawMotion:
             event->raw.deviceid = dev->id;
             break;
         default:

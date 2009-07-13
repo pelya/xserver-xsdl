@@ -2188,7 +2188,11 @@ FixUpEventFromWindow(
     {
         xXIDeviceEvent* event = (xXIDeviceEvent*)xE;
 
-        if (event->evtype == XI_RawEvent)
+        if (event->evtype == XI_RawKeyPress ||
+            event->evtype == XI_RawKeyRelease ||
+            event->evtype == XI_RawButtonPress ||
+            event->evtype == XI_RawButtonRelease ||
+            event->evtype == XI_RawMotion)
             return;
 
         event->root = RootWindow(pDev)->drawable.id;

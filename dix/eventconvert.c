@@ -94,7 +94,11 @@ EventToCore(InternalEvent *event, xEvent *core)
             break;
         case ET_ProximityIn:
         case ET_ProximityOut:
-        case ET_Raw:
+        case ET_RawKeyPress:
+        case ET_RawKeyRelease:
+        case ET_RawButtonPress:
+        case ET_RawButtonRelease:
+        case ET_RawMotion:
             return BadMatch;
         default:
             /* XXX: */
@@ -135,7 +139,11 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
         case ET_ProximityOut:
             return eventToKeyButtonPointer((DeviceEvent*)ev, xi, count);
         case ET_DeviceChanged:
-        case ET_Raw:
+        case ET_RawKeyPress:
+        case ET_RawKeyRelease:
+        case ET_RawButtonPress:
+        case ET_RawButtonRelease:
+        case ET_RawMotion:
             *count = 0;
             *xi = NULL;
             return BadMatch;
@@ -182,7 +190,11 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
             return BadMatch;
         case ET_DeviceChanged:
             return eventToClassesChanged((DeviceChangedEvent*)ev, xi);
-        case ET_Raw:
+        case ET_RawKeyPress:
+        case ET_RawKeyRelease:
+        case ET_RawButtonPress:
+        case ET_RawButtonRelease:
+        case ET_RawMotion:
             return eventToRawEvent((RawDeviceEvent*)ev, xi);
 
     }
@@ -469,7 +481,6 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     raw->evtype         = GetXI2Type((InternalEvent*)ev);
     raw->time           = ev->time;
     raw->length         = bytes_to_int32(len - sizeof(xEvent));
-    raw->eventtype      = ev->subtype;
     raw->detail         = ev->detail.button;
     raw->deviceid       = ev->deviceid;
     raw->valuators_len  = vallen;
@@ -552,7 +563,11 @@ GetXI2Type(InternalEvent *event)
         case ET_Leave:          xi2type = XI_Leave;            break;
         case ET_Hierarchy:      xi2type = XI_HierarchyChanged; break;
         case ET_DeviceChanged:  xi2type = XI_DeviceChanged;    break;
-        case ET_Raw:            xi2type = XI_RawEvent;         break;
+        case ET_RawKeyPress:    xi2type = XI_RawKeyPress;      break;
+        case ET_RawKeyRelease:  xi2type = XI_RawKeyRelease;    break;
+        case ET_RawButtonPress: xi2type = XI_RawButtonPress;   break;
+        case ET_RawButtonRelease: xi2type = XI_RawButtonRelease; break;
+        case ET_RawMotion:      xi2type = XI_RawMotion;        break;
         case ET_FocusIn:        xi2type = XI_FocusIn;          break;
         case ET_FocusOut:       xi2type = XI_FocusOut;         break;
         default:

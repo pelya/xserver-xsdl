@@ -69,7 +69,7 @@ SOFTWARE.
  * events to the protocol, the server will not support these events until
  * this number here is bumped.
  */
-#define XI2LASTEVENT    13 /* XI_PropertyEvent */
+#define XI2LASTEVENT    17 /* XI_RawMotion */
 #define XI2MASKSIZE     ((XI2LASTEVENT + 7)/8) /* no of bits for masks */
 
 /**

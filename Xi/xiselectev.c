@@ -102,6 +102,18 @@ ProcXISelectEvents(ClientPtr client)
                 return BadValue;
         }
 
+        /* Raw events may only be selected on root windows */
+        if (win->parent && evmask->mask_len >= 1)
+        {
+            unsigned char *bits = (unsigned char*)&evmask[1];
+            if (BitIsOn(bits, XI_RawKeyPress) ||
+                BitIsOn(bits, XI_RawKeyRelease) ||
+                BitIsOn(bits, XI_RawButtonPress) ||
+                BitIsOn(bits, XI_RawButtonRelease) ||
+                BitIsOn(bits, XI_RawMotion))
+                return BadValue;
+        }
+
         if ((evmask->mask_len * 4) >= (XI2LASTEVENT + 8)/8)
         {
             unsigned char *bits = (unsigned char*)&evmask[1];

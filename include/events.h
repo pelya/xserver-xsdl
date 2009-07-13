@@ -41,6 +41,7 @@
  * protocol.
  *
  * Note: Keep KeyPress to Motion aligned with the core events.
+ *       Keep ET_Raw* in the same order as KeyPress - Motion
  */
 enum {
     ET_KeyPress = 2,
@@ -59,7 +60,11 @@ enum {
 #if XFreeXDGA
     ET_DGAEvent,
 #endif
-    ET_Raw,
+    ET_RawKeyPress,
+    ET_RawKeyRelease,
+    ET_RawButtonPress,
+    ET_RawButtonRelease,
+    ET_RawMotion,
     ET_Internal = 0xFF /* First byte */
 } EventType;
 
@@ -193,8 +198,6 @@ typedef struct
     int type;             /**<  ET_Raw */
     int length;           /**<  Length in bytes */
     Time time;            /**<  Time in ms */
-    int subtype;          /**<  KeyPress, KeyRelease, ButtonPress,
-                                ButtonRelease, MotionNotify */
     int deviceid;         /**< Device to post this event for */
     int sourceid;         /**< The physical source device */
     union {

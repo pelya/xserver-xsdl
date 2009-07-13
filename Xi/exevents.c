@@ -986,7 +986,11 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
     CHECKEVENT(ev);
 
-    if (ev->any.type == ET_Raw)
+    if (ev->any.type == ET_RawKeyPress ||
+        ev->any.type == ET_RawKeyRelease ||
+        ev->any.type == ET_RawButtonPress ||
+        ev->any.type == ET_RawButtonRelease ||
+        ev->any.type == ET_RawMotion)
     {
         ProcessRawEvent((RawDeviceEvent*)ev, device);
         return;

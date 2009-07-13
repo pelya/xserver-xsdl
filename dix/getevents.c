@@ -138,14 +138,12 @@ init_event(DeviceIntPtr dev, DeviceEvent* event, Time ms)
 }
 
 static void
-init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int subtype,
-         int detail)
+init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
 {
     memset(event, 0, sizeof(RawDeviceEvent));
     event->header = ET_Internal;
     event->length = sizeof(RawDeviceEvent);
-    event->type = ET_Raw;
-    event->subtype = subtype;
+    event->type = ET_RawKeyPress - ET_KeyPress + type;
     event->time = ms;
     event->deviceid = dev->id;
     event->sourceid = dev->id;
