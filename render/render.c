@@ -681,6 +681,8 @@ PictOpValid (CARD8 op)
 	return TRUE;
     if (PictOpConjointMinimum <= op && op <= PictOpConjointMaximum)
 	return TRUE;
+    if (PictOpBlendMinimum <= op && op <= PictOpBlendMaximum)
+	return TRUE;
     return FALSE;
 }
 
