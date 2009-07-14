@@ -68,10 +68,6 @@
 #ifndef _XF86_OSPROC_H
 #define _XF86_OSPROC_H
 
-#ifdef XF86_OS_PRIVS
-#include "xf86Pci.h"
-#endif
-
 /*
  * The actual prototypes have been pulled into this seperate file so
  * that they can can be used without pulling in all of the OS specific

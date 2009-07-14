@@ -35,13 +35,9 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Privstr.h"
-#include "xf86Pci.h"
 #define NEED_OS_RAC_PROTOS
 #include "xf86_OSlib.h"
 #include "xf86Resources.h"
-
-/* Avoid Imakefile changes */
-#include "bus/Pci.h"
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
 	defined(__NetBSD__) || defined(__OpenBSD__) || \

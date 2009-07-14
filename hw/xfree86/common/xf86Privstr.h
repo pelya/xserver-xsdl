@@ -34,7 +34,6 @@
 #ifndef _XF86PRIVSTR_H
 #define _XF86PRIVSTR_H
 
-#include "xf86Pci.h"
 #include "xf86str.h"
 
 typedef enum {
