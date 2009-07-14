@@ -33,7 +33,4 @@ CLEANFILES=libxservertest.c
 libxservertest.c:
 	touch $@
 
-all:
-	@echo "Run 'make check' to run the test suite"
-
 endif

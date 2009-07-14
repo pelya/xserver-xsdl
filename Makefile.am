@@ -38,7 +38,8 @@ SUBDIRS = \
 	$(GLX_DIR) \
 	exa \
 	config \
-	hw
+	hw \
+	test
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = xorg-server.m4
