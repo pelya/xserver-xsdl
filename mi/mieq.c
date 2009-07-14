@@ -393,17 +393,17 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     else {
         master = CopyGetMasterEvent(dev, event, masterEvents);
 
+        if (master)
+            master->u.lastSlave = dev;
+
         /* If someone's registered a custom event handler, let them
          * steal it. */
         if (handler)
         {
             handler(DequeueScreen(dev)->myNum, event, dev);
             if (master)
-            {
-                master->u.lastSlave = dev;
                 handler(DequeueScreen(master)->myNum,
                         (InternalEvent*)masterEvents->event, master);
-            }
         } else
         {
             /* process slave first, then master */
