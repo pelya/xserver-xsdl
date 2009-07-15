@@ -40,6 +40,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "xkb.h"
 
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XKMformat.h>
 
 int		XkbEventBase;
 static	int	XkbErrorBase;

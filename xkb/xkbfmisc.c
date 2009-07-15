@@ -34,6 +34,7 @@
 
 #include <X11/Xos.h>
 #include <X11/Xfuncs.h>
+#include <X11/extensions/XKMformat.h>
 
 #include <X11/X.h>
 #include <X11/keysym.h>

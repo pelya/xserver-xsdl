@@ -947,7 +947,6 @@ extern int XkbGetKeysym(
         DeviceEvent*            /* event*/);
 
 #include "xkbfile.h"
-#include <X11/extensions/XKMformat.h>
 #include "xkbrules.h"
 
 #define	_XkbListKeycodes	0
