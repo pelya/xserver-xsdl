@@ -505,7 +505,7 @@ InitKeyboardDeviceStruct(DeviceIntPtr dev, XkbRMLVOSet *rmlvo,
     XkbRMLVOSet rmlvo_dflts = { NULL };
 
     if (dev->key || dev->kbdfeed)
-	return False;
+	return FALSE;
 
     if (!rmlvo)
     {
