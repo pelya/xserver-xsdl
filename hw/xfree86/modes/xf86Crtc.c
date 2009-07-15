@@ -439,6 +439,7 @@ typedef enum {
     OPTION_IGNORE,
     OPTION_ROTATE,
     OPTION_PANNING,
+    OPTION_PRIMARY,
 } OutputOpts;
 
 static OptionInfoRec xf86OutputOptions[] = {
@@ -455,6 +456,7 @@ static OptionInfoRec xf86OutputOptions[] = {
     {OPTION_IGNORE,	    "Ignore",		OPTV_BOOLEAN, {0}, FALSE },
     {OPTION_ROTATE,	    "Rotate",		OPTV_STRING,  {0}, FALSE },
     {OPTION_PANNING,	    "Panning",		OPTV_STRING,  {0}, FALSE },
+    {OPTION_PRIMARY,	    "Primary",		OPTV_BOOLEAN, {0}, FALSE },
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
@@ -587,6 +589,7 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
     xf86OutputPtr	output, *outputs;
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     int			len;
+    Bool		primary;
 
     if (name)
 	len = strlen (name) + 1;
@@ -632,10 +635,22 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
 	xfree (output);
 	return NULL;
     }
-    
+
     xf86_config->output = outputs;
-    xf86_config->output[xf86_config->num_output++] = output;
-    
+
+    if (xf86GetOptValBool (output->options, OPTION_PRIMARY, &primary) && primary)
+    {
+	memmove(xf86_config->output + 1, xf86_config->output,
+		xf86_config->num_output * sizeof (xf86OutputPtr));
+	xf86_config->output[0] = output;
+    }
+    else
+    {
+	xf86_config->output[xf86_config->num_output] = output;
+    }
+
+    xf86_config->num_output++;
+
     return output;
 }
 

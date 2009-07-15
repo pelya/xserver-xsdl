@@ -1389,6 +1389,10 @@ This option controls whether the video card should drive the sync signal
 on the green color pin.  Not all cards support this option, and most
 monitors do not require it.  The default is off.
 .TP 7
+.BI "Option " "\*qPrimary\*q  " \*qbool\*q
+This optional entry specifies that the monitor should be treated as the primary
+monitor. (RandR 1.2-supporting drivers only)
+.TP7
 .BI "Option " "\*qPreferredMode\*q  " \*qstring\*q
 This optional entry specifies a mode to be marked as the preferred initial mode
 of the monitor.
