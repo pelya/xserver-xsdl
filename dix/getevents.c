@@ -155,10 +155,9 @@ set_raw_valuators(RawDeviceEvent *event, int first, int num, int *valuators, int
 {
     int i;
     for (i = first; i < first + num; i++)
-    {
         SetBit(event->valuators.mask, i);
-        data[i] = valuators[i - first];
-    }
+
+    memcpy(&data[first], valuators, num * sizeof(uint32_t));
 }
 
 
