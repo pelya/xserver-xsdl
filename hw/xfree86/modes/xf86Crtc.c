@@ -1923,7 +1923,8 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 }
 
 static void
-xf86EnableOutputs(ScrnInfoPtr scrn, xf86CrtcConfigPtr config, Bool *enabled)
+xf86CollectEnabledOutputs(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+			  Bool *enabled)
 {
     Bool any_enabled = FALSE;
     int o;
@@ -2362,7 +2363,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     modes = xnfcalloc (config->num_output, sizeof (DisplayModePtr));
     enabled = xnfcalloc (config->num_output, sizeof (Bool));
     
-    xf86EnableOutputs(scrn, config, enabled);
+    xf86CollectEnabledOutputs(scrn, config, enabled);
 
     if (xf86TargetUserpref(scrn, config, modes, enabled, width, height))
 	xf86DrvMsg(i, X_INFO, "Using user preference for initial modes\n");
