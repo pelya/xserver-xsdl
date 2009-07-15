@@ -156,17 +156,15 @@ typedef void (*InitExtension)(INITARGS);
 #endif
 
 #ifdef MITSHM
-#define _XSHM_SERVER_
-#include <X11/extensions/shmstr.h>
+#include <X11/extensions/shm.h>
 #endif
 #ifdef XTEST
-#define _XTEST_SERVER_
-#include <X11/extensions/XTest.h>
+#include <X11/extensions/xtest.h>
 #endif
 #include <X11/extensions/XKB.h>
 #ifdef XCSECURITY
 #include "securitysrv.h"
-#include <X11/extensions/securstr.h>
+#include <X11/extensions/secur.h>
 #endif
 #ifdef XSELINUX
 #include "xselinux.h"

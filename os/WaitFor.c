@@ -111,8 +111,7 @@ mffs(fd_mask mask)
 }
 
 #ifdef DPMSExtension
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
+#include <X11/extensions/dpmsconst.h>
 #endif
 
 struct _OsTimerRec {

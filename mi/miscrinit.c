@@ -39,8 +39,7 @@ from The Open Group.
 #include "dix.h"
 #include "miline.h"
 #ifdef MITSHM
-#define _XSHM_SERVER_
-#include <X11/extensions/XShm.h>
+#include <X11/extensions/shm.h>
 #endif
 
 /* We use this structure to propogate some information from miScreenInit to

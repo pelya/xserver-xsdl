@@ -52,8 +52,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "panoramiXsrv.h"
 #endif
 #ifdef DPMSExtension
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
+#include <X11/extensions/dpmsconst.h>
 #endif
 
 #include <stdio.h>

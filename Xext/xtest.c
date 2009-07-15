@@ -44,9 +44,7 @@
 #include "mi.h"
 #include "xkbsrv.h"
 #include "xkbstr.h"
-#define _XTEST_SERVER_
-#include <X11/extensions/XTest.h>
-#include <X11/extensions/xteststr.h>
+#include <X11/extensions/xtestproto.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"

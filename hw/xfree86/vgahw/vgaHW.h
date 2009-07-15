@@ -25,8 +25,7 @@
 #include "xf86DDC.h"
 
 #include "globals.h"
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
+#include <X11/extensions/dpmsconst.h>
 
 extern _X_EXPORT int vgaHWGetIndex(void);
 

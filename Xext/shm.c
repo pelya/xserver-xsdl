@@ -52,8 +52,7 @@ in this Software without prior written authorization from The Open Group.
 #include "servermd.h"
 #include "shmint.h"
 #include "xace.h"
-#define _XSHM_SERVER_
-#include <X11/extensions/shmstr.h>
+#include <X11/extensions/shmproto.h>
 #include <X11/Xfuncproto.h>
 
 /* Needed for Solaris cross-zone shared memory extension */

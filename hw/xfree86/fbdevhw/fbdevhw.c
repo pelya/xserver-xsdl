@@ -25,8 +25,7 @@
 #endif
 
 #include "globals.h"
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
+#include <X11/extensions/dpmsconst.h>
 
 #define DEBUG 0
 
