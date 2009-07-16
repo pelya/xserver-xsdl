@@ -446,6 +446,9 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
     	}
     }
     
+    if (cx->wait && (*cx->wait)(cx, cl, error))
+	return NULL;
+
     if (cx == __glXLastContext) {
 	/* No need to re-bind */
 	return cx;
