@@ -201,14 +201,6 @@ xf86AllocateScreen(DriverPtr drv, int flags)
     xf86Screens[i]->CurrentAccess = &xf86CurrentAccess;
     xf86Screens[i]->resourceType = MEM_IO;
 
-    /* OOps -- What's this ? */
-    DebugF("xf86AllocateScreen - xf86Screens[%d]->pScreen = %p\n",
-	   i, xf86Screens[i]->pScreen );
-    if ( NULL != xf86Screens[i]->pScreen ) {
-      DebugF("xf86Screens[%d]->pScreen->CreateWindow = %p\n",
-	     i, xf86Screens[i]->pScreen->CreateWindow );
-    }
-
     xf86Screens[i]->DriverFunc = drv->driverFunc;
 
     return xf86Screens[i];
@@ -1940,30 +1932,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     return numFound;
 }
 
-static void
-xf86SetPriority(Bool up)
-{
-    static int saved_nice;
-
-    if (up) {
-#ifdef HAS_SETPRIORITY
-	saved_nice = getpriority(PRIO_PROCESS, 0);
-	setpriority(PRIO_PROCESS, 0, -20);
-#endif
-#if defined(SYSV) || defined(SVR4) || defined(linux)
-	saved_nice = nice(0);
-	nice(-20 - saved_nice);
-#endif
-    } else {
-#ifdef HAS_SETPRIORITY
-	setpriority(PRIO_PROCESS, 0, saved_nice);
-#endif
-#if defined(SYSV) || defined(SVR4) || defined(linux)
-	nice(20 + saved_nice);
-#endif
-    }
-}
-
 /*
  * xf86GetClocks -- get the dot-clocks via a BIG BAD hack ...
  */
@@ -1978,8 +1946,6 @@ xf86GetClocks(ScrnInfoPtr pScrn, int num, Bool (*ClockFunc)(ScrnInfoPtr, int),
 
     /* First save registers that get written on */
     (*ClockFunc)(pScrn, CLK_REG_SAVE);
-
-    xf86SetPriority(TRUE);
 
     if (num > MAXCLOCKS)
 	num = MAXCLOCKS;
@@ -2027,8 +1993,6 @@ finish:
 	if (BlankScreen)
             (*BlankScreen)(pScrn, TRUE);
     }
-
-    xf86SetPriority(FALSE);
 
     for (i = 0; i < num; i++)
     {
