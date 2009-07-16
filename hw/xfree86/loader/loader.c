@@ -117,11 +117,6 @@ _LoaderListPop(int handle)
 void
 LoaderInit(void)
 {
-    char *ld_bind_now = getenv("LD_BIND_NOW");
-    if (ld_bind_now && *ld_bind_now) {
-        xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
-    }
-
     xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)xorg_symbols);
     xf86MsgVerb(X_INFO, 2, "Module ABI versions:\n");
     xf86ErrorFVerb(2, "\t%s: %d.%d\n", ABI_CLASS_ANSIC,
