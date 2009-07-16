@@ -68,8 +68,6 @@
 #include <dirent.h>
 #include <limits.h>
 
-#define TestFree(a) if (a) { xfree (a); a = NULL; }
-
 typedef struct _pattern {
     const char *pattern;
     regex_t rex;
@@ -1020,9 +1018,9 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
   LoadModule_exit:
     FreePathList(pathlist);
     FreePatterns(patterns);
-    TestFree(found);
-    TestFree(name);
-    TestFree(p);
+    xfree(found);
+    xfree(name);
+    xfree(p);
 
     return ret;
 }
@@ -1098,7 +1096,7 @@ UnloadModuleOrDriver(ModuleDescPtr mod)
 	UnloadModuleOrDriver(mod->child);
     if (mod->sib)
 	UnloadModuleOrDriver(mod->sib);
-    TestFree(mod->name);
+    xfree(mod->name);
     xfree(mod);
 }
 
@@ -1121,7 +1119,7 @@ UnloadSubModule(pointer _mod)
     if (mod->child)
 	UnloadModuleOrDriver(mod->child);
 
-    TestFree(mod->name);
+    xfree(mod->name);
     xfree(mod);
 }
 
