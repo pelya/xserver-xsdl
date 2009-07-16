@@ -155,6 +155,7 @@ AccelSetProfileProperty(DeviceIntPtr dev, Atom atom,
     if (!vel)
         return BadValue;
     rc = XIPropToInt(val, &nelem, &ptr);
+    xfree(ptr);
 
     if(checkOnly)
     {
@@ -200,6 +201,7 @@ AccelSetDecelProperty(DeviceIntPtr dev, Atom atom,
     if (!vel)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
+    xfree(ptr);
 
     if(checkOnly)
     {
@@ -246,6 +248,7 @@ AccelSetAdaptDecelProperty(DeviceIntPtr dev, Atom atom,
     if (!veloc)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
+    xfree(ptr);
 
     if(checkOnly)
     {
@@ -292,6 +295,7 @@ AccelSetScaleProperty(DeviceIntPtr dev, Atom atom,
     if (!vel)
         return BadValue;
     rc = XIPropToFloat(val, &nelem, &ptr);
+    xfree(ptr);
 
     if (checkOnly)
     {
