@@ -401,7 +401,9 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         if (handler)
         {
             handler(DequeueScreen(dev)->myNum, event, dev);
-            if (master)
+            /* Check for the SD's master in case the device got detached
+             * during event processing */
+            if (master && dev->u.master)
                 handler(DequeueScreen(master)->myNum,
                         (InternalEvent*)masterEvents->event, master);
         } else
