@@ -530,17 +530,9 @@ xf86ModeIsReduced(const DisplayModeRec *mode)
 void
 xf86ValidateModesReducedBlanking(ScrnInfoPtr pScrn, DisplayModePtr modeList)
 {
-    DisplayModePtr mode;
-
-    for (mode = modeList; mode != NULL; mode = mode->next) {
-	/* gratuitous duplication from pre-randr validation code */
-	if ((((mode->HDisplay * 5 / 4) & ~0x07) > mode->HTotal) &&
-	    ((mode->HTotal - mode->HDisplay) == 160) &&
-	    ((mode->HSyncEnd - mode->HDisplay) == 80) &&
-	    ((mode->HSyncEnd - mode->HSyncStart) == 32) &&
-	    ((mode->VSyncStart - mode->VDisplay) == 3))
-	    mode->status = MODE_NO_REDUCED;
-    }
+    for (; modeList != NULL; modeList = modeList->next)
+	if (xf86ModeIsReduced(modeList))
+	    modeList->status = MODE_NO_REDUCED;
 }
 
 /**
