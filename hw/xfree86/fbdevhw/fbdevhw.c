@@ -233,10 +233,8 @@ xfree2fbdev_timing(DisplayModePtr mode, struct fb_var_screeninfo *var)
 		var->sync |= FB_SYNC_VERT_HIGH_ACT;
 	if (mode->Flags & V_PCSYNC)
 		var->sync |= FB_SYNC_COMP_HIGH_ACT;
-#if 1 /* Badly needed for PAL/NTSC on Amiga (amifb)!! [geert] */
 	if (mode->Flags & V_BCAST)
 		var->sync |= FB_SYNC_BROADCAST;
-#endif
 	if (mode->Flags & V_INTERLACE)
 		var->vmode = FB_VMODE_INTERLACED;
 	else if (mode->Flags & V_DBLSCAN)
@@ -280,10 +278,8 @@ fbdev2xfree_timing(struct fb_var_screeninfo *var, DisplayModePtr mode)
 	mode->Flags |= var->sync & FB_SYNC_HOR_HIGH_ACT ? V_PHSYNC : V_NHSYNC;
 	mode->Flags |= var->sync & FB_SYNC_VERT_HIGH_ACT ? V_PVSYNC : V_NVSYNC;
 	mode->Flags |= var->sync & FB_SYNC_COMP_HIGH_ACT ? V_PCSYNC : V_NCSYNC;
-#if 1 /* Badly needed for PAL/NTSC on Amiga (amifb)!! [geert] */
 	if (var->sync & FB_SYNC_BROADCAST)
 		mode->Flags |= V_BCAST;
-#endif
 	if ((var->vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED)
 		mode->Flags |= V_INTERLACE;
 	else if ((var->vmode & FB_VMODE_MASK) == FB_VMODE_DOUBLE)
