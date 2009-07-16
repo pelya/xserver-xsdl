@@ -59,20 +59,7 @@ _X_EXPORT XF86ModuleData fbdevhwModuleData = {
 static pointer
 fbdevhwSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
-	const char *osname;
-
-	/* Check that we're being loaded on a Linux system */
-	LoaderGetOS(&osname, NULL, NULL, NULL);
-	if (!osname || strcmp(osname, "linux") != 0) {
-		if (errmaj)
-			*errmaj = LDR_BADOS;
-		if (errmin)
-			*errmin = 0;
-		return NULL;
-	} else {
-		/* OK */
-		return (pointer)1;
-	}
+    return (pointer)1;
 }
 
 #include <fcntl.h>
