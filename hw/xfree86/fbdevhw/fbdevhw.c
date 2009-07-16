@@ -342,10 +342,9 @@ fbdev_open_pci(struct pci_device * pPci, char **namep)
 
 		    return fd;
 		}
+		close(fd);
 	    }
 	}
-
-	close(fd);
     }
 
 
