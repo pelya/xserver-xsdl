@@ -17,12 +17,7 @@
 #include "fbdevhw.h"
 #include "fbpriv.h"
 
-#if 0
-/* kernel header doesn't work with -ansi */
-# include "asm/page.h"	/* #define for PAGE_* */
-#else
-# define PAGE_MASK               (~(getpagesize() - 1))
-#endif
+#define PAGE_MASK               (~(getpagesize() - 1))
 
 #include "globals.h"
 #include <X11/extensions/dpmsconst.h>
