@@ -257,13 +257,6 @@ LoaderSymbol(const char *sym)
     return (DLFindSymbol(sym));
 }
 
-/* more stub */
-int
-LoaderCheckUnresolved(int delay_flag)
-{
-    return 0;
-}
-
 int
 LoaderUnload(int handle)
 {
