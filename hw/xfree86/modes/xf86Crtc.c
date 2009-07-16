@@ -2216,10 +2216,13 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
     blue = green + size;
 
      /* Only cause warning if user wanted gamma to be set. */
-    if (!crtc->funcs->gamma_set && (gamma_red != 1.0 || gamma_green != 1.0 || gamma_blue != 1.0))
+    if (!crtc->funcs->gamma_set && (gamma_red != 1.0 || gamma_green != 1.0 || gamma_blue != 1.0)) {
+        free(red);
         return FALSE;
-    else if (!crtc->funcs->gamma_set)
+    } else if (!crtc->funcs->gamma_set) {
+        free(red);
         return TRUE;
+      }
 
     /* At this early stage none of the randr-interface stuff is up.
      * So take the default gamma size for lack of something better.
@@ -2245,8 +2248,10 @@ xf86CrtcSetInitialGamma(xf86CrtcPtr crtc, float gamma_red, float gamma_green,
     }
 
     /* Default size is 256, so anything else is failure. */
-    if (size != crtc->gamma_size)
+    if (size != crtc->gamma_size) {
+        free(red);
         return FALSE;
+      }
 
     crtc->gamma_size = size;
     memcpy (crtc->gamma_red, red, crtc->gamma_size * sizeof (CARD16));
