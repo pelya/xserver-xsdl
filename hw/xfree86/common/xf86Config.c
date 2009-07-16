@@ -1863,16 +1863,6 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
 
 	bzero(&defMon, sizeof(defMon));
 	defMon.mon_identifier = "<default monitor>";
-	/*
-	 * TARGET_REFRESH_RATE may be defined to effectively limit the
-	 * default resolution to the largest that has a "good" refresh
-	 * rate.
-	 */
-#ifdef TARGET_REFRESH_RATE
-	defMon.mon_option_lst = xf86ReplaceRealOption(defMon.mon_option_lst,
-						      "TargetRefresh",
-						      TARGET_REFRESH_RATE);
-#endif
 	if (!configMonitor(screenp->monitor, &defMon))
 	    return FALSE;
 	defaultMonitor = TRUE;

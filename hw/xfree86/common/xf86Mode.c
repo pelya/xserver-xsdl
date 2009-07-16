@@ -1200,7 +1200,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     PixmapFormatRec *BankFormat;
     ClockRangePtr cp;
     ClockRangesPtr storeClockRanges;
-    double targetRefresh = 0.0;
     int numTimings = 0;
     range hsync[MAX_HSYNC];
     range vrefresh[MAX_VREFRESH];
@@ -1460,26 +1459,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     }
 
     /*
-     * Go through the mode pool and see if any modes match the target
-     * refresh rate, (if specified).  If no modes match, abandon the target.
-     */
-    targetRefresh = xf86SetRealOption(scrp->options,
-				      "TargetRefresh", 0.0);
-    if (targetRefresh > 0.0) {
-	for (p = scrp->modePool; p != NULL; p = p->next) {
-	    if (xf86ModeVRefresh(p) > targetRefresh * (1.0 - SYNC_TOLERANCE))
-		break;
-	}
-	if (!p)
-	    targetRefresh = 0.0;
-    }
-
-    if (targetRefresh > 0.0) {
-	xf86DrvMsg(scrp->scrnIndex, X_CONFIG,
-		   "Target refresh rate is %.1f Hz\n", targetRefresh);
-    }
-
-    /*
      * Allocate one entry in scrp->modes for each named mode.
      */
     while (scrp->modes)
@@ -1550,14 +1529,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			if (!scrp->monitor->reducedblanking &&
 			    (q->type & M_T_DEFAULT) &&
 			    ((double)q->HTotal / (double)q->HDisplay) < 1.15)
-			    continue;
-
-			/*
-			 * If there is a target refresh rate, skip modes that
-			 * don't match up.
-			 */
-			if (xf86ModeVRefresh(q) <
-			    (1.0 - SYNC_TOLERANCE) * targetRefresh)
 			    continue;
 
 			if (modeSize < (q->HDisplay * q->VDisplay)) {
