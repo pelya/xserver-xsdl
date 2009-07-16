@@ -491,7 +491,7 @@ void freeGlCapabilities(struct glCapabilities *cap) {
     cap->configurations = NULL;    
 }
 
-enum { MAX_DISPLAYS = 3 };
+#define MAX_DISPLAYS 32
 
 /*Return true if an error occured. */
 bool getGlCapabilities(struct glCapabilities *cap) {
