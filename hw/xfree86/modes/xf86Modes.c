@@ -48,8 +48,6 @@ extern XF86ConfigPtr xf86configptr;
 
 /**
  * Calculates the horizontal sync rate of a mode.
- *
- * Exact copy of xf86Mode.c's.
  */
 double
 xf86ModeHSync(const DisplayModeRec *mode)
@@ -66,8 +64,6 @@ xf86ModeHSync(const DisplayModeRec *mode)
 
 /**
  * Calculates the vertical refresh rate of a mode.
- *
- * Exact copy of xf86Mode.c's.
  */
 double
 xf86ModeVRefresh(const DisplayModeRec *mode)
@@ -151,8 +147,6 @@ xf86SetModeDefaultName(DisplayModePtr mode)
  *
  * Initialises the Crtc parameters for a mode.  The initialisation includes
  * adjustments for interlaced and double scan modes.
- *
- * Exact copy of xf86Mode.c's.
  */
 void
 xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
@@ -260,8 +254,6 @@ xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList)
  *
  * This doesn't use Crtc values, as it might be used on ModeRecs without the
  * Crtc values set.  So, it's assumed that the other numbers are enough.
- *
- * This isn't in xf86Modes.c, but it might deserve to be there.
  */
 Bool
 xf86ModesEqual(const DisplayModeRec *pMode1, const DisplayModeRec *pMode2)
@@ -285,7 +277,6 @@ xf86ModesEqual(const DisplayModeRec *pMode1, const DisplayModeRec *pMode2)
      }
 }
 
-/* exact copy of xf86Mode.c */
 static void
 add(char **p, char *new)
 {
@@ -296,8 +287,6 @@ add(char **p, char *new)
 
 /**
  * Print out a modeline.
- *
- * Convenient VRefresh printing was added, though, compared to xf86Mode.c
  */
 void
 xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
