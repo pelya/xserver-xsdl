@@ -37,7 +37,7 @@ in this Software without prior written authorization from The Open Group.
 #include "registry.h"
 #include "xacestr.h"
 #include "securitysrv.h"
-#include <X11/extensions/securstr.h>
+#include <X11/extensions/securproto.h>
 #include "modinit.h"
 
 /* Extension stuff */
