@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.05">
+<archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.10">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">10A222</string>
-		<string key="IBDocument.InterfaceBuilderVersion">708</string>
-		<string key="IBDocument.AppKitVersion">994.5</string>
-		<string key="IBDocument.HIToolboxVersion">404.00</string>
+		<string key="IBDocument.SystemVersion">10A354</string>
+		<string key="IBDocument.InterfaceBuilderVersion">729</string>
+		<string key="IBDocument.AppKitVersion">1019</string>
+		<string key="IBDocument.HIToolboxVersion">421.00</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginVersions">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin</string>
-			<string key="NS.object.0">708</string>
+			<string key="NS.object.0">729</string>
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -19,7 +19,7 @@
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.Metadata">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<object class="NSArray" key="dict.sortedKeys">
+			<object class="NSArray" key="dict.sortedKeys" id="0">
 				<bool key="EncodedWithXMLCoder">YES</bool>
 			</object>
 			<object class="NSMutableArray" key="dict.values">
@@ -64,7 +64,7 @@
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="139290918">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">WDEx7JeQIOq0gO2VmOyXrA</string>
+									<string key="NSTitle">X11에 관하여</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="531645050"/>
@@ -72,7 +72,7 @@
 								</object>
 								<object class="NSMenuItem" id="386173216">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">7ZmY6rK97ISk7KCVLi4uA</string>
+									<string key="NSTitle">환경설정...</string>
 									<string key="NSKeyEquiv">,</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -92,7 +92,7 @@
 								</object>
 								<object class="NSMenuItem" id="32285361">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">7ISc67mE7IqkA</string>
+									<string key="NSTitle">서비스</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -100,7 +100,7 @@
 									<reference key="NSMixedImage" ref="351811234"/>
 									<string key="NSAction">submenuAction:</string>
 									<object class="NSMenu" key="NSSubmenu" id="821388474">
-										<string type="base64-UTF8" key="NSTitle">7ISc67mE7IqkA</string>
+										<string key="NSTitle">서비스</string>
 										<object class="NSMutableArray" key="NSMenuItems">
 											<bool key="EncodedWithXMLCoder">YES</bool>
 										</object>
@@ -120,7 +120,7 @@
 								</object>
 								<object class="NSMenuItem" id="6876565">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">7KCE7LK0IO2ZlOuptCDthqDquIA</string>
+									<string key="NSTitle">전체 화면 토글</string>
 									<string key="NSKeyEquiv">a</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -140,7 +140,7 @@
 								</object>
 								<object class="NSMenuItem" id="301008465">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">WDExIOqwgOumrOq4sA</string>
+									<string key="NSTitle">X11 가리기</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -150,7 +150,7 @@
 								</object>
 								<object class="NSMenuItem" id="206802571">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">6riw7YOAIOqwgOumrOq4sA</string>
+									<string key="NSTitle">기타 가리기</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1572864</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -159,7 +159,7 @@
 								</object>
 								<object class="NSMenuItem" id="1023546148">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">66qo65GQIOuztOq4sA</string>
+									<string key="NSTitle">모두 보기</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -180,7 +180,7 @@
 								</object>
 								<object class="NSMenuItem" id="274138642">
 									<reference key="NSMenu" ref="576521955"/>
-									<string type="base64-UTF8" key="NSTitle">WDExIOyiheujjA</string>
+									<string key="NSTitle">X11 종료</string>
 									<string key="NSKeyEquiv">q</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -193,7 +193,7 @@
 					</object>
 					<object class="NSMenuItem" id="868031522">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">7J2R7JqpIO2UhOuhnOq3uOueqA</string>
+						<string key="NSTitle">응용 프로그램</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -201,7 +201,7 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="981161348">
-							<string type="base64-UTF8" key="NSTitle">7J2R7JqpIO2UhOuhnOq3uOueqA</string>
+							<string key="NSTitle">응용 프로그램</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="390088328">
@@ -217,7 +217,7 @@
 								</object>
 								<object class="NSMenuItem" id="1065386165">
 									<reference key="NSMenu" ref="981161348"/>
-									<string type="base64-UTF8" key="NSTitle">7IKs7Jqp7J6Q7ZmULi4uA</string>
+									<string key="NSTitle">사용자화...</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -229,7 +229,7 @@
 					</object>
 					<object class="NSMenuItem" id="200491363">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">7Y647KeRA</string>
+						<string key="NSTitle">편집</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -237,12 +237,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="526778998">
-							<string type="base64-UTF8" key="NSTitle">7Y647KeRA</string>
+							<string key="NSTitle">편집</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="185296989">
 									<reference key="NSMenu" ref="526778998"/>
-									<string type="base64-UTF8" key="NSTitle">67Kg6ru065GQ6riwA</string>
+									<string key="NSTitle">베껴두기</string>
 									<string key="NSKeyEquiv">c</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -254,7 +254,7 @@
 					</object>
 					<object class="NSMenuItem" id="931553638">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">7JyI64+E7JqwA</string>
+						<string key="NSTitle">윈도우</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -262,12 +262,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="96874957">
-							<string type="base64-UTF8" key="NSTitle">7JyI64+E7JqwA</string>
+							<string key="NSTitle">윈도우</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="984461797">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">64ur6riwA</string>
+									<string key="NSTitle">닫기</string>
 									<string key="NSKeyEquiv">w</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -276,7 +276,7 @@
 								</object>
 								<object class="NSMenuItem" id="677652931">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">7JyI64+E7JqwIOy2leyGjA</string>
+									<string key="NSTitle">윈도우 축소</string>
 									<string key="NSKeyEquiv">m</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -285,7 +285,7 @@
 								</object>
 								<object class="NSMenuItem" id="1066447520">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">7ZmV64yAL+y2leyGjA</string>
+									<string key="NSTitle">확대/축소</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -305,7 +305,7 @@
 								</object>
 								<object class="NSMenuItem" id="1036389925">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">7JyI64+E7JqwIOyInO2ZmA</string>
+									<string key="NSTitle">윈도우 순환</string>
 									<string key="NSKeyEquiv">`</string>
 									<int key="NSKeyEquivModMask">1048840</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -314,7 +314,7 @@
 								</object>
 								<object class="NSMenuItem" id="369641893">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">7JyI64+E7JqwIOyXreyInO2ZmA</string>
+									<string key="NSTitle">윈도우 역순환</string>
 									<string key="NSKeyEquiv">~</string>
 									<int key="NSKeyEquivModMask">1179914</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -334,7 +334,7 @@
 								</object>
 								<object class="NSMenuItem" id="276216762">
 									<reference key="NSMenu" ref="96874957"/>
-									<string type="base64-UTF8" key="NSTitle">66qo65GQIOyVnuycvOuhnCDqsIDsoLjsmKTquLA</string>
+									<string key="NSTitle">모두 앞으로 가져오기</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -358,7 +358,7 @@
 					</object>
 					<object class="NSMenuItem" id="551174276">
 						<reference key="NSMenu" ref="524015605"/>
-						<string type="base64-UTF8" key="NSTitle">64+E7JuA66eQA</string>
+						<string key="NSTitle">도움말</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -366,12 +366,12 @@
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="511848303">
-							<string type="base64-UTF8" key="NSTitle">64+E7JuA66eQA</string>
+							<string key="NSTitle">도움말</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="504984881">
 									<reference key="NSMenu" ref="511848303"/>
-									<string type="base64-UTF8" key="NSTitle">WDExIOuPhOybgOunkA</string>
+									<string key="NSTitle">X11 도움말</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -392,7 +392,7 @@
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{266, 364}, {484, 308}}</string>
 				<int key="NSWTFlags">1350041600</int>
-				<string type="base64-UTF8" key="NSWindowTitle">WDExIO2ZmOqyveyEpOyglQ</string>
+				<string key="NSWindowTitle">X11 환경설정</string>
 				<string key="NSWindowClass">NSPanel</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
@@ -429,7 +429,7 @@
 												<object class="NSButtonCell" key="NSCell" id="990762273">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">M+ykkSDtgbTrpq0g66eI7Jqw7IqkIOyXkOuurOugiOydtO2KuA</string>
+													<string key="NSContents">3중 클릭 마우스 에뮬레이트</string>
 													<object class="NSFont" key="NSSupport" id="463863101">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">13</double>
@@ -438,7 +438,7 @@
 													<reference key="NSControlView" ref="119157981"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<object class="NSCustomResource" key="NSNormalImage" id="127718871">
+													<object class="NSCustomResource" key="NSNormalImage" id="1052652531">
 														<string key="NSClassName">NSImage</string>
 														<string key="NSResourceName">NSSwitch</string>
 													</object>
@@ -460,9 +460,7 @@
 												<object class="NSTextFieldCell" key="NSCell" id="391919450">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY66m0LCDrqZTribQg66eJ64yA7JmAIOuPmeuTse2VnCDtgqTqsIAg66mU7YOAIOyh
-sO2VqeydhCDsgqzsmqntlZjripQgWDExIOydkeyaqSDtlITroZzqt7jrnqjsnYQg67Cp7ZW07ZWgIOyI
-mCDsnojsirXri4jri6QuA</string>
+													<string key="NSContents">활성화되면, 메뉴 막대와 동등한 키가 메타 조합을 사용하는 X11 응용 프로그램을 방해할 수 있습니다.</string>
 													<object class="NSFont" key="NSSupport" id="26">
 														<string key="NSName">LucidaGrande</string>
 														<double key="NSSize">11</double>
@@ -474,9 +472,9 @@ mCDsnojsirXri4jri6QuA</string>
 														<int key="NSColorSpace">6</int>
 														<string key="NSCatalogName">System</string>
 														<string key="NSColorName">controlColor</string>
-														<object class="NSColor" key="NSColor" id="241249183">
+														<object class="NSColor" key="NSColor" id="590688762">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2NwA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2NjY3AA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
@@ -518,12 +516,12 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 												<object class="NSButtonCell" key="NSCell" id="940564599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">WDEx7J2YIOuPmeuTse2VnCDtgqQg7Zmc7ISx7ZmUA</string>
+													<string key="NSContents">X11의 동등한 키 활성화</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="842100515"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -540,8 +538,7 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 												<object class="NSTextFieldCell" key="NSCell" id="666057093">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7J6F66ClIOuplOuJtCDrs4Dqsr3sgqztla3snbQg7ZiE7J6sIFgxMSDtgqTrp7XsnYQg642u7Ja07JOw
-64+E66GdIO2XiOyaqe2VqeuLiOuLpC4</string>
+													<string key="NSContents">입력 메뉴 변경사항이 현재 X11 키맵을 덮어쓰도록 허용합니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="31160162"/>
@@ -558,12 +555,12 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 												<object class="NSButtonCell" key="NSCell" id="967619578">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7Iuc7Iqk7YWcIO2CpOuztOuTnCDroIjsnbTslYTsm4Mg65Sw66W06riwA</string>
+													<string key="NSContents">시스템 키보드 레이아웃 따르기</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="179949713"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -575,7 +572,7 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 										<reference key="NSSuperview" ref="448510093"/>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">7J6F66ClA</string>
+									<string key="NSLabel">입력</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -597,12 +594,12 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 												<object class="NSButtonCell" key="NSCell" id="1016069354">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7Iuc7Iqk7YWcIOqyveqzoCDtmqjqs7wg7IKs7JqpA</string>
+													<string key="NSContents">시스템 경고 효과 사용</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="418227126"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -619,9 +616,7 @@ pbTqs6Ag7J6I7Jy87Iut7Iuc7JikLgo</string>
 												<object class="NSTextFieldCell" key="NSCell" id="624655599">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIOqyveqzoOydjOydgCDsgqzsmrTrk5wg7Zqo6rO8IOyLnOyKpO2FnCDtmZjqsr3shKTsoJUg7Yyo
-64SQ7JeQ7IScIOygleydmOuQnCDtkZzspIAg7Iuc7Iqk7YWcIOqyveqzoOulvCDsgqzsmqntlanri4jr
-i6QuA</string>
+													<string key="NSContents">X11 경고음은 사운드 효과 시스템 환경설정 패널에서 정의된 표준 시스템 경고를 사용합니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="1039016593"/>
@@ -655,7 +650,7 @@ i6QuA</string>
 													<int key="NSPeriodicInterval">75</int>
 													<object class="NSMenuItem" key="NSMenuItem" id="616492372">
 														<reference key="NSMenu" ref="341113515"/>
-														<string type="base64-UTF8" key="NSTitle">66qo64uI7YSw7JeQ7IScA</string>
+														<string key="NSTitle">모니터에서</string>
 														<string key="NSKeyEquiv"/>
 														<int key="NSKeyEquivModMask">1048576</int>
 														<int key="NSMnemonicLoc">2147483647</int>
@@ -676,7 +671,7 @@ i6QuA</string>
 															<reference ref="616492372"/>
 															<object class="NSMenuItem" id="759499526">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">MjU2IOyDieyDgQ</string>
+																<string key="NSTitle">256 색상</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -688,7 +683,7 @@ i6QuA</string>
 															</object>
 															<object class="NSMenuItem" id="543935434">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">7IiY66eMIOyDieyDgQ</string>
+																<string key="NSTitle">수만 색상</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -700,7 +695,7 @@ i6QuA</string>
 															</object>
 															<object class="NSMenuItem" id="836673018">
 																<reference key="NSMenu" ref="341113515"/>
-																<string type="base64-UTF8" key="NSTitle">7IiY7LKc66eMIOyDieyDgQ</string>
+																<string key="NSTitle">수천만 색상</string>
 																<string key="NSKeyEquiv"/>
 																<int key="NSKeyEquivModMask">1048576</int>
 																<int key="NSMnemonicLoc">2147483647</int>
@@ -745,7 +740,7 @@ i6QuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="311969422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7J20IOyYteyFmOydgCBYMTHsnYQg64uk7IucIOyLpO2Wie2VmOuptCDsoIHsmqnrkKnri4jri6QuA</string>
+													<string key="NSContents">이 옵션은 X11을 다시 실행하면 적용됩니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="86150604"/>
@@ -762,12 +757,12 @@ i6QuA</string>
 												<object class="NSButtonCell" key="NSCell" id="631531164">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7KCE7LK0IO2ZlOuptCDrqqjrk5w</string>
+													<string key="NSContents">전체 화면 모드</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477203622"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -784,12 +779,12 @@ i6QuA</string>
 												<object class="NSButtonCell" key="NSCell" id="917248662">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">66mU64m0IOunieuMgOulvCDsoITssrQg7ZmU66m0IOuqqOuTnOuhnCDsnpDrj5kg67O06riwA</string>
+													<string key="NSContents">메뉴 막대를 전체 화면 모드로 자동 보기</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="57246850"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -806,9 +801,7 @@ i6QuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="761107402">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIOujqO2KuCDsnIjrj4TsmrDrpbwg7Zmc7ISx7ZmU7ZWp64uI64ukLiDsoITssrQg7ZmU66m0IOuq
-qOuTnOuhnCDrkZDqsbDrgpgg7KCE7ZmY7ZWY66Ck66m0IENvbW1hbmQtT3B0aW9uLUEg7YKk66W8IOyC
-rOyaqe2VmOyLreyLnOyYpC4</string>
+													<string key="NSContents">X11 루트 윈도우를 활성화합니다. 전체 화면 모드로 두거나 전환하려면 Command-Option-A 키를 사용하십시오.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="298603383"/>
@@ -819,7 +812,7 @@ rOyaqe2VmOyLreyLnOyYpC4</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">7Lac66ClA</string>
+									<string key="NSLabel">출력</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -841,12 +834,12 @@ rOyaqe2VmOyLreyLnOyYpC4</string>
 												<object class="NSButtonCell" key="NSCell" id="718083688">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">64+Z6riw7ZmUIO2ZnOyEse2ZlA</string>
+													<string key="NSContents">동기화 활성화</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="878106058"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -863,9 +856,7 @@ rOyaqe2VmOyLreyLnOyYpC4</string>
 												<object class="NSTextFieldCell" key="NSCell" id="572508492">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">IuuyoOq7tOuRkOq4sCIg66mU64m0IO2VreuqqeydhCDtmZzshLHtmZTtlZjqs6AgT1NYIOu2meydtOq4
-sCDrs7Trk5wsIFgxMSDtgbTrpr3rs7Trk5wg67CPIFBSSU1BUlkg67KE7Y28IOqwhOydmCDrj5nquLDt
-mZTrpbwg7ZeI7Jqp7ZWp64uI64ukLg</string>
+													<string key="NSContents">"베껴두기" 메뉴 항목을 활성화하고 OSX 붙이기 보드, X11 클립보드 및 PRIMARY 버퍼 간의 동기화를 허용합니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="386152084"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -881,13 +872,12 @@ mZTrpbwg7ZeI7Jqp7ZWp64uI64ukLg</string>
 												<object class="NSButtonCell" key="NSCell" id="501304422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">67aZ7J206riwIOuztOuTnOulvCDrs4Dqsr3tlZjrqbQg7YG066a967O065Oc6rCAIOyXheuNsOydtO2K
-uOuQqeuLiOuLpC4</string>
+													<string key="NSContents">붙이기 보드가 변경되면 CLIPBOARD 업데이트</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477050998"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -904,13 +894,12 @@ uOuQqeuLiOuLpC4</string>
 												<object class="NSButtonCell" key="NSCell" id="510771323">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">67aZ7J206riwIOuztOuTnOulvCDrs4Dqsr3tlZjrqbQgUFJJTUFSWSjspJHslZkg7YG066atKeqwgCDs
-l4XrjbDsnbTtirjrkKnri4jri6QuA</string>
+													<string key="NSContents">붙이기 보드가 변경되면 PRIMARY(중간 클릭) 업데이트</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="765780304"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -927,13 +916,12 @@ l4XrjbDsnbTtirjrkKnri4jri6QuA</string>
 												<object class="NSButtonCell" key="NSCell" id="897099877">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7IOI66Gc7Jq0IO2FjeyKpO2KuOqwgCDshKDtg53rkJjrqbQg7KaJ7IucIOu2meydtOq4sCDrs7Trk5zr
-pbwg7JeF642w7J207Yq47ZWp64uI64ukLg</string>
+													<string key="NSContents">새로운 텍스트가 선택되면 바로 붙이기 보드 업데이트</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="1002778833"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -950,13 +938,12 @@ pbwg7JeF642w7J207Yq47ZWp64uI64ukLg</string>
 												<object class="NSButtonCell" key="NSCell" id="619977658">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7YG066a967O065Oc66W8IOuzgOqyve2VmOuptCDrtpnsnbTquLAg67O065Oc6rCAIOyXheuNsOydtO2K
-uOuQqeuLiOuLpC4</string>
+													<string key="NSContents">CLIPBOARD가 변경되면 붙이기 보드 업데이트</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="487809555"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -973,9 +960,7 @@ uOuQqeuLiOuLpC4</string>
 												<object class="NSTextFieldCell" key="NSCell" id="461823902">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">eGNsaXBib2FyZCwga2xpcHBlciDrmJDripQg6riw7YOAIOuLpOuluCBYMTEg7YG066a967O065OcIOq0
-gOumrOyekOulvCDsgqzsmqntlZjroKTrqbQg7J20IOyYteyFmOydhCDruYTtmZzshLHtmZTtlZjsi63s
-i5zsmKQuA</string>
+													<string key="NSContents">xclipboard, klipper 또는 기타 다른 X11 클립보드 관리자를 사용하려면 이 옵션을 비활성화하십시오.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="620944856"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -991,9 +976,7 @@ i5zsmKQuA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="994587858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIO2UhOuhnO2GoOy9nCDsoJztlZwg65WM66y47JeQIOydtCDsmLXshZjsnYAg7J2867aAIOydkeya
-qSDtlITroZzqt7jrnqjsl5DshJwg7ZWt7IOBIOyekeuPme2VmOyngCDslYrsnYQg7IiY64+EIOyeiOyK
-teuLiOuLpC4gA</string>
+													<string key="NSContents">X11 프로토콜 제한 때문에 이 옵션은 일부 응용 프로그램에서 항상 작동하지 않을 수도 있습니다. </string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="522511724"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1003,7 +986,7 @@ teuLiOuLpC4gA</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">67aZ7J206riwIOuztOuTnA</string>
+									<string key="NSLabel">붙이기 보드</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1025,12 +1008,12 @@ teuLiOuLpC4gA</string>
 												<object class="NSButtonCell" key="NSCell" id="259618205">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">67mE7Zmc7ISxIOyciOuPhOyasCDtgbTrpq0</string>
+													<string key="NSContents">비활성 윈도우 클릭</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="657659108"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1047,9 +1030,7 @@ teuLiOuLpC4gA</string>
 												<object class="NSTextFieldCell" key="NSCell" id="399127858">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY7JeI7J2EIOuVjCDruYTtmZzshLEg7JyI64+E7Jqw66W8IO2BtOumre2VmOuptCDr
-p4jsmrDsiqQg7YG066at7J20IOu5hO2ZnOyEsSDsnIjrj4TsmrDroZwg7Ya16rO865CgIOu/kOunjCDs
-lYTri4jrnbwg67mE7Zmc7ISxIOyciOuPhOyasOqwgCAg7Zmc7ISx7ZmU65Cp64uI64ukLg</string>
+													<string key="NSContents">활성화되었을 때 비활성 윈도우를 클릭하면 마우스 클릭이 비활성 윈도우로 통과될 뿐만 아니라 비활성 윈도우가  활성화됩니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="290578835"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1065,12 +1046,12 @@ lYTri4jrnbwg67mE7Zmc7ISxIOyciOuPhOyasOqwgCAg7Zmc7ISx7ZmU65Cp64uI64ukLg</string>
 												<object class="NSButtonCell" key="NSCell" id="959555182">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">66eI7Jqw7Iqk66W8IOuUsOudvCDstIjsoJAg7J2064+ZA</string>
+													<string key="NSContents">마우스를 따라 초점 이동</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="992839333"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1087,8 +1068,7 @@ lYTri4jrnbwg67mE7Zmc7ISxIOyciOuPhOyasOqwgCAg7Zmc7ISx7ZmU65Cp64uI64ukLg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="183409141">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDExIOyciOuPhOyasCDstIjsoJDsnYAg7ZW064u5IOy7pOyEnOulvCDrlLDrpoXri4jri6QuICDsnbTq
-soPsnYAg7J2867aAIOyXreq4sOuKpeydhCDqsIDsp4Dqs6Ag7J6I7Iq164uI64ukLg</string>
+													<string key="NSContents">X11 윈도우 초점은 해당 커서를 따릅니다.  이것은 일부 역기능을 가지고 있습니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="138261120"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1104,12 +1084,12 @@ soPsnYAg7J2867aAIOyXreq4sOuKpeydhCDqsIDsp4Dqs6Ag7J6I7Iq164uI64ukLg</string>
 												<object class="NSButtonCell" key="NSCell" id="556463187">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7IOI66Gc7Jq0IOyciOuPhOyasOyXkCDstIjsoJAg65GQ6riwA</string>
+													<string key="NSContents">새로운 윈도우에 초점 두기</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="128352289"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1126,9 +1106,7 @@ soPsnYAg7J2867aAIOyXreq4sOuKpeydhCDqsIDsp4Dqs6Ag7J6I7Iq164uI64ukLg</string>
 												<object class="NSTextFieldCell" key="NSCell" id="989804990">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY7JeI7J2EIOuVjCDsg4jroZzsmrQgWDExIOyciOuPhOyasOulvCDsg53shLHtlZjr
-qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
-7JWe7Jy866GcIOydtOuPmeuQqeuLiOuLpC4</string>
+													<string key="NSContents">활성화되었을 때 새로운 X11 윈도우를 생성하면 (Finder.app 및 터미널.app 등 대신) X11.app이 맨 앞으로 이동됩니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<reference key="NSControlView" ref="57161931"/>
 													<reference key="NSBackgroundColor" ref="57160303"/>
@@ -1138,7 +1116,7 @@ qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">7JyI64+E7JqwA</string>
+									<string key="NSLabel">윈도우</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1157,12 +1135,12 @@ qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
 												<object class="NSButtonCell" key="NSCell" id="189594322">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">7Jew6rKwIOyduOymnQ</string>
+													<string key="NSContents">연결 인증</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="989050925"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1179,12 +1157,12 @@ qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
 												<object class="NSButtonCell" key="NSCell" id="489340979">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string type="base64-UTF8" key="NSContents">64Sk7Yq47JuM7YGsIO2BtOudvOydtOyWuO2KuOyXkOyEnOydmCDsl7DqsrDsnYQg7ZeI7JqpA</string>
+													<string key="NSContents">네트워크 클라이언트에서의 연결을 허용</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="700826966"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="127718871"/>
+													<reference key="NSNormalImage" ref="1052652531"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1201,10 +1179,7 @@ qbQgKEZpbmRlci5hcHAg67CPIO2EsOuvuOuEkC5hcHAg65OxIOuMgOyLoCkgWDExLmFwcOydtCDrp6gg
 												<object class="NSTextFieldCell" key="NSCell" id="53243865">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">WDEx7J2EIOyLpO2Wie2VmOuptCBYYXV0aG9yaXR5IOyXsOqysCDsoJzslrQg7YKk66W8IOyDneyEse2V
-qeuLiOuLpC4g7Iuc7Iqk7YWc7J2YIElQIOyjvOyGjOulvCDrs4Dqsr3tlZjrqbQsIOydtCDtgqTrk6Ts
-nbQg7Jyg7Zqo7ZWY7KeAIOyViuqyjCDrkJjslrQgWDExIOydkeyaqSDtlITroZzqt7jrnqjsnbQg7Iuk
-7ZaJ65CY7KeAIOyViuydhCDsiJgg7J6I7Iq164uI64ukLg</string>
+													<string key="NSContents">X11을 실행하면 Xauthority 연결 제어 키를 생성합니다. 시스템의 IP 주소를 변경하면, 이 키들이 유효하지 않게 되어 X11 응용 프로그램이 실행되지 않을 수 있습니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="168436707"/>
@@ -1221,10 +1196,7 @@ nbQg7Jyg7Zqo7ZWY7KeAIOyViuqyjCDrkJjslrQgWDExIOydkeyaqSDtlITroZzqt7jrnqjsnbQg7Iuk
 												<object class="NSTextFieldCell" key="NSCell" id="390084685">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7Zmc7ISx7ZmU65CY66m0LCDsi5zsiqTthZwg67O07JWI7J2EIO2ZleyduO2VmOq4sCDsnITtlbQg7Jew
-6rKwIOyduOymneuPhCDtmZzshLHtmZTrkJjslrTslbwg7ZWp64uI64ukLiDruYTtmZzshLHtmZTrkJjr
-qbQsIOybkOqyqSDsnZHsmqkg7ZSE66Gc6re4656oIOyXsOqysOydtCDtl4jsmqnrkJjsp4Ag7JWK7Iq1
-64uI64ukLg</string>
+													<string key="NSContents">활성화되면, 시스템 보안을 확인하기 위해 연결 인증도 활성화되어야 합니다. 비활성화되면, 원격 응용 프로그램 연결이 허용되지 않습니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="363817195"/>
@@ -1241,8 +1213,7 @@ qbQsIOybkOqyqSDsnZHsmqkg7ZSE66Gc6re4656oIOyXsOqysOydtCDtl4jsmqnrkJjsp4Ag7JWK7Iq1
 												<object class="NSTextFieldCell" key="NSCell" id="283628678">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">4194304</int>
-													<string type="base64-UTF8" key="NSContents">7J2065OkIOyYteyFmOydgCBYMTHsnYQg64uk7J2M7JeQIOyLpO2Wie2VmOuptCDsoIHsmqnrkKnri4jr
-i6QuA</string>
+													<string key="NSContents">이들 옵션은 X11을 다음에 실행하면 적용됩니다.</string>
 													<reference key="NSSupport" ref="26"/>
 													<string key="NSPlaceholderString"/>
 													<reference key="NSControlView" ref="223835729"/>
@@ -1253,7 +1224,7 @@ i6QuA</string>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 246}}</string>
 									</object>
-									<string type="base64-UTF8" key="NSLabel">67O07JWIA</string>
+									<string key="NSLabel">보안</string>
 									<reference key="NSColor" ref="57160303"/>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
@@ -1281,7 +1252,7 @@ i6QuA</string>
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{302, 440}, {454, 271}}</string>
 				<int key="NSWTFlags">1350041600</int>
-				<string type="base64-UTF8" key="NSWindowTitle">WDExIOydkeyaqSDtlITroZzqt7jrnqgg66mU64m0A</string>
+				<string key="NSWindowTitle">X11 응용 프로그램 메뉴</string>
 				<string key="NSWindowClass">NSPanel</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
@@ -1302,12 +1273,16 @@ i6QuA</string>
 							<object class="NSButtonCell" key="NSCell" id="143554520">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">67O17KCcA</string>
+								<string key="NSContents">복제</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="671954382"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<object class="NSFont" key="NSAlternateImage" id="549406736">
+									<string key="NSName">Helvetica</string>
+									<double key="NSSize">13</double>
+									<int key="NSfFlags">16</int>
+								</object>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1325,12 +1300,12 @@ i6QuA</string>
 							<object class="NSButtonCell" key="NSCell" id="8201128">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">7KCc6rGwA</string>
+								<string key="NSContents">제거</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="492358940"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<reference key="NSAlternateImage" ref="549406736"/>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1375,9 +1350,9 @@ i6QuA</string>
 													<double key="NSMinWidth">62.730998992919922</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">7J2066aEA</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">이름</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor" id="113872566">
 															<int key="NSColorSpace">3</int>
@@ -1413,9 +1388,9 @@ i6QuA</string>
 													<double key="NSMinWidth">40</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">75628032</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">66qF66C5A</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">명령</string>
 														<reference key="NSSupport" ref="26"/>
 														<reference key="NSBackgroundColor" ref="113872566"/>
 														<reference key="NSTextColor" ref="249576247"/>
@@ -1440,9 +1415,9 @@ i6QuA</string>
 													<double key="NSMinWidth">10</double>
 													<double key="NSMaxWidth">1000</double>
 													<object class="NSTableHeaderCell" key="NSHeaderCell">
-														<int key="NSCellFlags">67239424</int>
-														<int key="NSCellFlags2">0</int>
-														<string type="base64-UTF8" key="NSContents">64uo7LaV7YKkA</string>
+														<int key="NSCellFlags">75628096</int>
+														<int key="NSCellFlags2">2048</int>
+														<string key="NSContents">단축키</string>
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor">
 															<int key="NSColorSpace">6</int>
@@ -1468,7 +1443,7 @@ i6QuA</string>
 															<int key="NSColorSpace">6</int>
 															<string key="NSCatalogName">System</string>
 															<string key="NSColorName">controlBackgroundColor</string>
-															<reference key="NSColor" ref="241249183"/>
+															<reference key="NSColor" ref="590688762"/>
 														</object>
 														<reference key="NSTextColor" ref="930815747"/>
 													</object>
@@ -1498,6 +1473,7 @@ i6QuA</string>
 											<int key="NSDraggingSourceMaskForLocal">-1</int>
 											<int key="NSDraggingSourceMaskForNonLocal">0</int>
 											<bool key="NSAllowsTypeSelect">YES</bool>
+											<int key="NSTableViewDraggingDestinationStyle">0</int>
 										</object>
 									</object>
 									<string key="NSFrame">{{1, 17}, {301, 198}}</string>
@@ -1514,7 +1490,7 @@ i6QuA</string>
 									<reference key="NSSuperview" ref="1063387772"/>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.99492377042770386</double>
+									<double key="NSPercent">0.99492380000000002</double>
 								</object>
 								<object class="NSScroller" id="17278747">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1524,7 +1500,7 @@ i6QuA</string>
 									<int key="NSsFlags">1</int>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.68852460384368896</double>
+									<double key="NSPercent">0.68852460000000004</double>
 								</object>
 								<object class="NSClipView" id="672307654">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1562,12 +1538,12 @@ i6QuA</string>
 							<object class="NSButtonCell" key="NSCell" id="1025474039">
 								<int key="NSCellFlags">-2080244224</int>
 								<int key="NSCellFlags2">137887744</int>
-								<string type="base64-UTF8" key="NSContents">7ZWt66qpIOy2lOqwgA</string>
+								<string key="NSContents">항목 추가</string>
 								<reference key="NSSupport" ref="463863101"/>
 								<reference key="NSControlView" ref="758204686"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<reference key="NSAlternateImage" ref="549406736"/>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1585,7 +1561,7 @@ i6QuA</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">
-				<string type="base64-UTF8" key="NSTitle">66mU64m0A</string>
+				<string key="NSTitle">메뉴</string>
 				<object class="NSMutableArray" key="NSMenuItems">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="NSMenuItem" id="318286212">
@@ -1601,7 +1577,7 @@ i6QuA</string>
 					</object>
 					<object class="NSMenuItem" id="511651072">
 						<reference key="NSMenu" ref="294137138"/>
-						<string type="base64-UTF8" key="NSTitle">7J2R7JqpIO2UhOuhnOq3uOueqA</string>
+						<string key="NSTitle">응용 프로그램</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -1609,7 +1585,7 @@ i6QuA</string>
 						<reference key="NSMixedImage" ref="351811234"/>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="48278059">
-							<string type="base64-UTF8" key="NSTitle">7J2R7JqpIO2UhOuhnOq3uOueqA</string>
+							<string key="NSTitle">응용 프로그램</string>
 							<object class="NSMutableArray" key="NSMenuItems">
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="563798000">
@@ -1625,7 +1601,7 @@ i6QuA</string>
 								</object>
 								<object class="NSMenuItem" id="1032342329">
 									<reference key="NSMenu" ref="48278059"/>
-									<string type="base64-UTF8" key="NSTitle">7IKs7Jqp7J6Q7ZmULi4uA</string>
+									<string key="NSTitle">사용자화...</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -2200,28 +2176,26 @@ i6QuA</string>
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="IBObjectRecord">
 						<int key="objectID">0</int>
-						<object class="NSArray" key="object" id="330408435">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-						</object>
+						<reference key="object" ref="0"/>
 						<reference key="children" ref="904585544"/>
 						<nil key="parent"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-2</int>
 						<reference key="object" ref="815810918"/>
-						<reference key="parent" ref="330408435"/>
-						<string type="base64-UTF8" key="objectName">RmlsZSdzIE93bmVyA</string>
+						<reference key="parent" ref="0"/>
+						<string key="objectName">File's Owner</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-1</int>
 						<reference key="object" ref="941939442"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">First Responder</string>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">-3</int>
 						<reference key="object" ref="951368722"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">Application</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2235,7 +2209,7 @@ i6QuA</string>
 							<reference ref="868031522"/>
 							<reference ref="551174276"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">MainMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2480,7 +2454,7 @@ i6QuA</string>
 					<object class="IBObjectRecord">
 						<int key="objectID">196</int>
 						<reference key="object" ref="485884620"/>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">X11Controller</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2490,7 +2464,7 @@ i6QuA</string>
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="941366957"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">PrefsPanel</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2754,7 +2728,7 @@ i6QuA</string>
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="85544634"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">EditPrograms</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -2777,7 +2751,7 @@ i6QuA</string>
 							<reference ref="318286212"/>
 							<reference ref="511651072"/>
 						</object>
-						<reference key="parent" ref="330408435"/>
+						<reference key="parent" ref="0"/>
 						<string key="objectName">DockMenu</string>
 					</object>
 					<object class="IBObjectRecord">
@@ -3331,18 +3305,16 @@ i6QuA</string>
 				<bool key="EncodedWithXMLCoder">YES</bool>
 				<object class="NSArray" key="dict.sortedKeys">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>-3.IBPluginDependency</string>
 					<string>-3.ImportedFromIB2</string>
 					<string>100292.IBPluginDependency</string>
 					<string>100293.IBPluginDependency</string>
 					<string>100295.IBPluginDependency</string>
-					<string>100295.IBPropertyAccessControl</string>
 					<string>100295.IBShouldRemoveOnLegacySave</string>
 					<string>100310.IBPluginDependency</string>
-					<string>100310.IBPropertyAccessControl</string>
 					<string>100363.IBPluginDependency</string>
 					<string>100364.IBPluginDependency</string>
 					<string>100365.IBPluginDependency</string>
-					<string>100365.IBPropertyAccessControl</string>
 					<string>100368.IBPluginDependency</string>
 					<string>100369.IBPluginDependency</string>
 					<string>100370.IBPluginDependency</string>
@@ -3357,7 +3329,6 @@ i6QuA</string>
 					<string>100385.IBPluginDependency</string>
 					<string>100386.IBPluginDependency</string>
 					<string>100541.IBPluginDependency</string>
-					<string>100541.IBPropertyAccessControl</string>
 					<string>100543.IBPluginDependency</string>
 					<string>129.IBPluginDependency</string>
 					<string>129.ImportedFromIB2</string>
@@ -3374,7 +3345,6 @@ i6QuA</string>
 					<string>144.IBPluginDependency</string>
 					<string>144.ImportedFromIB2</string>
 					<string>145.IBPluginDependency</string>
-					<string>145.IBPropertyAccessControl</string>
 					<string>145.ImportedFromIB2</string>
 					<string>149.IBPluginDependency</string>
 					<string>149.ImportedFromIB2</string>
@@ -3392,16 +3362,12 @@ i6QuA</string>
 					<string>19.ImportedFromIB2</string>
 					<string>196.ImportedFromIB2</string>
 					<string>200295.IBPluginDependency</string>
-					<string>200295.IBPropertyAccessControl</string>
 					<string>200295.IBShouldRemoveOnLegacySave</string>
 					<string>203.IBPluginDependency</string>
-					<string>203.IBPropertyAccessControl</string>
 					<string>203.ImportedFromIB2</string>
 					<string>204.IBPluginDependency</string>
-					<string>204.IBPropertyAccessControl</string>
 					<string>204.ImportedFromIB2</string>
 					<string>23.IBPluginDependency</string>
-					<string>23.IBPropertyAccessControl</string>
 					<string>23.ImportedFromIB2</string>
 					<string>24.IBEditorWindowLastContentRect</string>
 					<string>24.IBPluginDependency</string>
@@ -3409,8 +3375,6 @@ i6QuA</string>
 					<string>24.editorWindowContentRectSynchronizationRect</string>
 					<string>244.IBEditorWindowLastContentRect</string>
 					<string>244.IBPluginDependency</string>
-					<string>244.IBPropertyAccessControl</string>
-					<string>244.IBViewEditorWindowController.showingLayoutRectangles</string>
 					<string>244.IBWindowTemplateEditedContentRect</string>
 					<string>244.ImportedFromIB2</string>
 					<string>244.editorWindowContentRectSynchronizationRect</string>
@@ -3419,7 +3383,6 @@ i6QuA</string>
 					<string>244.windowTemplate.maxSize</string>
 					<string>244.windowTemplate.minSize</string>
 					<string>245.IBPluginDependency</string>
-					<string>245.IBPropertyAccessControl</string>
 					<string>245.ImportedFromIB2</string>
 					<string>269.IBPluginDependency</string>
 					<string>269.ImportedFromIB2</string>
@@ -3431,7 +3394,6 @@ i6QuA</string>
 					<string>272.ImportedFromIB2</string>
 					<string>285.IBEditorWindowLastContentRect</string>
 					<string>285.IBPluginDependency</string>
-					<string>285.IBPropertyAccessControl</string>
 					<string>285.IBViewEditorWindowController.showingBoundsRectangles</string>
 					<string>285.IBViewEditorWindowController.showingLayoutRectangles</string>
 					<string>285.IBWindowTemplateEditedContentRect</string>
@@ -3442,201 +3404,137 @@ i6QuA</string>
 					<string>285.windowTemplate.maxSize</string>
 					<string>285.windowTemplate.minSize</string>
 					<string>286.IBPluginDependency</string>
-					<string>286.IBPropertyAccessControl</string>
 					<string>286.ImportedFromIB2</string>
 					<string>29.IBEditorWindowLastContentRect</string>
 					<string>29.IBPluginDependency</string>
 					<string>29.ImportedFromIB2</string>
 					<string>29.editorWindowContentRectSynchronizationRect</string>
 					<string>292.IBPluginDependency</string>
-					<string>292.IBPropertyAccessControl</string>
 					<string>292.ImportedFromIB2</string>
 					<string>293.IBPluginDependency</string>
-					<string>293.IBPropertyAccessControl</string>
 					<string>293.ImportedFromIB2</string>
 					<string>295.IBPluginDependency</string>
-					<string>295.IBPropertyAccessControl</string>
 					<string>295.ImportedFromIB2</string>
 					<string>296.IBPluginDependency</string>
-					<string>296.IBPropertyAccessControl</string>
 					<string>296.ImportedFromIB2</string>
 					<string>297.IBPluginDependency</string>
-					<string>297.IBPropertyAccessControl</string>
 					<string>297.ImportedFromIB2</string>
 					<string>298.IBPluginDependency</string>
-					<string>298.IBPropertyAccessControl</string>
 					<string>298.ImportedFromIB2</string>
 					<string>300295.IBPluginDependency</string>
-					<string>300295.IBPropertyAccessControl</string>
 					<string>300295.IBShouldRemoveOnLegacySave</string>
 					<string>300330.IBPluginDependency</string>
-					<string>300330.IBPropertyAccessControl</string>
 					<string>300330.ImportedFromIB2</string>
 					<string>300337.IBPluginDependency</string>
-					<string>300337.IBPropertyAccessControl</string>
 					<string>300337.ImportedFromIB2</string>
 					<string>300338.IBPluginDependency</string>
-					<string>300338.IBPropertyAccessControl</string>
 					<string>300338.ImportedFromIB2</string>
 					<string>300358.IBPluginDependency</string>
-					<string>300358.IBPropertyAccessControl</string>
 					<string>300358.ImportedFromIB2</string>
 					<string>300359.IBPluginDependency</string>
-					<string>300359.IBPropertyAccessControl</string>
 					<string>300359.ImportedFromIB2</string>
 					<string>300360.IBPluginDependency</string>
-					<string>300360.IBPropertyAccessControl</string>
 					<string>300361.IBPluginDependency</string>
-					<string>300361.IBPropertyAccessControl</string>
 					<string>300362.IBPluginDependency</string>
-					<string>300362.IBPropertyAccessControl</string>
 					<string>300362.ImportedFromIB2</string>
 					<string>300363.IBPluginDependency</string>
-					<string>300363.IBPropertyAccessControl</string>
 					<string>300364.IBPluginDependency</string>
-					<string>300364.IBPropertyAccessControl</string>
 					<string>300364.ImportedFromIB2</string>
 					<string>300365.IBPluginDependency</string>
-					<string>300365.IBPropertyAccessControl</string>
 					<string>300368.IBPluginDependency</string>
-					<string>300368.IBPropertyAccessControl</string>
 					<string>300368.ImportedFromIB2</string>
 					<string>300369.IBPluginDependency</string>
-					<string>300369.IBPropertyAccessControl</string>
 					<string>300370.IBPluginDependency</string>
-					<string>300370.IBPropertyAccessControl</string>
 					<string>300370.ImportedFromIB2</string>
 					<string>300371.IBPluginDependency</string>
-					<string>300371.IBPropertyAccessControl</string>
 					<string>300421.IBPluginDependency</string>
-					<string>300421.IBPropertyAccessControl</string>
 					<string>300421.ImportedFromIB2</string>
 					<string>300422.IBPluginDependency</string>
-					<string>300422.IBPropertyAccessControl</string>
 					<string>300422.ImportedFromIB2</string>
 					<string>300423.IBPluginDependency</string>
-					<string>300423.IBPropertyAccessControl</string>
 					<string>300423.ImportedFromIB2</string>
 					<string>300424.IBPluginDependency</string>
-					<string>300424.IBPropertyAccessControl</string>
 					<string>300424.ImportedFromIB2</string>
 					<string>300440.IBPluginDependency</string>
-					<string>300440.IBPropertyAccessControl</string>
 					<string>300441.IBPluginDependency</string>
-					<string>300441.IBPropertyAccessControl</string>
 					<string>300447.IBPluginDependency</string>
-					<string>300447.IBPropertyAccessControl</string>
 					<string>300447.ImportedFromIB2</string>
 					<string>300450.IBPluginDependency</string>
-					<string>300450.IBPropertyAccessControl</string>
 					<string>300451.IBPluginDependency</string>
-					<string>300451.IBPropertyAccessControl</string>
 					<string>300451.ImportedFromIB2</string>
 					<string>300452.IBPluginDependency</string>
-					<string>300452.IBPropertyAccessControl</string>
 					<string>300453.IBPluginDependency</string>
-					<string>300453.IBPropertyAccessControl</string>
 					<string>300453.ImportedFromIB2</string>
 					<string>300454.IBPluginDependency</string>
-					<string>300454.IBPropertyAccessControl</string>
 					<string>300455.IBPluginDependency</string>
-					<string>300455.IBPropertyAccessControl</string>
 					<string>300455.ImportedFromIB2</string>
 					<string>300456.IBPluginDependency</string>
-					<string>300456.IBPropertyAccessControl</string>
 					<string>300457.IBPluginDependency</string>
-					<string>300457.IBPropertyAccessControl</string>
 					<string>300457.ImportedFromIB2</string>
 					<string>300458.IBPluginDependency</string>
-					<string>300458.IBPropertyAccessControl</string>
 					<string>300459.IBPluginDependency</string>
-					<string>300459.IBPropertyAccessControl</string>
 					<string>300459.ImportedFromIB2</string>
 					<string>300460.IBPluginDependency</string>
-					<string>300460.IBPropertyAccessControl</string>
 					<string>300472.IBPluginDependency</string>
-					<string>300472.IBPropertyAccessControl</string>
 					<string>300472.ImportedFromIB2</string>
 					<string>300473.IBPluginDependency</string>
-					<string>300473.IBPropertyAccessControl</string>
 					<string>305.IBPluginDependency</string>
 					<string>305.ImportedFromIB2</string>
 					<string>310.IBPluginDependency</string>
-					<string>310.IBPropertyAccessControl</string>
 					<string>310.ImportedFromIB2</string>
 					<string>348.IBPluginDependency</string>
-					<string>348.IBPropertyAccessControl</string>
 					<string>348.ImportedFromIB2</string>
 					<string>349.IBPluginDependency</string>
 					<string>349.ImportedFromIB2</string>
 					<string>350.IBPluginDependency</string>
-					<string>350.IBPropertyAccessControl</string>
 					<string>350.ImportedFromIB2</string>
 					<string>351.IBPluginDependency</string>
-					<string>351.IBPropertyAccessControl</string>
 					<string>351.ImportedFromIB2</string>
 					<string>352.IBPluginDependency</string>
 					<string>352.ImportedFromIB2</string>
 					<string>353.IBPluginDependency</string>
 					<string>353.ImportedFromIB2</string>
 					<string>354.IBPluginDependency</string>
-					<string>354.IBPropertyAccessControl</string>
 					<string>354.ImportedFromIB2</string>
 					<string>363.IBPluginDependency</string>
-					<string>363.IBPropertyAccessControl</string>
 					<string>363.ImportedFromIB2</string>
 					<string>364.IBPluginDependency</string>
-					<string>364.IBPropertyAccessControl</string>
 					<string>364.ImportedFromIB2</string>
 					<string>365.IBPluginDependency</string>
-					<string>365.IBPropertyAccessControl</string>
 					<string>365.ImportedFromIB2</string>
 					<string>368.IBPluginDependency</string>
-					<string>368.IBPropertyAccessControl</string>
 					<string>368.ImportedFromIB2</string>
 					<string>369.IBPluginDependency</string>
-					<string>369.IBPropertyAccessControl</string>
 					<string>369.ImportedFromIB2</string>
 					<string>370.IBPluginDependency</string>
-					<string>370.IBPropertyAccessControl</string>
 					<string>370.ImportedFromIB2</string>
 					<string>371.IBPluginDependency</string>
-					<string>371.IBPropertyAccessControl</string>
 					<string>371.ImportedFromIB2</string>
 					<string>372.IBPluginDependency</string>
-					<string>372.IBPropertyAccessControl</string>
 					<string>372.ImportedFromIB2</string>
 					<string>374.IBPluginDependency</string>
-					<string>374.IBPropertyAccessControl</string>
 					<string>374.ImportedFromIB2</string>
 					<string>375.IBPluginDependency</string>
-					<string>375.IBPropertyAccessControl</string>
 					<string>375.ImportedFromIB2</string>
 					<string>376.IBPluginDependency</string>
-					<string>376.IBPropertyAccessControl</string>
 					<string>376.ImportedFromIB2</string>
 					<string>377.IBPluginDependency</string>
-					<string>377.IBPropertyAccessControl</string>
 					<string>377.ImportedFromIB2</string>
 					<string>379.IBPluginDependency</string>
-					<string>379.IBPropertyAccessControl</string>
 					<string>379.ImportedFromIB2</string>
 					<string>380.IBPluginDependency</string>
 					<string>380.ImportedFromIB2</string>
 					<string>381.IBPluginDependency</string>
 					<string>381.ImportedFromIB2</string>
 					<string>382.IBPluginDependency</string>
-					<string>382.IBPropertyAccessControl</string>
 					<string>382.ImportedFromIB2</string>
 					<string>383.IBPluginDependency</string>
 					<string>383.ImportedFromIB2</string>
 					<string>384.IBPluginDependency</string>
 					<string>384.ImportedFromIB2</string>
 					<string>385.IBPluginDependency</string>
-					<string>385.IBPropertyAccessControl</string>
 					<string>385.ImportedFromIB2</string>
 					<string>386.IBPluginDependency</string>
-					<string>386.IBPropertyAccessControl</string>
 					<string>386.ImportedFromIB2</string>
 					<string>419.IBPluginDependency</string>
 					<string>419.ImportedFromIB2</string>
@@ -3661,21 +3559,16 @@ i6QuA</string>
 					<string>533.IBPluginDependency</string>
 					<string>533.ImportedFromIB2</string>
 					<string>535.IBPluginDependency</string>
-					<string>535.IBPropertyAccessControl</string>
 					<string>535.ImportedFromIB2</string>
 					<string>536.IBPluginDependency</string>
 					<string>536.ImportedFromIB2</string>
 					<string>537.IBPluginDependency</string>
-					<string>537.IBPropertyAccessControl</string>
 					<string>537.ImportedFromIB2</string>
 					<string>538.IBPluginDependency</string>
-					<string>538.IBPropertyAccessControl</string>
 					<string>538.ImportedFromIB2</string>
 					<string>541.IBPluginDependency</string>
-					<string>541.IBPropertyAccessControl</string>
 					<string>541.ImportedFromIB2</string>
 					<string>543.IBPluginDependency</string>
-					<string>543.IBPropertyAccessControl</string>
 					<string>543.ImportedFromIB2</string>
 					<string>544.IBPluginDependency</string>
 					<string>544.ImportedFromIB2</string>
@@ -3688,13 +3581,10 @@ i6QuA</string>
 					<string>57.ImportedFromIB2</string>
 					<string>57.editorWindowContentRectSynchronizationRect</string>
 					<string>573.IBPluginDependency</string>
-					<string>573.IBPropertyAccessControl</string>
 					<string>573.ImportedFromIB2</string>
 					<string>574.IBPluginDependency</string>
-					<string>574.IBPropertyAccessControl</string>
 					<string>574.ImportedFromIB2</string>
 					<string>575.IBPluginDependency</string>
-					<string>575.IBPropertyAccessControl</string>
 					<string>575.ImportedFromIB2</string>
 					<string>58.IBPluginDependency</string>
 					<string>58.ImportedFromIB2</string>
@@ -3703,18 +3593,13 @@ i6QuA</string>
 				</object>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -3729,7 +3614,9 @@ i6QuA</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -3746,7 +3633,6 @@ i6QuA</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -3764,26 +3650,20 @@ i6QuA</string>
 					<integer value="1"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>{{349, 858}, {315, 153}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{271, 666}, {301, 153}}</string>
-					<string>{{437, 698}, {484, 308}}</string>
+					<string>{{437, 749}, {484, 308}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
-					<boolean value="YES"/>
-					<string>{{437, 698}, {484, 308}}</string>
+					<string>{{437, 749}, {484, 308}}</string>
 					<integer value="1"/>
 					<string>{{184, 290}, {481, 345}}</string>
 					<integer value="0"/>
@@ -3791,7 +3671,6 @@ i6QuA</string>
 					<string>{3.40282e+38, 3.40282e+38}</string>
 					<string>{320, 240}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -3803,7 +3682,6 @@ i6QuA</string>
 					<integer value="1"/>
 					<string>{{68, 585}, {454, 271}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<integer value="1"/>
 					<string>{{68, 585}, {454, 271}}</string>
@@ -3814,201 +3692,137 @@ i6QuA</string>
 					<string>{3.40282e+38, 3.40282e+38}</string>
 					<string>{320, 240}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>{{145, 1011}, {336, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{67, 819}, {336, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -4033,21 +3847,16 @@ i6QuA</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -4060,13 +3869,10 @@ i6QuA</string>
 					<integer value="1"/>
 					<string>{{79, 616}, {218, 203}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="3"/>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -4076,9 +3882,7 @@ i6QuA</string>
 			</object>
 			<object class="NSMutableDictionary" key="unlocalizedProperties">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -4086,9 +3890,7 @@ i6QuA</string>
 			<nil key="activeLocalization"/>
 			<object class="NSMutableDictionary" key="localizations">
 				<bool key="EncodedWithXMLCoder">YES</bool>
-				<object class="NSArray" key="dict.sortedKeys">
-					<bool key="EncodedWithXMLCoder">YES</bool>
-				</object>
+				<reference key="dict.sortedKeys" ref="0"/>
 				<object class="NSMutableArray" key="dict.values">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 				</object>
@@ -4126,7 +3928,16 @@ i6QuA</string>
 			</object>
 		</object>
 		<int key="IBDocument.localizationMode">0</int>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
+			<integer value="1050" key="NS.object.0"/>
+		</object>
+		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
+			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.InterfaceBuilder3</string>
+			<integer value="3000" key="NS.object.0"/>
+		</object>
+		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<string key="IBDocument.LastKnownRelativeProjectPath">../X11.xcodeproj</string>
-		<int key="IBDocument.defaultPropertyAccessControl">1</int>
+		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 	</data>
 </archive>

@@ -12,6 +12,7 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
+			<integer value="348"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -397,10 +398,10 @@
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="941366957">
-					<nil key="NSNextResponder"/>
+					<reference key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
@@ -438,7 +439,7 @@
 													<reference key="NSControlView" ref="119157981"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<object class="NSCustomResource" key="NSNormalImage" id="93401634">
+													<object class="NSCustomResource" key="NSNormalImage" id="133743284">
 														<string key="NSClassName">NSImage</string>
 														<string key="NSResourceName">NSSwitch</string>
 													</object>
@@ -472,16 +473,16 @@
 														<int key="NSColorSpace">6</int>
 														<string key="NSCatalogName">System</string>
 														<string key="NSColorName">controlColor</string>
-														<object class="NSColor" key="NSColor" id="193651701">
+														<object class="NSColor" key="NSColor" id="590688762">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC42NjY2NjY2ODY1AA</bytes>
+															<bytes key="NSWhite">MC42NjY2NjY2NjY3AA</bytes>
 														</object>
 													</object>
 													<object class="NSColor" key="NSTextColor" id="930815747">
 														<int key="NSColorSpace">6</int>
 														<string key="NSCatalogName">System</string>
 														<string key="NSColorName">controlTextColor</string>
-														<object class="NSColor" key="NSColor">
+														<object class="NSColor" key="NSColor" id="214098874">
 															<int key="NSColorSpace">3</int>
 															<bytes key="NSWhite">MAA</bytes>
 														</object>
@@ -520,7 +521,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="842100515"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -559,7 +560,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="179949713"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -598,7 +599,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="418227126"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -761,7 +762,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="477203622"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -772,7 +773,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 											<object class="NSButton" id="57246850">
 												<reference key="NSNextResponder" ref="515308735"/>
 												<int key="NSvFlags">256</int>
-												<string key="NSFrame">{{37, 83}, {525, 23}}</string>
+												<string key="NSFrame">{{37, 88}, {527, 18}}</string>
 												<reference key="NSSuperview" ref="515308735"/>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSButtonCell" key="NSCell" id="917248662">
@@ -783,7 +784,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="57246850"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -838,7 +839,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="878106058"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -871,12 +872,12 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 												<object class="NSButtonCell" key="NSCell" id="501304422">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Actualizar el CLIPBOARD cuando cambie el portapapeles.</string>
+													<string key="NSContents">Actualizar el CLIPBOARD cuando cambie el portapapeles</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="477050998"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -893,12 +894,12 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 												<object class="NSButtonCell" key="NSCell" id="510771323">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Actualizar el PRIMARY (clic con el botón central) cuando cambie el portapapeles.</string>
+													<string key="NSContents">Actualizar el PRIMARY (clic con el botón central) cuando cambie el portapapeles</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="765780304"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -915,12 +916,12 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 												<object class="NSButtonCell" key="NSCell" id="897099877">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Actualizar el portapapeles de inmediato cuando se seleccione texto nuevo.</string>
+													<string key="NSContents">Actualizar el portapapeles de inmediato cuando se seleccione texto nuevo</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="1002778833"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -937,12 +938,12 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 												<object class="NSButtonCell" key="NSCell" id="619977658">
 													<int key="NSCellFlags">67239424</int>
 													<int key="NSCellFlags2">0</int>
-													<string key="NSContents">Actualizar el portapapeles cuando cambie el CLIPBOARD.</string>
+													<string key="NSContents">Actualizar el portapapeles cuando cambie el CLIPBOARD</string>
 													<reference key="NSSupport" ref="463863101"/>
 													<reference key="NSControlView" ref="487809555"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1012,7 +1013,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="657659108"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1050,7 +1051,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="992839333"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1088,7 +1089,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="128352289"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1139,7 +1140,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="989050925"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1161,7 +1162,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 													<reference key="NSControlView" ref="700826966"/>
 													<int key="NSButtonFlags">1211912703</int>
 													<int key="NSButtonFlags2">2</int>
-													<reference key="NSNormalImage" ref="93401634"/>
+													<reference key="NSNormalImage" ref="133743284"/>
 													<reference key="NSAlternateImage" ref="391434389"/>
 													<string key="NSAlternateContents"/>
 													<string key="NSKeyEquivalent"/>
@@ -1240,10 +1241,11 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 						</object>
 					</object>
 					<string key="NSFrameSize">{619, 308}</string>
+					<reference key="NSSuperview"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
 			</object>
 			<object class="NSWindowTemplate" id="604417141">
@@ -1256,7 +1258,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
 				</object>
-				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSWindowContentMinSize">{320, 240}</string>
 				<object class="NSView" key="NSWindowView" id="85544634">
 					<nil key="NSNextResponder"/>
@@ -1277,7 +1279,11 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 								<reference key="NSControlView" ref="671954382"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<object class="NSFont" key="NSAlternateImage" id="549406736">
+									<string key="NSName">Helvetica</string>
+									<double key="NSSize">13</double>
+									<int key="NSfFlags">16</int>
+								</object>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1300,7 +1306,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 								<reference key="NSControlView" ref="492358940"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<reference key="NSAlternateImage" ref="549406736"/>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1351,16 +1357,13 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 														<reference key="NSSupport" ref="26"/>
 														<object class="NSColor" key="NSBackgroundColor" id="113872566">
 															<int key="NSColorSpace">3</int>
-															<bytes key="NSWhite">MC4zMzMzMzI5ODU2AA</bytes>
+															<bytes key="NSWhite">MC4zMzMzMzI5OQA</bytes>
 														</object>
-														<object class="NSColor" key="NSTextColor" id="336770154">
+														<object class="NSColor" key="NSTextColor" id="249576247">
 															<int key="NSColorSpace">6</int>
 															<string key="NSCatalogName">System</string>
-															<string key="NSColorName">disabledControlTextColor</string>
-															<object class="NSColor" key="NSColor">
-																<int key="NSColorSpace">3</int>
-																<bytes key="NSWhite">MC4zMzMzMzMzNDMzAA</bytes>
-															</object>
+															<string key="NSColorName">headerTextColor</string>
+															<reference key="NSColor" ref="214098874"/>
 														</object>
 													</object>
 													<object class="NSTextFieldCell" key="NSDataCell" id="825378892">
@@ -1392,7 +1395,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 														<string key="NSContents">Comando</string>
 														<reference key="NSSupport" ref="26"/>
 														<reference key="NSBackgroundColor" ref="113872566"/>
-														<reference key="NSTextColor" ref="336770154"/>
+														<reference key="NSTextColor" ref="249576247"/>
 													</object>
 													<object class="NSTextFieldCell" key="NSDataCell" id="432610585">
 														<int key="NSCellFlags">338820672</int>
@@ -1425,7 +1428,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 															<string key="NSColorName">headerColor</string>
 															<reference key="NSColor" ref="822946413"/>
 														</object>
-														<reference key="NSTextColor" ref="336770154"/>
+														<reference key="NSTextColor" ref="249576247"/>
 													</object>
 													<object class="NSTextFieldCell" key="NSDataCell" id="34714764">
 														<int key="NSCellFlags">338820672</int>
@@ -1443,7 +1446,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 															<int key="NSColorSpace">6</int>
 															<string key="NSCatalogName">System</string>
 															<string key="NSColorName">controlBackgroundColor</string>
-															<reference key="NSColor" ref="193651701"/>
+															<reference key="NSColor" ref="590688762"/>
 														</object>
 														<reference key="NSTextColor" ref="930815747"/>
 													</object>
@@ -1491,7 +1494,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 									<reference key="NSSuperview" ref="1063387772"/>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.99492377042770386</double>
+									<double key="NSPercent">0.99492380000000002</double>
 								</object>
 								<object class="NSScroller" id="17278747">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1501,7 +1504,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 									<int key="NSsFlags">1</int>
 									<reference key="NSTarget" ref="1063387772"/>
 									<string key="NSAction">_doScroller:</string>
-									<double key="NSPercent">0.99668872356414795</double>
+									<double key="NSPercent">0.96474358974358976</double>
 								</object>
 								<object class="NSClipView" id="672307654">
 									<reference key="NSNextResponder" ref="1063387772"/>
@@ -1544,7 +1547,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 								<reference key="NSControlView" ref="758204686"/>
 								<int key="NSButtonFlags">-2038284033</int>
 								<int key="NSButtonFlags2">1</int>
-								<reference key="NSAlternateImage" ref="463863101"/>
+								<reference key="NSAlternateImage" ref="549406736"/>
 								<string key="NSAlternateContents"/>
 								<object class="NSMutableString" key="NSKeyEquivalent">
 									<characters key="NS.bytes"/>
@@ -1558,7 +1561,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1280, 938}}</string>
 				<string key="NSMinSize">{320, 262}</string>
-				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
+				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
 			<object class="NSMenu" id="294137138">
@@ -3059,9 +3062,9 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 							<reference ref="657659108"/>
 							<reference ref="290578835"/>
 							<reference ref="992839333"/>
+							<reference ref="138261120"/>
 							<reference ref="128352289"/>
 							<reference ref="57161931"/>
-							<reference ref="138261120"/>
 						</object>
 						<reference key="parent" ref="10973343"/>
 					</object>
@@ -3452,7 +3455,6 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>300421.IBPluginDependency</string>
 					<string>300421.ImportedFromIB2</string>
 					<string>300422.IBPluginDependency</string>
-					<string>300422.IBUserGuides</string>
 					<string>300422.ImportedFromIB2</string>
 					<string>300423.IBPluginDependency</string>
 					<string>300423.ImportedFromIB2</string>
@@ -3462,19 +3464,27 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>300441.IBPluginDependency</string>
 					<string>300447.IBPluginDependency</string>
 					<string>300447.ImportedFromIB2</string>
+					<string>300447.object.labelIdentifier</string>
 					<string>300450.IBPluginDependency</string>
+					<string>300450.object.labelIdentifier</string>
 					<string>300451.IBPluginDependency</string>
 					<string>300451.ImportedFromIB2</string>
+					<string>300451.object.labelIdentifier</string>
 					<string>300452.IBPluginDependency</string>
+					<string>300452.object.labelIdentifier</string>
 					<string>300453.IBPluginDependency</string>
 					<string>300453.ImportedFromIB2</string>
+					<string>300453.object.labelIdentifier</string>
 					<string>300454.IBPluginDependency</string>
+					<string>300454.object.labelIdentifier</string>
 					<string>300455.IBPluginDependency</string>
 					<string>300455.ImportedFromIB2</string>
 					<string>300456.IBPluginDependency</string>
 					<string>300457.IBPluginDependency</string>
 					<string>300457.ImportedFromIB2</string>
+					<string>300457.object.labelIdentifier</string>
 					<string>300458.IBPluginDependency</string>
+					<string>300458.object.labelIdentifier</string>
 					<string>300459.IBPluginDependency</string>
 					<string>300459.ImportedFromIB2</string>
 					<string>300460.IBPluginDependency</string>
@@ -3660,14 +3670,14 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{373, 858}, {257, 153}}</string>
+					<string>{{349, 858}, {315, 153}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{271, 666}, {301, 153}}</string>
-					<string>{{300, 409}, {619, 308}}</string>
+					<string>{{437, 698}, {619, 308}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>{{300, 409}, {619, 308}}</string>
+					<string>{{437, 698}, {619, 308}}</string>
 					<integer value="1"/>
 					<string>{{184, 290}, {481, 345}}</string>
 					<integer value="0"/>
@@ -3684,11 +3694,11 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>{{100, 746}, {155, 33}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{68, 453}, {454, 271}}</string>
+					<string>{{68, 585}, {454, 271}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<integer value="1"/>
-					<string>{{68, 453}, {454, 271}}</string>
+					<string>{{68, 585}, {454, 271}}</string>
 					<integer value="1"/>
 					<string>{{433, 406}, {486, 327}}</string>
 					<integer value="0"/>
@@ -3697,7 +3707,7 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>{320, 240}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{145, 1012}, {375, 20}}</string>
+					<string>{{145, 1011}, {336, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{67, 819}, {336, 20}}</string>
@@ -3742,9 +3752,6 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<object class="NSMutableArray">
-						<bool key="EncodedWithXMLCoder">YES</bool>
-					</object>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
@@ -3754,37 +3761,33 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
+					<string>IBBuiltInLabel-Red</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>IBBuiltInLabel-Red</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<string>IBBuiltInLabel-Red</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -3871,7 +3874,19 @@ IHBhcmEgYWN0aXZhciBlbCBib3TDs24gY2VudHJhbCBvIGRlcmVjaG8gZGVsIHJhdMOzbi4KA</strin
 					<integer value="1"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
-					<string>{{157, 809}, {339, 203}}</string>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<integer value="1"/>
+					<string>{{20, 641}, {218, 203}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<integer value="1"/>
 					<string>{{79, 616}, {218, 203}}</string>
