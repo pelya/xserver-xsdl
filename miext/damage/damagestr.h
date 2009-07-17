@@ -54,6 +54,7 @@ typedef struct _damage {
     RegionRec		pendingDamage; /* will be flushed post submission at the latest */
     RegionRec		backupDamage; /* for use with damageMarker */
     ScreenPtr		pScreen;
+    PrivateRec		*devPrivates;
 } DamageRec;
 
 typedef struct _damageScrPriv {
