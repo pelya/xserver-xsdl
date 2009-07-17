@@ -43,6 +43,23 @@ typedef void (*DamageDestroyFunc) (DamagePtr pDamage, void *closure);
 /* At some point DamageRegionRendered() must be called. */
 typedef void (*DamageMarkerFunc) (DrawablePtr pDrawable, DamagePtr pDamage, RegionPtr pOldDamage, RegionPtr pRegion, void *closure);
 
+typedef void (*DamageScreenCreateFunc) (DamagePtr);
+typedef void (*DamageScreenRegisterFunc) (DrawablePtr, DamagePtr);
+typedef void (*DamageScreenUnregisterFunc) (DrawablePtr, DamagePtr);
+typedef void (*DamageScreenDestroyFunc) (DamagePtr);
+
+typedef struct _damageScreenFuncs {
+    DamageScreenCreateFunc      Create;
+    DamageScreenRegisterFunc    Register;
+    DamageScreenUnregisterFunc  Unregister;
+    DamageScreenDestroyFunc     Destroy;
+} DamageScreenFuncsRec, *DamageScreenFuncsPtr;
+
+extern _X_EXPORT void miDamageCreate (DamagePtr);
+extern _X_EXPORT void miDamageRegister (DrawablePtr, DamagePtr);
+extern _X_EXPORT void miDamageUnregister (DrawablePtr, DamagePtr);
+extern _X_EXPORT void miDamageDestroy (DamagePtr);
+
 extern _X_EXPORT Bool
 DamageSetup (ScreenPtr pScreen);
     
@@ -104,5 +121,8 @@ DamageSetReportAfterOp (DamagePtr pDamage, Bool reportAfter);
 extern _X_EXPORT void
 DamageSetPostRenderingFunctions(DamagePtr pDamage, DamageReportFunc damageReportPostRendering,
 				DamageMarkerFunc damageMarker);
+
+extern _X_EXPORT DamageScreenFuncsPtr
+DamageGetScreenFuncs (ScreenPtr);
 
 #endif /* _DAMAGE_H_ */

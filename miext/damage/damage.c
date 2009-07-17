@@ -1856,6 +1856,25 @@ damageCloseScreen (int i, ScreenPtr pScreen)
 }
 
 /**
+ * Default implementations of the damage management functions.
+ */
+void miDamageCreate (DamagePtr pDamage)
+{
+}
+
+void miDamageRegister (DrawablePtr pDrawable, DamagePtr pDamage)
+{
+}
+
+void miDamageUnregister (DrawablePtr pDrawable, DamagePtr pDamage)
+{
+}
+
+void miDamageDestroy (DamagePtr pDamage)
+{
+}
+
+/**
  * Public functions for consumption outside this file.
  */
 
@@ -1866,6 +1885,9 @@ DamageSetup (ScreenPtr pScreen)
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
+    const DamageScreenFuncsRec miFuncs = {
+	miDamageCreate, miDamageRegister, miDamageUnregister, miDamageDestroy
+    };
 
     if (dixLookupPrivate(&pScreen->devPrivates, damageScrPrivateKey))
 	return TRUE;
@@ -1894,6 +1916,8 @@ DamageSetup (ScreenPtr pScreen)
     }
 #endif
 
+    pScrPriv->funcs = miFuncs;
+
     dixSetPrivate(&pScreen->devPrivates, damageScrPrivateKey, pScrPriv);
     return TRUE;
 }
@@ -1906,6 +1930,7 @@ DamageCreate (DamageReportFunc  damageReport,
 	      ScreenPtr		pScreen,
 	      void		*closure)
 {
+    damageScrPriv(pScreen);
     DamagePtr	pDamage;
 
     pDamage = xalloc (sizeof (DamageRec));
@@ -1927,6 +1952,10 @@ DamageCreate (DamageReportFunc  damageReport,
     pDamage->damageReportPostRendering = NULL;
     pDamage->damageDestroy = damageDestroy;
     pDamage->damageMarker = NULL;
+    pDamage->pScreen = pScreen;
+
+    (*pScrPriv->funcs.Create) (pDamage);
+
     return pDamage;
 }
 
@@ -1934,6 +1963,17 @@ void
 DamageRegister (DrawablePtr pDrawable,
 		DamagePtr   pDamage)
 {
+    ScreenPtr pScreen = pDrawable->pScreen;
+    damageScrPriv(pScreen);
+
+#if DAMAGE_VALIDATE_ENABLE
+    if (pDrawable->pScreen != pDamage->pScreen)
+    {
+	ErrorF ("DamageRegister called with mismatched screens\n");
+	abort ();
+    }
+#endif
+
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	WindowPtr   pWindow = (WindowPtr) pDrawable;
@@ -1956,6 +1996,7 @@ DamageRegister (DrawablePtr pDrawable,
 	pDamage->isWindow = FALSE;
     pDamage->pDrawable = pDrawable;
     damageInsertDamage (getDrawableDamageRef (pDrawable), pDamage);
+    (*pScrPriv->funcs.Register) (pDrawable, pDamage);
 }
 
 void
@@ -1970,6 +2011,11 @@ void
 DamageUnregister (DrawablePtr	    pDrawable,
 		  DamagePtr	    pDamage)
 {
+    ScreenPtr pScreen = pDrawable->pScreen;
+    damageScrPriv(pScreen);
+
+    (*pScrPriv->funcs.Unregister) (pDrawable, pDamage);
+
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	WindowPtr   pWindow = (WindowPtr) pDrawable;
@@ -2004,10 +2050,14 @@ DamageUnregister (DrawablePtr	    pDrawable,
 void
 DamageDestroy (DamagePtr    pDamage)
 {
+    ScreenPtr pScreen = pDamage->pScreen;
+    damageScrPriv(pScreen);
+
     if (pDamage->damageDestroy)
 	(*pDamage->damageDestroy) (pDamage, pDamage->closure);
-    REGION_UNINIT (pDamage->pDrawable->pScreen, &pDamage->damage);
-    REGION_UNINIT (pDamage->pDrawable->pScreen, &pDamage->pendingDamage);
+    (*pScrPriv->funcs.Destroy) (pDamage);
+    REGION_UNINIT (pScreen, &pDamage->damage);
+    REGION_UNINIT (pScreen, &pDamage->pendingDamage);
     xfree (pDamage);
 }
 
@@ -2110,4 +2160,11 @@ DamageSetPostRenderingFunctions(DamagePtr pDamage, DamageReportFunc damageReport
 {
     pDamage->damageReportPostRendering = damageReportPostRendering;
     pDamage->damageMarker = damageMarker;
+}
+
+DamageScreenFuncsPtr
+DamageGetScreenFuncs (ScreenPtr pScreen)
+{
+    damageScrPriv(pScreen);
+    return &pScrPriv->funcs;
 }
