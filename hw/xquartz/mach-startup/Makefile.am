@@ -39,6 +39,11 @@ X11_bin_LDFLAGS += \
 	-Wl,-framework,OpenGL
 endif
 
+if XQUARTZ_SPARKLE
+X11_bin_LDFLAGS += \
+	-Wl,-framework,Sparkle
+endif
+
 if RECORD
 X11_bin_LDADD += \
 	$(top_builddir)/record/librecord.la

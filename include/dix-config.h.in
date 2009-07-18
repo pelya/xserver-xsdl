@@ -124,6 +124,9 @@
 /* Have Quartz */
 #undef XQUARTZ
 
+/* Support application updating through sparkle. */
+#undef XQUARTZ_SPARKLE
+
 /* Build a standalone xpbproxy */
 #undef STANDALONE_XPBPROXY
 

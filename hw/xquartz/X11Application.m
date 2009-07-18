@@ -50,6 +50,10 @@
 #include <unistd.h>
 #include <AvailabilityMacros.h>
 
+#ifdef XQUARTZ_SPARKLE
+#include <Sparkle/SUUpdater.h>
+#endif
+
 #include <Xplugin.h>
 
 // pbproxy/pbproxy.h
@@ -585,6 +589,23 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
   return ret != NULL ? ret : def;
 }
 
+- (NSURL *) prefs_copy_url:(NSString *)key default:(NSURL *)def {
+    CFPropertyListRef value;
+    NSURL *ret = NULL;
+    
+    value = [self prefs_get:key];
+    
+    if (value != NULL && CFGetTypeID (value) == CFStringGetTypeID ()) {
+        NSString *s = (NSString *) value;
+
+        ret = [NSURL URLWithString:s];
+    }
+    
+    if (value != NULL) CFRelease (value);
+    
+    return ret != NULL ? ret : def;
+}
+
 - (float) prefs_get_float:(NSString *)key default:(float)def {
   CFPropertyListRef value;
   float ret = def;
@@ -746,6 +767,14 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     
     noTestExtensions = ![self prefs_get_boolean:@PREFS_TEST_EXTENSIONS
                                         default:FALSE];
+
+#if XQUARTZ_SPARKLE
+    NSURL *url =  [self prefs_copy_url:@PREFS_UPDATE_FEED default:nil];
+    if(url) {
+        [[SUUpdater sharedUpdater] setFeedURL:url];
+        CFRelease(url);
+    }
+#endif
 }
 
 /* This will end up at the end of the responder chain. */
@@ -935,7 +964,12 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     
     if(!xpbproxy_init())
         fprintf(stderr, "Error initializing xpbproxy\n");
-           
+
+#if XQUARTZ_SPARKLE
+    [[SUUpdater sharedUpdater] resetUpdateCycle];
+//    [[SUUpdater sharedUpdater] checkForUpdates:X11App];
+#endif
+
     [NSApp run];
     /* not reached */
 }

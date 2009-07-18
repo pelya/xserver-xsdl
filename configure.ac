@@ -527,6 +527,10 @@ AC_ARG_WITH(apple-application-id,AS_HELP_STRING([--with-apple-application-id=VAL
 				[ APPLE_APPLICATION_ID="${withval}" ],
 				[ APPLE_APPLICATION_ID="org.x.X11" ])
 AC_SUBST([APPLE_APPLICATION_ID])
+AC_ARG_ENABLE(sparkle,AS_HELP_STRING([--enable-sparkle], [Enable updating of X11.app using the Sparkle Framework (default: disabled)]),
+				[ XQUARTZ_SPARKLE="${enableval}" ],
+				[ XQUARTZ_SPARKLE="no" ])
+AC_SUBST([XQUARTZ_SPARKLE])
 AC_ARG_ENABLE(builddocs,      AS_HELP_STRING([--enable-builddocs], [Build docs (default: disabled)]),
                                 [BUILDDOCS=$enableval],
                                 [BUILDDOCS=no])
@@ -1687,6 +1691,10 @@ if test "x$XQUARTZ" = xyes; then
 
 	PKG_CHECK_MODULES(XPBPROXY, [applewmproto >= 1.3] [applewm >= 1.3] xfixes fixesproto x11)
 
+        if test "x$XQUARTZ_SPARKLE" = xyes ; then
+                AC_DEFINE(XQUARTZ_SPARKLE,1,[Support application updating through sparkle.])
+        fi
+
 	if test "x$STANDALONE_XPBPROXY" = xyes ; then
 		AC_DEFINE(STANDALONE_XPBPROXY,1,[Build a standalone xpbproxy])
 	fi
@@ -1703,9 +1711,8 @@ AC_SUBST([OBJCLINK])
 AC_SUBST([OBJCFLAGS])
 # internal, undocumented automake func follows :(
 _AM_DEPENDENCIES([OBJC])
-AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
-AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
+AM_CONDITIONAL(XQUARTZ_SPARKLE, [test "x$XQUARTZ_SPARKLE" != "xno"])
 AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 
 dnl DMX DDX
