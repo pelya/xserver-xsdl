@@ -18,7 +18,6 @@ libdix_la_SOURCES = 	\
 	enterleave.c	\
 	enterleave.h	\
 	events.c	\
-	eventconvert.h  \
 	eventconvert.c  \
 	extension.c	\
 	ffs.c		\
