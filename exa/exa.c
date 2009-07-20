@@ -616,19 +616,24 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 void
 exaPrepareAccessReg(DrawablePtr pDrawable, int index, RegionPtr pReg)
 {
-    ExaMigrationRec pixmaps[1];
+    PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv(pPixmap);
 
-    if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {
-	pixmaps[0].as_dst = TRUE;
-	pixmaps[0].as_src = FALSE;
-    } else {
-	pixmaps[0].as_dst = FALSE;
-	pixmaps[0].as_src = TRUE;
+    if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+	if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {
+	    pixmaps[0].as_dst = TRUE;
+	    pixmaps[0].as_src = FALSE;
+	} else {
+	    pixmaps[0].as_dst = FALSE;
+	    pixmaps[0].as_src = TRUE;
+	}
+	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = pReg;
+
+	exaDoMigration(pixmaps, 1, FALSE);
     }
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = pReg;
-
-    exaDoMigration(pixmaps, 1, FALSE);
 
     ExaDoPrepareAccess(pDrawable, index);
 }

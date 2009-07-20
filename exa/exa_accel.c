@@ -50,12 +50,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    fullX1, fullX2, fullY1;
     int		    partX1, partX2;
     int		    off_x, off_y;
-    ExaMigrationRec pixmaps[1];
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap;
-    pixmaps[0].pReg = NULL;
 
     if (pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
@@ -63,7 +57,14 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     {
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
-    } else {
+    } else if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = NULL;
+
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
@@ -375,7 +376,6 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
     ExaPixmapPrivPtr pSrcExaPixmap, pDstExaPixmap;
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
-    ExaMigrationRec pixmaps[2];
     RegionPtr srcregion = NULL, dstregion = NULL;
     xRectangle *rects;
     Bool ret = TRUE;
@@ -425,14 +425,6 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	}
     }
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pDstPixmap;
-    pixmaps[0].pReg = dstregion;
-    pixmaps[1].as_dst = FALSE;
-    pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = pSrcPixmap;
-    pixmaps[1].pReg = srcregion;
 
     pSrcExaPixmap = ExaGetPixmapPriv (pSrcPixmap);
     pDstExaPixmap = ExaGetPixmapPriv (pDstPixmap);
@@ -466,7 +458,19 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
         }
     }
 
-    exaDoMigration (pixmaps, 2, TRUE);
+    if (pDstExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[2];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pDstPixmap;
+	pixmaps[0].pReg = dstregion;
+	pixmaps[1].as_dst = FALSE;
+	pixmaps[1].as_src = TRUE;
+	pixmaps[1].pPix = pSrcPixmap;
+	pixmaps[1].pReg = srcregion;
+	exaDoMigration (pixmaps, 2, TRUE);
+    }
 
     /* Mixed directions must be handled specially if the card is lame */
     if ((pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS) &&
@@ -766,7 +770,6 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    xoff, yoff;
     int		    xorg, yorg;
     int		    n;
-    ExaMigrationRec pixmaps[2];
     RegionPtr pReg = RECTS_TO_REGION(pScreen, nrect, prect, CT_UNSORTED);
 
     /* Compute intersection of rects and clip region */
@@ -776,11 +779,6 @@ exaPolyFillRect(DrawablePtr pDrawable,
     if (!REGION_NUM_RECTS(pReg)) {
 	goto out;
     }
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap;
-    pixmaps[0].pReg = NULL;
 
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
 
@@ -814,7 +812,16 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	goto fallback;
     }
 
-    exaDoMigration (pixmaps, 1, TRUE);
+    if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[2];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = NULL;
+
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
 
     if (!exaPixmapIsOffscreen (pPixmap) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap,
@@ -972,15 +979,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
     PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
     ExaPixmapPriv (pPixmap);
     int xoff, yoff;
-    ExaMigrationRec pixmaps[1];
     Bool ret = FALSE;
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap;
-    pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillSolid,
-					    alu, clientClipType)
-	? NULL : pRegion;
 
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
     REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
@@ -988,7 +987,16 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
     if (pExaPixmap->accel_blocked)
     {
 	goto out;
-    } else {
+    } else if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillSolid,
+						alu, clientClipType)
+	    ? NULL : pRegion;
+
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
@@ -1053,7 +1061,6 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
     ExaPixmapPrivPtr pTileExaPixmap = ExaGetPixmapPriv(pTile);
     int xoff, yoff;
     int tileWidth, tileHeight;
-    ExaMigrationRec pixmaps[2];
     int nbox = REGION_NUM_RECTS (pRegion);
     BoxPtr pBox = REGION_RECTS (pRegion);
     Bool ret = FALSE;
@@ -1070,23 +1077,26 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
 				  exaGetPixmapFirstPixel (pTile), planemask,
 				  alu, clientClipType);
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillTiled,
-					    alu, clientClipType)
-	? NULL : pRegion;
-    pixmaps[1].as_dst = FALSE;
-    pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = pTile;
-    pixmaps[1].pReg = NULL;
-
+    pPixmap = exaGetDrawablePixmap (pDrawable);
     pExaPixmap = ExaGetPixmapPriv (pPixmap);
 
     if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
     {
 	return FALSE;
-    } else {
+    } else if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[2];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillTiled,
+						alu, clientClipType)
+	    ? NULL : pRegion;
+	pixmaps[1].as_dst = FALSE;
+	pixmaps[1].as_src = TRUE;
+	pixmaps[1].pPix = pTile;
+	pixmaps[1].pReg = NULL;
+
 	exaDoMigration (pixmaps, 2, TRUE);
     }
 
@@ -1225,31 +1235,36 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d)
 {
     ExaScreenPriv (pDrawable->pScreen);
-    ExaMigrationRec pixmaps[1];
-    BoxRec Box;
-    RegionRec Reg;
-    PixmapPtr pPix;
+    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
     int xoff, yoff;
     Bool ok;
-
-    pixmaps[0].as_dst = FALSE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = pPix = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = &Reg;
-
-    exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
-
-    Box.x1 = pDrawable->y + x + xoff;
-    Box.y1 = pDrawable->y + y + yoff;
-    Box.x2 = Box.x1 + w;
-    Box.y2 = Box.y1 + h;
-
-    REGION_INIT(pScreen, &Reg, &Box, 1);
 
     if (pExaScr->swappedOut)
 	goto fallback;
 
-    exaDoMigration(pixmaps, 1, FALSE);
+    if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
+	BoxRec Box;
+	RegionRec Reg;
+	ExaMigrationRec pixmaps[1];
+
+	exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
+
+	Box.x1 = pDrawable->y + x + xoff;
+	Box.y1 = pDrawable->y + y + yoff;
+	Box.x2 = Box.x1 + w;
+	Box.y2 = Box.y1 + h;
+
+	REGION_INIT(pScreen, &Reg, &Box, 1);
+
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+	pixmaps[0].pPix = pPix = exaGetDrawablePixmap (pDrawable);
+	pixmaps[0].pReg = &Reg;
+
+	exaDoMigration(pixmaps, 1, FALSE);
+
+	REGION_UNINIT(pScreen, &Reg);
+    }
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
@@ -1271,12 +1286,9 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 					   PixmapBytePad(w, pDrawable->depth));
     if (ok) {
 	exaWaitSync(pDrawable->pScreen);
-	goto out;
+	return;
     }
 
 fallback:
     ExaCheckGetImage(pDrawable, x, y, w, h, format, planeMask, d);
-
-out:
-    REGION_UNINIT(pScreen, &Reg);
 }

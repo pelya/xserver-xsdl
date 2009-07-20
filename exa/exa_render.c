@@ -253,7 +253,6 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     ExaPixmapPrivPtr pSrcExaPix, pDstExaPix;
     CARD32 pixel;
     CARD16 red, green, blue, alpha;
-    ExaMigrationRec pixmaps[1];
 
     pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
     pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
@@ -284,11 +283,15 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pDstPix;
-    pixmaps[0].pReg = &region;
-    exaDoMigration(pixmaps, 1, TRUE);
+    if (pDstExaPix->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pDstPix;
+	pixmaps[0].pReg = &region;
+	exaDoMigration(pixmaps, 1, TRUE);
+    }
 
     if (!exaPixmapIsOffscreen(pDstPix)) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
@@ -343,7 +346,6 @@ exaTryDriverCompositeRects(CARD8	       op,
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
     ExaPixmapPrivPtr pSrcExaPix, pMaskExaPix = NULL, pDstExaPix;
-    ExaMigrationRec pixmaps[3];
 
     if (!pExaScr->info->PrepareComposite)
 	return -1;
@@ -374,23 +376,27 @@ exaTryDriverCompositeRects(CARD8	       op,
     {
 	return -1;
     }
-    
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = exaOpReadsDestination(op);
-    pixmaps[0].pPix = pDstPix;
-    pixmaps[0].pReg = NULL;
-    pixmaps[1].as_dst = FALSE;
-    pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = pSrcPix;
-    pixmaps[1].pReg = NULL;
-    if (pMask) {
-	pixmaps[2].as_dst = FALSE;
-	pixmaps[2].as_src = TRUE;
-	pixmaps[2].pPix = pMaskPix;
-	pixmaps[2].pReg = NULL;
-	exaDoMigration(pixmaps, 3, TRUE);
-    } else
-	exaDoMigration(pixmaps, 2, TRUE);
+
+    if (pDstExaPix->pDamage) {
+	ExaMigrationRec pixmaps[3];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = exaOpReadsDestination(op);
+	pixmaps[0].pPix = pDstPix;
+	pixmaps[0].pReg = NULL;
+	pixmaps[1].as_dst = FALSE;
+	pixmaps[1].as_src = TRUE;
+	pixmaps[1].pPix = pSrcPix;
+	pixmaps[1].pReg = NULL;
+	if (pMask) {
+	    pixmaps[2].as_dst = FALSE;
+	    pixmaps[2].as_src = TRUE;
+	    pixmaps[2].pPix = pMaskPix;
+	    pixmaps[2].pReg = NULL;
+	    exaDoMigration(pixmaps, 3, TRUE);
+	} else
+	    exaDoMigration(pixmaps, 2, TRUE);
+    }
 
     pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
     if (!pDstPix)
@@ -615,7 +621,6 @@ exaTryDriverComposite(CARD8		op,
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
     ExaPixmapPrivPtr pSrcExaPix, pMaskExaPix = NULL, pDstExaPix;
-    ExaMigrationRec pixmaps[3];
 
     pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
     pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
@@ -665,22 +670,26 @@ exaTryDriverComposite(CARD8		op,
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = exaOpReadsDestination(op);
-    pixmaps[0].pPix = pDstPix;
-    pixmaps[0].pReg = pixmaps[0].as_src ? NULL : &region;
-    pixmaps[1].as_dst = FALSE;
-    pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = pSrcPix;
-    pixmaps[1].pReg = NULL;
-    if (pMask) {
-	pixmaps[2].as_dst = FALSE;
-	pixmaps[2].as_src = TRUE;
-	pixmaps[2].pPix = pMaskPix;
-	pixmaps[2].pReg = NULL;
-	exaDoMigration(pixmaps, 3, TRUE);
-    } else {
-	exaDoMigration(pixmaps, 2, TRUE);
+    if (pDstExaPix->pDamage) {
+	ExaMigrationRec pixmaps[3];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = exaOpReadsDestination(op);
+	pixmaps[0].pPix = pDstPix;
+	pixmaps[0].pReg = pixmaps[0].as_src ? NULL : &region;
+	pixmaps[1].as_dst = FALSE;
+	pixmaps[1].as_src = TRUE;
+	pixmaps[1].pPix = pSrcPix;
+	pixmaps[1].pReg = NULL;
+	if (pMask) {
+	    pixmaps[2].as_dst = FALSE;
+	    pixmaps[2].as_src = TRUE;
+	    pixmaps[2].pPix = pMaskPix;
+	    pixmaps[2].pReg = NULL;
+	    exaDoMigration(pixmaps, 3, TRUE);
+	} else {
+	    exaDoMigration(pixmaps, 2, TRUE);
+	}
     }
 
     pSrcPix = exaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);

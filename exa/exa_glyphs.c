@@ -372,7 +372,6 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     PixmapPtr pGlyphPixmap = (PixmapPtr)pGlyphPicture->pDrawable;
     ExaPixmapPriv(pGlyphPixmap);
     PixmapPtr pCachePixmap = (PixmapPtr)cache->picture->pDrawable;
-    ExaMigrationRec pixmaps[1];
 
     if (!pExaScr->info->UploadToScreen || pExaScr->swappedOut || pExaPixmap->accel_blocked)
 	goto composite;
@@ -387,11 +386,15 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 	goto composite;
 
     /* cache pixmap must be offscreen. */
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pCachePixmap;
-    pixmaps[0].pReg = NULL;
-    exaDoMigration (pixmaps, 1, TRUE);
+    if (pExaPixmap->pDamage) {
+	ExaMigrationRec pixmaps[1];
+
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+	pixmaps[0].pPix = pCachePixmap;
+	pixmaps[0].pReg = NULL;
+	exaDoMigration (pixmaps, 1, TRUE);
+    }
 
     if (!exaPixmapIsOffscreen(pCachePixmap))
 	goto composite;
