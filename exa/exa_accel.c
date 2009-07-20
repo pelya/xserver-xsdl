@@ -149,10 +149,9 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int nbox;
     int xoff, yoff;
     int bpp = pDrawable->bitsPerPixel;
-    Bool access_prepared = FALSE;
     Bool ret = TRUE;
 
-    if (pExaPixmap->accel_blocked)
+    if (pExaPixmap->accel_blocked || !pExaScr->info->UploadToScreen)
 	return FALSE;
 
     /* Don't bother with under 8bpp, XYPixmaps. */
@@ -179,7 +178,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
-    if (!pPix || !pExaScr->info->UploadToScreen)
+    if (!pPix)
 	return FALSE;
 
     x += pDrawable->x;
@@ -221,9 +220,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	}
     }
 
-    if (access_prepared)
-	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
-    else
+    if (ret)
 	exaMarkSync(pDrawable->pScreen);
 
     return ret;
