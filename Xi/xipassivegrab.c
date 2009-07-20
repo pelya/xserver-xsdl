@@ -102,7 +102,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     }
 
     if (stuff->grab_type != XIGrabtypeButton &&
-        stuff->grab_type != XIGrabtypeKeysym &&
+        stuff->grab_type != XIGrabtypeKeycode &&
         stuff->grab_type != XIGrabtypeEnter &&
         stuff->grab_type != XIGrabtypeFocusIn)
     {
@@ -180,7 +180,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
                 status = GrabButton(client, dev, mod_dev, stuff->detail,
                                     &param, GRABTYPE_XI2, &mask);
                 break;
-            case XIGrabtypeKeysym:
+            case XIGrabtypeKeycode:
                 status = GrabKey(client, dev, mod_dev, stuff->detail,
                                  &param, GRABTYPE_XI2, &mask);
                 break;
@@ -265,7 +265,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
 	return rc;
 
     if (stuff->grab_type != XIGrabtypeButton &&
-        stuff->grab_type != XIGrabtypeKeysym &&
+        stuff->grab_type != XIGrabtypeKeycode &&
         stuff->grab_type != XIGrabtypeEnter &&
         stuff->grab_type != XIGrabtypeFocusIn)
     {
@@ -295,7 +295,7 @@ ProcXIPassiveUngrabDevice(ClientPtr client)
     switch(stuff->grab_type)
     {
         case XIGrabtypeButton:  tempGrab.type = XI_ButtonPress; break;
-        case XIGrabtypeKeysym:  tempGrab.type = XI_KeyPress;    break;
+        case XIGrabtypeKeycode:  tempGrab.type = XI_KeyPress;    break;
         case XIGrabtypeEnter:   tempGrab.type = XI_Enter;       break;
         case XIGrabtypeFocusIn: tempGrab.type = XI_FocusIn;     break;
     }

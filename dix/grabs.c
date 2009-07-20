@@ -451,7 +451,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
     any_modifier = (pMinuendGrab->grabtype == GRABTYPE_XI2) ?
                    (unsigned int)XIAnyModifier : (unsigned int)AnyModifier;
     any_key = (pMinuendGrab->grabtype == GRABTYPE_XI2) ?
-                   (unsigned int)XIAnyKeysym : (unsigned int)AnyKey;
+                   (unsigned int)XIAnyKeycode : (unsigned int)AnyKey;
     ndels = nadds = nups = 0;
     ok = TRUE;
     for (grab = wPassiveGrabs(pMinuendGrab->window);

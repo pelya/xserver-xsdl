@@ -117,7 +117,6 @@ of the copyright holder.
 #endif
 
 #include <X11/X.h>
-#include <X11/keysym.h>
 #include "misc.h"
 #include "resource.h"
 #include <X11/Xproto.h>
@@ -3375,8 +3374,6 @@ CheckPassiveGrabsOnWindow(
         /* Check for XI2 and XI grabs first */
         tempGrab.type = GetXI2Type((InternalEvent*)event);
         tempGrab.grabtype = GRABTYPE_XI2;
-        if (event->type == ET_KeyPress)
-            tempGrab.detail.exact = XkbGetKeysym(device, event);
         if (GrabMatchesSecond(&tempGrab, grab, FALSE))
             match = XI2_MATCH;
 

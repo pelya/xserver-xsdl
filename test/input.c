@@ -643,10 +643,10 @@ static void dix_grab_matching(void)
     rc = GrabMatchesSecond(&b, &a, FALSE);
     g_assert(rc == TRUE);
 
-    /* AnyKey or XIAnyKeysym must succeed */
+    /* AnyKey or XIAnyKeycode must succeed */
     a.grabtype = GRABTYPE_XI2;
     b.grabtype = GRABTYPE_XI2;
-    a.detail.exact = XIAnyKeysym;
+    a.detail.exact = XIAnyKeycode;
     b.detail.exact = 1;
     a.modifiersDetail.exact = 1;
     b.modifiersDetail.exact = 1;
