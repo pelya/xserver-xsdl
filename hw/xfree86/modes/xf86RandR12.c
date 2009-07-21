@@ -1718,13 +1718,11 @@ gamma_to_ramp(float gamma, CARD16 *ramp, int size)
 static int
 xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
 {
-    int i, size = 0;
     CARD16 *points, *red, *green, *blue;
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
-    rrScrPrivPtr rp = rrGetScrPriv(pScrn->pScreen);
-
-    for (i = 0; i < rp->numCrtcs; i++)
-	size = max(size, rp->crtcs[i]->gammaSize);
+    xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+    RRCrtcPtr crtc = config->output[config->compat_output]->crtc->randr_crtc;
+    int size = max(0, crtc->gammaSize);
 
     if (!size)
 	return Success;
@@ -1737,13 +1735,10 @@ xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
     green = points + size;
     blue = points + 2 * size;
 
-    for (i = 0; i < rp->numCrtcs; i++) {
-	gamma_to_ramp(gamma.red, red, rp->crtcs[i]->gammaSize);
-	gamma_to_ramp(gamma.green, green, rp->crtcs[i]->gammaSize);
-	gamma_to_ramp(gamma.blue, blue, rp->crtcs[i]->gammaSize);
-	RRCrtcGammaSet(rp->crtcs[i], red, green, blue);
-	memset(points, 0, 3 * size * sizeof(CARD16));
-    }
+    gamma_to_ramp(gamma.red, red, size);
+    gamma_to_ramp(gamma.green, green, size);
+    gamma_to_ramp(gamma.blue, blue, size);
+    RRCrtcGammaSet(crtc, red, green, blue);
 
     xfree(points);
 

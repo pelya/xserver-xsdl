@@ -999,6 +999,18 @@ xf86ChangeGammaRamp(
     CMapScreenPtr pScreenPriv;
     CMapLinkPtr pLink;
 
+    if (xf86_crtc_supports_gamma(pScrn)) {
+	xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+	RRCrtcPtr crtc = config->output[config->compat_output]->crtc->randr_crtc;
+
+	if (crtc->gammaSize != size)
+	    return BadValue;
+
+	RRCrtcGammaSet(crtc, red, green, blue);
+
+	return Success;
+    }
+
     if(CMapScreenKey == NULL)
         return BadImplementation;
 
@@ -1057,7 +1069,15 @@ xf86ChangeGammaRamp(
 int
 xf86GetGammaRampSize(ScreenPtr pScreen)
 {
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     CMapScreenPtr pScreenPriv;
+
+    if (xf86_crtc_supports_gamma(pScrn)) {
+	xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+	RRCrtcPtr crtc = config->output[config->compat_output]->crtc->randr_crtc;
+
+	return crtc->gammaSize;
+    }
 
     if(CMapScreenKey == NULL) return 0;
 
@@ -1076,9 +1096,27 @@ xf86GetGammaRamp(
    unsigned short *green,
    unsigned short *blue
 ){
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     CMapScreenPtr pScreenPriv;
     LOCO *entry;
     int shift, sigbits;
+
+    if (xf86_crtc_supports_gamma(pScrn)) {
+	xf86CrtcConfigPtr config = XF86_CRTC_CONFIG_PTR(pScrn);
+	RRCrtcPtr crtc = config->output[config->compat_output]->crtc->randr_crtc;
+
+	if (crtc->gammaSize < size)
+	    return BadValue;
+
+	if (!RRCrtcGammaGet(crtc))
+	    return BadImplementation;
+
+	memcpy(red, crtc->gammaRed, size * sizeof(*red));
+	memcpy(green, crtc->gammaGreen, size * sizeof(*green));
+	memcpy(blue, crtc->gammaBlue, size * sizeof(*blue));
+
+	return Success;
+    }
 
     if(CMapScreenKey == NULL) 
 	return BadImplementation;
