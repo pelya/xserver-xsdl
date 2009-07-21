@@ -351,9 +351,14 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	access_mode |= DixPostAccess;
 	rc = XaceHookPropertyAccess(pClient, pWin, &pProp, access_mode);
 	if (rc == Success)
-	    xfree(savedProp.data);
-	else {
-	    xfree(pProp->data);
+	{
+	    if (savedProp.data != pProp->data)
+		xfree(savedProp.data);
+	}
+	else
+	{
+	    if (savedProp.data != pProp->data)
+		xfree(pProp->data);
 	    *pProp = savedProp;
 	    return rc;
 	}
