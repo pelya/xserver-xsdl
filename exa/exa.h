@@ -586,14 +586,14 @@ typedef struct _ExaDriver {
      * untiling, or to adjust the pixmap's devPrivate.ptr for the purpose of
      * making CPU access use a different aperture.
      *
-     * The index is one of #EXA_PREPARE_DEST, #EXA_PREPARE_SRC, or
-     * #EXA_PREPARE_MASK, indicating which pixmap is in question.  Since only up
-     * to three pixmaps will have PrepareAccess() called on them per operation,
-     * drivers can have a small, statically-allocated space to maintain state
-     * for PrepareAccess() and FinishAccess() in.  Note that the same pixmap may
-     * have PrepareAccess() called on it more than once, for example when doing
-     * a copy within the same pixmap (so it gets PrepareAccess as()
-     * #EXA_PREPARE_DEST and then as #EXA_PREPARE_SRC).
+     * The index is one of #EXA_PREPARE_DEST, #EXA_PREPARE_SRC,
+     * #EXA_PREPARE_MASK, #EXA_PREPARE_AUX_DEST, #EXA_PREPARE_AUX_SRC, or
+     * #EXA_PREPARE_AUX_MASK. Since only up to #EXA_NUM_PREPARE_INDICES pixmaps
+     * will have PrepareAccess() called on them per operation, drivers can have
+     * a small, statically-allocated space to maintain state for PrepareAccess()
+     * and FinishAccess() in.  Note that PrepareAccess() is only called once per
+     * pixmap and operation, regardless of whether the pixmap is used as a
+     * destination and/or source, and the index may not reflect the usage.
      *
      * PrepareAccess() may fail.  An example might be the case of hardware that
      * can set up 1 or 2 surfaces for CPU access, but not 3.  If PrepareAccess()
@@ -663,6 +663,7 @@ typedef struct _ExaDriver {
 	#define EXA_PREPARE_AUX_DEST	3
 	#define EXA_PREPARE_AUX_SRC	4
 	#define EXA_PREPARE_AUX_MASK	5
+	#define EXA_NUM_PREPARE_INDICES	6
 	/** @} */
 
     /**

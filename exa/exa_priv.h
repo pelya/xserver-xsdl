@@ -176,8 +176,11 @@ typedef struct {
     CARD32			 lastDefragment;
     CARD32			 nextDefragment;
 
-    /* Store all accessed pixmaps, so we can check for duplicates. */
-    PixmapPtr prepare_access[6];
+    /* Reference counting for accessed pixmaps */
+    struct {
+	PixmapPtr pixmap;
+	int count;
+    } access[EXA_NUM_PREPARE_INDICES];
 
     /* Holds information on fallbacks that cannot be relayed otherwise. */
     unsigned int fallback_flags;

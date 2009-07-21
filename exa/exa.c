@@ -554,6 +554,7 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
     ExaPixmapPriv(pPixmap);
     Bool offscreen;
+    int i;
 
     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
 	return FALSE;
@@ -561,19 +562,25 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     if (pExaPixmap == NULL)
 	EXA_FatalErrorDebugWithRet(("EXA bug: ExaDoPrepareAccess was called on a non-exa pixmap.\n"), FALSE);
 
-    /* Check if we're dealing SRC == DST or similar.
-     * In that case the first PrepareAccess has already set pPixmap->devPrivate.ptr.
-     */
-    if (pPixmap->devPrivate.ptr != NULL) {
-	int i;
-	for (i = 0; i < 6; i++)
-	    if (pExaScr->prepare_access[i] == pPixmap)
-		break;
+    /* Handle repeated / nested calls. */
+    for (i = 0; i < EXA_NUM_PREPARE_INDICES; i++) {
+	if (pExaScr->access[i].pixmap == pPixmap) {
+	    pExaScr->access[i].count++;
+	    return TRUE;
+	}
+    }
 
-	/* No known PrepareAccess or double prepare on the same index. */
-	if (i == 6 || i == index)
-	    EXA_FatalErrorDebug(("EXA bug: pPixmap->devPrivate.ptr was %p, but should have been NULL.\n",
-		pPixmap->devPrivate.ptr));
+    /* If slot for this index is taken, find an empty slot */
+    if (pExaScr->access[index].pixmap) {
+	for (index = EXA_NUM_PREPARE_INDICES - 1; index >= 0; index--)
+	    if (!pExaScr->access[index].pixmap)
+		break;
+    }
+
+    /* Access to this pixmap hasn't been prepared yet, so data pointer should be NULL. */
+    if (pPixmap->devPrivate.ptr != NULL) {
+	EXA_FatalErrorDebug(("EXA bug: pPixmap->devPrivate.ptr was %p, but should have been NULL.\n",
+			     pPixmap->devPrivate.ptr));
     }
 
     offscreen = exaPixmapIsOffscreen(pPixmap);
@@ -583,8 +590,9 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     else
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 
-    /* Store so we can check SRC and DEST being the same. */
-    pExaScr->prepare_access[index] = pPixmap;
+    /* Store so we can handle repeated / nested calls. */
+    pExaScr->access[index].pixmap = pPixmap;
+    pExaScr->access[index].count = 1;
 
     if (!offscreen)
 	return FALSE;
@@ -662,6 +670,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
     ExaPixmapPriv  (pPixmap);
+    int i;
 
     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
 	return;
@@ -669,11 +678,22 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     if (pExaPixmap == NULL)
 	EXA_FatalErrorDebugWithRet(("EXA bug: exaFinishAccesss was called on a non-exa pixmap.\n"),);
 
-    /* Avoid mismatching indices. */
-    if (pExaScr->prepare_access[index] != pPixmap)
-	EXA_FatalErrorDebug(("EXA bug: Calling FinishAccess on pixmap %p with index %d while "
-			"it should have been %p.\n", pPixmap, index, pExaScr->prepare_access[index]));
-    pExaScr->prepare_access[index] = NULL;
+    /* Handle repeated / nested calls. */
+    for (i = 0; i < EXA_NUM_PREPARE_INDICES; i++) {
+	if (pExaScr->access[i].pixmap == pPixmap) {
+	    if (--pExaScr->access[i].count > 0)
+		return;
+	    index = i;
+	    break;
+	}
+    }
+
+    /* Catch unbalanced Prepare/FinishAccess calls. */
+    if (i == EXA_NUM_PREPARE_INDICES)
+	EXA_FatalErrorDebug(("EXA bug: FinishAccess called without PrepareAccess for pixmap 0x%p.\n",
+			     pPixmap));
+
+    pExaScr->access[index].pixmap = NULL;
 
     /* We always hide the devPrivate.ptr. */
     pPixmap->devPrivate.ptr = NULL;
@@ -768,15 +788,7 @@ exaCreatePixmapWithPrepare(ScreenPtr pScreen, int w, int h, int depth,
      * For EXA_HANDLES_PIXMAPS the driver will handle whatever is needed.
      * We want to signal that the pixmaps will be used as destination.
      */
-    if (pExaScr->prepare_access[EXA_PREPARE_DEST] == NULL) {
-	ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
-	pExaScr->prepare_access[EXA_PREPARE_DEST] = pPixmap;
-    } else if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST] == NULL) {
-	ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_DEST);
-	pExaScr->prepare_access[EXA_PREPARE_AUX_DEST] = pPixmap;
-    } else {
-	FatalError("exaCreatePixmapWithPrepare can only accomodate two pixmaps, we're at three.\n");
-    }
+    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_DEST);
 
     return pPixmap;
 }
@@ -786,12 +798,9 @@ exaDestroyPixmapWithFinish(PixmapPtr pPixmap)
 {
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
-    int i;
     Bool ret;
 
-    for (i = 0; i < 6; i++)
-	if (pExaScr->prepare_access[i] == pPixmap)
-	    exaFinishAccess(&pPixmap->drawable, i);
+    exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_AUX_DEST);
 
     /* This swaps between this function and the real upper layer function.
      * Normally this would swap to the fb layer pointer, this is a very special case.
@@ -853,8 +862,8 @@ exaValidateGC(GCPtr pGC,
 
     (*pGC->funcs->ValidateGC)(pGC, changes, pDrawable);
 
-    if (pExaScr->prepare_access[EXA_PREPARE_SRC]) /* tile */
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_SRC]->drawable, EXA_PREPARE_SRC);
+    if (pTile)
+	exaFinishAccess(&pTile->drawable, EXA_PREPARE_SRC);
     if (pGC->stipple)
         exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
 
@@ -867,13 +876,6 @@ exaValidateGC(GCPtr pGC,
     unwrap(pExaScr, pScreen, DestroyPixmap);
     /* restore copy of fb layer pointer. */
     pExaScr->SavedDestroyPixmap = old_ptr2;
-
-    if (pExaScr->prepare_access[EXA_PREPARE_DEST])
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_DEST]->drawable,
-		EXA_PREPARE_DEST);
-    if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST])
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_AUX_DEST]->drawable,
-		EXA_PREPARE_AUX_DEST);
 
     EXA_GC_EPILOGUE(pGC);
 }
@@ -984,10 +986,10 @@ exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     ret = pScreen->ChangeWindowAttributes(pWin, mask);
     swap(pExaScr, pScreen, ChangeWindowAttributes);
 
-    if (pExaScr->prepare_access[EXA_PREPARE_SRC]) /* background */
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_SRC]->drawable, EXA_PREPARE_SRC);
-    if (pExaScr->prepare_access[EXA_PREPARE_MASK]) /* border */
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_MASK]->drawable, EXA_PREPARE_MASK);
+    if ((mask & CWBackPixmap) && pWin->backgroundState == BackgroundPixmap) 
+	exaFinishAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+    if ((mask & CWBorderPixmap) && pWin->borderIsPixel == FALSE)
+	exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_MASK);
 
     /* switch back to the normal upper layer. */
     unwrap(pExaScr, pScreen, CreatePixmap);
@@ -998,13 +1000,6 @@ exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     unwrap(pExaScr, pScreen, DestroyPixmap);
     /* restore copy of fb layer pointer. */
     pExaScr->SavedDestroyPixmap = old_ptr2;
-
-    if (pExaScr->prepare_access[EXA_PREPARE_DEST])
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_DEST]->drawable,
-		EXA_PREPARE_DEST);
-    if (pExaScr->prepare_access[EXA_PREPARE_AUX_DEST])
-	exaFinishAccess(&pExaScr->prepare_access[EXA_PREPARE_AUX_DEST]->drawable,
-		EXA_PREPARE_AUX_DEST);
 
     return ret;
 }
