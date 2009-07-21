@@ -455,7 +455,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
         }
     }
 
-    if (pDstExaPixmap->pDamage) {
+    if (pDstExaPixmap->pDamage || pSrcExaPixmap->pDamage) {
 	ExaMigrationRec pixmaps[2];
 
 	pixmaps[0].as_dst = TRUE;
@@ -810,7 +810,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
     }
 
     if (pExaPixmap->pDamage) {
-	ExaMigrationRec pixmaps[2];
+	ExaMigrationRec pixmaps[1];
 
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
@@ -1080,7 +1080,7 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
     if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
     {
 	return FALSE;
-    } else if (pExaPixmap->pDamage) {
+    } else if (pExaPixmap->pDamage || pTileExaPixmap->pDamage) {
 	ExaMigrationRec pixmaps[2];
 
 	pixmaps[0].as_dst = TRUE;
@@ -1255,7 +1255,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 
 	pixmaps[0].as_dst = FALSE;
 	pixmaps[0].as_src = TRUE;
-	pixmaps[0].pPix = pPix = exaGetDrawablePixmap (pDrawable);
+	pixmaps[0].pPix = pPix;
 	pixmaps[0].pReg = &Reg;
 
 	exaDoMigration(pixmaps, 1, FALSE);

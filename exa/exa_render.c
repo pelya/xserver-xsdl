@@ -377,7 +377,8 @@ exaTryDriverCompositeRects(CARD8	       op,
 	return -1;
     }
 
-    if (pDstExaPix->pDamage) {
+    if (pSrcExaPix->pDamage || pDstExaPix->pDamage ||
+	(pMask && pMaskExaPix->pDamage)) {
 	ExaMigrationRec pixmaps[3];
 
 	pixmaps[0].as_dst = TRUE;
@@ -670,7 +671,8 @@ exaTryDriverComposite(CARD8		op,
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
-    if (pDstExaPix->pDamage) {
+    if (pSrcExaPix->pDamage || pDstExaPix->pDamage ||
+	(pMask && pMaskExaPix->pDamage)) {
 	ExaMigrationRec pixmaps[3];
 
 	pixmaps[0].as_dst = TRUE;
