@@ -512,26 +512,27 @@ winCreateWindowsWindow (WindowPtr pWin)
   iX = pWin->drawable.x + GetSystemMetrics (SM_XVIRTUALSCREEN);
   iY = pWin->drawable.y + GetSystemMetrics (SM_YVIRTUALSCREEN);
 
-  /* Default positions if none specified */
-  if (!winMultiWindowGetWMNormalHints(pWin, &hints))
-    hints.flags = 0;
-  if ( !(hints.flags & (USPosition|PPosition)) &&
-       !winMultiWindowGetTransientFor (pWin, NULL) &&
-       !pWin->overrideRedirect )
-    {
-      iX = CW_USEDEFAULT;
-      iY = CW_USEDEFAULT;
-    }
-
   iWidth = pWin->drawable.width;
   iHeight = pWin->drawable.height;
 
-    if (winMultiWindowGetTransientFor (pWin, &pDaddy))
+  if (winMultiWindowGetTransientFor (pWin, &pDaddy))
     {
       if (pDaddy)
       {
         hFore = GetForegroundWindow();
         if (hFore && (pDaddy != (WindowPtr)GetProp(hFore, WIN_WID_PROP))) hFore = NULL;
+      }
+    }
+  else
+    {
+      /* Default positions if none specified */
+      if (!winMultiWindowGetWMNormalHints(pWin, &hints))
+        hints.flags = 0;
+      if (!(hints.flags & (USPosition|PPosition)) &&
+          !pWin->overrideRedirect)
+      {
+        iX = CW_USEDEFAULT;
+        iY = CW_USEDEFAULT;
       }
     }
 
