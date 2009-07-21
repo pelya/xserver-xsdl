@@ -76,6 +76,7 @@ winFindWindow (pointer value, XID id, pointer cdata);
 
 #define SubStrSend(pWin,pParent) (StrSend(pWin) || SubSend(pParent))
 
+static
 void winInitMultiWindowClass(void)
 {
   static wATOM atomXWinClass=0;
