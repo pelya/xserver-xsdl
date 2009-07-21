@@ -39,6 +39,10 @@
 #include "sanitizedCocoa.h"
 #include "xpr/x-list.h"
 
+#ifdef XQUARTZ_SPARKLE
+#include <Sparkle/SUUpdater.h>
+#endif
+
 @interface X11Controller : NSObject
 {
     IBOutlet NSPanel *prefs_panel;
@@ -91,7 +95,8 @@
 - (void) set_window_menu_check:(NSNumber *)n;
 - (void) set_apps_menu:(NSArray *)list;
 #ifdef XQUARTZ_SPARKLE
-- (void) set_check_for_updates_menu_item;
+- (void) setup_sparkle;
+- (void) updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update;
 #endif
 - (void) set_can_quit:(OSX_BOOL)state;
 - (void) server_ready;

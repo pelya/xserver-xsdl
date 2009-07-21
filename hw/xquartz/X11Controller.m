@@ -53,10 +53,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#ifdef XQUARTZ_SPARKLE
-#include <Sparkle/SUUpdater.h>
-#endif
-
 BOOL xquartz_resetenv_display = NO;
 
 @implementation X11Controller
@@ -317,7 +313,7 @@ BOOL xquartz_resetenv_display = NO;
 }
 
 #ifdef XQUARTZ_SPARKLE
-- (void) set_check_for_updates_menu_item {
+- (void) setup_sparkle {
     if(check_for_updates_item)
         return; // already did it...
 
@@ -330,7 +326,15 @@ BOOL xquartz_resetenv_display = NO;
     [check_for_updates_item setTarget:[SUUpdater sharedUpdater]];
     [check_for_updates_item setEnabled:YES];
 
+    // Set X11Controller as the delegate for the updater.
+    [[SUUpdater sharedUpdater] setDelegate:self];
 }
+
+// Sent immediately before installing the specified update.
+- (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update {
+    [self set_can_quit:YES];
+}
+
 #endif
 
 - (void) launch_client:(NSString *)filename

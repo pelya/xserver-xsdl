@@ -970,7 +970,7 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
         fprintf(stderr, "Error initializing xpbproxy\n");
 
 #if XQUARTZ_SPARKLE
-    [[X11App controller] set_check_for_updates_menu_item];
+    [[X11App controller] setup_sparkle];
     [[SUUpdater sharedUpdater] resetUpdateCycle];
 //    [[SUUpdater sharedUpdater] checkForUpdates:X11App];
 #endif
