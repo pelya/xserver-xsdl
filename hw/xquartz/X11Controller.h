@@ -30,6 +30,10 @@
 #ifndef X11CONTROLLER_H
 #define X11CONTROLLER_H 1
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #if __OBJC__
 
 #include "sanitizedCocoa.h"
@@ -64,6 +68,9 @@
     IBOutlet NSMenuItem *dock_window_separator;
     IBOutlet NSMenuItem *apps_separator;
     IBOutlet NSMenuItem *toggle_fullscreen_item;
+#ifdef XQUARTZ_SPARKLE
+    NSMenuItem *check_for_updates_item; // Programatically enabled
+#endif
     IBOutlet NSMenuItem *copy_menu_item;
     IBOutlet NSMenu *dock_apps_menu;
     IBOutlet NSTableView *apps_table;
@@ -83,6 +90,9 @@
 - (void) set_window_menu:(NSArray *)list;
 - (void) set_window_menu_check:(NSNumber *)n;
 - (void) set_apps_menu:(NSArray *)list;
+#ifdef XQUARTZ_SPARKLE
+- (void) set_check_for_updates_menu_item;
+#endif
 - (void) set_can_quit:(OSX_BOOL)state;
 - (void) server_ready;
 

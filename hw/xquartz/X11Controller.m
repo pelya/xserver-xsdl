@@ -53,6 +53,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef XQUARTZ_SPARKLE
+#include <Sparkle/SUUpdater.h>
+#endif
+
 BOOL xquartz_resetenv_display = NO;
 
 @implementation X11Controller
@@ -311,6 +315,23 @@ BOOL xquartz_resetenv_display = NO;
   [self remove_apps_menu];
   [self install_apps_menu:list];
 }
+
+#ifdef XQUARTZ_SPARKLE
+- (void) set_check_for_updates_menu_item {
+    if(check_for_updates_item)
+        return; // already did it...
+
+    NSMenu *menu = [x11_about_item menu];
+
+    check_for_updates_item = [menu insertItemWithTitle:NSLocalizedString(@"Check for X11 Updates...", @"Check for X11 Updates...")
+                                               action:@selector (checkForUpdates:)
+                                        keyEquivalent:@""
+                                              atIndex:1];
+    [check_for_updates_item setTarget:[SUUpdater sharedUpdater]];
+    [check_for_updates_item setEnabled:YES];
+
+}
+#endif
 
 - (void) launch_client:(NSString *)filename
 {

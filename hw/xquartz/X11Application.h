@@ -56,6 +56,7 @@
 - (void) prefs_set_string:(NSString *)key value:(NSString *)value;
 - (void) prefs_synchronize;
 
+- (X11Controller *) controller;
 - (OSX_BOOL) x_active;
 @end
 
