@@ -575,7 +575,7 @@ winCreateWindowsWindow (WindowPtr pWin)
   if (hIconSmall) SendMessage (hWnd, WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
  
   /* Change style back to popup, already placed... */
-  SetWindowLong (hWnd, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+  SetWindowLongPtr(hWnd, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
   SetWindowPos (hWnd, 0, 0, 0, 0, 0,
 		SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
   /* Make sure it gets the proper system menu for a WS_POPUP, too */

@@ -313,7 +313,7 @@ HandleCustomWM_INITMENU(unsigned long hwndIn,
   if (!hwnd || !hmenu) 
     return;
   
-  if (GetWindowLong (hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST)
+  if (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST)
     dwExStyle = MF_BYCOMMAND | MF_CHECKED;
   else
     dwExStyle = MF_BYCOMMAND | MF_UNCHECKED;
@@ -408,7 +408,7 @@ HandleCustomWM_COMMAND (unsigned long hwndIn,
 		    return FALSE;
 
 		  /* Get extended window style */
-		  dwExStyle = GetWindowLong (hwnd, GWL_EXSTYLE);
+		  dwExStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
 		  
 		  /* Handle topmost windows */
 		  if (dwExStyle & WS_EX_TOPMOST)

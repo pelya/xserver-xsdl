@@ -150,7 +150,7 @@ winURLWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       SetCursor (cursor);
     return TRUE;
   }
-  origCB = (WNDPROC)GetWindowLong (hwnd, GWL_USERDATA);
+  origCB = (WNDPROC)GetWindowLongPtr(hwnd, GWL_USERDATA);
   /* Otherwise fall through to original WndProc */
   if (origCB)
     return CallWindowProc (origCB, hwnd, msg, wParam, lParam);
@@ -167,19 +167,19 @@ static void
 winOverrideURLButton (HWND hwnd, int id)
 {
   WNDPROC origCB;
-  origCB = (WNDPROC)SetWindowLong (GetDlgItem (hwnd, id),
-				   GWL_WNDPROC, (LONG)winURLWndProc);
-  SetWindowLong (GetDlgItem (hwnd, id), GWL_USERDATA, (LONG)origCB);
+  origCB = (WNDPROC)SetWindowLongPtr(GetDlgItem (hwnd, id),
+                                     GWL_WNDPROC, (LONG_PTR)winURLWndProc);
+  SetWindowLongPtr(GetDlgItem (hwnd, id), GWL_USERDATA, (LONG_PTR)origCB);
 }
 
 static void
 winUnoverrideURLButton (HWND hwnd, int id)
 {
   WNDPROC origCB;
-  origCB = (WNDPROC)SetWindowLong (GetDlgItem (hwnd, id),
-				   GWL_USERDATA, 0);
+  origCB = (WNDPROC)SetWindowLongPtr(GetDlgItem (hwnd, id),
+                                     GWL_USERDATA, 0);
   if (origCB)
-    SetWindowLong (GetDlgItem (hwnd, id), GWL_WNDPROC, (LONG)origCB);
+    SetWindowLongPtr(GetDlgItem (hwnd, id), GWL_WNDPROC, (LONG_PTR)origCB);
 }
 
 
@@ -200,13 +200,13 @@ winInitDialog (HWND hwndDlg)
     hwndDesk = GetDesktopWindow (); 
   
   /* Remove minimize and maximize buttons */
-  SetWindowLong (hwndDlg, GWL_STYLE,
-		 GetWindowLong (hwndDlg, GWL_STYLE)
-		 & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
+  SetWindowLongPtr(hwndDlg, GWL_STYLE,
+                   GetWindowLongPtr(hwndDlg, GWL_STYLE)
+                   & ~(WS_MAXIMIZEBOX | WS_MINIMIZEBOX));
 
   /* Set Window not to show in the task bar */
-  SetWindowLong (hwndDlg, GWL_EXSTYLE,
-		 GetWindowLong (hwndDlg, GWL_EXSTYLE) & ~WS_EX_APPWINDOW );
+  SetWindowLongPtr(hwndDlg, GWL_EXSTYLE,
+                   GetWindowLongPtr(hwndDlg, GWL_EXSTYLE) & ~WS_EX_APPWINDOW );
 
   /* Center dialog window in the screen. Not done for multi-monitor systems, where
    * it is likely to end up split across the screens. In that case, it appears
