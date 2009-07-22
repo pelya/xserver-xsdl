@@ -3347,6 +3347,7 @@ CheckPassiveGrabsOnWindow(
     {
 	DeviceIntPtr	gdev;
 	XkbSrvInfoPtr	xkbi = NULL;
+	Mask		mask;
 
 	gdev= grab->modifierDevice;
         if (grab->grabtype == GRABTYPE_CORE)
@@ -3461,6 +3462,7 @@ CheckPassiveGrabsOnWindow(
                 }
                 xE = &core;
                 count = 1;
+                mask = grab->eventMask;
             } else if (match & XI2_MATCH)
             {
                 rc = EventToXI2((InternalEvent*)event, &xE);
@@ -3472,6 +3474,7 @@ CheckPassiveGrabsOnWindow(
                     continue;
                 }
                 count = 1;
+                mask = grab->xi2mask[device->id][((xGenericEvent*)xE)->evtype/8];
             } else
             {
                 rc = EventToXI((InternalEvent*)event, &xE, &count);
@@ -3482,6 +3485,7 @@ CheckPassiveGrabsOnWindow(
                                 "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
+                mask = grab->eventMask;
             }
 
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
@@ -3490,8 +3494,7 @@ CheckPassiveGrabsOnWindow(
             {
                 FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
-                TryClientEvents(rClient(grab), device, xE, count,
-                                       GetEventFilter(device, xE),
+                TryClientEvents(rClient(grab), device, xE, count, mask,
                                        GetEventFilter(device, xE), grab);
             }
 
