@@ -3474,7 +3474,16 @@ CheckPassiveGrabsOnWindow(
                     continue;
                 }
                 count = 1;
-                mask = grab->xi2mask[device->id][((xGenericEvent*)xE)->evtype/8];
+
+                /* FIXME: EventToXI2 returns NULL for enter events, so
+                 * dereferencing the event is bad. Internal event types are
+                 * aligned with core events, so the else clause is valid.
+                 * long-term we should use internal events for enter/focus
+                 * as well */
+                if (xE)
+                    mask = grab->xi2mask[device->id][((xGenericEvent*)xE)->evtype/8];
+                else if (event->type == XI_Enter || event->type == XI_FocusIn)
+                    mask = grab->xi2mask[device->id][event->type/8];
             } else
             {
                 rc = EventToXI((InternalEvent*)event, &xE, &count);
