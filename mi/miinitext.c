@@ -159,7 +159,7 @@ typedef void (*InitExtension)(INITARGS);
 #include <X11/extensions/shm.h>
 #endif
 #ifdef XTEST
-#include <X11/extensions/xtest.h>
+#include <X11/extensions/xtestconst.h>
 #endif
 #include <X11/extensions/XKB.h>
 #ifdef XCSECURITY
