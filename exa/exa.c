@@ -48,17 +48,6 @@ DevPrivateKey exaGCPrivateKey = &exaGCPrivateKeyIndex;
 static ShmFuncs exaShmFuncs = { NULL, NULL };
 #endif
 
-static _X_INLINE void*
-ExaGetPixmapAddress(PixmapPtr p)
-{
-    ExaPixmapPriv(p);
-
-    if (pExaPixmap->offscreen && pExaPixmap->fb_ptr)
-	return pExaPixmap->fb_ptr;
-    else
-	return pExaPixmap->sys_ptr;
-}
-
 /**
  * exaGetPixmapOffset() returns the offset (in bytes) within the framebuffer of
  * the beginning of the given pixmap.
@@ -178,45 +167,6 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
     REGION_UNINIT(pScreen, &region);
 }
 
-static Bool
-exaDestroyPixmap (PixmapPtr pPixmap)
-{
-    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
-    ExaScreenPriv(pScreen);
-    Bool ret;
-
-    if (pPixmap->refcnt == 1)
-    {
-	ExaPixmapPriv (pPixmap);
-
-	if (pExaPixmap->driverPriv) {
-	    pExaScr->info->DestroyPixmap(pScreen, pExaPixmap->driverPriv);
-	    pExaPixmap->driverPriv = NULL;
-	}
-
-	if (pExaPixmap->area)
-	{
-	    DBG_PIXMAP(("-- 0x%p (0x%x) (%dx%d)\n",
-                        (void*)pPixmap->drawable.id,
-			 ExaGetPixmapPriv(pPixmap)->area->offset,
-			 pPixmap->drawable.width,
-			 pPixmap->drawable.height));
-	    /* Free the offscreen area */
-	    exaOffscreenFree (pPixmap->drawable.pScreen, pExaPixmap->area);
-	    pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
-	    pPixmap->devKind = pExaPixmap->sys_pitch;
-	}
-	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validSys);
-	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validFB);
-    }
-
-    swap(pExaScr, pScreen, DestroyPixmap);
-    ret = pScreen->DestroyPixmap (pPixmap);
-    swap(pExaScr, pScreen, DestroyPixmap);
-
-    return ret;
-}
-
 static int
 exaLog2(int val)
 {
@@ -229,7 +179,7 @@ exaLog2(int val)
     return bits - 1;
 }
 
-static void
+void
 exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
                  int w, int h, int bpp)
 {
@@ -253,7 +203,7 @@ exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
         pExaPixmap->accel_blocked |= EXA_RANGE_HEIGHT;
 }
 
-static void
+void
 exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
               int w, int h, int bpp)
 {
@@ -264,227 +214,6 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
 
     pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
                                      pExaScr->info->pixmapPitchAlign);
-}
-
-/**
- * exaCreatePixmap() creates a new pixmap.
- *
- * If width and height are 0, this won't be a full-fledged pixmap and it will
- * get ModifyPixmapHeader() called on it later.  So, we mark it as pinned, because
- * ModifyPixmapHeader() would break migration.  These types of pixmaps are used
- * for scratch pixmaps, or to represent the visible screen.
- */
-static PixmapPtr
-exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
-		unsigned usage_hint)
-{
-    PixmapPtr		pPixmap;
-    ExaPixmapPrivPtr	pExaPixmap;
-    BoxRec box;
-    int                 driver_alloc = 0;
-    int			bpp;
-    ExaScreenPriv(pScreen);
-
-    if (w > 32767 || h > 32767)
-	return NullPixmap;
-
-    swap(pExaScr, pScreen, CreatePixmap);
-    if (!pExaScr->info->CreatePixmap && !pExaScr->info->CreatePixmap2) {
-        pPixmap = pScreen->CreatePixmap (pScreen, w, h, depth, usage_hint);
-    } else {
-        driver_alloc = 1;
-        pPixmap = pScreen->CreatePixmap(pScreen, 0, 0, depth, usage_hint);
-    }
-    swap(pExaScr, pScreen, CreatePixmap);
-
-    if (!pPixmap)
-        return NULL;
-
-    pExaPixmap = ExaGetPixmapPriv(pPixmap);
-    pExaPixmap->driverPriv = NULL;
-
-    bpp = pPixmap->drawable.bitsPerPixel;
-
-    if (driver_alloc) {
-        size_t paddedWidth, datasize;
-
-	paddedWidth = ((w * bpp + FB_MASK) >> FB_SHIFT) * sizeof(FbBits);
-        if (paddedWidth / 4 > 32767 || h > 32767)
-            return NullPixmap;
-
-        exaSetFbPitch(pExaScr, pExaPixmap, w, h, bpp);
-
-        if (paddedWidth < pExaPixmap->fb_pitch)
-            paddedWidth = pExaPixmap->fb_pitch;
-
-        datasize = h * paddedWidth;
-
-	/* Set this before driver hooks, to allow for !offscreen pixmaps.
-	 * !offscreen pixmaps have a valid pointer at all times.
-	 */
-	pPixmap->devPrivate.ptr = NULL;
-
-	if (pExaScr->info->CreatePixmap2)
-        	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp);
-	else
-        	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
-        if (!pExaPixmap->driverPriv) {
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    pScreen->DestroyPixmap (pPixmap);
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    return NULL;
-        }
-
-	/* Allow ModifyPixmapHeader to set sys_ptr appropriately. */
-	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
-	pExaPixmap->fb_ptr = NULL;
-	pExaPixmap->pDamage = NULL;
-	pExaPixmap->sys_ptr = NULL;
-
-	(*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
-					paddedWidth, NULL);
-
-    } else {
-        pExaPixmap->driverPriv = NULL;
-        /* Scratch pixmaps may have w/h equal to zero, and may not be
-	 * migrated.
-	 */
-        if (!w || !h)
-	    pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
-        else
-            pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
-
-        pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
-        pExaPixmap->sys_pitch = pPixmap->devKind;
-
-        pPixmap->devPrivate.ptr = NULL;
-        pExaPixmap->offscreen = FALSE;
-
-        pExaPixmap->fb_ptr = NULL;
-        exaSetFbPitch(pExaScr, pExaPixmap, w, h, bpp);
-        pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
-
-        if (pExaPixmap->fb_pitch > 131071) {
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    pScreen->DestroyPixmap (pPixmap);
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    return NULL;
-        }
-
-	/* Set up damage tracking */
-	pExaPixmap->pDamage = DamageCreate (NULL, NULL,
-					    DamageReportNone, TRUE,
-					    pScreen, pPixmap);
-
-	if (pExaPixmap->pDamage == NULL) {
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    pScreen->DestroyPixmap (pPixmap);
-	    swap(pExaScr, pScreen, DestroyPixmap);
-	    return NULL;
-	}
-
-	DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
-	/* This ensures that pending damage reflects the current operation. */
-	/* This is used by exa to optimize migration. */
-	DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
-    }
-
-    pExaPixmap->area = NULL;
-
-    /* We set the initial pixmap as completely valid for a simple reason.
-     * Imagine a 1000x1000 pixmap, it has 1 million pixels, 250000 of which
-     * could form single pixel rects as part of a region. Setting the complete region
-     * as valid is a natural defragmentation of the region.
-     */
-    box.x1 = 0;
-    box.y1 = 0;
-    box.x2 = w;
-    box.y2 = h;
-    REGION_INIT(pScreen, &pExaPixmap->validSys, &box, 0);
-    REGION_INIT(pScreen, &pExaPixmap->validFB, &box, 0);
-
-    exaSetAccelBlock(pExaScr, pExaPixmap,
-                     w, h, bpp);
-
-    return pPixmap;
-}
-
-static Bool
-exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
-		      int bitsPerPixel, int devKind, pointer pPixData)
-{
-    ExaScreenPrivPtr pExaScr;
-    ExaPixmapPrivPtr pExaPixmap;
-    Bool ret;
-
-    if (!pPixmap)
-        return FALSE;
-
-    pExaScr = ExaGetScreenPriv(pPixmap->drawable.pScreen);
-    pExaPixmap = ExaGetPixmapPriv(pPixmap);
-
-    if (pExaPixmap) {
-        if (pPixData)
-            pExaPixmap->sys_ptr = pPixData;
-
-        if (devKind > 0)
-            pExaPixmap->sys_pitch = devKind;
-
-	/* Classic EXA:
-	 * - Framebuffer.
-	 * - Scratch pixmap with offscreen memory.
-	 */
-	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS) &&
-		pExaScr->info->memoryBase && pPixData) {
-	    if ((CARD8 *)pPixData >= pExaScr->info->memoryBase &&
-		((CARD8 *)pPixData - pExaScr->info->memoryBase) <
-				pExaScr->info->memorySize) {
-		pExaPixmap->fb_ptr = pPixData;
-		pExaPixmap->fb_pitch = devKind;
-		pExaPixmap->offscreen = TRUE;
-	    }
-	}
-
-        if (width > 0 && height > 0 && bitsPerPixel > 0) {
-            exaSetFbPitch(pExaScr, pExaPixmap,
-                          width, height, bitsPerPixel);
-
-            exaSetAccelBlock(pExaScr, pExaPixmap,
-                             width, height, bitsPerPixel);
-        }
-
-	/* Pixmaps subject to ModifyPixmapHeader will be pinned to system or
-	 * offscreen memory, so there's no need to track damage.
-	 */
-	if (pExaPixmap->pDamage) {
-	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
-	    DamageDestroy(pExaPixmap->pDamage);
-	    pExaPixmap->pDamage = NULL;
-	}
-    }
-
-    if (pExaScr->info->ModifyPixmapHeader) {
-	ret = pExaScr->info->ModifyPixmapHeader(pPixmap, width, height, depth,
-						bitsPerPixel, devKind, pPixData);
-	/* For EXA_HANDLES_PIXMAPS, we set pPixData to NULL.
-	 * If pPixmap->devPrivate.ptr is non-NULL, then we've got a non-offscreen pixmap.
-	 * We need to store the pointer, because PrepareAccess won't be called.
-	 */
-	if (!pPixData && pPixmap->devPrivate.ptr && pPixmap->devKind) {
-	    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
-	    pExaPixmap->sys_pitch = pPixmap->devKind;
-	}
-	if (ret == TRUE)
-	    goto out;
-    }
-    ret = pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
-					    bitsPerPixel, devKind, pPixData);
-
-out:
-    /* Always NULL this, we don't want lingering pointers. */
-    pPixmap->devPrivate.ptr = NULL;
-
-    return ret;
 }
 
 /**
@@ -500,21 +229,15 @@ out:
  * @return TRUE if the given drawable is in framebuffer memory.
  */
 Bool
-exaPixmapIsOffscreen(PixmapPtr p)
+exaPixmapIsOffscreen(PixmapPtr pPixmap)
 {
-    ScreenPtr	pScreen = p->drawable.pScreen;
+    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
-    ExaPixmapPriv(p);
-    Bool ret;
 
-    if (pExaScr->info->PixmapIsOffscreen) {
-	p->devPrivate.ptr = ExaGetPixmapAddress(p);
-	ret = pExaScr->info->PixmapIsOffscreen(p);
-	p->devPrivate.ptr = NULL;
-    } else
-	ret = (pExaPixmap->offscreen && pExaPixmap->fb_ptr);
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return FALSE;
 
-    return ret;
+    return pExaScr->pixmap_is_offscreen(pPixmap);
 }
 
 /**
@@ -1313,10 +1036,19 @@ exaDriverInit (ScreenPtr		pScreen,
 		       pScreen->myNum);
 	    return FALSE;
         }
-	wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap);
-	wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap);
-
-	wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader);
+	if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS) {
+	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_driver);
+	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
+	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
+	    pExaScr->do_migration = NULL;
+	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
+	} else {
+	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_classic);
+	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_classic);
+	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_classic);
+	    pExaScr->do_migration = exaDoMigration_classic;
+	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_classic;
+	}
 	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
 		       pScreen->myNum,
@@ -1413,4 +1145,22 @@ void exaWaitSync(ScreenPtr pScreen)
         (*pExaScr->info->WaitMarker)(pScreen, pExaScr->info->lastMarker);
         pExaScr->info->needsSync = FALSE;
     }
+}
+
+/**
+ * Performs migration of the pixmaps according to the operation information
+ * provided in pixmaps and can_accel and the migration scheme chosen in the
+ * config file.
+ */
+void
+exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+{
+    ScreenPtr pScreen = pixmaps[0].pPix->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return;
+
+    if (pExaScr->do_migration)
+	pExaScr->do_migration(pixmaps, npixmaps, can_accel);
 }

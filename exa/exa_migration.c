@@ -607,16 +607,11 @@ out:
  * config file.
  */
 void
-exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
+exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 {
     ScreenPtr pScreen = pixmaps[0].pPix->drawable.pScreen;
     ExaScreenPriv(pScreen);
     int i, j;
-
-    if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
-        return;
-    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
-	return;
 
     /* If this debugging flag is set, check each pixmap for whether it is marked
      * as clean, and if so, actually check if that's the case.  This should help

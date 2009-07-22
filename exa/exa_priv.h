@@ -142,6 +142,13 @@ typedef struct {
 #define EXA_FALLBACK_COPYWINDOW (1 << 0)
 #define EXA_ACCEL_COPYWINDOW (1 << 1)
 
+typedef struct _ExaMigrationRec {
+    Bool as_dst;
+    Bool as_src;
+    PixmapPtr pPix;
+    RegionPtr pReg;
+} ExaMigrationRec, *ExaMigrationPtr;
+
 typedef void (*EnableDisableFBAccessProcPtr)(int, Bool);
 typedef struct {
     ExaDriverPtr info;
@@ -165,7 +172,9 @@ typedef struct {
     TrapezoidsProcPtr            SavedTrapezoids;
     AddTrapsProcPtr		 SavedAddTraps;
 #endif
-  
+    void (*do_migration) (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
+    Bool (*pixmap_is_offscreen) (PixmapPtr pPixmap);
+
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
     Bool			 checkDirtyCorrectness;
@@ -303,13 +312,6 @@ typedef struct {
     GCFuncs *Savedfuncs;
 } ExaGCPrivRec, *ExaGCPrivPtr;
 
-typedef struct _ExaMigrationRec {
-    Bool as_dst;
-    Bool as_src;
-    PixmapPtr pPix;
-    RegionPtr pReg;
-} ExaMigrationRec, *ExaMigrationPtr;
-
 typedef struct {
     PicturePtr pDst;
     INT16 xSrc;
@@ -443,6 +445,34 @@ void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d);
 
+RegionPtr
+exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
+	    int srcx, int srcy, int width, int height, int dstx, int dsty);
+
+Bool
+exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
+	     DrawablePtr    pDstDrawable,
+	     GCPtr	    pGC,
+	     BoxPtr	    pbox,
+	     int	    nbox,
+	     int	    dx,
+	     int	    dy,
+	     Bool	    reverse,
+	     Bool	    upsidedown);
+
+void
+exaCopyNtoN (DrawablePtr    pSrcDrawable,
+	     DrawablePtr    pDstDrawable,
+	     GCPtr	    pGC,
+	     BoxPtr	    pbox,
+	     int	    nbox,
+	     int	    dx,
+	     int	    dy,
+	     Bool	    reverse,
+	     Bool	    upsidedown,
+	     Pixel	    bitplane,
+	     void	    *closure);
+
 extern const GCOps exaOps;
 
 #ifdef RENDER
@@ -506,35 +536,48 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp);
 PixmapPtr
 exaGetDrawablePixmap(DrawablePtr pDrawable);
 
-RegionPtr
-exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
-	    int srcx, int srcy, int width, int height, int dstx, int dsty);
-
-Bool
-exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
-	     DrawablePtr    pDstDrawable,
-	     GCPtr	    pGC,
-	     BoxPtr	    pbox,
-	     int	    nbox,
-	     int	    dx,
-	     int	    dy,
-	     Bool	    reverse,
-	     Bool	    upsidedown);
+void
+exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
+              int w, int h, int bpp);
 
 void
-exaCopyNtoN (DrawablePtr    pSrcDrawable,
-	     DrawablePtr    pDstDrawable,
-	     GCPtr	    pGC,
-	     BoxPtr	    pbox,
-	     int	    nbox,
-	     int	    dx,
-	     int	    dy,
-	     Bool	    reverse,
-	     Bool	    upsidedown,
-	     Pixel	    bitplane,
-	     void	    *closure);
+exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
+                 int w, int h, int bpp);
+
+void
+exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
 extern const GCFuncs exaGCFuncs;
+
+/* exa_classic.c */
+PixmapPtr
+exaCreatePixmap_classic(ScreenPtr pScreen, int w, int h, int depth,
+		unsigned usage_hint);
+
+Bool
+exaModifyPixmapHeader_classic(PixmapPtr pPixmap, int width, int height, int depth,
+		      int bitsPerPixel, int devKind, pointer pPixData);
+
+Bool
+exaDestroyPixmap_classic (PixmapPtr pPixmap);
+
+Bool
+exaPixmapIsOffscreen_classic(PixmapPtr pPixmap);
+
+/* exa_driver.c */
+PixmapPtr
+exaCreatePixmap_driver(ScreenPtr pScreen, int w, int h, int depth,
+		unsigned usage_hint);
+
+Bool
+exaModifyPixmapHeader_driver(PixmapPtr pPixmap, int width, int height, int depth,
+		      int bitsPerPixel, int devKind, pointer pPixData);
+
+Bool
+exaDestroyPixmap_driver (PixmapPtr pPixmap);
+
+Bool
+exaPixmapIsOffscreen_driver(PixmapPtr pPixmap);
 
 /* exa_render.c */
 Bool
@@ -592,7 +635,7 @@ exaGlyphs (CARD8	op,
 
 /* exa_migration.c */
 void
-exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
+exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
 void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area);

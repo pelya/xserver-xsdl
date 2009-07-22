@@ -1015,7 +1015,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
 	(*pExaScr->info->DoneSolid) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
 
-	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS) &&
+	if (pExaPixmap->pDamage &&
 	    pDrawable->width == 1 && pDrawable->height == 1 &&
 	    pDrawable->bitsPerPixel != 24) {
 	    ExaPixmapPriv(pPixmap);
@@ -1233,13 +1233,14 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 {
     ExaScreenPriv (pDrawable->pScreen);
     PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPrivPtr pExaPixmap = ExaGetPixmapPriv (pPix);
     int xoff, yoff;
     Bool ok;
 
     if (pExaScr->swappedOut)
 	goto fallback;
 
-    if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
+    if (pExaPixmap->pDamage) {
 	BoxRec Box;
 	RegionRec Reg;
 	ExaMigrationRec pixmaps[1];
