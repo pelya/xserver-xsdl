@@ -2062,9 +2062,11 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
            int x, int y, int width, int height, 
            Mask planemask, xGetImageReply **im_return)
 {
-    DrawablePtr		pDraw;
+    DrawablePtr		pDraw, pBoundingDraw;
     int			nlines, linesPerBuf, rc;
-    int	linesDone;
+    int			linesDone;
+    /* coordinates relative to the bounding drawable */
+    int			relx, rely;
     long		widthBytesLine, length;
     Mask		plane = 0;
     char		*pBuf;
@@ -2081,34 +2083,58 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	return rc;
 
     memset(&xgi, 0, sizeof(xGetImageReply));
+
+    relx = x;
+    rely = y;
+
     if(pDraw->type == DRAWABLE_WINDOW)
     {
-      if( /* check for being viewable */
-	 !((WindowPtr) pDraw)->realized ||
-	  /* check for being on screen */
-         pDraw->x + x < 0 ||
- 	 pDraw->x + x + width > pDraw->pScreen->width ||
-         pDraw->y + y < 0 ||
-         pDraw->y + y + height > pDraw->pScreen->height ||
-          /* check for being inside of border */
-         x < - wBorderWidth((WindowPtr)pDraw) ||
-         x + width > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||
-         y < -wBorderWidth((WindowPtr)pDraw) ||
-         y + height > wBorderWidth ((WindowPtr)pDraw) + (int)pDraw->height
-        )
-	    return(BadMatch);
-	xgi.visual = wVisual (((WindowPtr) pDraw));
+	WindowPtr pWin = (WindowPtr)pDraw;
+
+	/* "If the drawable is a window, the window must be viewable ... or a
+	 * BadMatch error results" */
+	if (!pWin->viewable)
+	    return BadMatch;
+
+	relx += pDraw->x;
+	rely += pDraw->y;
+
+	if (pDraw->pScreen->GetWindowPixmap) {
+	    PixmapPtr pPix = (*pDraw->pScreen->GetWindowPixmap) (pWin);
+
+	    pBoundingDraw = &pPix->drawable;
+#ifdef COMPOSITE
+	    relx -= pPix->screen_x;
+	    rely -= pPix->screen_y;
+#endif
+	}
+	else
+	{
+	    pBoundingDraw = (DrawablePtr)WindowTable[pDraw->pScreen->myNum];
+	}
+
+	xgi.visual = wVisual (pWin);
     }
     else
     {
-      if(x < 0 ||
-         x+width > (int)pDraw->width ||
-         y < 0 ||
-         y+height > (int)pDraw->height
-        )
-	    return(BadMatch);
+	pBoundingDraw = pDraw;
 	xgi.visual = None;
     }
+
+    /* "If the drawable is a pixmap, the given rectangle must be wholly
+     *  contained within the pixmap, or a BadMatch error results.  If the
+     *  drawable is a window [...] it must be the case that if there were no
+     *  inferiors or overlapping windows, the specified rectangle of the window
+     *  would be fully visible on the screen and wholly contained within the
+     *  outside edges of the window, or a BadMatch error results."
+     *
+     * We relax the window case slightly to mean that the rectangle must exist
+     * within the bounds of the window's backing pixmap.  In particular, this
+     * means that a GetImage request may succeed or fail with BadMatch depending
+     * on whether any of its ancestor windows are redirected.  */
+    if(relx < 0 || relx + width > (int)pBoundingDraw->width ||
+       rely < 0 || rely + height > (int)pBoundingDraw->height)
+	return BadMatch;
 
     xgi.type = X_Reply;
     xgi.sequenceNumber = client->sequence;
