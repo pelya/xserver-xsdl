@@ -80,7 +80,8 @@ DIST_SUBDIRS = \
 	glx \
 	exa \
 	config \
-	hw
+	hw \
+	test
 
 # gross hack
 relink: all
