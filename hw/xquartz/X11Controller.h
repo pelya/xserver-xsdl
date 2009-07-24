@@ -67,8 +67,13 @@
     IBOutlet NSTextField *sync_text2;
     IBOutlet NSPopUpButton *depth;
 
-    IBOutlet NSMenuItem *x11_about_item;
     IBOutlet NSMenuItem *window_separator;
+    // window_separator is DEPRECATED due to this radar:
+    // <rdar://problem/7088335> NSApplication releases the separator in the Windows menu even though it's an IBOutlet
+    // It is kept around for localization compatability and is subject to removal "eventually"
+    // If it is !NULL (meaning it is in the nib), it is removed from the menu and released
+
+    IBOutlet NSMenuItem *x11_about_item;
     IBOutlet NSMenuItem *dock_window_separator;
     IBOutlet NSMenuItem *apps_separator;
     IBOutlet NSMenuItem *toggle_fullscreen_item;
@@ -83,6 +88,9 @@
     NSMutableArray *table_apps;
 
     IBOutlet NSMenu *dock_menu;
+    
+    // This is where in the Windows menu we'll start (this will be the index of the separator)
+    NSInteger windows_menu_start;
 
     int checked_window_item;
     x_list *pending_apps;

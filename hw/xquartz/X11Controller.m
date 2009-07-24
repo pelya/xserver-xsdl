@@ -103,7 +103,14 @@ BOOL xquartz_resetenv_display = NO;
      selector: @selector(apps_table_done:)
      name: NSWindowWillCloseNotification
      object: [apps_table window]];
+
+    // Setup data about our Windows menu
+    if(window_separator) {
+        [[window_separator menu] removeItem:window_separator];
+        window_separator = nil;
+    }
     
+    windows_menu_start = [[X11App windowsMenu] numberOfItems];
 }
 
 - (void) item_selected:sender
@@ -117,17 +124,15 @@ BOOL xquartz_resetenv_display = NO;
 - (void) remove_window_menu
 {
   NSMenu *menu;
-  int first, count, i;
-	
+  int count, i;
+
   /* Work backwards so we don't mess up the indices */
-  menu = [window_separator menu];
-  first = [menu indexOfItem:window_separator] + 1;
+  menu = [X11App windowsMenu];
   count = [menu numberOfItems];
-  for (i = count - 1; i >= first; i--)
+  for (i = count - 1; i >= windows_menu_start; i--)
     [menu removeItemAtIndex:i];
 	
-  menu = [dock_window_separator menu];
-  count = [menu indexOfItem:dock_window_separator];
+  count = [dock_menu indexOfItem:dock_window_separator];
   for (i = 0; i < count; i++)
     [dock_menu removeItemAtIndex:0];
 }
@@ -138,9 +143,15 @@ BOOL xquartz_resetenv_display = NO;
   NSMenuItem *item;
   int first, count, i;
 
-  menu = [window_separator menu];
-  first = [menu indexOfItem:window_separator] + 1;
+  menu = [X11App windowsMenu];
+  first = windows_menu_start + 1;
   count = [list count];
+  
+  // Push a Separator
+  if(count) {
+      [menu addItem:[NSMenuItem separatorItem]];
+  }
+
   for (i = 0; i < count; i++)
     {
       NSString *name, *shortcut;
@@ -285,8 +296,8 @@ BOOL xquartz_resetenv_display = NO;
   int first, count;
   int n = [nn intValue];
 
-  menu = [window_separator menu];
-  first = [menu indexOfItem:window_separator] + 1;
+  menu = [X11App windowsMenu];
+  first = windows_menu_start + 1;
   count = [menu numberOfItems] - first;
 	
   if (checked_window_item >= 0 && checked_window_item < count)
@@ -729,9 +740,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
     
   if (item == toggle_fullscreen_item)
     return !quartzEnableRootless;
-  else   if (item == copy_menu_item) // For some reason, this isn't working...
-      return NO;
-  else if (menu == [window_separator menu] || menu == dock_menu
+  else if (menu == [X11App windowsMenu] || menu == dock_menu
 	   || (menu == [x11_about_item menu] && [item tag] == 42))
     return (AppleWMSelectedEvents () & AppleWMControllerNotifyMask) != 0;
   else
