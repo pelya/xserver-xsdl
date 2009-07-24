@@ -218,7 +218,7 @@ xf86CloseConsole(void)
 
 #if !defined(__i386__) && !defined(__i386) && !defined(__x86)
 
-    if (!xf86DoProbe && !xf86DoConfigure) {
+    if (!xf86DoConfigure) {
 	int fd;
 
 	/*

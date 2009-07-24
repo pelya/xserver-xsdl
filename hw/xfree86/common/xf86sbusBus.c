@@ -401,11 +401,6 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 	return 0;
     }
 
-    if (xf86DoProbe) {
-	xfree(instances);
-	return numFound;
-    }
-
     if (sparcPromInit() >= 0)
 	useProm = 1;
 

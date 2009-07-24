@@ -92,7 +92,6 @@
 /* forward declarations */
 static Bool probe_devices_from_device_sections(DriverPtr drvp);
 static Bool add_matching_devices_to_configure_list(DriverPtr drvp);
-static Bool check_for_matching_devices(DriverPtr drvp);
 
 #ifdef XF86PM
 void (*xf86OSPMClose)(void) = NULL;
@@ -475,32 +474,6 @@ add_matching_devices_to_configure_list(DriverPtr drvp)
     return (numFound != 0);
 }
 
-
-Bool
-check_for_matching_devices(DriverPtr drvp)
-{
-    const struct pci_id_match * const devices = drvp->supported_devices;
-    int j;
-
-
-    for (j = 0; ! END_OF_MATCHES(devices[j]); j++) {
-	struct pci_device_iterator *iter;
-	struct pci_device *dev;
-
-	iter = pci_id_match_iterator_create(& devices[j]);
-	dev = pci_device_next(iter);
-	pci_iterator_destroy(iter);
-
-	if (dev != NULL) {
-	    return TRUE;
-	}
-    }
-
-
-    return FALSE;
-}
-
-
 /**
  * Call the driver's correct probe function.
  *
@@ -522,11 +495,7 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     Bool     foundScreen = FALSE;
 
     if ( drv->PciProbe != NULL ) {
-	if ( xf86DoProbe ) {
-	    assert( detect_only );
-	    foundScreen = check_for_matching_devices( drv );
-	}
-	else if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
+	if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
 	    assert( detect_only );
 	    foundScreen = add_matching_devices_to_configure_list( drv );
 	}
@@ -544,76 +513,6 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     }
 
     return foundScreen;
-}
-
-static void
-DoProbe(void)
-{
-    int i;
-    Bool probeResult;
-    Bool ioEnableFailed = FALSE;
-    
-    /* Find the list of video driver modules. */
-    char **list = xf86DriverlistFromCompile();
-    char **l;
-
-    if (list) {
-	ErrorF("List of video driver modules:\n");
-	for (l = list; *l; l++)
-	    ErrorF("\t%s\n", *l);
-    } else {
-	ErrorF("No video driver modules found\n");
-    }
-
-    /* Load all the drivers that were found. */
-    xf86LoadModules(list, NULL);
-
-    /* Disable PCI devices */
-    xf86AccessInit();
-
-    /* Call all of the probe functions, reporting the results. */
-    for (i = 0; i < xf86NumDrivers; i++) {
-	DriverRec * const drv = xf86DriverList[i];
-
-	if (!xorgHWAccess) {
-	    xorgHWFlags flags;
-	    if (!drv->driverFunc
-		|| !drv->driverFunc( NULL, GET_REQUIRED_HW_INTERFACES, &flags )
-		|| NEED_IO_ENABLED(flags)) {
-		if (ioEnableFailed)
-		    continue;
-		if (!xf86EnableIO()) {
-		    ioEnableFailed = TRUE;
-		    continue;
-		}
-		xorgHWAccess = TRUE;
-	    }
-	}
-	    
-
-	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",  drv->driverName);
-
-	probeResult = xf86CallDriverProbe( drv, TRUE );
-	if (!probeResult) {
-	    xf86ErrorF("Probe in driver `%s' returns FALSE\n",
-		drv->driverName);
-	} else {
-	    xf86ErrorF("Probe in driver `%s' returns TRUE\n",
-		drv->driverName);
-
-	    /* If we have a result, then call driver's Identify function */
-	    if (drv->Identify != NULL) {
-		const int verbose = xf86SetVerbosity(1);
-		(*drv->Identify)(0);
-		xf86SetVerbosity(verbose);
-	    }
-	}
-    }
-
-    OsCleanup(TRUE);
-    AbortDDX();
-    fflush(stderr);
-    exit(0);
 }
 
 /*
@@ -658,7 +557,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	}
 
     /* Read and parse the config file */
-    if (!xf86DoProbe && !xf86DoConfigure && !xf86DoShowOptions) {
+    if (!xf86DoConfigure && !xf86DoShowOptions) {
       switch (xf86HandleConfigFile(FALSE)) {
       case CONFIG_OK:
 	break;
@@ -690,9 +589,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     /* Do a general bus probe.  This will be a PCI probe for x86 platforms */
     xf86BusProbe();
-
-    if (xf86DoProbe)
-	DoProbe();
 
     if (xf86DoConfigure)
 	DoConfigure();
@@ -927,15 +823,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       }
     }
 
-    /* XXX Should this be before or after loading dependent modules? */
-    if (xf86ProbeOnly)
-    {
-      OsCleanup(TRUE);
-      AbortDDX();
-      fflush(stderr);
-      exit(0);
-    }
-
     /* Remove (unload) drivers that are not required */
     for (i = 0; i < xf86NumDrivers; i++)
 	if (xf86DriverList[i] && xf86DriverList[i]->refCount <= 0)
@@ -951,7 +838,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /*
      * Collect all pixmap formats and check for conflicts at the display
      * level.  Should we die here?  Or just delete the offending screens?
-     * Also, should this be done for -probeonly?
      */
     screenpix24 = Pix24DontCare;
     for (i = 0; i < xf86NumScreens; i++) {
@@ -1465,11 +1351,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86ConfigFile = argv[i + 1];
     return 2;
   }
-  if (!strcmp(argv[i],"-probeonly"))
-  {
-    xf86ProbeOnly = TRUE;
-    return 1;
-  }
   if (!strcmp(argv[i],"-flipPixels"))
   {
     xf86FlipPixels = TRUE;
@@ -1685,11 +1566,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     return 1;
   }
 #endif
-  if (!strcmp(argv[i], "-probe"))
-  {
-    xf86DoProbe = TRUE;
-    return 1;
-  }
   if (!strcmp(argv[i], "-configure"))
   {
     if (getuid() != 0 && geteuid() == 0) {
@@ -1758,7 +1634,6 @@ ddxUseMsg(void)
   }
   ErrorF("-config file           specify a configuration file, relative to the\n");
   ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
-  ErrorF("-probeonly             probe for devices, then exit\n");
   ErrorF("-verbose [n]           verbose startup messages\n");
   ErrorF("-logverbose [n]        verbose log messages\n");
   ErrorF("-quiet                 minimal startup messages\n");

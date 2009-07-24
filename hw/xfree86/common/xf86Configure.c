@@ -99,7 +99,7 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
     struct pci_device * pVideo = NULL;
     Bool isPrimary = FALSE;
 
-    if (xf86DoProbe || !xf86DoConfigure || !xf86DoConfigurePass1)
+    if (!xf86DoConfigure || !xf86DoConfigurePass1)
 	return NULL;
 
     /* Check for duplicates */

@@ -352,11 +352,6 @@ section and this option, the first relevant
 .B InputDevice
 section is used for the core pointer.
 .TP 8
-.B \-probeonly
-Causes the server to exit after the device probing stage.  The
-__xconfigfile__(__filemansuffix__) file is still used when this option is
-given, so information that can be auto-detected should be commented out.
-.TP 8
 .B \-quiet
 Suppress most informational messages at startup.  The verbosity level
 is set to zero.

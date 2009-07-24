@@ -1445,8 +1445,6 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
     if (sectlist)
 	*sectlist = NULL;
 
-    if (xf86DoProbe) return 1;
-
     if (xf86DoConfigure && xf86DoConfigurePass1) return 1;
 
     /*
@@ -1592,7 +1590,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
      * Do this calculation and memory allocation once now to eliminate the
      * need for realloc calls inside the loop.
      */
-    if ( !xf86DoProbe && !(xf86DoConfigure && xf86DoConfigurePass1) ) {
+    if (!(xf86DoConfigure && xf86DoConfigurePass1)) {
 	unsigned max_entries = numDevs;
 
 	iter = pci_slot_match_iterator_create(NULL);
@@ -2095,14 +2093,7 @@ xf86ServerIsInitialising(void)
 Bool
 xf86ServerIsOnlyDetecting(void)
 {
-    return xf86DoProbe || xf86DoConfigure;
-}
-
-
-Bool
-xf86ServerIsOnlyProbing(void)
-{
-    return xf86ProbeOnly;
+    return xf86DoConfigure;
 }
 
 
