@@ -343,7 +343,7 @@ BOOL xquartz_resetenv_display = NO;
 
 // Sent immediately before installing the specified update.
 - (void)updater:(SUUpdater *)updater willInstallUpdate:(SUAppcastItem *)update {
-    [self set_can_quit:YES];
+    //[self set_can_quit:YES];
 }
 
 #endif
