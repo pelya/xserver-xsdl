@@ -1445,8 +1445,6 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
     if (sectlist)
 	*sectlist = NULL;
 
-    if (xf86DoModalias) return 0;
-
     if (xf86DoProbe) return 1;
 
     if (xf86DoConfigure && xf86DoConfigurePass1) return 1;

@@ -228,84 +228,6 @@ xf86PrintMarkers(void)
   LogPrintMarkers();
 }
 
-static void
-DoModalias(void)
-{
-    int i = -1;
-    char **vlist;
-
-    /* Get all the drivers */
-    vlist = xf86DriverlistFromCompile();
-    if (!vlist) {
-	ErrorF("Missing output drivers.  PCI Access dump failed.\n");
-	goto bail;
-    }
-
-    /* Load all the drivers that were found. */
-    xf86LoadModules(vlist, NULL);
-
-    xfree(vlist);
-
-    /* Iterate through each driver */
-    for (i = 0; i < xf86NumDrivers; i++) {
-        struct pci_id_match *match;
-
-        /* Iterate through each pci id match data, dumping it to the screen */
-        for (match = (struct pci_id_match *) xf86DriverList[i]->supported_devices ;
-                 match && !(!match->vendor_id && !match->device_id) ; match++) {
-             /* Prefix */
-             ErrorF("alias pci:");
-
-             /* Vendor */
-             if (match->vendor_id == ~0)
-                 ErrorF("v*");
-             else
-                 ErrorF("v%08X", match->vendor_id);
-
-             /* Device */
-             if (match->device_id == ~0)
-                 ErrorF("d*");
-             else
-                 ErrorF("d%08X", match->device_id);
-
-             /* Subvendor */
-             if (match->subvendor_id == ~0)
-                 ErrorF("sv*");
-             else
-                 ErrorF("sv%08X", match->subvendor_id);
-
-             /* Subdevice */
-             if (match->subdevice_id == ~0)
-                 ErrorF("sd*");
-             else
-                 ErrorF("sd%08X", match->subdevice_id);
-
-             /* Class */
-             if ((match->device_class_mask >> 16 & 0xFF) == 0xFF)
-                 ErrorF("bc%02X", match->device_class >> 16 & 0xFF);
-             else
-                 ErrorF("bc*");
-             if ((match->device_class_mask >> 8 & 0xFF) == 0xFF)
-                 ErrorF("sc%02X", match->device_class >> 8 & 0xFF);
-             else
-                 ErrorF("sc*");
-             if ((match->device_class_mask & 0xFF) == 0xFF)
-                 ErrorF("i%02X*", match->device_class & 0xFF);
-             else
-                 ErrorF("i*");
-
-             /* Suffix (driver) */
-             ErrorF(" %s\n", xf86DriverList[i]->driverName);
-        }
-    }
-
-bail:
-    OsCleanup(TRUE);
-    AbortDDX();
-    fflush(stderr);
-    exit(0);
-}
-
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
 {
@@ -724,7 +646,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     else
       xf86ServerName = argv[0];
 
-    if (!xf86DoModalias) {
 	xf86PrintBanner();
 	xf86PrintMarkers();
 	if (xf86LogFile)  {
@@ -735,10 +656,9 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	    xf86MsgVerb(xf86LogFileFrom, 0, "Log file: \"%s\", Time: %s",
 			xf86LogFile, ct);
 	}
-    }
 
     /* Read and parse the config file */
-    if (!xf86DoProbe && !xf86DoConfigure && !xf86DoModalias && !xf86DoShowOptions) {
+    if (!xf86DoProbe && !xf86DoConfigure && !xf86DoShowOptions) {
       switch (xf86HandleConfigFile(FALSE)) {
       case CONFIG_OK:
 	break;
@@ -776,10 +696,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     if (xf86DoConfigure)
 	DoConfigure();
-
-    /* Do the PCI Access dump */
-    if (xf86DoModalias)
-        DoModalias();
 
     if (autoconfig) {
 	if (!xf86AutoConfig()) {
@@ -1784,12 +1700,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86AllowMouseOpenFail = TRUE;
     return 1;
   }
-  if (!strcmp(argv[i], "-modalias"))
-  {
-    xf86DoModalias = TRUE;
-    xf86AllowMouseOpenFail = TRUE;
-    return 1;
-  }
   if (!strcmp(argv[i], "-showopts"))
   {
     if (getuid() != 0 && geteuid() == 0) {
@@ -1846,7 +1756,6 @@ ddxUseMsg(void)
     ErrorF("-configure             probe for devices and write an "__XCONFIGFILE__"\n");
     ErrorF("-showopts              print available options for all installed drivers\n");
   }
-  ErrorF("-modalias              output a modalias-style filter for each driver installed\n");
   ErrorF("-config file           specify a configuration file, relative to the\n");
   ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
   ErrorF("-probeonly             probe for devices, then exit\n");

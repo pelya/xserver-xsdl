@@ -153,7 +153,6 @@ Bool xf86Initialising = FALSE;
 Bool xf86DoProbe = FALSE;
 Bool xf86DoConfigure = FALSE;
 Bool xf86DoShowOptions = FALSE;
-Bool xf86DoModalias = FALSE;
 DriverPtr *xf86DriverList = NULL;
 int xf86NumDrivers = 0;
 InputDriverPtr *xf86InputDriverList = NULL;

@@ -56,7 +56,6 @@
 /* General parameters */
 extern _X_EXPORT int xf86DoConfigure;
 extern _X_EXPORT int xf86DoShowOptions;
-extern _X_EXPORT Bool xf86DoModalias;
 extern _X_EXPORT Bool xf86DoConfigurePass1;
 extern _X_EXPORT DevPrivateKey xf86ScreenKey;
 extern _X_EXPORT DevPrivateKey xf86CreateRootWindowKey;
