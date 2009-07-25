@@ -48,6 +48,8 @@
 #include "applewmExt.h"
 #include "micmap.h"
 
+#include "rootlessCommon.h"
+
 #ifdef DAMAGE
 # include "damage.h"
 #endif
