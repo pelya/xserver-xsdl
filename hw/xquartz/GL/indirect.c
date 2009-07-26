@@ -61,7 +61,8 @@
 #include "x-hash.h"
 #include "x-list.h"
 
-#include "capabilities.h"
+//#include "capabilities.h"
+#include "visualConfigs.h"
 
 typedef unsigned long long GLuint64EXT;
 typedef long long GLint64EXT;
@@ -100,13 +101,6 @@ __GLXprovider __glXDRISWRastProvider = {
     "Core OpenGL",
     NULL
 };
-
-__GLXprovider *
-GlxGetDRISWRastProvider (void)
-{
-    GLAQUA_DEBUG_MSG("GlxGetDRISWRastProvider\n");
-    return &__glXDRISWRastProvider;
-}
 
 typedef struct __GLXAquaScreen   __GLXAquaScreen;
 typedef struct __GLXAquaContext  __GLXAquaContext;
@@ -493,206 +487,6 @@ static void __glXAquaScreenDestroy(__GLXscreen *screen) {
     xfree(screen);
 }
 
-static __GLXconfig *CreateConfigs(int *numConfigsPtr, int screenNumber) {
-    __GLXconfig *c, *result;
-    struct glCapabilities cap;
-    struct glCapabilitiesConfig *conf = NULL;
-    int numConfigs = 0;
-    int i;
-
-    if(getGlCapabilities(&cap))
-	FatalError("error from getGlCapabilities() in %s\n", __func__);
-
-    assert(NULL != cap.configurations);
-
-    for(conf = cap.configurations; conf; conf = conf->next) {
-        if(conf->total_color_buffers <= 0)
-            continue;
-
-        numConfigs += (conf->stereo ? 2 : 1) 
-            * (conf->aux_buffers ? 2 : 1) 
-            * conf->buffers
-            * ((conf->total_stencil_bit_depths > 0) ? 
-	       conf->total_stencil_bit_depths : 1)
-            * conf->total_color_buffers
-            * ((conf->total_accum_buffers > 0) ? conf->total_accum_buffers : 1)
-            * conf->total_depth_buffer_depths
-            * (conf->multisample_buffers + 1);
-    }
-
-    *numConfigsPtr = numConfigs;
-    
-    c = xalloc(sizeof(*c) * numConfigs);
-    
-    if(NULL == c)
-	return NULL;
-
-    
-
-    result = c;
-    
-    memset(result, 0, sizeof(*c) * numConfigs);
-
-    i = 0;
-
-    for(conf = cap.configurations; conf; conf = conf->next) {
-	int stereo, aux, buffers, stencil, color, accum, depth, msample;
-	
-	for(stereo = 0; stereo < (conf->stereo ? 2 : 1); ++stereo) {
-	    for(aux = 0; aux < (conf->aux_buffers ? 2 : 1); ++aux) {
-		for(buffers = 0; buffers < conf->buffers; ++buffers) {
-		    for(stencil = 0; stencil < ((conf->total_stencil_bit_depths > 0) ? 
-						conf->total_stencil_bit_depths : 1); ++stencil) {
-			for(color = 0; color < conf->total_color_buffers; ++color) {
-			    for(accum = 0; accum < ((conf->total_accum_buffers > 0) ?
-						    conf->total_accum_buffers : 1); ++accum) {
-				for(depth = 0; depth < conf->total_depth_buffer_depths; ++depth) {
-				    for(msample = 0; msample < (conf->multisample_buffers + 1); ++msample) {
-					if((i + 1) < numConfigs) {
-					    c->next = c + 1;
-					} else {
-					    c->next = NULL;
-					}
-
-					c->doubleBufferMode = buffers ? GL_TRUE : GL_FALSE;
-					c->stereoMode = stereo ? GL_TRUE : GL_FALSE;
-					
-					c->redBits = conf->color_buffers[color].r;
-					c->greenBits = conf->color_buffers[color].g;
-					c->blueBits = conf->color_buffers[color].b;
-					c->alphaBits = 0;
-					
-					if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->color_buffers[color].a) {
-					    c->alphaBits = conf->color_buffers[color].a;
-					}
-
-					c->redMask = -1;
-					c->greenMask = -1;
-					c->blueMask = -1;
-					c->alphaMask = -1;
-					
-					c->rgbBits = c->redBits + c->greenBits + c->blueBits + c->alphaBits;
-					c->indexBits = 0;
-	    
-					c->accumRedBits = 0;
-					c->accumGreenBits = 0;
-					c->accumBlueBits = 0;
-					c->accumAlphaBits = 0;
-					
-					if(conf->total_accum_buffers > 0) {
-					    c->accumRedBits = conf->accum_buffers[accum].r;
-					    c->accumGreenBits = conf->accum_buffers[accum].g;
-					    c->accumBlueBits = conf->accum_buffers[accum].b;
-					    if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->accum_buffers[accum].a) {
-						c->accumAlphaBits = conf->accum_buffers[accum].a;
-					    }
-					}
-
-					c->depthBits = conf->depth_buffers[depth];
-					
-					c->stencilBits = 0;
-	    
-					if(conf->total_stencil_bit_depths > 0) {
-					    c->stencilBits = conf->stencil_bit_depths[stencil];
-					}
-
-
-					c->numAuxBuffers = aux ? conf->aux_buffers : 0;
-
-					c->level = 0;
-					/*TODO what should this be? */
-					c->pixmapMode = 0;
-					
-					c->visualID = -1;
-					c->visualType = GLX_TRUE_COLOR;
-
-					if(conf->accelerated) {
-					    c->visualRating = GLX_NONE;
-					} else {
-					    c->visualRating = GLX_SLOW_VISUAL_EXT;
-					}
-	
-					c->transparentPixel = GLX_NONE;
-					c->transparentRed = GLX_NONE;
-					c->transparentGreen = GLX_NONE;
-					c->transparentAlpha = GLX_NONE;
-					c->transparentIndex = GLX_NONE;
-	    
-					c->sampleBuffers = 0;
-					c->samples = 0;
-
-					if(msample > 0) {
-					    c->sampleBuffers = conf->multisample_buffers;
-					    c->samples = conf->multisample_samples;
-					}
-
-					/* 
-					 * The Apple libGL supports GLXPixmaps and 
-					 * GLXPbuffers in direct mode.
-					 */
-					/* SGIX_fbconfig / GLX 1.3 */
-					c->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT
-					    | GLX_PBUFFER_BIT;
-					c->renderType = GLX_RGBA_BIT;
-					c->xRenderable = GL_TRUE;
-					c->fbconfigID = -1;
-					
-					/* SGIX_pbuffer / GLX 1.3 */
-					
-					/* 
-					 * The CGL layer provides a way of retrieving
-					 * the maximum pbuffer width/height, but only
-					 * if we create a context and call glGetIntegerv.
-					 * 
-					 * The following values are from a test program
-					 * that does so.
-					 */
-					c->maxPbufferWidth = 8192;
-					c->maxPbufferHeight = 8192;
-					c->maxPbufferPixels = /*Do we need this?*/ 0;
-					/* 
-					 * There is no introspection for this sort of thing
-					 * with CGL.  What should we do realistically?
-					 */
-					c->optimalPbufferWidth = 0;
-					c->optimalPbufferHeight = 0;
-					
-					c->visualSelectGroup = 0;
-					
-					c->swapMethod = GLX_SWAP_UNDEFINED_OML;
-	
-					c->screen = screenNumber;
-	    
-					/* EXT_texture_from_pixmap */
-					c->bindToTextureRgb = 0;
-					c->bindToTextureRgba = 0;
-					c->bindToMipmapTexture = 0;
-					c->bindToTextureTargets = 0;
-					c->yInverted = 0;
-
-					if(c->next)
-					    c = c->next;
-					
-					++i;
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	    }	
-	}
-    }
-
-    if(i != numConfigs)
-	FatalError("The number of __GLXconfig generated does not match the initial calculation!\n");
-    
-
-    freeGlCapabilities(&cap);
-
-    return result;
-}
-
 /* This is called by __glXInitScreens(). */
 static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     __GLXAquaScreen *screen;
@@ -715,13 +509,7 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     screen->base.swapBarrierFuncs = NULL;
     screen->base.pScreen       = pScreen;
     
-    screen->base.fbconfigs = CreateConfigs(&screen->base.numFBConfigs, 
-					   pScreen->myNum);
-    
-    /* This is set by __glXScreenInit: */
-    screen->base.visuals = NULL;
-    /* This is to be initialized prior to the call to __glXScreenInit: */
-    screen->base.numVisuals = 0;
+    screen->base.fbconfigs = __glXAquaCreateVisualConfigs(&screen->base.numFBConfigs, pScreen->myNum);
 
     __glXScreenInit(&screen->base, pScreen);
 
@@ -737,11 +525,12 @@ static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
     return &screen->base;
 }
 
+#if 0 // unused
 static void __glXAquaDrawableCopySubBuffer (__GLXdrawable *drawable,
 					    int x, int y, int w, int h) {
     /*TODO finish me*/
 }
-
+#endif
 
 static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
     /* gstaplin: base is the head of the structure, so it's at the same 
@@ -1178,9 +967,9 @@ static void setup_dispatch_table(void) {
      * <rdar://problem/6953344> gl.h contains incorrect prototypes for glTexImage[123]D
      */
     
-    SET_TexImage1D(disp, glTexImage1D);
-    SET_TexImage2D(disp, glTexImage2D);
-    SET_TexImage3D(disp, glTexImage3D);
+    SET_TexImage1D(disp, (void *)glTexImage1D);
+    SET_TexImage2D(disp, (void *)glTexImage2D);
+    SET_TexImage3D(disp, (void *)glTexImage3D);
     SET_TexParameterf(disp, glTexParameterf);
     SET_TexParameterfv(disp, glTexParameterfv);
     SET_TexParameteri(disp, glTexParameteri);
@@ -1565,7 +1354,7 @@ static void setup_dispatch_table(void) {
      *
      * void ( * MultiDrawArraysEXT)(GLenum mode, GLint * first, GLsizei * count, GLsizei primcount);
      */
-    SET_MultiDrawArraysEXT(disp, glMultiDrawArraysEXT);
+    SET_MultiDrawArraysEXT(disp, (void *)glMultiDrawArraysEXT);
     SET_MultiDrawElementsEXT(disp, glMultiDrawElementsEXT);
 #endif
 

@@ -77,9 +77,6 @@
 #include "quartz.h"
 //#include "darwinClut8.h"
 
-#include "GL/visualConfigs.h"
-
-
 #ifdef ENABLE_DEBUG_LOG
 FILE *debug_log_fp = NULL;
 #endif
@@ -185,18 +182,23 @@ static Bool DarwinSaveScreen(ScreenPtr pScreen, int on)
 }
 
 /*
- * DarwinAddScreen
+ * DarwinScreenInit
  *  This is a callback from dix during AddScreen() from InitOutput().
  *  Initialize the screen and communicate information about it back to dix.
  */
-static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv) {
+static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv) {
     int         dpi;
     static int  foundIndex = 0;
     Bool        ret;
     DarwinFramebufferPtr dfb;
 
     // reset index of found screens for each server generation
-    if (index == 0) foundIndex = 0;
+    if (index == 0) {
+        foundIndex = 0;
+
+        // reset the visual list
+        miClearVisualTypes();
+    }
 
     // allocate space for private per screen storage
     dfb = xalloc(sizeof(DarwinFramebufferRec));
@@ -209,9 +211,6 @@ static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv)
     foundIndex++;
     if (! ret)
         return FALSE;
-
-    // reset the visual list
-    miClearVisualTypes();
 
     // setup a single visual appropriate for our pixel type
     if(!miSetVisualTypesAndMasks(dfb->depth, dfb->visuals, dfb->bitsPerRGB,
@@ -614,7 +613,7 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
  *  The display mode dependent code gets called three times. The mode
  *  specific InitOutput routines are expected to discover the number
  *  of potentially useful screens and cache routes to them internally.
- *  Inside DarwinAddScreen are two other mode specific calls.
+ *  Inside DarwinScreenInit are two other mode specific calls.
  *  A mode specific AddScreen routine is called for each screen to
  *  actually initialize the screen with the ScreenPtr structure.
  *  After other screen setup has been done, a mode specific
@@ -634,16 +633,12 @@ void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
     for (i = 0; i < NUMFORMATS; i++)
         pScreenInfo->formats[i] = formats[i];
 
-#ifdef GLXEXT
-    setVisualConfigs();    
-#endif
-
     // Discover screens and do mode specific initialization
     QuartzInitOutput(argc, argv);
 
     // Add screens
     for (i = 0; i < darwinScreensFound; i++) {
-        AddScreen( DarwinAddScreen, argc, argv );
+        AddScreen(DarwinScreenInit, argc, argv);
     }
 
     DarwinAdjustScreenOrigins(pScreenInfo);
