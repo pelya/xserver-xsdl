@@ -92,10 +92,11 @@ winInitClipboard (void)
 HWND
 winClipboardCreateMessagingWindow (void)
 {
-  WNDCLASS			wc;
+  WNDCLASSEX			wc;
   HWND				hwnd;
 
   /* Setup our window class */
+  wc.cbSize=sizeof(WNDCLASSEX);
   wc.style = CS_HREDRAW | CS_VREDRAW;
   wc.lpfnWndProc = winClipboardWindowProc;
   wc.cbClsExtra = 0;
@@ -106,7 +107,8 @@ winClipboardCreateMessagingWindow (void)
   wc.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
   wc.lpszMenuName = NULL;
   wc.lpszClassName = WIN_CLIPBOARD_WINDOW_CLASS;
-  RegisterClass (&wc);
+  wc.hIconSm = 0;
+  RegisterClassEx (&wc);
 
   /* Create the window */
   hwnd = CreateWindowExA (0,			/* Extended styles */
