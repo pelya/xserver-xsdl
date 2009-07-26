@@ -68,6 +68,9 @@
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
+extern void
+CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master);
+
 enum {
     MOD_COMMAND = 256,
     MOD_SHIFT = 512,
@@ -349,6 +352,8 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
     }
+
+    CopyKeyClass(pDev, inputInfo.keyboard);
 }
 
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
