@@ -349,8 +349,6 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
     }
-
-    SetKeySymsMap(&inputInfo.keyboard->key->curKeySyms, &pDev->key->curKeySyms);
 }
 
 void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
