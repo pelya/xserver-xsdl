@@ -217,7 +217,7 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
         e->any.time = miEventQueue.lastEventTime;
 
     miEventQueue.lastEventTime = ((InternalEvent*)evt->event)->any.time;
-    miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
+    miEventQueue.events[oldtail].pScreen = pDev ? EnqueueScreen(pDev) : NULL;
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
@@ -383,7 +383,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     /* Custom event handler */
     handler = miEventQueue.handlers[event->any.type];
 
-    if (screen && screen != DequeueScreen(dev) && !handler) {
+    if (dev && screen && screen != DequeueScreen(dev) && !handler) {
         /* Assumption - screen switching can only occur on motion events. */
         DequeueScreen(dev) = screen;
         x = event->device.root_x;
@@ -400,12 +400,12 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
          * steal it. */
         if (handler)
         {
-            handler(DequeueScreen(dev)->myNum, event, dev);
+            int screenNum = dev && DequeueScreen(dev) ? DequeueScreen(dev)->myNum : (screen ? screen->myNum : 0);
+            handler(screenNum, event, dev);
             /* Check for the SD's master in case the device got detached
              * during event processing */
             if (master && dev->u.master)
-                handler(DequeueScreen(master)->myNum,
-                        (InternalEvent*)masterEvents->event, master);
+                handler(screenNum, (InternalEvent*)masterEvents->event, master);
         } else
         {
             /* process slave first, then master */
@@ -459,7 +459,7 @@ mieqProcessInputEvents(void)
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 
-        master  = (!IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
+        master  = (dev && !IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
 
         if (screenIsSaved == SCREEN_SAVER_ON)
             dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
