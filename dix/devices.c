@@ -72,6 +72,7 @@ SOFTWARE.
 #include "swaprep.h"
 #include "dixevents.h"
 #include "mipointer.h"
+#include "eventstr.h"
 
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XI2.h>

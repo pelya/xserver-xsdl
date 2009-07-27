@@ -36,6 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"
 #include "inputstr.h"
 #include "exevents.h"
+#include "eventstr.h"
 #include <xkbsrv.h>
 #include <ctype.h>
 #include "events.h"

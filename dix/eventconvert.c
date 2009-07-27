@@ -42,7 +42,7 @@
 #include "dix.h"
 #include "inputstr.h"
 #include "misc.h"
-#include "events.h"
+#include "eventstr.h"
 #include "exglobals.h"
 #include "eventconvert.h"
 #include "xiquerydevice.h"

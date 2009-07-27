@@ -54,6 +54,7 @@ SOFTWARE.
 #include <X11/Xproto.h>
 #include "window.h"     /* for WindowPtr */
 #include "xkbrules.h"
+#include "events.h"
 
 #define DEVICE_INIT	0
 #define DEVICE_ON	1
@@ -95,8 +96,6 @@ SOFTWARE.
 #ifndef RevertToFollowKeyboard
 #define RevertToFollowKeyboard	3
 #endif
-
-#include "events.h"
 
 typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;

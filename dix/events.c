@@ -162,6 +162,7 @@ typedef const char *string;
 #include "geext.h"
 #include "geint.h"
 
+#include "eventstr.h"
 #include "enterleave.h"
 #include "eventconvert.h"
 

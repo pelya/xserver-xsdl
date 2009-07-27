@@ -72,6 +72,7 @@
 
 #include "exevents.h"	/* AddInputDevice */
 #include "exglobals.h"
+#include "eventstr.h"
 
 #include "extnsionst.h"
 

@@ -36,6 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "exglobals.h"
 #include <X11/extensions/XIproto.h>
 #include "inputstr.h"
+#include "eventstr.h"
 #include <xkbsrv.h>
 #if !defined(WIN32)
 #include <sys/time.h>

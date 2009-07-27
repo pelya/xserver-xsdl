@@ -46,6 +46,7 @@
 #include "exevents.h"
 #include "extinit.h"
 #include "exglobals.h"
+#include "eventstr.h"
 #include "xserver-properties.h"
 
 #define AtomFromName(x) MakeAtom(x, strlen(x), 1)

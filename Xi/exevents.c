@@ -76,6 +76,7 @@ SOFTWARE.
 #include "xace.h"
 #include "xiquerydevice.h" /* For List*Info */
 #include "eventconvert.h"
+#include "eventstr.h"
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"

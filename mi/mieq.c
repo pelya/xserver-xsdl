@@ -51,6 +51,7 @@ in this Software without prior written authorization from The Open Group.
 # include   <X11/extensions/geproto.h>
 # include   "extinit.h"
 # include   "exglobals.h"
+# include   "eventstr.h"
 
 #ifdef DPMSExtension
 # include "dpmsproc.h"

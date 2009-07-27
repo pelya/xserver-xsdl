@@ -43,7 +43,7 @@
 #include "globals.h"
 #include "dixevents.h"
 #include "mipointer.h"
-#include "events.h"
+#include "eventstr.h"
 #include "eventconvert.h"
 
 #include <X11/extensions/XKBproto.h>

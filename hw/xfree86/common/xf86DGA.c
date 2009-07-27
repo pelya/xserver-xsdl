@@ -46,7 +46,7 @@
 #include "xf86Xinput.h"
 #include "exglobals.h"
 #include "exevents.h"
-#include "events.h"
+#include "eventstr.h"
 #include "eventconvert.h"
 
 #include "mi.h"
