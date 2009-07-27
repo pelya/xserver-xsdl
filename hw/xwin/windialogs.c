@@ -150,7 +150,7 @@ winURLWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       SetCursor (cursor);
     return TRUE;
   }
-  origCB = (WNDPROC)GetWindowLongPtr(hwnd, GWL_USERDATA);
+  origCB = (WNDPROC)GetWindowLongPtr(hwnd, GWLP_USERDATA);
   /* Otherwise fall through to original WndProc */
   if (origCB)
     return CallWindowProc (origCB, hwnd, msg, wParam, lParam);
@@ -168,8 +168,8 @@ winOverrideURLButton (HWND hwnd, int id)
 {
   WNDPROC origCB;
   origCB = (WNDPROC)SetWindowLongPtr(GetDlgItem (hwnd, id),
-                                     GWL_WNDPROC, (LONG_PTR)winURLWndProc);
-  SetWindowLongPtr(GetDlgItem (hwnd, id), GWL_USERDATA, (LONG_PTR)origCB);
+                                     GWLP_WNDPROC, (LONG_PTR)winURLWndProc);
+  SetWindowLongPtr(GetDlgItem (hwnd, id), GWLP_USERDATA, (LONG_PTR)origCB);
 }
 
 static void
@@ -177,9 +177,9 @@ winUnoverrideURLButton (HWND hwnd, int id)
 {
   WNDPROC origCB;
   origCB = (WNDPROC)SetWindowLongPtr(GetDlgItem (hwnd, id),
-                                     GWL_USERDATA, 0);
+                                     GWLP_USERDATA, 0);
   if (origCB)
-    SetWindowLongPtr(GetDlgItem (hwnd, id), GWL_WNDPROC, (LONG_PTR)origCB);
+    SetWindowLongPtr(GetDlgItem (hwnd, id), GWLP_WNDPROC, (LONG_PTR)origCB);
 }
 
 
