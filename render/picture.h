@@ -68,6 +68,11 @@ typedef struct _Picture		*PicturePtr;
 
 /* 32bpp formats */
 typedef enum _PictFormatShort {
+    PICT_a2r10g10b10 =	PIXMAN_a2r10g10b10,
+    PICT_x2r10g10b10 =	PIXMAN_x2r10g10b10,
+    PICT_a2b10g10r10 =	PIXMAN_a2b10g10r10,
+    PICT_x2b10g10r10 =	PIXMAN_x2b10g10r10,
+
     PICT_a8r8g8b8 =	PIXMAN_a8r8g8b8,
     PICT_x8r8g8b8 =	PIXMAN_x8r8g8b8,
     PICT_a8b8g8r8 =	PIXMAN_a8b8g8r8,

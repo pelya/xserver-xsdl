@@ -325,6 +325,17 @@ PictureCreateDefaultFormats (ScreenPtr pScreen, int *nformatp)
 		nformats = addFormat (formats, nformats,
 				      PICT_b8g8r8x8, pDepth->depth);
 	    }
+	    if (pDepth->depth >= 30)
+	    {
+		nformats = addFormat (formats, nformats,
+				      PICT_a2r10g10b10, pDepth->depth);
+		nformats = addFormat (formats, nformats,
+				      PICT_x2r10g10b10, pDepth->depth);
+		nformats = addFormat (formats, nformats,
+				      PICT_a2b10g10r10, pDepth->depth);
+		nformats = addFormat (formats, nformats,
+				      PICT_x2b10g10r10, pDepth->depth);
+	    }
 	    break;
 	}
     }
