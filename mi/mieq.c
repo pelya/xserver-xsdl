@@ -78,7 +78,6 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec miEventQueue;
-static EventListPtr masterEvents; /* for use in mieqProcessInputEvents */
 
 #ifdef XQUARTZ
 #include  <pthread.h>
@@ -116,16 +115,6 @@ mieqInit(void)
             FatalError("Could not allocate event queue.\n");
         miEventQueue.events[i].events = evlist;
     }
-
-    /* XXX: mE is just 1 event long, if we have Motion + Valuator they are
-     * squashed into the first event to make passing it into the event
-     * processing handlers easier. This should be fixed when the processing
-     * handlers switch to EventListPtr instead of xEvent */
-    masterEvents = InitEventList(1);
-    if (!masterEvents)
-        FatalError("Could not allocated MD event queue.\n");
-    SetMinimumEventSize(masterEvents, 1,
-                        (1 + MAX_VALUATOR_EVENTS) * sizeof(xEvent));
 
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
@@ -317,16 +306,15 @@ FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
  * Copy the given event into master.
  * @param sdev The slave device the original event comes from
  * @param original The event as it came from the EQ
- * @param master The event after being copied
+ * @param copy The event after being copied
  * @return The master device or NULL if the device is a floating slave.
  */
 DeviceIntPtr
 CopyGetMasterEvent(DeviceIntPtr sdev,
-                   InternalEvent* original, EventListPtr mlist)
+                   InternalEvent* original, InternalEvent *copy)
 {
     DeviceIntPtr mdev;
     int len = original->any.length;
-    InternalEvent *mevent;
 
     CHECKEVENT(original);
 
@@ -351,15 +339,9 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
             break;
     }
 
-
-    if (mlist->evlen < len)
-        SetMinimumEventSize(mlist, 1, len);
-
-    mevent = (InternalEvent*)mlist->event;
-
-    memcpy(mevent, original, len);
-    ChangeDeviceID(mdev, mevent);
-    FixUpEventForMaster(mdev, sdev, original, mevent);
+    memcpy(copy, original, len);
+    ChangeDeviceID(mdev, copy);
+    FixUpEventForMaster(mdev, sdev, original, copy);
 
     return mdev;
 }
@@ -378,6 +360,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     mieqHandler handler;
     int x = 0, y = 0;
     DeviceIntPtr master;
+    InternalEvent mevent; /* master event */
 
     CHECKEVENT(event);
 
@@ -392,7 +375,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         NewCurrentScreen (dev, DequeueScreen(dev), x, y);
     }
     else {
-        master = CopyGetMasterEvent(dev, event, masterEvents);
+        master = CopyGetMasterEvent(dev, event, &mevent);
 
         if (master)
             master->u.lastSlave = dev;
@@ -406,7 +389,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
             /* Check for the SD's master in case the device got detached
              * during event processing */
             if (master && dev->u.master)
-                handler(screenNum, (InternalEvent*)masterEvents->event, master);
+                handler(screenNum, &mevent, master);
         } else
         {
             /* process slave first, then master */
@@ -415,9 +398,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
             /* Check for the SD's master in case the device got detached
              * during event processing */
             if (master && dev->u.master)
-                master->public.processInputProc(
-                        (InternalEvent*)masterEvents->event,
-                        master);
+                master->public.processInputProc(&mevent, master);
         }
     }
 }
