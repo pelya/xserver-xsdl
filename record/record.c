@@ -2865,6 +2865,13 @@ RecordCloseDown(ExtensionEntry *extEntry)
 void 
 RecordExtensionInit(void)
 {
+    /* FIXME Record is currently broken. Dont initialize it so that clients
+     * that require it can bail out correctly rather than waiting for stuff
+     * that'll never happen */
+    ErrorF("record: RECORD extension enabled at configure time.\n");
+    ErrorF("record: This extension is known to be broken, disabling extension now..\n");
+    ErrorF("record: http://bugs.freedesktop.org/show_bug.cgi?id=20500\n");
+#if 0
     ExtensionEntry *extentry;
 
     RTContext = CreateNewResourceType(RecordDeleteContext);
@@ -2887,5 +2894,6 @@ RecordExtensionInit(void)
     }
     RecordErrorBase = extentry->errorBase;
 
+#endif
 } /* RecordExtensionInit */
 
