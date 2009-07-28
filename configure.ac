@@ -918,7 +918,7 @@ fi
 
 if test "x$DRI2" = xyes; then
 	save_CFLAGS=$CFLAGS
-	CFLAGS="$GL_CFLAGS $LIBDRM_CFLAGS -Wall"
+	CFLAGS="$GL_CFLAGS $LIBDRM_CFLAGS"
 	AC_COMPILE_IFELSE([AC_LANG_SOURCE([[#include <GL/gl.h>
 #include <GL/internal/dri_interface.h>
 #ifndef __DRI_DRI2
