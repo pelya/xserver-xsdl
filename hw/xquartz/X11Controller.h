@@ -40,7 +40,9 @@
 #include "xpr/x-list.h"
 
 #ifdef XQUARTZ_SPARKLE
+#define BOOL OSX_BOOL
 #include <Sparkle/SUUpdater.h>
+#undef BOOL
 #endif
 
 @interface X11Controller : NSObject

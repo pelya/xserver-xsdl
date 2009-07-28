@@ -50,10 +50,6 @@
 #include <unistd.h>
 #include <AvailabilityMacros.h>
 
-#ifdef XQUARTZ_SPARKLE
-#include <Sparkle/SUUpdater.h>
-#endif
-
 #include <Xplugin.h>
 
 // pbproxy/pbproxy.h
