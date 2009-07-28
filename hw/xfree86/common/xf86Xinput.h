@@ -80,6 +80,14 @@
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
 
+/* Valuator verification macro */
+#define XI_VERIFY_VALUATORS(num_valuators)					\
+	if (num_valuators > MAX_VALUATORS) {					\
+		xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"		\
+			" MAX_VALUATORS\n", __FUNCTION__, num_valuators);	\
+		return;								\
+	}
+
 /* Stupid API backwards-compatibility. */
 #define TS_Raw 60
 #define TS_Scaled 61
@@ -158,12 +166,20 @@ extern _X_EXPORT void xf86PostMotionEventP(DeviceIntPtr device, int is_absolute,
 			 int first_valuator, int num_valuators, int *valuators);
 extern _X_EXPORT void xf86PostProximityEvent(DeviceIntPtr device, int is_in,
 			    int first_valuator, int num_valuators, ...);
+extern _X_EXPORT void xf86PostProximityEventP(DeviceIntPtr device, int is_in, int first_valuator,
+			     int num_valuators, int *valuators);
 extern _X_EXPORT void xf86PostButtonEvent(DeviceIntPtr device, int is_absolute, int button,
 		    	 int is_down, int first_valuator, int num_valuators,
 			 ...);
+extern _X_EXPORT void xf86PostButtonEventP(DeviceIntPtr device, int is_absolute, int button,
+			  int is_down, int first_valuator, int num_valuators,
+			  int *valuators);
 extern _X_EXPORT void xf86PostKeyEvent(DeviceIntPtr device, unsigned int key_code, int is_down,
 		      int is_absolute, int first_valuator, int num_valuators,
 		      ...);
+extern _X_EXPORT void xf86PostKeyEventP(DeviceIntPtr device, unsigned int key_code, int is_down,
+		       int is_absolute, int first_valuator, int num_valuators,
+		       int *valuators);
 extern _X_EXPORT void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
 extern _X_EXPORT int xf86ActivateDevice(LocalDevicePtr local);

@@ -713,11 +713,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     int i = 0;
     static int valuators[MAX_VALUATORS];
 
-    if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
-	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
-	return;
-    }
+    XI_VERIFY_VALUATORS(num_valuators);
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
@@ -741,11 +737,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     int index;
     int flags = 0;
 
-    if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
-	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
-	return;
-    }
+    XI_VERIFY_VALUATORS(num_valuators);
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -801,20 +793,31 @@ xf86PostProximityEvent(DeviceIntPtr	device,
                        ...)
 {
     va_list var;
-    int i, nevents;
+    int i;
     int valuators[MAX_VALUATORS];
 
-
-    if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
-	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
-	return;
-    }
+    XI_VERIFY_VALUATORS(num_valuators);
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
     va_end(var);
+
+    xf86PostProximityEventP(device, is_in, first_valuator, num_valuators,
+			    valuators);
+
+}
+
+void
+xf86PostProximityEventP(DeviceIntPtr	device,
+                        int		is_in,
+                        int		first_valuator,
+                        int		num_valuators,
+                        int		*valuators)
+{
+    int i, nevents;
+
+    XI_VERIFY_VALUATORS(num_valuators);
 
     GetEventList(&xf86Events);
     nevents = GetProximityEvents(xf86Events, device,
@@ -836,6 +839,29 @@ xf86PostButtonEvent(DeviceIntPtr	device,
 {
     va_list var;
     int valuators[MAX_VALUATORS];
+    int i = 0;
+
+    XI_VERIFY_VALUATORS(num_valuators);
+
+    va_start(var, num_valuators);
+    for (i = 0; i < num_valuators; i++)
+        valuators[i] = va_arg(var, int);
+    va_end(var);
+
+    xf86PostButtonEventP(device, is_absolute, button, is_down, first_valuator,
+			 num_valuators, valuators);
+
+}
+
+void
+xf86PostButtonEventP(DeviceIntPtr	device,
+                     int		is_absolute,
+                     int		button,
+                     int		is_down,
+                     int		first_valuator,
+                     int		num_valuators,
+                     int		*valuators)
+{
     int i = 0, nevents = 0;
     int index;
 
@@ -846,16 +872,8 @@ xf86PostButtonEvent(DeviceIntPtr	device,
             return;
     }
 #endif
-    if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
-	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
-	return;
-    }
 
-    va_start(var, num_valuators);
-    for (i = 0; i < num_valuators; i++)
-        valuators[i] = va_arg(var, int);
-    va_end(var);
+    XI_VERIFY_VALUATORS(num_valuators);
 
     GetEventList(&xf86Events);
     nevents = GetPointerEvents(xf86Events, device,
@@ -878,7 +896,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
                  ...)
 {
     va_list var;
-    int i = 0, nevents = 0;
+    int i = 0;
     static int valuators[MAX_VALUATORS];
 
     /* instil confidence in the user */
@@ -886,18 +904,37 @@ xf86PostKeyEvent(DeviceIntPtr	device,
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
 
-    if (num_valuators > MAX_VALUATORS) {
-	xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"
-	    " MAX_VALUATORS\n", __FUNCTION__, num_valuators);
-	return;
-    }
+    XI_VERIFY_VALUATORS(num_valuators);
+
+    va_start(var, num_valuators);
+    for (i = 0; i < num_valuators; i++)
+      valuators[i] = va_arg(var, int);
+    va_end(var);
+
+    xf86PostKeyEventP(device, key_code, is_down, is_absolute, first_valuator,
+		      num_valuators, valuators);
+
+}
+
+void
+xf86PostKeyEventP(DeviceIntPtr	device,
+                  unsigned int	key_code,
+                  int		is_down,
+                  int		is_absolute,
+                  int		first_valuator,
+                  int		num_valuators,
+                  int		*valuators)
+{
+    int i = 0, nevents = 0;
+
+    /* instil confidence in the user */
+    DebugF("this function has never been tested properly.  if things go quite "
+           "badly south after this message, then xf86PostKeyEvent is "
+           "broken.\n");
+
+    XI_VERIFY_VALUATORS(num_valuators);
 
     if (is_absolute) {
-        va_start(var, num_valuators);
-        for (i = 0; i < num_valuators; i++)
-            valuators[i] = va_arg(var, int);
-        va_end(var);
-
         GetEventList(&xf86Events);
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
@@ -919,28 +956,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       unsigned int      key_code,
                       int               is_down)
 {
-    int nevents = 0, i = 0;
-    int index;
-
-#if XFreeXDGA
-    DeviceIntPtr pointer;
-
-    /* Some pointers send key events, paired device is wrong then. */
-    pointer = IsPointerDevice(device) ? device : GetPairedDevice(device);
-
-    if (miPointerGetScreen(pointer)) {
-        index = miPointerGetScreen(pointer)->myNum;
-        if (DGAStealKeyEvent(device, index, key_code, is_down))
-            return;
-    }
-#endif
-
-    GetEventList(&xf86Events);
-    nevents = GetKeyboardEvents(xf86Events, device,
-                                is_down ? KeyPress : KeyRelease, key_code);
-
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
+    xf86PostKeyEventP(device, key_code, is_down, 0, 0, 0, NULL);
 }
 
 LocalDevicePtr
