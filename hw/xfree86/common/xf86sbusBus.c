@@ -33,7 +33,6 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
-#include "xf86Resources.h"
 #include "xf86cmap.h"
 
 #include "xf86Bus.h"
@@ -350,10 +349,6 @@ xf86ClaimSbusSlot(sbusDevicePtr psdp, DriverPtr drvp,
         p->bus.id.sbus.fbNum = psdp->fbNum;
         p->active = active;
         p->inUse = FALSE;
-        /* Here we initialize the access structure */
-        p->access = xnfcalloc(1,sizeof(EntityAccessRec));
-	p->access->fallback = &AccessNULL;
-        p->access->pAccess = &AccessNULL;
 	sbusSlotClaimed = TRUE;
 	return num;
     } else
