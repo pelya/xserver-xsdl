@@ -567,13 +567,11 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  */
 int
 GetMaximumEventsNum(void) {
-    /* One base event -- device, plus valuator events. */
-    int ret = 1 + MAX_VALUATOR_EVENTS;
-
-    /* One possible DeviceClassesChangedEvent */
-    ret++;
-
-    return ret;
+    /* One raw event
+     * One device event
+     * One possible device changed event
+     */
+    return 3;
 }
 
 
