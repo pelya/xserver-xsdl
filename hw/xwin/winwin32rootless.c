@@ -398,9 +398,9 @@ winMWExtWMDestroyFrame (RootlessFrameID wid)
 #endif
 
   /* Store the info we need to destroy after this window is gone */
-  hInstance = (HINSTANCE) GetClassLong (pRLWinPriv->hWnd, GCL_HMODULE);
-  hiconClass = (HICON) GetClassLong (pRLWinPriv->hWnd, GCL_HICON);
-  hiconSmClass = (HICON) GetClassLong (pRLWinPriv->hWnd, GCL_HICONSM);
+  hInstance = (HINSTANCE) GetClassLongPtr (pRLWinPriv->hWnd, GCLP_HMODULE);
+  hiconClass = (HICON) GetClassLongPtr (pRLWinPriv->hWnd, GCLP_HICON);
+  hiconSmClass = (HICON) GetClassLongPtr (pRLWinPriv->hWnd, GCLP_HICONSM);
   iReturn = GetClassName (pRLWinPriv->hWnd, pszClass, CLASS_NAME_LENGTH);
 
   pRLWinPriv->fClose = TRUE;
