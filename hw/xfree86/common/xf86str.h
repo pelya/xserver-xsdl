@@ -556,145 +556,6 @@ typedef enum {
     PM_NONE
 } pmWait;
 
-/*
- * The IO access enabler struct. This contains the address for
- * the IOEnable/IODisable funcs for their specific bus along
- * with a pointer to data needed by them
- */
-typedef struct _AccessRec {
-    void (*AccessDisable)(void *arg);
-    void (*AccessEnable)(void *arg);
-    void *arg;
-} xf86AccessRec, *xf86AccessPtr;
-
-typedef struct {
-    xf86AccessPtr mem;
-    xf86AccessPtr io;
-    xf86AccessPtr io_mem;
-} xf86SetAccessFuncRec, *xf86SetAccessFuncPtr;
-
-/*  bus-access-related types */
-typedef enum {
-    NONE,
-    IO,
-    MEM_IO,
-    MEM
-} resType;
-
-typedef struct _EntityAccessRec {
-    xf86AccessPtr fallback;
-    xf86AccessPtr pAccess;
-    resType rt;
-    pointer  busAcc;
-    struct _EntityAccessRec *next;
-} EntityAccessRec, *EntityAccessPtr;
-
-typedef struct _CurrAccRec {
-    EntityAccessPtr pMemAccess;
-    EntityAccessPtr pIoAccess;
-} xf86CurrentAccessRec, *xf86CurrentAccessPtr;
-
-/* new RAC */
-
-/* Resource Type values */
-#define ResNone		((unsigned long)(-1))
-
-#define ResMem		0x0001
-#define ResIo		0x0002
-#define ResPhysMask	0x000F
-
-#define ResExclusive	0x0010
-#define ResShared	0x0020
-#define ResAny		0x0040
-#define ResAccMask	0x0070
-#define ResUnused	0x0080
-
-#define ResUnusedOpr	0x0100
-#define ResDisableOpr	0x0200
-#define ResOprMask	0x0300
-
-#define ResBlock	0x0400
-#define ResSparse	0x0800
-#define ResExtMask	0x0C00
-
-#define ResEstimated	0x001000
-#define ResInit 	0x002000
-#define ResBios		0x004000
-#define ResMiscMask	0x00F000
-
-#define ResBus		0x010000
-
-#if defined(__alpha__) && defined(linux)
-# define ResDomain	0x1ff000000ul
-#else
-# define ResDomain	0xff000000ul
-#endif
-#define ResTypeMask	(ResPhysMask | ResDomain)	/* For conflict check */
-
-#define ResEnd		ResNone
-
-#define ResExcMemBlock		(ResMem | ResExclusive | ResBlock)
-#define ResExcIoBlock		(ResIo | ResExclusive | ResBlock)
-#define ResShrMemBlock		(ResMem | ResShared | ResBlock)
-#define ResShrIoBlock		(ResIo | ResShared | ResBlock)
-#define ResExcUusdMemBlock	(ResMem | ResExclusive | ResUnused | ResBlock)
-#define ResExcUusdIoBlock	(ResIo | ResExclusive | ResUnused | ResBlock)
-#define ResShrUusdMemBlock	(ResMem | ResShared | ResUnused | ResBlock)
-#define ResShrUusdIoBlock	(ResIo | ResShared | ResUnused | ResBlock)
-#define ResExcUusdMemSparse	(ResMem | ResExclusive | ResUnused | ResSparse)
-#define ResExcUusdIoSparse	(ResIo | ResExclusive | ResUnused | ResSparse)
-#define ResShrUusdMemSparse	(ResMem | ResShared | ResUnused | ResSparse)
-#define ResShrUusdIoSparse	(ResIo | ResShared | ResUnused | ResSparse)
-
-#define ResExcMemSparse		(ResMem | ResExclusive | ResSparse)
-#define ResExcIoSparse		(ResIo | ResExclusive | ResSparse)
-#define ResShrMemSparse		(ResMem | ResShared | ResSparse)
-#define ResShrIoSparse		(ResIo | ResShared | ResSparse)
-#define ResUusdMemSparse	(ResMem | ResUnused | ResSparse)
-#define ResUusdIoSparse		(ResIo | ResUnused | ResSparse)
-
-#define ResIsMem(r)		(((r)->type & ResPhysMask) == ResMem)
-#define ResIsIo(r)		(((r)->type & ResPhysMask) == ResIo)
-#define ResIsExclusive(r)	(((r)->type & ResAccMask) == ResExclusive)
-#define ResIsShared(r)		(((r)->type & ResAccMask) == ResShared)
-#define ResIsUnused(r)		(((r)->type & ResAccMask) == ResUnused)
-#define ResIsBlock(r)		(((r)->type & ResExtMask) == ResBlock)
-#define ResIsSparse(r)		(((r)->type & ResExtMask) == ResSparse)
-#define ResIsEstimated(r)	(((r)->type & ResMiscMask) == ResEstimated)
-
-typedef struct {
-    unsigned long type;     /* shared, exclusive, unused etc. */
-    memType a;
-    memType b;
-} resRange, *resList;
-
-#define RANGE_TYPE(type, domain) \
-               (((unsigned long)(domain) << 24) | ((type) & ~ResBus))
-#define RANGE(r,u,v,t) {\
-                       (r).a = (u);\
-                       (r).b = (v);\
-                       (r).type = (t);\
-                       }
-
-#define rBase a
-#define rMask b
-#define rBegin a
-#define rEnd b
-
-/* resource record */
-typedef struct _resRec *resPtr;
-typedef struct _resRec {
-    resRange    val;
-    int		entityIndex;	/* who owns the resource */
-    resPtr	next;
-} resRec;
-
-#define sparse_base	val.rBase
-#define sparse_mask	val.rMask
-#define block_begin	val.rBegin
-#define block_end	val.rEnd
-#define res_type	val.type
-
 typedef struct _PciChipsets {
     /**
      * Key used to match this device with its name in an array of
@@ -720,11 +581,13 @@ typedef struct _PciChipsets {
      */
     int PCIid;
 
-    /**
-     * Resources associated with this type of device.
-     */
-    resRange *resList;
+/* dummy place holders for drivers to build against old/new servers */
+#define RES_UNDEFINED NULL
+#define RES_EXCLUSIVE_VGA NULL
+#define RES_SHARED_VGA NULL
+    void *dummy;
 } PciChipsets;
+
 
 /* Entity properties */
 typedef void (*EntityProc)(int entityIndex,pointer private);
@@ -734,7 +597,6 @@ typedef struct _entityInfo {
     BusRec location;
     int chipset;
     Bool active;
-    resPtr resources;
     GDevPtr device;
     DriverPtr driver;
 } EntityInfoRec, *EntityInfoPtr;
@@ -926,12 +788,6 @@ typedef struct _ScrnInfoRec {
 
     int			chipID;
     int			chipRev;
-    int			racMemFlags;
-    int			racIoFlags;
-    pointer		access;
-    xf86CurrentAccessPtr CurrentAccess;
-    resType		resourceType;
-    pointer		busAccess;
 
     /* Allow screens to be enabled/disabled individually */
     Bool		vtSema;

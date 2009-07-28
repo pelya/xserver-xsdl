@@ -210,15 +210,6 @@ extern _X_EXPORT int xf86ProcessArgument(int, char **, int);
 extern _X_EXPORT void xf86UseMsg(void);
 extern _X_EXPORT PMClose xf86OSPMOpen(void);
 
-#ifdef NEED_OS_RAC_PROTOS
-/* RAC-related privs */
-/* internal to os-support layer */
-extern _X_EXPORT resPtr xf86StdAccResFromOS(resPtr ret);
-
-/* available to the common layer */
-extern _X_EXPORT resPtr xf86AccResFromOS(resPtr ret);
-#endif /* NEED_OS_RAC_PROTOS */
-
 extern _X_EXPORT void xf86MakeNewMapping(int, int, unsigned long, unsigned long, pointer);
 extern _X_EXPORT void xf86InitVidMem(void);
 

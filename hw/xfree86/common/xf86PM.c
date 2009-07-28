@@ -70,7 +70,6 @@ suspend (pmEvent event, Bool undo)
    xf86inSuspend = TRUE;
     
     for (i = 0; i < xf86NumScreens; i++) {
-        xf86EnableAccess(xf86Screens[i]);
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, FALSE);
     }
@@ -81,7 +80,6 @@ suspend (pmEvent event, Bool undo)
     }
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++) {
-        xf86EnableAccess(xf86Screens[i]);
 	if (xf86Screens[i]->PMEvent)
 	    xf86Screens[i]->PMEvent(i,event,undo);
 	else {
@@ -90,7 +88,7 @@ suspend (pmEvent event, Bool undo)
 	}
     }
     xf86AccessLeave();      
-    xf86AccessLeaveState(); 
+
 }
 
 static void

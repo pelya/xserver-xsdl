@@ -48,9 +48,6 @@ typedef struct {
 
 typedef struct {
     pciArg arg;
-    xf86AccessRec ioAccess;
-    xf86AccessRec io_memAccess;
-    xf86AccessRec memAccess;
     pciSave save;
     pciSave restore;
     Bool ctrl;
@@ -69,6 +66,5 @@ void PciStateEnter(void);
 void PciBusStateEnter(void);
 void PciStateLeave(void);
 void PciBusStateLeave(void);
-void pciConvertRange2Host(int entityIndex, resRange *pRange);
 
 #endif /* _XF86_PCI_BUS_H */

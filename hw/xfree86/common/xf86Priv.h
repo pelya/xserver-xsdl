@@ -88,7 +88,6 @@ extern _X_EXPORT  int xf86NumDrivers;
 extern _X_EXPORT  Bool xf86Resetting;
 extern _X_EXPORT  Bool xf86Initialising;
 extern _X_EXPORT  int xf86NumScreens;
-extern _X_EXPORT  xf86CurrentAccessRec xf86CurrentAccess;
 extern _X_EXPORT  const char *xf86VisualNames[];
 extern _X_EXPORT  int xf86Verbose;                 /* verbosity level */
 extern _X_EXPORT  int xf86LogVerbose;		/* log file verbosity level */
@@ -118,11 +117,9 @@ extern _X_EXPORT void xf86AccessInit(void);
 extern _X_EXPORT void xf86AccessEnter(void);
 extern _X_EXPORT void xf86AccessLeave(void);
 extern _X_EXPORT void xf86EntityInit(void);
-extern _X_EXPORT void xf86AccessLeaveState(void);
 
 extern _X_EXPORT void xf86FindPrimaryDevice(void);
 /* new RAC */
-extern _X_EXPORT void xf86ResourceBrokerInit(void);
 extern _X_EXPORT void xf86PostProbe(void);
 extern _X_EXPORT void xf86ClearEntityListForScreen(int scrnIndex);
 extern _X_EXPORT void xf86AddDevToEntity(int entityIndex, GDevPtr dev);

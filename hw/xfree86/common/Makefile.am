@@ -37,20 +37,20 @@ libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
                       xf86Events.c xf86Globals.c xf86AutoConfig.c \
                       xf86Option.c xf86Init.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
-                      xf86Helper.c xf86PM.c xf86RAC.c xf86Xinput.c xisb.c \
+                      xf86Helper.c xf86PM.c xf86Xinput.c xisb.c \
                       xf86Mode.c xorgHelper.c \
                       $(XVSOURCES) $(BUSSOURCES) $(RANDRSOURCES)
 nodist_libcommon_la_SOURCES = xf86DefModeSet.c xf86Build.h
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
-	   -I$(srcdir)/../loader -I$(srcdir)/../rac -I$(srcdir)/../parser \
+	   -I$(srcdir)/../loader -I$(srcdir)/../parser \
            -I$(srcdir)/../vbe -I$(srcdir)/../int10 \
 	   -I$(srcdir)/../vgahw -I$(srcdir)/../dixmods/extmod \
 	   -I$(srcdir)/../modes -I$(srcdir)/../ramdac
 
 sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
-              xf86PciInfo.h xf86Priv.h xf86Privstr.h xf86Resources.h \
-              xf86cmap.h xf86fbman.h xf86str.h xf86RAC.h xf86Xinput.h xisb.h \
+              xf86PciInfo.h xf86Priv.h xf86Privstr.h \
+              xf86cmap.h xf86fbman.h xf86str.h xf86Xinput.h xisb.h \
               $(XVSDKINCS) $(XF86VMODE_SDK) xorgVersion.h \
               xf86sbusBus.h
 
@@ -71,7 +71,6 @@ EXTRA_DIST = \
 	xf86PciInfo.h \
 	xf86Priv.h \
 	xf86Privstr.h \
-	xf86Resources.h \
 	xf86Xinput.h \
 	xf86cmap.h \
 	xf86fbman.h \

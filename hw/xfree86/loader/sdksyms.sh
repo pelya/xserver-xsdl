@@ -117,11 +117,9 @@ cat > sdksyms.c << EOF
 #include "xf86PciInfo.h"
 #include "xf86Priv.h"
 #include "xf86Privstr.h"
-#include "xf86Resources.h"
 #include "xf86cmap.h"
 #include "xf86fbman.h"
 #include "xf86str.h"
-#include "xf86RAC.h"
 #include "xf86Xinput.h"
 #include "xisb.h"
 #if XV

@@ -659,8 +659,6 @@ DoConfigure(void)
     }
 
     /* Disable PCI devices */
-    xf86ResourceBrokerInit();
-    xf86AccessInit();
     xf86FindPrimaryDevice();
  
     /* Create XF86Config file structure */

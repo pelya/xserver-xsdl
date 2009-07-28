@@ -40,15 +40,11 @@
 #include "os.h"
 #include "xf86.h"
 #include "xf86Priv.h"
-#include "xf86Resources.h"
 
 #include "xf86Bus.h"
 
 #define XF86_OS_PRIVS
-#define NEED_OS_RAC_PROTOS
 #include "xf86_OSproc.h"
-
-#include "xf86RAC.h"
 
 Bool fbSlotClaimed = FALSE;
 
@@ -73,10 +69,6 @@ xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
     p->active = active;
     p->inUse = FALSE;
     xf86AddDevToEntity(num, dev);
-    p->access = xnfcalloc(1,sizeof(EntityAccessRec));
-    p->access->fallback = &AccessNULL;
-    p->access->pAccess = &AccessNULL;
-    p->busAcc = NULL;
 
     fbSlotClaimed = TRUE;
     return num;

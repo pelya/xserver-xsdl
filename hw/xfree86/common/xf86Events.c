@@ -469,7 +469,6 @@ xf86VTSwitch(void)
 	xf86Screens[i]->LeaveVT(i, 0);
 
     xf86AccessLeave();      /* We need this here, otherwise */
-    xf86AccessLeaveState(); /* console won't be restored    */
 
     if (!xf86VTSwitchAway()) {
       /*
@@ -517,8 +516,6 @@ xf86VTSwitch(void)
  	     * trap calls when switched away.
  	     */
 	    xf86Screens[i]->vtSema = FALSE;
-	    xf86Screens[i]->access = NULL;
-	    xf86Screens[i]->busAccess = NULL;
 	}
 	if (xorgHWAccess)
 	    xf86DisableIO();

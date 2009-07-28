@@ -528,11 +528,6 @@ DGAAvailable(int index)
    if(DGAScreenKey == NULL)
 	return FALSE;
    
-   if (!xf86NoSharedResources(((ScrnInfoPtr)dixLookupPrivate(
-				   &screenInfo.screens[index]->devPrivates,
-				   xf86ScreenKey))->scrnIndex, MEM))
-       return FALSE;
-   
    if(DGA_GET_SCREEN_PRIV(screenInfo.screens[index]))
 	return TRUE;
 

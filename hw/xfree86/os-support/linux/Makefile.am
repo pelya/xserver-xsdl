@@ -32,7 +32,6 @@ liblinux_la_SOURCES = lnx_init.c lnx_video.c \
 		     $(srcdir)/../shared/posix_tty.c \
                      $(srcdir)/../shared/vidmem.c \
 		     $(srcdir)/../shared/sigio.c \
-                     $(srcdir)/../shared/stdResource.c \
                      $(ACPI_SRCS) \
                      $(APM_SRCS) \
                      $(PLATFORM_PCI_SUPPORT)

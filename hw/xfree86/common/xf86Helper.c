@@ -58,7 +58,6 @@
 #include "xf86Xinput.h"
 #include "xf86InPriv.h"
 #include "mivalidate.h"
-#include "xf86RAC.h"
 #include "xf86Bus.h"
 #include "xf86Crtc.h"
 
@@ -194,12 +193,6 @@ xf86AllocateScreen(DriverPtr drv, int flags)
     xf86Screens[i]->drv = drv;
     drv->refCount++;
     xf86Screens[i]->module = DuplicateModule(drv->module, NULL);
-    /*
-     * set the initial access state. This will be modified after PreInit.
-     * XXX Or should we do it some other place?
-     */
-    xf86Screens[i]->CurrentAccess = &xf86CurrentAccess;
-    xf86Screens[i]->resourceType = MEM_IO;
 
     xf86Screens[i]->DriverFunc = drv->driverFunc;
 
@@ -2317,13 +2310,8 @@ xf86SetSilkenMouse (ScreenPtr pScreen)
 
     /* check for commandline option here */
     /* disable if screen shares resources */
-    if (((pScrn->racMemFlags & RAC_CURSOR) &&
-	 !xf86NoSharedResources(pScrn->scrnIndex,MEM)) ||
-	((pScrn->racIoFlags & RAC_CURSOR) &&
-	 !xf86NoSharedResources(pScrn->scrnIndex,IO))) {
-	useSM = FALSE;
-	from = X_PROBED;
-    } else if (xf86silkenMouseDisableFlag) {
+	/* TODO VGA arb disable silken mouse */
+    if (xf86silkenMouseDisableFlag) {
         from = X_CMDLINE;
 	useSM = FALSE;
     } else {
@@ -2374,13 +2362,43 @@ xf86FindXvOptions(int scrnIndex, int adaptor_index, char *port_name,
 #include "loader/os.c"
 
 /* new RAC */
+/*
+ * xf86ConfigPciEntityInactive() -- This function can be used
+ * to configure an inactive entity as well as to reconfigure an
+ * previously active entity inactive. If the entity has been
+ * assigned to a screen before it will be removed. If p_chip is
+ * non-NULL all static resources listed there will be registered.
+ */
+static void
+xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
+			    EntityProc init, EntityProc enter,
+			    EntityProc leave, pointer private)
+{
+    ScrnInfoPtr pScrn;
+
+    if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
+	xf86RemoveEntityFromScreen(pScrn,pEnt->index);
+
+    /* shared resources are only needed when entity is active: remove */
+    xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
+}
+
+static void
+xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
+			   EntityProc enter, EntityProc leave, pointer private)
+{
+    ScrnInfoPtr pScrn;
+
+    if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
+	xf86RemoveEntityFromScreen(pScrn,pEnt->index);
+    xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
+}
 
 ScrnInfoPtr
 xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
-			  PciChipsets *p_chip, resList res, EntityProc init,
+			  PciChipsets *p_chip, void *dummy, EntityProc init,
 			  EntityProc enter, EntityProc leave, pointer private)
 {
-    PciChipsets *p_id;
     EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
     if (!pEnt) return pScrn;
 
@@ -2390,7 +2408,7 @@ xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 	return pScrn;
     }
     if (!pEnt->active) {
-	xf86ConfigPciEntityInactive(pEnt, p_chip, res, init,  enter,
+	xf86ConfigPciEntityInactive(pEnt, p_chip, init,  enter,
 				    leave,  private);
 	xfree(pEnt);
 	return pScrn;
@@ -2405,15 +2423,8 @@ xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
     if (xf86IsEntityShared(entityIndex)) {
         return pScrn;
     }
-    if (p_chip) {
-	for (p_id = p_chip; p_id->numChipset != -1; p_id++) {
-	    if (pEnt->chipset == p_id->numChipset) break;
-	}
-	xf86ClaimFixedResources(p_id->resList,entityIndex);
-    }
     xfree(pEnt);
 
-    xf86ClaimFixedResources(res,entityIndex);
     xf86SetEntityFuncs(entityIndex,init,enter,leave,private);
 
     return pScrn;
@@ -2455,10 +2466,9 @@ xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag, int entityIndex,
 
 Bool
 xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
-                          PciChipsets *p_chip, resList res, EntityProc init,
+                          PciChipsets *p_chip, void *dummy, EntityProc init,
                           EntityProc enter, EntityProc leave, pointer private)
 {
-    PciChipsets *p_id;
     EntityInfoPtr pEnt = xf86GetEntityInfo(entityIndex);
     if (!pEnt) return FALSE;
 
@@ -2468,59 +2478,11 @@ xf86ConfigActivePciEntity(ScrnInfoPtr pScrn, int entityIndex,
     }
     xf86AddEntityToScreen(pScrn,entityIndex);
 
-    if (p_chip) {
-        for (p_id = p_chip; p_id->numChipset != -1; p_id++) {
-            if (pEnt->chipset == p_id->numChipset) break;
-        }
-        xf86ClaimFixedResources(p_id->resList,entityIndex);
-    }
     xfree(pEnt);
-
-    xf86ClaimFixedResources(res,entityIndex);
     if (!xf86SetEntityFuncs(entityIndex,init,enter,leave,private))
         return FALSE;
 
     return TRUE;
-}
-
-/*
- * xf86ConfigPciEntityInactive() -- This function can be used
- * to configure an inactive entity as well as to reconfigure an
- * previously active entity inactive. If the entity has been
- * assigned to a screen before it will be removed. If p_chip is
- * non-NULL all static resources listed there will be registered.
- */
-void
-xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
-			    resList res, EntityProc init, EntityProc enter,
-			    EntityProc leave, pointer private)
-{
-    PciChipsets *p_id;
-    ScrnInfoPtr pScrn;
-
-    if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
-	xf86RemoveEntityFromScreen(pScrn,pEnt->index);
-    else if (p_chip) {
-	for (p_id = p_chip; p_id->numChipset != -1; p_id++) {
-	    if (pEnt->chipset == p_id->numChipset) break;
-	}
-	xf86ClaimFixedResources(p_id->resList,pEnt->index);
-    }
-    xf86ClaimFixedResources(res,pEnt->index);
-    /* shared resources are only needed when entity is active: remove */
-    xf86DeallocateResourcesForEntity(pEnt->index, ResShared);
-    xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
-}
-
-void
-xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
-			   EntityProc enter, EntityProc leave, pointer private)
-{
-    ScrnInfoPtr pScrn;
-
-    if ((pScrn = xf86FindScreenForEntity(pEnt->index)))
-	xf86RemoveEntityFromScreen(pScrn,pEnt->index);
-    xf86SetEntityFuncs(pEnt->index,init,enter,leave,private);
 }
 
 Bool

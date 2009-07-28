@@ -22,7 +22,6 @@ libsolaris_la_SOURCES = sun_init.c \
 	$(srcdir)/../shared/kmod_noop.c \
 	$(srcdir)/../shared/posix_tty.c \
 	$(srcdir)/../shared/sigio.c \
-	$(srcdir)/../shared/stdResource.c \
 	$(srcdir)/../shared/vidmem.c \
 	$(VTSW_SRC)
 nodist_libsolaris_la_SOURCES = $(SOLARIS_INOUT_SRC)

@@ -102,7 +102,6 @@ extern _X_EXPORT Bool xf86ParsePciBusString(const char *busID, int *bus, int *de
 			   int *func);
 extern _X_EXPORT Bool xf86ComparePciBusString(const char *busID, int bus, int device, int func);
 extern _X_EXPORT void xf86FormatPciBusNumber(int busnum, char *buffer);
-extern _X_EXPORT resPtr xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex);
 extern _X_EXPORT int  xf86GetFbInfoForScreen(int scrnIndex);
 extern _X_EXPORT int xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 extern _X_EXPORT int xf86ClaimNoSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
@@ -110,9 +109,6 @@ extern _X_EXPORT void xf86EnableAccess(ScrnInfoPtr pScrn);
 extern _X_EXPORT void xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn);
 extern _X_EXPORT Bool xf86IsPrimaryPci(struct pci_device * pPci);
 /* new RAC */
-extern _X_EXPORT resPtr xf86AddResToList(resPtr rlist, resRange *Range, int entityIndex);
-extern _X_EXPORT void xf86FreeResList(resPtr rlist);
-extern _X_EXPORT void xf86ClaimFixedResources(resList list, int entityIndex);
 extern _X_EXPORT Bool xf86DriverHasEntities(DriverPtr drvp);
 extern _X_EXPORT void xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex);
 extern _X_EXPORT void xf86SetEntityInstanceForScreen(ScrnInfoPtr pScrn, int entityIndex,
@@ -124,18 +120,10 @@ extern _X_EXPORT EntityInfoPtr xf86GetEntityInfo(int entityIndex);
 extern _X_EXPORT struct pci_device * xf86GetPciInfoForEntity(int entityIndex);
 extern _X_EXPORT Bool xf86SetEntityFuncs(int entityIndex, EntityProc init,
 			EntityProc enter, EntityProc leave, pointer);
-extern _X_EXPORT void xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type);
-extern _X_EXPORT resPtr xf86RegisterResources(int entityIndex, resList list,
-			     unsigned long Access);
 extern _X_EXPORT Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base);
-extern _X_EXPORT void xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
-			xf86SetAccessFuncPtr oldFuncs);
 extern _X_EXPORT Bool xf86IsEntityPrimary(int entityIndex);
-extern _X_EXPORT resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
 extern _X_EXPORT void xf86EnterServerState(xf86State state);
 extern _X_EXPORT ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
-extern _X_EXPORT Bool xf86NoSharedResources(int screenIndex, resType res);
-extern _X_EXPORT resPtr xf86FindIntersectOfLists(resPtr l1, resPtr l2);
 extern _X_EXPORT void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 extern _X_EXPORT Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 
@@ -285,27 +273,21 @@ extern _X_EXPORT pointer xf86FindXvOptions(int scrnIndex, int adapt_index, char 
 extern _X_EXPORT void xf86GetOS(const char **name, int *major, int *minor, int *teeny);
 extern _X_EXPORT ScrnInfoPtr xf86ConfigPciEntity(ScrnInfoPtr pScrn, int scrnFlag,
 				int entityIndex,PciChipsets *p_chip,
-				resList res, EntityProc init,
+				void *dummy, EntityProc init,
 				EntityProc enter, EntityProc leave,
 				pointer private);
 extern _X_EXPORT ScrnInfoPtr xf86ConfigFbEntity(ScrnInfoPtr pScrn, int scrnFlag,
 			       int entityIndex, EntityProc init,
 			       EntityProc enter, EntityProc leave,
 			       pointer private);
+
 /* Obsolete! don't use */
 extern _X_EXPORT Bool xf86ConfigActivePciEntity(ScrnInfoPtr pScrn,
-				int entityIndex,PciChipsets *p_chip,
-				resList res, EntityProc init,
-				EntityProc enter, EntityProc leave,
-				pointer private);
-/* Obsolete! don't use */
-extern _X_EXPORT void xf86ConfigPciEntityInactive(EntityInfoPtr pEnt, PciChipsets *p_chip,
-				 resList res, EntityProc init,
-				 EntityProc enter, EntityProc leave,
-				 pointer private);
-extern _X_EXPORT void xf86ConfigFbEntityInactive(EntityInfoPtr pEnt, EntityProc init,
-				EntityProc enter, EntityProc leave,
-				pointer private);
+                               int entityIndex,PciChipsets *p_chip,
+                               void *dummy, EntityProc init,
+                               EntityProc enter, EntityProc leave,
+                               pointer private);
+
 extern _X_EXPORT Bool xf86IsScreenPrimary(int scrnIndex);
 extern _X_EXPORT int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	property, Atom type,
 				    int format, unsigned long len,
