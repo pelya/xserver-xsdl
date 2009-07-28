@@ -371,6 +371,12 @@ xf86PciProbe(void)
 	    xf86PciVideoInfo[num - 1] = info;
 
 	    pci_device_probe(info);
+#ifdef HAVE_PCI_DEVICE_IS_BOOT_VGA
+	    if (pci_device_is_boot_vga(info)) {
+                primaryBus.type = BUS_PCI;
+                primaryBus.id.pci = info;
+            }
+#endif
 	    info->user_data = 0;
 	}
     }

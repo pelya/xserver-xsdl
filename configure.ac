@@ -1387,6 +1387,7 @@ if test "x$XORG" = xyes; then
 	LIBS=$PCIACCESS_LIBS
 	AC_CHECK_FUNCS([pci_system_init_dev_mem])
 	AC_CHECK_FUNCS([pci_device_enable])
+	AC_CHECK_FUNCS([pci_device_is_boot_vga])
 	LIBS=$SAVE_LIBS
 	CFLAGS=$SAVE_CFLAGS
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $DLOPEN_LIBS $GLX_SYS_LIBS"

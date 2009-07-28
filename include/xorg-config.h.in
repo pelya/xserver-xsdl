@@ -118,6 +118,9 @@
 /* Have pci_system_init_dev_mem() */
 #undef HAVE_PCI_SYSTEM_INIT_DEV_MEM
 
+/* Define to 1 if you have the `pci_device_is_boot_vga' function. */
+#undef HAVE_PCI_DEVICE_IS_BOOT_VGA
+
 /* Have pci_enable_device */
 #undef HAVE_PCI_DEVICE_ENABLE
 
