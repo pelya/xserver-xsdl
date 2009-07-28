@@ -1123,6 +1123,15 @@ xf86InitialOutputPositions(ScrnInfoPtr scrn, DisplayModePtr * modes)
     int o;
     int min_x, min_y;
 
+    /* check for initial right-of heuristic */
+    for (o = 0; o < config->num_output; o++)
+    {
+        xf86OutputPtr output = config->output[o];
+
+        if (output->initial_x || output->initial_y)
+            return TRUE;
+    }
+
     for (o = 0; o < config->num_output; o++) {
         xf86OutputPtr output = config->output[o];
 
@@ -2102,6 +2111,57 @@ bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
     return match;
 }
 
+static int
+numEnabledOutputs(xf86CrtcConfigPtr config, Bool *enabled)
+{
+    int i = 0, p;
+
+    for (i = 0, p = -1; nextEnabledOutput(config, enabled, &p); i++) ;
+
+    return i;
+}
+
+static Bool
+xf86TargetRightOf(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
+                  DisplayModePtr *modes, Bool *enabled,
+                  int width, int height)
+{
+    int o;
+    int w = 0;
+
+    if (scrn->preferClone)
+        return FALSE;
+
+    if (numEnabledOutputs(config, enabled) < 2)
+        return FALSE;
+
+    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
+        DisplayModePtr mode =
+            xf86OutputHasPreferredMode(config->output[o], width, height);
+
+        if (!mode)
+            return FALSE;
+
+        w += mode->HDisplay;
+    }
+
+    if (w > width)
+        return FALSE;
+
+    w = 0;
+    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
+        DisplayModePtr mode =
+            xf86OutputHasPreferredMode(config->output[o], width, height);
+
+        config->output[o]->initial_x = w;
+        w += mode->HDisplay;
+
+        modes[o] = mode;
+    }
+
+    return TRUE;
+}
+
 static Bool
 xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
                     DisplayModePtr * modes, Bool *enabled,
@@ -2178,14 +2238,10 @@ xf86TargetPreferred(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
      */
     if (!ret)
         do {
-            int i = 0;
             float aspect = 0.0;
             DisplayModePtr a = NULL, b = NULL;
 
-            /* count the number of enabled outputs */
-            for (i = 0, p = -1; nextEnabledOutput(config, enabled, &p); i++);
-
-            if (i != 1)
+            if (numEnabledOutputs(config, enabled) != 1)
                 break;
 
             p = -1;
@@ -2491,6 +2547,8 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
     else {
         if (xf86TargetUserpref(scrn, config, modes, enabled, width, height))
             xf86DrvMsg(i, X_INFO, "Using user preference for initial modes\n");
+        else if (xf86TargetRightOf(scrn, config, modes, enabled, width, height))
+            xf86DrvMsg(i, X_INFO, "Using spanning desktop for initial modes\n");
         else if (xf86TargetPreferred
                  (scrn, config, modes, enabled, width, height))
             xf86DrvMsg(i, X_INFO, "Using exact sizes for initial modes\n");
@@ -2510,9 +2568,11 @@ xf86InitialConfiguration(ScrnInfoPtr scrn, Bool canGrow)
                        "Output %s enabled but has no modes\n",
                        config->output[o]->name);
         else
-            xf86DrvMsg(scrn->scrnIndex, X_INFO,
-                       "Output %s using initial mode %s\n",
-                       config->output[o]->name, modes[o]->name);
+            xf86DrvMsg (scrn->scrnIndex, X_INFO,
+                        "Output %s using initial mode %s +%d+%d\n",
+                        config->output[o]->name, modes[o]->name,
+                        config->output[o]->initial_x,
+                        config->output[o]->initial_y);
     }
 
     /*
