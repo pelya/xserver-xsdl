@@ -33,8 +33,6 @@
 #ifndef _XF86_PCI_BUS_H
 #define _XF86_PCI_BUS_H
 
-#define PCITAG_SPECIAL pciTag(0xFF,0xFF,0xFF)
-
 typedef struct {
     CARD32 command;
     CARD32 base[6];
@@ -60,11 +58,5 @@ typedef union {
 void xf86PciProbe(void);
 void initPciState(void);
 void initPciBusState(void);
-void DisablePciAccess(void);
-void DisablePciBusAccess(void);
-void PciStateEnter(void);
-void PciBusStateEnter(void);
-void PciStateLeave(void);
-void PciBusStateLeave(void);
 
 #endif /* _XF86_PCI_BUS_H */
