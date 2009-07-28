@@ -151,13 +151,6 @@ xf86scanpci(void)
 
     success = (pci_system_init() == 0);
 
-	/* XXX */
-#if defined(DEBUGPCI)
-	if (DEBUGPCI >= xf86Verbose) {
-	    xf86Verbose = DEBUGPCI;
-	}
-#endif
-
     /* choose correct platform/OS specific PCI init routine */
 	ARCH_PCI_INIT();
 
