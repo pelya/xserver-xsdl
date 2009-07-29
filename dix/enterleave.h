@@ -33,6 +33,7 @@
 
 extern void DoEnterLeaveEvents(
     DeviceIntPtr pDev,
+    int sourceid,
     WindowPtr fromWin,
     WindowPtr toWin,
     int mode
@@ -64,6 +65,7 @@ extern void CoreEnterLeaveEvent(DeviceIntPtr mouse,
                                 WindowPtr pWin,
                                 Window child);
 extern void DeviceEnterLeaveEvent(DeviceIntPtr mouse,
+                                  int sourceid,
                                   int type,
                                   int mode,
                                   int detail,

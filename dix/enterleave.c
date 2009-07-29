@@ -218,6 +218,7 @@ CommonAncestor(
  */
 static void
 DeviceEnterNotifies(DeviceIntPtr dev,
+              int sourceid,
               WindowPtr ancestor,
               WindowPtr child,
               int mode,
@@ -227,8 +228,8 @@ DeviceEnterNotifies(DeviceIntPtr dev,
 
     if (ancestor == parent)
 	return;
-    DeviceEnterNotifies(dev, ancestor, parent, mode, detail);
-    DeviceEnterLeaveEvent(dev, XI_Enter, mode, detail, parent,
+    DeviceEnterNotifies(dev, sourceid, ancestor, parent, mode, detail);
+    DeviceEnterLeaveEvent(dev, sourceid, XI_Enter, mode, detail, parent,
                           child->drawable.id);
 }
 
@@ -323,6 +324,7 @@ CoreLeaveNotifies(DeviceIntPtr dev,
  */
 static void
 DeviceLeaveNotifies(DeviceIntPtr dev,
+              int sourceid,
               WindowPtr child,
               WindowPtr ancestor,
               int mode,
@@ -334,7 +336,7 @@ DeviceLeaveNotifies(DeviceIntPtr dev,
 	return;
     for (win = child->parent; win != ancestor; win = win->parent)
     {
-        DeviceEnterLeaveEvent(dev, XI_Leave, mode, detail, win,
+        DeviceEnterLeaveEvent(dev, sourceid, XI_Leave, mode, detail, win,
                                   child->drawable.id);
         child = win;
     }
@@ -562,30 +564,31 @@ CoreEnterLeaveEvents(DeviceIntPtr dev,
 
 static void
 DeviceEnterLeaveEvents(DeviceIntPtr dev,
+                       int          sourceid,
                        WindowPtr    from,
                        WindowPtr    to,
                        int          mode)
 {
     if (IsParent(from, to))
     {
-        DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyInferior, from, None);
-        DeviceEnterNotifies(dev, from, to, mode, NotifyVirtual);
-        DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyAncestor, to, None);
+        DeviceEnterLeaveEvent(dev, sourceid, XI_Leave, mode, NotifyInferior, from, None);
+        DeviceEnterNotifies(dev, sourceid, from, to, mode, NotifyVirtual);
+        DeviceEnterLeaveEvent(dev, sourceid, XI_Enter, mode, NotifyAncestor, to, None);
     }
     else if (IsParent(to, from))
     {
-	DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyAncestor, from, None);
-	DeviceLeaveNotifies(dev, from, to, mode, NotifyVirtual);
-	DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyInferior, to, None);
+	DeviceEnterLeaveEvent(dev, sourceid, XI_Leave, mode, NotifyAncestor, from, None);
+	DeviceLeaveNotifies(dev, sourceid, from, to, mode, NotifyVirtual);
+	DeviceEnterLeaveEvent(dev, sourceid, XI_Enter, mode, NotifyInferior, to, None);
     }
     else
     { /* neither from nor to is descendent of the other */
 	WindowPtr common = CommonAncestor(to, from);
 	/* common == NullWindow ==> different screens */
-        DeviceEnterLeaveEvent(dev, XI_Leave, mode, NotifyNonlinear, from, None);
-        DeviceLeaveNotifies(dev, from, common, mode, NotifyNonlinearVirtual);
-        DeviceEnterNotifies(dev, common, to, mode, NotifyNonlinearVirtual);
-        DeviceEnterLeaveEvent(dev, XI_Enter, mode, NotifyNonlinear, to, None);
+        DeviceEnterLeaveEvent(dev, sourceid, XI_Leave, mode, NotifyNonlinear, from, None);
+        DeviceLeaveNotifies(dev, sourceid, from, common, mode, NotifyNonlinearVirtual);
+        DeviceEnterNotifies(dev, sourceid, common, to, mode, NotifyNonlinearVirtual);
+        DeviceEnterLeaveEvent(dev, sourceid, XI_Enter, mode, NotifyNonlinear, to, None);
     }
 }
 
@@ -598,6 +601,7 @@ DeviceEnterLeaveEvents(DeviceIntPtr dev,
  */
 void
 DoEnterLeaveEvents(DeviceIntPtr pDev,
+        int sourceid,
         WindowPtr fromWin,
         WindowPtr toWin,
         int mode)
@@ -610,7 +614,7 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
 
     if (mode != XINotifyPassiveGrab && mode != XINotifyPassiveUngrab)
         CoreEnterLeaveEvents(pDev, fromWin, toWin, mode);
-    DeviceEnterLeaveEvents(pDev, fromWin, toWin, mode);
+    DeviceEnterLeaveEvents(pDev, sourceid, fromWin, toWin, mode);
 }
 
 /**

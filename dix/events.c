@@ -1474,7 +1474,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
                 mouse->spriteInfo->sprite->hotPhys.y = 0;
 	ConfineCursorToWindow(mouse, grab->confineTo, FALSE, TRUE);
     }
-    DoEnterLeaveEvents(mouse, oldWin, grab->window, NotifyGrab);
+    DoEnterLeaveEvents(mouse, mouse->id, oldWin, grab->window, NotifyGrab);
     mouse->valuator->motionHintWindow = NullWindow;
     if (syncEvents.playingEvents)
         grabinfo->grabTime = syncEvents.time;
@@ -1511,7 +1511,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
 	if (dev->deviceGrab.sync.other == grab)
 	    dev->deviceGrab.sync.other = NullGrab;
     }
-    DoEnterLeaveEvents(mouse, grab->window,
+    DoEnterLeaveEvents(mouse, mouse->id, grab->window,
                        mouse->spriteInfo->sprite->win, NotifyUngrab);
     if (grab->confineTo)
 	ConfineCursorToWindow(mouse, RootWindow(mouse), FALSE, FALSE);
@@ -2585,7 +2585,7 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
         if (dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
-        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
+        DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
         (*dev->deviceGrab.DeactivateGrab)(dev);
     }
 
@@ -2602,7 +2602,7 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.detail.button = 0;
     rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
     if (rc)
-        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
+        DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
     return rc;
 }
 
@@ -2625,7 +2625,7 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
         if (dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
-        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveUngrab);
+        DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
         (*dev->deviceGrab.DeactivateGrab)(dev);
     }
 
@@ -2639,7 +2639,7 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.detail.button = 0;
     rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
     if (rc)
-        DoEnterLeaveEvents(dev, old, win, XINotifyPassiveGrab);
+        DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveGrab);
 
     return rc;
 }
@@ -2740,12 +2740,16 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 
     if (newSpriteWin != prevSpriteWin)
     {
-        if (!ev)
+        int sourceid;
+        if (!ev) {
             UpdateCurrentTimeIf();
+            sourceid = pDev->id; /* when from WindowsRestructured */
+        } else
+            sourceid = ev->sourceid;
 
 	if (prevSpriteWin != NullWindow) {
             if (!ActivateEnterGrab(pDev, prevSpriteWin, newSpriteWin))
-                DoEnterLeaveEvents(pDev, prevSpriteWin,
+                DoEnterLeaveEvents(pDev, sourceid, prevSpriteWin,
                                    newSpriteWin, NotifyNormal);
         }
         /* set pSprite->win after ActivateEnterGrab, otherwise
@@ -4216,6 +4220,7 @@ CoreEnterLeaveEvent(
 void
 DeviceEnterLeaveEvent(
     DeviceIntPtr mouse,
+    int sourceid,
     int type,
     int mode,
     int detail,
@@ -4245,7 +4250,7 @@ DeviceEnterLeaveEvent(
     event->detail       = detail;
     event->time         = currentTime.milliseconds;
     event->deviceid     = mouse->id;
-    event->sourceid     = 0; /*XXX */
+    event->sourceid     = sourceid;
     event->mode         = mode;
     event->root_x       = FP1616(mouse->spriteInfo->sprite->hot.x, 0);
     event->root_y       = FP1616(mouse->spriteInfo->sprite->hot.y, 0);
