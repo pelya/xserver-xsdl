@@ -781,13 +781,16 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (void) applicationWillTerminate:(NSNotification *)aNotification
 {
+  unsigned remain;
   [X11App prefs_synchronize];
 	
   /* shutdown the X server, it will exit () for us. */
   DarwinSendDDXEvent(kXquartzQuit, 0);
 	
   /* In case it doesn't, exit anyway after a while. */
-  while (sleep (10) != 0) ;
+  remain = 10000000;
+  while((remain = usleep(remain)) > 0);
+
   exit (1);
 }
 
