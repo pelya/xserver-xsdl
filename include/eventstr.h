@@ -44,7 +44,7 @@
  * Note: Keep KeyPress to Motion aligned with the core events.
  *       Keep ET_Raw* in the same order as KeyPress - Motion
  */
-enum {
+enum EventType {
     ET_KeyPress = 2,
     ET_KeyRelease,
     ET_ButtonPress,
@@ -67,7 +67,7 @@ enum {
     ET_RawButtonRelease,
     ET_RawMotion,
     ET_Internal = 0xFF /* First byte */
-} EventType;
+};
 
 #define CHECKEVENT(ev) if (ev && ((InternalEvent*)(ev))->any.header != 0xFF) \
                           FatalError("Wrong event type %d.\n", \
