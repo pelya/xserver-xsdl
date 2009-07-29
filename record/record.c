@@ -614,7 +614,7 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 	    if (pContext->continuedReply)
 	    {
 		RecordAProtocolElement(pContext, client, XRecordFromServer,
-		    pri->replyData, pri->dataLenBytes, /* continuation */ -1);
+		   (pointer)pri->replyData, pri->dataLenBytes, /* continuation */ -1);
 		if (!pri->bytesRemaining)
 		    pContext->continuedReply = 0;
 	    }
@@ -624,7 +624,7 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 		if (majorop <= 127)
 		{ /* core reply */
 		    RecordAProtocolElement(pContext, client, XRecordFromServer,
-		       pri->replyData, pri->dataLenBytes, pri->bytesRemaining);
+		       (pointer)pri->replyData, pri->dataLenBytes, pri->bytesRemaining);
 		    if (pri->bytesRemaining)
 			pContext->continuedReply = 1;
 		}
@@ -645,7 +645,7 @@ RecordAReply(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 						minorop))
 			{
 			    RecordAProtocolElement(pContext, client, 
-				XRecordFromServer, pri->replyData,
+				XRecordFromServer, (pointer)pri->replyData,
 				pri->dataLenBytes, pri->bytesRemaining);
 			    if (pri->bytesRemaining)
 				pContext->continuedReply = 1;
@@ -2741,8 +2741,8 @@ RecordConnectionSetupInfo(RecordContextPtr pContext, NewClientInfoRec *pci)
 	char *pConnSetup = (char *)xalloc(prefixsize + restsize);
 	if (!pConnSetup)
 	    return;
-	SwapConnSetupPrefix(pci->prefix, pConnSetup);
-	SwapConnSetupInfo(pci->setup, pConnSetup + prefixsize);
+	SwapConnSetupPrefix(pci->prefix, (xConnSetupPrefix*)pConnSetup);
+	SwapConnSetupInfo((char*)pci->setup, (char*)(pConnSetup + prefixsize));
 	RecordAProtocolElement(pContext, pci->client, XRecordClientStarted,
 			       (pointer)pConnSetup, prefixsize + restsize, 0);
 	xfree(pConnSetup);
