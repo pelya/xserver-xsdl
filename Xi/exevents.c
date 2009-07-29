@@ -1273,7 +1273,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     xi2event->detail       = detail;
     xi2event->time         = currentTime.milliseconds;
     xi2event->deviceid     = dev->id;
-    xi2event->sourceid     = 0; /*XXX */
+    xi2event->sourceid     = dev->id; /* a device doesn't change focus by itself */
     xi2event->mode         = mode;
     xi2event->root_x       = FP1616(mouse->spriteInfo->sprite->hot.x, 0);
     xi2event->root_y       = FP1616(mouse->spriteInfo->sprite->hot.y, 0);
