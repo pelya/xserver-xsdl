@@ -80,7 +80,7 @@ extern _X_EXPORT void InitValuatorAxisStruct(
 	int                    /* min_res */,
 	int                    /* max_res */);
 
-extern _X_EXPORT void DeviceFocusEvent(
+extern void DeviceFocusEvent(
 	DeviceIntPtr           /* dev */,
 	int                    /* type */,
 	int                    /* mode */,
