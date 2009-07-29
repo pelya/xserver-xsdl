@@ -147,6 +147,8 @@ EventToXI(InternalEvent *ev, xEvent **xi, int *count)
             *count = 0;
             *xi = NULL;
             return BadMatch;
+        default:
+            break;
     }
 
     ErrorF("[dix] EventToXI: Not implemented for %d \n", ev->any.type);
@@ -196,7 +198,8 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
         case ET_RawButtonRelease:
         case ET_RawMotion:
             return eventToRawEvent((RawDeviceEvent*)ev, xi);
-
+        default:
+            break;
     }
 
     ErrorF("[dix] EventToXI2: Not implemented for %d \n", ev->any.type);
@@ -247,6 +250,8 @@ eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
         case ET_KeyRelease:    kbp->type = DeviceKeyRelease;    break;
         case ET_ProximityIn:   kbp->type = ProximityIn;         break;
         case ET_ProximityOut:  kbp->type = ProximityOut;        break;
+        default:
+            break;
     }
 
     if (num_events > 1)
@@ -518,6 +523,8 @@ GetCoreType(InternalEvent *event)
         case ET_ButtonRelease:  coretype = ButtonRelease; break;
         case ET_KeyPress:       coretype = KeyPress;      break;
         case ET_KeyRelease:     coretype = KeyRelease;    break;
+        default:
+            break;
     }
     return coretype;
 }
@@ -539,6 +546,8 @@ GetXIType(InternalEvent *event)
         case ET_KeyRelease:     xitype = DeviceKeyRelease;    break;
         case ET_ProximityIn:    xitype = ProximityIn;         break;
         case ET_ProximityOut:   xitype = ProximityOut;        break;
+        default:
+            break;
     }
     return xitype;
 }

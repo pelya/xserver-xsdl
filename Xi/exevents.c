@@ -131,6 +131,8 @@ IsPointerEvent(InternalEvent* event)
         case ET_Motion:
             /* XXX: enter/leave ?? */
             return TRUE;
+        default:
+            break;
     }
     return FALSE;
 }
@@ -1066,6 +1068,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             event->corestate = state;
             key = event->detail.key;
             break;
+        default:
+            break;
     }
 
 #if 0
@@ -1120,6 +1124,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
                  device->deviceGrab.grab->type == DeviceButtonPress ||
                  device->deviceGrab.grab->type == XI_ButtonPress))
                 deactivateDeviceGrab = TRUE;
+        default:
+            break;
     }
 
 

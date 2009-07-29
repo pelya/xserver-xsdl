@@ -83,7 +83,7 @@ enum EventType {
 struct _DeviceEvent
 {
     unsigned char header; /**< Always ET_Internal */
-    int type;             /**< One of EventType */
+    enum EventType type;  /**< One of EventType */
     int length;           /**< Length in bytes */
     Time time;            /**< Time in ms */
     int deviceid;         /**< Device to post this event for */
@@ -136,7 +136,7 @@ struct _DeviceEvent
 struct _DeviceChangedEvent
 {
     unsigned char header; /**< Always ET_Internal */
-    int type;             /**< ET_DeviceChanged */
+    enum EventType type;  /**< ET_DeviceChanged */
     int length;           /**< Length in bytes */
     Time time;            /**< Time in ms */
     int deviceid;         /**< Device whose capabilities have changed */
@@ -177,7 +177,7 @@ struct _DeviceChangedEvent
 struct _DGAEvent
 {
     unsigned char header; /**<  Always ET_Internal */
-    int type;             /**<  ET_DGAEvent */
+    enum EventType type;  /**<  ET_DGAEvent */
     int length;           /**<  Length in bytes */
     Time time;            /**<  Time in ms */
     int subtype;          /**<  KeyPress, KeyRelease, ButtonPress,
@@ -196,7 +196,7 @@ struct _DGAEvent
 struct _RawDeviceEvent
 {
     unsigned char header; /**<  Always ET_Internal */
-    int type;             /**<  ET_Raw */
+    enum EventType type;  /**<  ET_Raw */
     int length;           /**<  Length in bytes */
     Time time;            /**<  Time in ms */
     int deviceid;         /**< Device to post this event for */
@@ -221,7 +221,7 @@ struct _RawDeviceEvent
 union _InternalEvent {
         struct {
             unsigned char header; /**< Always ET_Internal */
-            int type;             /**< One of ET_* */
+            enum EventType type;  /**< One of ET_* */
             int length;           /**< Length in bytes */
             Time time;            /**< Time in ms. */
         } any;
