@@ -946,6 +946,11 @@ extern int XkbGetKeysym(
         DeviceIntPtr            /* dev */,
         DeviceEvent*            /* event*/);
 
+extern Bool XkbFilterEvents(
+        ClientPtr               /* pClient */,
+        int                     /* nEvents */,
+        xEvent*                 /* xE */);
+
 #include "xkbfile.h"
 #include "xkbrules.h"
 

@@ -134,9 +134,6 @@ of the copyright holder.
 
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
-/* XKB FIXME: why is this here? */
-extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
-
 #include "xace.h"
 
 #ifdef XSERVER_DTRACE
