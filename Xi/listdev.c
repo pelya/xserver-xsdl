@@ -61,7 +61,6 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #include "extnsionst.h"
-#include "exglobals.h"	/* FIXME */
 #include "exevents.h"
 #include "xace.h"
 #include "xkbsrv.h"
