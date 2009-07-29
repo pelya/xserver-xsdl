@@ -215,8 +215,6 @@ CommonAncestor(
  * Send enter notifies to all windows between 'ancestor' and 'child' (excluding
  * both). Events are sent running up the window hierarchy. This function
  * recurses.
- *
- * @param core If TRUE, core events are sent, otherwise XI events will be sent.
  */
 static void
 DeviceEnterNotifies(DeviceIntPtr dev,
