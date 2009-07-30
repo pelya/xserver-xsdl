@@ -211,10 +211,10 @@ QuartzAudioIOProc(
 
 
 /*
- * QuartzCoreAudioBell
- *  Play a tone using the CoreAudio API
+ * DDXRingBell
+ * Play a tone using the CoreAudio API
  */
-static void QuartzCoreAudioBell(
+void DDXRingBell(
     int volume,         // volume is % of max
     int pitch,          // pitch is Hz
     int duration )      // duration is milliseconds
@@ -239,7 +239,7 @@ static void QuartzCoreAudioBell(
         OSStatus status;
         status = AudioDeviceStart(quartzAudioDevice, QuartzAudioIOProc);
         if (status) {
-            ErrorF("QuartzAudioBell: AudioDeviceStart returned %ld\n", (long)status);
+            ErrorF("DDXRingBell: AudioDeviceStart returned %ld\n", (long)status);
         } else {
             data.playing = TRUE;
         }
@@ -276,7 +276,7 @@ void QuartzBell(
         if (volume)
             NSBeep();
     } else {
-        QuartzCoreAudioBell(volume, pitch, duration);
+        DDXRingBell(volume, pitch, duration);
     }
 }
 
