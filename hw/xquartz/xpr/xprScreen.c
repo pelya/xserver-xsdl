@@ -304,7 +304,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
             dfb->blueMask = 0;
             break;
         case 15:
-            dfb->visuals = LARGE_VISUALS;
+            dfb->visuals = TrueColorMask; //LARGE_VISUALS;
             dfb->preferredCVC = TrueColor;
             dfb->depth = 15;
             dfb->bitsPerRGB = 5;
@@ -317,7 +317,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
         default:
             if(depth != 24)
                 ErrorF("Unsupported color depth requested.  Defaulting to 24bit. (depth=%d darwinDesiredDepth=%d CGDisplaySamplesPerPixel=%d CGDisplayBitsPerSample=%d)\n",  darwinDesiredDepth, depth, (int)CGDisplaySamplesPerPixel(kCGDirectMainDisplay), (int)CGDisplayBitsPerSample(kCGDirectMainDisplay));
-            dfb->visuals = LARGE_VISUALS;
+            dfb->visuals = TrueColorMask; //LARGE_VISUALS;
             dfb->preferredCVC = TrueColor;
             dfb->depth = 24;
             dfb->bitsPerRGB = 8;
