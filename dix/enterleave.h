@@ -76,6 +76,7 @@ extern void EnterWindow(DeviceIntPtr dev,
                         WindowPtr win,
                         int mode);
 
+extern void LeaveWindow(DeviceIntPtr dev);
 
 extern void CoreFocusEvent(DeviceIntPtr kbd,
                            int type,

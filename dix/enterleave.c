@@ -166,7 +166,7 @@ EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
 /**
  * Unset the presence flag for dev to mark that it is not in 'win' anymore.
  */
-static void
+void
 LeaveWindow(DeviceIntPtr dev)
 {
     PointerWindows[dev->id] = NULL;

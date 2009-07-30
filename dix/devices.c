@@ -448,6 +448,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     }
     OsReleaseSignals();
 
+    LeaveWindow(dev);
+    SetFocusOut(dev);
 
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
