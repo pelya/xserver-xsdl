@@ -37,7 +37,7 @@
 #include "eventconvert.h"
 #include "exevents.h"
 #include "dixgrabs.h"
-
+#include "eventstr.h"
 #include <glib.h>
 
 /**
