@@ -92,6 +92,5 @@ extern void DeviceFocusEvent(DeviceIntPtr kbd,
 extern void SetFocusIn(DeviceIntPtr kbd,
                        WindowPtr win);
 
-extern void SetFocusOut(DeviceIntPtr dev,
-                        WindowPtr win);
+extern void SetFocusOut(DeviceIntPtr dev);
 #endif /* _ENTERLEAVE_H_ */

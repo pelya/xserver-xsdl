@@ -167,7 +167,7 @@ EnterWindow(DeviceIntPtr dev, WindowPtr win, int mode)
  * Unset the presence flag for dev to mark that it is not in 'win' anymore.
  */
 static void
-LeaveWindow(DeviceIntPtr dev, WindowPtr win, int mode)
+LeaveWindow(DeviceIntPtr dev)
 {
     PointerWindows[dev->id] = NULL;
 }
@@ -185,7 +185,7 @@ SetFocusIn(DeviceIntPtr dev, WindowPtr win)
  * Unset the presence flag for dev to mark that it is not in 'win' anymore.
  */
 void
-SetFocusOut(DeviceIntPtr dev, WindowPtr win)
+SetFocusOut(DeviceIntPtr dev)
 {
     FocusWindows[dev->id] = NULL;
 }
@@ -550,7 +550,7 @@ CoreEnterLeaveEvents(DeviceIntPtr dev,
     if (!IsMaster(dev))
         return;
 
-    LeaveWindow(dev, from, mode);
+    LeaveWindow(dev);
 
     if (IsParent(from, to))
         CoreEnterLeaveToDescendant(dev, from, to, mode);
@@ -1223,7 +1223,7 @@ CoreFocusEvents(DeviceIntPtr dev,
     if (!IsMaster(dev))
         return;
 
-    SetFocusOut(dev, from);
+    SetFocusOut(dev);
 
     if (((to == NullWindow) || (to == PointerRootWin)) &&
         ((from == NullWindow) || (from == PointerRootWin)))
