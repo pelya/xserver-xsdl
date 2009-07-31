@@ -41,7 +41,6 @@ EXTRA_DIST = \
 	X11Application.h \
 	X11Controller.h \
 	applewmExt.h \
-	darwinClut8.h \
 	darwin.h \
 	darwinEvents.h \
 	keysym2ucs.h \

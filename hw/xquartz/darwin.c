@@ -75,7 +75,6 @@
 #include "darwinEvents.h"
 #include "quartzKeyboard.h"
 #include "quartz.h"
-//#include "darwinClut8.h"
 
 #ifdef ENABLE_DEBUG_LOG
 FILE *debug_log_fp = NULL;
@@ -296,21 +295,6 @@ static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv
     if (!miCreateDefColormap( pScreen )) {
         return FALSE;
     }
-
-    /* Set the colormap to the statically defined one if we're in 8 bit
-     * mode and we're using a fixed color map.  Essentially this translates
-     * to Darwin/x86 in 8-bit mode.
-     */
-//    if(dfb->depth == 8) {
-//        ColormapPtr map = RootlessGetColormap (pScreen);
-//        for( i = 0; i < map->pVisual->ColormapEntries; i++ ) {
-//            Entry *ent = map->red + i;
-//            ErrorF("Setting lo %d -> r: %04x g: %04x b: %04x\n", i, darwinClut8[i].red, darwinClut8[i].green, darwinClut8[i].blue);
-//            ent->co.local.red   = darwinClut8[i].red;
-//            ent->co.local.green = darwinClut8[i].green;
-//            ent->co.local.blue  = darwinClut8[i].blue;
-//        }
-//    }
 
     dixScreenOrigins[index].x = dfb->x;
     dixScreenOrigins[index].y = dfb->y;
