@@ -131,7 +131,7 @@ typedef struct _CursorScreen {
 #define GetCursorScreenIfSet(s) GetCursorScreen(s)
 #define SetCursorScreen(s,p) dixSetPrivate(&(s)->devPrivates, CursorScreenPrivateKey, p)
 #define Wrap(as,s,elt,func)	(((as)->elt = (s)->elt), (s)->elt = func)
-#define Unwrap(as,s,elt)	((s)->elt = (as)->elt)
+#define Unwrap(as,s,elt,backup)	(((backup) = (s)->elt), (s)->elt = (as)->elt)
 
 /* The cursor doesn't show up until the first XDefineCursor() */
 static Bool CursorVisible = FALSE;
@@ -145,8 +145,9 @@ CursorDisplayCursor (DeviceIntPtr pDev,
 {
     CursorScreenPtr	cs = GetCursorScreen(pScreen);
     Bool		ret;
+    DisplayCursorProcPtr backupProc;
 
-    Unwrap (cs, pScreen, DisplayCursor);
+    Unwrap (cs, pScreen, DisplayCursor, backupProc);
 
     /*
      * Have to check ConnectionInfo to distinguish client requests from
@@ -184,7 +185,8 @@ CursorDisplayCursor (DeviceIntPtr pDev,
 	    }
 	}
     }
-    Wrap (cs, pScreen, DisplayCursor, CursorDisplayCursor);
+    Wrap (cs, pScreen, DisplayCursor, backupProc);
+
     return ret;
 }
 
@@ -193,9 +195,11 @@ CursorCloseScreen (int index, ScreenPtr pScreen)
 {
     CursorScreenPtr	cs = GetCursorScreen (pScreen);
     Bool		ret;
+    CloseScreenProcPtr	close_proc;
+    DisplayCursorProcPtr display_proc;
 
-    Unwrap (cs, pScreen, CloseScreen);
-    Unwrap (cs, pScreen, DisplayCursor);
+    Unwrap (cs, pScreen, CloseScreen, close_proc);
+    Unwrap (cs, pScreen, DisplayCursor, display_proc);
     deleteCursorHideCountsForScreen(pScreen);
     ret = (*pScreen->CloseScreen) (index, pScreen);
     xfree (cs);
