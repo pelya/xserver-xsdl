@@ -63,7 +63,7 @@
 static RESTYPE		CursorClientType;
 static RESTYPE		CursorHideCountType;
 static RESTYPE		CursorWindowType;
-static CursorPtr	CursorCurrent;
+static CursorPtr	CursorCurrent[MAXDEVICES];
 static CursorPtr        pInvisibleCursor = NULL;
 
 static int CursorScreenPrivateKeyIndex;
@@ -162,11 +162,11 @@ CursorDisplayCursor (DeviceIntPtr pDev,
 	ret = (*pScreen->DisplayCursor) (pDev, pScreen, pCursor);
     }
 
-    if (pCursor != CursorCurrent)
+    if (pCursor != CursorCurrent[pDev->id])
     {
 	CursorEventPtr	e;
 
-	CursorCurrent = pCursor;
+	CursorCurrent[pDev->id] = pCursor;
 	for (e = cursorEvents; e; e = e->next)
 	{
 	    if ((e->eventMask & XFixesDisplayCursorNotifyMask) &&
@@ -380,7 +380,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     int				npixels, width, height, rc, x, y;
 
     REQUEST_SIZE_MATCH(xXFixesGetCursorImageReq);
-    pCursor = CursorCurrent;
+    pCursor = CursorCurrent[PickPointer(client)->id];
     if (!pCursor)
 	return BadCursor;
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, pCursor->id, RT_CURSOR,
@@ -532,7 +532,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     int				rc, x, y;
 
     REQUEST_SIZE_MATCH(xXFixesGetCursorImageAndNameReq);
-    pCursor = CursorCurrent;
+    pCursor = CursorCurrent[PickPointer(client)->id];
     if (!pCursor)
 	return BadCursor;
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, pCursor->id, RT_CURSOR,
@@ -916,7 +916,7 @@ ProcXFixesHideCursor (ClientPtr client)
 	for (dev = inputInfo.devices; dev; dev = dev->next)
 	{
 	    if (IsMaster(dev) && IsPointerDevice(dev))
-		CursorDisplayCursor(dev, pWin->drawable.pScreen, CursorCurrent);
+		CursorDisplayCursor(dev, pWin->drawable.pScreen, CursorCurrent[dev->id]);
 	}
     }
 
@@ -1015,7 +1015,7 @@ CursorFreeHideCount (pointer data, XID id)
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (IsMaster(dev) && IsPointerDevice(dev))
-            CursorDisplayCursor(dev, pScreen, CursorCurrent);
+            CursorDisplayCursor(dev, pScreen, CursorCurrent[dev->id]);
     }
 
     return 1;
