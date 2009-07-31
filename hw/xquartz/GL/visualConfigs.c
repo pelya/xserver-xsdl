@@ -56,6 +56,8 @@
 #include "capabilities.h"
 #include "visualConfigs.h"
 
+#define MASK(l,h) (((1 << (1 + h - l)) - 1) << l)
+
 /* Based originally on code from indirect.c which was based on code from i830_dri.c. */
 __GLXconfig *__glXAquaCreateVisualConfigs(int *numConfigsPtr, int screenNumber) {
     int numConfigs = 0;
@@ -180,33 +182,29 @@ __GLXconfig *__glXAquaCreateVisualConfigs(int *numConfigsPtr, int screenNumber) 
                                         }
                                         
                                         // Color
-                                        c->redBits = conf->color_buffers[color].r;
-                                        c->greenBits = conf->color_buffers[color].g;
+                                        c->rgbBits = 0;
+                                        
                                         c->blueBits = conf->color_buffers[color].b;
+                                        c->blueMask = MASK(c->rgbBits, c->rgbBits + c->blueBits - 1);
+                                        c->rgbBits += c->blueBits;
+
+                                        c->greenBits = conf->color_buffers[color].g;
+                                        c->greenMask = MASK(c->rgbBits, c->rgbBits + c->greenBits - 1);
+                                        c->rgbBits += c->greenBits;
+                                        
+                                        c->redBits = conf->color_buffers[color].r;
+                                        c->redMask = MASK(c->rgbBits, c->rgbBits + c->redBits - 1);
+                                        c->rgbBits += c->redBits;
                                         
                                         if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->color_buffers[color].a) {
                                             c->alphaBits = conf->color_buffers[color].a;
+                                            c->alphaMask = MASK(c->rgbBits, c->rgbBits + c->alphaBits - 1);
+                                            c->rgbBits += c->alphaBits;
                                         } else {
                                             c->alphaBits = 0;
+                                            c->alphaMask = 0;
                                         }
-
-                                        c->rgbBits = c->redBits + c->blueBits +
-                                                                   c->blueBits + c->alphaBits;
-
-                                        /*
-                                         * I'm uncertain about these masks.
-                                         * I don't think we actually care what the values are in our
-                                         * libGL, so it doesn't seem to make a difference.
-                                         *
-                                         * These need to match dfb in xprScreen.c or we'll have a default
-                                         * visual without a corresponding GLX visual.  This causes
-                                         * http://xquartz.macosforge.org/trac/ticket/287
-                                         */
-                                        c->redMask = 0xff0000;
-                                        c->greenMask = 0x00ff00;
-                                        c->blueMask = 0x0000ff;
-                                        c->alphaMask = 0;
-
+                                        
                                         // Accumulation Buffers
                                         if(conf->total_accum_buffers > 0) {
                                             c->accumRedBits = conf->accum_buffers[accum].r;
