@@ -217,17 +217,10 @@ static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv
 // TODO: Make PseudoColor visuals not suck in TrueColor mode  
 //    if(dfb->depth > 8)
 //        miSetVisualTypesAndMasks(8, PseudoColorMask, 8, PseudoColor, 0, 0, 0);
-
-#if 0
-    /*
-     * These aren't used anymore.  xpr/xprScreen.c initializes the dfb struct
-     * above based on the display properties.
-     */
     if(dfb->depth > 15)
-        miSetVisualTypesAndMasks(15, LARGE_VISUALS, 5, TrueColor, 0x7c00, 0x03e0, 0x001f);
+        miSetVisualTypesAndMasks(15, TrueColorMask, 5, TrueColor, RM_ARGB(0,5,5,5), GM_ARGB(0,5,5,5), BM_ARGB(0,5,5,5));
     if(dfb->depth > 24)
-        miSetVisualTypesAndMasks(24, LARGE_VISUALS, 8, TrueColor, 0x00ff0000, 0x0000ff00, 0x000000ff);
-#endif
+        miSetVisualTypesAndMasks(24, TrueColorMask, 8, TrueColor, RM_ARGB(0,8,8,8), GM_ARGB(0,8,8,8), BM_ARGB(0,8,8,8));
 
     miSetPixmapDepths();
 
@@ -248,29 +241,6 @@ static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv
     {
         return FALSE;
     }
-
-//    ErrorF("Screen type: %d, %d=%d, %d=%d, %d=%d, %x=%x=%x, %x=%x=%x, %x=%x=%x\n", pScreen->visuals->class,
-//           pScreen->visuals->offsetRed, dfb->bitsPerRGB * 2,
-//           pScreen->visuals->offsetGreen, dfb->bitsPerRGB,
-//           pScreen->visuals->offsetBlue, 0,
-//           pScreen->visuals->redMask, dfb->redMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetRed,
-//           pScreen->visuals->greenMask, dfb->greenMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetGreen,
-//           pScreen->visuals->blueMask, dfb->blueMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetBlue);
-
-    // set the RGB order correctly for TrueColor
-//    if (dfb->bitsPerPixel > 8) {
-//        for (i = 0, visual = pScreen->visuals;  // someday we may have more than 1
-//            i < pScreen->numVisuals; i++, visual++) {
-//            if (visual->class == TrueColor) {
-//                visual->offsetRed = bitsPerRGB * 2;
-//                visual->offsetGreen = bitsPerRGB;
-//                visual->offsetBlue = 0;
-//                visual->redMask = ((1<<bitsPerRGB)-1) << visual->offsetRed;
-//                visual->greenMask = ((1<<bitsPerRGB)-1) << visual->offsetGreen;
-//                visual->blueMask = ((1<<bitsPerRGB)-1) << visual->offsetBlue;
-//            }
-//        }
-//    }
 
 #ifdef RENDER
     if (! fbPictureInit(pScreen, 0, 0)) {

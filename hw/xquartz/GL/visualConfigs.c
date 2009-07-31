@@ -55,8 +55,7 @@
 
 #include "capabilities.h"
 #include "visualConfigs.h"
-
-#define MASK(l,h) (((1 << (1 + h - l)) - 1) << l)
+#include "darwinfb.h"
 
 /* Based originally on code from indirect.c which was based on code from i830_dri.c. */
 __GLXconfig *__glXAquaCreateVisualConfigs(int *numConfigsPtr, int screenNumber) {
@@ -182,29 +181,22 @@ __GLXconfig *__glXAquaCreateVisualConfigs(int *numConfigsPtr, int screenNumber) 
                                         }
                                         
                                         // Color
-                                        c->rgbBits = 0;
-                                        
-                                        c->blueBits = conf->color_buffers[color].b;
-                                        c->blueMask = MASK(c->rgbBits, c->rgbBits + c->blueBits - 1);
-                                        c->rgbBits += c->blueBits;
-
-                                        c->greenBits = conf->color_buffers[color].g;
-                                        c->greenMask = MASK(c->rgbBits, c->rgbBits + c->greenBits - 1);
-                                        c->rgbBits += c->greenBits;
-                                        
-                                        c->redBits = conf->color_buffers[color].r;
-                                        c->redMask = MASK(c->rgbBits, c->rgbBits + c->redBits - 1);
-                                        c->rgbBits += c->redBits;
-                                        
                                         if(GLCAPS_COLOR_BUF_INVALID_VALUE != conf->color_buffers[color].a) {
                                             c->alphaBits = conf->color_buffers[color].a;
-                                            c->alphaMask = MASK(c->rgbBits, c->rgbBits + c->alphaBits - 1);
-                                            c->rgbBits += c->alphaBits;
                                         } else {
                                             c->alphaBits = 0;
-                                            c->alphaMask = 0;
                                         }
+                                        c->redBits   = conf->color_buffers[color].r;
+                                        c->greenBits = conf->color_buffers[color].g;
+                                        c->blueBits  = conf->color_buffers[color].b;
                                         
+                                        c->rgbBits = c->alphaBits + c->redBits + c->greenBits + c->blueBits;
+
+                                        c->alphaMask = AM_ARGB(c->alphaBits, c->redBits, c->greenBits, c->blueBits);
+                                        c->redMask   = RM_ARGB(c->alphaBits, c->redBits, c->greenBits, c->blueBits);
+                                        c->greenMask = GM_ARGB(c->alphaBits, c->redBits, c->greenBits, c->blueBits);
+                                        c->blueMask  = BM_ARGB(c->alphaBits, c->redBits, c->greenBits, c->blueBits);
+                                                                                
                                         // Accumulation Buffers
                                         if(conf->total_accum_buffers > 0) {
                                             c->accumRedBits = conf->accum_buffers[accum].r;
