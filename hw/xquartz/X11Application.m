@@ -1027,7 +1027,7 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
     } else {
         location.x = lastpt.x + [e deltaX];
         location.y = lastpt.y - [e deltaY];
-        lastpt = [e locationInWindow];
+        lastpt = [NSEvent mouseLocation]; // [e locationInWindow] gives us the "unfixed" location when our cursor is fixed.  This bugs things like quake
     }
     
     /* Convert coordinate system */
