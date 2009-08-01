@@ -758,6 +758,13 @@ typedef struct _ExaDriver {
  */
 #define EXA_SUPPORTS_OFFSCREEN_OVERLAPS (1 << 5)
 
+/**
+ * EXA_MIXED_PIXMAPS will hide unacceleratable pixmaps from drivers and manage the
+ * problem known software fallbacks like trapezoids. This only migrates pixmaps one way
+ * into a driver pixmap and then pins it.
+ */
+#define EXA_MIXED_PIXMAPS (1 << 6)
+
 /** @} */
 
 /* in exa.c */

@@ -547,6 +547,9 @@ exaSetAccelBlock(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
 void
 exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
+Bool
+exaPixmapIsPinned (PixmapPtr pPix);
+
 extern const GCFuncs exaGCFuncs;
 
 /* exa_classic.c */
@@ -578,6 +581,28 @@ exaDestroyPixmap_driver (PixmapPtr pPixmap);
 
 Bool
 exaPixmapIsOffscreen_driver(PixmapPtr pPixmap);
+
+/* exa_mixed.c */
+PixmapPtr
+exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
+		unsigned usage_hint);
+
+Bool
+exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
+		      int bitsPerPixel, int devKind, pointer pPixData);
+
+Bool
+exaDestroyPixmap_mixed(PixmapPtr pPixmap);
+
+Bool
+exaPixmapIsOffscreen_mixed(PixmapPtr pPixmap);
+
+/* exa_migration_mixed.c */
+void
+exaCreateDriverPixmap_mixed(PixmapPtr pPixmap);
+
+void
+exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
 /* exa_render.c */
 Bool
@@ -633,7 +658,7 @@ exaGlyphs (CARD8	op,
 	  GlyphListPtr	list,
 	  GlyphPtr	*glyphs);
 
-/* exa_migration.c */
+/* exa_migration_classic.c */
 void
 exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 

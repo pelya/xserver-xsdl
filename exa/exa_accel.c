@@ -57,7 +57,9 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     {
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
-    } else if (pExaPixmap->pDamage) {
+    }
+
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
 	pixmaps[0].as_dst = TRUE;
@@ -165,10 +167,10 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     if (pExaScr->swappedOut)
 	return FALSE;
 
-    if (pExaPixmap->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
- 	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pPix;
 	pixmaps[0].pReg = DamagePendingRegion(pExaPixmap->pDamage);
@@ -455,7 +457,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
         }
     }
 
-    if (pDstExaPixmap->pDamage || pSrcExaPixmap->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[2];
 
 	pixmaps[0].as_dst = TRUE;
@@ -466,6 +468,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	pixmaps[1].as_src = TRUE;
 	pixmaps[1].pPix = pSrcPixmap;
 	pixmaps[1].pReg = srcregion;
+
 	exaDoMigration (pixmaps, 2, TRUE);
     }
 
@@ -809,7 +812,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	goto fallback;
     }
 
-    if (pExaPixmap->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
 	pixmaps[0].as_dst = TRUE;
@@ -982,17 +985,16 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
     REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
     if (pExaPixmap->accel_blocked)
-    {
 	goto out;
-    } else if (pExaPixmap->pDamage) {
+
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pPixmap;
 	pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillSolid,
-						alu, clientClipType)
-	    ? NULL : pRegion;
+						alu, clientClipType) ? NULL : pRegion;
 
 	exaDoMigration (pixmaps, 1, TRUE);
     }
@@ -1078,17 +1080,16 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
     pExaPixmap = ExaGetPixmapPriv (pPixmap);
 
     if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
-    {
 	return FALSE;
-    } else if (pExaPixmap->pDamage || pTileExaPixmap->pDamage) {
+
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[2];
 
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pPixmap;
 	pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillTiled,
-						alu, clientClipType)
-	    ? NULL : pRegion;
+						alu, clientClipType) ? NULL : pRegion;
 	pixmaps[1].as_dst = FALSE;
 	pixmaps[1].as_src = TRUE;
 	pixmaps[1].pPix = pTile;
@@ -1233,19 +1234,18 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 {
     ExaScreenPriv (pDrawable->pScreen);
     PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
-    ExaPixmapPrivPtr pExaPixmap = ExaGetPixmapPriv (pPix);
     int xoff, yoff;
     Bool ok;
 
     if (pExaScr->swappedOut)
 	goto fallback;
 
-    if (pExaPixmap->pDamage) {
+    exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
+
+    if (pExaScr->do_migration) {
 	BoxRec Box;
 	RegionRec Reg;
 	ExaMigrationRec pixmaps[1];
-
-	exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
 
 	Box.x1 = pDrawable->y + x + xoff;
 	Box.y1 = pDrawable->y + y + yoff;

@@ -301,7 +301,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
-    if (pDstExaPix->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
 	pixmaps[0].as_dst = TRUE;
@@ -395,8 +395,7 @@ exaTryDriverCompositeRects(CARD8	       op,
 	return -1;
     }
 
-    if (pSrcExaPix->pDamage || pDstExaPix->pDamage ||
-	(pMask && pMaskExaPix->pDamage)) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[3];
 
 	pixmaps[0].as_dst = TRUE;
@@ -507,8 +506,6 @@ exaCompositeRects(CARD8	              op,
 		  ExaCompositeRectPtr rects)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
-    PixmapPtr pPixmap = exaGetDrawablePixmap(pDst->pDrawable);
-    ExaPixmapPriv(pPixmap);
     int n;
     ExaCompositeRectPtr r;
     int ret;
@@ -516,7 +513,7 @@ exaCompositeRects(CARD8	              op,
     /* If we get a mask, that means we're rendering to the exaGlyphs
      * destination directly, so the damage layer takes care of this.
      */
-    if (!pMask && pExaPixmap->pDamage) {
+    if (!pMask) {
 	RegionRec region;
 	int x1 = MAXSHORT;
 	int y1 = MAXSHORT;
@@ -610,7 +607,7 @@ exaCompositeRects(CARD8	              op,
     
     /************************************************************/
 
-    if (!pMask && pExaPixmap->pDamage) {
+    if (!pMask) {
 	/* Now we have to flush the damage out from pendingDamage => damage 
 	 * Calling DamageRegionProcessPending has that effect.
 	 */
@@ -689,8 +686,7 @@ exaTryDriverComposite(CARD8		op,
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
-    if (pSrcExaPix->pDamage || pDstExaPix->pDamage ||
-	(pMask && pMaskExaPix->pDamage)) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[3];
 
 	pixmaps[0].as_dst = TRUE;
@@ -707,9 +703,8 @@ exaTryDriverComposite(CARD8		op,
 	    pixmaps[2].pPix = pMaskPix;
 	    pixmaps[2].pReg = NULL;
 	    exaDoMigration(pixmaps, 3, TRUE);
-	} else {
+	} else
 	    exaDoMigration(pixmaps, 2, TRUE);
-	}
     }
 
     pSrcPix = exaGetOffscreenPixmap (pSrc->pDrawable, &src_off_x, &src_off_y);

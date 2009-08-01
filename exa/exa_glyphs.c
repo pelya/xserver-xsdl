@@ -385,10 +385,10 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     if (pGlyphPixmap->drawable.bitsPerPixel != pCachePixmap->drawable.bitsPerPixel)
 	goto composite;
 
-    /* cache pixmap must be offscreen. */
-    if (pExaPixmap->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
+	/* cache pixmap must be offscreen. */
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pCachePixmap;

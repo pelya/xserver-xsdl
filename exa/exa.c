@@ -217,6 +217,22 @@ exaSetFbPitch(ExaScreenPrivPtr pExaScr, ExaPixmapPrivPtr pExaPixmap,
 }
 
 /**
+ * Returns TRUE if the pixmap is not movable.  This is the case where it's a
+ * pixmap which has no private (almost always bad) or it's a scratch pixmap created by
+ * some X Server internal component (the score says it's pinned).
+ */
+Bool
+exaPixmapIsPinned (PixmapPtr pPix)
+{
+    ExaPixmapPriv (pPix);
+
+    if (pExaPixmap == NULL)
+	EXA_FatalErrorDebugWithRet(("EXA bug: exaPixmapIsPinned was called on a non-exa pixmap.\n"), TRUE);
+
+    return pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
+}
+
+/**
  * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
  * memory, meaning that acceleration could probably be done to it, and that it
  * will need to be wrapped by PrepareAccess()/FinishAccess() when accessing it
@@ -237,7 +253,7 @@ exaPixmapIsOffscreen(PixmapPtr pPixmap)
     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
 	return FALSE;
 
-    return pExaScr->pixmap_is_offscreen(pPixmap);
+    return (*pExaScr->pixmap_is_offscreen)(pPixmap);
 }
 
 /**
@@ -348,9 +364,9 @@ void
 exaPrepareAccessReg(DrawablePtr pDrawable, int index, RegionPtr pReg)
 {
     PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
-    ExaPixmapPriv(pPixmap);
+    ExaScreenPriv(pPixmap->drawable.pScreen);
 
-    if (pExaPixmap->pDamage) {
+    if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
 	if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {
@@ -1037,11 +1053,19 @@ exaDriverInit (ScreenPtr		pScreen,
 	    return FALSE;
         }
 	if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS) {
-	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_driver);
-	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
-	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
-	    pExaScr->do_migration = NULL;
-	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
+	    if (pExaScr->info->flags & EXA_MIXED_PIXMAPS) {
+		wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_mixed);
+		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_mixed);
+		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_mixed);
+		pExaScr->do_migration = exaDoMigration_mixed;
+		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_mixed;
+	    } else {
+		wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_driver);
+		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
+		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
+		pExaScr->do_migration = NULL;
+		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
+	    }
 	} else {
 	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_classic);
 	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_classic);
@@ -1162,5 +1186,5 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	return;
 
     if (pExaScr->do_migration)
-	pExaScr->do_migration(pixmaps, npixmaps, can_accel);
+	(*pExaScr->do_migration)(pixmaps, npixmaps, can_accel);
 }

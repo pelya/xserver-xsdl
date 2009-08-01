@@ -42,22 +42,6 @@
 #endif
 
 /**
- * Returns TRUE if the pixmap is not movable.  This is the case where it's a
- * pixmap which has no private (almost always bad) or it's a scratch pixmap created by
- * some X Server internal component (the score says it's pinned).
- */
-static Bool
-exaPixmapIsPinned (PixmapPtr pPix)
-{
-    ExaPixmapPriv (pPix);
-
-    if (pExaPixmap == NULL)
-	EXA_FatalErrorDebugWithRet(("EXA bug: exaPixmapIsPinned was called on a non-exa pixmap.\n"), TRUE);
-
-    return pExaPixmap->score == EXA_PIXMAP_SCORE_PINNED;
-}
-
-/**
  * The fallback path for UTS/DFS failing is to just memcpy.  exaCopyDirtyToSys
  * and exaCopyDirtyToFb both needed to do this loop.
  */
@@ -77,7 +61,7 @@ exaMemcpyBox (PixmapPtr pPixmap, BoxPtr pbox, CARD8 *src, int src_pitch,
 	dst += dst_pitch;
     }
 }
- 
+
 /**
  * Returns TRUE if the pixmap is dirty (has been modified in its current
  * location compared to the other), or lacks a private for tracking
