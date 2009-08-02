@@ -864,6 +864,14 @@ xf86PostButtonEventP(DeviceIntPtr	device,
 {
     int i = 0, nevents = 0;
     int index;
+    int flags = 0;
+
+    XI_VERIFY_VALUATORS(num_valuators);
+
+    if (is_absolute)
+        flags = POINTER_ABSOLUTE;
+    else
+        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
 #if XFreeXDGA
     if (miPointerGetScreen(device)) {
@@ -873,13 +881,10 @@ xf86PostButtonEventP(DeviceIntPtr	device,
     }
 #endif
 
-    XI_VERIFY_VALUATORS(num_valuators);
-
     GetEventList(&xf86Events);
     nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
-                               (is_absolute) ? POINTER_ABSOLUTE : POINTER_RELATIVE,
-                               first_valuator, num_valuators, valuators);
+                               flags, first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
