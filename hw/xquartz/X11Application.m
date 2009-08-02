@@ -990,55 +990,50 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
 #endif
 
 - (void) sendX11NSEvent:(NSEvent *)e {
-    NSRect screen;
-    NSPoint location, tilt;
-    NSWindow *window;
+    NSPoint location = NSZeroPoint, tilt = NSZeroPoint;
     int ev_button, ev_type;
-    float pressure;
+    float pressure = 0.0;
     DeviceIntPtr pDev;
     int modifierFlags;
-    BOOL isTabletEvent;
+    BOOL isMouseOrTabletEvent, isTabletEvent;
 
-    static NSPoint lastpt;
+    isMouseOrTabletEvent =  [e type] == NSLeftMouseDown    ||  [e type] == NSOtherMouseDown    ||  [e type] == NSRightMouseDown    ||
+                            [e type] == NSLeftMouseUp      ||  [e type] == NSOtherMouseUp      ||  [e type] == NSRightMouseUp      ||
+                            [e type] == NSLeftMouseDragged ||  [e type] == NSOtherMouseDragged ||  [e type] == NSRightMouseDragged ||
+                            [e type] == NSMouseMoved       ||  [e type] == NSTabletPoint;
 
-    /* convert location to be relative to top-left of primary display */
-    window = [e window];
+    isTabletEvent = ([e type] == NSTabletPoint) ||
+                    (isMouseOrTabletEvent && ([e subtype] == NSTabletPointEventSubtype || [e subtype] == NSTabletProximityEventSubtype));
 
-    isTabletEvent = ([e type] == NSTabletPoint) || 
-                    (( [e type] == NSLeftMouseDown    ||  [e type] == NSOtherMouseDown    ||  [e type] == NSRightMouseDown    ||
-                       [e type] == NSLeftMouseUp      ||  [e type] == NSOtherMouseUp      ||  [e type] == NSRightMouseUp      ||
-                       [e type] == NSLeftMouseDragged ||  [e type] == NSOtherMouseDragged ||  [e type] == NSRightMouseDragged ||
-                       [e type] == NSMouseMoved ) && ([e subtype] == NSTabletPointEventSubtype || [e subtype] == NSTabletProximityEventSubtype));
-    
-    if (window != nil)	{
-        NSRect frame = [window frame];
-        location = [e locationInWindow];
-        location.x += frame.origin.x;
-        location.y += frame.origin.y;
-        lastpt = location;
-    } else if(isTabletEvent) {
-        // NSEvents for tablets are not consistent wrt deltaXY between events, so we cannot rely on that
-        // Thus tablets will be subject to the warp-pointer bug worked around by the delta, but tablets
-        // are not normally used in cases where that bug would present itself, so this is a fair tradeoff
-        // <rdar://problem/7111003> deltaX and deltaY are incorrect for NSMouseMoved, NSTabletPointEventSubtype
-        // http://xquartz.macosforge.org/trac/ticket/288
-        location = [e locationInWindow];
-        lastpt = location;
-    } else {
-        location.x = lastpt.x + [e deltaX];
-        location.y = lastpt.y - [e deltaY];
-        lastpt = [NSEvent mouseLocation]; // [e locationInWindow] gives us the "unfixed" location when our cursor is fixed.  This bugs things like quake
+    if(isMouseOrTabletEvent) {
+        static NSPoint lastpt;
+        NSWindow *window = [e window];
+        NSRect screen = [[[NSScreen screens] objectAtIndex:0] frame];;
+
+        if (window != nil)	{
+            NSRect frame = [window frame];
+            location = [e locationInWindow];
+            location.x += frame.origin.x;
+            location.y += frame.origin.y;
+            lastpt = location;
+        } else if(isTabletEvent) {
+            // NSEvents for tablets are not consistent wrt deltaXY between events, so we cannot rely on that
+            // Thus tablets will be subject to the warp-pointer bug worked around by the delta, but tablets
+            // are not normally used in cases where that bug would present itself, so this is a fair tradeoff
+            // <rdar://problem/7111003> deltaX and deltaY are incorrect for NSMouseMoved, NSTabletPointEventSubtype
+            // http://xquartz.macosforge.org/trac/ticket/288
+            location = [e locationInWindow];
+            lastpt = location;
+        } else {
+            location.x = lastpt.x + [e deltaX];
+            location.y = lastpt.y - [e deltaY];
+            lastpt = [e locationInWindow];
+        }
+        
+        /* Convert coordinate system */
+        location.y = (screen.origin.y + screen.size.height) - location.y;
     }
     
-    /* Convert coordinate system */
-    screen = [[[NSScreen screens] objectAtIndex:0] frame];
-    location.y = (screen.origin.y + screen.size.height) - location.y;
-    
-    /* Setup our valuators.  These will range from 0 to 1 */
-    pressure = 0;
-    tilt.x = 0.0;
-    tilt.y = 0.0;
-
     modifierFlags = [e modifierFlags];
     
 #ifdef NX_DEVICELCMDKEYMASK
