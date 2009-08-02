@@ -114,6 +114,23 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
 
 	/* We want to be able to copy the pixmap to driver memory later on. */
 	pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
+
+	/* Set up damage tracking */
+	pExaPixmap->pDamage = DamageCreate (NULL, NULL,
+					    DamageReportNone, TRUE,
+					    pScreen, pPixmap);
+
+	if (pExaPixmap->pDamage == NULL) {
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    pScreen->DestroyPixmap (pPixmap);
+	    swap(pExaScr, pScreen, DestroyPixmap);
+	    return NULL;
+	}
+
+	DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
+	/* This ensures that pending damage reflects the current operation. */
+	/* This is used by exa to optimize migration. */
+	DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
     }
 
     return pPixmap;
@@ -136,8 +153,16 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 
     if (pExaPixmap) {
         if (pPixData) {
-	    if (!exaPixmapIsPinned(pPixmap))
+	    if (!exaPixmapIsPinned(pPixmap)) {
 		free(pExaPixmap->sys_ptr);
+
+		/* We no longer need this. */
+		if (pExaPixmap->pDamage) {
+		    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+		    DamageDestroy(pExaPixmap->pDamage);
+		    pExaPixmap->pDamage = NULL;
+		}
+	    }
             pExaPixmap->sys_ptr = pPixData;
 	}
 

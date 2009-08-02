@@ -35,12 +35,28 @@ static void
 exaUploadFallback(PixmapPtr pPixmap, CARD8 *src, int src_pitch,
 	      CARD8 *dst, int dst_pitch)
  {
-    int i;
+    ExaPixmapPriv(pPixmap);
+    RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
+    int i, cpp = pPixmap->drawable.bitsPerPixel / 8;
+    int bytes, nbox;
+    BoxPtr pbox;
 
-    for (i = pPixmap->drawable.height; i; i--) {
-	memcpy (dst, src, min(src_pitch, dst_pitch));
-	src += src_pitch;
-	dst += dst_pitch;
+    pbox = REGION_RECTS(damage);
+    nbox = REGION_NUM_RECTS(damage);
+
+    while (nbox--) {
+	bytes = (pbox->x2 - pbox->x1) * cpp;
+
+	src += pbox->y1 * src_pitch + pbox->x1 * cpp;
+	dst += pbox->y1 * dst_pitch + pbox->x1 * cpp;
+
+	for (i = pbox->y2 - pbox->y1; i; i--) {
+	    memcpy (dst, src, bytes);
+	    src += src_pitch;
+	    dst += dst_pitch;
+	}
+
+	pbox++;
     }
 }
 
@@ -50,12 +66,15 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
     ExaPixmapPriv(pPixmap);
+    RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
     void *sys_buffer = pExaPixmap->sys_ptr;
     int w = pPixmap->drawable.width, h = pPixmap->drawable.height;
     int depth = pPixmap->drawable.depth, bpp = pPixmap->drawable.bitsPerPixel;
     int usage_hint = pPixmap->usage_hint;
     int sys_pitch = pExaPixmap->sys_pitch;
     int paddedWidth = sys_pitch;
+    int nbox;
+    BoxPtr pbox;
 
     /* Already done. */
     if (pExaPixmap->driverPriv)
@@ -93,8 +112,18 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
     if (!pExaScr->info->UploadToScreen)
 	goto fallback;
 
-    if (pExaScr->info->UploadToScreen(pPixmap, 0, 0, w, h, sys_buffer, sys_pitch))
-	goto finish;
+    pbox = REGION_RECTS(damage);
+    nbox = REGION_NUM_RECTS(damage);
+
+    while (nbox--) {
+	if (!pExaScr->info->UploadToScreen(pPixmap, pbox->x1, pbox->y1, pbox->x2 - pbox->x1,
+		pbox->y2 - pbox->y1, (char *) (sys_buffer) + pbox->y1 * sys_pitch + pbox->x1 * (bpp / 8), sys_pitch))
+	    goto fallback;
+
+	pbox++;
+    }
+
+    goto finish;
 
 fallback:
     ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
@@ -104,6 +133,13 @@ fallback:
 
 finish:
     free(sys_buffer);
+
+    /* We no longer need this. */
+    if (pExaPixmap->pDamage) {
+	DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+	DamageDestroy(pExaPixmap->pDamage);
+	pExaPixmap->pDamage = NULL;
+    }
 }
 
 void
