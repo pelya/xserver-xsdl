@@ -109,7 +109,7 @@ xnestQueueKeyEvent(int type, unsigned int keycode)
   lastEventTime = GetTimeInMillis();
   n = GetKeyboardEvents(xnestEvents, xnestKeyboardDevice, type, keycode);
   for (i = 0; i < n; i++)
-    mieqEnqueue(xnestKeyboardDevice, (xnestEvents + i)->event);
+    mieqEnqueue(xnestKeyboardDevice, (InternalEvent*)(xnestEvents + i)->event);
 }
 
 void
@@ -138,7 +138,7 @@ xnestCollectEvents(void)
       n = GetPointerEvents(xnestEvents, xnestPointerDevice, ButtonPress,
                            X.xbutton.button, POINTER_RELATIVE, 0, 0, NULL);
       for (i = 0; i < n; i++)
-        mieqEnqueue(xnestPointerDevice, (xnestEvents + i)->event);
+        mieqEnqueue(xnestPointerDevice, (InternalEvent*)(xnestEvents + i)->event);
       break;
       
     case ButtonRelease:
@@ -147,7 +147,7 @@ xnestCollectEvents(void)
       n = GetPointerEvents(xnestEvents, xnestPointerDevice, ButtonRelease,
                            X.xbutton.button, POINTER_RELATIVE, 0, 0, NULL);
       for (i = 0; i < n; i++)
-        mieqEnqueue(xnestPointerDevice, (xnestEvents + i)->event);
+        mieqEnqueue(xnestPointerDevice, (InternalEvent*)(xnestEvents + i)->event);
       break;
       
     case MotionNotify:
@@ -157,7 +157,7 @@ xnestCollectEvents(void)
       n = GetPointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
                            0, POINTER_ABSOLUTE, 0, 2, valuators);
       for (i = 0; i < n; i++)
-        mieqEnqueue(xnestPointerDevice, (xnestEvents + i)->event);
+        mieqEnqueue(xnestPointerDevice, (InternalEvent*)(xnestEvents + i)->event);
       break;
       
     case FocusIn:
@@ -190,7 +190,7 @@ xnestCollectEvents(void)
           n = GetPointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
                                0, POINTER_ABSOLUTE, 0, 2, valuators);
           for (i = 0; i < n; i++)
-            mieqEnqueue(xnestPointerDevice, (xnestEvents + i)->event);
+            mieqEnqueue(xnestPointerDevice, (InternalEvent*)(xnestEvents + i)->event);
 	  xnestDirectInstallColormaps(pScreen);
 	}
       }
