@@ -191,7 +191,7 @@ XkbError:
           (char *)values.auto_repeats,
           sizeof(values.auto_repeats));
 
-  InitKeyboardDeviceStruct(&pDev->public, &keySyms,
+  InitKeyboardDeviceStruct(pDev, NULL,
                            xnestBell, xnestChangeKeyboardControl);
   xfree(keymap);
   return Success;
