@@ -2118,32 +2118,3 @@ XkbCopyDeviceKeymap(DeviceIntPtr dst, DeviceIntPtr src)
     return ret;
 }
 
-int
-XkbGetKeysym(DeviceIntPtr dev, DeviceEvent *event)
-{
-    XkbDescPtr xkb = dev->key->xkbInfo->desc;
-    XkbKeyTypePtr kt;
-    int group;
-    int i, level = 0;
-    int modmask;
-
-    group = event->group.base + event->group.latched + event->group.locked;
-
-    if (group >= xkb->ctrls->num_groups)
-        group = XkbAdjustGroup(group, xkb->ctrls);
-
-    modmask = event->mods.base | event->mods.latched; /* don't care about
-                                                         locked mods */
-    kt = XkbKeyKeyType(xkb, event->detail.key, group);
-
-    for (i = 0; i < kt->map_count; i++)
-    {
-        if (kt->map[i].mods.mask == modmask)
-        {
-            level = kt->map[i].level;
-            break;
-        }
-    }
-
-    return XkbKeySymEntry(xkb, event->detail.key, level, group);
-}

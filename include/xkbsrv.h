@@ -942,10 +942,6 @@ extern Bool XkbCopyDeviceKeymap(
         DeviceIntPtr            /* dst */,
         DeviceIntPtr            /* src */);
 
-extern int XkbGetKeysym(
-        DeviceIntPtr            /* dev */,
-        DeviceEvent*            /* event*/);
-
 extern Bool XkbFilterEvents(
         ClientPtr               /* pClient */,
         int                     /* nEvents */,
