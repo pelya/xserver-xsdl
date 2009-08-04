@@ -85,12 +85,6 @@
 #endif
 
 /*
- * The first of many hacks to get VT switching to work under
- * Solaris 2.1 for x86. The basic problem is that Solaris is supposed
- * to be SVR4. It is for the most part, except where the video interface
- * is concerned.  These hacks work around those problems.
- * See the comments for Linux, and SCO.
- *
  * This is a toggling variable:
  *  FALSE = No VT switching keys have been pressed last time around
  *  TRUE  = Possible VT switch Pending
@@ -200,8 +194,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	if (!xf86Info.dontZoom)
 	    xf86ZoomViewport(xf86Info.currentScreen, -1);
 	break;
-#if !defined(__SOL8__) && \
-    (!defined(sun) || defined(__i386__)) && defined(VT_ACTIVATE)
+#if defined(VT_ACTIVATE)
     case ACTION_SWITCHSCREEN:
 	if (VTSwitchEnabled && !xf86Info.dontVTSwitch && arg) {
 	    int vtno = *((int *) arg);
@@ -214,7 +207,6 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	break;
     case ACTION_SWITCHSCREEN_NEXT:
 	if (VTSwitchEnabled && !xf86Info.dontVTSwitch) {
-/* Shouldn't this be true for (sun) && (i386) && (SVR4) ? */
 #if defined(__SCO__) || defined(__UNIXWARE__)
 	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) < 0)
 #else

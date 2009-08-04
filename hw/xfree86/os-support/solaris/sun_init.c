@@ -40,11 +40,7 @@ static int VTnum = -1;
 static int xf86StartVT = -1;
 #endif
 
-#if defined(__SOL8__) || (!defined(__i386__) && !defined(__i386))
 static char fb_dev[PATH_MAX] = "/dev/fb";
-#else
-static char fb_dev[PATH_MAX] = "/dev/console";
-#endif
 
 void
 xf86OpenConsole(void)

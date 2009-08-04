@@ -1443,9 +1443,7 @@ if test "x$XORG" = xyes; then
 		# use libpciaccess for PCI
 		xorg_bus_bsdpci="yes"
 		AC_CHECK_HEADERS([sys/kd.h])
-		# This really should be tests for specific features, but the #ifdef's
-		# were done as a simple version check in XFree86 4.x and haven't been 
-		# fixed yet
+		# Check for minimum supported release
 		AC_MSG_CHECKING([Solaris version])
 	        OS_MINOR=`echo ${host_os}|sed -e 's/^.*solaris2\.//' -e s'/\..*$//'`
 		if test "${OS_MINOR}" -ge 7 ; then
@@ -1453,8 +1451,8 @@ if test "x$XORG" = xyes; then
 		else
 			AC_MSG_RESULT(Solaris `echo ${host_os}|sed -e 's/^.*solaris//`)
 		fi
-		if test "${OS_MINOR}" -ge 8 ; then
-			AC_DEFINE(__SOL8__,1,[Solaris 8 or later])
+		if test "${OS_MINOR}" -lt 8 ; then
+			AC_MSG_ERROR([This release no longer supports Solaris versions older than Solaris 8.])
 		fi
 		AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 		if test "x$SUNCC" = "xyes"; then
@@ -1472,11 +1470,7 @@ if test "x$XORG" = xyes; then
 			else
 				SOLARIS_INOUT_ARCH="ia32"
 			fi
-			if test "${OS_MINOR}" -lt 8 ; then
-				solaris_usl_console="yes"
-			else
-				XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
-			fi
+			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 			;;
 		  *)
 			AC_MSG_ERROR([Unsupported Solaris platform. Only SPARC & x86 \
@@ -1608,7 +1602,6 @@ AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
-AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])

@@ -51,9 +51,6 @@
 /* Build DRI2 extension */
 #undef DRI2
 
-/* Solaris 8 or later? */
-#undef __SOL8__
-
 /* Define to 1 if you have the <stropts.h> header file. */
 #undef HAVE_STROPTS_H
 

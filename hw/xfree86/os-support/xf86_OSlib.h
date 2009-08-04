@@ -117,15 +117,9 @@
 #   include <sys/seg.h>
 #  endif /* SVR4 && !sun */
 /* V86SC_IOPL was moved to <sys/sysi86.h> on Solaris 7 and later */
-#  if defined(sun) && defined (SVR4)		/* Solaris? */
-#   if defined(__i386__) || defined(__i386) || defined(__x86) /* on x86 or x64? */
-#    if !defined(V86SC_IOPL)			/* Solaris 7 or later? */
-#     include <sys/v86.h>			/* Nope */
-#    endif
-#   endif /* V86SC_IOPL */
-#  else 
-#   include <sys/v86.h>					/* Not solaris */
-#  endif /* sun && i386 && SVR4 */
+#  if !defined(V86SC_IOPL)			/* Solaris 7 or later? */
+#   include <sys/v86.h>				/* Nope */
+#  endif
 #  if defined(sun) && (defined (__i386__) || defined(__i386) || defined(__x86))  && defined (SVR4)
 #    include <sys/psw.h>
 #  endif
@@ -140,7 +134,7 @@
 #  include <sys/mmap.h>		/* MMAP driver header */
 # endif
 
-# if !defined(sun) || (!defined(sparc) && !defined(__SOL8__))
+# if !defined(sun)
 #  define HAS_USL_VTS
 # endif
 # if !defined(sun)
@@ -198,7 +192,7 @@
 # endif /* SVR4 */
 
 
-# if defined(sun) && (defined (__i386__) || defined(__i386)) && defined (SVR4) && !defined(__SOL8__)
+# if defined(sun) && defined(HAS_USL_VTS)
 #  define USE_VT_SYSREQ
 #  define VT_SYSREQ_DEFAULT TRUE
 # endif
