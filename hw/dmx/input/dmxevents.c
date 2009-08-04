@@ -99,7 +99,6 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
                                 KeySym keySym)
 {
     DMXInputInfo   *dmxInput = &dmxInputs[dmxLocal->inputIdx];
-    unsigned short state = 0;
 
 #if 1 /* hack to detect ctrl-alt-q, etc */
     static int ctrl = 0, alt = 0;
@@ -119,6 +118,8 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
     if (!ctrl || !alt)
         return 0;
 #else
+    unsigned short state = 0;
+
     if (dmxLocal->sendsCore)
         state = dmxLocalCoreKeyboard->pDevice->key->state;
     else if (dmxLocal->pDevice->key)
