@@ -56,6 +56,7 @@
 #include "inputstr.h"
 #include "mipointer.h"
 #include "mi.h"
+#include "exglobals.h"
 
 #include "XIstubs.h"
 
