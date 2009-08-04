@@ -34,6 +34,7 @@ is" without express or implied warranty.
 #include "Args.h"
 
 #include "xserver-properties.h"
+#include "exevents.h" /* For XIGetKnownProperty */
 
 DeviceIntPtr xnestPointerDevice = NULL;
 
