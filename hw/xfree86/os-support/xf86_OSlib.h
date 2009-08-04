@@ -134,7 +134,7 @@
 #  include <sys/mmap.h>		/* MMAP driver header */
 # endif
 
-# if !defined(sun)
+# if !defined(sun) || defined(HAVE_SYS_VT_H)
 #  define HAS_USL_VTS
 # endif
 # if !defined(sun)
@@ -149,10 +149,14 @@
 #  define LED_NUM NLKED
 #  define LED_SCR SLKED
 # elif defined(HAS_USL_VTS)
-#  include <sys/at_ansi.h>
+#  if !defined(sun)
+#   include <sys/at_ansi.h>
+#  endif
 #  include <sys/kd.h>
 #  include <sys/vt.h>
-# elif defined(sun)
+# endif
+
+# if defined(sun)
 #  include <sys/fbio.h>
 #  include <sys/kbd.h> 
 #  include <sys/kbio.h>
@@ -194,7 +198,6 @@
 
 # if defined(sun) && defined(HAS_USL_VTS)
 #  define USE_VT_SYSREQ
-#  define VT_SYSREQ_DEFAULT TRUE
 # endif
 
 #endif /* (SYSV || SVR4) */

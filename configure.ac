@@ -1443,6 +1443,7 @@ if test "x$XORG" = xyes; then
 		# use libpciaccess for PCI
 		xorg_bus_bsdpci="yes"
 		AC_CHECK_HEADERS([sys/kd.h])
+		AC_CHECK_HEADERS([sys/vt.h], [solaris_vt=yes], [solaris_vt=no])
 		# Check for minimum supported release
 		AC_MSG_CHECKING([Solaris version])
 	        OS_MINOR=`echo ${host_os}|sed -e 's/^.*solaris2\.//' -e s'/\..*$//'`
@@ -1603,6 +1604,7 @@ AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
+AM_CONDITIONAL([SOLARIS_VT], [test "x$solaris_vt" = xyes])
 AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
 AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 

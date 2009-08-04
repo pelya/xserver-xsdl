@@ -62,6 +62,9 @@ typedef struct {
     /* event handler part */
     int			lastEventTime;
     Bool		vtRequestsPending;
+#ifdef sun
+    int			vtPendingNum;
+#endif
     Bool		dontVTSwitch;
     Bool		dontZap;
     Bool		dontZoom;

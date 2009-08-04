@@ -1,5 +1,5 @@
-if SOLARIS_USL_CONSOLE
-VTSW_SRC = $(srcdir)/../shared/VTsw_usl.c
+if SOLARIS_VT
+VTSW_SRC = sun_VTsw.c
 else
 VTSW_SRC = $(srcdir)/../shared/VTsw_noop.c
 endif

@@ -104,6 +104,9 @@ xf86InfoRec xf86Info = {
     .vtSysreq                   = FALSE,
     .lastEventTime              = -1,
     .vtRequestsPending          = FALSE,
+#ifdef sun
+    .vtPendingNum               = -1,
+#endif
     .dontVTSwitch               = FALSE,
     .dontZap                    = FALSE,
     .dontZoom                   = FALSE,

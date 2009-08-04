@@ -57,6 +57,9 @@
 /* Define to 1 if you have the <sys/kd.h> header file. */
 #undef HAVE_SYS_KD_H
 
+/* Define to 1 if you have the <sys/vt.h> header file. */
+#undef HAVE_SYS_VT_H
+
 /* Define to 1 if you have the `walkcontext' function (used on Solaris for
    xorg_backtrace in hw/xfree86/common/xf86Events.c */
 #undef HAVE_WALKCONTEXT

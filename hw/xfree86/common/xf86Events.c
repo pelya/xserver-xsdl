@@ -201,8 +201,16 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 #if defined(__SCO__) || defined(__UNIXWARE__)
 	    vtno--;
 #endif
+#if defined(sun)
+	    if (vtno == xf86Info.vtno)
+		break;
+
+	    xf86Info.vtRequestsPending = TRUE;
+	    xf86Info.vtPendingNum = vtno;
+#else
 	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, vtno) < 0)
 		ErrorF("Failed to switch consoles (%s)\n", strerror(errno));
+#endif
 	}
 	break;
     case ACTION_SWITCHSCREEN_NEXT:

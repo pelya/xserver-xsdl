@@ -134,7 +134,7 @@ will use.  Without this option,
 .B __xservername__
 will pick the first available Virtual Terminal that it can locate.  This
 option applies only to platforms that have virtual terminal support, such
-as Linux, BSD, SVR3, and SVR4.
+as Linux, BSD, OpenSolaris, SVR3, and SVR4.
 .TP
 .B \-allowMouseOpenFail
 Allow the server to start up even if the mouse device can't be opened
