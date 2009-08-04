@@ -95,6 +95,8 @@ fbCanGetSolid(PicturePtr pict)
     case PICT_x8r8g8b8:
     case PICT_a8b8g8r8:
     case PICT_x8b8g8r8:
+    case PICT_b8g8r8a8:
+    case PICT_b8g8r8x8:
     case PICT_r8g8b8:
     case PICT_b8g8r8:
     case PICT_r5g6b5:

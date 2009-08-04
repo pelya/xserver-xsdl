@@ -54,6 +54,12 @@ static void exaCompositeFallbackPictDesc(PicturePtr pict, char *string, int n)
     case PICT_x8r8g8b8:
 	snprintf(format, 20, "XRGB8888");
 	break;
+    case PICT_b8g8r8a8:
+	snprintf(format, 20, "BGRA8888");
+	break;
+    case PICT_b8g8r8x8:
+	snprintf(format, 20, "BGRX8888");
+	break;
     case PICT_r5g6b5:
 	snprintf(format, 20, "RGB565  ");
 	break;
@@ -158,12 +164,18 @@ exaGetPixelFromRGBA(CARD32	*pixel,
 	gshift = bbits;
 	rshift = gshift + gbits;
 	ashift = rshift + rbits;
-    } else {  /* PICT_TYPE_ABGR */
+    } else if(PICT_FORMAT_TYPE(format) == PICT_TYPE_ABGR) {
 	rshift = 0;
 	gshift = rbits;
 	bshift = gshift + gbits;
 	ashift = bshift + bbits;
-    }
+    } else if(PICT_FORMAT_TYPE(format) == PICT_TYPE_BGRA) {
+	bshift = PICT_FORMAT_BPP(format) - bbits;
+	gshift = bshift - gbits;
+	rshift = gshift - rbits;
+	ashift = 0;
+    } else
+	return FALSE;
 
     *pixel |=  ( blue >> (16 - bbits)) << bshift;
     *pixel |=  (  red >> (16 - rbits)) << rshift;
@@ -197,12 +209,18 @@ exaGetRGBAFromPixel(CARD32	pixel,
 	gshift = bbits;
 	rshift = gshift + gbits;
 	ashift = rshift + rbits;
-    } else {  /* PICT_TYPE_ABGR */
+    } else if(PICT_FORMAT_TYPE(format) == PICT_TYPE_ABGR) {
 	rshift = 0;
 	gshift = rbits;
 	bshift = gshift + gbits;
 	ashift = bshift + bbits;
-    }
+    } else if(PICT_FORMAT_TYPE(format) == PICT_TYPE_BGRA) {
+	bshift = PICT_FORMAT_BPP(format) - bbits;
+	gshift = bshift - gbits;
+	rshift = gshift - rbits;
+	ashift = 0;
+    } else
+	return FALSE;
 
     *red = ((pixel >> rshift ) & ((1 << rbits) - 1)) << (16 - rbits);
     while (rbits < 16) {
@@ -874,11 +892,13 @@ exaComposite(CARD8	op,
     {
       if ((op == PictOpSrc &&
 	   ((pSrc->format == pDst->format) ||
+	    (pSrc->format==PICT_b8g8r8a8 && pDst->format==PICT_b8g8r8x8) ||
 	    (pSrc->format==PICT_a8r8g8b8 && pDst->format==PICT_x8r8g8b8) ||
 	    (pSrc->format==PICT_a8b8g8r8 && pDst->format==PICT_x8b8g8r8))) ||
 	  (op == PictOpOver && !pSrc->alphaMap && !pDst->alphaMap &&
 	   pSrc->format == pDst->format &&
-	   (pSrc->format==PICT_x8r8g8b8 || pSrc->format==PICT_x8b8g8r8)))
+	   (pSrc->format==PICT_x8r8g8b8 || pSrc->format==PICT_x8b8g8r8 ||
+	    pSrc->format==PICT_b8g8r8x8)))
 	{
 	    if (pSrc->pDrawable->width == 1 &&
 		pSrc->pDrawable->height == 1 &&
