@@ -492,58 +492,37 @@ ExaCheckAddTraps (PicturePtr	pPicture,
 /**
  * Gets the 0,0 pixel of a pixmap.  Used for doing solid fills of tiled pixmaps
  * that happen to be 1x1.  Pixmap must be at least 8bpp.
- *
- * XXX This really belongs in fb, so it can be aware of tiling and etc.
  */
 CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 {
-    CARD32 pixel;
-    void *fb;
-    Bool need_finish = FALSE;
-    BoxRec box;
-    RegionRec migration;
-    ExaPixmapPriv (pPixmap);
-    Bool sys_valid = pExaPixmap->pDamage &&
-	!miPointInRegion(&pExaPixmap->validSys, 0, 0,  &box);
-    Bool damaged = pExaPixmap->pDamage &&
- 	miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0, &box);
-    Bool offscreen = exaPixmapIsOffscreen(pPixmap);
-
-    fb = pExaPixmap->sys_ptr;
-
-    /* Try to avoid framebuffer readbacks */
-    if ((!offscreen && !sys_valid && !damaged) ||
-	(offscreen && (!sys_valid || damaged)))
-    {
-	box.x1 = 0;
-	box.y1 = 0;
-	box.x2 = 1;
-	box.y2 = 1;
-	REGION_INIT(pScreen, &migration, &box, 1);
-
-	need_finish = TRUE;
-
-	exaPrepareAccessReg(&pPixmap->drawable, EXA_PREPARE_SRC, &migration);
-	fb = pPixmap->devPrivate.ptr;
-    }
-
     switch (pPixmap->drawable.bitsPerPixel) {
     case 32:
-	pixel = *(CARD32 *)fb;
-	break;
+	{
+	    CARD32 pixel;
+
+	    pPixmap->drawable.pScreen->GetImage(&pPixmap->drawable, 0, 0, 1, 1,
+						ZPixmap, ~0, (char*)&pixel);
+	    return pixel;
+	}
     case 16:
-	pixel = *(CARD16 *)fb;
-	break;
+	{
+	    CARD16 pixel;
+
+	    pPixmap->drawable.pScreen->GetImage(&pPixmap->drawable, 0, 0, 1, 1,
+						ZPixmap, ~0, (char*)&pixel);
+	    return pixel;
+	}
+    case 8:
+	{
+	    CARD8 pixel;
+
+	    pPixmap->drawable.pScreen->GetImage(&pPixmap->drawable, 0, 0, 1, 1,
+						ZPixmap, ~0, (char*)&pixel);
+	    return pixel;
+	}
     default:
-	pixel = *(CARD8 *)fb;
-	break;
+	FatalError("%s called for invalid bpp %d\n", __func__,
+		   pPixmap->drawable.bitsPerPixel);
     }
-
-    if (need_finish) {
-	exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
-	REGION_UNINIT(pScreen, &migration);
-    }
-
-    return pixel;
 }
