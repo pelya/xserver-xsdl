@@ -436,7 +436,9 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
     int              fd;
     DMXLocalInitInfo info;
     int              i;
-    
+    Atom             btn_labels[MAX_BUTTONS] = {0}; /* FIXME */
+    Atom             axis_labels[MAX_VALUATORS] = {0}; /* FIXME */
+
     if (dmxInput->detached) return Success;
 
     memset(&info, 0, sizeof(info));
@@ -457,31 +459,38 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                      dmxBell, dmxKbdCtrl);
         }
         if (info.buttonClass) {
-            InitButtonClassDeviceStruct(pDevice, info.numButtons, info.map);
+            InitButtonClassDeviceStruct(pDevice, info.numButtons,
+                                        btn_labels, info.map);
         }
         if (info.valuatorClass) {
             if (info.numRelAxes && dmxLocal->sendsCore) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
+                                              axis_labels,
                                               GetMaximumEventsNum(),
                                               Relative);
                 for (i = 0; i < info.numRelAxes; i++)
-                    InitValuatorAxisStruct(pDevice, i, info.minval[0],
-                                           info.maxval[0], info.res[0],
+                    InitValuatorAxisStruct(pDevice, i, axis_labels[i],
+                                           info.minval[0], info.maxval[0],
+                                           info.res[0],
                                            info.minres[0], info.maxres[0]);
             } else if (info.numRelAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
+                                              axis_labels,
                                               dmxPointerGetMotionBufferSize(),
                                               Relative);
                 for (i = 0; i < info.numRelAxes; i++)
-                    InitValuatorAxisStruct(pDevice, i, info.minval[0],
+                    InitValuatorAxisStruct(pDevice, i, axis_labels[i],
+                                           info.minval[0],
                                            info.maxval[0], info.res[0],
                                            info.minres[0], info.maxres[0]);
             } else if (info.numAbsAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numAbsAxes,
+                                              axis_labels,
                                               dmxPointerGetMotionBufferSize(),
                                               Absolute);
                 for (i = 0; i < info.numAbsAxes; i++)
                     InitValuatorAxisStruct(pDevice, i+info.numRelAxes,
+                                           axis_labels[i + info.numRelAxes],
                                            info.minval[i+1], info.maxval[i+1],
                                            info.res[i+1], info.minres[i+1],
                                            info.maxres[i+1]);
