@@ -362,7 +362,6 @@ void dmxKeyboardBellProc(int percent, DeviceIntPtr pDevice,
 
 static void dmxKeyboardFreeNames(XkbComponentNamesPtr names)
 {
-    if (names->keymap)   XFree(names->keymap);
     if (names->keycodes) XFree(names->keycodes);
     if (names->types)    XFree(names->types);
     if (names->compat)   XFree(names->compat);
