@@ -14,7 +14,7 @@ SOLARIS_INOUT_SRC = solaris-@SOLARIS_INOUT_ARCH@.S
 DISTCLEANFILES = solaris-@SOLARIS_INOUT_ARCH@.il
 
 solaris-@SOLARIS_INOUT_ARCH@.il: solaris-@SOLARIS_INOUT_ARCH@.S
-	$(CPP) -P -DINLINE_ASM solaris-@SOLARIS_INOUT_ARCH@.S > $@
+	$(CPP) -P -DINLINE_ASM $(srcdir)/solaris-@SOLARIS_INOUT_ARCH@.S > $@
 
 noinst_LTLIBRARIES = libsolaris.la
 libsolaris_la_SOURCES = sun_init.c \
