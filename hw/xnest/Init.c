@@ -89,13 +89,18 @@ InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
 void
 InitInput(int argc, char *argv[])
 {
-  xnestPointerDevice = AddInputDevice(serverClient, xnestPointerProc, TRUE);
-  xnestKeyboardDevice = AddInputDevice(serverClient, xnestKeyboardProc, TRUE);
+  int rc;
+  rc = AllocDevicePair(serverClient, "Xnest",
+                       &xnestPointerDevice,
+                       &xnestKeyboardDevice,
+                       xnestPointerProc,
+                       xnestKeyboardProc,
+                       FALSE);
+
+  if (rc != Success)
+      FatalError("Failed to init Xnest default devices.\n");
 
   GetEventList(&xnestEvents);
-
-  RegisterPointerDevice(xnestPointerDevice);
-  RegisterKeyboardDevice(xnestKeyboardDevice);
 
   mieqInit();
 
