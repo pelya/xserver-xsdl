@@ -227,7 +227,7 @@ do_modmap_change(ClientPtr client, DeviceIntPtr dev, CARD8 *modmap)
 static int build_modmap_from_modkeymap(CARD8 *modmap, KeyCode *modkeymap,
                                        int max_keys_per_mod)
 {
-    int i, mod = 0, len = max_keys_per_mod * 8;
+    int i, len = max_keys_per_mod * 8;
 
     memset(modmap, 0, MAP_LENGTH);
 
@@ -241,9 +241,7 @@ static int build_modmap_from_modkeymap(CARD8 *modmap, KeyCode *modkeymap,
         if (modmap[modkeymap[i]])
             return BadValue;
 
-        if (!(i % max_keys_per_mod))
-            mod++;
-        modmap[modkeymap[i]] = mod;
+        modmap[modkeymap[i]] = 1 << (i / max_keys_per_mod);
     }
 
     return Success;
