@@ -500,9 +500,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
         if (info.proximityClass)   InitProximityClassDeviceStruct(pDevice);
         if (info.ptrFeedbackClass)
             InitPtrFeedbackClassDeviceStruct(pDevice, dmxChangePointerControl);
-        if (info.kbdFeedbackClass)
-            InitKbdFeedbackClassDeviceStruct(pDevice, dmxKeyboardBellProc,
-                                             dmxKeyboardKbdCtrlProc);
         if (info.intFeedbackClass || info.strFeedbackClass)
             dmxLog(dmxWarning,
                    "Integer and string feedback not supported for %s\n",
