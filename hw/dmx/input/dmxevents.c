@@ -237,7 +237,7 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
     nevents = GetPointerEvents(events, p, MotionNotify, detail,
                                POINTER_ABSOLUTE, 0, 2, valuators);
     for (i = 0; i < nevents; i++)
-       mieqEnqueue(p, (events + i)->event);
+       mieqEnqueue(p, (InternalEvent*)(events + i)->event);
     return;
 }
 
@@ -695,7 +695,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         /*ErrorF("KEY %d  sym %d\n", detail, (int) keySym);*/
         nevents = GetKeyboardEvents(events, p, type, detail);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (events + i)->event);
+            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
         return;
 
     case ButtonPress:
@@ -708,7 +708,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                    0,   /* num_valuators = 0 */
                                    valuators);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (events + i)->event);
+            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
         return;
 
     case MotionNotify:
@@ -719,7 +719,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         nevents = GetPointerEvents(events, p, type, detail, 
                                    POINTER_ABSOLUTE, 0, 3, valuators);
         for (i = 0; i < nevents; i++)
-            mieqEnqueue(p, (events + i)->event);
+            mieqEnqueue(p, (InternalEvent*)(events + i)->event);
         return;
 
     case EnterNotify:
