@@ -1189,7 +1189,7 @@ int dmxInputDetach(DMXInputInfo *dmxInput)
                     : (dmxLocal->sendsCore
                        ? " [sends core events]"
                        : ""));
-        DisableDevice(dmxLocal->pDevice);
+        DisableDevice(dmxLocal->pDevice, TRUE);
     }
     dmxInput->detached = True;
     dmxInputLogDevices();
@@ -1257,7 +1257,7 @@ static int dmxInputAttachOld(DMXInputInfo *dmxInput, int *id)
                     : (dmxLocal->sendsCore
                        ? " [sends core events]"
                        : ""));
-        EnableDevice(dmxLocal->pDevice);
+        EnableDevice(dmxLocal->pDevice, TRUE);
     }
     dmxInputLogDevices();
     return 0;
