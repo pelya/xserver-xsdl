@@ -482,6 +482,8 @@ extern int AllocDevicePair(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd,
+                             DeviceProc ptr_proc,
+                             DeviceProc keybd_proc,
                              Bool master);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to,

@@ -98,6 +98,9 @@ DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
 static int XTstDevicePrivateKeyIndex;
 DevPrivateKey XTstDevicePrivateKey = &XTstDevicePrivateKeyIndex;
 
+
+int CorePointerProc(DeviceIntPtr, int);
+int CoreKeyboardProc(DeviceIntPtr, int);
 /**
  * vxtstpointer
  * is the virtual pointer for XTest. It is the first slave
@@ -531,7 +534,7 @@ CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 /**
  * Device control function for the Virtual Core Keyboard.
  */
-static int
+int
 CoreKeyboardProc(DeviceIntPtr pDev, int what)
 {
 
@@ -560,7 +563,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 /**
  * Device control function for the Virtual Core Pointer.
  */
-static int
+int
 CorePointerProc(DeviceIntPtr pDev, int what)
 {
 #define NBUTTONS 7
@@ -627,6 +630,7 @@ InitCoreDevices(void)
 {
     if (AllocDevicePair(serverClient, "Virtual core",
                         &inputInfo.pointer, &inputInfo.keyboard,
+                        CorePointerProc, CoreKeyboardProc,
                         TRUE) != Success)
         FatalError("Failed to allocate core devices");
 
@@ -2491,15 +2495,18 @@ GetMaster(DeviceIntPtr dev, int which)
  */
 int
 AllocDevicePair (ClientPtr client, char* name,
-			    DeviceIntPtr* ptr, DeviceIntPtr* keybd,
-			    Bool master)
+                 DeviceIntPtr* ptr,
+                 DeviceIntPtr* keybd,
+                 DeviceProc ptr_proc,
+                 DeviceProc keybd_proc,
+                 Bool master)
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
     ClassesPtr classes;
     *ptr = *keybd = NULL;
 
-    pointer = AddInputDevice(client, CorePointerProc, TRUE);
+    pointer = AddInputDevice(client, ptr_proc, TRUE);
     if (!pointer)
         return BadAlloc;
 
@@ -2519,7 +2526,7 @@ AllocDevicePair (ClientPtr client, char* name,
     pointer->last.slave = NULL;
     pointer->type = (master) ? MASTER_POINTER : SLAVE;
 
-    keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
+    keyboard = AddInputDevice(client, keybd_proc, TRUE);
     if (!keyboard)
     {
         RemoveDevice(pointer, FALSE);
@@ -2587,7 +2594,7 @@ int AllocXtstDevice (ClientPtr client, char* name,
     strncpy( xtstname, name, len);
     strncat( xtstname, " Xtst", 5 );
 
-    retval = AllocDevicePair( client, xtstname, ptr, keybd, FALSE);
+    retval = AllocDevicePair( client, xtstname, ptr, keybd, CorePointerProc, CoreKeyboardProc, FALSE);
     if ( retval == Success ){
         dixSetPrivate(&((*ptr)->devPrivates), XTstDevicePrivateKey, (void *)master_ptr->id);
         dixSetPrivate(&((*keybd)->devPrivates), XTstDevicePrivateKey, (void *)master_keybd->id);
