@@ -72,6 +72,7 @@
 #include "mipointer.h"
 #include "windowstr.h"
 #include "mi.h"
+#include "xkbsrv.h"
 
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
