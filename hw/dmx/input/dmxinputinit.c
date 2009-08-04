@@ -418,9 +418,7 @@ static int dmxKeyboardOn(DeviceIntPtr pDevice, DMXLocalInitInfo *info)
                     dmxConfigGetXkbOptions()
                     ? dmxConfigGetXkbOptions() : "");
     }
-    XkbInitKeyboardDeviceStruct(pDevice,
-                                &info->names,
-                                &info->keySyms,
+    InitKeyboardDeviceStruct(pDevice, &rmlvo,
                                 dmxKeyboardBellProc,
                                 dmxKeyboardKbdCtrlProc);
 
@@ -453,9 +451,16 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
             break;
         }
         if (info.keyClass) {
-            DevicePtr pDev = (DevicePtr) pDevice;
-            InitKeyboardDeviceStruct(pDev,
-                                     &info.keySyms,
+            XkbRMLVOSet rmlvo;
+
+            rmlvo.rules = dmxConfigGetXkbRules();
+            rmlvo.model = dmxConfigGetXkbModel();
+            rmlvo.layout = dmxConfigGetXkbLayout();
+            rmlvo.variant = dmxConfigGetXkbVariant();
+            rmlvo.options = dmxConfigGetXkbOptions();
+
+            InitKeyboardDeviceStruct(pDevice,
+                                     &rmlvo,
                                      dmxBell, dmxKbdCtrl);
         }
         if (info.buttonClass) {
