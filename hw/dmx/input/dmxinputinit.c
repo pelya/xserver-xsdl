@@ -78,14 +78,6 @@
 #include "exevents.h"
 #include "extinit.h"
 
-/* From XI.h */
-#ifndef Relative
-#define Relative 0
-#endif
-#ifndef Absolute
-#define Absolute 1
-#endif
-
 DMXLocalInputInfoPtr dmxLocalCorePointer, dmxLocalCoreKeyboard;
 
 static DMXLocalInputInfoRec DMXDummyMou = {
