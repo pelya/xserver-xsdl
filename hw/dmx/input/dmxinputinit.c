@@ -381,12 +381,15 @@ static void dmxKeyboardFreeNames(XkbComponentNamesPtr names)
 static int dmxKeyboardOn(DeviceIntPtr pDevice, DMXLocalInitInfo *info)
 {
     GETDMXINPUTFROMPDEVICE;
+    XkbRMLVOSet rmlvo;
 
-    XkbSetRulesDflts(dmxConfigGetXkbRules(),
-                     dmxConfigGetXkbModel(),
-                     dmxConfigGetXkbLayout(),
-                     dmxConfigGetXkbVariant(),
-                     dmxConfigGetXkbOptions());
+    rmlvo.rules = dmxConfigGetXkbRules();
+    rmlvo.model = dmxConfigGetXkbModel();
+    rmlvo.layout = dmxConfigGetXkbLayout();
+    rmlvo.variant = dmxConfigGetXkbVariant();
+    rmlvo.options = dmxConfigGetXkbOptions();
+
+    XkbSetRulesDflts(&rmlvo);
     if (!info->force && (dmxInput->keycodes
                          || dmxInput->symbols
                          || dmxInput->geometry)) {
