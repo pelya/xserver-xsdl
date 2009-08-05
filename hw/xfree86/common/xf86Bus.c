@@ -55,7 +55,6 @@
 EntityPtr *xf86Entities = NULL;	/* Bus slots claimed by drivers */
 int xf86NumEntities = 0;
 static int xf86EntityPrivateCount = 0;
-BusAccPtr xf86BusAccInfo = NULL;
 
 BusRec primaryBus = { BUS_NONE, { 0 } };
 

@@ -33,28 +33,6 @@
 #ifndef _XF86_PCI_BUS_H
 #define _XF86_PCI_BUS_H
 
-typedef struct {
-    CARD32 command;
-    CARD32 base[6];
-    CARD32 biosBase;
-} pciSave, *pciSavePtr;
-
-typedef struct {
-    struct pci_device * dev;
-    CARD32 ctrl;
-} pciArg;
-
-typedef struct {
-    pciArg arg;
-    pciSave save;
-    pciSave restore;
-    Bool ctrl;
-} pciAccRec, *pciAccPtr;
-
-typedef union {
-    CARD16 control;
-} pciBridgesSave, *pciBridgesSavePtr;
-
 void xf86PciProbe(void);
 
 #endif /* _XF86_PCI_BUS_H */

@@ -62,23 +62,6 @@ typedef struct {
     IOADDRESS                   domainIO;
 } EntityRec, *EntityPtr;
 
-typedef struct x_BusAccRec {
-    struct x_BusAccRec *current; /* pointer to bridge open on this bus */
-    struct x_BusAccRec *primary; /* pointer to the bus connecting to this */
-    struct x_BusAccRec *next;    /* this links the different buses together */
-    BusType type;
-    BusType busdep_type;
-    /* Bus-specific fields */
-    union {
-	struct {
-	    int bus;
-	    int primary_bus;
-	    struct pci_device * dev;
-	    pciBridgesSave save;
-	} pci;
-    } busdep;
-} BusAccRec, *BusAccPtr;
-
 /* state change notification callback */
 typedef struct _stateChange {
     xf86StateChangeNotificationCallbackFunc func;
