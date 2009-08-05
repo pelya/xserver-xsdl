@@ -1515,7 +1515,8 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     Bool isPassive = autoGrab & ~ImplicitGrabMask;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!(autoGrab & ImplicitGrabMask) && !IsMaster(mouse))
+    if (grab->grabtype == GRABTYPE_XI2 &&
+        !(autoGrab & ImplicitGrabMask) && !IsMaster(mouse))
         DetachFromMaster(mouse);
 
     if (grab->confineTo)
@@ -1573,7 +1574,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     if (grab->cursor)
 	FreeCursor(grab->cursor, (Cursor)0);
 
-    if (!wasImplicit)
+    if (!wasImplicit && grab->grabtype == GRABTYPE_XI2)
         ReattachToOldMaster(mouse);
 
     ComputeFreezes();
@@ -1591,7 +1592,9 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     WindowPtr oldWin;
 
     /* slave devices need to float for the duration of the grab. */
-    if (!(passive & ImplicitGrabMask) && !IsMaster(keybd))
+    if (grab->grabtype == GRABTYPE_XI2 &&
+        !(passive & ImplicitGrabMask) &&
+        !IsMaster(keybd))
         DetachFromMaster(keybd);
 
     if (grabinfo->grab)
@@ -1644,7 +1647,7 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     }
     DoFocusEvents(keybd, grab->window, focusWin, NotifyUngrab);
 
-    if (!wasImplicit)
+    if (!wasImplicit && grab->grabtype == GRABTYPE_XI2)
         ReattachToOldMaster(keybd);
 
     ComputeFreezes();
