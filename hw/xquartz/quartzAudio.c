@@ -219,6 +219,12 @@ void DDXRingBell(
     int pitch,          // pitch is Hz
     int duration )      // duration is milliseconds
 {
+    if (quartzUseSysBeep) {
+        if (volume)
+            NSBeep();
+        return;
+    }
+        
     if (quartzAudioDevice == kAudioDeviceUnknown) return;
 
     pthread_mutex_lock(&data.lock);
@@ -246,40 +252,6 @@ void DDXRingBell(
     }
     pthread_mutex_unlock(&data.lock);
 }
-
-
-/*
- * QuartzBell
- *  Ring the bell
- */
-void QuartzBell(
-    int volume,             // volume in percent of max
-    DeviceIntPtr pDevice,
-    pointer ctrl,
-    int class )
-{
-    int pitch;              // pitch in Hz
-    int duration;           // duration in milliseconds
-
-    if (class == BellFeedbackClass) {
-        pitch = ((BellCtrl*)ctrl)->pitch;
-        duration = ((BellCtrl*)ctrl)->duration;
-    } else if (class == KbdFeedbackClass) {
-        pitch = ((KeybdCtrl*)ctrl)->bell_pitch;
-        duration = ((KeybdCtrl*)ctrl)->bell_duration;    
-    } else {
-        ErrorF("QuartzBell: bad bell class %d\n", class);
-        return;
-    }
-
-    if (quartzUseSysBeep) {
-        if (volume)
-            NSBeep();
-    } else {
-        DDXRingBell(volume, pitch, duration);
-    }
-}
-
 
 /*
  * QuartzAudioInit

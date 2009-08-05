@@ -327,7 +327,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     /* We need to really have rules... or something... */
     //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
 
-    InitKeyboardDeviceStruct(pDev, NULL, QuartzBell, DarwinChangeKeyboardControl);
+    InitKeyboardDeviceStruct(pDev, NULL, NULL, DarwinChangeKeyboardControl);
 
     pthread_mutex_lock(&keyInfo_mutex);   
     DarwinLoadKeyboardMapping(&keySyms);    
