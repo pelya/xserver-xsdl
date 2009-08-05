@@ -1059,12 +1059,16 @@ exaDriverInit (ScreenPtr		pScreen,
 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_mixed);
 		pExaScr->do_migration = exaDoMigration_mixed;
 		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_mixed;
+		pExaScr->do_move_in_pixmap = exaMoveInPixmap_mixed;
+		pExaScr->do_move_out_pixmap = NULL;
 	    } else {
 		wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_driver);
 		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
 		pExaScr->do_migration = NULL;
 		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
+		pExaScr->do_move_in_pixmap = NULL;
+		pExaScr->do_move_out_pixmap = NULL;
 	    }
 	} else {
 	    wrap(pExaScr, pScreen, CreatePixmap, exaCreatePixmap_classic);
@@ -1072,6 +1076,8 @@ exaDriverInit (ScreenPtr		pScreen,
 	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_classic);
 	    pExaScr->do_migration = exaDoMigration_classic;
 	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_classic;
+	    pExaScr->do_move_in_pixmap = exaMoveInPixmap_classic;
+	    pExaScr->do_move_out_pixmap = exaMoveOutPixmap_classic;
 	}
 	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
@@ -1187,4 +1193,30 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 
     if (pExaScr->do_migration)
 	(*pExaScr->do_migration)(pixmaps, npixmaps, can_accel);
+}
+
+void
+exaMoveInPixmap (PixmapPtr pPixmap)
+{
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return;
+
+    if (pExaScr->do_move_in_pixmap)
+	(*pExaScr->do_move_in_pixmap)(pPixmap);
+}
+
+void
+exaMoveOutPixmap (PixmapPtr pPixmap)
+{
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+
+    if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
+	return;
+
+    if (pExaScr->do_move_out_pixmap)
+	(*pExaScr->do_move_out_pixmap)(pPixmap);
 }

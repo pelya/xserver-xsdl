@@ -815,7 +815,7 @@ exaEnableDisableFBAccess (int index, Bool enable);
 extern _X_EXPORT Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable);
 
-/* in exa_migration.c */
+/* in exa.c */
 extern _X_EXPORT void
 exaMoveInPixmap (PixmapPtr pPixmap);
 

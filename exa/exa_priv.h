@@ -174,6 +174,8 @@ typedef struct {
 #endif
     void (*do_migration) (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
     Bool (*pixmap_is_offscreen) (PixmapPtr pPixmap);
+    void (*do_move_in_pixmap) (PixmapPtr pPixmap);
+    void (*do_move_out_pixmap) (PixmapPtr pPixmap);
 
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
@@ -604,6 +606,9 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap);
 void
 exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
+void
+exaMoveInPixmap_mixed(PixmapPtr pPixmap);
+
 /* exa_render.c */
 Bool
 exaOpReadsDestination (CARD8 op);
@@ -664,5 +669,11 @@ exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
 void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area);
+
+void
+exaMoveOutPixmap_classic (PixmapPtr pPixmap);
+
+void
+exaMoveInPixmap_classic (PixmapPtr pPixmap);
 
 #endif /* EXAPRIV_H */

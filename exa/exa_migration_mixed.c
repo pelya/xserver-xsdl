@@ -170,3 +170,16 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    exaCreateDriverPixmap_mixed(pPixmap);
     }
 }
+
+void
+exaMoveInPixmap_mixed(PixmapPtr pPixmap)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = pPixmap;
+    pixmaps[0].pReg = NULL;
+
+    exaDoMigration(pixmaps, 1, TRUE);
+}

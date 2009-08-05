@@ -366,7 +366,7 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
 }
 
 void
-exaMoveInPixmap (PixmapPtr pPixmap)
+exaMoveInPixmap_classic (PixmapPtr pPixmap)
 {
     static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,
 				       .pReg = NULL };
@@ -407,7 +407,7 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
 }
 
 void
-exaMoveOutPixmap (PixmapPtr pPixmap)
+exaMoveOutPixmap_classic (PixmapPtr pPixmap)
 {
     static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,
 				       .pReg = NULL };
