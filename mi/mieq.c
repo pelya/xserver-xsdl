@@ -367,39 +367,48 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     /* Custom event handler */
     handler = miEventQueue.handlers[event->any.type];
 
-    if (dev && screen && screen != DequeueScreen(dev) && !handler) {
-        /* Assumption - screen switching can only occur on motion events. */
-        DequeueScreen(dev) = screen;
-        x = event->device.root_x;
-        y = event->device.root_y;
-        NewCurrentScreen (dev, DequeueScreen(dev), x, y);
+    switch (event->any.type) {
+        /* Catch events that include valuator information and check if they
+         * are changing the screen */
+        case ET_Motion:
+        case ET_KeyPress:
+        case ET_KeyRelease:
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+            if (dev && screen && screen != DequeueScreen(dev) && !handler) {
+                DequeueScreen(dev) = screen;
+                x = event->device.root_x;
+                y = event->device.root_y;
+                NewCurrentScreen (dev, DequeueScreen(dev), x, y);
+            }
+            break;
+        default:
+            break;
     }
-    else {
-        master = CopyGetMasterEvent(dev, event, &mevent);
+    master = CopyGetMasterEvent(dev, event, &mevent);
 
-        if (master)
-            master->u.lastSlave = dev;
+    if (master)
+        master->u.lastSlave = dev;
 
-        /* If someone's registered a custom event handler, let them
-         * steal it. */
-        if (handler)
-        {
-            int screenNum = dev && DequeueScreen(dev) ? DequeueScreen(dev)->myNum : (screen ? screen->myNum : 0);
-            handler(screenNum, event, dev);
-            /* Check for the SD's master in case the device got detached
-             * during event processing */
-            if (master && dev->u.master)
-                handler(screenNum, &mevent, master);
-        } else
-        {
-            /* process slave first, then master */
-            dev->public.processInputProc(event, dev);
+    /* If someone's registered a custom event handler, let them
+     * steal it. */
+    if (handler)
+    {
+        int screenNum = dev && DequeueScreen(dev) ? DequeueScreen(dev)->myNum : (screen ? screen->myNum : 0);
+        handler(screenNum, event, dev);
+        /* Check for the SD's master in case the device got detached
+         * during event processing */
+        if (master && dev->u.master)
+            handler(screenNum, &mevent, master);
+    } else
+    {
+        /* process slave first, then master */
+        dev->public.processInputProc(event, dev);
 
-            /* Check for the SD's master in case the device got detached
-             * during event processing */
-            if (master && dev->u.master)
-                master->public.processInputProc(&mevent, master);
-        }
+        /* Check for the SD's master in case the device got detached
+         * during event processing */
+        if (master && dev->u.master)
+            master->public.processInputProc(&mevent, master);
     }
 }
 
