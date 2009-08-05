@@ -81,16 +81,9 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
 
     datasize = h * paddedWidth;
 
-    /* Allocate temporary pixmap. */
-    pExaPixmap->sys_ptr = malloc(datasize);
+    /* We will allocate the system pixmap later if needed. */
+    pExaPixmap->sys_ptr = NULL;
     pExaPixmap->sys_pitch = paddedWidth;
-
-    if (!pExaPixmap->sys_ptr) {
-	swap(pExaScr, pScreen, DestroyPixmap);
-	pScreen->DestroyPixmap (pPixmap);
-	swap(pExaScr, pScreen, DestroyPixmap);
-	return NULL;
-    }
 
     pExaPixmap->area = NULL;
     pExaPixmap->offscreen = FALSE;

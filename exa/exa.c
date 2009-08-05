@@ -333,8 +333,18 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     pExaScr->access[index].pixmap = pPixmap;
     pExaScr->access[index].count = 1;
 
-    if (!offscreen)
+    if (!offscreen) {
+	/* Do we need to allocate our system buffer? */
+	if ((pExaScr->info->flags & EXA_HANDLES_PIXMAPS) && (pExaScr->info->flags & EXA_MIXED_PIXMAPS)) {
+	    if (!pExaPixmap->sys_ptr) {
+		pExaPixmap->sys_ptr = malloc(pExaPixmap->sys_pitch * pDrawable->height);
+		if (!pExaPixmap->sys_ptr)
+		    FatalError("EXA: malloc failed for size %d bytes\n", pExaPixmap->sys_pitch * pDrawable->height);
+		pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	    }
+	}
 	return FALSE;
+    }
 
     exaWaitSync (pDrawable->pScreen);
 

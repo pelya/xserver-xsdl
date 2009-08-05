@@ -109,6 +109,10 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
     if (!w || !h)
 	goto finish;
 
+    /* we do not malloc memory by default. */
+    if (!sys_buffer)
+	goto finish;
+
     if (!pExaScr->info->UploadToScreen)
 	goto fallback;
 
