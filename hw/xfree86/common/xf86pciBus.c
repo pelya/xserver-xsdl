@@ -51,10 +51,7 @@
 
 /* Bus-specific globals */
 Bool pciSlotClaimed = FALSE;
-static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
-
-/* PCI classes that get included in xf86PciVideoInfo */
 #define PCIINFOCLASSES(c) \
     ( (((c) & 0x00ff0000) == (PCI_CLASS_PREHISTORIC << 16)) \
       || (((c) & 0x00ff0000) == (PCI_CLASS_DISPLAY << 16)) \
@@ -78,22 +75,6 @@ static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw *
     (((c) & 0x00ffff00) \
 	 == ((PCI_CLASS_DISPLAY << 16) | (PCI_SUBCLASS_DISPLAY_VGA << 8)))
 
-/*
- * PCI classes for which potentially destructive checking of the map sizes
- * may be done.  Any classes where this may be unsafe should be omitted
- * from this list.
- */
-#define PCINONSYSTEMCLASSES(c) PCIALWAYSPRINTCLASSES(c)
-
-/* 
- * PCI classes that use RAC 
- */
-#define PCISHAREDIOCLASSES(c) \
-    ( (((c) & 0x00ffff00) \
-       == ((PCI_CLASS_PREHISTORIC << 16) | (PCI_SUBCLASS_PREHISTORIC_VGA << 8))) \
-      || IS_VGA(c) )
-
-
 void
 xf86FormatPciBusNumber(int busnum, char *buffer)
 {
@@ -115,6 +96,7 @@ xf86PciProbe(void)
     int num = 0;
     struct pci_device *info;
     struct pci_device_iterator *iter;
+    struct pci_device ** xf86PciVideoInfo = NULL;
 
 
     if (!xf86scanpci()) {
