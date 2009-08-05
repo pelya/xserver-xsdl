@@ -56,7 +56,5 @@ typedef union {
 } pciBridgesSave, *pciBridgesSavePtr;
 
 void xf86PciProbe(void);
-void initPciState(void);
-void initPciBusState(void);
 
 #endif /* _XF86_PCI_BUS_H */
