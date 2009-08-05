@@ -1441,6 +1441,54 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
     ComputeFreezes();
 }
 
+/* Only ever used if a grab is called on an attached slave device. */
+static int GrabPrivateKeyIndex;
+static DevPrivateKey GrabPrivateKey = &GrabPrivateKeyIndex;
+
+/**
+ * Save the device's master device in the devPrivates. This needs to be done
+ * if a client directly grabs a slave device that is attached to a master. For
+ * the duration of the grab, the device is detached, ungrabbing re-attaches it
+ * though.
+ *
+ * We store the ID of the master device only in case the master disappears
+ * while the device has a grab.
+ */
+static void
+DetachFromMaster(DeviceIntPtr dev)
+{
+    int id;
+    if (!dev->u.master)
+        return;
+
+    id = dev->u.master->id;
+
+    dixSetPrivate(&dev->devPrivates, GrabPrivateKey, (void *)id);
+    AttachDevice(NULL, dev, NULL);
+}
+
+static void
+ReattachToOldMaster(DeviceIntPtr dev)
+{
+    int id;
+    void *p;
+    DeviceIntPtr master = NULL;
+
+    if (IsMaster(dev))
+        return;
+
+
+    p = dixLookupPrivate(&dev->devPrivates, GrabPrivateKey);
+    id = (int)p; /* silence gcc warnings */
+    dixLookupDevice(&master, id, serverClient, DixUseAccess);
+
+    if (master)
+    {
+        AttachDevice(serverClient, dev, master);
+        dixSetPrivate(&dev->devPrivates, GrabPrivateKey, NULL);
+    }
+}
+
 /**
  * Activate a pointer grab on the given device. A pointer grab will cause all
  * core pointer events of this device to be delivered to the grabbing client only.
@@ -1465,6 +1513,10 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
                         grabinfo->grab->window
                         : mouse->spriteInfo->sprite->win;
     Bool isPassive = autoGrab & ~ImplicitGrabMask;
+
+    /* slave devices need to float for the duration of the grab. */
+    if (!(autoGrab & ImplicitGrabMask) && !IsMaster(mouse))
+        DetachFromMaster(mouse);
 
     if (grab->confineTo)
     {
@@ -1500,6 +1552,8 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
 {
     GrabPtr grab = mouse->deviceGrab.grab;
     DeviceIntPtr dev;
+    Bool wasImplicit = (mouse->deviceGrab.fromPassiveGrab &&
+                        mouse->deviceGrab.implicitGrab);
 
     mouse->valuator->motionHintWindow = NullWindow;
     mouse->deviceGrab.grab = NullGrab;
@@ -1519,6 +1573,9 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     if (grab->cursor)
 	FreeCursor(grab->cursor, (Cursor)0);
 
+    if (!wasImplicit)
+        ReattachToOldMaster(mouse);
+
     ComputeFreezes();
 }
 
@@ -1532,6 +1589,10 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
 {
     GrabInfoPtr grabinfo = &keybd->deviceGrab;
     WindowPtr oldWin;
+
+    /* slave devices need to float for the duration of the grab. */
+    if (!(passive & ImplicitGrabMask) && !IsMaster(keybd))
+        DetachFromMaster(keybd);
 
     if (grabinfo->grab)
 	oldWin = grabinfo->grab->window;
@@ -1565,6 +1626,8 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     DeviceIntPtr dev;
     WindowPtr focusWin = keybd->focus ? keybd->focus->win
                                            : keybd->spriteInfo->sprite->win;
+    Bool wasImplicit = (keybd->deviceGrab.fromPassiveGrab &&
+                        keybd->deviceGrab.implicitGrab);
 
     if (focusWin == FollowKeyboardWin)
 	focusWin = inputInfo.keyboard->focus->win;
@@ -1580,6 +1643,9 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
 	    dev->deviceGrab.sync.other = NullGrab;
     }
     DoFocusEvents(keybd, grab->window, focusWin, NotifyUngrab);
+
+    if (!wasImplicit)
+        ReattachToOldMaster(keybd);
 
     ComputeFreezes();
 }
