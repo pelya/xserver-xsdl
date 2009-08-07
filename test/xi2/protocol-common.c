@@ -37,6 +37,8 @@ WindowRec window;
 
 void *userdata;
 
+extern int CorePointerProc(DeviceIntPtr pDev, int what);
+extern int CoreKeyboardProc(DeviceIntPtr pDev, int what);
 /**
  * Create and init 2 master devices (VCP + VCK) and two slave devices, one
  * default mouse, one default keyboard.
@@ -48,7 +50,8 @@ struct devices init_devices(void)
 
     client = init_client(0, NULL);
 
-    AllocDevicePair(&client, "Virtual core", &devices.vcp, &devices.vck, TRUE);
+    AllocDevicePair(&client, "Virtual core", &devices.vcp, &devices.vck,
+                    CorePointerProc, CoreKeyboardProc, TRUE);
     inputInfo.pointer = devices.vcp;
     inputInfo.keyboard = devices.vck;
     ActivateDevice(devices.vcp, FALSE);
@@ -56,7 +59,8 @@ struct devices init_devices(void)
     EnableDevice(devices.vcp, FALSE);
     EnableDevice(devices.vck, FALSE);
 
-    AllocDevicePair(&client, "", &devices.mouse, &devices.kbd, FALSE);
+    AllocDevicePair(&client, "", &devices.mouse, &devices.kbd,
+                    CorePointerProc, CoreKeyboardProc, FALSE);
     ActivateDevice(devices.mouse, FALSE);
     ActivateDevice(devices.kbd, FALSE);
     EnableDevice(devices.mouse, FALSE);
