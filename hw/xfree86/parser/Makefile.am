@@ -1,13 +1,14 @@
 if INSTALL_LIBXF86CONFIG
-lib_LTLIBRARIES = libxf86config.la
+lib_LTLIBRARIES = libxf86config_internal.la
+lib_LIBRARIES = libxf86config.a
 LIBHEADERS = \
 	xf86Optrec.h \
 	xf86Parser.h
 else
-noinst_LTLIBRARIES = libxf86config.la
+noinst_LTLIBRARIES = libxf86config_internal.la
 endif
 
-libxf86config_la_SOURCES = \
+INTERNAL_SOURCES= \
 	Device.c \
 	Files.c \
 	Flags.c \
@@ -24,6 +25,13 @@ libxf86config_la_SOURCES = \
 	write.c \
 	DRI.c \
 	Extensions.c
+
+libxf86config_internal_la_SOURCES = \
+	$(INTERNAL_SOURCES)
+
+libxf86config_a_SOURCES = \
+	$(INTERNAL_SOURCES)
+libxf86config_a_CFLAGS = $(AM_CFLAGS)
 
 AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 

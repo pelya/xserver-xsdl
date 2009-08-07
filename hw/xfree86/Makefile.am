@@ -53,7 +53,7 @@ libxorg_la_LIBADD = \
             loader/libloader.la \
             os-support/libxorgos.la \
             common/libcommon.la \
-            parser/libxf86config.la \
+            parser/libxf86config_internal.la \
             dixmods/libdixmods.la \
             modes/libxf86modes.la \
             ramdac/libramdac.la \
