@@ -67,8 +67,7 @@
 #include <IOKit/hidsystem/IOHIDLib.h>
 
 #ifdef MITSHM
-#define _XSHM_SERVER_
-#include <X11/extensions/XShm.h>
+#include "shmint.h"
 #endif
 
 #include "darwin.h"
