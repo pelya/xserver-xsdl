@@ -145,19 +145,21 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
 
     if (pExaPixmap) {
-        if (pPixData) {
-	    if (!exaPixmapIsPinned(pPixmap)) {
-		free(pExaPixmap->sys_ptr);
+	if (!exaPixmapIsPinned(pPixmap)) {
+	    free(pExaPixmap->sys_ptr);
+	    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr = NULL;
+	    pExaPixmap->sys_pitch = pPixmap->devKind = 0;
 
-		/* We no longer need this. */
-		if (pExaPixmap->pDamage) {
-		    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
-		    DamageDestroy(pExaPixmap->pDamage);
-		    pExaPixmap->pDamage = NULL;
-		}
+	    /* We no longer need this. */
+	    if (pExaPixmap->pDamage) {
+		DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
+		DamageDestroy(pExaPixmap->pDamage);
+		pExaPixmap->pDamage = NULL;
 	    }
-            pExaPixmap->sys_ptr = pPixData;
 	}
+
+        if (pPixData)
+            pExaPixmap->sys_ptr = pPixData;
 
         if (devKind > 0)
             pExaPixmap->sys_pitch = devKind;
