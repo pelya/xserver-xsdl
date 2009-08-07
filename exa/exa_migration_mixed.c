@@ -99,7 +99,8 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
 	return;
 
     pExaPixmap->offscreen = TRUE;
-    pExaPixmap->sys_ptr = NULL;
+    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr = NULL;
+    pExaPixmap->sys_pitch = pPixmap->devKind = 0;
 
     pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
     (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
