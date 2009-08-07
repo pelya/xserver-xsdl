@@ -1,5 +1,5 @@
 if INSTALL_LIBXF86CONFIG
-lib_LTLIBRARIES = libxf86config_internal.la
+noinst_LTLIBRARIES = libxf86config_internal.la
 lib_LIBRARIES = libxf86config.a
 LIBHEADERS = \
 	xf86Optrec.h \
