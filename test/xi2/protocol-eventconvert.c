@@ -150,6 +150,35 @@ static void test_XIRawEvent(RawDeviceEvent *in)
 
 }
 
+static void test_convert_XIFocusEvent(void)
+{
+    xEvent *out;
+    DeviceEvent in;
+    int rc;
+
+    in.header = ET_Internal;
+    in.type = ET_Enter;
+    rc = EventToXI2((InternalEvent*)&in, &out);
+    g_assert(rc == Success);
+    g_assert(out == NULL);
+
+    in.header = ET_Internal;
+    in.type = ET_FocusIn;
+    rc = EventToXI2((InternalEvent*)&in, &out);
+    g_assert(rc == Success);
+    g_assert(out == NULL);
+
+    in.header = ET_Internal;
+    in.type = ET_FocusOut;
+    rc = EventToXI2((InternalEvent*)&in, &out);
+    g_assert(rc == BadImplementation);
+
+    in.header = ET_Internal;
+    in.type = ET_Leave;
+    rc = EventToXI2((InternalEvent*)&in, &out);
+    g_assert(rc == BadImplementation);
+}
+
 
 static void test_convert_XIRawEvent(void)
 {
@@ -244,6 +273,7 @@ int main(int argc, char** argv)
     g_test_bug_base("https://bugzilla.freedesktop.org/show_bug.cgi?id=");
 
     g_test_add_func("/xi2/eventconvert/XIRawEvent", test_convert_XIRawEvent);
+    g_test_add_func("/xi2/eventconvert/XIFocusEvent", test_convert_XIFocusEvent);
 
     return g_test_run();
 }
