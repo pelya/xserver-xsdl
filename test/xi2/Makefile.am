@@ -5,7 +5,8 @@ check_PROGRAMS =  \
 	protocol-xiselectevents \
 	protocol-xigetselectedevents \
         protocol-xisetclientpointer \
-        protocol-xigetclientpointer
+        protocol-xigetclientpointer \
+        protocol-eventconvert
 
 TESTS=$(check_PROGRAMS)
 
@@ -20,6 +21,7 @@ protocol_xiselectevents_LDADD=$(TEST_LDADD)
 protocol_xigetselectedevents_LDADD=$(TEST_LDADD)
 protocol_xisetclientpointer_LDADD=$(TEST_LDADD)
 protocol_xigetclientpointer_LDADD=$(TEST_LDADD)
+protocol_eventconvert_LDADD=$(TEST_LDADD)
 
 protocol_xiqueryversion_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient
 protocol_xiquerydevice_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient

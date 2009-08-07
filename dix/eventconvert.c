@@ -473,7 +473,7 @@ eventToRawEvent(RawDeviceEvent *ev, xEvent **xi)
     char *ptr;
     FP3232 *axisval;
 
-    nvals = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask)/sizeof(ev->valuators.mask[0]));
+    nvals = count_bits(ev->valuators.mask, sizeof(ev->valuators.mask));
     len += nvals * sizeof(FP3232) * 2; /* 8 byte per valuator, once
                                     raw, once processed */
     vallen = bytes_to_int32(bits_to_bytes(MAX_VALUATORS));
