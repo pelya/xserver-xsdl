@@ -159,26 +159,26 @@ mieqEnqueue(DeviceIntPtr pDev, InternalEvent *e)
 
     if (isMotion && isMotion == miEventQueue.lastMotion &&
         oldtail != miEventQueue.head) {
-	oldtail = (oldtail - 1) % QUEUE_SIZE;
+        oldtail = (oldtail - 1) % QUEUE_SIZE;
     }
     else {
-	static int stuck = 0;
-	/* Toss events which come in late.  Usually this means your server's
+        static int stuck = 0;
+        /* Toss events which come in late.  Usually this means your server's
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled. */
-	if (((oldtail + 1) % QUEUE_SIZE) == miEventQueue.head) {
-	    if (!stuck) {
+        if (((oldtail + 1) % QUEUE_SIZE) == miEventQueue.head) {
+            if (!stuck) {
                 ErrorF("[mi] EQ overflowing. The server is probably stuck "
                         "in an infinite loop.\n");
-		xorg_backtrace();
-		stuck = 1;
-	    }
+                xorg_backtrace();
+                stuck = 1;
+            }
 #ifdef XQUARTZ
-	    pthread_mutex_unlock(&miEventQueueMutex);
+            pthread_mutex_unlock(&miEventQueueMutex);
 #endif
-	    return;
+	        return;
         }
-	stuck = 0;
+        stuck = 0;
     }
 
     evlen = e->any.length;
@@ -225,7 +225,7 @@ mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 #endif
     EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
-	DequeueScreen(pDev) = pScreen;
+        DequeueScreen(pDev) = pScreen;
 #ifdef XQUARTZ
     pthread_mutex_unlock(&miEventQueueMutex);
 #endif
@@ -267,8 +267,8 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
             event->device.deviceid = dev->id;
             break;
 #if XFreeXDGA
-	case ET_DGAEvent:
-	    break;
+        case ET_DGAEvent:
+            break;
 #endif
         case ET_RawKeyPress:
         case ET_RawKeyRelease:
