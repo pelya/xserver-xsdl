@@ -32,32 +32,37 @@
 #include "exa.h"
 
 static void
-exaUploadFallback(PixmapPtr pPixmap, CARD8 *src, int src_pitch,
-	      CARD8 *dst, int dst_pitch)
- {
+exaUploadFallback(PixmapPtr pPixmap, CARD8 *src, int src_pitch)
+{
     ExaPixmapPriv(pPixmap);
     RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
-    int i, cpp = pPixmap->drawable.bitsPerPixel / 8;
-    int bytes, nbox;
+    GCPtr pGC = GetScratchGC (pPixmap->drawable.depth,
+		pPixmap->drawable.pScreen);
+    int nbox, cpp = pPixmap->drawable.bitsPerPixel / 8;
+    DamagePtr backup = pExaPixmap->pDamage;
     BoxPtr pbox;
+    CARD8 *src2;
+
+    /* We don't want damage optimisations. */
+    pExaPixmap->pDamage = NULL;
+    ValidateGC (&pPixmap->drawable, pGC);
 
     pbox = REGION_RECTS(damage);
     nbox = REGION_NUM_RECTS(damage);
 
     while (nbox--) {
-	bytes = (pbox->x2 - pbox->x1) * cpp;
+	src2 = src + pbox->y1 * src_pitch + pbox->x1 * cpp;
 
-	src += pbox->y1 * src_pitch + pbox->x1 * cpp;
-	dst += pbox->y1 * dst_pitch + pbox->x1 * cpp;
-
-	for (i = pbox->y2 - pbox->y1; i; i--) {
-	    memcpy (dst, src, bytes);
-	    src += src_pitch;
-	    dst += dst_pitch;
-	}
+	ExaCheckPutImage(&pPixmap->drawable, pGC,
+	    pPixmap->drawable.depth, pbox->x1, pbox->y1,
+	    pbox->x2 - pbox->x1, pbox->y2 - pbox->y1, 0,
+	    ZPixmap, (char*) src2);
 
 	pbox++;
     }
+
+    FreeScratchGC (pGC);
+    pExaPixmap->pDamage = backup;
 }
 
 void
@@ -131,10 +136,7 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
     goto finish;
 
 fallback:
-    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
-    exaUploadFallback(pPixmap, sys_buffer, sys_pitch, pPixmap->devPrivate.ptr,
-	exaGetPixmapPitch(pPixmap));
-    exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+    exaUploadFallback(pPixmap, sys_buffer, sys_pitch);
 
 finish:
     free(sys_buffer);
