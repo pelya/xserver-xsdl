@@ -82,6 +82,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
     datasize = h * paddedWidth;
 
     /* We will allocate the system pixmap later if needed. */
+    pPixmap->devPrivate.ptr = NULL;
     pExaPixmap->sys_ptr = NULL;
     pExaPixmap->sys_pitch = paddedWidth;
 
