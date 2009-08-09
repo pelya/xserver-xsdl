@@ -55,6 +55,11 @@
 extern int DeviceValuator;
 extern int DeviceMotionNotify;
 
+/* XTest events are sent during request processing and may be interruped by
+ * a SIGIO. We need a separate event list to avoid events overwriting each
+ * other's memory */
+static EventListPtr xtest_evlist;
+
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -82,6 +87,8 @@ XTestExtensionInit(INITARGS)
     AddExtension(XTestExtensionName, 0, 0,
             ProcXTestDispatch, SProcXTestDispatch,
             NULL, StandardMinorOpcode);
+
+    xtest_evlist = InitEventList(GetMaximumEventsNum());
 }
 
 static int
@@ -155,7 +162,6 @@ ProcXTestFakeInput(ClientPtr client)
     int valuators[MAX_VALUATORS] = {0};
     int numValuators = 0;
     int firstValuator = 0;
-    EventListPtr events;
     int nevents = 0;
     int i;
     int base = 0;
@@ -407,26 +413,25 @@ ProcXTestFakeInput(ClientPtr client)
     if (screenIsSaved == SCREEN_SAVER_ON)
         dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 
-    GetEventList(&events);
     switch(type) {
         case MotionNotify:
-            nevents = GetPointerEvents(events, dev, type, 0, flags,
+            nevents = GetPointerEvents(xtest_evlist, dev, type, 0, flags,
                             firstValuator, numValuators, valuators);
             break;
         case ButtonPress:
         case ButtonRelease:
-            nevents = GetPointerEvents(events, dev, type, ev->u.u.detail,
+            nevents = GetPointerEvents(xtest_evlist, dev, type, ev->u.u.detail,
                                        flags, firstValuator,
                                        numValuators, valuators);
             break;
         case KeyPress:
         case KeyRelease:
-            nevents = GetKeyboardEvents(events, dev, type, ev->u.u.detail);
+            nevents = GetKeyboardEvents(xtest_evlist, dev, type, ev->u.u.detail);
             break;
     }
 
     for (i = 0; i < nevents; i++)
-        mieqProcessDeviceEvent(dev, (InternalEvent*)(events+i)->event, NULL);
+        mieqProcessDeviceEvent(dev, (InternalEvent*)(xtest_evlist+i)->event, NULL);
 
     miPointerUpdateSprite(dev);
     return client->noClientException;
