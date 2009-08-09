@@ -163,11 +163,7 @@ BOOL xquartz_resetenv_display = NO;
 
       item = (NSMenuItem *) [menu addItemWithTitle:name action:@selector
 				  (item_selected:) keyEquivalent:shortcut];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
       [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
-#else
-      [item setKeyEquivalentModifierMask:windowItemModMask];
-#endif
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];
@@ -176,11 +172,7 @@ BOOL xquartz_resetenv_display = NO;
 				       action:@selector
 				       (item_selected:) keyEquivalent:shortcut
 				       atIndex:i];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
       [item setKeyEquivalentModifierMask:(NSUInteger) windowItemModMask];
-#else
-      [item setKeyEquivalentModifierMask:windowItemModMask];
-#endif
       [item setTarget:self];
       [item setTag:i];
       [item setEnabled:YES];
