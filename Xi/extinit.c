@@ -810,6 +810,48 @@ static void SXIPropertyEvent(xXIPropertyEvent *from, xXIPropertyEvent *to)
     swapl(&to->property, n);
 }
 
+static void SRawEvent(xXIRawEvent *from, xXIRawEvent *to)
+{
+    char n;
+    int i;
+    FP3232 *values;
+    unsigned char *mask;
+
+    memcpy(to, from, sizeof(xEvent) + from->length * 4);
+
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
+    swapl(&to->time, n);
+    swapl(&to->detail, n);
+
+
+    mask = (unsigned char*)&to[1];
+    values = (FP3232*)(mask + from->valuators_len * 4);
+
+    for (i = 0; i < from->valuators_len * 4 * 8; i++)
+    {
+        if (BitIsOn(mask, i))
+        {
+            /* for each bit set there are two FP3232 values on the wire, in
+             * the order abcABC for data and data_raw. Here we swap as if
+             * they were in aAbBcC order because it's easier and really
+             * doesn't matter.
+             */
+            swapl(&values->integral, n);
+            swapl(&values->frac, n);
+            values++;
+            swapl(&values->integral, n);
+            swapl(&values->frac, n);
+            values++;
+        }
+    }
+
+    swaps(&to->valuators_len, n);
+}
+
+
 /** Event swapping function for XI2 events. */
 void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
@@ -837,6 +879,13 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
         case XI_ButtonPress:
         case XI_ButtonRelease:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
+            break;
+        case XI_RawMotion:
+        case XI_RawKeyPress:
+        case XI_RawKeyRelease:
+        case XI_RawButtonPress:
+        case XI_RawButtonRelease:
+            SRawEvent((xXIRawEvent*)from, (xXIRawEvent*)to);
             break;
         default:
             ErrorF("[Xi] Unknown event type to swap. This is a bug.\n");
