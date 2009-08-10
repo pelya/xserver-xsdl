@@ -145,7 +145,7 @@ struct _DeviceChangedEvent
     /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies SD previously
      * attached to this device. */
     int old_slaveid;
-    /** If flags & HAS_OLD_SLAVE is set, old_slaveid specifies device now
+    /** If flags & HAS_NEW_SLAVE is set, new_slaveid specifies device now
      * attached to this device. */
     int new_slaveid;
 
