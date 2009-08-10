@@ -674,69 +674,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to, DeviceChangedEvent *dc
 }
 
 
-static int
-AppendKeyInfo(DeviceChangedEvent *dce, xXIKeyInfo* info)
-{
-    uint32_t *kc;
-    int i;
-
-    info->type = KeyClass;
-    info->num_keycodes = dce->keys.max_keycode - dce->keys.min_keycode + 1;
-    info->length = sizeof(xXIKeyInfo)/4 + info->num_keycodes;
-    info->sourceid = dce->deviceid;
-
-    kc = (uint32_t*)&info[1];
-    for (i = 0; i < info->num_keycodes; i++)
-        *kc++ = i + dce->keys.min_keycode;
-
-    return info->length * 4;
-}
-
-static int
-AppendButtonInfo(DeviceChangedEvent *dce, xXIButtonInfo *info)
-{
-    unsigned char *bits;
-    int mask_len;
-
-    mask_len = bytes_to_int32(bits_to_bytes(dce->buttons.num_buttons));
-
-    info->type = ButtonClass;
-    info->num_buttons = dce->buttons.num_buttons;
-    info->length = bytes_to_int32(sizeof(xXIButtonInfo)) +
-                   info->num_buttons + mask_len;
-    info->sourceid = dce->deviceid;
-
-    bits = (unsigned char*)&info[1];
-    memset(bits, 0, mask_len * 4);
-    /* FIXME: is_down? */
-
-    bits += mask_len * 4;
-    memcpy(bits, dce->buttons.names, dce->buttons.num_buttons * sizeof(Atom));
-
-    return info->length * 4;
-}
-
-static int
-AppendValuatorInfo(DeviceChangedEvent *dce, xXIValuatorInfo *info, int axisnumber)
-{
-    info->type = ValuatorClass;
-    info->length = sizeof(xXIValuatorInfo)/4;
-    info->label = dce->valuators[axisnumber].name;
-    info->min.integral = dce->valuators[axisnumber].min;
-    info->min.frac = 0;
-    info->max.integral = dce->valuators[axisnumber].max;
-    info->max.frac = 0;
-    /* FIXME: value */
-    info->value.integral = 0;
-    info->value.frac = 0;
-    info->resolution = dce->valuators[axisnumber].resolution;
-    info->number = axisnumber;
-    info->mode = dce->valuators[axisnumber].mode; /* Server doesn't have per-axis mode yet */
-    info->sourceid = dce->deviceid;
-
-    return info->length * 4;
-}
-
 /**
  * Send an XI2 DeviceChangedEvent to all interested clients.
  */
@@ -744,69 +681,19 @@ void
 XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChangedEvent *dce)
 {
     xXIDeviceChangedEvent *dcce;
-    int len = sizeof(xXIDeviceChangedEvent);
-    int nkeys;
-    char *ptr;
+    int rc;
 
-    if (dce->buttons.num_buttons)
+    rc = EventToXI2((InternalEvent*)dce, (xEvent**)&dcce);
+    if (rc != Success)
     {
-        len += sizeof(xXIButtonInfo);
-        len += dce->buttons.num_buttons * sizeof(Atom); /* button names */
-        len += pad_to_int32(bits_to_bytes(dce->buttons.num_buttons));
-    }
-    if (dce->num_valuators)
-        len += sizeof(xXIValuatorInfo) * dce->num_valuators;
-
-    nkeys = (dce->keys.max_keycode > 0) ?
-                dce->keys.max_keycode - dce->keys.min_keycode + 1 : 0;
-    if (nkeys > 0)
-    {
-        len += sizeof(xXIKeyInfo);
-        len += sizeof(CARD32) * nkeys; /* keycodes */
-    }
-
-    dcce = xcalloc(1, len);
-    if (!dcce)
-    {
-        ErrorF("[Xi] BadAlloc in SendDeviceChangedEvent.\n");
+        ErrorF("[Xi] event conversion from DCE failed with code %d\n", rc);
         return;
-    }
-
-    dcce->type         = GenericEvent;
-    dcce->extension    = IReqCode;
-    dcce->evtype       = XI_DeviceChanged;
-    dcce->time         = GetTimeInMillis();
-    dcce->deviceid     = master->id;
-    dcce->sourceid     = device->id;
-    dcce->reason       = (dce->flags & DEVCHANGE_DEVICE_CHANGE) ? XIDeviceChange : XISlaveSwitch;
-    dcce->num_classes  = 0;
-    dcce->length = bytes_to_int32(len - sizeof(xEvent));
-
-    ptr = (char*)&dcce[1];
-    if (dce->buttons.num_buttons)
-    {
-        dcce->num_classes++;
-        ptr += AppendButtonInfo(dce, (xXIButtonInfo*)ptr);
-    }
-
-    if (nkeys)
-    {
-        dcce->num_classes++;
-        ptr += AppendKeyInfo(dce, (xXIKeyInfo*)ptr);
-    }
-
-    if (dce->num_valuators)
-    {
-        int i;
-
-        dcce->num_classes += dce->num_valuators;
-        for (i = 0; i < dce->num_valuators; i++)
-            ptr += AppendValuatorInfo(dce, (xXIValuatorInfo*)ptr, i);
     }
 
     /* we don't actually swap if there's a NullClient, swapping is done
      * later when event is delivered. */
     SendEventToAllWindows(master, XI_DeviceChangedMask, (xEvent*)dcce, 1);
+    xfree(dcce);
 }
 
 static void

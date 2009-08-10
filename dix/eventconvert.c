@@ -340,38 +340,135 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
     return (num_valuators + 5) / 6;
 }
 
+
 static int
-eventToDeviceChanged(DeviceChangedEvent *ev, xEvent **xi)
+appendKeyInfo(DeviceChangedEvent *dce, xXIKeyInfo* info)
 {
-    int len = sizeof(xEvent);
-    DeviceIntPtr slave;
-    int rc;
-    xXIDeviceChangedEvent *dce;
+    uint32_t *kc;
+    int i;
 
-    rc = dixLookupDevice(&slave, ev->new_slaveid,
-                         serverClient, DixReadAccess);
+    info->type = KeyClass;
+    info->num_keycodes = dce->keys.max_keycode - dce->keys.min_keycode + 1;
+    info->length = sizeof(xXIKeyInfo)/4 + info->num_keycodes;
+    info->sourceid = dce->deviceid;
 
-    if (rc != Success)
-        return rc;
+    kc = (uint32_t*)&info[1];
+    for (i = 0; i < info->num_keycodes; i++)
+        *kc++ = i + dce->keys.min_keycode;
 
-    len += SizeDeviceClasses(slave);
+    return info->length * 4;
+}
 
-    *xi = xcalloc(1, len);
-    if (!(*xi))
+static int
+appendButtonInfo(DeviceChangedEvent *dce, xXIButtonInfo *info)
+{
+    unsigned char *bits;
+    int mask_len;
+
+    mask_len = bytes_to_int32(bits_to_bytes(dce->buttons.num_buttons));
+
+    info->type = ButtonClass;
+    info->num_buttons = dce->buttons.num_buttons;
+    info->length = bytes_to_int32(sizeof(xXIButtonInfo)) +
+                   info->num_buttons + mask_len;
+    info->sourceid = dce->deviceid;
+
+    bits = (unsigned char*)&info[1];
+    memset(bits, 0, mask_len * 4);
+    /* FIXME: is_down? */
+
+    bits += mask_len * 4;
+    memcpy(bits, dce->buttons.names, dce->buttons.num_buttons * sizeof(Atom));
+
+    return info->length * 4;
+}
+
+static int
+appendValuatorInfo(DeviceChangedEvent *dce, xXIValuatorInfo *info, int axisnumber)
+{
+    info->type = ValuatorClass;
+    info->length = sizeof(xXIValuatorInfo)/4;
+    info->label = dce->valuators[axisnumber].name;
+    info->min.integral = dce->valuators[axisnumber].min;
+    info->min.frac = 0;
+    info->max.integral = dce->valuators[axisnumber].max;
+    info->max.frac = 0;
+    /* FIXME: value */
+    info->value.integral = 0;
+    info->value.frac = 0;
+    info->resolution = dce->valuators[axisnumber].resolution;
+    info->number = axisnumber;
+    info->mode = dce->valuators[axisnumber].mode; /* Server doesn't have per-axis mode yet */
+    info->sourceid = dce->deviceid;
+
+    return info->length * 4;
+}
+
+static int
+eventToDeviceChanged(DeviceChangedEvent *dce, xEvent **xi)
+{
+    xXIDeviceChangedEvent *dcce;
+    int len = sizeof(xXIDeviceChangedEvent);
+    int nkeys;
+    char *ptr;
+
+    if (dce->buttons.num_buttons)
+    {
+        len += sizeof(xXIButtonInfo);
+        len += dce->buttons.num_buttons * sizeof(Atom); /* button names */
+        len += pad_to_int32(bits_to_bytes(dce->buttons.num_buttons));
+    }
+    if (dce->num_valuators)
+        len += sizeof(xXIValuatorInfo) * dce->num_valuators;
+
+    nkeys = (dce->keys.max_keycode > 0) ?
+                dce->keys.max_keycode - dce->keys.min_keycode + 1 : 0;
+    if (nkeys > 0)
+    {
+        len += sizeof(xXIKeyInfo);
+        len += sizeof(CARD32) * nkeys; /* keycodes */
+    }
+
+    dcce = xcalloc(1, len);
+    if (!dcce)
+    {
+        ErrorF("[Xi] BadAlloc in SendDeviceChangedEvent.\n");
         return BadAlloc;
+    }
 
-    dce = (xXIDeviceChangedEvent*)(*xi);
-    dce->type = GenericEvent;
-    dce->extension = IReqCode;
-    dce->evtype = XI_DeviceChanged;
-    dce->time = GetTimeInMillis();
-    dce->sourceid = slave->id;
-    dce->reason = XISlaveSwitch;
-    dce->length = (len - sizeof(xEvent))/4;
+    dcce->type         = GenericEvent;
+    dcce->extension    = IReqCode;
+    dcce->evtype       = XI_DeviceChanged;
+    dcce->time         = dce->time;
+    dcce->deviceid     = dce->deviceid;
+    dcce->sourceid     = dce->deviceid;
+    dcce->reason       = (dce->flags & DEVCHANGE_DEVICE_CHANGE) ? XIDeviceChange : XISlaveSwitch;
+    dcce->num_classes  = 0;
+    dcce->length = bytes_to_int32(len - sizeof(xEvent));
 
-    /* FIXME: this should come from the event, not from the device. See
-     * CreateClassesChangedEvent */
-    ListDeviceClasses(slave, (char*)&dce[1], &dce->num_classes);
+    ptr = (char*)&dcce[1];
+    if (dce->buttons.num_buttons)
+    {
+        dcce->num_classes++;
+        ptr += appendButtonInfo(dce, (xXIButtonInfo*)ptr);
+    }
+
+    if (nkeys)
+    {
+        dcce->num_classes++;
+        ptr += appendKeyInfo(dce, (xXIKeyInfo*)ptr);
+    }
+
+    if (dce->num_valuators)
+    {
+        int i;
+
+        dcce->num_classes += dce->num_valuators;
+        for (i = 0; i < dce->num_valuators; i++)
+            ptr += appendValuatorInfo(dce, (xXIValuatorInfo*)ptr, i);
+    }
+
+    *xi = (xEvent*)dcce;
 
     return Success;
 }
