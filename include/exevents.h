@@ -193,6 +193,10 @@ extern _X_EXPORT void SendEventToAllWindows(
         xEvent *               /* ev */,
         int                    /* count */);
 
+extern _X_HIDDEN void XI2EventSwap(
+        xGenericEvent  *              /* from */,
+        xGenericEvent  *              /* to */);
+
 /* Input device properties */
 extern _X_EXPORT void XIDeleteAllDeviceProperties(
         DeviceIntPtr            /* device */

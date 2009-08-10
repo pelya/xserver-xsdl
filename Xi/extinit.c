@@ -810,7 +810,7 @@ static void SXIPropertyEvent(xXIPropertyEvent *from, xXIPropertyEvent *to)
 }
 
 /** Event swapping function for XI2 events. */
-static void
+void
 XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
 {
     switch(from->evtype)
