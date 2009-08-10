@@ -373,8 +373,8 @@ static struct security_class_mapping map[] = {
     { "x_device",
         { "read",		/* DixReadAccess */
           "write",		/* DixWriteAccess */
-          "",			/* DixDestroyAccess */
-          "",			/* DixCreateAccess */
+          "destroy",		/* DixDestroyAccess */
+          "create",		/* DixCreateAccess */
           "getattr",		/* DixGetAttrAccess */
           "setattr",		/* DixSetAttrAccess */
           "list_property",	/* DixListPropAccess */
