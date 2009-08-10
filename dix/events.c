@@ -5137,7 +5137,7 @@ ProcUngrabKey(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xUngrabKeyReq);
-    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
