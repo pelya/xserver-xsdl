@@ -733,14 +733,14 @@ static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
     char *ptr;
     char *vmask;
 
-    *to = *from;
-    memcpy(&to[1], &from[1], from->length * 4);
+    memcpy(to, from, sizeof(xEvent) + from->length * 4);
 
     swaps(&to->sequenceNumber, n);
     swapl(&to->length, n);
     swaps(&to->evtype, n);
     swaps(&to->deviceid, n);
     swapl(&to->time, n);
+    swapl(&to->detail, n);
     swapl(&to->root, n);
     swapl(&to->event, n);
     swapl(&to->child, n);
@@ -754,11 +754,12 @@ static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
     swapl(&to->mods.base_mods, n);
     swapl(&to->mods.latched_mods, n);
     swapl(&to->mods.locked_mods, n);
+    swapl(&to->mods.effective_mods, n);
 
     ptr = (char*)(&to[1]);
-    ptr += from->buttons_len;
+    ptr += from->buttons_len * 4;
     vmask = ptr; /* valuator mask */
-    ptr += from->valuators_len;
+    ptr += from->valuators_len * 4;
     for (i = 0; i < from->valuators_len * 32; i++)
     {
         if (BitIsOn(vmask, i))
@@ -830,8 +831,15 @@ XI2EventSwap(xGenericEvent *from, xGenericEvent *to)
             SXIPropertyEvent((xXIPropertyEvent*)from,
                            (xXIPropertyEvent*)to);
             break;
-        default:
+        case XI_Motion:
+        case XI_KeyPress:
+        case XI_KeyRelease:
+        case XI_ButtonPress:
+        case XI_ButtonRelease:
             SDeviceEvent((xXIDeviceEvent*)from, (xXIDeviceEvent*)to);
+            break;
+        default:
+            ErrorF("[Xi] Unknown event type to swap. This is a bug.\n");
             break;
     }
 }
