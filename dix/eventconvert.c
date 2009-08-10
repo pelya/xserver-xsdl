@@ -52,7 +52,7 @@
 static int countValuators(DeviceEvent *ev, int *first);
 static int getValuatorEvents(DeviceEvent *ev, deviceValuator *xv);
 static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
-static int eventToClassesChanged(DeviceChangedEvent *ev, xEvent **dcce);
+static int eventToDeviceChanged(DeviceChangedEvent *ev, xEvent **dcce);
 static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
 static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
 /**
@@ -191,7 +191,7 @@ EventToXI2(InternalEvent *ev, xEvent **xi)
             *xi = NULL;
             return BadMatch;
         case ET_DeviceChanged:
-            return eventToClassesChanged((DeviceChangedEvent*)ev, xi);
+            return eventToDeviceChanged((DeviceChangedEvent*)ev, xi);
         case ET_RawKeyPress:
         case ET_RawKeyRelease:
         case ET_RawButtonPress:
@@ -341,7 +341,7 @@ getValuatorEvents(DeviceEvent *ev, deviceValuator *xv)
 }
 
 static int
-eventToClassesChanged(DeviceChangedEvent *ev, xEvent **xi)
+eventToDeviceChanged(DeviceChangedEvent *ev, xEvent **xi)
 {
     int len = sizeof(xEvent);
     DeviceIntPtr slave;
