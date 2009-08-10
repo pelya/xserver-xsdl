@@ -1318,14 +1318,6 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 	    return BadAlloc;
     }
 
-    if (offset == CTX_DEV) {
-	/* Device create context currently requires manage permission */
-	rc = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
-	if (rc != Success)
-	    goto out;
-	privPtr = &serverClient->devPrivates;
-    }
-
     ptr = dixLookupPrivate(privPtr, subjectKey);
     pSid = (security_id_t *)(ptr + offset);
     sidput(*pSid);
@@ -1337,7 +1329,7 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 	    avc_context_to_sid_raw(ctx, pSid) < 0)
 	    rc = BadValue;
     }
-out:
+
     xfree(ctx);
     return rc;
 }
