@@ -71,26 +71,29 @@ exaCreatePixmap_driver(ScreenPtr pScreen, int w, int h, int depth,
 
     bpp = pPixmap->drawable.bitsPerPixel;
 
-    paddedWidth = ((w * bpp + FB_MASK) >> FB_SHIFT) * sizeof(FbBits);
-    if (paddedWidth / 4 > 32767 || h > 32767)
-        return NullPixmap;
-
-    exaSetFbPitch(pExaScr, pExaPixmap, w, h, bpp);
-
-    if (paddedWidth < pExaPixmap->fb_pitch)
-        paddedWidth = pExaPixmap->fb_pitch;
-
-    datasize = h * paddedWidth;
-
     /* Set this before driver hooks, to allow for !offscreen pixmaps.
      * !offscreen pixmaps have a valid pointer at all times.
      */
     pPixmap->devPrivate.ptr = NULL;
 
-    if (pExaScr->info->CreatePixmap2)
-	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp);
-    else
+    if (pExaScr->info->CreatePixmap2) {
+	int new_pitch = 0;
+	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp, &new_pitch);
+	paddedWidth = pExaPixmap->fb_pitch = new_pitch;
+    }
+    else {
+	paddedWidth = ((w * bpp + FB_MASK) >> FB_SHIFT) * sizeof(FbBits);
+	if (paddedWidth / 4 > 32767 || h > 32767)
+	    return NullPixmap;
+
+	exaSetFbPitch(pExaScr, pExaPixmap, w, h, bpp);
+
+	if (paddedWidth < pExaPixmap->fb_pitch)
+	    paddedWidth = pExaPixmap->fb_pitch;
+	datasize = h * paddedWidth;
 	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
+    }
+
     if (!pExaPixmap->driverPriv) {
 	swap(pExaScr, pScreen, DestroyPixmap);
 	pScreen->DestroyPixmap (pPixmap);

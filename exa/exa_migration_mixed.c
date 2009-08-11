@@ -92,13 +92,15 @@ exaCreateDriverPixmap_mixed(PixmapPtr pPixmap)
     if (pExaPixmap->accel_blocked || bpp < 8)
 	return;
 
-    if (paddedWidth < pExaPixmap->fb_pitch)
-        paddedWidth = pExaPixmap->fb_pitch;
-
-    if (pExaScr->info->CreatePixmap2)
-	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp);
-    else
+    if (pExaScr->info->CreatePixmap2) {
+	int new_pitch = 0;
+        pExaPixmap->driverPriv = pExaScr->info->CreatePixmap2(pScreen, w, h, depth, usage_hint, bpp, &new_pitch);
+	paddedWidth = pExaPixmap->fb_pitch = new_pitch;
+    } else {
+	if (paddedWidth < pExaPixmap->fb_pitch)
+	    paddedWidth = pExaPixmap->fb_pitch;
 	pExaPixmap->driverPriv = pExaScr->info->CreatePixmap(pScreen, paddedWidth*h, 0);
+    }
 
     if (!pExaPixmap->driverPriv)
 	return;
