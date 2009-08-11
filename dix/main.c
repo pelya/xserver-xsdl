@@ -82,6 +82,7 @@ Equipment Corporation.
 #include <X11/X.h>
 #include <X11/Xos.h>   /* for unistd.h  */
 #include <X11/Xproto.h>
+#include <pixman.h>
 #include "scrnintstr.h"
 #include "misc.h"
 #include "os.h"
@@ -137,6 +138,8 @@ int main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitRegions();
+
+    pixman_disable_out_of_bounds_workaround();
 
     CheckUserParameters(argc, argv, envp);
 
