@@ -193,19 +193,15 @@ CreateClassesChangedEvent(EventList* event,
 
     dce = (DeviceChangedEvent*)event->event;
     memset(dce, 0, sizeof(DeviceChangedEvent));
-    dce->deviceid = master->id;
+    dce->deviceid = slave->id;
+    dce->masterid = master->id;
     dce->header = ET_Internal;
     dce->length = sizeof(DeviceChangedEvent);
     dce->type = ET_DeviceChanged;
     dce->time = ms;
     dce->flags = type;
-    if (master->last.slave)
-    {
-        dce->flags |= DEVCHANGE_HAS_OLD_SLAVE;
-        dce->old_slaveid = master->last.slave->id;
-    }
-    dce->flags |= DEVCHANGE_HAS_NEW_SLAVE;
-    dce->new_slaveid = slave->id;
+    dce->flags |= DEVCHANGE_SLAVE_SWITCH;
+    dce->sourceid = slave->id;
 
     if (slave->button)
     {

@@ -699,23 +699,31 @@ XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master, DeviceChanged
 static void
 ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
 {
-    DeviceIntPtr master = device->u.master;
+    DeviceIntPtr slave;
+    int rc;
 
-    if (IsMaster(device))
+    /* For now, we don't have devices that change physically. */
+    if (!IsMaster(device))
         return;
 
-    if (!master) /* if device was set floating between SIGIO and now */
-        return;
+    rc = dixLookupDevice(&slave, dce->sourceid, serverClient, DixReadAccess);
 
+    if (rc != Success)
+        return; /* Device has disappeared */
 
-    master = GetMaster(device,
-             (dce->flags & DEVCHANGE_POINTER_EVENT) ? MASTER_POINTER : MASTER_KEYBOARD);
+    if (!slave->u.master)
+        return; /* set floating since the event */
 
-    master->public.devicePrivate = device->public.devicePrivate;
+    if (slave->u.master->id != dce->masterid)
+        return; /* not our slave anymore, don't care */
+
+    /* FIXME: we probably need to send a DCE for the new slave now */
+
+    device->public.devicePrivate = slave->public.devicePrivate;
 
     /* FIXME: the classes may have changed since we generated the event. */
-    DeepCopyDeviceClasses(device, master, dce);
-    XISendDeviceChangedEvent(device, master, dce);
+    DeepCopyDeviceClasses(slave, device, dce);
+    XISendDeviceChangedEvent(slave, device, dce);
 }
 
 /**

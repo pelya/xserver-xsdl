@@ -350,7 +350,7 @@ appendKeyInfo(DeviceChangedEvent *dce, xXIKeyInfo* info)
     info->type = XIKeyClass;
     info->num_keycodes = dce->keys.max_keycode - dce->keys.min_keycode + 1;
     info->length = sizeof(xXIKeyInfo)/4 + info->num_keycodes;
-    info->sourceid = dce->deviceid;
+    info->sourceid = dce->sourceid;
 
     kc = (uint32_t*)&info[1];
     for (i = 0; i < info->num_keycodes; i++)
@@ -371,7 +371,7 @@ appendButtonInfo(DeviceChangedEvent *dce, xXIButtonInfo *info)
     info->num_buttons = dce->buttons.num_buttons;
     info->length = bytes_to_int32(sizeof(xXIButtonInfo)) +
                    info->num_buttons + mask_len;
-    info->sourceid = dce->deviceid;
+    info->sourceid = dce->sourceid;
 
     bits = (unsigned char*)&info[1];
     memset(bits, 0, mask_len * 4);
@@ -399,7 +399,7 @@ appendValuatorInfo(DeviceChangedEvent *dce, xXIValuatorInfo *info, int axisnumbe
     info->resolution = dce->valuators[axisnumber].resolution;
     info->number = axisnumber;
     info->mode = dce->valuators[axisnumber].mode; /* Server doesn't have per-axis mode yet */
-    info->sourceid = dce->deviceid;
+    info->sourceid = dce->sourceid;
 
     return info->length * 4;
 }
@@ -441,7 +441,7 @@ eventToDeviceChanged(DeviceChangedEvent *dce, xEvent **xi)
     dcce->evtype       = XI_DeviceChanged;
     dcce->time         = dce->time;
     dcce->deviceid     = dce->deviceid;
-    dcce->sourceid     = dce->deviceid;
+    dcce->sourceid     = dce->sourceid;
     dcce->reason       = (dce->flags & DEVCHANGE_DEVICE_CHANGE) ? XIDeviceChange : XISlaveSwitch;
     dcce->num_classes  = 0;
     dcce->length = bytes_to_int32(len - sizeof(xEvent));
