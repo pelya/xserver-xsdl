@@ -11,8 +11,7 @@
  *  The above copyright notice and this permission notice (including the next
  *  paragraph) shall be included in all copies or substantial portions of the
  *  Software.
- *
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -31,6 +30,7 @@
 #include "inputstr.h"
 #include "eventstr.h"
 #include "eventconvert.h"
+#include "exevents.h"
 #include <X11/extensions/XI2proto.h>
 
 
@@ -142,12 +142,11 @@ static void test_XIRawEvent(RawDeviceEvent *in)
     test_values_XIRawEvent(in, out, FALSE);
 
     swapped = xcalloc(1, sizeof(xEvent) + out->length * 4);
-    XI2EventSwap(out, swapped);
+    XI2EventSwap((xGenericEvent*)out, (xGenericEvent*)swapped);
     test_values_XIRawEvent(in, swapped, TRUE);
 
     xfree(out);
     xfree(swapped);
-
 }
 
 static void test_convert_XIFocusEvent(void)
@@ -402,7 +401,7 @@ static void test_XIDeviceEvent(DeviceEvent *in)
     test_values_XIDeviceEvent(in, out, FALSE);
 
     swapped = xcalloc(1, sizeof(xEvent) + out->length * 4);
-    XI2EventSwap(out, swapped);
+    XI2EventSwap((xGenericEvent*)out, (xGenericEvent*)swapped);
     test_values_XIDeviceEvent(in, swapped, TRUE);
 
     xfree(out);
@@ -627,6 +626,270 @@ static void test_convert_XIDeviceEvent(void)
     }
 }
 
+static void test_values_XIDeviceChangedEvent(DeviceChangedEvent *in,
+                                             xXIDeviceChangedEvent *out,
+                                             BOOL swap)
+{
+    int i, j;
+    unsigned char *ptr;
+
+    if (swap)
+    {
+        char n;
+
+        swaps(&out->sequenceNumber, n);
+        swapl(&out->length, n);
+        swaps(&out->evtype, n);
+        swaps(&out->deviceid, n);
+        swaps(&out->sourceid, n);
+        swapl(&out->time, n);
+        swaps(&out->num_classes, n);
+    }
+
+    g_assert(out->type == GenericEvent);
+    g_assert(out->extension == 0); /* IReqCode defaults to 0 */
+    g_assert(out->evtype == GetXI2Type((InternalEvent*)in));
+    g_assert(out->time == in->time);
+    g_assert(out->deviceid == in->deviceid);
+    g_assert(out->sourceid == in->sourceid);
+
+    ptr = (unsigned char*)&out[1];
+    for (i = 0; i < out->num_classes; i++)
+    {
+        xXIAnyInfo* any = (xXIAnyInfo*)ptr;
+
+        if (swap)
+        {
+            char n;
+            swaps(&any->length, n);
+            swaps(&any->type, n);
+            swaps(&any->sourceid, n);
+        }
+
+        switch(any->type)
+        {
+            case XIButtonClass:
+                {
+                    xXIButtonInfo *b = (xXIButtonInfo*)any;
+                    Atom *names;
+
+                    if (swap)
+                    {
+                        char n;
+                        swaps(&b->num_buttons, n);
+                    }
+
+                    g_assert(b->length ==
+                            bytes_to_int32(sizeof(xXIButtonInfo)) +
+                            bytes_to_int32(bits_to_bytes(b->num_buttons)) +
+                            b->num_buttons);
+                    g_assert(b->num_buttons == in->buttons.num_buttons);
+
+                    names = (Atom*)((char*)&b[1] +
+                            pad_to_int32(bits_to_bytes(b->num_buttons)));
+                    for (j = 0; j < b->num_buttons; j++)
+                    {
+                        if (swap)
+                        {
+                            char n;
+                            swapl(&names[j], n);
+                        }
+                        g_assert(names[j] == in->buttons.names[j]);
+                    }
+                }
+                break;
+            case XIKeyClass:
+                {
+                    xXIKeyInfo *k = (xXIKeyInfo*)any;
+                    uint32_t *kc;
+
+                    if (swap)
+                    {
+                        char n;
+                        swaps(&k->num_keycodes, n);
+                    }
+
+                    g_assert(k->length ==
+                            bytes_to_int32(sizeof(xXIKeyInfo)) +
+                            k->num_keycodes);
+                    g_assert(k->num_keycodes == in->keys.max_keycode -
+                            in->keys.min_keycode + 1);
+
+                    kc = (uint32_t*)&k[1];
+                    for (j = 0; j < k->num_keycodes; j++)
+                    {
+                        if (swap)
+                        {
+                            char n;
+                            swapl(&kc[j], n);
+                        }
+                        g_assert(kc[j] >= in->keys.min_keycode);
+                        g_assert(kc[j] <= in->keys.max_keycode);
+                    }
+                }
+                break;
+            case XIValuatorClass:
+                {
+                    xXIValuatorInfo *v = (xXIValuatorInfo*)any;
+                    g_assert(v->length ==
+                             bytes_to_int32(sizeof(xXIValuatorInfo)));
+
+                }
+                break;
+        }
+
+        ptr += any->length * 4;
+    }
+
+}
+
+static void test_XIDeviceChangedEvent(DeviceChangedEvent *in)
+{
+    xXIDeviceChangedEvent *out, *swapped;
+    int rc;
+
+    rc = EventToXI2((InternalEvent*)in, (xEvent**)&out);
+    g_assert(rc == Success);
+
+    test_values_XIDeviceChangedEvent(in, out, FALSE);
+
+    swapped = xcalloc(1, sizeof(xEvent) + out->length * 4);
+    XI2EventSwap((xGenericEvent*)out, (xGenericEvent*)swapped);
+    test_values_XIDeviceChangedEvent(in, swapped, TRUE);
+
+    xfree(out);
+    xfree(swapped);
+}
+
+static void test_convert_XIDeviceChangedEvent(void)
+{
+    DeviceChangedEvent in;
+    int i;
+
+    g_test_message("Testing simple field values");
+    memset(&in, 0, sizeof(in));
+    in.header = ET_Internal;
+    in.type = ET_DeviceChanged;
+    in.length = sizeof(DeviceChangedEvent);
+    in.time             = 0;
+    in.deviceid         = 1;
+    in.sourceid         = 2;
+    in.masterid         = 3;
+    in.num_valuators    = 4;
+    in.flags = DEVCHANGE_SLAVE_SWITCH | DEVCHANGE_POINTER_EVENT | DEVCHANGE_KEYBOARD_EVENT;
+
+    for (i = 0; i < MAX_BUTTONS; i++)
+        in.buttons.names[i] = i + 10;
+
+    in.keys.min_keycode = 8;
+    in.keys.max_keycode = 255;
+
+    test_XIDeviceChangedEvent(&in);
+
+    in.time = 1L;
+    test_XIDeviceChangedEvent(&in);
+    in.time = 1L << 8;
+    test_XIDeviceChangedEvent(&in);
+    in.time = 1L << 16;
+    test_XIDeviceChangedEvent(&in);
+    in.time = 1L << 24;
+    test_XIDeviceChangedEvent(&in);
+    in.time = ~0L;
+    test_XIDeviceChangedEvent(&in);
+
+    in.deviceid = 1L;
+    test_XIDeviceChangedEvent(&in);
+    in.deviceid = 1L << 8;
+    test_XIDeviceChangedEvent(&in);
+    in.deviceid = ~0 & 0xFFFF;
+    test_XIDeviceChangedEvent(&in);
+
+    in.sourceid = 1L;
+    test_XIDeviceChangedEvent(&in);
+    in.sourceid = 1L << 8;
+    test_XIDeviceChangedEvent(&in);
+    in.sourceid = ~0 & 0xFFFF;
+    test_XIDeviceChangedEvent(&in);
+
+    in.masterid = 1L;
+    test_XIDeviceChangedEvent(&in);
+    in.masterid = 1L << 8;
+    test_XIDeviceChangedEvent(&in);
+    in.masterid = ~0 & 0xFFFF;
+    test_XIDeviceChangedEvent(&in);
+
+    in.buttons.num_buttons = 0;
+    test_XIDeviceChangedEvent(&in);
+
+    in.buttons.num_buttons = 1;
+    test_XIDeviceChangedEvent(&in);
+
+    in.buttons.num_buttons = MAX_BUTTONS;
+    test_XIDeviceChangedEvent(&in);
+
+    in.keys.min_keycode = 0;
+    in.keys.max_keycode = 0;
+    test_XIDeviceChangedEvent(&in);
+
+    in.keys.max_keycode = 1 << 8;
+    test_XIDeviceChangedEvent(&in);
+
+    in.keys.max_keycode = 0xFFFD; /* highest range, above that the length
+                                     field gives up */
+    test_XIDeviceChangedEvent(&in);
+
+    in.keys.min_keycode = 1 << 8;
+    in.keys.max_keycode = 1 << 8;
+    test_XIDeviceChangedEvent(&in);
+
+    in.keys.min_keycode = 1 << 8;
+    in.keys.max_keycode = 0;
+    test_XIDeviceChangedEvent(&in);
+
+    in.num_valuators = 0;
+    test_XIDeviceChangedEvent(&in);
+
+    in.num_valuators = 1;
+    test_XIDeviceChangedEvent(&in);
+
+    in.num_valuators = MAX_VALUATORS;
+    test_XIDeviceChangedEvent(&in);
+
+    for (i = 0; i < MAX_VALUATORS; i++)
+    {
+        in.valuators[i].min = 0;
+        in.valuators[i].max = 0;
+        test_XIDeviceChangedEvent(&in);
+
+        in.valuators[i].max = 1 << 8;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].max = 1 << 16;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].max = 1 << 24;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].max = abs(~0);
+        test_XIDeviceChangedEvent(&in);
+
+        in.valuators[i].resolution = 1 << 8;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].resolution = 1 << 16;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].resolution = 1 << 24;
+        test_XIDeviceChangedEvent(&in);
+        in.valuators[i].resolution = abs(~0);
+        test_XIDeviceChangedEvent(&in);
+
+        in.valuators[i].name = i;
+        test_XIDeviceChangedEvent(&in);
+
+        in.valuators[i].mode = Relative;
+        test_XIDeviceChangedEvent(&in);
+
+        in.valuators[i].mode = Absolute;
+        test_XIDeviceChangedEvent(&in);
+    }
+}
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -635,6 +898,7 @@ int main(int argc, char** argv)
     g_test_add_func("/xi2/eventconvert/XIRawEvent", test_convert_XIRawEvent);
     g_test_add_func("/xi2/eventconvert/XIFocusEvent", test_convert_XIFocusEvent);
     g_test_add_func("/xi2/eventconvert/XIDeviceEvent", test_convert_XIDeviceEvent);
+    g_test_add_func("/xi2/eventconvert/XIDeviceChangedEvent", test_convert_XIDeviceChangedEvent);
 
     return g_test_run();
 }
