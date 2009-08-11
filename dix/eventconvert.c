@@ -347,7 +347,7 @@ appendKeyInfo(DeviceChangedEvent *dce, xXIKeyInfo* info)
     uint32_t *kc;
     int i;
 
-    info->type = KeyClass;
+    info->type = XIKeyClass;
     info->num_keycodes = dce->keys.max_keycode - dce->keys.min_keycode + 1;
     info->length = sizeof(xXIKeyInfo)/4 + info->num_keycodes;
     info->sourceid = dce->deviceid;
@@ -367,7 +367,7 @@ appendButtonInfo(DeviceChangedEvent *dce, xXIButtonInfo *info)
 
     mask_len = bytes_to_int32(bits_to_bytes(dce->buttons.num_buttons));
 
-    info->type = ButtonClass;
+    info->type = XIButtonClass;
     info->num_buttons = dce->buttons.num_buttons;
     info->length = bytes_to_int32(sizeof(xXIButtonInfo)) +
                    info->num_buttons + mask_len;
@@ -386,7 +386,7 @@ appendButtonInfo(DeviceChangedEvent *dce, xXIButtonInfo *info)
 static int
 appendValuatorInfo(DeviceChangedEvent *dce, xXIValuatorInfo *info, int axisnumber)
 {
-    info->type = ValuatorClass;
+    info->type = XIValuatorClass;
     info->length = sizeof(xXIValuatorInfo)/4;
     info->label = dce->valuators[axisnumber].name;
     info->min.integral = dce->valuators[axisnumber].min;
