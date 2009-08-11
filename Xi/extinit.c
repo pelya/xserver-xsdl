@@ -676,20 +676,11 @@ SDeviceChangedEvent(xXIDeviceChangedEvent* from, xXIDeviceChangedEvent* to)
     *to = *from;
     memcpy(&to[1], &from[1], from->length * 4);
 
-    swaps(&to->sequenceNumber, n);
-    swapl(&to->length, n);
-    swaps(&to->evtype, n);
-    swaps(&to->deviceid, n);
-    swapl(&to->time, n);
-    swaps(&to->num_classes, n);
-    swaps(&to->sourceid, n);
-
-    /* now swap the actual classes */
     any = (xXIAnyInfo*)&to[1];
     for (i = 0; i < to->num_classes; i++)
     {
-        swaps(&any->type, n);
-        swaps(&any->length, n);
+        int length = any->length;
+
         switch(any->type)
         {
             case KeyClass:
@@ -704,8 +695,10 @@ SDeviceChangedEvent(xXIDeviceChangedEvent* from, xXIDeviceChangedEvent* to)
             case ButtonClass:
                 {
                     xXIButtonInfo *bi = (xXIButtonInfo*)any;
+                    Atom *labels = (Atom*)((char*)bi + sizeof(xXIButtonInfo) +
+                                           pad_to_int32(bits_to_bytes(bi->num_buttons)));
                     for (j = 0; j < bi->num_buttons; j++)
-                        swapl(&bi[1 + j], n);
+                        swapl(&labels[j], n);
                     swaps(&bi->num_buttons, n);
                 }
                 break;
@@ -722,8 +715,22 @@ SDeviceChangedEvent(xXIDeviceChangedEvent* from, xXIDeviceChangedEvent* to)
                 }
                 break;
         }
-        any = (xXIAnyInfo*)((char*)any + any->length * 4);
+
+        swaps(&any->type, n);
+        swaps(&any->length, n);
+        swaps(&any->sourceid, n);
+
+        any = (xXIAnyInfo*)((char*)any + length * 4);
     }
+
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swaps(&to->evtype, n);
+    swaps(&to->deviceid, n);
+    swapl(&to->time, n);
+    swaps(&to->num_classes, n);
+    swaps(&to->sourceid, n);
+
 }
 
 static void SDeviceEvent(xXIDeviceEvent *from, xXIDeviceEvent *to)
