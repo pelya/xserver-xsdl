@@ -49,7 +49,7 @@ static AXP axpList[] = {
   {"Miata",NULL,NULL,PYXIS_CIA},
   {"Ruffian",NULL,NULL,PYXIS_CIA},
   {"Nautilus",NULL,NULL,IRONGATE},
-  {NULL,NULL,NULL,NONE}
+  {NULL,NULL,NULL,SYS_NONE}
 };
 
 
