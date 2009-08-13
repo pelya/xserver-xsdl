@@ -1770,6 +1770,7 @@ ProcSyncDestroyAlarm(ClientPtr client)
 
     rc = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
 				 client, DixDestroyAccess);
+    if (rc != Success)
 	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
 
     FreeResource(stuff->alarm, RT_NONE);
