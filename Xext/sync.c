@@ -962,28 +962,24 @@ SyncComputeBracketValues(SyncCounter *pCounter, Bool startOver)
 		pnewltval = &psci->bracket_less;
 	    }
 	}
-	else if ( (pTrigger->test_type == XSyncPositiveTransition &&
+	else if (pTrigger->test_type == XSyncNegativeTransition &&
 		   ct != XSyncCounterNeverIncreases)
-		 ||
-		 (pTrigger->test_type == XSyncNegativeTransition &&
-		  ct != XSyncCounterNeverDecreases)
-		 )
 	{
-	    if (XSyncValueLessThan(pCounter->value, pTrigger->test_value))
+	    if (XSyncValueGreaterThan(pCounter->value, pTrigger->test_value) &&
+		XSyncValueGreaterThan(pTrigger->test_value, psci->bracket_less))
 	    {
-		if (XSyncValueLessThan(pTrigger->test_value,
-				       psci->bracket_greater))
-		{
-		    psci->bracket_greater = pTrigger->test_value;
-		    pnewgtval = &psci->bracket_greater;
-		}
-		else
-		if (XSyncValueGreaterThan(pTrigger->test_value,
-					  psci->bracket_less))
-		{
-		    psci->bracket_less = pTrigger->test_value;
-		    pnewltval = &psci->bracket_less;
-		}
+		psci->bracket_less = pTrigger->test_value;
+		pnewltval = &psci->bracket_less;
+	    }
+	}
+        else if (pTrigger->test_type == XSyncPositiveTransition &&
+		  ct != XSyncCounterNeverDecreases)
+	{
+	    if (XSyncValueLessThan(pCounter->value, pTrigger->test_value) &&
+		XSyncValueLessThan(pTrigger->test_value, psci->bracket_greater))
+	    {
+		psci->bracket_greater = pTrigger->test_value;
+		pnewgtval = &psci->bracket_greater;
 	    }
 	}
     } /* end for each trigger */
