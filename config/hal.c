@@ -489,13 +489,13 @@ connect_and_register(DBusConnection *connection, struct config_hal_info *info)
 
     if (!libhal_ctx_set_dbus_connection(info->hal_ctx, info->system_bus)) {
         LogMessage(X_ERROR, "config/hal: couldn't associate HAL context with bus\n");
-        goto out_ctx;
+        goto out_err;
     }
     if (!libhal_ctx_init(info->hal_ctx, &error)) {
         LogMessage(X_ERROR, "config/hal: couldn't initialise context: %s (%s)\n",
 		   error.name ? error.name : "unknown error",
 		   error.message ? error.message : "null");
-        goto out_ctx;
+        goto out_err;
     }
     if (!libhal_device_property_watch_all(info->hal_ctx, &error)) {
         LogMessage(X_ERROR, "config/hal: couldn't watch all properties: %s (%s)\n",
@@ -526,18 +526,19 @@ connect_and_register(DBusConnection *connection, struct config_hal_info *info)
 out_ctx:
     dbus_error_free(&error);
 
-    if (info->hal_ctx) {
-        if (!libhal_ctx_shutdown(info->hal_ctx, &error)) {
-            LogMessage(X_WARNING, "config/hal: couldn't shut down context: %s (%s)\n",
-		       error.name ? error.name : "unknown error",
-		       error.message ? error.message : "null");
-            dbus_error_free(&error);
-        }
-        libhal_ctx_free(info->hal_ctx);
+    if (!libhal_ctx_shutdown(info->hal_ctx, &error)) {
+        LogMessage(X_WARNING, "config/hal: couldn't shut down context: %s (%s)\n",
+                error.name ? error.name : "unknown error",
+                error.message ? error.message : "null");
+        dbus_error_free(&error);
     }
 
 out_err:
     dbus_error_free(&error);
+
+    if (info->hal_ctx) {
+        libhal_ctx_free(info->hal_ctx);
+    }
 
     info->hal_ctx = NULL;
     info->system_bus = NULL;
