@@ -32,7 +32,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "extnsionst.h"
 
-extern _X_EXPORT void
+extern void
 XInputExtensionInit(
 	void
 	);
