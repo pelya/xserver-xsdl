@@ -33,39 +33,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "inputstr.h"
 
-/**
- * Attached to the devPrivates of each client. Specifies the version number as
- * supported by the client.
- */
-typedef struct _XIClientRec {
-        int major_version;
-        int minor_version;
-} XIClientRec, *XIClientPtr;
-
-
-typedef struct _GrabParameters {
-    int                 grabtype;               /* GRABTYPE_CORE, etc. */
-    unsigned int        ownerEvents;
-    unsigned int        this_device_mode;
-    unsigned int        other_devices_mode;
-    Window              grabWindow;
-    Window              confineTo;
-    Cursor              cursor;
-    unsigned int        modifiers;
-} GrabParameters;
-
-
-extern _X_EXPORT void RegisterOtherDevice (
-	DeviceIntPtr           /* device */);
-
-extern _X_EXPORT int
-UpdateDeviceState (
-	DeviceIntPtr           /* device */,
-	DeviceEvent*           /*  xE    */);
-
-extern _X_EXPORT void ProcessOtherEvent (
-	InternalEvent*         /* ev */,
-	DeviceIntPtr           /* other */);
+/***************************************************************
+ *              Interface available to drivers                 *
+ ***************************************************************/
 
 extern _X_EXPORT int InitProximityClassDeviceStruct(
 	DeviceIntPtr           /* dev */);
@@ -79,123 +49,6 @@ extern _X_EXPORT void InitValuatorAxisStruct(
 	int                    /* resolution */,
 	int                    /* min_res */,
 	int                    /* max_res */);
-
-extern void DeviceFocusEvent(
-	DeviceIntPtr           /* dev */,
-	int                    /* type */,
-	int                    /* mode */,
-	int                    /* detail */,
-	WindowPtr              /* pWin */);
-
-extern int CheckGrabValues(
-        ClientPtr              /* client */,
-        GrabParameters*        /* param */);
-
-extern int GrabButton(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	DeviceIntPtr           /* modifier_device */,
-	int                    /* button */,
-        GrabParameters*        /* param */,
-        GrabType               /* grabtype */,
-	GrabMask*              /* eventMask */);
-
-extern int GrabKey(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	DeviceIntPtr           /* modifier_device */,
-	int                    /* key */,
-        GrabParameters*        /* param */,
-        GrabType               /* grabtype */,
-	GrabMask*              /* eventMask */);
-
-extern int GrabWindow(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	int                    /* type */,
-	GrabParameters*        /* param */,
-	GrabMask*              /* eventMask */);
-
-extern int SelectForWindow(
-	DeviceIntPtr           /* dev */,
-	WindowPtr              /* pWin */,
-	ClientPtr              /* client */,
-	Mask                   /* mask */,
-	Mask                   /* exclusivemasks */);
-
-extern _X_EXPORT int AddExtensionClient (
-	WindowPtr              /* pWin */,
-	ClientPtr              /* client */,
-	Mask                   /* mask */,
-	int                    /* mskidx */);
-
-extern _X_EXPORT void RecalculateDeviceDeliverableEvents(
-	WindowPtr              /* pWin */);
-
-extern _X_EXPORT int InputClientGone(
-	WindowPtr              /* pWin */,
-	XID                    /* id */);
-
-extern _X_EXPORT int SendEvent (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* d */,
-	Window                 /* dest */,
-	Bool                   /* propagate */,
-	xEvent *               /* ev */,
-	Mask                   /* mask */,
-	int                    /* count */);
-
-extern _X_EXPORT int SetButtonMapping (
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	int                    /* nElts */,
-	BYTE *                 /* map */);
-
-extern _X_EXPORT int ChangeKeyMapping(
-	ClientPtr              /* client */,
-	DeviceIntPtr           /* dev */,
-	unsigned               /* len */,
-	int                    /* type */,
-	KeyCode                /* firstKeyCode */,
-	CARD8                  /* keyCodes */,
-	CARD8                  /* keySymsPerKeyCode */,
-	KeySym *               /* map */);
-
-extern _X_EXPORT void DeleteWindowFromAnyExtEvents(
-	WindowPtr              /* pWin */,
-	Bool                   /* freeResources */);
-
-extern _X_EXPORT int MaybeSendDeviceMotionNotifyHint (
-	deviceKeyButtonPointer * /* pEvents */,
-	Mask                   /* mask */);
-
-extern _X_EXPORT void CheckDeviceGrabAndHintWindow (
-	WindowPtr              /* pWin */,
-	int                    /* type */,
-	deviceKeyButtonPointer * /* xE */,
-	GrabPtr                /* grab */,
-	ClientPtr              /* client */,
-	Mask                   /* deliveryMask */);
-
-extern _X_EXPORT void MaybeStopDeviceHint(
-	DeviceIntPtr           /* dev */,
-	ClientPtr              /* client */);
-
-extern _X_EXPORT int DeviceEventSuppressForWindow(
-	WindowPtr              /* pWin */,
-	ClientPtr              /* client */,
-	Mask                   /* mask */,
-	int                    /* maskndx */);
-
-extern _X_EXPORT void SendEventToAllWindows(
-        DeviceIntPtr           /* dev */,
-        Mask                   /* mask */,
-        xEvent *               /* ev */,
-        int                    /* count */);
-
-extern _X_HIDDEN void XI2EventSwap(
-        xGenericEvent  *              /* from */,
-        xGenericEvent  *              /* to */);
 
 /* Input device properties */
 extern _X_EXPORT void XIDeleteAllDeviceProperties(
@@ -266,16 +119,194 @@ extern _X_EXPORT int XIPropToFloat(
         float **buf_return
 );
 
+/****************************************************************************
+ *                      End of driver interface                             *
+ ****************************************************************************/
+
+
+/**
+ * Attached to the devPrivates of each client. Specifies the version number as
+ * supported by the client.
+ */
+typedef struct _XIClientRec {
+        int major_version;
+        int minor_version;
+} XIClientRec, *XIClientPtr;
+
+
+typedef struct _GrabParameters {
+    int                 grabtype;               /* GRABTYPE_CORE, etc. */
+    unsigned int        ownerEvents;
+    unsigned int        this_device_mode;
+    unsigned int        other_devices_mode;
+    Window              grabWindow;
+    Window              confineTo;
+    Cursor              cursor;
+    unsigned int        modifiers;
+} GrabParameters;
+
+
+extern void
+RegisterOtherDevice (
+	DeviceIntPtr           /* device */);
+
+extern int
+UpdateDeviceState (
+	DeviceIntPtr           /* device */,
+	DeviceEvent*           /*  xE    */);
+
+extern void
+ProcessOtherEvent (
+	InternalEvent*         /* ev */,
+	DeviceIntPtr           /* other */);
+
+extern void
+DeviceFocusEvent(
+	DeviceIntPtr           /* dev */,
+	int                    /* type */,
+	int                    /* mode */,
+	int                    /* detail */,
+	WindowPtr              /* pWin */);
+
+extern int
+CheckGrabValues(
+        ClientPtr              /* client */,
+        GrabParameters*        /* param */);
+
+extern int
+GrabButton(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	DeviceIntPtr           /* modifier_device */,
+	int                    /* button */,
+        GrabParameters*        /* param */,
+        GrabType               /* grabtype */,
+	GrabMask*              /* eventMask */);
+
+extern int
+GrabKey(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	DeviceIntPtr           /* modifier_device */,
+	int                    /* key */,
+        GrabParameters*        /* param */,
+        GrabType               /* grabtype */,
+	GrabMask*              /* eventMask */);
+
+extern int
+GrabWindow(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	int                    /* type */,
+	GrabParameters*        /* param */,
+	GrabMask*              /* eventMask */);
+
+extern int
+SelectForWindow(
+	DeviceIntPtr           /* dev */,
+	WindowPtr              /* pWin */,
+	ClientPtr              /* client */,
+	Mask                   /* mask */,
+	Mask                   /* exclusivemasks */);
+
+extern int
+AddExtensionClient (
+	WindowPtr              /* pWin */,
+	ClientPtr              /* client */,
+	Mask                   /* mask */,
+	int                    /* mskidx */);
+
+extern void
+RecalculateDeviceDeliverableEvents(
+	WindowPtr              /* pWin */);
+
+extern int
+InputClientGone(
+	WindowPtr              /* pWin */,
+	XID                    /* id */);
+
+extern int
+SendEvent (
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* d */,
+	Window                 /* dest */,
+	Bool                   /* propagate */,
+	xEvent *               /* ev */,
+	Mask                   /* mask */,
+	int                    /* count */);
+
+extern int
+SetButtonMapping (
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	int                    /* nElts */,
+	BYTE *                 /* map */);
+
+extern int
+ChangeKeyMapping(
+	ClientPtr              /* client */,
+	DeviceIntPtr           /* dev */,
+	unsigned               /* len */,
+	int                    /* type */,
+	KeyCode                /* firstKeyCode */,
+	CARD8                  /* keyCodes */,
+	CARD8                  /* keySymsPerKeyCode */,
+	KeySym *               /* map */);
+
+extern void
+DeleteWindowFromAnyExtEvents(
+	WindowPtr              /* pWin */,
+	Bool                   /* freeResources */);
+
+extern int
+MaybeSendDeviceMotionNotifyHint (
+	deviceKeyButtonPointer * /* pEvents */,
+	Mask                   /* mask */);
+
+extern void
+CheckDeviceGrabAndHintWindow (
+	WindowPtr              /* pWin */,
+	int                    /* type */,
+	deviceKeyButtonPointer * /* xE */,
+	GrabPtr                /* grab */,
+	ClientPtr              /* client */,
+	Mask                   /* deliveryMask */);
+
+extern void
+MaybeStopDeviceHint(
+	DeviceIntPtr           /* dev */,
+	ClientPtr              /* client */);
+
+extern int
+DeviceEventSuppressForWindow(
+	WindowPtr              /* pWin */,
+	ClientPtr              /* client */,
+	Mask                   /* mask */,
+	int                    /* maskndx */);
+
+extern void
+SendEventToAllWindows(
+        DeviceIntPtr           /* dev */,
+        Mask                   /* mask */,
+        xEvent *               /* ev */,
+        int                    /* count */);
+
+extern _X_HIDDEN void XI2EventSwap(
+        xGenericEvent  *              /* from */,
+        xGenericEvent  *              /* to */);
+
 /* For an event such as MappingNotify which affects client interpretation
  * of input events sent by device dev, should we notify the client, or
  * would it merely be irrelevant and confusing? */
-extern _X_EXPORT int XIShouldNotify(ClientPtr client, DeviceIntPtr dev);
+extern int
+XIShouldNotify(ClientPtr client, DeviceIntPtr dev);
 
 extern void
 XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master,
                          DeviceChangedEvent *dce);
 
-extern void XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
+extern void
+XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
                            unsigned int len, unsigned char* mask);
 
 #endif /* EXEVENTS_H */
