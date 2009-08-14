@@ -177,19 +177,10 @@ ProcDPMSForceLevel(ClientPtr client)
     if (!DPMSEnabled)
 	return BadMatch;
 
-    if (stuff->level == DPMSModeOn) {
-      lastDeviceEventTime.milliseconds =
-          GetTimeInMillis();
-    } else if (stuff->level == DPMSModeStandby) {
-      lastDeviceEventTime.milliseconds =
-          GetTimeInMillis() -  DPMSStandbyTime;
-    } else if (stuff->level == DPMSModeSuspend) {
-      lastDeviceEventTime.milliseconds =
-          GetTimeInMillis() -  DPMSSuspendTime;
-    } else if (stuff->level == DPMSModeOff) {
-      lastDeviceEventTime.milliseconds =
-          GetTimeInMillis() -  DPMSOffTime;
-    } else {
+    if (stuff->level != DPMSModeOn &&
+        stuff->level != DPMSModeStandby &&
+        stuff->level != DPMSModeSuspend &&
+        stuff->level != DPMSModeOff) {
 	client->errorValue = stuff->level;
 	return BadValue;
     }
