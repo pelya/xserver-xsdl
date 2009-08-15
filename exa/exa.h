@@ -708,7 +708,9 @@ typedef struct _ExaDriver {
                               int depth, int bitsPerPixel, int devKind,
                               pointer pPixData);
 
-    /* if the driver is going to tile the buffer it may need to adjust the pitch alignment */
+    /* hooks for drivers with tiling support:
+     * driver MUST fill out new_fb_pitch with valid pitch of pixmap
+     */
     void *(*CreatePixmap2)(ScreenPtr pScreen, int width, int height,
 			   int depth, int usage_hint, int bitsPerPixel,
 			   int *new_fb_pitch);
