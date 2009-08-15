@@ -3418,7 +3418,7 @@ CheckPassiveGrabsOnWindow(
     {
 	DeviceIntPtr	gdev;
 	XkbSrvInfoPtr	xkbi = NULL;
-	Mask		mask;
+	Mask		mask = 0;
 
 	gdev= grab->modifierDevice;
         if (grab->grabtype == GRABTYPE_CORE)
