@@ -53,7 +53,6 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "micmap.h"
-#include "xf86PciInfo.h"
 #include "xf86DDC.h"
 #include "xf86Xinput.h"
 #include "xf86InPriv.h"
