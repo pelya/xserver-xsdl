@@ -210,7 +210,7 @@ ProcRRGetScreenSizeRange (ClientPtr client)
     int				rc;
     
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -261,7 +261,7 @@ ProcRRSetScreenSize (ClientPtr client)
     int			i, rc;
     
     REQUEST_SIZE_MATCH(xRRSetScreenSizeReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -331,7 +331,7 @@ rrGetScreenResources(ClientPtr client, Bool query)
     CARD8			*names;
     
     REQUEST_SIZE_MATCH(xRRGetScreenResourcesReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     
@@ -606,7 +606,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     RROutputPtr		    output;
 
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

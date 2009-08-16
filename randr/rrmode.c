@@ -288,7 +288,7 @@ ProcRRCreateMode (ClientPtr client)
     RRModePtr		mode;
     
     REQUEST_AT_LEAST_SIZE (xRRCreateModeReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
