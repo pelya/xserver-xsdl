@@ -74,9 +74,11 @@ saveVtPerms(void)
 static void
 restoreVtPerms(void)
 {
-    /* Set the terminal permissions back to before we started. */
-    chown("/dev/tty0", vtPermSave[0], vtPermSave[1]);
-    chown(vtname, vtPermSave[2], vtPermSave[3]);
+    if (geteuid() == 0) {
+	 /* Set the terminal permissions back to before we started. */
+	 (void)chown("/dev/tty0", vtPermSave[0], vtPermSave[1]);
+	 (void)chown(vtname, vtPermSave[2], vtPermSave[3]);
+    }
 }
 
 static void *console_handler;
@@ -184,20 +186,22 @@ xf86OpenConsole(void)
 	        xf86Msg(X_WARNING,
 		        "xf86OpenConsole: Could not save ownership of VT\n");
 
-	    /* change ownership of the vt */
-	    if (chown(vtname, getuid(), getgid()) < 0)
-	        xf86Msg(X_WARNING,"xf86OpenConsole: chown %s failed: %s\n",
-		        vtname, strerror(errno));
+	    if (geteuid() == 0) {
+		    /* change ownership of the vt */
+		    if (chown(vtname, getuid(), getgid()) < 0)
+			    xf86Msg(X_WARNING,"xf86OpenConsole: chown %s failed: %s\n",
+				    vtname, strerror(errno));
 
-	    /*
-	     * the current VT device we're running on is not "console", we want
-	     * to grab all consoles too
-	     *
-	     * Why is this needed??
-	     */
-	    if (chown("/dev/tty0", getuid(), getgid()) < 0)
-	        xf86Msg(X_WARNING,"xf86OpenConsole: chown /dev/tty0 failed: %s\n",
-                    strerror(errno));
+		    /*
+		     * the current VT device we're running on is not
+		     * "console", we want to grab all consoles too
+		     *
+		     * Why is this needed??
+		     */
+		    if (chown("/dev/tty0", getuid(), getgid()) < 0)
+			    xf86Msg(X_WARNING,"xf86OpenConsole: chown /dev/tty0 failed: %s\n",
+				    strerror(errno));
+	    }
         }
 
 	/*
