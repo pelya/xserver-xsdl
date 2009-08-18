@@ -86,8 +86,6 @@ bus_pci_configure(void *busData)
 		(DevToConfig[i].pVideo->func == pVideo->func))
 		return 0;
 
-    xf86IsPrimaryPci(pVideo);
-
 	return 1;
 }
 
