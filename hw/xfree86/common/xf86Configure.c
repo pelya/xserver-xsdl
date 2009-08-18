@@ -27,33 +27,17 @@
 #include <xorg-config.h>
 #endif
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <X11/X.h>
-#include <X11/Xmd.h>
-#include <pciaccess.h>
-#include "Pci.h"
-#include "os.h"
-#include "loaderProcs.h"
 #include "xf86.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
 #include "xf86Priv.h"
 #define IN_XSERVER
-#include "xf86Parser.h"
-#include "xf86tokens.h"
 #include "Configint.h"
-#include "vbe.h"
 #include "xf86DDC.h"
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 #include "xf86Bus.h"
 #include "xf86Sbus.h"
 #endif
-#include "globals.h"
 
 typedef struct _DevToConfig {
     GDevRec GDev;
