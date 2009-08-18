@@ -183,7 +183,6 @@ GDevPtr
 xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int chipset)
 {
     int ret, i, j;
-    int isPrimary = 0;
 
     if (!xf86DoConfigure || !xf86DoConfigurePass1)
 	return NULL;
@@ -207,13 +206,6 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
     i = nDevToConfig++;
     DevToConfig =
 	xnfrealloc(DevToConfig, nDevToConfig * sizeof(DevToConfigRec));
-#if 1   /* Doesn't work when a driver detects more than one adapter */
-    if ((i > 0) && isPrimary) {
-        memmove(DevToConfig + 1,DevToConfig,
-		(nDevToConfig - 1) * sizeof(DevToConfigRec));
-	i = 0;
-    } 
-#endif
     memset(DevToConfig + i, 0, sizeof(DevToConfigRec));
 
     DevToConfig[i].GDev.chipID =
