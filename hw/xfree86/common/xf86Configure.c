@@ -87,24 +87,12 @@ static char *DFLT_MOUSE_DEV = "/dev/mouse";
 static char *DFLT_MOUSE_PROTO = "auto";
 #endif
 
-/*
- * This is called by the driver, either through xf86Match???Instances() or
- * directly.  We allocate a GDevRec and fill it in as much as we can, letting
- * the caller fill in the rest and/or change it as it sees fit.
- */
-GDevPtr
-xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int chipset)
+static Bool
+bus_pci_configure(void *busData)
 {
-    int i, j;
+    int i;
     struct pci_device * pVideo = NULL;
-    Bool isPrimary = FALSE;
 
-    if (!xf86DoConfigure || !xf86DoConfigurePass1)
-	return NULL;
-
-    /* Check for duplicates */
-    switch (bus) {
-    case BUS_PCI:
 	pVideo = (struct pci_device *) busData;
 	for (i = 0;  i < nDevToConfig;  i++)
 	    if (DevToConfig[i].pVideo &&
@@ -112,49 +100,38 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 		(DevToConfig[i].pVideo->bus == pVideo->bus) &&
 		(DevToConfig[i].pVideo->dev == pVideo->dev) &&
 		(DevToConfig[i].pVideo->func == pVideo->func))
-		return NULL;
-	isPrimary = xf86IsPrimaryPci(pVideo);
-	break;
+		return 0;
+
+    xf86IsPrimaryPci(pVideo);
+
+	return 1;
+}
+
+static Bool
+bus_sbus_configure(void *busData)
+{
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
-    case BUS_SBUS:
-	for (i = 0;  i < nDevToConfig;  i++)
-	    if (DevToConfig[i].sVideo &&
-		DevToConfig[i].sVideo->fbNum == ((sbusDevicePtr) busData)->fbNum)
-		return NULL;
-	break;
+    int i;
+
+    for (i = 0;  i < nDevToConfig;  i++)
+        if (DevToConfig[i].sVideo &&
+        DevToConfig[i].sVideo->fbNum == ((sbusDevicePtr) busData)->fbNum)
+            return 0;
+
 #endif
-    default:
-	return NULL;
-    }
+    return 1;
+}
 
-    /* Allocate new structure occurrence */
-    i = nDevToConfig++;
-    DevToConfig =
-	xnfrealloc(DevToConfig, nDevToConfig * sizeof(DevToConfigRec));
-#if 1   /* Doesn't work when a driver detects more than one adapter */
-    if ((i > 0) && isPrimary) {
-        memmove(DevToConfig + 1,DevToConfig,
-		(nDevToConfig - 1) * sizeof(DevToConfigRec));
-	i = 0;
-    } 
-#endif
-    memset(DevToConfig + i, 0, sizeof(DevToConfigRec));
-
-#   define NewDevice DevToConfig[i]
-
-    NewDevice.GDev.chipID = NewDevice.GDev.chipRev = NewDevice.GDev.irq = -1;
-
-    NewDevice.iDriver = CurrentDriver;
-
-    /* Fill in what we know, converting the driver name to lower case */
-    NewDevice.GDev.driver = xnfalloc(strlen(driver) + 1);
-    for (j = 0;  (NewDevice.GDev.driver[j] = tolower(driver[j]));  j++);
-
-    switch (bus) {
-    case BUS_PCI: {
+#define NewDevice DevToConfig[i]
+static void
+bus_pci_newdev_configure(void *busData, int i, int *chipset)
+{
 	const char *VendorName;
 	const char *CardName;
 	char busnum[8];
+    struct pci_device * pVideo = NULL;
+
+    pVideo = (struct pci_device *) busData;
 
 	NewDevice.pVideo = pVideo;
 
@@ -186,12 +163,15 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	NewDevice.GDev.chipID = pVideo->device_id;
 	NewDevice.GDev.chipRev = pVideo->revision;
 
-	if (chipset < 0)
-	    chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
+	if (*chipset < 0) {
+	    *chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 	}
-	break;
+}
+
+static void
+bus_sbus_newdev_configure(void *busData, int i)
+{
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
-    case BUS_SBUS: {
 	char *promPath = NULL;
 	NewDevice.sVideo = (sbusDevicePtr) busData;
 	NewDevice.GDev.identifier = NewDevice.sVideo->descr;
@@ -207,11 +187,68 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	    NewDevice.GDev.busID = xnfalloc(12);
 	    sprintf(NewDevice.GDev.busID, "SBUS:fb%d", NewDevice.sVideo->fbNum);
 	}
-	}
-	break;
 #endif
-    default:
-	break;
+}
+
+/*
+ * This is called by the driver, either through xf86Match???Instances() or
+ * directly.  We allocate a GDevRec and fill it in as much as we can, letting
+ * the caller fill in the rest and/or change it as it sees fit.
+ */
+GDevPtr
+xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int chipset)
+{
+    int ret, i, j;
+    int isPrimary = 0;
+
+    if (!xf86DoConfigure || !xf86DoConfigurePass1)
+	return NULL;
+
+    /* Check for duplicates */
+    switch (bus) {
+        case BUS_PCI:
+            ret = bus_pci_configure(busData);
+	        break;
+        case BUS_SBUS:
+            ret = bus_sbus_configure(busData);
+	        break;
+        default:
+	        return NULL;
+    }
+
+    if (ret == 0)
+        goto out;
+
+    /* Allocate new structure occurrence */
+    i = nDevToConfig++;
+    DevToConfig =
+	xnfrealloc(DevToConfig, nDevToConfig * sizeof(DevToConfigRec));
+#if 1   /* Doesn't work when a driver detects more than one adapter */
+    if ((i > 0) && isPrimary) {
+        memmove(DevToConfig + 1,DevToConfig,
+		(nDevToConfig - 1) * sizeof(DevToConfigRec));
+	i = 0;
+    } 
+#endif
+    memset(DevToConfig + i, 0, sizeof(DevToConfigRec));
+
+    NewDevice.GDev.chipID = NewDevice.GDev.chipRev = NewDevice.GDev.irq = -1;
+
+    NewDevice.iDriver = CurrentDriver;
+
+    /* Fill in what we know, converting the driver name to lower case */
+    NewDevice.GDev.driver = xnfalloc(strlen(driver) + 1);
+    for (j = 0;  (NewDevice.GDev.driver[j] = tolower(driver[j]));  j++);
+
+    switch (bus) {
+        case BUS_PCI:
+            bus_pci_newdev_configure(busData, i, &chipset);
+	        break;
+        case BUS_SBUS:
+            bus_sbus_newdev_configure(busData, i);
+	        break;
+        default:
+	        break;
     }
 
     /* Get driver's available options */
@@ -222,8 +259,10 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 
     return &NewDevice.GDev;
 
-#   undef NewDevice
+out:
+    return NULL;
 }
+#undef NewDevice
 
 static XF86ConfInputPtr
 configureInputSection (void)
