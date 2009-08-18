@@ -681,7 +681,6 @@ DoConfigure(void)
 	    xorgHWAccess = FALSE;
     }
 
-    /* Disable PCI devices */
     xf86FindPrimaryDevice();
  
     /* Create XF86Config file structure */
