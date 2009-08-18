@@ -106,7 +106,6 @@ bus_sbus_configure(void *busData)
     return 1;
 }
 
-#define NewDevice DevToConfig[i]
 static void
 bus_pci_newdev_configure(void *busData, int i, int *chipset)
 {
@@ -117,7 +116,7 @@ bus_pci_newdev_configure(void *busData, int i, int *chipset)
 
     pVideo = (struct pci_device *) busData;
 
-	NewDevice.pVideo = pVideo;
+	DevToConfig[i].pVideo = pVideo;
 
 	VendorName = pci_device_get_vendor_name( pVideo );
 	CardName = pci_device_get_device_name( pVideo );
@@ -132,20 +131,20 @@ bus_pci_newdev_configure(void *busData, int i, int *chipset)
 	    sprintf((char*)CardName, "Unknown Board");
 	}
 
-	NewDevice.GDev.identifier =
+	DevToConfig[i].GDev.identifier =
 	    xnfalloc(strlen(VendorName) + strlen(CardName) + 2);
-	sprintf(NewDevice.GDev.identifier, "%s %s", VendorName, CardName);
+	sprintf(DevToConfig[i].GDev.identifier, "%s %s", VendorName, CardName);
 
-	NewDevice.GDev.vendor = (char *)VendorName;
-	NewDevice.GDev.board = (char *)CardName;
+	DevToConfig[i].GDev.vendor = (char *)VendorName;
+	DevToConfig[i].GDev.board = (char *)CardName;
 
-	NewDevice.GDev.busID = xnfalloc(16);
+	DevToConfig[i].GDev.busID = xnfalloc(16);
 	xf86FormatPciBusNumber(pVideo->bus, busnum);
-	sprintf(NewDevice.GDev.busID, "PCI:%s:%d:%d",
+	sprintf(DevToConfig[i].GDev.busID, "PCI:%s:%d:%d",
 	    busnum, pVideo->dev, pVideo->func);
 
-	NewDevice.GDev.chipID = pVideo->device_id;
-	NewDevice.GDev.chipRev = pVideo->revision;
+	DevToConfig[i].GDev.chipID = pVideo->device_id;
+	DevToConfig[i].GDev.chipRev = pVideo->revision;
 
 	if (*chipset < 0) {
 	    *chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
@@ -157,19 +156,20 @@ bus_sbus_newdev_configure(void *busData, int i)
 {
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	char *promPath = NULL;
-	NewDevice.sVideo = (sbusDevicePtr) busData;
-	NewDevice.GDev.identifier = NewDevice.sVideo->descr;
+	DevToConfig[i].sVideo = (sbusDevicePtr) busData;
+	DevToConfig[i].GDev.identifier = DevToConfig[i].sVideo->descr;
 	if (sparcPromInit() >= 0) {
-	    promPath = sparcPromNode2Pathname(&NewDevice.sVideo->node);
+	    promPath = sparcPromNode2Pathname(&DevToConfig[i].sVideo->node);
 	    sparcPromClose();
 	}
 	if (promPath) {
-	    NewDevice.GDev.busID = xnfalloc(strlen(promPath) + 6);
-	    sprintf(NewDevice.GDev.busID, "SBUS:%s", promPath);
+	    DevToConfig[i].GDev.busID = xnfalloc(strlen(promPath) + 6);
+	    sprintf(DevToConfig[i].GDev.busID, "SBUS:%s", promPath);
 	    xfree(promPath);
 	} else {
-	    NewDevice.GDev.busID = xnfalloc(12);
-	    sprintf(NewDevice.GDev.busID, "SBUS:fb%d", NewDevice.sVideo->fbNum);
+	    DevToConfig[i].GDev.busID = xnfalloc(12);
+	    sprintf(DevToConfig[i].GDev.busID, "SBUS:fb%d",
+                                DevToConfig[i].sVideo->fbNum);
 	}
 #endif
 }
@@ -216,13 +216,14 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 #endif
     memset(DevToConfig + i, 0, sizeof(DevToConfigRec));
 
-    NewDevice.GDev.chipID = NewDevice.GDev.chipRev = NewDevice.GDev.irq = -1;
+    DevToConfig[i].GDev.chipID =
+            DevToConfig[i].GDev.chipRev = DevToConfig[i].GDev.irq = -1;
 
-    NewDevice.iDriver = CurrentDriver;
+    DevToConfig[i].iDriver = CurrentDriver;
 
     /* Fill in what we know, converting the driver name to lower case */
-    NewDevice.GDev.driver = xnfalloc(strlen(driver) + 1);
-    for (j = 0;  (NewDevice.GDev.driver[j] = tolower(driver[j]));  j++);
+    DevToConfig[i].GDev.driver = xnfalloc(strlen(driver) + 1);
+    for (j = 0;  (DevToConfig[i].GDev.driver[j] = tolower(driver[j]));  j++);
 
     switch (bus) {
         case BUS_PCI:
@@ -237,16 +238,15 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 
     /* Get driver's available options */
     if (xf86DriverList[CurrentDriver]->AvailableOptions)
-	NewDevice.GDev.options = (OptionInfoPtr)
+	DevToConfig[i].GDev.options = (OptionInfoPtr)
 	    (*xf86DriverList[CurrentDriver]->AvailableOptions)(chipset,
 							       bus);
 
-    return &NewDevice.GDev;
+    return &DevToConfig[i].GDev;
 
 out:
     return NULL;
 }
-#undef NewDevice
 
 static XF86ConfInputPtr
 configureInputSection (void)
