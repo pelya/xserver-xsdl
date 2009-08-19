@@ -415,8 +415,7 @@ DefineSelf (int fd)
 		 */
 		if (family == FamilyInternet &&
 		    !(len == 4 &&
-		      ((addr[0] == 127 && addr[1] == 0 &&
-			addr[2] == 0 && addr[3] == 1) ||
+		      ((addr[0] == 127) ||
 		       (addr[0] == 0 && addr[1] == 0 &&
 			addr[2] == 0 && addr[3] == 0)))
 		      )
