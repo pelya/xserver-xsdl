@@ -410,8 +410,25 @@ listPossibleVideoDrivers(char *matches[], int nmatches)
     if (xf86Info.consoleFd >= 0) {
 	struct vis_identifier   visid;
 	const char *cp;
+	extern char xf86SolarisFbDev[PATH_MAX];
+	int iret;
 
-	if (ioctl(xf86Info.consoleFd, VIS_GETIDENTIFIER, &visid) >= 0) {
+	SYSCALL(iret = ioctl(xf86Info.consoleFd, VIS_GETIDENTIFIER, &visid));
+	if (iret < 0) {
+	    int fbfd;
+
+	    fbfd = open(xf86SolarisFbDev, O_RDONLY);
+	    if (fbfd >= 0) {
+		SYSCALL(iret = ioctl(fbfd, VIS_GETIDENTIFIER, &visid));
+		close(fbfd);
+	    }
+	}
+
+	if (iret < 0) {
+	    xf86Msg(X_WARNING,
+		    "could not get frame buffer identifier from %s\n",
+		    xf86SolarisFbDev);
+	} else {
 	    xf86Msg(X_PROBED, "console driver: %s\n", visid.name);
 
 	    /* Special case from before the general case was set */

@@ -39,10 +39,14 @@ static Bool Protect0 = FALSE;
 static int VTnum = -1;
 static int xf86StartVT = -1;
 static int vtEnabled = 0;
-static char fb_dev[PATH_MAX] = "/dev/vt/0";
-#else
-static char fb_dev[PATH_MAX] = "/dev/fb";
 #endif
+
+/* Device to open as xf86Info.consoleFd */
+static char consoleDev[PATH_MAX] = "/dev/fb";
+
+/* Set by -dev argument on CLI
+   Used by hw/xfree86/common/xf86AutoConfig.c for VIS_GETIDENTIFIER */
+_X_HIDDEN char xf86SolarisFbDev[PATH_MAX] = "/dev/fb";
 
 void
 xf86OpenConsole(void)
@@ -116,6 +120,7 @@ xf86OpenConsole(void)
 
 	    xf86StartVT = 0;
 	    xf86Info.vtno = 0;
+	    strlcpy(consoleDev, xf86SolarisFbDev, sizeof(consoleDev));
 	}
 	else
 	{
@@ -138,7 +143,7 @@ xf86OpenConsole(void)
 	    }
 
 	    xf86Msg(from, "using VT number %d\n\n", xf86Info.vtno);
-	    snprintf(fb_dev, PATH_MAX, "/dev/vt/%d", xf86Info.vtno);
+	    snprintf(consoleDev, PATH_MAX, "/dev/vt/%d", xf86Info.vtno);
 	}
 
 	if (fd != -1) {
@@ -150,14 +155,14 @@ xf86OpenConsole(void)
 	if (!KeepTty)
 	    setpgrp();
 
-	if (((xf86Info.consoleFd = open(fb_dev, O_RDWR | O_NDELAY, 0)) < 0))
+	if (((xf86Info.consoleFd = open(consoleDev, O_RDWR | O_NDELAY, 0)) < 0))
 	    FatalError("xf86OpenConsole: Cannot open %s (%s)\n",
-		       fb_dev, strerror(errno));
+		       consoleDev, strerror(errno));
 
 #ifdef HAS_USL_VTS
 
 	/* Change ownership of the vt */
-	chown(fb_dev, getuid(), getgid());
+	chown(consoleDev, getuid(), getgid());
 
 	if (vtEnabled)
 	{
@@ -192,7 +197,7 @@ xf86OpenConsole(void)
 	if (i < 0) {
 	    xf86Msg(X_WARNING,
 		    "xf86OpenConsole: KDSETMODE KD_GRAPHICS failed on %s (%s)\n",
-		    fb_dev, strerror(errno));
+		    consoleDev, strerror(errno));
 	}
 #endif
     }
@@ -241,7 +246,7 @@ xf86CloseConsole(void)
 	 * at this point whether this should be done for all framebuffers in
 	 * the system, rather than only the console.
 	 */
-	if ((fd = open("/dev/fb", O_RDWR, 0)) < 0) {
+	if ((fd = open(xf86SolarisFbDev, O_RDWR, 0)) < 0) {
 	    xf86Msg(X_WARNING,
 		    "xf86CloseConsole():  unable to open framebuffer (%s)\n",
 		    strerror(errno));
@@ -336,8 +341,7 @@ xf86ProcessArgument(int argc, char **argv, int i)
 
     if ((i + 1) < argc) {
 	if (!strcmp(argv[i], "-dev")) {
-	    strncpy(fb_dev, argv[i+1], PATH_MAX);
-	    fb_dev[PATH_MAX - 1] = '\0';
+	    strlcpy(xf86SolarisFbDev, argv[i+1], sizeof(xf86SolarisFbDev));
 	    return 2;
 	}
     }
