@@ -123,8 +123,6 @@ extern _X_EXPORT Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base
 extern _X_EXPORT Bool xf86IsEntityPrimary(int entityIndex);
 extern _X_EXPORT void xf86EnterServerState(xf86State state);
 extern _X_EXPORT ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
-extern _X_EXPORT void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
-extern _X_EXPORT Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 
 extern _X_EXPORT int xf86GetLastScrnFlag(int entityIndex);
 extern _X_EXPORT void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);

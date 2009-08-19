@@ -62,10 +62,6 @@ static Bool xf86ResAccessEnter = FALSE;
 
 static Bool doFramebufferMode = FALSE;
 
-/* state change notification callback list */
-static StateChangeNotificationPtr StateChangeNotificationList;
-static void notifyStateChange(xf86NotifyState state);
-
 /*
  * Call the bus probes relevant to the architecture.
  *
@@ -414,7 +410,6 @@ xf86AccessEnter(void)
      * to any bus and let the RAC code to "open" the right bridges.
      */
     EntityEnter();
-    notifyStateChange(NOTIFY_ENTER);
     xf86EnterServerState(SETUP);
     xf86ResAccessEnter = TRUE;
 }
@@ -433,7 +428,6 @@ xf86AccessLeave(void)
 {
     if (!xf86ResAccessEnter)
 	return;
-    notifyStateChange(NOTIFY_LEAVE);
     EntityLeave();
 }
 
@@ -505,7 +499,6 @@ xf86EnterServerState(xf86State state)
     /* When servicing a dumb framebuffer we don't need to do anything */
     if (doFramebufferMode) return;
 
-    notifyStateChange(NOTIFY_ENABLE);
     return;
 }
 
@@ -527,7 +520,6 @@ xf86PostProbe(void)
 	    return;
 	} else  {
 	    xf86Msg(X_INFO,"Running in FRAMEBUFFER Mode\n");
-	    notifyStateChange(NOTIFY_ENABLE);
 	    doFramebufferMode = TRUE;
 
 	    return;
@@ -584,46 +576,6 @@ xf86FindPrimaryDevice(void)
 	}
 
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
-    }
-}
-
-void
-xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg)
-{
-    StateChangeNotificationPtr ptr =
-	(StateChangeNotificationPtr)xnfalloc(sizeof(StateChangeNotificationRec));
-
-    ptr->func = func;
-    ptr->arg = arg;
-    ptr->next = StateChangeNotificationList;
-    StateChangeNotificationList = ptr;
-}
-
-Bool
-xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func)
-{
-    StateChangeNotificationPtr *ptr = &StateChangeNotificationList;
-    StateChangeNotificationPtr tmp;
-    
-    while (*ptr) {
-	if ((*ptr)->func == func) {
-	    tmp = (*ptr);
-	    (*ptr) = (*ptr)->next;
-	    xfree(tmp);
-	    return TRUE;
-	}
-	ptr = &((*ptr)->next);
-    }
-    return FALSE;
-}
-
-static void
-notifyStateChange(xf86NotifyState state)
-{
-    StateChangeNotificationPtr ptr = StateChangeNotificationList;
-    while (ptr) {
-	ptr->func(state,ptr->arg);
-	ptr = ptr->next;
     }
 }
 

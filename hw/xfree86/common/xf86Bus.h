@@ -62,13 +62,6 @@ typedef struct {
     IOADDRESS                   domainIO;
 } EntityRec, *EntityPtr;
 
-/* state change notification callback */
-typedef struct _stateChange {
-    xf86StateChangeNotificationCallbackFunc func;
-    pointer arg;
-    struct _stateChange *next;
-} StateChangeNotificationRec, *StateChangeNotificationPtr;
-
 #define ACCEL_IS_SHARABLE 0x100
 #define IS_SHARED_ACCEL 0x200
 #define SA_PRIM_INIT_DONE 0x400
