@@ -29,19 +29,28 @@
 #include "misc.h"
 
 #ifdef HAVE_BACKTRACE
+#define _GNU_SOURCE
+#include <dlfcn.h>
 #include <execinfo.h>
 
 void xorg_backtrace(void)
 {
-    void *array[32]; /* deeper nesting than this means something's wrong */
+    void *array[64];
+    char *mod;
     int size, i;
-    char **strings;
+    Dl_info info;
     ErrorF("\nBacktrace:\n");
-    size = backtrace(array, 32);
-    strings = backtrace_symbols(array, size);
-    for (i = 0; i < size; i++)
-        ErrorF("%d: %s\n", i, strings[i]);
-    free(strings);
+    size = backtrace(array, 64);
+    for (i = 0; i < size; i++) {
+	dladdr(array[i], &info);
+	mod = (info.dli_fname && *info.dli_fname) ? info.dli_fname : "(vdso)";
+	if (info.dli_saddr)
+	    ErrorF("%d: %s (%s+0x%lx) [%p]\n", i, mod,
+		   info.dli_sname, array[i] - info.dli_saddr, array[i]);
+	else
+	    ErrorF("%d: %s (%p+0x%lx) [%p]\n", i, mod,
+		   info.dli_fbase, array[i] - info.dli_fbase, array[i]);
+    }
 }
 
 #else /* not glibc or glibc < 2.1 */
