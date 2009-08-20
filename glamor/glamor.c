@@ -115,6 +115,8 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
     screen->DestroyPixmap = glamor_destroy_pixmap;
 
+    glewInit();
+
     return TRUE;
 }
 

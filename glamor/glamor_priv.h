@@ -29,6 +29,7 @@
 #define GLAMOR_PRIV_H
 
 #include "glamor.h"
+#include <GL/glew.h>
 
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;

@@ -36,7 +36,6 @@
 #endif
 
 #include <stdlib.h>
-#include "GL/gl.h"
 
 #include "glamor_priv.h"
 
