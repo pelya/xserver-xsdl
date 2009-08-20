@@ -39,16 +39,7 @@
 
 #include "glamor_priv.h"
 
-static void
-glamor_set_color_from_fgpixel(PixmapPtr pixmap, unsigned long fg_pixel)
-{
-    glColor4ub((fg_pixel >> 16) & 0xff,
-	       (fg_pixel >> 8) & 0xff,
-	       (fg_pixel) & 0xff,
-	       (fg_pixel >> 24) & 0xff);
-}
-
-static Bool
+Bool
 glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
     ScreenPtr screen = pixmap->drawable.pScreen;
@@ -63,37 +54,103 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
 	       screen_pixmap->drawable.width,
 	       screen_pixmap->drawable.height);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, screen_pixmap->drawable.width,
-	    0, screen_pixmap->drawable.height,
-	    -1.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
     return TRUE;
 }
 
 void
-glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-	     unsigned char alu, unsigned long planemask, unsigned long fg_pixel)
+glamor_get_transform_uniform_locations(GLint prog,
+				       glamor_transform_uniforms *uniform_locations)
 {
-    int x1 = x;
-    int x2 = x + width;
-    int y1 = y;
-    int y2 = y + height;
+    uniform_locations->x_bias = glGetUniformLocationARB(prog, "x_bias");
+    uniform_locations->x_scale = glGetUniformLocationARB(prog, "x_scale");
+    uniform_locations->y_bias = glGetUniformLocationARB(prog, "y_bias");
+    uniform_locations->y_scale = glGetUniformLocationARB(prog, "y_scale");
+}
 
-    if (!glamor_set_destination_pixmap(pixmap))
-	return;
-    glamor_set_color_from_fgpixel(pixmap, fg_pixel);
+/* We don't use a full matrix for our transformations because it's
+ * wasteful when all we want is to rescale to NDC and possibly do a flip
+ * if it's the front buffer.
+ */
+void
+glamor_set_transform_for_pixmap(PixmapPtr pixmap,
+				glamor_transform_uniforms *uniform_locations)
+{
+    glUniform1fARB(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
+    glUniform1fARB(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
+    glUniform1fARB(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
+    glUniform1fARB(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
+}
 
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(x1, y1);
-    glVertex2f(x1, y2);
-    glVertex2f(x2, y2);
-    glVertex2f(x2, y1);
-    glEnd();
+GLint
+glamor_compile_glsl_prog(GLenum type, const char *source)
+{
+    GLint ok;
+    GLint prog;
+
+    prog = glCreateShaderObjectARB(type);
+    glShaderSourceARB(prog, 1, (const GLchar **)&source, NULL);
+    glCompileShaderARB(prog);
+    glGetObjectParameterivARB(prog, GL_OBJECT_COMPILE_STATUS_ARB, &ok);
+    if (!ok) {
+	GLchar *info;
+	GLint size;
+
+	glGetObjectParameterivARB(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &size);
+	info = malloc(size);
+
+	glGetInfoLogARB(prog, size, NULL, info);
+	ErrorF("Failed to compile %s: %s\n",
+	       type == GL_FRAGMENT_SHADER ? "FS" : "VS",
+	       info);
+	ErrorF("Program source:\n%s", source);
+	FatalError("GLSL compile failure\n");
+    }
+
+    return prog;
+}
+
+void
+glamor_link_glsl_prog(GLint prog)
+{
+    GLint ok;
+
+    glLinkProgram(prog);
+    glGetObjectParameterivARB(prog, GL_OBJECT_LINK_STATUS_ARB, &ok);
+    if (!ok) {
+	GLchar *info;
+	GLint size;
+
+	glGetObjectParameterivARB(prog, GL_OBJECT_INFO_LOG_LENGTH_ARB, &size);
+	info = malloc(size);
+
+	glGetInfoLogARB(prog, size, NULL, info);
+	ErrorF("Failed to link: %s\n",
+	       info);
+	FatalError("GLSL link failure\n");
+    }
+}
+
+static float ubyte_to_float(uint8_t b)
+{
+    return b / 255.0f;
+}
+
+void
+glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
+			       GLfloat *color)
+{
+    if (pixmap->drawable.depth < 24) {
+	ErrorF("pixmap with bad depth\n");
+	color[0] = 1.0;
+	color[1] = 0.0;
+	color[2] = 1.0;
+	color[3] = 1.0;
+    } else {
+	color[0] = ubyte_to_float(fg_pixel >> 16);
+	color[1] = ubyte_to_float(fg_pixel >> 8);
+	color[2] = ubyte_to_float(fg_pixel >> 0);
+	color[3] = ubyte_to_float(fg_pixel >> 24);
+    }
 }
 
 void

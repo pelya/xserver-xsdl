@@ -31,10 +31,22 @@
 #include "glamor.h"
 #include <GL/glew.h>
 
+typedef struct glamor_transform_uniforms {
+    GLint x_bias;
+    GLint x_scale;
+    GLint y_bias;
+    GLint y_scale;
+} glamor_transform_uniforms;
+
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
     DestroyPixmapProcPtr saved_destroy_pixmap;
+
+    /* glamor_solid */
+    GLint solid_prog;
+    GLint solid_color_uniform_location;
+    glamor_transform_uniforms solid_transform;
 } glamor_screen_private;
 
 extern DevPrivateKey glamor_screen_private_key;
@@ -50,9 +62,6 @@ PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
 /* glamor_core.c */
 Bool glamor_create_gc(GCPtr gc);
-void glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
-		  unsigned char alu, unsigned long planemask,
-		  unsigned long fg_pixel);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,
 		    unsigned char alu, unsigned long planemask,
@@ -62,6 +71,15 @@ void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 		 int x, int y, int width, int height,
 		 unsigned char alu, unsigned long planemask,
 		 int tile_x, int tile_y);
+GLint glamor_compile_glsl_prog(GLenum type, const char *source);
+void glamor_link_glsl_prog(GLint prog);
+void glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
+				    GLfloat *color);
+Bool glamor_set_destination_pixmap(PixmapPtr pixmap);
+void glamor_get_transform_uniform_locations(GLint prog,
+					    glamor_transform_uniforms *uniform_locations);
+void glamor_set_transform_for_pixmap(PixmapPtr pixmap,
+				     glamor_transform_uniforms *uniform_locations);
 
 /* glamor_fill.c */
 void glamor_fill(DrawablePtr drawable,
@@ -70,6 +88,9 @@ void glamor_fill(DrawablePtr drawable,
 		 int y,
 		 int width,
 		 int height);
+void glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+		  unsigned char alu, unsigned long planemask,
+		  unsigned long fg_pixel);
 
 /* glamor_fillspans.c */
 void glamor_fill_spans(DrawablePtr drawable,
@@ -78,5 +99,7 @@ void glamor_fill_spans(DrawablePtr drawable,
 		       DDXPointPtr points,
 		       int *widths,
 		       int sorted);
+
+void glamor_init_solid_shader(ScreenPtr screen);
 
 #endif /* GLAMOR_PRIV_H */

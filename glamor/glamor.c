@@ -97,12 +97,21 @@ glamor_init(ScreenPtr screen)
 
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, glamor_priv);
 
+    glewInit();
+
+    if (!GLEW_ARB_shader_objects) {
+	ErrorF("GL_ARB_shader_objects required\n");
+	goto fail;
+    }
+    if (!GLEW_ARB_vertex_shader) {
+	ErrorF("GL_ARB_vertex_shader required\n");
+	goto fail;
+    }
+
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
 					NULL)) {
-	dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, NULL);
-	xfree(glamor_priv);
-	return FALSE;
+	goto fail;
     }
 
     glamor_priv->saved_create_gc = screen->CreateGC;
@@ -114,9 +123,14 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
     screen->DestroyPixmap = glamor_destroy_pixmap;
 
-    glewInit();
+    glamor_init_solid_shader(screen);
 
     return TRUE;
+
+fail:
+    xfree(glamor_priv);
+    dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, NULL);
+    return FALSE;
 }
 
 void

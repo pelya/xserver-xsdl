@@ -82,3 +82,89 @@ glamor_fill(DrawablePtr drawable,
 	break;
     }
 }
+
+void
+glamor_init_solid_shader(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    const char *solid_vs_only =
+	"uniform vec4 color;\n"
+	"uniform float x_bias;\n"
+	"uniform float x_scale;\n"
+	"uniform float y_bias;\n"
+	"uniform float y_scale;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
+	"			   (gl_Vertex.y + y_bias) * y_scale,\n"
+	"			   0,\n"
+	"			   1);\n"
+	"	gl_Color = color;\n"
+	"}\n";
+    const char *solid_vs =
+	"uniform float x_bias;\n"
+	"uniform float x_scale;\n"
+	"uniform float y_bias;\n"
+	"uniform float y_scale;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
+	"			   (gl_Vertex.y + y_bias) * y_scale,\n"
+	"			   0,\n"
+	"			   1);\n"
+	"}\n";
+    const char *solid_fs =
+	"uniform vec4 color;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = color;\n"
+	"}\n";
+    GLint fs_prog, vs_prog;
+
+    glamor_priv->solid_prog = glCreateProgramObjectARB();
+    if (GLEW_ARB_fragment_shader) {
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, solid_vs);
+	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, solid_fs);
+	glAttachObjectARB(glamor_priv->solid_prog, vs_prog);
+	glAttachObjectARB(glamor_priv->solid_prog, fs_prog);
+    } else {
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, solid_vs_only);
+	glAttachObjectARB(glamor_priv->solid_prog, vs_prog);
+    }
+    glamor_link_glsl_prog(glamor_priv->solid_prog);
+
+    glamor_priv->solid_color_uniform_location =
+	glGetUniformLocationARB(glamor_priv->solid_prog, "color");
+    glamor_get_transform_uniform_locations(glamor_priv->solid_prog,
+					   &glamor_priv->solid_transform);
+}
+
+void
+glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
+	     unsigned char alu, unsigned long planemask, unsigned long fg_pixel)
+{
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    int x1 = x;
+    int x2 = x + width;
+    int y1 = y;
+    int y2 = y + height;
+    GLfloat color[4];
+
+    if (!glamor_set_destination_pixmap(pixmap))
+	return;
+
+    glUseProgramObjectARB(glamor_priv->solid_prog);
+    glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
+    glUniform4fvARB(glamor_priv->solid_color_uniform_location, 1, color);
+    glamor_set_transform_for_pixmap(pixmap, &glamor_priv->solid_transform);
+
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x1, y1);
+    glVertex2f(x1, y2);
+    glVertex2f(x2, y2);
+    glVertex2f(x2, y1);
+    glEnd();
+
+    glUseProgramObjectARB(0);
+}
