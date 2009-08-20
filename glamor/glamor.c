@@ -121,6 +121,13 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 static Bool
 glamor_destroy_pixmap(PixmapPtr pixmap)
 {
+    if (pixmap->refcnt == 1) {
+	glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+	glDeleteFramebuffersEXT(1, &pixmap_priv->fb);
+	glDeleteTextures(1, &pixmap_priv->tex);
+    }
+
     return fbDestroyPixmap(pixmap);
 }
 
