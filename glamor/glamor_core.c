@@ -94,8 +94,6 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glVertex2f(x2, y2);
     glVertex2f(x2, y1);
     glEnd();
-
-    glFlush();
 }
 
 void
