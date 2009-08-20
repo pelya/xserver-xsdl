@@ -44,14 +44,6 @@ glamor_fill_spans(DrawablePtr drawable,
     int extentX1, extentX2, extentY1, extentY2;
     int fullX1, fullX2, fullY1;
     int partX1, partX2;
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-    PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
-
-    if (dest_pixmap != screen_pixmap) {
-	fbFillSpans(drawable, gc, n, points, widths, sorted);
-	return;
-    }
 
     extents = REGION_EXTENTS(gc->pScreen, clip);
     extentX1 = extents->x1;

@@ -50,12 +50,23 @@ typedef struct glamor_screen_private {
     glamor_transform_uniforms solid_transform;
 } glamor_screen_private;
 
+typedef struct glamor_pixmap_private {
+    GLuint tex;
+    GLuint fb;
+} glamor_pixmap_private;
+
 extern DevPrivateKey glamor_screen_private_key;
+extern DevPrivateKey glamor_pixmap_private_key;
 static inline glamor_screen_private *
 glamor_get_screen_private(ScreenPtr screen)
 {
     return (glamor_screen_private *)dixLookupPrivate(&screen->devPrivates,
 						     glamor_screen_private_key);
+}
+static inline glamor_pixmap_private *
+glamor_get_pixmap_private(PixmapPtr pixmap)
+{
+    return dixLookupPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
 }
 
 /* glamor.c */

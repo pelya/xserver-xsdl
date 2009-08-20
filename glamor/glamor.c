@@ -40,6 +40,8 @@
 
 static int glamor_screen_private_key_index;
 DevPrivateKey glamor_screen_private_key = &glamor_screen_private_key_index;
+static int glamor_pixmap_private_key_index;
+DevPrivateKey glamor_pixmap_private_key = &glamor_pixmap_private_key_index;
 
 /**
  * glamor_get_drawable_pixmap() returns a backing pixmap for a given drawable.
@@ -63,9 +65,57 @@ glamor_get_drawable_pixmap(DrawablePtr drawable)
 
 static PixmapPtr
 glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
-		     unsigned int usage_hint)
+		     unsigned int usage)
 {
-    return fbCreatePixmap(screen, w, h, depth, usage_hint);
+    PixmapPtr pixmap;
+    glamor_pixmap_private *pixmap_priv;
+    GLenum format;
+
+    if (w > 32767 || h > 32767)
+	return NullPixmap;
+
+    pixmap = fbCreatePixmap (screen, 0, 0, depth, usage);
+    pixmap_priv = glamor_get_pixmap_private(pixmap);
+
+    if (w == 0 || h == 0)
+	return pixmap;
+
+    /* We should probably take advantage of ARB_fbo's allowance of GL_ALPHA.
+     * FBOs, which EXT_fbo forgot to do.
+     */
+    switch (depth) {
+    case 24:
+	format = GL_RGB;
+	break;
+    default:
+	format = GL_RGBA;
+	break;
+    }
+
+    /* Create the texture used to store the pixmap's data. */
+    glGenTextures(1, &pixmap_priv->tex);
+    glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0,
+		 format, GL_UNSIGNED_BYTE, NULL);
+
+    /* Create a framebuffer object wrapping the texture so that we can render
+     * to it.
+     */
+    glGenFramebuffersEXT(1, &pixmap_priv->fb);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
+			      GL_COLOR_ATTACHMENT0_EXT,
+			      GL_TEXTURE_2D,
+			      pixmap_priv->tex,
+			      0);
+
+    screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
+			       (w * pixmap->drawable.bitsPerPixel + 7) / 8,
+			       NULL);
+
+    return pixmap;
 }
 
 static Bool
@@ -96,9 +146,19 @@ glamor_init(ScreenPtr screen)
 	return FALSE;
 
     dixSetPrivate(&screen->devPrivates, glamor_screen_private_key, glamor_priv);
+    if (!dixRequestPrivate(glamor_pixmap_private_key,
+			   sizeof(glamor_pixmap_private))) {
+	LogMessage(X_WARNING,
+		   "glamor%d: Failed to allocate pixmap private\n",
+		   screen->myNum);
+    }
 
     glewInit();
 
+    if (!GLEW_EXT_framebuffer_object) {
+	ErrorF("GL_EXT_framebuffer_object required\n");
+	goto fail;
+    }
     if (!GLEW_ARB_shader_objects) {
 	ErrorF("GL_ARB_shader_objects required\n");
 	goto fail;

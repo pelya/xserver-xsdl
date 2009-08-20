@@ -42,17 +42,28 @@
 Bool
 glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
-    ScreenPtr screen = pixmap->drawable.pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
 
-    if (pixmap != screen_pixmap) {
-	ErrorF("stubbed drawing to non-screen pixmap\n");
+    if (pixmap_priv == NULL) {
+	ErrorF("no pixmap priv?");
 	return FALSE;
     }
 
+    if (pixmap_priv->fb == 0) {
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+	if (pixmap != screen_pixmap) {
+	    ErrorF("No FBO\n");
+	    return FALSE;
+	}
+    }
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+
     glViewport(0, 0,
-	       screen_pixmap->drawable.width,
-	       screen_pixmap->drawable.height);
+	       pixmap->drawable.width,
+	       pixmap->drawable.height);
 
     return TRUE;
 }
@@ -75,10 +86,18 @@ void
 glamor_set_transform_for_pixmap(PixmapPtr pixmap,
 				glamor_transform_uniforms *uniform_locations)
 {
+    ScreenPtr screen = pixmap->drawable.pScreen;
+    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
     glUniform1fARB(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
     glUniform1fARB(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
     glUniform1fARB(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
-    glUniform1fARB(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
+    if (pixmap == screen_pixmap)
+	glUniform1fARB(uniform_locations->y_scale,
+		       -2.0f / pixmap->drawable.height);
+    else
+	glUniform1fARB(uniform_locations->y_scale,
+		       2.0f / pixmap->drawable.height);
 }
 
 GLint
@@ -176,53 +195,38 @@ static void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int leftPad, int format, char *bits)
 {
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-    PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
-
-    if (screen_pixmap != dest_pixmap) {
-	fbPutImage(drawable, gc, depth, x, y, w, h, leftPad, format, bits);
-    } else {
-	ErrorF("stub put_image\n");
-    }
+    ErrorF("stub put_image\n");
 }
 
 static void
 glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		 DDXPointPtr points, int *widths, int n, int sorted)
 {
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
+    GLenum format, type;
+    int i;
 
-    if (screen_pixmap != dest_pixmap) {
-	fbSetSpans(drawable, gc, src, points, widths, n, sorted);
-    } else {
-	GLenum format, type;
-	int i;
+    switch (drawable->depth) {
+    case 24:
+    case 32:
+	format = GL_BGRA;
+	type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	break;
+    default:
+	ErrorF("Unknown setspans depth %d\n", drawable->depth);
+	return;
+    }
 
-	switch (drawable->depth) {
-	case 24:
-	case 32:
-	    format = GL_BGRA;
-	    type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	    break;
-	default:
-	    ErrorF("Unknown setspans depth %d\n", drawable->depth);
-	    return;
-	}
-
-	if (!glamor_set_destination_pixmap(dest_pixmap))
-	    return;
-	for (i = 0; i < n; i++) {
-	    glRasterPos2i(points[i].x - dest_pixmap->screen_x,
-			  points[i].y - dest_pixmap->screen_y);
-	    glDrawPixels(widths[i],
-			 1,
-			 format, type,
-			 src);
-	    src += PixmapBytePad(widths[i], drawable->depth);
-	}
+    if (!glamor_set_destination_pixmap(dest_pixmap))
+	return;
+    for (i = 0; i < n; i++) {
+	glRasterPos2i(points[i].x - dest_pixmap->screen_x,
+		      points[i].y - dest_pixmap->screen_y);
+	glDrawPixels(widths[i],
+		     1,
+		     format, type,
+		     src);
+	src += PixmapBytePad(widths[i], drawable->depth);
     }
 }
 
@@ -235,9 +239,6 @@ static void
 glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 		  DDXPointPtr points)
 {
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-    PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
     xRectangle *rects;
     int x1, x2, y1, y2;
     int i;
@@ -245,10 +246,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0 || gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	if (dest_pixmap != screen_pixmap)
-	    fbPolyLine(drawable, gc, mode, n, points);
-	else
-	    ErrorF("stub poly_line\n");
+	ErrorF("stub poly_line\n");
 	return;
     }
 
@@ -267,10 +265,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 
 	if (x1 != x2 && y1 != y2) {
 	    xfree(rects);
-	    if (dest_pixmap != screen_pixmap)
-		fbPolyLine(drawable, gc, mode, n, points);
-	    else
-		ErrorF("stub poly_line\n");
+	    ErrorF("stub poly_line\n");
 	    return;
 	}
 

@@ -39,36 +39,33 @@ glamor_get_spans(DrawablePtr drawable,
 		 int count,
 		 char *dst)
 {
-    ScreenPtr screen = drawable->pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+    GLenum format, type;
+    int i;
 
-    if (screen_pixmap != pixmap) {
+    switch (drawable->depth) {
+    case 24:
+    case 32:
+	format = GL_BGRA;
+	type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	break;
+    default:
+	ErrorF("Unknown getspans depth %d\n", drawable->depth);
+	return;
+    }
+
+    if (!glamor_set_destination_pixmap(pixmap)) {
 	fbGetSpans(drawable, wmax, points, widths, count, dst);
 	return;
-    } else {
-	GLenum format, type;
-	int i;
-	switch (drawable->depth) {
-	case 24:
-	case 32:
-	    format = GL_BGRA;
-	    type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	    break;
-	default:
-	    ErrorF("Unknown getspans depth %d\n", drawable->depth);
-	    return;
-	}
-	if (!glamor_set_destination_pixmap(pixmap))
-	    return;
-	for (i = 0; i < count; i++) {
-	    glReadPixels(points[i].x - pixmap->screen_x,
-			 points[i].y - pixmap->screen_y,
-			 widths[i],
-			 1,
-			 format, type,
-			 dst);
-	    dst += PixmapBytePad(widths[i], drawable->depth);
-	}
+    }
+
+    for (i = 0; i < count; i++) {
+	glReadPixels(points[i].x - pixmap->screen_x,
+		     points[i].y - pixmap->screen_y,
+		     widths[i],
+		     1,
+		     format, type,
+		     dst);
+	dst += PixmapBytePad(widths[i], drawable->depth);
     }
 }
