@@ -569,8 +569,13 @@ CompositeExtensionInit (void)
     if (!dixRequestPrivate(CompositeClientPrivateKey,
 			   sizeof(CompositeClientRec)))
 	return;
+
     if (!AddCallback (&ClientStateCallback, CompositeClientCallback, 0))
 	return;
+
+    for (s = 0; s < screenInfo.numScreens; s++)
+	if (!compScreenInit (screenInfo.screens[s]))
+	    return;
 
     extEntry = AddExtension (COMPOSITE_NAME, 0, 0,
 			     ProcCompositeDispatch, SProcCompositeDispatch,
@@ -579,9 +584,6 @@ CompositeExtensionInit (void)
 	return;
     CompositeReqCode = (CARD8) extEntry->base;
 
-    for (s = 0; s < screenInfo.numScreens; s++)
-	if (!compScreenInit (screenInfo.screens[s]))
-	    return;
     miRegisterRedirectBorderClipProc (compSetRedirectBorderClip,
 				      compGetRedirectBorderClip);
 
