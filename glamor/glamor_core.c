@@ -158,17 +158,33 @@ void
 glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
 			       GLfloat *color)
 {
-    if (pixmap->drawable.depth < 24) {
-	ErrorF("pixmap with bad depth\n");
-	color[0] = 1.0;
+    switch (pixmap->drawable.depth) {
+    case 1:
+	color[0] = 0.0;
 	color[1] = 0.0;
-	color[2] = 1.0;
-	color[3] = 1.0;
-    } else {
+	color[2] = 0.0;
+	color[3] = fg_pixel & 0x01;
+	break;
+    case 8:
+	color[0] = 0.0;
+	color[1] = 0.0;
+	color[2] = 0.0;
+	color[3] = (fg_pixel & 0xff) / 255.0;
+	break;
+    case 24:
+    case 32:
 	color[0] = ubyte_to_float(fg_pixel >> 16);
 	color[1] = ubyte_to_float(fg_pixel >> 8);
 	color[2] = ubyte_to_float(fg_pixel >> 0);
 	color[3] = ubyte_to_float(fg_pixel >> 24);
+	break;
+    default:
+	ErrorF("pixmap with bad depth: %d\n", pixmap->drawable.depth);
+	color[0] = 1.0;
+	color[1] = 0.0;
+	color[2] = 1.0;
+	color[3] = 1.0;
+	break;
     }
 }
 
