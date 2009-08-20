@@ -43,6 +43,7 @@ typedef struct glamor_screen_private {
     CreatePixmapProcPtr saved_create_pixmap;
     DestroyPixmapProcPtr saved_destroy_pixmap;
     GetSpansProcPtr saved_get_spans;
+    CompositeProcPtr saved_composite;
 
     /* glamor_solid */
     GLint solid_prog;
@@ -134,6 +135,20 @@ glamor_get_spans(DrawablePtr drawable,
 		 int *widths,
 		 int nspans,
 		 char *dst_start);
+
+/* glamor_render.c */
+void glamor_composite(CARD8 op,
+		      PicturePtr pSrc,
+		      PicturePtr pMask,
+		      PicturePtr pDst,
+		      INT16 xSrc,
+		      INT16 ySrc,
+		      INT16 xMask,
+		      INT16 yMask,
+		      INT16 xDst,
+		      INT16 yDst,
+		      CARD16 width,
+		      CARD16 height);
 
 /* glamor_tile.c */
 void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,

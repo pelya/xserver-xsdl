@@ -147,6 +147,9 @@ Bool
 glamor_init(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv;
+#ifdef RENDER
+    PictureScreenPtr ps = GetPictureScreenIfSet(screen);
+#endif
 
     glamor_priv = xcalloc(1, sizeof(*glamor_priv));
     if (glamor_priv == NULL)
@@ -193,6 +196,11 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_get_spans = screen->GetSpans;
     screen->GetSpans = glamor_get_spans;
 
+#ifdef RENDER
+    glamor_priv->saved_composite = ps->Composite;
+    ps->Composite = glamor_composite;
+#endif
+
     glamor_init_solid_shader(screen);
     glamor_init_tile_shader(screen);
 
@@ -208,9 +216,15 @@ void
 glamor_fini(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+#ifdef RENDER
+    PictureScreenPtr	ps = GetPictureScreenIfSet(screen);
+#endif
 
     screen->CreateGC = glamor_priv->saved_create_gc;
     screen->CreatePixmap = glamor_priv->saved_create_pixmap;
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
     screen->GetSpans = glamor_priv->saved_get_spans;
+#ifdef RENDER
+    ps->Composite = glamor_priv->saved_composite;
+#endif
 }

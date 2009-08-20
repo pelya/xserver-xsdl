@@ -19,5 +19,6 @@ libglamor_la_SOURCES = \
 	glamor_fill.c \
 	glamor_fillspans.c \
 	glamor_getspans.c \
+	glamor_render.c \
 	glamor_tile.c \
 	glamor.h
