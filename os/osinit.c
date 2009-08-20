@@ -59,6 +59,10 @@ SOFTWARE.
 #ifdef HAVE_DLFCN_H
 # include <dlfcn.h>
 #endif
+#ifdef HAVE_BACKTRACE
+#include <execinfo.h>
+#endif
+
 
 #include "dixstruct.h"
 
@@ -192,6 +196,16 @@ OsInit(void)
 		       siglist[i], strerror(errno));
 	    }
 	}
+#ifdef HAVE_BACKTRACE
+	/*
+	 * initialize the backtracer, since the ctor calls dlopen(), which
+	 * calls malloc(), which isn't signal-safe.
+	 */
+	do {
+	    void *array;
+	    backtrace(&array, 1);
+	} while (0);
+#endif
 
 #ifdef RTLD_DI_SETSIGNAL
 	/* Tell runtime linker to send a signal we can catch instead of SIGKILL
