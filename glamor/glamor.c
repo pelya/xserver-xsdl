@@ -75,15 +75,14 @@ glamor_destroy_pixmap(PixmapPtr pixmap)
 }
 
 static void
-glamor_block_handler(void *data, OSTimePtr wt, void *last_select_mask)
+glamor_block_handler(void *data, OSTimePtr timeout, void *last_select_mask)
 {
     glFlush();
 }
 
 static void
-glamor_wakeup_handler(void *data, OSTimePtr wt, void *last_select_mask)
+glamor_wakeup_handler(void *data, int result, void *last_select_mask)
 {
-    glFlush();
 }
 
 /** Set up glamor for an already-configured GL context. */
