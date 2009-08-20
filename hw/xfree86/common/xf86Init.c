@@ -188,6 +188,21 @@ xf86PrintBanner(void)
     if (uname(&name) >= 0) {
       ErrorF("Current Operating System: %s %s %s %s %s\n",
 	name.sysname, name.nodename, name.release, name.version, name.machine);
+#ifdef linux
+      do {
+	  char buf[80];
+	  int fd = open("/proc/cmdline", O_RDONLY);
+	  if (fd != -1) {
+	    ErrorF("Kernel command line: ");
+	    memset(buf, 0, 80);
+	    while (read(fd, buf, 80) > 0) {
+		ErrorF("%.80s", buf);
+		memset(buf, 0, 80);
+	    }
+	    close(fd);
+	  } 
+      } while (0);
+#endif
     }
   }
 #endif
