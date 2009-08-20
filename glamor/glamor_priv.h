@@ -48,6 +48,9 @@ typedef struct glamor_screen_private {
     GLint solid_prog;
     GLint solid_color_uniform_location;
     glamor_transform_uniforms solid_transform;
+
+    GLint tile_prog;
+    glamor_transform_uniforms tile_transform;
 } glamor_screen_private;
 
 typedef struct glamor_pixmap_private {
@@ -69,6 +72,17 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
     return dixLookupPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
 }
 
+/**
+ * Returns TRUE if the given planemask covers all the significant bits in the
+ * pixel values for pDrawable.
+ */
+static inline Bool
+glamor_pm_is_solid(DrawablePtr drawable, unsigned long planemask)
+{
+    return (planemask & FbFullMask(drawable->depth)) ==
+	FbFullMask(drawable->depth);
+}
+
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
@@ -79,10 +93,6 @@ void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    unsigned char alu, unsigned long planemask,
 		    unsigned long fg_pixel, unsigned long bg_pixel,
 		    int stipple_x, int stipple_y);
-void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
-		 int x, int y, int width, int height,
-		 unsigned char alu, unsigned long planemask,
-		 int tile_x, int tile_y);
 GLint glamor_compile_glsl_prog(GLenum type, const char *source);
 void glamor_link_glsl_prog(GLint prog);
 void glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
@@ -103,6 +113,8 @@ void glamor_fill(DrawablePtr drawable,
 void glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 		  unsigned char alu, unsigned long planemask,
 		  unsigned long fg_pixel);
+void glamor_solid_fail_region(PixmapPtr pixmap,
+			      int x, int y, int width, int height);
 
 /* glamor_fillspans.c */
 void glamor_fill_spans(DrawablePtr drawable,
@@ -122,5 +134,12 @@ glamor_get_spans(DrawablePtr drawable,
 		 int *widths,
 		 int nspans,
 		 char *dst_start);
+
+/* glamor_tile.c */
+void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
+		 int x, int y, int width, int height,
+		 unsigned char alu, unsigned long planemask,
+		 int tile_x, int tile_y);
+void glamor_init_tile_shader(ScreenPtr screen);
 
 #endif /* GLAMOR_PRIV_H */

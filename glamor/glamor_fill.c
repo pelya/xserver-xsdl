@@ -168,3 +168,23 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
 
     glUseProgramObjectARB(0);
 }
+
+/* Highlight places where we're doing it wrong. */
+void
+glamor_solid_fail_region(PixmapPtr pixmap, int x, int y, int width, int height)
+{
+    unsigned long pixel;
+
+    switch (pixmap->drawable.depth) {
+    case 24:
+    case 32:
+	pixel = 0x00ff00ff; /* our favorite color */
+	break;
+    default:
+    case 8:
+	pixel = 0xd0d0d0d0;
+	break;
+    }
+
+    glamor_solid(pixmap, x, y, width, height, GXcopy, ~0, pixel);
+}

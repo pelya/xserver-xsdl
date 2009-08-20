@@ -198,15 +198,6 @@ glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
     ErrorF("stubbed out stipple\n");
 }
 
-void
-glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
-	    int x, int y, int width, int height,
-	    unsigned char alu, unsigned long planemask,
-	    int tile_x, int tile_y)
-{
-    ErrorF("stubbed out tile\n");
-}
-
 static void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int leftPad, int format, char *bits)

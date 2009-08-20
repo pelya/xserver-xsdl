@@ -187,6 +187,7 @@ glamor_init(ScreenPtr screen)
     screen->GetSpans = glamor_get_spans;
 
     glamor_init_solid_shader(screen);
+    glamor_init_tile_shader(screen);
 
     return TRUE;
 
