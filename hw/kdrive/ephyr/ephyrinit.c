@@ -31,6 +31,7 @@
 
 extern Window EphyrPreExistingHostWin;
 extern Bool   EphyrWantGrayScale;
+extern Bool   ephyr_glamor;
 extern Bool   kdHasPointer;
 extern Bool   kdHasKbd;
 
@@ -223,6 +224,7 @@ ddxProcessArgument (int argc, char **argv, int i)
     }
   else if (!strcmp (argv[i], "-glamor"))
     {
+      ephyr_glamor = TRUE;
       ephyrFuncs.initAccel = ephyr_glamor_init;
       ephyrFuncs.enableAccel = ephyr_glamor_enable;
       ephyrFuncs.disableAccel = ephyr_glamor_disable;

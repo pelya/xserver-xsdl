@@ -97,6 +97,7 @@ struct EphyrHostXVars
   Display        *dpy;
   int             screen;
   Visual         *visual;
+  XVisualInfo    *visual_info;
   Window          winroot;
   GC              gc;
   int             depth;
@@ -125,9 +126,13 @@ extern int            monitorResolution;
 char           *ephyrResName = NULL;
 int             ephyrResNameFromCmd = 0;
 char	       *ephyrTitle = NULL;
+Bool ephyr_glamor = FALSE;
 
 static void
 hostx_set_fullscreen_hint(void);
+
+static void
+ephyr_glamor_get_visual(void);
 
 /* X Error traps */
 
@@ -364,8 +369,11 @@ hostx_init (void)
   HostX.winroot = RootWindow(HostX.dpy, HostX.screen);
   HostX.gc      = XCreateGC(HostX.dpy, HostX.winroot, 0, NULL);
   HostX.depth   = DefaultDepth(HostX.dpy, HostX.screen);
-  HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen);
-
+  if (ephyr_glamor) {
+      ephyr_glamor_get_visual();
+  } else {
+      HostX.visual  = DefaultVisual(HostX.dpy, HostX.screen);
+  }
   class_hint = XAllocClassHint();
 
   for (index = 0 ; index < HostX.n_screens ; index++)
@@ -1448,21 +1456,17 @@ hostx_has_glx (void)
 
 #endif /* XF86DRI */
 
-void
-ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
+static void
+ephyr_glamor_get_visual(void)
 {
-    Display *dpy = hostx_get_display();
+    Display *dpy = HostX.dpy;
     int attribs[] = {GLX_RGBA,
 		     GLX_RED_SIZE, 1,
 		     GLX_GREEN_SIZE, 1,
 		     GLX_BLUE_SIZE, 1,
 		     None};
     XVisualInfo *visual_info;
-    GLXContext ctx;
-    struct EphyrHostScreen *host_screen;
     int event_base = 0, error_base = 0;
-
-    host_screen = host_screen_from_screen_info(ephyr_screen);
 
     if (!glXQueryExtension (dpy, &event_base, &error_base))
         errx(1, "Couldn't find GLX extension\n");
@@ -1471,12 +1475,23 @@ ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
     if (visual_info == NULL)
 	errx(1, "Couldn't get RGB visual\n");
 
-    ctx = glXCreateContext(dpy, visual_info, NULL, True);
+    HostX.visual_info = visual_info;
+    HostX.visual = visual_info->visual;
+}
+
+void
+ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
+{
+    Display *dpy = HostX.dpy;
+    GLXContext ctx;
+    struct EphyrHostScreen *host_screen;
+
+    host_screen = host_screen_from_screen_info(ephyr_screen);
+
+    ctx = glXCreateContext(dpy, HostX.visual_info, NULL, True);
     if (ctx == NULL)
 	errx(1, "glXCreateContext failed\n");
 
     if (!glXMakeCurrent(dpy, host_screen->win, ctx))
 	errx(1, "glXMakeCurrent failed\n");
-
-    XFree(visual_info);
 }
