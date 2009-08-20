@@ -146,10 +146,11 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	if (!glamor_set_destination_pixmap(dest_pixmap))
 	    return;
 	for (i = 0; i < n; i++) {
-	    glDrawPixels(points[i].x - dest_pixmap->screen_x,
-			 points[i].y - dest_pixmap->screen_y,
-			 widths[i],
+	    glRasterPos2i(points[i].x - dest_pixmap->screen_x,
+			  points[i].y - dest_pixmap->screen_y);
+	    glDrawPixels(widths[i],
 			 1,
+			 GL_RGBA, GL_UNSIGNED_BYTE,
 			 src);
 	    src += PixmapBytePad(widths[i], drawable->depth);
 	}
