@@ -198,7 +198,19 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     if (screen_pixmap != dest_pixmap) {
 	fbSetSpans(drawable, gc, src, points, widths, n, sorted);
     } else {
+	GLenum format, type;
 	int i;
+
+	switch (drawable->depth) {
+	case 24:
+	case 32:
+	    format = GL_BGRA;
+	    type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	    break;
+	default:
+	    ErrorF("Unknown setspans depth %d\n", drawable->depth);
+	    return;
+	}
 
 	if (!glamor_set_destination_pixmap(dest_pixmap))
 	    return;
@@ -207,7 +219,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 			  points[i].y - dest_pixmap->screen_y);
 	    glDrawPixels(widths[i],
 			 1,
-			 GL_RGBA, GL_UNSIGNED_BYTE,
+			 format, type,
 			 src);
 	    src += PixmapBytePad(widths[i], drawable->depth);
 	}
