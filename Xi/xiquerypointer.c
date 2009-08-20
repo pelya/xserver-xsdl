@@ -83,7 +83,10 @@ ProcXIQueryPointer(ClientPtr client)
 
     rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
     if (rc != Success)
+    {
+        client->errorValue = stuff->deviceid;
         return rc;
+    }
 
     if (pDev->valuator == NULL)
     {
