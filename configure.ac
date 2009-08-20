@@ -848,7 +848,7 @@ fi
 AM_CONDITIONAL(RECORD, [test "x$RECORD" = xyes])
 if test "x$RECORD" = xyes; then
 	AC_DEFINE(XRECORD, 1, [Support Record extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES recordproto"
+	REQUIRED_MODULES="$REQUIRED_MODULES [recordproto >= 1.13.99.1]"
 	RECORD_LIB='$(top_builddir)/record/librecord.la'
 fi
 

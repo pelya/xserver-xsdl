@@ -38,8 +38,7 @@ and Jim Haggerty of Metheus.
 
 #include "dixstruct.h"
 #include "extnsionst.h"
-#define _XRECORD_SERVER_
-#include <X11/extensions/recordstr.h>
+#include <X11/extensions/recordproto.h>
 #include "set.h"
 #include "swaprep.h"
 #include "inputstr.h"
