@@ -42,6 +42,7 @@ typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
     DestroyPixmapProcPtr saved_destroy_pixmap;
+    GetSpansProcPtr saved_get_spans;
 
     /* glamor_solid */
     GLint solid_prog;
@@ -101,5 +102,14 @@ void glamor_fill_spans(DrawablePtr drawable,
 		       int sorted);
 
 void glamor_init_solid_shader(ScreenPtr screen);
+
+/* glamor_getspans.c */
+void
+glamor_get_spans(DrawablePtr drawable,
+		 int wmax,
+		 DDXPointPtr points,
+		 int *widths,
+		 int nspans,
+		 char *dst_start);
 
 #endif /* GLAMOR_PRIV_H */

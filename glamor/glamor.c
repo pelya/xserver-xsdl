@@ -123,6 +123,9 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_destroy_pixmap = screen->DestroyPixmap;
     screen->DestroyPixmap = glamor_destroy_pixmap;
 
+    glamor_priv->saved_get_spans = screen->GetSpans;
+    screen->GetSpans = glamor_get_spans;
+
     glamor_init_solid_shader(screen);
 
     return TRUE;
@@ -141,4 +144,5 @@ glamor_fini(ScreenPtr screen)
     screen->CreateGC = glamor_priv->saved_create_gc;
     screen->CreatePixmap = glamor_priv->saved_create_pixmap;
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
+    screen->GetSpans = glamor_priv->saved_get_spans;
 }
