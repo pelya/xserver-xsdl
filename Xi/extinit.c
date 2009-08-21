@@ -525,6 +525,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 	SRepXIGetProperty(client, len, (xXIGetPropertyReply *) rep);
     else if (rep->RepType == X_XIGetSelectedEvents)
 	SRepXIGetSelectedEvents(client, len, (xXIGetSelectedEventsReply *) rep);
+    else if (rep->RepType == X_XIGetFocus)
+	SRepXIGetFocus(client, len, (xXIGetFocusReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

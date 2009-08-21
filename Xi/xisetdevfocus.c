@@ -118,3 +118,13 @@ ProcXIGetFocus(ClientPtr client)
     WriteReplyToClient(client, sizeof(xXIGetFocusReply), &rep);
     return Success;
 }
+
+void
+SRepXIGetFocus(ClientPtr client, int len, xXIGetFocusReply *rep)
+{
+    char n;
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    swapl(&rep->focus, n);
+    WriteToClient(client, len, (char *)rep);
+}
