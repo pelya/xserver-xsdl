@@ -195,14 +195,18 @@ glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 	       unsigned long fg_pixel, unsigned long bg_pixel,
 	       int stipple_x, int stipple_y)
 {
-    ErrorF("stubbed out stipple\n");
+    ErrorF("stubbed out stipple depth %d\n", pixmap->drawable.depth);
+    glamor_solid_fail_region(pixmap, x, y, width, height);
 }
 
 static void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int leftPad, int format, char *bits)
 {
-    ErrorF("stub put_image\n");
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+
+    ErrorF("stub put_image depth %d\n", drawable->depth);
+    glamor_solid_fail_region(pixmap, x, y, w, h);
 }
 
 static void
@@ -253,7 +257,7 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0 || gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	ErrorF("stub poly_line\n");
+	ErrorF("stub poly_line depth %d\n", drawable->depth);
 	return;
     }
 
@@ -271,8 +275,12 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 	}
 
 	if (x1 != x2 && y1 != y2) {
+	    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+
 	    xfree(rects);
-	    ErrorF("stub poly_line\n");
+
+	    ErrorF("stub diagonal poly_line\n");
+	    glamor_solid_fail_region(pixmap, x1, y1, x2 - x1, y2 - y1);
 	    return;
 	}
 
