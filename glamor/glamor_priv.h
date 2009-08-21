@@ -44,6 +44,7 @@ typedef struct glamor_screen_private {
     DestroyPixmapProcPtr saved_destroy_pixmap;
     GetSpansProcPtr saved_get_spans;
     CompositeProcPtr saved_composite;
+    TrapezoidsProcPtr saved_trapezoids;
 
     /* glamor_solid */
     GLint solid_prog;
@@ -149,6 +150,10 @@ void glamor_composite(CARD8 op,
 		      INT16 yDst,
 		      CARD16 width,
 		      CARD16 height);
+void glamor_trapezoids(CARD8 op,
+		       PicturePtr src, PicturePtr dst,
+		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
+		       int ntrap, xTrapezoid *traps);
 
 /* glamor_tile.c */
 void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,

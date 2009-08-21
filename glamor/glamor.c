@@ -199,6 +199,8 @@ glamor_init(ScreenPtr screen)
 #ifdef RENDER
     glamor_priv->saved_composite = ps->Composite;
     ps->Composite = glamor_composite;
+    glamor_priv->saved_trapezoids = ps->Trapezoids;
+    ps->Trapezoids = glamor_trapezoids;
 #endif
 
     glamor_init_solid_shader(screen);
