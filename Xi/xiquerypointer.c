@@ -91,7 +91,8 @@ ProcXIQueryPointer(ClientPtr client)
         return rc;
     }
 
-    if (pDev->valuator == NULL)
+    if (pDev->valuator == NULL || IsKeyboardDevice(pDev) ||
+        (!IsMaster(pDev) && pDev->u.master)) /* no attached devices */
     {
         client->errorValue = stuff->deviceid;
         return BadDevice;
@@ -108,9 +109,14 @@ ProcXIQueryPointer(ClientPtr client)
     if (pDev->valuator->motionHintWindow)
         MaybeStopHint(pDev, client);
 
-    kbd = GetPairedDevice(pDev);
+    if (IsMaster(pDev))
+        kbd = GetPairedDevice(pDev);
+    else
+        kbd = (pDev->key) ? pDev : NULL;
 
     pSprite = pDev->spriteInfo->sprite;
+
+    memset(&rep, 0, sizeof(rep));
     rep.repType = X_Reply;
     rep.RepType = X_XIQueryPointer;
     rep.length = 5;
@@ -120,14 +126,17 @@ ProcXIQueryPointer(ClientPtr client)
     rep.root_y = FP1616(pSprite->hot.y, 0);
     rep.child = None;
 
-    state = &kbd->key->xkbInfo->prev_state;
-    rep.mods.base_mods = state->base_mods;
-    rep.mods.latched_mods = state->latched_mods;
-    rep.mods.locked_mods = state->locked_mods;
+    if (kbd)
+    {
+        state = &kbd->key->xkbInfo->prev_state;
+        rep.mods.base_mods = state->base_mods;
+        rep.mods.latched_mods = state->latched_mods;
+        rep.mods.locked_mods = state->locked_mods;
 
-    rep.group.base_group = state->base_group;
-    rep.group.latched_group = state->latched_group;
-    rep.group.locked_group = state->locked_group;
+        rep.group.base_group = state->base_group;
+        rep.group.latched_group = state->latched_group;
+        rep.group.locked_group = state->locked_group;
+    }
 
     if (pDev->button)
     {
