@@ -55,6 +55,35 @@ static int eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count);
 static int eventToDeviceChanged(DeviceChangedEvent *ev, xEvent **dcce);
 static int eventToDeviceEvent(DeviceEvent *ev, xEvent **xi);
 static int eventToRawEvent(RawDeviceEvent *ev, xEvent **xi);
+
+/* Do not use, read comments below */
+BOOL EventIsKeyRepeat(xEvent *event);
+
+/**
+ * Hack to allow detectable autorepeat for core and XI1 events.
+ * The sequence number is unused until we send to the client and can be
+ * misused to store data. More or less, anyway.
+ *
+ * Do not use this. It may change any time without warning, eat your babies
+ * and piss on your cat.
+ */
+static void
+EventSetKeyRepeatFlag(xEvent *event, BOOL on)
+{
+    event->u.u.sequenceNumber = on;
+}
+
+/**
+ * Check if the event was marked as a repeat event before.
+ * NOTE: This is a nasty hack and should NOT be used by anyone else but
+ * TryClientEvents.
+ */
+BOOL
+EventIsKeyRepeat(xEvent *event)
+{
+    return !!event->u.u.sequenceNumber;
+}
+
 /**
  * Convert the given event to the respective core event.
  *
@@ -90,8 +119,7 @@ EventToCore(InternalEvent *event, xEvent *core)
                 core->u.keyButtonPointer.rootX = e->root_x;
                 core->u.keyButtonPointer.rootY = e->root_y;
                 core->u.keyButtonPointer.state = e->corestate;
-                if (e->type == ET_KeyPress && e->key_repeat)
-                    core->u.u.sequenceNumber = 1;
+                EventSetKeyRepeatFlag(core, (e->type == ET_KeyPress && e->key_repeat));
             }
             break;
         case ET_ProximityIn:
@@ -239,8 +267,8 @@ eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
     kbp->root_y   = ev->root_y;
     kbp->deviceid = ev->deviceid;
     kbp->state    = ev->corestate;
-    if (ev->type == ET_KeyPress && ev->key_repeat)
-        kbp->sequenceNumber = 1;
+    EventSetKeyRepeatFlag((xEvent*)kbp,
+                          (ev->type == ET_KeyPress && ev->key_repeat));
 
     if (num_events > 1)
         kbp->deviceid |= MORE_EVENTS;

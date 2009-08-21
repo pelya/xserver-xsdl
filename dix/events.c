@@ -226,6 +226,9 @@ static Bool CheckPassiveGrabsOnWindow(WindowPtr pWin,
                                       DeviceEvent *event,
                                       BOOL checkCore);
 
+/** Key repeat hack. Do not use but in TryClientEvents */
+extern BOOL EventIsKeyRepeat(xEvent *event);
+
 /**
  * Main input device struct.
  *     inputInfo.pointer
@@ -1948,8 +1951,7 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
             return 1;
     } else if (type == KeyPress)
     {
-        /* sequenceNumber == 1 if autorepeat is set */
-        if (pEvents->u.u.sequenceNumber)
+        if (EventIsKeyRepeat(pEvents))
         {
             if (!_XkbWantsDetectableAutoRepeat(client))
             {
@@ -1970,7 +1972,7 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
 
     } else if (type == DeviceKeyPress)
     {
-        if (((deviceKeyButtonPointer *)pEvents)->sequenceNumber)
+        if (EventIsKeyRepeat(pEvents))
         {
             if (!_XkbWantsDetectableAutoRepeat(client))
             {
