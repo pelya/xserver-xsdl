@@ -31,6 +31,18 @@
 
 #include "glamor_priv.h"
 
+static void
+set_bit(uint8_t *bitfield, unsigned int index, unsigned int val)
+{
+    int i = index / 8;
+    int mask = 1 << (index % 8);
+
+    if (val)
+	bitfield[i] |= mask;
+    else
+	bitfield[i] &= ~mask;
+}
+
 void
 glamor_get_spans(DrawablePtr drawable,
 		 int wmax,
@@ -41,10 +53,20 @@ glamor_get_spans(DrawablePtr drawable,
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    int i;
+    int i, j;
+    uint8_t *temp_dst = NULL, *readpixels_dst = (uint8_t *)dst;
 
     switch (drawable->depth) {
+    case 1:
+	temp_dst = xalloc(4 * wmax);
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
+	readpixels_dst = temp_dst;
+	break;
     case 24:
+	format = GL_RGB;
+	type = GL_UNSIGNED_BYTE;
+	break;
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -65,7 +87,14 @@ glamor_get_spans(DrawablePtr drawable,
 		     widths[i],
 		     1,
 		     format, type,
-		     dst);
-	dst += PixmapBytePad(widths[i], drawable->depth);
+		     readpixels_dst);
+	if (temp_dst) {
+	    for (j = 0; j < widths[i]; j++) {
+		set_bit((uint8_t *)dst, j, temp_dst[j] & 0x1);
+	    }
+	    dst += PixmapBytePad(widths[i], drawable->depth);
+	} else {
+	    readpixels_dst += PixmapBytePad(widths[i], drawable->depth);
+	}
     }
 }
