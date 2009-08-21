@@ -64,6 +64,8 @@ SProcXIQueryPointer(ClientPtr client)
 
     REQUEST(xXIQueryPointerReq);
     swaps(&stuff->length, n);
+    swaps(&stuff->deviceid, n);
+    swapl(&stuff->win, n);
     return (ProcXIQueryPointer(client));
 }
 
@@ -77,6 +79,7 @@ ProcXIQueryPointer(ClientPtr client)
     SpritePtr pSprite;
     XkbStatePtr state;
     char *buttons = NULL;
+    int buttons_size = 0; /* size of buttons array */
 
     REQUEST(xXIQueryPointerReq);
     REQUEST_SIZE_MATCH(xXIQueryPointerReq);
@@ -131,7 +134,8 @@ ProcXIQueryPointer(ClientPtr client)
         int i, down;
         rep.buttons_len = bytes_to_int32(bits_to_bytes(pDev->button->numButtons));
         rep.length += rep.buttons_len;
-        buttons = xcalloc(rep.buttons_len, 4);
+        buttons_size = rep.buttons_len * 4;
+        buttons = xcalloc(1, buttons_size);
         if (!buttons)
             return BadAlloc;
 
@@ -180,7 +184,7 @@ ProcXIQueryPointer(ClientPtr client)
 
     WriteReplyToClient(client, sizeof(xXIQueryPointerReply), &rep);
     if (buttons)
-        WriteToClient(client, rep.buttons_len * 4, buttons);
+        WriteToClient(client, buttons_size, buttons);
 
     xfree(buttons);
 
@@ -202,6 +206,14 @@ SRepXIQueryPointer(ClientPtr client, int size,
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
+    swapl(&rep->root, n);
+    swapl(&rep->child, n);
+    swapl(&rep->root_x, n);
+    swapl(&rep->root_y, n);
+    swapl(&rep->win_x, n);
+    swapl(&rep->win_y, n);
+    swaps(&rep->buttons_len, n);
+
     WriteToClient(client, size, (char *)rep);
 }
 
