@@ -1891,70 +1891,84 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
     int type;
 
 #ifdef DEBUG_EVENTS
-    ErrorF("[dix] Event([%d, %d], mask=0x%x), client=%d",
-	pEvents->u.u.type, pEvents->u.u.detail, mask, client->index);
+    ErrorF("[dix] Event([%d, %d], mask=0x%lx), client=%d%s",
+           pEvents->u.u.type, pEvents->u.u.detail, mask,
+           client ? client->index : -1,
+           (client && client->clientGone) ? " (gone)" : "");
 #endif
-    if ((client) && (client != serverClient) && (!client->clientGone) &&
-	((filter == CantBeFiltered) || (mask & filter)))
+
+    if (!client || client == serverClient || client->clientGone) {
+#ifdef DEBUG_EVENTS
+        ErrorF(" not delivered to fake/dead client\n");
+#endif
+        return 0;
+    }
+
+    if (filter != CantBeFiltered && !(mask & filter))
     {
-	if (grab && !SameClient(grab, client))
-	    return -1; /* don't send, but notify caller */
-	type = pEvents->u.u.type;
-	if (type == MotionNotify)
-	{
-	    if (mask & PointerMotionHintMask)
-	    {
-		if (WID(dev->valuator->motionHintWindow) ==
-		    pEvents->u.keyButtonPointer.event)
-		{
-#ifdef DEBUG_EVENTS
-		    ErrorF("[dix] \n");
-	    ErrorF("[dix] motionHintWindow == keyButtonPointer.event\n");
-#endif
-		    return 1; /* don't send, but pretend we did */
-		}
-		pEvents->u.u.detail = NotifyHint;
-	    }
-	    else
-	    {
-		pEvents->u.u.detail = NotifyNormal;
-	    }
-	}
-	else
-	{
-	    if ((type == DeviceMotionNotify) &&
-		MaybeSendDeviceMotionNotifyHint
-			((deviceKeyButtonPointer*)pEvents, mask) != 0)
-		return 1;
-	}
-	type &= 0177;
-	if (type != KeymapNotify)
-	{
-	    /* all extension events must have a sequence number */
-	    for (i = 0; i < count; i++)
-		pEvents[i].u.u.sequenceNumber = client->sequence;
-	}
+ #ifdef DEBUG_EVENTS
+        ErrorF(" filtered\n");
+ #endif
+        return 0;
+    }
 
-	if (BitIsOn(criticalEvents, type))
-	{
-	    if (client->smart_priority < SMART_MAX_PRIORITY)
-		client->smart_priority++;
-	    SetCriticalOutputPending();
-	}
-
-	WriteEventsToClient(client, count, pEvents);
+    if (grab && !SameClient(grab, client))
+    {
 #ifdef DEBUG_EVENTS
-	ErrorF("[dix]  delivered\n");
+        ErrorF(" not delivered due to grab\n");
 #endif
-	return 1;
+        return -1; /* don't send, but notify caller */
+    }
+
+    type = pEvents->u.u.type;
+    if (type == MotionNotify)
+    {
+        if (mask & PointerMotionHintMask)
+        {
+            if (WID(dev->valuator->motionHintWindow) ==
+                    pEvents->u.keyButtonPointer.event)
+            {
+#ifdef DEBUG_EVENTS
+                ErrorF("[dix] \n");
+                ErrorF("[dix] motionHintWindow == keyButtonPointer.event\n");
+#endif
+                return 1; /* don't send, but pretend we did */
+            }
+            pEvents->u.u.detail = NotifyHint;
+        }
+        else
+        {
+            pEvents->u.u.detail = NotifyNormal;
+        }
     }
     else
     {
-#ifdef DEBUG_EVENTS
-	ErrorF("[dix] \n");
-#endif
-	return 0;
+        if ((type == DeviceMotionNotify) &&
+                MaybeSendDeviceMotionNotifyHint
+                ((deviceKeyButtonPointer*)pEvents, mask) != 0)
+            return 1;
     }
+
+    type &= 0177;
+    if (type != KeymapNotify)
+    {
+        /* all extension events must have a sequence number */
+        for (i = 0; i < count; i++)
+            pEvents[i].u.u.sequenceNumber = client->sequence;
+    }
+
+    if (BitIsOn(criticalEvents, type))
+    {
+        if (client->smart_priority < SMART_MAX_PRIORITY)
+            client->smart_priority++;
+        SetCriticalOutputPending();
+    }
+
+    WriteEventsToClient(client, count, pEvents);
+#ifdef DEBUG_EVENTS
+    ErrorF("[dix]  delivered\n");
+#endif
+    return 1;
 }
 
 /**
