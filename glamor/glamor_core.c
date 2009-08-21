@@ -218,6 +218,9 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     int i;
 
     switch (drawable->depth) {
+    case 8:
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
     case 24:
     case 32:
 	format = GL_BGRA;
