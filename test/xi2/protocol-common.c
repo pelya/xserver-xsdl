@@ -39,6 +39,23 @@ void *userdata;
 
 extern int CorePointerProc(DeviceIntPtr pDev, int what);
 extern int CoreKeyboardProc(DeviceIntPtr pDev, int what);
+
+static void fake_init_sprite(DeviceIntPtr dev)
+{
+    SpritePtr sprite;
+    sprite = dev->spriteInfo->sprite;
+
+    sprite->spriteTraceSize = 10;
+    sprite->spriteTrace = xcalloc(sprite->spriteTraceSize, sizeof(WindowPtr));
+    sprite->spriteTraceGood = 1;
+    sprite->spriteTrace[0] = &root;
+    sprite->hot.x = 100;
+    sprite->hot.y = 200;
+    sprite->hotPhys.x = 100;
+    sprite->hotPhys.y = 200;
+    sprite->win = &window;
+}
+
 /**
  * Create and init 2 master devices (VCP + VCK) and two slave devices, one
  * default mouse, one default keyboard.
@@ -69,6 +86,9 @@ struct devices init_devices(void)
     devices.num_devices = 4;
     devices.num_master_devices = 2;
 
+    fake_init_sprite(devices.mouse);
+    fake_init_sprite(devices.vcp);
+
     return devices;
 }
 
@@ -98,6 +118,13 @@ void init_window(WindowPtr window, WindowPtr parent, int id)
     memset(window, 0, sizeof(window));
 
     window->drawable.id = id;
+    if (parent)
+    {
+        window->drawable.x = 30;
+        window->drawable.y = 50;
+        window->drawable.width = 100;
+        window->drawable.height = 200;
+    }
     window->parent = parent;
     window->optional = xcalloc(1, sizeof(WindowOptRec));
     g_assert(window->optional);
