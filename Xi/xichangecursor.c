@@ -60,6 +60,9 @@ SProcXIChangeCursor(ClientPtr client)
 
     REQUEST(xXIChangeCursorReq);
     swaps(&stuff->length, n);
+    swapl(&stuff->win, n);
+    swapl(&stuff->cursor, n);
+    swaps(&stuff->deviceid, n);
     REQUEST_SIZE_MATCH(xXIChangeCursorReq);
     return (ProcXIChangeCursor(client));
 }

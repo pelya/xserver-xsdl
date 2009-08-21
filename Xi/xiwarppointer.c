@@ -60,6 +60,15 @@ SProcXIWarpPointer(ClientPtr client)
 
     REQUEST(xXIWarpPointerReq);
     swaps(&stuff->length, n);
+    swapl(&stuff->src_win, n);
+    swapl(&stuff->dst_win, n);
+    swaps(&stuff->src_x, n);
+    swaps(&stuff->src_y, n);
+    swaps(&stuff->src_width, n);
+    swaps(&stuff->src_height, n);
+    swaps(&stuff->dst_x, n);
+    swaps(&stuff->dst_y, n);
+    swaps(&stuff->deviceid, n);
     return (ProcXIWarpPointer(client));
 }
 
