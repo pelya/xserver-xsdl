@@ -90,6 +90,8 @@ EventToCore(InternalEvent *event, xEvent *core)
                 core->u.keyButtonPointer.rootX = e->root_x;
                 core->u.keyButtonPointer.rootY = e->root_y;
                 core->u.keyButtonPointer.state = e->corestate;
+                if (e->type == ET_KeyPress && e->key_repeat)
+                    core->u.u.sequenceNumber = 1;
             }
             break;
         case ET_ProximityIn:
@@ -237,6 +239,8 @@ eventToKeyButtonPointer(DeviceEvent *ev, xEvent **xi, int *count)
     kbp->root_y   = ev->root_y;
     kbp->deviceid = ev->deviceid;
     kbp->state    = ev->corestate;
+    if (ev->type == ET_KeyPress && ev->key_repeat)
+        kbp->sequenceNumber = 1;
 
     if (num_events > 1)
         kbp->deviceid |= MORE_EVENTS;
@@ -527,6 +531,9 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->sourceid       = ev->sourceid;
     xde->root_x         = FP1616(ev->root_x, ev->root_x_frac);
     xde->root_y         = FP1616(ev->root_y, ev->root_y_frac);
+
+    if (ev->key_repeat)
+        xde->flags      |= XIKeyRepeat;
 
     xde->mods.base_mods         = ev->mods.base;
     xde->mods.latched_mods      = ev->mods.latched;

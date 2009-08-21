@@ -52,59 +52,38 @@ int		key;
 XkbBehavior	behavior;
 unsigned        ndx;
 
-    xkbi= keyc->xkbInfo;
-    key= event->detail.key;
-    if (xkbDebugFlags&0x8) {
+    xkbi = keyc->xkbInfo;
+    key = event->detail.key;
+    if (xkbDebugFlags & 0x8)
 	DebugF("[xkb] XkbPKE: Key %d %s\n",key,(event->type == ET_KeyPress?"down":"up"));
-    }
 
-    if ( (xkbi->repeatKey==key) && (event->type== ET_KeyRelease) &&
-	 ((xkbi->desc->ctrls->enabled_ctrls&XkbRepeatKeysMask)==0) ) {
-	AccessXCancelRepeatKey(xkbi,key);
-    }
+    if (xkbi->repeatKey == key && event->type== ET_KeyRelease &&
+        !(xkbi->desc->ctrls->enabled_ctrls & XkbRepeatKeysMask))
+	AccessXCancelRepeatKey(xkbi, key);
 
-    behavior= xkbi->desc->server->behaviors[key];
+    behavior = xkbi->desc->server->behaviors[key];
     /* The "permanent" flag indicates a hard-wired behavior that occurs */
     /* below XKB, such as a key that physically locks.   XKB does not   */
     /* do anything to implement the behavior, but it *does* report that */
     /* key is hardwired */
 
-    if ((behavior.type&XkbKB_Permanent)==0) {
+    if (!(behavior.type & XkbKB_Permanent)) {
 	switch (behavior.type) {
 	    case XkbKB_Default:
-		if (event->type == ET_KeyPress &&
-		    (keyc->down[key>>3] & (1<<(key&7)))) {
-		    XkbLastRepeatEvent=	(pointer)event;
-
-		    event->type = ET_KeyRelease;
-		    XkbHandleActions(keybd, keybd, event);
-
-		    event->type = ET_KeyPress;
-		    XkbHandleActions(keybd, keybd, event);
-		    XkbLastRepeatEvent= NULL;
-		    return;
-		}
+                /* Neither of these should happen in practice, but ignore them
+                   anyway. */
+		if (event->type == ET_KeyPress && !event->key_repeat &&
+                    key_is_down(keybd, key, KEY_PROCESSED))
+                    return;
 		else if (event->type == ET_KeyRelease &&
-			(!(keyc->down[key>>3]&(1<<(key&7))))) {
-		    XkbLastRepeatEvent=	(pointer)event;
-		    event->type = ET_KeyPress;
-		    XkbHandleActions(keybd, keybd, event);
-		    event->type = ET_KeyRelease;
-		    XkbHandleActions(keybd, keybd, event);
-		    XkbLastRepeatEvent= NULL;
-		    return;
-		}
+                         !key_is_down(keybd, key, KEY_PROCESSED))
+                    return;
 		break;
 	    case XkbKB_Lock:
-		if (event->type == ET_KeyRelease) {
+		if (event->type == ET_KeyRelease)
 		    return;
-                }
-		else {
-		    int	bit= 1<<(key&7);
-		    if ( keyc->down[key>>3]&bit ) {
-			event->type = ET_KeyRelease;
-                    }
-                }
+		else if (key_is_down(keybd, key, KEY_PROCESSED))
+                    event->type = ET_KeyRelease;
 		break;
 	    case XkbKB_RadioGroup:
 		ndx= (behavior.data&(~XkbKB_RGAllowNone));
@@ -173,9 +152,6 @@ ProcessKeyboardEvent(InternalEvent *ev, DeviceIntPtr keybd)
     int is_press = (event->type == ET_KeyPress);
     int is_release = (event->type == ET_KeyRelease);
 
-    if (keyc)
-        xkbi = keyc->xkbInfo;
-
     /* We're only interested in key events. */
     if (!is_press && !is_release) {
         UNWRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc);
@@ -184,6 +160,8 @@ ProcessKeyboardEvent(InternalEvent *ev, DeviceIntPtr keybd)
                                      xkbUnwrapProc);
         return;
     }
+
+    xkbi = keyc->xkbInfo;
 
     /* If AccessX filters are active, then pass it through to
      * AccessXFilter{Press,Release}Event; else, punt to
@@ -196,8 +174,9 @@ ProcessKeyboardEvent(InternalEvent *ev, DeviceIntPtr keybd)
             AccessXFilterPressEvent(event, keybd);
         else if (is_release)
             AccessXFilterReleaseEvent(event, keybd);
-
-    } else {
+        return;
+    }
+    else {
         XkbProcessKeyboardEvent(event, keybd);
     }
 

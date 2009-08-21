@@ -117,6 +117,7 @@ struct _DeviceEvent
     } group;
     Window      root; /**< Root window of the event */
     int corestate;    /**< Core key/button state BEFORE the event */
+    int key_repeat;   /**< Internally-generated key repeat event */
 };
 
 

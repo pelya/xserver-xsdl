@@ -297,8 +297,6 @@ extern _X_EXPORT int	XkbKeyboardErrorCode;
 extern _X_EXPORT char *	XkbBaseDirectory;
 extern _X_EXPORT char *	XkbBinDirectory;
 
-extern _X_EXPORT pointer	XkbLastRepeatEvent;
-
 extern _X_EXPORT CARD32	xkbDebugFlags;
 
 #define	_XkbTypedAlloc(t)	((t *)xalloc(sizeof(t)))
@@ -942,7 +940,7 @@ extern Bool XkbCopyDeviceKeymap(
         DeviceIntPtr            /* dst */,
         DeviceIntPtr            /* src */);
 
-extern Bool XkbFilterEvents(
+extern void XkbFilterEvents(
         ClientPtr               /* pClient */,
         int                     /* nEvents */,
         xEvent*                 /* xE */);

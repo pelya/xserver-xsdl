@@ -1941,12 +1941,53 @@ TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
             pEvents->u.u.detail = NotifyNormal;
         }
     }
-    else
+    else if (type == DeviceMotionNotify)
     {
-        if ((type == DeviceMotionNotify) &&
-                MaybeSendDeviceMotionNotifyHint
-                ((deviceKeyButtonPointer*)pEvents, mask) != 0)
+        if (MaybeSendDeviceMotionNotifyHint((deviceKeyButtonPointer*)pEvents,
+                                            mask) != 0)
             return 1;
+    } else if (type == KeyPress)
+    {
+        /* sequenceNumber == 1 if autorepeat is set */
+        if (pEvents->u.u.sequenceNumber)
+        {
+            if (!_XkbWantsDetectableAutoRepeat(client))
+            {
+                xEvent release = *pEvents;
+                release.u.u.type = KeyRelease;
+                release.u.u.sequenceNumber = client->sequence;
+                WriteEventsToClient(client, 1, &release);
+#ifdef DEBUG_EVENTS
+                ErrorF(" (plus fake core release for repeat)");
+#endif
+            } else
+            {
+#ifdef DEBUG_EVENTS
+                ErrorF(" (detectable autorepeat for core)");
+#endif
+            }
+        }
+
+    } else if (type == DeviceKeyPress)
+    {
+        if (((deviceKeyButtonPointer *)pEvents)->sequenceNumber)
+        {
+            if (!_XkbWantsDetectableAutoRepeat(client))
+            {
+                deviceKeyButtonPointer release = *(deviceKeyButtonPointer *)pEvents;
+                release.type = DeviceKeyRelease;
+                release.sequenceNumber = client->sequence;
+#ifdef DEBUG_EVENTS
+                ErrorF(" (plus fake xi1 release for repeat)");
+#endif
+                WriteEventsToClient(client, 1, (xEvent *) &release);
+            }
+            else {
+#ifdef DEBUG_EVENTS
+                ErrorF(" (detectable autorepeat for core)");
+#endif
+            }
+        }
     }
 
     type &= 0177;
@@ -5622,8 +5663,8 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     int       i,
               eventlength = sizeof(xEvent);
 
-    if (!XkbFilterEvents(pClient, count, events))
-	return;
+    /* Let XKB rewrite the state, as it depends on client preferences. */
+    XkbFilterEvents(pClient, count, events);
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension &&

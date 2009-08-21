@@ -814,7 +814,8 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
             return DONT_PROCESS;
 
 	kptr = &k->down[key >> 3];
-	if (*kptr & bit)	/* don't allow ddx to generate multiple downs */
+        /* don't allow ddx to generate multiple downs, but repeats are okay */
+	if ((*kptr & bit) && !event->key_repeat)
 	    return DONT_PROCESS;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;

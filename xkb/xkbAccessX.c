@@ -44,7 +44,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 int	XkbDfltRepeatDelay=	660;
 int	XkbDfltRepeatInterval=	40;
-pointer XkbLastRepeatEvent=	NULL;
 
 #define	DFLT_TIMEOUT_CTRLS (XkbAX_KRGMask|XkbStickyKeysMask|XkbMouseKeysMask)
 #define	DFLT_TIMEOUT_OPTS  (XkbAX_IndicatorFBMask)
@@ -131,18 +130,15 @@ AccessXKeyboardEvent(DeviceIntPtr	keybd,
     event.detail.key = keyCode;
     event.time = GetTimeInMillis();
     event.length = sizeof(DeviceEvent);
+    event.key_repeat = isRepeat;
 
     if (xkbDebugFlags&0x8) {
 	DebugF("[xkb] AXKE: Key %d %s\n", keyCode,
                (event.type == ET_KeyPress ? "down" : "up"));
     }
 
-    if (!_XkbIsPressEvent(type) && isRepeat)
-	XkbLastRepeatEvent=	(pointer)&event;
     XkbProcessKeyboardEvent(&event, keybd);
-    XkbLastRepeatEvent= NULL;
     return;
-    
 } /* AccessXKeyboardEvent */
 
 /************************************************************************/
@@ -309,14 +305,11 @@ AccessXRepeatKeyExpire(OsTimerPtr timer,CARD32 now,pointer arg)
 {
 DeviceIntPtr    dev = (DeviceIntPtr) arg;
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
-KeyCode		key;
 
     if (xkbi->repeatKey == 0)
 	return 0;
 
-    key = xkbi->repeatKey;
-    AccessXKeyboardEvent(dev, ET_KeyRelease, key, True);
-    AccessXKeyboardEvent(dev, ET_KeyPress, key, True);
+    AccessXKeyboardEvent(dev, ET_KeyPress, xkbi->repeatKey, True);
 
     return xkbi->desc->ctrls->repeat_interval;
 }
