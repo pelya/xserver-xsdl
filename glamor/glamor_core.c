@@ -200,16 +200,6 @@ glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 }
 
 static void
-glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
-		 int w, int h, int leftPad, int format, char *bits)
-{
-    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
-    ErrorF("stub put_image depth %d\n", drawable->depth);
-    glamor_solid_fail_region(pixmap, x, y, w, h);
-}
-
-static void
 glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		 DDXPointPtr points, int *widths, int n, int sorted)
 {

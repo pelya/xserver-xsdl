@@ -137,6 +137,11 @@ glamor_get_spans(DrawablePtr drawable,
 		 int nspans,
 		 char *dst_start);
 
+/* glamor_putimage.c */
+void
+glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
+		 int w, int h, int leftPad, int format, char *bits);
+
 /* glamor_render.c */
 void glamor_composite(CARD8 op,
 		      PicturePtr pSrc,
