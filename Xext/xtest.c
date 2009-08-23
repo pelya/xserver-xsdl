@@ -53,7 +53,6 @@
 #include "modinit.h"
 
 extern int DeviceValuator;
-extern int DeviceMotionNotify;
 
 /* XTest events are sent during request processing and may be interruped by
  * a SIGIO. We need a separate event list to avoid events overwriting each
