@@ -220,6 +220,7 @@ extern void set_key_up(DeviceIntPtr pDev, int key_code, int type);
 extern int key_is_down(DeviceIntPtr pDev, int key_code, int type);
 
 extern void InitCoreDevices(void);
+extern void InitXTestDevices(void);
 
 extern _X_EXPORT DeviceIntPtr AddInputDevice(
     ClientPtr /*client*/,

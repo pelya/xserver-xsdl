@@ -32,6 +32,7 @@
 
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <X11/Xatom.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -49,6 +50,8 @@
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "mipointer.h"
+#include "xserver-properties.h"
+#include "exevents.h"
 
 #include "modinit.h"
 
@@ -58,6 +61,22 @@ extern int DeviceValuator;
  * a SIGIO. We need a separate event list to avoid events overwriting each
  * other's memory */
 static EventListPtr xtest_evlist;
+
+/* Used to store if a device is an XTest Virtual device */
+static int XTstDevicePrivateKeyIndex;
+DevPrivateKey XTstDevicePrivateKey = &XTstDevicePrivateKeyIndex;
+
+/**
+ * vxtstpointer
+ * is the virtual pointer for XTest. It is the first slave
+ * device of the VCP.
+ * vxtstkeyboard
+ * is the virtual keyboard for XTest. It is the first slave
+ * device of the VCK
+ *
+ * Neither of these devices can be deleted.
+ */
+DeviceIntPtr vxtstpointer, vxtstkeyboard;
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -564,3 +583,126 @@ SProcXTestDispatch (ClientPtr client)
             return BadRequest;
     }
 }
+
+/**
+ * Allocate an virtual slave device for xtest events, this
+ * is a slave device to inputInfo master devices
+ */
+void InitXTestDevices(void)
+{
+    if(AllocXtstDevice(serverClient, "Virtual core",
+                       &vxtstpointer, &vxtstkeyboard,
+                       inputInfo.pointer, inputInfo.keyboard) != Success)
+        FatalError("Failed to allocate XTst devices");
+
+    if (ActivateDevice(vxtstpointer, TRUE) != Success ||
+        ActivateDevice(vxtstkeyboard, TRUE) != Success)
+        FatalError("Failed to activate xtst core devices.");
+    if (!EnableDevice(vxtstpointer, TRUE) ||
+        !EnableDevice(vxtstkeyboard, TRUE))
+        FatalError("Failed to enable xtst core devices.");
+
+    AttachDevice(NULL, vxtstpointer, inputInfo.pointer);
+    AttachDevice(NULL, vxtstkeyboard, inputInfo.keyboard);
+}
+
+/**
+ * Don't allow changing the Xtst property.
+ */
+static int
+DeviceSetXtstProperty(DeviceIntPtr dev, Atom property,
+                      XIPropertyValuePtr prop, BOOL checkonly)
+{
+    if (property == XIGetKnownProperty(XI_PROP_XTST_DEVICE))
+        return BadAccess;
+
+    return Success;
+}
+
+/**
+ * Allocate a device pair that is initialised as a slave
+ * device with properties that identify the devices as belonging
+ * to XTest subsystem.
+ * This only creates the pair, Activate/Enable Device
+ * still need to be called.
+ */
+int AllocXtstDevice (ClientPtr client, char* name,
+                     DeviceIntPtr* ptr, DeviceIntPtr* keybd,
+                     DeviceIntPtr master_ptr, DeviceIntPtr master_keybd)
+{
+    int retval;
+    int len = strlen(name);
+    char *xtstname = xcalloc(len + 6, 1 );
+    char dummy = 1;
+
+    strncpy( xtstname, name, len);
+    strncat( xtstname, " Xtst", 5 );
+
+    retval = AllocDevicePair( client, xtstname, ptr, keybd, CorePointerProc, CoreKeyboardProc, FALSE);
+    if ( retval == Success ){
+        dixSetPrivate(&((*ptr)->devPrivates), XTstDevicePrivateKey, (void *)master_ptr->id);
+        dixSetPrivate(&((*keybd)->devPrivates), XTstDevicePrivateKey, (void *)master_keybd->id);
+    }
+
+    xfree( xtstname );
+
+    XIChangeDeviceProperty(*ptr, XIGetKnownProperty(XI_PROP_XTST_DEVICE),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dummy,
+                           FALSE);
+    XISetDevicePropertyDeletable(*ptr, XIGetKnownProperty(XI_PROP_XTST_DEVICE), FALSE);
+    XIRegisterPropertyHandler(*ptr, DeviceSetXtstProperty, NULL, NULL);
+    XIChangeDeviceProperty(*keybd, XIGetKnownProperty(XI_PROP_XTST_DEVICE),
+                           XA_INTEGER, 8, PropModeReplace, 1, &dummy,
+                           FALSE);
+    XISetDevicePropertyDeletable(*keybd, XIGetKnownProperty(XI_PROP_XTST_DEVICE), FALSE);
+    XIRegisterPropertyHandler(*keybd, DeviceSetXtstProperty, NULL, NULL);
+
+    return retval;
+}
+
+/**
+ * If master is NULL, return TRUE if the given device is an xtest device or
+ * FALSE otherwise.
+ * If master is not NULL, return TRUE if the given device is this master's
+ * xtest device.
+ */
+BOOL
+IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master)
+{
+    int is_xtst = FALSE;
+    int mid;
+    void *tmp; /* shut up, gcc! */
+
+    if (IsMaster(dev))
+        return is_xtst;
+
+    tmp = dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey);
+    mid = (int)tmp;
+
+    /* deviceid 0 is reserved for XIAllDevices, non-zero mid means xtst
+     * device */
+    if ((!master && mid) ||
+        (master && mid == master->id))
+        is_xtst = TRUE;
+
+    return is_xtst;
+}
+
+/**
+ * @return The X Test virtual device for the given master.
+ */
+DeviceIntPtr
+GetXtstDevice(DeviceIntPtr master)
+{
+    DeviceIntPtr it;
+
+    for (it = inputInfo.devices; it; it = it->next)
+    {
+        if (IsXtstDevice(it, master))
+            return it;
+    }
+
+    /* This only happens if master is a slave device. don't do that */
+    return NULL;
+}
+
