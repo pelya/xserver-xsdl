@@ -1231,7 +1231,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
     dev->last.numValuators = numAxes;
 
     if (IsMaster(dev) || /* do not accelerate master or xtest devices */
-	dixLookupPrivate(&dev->devPrivates, XTstDevicePrivateKey ))
+        IsXtstDevice(dev, NULL))
 	InitPointerAccelerationScheme(dev, PtrAccelNoOp);
     else
 	InitPointerAccelerationScheme(dev, PtrAccelDefault);
