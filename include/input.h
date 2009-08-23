@@ -495,14 +495,14 @@ extern int generate_modkeymap(ClientPtr client, DeviceIntPtr dev,
                               KeyCode **modkeymap, int *max_keys_per_mod);
 extern int change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *map,
                          int max_keys_per_mod);
-extern int AllocXtstDevice(ClientPtr client,
+extern int AllocXTestDevice(ClientPtr client,
                              char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd,
                              DeviceIntPtr master_ptr,
                              DeviceIntPtr master_keybd);
-extern BOOL IsXtstDevice(DeviceIntPtr dev, DeviceIntPtr master);
-extern DeviceIntPtr GetXtstDevice(DeviceIntPtr master);
+extern BOOL IsXTestDevice(DeviceIntPtr dev, DeviceIntPtr master);
+extern DeviceIntPtr GetXTestDevice(DeviceIntPtr master);
 
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);

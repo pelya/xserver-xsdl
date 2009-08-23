@@ -32,8 +32,8 @@
 
 /* BOOL. 0 - device disabled, 1 - device enabled */
 #define XI_PROP_ENABLED      "Device Enabled"
-/* BOOL. If present, device is a virtual Xtst device */
-#define XI_PROP_XTST_DEVICE  "Xtst Device"
+/* BOOL. If present, device is a virtual XTEST device */
+#define XI_PROP_XTEST_DEVICE  "XTEST Device"
 
 /* Pointer acceleration properties */
 /* INTEGER of any format */

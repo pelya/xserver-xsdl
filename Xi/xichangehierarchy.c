@@ -141,7 +141,7 @@ int SProcXIChangeHierarchy(ClientPtr client)
 int
 ProcXIChangeHierarchy(ClientPtr client)
 {
-    DeviceIntPtr ptr, keybd, xtstptr, xtstkeybd;
+    DeviceIntPtr ptr, keybd, XTestptr, XTestkeybd;
     xXIAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xXIChangeHierarchyReq);
     char n;
@@ -189,7 +189,7 @@ ProcXIChangeHierarchy(ClientPtr client)
                         ptr->coreEvents = keybd->coreEvents =  FALSE;
 
                     /* Allocate virtual slave devices for xtest events */
-                    rc = AllocXtstDevice(client, name, &xtstptr, &xtstkeybd,
+                    rc = AllocXTestDevice(client, name, &XTestptr, &XTestkeybd,
                                          ptr, keybd);
                     if (rc != Success)
                     {
@@ -203,10 +203,10 @@ ProcXIChangeHierarchy(ClientPtr client)
                     flags[ptr->id] |= XIMasterAdded;
                     flags[keybd->id] |= XIMasterAdded;
 
-                    ActivateDevice(xtstptr, FALSE);
-                    ActivateDevice(xtstkeybd, FALSE);
-                    flags[xtstptr->id] |= XISlaveAdded;
-                    flags[xtstkeybd->id] |= XISlaveAdded;
+                    ActivateDevice(XTestptr, FALSE);
+                    ActivateDevice(XTestkeybd, FALSE);
+                    flags[XTestptr->id] |= XISlaveAdded;
+                    flags[XTestkeybd->id] |= XISlaveAdded;
 
                     if (c->enable)
                     {
@@ -215,18 +215,18 @@ ProcXIChangeHierarchy(ClientPtr client)
                         flags[ptr->id] |= XIDeviceEnabled;
                         flags[keybd->id] |= XIDeviceEnabled;
 
-                        EnableDevice(xtstptr, FALSE);
-                        EnableDevice(xtstkeybd, FALSE);
-                        flags[xtstptr->id] |= XIDeviceEnabled;
-                        flags[xtstkeybd->id] |= XIDeviceEnabled;
+                        EnableDevice(XTestptr, FALSE);
+                        EnableDevice(XTestkeybd, FALSE);
+                        flags[XTestptr->id] |= XIDeviceEnabled;
+                        flags[XTestkeybd->id] |= XIDeviceEnabled;
                     }
 
                     /* Attach the XTest virtual devices to the newly
                        created master device */
-                    AttachDevice(NULL, xtstptr, ptr);
-                    AttachDevice(NULL, xtstkeybd, keybd);
-                    flags[xtstptr->id] |= XISlaveAttached;
-                    flags[xtstkeybd->id] |= XISlaveAttached;
+                    AttachDevice(NULL, XTestptr, ptr);
+                    AttachDevice(NULL, XTestkeybd, keybd);
+                    flags[XTestptr->id] |= XISlaveAttached;
+                    flags[XTestkeybd->id] |= XISlaveAttached;
 
                     xfree(name);
                 }
@@ -275,14 +275,14 @@ ProcXIChangeHierarchy(ClientPtr client)
                     if (rc != Success)
                         goto unwind;
 
-                    xtstptr = GetXtstDevice(ptr);
-                    rc = dixLookupDevice(&xtstptr, xtstptr->id, client,
+                    XTestptr = GetXTestDevice(ptr);
+                    rc = dixLookupDevice(&XTestptr, XTestptr->id, client,
                                          DixDestroyAccess);
                     if (rc != Success)
                         goto unwind;
 
-                    xtstkeybd = GetXtstDevice(keybd);
-                    rc = dixLookupDevice(&xtstkeybd, xtstkeybd->id, client,
+                    XTestkeybd = GetXTestDevice(keybd);
+                    rc = dixLookupDevice(&XTestkeybd, XTestkeybd->id, client,
                                          DixDestroyAccess);
                     if (rc != Success)
                         goto unwind;
@@ -341,26 +341,26 @@ ProcXIChangeHierarchy(ClientPtr client)
                     /* can't disable until we removed pairing */
                     keybd->spriteInfo->paired = NULL;
                     ptr->spriteInfo->paired = NULL;
-                    xtstptr->spriteInfo->paired = NULL;
-                    xtstkeybd->spriteInfo->paired = NULL;
+                    XTestptr->spriteInfo->paired = NULL;
+                    XTestkeybd->spriteInfo->paired = NULL;
 
-                    /* disable the remove the devices, xtst devices must be done first
+                    /* disable the remove the devices, XTest devices must be done first
                        else the sprites they rely on will be destroyed  */
-                    DisableDevice(xtstptr, FALSE);
-                    DisableDevice(xtstkeybd, FALSE);
+                    DisableDevice(XTestptr, FALSE);
+                    DisableDevice(XTestkeybd, FALSE);
                     DisableDevice(keybd, FALSE);
                     DisableDevice(ptr, FALSE);
-                    flags[xtstptr->id] |= XIDeviceDisabled | XISlaveDetached;
-                    flags[xtstkeybd->id] |= XIDeviceDisabled | XISlaveDetached;
+                    flags[XTestptr->id] |= XIDeviceDisabled | XISlaveDetached;
+                    flags[XTestkeybd->id] |= XIDeviceDisabled | XISlaveDetached;
                     flags[keybd->id] |= XIDeviceDisabled;
                     flags[ptr->id] |= XIDeviceDisabled;
 
-                    RemoveDevice(xtstptr, FALSE);
-                    RemoveDevice(xtstkeybd, FALSE);
+                    RemoveDevice(XTestptr, FALSE);
+                    RemoveDevice(XTestkeybd, FALSE);
                     RemoveDevice(keybd, FALSE);
                     RemoveDevice(ptr, FALSE);
-                    flags[xtstptr->id] |= XISlaveRemoved;
-                    flags[xtstkeybd->id] |= XISlaveRemoved;
+                    flags[XTestptr->id] |= XISlaveRemoved;
+                    flags[XTestkeybd->id] |= XISlaveRemoved;
                     flags[keybd->id] |= XIMasterRemoved;
                     flags[ptr->id] |= XIMasterRemoved;
                 }
@@ -381,8 +381,8 @@ ProcXIChangeHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    /* Don't allow changes to Xtst Devices, these are fixed */
-                    if (IsXtstDevice(ptr, NULL))
+                    /* Don't allow changes to XTest Devices, these are fixed */
+                    if (IsXTestDevice(ptr, NULL))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;
@@ -410,8 +410,8 @@ ProcXIChangeHierarchy(ClientPtr client)
                         goto unwind;
                     }
 
-                    /* Don't allow changes to Xtst Devices, these are fixed */
-                    if (IsXtstDevice(ptr, NULL))
+                    /* Don't allow changes to XTest Devices, these are fixed */
+                    if (IsXTestDevice(ptr, NULL))
                     {
                         client->errorValue = c->deviceid;
                         rc = BadDevice;

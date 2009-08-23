@@ -51,7 +51,7 @@ static struct dev_properties
     char *name;
 } dev_properties[] = {
     {0, XI_PROP_ENABLED},
-    {0, XI_PROP_XTST_DEVICE},
+    {0, XI_PROP_XTEST_DEVICE},
     {0, XATOM_FLOAT},
     {0, ACCEL_PROP_PROFILE_NUMBER},
     {0, ACCEL_PROP_CONSTANT_DECELERATION},

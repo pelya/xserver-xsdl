@@ -1200,7 +1200,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
     dev->last.numValuators = numAxes;
 
     if (IsMaster(dev) || /* do not accelerate master or xtest devices */
-        IsXtstDevice(dev, NULL))
+        IsXTestDevice(dev, NULL))
 	InitPointerAccelerationScheme(dev, PtrAccelNoOp);
     else
 	InitPointerAccelerationScheme(dev, PtrAccelDefault);
