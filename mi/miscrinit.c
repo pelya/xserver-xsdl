@@ -40,6 +40,7 @@ from The Open Group.
 #include "miline.h"
 #ifdef MITSHM
 #include <X11/extensions/shm.h>
+#include "shmint.h"
 #endif
 
 /* We use this structure to propogate some information from miScreenInit to
