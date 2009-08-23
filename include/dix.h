@@ -586,6 +586,9 @@ extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 extern Bool IsPointerEvent(InternalEvent *event);
 extern Bool IsMaster(DeviceIntPtr dev);
 
+extern _X_HIDDEN int CorePointerProc(DeviceIntPtr dev, int what);
+extern _X_HIDDEN int CoreKeyboardProc(DeviceIntPtr dev, int what);
+
 
 /*
  * These are deprecated compatibility functions and will be removed soon!

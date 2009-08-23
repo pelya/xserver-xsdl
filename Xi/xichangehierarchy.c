@@ -54,10 +54,6 @@
 
 #include "xichangehierarchy.h"
 
-extern DeviceProc CorePointerProc;
-extern DeviceProc CoreKeyboardProc;
-
-
 /**
  * Send the current state of the device hierarchy to all clients.
  */

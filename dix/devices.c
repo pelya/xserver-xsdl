@@ -98,9 +98,6 @@ DevPrivateKey UnusedClassesPrivateKey = &UnusedClassesPrivateKeyIndex;
 static int XTstDevicePrivateKeyIndex;
 DevPrivateKey XTstDevicePrivateKey = &XTstDevicePrivateKeyIndex;
 
-
-int CorePointerProc(DeviceIntPtr, int);
-int CoreKeyboardProc(DeviceIntPtr, int);
 /**
  * vxtstpointer
  * is the virtual pointer for XTest. It is the first slave
