@@ -20,6 +20,7 @@ libglamor_la_SOURCES = \
 	glamor_fillspans.c \
 	glamor_getspans.c \
 	glamor_putimage.c \
+	glamor_setspans.c \
 	glamor_render.c \
 	glamor_tile.c \
 	glamor.h

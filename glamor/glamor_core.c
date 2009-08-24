@@ -260,41 +260,6 @@ glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
     glamor_solid_fail_region(pixmap, x, y, width, height);
 }
 
-static void
-glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
-		 DDXPointPtr points, int *widths, int n, int sorted)
-{
-    PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
-    GLenum format, type;
-    int i;
-
-    switch (drawable->depth) {
-    case 8:
-	format = GL_ALPHA;
-	type = GL_UNSIGNED_BYTE;
-    case 24:
-    case 32:
-	format = GL_BGRA;
-	type = GL_UNSIGNED_INT_8_8_8_8_REV;
-	break;
-    default:
-	ErrorF("Unknown setspans depth %d\n", drawable->depth);
-	return;
-    }
-
-    if (!glamor_set_destination_pixmap(dest_pixmap))
-	return;
-    for (i = 0; i < n; i++) {
-	glRasterPos2i(points[i].x - dest_pixmap->screen_x,
-		      points[i].y - dest_pixmap->screen_y);
-	glDrawPixels(widths[i],
-		     1,
-		     format, type,
-		     src);
-	src += PixmapBytePad(widths[i], drawable->depth);
-    }
-}
-
 /**
  * glamor_poly_lines() checks if it can accelerate the lines as a group of
  * horizontal or vertical lines (rectangles), and uses existing rectangle fill
