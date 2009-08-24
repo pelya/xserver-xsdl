@@ -2586,10 +2586,3 @@ xf86MotionHistoryAllocate(LocalDevicePtr local)
 {
     AllocateMotionHistory(local->dev);
 }
-
-int
-xf86GetMotionEvents(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
-                    unsigned long stop, ScreenPtr pScreen, BOOL core)
-{
-    return GetMotionHistory(pDev, buff, start, stop, pScreen, core);
-}

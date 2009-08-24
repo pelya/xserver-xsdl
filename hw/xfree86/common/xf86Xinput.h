@@ -206,9 +206,6 @@ extern _X_EXPORT InputDriverPtr xf86LookupInputDriver(const char *name);
 extern _X_EXPORT InputInfoPtr xf86LookupInput(const char *name);
 extern _X_EXPORT void xf86DeleteInput(InputInfoPtr pInp, int flags);
 extern _X_EXPORT void xf86MotionHistoryAllocate(LocalDevicePtr local);
-extern _X_EXPORT int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
-                        unsigned long start, unsigned long stop,
-                        ScreenPtr pScreen, BOOL core);
 
 /* xf86Option.c */
 extern _X_EXPORT void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
