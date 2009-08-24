@@ -72,6 +72,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 
     if (!glamor_set_destination_pixmap(dest_pixmap))
 	return;
+    glamor_set_alu(gc->alu);
     for (i = 0; i < n; i++) {
 	if (temp_src) {
 	    for (j = 0; j < widths[i]; j++) {
@@ -94,5 +95,6 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
 	}
     }
+    glamor_set_alu(GXcopy);
     xfree(temp_src);
 }
