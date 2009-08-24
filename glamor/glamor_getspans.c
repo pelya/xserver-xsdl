@@ -66,6 +66,7 @@ glamor_get_spans(DrawablePtr drawable,
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
+	break;
     case 24:
 	format = GL_RGB;
 	type = GL_UNSIGNED_BYTE;
