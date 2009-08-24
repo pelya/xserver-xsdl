@@ -37,13 +37,30 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 {
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(drawable);
     GLenum format, type;
-    int i;
+    uint8_t *temp_src = NULL, *drawpixels_src = (uint8_t *)src;
+    int i, j;
+    int wmax = 0;
+
+    for (i = 0 ; i < n; i++) {
+	if (wmax < widths[i])
+	    wmax = widths[i];
+    }
 
     switch (drawable->depth) {
+    case 1:
+	temp_src = xalloc(wmax);
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
+	drawpixels_src = temp_src;
+	break;
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
+	break;
     case 24:
+	format = GL_RGB;
+	type = GL_UNSIGNED_BYTE;
+	break;
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -56,12 +73,26 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     if (!glamor_set_destination_pixmap(dest_pixmap))
 	return;
     for (i = 0; i < n; i++) {
+	if (temp_src) {
+	    for (j = 0; j < widths[i]; j++) {
+		if (src[j / 8] & (1 << (j % 8)))
+		    temp_src[j] = 0xff;
+		else
+		    temp_src[j] = 0;
+	    }
+	}
+
 	glRasterPos2i(points[i].x - dest_pixmap->screen_x,
 		      points[i].y - dest_pixmap->screen_y);
 	glDrawPixels(widths[i],
 		     1,
 		     format, type,
-		     src);
-	src += PixmapBytePad(widths[i], drawable->depth);
+		     drawpixels_src);
+	if (temp_src) {
+	    src += PixmapBytePad(widths[i], drawable->depth);
+	} else {
+	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
+	}
     }
+    xfree(temp_src);
 }
