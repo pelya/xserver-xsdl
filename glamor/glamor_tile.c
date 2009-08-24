@@ -92,10 +92,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     int x2 = x + width;
     int y1 = y;
     int y2 = y + height;
-    int tile_x1 = tile_x + tile->screen_x;
-    int tile_x2 = tile_x + tile->screen_x + width;
-    int tile_y1 = tile_y + tile->screen_y;
-    int tile_y2 = tile_y + tile->screen_y + height;
+    int tile_x1 = tile_x - tile->screen_x;
+    int tile_x2 = tile_x - tile->screen_x + width;
+    int tile_y1 = tile_y - tile->screen_y;
+    int tile_y2 = tile_y - tile->screen_y + height;
     glamor_pixmap_private *tile_priv = glamor_get_pixmap_private(tile);
 
     if (glamor_priv->tile_prog == 0) {
@@ -120,9 +120,6 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glEnable(GL_TEXTURE_2D);
-
-    tile_x += tile->screen_x;
-    tile_y += tile->screen_y;
 
     glBegin(GL_TRIANGLE_FAN);
     glMultiTexCoord2f(0, tile_x1, tile_y1);

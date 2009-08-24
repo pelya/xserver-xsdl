@@ -111,7 +111,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	    continue;
 
 	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
-	glRasterPos2i(x1 + pixmap->screen_x, y1 + pixmap->screen_y);
+	glRasterPos2i(x1 - pixmap->screen_x, y1 - pixmap->screen_y);
 	glDrawPixels(x2 - x1,
 		     y2 - y1,
 		     format, type,
