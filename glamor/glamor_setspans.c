@@ -40,6 +40,8 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     uint8_t *temp_src = NULL, *drawpixels_src = (uint8_t *)src;
     int i, j;
     int wmax = 0;
+    RegionPtr clip = fbGetCompositeClip(gc);
+    BoxRec *pbox;
 
     for (i = 0 ; i < n; i++) {
 	if (wmax < widths[i])
@@ -87,12 +89,23 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	    }
 	}
 
-	glRasterPos2i(points[i].x - dest_pixmap->screen_x,
-		      points[i].y - dest_pixmap->screen_y);
-	glDrawPixels(widths[i],
-		     1,
-		     format, type,
-		     drawpixels_src);
+	n = REGION_NUM_RECTS(clip);
+	pbox = REGION_RECTS(clip);
+	while (n--) {
+	    if (pbox->y1 > points[i].y)
+		break;
+	    glScissor(pbox->x1,
+		      points[i].y - dest_pixmap->screen_y,
+		      pbox->x2 - pbox->x1,
+		      1);
+	    glEnable(GL_SCISSOR_TEST);
+	    glRasterPos2i(points[i].x - dest_pixmap->screen_x,
+			  points[i].y - dest_pixmap->screen_y);
+	    glDrawPixels(widths[i],
+			 1,
+			 format, type,
+			 drawpixels_src);
+	}
 	if (temp_src) {
 	    src += PixmapBytePad(widths[i], drawable->depth);
 	} else {
@@ -100,6 +113,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	}
     }
 fail:
+    glDisable(GL_SCISSOR_TEST);
     glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
     xfree(temp_src);
