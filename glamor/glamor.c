@@ -196,6 +196,9 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_get_spans = screen->GetSpans;
     screen->GetSpans = glamor_get_spans;
 
+    glamor_priv->saved_get_image = screen->GetImage;
+    screen->GetImage = miGetImage;
+
 #ifdef RENDER
     glamor_priv->saved_composite = ps->Composite;
     ps->Composite = glamor_composite;

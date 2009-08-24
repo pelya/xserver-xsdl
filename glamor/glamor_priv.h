@@ -43,6 +43,7 @@ typedef struct glamor_screen_private {
     CreatePixmapProcPtr saved_create_pixmap;
     DestroyPixmapProcPtr saved_destroy_pixmap;
     GetSpansProcPtr saved_get_spans;
+    GetImageProcPtr saved_get_image;
     CompositeProcPtr saved_composite;
     TrapezoidsProcPtr saved_trapezoids;
 
