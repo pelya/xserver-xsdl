@@ -44,10 +44,12 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int bpp = drawable->bitsPerPixel;
     int src_stride = PixmapBytePad(w, drawable->depth);
 
-    if (gc->alu != GXcopy) {
-	ErrorF("putimage: non-copy alu\n");
-	goto fail;
+    if (!glamor_set_destination_pixmap(pixmap)) {
+	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad,
+		   image_format, bits);
+	return;
     }
+
     if (!glamor_pm_is_solid(drawable, gc->planemask)) {
 	ErrorF("putimage: non-solid planemask\n");
 	goto fail;
@@ -80,11 +82,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	break;
     }
 
-    if (!glamor_set_destination_pixmap(pixmap)) {
-	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad,
-		   image_format, bits);
-	goto fail;
-    }
+    glamor_set_alu(gc->alu);
 
     x += drawable->x;
     y += drawable->y;
@@ -122,6 +120,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		     src);
     }
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glamor_set_alu(GXcopy);
     return;
 
 fail:

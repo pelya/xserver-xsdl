@@ -69,6 +69,67 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
 }
 
 void
+glamor_set_alu(unsigned char alu)
+{
+    if (alu == GXcopy) {
+	glDisable(GL_LOGIC_OP);
+	return;
+    }
+
+    glEnable(GL_LOGIC_OP);
+
+    switch (alu) {
+    case GXclear:
+	glLogicOp(GL_CLEAR);
+	break;
+    case GXand:
+	glLogicOp(GL_AND);
+	break;
+    case GXandReverse:
+	glLogicOp(GL_AND_REVERSE);
+	break;
+    case GXandInverted:
+	glLogicOp(GL_AND_INVERTED);
+	break;
+    case GXnoop:
+	glLogicOp(GL_NOOP);
+	break;
+    case GXxor:
+	glLogicOp(GL_XOR);
+	break;
+    case GXor:
+	glLogicOp(GL_OR);
+	break;
+    case GXnor:
+	glLogicOp(GL_NOR);
+	break;
+    case GXequiv:
+	glLogicOp(GL_EQUIV);
+	break;
+    case GXinvert:
+	glLogicOp(GL_INVERT);
+	break;
+    case GXorReverse:
+	glLogicOp(GL_OR_REVERSE);
+	break;
+    case GXcopyInverted:
+	glLogicOp(GL_COPY_INVERTED);
+	break;
+    case GXorInverted:
+	glLogicOp(GL_OR_INVERTED);
+	break;
+    case GXnand:
+	glLogicOp(GL_NAND);
+	break;
+    case GXset:
+	glLogicOp(GL_SET);
+	break;
+    default:
+	FatalError("unknown logic op\n");
+    }
+}
+
+void
 glamor_get_transform_uniform_locations(GLint prog,
 				       glamor_transform_uniforms *uniform_locations)
 {

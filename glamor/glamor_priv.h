@@ -100,6 +100,7 @@ void glamor_link_glsl_prog(GLint prog);
 void glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
 				    GLfloat *color);
 Bool glamor_set_destination_pixmap(PixmapPtr pixmap);
+void glamor_set_alu(unsigned char alu);
 void glamor_get_transform_uniform_locations(GLint prog,
 					    glamor_transform_uniforms *uniform_locations);
 void glamor_set_transform_for_pixmap(PixmapPtr pixmap,
