@@ -154,6 +154,8 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     if (!glamor_set_destination_pixmap(pixmap))
 	return;
     glamor_set_alu(alu);
+    if (!glamor_set_planemask(pixmap, planemask))
+	goto fail;
 
     glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
@@ -168,6 +170,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glEnd();
 
     glUseProgramObjectARB(0);
+fail:
     glamor_set_alu(GXcopy);
 }
 

@@ -50,17 +50,15 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	return;
     }
 
-    if (!glamor_pm_is_solid(drawable, gc->planemask)) {
-	ErrorF("putimage: non-solid planemask\n");
+    if (!glamor_set_planemask(pixmap, gc->planemask))
 	goto fail;
-    }
     if (image_format != ZPixmap) {
 	ErrorF("putimage: non-ZPixmap\n");
 	goto fail;
     }
     if (bpp < 8) {
 	ErrorF("putimage: bad bpp: %d\n", bpp);
-	return;
+	goto fail;
     }
 
     switch (drawable->depth) {
@@ -121,8 +119,10 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     }
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glamor_set_alu(GXcopy);
+    glamor_set_planemask(pixmap, ~0);
     return;
 
 fail:
+    glamor_set_planemask(pixmap, ~0);
     glamor_solid_fail_region(pixmap, x, y, w, h);
 }

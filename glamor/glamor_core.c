@@ -68,6 +68,17 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
     return TRUE;
 }
 
+Bool
+glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask)
+{
+    if (glamor_pm_is_solid(&pixmap->drawable, planemask)) {
+	return GL_TRUE;
+    }
+
+    ErrorF("unsupported planemask\n");
+    return GL_FALSE;
+}
+
 void
 glamor_set_alu(unsigned char alu)
 {

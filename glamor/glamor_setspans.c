@@ -71,8 +71,12 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     }
 
     if (!glamor_set_destination_pixmap(dest_pixmap))
-	return;
+	goto fail;
+    if (!glamor_set_planemask(dest_pixmap, gc->planemask))
+	goto fail;
     glamor_set_alu(gc->alu);
+    if (!glamor_set_planemask(dest_pixmap, gc->planemask))
+	goto fail;
     for (i = 0; i < n; i++) {
 	if (temp_src) {
 	    for (j = 0; j < widths[i]; j++) {
@@ -95,6 +99,8 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	    drawpixels_src += PixmapBytePad(widths[i], drawable->depth);
 	}
     }
+fail:
+    glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
     xfree(temp_src);
 }

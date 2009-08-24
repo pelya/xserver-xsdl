@@ -109,11 +109,8 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 	ErrorF("Non-FBO tile pixmap\n");
 	goto fail;
     }
-    if (!glamor_pm_is_solid(&pixmap->drawable, planemask)) {
-	ErrorF("tile pm\n");
+    if (!glamor_set_planemask(pixmap, planemask))
 	goto fail;
-    }
-
     glamor_set_alu(alu);
     glUseProgramObjectARB(glamor_priv->tile_prog);
     glamor_set_transform_for_pixmap(pixmap, &glamor_priv->tile_transform);
@@ -141,6 +138,7 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     glUseProgramObjectARB(0);
     glDisable(GL_TEXTURE_2D);
     glamor_set_alu(GXcopy);
+    glamor_set_planemask(pixmap, ~0);
     return;
 
 fail:

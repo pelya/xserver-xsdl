@@ -102,6 +102,7 @@ void glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
 				    GLfloat *color);
 Bool glamor_set_destination_pixmap(PixmapPtr pixmap);
 void glamor_set_alu(unsigned char alu);
+Bool glamor_set_planemask(PixmapPtr pixmap, unsigned long planemask);
 void glamor_get_transform_uniform_locations(GLint prog,
 					    glamor_transform_uniforms *uniform_locations);
 void glamor_set_transform_for_pixmap(PixmapPtr pixmap,
