@@ -62,12 +62,12 @@ SProcXIWarpPointer(ClientPtr client)
     swaps(&stuff->length, n);
     swapl(&stuff->src_win, n);
     swapl(&stuff->dst_win, n);
-    swaps(&stuff->src_x, n);
-    swaps(&stuff->src_y, n);
+    swapl(&stuff->src_x, n);
+    swapl(&stuff->src_y, n);
     swaps(&stuff->src_width, n);
     swaps(&stuff->src_height, n);
-    swaps(&stuff->dst_x, n);
-    swaps(&stuff->dst_y, n);
+    swapl(&stuff->dst_x, n);
+    swapl(&stuff->dst_y, n);
     swaps(&stuff->deviceid, n);
     return (ProcXIWarpPointer(client));
 }
@@ -81,6 +81,8 @@ ProcXIWarpPointer(ClientPtr client)
     DeviceIntPtr pDev;
     SpritePtr pSprite;
     ScreenPtr newScreen;
+    int src_x, src_y;
+    int dst_x, dst_y;
 
     REQUEST(xXIWarpPointerReq);
     REQUEST_SIZE_MATCH(xXIWarpPointerReq);
@@ -105,6 +107,11 @@ ProcXIWarpPointer(ClientPtr client)
     x = pSprite->hotPhys.x;
     y = pSprite->hotPhys.y;
 
+    src_x = stuff->src_x / (double)(1 << 16);
+    src_y = stuff->src_y / (double)(1 << 16);
+    dst_x = stuff->dst_x / (double)(1 << 16);
+    dst_y = stuff->dst_y / (double)(1 << 16);
+
     if (stuff->src_win != None)
     {
         int winX, winY;
@@ -119,12 +126,12 @@ ProcXIWarpPointer(ClientPtr client)
         winX = src->drawable.x;
         winY = src->drawable.y;
         if (src->drawable.pScreen != pSprite->hotPhys.pScreen ||
-                x < winX + stuff->src_x ||
-                y < winY + stuff->src_y ||
+                x < winX + src_x ||
+                y < winY + src_y ||
                 (stuff->src_width != 0 &&
-                 winX + stuff->src_x + (int)stuff->src_width < 0) ||
+                 winX + src_x + (int)stuff->src_width < 0) ||
                 (stuff->src_height != 0 &&
-                 winY + stuff->src_y + (int)stuff->src_height < y) ||
+                 winY + src_y + (int)stuff->src_height < y) ||
                 !PointInWindowIsVisible(src, x, y))
             return Success;
     }
@@ -137,8 +144,8 @@ ProcXIWarpPointer(ClientPtr client)
     } else
         newScreen = pSprite->hotPhys.pScreen;
 
-    x += stuff->dst_x;
-    y += stuff->dst_y;
+    x += dst_x;
+    y += dst_y;
 
     if (x < 0)
         x = 0;
