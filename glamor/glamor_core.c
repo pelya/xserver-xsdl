@@ -285,9 +285,13 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     int i;
 
     /* Don't try to do wide lines or non-solid fill style. */
-    if (gc->lineWidth != 0 || gc->lineStyle != LineSolid ||
+    if (gc->lineWidth != 0) {
+	ErrorF("stub wide polylines\n");
+	return;
+    }
+    if (gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	ErrorF("stub poly_line depth %d\n", drawable->depth);
+	ErrorF("stub poly_line non-solid fill\n");
 	return;
     }
 
