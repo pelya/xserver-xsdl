@@ -63,6 +63,12 @@ typedef struct glamor_screen_private {
     GLint tile_prog;
     glamor_transform_uniforms tile_transform;
 
+    /* glamor_putimage */
+    GLint put_image_xybitmap_prog;
+    glamor_transform_uniforms put_image_xybitmap_transform;
+    GLint put_image_xybitmap_fg_uniform_location;
+    GLint put_image_xybitmap_bg_uniform_location;
+
     /* glamor_composite */
     glamor_composite_shader composite_shader[2];
 } glamor_screen_private;
@@ -163,6 +169,7 @@ void glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int leftPad, int format, char *bits);
+void glamor_init_putimage_shaders(ScreenPtr screen);
 
 /* glamor_render.c */
 void glamor_composite(CARD8 op,
