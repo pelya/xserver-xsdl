@@ -38,6 +38,13 @@ typedef struct glamor_transform_uniforms {
     GLint y_scale;
 } glamor_transform_uniforms;
 
+typedef struct glamor_composite_shader {
+    GLuint prog;
+    GLint dest_to_dest_uniform_location;
+    GLint dest_to_source_uniform_location;
+    GLint dest_to_mask_uniform_location;
+} glamor_composite_shader;
+
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
@@ -52,8 +59,12 @@ typedef struct glamor_screen_private {
     GLint solid_color_uniform_location;
     glamor_transform_uniforms solid_transform;
 
+    /* glamor_tile */
     GLint tile_prog;
     glamor_transform_uniforms tile_transform;
+
+    /* glamor_composite */
+    glamor_composite_shader composite_shader[2];
 } glamor_screen_private;
 
 typedef struct glamor_pixmap_private {
@@ -74,6 +85,10 @@ glamor_get_pixmap_private(PixmapPtr pixmap)
 {
     return dixLookupPrivate(&pixmap->devPrivates, glamor_pixmap_private_key);
 }
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#define ALIGN(i,m)	(((i) + (m) - 1) & ~((m) - 1))
+#define MIN(a,b)	((a) < (b) ? (a) : (b))
 
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
@@ -166,6 +181,7 @@ void glamor_trapezoids(CARD8 op,
 		       PicturePtr src, PicturePtr dst,
 		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
 		       int ntrap, xTrapezoid *traps);
+void glamor_init_composite_shaders(ScreenPtr screen);
 
 /* glamor_tile.c */
 void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
