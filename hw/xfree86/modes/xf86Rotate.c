@@ -293,11 +293,12 @@ xf86RotateBlockHandler(int screenNum, pointer blockData,
     ScreenPtr		pScreen = screenInfo.screens[screenNum];
     ScrnInfoPtr		pScrn = xf86Screens[screenNum];
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+    Bool		rotation_active;
 
+    rotation_active = xf86RotateRedisplay(pScreen);
     pScreen->BlockHandler = xf86_config->BlockHandler;
     (*pScreen->BlockHandler) (screenNum, blockData, pTimeout, pReadmask);
-    if (xf86RotateRedisplay(pScreen))
-    {
+    if (rotation_active) {
 	/* Re-wrap if rotation is still happening */
 	xf86_config->BlockHandler = pScreen->BlockHandler;
 	pScreen->BlockHandler = xf86RotateBlockHandler;
