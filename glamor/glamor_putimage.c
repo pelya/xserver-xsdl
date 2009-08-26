@@ -252,18 +252,21 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	return;
     }
 
+    if (bpp == 1 && image_format == XYPixmap)
+	image_format = ZPixmap;
+
     if (!glamor_set_planemask(pixmap, gc->planemask))
 	goto fail;
     if (image_format != ZPixmap) {
 	ErrorF("putimage: non-ZPixmap\n");
 	goto fail;
     }
-    if (bpp < 8) {
-	ErrorF("putimage: bad bpp: %d\n", bpp);
-	goto fail;
-    }
 
     switch (drawable->depth) {
+    case 1:
+	format = GL_COLOR_INDEX;
+	type = GL_BITMAP;
+	break;
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
@@ -279,7 +282,6 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     default:
 	ErrorF("stub put_image depth %d\n", drawable->depth);
 	goto fail;
-	break;
     }
 
     glamor_set_alu(gc->alu);
@@ -288,7 +290,9 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     y += drawable->y;
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride / (bpp / 8));
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 / bpp);
+    if (bpp == 1)
+	glPixelStorei(GL_UNPACK_SKIP_PIXELS, left_pad);
     clip = fbGetCompositeClip(gc);
     for (nbox = REGION_NUM_RECTS(clip),
 	 pbox = REGION_RECTS(clip);
@@ -320,6 +324,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		     src);
     }
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
     return;
