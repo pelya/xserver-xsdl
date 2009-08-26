@@ -165,6 +165,13 @@ glamor_get_spans(DrawablePtr drawable,
 void glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		      DDXPointPtr points, int *widths, int n, int sorted);
 
+/* glamor_polyfillrect.c */
+void
+glamor_poly_fill_rect(DrawablePtr drawable,
+		      GCPtr gc,
+		      int nrect,
+		      xRectangle *prect);
+
 /* glamor_putimage.c */
 void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
