@@ -43,8 +43,7 @@
 #include "darwin.h"
 #include "darwinEvents.h"
 #include "quartz.h"
-#define _APPLEWM_SERVER_
-#include "X11/extensions/applewm.h"
+#include <X11/extensions/applewmconst.h>
 #include "applewmExt.h"
 
 #include <stdio.h>

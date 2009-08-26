@@ -45,7 +45,7 @@
 
 #include "X11Application.h"
 
-#include <X11/extensions/applewm.h>
+#include <X11/extensions/applewmconst.h>
 #include <X11/extensions/randr.h>
 
 // X headers

@@ -53,8 +53,7 @@ void QuartzResumeXCursor(ScreenPtr pScreen, int x, int y);
  * See CGWindowLevel.h
  */
 
-#define _APPLEWM_SERVER_
-#include <X11/extensions/applewm.h>
+#include <X11/extensions/applewmconst.h>
 static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
 0, 3, 4, 5, INT_MIN + 30, INT_MIN + 29,
 };

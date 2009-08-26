@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <X11/Xatom.h>
 #include "darwin.h"
 #define _APPLEWM_SERVER_
-#include "X11/extensions/applewmstr.h"
+#include <X11/extensions/applewmproto.h>
 #include "applewmExt.h"
 #include "X11Application.h"
 

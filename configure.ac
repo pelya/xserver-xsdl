@@ -1685,7 +1685,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
 
-	PKG_CHECK_MODULES(XPBPROXY, [applewmproto >= 1.3] [applewm >= 1.3] xfixes fixesproto x11)
+	PKG_CHECK_MODULES(XPBPROXY, [applewmproto >= 1.4] [applewm >= 1.4] xfixes fixesproto x11)
 
         if test "x$XQUARTZ_SPARKLE" = xyes ; then
                 AC_DEFINE(XQUARTZ_SPARKLE,1,[Support application updating through sparkle.])

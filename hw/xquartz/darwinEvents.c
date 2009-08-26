@@ -67,9 +67,8 @@ in this Software without prior written authorization from The Open Group.
 #define SCROLLWHEELLEFTFAKE  6
 #define SCROLLWHEELRIGHTFAKE 7
 
-#define _APPLEWM_SERVER_
+#include <X11/extensions/applewmconst.h>
 #include "applewmExt.h"
-#include <X11/extensions/applewm.h>
 
 /* FIXME: Abstract this better */
 void QuartzModeEQInit(void);

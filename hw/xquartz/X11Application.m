@@ -41,8 +41,7 @@
 #include "darwinEvents.h"
 #include "quartzKeyboard.h"
 #include "quartz.h"
-#define _APPLEWM_SERVER_
-#include "X11/extensions/applewm.h"
+#include <X11/extensions/applewmconst.h>
 #include "micmap.h"
 #include "exglobals.h"
 

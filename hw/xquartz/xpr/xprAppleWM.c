@@ -33,8 +33,7 @@
 
 #include "xpr.h"
 
-#define _APPLEWM_SERVER_
-#include <X11/extensions/applewmstr.h>
+#include <X11/extensions/applewmproto.h>
 
 #include "applewmExt.h"
 #include "rootless.h"
