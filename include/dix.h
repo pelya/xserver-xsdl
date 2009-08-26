@@ -229,6 +229,12 @@ extern _X_EXPORT void WakeupHandler(
     int /*result*/,
     pointer /*pReadmask*/);
 
+void
+EnableLimitedSchedulingLatency(void);
+
+void
+DisableLimitedSchedulingLatency(void);
+
 typedef void (* WakeupHandlerProcPtr)(
     pointer /* blockData */,
     int /* result */,

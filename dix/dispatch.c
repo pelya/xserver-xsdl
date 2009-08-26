@@ -242,6 +242,7 @@ long SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
 long SmartScheduleTime;
+int SmartScheduleLatencyLimited = 0;
 static ClientPtr   SmartLastClient;
 static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
 
@@ -312,7 +313,7 @@ SmartScheduleClient (int *clientReady, int nready)
     /*
      * Adjust slice
      */
-    if (nready == 1)
+    if (nready == 1 && SmartScheduleLatencyLimited == 0)
     {
 	/*
 	 * If it's been a long time since another client
@@ -330,6 +331,23 @@ SmartScheduleClient (int *clientReady, int nready)
 	SmartScheduleSlice = SmartScheduleInterval;
     }
     return best;
+}
+
+void
+EnableLimitedSchedulingLatency(void)
+{
+    ++SmartScheduleLatencyLimited;
+    SmartScheduleSlice = SmartScheduleInterval;
+}
+
+void
+DisableLimitedSchedulingLatency(void)
+{
+    --SmartScheduleLatencyLimited;
+
+    /* protect against bugs */
+    if (SmartScheduleLatencyLimited < 0)
+	SmartScheduleLatencyLimited = 0;
 }
 
 #define MAJOROP ((xReq *)client->requestBuffer)->reqType
@@ -351,6 +369,7 @@ Dispatch(void)
     if (!clientReady)
 	return;
 
+    SmartScheduleSlice = SmartScheduleInterval;
     while (!dispatchException)
     {
         if (*icheck[0] != *icheck[1])
@@ -455,6 +474,7 @@ Dispatch(void)
     KillAllClients();
     xfree(clientReady);
     dispatchException &= ~DE_RESET;
+    SmartScheduleLatencyLimited = 0;
 }
 
 #undef MAJOROP
