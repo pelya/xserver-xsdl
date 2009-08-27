@@ -117,6 +117,14 @@
 #define GL_EXT_vertex_array 0
 #endif
 
+/* Tiger PPC doesn't have the associated symbols, but glext.h says it does.  Liars!
+ * http://trac.macports.org/ticket/20638
+ */
+#if defined(__ppc__) && MAC_OS_X_VERSION_MIN_REQUIRED == 1040
+#undef GL_EXT_gpu_program_parameters
+#define GL_EXT_gpu_program_parameters 0
+#endif
+
 #include <GL/glxproto.h>
 #include <windowstr.h>
 #include <resource.h>
