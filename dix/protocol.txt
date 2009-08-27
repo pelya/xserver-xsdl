@@ -116,6 +116,14 @@ R004 DPMS:Enable
 R005 DPMS:Disable
 R006 DPMS:ForceLevel
 R007 DPMS:Info
+R000 DRI2:QueryVersion
+R001 DRI2:Connect
+R002 DRI2:Authenticate
+R003 DRI2:CreateDrawable
+R004 DRI2:DestroyDrawable
+R005 DRI2:GetBuffers
+R006 DRI2:CopyRegion
+R007 DRI2:GetBuffersWithFormat
 R000 Extended-Visual-Information:QueryVersion
 R001 Extended-Visual-Information:GetVisualInfo
 R000 FontCache:QueryVersion
