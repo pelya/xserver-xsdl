@@ -37,8 +37,7 @@ extern void	XFree86VidModeExtensionInit(INITARGS);
 #ifdef XFreeXDGA
 extern void XFree86DGAExtensionInit(INITARGS);
 extern void XFree86DGARegister(INITARGS);
-#define _XF86DGA_SERVER_
-#include <X11/extensions/xf86dgastr.h>
+#include <X11/extensions/xf86dgaproto.h>
 #endif
 
 #ifdef DPMSExtension

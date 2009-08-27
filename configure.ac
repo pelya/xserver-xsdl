@@ -1512,10 +1512,10 @@ if test "x$XORG" = xyes; then
 		XORG_OS_PCI=$XORG_OS
 	fi
 	if test "x$DGA" = xauto; then
-		PKG_CHECK_MODULES(DGA, xf86dgaproto, [DGA=yes], [DGA=no])
+		PKG_CHECK_MODULES(DGA, [xf86dgaproto >= 2.0.99.1], [DGA=yes], [DGA=no])
 	fi
 	if test "x$DGA" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86dgaproto"
+		XORG_MODULES="$XORG_MODULES [xf86dgaproto >= 2.0.99.1]"
 		PKG_CHECK_MODULES(DGA, xf86dgaproto)
 		AC_DEFINE(DGA, 1, [Support DGA extension])
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
