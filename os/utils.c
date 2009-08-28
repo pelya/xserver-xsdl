@@ -482,7 +482,6 @@ void UseMsg(void)
     ErrorF("-c                     turns off key-click\n");
     ErrorF("c #                    key-click volume (0-100)\n");
     ErrorF("-cc int                default color visual class\n");
-    ErrorF("-cursor                enable the cursor (default)\n");
     ErrorF("-nocursor              disable the cursor\n");
     ErrorF("-core                  generate core dump on fatal error\n");
     ErrorF("-dpi int               screen resolution in dots per inch\n");
@@ -665,10 +664,6 @@ ProcessCommandLine(int argc, char *argv[])
         else if ( strcmp( argv[i], "-nocursor") == 0)
         {
             EnableCursor = FALSE;
-        }
-        else if ( strcmp( argv[i], "-cursor") == 0)
-        {
-            EnableCursor = TRUE;
         }
         else if ( strcmp( argv[i], "-dpi") == 0)
 	{
