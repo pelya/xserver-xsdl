@@ -1414,7 +1414,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     WindowPtr pWin, confineTo;
     CursorPtr cursor;
     GrabPtr grab;
-    int rc, type;
+    int rc, type = -1;
     Mask access_mode = DixGrabAccess;
 
     rc = CheckGrabValues(client, param);
@@ -1472,7 +1472,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr modifier_device,
     GrabPtr grab;
     KeyClassPtr k = dev->key;
     Mask access_mode = DixGrabAccess;
-    int rc, type;
+    int rc, type = -1;
 
     rc = CheckGrabValues(client, param);
     if (rc != Success)
