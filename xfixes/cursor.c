@@ -1046,12 +1046,11 @@ static CursorPtr
 createInvisibleCursor (void)
 {
     CursorPtr pCursor;
-    static unsigned int *psrcbits, *pmaskbits;
+    unsigned char *psrcbits, *pmaskbits;
     CursorMetricRec cm;
-    int rc;
 
-    psrcbits = (unsigned int *) xalloc(4);
-    pmaskbits = (unsigned int *) xalloc(4);
+    psrcbits = (unsigned char *) xalloc(4);
+    pmaskbits = (unsigned char *) xalloc(4);
     if (psrcbits == NULL || pmaskbits == NULL) {
 	return NULL;
     }
@@ -1063,9 +1062,7 @@ createInvisibleCursor (void)
     cm.xhot = 0;
     cm.yhot = 0;
 
-    rc = AllocARGBCursor(
-	        (unsigned char *)psrcbits,
-		(unsigned char *)pmaskbits,
+    AllocARGBCursor(psrcbits, pmaskbits,
 		NULL, &cm,
 		0, 0, 0,
 		0, 0, 0,
