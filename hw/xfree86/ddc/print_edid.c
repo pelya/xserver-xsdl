@@ -450,7 +450,7 @@ print_detailed_monitor_section(int scrnIndex,
 	    break;
 	}
 	if (m[i].type >= DS_VENDOR && m[i].type <= DS_VENDOR_MAX) {
-	    xf86DrvMsg(scrnIndex, X_WARNING,
+	    xf86DrvMsg(scrnIndex, X_INFO,
 		       "Unknown vendor-specific block %hx\n",
 		       m[i].type - DS_VENDOR);
 	}
