@@ -42,6 +42,7 @@
 #include <X11/extensions/dpmsconst.h>
 #include "dpmsproc.h"
 #endif
+#include "xf86VGAarbiter.h"
 
 
 #ifdef DPMSExtension
@@ -162,8 +163,9 @@ DPMSSet(ClientPtr client, int level)
     	pScrn = xf86Screens[i];
 	pDPMS = dixLookupPrivate(&screenInfo.screens[i]->devPrivates, DPMSKey);
 	if (pDPMS && pScrn->DPMSSet && pDPMS->Enabled && pScrn->vtSema) { 
-	    xf86EnableAccess(pScrn);
+	    xf86VGAarbiterLock(pScrn);
 	    pScrn->DPMSSet(pScrn, level, 0);
+	    xf86VGAarbiterUnlock(pScrn);
 	}
     }
     return Success;

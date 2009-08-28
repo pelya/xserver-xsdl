@@ -78,6 +78,7 @@
 #include "picturestr.h"
 #endif
 
+#include "xf86VGAarbiter.h"
 #include "globals.h"
 
 #ifdef DPMSExtension
@@ -729,6 +730,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       return;
     }
 
+    xf86VGAarbiterInit();
+
     /*
      * Match up the screens found by the probes against those specified
      * in the config file.  Remove the ones that won't be used.  Sort
@@ -809,10 +812,12 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      */
 
     for (i = 0; i < xf86NumScreens; i++) {
-	xf86EnableAccess(xf86Screens[i]);
+	xf86VGAarbiterScrnInit(xf86Screens[i]);
+	xf86VGAarbiterLock(xf86Screens[i]);
 	if (xf86Screens[i]->PreInit &&
 	    xf86Screens[i]->PreInit(xf86Screens[i], 0))
 	    xf86Screens[i]->configured = TRUE;
+	xf86VGAarbiterUnlock(xf86Screens[i]);
     }
     for (i = 0; i < xf86NumScreens; i++)
 	if (!xf86Screens[i]->configured)
@@ -1025,7 +1030,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif /* SCO325 */
 
   for (i = 0; i < xf86NumScreens; i++) {
-	xf86EnableAccess(xf86Screens[i]);
+	xf86VGAarbiterLock(xf86Screens[i]);
 	/*
 	 * Almost everything uses these defaults, and many of those that
 	 * don't, will wrap them.
@@ -1040,6 +1045,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	xf86Screens[i]->DriverFunc = NULL;
 	xf86Screens[i]->pScreen = NULL;
 	scr_index = AddScreen(xf86Screens[i]->ScreenInit, argc, argv);
+	xf86VGAarbiterUnlock(xf86Screens[i]);
       if (scr_index == i) {
 	/*
 	 * Hook in our ScrnInfoRec, and initialise some other pScreen
@@ -1237,7 +1243,6 @@ AbortDDX(void)
 	       * we might not have been wrapped yet. Therefore enable
 	       * screen explicitely.
 	       */
-	      xf86EnableAccess(xf86Screens[i]);
 	      (xf86Screens[i]->LeaveVT)(i, 0);
 	  }
   }

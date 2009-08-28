@@ -48,6 +48,7 @@
 #define XF86_OS_PRIVS
 #define NEED_OS_RAC_PROTOS
 #include "xf86_OSproc.h"
+#include "xf86VGAarbiter.h"
 
 #include "Pci.h"
 
@@ -536,11 +537,25 @@ xf86PostPreInit(void)
 void
 xf86PostScreenInit(void)
 {
+    int i;
+    int vga_count;
     if (doFramebufferMode) {
 	SetSIGIOForState(OPERATING);
 	return;
     }
 
+    /*
+     * we need to wrap the arbiter if we have more than
+     * one VGA card - hotplug cries.
+     */
+#ifdef HAVE_PCI_DEVICE_VGAARB_INIT
+    pci_device_vgaarb_get_info(NULL, &vga_count, NULL);
+    if (vga_count > 1 && xf86Screens) {
+	xf86Msg(X_INFO,"Number of VGA devices: %d: arbiter wrapping enabled\n", vga_count);
+        for (i = 0; i < xf86NumScreens; i++)
+	    xf86VGAarbiterWrapFunctions(xf86Screens[i]->pScreen);
+    }
+#endif
     DebugF("PostScreenInit  generation: %i\n",serverGeneration);
     xf86EnterServerState(OPERATING);
     

@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mipointer.h"
 #include "xf86_OSproc.h"
 #include "inputstr.h"
+#include "xf86VGAarbiter.h"
 
 #define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
 
@@ -333,6 +334,12 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	return FALSE;
     }
 
+    if (!xf86VGAarbiterAllowDRI(pScreen)) {
+        DRIDrvMsg(pScreen->myNum, X_WARNING,
+                  "Direct rendering is not supported when VGA arb is necessary for the device\n");
+	return FALSE;
+    }
+		
     /*
      * If Xinerama is on, don't allow DRI to initialise.  It won't be usable
      * anyway.

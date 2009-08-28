@@ -517,7 +517,7 @@ typedef struct _confdrirec {
 
 /* These values should be adjusted when new fields are added to ScrnInfoRec */
 #define NUM_RESERVED_INTS		16
-#define NUM_RESERVED_POINTERS		15
+#define NUM_RESERVED_POINTERS		14
 #define NUM_RESERVED_FUNCS		11
 
 typedef pointer (*funcPointer)(void);
@@ -796,6 +796,8 @@ typedef struct _ScrnInfoRec {
     int			reservedInt[NUM_RESERVED_INTS];
 
     int *		entityInstanceList;
+    struct pci_device   *vgaDev;
+
     pointer		reservedPtr[NUM_RESERVED_POINTERS];
 
     /*

@@ -100,7 +100,6 @@ resume(pmEvent event, Bool undo)
     xf86AccessEnter();
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++) {
-        xf86EnableAccess(xf86Screens[i]);
 	if (xf86Screens[i]->PMEvent)
 	    xf86Screens[i]->PMEvent(i,event,undo);
 	else {
@@ -110,7 +109,6 @@ resume(pmEvent event, Bool undo)
     }
     xf86EnterServerState(OPERATING);
     for (i = 0; i < xf86NumScreens; i++) {
-        xf86EnableAccess(xf86Screens[i]);
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, TRUE);
     }
@@ -165,7 +163,6 @@ DoApmEvent(pmEvent event, Bool undo)
 	    if (xf86Screens[i]->PMEvent) {
 		if (!setup) xf86EnterServerState(SETUP);
 		setup = 1;
-		xf86EnableAccess(xf86Screens[i]);
 		xf86Screens[i]->PMEvent(i,event,undo);
 	    }
 	}

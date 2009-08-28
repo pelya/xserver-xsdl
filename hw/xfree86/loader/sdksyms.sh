@@ -121,6 +121,7 @@ cat > sdksyms.c << EOF
 #include "xf86fbman.h"
 #include "xf86str.h"
 #include "xf86Xinput.h"
+#include "xf86VGAarbiter.h"
 #include "xisb.h"
 #if XV
 # include "xf86xv.h"

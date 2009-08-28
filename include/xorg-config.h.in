@@ -124,6 +124,9 @@
 /* Have pci_enable_device */
 #undef HAVE_PCI_DEVICE_ENABLE
 
+/* Define to 1 if you have the `pci_device_vgaarb_init' function. */
+#undef HAVE_PCI_DEVICE_VGAARB_INIT
+
 /* Path to text files containing PCI IDs */
 #undef PCI_TXT_IDS_PATH
 

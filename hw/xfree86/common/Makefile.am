@@ -35,7 +35,7 @@ AM_LDFLAGS = -r
 libcommon_la_SOURCES = xf86Configure.c xf86ShowOpts.c xf86Bus.c xf86Config.c \
                       xf86Cursor.c $(DGASOURCES) xf86DPMS.c \
                       xf86Events.c xf86Globals.c xf86AutoConfig.c \
-                      xf86Option.c xf86Init.c \
+                      xf86Option.c xf86Init.c xf86VGAarbiter.c \
                       xf86VidMode.c xf86fbman.c xf86cmap.c \
                       xf86Helper.c xf86PM.c xf86Xinput.c xisb.c \
                       xf86Mode.c xorgHelper.c \
@@ -52,7 +52,7 @@ sdk_HEADERS = compiler.h fourcc.h xf86.h xf86Module.h xf86Opt.h \
               xf86PciInfo.h xf86Priv.h xf86Privstr.h \
               xf86cmap.h xf86fbman.h xf86str.h xf86Xinput.h xisb.h \
               $(XVSDKINCS) $(XF86VMODE_SDK) xorgVersion.h \
-              xf86sbusBus.h
+              xf86sbusBus.h xf86VGAarbiter.h
 
 DISTCLEANFILES = xf86Build.h
 CLEANFILES = $(BUILT_SOURCES)
@@ -83,6 +83,8 @@ EXTRA_DIST = \
 	xorgVersion.h \
 	$(MODEDEFSOURCES) \
 	modeline2c.awk \
+	xf86VGAarbiter.h \
+	xf86VGAarbiterPriv.h \
         $(DISTKBDSOURCES)
 
 if LNXACPI

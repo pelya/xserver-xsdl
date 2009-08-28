@@ -39,6 +39,7 @@
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "dri2.h"
+#include "xf86VGAarbiter.h"
 
 #include "xf86.h"
 
@@ -413,6 +414,12 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 
     if (info->version < 3)
 	return FALSE;
+
+    if (!xf86VGAarbiterAllowDRI(pScreen)) {
+        xf86DrvMsg(pScreen->myNum, X_WARNING,
+                  "[DRI2] Direct rendering is not supported when VGA arb is necessary for the device\n");
+        return FALSE;
+    }
 
     ds = xalloc(sizeof *ds);
     if (!ds)
