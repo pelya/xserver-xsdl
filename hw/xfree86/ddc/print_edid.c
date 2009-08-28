@@ -251,7 +251,7 @@ print_established_timings(int scrnIndex, struct established_timings *t)
     if (c&0x02) xf86DrvMsg(scrnIndex,X_INFO,"1024x768@75Hz\n");
     if (c&0x01) xf86DrvMsg(scrnIndex,X_INFO,"1280x1024@75Hz\n");
     c=t->t_manu;
-    if (c&0x80) xf86DrvMsg(scrnIndex,X_INFO,"1152x870@75Hz\n");
+    if (c&0x80) xf86DrvMsg(scrnIndex,X_INFO,"1152x864@75Hz\n");
     xf86DrvMsg(scrnIndex,X_INFO,"Manufacturer's mask: %X\n",c&0x7F);
 }
   
