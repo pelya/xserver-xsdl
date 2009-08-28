@@ -620,10 +620,10 @@ PictureGradientColor (PictGradientStopPtr stop1,
 
 extern _X_EXPORT void RenderExtensionInit (void);
 
-extern _X_EXPORT Bool
+Bool
 AnimCurInit (ScreenPtr pScreen);
 
-extern _X_EXPORT int
+int
 AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor, ClientPtr client, XID cid);
 
 extern _X_EXPORT void
