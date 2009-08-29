@@ -53,10 +53,10 @@ static ExtensionEntry	*dri2Extension;
 static RESTYPE		 dri2DrawableRes;
 
 static Bool
-validDrawable(ClientPtr client, XID drawable,
+validDrawable(ClientPtr client, XID drawable, Mask access_mode,
 	      DrawablePtr *pDrawable, int *status)
 {
-    *status = dixLookupDrawable(pDrawable, drawable, client, 0, DixReadAccess);
+    *status = dixLookupDrawable(pDrawable, drawable, client, 0, access_mode);
     if (*status != Success) {
 	client->errorValue = drawable;
 	return FALSE;
@@ -105,7 +105,8 @@ ProcDRI2Connect(ClientPtr client)
     const char *deviceName;
 
     REQUEST_SIZE_MATCH(xDRI2ConnectReq);
-    if (!validDrawable(client, stuff->window, &pDraw, &status))
+    if (!validDrawable(client, stuff->window, DixGetAttrAccess,
+		       &pDraw, &status))
 	return status;
     
     rep.type = X_Reply;
@@ -140,7 +141,8 @@ ProcDRI2Authenticate(ClientPtr client)
     int status;
 
     REQUEST_SIZE_MATCH(xDRI2AuthenticateReq);
-    if (!validDrawable(client, stuff->window, &pDraw, &status))
+    if (!validDrawable(client, stuff->window, DixGetAttrAccess,
+		       &pDraw, &status))
 	return status;
 
     rep.type = X_Reply;
@@ -161,7 +163,8 @@ ProcDRI2CreateDrawable(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDRI2CreateDrawableReq);
 
-    if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
+    if (!validDrawable(client, stuff->drawable, DixAddAccess,
+		       &pDrawable, &status))
 	return status;
 
     status = DRI2CreateDrawable(pDrawable);
@@ -184,7 +187,8 @@ ProcDRI2DestroyDrawable(ClientPtr client)
     int status;
 
     REQUEST_SIZE_MATCH(xDRI2DestroyDrawableReq);
-    if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
+    if (!validDrawable(client, stuff->drawable, DixRemoveAccess,
+		       &pDrawable, &status))
 	return status;
 
     FreeResourceByType(stuff->drawable, dri2DrawableRes, FALSE);
@@ -250,7 +254,8 @@ ProcDRI2GetBuffers(ClientPtr client)
     unsigned int *attachments;
 
     REQUEST_FIXED_SIZE(xDRI2GetBuffersReq, stuff->count * 4);
-    if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
+    if (!validDrawable(client, stuff->drawable, DixReadAccess | DixWriteAccess,
+		       &pDrawable, &status))
 	return status;
 
     attachments = (unsigned int *) &stuff[1];
@@ -273,7 +278,8 @@ ProcDRI2GetBuffersWithFormat(ClientPtr client)
     unsigned int *attachments;
 
     REQUEST_FIXED_SIZE(xDRI2GetBuffersReq, stuff->count * (2 * 4));
-    if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
+    if (!validDrawable(client, stuff->drawable, DixReadAccess | DixWriteAccess,
+		       &pDrawable, &status))
 	return status;
 
     attachments = (unsigned int *) &stuff[1];
@@ -296,7 +302,8 @@ ProcDRI2CopyRegion(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDRI2CopyRegionReq);
 
-    if (!validDrawable(client, stuff->drawable, &pDrawable, &status))
+    if (!validDrawable(client, stuff->drawable, DixWriteAccess,
+		       &pDrawable, &status))
 	return status;
 
     VERIFY_REGION(pRegion, stuff->region, client, DixReadAccess);
