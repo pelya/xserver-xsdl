@@ -107,7 +107,7 @@ do_butmap_change(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
  * to the requested device, faithfully ignores any errors encountered while
  * trying to apply the map to its master/slaves.
  */
-_X_EXPORT int
+int
 ApplyPointerMapping(DeviceIntPtr dev, CARD8 *map, int len, ClientPtr client)
 {
     int ret;
