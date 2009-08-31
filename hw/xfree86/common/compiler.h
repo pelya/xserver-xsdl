@@ -129,7 +129,21 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
-#   ifdef __alpha__
+#   ifdef __i386__
+
+#    ifdef __SSE__
+#     define write_mem_barrier() __asm__ __volatile__ ("sfence" : : : "memory")
+#    else
+#     define write_mem_barrier() __asm__ __volatile__ ("lock; addl $0,0(%%esp)" : : : "memory")
+#    endif
+
+#    ifdef __SSE2__
+#     define mem_barrier() __asm__ __volatile__ ("mfence" : : : "memory")
+#    else
+#     define mem_barrier() __asm__ __volatile__ ("lock; addl $0,0(%%esp)" : : : "memory")
+#    endif
+
+#   elif defined __alpha__
 
 #    define mem_barrier() __asm__ __volatile__ ("mb" : : : "memory")
 #    define write_mem_barrier() __asm__ __volatile__ ("wmb" : : : "memory")
