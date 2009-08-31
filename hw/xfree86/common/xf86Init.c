@@ -962,10 +962,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	    break;
 	}
     }
-
-    /* set up the proper access funcs */
-    xf86PostPreInit();
-
   } else {
     /*
      * serverGeneration != 1; some OSs have to do things here, too.

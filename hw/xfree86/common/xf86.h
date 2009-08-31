@@ -105,7 +105,6 @@ extern _X_EXPORT int  xf86GetFbInfoForScreen(int scrnIndex);
 extern _X_EXPORT int xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 extern _X_EXPORT int xf86ClaimNoSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 extern _X_EXPORT void xf86EnableAccess(ScrnInfoPtr pScrn);
-extern _X_EXPORT void xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn);
 extern _X_EXPORT Bool xf86IsPrimaryPci(struct pci_device * pPci);
 /* new RAC */
 extern _X_EXPORT Bool xf86DriverHasEntities(DriverPtr drvp);

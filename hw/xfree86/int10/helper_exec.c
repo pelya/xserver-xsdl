@@ -644,7 +644,6 @@ bios_checksum(const CARD8 *start, int size)
 void
 LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
 {
-    xf86SetCurrentAccess(FALSE, xf86Screens[pInt->scrnIndex]);
     vga->save_msr    = inb(pInt->ioBase + 0x03CC);
     vga->save_vse    = inb(pInt->ioBase + 0x03C3);
 #ifndef __ia64__
@@ -657,20 +656,17 @@ LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
     outb(pInt->ioBase + 0x46E8, ~(CARD8)0x08 & vga->save_46e8);
 #endif
     outb(pInt->ioBase + 0x0102, ~(CARD8)0x01 & vga->save_pos102);
-    xf86SetCurrentAccess(TRUE, xf86Screens[pInt->scrnIndex]);
 }
 
 void
 UnlockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga)
 {
-    xf86SetCurrentAccess(FALSE, xf86Screens[pInt->scrnIndex]);
     outb(pInt->ioBase + 0x0102, vga->save_pos102);
 #ifndef __ia64__
     outb(pInt->ioBase + 0x46E8, vga->save_46e8);
 #endif
     outb(pInt->ioBase + 0x03C3, vga->save_vse);
     outb(pInt->ioBase + 0x03C2, vga->save_msr);
-    xf86SetCurrentAccess(TRUE, xf86Screens[pInt->scrnIndex]);
 }
 
 #if defined (_PC)

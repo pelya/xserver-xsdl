@@ -455,12 +455,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     return;
 }
 
-void
-xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn)
-{
-  return;
-}
-
 /*
  * xf86EnterServerState() -- set state the server is in.
  */
@@ -497,9 +491,6 @@ xf86EnterServerState(xf86State state)
     else
 	DebugF("Entering OPERATING state\n");
 
-    /* When servicing a dumb framebuffer we don't need to do anything */
-    if (doFramebufferMode) return;
-
     return;
 }
 
@@ -526,12 +517,6 @@ xf86PostProbe(void)
 	    return;
 	}
     }
-}
-
-void
-xf86PostPreInit(void)
-{
-  if (doFramebufferMode) return;
 }
 
 void
@@ -593,8 +578,6 @@ xf86FindPrimaryDevice(void)
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
     }
 }
-
-/* Multihead accel sharing accessor functions and entity Private handling */
 
 int
 xf86GetLastScrnFlag(int entityIndex)
