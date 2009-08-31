@@ -471,13 +471,6 @@ static int __glXAquaContextForceCurrent(__GLXcontext *baseContext)
 }
 
 /* Drawing surface notification callbacks */
-
-static GLboolean __glXAquaDrawableResize(__GLXdrawable *base)  {
-    // Don't remove, <rdar://problem/7114913>
-    GLAQUA_DEBUG_MSG("unimplemented glAquaDrawableResize\n");
-    return GL_TRUE;
-}
-
 static GLboolean __glXAquaDrawableSwapBuffers(__GLXdrawable *base) {
     CGLError err;
     __GLXAquaDrawable *drawable;
@@ -664,7 +657,6 @@ __glXAquaScreenCreateDrawable(__GLXscreen *screen,
   }
 
   glxPriv->base.destroy       = __glXAquaDrawableDestroy;
-  glxPriv->base.resize        = __glXAquaDrawableResize;
   glxPriv->base.swapBuffers   = __glXAquaDrawableSwapBuffers;
   glxPriv->base.copySubBuffer = NULL; /* __glXAquaDrawableCopySubBuffer; */
 
