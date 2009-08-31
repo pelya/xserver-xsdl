@@ -150,10 +150,8 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 #   elif defined __amd64__
 
-#    define mem_barrier() \
-       __asm__ __volatile__ ("lock; addl $0,0(%%rsp)" : : : "memory")
-#    define write_mem_barrier() \
-       __asm__ __volatile__ ("" : : : "memory")
+#    define mem_barrier() __asm__ __volatile__ ("mfence" : : : "memory")
+#    define write_mem_barrier() __asm__ __volatile__ ("sfence" : : : "memory")
 
 #   elif defined __ia64__
 
