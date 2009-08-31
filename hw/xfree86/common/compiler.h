@@ -165,16 +165,17 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #    endif
 
 #   elif defined __mips__
-#    define mem_barrier() \
-        __asm__ __volatile__(                                   \
-                "# prevent instructions being moved around\n\t" \
-                ".set\tnoreorder\n\t"                           \
-                "# 8 nops to fool the R4400 pipeline\n\t"       \
-                "nop;nop;nop;nop;nop;nop;nop;nop\n\t"           \
-                ".set\treorder"                                 \
-                : /* no output */                               \
-                : /* no input */                                \
-                : "memory")
+     /* Note: sync instruction requires MIPS II instruction set */
+#    define mem_barrier()		\
+	__asm__ __volatile__(		\
+		".set   push\n\t"	\
+		".set   noreorder\n\t"	\
+		".set   mips2\n\t"	\
+		"sync\n\t"		\
+		".set   pop"		\
+		: /* no output */	\
+		: /* no input */	\
+		: "memory")
 #    define write_mem_barrier() mem_barrier()
 
 #   elif defined __powerpc__
