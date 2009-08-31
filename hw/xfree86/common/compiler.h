@@ -386,27 +386,6 @@ extern _X_EXPORT unsigned int inl(unsigned int port);
 
 #    include <sys/io.h>
 
-/*
- * This is overkill, but for different reasons depending on where it is used.
- * This is thus general enough to be used everywhere cache flushes are needed.
- * It doesn't handle memory access serialisation by other processors, though.
- */
-#    ifndef __INTEL_COMPILER
-#       define ia64_flush_cache(Addr) \
-	__asm__ __volatile__ ( \
-		"fc.i %0;;;" \
-		"sync.i;;;" \
-		"mf;;;" \
-		"srlz.i;;;" \
-		:: "r"(Addr) : "memory")
-#    else
-#      define ia64_flush_cache(Addr) { \
-        __fc(Addr);\
-        __synci();\
-        __mf();\
-        __isrlz();\
-       }
-#    endif
 #    undef outb
 #    undef outw
 #    undef outl
