@@ -210,80 +210,10 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #  define write_mem_barrier() /* NOP */
 # endif
 
+
 # ifndef NO_INLINE
 #  ifdef __GNUC__
-#   if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
-
-#    ifdef linux
-/* for Linux on Alpha, we use the LIBC _inx/_outx routines */
-/* note that the appropriate setup via "ioperm" needs to be done */
-/*  *before* any inx/outx is done. */
-
-extern _X_EXPORT void (*_alpha_outb)(char val, unsigned long port);
-static __inline__ void
-outb(unsigned long port, unsigned char val)
-{
-    _alpha_outb(val, port);
-}
-
-extern _X_EXPORT void (*_alpha_outw)(short val, unsigned long port);
-static __inline__ void
-outw(unsigned long port, unsigned short val)
-{
-    _alpha_outw(val, port);
-}
-
-extern _X_EXPORT void (*_alpha_outl)(int val, unsigned long port);
-static __inline__ void
-outl(unsigned long port, unsigned int val)
-{
-    _alpha_outl(val, port);
-}
-
-extern _X_EXPORT unsigned int (*_alpha_inb)(unsigned long port);
-static __inline__ unsigned int
-inb(unsigned long port)
-{
-  return _alpha_inb(port);
-}
-
-extern _X_EXPORT unsigned int (*_alpha_inw)(unsigned long port);
-static __inline__ unsigned int
-inw(unsigned long port)
-{
-  return _alpha_inw(port);
-}
-
-extern _X_EXPORT unsigned int (*_alpha_inl)(unsigned long port);
-static __inline__ unsigned int
-inl(unsigned long port)
-{
-  return _alpha_inl(port);
-}
-
-#    endif /* linux */
-
-#    if (defined(__FreeBSD__) || defined(__OpenBSD__)) \
-      && !defined(DO_PROTOTYPES)
-
-/* for FreeBSD and OpenBSD on Alpha, we use the libio (resp. libalpha) */
-/*  inx/outx routines */
-/* note that the appropriate setup via "ioperm" needs to be done */
-/*  *before* any inx/outx is done. */
-
-extern _X_EXPORT void outb(unsigned int port, unsigned char val);
-extern _X_EXPORT void outw(unsigned int port, unsigned short val);
-extern _X_EXPORT void outl(unsigned int port, unsigned int val);
-extern _X_EXPORT unsigned char inb(unsigned int port);
-extern _X_EXPORT unsigned short inw(unsigned int port);
-extern _X_EXPORT unsigned int inl(unsigned int port);
-
-#    endif /* (__FreeBSD__ || __OpenBSD__ ) && !DO_PROTOTYPES */
-
-
-#if defined(__NetBSD__)
-#include <machine/pio.h>
-#endif /* __NetBSD__ */
+#   ifdef __alpha__
 
 /*
  * inline functions to do unaligned accesses
@@ -440,11 +370,34 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 #    endif
 }
 
-#   elif defined(linux) && defined(__ia64__) 
- 
-#    include <inttypes.h>
+#   elif defined __amd64__
 
-#    include <sys/io.h>
+#    define ldq_u(p)	(*((unsigned long  *)(p)))
+#    define ldl_u(p)	(*((unsigned int   *)(p)))
+#    define ldw_u(p)	(*((unsigned short *)(p)))
+#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+
+#   elif defined __arm__
+
+#    define ldq_u(p)	(*((unsigned long  *)(p)))
+#    define ldl_u(p)	(*((unsigned int   *)(p)))
+#    define ldw_u(p)	(*((unsigned short *)(p)))
+#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+
+#   elif defined __arm32__
+
+#    define ldq_u(p)	(*((unsigned long  *)(p)))
+#    define ldl_u(p)	(*((unsigned int   *)(p)))
+#    define ldw_u(p)	(*((unsigned short *)(p)))
+#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+
+#   elif defined __ia64__
 
 struct __una_u64 { uint64_t x __attribute__((packed)); };
 struct __una_u32 { uint32_t x __attribute__((packed)); };
@@ -499,6 +452,276 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    define stl_u(v,p)	__ustl(v,p)
 #    define stw_u(v,p)	__ustw(v,p)
 
+#   elif defined __mips__
+
+static __inline__ unsigned long ldq_u(unsigned long * r11)
+{
+	unsigned long r1;
+	__asm__("lwr %0,%2\n\t"
+		"lwl %0,%3\n\t"
+		:"=&r" (r1)
+		:"r" (r11),
+		 "m" (*r11),
+		 "m" (*(unsigned long *)(3+(char *) r11)));
+	return r1;
+}
+
+static __inline__ unsigned long ldl_u(unsigned int * r11)
+{
+	unsigned long r1;
+	__asm__("lwr %0,%2\n\t"
+		"lwl %0,%3\n\t"
+		:"=&r" (r1)
+		:"r" (r11),
+		 "m" (*r11),
+		 "m" (*(unsigned long *)(3+(char *) r11)));
+	return r1;
+}
+
+static __inline__ unsigned long ldw_u(unsigned short * r11)
+{
+	unsigned long r1;
+	__asm__("lwr %0,%2\n\t"
+		"lwl %0,%3\n\t"
+		:"=&r" (r1)
+		:"r" (r11),
+		 "m" (*r11),
+		 "m" (*(unsigned long *)(1+(char *) r11)));
+	return r1;
+}
+
+#    ifdef linux
+struct __una_u32 { unsigned int   x __attribute__((packed)); };
+struct __una_u16 { unsigned short x __attribute__((packed)); };
+
+static __inline__ void stw_u(unsigned long val, unsigned short *p)
+{
+	struct __una_u16 *ptr = (struct __una_u16 *) p;
+	ptr->x = val;
+}
+
+static __inline__ void stl_u(unsigned long val, unsigned int *p)
+{
+	struct __una_u32 *ptr = (struct __una_u32 *) p;
+	ptr->x = val;
+}
+#    else  /* !linux */
+
+#     define stq_u(v,p)	stl_u(v,p)
+#     define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
+			(*(unsigned char *)(p)+1) = ((v) >> 8);  \
+			(*(unsigned char *)(p)+2) = ((v) >> 16); \
+			(*(unsigned char *)(p)+3) = ((v) >> 24)
+
+#     define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
+			(*(unsigned char *)(p)+1) = ((v) >> 8)
+#    endif /* linux */
+
+#   elif defined __powerpc__
+
+#    define ldq_u(p)	ldl_u(p)
+#    define ldl_u(p)	((*(unsigned char *)(p))	| \
+			(*((unsigned char *)(p)+1)<<8)	| \
+			(*((unsigned char *)(p)+2)<<16)	| \
+			(*((unsigned char *)(p)+3)<<24))
+#    define ldw_u(p)	((*(unsigned char *)(p)) | \
+			(*((unsigned char *)(p)+1)<<8))
+
+#    define stq_u(v,p)	stl_u(v,p)
+#    define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
+			(*((unsigned char *)(p)+1)) = ((v) >> 8);  \
+			(*((unsigned char *)(p)+2)) = ((v) >> 16); \
+			(*((unsigned char *)(p)+3)) = ((v) >> 24)
+#    define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
+			(*((unsigned char *)(p)+1)) = ((v) >> 8)
+
+#   elif defined __sparc__
+
+#    if defined(__arch64__) || defined(__sparcv9)
+struct __una_u64 { unsigned long  x __attribute__((packed)); };
+#    endif
+struct __una_u32 { unsigned int   x __attribute__((packed)); };
+struct __una_u16 { unsigned short x __attribute__((packed)); };
+
+static __inline__ unsigned long ldq_u(unsigned long *p)
+{
+#    if defined(__GNUC__)
+#     if defined(__arch64__) || defined(__sparcv9)
+	const struct __una_u64 *ptr = (const struct __una_u64 *) p;
+#     else
+	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
+#     endif
+	return ptr->x;
+#    else
+	unsigned long ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
+#    endif
+}
+
+static __inline__ unsigned long ldl_u(unsigned int *p)
+{
+#    if defined(__GNUC__)
+	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
+	return ptr->x;
+#    else
+	unsigned int ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
+#    endif
+}
+
+static __inline__ unsigned long ldw_u(unsigned short *p)
+{
+#    if defined(__GNUC__)
+	const struct __una_u16 *ptr = (const struct __una_u16 *) p;
+	return ptr->x;
+#    else
+	unsigned short ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
+#    endif
+}
+
+static __inline__ void stq_u(unsigned long val, unsigned long *p)
+{
+#    if defined(__GNUC__)
+#     if defined(__arch64__) || defined(__sparcv9)
+	struct __una_u64 *ptr = (struct __una_u64 *) p;
+#     else
+	struct __una_u32 *ptr = (struct __una_u32 *) p;
+#     endif
+	ptr->x = val;
+#    else
+	unsigned long tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+#    endif
+}
+
+static __inline__ void stl_u(unsigned long val, unsigned int *p)
+{
+#    if defined(__GNUC__)
+	struct __una_u32 *ptr = (struct __una_u32 *) p;
+	ptr->x = val;
+#    else
+	unsigned int tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+#    endif
+}
+
+static __inline__ void stw_u(unsigned long val, unsigned short *p)
+{
+#    if defined(__GNUC__)
+	struct __una_u16 *ptr = (struct __una_u16 *) p;
+	ptr->x = val;
+#    else
+	unsigned short tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+#    endif
+}
+
+#   else
+
+#    define ldq_u(p)	(*((unsigned long  *)(p)))
+#    define ldl_u(p)	(*((unsigned int   *)(p)))
+#    define ldw_u(p)	(*((unsigned short *)(p)))
+#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+
+#   endif
+
+#   define ldq_u(p)	(*((unsigned long  *)(p)))
+#   define ldl_u(p)	(*((unsigned int   *)(p)))
+#   define ldw_u(p)	(*((unsigned short *)(p)))
+#   define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
+#   define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
+#   define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+
+#  endif /* __GNUC__ */
+# endif /* NO_INLINE */
+
+# ifndef NO_INLINE
+#  ifdef __GNUC__
+#   if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
+
+#    ifdef linux
+/* for Linux on Alpha, we use the LIBC _inx/_outx routines */
+/* note that the appropriate setup via "ioperm" needs to be done */
+/*  *before* any inx/outx is done. */
+
+extern _X_EXPORT void (*_alpha_outb)(char val, unsigned long port);
+static __inline__ void
+outb(unsigned long port, unsigned char val)
+{
+    _alpha_outb(val, port);
+}
+
+extern _X_EXPORT void (*_alpha_outw)(short val, unsigned long port);
+static __inline__ void
+outw(unsigned long port, unsigned short val)
+{
+    _alpha_outw(val, port);
+}
+
+extern _X_EXPORT void (*_alpha_outl)(int val, unsigned long port);
+static __inline__ void
+outl(unsigned long port, unsigned int val)
+{
+    _alpha_outl(val, port);
+}
+
+extern _X_EXPORT unsigned int (*_alpha_inb)(unsigned long port);
+static __inline__ unsigned int
+inb(unsigned long port)
+{
+  return _alpha_inb(port);
+}
+
+extern _X_EXPORT unsigned int (*_alpha_inw)(unsigned long port);
+static __inline__ unsigned int
+inw(unsigned long port)
+{
+  return _alpha_inw(port);
+}
+
+extern _X_EXPORT unsigned int (*_alpha_inl)(unsigned long port);
+static __inline__ unsigned int
+inl(unsigned long port)
+{
+  return _alpha_inl(port);
+}
+
+#    endif /* linux */
+
+#    if (defined(__FreeBSD__) || defined(__OpenBSD__)) \
+      && !defined(DO_PROTOTYPES)
+
+/* for FreeBSD and OpenBSD on Alpha, we use the libio (resp. libalpha) */
+/*  inx/outx routines */
+/* note that the appropriate setup via "ioperm" needs to be done */
+/*  *before* any inx/outx is done. */
+
+extern _X_EXPORT void outb(unsigned int port, unsigned char val);
+extern _X_EXPORT void outw(unsigned int port, unsigned short val);
+extern _X_EXPORT void outl(unsigned int port, unsigned int val);
+extern _X_EXPORT unsigned char inb(unsigned int port);
+extern _X_EXPORT unsigned short inw(unsigned int port);
+extern _X_EXPORT unsigned int inl(unsigned int port);
+
+#    endif /* (__FreeBSD__ || __OpenBSD__ ) && !DO_PROTOTYPES */
+
+
+#if defined(__NetBSD__)
+#include <machine/pio.h>
+#endif /* __NetBSD__ */
+
+#   elif defined(linux) && defined(__ia64__) 
+ 
+#    include <inttypes.h>
+
+#    include <sys/io.h>
+
 /*
  * This is overkill, but for different reasons depending on where it is used.
  * This is thus general enough to be used everywhere cache flushes are needed.
@@ -537,13 +760,6 @@ extern _X_EXPORT unsigned int inl(unsigned long port);
  
 #    include <inttypes.h>
 
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-  
 static __inline__ void
 outb(unsigned short port, unsigned char val)
 {
@@ -831,95 +1047,6 @@ xf86WriteMmio32LeNB(__volatile__ void *base, const unsigned long offset,
 			     : "r" (val), "r" (addr), "i" (ASI_PL));
 }
 
-
-/*
- * EGCS 1.1 knows about arbitrary unaligned loads.  Define some
- * packed structures to talk about such things with.
- */
-
-#    if defined(__arch64__) || defined(__sparcv9)
-struct __una_u64 { unsigned long  x __attribute__((packed)); };
-#    endif
-struct __una_u32 { unsigned int   x __attribute__((packed)); };
-struct __una_u16 { unsigned short x __attribute__((packed)); };
-
-static __inline__ unsigned long ldq_u(unsigned long *p)
-{
-#    if defined(__GNUC__)
-#     if defined(__arch64__) || defined(__sparcv9)
-	const struct __una_u64 *ptr = (const struct __una_u64 *) p;
-#     else
-	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
-#     endif
-	return ptr->x;
-#    else
-	unsigned long ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
-}
-
-static __inline__ unsigned long ldl_u(unsigned int *p)
-{
-#    if defined(__GNUC__)
-	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
-	return ptr->x;
-#    else
-	unsigned int ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
-}
-
-static __inline__ unsigned long ldw_u(unsigned short *p)
-{
-#    if defined(__GNUC__)
-	const struct __una_u16 *ptr = (const struct __una_u16 *) p;
-	return ptr->x;
-#    else
-	unsigned short ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
-}
-
-static __inline__ void stq_u(unsigned long val, unsigned long *p)
-{
-#    if defined(__GNUC__)
-#     if defined(__arch64__) || defined(__sparcv9)
-	struct __una_u64 *ptr = (struct __una_u64 *) p;
-#     else
-	struct __una_u32 *ptr = (struct __una_u32 *) p;
-#     endif
-	ptr->x = val;
-#    else
-	unsigned long tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
-}
-
-static __inline__ void stl_u(unsigned long val, unsigned int *p)
-{
-#    if defined(__GNUC__)
-	struct __una_u32 *ptr = (struct __una_u32 *) p;
-	ptr->x = val;
-#    else
-	unsigned int tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
-}
-
-static __inline__ void stw_u(unsigned long val, unsigned short *p)
-{
-#    if defined(__GNUC__)
-	struct __una_u16 *ptr = (struct __una_u16 *) p;
-	ptr->x = val;
-#    else
-	unsigned short tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
-}
-
 #   elif defined(__mips__) || (defined(__arm32__) && !defined(__linux__))
 #    ifdef __arm32__
 #     define PORT_SIZE long
@@ -967,65 +1094,7 @@ inl(unsigned PORT_SIZE port)
 
 
 #    if defined(__mips__)
-static __inline__ unsigned long ldq_u(unsigned long * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(3+(char *) r11)));
-	return r1;
-}
-
-static __inline__ unsigned long ldl_u(unsigned int * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(3+(char *) r11)));
-	return r1;
-}
-
-static __inline__ unsigned long ldw_u(unsigned short * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(1+(char *) r11)));
-	return r1;
-}
-
 #     ifdef linux	/* don't mess with other OSs */
-
-/*
- * EGCS 1.1 knows about arbitrary unaligned loads (and we don't support older
- * versions anyway. Define some packed structures to talk about such things
- * with.
- */
-
-struct __una_u32 { unsigned int   x __attribute__((packed)); };
-struct __una_u16 { unsigned short x __attribute__((packed)); };
-
-static __inline__ void stw_u(unsigned long val, unsigned short *p)
-{
-	struct __una_u16 *ptr = (struct __una_u16 *) p;
-	ptr->x = val;
-}
-
-static __inline__ void stl_u(unsigned long val, unsigned int *p)
-{
-	struct __una_u32 *ptr = (struct __una_u32 *) p;
-	ptr->x = val;
-}
-
 #       if X_BYTE_ORDER == X_BIG_ENDIAN
 static __inline__ unsigned int
 xf86ReadMmio32Be(__volatile__ void *base, const unsigned long offset)
@@ -1050,29 +1119,8 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 			     : "r" (val), "r" (addr));
 }
 #      endif
-
-#     else  /* !linux */
-
-#      define stq_u(v,p)	stl_u(v,p)
-#      define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
-			(*(unsigned char *)(p)+1) = ((v) >> 8);  \
-			(*(unsigned char *)(p)+2) = ((v) >> 16); \
-			(*(unsigned char *)(p)+3) = ((v) >> 24)
-
-#      define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
-				(*(unsigned char *)(p)+1) = ((v) >> 8)
-
 #     endif /* !linux */
 #    endif /* __mips__ */
-
-#    if defined(__arm32__)
-#     define ldq_u(p)	(*((unsigned long  *)(p)))
-#     define ldl_u(p)	(*((unsigned int   *)(p)))
-#     define ldw_u(p)	(*((unsigned short *)(p)))
-#     define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#     define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#     define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#    endif /* __arm32__ */
 
 #   elif (defined(linux) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__)) && defined(__powerpc__)
 
@@ -1280,30 +1328,7 @@ inl(unsigned short port)
         return xf86ReadMmio32Le((void *)ioBase, port);
 }
 
-#    define ldq_u(p)	ldl_u(p)
-#    define ldl_u(p)	((*(unsigned char *)(p))	| \
-			(*((unsigned char *)(p)+1)<<8)	| \
-			(*((unsigned char *)(p)+2)<<16)	| \
-			(*((unsigned char *)(p)+3)<<24))
-#    define ldw_u(p)	((*(unsigned char *)(p)) | \
-			(*((unsigned char *)(p)+1)<<8))
-
-#    define stq_u(v,p)	stl_u(v,p)
-#    define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
-				(*((unsigned char *)(p)+1)) = ((v) >> 8);  \
-				(*((unsigned char *)(p)+2)) = ((v) >> 16); \
-				(*((unsigned char *)(p)+3)) = ((v) >> 24)
-#    define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
-				(*((unsigned char *)(p)+1)) = ((v) >> 8)
-
 #elif defined(__arm__) && defined(__linux__)
-
-#define ldq_u(p)	(*((unsigned long  *)(p)))
-#define ldl_u(p)	(*((unsigned int   *)(p)))
-#define ldw_u(p)	(*((unsigned short *)(p)))
-#define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
 
 /* for Linux on ARM, we use the LIBC inx/outx routines */
 /* note that the appropriate setup via "ioperm" needs to be done */
@@ -1334,13 +1359,6 @@ xf_outl(unsigned short port, unsigned int val)
 #define outl xf_outl
 
 #   else /* ix86 */
-
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
 
 #    if !defined(__SUNPRO_C)
 #    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && !defined(__m32r__)
@@ -1523,12 +1541,6 @@ inl(unsigned short port)
 #     pragma asm partial_optimization inw
 #     pragma asm partial_optimization inb
 #    endif
-#   define ldq_u(p)	(*((unsigned long  *)(p)))
-#   define ldl_u(p)	(*((unsigned int   *)(p)))
-#   define ldw_u(p)	(*((unsigned short *)(p)))
-#   define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#   define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#   define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
 #  endif /* __GNUC__ */
 
 # endif /* NO_INLINE */
