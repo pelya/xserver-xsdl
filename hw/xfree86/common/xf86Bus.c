@@ -46,7 +46,6 @@
 #include "xf86Bus.h"
 
 #define XF86_OS_PRIVS
-#define NEED_OS_RAC_PROTOS
 #include "xf86_OSproc.h"
 #include "xf86VGAarbiter.h"
 
