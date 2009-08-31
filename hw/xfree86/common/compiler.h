@@ -141,16 +141,6 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #    define write_mem_barrier() \
        __asm__ __volatile__ ("" : : : "memory")
 
-#   elif defined __arm__
-
-#    define mem_barrier()   /* NOP */
-#    define write_mem_barrier()   /* NOP */
-
-#   elif defined __arm32__
-
-#    define mem_barrier()	/* NOP */
-#    define write_mem_barrier()	/* NOP */
-
 #   elif defined __ia64__
 
 #    ifndef __INTEL_COMPILER
@@ -163,8 +153,7 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #    endif
 
 #   elif defined __mips__
-#    ifdef linux
-#     define mem_barrier() \
+#    define mem_barrier() \
         __asm__ __volatile__(                                   \
                 "# prevent instructions being moved around\n\t" \
                 ".set\tnoreorder\n\t"                           \
@@ -174,11 +163,7 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
                 : /* no output */                               \
                 : /* no input */                                \
                 : "memory")
-#     define write_mem_barrier() mem_barrier()
-
-#    else /* !linux */
-#     define mem_barrier()   /* NOP */
-#    endif
+#    define write_mem_barrier() mem_barrier()
 
 #   elif defined __powerpc__
 
@@ -200,20 +185,17 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #    define barrier() __asm__ __volatile__ (".word 0x8143e00a" : : : "memory")
 #    define mem_barrier()         /* XXX: nop for now */
 #    define write_mem_barrier()   /* XXX: nop for now */
-
-#   else /* ix86 */
-
-#    define mem_barrier()   /* NOP */
-#    define write_mem_barrier()   /* NOP */
-
 #   endif
-#  else
-
-#   define mem_barrier()   /* NOP */
-#   define write_mem_barrier()   /* NOP */
-
 #  endif /* __GNUC__ */
 # endif /* NO_INLINE */
+
+# ifndef mem_barrier
+#  define mem_barrier() /* NOP */
+# endif
+
+# ifndef write_mem_barrier
+#  define write_mem_barrier() /* NOP */
+# endif
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
