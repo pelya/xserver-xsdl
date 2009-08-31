@@ -31,6 +31,8 @@
 #include "xorg-config.h"
 
 #include "xf86VGAarbiter.h"
+
+#ifdef HAVE_PCI_DEVICE_VGAARB_INIT
 #include "xf86VGAarbiterPriv.h"
 #include "xf86Bus.h"
 #include "pciaccess.h"
@@ -43,8 +45,6 @@
 #define DPRINT_S(x,y)
 #define DPRINT(x)
 #endif
-
-#ifdef HAVE_PCI_DEVICE_VGAARB_INIT
 
 static GCFuncs VGAarbiterGCFuncs = {
     VGAarbiterValidateGC, VGAarbiterChangeGC, VGAarbiterCopyGC,
