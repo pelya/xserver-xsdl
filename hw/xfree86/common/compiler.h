@@ -215,159 +215,48 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 #  ifdef __GNUC__
 #   ifdef __alpha__
 
-/*
- * inline functions to do unaligned accesses
- * from linux/include/asm-alpha/unaligned.h
- */
-
-/*
- * EGCS 1.1 knows about arbitrary unaligned loads.  Define some
- * packed structures to talk about such things with.
- */
-
 struct __una_u64 { unsigned long  x __attribute__((packed)); };
 struct __una_u32 { unsigned int   x __attribute__((packed)); };
 struct __una_u16 { unsigned short x __attribute__((packed)); };
 
-/*
- * Elemental unaligned loads 
- */
-/* let's try making these things static */
+/* Elemental unaligned loads */
 
 static __inline__ unsigned long ldq_u(unsigned long * r11)
 {
-#    if defined(__GNUC__)
 	const struct __una_u64 *ptr = (const struct __una_u64 *) r11;
 	return ptr->x;
-#    else
-	unsigned long r1,r2;
-	__asm__("ldq_u %0,%3\n\t"
-		"ldq_u %1,%4\n\t"
-		"extql %0,%2,%0\n\t"
-		"extqh %1,%2,%1"
-		:"=&r" (r1), "=&r" (r2)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(const unsigned long *)(7+(char *) r11)));
-	return r1 | r2;
-#    endif
 }
 
 static __inline__ unsigned long ldl_u(unsigned int * r11)
 {
-#    if defined(__GNUC__)
 	const struct __una_u32 *ptr = (const struct __una_u32 *) r11;
 	return ptr->x;
-#    else
-	unsigned long r1,r2;
-	__asm__("ldq_u %0,%3\n\t"
-		"ldq_u %1,%4\n\t"
-		"extll %0,%2,%0\n\t"
-		"extlh %1,%2,%1"
-		:"=&r" (r1), "=&r" (r2)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(const unsigned long *)(3+(char *) r11)));
-	return r1 | r2;
-#    endif
 }
 
 static __inline__ unsigned long ldw_u(unsigned short * r11)
 {
-#    if defined(__GNUC__)
 	const struct __una_u16 *ptr = (const struct __una_u16 *) r11;
 	return ptr->x;
-#    else
-	unsigned long r1,r2;
-	__asm__("ldq_u %0,%3\n\t"
-		"ldq_u %1,%4\n\t"
-		"extwl %0,%2,%0\n\t"
-		"extwh %1,%2,%1"
-		:"=&r" (r1), "=&r" (r2)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(const unsigned long *)(1+(char *) r11)));
-	return r1 | r2;
-#    endif
 }
 
-/*
- * Elemental unaligned stores 
- */
+/* Elemental unaligned stores */
 
 static __inline__ void stq_u(unsigned long r5, unsigned long * r11)
 {
-#    if defined(__GNUC__)
 	struct __una_u64 *ptr = (struct __una_u64 *) r11;
 	ptr->x = r5;
-#    else
-	unsigned long r1,r2,r3,r4;
-
-	__asm__("ldq_u %3,%1\n\t"
-		"ldq_u %2,%0\n\t"
-		"insqh %6,%7,%5\n\t"
-		"insql %6,%7,%4\n\t"
-		"mskqh %3,%7,%3\n\t"
-		"mskql %2,%7,%2\n\t"
-		"bis %3,%5,%3\n\t"
-		"bis %2,%4,%2\n\t"
-		"stq_u %3,%1\n\t"
-		"stq_u %2,%0"
-		:"=m" (*r11),
-		 "=m" (*(unsigned long *)(7+(char *) r11)),
-		 "=&r" (r1), "=&r" (r2), "=&r" (r3), "=&r" (r4)
-		:"r" (r5), "r" (r11));
-#    endif
 }
 
 static __inline__ void stl_u(unsigned long r5, unsigned int * r11)
 {
-#    if defined(__GNUC__)
 	struct __una_u32 *ptr = (struct __una_u32 *) r11;
 	ptr->x = r5;
-#    else
-	unsigned long r1,r2,r3,r4;
-
-	__asm__("ldq_u %3,%1\n\t"
-		"ldq_u %2,%0\n\t"
-		"inslh %6,%7,%5\n\t"
-		"insll %6,%7,%4\n\t"
-		"msklh %3,%7,%3\n\t"
-		"mskll %2,%7,%2\n\t"
-		"bis %3,%5,%3\n\t"
-		"bis %2,%4,%2\n\t"
-		"stq_u %3,%1\n\t"
-		"stq_u %2,%0"
-		:"=m" (*r11),
-		 "=m" (*(unsigned long *)(3+(char *) r11)),
-		 "=&r" (r1), "=&r" (r2), "=&r" (r3), "=&r" (r4)
-		:"r" (r5), "r" (r11));
-#    endif
 }
 
 static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 {
-#    if defined(__GNUC__)
 	struct __una_u16 *ptr = (struct __una_u16 *) r11;
 	ptr->x = r5;
-#    else
-	unsigned long r1,r2,r3,r4;
-
-	__asm__("ldq_u %3,%1\n\t"
-		"ldq_u %2,%0\n\t"
-		"inswh %6,%7,%5\n\t"
-		"inswl %6,%7,%4\n\t"
-		"mskwh %3,%7,%3\n\t"
-		"mskwl %2,%7,%2\n\t"
-		"bis %3,%5,%3\n\t"
-		"bis %2,%4,%2\n\t"
-		"stq_u %3,%1\n\t"
-		"stq_u %2,%0"
-		:"=m" (*r11),
-		 "=m" (*(unsigned long *)(1+(char *) r11)),
-		 "=&r" (r1), "=&r" (r2), "=&r" (r3), "=&r" (r4)
-		:"r" (r5), "r" (r11));
-#    endif
 }
 
 #   elif defined __amd64__
