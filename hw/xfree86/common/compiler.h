@@ -129,6 +129,94 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
+#   ifdef __alpha__
+
+#    define mem_barrier() __asm__ __volatile__ ("mb" : : : "memory")
+#    define write_mem_barrier() __asm__ __volatile__ ("wmb" : : : "memory")
+
+#   elif defined __amd64__
+
+#    define mem_barrier() \
+       __asm__ __volatile__ ("lock; addl $0,0(%%rsp)" : : : "memory")
+#    define write_mem_barrier() \
+       __asm__ __volatile__ ("" : : : "memory")
+
+#   elif defined __arm__
+
+#    define mem_barrier()   /* NOP */
+#    define write_mem_barrier()   /* NOP */
+
+#   elif defined __arm32__
+
+#    define mem_barrier()	/* NOP */
+#    define write_mem_barrier()	/* NOP */
+
+#   elif defined __ia64__
+
+#    ifndef __INTEL_COMPILER
+#     define mem_barrier()        __asm__ __volatile__ ("mf" : : : "memory")
+#     define write_mem_barrier()  __asm__ __volatile__ ("mf" : : : "memory")
+#    else
+#     include "ia64intrin.h"
+#     define mem_barrier() __mf()
+#     define write_mem_barrier() __mf()
+#    endif
+
+#   elif defined __mips__
+#    ifdef linux
+#     define mem_barrier() \
+        __asm__ __volatile__(                                   \
+                "# prevent instructions being moved around\n\t" \
+                ".set\tnoreorder\n\t"                           \
+                "# 8 nops to fool the R4400 pipeline\n\t"       \
+                "nop;nop;nop;nop;nop;nop;nop;nop\n\t"           \
+                ".set\treorder"                                 \
+                : /* no output */                               \
+                : /* no input */                                \
+                : "memory")
+#     define write_mem_barrier() mem_barrier()
+
+#    else /* !linux */
+#     define mem_barrier()   /* NOP */
+#    endif
+
+#   elif defined __powerpc__
+
+#    if defined(linux) && defined(__powerpc64__)
+#     include <linux/version.h>
+#     if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
+#      include <asm/memory.h>
+#     endif
+#    endif /* defined(linux) && defined(__powerpc64__) */
+
+#    ifndef eieio /* We deal with arch-specific eieio() routines above... */
+#     define eieio() __asm__ __volatile__ ("eieio" ::: "memory")
+#    endif /* eieio */
+#    define mem_barrier()	eieio()
+#    define write_mem_barrier()	eieio()
+
+#   elif defined __sparc__
+
+#    define barrier() __asm__ __volatile__ (".word 0x8143e00a" : : : "memory")
+#    define mem_barrier()         /* XXX: nop for now */
+#    define write_mem_barrier()   /* XXX: nop for now */
+
+#   else /* ix86 */
+
+#    define mem_barrier()   /* NOP */
+#    define write_mem_barrier()   /* NOP */
+
+#   endif
+#  else
+
+#   define mem_barrier()   /* NOP */
+#   define write_mem_barrier()   /* NOP */
+
+#  endif /* __GNUC__ */
+# endif /* NO_INLINE */
+
+# ifndef NO_INLINE
+#  ifdef __GNUC__
 #   if (defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)) && (defined(__alpha__))
 
 #    ifdef linux
@@ -357,9 +445,6 @@ static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
 #    endif
 }
 
-#    define mem_barrier() __asm__ __volatile__("mb" : : : "memory")
-#    define write_mem_barrier() __asm__ __volatile__("wmb" : : : "memory")
-
 #   elif defined(linux) && defined(__ia64__) 
  
 #    include <inttypes.h>
@@ -419,15 +504,6 @@ __ustw (unsigned long r5, unsigned short * r11)
 #    define stl_u(v,p)	__ustl(v,p)
 #    define stw_u(v,p)	__ustw(v,p)
 
-#    ifndef __INTEL_COMPILER  
-#      define mem_barrier()        __asm__ __volatile__ ("mf" ::: "memory")
-#      define write_mem_barrier()  __asm__ __volatile__ ("mf" ::: "memory")
-#    else
-#      include "ia64intrin.h"
-#      define mem_barrier() __mf()
-#      define write_mem_barrier() __mf()
-#    endif
-
 /*
  * This is overkill, but for different reasons depending on where it is used.
  * This is thus general enough to be used everywhere cache flushes are needed.
@@ -473,12 +549,6 @@ extern _X_EXPORT unsigned int inl(unsigned long port);
 #    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
 #    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
   
-#    define mem_barrier() \
-       __asm__ __volatile__ ("lock; addl $0,0(%%rsp)": : :"memory")
-#    define write_mem_barrier() \
-       __asm__ __volatile__ ("": : :"memory")
-
-
 static __inline__ void
 outb(unsigned short port, unsigned char val)
 {
@@ -533,8 +603,6 @@ inl(unsigned short port)
 #     ifndef ASI_PL
 #      define ASI_PL 0x88
 #     endif
-
-#     define barrier() __asm__ __volatile__(".word 0x8143e00a": : :"memory")
 
 static __inline__ void
 outb(unsigned long port, unsigned char val)
@@ -857,9 +925,6 @@ static __inline__ void stw_u(unsigned long val, unsigned short *p)
 #    endif
 }
 
-#    define mem_barrier()         /* XXX: nop for now */
-#    define write_mem_barrier()   /* XXX: nop for now */
-
 #   elif defined(__mips__) || (defined(__arm32__) && !defined(__linux__))
 #    ifdef __arm32__
 #     define PORT_SIZE long
@@ -991,18 +1056,6 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 }
 #      endif
 
-#      define mem_barrier() \
-        __asm__ __volatile__(					\
-		"# prevent instructions being moved around\n\t"	\
-       		".set\tnoreorder\n\t"				\
-		"# 8 nops to fool the R4400 pipeline\n\t"	\
-		"nop;nop;nop;nop;nop;nop;nop;nop\n\t"		\
-		".set\treorder"					\
-		: /* no output */				\
-		: /* no input */				\
-		: "memory")
-#      define write_mem_barrier() mem_barrier()
-
 #     else  /* !linux */
 
 #      define stq_u(v,p)	stl_u(v,p)
@@ -1014,7 +1067,6 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 #      define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
 				(*(unsigned char *)(p)+1) = ((v) >> 8)
 
-#      define mem_barrier()   /* NOP */
 #     endif /* !linux */
 #    endif /* __mips__ */
 
@@ -1025,8 +1077,6 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 #     define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
 #     define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
 #     define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#     define mem_barrier()	/* NOP */
-#     define write_mem_barrier()	/* NOP */
 #    endif /* __arm32__ */
 
 #   elif (defined(linux) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__)) && defined(__powerpc__)
@@ -1036,16 +1086,6 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 #    endif
 
 extern _X_EXPORT volatile unsigned char *ioBase;
-
-#if defined(linux) && defined(__powerpc64__)
-# include <linux/version.h>
-# if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
-#  include <asm/memory.h>
-# endif
-#endif /* defined(linux) && defined(__powerpc64__) */
-#ifndef eieio /* We deal with arch-specific eieio() routines above... */
-# define eieio() __asm__ __volatile__ ("eieio" ::: "memory")
-#endif /* eieio */
 
 static __inline__ unsigned char
 xf86ReadMmio8(__volatile__ void *base, const unsigned long offset)
@@ -1261,9 +1301,6 @@ inl(unsigned short port)
 #    define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
 				(*((unsigned char *)(p)+1)) = ((v) >> 8)
 
-#    define mem_barrier()	eieio()
-#    define write_mem_barrier()	eieio()
-
 #elif defined(__arm__) && defined(__linux__)
 
 #define ldq_u(p)	(*((unsigned long  *)(p)))
@@ -1272,8 +1309,6 @@ inl(unsigned short port)
 #define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
 #define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
 #define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#define mem_barrier()   /* NOP */
-#define write_mem_barrier()   /* NOP */
 
 /* for Linux on ARM, we use the LIBC inx/outx routines */
 /* note that the appropriate setup via "ioperm" needs to be done */
@@ -1321,8 +1356,6 @@ do {									\
 #    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
 #    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
 #    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#    define mem_barrier()   /* NOP */
-#    define write_mem_barrier()   /* NOP */
 
 #    if !defined(__SUNPRO_C)
 #    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && !defined(__m32r__)
@@ -1511,8 +1544,6 @@ inl(unsigned short port)
 #   define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
 #   define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
 #   define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#   define mem_barrier()   /* NOP */
-#   define write_mem_barrier()   /* NOP */
 #  endif /* __GNUC__ */
 
 # endif /* NO_INLINE */
@@ -1528,7 +1559,7 @@ extern _X_EXPORT int (*xf86ReadMmio32)(void *, unsigned long);
 static __inline__ int
 xf86ReadMmio32(void *Base, unsigned long Offset)
 {
-	__asm__ __volatile__("mb"  : : : "memory");
+	mem_barrier();
 	return *(volatile unsigned int*)((unsigned long)Base+(Offset));
 }
 #  endif
