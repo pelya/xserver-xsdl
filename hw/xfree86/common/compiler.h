@@ -1333,16 +1333,6 @@ xf_outl(unsigned short port, unsigned int val)
 #define outw xf_outw
 #define outl xf_outl
 
-#define arm_flush_cache(addr)						\
-do {									\
-  register unsigned long _beg __asm ("a1") = (unsigned long) (addr);	\
-  register unsigned long _end __asm ("a2") = (unsigned long) (addr) + 4;\
-  register unsigned long _flg __asm ("a3") = 0;				\
-  __asm __volatile ("swi 0x9f0002		@ sys_cacheflush"	\
-    : "=r" (_beg)							\
-    : "0" (_beg), "r" (_end), "r" (_flg));				\
-} while (0)
-
 #   else /* ix86 */
 
 #    define ldq_u(p)	(*((unsigned long  *)(p)))
