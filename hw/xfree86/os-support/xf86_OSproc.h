@@ -143,8 +143,6 @@ extern _X_EXPORT void xf86SetTVOut(int);
 extern _X_EXPORT void xf86SetRGBOut(void);
 #endif
 extern _X_EXPORT void xf86OSRingBell(int, int, int);
-extern _X_EXPORT void xf86BusToMem(unsigned char *, unsigned char *, int);
-extern _X_EXPORT void xf86MemToBus(unsigned char *, unsigned char *, int);
 extern _X_EXPORT void xf86UDelay(long usec);
 extern _X_EXPORT void xf86SetReallySlowBcopy(void);
 extern _X_EXPORT void xf86SlowBcopy(unsigned char *, unsigned char *, int);
