@@ -1635,17 +1635,6 @@ extern _X_EXPORT void xf86SlowBCopyToBus(unsigned char *, unsigned char *, int);
 #  define MMIO_MOVE32(base, offset, val) \
        xf86WriteMmio32Be(base, offset, (CARD32)(val))
 
-static __inline__ void ppc_flush_icache(char *addr)
-{
-	__asm__ volatile (
-		"dcbf 0,%0;" 
-		"sync;" 
-		"icbi 0,%0;" 
-		"sync;" 
-		"isync;" 
-		: : "r"(addr) : "memory");
-}
-
 # elif defined(__sparc__) || defined(sparc) || defined(__sparc)
  /*
   * Like powerpc, we provide byteswapping and no byteswapping functions
