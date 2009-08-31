@@ -59,6 +59,8 @@
 # include <X11/Xfuncproto.h>
 #endif
 
+# include <pixman.h> /* for uint*_t types */
+
 /* Allow drivers to use the GCC-supported __inline__ and/or __inline. */
 # ifndef __inline__
 #  if defined(__GNUC__)
@@ -213,319 +215,92 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 # ifndef NO_INLINE
 #  ifdef __GNUC__
-#   ifdef __alpha__
 
-struct __una_u64 { unsigned long  x __attribute__((packed)); };
-struct __una_u32 { unsigned int   x __attribute__((packed)); };
-struct __una_u16 { unsigned short x __attribute__((packed)); };
-
-/* Elemental unaligned loads */
-
-static __inline__ unsigned long ldq_u(unsigned long * r11)
-{
-	const struct __una_u64 *ptr = (const struct __una_u64 *) r11;
-	return ptr->x;
-}
-
-static __inline__ unsigned long ldl_u(unsigned int * r11)
-{
-	const struct __una_u32 *ptr = (const struct __una_u32 *) r11;
-	return ptr->x;
-}
-
-static __inline__ unsigned long ldw_u(unsigned short * r11)
-{
-	const struct __una_u16 *ptr = (const struct __una_u16 *) r11;
-	return ptr->x;
-}
-
-/* Elemental unaligned stores */
-
-static __inline__ void stq_u(unsigned long r5, unsigned long * r11)
-{
-	struct __una_u64 *ptr = (struct __una_u64 *) r11;
-	ptr->x = r5;
-}
-
-static __inline__ void stl_u(unsigned long r5, unsigned int * r11)
-{
-	struct __una_u32 *ptr = (struct __una_u32 *) r11;
-	ptr->x = r5;
-}
-
-static __inline__ void stw_u(unsigned long r5, unsigned short * r11)
-{
-	struct __una_u16 *ptr = (struct __una_u16 *) r11;
-	ptr->x = r5;
-}
-
-#   elif defined __amd64__
-
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-
-#   elif defined __arm__
-
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-
-#   elif defined __arm32__
-
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-
-#   elif defined __ia64__
+/* Define some packed structures to use with unaligned accesses */
 
 struct __una_u64 { uint64_t x __attribute__((packed)); };
 struct __una_u32 { uint32_t x __attribute__((packed)); };
 struct __una_u16 { uint16_t x __attribute__((packed)); };
 
-static __inline__ unsigned long
-__uldq (const unsigned long * r11)
+/* Elemental unaligned loads */
+
+static __inline__ uint64_t ldq_u(uint64_t *p)
 {
-	const struct __una_u64 *ptr = (const struct __una_u64 *) r11;
-	return ptr->x;
-}
-
-static __inline__ unsigned long
-__uldl (const unsigned int * r11)
-{
-	const struct __una_u32 *ptr = (const struct __una_u32 *) r11;
-	return ptr->x;
-}
-
-static __inline__ unsigned long
-__uldw (const unsigned short * r11)
-{
-	const struct __una_u16 *ptr = (const struct __una_u16 *) r11;
-	return ptr->x;
-}
-
-static __inline__ void
-__ustq (unsigned long r5, unsigned long * r11)
-{
-	struct __una_u64 *ptr = (struct __una_u64 *) r11;
-	ptr->x = r5;
-}
-
-static __inline__ void
-__ustl (unsigned long r5, unsigned int * r11)
-{
-	struct __una_u32 *ptr = (struct __una_u32 *) r11;
-	ptr->x = r5;
-}
-
-static __inline__ void
-__ustw (unsigned long r5, unsigned short * r11)
-{
-	struct __una_u16 *ptr = (struct __una_u16 *) r11;
-	ptr->x = r5;
-}
-
-#    define ldq_u(p)	__uldq(p)
-#    define ldl_u(p)	__uldl(p)
-#    define ldw_u(p)	__uldw(p) 
-#    define stq_u(v,p)	__ustq(v,p)
-#    define stl_u(v,p)	__ustl(v,p)
-#    define stw_u(v,p)	__ustw(v,p)
-
-#   elif defined __mips__
-
-static __inline__ unsigned long ldq_u(unsigned long * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(3+(char *) r11)));
-	return r1;
-}
-
-static __inline__ unsigned long ldl_u(unsigned int * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(3+(char *) r11)));
-	return r1;
-}
-
-static __inline__ unsigned long ldw_u(unsigned short * r11)
-{
-	unsigned long r1;
-	__asm__("lwr %0,%2\n\t"
-		"lwl %0,%3\n\t"
-		:"=&r" (r1)
-		:"r" (r11),
-		 "m" (*r11),
-		 "m" (*(unsigned long *)(1+(char *) r11)));
-	return r1;
-}
-
-#    ifdef linux
-struct __una_u32 { unsigned int   x __attribute__((packed)); };
-struct __una_u16 { unsigned short x __attribute__((packed)); };
-
-static __inline__ void stw_u(unsigned long val, unsigned short *p)
-{
-	struct __una_u16 *ptr = (struct __una_u16 *) p;
-	ptr->x = val;
-}
-
-static __inline__ void stl_u(unsigned long val, unsigned int *p)
-{
-	struct __una_u32 *ptr = (struct __una_u32 *) p;
-	ptr->x = val;
-}
-#    else  /* !linux */
-
-#     define stq_u(v,p)	stl_u(v,p)
-#     define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
-			(*(unsigned char *)(p)+1) = ((v) >> 8);  \
-			(*(unsigned char *)(p)+2) = ((v) >> 16); \
-			(*(unsigned char *)(p)+3) = ((v) >> 24)
-
-#     define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
-			(*(unsigned char *)(p)+1) = ((v) >> 8)
-#    endif /* linux */
-
-#   elif defined __powerpc__
-
-#    define ldq_u(p)	ldl_u(p)
-#    define ldl_u(p)	((*(unsigned char *)(p))	| \
-			(*((unsigned char *)(p)+1)<<8)	| \
-			(*((unsigned char *)(p)+2)<<16)	| \
-			(*((unsigned char *)(p)+3)<<24))
-#    define ldw_u(p)	((*(unsigned char *)(p)) | \
-			(*((unsigned char *)(p)+1)<<8))
-
-#    define stq_u(v,p)	stl_u(v,p)
-#    define stl_u(v,p)	(*(unsigned char *)(p)) = (v); \
-			(*((unsigned char *)(p)+1)) = ((v) >> 8);  \
-			(*((unsigned char *)(p)+2)) = ((v) >> 16); \
-			(*((unsigned char *)(p)+3)) = ((v) >> 24)
-#    define stw_u(v,p)	(*(unsigned char *)(p)) = (v); \
-			(*((unsigned char *)(p)+1)) = ((v) >> 8)
-
-#   elif defined __sparc__
-
-#    if defined(__arch64__) || defined(__sparcv9)
-struct __una_u64 { unsigned long  x __attribute__((packed)); };
-#    endif
-struct __una_u32 { unsigned int   x __attribute__((packed)); };
-struct __una_u16 { unsigned short x __attribute__((packed)); };
-
-static __inline__ unsigned long ldq_u(unsigned long *p)
-{
-#    if defined(__GNUC__)
-#     if defined(__arch64__) || defined(__sparcv9)
 	const struct __una_u64 *ptr = (const struct __una_u64 *) p;
-#     else
-	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
-#     endif
 	return ptr->x;
-#    else
-	unsigned long ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
 }
 
-static __inline__ unsigned long ldl_u(unsigned int *p)
+static __inline__ uint32_t ldl_u(uint32_t *p)
 {
-#    if defined(__GNUC__)
 	const struct __una_u32 *ptr = (const struct __una_u32 *) p;
 	return ptr->x;
-#    else
-	unsigned int ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
 }
 
-static __inline__ unsigned long ldw_u(unsigned short *p)
+static __inline__ uint16_t ldw_u(uint16_t *p)
 {
-#    if defined(__GNUC__)
 	const struct __una_u16 *ptr = (const struct __una_u16 *) p;
 	return ptr->x;
-#    else
-	unsigned short ret;
-	memmove(&ret, p, sizeof(*p));
-	return ret;
-#    endif
 }
 
-static __inline__ void stq_u(unsigned long val, unsigned long *p)
+/* Elemental unaligned stores */
+
+static __inline__ void stq_u(uint64_t val, uint64_t *p)
 {
-#    if defined(__GNUC__)
-#     if defined(__arch64__) || defined(__sparcv9)
 	struct __una_u64 *ptr = (struct __una_u64 *) p;
-#     else
-	struct __una_u32 *ptr = (struct __una_u32 *) p;
-#     endif
 	ptr->x = val;
-#    else
-	unsigned long tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
 }
 
-static __inline__ void stl_u(unsigned long val, unsigned int *p)
+static __inline__ void stl_u(uint32_t val, uint32_t *p)
 {
-#    if defined(__GNUC__)
 	struct __una_u32 *ptr = (struct __una_u32 *) p;
 	ptr->x = val;
-#    else
-	unsigned int tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
 }
 
-static __inline__ void stw_u(unsigned long val, unsigned short *p)
+static __inline__ void stw_u(uint16_t val, uint16_t *p)
 {
-#    if defined(__GNUC__)
 	struct __una_u16 *ptr = (struct __una_u16 *) p;
 	ptr->x = val;
-#    else
-	unsigned short tmp = val;
-	memmove(p, &tmp, sizeof(*p));
-#    endif
+}
+#  else /* !__GNUC__ */
+
+static __inline__ uint64_t ldq_u(uint64_t *p)
+{
+	uint64_t ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
 }
 
-#   else
+static __inline__ uint32_t ldl_u(uint32_t *p)
+{
+	uint32_t ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
+}
 
-#    define ldq_u(p)	(*((unsigned long  *)(p)))
-#    define ldl_u(p)	(*((unsigned int   *)(p)))
-#    define ldw_u(p)	(*((unsigned short *)(p)))
-#    define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#    define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#    define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+static __inline__ uint16_t ldw_u(uint16_t *p)
+{
+	uint16_t ret;
+	memmove(&ret, p, sizeof(*p));
+	return ret;
+}
 
-#   endif
+static __inline__ void stq_u(uint64_t val, uint64_t *p)
+{
+	uint64_t tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+}
 
-#   define ldq_u(p)	(*((unsigned long  *)(p)))
-#   define ldl_u(p)	(*((unsigned int   *)(p)))
-#   define ldw_u(p)	(*((unsigned short *)(p)))
-#   define stq_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#   define stl_u(v,p)	(*(unsigned int   *)(p)) = (v)
-#   define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
+static __inline__ void stl_u(uint32_t val, uint32_t *p)
+{
+	uint32_t tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+}
+
+static __inline__ void stw_u(uint16_t val, uint16_t *p)
+{
+	uint16_t tmp = val;
+	memmove(p, &tmp, sizeof(*p));
+}
 
 #  endif /* __GNUC__ */
 # endif /* NO_INLINE */
