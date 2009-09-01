@@ -36,7 +36,7 @@ from The Open Group.
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include <X11/extensions/bigreqproto.h>
+#include <X11/extensions/bigreqsproto.h>
 #include "opaque.h"
 #include "modinit.h"
 
