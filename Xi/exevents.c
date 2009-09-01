@@ -2148,15 +2148,18 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
         }
     }
 
-    if (!others && len)
+    len = min(len, sizeof(others->xi2mask[dev->id]));
+
+    if (len && !others)
     {
         AddExtensionClient(win, client, 0, 0);
         others= wOtherInputMasks(win)->inputClients;
     }
 
-    if (!len)
+    if (others)
         memset(others->xi2mask[dev->id], 0, sizeof(others->xi2mask[dev->id]));
-    else
+
+    if (len)
         memcpy(others->xi2mask[dev->id], mask, len);
 
     RecalculateDeviceDeliverableEvents(win);
