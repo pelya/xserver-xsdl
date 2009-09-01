@@ -32,21 +32,60 @@ typedef struct {
     SELinuxObjectRec sel;
 } SELinuxAtomRec;
 
+/* dynamic array */
+typedef struct {
+    unsigned size;
+    void **array;
+} SELinuxArrayRec;
+
 /* labeling handle */
 static struct selabel_handle *label_hnd;
 
 /* Array of object classes indexed by resource type */
-static security_class_t *knownTypes;
-static unsigned numKnownTypes;
-
+SELinuxArrayRec arr_types;
 /* Array of event SIDs indexed by event type */
-static security_id_t *knownEvents;
-static unsigned numKnownEvents;
-
+SELinuxArrayRec arr_events;
 /* Array of property and selection SID structures */
-static SELinuxAtomRec *knownAtoms;
-static unsigned numKnownAtoms;
+SELinuxArrayRec arr_atoms;
 
+/*
+ * Dynamic array helpers
+ */
+static void *
+SELinuxArrayGet(SELinuxArrayRec *rec, unsigned key)
+{
+    return (rec->size > key) ? rec->array[key] : 0;
+}
+
+static int
+SELinuxArraySet(SELinuxArrayRec *rec, unsigned key, void *val)
+{
+    if (key >= rec->size) {
+	/* Need to increase size of array */
+	rec->array = xrealloc(rec->array, (key + 1) * sizeof(val));
+	if (!rec->array)
+	    return FALSE;
+	memset(rec->array + rec->size, 0, (key - rec->size + 1) * sizeof(val));
+	rec->size = key + 1;
+    }
+
+    rec->array[key] = val;
+    return TRUE;
+}
+
+static void
+SELinuxArrayFree(SELinuxArrayRec *rec, int free_elements)
+{
+    if (free_elements) {
+	unsigned i = rec->size;
+	while (i)
+	    xfree(rec->array[--i]);
+    }
+
+    xfree(rec->array);
+    rec->size = 0;
+    rec->array = NULL;
+}
 
 /*
  * Looks up a name in the selection or property mappings
@@ -87,26 +126,23 @@ SELinuxAtomToSIDLookup(Atom atom, SELinuxObjectRec *obj, int map, int polymap)
 int
 SELinuxAtomToSID(Atom atom, int prop, SELinuxObjectRec **obj_rtn)
 {
+    SELinuxAtomRec *rec;
     SELinuxObjectRec *obj;
     int rc, map, polymap;
 
-    if (atom >= numKnownAtoms) {
-	/* Need to increase size of atoms array */
-	unsigned size = sizeof(SELinuxAtomRec);
-	knownAtoms = xrealloc(knownAtoms, (atom + 1) * size);
-	if (!knownAtoms)
+    rec = SELinuxArrayGet(&arr_atoms, atom);
+    if (!rec) {
+	rec = xcalloc(1, sizeof(SELinuxAtomRec));
+	if (!rec || !SELinuxArraySet(&arr_atoms, atom, rec))
 	    return BadAlloc;
-	memset(knownAtoms + numKnownAtoms, 0,
-	       (atom - numKnownAtoms + 1) * size);
-	numKnownAtoms = atom + 1;
     }
 
     if (prop) {
-	obj = &knownAtoms[atom].prp;
+	obj = &rec->prp;
 	map = SELABEL_X_PROP;
 	polymap = SELABEL_X_POLYPROP;
     } else {
-	obj = &knownAtoms[atom].sel;
+	obj = &rec->sel;
 	map = SELABEL_X_SELN;
 	polymap = SELABEL_X_POLYSELN;
     }
@@ -218,36 +254,33 @@ SELinuxEventToSID(unsigned type, security_id_t sid_of_window,
 		  SELinuxObjectRec *sid_return)
 {
     const char *name = LookupEventName(type);
+    security_id_t sid;
     security_context_t ctx;
     type &= 127;
 
-    if (type >= numKnownEvents) {
-	/* Need to increase size of classes array */
-	unsigned size = sizeof(security_id_t);
-	knownEvents = xrealloc(knownEvents, (type + 1) * size);
-	if (!knownEvents)
-	    return BadAlloc;
-	memset(knownEvents + numKnownEvents, 0,
-	       (type - numKnownEvents + 1) * size);
-	numKnownEvents = type + 1;
-    }
-
-    if (!knownEvents[type]) {
+    sid = SELinuxArrayGet(&arr_events, type);
+    if (!sid) {
 	/* Look in the mappings of event names to contexts */
 	if (selabel_lookup_raw(label_hnd, &ctx, name, SELABEL_X_EVENT) < 0) {
 	    ErrorF("SELinux: an event label lookup failed!\n");
 	    return BadValue;
 	}
 	/* Get a SID for context */
-	if (avc_context_to_sid_raw(ctx, knownEvents + type) < 0) {
+	if (avc_context_to_sid_raw(ctx, &sid) < 0) {
 	    ErrorF("SELinux: a context_to_SID_raw call failed!\n");
+	    freecon(ctx);
 	    return BadAlloc;
 	}
 	freecon(ctx);
+	/* Cache the SID value */
+	if (!SELinuxArraySet(&arr_events, type, sid)) {
+	    sidput(sid);
+	    return BadAlloc;
+	}
     }
 
     /* Perform a transition to obtain the final SID */
-    if (avc_compute_create(sid_of_window, knownEvents[type], SECCLASS_X_EVENT,
+    if (avc_compute_create(sid_of_window, sid, SECCLASS_X_EVENT,
 			   &sid_return->sid) < 0) {
 	ErrorF("SELinux: a compute_create call failed!\n");
 	return BadValue;
@@ -282,44 +315,36 @@ SELinuxExtensionToSID(const char *name, security_id_t *sid_rtn)
 security_class_t
 SELinuxTypeToClass(RESTYPE type)
 {
-    RESTYPE fulltype = type;
-    type &= TypeMask;
+    void *tmp;
 
-    if (type >= numKnownTypes) {
-	/* Need to increase size of classes array */
-	unsigned size = sizeof(security_class_t);
-	knownTypes = xrealloc(knownTypes, (type + 1) * size);
-	if (!knownTypes)
-	    return 0;
-	memset(knownTypes + numKnownTypes, 0,
-	       (type - numKnownTypes + 1) * size);
-	numKnownTypes = type + 1;
+    tmp = SELinuxArrayGet(&arr_types, type & TypeMask);
+    if (!tmp) {
+	unsigned long class = SECCLASS_X_RESOURCE;
+
+	if (type & RC_DRAWABLE)
+	    class = SECCLASS_X_DRAWABLE;
+	else if (type == RT_GC)
+	    class = SECCLASS_X_GC;
+	else if (type == RT_FONT)
+	    class = SECCLASS_X_FONT;
+	else if (type == RT_CURSOR)
+	    class = SECCLASS_X_CURSOR;
+	else if (type == RT_COLORMAP)
+	    class = SECCLASS_X_COLORMAP;
+	else {
+	    /* Need to do a string lookup */
+	    const char *str = LookupResourceName(type);
+	    if (!strcmp(str, "PICTURE"))
+		class = SECCLASS_X_DRAWABLE;
+	    else if (!strcmp(str, "GLYPHSET"))
+		class = SECCLASS_X_FONT;
+	}
+
+	tmp = (void *)class;
+	SELinuxArraySet(&arr_types, type & TypeMask, tmp);
     }
 
-    if (!knownTypes[type]) {
-	const char *str;
-	knownTypes[type] = SECCLASS_X_RESOURCE;
-
-	if (fulltype & RC_DRAWABLE)
-	    knownTypes[type] = SECCLASS_X_DRAWABLE;
-	if (fulltype == RT_GC)
-	    knownTypes[type] = SECCLASS_X_GC;
-	if (fulltype == RT_FONT)
-	    knownTypes[type] = SECCLASS_X_FONT;
-	if (fulltype == RT_CURSOR)
-	    knownTypes[type] = SECCLASS_X_CURSOR;
-	if (fulltype == RT_COLORMAP)
-	    knownTypes[type] = SECCLASS_X_COLORMAP;
-
-	/* Need to do a string lookup */
-	str = LookupResourceName(fulltype);
-	if (!strcmp(str, "PICTURE"))
-	    knownTypes[type] = SECCLASS_X_DRAWABLE;
-	if (!strcmp(str, "GLYPHSET"))
-	    knownTypes[type] = SECCLASS_X_FONT;
-    }
-
-    return knownTypes[type];
+    return (security_class_t)(unsigned long)tmp;
 }
 
 security_context_t
@@ -350,15 +375,7 @@ SELinuxLabelReset(void)
     label_hnd = NULL;
 
     /* Free local state */
-    xfree(knownAtoms);
-    knownAtoms = NULL;
-    numKnownAtoms = 0;
-
-    xfree(knownEvents);
-    knownEvents = NULL;
-    numKnownEvents = 0;
-
-    xfree(knownTypes);
-    knownTypes = NULL;
-    numKnownTypes = 0;
+    SELinuxArrayFree(&arr_types, 0);
+    SELinuxArrayFree(&arr_events, 0);
+    SELinuxArrayFree(&arr_atoms, 1);
 }
