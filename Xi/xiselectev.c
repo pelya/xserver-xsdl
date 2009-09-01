@@ -73,7 +73,7 @@ SProcXISelectEvents(ClientPtr client)
     {
         swaps(&evmask->deviceid, n);
         swaps(&evmask->mask_len, n);
-        evmask = (xXIEventMask*)(((char*)evmask) + evmask->mask_len * 4);
+        evmask = (xXIEventMask*)(((char*)&evmask[1]) + evmask->mask_len * 4);
     }
 
     return (ProcXISelectEvents(client));

@@ -113,7 +113,7 @@ static void request_XISelectEvent(xXISelectEventsReq *req, int error)
     mask = (xXIEventMask*)&req[1];
     for (i = 0; i < req->num_masks; i++)
     {
-        next = (xXIEventMask*)((char*)mask) + mask->mask_len;
+        next = (xXIEventMask*)((char*)&mask[1] + mask->mask_len * 4);
         swaps(&mask->deviceid, n);
         swaps(&mask->mask_len, n);
         mask = next;
