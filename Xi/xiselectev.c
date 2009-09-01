@@ -69,6 +69,7 @@ ProcXISelectEvents(ClientPtr client)
     DeviceIntRec dummy;
     xXIEventMask *evmask;
     int *types = NULL;
+    int len;
 
     REQUEST(xXISelectEventsReq);
     REQUEST_AT_LEAST_SIZE(xXISelectEventsReq);
@@ -80,11 +81,18 @@ ProcXISelectEvents(ClientPtr client)
     if (rc != Success)
         return rc;
 
+    len = sz_xXISelectEventsReq;
+
     /* check request validity */
     evmask = (xXIEventMask*)&stuff[1];
     num_masks = stuff->num_masks;
     while(num_masks--)
     {
+        len += sizeof(xXIEventMask) + evmask->mask_len * 4;
+
+        if (bytes_to_int32(len) > stuff->length)
+            return BadLength;
+
         if (evmask->deviceid != XIAllDevices &&
             evmask->deviceid != XIAllMasterDevices)
             rc = dixLookupDevice(&dev, evmask->deviceid, client, DixUseAccess);
@@ -127,6 +135,9 @@ ProcXISelectEvents(ClientPtr client)
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
         evmask++;
     }
+
+    if (bytes_to_int32(len) != stuff->length)
+        return BadLength;
 
     /* Set masks on window */
     evmask = (xXIEventMask*)&stuff[1];
