@@ -118,15 +118,9 @@ ProcXIPassiveGrabDevice(ClientPtr client)
         return BadValue;
     }
 
-    if ((stuff->mask_len * 4) > XI2LASTEVENT)
-    {
-        unsigned char *bits = (unsigned char*)&stuff[1];
-        for (i = XI2LASTEVENT; i < stuff->mask_len * 4; i++)
-        {
-            if (BitIsOn(bits, i))
-                return BadValue;
-        }
-    }
+    if (XICheckInvalidMaskBits((unsigned char*)&stuff[1],
+                               stuff->mask_len * 4) != Success)
+        return BadValue;
 
     mask_len = min(sizeof(mask.xi2mask[stuff->deviceid]), stuff->mask_len * 4);
     memset(mask.xi2mask, 0, sizeof(mask.xi2mask));

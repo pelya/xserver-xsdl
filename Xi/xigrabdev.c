@@ -39,6 +39,7 @@
 #include <X11/extensions/XI2proto.h>
 
 #include "exglobals.h" /* BadDevice */
+#include "exevents.h"
 #include "xigrabdev.h"
 
 int
@@ -77,6 +78,10 @@ ProcXIGrabDevice(ClientPtr client)
 
     if (!IsMaster(dev))
         stuff->paired_device_mode = GrabModeAsync;
+
+    if (XICheckInvalidMaskBits((unsigned char*)&stuff[1],
+                               stuff->mask_len * 4) != Success)
+        return BadValue;
 
     mask_len = min(sizeof(mask.xi2mask[stuff->deviceid]), stuff->mask_len * 4);
     memset(mask.xi2mask, 0, sizeof(mask.xi2mask));

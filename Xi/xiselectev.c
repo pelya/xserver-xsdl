@@ -36,6 +36,25 @@
 
 #include "xiselectev.h"
 
+/**
+ * Check the given mask (in len bytes) for invalid mask bits.
+ * Invalid mask bits are any bits above XI2LastEvent.
+ *
+ * @return BadValue if at least one invalid bit is set or Success otherwise.
+ */
+int XICheckInvalidMaskBits(unsigned char *mask, int len)
+{
+    if (len >= XIMaskLen(XI2LASTEVENT))
+    {
+        int i;
+        for (i = XI2LASTEVENT + 1; i < len * 8; i++)
+            if (BitIsOn(mask, i))
+                return BadValue;
+    }
+
+    return Success;
+}
+
 int
 SProcXISelectEvents(ClientPtr client)
 {
@@ -63,7 +82,7 @@ SProcXISelectEvents(ClientPtr client)
 int
 ProcXISelectEvents(ClientPtr client)
 {
-    int rc, num_masks, i;
+    int rc, num_masks;
     WindowPtr win;
     DeviceIntPtr dev;
     DeviceIntRec dummy;
@@ -122,15 +141,9 @@ ProcXISelectEvents(ClientPtr client)
                 return BadValue;
         }
 
-        if ((evmask->mask_len * 4) >= (XI2LASTEVENT + 8)/8)
-        {
-            unsigned char *bits = (unsigned char*)&evmask[1];
-            for (i = XI2LASTEVENT + 1; i < evmask->mask_len * 4; i++)
-            {
-                if (BitIsOn(bits, i))
-                    return BadValue;
-            }
-        }
+        if (XICheckInvalidMaskBits((unsigned char*)&evmask[1],
+                                   evmask->mask_len * 4) != Success)
+            return BadValue;
 
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
         evmask++;

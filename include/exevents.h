@@ -309,4 +309,7 @@ extern void
 XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
                            unsigned int len, unsigned char* mask);
 
+extern int
+XICheckInvalidMaskBits(unsigned char *mask, int len);
+
 #endif /* EXEVENTS_H */
