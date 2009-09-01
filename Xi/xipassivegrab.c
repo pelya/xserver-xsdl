@@ -86,6 +86,7 @@ ProcXIPassiveGrabDevice(ClientPtr client)
     GrabMask mask;
     GrabParameters param;
     void *tmp;
+    int mask_len;
 
     REQUEST(xXIPassiveGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIPassiveGrabDeviceReq);
@@ -127,8 +128,9 @@ ProcXIPassiveGrabDevice(ClientPtr client)
         }
     }
 
+    mask_len = min(sizeof(mask.xi2mask[stuff->deviceid]), stuff->mask_len * 4);
     memset(mask.xi2mask, 0, sizeof(mask.xi2mask));
-    memcpy(mask.xi2mask[stuff->deviceid], &stuff[1], stuff->mask_len * 4);
+    memcpy(mask.xi2mask[stuff->deviceid], &stuff[1], mask_len * 4);
 
     rep.repType = X_Reply;
     rep.RepType = X_XIPassiveGrabDevice;

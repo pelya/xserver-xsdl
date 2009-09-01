@@ -66,6 +66,7 @@ ProcXIGrabDevice(ClientPtr client)
     int ret = Success;
     uint8_t status;
     GrabMask mask;
+    int mask_len;
 
     REQUEST(xXIGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xXIGrabDeviceReq);
@@ -77,8 +78,9 @@ ProcXIGrabDevice(ClientPtr client)
     if (!IsMaster(dev))
         stuff->paired_device_mode = GrabModeAsync;
 
+    mask_len = min(sizeof(mask.xi2mask[stuff->deviceid]), stuff->mask_len * 4);
     memset(mask.xi2mask, 0, sizeof(mask.xi2mask));
-    memcpy(mask.xi2mask, (char*)&stuff[1], stuff->mask_len * 4);
+    memcpy(mask.xi2mask, (char*)&stuff[1], mask_len);
 
     ret = GrabDevice(client, dev, stuff->grab_mode,
                      stuff->paired_device_mode,
