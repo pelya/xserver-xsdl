@@ -286,9 +286,6 @@ xf86OpenConsole(void)
 
 	    /* we really should have a InitOSInputDevices() function instead
 	     * of Init?$#*&Device(). So I just place it here */
-	
-        } else { /* ShareVTs */
-            close(xf86Info.consoleFd);
         }
     } else { 	/* serverGeneration != 1 */
         if (!ShareVTs && VTSwitch)
@@ -317,7 +314,10 @@ xf86CloseConsole(void)
     int vtno = -1;
 #endif
 
-    if (ShareVTs) return;
+    if (ShareVTs) {
+        close(xf86Info.consoleFd);
+        return;
+    }
 
     if (console_handler) {
 	xf86RemoveGeneralHandler(console_handler);
