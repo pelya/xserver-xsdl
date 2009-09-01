@@ -37,7 +37,7 @@ from The Open Group.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
-#include <X11/extensions/xcmiscstr.h>
+#include <X11/extensions/xcmiscproto.h>
 #include "modinit.h"
 
 #if HAVE_STDINT_H

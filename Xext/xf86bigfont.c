@@ -72,8 +72,7 @@
 #include "dixfontstr.h"
 #include "extnsionst.h"
 
-#define _XF86BIGFONT_SERVER_
-#include <X11/extensions/xf86bigfstr.h>
+#include <X11/extensions/xf86bigfproto.h>
 
 static void XF86BigfontResetProc(
     ExtensionEntry *	/* extEntry */
