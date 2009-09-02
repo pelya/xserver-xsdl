@@ -93,6 +93,8 @@ xf86VGAarbiterFini(void)
 void
 xf86VGAarbiterLock(ScrnInfoPtr pScrn)
 {
+    if (vga_no_arb)
+	return;
     pci_device_vgaarb_set_target(pScrn->vgaDev);
     pci_device_vgaarb_lock();
 }
@@ -100,6 +102,8 @@ xf86VGAarbiterLock(ScrnInfoPtr pScrn)
 void
 xf86VGAarbiterUnlock(ScrnInfoPtr pScrn)
 {
+    if (vga_no_arb)
+	return;
     pci_device_vgaarb_unlock();
 }
 
