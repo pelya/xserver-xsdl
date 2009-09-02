@@ -3541,7 +3541,7 @@ ChangeWindowDeviceCursor(WindowPtr pWin,
                     pWin->optional->deviceCursors = pNode->next;
 
             xfree(pNode);
-            return Success;
+            goto out;
         }
 
     } else
@@ -3586,6 +3586,7 @@ ChangeWindowDeviceCursor(WindowPtr pWin,
         }
     }
 
+out:
     if (pWin->realized)
         WindowHasNewCursor(pWin);
 
