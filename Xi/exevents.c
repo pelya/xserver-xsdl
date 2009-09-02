@@ -2128,7 +2128,7 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
  * @param len Number of bytes in mask.
  * @param mask Event mask in the form of (1 << eventtype)
  */
-void
+int
 XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
                unsigned int len, unsigned char* mask)
 {
@@ -2152,7 +2152,8 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
 
     if (len && !others)
     {
-        AddExtensionClient(win, client, 0, 0);
+        if (AddExtensionClient(win, client, 0, 0) != Success)
+            return BadAlloc;
         others= wOtherInputMasks(win)->inputClients;
     }
 
@@ -2163,4 +2164,6 @@ XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
         memcpy(others->xi2mask[dev->id], mask, len);
 
     RecalculateDeviceDeliverableEvents(win);
+
+    return Success;
 }

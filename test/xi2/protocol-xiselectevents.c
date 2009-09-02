@@ -62,8 +62,9 @@
 
 static unsigned char *data[4096 * 16]; /* the request data buffer */
 
-void __wrap_XISetEventMask(DeviceIntPtr dev, WindowPtr win, int len, unsigned char* mask)
+int __wrap_XISetEventMask(DeviceIntPtr dev, WindowPtr win, int len, unsigned char* mask)
 {
+    return Success;
 }
 
 /* dixLookupWindow requires a lot of setup not necessary for this test.

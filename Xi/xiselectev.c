@@ -164,7 +164,9 @@ ProcXISelectEvents(ClientPtr client)
             dev = &dummy;
         } else
             dixLookupDevice(&dev, evmask->deviceid, client, DixUseAccess);
-        XISetEventMask(dev, win, client, evmask->mask_len * 4, (unsigned char*)&evmask[1]);
+        if (XISetEventMask(dev, win, client, evmask->mask_len * 4,
+                           (unsigned char*)&evmask[1]) != Success)
+            return BadAlloc;
         evmask = (xXIEventMask*)(((unsigned char*)evmask) + evmask->mask_len * 4);
         evmask++;
     }

@@ -305,7 +305,7 @@ extern void
 XISendDeviceChangedEvent(DeviceIntPtr device, DeviceIntPtr master,
                          DeviceChangedEvent *dce);
 
-extern void
+extern int
 XISetEventMask(DeviceIntPtr dev, WindowPtr win, ClientPtr client,
                            unsigned int len, unsigned char* mask);
 
