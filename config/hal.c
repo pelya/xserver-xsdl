@@ -191,6 +191,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 {
     char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
     InputOption *options = NULL, *tmpo = NULL;
+    InputAttributes attrs = {0};
     DeviceIntPtr dev = NULL;
     DBusError error;
     struct xkb_options xkb_opts = {0};
@@ -215,10 +216,28 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         LogMessage(X_WARNING,"config/hal: no driver or path specified for %s\n", udi);
         goto unwind;
     }
+    attrs.device = xstrdup(path);
 
     name = get_prop_string(hal_ctx, udi, "info.product");
     if (!name)
         name = xstrdup("(unnamed)");
+    else
+        attrs.product = xstrdup(name);
+
+    attrs.vendor = get_prop_string(hal_ctx, udi, "info.vendor");
+
+    if (libhal_device_query_capability(hal_ctx, udi, "input.keys", NULL))
+        attrs.flags |= ATTR_KEYBOARD;
+    if (libhal_device_query_capability(hal_ctx, udi, "input.mouse", NULL))
+        attrs.flags |= ATTR_POINTER;
+    if (libhal_device_query_capability(hal_ctx, udi, "input.joystick", NULL))
+        attrs.flags |= ATTR_JOYSTICK;
+    if (libhal_device_query_capability(hal_ctx, udi, "input.tablet", NULL))
+        attrs.flags |= ATTR_TABLET;
+    if (libhal_device_query_capability(hal_ctx, udi, "input.touchpad", NULL))
+        attrs.flags |= ATTR_TOUCHPAD;
+    if (libhal_device_query_capability(hal_ctx, udi, "input.touchscreen", NULL))
+        attrs.flags |= ATTR_TOUCHSCREEN;
 
     options = xcalloc(sizeof(*options), 1);
     if (!options){
@@ -400,7 +419,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 
     /* this isn't an error, but how else do you output something that the user can see? */
     LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
-    if ((rc = NewInputDeviceRequest(options, &dev)) != Success) {
+    if ((rc = NewInputDeviceRequest(options, &attrs, &dev)) != Success) {
         LogMessage(X_ERROR, "config/hal: NewInputDeviceRequest failed (%d)\n", rc);
         dev = NULL;
         goto unwind;
@@ -429,6 +448,10 @@ unwind:
         xfree(tmpo->value);
         xfree(tmpo);
     }
+
+    xfree(attrs.product);
+    xfree(attrs.vendor);
+    xfree(attrs.device);
 
     if (xkb_opts.layout)
         xfree(xkb_opts.layout);

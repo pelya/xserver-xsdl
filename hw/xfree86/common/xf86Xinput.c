@@ -568,7 +568,8 @@ unwind:
 }
 
 int
-NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
+NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
+                       DeviceIntPtr *pdev)
 {
     IDevRec *idev = NULL;
     InputOption *option = NULL;
