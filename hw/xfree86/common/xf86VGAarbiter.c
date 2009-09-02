@@ -87,6 +87,8 @@ xf86VGAarbiterInit(void)
 void
 xf86VGAarbiterFini(void)
 {
+    if (vga_no_arb)
+	return;
     pci_device_vgaarb_fini();
 }
 
