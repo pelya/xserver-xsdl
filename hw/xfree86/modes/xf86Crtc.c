@@ -368,12 +368,13 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     }
 
     ret = TRUE;
-    crtc->active = TRUE;
-    if (scrn->pScreen)
-	xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
 
 done:
-    if (!ret) {
+    if (ret) {
+	crtc->active = TRUE;
+	if (scrn->pScreen)
+	    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
+    } else {
 	crtc->x = saved_x;
 	crtc->y = saved_y;
 	crtc->rotation = saved_rotation;
