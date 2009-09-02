@@ -41,4 +41,4 @@ int ProcXIChangeHierarchy(ClientPtr /* client */);
 
 void XISendDeviceHierarchyEvent(int flags[]);
 
-#endif
+#endif /* CHDEVHIER_H */

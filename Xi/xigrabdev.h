@@ -23,8 +23,12 @@
  * Author: Peter Hutterer
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef XIGRABDEV_H
-#define XIGRABDEV_H
+#define XIGRABDEV_H 1
 
 int ProcXIGrabDevice(ClientPtr client);
 int SProcXIGrabDevice(ClientPtr client);
@@ -34,4 +38,4 @@ int SProcXIUngrabDevice(ClientPtr client);
 
 void SRepXIGrabDevice(ClientPtr client, int size, xXIGrabDeviceReply * rep);
 
-#endif
+#endif /* XIGRABDEV_H */

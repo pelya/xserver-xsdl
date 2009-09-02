@@ -23,8 +23,12 @@
  * Author: Peter Hutterer
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #ifndef XIPASSIVEGRAB_H
-#define XIPASSIVEGRAB_H
+#define XIPASSIVEGRAB_H 1
 
 int SProcXIPassiveUngrabDevice(ClientPtr client);
 int ProcXIPassiveUngrabDevice(ClientPtr client);
@@ -32,4 +36,4 @@ void SRepXIPassiveGrabDevice(ClientPtr client, int size, xXIPassiveGrabDeviceRep
 int ProcXIPassiveGrabDevice(ClientPtr client);
 int SProcXIPassiveGrabDevice(ClientPtr client);
 
-#endif
+#endif /* XIPASSIVEGRAB_H */
