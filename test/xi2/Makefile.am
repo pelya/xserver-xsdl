@@ -7,6 +7,7 @@ check_PROGRAMS =  \
         protocol-xisetclientpointer \
         protocol-xigetclientpointer \
         protocol-xiquerypointer \
+        protocol-xiwarppointer \
         protocol-eventconvert
 
 TESTS=$(check_PROGRAMS)
@@ -23,6 +24,7 @@ protocol_xigetselectedevents_LDADD=$(TEST_LDADD)
 protocol_xisetclientpointer_LDADD=$(TEST_LDADD)
 protocol_xigetclientpointer_LDADD=$(TEST_LDADD)
 protocol_xiquerypointer_LDADD=$(TEST_LDADD)
+protocol_xiwarppointer_LDADD=$(TEST_LDADD)
 protocol_eventconvert_LDADD=$(TEST_LDADD)
 
 protocol_xiqueryversion_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient
@@ -32,6 +34,7 @@ protocol_xigetselectedevents_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient -Wl,-wr
 protocol_xisetclientpointer_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,dixLookupClient
 protocol_xigetclientpointer_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupClient
 protocol_xiquerypointer_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow
+protocol_xiwarppointer_CFLAGS=$(AM_CFLAGS) -Wl,-wrap,WriteToClient -Wl,-wrap,dixLookupWindow
 
 protocol_xiqueryversion_SOURCES=$(COMMON_SOURCES) protocol-xiqueryversion.c
 protocol_xiquerydevice_SOURCES=$(COMMON_SOURCES) protocol-xiquerydevice.c
@@ -40,4 +43,5 @@ protocol_xigetselectedevents_SOURCES=$(COMMON_SOURCES) protocol-xigetselectedeve
 protocol_xisetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xisetclientpointer.c
 protocol_xigetclientpointer_SOURCES=$(COMMON_SOURCES) protocol-xigetclientpointer.c
 protocol_xiquerypointer_SOURCES=$(COMMON_SOURCES) protocol-xiquerypointer.c
+protocol_xiwarppointer_SOURCES=$(COMMON_SOURCES) protocol-xiwarppointer.c
 endif
