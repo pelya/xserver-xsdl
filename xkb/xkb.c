@@ -5867,6 +5867,16 @@ ProcXkbGetKbdByName(ClientPtr client)
 	if (geom_changed)
 	    nkn.changed|= XkbNKN_GeometryMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
+
+	if (!IsMaster(dev) && dev->u.master)
+	{
+	    DeviceIntPtr master = dev->u.master;
+	    if (master->u.lastSlave == dev)
+	    {
+		XkbCopyDeviceKeymap(dev->u.master, dev);
+		XkbSendNewKeyboardNotify(dev,&nkn);
+	    }
+	}
     }
     if ((new!=NULL)&&(new!=xkb)) {
 	XkbFreeKeyboard(new,XkbAllComponentsMask,True);
