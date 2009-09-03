@@ -127,8 +127,8 @@ static void test_XISetClientPointer(void)
     request_XISetClientPointer(&request, Success);
     g_assert(client_request.clientPtr->id == 2);
 
-    g_test_message("Testing invalid window 12345");
-    request.win = 12345;
+    g_test_message("Testing invalid window");
+    request.win = INVALID_WINDOW_ID;
     request.deviceid = devices.vcp->id;
     request_XISetClientPointer(&request, BadWindow);
 

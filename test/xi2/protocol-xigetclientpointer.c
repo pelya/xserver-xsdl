@@ -41,8 +41,6 @@
 #include "protocol-common.h"
 #include <glib.h>
 
-#define FAKE_WINDOW_ID  12345
-
 struct {
     int cp_is_set;
     DeviceIntPtr dev;
@@ -123,8 +121,8 @@ static void test_XIGetClientPointer(void)
 
     client_request = init_client(request.length, &request);
 
-    g_test_message("Testing invalid window 12345");
-    request.win = FAKE_WINDOW_ID;
+    g_test_message("Testing invalid window");
+    request.win = INVALID_WINDOW_ID;
     request_XIGetClientPointer(&client_request, &request, BadWindow);
 
     test_data.cp_is_set = FALSE;

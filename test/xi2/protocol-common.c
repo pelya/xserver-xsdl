@@ -32,6 +32,7 @@
 #include "protocol-common.h"
 
 struct devices devices;
+ScreenRec screen;
 WindowRec root;
 WindowRec window;
 
@@ -49,11 +50,16 @@ static void fake_init_sprite(DeviceIntPtr dev)
     sprite->spriteTrace = xcalloc(sprite->spriteTraceSize, sizeof(WindowPtr));
     sprite->spriteTraceGood = 1;
     sprite->spriteTrace[0] = &root;
-    sprite->hot.x = 100;
-    sprite->hot.y = 200;
-    sprite->hotPhys.x = 100;
-    sprite->hotPhys.y = 200;
+    sprite->hot.x = SPRITE_X;
+    sprite->hot.y = SPRITE_Y;
+    sprite->hotPhys.x = sprite->hot.x;
+    sprite->hotPhys.y = sprite->hot.y;
     sprite->win = &window;
+    sprite->hotPhys.pScreen = &screen;
+    sprite->physLimits.x1 = 0;
+    sprite->physLimits.y1 = 0;
+    sprite->physLimits.x2 = screen.width;
+    sprite->physLimits.y2 = screen.height;
 }
 
 /**
@@ -132,10 +138,9 @@ void init_window(WindowPtr window, WindowPtr parent, int id)
 
 /* Needed for the screen setup, otherwise we crash during sprite initialization */
 static Bool device_cursor_init(DeviceIntPtr dev, ScreenPtr screen) { return TRUE; }
+static Bool set_cursor_pos(DeviceIntPtr dev, ScreenPtr screen, int x, int y, Bool event) { return TRUE; };
 void init_simple(void)
 {
-    static ScreenRec screen;
-
     screenInfo.arraySize = MAXSCREENS;
     screenInfo.numScreens = 1;
     screenInfo.screens[0] = &screen;
@@ -145,6 +150,7 @@ void init_simple(void)
     screen.width = 640;
     screen.height = 480;
     screen.DeviceCursorInitialize = device_cursor_init;
+    screen.SetCursorPosition = set_cursor_pos;
 
     dixResetPrivates();
     XInputExtensionInit();

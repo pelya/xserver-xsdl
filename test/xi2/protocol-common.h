@@ -66,6 +66,12 @@ extern int BadDevice;
 #define ROOT_WINDOW_ID          0x10
 /* default client window id */
 #define CLIENT_WINDOW_ID        0x100001
+/* invalid window ID. use for BadWindow checks. */
+#define INVALID_WINDOW_ID       0x111111
+/* initial fake sprite position */
+#define SPRITE_X                100
+#define SPRITE_Y                200
+
 
 /* Various structs used throughout the tests */
 
@@ -97,6 +103,10 @@ extern void *userdata;
  */
 void (*reply_handler)(ClientPtr client, int len, char *data, void *userdata);
 
+/**
+ * The default screen used for the windows. Initialized by init_simple().
+ */
+extern ScreenRec screen;
 /**
  * Semi-initialized root window. initialized by init().
  */
