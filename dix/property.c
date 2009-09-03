@@ -474,7 +474,7 @@ ProcGetProperty(ClientPtr client)
     }
     rc = dixLookupWindow(&pWin, stuff->window, client, win_mode);
     if (rc != Success)
-	return rc;
+	return (rc == BadMatch) ? BadWindow : rc;
 
     if (!ValidAtom(stuff->property))
     {
