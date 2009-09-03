@@ -97,6 +97,13 @@ ProcXIWarpPointer(ClientPtr client)
         return rc;
     }
 
+    if ((!IsMaster(pDev) && pDev->u.master) ||
+        (IsMaster(pDev) && !IsPointerDevice(pDev)))
+    {
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
+    }
+
     if (stuff->dst_win != None)
     {
         rc = dixLookupWindow(&dest, stuff->dst_win, client, DixGetAttrAccess);
