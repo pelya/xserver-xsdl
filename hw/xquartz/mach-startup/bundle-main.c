@@ -31,6 +31,10 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <AvailabilityMacros.h>
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <X11/Xlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -76,7 +80,7 @@ const char *__crashreporter_info__base = "X.Org X Server " XSERVER_VERSION " Bui
 char __crashreporter_info__buf[4096];
 char *__crashreporter_info__ = __crashreporter_info__buf;
 
-static char *server_bootstrap_name = "org.x.X11";
+static char *server_bootstrap_name = LAUNCHD_ID_PREFIX".X11";
 
 #define DEBUG 1
 
@@ -559,7 +563,7 @@ int main(int argc, char **argv, char **envp) {
     fprintf(stderr, "Waiting for startup parameters via Mach IPC.\n");
     kr = mach_msg_server(mach_startup_server, mxmsgsz, mp, 0);
     if (kr != KERN_SUCCESS) {
-        fprintf(stderr, "org.x.X11(mp): %s\n", mach_error_string(kr));
+        fprintf(stderr, "%s.X11(mp): %s\n", LAUNCHD_ID_PREFIX, mach_error_string(kr));
         return EXIT_FAILURE;
     }
     

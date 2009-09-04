@@ -523,10 +523,11 @@ AC_ARG_WITH(apple-application-name,AS_HELP_STRING([--with-apple-application-name
 				[ APPLE_APPLICATION_NAME="${withval}" ],
 				[ APPLE_APPLICATION_NAME="X11" ])
 AC_SUBST([APPLE_APPLICATION_NAME])
-AC_ARG_WITH(apple-application-id,AS_HELP_STRING([--with-apple-application-id=VALUE], [CFBundleIdentification for the .app (default: org.x.X11)]),
-				[ APPLE_APPLICATION_ID="${withval}" ],
-				[ APPLE_APPLICATION_ID="org.x.X11" ])
-AC_SUBST([APPLE_APPLICATION_ID])
+AC_ARG_WITH(launchd-id-prefix,  AS_HELP_STRING([--with-launchd-id-prefix=PATH], [Prefix to use for launchd identifiers (default: org.x)]),
+                                [ LAUNCHD_ID_PREFIX="${withval}" ],
+                                [ LAUNCHD_ID_PREFIX="org.x" ])
+AC_SUBST([LAUNCHD_ID_PREFIX])
+AC_DEFINE_UNQUOTED(LAUNCHD_ID_PREFIX, "$LAUNCHD_ID_PREFIX", [Prefix to use for launchd identifiers])
 AC_ARG_ENABLE(sparkle,AS_HELP_STRING([--enable-sparkle], [Enable updating of X11.app using the Sparkle Framework (default: disabled)]),
 				[ XQUARTZ_SPARKLE="${enableval}" ],
 				[ XQUARTZ_SPARKLE="no" ])
