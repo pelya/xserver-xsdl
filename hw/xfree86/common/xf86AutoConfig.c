@@ -159,12 +159,12 @@ videoPtrToDriverList(struct pci_device *dev,
 	/* older Geode products acquired by AMD but still carrying an NSC vendor_id */
 	case 0x100B:
 	    if (dev->device_id == 0x0030) {
-		/* NSC Geode GX2 specifically or... */
+		/* NSC Geode GX2 specifically ... */
 		driverList[0] = "geode";
 		/* GX2 support started in NSC and was later forked by AMD for GEODE so we keep it as a backup */
 		driverList[1] = "nsc";
 	    } else 
-		/* ... any kind of NSC Geode SC variant */
+		/* ... or any other NSC Geode e.g. SC series */
 		driverList[0] = "nsc";
 	    break;
 	/* Cyrix Geode GX1 */
