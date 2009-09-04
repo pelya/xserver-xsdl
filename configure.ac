@@ -1523,11 +1523,11 @@ if test "x$XORG" = xyes; then
 	fi
 
 	if test "x$XF86VIDMODE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto, [XF86VIDMODE=yes], [XF86VIDMODE=no])
+		PKG_CHECK_MODULES(XF86VIDMODE, [xf86vidmodeproto >= 2.2.99.1], [XF86VIDMODE=yes], [XF86VIDMODE=no])
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
-		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto)
+		PKG_CHECK_MODULES(XF86VIDMODE, [xf86vidmodeproto >= 2.2.99.1])
 		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 	fi
 

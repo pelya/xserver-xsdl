@@ -30,8 +30,7 @@ extern void ScreenSaverExtensionInit (INITARGS);
 
 #ifdef XF86VIDMODE
 extern void	XFree86VidModeExtensionInit(INITARGS);
-#define _XF86VIDMODE_SERVER_
-#include <X11/extensions/xf86vmstr.h>
+#include <X11/extensions/xf86vmproto.h>
 #endif
 
 #ifdef XFreeXDGA

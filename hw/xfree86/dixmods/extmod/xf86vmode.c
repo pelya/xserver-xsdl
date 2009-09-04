@@ -41,8 +41,7 @@ from Kaleb S. KEITHLEY
 #include "extnsionst.h"
 #include "scrnintstr.h"
 #include "servermd.h"
-#define _XF86VIDMODE_SERVER_
-#include <X11/extensions/xf86vmstr.h>
+#include <X11/extensions/xf86vmproto.h>
 #include "swaprep.h"
 #include "xf86.h"
 #include "vidmodeproc.h"
