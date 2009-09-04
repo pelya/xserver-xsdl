@@ -52,8 +52,7 @@
 #include "xf86Crtc.h"
 
 #ifdef XFreeXDGA
-#define _XF86DGA_SERVER_
-#include <X11/extensions/xf86dgastr.h>
+#include <X11/extensions/xf86dgaproto.h>
 #include "dgaproc.h"
 #endif
 
