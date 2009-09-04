@@ -144,10 +144,6 @@ static int
 videoPtrToDriverList(struct pci_device *dev,
 		     char *returnList[], int returnListMax)
 {
-    /*
-     * things not handled yet:
-     * cyrix/nsc.  should be merged into geode anyway.
-     */
     int i;
     /* Add more entries here if we ever return more than 4 drivers for
        any device */
@@ -155,11 +151,27 @@ videoPtrToDriverList(struct pci_device *dev,
 
     switch (dev->vendor_id)
     {
+	/* AMD Geode LX */
 	case 0x1022:
 	    if (dev->device_id == 0x2081) {
 		driverList[0] = "geode";
-		driverList[1] = "amd";
 	    }
+	    break;
+	/* older Geode products acquired by AMD but still carrying an NSC vendor_id */
+	case 0x100B:
+	    if (dev->device_id == 0x0030) {
+		/* NSC Geode GX2 specifically or... */
+		driverList[0] = "geode";
+		/* GX2 support started in NSC and was later forked by AMD for GEODE so we keep it as a backup */
+		driverList[1] = "nsc";
+	    } else 
+		/* ... any kind of NSC Geode SC variant */
+		driverList[0] = "nsc";
+	    break;
+	/* Cyrix Geode GX1 */
+	case 0x1078:
+	    if (dev->device_id == 0x0104)
+		driverList[0] = "cyrix";
 	    break;
 	case 0x1142:		    driverList[0] = "apm"; break;
 	case 0xedd8:		    driverList[0] = "ark"; break;
