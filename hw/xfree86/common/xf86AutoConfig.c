@@ -153,9 +153,8 @@ videoPtrToDriverList(struct pci_device *dev,
     {
 	/* AMD Geode LX */
 	case 0x1022:
-	    if (dev->device_id == 0x2081) {
+	    if (dev->device_id == 0x2081)
 		driverList[0] = "geode";
-	    }
 	    break;
 	/* older Geode products acquired by AMD but still carrying an NSC vendor_id */
 	case 0x100B:
