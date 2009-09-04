@@ -355,7 +355,7 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
         return KERN_FAILURE;
 }
 
-int startup_trigger(int argc, char **argv, char **envp) {
+static int startup_trigger(int argc, char **argv, char **envp) {
     Display *display;
     const char *s;
     
@@ -392,9 +392,9 @@ int startup_trigger(int argc, char **argv, char **envp) {
         kr = bootstrap_look_up(bootstrap_port, server_bootstrap_name, &mp);
         if (kr != KERN_SUCCESS) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
-            fprintf(stderr, "bootstrap_look_up(): %s\n", bootstrap_strerror(kr));
+            fprintf(stderr, "bootstrap_look_up(%s): %s\n", server_bootstrap_name, bootstrap_strerror(kr));
 #else
-            fprintf(stderr, "bootstrap_look_up(): %ul\n", (unsigned long)kr);
+            fprintf(stderr, "bootstrap_look_up(%s): %ul\n", server_bootstrap_name, (unsigned long)kr);
 #endif
             exit(EXIT_FAILURE);
         }
@@ -452,6 +452,7 @@ static void ensure_path(const char *dir) {
 static void setup_env() {
     char *temp;
     const char *pds = NULL;
+    const char *disp = getenv("DISPLAY");
 
     /* Pass on our prefs domain to startx and its inheritors (mainly for
      * quartz-wm and the Xquartz stub's MachIPC)
@@ -468,12 +469,39 @@ static void setup_env() {
             }
         }
     }
+    /* We need to unset DISPLAY if it is not our socket */
+    if(disp) {
+        if(!pds) {
+            /* If we can't detet our id, we are beyond hope and need to just
+             * revert to the non-launchd startup */
+            unsetenv("DISPLAY");
+        } else {
+            /* s = basename(disp) */
+            const char *d, *s;
+	    for(s = NULL, d = disp; *d; d++) {
+                if(*d == '/')
+                     s = d + 1;
+            }
 
-    /* If we're not org.x.X11, we want to unset DISPLAY, so we don't
-     * use the launchd DISPLAY socket.
-     */
-    if(pds == NULL || strcmp(pds, "org.x.X11") != 0)
-        unsetenv("DISPLAY");
+            if(s && *s) {
+                temp = (char *)malloc(sizeof(char) * (strlen(pds) + 3));
+                if(!temp) {
+                    fprintf(stderr, "Memory allocation error creating space for socket name test.\n");
+                }
+                strcpy(temp, pds);
+                strcat(temp, ":0");
+
+                if(strcpy(temp, s) != 0) {
+                    /* If we don't have a match, unset it. */
+                    unsetenv("DISPLAY");
+                }
+                free(temp);
+            } else {
+                /* The DISPLAY environment variable is not formatted like a launchd socket, so reset. */
+                unsetenv("DISPLAY");
+            }
+        }
+    }
 
     /* Make sure PATH is right */
     ensure_path(X11BINDIR);
