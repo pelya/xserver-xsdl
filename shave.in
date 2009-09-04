@@ -33,6 +33,13 @@ while test "$#" -gt 0; do
         lt_output="$1"
         preserved_args="$preserved_args $opt"
 	;;
+    # hack for configure. configure calls $CC -print-prog-name=ld to get
+    # the linker. Without this bit here, the output can't be parsed and
+    # configure thinks there's no valid linker installed.
+    -print-prog-name=*)
+        mode="find-ld"
+        preserved_args="$preserved_args $opt"
+        ;;
     *)
         preserved_args="$preserved_args $opt"
         ;;
@@ -42,6 +49,9 @@ done
 # mode=link is handled in the libtool wrapper
 case "$mode,$tool" in
 link,*)
+    pass_through=1
+    ;;
+find-ld,*)
     pass_through=1
     ;;
 *,cxx)
