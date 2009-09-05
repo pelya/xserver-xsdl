@@ -327,7 +327,7 @@ kern_return_t do_start_x11_server(mach_port_t port, string_array_t argv,
     char **_envp = alloca((envpCnt + 1) * sizeof(char *));
     size_t i;
     
-    /* If we didn't get handed a launchd DISPLAY socket, we shoul
+    /* If we didn't get handed a launchd DISPLAY socket, we should
      * unset DISPLAY or we can run into problems with pbproxy
      */
     if(!launchd_socket_handed_off)
@@ -484,14 +484,15 @@ static void setup_env() {
             }
 
             if(s && *s) {
-                temp = (char *)malloc(sizeof(char) * (strlen(pds) + 3));
+                size_t pds_len = strlen(pds);
+                temp = (char *)malloc(sizeof(char) * pds_len);
                 if(!temp) {
                     fprintf(stderr, "Memory allocation error creating space for socket name test.\n");
                 }
-                strcpy(temp, pds);
-                strcat(temp, ":0");
+                strlcpy(temp, pds, pds_len - 3);
+                strlcat(temp, ":0", pds_len);
 
-                if(strcpy(temp, s) != 0) {
+                if(strcmp(temp, s) != 0) {
                     /* If we don't have a match, unset it. */
                     unsetenv("DISPLAY");
                 }
