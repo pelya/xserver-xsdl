@@ -110,6 +110,10 @@ glamor_pm_is_solid(DrawablePtr drawable, unsigned long planemask)
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
+/* glamor_copyarea.c */
+RegionPtr
+glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
+		 int srcx, int srcy, int width, int height, int dstx, int dsty);
 /* glamor_core.c */
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
