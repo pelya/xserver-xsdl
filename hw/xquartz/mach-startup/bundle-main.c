@@ -449,7 +449,7 @@ static void ensure_path(const char *dir) {
     }
 }
 
-static void setup_env() {
+static void setup_env(void) {
     char *temp;
     const char *pds = NULL;
     const char *disp = getenv("DISPLAY");
