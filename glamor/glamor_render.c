@@ -39,7 +39,9 @@
 #include "glu3/glu3.h"
 
 struct shader_key {
+    Bool solid_source;
     Bool has_mask;
+    Bool solid_mask;
 };
 
 struct blendinfo {
@@ -65,7 +67,9 @@ static struct blendinfo composite_op_info[] = {
     [PictOpAdd] =         {0, 0, GL_ONE,                 GL_ONE},
 };
 
-#define HAS_MASK_INDEX    1
+#define SOLID_SOURCE_INDEX	1
+#define HAS_MASK_INDEX		2
+#define SOLID_MASK_INDEX	3
 
 static glamor_composite_shader *
 glamor_lookup_composite_shader(ScreenPtr screen, struct shader_key *key)
@@ -73,8 +77,13 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct shader_key *key)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     int index = 0;
 
-    if (key->has_mask)
+    if (key->solid_source)
+	index += SOLID_SOURCE_INDEX;
+    if (key->has_mask) {
 	index += HAS_MASK_INDEX;
+	if (key->solid_mask)
+	    index += SOLID_MASK_INDEX;
+    }
 
     assert(index < ARRAY_SIZE(glamor_priv->composite_shader));
 
@@ -84,31 +93,58 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct shader_key *key)
 static GLuint
 glamor_create_composite_fs(struct shader_key *key)
 {
-    const char *header =
+    const char *source_pixmap_header =
 	"uniform sampler2D source_sampler;\n"
 	"varying vec4 source_coords;\n";
-    const char *mask_header =
+    const char *source_solid_header =
+	"uniform vec4 source;\n";
+    const char *mask_pixmap_header =
 	"uniform sampler2D mask_sampler;\n"
 	"varying vec4 mask_coords;\n";
+    const char *mask_solid_header =
+	"uniform vec4 mask;\n";
     const char *main_opening =
 	"void main()\n"
-	"{\n"
-	"	vec4 result;\n"
-	"	result = texture2DProj(source_sampler, source_coords.xyw);\n";
+	"{\n";
+    const char *source_pixmap_fetch =
+	"	vec4 source = texture2DProj(source_sampler, "
+	"				    source_coords.xyw);\n";
+    const char *mask_pixmap_fetch =
+	"	vec4 mask = texture2DProj(mask_sampler, mask_coords.xyw);\n";
     const char *source_in_mask =
-	"	vec4 mask = texture2DProj(mask_sampler, mask_coords.xyw);\n"
-	"	result = result * mask.w;\n";
+	"	gl_FragColor = source * mask.w;\n";
+    const char *source_only =
+	"	gl_FragColor = source;\n";
     const char *main_closing =
-	"	gl_FragColor = result;\n"
 	"}\n";
     char *source;
+    const char *source_setup = "";
+    const char *source_fetch = "";
+    const char *mask_setup = "";
+    const char *mask_fetch = "";
     GLuint prog;
 
-    source = XNFprintf("%s%s%s%s%s",
-		       header,
-		       key->has_mask ? mask_header : "",
+    if (key->solid_source) {
+	source_setup = source_solid_header;
+    } else {
+	source_setup = source_pixmap_header;
+	source_fetch = source_pixmap_fetch;
+    }
+    if (key->has_mask) {
+	if (key->solid_mask) {
+	    mask_setup = mask_solid_header;
+	} else {
+	    mask_setup = mask_pixmap_header;
+	    mask_fetch = mask_pixmap_fetch;
+	}
+    }
+    source = XNFprintf("%s%s%s%s%s%s%s",
+		       source_setup,
+		       mask_setup,
 		       main_opening,
-		       key->has_mask ? source_in_mask : "",
+		       source_fetch,
+		       mask_fetch,
+		       key->has_mask ? source_in_mask : source_only,
 		       main_closing);
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, source);
@@ -139,12 +175,13 @@ glamor_create_composite_vs(struct shader_key *key)
 	"}\n";
     char *source;
     GLuint prog;
+    Bool compute_mask_coords = key->has_mask && !key->solid_mask;
 
     source = XNFprintf("%s%s%s%s%s",
 		       header,
-		       key->has_mask ? mask_header : "",
+		       compute_mask_coords ? mask_header : "",
 		       main_opening,
-		       key->has_mask ? mask_coords : "",
+		       compute_mask_coords ? mask_coords : "",
 		       main_closing);
 
     prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, source);
@@ -177,20 +214,31 @@ glamor_create_composite_shader(ScreenPtr screen, struct shader_key *key)
     shader->prog = prog;
 
     glUseProgramObjectARB(prog);
-    source_sampler_uniform_location = glGetUniformLocationARB(prog,
-							      "source_sampler");
     shader->dest_to_dest_uniform_location =
 	glGetUniformLocationARB(prog, "dest_to_dest");
-    shader->dest_to_source_uniform_location =
-	glGetUniformLocationARB(prog, "dest_to_source");
-    glUniform1i(source_sampler_uniform_location, 0);
+
+    if (key->solid_source) {
+	shader->source_uniform_location = glGetUniformLocationARB(prog,
+								  "source");
+    } else {
+	source_sampler_uniform_location = glGetUniformLocationARB(prog,
+								  "source_sampler");
+	shader->dest_to_source_uniform_location =
+	    glGetUniformLocationARB(prog, "dest_to_source");
+	glUniform1i(source_sampler_uniform_location, 0);
+    }
 
     if (key->has_mask) {
-	mask_sampler_uniform_location = glGetUniformLocationARB(prog,
-								"mask_sampler");
-	glUniform1i(mask_sampler_uniform_location, 1);
-	shader->dest_to_mask_uniform_location =
-	    glGetUniformLocationARB(prog, "dest_to_mask");
+	if (key->solid_mask) {
+	    shader->mask_uniform_location = glGetUniformLocationARB(prog,
+								    "mask");
+	} else {
+	    mask_sampler_uniform_location = glGetUniformLocationARB(prog,
+								    "mask_sampler");
+	    glUniform1i(mask_sampler_uniform_location, 1);
+	    shader->dest_to_mask_uniform_location =
+		glGetUniformLocationARB(prog, "dest_to_mask");
+	}
     }
 }
 
@@ -199,9 +247,20 @@ glamor_init_composite_shaders(ScreenPtr screen)
 {
     struct shader_key key;
 
+    memset(&key, 0, sizeof(key));
     key.has_mask = FALSE;
     glamor_create_composite_shader(screen, &key);
     key.has_mask = TRUE;
+    glamor_create_composite_shader(screen, &key);
+    key.solid_mask = TRUE;
+    glamor_create_composite_shader(screen, &key);
+
+    key.solid_source = TRUE;
+    key.has_mask = FALSE;
+    glamor_create_composite_shader(screen, &key);
+    key.has_mask = TRUE;
+    glamor_create_composite_shader(screen, &key);
+    key.solid_mask = TRUE;
     glamor_create_composite_shader(screen, &key);
 }
 
@@ -277,8 +336,12 @@ glamor_set_composite_op(ScreenPtr screen,
 
 static void
 glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
-			     glamor_pixmap_private *pixmap_priv)
+			     glamor_pixmap_private *pixmap_priv,
+			     GLint transform_uniform_location,
+			     int x_translate, int y_translate)
 {
+    GLUmat4 transform;
+
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, pixmap_priv->tex);
     switch (picture->repeatType) {
@@ -313,6 +376,27 @@ glamor_set_composite_texture(ScreenPtr screen, int unit, PicturePtr picture,
     }
 
     glEnable(GL_TEXTURE_2D);
+
+    glamor_set_composite_transform_matrix(&transform,
+					  picture,
+					  x_translate,
+					  y_translate);
+    glUniformMatrix4fvARB(transform_uniform_location, 1, 0,
+			  (float *)&transform);
+}
+
+static void
+glamor_set_composite_solid(PicturePtr picture, GLint uniform_location)
+{
+    CARD32 c = picture->pSourcePict->solidFill.color; /* a8r8g8b8 */
+    float color[4]; /* rgba */
+
+    color[0] = ((c >> 16) & 0xff) / 255.0;
+    color[1] = ((c >> 8) & 0xff) / 255.0;
+    color[2] = ((c >> 0) & 0xff) / 255.0;
+    color[3] = ((c >> 24) & 0xff) / 255.0;
+
+    glUniform4fvARB(uniform_location, 1, color);
 }
 
 void
@@ -332,10 +416,11 @@ glamor_composite(CARD8 op,
     ScreenPtr screen = dest->pDrawable->pScreen;
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
     PixmapPtr source_pixmap, mask_pixmap = NULL;
-    glamor_pixmap_private *source_pixmap_priv, *mask_pixmap_priv = NULL;
+    glamor_pixmap_private *source_pixmap_priv = NULL;
+    glamor_pixmap_private *mask_pixmap_priv = NULL;
     struct shader_key key;
     glamor_composite_shader *shader;
-    GLUmat4 dest_to_dest, dest_to_source, dest_to_mask;
+    GLUmat4 dest_to_dest;
     RegionRec region;
     int i;
 
@@ -358,14 +443,23 @@ glamor_composite(CARD8 op,
 	return;
     }
 
+    memset(&key, 0, sizeof(key));
     key.has_mask = (mask != NULL);
     if (!source->pDrawable) {
-	ErrorF("source-only source\n");
-	goto fail;
+	if (source->pSourcePict->type == SourcePictTypeSolidFill) {
+	    key.solid_source = TRUE;
+	} else {
+	    ErrorF("gradient source\n");
+	    goto fail;
+	}
     }
     if (mask && !mask->pDrawable) {
-	ErrorF("source-only mask\n");
-	goto fail;
+	if (mask->pSourcePict->type == SourcePictTypeSolidFill) {
+	    key.solid_mask = TRUE;
+	} else {
+	    ErrorF("gradient mask\n");
+	    goto fail;
+	}
     }
     if (source->alphaMap) {
 	ErrorF("source alphaMap\n");
@@ -376,17 +470,19 @@ glamor_composite(CARD8 op,
 	goto fail;
     }
 
-    source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
-    source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
-    if (source_pixmap == dest_pixmap) {
-	ErrorF("source == dest\n");
-	goto fail;
+    if (!key.solid_source) {
+	source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
+	source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
+	if (source_pixmap == dest_pixmap) {
+	    ErrorF("source == dest\n");
+	    goto fail;
+	}
+	if (!source_pixmap_priv || source_pixmap_priv->tex == 0) {
+	    ErrorF("no FBO in source\n");
+	    goto fail;
+	}
     }
-    if (!source_pixmap_priv || source_pixmap_priv->tex == 0) {
-	ErrorF("no FBO in source\n");
-	goto fail;
-    }
-    if (mask) {
+    if (mask && !key.solid_mask) {
 	mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 	mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
 	if (mask_pixmap == dest_pixmap) {
@@ -431,25 +527,23 @@ glamor_composite(CARD8 op,
 	       -1, 1);
     glUniformMatrix4fvARB(shader->dest_to_dest_uniform_location, 1, 0,
 			  (float *)&dest_to_dest);
-    glamor_set_composite_transform_matrix(&dest_to_source,
-					  source,
-					  x_source - x_dest,
-					  y_source - x_dest);
-    glUniformMatrix4fvARB(shader->dest_to_source_uniform_location, 1, 0,
-			  (float *)&dest_to_source);
 
-    if (mask) {
-	glamor_set_composite_transform_matrix(&dest_to_mask,
-					      mask,
-					      x_mask - x_dest,
-					      y_mask - x_dest);
-	glUniformMatrix4fvARB(shader->dest_to_mask_uniform_location, 1, 0,
-			      (float *)&dest_to_mask);
+    if (key.solid_source) {
+	glamor_set_composite_solid(source, shader->source_uniform_location);
+    } else {
+	glamor_set_composite_texture(screen, 0, source, source_pixmap_priv,
+				     shader->dest_to_source_uniform_location,
+				     x_source - x_dest, y_source - y_dest);
     }
-
-    glamor_set_composite_texture(screen, 0, source, source_pixmap_priv);
-    if (mask)
-	glamor_set_composite_texture(screen, 1, mask, mask_pixmap_priv);
+    if (key.has_mask) {
+	if (key.solid_mask) {
+	    glamor_set_composite_solid(mask, shader->mask_uniform_location);
+	} else {
+	    glamor_set_composite_texture(screen, 1, mask, mask_pixmap_priv,
+					 shader->dest_to_mask_uniform_location,
+					 x_mask - x_dest, y_mask - y_dest);
+	}
+    }
 
     if (!miComputeCompositeRegion(&region,
 				  source, mask, dest,
@@ -469,9 +563,9 @@ glamor_composite(CARD8 op,
     }
     glEnd();
 
-    glamor_set_composite_op(screen, PictOpSrc, dest, mask);
+    glDisable(GL_BLEND);
     glUseProgramObjectARB(0);
-		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+    REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 
     return;
 

@@ -43,6 +43,8 @@ typedef struct glamor_composite_shader {
     GLint dest_to_dest_uniform_location;
     GLint dest_to_source_uniform_location;
     GLint dest_to_mask_uniform_location;
+    GLint source_uniform_location;
+    GLint mask_uniform_location;
 } glamor_composite_shader;
 
 typedef struct glamor_screen_private {
@@ -70,7 +72,7 @@ typedef struct glamor_screen_private {
     GLint put_image_xybitmap_bg_uniform_location;
 
     /* glamor_composite */
-    glamor_composite_shader composite_shader[2];
+    glamor_composite_shader composite_shader[8];
 } glamor_screen_private;
 
 typedef struct glamor_pixmap_private {
