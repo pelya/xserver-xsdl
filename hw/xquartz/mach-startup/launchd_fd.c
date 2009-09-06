@@ -71,8 +71,11 @@ int launchd_display_fd() {
     
     listening_fd_array = launch_data_dict_lookup(sockets_dict, LAUNCHD_ID_PREFIX":0");
     if (NULL == listening_fd_array) {
-        fprintf(stderr,"launchd check-in: No known sockets found to answer requests on!  %s failed.\n", LAUNCHD_ID_PREFIX".startx:0");
-        return ERROR_FD;
+        listening_fd_array = launch_data_dict_lookup(sockets_dict, ":0");
+        if (NULL == listening_fd_array) {
+            fprintf(stderr,"launchd check-in: No known sockets found to answer requests on! \"%s:0\" and \":0\" failed.\n", LAUNCHD_ID_PREFIX);
+            return ERROR_FD;
+        }
     }
     
     if (launch_data_array_get_count(listening_fd_array)!=1) {
