@@ -2374,30 +2374,11 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         RecalculateMasterButtons(master);
     }
 
-    /* If we were connected to master device before, this MD may need to
-     * change back to it's original classes.
+    /* XXX: in theory, the MD should change back to its old, original
+     * classes when the last SD is detached. Thanks to the XTEST devices,
+     * we'll always have an SD attached until the MD is removed.
+     * So let's not worry about that.
      */
-    if (oldmaster)
-    {
-        DeviceIntPtr it;
-        for (it = inputInfo.devices; it; it = it->next)
-            if (!IsMaster(it) && it->u.master == oldmaster)
-                break;
-
-        if (!it)  /* no dev is paired with old master */
-        {
-            EventListPtr event = NULL;
-
-            /* XXX: reset master back to defaults */
-            event = InitEventList(1);
-            SetMinimumEventSize(event, 1, sizeof(DeviceChangedEvent));
-            CreateClassesChangedEvent(event, oldmaster, oldmaster,
-                                      DEVCHANGE_POINTER_EVENT | DEVCHANGE_KEYBOARD_EVENT);
-            XISendDeviceChangedEvent(oldmaster, oldmaster,
-                                     (DeviceChangedEvent*)event->event);
-            FreeEventList(event, 1);
-        }
-    }
 
     return Success;
 }
