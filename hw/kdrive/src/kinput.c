@@ -1120,7 +1120,6 @@ KdParseKeyboard (char *arg)
     ki->path = NULL;
     ki->driver = NULL;
     ki->driverPrivate = NULL;
-    ki->xkb = NULL;
     ki->next = NULL;
 
     if (!arg)
