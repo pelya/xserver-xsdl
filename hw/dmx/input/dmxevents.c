@@ -58,6 +58,7 @@
 #include "mi.h"
 #include "exglobals.h"
 
+#include "xkbsrv.h"
 #include "XIstubs.h"
 
 static int  dmxGlobalX, dmxGlobalY; /* Global cursor position */
@@ -600,24 +601,25 @@ void dmxMotion(DevicePtr pDev, int *v, int firstAxes, int axesCount,
 static KeySym dmxKeyCodeToKeySym(DMXLocalInputInfoPtr dmxLocal,
                                  KeyCode keyCode)
 {
-    KeySymsPtr pKeySyms = NULL;
+    KeySym keysym = NoSymbol;
+    int effectiveGroup;
+    XkbSrvInfoPtr xkbi;
 
     if (!dmxLocal || !dmxLocal->pDevice || !dmxLocal->pDevice->key)
-        return NoSymbol;
-    pKeySyms = &dmxLocal->pDevice->key->curKeySyms;
-    if (!pKeySyms)
-        return NoSymbol;
-    
-    if (keyCode > pKeySyms->minKeyCode && keyCode <= pKeySyms->maxKeyCode) {
-        DMXDBG2("dmxKeyCodeToKeySym: Translated keyCode=%d to keySym=0x%04x\n",
-                keyCode,
-                pKeySyms->map[(keyCode - pKeySyms->minKeyCode)
-                              * pKeySyms->mapWidth]);
-               
-        return pKeySyms->map[(keyCode - pKeySyms->minKeyCode)
-                             * pKeySyms->mapWidth];
-    }
-    return NoSymbol;
+        goto out;
+
+    xkbi = dmxLocal->pDevice->key->xkbInfo;
+    effectiveGroup = XkbGetEffectiveGroup(xkbi, &xkbi->state, keyCode);
+
+    if (effectiveGroup == -1)
+        goto out;
+
+    keysym = XkbKeySym(xkbi->desc, keyCode, effectiveGroup);
+    DMXDBG2("dmxKeyCodeToKeySym: Translated keyCode=%d to keySym=0x%04x\n",
+            keyCode, keysym);
+
+out:
+    return keysym;
 }
 
 static KeyCode dmxKeySymToKeyCode(DMXLocalInputInfoPtr dmxLocal, KeySym keySym,
