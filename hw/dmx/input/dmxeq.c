@@ -158,6 +158,7 @@ void dmxeqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
     HWEventQueueType oldtail, newtail;
     Bool             isMotion;
+    deviceKeyButtonPointer *ev;
 
     oldtail                               = dmxEventQueue.tail;
     isMotion                              = e->u.u.type == MotionNotify;
@@ -182,7 +183,7 @@ void dmxeqEnqueue(DeviceIntPtr pDev, xEvent *e)
     dmxEventQueue.events[oldtail].pDev    = pDev;
                             /* If this is an XInput event, store the
                              * valuator event, too */
-    deviceKeyButtonPointer *ev = (deviceKeyButtonPointer *)e;
+    ev = (deviceKeyButtonPointer *)e;
     if (e->u.u.type >= LASTEvent && (ev->deviceid & MORE_EVENTS))
         dmxEventQueue.events[oldtail].valuator = *(deviceValuator *)(ev+1);
 
