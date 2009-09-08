@@ -545,7 +545,7 @@ static void dmxProcessInputEvents(DMXInputInfo *dmxInput)
 {
     int i;
 
-    dmxeqProcessInputEvents();
+    mieqProcessInputEvents();
 #if 00 /*BP*/
     miPointerUpdate();
 #endif
@@ -1071,12 +1071,6 @@ void dmxInputInit(DMXInputInfo *dmxInput)
         }
     }
     
-    if (pPointer && pKeyboard) {
-        if (dmxeqInit(&pKeyboard->public, &pPointer->public))
-            dmxLogInput(dmxInput, "Using %s and %s as true core devices\n",
-                        pKeyboard->name, pPointer->name);
-    }
-
     dmxInput->processInputEvents    = dmxProcessInputEvents;
     dmxInput->detached              = False;
     
