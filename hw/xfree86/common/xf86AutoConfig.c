@@ -165,7 +165,7 @@ videoPtrToDriverList(struct pci_device *dev,
 		   forked by AMD for GEODE so we keep it as a backup */
 		driverList[1] = "nsc";
 	    } else 
-		/* ... or any other NSC Geode e.g. SC series */
+		/* ... any other NSC Geode SC variant e.g. 0x0504 for SCx200 */
 		driverList[0] = "nsc";
 	    break;
 	/* Cyrix Geode GX1 */
