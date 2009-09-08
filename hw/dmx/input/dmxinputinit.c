@@ -605,8 +605,7 @@ static void dmxCollectAll(DMXInputInfo *dmxInput)
         return;
     for (i = 0; i < dmxInput->numDevs; i += dmxInput->devs[i]->binding)
         if (dmxInput->devs[i]->collect_events)
-            dmxInput->devs[i]->collect_events(&dmxInput->devs[i]
-                                              ->pDevice->public,
+            dmxInput->devs[i]->collect_events(&dmxInput->devs[i]->pDevice->public,
                                               dmxMotion,
                                               dmxEnqueue,
                                               dmxCheckSpecialKeys, DMX_BLOCK);
