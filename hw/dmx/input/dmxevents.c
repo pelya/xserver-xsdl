@@ -778,9 +778,9 @@ int dmxCheckSpecialKeys(DevicePtr pDev, KeySym keySym)
     unsigned short state = 0;
 
     if (dmxLocal->sendsCore)
-        state = dmxLocalCoreKeyboard->pDevice->key->state;
+        state = XkbStateFieldFromRec(&dmxLocalCoreKeyboard->pDevice->key->xkbInfo->state);
     else if (dmxLocal->pDevice->key)
-        state = dmxLocal->pDevice->key->state;
+        state = XkbStateFieldFromRec(&dmxLocal->pDevice->key->xkbInfo->state);
 
     if (!dmxLocal->sendsCore) return 0; /* Only for core devices */
 
