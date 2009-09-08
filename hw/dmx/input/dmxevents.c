@@ -625,13 +625,16 @@ out:
 static KeyCode dmxKeySymToKeyCode(DMXLocalInputInfoPtr dmxLocal, KeySym keySym,
                                   int tryFirst)
 {
-    KeySymsPtr pKeySyms = &dmxLocal->pDevice->key->curKeySyms;
+    /* FIXME: this is quite ineffective, converting to a core map first and
+     * then extracting the info from there. It'd be better to run the actual
+     * xkb map */
+    XkbSrvInfoPtr xkbi = dmxLocal->pDevice->key->xkbInfo;
+    KeySymsPtr pKeySyms = XkbGetCoreMap(dmxLocal->pDevice);
     int        i;
 
                                 /* Optimize for similar maps */
-    if (tryFirst >= pKeySyms->minKeyCode
-        && tryFirst <= pKeySyms->maxKeyCode
-        && pKeySyms->map[(tryFirst - pKeySyms->minKeyCode)
+    if (XkbKeycodeInRange(xkbi->desc, tryFirst)
+        && pKeySyms->map[(tryFirst - xkbi->desc->min_key_code)
                          * pKeySyms->mapWidth] == keySym)
         return tryFirst;
 
