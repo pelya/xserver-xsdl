@@ -731,17 +731,6 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         return;
     }
 
-#if 00 /* dead code? */
-    memset(&xE, 0, sizeof(xE));
-    xE.u.u.type                = type;
-    xE.u.u.detail              = detail;
-    xE.u.keyButtonPointer.time = GetTimeInMillis();
-
-    if (!dmxLocal->sendsCore)
-        dmxEnqueueExtEvent(dmxLocal, &xE, block);
-    else
-        dmxeqEnqueue(&xE);
-#endif /*00*/
 }
 
 /** A pointer to this routine is passed to low-level input drivers so
