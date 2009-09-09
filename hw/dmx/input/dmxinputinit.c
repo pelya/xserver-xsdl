@@ -51,7 +51,6 @@
 #include "dmxcommon.h"
 #include "dmxevents.h"
 #include "dmxmotion.h"
-#include "dmxeq.h"
 #include "dmxprop.h"
 #include "config/dmxconfig.h"
 #include "dmxcursor.h"
