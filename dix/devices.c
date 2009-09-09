@@ -1134,7 +1134,7 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, Atom* labels,
                             CARD8 *map)
 {
@@ -1333,7 +1333,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
     return TRUE;
 }
 
-_X_EXPORT Bool
+Bool
 InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 {
     PtrFeedbackPtr feedc;
