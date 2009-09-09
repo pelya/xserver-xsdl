@@ -157,7 +157,7 @@ videoPtrToDriverList(struct pci_device *dev,
 		driverList[0] = "geode";
 	    break;
 	/* older Geode products acquired by AMD still carry an NSC vendor_id */
-	case 0x100B:
+	case 0x100b:
 	    if (dev->device_id == 0x0030) {
 		/* NSC Geode GX2 specifically ... */
 		driverList[0] = "geode";
