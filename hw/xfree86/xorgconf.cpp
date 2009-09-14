@@ -43,14 +43,10 @@ Section "Files"
 
 XCOMM Multiple FontPath entries are allowed (which are concatenated together),
 XCOMM as well as specifying multiple comma-separated entries in one FontPath
-XCOMM command (or a combination of both methods)
+XCOMM command (or a combination of both methods).
+XCOMM The default path is shown here.
 
-    FontPath	LOCALFONTPATH
-    FontPath	MISCFONTPATH
-    FontPath	T1FONTPATH
-    FontPath	TRUETYPEFONTPATH
-    FontPath	DPI75FONTPATH
-    FontPath	DPI100FONTPATH
+XCOMM    FontPath	DEFAULTFONTPATH
 
 XCOMM ModulePath can be used to set a search path for the X server modules.
 XCOMM The default path is shown here.
