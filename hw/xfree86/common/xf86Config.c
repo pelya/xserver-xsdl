@@ -614,22 +614,6 @@ configFiles(XF86ConfFilesPtr fileconf)
 	pathFrom = X_DEFAULT;
     temp_path = defaultFontPath ? defaultFontPath : "";
 
-    /* ensure defaultFontPath contains "built-ins" */
-    start = strstr(temp_path, "built-ins");
-    end = start + strlen("built-ins");
-    if (start == NULL ||
-	!((start == temp_path || start[-1] == ',') && (!*end || *end == ','))) {
-	defaultFontPath = Xprintf("%s%sbuilt-ins",
-				  temp_path, *temp_path ? "," : "");
-	if (must_copy == TRUE) {
-	    if (defaultFontPath != NULL) {
-		must_copy = FALSE;
-	    }
-	} else {
-	    /* already made a copy of the font path */
-	    xfree(temp_path);
-	}
-    }
     /* xf86ValidateFontPath modifies its argument, but returns a copy of it. */
     temp_path = must_copy ? xnfstrdup(defaultFontPath) : defaultFontPath;
     defaultFontPath = xf86ValidateFontPath(temp_path);
