@@ -714,12 +714,12 @@ multimedia subdirectories of each of those directories.
 In addition to this, operating system specific subdirectories of all
 the above are searched first if they exist.
 .PP
-To see what extension modules are available, check the contents
-of the following directory:
+To see what extension modules are available, check the extensions
+subdirectory under:
 .PP
 .RS 4
 .nf
-__projectroot__/lib/modules/extensions
+__modulepath__
 .fi
 .RE
 .PP
