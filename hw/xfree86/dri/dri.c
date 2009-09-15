@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "windowstr.h"
 #include "servermd.h"
 #define _XF86DRI_SERVER_
-#include "xf86dristr.h"
+#include <X11/dri/xf86driproto.h>
 #include "swaprep.h"
 #include "xf86str.h"
 #include "dri.h"

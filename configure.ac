@@ -893,7 +893,7 @@ AC_SUBST([GLX_DEFINES])
 AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
-	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
+	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto >= 2.1.0])
 	PKG_CHECK_MODULES([DRI], [glproto >= 1.4.1 dri >= 7.1.0])
 	AC_SUBST(DRIPROTO_CFLAGS)
 fi

@@ -38,7 +38,7 @@
 #include <X11/Xproto.h>
 #define _XF86DRI_SERVER_
 #include <X11/dri/xf86dri.h>
-#include <X11/dri/xf86dristr.h>
+#include <X11/dri/xf86driproto.h>
 #include "misc.h"
 #include "privates.h"
 #include "dixstruct.h"
