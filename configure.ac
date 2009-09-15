@@ -716,8 +716,40 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
+dnl Optional modules
+VIDEOPROTO="videoproto"
+COMPOSITEPROTO="compositeproto >= 0.4"
+RECORDPROTO="recordproto >= 1.13.99.1"
+SCRNSAVERPROTO="scrnsaverproto >= 1.1"
+RESOURCEPROTO="resourceproto"
+DRIPROTO="xf86driproto >= 2.1.0"
+DRI2PROTO="dri2proto >= 2.1"
+XINERAMAPROTO="xineramaproto"
+BIGFONTPROTO="xf86bigfontproto >= 1.2.0"
+XCALIBRATEPROTO="xcalibrateproto"
+DGAPROTO="xf86dgaproto >= 2.0.99.1"
+GLPROTO="glproto >= 1.4.9"
+DMXPROTO="dmxproto"
+VIDMODEPROTO="xf86vidmodeproto >= 2.2.99.1"
+WINDOWSWMPROTO="windowswmproto"
+APPLEWMPROTO="applewmproto >= 1.4"
+
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.0] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.13] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] resourceproto fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="randrproto >= 1.2.99.3 "    \
+                 "renderproto >= 0.11 "       \
+                 "damageproto >= 1.1 "        \
+                 "xcmiscproto >= 1.2.0 "      \
+                 "xextproto >= 7.0.99.3 "     \
+                 "xproto >= 7.0.13 "          \
+                 "xtrans >= 1.2.2 "           \
+                 "bigreqsproto >= 1.1.0 "     \
+                 "resourceproto "               \
+                 "fontsproto "                  \
+                 "inputproto >= 1.9.99.902 "  \
+                 "kbproto >= 1.0.3 "          \
+                 "fixesproto >= 4.0"
+
+
 REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
@@ -833,7 +865,7 @@ AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
 	AC_DEFINE(XvExtension, 1, [Build Xv extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
+	REQUIRED_MODULES="$REQUIRED_MODULES $VIDEOPROTO"
 else
 	XVMC=no
 fi
@@ -851,7 +883,7 @@ fi
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
 if test "x$COMPOSITE" = xyes; then
 	AC_DEFINE(COMPOSITE, 1, [Support Composite Extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [compositeproto >= 0.4]"
+	REQUIRED_MODULES="$REQUIRED_MODULES $COMPOSITEPROTO"
 	COMPOSITE_LIB='$(top_builddir)/composite/libcomposite.la'
 	COMPOSITE_INC='-I$(top_srcdir)/composite'
 fi
@@ -865,25 +897,25 @@ fi
 AM_CONDITIONAL(RECORD, [test "x$RECORD" = xyes])
 if test "x$RECORD" = xyes; then
 	AC_DEFINE(XRECORD, 1, [Support Record extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [recordproto >= 1.13.99.1]"
+	REQUIRED_MODULES="$REQUIRED_MODULES $RECORDPROTO"
 	RECORD_LIB='$(top_builddir)/record/librecord.la'
 fi
 
 AM_CONDITIONAL(SCREENSAVER, [test "x$SCREENSAVER" = xyes])
 if test "x$SCREENSAVER" = xyes; then
 	AC_DEFINE(SCREENSAVER, 1, [Support MIT-SCREEN-SAVER extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [scrnsaverproto >= 1.1]"
+	REQUIRED_MODULES="$REQUIRED_MODULES $SCRNSAVERPROTO"
 fi
 
 AM_CONDITIONAL(RES, [test "x$RES" = xyes])
 if test "x$RES" = xyes; then
 	AC_DEFINE(RES, 1, [Support X resource extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES resourceproto"
+	REQUIRED_MODULES="$REQUIRED_MODULES $RESOURCEPROTO"
 fi
 
 if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.9 gl >= 7.1.0])
+	PKG_CHECK_MODULES([GL], $GLPROTO [gl >= 7.1.0])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/glx/libglx.la'
@@ -909,12 +941,12 @@ AC_SUBST([GLX_DEFINES])
 AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
-	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto >= 2.1.0])
-	PKG_CHECK_MODULES([DRI], [glproto >= 1.4.1 dri >= 7.1.0])
+	PKG_CHECK_MODULES([DRIPROTO], [$DRIPROTO])
+	PKG_CHECK_MODULES([DRI], $GLPROTO [dri >= 7.1.0])
 	AC_SUBST(DRIPROTO_CFLAGS)
 fi
 
-PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 2.1],
+PKG_CHECK_MODULES([DRI2PROTO], $DRI2PROTO,
                   [HAVE_DRI2PROTO=yes], [HAVE_DRI2PROTO=no])
 case "$DRI2,$HAVE_DRI2PROTO" in
 	yes,no)
@@ -959,7 +991,7 @@ AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
 if test "x$XINERAMA" = xyes; then
 	AC_DEFINE(XINERAMA, 1, [Support Xinerama extension])
 	AC_DEFINE(PANORAMIX, 1, [Internal define for Xinerama])
-	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto"
+	REQUIRED_MODULES="$REQUIRED_MODULES $XINERAMAPROTO"
 fi
 
 AM_CONDITIONAL(XACE, [test "x$XACE" = xyes])
@@ -1007,7 +1039,7 @@ fi
 AM_CONDITIONAL(XF86BIGFONT, [test "x$XF86BIGFONT" = xyes])
 if test "x$XF86BIGFONT" = xyes; then
 	AC_DEFINE(XF86BIGFONT, 1, [Support XF86 Big font extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [xf86bigfontproto >= 1.2.0]"
+	REQUIRED_MODULES="$REQUIRED_MODULES $BIGFONTPROTO"
 fi
 
 AM_CONDITIONAL(DPMSExtension, [test "x$DPMSExtension" = xyes])
@@ -1017,7 +1049,7 @@ fi
 
 if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
    AC_DEFINE(XCALIBRATE, 1, [Build XCalibrate extension])
-   REQUIRED_MODULES="$REQUIRED_MODULES xcalibrateproto"
+   REQUIRED_MODULES="$REQUIRED_MODULES $XCALIBRATEPROTO"
 else
    XCALIBRATE=no
 fi
@@ -1555,21 +1587,21 @@ if test "x$XORG" = xyes; then
 		XORG_OS_PCI=$XORG_OS
 	fi
 	if test "x$DGA" = xauto; then
-		PKG_CHECK_MODULES(DGA, [xf86dgaproto >= 2.0.99.1], [DGA=yes], [DGA=no])
+		PKG_CHECK_MODULES(DGA, $DGAPROTO, [DGA=yes], [DGA=no])
 	fi
 	if test "x$DGA" = xyes; then
-		XORG_MODULES="$XORG_MODULES [xf86dgaproto >= 2.0.99.1]"
-		PKG_CHECK_MODULES(DGA, xf86dgaproto)
+		XORG_MODULES="$XORG_MODULES $DGAPROTO"
+		PKG_CHECK_MODULES(DGA, $DGAPROTO)
 		AC_DEFINE(DGA, 1, [Support DGA extension])
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 	fi
 
 	if test "x$XF86VIDMODE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, [xf86vidmodeproto >= 2.2.99.1], [XF86VIDMODE=yes], [XF86VIDMODE=no])
+		PKG_CHECK_MODULES(XF86VIDMODE, $VIDMODEPROTO, [XF86VIDMODE=yes], [XF86VIDMODE=no])
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
-		PKG_CHECK_MODULES(XF86VIDMODE, [xf86vidmodeproto >= 2.2.99.1])
+		XORG_MODULES="$XORG_MODULES $VIDMODEPROTO"
+		PKG_CHECK_MODULES(XF86VIDMODE, $VIDMODEPROTO)
 		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 	fi
 
@@ -1666,7 +1698,7 @@ fi
 AC_MSG_RESULT([$XWIN])
 
 if test "x$XWIN" = xyes; then
-	PKG_CHECK_EXISTS([windowswmproto], [WINDOWSWM=yes], [WINDOWSWM=no])
+	PKG_CHECK_EXISTS($WINDOWSWMPROTO, [WINDOWSWM=yes], [WINDOWSWM=no])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_CHECK_TOOL(WINDRES, windres)
 	case $host_os in
@@ -1728,7 +1760,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
 
-	PKG_CHECK_MODULES(XPBPROXY, [applewmproto >= 1.4] [applewm >= 1.4] xfixes fixesproto x11)
+	PKG_CHECK_MODULES(XPBPROXY, $APPLEWMPROTO [applewm >= 1.4] xfixes x11)
 
         if test "x$XQUARTZ_SPARKLE" = xyes ; then
                 AC_DEFINE(XQUARTZ_SPARKLE,1,[Support application updating through sparkle.])
@@ -1757,7 +1789,7 @@ AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 dnl DMX DDX
 
 PKG_CHECK_MODULES([DMXMODULES],
-    [xmuu xext x11 xrender xfixes xfont xi >= 1.2.99.1 dmxproto xau $XDMCP_MODULES],
+    [xmuu xext x11 xrender xfixes xfont xi >= 1.2.99.1 $DMXPROTO xau $XDMCP_MODULES],
     [have_dmx=yes], [have_dmx=no])
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
