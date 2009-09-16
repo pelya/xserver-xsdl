@@ -379,6 +379,7 @@ AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
+USE_SIGIO_BY_DEFAULT="yes"
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd* | *dragonfly*)
@@ -408,6 +409,9 @@ case $host_os in
 	;;
   *solaris*)
 	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
+	# Disable use of SIGIO by default until some system bugs are
+	# fixed - see Sun/OpenSolaris bug id 6879897
+	USE_SIGIO_BY_DEFAULT="no"
 	;;
   darwin*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -442,6 +446,9 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 AC_ARG_ENABLE(unit-tests,    AS_HELP_STRING([--enable-unit-tests],
                                   [Enable unit-tests (default: auto)]),
                                 [UNITTESTS=$enableval], [UNITTESTS=auto])
+AC_ARG_ENABLE(sigio-default, AS_HELP_STRING([--enable-use-sigio-by-default]
+  [Enable SIGIO input handlers by default (default: $USE_SIGIO_BY_DEFAULT)]),
+                                [USE_SIGIO_BY_DEFAULT=$enableval], [])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
@@ -485,6 +492,7 @@ esac
 AC_ARG_WITH(default-font-path, AS_HELP_STRING([--with-default-font-path=PATH], [Comma separated list of font dirs]),
 				[ FONTPATH="$withval" ],
 				[ FONTPATH="${DEFAULT_FONT_PATH}" ])
+
 AC_ARG_WITH(xkb-path,         AS_HELP_STRING([--with-xkb-path=PATH], [Path to XKB base dir (default: ${datadir}/X11/xkb)]),
 				[ XKBPATH="$withval" ],
 				[ XKBPATH="${datadir}/X11/xkb" ])
@@ -755,6 +763,14 @@ if test "x$CONFIG_NEED_DBUS" = xyes; then
 fi
 AM_CONDITIONAL(CONFIG_NEED_DBUS, [test "x$CONFIG_NEED_DBUS" = xyes])
 CONFIG_LIB='$(top_builddir)/config/libconfig.la'
+
+if test "x$USE_SIGIO_BY_DEFAULT" = xyes; then
+	USE_SIGIO_BY_DEFAULT_VALUE=TRUE
+else
+	USE_SIGIO_BY_DEFAULT_VALUE=FALSE
+fi
+AC_DEFINE_UNQUOTED([USE_SIGIO_BY_DEFAULT], [$USE_SIGIO_BY_DEFAULT_VALUE],
+		   [Use SIGIO handlers for input device events by default])
 
 AC_MSG_CHECKING([for glibc...])
 AC_PREPROC_IFELSE([

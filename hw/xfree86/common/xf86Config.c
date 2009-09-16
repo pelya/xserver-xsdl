@@ -708,6 +708,7 @@ typedef enum {
     FLAG_AUTO_ENABLE_DEVICES,
     FLAG_GLX_VISUALS,
     FLAG_DRI2,
+    FLAG_USE_SIGIO
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -765,6 +766,8 @@ static OptionInfoRec FlagOptions[] = {
         {0}, FALSE },
   { FLAG_DRI2,			"DRI2",				OPTV_BOOLEAN,
 	{0}, FALSE },
+  { FLAG_USE_SIGIO,		"UseSIGIO",			OPTV_BOOLEAN,
+	{0}, USE_SIGIO_BY_DEFAULT },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -830,6 +833,22 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86GetOptValBool(FlagOptions, FLAG_IGNORE_ABI, &xf86Info.ignoreABI);
     if (xf86Info.ignoreABI) {
 	    xf86Msg(X_CONFIG, "Ignoring ABI Version\n");
+    }
+
+    if (xf86SIGIOSupported()) {
+	xf86GetOptValBool(FlagOptions, FLAG_USE_SIGIO, &xf86Info.useSIGIO);
+	if (xf86IsOptionSet(FlagOptions, FLAG_USE_SIGIO)) {
+	    from = X_CONFIG;
+	} else {
+	    from = X_DEFAULT;
+	}
+	if (!xf86Info.useSIGIO) {
+	    xf86Msg(from, "Disabling SIGIO handlers for input devices\n");
+	} else if (from == X_CONFIG) {
+	    xf86Msg(from, "Enabling SIGIO handlers for input devices\n");
+	}
+    } else {
+	xf86Info.useSIGIO = FALSE;
     }
 
     if (xf86IsOptionSet(FlagOptions, FLAG_AUTO_ADD_DEVICES)) {
