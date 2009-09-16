@@ -1173,20 +1173,45 @@ if test "x$DEBUGGING" = xyes; then
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
+# If unittests aren't explicitly disabled, check for required support
+if test "x$UNITTESTS" != xno ; then
+       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16],
+                         [HAVE_GLIB=yes], [HAVE_GLIB=no])
+
+       # Check if linker supports -wrap, passed via compiler flags
+       # When cross-compiling, reports no, since unit tests run from
+       # "make check", so would be running on build machine,  not target
+       AC_MSG_CHECKING([whether the linker supports -wrap])
+       save_LDFLAGS="$LDFLAGS"
+       LDFLAGS="$LDFLAGS -Wl,-wrap,exit"
+       AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+	void __wrap_exit (int s)
+	{
+	    __real_exit (0);
+	}]],
+	[[exit (1);]])],
+                     [linker_can_wrap="yes"],
+                     [linker_can_wrap="no"],
+                     [linker_can_wrap="no"])
+       AC_MSG_RESULT([$linker_can_wrap])
+       LDFLAGS="$save_LDFLAGS"
+fi
+
 if test "x$UNITTESTS" = xauto; then
-       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16], [HAVE_GLIB=yes], [HAVE_GLIB=no])
-       if test "x$HAVE_GLIB" = xyes && test "x$with_gnu_ld" = xyes; then
+       if test "x$HAVE_GLIB" = xyes && test "x$linker_can_wrap" = xyes; then
            UNITTESTS=yes
        else
            UNITTESTS=no
        fi
 fi
 if test "x$UNITTESTS" = xyes; then
-       AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
-       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16])
-       if test "x$with_gnu_ld" = xno; then
-           AC_MSG_ERROR([GNU ld required to build unit tests])
+       if test "x$HAVE_GLIB" = xno; then
+           AC_MSG_ERROR([glib required to build unit tests])
        fi
+       if test "x$linker_can_wrap" = xno; then
+           AC_MSG_ERROR([ld -wrap support required to build unit tests])
+       fi
+       AC_DEFINE(UNITTESTS, 1, [Enable unit tests])
        AC_SUBST([GLIB_LIBS])
        AC_SUBST([GLIB_CFLAGS])
 fi
