@@ -1249,6 +1249,8 @@ else
   DIX_LIB='$(top_builddir)/dix/libdix.la'
   OS_LIB='$(top_builddir)/os/libos.la'
 fi
+AC_SUBST([DIX_LIB])
+AC_SUBST([OS_LIB])
 
 MAIN_LIB='$(top_builddir)/dix/libmain.la'
 AC_SUBST([MAIN_LIB])
