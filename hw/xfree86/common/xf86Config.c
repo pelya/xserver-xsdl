@@ -710,7 +710,11 @@ typedef enum {
     FLAG_DRI2,
     FLAG_USE_SIGIO
 } FlagValues;
-   
+
+/**
+ * NOTE: the last value for each entry is NOT the default. It is set to TRUE
+ * if the parser found the option in the config file.
+ */
 static OptionInfoRec FlagOptions[] = {
   { FLAG_NOTRAPSIGNALS,		"NoTrapSignals",		OPTV_BOOLEAN,
 	{0}, FALSE },
@@ -759,9 +763,9 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",		OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_AUTO_ADD_DEVICES,       "AutoAddDevices",		OPTV_BOOLEAN,
-        {0}, TRUE },
+        {0}, FALSE },
   { FLAG_AUTO_ENABLE_DEVICES,    "AutoEnableDevices",		OPTV_BOOLEAN,
-        {0}, TRUE },
+        {0}, FALSE },
   { FLAG_GLX_VISUALS,		"GlxVisuals",			OPTV_STRING,
         {0}, FALSE },
   { FLAG_DRI2,			"DRI2",				OPTV_BOOLEAN,
