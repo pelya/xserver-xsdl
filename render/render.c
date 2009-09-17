@@ -270,8 +270,18 @@ ProcRenderQueryVersion (ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = RENDER_MAJOR;
-    rep.minorVersion = RENDER_MINOR;
+
+    if ((stuff->majorVersion * 1000 + stuff->minorVersion) <
+        (RENDER_MAJOR * 1000 + RENDER_MINOR))
+    {
+	rep.majorVersion = stuff->majorVersion;
+	rep.minorVersion = stuff->minorVersion;
+    } else
+    {
+	rep.majorVersion = RENDER_MAJOR;
+	rep.minorVersion = RENDER_MINOR;
+    }
+
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.length, n);
