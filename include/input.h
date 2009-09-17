@@ -503,6 +503,7 @@ extern int AllocXTestDevice(ClientPtr client,
                              DeviceIntPtr master_keybd);
 extern BOOL IsXTestDevice(DeviceIntPtr dev, DeviceIntPtr master);
 extern DeviceIntPtr GetXTestDevice(DeviceIntPtr master);
+extern void SendDevicePresenceEvent(int deviceid, int type);
 
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);

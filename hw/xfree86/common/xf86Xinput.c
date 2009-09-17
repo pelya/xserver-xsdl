@@ -1082,14 +1082,7 @@ xf86DisableDevice(DeviceIntPtr dev, Bool panic)
         DisableDevice(dev, TRUE);
     } else
     {
-        ev.type = DevicePresenceNotify;
-        ev.time = currentTime.milliseconds;
-        ev.devchange = DeviceUnrecoverable;
-        ev.deviceid = dev->id;
-        dummyDev.id = 0;
-        SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                (xEvent *) &ev, 1);
-
+        SendDevicePresenceEvent(dev->id, DeviceUnrecoverable);
         DeleteInputDeviceRequest(dev);
     }
 }

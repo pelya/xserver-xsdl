@@ -246,7 +246,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     return dev;
 }
 
-static void
+void
 SendDevicePresenceEvent(int deviceid, int type)
 {
     DeviceIntRec dummyDev;
