@@ -767,7 +767,7 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_DRI2,			"DRI2",				OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_USE_SIGIO,		"UseSIGIO",			OPTV_BOOLEAN,
-	{0}, USE_SIGIO_BY_DEFAULT },
+	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -836,7 +836,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     }
 
     if (xf86SIGIOSupported()) {
-	xf86GetOptValBool(FlagOptions, FLAG_USE_SIGIO, &xf86Info.useSIGIO);
+	xf86Info.useSIGIO = xf86ReturnOptValBool(FlagOptions, FLAG_USE_SIGIO, USE_SIGIO_BY_DEFAULT);
 	if (xf86IsOptionSet(FlagOptions, FLAG_USE_SIGIO)) {
 	    from = X_CONFIG;
 	} else {
