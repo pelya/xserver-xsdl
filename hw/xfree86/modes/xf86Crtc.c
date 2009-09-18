@@ -384,7 +384,9 @@ done:
 	crtc->transformPresent = saved_transform_present;
     }
 
-    free(adjusted_mode);
+    if (adjusted_mode->name)
+	    xfree(adjusted_mode->name);
+    xfree(adjusted_mode);
 
     if (didLock)
 	crtc->funcs->unlock (crtc);
