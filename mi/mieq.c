@@ -110,24 +110,29 @@ mieqInit(void)
         miEventQueue.handlers[i] = NULL;
     for (i = 0; i < QUEUE_SIZE; i++)
     {
-        EventListPtr evlist = InitEventList(1);
-        if (!evlist)
-            FatalError("Could not allocate event queue.\n");
-        miEventQueue.events[i].events = evlist;
+	if (miEventQueue.events[i].events == NULL) {
+	    EventListPtr evlist = InitEventList(1);
+	    if (!evlist)
+		FatalError("Could not allocate event queue.\n");
+	    miEventQueue.events[i].events = evlist;
+	}
     }
 
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
 }
 
-/* Ensure all events in the EQ are at least size bytes. */
 void
-mieqResizeEvents(int min_size)
+mieqFini(void)
 {
     int i;
-
     for (i = 0; i < QUEUE_SIZE; i++)
-        SetMinimumEventSize(miEventQueue.events[i].events, 1, min_size);
+    {
+	if (miEventQueue.events[i].events != NULL) {
+	    FreeEventList(miEventQueue.events[i].events, 1);
+	    miEventQueue.events[i].events = NULL;
+	}
+    }
 }
 
 /*
