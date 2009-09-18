@@ -181,7 +181,9 @@ xf86VGAarbiterWrapFunctions(void)
 
     for (i = 0; i < xf86NumScreens; i++) {
         pScreen = xf86Screens[i]->pScreen;
+#ifdef RENDER
         ps = GetPictureScreenIfSet(pScreen);
+#endif
         pScrn = xf86Screens[pScreen->myNum];
         PointPriv = dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
 
