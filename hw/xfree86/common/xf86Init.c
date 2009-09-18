@@ -1112,6 +1112,8 @@ InitInput(int argc, char **argv)
 
     mieqInit();
 
+    GetEventList(&xf86Events);
+
     /* Call the PreInit function for each input device instance. */
     for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
         /* Replace obsolete keyboard driver with kbd */
