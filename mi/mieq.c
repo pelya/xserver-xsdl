@@ -269,7 +269,7 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
         case ET_ProximityOut:
         case ET_Hierarchy:
         case ET_DeviceChanged:
-            event->device.deviceid = dev->id;
+            event->device_event.deviceid = dev->id;
             break;
 #if XFreeXDGA
         case ET_DGAEvent:
@@ -280,7 +280,7 @@ ChangeDeviceID(DeviceIntPtr dev, InternalEvent* event)
         case ET_RawButtonPress:
         case ET_RawButtonRelease:
         case ET_RawMotion:
-            event->raw.deviceid = dev->id;
+            event->raw_event.deviceid = dev->id;
             break;
         default:
             ErrorF("[mi] Unknown event type (%d), cannot change id.\n",
@@ -299,11 +299,11 @@ FixUpEventForMaster(DeviceIntPtr mdev, DeviceIntPtr sdev,
     if (original->any.type == ET_ButtonPress ||
         original->any.type == ET_ButtonRelease)
     {
-        int btn = original->device.detail.button;
+        int btn = original->device_event.detail.button;
         if (!sdev->button)
             return; /* Should never happen */
 
-        master->device.detail.button = sdev->button->map[btn];
+        master->device_event.detail.button = sdev->button->map[btn];
     }
 }
 
@@ -382,8 +382,8 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         case ET_ButtonRelease:
             if (dev && screen && screen != DequeueScreen(dev) && !handler) {
                 DequeueScreen(dev) = screen;
-                x = event->device.root_x;
-                y = event->device.root_y;
+                x = event->device_event.root_x;
+                y = event->device_event.root_y;
                 NewCurrentScreen (dev, DequeueScreen(dev), x, y);
             }
             break;
