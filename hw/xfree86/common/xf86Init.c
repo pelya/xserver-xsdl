@@ -439,7 +439,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 	    }
 	}
     }
-
+    xfree(devList);
 
     return foundScreen;
 }
