@@ -21,9 +21,7 @@
  */
 
 #include "randrstr.h"
-
-#define SERVER_RANDR_MAJOR	1
-#define SERVER_RANDR_MINOR	3
+#include "protocol-versions.h"
 
 Bool
 RRClientKnowsRates (ClientPtr	pClient)
@@ -50,14 +48,14 @@ ProcRRQueryVersion (ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     if ((stuff->majorVersion * 1000 + stuff->minorVersion) <
-        (SERVER_RANDR_MAJOR * 1000 + SERVER_RANDR_MINOR))
+        (SERVER_RANDR_MAJOR_VERSION * 1000 + SERVER_RANDR_MINOR_VERSION))
     {
 	rep.majorVersion = stuff->majorVersion;
 	rep.minorVersion = stuff->minorVersion;
     } else
     {
-        rep.majorVersion = SERVER_RANDR_MAJOR;
-        rep.minorVersion = SERVER_RANDR_MINOR;
+        rep.majorVersion = SERVER_RANDR_MAJOR_VERSION;
+        rep.minorVersion = SERVER_RANDR_MINOR_VERSION;
     }
 
     if (client->swapped) {

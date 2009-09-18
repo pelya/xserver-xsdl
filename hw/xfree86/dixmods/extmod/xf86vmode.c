@@ -46,6 +46,7 @@ from Kaleb S. KEITHLEY
 #include "xf86.h"
 #include "vidmodeproc.h"
 #include "globals.h"
+#include "protocol-versions.h"
 
 #define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
@@ -384,8 +385,8 @@ ProcXF86VidModeQueryVersion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = XF86VIDMODE_MAJOR_VERSION;
-    rep.minorVersion = XF86VIDMODE_MINOR_VERSION;
+    rep.majorVersion = SERVER_XF86VIDMODE_MAJOR_VERSION;
+    rep.minorVersion = SERVER_XF86VIDMODE_MINOR_VERSION;
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.length, n);

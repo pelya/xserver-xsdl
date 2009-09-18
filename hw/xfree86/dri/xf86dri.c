@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dristruct.h"
 #include "xf86.h"
 #include "xf86drm.h"
+#include "protocol-versions.h"
 
 static int DRIErrorBase;
 
@@ -134,9 +135,9 @@ ProcXF86DRIQueryVersion(
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = XF86DRI_MAJOR_VERSION;
-    rep.minorVersion = XF86DRI_MINOR_VERSION;
-    rep.patchVersion = XF86DRI_PATCH_VERSION;
+    rep.majorVersion = SERVER_XF86DRI_MAJOR_VERSION;
+    rep.minorVersion = SERVER_XF86DRI_MINOR_VERSION;
+    rep.patchVersion = SERVER_XF86DRI_PATCH_VERSION;
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.length, n);
