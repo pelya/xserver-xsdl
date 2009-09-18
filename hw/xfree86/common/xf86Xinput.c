@@ -1074,9 +1074,6 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 void
 xf86DisableDevice(DeviceIntPtr dev, Bool panic)
 {
-    devicePresenceNotify ev;
-    DeviceIntRec dummyDev;
-
     if(!panic)
     {
         DisableDevice(dev, TRUE);
