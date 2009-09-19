@@ -735,7 +735,7 @@ WINDOWSWMPROTO="windowswmproto"
 APPLEWMPROTO="applewmproto >= 1.4"
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.0] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.13] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] resourceproto fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.1] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.13] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] resourceproto fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
