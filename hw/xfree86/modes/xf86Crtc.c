@@ -805,6 +805,9 @@ xf86CrtcScreenInit (ScreenPtr screen)
     config->CloseScreen = screen->CloseScreen;
     screen->CloseScreen = xf86CrtcCloseScreen;
     
+#ifdef XFreeXDGA
+    xf86DiDGAInit(screen, 0);
+#endif
 #ifdef RANDR_13_INTERFACE
     return RANDR_INTERFACE_VERSION;
 #else
@@ -1923,6 +1926,10 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 	}
     }
     scrn->currentMode = scrn->modes;
+#ifdef XFreeXDGA
+    if (scrn->pScreen)
+	    xf86DiDGAReInit(scrn->pScreen);
+#endif
 }
 
 static void
