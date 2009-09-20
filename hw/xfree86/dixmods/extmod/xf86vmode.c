@@ -1540,7 +1540,7 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
 {
     CARD16 *ramp = NULL;
     int n, length;
-    size_t ramplen;
+    size_t ramplen = 0;
     xXF86VidModeGetGammaRampReply rep;
     REQUEST(xXF86VidModeGetGammaRampReq);
 
