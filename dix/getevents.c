@@ -578,11 +578,12 @@ GetMaximumEventsNum(void) {
 static void
 clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
-    AxisInfoPtr axis = pDev->valuator->axes + axisNum;
-    /* InitValuatoraAxisStruct ensures that (min < max). */
+    AxisInfoPtr axis;
 
     if (axisNum >= pDev->valuator->numAxes)
         return;
+
+    axis = pDev->valuator->axes + axisNum;
 
     /* If a value range is defined, clip. If not, do nothing */
     if (axis->max_value <= axis->min_value)
