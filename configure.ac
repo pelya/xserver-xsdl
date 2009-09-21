@@ -1858,19 +1858,19 @@ if test "$KDRIVE" = yes; then
         KDRIVEFBDEVLIB=yes
         AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
     fi
-    
-    # tslib...
-    AC_CHECK_LIB(ts, ts_open, [HAVE_TSLIB="yes"])
-    if test "x$TSLIB" = xauto && test "x$HAVE_TSLIB" = xyes; then
-        TSLIB=yes
+
+
+    PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
+    if test "x$HAVE_TSLIB" = xauto; then
+        TSLIB="$HAVE_TSLIB"
     fi
 
     if test "x$TSLIB" = xyes; then
         if ! test "x$HAVE_TSLIB" = xyes; then
-            AC_MSG_ERROR([tslib must be installed to build the tslib input driver.])
+            AC_MSG_ERROR([tslib must be installed to build the tslib driver. See http://tslib.berlios.de/])
+        else
+            AC_DEFINE(TSLIB, 1, [Have tslib support])
         fi
-        TSLIB_LIBS="-lts"
-        AC_DEFINE(TSLIB, 1, [Have tslib support])
     fi
 
     AC_CHECK_HEADERS([SDL/SDL.h])
@@ -1902,14 +1902,6 @@ if test "$KDRIVE" = yes; then
     AC_CHECK_FUNC([nanosleep], [],
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
     
-    if test "x$TSLIB" = xyes; then
-        PKG_CHECK_MODULES([TSLIB], [tslib-1.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
-        if test "x$HAVE_TSLIB" = xno; then
-            AC_MSG_ERROR([tslib must be installed to build the tslib driver. See http://tslib.berlios.de/])
-        fi
-        AC_DEFINE(TSLIB, 1, [Have tslib support])
-    fi
-
     # damage shadow extension glx (NOTYET) fb mi
     KDRIVE_INC='-I$(top_srcdir)/hw/kdrive/src'
     KDRIVE_PURE_INCS="$KDRIVE_INC $MIEXT_DAMAGE_INC $MIEXT_SHADOW_INC $XEXT_INC $FB_INC $MI_INC"
