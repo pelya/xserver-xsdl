@@ -473,8 +473,10 @@ DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
 	vsize = timing[i].vsize;
 	refresh = timing[i].refresh;
 
-	/* HDTV hack.  Hooray. */
-	if (hsize == 1360 && vsize == 765 && refresh == 60) {
+	/* HDTV hack, because you can't say 1366 */
+	if (refresh == 60 &&
+	    ((hsize == 1360 && vsize == 765) ||
+	     (hsize == 1368 && vsize == 769))) {
 	    Mode = xf86CVTMode(1366, 768, 60, FALSE, FALSE);
 	    Mode->HDisplay = 1366;
 	    Mode->VSyncStart--;
