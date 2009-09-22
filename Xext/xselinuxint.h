@@ -123,12 +123,13 @@ SELinuxFlaskReset(void);
 #define SECCLASS_X_SELECTION		7
 #define SECCLASS_X_CURSOR		8
 #define SECCLASS_X_CLIENT		9
-#define SECCLASS_X_DEVICE		10
-#define SECCLASS_X_SERVER		11
-#define SECCLASS_X_EXTENSION		12
-#define SECCLASS_X_EVENT		13
-#define SECCLASS_X_FAKEEVENT		14
-#define SECCLASS_X_RESOURCE		15
+#define SECCLASS_X_POINTER		10
+#define SECCLASS_X_KEYBOARD		11
+#define SECCLASS_X_SERVER		12
+#define SECCLASS_X_EXTENSION		13
+#define SECCLASS_X_EVENT		14
+#define SECCLASS_X_FAKEEVENT		15
+#define SECCLASS_X_RESOURCE		16
 
 #ifdef _XSELINUX_NEED_FLASK_MAP
 /* Mapping from DixAccess bits to Flask permissions */
@@ -344,7 +345,37 @@ static struct security_class_mapping map[] = {
           "",			/* DixUseAccess */
           "manage",		/* DixManageAccess */
           NULL }},
-    { "x_device",
+    { "x_pointer",
+        { "read",		/* DixReadAccess */
+          "write",		/* DixWriteAccess */
+          "destroy",		/* DixDestroyAccess */
+          "create",		/* DixCreateAccess */
+          "getattr",		/* DixGetAttrAccess */
+          "setattr",		/* DixSetAttrAccess */
+          "list_property",	/* DixListPropAccess */
+          "get_property",	/* DixGetPropAccess */
+          "set_property",	/* DixSetPropAccess */
+          "getfocus",		/* DixGetFocusAccess */
+          "setfocus",		/* DixSetFocusAccess */
+          "",			/* DixListAccess */
+          "add",		/* DixAddAccess */
+          "remove",		/* DixRemoveAccess */
+          "",			/* DixHideAccess */
+          "",			/* DixShowAccess */
+          "",			/* DixBlendAccess */
+          "grab",		/* DixGrabAccess */
+          "freeze",		/* DixFreezeAccess */
+          "force_cursor",	/* DixForceAccess */
+          "",			/* DixInstallAccess */
+          "",			/* DixUninstallAccess */
+          "",			/* DixSendAccess */
+          "",			/* DixReceiveAccess */
+          "use",		/* DixUseAccess */
+          "manage",		/* DixManageAccess */
+          "",			/* DixDebugAccess */
+          "bell",		/* DixBellAccess */
+          NULL }},
+    { "x_keyboard",
         { "read",		/* DixReadAccess */
           "write",		/* DixWriteAccess */
           "destroy",		/* DixDestroyAccess */
