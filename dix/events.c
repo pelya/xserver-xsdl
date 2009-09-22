@@ -2507,9 +2507,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                                                        filter, grab);
                     if (deliveries > 0)
                         goto unwind;
-                } else if (rc != BadMatch)
-                    ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
-                            dev->name, event->any.type, rc);
+                }
             }
 
             /* Core event */
@@ -2525,9 +2523,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                             filter, grab);
                     if (deliveries > 0)
                         goto unwind;
-                } else if (rc != BadMatch)
-                        ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
-                                dev->name, event->any.type, rc);
+                }
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
@@ -3811,9 +3807,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
             deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
                                                GetEventFilter(keybd, &core),
                                                NullGrab);
-        } else if (rc != BadMatch)
-            ErrorF("[dix] %s: core conversion failed DFE (%d, %d). Skipping delivery.\n",
-                    keybd->name, event->any.type, rc);
+        }
     }
 
 unwind:
