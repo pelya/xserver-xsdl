@@ -741,6 +741,7 @@ ProcDisplayImageBuffers (client)
     int		    i, j;
     CARD32	    minDelay;
     TimeStamp	    activateTime, bufferTime;
+    int		    rc;
     
 
     REQUEST_AT_LEAST_SIZE (xMbufDisplayImageBuffersReq);
@@ -762,9 +763,9 @@ ProcDisplayImageBuffers (client)
     activateTime.milliseconds = 0;
     for (i = 0; i < nbuf; i++)
     {
-	pMultibuffer[i] = (MultibufferPtr) LookupIDByType (ids[i], 
-MultibufferResType);
-	if (!pMultibuffer[i])
+	rc = dixLookupResourceByType(&pMultibuffer[i], ids[i],
+		MultibufferResType, client, DixUseAccess);
+	if (rc != Success)
 	{
 	    xfree(ppMultibuffers);
 	    xfree(pMultibuffer);
@@ -835,8 +836,9 @@ ProcSetMBufferAttributes (client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
     if (rc != Success)
 	return rc;
-    pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
-    if (!pMultibuffers)
+    rc = dixLookupResourceByType(&pMultibuffers, pWin->drawable.id,
+	    MultibufferResType, client, DixSetAttrAccess);
+    if (rc != Success)
 	return BadMatch;
     len = stuff->length - bytes_to_int32(sizeof (xMbufSetMBufferAttributesReq));
     vmask = stuff->valueMask;
@@ -887,8 +889,9 @@ ProcGetMBufferAttributes (client)
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
     if (rc != Success)
 	return rc;
-    pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
-    if (!pMultibuffers)
+    rc = dixLookupResourceByType(&pMultibuffers, pWin->drawable.id,
+	    MultibufferResType, client, DixGetAttrAccess);
+    if (rc != Success)
 	return BadAccess;
     ids = xalloc (pMultibuffers->numMultibuffer * sizeof (XID));
     if (!ids)
@@ -928,10 +931,13 @@ ProcSetBufferAttributes (client)
     XID		*vlist;
     Mask	eventMask;
     int		result;
+    int		rc;
 
     REQUEST_AT_LEAST_SIZE (xMbufSetBufferAttributesReq);
-    pMultibuffer = (MultibufferPtr) LookupIDByType (stuff->buffer, MultibufferResType);
-    if (!pMultibuffer)
+
+    rc = dixLookupResourceByType(&pMultibuffer, stuff->buffer,
+	    MultibufferResType, client, DixSetAttrAccess);
+    if (rc != Success)
 	return MultibufferErrorBase + MultibufferBadBuffer;
     len = stuff->length - bytes_to_int32(sizeof (xMbufSetBufferAttributesReq));
     vmask = stuff->valueMask;
@@ -968,10 +974,12 @@ ProcGetBufferAttributes (client)
     xMbufGetBufferAttributesReply	rep;
     OtherClientsPtr		other;
     int				n;
+    int				rc;
 
     REQUEST_SIZE_MATCH (xMbufGetBufferAttributesReq);
-    pMultibuffer = (MultibufferPtr) LookupIDByType (stuff->buffer, MultibufferResType);
-    if (!pMultibuffer)
+    rc = dixLookupResourceByType(&pMultibuffer, stuff->buffer,
+	    MultibufferResType, client, DixGetAttrAccess);
+    if (rc != Success)
 	return MultibufferErrorBase + MultibufferBadBuffer;
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
@@ -1078,10 +1086,12 @@ ProcClearImageBufferArea (client)
     int width, height;
     DrawablePtr pDrawable;
     ScreenPtr pScreen;
+    int rc;
 
     REQUEST_SIZE_MATCH (xMbufClearImageBufferAreaReq);
-    pMultibuffer = (MultibufferPtr) LookupIDByType (stuff->buffer, MultibufferResType);
-    if (!pMultibuffer)
+    rc = dixLookupResourceByType(&pMultibuffer, stuff->buffer,
+	    MultibufferResType, client, DixWriteAccess);
+    if (rc != Success)
 	return MultibufferErrorBase + MultibufferBadBuffer;
     if ((stuff->exposures != xTrue) && (stuff->exposures != xFalse))
     {
