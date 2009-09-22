@@ -282,6 +282,10 @@ Bool dmxScreenInit(int idx, ScreenPtr pScreen, int argc, char *argv[])
     (void)dmxPictureInit(pScreen, 0, 0);
 #endif
 
+    /* Not yet... */
+    pScreen->GetWindowPixmap = NULL;
+    pScreen->SetWindowPixmap = NULL;
+
     if (dmxShadowFB && !shadowInit(pScreen, dmxShadowUpdateProc, NULL))
 	return FALSE;
 
