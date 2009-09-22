@@ -60,7 +60,7 @@ glamor_copy_n_to_n(DrawablePtr src,
 		     box[i].y1 + dy - src_pixmap->screen_y,
 		     box[i].x2 - box[i].x1,
 		     box[i].y2 - box[i].y1,
-		     GL_RGBA);
+		     GL_COLOR);
     }
 
 fail:
