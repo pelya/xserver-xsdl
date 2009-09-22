@@ -1499,42 +1499,6 @@ GetBufferPointer (pWin, i)
     return (DrawablePtr) pMultibuffers->buffers[i].pPixmap;
 }
 
-int
-DisplayImageBuffers (ids, nbuf)
-    XID	    *ids;
-    int	    nbuf;
-{
-    MultibufferPtr  *pMultibuffer;
-    MultibuffersPtr *pMultibuffers;
-    int		    i, j;
-
-    pMultibuffer = xalloc (nbuf * sizeof *pMultibuffer +
-			    nbuf * sizeof *pMultibuffers);
-    if (!pMultibuffer)
-	return BadAlloc;
-    pMultibuffers = (MultibuffersPtr *) (pMultibuffer + nbuf);
-    for (i = 0; i < nbuf; i++)
-    {
-	pMultibuffer[i] = (MultibufferPtr) LookupIDByType (ids[i], MultibufferResType);
-	if (!pMultibuffer[i])
-	{
-	    xfree (pMultibuffer);
-	    return MultibufferErrorBase + MultibufferBadBuffer;
-	}
-	pMultibuffers[i] = pMultibuffer[i]->pMultibuffers;
-	for (j = 0; j < i; j++)
-	    if (pMultibuffers[i] == pMultibuffers[j])
-	    {
-		xfree (pMultibuffer);
-		return BadMatch;
-	    }
-    }
-    PerformDisplayRequest (pMultibuffers, pMultibuffer, nbuf);
-    xfree (pMultibuffer);
-    return Success;
-}
-
-
 static Bool
 QueueDisplayRequest (client, activateTime)
     ClientPtr	    client;
