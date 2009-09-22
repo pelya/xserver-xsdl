@@ -738,6 +738,8 @@ dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.1] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.13] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
 
+LIBXEXT="xext >= 1.0.99.4"
+
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
 dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
 dnl API.
@@ -1360,7 +1362,7 @@ fi
 
 dnl Xnest DDX
 
-PKG_CHECK_MODULES(XNESTMODULES, [xfont xext x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
+PKG_CHECK_MODULES(XNESTMODULES, [xfont $LIBXEXT x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
 AC_MSG_CHECKING([whether to build Xnest DDX])
 if test "x$XNEST" = xauto; then
 	XNEST="$have_xnest"
@@ -1775,7 +1777,7 @@ AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 dnl DMX DDX
 
 PKG_CHECK_MODULES([DMXMODULES],
-    [xmuu xext x11 xrender xfixes xfont xi >= 1.2.99.1 $DMXPROTO xau $XDMCP_MODULES],
+    [xmuu $LIBXEXT x11 xrender xfixes xfont xi >= 1.2.99.1 $DMXPROTO xau $XDMCP_MODULES],
     [have_dmx=yes], [have_dmx=no])
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
@@ -1810,17 +1812,17 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
 	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
 	AC_SUBST(XDMXCONFIG_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
+	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx $LIBXEXT x11])
 	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
+	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu $LIBXEXT x11])
 	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
+	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi $LIBXEXT x11])
 	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
+	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst $LIBXEXT x11])
 	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
+	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres $LIBXEXT x11])
 	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
+	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [$LIBXEXT x11])
 	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 fi
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
@@ -1889,7 +1891,7 @@ if test "$KDRIVE" = yes; then
        XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
     fi
 
-    XEPHYR_REQUIRED_LIBS="x11 xext xfont xau xdmcp"
+    XEPHYR_REQUIRED_LIBS="x11 $LIBXEXT xfont xau xdmcp"
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi
