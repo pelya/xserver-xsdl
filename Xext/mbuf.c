@@ -41,8 +41,9 @@ in this Software without prior written authorization from The Open Group.
 #include "resource.h"
 #include "opaque.h"
 #include "sleepuntil.h"
-#define _MULTIBUF_SERVER_	/* don't want Xlib structures */
-#include <X11/extensions/multibufst.h>
+#include "inputstr.h"
+#include <X11/extensions/multibufconst.h>
+#include <X11/extensions/multibufproto.h>
 
 #include <stdio.h>
 #if !defined(WIN32)
@@ -56,6 +57,251 @@ in this Software without prior written authorization from The Open Group.
 #define bClient(b)   (clients[CLIENT_ID(b->pPixmap->drawable.id)])
 
 #define ValidEventMasks (ExposureMask|MultibufferClobberNotifyMask|MultibufferUpdateNotifyMask)
+
+/* The _Multibuffer and _Multibuffers structures below refer to each other,
+ * so we need this forward declaration
+ */
+typedef struct _Multibuffers	*MultibuffersPtr;
+
+/*
+ * per-Multibuffer data
+ */
+typedef struct _Multibuffer {
+    MultibuffersPtr pMultibuffers;  /* associated window data */
+    Mask	    eventMask;	    /* MultibufferClobberNotifyMask|ExposureMask|MultibufferUpdateNotifyMask */
+    Mask	    otherEventMask; /* mask of all other clients event masks */
+    OtherClients    *otherClients;  /* other clients that want events */
+    int		    number;	    /* index of this buffer into array */
+    int		    side;	    /* always Mono */
+    int		    clobber;	    /* Unclobbered, PartiallyClobbered, FullClobbered */
+    PixmapPtr	    pPixmap;	    /* associated pixmap */
+} MultibufferRec, *MultibufferPtr;
+
+/*
+ * per-window data
+ */
+
+typedef struct _Multibuffers {
+    WindowPtr	pWindow;		/* associated window */
+    int		numMultibuffer;		/* count of buffers */
+    int		refcnt;			/* ref count for delete */
+    int		displayedMultibuffer;	/* currently active buffer */
+    int		updateAction;		/* Undefined, Background, Untouched, Copied */
+    int		updateHint;		/* Frequent, Intermittent, Static */
+    int		windowMode;		/* always Mono */
+
+    TimeStamp	lastUpdate;		/* time of last update */
+
+    unsigned short	width, height;	/* last known window size */
+    short		x, y;		/* for static gravity */
+
+    MultibufferPtr	buffers;        /* array of numMultibuffer buffers */
+} MultibuffersRec;
+
+/*
+ * per-screen data
+ */
+typedef struct _MultibufferScreen {
+    PositionWindowProcPtr PositionWindow;		/* pWin, x,y */
+} MultibufferScreenRec, *MultibufferScreenPtr;
+
+/*
+ * per display-image-buffers request data.
+ */
+
+typedef struct _DisplayRequest {
+    struct _DisplayRequest	*next;
+    TimeStamp			activateTime;
+    ClientPtr			pClient;
+    XID				id;
+} DisplayRequestRec, *DisplayRequestPtr;
+
+#define DestroyWindowMask		(1L<<0)
+#define PositionWindowMask		(1L<<1)
+#define PostValidateTreeMask		(1L<<2)
+#define ClipNotifyMask			(1L<<3)
+#define WindowExposuresMask		(1L<<4)
+#define CopyWindowMask			(1L<<5)
+#define ClearToBackgroundMask		(1L<<6)
+#define ChangeWindowAttributesMask	(1L<<7)
+
+extern int		MultibufferScreenIndex;
+extern int		MultibufferWindowIndex;
+
+extern RESTYPE		MultibufferDrawableResType;
+
+extern void		MultibufferUpdate(	/* pMbuffer, time */
+				MultibufferPtr /* pMultibuffer */,
+				CARD32 /* time */
+				);
+extern void		MultibufferExpose(	/* pMbuffer, pRegion */
+				MultibufferPtr /* pMultibuffer */,
+				RegionPtr /* pRegion */
+				);
+extern void		MultibufferClobber(	/* pMbuffer */
+				MultibufferPtr /* pMultibuffer */
+				);
+
+typedef struct _mbufWindow	*mbufWindowPtr;
+
+void DestroyImageBuffers (WindowPtr	pWin);
+
+/*
+ * per-buffer data
+ */
+
+#define MB_DISPLAYED_BUFFER(pMBWindow) \
+    ((pMBWindow)->buffers + (pMBWindow)->displayedMultibuffer)
+
+typedef struct _mbufBuffer {
+    mbufWindowPtr   pMBWindow;	    /* associated window data */
+    Mask	    eventMask;	    /* client event mask */
+    Mask	    otherEventMask; /* union of other clients' event masks */
+    OtherClientsPtr otherClients;   /* other clients that want events */
+    int		    number;	    /* index of this buffer into array */
+    int		    side;	    /* stero side: always Mono */
+    int		    clobber;	    /* clober state */
+    DrawablePtr	    pDrawable;	    /* associated drawable */
+} mbufBufferRec, *mbufBufferPtr;
+
+
+/*
+ * per-window data
+ */
+
+#define MB_WINDOW_PRIV(pWin) \
+    ((mbufWindowPtr)((pWin)->devPrivates[MultibufferWindowIndex].ptr))
+
+typedef struct _mbufWindow {
+    WindowPtr	pWindow;		/* associated window */
+    int		numMultibuffer;		/* count of buffers */
+    mbufBufferPtr buffers;		/* array of (numMultibuffer) buffers */
+    int		displayedMultibuffer;	/* currently active buffer */
+    int		updateAction;		/* Undefined, Background,
+					   Untouched, Copied */
+    int		updateHint;		/* Frequent, Intermittent, Static */
+    int		windowMode;		/* always Mono */
+    TimeStamp	lastUpdate;		/* time of last update */
+    short		x, y;		/* for static gravity */
+    unsigned short	width, height;	/* last known window size */
+    DevUnion		devPrivate;
+} mbufWindowRec;
+
+
+/*
+ * per-screen data
+ */
+
+#define MB_SCREEN_PRIV(pScreen) \
+    ((mbufScreenPtr)((pScreen)->devPrivates[MultibufferScreenIndex].ptr))
+
+typedef struct _mbufScreen {
+    long mbufWindowCount;		/* count of multibuffered windows */
+
+    /* Wrap pScreen->DestroyWindow */
+    DestroyWindowProcPtr DestroyWindow;
+    long funcsWrapped;			/* flags which functions are wrapped */
+
+    /* Initialized by device-dependent section */
+    int  nInfo;				/* number of buffer info rec's */
+    xMbufBufferInfo *pInfo;		/* buffer info (for Normal buffers) */
+
+    int  (* CreateImageBuffers)(
+		WindowPtr		/* pWin */,
+		int			/* nbuf */,
+		XID *			/* ids */,
+		int			/* action */,
+		int			/* hint */
+		);
+    void (* DestroyImageBuffers)(
+		WindowPtr		/* pWin */
+		);
+    void (* DisplayImageBuffers)(
+		ScreenPtr		/* pScreen */,
+		mbufBufferPtr *		/* ppMBBuffer */,
+		mbufWindowPtr *		/* ppMBWindow */,
+		int			/* nbuf */
+		);
+    void (* ClearImageBufferArea)(
+		mbufBufferPtr		/* pMBBuffer */,
+		short			/* x */,
+		short			/* y */,
+		unsigned short		/* width */,
+		unsigned short		/* height */,
+		Bool			/* exposures */
+		);
+    Bool (* ChangeMBufferAttributes)(	/* pMBWindow, vmask */
+		/* FIXME */
+		);
+    Bool (* ChangeBufferAttributes)(	/* pMBBuffer, vmask */
+		/* FIXME */
+		);
+    void (* DeleteBufferDrawable)(
+		DrawablePtr		/* pDrawable */
+		);
+    void (* WrapScreenFuncs)(
+		ScreenPtr		/* pScreen */
+		);
+    void (* ResetProc)(
+		ScreenPtr		/* pScreen */
+		);
+    DevUnion	devPrivate;
+} mbufScreenRec, *mbufScreenPtr;
+
+
+/* Privates to mbufScreenRec */
+
+#ifdef _MULTIBUF_PIXMAP_
+#define MB_SCREEN_PRIV_PIXMAP(pScreen) \
+    ((mbufPixmapPrivPtr) MB_SCREEN_PRIV((pScreen))->devPrivate.ptr)
+
+typedef struct _mbufPixmapPriv
+{
+    /* Pointers to wrapped functions */
+    PositionWindowProcPtr PositionWindow;		/* pWin, x,y */
+    long funcsWrapped;			/* flags which functions are wrapped */
+} mbufPixmapPrivRec, *mbufPixmapPrivPtr;
+#endif /* _MULTIBUF_PIXMAP_ */
+
+
+#ifdef _MULTIBUF_BUFFER_
+
+extern int frameWindowPrivateIndex;
+
+#define MB_SCREEN_PRIV_BUFFER(pScreen) \
+    ((mbufBufferPrivPtr) MB_SCREEN_PRIV((pScreen))->devPrivate.ptr)
+
+typedef struct _mbufBufferPriv
+{
+    DevUnion	*frameBuffer;	/* Array of screen framebuffers */
+    DevUnion	selectPlane;	/* Plane(s) that select displayed buffer */
+
+    /*
+     * Note: subtractRgn and unionRgn may overlap. subtractRgn is a union
+     * of all the old clipLists of the windows that are displaying
+     * the backbuffer. unionRgn is the union of all the new clipLists
+     * of the same windows.
+     */
+
+    RegionRec	backBuffer;	/* Area of screen displaying back buffer */
+    RegionRec   subtractRgn;	/* Regions lost to backBuffer   */
+    RegionRec   unionRgn;	/* Regions gained by backBuffer */
+    Bool	rgnChanged;	/* TRUE if "backBuffer" needs to be updated */
+
+    void (* CopyBufferBits)();	/* pMBWindow, srcBufferNum, dstBufferNum */
+    void (* DrawSelectPlane)();	/* pScreen, selectPlane, pRegion, bufferNum */
+
+    /* Pointers to wrapped functions */
+    PostValidateTreeProcPtr	PostValidateTree; /* pParent, pChild, kind */
+    ClipNotifyProcPtr		ClipNotify;       /* pWin, dx, dy */
+    WindowExposuresProcPtr	WindowExposures;  /* pWin, pRegion */
+    CopyWindowProcPtr		CopyWindow;       /* pWin, oldPt, pOldRegion */
+    ClearToBackgroundProcPtr	ClearToBackground; /* pWin, x,y,w,h, sendExpose */
+    ChangeWindowAttributesProcPtr ChangeWindowAttributes; /* pWin, vmask */
+    long funcsWrapped;			/* flags which functions are wrapped */
+    unsigned  inClearToBackground:1;	/* used by WindowExposure */
+} mbufBufferPrivRec, *mbufBufferPrivPtr;
+#endif /* _MULTIBUF_BUFFER_ */
 
 static int		MultibufferEventBase;
 static int		MultibufferErrorBase;
