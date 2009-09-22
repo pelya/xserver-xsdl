@@ -177,6 +177,10 @@ glamor_init(ScreenPtr screen)
 	ErrorF("GL_ARB_vertex_shader required\n");
 	goto fail;
     }
+    if (!GLEW_ARB_pixel_buffer_object) {
+	ErrorF("GL_ARB_pixel_buffer_object required\n");
+	goto fail;
+    }
 
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
@@ -198,6 +202,12 @@ glamor_init(ScreenPtr screen)
 
     glamor_priv->saved_get_image = screen->GetImage;
     screen->GetImage = miGetImage;
+
+    glamor_priv->saved_change_window_attributes = screen->ChangeWindowAttributes;
+    screen->ChangeWindowAttributes = glamor_change_window_attributes;
+
+    glamor_priv->saved_bitmap_to_region = screen->BitmapToRegion;
+    screen->BitmapToRegion = glamor_bitmap_to_region;
 
 #ifdef RENDER
     glamor_priv->saved_composite = ps->Composite;
@@ -231,6 +241,8 @@ glamor_fini(ScreenPtr screen)
     screen->CreatePixmap = glamor_priv->saved_create_pixmap;
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
     screen->GetSpans = glamor_priv->saved_get_spans;
+    screen->ChangeWindowAttributes = glamor_priv->saved_change_window_attributes;
+    screen->BitmapToRegion = glamor_priv->saved_bitmap_to_region;
 #ifdef RENDER
     ps->Composite = glamor_priv->saved_composite;
 #endif

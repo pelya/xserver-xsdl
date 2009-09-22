@@ -31,6 +31,11 @@
 #include "glamor.h"
 #include <GL/glew.h>
 
+typedef enum glamor_access {
+    GLAMOR_ACCESS_RO,
+    GLAMOR_ACCESS_RW,
+} glamor_access_t;
+
 typedef struct glamor_transform_uniforms {
     GLint x_bias;
     GLint x_scale;
@@ -55,6 +60,8 @@ typedef struct glamor_screen_private {
     GetImageProcPtr saved_get_image;
     CompositeProcPtr saved_composite;
     TrapezoidsProcPtr saved_trapezoids;
+    ChangeWindowAttributesProcPtr saved_change_window_attributes;
+    BitmapToRegionProcPtr saved_bitmap_to_region;
 
     /* glamor_solid */
     GLint solid_prog;
@@ -78,6 +85,7 @@ typedef struct glamor_screen_private {
 typedef struct glamor_pixmap_private {
     GLuint tex;
     GLuint fb;
+    GLuint pbo;
 } glamor_pixmap_private;
 
 extern DevPrivateKey glamor_screen_private_key;
@@ -117,6 +125,10 @@ RegionPtr
 glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
 		 int srcx, int srcy, int width, int height, int dstx, int dsty);
 /* glamor_core.c */
+Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
+void glamor_finish_access(DrawablePtr drawable);
+Bool glamor_prepare_access_window(WindowPtr window);
+void glamor_finish_access_window(WindowPtr window);
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,
@@ -134,6 +146,8 @@ void glamor_get_transform_uniform_locations(GLint prog,
 					    glamor_transform_uniforms *uniform_locations);
 void glamor_set_transform_for_pixmap(PixmapPtr pixmap,
 				     glamor_transform_uniforms *uniform_locations);
+Bool glamor_change_window_attributes(WindowPtr pWin, unsigned long mask);
+RegionPtr glamor_bitmap_to_region(PixmapPtr pixmap);
 
 /* glamor_fill.c */
 void glamor_fill(DrawablePtr drawable,

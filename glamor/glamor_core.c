@@ -260,6 +260,129 @@ glamor_get_color_4f_from_pixel(PixmapPtr pixmap, unsigned long fg_pixel,
     }
 }
 
+Bool
+glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
+{
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    unsigned int stride;
+    GLenum format, type;
+
+    if (pixmap_priv == NULL)
+	return TRUE;
+
+    if (pixmap_priv->fb == 0) {
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+	if (pixmap != screen_pixmap)
+	    return TRUE;
+    }
+
+    stride = PixmapBytePad(drawable->width, drawable->depth);
+
+    switch (drawable->depth) {
+    case 1:
+	format = GL_COLOR_INDEX;
+	type = GL_BITMAP;
+	break;
+    case 8:
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
+	break;
+    case 24:
+	format = GL_RGB;
+	type = GL_UNSIGNED_BYTE;
+	break;
+    case 32:
+	format = GL_BGRA;
+	type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	break;
+    default:
+	ErrorF("Unknown prepareaccess depth %d\n", drawable->depth);
+	return FALSE;
+    }
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glGenBuffersARB(1, &pixmap_priv->pbo);
+    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
+    glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT, stride * drawable->height,
+		    NULL, GL_DYNAMIC_DRAW_ARB);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glPixelStorei(GL_PACK_ROW_LENGTH, stride * 8 /
+		  pixmap->drawable.bitsPerPixel);
+
+    glReadPixels(0, 0,
+		 pixmap->drawable.width, pixmap->drawable.height,
+		 format, type, 0);
+
+    pixmap->devPrivate.ptr = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT,
+					    GL_READ_WRITE_ARB);
+
+    return TRUE;
+}
+
+void
+glamor_finish_access(DrawablePtr drawable)
+{
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    unsigned int stride;
+    GLenum format, type;
+
+    if (pixmap_priv == NULL)
+	return;
+
+    if (pixmap_priv->fb == 0) {
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+	if (pixmap != screen_pixmap)
+	    return;
+    }
+
+    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
+    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
+    glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
+    pixmap->devPrivate.ptr = NULL;
+
+    stride = PixmapBytePad(drawable->width, drawable->depth);
+
+    switch (drawable->depth) {
+    case 1:
+	format = GL_COLOR_INDEX;
+	type = GL_BITMAP;
+	break;
+    case 8:
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
+	break;
+    case 24:
+	format = GL_RGB;
+	type = GL_UNSIGNED_BYTE;
+	break;
+    case 32:
+	format = GL_BGRA;
+	type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	break;
+    default:
+	ErrorF("Unknown finishaccess depth %d\n", drawable->depth);
+	return;
+    }
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, stride * 8 /
+		  pixmap->drawable.bitsPerPixel);
+
+    glRasterPos2i(0, 0);
+    glDrawPixels(pixmap->drawable.width, pixmap->drawable.height,
+		 format, type, 0);
+    glDeleteBuffersARB(1, &pixmap_priv->pbo);
+    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+}
+
 void
 glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 	       int x, int y, int width, int height,
@@ -364,13 +487,78 @@ GCOps glamor_gc_ops = {
 };
 
 /**
- * exaValidateGC() sets the ops to EXA's implementations, which may be
+ * uxa_validate_gc() sets the ops to glamor's implementations, which may be
  * accelerated or may sync the card and fall back to fb.
  */
 static void
 glamor_validate_gc(GCPtr gc, unsigned long changes, DrawablePtr drawable)
 {
-    fbValidateGC(gc, changes, drawable);
+    /* fbValidateGC will do direct access to pixmaps if the tiling has changed.
+     * Preempt fbValidateGC by doing its work and masking the change out, so
+     * that we can do the Prepare/finish_access.
+     */
+#ifdef FB_24_32BIT
+    if ((changes & GCTile) && fbGetRotatedPixmap(gc)) {
+	gc->pScreen->DestroyPixmap(fbGetRotatedPixmap(gc));
+	fbGetRotatedPixmap(gc) = 0;
+    }
+
+    if (gc->fillStyle == FillTiled) {
+	PixmapPtr old_tile, new_tile;
+
+	old_tile = gc->tile.pixmap;
+	if (old_tile->drawable.bitsPerPixel != drawable->bitsPerPixel) {
+	    new_tile = fbGetRotatedPixmap(gc);
+	    if (!new_tile ||
+		new_tile ->drawable.bitsPerPixel != drawable->bitsPerPixel)
+	    {
+		if (new_tile)
+		    gc->pScreen->DestroyPixmap(new_tile);
+		/* fb24_32ReformatTile will do direct access of a newly-
+		 * allocated pixmap.
+		 */
+		if (glamor_prepare_access(&old_tile->drawable,
+					  GLAMOR_ACCESS_RO)) {
+		    new_tile = fb24_32ReformatTile(old_tile,
+						   drawable->bitsPerPixel);
+		    glamor_finish_access(&old_tile->drawable);
+		}
+	    }
+	    if (new_tile) {
+		fbGetRotatedPixmap(gc) = old_tile;
+		gc->tile.pixmap = new_tile;
+		changes |= GCTile;
+	    }
+	}
+    }
+#endif
+    if (changes & GCTile) {
+	if (!gc->tileIsPixel && FbEvenTile(gc->tile.pixmap->drawable.width *
+					   drawable->bitsPerPixel))
+	{
+	    if (glamor_prepare_access(&gc->tile.pixmap->drawable,
+				      GLAMOR_ACCESS_RW)) {
+		fbPadPixmap(gc->tile.pixmap);
+		glamor_finish_access(&gc->tile.pixmap->drawable);
+	    }
+	}
+	/* Mask out the GCTile change notification, now that we've done FB's
+	 * job for it.
+	 */
+	changes &= ~GCTile;
+    }
+
+    if (changes & GCStipple && gc->stipple) {
+	/* We can't inline stipple handling like we do for GCTile because
+	 * it sets fbgc privates.
+	 */
+	if (glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RW)) {
+	    fbValidateGC(gc, changes, drawable);
+	    glamor_finish_access(&gc->stipple->drawable);
+	}
+    } else {
+	fbValidateGC(gc, changes, drawable);
+    }
 
     gc->ops = &glamor_gc_ops;
 }
@@ -398,4 +586,57 @@ glamor_create_gc(GCPtr gc)
     gc->funcs = &glamor_gc_funcs;
 
     return TRUE;
+}
+
+Bool
+glamor_prepare_access_window(WindowPtr window)
+{
+    if (window->backgroundState == BackgroundPixmap) {
+        if (!glamor_prepare_access(&window->background.pixmap->drawable,
+				   GLAMOR_ACCESS_RO))
+	    return FALSE;
+    }
+
+    if (window->borderIsPixel == FALSE) {
+        if (!glamor_prepare_access(&window->border.pixmap->drawable,
+				   GLAMOR_ACCESS_RO)) {
+	    if (window->backgroundState == BackgroundPixmap)
+		glamor_finish_access(&window->background.pixmap->drawable);
+	    return FALSE;
+	}
+    }
+    return TRUE;
+}
+
+void
+glamor_finish_access_window(WindowPtr window)
+{
+    if (window->backgroundState == BackgroundPixmap)
+        glamor_finish_access(&window->background.pixmap->drawable);
+
+    if (window->borderIsPixel == FALSE)
+        glamor_finish_access(&window->border.pixmap->drawable);
+}
+
+Bool
+glamor_change_window_attributes(WindowPtr window, unsigned long mask)
+{
+    Bool ret;
+
+    if (!glamor_prepare_access_window(window))
+	return FALSE;
+    ret = fbChangeWindowAttributes(window, mask);
+    glamor_finish_access_window(window);
+    return ret;
+}
+
+RegionPtr
+glamor_bitmap_to_region(PixmapPtr pixmap)
+{
+  RegionPtr ret;
+  if (!glamor_prepare_access(&pixmap->drawable, GLAMOR_ACCESS_RO))
+    return NULL;
+  ret = fbPixmapToRegion(pixmap);
+  glamor_finish_access(&pixmap->drawable);
+  return ret;
 }
