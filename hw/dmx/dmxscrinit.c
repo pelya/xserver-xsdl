@@ -388,8 +388,11 @@ void dmxBECloseScreen(ScreenPtr pScreen)
     } else {
 	/* Free the default drawables */
 	for (i = 0; i < dmxScreen->beNumPixmapFormats; i++) {
-	    XFreePixmap(dmxScreen->beDisplay, dmxScreen->scrnDefDrawables[i]);
-	    dmxScreen->scrnDefDrawables[i] = (Drawable)0;
+	    if (dmxScreen->scrnDefDrawables[i]) {
+		XFreePixmap(dmxScreen->beDisplay,
+			    dmxScreen->scrnDefDrawables[i]);
+		dmxScreen->scrnDefDrawables[i] = (Drawable)0;
+	    }
 	}
     }
 
