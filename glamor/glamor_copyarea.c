@@ -76,7 +76,7 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
-    glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src);
+    glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src_pixmap);
     RegionPtr region;
 
     if (!GLEW_EXT_framebuffer_blit) {
