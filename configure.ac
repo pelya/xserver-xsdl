@@ -1861,7 +1861,11 @@ if test "$KDRIVE" = yes; then
 
 
     PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
-    if test "x$HAVE_TSLIB" = xauto; then
+    if test "x$HAVE_TSLIB" = xno; then
+        AC_CHECK_LIB(ts, ts_open, [HAVE_TSLIB="yes"])
+    fi
+
+    if test "xTSLIB" = xauto; then
         TSLIB="$HAVE_TSLIB"
     fi
 
