@@ -738,7 +738,15 @@ dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.1] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.13] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
 
+dnl List of libraries that require a specific version
+LIBAPPLEWM="applewm >= 1.4"
+LIBDRI="dri >= 7.1.0"
+LIBDRM="libdrm >= 2.3.0"
+LIBGL="gl >= 7.1.0"
 LIBXEXT="xext >= 1.0.99.4"
+LIBXI="xi >= 1.2.99.1"
+LIBPCIACCESS="pciaccess >= 0.8.0"
+LIBGLIB="glib-2.0 >= 2.16"
 
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
 dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
@@ -903,7 +911,7 @@ fi
 
 if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], $GLPROTO [gl >= 7.1.0])
+	PKG_CHECK_MODULES([GL], $GLPROTO $LIBGL)
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/glx/libglx.la'
@@ -930,7 +938,7 @@ AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [$DRIPROTO])
-	PKG_CHECK_MODULES([DRI], $GLPROTO [dri >= 7.1.0])
+	PKG_CHECK_MODULES([DRI], $GLPROTO $LIBDRI)
 	AC_SUBST(DRIPROTO_CFLAGS)
 fi
 
@@ -948,7 +956,7 @@ esac
 AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
 if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
-	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
+	PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
 	AC_SUBST(LIBDRM_CFLAGS)
 	AC_SUBST(LIBDRM_LIBS)
 fi
@@ -1195,7 +1203,7 @@ AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
 # If unittests aren't explicitly disabled, check for required support
 if test "x$UNITTESTS" != xno ; then
-       PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.16],
+       PKG_CHECK_MODULES([GLIB], $LIBGLIB,
                          [HAVE_GLIB=yes], [HAVE_GLIB=no])
 
        # Check if linker supports -wrap, passed via compiler flags
@@ -1444,7 +1452,7 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([symbol_visibility])
 	dnl ===================================================================
 
-	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
+	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
 	SAVE_LIBS=$LIBS
 	SAVE_CFLAGS=$CFLAGS
 	CFLAGS=$PCIACCESS_CFLAGS
@@ -1750,7 +1758,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
 
-	PKG_CHECK_MODULES(XPBPROXY, $APPLEWMPROTO [applewm >= 1.4] xfixes x11)
+	PKG_CHECK_MODULES(XPBPROXY, $APPLEWMPROTO $LIBAPPLEWM xfixes x11)
 
         if test "x$XQUARTZ_SPARKLE" = xyes ; then
                 AC_DEFINE(XQUARTZ_SPARKLE,1,[Support application updating through sparkle.])
@@ -1779,7 +1787,7 @@ AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 dnl DMX DDX
 
 PKG_CHECK_MODULES([DMXMODULES],
-    [xmuu $LIBXEXT x11 xrender xfixes xfont xi >= 1.2.99.1 $DMXPROTO xau $XDMCP_MODULES],
+    [xmuu $LIBXEXT x11 xrender xfixes xfont $LIBXI $DMXPROTO xau $XDMCP_MODULES],
     [have_dmx=yes], [have_dmx=no])
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
@@ -1818,7 +1826,7 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
 	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu $LIBXEXT x11])
 	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi $LIBXEXT x11])
+	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx $LIBXI $LIBXEXT x11])
 	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
 	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst $LIBXEXT x11])
 	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
@@ -1898,7 +1906,7 @@ if test "$KDRIVE" = yes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi
     if test "x$DRI" = xyes && test "x$GLX" = xyes; then
-        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS gl libdrm"
+        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS $LIBGL libdrm"
     fi
 
     PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
