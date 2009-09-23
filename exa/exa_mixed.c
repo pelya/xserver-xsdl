@@ -57,7 +57,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
     PixmapPtr pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
     int bpp;
-    size_t paddedWidth, datasize;
+    size_t paddedWidth;
     ExaScreenPriv(pScreen);
 
     if (w > 32767 || h > 32767)
@@ -78,8 +78,6 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
     paddedWidth = ((w * bpp + FB_MASK) >> FB_SHIFT) * sizeof(FbBits);
     if (paddedWidth / 4 > 32767 || h > 32767)
         return NullPixmap;
-
-    datasize = h * paddedWidth;
 
     /* We will allocate the system pixmap later if needed. */
     pPixmap->devPrivate.ptr = NULL;
