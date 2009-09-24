@@ -805,7 +805,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         {
             /* XXX: Relative/Absolute mode */
             v->axisVal[i] = event->valuators.data[i];
-            v->axisVal[i] += event->valuators.data_frac[i];
+            v->axisVal[i] += (event->valuators.data_frac[i] * 1.0f / (1 << 16) / (1 << 16));
         }
     }
 
