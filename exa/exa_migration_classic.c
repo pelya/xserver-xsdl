@@ -120,7 +120,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     Bool need_sync = FALSE;
 
     /* Damaged bits are valid in current copy but invalid in other one */
-    if (exaPixmapIsOffscreen(pPixmap)) {
+    if (pExaPixmap->offscreen) {
 	REGION_UNION(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
 		     damage);
 	REGION_SUBTRACT(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
@@ -225,7 +225,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 				    pExaPixmap->sys_pitch))
 	{
 	    if (!access_prepared) {
-		ExaDoPrepareAccess(&pPixmap->drawable, fallback_index);
+		ExaDoPrepareAccess(pPixmap, fallback_index);
 		access_prepared = TRUE;
 	    }
 	    exaMemcpyBox (pPixmap, pBox,
@@ -263,7 +263,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
  * the framebuffer  memory copy to the system memory copy.  Both areas must be
  * allocated.
  */
-static void
+void
 exaCopyDirtyToSys (ExaMigrationPtr migrate)
 {
     PixmapPtr pPixmap = migrate->pPix;
@@ -281,7 +281,7 @@ exaCopyDirtyToSys (ExaMigrationPtr migrate)
  * the system memory copy to the framebuffer memory copy.  Both areas must be
  * allocated.
  */
-static void
+void
 exaCopyDirtyToFb (ExaMigrationPtr migrate)
 {
     PixmapPtr pPixmap = migrate->pPix;
@@ -545,7 +545,7 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     pExaPixmap->offscreen = TRUE;
     pPixmap->devKind = pExaPixmap->fb_pitch;
 
-    if (!ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC))
+    if (!ExaDoPrepareAccess(pPixmap, EXA_PREPARE_SRC))
 	goto skip;
 
     while (nbox--) {
@@ -717,4 +717,24 @@ exaDoMigration_classic (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    ExaOffscreenMarkUsed (pixmaps[i].pPix);
 	}
     }
+}
+
+void
+exaPrepareAccessReg_classic(PixmapPtr pPixmap, int index, RegionPtr pReg)
+{
+    ExaMigrationRec pixmaps[1];
+
+    if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {
+	pixmaps[0].as_dst = TRUE;
+	pixmaps[0].as_src = FALSE;
+    } else {
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+    }
+    pixmaps[0].pPix = pPixmap;
+    pixmaps[0].pReg = pReg;
+
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    (void)ExaDoPrepareAccess(pPixmap, index);
 }
