@@ -62,15 +62,10 @@
  */
 #define CACHE_PICTURE_WIDTH 1024
 
-/* Maximum number of glyphs we buffer on the stack before flushing
- * rendering to the mask or destination surface.
- */
-#define GLYPH_BUFFER_SIZE 256
-
 typedef struct {
     PicturePtr mask;
-    ExaCompositeRectRec rects[GLYPH_BUFFER_SIZE];
     int count;
+    ExaCompositeRectRec rects[0];
 } ExaGlyphBuffer, *ExaGlyphBufferPtr;
 
 typedef enum {
@@ -553,15 +548,12 @@ exaBufferGlyph(ScreenPtr         pScreen,
 	       INT16             yDst)
 {
     ExaScreenPriv(pScreen);
-    unsigned int format = (GlyphPicture(pGlyph)[pScreen->myNum])->format;
+    PicturePtr mask = GlyphPicture(pGlyph)[pScreen->myNum];
+    unsigned int format = mask->format;
     int width = pGlyph->info.width;
     int height = pGlyph->info.height;
     ExaCompositeRectPtr rect;
-    PicturePtr mask;
     int i;
-
-    if (buffer->count == GLYPH_BUFFER_SIZE)
-	return ExaGlyphNeedFlush;
 
     if (PICT_FORMAT_BPP(format) == 1)
 	format = PICT_a8;
@@ -593,7 +585,6 @@ exaBufferGlyph(ScreenPtr         pScreen,
 
     /* Couldn't find the glyph in the cache, use the glyph picture directly */
 
-    mask = GlyphPicture(pGlyph)[pScreen->myNum];
     if (buffer->mask && buffer->mask != mask)
 	return ExaGlyphNeedFlush;
 
@@ -707,12 +698,18 @@ exaGlyphs (CARD8 	 op,
     int		width = 0, height = 0;
     int		x, y;
     int		first_xOff = list->xOff, first_yOff = list->yOff;
-    int		n;
+    int		i, n;
     GlyphPtr	glyph;
     int		error;
     BoxRec	extents = {0, 0, 0, 0};
     CARD32	component_alpha;
-    ExaGlyphBuffer buffer;
+    ExaGlyphBufferPtr buffer;
+
+    for (i = 0, n = 0; i < nlist; i++)
+	n += list[i].len;
+    buffer = alloca(sizeof(ExaGlyphBuffer) + n * sizeof(ExaCompositeRectRec));
+    if (!buffer)
+	return;
 
     if (maskFormat)
     {
@@ -792,8 +789,8 @@ exaGlyphs (CARD8 	 op,
 	x = 0;
 	y = 0;
     }
-    buffer.count = 0;
-    buffer.mask = NULL;
+    buffer->count = 0;
+    buffer->mask = NULL;
     while (nlist--)
     {
 	x += list->xOff;
@@ -808,23 +805,23 @@ exaGlyphs (CARD8 	 op,
 		/* pGlyph->info.{x,y} compensate for empty space in the glyph. */
 		if (maskFormat)
 		{
-		    if (exaBufferGlyph(pScreen, &buffer, glyph, NULL, pMask,
+		    if (exaBufferGlyph(pScreen, buffer, glyph, NULL, pMask,
 				       0, 0, 0, 0, x - glyph->info.x, y - glyph->info.y) == ExaGlyphNeedFlush)
 		    {
-			exaGlyphsToMask(pMask, &buffer);
-			exaBufferGlyph(pScreen, &buffer, glyph, NULL, pMask,
+			exaGlyphsToMask(pMask, buffer);
+			exaBufferGlyph(pScreen, buffer, glyph, NULL, pMask,
 				       0, 0, 0, 0, x - glyph->info.x, y - glyph->info.y);
 		    }
 		}
 		else
 		{
-		    if (exaBufferGlyph(pScreen, &buffer, glyph, pSrc, pDst,
+		    if (exaBufferGlyph(pScreen, buffer, glyph, pSrc, pDst,
 				       xSrc + (x - glyph->info.x) - first_xOff, ySrc + (y - glyph->info.y) - first_yOff,
 				       0, 0, x - glyph->info.x, y - glyph->info.y)
 			== ExaGlyphNeedFlush)
 		    {
-			exaGlyphsToDst(pSrc, pDst, &buffer);
-			exaBufferGlyph(pScreen, &buffer, glyph, pSrc, pDst,
+			exaGlyphsToDst(pSrc, pDst, buffer);
+			exaBufferGlyph(pScreen, buffer, glyph, pSrc, pDst,
 				       xSrc + (x - glyph->info.x) - first_xOff, ySrc + (y - glyph->info.y) - first_yOff,
 				       0, 0, x - glyph->info.x, y - glyph->info.y);
 		    }
@@ -837,11 +834,11 @@ exaGlyphs (CARD8 	 op,
 	list++;
     }
     
-    if (buffer.count) {
+    if (buffer->count) {
         if (maskFormat)
-	    exaGlyphsToMask(pMask, &buffer);
+	    exaGlyphsToMask(pMask, buffer);
         else
-	    exaGlyphsToDst(pSrc, pDst, &buffer);
+	    exaGlyphsToDst(pSrc, pDst, buffer);
     }
 
     if (maskFormat)
