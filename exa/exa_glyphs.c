@@ -359,7 +359,8 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
 static void
 exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 			 ExaGlyphCachePtr  cache,
-			 int               pos,
+			 int               x,
+			 int               y,
 			 GlyphPtr          pGlyph)
 {
     ExaScreenPriv(pScreen);
@@ -394,10 +395,10 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     if (!exaPixmapIsOffscreen(pCachePixmap))
 	goto composite;
 
-    /* CACHE_{X,Y} are in pixmap coordinates, no need for cache{X,Y}off */
+    /* x,y are in pixmap coordinates, no need for cache{X,Y}off */
     if (pExaScr->info->UploadToScreen(pCachePixmap,
-				      CACHE_X(pos),
-				      CACHE_Y(pos),
+				      x,
+				      y,
 				      pGlyph->info.width,
 				      pGlyph->info.height,
 				      (char *)pExaPixmap->sys_ptr,
@@ -411,18 +412,18 @@ composite:
 		      cache->picture,
 		      0, 0,
 		      0, 0,
-		      CACHE_X(pos),
-		      CACHE_Y(pos),
+		      x,
+		      y,
 		      pGlyph->info.width,
 		      pGlyph->info.height);
 
 damage:
     /* The cache pixmap isn't a window, so no need to offset coordinates. */
     exaPixmapDirty (pCachePixmap,
-		    CACHE_X(pos),
-		    CACHE_Y(pos),
-		    CACHE_X(pos) + cache->glyphWidth,
-		    CACHE_Y(pos) + cache->glyphHeight);
+		    x,
+		    y,
+		    x + cache->glyphWidth,
+		    y + cache->glyphHeight);
 }
 
 static ExaGlyphCacheResult
@@ -441,6 +442,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 {
     ExaCompositeRectPtr rect;
     int pos;
+    int x, y;
     
     if (buffer->mask && buffer->mask != cache->picture)
 	return ExaGlyphNeedFlush;
@@ -457,10 +459,14 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
     pos = exaGlyphCacheHashLookup(cache, pGlyph);
     if (pos != -1) {
 	DBG_GLYPH_CACHE(("  found existing glyph at %d\n", pos));
+	x = CACHE_X(pos);
+	y = CACHE_Y(pos);
     } else {
 	if (cache->glyphCount < cache->size) {
 	    /* Space remaining; we fill from the start */
 	    pos = cache->glyphCount;
+	    x = CACHE_X(pos);
+	    y = CACHE_Y(pos);
 	    cache->glyphCount++;
 	    DBG_GLYPH_CACHE(("  storing glyph in free space at %d\n", pos));
 
@@ -472,13 +478,11 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	     * the cache
 	     */
 	    pos = cache->evictionPosition;
+	    x = CACHE_X(pos);
+	    y = CACHE_Y(pos);
 	    DBG_GLYPH_CACHE(("  evicting glyph at %d\n", pos));
 	    if (buffer->count) {
-		int x, y;
 		int i;
-
-		x = CACHE_X(pos);
-		y = CACHE_Y(pos);
 
 		for (i = 0; i < buffer->count; i++) {
 		    if (pSrc ?
@@ -498,7 +502,7 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
 	    cache->evictionPosition = rand() % cache->size;
 	}
 
-	exaGlyphCacheUploadGlyph(pScreen, cache, pos, pGlyph);
+	exaGlyphCacheUploadGlyph(pScreen, cache, x, y, pGlyph);
     }
 
     buffer->mask = cache->picture;
@@ -509,13 +513,13 @@ exaGlyphCacheBufferGlyph(ScreenPtr         pScreen,
     {
 	rect->xSrc = xSrc;
 	rect->ySrc = ySrc;
-	rect->xMask = CACHE_X(pos);
-	rect->yMask = CACHE_Y(pos);
+	rect->xMask = x;
+	rect->yMask = y;
     }
     else
     {
-	rect->xSrc = CACHE_X(pos);
-	rect->ySrc = CACHE_Y(pos);
+	rect->xSrc = x;
+	rect->ySrc = y;
 	rect->xMask = 0;
 	rect->yMask = 0;
     }
