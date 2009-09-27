@@ -85,12 +85,6 @@ dnl ISDN trace program named dtrace
 AC_ARG_WITH(dtrace, AS_HELP_STRING([--with-dtrace=PATH],
 	     [Enable dtrace probes (default: enabled if dtrace found)]),
 	     [WDTRACE=$withval], [WDTRACE=auto])
-dnl Darwin 9 has dtrace, but it doesn't support compilation into ELF...
-if test "x$WDTRACE" = xauto; then
-	case $host_os in
-		darwin*) WDTRACE="no" ;;
-	esac
-fi
 if test "x$WDTRACE" = "xyes" -o "x$WDTRACE" = "xauto" ; then
 	AC_PATH_PROG(DTRACE, [dtrace], [not_found], [$PATH:/usr/sbin])
 	if test "x$DTRACE" = "xnot_found" ; then
@@ -1250,7 +1244,7 @@ AC_DEFINE(XSYNC, 1, [Support XSync extension])
 AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
 AC_DEFINE(BIGREQS, 1, [Support BigRequests extension])
 
-if test "x$WDTRACE" != "xno" ; then
+if test "x$WDTRACE" != "xno" && test "x$XQUARTZ" = "xno"; then
   DIX_LIB='$(top_builddir)/dix/dix.O'
   OS_LIB='$(top_builddir)/os/os.O'
 else

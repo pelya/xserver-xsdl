@@ -45,6 +45,7 @@ xorg-server.pc
 xorg-server-*.tar.bz2
 xorg-server-*.tar.gz
 stamp-h?
+dix/Xserver-dtrace.h
 do-not-use-config.h
 do-not-use-config.h.in
 dix/dix.c
