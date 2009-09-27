@@ -296,13 +296,11 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
 static void DarwinKeyboardSetDeviceKeyMap(KeySymsRec *keySyms, CARD8 *modmap) {
     DeviceIntPtr pDev;
 
-    pthread_mutex_lock(&keyInfo_mutex);
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
             XkbApplyMappingChange(pDev, keySyms, keySyms->minKeyCode,
                                   keySyms->maxKeyCode - keySyms->minKeyCode + 1,
                                   modmap, serverClient);
-    pthread_mutex_unlock(&keyInfo_mutex);
 }
 
 /*
