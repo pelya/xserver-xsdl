@@ -192,9 +192,6 @@ XIGetDevice(xEvent* xE)
  * This code is basically the old SwitchCoreKeyboard.
  */
 
-#ifndef XQUARTZ
-static
-#endif
 void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 {
