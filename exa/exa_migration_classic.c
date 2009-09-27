@@ -104,9 +104,8 @@ exaPixmapShouldBeInFB (PixmapPtr pPix)
 static void
 exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	     Bool (*transfer) (PixmapPtr pPix, int x, int y, int w, int h,
-			       char *sys, int sys_pitch), CARD8 *fallback_src,
-	     CARD8 *fallback_dst, int fallback_srcpitch, int fallback_dstpitch,
-	     int fallback_index, void (*sync) (ScreenPtr pScreen))
+			       char *sys, int sys_pitch), int fallback_index,
+	     void (*sync) (ScreenPtr pScreen))
 {
     PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
@@ -228,9 +227,15 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 		ExaDoPrepareAccess(pPixmap, fallback_index);
 		access_prepared = TRUE;
 	    }
-	    exaMemcpyBox (pPixmap, pBox,
-			  fallback_src, fallback_srcpitch,
-			  fallback_dst, fallback_dstpitch);
+	    if (fallback_index == EXA_PREPARE_DEST) {
+		exaMemcpyBox (pPixmap, pBox,
+			      pExaPixmap->sys_ptr, pExaPixmap->sys_pitch,
+			      pPixmap->devPrivate.ptr, pPixmap->devKind);
+	    } else {
+		exaMemcpyBox (pPixmap, pBox,
+			      pPixmap->devPrivate.ptr, pPixmap->devKind,
+			      pExaPixmap->sys_ptr, pExaPixmap->sys_pitch);
+	    }
 	} else
 	    need_sync = TRUE;
 
@@ -271,9 +276,8 @@ exaCopyDirtyToSys (ExaMigrationPtr migrate)
     ExaPixmapPriv (pPixmap);
 
     exaCopyDirty(migrate, &pExaPixmap->validSys, &pExaPixmap->validFB,
-		 pExaScr->info->DownloadFromScreen, pExaPixmap->fb_ptr,
-		 pExaPixmap->sys_ptr, pExaPixmap->fb_pitch,
-		 pExaPixmap->sys_pitch, EXA_PREPARE_SRC, exaWaitSync);
+		 pExaScr->info->DownloadFromScreen, EXA_PREPARE_SRC,
+		 exaWaitSync);
 }
 
 /**
@@ -289,9 +293,7 @@ exaCopyDirtyToFb (ExaMigrationPtr migrate)
     ExaPixmapPriv (pPixmap);
 
     exaCopyDirty(migrate, &pExaPixmap->validFB, &pExaPixmap->validSys,
-		 pExaScr->info->UploadToScreen, pExaPixmap->sys_ptr,
-		 pExaPixmap->fb_ptr, pExaPixmap->sys_pitch,
-		 pExaPixmap->fb_pitch, EXA_PREPARE_DEST, NULL);
+		 pExaScr->info->UploadToScreen, EXA_PREPARE_DEST, NULL);
 }
 
 /**
