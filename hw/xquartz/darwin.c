@@ -290,8 +290,8 @@ static int DarwinMouseProc(DeviceIntPtr pPointer, int what) {
 #define NAXES 2
 	// 7 buttons: left, right, middle, then four scroll wheel "buttons"
     CARD8 map[NBUTTONS + 1] = {0, 1, 2, 3, 4, 5, 6, 7};
-    Atom btn_labels[NAXES] = {0};
-    Atom axes_labels[NBUTTONS] = {0};
+    Atom btn_labels[NBUTTONS] = {0};
+    Atom axes_labels[NAXES] = {0};
 
     switch (what) {
         case DEVICE_INIT:
@@ -340,8 +340,8 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
 #define NBUTTONS 3
 #define NAXES 5
     CARD8 map[NBUTTONS + 1] = {0, 1, 2, 3};
-    Atom axes_labels[NAXES] = {0};
     Atom btn_labels[NBUTTONS] = {0};
+    Atom axes_labels[NAXES] = {0};
 
     switch (what) {
         case DEVICE_INIT:
