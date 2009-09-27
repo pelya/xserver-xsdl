@@ -353,6 +353,9 @@ static int DarwinTabletProc(DeviceIntPtr pPointer, int what) {
 
             axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
             axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+            axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_PRESSURE);
+            axes_labels[3] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_X);
+            axes_labels[4] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_TILT_Y);
 
             // Set button map.
             InitPointerDeviceStruct((DevicePtr)pPointer, map, NBUTTONS,
