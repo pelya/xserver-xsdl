@@ -2281,6 +2281,14 @@ NewInputDeviceRequest(InputOption *options, InputAttributes *attrs,
             return BadValue;
         }
 #endif
+#ifdef CONFIG_UDEV
+        else if (strcmp(option->key, "_source") == 0 &&
+                 strcmp(option->value, "server/udev") == 0)
+        {
+            ErrorF("Ignoring device from udev.\n");
+            return BadValue;
+        }
+#endif
     }
 
     if (!ki && !pi) {

@@ -692,9 +692,9 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
             }
         }
 
-        /* Right now, the only automatic config we know of is HAL. */
         if (strcmp(option->key, "_source") == 0 &&
-            strcmp(option->value, "server/hal") == 0) {
+            (strcmp(option->value, "server/hal") == 0 ||
+             strcmp(option->value, "server/udev") == 0)) {
             is_auto = 1;
             if (!xf86Info.autoAddDevices) {
                 rval = BadMatch;

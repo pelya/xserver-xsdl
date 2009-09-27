@@ -132,7 +132,7 @@ xf86InfoRec xf86Info = {
     .kbdCustomKeycodes          = FALSE,
     .disableRandR               = FALSE,
     .randRFrom                  = X_DEFAULT,
-#ifdef CONFIG_HAL
+#if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
     .allowEmptyInput            = TRUE,
     .autoAddDevices             = TRUE,
     .autoEnableDevices          = TRUE

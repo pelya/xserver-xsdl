@@ -58,25 +58,9 @@ struct xkb_options {
     char* options;
 };
 
-
-static void
-remove_device(DeviceIntPtr dev)
-{
-    /* this only gets called for devices that have already been added */
-    LogMessage(X_INFO, "config/hal: removing device %s\n", dev->name);
-
-    /* Call PIE here so we don't try to dereference a device that's
-     * already been removed. */
-    OsBlockSignals();
-    ProcessInputEvents();
-    DeleteInputDeviceRequest(dev);
-    OsReleaseSignals();
-}
-
 static void
 device_removed(LibHalContext *ctx, const char *udi)
 {
-    DeviceIntPtr dev, next;
     char *value;
 
     value = xalloc(strlen(udi) + 5); /* "hal:" + NULL */
@@ -84,34 +68,9 @@ device_removed(LibHalContext *ctx, const char *udi)
         return;
     sprintf(value, "hal:%s", udi);
 
-    for (dev = inputInfo.devices; dev; dev = next) {
-	next = dev->next;
-        if (dev->config_info && strcmp(dev->config_info, value) == 0)
-            remove_device(dev);
-    }
-    for (dev = inputInfo.off_devices; dev; dev = next) {
-	next = dev->next;
-        if (dev->config_info && strcmp(dev->config_info, value) == 0)
-            remove_device(dev);
-    }
+    remove_devices("hal", value);
 
     xfree(value);
-}
-
-static void
-add_option(InputOption **options, const char *key, const char *value)
-{
-    if (!value || *value == '\0')
-        return;
-
-    for (; *options; options = &(*options)->next)
-        ;
-    *options = xcalloc(sizeof(**options), 1);
-    if (!*options) /* Yeesh. */
-        return;
-    (*options)->key = xstrdup(key);
-    (*options)->value = xstrdup(value);
-    (*options)->next = NULL;
 }
 
 static char *
@@ -164,26 +123,6 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
     }
 
     return ret;
-}
-
-static BOOL
-device_is_duplicate(char *config_info)
-{
-    DeviceIntPtr dev;
-
-    for (dev = inputInfo.devices; dev; dev = dev->next)
-    {
-        if (dev->config_info && (strcmp(dev->config_info, config_info) == 0))
-            return TRUE;
-    }
-
-    for (dev = inputInfo.off_devices; dev; dev = dev->next)
-    {
-        if (dev->config_info && (strcmp(dev->config_info, config_info) == 0))
-            return TRUE;
-    }
-
-    return FALSE;
 }
 
 static void

@@ -1461,12 +1461,19 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     if (xf86Info.allowEmptyInput && !(foundPointer && foundKeyboard)) {
-#ifdef CONFIG_HAL
-	xf86Msg(X_INFO, "The server relies on HAL to provide the list of "
-	                "input devices.\n\tIf no devices become available, "
-	                "reconfigure HAL or disable AutoAddDevices.\n");
+#if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
+	const char *config_backend;
+#if defined(CONFIG_HAL)
+	config_backend = "HAL";
 #else
-	xf86Msg(X_INFO, "HAL is disabled and no input devices were configured.\n"
+	config_backend = "udev";
+#endif
+	xf86Msg(X_INFO, "The server relies on %s to provide the list of "
+	                "input devices.\n\tIf no devices become available, "
+	                "reconfigure %s or disable AutoAddDevices.\n",
+			config_backend, config_backend);
+#else
+	xf86Msg(X_INFO, "Hotplugging is disabled and no input devices were configured.\n"
 			"\tTry disabling AllowEmptyInput.\n");
 #endif
     }

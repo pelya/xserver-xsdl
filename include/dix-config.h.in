@@ -399,6 +399,9 @@
 /* Support D-Bus */
 #undef HAVE_DBUS
 
+/* Use libudev for input hotplug */
+#undef CONFIG_UDEV
+
 /* Use D-Bus for input hotplug */
 #undef CONFIG_NEED_DBUS
 
