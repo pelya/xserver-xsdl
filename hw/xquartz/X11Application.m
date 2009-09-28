@@ -1180,6 +1180,17 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             break;
             
         case NSKeyDown: case NSKeyUp:
+            {
+                /* XKB clobbers our keymap at startup, so we need to force it on the first keypress.
+                 * TODO: Make this less of a kludge.
+                 */
+                static int force_resync_keymap = YES;
+                if(force_resync_keymap) {
+                    DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
+                    force_resync_keymap = NO;
+                }
+            }
+
             if(darwinSyncKeymap) {
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1050
                 TISInputSourceRef key_layout = TISCopyCurrentKeyboardLayoutInputSource();
