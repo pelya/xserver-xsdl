@@ -58,7 +58,7 @@ esac
 lt_unmangle "$lt_output"
 output=$last_result
 
-if test -z $V; then
+if test -z "$V"; then
     if test $pass_though -eq 0; then
         echo "$Q$output"
     fi
