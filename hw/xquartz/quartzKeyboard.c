@@ -251,6 +251,10 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
                 break;
 
             case XK_Mode_switch:
+                info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
+#ifdef NX_MODIFIERKEY_RALTERNATE
+                info->modifierKeycodes[NX_MODIFIERKEY_RALTERNATE][0] = i;
+#endif
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 
