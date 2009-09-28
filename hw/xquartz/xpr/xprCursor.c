@@ -212,7 +212,7 @@ QuartzUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
  *  Set the cursor sprite and position.
  */
 static void
-QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     QuartzCursorScreenPtr ScreenPriv = CURSOR_PRIV(pScreen);
 
@@ -392,7 +392,7 @@ QuartzSuspendXCursor(ScreenPtr pScreen)
  *  X server is showing. Restore the X cursor.
  */
 void
-QuartzResumeXCursor(ScreenPtr pScreen, int x, int y)
+QuartzResumeXCursor(ScreenPtr pScreen)
 {
     WindowPtr pWin;
     CursorPtr pCursor;
@@ -407,5 +407,5 @@ QuartzResumeXCursor(ScreenPtr pScreen, int x, int y)
     if (pCursor == NULL)
         return;
 
-    QuartzSetCursor(darwinPointer, pScreen, pCursor, x, y);
+    QuartzSetCursor(darwinPointer, pScreen, pCursor);
 }

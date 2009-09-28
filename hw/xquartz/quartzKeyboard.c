@@ -354,7 +354,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     CopyKeyClass(pDev, inputInfo.keyboard);
 }
 
-void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr pDev, int nevents) {
+void DarwinKeyboardReloadHandler(void) {
     KeySymsRec keySyms;
 
     DEBUG_LOG("DarwinKeyboardReloadHandler\n");
