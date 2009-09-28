@@ -184,9 +184,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) activateX:(OSX_BOOL)state {
-    /* Create a TSM document that supports full Unicode input, and
-     have it activated while X is active */
-    static TSMDocumentID x11_document;
     size_t i;
     DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
@@ -195,16 +192,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
             bgMouseLocationUpdated = FALSE;
         }
         DarwinSendDDXEvent(kXquartzActivate, 0);
-
-        if (!_x_active) {
-            if (x11_document == 0) {
-                OSType types[1];
-                types[0] = kUnicodeDocument;
-                NewTSMDocument (1, types, &x11_document, 0);
-            }
-
-            if (x11_document != 0)	ActivateTSMDocument (x11_document);
-        }
     } else {
 
         if(darwin_all_modifier_flags)
@@ -217,9 +204,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
         }
         
         DarwinSendDDXEvent(kXquartzDeactivate, 0);
-
-        if (_x_active && x11_document != 0)
-            DeactivateTSMDocument (x11_document);
     }
 
     _x_active = state;
