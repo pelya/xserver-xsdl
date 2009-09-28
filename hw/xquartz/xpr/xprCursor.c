@@ -212,7 +212,7 @@ QuartzUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
  *  Set the cursor sprite and position.
  */
 static void
-QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
+QuartzSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
     QuartzCursorScreenPtr ScreenPriv = CURSOR_PRIV(pScreen);
 
@@ -407,5 +407,5 @@ QuartzResumeXCursor(ScreenPtr pScreen)
     if (pCursor == NULL)
         return;
 
-    QuartzSetCursor(darwinPointer, pScreen, pCursor);
+    QuartzSetCursor(darwinPointer, pScreen, pCursor, /* x */ 0, /* y */ 0);
 }
