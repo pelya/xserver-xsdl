@@ -513,13 +513,14 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
 void DarwinSendScrollEvents(float count_x, float count_y, 
 							float pointer_x, float pointer_y, 
 			    			float pressure, float tilt_x, float tilt_y) {
+	int sign_x, sign_y;
 	if(!darwinEvents) {
 		DEBUG_LOG("DarwinSendScrollEvents called before darwinEvents was initialized\n");
 		return;
 	}
 
-	int sign_x = count_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
-	int sign_y = count_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
+	sign_x = count_x > 0.0f ? SCROLLWHEELLEFTFAKE : SCROLLWHEELRIGHTFAKE;
+	sign_y = count_y > 0.0f ? SCROLLWHEELUPFAKE : SCROLLWHEELDOWNFAKE;
 	count_x = fabs(count_x);
 	count_y = fabs(count_y);
 	

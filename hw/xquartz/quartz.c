@@ -366,7 +366,7 @@ void QuartzSetRootless(Bool state) {
  *  Calls mode specific screen resume to restore the X clip regions
  *  (if needed) and the X server cursor state.
  */
-void QuartzShow() {
+void QuartzShow(void) {
     int i;
 
     if (quartzServerVisible)

@@ -243,23 +243,26 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
             if(!for_appkit) {
                 NSPoint NSlocation = [e locationInWindow];
                 NSWindow *window = [e window];
-                
+                NSRect NSframe, NSvisibleFrame;
+                CGRect CGframe, CGvisibleFrame;
+                CGPoint CGlocation;
+
                 if (window != nil)	{
                     NSRect frame = [window frame];
                     NSlocation.x += frame.origin.x;
                     NSlocation.y += frame.origin.y;
                 }
 
-                NSRect NSframe = [[NSScreen mainScreen] frame];
-                NSRect NSvisibleFrame = [[NSScreen mainScreen] visibleFrame];
+                NSframe = [[NSScreen mainScreen] frame];
+                NSvisibleFrame = [[NSScreen mainScreen] visibleFrame];
                 
-                CGRect CGframe = CGRectMake(NSframe.origin.x, NSframe.origin.y,
+                CGframe = CGRectMake(NSframe.origin.x, NSframe.origin.y,
                                             NSframe.size.width, NSframe.size.height);
-                CGRect CGvisibleFrame = CGRectMake(NSvisibleFrame.origin.x,
+                CGvisibleFrame = CGRectMake(NSvisibleFrame.origin.x,
                                                    NSvisibleFrame.origin.y,
                                                    NSvisibleFrame.size.width,
                                                    NSvisibleFrame.size.height);
-                CGPoint CGlocation = CGPointMake(NSlocation.x, NSlocation.y);
+                CGlocation = CGPointMake(NSlocation.x, NSlocation.y);
                 
                 if(CGRectContainsPoint(CGframe, CGlocation) &&
                    !CGRectContainsPoint(CGvisibleFrame, CGlocation))
@@ -334,6 +337,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                 case NSApplicationActivatedEventType:
                     for_x = NO;
                     if ([self modalWindow] == nil) {
+                        BOOL switch_on_activate, ok;
                         for_appkit = NO;
                         
                         /* FIXME: hack to avoid having to pass the event to appkit,
@@ -344,7 +348,6 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                         
                         /* Get the Spaces preference for SwitchOnActivate */
                         (void)CFPreferencesAppSynchronize(CFSTR(".GlobalPreferences"));
-                        BOOL switch_on_activate, ok;
                         switch_on_activate = CFPreferencesGetAppBooleanValue(CFSTR("AppleSpacesSwitchOnActivate"), CFSTR(".GlobalPreferences"), &ok);
                         if(!ok)
                             switch_on_activate = YES;

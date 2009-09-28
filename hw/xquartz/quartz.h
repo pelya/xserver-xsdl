@@ -130,4 +130,6 @@ void QuartzSpaceChanged(uint32_t space_id);
 
 void QuartzSetFullscreen(Bool state);
 void QuartzSetRootless(Bool state);
+
+int server_main(int argc, char **argv, char **envp);
 #endif
