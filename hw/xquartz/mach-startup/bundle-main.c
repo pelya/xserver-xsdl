@@ -62,8 +62,6 @@ void DarwinListenOnOpenFD(int fd);
 
 extern int noPanoramiXExtension;
 
-extern int xquartz_resetenv_display;
-
 #define DEFAULT_CLIENT X11BINDIR "/xterm"
 #define DEFAULT_STARTX X11BINDIR "/startx"
 #define DEFAULT_SHELL  "/bin/sh"
@@ -429,9 +427,6 @@ static int startup_trigger(int argc, char **argv, char **envp) {
     if((s = getenv("DISPLAY"))) {
         fprintf(stderr, "X11.app: Could not connect to server (DISPLAY=\"%s\", unsetting).  Starting X server.\n", s);
         unsetenv("DISPLAY");
-        
-        /* This tells X11Controller to not use the environment's DISPLAY and reset it based on the server's display */
-        xquartz_resetenv_display = 1;
     } else {
         fprintf(stderr, "X11.app: Could not connect to server (DISPLAY is not set).  Starting X server.\n");
     }
