@@ -162,7 +162,8 @@ static const char GLServerExtensions[] =
 ** supported across all screens in a multi-screen system.
 */
 static char GLXServerVendorName[] = "SGI";
-static char GLXServerVersion[] = "1.2";
+unsigned glxMajorVersion = 1;
+unsigned glxMinorVersion = 4;
 static char GLXServerExtensions[] =
 			"GLX_ARB_multisample "
 			"GLX_EXT_visual_info "
@@ -430,8 +431,9 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
     pGlxScreen->pScreen       = pScreen;
     pGlxScreen->GLextensions  = xstrdup(GLServerExtensions);
     pGlxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
-    pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
     pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+    pGlxScreen->GLXmajor      = 1;
+    pGlxScreen->GLXminor      = 2;
 
     pGlxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
@@ -506,7 +508,6 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 void __glXScreenDestroy(__GLXscreen *screen)
 {
     xfree(screen->GLXvendor);
-    xfree(screen->GLXversion);
     xfree(screen->GLXextensions);
     xfree(screen->GLextensions);
 }

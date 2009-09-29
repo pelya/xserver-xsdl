@@ -685,6 +685,20 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 				       screen->base.GLXextensions);
     }
 
+    /* We know that the X server supports the protocol for at least GLX 1.4.
+     * When a new version of GLX is created, we'll have to revisit this.  We're
+     * also going to assume (perhaps incorrectly?) that all DRI2-enabled
+     * drivers support the required extension for GLX 1.3.  The extensions
+     * we're assuming are:
+     *
+     *    - GLX_SGI_make_current_read (1.3)
+     *    - GLX_SGIX_fbconfig (1.3)
+     *    - GLX_SGIX_pbuffer (1.3)
+     *    - GLX_ARB_multisample (1.4)
+     */
+    screen->base.GLXmajor = 1;
+    screen->base.GLXminor = 4;
+    
     screen->enterVT = pScrn->EnterVT;
     pScrn->EnterVT = glxDRIEnterVT; 
     screen->leaveVT = pScrn->LeaveVT;

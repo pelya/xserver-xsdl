@@ -160,6 +160,8 @@ struct __GLXscreen {
     char *GLXvendor;
     char *GLXversion;
     char *GLXextensions;
+    unsigned GLXmajor;
+    unsigned GLXminor;
 
     Bool (*CloseScreen)(int index, ScreenPtr pScreen);
     Bool (*DestroyWindow)(WindowPtr pWindow);
