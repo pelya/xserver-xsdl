@@ -304,19 +304,53 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
 /* Set the repeat rates based on global preferences and keycodes for modifiers.
  * Precondition: Has the keyInfo_mutex lock.
  */
-static void DarwinKeyboardSetRepeat(DeviceIntPtr pDev, CFIndex initialKeyRepeatValue, CFIndex keyRepeatValue) {
+static void DarwinKeyboardSetRepeat(DeviceIntPtr pDev, int initialKeyRepeatValue, int keyRepeatValue) {
     if(initialKeyRepeatValue == 300000) { // off
+        /* Turn off repeats globally */
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOff);
     } else {
-        pDev->key->xkbInfo->desc->ctrls->repeat_delay = initialKeyRepeatValue * 15;
-        pDev->key->xkbInfo->desc->ctrls->repeat_interval = keyRepeatValue * 15;
+        int i;
+        XkbControlsPtr      ctrl;
+        XkbControlsRec      old;
 
+        /* Turn on repeats globally */
         XkbSetRepeatKeys(pDev, -1, AutoRepeatModeOn);
+        
+        /* Setup the bit mask for individual key repeats */
+        ctrl = pDev->key->xkbInfo->desc->ctrls;
+        old= *ctrl;
+        
+        ctrl->repeat_delay = initialKeyRepeatValue * 15;
+        ctrl->repeat_interval = keyRepeatValue * 15;
 
-        /* TODO: Turn off key-repeat for modifier keys, on for others */
-        // Test: Shouldn't this turn off all the key repeats???
-        //for(i=MIN_KEYCODE; i <= MAX_KEYCODE; i++)
-        //    XkbSetRepeatKeys(pDev, i, AutoRepeatModeOff);
+        /* Turn off key-repeat for modifier keys, on for others */
+        /* First set them all on */
+        for(i=0; i < XkbPerKeyBitArraySize; i++)
+            ctrl->per_key_repeat[i] = -1;
+
+        /* Now turn off the modifiers */
+        for(i=0; i < 32; i++) {
+            unsigned char keycode;
+            
+            keycode = keyInfo.modifierKeycodes[i][0];
+            if(keycode)
+                ClearBit(ctrl->per_key_repeat, keycode + MIN_KEYCODE);
+
+            keycode = keyInfo.modifierKeycodes[i][1];
+            if(keycode)
+                ClearBit(ctrl->per_key_repeat, keycode + MIN_KEYCODE);
+        }
+
+        /* Hurray for data duplication */
+        if (pDev->kbdfeed)
+            memcpy(pDev->kbdfeed->ctrl.autoRepeats, ctrl->per_key_repeat, XkbPerKeyBitArraySize);
+
+        //fprintf(stderr, "per_key_repeat =\n");
+        //for(i=0; i < XkbPerKeyBitArraySize; i++)
+        //    fprintf(stderr, "%02x%s", ctrl->per_key_repeat[i], (i + 1) & 7 ? "" : "\n");
+
+        /* And now we notify the puppies about the changes */
+        XkbDDXChangeControls(pDev, &old, ctrl);
     }
 }
 
