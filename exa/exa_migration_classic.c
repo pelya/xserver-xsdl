@@ -242,11 +242,6 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	pBox++;
     }
 
-    if (access_prepared)
-	exaFinishAccess(&pPixmap->drawable, fallback_index);
-    else if (need_sync && sync)
-	sync (pPixmap->drawable.pScreen);
-
     pExaPixmap->offscreen = save_offscreen;
     pPixmap->devKind = save_pitch;
 
@@ -261,6 +256,11 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     REGION_UNION(pScreen, pValidDst, pValidDst, &CopyReg);
 
     REGION_UNINIT(pScreen, &CopyReg);
+
+    if (access_prepared)
+	exaFinishAccess(&pPixmap->drawable, fallback_index);
+    else if (need_sync && sync)
+	sync (pPixmap->drawable.pScreen);
 }
 
 /**
