@@ -781,6 +781,19 @@ positionSprite(DeviceIntPtr dev, int *x, int *y, float x_frac, float y_frac,
         *screeny_frac = dev->last.remainder[1];
     }
 
+    /* Hit the left screen edge? */
+    if (*screenx <= 0 && *screenx_frac < 0.0f)
+    {
+        *screenx_frac = 0.0f;
+        x_frac = 0.0f;
+    }
+    if (*screeny <= 0 && *screeny_frac < 0.0f)
+    {
+        *screeny_frac = 0.0f;
+        y_frac = 0.0f;
+    }
+
+
     old_screenx = *screenx;
     old_screeny = *screeny;
     /* This takes care of crossing screens for us, as well as clipping
