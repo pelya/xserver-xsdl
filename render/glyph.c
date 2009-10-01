@@ -282,7 +282,8 @@ FreeGlyphPicture(GlyphPtr glyph)
     {
         ScreenPtr pScreen = screenInfo.screens[i];
 
-        FreePicture ((pointer) GlyphPicture (glyph)[i], 0);
+        if (GlyphPicture(glyph)[i])
+            FreePicture ((pointer) GlyphPicture (glyph)[i], 0);
 
         ps = GetPictureScreenIfSet (pScreen);
         if (ps)
@@ -414,6 +415,7 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
+	GlyphPicture(glyph)[i] = NULL;
 	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
 
 	if (ps)
@@ -721,32 +723,35 @@ miGlyphs (CARD8		op,
 	    glyph = *glyphs++;
 	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
 
-	    if (maskFormat)
+	    if (pPicture)
 	    {
-		CompositePicture (PictOpAdd,
-				  pPicture,
-				  None,
-				  pMask,
-				  0, 0,
-				  0, 0,
-				  x - glyph->info.x,
-				  y - glyph->info.y,
-				  glyph->info.width,
-				  glyph->info.height);
-	    }
-	    else
-	    {
-		CompositePicture (op,
-				  pSrc,
-				  pPicture,
-				  pDst,
-				  xSrc + (x - glyph->info.x) - xDst,
-				  ySrc + (y - glyph->info.y) - yDst,
-				  0, 0,
-				  x - glyph->info.x,
-				  y - glyph->info.y,
-				  glyph->info.width,
-				  glyph->info.height);
+		if (maskFormat)
+		{
+			CompositePicture (PictOpAdd,
+					  pPicture,
+					  None,
+					  pMask,
+					  0, 0,
+					  0, 0,
+					  x - glyph->info.x,
+					  y - glyph->info.y,
+					  glyph->info.width,
+					  glyph->info.height);
+		}
+		else
+		{
+		    CompositePicture (op,
+				      pSrc,
+				      pPicture,
+				      pDst,
+				      xSrc + (x - glyph->info.x) - xDst,
+				      ySrc + (y - glyph->info.y) - yDst,
+				      0, 0,
+				      x - glyph->info.x,
+				      y - glyph->info.y,
+				      glyph->info.width,
+				      glyph->info.height);
+		}
 	    }
 
 	    x += glyph->info.xOff;
