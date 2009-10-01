@@ -50,7 +50,6 @@
 #include "indirect_dispatch.h"
 #include "indirect_table.h"
 #include "indirect_util.h"
-#include "protocol-versions.h"
 
 static int
 validGlxScreen(ClientPtr client, int screen, __GLXscreen **pGlxScreen, int *err)

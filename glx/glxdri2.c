@@ -685,10 +685,8 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 				       screen->base.GLXextensions);
     }
 
-    /* We know that the X server supports the protocol for at least GLX 1.4.
-     * When a new version of GLX is created, we'll have to revisit this.  We're
-     * also going to assume (perhaps incorrectly?) that all DRI2-enabled
-     * drivers support the required extension for GLX 1.3.  The extensions
+    /* We're going to assume (perhaps incorrectly?) that all DRI2-enabled
+     * drivers support the required extensions for GLX 1.4.  The extensions
      * we're assuming are:
      *
      *    - GLX_SGI_make_current_read (1.3)
