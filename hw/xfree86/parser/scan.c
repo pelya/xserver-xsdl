@@ -1028,3 +1028,33 @@ xf86addComment(char *cur, char *add)
 
 	return (cur);
 }
+
+Bool
+xf86getBoolValue(Bool *val, const char *str)
+{
+	if (!val || !str)
+		return FALSE;
+	if (*str == '\0') {
+		*val = TRUE;
+	} else {
+		if (strcmp(str, "1") == 0)
+			*val = TRUE;
+		else if (strcmp(str, "on") == 0)
+			*val = TRUE;
+		else if (strcmp(str, "true") == 0)
+			*val = TRUE;
+		else if (strcmp(str, "yes") == 0)
+			*val = TRUE;
+		else if (strcmp(str, "0") == 0)
+			*val = FALSE;
+		else if (strcmp(str, "off") == 0)
+			*val = FALSE;
+		else if (strcmp(str, "false") == 0)
+			*val = FALSE;
+		else if (strcmp(str, "no") == 0)
+			*val = FALSE;
+		else
+			return FALSE;
+	}
+	return TRUE;
+}

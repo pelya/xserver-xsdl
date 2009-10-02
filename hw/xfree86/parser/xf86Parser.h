@@ -64,6 +64,7 @@
 #ifndef _xf86Parser_h_
 #define _xf86Parser_h_
 
+#include <X11/Xdefs.h>
 #include "xf86Optrec.h"
 
 #define HAVE_PARSER_DECLS
@@ -330,6 +331,13 @@ typedef struct
 }
 XF86ConfInputrefRec, *XF86ConfInputrefPtr;
 
+typedef struct
+{
+	Bool set;
+	Bool val;
+}
+xf86TriState;
+
 /* Values for adj_where */
 #define CONF_ADJ_OBSOLETE	-1
 #define CONF_ADJ_ABSOLUTE	0
@@ -480,5 +488,6 @@ extern _X_EXPORT int xf86itemNotSublist(GenericListPtr list_1, GenericListPtr li
 extern _X_EXPORT int xf86pathIsAbsolute(const char *path);
 extern _X_EXPORT int xf86pathIsSafe(const char *path);
 extern _X_EXPORT char *xf86addComment(char *cur, char *add);
+extern _X_EXPORT Bool xf86getBoolValue(Bool *val, const char *str);
 
 #endif /* _xf86Parser_h_ */
