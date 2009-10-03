@@ -300,6 +300,7 @@ kern_return_t do_request_fd_handoff_socket(mach_port_t port, string_t filename) 
 
     handoff_data->fd = create_socket(handoff_data->filename);
     if(!handoff_data->fd) {
+        free(handoff_data);
         return KERN_FAILURE;
     }
 
