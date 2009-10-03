@@ -1710,8 +1710,14 @@ if test "x$XWIN" = xyes; then
 			XWIN_SERVER_NAME=XWin
 			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
-			AC_DEFINE(ROOTLESS,1,[Build Rootless code])
-			CFLAGS="$CFLAGS -DFD_SETSIZE=256 -DROOTLESS_WORKAROUND"
+
+			dnl if we have windowswmproto, build rootless extension for multwindowextwm mode
+			if test "x$WINDOWSWM" = xyes ; then
+			       AC_DEFINE(ROOTLESS,1,[Build Rootless code])
+			       CFLAGS="$CFLAGS -DROOTLESS_WORKAROUND"
+			fi
+
+			CFLAGS="$CFLAGS -DFD_SETSIZE=256"
 			;;
 		mingw*)
 			XWIN_SERVER_NAME=Xming
