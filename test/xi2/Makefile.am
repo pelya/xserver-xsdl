@@ -17,7 +17,7 @@ INCLUDES = @XORG_INCS@
 TEST_LDADD=../libxservertest.la $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS) $(GLIB_LIBS)
 COMMON_SOURCES=protocol-common.h protocol-common.c
 
-if XSERVER_DTRACE
+if SPECIAL_DTRACE_OBJECTS
 TEST_LDADD += $(OS_LIB) $(DIX_LIB)
 endif
 

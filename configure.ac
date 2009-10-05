@@ -97,8 +97,20 @@ fi
 if test "x$WDTRACE" != "xno" ; then
   AC_DEFINE(XSERVER_DTRACE, 1, 
       [Define to 1 if the DTrace Xserver provider probes should be built in.])
+
+# Solaris/OpenSolaris require dtrace -G to build dtrace probe information into
+# object files, and require linking with those as relocatable objects, not .a
+# archives. MacOS X handles all this in the normal compiler toolchain, and on
+# some releases (like Tiger), will error out on dtrace -G.  For now, other
+# platforms with Dtrace ports are assumed to support -G (the FreeBSD and Linux
+# ports appear to, based on my web searches, but have not yet been tested).
+	case $host_os in
+		darwin*)	SPECIAL_DTRACE_OBJECTS=no ;;
+		*)		SPECIAL_DTRACE_OBJECTS=yes ;;
+	esac
 fi
 AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
+AM_CONDITIONAL(SPECIAL_DTRACE_OBJECTS, [test "x$SPECIAL_DTRACE_OBJECTS" = "xyes"])
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -1242,7 +1254,7 @@ AC_DEFINE(XSYNC, 1, [Support XSync extension])
 AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
 AC_DEFINE(BIGREQS, 1, [Support BigRequests extension])
 
-if test "x$WDTRACE" != "xno" && test "x$XQUARTZ" = "xno"; then
+if test "x$SPECIAL_DTRACE_OBJECTS" = "xyes" ; then
   DIX_LIB='$(top_builddir)/dix/dix.O'
   OS_LIB='$(top_builddir)/os/os.O'
 else

@@ -54,7 +54,7 @@ Xserver-dtrace.h: $(srcdir)/Xserver.d
 	$(DTRACE) -C -h -o $@ -s $(srcdir)/Xserver.d \
 		|| cp Xserver-dtrace.h.in $@
 
-if !XQUARTZ	
+if SPECIAL_DTRACE_OBJECTS
 # Generate dtrace object code for probes in libdix
 dtrace-dix.o: $(top_srcdir)/dix/Xserver.d $(am_libdix_la_OBJECTS)
 	$(DTRACE) -G -C -o $@ -s $(top_srcdir)/dix/Xserver.d $(am_libdix_la_OBJECTS:%.lo=.libs/%.o)
