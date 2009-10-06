@@ -32,11 +32,6 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
 
-AC_CONFIG_FILES([
-	shave
-	shave-libtool
-])
-
 # Require xorg-macros version 1.2.0 or newer for XORG_CHANGELOG and
 # XORG_CWARNFLAGS
 m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.2 or later before running autoconf/autogen])])
@@ -1992,8 +1987,6 @@ AC_SUBST([prefix])
 # Man page sections - used in config utils & generating man pages
 XORG_MANPAGE_SECTIONS
 XORG_CHANGELOG
-
-SHAVE_INIT([.], [enable])
 
 AC_OUTPUT([
 Makefile
