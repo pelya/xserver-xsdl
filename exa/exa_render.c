@@ -204,22 +204,28 @@ exaGetRGBAFromPixel(CARD32	pixel,
     bshift = pFormat->direct.blue;
     ashift = pFormat->direct.alpha;
 
-    *red = ((pixel >> rshift ) & ((1 << rbits) - 1)) << (16 - rbits);
-    while (rbits < 16) {
-	*red |= *red >> rbits;
-	rbits <<= 1;
-    }
+    if (rbits) {
+	*red = ((pixel >> rshift ) & ((1 << rbits) - 1)) << (16 - rbits);
+	while (rbits < 16) {
+	    *red |= *red >> rbits;
+	    rbits <<= 1;
+	}
 
-    *green = ((pixel >> gshift ) & ((1 << gbits) - 1)) << (16 - gbits);
-    while (gbits < 16) {
-	*green |= *green >> gbits;
-	gbits <<= 1;
-    }
+	*green = ((pixel >> gshift ) & ((1 << gbits) - 1)) << (16 - gbits);
+	while (gbits < 16) {
+	    *green |= *green >> gbits;
+	    gbits <<= 1;
+	}
 
-    *blue = ((pixel >> bshift ) & ((1 << bbits) - 1)) << (16 - bbits);
-    while (bbits < 16) {
-	*blue |= *blue >> bbits;
-	bbits <<= 1;
+	*blue = ((pixel >> bshift ) & ((1 << bbits) - 1)) << (16 - bbits);
+	while (bbits < 16) {
+	    *blue |= *blue >> bbits;
+	    bbits <<= 1;
+	}
+    } else {
+	*red = 0x0000;
+	*green = 0x0000;
+	*blue = 0x0000;
     }
 
     if (abits) {
