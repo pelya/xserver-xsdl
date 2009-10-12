@@ -492,20 +492,12 @@ winClipboardFlushXEvents (HWND hwnd,
 		  winDebug("winClipboardFlushXEvents - SelectionNotify - "
                            "Requesting conversion of UTF8 target.\n");
 
-		  iReturn = XConvertSelection (pDisplay,
-					       event.xselection.selection,
-					       XA_STRING,
-					       atomLocalProperty,
-					       iWindow,
-					       CurrentTime);
-		  if (iReturn != Success)
-		    {
-		      ErrorF ("winClipboardFlushXEvents - SelectionNotify - "
-			      "XConvertSelection () failed for UTF8String, "
-			      "aborting: %d\n",
-			      iReturn);
-		      break;
-		    }
+		  XConvertSelection (pDisplay,
+				     event.xselection.selection,
+				     XA_STRING,
+				     atomLocalProperty,
+				     iWindow,
+				     CurrentTime);
 
 		  /* Process the ConvertSelection event */
 		  XFlush (pDisplay);
@@ -517,20 +509,12 @@ winClipboardFlushXEvents (HWND hwnd,
 		  winDebug("winClipboardFlushXEvents - SelectionNotify - "
                            "Requesting conversion of CompoundText target.\n");
 
-		  iReturn = XConvertSelection (pDisplay,
-					       event.xselection.selection,
-					       atomUTF8String,
-					       atomLocalProperty,
-					       iWindow,
-					       CurrentTime);
-		  if (iReturn != Success)
-		    {
-		      ErrorF ("winClipboardFlushXEvents - SelectionNotify - "
-			      "XConvertSelection () failed for CompoundText, "
-			      "aborting: %d\n",
-			      iReturn);
-		      break;
-		    }
+		  XConvertSelection (pDisplay,
+				     event.xselection.selection,
+				     atomUTF8String,
+				     atomLocalProperty,
+				     iWindow,
+				     CurrentTime);
 
 		  /* Process the ConvertSelection event */
 		  XFlush (pDisplay);
