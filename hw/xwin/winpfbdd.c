@@ -666,7 +666,15 @@ winSetEngineFunctionsPrimaryDD (ScreenPtr pScreen)
   pScreenPriv->pwinBltExposedRegions
     = (winBltExposedRegionsProcPtr) (void (*)(void))NoopDDA;
   pScreenPriv->pwinActivateApp = winActivateAppPrimaryDD;
+  pScreenPriv->pwinRedrawScreen = NULL;
+  pScreenPriv->pwinRealizeInstalledPalette = NULL;
+  pScreenPriv->pwinInstallColormap = NULL;
+  pScreenPriv->pwinStoreColors = NULL;
+  pScreenPriv->pwinCreateColormap = NULL;
+  pScreenPriv->pwinDestroyColormap = NULL;
   pScreenPriv->pwinHotKeyAltTab = winHotKeyAltTabPrimaryDD;
+  pScreenPriv->pwinCreatePrimarySurface = (winCreatePrimarySurfaceProcPtr) (void (*)(void))NoopDDA;
+  pScreenPriv->pwinReleasePrimarySurface = (winReleasePrimarySurfaceProcPtr) (void (*)(void))NoopDDA;
 #ifdef XWIN_MULTIWINDOW
   pScreenPriv->pwinFinishCreateWindowsWindow =
     (winFinishCreateWindowsWindowProcPtr) (void (*)(void))NoopDDA;

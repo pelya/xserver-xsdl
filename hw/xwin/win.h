@@ -315,6 +315,12 @@ typedef Bool (*winFinishCreateWindowsWindowProcPtr)(WindowPtr pWin);
 
 typedef Bool (*winCreateScreenResourcesProc)(ScreenPtr);
 
+#ifdef XWIN_NATIVEGDI
+/* Typedefs for native GDI wrappers */
+typedef Bool (*RealizeFontPtr) (ScreenPtr pScreen, FontPtr pFont);
+typedef Bool (*UnrealizeFontPtr)(ScreenPtr pScreen, FontPtr pFont);
+#endif
+
 
 /*
  * GC (graphics context) privates
@@ -588,6 +594,12 @@ typedef struct _winPrivScreenRec
   SetShapeProcPtr			SetShape;
 
   winCursorRec                          cursor;
+
+#ifdef XWIN_NATIVEGDI
+  RealizeFontPtr                        RealizeFont;
+  UnrealizeFontPtr                      UnrealizeFont;
+#endif
+
 } winPrivScreenRec;
 
 

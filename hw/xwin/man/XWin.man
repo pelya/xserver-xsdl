@@ -190,14 +190,26 @@ respectively).
 .TP 8
 .B "\-engine \fIengine_type_id\fP"
 This option, which is intended for Cygwin/X developers,
-overrides the server's automatically selected engine type.  This
-parameter will be ignored if the specified engine type is not
-supported on the current system.  The supported engine type ids are 1
-- Shadow GDI, 2 - Shadow DirectDraw, and 4 - Shadow DirectDraw Non-Locking.
-Additionally, there are engines with type ids
-8 - Primary DirectDraw (obsolete) and 16 - Native GDI (experimental and barely functional).
-Default behavior is to determine the engine with optimum performance that
+overrides the server's automatically selected drawing engine type.  This
+parameter will be ignored if the specified drawing engine type is not
+supported on the current system.
+
+Default behavior is to select the drawing engine with optimum performance that
 supports the specified depth and window configuration.
+
+The engine type ids are:
+.RS
+.IP 1 4
+Shadow GDI
+.IP 2 4
+Shadow DirectDraw
+.IP 4 4
+Shadow DirectDraw Non-Locking
+.IP 8 4
+Primary DirectDraw (unsupported, obsolete)
+.IP 16 4
+Native GDI (unsupported, experimental and barely functional)
+.RE
 
 .SH FULLSCREEN OPTIONS
 .TP 8
