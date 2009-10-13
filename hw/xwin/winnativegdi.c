@@ -92,6 +92,18 @@ winAllocateFBNativeGDI (ScreenPtr pScreen)
   return TRUE;
 }
 
+static void
+winFreeFBNativeGDI (ScreenPtr pScreen)
+{
+  FatalError ("winFreeFBNativeGDI\n");
+}
+
+
+static Bool
+winInitScreenNativeGDI(ScreenPtr pScreen)
+{
+  FatalError ("winInitScreenNativeGDI\n");
+}
 
 /*
  * We wrap whatever CloseScreen procedure was specified by fb;
@@ -506,7 +518,9 @@ winSetEngineFunctionsNativeGDI (ScreenPtr pScreen)
   
   /* Set our pointers */
   pScreenPriv->pwinAllocateFB = winAllocateFBNativeGDI;
+  pScreenPriv->pwinFreeFB = winFreeFBNativeGDI;
   pScreenPriv->pwinShadowUpdate = winShadowUpdateNativeGDI;
+  pScreenPriv->pwinInitScreen = winInitScreenNativeGDI;
   pScreenPriv->pwinCloseScreen = winCloseScreenNativeGDI;
   pScreenPriv->pwinInitVisuals = winInitVisualsNativeGDI;
   pScreenPriv->pwinAdjustVideoMode = winAdjustVideoModeNativeGDI;

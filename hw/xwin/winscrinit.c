@@ -210,10 +210,6 @@ winScreenInit (int index,
     
   /* Clear the visuals list */
   miClearVisualTypes ();
-  
-  /* Set the padded screen width */
-  pScreenInfo->dwPaddedWidth = PixmapBytePad (pScreenInfo->dwWidth,
-					      pScreenInfo->dwBPP);
 
   /* Call the engine dependent screen initialization procedure */
   if (!((*pScreenPriv->pwinFinishScreenInit) (index, pScreen, argc, argv)))
@@ -279,7 +275,7 @@ winFinishScreenInitFB (int index,
 #endif
 
   /* Create framebuffer */
-  if (!(*pScreenPriv->pwinAllocateFB) (pScreen))
+  if (!(*pScreenPriv->pwinInitScreen) (pScreen))
     {
       ErrorF ("winFinishScreenInitFB - Could not allocate framebuffer\n");
       return FALSE;

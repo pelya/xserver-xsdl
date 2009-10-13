@@ -342,10 +342,6 @@ winAllocateFBShadowGDI (ScreenPtr pScreen)
   DIBSECTION		dibsection;
   Bool			fReturn = TRUE;
 
-  /* Get device contexts for the screen and shadow bitmap */
-  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
-  pScreenPriv->hdcShadow = CreateCompatibleDC (pScreenPriv->hdcScreen);
-
   /* Allocate bitmap info header */
   pbmih = (BITMAPINFOHEADER*) malloc (sizeof (BITMAPINFOHEADER)
 				      + 256 * sizeof (RGBQUAD));
@@ -477,6 +473,18 @@ winAllocateFBShadowGDI (ScreenPtr pScreen)
   return fReturn;
 }
 
+static void
+winFreeFBShadowGDI (ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+  winScreenInfo *pScreenInfo = pScreenPriv->pScreenInfo;
+
+  /* Free the shadow bitmap */
+  DeleteObject (pScreenPriv->hbmpShadow);
+
+  /* Invalidate the ScreenInfo's fb pointer */
+  pScreenInfo->pfb = NULL;
+}
 
 /*
  * Blit the damaged regions of the shadow fb to the screen
@@ -602,6 +610,18 @@ winShadowUpdateGDI (ScreenPtr pScreen,
 }
 
 
+static Bool
+winInitScreenShadowGDI (ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+
+  /* Get device contexts for the screen and shadow bitmap */
+  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
+  pScreenPriv->hdcShadow = CreateCompatibleDC (pScreenPriv->hdcScreen);
+
+  return winAllocateFBShadowGDI(pScreen);
+}
+
 /* See Porting Layer Definition - p. 33 */
 /*
  * We wrap whatever CloseScreen procedure was specified by fb;
@@ -632,9 +652,8 @@ winCloseScreenShadowGDI (int nIndex, ScreenPtr pScreen)
 
   /* Free the shadow DC; which allows the bitmap to be freed */
   DeleteDC (pScreenPriv->hdcShadow);
-  
-  /* Free the shadow bitmap */
-  DeleteObject (pScreenPriv->hbmpShadow);
+
+  winFreeFBShadowGDI(pScreen);
 
   /* Free the screen DC */
   ReleaseDC (pScreenPriv->hwndScreen, pScreenPriv->hdcScreen);
@@ -664,9 +683,6 @@ winCloseScreenShadowGDI (int nIndex, ScreenPtr pScreen)
 
   /* Invalidate our screeninfo's pointer to the screen */
   pScreenInfo->pScreen = NULL;
-
-  /* Invalidate the ScreenInfo's fb pointer */
-  pScreenInfo->pfb = NULL;
 
   /* Free the screen privates for this screen */
   free ((pointer) pScreenPriv);
@@ -1235,7 +1251,9 @@ winSetEngineFunctionsShadowGDI (ScreenPtr pScreen)
   
   /* Set our pointers */
   pScreenPriv->pwinAllocateFB = winAllocateFBShadowGDI;
+  pScreenPriv->pwinFreeFB = winFreeFBShadowGDI;
   pScreenPriv->pwinShadowUpdate = winShadowUpdateGDI;
+  pScreenPriv->pwinInitScreen = winInitScreenShadowGDI;
   pScreenPriv->pwinCloseScreen = winCloseScreenShadowGDI;
   pScreenPriv->pwinInitVisuals = winInitVisualsShadowGDI;
   pScreenPriv->pwinAdjustVideoMode = winAdjustVideoModeShadowGDI;

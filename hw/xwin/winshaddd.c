@@ -239,9 +239,6 @@ winAllocateFBShadowDD (ScreenPtr pScreen)
   winDebug ("winAllocateFBShadowDD - Created a clipper\n");
 #endif
 
-  /* Get a device context for the screen  */
-  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
-
   /* Attach the clipper to our display window */
   ddrval = IDirectDrawClipper_SetHWnd (pScreenPriv->pddcPrimary,
 				       0,
@@ -503,6 +500,57 @@ winAllocateFBShadowDD (ScreenPtr pScreen)
   return TRUE;
 }
 
+static void
+winFreeFBShadowDD (ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+  winScreenInfo *pScreenInfo = pScreenPriv->pScreenInfo;
+
+  /* Free the shadow surface, if there is one */
+  if (pScreenPriv->pddsShadow)
+    {
+      IDirectDrawSurface2_Unlock (pScreenPriv->pddsShadow, NULL);
+      IDirectDrawSurface2_Release (pScreenPriv->pddsShadow);
+      pScreenPriv->pddsShadow = NULL;
+    }
+
+  /* Detach the clipper from the primary surface and release the clipper. */
+  if (pScreenPriv->pddcPrimary)
+    {
+      /* Detach the clipper */
+      IDirectDrawSurface2_SetClipper (pScreenPriv->pddsPrimary,
+				      NULL);
+
+      /* Release the clipper object */
+      IDirectDrawClipper_Release (pScreenPriv->pddcPrimary);
+      pScreenPriv->pddcPrimary = NULL;
+    }
+
+  /* Release the primary surface, if there is one */
+  if (pScreenPriv->pddsPrimary)
+    {
+      IDirectDrawSurface2_Release (pScreenPriv->pddsPrimary);
+      pScreenPriv->pddsPrimary = NULL;
+    }
+
+  /* Free the DirectDraw2 object, if there is one */
+  if (pScreenPriv->pdd2)
+    {
+      IDirectDraw2_RestoreDisplayMode (pScreenPriv->pdd2);
+      IDirectDraw2_Release (pScreenPriv->pdd2);
+      pScreenPriv->pdd2 = NULL;
+    }
+
+  /* Free the DirectDraw object, if there is one */
+  if (pScreenPriv->pdd)
+    {
+      IDirectDraw_Release (pScreenPriv->pdd);
+      pScreenPriv->pdd = NULL;
+    }
+
+  /* Invalidate the ScreenInfo's fb pointer */
+  pScreenInfo->pfb = NULL;
+}
 
 /*
  * Transfer the damaged regions of the shadow framebuffer to the display.
@@ -666,6 +714,16 @@ winShadowUpdateDD (ScreenPtr pScreen,
     }
 }
 
+static Bool
+winInitScreenShadowDD (ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+
+  /* Get a device context for the screen  */
+  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
+
+  return winAllocateFBShadowDD(pScreen);
+}
 
 /*
  * Call the wrapped CloseScreen function.
@@ -692,58 +750,18 @@ winCloseScreenShadowDD (int nIndex, ScreenPtr pScreen)
   WIN_UNWRAP(CloseScreen);
   fReturn = (*pScreen->CloseScreen) (nIndex, pScreen);
 
+  winFreeFBShadowDD(pScreen);
+
   /* Free the screen DC */
   ReleaseDC (pScreenPriv->hwndScreen, pScreenPriv->hdcScreen);
 
   /* Delete the window property */
   RemoveProp (pScreenPriv->hwndScreen, WIN_SCR_PROP);
 
-  /* Free the shadow surface, if there is one */
-  if (pScreenPriv->pddsShadow)
-    {
-      IDirectDrawSurface2_Unlock (pScreenPriv->pddsShadow, NULL);
-      IDirectDrawSurface2_Release (pScreenPriv->pddsShadow);
-      pScreenPriv->pddsShadow = NULL;
-    }
-
-  /* Detach the clipper from the primary surface and release the clipper. */
-  if (pScreenPriv->pddcPrimary)
-    {
-      /* Detach the clipper */
-      IDirectDrawSurface2_SetClipper (pScreenPriv->pddsPrimary,
-				      NULL);
-
-      /* Release the clipper object */
-      IDirectDrawClipper_Release (pScreenPriv->pddcPrimary);
-      pScreenPriv->pddcPrimary = NULL;
-    }
-
-  /* Release the primary surface, if there is one */
-  if (pScreenPriv->pddsPrimary)
-    {
-      IDirectDrawSurface2_Release (pScreenPriv->pddsPrimary);
-      pScreenPriv->pddsPrimary = NULL;
-    }
-
-  /* Free the DirectDraw2 object, if there is one */
-  if (pScreenPriv->pdd2)
-    {
-      IDirectDraw2_RestoreDisplayMode (pScreenPriv->pdd2);
-      IDirectDraw2_Release (pScreenPriv->pdd2);
-      pScreenPriv->pdd2 = NULL;
-    }
-
-  /* Free the DirectDraw object, if there is one */
-  if (pScreenPriv->pdd)
-    {
-      IDirectDraw_Release (pScreenPriv->pdd);
-      pScreenPriv->pdd = NULL;
-    }
-
   /* Delete tray icon, if we have one */
   if (!pScreenInfo->fNoTrayIcon)
     winDeleteNotifyIcon (pScreenPriv);
-  
+
   /* Free the exit confirmation dialog box, if it exists */
   if (g_hDlgExit != NULL)
     {
@@ -765,9 +783,6 @@ winCloseScreenShadowDD (int nIndex, ScreenPtr pScreen)
 
   /* Kill our screeninfo's pointer to the screen */
   pScreenInfo->pScreen = NULL;
-
-  /* Invalidate the ScreenInfo's fb pointer */
-  pScreenInfo->pfb = NULL;
 
   /* Free the screen privates for this screen */
   free ((pointer) pScreenPriv);
@@ -1370,7 +1385,9 @@ winSetEngineFunctionsShadowDD (ScreenPtr pScreen)
   
   /* Set our pointers */
   pScreenPriv->pwinAllocateFB = winAllocateFBShadowDD;
+  pScreenPriv->pwinFreeFB = winFreeFBShadowDD;
   pScreenPriv->pwinShadowUpdate = winShadowUpdateDD;
+  pScreenPriv->pwinInitScreen = winInitScreenShadowDD;
   pScreenPriv->pwinCloseScreen = winCloseScreenShadowDD;
   pScreenPriv->pwinInitVisuals = winInitVisualsShadowDD;
   pScreenPriv->pwinAdjustVideoMode = winAdjustVideoModeShadowDD;

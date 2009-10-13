@@ -237,6 +237,10 @@ winAllocateFBShadowDDNL (ScreenPtr pScreen)
 	  pScreenInfo->dwWidth, pScreenInfo->dwHeight, pScreenInfo->dwDepth);
 #endif
 
+  /* Set the padded screen width */
+  pScreenInfo->dwPaddedWidth = PixmapBytePad (pScreenInfo->dwWidth,
+					      pScreenInfo->dwBPP);
+
   /* Allocate memory for our shadow surface */
   lpSurface = malloc (pScreenInfo->dwPaddedWidth * pScreenInfo->dwHeight);
   if (lpSurface == NULL)
@@ -265,9 +269,6 @@ winAllocateFBShadowDDNL (ScreenPtr pScreen)
 #if CYGDEBUG
   winDebug ("winAllocateFBShadowDDNL - Created a clipper\n");
 #endif
-
-  /* Get a device context for the screen  */
-  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
 
   /* Attach the clipper to our display window */
   ddrval = IDirectDrawClipper_SetHWnd (pScreenPriv->pddcPrimary,
@@ -530,6 +531,58 @@ winAllocateFBShadowDDNL (ScreenPtr pScreen)
   return TRUE;
 }
 
+static void
+winFreeFBShadowDDNL(ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+  winScreenInfo *pScreenInfo = pScreenPriv->pScreenInfo;
+
+  /* Free the shadow surface, if there is one */
+  if (pScreenPriv->pddsShadow4)
+    {
+      IDirectDrawSurface4_Release (pScreenPriv->pddsShadow4);
+      free (pScreenInfo->pfb);
+      pScreenInfo->pfb = NULL;
+      pScreenPriv->pddsShadow4 = NULL;
+    }
+
+  /* Detach the clipper from the primary surface and release the clipper. */
+  if (pScreenPriv->pddcPrimary)
+    {
+      /* Detach the clipper */
+      IDirectDrawSurface4_SetClipper (pScreenPriv->pddsPrimary4,
+				      NULL);
+
+      /* Release the clipper object */
+      IDirectDrawClipper_Release (pScreenPriv->pddcPrimary);
+      pScreenPriv->pddcPrimary = NULL;
+    }
+
+  /* Release the primary surface, if there is one */
+  if (pScreenPriv->pddsPrimary4)
+    {
+      IDirectDrawSurface4_Release (pScreenPriv->pddsPrimary4);
+      pScreenPriv->pddsPrimary4 = NULL;
+    }
+
+  /* Free the DirectDraw4 object, if there is one */
+  if (pScreenPriv->pdd4)
+    {
+      IDirectDraw4_RestoreDisplayMode (pScreenPriv->pdd4);
+      IDirectDraw4_Release (pScreenPriv->pdd4);
+      pScreenPriv->pdd4 = NULL;
+    }
+
+  /* Free the DirectDraw object, if there is one */
+  if (pScreenPriv->pdd)
+    {
+      IDirectDraw_Release (pScreenPriv->pdd);
+      pScreenPriv->pdd = NULL;
+    }
+
+  /* Invalidate the ScreenInfo's fb pointer */
+  pScreenInfo->pfb = NULL;
+}
 
 #if defined(XWIN_MULTIWINDOW) || defined(XWIN_MULTIWINDOWEXTWM)
 /*
@@ -720,6 +773,16 @@ winShadowUpdateDDNL (ScreenPtr pScreen,
     }
 }
 
+static Bool
+winInitScreenShadowDDNL(ScreenPtr pScreen)
+{
+  winScreenPriv(pScreen);
+
+  /* Get a device context for the screen  */
+  pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
+
+  return winAllocateFBShadowDDNL(pScreen);
+}
 
 /*
  * Call the wrapped CloseScreen function.
@@ -746,54 +809,13 @@ winCloseScreenShadowDDNL (int nIndex, ScreenPtr pScreen)
   WIN_UNWRAP(CloseScreen);
   fReturn = (*pScreen->CloseScreen) (nIndex, pScreen);
 
+  winFreeFBShadowDDNL(pScreen);
+
   /* Free the screen DC */
   ReleaseDC (pScreenPriv->hwndScreen, pScreenPriv->hdcScreen);
 
   /* Delete the window property */
   RemoveProp (pScreenPriv->hwndScreen, WIN_SCR_PROP);
-
-  /* Free the shadow surface, if there is one */
-  if (pScreenPriv->pddsShadow4)
-    {
-      IDirectDrawSurface4_Release (pScreenPriv->pddsShadow4);
-      free (pScreenInfo->pfb);
-      pScreenInfo->pfb = NULL;
-      pScreenPriv->pddsShadow4 = NULL;
-    }
-
-  /* Detach the clipper from the primary surface and release the clipper. */
-  if (pScreenPriv->pddcPrimary)
-    {
-      /* Detach the clipper */
-      IDirectDrawSurface4_SetClipper (pScreenPriv->pddsPrimary4,
-				      NULL);
-
-      /* Release the clipper object */
-      IDirectDrawClipper_Release (pScreenPriv->pddcPrimary);
-      pScreenPriv->pddcPrimary = NULL;
-    }
-
-  /* Release the primary surface, if there is one */
-  if (pScreenPriv->pddsPrimary4)
-    {
-      IDirectDrawSurface4_Release (pScreenPriv->pddsPrimary4);
-      pScreenPriv->pddsPrimary4 = NULL;
-    }
-
-  /* Free the DirectDraw4 object, if there is one */
-  if (pScreenPriv->pdd4)
-    {
-      IDirectDraw4_RestoreDisplayMode (pScreenPriv->pdd4);
-      IDirectDraw4_Release (pScreenPriv->pdd4);
-      pScreenPriv->pdd4 = NULL;
-    }
-
-  /* Free the DirectDraw object, if there is one */
-  if (pScreenPriv->pdd)
-    {
-      IDirectDraw_Release (pScreenPriv->pdd);
-      pScreenPriv->pdd = NULL;
-    }
 
   /* Delete tray icon, if we have one */
   if (!pScreenInfo->fNoTrayIcon)
@@ -820,9 +842,6 @@ winCloseScreenShadowDDNL (int nIndex, ScreenPtr pScreen)
 
   /* Kill our screeninfo's pointer to the screen */
   pScreenInfo->pScreen = NULL;
-
-  /* Invalidate the ScreenInfo's fb pointer */
-  pScreenInfo->pfb = NULL;
 
   /* Free the screen privates for this screen */
   free ((pointer) pScreenPriv);
@@ -1382,7 +1401,9 @@ winSetEngineFunctionsShadowDDNL (ScreenPtr pScreen)
   
   /* Set our pointers */
   pScreenPriv->pwinAllocateFB = winAllocateFBShadowDDNL;
+  pScreenPriv->pwinFreeFB = winFreeFBShadowDDNL;
   pScreenPriv->pwinShadowUpdate = winShadowUpdateDDNL;
+  pScreenPriv->pwinInitScreen = winInitScreenShadowDDNL;
   pScreenPriv->pwinCloseScreen = winCloseScreenShadowDDNL;
   pScreenPriv->pwinInitVisuals = winInitVisualsShadowDDNL;
   pScreenPriv->pwinAdjustVideoMode = winAdjustVideoModeShadowDDNL;
