@@ -1283,23 +1283,25 @@ CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 # OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
 # the OpenSSL libraries, just libcrypto
 # Some systems have matching functionality in the smaller/simpler libmd
-# Builders who want to force a choice can set SHA1_LIB and SHA1_CFLAGS
+# Builders who want to force a choice can set SHA1_LIBS and SHA1_CFLAGS
 if test "x$SHA1_LIB" = "x" ; then
-  AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIB="-lmd"
+  AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIBS="-lmd"
             AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
             [Use libmd SHA1 functions instead of OpenSSL libcrypto])])
 fi
 
 if test "x$SHA1_LIB" = "x" ; then
-  PKG_CHECK_EXISTS([OPENSSL], [openssl], [HAVE_OPENSSL_PKC=yes],
+  PKG_CHECK_EXISTS([openssl], [HAVE_OPENSSL_PKC=yes],
                     [HAVE_OPENSSL_PKC=no])
   if test "x$HAVE_OPENSSL_PKC" = xyes; then
-    REQUIRED_LIBS="$REQUIRED_LIBS openssl"
+    PKG_CHECK_MODULES([SHA1], [openssl])
   else
-    AC_CHECK_LIB([crypto], [SHA1_Init], [SHA1_LIB="-lcrypto"],
+    AC_CHECK_LIB([crypto], [SHA1_Init], [SHA1_LIBS="-lcrypto"],
                  [AC_MSG_ERROR([OpenSSL must be installed in order to build the X server.])])
   fi
 fi
+AC_SUBST(SHA1_LIBS)
+AC_SUBST(SHA1_CFLAGS)
 
 PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
 PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
@@ -1319,9 +1321,9 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 # XSERVER_SYS_LIBS is the set of out-of-tree libraries which all servers
 # require.
 #
-XSERVER_CFLAGS="${XSERVER_CFLAGS} ${XSERVERCFLAGS_CFLAGS} ${SHA1_CFLAGS}"
+XSERVER_CFLAGS="${XSERVER_CFLAGS} ${XSERVERCFLAGS_CFLAGS}"
 XSERVER_LIBS="$DIX_LIB $CONFIG_LIB $MI_LIB $OS_LIB"
-XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} ${SHA1_LIB}"
+XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS}"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([XSERVER_SYS_LIBS])
 
