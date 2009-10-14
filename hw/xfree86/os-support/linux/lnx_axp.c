@@ -138,16 +138,12 @@ long (*_iobase)(unsigned, int, int, int) = _alpha_iobase_query;
 static long
 _alpha_iobase(unsigned flags, int hose, int bus, int devfn)
 {
-#ifdef __NR_pciconfig_iobase
   if (bus < 0) {
     bus = hose;
     flags |= IOBASE_FROM_HOSE;
   }
 
   return syscall(__NR_pciconfig_iobase, flags, bus, devfn);
-#else
-  return -ENOSYS
-#endif
 }
 
 static long
