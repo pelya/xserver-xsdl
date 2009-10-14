@@ -33,6 +33,45 @@ int x_sha1_final(void *ctx, unsigned char result[20])
     return 1;
 }
 
+#elif defined(HAVE_SHA1_IN_LIBGCRYPT) /* Use libgcrypt for SHA1 */
+
+# include <gcrypt.h>
+
+void *x_sha1_init(void)
+{
+    static int init;
+    gcry_md_hd_t h;
+    gcry_error_t err;
+
+    if (!init) {
+        if (!gcry_check_version(NULL))
+            return NULL;
+        gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
+        gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
+        init = 1;
+    }
+
+    err = gcry_md_open(&h, GCRY_MD_SHA1, 0);
+    if (err)
+        return NULL;
+    return h;
+}
+
+int x_sha1_update(void *ctx, void *data, int size)
+{
+    gcry_md_hd_t h = ctx;
+    gcry_md_write(h, data, size);
+    return 1;
+}
+
+int x_sha1_final(void *ctx, unsigned char result[20])
+{
+    gcry_md_hd_t h = ctx;
+    memcpy(result, gcry_md_read(h, GCRY_MD_SHA1), 20);
+    gcry_md_close(h);
+    return 1;
+}
+
 #else /* Use OpenSSL's libcrypto */
 
 # include <stddef.h>  /* buggy openssl/sha.h wants size_t */
