@@ -1280,25 +1280,45 @@ MIEXT_SHADOW_INC='-I$(top_srcdir)/miext/shadow'
 MIEXT_SHADOW_LIB='$(top_builddir)/miext/shadow/libshadow.la'
 CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
-# OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
-# the OpenSSL libraries, just libcrypto
-# Some systems have matching functionality in the smaller/simpler libmd
-# Builders who want to force a choice can set SHA1_LIBS and SHA1_CFLAGS
-if test "x$SHA1_LIB" = "x" ; then
-  AC_CHECK_LIB([md], [SHA1Init], [SHA1_LIBS="-lmd"
-            AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
-            [Use libmd SHA1 functions instead of OpenSSL libcrypto])])
+# SHA1 hashing
+AC_ARG_WITH([sha1],
+            [AS_HELP_STRING([--with-sha1=libmd|libcrypto],
+                            [choose SHA1 implementation])])
+AC_CHECK_LIB([md], [SHA1Init], [HAVE_LIBMD=yes])
+if test "x$with_sha1" = x && test "x$HAVE_LIBMD" = xyes; then
+	with_sha1=libmd
 fi
-
-if test "x$SHA1_LIB" = "x" ; then
-  PKG_CHECK_EXISTS([openssl], [HAVE_OPENSSL_PKC=yes],
-                    [HAVE_OPENSSL_PKC=no])
-  if test "x$HAVE_OPENSSL_PKC" = xyes; then
-    PKG_CHECK_MODULES([SHA1], [openssl])
-  else
-    AC_CHECK_LIB([crypto], [SHA1_Init], [SHA1_LIBS="-lcrypto"],
-                 [AC_MSG_ERROR([OpenSSL must be installed in order to build the X server.])])
-  fi
+if test "x$with_sha1" = xlibmd && test "x$HAVE_LIBMD" != xyes; then
+	AC_MSG_ERROR([libmd requested but not found])
+fi
+if test "x$with_sha1" = xlibmd; then
+	AC_DEFINE([HAVE_SHA1_IN_LIBMD], [1],
+	          [Use libmd SHA1 functions])
+	SHA1_LIBS=-lmd
+fi
+# We don't need all of the OpenSSL libraries, just libcrypto
+AC_CHECK_LIB([crypto], [SHA1_Init], [HAVE_LIBCRYPTO=yes])
+PKG_CHECK_MODULES([OPENSSL], [openssl], [HAVE_OPENSSL_PKC=yes],
+                  [HAVE_OPENSSL_PKC=no])
+if test "x$HAVE_LIBCRYPTO" = xyes || test "x$HAVE_OPENSSL_PKC" = xyes; then
+	if test "x$with_sha1" = x; then
+		with_sha1=libcrypto
+	fi
+else
+	if test "x$with_sha1" = xlibcrypto; then
+		AC_MSG_ERROR([OpenSSL libcrypto requested but not found])
+	fi
+fi
+if test "x$with_sha1" = xlibcrypto; then
+	if test "x$HAVE_LIBCRYPTO" = xyes; then
+		SHA1_LIBS=-lcrypto
+	else
+		SHA1_LIBS="$OPENSSL_LIBS"
+		SHA1_CFLAGS="$OPENSSL_CFLAGS"
+	fi
+fi
+if test "x$with_sha1" = x; then
+	AC_MSG_ERROR([No suitable SHA1 implementation found])
 fi
 AC_SUBST(SHA1_LIBS)
 AC_SUBST(SHA1_CFLAGS)
