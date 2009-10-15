@@ -173,11 +173,6 @@ extern _X_EXPORT void MarkClientException(
 extern _X_HIDDEN Bool CreateConnectionBlock(void);
 /* dixutils.c */
 
-extern _X_EXPORT void CopyISOLatin1Lowered(
-    unsigned char * /*dest*/,
-    unsigned char * /*source*/,
-    int /*length*/);
-
 extern _X_EXPORT int CompareISOLatin1Lowered(
     unsigned char * /*a*/,
     int alen,
