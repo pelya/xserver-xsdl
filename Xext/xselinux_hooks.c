@@ -230,7 +230,7 @@ SELinuxLabelResource(XaceResourceAccessRec *rec, SELinuxSubjectRec *subj,
     security_id_t tsid;
 
     /* Check for a create context */
-    if (rec->rtype == RT_WINDOW && subj->win_create_sid) {
+    if (rec->rtype & RC_DRAWABLE && subj->win_create_sid) {
 	sidget(obj->sid = subj->win_create_sid);
 	return Success;
     }
