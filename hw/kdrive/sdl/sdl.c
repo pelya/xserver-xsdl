@@ -240,6 +240,12 @@ void InitInput(int argc, char **argv)
         KdInitInput();
 }
 
+#ifdef DDXBEFORERESET
+void ddxBeforeReset(void)
+{
+}
+#endif
+
 void ddxUseMsg(void)
 {
 	KdUseMsg();
