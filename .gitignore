@@ -79,7 +79,6 @@ hw/dmx/examples/xtest
 hw/kdrive/ephyr/Xephyr
 hw/kdrive/fake/Xfake
 hw/kdrive/fbdev/Xfbdev
-hw/kdrive/sdl/Xsdl
 hw/kdrive/vesa/Xvesa
 hw/vfb/Xvfb
 hw/vfb/Xvfb.1x
