@@ -933,7 +933,7 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
 }
 
 /** Re-initialize all the devices described in \a dmxInput.  Called from
-    #dmxReconfig before the cursor is redisplayed. */ 
+    #dmxAdjustCursorBoundaries before the cursor is redisplayed. */
 void dmxInputReInit(DMXInputInfo *dmxInput)
 {
     int i;
@@ -946,7 +946,7 @@ void dmxInputReInit(DMXInputInfo *dmxInput)
 }
 
 /** Re-initialize all the devices described in \a dmxInput.  Called from
-    #dmxReconfig after the cursor is redisplayed. */ 
+    #dmxAdjustCursorBoundaries after the cursor is redisplayed. */
 void dmxInputLateReInit(DMXInputInfo *dmxInput)
 {
     int i;
