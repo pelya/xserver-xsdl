@@ -63,47 +63,19 @@ linuxPciOpenFile(struct pci_device *dev, Bool write)
     static struct pci_device *last_dev = NULL;
     static int	fd = -1,is_write = 0;
     char		file[64];
-    struct stat	ignored;
-    static int is26 = -1;
 
     if (dev == NULL) {
 	return -1;
     }
 
-    if (is26 == -1) {
-	is26 = (stat("/sys/bus/pci", &ignored) < 0) ? 0 : 1;
-    }
-	
     if (fd == -1 || (write && (!is_write)) || (last_dev != dev)) {
 	if (fd != -1) {
 	    close(fd);
 	    fd = -1;
 	}
 
-	if (is26) {
-	    sprintf(file,"/sys/bus/pci/devices/%04u:%02x:%02x.%01x/config",
-		    dev->domain, dev->bus, dev->dev, dev->func);
-	} else {
-	    if (dev->domain == 0) {
-		sprintf(file,"/proc/bus/pci/%02x", dev->bus);
-		if (stat(file, &ignored) < 0) {
-		    sprintf(file, "/proc/bus/pci/0000:%02x/%02x.%1x",
-			    dev->bus, dev->dev, dev->func);
-		} else {
-		    sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
-			    dev->bus, dev->dev, dev->func);
-		}
-	    } else {
-		sprintf(file,"/proc/bus/pci/%02x%02x", dev->domain, dev->bus);
-		if (stat(file, &ignored) < 0) {
-		    sprintf(file, "/proc/bus/pci/%04x:%04x/%02x.%1x",
-			    dev->domain, dev->bus, dev->dev, dev->func);
-		} else {
-		    sprintf(file, "/proc/bus/pci/%02x%02x/%02x.%1x",
-			    dev->domain, dev->bus, dev->dev, dev->func);
-		}
-	    }
-	}
+	sprintf(file,"/sys/bus/pci/devices/%04u:%02x:%02x.%01x/config",
+		dev->domain, dev->bus, dev->dev, dev->func);
 
 	if (write) {
 	    fd = open(file,O_RDWR);
