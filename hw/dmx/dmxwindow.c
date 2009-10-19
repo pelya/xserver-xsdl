@@ -419,10 +419,9 @@ Bool dmxDestroyWindow(WindowPtr pWindow)
 	pWinPriv->windowDestroyed(pWindow);
 #endif
 
-#if 0
     if (pScreen->DestroyWindow)
 	ret = pScreen->DestroyWindow(pWindow);
-#endif
+
     DMX_WRAP(DestroyWindow, dmxDestroyWindow, dmxScreen, pScreen);
 
     return ret;
