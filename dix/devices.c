@@ -1520,14 +1520,12 @@ int
 ProcGetModifierMapping(ClientPtr client)
 {
     xGetModifierMappingReply rep;
-    int ret, max_keys_per_mod = 0;
+    int max_keys_per_mod = 0;
     KeyCode *modkeymap = NULL;
     REQUEST_SIZE_MATCH(xReq);
 
-    ret = generate_modkeymap(client, PickKeyboard(client), &modkeymap,
-                             &max_keys_per_mod);
-    if (ret != Success)
-        return ret;
+    generate_modkeymap(client, PickKeyboard(client), &modkeymap,
+                       &max_keys_per_mod);
 
     memset(&rep, 0, sizeof(xGetModifierMappingReply));
     rep.type = X_Reply;
