@@ -52,8 +52,15 @@ CLEANFILES = $(TXT_FILES) $(PS_FILES) $(PDF_FILES) $(HTML_FILES)
 endif
 
 if HAVE_DOXYGEN
-all-local:
-	$(DOXYGEN) doxygen.conf
+
+DOXYGEN_SRC=doxygen.head doxygen.foot doxygen.css doxygen.conf
+
+all-local: html/annotated.html
+
+dist-local: html/annotated.html
+
+html/annotated.html: $(DOXYGEN_SRC)
+	$(DOXYGEN) $(srcdir)/doxygen.conf
 
 clean-local:
 	rm -rf html/
@@ -271,3 +278,13 @@ EXTRA_DIST = \
 	html/usb-other_8h_source.html \
 	html/usb-private_8h.html \
 	html/usb-private_8h_source.html
+
+$(builddir)/doxygen.head:
+	$(LN_S) $(srcdir)/doxygen.head $@
+
+$(builddir)/doxygen.foot:
+	$(LN_S) $(srcdir)/doxygen.foot $@
+
+$(builddir)doxygen.css:
+	$(LN_S) $(srcdir)/doxygen.css $@
+
