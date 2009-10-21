@@ -2082,7 +2082,6 @@ hw/kdrive/ephyr/Makefile
 hw/kdrive/fake/Makefile
 hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
-hw/kdrive/sdl/Makefile
 hw/kdrive/src/Makefile
 test/Makefile
 test/xi2/Makefile
