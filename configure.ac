@@ -616,7 +616,6 @@ AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
-AC_ARG_ENABLE(xsdl,           AS_HELP_STRING([--enable-xsdl], [Build the kdrive Xsdl server (default: auto)]), [XSDL=$enableval], [XSDL=auto])
 AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
 AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
 
@@ -1851,6 +1850,13 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
 	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [$LIBXEXT x11])
 	AC_SUBST(X11EXAMPLES_DEP_LIBS)
+
+	AC_PATH_PROG(DOXYGEN,doxygen,[not_found])
+	if test "x$DOXYGEN" = "xnot_found" ; then
+	    AC_MSG_WARN([doxygen not found in $PATH. Cannot build documentation])
+	fi
+	AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "xnot_found"])
+	AC_SUBST(DOXYGEN)
 fi
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
@@ -1859,9 +1865,6 @@ dnl kdrive DDX
 
 XEPHYR_LIBS=
 XEPHYR_INCS=
-XSDL_LIBS=
-XSDL_INCS=
-XSDL_DIRS=
 
 AM_CONDITIONAL(KDRIVE, [test x$KDRIVE = xyes])
 if test "$KDRIVE" = yes; then
@@ -1906,18 +1909,6 @@ if test "$KDRIVE" = yes; then
         fi
     fi
 
-    AC_CHECK_HEADERS([SDL/SDL.h])
-    if test x"$ac_cv_header_SDL_SDL_h" = xyes && test "x$XSDL" = xauto; then
-       XSDL=yes
-    fi
-
-    if test x"$XSDL" = xyes; then
-       # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
-       AC_DEFINE(XSDLSERVER,1,[Build Xsdl server])
-       XSDL_LIBS="`sdl-config --libs`"
-       XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
-    fi
-
     XEPHYR_REQUIRED_LIBS="x11 $LIBXEXT xfont xau xdmcp"
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
@@ -1959,8 +1950,6 @@ if test "$KDRIVE" = yes; then
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
-    AC_SUBST([XSDL_LIBS])
-    AC_SUBST([XSDL_INCS])
 fi
 AC_SUBST([KDRIVE_INCS])
 AC_SUBST([KDRIVE_PURE_INCS])
@@ -1972,7 +1961,6 @@ AM_CONDITIONAL(KDRIVELINUX, [test "x$KDRIVELINUX" = xyes])
 AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
 AM_CONDITIONAL(KDRIVEVESA, [test "x$KDRIVEVESA" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
-AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
