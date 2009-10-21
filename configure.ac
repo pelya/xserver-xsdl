@@ -1816,6 +1816,8 @@ fi
 AC_MSG_RESULT([$DMX])
 AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
+DOXYGEN="not_found"
+
 if test "x$DMX" = xyes; then
 	if test "x$have_dmx" = xno; then
 		AC_MSG_ERROR([Xdmx build explicitly requested, but required
@@ -1855,9 +1857,9 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	if test "x$DOXYGEN" = "xnot_found" ; then
 	    AC_MSG_WARN([doxygen not found in $PATH. Cannot build documentation])
 	fi
-	AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "xnot_found"])
 	AC_SUBST(DOXYGEN)
 fi
+AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "xnot_found"])
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
