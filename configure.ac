@@ -1090,11 +1090,16 @@ AM_CONDITIONAL(INT10MODULE, test "x$INT10MODULE" = xyes)
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
-AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
+AC_ARG_WITH(xkb-bin-directory,
+				AS_HELP_STRING([--with-xkb-bin-directory=DIR], [Directory containing xkbcomp program]),
+				[XKB_BIN_DIRECTORY="$withval"],
+				[XKB_BIN_DIRECTORY="$bindir"])
+
+AC_DEFINE_DIR(XKB_BIN_DIRECTORY, XKB_BIN_DIRECTORY, [Path to XKB bin dir])
 
 dnl Make sure XKM_OUTPUT_DIR is an absolute path
 XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
-if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
+if [[ x$XKBOUTPUT_FIRSTCHAR != x/ -a x$XKBOUTPUT_FIRSTCHAR != 'x$' ]] ; then
    XKBOUTPUT="$XKB_BASE_DIRECTORY/$XKBOUTPUT"
 fi
 
