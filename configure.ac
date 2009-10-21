@@ -1853,12 +1853,12 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [$LIBXEXT x11])
 	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 
-	AC_PATH_PROG(DOXYGEN,doxygen,[not_found])
-	if test "x$DOXYGEN" = "xnot_found" ; then
-	    AC_MSG_WARN([doxygen not found in $PATH. Cannot build documentation])
-	fi
-	AC_SUBST(DOXYGEN)
 fi
+AC_PATH_PROG(DOXYGEN,doxygen,[not_found])
+if test "x$DOXYGEN" = "xnot_found" ; then
+    AC_MSG_WARN([doxygen not found in $PATH. Cannot build dmx documentation])
+fi
+AC_SUBST(DOXYGEN)
 AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "xnot_found"])
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
