@@ -2485,15 +2485,15 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             if (mask & XI_MASK)
             {
                 rc = EventToXI(event, &xE, &count);
-                if (rc == Success &&
-                    XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count) == Success)
-                {
-                    filter = GetEventFilter(dev, xE);
-                    FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                       filter, grab);
-                    if (deliveries > 0)
-                        goto unwind;
+                if (rc == Success) {
+                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count) == Success) {
+                        filter = GetEventFilter(dev, xE);
+                        FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
+                        deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
+                                                           filter, grab);
+                        if (deliveries > 0)
+                            goto unwind;
+                    }
                 } else if (rc != BadMatch)
                     ErrorF("[dix] %s: XI conversion failed in DDE (%d, %d). Skipping delivery.\n",
                             dev->name, event->any.type, rc);
@@ -2503,15 +2503,15 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             if ((mask & CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
                 rc = EventToCore(event, &core);
-                if (rc == Success &&
-                    XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, &core, 1) == Success)
-                {
-                    filter = GetEventFilter(dev, &core);
-                    FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
-                    deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
-                            filter, grab);
-                    if (deliveries > 0)
-                        goto unwind;
+                if (rc == Success) {
+                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, &core, 1) == Success) {
+                        filter = GetEventFilter(dev, &core);
+                        FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
+                        deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
+                                                           filter, grab);
+                        if (deliveries > 0)
+                            goto unwind;
+                    }
                 } else if (rc != BadMatch)
                         ErrorF("[dix] %s: Core conversion failed in DDE (%d, %d).\n",
                                 dev->name, event->any.type, rc);
@@ -3791,13 +3791,13 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     if (sendCore)
     {
         rc = EventToCore(event, &core);
-        if (rc == Success &&
-            XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, &core, 1) == Success)
-        {
-            FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
-            deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
-                                               GetEventFilter(keybd, &core),
-                                               NullGrab);
+        if (rc == Success) {
+            if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, &core, 1) == Success) {
+                FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
+                deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
+                                                   GetEventFilter(keybd, &core),
+                                                   NullGrab);
+            }
         } else if (rc != BadMatch)
             ErrorF("[dix] %s: core conversion failed DFE (%d, %d). Skipping delivery.\n",
                     keybd->name, event->any.type, rc);
