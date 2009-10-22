@@ -726,11 +726,14 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                     int			*valuators)
 {
     int i = 0, nevents = 0;
-    int dx = 0, dy = 0;
     Bool drag = xf86SendDragEvents(device);
     DeviceEvent *event;
-    int index;
     int flags = 0;
+
+#if XFreeXDGA
+    int index;
+    int dx = 0, dy = 0;
+#endif
 
     XI_VERIFY_VALUATORS(num_valuators);
 
@@ -856,8 +859,11 @@ xf86PostButtonEventP(DeviceIntPtr	device,
                      int		*valuators)
 {
     int i = 0, nevents = 0;
-    int index;
     int flags = 0;
+
+#if XFreeXDGA
+    int index;
+#endif
 
     XI_VERIFY_VALUATORS(num_valuators);
 
