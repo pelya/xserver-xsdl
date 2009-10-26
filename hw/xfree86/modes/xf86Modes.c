@@ -136,10 +136,12 @@ xf86ModeBandwidth(DisplayModePtr mode, int depth)
 void
 xf86SetModeDefaultName(DisplayModePtr mode)
 {
-    if (mode->name != NULL)
-	xfree(mode->name);
+    Bool interlaced = !!(mode->Flags & V_INTERLACE);
 
-    mode->name = XNFprintf("%dx%d", mode->HDisplay, mode->VDisplay);
+    xfree(mode->name);
+
+    mode->name = XNFprintf("%dx%d%s", mode->HDisplay, mode->VDisplay,
+			   interlaced ? "i" : "");
 }
 
 /*

@@ -566,8 +566,6 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
 	return NULL;
     }
 
-    xf86SetModeDefaultName(Mode);
-
     /* We ignore h/v_size and h/v_border for now. */
 
     if (timing->interlaced)
@@ -586,6 +584,8 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
 	else
 	    Mode->Flags |= V_NHSYNC;
     }
+
+    xf86SetModeDefaultName(Mode);
 
     return Mode;
 }
