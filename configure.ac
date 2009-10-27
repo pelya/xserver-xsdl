@@ -32,9 +32,11 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
 
-# Require xorg-macros version 1.3.0 or newer for XORG_DEFAULT_OPTIONS
-m4_ifndef([XORG_MACROS_VERSION], [AC_FATAL([must install xorg-macros 1.3 or later before running autoconf/autogen])])
+# Require xorg-macros: XORG_DEFAULT_OPTIONS
+m4_ifndef([XORG_MACROS_VERSION],
+          [m4_fatal([must install xorg-macros 1.3 or later before running autoconf/autogen])])
 XORG_MACROS_VERSION(1.3)
+XORG_DEFAULT_OPTIONS
 
 m4_ifndef([XORG_FONT_MACROS_VERSION], [m4_fatal([must install fontutil 1.1 or later before running autoconf/autogen])])
 XORG_FONT_MACROS_VERSION(1.1)
@@ -76,7 +78,6 @@ AC_SYS_LARGEFILE
 XORG_PROG_RAWCPP
 AC_PATH_PROG(SED,sed)
 
-XORG_DEFAULT_OPTIONS
 # Quoted so that make will expand $(CWARNFLAGS) in makefiles to allow
 # easier overrides at build time.
 XSERVER_CFLAGS='$(CWARNFLAGS)'
