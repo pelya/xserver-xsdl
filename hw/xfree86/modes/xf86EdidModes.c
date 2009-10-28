@@ -266,7 +266,7 @@ static const ddc_quirk_map_t ddc_quirks[] = {
     },
     {
 	quirk_detailed_use_maximum_size,   DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE,
-	"Detailed timings give sizes in cm."
+	"Use maximum size instead of detailed timing sizes."
     },
     {
 	quirk_first_detailed_preferred, DDC_QUIRK_FIRST_DETAILED_PREFERRED,
