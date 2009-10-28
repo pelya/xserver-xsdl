@@ -113,7 +113,7 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
         return;
 
     /* common settings (available via device properties) */
-    tempf = xf86SetIntOption(list, "ConstantDeceleration", 1);
+    tempf = xf86SetRealOption(list, "ConstantDeceleration", 1.0);
     if(tempf > 1.0){
         xf86Msg(X_CONFIG, "%s: (accel) constant deceleration by %.1f\n",
                 devname, tempf);
@@ -122,7 +122,7 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
                                PropModeReplace, 1, &tempf, FALSE);
     }
 
-    tempf = xf86SetIntOption(list, "AdaptiveDeceleration", 1);
+    tempf = xf86SetRealOption(list, "AdaptiveDeceleration", 1.0);
     if(tempf > 1.0){
         xf86Msg(X_CONFIG, "%s: (accel) adaptive deceleration by %.1f\n",
                 devname, tempf);
