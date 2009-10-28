@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS=dist-bzip2 foreign nostdinc
+AUTOMAKE_OPTIONS=nostdinc
 ACLOCAL_AMFLAGS = -I m4
 
 if COMPOSITE
@@ -58,12 +58,15 @@ DISTCHECK_CONFIGURE_FLAGS=\
 
 DISTCLEANFILES = doltcompile doltlibtool
 
-.PHONY: ChangeLog
+.PHONY: ChangeLog INSTALL
+
+INSTALL:
+	$(INSTALL_CMD)
 
 ChangeLog:
 	$(CHANGELOG_CMD)
 
-dist-hook: ChangeLog
+dist-hook: ChangeLog INSTALL
 
 DIST_SUBDIRS = \
 	doc \
