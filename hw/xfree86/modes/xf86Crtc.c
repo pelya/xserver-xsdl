@@ -1377,34 +1377,6 @@ xf86InitialPanning (ScrnInfoPtr scrn)
     }
 }
 
-/*
- * XXX walk the monitor mode list and prune out duplicates that
- * are inserted by xf86DDCMonitorSet. In an ideal world, that
- * function would do this work by itself.
- */
-
-static void
-xf86PruneDuplicateMonitorModes (MonPtr Monitor)
-{
-    DisplayModePtr  master, clone, next;
-
-    for (master = Monitor->Modes; 
-	 master && master != Monitor->Last; 
-	 master = master->next)
-    {
-	for (clone = master->next; clone && clone != Monitor->Modes; clone = next)
-	{
-	    next = clone->next;
-	    if (xf86ModesEqual (master, clone))
-	    {
-		if (Monitor->Last == clone)
-		    Monitor->Last = clone->prev;
-		xf86DeleteMode (&Monitor->Modes, clone);
-	    }
-	}
-    }
-}
-
 /** Return - 0 + if a should be earlier, same or later than b in list
  */
 static int
@@ -1575,9 +1547,6 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	maxY = config->maxHeight;
     }
 
-    /* Elide duplicate modes before defaulting code uses them */
-    xf86PruneDuplicateMonitorModes (scrn->monitor);
-    
     /* Probe the list of modes for each output. */
     for (o = 0; o < config->num_output; o++) 
     {

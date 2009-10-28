@@ -691,3 +691,37 @@ xf86GetDefaultModes (void)
     }
     return head;
 }
+
+/*
+ * Walk a mode list and prune out duplicates.  Will preserve the preferred
+ * mode of an otherwise-duplicate pair.
+ *
+ * Probably best to call this on lists that are all of a single class
+ * (driver, default, user, etc.), otherwise, which mode gets deleted is
+ * not especially well defined.
+ *
+ * Returns the new list.
+ */
+
+DisplayModePtr
+xf86PruneDuplicateModes(DisplayModePtr modes)
+{
+    DisplayModePtr m, n, o;
+
+top:
+    for (m = modes; m; m = m->next) {
+	for (n = m->next; n; n = o) {
+	    o = n->next;
+	    if (xf86ModesEqual(m, n)) {
+		if (n->type & M_T_PREFERRED) {
+		    xf86DeleteMode(&modes, m);
+		    goto top;
+		}
+		else
+		    xf86DeleteMode(&modes, n);
+	    }
+	}
+    }
+
+    return modes;
+}
