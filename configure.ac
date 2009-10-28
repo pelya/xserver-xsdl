@@ -1286,7 +1286,7 @@ CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
 # SHA1 hashing
 AC_ARG_WITH([sha1],
-            [AS_HELP_STRING([--with-sha1=libmd|libgcrypt|libcrypto],
+            [AS_HELP_STRING([--with-sha1=libmd|libgcrypt|libcrypto|libsha1],
                             [choose SHA1 implementation])])
 AC_CHECK_LIB([md], [SHA1Init], [HAVE_LIBMD=yes])
 if test "x$with_sha1" = x && test "x$HAVE_LIBMD" = xyes; then
@@ -1308,6 +1308,15 @@ if test "x$with_sha1" = xlibgcrypt; then
 	AC_DEFINE([HAVE_SHA1_IN_LIBGCRYPT], [1],
 	          [Use libgcrypt SHA1 functions])
 	SHA1_LIBS=-lgcrypt
+fi
+AC_CHECK_LIB([sha1], [sha1_begin], [HAVE_LIBSHA1=yes])
+if test "x$with_sha1" = x && test "x$HAVE_LIBSHA1" = xyes; then
+   with_sha1=libsha1
+fi
+if test "x$with_sha1" = xlibsha1; then
+	AC_DEFINE([HAVE_SHA1_IN_LIBSHA1], [1],
+	          [Use libsha1 for SHA1])
+	SHA1_LIBS=-lsha1
 fi
 # We don't need all of the OpenSSL libraries, just libcrypto
 AC_CHECK_LIB([crypto], [SHA1_Init], [HAVE_LIBCRYPTO=yes])

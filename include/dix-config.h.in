@@ -166,6 +166,9 @@
 /* Define to use libgcrypt SHA1 functions */
 #undef HAVE_SHA1_IN_LIBGCRYPT
 
+/* Define to use libsha1 for SHA1 */
+#undef HAVE_SHA1_IN_LIBSHA1
+
 /* Define to 1 if you have the `shmctl64' function. */
 #undef HAVE_SHMCTL64
 

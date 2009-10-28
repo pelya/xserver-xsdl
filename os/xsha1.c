@@ -72,6 +72,32 @@ int x_sha1_final(void *ctx, unsigned char result[20])
     return 1;
 }
 
+#elif defined(HAVE_SHA1_IN_LIBSHA1) /* Use libsha1 */
+
+# include <libsha1.h>
+
+void *x_sha1_init(void)
+{
+    sha1_ctx *ctx = xalloc(sizeof(*ctx));
+    if(!ctx)
+        return NULL;
+    sha1_begin(ctx);
+    return ctx;
+}
+
+int x_sha1_update(void *ctx, void *data, int size)
+{
+    sha1_hash(data, size, ctx);
+    return 1;
+}
+
+int x_sha1_final(void *ctx, unsigned char result[20])
+{
+    sha1_end(result, ctx);
+    xfree(ctx);
+    return 1;
+}
+
 #else /* Use OpenSSL's libcrypto */
 
 # include <stddef.h>  /* buggy openssl/sha.h wants size_t */
