@@ -893,9 +893,7 @@ winMultiWindowXMsgProc (void *pArg)
   /* See if X supports the current locale */
   if (XSupportsLocale () == False)
     {
-      ErrorF ("winMultiWindowXMsgProc - Locale not supported by X.  "
-	      "Exiting.\n");
-      pthread_exit (NULL);
+      ErrorF ("winMultiWindowXMsgProc - Warning: locale not supported by X\n");
     }
 
   /* Release the server started mutex */
@@ -1278,8 +1276,7 @@ winInitMultiWindowWM (WMInfoPtr pWMInfo, WMProcArgPtr pProcArg)
   /* See if X supports the current locale */
   if (XSupportsLocale () == False)
     {
-      ErrorF ("winInitMultiWindowWM - Locale not supported by X.  Exiting.\n");
-      pthread_exit (NULL);
+      ErrorF ("winInitMultiWindowWM - Warning: Locale not supported by X.\n");
     }
 
   /* Release the server started mutex */
