@@ -195,6 +195,7 @@ dnl Check to see if dlopen is in default libraries (like Solaris, which
 dnl has it in libc), or if libdl is needed to get it.
 AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
+AC_SUBST(DLOPEN_LIBS)
 
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
@@ -922,7 +923,7 @@ if test "x$GLX" = xyes; then
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/glx/libglx.la'
-	GLX_SYS_LIBS="$GLX_SYS_LIBS $DLOPEN_LIBS"
+	GLX_SYS_LIBS="$GLX_SYS_LIBS"
 else
         GLX=no
 fi
@@ -1513,7 +1514,7 @@ if test "x$XORG" = xyes; then
 	AC_CHECK_FUNCS([pci_device_vgaarb_init])
 	LIBS=$SAVE_LIBS
 	CFLAGS=$SAVE_CFLAGS
-	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $DLOPEN_LIBS $GLX_SYS_LIBS $SELINUX_LIB"
+	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS $SELINUX_LIB"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
 	case $host_os in
