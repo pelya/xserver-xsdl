@@ -811,9 +811,8 @@ winUseMsg (void)
 	  "\tmonitors are present.\n");
 
 #ifdef XWIN_CLIPBOARD
-  ErrorF ("-clipboard\n"
-	  "\tRun the clipboard integration module.\n"
-	  "\tDo not use at the same time as 'xwinclip'.\n");
+  ErrorF ("-[no]clipboard\n"
+	  "\tEnable [disable] the clipboard integration. Default is enabled.\n");
 
   ErrorF ("-nounicodeclipboard\n"
 	  "\tDo not use Unicode clipboard even if NT-based platform.\n");
