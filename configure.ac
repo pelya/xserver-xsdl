@@ -1830,10 +1830,6 @@ if test "x$XWIN" = xyes; then
 		AC_MSG_NOTICE([Disabling XF86VidMode extension])
 		XF86VIDMODE=no
 	fi
-	if test "x$COMPOSITE" = xyes; then
-		AC_MSG_NOTICE([Disabling Composite extension])
-		COMPOSITE=no
-	fi
 fi
 AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
