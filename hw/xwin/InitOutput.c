@@ -873,7 +873,7 @@ winUseMsg (void)
 
   ErrorF ("-silent-dup-error\n"
 	  "\tIf another instance of " EXECUTABLE_NAME " with the same display number is running\n"
-     "\texit silently and don’t display any error message.\n");
+	  "\texit silently and don't display any error message.\n");
 
   ErrorF ("-swcursor\n"
 	  "\tDisable the usage of the Windows cursor and use the X11 software\n"
