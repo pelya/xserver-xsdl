@@ -5,7 +5,8 @@
 #include "os.h"
 #include "xsha1.h"
 
-#ifdef HAVE_SHA1_IN_LIBMD /* Use libmd for SHA1 */
+#if defined(HAVE_SHA1_IN_LIBMD)  /* Use libmd for SHA1 */ \
+	|| defined(HAVE_SHA1_IN_LIBC) /* Use libc for SHA1 */
 
 # include <sha1.h>
 

@@ -1287,8 +1287,20 @@ CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
 # SHA1 hashing
 AC_ARG_WITH([sha1],
-            [AS_HELP_STRING([--with-sha1=libmd|libgcrypt|libcrypto|libsha1],
+            [AS_HELP_STRING([--with-sha1=libc|libmd|libgcrypt|libcrypto|libsha1],
                             [choose SHA1 implementation])])
+AC_CHECK_FUNC([SHA1Init], [HAVE_SHA1_IN_LIBC=yes])
+if test "x$with_sha1" = x && test "x$HAVE_SHA1_IN_LIBC" = xyes; then
+	with_sha1=libc
+fi
+if test "x$with_sha1" = xlibc && test "x$HAVE_SHA1_IN_LIBC" != xyes; then
+	AC_MSG_ERROR([libc requested but not found])
+fi
+if test "x$with_sha1" = xlibc; then
+	AC_DEFINE([HAVE_SHA1_IN_LIBC], [1],
+		[Use libc SHA1 functions])
+	SHA1_LIBS=""
+fi
 AC_CHECK_LIB([md], [SHA1Init], [HAVE_LIBMD=yes])
 if test "x$with_sha1" = x && test "x$HAVE_LIBMD" = xyes; then
 	with_sha1=libmd
