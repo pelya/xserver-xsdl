@@ -1061,6 +1061,60 @@ winMultiWindowXMsgProc (void *pArg)
 				  event.xcreatewindow.window,
 				  0);
 	}
+      else if (event.type == MapNotify)
+        {
+          /* Fake a reparentNotify event as SWT/Motif expects a
+             Window Manager to reparent a top-level window when
+             it is mapped and waits until they do.
+
+             We don't actually need to reparent, as the frame is
+             a native window, not an X window
+
+             We do this on MapNotify, not MapRequest like a real
+             Window Manager would, so we don't have do get involved
+             in actually mapping the window via it's (non-existent)
+             parent...
+
+             See sourceware bugzilla #9848
+          */
+
+          XWindowAttributes attr;
+          Window root;
+          Window parent;
+          Window *children;
+          unsigned int nchildren;
+
+          if (XGetWindowAttributes(event.xmap.display,
+                                   event.xmap.window,
+                                   &attr) &&
+              XQueryTree(event.xmap.display,
+                         event.xmap.window,
+                         &root, &parent, &children, &nchildren))
+            {
+              if (children) XFree(children);
+
+              /*
+                It's a top-level window if the parent window is a root window
+                Only non-override_redirect windows can get reparented
+              */
+              if ((attr.root == parent) && !event.xmap.override_redirect)
+                {
+                  XEvent event_send;
+
+                  event_send.type = ReparentNotify;
+                  event_send.xreparent.event = event.xmap.window;
+                  event_send.xreparent.window = event.xmap.window;
+                  event_send.xreparent.parent = parent;
+                  event_send.xreparent.x = attr.x;
+                  event_send.xreparent.y = attr.y;
+
+                  XSendEvent(event.xmap.display,
+                             event.xmap.window,
+                             True, StructureNotifyMask,
+                             &event_send);
+                }
+            }
+        }
       else if (event.type == PropertyNotify
 	       && event.xproperty.atom == atmWmName)
 	{
