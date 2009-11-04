@@ -144,5 +144,6 @@ typedef unsigned int NSUInteger;
 #endif /* __OBJC__ */
 
 void X11ControllerMain(int argc, char **argv, char **envp);
+void launch_client(const char *cmd);
 
 #endif /* X11CONTROLLER_H */
