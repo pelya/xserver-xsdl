@@ -209,7 +209,7 @@ static jmp_buf			g_jmpWMEntry;
 static jmp_buf			g_jmpXMsgProcEntry;
 static Bool			g_shutdown = FALSE;
 static Bool			redirectError = FALSE;
-static Bool			g_fAnotherWMRunnig = FALSE;
+static Bool			g_fAnotherWMRunning = FALSE;
 
 /*
  * PushMessage - Push a message onto the queue
@@ -651,7 +651,7 @@ winMultiWindowWMProc (void *pArg)
     {
       WMMsgNodePtr	pNode;
 
-      if(g_fAnotherWMRunnig)/* Another Window manager exists. */
+      if(g_fAnotherWMRunning)/* Another Window manager exists. */
 	{
 	  Sleep (1000);
 	  continue;
@@ -978,26 +978,15 @@ winMultiWindowXMsgProc (void *pArg)
 	  "successfully opened the display.\n");
 
   /* Check if another window manager is already running */
-  if (pProcArg->pWMInfo->fAllowOtherWM)
-  {
-    g_fAnotherWMRunnig = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
-  } else {
-    redirectError = FALSE;
-    XSetErrorHandler (winRedirectErrorHandler); 	 
-    XSelectInput(pProcArg->pDisplay, 	 
-        RootWindow (pProcArg->pDisplay, pProcArg->dwScreen), 	 
-        SubstructureNotifyMask | ButtonPressMask); 	 
-    XSync (pProcArg->pDisplay, 0); 	 
-    XSetErrorHandler (winMultiWindowXMsgProcErrorHandler); 	 
-    if (redirectError) 	 
-    { 	 
-      ErrorF ("winMultiWindowXMsgProc - " 	 
-          "another window manager is running.  Exiting.\n"); 	 
-      pthread_exit (NULL); 	 
+  g_fAnotherWMRunning = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
+
+  if (g_fAnotherWMRunning && !pProcArg->pWMInfo->fAllowOtherWM)
+    {
+      ErrorF ("winMultiWindowXMsgProc - "
+          "another window manager is running.  Exiting.\n");
+      pthread_exit (NULL);
     }
-    g_fAnotherWMRunnig = FALSE;
-  }
-  
+
   /* Set up the supported icon sizes */
   xis = XAllocIconSize ();
   if (xis)
@@ -1032,17 +1021,17 @@ winMultiWindowXMsgProc (void *pArg)
 	{
 	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen))
 	    {
-	      if (!g_fAnotherWMRunnig)
+	      if (!g_fAnotherWMRunning)
 		{
-		  g_fAnotherWMRunnig = TRUE;
+		  g_fAnotherWMRunning = TRUE;
 		  SendMessage(*(HWND*)pProcArg->hwndScreen, WM_UNMANAGE, 0, 0);
 		}
 	    }
 	  else
 	    {
-	      if (g_fAnotherWMRunnig)
+	      if (g_fAnotherWMRunning)
 		{
-		  g_fAnotherWMRunnig = FALSE;
+		  g_fAnotherWMRunning = FALSE;
 		  SendMessage(*(HWND*)pProcArg->hwndScreen, WM_MANAGE, 0, 0);
 		}
 	    }
@@ -1454,27 +1443,23 @@ winRedirectErrorHandler (Display *pDisplay, XErrorEvent *pErr)
 static Bool
 CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen)
 {
+  /*
+    Try to select the events which only one client at a time is allowed to select.
+    If this causes an error, another window manager is already running...
+   */
   redirectError = FALSE;
   XSetErrorHandler (winRedirectErrorHandler);
   XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen),
-	       // SubstructureNotifyMask | ButtonPressMask
-	       ColormapChangeMask | EnterWindowMask | PropertyChangeMask |
-	       SubstructureRedirectMask | KeyPressMask |
-	       ButtonPressMask | ButtonReleaseMask);
+               ResizeRedirectMask | SubstructureRedirectMask | ButtonPressMask);
   XSync (pDisplay, 0);
   XSetErrorHandler (winMultiWindowXMsgProcErrorHandler);
-  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen),
-	       SubstructureNotifyMask);
+
+  /*
+    Side effect: select the events we are actually interested in...
+  */
+  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen), SubstructureNotifyMask);
   XSync (pDisplay, 0);
-  if (redirectError)
-    {
-      //ErrorF ("CheckAnotherWindowManager() - another window manager is running.  Exiting.\n");
-      return TRUE;
-    }
-  else
-    {
-      return FALSE;
-    }
+  return redirectError;
 }
 
 /*
