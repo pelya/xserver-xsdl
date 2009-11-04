@@ -120,6 +120,7 @@ typedef unsigned int NSUInteger;
 #endif
 - (void) set_can_quit:(OSX_BOOL)state;
 - (void) server_ready;
+- (OSX_BOOL) application:(NSApplication *)app openFile:(NSString *)filename;
 
 - (IBAction) apps_table_show:(id)sender;
 - (IBAction) apps_table_done:(id)sender;
@@ -144,6 +145,5 @@ typedef unsigned int NSUInteger;
 #endif /* __OBJC__ */
 
 void X11ControllerMain(int argc, char **argv, char **envp);
-void launch_client(const char *cmd);
 
 #endif /* X11CONTROLLER_H */

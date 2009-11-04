@@ -408,7 +408,7 @@ void DarwinKeyboardReloadHandler(void) {
     if (access(xmodmap, F_OK) == 0) {
         if (access(sysmodmap, F_OK) == 0) {
             snprintf (cmd, sizeof(cmd), "%s %s", xmodmap, sysmodmap);
-            launch_client(cmd);
+            X11ApplicationLaunchClient(cmd);
         }
     }
         
@@ -417,7 +417,7 @@ void DarwinKeyboardReloadHandler(void) {
         snprintf (usermodmap, sizeof(usermodmap), "%s/.Xmodmap", homedir);
         if (access(usermodmap, F_OK) == 0) {
             snprintf (cmd, sizeof(cmd), "%s %s", xmodmap, usermodmap);
-            launch_client(cmd);
+            X11ApplicationLaunchClient(cmd);
         }
     }
 }
