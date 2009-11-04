@@ -52,6 +52,8 @@
 #include "quartzKeyboard.h"
 #include "quartzAudio.h"
 
+#include "X11Application.h"
+
 #include "threadSafety.h"
 
 #ifdef NDEBUG
@@ -359,6 +361,10 @@ void DarwinKeyboardReloadHandler(void) {
     CFIndex initialKeyRepeatValue, keyRepeatValue;
     BOOL ok;
     DeviceIntPtr pDev = darwinKeyboard;
+    const char *xmodmap = PROJECTROOT "/bin/xmodmap";
+    const char *sysmodmap = PROJECTROOT "/lib/X11/xinit/.Xmodmap";
+    const char *homedir = getenv("HOME");
+    char usermodmap[PATH_MAX], cmd[PATH_MAX];
 
     DEBUG_LOG("DarwinKeyboardReloadHandler\n");
 
@@ -397,6 +403,23 @@ void DarwinKeyboardReloadHandler(void) {
             }
         }
     } pthread_mutex_unlock(&keyInfo_mutex);
+
+    /* Check for system .Xmodmap */
+    if (access(xmodmap, F_OK) == 0) {
+        if (access(sysmodmap, F_OK) == 0) {
+            snprintf (cmd, sizeof(cmd), "%s %s", xmodmap, sysmodmap);
+            launch_client(cmd);
+        }
+    }
+        
+    /* Check for user's local .Xmodmap */
+    if (homedir != NULL) {
+        snprintf (usermodmap, sizeof(usermodmap), "%s/.Xmodmap", homedir);
+        if (access(usermodmap, F_OK) == 0) {
+            snprintf (cmd, sizeof(cmd), "%s %s", xmodmap, usermodmap);
+            launch_client(cmd);
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------

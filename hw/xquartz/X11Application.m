@@ -961,6 +961,12 @@ void X11ApplicationMain (int argc, char **argv, char **envp) {
     /* not reached */
 }
 
+void launch_client(const char *cmd) {
+    NSString *string = [[NSString alloc] initWithUTF8String:cmd];
+    [[X11App controller] launch_client:string];
+    [string release];
+}
+
 @implementation X11Application (Private)
 
 #ifdef NX_DEVICELCMDKEYMASK
