@@ -810,7 +810,7 @@ winMinimizeWindow (Window id)
   ErrorF ("winMinimizeWindow\n");
 #endif
 
-  pWin = (WindowPtr) LookupIDByType (id, RT_WINDOW);
+  dixLookupResourceByType((pointer) &pWin, id, RT_WINDOW, NullClient, DixUnknownAccess);
   if (!pWin) 
   { 
       ErrorF("%s: NULL pWin. Leaving\n", __FUNCTION__); 
