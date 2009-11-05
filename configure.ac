@@ -1575,6 +1575,7 @@ if test "x$XORG" = xyes; then
 	  solaris*)
 	  	XORG_OS="solaris"
 		XORG_OS_SUBDIR="solaris"
+		XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		# Use the same stubs as BSD for old functions, since we now
 		# use libpciaccess for PCI
 		xorg_bus_bsdpci="yes"
@@ -1607,7 +1608,6 @@ if test "x$XORG" = xyes; then
 			else
 				SOLARIS_INOUT_ARCH="ia32"
 			fi
-			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 			;;
 		  *)
 			AC_MSG_ERROR([Unsupported Solaris platform. Only SPARC & x86 \
