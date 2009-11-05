@@ -55,7 +55,7 @@ typedef unsigned int NSUInteger;
 #endif
 #endif
 
-@interface X11Controller : NSObject
+@interface X11Controller : NSObject <NSTableViewDataSource>
 {
     IBOutlet NSPanel *prefs_panel;
 
