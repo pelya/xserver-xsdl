@@ -1561,6 +1561,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	int		    max_clock = 0;
 	double		    clock;
 	Bool                add_default_modes = TRUE;
+	Bool		    debug_modes = config->debug_modes ||
+					  xf86Initialising;
 	enum { sync_config, sync_edid, sync_default } sync_source = sync_default;
 	
 	while (output->probed_modes != NULL)
@@ -1712,8 +1714,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    if (mode->status == MODE_OK)
 		mode->status = (*output->funcs->mode_valid)(output, mode);
 	
-	xf86PruneInvalidModes(scrn, &output->probed_modes,
-			      config->debug_modes);
+	xf86PruneInvalidModes(scrn, &output->probed_modes, debug_modes);
 	
 	output->probed_modes = xf86SortModes (output->probed_modes);
 	
@@ -1745,7 +1746,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	
 	output->initial_rotation = xf86OutputInitialRotation (output);
 
-	if (config->debug_modes) {
+	if (debug_modes) {
 	    if (output->probed_modes != NULL) {
 		xf86DrvMsg(scrn->scrnIndex, X_INFO,
 			   "Printing probed modes for output %s\n",
@@ -1764,7 +1765,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    mode->VRefresh = xf86ModeVRefresh(mode);
 	    xf86SetModeCrtc(mode, INTERLACE_HALVE_V);
 
-	    if (config->debug_modes)
+	    if (debug_modes)
 		xf86PrintModeline(scrn->scrnIndex, mode);
 	}
     }
@@ -2924,6 +2925,7 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
 {
     ScrnInfoPtr		scrn = output->scrn;
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    Bool		debug_modes = config->debug_modes || xf86Initialising;
 #ifdef RANDR_12_INTERFACE
     int			size;
 #endif
@@ -2933,7 +2935,7 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     
     output->MonInfo = edid_mon;
 
-    if (config->debug_modes) {
+    if (debug_modes) {
 	xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n",
 		   output->name);
 	xf86PrintEDID(edid_mon);
