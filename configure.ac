@@ -1364,9 +1364,11 @@ if test "x$with_sha1" = xlibcrypto; then
 		SHA1_CFLAGS="$OPENSSL_CFLAGS"
 	fi
 fi
+AC_MSG_CHECKING([for SHA1 implementation])
 if test "x$with_sha1" = x; then
 	AC_MSG_ERROR([No suitable SHA1 implementation found])
 fi
+AC_MSG_RESULT([$with_sha1])
 AC_SUBST(SHA1_LIBS)
 AC_SUBST(SHA1_CFLAGS)
 
