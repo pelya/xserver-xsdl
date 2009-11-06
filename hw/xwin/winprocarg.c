@@ -1,6 +1,7 @@
 /*
 
 Copyright 1993, 1998  The Open Group
+Copyright (C) Colin Harrison 2005-2008
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -57,6 +58,7 @@ extern char *			g_pszLogFile;
 extern Bool			g_fLogFileChanged;
 #endif
 extern Bool			g_fXdmcpEnabled;
+extern Bool			g_fAuthEnabled;
 extern char *			g_pszCommandLine;
 extern Bool			g_fKeyboardHookLL;
 extern Bool			g_fNoHelpMessageBox;                     
@@ -1285,6 +1287,15 @@ ddxProcessArgument (int argc, char *argv[], int i)
       CHECK_ARGS (1);
       g_fXdmcpEnabled = TRUE;
       g_pszQueryHost = argv[++i];
+      return 0; /* Let DIX parse this again */
+    }
+
+  /*
+   * Look for the '-auth' argument
+   */
+  if (IS_OPTION ("-auth"))
+    {
+      g_fAuthEnabled = TRUE;
       return 0; /* Let DIX parse this again */
     }
 

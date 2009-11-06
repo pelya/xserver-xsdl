@@ -1,6 +1,7 @@
 /*
 
 Copyright 1993, 1998  The Open Group
+Copyright (C) Colin Harrison 2005-2008
 
 Permission to use, copy, modify, distribute, and sell this software and its
 documentation for any purpose is hereby granted without fee, provided that
@@ -73,6 +74,7 @@ extern int			g_iLogVerbose;
 Bool				g_fLogInited;
 
 extern Bool			g_fXdmcpEnabled;
+extern Bool			g_fAuthEnabled;
 #ifdef HAS_DEVWINDOWS
 extern int			g_fdMessageQueue;
 #endif
@@ -1022,7 +1024,7 @@ InitOutput (ScreenInfo *screenInfo, int argc, char *argv[])
 
 #if defined(XCSECURITY)
   /* Generate a cookie used by internal clients for authorization */
-  if (g_fXdmcpEnabled)
+  if (g_fXdmcpEnabled || g_fAuthEnabled)
     winGenerateAuthorization ();
 #endif
 
