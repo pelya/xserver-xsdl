@@ -34,6 +34,34 @@ int x_sha1_final(void *ctx, unsigned char result[20])
     return 1;
 }
 
+#elif defined(HAVE_SHA1_IN_COMMONCRYPTO) /* Use CommonCrypto for SHA1 */
+
+#include <CommonCrypto/CommonDigest.h>
+
+void *x_sha1_init(void)
+{
+    CC_SHA1_CTX *ctx = xalloc(sizeof(*ctx));
+    if (!ctx)
+        return NULL;
+    CC_SHA1_Init(ctx);
+    return ctx;
+}
+
+int x_sha1_update(void *ctx, void *data, int size)
+{
+    CC_SHA1_CTX *sha1_ctx = ctx;
+    CC_SHA1_Update(sha1_ctx, data, size);
+    return 1;
+}
+
+int x_sha1_final(void *ctx, unsigned char result[20])
+{
+    CC_SHA1_CTX *sha1_ctx = ctx;
+    CC_SHA1_Final(result, sha1_ctx);
+    xfree(sha1_ctx);
+    return 1;
+}
+
 #elif defined(HAVE_SHA1_IN_LIBGCRYPT) /* Use libgcrypt for SHA1 */
 
 # include <gcrypt.h>

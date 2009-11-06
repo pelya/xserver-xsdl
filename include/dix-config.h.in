@@ -163,6 +163,9 @@
 /* Define to use libc SHA1 functions */
 #undef HAVE_SHA1_IN_LIBC
 
+/* Define to use CommonCrypto SHA1 functions */
+#undef HAVE_SHA1_IN_COMMONCRYPTO
+
 /* Define to use libmd SHA1 functions */
 #undef HAVE_SHA1_IN_LIBMD
 

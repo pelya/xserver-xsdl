@@ -1287,7 +1287,7 @@ CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 
 # SHA1 hashing
 AC_ARG_WITH([sha1],
-            [AS_HELP_STRING([--with-sha1=libc|libmd|libgcrypt|libcrypto|libsha1],
+            [AS_HELP_STRING([--with-sha1=libc|libmd|libgcrypt|libcrypto|libsha1|CommonCrypto],
                             [choose SHA1 implementation])])
 AC_CHECK_FUNC([SHA1Init], [HAVE_SHA1_IN_LIBC=yes])
 if test "x$with_sha1" = x && test "x$HAVE_SHA1_IN_LIBC" = xyes; then
@@ -1299,6 +1299,18 @@ fi
 if test "x$with_sha1" = xlibc; then
 	AC_DEFINE([HAVE_SHA1_IN_LIBC], [1],
 		[Use libc SHA1 functions])
+	SHA1_LIBS=""
+fi
+AC_CHECK_FUNC([CC_SHA1_Init], [HAVE_SHA1_IN_COMMONCRYPTO=yes])
+if test "x$with_sha1" = x && test "x$HAVE_SHA1_IN_COMMONCRYPTO" = xyes; then
+	with_sha1=CommonCrypto
+fi
+if test "x$with_sha1" = xCommonCrypto && test "x$HAVE_SHA1_IN_COMMONCRYPTO" != xyes; then
+	AC_MSG_ERROR([CommonCrypto requested but not found])
+fi
+if test "x$with_sha1" = xCommonCrypto; then
+	AC_DEFINE([HAVE_SHA1_IN_COMMONCRYPTO], [1],
+		[Use CommonCrypto SHA1 functions])
 	SHA1_LIBS=""
 fi
 AC_CHECK_LIB([md], [SHA1Init], [HAVE_LIBMD=yes])
