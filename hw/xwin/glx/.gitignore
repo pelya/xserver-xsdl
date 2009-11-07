@@ -1,0 +1,8 @@
+# ignore downloaded and generated files
+generated_gl_wrappers.c
+generated_wgl_wrappers.c
+gl.spec
+gl.tm
+wgl.tm
+wglext.spec
+wglext.h
