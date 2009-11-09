@@ -40,6 +40,7 @@
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
