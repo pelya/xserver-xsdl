@@ -184,6 +184,12 @@ static void DarwinChangeKeyboardControl(DeviceIntPtr device, KeybdCtrl *ctrl) {
     // keyclick, bell volume / pitch, autorepead, LED's
 }
 
+static void DarwinKeyboardBell(int volume, DeviceIntPtr pDev, pointer arg, int something) {
+    KeybdCtrl *ctrl = arg;
+
+    DDXRingBell(volume, ctrl->bell_pitch, ctrl->bell_duration);
+}
+
 //-----------------------------------------------------------------------------
 // Utility functions to help parse Darwin keymap
 //-----------------------------------------------------------------------------
@@ -297,7 +303,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     /* We need to really have rules... or something... */
     //XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
 
-    InitKeyboardDeviceStruct(pDev, NULL, NULL, DarwinChangeKeyboardControl);
+    InitKeyboardDeviceStruct(pDev, NULL, DarwinKeyboardBell, DarwinChangeKeyboardControl);
 
     DarwinKeyboardReloadHandler();
 
