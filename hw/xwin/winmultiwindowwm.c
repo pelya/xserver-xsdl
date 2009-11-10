@@ -191,7 +191,7 @@ PreserveWin32Stack(WMInfoPtr pWMInfo, Window iWindow, UINT direction);
 #endif
 
 static Bool
-CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen);
+CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen, Bool fAllowOtherWM);
 
 static void
 winApplyHints (Display *pDisplay, Window iWindow, HWND hWnd, HWND *zstyle);
@@ -967,7 +967,7 @@ winMultiWindowXMsgProc (void *pArg)
 	  "successfully opened the display.\n");
 
   /* Check if another window manager is already running */
-  g_fAnotherWMRunning = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen);
+  g_fAnotherWMRunning = CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen, pProcArg->pWMInfo->fAllowOtherWM);
 
   if (g_fAnotherWMRunning && !pProcArg->pWMInfo->fAllowOtherWM)
     {
@@ -1018,7 +1018,7 @@ winMultiWindowXMsgProc (void *pArg)
 
       if (pProcArg->pWMInfo->fAllowOtherWM && !XPending (pProcArg->pDisplay))
 	{
-	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen))
+	  if (CheckAnotherWindowManager (pProcArg->pDisplay, pProcArg->dwScreen, TRUE))
 	    {
 	      if (!g_fAnotherWMRunning)
 		{
@@ -1496,7 +1496,7 @@ winRedirectErrorHandler (Display *pDisplay, XErrorEvent *pErr)
  */
 
 static Bool
-CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen)
+CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen, Bool fAllowOtherWM)
 {
   /*
     Try to select the events which only one client at a time is allowed to select.
@@ -1511,8 +1511,12 @@ CheckAnotherWindowManager (Display *pDisplay, DWORD dwScreen)
 
   /*
     Side effect: select the events we are actually interested in...
+
+    If other WMs are not allowed, also select one of the events which only one client
+    at a time is allowed to select, so other window managers won't start...
   */
-  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen), SubstructureNotifyMask);
+  XSelectInput(pDisplay, RootWindow (pDisplay, dwScreen),
+               SubstructureNotifyMask | ( !fAllowOtherWM ? ButtonPressMask : 0));
   XSync (pDisplay, 0);
   return redirectError;
 }
