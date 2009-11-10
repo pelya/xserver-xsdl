@@ -1,0 +1,17 @@
+#		Add & Override for this directory and it's subdirectories
+dmxaddinput
+dmxaddscreen
+dmxreconfig
+dmxresize
+dmxrminput
+dmxrmscreen
+dmxwininfo
+ev
+evi
+res
+xbell
+xdmx
+xinput
+xled
+xtest
+

@@ -1,2 +1,3 @@
-Xvfb.1
-Xvfb.1x
+#		Add & Override for this directory and it's subdirectories
+Xvfb
+Xvfb.man

@@ -1,2 +1,3 @@
-Xnest.1
-Xnest.1x
+#		Add & Override for this directory and it's subdirectories
+Xnest
+Xnest.man

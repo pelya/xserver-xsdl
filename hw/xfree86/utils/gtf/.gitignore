@@ -1,2 +1,3 @@
-gtf.1
-gtf.1x
+#		Add & Override for this directory and it's subdirectories
+gtf
+gtf.man

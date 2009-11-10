@@ -1,7 +1,5 @@
 #		Add & Override for this directory and it's subdirectories
-dmxtodmx
-parser.c
-parser.h
-scanner.c
-vdltodmx
-xdmxconfig
+*-config.h
+do-not-use-config.h.in
+xorg-server.h
+

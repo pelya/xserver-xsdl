@@ -1,7 +1,5 @@
 #		Add & Override for this directory and it's subdirectories
-dmxtodmx
-parser.c
-parser.h
-scanner.c
-vdltodmx
-xdmxconfig
+winprefslex.c
+winprefsyacc.c
+winprefsyacc.h
+
