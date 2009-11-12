@@ -456,7 +456,7 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 AC_ARG_ENABLE(unit-tests,    AS_HELP_STRING([--enable-unit-tests],
                                   [Enable unit-tests (default: auto)]),
                                 [UNITTESTS=$enableval], [UNITTESTS=auto])
-AC_ARG_ENABLE(sigio-default, AS_HELP_STRING([--enable-use-sigio-by-default]
+AC_ARG_ENABLE(use-sigio-by-default, AS_HELP_STRING([--enable-use-sigio-by-default]
   [Enable SIGIO input handlers by default (default: $USE_SIGIO_BY_DEFAULT)]),
                                 [USE_SIGIO_BY_DEFAULT=$enableval], [])
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
