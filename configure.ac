@@ -1881,10 +1881,11 @@ AM_CONDITIONAL(XQUARTZ_SPARKLE, [test "x$XQUARTZ_SPARKLE" != "xno"])
 AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 
 dnl DMX DDX
-
 PKG_CHECK_MODULES([DMXMODULES],
     [xmuu $LIBXEXT x11 xrender xfixes xfont $LIBXI $DMXPROTO xau $XDMCP_MODULES],
-    [have_dmx=yes], [have_dmx=no])
+    PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11], [have_dmx=yes],
+                      [have_dmx=no]),
+    [have_dmx=no])
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
@@ -1917,7 +1918,6 @@ dnl USB sources in DMX require <linux/input.h>
 dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
 			DMX_BUILD_LNX="no")
-	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
 	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
 	AC_SUBST(XDMXCONFIG_DEP_LIBS)
 	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [$LIBDMX $LIBXEXT x11])
