@@ -98,17 +98,14 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	if (!pExaPixmap->driverPriv)
 	    exaCreateDriverPixmap_mixed(pPixmap);
 
-	if (exaPixmapIsOffscreen(pPixmap)) {
+	if (pExaPixmap->pDamage && exaPixmapIsOffscreen(pPixmap)) {
+	    ExaScreenPriv(pPixmap->drawable.pScreen);
+
 	    pPixmap->devKind = pExaPixmap->fb_pitch;
+	    exaCopyDirtyToFb(pixmaps + i);
 
-	    if (pExaPixmap->pDamage) {
-		ExaScreenPriv(pPixmap->drawable.pScreen);
-
-		exaCopyDirtyToFb(pixmaps + i);
-
-		if (pExaScr->deferred_mixed_pixmap == pPixmap)
-		    pExaScr->deferred_mixed_pixmap = NULL;
-	    }
+	    if (pExaScr->deferred_mixed_pixmap == pPixmap)
+		pExaScr->deferred_mixed_pixmap = NULL;
 	}
 
 	pExaPixmap->offscreen = exaPixmapIsOffscreen(pPixmap);
@@ -136,9 +133,8 @@ exaMoveInPixmap_mixed(PixmapPtr pPixmap)
 void
 exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 {
-    ExaPixmapPriv(pPixmap);
-
     if (!ExaDoPrepareAccess(pPixmap, index)) {
+	ExaPixmapPriv(pPixmap);
 	Bool is_offscreen = exaPixmapIsOffscreen(pPixmap);
 	ExaMigrationRec pixmaps[1];
 
@@ -201,8 +197,7 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
 	pExaPixmap->offscreen = FALSE;
-    } else
-	pPixmap->devKind = pExaPixmap->fb_pitch;
+    }
 }
 
 /* Move back results of software rendering on system memory copy of mixed driver
