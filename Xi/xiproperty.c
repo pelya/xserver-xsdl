@@ -643,6 +643,9 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
         if (prop->propertyName == property)
             break;
 
+    if (!prop)
+        return Success;
+
     if (fromClient && !prop->deletable)
         return BadAccess;
 
