@@ -630,6 +630,8 @@ XIDeleteAllDeviceProperties (DeviceIntPtr device)
         xfree(curr_handler);
         curr_handler = next_handler;
     }
+
+    device->properties.handlers = NULL;
 }
 
 
