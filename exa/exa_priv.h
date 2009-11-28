@@ -198,6 +198,7 @@ typedef struct {
 
     /* Holds information on fallbacks that cannot be relayed otherwise. */
     unsigned int fallback_flags;
+    unsigned int fallback_counter;
 
     ExaGlyphCacheRec             glyphCaches[EXA_NUM_GLYPH_CACHES];
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
@@ -241,13 +242,21 @@ extern DevPrivateKey exaGCPrivateKey;
     real->mem = tmp; \
 }
 
-#define EXA_GC_PROLOGUE(_gc_) \
+#define EXA_PRE_FALLBACK(_screen_) \
+    ExaScreenPriv(_screen_); \
+    pExaScr->fallback_counter++;
+
+#define EXA_POST_FALLBACK(_screen_) \
+    pExaScr->fallback_counter--;
+
+#define EXA_PRE_FALLBACK_GC(_gc_) \
+    ExaScreenPriv(_gc_->pScreen); \
     ExaGCPriv(_gc_); \
-    swap(pExaGC, _gc_, funcs); \
+    pExaScr->fallback_counter++; \
     swap(pExaGC, _gc_, ops);
 
-#define EXA_GC_EPILOGUE(_gc_) \
-    swap(pExaGC, _gc_, funcs); \
+#define EXA_POST_FALLBACK_GC(_gc_) \
+    pExaScr->fallback_counter--; \
     swap(pExaGC, _gc_, ops);
 
 /** Align an offset to an arbitrary alignment */

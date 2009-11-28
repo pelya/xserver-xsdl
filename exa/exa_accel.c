@@ -51,7 +51,8 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     int		    partX1, partX2;
     int		    off_x, off_y;
 
-    if (pExaScr->swappedOut ||
+    if (pExaScr->fallback_counter ||
+	pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
 	pExaPixmap->accel_blocked)
     {
@@ -153,7 +154,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int bpp = pDrawable->bitsPerPixel;
     Bool ret = TRUE;
 
-    if (pExaPixmap->accel_blocked || !pExaScr->info->UploadToScreen)
+    if (pExaScr->fallback_counter || pExaPixmap->accel_blocked || !pExaScr->info->UploadToScreen)
 	return FALSE;
 
     /* Don't bother with under 8bpp, XYPixmaps. */
@@ -574,7 +575,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 {
     ExaScreenPriv(pDstDrawable->pScreen);
 
-    if (pExaScr->fallback_flags & EXA_FALLBACK_COPYWINDOW)
+    if (pExaScr->fallback_counter ||
+	    (pExaScr->fallback_flags & EXA_FALLBACK_COPYWINDOW))
 	return;
 
     if (exaHWCopyNtoN(pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse, upsidedown))
@@ -596,7 +598,7 @@ exaCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GCPtr pGC,
 {
     ExaScreenPriv (pDstDrawable->pScreen);
 
-    if (pExaScr->swappedOut) {
+    if (pExaScr->fallback_counter || pExaScr->swappedOut) {
         return  ExaCheckCopyArea(pSrcDrawable, pDstDrawable, pGC,
                                  srcx, srcy, width, height, dstx, dsty);
     }
@@ -610,13 +612,14 @@ static void
 exaPolyPoint(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 	     DDXPointPtr ppt)
 {
+    ExaScreenPriv (pDrawable->pScreen);
     int i;
     xRectangle *prect;
 
     /* If we can't reuse the current GC as is, don't bother accelerating the
      * points.
      */
-    if (pGC->fillStyle != FillSolid) {
+    if (pExaScr->fallback_counter || pGC->fillStyle != FillSolid) {
 	ExaCheckPolyPoint(pDrawable, pGC, mode, npt, ppt);
 	return;
     }
@@ -645,9 +648,15 @@ static void
 exaPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
 	     DDXPointPtr ppt)
 {
+    ExaScreenPriv (pDrawable->pScreen);
     xRectangle *prect;
     int x1, x2, y1, y2;
     int i;
+
+    if (pExaScr->fallback_counter) {
+	ExaCheckPolylines(pDrawable, pGC, mode, npt, ppt);
+	return;
+    }
 
     /* Don't try to do wide lines or non-solid fill style. */
     if (pGC->lineWidth != 0 || pGC->lineStyle != LineSolid ||
@@ -706,12 +715,13 @@ static void
 exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
 		xSegment *pSeg)
 {
+    ExaScreenPriv (pDrawable->pScreen);
     xRectangle *prect;
     int i;
 
     /* Don't try to do wide lines or non-solid fill style. */
-    if (pGC->lineWidth != 0 || pGC->lineStyle != LineSolid ||
-	pGC->fillStyle != FillSolid)
+    if (pExaScr->fallback_counter || pGC->lineWidth != 0 ||
+	pGC->lineStyle != LineSolid || pGC->fillStyle != FillSolid)
     {
 	ExaCheckPolySegment(pDrawable, pGC, nseg, pSeg);
 	return;
@@ -788,7 +798,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
 
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
 
-    if (pExaScr->swappedOut || pExaPixmap->accel_blocked)
+    if (pExaScr->fallback_counter || pExaScr->swappedOut ||
+	    pExaPixmap->accel_blocked)
     {
 	goto fallback;
     }
@@ -962,12 +973,18 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 			  -pPixmap->screen_x, -pPixmap->screen_y);
 #endif
 
+    if (pExaScr->fallback_counter) {
+	pExaScr->fallback_flags |= EXA_FALLBACK_COPYWINDOW;
+	goto fallback;
+    }
+
     pExaScr->fallback_flags |= EXA_ACCEL_COPYWINDOW;
     miCopyRegion (&pPixmap->drawable, &pPixmap->drawable,
 		  NULL,
 		  &rgnDst, dx, dy, exaCopyNtoN, 0, NULL);
     pExaScr->fallback_flags &= ~EXA_ACCEL_COPYWINDOW;
 
+fallback:
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 
     if (pExaScr->fallback_flags & EXA_FALLBACK_COPYWINDOW) {
@@ -990,7 +1007,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
     REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
-    if (pExaPixmap->accel_blocked)
+    if (pExaScr->fallback_counter || pExaPixmap->accel_blocked)
 	goto out;
 
     if (pExaScr->do_migration) {
@@ -1086,7 +1103,8 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
     pPixmap = exaGetDrawablePixmap (pDrawable);
     pExaPixmap = ExaGetPixmapPriv (pPixmap);
 
-    if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
+    if (pExaScr->fallback_counter || pExaPixmap->accel_blocked ||
+	    pTileExaPixmap->accel_blocked)
 	return FALSE;
 
     if (pExaScr->do_migration) {
@@ -1244,7 +1262,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     int xoff, yoff;
     Bool ok;
 
-    if (pExaScr->swappedOut)
+    if (pExaScr->fallback_counter || pExaScr->swappedOut)
 	goto fallback;
 
     exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);

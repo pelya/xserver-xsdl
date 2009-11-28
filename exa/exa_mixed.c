@@ -97,6 +97,10 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
     } else
 	pExaPixmap->offscreen = FALSE;
 
+    /* During a fallback we must prepare access. */
+    if (pExaScr->fallback_counter)
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_AUX_DEST);
+
     return pPixmap;
 }
 
@@ -187,6 +191,10 @@ exaDestroyPixmap_mixed(PixmapPtr pPixmap)
     if (pPixmap->refcnt == 1)
     {
 	ExaPixmapPriv (pPixmap);
+
+	/* During a fallback we must finish access, but we don't know the index. */
+	if (pExaScr->fallback_counter)
+	    exaFinishAccess(&pPixmap->drawable, -1);
 
 	if (pExaScr->deferred_mixed_pixmap == pPixmap)
 	    pExaScr->deferred_mixed_pixmap = NULL;
