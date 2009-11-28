@@ -233,19 +233,19 @@ exaPixmapIsPinned (PixmapPtr pPix)
 }
 
 /**
- * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
+ * exaPixmapHasGpuCopy() is used to determine if a pixmap is in offscreen
  * memory, meaning that acceleration could probably be done to it, and that it
  * will need to be wrapped by PrepareAccess()/FinishAccess() when accessing it
  * with the CPU.
  *
  * Note that except for UploadToScreen()/DownloadFromScreen() (which explicitly
  * deal with moving pixmaps in and out of system memory), EXA will give drivers
- * pixmaps as arguments for which exaPixmapIsOffscreen() is TRUE.
+ * pixmaps as arguments for which exaPixmapHasGpuCopy() is TRUE.
  *
  * @return TRUE if the given drawable is in framebuffer memory.
  */
 Bool
-exaPixmapIsOffscreen(PixmapPtr pPixmap)
+exaPixmapHasGpuCopy(PixmapPtr pPixmap)
 {
     ScreenPtr	pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
@@ -253,16 +253,16 @@ exaPixmapIsOffscreen(PixmapPtr pPixmap)
     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
 	return FALSE;
 
-    return (*pExaScr->pixmap_is_offscreen)(pPixmap);
+    return (*pExaScr->pixmap_has_gpu_copy)(pPixmap);
 }
 
 /**
- * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapIsOffscreen().
+ * exaDrawableIsOffscreen() is a convenience wrapper for exaPixmapHasGpuCopy().
  */
 Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable)
 {
-    return exaPixmapIsOffscreen (exaGetDrawablePixmap (pDrawable));
+    return exaPixmapHasGpuCopy (exaGetDrawablePixmap (pDrawable));
 }
 
 /**
@@ -276,7 +276,7 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 
     exaGetDrawableDeltas (pDrawable, pPixmap, xp, yp);
 
-    if (exaPixmapIsOffscreen (pPixmap))
+    if (exaPixmapHasGpuCopy (pPixmap))
 	return pPixmap;
     else
 	return NULL;
@@ -291,7 +291,7 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv (pScreen);
     ExaPixmapPriv(pPixmap);
-    Bool offscreen;
+    Bool has_gpu_copy;
     int i;
 
     if (!(pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS))
@@ -321,9 +321,9 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
 			     pPixmap->devPrivate.ptr));
     }
 
-    offscreen = exaPixmapIsOffscreen(pPixmap);
+    has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
 
-    if (offscreen && pExaPixmap->fb_ptr)
+    if (has_gpu_copy && pExaPixmap->fb_ptr)
 	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
     else
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
@@ -332,7 +332,7 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
     pExaScr->access[index].pixmap = pPixmap;
     pExaScr->access[index].count = 1;
 
-    if (!offscreen)
+    if (!has_gpu_copy)
 	return FALSE;
 
     exaWaitSync (pScreen);
@@ -420,7 +420,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     if (pExaScr->finish_access)
 	pExaScr->finish_access(pPixmap, index);
 
-    if (!pExaScr->info->FinishAccess || !exaPixmapIsOffscreen(pPixmap))
+    if (!pExaScr->info->FinishAccess || !exaPixmapHasGpuCopy(pPixmap))
 	return;
 
     if (i >= EXA_PREPARE_AUX_DEST &&
@@ -969,7 +969,7 @@ exaDriverInit (ScreenPtr		pScreen,
 		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_mixed);
 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_mixed);
 		pExaScr->do_migration = exaDoMigration_mixed;
-		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_mixed;
+		pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_mixed;
 		pExaScr->do_move_in_pixmap = exaMoveInPixmap_mixed;
 		pExaScr->do_move_out_pixmap = NULL;
 		pExaScr->prepare_access_reg = exaPrepareAccessReg_mixed;
@@ -979,7 +979,7 @@ exaDriverInit (ScreenPtr		pScreen,
 		wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_driver);
 		wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_driver);
 		pExaScr->do_migration = NULL;
-		pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_driver;
+		pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_driver;
 		pExaScr->do_move_in_pixmap = NULL;
 		pExaScr->do_move_out_pixmap = NULL;
 		pExaScr->prepare_access_reg = NULL;
@@ -990,7 +990,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	    wrap(pExaScr, pScreen, DestroyPixmap, exaDestroyPixmap_classic);
 	    wrap(pExaScr, pScreen, ModifyPixmapHeader, exaModifyPixmapHeader_classic);
 	    pExaScr->do_migration = exaDoMigration_classic;
-	    pExaScr->pixmap_is_offscreen = exaPixmapIsOffscreen_classic;
+	    pExaScr->pixmap_has_gpu_copy = exaPixmapHasGpuCopy_classic;
 	    pExaScr->do_move_in_pixmap = exaMoveInPixmap_classic;
 	    pExaScr->do_move_out_pixmap = exaMoveOutPixmap_classic;
 	    pExaScr->prepare_access_reg = exaPrepareAccessReg_classic;

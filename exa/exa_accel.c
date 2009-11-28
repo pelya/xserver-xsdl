@@ -482,9 +482,9 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	goto fallback;
     }
 
-    if (exaPixmapIsOffscreen(pDstPixmap)) {
+    if (exaPixmapHasGpuCopy(pDstPixmap)) {
 	/* Normal blitting. */
-	if (exaPixmapIsOffscreen(pSrcPixmap)) {
+	if (exaPixmapHasGpuCopy(pSrcPixmap)) {
 	    if (!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
 						upsidedown ? -1 : 1,
 						pGC ? pGC->alu : GXcopy,
@@ -840,7 +840,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
-    if (!exaPixmapIsOffscreen (pPixmap) ||
+    if (!exaPixmapHasGpuCopy (pPixmap) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
@@ -1022,7 +1022,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
-    if (exaPixmapIsOffscreen (pPixmap) &&
+    if (exaPixmapHasGpuCopy (pPixmap) &&
 	(*pExaScr->info->PrepareSolid) (pPixmap, alu, planemask, pixel))
     {
 	int nbox;
@@ -1125,7 +1125,7 @@ exaFillRegionTiled (DrawablePtr pDrawable, RegionPtr pRegion, PixmapPtr pTile,
 
     pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
-    if (!pPixmap || !exaPixmapIsOffscreen(pTile))
+    if (!pPixmap || !exaPixmapHasGpuCopy(pTile))
 	return FALSE;
 
     if ((*pExaScr->info->PrepareCopy) (pTile, pPixmap, 1, 1, alu, planemask))

@@ -80,7 +80,7 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
      */
     for (i = 0; i < npixmaps; i++) {
 	if (exaPixmapIsPinned (pixmaps[i].pPix) &&
-	    !exaPixmapIsOffscreen (pixmaps[i].pPix))
+	    !exaPixmapHasGpuCopy (pixmaps[i].pPix))
 	{
 	    can_accel = FALSE;
 	    break;
@@ -98,7 +98,7 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	if (!pExaPixmap->driverPriv)
 	    exaCreateDriverPixmap_mixed(pPixmap);
 
-	if (pExaPixmap->pDamage && exaPixmapIsOffscreen(pPixmap)) {
+	if (pExaPixmap->pDamage && exaPixmapHasGpuCopy(pPixmap)) {
 	    ExaScreenPriv(pPixmap->drawable.pScreen);
 
 	    pPixmap->devKind = pExaPixmap->fb_pitch;
@@ -108,7 +108,7 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 		pExaScr->deferred_mixed_pixmap = NULL;
 	}
 
-	pExaPixmap->offscreen = exaPixmapIsOffscreen(pPixmap);
+	pExaPixmap->use_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
     }
 }
 
@@ -135,7 +135,7 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 {
     if (!ExaDoPrepareAccess(pPixmap, index)) {
 	ExaPixmapPriv(pPixmap);
-	Bool is_offscreen = exaPixmapIsOffscreen(pPixmap);
+	Bool has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
 	ExaMigrationRec pixmaps[1];
 
 	/* Do we need to allocate our system buffer? */
@@ -157,7 +157,8 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 	pixmaps[0].pPix = pPixmap;
 	pixmaps[0].pReg = pReg;
 
-	if (!pExaPixmap->pDamage && (is_offscreen || !exaPixmapIsPinned(pPixmap))) {
+	if (!pExaPixmap->pDamage &&
+		(has_gpu_copy || !exaPixmapIsPinned(pPixmap))) {
 	    Bool as_dst = pixmaps[0].as_dst;
 
 	    /* Set up damage tracking */
@@ -170,7 +171,7 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 	    /* This is used by exa to optimize migration. */
 	    DamageSetReportAfterOp(pExaPixmap->pDamage, TRUE);
 
-	    if (is_offscreen) {
+	    if (has_gpu_copy) {
 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
 			       pPixmap->drawable.height);
 
@@ -189,14 +190,14 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 	    if (as_dst)
 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
 			       pPixmap->drawable.height);
-	} else if (is_offscreen) {
+	} else if (has_gpu_copy) {
 	    pPixmap->devKind = pExaPixmap->fb_pitch;
 	    exaCopyDirtyToSys(pixmaps);
 	}
 
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
-	pExaPixmap->offscreen = FALSE;
+	pExaPixmap->use_gpu_copy = FALSE;
     }
 }
 
@@ -210,8 +211,8 @@ void exaFinishAccess_mixed(PixmapPtr pPixmap, int index)
 {
     ExaPixmapPriv(pPixmap);
 
-    if (pExaPixmap->pDamage && !pExaPixmap->offscreen &&
-	    exaPixmapIsOffscreen(pPixmap)){
+    if (pExaPixmap->pDamage && !pExaPixmap->use_gpu_copy &&
+	    exaPixmapHasGpuCopy(pPixmap)) {
 	DamageRegionProcessPending(&pPixmap->drawable);
 
 	if (index == EXA_PREPARE_DEST || index == EXA_PREPARE_AUX_DEST) {

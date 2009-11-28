@@ -347,11 +347,11 @@ exaGlyphCacheHashRemove(ExaGlyphCachePtr cache,
 
 /* The most efficient thing to way to upload the glyph to the screen
  * is to use the UploadToScreen() driver hook; this allows us to
- * pipeline glyph uploads and to avoid creating offscreen pixmaps for
+ * pipeline glyph uploads and to avoid creating gpu backed pixmaps for
  * glyphs that we'll never use again.
  *
- * If we can't do it with UploadToScreen (because the glyph is offscreen, etc),
- * we fall back to CompositePicture.
+ * If we can't do it with UploadToScreen (because the glyph has a gpu copy,
+ * etc), we fall back to CompositePicture.
  *
  * We need to damage the cache pixmap manually in either case because the damage
  * layer unwrapped the picture screen before calling exaGlyphs.
@@ -374,7 +374,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 
     /* If the glyph pixmap is already uploaded, no point in doing
      * things this way */
-    if (exaPixmapIsOffscreen(pGlyphPixmap))
+    if (exaPixmapHasGpuCopy(pGlyphPixmap))
 	goto composite;
 
     /* UploadToScreen only works if bpp match */
@@ -384,7 +384,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
     if (pExaScr->do_migration) {
 	ExaMigrationRec pixmaps[1];
 
-	/* cache pixmap must be offscreen. */
+	/* cache pixmap must have a gpu copy. */
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pCachePixmap;
@@ -392,7 +392,7 @@ exaGlyphCacheUploadGlyph(ScreenPtr         pScreen,
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
-    if (!exaPixmapIsOffscreen(pCachePixmap))
+    if (!exaPixmapHasGpuCopy(pCachePixmap))
 	goto composite;
 
     /* x,y are in pixmap coordinates, no need for cache{X,Y}off */

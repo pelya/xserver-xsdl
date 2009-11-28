@@ -522,7 +522,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
 	return NULL;
 
     pExaDstPix = ExaGetPixmapPriv (pDstPix);
-    pExaDstPix->offscreen = TRUE;
+    pExaDstPix->use_gpu_copy = TRUE;
 
     for (area = pExaScr->info->offScreenAreas->prev;
 	 area != pExaScr->info->offScreenAreas;
@@ -531,7 +531,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
 	ExaOffscreenArea *prev = area->prev;
 	PixmapPtr pSrcPix;
 	ExaPixmapPrivPtr pExaSrcPix;
-	Bool save_offscreen;
+	Bool save_use_gpu_copy;
 	int save_pitch;
 
 	if (area->state != ExaOffscreenAvail ||
@@ -576,10 +576,10 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
 	    continue;
 	}
 
-	save_offscreen = pExaSrcPix->offscreen;
+	save_use_gpu_copy = pExaSrcPix->use_gpu_copy;
 	save_pitch = pSrcPix->devKind;
 
-	pExaSrcPix->offscreen = TRUE;
+	pExaSrcPix->use_gpu_copy = TRUE;
 	pSrcPix->devKind = pExaSrcPix->fb_pitch;
 
 	pDstPix->drawable.width = pSrcPix->drawable.width;
@@ -589,7 +589,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
 	pDstPix->drawable.bitsPerPixel = pSrcPix->drawable.bitsPerPixel;
 
 	if (!pExaScr->info->PrepareCopy (pSrcPix, pDstPix, -1, -1, GXcopy, ~0)) {
-	    pExaSrcPix->offscreen = save_offscreen;
+	    pExaSrcPix->use_gpu_copy = save_use_gpu_copy;
 	    pSrcPix->devKind = save_pitch;
 	    area = prev;
 	    continue;
@@ -646,7 +646,7 @@ ExaOffscreenDefragment (ScreenPtr pScreen)
 #endif
 
 	pExaSrcPix->fb_ptr = pExaDstPix->fb_ptr;
-	pExaSrcPix->offscreen = save_offscreen;
+	pExaSrcPix->use_gpu_copy = save_use_gpu_copy;
 	pSrcPix->devKind = save_pitch;
     }
 

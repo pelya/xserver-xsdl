@@ -93,9 +93,9 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
     /* A scratch pixmap will become a driver pixmap right away. */
     if (!w || !h) {
 	exaCreateDriverPixmap_mixed(pPixmap);
-	pExaPixmap->offscreen = exaPixmapIsOffscreen(pPixmap);
+	pExaPixmap->use_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
     } else
-	pExaPixmap->offscreen = FALSE;
+	pExaPixmap->use_gpu_copy = FALSE;
 
     /* During a fallback we must prepare access. */
     if (pExaScr->fallback_counter)
@@ -111,7 +111,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPrivPtr pExaScr;
     ExaPixmapPrivPtr pExaPixmap;
-    Bool ret, is_offscreen;
+    Bool ret, has_gpu_copy;
 
     if (!pPixmap)
         return FALSE;
@@ -131,7 +131,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 	    pExaPixmap->driverPriv = NULL;
 	}
 
-	pExaPixmap->offscreen = FALSE;
+	pExaPixmap->use_gpu_copy = FALSE;
 	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
     }
 
@@ -145,8 +145,8 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
         }
     }
 
-    is_offscreen = exaPixmapIsOffscreen(pPixmap);
-    if (is_offscreen) {
+    has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
+    if (has_gpu_copy) {
 	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
 	pPixmap->devKind = pExaPixmap->fb_pitch;
     } else {
@@ -168,7 +168,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
     swap(pExaScr, pScreen, ModifyPixmapHeader);
 
 out:
-    if (is_offscreen) {
+    if (has_gpu_copy) {
 	pExaPixmap->fb_ptr = pPixmap->devPrivate.ptr;
 	pExaPixmap->fb_pitch = pPixmap->devKind;
     } else {
@@ -219,7 +219,7 @@ exaDestroyPixmap_mixed(PixmapPtr pPixmap)
 }
 
 Bool
-exaPixmapIsOffscreen_mixed(PixmapPtr pPixmap)
+exaPixmapHasGpuCopy_mixed(PixmapPtr pPixmap)
 {
     ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv(pScreen);
