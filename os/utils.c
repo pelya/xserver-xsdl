@@ -504,9 +504,7 @@ void UseMsg(void)
 #ifdef RLIMIT_STACK
     ErrorF("-ls int                limit stack space to N Kb\n");
 #endif
-#ifdef SERVER_LOCK
     ErrorF("-nolock                disable the locking mechanism\n");
-#endif
 #ifndef NOLOGOHACK
     ErrorF("-logo                  enable logo in screen saver\n");
     ErrorF("nologo                 disable logo in screen saver\n");
@@ -758,7 +756,6 @@ ProcessCommandLine(int argc, char *argv[])
 		UseMsg();
 	}
 #endif
-#ifdef SERVER_LOCK
 	else if ( strcmp ( argv[i], "-nolock") == 0)
 	{
 #if !defined(WIN32) && !defined(__CYGWIN__)
@@ -768,7 +765,6 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 	    nolock = TRUE;
 	}
-#endif
 #ifndef NOLOGOHACK
 	else if ( strcmp( argv[i], "-logo") == 0)
 	{
