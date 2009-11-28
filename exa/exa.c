@@ -323,10 +323,17 @@ ExaDoPrepareAccess(PixmapPtr pPixmap, int index)
 
     has_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
 
-    if (has_gpu_copy && pExaPixmap->fb_ptr)
+    if (has_gpu_copy) {
+	/* This can be NULL, but the driver prepareAccess call should
+	 * take care of that. */
 	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
-    else
+	pPixmap->devKind = pExaPixmap->fb_pitch;
+    } else {
+	/* For mixed pixmaps this can be NULL, but that will be fixed
+	 * later in exaPrepareAccessReg_mixed(). */
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	pPixmap->devKind = pExaPixmap->sys_pitch;
+    }
 
     /* Store so we can handle repeated / nested calls. */
     pExaScr->access[index].pixmap = pPixmap;

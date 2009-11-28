@@ -101,7 +101,6 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	if (pExaPixmap->pDamage && exaPixmapHasGpuCopy(pPixmap)) {
 	    ExaScreenPriv(pPixmap->drawable.pScreen);
 
-	    pPixmap->devKind = pExaPixmap->fb_pitch;
 	    exaCopyDirtyToFb(pixmaps + i);
 
 	    if (pExaScr->deferred_mixed_pixmap == pPixmap)
@@ -109,6 +108,10 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	}
 
 	pExaPixmap->use_gpu_copy = exaPixmapHasGpuCopy(pPixmap);
+	if (pExaPixmap->use_gpu_copy)
+	    pPixmap->devKind = pExaPixmap->fb_pitch;
+	else
+	    pPixmap->devKind = pExaPixmap->sys_pitch;
     }
 }
 
@@ -183,17 +186,14 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 		    pixmaps[0].as_src = TRUE;
 		    pixmaps[0].pReg = NULL;
 		}
-		pPixmap->devKind = pExaPixmap->fb_pitch;
 		exaCopyDirtyToSys(pixmaps);
 	    }
 
 	    if (as_dst)
 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
 			       pPixmap->drawable.height);
-	} else if (has_gpu_copy) {
-	    pPixmap->devKind = pExaPixmap->fb_pitch;
+	} else if (has_gpu_copy)
 	    exaCopyDirtyToSys(pixmaps);
-	}
 
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
@@ -222,7 +222,6 @@ void exaFinishAccess_mixed(PixmapPtr pPixmap, int index)
 		pExaScr->deferred_mixed_pixmap != pPixmap)
 		exaMoveInPixmap_mixed(pExaScr->deferred_mixed_pixmap);
 	    pExaScr->deferred_mixed_pixmap = pPixmap;
-	    pPixmap->devKind = pExaPixmap->fb_pitch;
 	} else
 	    exaMoveInPixmap_mixed(pPixmap);
     }
