@@ -169,7 +169,7 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 {
     ExaOffscreenArea *area;
     ExaScreenPriv (pScreen);
-    int real_size = 0, free_total = 0, largest_avail = 0;
+    int real_size = 0, largest_avail = 0;
 #if DEBUG_OFFSCREEN
     static int number = 0;
     ErrorF("================= ============ allocating a new pixmap %d\n", ++number);
@@ -208,31 +208,8 @@ exaOffscreenAlloc (ScreenPtr pScreen, int size, int align,
 	if (real_size <= area->size)
 	    break;
 
-	free_total += area->size;
-
 	if (area->size > largest_avail)
 	    largest_avail = area->size;
-    }
-
-    if (!area && free_total >= size) {
-	CARD32 now = GetTimeInMillis();
-
-	/* Don't defragment more than once per second, to avoid adding more
-	 * overhead than we're trying to prevent
-	 */
-	if (abs((INT32) (now - pExaScr->lastDefragment)) > 1000) {
-	    area = ExaOffscreenDefragment(pScreen);
-	    pExaScr->lastDefragment = now;
-
-	    if (area) {
-		/* adjust size to match alignment requirement */
-		real_size = size + (area->base_offset + area->size - size) % align;
-
-		/* does it fit? */
-		if (real_size > area->size)
-		    area = NULL;
-	    }
-	}
     }
 
     if (!area)
