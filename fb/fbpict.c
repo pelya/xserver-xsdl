@@ -159,9 +159,9 @@ fbComposite (CARD8      op,
 {
     pixman_image_t *src, *mask, *dest;
     
-    miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
+    miCompositeSourceValidate (pSrc, xSrc - xDst, ySrc - yDst, width, height);
     if (pMask)
-	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
+	miCompositeSourceValidate (pMask, xMask - xDst, yMask - yDst, width, height);
     
     src = image_from_pict (pSrc, TRUE, TRUE);
     mask = image_from_pict (pMask, TRUE, TRUE);
@@ -295,8 +295,7 @@ copy_drawable (DrawablePtr pDraw)
     
     /* First fill the pixmap with zeros */
     gcv[0].val = 0x00000000;
-    gcv[1].val = IncludeInferiors;
-    dixChangeGC (NullClient, pGC, GCBackground | GCSubwindowMode, NULL, gcv);
+    dixChangeGC (NullClient, pGC, GCBackground, NULL, gcv);
     ValidateGC ((DrawablePtr)pPixmap, pGC);
     miClearDrawable ((DrawablePtr)pPixmap, pGC);
     
