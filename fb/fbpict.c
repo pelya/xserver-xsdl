@@ -275,7 +275,7 @@ copy_drawable (DrawablePtr pDraw)
     PixmapPtr pPixmap;
     GCPtr pGC;
     int width, height;
-    ChangeGCVal gcv[2];
+    ChangeGCVal gcv[1];
     
     width = pDraw->width;
     height = pDraw->height;
