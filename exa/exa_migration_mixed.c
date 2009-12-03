@@ -101,6 +101,14 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	if (pExaPixmap->pDamage && exaPixmapHasGpuCopy(pPixmap)) {
 	    ExaScreenPriv(pPixmap->drawable.pScreen);
 
+	    /* This pitch is needed for proper acceleration. For some reason
+	     * there are pixmaps without pDamage and a bad fb_pitch value.
+	     * So setting devKind when only exaPixmapHasGpuCopy() is true
+	     * causes corruption. Pixmaps without pDamage are not migrated
+	     * and should have a valid devKind at all times, so that's why this
+	     * isn't causing problems. Pixmaps have their gpu pitch set the
+	     * first time in the MPH call from exaCreateDriverPixmap_mixed().
+	     */
 	    pPixmap->devKind = pExaPixmap->fb_pitch;
 	    exaCopyDirtyToFb(pixmaps + i);
 
@@ -183,17 +191,14 @@ exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg)
 		    pixmaps[0].as_src = TRUE;
 		    pixmaps[0].pReg = NULL;
 		}
-		pPixmap->devKind = pExaPixmap->fb_pitch;
 		exaCopyDirtyToSys(pixmaps);
 	    }
 
 	    if (as_dst)
 		exaPixmapDirty(pPixmap, 0, 0, pPixmap->drawable.width,
 			       pPixmap->drawable.height);
-	} else if (has_gpu_copy) {
-	    pPixmap->devKind = pExaPixmap->fb_pitch;
+	} else if (has_gpu_copy)
 	    exaCopyDirtyToSys(pixmaps);
-	}
 
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
