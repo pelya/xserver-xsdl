@@ -24,7 +24,6 @@
 #include <dix-config.h>
 #endif
 
-#include "registry.h"
 #include "damageextint.h"
 #include "protocol-versions.h"
 
@@ -498,15 +497,13 @@ DamageExtensionInit(void)
     for (s = 0; s < screenInfo.numScreens; s++)
 	DamageSetup (screenInfo.screens[s]);
 
-    DamageExtType = CreateNewResourceType (FreeDamageExt);
+    DamageExtType = CreateNewResourceType (FreeDamageExt, "DamageExt");
     if (!DamageExtType)
 	return;
-    RegisterResourceName(DamageExtType, "DamageExt");
 
-    DamageExtWinType = CreateNewResourceType (FreeDamageExtWin);
+    DamageExtWinType = CreateNewResourceType (FreeDamageExtWin, "DamageExtWin");
     if (!DamageExtWinType)
 	return;
-    RegisterResourceName(DamageExtWinType, "DamageExtWin");
 
     if (!dixRequestPrivate(DamageClientPrivateKey, sizeof (DamageClientRec)))
 	return;

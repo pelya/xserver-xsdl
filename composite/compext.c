@@ -47,7 +47,6 @@
 
 #include "compint.h"
 #include "xace.h"
-#include "registry.h"
 #include "protocol-versions.h"
 
 static CARD8	CompositeReqCode;
@@ -547,22 +546,20 @@ CompositeExtensionInit (void)
 	return;
 #endif
 
-    CompositeClientWindowType = CreateNewResourceType (FreeCompositeClientWindow);
+    CompositeClientWindowType = CreateNewResourceType
+	(FreeCompositeClientWindow, "CompositeClientWindow");
     if (!CompositeClientWindowType)
 	return;
-    RegisterResourceName(CompositeClientWindowType, "CompositeClientWindow");
 
-    CompositeClientSubwindowsType = CreateNewResourceType (FreeCompositeClientSubwindows);
+    CompositeClientSubwindowsType = CreateNewResourceType
+	(FreeCompositeClientSubwindows, "CompositeClientSubwindows");
     if (!CompositeClientSubwindowsType)
 	return;
-    RegisterResourceName(CompositeClientSubwindowsType,
-			 "CompositeClientSubwindows");
 
-    CompositeClientOverlayType = CreateNewResourceType (FreeCompositeClientOverlay);
+    CompositeClientOverlayType = CreateNewResourceType
+	(FreeCompositeClientOverlay, "CompositeClientOverlay");
     if (!CompositeClientOverlayType)
 	return;
-    RegisterResourceName(CompositeClientOverlayType,
-			 "CompositeClientOverlay");
 
     if (!dixRequestPrivate(CompositeClientPrivateKey,
 			   sizeof(CompositeClientRec)))

@@ -47,7 +47,6 @@ in this Software without prior written authorization from the X Consortium.
 #include "cursorstr.h"
 #include "colormapst.h"
 #include "xace.h"
-#include "registry.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -253,9 +252,11 @@ ScreenSaverExtensionInit(INITARGS)
     int		    i;
     ScreenPtr	    pScreen;
 
-    AttrType = CreateNewResourceType(ScreenSaverFreeAttr);
-    SaverEventType = CreateNewResourceType(ScreenSaverFreeEvents);
-    SuspendType = CreateNewResourceType(ScreenSaverFreeSuspend);
+    AttrType = CreateNewResourceType(ScreenSaverFreeAttr, "SaverAttr");
+    SaverEventType = CreateNewResourceType(ScreenSaverFreeEvents,
+					   "SaverEvent");
+    SuspendType = CreateNewResourceType(ScreenSaverFreeSuspend,
+					"SaverSuspend");
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
@@ -267,9 +268,6 @@ ScreenSaverExtensionInit(INITARGS)
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 NULL, StandardMinorOpcode)))
     {
-	RegisterResourceName(AttrType, "SaverAttr");
-	RegisterResourceName(SaverEventType, "SaverEvent");
-	RegisterResourceName(SuspendType, "SaverSuspend");
 	ScreenSaverEventBase = extEntry->eventBase;
 	EventSwapVector[ScreenSaverEventBase] = (EventSwapPtr) SScreenSaverNotifyEvent;
     }

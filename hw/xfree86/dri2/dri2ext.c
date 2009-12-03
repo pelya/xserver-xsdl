@@ -42,7 +42,6 @@
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include "xf86drm.h"
 #include "xfixes.h"
 #include "dri2.h"
@@ -417,12 +416,10 @@ static int DRI2DrawableGone(pointer p, XID id)
 static void
 DRI2ExtensionInit(void)
 {
-    dri2DrawableRes = CreateNewResourceType(DRI2DrawableGone);
+    dri2DrawableRes = CreateNewResourceType(DRI2DrawableGone, "DRI2Drawable");
 
     if (!dri2DrawableRes)
 	return;
-
-    RegisterResourceName(dri2DrawableRes, "DRI2Drawable");
 
     dri2Extension = AddExtension(DRI2_NAME,
 				 DRI2NumberEvents,

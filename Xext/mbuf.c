@@ -42,8 +42,6 @@ in this Software without prior written authorization from The Open Group.
 #include "opaque.h"
 #include "sleepuntil.h"
 #include "inputstr.h"
-#include "registry.h"
-
 #include <X11/extensions/multibufconst.h>
 #include <X11/extensions/multibufproto.h>
 
@@ -469,12 +467,15 @@ MultibufferExtensionInit()
      * create the resource types
      */
     MultibufferDrawableResType =
-	CreateNewResourceType(MultibufferDrawableDelete);
+	CreateNewResourceType(MultibufferDrawableDelete, "MultibufferDrawable");
     if (MultiBufferDrawableResType)
 	MultibufferDrawableResType |= RC_DRAWABLE;
-    MultibufferResType = CreateNewResourceType(MultibufferDelete);
-    MultibuffersResType = CreateNewResourceType(MultibuffersDelete);
-    OtherClientResType = CreateNewResourceType(OtherClientDelete);
+    MultibufferResType = CreateNewResourceType(MultibufferDelete,
+					       "MultibufferBuffer");
+    MultibuffersResType = CreateNewResourceType(MultibuffersDelete,
+						"MultibufferWindow");
+    OtherClientResType = CreateNewResourceType(OtherClientDelete,
+					       "MultibufferOtherClient");
     if (MultibufferDrawableResType && MultibufferResType &&
 	MultibuffersResType && 	OtherClientResType &&
 	(extEntry = AddExtension(MULTIBUFFER_PROTOCOL_NAME,
@@ -483,11 +484,6 @@ MultibufferExtensionInit()
 				 ProcMultibufferDispatch, SProcMultibufferDispatch,
 				 MultibufferResetProc, StandardMinorOpcode)))
     {
-	RegisterResourceName(MultibufferDrawableResType,
-			     "MultibufferDrawable");
-	RegisterResourceName(MultibufferResType, "MultibufferBuffer");
-	RegisterResourceName(MultibuffersResType, "MultibufferWindow");
-	RegisterResourceName(OtherClientResType, "MultibufferOtherClient");
 	MultibufferEventBase = extEntry->eventBase;
 	MultibufferErrorBase = extEntry->errorBase;
 	EventSwapVector[MultibufferEventBase + MultibufferClobberNotify] = (EventSwapPtr) SClobberNotifyEvent;

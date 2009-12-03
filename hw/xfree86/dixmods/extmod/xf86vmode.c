@@ -39,7 +39,6 @@ from Kaleb S. KEITHLEY
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include "scrnintstr.h"
 #include "servermd.h"
 #include <X11/extensions/xf86vmproto.h>
@@ -171,7 +170,7 @@ XFree86VidModeExtensionInit(void)
     DEBUG_P("XFree86VidModeExtensionInit");
 
 #ifdef XF86VIDMODE_EVENTS
-    EventType = CreateNewResourceType(XF86VidModeFreeEvents);
+    EventType = CreateNewResourceType(XF86VidModeFreeEvents, "VidModeEvent");
 #endif
 
     for(i = 0; i < screenInfo.numScreens; i++) {
@@ -202,7 +201,6 @@ XFree86VidModeExtensionInit(void)
 #endif
 	VidModeErrorBase = extEntry->errorBase;
 #ifdef XF86VIDMODE_EVENTS
-	RegisterResourceName(EventType, "VidModeEvent");
 	XF86VidModeEventBase = extEntry->eventBase;
 	EventSwapVector[XF86VidModeEventBase] = (EventSwapPtr)SXF86VidModeNotifyEvent;
 #endif

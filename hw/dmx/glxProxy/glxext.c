@@ -44,7 +44,6 @@
 #include "glxvisuals.h"
 #include "micmap.h"
 #include "glxswap.h"
-#include "registry.h"
 
 /*
 ** Stubs to satisfy miinitext.c references.
@@ -294,21 +293,20 @@ void GlxExtensionInit(void)
        return;
     }
     
-    __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
-    __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
-    __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
-    __glXWindowRes = CreateNewResourceType((DeleteType)WindowGone);
-    __glXPbufferRes = CreateNewResourceType((DeleteType)PbufferGone);
+    __glXContextRes = CreateNewResourceType((DeleteType)ContextGone,
+					    "GLXContext");
+    __glXClientRes = CreateNewResourceType((DeleteType)ClientGone,
+					   "GLXClient");
+    __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone,
+					   "GLXPixmap");
+    __glXWindowRes = CreateNewResourceType((DeleteType)WindowGone,
+					   "GLXWindow");
+    __glXPbufferRes = CreateNewResourceType((DeleteType)PbufferGone,
+					    "GLXPbuffer");
 
     if (!__glXContextRes || !__glXClientRes || !__glXPixmapRes ||
 	!__glXWindowRes || !__glXPbufferRes)
 	return;
-
-    RegisterResourceName(__glXContextRes, "GLXContext");
-    RegisterResourceName(__glXClientRes, "GLXClient");
-    RegisterResourceName(__glXPixmapRes, "GLXPixmap");
-    RegisterResourceName(__glXWindowRes, "GLXWindow");
-    RegisterResourceName(__glXPbufferRes, "GLXPbuffer");
 
     /*
     ** Add extension to server extensions.

@@ -51,7 +51,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -790,13 +789,13 @@ DRIExtensionInit(void)
 	return FALSE;
     }
 
-    DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
-    DRIContextPrivResType = CreateNewResourceType(DRIContextPrivDelete);
+    DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete,
+						   "DRIDrawable");
+    DRIContextPrivResType = CreateNewResourceType(DRIContextPrivDelete,
+						  "DRIContext");
 
     if (!DRIDrawablePrivResType || !DRIContextPrivResType)
 	return FALSE;
-    RegisterResourceName(DRIDrawablePrivResType, "DRIDrawable");
-    RegisterResourceName(DRIContextPrivResType, "DRIContext");
 
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 

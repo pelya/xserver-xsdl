@@ -37,7 +37,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dixstruct.h"
 #include "globals.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -112,8 +111,8 @@ AppleWMExtensionInit(
 {
     ExtensionEntry* extEntry;
 
-    ClientType = CreateNewResourceType(WMFreeClient);
-    EventType = CreateNewResourceType(WMFreeEvents);
+    ClientType = CreateNewResourceType(WMFreeClient, "WMClient");
+    EventType = CreateNewResourceType(WMFreeEvents, "WMEvent");
     eventResource = FakeClientID(0);
 
     if (ClientType && EventType &&
@@ -130,8 +129,6 @@ AppleWMExtensionInit(
         WMEventBase = extEntry->eventBase;
         EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
         appleWMProcs = procsPtr;
-	RegisterResourceName(ClientType, "WMClient");
-	RegisterResourceName(EventType, "WMEvent");
     }
 }
 

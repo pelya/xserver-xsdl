@@ -70,7 +70,6 @@ SOFTWARE.
 #include "extinit.h"
 #include "exglobals.h"
 #include "swaprep.h"
-#include "registry.h"
 #include "privates.h"
 #include "protocol-versions.h"
 
@@ -1269,10 +1268,10 @@ XInputExtensionInit(void)
 	IEventBase = extEntry->eventBase;
 	XIVersion = thisversion;
 	MakeDeviceTypeAtoms();
-	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone);
+	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone,
+					       "INPUTCLIENT");
 	if (!RT_INPUTCLIENT)
 	    FatalError("Failed to add resource type for XI.\n");
-	RegisterResourceName(RT_INPUTCLIENT, "INPUTCLIENT");
 	FixExtensionEvents(extEntry);
 	ReplySwapVector[IReqCode] = (ReplySwapPtr) SReplyIDispatch;
 	EventSwapVector[DeviceValuator] = SEventIDispatch;

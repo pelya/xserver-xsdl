@@ -52,7 +52,6 @@ Equipment Corporation.
 #include "globals.h"
 #include "servermd.h"
 #include "resource.h"
-#include "registry.h"
 #ifdef RENDER
 #include "picturestr.h"
 #endif
@@ -504,21 +503,20 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	}
 
 	XRC_DRAWABLE = CreateNewResourceClass();
-	XRT_WINDOW = CreateNewResourceType(XineramaDeleteResource);
+	XRT_WINDOW = CreateNewResourceType(XineramaDeleteResource,
+					   "XineramaWindow");
 	if (XRT_WINDOW)
 	    XRT_WINDOW |= XRC_DRAWABLE;
-	XRT_PIXMAP = CreateNewResourceType(XineramaDeleteResource);
+	XRT_PIXMAP = CreateNewResourceType(XineramaDeleteResource,
+					   "XineramaPixmap");
 	if (XRT_PIXMAP)
 	    XRT_PIXMAP |= XRC_DRAWABLE;
-	XRT_GC = CreateNewResourceType(XineramaDeleteResource);
-	XRT_COLORMAP = CreateNewResourceType(XineramaDeleteResource);
+	XRT_GC = CreateNewResourceType(XineramaDeleteResource,
+				       "XineramaGC");
+	XRT_COLORMAP = CreateNewResourceType(XineramaDeleteResource,
+					     "XineramaColormap");
 
 	if (XRT_WINDOW && XRT_PIXMAP && XRT_GC && XRT_COLORMAP) {
-	    RegisterResourceName(XRT_WINDOW, "XineramaWindow");
-	    RegisterResourceName(XRT_PIXMAP, "XineramaPixmap");
-	    RegisterResourceName(XRT_GC, "XineramaGC");
-	    RegisterResourceName(XRT_COLORMAP, "XineramaColormap");
-
 	    panoramiXGeneration = serverGeneration;
 	    success = TRUE;
 	}

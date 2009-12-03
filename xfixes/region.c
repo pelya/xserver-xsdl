@@ -33,7 +33,6 @@ extern int RenderErrBase;
 #include <regionstr.h>
 #include <gcstruct.h>
 #include <window.h>
-#include "registry.h"
 
 RESTYPE RegionResType;
 
@@ -64,10 +63,7 @@ XFixesRegionCopy (RegionPtr pRegion)
 Bool
 XFixesRegionInit (void)
 {
-    RegionResType = CreateNewResourceType(RegionResFree);
-
-    if (RegionResType)
-	RegisterResourceName(RegionResType, "XFixesRegion");
+    RegionResType = CreateNewResourceType(RegionResFree, "XFixesRegion");
 
     return (RegionResType != 0);
 }

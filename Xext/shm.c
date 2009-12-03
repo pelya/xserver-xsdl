@@ -52,7 +52,6 @@ in this Software without prior written authorization from The Open Group.
 #include "servermd.h"
 #include "shmint.h"
 #include "xace.h"
-#include "registry.h"
 #include <X11/extensions/shmproto.h>
 #include <X11/Xfuncproto.h>
 #include "protocol-versions.h"
@@ -278,13 +277,12 @@ ShmExtensionInit(INITARGS)
 	    screenInfo.screens[i]->DestroyPixmap = ShmDestroyPixmap;
 	}
     }
-    ShmSegType = CreateNewResourceType(ShmDetachSegment);
+    ShmSegType = CreateNewResourceType(ShmDetachSegment, "ShmSeg");
     if (ShmSegType &&
 	(extEntry = AddExtension(SHMNAME, ShmNumberEvents, ShmNumberErrors,
 				 ProcShmDispatch, SProcShmDispatch,
 				 ShmResetProc, StandardMinorOpcode)))
     {
-	RegisterResourceName(ShmSegType, "ShmSeg");
 	ShmReqCode = (unsigned char)extEntry->base;
 	ShmCompletionCode = extEntry->eventBase;
 	BadShmSegCode = extEntry->errorBase;

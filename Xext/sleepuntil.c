@@ -39,7 +39,6 @@ in this Software without prior written authorization from The Open Group.
 #include "dixstruct.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
-#include "registry.h"
 
 typedef struct _Sertafied {
     struct _Sertafied	*next;
@@ -88,10 +87,10 @@ ClientSleepUntil (ClientPtr client,
 
     if (SertafiedGeneration != serverGeneration)
     {
-	SertafiedResType = CreateNewResourceType (SertafiedDelete);
+	SertafiedResType = CreateNewResourceType (SertafiedDelete,
+						  "ClientSleep");
 	if (!SertafiedResType)
 	    return FALSE;
-	RegisterResourceName(SertafiedResType, "ClientSleep");
 	SertafiedGeneration = serverGeneration;
 	BlockHandlerRegistered = FALSE;
     }

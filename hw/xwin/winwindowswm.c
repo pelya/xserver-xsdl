@@ -34,7 +34,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -86,8 +85,8 @@ winWindowsWMExtensionInit ()
 {
   ExtensionEntry* extEntry;
 
-  ClientType = CreateNewResourceType(WMFreeClient);
-  eventResourceType = CreateNewResourceType(WMFreeEvents);
+  ClientType = CreateNewResourceType(WMFreeClient, "WMClient");
+  eventResourceType = CreateNewResourceType(WMFreeEvents, "WMEvent");
   eventResource = FakeClientID(0);
 
   if (ClientType && eventResourceType &&
@@ -103,8 +102,6 @@ winWindowsWMExtensionInit ()
       WMErrorBase = extEntry->errorBase;
       WMEventBase = extEntry->eventBase;
       EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
-      RegisterResourceName(ClientType, "WMClient");
-      RegisterResourceName(eventResourceType, "WMEvent");
     }
 }
 

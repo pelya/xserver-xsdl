@@ -64,7 +64,6 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"
-#include "registry.h"
 #include "opaque.h"
 #include <X11/extensions/syncproto.h>
 #include "syncsrv.h"
@@ -874,12 +873,11 @@ SyncCreateSystemCounter(
      */
     if (RTCounter == 0)
     {
-	RTCounter = CreateNewResourceType(FreeCounter);
+	RTCounter = CreateNewResourceType(FreeCounter, "SyncCounter");
 	if (RTCounter == 0)
 	{
 	    return NULL;
 	}
-	RegisterResourceName(RTCounter, "SyncCounter");
     }
 
     pCounter = SyncCreateCounter(NULL, FakeClientID(0), initial);
@@ -2112,13 +2110,13 @@ SyncExtensionInit(void)
 
     if (RTCounter == 0)
     {
-	RTCounter = CreateNewResourceType(FreeCounter);
+	RTCounter = CreateNewResourceType(FreeCounter, "SyncCounter");
     }
-    RTAlarm = CreateNewResourceType(FreeAlarm);
-    RTAwait = CreateNewResourceType(FreeAwait);
+    RTAlarm = CreateNewResourceType(FreeAlarm, "SyncAlarm");
+    RTAwait = CreateNewResourceType(FreeAwait, "SyncAwait");
     if (RTAwait)
 	RTAwait |= RC_NEVERRETAIN;
-    RTAlarmClient = CreateNewResourceType(FreeAlarmClient);
+    RTAlarmClient = CreateNewResourceType(FreeAlarmClient, "SyncAlarmClient");
     if (RTAlarmClient)
 	RTAlarmClient |= RC_NEVERRETAIN;
 
@@ -2135,10 +2133,6 @@ SyncExtensionInit(void)
 	return;
     }
 
-    RegisterResourceName(RTCounter, "SyncCounter");
-    RegisterResourceName(RTAlarm, "SyncAlarm");
-    RegisterResourceName(RTAwait, "SyncAwait");
-    RegisterResourceName(RTAlarmClient, "SyncAlarmClient");
     SyncEventBase = extEntry->eventBase;
     SyncErrorBase = extEntry->errorBase;
     EventSwapVector[SyncEventBase + XSyncCounterNotify] = (EventSwapPtr) SCounterNotifyEvent;

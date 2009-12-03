@@ -53,7 +53,6 @@
 #include "inputstr.h"
 #include "windowstr.h"
 #include "xace.h"
-#include "registry.h"
 
 static RESTYPE		CursorClientType;
 static RESTYPE		CursorHideCountType;
@@ -1085,15 +1084,12 @@ XFixesCursorInit (void)
 	cs->pCursorHideCounts = NULL;
 	SetCursorScreen (pScreen, cs);
     }
-    CursorClientType = CreateNewResourceType(CursorFreeClient);
-    if (CursorClientType)
-	RegisterResourceName(CursorClientType, "XFixesCursorClient");
-    CursorHideCountType = CreateNewResourceType(CursorFreeHideCount);
-    if (CursorHideCountType)
-	RegisterResourceName(CursorClientType, "XFixesCursorClient");
-    CursorWindowType = CreateNewResourceType(CursorFreeWindow);
-    if (CursorWindowType)
-	RegisterResourceName(CursorWindowType, "XFixesCursorWindow");
+    CursorClientType = CreateNewResourceType(CursorFreeClient,
+					     "XFixesCursorClient");
+    CursorHideCountType = CreateNewResourceType(CursorFreeHideCount,
+						"XFixesCursorHideCount");
+    CursorWindowType = CreateNewResourceType(CursorFreeWindow,
+					     "XFixesCursorWindow");
 
     if (pInvisibleCursor == NULL) {
 	pInvisibleCursor = createInvisibleCursor();

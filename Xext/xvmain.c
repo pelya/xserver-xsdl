@@ -90,7 +90,6 @@ SOFTWARE.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"
-#include "registry.h"
 #include "opaque.h"
 #include "input.h"
 
@@ -209,47 +208,45 @@ CreateResourceTypes(void)
 
   XvResourceGeneration = serverGeneration;
 
-  if (!(XvRTPort = CreateNewResourceType(XvdiDestroyPort)))
+  if (!(XvRTPort = CreateNewResourceType(XvdiDestroyPort, "XvRTPort")))
     {
       ErrorF("CreateResourceTypes: failed to allocate port resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTPort, "XvRTPort");
 
-  if (!(XvRTGrab = CreateNewResourceType(XvdiDestroyGrab)))
+  if (!(XvRTGrab = CreateNewResourceType(XvdiDestroyGrab, "XvRTGrab")))
     {
       ErrorF("CreateResourceTypes: failed to allocate grab resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTGrab, "XvRTGrab");
 
-  if (!(XvRTEncoding = CreateNewResourceType(XvdiDestroyEncoding)))
+  if (!(XvRTEncoding = CreateNewResourceType(XvdiDestroyEncoding,
+					     "XvRTEncoding")))
     {
       ErrorF("CreateResourceTypes: failed to allocate encoding resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTEncoding, "XvRTEncoding");
 
-  if (!(XvRTVideoNotify = CreateNewResourceType(XvdiDestroyVideoNotify)))
+  if (!(XvRTVideoNotify = CreateNewResourceType(XvdiDestroyVideoNotify,
+						"XvRTVideoNotify")))
     {
       ErrorF("CreateResourceTypes: failed to allocate video notify resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTVideoNotify, "XvRTVideoNotify");
 
-  if (!(XvRTVideoNotifyList = CreateNewResourceType(XvdiDestroyVideoNotifyList)))
+  if (!(XvRTVideoNotifyList = CreateNewResourceType(XvdiDestroyVideoNotifyList,
+						    "XvRTVideoNotifyList")))
     {
       ErrorF("CreateResourceTypes: failed to allocate video notify list resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTVideoNotifyList, "XvRTVideoNotifyList");
 
-  if (!(XvRTPortNotify = CreateNewResourceType(XvdiDestroyPortNotify)))
+  if (!(XvRTPortNotify = CreateNewResourceType(XvdiDestroyPortNotify,
+					       "XvRTPortNotify")))
     {
       ErrorF("CreateResourceTypes: failed to allocate port notify resource.\n");
       return FALSE;
     }
-  RegisterResourceName(XvRTPortNotify, "XvRTPortNotify");
 
   return TRUE;
 
