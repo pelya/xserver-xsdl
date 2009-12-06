@@ -168,7 +168,6 @@ int main(int argc, char *argv[], char *envp[])
 	InitBlockAndWakeupHandlers();
 	/* Perform any operating system dependent initializations you'd like */
 	OsInit();
-        config_init();
 	if(serverGeneration == 1)
 	{
 	    CreateWellKnownSockets();
@@ -254,6 +253,7 @@ int main(int argc, char *argv[], char *envp[])
 	    InitRootWindow(WindowTable[i]);
 
         InitCoreDevices();
+        config_init();
 	InitInput(argc, argv);
 	InitAndStartDevices();
 
