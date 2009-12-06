@@ -4298,9 +4298,12 @@ ProcXkbSetNames(ClientPtr client)
 static char *
 XkbWriteCountedString(char *wire,char *str,Bool swap)
 {
-CARD16	len,*pLen;
+    CARD16 len,*pLen;
 
-    len= (str?strlen(str):0);
+    if (!str)
+        return wire;
+
+    len= strlen(str);
     pLen= (CARD16 *)wire;
     *pLen= len;
     if (swap) {
