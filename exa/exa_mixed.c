@@ -155,7 +155,6 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 
     if (width != pPixmap->drawable.width ||
 	height != pPixmap->drawable.height ||
-	devKind != pPixmap->devKind ||
 	depth != pPixmap->drawable.depth ||
 	bitsPerPixel != pPixmap->drawable.bitsPerPixel) {
 	if (pExaPixmap->driverPriv) {
