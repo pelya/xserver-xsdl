@@ -47,6 +47,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "cursorstr.h"
 #include "colormapst.h"
 #include "xace.h"
+#include "registry.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -266,6 +267,9 @@ ScreenSaverExtensionInit(INITARGS)
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 NULL, StandardMinorOpcode)))
     {
+	RegisterResourceName(AttrType, "SaverAttr");
+	RegisterResourceName(SaverEventType, "SaverEvent");
+	RegisterResourceName(SuspendType, "SaverSuspend");
 	ScreenSaverEventBase = extEntry->eventBase;
 	EventSwapVector[ScreenSaverEventBase] = (EventSwapPtr) SScreenSaverNotifyEvent;
     }

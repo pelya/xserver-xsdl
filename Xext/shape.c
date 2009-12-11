@@ -40,6 +40,7 @@ in this Software without prior written authorization from The Open Group.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"
+#include "registry.h"
 #include "opaque.h"
 #include <X11/extensions/shapeproto.h>
 #include "regionstr.h"
@@ -134,6 +135,8 @@ ShapeExtensionInit(void)
 				 ProcShapeDispatch, SProcShapeDispatch,
 				 NULL, StandardMinorOpcode)))
     {
+	RegisterResourceName(ClientType, "ShapeClient");
+	RegisterResourceName(ShapeEventType, "ShapeEvent");
 	ShapeEventBase = extEntry->eventBase;
 	EventSwapVector[ShapeEventBase] = (EventSwapPtr) SShapeNotifyEvent;
     }

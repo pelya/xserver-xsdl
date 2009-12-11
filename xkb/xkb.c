@@ -39,6 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "xace.h"
 #include "xkb.h"
 #include "protocol-versions.h"
+#include "registry.h"
 
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XKMformat.h>
@@ -6707,6 +6708,7 @@ XkbExtensionInit(void)
     RT_XKBCLIENT = CreateNewResourceType(XkbClientGone);
     if (!RT_XKBCLIENT)
 	return;
+    RegisterResourceName(RT_XKBCLIENT, "XkbClient");
 
     if ((extEntry = AddExtension(XkbName, XkbNumberEvents, XkbNumberErrors,
 				 ProcXkbDispatch, SProcXkbDispatch,

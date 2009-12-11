@@ -11,6 +11,7 @@
 #include "os.h"
 #include "dixstruct.h"
 #include "resource.h"
+#include "registry.h"
 #include "scrnintstr.h"
 #include "extnsionst.h"
 #include "servermd.h"
@@ -676,12 +677,15 @@ XvMCExtensionInit(void)
 
    if(!(XvMCRTContext = CreateNewResourceType(XvMCDestroyContextRes)))
 	return;
+   RegisterResourceName(XvMCRTContext, "XvMCRTContext");
 
    if(!(XvMCRTSurface = CreateNewResourceType(XvMCDestroySurfaceRes)))
 	return;
+   RegisterResourceName(XvMCRTSurface, "XvMCRTSurface");
 
    if(!(XvMCRTSubpicture = CreateNewResourceType(XvMCDestroySubpictureRes)))
 	return;
+   RegisterResourceName(XvMCRTSubpicture, "XvMCRTSubpicture");
 
    extEntry = AddExtension(XvMCName, XvMCNumEvents, XvMCNumErrors, 
                               ProcXvMCDispatch, SProcXvMCDispatch,

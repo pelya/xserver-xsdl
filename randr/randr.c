@@ -29,6 +29,8 @@
 #include <dix-config.h>
 #endif
 
+#include "registry.h"
+
 #include "randrstr.h"
 
 /* From render.h */
@@ -339,9 +341,11 @@ RRExtensionInit (void)
     RRClientType = CreateNewResourceType(RRFreeClient);
     if (!RRClientType)
 	return;
+    RegisterResourceName(RRClientType, "RandRClient");
     RREventType = CreateNewResourceType(RRFreeEvents);
     if (!RREventType)
 	return;
+    RegisterResourceName(RREventType, "RandREvent");
     extEntry = AddExtension (RANDR_NAME, RRNumberEvents, RRNumberErrors,
 			     ProcRRDispatch, SProcRRDispatch,
 			     NULL, StandardMinorOpcode);

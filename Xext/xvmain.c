@@ -90,6 +90,7 @@ SOFTWARE.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"
+#include "registry.h"
 #include "opaque.h"
 #include "input.h"
 
@@ -213,36 +214,42 @@ CreateResourceTypes(void)
       ErrorF("CreateResourceTypes: failed to allocate port resource.\n");
       return FALSE;
     }
-  
+  RegisterResourceName(XvRTPort, "XvRTPort");
+
   if (!(XvRTGrab = CreateNewResourceType(XvdiDestroyGrab)))
     {
       ErrorF("CreateResourceTypes: failed to allocate grab resource.\n");
       return FALSE;
     }
-  
+  RegisterResourceName(XvRTGrab, "XvRTGrab");
+
   if (!(XvRTEncoding = CreateNewResourceType(XvdiDestroyEncoding)))
     {
       ErrorF("CreateResourceTypes: failed to allocate encoding resource.\n");
       return FALSE;
     }
-  
+  RegisterResourceName(XvRTEncoding, "XvRTEncoding");
+
   if (!(XvRTVideoNotify = CreateNewResourceType(XvdiDestroyVideoNotify)))
     {
       ErrorF("CreateResourceTypes: failed to allocate video notify resource.\n");
       return FALSE;
     }
-  
+  RegisterResourceName(XvRTVideoNotify, "XvRTVideoNotify");
+
   if (!(XvRTVideoNotifyList = CreateNewResourceType(XvdiDestroyVideoNotifyList)))
     {
       ErrorF("CreateResourceTypes: failed to allocate video notify list resource.\n");
       return FALSE;
     }
+  RegisterResourceName(XvRTVideoNotifyList, "XvRTVideoNotifyList");
 
   if (!(XvRTPortNotify = CreateNewResourceType(XvdiDestroyPortNotify)))
     {
       ErrorF("CreateResourceTypes: failed to allocate port notify resource.\n");
       return FALSE;
     }
+  RegisterResourceName(XvRTPortNotify, "XvRTPortNotify");
 
   return TRUE;
 

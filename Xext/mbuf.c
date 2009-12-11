@@ -42,6 +42,8 @@ in this Software without prior written authorization from The Open Group.
 #include "opaque.h"
 #include "sleepuntil.h"
 #include "inputstr.h"
+#include "registry.h"
+
 #include <X11/extensions/multibufconst.h>
 #include <X11/extensions/multibufproto.h>
 
@@ -481,6 +483,11 @@ MultibufferExtensionInit()
 				 ProcMultibufferDispatch, SProcMultibufferDispatch,
 				 MultibufferResetProc, StandardMinorOpcode)))
     {
+	RegisterResourceName(MultibufferDrawableResType,
+			     "MultibufferDrawable");
+	RegisterResourceName(MultibufferResType, "MultibufferBuffer");
+	RegisterResourceName(MultibuffersResType, "MultibufferWindow");
+	RegisterResourceName(OtherClientResType, "MultibufferOtherClient");
 	MultibufferEventBase = extEntry->eventBase;
 	MultibufferErrorBase = extEntry->errorBase;
 	EventSwapVector[MultibufferEventBase + MultibufferClobberNotify] = (EventSwapPtr) SClobberNotifyEvent;

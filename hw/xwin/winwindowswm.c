@@ -34,6 +34,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -102,6 +103,8 @@ winWindowsWMExtensionInit ()
       WMErrorBase = extEntry->errorBase;
       WMEventBase = extEntry->eventBase;
       EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
+      RegisterResourceName(ClientType, "WMClient");
+      RegisterResourceName(eventResourceType, "WMEvent");
     }
 }
 

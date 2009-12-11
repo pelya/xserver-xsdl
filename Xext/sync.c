@@ -64,6 +64,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "resource.h"
+#include "registry.h"
 #include "opaque.h"
 #include <X11/extensions/syncproto.h>
 #include "syncsrv.h"
@@ -878,6 +879,7 @@ SyncCreateSystemCounter(
 	{
 	    return NULL;
 	}
+	RegisterResourceName(RTCounter, "SyncCounter");
     }
 
     pCounter = SyncCreateCounter(NULL, FakeClientID(0), initial);
@@ -2133,6 +2135,10 @@ SyncExtensionInit(void)
 	return;
     }
 
+    RegisterResourceName(RTCounter, "SyncCounter");
+    RegisterResourceName(RTAlarm, "SyncAlarm");
+    RegisterResourceName(RTAwait, "SyncAwait");
+    RegisterResourceName(RTAlarmClient, "SyncAlarmClient");
     SyncEventBase = extEntry->eventBase;
     SyncErrorBase = extEntry->errorBase;
     EventSwapVector[SyncEventBase + XSyncCounterNotify] = (EventSwapPtr) SCounterNotifyEvent;

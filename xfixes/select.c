@@ -26,6 +26,7 @@
 
 #include "xfixesint.h"
 #include "xace.h"
+#include "registry.h"
 
 static RESTYPE		SelectionClientType, SelectionWindowType;
 static Bool		SelectionCallbackRegistered = FALSE;
@@ -285,6 +286,11 @@ Bool
 XFixesSelectionInit (void)
 {
     SelectionClientType = CreateNewResourceType(SelectionFreeClient);
+    if (SelectionClientType)
+	RegisterResourceName(SelectionClientType, "XFixesSelectionClient");
     SelectionWindowType = CreateNewResourceType(SelectionFreeWindow);
+    if (SelectionWindowType)
+	RegisterResourceName(SelectionWindowType, "XFixesSelectionWindow");
+
     return SelectionClientType && SelectionWindowType;
 }

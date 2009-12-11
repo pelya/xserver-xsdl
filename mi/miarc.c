@@ -62,6 +62,7 @@ SOFTWARE.
 #include "mifpoly.h"
 #include "mi.h"
 #include "mifillarc.h"
+#include "registry.h"
 #include <X11/Xfuncproto.h>
 
 static double miDsin(double a);
@@ -867,6 +868,7 @@ miComputeWideEllipse(
 	if (!cacheType)
 	{
 	    cacheType = CreateNewResourceType(miFreeArcCache);
+	    RegisterResourceName(cacheType, "miArcCache");
 	    (void) AddResource(FakeClientID(0), cacheType, NULL);
 	}
     } else {

@@ -36,6 +36,7 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "dixstruct.h"
 #include "resource.h"
+#include "registry.h"
 #include "opaque.h"
 
 #include <X11/extensions/Xv.h>
@@ -1866,6 +1867,8 @@ void XineramifyXv(void)
    XvXRTPort = CreateNewResourceType(XineramaDeleteResource);
 
    if (!xvsp0 || !XvXRTPort) return;
+
+   RegisterResourceName(XvXRTPort, "XvXRTPort");
 
    for(i = 0; i < xvsp0->nAdaptors; i++) {
       refAdapt = xvsp0->pAdaptors + i;

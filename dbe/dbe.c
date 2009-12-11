@@ -54,6 +54,7 @@
 #include "dbestruct.h"
 #include "midbe.h"
 #include "xace.h"
+#include "registry.h"
 
 /* GLOBALS */
 
@@ -1577,11 +1578,13 @@ DbeExtensionInit(void)
     if (!dbeDrawableResType)
 	return;
     dbeDrawableResType |= RC_DRAWABLE;
+    RegisterResourceName(dbeDrawableResType, "dbeDrawable");
 
     dbeWindowPrivResType =
         CreateNewResourceType(DbeWindowPrivDelete);
     if (!dbeWindowPrivResType)
 	return;
+    RegisterResourceName(dbeWindowPrivResType, "dbeWindow");
 
     if (!dixRegisterPrivateOffset(dbeDrawableResType,
 				  offsetof(PixmapRec, devPrivates)))

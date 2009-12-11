@@ -43,6 +43,7 @@
 #include "privates.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -145,6 +146,7 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
         EPHYR_LOG_ERROR ("failed to register DRI event resource type\n") ;
         goto out ;
     }
+    RegisterResourceName(EventType, "DRIEvents");
 #endif
 
     if ((extEntry = AddExtension(XF86DRINAME,

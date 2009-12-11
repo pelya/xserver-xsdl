@@ -46,6 +46,7 @@
 #include "cursorstr.h"
 #include "xace.h"
 #include "protocol-versions.h"
+#include "registry.h"
 
 #if HAVE_STDINT_H
 #include <stdint.h>
@@ -3241,6 +3242,9 @@ PanoramiXRenderInit (void)
     int	    i;
     
     XRT_PICTURE = CreateNewResourceType (XineramaDeleteResource);
+    if (XRT_PICTURE)
+	RegisterResourceName(XRT_PICTURE, "XineramaPicture");
+
     for (i = 0; i < RenderNumberRequests; i++)
 	PanoramiXSaveRenderVector[i] = ProcRenderVector[i];
     /*

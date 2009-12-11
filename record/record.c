@@ -42,6 +42,7 @@ and Jim Haggerty of Metheus.
 #include "set.h"
 #include "swaprep.h"
 #include "inputstr.h"
+#include "registry.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -2878,6 +2879,7 @@ RecordExtensionInit(void)
     RTContext = CreateNewResourceType(RecordDeleteContext);
     if (!RTContext)
 	return;
+    RegisterResourceName(RTContext, "RecordContext");
 
     ppAllContexts = NULL;
     numContexts = numEnabledContexts = numEnabledRCAPs = 0;

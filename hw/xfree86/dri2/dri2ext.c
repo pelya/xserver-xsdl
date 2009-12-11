@@ -42,6 +42,7 @@
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "extnsionst.h"
+#include "registry.h"
 #include "xf86drm.h"
 #include "xfixes.h"
 #include "dri2.h"
@@ -420,6 +421,8 @@ DRI2ExtensionInit(void)
 
     if (!dri2DrawableRes)
 	return;
+
+    RegisterResourceName(dri2DrawableRes, "DRI2Drawable");
 
     dri2Extension = AddExtension(DRI2_NAME,
 				 DRI2NumberEvents,

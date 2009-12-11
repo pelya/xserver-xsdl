@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
+#include "registry.h"
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
@@ -111,6 +112,9 @@ XFree86DRIExtensionInit(void)
 				 StandardMinorOpcode))) {
 	DRIReqCode = (unsigned char)extEntry->base;
 	DRIErrorBase = extEntry->errorBase;
+#ifdef XF86DRI_EVENTS
+	RegisterResourceName(EventType, "DRIEvent");
+#endif
     }
 }
 
