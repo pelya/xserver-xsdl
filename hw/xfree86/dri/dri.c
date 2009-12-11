@@ -792,6 +792,9 @@ DRIExtensionInit(void)
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
     DRIContextPrivResType = CreateNewResourceType(DRIContextPrivDelete);
 
+    if (!DRIDrawablePrivResType || !DRIContextPrivResType)
+	return FALSE;
+
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 
     return TRUE;

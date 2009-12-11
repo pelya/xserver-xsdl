@@ -141,6 +141,10 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
 
 #ifdef XF86DRI_EVENTS
     EventType = CreateNewResourceType (XF86DRIFreeEvents);
+    if (!EventType) {
+        EPHYR_LOG_ERROR ("failed to register DRI event resource type\n") ;
+        goto out ;
+    }
 #endif
 
     if ((extEntry = AddExtension(XF86DRINAME,

@@ -299,6 +299,10 @@ void GlxExtensionInit(void)
     __glXWindowRes = CreateNewResourceType((DeleteType)WindowGone);
     __glXPbufferRes = CreateNewResourceType((DeleteType)PbufferGone);
 
+    if (!__glXContextRes || !__glXClientRes || !__glXPixmapRes ||
+	!__glXWindowRes || !__glXPbufferRes)
+	return;
+
     /*
     ** Add extension to server extensions.
     */

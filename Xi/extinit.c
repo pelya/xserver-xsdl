@@ -1270,6 +1270,8 @@ XInputExtensionInit(void)
 	XIVersion = thisversion;
 	MakeDeviceTypeAtoms();
 	RT_INPUTCLIENT = CreateNewResourceType((DeleteType) InputClientGone);
+	if (!RT_INPUTCLIENT)
+	    FatalError("Failed to add resource type for XI.\n");
 	RegisterResourceName(RT_INPUTCLIENT, "INPUTCLIENT");
 	FixExtensionEvents(extEntry);
 	ReplySwapVector[IReqCode] = (ReplySwapPtr) SReplyIDispatch;

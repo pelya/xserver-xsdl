@@ -347,6 +347,9 @@ void GlxExtensionInit(void)
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
     __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 
+    if (!__glXContextRes || !__glXDrawableRes || !__glXSwapBarrierRes)
+	return;
+
     RegisterResourceName(__glXContextRes, "GLXContext");
     RegisterResourceName(__glXDrawableRes, "GLXDrawable");
     RegisterResourceName(__glXSwapBarrierRes, "GLXSwapBarrier");

@@ -64,7 +64,8 @@ Bool
 XFixesRegionInit (void)
 {
     RegionResType = CreateNewResourceType(RegionResFree);
-    return TRUE;
+
+    return (RegionResType != 0);
 }
 
 int

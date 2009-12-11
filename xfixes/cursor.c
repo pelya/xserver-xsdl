@@ -1095,6 +1095,6 @@ XFixesCursorInit (void)
 	}
     }
 
-    return CursorClientType && CursorWindowType;
+    return CursorClientType && CursorHideCountType && CursorWindowType;
 }
 

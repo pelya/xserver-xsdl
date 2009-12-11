@@ -279,7 +279,7 @@ DRIExtensionInit(void)
 {
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
 
-    return TRUE;
+    return (DRIDrawablePrivResType != 0);
 }
 
 void

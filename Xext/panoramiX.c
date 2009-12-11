@@ -503,15 +503,19 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	}
 
 	XRC_DRAWABLE = CreateNewResourceClass();
-	XRT_WINDOW = CreateNewResourceType(XineramaDeleteResource) | 
-						XRC_DRAWABLE;
-	XRT_PIXMAP = CreateNewResourceType(XineramaDeleteResource) | 
-						XRC_DRAWABLE;
+	XRT_WINDOW = CreateNewResourceType(XineramaDeleteResource);
+	if (XRT_WINDOW)
+	    XRT_WINDOW |= XRC_DRAWABLE;
+	XRT_PIXMAP = CreateNewResourceType(XineramaDeleteResource);
+	if (XRT_PIXMAP)
+	    XRT_PIXMAP |= XRC_DRAWABLE;
 	XRT_GC = CreateNewResourceType(XineramaDeleteResource);
 	XRT_COLORMAP = CreateNewResourceType(XineramaDeleteResource);
 
-	panoramiXGeneration = serverGeneration;
-	success = TRUE;
+	if (XRT_WINDOW && XRT_PIXMAP && XRT_GC && XRT_COLORMAP) {
+	    panoramiXGeneration = serverGeneration;
+	    success = TRUE;
+	}
     }
 
     if (!success) {
