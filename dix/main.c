@@ -127,6 +127,8 @@ BOOL serverInitComplete = FALSE;
 pthread_mutex_t serverInitCompleteMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t serverInitCompleteCond = PTHREAD_COND_INITIALIZER;
 
+int dix_main(int argc, char *argv[], char *envp[]);
+
 int dix_main(int argc, char *argv[], char *envp[])
 #else
 int main(int argc, char *argv[], char *envp[])
