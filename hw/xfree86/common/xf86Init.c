@@ -1448,7 +1448,7 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i],"-quiet"))
   {
-    xf86SetVerbosity(0);
+    xf86SetVerbosity(-1);
     return 1;
   }
   if (!strcmp(argv[i],"-showconfig") || !strcmp(argv[i],"-version"))
