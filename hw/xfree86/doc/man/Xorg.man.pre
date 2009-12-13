@@ -435,11 +435,10 @@ by
 are:
 .TP 8
 .B Ctrl+Alt+Backspace
-Immediately kills the server -- no questions asked.  This is disabled by
-default.  It can be enabled with the -retro command line flag or by setting
-the
+Immediately kills the server -- no questions asked. It can be disabled by
+setting the
 .B DontZap
-__xconfigfile__(__filemansuffix__) file option to a FALSE value.
+__xconfigfile__(__filemansuffix__) file option to a TRUE value.
 .TP 8
 .B Ctrl+Alt+Keypad-Plus
 Change video mode to next one specified in the configuration file.
