@@ -202,8 +202,16 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	    vtno--;
 #endif
 #if defined(sun)
-	    if (vtno == xf86Info.vtno)
+	    if (vtno == xf86Info.vtno) {
 		break;
+	    } else {
+		struct vt_stat state;
+		if (ioctl(xf86Info.consoleFd, VT_GETSTATE, &state) < 0)
+			break;
+
+		if ((state.v_state & (1 << vtno)) == 0)
+			break;
+	    }
 
 	    xf86Info.vtRequestsPending = TRUE;
 	    xf86Info.vtPendingNum = vtno;
