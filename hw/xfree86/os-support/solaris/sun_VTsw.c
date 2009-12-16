@@ -118,3 +118,20 @@ xf86VTSwitchTo(void)
 		return(TRUE);
 	}
 }
+
+Bool
+xf86VTActivate(int vtno)
+{
+	struct vt_stat state;
+
+	if (ioctl(xf86Info.consoleFd, VT_GETSTATE, &state) < 0)
+		return(FALSE);
+
+	if ((state.v_state & (1 << vtno)) == 0)
+		return(FALSE);
+
+	xf86Info.vtRequestsPending = TRUE;
+	xf86Info.vtPendingNum = vtno;
+
+	return(TRUE);
+}
