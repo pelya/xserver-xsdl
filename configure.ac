@@ -577,6 +577,9 @@ AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use
 AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
 				[SYMBOL_VISIBILITY=$enableval],
 				[SYMBOL_VISIBILITY=auto])
+AC_ARG_ENABLE(pc98,     	AC_HELP_STRING([--enable-pc98], [Enable PC98 support in Xorg (default: auto)]),
+				[SUPPORT_PC98=$enableval],
+				[SUPPORT_PC98=auto])
 
 dnl GLX build options
 AC_ARG_WITH(dri-driver-path,  AS_HELP_STRING([--with-dri-driver-path=PATH], [Path to DRI drivers (default: ${libdir}/dri)]),
@@ -1652,6 +1655,9 @@ if test "x$XORG" = xyes; then
 			XORG_CFLAGS="${XORG_CFLAGS} "'$(SOLARIS_ASM_CFLAGS)'
 		fi
 		AC_SUBST([SOLARIS_ASM_CFLAGS])
+		if test "x$SUPPORT_PC98" = xauto; then
+			SUPPORT_PC98="no"
+		fi
 		;;
 	  gnu*)
 	  	XORG_OS="gnu"
@@ -1673,8 +1679,19 @@ if test "x$XORG" = xyes; then
 	  sparc*)
 		xorg_bus_sparc="yes"
 		;;
+	  i*86)
+		if test "x$SUPPORT_PC98" = xauto; then
+			SUPPORT_PC98="yes"
+		fi
+		;;
 	esac
 
+	if test "x$SUPPORT_PC98" = xauto; then
+		SUPPORT_PC98="no"
+	fi
+	if test "x$SUPPORT_PC98" = xyes; then
+		AC_DEFINE(SUPPORT_PC98, 1, [Support PC98])
+	fi
 	if test "x$XORG_OS_PCI" = x ; then
 		XORG_OS_PCI=$XORG_OS
 	fi
