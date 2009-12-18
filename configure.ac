@@ -527,9 +527,9 @@ AC_ARG_WITH(default-xkb-rules, AS_HELP_STRING([--with-default-xkb-rules=RULES],
                                 [ XKB_DFLT_RULES="$withval" ],
                                 [ XKB_DFLT_RULES="" ])
 AC_ARG_WITH(default-xkb-model, AS_HELP_STRING([--with-default-xkb-model=MODEL],
-                                   [Keyboard model (default: pc104)]),
+                                   [Keyboard model (default: pc105)]),
                                 [ XKB_DFLT_MODEL="$withval" ],
-                                [ XKB_DFLT_MODEL="pc104" ])
+                                [ XKB_DFLT_MODEL="pc105" ])
 AC_ARG_WITH(default-xkb-layout, AS_HELP_STRING([--with-default-xkb-layout=LAYOUT],
                                    [Keyboard layout (default: us)]),
                                 [ XKB_DFLT_LAYOUT="$withval" ],
