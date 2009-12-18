@@ -505,7 +505,7 @@ XORG_FONTSUBDIR(FONT100DPIDIR, font100dpidir, 100dpi)
 dnl Uses --default-font-path if set, otherwise checks for /etc/X11/fontpath.d,
 dnl otherwise uses standard subdirectories of FONTROOTDIR
 AC_CHECK_FILE([${sysconfdir}/X11/fontpath.d],
-	[DEFAULT_FONT_PATH='catalogue:$(sysconfdir)/X11/fontpath.d'],
+	[DEFAULT_FONT_PATH='catalogue:${sysconfdir}/X11/fontpath.d'],
 	[
 		DEFAULT_FONT_PATH="${FONTMISCDIR}/,${FONTTTFDIR}/,${FONTOTFDIR}/,${FONTTYPE1DIR}/,${FONT100DPIDIR}/,${FONT75DPIDIR}/"
 		case $host_os in
