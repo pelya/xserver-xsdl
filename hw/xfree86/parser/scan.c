@@ -874,11 +874,13 @@ AddConfigDirFiles(const char *dirpath, struct dirent **list, int num)
  * directory. The directory does not need to contain config files.
  */
 static char *
-OpenConfigDir(const char *path, const char *projroot, const char *confname)
+OpenConfigDir(const char *path, const char *cmdline, const char *projroot,
+	      const char *confname)
 {
 	char *dirpath, *pathcopy;
 	const char *template;
 	Bool found = FALSE;
+	int cmdlineUsed = 0;
 
 	pathcopy = strdup(path);
 	for (template = strtok(pathcopy, ","); template && !found;
@@ -886,9 +888,16 @@ OpenConfigDir(const char *path, const char *projroot, const char *confname)
 		struct dirent **list = NULL;
 		int num;
 
-		if (!(dirpath = DoSubstitution(template, NULL, projroot,
-					       NULL, NULL, confname)))
+		dirpath = DoSubstitution(template, cmdline, projroot,
+					 &cmdlineUsed, NULL, confname);
+		if (!dirpath)
 			continue;
+		if (cmdline && !cmdlineUsed) {
+			free(dirpath);
+			dirpath = NULL;
+			continue;
+		}
+
 		/* match files named *.conf */
 		num = scandir(dirpath, &list, ConfigFilter, alphasort);
 		found = AddConfigDirFiles(dirpath, list, num);
@@ -992,7 +1001,7 @@ xf86openConfigDirFiles(const char *path, const char *cmdline,
 		projroot = PROJECTROOT;
 
 	/* Search for the multiconf directory */
-	configDirPath = OpenConfigDir(path, projroot, XCONFIGDIR);
+	configDirPath = OpenConfigDir(path, cmdline, projroot, XCONFIGDIR);
 	return configDirPath;
 }
 

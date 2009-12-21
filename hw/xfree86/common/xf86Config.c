@@ -95,12 +95,22 @@ extern DeviceAssocRec mouse_assoc;
 			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
 			"%P/lib/X11/%X"
 #endif
-#ifndef CONFIGDIRPATH
-#define CONFIGDIRPATH	"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
-			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
-			"%P/etc/X11/%X," \
-			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
-			"%P/lib/X11/%X"
+#ifndef ROOT_CONFIGDIRPATH
+#define ROOT_CONFIGDIRPATH	"%A," "%R," \
+				"/etc/X11/%R," "%P/etc/X11/%R," \
+				"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
+				"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+				"%P/etc/X11/%X," \
+				"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+				"%P/lib/X11/%X"
+#endif
+#ifndef USER_CONFIGDIRPATH
+#define USER_CONFIGDIRPATH	"/etc/X11/%S," "%P/etc/X11/%S," \
+				"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
+				"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+				"%P/etc/X11/%X," \
+				"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+				"%P/lib/X11/%X"
 #endif
 #ifndef PROJECTROOT
 #define PROJECTROOT	"/usr/X11R6"
@@ -2397,35 +2407,48 @@ ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
     const char *filename, *dirname;
-    char *searchpath;
-    MessageType from = X_DEFAULT;
+    char *filesearch, *dirsearch;
+    MessageType filefrom = X_DEFAULT;
+    MessageType dirfrom = X_DEFAULT;
     char *scanptr;
     Bool singlecard = 0;
     Bool implicit_layout = FALSE;
 
     if (!autoconfig) {
-	if (getuid() == 0)
-	    searchpath = ROOT_CONFIGPATH;
-	else
-	    searchpath = USER_CONFIGPATH;
+	if (getuid() == 0) {
+	    filesearch = ROOT_CONFIGPATH;
+	    dirsearch = ROOT_CONFIGDIRPATH;
+	} else {
+	    filesearch = USER_CONFIGPATH;
+	    dirsearch = USER_CONFIGDIRPATH;
+	}
 
 	if (xf86ConfigFile)
-	    from = X_CMDLINE;
+	    filefrom = X_CMDLINE;
+	if (xf86ConfigDir)
+	    dirfrom = X_CMDLINE;
 
 	xf86initConfigFiles();
-	filename = xf86openConfigFile(searchpath, xf86ConfigFile, PROJECTROOT);
-	dirname = xf86openConfigDirFiles(CONFIGDIRPATH, NULL, PROJECTROOT);
+	filename = xf86openConfigFile(filesearch, xf86ConfigFile, PROJECTROOT);
+	dirname = xf86openConfigDirFiles(dirsearch, xf86ConfigDir, PROJECTROOT);
 	if (filename) {
-	    xf86MsgVerb(from, 0, "Using config file: \"%s\"\n", filename);
+	    xf86MsgVerb(filefrom, 0, "Using config file: \"%s\"\n", filename);
 	    xf86ConfigFile = xnfstrdup(filename);
 	} else {
 	    if (xf86ConfigFile)
 		xf86Msg(X_ERROR, "Unable to locate/open config file: \"%s\"\n",
 			xf86ConfigFile);
 	}
-	if (dirname)
-	    xf86MsgVerb(X_DEFAULT, 0, "Using config directory: \"%s\"\n",
+	if (dirname) {
+	    xf86MsgVerb(dirfrom, 0, "Using config directory: \"%s\"\n",
 			dirname);
+	    xf86ConfigDir = xnfstrdup(dirname);
+	} else {
+	    if (xf86ConfigDir)
+		xf86Msg(X_ERROR,
+			"Unable to locate/open config directory: \"%s\"\n",
+			xf86ConfigDir);
+	}
 	if (!filename && !dirname)
 	    return CONFIG_NOFILE;
     }

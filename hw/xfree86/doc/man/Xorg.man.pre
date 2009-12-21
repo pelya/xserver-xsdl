@@ -109,7 +109,7 @@ script.
 .B __xservername__
 supports several mechanisms for supplying/obtaining configuration and
 run-time parameters: command line options, environment variables, the
-__xconfigfile__(__filemansuffix__) configuration file, auto-detection, and
+__xconfigfile__(__filemansuffix__) configuration files, auto-detection, and
 fallback defaults.  When the same information is supplied in more than
 one way, the highest precedence mechanism is used.  The list of mechanisms
 is ordered from highest precedence to lowest.  Note that not all parameters
@@ -175,6 +175,13 @@ Read the server configuration from
 This option will work for any file when the server is run as root (i.e,
 with real-uid 0), or for files relative to a directory in the config
 search path for all other users.
+.TP 8
+.BI \-configdir " directory"
+Read the server configuration files from
+.IR directory .
+This option will work for any directory when the server is run as root
+(i.e, with real-uid 0), or for directories relative to a directory in the
+config directory search path for all other users.
 .TP 8
 .B \-configure
 When this option is specified, the
@@ -456,6 +463,10 @@ __xconfigfile__(__filemansuffix__) file option.
 .B __xservername__
 typically uses a configuration file called
 .B __xconfigfile__
+and configuration files with the suffix
+.I .conf
+in a directory called
+.B __xconfigdir__
 for its initial setup.
 Refer to the __xconfigfile__(__filemansuffix__) manual page for information
 about the format of this file.
@@ -464,7 +475,9 @@ about the format of this file.
 has a mechanism for automatically generating a built-in configuration
 at run-time when no
 .B __xconfigfile__
-file is present.  The current version of this automatic configuration
+file or
+.B __xconfigdir__
+files are present.  The current version of this automatic configuration
 mechanism works in two ways.
 .PP
 The first is via enhancements that have made many components of the
@@ -486,7 +499,7 @@ supported by __xservername__.  Enhancements are planned for future releases.
 .SH FILES
 The
 .B __xservername__
-server config file can be found in a range of locations.  These are
+server config files can be found in a range of locations.  These are
 documented fully in the __xconfigfile__(__filemansuffix__) manual page.  The
 most commonly used locations are shown here.
 .TP 30
@@ -504,6 +517,21 @@ Server configuration file.
 .TP 30
 .B __projectroot__/lib/X11/__xconfigfile__
 Server configuration file.
+.TP 30
+.B /etc/X11/__xconfigdir__
+Server configuration directory.
+.TP 30
+.B /etc/X11/__xconfigdir__-4
+Server configuration directory.
+.TP 30
+.B /etc/__xconfigdir__
+Server configuration directory.
+.TP 30
+.B __projectroot__/etc/__xconfigdir__
+Server configuration directory.
+.TP 30
+.B __projectroot__/lib/X11/__xconfigdir__
+Server configuration directory.
 .TP 30
 .BI __logdir__/__xservername__. n .log
 Server log file for display
