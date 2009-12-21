@@ -456,13 +456,13 @@ xf86ConfigSymTabRec, *xf86ConfigSymTabPtr;
 /*
  * prototypes for public functions
  */
-extern _X_EXPORT const char *xf86openConfigFile (const char *, const char *,
-					const char *);
-extern _X_EXPORT void xf86setBuiltinConfig(const char *config[]);
-extern _X_EXPORT XF86ConfigPtr xf86readConfigFile (void);
-extern _X_EXPORT void xf86closeConfigFile (void);
-extern _X_EXPORT void xf86freeConfig (XF86ConfigPtr p);
-extern _X_EXPORT int xf86writeConfigFile (const char *, XF86ConfigPtr);
+extern const char *xf86openConfigFile(const char *, const char *,
+				      const char *);
+extern void xf86setBuiltinConfig(const char *config[]);
+extern XF86ConfigPtr xf86readConfigFile(void);
+extern void xf86closeConfigFile(void);
+extern void xf86freeConfig(XF86ConfigPtr p);
+extern int xf86writeConfigFile(const char *, XF86ConfigPtr);
 extern _X_EXPORT XF86ConfDevicePtr xf86findDevice(const char *ident, XF86ConfDevicePtr p);
 extern _X_EXPORT XF86ConfLayoutPtr xf86findLayout(const char *name, XF86ConfLayoutPtr list);
 extern _X_EXPORT XF86ConfMonitorPtr xf86findMonitor(const char *ident, XF86ConfMonitorPtr p);
