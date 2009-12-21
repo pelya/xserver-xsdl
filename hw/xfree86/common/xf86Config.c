@@ -95,6 +95,13 @@ extern DeviceAssocRec mouse_assoc;
 			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
 			"%P/lib/X11/%X"
 #endif
+#ifndef CONFIGDIRPATH
+#define CONFIGDIRPATH	"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
+			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+			"%P/etc/X11/%X," \
+			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+			"%P/lib/X11/%X"
+#endif
 #ifndef PROJECTROOT
 #define PROJECTROOT	"/usr/X11R6"
 #endif
@@ -2389,7 +2396,7 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
 ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
-    const char *filename;
+    const char *filename, *dirname;
     char *searchpath;
     MessageType from = X_DEFAULT;
     char *scanptr;
@@ -2405,7 +2412,9 @@ xf86HandleConfigFile(Bool autoconfig)
 	if (xf86ConfigFile)
 	    from = X_CMDLINE;
 
+	xf86initConfigFiles();
 	filename = xf86openConfigFile(searchpath, xf86ConfigFile, PROJECTROOT);
+	dirname = xf86openConfigDirFiles(CONFIGDIRPATH, NULL, PROJECTROOT);
 	if (filename) {
 	    xf86MsgVerb(from, 0, "Using config file: \"%s\"\n", filename);
 	    xf86ConfigFile = xnfstrdup(filename);
@@ -2413,10 +2422,14 @@ xf86HandleConfigFile(Bool autoconfig)
 	    if (xf86ConfigFile)
 		xf86Msg(X_ERROR, "Unable to locate/open config file: \"%s\"\n",
 			xf86ConfigFile);
-	    return CONFIG_NOFILE;
 	}
+	if (dirname)
+	    xf86MsgVerb(X_DEFAULT, 0, "Using config directory: \"%s\"\n",
+			dirname);
+	if (!filename && !dirname)
+	    return CONFIG_NOFILE;
     }
-     
+
     if ((xf86configptr = xf86readConfigFile ()) == NULL) {
 	xf86Msg(X_ERROR, "Problem parsing the config file\n");
 	return CONFIG_PARSE_ERROR;

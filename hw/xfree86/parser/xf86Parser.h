@@ -456,8 +456,11 @@ xf86ConfigSymTabRec, *xf86ConfigSymTabPtr;
 /*
  * prototypes for public functions
  */
-extern const char *xf86openConfigFile(const char *, const char *,
-				      const char *);
+extern void xf86initConfigFiles(void);
+extern const char *xf86openConfigFile(const char *path, const char *cmdline,
+				      const char *projroot);
+extern const char *xf86openConfigDirFiles(const char *path, const char *cmdline,
+					  const char *projroot);
 extern void xf86setBuiltinConfig(const char *config[]);
 extern XF86ConfigPtr xf86readConfigFile(void);
 extern void xf86closeConfigFile(void);

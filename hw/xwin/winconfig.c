@@ -50,6 +50,13 @@
                     "%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
                     "%P/lib/X11/%X"
 #endif
+#ifndef CONFIGDIRPATH
+#define CONFIGDIRPATH  "/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
+                       "%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+                       "%P/etc/X11/%X," \
+                       "%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+                       "%P/lib/X11/%X"
+#endif
 
 XF86ConfigPtr g_xf86configptr = NULL;
 #endif
@@ -109,7 +116,7 @@ Bool
 winReadConfigfile ()
 {
   Bool		retval = TRUE;
-  const char	*filename;
+  const char	*filename, *dirname;
   MessageType	from = X_DEFAULT;
   char		*xf86ConfigFile = NULL;
 
@@ -120,9 +127,10 @@ winReadConfigfile ()
     }
 
   /* Parse config file into data structure */
-
+  xf86initConfigFiles();
   filename = xf86openConfigFile (CONFIGPATH, xf86ConfigFile, PROJECTROOT);
-    
+  dirname = xf86openConfigDirFiles (CONFIGDIRPATH, NULL, PROJECTROOT);
+
   /* Hack for backward compatibility */
   if (!filename && from == X_DEFAULT)
     filename = xf86openConfigFile (CONFIGPATH, "XF86Config", PROJECTROOT);
@@ -137,6 +145,13 @@ winReadConfigfile ()
       if (xf86ConfigFile)
 	ErrorF (": \"%s\"", xf86ConfigFile);
       ErrorF ("\n");
+    }
+  if (dirname)
+    {
+      winMsg (from, "Using config directory: \"%s\"\n", dirname);
+    }
+  if (!filename && !dirname)
+    {
       return FALSE;
     }
   if ((g_xf86configptr = xf86readConfigFile ()) == NULL)
