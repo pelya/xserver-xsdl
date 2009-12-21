@@ -879,10 +879,6 @@ default. Devices with
 disabled will be \*qfloating\*q and only accessible by clients employing the
 X Input extension. This option controls the startup behavior only, a device
 may be reattached or set floating at runtime.
-.TP 4
-.BI "Option \*qHistorySize\*q  \*q" number \*q
-Sets the motion history size.
-Default: 0.
 .TP 7
 .BI "Option \*qSendDragEvents\*q  \*q" boolean \*q
 ???
