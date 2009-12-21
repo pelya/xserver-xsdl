@@ -476,6 +476,7 @@ extern _X_EXPORT XF86ConfInputPtr xf86findInput(const char *ident, XF86ConfInput
 extern _X_EXPORT XF86ConfInputPtr xf86findInputByDriver(const char *driver, XF86ConfInputPtr p);
 extern _X_EXPORT XF86ConfVideoAdaptorPtr xf86findVideoAdaptor(const char *ident,
 						XF86ConfVideoAdaptorPtr p);
+extern int xf86layoutAddInputDevices(XF86ConfigPtr config, XF86ConfLayoutPtr layout);
 
 extern _X_EXPORT GenericListPtr xf86addListItem(GenericListPtr head, GenericListPtr c_new);
 extern _X_EXPORT int xf86itemNotSublist(GenericListPtr list_1, GenericListPtr list_2);

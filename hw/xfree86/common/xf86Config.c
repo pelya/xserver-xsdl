@@ -1488,6 +1488,45 @@ static OptionInfoRec LayoutOptions[] = {
        {0}, FALSE },
 };
 
+static Bool
+configInputDevices(XF86ConfLayoutPtr layout, serverLayoutPtr servlayoutp)
+{
+    XF86ConfInputrefPtr irp;
+    IDevPtr *indp;
+    int count = 0;
+
+    /*
+     * Count the number of input devices.
+     */
+    irp = layout->lay_input_lst;
+    while (irp) {
+	count++;
+	irp = (XF86ConfInputrefPtr)irp->list.next;
+    }
+    DebugF("Found %d input devices in the layout section %s\n",
+	    count, layout.lay_identifier);
+    indp = xnfcalloc((count + 1), sizeof(IDevPtr));
+    indp[count] = NULL;
+    irp = layout->lay_input_lst;
+    count = 0;
+    while (irp) {
+	indp[count] = xnfalloc(sizeof(IDevRec));
+	if (!configInput(indp[count], irp->iref_inputdev, X_CONFIG)) {
+	    while(count--)
+		xfree(indp[count]);
+	    xfree(indp);
+	    return FALSE;
+	}
+	indp[count]->extraOptions = irp->iref_option_lst;
+	count++;
+	irp = (XF86ConfInputrefPtr)irp->list.next;
+    }
+    servlayoutp->inputs = indp;
+
+    return TRUE;
+}
+
+
 /*
  * figure out which layout is active, which screens are used in that layout,
  * which drivers and monitors are used in these screens
@@ -1498,14 +1537,12 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 {
     XF86ConfAdjacencyPtr adjp;
     XF86ConfInactivePtr idp;
-    XF86ConfInputrefPtr irp;
     int count = 0;
     int scrnum;
     XF86ConfLayoutPtr l;
     MessageType from;
     screenLayoutPtr slp;
     GDevPtr gdp;
-    IDevPtr* indp;
     int i = 0, j;
 
     if (!servlayoutp)
@@ -1679,37 +1716,13 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
         count++;
         idp = (XF86ConfInactivePtr)idp->list.next;
     }
-    /*
-     * Count the number of input devices.
-     */
-    count = 0;
-    irp = conf_layout->lay_input_lst;
-    while (irp) {
-        count++;
-        irp = (XF86ConfInputrefPtr)irp->list.next;
-    }
-    DebugF("Found %d input devices in the layout section %s\n",
-           count, conf_layout->lay_identifier);
-    indp = xnfcalloc((count + 1), sizeof(IDevPtr));
-    indp[count] = NULL;
-    irp = conf_layout->lay_input_lst;
-    count = 0;
-    while (irp) {
-        indp[count] = xnfalloc(sizeof(IDevRec));
-	if (!configInput(indp[count], irp->iref_inputdev, X_CONFIG)) {
-            while(count--) 
-                xfree(indp[count]);
-            xfree(indp);
-            return FALSE;
-	}
-	indp[count]->extraOptions = irp->iref_option_lst;
-        count++;
-        irp = (XF86ConfInputrefPtr)irp->list.next;
-    }
+
+    if (!configInputDevices(conf_layout, servlayoutp))
+	return FALSE;
+
     servlayoutp->id = conf_layout->lay_identifier;
     servlayoutp->screens = slp;
     servlayoutp->inactives = gdp;
-    servlayoutp->inputs = indp;
     servlayoutp->options = conf_layout->lay_option_lst;
     from = X_DEFAULT;
 
@@ -1721,12 +1734,14 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
  * the only active screen.
  */
 static Bool
-configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
+configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen,
+                    XF86ConfigPtr xf86configptr)
 {
     MessageType from;
     XF86ConfScreenPtr s;
     screenLayoutPtr slp;
     IDevPtr *indp;
+    XF86ConfLayoutRec layout;
 
     if (!servlayoutp)
 	return FALSE;
@@ -1762,10 +1777,19 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     servlayoutp->screens = slp;
     servlayoutp->inactives = xnfcalloc(1, sizeof(GDevRec));
     servlayoutp->options = NULL;
-    /* Set up an empty input device list, then look for some core devices. */
-    indp = xnfalloc(sizeof(IDevPtr));
-    *indp = NULL;
-    servlayoutp->inputs = indp;
+
+    memset(&layout, 0, sizeof(layout));
+    layout.lay_identifier = servlayoutp->id;
+    if (xf86layoutAddInputDevices(xf86configptr, &layout) > 0) {
+	if (!configInputDevices(&layout, servlayoutp))
+	    return FALSE;
+	from = X_DEFAULT;
+    } else {
+	/* Set up an empty input device list, then look for some core devices. */
+	indp = xnfalloc(sizeof(IDevPtr));
+	*indp = NULL;
+	servlayoutp->inputs = indp;
+    }
 
     return TRUE;
 }
@@ -2478,7 +2502,8 @@ xf86HandleConfigFile(Bool autoconfig)
 		    "No Layout section.  Using the first Screen section.\n");
 	}
 	if (!configImpliedLayout(&xf86ConfigLayout,
-				 xf86configptr->conf_screen_lst)) {
+				 xf86configptr->conf_screen_lst,
+				 xf86configptr)) {
             xf86Msg(X_ERROR, "Unable to determine the screen layout\n");
 	    return CONFIG_PARSE_ERROR;
 	}

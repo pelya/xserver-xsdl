@@ -880,6 +880,11 @@ which are described here.
 See the individual input driver manual pages for a description of the
 device\-specific options.
 .TP 7
+.BI "Option \*qAutoServerLayout\*q  \*q" boolean \*q
+Always add the device to the ServerLayout section used by this instance of
+the server. This affects implied layouts as well as explicit layouts
+specified in the configuration and/or on the command line.
+.TP 7
 .BI "Option \*qCorePointer\*q"
 Deprecated, use
 .B SendCoreEvents
