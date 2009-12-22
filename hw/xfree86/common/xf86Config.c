@@ -1639,45 +1639,6 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
 	}
     }
 
-#ifdef LAYOUT_DEBUG
-    ErrorF("Layout \"%s\"\n", conf_layout->lay_identifier);
-    for (i = 0; i < count; i++) {
-	ErrorF("Screen: \"%s\" (%d):\n", slp[i].screen->id,
-	       slp[i].screen->screennum);
-	switch (slp[i].where) {
-	case PosObsolete:
-	    ErrorF("\tObsolete format: \"%s\" \"%s\" \"%s\" \"%s\"\n",
-		   slp[i].top, slp[i].bottom, slp[i].left, slp[i].right);
-	    break;
-	case PosAbsolute:
-	    if (slp[i].x == -1)
-		if (slp[i].screen->screennum == 0)
-		    ErrorF("\tImplicitly left-most\n");
-		else
-		    ErrorF("\tImplicitly right of screen %d\n",
-			   slp[i].screen->screennum - 1);
-	    else
-		ErrorF("\t%d %d\n", slp[i].x, slp[i].y);
-	    break;
-	case PosRightOf:
-	    ErrorF("\tRight of \"%s\"\n", slp[i].refscreen->id);
-	    break;
-	case PosLeftOf:
-	    ErrorF("\tLeft of \"%s\"\n", slp[i].refscreen->id);
-	    break;
-	case PosAbove:
-	    ErrorF("\tAbove \"%s\"\n", slp[i].refscreen->id);
-	    break;
-	case PosBelow:
-	    ErrorF("\tBelow \"%s\"\n", slp[i].refscreen->id);
-	    break;
-	case PosRelative:
-	    ErrorF("\t%d %d relative to \"%s\"\n", slp[i].x, slp[i].y,
-		   slp[i].refscreen->id);
-	    break;
-	}
-    }
-#endif
     /*
      * Count the number of inactive devices.
      */
