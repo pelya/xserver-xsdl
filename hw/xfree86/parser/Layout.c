@@ -435,20 +435,6 @@ xf86freeLayoutList (XF86ConfLayoutPtr ptr)
 	}
 }
 
-#define CheckScreen(str, ptr)\
-if (str[0] != '\0') \
-{ \
-screen = xf86findScreen (str, p->conf_screen_lst); \
-if (!screen) \
-{ \
-	xf86validationError (UNDEFINED_SCREEN_MSG, \
-				   str, layout->lay_identifier); \
-	return (FALSE); \
-} \
-else \
-	ptr = screen; \
-}
-
 int
 xf86validateLayout (XF86ConfigPtr p)
 {
@@ -475,13 +461,6 @@ xf86validateLayout (XF86ConfigPtr p)
 			}
 			else
 				adj->adj_screen = screen;
-
-#if 0
-			CheckScreen (adj->adj_top_str, adj->adj_top);
-			CheckScreen (adj->adj_bottom_str, adj->adj_bottom);
-			CheckScreen (adj->adj_left_str, adj->adj_left);
-			CheckScreen (adj->adj_right_str, adj->adj_right);
-#endif
 
 			adj = adj->list.next;
 		}
