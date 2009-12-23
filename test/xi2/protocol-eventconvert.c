@@ -736,6 +736,9 @@ static void test_values_XIDeviceChangedEvent(DeviceChangedEvent *in,
 
                 }
                 break;
+            default:
+                g_error("Invalid class type.\n");
+                break;
         }
 
         ptr += any->length * 4;
