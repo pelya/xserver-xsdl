@@ -834,7 +834,7 @@ static void test_convert_XIDeviceChangedEvent(void)
     in.keys.max_keycode = 1 << 8;
     test_XIDeviceChangedEvent(&in);
 
-    in.keys.max_keycode = 0xFFFD; /* highest range, above that the length
+    in.keys.max_keycode = 0xFFFC; /* highest range, above that the length
                                      field gives up */
     test_XIDeviceChangedEvent(&in);
 

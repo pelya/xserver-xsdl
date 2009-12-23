@@ -769,11 +769,28 @@ Example: the MIT-SHM extension can be disabled with the following entry:
 The config file may have multiple
 .B InputDevice
 sections.
-If HAL is not being used for input device configuration, there will normally
-be at least two: one for the core (primary) keyboard,
-and one of the core pointer.
+Recent X servers employ input hotplugging to add input devices, with the HAL
+backend being the default backend for X servers since 1.4. It is usually not
+necessary to provide
+.B InputDevice
+sections in the xorg.conf if hotplugging is enabled.
+.PP
+If hotplugging is disabled, there will normally
+be at least two: one for the core (primary) keyboard
+and one for the core pointer.
 If either of these two is missing, a default configuration for the missing
-ones will be used.
+ones will be used. In the absence of an explicitly specified core input
+device, the first
+.B InputDevice
+marked as
+.B CorePointer
+(or
+.BR CoreKeyboard )
+is used.
+If there is no match there, the first
+.B InputDevice
+that uses the \(lqmouse\(rq (or \(lqkbd\(rq) driver is used.
+The final fallback is to use built\-in default configurations.
 Currently the default configuration may not work as expected on all platforms.
 .PP
 .B InputDevice
@@ -828,17 +845,6 @@ and
 .BR mousedrv (__drivermansuffix__)
 on other platforms.
 .PP
-In the absence of an explicitly specified core input device, the first
-.B InputDevice
-marked as
-.B CorePointer
-(or
-.BR CoreKeyboard )
-is used.
-If there is no match there, the first
-.B InputDevice
-that uses the \(lqmouse\(rq (or \(lqkbd\(rq) driver is used.
-The final fallback is to use built\-in default configurations.
 .PP
 .B InputDevice
 sections recognise some driver\-independent
@@ -848,44 +854,31 @@ See the individual input driver manual pages for a description of the
 device\-specific options.
 .TP 7
 .BI "Option \*qCorePointer\*q"
-When this is set, the input device is installed as the core (primary)
-pointer device.
-There must be exactly one core pointer.
-If this option is not set here, or in the
-.B ServerLayout
-section, or from the
-.B \-pointer
-command line option, then the first input device that is capable of
-being used as a core pointer will be selected as the core pointer.
-This option is implicitly set when the obsolete
-.B Pointer
-section is used.
+Deprecated, use
+.B SendCoreEvents
+instead.
 .TP 7
 .BI "Option \*qCoreKeyboard\*q"
-When this is set, the input device is to be installed as the core
-(primary) keyboard device.
-There must be exactly one core keyboard.
-If this option is not set here, in the
-.B ServerLayout
-section, or from the
-.B \-keyboard
-command line option, then the first input device that is capable of
-being used as a core keyboard will be selected as the core keyboard.
-This option is implicitly set when the obsolete
-.B Keyboard
-section is used.
+Deprecated, use
+.B SendCoreEvents
+instead.
 .TP 7
 .BI "Option \*qAlwaysCore\*q  \*q" boolean \*q
+.B
+Deprecated, use
+.B SendCoreEvents
+instead.
 .TP 7
 .BI "Option \*qSendCoreEvents\*q  \*q" boolean \*q
 Both of these options are equivalent, and when enabled cause the
-input device to always report core events.
-This can be used, for example, to allow an additional pointer device to
-generate core pointer events (like moving the cursor, etc).
-.TP 4
-.BI "Option \*qHistorySize\*q  \*q" number \*q
-Sets the motion history size.
-Default: 0.
+input device to report core events through the master device. They are
+enabled by default.  Any device configured to send core events will be
+attached to the virtual core pointer or keyboard and control the cursor by
+default. Devices with
+.B SendCoreEvents
+disabled will be \*qfloating\*q and only accessible by clients employing the
+X Input extension. This option controls the startup behavior only, a device
+may be reattached or set floating at runtime.
 .TP 7
 .BI "Option \*qSendDragEvents\*q  \*q" boolean \*q
 ???
