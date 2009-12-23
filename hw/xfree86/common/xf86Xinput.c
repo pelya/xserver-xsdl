@@ -702,16 +702,6 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
             }
         }
     }
-    if (!idev->driver || !idev->identifier) {
-        xf86Msg(X_ERROR, "No input driver/identifier specified (ignoring)\n");
-        rval = BadRequest;
-        goto unwind;
-    }
-
-    if (!idev->identifier) {
-        xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
-        return BadMatch;
-    }
 
     for (option = options; option; option = option->next) {
         /* Steal option key/value strings from the provided list.
@@ -727,6 +717,17 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
         rval = MergeInputClasses(idev, attrs);
         if (rval != Success)
             goto unwind;
+    }
+
+    if (!idev->driver || !idev->identifier) {
+        xf86Msg(X_ERROR, "No input driver/identifier specified (ignoring)\n");
+        rval = BadRequest;
+        goto unwind;
+    }
+
+    if (!idev->identifier) {
+        xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
+        return BadMatch;
     }
 
     rval = xf86NewInputDevice(idev, pdev,
