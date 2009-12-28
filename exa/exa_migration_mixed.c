@@ -112,7 +112,8 @@ exaDoMigration_mixed(ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    pPixmap->devKind = pExaPixmap->fb_pitch;
 	    exaCopyDirtyToFb(pixmaps + i);
 
-	    if (pExaScr->deferred_mixed_pixmap == pPixmap)
+	    if (pExaScr->deferred_mixed_pixmap == pPixmap &&
+		!pixmaps[i].as_dst && !pixmaps[i].pReg)
 		pExaScr->deferred_mixed_pixmap = NULL;
 	}
 
