@@ -177,7 +177,6 @@ typedef struct {
     void (*do_move_in_pixmap) (PixmapPtr pPixmap);
     void (*do_move_out_pixmap) (PixmapPtr pPixmap);
     void (*prepare_access_reg)(PixmapPtr pPixmap, int index, RegionPtr pReg);
-    void (*finish_access)(PixmapPtr pPixmap, int index);
 
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
@@ -620,10 +619,10 @@ void
 exaMoveInPixmap_mixed(PixmapPtr pPixmap);
 
 void
-exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg);
+exaDamageReport_mixed(DamagePtr pDamage, RegionPtr pRegion, void *closure);
 
 void
-exaFinishAccess_mixed(PixmapPtr pPixmap, int index);
+exaPrepareAccessReg_mixed(PixmapPtr pPixmap, int index, RegionPtr pReg);
 
 /* exa_render.c */
 Bool

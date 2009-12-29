@@ -101,7 +101,7 @@ exaCreatePixmap_mixed(ScreenPtr pScreen, int w, int h, int depth,
 	    pExaPixmap->sys_ptr = malloc((pPixmap->drawable.bitsPerPixel + 7) / 8);
 
 	    /* Set up damage tracking */
-	    pExaPixmap->pDamage = DamageCreate(NULL, NULL,
+	    pExaPixmap->pDamage = DamageCreate(exaDamageReport_mixed, NULL,
 					       DamageReportNonEmpty, TRUE,
 					       pPixmap->drawable.pScreen,
 					       pPixmap);
