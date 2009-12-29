@@ -1270,7 +1270,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	RegionRec Reg;
 	ExaMigrationRec pixmaps[1];
 
-	Box.x1 = pDrawable->y + x + xoff;
+	Box.x1 = pDrawable->x + x + xoff;
 	Box.y1 = pDrawable->y + y + yoff;
 	Box.x2 = Box.x1 + w;
 	Box.y2 = Box.y1 + h;

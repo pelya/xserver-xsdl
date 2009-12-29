@@ -339,7 +339,7 @@ ExaCheckGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
 
 	exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
 
-	Box.x1 = pDrawable->y + x + xoff;
+	Box.x1 = pDrawable->x + x + xoff;
 	Box.y1 = pDrawable->y + y + yoff;
 	Box.x2 = Box.x1 + w;
 	Box.y2 = Box.y1 + h;
