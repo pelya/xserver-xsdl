@@ -157,6 +157,10 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     if (pExaScr->fallback_counter || pExaPixmap->accel_blocked || !pExaScr->info->UploadToScreen)
 	return FALSE;
 
+    /* If there's a system copy, we want to save the result there */
+    if (pExaPixmap->pDamage)
+	return FALSE;
+
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
 	return FALSE;
@@ -167,17 +171,6 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
     if (pExaScr->swappedOut)
 	return FALSE;
-
-    if (pExaScr->do_migration) {
-	ExaMigrationRec pixmaps[1];
-
-	pixmaps[0].as_dst = TRUE;
-	pixmaps[0].as_src = FALSE;
-	pixmaps[0].pPix = pPix;
-	pixmaps[0].pReg = DamagePendingRegion(pExaPixmap->pDamage);
-
-	exaDoMigration (pixmaps, 1, TRUE);
-    }
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
@@ -1261,35 +1254,16 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 {
     ExaScreenPriv (pDrawable->pScreen);
     PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv(pPix);
     int xoff, yoff;
     Bool ok;
 
     if (pExaScr->fallback_counter || pExaScr->swappedOut)
 	goto fallback;
 
-    exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
-
-    if (pExaScr->do_migration) {
-	BoxRec Box;
-	RegionRec Reg;
-	ExaMigrationRec pixmaps[1];
-
-	Box.x1 = pDrawable->x + x + xoff;
-	Box.y1 = pDrawable->y + y + yoff;
-	Box.x2 = Box.x1 + w;
-	Box.y2 = Box.y1 + h;
-
-	REGION_INIT(pScreen, &Reg, &Box, 1);
-
-	pixmaps[0].as_dst = FALSE;
-	pixmaps[0].as_src = TRUE;
-	pixmaps[0].pPix = pPix;
-	pixmaps[0].pReg = &Reg;
-
-	exaDoMigration(pixmaps, 1, FALSE);
-
-	REGION_UNINIT(pScreen, &Reg);
-    }
+    /* If there's a system copy, we want to save the result there */
+    if (pExaPixmap->pDamage)
+	goto fallback;
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
