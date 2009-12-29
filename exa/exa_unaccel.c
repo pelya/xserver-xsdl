@@ -123,11 +123,36 @@ ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
 	     BoxPtr	pbox, int nbox, int dx, int dy, Bool	reverse, 
 	     Bool upsidedown, Pixel bitplane, void *closure)
 {
+    RegionRec reg;
+    int xoff, yoff;
     EXA_PRE_FALLBACK_GC(pGC);
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+
+    if (pExaScr->prepare_access_reg) {
+	PixmapPtr pPixmap = exaGetDrawablePixmap(pSrc);
+
+	exaGetDrawableDeltas(pSrc, pPixmap, &xoff, &yoff);
+	REGION_INIT(pScreen, &reg, pbox, nbox);
+	REGION_TRANSLATE(pScreen, &reg, xoff + dx, yoff + dy);
+	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_SRC, &reg);
+	REGION_UNINIT(pScreen, &reg);
+    } else
+	exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+
+    if (pExaScr->prepare_access_reg &&
+	!exaGCReadsDestination(pDst, pGC->planemask, pGC->fillStyle,
+			       pGC->alu, pGC->clientClipType)) {
+	PixmapPtr pPixmap = exaGetDrawablePixmap(pDst);
+
+	exaGetDrawableDeltas(pSrc, pPixmap, &xoff, &yoff);
+	REGION_INIT(pScreen, &reg, pbox, nbox);
+	REGION_TRANSLATE(pScreen, &reg, xoff, yoff);
+	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_DEST, &reg);
+	REGION_UNINIT(pScreen, &reg);
+    } else
+	exaPrepareAccess (pDst, EXA_PREPARE_DEST);
+
     /* This will eventually call fbCopyNtoN, with some calculation overhead. */
     while (nbox--) {
 	pGC->ops->CopyArea (pSrc, pDst, pGC, pbox->x1 - pSrc->x + dx, pbox->y1 - pSrc->y + dy, 
@@ -139,6 +164,40 @@ ExaCheckCopyNtoN (DrawablePtr pSrc, DrawablePtr pDst,  GCPtr pGC,
     EXA_POST_FALLBACK_GC(pGC);
 }
 
+static void
+ExaFallbackPrepareReg(DrawablePtr pDrawable,
+		      GCPtr pGC,
+		      int x, int y, int width, int height,
+		      int index, Bool checkReads)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv(pScreen);
+
+    if (pExaScr->prepare_access_reg &&
+	!(checkReads && exaGCReadsDestination(pDrawable,
+					      pGC->planemask,
+					      pGC->fillStyle,
+					      pGC->alu,
+					      pGC->clientClipType))) {
+	BoxRec box;
+	RegionRec reg;
+	int xoff, yoff;
+	PixmapPtr pPixmap = exaGetDrawablePixmap(pDrawable);
+
+	exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+	box.x1 = pDrawable->x + x + xoff;
+	box.y1 = pDrawable->y + y + yoff;
+	box.x2 = box.x1 + width;
+	box.y2 = box.y1 + height;
+
+	REGION_INIT(pScreen, &reg, &box, 1);
+	pExaScr->prepare_access_reg(pPixmap, index, &reg);
+	REGION_UNINIT(pScreen, &reg);
+    } else
+	exaPrepareAccess(pDrawable, index);
+}
+
+
 RegionPtr
 ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
 		 int srcx, int srcy, int w, int h, int dstx, int dsty)
@@ -148,8 +207,10 @@ ExaCheckCopyArea (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
     EXA_PRE_FALLBACK_GC(pGC);
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+    ExaFallbackPrepareReg(pSrc, pGC, srcx, srcy, w, h,
+			  EXA_PREPARE_SRC, FALSE);
+    ExaFallbackPrepareReg(pDst, pGC, dstx, dsty, w, h,
+			  EXA_PREPARE_DEST, TRUE);
     ret = pGC->ops->CopyArea (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty);
     exaFinishAccess (pSrc, EXA_PREPARE_SRC);
     exaFinishAccess (pDst, EXA_PREPARE_DEST);
@@ -168,8 +229,10 @@ ExaCheckCopyPlane (DrawablePtr pSrc, DrawablePtr pDst, GCPtr pGC,
     EXA_PRE_FALLBACK_GC(pGC);
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrc, pDst,
 		  exaDrawableLocation(pSrc), exaDrawableLocation(pDst)));
-    exaPrepareAccess (pDst, EXA_PREPARE_DEST);
-    exaPrepareAccess (pSrc, EXA_PREPARE_SRC);
+    ExaFallbackPrepareReg(pSrc, pGC, srcx, srcy, w, h,
+			  EXA_PREPARE_SRC, FALSE);
+    ExaFallbackPrepareReg(pDst, pGC, dstx, dsty, w, h,
+			  EXA_PREPARE_DEST, TRUE);
     ret = pGC->ops->CopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty,
 		       bitPlane);
     exaFinishAccess (pSrc, EXA_PREPARE_SRC);
@@ -295,8 +358,10 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pBitmap, pDrawable,
 		  exaDrawableLocation(&pBitmap->drawable),
 		  exaDrawableLocation(pDrawable)));
-    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
-    exaPrepareAccess (&pBitmap->drawable, EXA_PREPARE_SRC);
+    ExaFallbackPrepareReg(pDrawable, pGC, x, y, w, h,
+			  EXA_PREPARE_DEST, TRUE);
+    ExaFallbackPrepareReg(&pBitmap->drawable, pGC, 0, 0, w, h,
+			  EXA_PREPARE_SRC, FALSE);
     exaPrepareAccessGC (pGC);
     pGC->ops->PushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
     exaFinishAccessGC (pGC);
@@ -337,29 +402,12 @@ ExaCheckGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
 		unsigned int format, unsigned long planeMask, char *d)
 {
     ScreenPtr pScreen = pDrawable->pScreen;
-    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
     EXA_PRE_FALLBACK(pScreen);
     EXA_FALLBACK(("from %p (%c)\n", pDrawable,
 		  exaDrawableLocation(pDrawable)));
 
-    if (pExaScr->prepare_access_reg) {
-	int xoff, yoff;
-	BoxRec Box;
-	RegionRec Reg;
-
-	exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
-
-	Box.x1 = pDrawable->x + x + xoff;
-	Box.y1 = pDrawable->y + y + yoff;
-	Box.x2 = Box.x1 + w;
-	Box.y2 = Box.y1 + h;
-
-	REGION_INIT(pScreen, &Reg, &Box, 1);
-
-	pExaScr->prepare_access_reg(pPix, EXA_PREPARE_SRC, &Reg);
-    } else
-	exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
-
+    ExaFallbackPrepareReg(pDrawable, NULL, x, y, w, h,
+			  EXA_PREPARE_SRC, FALSE);
     swap(pExaScr, pScreen, GetImage);
     pScreen->GetImage (pDrawable, x, y, w, h, format, planeMask, d);
     swap(pExaScr, pScreen, GetImage);
