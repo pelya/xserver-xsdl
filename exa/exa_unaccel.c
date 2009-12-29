@@ -313,8 +313,18 @@ ExaCheckCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     EXA_PRE_FALLBACK(pScreen);
     EXA_FALLBACK(("from %p\n", pWin));
 
-    /* being both src and dest, src is safest. */
-    exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
+    /* Only need the source bits, the destination region will be overwritten */
+    if (pExaScr->prepare_access_reg) {
+	PixmapPtr pPixmap = pScreen->GetWindowPixmap(pWin);
+	int xoff, yoff;
+
+	exaGetDrawableDeltas(&pWin->drawable, pPixmap, &xoff, &yoff);
+	REGION_TRANSLATE(pScreen, prgnSrc, xoff, yoff);
+	pExaScr->prepare_access_reg(pPixmap, EXA_PREPARE_SRC, prgnSrc);
+	REGION_TRANSLATE(pScreen, prgnSrc, -xoff, -yoff);
+    } else
+	exaPrepareAccess(pDrawable, EXA_PREPARE_SRC);
+
     swap(pExaScr, pScreen, CopyWindow);
     pScreen->CopyWindow (pWin, ptOldOrg, prgnSrc);
     swap(pExaScr, pScreen, CopyWindow);
