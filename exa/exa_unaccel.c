@@ -435,6 +435,173 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
     EXA_POST_FALLBACK(pScreen);
 }
 
+static void
+ExaSrcValidate(DrawablePtr pDrawable,
+	       int x,
+	       int y,
+	       int width,
+	       int height)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    ExaScreenPriv(pScreen);
+    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+    BoxRec box;
+    RegionRec reg;
+    RegionPtr dst;
+    int xoff, yoff;
+
+    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+
+    box.x1 = x + xoff;
+    box.y1 = y + yoff;
+    box.x2 = box.x1 + width;
+    box.y2 = box.y1 + height;
+
+    dst = (pExaScr->srcPix == pPix) ? &pExaScr->srcReg :
+	&pExaScr->maskReg;
+
+    REGION_INIT(pScreen, &reg, &box, 1);
+    REGION_UNION(pScreen, dst, dst, &reg);
+    REGION_UNINIT(pScreen, &reg);
+
+    swap(pExaScr, pScreen, SourceValidate);
+    pScreen->SourceValidate(pDrawable, x, y, width, height);
+    swap(pExaScr, pScreen, SourceValidate);
+}
+
+static Bool
+ExaPrepareCompositeReg(ScreenPtr  pScreen,
+		       CARD8      op,
+		       PicturePtr pSrc,
+		       PicturePtr pMask,
+		       PicturePtr pDst,
+		       INT16      xSrc,
+		       INT16      ySrc,
+		       INT16      xMask,
+		       INT16      yMask,
+		       INT16      xDst,
+		       INT16      yDst,
+		       CARD16     width,
+		       CARD16     height)
+{
+    RegionRec region;
+    RegionPtr dstReg = NULL;
+    RegionPtr srcReg = NULL;
+    RegionPtr maskReg = NULL;
+    PixmapPtr pSrcPix = NULL;
+    PixmapPtr pMaskPix = NULL;
+    PixmapPtr pDstPix;
+    ExaScreenPriv(pScreen);
+    Bool ret;
+
+
+    REGION_NULL(pScreen, &region);
+
+    if (pSrc->pDrawable) {
+	pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
+	REGION_NULL(pScreen, &pExaScr->srcReg);
+	srcReg = &pExaScr->srcReg;
+	pExaScr->srcPix = pSrcPix;
+	if (pSrc != pDst)
+	    REGION_TRANSLATE(pScreen, pSrc->pCompositeClip,
+			     -pSrc->pDrawable->x,
+			     -pSrc->pDrawable->y);
+    }
+
+    if (pMask && pMask->pDrawable) {
+	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
+	REGION_NULL(pScreen, &pExaScr->maskReg);
+	maskReg = &pExaScr->maskReg;
+	if (pMask != pDst && pMask != pSrc)
+	    REGION_TRANSLATE(pScreen, pMask->pCompositeClip,
+			     -pMask->pDrawable->x,
+			     -pMask->pDrawable->y);
+    }
+
+    REGION_TRANSLATE(pScreen, pDst->pCompositeClip,
+		     -pDst->pDrawable->x,
+		     -pDst->pDrawable->y);
+
+    pExaScr->SavedSourceValidate = ExaSrcValidate;
+    swap(pExaScr, pScreen, SourceValidate);
+    ret = miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+				    xSrc, ySrc, xMask, yMask,
+				    xDst,
+				    yDst,
+				    width, height);
+    swap(pExaScr, pScreen, SourceValidate);
+
+    REGION_TRANSLATE(pScreen, pDst->pCompositeClip,
+		     pDst->pDrawable->x,
+		     pDst->pDrawable->y);
+    if (pSrc->pDrawable && pSrc != pDst)
+	REGION_TRANSLATE(pScreen, pSrc->pCompositeClip,
+			 pSrc->pDrawable->x,
+			 pSrc->pDrawable->y);
+    if (pMask && pMask->pDrawable && pMask != pDst && pMask != pSrc)
+	REGION_TRANSLATE(pScreen, pMask->pCompositeClip,
+			 pMask->pDrawable->x,
+			 pMask->pDrawable->y);
+
+    if (!ret) {
+	if (srcReg)
+	    REGION_UNINIT(pScreen, srcReg);
+	if (maskReg)
+	    REGION_UNINIT(pScreen, maskReg);
+
+	return FALSE;
+    }
+
+    /**
+     * Don't limit alphamaps readbacks for now until we've figured out how that
+     * should be done.
+     */
+
+    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pSrc->alphaMap->pDrawable),
+				    EXA_PREPARE_AUX_SRC,
+				    NULL);
+    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pMask->alphaMap->pDrawable),
+				    EXA_PREPARE_AUX_MASK,
+				    NULL);
+
+    if (pSrcPix)
+	pExaScr->prepare_access_reg(pSrcPix,
+				    EXA_PREPARE_SRC,
+				    srcReg);
+
+    if (pMaskPix)
+	pExaScr->prepare_access_reg(pMaskPix,
+				    EXA_PREPARE_MASK,
+				    maskReg);
+
+    if (srcReg)
+	REGION_UNINIT(pScreen, srcReg);
+    if (maskReg)
+	REGION_UNINIT(pScreen, maskReg);
+
+    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
+    if (!exaOpReadsDestination(op)) {
+	int xoff;
+	int yoff;
+
+	exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &xoff, &yoff);
+	REGION_TRANSLATE(pScreen, &region, pDst->pDrawable->x + xoff,
+			 pDst->pDrawable->y + yoff);
+	dstReg = &region;
+    }
+
+    if (pDst->alphaMap && pDst->alphaMap->pDrawable)
+	pExaScr->prepare_access_reg(exaGetDrawablePixmap(pDst->alphaMap->pDrawable),
+				    EXA_PREPARE_AUX_DEST,
+				    dstReg);
+    pExaScr->prepare_access_reg(pDstPix, EXA_PREPARE_DEST, dstReg);
+
+    REGION_UNINIT(pScreen, &region);
+    return TRUE;
+}
+
 void
 ExaCheckComposite (CARD8      op,
                    PicturePtr pSrc,
@@ -453,54 +620,38 @@ ExaCheckComposite (CARD8      op,
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreen(pScreen);
 #endif /* RENDER */
-    RegionRec region;
-    int xoff, yoff;
     EXA_PRE_FALLBACK(pScreen);
 
-    REGION_NULL(pScreen, &region);
-
-    /* We need to prepare access to any separate alpha maps first, in case the
-     * driver doesn't support EXA_PREPARE_AUX*, in which case EXA_PREPARE_SRC
-     * may be used for moving them out.
-     */
-    if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
-	exaPrepareAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
-    if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
-	exaPrepareAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
-
-    if (!exaOpReadsDestination(op) && pExaScr->prepare_access_reg) {
-	PixmapPtr pDstPix;
-
-	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
-				       xSrc, ySrc, xMask, yMask,
-				       xDst + pDst->pDrawable->x,
-				       yDst + pDst->pDrawable->y,
-				       width, height))
-	    goto skip;
-
-	pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
-	exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &xoff, &yoff);
-	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
-
-	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
-	    pExaScr->prepare_access_reg(exaGetDrawablePixmap(pDst->alphaMap->pDrawable),
-					EXA_PREPARE_AUX_DEST, &region);
-
-	pExaScr->prepare_access_reg(pDstPix, EXA_PREPARE_DEST, &region);
+    if (pExaScr->prepare_access_reg) {
+	if (!ExaPrepareCompositeReg(pScreen, op, pSrc, pMask, pDst, xSrc,
+				   ySrc, xMask, yMask, xDst, yDst, width,
+				   height))
+	    goto out_no_clip;
     } else {
+
+	/* We need to prepare access to any separate alpha maps first,
+	 * in case the driver doesn't support EXA_PREPARE_AUX*,
+	 * in which case EXA_PREPARE_SRC may be used for moving them out.
+	 */
+
+	if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
+	    exaPrepareAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
+	if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
+	    exaPrepareAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
 	if (pDst->alphaMap && pDst->alphaMap->pDrawable)
 	    exaPrepareAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX_DEST);
 
 	exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+
+	EXA_FALLBACK(("from picts %p/%p to pict %p\n",
+		      pSrc, pMask, pDst));
+
+	if (pSrc->pDrawable != NULL)
+	    exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
+	if (pMask && pMask->pDrawable != NULL)
+	    exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
     }
 
-    EXA_FALLBACK(("from picts %p/%p to pict %p\n",
-		 pSrc, pMask, pDst));
-
-    if (pSrc->pDrawable != NULL)
-	exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
-    if (pMask && pMask->pDrawable != NULL)
-	exaPrepareAccess (pMask->pDrawable, EXA_PREPARE_MASK);
 #ifdef RENDER
     swap(pExaScr, ps, Composite);
     ps->Composite (op,
@@ -524,14 +675,12 @@ ExaCheckComposite (CARD8      op,
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
     if (pDst->alphaMap && pDst->alphaMap->pDrawable)
 	exaFinishAccess(pDst->alphaMap->pDrawable, EXA_PREPARE_AUX_DEST);
-
-skip:
     if (pSrc->alphaMap && pSrc->alphaMap->pDrawable)
 	exaFinishAccess(pSrc->alphaMap->pDrawable, EXA_PREPARE_AUX_SRC);
     if (pMask && pMask->alphaMap && pMask->alphaMap->pDrawable)
 	exaFinishAccess(pMask->alphaMap->pDrawable, EXA_PREPARE_AUX_MASK);
 
-    REGION_UNINIT(pScreen, &region);
+out_no_clip:
     EXA_POST_FALLBACK(pScreen);
 }
 

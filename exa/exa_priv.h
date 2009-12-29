@@ -165,6 +165,7 @@ typedef struct {
     BitmapToRegionProcPtr        SavedBitmapToRegion;
     CreateScreenResourcesProcPtr SavedCreateScreenResources;
     ModifyPixmapHeaderProcPtr    SavedModifyPixmapHeader;
+    SourceValidateProcPtr        SavedSourceValidate;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
     TrianglesProcPtr		 SavedTriangles;
@@ -201,6 +202,15 @@ typedef struct {
     unsigned int fallback_counter;
 
     ExaGlyphCacheRec             glyphCaches[EXA_NUM_GLYPH_CACHES];
+
+    /**
+     * Regions affected by fallback composite source / mask operations.
+     */
+
+    RegionRec srcReg;
+    RegionRec maskReg;
+    PixmapPtr srcPix;
+
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
