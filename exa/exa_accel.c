@@ -1043,6 +1043,7 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
 	    pDrawable->width == 1 && pDrawable->height == 1 &&
 	    pDrawable->bitsPerPixel != 24) {
 	    ExaPixmapPriv(pPixmap);
+	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
 	    switch (pDrawable->bitsPerPixel) {
 	    case 32:
@@ -1057,6 +1058,9 @@ exaFillRegionSolid (DrawablePtr	pDrawable, RegionPtr pRegion, Pixel pixel,
 
 	    REGION_UNION(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
 			 pRegion);
+	    REGION_UNION(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
+			 pRegion);
+	    REGION_SUBTRACT(pScreen, pending_damage, pending_damage, pRegion);
 	}
 
 	ret = TRUE;
