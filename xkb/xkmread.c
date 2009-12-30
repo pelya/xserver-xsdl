@@ -531,7 +531,13 @@ XkbAction               *act;
             act->devval.v2_ndx = wire.actionData[5];
             act->devval.v2_what = wire.actionData[6];
             break;
+
         case XkbSA_XFree86Private:
+            /* copy the kind of action */
+            strncpy((char*)act->any.data, (char*)wire.actionData,
+                    XkbAnyActionDataSize);
+            break ;
+
         case XkbSA_Terminate:
             /* no args, kinda (note: untrue for xfree86). */
             break;
