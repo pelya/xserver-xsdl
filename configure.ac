@@ -1737,6 +1737,7 @@ if test "x$XORG" = xyes; then
 
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
+	XF86CONFIGDIR="xorg.conf.d"
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
 	LOGPREFIX="$logdir/Xorg."
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
@@ -1749,6 +1750,7 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(XF86CONFIGFILE, XF86CONFIGFILE, [Name of configuration file])
+	AC_DEFINE_DIR(__XCONFIGDIR__, XF86CONFIGDIR, [Name of configuration directory])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])
 	AC_DEFINE_DIR(DEFAULT_LIBRARY_PATH, libdir, [Default library install path])
 	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
