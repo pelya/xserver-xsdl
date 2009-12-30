@@ -144,6 +144,7 @@ The section names are:
 .BR "Module         " "Dynamic module loading"
 .BR "Extensions     " "Extension enabling"
 .BR "InputDevice    " "Input device description"
+.BR "InputClass     " "Input class description"
 .BR "Device         " "Graphics device description"
 .BR "VideoAdaptor   " "Xv video adaptor description"
 .BR "Monitor        " "Monitor description"
@@ -914,6 +915,101 @@ may be reattached or set floating at runtime.
 .TP 7
 .BI "Option \*qSendDragEvents\*q  \*q" boolean \*q
 ???
+.SH "INPUTCLASS SECTION"
+The config file may have multiple
+.B InputClass
+sections.
+These sections are optional and are used to provide configuration for a
+class of input devices as they are automatically added. An input device can
+match more than one
+.B InputClass
+section. Each class can only supplement settings from a previous class, so
+it is best to arrange the sections with the most generic matches last.
+.PP
+.B InputClass
+sections have the following format:
+.PP
+.RS 4
+.nf
+.B  "Section \*qInputClass\*q"
+.BI "    Identifier  \*q" name \*q
+.I  "    entries"
+.I  "    ..."
+.I  "    options"
+.I  "    ..."
+.B  "EndSection"
+.fi
+.RE
+.PP
+The
+.B Identifier
+entry is required in all
+.B InputClass
+sections.
+All other entries are optional.
+.PP
+The
+.B Identifier
+entry specifies the unique name for this input class.
+The
+.B Driver
+entry specifies the name of the driver to use for this input device.
+After all classes have been examined, the
+.RI \*q inputdriver \*q
+module from the final
+.B Driver
+entry will be enabled when using the loadable server.
+.PP
+When an input device is automatically added, its characteristics are
+checked against all
+.B InputClass
+sections. Each section can contain optional entries to narrow the match
+of the class. If none of the optional entries appear, the
+.B InputClass
+section is generic and will match any input device. If more than one of
+these entries appear, they all must match for the configuration to apply.
+The allowed matching entries are shown below.
+.PP
+.TP 7
+.BI "MatchProduct  \*q" matchproduct \*q
+This entry can be used to check if the substring
+.RI \*q matchproduct \*q
+occurs in the device's product name.
+.TP 7
+.BI "MatchVendor  \*q" matchvendor \*q
+This entry can be used to check if the substring
+.RI \*q matchvendor \*q
+occurs in the device's vendor name.
+.TP 7
+.BI "MatchDevicePath \*q" matchdevice \*q
+This entry can be used to check if the device file matches the
+.RI \*q matchdevice \*q
+pathname pattern.
+.TP 7
+.BI "MatchIsKeyboard     \*q" bool \*q
+.TP 7
+.BI "MatchIsPointer      \*q" bool \*q
+.TP 7
+.BI "MatchIsJoystick     \*q" bool \*q
+.TP 7
+.BI "MatchIsTablet       \*q" bool \*q
+.TP 7
+.BI "MatchIsTouchpad     \*q" bool \*q
+.TP 7
+.BI "MatchIsTouchscreen  \*q" bool \*q
+Match device types. These entries take a boolean argument similar to
+.B Option
+entries.
+.PP
+When an input device has been matched to the
+.B InputClass
+section, any
+.B Option
+entries are applied to the device. See the
+.B InputDevice
+section above for a description of the various
+.B Option
+entries.
 .SH "DEVICE SECTION"
 The config file may have multiple
 .B Device

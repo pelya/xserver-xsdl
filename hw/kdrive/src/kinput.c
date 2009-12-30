@@ -2249,7 +2249,8 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
 }
 
 int
-NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
+NewInputDeviceRequest(InputOption *options, InputAttributes *attrs,
+                      DeviceIntPtr *pdev)
 {
     InputOption *option = NULL;
     KdPointerInfo *pi = NULL;
