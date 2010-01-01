@@ -175,10 +175,8 @@ TslibInit (KdPointerInfo *pi)
 static void
 TslibFini (KdPointerInfo *pi)
 {
-    if (pi->driverPrivate) {
-        xfree(pi->driverPrivate);
-        pi->driverPrivate = NULL;
-    }
+    xfree(pi->driverPrivate);
+    pi->driverPrivate = NULL;
 }
 
 
