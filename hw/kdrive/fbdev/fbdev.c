@@ -38,12 +38,12 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
     int		    k;
     unsigned long   off;
 
-    if (fbdevDevicePath == NULL) 
+    if (fbdevDevicePath == NULL)
       fbdevDevicePath = "/dev/fb0";
 
     if ((priv->fd = open(fbdevDevicePath, O_RDWR)) < 0)
       {
-	ErrorF("Error opening framebuffer %s: %s\n", 
+	ErrorF("Error opening framebuffer %s: %s\n",
 	       fbdevDevicePath, strerror(errno));
         return FALSE;
       }
@@ -68,8 +68,8 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 				   PROT_READ|PROT_WRITE,
 				   MAP_SHARED,
 				   priv->fd, 0);
-    
-    if (priv->fb_base == (char *)-1) 
+
+    if (priv->fb_base == (char *)-1)
     {
         perror("ERROR: mmap framebuffer fails!");
 	close (priv->fd);
@@ -88,14 +88,14 @@ fbdevCardInit (KdCardInfo *card)
     priv = (FbdevPriv *) xalloc (sizeof (FbdevPriv));
     if (!priv)
 	return FALSE;
-    
+
     if (!fbdevInitialize (card, priv))
     {
 	xfree (priv);
 	return FALSE;
     }
     card->driver = priv;
-    
+
     return TRUE;
 }
 
@@ -124,7 +124,7 @@ static void
 fbdevConvertMonitorTiming (const KdMonitorTiming *t, struct fb_var_screeninfo *var)
 {
     memset (var, 0, sizeof (struct fb_var_screeninfo));
-    
+
     var->xres = t->horizontal;
     var->yres = t->vertical;
     var->xres_virtual = t->horizontal;
@@ -160,10 +160,10 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     int k;
 
     k = ioctl (priv->fd, FBIOGET_VSCREENINFO, &var);
-    
+
     if (!screen->width || !screen->height)
     {
-	if (k >= 0) 
+	if (k >= 0)
 	{
 	    screen->width = var.xres;
 	    screen->height = var.yres;
@@ -177,7 +177,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     }
     if (!screen->fb[0].depth)
     {
-	if (k >= 0) 
+	if (k >= 0)
 	    screen->fb[0].depth = var.bits_per_pixel;
 	else
 	    screen->fb[0].depth = 16;
@@ -217,7 +217,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     ioctl (priv->fd, FBIOGET_VSCREENINFO, &priv->var);
     depth = priv->var.bits_per_pixel;
     gray = priv->var.grayscale;
-    
+
     switch (priv->fix.visual) {
     case FB_VISUAL_PSEUDOCOLOR:
 	if (gray)
@@ -309,7 +309,7 @@ fbdevScreenInit (KdScreenInfo *screen)
     }
     return TRUE;
 }
-    
+
 void *
 fbdevWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
@@ -338,19 +338,19 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
 	scrpriv->shadow = TRUE;
     else
 	scrpriv->shadow = FALSE;
-    
+
     KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
-    
+
     KdSetPointerMatrix (&m);
-    
+
     screen->width = priv->var.xres;
     screen->height = priv->var.yres;
     screen->memory_base = (CARD8 *) (priv->fb);
     screen->memory_size = priv->fix.smem_len;
-    
+
     if (scrpriv->shadow)
     {
-	if (!KdShadowFbAlloc (screen, 0, 
+	if (!KdShadowFbAlloc (screen, 0,
 			      scrpriv->randr & (RR_Rotate_90|RR_Rotate_270)))
 	    return FALSE;
 	screen->off_screen_base = screen->memory_size;
@@ -358,12 +358,12 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     else
     {
         screen->fb[0].byteStride = priv->fix.line_length;
-        screen->fb[0].pixelStride = (priv->fix.line_length * 8 / 
+        screen->fb[0].pixelStride = (priv->fix.line_length * 8 /
     				 priv->var.bits_per_pixel);
         screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
 	screen->off_screen_base = screen->fb[0].byteStride * screen->height;
     }
-    
+
     return TRUE;
 }
 
@@ -458,25 +458,25 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     RRScreenSizePtr	    pSize;
     Rotation		    randr;
     int			    n;
-    
+
     *rotations = RR_Rotate_All|RR_Reflect_All;
-    
+
     for (n = 0; n < pScreen->numDepths; n++)
 	if (pScreen->allowedDepths[n].numVids)
 	    break;
     if (n == pScreen->numDepths)
 	return FALSE;
-    
+
     pSize = RRRegisterSize (pScreen,
 			    screen->width,
 			    screen->height,
 			    screen->width_mm,
 			    screen->height_mm);
-    
+
     randr = KdSubRotation (scrpriv->randr, screen->randr);
-    
+
     RRSetCurrentConfig (pScreen, randr, 0, pSize);
-    
+
     return TRUE;
 }
 
@@ -512,20 +512,20 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
 	KdDisableScreen (pScreen);
 
     oldscr = *scrpriv;
-    
+
     oldwidth = screen->width;
     oldheight = screen->height;
     oldmmwidth = pScreen->mmWidth;
     oldmmheight = pScreen->mmHeight;
-    
+
     /*
      * Set new configuration
      */
-    
+
     scrpriv->randr = KdAddRotation (screen->randr, randr);
 
     fbdevUnmapFramebuffer (screen);
-    
+
     if (!fbdevMapFramebuffer (screen))
 	goto bail4;
 
@@ -546,9 +546,9 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
 				    screen->fb[0].bitsPerPixel,
 				    screen->fb[0].byteStride,
 				    screen->fb[0].frameBuffer);
-    
+
     /* set the subpixel order */
-    
+
     KdSetSubpixelOrder (pScreen, scrpriv->randr);
     if (wasEnabled)
 	KdEnableScreen (pScreen);
@@ -563,7 +563,7 @@ bail4:
     pScreen->height = oldheight;
     pScreen->mmWidth = oldmmwidth;
     pScreen->mmHeight = oldmmheight;
-    
+
     if (wasEnabled)
 	KdEnableScreen (pScreen);
     return FALSE;
@@ -573,7 +573,7 @@ Bool
 fbdevRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;
-    
+
     if (!RRScreenInit (pScreen))
 	return FALSE;
 
@@ -594,7 +594,7 @@ fbdevCreateColormap (ColormapPtr pmap)
     int			i;
     int			nent;
     xColorItem		*pdefs;
-    
+
     switch (priv->fix.visual) {
     case FB_VISUAL_STATIC_PSEUDOCOLOR:
 	pVisual = pmap->pVisual;
@@ -639,7 +639,7 @@ fbdevFinishInitScreen (ScreenPtr pScreen)
     if (!fbdevRandRInit (pScreen))
 	return FALSE;
 #endif
-    
+
     return TRUE;
 }
 
@@ -663,7 +663,7 @@ fbdevEnable (ScreenPtr pScreen)
     int			k;
 
     priv->var.activate = FB_ACTIVATE_NOW|FB_CHANGE_CMAP_VBL;
-    
+
     /* display it on the LCD */
     k = ioctl (priv->fd, FBIOPUT_VSCREENINFO, &priv->var);
     if (k < 0)
@@ -671,13 +671,13 @@ fbdevEnable (ScreenPtr pScreen)
 	perror ("FBIOPUT_VSCREENINFO");
 	return FALSE;
     }
-    
+
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
 	struct fb_cmap	cmap;
 	int		i;
 
-	for (i = 0; 
+	for (i = 0;
 	     i < (1 << priv->var.red.length) ||
 	     i < (1 << priv->var.green.length) ||
 	     i < (1 << priv->var.blue.length); i++)
@@ -742,7 +742,7 @@ void
 fbdevCardFini (KdCardInfo *card)
 {
     FbdevPriv	*priv = card->driver;
-    
+
     munmap (priv->fb_base, priv->fix.smem_len);
     close (priv->fd);
     xfree (priv);

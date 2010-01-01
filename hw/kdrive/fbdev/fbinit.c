@@ -60,11 +60,11 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
   if (!strcmp (argv[i], "-fb"))
     {
-      if (i+1 < argc) 
+      if (i+1 < argc)
 	{
 	  fbdevDevicePath = argv[i+1];
 	  return 2;
-	} 
+	}
       UseMsg();
       exit(1);
     }
@@ -86,18 +86,18 @@ KdCardFuncs	fbdevFuncs = {
     fbdevRestore,	    /* restore */
     fbdevScreenFini,	    /* scrfini */
     fbdevCardFini,	    /* cardfini */
-    
+
     0,			    /* initCursor */
     0,			    /* enableCursor */
     0,			    /* disableCursor */
     0,			    /* finiCursor */
     0,			    /* recolorCursor */
-    
+
     0,			    /* initAccel */
     0,			    /* enableAccel */
     0,			    /* disableAccel */
     0,			    /* finiAccel */
-    
+
     fbdevGetColors,    	    /* getColors */
     fbdevPutColors,	    /* putColors */
 };

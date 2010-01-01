@@ -31,7 +31,7 @@ KdComputeCmapShift (unsigned long mask)
 {
     int	shift;
     unsigned long   bit;
-    
+
     shift = 16;
     bit = 0x80000000;
     while (!(mask & bit))
@@ -47,7 +47,7 @@ KdComputeCmapShift (unsigned long mask)
 void
 KdAllocateCursorPixels (ScreenPtr	pScreen,
 			int		fb,
-			CursorPtr	pCursor, 
+			CursorPtr	pCursor,
 			Pixel		*source,
 			Pixel		*mask)
 {
@@ -77,7 +77,7 @@ KdAllocateCursorPixels (ScreenPtr	pScreen,
 	 */
 	*source = ~0;
 	*mask = ~0;
-	
+
 	sourceColor.red = pCursor->foreRed;
 	sourceColor.green = pCursor->foreGreen;
 	sourceColor.blue = pCursor->foreBlue;

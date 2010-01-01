@@ -79,7 +79,7 @@ LinuxInit (void)
 	vtno = kdVirtualTerminal;
     else
     {
-	if ((fd = open("/dev/tty0",O_WRONLY,0)) < 0) 
+	if ((fd = open("/dev/tty0",O_WRONLY,0)) < 0)
 	{
 	    FatalError(
 		       "LinuxInit: Cannot open /dev/tty0 (%s)\n",
@@ -129,8 +129,8 @@ LinuxSetSwitchMode (int mode)
 {
     struct sigaction	act;
     struct vt_mode	VT;
-    
-    if (ioctl(LinuxConsoleFd, VT_GETMODE, &VT) < 0) 
+
+    if (ioctl(LinuxConsoleFd, VT_GETMODE, &VT) < 0)
     {
 	FatalError ("LinuxInit: VT_GETMODE failed\n");
     }
@@ -141,7 +141,7 @@ LinuxSetSwitchMode (int mode)
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction (SIGUSR1, &act, 0);
-    
+
 	VT.mode = mode;
 	VT.relsig = SIGUSR1;
 	VT.acqsig = SIGUSR1;
@@ -152,12 +152,12 @@ LinuxSetSwitchMode (int mode)
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction (SIGUSR1, &act, 0);
-    
+
 	VT.mode = mode;
 	VT.relsig = 0;
 	VT.acqsig = 0;
     }
-    if (ioctl(LinuxConsoleFd, VT_SETMODE, &VT) < 0) 
+    if (ioctl(LinuxConsoleFd, VT_SETMODE, &VT) < 0)
     {
 	FatalError("LinuxInit: VT_SETMODE failed\n");
     }
@@ -237,7 +237,7 @@ LinuxEnable (void)
      */
     LinuxApmFd = open ("/dev/apm_bios", 2);
     if (LinuxApmFd < 0 && errno == ENOENT)
-	LinuxApmFd = open ("/dev/misc/apm_bios", 2); 
+	LinuxApmFd = open ("/dev/misc/apm_bios", 2);
     if (LinuxApmFd >= 0)
     {
 	LinuxApmRunning = TRUE;
@@ -245,7 +245,7 @@ LinuxEnable (void)
 	RegisterBlockAndWakeupHandlers (LinuxApmBlock, LinuxApmWakeup, 0);
 	AddEnabledDevice (LinuxApmFd);
     }
-	
+
     /*
      * now get the VT
      */
@@ -308,8 +308,8 @@ LinuxFini (void)
 	 * Find a legal VT to switch to, either the one we started from
 	 * or the lowest active one that isn't ours
 	 */
-	if (activeVT < 0 || 
-	    activeVT == vts.v_active || 
+	if (activeVT < 0 ||
+	    activeVT == vts.v_active ||
 	    !(vts.v_state & (1 << activeVT)))
 	{
 	    for (activeVT = 1; activeVT < 16; activeVT++)

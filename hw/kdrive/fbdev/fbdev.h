@@ -42,7 +42,7 @@ typedef struct _fbdevPriv {
     char			*fb;
     char			*fb_base;
 } FbdevPriv;
-    
+
 typedef struct _fbdevScrPriv {
     Rotation			randr;
     Bool			shadow;
@@ -63,7 +63,7 @@ fbdevScreenInit (KdScreenInfo *screen);
 
 Bool
 fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv);
-    
+
 Bool
 fbdevInitScreen (ScreenPtr pScreen);
 
@@ -122,7 +122,7 @@ fbdevSetShadow (ScreenPtr pScreen);
 
 Bool
 fbdevCreateColormap (ColormapPtr pmap);
-    
+
 #ifdef RANDR
 Bool
 fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations);

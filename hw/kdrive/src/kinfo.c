@@ -155,10 +155,10 @@ KdFreePointer(KdPointerInfo *pi)
 
     if (prev)
         xfree(prev);
-    
+
     xfree(pi);
 }
- 
+
 void
 KdFreeKeyboard(KdKeyboardInfo *ki)
 {

@@ -43,10 +43,10 @@ KdSetColormap (ScreenPtr pScreen, int fb)
 	return;
     if (pScreenPriv->screen->fb[fb].depth > KD_MAX_PSEUDO_DEPTH)
 	return;
-    
+
     if (!pScreenPriv->enabled)
 	return;
-    
+
     if (!pCmap)
 	return;
 
@@ -54,12 +54,12 @@ KdSetColormap (ScreenPtr pScreen, int fb)
      * Make DIX convert pixels into RGB values -- this handles
      * true/direct as well as pseudo/static visuals
      */
-    
+
     for (i = 0; i < (1 << pScreenPriv->screen->fb[fb].depth); i++)
 	pixels[i] = i;
 
     QueryColors (pCmap, (1 << pScreenPriv->screen->fb[fb].depth), pixels, colors);
-    
+
     for (i = 0; i < (1 << pScreenPriv->screen->fb[fb].depth); i++)
     {
 	defs[i].pixel = i;
@@ -187,7 +187,7 @@ KdInstallColormap (ColormapPtr pCmap)
     pScreenPriv->pInstalledmap[fb] = pCmap;
 
     KdSetColormap (pCmap->pScreen, fb);
-    
+
     /* Tell X clients of the new colormap */
     WalkTree(pCmap->pScreen, TellGainedMap, (pointer) &(pCmap->mid));
 }
@@ -195,7 +195,7 @@ KdInstallColormap (ColormapPtr pCmap)
 /*
  * KdUninstallColormap
  *
- * This function uninstalls a colormap by either installing 
+ * This function uninstalls a colormap by either installing
  * the default X colormap or erasing the installed colormap pointer.
  * The default X colormap itself cannot be uninstalled.
  */
@@ -236,7 +236,7 @@ KdListInstalledColormaps (ScreenPtr pScreen, Colormap *pCmaps)
     KdScreenPriv(pScreen);
     int		fb;
     int		n = 0;
-    
+
     for (fb = 0; fb < KD_MAX_FB && pScreenPriv->screen->fb[fb].depth; fb++)
     {
 	if (pScreenPriv->pInstalledmap[fb])
@@ -265,16 +265,16 @@ KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs)
 
     if (pCmap != pScreenPriv->pInstalledmap[fb])
 	return;
-    
+
     if (!pScreenPriv->card->cfuncs->putColors)
 	return;
-    
+
     if (pScreenPriv->screen->fb[fb].depth > KD_MAX_PSEUDO_DEPTH)
 	return;
-    
+
     if (!pScreenPriv->enabled)
 	return;
-    
+
     /* Check for DirectColor or TrueColor being simulated on a PseudoColor device. */
     pVisual = pCmap->pVisual;
     if ((pVisual->class | DynamicClass) == DirectColor)
@@ -288,7 +288,7 @@ KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs)
     }
 
     (*pScreenPriv->card->cfuncs->putColors) (pCmap->pScreen, fb, ndef, pdefs);
-    
+
     /* recolor hardware cursor */
     if (pScreenPriv->card->cfuncs->recolorCursor)
 	(*pScreenPriv->card->cfuncs->recolorCursor) (pCmap->pScreen, ndef, pdefs);

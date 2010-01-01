@@ -242,7 +242,7 @@ struct _KdPointerInfo {
         int z;
         int flags;
         int absrel;
-    } heldEvent;         
+    } heldEvent;
     unsigned char         buttonState;
     Bool                  transformCoordinates;
     int                   pressureThreshold;
@@ -421,7 +421,7 @@ KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs);
 void
 KdAllocateCursorPixels (ScreenPtr	pScreen,
 			int		fb,
-			CursorPtr	pCursor, 
+			CursorPtr	pCursor,
 			Pixel		*source,
 			Pixel		*mask);
 
@@ -517,13 +517,13 @@ void
 KdInitOutput (ScreenInfo    *pScreenInfo,
 	      int	    argc,
 	      char	    **argv);
- 
+
 void
 KdSetSubpixelOrder (ScreenPtr pScreen, Rotation randr);
 
 void
 KdBacktrace (int signum);
-    
+
 /* kinfo.c */
 KdCardInfo *
 KdCardInfoAdd (KdCardFuncs  *funcs,
@@ -584,7 +584,7 @@ _KdEnqueuePointerEvent(KdPointerInfo *pi, int type, int x, int y, int z,
 
 void
 KdReleaseAllKeys (void);
-    
+
 void
 KdSetLed (KdKeyboardInfo *ki, int led, Bool on);
 
@@ -604,7 +604,7 @@ KdBlockHandler (int		screen,
 		pointer		readmask);
 
 void
-KdWakeupHandler (int		screen, 
+KdWakeupHandler (int		screen,
 		 pointer    	data,
 		 unsigned long	result,
 		 pointer	readmask);
@@ -669,14 +669,14 @@ KdTuneMode (KdScreenInfo    *screen,
 
 #ifdef RANDR
 Bool
-KdRandRGetInfo (ScreenPtr pScreen, 
+KdRandRGetInfo (ScreenPtr pScreen,
 		int randr,
-		Bool (*supported) (ScreenPtr pScreen, 
+		Bool (*supported) (ScreenPtr pScreen,
 				   const KdMonitorTiming *));
 
 const KdMonitorTiming *
 KdRandRGetTiming (ScreenPtr	    pScreen,
-		  Bool		    (*supported) (ScreenPtr pScreen, 
+		  Bool		    (*supported) (ScreenPtr pScreen,
 						  const KdMonitorTiming *),
 		  int		    rate,
 		  RRScreenSizePtr   pSize);
@@ -691,7 +691,7 @@ KdShadowFbFree (KdScreenInfo *screen, int fb);
 
 Bool
 KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindowProc window);
-    
+
 void
 KdShadowUnset (ScreenPtr pScreen);
 

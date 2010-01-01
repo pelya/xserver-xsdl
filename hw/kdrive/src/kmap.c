@@ -45,7 +45,7 @@ KdMapDevice (CARD32 addr, CARD32 size)
     DRAW_DEBUG ((DEBUG_S3INIT, "Virtual address of 0x%x is 0x%x", addr, d));
     a = VirtualCopyAddr (addr);
     DRAW_DEBUG ((DEBUG_S3INIT, "Translated address is 0x%x", a));
-    if (!VirtualCopy (d, a, size, 
+    if (!VirtualCopy (d, a, size,
 		      PAGE_READWRITE|PAGE_NOCACHE|PAGE_PHYSICAL))
     {
 	DRAW_DEBUG ((DEBUG_FAILURE, "VirtualCopy failed %d",
@@ -67,7 +67,7 @@ KdMapDevice (CARD32 addr, CARD32 size)
     if (fd < 0)
 	FatalError ("KdMapDevice: failed to open /dev/mem (%s)\n",
 		    strerror (errno));
-    
+
     a = mmap ((caddr_t) 0, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, addr);
     close (fd);
     if ((long) a == -1)
@@ -124,7 +124,7 @@ KdSetMappedMode (CARD32 addr, CARD32 size, int mode)
 	sentry.base = base;
 	sentry.size = nsize;
 	sentry.type = type;
-	
+
 	if (ioctl (mtrr, MTRRIOC_ADD_ENTRY, &sentry) < 0)
 	    ErrorF ("MTRRIOC_ADD_ENTRY failed 0x%x 0x%x %d (%s)\n",
 		    base, bound - base, type, strerror(errno));
@@ -163,7 +163,7 @@ KdResetMappedMode (CARD32 addr, CARD32 size, int mode)
 	sentry.base = base;
 	sentry.size = nsize;
 	sentry.type = type;
-	
+
 	if (ioctl (mtrr, MTRRIOC_DEL_ENTRY, &sentry) < 0)
 	    ErrorF ("MTRRIOC_DEL_ENTRY failed 0x%x 0x%x %d (%s)\n",
 		    base, bound - base, type, strerror(errno));
