@@ -46,7 +46,6 @@ typedef struct _fbdevPriv {
 typedef struct _fbdevScrPriv {
     Rotation			randr;
     Bool			shadow;
-    PixmapPtr			pShadow;
 } FbdevScrPriv;
 
 extern KdCardFuncs  fbdevFuncs;
