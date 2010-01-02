@@ -529,7 +529,7 @@ void
 KdUseMsg (void)
 {
     ErrorF("\nTinyX Device Dependent Usage:\n");
-    ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
+    ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP[xFREQ]]  Specify screen characteristics\n");
     ErrorF("-rgba rgb/bgr/vrgb/vbgr/none   Specify subpixel ordering for LCD panels\n");
     ErrorF("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
     ErrorF("-keybd driver [,,options]      Specify the keyboard driver and its options\n");
