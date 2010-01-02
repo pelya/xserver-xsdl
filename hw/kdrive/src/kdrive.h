@@ -57,10 +57,6 @@
 #define KD_MAX_FB   FB_OVERLAY_MAX
 #endif
 
-#ifndef KD_MAX_CARD_ADDRESS
-#define KD_MAX_CARD_ADDRESS 8
-#endif
-
 #define Status int
 
 typedef struct _KdCardInfo {
