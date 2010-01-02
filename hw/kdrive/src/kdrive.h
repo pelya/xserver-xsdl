@@ -90,7 +90,6 @@ typedef struct _KdCardInfo {
     int			    selected;
     struct _KdCardInfo	    *next;
 
-    Bool		    needSync;
     int			    lastMarker;
 } KdCardInfo;
 
