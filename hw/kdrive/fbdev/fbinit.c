@@ -28,9 +28,7 @@
 void
 InitCard (char *name)
 {
-    KdCardAttr	attr;
-
-    KdCardInfoAdd (&fbdevFuncs, &attr, 0);
+    KdCardInfoAdd (&fbdevFuncs, 0);
 }
 
 void

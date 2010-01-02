@@ -50,12 +50,8 @@ void processScreenArg (char *screen_size, char *parent_id) ;
 void
 InitCard (char *name)
 {
-    KdCardAttr	attr;
-
     EPHYR_DBG("mark");
-
-
-    KdCardInfoAdd (&ephyrFuncs, &attr, 0);
+    KdCardInfoAdd (&ephyrFuncs, 0);
 }
 
 void

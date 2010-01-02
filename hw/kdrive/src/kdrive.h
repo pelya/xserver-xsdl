@@ -63,28 +63,9 @@
 
 #define Status int
 
-/*
- * Configuration information per video card
- */
-
-typedef struct _KdCardAttr {
-    CARD32  io;
-    CARD32  address[KD_MAX_CARD_ADDRESS];
-    int	    naddr;
-
-    /* PCI bus info */
-    CARD16  vendorID;
-    CARD16  deviceID;
-    CARD8   domain;
-    CARD8   bus;
-    CARD8   slot;
-    CARD8   func;
-} KdCardAttr;
-
 typedef struct _KdCardInfo {
     struct _KdCardFuncs	    *cfuncs;
     void		    *closure;
-    KdCardAttr		    attr;
     void		    *driver;
     struct _KdScreenInfo    *screenList;
     int			    selected;
@@ -526,7 +507,6 @@ KdBacktrace (int signum);
 /* kinfo.c */
 KdCardInfo *
 KdCardInfoAdd (KdCardFuncs  *funcs,
-	       KdCardAttr   *attr,
 	       void	    *closure);
 
 KdCardInfo *
