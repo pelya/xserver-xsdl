@@ -651,6 +651,21 @@ fbdevPreserve (KdCardInfo *card)
 {
 }
 
+static int
+fbdevUpdateFbColormap(FbdevPriv *priv, int minidx, int maxidx)
+{
+    struct fb_cmap cmap;
+
+    cmap.start = minidx;
+    cmap.len = maxidx - minidx + 1;
+    cmap.red = &priv->red[minidx];
+    cmap.green = &priv->green[minidx];
+    cmap.blue = &priv->blue[minidx];
+    cmap.transp = 0;
+
+    return ioctl(priv->fd, FBIOPUTCMAP, &cmap);
+}
+
 Bool
 fbdevEnable (ScreenPtr pScreen)
 {
@@ -670,7 +685,6 @@ fbdevEnable (ScreenPtr pScreen)
 
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
-	struct fb_cmap	cmap;
 	int		i;
 
 	for (i = 0;
@@ -682,13 +696,8 @@ fbdevEnable (ScreenPtr pScreen)
 	    priv->green[i] = i * 65535 / ((1 << priv->var.green.length) - 1);
 	    priv->blue[i] = i * 65535 / ((1 << priv->var.blue.length) - 1);
 	}
-	cmap.start = 0;
-	cmap.len = i;
-	cmap.red = &priv->red[0];
-	cmap.green = &priv->green[0];
-	cmap.blue = &priv->blue[0];
-	cmap.transp = 0;
-	ioctl (priv->fd, FBIOPUTCMAP, &cmap);
+
+	fbdevUpdateFbColormap(priv, 0, i);
     }
     return TRUE;
 }
@@ -744,6 +753,9 @@ fbdevCardFini (KdCardInfo *card)
     xfree (priv);
 }
 
+/*
+ * Retrieve actual colormap and return selected n entries in pdefs.
+ */
 void
 fbdevGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
@@ -785,12 +797,14 @@ fbdevGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
     }
 }
 
+/*
+ * Change colormap by updating n entries described in pdefs.
+ */
 void
 fbdevPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     FbdevPriv	*priv = pScreenPriv->card->driver;
-    struct fb_cmap  cmap;
     int		    p;
     int		    min, max;
 
@@ -808,11 +822,6 @@ fbdevPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 	    max = p;
 	pdefs++;
     }
-    cmap.start = min;
-    cmap.len = max - min + 1;
-    cmap.red = &priv->red[min];
-    cmap.green = &priv->green[min];
-    cmap.blue = &priv->blue[min];
-    cmap.transp = 0;
-    ioctl (priv->fd, FBIOPUTCMAP, &cmap);
+
+    fbdevUpdateFbColormap(priv, min, max);
 }
