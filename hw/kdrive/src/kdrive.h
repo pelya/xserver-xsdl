@@ -62,8 +62,6 @@ typedef struct _KdCardInfo {
     struct _KdScreenInfo    *screenList;
     int			    selected;
     struct _KdCardInfo	    *next;
-
-    int			    lastMarker;
 } KdCardInfo;
 
 extern KdCardInfo	*kdCardInfo;
