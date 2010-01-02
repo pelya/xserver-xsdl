@@ -111,9 +111,6 @@ typedef struct _KdScreenInfo {
     int		mynum;
     DDXPointRec	origin;
     KdFrameBuffer   fb[KD_MAX_FB];
-    CARD8	*memory_base;
-    unsigned long   memory_size;
-    unsigned long   off_screen_base;
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {

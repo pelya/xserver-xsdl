@@ -171,9 +171,6 @@ fakeMapFramebuffer (KdScreenInfo *screen)
     if (priv->base)
 	free (priv->base);
     priv->base = malloc (priv->bytes_per_line * screen->height);
-    screen->memory_base = (CARD8 *) (priv->base);
-    screen->memory_size = 0;
-    screen->off_screen_base = 0;
     
     if (scrpriv->shadow)
     {

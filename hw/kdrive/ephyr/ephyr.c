@@ -220,6 +220,22 @@ ephyrWindowLinear (ScreenPtr	pScreen,
   return priv->base + row * priv->bytes_per_line + offset;
 }
 
+/**
+ * Figure out display buffer size. If fakexa is enabled, allocate a larger
+ * buffer so that fakexa has space to put offscreen pixmaps.
+ */
+int
+ephyrBufferHeight(KdScreenInfo *screen)
+{
+    int buffer_height;
+    if (ephyrFuncs.initAccel == NULL)
+	buffer_height = screen->height;
+    else
+	buffer_height = 3 * screen->height;
+    return buffer_height;
+}
+
+
 Bool
 ephyrMapFramebuffer (KdScreenInfo *screen)
 {
@@ -235,22 +251,11 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
   KdSetPointerMatrix (&m);
   
   priv->bytes_per_line = ((screen->width * screen->fb[0].bitsPerPixel + 31) >> 5) << 2;
-  
-  /* point the framebuffer to the data in an XImage */
-  /* If fakexa is enabled, allocate a larger buffer so that fakexa has space to
-   * put offscreen pixmaps.
-   */
-  if (ephyrFuncs.initAccel == NULL)
-    buffer_height = screen->height;
-  else
-    buffer_height = 3 * screen->height;
+
+  buffer_height = ephyrBufferHeight(screen);
 
   priv->base = hostx_screen_init (screen, screen->width, screen->height, buffer_height);
 
-  screen->memory_base  = (CARD8 *) (priv->base);
-  screen->memory_size  = priv->bytes_per_line * buffer_height;
-  screen->off_screen_base = priv->bytes_per_line * screen->height;
-  
   if ((scrpriv->randr & RR_Rotate_0) && !(scrpriv->randr & RR_Reflect_All))
     {
       scrpriv->shadow = FALSE;
