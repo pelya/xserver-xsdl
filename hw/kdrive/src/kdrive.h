@@ -53,10 +53,6 @@
 #define KD_DPMS_POWERDOWN   3
 #define KD_DPMS_MAX	    KD_DPMS_POWERDOWN
 
-#ifndef KD_MAX_FB
-#define KD_MAX_FB   FB_OVERLAY_MAX
-#endif
-
 #define Status int
 
 typedef struct _KdCardInfo {
@@ -106,7 +102,7 @@ typedef struct _KdScreenInfo {
     Bool        softCursor;
     int		mynum;
     DDXPointRec	origin;
-    KdFrameBuffer   fb[KD_MAX_FB];
+    KdFrameBuffer   fb;
 } KdScreenInfo;
 
 typedef struct _KdCardFuncs {
@@ -134,8 +130,8 @@ typedef struct _KdCardFuncs {
     void        (*disableAccel) (ScreenPtr);
     void        (*finiAccel) (ScreenPtr);
 
-    void        (*getColors) (ScreenPtr, int, int, xColorItem *);
-    void        (*putColors) (ScreenPtr, int, int, xColorItem *);
+    void        (*getColors) (ScreenPtr, int, xColorItem *);
+    void        (*putColors) (ScreenPtr, int, xColorItem *);
 
 } KdCardFuncs;
 
@@ -148,11 +144,11 @@ typedef struct {
 
     Bool	    enabled;
     Bool	    closed;
-    int		    bytesPerPixel[KD_MAX_FB];
+    int		    bytesPerPixel;
 
     int		    dpmsState;
 
-    ColormapPtr     pInstalledmap[KD_MAX_FB];         /* current colormap */
+    ColormapPtr     pInstalledmap;                    /* current colormap */
     xColorItem      systemPalette[KD_MAX_PSEUDO_SIZE];/* saved windows colors */
 
     CreateScreenResourcesProcPtr    CreateScreenResources;
@@ -370,7 +366,7 @@ extern GCOps		kdNoopOps;
 
 /* kcmap.c */
 void
-KdSetColormap (ScreenPtr pScreen, int fb);
+KdSetColormap (ScreenPtr pScreen);
 
 void
 KdEnableColormap (ScreenPtr pScreen);
@@ -389,14 +385,6 @@ KdListInstalledColormaps (ScreenPtr pScreen, Colormap *pCmaps);
 
 void
 KdStoreColors (ColormapPtr pCmap, int ndef, xColorItem *pdefs);
-
-/* kcurscol.c */
-void
-KdAllocateCursorPixels (ScreenPtr	pScreen,
-			int		fb,
-			CursorPtr	pCursor,
-			Pixel		*source,
-			Pixel		*mask);
 
 /* kdrive.c */
 extern miPointerScreenFuncRec kdPointerScreenFuncs;
@@ -646,10 +634,10 @@ KdRandRGetTiming (ScreenPtr	    pScreen,
 
 /* kshadow.c */
 Bool
-KdShadowFbAlloc (KdScreenInfo *screen, int fb, Bool rotate);
+KdShadowFbAlloc (KdScreenInfo *screen, Bool rotate);
 
 void
-KdShadowFbFree (KdScreenInfo *screen, int fb);
+KdShadowFbFree (KdScreenInfo *screen);
 
 Bool
 KdShadowSet (ScreenPtr pScreen, int randr, ShadowUpdateProc update, ShadowWindowProc window);

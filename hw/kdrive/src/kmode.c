@@ -321,12 +321,10 @@ KdTuneMode (KdScreenInfo    *screen,
 	/*
 	 * Fix requested depth and geometry until it works
 	 */
-	if (screen->fb[1].depth)
-	    screen->fb[1].depth = 0;
-	else if (screen->fb[0].depth > 16)
-	    screen->fb[0].depth = 16;
-	else if (screen->fb[0].depth > 8)
-	    screen->fb[0].depth = 8;
+	if (screen->fb.depth > 16)
+	    screen->fb.depth = 16;
+	else if (screen->fb.depth > 8)
+	    screen->fb.depth = 8;
 	else
 	{
 	    t = kdFindPrevSize (KdFindMode (screen, supported));
