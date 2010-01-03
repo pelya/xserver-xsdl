@@ -32,7 +32,7 @@ extern int KdTsPhyScreen;
 
 char *fbdevDevicePath = NULL;
 
-Bool
+static Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
     unsigned long   off;
@@ -147,7 +147,7 @@ fbdevConvertMonitorTiming (const KdMonitorTiming *t, struct fb_var_screeninfo *v
       var->sync |= FB_SYNC_VERT_HIGH_ACT;
 }
 
-Bool
+static Bool
 fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 {
     FbdevPriv	*priv = screen->card->driver;
@@ -309,7 +309,7 @@ fbdevScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-void *
+static void *
 fbdevWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
 		   CARD32	offset,
@@ -362,7 +362,7 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     return TRUE;
 }
 
-void
+static void
 fbdevSetScreenSizes (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -386,14 +386,14 @@ fbdevSetScreenSizes (ScreenPtr pScreen)
     }
 }
 
-Bool
+static Bool
 fbdevUnmapFramebuffer (KdScreenInfo *screen)
 {
     KdShadowFbFree (screen);
     return TRUE;
 }
 
-Bool
+static Bool
 fbdevSetShadow (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -444,7 +444,7 @@ fbdevSetShadow (ScreenPtr pScreen)
 
 
 #ifdef RANDR
-Bool
+static Bool
 fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
@@ -475,7 +475,7 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     return TRUE;
 }
 
-Bool
+static Bool
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
 		     int		rate,
@@ -564,7 +564,7 @@ bail4:
     return FALSE;
 }
 
-Bool
+static Bool
 fbdevRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;
@@ -579,7 +579,7 @@ fbdevRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 fbdevCreateColormap (ColormapPtr pmap)
 {
     ScreenPtr		pScreen = pmap->pScreen;
