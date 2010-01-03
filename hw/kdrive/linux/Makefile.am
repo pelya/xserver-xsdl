@@ -19,7 +19,7 @@ liblinux_la_SOURCES += evdev.c
 endif
 
 if KDRIVE_MOUSE
-liblinux_la_SOURCES += mouse.c bus.c ms.c ps2.c
+liblinux_la_SOURCES += mouse.c ms.c ps2.c
 endif
 
 if TSLIB
