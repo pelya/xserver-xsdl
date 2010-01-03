@@ -19,7 +19,6 @@ libkdrive_la_SOURCES =	\
 	kdrive.h	\
 	kinfo.c		\
 	kinput.c	\
-	kmap.c		\
 	kmode.c		\
 	kshadow.c	\
 	$(KDRIVE_XV_SOURCES) \
