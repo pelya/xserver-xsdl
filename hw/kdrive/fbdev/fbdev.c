@@ -35,7 +35,6 @@ char *fbdevDevicePath = NULL;
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
-    int		    k;
     unsigned long   off;
 
     if (fbdevDevicePath == NULL)
@@ -50,14 +49,14 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 
     /* quiet valgrind */
     memset (&priv->fix, '\0', sizeof (priv->fix));
-    if ((k=ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix)) < 0) {
+    if (ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_FSCREENINFO");
 	close (priv->fd);
 	return FALSE;
     }
     /* quiet valgrind */
     memset (&priv->var, '\0', sizeof (priv->var));
-    if ((k=ioctl(priv->fd, FBIOGET_VSCREENINFO, &priv->var)) < 0) {
+    if (ioctl(priv->fd, FBIOGET_VSCREENINFO, &priv->var) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_VSCREENINFO");
 	close (priv->fd);
 	return FALSE;
