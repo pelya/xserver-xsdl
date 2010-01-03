@@ -359,9 +359,6 @@ extern KdOsFuncs	*kdOsFuncs;
     dixSetPrivate(&(pScreen)->devPrivates, kdScreenPrivateKey, v)
 #define KdScreenPriv(pScreen) KdPrivScreenPtr pScreenPriv = KdGetScreenPriv(pScreen)
 
-/* knoop.c */
-extern GCOps		kdNoopOps;
-
 /* kcmap.c */
 void
 KdSetColormap (ScreenPtr pScreen);
