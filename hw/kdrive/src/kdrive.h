@@ -582,10 +582,6 @@ KdRingBell (KdKeyboardInfo      *ki,
             int                 pitch,
             int                 duration);
 
-extern KdPointerDriver	VxWorksMouseDriver;
-extern KdKeyboardDriver	VxWorksKeyboardDriver;
-extern KdOsFuncs	VxWorksFuncs;
-
 /* kmap.c */
 
 #define KD_MAPPED_MODE_REGISTERS    0
