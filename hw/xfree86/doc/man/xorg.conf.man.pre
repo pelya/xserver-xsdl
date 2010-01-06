@@ -914,7 +914,7 @@ X Input extension. This option controls the startup behavior only, a device
 may be reattached or set floating at runtime.
 .TP 7
 .BI "Option \*qSendDragEvents\*q  \*q" boolean \*q
-???
+Send core events while dragging. Enabled by default.
 .SH "INPUTCLASS SECTION"
 The config file may have multiple
 .B InputClass
