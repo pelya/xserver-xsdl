@@ -56,6 +56,9 @@ Equipment Corporation.
 #ifdef XFIXES
 #include "xfixesint.h"
 #endif
+#ifdef COMPOSITE
+#include "compint.h"
+#endif
 #include "modinit.h"
 #include "protocol-versions.h"
 
@@ -587,6 +590,10 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 #ifdef XFIXES
     PanoramiXFixesInit ();
 #endif
+#ifdef COMPOSITE
+    PanoramiXCompositeInit ();
+#endif
+
 }
 
 extern Bool CreateConnectionBlock(void);
