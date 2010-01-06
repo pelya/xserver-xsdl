@@ -959,6 +959,26 @@ Selects the scheme, which is the underlying algorithm.
 .B  "predictable   default algorithm (behaving more predictable)"
 .B  "lightweight   old acceleration code (as specified in the X protocol spec)"
 .B  "none          no acceleration or deceleration"
+.fi
+.RE
+.TP 7
+.BI "Option \*qAccelerationNumerator\*q  \*q" integer \*q
+.TP 7
+.BI "Option \*qAccelerationDenominator\*q  \*q" integer \*q
+Set numerator and denominator of the acceleration factor. The acceleration
+factor is a rational which, together with threshold, can be used to tweak
+profiles to suit the users needs. The
+.B simple
+and
+.B limited
+profiles use it directly (i.e. they accelerate by the factor), for other
+profiles it should hold that a higher acceleration factor leads to a faster
+pointer. Typically, 1 is unaccelerated and values up to 5 are sensible.
+.TP 7
+.BI "Option \*qAccelerationThreshold\*q  \*q" integer \*q
+Set the threshold, which is roughly the velocity (usually device units per 10
+ms) required for acceleration to become effective. The precise effect varies
+with the profile however.
 
 .SH "INPUTCLASS SECTION"
 The config file may have multiple

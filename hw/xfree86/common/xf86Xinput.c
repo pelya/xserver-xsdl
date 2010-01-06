@@ -196,12 +196,12 @@ ProcessVelocityConfiguration(DeviceIntPtr pDev, char* devname, pointer list,
 
 static void
 ApplyAccelerationSettings(DeviceIntPtr dev){
-    int scheme;
+    int scheme, i;
     DeviceVelocityPtr pVel;
     LocalDevicePtr local = (LocalDevicePtr)dev->public.devicePrivate;
     char* schemeStr;
 
-    if(dev->valuator){
+    if (dev->valuator && dev->ptrfeed) {
 	schemeStr = xf86SetStrOption(local->options, "AccelerationScheme", "");
 
 	scheme = dev->valuator->accelScheme.number;
@@ -244,6 +244,30 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
                                               pVel);
                 break;
         }
+
+        i = xf86SetIntOption(local->options, "AccelerationNumerator",
+                             dev->ptrfeed->ctrl.num);
+        if (i >= 0)
+            dev->ptrfeed->ctrl.num = i;
+
+        i = xf86SetIntOption(local->options, "AccelerationDenominator",
+                             dev->ptrfeed->ctrl.den);
+        if (i > 0)
+            dev->ptrfeed->ctrl.den = i;
+
+        i = xf86SetIntOption(local->options, "AccelerationThreshold",
+                             dev->ptrfeed->ctrl.threshold);
+        if (i >= 0)
+            dev->ptrfeed->ctrl.threshold = i;
+
+        /* mostly a no-op anyway */
+        (*dev->ptrfeed->CtrlProc)(dev, &dev->ptrfeed->ctrl);
+
+        xf86Msg(X_CONFIG, "%s: (accel) acceleration factor: %.3f\n",
+                            local->name, ((float)dev->ptrfeed->ctrl.num)/
+                                         ((float)dev->ptrfeed->ctrl.den));
+        xf86Msg(X_CONFIG, "%s: (accel) acceleration threshold: %i\n",
+                local->name, dev->ptrfeed->ctrl.threshold);
     }
 }
 
