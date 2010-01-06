@@ -132,7 +132,6 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 
     ptr = dixLookupPrivate(privPtr, subjectKey);
     pSid = (security_id_t *)(ptr + offset);
-    sidput(*pSid);
     *pSid = NULL;
 
     rc = Success;
@@ -193,11 +192,9 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     }
 
     subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
-    sidput(subj->sid);
     subj->sid = sid;
     obj = dixLookupPrivate(&dev->devPrivates, objectKey);
-    sidput(obj->sid);
-    sidget(obj->sid = sid);
+    obj->sid = sid;
 
     rc = Success;
 out:
