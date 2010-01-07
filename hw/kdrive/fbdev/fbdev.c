@@ -32,10 +32,9 @@ extern int KdTsPhyScreen;
 
 char *fbdevDevicePath = NULL;
 
-Bool
+static Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
-    int		    k;
     unsigned long   off;
 
     if (fbdevDevicePath == NULL)
@@ -50,14 +49,14 @@ fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 
     /* quiet valgrind */
     memset (&priv->fix, '\0', sizeof (priv->fix));
-    if ((k=ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix)) < 0) {
+    if (ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_FSCREENINFO");
 	close (priv->fd);
 	return FALSE;
     }
     /* quiet valgrind */
     memset (&priv->var, '\0', sizeof (priv->var));
-    if ((k=ioctl(priv->fd, FBIOGET_VSCREENINFO, &priv->var)) < 0) {
+    if (ioctl(priv->fd, FBIOGET_VSCREENINFO, &priv->var) < 0) {
 	perror("Error with /dev/fb ioctl FIOGET_VSCREENINFO");
 	close (priv->fd);
 	return FALSE;
@@ -148,7 +147,7 @@ fbdevConvertMonitorTiming (const KdMonitorTiming *t, struct fb_var_screeninfo *v
       var->sync |= FB_SYNC_VERT_HIGH_ACT;
 }
 
-Bool
+static Bool
 fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 {
     FbdevPriv	*priv = screen->card->driver;
@@ -175,12 +174,12 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	}
 	screen->rate = 103; /* FIXME: should get proper value from fb driver */
     }
-    if (!screen->fb[0].depth)
+    if (!screen->fb.depth)
     {
 	if (k >= 0)
-	    screen->fb[0].depth = var.bits_per_pixel;
+	    screen->fb.depth = var.bits_per_pixel;
 	else
-	    screen->fb[0].depth = 16;
+	    screen->fb.depth = 16;
     }
 
     if ((screen->width != var.xres) || (screen->height != var.yres))
@@ -196,7 +195,7 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     }
 
     var.activate = FB_ACTIVATE_NOW;
-    var.bits_per_pixel = screen->fb[0].depth;
+    var.bits_per_pixel = screen->fb.depth;
     var.nonstd = 0;
     var.grayscale = 0;
 
@@ -222,60 +221,60 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
     case FB_VISUAL_PSEUDOCOLOR:
 	if (gray)
 	{
-	    screen->fb[0].visuals = (1 << StaticGray);
+	    screen->fb.visuals = (1 << StaticGray);
 	    /* could also support GrayScale, but what's the point? */
 	}
 	else
 	{
-	    screen->fb[0].visuals = ((1 << StaticGray) |
+	    screen->fb.visuals = ((1 << StaticGray) |
 			       (1 << GrayScale) |
 			       (1 << StaticColor) |
 			       (1 << PseudoColor) |
 			       (1 << TrueColor) |
 			       (1 << DirectColor));
 	}
-	screen->fb[0].blueMask  = 0x00;
-	screen->fb[0].greenMask = 0x00;
-	screen->fb[0].redMask   = 0x00;
+	screen->fb.blueMask  = 0x00;
+	screen->fb.greenMask = 0x00;
+	screen->fb.redMask   = 0x00;
 	break;
     case FB_VISUAL_STATIC_PSEUDOCOLOR:
 	if (gray)
 	{
-	    screen->fb[0].visuals = (1 << StaticGray);
+	    screen->fb.visuals = (1 << StaticGray);
 	}
 	else
 	{
-	    screen->fb[0].visuals = (1 << StaticColor);
+	    screen->fb.visuals = (1 << StaticColor);
 	}
-	screen->fb[0].blueMask  = 0x00;
-	screen->fb[0].greenMask = 0x00;
-	screen->fb[0].redMask   = 0x00;
+	screen->fb.blueMask  = 0x00;
+	screen->fb.greenMask = 0x00;
+	screen->fb.redMask   = 0x00;
 	break;
     case FB_VISUAL_TRUECOLOR:
     case FB_VISUAL_DIRECTCOLOR:
-	screen->fb[0].visuals = (1 << TrueColor);
+	screen->fb.visuals = (1 << TrueColor);
 #define Mask(o,l)   (((1 << l) - 1) << o)
-	screen->fb[0].redMask = Mask (priv->var.red.offset, priv->var.red.length);
-	screen->fb[0].greenMask = Mask (priv->var.green.offset, priv->var.green.length);
-	screen->fb[0].blueMask = Mask (priv->var.blue.offset, priv->var.blue.length);
+	screen->fb.redMask = Mask (priv->var.red.offset, priv->var.red.length);
+	screen->fb.greenMask = Mask (priv->var.green.offset, priv->var.green.length);
+	screen->fb.blueMask = Mask (priv->var.blue.offset, priv->var.blue.length);
 
 	/*
 	 * This is a kludge so that Render will work -- fill in the gaps
 	 * in the pixel
 	 */
-	screen->fb[0].redMask = fbdevMakeContig (screen->fb[0].redMask,
-						 screen->fb[0].greenMask|
-						 screen->fb[0].blueMask);
+	screen->fb.redMask = fbdevMakeContig (screen->fb.redMask,
+						 screen->fb.greenMask|
+						 screen->fb.blueMask);
 
-	screen->fb[0].greenMask = fbdevMakeContig (screen->fb[0].greenMask,
-						   screen->fb[0].redMask|
-						   screen->fb[0].blueMask);
+	screen->fb.greenMask = fbdevMakeContig (screen->fb.greenMask,
+						   screen->fb.redMask|
+						   screen->fb.blueMask);
 
-	screen->fb[0].blueMask = fbdevMakeContig (screen->fb[0].blueMask,
-						  screen->fb[0].redMask|
-						  screen->fb[0].greenMask);
+	screen->fb.blueMask = fbdevMakeContig (screen->fb.blueMask,
+						  screen->fb.redMask|
+						  screen->fb.greenMask);
 
-	allbits = screen->fb[0].redMask | screen->fb[0].greenMask | screen->fb[0].blueMask;
+	allbits = screen->fb.redMask | screen->fb.greenMask | screen->fb.blueMask;
 	depth = 32;
 	while (depth && !(allbits & (1 << (depth - 1))))
 	    depth--;
@@ -284,8 +283,8 @@ fbdevScreenInitialize (KdScreenInfo *screen, FbdevScrPriv *scrpriv)
 	return FALSE;
 	break;
     }
-    screen->fb[0].depth = depth;
-    screen->fb[0].bitsPerPixel = priv->var.bits_per_pixel;
+    screen->fb.depth = depth;
+    screen->fb.bitsPerPixel = priv->var.bits_per_pixel;
 
     scrpriv->randr = screen->randr;
 
@@ -310,7 +309,7 @@ fbdevScreenInit (KdScreenInfo *screen)
     return TRUE;
 }
 
-void *
+static void *
 fbdevWindowLinear (ScreenPtr	pScreen,
 		   CARD32	row,
 		   CARD32	offset,
@@ -345,29 +344,25 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
 
     screen->width = priv->var.xres;
     screen->height = priv->var.yres;
-    screen->memory_base = (CARD8 *) (priv->fb);
-    screen->memory_size = priv->fix.smem_len;
 
     if (scrpriv->shadow)
     {
-	if (!KdShadowFbAlloc (screen, 0,
+	if (!KdShadowFbAlloc (screen,
 			      scrpriv->randr & (RR_Rotate_90|RR_Rotate_270)))
 	    return FALSE;
-	screen->off_screen_base = screen->memory_size;
     }
     else
     {
-        screen->fb[0].byteStride = priv->fix.line_length;
-        screen->fb[0].pixelStride = (priv->fix.line_length * 8 /
+        screen->fb.byteStride = priv->fix.line_length;
+        screen->fb.pixelStride = (priv->fix.line_length * 8 /
     				 priv->var.bits_per_pixel);
-        screen->fb[0].frameBuffer = (CARD8 *) (priv->fb);
-	screen->off_screen_base = screen->fb[0].byteStride * screen->height;
+        screen->fb.frameBuffer = (CARD8 *) (priv->fb);
     }
 
     return TRUE;
 }
 
-void
+static void
 fbdevSetScreenSizes (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -391,14 +386,14 @@ fbdevSetScreenSizes (ScreenPtr pScreen)
     }
 }
 
-Bool
+static Bool
 fbdevUnmapFramebuffer (KdScreenInfo *screen)
 {
-    KdShadowFbFree (screen, 0);
+    KdShadowFbFree (screen);
     return TRUE;
 }
 
-Bool
+static Bool
 fbdevSetShadow (ScreenPtr pScreen)
 {
     KdScreenPriv(pScreen);
@@ -449,7 +444,7 @@ fbdevSetShadow (ScreenPtr pScreen)
 
 
 #ifdef RANDR
-Bool
+static Bool
 fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 {
     KdScreenPriv(pScreen);
@@ -480,7 +475,7 @@ fbdevRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
     return TRUE;
 }
 
-Bool
+static Bool
 fbdevRandRSetConfig (ScreenPtr		pScreen,
 		     Rotation		randr,
 		     int		rate,
@@ -542,10 +537,10 @@ fbdevRandRSetConfig (ScreenPtr		pScreen,
     (*pScreen->ModifyPixmapHeader) (fbGetScreenPixmap (pScreen),
 				    pScreen->width,
 				    pScreen->height,
-				    screen->fb[0].depth,
-				    screen->fb[0].bitsPerPixel,
-				    screen->fb[0].byteStride,
-				    screen->fb[0].frameBuffer);
+				    screen->fb.depth,
+				    screen->fb.bitsPerPixel,
+				    screen->fb.byteStride,
+				    screen->fb.frameBuffer);
 
     /* set the subpixel order */
 
@@ -569,7 +564,7 @@ bail4:
     return FALSE;
 }
 
-Bool
+static Bool
 fbdevRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;
@@ -584,7 +579,7 @@ fbdevRandRInit (ScreenPtr pScreen)
 }
 #endif
 
-Bool
+static Bool
 fbdevCreateColormap (ColormapPtr pmap)
 {
     ScreenPtr		pScreen = pmap->pScreen;
@@ -604,7 +599,7 @@ fbdevCreateColormap (ColormapPtr pmap)
 	    return FALSE;
 	for (i = 0; i < nent; i++)
 	    pdefs[i].pixel = i;
-	fbdevGetColors (pScreen, 0, nent, pdefs);
+	fbdevGetColors (pScreen, nent, pdefs);
 	for (i = 0; i < nent; i++)
 	{
 	    pmap->red[i].co.local.red = pdefs[i].red;
@@ -655,6 +650,21 @@ fbdevPreserve (KdCardInfo *card)
 {
 }
 
+static int
+fbdevUpdateFbColormap(FbdevPriv *priv, int minidx, int maxidx)
+{
+    struct fb_cmap cmap;
+
+    cmap.start = minidx;
+    cmap.len = maxidx - minidx + 1;
+    cmap.red = &priv->red[minidx];
+    cmap.green = &priv->green[minidx];
+    cmap.blue = &priv->blue[minidx];
+    cmap.transp = 0;
+
+    return ioctl(priv->fd, FBIOPUTCMAP, &cmap);
+}
+
 Bool
 fbdevEnable (ScreenPtr pScreen)
 {
@@ -674,7 +684,6 @@ fbdevEnable (ScreenPtr pScreen)
 
     if (priv->fix.visual == FB_VISUAL_DIRECTCOLOR)
     {
-	struct fb_cmap	cmap;
 	int		i;
 
 	for (i = 0;
@@ -686,13 +695,8 @@ fbdevEnable (ScreenPtr pScreen)
 	    priv->green[i] = i * 65535 / ((1 << priv->var.green.length) - 1);
 	    priv->blue[i] = i * 65535 / ((1 << priv->var.blue.length) - 1);
 	}
-	cmap.start = 0;
-	cmap.len = i;
-	cmap.red = &priv->red[0];
-	cmap.green = &priv->green[0];
-	cmap.blue = &priv->blue[0];
-	cmap.transp = 0;
-	ioctl (priv->fd, FBIOPUTCMAP, &cmap);
+
+	fbdevUpdateFbColormap(priv, 0, i);
     }
     return TRUE;
 }
@@ -748,8 +752,11 @@ fbdevCardFini (KdCardInfo *card)
     xfree (priv);
 }
 
+/*
+ * Retrieve actual colormap and return selected n entries in pdefs.
+ */
 void
-fbdevGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
+fbdevGetColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     FbdevPriv	    *priv = pScreenPriv->card->driver;
@@ -789,12 +796,14 @@ fbdevGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
     }
 }
 
+/*
+ * Change colormap by updating n entries described in pdefs.
+ */
 void
-fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
+fbdevPutColors (ScreenPtr pScreen, int n, xColorItem *pdefs)
 {
     KdScreenPriv(pScreen);
     FbdevPriv	*priv = pScreenPriv->card->driver;
-    struct fb_cmap  cmap;
     int		    p;
     int		    min, max;
 
@@ -812,11 +821,6 @@ fbdevPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 	    max = p;
 	pdefs++;
     }
-    cmap.start = min;
-    cmap.len = max - min + 1;
-    cmap.red = &priv->red[min];
-    cmap.green = &priv->green[min];
-    cmap.blue = &priv->blue[min];
-    cmap.transp = 0;
-    ioctl (priv->fd, FBIOPUTCMAP, &cmap);
+
+    fbdevUpdateFbColormap(priv, min, max);
 }

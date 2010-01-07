@@ -389,7 +389,6 @@ KdParseScreen (KdScreenInfo *screen,
 {
     char    delim;
     char    save[1024];
-    int	    fb;
     int	    i;
     int	    pixels, mm;
 
@@ -403,8 +402,7 @@ KdParseScreen (KdScreenInfo *screen,
     screen->height_mm = 0;
     screen->subpixel_order = kdSubpixelOrder;
     screen->rate = 0;
-    for (fb = 0; fb < KD_MAX_FB; fb++)
-	screen->fb[fb].depth = 0;
+    screen->fb.depth = 0;
     if (!arg)
 	return;
     if (strlen (arg) >= sizeof (save))
@@ -477,25 +475,18 @@ KdParseScreen (KdScreenInfo *screen,
 	screen->randr |= RR_Reflect_Y;
     }
 
-    fb = 0;
-    while (fb < KD_MAX_FB)
+    arg = KdParseFindNext (arg, "x/,", save, &delim);
+    if (save[0])
     {
-	arg = KdParseFindNext (arg, "x/,", save, &delim);
-	if (!save[0])
-	    break;
-	screen->fb[fb].depth = atoi(save);
+	screen->fb.depth = atoi(save);
 	if (delim == '/')
 	{
 	    arg = KdParseFindNext (arg, "x,", save, &delim);
-	    if (!save[0])
-		break;
-	    screen->fb[fb].bitsPerPixel = atoi (save);
+	    if (save[0])
+		screen->fb.bitsPerPixel = atoi (save);
 	}
 	else
-	    screen->fb[fb].bitsPerPixel = 0;
-	if (delim != ',')
-	    break;
-	fb++;
+	    screen->fb.bitsPerPixel = 0;
     }
 
     if (delim == 'x')
@@ -538,7 +529,7 @@ void
 KdUseMsg (void)
 {
     ErrorF("\nTinyX Device Dependent Usage:\n");
-    ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
+    ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP[xFREQ]]  Specify screen characteristics\n");
     ErrorF("-rgba rgb/bgr/vrgb/vbgr/none   Specify subpixel ordering for LCD panels\n");
     ErrorF("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
     ErrorF("-keybd driver [,,options]      Specify the keyboard driver and its options\n");
@@ -919,7 +910,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     KdScreenInfo	*screen = kdCurrentScreen;
     KdCardInfo		*card = screen->card;
     KdPrivScreenPtr	pScreenPriv;
-    int			fb;
     /*
      * note that screen->fb is set up for the nominal orientation
      * of the screen; that means if randr is rotated, the values
@@ -949,8 +939,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     screen->pScreen = pScreen;
     pScreenPriv->screen = screen;
     pScreenPriv->card = card;
-    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
-	pScreenPriv->bytesPerPixel[fb] = screen->fb[fb].bitsPerPixel >> 3;
+    pScreenPriv->bytesPerPixel = screen->fb.bitsPerPixel >> 3;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
 #ifdef PANORAMIX
     dixScreenOrigins[pScreen->myNum] = screen->origin;
@@ -964,11 +953,11 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
      * backing store
      */
     if (!fbSetupScreen (pScreen,
-			screen->fb[0].frameBuffer,
+			screen->fb.frameBuffer,
 			width, height,
 			monitorResolution, monitorResolution,
-			screen->fb[0].pixelStride,
-			screen->fb[0].bitsPerPixel))
+			screen->fb.pixelStride,
+			screen->fb.bitsPerPixel))
     {
 	return FALSE;
     }
@@ -984,36 +973,14 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
-#if KD_MAX_FB > 1
-    if (screen->fb[1].depth)
+    if (!fbFinishScreenInit (pScreen,
+			     screen->fb.frameBuffer,
+			     width, height,
+			     monitorResolution, monitorResolution,
+			     screen->fb.pixelStride,
+			     screen->fb.bitsPerPixel))
     {
-	if (!fbOverlayFinishScreenInit (pScreen,
-					screen->fb[0].frameBuffer,
-					screen->fb[1].frameBuffer,
-					width, height,
-					monitorResolution, monitorResolution,
-					screen->fb[0].pixelStride,
-					screen->fb[1].pixelStride,
-					screen->fb[0].bitsPerPixel,
-					screen->fb[1].bitsPerPixel,
-					screen->fb[0].depth,
-					screen->fb[1].depth))
-	{
-	    return FALSE;
-	}
-    }
-    else
-#endif
-    {
-	if (!fbFinishScreenInit (pScreen,
-				 screen->fb[0].frameBuffer,
-				 width, height,
-				 monitorResolution, monitorResolution,
-				 screen->fb[0].pixelStride,
-				 screen->fb[0].bitsPerPixel))
-	{
-	    return FALSE;
-	}
+	return FALSE;
     }
 
     /*
@@ -1143,7 +1110,6 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
     KdScreenInfo    *screen;
     int		    i;
     int		    bpp;
-    int		    fb;
     PixmapFormatRec *format;
 
     for (i = 1; i <= 32; i++)
@@ -1159,16 +1125,13 @@ KdSetPixmapFormats (ScreenInfo	*pScreenInfo)
     {
 	for (screen = card->screenList; screen; screen = screen->next)
 	{
-	    for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
-	    {
-		bpp = screen->fb[fb].bitsPerPixel;
-		if (bpp == 24)
-		    bpp = 32;
-		if (!depthToBpp[screen->fb[fb].depth])
-		    depthToBpp[screen->fb[fb].depth] = bpp;
-		else if (depthToBpp[screen->fb[fb].depth] != bpp)
-		    return FALSE;
-	    }
+	    bpp = screen->fb.bitsPerPixel;
+	    if (bpp == 24)
+		bpp = 32;
+	    if (!depthToBpp[screen->fb.depth])
+		depthToBpp[screen->fb.depth] = bpp;
+	    else if (depthToBpp[screen->fb.depth] != bpp)
+		return FALSE;
 	}
     }
 
@@ -1214,20 +1177,15 @@ KdAddScreen (ScreenInfo	    *pScreenInfo,
     {
 	unsigned long	visuals;
 	Pixel		rm, gm, bm;
-	int		fb;
 
 	visuals = 0;
 	rm = gm = bm = 0;
-	for (fb = 0; fb < KD_MAX_FB && screen->fb[fb].depth; fb++)
+	if (pScreenInfo->formats[i].depth == screen->fb.depth)
 	{
-	    if (pScreenInfo->formats[i].depth == screen->fb[fb].depth)
-	    {
-		visuals = screen->fb[fb].visuals;
-		rm = screen->fb[fb].redMask;
-		gm = screen->fb[fb].greenMask;
-		bm = screen->fb[fb].blueMask;
-		break;
-	    }
+	    visuals = screen->fb.visuals;
+	    rm = screen->fb.redMask;
+	    gm = screen->fb.greenMask;
+	    bm = screen->fb.blueMask;
 	}
 	fbSetVisualTypesAndMasks (pScreenInfo->formats[i].depth,
 				  visuals,
@@ -1246,10 +1204,9 @@ int
 KdDepthToFb (ScreenPtr	pScreen, int depth)
 {
     KdScreenPriv(pScreen);
-    int	    fb;
 
-    for (fb = 0; fb <= KD_MAX_FB && pScreenPriv->screen->fb[fb].frameBuffer; fb++)
-	if (pScreenPriv->screen->fb[fb].depth == depth)
+    for (fb = 0; fb <= KD_MAX_FB && pScreenPriv->screen->fb.frameBuffer; fb++)
+	if (pScreenPriv->screen->fb.depth == depth)
 	    return fb;
 }
 
