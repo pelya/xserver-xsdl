@@ -2112,9 +2112,9 @@ AC_TRY_COMPILE([
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
-BUILD_DATE="$(date +'%Y%m%d')"
+BUILD_DATE="`date +'%Y%m%d'`"
 AC_SUBST([BUILD_DATE])
-BUILD_TIME="$(date +'1%H%M%S')"
+BUILD_TIME="`date +'1%H%M%S'`"
 AC_SUBST([BUILD_TIME])
 
 DIX_CFLAGS="-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"
