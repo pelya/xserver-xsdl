@@ -167,6 +167,43 @@ __glXDRIdrawableWaitGL(__GLXdrawable *drawable)
 		   DRI2BufferFrontLeft, DRI2BufferFakeFrontLeft);
 }
 
+static void
+__glXdriSwapEvent(ClientPtr client, void *data, int type, CARD64 ust,
+		  CARD64 msc, CARD64 sbc)
+{
+    __GLXdrawable *drawable = data;
+    xGLXBufferSwapComplete wire;
+
+    if (!drawable->eventMask & GLX_BUFFER_SWAP_COMPLETE_INTEL_MASK)
+	return;
+
+    wire.type = __glXEventBase + GLX_BufferSwapComplete;
+    switch (type) {
+    case DRI2_EXCHANGE_COMPLETE:
+	wire.event_type = GLX_EXCHANGE_COMPLETE_INTEL;
+	break;
+    case DRI2_BLIT_COMPLETE:
+	wire.event_type = GLX_BLIT_COMPLETE_INTEL;
+	break;
+    case DRI2_FLIP_COMPLETE:
+	wire.event_type = GLX_FLIP_COMPLETE_INTEL;
+	break;
+    default:
+	/* unknown swap completion type */
+	break;
+    }
+    wire.sequenceNumber = client->sequence;
+    wire.drawable = drawable->drawId;
+    wire.ust_hi = ust >> 32;
+    wire.ust_lo = ust & 0xffffffff;
+    wire.msc_hi = msc >> 32;
+    wire.msc_lo = msc & 0xffffffff;
+    wire.sbc_hi = sbc >> 32;
+    wire.sbc_lo = sbc & 0xffffffff;
+
+    WriteEventsToClient(client, 1, (xEvent *) &wire);
+}
+
 /*
  * Copy or flip back to front, honoring the swap interval if possible.
  *
@@ -184,7 +221,7 @@ __glXDRIdrawableSwapBuffers(ClientPtr client, __GLXdrawable *drawable)
 	(*screen->flush->flushInvalidate)(priv->driDrawable);
 
     if (DRI2SwapBuffers(client, drawable->pDraw, 0, 0, 0, &unused,
-			NULL, drawable->pDraw) != Success)
+			__glXdriSwapEvent, drawable->pDraw) != Success)
 	return FALSE;
 
     return TRUE;
@@ -580,6 +617,10 @@ initializeExtensions(__GLXDRIscreen *screen)
     __glXEnableExtension(screen->glx_enable_bits,
 			 "GLX_MESA_copy_sub_buffer");
     LogMessage(X_INFO, "AIGLX: enabled GLX_MESA_copy_sub_buffer\n");
+
+    /* FIXME: only if DDX supports it */
+    __glXEnableExtension(screen->glx_enable_bits, "GLX_INTEL_swap_event");
+    LogMessage(X_INFO, "AIGLX: enabled GLX_INTEL_swap_event\n");
 
     for (i = 0; extensions[i]; i++) {
 #ifdef __DRI_READ_DRAWABLE

@@ -348,6 +348,25 @@ vals_to_card64(CARD32 lo, CARD32 hi)
     return (CARD64)hi << 32 | lo;
 }
 
+static void
+DRI2SwapEvent(ClientPtr client, void *data, int type, CARD64 ust, CARD64 msc,
+	      CARD64 sbc)
+{
+    xDRI2BufferSwapComplete event;
+
+    event.type = DRI2EventBase + DRI2_BufferSwapComplete;
+    event.sequenceNumber = client->sequence;
+    event.event_type = type;
+    event.ust_hi = (CARD64)ust >> 32;
+    event.ust_lo = ust & 0xffffffff;
+    event.msc_hi = (CARD64)msc >> 32;
+    event.msc_lo = msc & 0xffffffff;
+    event.sbc_hi = (CARD64)sbc >> 32;
+    event.sbc_lo = sbc & 0xffffffff;
+
+    WriteEventsToClient(client, 1, (xEvent *)&event);
+}
+
 static int
 ProcDRI2SwapBuffers(ClientPtr client)
 {
@@ -368,7 +387,7 @@ ProcDRI2SwapBuffers(ClientPtr client)
     remainder = vals_to_card64(stuff->remainder_lo, stuff->remainder_hi);
 
     status = DRI2SwapBuffers(client, pDrawable, target_msc, divisor, remainder,
-			     &swap_target, NULL, pDrawable);
+			     &swap_target, DRI2SwapEvent, pDrawable);
     if (status != Success)
 	return BadDrawable;
 
@@ -608,6 +627,8 @@ static int DRI2DrawableGone(pointer p, XID id)
     return Success;
 }
 
+int DRI2EventBase;
+
 static void
 DRI2ExtensionInit(void)
 {
@@ -624,6 +645,7 @@ DRI2ExtensionInit(void)
 				 NULL,
 				 StandardMinorOpcode);
 
+    DRI2EventBase = dri2Extension->eventBase;
 }
 
 extern Bool noDRI2Extension;

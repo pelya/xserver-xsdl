@@ -249,4 +249,6 @@ extern int __glXImageSize(GLenum format, GLenum type,
 extern unsigned glxMajorVersion;
 extern unsigned glxMinorVersion;
 
+extern int __glXEventBase;
+
 #endif /* !__GLX_server_h__ */

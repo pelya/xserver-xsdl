@@ -169,6 +169,8 @@ typedef struct {
     DRI2ScheduleWaitMSCProcPtr	ScheduleWaitMSC;
 }  DRI2InfoRec, *DRI2InfoPtr;
 
+extern _X_EXPORT int DRI2EventBase;
+
 extern _X_EXPORT Bool DRI2ScreenInit(ScreenPtr	pScreen,
 		    DRI2InfoPtr info);
 

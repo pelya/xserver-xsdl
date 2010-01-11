@@ -267,6 +267,7 @@ GLboolean __glXErrorOccured(void)
 }
 
 static int __glXErrorBase;
+int __glXEventBase;
 
 int __glXError(int error)
 {
@@ -403,6 +404,7 @@ void GlxExtensionInit(void)
     }
 
     __glXErrorBase = extEntry->errorBase;
+    __glXEventBase = extEntry->eventBase;
 }
 
 /************************************************************************/
