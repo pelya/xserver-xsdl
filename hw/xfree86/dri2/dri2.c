@@ -70,7 +70,8 @@ typedef struct _DRI2Drawable {
 typedef struct _DRI2Screen *DRI2ScreenPtr;
 
 typedef struct _DRI2Screen {
-    const char			*driverName;
+    unsigned int		 numDrivers;
+    const char			**driverNames;
     const char			*deviceName;
     int				 fd;
     unsigned int		 lastSequence;
@@ -772,14 +773,12 @@ DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
-    if (ds == NULL)
+    if (ds == NULL || driverType >= ds->numDrivers ||
+	    !ds->driverNames[driverType])
 	return FALSE;
 
-    if (driverType != DRI2DriverDRI)
-	return BadValue;
-
     *fd = ds->fd;
-    *driverName = ds->driverName;
+    *driverName = ds->driverNames[driverType];
     *deviceName = ds->deviceName;
 
     return TRUE;
@@ -800,6 +799,11 @@ Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
     DRI2ScreenPtr ds;
+    const char* driverTypeNames[] = {
+	"DRI", /* DRI2DriverDRI */
+	"VDPAU", /* DRI2DriverVDPAU */
+    };
+    unsigned int i;
 
     if (info->version < 3)
 	return FALSE;
@@ -815,7 +819,6 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	return FALSE;
 
     ds->fd	       = info->fd;
-    ds->driverName     = info->driverName;
     ds->deviceName     = info->deviceName;
 
     ds->CreateBuffer   = info->CreateBuffer;
@@ -828,9 +831,35 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	ds->GetMSC = info->GetMSC;
     }
 
+    if (info->version == 3 || info->numDrivers == 0) {
+	/* Driver too old: use the old-style driverName field */
+	ds->numDrivers = 1;
+	ds->driverNames = xalloc(sizeof(*ds->driverNames));
+	if (!ds->driverNames) {
+	    xfree(ds);
+	    return FALSE;
+	}
+	ds->driverNames[0] = info->driverName;
+    } else {
+	ds->numDrivers = info->numDrivers;
+	ds->driverNames = xalloc(info->numDrivers * sizeof(*ds->driverNames));
+	if (!ds->driverNames) {
+	    xfree(ds);
+	    return FALSE;
+	}
+	memcpy(ds->driverNames, info->driverNames,
+	       info->numDrivers * sizeof(*ds->driverNames));
+    }
+
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, ds);
 
     xf86DrvMsg(pScreen->myNum, X_INFO, "[DRI2] Setup complete\n");
+    for (i = 0; i < sizeof(driverTypeNames) / sizeof(driverTypeNames[0]); i++) {
+	if (i < ds->numDrivers && ds->driverNames[i]) {
+	    xf86DrvMsg(pScreen->myNum, X_INFO, "[DRI2]   %s driver: %s\n",
+		       driverTypeNames[i], ds->driverNames[i]);
+	}
+    }
 
     return TRUE;
 }
@@ -840,6 +869,7 @@ DRI2CloseScreen(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
+    xfree(ds->driverNames);
     xfree(ds);
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
 }
