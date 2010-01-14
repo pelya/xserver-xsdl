@@ -572,9 +572,6 @@ AC_ARG_ENABLE(install-libxf86config,
 				[Install libxf86config (default: disabled)]),
 				[INSTALL_LIBXF86CONFIG=$enableval],
 				[INSTALL_LIBXF86CONFIG=no])
-AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use an empty root cursor (default: use core cursor)]),
-                                 [NULL_ROOT_CURSOR=$enableval],
-                                 [NULL_ROOT_CURSOR=no])
 AC_ARG_ENABLE(visibility,     AC_HELP_STRING([--enable-visibility], [Enable symbol visibility (default: auto)]),
 				[SYMBOL_VISIBILITY=$enableval],
 				[SYMBOL_VISIBILITY=auto])
@@ -1186,10 +1183,6 @@ AC_CHECK_FUNC(strncasecmp, [], AC_DEFINE([NEED_STRNCASECMP], 1,
                                         [Do not have 'strncasecmp'.]))
 AC_CHECK_FUNC(strcasestr, [], AC_DEFINE([NEED_STRCASESTR], 1,
                                        [Do not have 'strcasestr'.]))
-
-if test "x$NULL_ROOT_CURSOR" = xyes; then
-        AC_DEFINE(NULL_ROOT_CURSOR, 1, [Use an empty root cursor])
-fi
 
 PKG_CHECK_MODULES([XDMCP], [xdmcp], [have_libxdmcp="yes"], [have_libxdmcp="no"])
 if test "x$have_libxdmcp" = xyes; then
