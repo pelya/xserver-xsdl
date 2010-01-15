@@ -162,7 +162,7 @@ BOOL		replicated = FALSE;
 	syms= &xkb_syms_rtrn[XKB_OFFSET(i,0)];
 	if ((nSyms[i]>1)&&(syms[1]==NoSymbol)&&(syms[0]!=NoSymbol)) {
 	    KeySym upper,lower;
-	    XConvertCase(syms[0],&lower,&upper);
+	    XkbConvertCase(syms[0],&lower,&upper);
 	    if (upper!=lower) {
 		xkb_syms_rtrn[XKB_OFFSET(i,0)]= lower;
 		xkb_syms_rtrn[XKB_OFFSET(i,1)]= upper;
@@ -179,7 +179,7 @@ BOOL		replicated = FALSE;
 		types_inout[i]= XkbKeypadIndex;
 	    else {
 		KeySym upper,lower;
-		XConvertCase(syms[0],&lower,&upper);
+		XkbConvertCase(syms[0],&lower,&upper);
 		if ((syms[0]==lower)&&(syms[1]==upper))
 		    types_inout[i]= XkbAlphabeticIndex;
 	    }

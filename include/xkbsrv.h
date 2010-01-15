@@ -310,7 +310,6 @@ extern	_X_EXPORT int	DeviceButtonPress,DeviceButtonRelease;
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
 #define	_XkbIsReleaseEvent(t)	(((t)==KeyRelease)||((t)==DeviceKeyRelease))
 
-#define	XConvertCase(s,l,u)	XkbConvertCase(s,l,u)
 #undef	IsKeypadKey
 #define	IsKeypadKey(s)		XkbKSIsKeypad(s)
 
