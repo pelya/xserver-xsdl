@@ -36,6 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <xkbsrv.h>
 #include "xkbgeom.h"
 #include <os.h>
+#include <string.h>
 
 /***===================================================================***/
 
@@ -64,8 +65,8 @@ XkbSymInterpretRec *prev_interpret;
 	    return BadAlloc;
 	}
 	if (compat->num_si!=0) {
-	    _XkbClearElems(compat->sym_interpret,compat->num_si,
-					compat->size_si-1,XkbSymInterpretRec);
+	    memset(&compat->sym_interpret[compat->num_si], 0,
+		   (compat->size_si - compat->num_si) * sizeof(XkbSymInterpretRec));
 	}
 	return Success;
     }
@@ -159,8 +160,8 @@ XkbNamesPtr	names;
 	    names->key_aliases= xrealloc(names->key_aliases,
 					 nTotalAliases * sizeof(XkbKeyAliasRec));
 	    if (names->key_aliases!=NULL) {
-		_XkbClearElems(names->key_aliases,names->num_key_aliases,
-						nTotalAliases-1,XkbKeyAliasRec);
+		memset(&names->key_aliases[names->num_key_aliases], 0,
+			(nTotalAliases - names->num_key_aliases) * sizeof(XkbKeyAliasRec));
 	    } else {
 		xfree(prev_aliases);
 	    }
@@ -181,8 +182,8 @@ XkbNamesPtr	names;
 	    names->radio_groups= xrealloc(names->radio_groups,
 					  nTotalRG * sizeof(Atom));
 	    if (names->radio_groups!=NULL) {
-		_XkbClearElems(names->radio_groups,names->num_rg,nTotalRG-1,
-									Atom);
+		memset(&names->radio_groups[names->num_rg], 0,
+			(nTotalRG - names->num_rg) * sizeof(Atom));
 	    } else {
 		xfree(prev_radio_groups);
 	    }
