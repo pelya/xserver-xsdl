@@ -388,7 +388,7 @@ unsigned		changed,tmp;
     nSyms= XkbKeyNumSyms(xkb,key);
     syms= XkbKeySymsPtr(xkb,key);
     if (nSyms>IBUF_SIZE) {
-	interps= _XkbTypedCalloc(nSyms,XkbSymInterpretPtr);
+	interps= xcalloc(nSyms, sizeof(XkbSymInterpretPtr));
 	if (interps==NULL) {
 	    interps= ibuf;
 	    nSyms= IBUF_SIZE;

@@ -299,10 +299,6 @@ extern _X_EXPORT char *	XkbBinDirectory;
 
 extern _X_EXPORT CARD32	xkbDebugFlags;
 
-#define	_XkbTypedAlloc(t)	((t *)xalloc(sizeof(t)))
-#define	_XkbTypedCalloc(n,t)	((t *)Xcalloc((n)*sizeof(t)))
-#define	_XkbTypedRealloc(o,n,t) \
-	((o)?(t *)Xrealloc((o),(n)*sizeof(t)):_XkbTypedCalloc(n,t))
 #define	_XkbClearElems(a,f,l,t)	bzero(&(a)[f],((l)-(f)+1)*sizeof(t))
 
 #define	_XkbLibError(c,l,d) /* Epoch fail */
