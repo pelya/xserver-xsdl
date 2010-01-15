@@ -175,7 +175,7 @@ BOOL		replicated = FALSE;
 	    }
 	}
 	if (((protected&(1<<i))==0)&&(types_inout[i]==XkbTwoLevelIndex)) {
-	    if (IsKeypadKey(syms[0])||IsKeypadKey(syms[1]))
+	    if (XkbKSIsKeypad(syms[0])||XkbKSIsKeypad(syms[1]))
 		types_inout[i]= XkbKeypadIndex;
 	    else {
 		KeySym upper,lower;
