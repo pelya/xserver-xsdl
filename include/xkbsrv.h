@@ -990,6 +990,4 @@ extern _X_EXPORT XkbDescPtr XkbCompileKeymap(
         XkbRMLVOSet *   /* rmlvo */
 );
 
-#define	XkbAtomGetString(s)	NameForAtom(s)
-
 #endif /* _XKBSRV_H_ */
