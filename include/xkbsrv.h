@@ -307,9 +307,6 @@ extern _X_EXPORT CARD32	xkbDebugFlags;
 extern	_X_EXPORT int	DeviceKeyPress,DeviceKeyRelease,DeviceMotionNotify;
 extern	_X_EXPORT int	DeviceButtonPress,DeviceButtonRelease;
 
-#define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
-#define	_XkbIsReleaseEvent(t)	(((t)==KeyRelease)||((t)==DeviceKeyRelease))
-
 #define	Status		int
 
 #ifndef True
