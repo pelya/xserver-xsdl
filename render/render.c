@@ -656,7 +656,7 @@ ProcRenderSetPictureClipRectangles (ClientPtr client)
     if (!pPicture->pDrawable)
         return BadDrawable;
 
-    nr = (client->req_len << 2) - sizeof(xRenderChangePictureReq);
+    nr = (client->req_len << 2) - sizeof(xRenderSetPictureClipRectanglesReq);
     if (nr & 4)
 	return BadLength;
     nr >>= 3;
@@ -2728,7 +2728,7 @@ PanoramiXRenderChangePicture (ClientPtr client)
     int		    result = Success, j;
     REQUEST(xRenderChangePictureReq);
 
-    REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
+    REQUEST_AT_LEAST_SIZE(xRenderChangePictureReq);
     
     VERIFY_XIN_PICTURE(pict, stuff->picture, client, DixWriteAccess,
 		       RenderErrBase + BadPicture);
