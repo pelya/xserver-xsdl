@@ -34,9 +34,10 @@ AM_MAINTAINER_MODE
 
 # Require xorg-macros: XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
-          [m4_fatal([must install xorg-macros 1.3 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.3)
+          [m4_fatal([must install xorg-macros 1.5 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.5)
 XORG_DEFAULT_OPTIONS
+XORG_WITH_DOXYGEN
 
 m4_ifndef([XORG_FONT_MACROS_VERSION], [m4_fatal([must install fontutil 1.1 or later before running autoconf/autogen])])
 XORG_FONT_MACROS_VERSION(1.1)
@@ -1943,8 +1944,6 @@ fi
 AC_MSG_RESULT([$DMX])
 AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
-DOXYGEN="not_found"
-
 if test "x$DMX" = xyes; then
 	if test "x$have_dmx" = xno; then
 		AC_MSG_ERROR([Xdmx build explicitly requested, but required
@@ -1980,12 +1979,6 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 
 fi
-AC_PATH_PROG(DOXYGEN,doxygen,[not_found])
-if test "x$DOXYGEN" = "xnot_found" ; then
-    AC_MSG_WARN([doxygen not found in $PATH. Cannot build dmx documentation])
-fi
-AC_SUBST(DOXYGEN)
-AM_CONDITIONAL([HAVE_DOXYGEN], [test "x$DOXYGEN" != "xnot_found"])
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
