@@ -206,7 +206,7 @@ extern _X_EXPORT Bool DRI2Connect(ScreenPtr pScreen,
 		 const char **driverName,
 		 const char **deviceName);
 
-extern _X_EXPORT Bool DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic);
+extern _X_EXPORT Bool DRI2Authenticate(ScreenPtr pScreen, uint32_t magic);
 
 extern _X_EXPORT int DRI2CreateDrawable(ClientPtr client,
 					DrawablePtr pDraw,

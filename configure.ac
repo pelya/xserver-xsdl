@@ -644,6 +644,7 @@ AC_ARG_ENABLE(vgahw,          AS_HELP_STRING([--enable-vgahw], [Build Xorg with 
 AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VBE module (default: enabled)]), [VBE=$enableval], [VBE=yes])
 AC_ARG_ENABLE(int10-module,     AS_HELP_STRING([--enable-int10-module], [Build Xorg with int10 module (default: enabled)]), [INT10MODULE=$enableval], [INT10MODULE=yes])
 AC_ARG_ENABLE(windowswm,      AS_HELP_STRING([--enable-windowswm], [Build XWin with WindowsWM extension (default: no)]), [WINDOWSWM=$enableval], [WINDOWSWM=no])
+AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with libdrm support (default: enabled)]), [DRM=$enableval],[DRM=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1033,9 +1034,10 @@ esac
 AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 
 if test "x$DRI" = xyes || test "x$DRI2" = xyes; then
-	PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
-	AC_SUBST(LIBDRM_CFLAGS)
-	AC_SUBST(LIBDRM_LIBS)
+	if test "x$DRM" = xyes; then
+		AC_DEFINE(WITH_LIBDRM, 1, [Building with libdrm support])
+		PKG_CHECK_MODULES([LIBDRM], $LIBDRM)
+	fi
 fi
 
 if test "x$DRI2" = xyes; then

@@ -42,7 +42,6 @@
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "extnsionst.h"
-#include "xf86drm.h"
 #include "xfixes.h"
 #include "dri2.h"
 #include "protocol-versions.h"

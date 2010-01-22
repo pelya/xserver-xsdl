@@ -35,7 +35,9 @@
 #endif
 
 #include <errno.h>
+#ifdef WITH_LIBDRM
 #include <xf86drm.h>
+#endif
 #include "xf86Module.h"
 #include "list.h"
 #include "scrnintstr.h"
@@ -965,7 +967,7 @@ DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
 }
 
 Bool
-DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
+DRI2Authenticate(ScreenPtr pScreen, uint32_t magic)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
@@ -1045,9 +1047,16 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
         ds->AuthMagic = info->AuthMagic;
     }
 
+    /*
+     * if the driver doesn't provide an AuthMagic function or the info struct
+     * version is too low, it relies on the old method (using libdrm) or fail
+     */
     if (!ds->AuthMagic)
+#ifdef WITH_LIBDRM
         ds->AuthMagic = drmAuthMagic;
-
+#else
+        goto err_out;
+#endif
 
     /* Initialize minor if needed and set to minimum provied by DDX */
     if (!dri2_minor || dri2_minor > cur_minor)
@@ -1087,6 +1096,12 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     }
 
     return TRUE;
+
+err_out:
+    xf86DrvMsg(pScreen->myNum, X_WARNING,
+            "[DRI2] Initialization failed for info version %d.\n", info->version);
+    free(ds);
+    return FALSE;
 }
 
 void
