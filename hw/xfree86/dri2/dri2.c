@@ -94,6 +94,7 @@ typedef struct _DRI2Screen {
     DRI2ScheduleSwapProcPtr	 ScheduleSwap;
     DRI2GetMSCProcPtr		 GetMSC;
     DRI2ScheduleWaitMSCProcPtr	 ScheduleWaitMSC;
+    DRI2AuthMagicProcPtr	 AuthMagic;
 
     HandleExposuresProcPtr       HandleExposures;
 
@@ -968,8 +969,8 @@ DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
-    if (ds == NULL || drmAuthMagic(ds->fd, magic))
-	return FALSE;
+    if (ds == NULL || (*ds->AuthMagic)(ds->fd, magic))
+        return FALSE;
 
     return TRUE;
 }
@@ -1039,6 +1040,14 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     } else {
 	cur_minor = 1;
     }
+
+    if (info->version >= 5) {
+        ds->AuthMagic = info->AuthMagic;
+    }
+
+    if (!ds->AuthMagic)
+        ds->AuthMagic = drmAuthMagic;
+
 
     /* Initialize minor if needed and set to minimum provied by DDX */
     if (!dri2_minor || dri2_minor > cur_minor)

@@ -66,6 +66,8 @@ typedef void		(*DRI2CopyRegionProcPtr)(DrawablePtr pDraw,
 						 DRI2BufferPtr pSrcBuffer);
 typedef void		(*DRI2WaitProcPtr)(WindowPtr pWin,
 					   unsigned int sequence);
+typedef int		(*DRI2AuthMagicProcPtr)(int fd, uint32_t magic);
+
 /**
  * Schedule a buffer swap
  *
@@ -159,7 +161,7 @@ typedef void		(*DRI2InvalidateProcPtr)(DrawablePtr pDraw,
 /**
  * Version of the DRI2InfoRec structure defined in this header
  */
-#define DRI2INFOREC_VERSION 4
+#define DRI2INFOREC_VERSION 5
 
 typedef struct {
     unsigned int version;	/**< Version of this struct */
@@ -183,6 +185,10 @@ typedef struct {
     /* array of driver names, indexed by DRI2Driver* driver types */
     /* a name of NULL means that driver is not supported */
     const char * const *driverNames;
+
+    /* added in version 5 */
+
+    DRI2AuthMagicProcPtr	AuthMagic;
 }  DRI2InfoRec, *DRI2InfoPtr;
 
 extern _X_EXPORT int DRI2EventBase;
