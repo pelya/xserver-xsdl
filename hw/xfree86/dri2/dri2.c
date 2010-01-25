@@ -158,6 +158,31 @@ DRI2CreateDrawable(DrawablePtr pDraw)
     return Success;
 }
 
+static void
+DRI2FreeDrawable(DrawablePtr pDraw)
+{
+    DRI2DrawablePtr pPriv;
+    WindowPtr  	    pWin;
+    PixmapPtr	    pPixmap;
+
+    pPriv = DRI2GetDrawable(pDraw);
+    if (pPriv == NULL)
+	return;
+
+    xfree(pPriv);
+
+    if (pDraw->type == DRAWABLE_WINDOW)
+    {
+	pWin = (WindowPtr) pDraw;
+	dixSetPrivate(&pWin->devPrivates, dri2WindowPrivateKey, NULL);
+    }
+    else
+    {
+	pPixmap = (PixmapPtr) pDraw;
+	dixSetPrivate(&pPixmap->devPrivates, dri2PixmapPrivateKey, NULL);
+    }
+}
+
 static int
 find_attachment(DRI2DrawablePtr pPriv, unsigned attachment)
 {
@@ -508,7 +533,7 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
     if (pPriv->refCount == 0) {
         xf86DrvMsg(pScreen->myNum, X_ERROR,
 		   "[DRI2] %s: bad drawable refcount\n", __func__);
-	xfree(pPriv);
+	DRI2FreeDrawable(pDraw);
 	return;
     }
 
@@ -729,8 +754,6 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
 {
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     DRI2DrawablePtr pPriv;
-    WindowPtr  	    pWin;
-    PixmapPtr	    pPixmap;
 
     pPriv = DRI2GetDrawable(pDraw);
     if (pPriv == NULL)
@@ -753,18 +776,7 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
      * actually free the priv yet.  We'll need it in the DRI2SwapComplete()
      * callback and we'll free it there once we're done. */
     if (!pPriv->swapsPending)
-	xfree(pPriv);
-
-    if (pDraw->type == DRAWABLE_WINDOW)
-    {
-	pWin = (WindowPtr) pDraw;
-	dixSetPrivate(&pWin->devPrivates, dri2WindowPrivateKey, NULL);
-    }
-    else
-    {
-	pPixmap = (PixmapPtr) pDraw;
-	dixSetPrivate(&pPixmap->devPrivates, dri2PixmapPrivateKey, NULL);
-    }
+	DRI2FreeDrawable(pDraw);
 }
 
 Bool
