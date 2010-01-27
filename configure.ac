@@ -773,7 +773,7 @@ REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
 dnl List of libraries that require a specific version
 LIBAPPLEWM="applewm >= 1.4"
 LIBDMX="dmx >= 1.0.99.1"
-LIBDRI="dri >= 7.1.0"
+LIBDRI="dri >= 7.8.0"
 LIBDRM="libdrm >= 2.3.0"
 LIBGL="gl >= 7.1.0"
 LIBXEXT="xext >= 1.0.99.4"
