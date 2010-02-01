@@ -28,3 +28,7 @@
 
 /* Vendor web address for support */
 #undef __VENDORDWEBSUPPORT__
+
+/* Location of system.XWinrc */
+#undef SYSCONFDIR
+

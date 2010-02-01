@@ -190,12 +190,14 @@ XWinrc.$(FILE_MAN_SUFFIX): XWinrc.man
 
 EXTRAMANDEFS = -D__logdir__=$(logdir) -D__sysconfdir__=$(sysconfdir) -D__datadir__=$(datadir)
 
+xwinconfigdir = $(sysconfdir)/X11
+xwinconfig_DATA = system.XWinrc
+
 include $(top_srcdir)/cpprules.in
 
 EXTRA_DIST = \
 	$(GLX_EXTRAS) \
 	$(MAN_SRCS) \
-	_usr_X11R6_lib_X11_system.XWinrc \
 	X.ico \
 	XWin.rc \
 	xlaunch/config.cc \

@@ -1,7 +1,7 @@
 # XWin Server Resource File - EXAMPLE
 # Earle F. Philhower, III
 
-# Place in ~/.XWinrc or in /usr/X11R6/lib/X11/system.XWinrc
+# Place in ~/.XWinrc or in /etc/X11/system.XWinrc
 
 # Keywords are case insensitive, comments legal pretty much anywhere
 # you can have an end-of-line
