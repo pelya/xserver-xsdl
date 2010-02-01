@@ -153,7 +153,7 @@ static Bool
 InitQueue (WMMsgQueuePtr pQueue);
 
 static void
-GetWindowName (Display * pDpy, Window iWin, char **ppName);
+GetWindowName (Display * pDpy, Window iWin, wchar_t **ppName);
 
 static int
 SendXMessage (Display *pDisplay, Window iWin, Atom atmType, long nData);
@@ -416,10 +416,12 @@ InitQueue (WMMsgQueuePtr pQueue)
  */
 
 static void
-GetWindowName (Display *pDisplay, Window iWin, char **ppName)
+GetWindowName (Display *pDisplay, Window iWin, wchar_t **ppName)
 {
   int			nResult, nNum;
   char			**ppList;
+  char			*pszReturnData;
+  int			iLen, i;
   XTextProperty		xtpName;
   
 #if CYGMULTIWINDOW_DEBUG
@@ -438,38 +440,26 @@ GetWindowName (Display *pDisplay, Window iWin, char **ppName)
 #endif
       return;
     }
-  
-  /* */
-  if (xtpName.encoding == XA_STRING)
-    {
-      /* */
-      if (xtpName.value)
-	{
-	  int size = xtpName.nitems * (xtpName.format >> 3);
-	  *ppName = malloc(size + 1);
-	  strncpy(*ppName, xtpName.value, size);
-	  (*ppName)[size] = 0;
-	  XFree (xtpName.value);
-	}
 
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("GetWindowName - XA_STRING %s\n", *ppName);
-#endif
-    }
-  else
-    {
-      if (XmbTextPropertyToTextList (pDisplay, &xtpName, &ppList, &nNum) >= Success && nNum > 0 && *ppList)
-	{
-	  *ppName = strdup (*ppList);
-	  XFreeStringList (ppList);
-	}
-      XFree (xtpName.value);
-
-#if CYGMULTIWINDOW_DEBUG
-      ErrorF ("GetWindowName - %s %s\n",
-	      XGetAtomName (pDisplay, xtpName.encoding), *ppName);
-#endif
-    }
+   if (Xutf8TextPropertyToTextList (pDisplay, &xtpName, &ppList, &nNum) >= Success && nNum > 0 && *ppList)
+   {
+ 	iLen = 0;
+ 	for (i = 0; i < nNum; i++) iLen += strlen(ppList[i]);
+ 	pszReturnData = (char *) malloc (iLen + 1);
+ 	pszReturnData[0] = '\0';
+ 	for (i = 0; i < nNum; i++) strcat (pszReturnData, ppList[i]);
+ 	if (ppList) XFreeStringList (ppList);
+   }
+   else
+   {
+ 	pszReturnData = (char *) malloc (1);
+ 	pszReturnData[0] = '\0';
+   }
+   iLen = MultiByteToWideChar (CP_UTF8, 0, pszReturnData, -1, NULL, 0);
+   *ppName = (wchar_t*)malloc(sizeof(wchar_t)*(iLen + 1));
+   MultiByteToWideChar (CP_UTF8, 0, pszReturnData, -1, *ppName, iLen);
+   XFree (xtpName.value);
+   free (pszReturnData);
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("GetWindowName - Returning\n");
@@ -506,7 +496,7 @@ SendXMessage (Display *pDisplay, Window iWin, Atom atmType, long nData)
 static void
 UpdateName (WMInfoPtr pWMInfo, Window iWindow)
 {
-  char			*pszName;
+  wchar_t		*pszName;
   Atom			atmType;
   int			fmtRet;
   unsigned long		items, remain;
@@ -550,7 +540,7 @@ UpdateName (WMInfoPtr pWMInfo, Window iWindow)
 			    &attr);
       if (!attr.override_redirect)
 	{
-	  SetWindowText (hWnd, pszName);
+	  SetWindowTextW (hWnd, pszName);
 	  winUpdateIcon (iWindow);
 	}
 
