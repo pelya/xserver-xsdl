@@ -705,7 +705,7 @@ winAboutDlgProc (HWND hwndDialog, UINT message,
 
 	case ID_ABOUT_WEBSITE:
 	  {
-	    const char *	pszPath = "http://x.cygwin.com/";
+	    const char *	pszPath = __VENDORDWEBSUPPORT__;
 	    int			iReturn;
 	    
 	    iReturn = ShellExecute (NULL,
