@@ -221,7 +221,7 @@ ProcSELinuxGetDeviceContext(ClientPtr client)
 }
 
 static int
-ProcSELinuxGetWindowContext(ClientPtr client)
+ProcSELinuxGetDrawableContext(ClientPtr client)
 {
     DrawablePtr pDraw;
     PrivateRec **privatePtr;
@@ -486,12 +486,12 @@ ProcSELinuxDispatch(ClientPtr client)
 	return ProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
 	return ProcSELinuxGetDeviceContext(client);
-    case X_SELinuxSetWindowCreateContext:
+    case X_SELinuxSetDrawableCreateContext:
 	return ProcSELinuxSetCreateContext(client, CTX_WIN);
-    case X_SELinuxGetWindowCreateContext:
+    case X_SELinuxGetDrawableCreateContext:
 	return ProcSELinuxGetCreateContext(client, CTX_WIN);
-    case X_SELinuxGetWindowContext:
-	return ProcSELinuxGetWindowContext(client);
+    case X_SELinuxGetDrawableContext:
+	return ProcSELinuxGetDrawableContext(client);
     case X_SELinuxSetPropertyCreateContext:
 	return ProcSELinuxSetCreateContext(client, CTX_PRP);
     case X_SELinuxGetPropertyCreateContext:
@@ -574,14 +574,14 @@ SProcSELinuxGetDeviceContext(ClientPtr client)
 }
 
 static int
-SProcSELinuxGetWindowContext(ClientPtr client)
+SProcSELinuxGetDrawableContext(ClientPtr client)
 {
     REQUEST(SELinuxGetContextReq);
     int n;
 
     REQUEST_SIZE_MATCH(SELinuxGetContextReq);
     swapl(&stuff->id, n);
-    return ProcSELinuxGetWindowContext(client);
+    return ProcSELinuxGetDrawableContext(client);
 }
 
 static int
@@ -648,12 +648,12 @@ SProcSELinuxDispatch(ClientPtr client)
 	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
 	return SProcSELinuxGetDeviceContext(client);
-    case X_SELinuxSetWindowCreateContext:
+    case X_SELinuxSetDrawableCreateContext:
 	return SProcSELinuxSetCreateContext(client, CTX_WIN);
-    case X_SELinuxGetWindowCreateContext:
+    case X_SELinuxGetDrawableCreateContext:
 	return ProcSELinuxGetCreateContext(client, CTX_WIN);
-    case X_SELinuxGetWindowContext:
-	return SProcSELinuxGetWindowContext(client);
+    case X_SELinuxGetDrawableContext:
+	return SProcSELinuxGetDrawableContext(client);
     case X_SELinuxSetPropertyCreateContext:
 	return SProcSELinuxSetCreateContext(client, CTX_PRP);
     case X_SELinuxGetPropertyCreateContext:
