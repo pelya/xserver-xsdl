@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Extension info */
 #define SELINUX_EXTENSION_NAME		"SELinux"
 #define SELINUX_MAJOR_VERSION		1
-#define SELINUX_MINOR_VERSION		0
+#define SELINUX_MINOR_VERSION		1
 #define SELinuxNumberEvents		0
 #define SELinuxNumberErrors		0
 
