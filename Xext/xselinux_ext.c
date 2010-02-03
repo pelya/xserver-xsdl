@@ -223,18 +223,26 @@ ProcSELinuxGetDeviceContext(ClientPtr client)
 static int
 ProcSELinuxGetWindowContext(ClientPtr client)
 {
-    WindowPtr pWin;
+    DrawablePtr pDraw;
+    PrivateRec **privatePtr;
     SELinuxObjectRec *obj;
     int rc;
 
     REQUEST(SELinuxGetContextReq);
     REQUEST_SIZE_MATCH(SELinuxGetContextReq);
 
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixGetAttrAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->id, client,
+			   M_WINDOW | M_DRAWABLE_PIXMAP,
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
-    obj = dixLookupPrivate(&pWin->devPrivates, objectKey);
+    if (pDraw->type == M_DRAWABLE_PIXMAP)
+	privatePtr = &((PixmapPtr)pDraw)->devPrivates;
+    else
+	privatePtr = &((WindowPtr)pDraw)->devPrivates;
+
+    obj = dixLookupPrivate(privatePtr, objectKey);
     return SELinuxSendContextReply(client, obj->sid);
 }
 
