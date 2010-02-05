@@ -696,6 +696,7 @@ static void include_byte_padding_macros(void)
 
         g_assert(bits_to_bytes(i) >= i/8);
         g_assert((bits_to_bytes(i) * 8) - i <= 7);
+        g_assert(expected_bytes == bits_to_bytes(i));
     }
 
     g_test_message("Testing bytes_to_int32()");
@@ -706,6 +707,7 @@ static void include_byte_padding_macros(void)
 
         g_assert(bytes_to_int32(i) <= i);
         g_assert((bytes_to_int32(i) * 4) - i <= 3);
+        g_assert(expected_4byte == bytes_to_int32(i));
     }
 
     g_test_message("Testing pad_to_int32");
@@ -717,6 +719,7 @@ static void include_byte_padding_macros(void)
 
         g_assert(pad_to_int32(i) >= i);
         g_assert(pad_to_int32(i) - i <= 3);
+        g_assert(expected_bytes == pad_to_int32(i));
     }
 
 }
