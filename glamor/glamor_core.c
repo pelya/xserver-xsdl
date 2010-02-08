@@ -351,15 +351,16 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	    for (y = 0; y < pixmap->drawable.height; y++) {
 		uint8_t *read_row = read +
 		    read_stride * (pixmap->drawable.height - y - 1);
+		uint8_t *write_row = data + y * stride;
 
 		for (x = 0; x < pixmap->drawable.width; x++) {
 		    int index = x / 8;
 		    int bit = 1 << (x % 8);
 
 		    if (read_row[x])
-			data[index] |= bit;
+			write_row[index] |= bit;
 		    else
-			data[index] &= ~bit;
+			write_row[index] &= ~bit;
 		}
 	    }
 	} else {
