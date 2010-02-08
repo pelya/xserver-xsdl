@@ -123,8 +123,8 @@ glamor_fallback(char *format, ...)
     va_list ap;
 
     va_start(ap, format);
-    LogMessageVerb(X_INFO, 1, "glamor fallback: ");
-    LogVMessageVerb(X_INFO, 1, format, ap);
+    LogMessageVerb(X_INFO, 0, "fallback: ");
+    LogVMessageVerb(X_NONE, 0, format, ap);
     va_end(ap);
 }
 

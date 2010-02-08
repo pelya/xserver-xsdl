@@ -25,7 +25,6 @@
  *
  */
 
-
 /** @file glamor_render.c
  *
  * Render acceleration implementation
@@ -35,6 +34,7 @@
 
 #ifdef RENDER
 #include "mipict.h"
+#include "fbpict.h"
 
 #include "glu3/glu3.h"
 
@@ -474,11 +474,11 @@ glamor_composite(CARD8 op,
 	source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
 	source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
 	if (source_pixmap == dest_pixmap) {
-	    ErrorF("source == dest\n");
+	    glamor_fallback("glamor_composite(): source == dest\n");
 	    goto fail;
 	}
 	if (!source_pixmap_priv || source_pixmap_priv->tex == 0) {
-	    ErrorF("no FBO in source\n");
+	    glamor_fallback("glamor_composite(): no FBO in source\n");
 	    goto fail;
 	}
     }
@@ -486,18 +486,19 @@ glamor_composite(CARD8 op,
 	mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 	mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
 	if (mask_pixmap == dest_pixmap) {
-	    ErrorF("mask == dest\n");
+	    glamor_fallback("glamor_composite(): mask == dest\n");
 	    goto fail;
 	}
 	if (!mask_pixmap_priv || mask_pixmap_priv->tex == 0) {
-	    ErrorF("no FBO in mask\n");
+	    glamor_fallback("glamor_composite(): no FBO in mask\n");
 	    goto fail;
 	}
     }
 
     shader = glamor_lookup_composite_shader(screen, &key);
     if (shader->prog == 0) {
-	ErrorF("No program compiled for this render accel mode\n");
+	glamor_fallback("glamor_composite(): "
+			"no shader program for this render acccel mode\n");
 	goto fail;
     }
 
@@ -570,9 +571,31 @@ glamor_composite(CARD8 op,
     return;
 
 fail:
-    glamor_set_composite_op(screen, PictOpSrc, dest, mask);
+    glamor_fallback("glamor_composite(): "
+		    "from picts %p/%p to pict %p\n", source, mask, dest);
+
     glUseProgramObjectARB(0);
-    glamor_solid_fail_region(dest_pixmap, x_dest, y_dest, width, height);
+    if (glamor_prepare_access(dest->pDrawable, GLAMOR_ACCESS_RW)) {
+	if (source->pDrawable == NULL ||
+	    glamor_prepare_access(source->pDrawable, GLAMOR_ACCESS_RO))
+	{
+	    if (!mask || mask->pDrawable == NULL ||
+		glamor_prepare_access(mask->pDrawable, GLAMOR_ACCESS_RO))
+	    {
+		fbComposite(op,
+			    source, mask, dest,
+			    x_source, y_source,
+			    x_mask, y_mask,
+			    x_dest, y_dest,
+			    width, height);
+		if (mask && mask->pDrawable != NULL)
+		    glamor_finish_access(mask->pDrawable);
+	    }
+	    if (source->pDrawable != NULL)
+		glamor_finish_access(source->pDrawable);
+	}
+	glamor_finish_access(dest->pDrawable);
+    }
 }
 
 
