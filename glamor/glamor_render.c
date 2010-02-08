@@ -446,6 +446,49 @@ glamor_get_picture_location(PicturePtr picture)
     return glamor_get_drawable_location(picture->pDrawable);
 }
 
+static Bool
+glamor_composite_copy(CARD8 op,
+		      PicturePtr source,
+		      PicturePtr dest,
+		      INT16 x_source,
+		      INT16 y_source,
+		      INT16 x_dest,
+		      INT16 y_dest,
+		      CARD16 width,
+		      CARD16 height)
+{
+    RegionRec region;
+
+    if (!compatible_formats(op, dest, source))
+	return FALSE;
+
+    if (source->repeat || source->transform)
+	return FALSE;
+
+    x_dest += dest->pDrawable->x;
+    y_dest += dest->pDrawable->y;
+    x_source += source->pDrawable->x;
+    y_source += source->pDrawable->y;
+
+    if (!miComputeCompositeRegion(&region,
+				  source, NULL, dest,
+				  x_source, y_source,
+				  0, 0,
+				  x_dest, y_dest,
+				  width, height))
+	return TRUE;
+
+    glamor_copy_n_to_n(source->pDrawable,
+		       dest->pDrawable, NULL,
+		       REGION_RECTS(&region),
+		       REGION_NUM_RECTS(&region),
+		       x_source - x_dest, y_source - y_dest,
+		       FALSE, FALSE, 0, NULL);
+    REGION_UNINIT(dest->pDrawable->pScreen,
+		  &region);
+    return TRUE;
+}
+
 void
 glamor_composite(CARD8 op,
 		 PicturePtr source,
@@ -491,30 +534,11 @@ glamor_composite(CARD8 op,
     }
 
     if (!mask) {
-	if (compatible_formats (op, dest, source)) {
-	    if (!source->repeat && !source->transform) {
-		x_dest += dest->pDrawable->x;
-		y_dest += dest->pDrawable->y;
-		x_source += source->pDrawable->x;
-		y_source += source->pDrawable->y;
-
-		if (!miComputeCompositeRegion
-		    (&region,
-		     source, NULL, dest,
-		     x_source, y_source, 0, 0, x_dest, y_dest, width, height))
-		    return;
-
-		glamor_copy_n_to_n(source->pDrawable,
-				   dest->pDrawable, NULL,
-				   REGION_RECTS(&region),
-				   REGION_NUM_RECTS(&region),
-				   x_source - x_dest, y_source - y_dest,
-				   FALSE, FALSE, 0, NULL);
-		REGION_UNINIT(dest->pDrawable->pScreen,
-			      &region);
-		return;
-	    }
-	}
+	if (glamor_composite_copy(op, source, dest,
+				  x_source, y_source,
+				  x_dest, y_dest,
+				  width, height))
+	    return;
     }
 
     goto fail;
