@@ -32,6 +32,30 @@
  * GC CopyArea implementation
  */
 
+static float
+v_from_x_coord_x(PixmapPtr pixmap, int x)
+{
+    return (float)(x - pixmap->screen_x) / pixmap->drawable.width * 2.0 - 1.0;
+}
+
+static float
+v_from_x_coord_y(PixmapPtr pixmap, int y)
+{
+    return (float)(y - pixmap->screen_y) / pixmap->drawable.height * -2.0 + 1.0;
+}
+
+static float
+t_from_x_coord_x(PixmapPtr pixmap, int x)
+{
+    return (float)(x - pixmap->screen_x) / pixmap->drawable.width;
+}
+
+static float
+t_from_x_coord_y(PixmapPtr pixmap, int y)
+{
+    return 1.0 - (float)(y - pixmap->screen_y) / pixmap->drawable.height;
+}
+
 void
 glamor_copy_n_to_n(DrawablePtr src,
 		 DrawablePtr dst,
@@ -45,16 +69,78 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 Pixel		bitplane,
 		 void		*closure)
 {
+    glamor_screen_private *glamor_priv =
+	glamor_get_screen_private(dst->pScreen);
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     int i;
+    float vertices[4][2], texcoords[4][2];
+    glamor_pixmap_private *src_pixmap_priv;
 
-    goto fail;
+    src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
-    glamor_set_alu(gc->alu);
-    if (!glamor_set_planemask(dst_pixmap, gc->planemask))
+    if (src == dst) {
+	glamor_fallback("glamor_copy_n_to_n with same src/dst\n");
+	goto fail;
+    }
+
+    if (!src_pixmap_priv || !src_pixmap_priv->tex) {
+	glamor_fallback("glamor_copy_n_to_n with non-texture src\n");
+	goto fail;
+    }
+
+    if (!glamor_set_destination_pixmap(dst_pixmap))
 	goto fail;
 
+    if (gc) {
+	glamor_set_alu(gc->alu);
+	if (!glamor_set_planemask(dst_pixmap, gc->planemask))
+	    goto fail;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
+    glEnable(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glClientActiveTexture(GL_TEXTURE0);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    assert(GLEW_ARB_fragment_shader);
+    glUseProgramObjectARB(glamor_priv->finish_access_prog);
+
+    for (i = 0; i < nbox; i++) {
+	vertices[0][0] = v_from_x_coord_x(dst_pixmap, box[i].x1);
+	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1);
+	vertices[1][0] = v_from_x_coord_x(dst_pixmap, box[i].x2);
+	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1);
+	vertices[2][0] = v_from_x_coord_x(dst_pixmap, box[i].x2);
+	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2);
+	vertices[3][0] = v_from_x_coord_x(dst_pixmap, box[i].x1);
+	vertices[3][1] = v_from_x_coord_y(dst_pixmap, box[i].y2);
+
+	texcoords[0][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
+	texcoords[0][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
+	texcoords[1][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
+	texcoords[1][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);
+	texcoords[2][0] = t_from_x_coord_x(src_pixmap, box[i].x2 + dx);
+	texcoords[2][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
+	texcoords[3][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
+	texcoords[3][1] = t_from_x_coord_y(src_pixmap, box[i].y2 + dy);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    }
+
+    glUseProgramObjectARB(0);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisable(GL_TEXTURE_2D);
+
+#if 0
     for (i = 0; i < nbox; i++) {
 	glRasterPos2i(box[i].x1 - dst_pixmap->screen_x,
 		      box[i].y1 - dst_pixmap->screen_y);
@@ -64,9 +150,12 @@ glamor_copy_n_to_n(DrawablePtr src,
 		     box[i].y2 - box[i].y1,
 		     GL_COLOR);
     }
+#endif
+
+    return;
 
 fail:
-    glamor_fallback("from %p to %p (%c,%c)\n", src, dst,
+    glamor_fallback("glamor_copy_area() from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),
 		    glamor_get_drawable_location(dst));
     if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
@@ -89,30 +178,8 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     ScreenPtr screen = dst->pScreen;
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
-    PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src_pixmap);
     RegionPtr region;
-
-    if (!GLEW_EXT_framebuffer_blit) {
-	glamor_fallback("glamor_copy_area(): "
-			"EXT_framebuffer_blit unsupported\n");
-	goto fail;
-    }
-
-    if (!glamor_set_destination_pixmap(dst_pixmap))
-	goto fail;
-
-    if (src_priv == NULL) {
-	glamor_fallback("glamor_copy_area(): no src pixmap priv");
-	goto fail;
-    }
-
-    if (src_priv->fb == 0 && src_pixmap != screen_pixmap) {
-	glamor_fallback("glamor_copy_area(): no src fbo");
-	goto fail;
-    }
-
-    glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, src_priv->fb);
 
     region = miDoCopy(src, dst, gc,
 		      srcx, srcy, width, height,
