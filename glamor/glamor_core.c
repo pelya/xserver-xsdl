@@ -293,25 +293,24 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	    return TRUE;
     }
 
-    stride = PixmapBytePad(drawable->width, drawable->depth);
+    stride = PixmapBytePad(pixmap->drawable.width, drawable->depth);
     read_stride = stride;
 
-    data = xalloc(stride * drawable->height);
+    data = xalloc(stride * pixmap->drawable.height);
 
     switch (drawable->depth) {
     case 1:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
-	read_stride = drawable->width;
+	read_stride = pixmap->drawable.width;
 	break;
     case 8:
 	format = GL_ALPHA;
 	type = GL_UNSIGNED_BYTE;
 	break;
     case 24:
-	format = GL_RGB;
-	type = GL_UNSIGNED_BYTE;
-	break;
+	assert(drawable->bitsPerPixel == 32);
+	/* FALLTHROUGH */
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -323,47 +322,55 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     }
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glGenBuffersARB(1, &pixmap_priv->pbo);
-    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-    glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT,
-		    read_stride * pixmap->drawable.height,
-		    NULL, GL_DYNAMIC_DRAW_ARB);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ROW_LENGTH, read_stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
 
-    glReadPixels(0, 0,
-		 pixmap->drawable.width, pixmap->drawable.height,
-		 format, type, 0);
-
-    read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_WRITE_ARB);
-
-    if (pixmap->drawable.depth == 1) {
-	for (y = 0; y < pixmap->drawable.height; y++) {
-	    uint8_t *read_row = read + read_stride * (pixmap->drawable.height -
-						      y - 1);
-
-	    for (x = 0; x < pixmap->drawable.width; x++) {
-		int index = x / 8;
-		int bit = 1 << (x % 8);
-
-		if (read_row[x])
-		    data[index] |= bit;
-		else
-		    data[index] &= ~bit;
-	    }
-	}
+    if (GLEW_MESA_pack_invert && drawable->depth != 1) {
+	glPixelStorei(GL_PACK_INVERT_MESA, 1);
+	glReadPixels(0, 0,
+		     pixmap->drawable.width, pixmap->drawable.height,
+		     format, type, data);
+	glPixelStorei(GL_PACK_INVERT_MESA, 0);
     } else {
-	for (y = 0; y < pixmap->drawable.height; y++)
-	    memcpy(data + y * stride,
-		   read + (pixmap->drawable.height - y - 1) * stride, stride);
-    }
-    pixmap->devPrivate.ptr = data;
+	glGenBuffersARB(1, &pixmap_priv->pbo);
+	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
+	glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT,
+			read_stride * pixmap->drawable.height,
+			NULL, GL_DYNAMIC_DRAW_ARB);
+	glReadPixels(0, 0,
+		     pixmap->drawable.width, pixmap->drawable.height,
+		     format, type, 0);
 
-    glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_EXT);
-    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
-    glDeleteBuffersARB(1, &pixmap_priv->pbo);
-    pixmap_priv->pbo = 0;
+	read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_WRITE_ARB);
+
+	if (pixmap->drawable.depth == 1) {
+	    for (y = 0; y < pixmap->drawable.height; y++) {
+		uint8_t *read_row = read +
+		    read_stride * (pixmap->drawable.height - y - 1);
+
+		for (x = 0; x < pixmap->drawable.width; x++) {
+		    int index = x / 8;
+		    int bit = 1 << (x % 8);
+
+		    if (read_row[x])
+			data[index] |= bit;
+		    else
+			data[index] &= ~bit;
+		}
+	    }
+	} else {
+	    for (y = 0; y < pixmap->drawable.height; y++)
+		memcpy(data + y * stride,
+		       read + (pixmap->drawable.height - y - 1) * stride, stride);
+	}
+	glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_EXT);
+	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
+	glDeleteBuffersARB(1, &pixmap_priv->pbo);
+	pixmap_priv->pbo = 0;
+    }
+
+    pixmap->devPrivate.ptr = data;
 
     return TRUE;
 }
@@ -397,9 +404,8 @@ glamor_finish_access(DrawablePtr drawable)
 	type = GL_UNSIGNED_BYTE;
 	break;
     case 24:
-	format = GL_RGB;
-	type = GL_UNSIGNED_BYTE;
-	break;
+	assert(drawable->bitsPerPixel == 32);
+	/* FALLTHROUGH */
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -409,7 +415,7 @@ glamor_finish_access(DrawablePtr drawable)
 	return;
     }
 
-    stride = PixmapBytePad(drawable->width, drawable->depth);
+    stride = PixmapBytePad(pixmap->drawable.width, drawable->depth);
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
