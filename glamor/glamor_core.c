@@ -337,12 +337,12 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
 	glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT,
 			read_stride * pixmap->drawable.height,
-			NULL, GL_DYNAMIC_DRAW_ARB);
+			NULL, GL_STREAM_READ_ARB);
 	glReadPixels(0, 0,
 		     pixmap->drawable.width, pixmap->drawable.height,
 		     format, type, 0);
 
-	read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_WRITE_ARB);
+	read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_ONLY_ARB);
 
 	if (pixmap->drawable.depth == 1) {
 	    for (y = 0; y < pixmap->drawable.height; y++) {
