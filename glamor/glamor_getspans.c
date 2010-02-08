@@ -76,14 +76,13 @@ glamor_get_spans(DrawablePtr drawable,
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
 	break;
     default:
-	ErrorF("Unknown getspans depth %d\n", drawable->depth);
-	return;
+	glamor_fallback("glamor_get_spans(): "
+			"Unknown getspans depth %d\n", drawable->depth);
+	goto fail;
     }
 
-    if (!glamor_set_destination_pixmap(pixmap)) {
-	fbGetSpans(drawable, wmax, points, widths, count, dst);
-	return;
-    }
+    if (!glamor_set_destination_pixmap(pixmap))
+	goto fail;
 
     for (i = 0; i < count; i++) {
 	glReadPixels(points[i].x - pixmap->screen_x,
@@ -102,4 +101,14 @@ glamor_get_spans(DrawablePtr drawable,
 	}
     }
     xfree(temp_dst);
+    return;
+
+fail:
+    free(temp_dst);
+    glamor_fallback("glamor_get_spans() from %p (%c)\n", drawable,
+		    glamor_get_drawable_location(drawable));
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RO)) {
+	fbGetSpans(drawable, wmax, points, widths, count, dst);
+	glamor_finish_access(drawable);
+    }
 }
