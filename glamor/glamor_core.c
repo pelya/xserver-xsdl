@@ -323,9 +323,12 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glPixelStorei(GL_PACK_ROW_LENGTH, read_stride * 8 /
-		  pixmap->drawable.bitsPerPixel);
-
+    if (drawable->depth != 1) {
+	glPixelStorei(GL_PACK_ROW_LENGTH, read_stride * 8 /
+		      pixmap->drawable.bitsPerPixel);
+    } else {
+	glPixelStorei(GL_PACK_ROW_LENGTH, read_stride);
+    }
     if (GLEW_MESA_pack_invert && drawable->depth != 1) {
 	glPixelStorei(GL_PACK_INVERT_MESA, 1);
 	glReadPixels(0, 0,
