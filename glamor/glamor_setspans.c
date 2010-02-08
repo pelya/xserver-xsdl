@@ -68,8 +68,9 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
 	break;
     default:
-	ErrorF("Unknown setspans depth %d\n", drawable->depth);
-	return;
+	glamor_fallback("glamor_set_spans()Unknown depth %d\n",
+			drawable->depth);
+	goto fail;
     }
 
     if (!glamor_set_destination_pixmap(dest_pixmap))
@@ -117,4 +118,11 @@ fail:
     glamor_set_planemask(dest_pixmap, ~0);
     glamor_set_alu(GXcopy);
     xfree(temp_src);
+
+    glamor_fallback("glamor_set_spans(): to %p (%c)\n",
+		    drawable, glamor_get_drawable_location(drawable));
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	fbSetSpans(drawable, gc, src, points, widths, n, sorted);
+	glamor_finish_access(drawable);
+    }
 }
