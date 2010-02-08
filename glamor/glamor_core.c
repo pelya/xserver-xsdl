@@ -429,6 +429,42 @@ glamor_finish_access(DrawablePtr drawable)
     xfree(pixmap->devPrivate.ptr);
     pixmap->devPrivate.ptr = NULL;
 }
+/**
+ * Calls uxa_prepare_access with UXA_PREPARE_SRC for the tile, if that is the
+ * current fill style.
+ *
+ * Solid doesn't use an extra pixmap source, so we don't worry about them.
+ * Stippled/OpaqueStippled are 1bpp and can be in fb, so we should worry
+ * about them.
+ */
+Bool
+glamor_prepare_access_gc(GCPtr gc)
+{
+    if (gc->stipple)
+	if (!glamor_prepare_access(&gc->stipple->drawable, GLAMOR_ACCESS_RO))
+	    return FALSE;
+    if (gc->fillStyle == FillTiled) {
+	if (!glamor_prepare_access (&gc->tile.pixmap->drawable,
+				    GLAMOR_ACCESS_RO)) {
+	    if (gc->stipple)
+		glamor_finish_access(&gc->stipple->drawable);
+	    return FALSE;
+	}
+    }
+    return TRUE;
+}
+
+/**
+ * Finishes access to the tile in the GC, if used.
+ */
+void
+glamor_finish_access_gc(GCPtr gc)
+{
+	if (gc->fillStyle == FillTiled)
+		glamor_finish_access(&gc->tile.pixmap->drawable);
+	if (gc->stipple)
+		glamor_finish_access(&gc->stipple->drawable);
+}
 
 void
 glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,

@@ -140,6 +140,8 @@ Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
 void glamor_finish_access(DrawablePtr drawable);
 Bool glamor_prepare_access_window(WindowPtr window);
 void glamor_finish_access_window(WindowPtr window);
+Bool glamor_prepare_access_gc(GCPtr gc);
+void glamor_finish_access_gc(GCPtr gc);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
