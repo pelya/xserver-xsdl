@@ -425,6 +425,27 @@ compatible_formats (CARD8 op, PicturePtr dst, PicturePtr src)
     return 0;
 }
 
+static char
+glamor_get_picture_location(PicturePtr picture)
+{
+    if (picture == NULL)
+	return ' ';
+
+    if (picture->pDrawable == NULL) {
+	switch (picture->pSourcePict->type) {
+	case SourcePictTypeSolidFill:
+	    return 'c';
+	case SourcePictTypeLinear:
+	    return 'l';
+	case SourcePictTypeRadial:
+	    return 'r';
+	default:
+	    return '?';
+	}
+    }
+    return glamor_get_drawable_location(picture->pDrawable);
+}
+
 void
 glamor_composite(CARD8 op,
 		 PicturePtr source,
@@ -627,7 +648,12 @@ glamor_composite(CARD8 op,
 
 fail:
     glamor_fallback("glamor_composite(): "
-		    "from picts %p/%p to pict %p\n", source, mask, dest);
+		    "from picts %p/%p(%c,%c) to pict %p (%c)\n",
+		    source, mask,
+		    glamor_get_picture_location(source),
+		    glamor_get_picture_location(mask),
+		    dest,
+		    glamor_get_picture_location(dest));
 
     glUseProgramObjectARB(0);
     if (glamor_prepare_access(dest->pDrawable, GLAMOR_ACCESS_RW)) {
