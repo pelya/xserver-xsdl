@@ -43,6 +43,8 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
 
+    goto fail;
+
     for (i = 0 ; i < n; i++) {
 	if (wmax < widths[i])
 	    wmax = widths[i];

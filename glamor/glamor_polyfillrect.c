@@ -52,6 +52,8 @@ glamor_poly_fill_rect(DrawablePtr drawable,
     int		    xorg, yorg;
     int		    n;
 
+    goto fail;
+
     xorg = drawable->x;
     yorg = drawable->y;
 
@@ -114,5 +116,18 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 				partX2 - partX1, partY2 - partY1);
 	    }
 	}
+    }
+    return;
+
+fail:
+    glamor_fallback("glamor_poly_fill_rect() to %p (%c)\n",
+		    drawable, glamor_get_drawable_location(drawable));
+
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	if (glamor_prepare_access_gc(gc)) {
+	    fbPolyFillRect(drawable, gc, nrect, prect );
+	    glamor_finish_access_gc(gc);
+	}
+	glamor_finish_access(drawable);
     }
 }

@@ -245,6 +245,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int bpp = drawable->bitsPerPixel;
     int src_stride = PixmapBytePad(w, drawable->depth);
 
+    goto fail;
+
     if (!glamor_set_destination_pixmap(pixmap)) {
 	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad,
 		   image_format, bits);

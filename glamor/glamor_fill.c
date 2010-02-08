@@ -42,6 +42,8 @@ glamor_fill(DrawablePtr drawable,
 {
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(drawable);
 
+    assert(0);
+
     switch (gc->fillStyle) {
     case FillSolid:
 	glamor_solid(dst_pixmap,

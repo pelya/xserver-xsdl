@@ -79,6 +79,8 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src_pixmap);
     RegionPtr region;
 
+    goto fail;
+
     if (!GLEW_EXT_framebuffer_blit) {
 	glamor_fallback("glamor_copy_area(): "
 			"EXT_framebuffer_blit unsupported\n");

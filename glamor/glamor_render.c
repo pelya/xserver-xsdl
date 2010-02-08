@@ -424,6 +424,8 @@ glamor_composite(CARD8 op,
     RegionRec region;
     int i;
 
+    goto fail;
+
     /* Do two-pass PictOpOver componentAlpha, until we enable
      * dual source color blending.
      */

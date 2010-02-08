@@ -56,6 +56,8 @@ glamor_get_spans(DrawablePtr drawable,
     int i, j;
     uint8_t *temp_dst = NULL, *readpixels_dst = (uint8_t *)dst;
 
+    goto fail;
+
     switch (drawable->depth) {
     case 1:
 	temp_dst = xalloc(wmax);

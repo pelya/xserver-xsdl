@@ -45,6 +45,8 @@ glamor_fill_spans(DrawablePtr drawable,
     int fullX1, fullX2, fullY1;
     int partX1, partX2;
 
+    goto fail;
+
     extents = REGION_EXTENTS(gc->pScreen, clip);
     extentX1 = extents->x1;
     extentY1 = extents->y1;
@@ -96,5 +98,16 @@ glamor_fill_spans(DrawablePtr drawable,
 		boxes++;
 	    }
 	}
+    }
+    return;
+fail:
+    glamor_fallback("to %p (%c)\n", drawable,
+		    glamor_get_drawable_location(drawable));
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	if (glamor_prepare_access_gc(gc)) {
+	    fbFillSpans(drawable, gc, n, points, widths, sorted);
+	    glamor_finish_access_gc(gc);
+	}
+	glamor_finish_access(drawable);
     }
 }
