@@ -224,6 +224,7 @@ glamor_init(ScreenPtr screen)
     glamor_init_tile_shader(screen);
     glamor_init_putimage_shaders(screen);
     glamor_init_composite_shaders(screen);
+    glamor_init_finish_access_shaders(screen);
 
     return TRUE;
 

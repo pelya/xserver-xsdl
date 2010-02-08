@@ -379,12 +379,66 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 }
 
 void
+glamor_init_finish_access_shaders(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    const char *vs_source =
+	"void main()\n"
+	"{\n"
+	"	gl_Position = gl_Vertex;\n"
+	"	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
+	"}\n";
+    const char *fs_source =
+	"varying vec2 texcoords;\n"
+	"uniform sampler2D sampler;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = texture2D(sampler, gl_TexCoord[0].xy);\n"
+	"}\n";
+    GLint fs_prog, vs_prog;
+
+    glamor_priv->finish_access_prog = glCreateProgramObjectARB();
+    if (GLEW_ARB_fragment_shader) {
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
+	fs_prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, fs_source);
+	glAttachObjectARB(glamor_priv->finish_access_prog, vs_prog);
+	glAttachObjectARB(glamor_priv->finish_access_prog, fs_prog);
+    } else {
+	vs_prog = glamor_compile_glsl_prog(GL_VERTEX_SHADER_ARB, vs_source);
+	glAttachObjectARB(glamor_priv->finish_access_prog, vs_prog);
+    }
+
+    glamor_link_glsl_prog(glamor_priv->finish_access_prog);
+
+    if (GLEW_ARB_fragment_shader) {
+	GLint sampler_uniform_location;
+
+	sampler_uniform_location =
+	    glGetUniformLocationARB(glamor_priv->finish_access_prog, "sampler");
+	glUseProgramObjectARB(glamor_priv->finish_access_prog);
+	glUniform1iARB(sampler_uniform_location, 0);
+	glUseProgramObjectARB(0);
+    }
+}
+
+void
 glamor_finish_access(DrawablePtr drawable)
 {
+    glamor_screen_private *glamor_priv =
+	glamor_get_screen_private(drawable->pScreen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     unsigned int stride;
     GLenum format, type;
+    static float vertices[4][2] = {{-1, -1},
+				   { 1, -1},
+				   { 1,  1},
+				   {-1,  1}};
+    static float texcoords[4][2] = {{0, 1},
+				    {1, 1},
+				    {1, 0},
+				    {0, 0}};
+    GLuint tex;
 
     if (pixmap_priv == NULL)
 	return;
@@ -396,6 +450,10 @@ glamor_finish_access(DrawablePtr drawable)
 	if (pixmap != screen_pixmap)
 	    return;
     }
+
+    /* Check if finish_access was already called once on this */
+    if (pixmap->devPrivate.ptr == NULL)
+	return;
 
     switch (drawable->depth) {
     case 1:
@@ -420,18 +478,44 @@ glamor_finish_access(DrawablePtr drawable)
 
     stride = PixmapBytePad(pixmap->drawable.width, drawable->depth);
 
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glClientActiveTexture(GL_TEXTURE0);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
+
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
 
-    glRasterPos2i(0, 0);
-    glDrawPixels(pixmap->drawable.width, pixmap->drawable.height,
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+		 pixmap->drawable.width, pixmap->drawable.height, 0,
 		 format, type, pixmap->devPrivate.ptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glEnable(GL_TEXTURE_2D);
+
+    assert(GLEW_ARB_fragment_shader);
+    glUseProgramObjectARB(glamor_priv->finish_access_prog);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisable(GL_TEXTURE_2D);
+    glUseProgramObjectARB(0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDeleteTextures(1, &tex);
 
     xfree(pixmap->devPrivate.ptr);
     pixmap->devPrivate.ptr = NULL;
 }
+
 /**
  * Calls uxa_prepare_access with UXA_PREPARE_SRC for the tile, if that is the
  * current fill style.

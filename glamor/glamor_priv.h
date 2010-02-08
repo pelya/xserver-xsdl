@@ -63,6 +63,9 @@ typedef struct glamor_screen_private {
     ChangeWindowAttributesProcPtr saved_change_window_attributes;
     BitmapToRegionProcPtr saved_bitmap_to_region;
 
+    /* glamor_finishaccess */
+    GLint finish_access_prog;
+
     /* glamor_solid */
     GLint solid_prog;
     GLint solid_color_uniform_location;
@@ -142,6 +145,7 @@ Bool glamor_prepare_access_window(WindowPtr window);
 void glamor_finish_access_window(WindowPtr window);
 Bool glamor_prepare_access_gc(GCPtr gc);
 void glamor_finish_access_gc(GCPtr gc);
+void glamor_init_finish_access_shaders(ScreenPtr screen);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
