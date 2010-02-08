@@ -39,13 +39,26 @@
 
 #include "glamor_priv.h"
 
+const Bool
+glamor_get_drawable_location(const DrawablePtr drawable)
+{
+    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
+    if (pixmap_priv == NULL)
+	return 'm';
+    if (pixmap_priv->fb == 0)
+	return 's';
+    else
+	return 'f';
+}
+
 Bool
 glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
 
     if (pixmap_priv == NULL) {
-	ErrorF("no pixmap priv?");
+	glamor_fallback("glamor_set_destination_pixmap(): no pixmap priv");
 	return FALSE;
     }
 
@@ -54,7 +67,7 @@ glamor_set_destination_pixmap(PixmapPtr pixmap)
 	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
 
 	if (pixmap != screen_pixmap) {
-	    ErrorF("No FBO\n");
+	    glamor_fallback("glamor_set_destination_pixmap(): no fbo");
 	    return FALSE;
 	}
     }

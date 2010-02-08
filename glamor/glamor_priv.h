@@ -117,6 +117,17 @@ glamor_pm_is_solid(DrawablePtr drawable, unsigned long planemask)
 	FbFullMask(drawable->depth);
 }
 
+static inline void
+glamor_fallback(char *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    LogMessageVerb(X_INFO, 1, "glamor fallback: ");
+    LogVMessageVerb(X_INFO, 1, format, ap);
+    va_end(ap);
+}
+
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
@@ -129,6 +140,7 @@ Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
 void glamor_finish_access(DrawablePtr drawable);
 Bool glamor_prepare_access_window(WindowPtr window);
 void glamor_finish_access_window(WindowPtr window);
+const Bool glamor_get_drawable_location(const DrawablePtr drawable);
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,

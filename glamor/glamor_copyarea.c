@@ -80,27 +80,22 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     RegionPtr region;
 
     if (!GLEW_EXT_framebuffer_blit) {
-	ErrorF("EXT_framebuffer_blit unsupported\n");
+	glamor_fallback("glamor_copy_area(): "
+			"EXT_framebuffer_blit unsupported\n");
 	goto fail;
     }
 
-    if (!glamor_set_destination_pixmap(dst_pixmap)) {
-	/*
-	return miDoCopy(pSrcDrawable, pDstDrawable, pGC,
-			srcx, srcy, width, height,
-			dstx, dsty, fbCopyNtoN, 0, NULL);
-	*/
-	return NULL;
-    }
+    if (!glamor_set_destination_pixmap(dst_pixmap))
+	goto fail;
 
     if (src_priv == NULL) {
-	ErrorF("glamor_copy_area: no src pixmap priv?");
+	glamor_fallback("glamor_copy_area(): no src pixmap priv");
 	goto fail;
     }
 
     if (src_priv->fb == 0 && src_pixmap != screen_pixmap) {
-	ErrorF("glamor_copy_area: No src FBO\n");
-	return NULL;
+	glamor_fallback("glamor_copy_area(): no src fbo");
+	goto fail;
     }
 
     glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, src_priv->fb);
@@ -112,5 +107,17 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     return region;
 
 fail:
-    return NULL;
+    glamor_fallback("glamor_copy_area from %p to %p (%c,%c)\n", src, dst,
+		    glamor_get_drawable_location(src),
+		    glamor_get_drawable_location(dst));
+    region = NULL;
+    if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
+	if (glamor_prepare_access(src, GLAMOR_ACCESS_RO)) {
+	    region = fbCopyArea(src, dst, gc, srcx, srcy, width, height,
+				dstx, dsty);
+	    glamor_finish_access(src);
+	}
+	glamor_finish_access(dst);
+    }
+    return region;
 }
