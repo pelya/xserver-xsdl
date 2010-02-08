@@ -177,12 +177,7 @@ glamor_set_transform_for_pixmap(PixmapPtr pixmap,
     glUniform1fARB(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
     glUniform1fARB(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
     glUniform1fARB(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
-    if (pixmap == screen_pixmap)
-	glUniform1fARB(uniform_locations->y_scale,
-		       -2.0f / pixmap->drawable.height);
-    else
-	glUniform1fARB(uniform_locations->y_scale,
-		       2.0f / pixmap->drawable.height);
+    glUniform1fARB(uniform_locations->y_scale, -2.0f / pixmap->drawable.height);
 }
 
 GLint
