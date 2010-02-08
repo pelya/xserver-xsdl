@@ -265,8 +265,9 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 {
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
     glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
-    unsigned int stride;
+    unsigned int stride, read_stride, x, y;
     GLenum format, type;
+    uint8_t *data, *read;
 
     if (pixmap_priv == NULL)
 	return TRUE;
@@ -280,11 +281,15 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
     }
 
     stride = PixmapBytePad(drawable->width, drawable->depth);
+    read_stride = stride;
+
+    data = xalloc(stride * drawable->height);
 
     switch (drawable->depth) {
     case 1:
-	format = GL_COLOR_INDEX;
-	type = GL_BITMAP;
+	format = GL_ALPHA;
+	type = GL_UNSIGNED_BYTE;
+	read_stride = drawable->width;
 	break;
     case 8:
 	format = GL_ALPHA;
@@ -300,24 +305,52 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	break;
     default:
 	ErrorF("Unknown prepareaccess depth %d\n", drawable->depth);
+	xfree(data);
 	return FALSE;
     }
 
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
     glGenBuffersARB(1, &pixmap_priv->pbo);
     glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, pixmap_priv->pbo);
-    glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT, stride * drawable->height,
+    glBufferDataARB(GL_PIXEL_PACK_BUFFER_EXT,
+		    read_stride * pixmap->drawable.height,
 		    NULL, GL_DYNAMIC_DRAW_ARB);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glPixelStorei(GL_PACK_ROW_LENGTH, stride * 8 /
+    glPixelStorei(GL_PACK_ROW_LENGTH, read_stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
 
     glReadPixels(0, 0,
 		 pixmap->drawable.width, pixmap->drawable.height,
 		 format, type, 0);
 
-    pixmap->devPrivate.ptr = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT,
-					    GL_READ_WRITE_ARB);
+    read = glMapBufferARB(GL_PIXEL_PACK_BUFFER_EXT, GL_READ_WRITE_ARB);
+
+    if (pixmap->drawable.depth == 1) {
+	for (y = 0; y < pixmap->drawable.height; y++) {
+	    uint8_t *read_row = read + read_stride * (pixmap->drawable.height -
+						      y - 1);
+
+	    for (x = 0; x < pixmap->drawable.width; x++) {
+		int index = x / 8;
+		int bit = 1 << (x % 8);
+
+		if (read_row[x])
+		    data[index] |= bit;
+		else
+		    data[index] &= ~bit;
+	    }
+	}
+    } else {
+	for (y = 0; y < pixmap->drawable.height; y++)
+	    memcpy(data + y * stride,
+		   read + (pixmap->drawable.height - y - 1) * stride, stride);
+    }
+    pixmap->devPrivate.ptr = data;
+
+    glUnmapBufferARB(GL_PIXEL_PACK_BUFFER_EXT);
+    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
+    glDeleteBuffersARB(1, &pixmap_priv->pbo);
+    pixmap_priv->pbo = 0;
 
     return TRUE;
 }
@@ -341,13 +374,6 @@ glamor_finish_access(DrawablePtr drawable)
 	    return;
     }
 
-    glBindBufferARB(GL_PIXEL_PACK_BUFFER_EXT, 0);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
-    glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-    pixmap->devPrivate.ptr = NULL;
-
-    stride = PixmapBytePad(drawable->width, drawable->depth);
-
     switch (drawable->depth) {
     case 1:
 	format = GL_COLOR_INDEX;
@@ -370,17 +396,19 @@ glamor_finish_access(DrawablePtr drawable)
 	return;
     }
 
+    stride = PixmapBytePad(drawable->width, drawable->depth);
+
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, pixmap_priv->pbo);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, stride * 8 /
 		  pixmap->drawable.bitsPerPixel);
 
     glRasterPos2i(0, 0);
     glDrawPixels(pixmap->drawable.width, pixmap->drawable.height,
-		 format, type, 0);
-    glDeleteBuffersARB(1, &pixmap_priv->pbo);
-    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+		 format, type, pixmap->devPrivate.ptr);
+
+    xfree(pixmap->devPrivate.ptr);
+    pixmap->devPrivate.ptr = NULL;
 }
 
 void
@@ -392,75 +420,6 @@ glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 {
     ErrorF("stubbed out stipple depth %d\n", pixmap->drawable.depth);
     glamor_solid_fail_region(pixmap, x, y, width, height);
-}
-
-/**
- * glamor_poly_lines() checks if it can accelerate the lines as a group of
- * horizontal or vertical lines (rectangles), and uses existing rectangle fill
- * acceleration if so.
- */
-static void
-glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
-		  DDXPointPtr points)
-{
-    xRectangle *rects;
-    int x1, x2, y1, y2;
-    int i;
-
-    /* Don't try to do wide lines or non-solid fill style. */
-    if (gc->lineWidth != 0) {
-	ErrorF("stub wide polylines\n");
-	return;
-    }
-    if (gc->lineStyle != LineSolid ||
-	gc->fillStyle != FillSolid) {
-	ErrorF("stub poly_line non-solid fill\n");
-	return;
-    }
-
-    rects = xalloc(sizeof(xRectangle) * (n - 1));
-    x1 = points[0].x;
-    y1 = points[0].y;
-    /* If we have any non-horizontal/vertical, fall back. */
-    for (i = 0; i < n - 1; i++) {
-	if (mode == CoordModePrevious) {
-	    x2 = x1 + points[i + 1].x;
-	    y2 = y1 + points[i + 1].y;
-	} else {
-	    x2 = points[i + 1].x;
-	    y2 = points[i + 1].y;
-	}
-
-	if (x1 != x2 && y1 != y2) {
-	    PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
-
-	    xfree(rects);
-
-	    ErrorF("stub diagonal poly_line\n");
-	    glamor_solid_fail_region(pixmap, x1, y1, x2 - x1, y2 - y1);
-	    return;
-	}
-
-	if (x1 < x2) {
-	    rects[i].x = x1;
-	    rects[i].width = x2 - x1 + 1;
-	} else {
-	    rects[i].x = x2;
-	    rects[i].width = x1 - x2 + 1;
-	}
-	if (y1 < y2) {
-	    rects[i].y = y1;
-	    rects[i].height = y2 - y1 + 1;
-	} else {
-	    rects[i].y = y2;
-	    rects[i].height = y1 - y2 + 1;
-	}
-
-	x1 = x2;
-	y1 = y2;
-    }
-    gc->ops->PolyFillRect(drawable, gc, n - 1, rects);
-    xfree(rects);
 }
 
 GCOps glamor_gc_ops = {

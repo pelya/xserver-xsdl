@@ -23,6 +23,7 @@ libglamor_la_SOURCES = \
 	glamor_fillspans.c \
 	glamor_getspans.c \
 	glamor_polyfillrect.c \
+	glamor_polylines.c \
 	glamor_putimage.c \
 	glamor_setspans.c \
 	glamor_render.c \

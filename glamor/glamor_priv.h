@@ -192,6 +192,11 @@ glamor_poly_fill_rect(DrawablePtr drawable,
 		      int nrect,
 		      xRectangle *prect);
 
+/* glamor_polylines.c */
+void
+glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
+		  DDXPointPtr points);
+
 /* glamor_putimage.c */
 void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
