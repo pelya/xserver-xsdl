@@ -210,6 +210,9 @@ glamor_init(ScreenPtr screen)
     glamor_priv->saved_change_window_attributes = screen->ChangeWindowAttributes;
     screen->ChangeWindowAttributes = glamor_change_window_attributes;
 
+    glamor_priv->saved_copy_window = screen->CopyWindow;
+    screen->CopyWindow = glamor_copy_window;
+
     glamor_priv->saved_bitmap_to_region = screen->BitmapToRegion;
     screen->BitmapToRegion = glamor_bitmap_to_region;
 
@@ -247,6 +250,7 @@ glamor_fini(ScreenPtr screen)
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
     screen->GetSpans = glamor_priv->saved_get_spans;
     screen->ChangeWindowAttributes = glamor_priv->saved_change_window_attributes;
+    screen->CopyWindow = glamor_priv->saved_copy_window;
     screen->BitmapToRegion = glamor_priv->saved_bitmap_to_region;
 #ifdef RENDER
     ps->Composite = glamor_priv->saved_composite;

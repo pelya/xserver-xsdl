@@ -32,7 +32,7 @@
  * GC CopyArea implementation
  */
 
-static void
+void
 glamor_copy_n_to_n(DrawablePtr src,
 		 DrawablePtr dst,
 		 GCPtr gc,
@@ -49,6 +49,8 @@ glamor_copy_n_to_n(DrawablePtr src,
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     int i;
 
+    goto fail;
+
     glamor_set_alu(gc->alu);
     if (!glamor_set_planemask(dst_pixmap, gc->planemask))
 	goto fail;
@@ -64,6 +66,18 @@ glamor_copy_n_to_n(DrawablePtr src,
     }
 
 fail:
+    glamor_fallback("from %p to %p (%c,%c)\n", src, dst,
+		    glamor_get_drawable_location(src),
+		    glamor_get_drawable_location(dst));
+    if (glamor_prepare_access(dst, GLAMOR_ACCESS_RW)) {
+	if (glamor_prepare_access(src, GLAMOR_ACCESS_RO)) {
+	    fbCopyNtoN(src, dst, gc, box, nbox,
+		       dx, dy, reverse, upsidedown, bitplane,
+		       closure);
+	    glamor_finish_access(src);
+	}
+	glamor_finish_access(dst);
+    }
     glamor_set_alu(GXcopy);
     glamor_set_planemask(dst_pixmap, ~0);
 }
@@ -78,8 +92,6 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src_pixmap);
     RegionPtr region;
-
-    goto fail;
 
     if (!GLEW_EXT_framebuffer_blit) {
 	glamor_fallback("glamor_copy_area(): "

@@ -61,6 +61,7 @@ typedef struct glamor_screen_private {
     CompositeProcPtr saved_composite;
     TrapezoidsProcPtr saved_trapezoids;
     ChangeWindowAttributesProcPtr saved_change_window_attributes;
+    CopyWindowProcPtr saved_copy_window;
     BitmapToRegionProcPtr saved_bitmap_to_region;
 
     /* glamor_finishaccess */
@@ -138,6 +139,23 @@ PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 RegionPtr
 glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
 		 int srcx, int srcy, int width, int height, int dstx, int dsty);
+void
+glamor_copy_n_to_n(DrawablePtr src,
+		   DrawablePtr dst,
+		   GCPtr gc,
+		   BoxPtr box,
+		   int nbox,
+		   int		dx,
+		   int		dy,
+		   Bool		reverse,
+		   Bool		upsidedown,
+		   Pixel		bitplane,
+		   void		*closure);
+
+/* glamor_copywindow.c */
+void glamor_copy_window(WindowPtr win, DDXPointRec old_origin,
+			RegionPtr src_region);
+
 /* glamor_core.c */
 Bool glamor_prepare_access(DrawablePtr drawable, glamor_access_t access);
 void glamor_finish_access(DrawablePtr drawable);

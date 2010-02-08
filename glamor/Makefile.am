@@ -18,6 +18,7 @@ AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
 libglamor_la_SOURCES = \
 	glamor.c \
 	glamor_copyarea.c \
+	glamor_copywindow.c \
 	glamor_core.c \
 	glamor_fill.c \
 	glamor_fillspans.c \
