@@ -224,7 +224,13 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 fail:
     glamor_set_alu(GXcopy);
     glamor_set_planemask(pixmap, ~0);
-    glamor_solid_fail_region(pixmap, x, y, w, h);
+
+    glamor_fallback("glamor_put_image(): to %p (%c)\n",
+		    drawable, glamor_get_drawable_location(drawable));
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	fbPutImage(drawable, gc, 1, x, y, w, h, left_pad, XYBitmap, bits);
+	glamor_finish_access(drawable);
+    }
 }
 
 void
@@ -331,5 +337,11 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 
 fail:
     glamor_set_planemask(pixmap, ~0);
-    glamor_solid_fail_region(pixmap, x, y, w, h);
+    glamor_fallback("glamor_put_image(): to %p (%c)\n",
+		    drawable, glamor_get_drawable_location(drawable));
+    if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad, image_format,
+		   bits);
+	glamor_finish_access(drawable);
+    }
 }
