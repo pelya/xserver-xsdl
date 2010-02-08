@@ -767,6 +767,11 @@ hostx_screen_init (EphyrScreenInfo screen,
 static void hostx_paint_debug_rect (struct EphyrHostScreen *host_screen,
                                     int x,     int y,
                                     int width, int height);
+static void
+ephyr_glamor_paint_rect (EphyrScreenInfo screen,
+			 int sx,    int sy,
+			 int dx,    int dy,
+			 int width, int height);
 
 void
 hostx_paint_rect (EphyrScreenInfo screen,
@@ -777,6 +782,11 @@ hostx_paint_rect (EphyrScreenInfo screen,
   struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
 
   EPHYR_DBG ("painting in screen %d\n", host_screen->mynum) ;
+
+  if (ephyr_glamor) {
+      ephyr_glamor_paint_rect(screen, sx, sy, dx, dy, width, height);
+      return;
+  }
 
   /*
    *  Copy the image data updated by the shadow layer
@@ -1464,6 +1474,7 @@ ephyr_glamor_get_visual(void)
 		     GLX_RED_SIZE, 1,
 		     GLX_GREEN_SIZE, 1,
 		     GLX_BLUE_SIZE, 1,
+		     GLX_DOUBLEBUFFER, 1,
 		     None};
     XVisualInfo *visual_info;
     int event_base = 0, error_base = 0;
@@ -1494,4 +1505,30 @@ ephyr_glamor_host_create_context(EphyrScreenInfo ephyr_screen)
 
     if (!glXMakeCurrent(dpy, host_screen->win, ctx))
 	errx(1, "glXMakeCurrent failed\n");
+}
+
+static void
+ephyr_glamor_paint_rect (EphyrScreenInfo screen,
+			 int sx,    int sy,
+			 int dx,    int dy,
+			 int width, int height)
+{
+    struct EphyrHostScreen *host_screen = host_screen_from_screen_info (screen);
+    static PFNGLXCOPYSUBBUFFERMESAPROC pglXCopySubBufferMESA = NULL;
+
+    if (!pglXCopySubBufferMESA) {
+	pglXCopySubBufferMESA = (PFNGLXCOPYSUBBUFFERMESAPROC)
+	    glXGetProcAddressARB((const GLubyte*)"glXCopySubBufferMESA");
+	assert(pglXCopySubBufferMESA);
+    }
+
+    /* Always copy the full screen until we get things rendering correctly. */
+#if 0
+    pglXCopySubBufferMESA(HostX.dpy, host_screen->win,
+			  sx, sy, width, height);
+#else
+    pglXCopySubBufferMESA(HostX.dpy, host_screen->win,
+			  0, 0,
+			  host_screen->win_width, host_screen->win_height);
+#endif
 }

@@ -395,9 +395,6 @@ ephyrSetInternalDamage (ScreenPtr pScreen)
   EphyrScrPriv	*scrpriv = screen->driver;
   PixmapPtr      pPixmap = NULL;
 
-  if (ephyrFuncs.initAccel == ephyr_glamor_init)
-      return TRUE;
-
   scrpriv->pDamage = DamageCreate ((DamageReportFunc) 0,
 				   (DamageDestroyFunc) 0,
 				   DamageReportNone,
