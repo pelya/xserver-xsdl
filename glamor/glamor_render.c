@@ -399,6 +399,32 @@ glamor_set_composite_solid(PicturePtr picture, GLint uniform_location)
     glUniform4fvARB(uniform_location, 1, color);
 }
 
+static int
+compatible_formats (CARD8 op, PicturePtr dst, PicturePtr src)
+{
+    if (op == PictOpSrc) {
+	if (src->format == dst->format)
+	    return 1;
+
+	if (src->format == PICT_a8r8g8b8 && dst->format == PICT_x8r8g8b8)
+	    return 1;
+
+	if (src->format == PICT_a8b8g8r8 && dst->format == PICT_x8b8g8r8)
+	    return 1;
+    } else if (op == PictOpOver) {
+	if (src->alphaMap || dst->alphaMap)
+	    return 0;
+
+	if (src->format != dst->format)
+	    return 0;
+
+	if (src->format == PICT_x8r8g8b8 || src->format == PICT_x8b8g8r8)
+	    return 1;
+    }
+
+    return 0;
+}
+
 void
 glamor_composite(CARD8 op,
 		 PicturePtr source,
@@ -424,8 +450,6 @@ glamor_composite(CARD8 op,
     RegionRec region;
     int i;
 
-    goto fail;
-
     /* Do two-pass PictOpOver componentAlpha, until we enable
      * dual source color blending.
      */
@@ -444,6 +468,35 @@ glamor_composite(CARD8 op,
 			 width, height);
 	return;
     }
+
+    if (!mask) {
+	if (compatible_formats (op, dest, source)) {
+	    if (!source->repeat && !source->transform) {
+		x_dest += dest->pDrawable->x;
+		y_dest += dest->pDrawable->y;
+		x_source += source->pDrawable->x;
+		y_source += source->pDrawable->y;
+
+		if (!miComputeCompositeRegion
+		    (&region,
+		     source, NULL, dest,
+		     x_source, y_source, 0, 0, x_dest, y_dest, width, height))
+		    return;
+
+		glamor_copy_n_to_n(source->pDrawable,
+				   dest->pDrawable, NULL,
+				   REGION_RECTS(&region),
+				   REGION_NUM_RECTS(&region),
+				   x_source - x_dest, y_source - y_dest,
+				   FALSE, FALSE, 0, NULL);
+		REGION_UNINIT(dest->pDrawable->pScreen,
+			      &region);
+		return;
+	    }
+	}
+    }
+
+    goto fail;
 
     memset(&key, 0, sizeof(key));
     key.has_mask = (mask != NULL);
