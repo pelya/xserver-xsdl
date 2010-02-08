@@ -181,6 +181,10 @@ glamor_init(ScreenPtr screen)
 	ErrorF("GL_ARB_pixel_buffer_object required\n");
 	goto fail;
     }
+    if (!GLEW_EXT_bgra) {
+	ErrorF("GL_EXT_bgra required\n");
+	goto fail;
+    }
 
     if (!RegisterBlockAndWakeupHandlers(glamor_block_handler,
 					glamor_wakeup_handler,
