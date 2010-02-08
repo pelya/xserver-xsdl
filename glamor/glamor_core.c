@@ -293,7 +293,7 @@ glamor_prepare_access(DrawablePtr drawable, glamor_access_t access)
 	    return TRUE;
     }
 
-    stride = PixmapBytePad(pixmap->drawable.width, drawable->depth);
+    stride = pixmap->devKind;
     read_stride = stride;
 
     data = xalloc(stride * pixmap->drawable.height);
@@ -476,7 +476,7 @@ glamor_finish_access(DrawablePtr drawable)
 	return;
     }
 
-    stride = PixmapBytePad(pixmap->drawable.width, drawable->depth);
+    stride = pixmap->devKind;
 
     glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
     glEnableClientState(GL_VERTEX_ARRAY);
