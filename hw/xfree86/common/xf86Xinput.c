@@ -535,7 +535,7 @@ InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
         /* see if any of the values match */
         for (cur = iclass->match_device, match = FALSE; *cur; cur++)
 #ifdef HAVE_FNMATCH_H
-            if (fnmatch(*cur, attrs->device, 0) == 0) {
+            if (fnmatch(*cur, attrs->device, FNM_PATHNAME) == 0) {
 #else
             if (strstr(attrs->device, *cur)) {
 #endif
