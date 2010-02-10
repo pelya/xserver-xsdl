@@ -32,30 +32,6 @@
  * GC CopyArea implementation
  */
 
-static float
-v_from_x_coord_x(PixmapPtr pixmap, int x)
-{
-    return (float)(x - pixmap->screen_x) / pixmap->drawable.width * 2.0 - 1.0;
-}
-
-static float
-v_from_x_coord_y(PixmapPtr pixmap, int y)
-{
-    return (float)(y - pixmap->screen_y) / pixmap->drawable.height * -2.0 + 1.0;
-}
-
-static float
-t_from_x_coord_x(PixmapPtr pixmap, int x)
-{
-    return (float)(x - pixmap->screen_x) / pixmap->drawable.width;
-}
-
-static float
-t_from_x_coord_y(PixmapPtr pixmap, int y)
-{
-    return 1.0 - (float)(y - pixmap->screen_y) / pixmap->drawable.height;
-}
-
 void
 glamor_copy_n_to_n(DrawablePtr src,
 		 DrawablePtr dst,
@@ -175,10 +151,12 @@ RegionPtr
 glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
 		 int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
+#if 0
     ScreenPtr screen = dst->pScreen;
     PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
     PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     glamor_pixmap_private *src_priv = glamor_get_pixmap_private(src_pixmap);
+#endif
     RegionPtr region;
 
     region = miDoCopy(src, dst, gc,
@@ -187,6 +165,7 @@ glamor_copy_area(DrawablePtr src, DrawablePtr dst, GCPtr gc,
 
     return region;
 
+#if 0
 fail:
     glamor_fallback("glamor_copy_area from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),
@@ -201,4 +180,5 @@ fail:
 	glamor_finish_access(dst);
     }
     return region;
+#endif
 }

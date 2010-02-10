@@ -132,6 +132,30 @@ glamor_fallback(char *format, ...)
     va_end(ap);
 }
 
+static inline float
+v_from_x_coord_x(PixmapPtr pixmap, int x)
+{
+    return (float)(x - pixmap->screen_x) / pixmap->drawable.width * 2.0 - 1.0;
+}
+
+static inline float
+v_from_x_coord_y(PixmapPtr pixmap, int y)
+{
+    return (float)(y - pixmap->screen_y) / pixmap->drawable.height * -2.0 + 1.0;
+}
+
+static inline float
+t_from_x_coord_x(PixmapPtr pixmap, int x)
+{
+    return (float)(x - pixmap->screen_x) / pixmap->drawable.width;
+}
+
+static inline float
+t_from_x_coord_y(PixmapPtr pixmap, int y)
+{
+    return 1.0 - (float)(y - pixmap->screen_y) / pixmap->drawable.height;
+}
+
 /* glamor.c */
 PixmapPtr glamor_get_drawable_pixmap(DrawablePtr drawable);
 
