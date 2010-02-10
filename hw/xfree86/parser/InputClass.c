@@ -60,44 +60,6 @@ xf86ConfigSymTabRec InputClassTab[] =
 
 #define TOKEN_SEP "|"
 
-/*
- * Tokenize a string into a NULL terminated array of strings. Always returns
- * an allocated array unless an error occurs.
- */
-static char **
-tokenize(const char *str)
-{
-    char **list, **nlist;
-    char *tok, *tmp;
-    unsigned num = 0, n;
-
-    list = calloc(1, sizeof(*list));
-    if (!list)
-        return NULL;
-    tmp = strdup(str);
-    if (!tmp)
-        goto error;
-    for (tok = strtok(tmp, TOKEN_SEP); tok; tok = strtok(NULL, TOKEN_SEP)) {
-        nlist = realloc(list, (num + 2) * sizeof(*list));
-        if (!nlist)
-            goto error;
-        list = nlist;
-        list[num] = strdup(tok);
-        if (!list[num])
-            goto error;
-        list[++num] = NULL;
-    }
-    free(tmp);
-    return list;
-
-error:
-    TestFree(tmp);
-    for (n = 0; n < num; n++)
-        free(list[n]);
-    TestFree(list);
-    return NULL;
-}
-
 XF86ConfInputClassPtr
 xf86parseInputClassSection(void)
 {
@@ -133,17 +95,17 @@ xf86parseInputClassSection(void)
         case MATCH_PRODUCT:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchProduct");
-            ptr->match_product = tokenize(val.str);
+            ptr->match_product = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_VENDOR:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchVendor");
-            ptr->match_vendor = tokenize(val.str);
+            ptr->match_vendor = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_DEVICE_PATH:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchDevicePath");
-            ptr->match_device = tokenize(val.str);
+            ptr->match_device = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_IS_KEYBOARD:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
