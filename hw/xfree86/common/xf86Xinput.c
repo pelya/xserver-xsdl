@@ -502,20 +502,49 @@ AddOtherInputDevices(void)
 static Bool
 InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
 {
-    if (iclass->match_product &&
-        (!attrs->product || !strstr(attrs->product, iclass->match_product)))
-        return FALSE;
-    if (iclass->match_vendor &&
-        (!attrs->vendor || !strstr(attrs->vendor, iclass->match_vendor)))
-        return FALSE;
-    if (iclass->match_device &&
+    char **cur;
+    Bool match;
+
+    if (iclass->match_product) {
+        if (!attrs->product)
+            return FALSE;
+        /* see if any of the values match */
+        for (cur = iclass->match_product, match = FALSE; *cur; cur++)
+            if (strstr(attrs->product, *cur)) {
+                match = TRUE;
+                break;
+            }
+        if (!match)
+            return FALSE;
+    }
+    if (iclass->match_vendor) {
+        if (!attrs->vendor)
+            return FALSE;
+        /* see if any of the values match */
+        for (cur = iclass->match_vendor, match = FALSE; *cur; cur++)
+            if (strstr(attrs->vendor, *cur)) {
+                match = TRUE;
+                break;
+            }
+        if (!match)
+            return FALSE;
+    }
+    if (iclass->match_device) {
+        if (!attrs->device)
+            return FALSE;
+        /* see if any of the values match */
+        for (cur = iclass->match_device, match = FALSE; *cur; cur++)
 #ifdef HAVE_FNMATCH_H
-        (!attrs->device ||
-         fnmatch(iclass->match_device, attrs->device, 0) != 0))
+            if (fnmatch(*cur, attrs->device, 0) == 0) {
 #else
-        (!attrs->device || !strstr(attrs->device, iclass->match_device)))
+            if (strstr(attrs->device, *cur)) {
 #endif
-        return FALSE;
+                match = TRUE;
+                break;
+            }
+        if (!match)
+            return FALSE;
+    }
     if (iclass->is_keyboard.set &&
         iclass->is_keyboard.val != !!(attrs->flags & ATTR_KEYBOARD))
         return FALSE;

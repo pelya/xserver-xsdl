@@ -1039,17 +1039,20 @@ The allowed matching entries are shown below.
 .BI "MatchProduct  \*q" matchproduct \*q
 This entry can be used to check if the substring
 .RI \*q matchproduct \*q
-occurs in the device's product name.
+occurs in the device's product name. Multiple substrings can be matched by
+separating arguments with a '|' character.
 .TP 7
 .BI "MatchVendor  \*q" matchvendor \*q
 This entry can be used to check if the substring
 .RI \*q matchvendor \*q
-occurs in the device's vendor name.
+occurs in the device's vendor name. Multiple substrings can be matched by
+separating arguments with a '|' character.
 .TP 7
 .BI "MatchDevicePath \*q" matchdevice \*q
 This entry can be used to check if the device file matches the
 .RI \*q matchdevice \*q
-pathname pattern.
+pathname pattern. Multiple patterns can be matched by separating arguments
+with a '|' character.
 .TP 7
 .BI "MatchIsKeyboard     \*q" bool \*q
 .TP 7
