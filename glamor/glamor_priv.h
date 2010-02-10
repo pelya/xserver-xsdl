@@ -100,6 +100,7 @@ typedef struct {
 
 enum shader_source {
     SHADER_SOURCE_SOLID,
+    SHADER_SOURCE_TEXTURE,
     SHADER_SOURCE_TEXTURE_ALPHA,
     SHADER_SOURCE_COUNT,
 };
@@ -107,6 +108,7 @@ enum shader_source {
 enum shader_mask {
     SHADER_MASK_NONE,
     SHADER_MASK_SOLID,
+    SHADER_MASK_TEXTURE,
     SHADER_MASK_TEXTURE_ALPHA,
     SHADER_MASK_COUNT,
 };

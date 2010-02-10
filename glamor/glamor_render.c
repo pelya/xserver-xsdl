@@ -82,8 +82,14 @@ glamor_create_composite_fs(struct shader_key *key)
 	"{\n";
     const char *source_alpha_pixmap_fetch =
 	"	vec4 source = texture2D(source_sampler, gl_TexCoord[0].xy);\n";
+    const char *source_pixmap_fetch =
+	"	vec4 source = vec4(texture2D(source_sampler, "
+	"				     gl_TexCoord[0].xy).rgb, 1.0);\n";
     const char *mask_alpha_pixmap_fetch =
 	"	vec4 mask = texture2D(mask_sampler, gl_TexCoord[1].xy);\n";
+    const char *mask_pixmap_fetch =
+	"	vec4 mask = vec4(texture2D(mask_sampler, "
+	"				   gl_TexCoord[1].xy).rgb, 1.0);\n";
     const char *source_in_mask =
 	"	gl_FragColor = source * mask.a;\n";
     const char *source_only =
@@ -106,9 +112,12 @@ glamor_create_composite_fs(struct shader_key *key)
 	source_setup = source_pixmap_header;
 	source_fetch = source_alpha_pixmap_fetch;
 	break;
-	FatalError("Bad composite shader source");
+    case SHADER_SOURCE_TEXTURE:
+	source_setup = source_pixmap_header;
+	source_fetch = source_pixmap_fetch;
+	break;
     default:
-	FatalError("Bad composite source mask");
+	FatalError("Bad composite shader source");
     }
 
     switch (key->mask) {
@@ -120,6 +129,10 @@ glamor_create_composite_fs(struct shader_key *key)
     case SHADER_MASK_TEXTURE_ALPHA:
 	mask_setup = mask_pixmap_header;
 	mask_fetch = mask_alpha_pixmap_fetch;
+	break;
+    case SHADER_MASK_TEXTURE:
+	mask_setup = mask_pixmap_header;
+	mask_fetch = mask_pixmap_fetch;
 	break;
     default:
 	FatalError("Bad composite shader mask");
@@ -446,6 +459,14 @@ good_source_format(PicturePtr picture)
     case PICT_a8:
     case PICT_a8r8g8b8:
 	return TRUE;
+    case PICT_x8r8g8b8:
+	/* In order to support formats with no alpha, we have to wire the
+	 * alpha to 1 in the shader, which conflicts with
+	 * GL_CLAMP_TO_BORDERing to transparent.  We could possibly compute
+	 * coverage of the texels in the sampling area if we need to, but
+	 * that isn't implemented today.
+	 */
+	return (picture->repeatType != RepeatNone);
     default:
 	glamor_fallback("Bad source format 0x%08x\n", picture->format);
 	return FALSE;
@@ -459,6 +480,14 @@ good_mask_format(PicturePtr picture)
     case PICT_a8:
     case PICT_a8r8g8b8:
 	return TRUE;
+    case PICT_x8r8g8b8:
+	/* In order to support formats with no alpha, we have to wire the
+	 * alpha to 1 in the shader, which conflicts with
+	 * GL_CLAMP_TO_BORDERing to transparent.  We could possibly compute
+	 * coverage of the texels in the sampling area if we need to, but
+	 * that isn't implemented today.
+	 */
+	return (picture->repeatType != RepeatNone);
     default:
 	glamor_fallback("Bad mask format 0x%08x\n", picture->format);
 	return FALSE;
@@ -514,7 +543,11 @@ glamor_composite_with_shader(CARD8 op,
 	    goto fail;
 	}
     } else {
-	key.source = SHADER_SOURCE_TEXTURE_ALPHA;
+	if (PICT_FORMAT_A(source->format) != 0) {
+	    key.source = SHADER_SOURCE_TEXTURE_ALPHA;
+	} else {
+	    key.source = SHADER_SOURCE_TEXTURE;
+	}
     }
     if (mask) {
 	if (!mask->pDrawable) {
@@ -525,7 +558,11 @@ glamor_composite_with_shader(CARD8 op,
 		goto fail;
 	    }
 	} else {
-	    key.mask = SHADER_MASK_TEXTURE_ALPHA;
+	    if (PICT_FORMAT_A(mask->format) != 0) {
+		key.mask = SHADER_MASK_TEXTURE_ALPHA;
+	    } else {
+		key.mask = SHADER_MASK_TEXTURE;
+	    }
 	}
     } else {
 	key.mask = SHADER_MASK_NONE;
@@ -539,7 +576,8 @@ glamor_composite_with_shader(CARD8 op,
 	goto fail;
     }
 
-    if (key.source == SHADER_SOURCE_TEXTURE_ALPHA) {
+    if (key.source == SHADER_SOURCE_TEXTURE ||
+	key.source == SHADER_SOURCE_TEXTURE_ALPHA) {
 	source_pixmap = glamor_get_drawable_pixmap(source->pDrawable);
 	source_pixmap_priv = glamor_get_pixmap_private(source_pixmap);
 	if (source_pixmap == dest_pixmap) {
@@ -553,7 +591,8 @@ glamor_composite_with_shader(CARD8 op,
 	if (!good_source_format(source))
 	    goto fail;
     }
-    if (key.mask == SHADER_MASK_TEXTURE_ALPHA) {
+    if (key.mask == SHADER_MASK_TEXTURE ||
+	key.mask == SHADER_MASK_TEXTURE_ALPHA) {
 	mask_pixmap = glamor_get_drawable_pixmap(mask->pDrawable);
 	mask_pixmap_priv = glamor_get_pixmap_private(mask_pixmap);
 	if (mask_pixmap == dest_pixmap) {
