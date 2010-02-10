@@ -171,9 +171,6 @@ void
 glamor_set_transform_for_pixmap(PixmapPtr pixmap,
 				glamor_transform_uniforms *uniform_locations)
 {
-    ScreenPtr screen = pixmap->drawable.pScreen;
-    PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
-
     glUniform1fARB(uniform_locations->x_bias, -pixmap->drawable.width / 2.0f);
     glUniform1fARB(uniform_locations->x_scale, 2.0f / pixmap->drawable.width);
     glUniform1fARB(uniform_locations->y_bias, -pixmap->drawable.height / 2.0f);
@@ -489,6 +486,7 @@ glamor_finish_access(DrawablePtr drawable)
 		  pixmap->drawable.bitsPerPixel);
 
     glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 		 pixmap->drawable.width, pixmap->drawable.height, 0,
