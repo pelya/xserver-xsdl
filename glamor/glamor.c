@@ -112,7 +112,8 @@ glamor_create_pixmap(ScreenPtr screen, int w, int h, int depth,
 			      0);
 
     screen->ModifyPixmapHeader(pixmap, w, h, 0, 0,
-			       (w * pixmap->drawable.bitsPerPixel + 7) / 8,
+			       (((w * pixmap->drawable.bitsPerPixel +
+				  7) / 8) + 3) & ~3,
 			       NULL);
 
     return pixmap;
