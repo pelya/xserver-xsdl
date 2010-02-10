@@ -172,6 +172,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glUseProgramObjectARB(0);
 fail:
     glamor_set_alu(GXcopy);
+    glamor_set_planemask(pixmap, ~0);
 }
 
 /* Highlight places where we're doing it wrong. */
