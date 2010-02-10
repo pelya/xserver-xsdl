@@ -47,6 +47,7 @@ xf86ConfigSymTabRec InputClassTab[] =
     {MATCH_PRODUCT, "matchproduct"},
     {MATCH_VENDOR, "matchvendor"},
     {MATCH_DEVICE_PATH, "matchdevicepath"},
+    {MATCH_TAG, "matchtag"},
     {MATCH_IS_KEYBOARD, "matchiskeyboard"},
     {MATCH_IS_POINTER, "matchispointer"},
     {MATCH_IS_JOYSTICK, "matchisjoystick"},
@@ -106,6 +107,11 @@ xf86parseInputClassSection(void)
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchDevicePath");
             ptr->match_device = xstrtokenize(val.str, TOKEN_SEP);
+            break;
+        case MATCH_TAG:
+            if (xf86getSubToken(&(ptr->comment)) != STRING)
+                Error(QUOTE_MSG, "MatchTag");
+            ptr->match_tag = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_IS_KEYBOARD:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
@@ -211,6 +217,14 @@ xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
                         *list);
             fprintf(cf, "\"\n");
         }
+        if (ptr->match_tag) {
+            fprintf(cf, "\tMatchTag \"");
+            for (list = ptr->match_tag; *list; list++)
+                fprintf(cf, "%s%s",
+                        list == ptr->match_tag ? "" : TOKEN_SEP,
+                        *list);
+            fprintf(cf, "\"\n");
+        }
         if (ptr->is_keyboard.set)
             fprintf(cf, "\tIsKeyboard      \"%s\"\n",
                     ptr->is_keyboard.val ? "yes" : "no");
@@ -258,6 +272,11 @@ xf86freeInputClassList (XF86ConfInputClassPtr ptr)
             for (list = ptr->match_device; *list; list++)
                 free(*list);
             free(ptr->match_device);
+        }
+        if (ptr->match_tag) {
+            for (list = ptr->match_tag; *list; list++)
+                free(*list);
+            free(ptr->match_tag);
         }
         TestFree(ptr->comment);
         xf86optionListFree(ptr->option_lst);

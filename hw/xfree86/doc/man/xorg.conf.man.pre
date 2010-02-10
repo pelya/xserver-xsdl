@@ -1054,6 +1054,15 @@ This entry can be used to check if the device file matches the
 pathname pattern. Multiple patterns can be matched by separating arguments
 with a '|' character.
 .TP 7
+.BI "MatchTag \*q" matchtag \*q
+This entry can be used to check if tags assigned by the config backend
+matches the
+.RI \*q matchtag \*q
+pattern.  Multiple patterns can be matched by separating arguments
+with a '|' character. A match is found if at least one of the tags given in
+.RI \*q matchtag \*q
+matches at least one of the tags assigned by the backend.
+.TP 7
 .BI "MatchIsKeyboard     \*q" bool \*q
 .TP 7
 .BI "MatchIsPointer      \*q" bool \*q

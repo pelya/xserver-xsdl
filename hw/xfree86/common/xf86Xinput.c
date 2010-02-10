@@ -545,6 +545,24 @@ InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
         if (!match)
             return FALSE;
     }
+    if (iclass->match_tag) {
+        if (!attrs->tags)
+            return FALSE;
+
+        for (cur = iclass->match_tag, match = FALSE; *cur && !match; cur++) {
+            const char *tag;
+            for(tag = *attrs->tags; *tag; tag++) {
+                if (!strcmp(tag, *cur)) {
+                    match = TRUE;
+                    break;
+                }
+            }
+        }
+
+        if (!match)
+            return FALSE;
+    }
+
     if (iclass->is_keyboard.set &&
         iclass->is_keyboard.val != !!(attrs->flags & ATTR_KEYBOARD))
         return FALSE;
