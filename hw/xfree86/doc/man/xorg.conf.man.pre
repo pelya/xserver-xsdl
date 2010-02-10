@@ -1070,11 +1070,20 @@ When an input device has been matched to the
 .B InputClass
 section, any
 .B Option
-entries are applied to the device. See the
+entries are applied to the device. One
+.B InputClass
+specific
+.B Option
+is recognized. See the
 .B InputDevice
-section above for a description of the various
+section above for a description of the remaining
 .B Option
 entries.
+.TP 7
+.BI "Option \*qIgnore\*q \*q" boolean \*q
+This optional entry specifies that the device should be ignored entirely,
+and not added to the server. This can be useful when the device is handled
+by another program and no X events should be generated.
 .SH "DEVICE SECTION"
 The config file may have multiple
 .B Device

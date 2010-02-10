@@ -574,6 +574,27 @@ MergeInputClasses(IDevPtr idev, InputAttributes *attrs)
     return Success;
 }
 
+static Bool
+IgnoreInputClass(IDevPtr idev, InputAttributes *attrs)
+{
+    XF86ConfInputClassPtr cl;
+    Bool ignore;
+
+    for (cl = xf86configptr->conf_inputclass_lst; cl; cl = cl->list.next) {
+        if (!InputClassMatches(cl, attrs))
+            continue;
+        if (xf86findOption(cl->option_lst, "Ignore")) {
+            ignore = xf86CheckBoolOption(cl->option_lst, "Ignore", FALSE);
+            if (ignore)
+                xf86Msg(X_CONFIG,
+                        "%s: Ignoring device from InputClass \"%s\"\n",
+                        idev->identifier, cl->identifier);
+            return ignore;
+        }
+    }
+    return FALSE;
+}
+
 /**
  * Create a new input device, activate and enable it.
  *
@@ -736,6 +757,11 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
 
     /* Apply InputClass settings */
     if (attrs) {
+        if (IgnoreInputClass(idev, attrs)) {
+            rval = BadIDChoice;
+            goto unwind;
+        }
+
         rval = MergeInputClasses(idev, attrs);
         if (rval != Success)
             goto unwind;
