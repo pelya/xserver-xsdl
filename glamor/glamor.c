@@ -222,6 +222,8 @@ glamor_init(ScreenPtr screen)
     ps->Composite = glamor_composite;
     glamor_priv->saved_trapezoids = ps->Trapezoids;
     ps->Trapezoids = glamor_trapezoids;
+    glamor_priv->saved_glyphs = ps->Glyphs;
+    ps->Glyphs = glamor_glyphs;
 #endif
 
     glamor_init_solid_shader(screen);
@@ -229,6 +231,8 @@ glamor_init(ScreenPtr screen)
     glamor_init_putimage_shaders(screen);
     glamor_init_composite_shaders(screen);
     glamor_init_finish_access_shaders(screen);
+
+    glamor_glyphs_init(screen);
 
     return TRUE;
 
@@ -246,6 +250,8 @@ glamor_fini(ScreenPtr screen)
     PictureScreenPtr	ps = GetPictureScreenIfSet(screen);
 #endif
 
+    glamor_glyphs_fini(screen);
+
     screen->CreateGC = glamor_priv->saved_create_gc;
     screen->CreatePixmap = glamor_priv->saved_create_pixmap;
     screen->DestroyPixmap = glamor_priv->saved_destroy_pixmap;
@@ -255,5 +261,7 @@ glamor_fini(ScreenPtr screen)
     screen->BitmapToRegion = glamor_priv->saved_bitmap_to_region;
 #ifdef RENDER
     ps->Composite = glamor_priv->saved_composite;
+    ps->Trapezoids = glamor_priv->saved_trapezoids;
+    ps->Glyphs = glamor_priv->saved_glyphs;
 #endif
 }

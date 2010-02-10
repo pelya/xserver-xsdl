@@ -31,6 +31,10 @@
 #include "glamor.h"
 #include <GL/glew.h>
 
+#ifdef RENDER
+#include "glyphstr.h"
+#endif
+
 typedef enum glamor_access {
     GLAMOR_ACCESS_RO,
     GLAMOR_ACCESS_RW,
@@ -52,6 +56,48 @@ typedef struct glamor_composite_shader {
     GLint mask_uniform_location;
 } glamor_composite_shader;
 
+typedef struct {
+    INT16 x_src;
+    INT16 y_src;
+    INT16 x_dst;
+    INT16 y_dst;
+    INT16 width;
+    INT16 height;
+} glamor_composite_rect_t;
+
+typedef struct {
+    unsigned char sha1[20];
+} glamor_cached_glyph_t;
+
+typedef struct {
+    /* The identity of the cache, statically configured at initialization */
+    unsigned int format;
+    int glyph_width;
+    int glyph_height;
+
+    /* Size of cache; eventually this should be dynamically determined */
+    int size;
+
+    /* Hash table mapping from glyph sha1 to position in the glyph; we use
+     * open addressing with a hash table size determined based on size and large
+     * enough so that we always have a good amount of free space, so we can
+     * use linear probing. (Linear probing is preferrable to double hashing
+     * here because it allows us to easily remove entries.)
+     */
+    int *hash_entries;
+    int hash_size;
+
+    glamor_cached_glyph_t *glyphs;
+    int glyph_count;		/* Current number of glyphs */
+
+    PicturePtr picture;	/* Where the glyphs of the cache are stored */
+    int y_offset;		/* y location within the picture where the cache starts */
+    int columns;		/* Number of columns the glyphs are layed out in */
+    int eviction_position;	/* Next random position to evict a glyph */
+} glamor_glyph_cache_t;
+
+#define GLAMOR_NUM_GLYPH_CACHES 4
+
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
@@ -60,6 +106,7 @@ typedef struct glamor_screen_private {
     GetImageProcPtr saved_get_image;
     CompositeProcPtr saved_composite;
     TrapezoidsProcPtr saved_trapezoids;
+    GlyphsProcPtr saved_glyphs;
     ChangeWindowAttributesProcPtr saved_change_window_attributes;
     CopyWindowProcPtr saved_copy_window;
     BitmapToRegionProcPtr saved_bitmap_to_region;
@@ -84,6 +131,8 @@ typedef struct glamor_screen_private {
 
     /* glamor_composite */
     glamor_composite_shader composite_shader[8];
+
+    glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
 } glamor_screen_private;
 
 typedef struct glamor_pixmap_private {
@@ -241,6 +290,16 @@ glamor_get_spans(DrawablePtr drawable,
 		 int nspans,
 		 char *dst_start);
 
+/* glamor_glyphs.c */
+void glamor_glyphs_init(ScreenPtr screen);
+void glamor_glyphs_fini(ScreenPtr screen);
+void glamor_glyphs(CARD8 op,
+		   PicturePtr pSrc,
+		   PicturePtr pDst,
+		   PictFormatPtr maskFormat,
+		   INT16 xSrc,
+		   INT16 ySrc, int nlist, GlyphListPtr list, GlyphPtr * glyphs);
+
 /* glamor_setspans.c */
 void glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 		      DDXPointPtr points, int *widths, int n, int sorted);
@@ -281,6 +340,9 @@ void glamor_trapezoids(CARD8 op,
 		       PictFormatPtr mask_format, INT16 x_src, INT16 y_src,
 		       int ntrap, xTrapezoid *traps);
 void glamor_init_composite_shaders(ScreenPtr screen);
+void glamor_composite_rects(CARD8 op,
+			    PicturePtr src, PicturePtr dst,
+			    int nrect, glamor_composite_rect_t *rects);
 
 /* glamor_tile.c */
 void glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
