@@ -98,6 +98,19 @@ typedef struct {
 
 #define GLAMOR_NUM_GLYPH_CACHES 4
 
+enum shader_source {
+    SHADER_SOURCE_SOLID,
+    SHADER_SOURCE_TEXTURE_ALPHA,
+    SHADER_SOURCE_COUNT,
+};
+
+enum shader_mask {
+    SHADER_MASK_NONE,
+    SHADER_MASK_SOLID,
+    SHADER_MASK_TEXTURE_ALPHA,
+    SHADER_MASK_COUNT,
+};
+
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
@@ -130,7 +143,8 @@ typedef struct glamor_screen_private {
     GLint put_image_xybitmap_bg_uniform_location;
 
     /* glamor_composite */
-    glamor_composite_shader composite_shader[8];
+    glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
+					    [SHADER_MASK_COUNT];
 
     glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
 } glamor_screen_private;
