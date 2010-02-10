@@ -538,9 +538,9 @@ InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
 }
 
 /*
- * Merge in any InputClass configurations. Each InputClass section can
- * add to the original device configuration as well as any previous
- * InputClass sections.
+ * Merge in any InputClass configurations. Options in each InputClass
+ * section have less priority than the original device configuration as
+ * well as any previous InputClass sections.
  */
 static int
 MergeInputClasses(IDevPtr idev, InputAttributes *attrs)

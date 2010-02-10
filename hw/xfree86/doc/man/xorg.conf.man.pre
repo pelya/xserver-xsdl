@@ -1021,7 +1021,7 @@ The
 entry specifies the name of the driver to use for this input device.
 After all classes have been examined, the
 .RI \*q inputdriver \*q
-module from the final
+module from the first
 .B Driver
 entry will be enabled when using the loadable server.
 .PP
