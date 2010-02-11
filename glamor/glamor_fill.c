@@ -80,8 +80,8 @@ glamor_fill(DrawablePtr drawable,
 		    height,
 		    gc->alu,
 		    gc->planemask,
-		    gc->patOrg.x,
-		    gc->patOrg.y);
+		    drawable->x + x - gc->patOrg.x,
+		    drawable->y + y - gc->patOrg.y);
 	break;
     }
 }

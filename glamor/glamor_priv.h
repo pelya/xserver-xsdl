@@ -136,7 +136,6 @@ typedef struct glamor_screen_private {
 
     /* glamor_tile */
     GLint tile_prog;
-    glamor_transform_uniforms tile_transform;
 
     /* glamor_putimage */
     GLint put_image_xybitmap_prog;

@@ -52,7 +52,7 @@ glamor_poly_fill_rect(DrawablePtr drawable,
     int		    xorg, yorg;
     int		    n;
 
-    if (gc->fillStyle != FillSolid)
+    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
 	goto fail;
 
     xorg = drawable->x;

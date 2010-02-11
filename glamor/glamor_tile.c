@@ -41,17 +41,10 @@ glamor_init_tile_shader(ScreenPtr screen)
 {
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     const char *tile_vs =
-	"uniform float x_bias;\n"
-	"uniform float x_scale;\n"
-	"uniform float y_bias;\n"
-	"uniform float y_scale;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
-	"			   (gl_Vertex.y + y_bias) * y_scale,\n"
-	"			   0,\n"
-	"			   1);\n"
-	"	gl_TexCoord[0] = vec4(gl_MultiTexCoord0.xy, 0, 1);\n"
+	"	gl_Position = gl_Vertex;\n"
+	"	gl_TexCoord[0] = gl_MultiTexCoord0;\n"
 	"}\n";
     const char *tile_fs =
 	"uniform sampler2D sampler;\n"
@@ -76,8 +69,7 @@ glamor_init_tile_shader(ScreenPtr screen)
 	glGetUniformLocationARB(glamor_priv->tile_prog, "sampler");
     glUseProgramObjectARB(glamor_priv->tile_prog);
     glUniform1iARB(sampler_uniform_location, 0);
-    glamor_get_transform_uniform_locations(glamor_priv->tile_prog,
-					   &glamor_priv->tile_transform);
+    glUseProgramObjectARB(0);
 }
 
 void
@@ -97,6 +89,8 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     int tile_y1 = tile_y;
     int tile_y2 = tile_y + height;
     glamor_pixmap_private *tile_priv = glamor_get_pixmap_private(tile);
+    float vertices[4][2];
+    float source_texcoords[4][2];
 
     if (glamor_priv->tile_prog == 0) {
 	ErrorF("Tiling unsupported\n");
@@ -105,32 +99,56 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
 
     if (!glamor_set_destination_pixmap(pixmap))
 	goto fail;
-    if (tile_priv->fb == 0) {
-	ErrorF("Non-FBO tile pixmap\n");
+
+    if (tile_priv->tex == 0) {
+	ErrorF("Non-texture tile pixmap\n");
 	goto fail;
     }
+
     if (!glamor_set_planemask(pixmap, planemask))
 	goto fail;
     glamor_set_alu(alu);
+
     glUseProgramObjectARB(glamor_priv->tile_prog);
-    glamor_set_transform_for_pixmap(pixmap, &glamor_priv->tile_transform);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tile_priv->tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glEnable(GL_TEXTURE_2D);
 
-    glBegin(GL_TRIANGLE_FAN);
-    glMultiTexCoord2f(0, tile_x1, tile_y1);
-    glVertex2f(x1, y1);
-    glMultiTexCoord2f(0, tile_x1, tile_y2);
-    glVertex2f(x1, y2);
-    glMultiTexCoord2f(0, tile_x2, tile_y2);
-    glVertex2f(x2, y2);
-    glMultiTexCoord2f(0, tile_x2, tile_y1);
-    glVertex2f(x2, y1);
-    glEnd();
+    vertices[0][0] = v_from_x_coord_x(pixmap, x1);
+    vertices[0][1] = v_from_x_coord_y(pixmap, y1);
+    vertices[1][0] = v_from_x_coord_x(pixmap, x2);
+    vertices[1][1] = v_from_x_coord_y(pixmap, y1);
+    vertices[2][0] = v_from_x_coord_x(pixmap, x2);
+    vertices[2][1] = v_from_x_coord_y(pixmap, y2);
+    vertices[3][0] = v_from_x_coord_x(pixmap, x1);
+    vertices[3][1] = v_from_x_coord_y(pixmap, y2);
+
+    source_texcoords[0][0] = t_from_x_coord_x(tile, tile_x1);
+    source_texcoords[0][1] = t_from_x_coord_y(tile, tile_y1);
+    source_texcoords[1][0] = t_from_x_coord_x(tile, tile_x2);
+    source_texcoords[1][1] = t_from_x_coord_y(tile, tile_y1);
+    source_texcoords[2][0] = t_from_x_coord_x(tile, tile_x2);
+    source_texcoords[2][1] = t_from_x_coord_y(tile, tile_y2);
+    source_texcoords[3][0] = t_from_x_coord_x(tile, tile_x1);
+    source_texcoords[3][1] = t_from_x_coord_y(tile, tile_y2);
+
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glClientActiveTexture(GL_TEXTURE0);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, source_texcoords);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glClientActiveTexture(GL_TEXTURE0);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
 
     glUseProgramObjectARB(0);
     glDisable(GL_TEXTURE_2D);
