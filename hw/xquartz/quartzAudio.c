@@ -204,6 +204,7 @@ QuartzAudioIOProc(
     if (wasPlaying  &&  !data->playing) {
         OSStatus err;
         err = AudioDeviceStop(inDevice, QuartzAudioIOProc);
+        fprintf(stderr, "Error stopping audio device: %ld\n", (long int)err);
     }
     pthread_mutex_unlock(&data->lock);
     return 0;
