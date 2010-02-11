@@ -406,6 +406,9 @@ glamor_composite_with_copy(CARD8 op,
 {
     RegionRec region;
 
+    if (!source->pDrawable)
+	return FALSE;
+
     if (!compatible_formats(op, dest, source))
 	return FALSE;
 
