@@ -74,6 +74,7 @@ glamor_copy_n_to_n(DrawablePtr src,
 	    goto fail;
     }
 
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
     glEnable(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
