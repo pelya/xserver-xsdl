@@ -76,7 +76,7 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
     glamor_get_drawable_deltas(dst, dst_pixmap, &x_off, &y_off);
 
     for (i = 0; i < nbox; i++) {
-	int flip_y1 = dst_pixmap->drawable.height - 1 - box[i].y2 + y_off;
+	int flip_y1 = dst_pixmap->drawable.height - box[i].y2 + y_off;
 	glRasterPos2i(box[i].x1 + x_off,
 		      flip_y1);
 	glCopyPixels(box[i].x1 + dx + x_off,
