@@ -32,18 +32,70 @@
  * GC CopyArea implementation
  */
 
-void
-glamor_copy_n_to_n(DrawablePtr src,
-		 DrawablePtr dst,
-		 GCPtr gc,
-		 BoxPtr box,
-		 int nbox,
-		 int		dx,
-		 int		dy,
-		 Bool		reverse,
-		 Bool		upsidedown,
-		 Pixel		bitplane,
-		 void		*closure)
+static Bool
+glamor_copy_n_to_n_copypixels(DrawablePtr src,
+			      DrawablePtr dst,
+			      GCPtr gc,
+			      BoxPtr box,
+			      int nbox,
+			      int dx,
+			      int dy)
+{
+    PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
+    PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
+    int i;
+
+    if (src != dst) {
+	glamor_fallback("glamor_copy_n_to_n_copypixels(): src != dest\n");
+	return FALSE;
+    }
+
+    if (gc) {
+	if (gc->alu != GXcopy) {
+	    glamor_fallback("glamor_copy_n_to_n_copypixels(): non-copy ALU\n");
+	    return FALSE;
+	}
+	if (!glamor_pm_is_solid(dst, gc->planemask)) {
+	    glamor_fallback("glamor_copy_n_to_n_copypixels(): "
+			    "non-solid planemask\n");
+	    return FALSE;
+	}
+    }
+
+    if (!glamor_set_destination_pixmap(dst_pixmap))
+	return FALSE;
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glOrtho(0, dst_pixmap->drawable.width,
+	    0, dst_pixmap->drawable.height,
+	    -1, 1);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    for (i = 0; i < nbox; i++) {
+	int flip_y1 = dst_pixmap->drawable.height - 1 - box[i].y2;
+	glRasterPos2i(box[i].x1 - dst_pixmap->screen_x,
+		      flip_y1 - dst_pixmap->screen_x);
+	glCopyPixels(box[i].x1 + dx - src_pixmap->screen_x,
+		     flip_y1 - dy - src_pixmap->screen_y,
+		     box[i].x2 - box[i].x1,
+		     box[i].y2 - box[i].y1,
+		     GL_COLOR);
+    }
+
+    return TRUE;
+}
+
+static Bool
+glamor_copy_n_to_n_textured(DrawablePtr src,
+			      DrawablePtr dst,
+			      GCPtr gc,
+			      BoxPtr box,
+			      int nbox,
+			      int dx,
+			      int dy)
 {
     glamor_screen_private *glamor_priv =
 	glamor_get_screen_private(dst->pScreen);
@@ -116,22 +168,33 @@ glamor_copy_n_to_n(DrawablePtr src,
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisable(GL_TEXTURE_2D);
-
-#if 0
-    for (i = 0; i < nbox; i++) {
-	glRasterPos2i(box[i].x1 - dst_pixmap->screen_x,
-		      box[i].y1 - dst_pixmap->screen_y);
-	glCopyPixels(box[i].x1 + dx - src_pixmap->screen_x,
-		     box[i].y1 + dy - src_pixmap->screen_y,
-		     box[i].x2 - box[i].x1,
-		     box[i].y2 - box[i].y1,
-		     GL_COLOR);
-    }
-#endif
-
-    return;
+    return TRUE;
 
 fail:
+    glamor_set_alu(GXcopy);
+    glamor_set_planemask(dst_pixmap, ~0);
+    return FALSE;
+}
+
+void
+glamor_copy_n_to_n(DrawablePtr src,
+		 DrawablePtr dst,
+		 GCPtr gc,
+		 BoxPtr box,
+		 int nbox,
+		 int		dx,
+		 int		dy,
+		 Bool		reverse,
+		 Bool		upsidedown,
+		 Pixel		bitplane,
+		 void		*closure)
+{
+    if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy))
+	return;
+
+    if (glamor_copy_n_to_n_textured(src, dst, gc, box, nbox, dx, dy))
+	return;
+
     glamor_fallback("glamor_copy_area() from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),
 		    glamor_get_drawable_location(dst));
@@ -144,8 +207,6 @@ fail:
 	}
 	glamor_finish_access(dst);
     }
-    glamor_set_alu(GXcopy);
-    glamor_set_planemask(dst_pixmap, ~0);
 }
 
 RegionPtr
