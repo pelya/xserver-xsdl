@@ -42,6 +42,7 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     int wmax = 0;
     RegionPtr clip = fbGetCompositeClip(gc);
     BoxRec *pbox;
+    int x_off, y_off;
 
     goto fail;
 
@@ -82,6 +83,9 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
     glamor_set_alu(gc->alu);
     if (!glamor_set_planemask(dest_pixmap, gc->planemask))
 	goto fail;
+
+    glamor_get_drawable_deltas(drawable, dest_pixmap, &x_off, &y_off);
+
     for (i = 0; i < n; i++) {
 	if (temp_src) {
 	    for (j = 0; j < widths[i]; j++) {
@@ -98,12 +102,12 @@ glamor_set_spans(DrawablePtr drawable, GCPtr gc, char *src,
 	    if (pbox->y1 > points[i].y)
 		break;
 	    glScissor(pbox->x1,
-		      points[i].y - dest_pixmap->screen_y,
+		      points[i].y + y_off,
 		      pbox->x2 - pbox->x1,
 		      1);
 	    glEnable(GL_SCISSOR_TEST);
-	    glRasterPos2i(points[i].x - dest_pixmap->screen_x,
-			  points[i].y - dest_pixmap->screen_y);
+	    glRasterPos2i(points[i].x + x_off,
+			  points[i].y + y_off);
 	    glDrawPixels(widths[i],
 			 1,
 			 format, type,

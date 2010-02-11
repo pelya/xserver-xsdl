@@ -533,6 +533,7 @@ glamor_composite_with_shader(CARD8 op,
     float vertices[4][2], source_texcoords[4][2], mask_texcoords[4][2];
     int i;
     BoxPtr box;
+    int dst_x_off, dst_y_off;
 
     memset(&key, 0, sizeof(key));
     if (!source->pDrawable) {
@@ -673,16 +674,33 @@ glamor_composite_with_shader(CARD8 op,
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 
+    glamor_get_drawable_deltas(dest->pDrawable, dest_pixmap,
+			       &dst_x_off, &dst_y_off);
+    if (source_pixmap) {
+	int dx, dy;
+
+	glamor_get_drawable_deltas(source->pDrawable, source_pixmap, &dx, &dy);
+	x_source += dx;
+	y_source += dy;
+    }
+    if (mask_pixmap) {
+	int dx, dy;
+
+	glamor_get_drawable_deltas(mask->pDrawable, mask_pixmap, &dx, &dy);
+	x_mask += dx;
+	y_mask += dy;
+    }
+
     box = REGION_RECTS(&region);
     for (i = 0; i < REGION_NUM_RECTS(&region); i++) {
-	vertices[0][0] = v_from_x_coord_x(dest_pixmap, box[i].x1);
-	vertices[0][1] = v_from_x_coord_y(dest_pixmap, box[i].y1);
-	vertices[1][0] = v_from_x_coord_x(dest_pixmap, box[i].x2);
-	vertices[1][1] = v_from_x_coord_y(dest_pixmap, box[i].y1);
-	vertices[2][0] = v_from_x_coord_x(dest_pixmap, box[i].x2);
-	vertices[2][1] = v_from_x_coord_y(dest_pixmap, box[i].y2);
-	vertices[3][0] = v_from_x_coord_x(dest_pixmap, box[i].x1);
-	vertices[3][1] = v_from_x_coord_y(dest_pixmap, box[i].y2);
+	vertices[0][0] = v_from_x_coord_x(dest_pixmap, box[i].x1 + dst_x_off);
+	vertices[0][1] = v_from_x_coord_y(dest_pixmap, box[i].y1 + dst_y_off);
+	vertices[1][0] = v_from_x_coord_x(dest_pixmap, box[i].x2 + dst_x_off);
+	vertices[1][1] = v_from_x_coord_y(dest_pixmap, box[i].y1 + dst_y_off);
+	vertices[2][0] = v_from_x_coord_x(dest_pixmap, box[i].x2 + dst_x_off);
+	vertices[2][1] = v_from_x_coord_y(dest_pixmap, box[i].y2 + dst_y_off);
+	vertices[3][0] = v_from_x_coord_x(dest_pixmap, box[i].x1 + dst_x_off);
+	vertices[3][1] = v_from_x_coord_y(dest_pixmap, box[i].y2 + dst_y_off);
 
 	if (key.source != SHADER_SOURCE_SOLID) {
 	    int tx1 = box[i].x1 + x_source - x_dest;

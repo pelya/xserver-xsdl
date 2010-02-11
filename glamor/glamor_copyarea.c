@@ -41,9 +41,8 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 			      int dx,
 			      int dy)
 {
-    PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
-    int i;
+    int x_off, y_off, i;
 
     if (src != dst) {
 	glamor_fallback("glamor_copy_n_to_n_copypixels(): src != dest\n");
@@ -74,12 +73,14 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
+    glamor_get_drawable_deltas(dst, dst_pixmap, &x_off, &y_off);
+
     for (i = 0; i < nbox; i++) {
-	int flip_y1 = dst_pixmap->drawable.height - 1 - box[i].y2;
-	glRasterPos2i(box[i].x1 - dst_pixmap->screen_x,
-		      flip_y1 - dst_pixmap->screen_x);
-	glCopyPixels(box[i].x1 + dx - src_pixmap->screen_x,
-		     flip_y1 - dy - src_pixmap->screen_y,
+	int flip_y1 = dst_pixmap->drawable.height - 1 - box[i].y2 + y_off;
+	glRasterPos2i(box[i].x1 + x_off,
+		      flip_y1);
+	glCopyPixels(box[i].x1 + dx + x_off,
+		     flip_y1 - dy,
 		     box[i].x2 - box[i].x1,
 		     box[i].y2 - box[i].y1,
 		     GL_COLOR);
@@ -104,6 +105,7 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     int i;
     float vertices[4][2], texcoords[4][2];
     glamor_pixmap_private *src_pixmap_priv;
+    int src_x_off, src_y_off, dst_x_off, dst_y_off;
 
     src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
 
@@ -126,6 +128,11 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
 	    goto fail;
     }
 
+    glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
+    glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
+    dx += src_x_off;
+    dy += src_y_off;
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, src_pixmap_priv->tex);
     glEnable(GL_TEXTURE_2D);
@@ -143,14 +150,14 @@ glamor_copy_n_to_n_textured(DrawablePtr src,
     glUseProgramObjectARB(glamor_priv->finish_access_prog);
 
     for (i = 0; i < nbox; i++) {
-	vertices[0][0] = v_from_x_coord_x(dst_pixmap, box[i].x1);
-	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1);
-	vertices[1][0] = v_from_x_coord_x(dst_pixmap, box[i].x2);
-	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1);
-	vertices[2][0] = v_from_x_coord_x(dst_pixmap, box[i].x2);
-	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2);
-	vertices[3][0] = v_from_x_coord_x(dst_pixmap, box[i].x1);
-	vertices[3][1] = v_from_x_coord_y(dst_pixmap, box[i].y2);
+	vertices[0][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
+	vertices[0][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[1][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
+	vertices[1][1] = v_from_x_coord_y(dst_pixmap, box[i].y1 + dst_y_off);
+	vertices[2][0] = v_from_x_coord_x(dst_pixmap, box[i].x2 + dst_x_off);
+	vertices[2][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
+	vertices[3][0] = v_from_x_coord_x(dst_pixmap, box[i].x1 + dst_x_off);
+	vertices[3][1] = v_from_x_coord_y(dst_pixmap, box[i].y2 + dst_y_off);
 
 	texcoords[0][0] = t_from_x_coord_x(src_pixmap, box[i].x1 + dx);
 	texcoords[0][1] = t_from_x_coord_y(src_pixmap, box[i].y1 + dy);

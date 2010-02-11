@@ -55,6 +55,7 @@ glamor_get_spans(DrawablePtr drawable,
     GLenum format, type;
     int i, j;
     uint8_t *temp_dst = NULL, *readpixels_dst = (uint8_t *)dst;
+    int x_off, y_off;
 
     goto fail;
 
@@ -86,9 +87,11 @@ glamor_get_spans(DrawablePtr drawable,
     if (!glamor_set_destination_pixmap(pixmap))
 	goto fail;
 
+    glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+
     for (i = 0; i < count; i++) {
-	glReadPixels(points[i].x - pixmap->screen_x,
-		     points[i].y - pixmap->screen_y,
+	glReadPixels(points[i].x + x_off,
+		     points[i].y + y_off,
 		     widths[i],
 		     1,
 		     format, type,

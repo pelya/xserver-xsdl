@@ -244,6 +244,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int nbox;
     int bpp = drawable->bitsPerPixel;
     int src_stride = PixmapBytePad(w, drawable->depth);
+    int x_off, y_off;
 
     goto fail;
 
@@ -297,6 +298,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     x += drawable->x;
     y += drawable->y;
 
+    glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
+
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 / bpp);
     if (bpp == 1)
@@ -325,7 +328,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	    continue;
 
 	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
-	glRasterPos2i(x1 - pixmap->screen_x, y1 - pixmap->screen_y);
+	glRasterPos2i(x1 + x_off, y1 + y_off);
 	glDrawPixels(x2 - x1,
 		     y2 - y1,
 		     format, type,

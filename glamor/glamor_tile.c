@@ -92,10 +92,10 @@ glamor_tile(PixmapPtr pixmap, PixmapPtr tile,
     int x2 = x + width;
     int y1 = y;
     int y2 = y + height;
-    int tile_x1 = tile_x - tile->screen_x;
-    int tile_x2 = tile_x - tile->screen_x + width;
-    int tile_y1 = tile_y - tile->screen_y;
-    int tile_y2 = tile_y - tile->screen_y + height;
+    int tile_x1 = tile_x;
+    int tile_x2 = tile_x + width;
+    int tile_y1 = tile_y;
+    int tile_y2 = tile_y + height;
     glamor_pixmap_private *tile_priv = glamor_get_pixmap_private(tile);
 
     if (glamor_priv->tile_prog == 0) {

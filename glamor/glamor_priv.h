@@ -200,25 +200,25 @@ glamor_fallback(char *format, ...)
 static inline float
 v_from_x_coord_x(PixmapPtr pixmap, int x)
 {
-    return (float)(x - pixmap->screen_x) / pixmap->drawable.width * 2.0 - 1.0;
+    return (float)x / pixmap->drawable.width * 2.0 - 1.0;
 }
 
 static inline float
 v_from_x_coord_y(PixmapPtr pixmap, int y)
 {
-    return (float)(y - pixmap->screen_y) / pixmap->drawable.height * -2.0 + 1.0;
+    return (float)y / pixmap->drawable.height * -2.0 + 1.0;
 }
 
 static inline float
 t_from_x_coord_x(PixmapPtr pixmap, int x)
 {
-    return (float)(x - pixmap->screen_x) / pixmap->drawable.width;
+    return (float)x / pixmap->drawable.width;
 }
 
 static inline float
 t_from_x_coord_y(PixmapPtr pixmap, int y)
 {
-    return 1.0 - (float)(y - pixmap->screen_y) / pixmap->drawable.height;
+    return 1.0 - (float)y / pixmap->drawable.height;
 }
 
 /* glamor.c */
@@ -254,6 +254,8 @@ Bool glamor_prepare_access_gc(GCPtr gc);
 void glamor_finish_access_gc(GCPtr gc);
 void glamor_init_finish_access_shaders(ScreenPtr screen);
 const Bool glamor_get_drawable_location(const DrawablePtr drawable);
+void glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
+				int *x, int *y);
 Bool glamor_create_gc(GCPtr gc);
 void glamor_stipple(PixmapPtr pixmap, PixmapPtr stipple,
 		    int x, int y, int width, int height,

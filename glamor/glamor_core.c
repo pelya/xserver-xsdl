@@ -52,6 +52,27 @@ glamor_get_drawable_location(const DrawablePtr drawable)
 	return 'f';
 }
 
+/**
+ * Sets the offsets to add to coordinates to make them address the same bits in
+ * the backing drawable. These coordinates are nonzero only for redirected
+ * windows.
+ */
+void
+glamor_get_drawable_deltas(DrawablePtr drawable, PixmapPtr pixmap,
+			   int *x, int *y)
+{
+#ifdef COMPOSITE
+    if (drawable->type == DRAWABLE_WINDOW) {
+	*x = -pixmap->screen_x;
+	*y = -pixmap->screen_y;
+	return;
+    }
+#endif
+
+    *x = 0;
+    *y = 0;
+}
+
 Bool
 glamor_set_destination_pixmap(PixmapPtr pixmap)
 {
