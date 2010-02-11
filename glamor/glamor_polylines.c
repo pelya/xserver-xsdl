@@ -52,13 +52,13 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0) {
-	ErrorF("stub wide polylines\n");
-	return;
+	glamor_fallback("glamor_poly_lines(): wide lines\n");
+	goto fail;
     }
     if (gc->lineStyle != LineSolid ||
 	gc->fillStyle != FillSolid) {
-	ErrorF("stub poly_line non-solid fill\n");
-	return;
+	glamor_fallback("glamor_poly_lines(): non-solid fill\n");
+	goto fail;
     }
 
     rects = xalloc(sizeof(xRectangle) * (n - 1));
@@ -104,4 +104,19 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
     }
     gc->ops->PolyFillRect(drawable, gc, n - 1, rects);
     xfree(rects);
+    return;
+
+fail:
+    if (gc->lineWidth == 0) {
+	if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
+	    if (glamor_prepare_access_gc(gc)) {
+		fbPolyLine(drawable, gc, mode, n, points);
+		glamor_finish_access_gc(gc);
+	    }
+	    glamor_finish_access(drawable);
+	}
+	return;
+    }
+    /* fb calls mi functions in the lineWidth != 0 case. */
+    fbPolyLine(drawable, gc, mode, n, points);
 }
