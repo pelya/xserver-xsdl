@@ -57,8 +57,6 @@ glamor_get_spans(DrawablePtr drawable,
     uint8_t *temp_dst = NULL, *readpixels_dst = (uint8_t *)dst;
     int x_off, y_off;
 
-    goto fail;
-
     switch (drawable->depth) {
     case 1:
 	temp_dst = xalloc(wmax);
@@ -71,9 +69,6 @@ glamor_get_spans(DrawablePtr drawable,
 	type = GL_UNSIGNED_BYTE;
 	break;
     case 24:
-	format = GL_RGB;
-	type = GL_UNSIGNED_BYTE;
-	break;
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
@@ -91,7 +86,7 @@ glamor_get_spans(DrawablePtr drawable,
 
     for (i = 0; i < count; i++) {
 	glReadPixels(points[i].x + x_off,
-		     points[i].y + y_off,
+		     pixmap->drawable.height - 1 - (points[i].y + y_off),
 		     widths[i],
 		     1,
 		     format, type,
