@@ -481,11 +481,6 @@ typedef struct _winPrivScreenRec
   /* Handle to icons that must be freed */
   HICON			hiconNotifyIcon;
 
-  /* Last width, height, and depth of the Windows display */
-  DWORD			dwLastWindowsWidth;
-  DWORD			dwLastWindowsHeight;
-  DWORD			dwLastWindowsBitsPixel;
-
   /* Palette management */
   ColormapPtr		pcmapInstalled;
 

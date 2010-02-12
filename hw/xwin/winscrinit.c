@@ -175,13 +175,9 @@ winScreenInit (int index,
   /* Get a device context */
   hdc = GetDC (pScreenPriv->hwndScreen);
 
-  /* Store the initial height, width, and depth of the display */
   /* Are we using multiple monitors? */
   if (pScreenInfo->fMultipleMonitors)
     {
-      pScreenPriv->dwLastWindowsWidth = GetSystemMetrics (SM_CXVIRTUALSCREEN);
-      pScreenPriv->dwLastWindowsHeight = GetSystemMetrics (SM_CYVIRTUALSCREEN);
-
       /* 
        * In this case, some of the defaults set in
        * winInitializeScreenDefaults() are not correct ...
@@ -192,14 +188,6 @@ winScreenInit (int index,
 	  pScreenInfo->dwHeight = GetSystemMetrics (SM_CYVIRTUALSCREEN);
 	}
     }
-  else
-    {
-      pScreenPriv->dwLastWindowsWidth = GetSystemMetrics (SM_CXSCREEN);
-      pScreenPriv->dwLastWindowsHeight = GetSystemMetrics (SM_CYSCREEN);
-    }
-
-  /* Save the original bits per pixel */
-  pScreenPriv->dwLastWindowsBitsPixel = GetDeviceCaps (hdc, BITSPIXEL);
 
   /* Release the device context */
   ReleaseDC (pScreenPriv->hwndScreen, hdc);
