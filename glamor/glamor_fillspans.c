@@ -45,7 +45,8 @@ glamor_fill_spans(DrawablePtr drawable,
     int fullX1, fullX2, fullY1;
     int partX1, partX2;
 
-    goto fail;
+    if (gc->fillStyle != FillSolid && gc->fillStyle != FillTiled)
+	goto fail;
 
     extents = REGION_EXTENTS(gc->pScreen, clip);
     extentX1 = extents->x1;
@@ -101,7 +102,7 @@ glamor_fill_spans(DrawablePtr drawable,
     }
     return;
 fail:
-    glamor_fallback("to %p (%c)\n", drawable,
+    glamor_fallback("glamor_fillspans(): to %p (%c)\n", drawable,
 		    glamor_get_drawable_location(drawable));
     if (glamor_prepare_access(drawable, GLAMOR_ACCESS_RW)) {
 	if (glamor_prepare_access_gc(gc)) {
