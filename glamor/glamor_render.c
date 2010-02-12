@@ -508,6 +508,36 @@ good_dest_format(PicturePtr picture)
     }
 }
 
+static inline float
+xFixedToFloat(pixman_fixed_t val)
+{
+    return ((float)xFixedToInt(val) + ((float)xFixedFrac(val) / 65536.0));
+}
+
+static void
+glamor_set_transformed_point(PicturePtr picture, PixmapPtr pixmap,
+			     float *texcoord, int x, int y)
+{
+    float result[3];
+    int i;
+    float tx, ty;
+
+    if (picture->transform) {
+	for (i = 0; i < 3; i++) {
+	    result[i] = (xFixedToFloat(picture->transform->matrix[i][0]) * x +
+			 xFixedToFloat(picture->transform->matrix[i][1]) * y +
+			 xFixedToFloat(picture->transform->matrix[i][2]));
+	}
+	tx = result[0] / result[2];
+	ty = result[1] / result[2];
+    } else {
+	tx = x;
+	ty = y;
+    }
+    texcoord[0] = t_from_x_coord_x(pixmap, tx);
+    texcoord[1] = t_from_x_coord_y(pixmap, ty);
+}
+
 static Bool
 glamor_composite_with_shader(CARD8 op,
 			     PicturePtr source,
@@ -707,29 +737,31 @@ glamor_composite_with_shader(CARD8 op,
 	    int ty1 = box[i].y1 + y_source - y_dest;
 	    int tx2 = box[i].x2 + x_source - x_dest;
 	    int ty2 = box[i].y2 + y_source - y_dest;
-	    source_texcoords[0][0] = t_from_x_coord_x(source_pixmap, tx1);
-	    source_texcoords[0][1] = t_from_x_coord_y(source_pixmap, ty1);
-	    source_texcoords[1][0] = t_from_x_coord_x(source_pixmap, tx2);
-	    source_texcoords[1][1] = t_from_x_coord_y(source_pixmap, ty1);
-	    source_texcoords[2][0] = t_from_x_coord_x(source_pixmap, tx2);
-	    source_texcoords[2][1] = t_from_x_coord_y(source_pixmap, ty2);
-	    source_texcoords[3][0] = t_from_x_coord_x(source_pixmap, tx1);
-	    source_texcoords[3][1] = t_from_x_coord_y(source_pixmap, ty2);
+
+	    glamor_set_transformed_point(source, source_pixmap,
+					 source_texcoords[0], tx1, ty1);
+	    glamor_set_transformed_point(source, source_pixmap,
+					 source_texcoords[1], tx2, ty1);
+	    glamor_set_transformed_point(source, source_pixmap,
+					 source_texcoords[2], tx2, ty2);
+	    glamor_set_transformed_point(source, source_pixmap,
+					 source_texcoords[3], tx1, ty2);
 	}
 
 	if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID) {
-	    int tx1 = box[i].x1 + x_mask - x_dest;
-	    int ty1 = box[i].y1 + y_mask - y_dest;
-	    int tx2 = box[i].x2 + x_mask - x_dest;
-	    int ty2 = box[i].y2 + y_mask - y_dest;
-	    mask_texcoords[0][0] = t_from_x_coord_x(mask_pixmap, tx1);
-	    mask_texcoords[0][1] = t_from_x_coord_y(mask_pixmap, ty1);
-	    mask_texcoords[1][0] = t_from_x_coord_x(mask_pixmap, tx2);
-	    mask_texcoords[1][1] = t_from_x_coord_y(mask_pixmap, ty1);
-	    mask_texcoords[2][0] = t_from_x_coord_x(mask_pixmap, tx2);
-	    mask_texcoords[2][1] = t_from_x_coord_y(mask_pixmap, ty2);
-	    mask_texcoords[3][0] = t_from_x_coord_x(mask_pixmap, tx1);
-	    mask_texcoords[3][1] = t_from_x_coord_y(mask_pixmap, ty2);
+	    float tx1 = box[i].x1 + x_mask - x_dest;
+	    float ty1 = box[i].y1 + y_mask - y_dest;
+	    float tx2 = box[i].x2 + x_mask - x_dest;
+	    float ty2 = box[i].y2 + y_mask - y_dest;
+
+	    glamor_set_transformed_point(mask, mask_pixmap,
+					 mask_texcoords[0], tx1, ty1);
+	    glamor_set_transformed_point(mask, mask_pixmap,
+					 mask_texcoords[1], tx2, ty1);
+	    glamor_set_transformed_point(mask, mask_pixmap,
+					 mask_texcoords[2], tx2, ty2);
+	    glamor_set_transformed_point(mask, mask_pixmap,
+					 mask_texcoords[3], tx1, ty2);
 	}
 #if 0
  else memset(mask_texcoords, 0, sizeof(mask_texcoords));
