@@ -456,6 +456,7 @@ static Bool
 good_source_format(PicturePtr picture)
 {
     switch (picture->format) {
+    case PICT_a1:
     case PICT_a8:
     case PICT_a8r8g8b8:
 	return TRUE;
@@ -477,6 +478,7 @@ static Bool
 good_mask_format(PicturePtr picture)
 {
     switch (picture->format) {
+    case PICT_a1:
     case PICT_a8:
     case PICT_a8r8g8b8:
 	return TRUE;
