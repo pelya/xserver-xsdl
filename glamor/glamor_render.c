@@ -618,7 +618,7 @@ glamor_composite_with_shader(CARD8 op,
 	    goto fail;
 	}
 	if (!source_pixmap_priv || source_pixmap_priv->tex == 0) {
-	    glamor_fallback("glamor_composite(): no FBO in source\n");
+	    glamor_fallback("glamor_composite(): no texture in source\n");
 	    goto fail;
 	}
 	if (!good_source_format(source))
@@ -633,7 +633,7 @@ glamor_composite_with_shader(CARD8 op,
 	    goto fail;
 	}
 	if (!mask_pixmap_priv || mask_pixmap_priv->tex == 0) {
-	    glamor_fallback("glamor_composite(): no FBO in mask\n");
+	    glamor_fallback("glamor_composite(): no texture in mask\n");
 	    goto fail;
 	}
 	if (!good_mask_format(mask))
