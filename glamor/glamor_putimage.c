@@ -137,6 +137,9 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 	0.0, 1.0,
     };
 
+    glamor_fallback("glamor_put_image_xybitmap: disabled\n");
+    goto fail;
+
     if (glamor_priv->put_image_xybitmap_prog == 0) {
 	ErrorF("no program for xybitmap putimage\n");
 	goto fail;
@@ -158,6 +161,7 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     glamor_set_transform_for_pixmap(pixmap, &glamor_priv->solid_transform);
 
     glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -237,7 +241,10 @@ void
 glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 		 int w, int h, int left_pad, int image_format, char *bits)
 {
+    glamor_screen_private *glamor_priv =
+	glamor_get_screen_private(drawable->pScreen);
     PixmapPtr pixmap = glamor_get_drawable_pixmap(drawable);
+    glamor_pixmap_private *pixmap_priv = glamor_get_pixmap_private(pixmap);
     GLenum type, format;
     RegionPtr clip;
     BoxPtr pbox;
@@ -245,14 +252,8 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
     int bpp = drawable->bitsPerPixel;
     int src_stride = PixmapBytePad(w, drawable->depth);
     int x_off, y_off;
-
-    goto fail;
-
-    if (!glamor_set_destination_pixmap(pixmap)) {
-	fbPutImage(drawable, gc, depth, x, y, w, h, left_pad,
-		   image_format, bits);
-	return;
-    }
+    float vertices[4][2], texcoords[4][2];
+    GLuint tex;
 
     if (image_format == XYBitmap) {
 	assert(depth == 1);
@@ -261,13 +262,26 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	return;
     }
 
+    if (pixmap_priv == NULL) {
+	glamor_fallback("glamor_put_image: system memory pixmap\n");
+	goto fail;
+    }
+
+    if (pixmap_priv->fb == 0) {
+	ScreenPtr screen = pixmap->drawable.pScreen;
+	PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+	if (pixmap != screen_pixmap) {
+	    glamor_fallback("glamor_put_image: no fbo\n");
+	    goto fail;
+	}
+    }
+
     if (bpp == 1 && image_format == XYPixmap)
 	image_format = ZPixmap;
 
-    if (!glamor_set_planemask(pixmap, gc->planemask))
-	goto fail;
     if (image_format != ZPixmap) {
-	ErrorF("putimage: non-ZPixmap\n");
+	glamor_fallback("glamor_put_image: non-ZPixmap\n");
 	goto fail;
     }
 
@@ -281,29 +295,57 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	type = GL_UNSIGNED_BYTE;
 	break;
     case 24:
-	format = GL_RGB;
-	type = GL_UNSIGNED_BYTE;
-	break;
+	assert(drawable->bitsPerPixel == 32);
+	/* FALLTHROUGH */
     case 32:
 	format = GL_BGRA;
 	type = GL_UNSIGNED_INT_8_8_8_8_REV;
 	break;
     default:
-	ErrorF("stub put_image depth %d\n", drawable->depth);
+	glamor_fallback("glamor_putimage: bad depth %d\n", drawable->depth);
 	goto fail;
     }
 
+    if (!glamor_set_planemask(pixmap, gc->planemask))
+	goto fail;
+
     glamor_set_alu(gc->alu);
+
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glClientActiveTexture(GL_TEXTURE0);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, texcoords);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pixmap_priv->fb);
+    glViewport(0, 0, pixmap->drawable.width, pixmap->drawable.height);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 /
+		  pixmap->drawable.bitsPerPixel);
+    if (bpp == 1)
+	glPixelStorei(GL_UNPACK_SKIP_PIXELS, left_pad);
+
+    glGenTextures(1, &tex);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+		 w, h, 0,
+		 format, type, bits);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glEnable(GL_TEXTURE_2D);
+
+    assert(GLEW_ARB_fragment_shader);
+    glUseProgramObjectARB(glamor_priv->finish_access_prog);
+
 
     x += drawable->x;
     y += drawable->y;
 
     glamor_get_drawable_deltas(drawable, pixmap, &x_off, &y_off);
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, src_stride * 8 / bpp);
-    if (bpp == 1)
-	glPixelStorei(GL_UNPACK_SKIP_PIXELS, left_pad);
     clip = fbGetCompositeClip(gc);
     for (nbox = REGION_NUM_RECTS(clip),
 	 pbox = REGION_RECTS(clip);
@@ -314,7 +356,7 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	int y1 = y;
 	int x2 = x + w;
 	int y2 = y + h;
-	char *src;
+	float src_x1, src_x2, src_y1, src_y2;
 
 	if (x1 < pbox->x1)
 	    x1 = pbox->x1;
@@ -327,13 +369,37 @@ glamor_put_image(DrawablePtr drawable, GCPtr gc, int depth, int x, int y,
 	if (x1 >= x2 || y1 >= y2)
 	    continue;
 
-	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
-	glRasterPos2i(x1 + x_off, y1 + y_off);
-	glDrawPixels(x2 - x1,
-		     y2 - y1,
-		     format, type,
-		     src);
+	src_x1 = (float)(x1 - x) / w;
+	src_y1 = (float)(y1 - y) / h;
+	src_x2 = (float)(x2 - x) / w;
+	src_y2 = (float)(y2 - y) / h;
+
+	vertices[0][0] = v_from_x_coord_x(pixmap, x1 + x_off);
+	vertices[0][1] = v_from_x_coord_y(pixmap, y1 + y_off);
+	vertices[1][0] = v_from_x_coord_x(pixmap, x2 + x_off);
+	vertices[1][1] = v_from_x_coord_y(pixmap, y1 + y_off);
+	vertices[2][0] = v_from_x_coord_x(pixmap, x2 + x_off);
+	vertices[2][1] = v_from_x_coord_y(pixmap, y2 + y_off);
+	vertices[3][0] = v_from_x_coord_x(pixmap, x1 + x_off);
+	vertices[3][1] = v_from_x_coord_y(pixmap, y2 + y_off);
+
+	texcoords[0][0] = src_x1;
+	texcoords[0][1] = src_y1;
+	texcoords[1][0] = src_x2;
+	texcoords[1][1] = src_y1;
+	texcoords[2][0] = src_x2;
+	texcoords[2][1] = src_y2;
+	texcoords[3][0] = src_x1;
+	texcoords[3][1] = src_y2;
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
+
+    glDisable(GL_TEXTURE_2D);
+    glUseProgramObjectARB(0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDeleteTextures(1, &tex);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glamor_set_alu(GXcopy);
