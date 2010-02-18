@@ -41,22 +41,25 @@ glamor_copy_n_to_n_copypixels(DrawablePtr src,
 			      int dx,
 			      int dy)
 {
+    ScreenPtr screen = dst->pScreen;
     PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
     int x_off, y_off, i;
 
     if (src != dst) {
-	glamor_fallback("glamor_copy_n_to_n_copypixels(): src != dest\n");
+	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
+				"src != dest\n");
 	return FALSE;
     }
 
     if (gc) {
 	if (gc->alu != GXcopy) {
-	    glamor_fallback("glamor_copy_n_to_n_copypixels(): non-copy ALU\n");
+	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
+				    "non-copy ALU\n");
 	    return FALSE;
 	}
 	if (!glamor_pm_is_solid(dst, gc->planemask)) {
-	    glamor_fallback("glamor_copy_n_to_n_copypixels(): "
-			    "non-solid planemask\n");
+	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_copypixels(): "
+				    "non-solid planemask\n");
 	    return FALSE;
 	}
     }
@@ -196,11 +199,17 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 Pixel		bitplane,
 		 void		*closure)
 {
-    if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy))
+    if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy)) {
+	glamor_clear_delayed_fallbacks(dst->pScreen);
 	return;
+    }
 
-    if (glamor_copy_n_to_n_textured(src, dst, gc, box, nbox, dx, dy))
+    if (glamor_copy_n_to_n_textured(src, dst, gc, box, nbox, dx, dy)) {
+	glamor_clear_delayed_fallbacks(dst->pScreen);
 	return;
+    }
+
+    glamor_report_delayed_fallbacks(dst->pScreen);
 
     glamor_fallback("glamor_copy_area() from %p to %p (%c,%c)\n", src, dst,
 		    glamor_get_drawable_location(src),

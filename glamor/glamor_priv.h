@@ -126,6 +126,8 @@ typedef struct glamor_screen_private {
     CopyWindowProcPtr saved_copy_window;
     BitmapToRegionProcPtr saved_bitmap_to_region;
 
+    char *delayed_fallback_string;
+
     /* glamor_finishaccess */
     GLint finish_access_prog;
 
@@ -194,6 +196,41 @@ glamor_fallback(char *format, ...)
     LogMessageVerb(X_INFO, 0, "fallback: ");
     LogVMessageVerb(X_NONE, 0, format, ap);
     va_end(ap);
+}
+
+static inline void
+glamor_delayed_fallback(ScreenPtr screen, char *format, ...)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    va_list ap;
+
+    if (glamor_priv->delayed_fallback_string != NULL)
+	return;
+
+    va_start(ap, format);
+    glamor_priv->delayed_fallback_string = XNFvprintf(format, ap);
+    va_end(ap);
+}
+
+static inline void
+glamor_clear_delayed_fallbacks(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    xfree(glamor_priv->delayed_fallback_string);
+    glamor_priv->delayed_fallback_string = NULL;
+}
+
+static inline void
+glamor_report_delayed_fallbacks(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    if (glamor_priv->delayed_fallback_string) {
+	LogMessageVerb(X_INFO, 0, "fallback: %s",
+		       glamor_priv->delayed_fallback_string);
+	glamor_clear_delayed_fallbacks(screen);
+    }
 }
 
 static inline float
