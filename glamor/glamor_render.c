@@ -1113,6 +1113,9 @@ glamor_composite_rects(CARD8 op,
     ValidatePicture(src);
     ValidatePicture(dst);
 
+    if (glamor_composite_with_shader(op, src, NULL, dst, nrect, rects))
+	return;
+
     n = nrect;
     r = rects;
 
