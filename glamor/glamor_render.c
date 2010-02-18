@@ -41,6 +41,7 @@
 struct shader_key {
     enum shader_source source;
     enum shader_mask mask;
+    enum shader_in in;
 };
 
 struct blendinfo {
@@ -69,51 +70,68 @@ static struct blendinfo composite_op_info[] = {
 static GLuint
 glamor_create_composite_fs(struct shader_key *key)
 {
-    const char *source_pixmap_header =
-	"uniform sampler2D source_sampler;\n";
-    const char *source_solid_header =
-	"uniform vec4 source;\n";
-    const char *mask_pixmap_header =
-	"uniform sampler2D mask_sampler;\n";
-    const char *mask_solid_header =
-	"uniform vec4 mask;\n";
-    const char *main_opening =
-	"void main()\n"
-	"{\n";
+    const char *source_solid_fetch =
+	"uniform vec4 source;\n"
+	"vec4 get_source()\n"
+	"{\n"
+	"	return source;\n"
+	"}\n";
     const char *source_alpha_pixmap_fetch =
-	"	vec4 source = texture2D(source_sampler, gl_TexCoord[0].xy);\n";
+	"uniform sampler2D source_sampler;\n"
+	"vec4 get_source()\n"
+	"{\n"
+	"	return texture2D(source_sampler, gl_TexCoord[0].xy);\n"
+	"}\n";
     const char *source_pixmap_fetch =
-	"	vec4 source = vec4(texture2D(source_sampler, "
-	"				     gl_TexCoord[0].xy).rgb, 1.0);\n";
+	"uniform sampler2D source_sampler;\n"
+	"vec4 get_source()\n"
+	"{\n"
+	"	return vec4(texture2D(source_sampler, gl_TexCoord[0].xy).rgb,\n"
+	"		    1.0);\n"
+	"}\n";
+    const char *mask_solid_fetch =
+	"uniform vec4 mask;\n"
+	"vec4 get_mask()\n"
+	"{\n"
+	"	return mask;\n"
+	"}\n";
     const char *mask_alpha_pixmap_fetch =
-	"	vec4 mask = texture2D(mask_sampler, gl_TexCoord[1].xy);\n";
+	"uniform sampler2D mask_sampler;\n"
+	"vec4 get_mask()\n"
+	"{\n"
+	"	return texture2D(mask_sampler, gl_TexCoord[1].xy);\n"
+	"}\n";
     const char *mask_pixmap_fetch =
-	"	vec4 mask = vec4(texture2D(mask_sampler, "
-	"				   gl_TexCoord[1].xy).rgb, 1.0);\n";
-    const char *source_in_mask =
-	"	gl_FragColor = source * mask.a;\n";
-    const char *source_only =
-	"	gl_FragColor = source;\n";
-    const char *main_closing =
+	"uniform sampler2D mask_sampler;\n"
+	"vec4 get_mask()\n"
+	"{\n"
+	"	return vec4(texture2D(mask_sampler, gl_TexCoord[1].xy).rgb, \n"
+	"		    1.0);\n"
+	"}\n";
+    const char *in_source_only =
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = get_source();\n"
+	"}\n";
+    const char *in_normal =
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = get_source() * get_mask().a;\n"
 	"}\n";
     char *source;
-    const char *source_setup = "";
-    const char *source_fetch = "";
-    const char *mask_setup = "";
+    const char *source_fetch;
     const char *mask_fetch = "";
     const char *in;
     GLuint prog;
 
     switch (key->source) {
     case SHADER_SOURCE_SOLID:
-	source_setup = source_solid_header;
+	source_fetch = source_solid_fetch;
 	break;
     case SHADER_SOURCE_TEXTURE_ALPHA:
-	source_setup = source_pixmap_header;
 	source_fetch = source_alpha_pixmap_fetch;
 	break;
     case SHADER_SOURCE_TEXTURE:
-	source_setup = source_pixmap_header;
 	source_fetch = source_pixmap_fetch;
 	break;
     default:
@@ -124,34 +142,33 @@ glamor_create_composite_fs(struct shader_key *key)
     case SHADER_MASK_NONE:
 	break;
     case SHADER_MASK_SOLID:
-	mask_setup = mask_solid_header;
+	mask_fetch = mask_solid_fetch;
 	break;
     case SHADER_MASK_TEXTURE_ALPHA:
-	mask_setup = mask_pixmap_header;
 	mask_fetch = mask_alpha_pixmap_fetch;
 	break;
     case SHADER_MASK_TEXTURE:
-	mask_setup = mask_pixmap_header;
 	mask_fetch = mask_pixmap_fetch;
 	break;
     default:
 	FatalError("Bad composite shader mask");
     }
 
-    if (key->mask == SHADER_MASK_NONE) {
-	in = source_only;
-    } else {
-	in = source_in_mask;
+    switch (key->in) {
+    case SHADER_IN_SOURCE_ONLY:
+	in = in_source_only;
+	break;
+    case SHADER_IN_NORMAL:
+	in = in_normal;
+	break;
+    default:
+	FatalError("Bad composite IN type");
     }
 
-    source = XNFprintf("%s%s%s%s%s%s%s",
-		       source_setup,
-		       mask_setup,
-		       main_opening,
+    source = XNFprintf("%s%s%s",
 		       source_fetch,
 		       mask_fetch,
-		       in,
-		       main_closing);
+		       in);
 
     prog = glamor_compile_glsl_prog(GL_FRAGMENT_SHADER_ARB, source);
     xfree(source);
@@ -245,7 +262,7 @@ glamor_lookup_composite_shader(ScreenPtr screen, struct shader_key *key)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     glamor_composite_shader *shader;
 
-    shader = &glamor_priv->composite_shader[key->source][key->mask];
+    shader = &glamor_priv->composite_shader[key->source][key->mask][key->in];
     if (shader->prog == 0)
 	glamor_create_composite_shader(screen, key, shader);
 
@@ -597,8 +614,11 @@ glamor_composite_with_shader(CARD8 op,
 		key.mask = SHADER_MASK_TEXTURE;
 	    }
 	}
+
+	key.in = SHADER_IN_NORMAL;
     } else {
 	key.mask = SHADER_MASK_NONE;
+	key.in = SHADER_IN_SOURCE_ONLY;
     }
     if (source->alphaMap) {
 	glamor_fallback("source alphaMap\n");
@@ -851,6 +871,7 @@ glamor_composite(CARD8 op,
 				     width, height))
 	return;
 
+fail:
     glamor_fallback("glamor_composite(): "
 		    "from picts %p/%p(%c,%c) to pict %p (%c)\n",
 		    source, mask,
@@ -858,7 +879,7 @@ glamor_composite(CARD8 op,
 		    glamor_get_picture_location(mask),
 		    dest,
 		    glamor_get_picture_location(dest));
-fail:
+
     glUseProgramObjectARB(0);
     glDisable(GL_BLEND);
     if (glamor_prepare_access(dest->pDrawable, GLAMOR_ACCESS_RW)) {

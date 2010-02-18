@@ -113,6 +113,12 @@ enum shader_mask {
     SHADER_MASK_COUNT,
 };
 
+enum shader_in {
+    SHADER_IN_SOURCE_ONLY,
+    SHADER_IN_NORMAL,
+    SHADER_IN_COUNT,
+};
+
 typedef struct glamor_screen_private {
     CreateGCProcPtr saved_create_gc;
     CreatePixmapProcPtr saved_create_pixmap;
@@ -147,7 +153,8 @@ typedef struct glamor_screen_private {
 
     /* glamor_composite */
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
-					    [SHADER_MASK_COUNT];
+					    [SHADER_MASK_COUNT]
+					    [SHADER_IN_COUNT];
 
     glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
 } glamor_screen_private;
