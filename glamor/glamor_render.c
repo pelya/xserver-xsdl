@@ -118,6 +118,16 @@ glamor_create_composite_fs(struct shader_key *key)
 	"{\n"
 	"	gl_FragColor = get_source() * get_mask().a;\n"
 	"}\n";
+    const char *in_ca_source =
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = get_source() * get_mask();\n"
+	"}\n";
+    const char *in_ca_alpha =
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = get_source().a * get_mask();\n"
+	"}\n";
     char *source;
     const char *source_fetch;
     const char *mask_fetch = "";
@@ -160,6 +170,12 @@ glamor_create_composite_fs(struct shader_key *key)
 	break;
     case SHADER_IN_NORMAL:
 	in = in_normal;
+	break;
+    case SHADER_IN_CA_SOURCE:
+	in = in_ca_source;
+	break;
+    case SHADER_IN_CA_ALPHA:
+	in = in_ca_alpha;
 	break;
     default:
 	FatalError("Bad composite IN type");
@@ -615,11 +631,22 @@ glamor_composite_with_shader(CARD8 op,
 	    }
 	}
 
-	key.in = SHADER_IN_NORMAL;
+	if (!mask->componentAlpha) {
+	    key.in = SHADER_IN_NORMAL;
+	} else {
+	    /* We only handle two CA modes. */
+	    if (op == PictOpAdd)
+		key.in = SHADER_IN_CA_SOURCE;
+	    else {
+		assert(op == PictOpOutReverse);
+		key.in = SHADER_IN_CA_ALPHA;
+	    }
+	}
     } else {
 	key.mask = SHADER_MASK_NONE;
 	key.in = SHADER_IN_SOURCE_ONLY;
     }
+
     if (source->alphaMap) {
 	glamor_fallback("source alphaMap\n");
 	goto fail;
@@ -838,22 +865,25 @@ glamor_composite(CARD8 op,
     /* Do two-pass PictOpOver componentAlpha, until we enable
      * dual source color blending.
      */
-    if (mask && mask->componentAlpha)
-	goto fail;
-    if (mask && mask->componentAlpha && op == PictOpOver) {
-	glamor_composite(PictOpOutReverse,
-			 source, mask, dest,
-			 x_source, y_source,
-			 x_mask, y_mask,
-			 x_dest, y_dest,
-			 width, height);
-	glamor_composite(PictOpAdd,
-			 source, mask, dest,
-			 x_source, y_source,
-			 x_mask, y_mask,
-			 x_dest, y_dest,
-			 width, height);
-	return;
+    if (mask && mask->componentAlpha) {
+	if (op == PictOpOver) {
+	    glamor_composite(PictOpOutReverse,
+			     source, mask, dest,
+			     x_source, y_source,
+			     x_mask, y_mask,
+			     x_dest, y_dest,
+			     width, height);
+	    glamor_composite(PictOpAdd,
+			     source, mask, dest,
+			     x_source, y_source,
+			     x_mask, y_mask,
+			     x_dest, y_dest,
+			     width, height);
+	    return;
+	} else if (op != PictOpAdd && op != PictOpOutReverse) {
+	    glamor_fallback("glamor_composite(): component alpha\n");
+	    goto fail;
+	}
     }
 
     if (!mask) {
