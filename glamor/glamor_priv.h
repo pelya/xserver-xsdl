@@ -59,6 +59,8 @@ typedef struct glamor_composite_shader {
 typedef struct {
     INT16 x_src;
     INT16 y_src;
+    INT16 x_mask;
+    INT16 y_mask;
     INT16 x_dst;
     INT16 y_dst;
     INT16 width;
