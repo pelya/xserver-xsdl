@@ -33,6 +33,88 @@
  */
 
 static Bool
+glamor_copy_n_to_n_fbo_blit(DrawablePtr src,
+			    DrawablePtr dst,
+			    GCPtr gc,
+			    BoxPtr box,
+			    int nbox,
+			    int dx,
+			    int dy)
+{
+    ScreenPtr screen = dst->pScreen;
+    PixmapPtr dst_pixmap = glamor_get_drawable_pixmap(dst);
+    PixmapPtr src_pixmap = glamor_get_drawable_pixmap(src);
+    glamor_pixmap_private *src_pixmap_priv;
+    int dst_x_off, dst_y_off, src_x_off, src_y_off, i;
+
+    if (src == dst) {
+	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
+				"src == dest\n");
+	return FALSE;
+    }
+
+    if (!GLEW_EXT_framebuffer_blit) {
+	glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
+				"no EXT_framebuffer_blit\n");
+	return FALSE;
+   }
+
+    src_pixmap_priv = glamor_get_pixmap_private(src_pixmap);
+
+    if (src_pixmap_priv->fb == 0) {
+        PixmapPtr screen_pixmap = screen->GetScreenPixmap(screen);
+
+        if (src_pixmap != screen_pixmap) {
+            glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
+				    "no src fbo\n");
+            return FALSE;
+        }
+    }
+
+    if (gc) {
+	if (gc->alu != GXcopy) {
+	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
+				    "non-copy ALU\n");
+	    return FALSE;
+	}
+	if (!glamor_pm_is_solid(dst, gc->planemask)) {
+	    glamor_delayed_fallback(screen, "glamor_copy_n_to_n_fbo_blit(): "
+				    "non-solid planemask\n");
+	    return FALSE;
+	}
+    }
+
+    if (!glamor_set_destination_pixmap(dst_pixmap))
+	return FALSE;
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER_EXT, src_pixmap_priv->fb);
+
+    glamor_get_drawable_deltas(dst, dst_pixmap, &dst_x_off, &dst_y_off);
+    glamor_get_drawable_deltas(src, src_pixmap, &src_x_off, &src_y_off);
+    src_y_off += dy;
+
+    for (i = 0; i < nbox; i++) {
+	int flip_dst_y1 = dst_pixmap->drawable.height - (box[i].y2 + dst_y_off);
+	int flip_dst_y2 = dst_pixmap->drawable.height - (box[i].y1 + dst_y_off);
+	int flip_src_y1 = src_pixmap->drawable.height - (box[i].y2 + src_y_off);
+	int flip_src_y2 = src_pixmap->drawable.height - (box[i].y1 + src_y_off);
+
+	glBlitFramebufferEXT(box[i].x1 + dx + src_x_off,
+			     flip_src_y1,
+			     box[i].x2 + dx + src_x_off,
+			     flip_src_y2,
+			     box[i].x1 + dst_x_off,
+			     flip_dst_y1,
+			     box[i].x2 + dst_x_off,
+			     flip_dst_y2,
+			     GL_COLOR_BUFFER_BIT,
+			     GL_NEAREST);
+    }
+
+    return TRUE;
+}
+
+static Bool
 glamor_copy_n_to_n_copypixels(DrawablePtr src,
 			      DrawablePtr dst,
 			      GCPtr gc,
@@ -199,6 +281,11 @@ glamor_copy_n_to_n(DrawablePtr src,
 		 Pixel		bitplane,
 		 void		*closure)
 {
+    if (glamor_copy_n_to_n_fbo_blit(src, dst, gc, box, nbox, dx, dy)) {
+	glamor_clear_delayed_fallbacks(dst->pScreen);
+	return;
+    }
+
     if (glamor_copy_n_to_n_copypixels(src, dst, gc, box, nbox, dx, dy)) {
 	glamor_clear_delayed_fallbacks(dst->pScreen);
 	return;
