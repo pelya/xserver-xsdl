@@ -138,6 +138,12 @@ typedef struct glamor_screen_private {
 
     char *delayed_fallback_string;
 
+    GLuint vbo;
+    int vbo_offset;
+    int vbo_size;
+    char *vb;
+    int vb_stride;
+
     /* glamor_finishaccess */
     GLint finish_access_prog;
 
@@ -159,6 +165,8 @@ typedef struct glamor_screen_private {
     glamor_composite_shader composite_shader[SHADER_SOURCE_COUNT]
 					    [SHADER_MASK_COUNT]
 					    [SHADER_IN_COUNT];
+    Bool has_source_coords, has_mask_coords;
+    int render_nr_verts;
 
     glamor_glyph_cache_t glyph_caches[GLAMOR_NUM_GLYPH_CACHES];
 } glamor_screen_private;

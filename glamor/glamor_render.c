@@ -573,6 +573,114 @@ glamor_set_transformed_point(PicturePtr picture, PixmapPtr pixmap,
     texcoord[1] = t_from_x_coord_y(pixmap, ty);
 }
 
+static void
+glamor_setup_composite_vbo(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    glamor_priv->vb_stride = 2 * sizeof(float);
+    if (glamor_priv->has_source_coords)
+	glamor_priv->vb_stride += 2 * sizeof(float);
+    if (glamor_priv->has_mask_coords)
+	glamor_priv->vb_stride += 2 * sizeof(float);
+
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo);
+    glVertexPointer(2, GL_FLOAT, glamor_priv->vb_stride,
+		    (void *)(glamor_priv->vbo_offset));
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    if (glamor_priv->has_source_coords) {
+	glClientActiveTexture(GL_TEXTURE0);
+	glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
+			  (void *)(glamor_priv->vbo_offset + 2 * sizeof(float)));
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
+
+    if (glamor_priv->has_mask_coords) {
+	glClientActiveTexture(GL_TEXTURE1);
+	glTexCoordPointer(2, GL_FLOAT, glamor_priv->vb_stride,
+			  (void *)(glamor_priv->vbo_offset +
+				   (glamor_priv->has_source_coords ? 4 : 2) *
+				   sizeof(float)));
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    }
+}
+
+static void
+glamor_emit_composite_vert(ScreenPtr screen,
+			   const float *src_coords,
+			   const float *mask_coords,
+			   const float *dst_coords,
+			   int i)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+    float *vb = (float *)(glamor_priv->vb + glamor_priv->vbo_offset);
+    int j = 0;
+
+    vb[j++] = dst_coords[i * 2 + 0];
+    vb[j++] = dst_coords[i * 2 + 1];
+    if (glamor_priv->has_source_coords) {
+	vb[j++] = src_coords[i * 2 + 0];
+	vb[j++] = src_coords[i * 2 + 1];
+    }
+    if (glamor_priv->has_mask_coords) {
+	vb[j++] = mask_coords[i * 2 + 0];
+	vb[j++] = mask_coords[i * 2 + 1];
+    }
+
+    glamor_priv->render_nr_verts++;
+    glamor_priv->vbo_offset += glamor_priv->vb_stride;
+}
+
+static void
+glamor_flush_composite_rects(ScreenPtr screen)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    if (!glamor_priv->render_nr_verts)
+	return;
+
+    glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+    glamor_priv->vb = NULL;
+
+    glDrawArrays(GL_QUADS, 0, glamor_priv->render_nr_verts);
+    glamor_priv->render_nr_verts = 0;
+    glamor_priv->vbo_size = 0;
+}
+
+static void
+glamor_emit_composite_rect(ScreenPtr screen,
+			   const float *src_coords,
+			   const float *mask_coords,
+			   const float *dst_coords)
+{
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
+
+    if (glamor_priv->vbo_offset + 4 * glamor_priv->vb_stride >
+	glamor_priv->vbo_size)
+    {
+	glamor_flush_composite_rects(screen);
+    }
+
+    if (glamor_priv->vbo_size == 0) {
+	if (glamor_priv->vbo == 0)
+	    glGenBuffersARB(1, &glamor_priv->vbo);
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo);
+
+	glamor_priv->vbo_size = 4096;
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB, glamor_priv->vbo_size, NULL,
+			GL_STREAM_DRAW_ARB);
+	glamor_priv->vbo_offset = 0;
+	glamor_priv->vb = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+	glamor_setup_composite_vbo(screen);
+    }
+
+    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 0);
+    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 1);
+    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 2);
+    glamor_emit_composite_vert(screen, src_coords, mask_coords, dst_coords, 3);
+}
+
 static Bool
 glamor_composite_with_shader(CARD8 op,
 			     PicturePtr source,
@@ -582,6 +690,7 @@ glamor_composite_with_shader(CARD8 op,
 			     glamor_composite_rect_t *rects)
 {
     ScreenPtr screen = dest->pDrawable->pScreen;
+    glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     PixmapPtr dest_pixmap = glamor_get_drawable_pixmap(dest->pDrawable);
     PixmapPtr source_pixmap = NULL, mask_pixmap = NULL;
     glamor_pixmap_private *source_pixmap_priv = NULL;
@@ -589,7 +698,7 @@ glamor_composite_with_shader(CARD8 op,
     struct shader_key key;
     glamor_composite_shader *shader;
     RegionRec region;
-    float vertices[4][2], source_texcoords[4][2], mask_texcoords[4][2];
+    float vertices[8], source_texcoords[8], mask_texcoords[8];
     int i;
     BoxPtr box;
     int dest_x_off, dest_y_off;
@@ -716,20 +825,9 @@ glamor_composite_with_shader(CARD8 op,
 	}
     }
 
-    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    if (key.source != SHADER_SOURCE_SOLID) {
-	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, source_texcoords);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    }
-
-    if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID) {
-	glClientActiveTexture(GL_TEXTURE1);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 2, mask_texcoords);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    }
+    glamor_priv->has_source_coords = key.source != SHADER_SOURCE_SOLID;
+    glamor_priv->has_mask_coords = (key.mask != SHADER_MASK_NONE &&
+				    key.mask != SHADER_MASK_SOLID);
 
     glamor_get_drawable_deltas(dest->pDrawable, dest_pixmap,
 			       &dest_x_off, &dest_y_off);
@@ -787,22 +885,22 @@ glamor_composite_with_shader(CARD8 op,
 
 	box = REGION_RECTS(&region);
 	for (i = 0; i < REGION_NUM_RECTS(&region); i++) {
-	    vertices[0][0] = v_from_x_coord_x(dest_pixmap,
-					      box[i].x1 + dest_x_off);
-	    vertices[0][1] = v_from_x_coord_y(dest_pixmap,
-					      box[i].y1 + dest_y_off);
-	    vertices[1][0] = v_from_x_coord_x(dest_pixmap,
-					      box[i].x2 + dest_x_off);
-	    vertices[1][1] = v_from_x_coord_y(dest_pixmap,
-					      box[i].y1 + dest_y_off);
-	    vertices[2][0] = v_from_x_coord_x(dest_pixmap,
-					      box[i].x2 + dest_x_off);
-	    vertices[2][1] = v_from_x_coord_y(dest_pixmap,
-					      box[i].y2 + dest_y_off);
-	    vertices[3][0] = v_from_x_coord_x(dest_pixmap,
-					      box[i].x1 + dest_x_off);
-	    vertices[3][1] = v_from_x_coord_y(dest_pixmap,
-					      box[i].y2 + dest_y_off);
+	    vertices[0] = v_from_x_coord_x(dest_pixmap,
+					   box[i].x1 + dest_x_off);
+	    vertices[1] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[2] = v_from_x_coord_x(dest_pixmap,
+					   box[i].x2 + dest_x_off);
+	    vertices[3] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y1 + dest_y_off);
+	    vertices[4] = v_from_x_coord_x(dest_pixmap,
+					   box[i].x2 + dest_x_off);
+	    vertices[5] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y2 + dest_y_off);
+	    vertices[6] = v_from_x_coord_x(dest_pixmap,
+					   box[i].x1 + dest_x_off);
+	    vertices[7] = v_from_x_coord_y(dest_pixmap,
+					   box[i].y2 + dest_y_off);
 
 	    if (key.source != SHADER_SOURCE_SOLID) {
 		int tx1 = box[i].x1 + x_source - x_dest;
@@ -811,13 +909,13 @@ glamor_composite_with_shader(CARD8 op,
 		int ty2 = box[i].y2 + y_source - y_dest;
 
 		glamor_set_transformed_point(source, source_pixmap,
-					     source_texcoords[0], tx1, ty1);
+					     source_texcoords + 0, tx1, ty1);
 		glamor_set_transformed_point(source, source_pixmap,
-					     source_texcoords[1], tx2, ty1);
+					     source_texcoords + 2, tx2, ty1);
 		glamor_set_transformed_point(source, source_pixmap,
-					     source_texcoords[2], tx2, ty2);
+					     source_texcoords + 4, tx2, ty2);
 		glamor_set_transformed_point(source, source_pixmap,
-					     source_texcoords[3], tx1, ty2);
+					     source_texcoords + 6, tx1, ty2);
 	    }
 
 	    if (key.mask != SHADER_MASK_NONE && key.mask != SHADER_MASK_SOLID) {
@@ -827,13 +925,13 @@ glamor_composite_with_shader(CARD8 op,
 		float ty2 = box[i].y2 + y_mask - y_dest;
 
 		glamor_set_transformed_point(mask, mask_pixmap,
-					     mask_texcoords[0], tx1, ty1);
+					     mask_texcoords + 0, tx1, ty1);
 		glamor_set_transformed_point(mask, mask_pixmap,
-					     mask_texcoords[1], tx2, ty1);
+					     mask_texcoords + 2, tx2, ty1);
 		glamor_set_transformed_point(mask, mask_pixmap,
-					     mask_texcoords[2], tx2, ty2);
+					     mask_texcoords + 4, tx2, ty2);
 		glamor_set_transformed_point(mask, mask_pixmap,
-					     mask_texcoords[3], tx1, ty2);
+					     mask_texcoords + 6, tx1, ty2);
 	    }
 #if 0
  else memset(mask_texcoords, 0, sizeof(mask_texcoords));
@@ -847,11 +945,15 @@ glamor_composite_with_shader(CARD8 op,
 	    }
 #endif
 
-	    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	    glamor_emit_composite_rect(screen, source_texcoords,
+				       mask_texcoords, vertices);
 	}
 	rects++;
     }
 
+    glamor_flush_composite_rects(screen);
+
+    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
     glClientActiveTexture(GL_TEXTURE0);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glClientActiveTexture(GL_TEXTURE1);
