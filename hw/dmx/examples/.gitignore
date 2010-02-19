@@ -1,6 +1,7 @@
 #		Add & Override for this directory and it's subdirectories
 dmxaddinput
 dmxaddscreen
+dmxinfo
 dmxreconfig
 dmxresize
 dmxrminput
@@ -10,7 +11,6 @@ ev
 evi
 res
 xbell
-xdmx
 xinput
 xled
 xtest
