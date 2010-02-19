@@ -126,6 +126,8 @@ SRCS =	InitInput.c \
 	winprefs.h \
 	winresource.h \
 	winwindow.h \
+	windisplay.c \
+	windisplay.h \
 	XWin.rc \
 	$(top_srcdir)/mi/miinitext.c \
 	$(SRCS_CLIPBOARD) \
