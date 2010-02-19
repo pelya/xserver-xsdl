@@ -92,29 +92,15 @@ glamor_init_solid_shader(ScreenPtr screen)
     glamor_screen_private *glamor_priv = glamor_get_screen_private(screen);
     const char *solid_vs_only =
 	"uniform vec4 color;\n"
-	"uniform float x_bias;\n"
-	"uniform float x_scale;\n"
-	"uniform float y_bias;\n"
-	"uniform float y_scale;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
-	"			   (gl_Vertex.y + y_bias) * y_scale,\n"
-	"			   0,\n"
-	"			   1);\n"
+	"	gl_Position = gl_Vertex;\n"
 	"	gl_Color = color;\n"
 	"}\n";
     const char *solid_vs =
-	"uniform float x_bias;\n"
-	"uniform float x_scale;\n"
-	"uniform float y_bias;\n"
-	"uniform float y_scale;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_Position = vec4((gl_Vertex.x + x_bias) * x_scale,\n"
-	"			   (gl_Vertex.y + y_bias) * y_scale,\n"
-	"			   0,\n"
-	"			   1);\n"
+	"	gl_Position = gl_Vertex;\n"
 	"}\n";
     const char *solid_fs =
 	"uniform vec4 color;\n"
@@ -138,8 +124,6 @@ glamor_init_solid_shader(ScreenPtr screen)
 
     glamor_priv->solid_color_uniform_location =
 	glGetUniformLocationARB(glamor_priv->solid_prog, "color");
-    glamor_get_transform_uniform_locations(glamor_priv->solid_prog,
-					   &glamor_priv->solid_transform);
 }
 
 void
@@ -153,6 +137,7 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     int y1 = y;
     int y2 = y + height;
     GLfloat color[4];
+    float vertices[4][2];
 
     if (!glamor_set_destination_pixmap(pixmap))
 	return;
@@ -163,15 +148,22 @@ glamor_solid(PixmapPtr pixmap, int x, int y, int width, int height,
     glUseProgramObjectARB(glamor_priv->solid_prog);
     glamor_get_color_4f_from_pixel(pixmap, fg_pixel, color);
     glUniform4fvARB(glamor_priv->solid_color_uniform_location, 1, color);
-    glamor_set_transform_for_pixmap(pixmap, &glamor_priv->solid_transform);
 
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(x1, y1);
-    glVertex2f(x1, y2);
-    glVertex2f(x2, y2);
-    glVertex2f(x2, y1);
-    glEnd();
+    glVertexPointer(2, GL_FLOAT, sizeof(float) * 2, vertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
 
+    vertices[0][0] = v_from_x_coord_x(pixmap, x1);
+    vertices[0][1] = v_from_x_coord_y(pixmap, y1);
+    vertices[1][0] = v_from_x_coord_x(pixmap, x2);
+    vertices[1][1] = v_from_x_coord_y(pixmap, y1);
+    vertices[2][0] = v_from_x_coord_x(pixmap, x2);
+    vertices[2][1] = v_from_x_coord_y(pixmap, y2);
+    vertices[3][0] = v_from_x_coord_x(pixmap, x1);
+    vertices[3][1] = v_from_x_coord_y(pixmap, y2);
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
     glUseProgramObjectARB(0);
 fail:
     glamor_set_alu(GXcopy);

@@ -124,12 +124,7 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     RegionPtr clip;
     BoxPtr box;
     int nbox;
-    float dest_coords[8] = {
-	x, y,
-	x + w, y,
-	x + w, y + h,
-	x, y + h,
-    };
+    float dest_coords[4][2];
     const float bitmap_coords[8] = {
 	0.0, 0.0,
 	1.0, 0.0,
@@ -137,7 +132,16 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
 	0.0, 1.0,
     };
 
-    glamor_fallback("glamor_put_image_xybitmap: disabled\n");
+    dest_coords[0][0] = v_from_x_coord_x(pixmap, x);
+    dest_coords[0][1] = v_from_x_coord_y(pixmap, y);
+    dest_coords[1][0] = v_from_x_coord_x(pixmap, x + w);
+    dest_coords[1][1] = v_from_x_coord_y(pixmap, y);
+    dest_coords[2][0] = v_from_x_coord_x(pixmap, x + w);
+    dest_coords[2][1] = v_from_x_coord_y(pixmap, y + h);
+    dest_coords[3][0] = v_from_x_coord_x(pixmap, x);
+    dest_coords[3][1] = v_from_x_coord_y(pixmap, y + h);
+
+   glamor_fallback("glamor_put_image_xybitmap: disabled\n");
     goto fail;
 
     if (glamor_priv->put_image_xybitmap_prog == 0) {
@@ -157,8 +161,6 @@ glamor_put_image_xybitmap(DrawablePtr drawable, GCPtr gc,
     glamor_get_color_4f_from_pixel(pixmap, gc->bgPixel, bg);
     glUniform4fvARB(glamor_priv->put_image_xybitmap_bg_uniform_location,
 		    1, bg);
-
-    glamor_set_transform_for_pixmap(pixmap, &glamor_priv->solid_transform);
 
     glGenTextures(1, &tex);
     glActiveTexture(GL_TEXTURE0);

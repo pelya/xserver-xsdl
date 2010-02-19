@@ -150,7 +150,6 @@ typedef struct glamor_screen_private {
     /* glamor_solid */
     GLint solid_prog;
     GLint solid_color_uniform_location;
-    glamor_transform_uniforms solid_transform;
 
     /* glamor_tile */
     GLint tile_prog;
