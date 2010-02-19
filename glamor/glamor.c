@@ -260,8 +260,10 @@ glamor_fini(ScreenPtr screen)
     screen->CopyWindow = glamor_priv->saved_copy_window;
     screen->BitmapToRegion = glamor_priv->saved_bitmap_to_region;
 #ifdef RENDER
-    ps->Composite = glamor_priv->saved_composite;
-    ps->Trapezoids = glamor_priv->saved_trapezoids;
-    ps->Glyphs = glamor_priv->saved_glyphs;
+    if (ps) {
+	ps->Composite = glamor_priv->saved_composite;
+	ps->Trapezoids = glamor_priv->saved_trapezoids;
+	ps->Glyphs = glamor_priv->saved_glyphs;
+    }
 #endif
 }
