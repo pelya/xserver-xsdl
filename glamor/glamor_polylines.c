@@ -52,7 +52,10 @@ glamor_poly_lines(DrawablePtr drawable, GCPtr gc, int mode, int n,
 
     /* Don't try to do wide lines or non-solid fill style. */
     if (gc->lineWidth != 0) {
-	glamor_fallback("glamor_poly_lines(): wide lines\n");
+	/* This ends up in miSetSpans, which is accelerated as well as we
+	 * can hope X wide lines will be.
+	 */
+	/*glamor_fallback("glamor_poly_lines(): wide lines\n");*/
 	goto fail;
     }
     if (gc->lineStyle != LineSolid ||
