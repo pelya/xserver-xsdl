@@ -509,7 +509,7 @@ DRI2WakeClient(ClientPtr client, DrawablePtr pDraw, int frame,
      * blocked due to GLX activity during a swap.
      */
     if (pPriv->target_sbc != -1 &&
-	pPriv->target_sbc >= pPriv->swap_count) {
+	pPriv->target_sbc <= pPriv->swap_count) {
 	ProcDRI2WaitMSCReply(client, ((CARD64)tv_sec * 1000000) + tv_usec,
 			     frame, pPriv->swap_count);
 	pPriv->target_sbc = -1;
@@ -546,12 +546,12 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
 	return;
     }
 
+    pPriv->swapsPending--;
+    pPriv->swap_count++;
+
     ust = ((CARD64)tv_sec * 1000000) + tv_usec;
     if (swap_complete)
 	swap_complete(client, swap_data, type, ust, frame, pPriv->swap_count);
-
-    pPriv->swapsPending--;
-    pPriv->swap_count++;
 
     DRI2WakeClient(client, pDraw, frame, tv_sec, tv_usec);
 }
