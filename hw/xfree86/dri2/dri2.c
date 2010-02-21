@@ -64,6 +64,8 @@ typedef struct _DRI2Drawable {
     CARD64		 swap_count;
     int64_t		 target_sbc; /* -1 means no SBC wait outstanding */
     CARD64		 last_swap_target; /* most recently queued swap target */
+    CARD64		 last_swap_msc; /* msc at completion of most recent swap */
+    CARD64		 last_swap_ust; /* ust at completion of most recent swap */
     int			 swap_limit; /* for N-buffering */
 } DRI2DrawableRec, *DRI2DrawablePtr;
 
@@ -148,6 +150,8 @@ DRI2CreateDrawable(DrawablePtr pDraw)
 	pPriv->last_swap_target = 0;
 
     pPriv->swap_limit = 1; /* default to double buffering */
+    pPriv->last_swap_msc = 0;
+    pPriv->last_swap_ust = 0;
 
     if (pDraw->type == DRAWABLE_WINDOW)
     {
@@ -553,6 +557,9 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
     if (swap_complete)
 	swap_complete(client, swap_data, type, ust, frame, pPriv->swap_count);
 
+    pPriv->last_swap_msc = frame;
+    pPriv->last_swap_ust = ust;
+
     DRI2WakeClient(client, pDraw, frame, tv_sec, tv_usec);
 }
 
@@ -727,8 +734,22 @@ DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw, CARD64 target_sbc,
     if (pPriv == NULL)
 	return BadDrawable;
 
-    if (pPriv->swap_count >= target_sbc)
-	return Success;
+    /* target_sbc == 0 means to block until all pending swaps are
+     * finished. Recalculate target_sbc to get that behaviour.
+     */
+    if (target_sbc == 0)
+        target_sbc = pPriv->swap_count + pPriv->swapsPending;
+
+    /* If current swap count already >= target_sbc,
+     * return immediately with (ust, msc, sbc) triplet of
+     * most recent completed swap.
+     */
+    if (pPriv->swap_count >= target_sbc) {
+        *sbc = pPriv->swap_count;
+        *msc = pPriv->last_swap_msc;
+        *ust = pPriv->last_swap_ust;
+        return Success;
+    }
 
     pPriv->target_sbc = target_sbc;
     DRI2BlockClient(client, pDraw);
