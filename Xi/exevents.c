@@ -1051,16 +1051,19 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
             break;
     }
 
-#if 0
-    /* FIXME: I'm broken. Please fix me. Thanks */
     if (DeviceEventCallback) {
 	DeviceEventInfoRec eventinfo;
+	SpritePtr pSprite = device->spriteInfo->sprite;
 
-	eventinfo.events = (xEventPtr) xE;
-	eventinfo.count = count;
+	/* see comment in EnqueueEvents regarding the next three lines */
+	if (ev->any.type == ET_Motion)
+	    ev->device_event.root = WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
+
+	eventinfo.device = device;
+	eventinfo.event = ev;
 	CallCallbacks(&DeviceEventCallback, (pointer) & eventinfo);
     }
-#endif
+
     grab = device->deviceGrab.grab;
 
     switch(event->type)

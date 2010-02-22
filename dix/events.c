@@ -1131,11 +1131,10 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
         event->type == ET_KeyRelease)
 	AccessXCancelRepeatKey(device->key->xkbInfo, event->detail.key);
 
-#if 0
-        /* FIXME: I'm broken now. Please fix me. */
     if (DeviceEventCallback)
     {
 	DeviceEventInfoRec eventinfo;
+
 	/*  The RECORD spec says that the root window field of motion events
 	 *  must be valid.  At this point, it hasn't been filled in yet, so
 	 *  we do it here.  The long expression below is necessary to get
@@ -1145,14 +1144,14 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 	 *  the data that GetCurrentRootWindow relies on hasn't been
 	 *  updated yet.
 	 */
-	if (xE->u.u.type == DeviceMotionNotify)
-	    XE_KBPTR.root =
-		WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
-	eventinfo.events = xE;
-	eventinfo.count = nevents;
+	if (ev->any.type == ET_Motion)
+	    ev->device_event.root = WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
+
+	eventinfo.event = ev;
+	eventinfo.device = device;
 	CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
     }
-#endif
+
     if (event->type == ET_Motion)
     {
 #ifdef PANORAMIX
