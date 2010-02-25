@@ -1495,12 +1495,16 @@ GuessRangeFromModes(MonPtr mon, DisplayModePtr mode)
        mon->vrefresh[0].lo = 58.0;
 }
 
+enum det_monrec_source {
+    sync_config, sync_edid, sync_default
+};
+
 struct det_monrec_parameter {
     MonRec *mon_rec;
     int *max_clock;
     Bool set_hsync;
     Bool set_vrefresh;
-    enum { sync_config, sync_edid, sync_default } *sync_source;
+    enum det_monrec_source *sync_source;
 };
 
 static void handle_detailed_monrec(struct detailed_monitor_section *det_mon,
@@ -1563,7 +1567,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	Bool                add_default_modes = TRUE;
 	Bool		    debug_modes = config->debug_modes ||
 					  xf86Initialising;
-	enum { sync_config, sync_edid, sync_default } sync_source = sync_default;
+	enum det_monrec_source sync_source = sync_default;
 	
 	while (output->probed_modes != NULL)
 	    xf86DeleteMode(&output->probed_modes, output->probed_modes);
