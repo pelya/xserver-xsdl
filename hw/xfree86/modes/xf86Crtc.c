@@ -2595,8 +2595,8 @@ xf86SetDesiredModes (ScrnInfoPtr scrn)
 	if (!crtc->enabled)
 	    continue;
 
-	if (config->output[config->compat_output]->crtc == crtc)
-	    output = config->output[config->compat_output];
+	if (xf86CompatOutput(scrn) && xf86CompatCrtc(scrn) == crtc)
+	    output = xf86CompatOutput(scrn);
 	else
 	{
 	    for (o = 0; o < config->num_output; o++)
@@ -2716,14 +2716,16 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
     Bool		ok = TRUE;
-    xf86OutputPtr	compat_output = config->output[config->compat_output];
-    DisplayModePtr	compat_mode;
+    xf86OutputPtr	compat_output;
+    DisplayModePtr	compat_mode = NULL;
     int			c;
 
     /*
      * Let the compat output drive the final mode selection
      */
-    compat_mode = xf86OutputFindClosestMode (compat_output, desired);
+    compat_output = xf86CompatOutput(pScrn);
+    if (compat_output)
+	compat_mode = xf86OutputFindClosestMode (compat_output, desired);
     if (compat_mode)
 	desired = compat_mode;
     
@@ -2947,7 +2949,7 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     }
 
     /* Set the DDC properties for the 'compat' output */
-    if (output == config->output[config->compat_output])
+    if (output == xf86CompatOutput(scrn))
         xf86SetDDCproperties(scrn, edid_mon);
 
 #ifdef RANDR_12_INTERFACE
