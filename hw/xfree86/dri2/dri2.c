@@ -116,9 +116,11 @@ DRI2GetDrawable(DrawablePtr pDraw)
 int
 DRI2CreateDrawable(DrawablePtr pDraw)
 {
+    DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     WindowPtr	    pWin;
     PixmapPtr	    pPixmap;
     DRI2DrawablePtr pPriv;
+    CARD64          ust;
 
     pPriv = DRI2GetDrawable(pDraw);
     if (pPriv != NULL)
@@ -141,7 +143,10 @@ DRI2CreateDrawable(DrawablePtr pDraw)
     pPriv->swap_count = 0;
     pPriv->target_sbc = -1;
     pPriv->swap_interval = 1;
-    pPriv->last_swap_target = -1;
+    /* Initialize last swap target from DDX if possible */
+    if (!ds->GetMSC || !(*ds->GetMSC)(pDraw, &ust, &pPriv->last_swap_target))
+	pPriv->last_swap_target = 0;
+
     pPriv->swap_limit = 1; /* default to double buffering */
 
     if (pDraw->type == DRAWABLE_WINDOW)
@@ -579,7 +584,6 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
     DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
     DRI2DrawablePtr pPriv;
     DRI2BufferPtr   pDestBuffer = NULL, pSrcBuffer = NULL;
-    CARD64          ust;
     int             ret, i;
 
     pPriv = DRI2GetDrawable(pDraw);
@@ -619,27 +623,6 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 			 func, data);
 	return Success;
     }
-
-    /*
-     * In the simple glXSwapBuffers case, all params will be 0, and we just
-     * need to schedule a swap for the last swap target + the swap interval.
-     * If the last swap target hasn't been set yet, call into the driver
-     * to get the current count.
-     */
-    if (target_msc == 0 && divisor == 0 && remainder == 0 &&
-	pPriv->last_swap_target < 0) {
-	ret = (*ds->GetMSC)(pDraw, &ust, &target_msc);
-	if (!ret) {
-	    xf86DrvMsg(pScreen->myNum, X_ERROR,
-		       "[DRI2] %s: driver failed to return current MSC\n",
-		       __func__);
-	    return BadDrawable;
-	}
-    }
-
-    /* First swap needs to initialize last_swap_target */
-    if (pPriv->last_swap_target < 0)
-	pPriv->last_swap_target = target_msc;
 
     /*
      * Swap target for this swap is last swap target + swap interval since
