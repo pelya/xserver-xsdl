@@ -62,7 +62,7 @@ typedef struct _DRI2Drawable {
     ClientPtr		 blockedClient;
     int			 swap_interval;
     CARD64		 swap_count;
-    CARD64		 target_sbc; /* -1 means no SBC wait outstanding */
+    int64_t		 target_sbc; /* -1 means no SBC wait outstanding */
     CARD64		 last_swap_target; /* most recently queued swap target */
     int			 swap_limit; /* for N-buffering */
 } DRI2DrawableRec, *DRI2DrawablePtr;
