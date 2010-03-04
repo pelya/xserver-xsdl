@@ -632,11 +632,20 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
     }
 
     /*
-     * Swap target for this swap is last swap target + swap interval since
-     * we have to account for the current swap count, interval, and the
-     * number of pending swaps.
+     * In the simple glXSwapBuffers case, all params will be 0, and we just
+     * need to schedule a swap for the last swap target + the swap interval.
      */
-    *swap_target = pPriv->last_swap_target + pPriv->swap_interval;
+    if (target_msc == 0 && divisor == 0 && remainder == 0) {
+	/*
+	 * Swap target for this swap is last swap target + swap interval since
+	 * we have to account for the current swap count, interval, and the
+	 * number of pending swaps.
+	 */
+	*swap_target = pPriv->last_swap_target + pPriv->swap_interval;
+    } else {
+	/* glXSwapBuffersMscOML could have a 0 target_msc, honor it */
+	*swap_target = target_msc;
+    }
 
     ret = (*ds->ScheduleSwap)(client, pDraw, pDestBuffer, pSrcBuffer,
 			      swap_target, divisor, remainder, func, data);
@@ -648,6 +657,11 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 
     pPriv->swapsPending++;
     pPriv->last_swap_target = *swap_target;
+
+    /* According to spec, return expected swapbuffers count SBC after this swap
+     * will complete.
+     */
+    *swap_target = pPriv->swap_count + pPriv->swapsPending;
 
     return Success;
 }
