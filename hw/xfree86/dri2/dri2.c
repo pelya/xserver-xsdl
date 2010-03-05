@@ -616,8 +616,8 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 	return BadDrawable;
     }
 
-    /* Old DDX, just blit */
-    if (!ds->ScheduleSwap) {
+    /* Old DDX or no swap interval, just blit */
+    if (!ds->ScheduleSwap || !pPriv->swap_interval) {
 	BoxRec box;
 	RegionRec region;
 
