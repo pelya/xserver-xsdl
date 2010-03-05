@@ -492,6 +492,10 @@ DRI2WaitMSCComplete(ClientPtr client, DrawablePtr pDraw, int frame,
 	AttendClient(pPriv->blockedClient);
 
     pPriv->blockedClient = NULL;
+
+    /* If there's still a swap pending, let DRI2SwapComplete free it */
+    if (pPriv->refCount == 0 && pPriv->swapsPending == 0)
+	DRI2FreeDrawable(pDraw);
 }
 
 static void
@@ -543,13 +547,6 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
 	return;
     }
 
-    if (pPriv->refCount == 0) {
-        xf86DrvMsg(pScreen->myNum, X_ERROR,
-		   "[DRI2] %s: bad drawable refcount\n", __func__);
-	DRI2FreeDrawable(pDraw);
-	return;
-    }
-
     pPriv->swapsPending--;
     pPriv->swap_count++;
 
@@ -561,6 +558,13 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
     pPriv->last_swap_ust = ust;
 
     DRI2WakeClient(client, pDraw, frame, tv_sec, tv_usec);
+
+    /*
+     * It's normal for the app to have exited with a swap outstanding, but
+     * don't free the drawable until they're all complete.
+     */
+    if (pPriv->swapsPending == 0 && pPriv->refCount == 0)
+	DRI2FreeDrawable(pDraw);
 }
 
 Bool
@@ -669,10 +673,16 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 void
 DRI2SwapInterval(DrawablePtr pDrawable, int interval)
 {
+    ScreenPtr       pScreen = pDrawable->pScreen;
     DRI2DrawablePtr pPriv = DRI2GetDrawable(pDrawable);
 
-    /* fixme: check against arbitrary max? */
+    if (pPriv == NULL) {
+        xf86DrvMsg(pScreen->myNum, X_ERROR,
+		   "[DRI2] %s: bad drawable\n", __func__);
+	return;
+    }
 
+    /* fixme: check against arbitrary max? */
     pPriv->swap_interval = interval;
 }
 
@@ -721,7 +731,7 @@ DRI2WaitMSC(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
     Bool ret;
 
     pPriv = DRI2GetDrawable(pDraw);
-    if (pPriv == NULL)
+    if (pPriv == NULL || pPriv->refCount == 0)
 	return BadDrawable;
 
     /* Old DDX just completes immediately */
@@ -745,7 +755,7 @@ DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw, CARD64 target_sbc,
     DRI2DrawablePtr pPriv;
 
     pPriv = DRI2GetDrawable(pDraw);
-    if (pPriv == NULL)
+    if (pPriv == NULL || pPriv->refCount == 0)
 	return BadDrawable;
 
     /* target_sbc == 0 means to block until all pending swaps are
@@ -794,10 +804,10 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
 	xfree(pPriv->buffers);
     }
 
-    /* If the window is destroyed while we have a swap pending, don't
+    /* If the window is destroyed while we have a swap or wait pending, don't
      * actually free the priv yet.  We'll need it in the DRI2SwapComplete()
      * callback and we'll free it there once we're done. */
-    if (!pPriv->swapsPending)
+    if (!pPriv->swapsPending && !pPriv->blockedClient)
 	DRI2FreeDrawable(pDraw);
 }
 
