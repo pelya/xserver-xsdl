@@ -1286,14 +1286,10 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	}
     }
 
-    if (!foundPointer) {
-	if (!xf86Info.allowEmptyInput) {
-	    /* This shouldn't happen. */
-	    xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
-	    return FALSE;
-	} else {
-	    xf86Msg(X_INFO, "Cannot locate a core pointer device.\n");
-	}
+    if (!foundPointer && !xf86Info.allowEmptyInput) {
+	/* This shouldn't happen. */
+	xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
+	return FALSE;
     }
 
     /*
@@ -1430,14 +1426,10 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	}
     }
 
-    if (!foundKeyboard) {
-	if (!xf86Info.allowEmptyInput) {
-		/* This shouldn't happen. */
-		xf86Msg(X_ERROR, "Cannot locate a core keyboard device.\n");
-		return FALSE;
-	} else {
-		xf86Msg(X_INFO, "Cannot locate a core keyboard device.\n");
-	}
+    if (!foundKeyboard && !xf86Info.allowEmptyInput) {
+	/* This shouldn't happen. */
+	xf86Msg(X_ERROR, "Cannot locate a core keyboard device.\n");
+	return FALSE;
     }
 
     if (pointerMsg) {
