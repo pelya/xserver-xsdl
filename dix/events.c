@@ -738,7 +738,11 @@ CheckPhysLimits(
 	    new.y = pSprite->physLimits.y2 - 1;
     if (pSprite->hotShape)
 	ConfineToShape(pDev, pSprite->hotShape, &new.x, &new.y);
-    if ((pScreen != pSprite->hotPhys.pScreen) ||
+    if ((
+#ifdef PANORAMIX
+            noPanoramiXExtension &&
+#endif
+            (pScreen != pSprite->hotPhys.pScreen)) ||
 	(new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
     {
 #ifdef PANORAMIX
