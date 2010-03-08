@@ -384,6 +384,13 @@ ProcDRI2SwapBuffers(ClientPtr client)
 		       DixReadAccess | DixWriteAccess, &pDrawable, &status))
 	return status;
 
+    /*
+     * Ensures an out of control client can't exhaust our swap queue, and
+     * also orders swaps.
+     */
+    if (DRI2ThrottleClient(client, pDrawable))
+	return client->noClientException;
+
     target_msc = vals_to_card64(stuff->target_msc_lo, stuff->target_msc_hi);
     divisor = vals_to_card64(stuff->divisor_lo, stuff->divisor_hi);
     remainder = vals_to_card64(stuff->remainder_lo, stuff->remainder_hi);
