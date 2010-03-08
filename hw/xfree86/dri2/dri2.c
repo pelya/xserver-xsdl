@@ -45,6 +45,9 @@
 
 #include "xf86.h"
 
+CARD8 dri2_major; /* version of DRI2 supported by DDX */
+CARD8 dri2_minor;
+
 static int dri2ScreenPrivateKeyIndex;
 static DevPrivateKey dri2ScreenPrivateKey = &dri2ScreenPrivateKeyIndex;
 static int dri2WindowPrivateKeyIndex;
@@ -848,6 +851,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	"VDPAU", /* DRI2DriverVDPAU */
     };
     unsigned int i;
+    CARD8 cur_minor;
 
     if (info->version < 3)
 	return FALSE;
@@ -864,6 +868,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 
     ds->fd	       = info->fd;
     ds->deviceName     = info->deviceName;
+    dri2_major         = 1;
 
     ds->CreateBuffer   = info->CreateBuffer;
     ds->DestroyBuffer  = info->DestroyBuffer;
@@ -873,7 +878,14 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	ds->ScheduleSwap = info->ScheduleSwap;
 	ds->ScheduleWaitMSC = info->ScheduleWaitMSC;
 	ds->GetMSC = info->GetMSC;
+	cur_minor = 2;
+    } else {
+	cur_minor = 1;
     }
+
+    /* Initialize minor if needed and set to minimum provied by DDX */
+    if (!dri2_minor || dri2_minor > cur_minor)
+	dri2_minor = cur_minor;
 
     if (info->version == 3 || info->numDrivers == 0) {
 	/* Driver too old: use the old-style driverName field */
