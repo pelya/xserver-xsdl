@@ -257,6 +257,7 @@ extern _X_EXPORT Bool DRI2CanFlip(DrawablePtr pDraw);
 
 extern _X_EXPORT Bool DRI2CanExchange(DrawablePtr pDraw);
 
+/* Note: use *only* for MSC related waits */
 extern _X_EXPORT void DRI2BlockClient(ClientPtr client, DrawablePtr pDraw);
 
 extern _X_EXPORT void DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw,
