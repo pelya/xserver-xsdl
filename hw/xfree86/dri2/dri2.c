@@ -654,15 +654,16 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 	*swap_target = target_msc;
     }
 
+    pPriv->swapsPending++;
     ret = (*ds->ScheduleSwap)(client, pDraw, pDestBuffer, pSrcBuffer,
 			      swap_target, divisor, remainder, func, data);
     if (!ret) {
+	pPriv->swapsPending--; /* didn't schedule */
         xf86DrvMsg(pScreen->myNum, X_ERROR,
 		   "[DRI2] %s: driver failed to schedule swap\n", __func__);
 	return BadDrawable;
     }
 
-    pPriv->swapsPending++;
     pPriv->last_swap_target = *swap_target;
 
     /* According to spec, return expected swapbuffers count SBC after this swap
