@@ -1503,7 +1503,7 @@ configInputDevices(XF86ConfLayoutPtr layout, serverLayoutPtr servlayoutp)
 	irp = (XF86ConfInputrefPtr)irp->list.next;
     }
     DebugF("Found %d input devices in the layout section %s\n",
-	    count, layout.lay_identifier);
+	    count, layout->lay_identifier);
     indp = xnfcalloc((count + 1), sizeof(IDevPtr));
     indp[count] = NULL;
     irp = layout->lay_input_lst;
