@@ -184,12 +184,6 @@ static void DarwinChangeKeyboardControl(DeviceIntPtr device, KeybdCtrl *ctrl) {
     // keyclick, bell volume / pitch, autorepead, LED's
 }
 
-static void DarwinKeyboardBell(int volume, DeviceIntPtr pDev, pointer arg, int something) {
-    KeybdCtrl *ctrl = arg;
-
-    DDXRingBell(volume, ctrl->bell_pitch, ctrl->bell_duration);
-}
-
 //-----------------------------------------------------------------------------
 // Utility functions to help parse Darwin keymap
 //-----------------------------------------------------------------------------
@@ -301,7 +295,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     // for a kIOHIDParamConnectType connection.
     assert(darwinParamConnect = NXOpenEventStatus());
 
-    InitKeyboardDeviceStruct(pDev, NULL, DarwinKeyboardBell, DarwinChangeKeyboardControl);
+    InitKeyboardDeviceStruct(pDev, NULL, NULL, DarwinChangeKeyboardControl);
 
     DarwinKeyboardReloadHandler();
 
