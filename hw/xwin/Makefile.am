@@ -180,12 +180,12 @@ filemandir = $(FILE_MAN_DIR)
 fileman_DATA = XWinrc.$(FILE_MAN_SUFFIX)
 
 XWin.$(APP_MAN_SUFFIX): XWin.man
-	-rm -f XWin.$(APP_MAN_SUFFIX)
-	$(LN_S) XWin.man XWin.$(APP_MAN_SUFFIX)
+	-$(AM_V_at)rm -f XWin.$(APP_MAN_SUFFIX)
+	$(AM_V_at)$(LN_S) XWin.man XWin.$(APP_MAN_SUFFIX)
 
 XWinrc.$(FILE_MAN_SUFFIX): XWinrc.man
-	-rm -f XWinrc.$(FILE_MAN_SUFFIX)
-	$(LN_S) XWinrc.man XWinrc.$(FILE_MAN_SUFFIX)
+	-$(AM_V_at)rm -f XWinrc.$(FILE_MAN_SUFFIX)
+	$(AM_V_at)$(LN_S) XWinrc.man XWinrc.$(FILE_MAN_SUFFIX)
 
 EXTRAMANDEFS = -D__logdir__=$(logdir) -D__sysconfdir__=$(sysconfdir) -D__datadir__=$(datadir)
 

@@ -89,8 +89,8 @@ appmandir = $(APP_MAN_DIR)
 appman_DATA = Xephyr.$(APP_MAN_SUFFIX)
 
 Xephyr.$(APP_MAN_SUFFIX): Xephyr.man
-	-rm -f Xephyr.$(APP_MAN_SUFFIX)
-	$(LN_S) Xephyr.man Xephyr.$(APP_MAN_SUFFIX)
+	-$(AM_V_at)rm -f Xephyr.$(APP_MAN_SUFFIX)
+	$(AM_V_at)$(LN_S) Xephyr.man Xephyr.$(APP_MAN_SUFFIX)
 
 include $(top_srcdir)/cpprules.in
 
