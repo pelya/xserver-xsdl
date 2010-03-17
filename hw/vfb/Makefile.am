@@ -49,4 +49,4 @@ SUFFIXES += .$(APP_MAN_SUFFIX) .man
 EXTRA_DIST = Xvfb.man.pre
 
 relink:
-	rm -f Xvfb$(EXEEXT) && $(MAKE) Xvfb$(EXEEXT)
+	$(AM_V_at)rm -f Xvfb$(EXEEXT) && $(MAKE) Xvfb$(EXEEXT)

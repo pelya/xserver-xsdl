@@ -114,4 +114,4 @@ SUFFIXES = .$(APP_MAN_SUFFIX) .man
 EXTRA_DIST = $(appman_PRE)
 
 relink:
-	rm -f Xdmx$(EXEEXT) && $(MAKE) Xdmx$(EXEEXT)
+	$(AM_V_at)rm -f Xdmx$(EXEEXT) && $(MAKE) Xdmx$(EXEEXT)

@@ -222,4 +222,4 @@ EXTRA_DIST = \
 	xlaunch/window/wizard.h
 
 relink:
-	rm -f XWin$(EXEEXT) && $(MAKE) XWin$(EXEEXT)
+	$(AM_V_at)rm -f XWin$(EXEEXT) && $(MAKE) XWin$(EXEEXT)

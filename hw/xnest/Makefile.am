@@ -89,4 +89,4 @@ SUFFIXES += .$(APP_MAN_SUFFIX) .man
 	$(LN_S) $< $@
 
 relink:
-	rm -f Xnest$(EXEEXT) && $(MAKE) Xnest$(EXEEXT)
+	$(AM_V_at)rm -f Xnest$(EXEEXT) && $(MAKE) Xnest$(EXEEXT)
