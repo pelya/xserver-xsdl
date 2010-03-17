@@ -109,7 +109,7 @@ MAN_SUBSTS = \
 SUFFIXES = .$(APP_MAN_SUFFIX) .man
 
 .man.$(APP_MAN_SUFFIX):
-	sed $(MAN_SUBSTS) < $< > $@
+	$(SED) $(MAN_SUBSTS) < $< > $@
 
 EXTRA_DIST = $(appman_PRE)
 
