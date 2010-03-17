@@ -81,7 +81,7 @@ Xephyr_DEPENDENCIES =	\
 Xephyr_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 relink:
-	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
+	rm -f $(bin_PROGRAMS) && $(MAKE) $(bin_PROGRAMS)
 
 MAN_SRCS = Xephyr.man.pre
 
