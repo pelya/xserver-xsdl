@@ -143,7 +143,7 @@ CheckForShmSyscall(void)
 #endif
 
 void
-XFree86BigfontExtensionInit()
+XFree86BigfontExtensionInit(void)
 {
     if (AddExtension(XF86BIGFONTNAME,
 		     XF86BigfontNumberEvents,
@@ -302,7 +302,7 @@ XF86BigfontFreeFontShm(
 
 /* Called upon fatal signal. */
 void
-XF86BigfontCleanup()
+XF86BigfontCleanup(void)
 {
 #ifdef HAS_SHM
     while (ShmList)
