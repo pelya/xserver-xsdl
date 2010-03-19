@@ -194,6 +194,9 @@ xwinconfig_DATA = system.XWinrc
 
 include $(top_srcdir)/cpprules.in
 
+install-exec-hook:
+	(cd $(DESTDIR)$(bindir) && rm -f X && $(LN_S) XWin$(EXEEXT) X)
+
 EXTRA_DIST = \
 	$(GLX_EXTRAS) \
 	$(MAN_SRCS) \
