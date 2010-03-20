@@ -166,6 +166,11 @@ void QuartzInitOutput(
         FatalError("Could not register block and wakeup handlers.");
     }
 
+#if defined(RANDR) && !defined(FAKE_RANDR)
+    if(!QuartzRandRInit(pScreen))
+        FatalError("Failed to init RandR extension.\n");
+#endif
+
     // Do display mode specific initialization
     quartzProcs->DisplayInit();
 }
@@ -259,16 +264,11 @@ void QuartzUpdateScreens(void) {
     pScreen->width = width;
     pScreen->height = height;
     
-#ifndef FAKE_RANDR
-    if(!QuartzRandRInit(pScreen))
-        FatalError("Failed to init RandR extension.\n");
-#endif
-    
     DarwinAdjustScreenOrigins(&screenInfo);
     quartzProcs->UpdateScreen(pScreen);
     
-    sx = dixScreenOrigins[pScreen->myNum].x + darwinMainScreenX;
-    sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
+    sx = x + darwinMainScreenX;
+    sy = y + darwinMainScreenY;
     
     /* Adjust the root window. */
     pRoot = WindowTable[pScreen->myNum];
