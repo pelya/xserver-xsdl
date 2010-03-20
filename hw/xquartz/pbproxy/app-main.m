@@ -84,16 +84,10 @@ int main (int argc, const char *argv[]) {
     
     app_prefs_domain_cfstr = CFStringCreateWithCString(NULL, app_prefs_domain, kCFStringEncodingUTF8);
     
-    if(!xpbproxy_init())
-        return EXIT_FAILURE;
-    
     signal (SIGINT, signal_handler);
     signal (SIGTERM, signal_handler);
     signal (SIGHUP, signal_handler);
     signal (SIGPIPE, SIG_IGN);
 
-    [NSApplication sharedApplication];
-    [NSApp run];
-    
-    return EXIT_SUCCESS;
+    return xpbproxy_run();
 }
