@@ -74,6 +74,7 @@
 #include "protocol-versions.h"
 
 #include <X11/extensions/xf86bigfproto.h>
+#include "xf86bigfontsrv.h"
 
 static void XF86BigfontResetProc(
     ExtensionEntry *	/* extEntry */
