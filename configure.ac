@@ -673,6 +673,7 @@ AC_ARG_ENABLE(install-setuid,
 AC_MSG_CHECKING([to see if we can install the Xorg server as root])
 if test "x$SETUID" = "xauto" ; then
 	case $host_os in
+	    cygwin*)		SETUID="no"  ;;
 	    darwin*)		SETUID="no"  ;;
 	    *)
 	   	case $host_cpu in
