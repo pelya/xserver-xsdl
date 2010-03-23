@@ -77,7 +77,7 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_SYS_LARGEFILE
 XORG_PROG_RAWCPP
-AC_PATH_PROG(SED,sed)
+AC_PROG_SED
 
 # Quoted so that make will expand $(CWARNFLAGS) in makefiles to allow
 # easier overrides at build time.
@@ -1167,8 +1167,8 @@ fi
 dnl XKM_OUTPUT_DIR (used in code) must end in / or file names get hosed
 dnl XKB_COMPILED_DIR (used in Makefiles) must not or install-sh gets confused
 
-XKBOUTPUT=`echo $XKBOUTPUT/ | sed 's|/*$|/|'`
-XKB_COMPILED_DIR=`echo $XKBOUTPUT | sed 's|/*$||'`
+XKBOUTPUT=`echo $XKBOUTPUT/ | $SED 's|/*$|/|'`
+XKB_COMPILED_DIR=`echo $XKBOUTPUT | $SED 's|/*$||'`
 AC_DEFINE_DIR(XKM_OUTPUT_DIR, XKBOUTPUT, [Path to XKB output dir])
 AC_SUBST(XKB_COMPILED_DIR)
 
@@ -1646,11 +1646,11 @@ if test "x$XORG" = xyes; then
 		AC_CHECK_HEADERS([sys/vt.h], [solaris_vt=yes], [solaris_vt=no])
 		# Check for minimum supported release
 		AC_MSG_CHECKING([Solaris version])
-	        OS_MINOR=`echo ${host_os}|sed -e 's/^.*solaris2\.//' -e s'/\..*$//'`
+	        OS_MINOR=`echo ${host_os}|$SED -e 's/^.*solaris2\.//' -e s'/\..*$//'`
 		if test "${OS_MINOR}" -ge 7 ; then
 	        	AC_MSG_RESULT(Solaris ${OS_MINOR})
 		else
-			AC_MSG_RESULT(Solaris `echo ${host_os}|sed -e 's/^.*solaris//`)
+			AC_MSG_RESULT(Solaris `echo ${host_os}|$SED -e 's/^.*solaris//`)
 		fi
 		if test "${OS_MINOR}" -lt 8 ; then
 			AC_MSG_ERROR([This release no longer supports Solaris versions older than Solaris 8.])
