@@ -831,6 +831,14 @@ DRI2DestroyDrawable(DrawablePtr pDraw)
 }
 
 Bool
+DRI2HasSwapControl(ScreenPtr pScreen)
+{
+    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
+
+    return (ds->ScheduleSwap && ds->GetMSC);
+}
+
+Bool
 DRI2Connect(ScreenPtr pScreen, unsigned int driverType, int *fd,
 	    const char **driverName, const char **deviceName)
 {

@@ -188,6 +188,8 @@ extern _X_EXPORT Bool DRI2ScreenInit(ScreenPtr	pScreen,
 
 extern _X_EXPORT void DRI2CloseScreen(ScreenPtr pScreen);
 
+extern _X_EXPORT Bool DRI2HasSwapControl(ScreenPtr pScreen);
+
 extern _X_EXPORT Bool DRI2Connect(ScreenPtr pScreen,
 		 unsigned int driverType,
 		 int *fd,
