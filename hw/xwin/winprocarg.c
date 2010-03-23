@@ -30,10 +30,7 @@ from The Open Group.
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
 #endif
-#ifdef XVENDORNAME
-#define VENDOR_STRING XVENDORNAME
-#define VENDOR_CONTACT BUILDERADDR
-#endif
+
 #include <../xfree86/common/xorgVersion.h>
 #include "win.h"
 #include "winconfig.h"
@@ -1248,10 +1245,10 @@ winLogVersionInfo (void)
   s_fBeenHere = TRUE;
 
   ErrorF ("Welcome to the XWin X Server\n");
-  ErrorF ("Vendor: %s\n", VENDOR_STRING);
+  ErrorF ("Vendor: %s\n", XVENDORNAME);
   ErrorF ("Release: %d.%d.%d.%d (%d)\n", XORG_VERSION_MAJOR, XORG_VERSION_MINOR, XORG_VERSION_PATCH, XORG_VERSION_SNAP, XORG_VERSION_CURRENT);
   ErrorF ("%s\n\n", BUILDERSTRING);
-  ErrorF ("Contact: %s\n", VENDOR_CONTACT);
+  ErrorF ("Contact: %s\n", BUILDERADDR);
 }
 
 /*
