@@ -79,6 +79,7 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
     case DEVICE_INIT:
       /* Get number of mouse buttons */
       lngMouseButtons = GetSystemMetrics(SM_CMOUSEBUTTONS);
+      winMsg(X_PROBED, "%d mouse buttons found\n", lngMouseButtons);
 
       /* Mapping of windows events to X events:
        * LEFT:1 MIDDLE:2 RIGHT:3
@@ -89,7 +90,6 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
        */
       if (lngMouseButtons < 3)
         lngMouseButtons = 3;
-      winMsg(X_PROBED, "%d mouse buttons found\n", lngMouseButtons);
 
       /* allocate memory: 
        * number of buttons + 2x mouse wheel event + 1 extra (offset for map) 
