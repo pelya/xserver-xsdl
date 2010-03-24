@@ -724,8 +724,16 @@ XORG_CHECK_LINUXDOC
 dnl Handle installing libxf86config
 AM_CONDITIONAL(INSTALL_LIBXF86CONFIG, [test "x$INSTALL_LIBXF86CONFIG" = xyes])
 
-dnl XQuartz DDX Detection... Yes, it's ugly to have it here... but we need to handle this early on
+dnl DDX Detection... Yes, it's ugly to have it here... but we need to
+dnl handle this early on so that we don't require unsupported extensions
 case $host_os in
+	cygwin*)
+		DGA=no
+		DRI2=no
+		XF86VIDMODE=no
+		XSELINUX=no
+		XV=no
+		;;
 	darwin*)
 		DRI2=no
 
@@ -1875,10 +1883,6 @@ if test "x$XWIN" = xyes; then
 
 	AC_DEFINE(DDXOSVERRORF, 1, [Use OsVendorVErrorF])
 	AC_DEFINE(DDXBEFORERESET, 1, [Use ddxBeforeReset ])
-	if test "x$XF86VIDMODE" = xyes; then
-		AC_MSG_NOTICE([Disabling XF86VidMode extension])
-		XF86VIDMODE=no
-	fi
 fi
 AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
