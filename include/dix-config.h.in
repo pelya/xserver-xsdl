@@ -408,9 +408,6 @@
 /* Support HAL for hotplug */
 #undef CONFIG_HAL
 
-/* Use only built-in fonts */
-#undef BUILTIN_FONTS
-
 /* Have a monotonic clock from clock_gettime() */
 #undef MONOTONIC_CLOCK
 
