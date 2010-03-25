@@ -36,14 +36,12 @@
 #endif
 #include "win.h"
 
-#if defined(XFree86Server)
 #include "inputstr.h"
 #include "exevents.h" /* for button/axes labels */
 #include "xserver-properties.h"
 
 /* Peek the internal button mapping */
 static CARD8 const *g_winMouseButtonMap = NULL;
-#endif
 
 
 /*
@@ -123,9 +121,7 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       free(map);
       free(btn_labels);
 
-#if defined(XFree86Server)
       g_winMouseButtonMap = pDeviceInt->button->map;
-#endif
       break;
 
     case DEVICE_ON:
@@ -133,9 +129,8 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       break;
 
     case DEVICE_CLOSE:
-#if defined(XFree86Server)
       g_winMouseButtonMap = NULL;
-#endif
+
     case DEVICE_OFF:
       pDevice->on = FALSE;
       break;
@@ -241,10 +236,8 @@ winMouseButtonsSendEvent (int iEventType, int iButton)
   EventListPtr events;
   int i, nevents;
 
-#if defined(XFree86Server)
   if (g_winMouseButtonMap)
     iButton = g_winMouseButtonMap[iButton];
-#endif
 
   GetEventList(&events);
   nevents = GetPointerEvents(events, g_pwinPointer, iEventType, iButton,

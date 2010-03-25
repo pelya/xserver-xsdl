@@ -828,7 +828,6 @@ winInitVisualsShadowDD (ScreenPtr pScreen)
     case 24:
     case 16:
     case 15:
-#if defined(XFree86Server)
       /* Create the real visual */
       if (!miSetVisualTypesAndMasks (pScreenInfo->dwDepth,
 				     TrueColorMask,
@@ -861,42 +860,9 @@ winInitVisualsShadowDD (ScreenPtr pScreen)
 	  return FALSE;
 	}
 #endif
-#else /* XFree86Server */
-      /* Create the real visual */
-      if (!fbSetVisualTypesAndMasks (pScreenInfo->dwDepth,
-				     TrueColorMask,
-				     pScreenPriv->dwBitsPerRGB,
-				     pScreenPriv->dwRedMask,
-				     pScreenPriv->dwGreenMask,
-				     pScreenPriv->dwBlueMask))
-	{
-	  ErrorF ("winInitVisualsShadowDD - fbSetVisualTypesAndMasks "
-		  "failed for TrueColor\n");
-	  return FALSE;
-	}
-
-#ifdef XWIN_EMULATEPSEUDO
-      if (!pScreenInfo->fEmulatePseudo)
-	break;
-
-      /* Setup a pseudocolor visual */
-      if (!fbSetVisualTypesAndMasks (8,
-				     PseudoColorMask,
-				     8,
-				     0,
-				     0,
-				     0))
-	{
-	  ErrorF ("winInitVisualsShadowDD - fbSetVisualTypesAndMasks "
-		  "failed for PseudoColor\n");
-	  return FALSE;
-	}
-#endif
-#endif /* XFree86Server */
       break;
 
     case 8:
-#if defined(XFree86Server)
       if (!miSetVisualTypesAndMasks (pScreenInfo->dwDepth,
 				     pScreenInfo->fFullScreen 
 				     ? PseudoColorMask : StaticColorMask,
@@ -911,20 +877,6 @@ winInitVisualsShadowDD (ScreenPtr pScreen)
 		  "failed\n");
 	  return FALSE;
 	}
-#else /* XFree86Server */
-      if (!fbSetVisualTypesAndMasks (pScreenInfo->dwDepth,
-				     pScreenInfo->fFullScreen 
-				     ? PseudoColorMask : StaticColorMask,
-				     pScreenPriv->dwBitsPerRGB,
-				     pScreenPriv->dwRedMask,
-				     pScreenPriv->dwGreenMask,
-				     pScreenPriv->dwBlueMask))
-	{
-	  ErrorF ("winInitVisualsShadowDD - fbSetVisualTypesAndMasks "
-		  "failed\n");
-	  return FALSE;
-	}
-#endif /* XFree86Server */
       break;
 
     default:

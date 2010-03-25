@@ -162,7 +162,6 @@ AM_YFLAGS = -d
 AM_LFLAGS = -i
 AM_CFLAGS = -DHAVE_XWIN_CONFIG_H $(DIX_CFLAGS) \
             $(XWINMODULES_CFLAGS) \
-            -DXFree86Server \
             -I$(top_srcdir)
 
 MAN_SRCS = XWin.man.pre XWinrc.man.pre
