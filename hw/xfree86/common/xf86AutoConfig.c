@@ -522,31 +522,6 @@ listPossibleVideoDrivers(char *matches[], int nmatches)
     }
 }
 
-static char*
-chooseVideoDriver(void)
-{
-    char *chosen_driver = NULL;
-    int i;
-    char *matches[20]; /* If we have more than 20 drivers we're in trouble */
-
-    listPossibleVideoDrivers(matches, 20);
-
-    /* TODO Handle multiple drivers claiming to support the same PCI ID */
-    chosen_driver = matches[0];
-
-    xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n",
-	    chosen_driver);
-
-    for (i = 0; matches[i] ; i++) {
-        if (matches[i] != chosen_driver) {
-            xfree(matches[i]);
-        }
-    }
-
-    return chosen_driver;
-}
-
-
 /* copy a screen section and enter the desired driver
  * and insert it at i in the list of screens */
 static Bool
