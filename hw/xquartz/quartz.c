@@ -268,8 +268,11 @@ void QuartzUpdateScreens(void) {
     DarwinAdjustScreenOrigins(&screenInfo);
     quartzProcs->UpdateScreen(pScreen);
     
-    sx = x + darwinMainScreenX;
-    sy = y + darwinMainScreenY;
+    /* DarwinAdjustScreenOrigins or UpdateScreen may change dixScreenOrigins,
+     * so use it rather than x/y
+     */
+    sx = dixScreenOrigins[pScreen->myNum].x + darwinMainScreenX;
+    sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
     
     /* Adjust the root window. */
     pRoot = WindowTable[pScreen->myNum];
