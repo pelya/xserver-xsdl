@@ -735,7 +735,10 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
                     if (err != noErr) continue;
                 }
 
-                if (len > 0 && s[0] != 0x0010) {
+                /* Not sure why 0x0010 is there.
+                 * 0x0000 - <rdar://problem/7793566> 'Unicode Hex Input' ...
+                 */
+                if (len > 0 && s[0] != 0x0010 && s[0] != 0x0000) {
                     k[j] = ucs2keysym (s[0]);
                     if (dead_key_state != 0) k[j] = make_dead_key (k[j]);
                 }
