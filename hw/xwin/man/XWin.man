@@ -376,12 +376,9 @@ X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1), XWinrc(__filemansuffix__), s
 
 .SH BUGS
 .I XWin
-and this man page still have many limitations.  Some of the more obvious
-ones are:
-.br
-- The display mode can not be changed once the X server has started.
-.br
-- The \fIXWin\fP software is continuously developing; it is therefore possible that
+and this man page still have many limitations.
+
+The \fIXWin\fP software is continuously developing; it is therefore possible that
 this man page is not up to date.  It is always prudent to
 look also at the output of \fIXWin -help\fP in order to
 check the options that are operative.

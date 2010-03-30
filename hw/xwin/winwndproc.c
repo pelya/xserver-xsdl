@@ -40,6 +40,7 @@
 #include "winprefs.h"
 #include "winconfig.h"
 #include "winmsg.h"
+#include "winmonitors.h"
 #include "inputstr.h"
 
 /*
@@ -177,12 +178,9 @@ winWindowProc (HWND hwnd, UINT message,
 	  break;
 	}
 
-      ErrorF ("winWindowProc - WM_DISPLAYCHANGE - new bpp: %d\n",
-	      wParam);
-
       ErrorF ("winWindowProc - WM_DISPLAYCHANGE - new width: %d "
-	      "new height: %d\n",
-	      LOWORD (lParam), HIWORD (lParam));
+	      "new height: %d new bpp: %d\n",
+	      LOWORD (lParam), HIWORD (lParam), wParam);
 
       /*
        * TrueColor --> TrueColor depth changes are disruptive for:
@@ -254,41 +252,105 @@ winWindowProc (HWND hwnd, UINT message,
        * the display dimensions change.
        */
 	{
-	  /*
-	   * NOTE: The non-DirectDraw engines set the ReleasePrimarySurface
-	   * and CreatePrimarySurface function pointers to point
-	   * to the no operation function, NoopDDA.  This allows us
-	   * to blindly call these functions, even if they are not
-	   * relevant to the current engine (e.g., Shadow GDI).
-	   */
-
-#if CYGDEBUG
-	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Dimensions changed\n");
-#endif
-
-	  /* Release the old primary surface */
-	  (*s_pScreenPriv->pwinReleasePrimarySurface) (s_pScreen);
-
-#if CYGDEBUG
-	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Released "
-		  "primary surface\n");
-#endif
-
-	  /* Create the new primary surface */
-	  (*s_pScreenPriv->pwinCreatePrimarySurface) (s_pScreen);
 
 #if CYGDEBUG
 	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Recreated "
 		  "primary surface\n");
 #endif
 
-#if 0
-	  /* Multi-Window mode uses RandR for resizes */
-	  if (s_pScreenInfo->fMultiWindow)
-	    {
-	      RRSetScreenConfig ();
-	    }
+	  /*
+             In rootless modes which are monitor or virtual desktop size
+             use RandR to resize the X screen
+          */
+          if ((!s_pScreenInfo->fUserGaveHeightAndWidth) &&
+              (s_pScreenInfo->iResizeMode == resizeWithRandr) &&
+              (FALSE
+#ifdef XWIN_MULTIWINDOWEXTWM
+               || s_pScreenInfo->fMWExtWM
 #endif
+               || s_pScreenInfo->fRootless
+#ifdef XWIN_MULTIWINDOW
+               || s_pScreenInfo->fMultiWindow
+#endif
+               ))
+	    {
+              DWORD dwWidth, dwHeight;
+
+              if (s_pScreenInfo->fMultipleMonitors)
+                {
+                  /* resize to new virtual desktop size */
+                  dwWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+                  dwHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+                }
+              else
+                {
+                  /* resize to new size of specified monitor */
+                  struct GetMonitorInfoData data;
+                  if (QueryMonitor(s_pScreenInfo->iMonitor, &data))
+                    {
+                      if (data.bMonitorSpecifiedExists == TRUE)
+                        {
+                          dwWidth = data.monitorWidth;
+                          dwHeight = data.monitorHeight;
+                          /*
+                             XXX: monitor may have changed position,
+                             so we might need to update xinerama data
+                          */
+                        }
+                      else
+                        {
+                          ErrorF ("Monitor number %d no longer exists!\n", s_pScreenInfo->iMonitor);
+                        }
+                    }
+                }
+
+              /*
+                XXX: probably a small bug here: we don't compute the work area
+                and allow for task bar
+
+                XXX: generally, we don't allow for the task bar being moved after
+                the server is started
+               */
+
+              /* Set screen size to match new size, if it is different to current */
+              if ((s_pScreenInfo->dwWidth != dwWidth) ||
+                  (s_pScreenInfo->dwHeight != dwHeight))
+                {
+                  winDoRandRScreenSetSize(s_pScreen,
+                                          dwWidth,
+                                          dwHeight,
+                                          (dwWidth * 25.4) / monitorResolution,
+                                          (dwHeight * 25.4) / monitorResolution);
+                }
+	    }
+          else
+            {
+              /*
+                If we get here, we are either windowed and using the GDI engine
+                or windowed and non-fullscreen using any engine
+              */
+
+              /*
+               * For ddraw engines, we need to (try to) recreate the same-sized primary surface
+               * when display dimensions change (but not depth, that is disruptive)
+               */
+
+              /*
+               * NOTE: The non-DirectDraw engines set the ReleasePrimarySurface
+               * and CreatePrimarySurface function pointers to point
+               * to the no operation function, NoopDDA.  This allows us
+               * to blindly call these functions, even if they are not
+               * relevant to the current engine (e.g., Shadow GDI).
+               */
+
+              winDebug ("winWindowProc - WM_DISPLAYCHANGE - Releasing and recreating primary surface\n");
+
+              /* Release the old primary surface */
+              (*s_pScreenPriv->pwinReleasePrimarySurface) (s_pScreen);
+
+              /* Create the new primary surface */
+              (*s_pScreenPriv->pwinCreatePrimarySurface) (s_pScreen);
+            }
 	}
 
       break;
