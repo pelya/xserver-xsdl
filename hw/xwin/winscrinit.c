@@ -69,10 +69,6 @@ winMWExtWMProcs = {
  * Prototypes
  */
 
-Bool
-winRandRInit (ScreenPtr pScreen);
-
-
 /*
  * Local functions
  */
