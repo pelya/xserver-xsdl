@@ -103,7 +103,7 @@ Examples:
 
 .SH OPTIONS CONTROLLING THE APPEARANCE OF THE X SCREEN WINDOWS
 These parameters only apply to windowed mode screens i.e. not
-in \fB-multwindow\fP or \fB-rootless\fP mode
+in \fB-multiwindow\fP or \fB-rootless\fP mode.
 .TP 8
 .B "\-fullscreen"
 The X server window takes the full screen, covering completely the
@@ -115,10 +115,52 @@ etc.
 This parameter is ignored when the \fB\-fullscreen\fP parameter is specified.
 .TP 8
 .B \-scrollbars
-In windowed mode, allow screens bigger than the \fIWindows\fP desktop.
-Moreover, if the window has decorations, one can now resize it.
-This parameter is ignored when the \fB\-fullscreen\fP parameter is specified.
+Alternative name for \fB\-resize=scrollbars\fP.
 
+.SH OPTIONS CONTROLLING RESIZE BEHAVIOUR
+.TP 8
+.B \-resize[=none|scrollbars|randr]
+Select the resize mode of an X screen.
+
+.RS
+.IP \fB\-resize=none\fP 8
+(default). The screen is not resizable.
+
+In windowed mode, if the window has decorations, a fixed frame is used.
+
+.IP \fB\-resize=scrollbars\fP 8
+The screen window is resizeable, but the screen is not resizable.
+
+In windowed mode, if the window has decorations, a resizing frame is used.
+Scrollbars are drawn when needed to allow the entire X screen
+to viewed by adjusting them.
+
+This also permits screens bigger than the \fIWindows\fP virtual desktop to be used.
+
+This parameter is ignored in \fB-multiwindow\fP or \fB-rootless\fP mode.
+Alternative name is \fB\-scrollbars\fP.
+
+.IP \fB\-resize=randr\fP 8
+The screen is resizable and the screen window is resizeable.
+
+In windowed mode, if the window has decorations, a resizing frame is used.
+
+Resizing the  \fIWindows\fP window will use the RANDR extension to change
+the size of the X screen.  Likewise, changing the size of
+the X screen using the RANDR extension will cause the size
+of the \fIWindows\fP window containing the X screen to be changed.
+
+In \fB-multiwindow\fP or \fB-rootless\fP mode, if the X screen is
+of the same dimensions as a Windows monitor or the virtual desktop,
+the X server will respond to the WM_DISPLAYCHANGED sent when those
+dimensions change by resizing the X screen.  Changing the size
+of the X screen using the RANDR extension is not permitted.
+
+The maximum dimensions of the screen are the dimensions of the \fIWindows\fP virtual desktop.
+
+.IP \fB\--resize\fP 8
+on its own is equivalent to \fB\--resize=randr\fP
+.RE
 
 .SH OPTIONS CONTROLLING WINDOWS INTEGRATION
 .TP 8

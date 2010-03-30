@@ -379,6 +379,15 @@ typedef struct {
 } winCursorRec;
 
 /*
+ * Resize modes
+ */
+typedef enum {
+  notAllowed,
+  resizeWithScrollbars,
+  resizeWithRandr
+} winResizeMode;
+
+/*
  * Screen information structure that we need before privates are available
  * in the server startup sequence.
  */
@@ -439,7 +448,7 @@ typedef struct
 #endif
   Bool                  fMultipleMonitors;
   Bool			fLessPointer;
-  Bool			fScrollbars;
+  winResizeMode		iResizeMode;
   Bool			fNoTrayIcon;
   int			iE3BTimeout;
   /* Windows (Alt+F4) and Unix (Ctrl+Alt+Backspace) Killkey */

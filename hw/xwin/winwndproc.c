@@ -304,7 +304,7 @@ winWindowProc (HWND hwnd, UINT message,
 #endif
 
 	/* Break if we do not use scrollbars */
-	if (!s_pScreenInfo->fScrollbars
+	if ((s_pScreenInfo->iResizeMode == notAllowed)
 	    || !s_pScreenInfo->fDecoration
 #ifdef XWIN_MULTIWINDOWEXTWM
 	    || s_pScreenInfo->fMWExtWM
@@ -579,7 +579,7 @@ winWindowProc (HWND hwnd, UINT message,
 
 	/* Can't do anything without screen info */
 	if (s_pScreenInfo == NULL
-	    || !s_pScreenInfo->fScrollbars
+	    || (s_pScreenInfo->iResizeMode != resizeWithScrollbars)
 	    || s_pScreenInfo->fFullScreen
 	    || !s_pScreenInfo->fDecoration
 #ifdef XWIN_MULTIWINDOWEXTWM

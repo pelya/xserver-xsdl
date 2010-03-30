@@ -123,7 +123,7 @@ winInitializeScreenDefaults(void)
 #endif
   defaultScreenInfo.fMultipleMonitors = FALSE;
   defaultScreenInfo.fLessPointer = FALSE;
-  defaultScreenInfo.fScrollbars = FALSE;
+  defaultScreenInfo.iResizeMode = notAllowed;
   defaultScreenInfo.fNoTrayIcon = FALSE;
   defaultScreenInfo.iE3BTimeout = WIN_E3B_OFF;
   defaultScreenInfo.fUseWinKillKey = WIN_DEFAULT_WIN_KILL;
@@ -656,12 +656,51 @@ ddxProcessArgument (int argc, char *argv[], int i)
    */
   if (IS_OPTION ("-scrollbars"))
     {
-      screenInfoPtr->fScrollbars = TRUE;
+
+      screenInfoPtr->iResizeMode = resizeWithScrollbars;
 
       /* Indicate that we have processed this argument */
       return 1;
     }
 
+  /*
+   * Look for the '-resize' argument
+   */
+  if (IS_OPTION ("-resize") || IS_OPTION ("-noresize") ||
+      (strncmp(argv[i], "-resize=",strlen("-resize=")) == 0))
+    {
+      winResizeMode mode;
+
+      if (IS_OPTION ("-resize"))
+        mode = resizeWithRandr;
+      else if (IS_OPTION ("-noresize"))
+        mode = notAllowed;
+      else if (strncmp(argv[i], "-resize=",strlen("-resize=")) == 0)
+        {
+          char *option = argv[i] + strlen("-resize=");
+          if (strcmp(option, "randr") == 0)
+            mode = resizeWithRandr;
+          else if (strcmp(option, "scrollbars") == 0)
+            mode = resizeWithScrollbars;
+          else if (strcmp(option, "none") == 0)
+            mode = notAllowed;
+          else
+            {
+              ErrorF ("ddxProcessArgument - resize - Invalid resize mode %s\n", option);
+              return 0;
+            }
+        }
+      else
+        {
+          ErrorF ("ddxProcessArgument - resize - Invalid resize option %s\n", argv[i]);
+          return 0;
+        }
+
+      screenInfoPtr->iResizeMode = mode;
+
+      /* Indicate that we have processed this argument */
+      return 1;
+    }
 
 #ifdef XWIN_CLIPBOARD
   /*
