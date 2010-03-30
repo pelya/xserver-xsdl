@@ -360,9 +360,6 @@
 /* Support Xv extension */
 #undef XV
 
-/* Build Multibuffer extension */
-#undef MULTIBUFFER
-
 /* Support DRI extension */
 #undef XF86DRI
 

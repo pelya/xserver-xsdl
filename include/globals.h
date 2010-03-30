@@ -69,10 +69,6 @@ extern _X_EXPORT Bool noScreenSaverExtension;
 extern _X_EXPORT Bool noMITShmExtension;
 #endif
 
-#ifdef MULTIBUFFER
-extern _X_EXPORT Bool noMultibufferExtension;
-#endif
-
 #ifdef RANDR
 extern _X_EXPORT Bool noRRExtension;
 #endif
