@@ -190,10 +190,6 @@ winScreenInit (int index,
 	{
 	  pScreenInfo->dwWidth = GetSystemMetrics (SM_CXVIRTUALSCREEN);
 	  pScreenInfo->dwHeight = GetSystemMetrics (SM_CYVIRTUALSCREEN);
-	  pScreenInfo->dwWidth_mm = (pScreenInfo->dwWidth /
-				     WIN_DEFAULT_DPI) * 25.4;
-	  pScreenInfo->dwHeight_mm = (pScreenInfo->dwHeight /
-				      WIN_DEFAULT_DPI) * 25.4;
 	}
     }
   else

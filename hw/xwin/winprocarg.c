@@ -174,8 +174,6 @@ winInitializeScreenDefaults(void)
   defaultScreenInfo.fScrollbars = FALSE;
   defaultScreenInfo.fNoTrayIcon = FALSE;
   defaultScreenInfo.iE3BTimeout = WIN_E3B_OFF;
-  defaultScreenInfo.dwWidth_mm = (dwWidth / WIN_DEFAULT_DPI) * 25.4;
-  defaultScreenInfo.dwHeight_mm = (dwHeight / WIN_DEFAULT_DPI) * 25.4;
   defaultScreenInfo.fUseWinKillKey = WIN_DEFAULT_WIN_KILL;
   defaultScreenInfo.fUseUnixKillKey = WIN_DEFAULT_UNIX_KILL;
   defaultScreenInfo.fIgnoreInput = FALSE;
@@ -498,17 +496,6 @@ ddxProcessArgument (int argc, char *argv[], int i)
 		  (int) g_ScreenInfo[nScreenNum].dwHeight);
 	  iArgsProcessed = 2;
 	  g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth = FALSE;
-	}
-
-      /* Calculate the screen width and height in millimeters */
-      if (g_ScreenInfo[nScreenNum].fUserGaveHeightAndWidth)
-	{
-	  g_ScreenInfo[nScreenNum].dwWidth_mm
-	    = (g_ScreenInfo[nScreenNum].dwWidth
-	       / monitorResolution) * 25.4;
-	  g_ScreenInfo[nScreenNum].dwHeight_mm
-	    = (g_ScreenInfo[nScreenNum].dwHeight
-	       / monitorResolution) * 25.4;
 	}
 
       /* Flag that this screen was explicity specified by the user */

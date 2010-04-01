@@ -86,8 +86,8 @@ winRandRGetInfo (ScreenPtr pScreen, Rotation *pRotations)
   pSize = RRRegisterSize (pScreen,
 			  pScreenInfo->dwWidth,
 			  pScreenInfo->dwHeight,
-			  pScreenInfo->dwWidth_mm,
-			  pScreenInfo->dwHeight_mm);
+                          (pScreenInfo->dwWidth / monitorResolution) * 25.4,
+                          (pScreenInfo->dwHeight / monitorResolution) * 25.4);
 
   /* Tell RandR what the current config is */
   RRSetCurrentConfig (pScreen,
