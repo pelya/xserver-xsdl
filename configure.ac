@@ -1764,6 +1764,7 @@ if test "x$XORG" = xyes; then
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
 	XF86CONFIGDIR="xorg.conf.d"
+	AC_SUBST(XF86CONFIGDIR)
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
 	LOGPREFIX="$logdir/Xorg."
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
