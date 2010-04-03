@@ -107,16 +107,9 @@ directories when the server is started as a normal user:
 .RS 4
 .nf
 .IR /etc/X11/ <cmdline>
-.IR __projectroot__/etc/X11/ <cmdline>
-.I /etc/X11/__xconfigdir__\-4
+.IR __sysconfdir__/X11/ <cmdline>
 .I /etc/X11/__xconfigdir__
-.I /etc/__xconfigdir__
-.IR __projectroot__/etc/X11/__xconfigdir__. <hostname>
-.I __projectroot__/etc/X11/__xconfigdir__\-4
-.I __projectroot__/etc/X11/__xconfigdir__
-.IR __projectroot__/lib/X11/__xconfigdir__. <hostname>
-.I __projectroot__/lib/X11/__xconfigdir__\-4
-.I __projectroot__/lib/X11/__xconfigdir__
+.I __sysconfdir__/X11/__xconfigdir__
 .fi
 .RE
 .PP
@@ -133,16 +126,9 @@ config directory search locations are as follows:
 .nf
 <cmdline>
 .IR /etc/X11/ <cmdline>
-.IR __projectroot__/etc/X11/ <cmdline>
-.I /etc/X11/__xconfigdir__\-4
+.IR __sysconfdir__/X11/ <cmdline>
 .I /etc/X11/__xconfigdir__
-.I /etc/__xconfigdir__
-.IR __projectroot__/etc/X11/__xconfigdir__. <hostname>
-.I __projectroot__/etc/X11/__xconfigdir__\-4
-.I __projectroot__/etc/X11/__xconfigdir__
-.IR __projectroot__/lib/X11/__xconfigdir__. <hostname>
-.I __projectroot__/lib/X11/__xconfigdir__\-4
-.I __projectroot__/lib/X11/__xconfigdir__
+.I __sysconfdir__/X11/__xconfigdir__
 .fi
 .RE
 .PP
