@@ -104,6 +104,9 @@ extern DeviceAssocRec mouse_assoc;
 #define USER_CONFIGDIRPATH	"/etc/X11/%R," "%C/X11/%R," \
 				"/etc/X11/%X," "%C/X11/%X"
 #endif
+#ifndef SYS_CONFIGDIRPATH
+#define SYS_CONFIGDIRPATH	"/usr/share/X11/%X," "%D/X11/%X"
+#endif
 #ifndef PROJECTROOT
 #define PROJECTROOT	"/usr/X11R6"
 #endif
@@ -2421,7 +2424,7 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
 ConfigStatus
 xf86HandleConfigFile(Bool autoconfig)
 {
-    const char *filename, *dirname;
+    const char *filename, *dirname, *sysdirname;
     char *filesearch, *dirsearch;
     MessageType filefrom = X_DEFAULT;
     MessageType dirfrom = X_DEFAULT;
@@ -2444,6 +2447,8 @@ xf86HandleConfigFile(Bool autoconfig)
 	    dirfrom = X_CMDLINE;
 
 	xf86initConfigFiles();
+	sysdirname = xf86openConfigDirFiles(SYS_CONFIGDIRPATH, NULL,
+					    PROJECTROOT);
 	dirname = xf86openConfigDirFiles(dirsearch, xf86ConfigDir, PROJECTROOT);
 	filename = xf86openConfigFile(filesearch, xf86ConfigFile, PROJECTROOT);
 	if (filename) {
@@ -2464,7 +2469,10 @@ xf86HandleConfigFile(Bool autoconfig)
 			"Unable to locate/open config directory: \"%s\"\n",
 			xf86ConfigDir);
 	}
-	if (!filename && !dirname)
+	if (sysdirname)
+	    xf86MsgVerb(X_DEFAULT, 0, "Using system config directory \"%s\"\n",
+			sysdirname);
+	if (!filename && !dirname && !sysdirname)
 	    return CONFIG_NOFILE;
     }
 
