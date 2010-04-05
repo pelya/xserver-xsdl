@@ -63,6 +63,8 @@ extern Window		g_iClipboardWindow;
 
 static jmp_buf			g_jmpEntry;
 static int clipboardRestarts = 0;
+static XIOErrorHandler g_winClipboardOldIOErrorHandler;
+static pthread_t g_winClipboardProcThread;
 
 Bool				g_fUnicodeSupport = FALSE;
 Bool				g_fUseUnicode = FALSE;
@@ -128,6 +130,11 @@ winClipboardProc (void *pvNotUsed)
       ErrorF ("winClipboardProc - Warning: Locale not supported by X.\n");
     }
 
+  /* Set error handler */
+  XSetErrorHandler (winClipboardErrorHandler);
+  g_winClipboardProcThread = pthread_self();
+  g_winClipboardOldIOErrorHandler = XSetIOErrorHandler (winClipboardIOErrorHandler);
+
   /* Set jump point for Error exits */
   iReturn = setjmp (g_jmpEntry);
   
@@ -149,10 +156,6 @@ winClipboardProc (void *pvNotUsed)
 
   /* Use our generated cookie for authentication */
   winSetAuthorization();
-
-  /* Set error handler */
-  XSetErrorHandler (winClipboardErrorHandler);
-  XSetIOErrorHandler (winClipboardIOErrorHandler);
 
   /* Initialize retry count */
   iRetries = 0;
@@ -511,8 +514,14 @@ winClipboardIOErrorHandler (Display *pDisplay)
 {
   ErrorF ("winClipboardIOErrorHandler!\n\n");
 
-  /* Restart at the main entry point */
-  longjmp (g_jmpEntry, WIN_JMP_ERROR_IO);
-  
+  if (pthread_equal(pthread_self(),g_winClipboardProcThread))
+    {
+      /* Restart at the main entry point */
+      longjmp (g_jmpEntry, WIN_JMP_ERROR_IO);
+    }
+
+  if (g_winClipboardOldIOErrorHandler)
+    g_winClipboardOldIOErrorHandler(pDisplay);
+
   return 0;
 }
