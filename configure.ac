@@ -34,10 +34,10 @@ AM_MAINTAINER_MODE
 
 # Require xorg-macros: XORG_DEFAULT_OPTIONS
 m4_ifndef([XORG_MACROS_VERSION],
-          [m4_fatal([must install xorg-macros 1.5 or later before running autoconf/autogen])])
-XORG_MACROS_VERSION(1.5)
+          [m4_fatal([must install xorg-macros 1.6 or later before running autoconf/autogen])])
+XORG_MACROS_VERSION(1.6)
 XORG_DEFAULT_OPTIONS
-XORG_WITH_DOXYGEN
+XORG_WITH_DOXYGEN(1.6.1)
 
 m4_ifndef([XORG_FONT_MACROS_VERSION], [m4_fatal([must install fontutil 1.1 or later before running autoconf/autogen])])
 XORG_FONT_MACROS_VERSION(1.1)
