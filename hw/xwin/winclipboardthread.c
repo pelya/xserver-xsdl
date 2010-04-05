@@ -460,7 +460,7 @@ winClipboardErrorHandler(Display * pDisplay, XErrorEvent * pErr)
 static int
 winClipboardIOErrorHandler(Display * pDisplay)
 {
-    ErrorF("winClipboardIOErrorHandler!\n\n");
+    ErrorF("winClipboardIOErrorHandler!\n");
 
     if (pthread_equal(pthread_self(), g_winClipboardProcThread)) {
         /* Restart at the main entry point */
