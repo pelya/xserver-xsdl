@@ -1802,8 +1802,10 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([driverdir])
 	sdkdir="$includedir/xorg"
 	extdir="$includedir/X11/extensions"
+	sysconfigdir="$datadir/X11/$XF86CONFIGDIR"
 	AC_SUBST([sdkdir])
 	AC_SUBST([extdir])
+	AC_SUBST([sysconfigdir])
 	AC_SUBST([logdir])
 
 	# stuff the ABI versions into the pc file too
