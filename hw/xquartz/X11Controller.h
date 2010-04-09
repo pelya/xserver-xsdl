@@ -55,10 +55,9 @@ typedef unsigned int NSUInteger;
 #endif
 #endif
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
-@interface X11Controller : NSObject <NSTableViewDataSource>
-#else
 @interface X11Controller : NSObject
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
+<NSTableViewDataSource>
 #endif
 {
     IBOutlet NSPanel *prefs_panel;
