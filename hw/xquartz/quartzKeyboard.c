@@ -50,6 +50,7 @@
 
 #include "quartzCommon.h"
 #include "darwin.h"
+#include "darwinEvents.h"
 
 #include "quartzKeyboard.h"
 #include "quartzAudio.h"
@@ -191,6 +192,12 @@ const static struct {
     {UKEYSYM (0x31b), XK_dead_horn},		/* COMBINING HORN */
 };
 
+typedef struct darwinKeyboardInfo_struct {
+    CARD8 modMap[MAP_LENGTH];
+    KeySym keyMap[MAP_LENGTH * GLYPHS_PER_KEY];
+    unsigned char modifierKeycodes[32][2];
+} darwinKeyboardInfo;
+
 darwinKeyboardInfo keyInfo;
 pthread_mutex_t keyInfo_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -255,7 +262,8 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
             case XK_Alt_L:
                 info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
-                *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
+                if(!quartzOptionSendsAlt)
+                    *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
                 break;
 
             case XK_Alt_R:
@@ -264,7 +272,8 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
 #else
                 info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
 #endif
-                *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
+                if(!quartzOptionSendsAlt)
+                    *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 
@@ -647,7 +656,7 @@ static KeySym make_dead_key(KeySym in) {
     return in;
 }
 
-Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
+static Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
 #if !defined(__LP64__) || MAC_OS_X_VERSION_MIN_REQUIRED < 1050
     KeyboardLayoutRef key_layout;
     int is_uchr = 1;
@@ -823,4 +832,19 @@ Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     DarwinBuildModifierMaps(info);
 
     return TRUE;
+}
+
+Bool QuartsResyncKeymap(Bool sendDDXEvent) {
+    Bool retval;
+    /* Update keyInfo */
+    pthread_mutex_lock(&keyInfo_mutex);
+    memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
+    retval = QuartzReadSystemKeymap(&keyInfo);
+    pthread_mutex_unlock(&keyInfo_mutex);
+
+    /* Tell server thread to deal with new keyInfo */
+    if(sendDDXEvent)
+        DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
+
+    return retval;
 }

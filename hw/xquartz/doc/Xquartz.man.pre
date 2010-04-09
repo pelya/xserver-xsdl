@@ -63,6 +63,9 @@ defaults to the depth of the main display.
 .B defaults write org.x.X11 sync_keymap -boolean true
 Keep the X11 keymap up to date with the OSX system keymap.
 .TP 8
+.B defaults write org.x.X11 option_sends_alt -boolean true
+The Option key will send Alt_L and Alt_R instead of Mode_switch.
+.TP 8
 .B defaults write org.x.X11 sync_pasteboard -boolean true
 Enable syncing between the OSX pasteboard and clipboard/primary selection buffers in X11.  This option needs to be true for any of the other pasteboard sync options to have an effect.
 .TP 8

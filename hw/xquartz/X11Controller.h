@@ -69,6 +69,7 @@ typedef unsigned int NSUInteger;
     IBOutlet NSButton *use_sysbeep;
     IBOutlet NSButton *enable_keyequivs;
     IBOutlet NSButton *sync_keymap;
+    IBOutlet NSButton *option_sends_alt;
     IBOutlet NSButton *click_through;
     IBOutlet NSButton *focus_follows_mouse;
     IBOutlet NSButton *focus_on_new_window;
