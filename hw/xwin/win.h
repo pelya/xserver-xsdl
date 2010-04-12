@@ -1451,6 +1451,12 @@ Bool
 winInitCursor (ScreenPtr pScreen);
 
 /*
+ * winprocarg.c
+ */
+void
+winInitializeScreens(int maxscreens);
+
+/*
  * END DDX and DIX Function Prototypes
  */
 
