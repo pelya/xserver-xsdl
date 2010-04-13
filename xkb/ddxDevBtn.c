@@ -51,13 +51,13 @@ XkbDDXFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
     /* If dev is a slave device, and the SD is attached, do nothing. If we'd
      * post through the attached master pointer we'd get duplicate events.
      *
-     * if dev is a master keyboard, post through the master pointer.
+     * if dev is a master keyboard, post through the XTEST device
      *
      * if dev is a floating slave, post through the device itself.
      */
 
     if (IsMaster(dev))
-        ptr = GetMaster(dev, MASTER_POINTER);
+        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
     else if (!dev->u.master)
         ptr = dev;
     else
