@@ -28,91 +28,37 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <stdio.h>
-#include <X11/X.h>
-#include <X11/Xproto.h>
-#include <X11/keysym.h>
 #include "inputstr.h"
-#include "scrnintstr.h"
-#include "windowstr.h"
 #include <xkbsrv.h>
-#include <X11/extensions/XI.h>
-
-#ifdef PANORAMIX
-#include "panoramiX.h"
-#include "panoramiXsrv.h"
-#endif
-
-#include "mipointer.h"
-#include "mipointrst.h"
+#include "mi.h"
 
 void
-XkbDDXFakePointerMotion(unsigned flags,int x,int y)
+XkbDDXFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
 {
-int 		   oldX,oldY;
-ScreenPtr	   pScreen, oldScreen;
+    EventListPtr        events;
+    int                 nevents, i;
+    DeviceIntPtr        ptr;
+    int                 gpe_flags = 0;
 
-    GetSpritePosition(inputInfo.pointer, &oldX, &oldY);
-    pScreen = oldScreen = GetSpriteWindow(inputInfo.pointer)->drawable.pScreen;
-
-#ifdef PANORAMIX
-    if (!noPanoramiXExtension) {
-	BoxRec box;
-	int i;
-
-	if(!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
-							    oldX, oldY, &box)) {
-	    FOR_NSCREENS(i) {
-		if(i == pScreen->myNum)
-		    continue;
-		if(POINT_IN_REGION(pScreen, &XineramaScreenRegions[i],
-				   oldX, oldY, &box)) {
-		    pScreen = screenInfo.screens[i];
-		    break;
-		}
-	    }
-	}
-	oldScreen = pScreen;
-
-	if (flags&XkbSA_MoveAbsoluteX)
-	     oldX=  x;
-	else oldX+= x;
-	if (flags&XkbSA_MoveAbsoluteY)
-	     oldY=  y;
-	else oldY+= y;
-
-	if(!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
-							    oldX, oldY, &box)) {
-	    FOR_NSCREENS(i) {
-		if(i == pScreen->myNum)
-		    continue;
-		if(POINT_IN_REGION(pScreen, &XineramaScreenRegions[i],
-				   oldX, oldY, &box)) {
-		    pScreen = screenInfo.screens[i];
-		    break;
-		}
-	    }
-	}
-	oldX -= panoramiXdataPtr[pScreen->myNum].x;
-	oldY -= panoramiXdataPtr[pScreen->myNum].y;
-    }
+    if (!dev->u.master)
+        ptr = dev;
     else
-#endif
-    {
-	if (flags&XkbSA_MoveAbsoluteX)
-	     oldX=  x;
-	else oldX+= x;
-	if (flags&XkbSA_MoveAbsoluteY)
-	     oldY=  y;
-	else oldY+= y;
+        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
 
-#define GetScreenPrivate(s) ((miPointerScreenPtr)dixLookupPrivate(&(s)->devPrivates, miPointerScreenKey))
-	(*(GetScreenPrivate(oldScreen))->screenFuncs->CursorOffScreen)
-	    (&pScreen, &oldX, &oldY);
-    }
+    if (flags & XkbSA_MoveAbsoluteX || flags & XkbSA_MoveAbsoluteY)
+        gpe_flags = POINTER_ABSOLUTE;
+    else
+        gpe_flags = POINTER_RELATIVE;
 
-    if (pScreen != oldScreen)
-	NewCurrentScreen(inputInfo.pointer, pScreen, oldX, oldY);
-    if (pScreen->SetCursorPosition)
-	(*pScreen->SetCursorPosition)(inputInfo.pointer, pScreen, oldX, oldY, TRUE);
+    events = InitEventList(GetMaximumEventsNum());
+    OsBlockSignals();
+    nevents = GetPointerEvents(events, ptr,
+                               MotionNotify, 0,
+                               gpe_flags, 0, 2, (int[]){x, y});
+    OsReleaseSignals();
+
+    for (i = 0; i < nevents; i++)
+        mieqProcessDeviceEvent(ptr, (InternalEvent*)events[i].event, NULL);
+
+    FreeEventList(events, GetMaximumEventsNum());
 }

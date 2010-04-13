@@ -769,6 +769,7 @@ extern _X_EXPORT void XkbDDXUpdateDeviceIndicators(
 );
 
 extern _X_EXPORT void XkbDDXFakePointerMotion(
+	DeviceIntPtr	/* dev */,
  	unsigned int	/* flags */,
 	int		/* x */,
 	int		/* y */

@@ -479,7 +479,7 @@ int		dx,dy;
 	dx= xkbi->mouseKeysDX;
 	dy= xkbi->mouseKeysDY;
     }
-    XkbDDXFakePointerMotion(xkbi->mouseKeysFlags,dx,dy);
+    XkbDDXFakePointerMotion(xkbi->device, xkbi->mouseKeysFlags,dx,dy);
     return xkbi->desc->ctrls->mk_interval;
 }
 
@@ -507,7 +507,7 @@ Bool	accel;
 	accel= ((pAction->ptr.flags&XkbSA_NoAcceleration)==0);
 	x= XkbPtrActionX(&pAction->ptr);
 	y= XkbPtrActionY(&pAction->ptr);
-	XkbDDXFakePointerMotion(pAction->ptr.flags,x,y);
+	XkbDDXFakePointerMotion(xkbi->device, pAction->ptr.flags,x,y);
 	AccessXCancelRepeatKey(xkbi,keycode);
 	xkbi->mouseKeysAccel= accel&&
 		(xkbi->desc->ctrls->enabled_ctrls&XkbMouseKeysAccelMask);
