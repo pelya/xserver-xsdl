@@ -3976,7 +3976,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 		FreezeThaw(dev, TRUE);
 		if ((dev->deviceGrab.sync.state == FREEZE_BOTH_NEXT_EVENT) &&
 		    (CLIENT_BITS(grab->resource) ==
-		     CLIENT_BITS(dev->deviceGrab.sync.other->resource)))
+		     CLIENT_BITS(dev->deviceGrab.grab->resource)))
 		    dev->deviceGrab.sync.state = FROZEN_NO_EVENT;
 		else
                     dev->deviceGrab.sync.other = grab;
