@@ -1386,6 +1386,9 @@ AC_CHECK_LIB([sha1], [sha1_begin], [HAVE_LIBSHA1=yes])
 if test "x$with_sha1" = x && test "x$HAVE_LIBSHA1" = xyes; then
    with_sha1=libsha1
 fi
+if test "x$with_sha1" = xlibsha1 && test "x$HAVE_LIBSHA1" != xyes; then
+	AC_MSG_ERROR([libsha1 requested but not found])
+fi
 if test "x$with_sha1" = xlibsha1; then
 	AC_DEFINE([HAVE_SHA1_IN_LIBSHA1], [1],
 	          [Use libsha1 for SHA1])
@@ -1394,6 +1397,9 @@ fi
 AC_CHECK_LIB([gcrypt], [gcry_md_open], [HAVE_LIBGCRYPT=yes])
 if test "x$with_sha1" = x && test "x$HAVE_LIBGCRYPT" = xyes; then
 	with_sha1=libgcrypt
+fi
+if test "x$with_sha1" = xlibgcrypt && test "x$HAVE_LIBGCRYPT" != xyes; then
+	AC_MSG_ERROR([libgcrypt requested but not found])
 fi
 if test "x$with_sha1" = xlibgcrypt; then
 	AC_DEFINE([HAVE_SHA1_IN_LIBGCRYPT], [1],
