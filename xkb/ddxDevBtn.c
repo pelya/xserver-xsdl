@@ -64,11 +64,12 @@ XkbDDXFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
         return;
 
     events = InitEventList(GetMaximumEventsNum());
+    OsBlockSignals();
     nevents = GetPointerEvents(events, ptr,
                                press ? ButtonPress : ButtonRelease, button,
                                0 /* flags */, 0 /* first */,
                                0 /* num_val */, NULL);
-
+    OsReleaseSignals();
 
     for (i = 0; i < nevents; i++)
         mieqProcessDeviceEvent(ptr, (InternalEvent*)events[i].event, NULL);
