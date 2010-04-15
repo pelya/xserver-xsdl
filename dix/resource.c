@@ -175,7 +175,6 @@ typedef struct _ClientResource {
     int		hashsize;	/* log(2)(buckets) */
     XID		fakeID;
     XID		endFakeID;
-    XID		expectID;
 } ClientResourceRec;
 
 RESTYPE lastResourceType;
@@ -322,7 +321,6 @@ InitClientResources(ClientPtr client)
     clientTable[i].fakeID = client->clientAsMask |
 			    (client->index ? SERVER_BIT : SERVER_MINID);
     clientTable[i].endFakeID = (clientTable[i].fakeID | RESOURCE_ID_MASK) + 1;
-    clientTable[i].expectID = client->clientAsMask;
     for (j=0; j<INITBUCKETS; j++) 
     {
         clientTable[i].resources[j] = NULL;
@@ -511,8 +509,6 @@ AddResource(XID id, RESTYPE type, pointer value)
     res->value = value;
     *head = res;
     rrec->elements++;
-    if (!(id & SERVER_BIT) && (id >= rrec->expectID))
-	rrec->expectID = id + 1;
     CallResourceStateCallback(ResourceStateAdding, res);
     return TRUE;
 }
@@ -895,9 +891,6 @@ LegalNewID(XID id, ClientPtr client)
 #endif /* PANORAMIX */
 	if (client->clientAsMask == (id & ~RESOURCE_ID_MASK))
 	{
-	    if (clientTable[client->index].expectID <= id)
-		return TRUE;
-
 	    rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
 					  DixGetAttrAccess);
 	    return rc == BadValue;
