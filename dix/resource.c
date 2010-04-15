@@ -167,7 +167,6 @@ typedef struct _Resource {
     RESTYPE		type;
     pointer		value;
 } ResourceRec, *ResourcePtr;
-#define NullResource ((ResourcePtr)NULL)
 
 typedef struct _ClientResource {
     ResourcePtr *resources;
@@ -326,7 +325,7 @@ InitClientResources(ClientPtr client)
     clientTable[i].expectID = client->clientAsMask;
     for (j=0; j<INITBUCKETS; j++) 
     {
-        clientTable[i].resources[j] = NullResource;
+        clientTable[i].resources[j] = NULL;
     }
     return TRUE;
 }
@@ -543,7 +542,7 @@ RebuildTable(int client)
     }
     for (rptr = resources, tptr = tails; --j >= 0; rptr++, tptr++)
     {
-	*rptr = NullResource;
+	*rptr = NULL;
 	*tptr = rptr;
     }
     clientTable[client].hashsize++;
@@ -555,7 +554,7 @@ RebuildTable(int client)
 	for (res = *rptr; res; res = next)
 	{
 	    next = res->next;
-	    res->next = NullResource;
+	    res->next = NULL;
 	    tptr = &tails[Hash(client, res->id)];
 	    **tptr = res;
 	    *tptr = &res->next;
