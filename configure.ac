@@ -1008,12 +1008,14 @@ else
 fi
 AM_CONDITIONAL(GLX, test "x$GLX" = xyes)
 
-if test "x$AIGLX" = xyes -a "x$GLX" = xyes -a \( "x$DRI" = xyes -o "x$DRI2" = xyes \); then
-	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
-else
-	AIGLX=no
+if test "x$GLX" = xno; then
+        AIGLX=no
 fi
-AM_CONDITIONAL(AIGLX, test "x$AIGLX" = xyes)
+
+if test "x$AIGLX" = xyes -a \( "x$DRI" = xyes -o "x$DRI2" = xyes \); then
+	AC_DEFINE(AIGLX, 1, [Build AIGLX loader])
+fi
+AM_CONDITIONAL(AIGLX_DRI_LOADER, { test "x$DRI" = xyes || test "x$DRI2" = xyes; } && test "x$AIGLX" = xyes)
 
 if test "x$GLX_USE_TLS" = xyes ; then
 	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
@@ -1857,7 +1859,7 @@ AM_CONDITIONAL(XWIN, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOW, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_MULTIWINDOWEXTWM, [test "x$XWIN" = xyes && test "x$WINDOWSWM" = xyes])
 AM_CONDITIONAL(XWIN_CLIPBOARD, [test "x$XWIN" = xyes])
-AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes && false])
+AM_CONDITIONAL(XWIN_GLX_WINDOWS, [test "x$XWIN" = xyes && test "x$AIGLX" = xyes])
 AM_CONDITIONAL(XWIN_NATIVEGDI, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_PRIMARYFB, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
