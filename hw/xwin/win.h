@@ -622,7 +622,7 @@ typedef struct {
  * Extern declares for general global variables
  */
 
-extern winScreenInfo		g_ScreenInfo[];
+extern winScreenInfo *		g_ScreenInfo;
 extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
 extern DWORD			g_dwEvents;
 #ifdef HAS_DEVWINDOWS

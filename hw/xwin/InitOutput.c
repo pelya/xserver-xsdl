@@ -64,7 +64,7 @@ typedef HRESULT (*SHGETFOLDERPATHPROC)(
  */
 
 extern int			g_iNumScreens;
-extern winScreenInfo		g_ScreenInfo[];
+extern winScreenInfo *		g_ScreenInfo;
 extern char *			g_pszCommandLine;
 extern Bool			g_fSilentFatalError;
 

@@ -45,7 +45,7 @@ from The Open Group.
  */
 
 extern int			g_iNumScreens;
-extern winScreenInfo		g_ScreenInfo[];
+extern winScreenInfo *		g_ScreenInfo;
 #ifdef XWIN_CLIPBOARD
 extern Bool			g_fUnicodeClipboard;
 extern Bool			g_fClipboard;
@@ -227,6 +227,9 @@ winInitializeScreens(int maxscreens)
 
   if (maxscreens > g_iNumScreens)
     {
+      /* Reallocate the memory for DDX-specific screen info */
+      g_ScreenInfo = realloc(g_ScreenInfo, maxscreens * sizeof (winScreenInfo));
+
       /* Set default values for any new screens */
       for (i = g_iNumScreens; i < maxscreens ; i++)
         winInitializeScreen(i);
@@ -353,7 +356,7 @@ ddxProcessArgument (int argc, char *argv[], int i)
       nScreenNum = atoi (argv[i + 1]);
 
       /* Validate the specified screen number */
-      if (nScreenNum < 0 || nScreenNum >= MAXSCREENS)
+      if (nScreenNum < 0)
         {
           ErrorF ("ddxProcessArgument - screen - Invalid screen number %d\n",
 		  nScreenNum);
