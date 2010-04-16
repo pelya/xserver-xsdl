@@ -1101,14 +1101,6 @@ __glXDrawableInit(__GLXdrawable *drawable,
 void
 __glXDrawableRelease(__GLXdrawable *drawable)
 {
-    ScreenPtr pScreen = drawable->pDraw->pScreen;
-
-    switch (drawable->type) {
-    case GLX_DRAWABLE_PIXMAP:
-    case GLX_DRAWABLE_PBUFFER:
-	(*pScreen->DestroyPixmap)((PixmapPtr) drawable->pDraw);
-	break;
-    }
 }
 
 static int 
@@ -1116,8 +1108,6 @@ DoCreateGLXDrawable(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *conf
 		    DrawablePtr pDraw, XID glxDrawableId, int type)
 {
     __GLXdrawable *pGlxDraw;
-
-    LEGAL_NEW_RESOURCE(glxDrawableId, client);
 
     if (pGlxScreen->pScreen != pDraw->pScreen)
 	return BadMatch;
@@ -1135,7 +1125,8 @@ DoCreateGLXDrawable(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *conf
     /* Add the glx drawable under the XID of the underlying X drawable
      * too.  That way we'll get a callback in DrawableGone and can
      * clean up properly when the drawable is destroyed. */
-    if (!AddResource(pDraw->id, __glXDrawableRes, pGlxDraw)) {
+    if (pDraw->id != glxDrawableId &&
+	!AddResource(pDraw->id, __glXDrawableRes, pGlxDraw)) {
 	pGlxDraw->destroy (pGlxDraw);
 	return BadAlloc;
     }
@@ -1150,6 +1141,8 @@ DoCreateGLXPixmap(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *config
     DrawablePtr pDraw;
     int err;
 
+    LEGAL_NEW_RESOURCE(glxDrawableId, client);
+
     err = dixLookupDrawable(&pDraw, drawableId, client, 0, DixAddAccess);
     if (err != Success) {
 	client->errorValue = drawableId;
@@ -1162,9 +1155,6 @@ DoCreateGLXPixmap(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *config
 
     err = DoCreateGLXDrawable(client, pGlxScreen, config, pDraw,
 			      glxDrawableId, GLX_DRAWABLE_PIXMAP);
-
-    if (err == Success)
-	((PixmapPtr) pDraw)->refcnt++;
 
     return err;
 }
@@ -1306,6 +1296,8 @@ DoCreatePbuffer(ClientPtr client, int screenNum, XID fbconfigId,
     PixmapPtr		 pPixmap;
     int			 err;
 
+    LEGAL_NEW_RESOURCE(glxDrawableId, client);
+
     if (!validGlxScreen(client, screenNum, &pGlxScreen, &err))
 	return err;
     if (!validGlxFBConfig(client, pGlxScreen, fbconfigId, &config, &err))
@@ -1315,6 +1307,13 @@ DoCreatePbuffer(ClientPtr client, int screenNum, XID fbconfigId,
     pPixmap = (*pGlxScreen->pScreen->CreatePixmap) (pGlxScreen->pScreen,
 						    width, height, config->rgbBits, 0);
     __glXleaveServer(GL_FALSE);
+
+    /* Assign the pixmap the same id as the pbuffer and add it as a
+     * resource so it and the DRI2 drawable will be reclaimed when the
+     * pbuffer is destroyed. */
+    pPixmap->drawable.id = glxDrawableId;
+    if (!AddResource(pPixmap->drawable.id, RT_PIXMAP, pPixmap))
+	return BadAlloc;
 
     return DoCreateGLXDrawable(client, pGlxScreen, config, &pPixmap->drawable,
 			       glxDrawableId, GLX_DRAWABLE_PBUFFER);
@@ -1422,6 +1421,8 @@ int __glXDisp_CreateWindow(__GLXclientState *cl, GLbyte *pc)
     ClientPtr		 client = cl->client;
     DrawablePtr		 pDraw;
     int			 err;
+
+    LEGAL_NEW_RESOURCE(req->glxwindow, client);
 
     if (!validGlxScreen(client, req->screen, &pGlxScreen, &err))
 	return err;
