@@ -161,7 +161,11 @@ validGlxDrawable(ClientPtr client, XID id, int type, int access_mode,
 	return FALSE;
     }
 
+    /* If the ID of the glx drawable we looked up doesn't match the id
+     * we looked for, it's because we looked it up under the X
+     * drawable ID (see DoCreateGLXDrawable). */
     if (rc == BadValue ||
+	(*drawable)->drawId != id ||
 	(type != GLX_DRAWABLE_ANY && type != (*drawable)->type)) {
 	client->errorValue = id;
 	switch (type) {
@@ -1124,6 +1128,14 @@ DoCreateGLXDrawable(ClientPtr client, __GLXscreen *pGlxScreen, __GLXconfig *conf
 	return BadAlloc;
 
     if (!AddResource(glxDrawableId, __glXDrawableRes, pGlxDraw)) {
+	pGlxDraw->destroy (pGlxDraw);
+	return BadAlloc;
+    }
+
+    /* Add the glx drawable under the XID of the underlying X drawable
+     * too.  That way we'll get a callback in DrawableGone and can
+     * clean up properly when the drawable is destroyed. */
+    if (!AddResource(pDraw->id, __glXDrawableRes, pGlxDraw)) {
 	pGlxDraw->destroy (pGlxDraw);
 	return BadAlloc;
     }
