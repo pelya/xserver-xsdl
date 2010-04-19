@@ -894,9 +894,6 @@ winMWExtWMUpdateRegion (RootlessFrameID wid, RegionPtr pDamage)
   SIZE szWin;
   POINT ptSrc;
 #endif
-#if CYGMULTIWINDOW_DEBUG && 0
-  winDebug ("winMWExtWMUpdateRegion (%08x)\n", pRLWinPriv);
-#endif
 #if 0
   szWin.cx = pRLWinPriv->dwWidth;
   szWin.cy = pRLWinPriv->dwHeight;
@@ -938,10 +935,6 @@ winMWExtWMDamageRects (RootlessFrameID wid, int nCount, const BoxRec *pRects,
 {
   win32RootlessWindowPtr pRLWinPriv = (win32RootlessWindowPtr) wid;
   const BoxRec *pEnd;
-#if CYGMULTIWINDOW_DEBUG && 0
-  winDebug ("winMWExtWMDamageRects (%08x, %d, %08x, %d, %d)\n",
-	    pRLWinPriv, nCount, pRects, shift_x, shift_y);
-#endif
 
   for (pEnd = pRects + nCount; pRects < pEnd; pRects++) {
         RECT rcDmg;

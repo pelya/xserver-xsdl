@@ -77,9 +77,7 @@ extern _X_EXPORT Bool noMultibufferExtension;
 extern _X_EXPORT Bool noRRExtension;
 #endif
 
-#ifdef RENDER
 extern _X_EXPORT Bool noRenderExtension;
-#endif
 
 #ifdef XCSECURITY
 extern _X_EXPORT Bool noSecurityExtension;
