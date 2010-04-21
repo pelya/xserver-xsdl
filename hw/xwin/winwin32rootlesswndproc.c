@@ -519,6 +519,9 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       break;
 
     case WM_MOUSEMOVE:
+#if CYGMULTIWINDOW_DEBUG && 0
+      winDebug ("winMWExtWMWindowProc - WM_MOUSEMOVE\n");
+#endif
       /* Unpack the client area mouse coordinates */
       ptMouse.x = GET_X_LPARAM(lParam);
       ptMouse.y = GET_Y_LPARAM(lParam);
@@ -573,6 +576,9 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
       return 0;
       
     case WM_NCMOUSEMOVE:
+#if CYGMULTIWINDOW_DEBUG && 0
+      winDebug ("winMWExtWMWindowProc - WM_NCMOUSEMOVE\n");
+#endif
       /*
        * We break instead of returning 0 since we need to call
        * DefWindowProc to get the mouse cursor changes
