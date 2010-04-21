@@ -776,14 +776,12 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     unwrap(pExaScr, pScreen, ChangeWindowAttributes);
     unwrap(pExaScr, pScreen, BitmapToRegion);
     unwrap(pExaScr, pScreen, CreateScreenResources);
-    if (ps) {
-	unwrap(pExaScr, ps, Composite);
-	if (pExaScr->SavedGlyphs)
-	    unwrap(pExaScr, ps, Glyphs);
-	unwrap(pExaScr, ps, Trapezoids);
-	unwrap(pExaScr, ps, Triangles);
-	unwrap(pExaScr, ps, AddTraps);
-    }
+    unwrap(pExaScr, ps, Composite);
+    if (pExaScr->SavedGlyphs)
+	unwrap(pExaScr, ps, Glyphs);
+    unwrap(pExaScr, ps, Trapezoids);
+    unwrap(pExaScr, ps, Triangles);
+    unwrap(pExaScr, ps, AddTraps);
 
     xfree (pExaScr);
 

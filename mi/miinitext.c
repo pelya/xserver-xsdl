@@ -55,7 +55,6 @@ SOFTWARE.
 
 #ifdef HAVE_DMX_CONFIG_H
 #include <dmx-config.h>
-#undef MULTIBUFFER
 #undef XV
 #undef DBE
 #undef XF86VIDMODE
@@ -115,9 +114,6 @@ extern Bool noScreenSaverExtension;
 #endif
 #ifdef MITSHM
 extern Bool noMITShmExtension;
-#endif
-#ifdef MULTIBUFFER
-extern Bool noMultibufferExtension;
 #endif
 #ifdef RANDR
 extern Bool noRRExtension;
@@ -192,9 +188,6 @@ typedef void (*InitExtension)(INITARGS);
 /* FIXME: this whole block of externs should be from the appropriate headers */
 #ifdef MITSHM
 extern void ShmExtensionInit(INITARGS);
-#endif
-#ifdef MULTIBUFFER
-extern void MultibufferExtensionInit(INITARGS);
 #endif
 #ifdef PANORAMIX
 extern void PanoramiXExtensionInit(INITARGS);
@@ -304,9 +297,6 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef MITSHM
     { SHMNAME, &noMITShmExtension },
 #endif
-#ifdef MULTIBUFFER
-    { "Multi-Buffering", &noMultibufferExtension },
-#endif
 #ifdef RANDR
     { "RANDR", &noRRExtension },
 #endif
@@ -409,9 +399,6 @@ InitExtensions(int argc, char *argv[])
     ShapeExtensionInit();
 #ifdef MITSHM
     if (!noMITShmExtension) ShmExtensionInit();
-#endif
-#ifdef MULTIBUFFER
-    if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
     XInputExtensionInit();
 #ifdef XTEST

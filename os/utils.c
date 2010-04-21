@@ -146,9 +146,6 @@ Bool noScreenSaverExtension = FALSE;
 #ifdef MITSHM
 Bool noMITShmExtension = FALSE;
 #endif
-#ifdef MULTIBUFFER
-Bool noMultibufferExtension = FALSE;
-#endif
 #ifdef RANDR
 Bool noRRExtension = FALSE;
 #endif
