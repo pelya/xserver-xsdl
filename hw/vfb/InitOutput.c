@@ -248,7 +248,7 @@ ddxUseMsg(void)
 {
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
     ErrorF("-pixdepths list-of-int support given pixmap depths\n");
-    ErrorF("+/-render		   turn on/of RENDER extension support"
+    ErrorF("+/-render		   turn on/off RENDER extension support"
 	   "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
