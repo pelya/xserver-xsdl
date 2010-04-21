@@ -1066,18 +1066,14 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	/* Driver too old: use the old-style driverName field */
 	ds->numDrivers = 1;
 	ds->driverNames = malloc(sizeof(*ds->driverNames));
-	if (!ds->driverNames) {
-	    free(ds);
-	    return FALSE;
-	}
+	if (!ds->driverNames)
+	    goto err_out;
 	ds->driverNames[0] = info->driverName;
     } else {
 	ds->numDrivers = info->numDrivers;
 	ds->driverNames = malloc(info->numDrivers * sizeof(*ds->driverNames));
-	if (!ds->driverNames) {
-	    free(ds);
-	    return FALSE;
-	}
+	if (!ds->driverNames)
+		goto err_out;
 	memcpy(ds->driverNames, info->driverNames,
 	       info->numDrivers * sizeof(*ds->driverNames));
     }
