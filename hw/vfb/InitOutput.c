@@ -427,14 +427,18 @@ ddxProcessArgument(int argc, char *argv[], int i)
     return 0;
 }
 
-static ColormapPtr InstalledMaps[MAXSCREENS];
+static int cmapScrPrivateKeyIndex;
+static DevPrivateKey cmapScrPrivateKey = &cmapScrPrivateKeyIndex;
+
+#define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
+#define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
 
 static int
 vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     /* By the time we are processing requests, we can guarantee that there
      * is always a colormap installed */
-    *pmaps = InstalledMaps[pScreen->myNum]->mid;
+    *pmaps = GetInstalledColormap(pScreen)->mid;
     return (1);
 }
 
@@ -442,8 +446,7 @@ vfbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 static void
 vfbInstallColormap(ColormapPtr pmap)
 {
-    int index = pmap->pScreen->myNum;
-    ColormapPtr oldpmap = InstalledMaps[index];
+    ColormapPtr oldpmap = GetInstalledColormap(pmap->pScreen);
 
     if (pmap != oldpmap)
     {
@@ -459,7 +462,7 @@ vfbInstallColormap(ColormapPtr pmap)
 	if(oldpmap != (ColormapPtr)None)
 	    WalkTree(pmap->pScreen, TellLostMap, (char *)&oldpmap->mid);
 	/* Install pmap */
-	InstalledMaps[index] = pmap;
+	SetInstalledColormap(pmap->pScreen, pmap);
 	WalkTree(pmap->pScreen, TellGainedMap, (char *)&pmap->mid);
 
 	entries = pmap->pVisual->ColormapEntries;
@@ -500,7 +503,7 @@ vfbInstallColormap(ColormapPtr pmap)
 static void
 vfbUninstallColormap(ColormapPtr pmap)
 {
-    ColormapPtr curpmap = InstalledMaps[pmap->pScreen->myNum];
+    ColormapPtr curpmap = GetInstalledColormap(pmap->pScreen);
 
     if(pmap == curpmap)
     {
@@ -521,7 +524,7 @@ vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem *pdefs)
     XWDColor *pXWDCmap;
     int i;
 
-    if (pmap != InstalledMaps[pmap->pScreen->myNum])
+    if (pmap != GetInstalledColormap(pmap->pScreen))
     {
 	return;
     }
@@ -830,10 +833,10 @@ vfbCloseScreen(int index, ScreenPtr pScreen)
 
     /*
      * XXX probably lots of stuff to clean.  For now,
-     * clear InstalledMaps[] so that server reset works correctly.
+     * clear installed colormaps so that server reset works correctly.
      */
-    for (i = 0; i < MAXSCREENS; i++)
-	InstalledMaps[i] = NULL;
+    for (i = 0; i < screenInfo.numScreens; i++)
+	SetInstalledColormap(screenInfo.screens[i], NULL);
 
     return pScreen->CloseScreen(index, pScreen);
 }
