@@ -1084,10 +1084,12 @@ int PanoramiXCopyArea(ClientPtr client)
     } else {
 	DrawablePtr pDst = NULL, pSrc = NULL;
 	GCPtr pGC = NULL;
-	RegionPtr pRgn[MAXSCREENS];
+	RegionRec totalReg;
 	int rc;
 
+	REGION_NULL(unusedScreen, &totalReg);
 	FOR_NSCREENS_BACKWARD(j) {
+	    RegionPtr pRgn;
 	    stuff->dstDrawable = dst->info[j].id;
 	    stuff->srcDrawable = src->info[j].id;
 	    stuff->gc          = gc->info[j].id;
@@ -1116,37 +1118,30 @@ int PanoramiXCopyArea(ClientPtr client)
  	    } else
 		pSrc = pDst;
 
-	    pRgn[j] = (*pGC->ops->CopyArea)(pSrc, pDst, pGC, 
+	    pRgn = (*pGC->ops->CopyArea)(pSrc, pDst, pGC,
 				stuff->srcX, stuff->srcY,
 				stuff->width, stuff->height, 
 				stuff->dstX, stuff->dstY);
-
-	    if(dstShared) {
-		while(j--) pRgn[j] = NULL;
-		break;
+	    if(pGC->graphicsExposures && pRgn) {
+	       if(srcIsRoot) {
+		   REGION_TRANSLATE(unusedScreen, pRgn,
+			    screenInfo.screens[j]->x, screenInfo.screens[j]->y);
+	       }
+	       REGION_APPEND(unusedScreen, &totalReg, pRgn);
+	       REGION_DESTROY(unusedScreen, pRgn);
 	    }
+
+	    if(dstShared)
+		break;
 	}
 
 	if(pGC->graphicsExposures) {
 	    ScreenPtr pScreen = pDst->pScreen;
-	    RegionRec totalReg;
 	    Bool overlap;
-
-	    REGION_NULL(pScreen, &totalReg);
-	    FOR_NSCREENS_BACKWARD(j) {
-		if(pRgn[j]) {
-		   if(srcIsRoot) {
-		       REGION_TRANSLATE(pScreen, pRgn[j], 
-				screenInfo.screens[j]->x, screenInfo.screens[j]->y);
-		   }
-		   REGION_APPEND(pScreen, &totalReg, pRgn[j]);
-		   REGION_DESTROY(pScreen, pRgn[j]);
-		}
-	    }
-	    REGION_VALIDATE(pScreen, &totalReg, &overlap);
+	    REGION_VALIDATE(unusedScreen, &totalReg, &overlap);
 	    (*pScreen->SendGraphicsExpose)(
 		client, &totalReg, stuff->dstDrawable, X_CopyArea, 0);
-	    REGION_UNINIT(pScreen, &totalReg);
+	    REGION_UNINIT(unusedScreen, &totalReg);
 	}
     }
 
@@ -1163,7 +1158,7 @@ int PanoramiXCopyPlane(ClientPtr client)
     Bool		srcShared, dstShared;
     DrawablePtr 	psrcDraw, pdstDraw = NULL;
     GCPtr 		pGC = NULL;
-    RegionPtr 		pRgn[MAXSCREENS];
+    RegionRec		totalReg;
     REQUEST(xCopyPlaneReq);
 
     REQUEST_SIZE_MATCH(xCopyPlaneReq);
@@ -1198,7 +1193,9 @@ int PanoramiXCopyPlane(ClientPtr client)
     srcx = stuff->srcX; srcy = stuff->srcY;
     dstx = stuff->dstX; dsty = stuff->dstY;
  
+    REGION_NULL(unusedScreen, &totalReg);
     FOR_NSCREENS_BACKWARD(j) {
+	RegionPtr pRgn;
 	stuff->dstDrawable = dst->info[j].id;
 	stuff->srcDrawable = src->info[j].id;
 	stuff->gc          = gc->info[j].id;
@@ -1231,33 +1228,26 @@ int PanoramiXCopyPlane(ClientPtr client)
 	    return(BadValue);
 	}
 
-	pRgn[j] = (*pGC->ops->CopyPlane)(psrcDraw, pdstDraw, pGC, 
+	pRgn = (*pGC->ops->CopyPlane)(psrcDraw, pdstDraw, pGC,
 				stuff->srcX, stuff->srcY,
 				stuff->width, stuff->height, 
 				stuff->dstX, stuff->dstY, stuff->bitPlane);
-
-	if(dstShared) {
-	    while(j--) pRgn[j] = NULL;
-	    break;
+	if(pGC->graphicsExposures && pRgn) {
+	    REGION_APPEND(unusedScreen, &totalReg, pRgn);
+	    REGION_DESTROY(unusedScreen, pRgn);
 	}
+
+	if(dstShared)
+	    break;
     }
 
     if(pGC->graphicsExposures) {
 	ScreenPtr pScreen = pdstDraw->pScreen;
-	RegionRec totalReg;
 	Bool overlap;
-
-	REGION_NULL(pScreen, &totalReg);
-	FOR_NSCREENS_BACKWARD(j) {
-	    if(pRgn[j]) {
-		REGION_APPEND(pScreen, &totalReg, pRgn[j]);
-		REGION_DESTROY(pScreen, pRgn[j]);
-	    }
-	}
-	REGION_VALIDATE(pScreen, &totalReg, &overlap);
+	REGION_VALIDATE(unusedScreen, &totalReg, &overlap);
 	(*pScreen->SendGraphicsExpose)(
 		client, &totalReg, stuff->dstDrawable, X_CopyPlane, 0);
-	REGION_UNINIT(pScreen, &totalReg);
+	REGION_UNINIT(unusedScreen, &totalReg);
     }
 
     return Success;
