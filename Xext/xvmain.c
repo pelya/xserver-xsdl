@@ -192,6 +192,7 @@ XvExtensionInit(void)
       EventSwapVector[XvEventBase+XvPortNotify] = 
 	(EventSwapPtr)WriteSwappedPortNotifyEvent;
 
+      SetResourceTypeErrorValue(XvRTPort, _XvBadPort);
       (void)MakeAtom(XvName, strlen(XvName), xTrue);
 
     }

@@ -29,7 +29,6 @@
 
 static unsigned char	DamageReqCode;
 static int		DamageEventBase;
-static int		DamageErrorBase;
 static RESTYPE		DamageExtType;
 static RESTYPE		DamageExtWinType;
 
@@ -515,8 +514,8 @@ DamageExtensionInit(void)
     {
 	DamageReqCode = (unsigned char)extEntry->base;
 	DamageEventBase = extEntry->eventBase;
-	DamageErrorBase = extEntry->errorBase;
 	EventSwapVector[DamageEventBase + XDamageNotify] =
 			(EventSwapPtr) SDamageNotifyEvent;
+	SetResourceTypeErrorValue(DamageExtType, extEntry->errorBase + BadDamage);
     }
 }

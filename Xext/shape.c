@@ -360,7 +360,7 @@ ProcPanoramiXShapeRectangles(
     result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
 				     client, DixWriteAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;
@@ -459,13 +459,13 @@ ProcPanoramiXShapeMask(
     result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
 				     client, DixWriteAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     if(stuff->src != None) {
 	result = dixLookupResourceByType((pointer *)&pmap, stuff->src,
 					 XRT_PIXMAP, client, DixReadAccess);
 	if (result != Success)
-	    return (result == BadValue) ? BadPixmap : result;
+	    return result;
     } else
 	pmap = NULL;
 
@@ -589,12 +589,12 @@ ProcPanoramiXShapeCombine(
     result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
 				     client, DixWriteAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     result = dixLookupResourceByType((pointer *)&win2, stuff->src, XRT_WINDOW,
 				     client, DixReadAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;
@@ -663,7 +663,7 @@ ProcPanoramiXShapeOffset(
     result = dixLookupResourceByType((pointer *)&win, stuff->dest, XRT_WINDOW,
 				     client, DixWriteAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     FOR_NSCREENS(j) {
 	stuff->dest = win->info[j].id;

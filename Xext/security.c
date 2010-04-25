@@ -623,8 +623,7 @@ ProcSecurityRevokeAuthorization(
 				 SecurityAuthorizationResType, client,
 				 DixDestroyAccess);
     if (rc != Success)
-	return (rc == BadValue) ?
-	    SecurityErrorBase + XSecurityBadAuthorization : rc;
+	return rc;
 
     FreeResource(stuff->authId, RT_NONE);
     return Success;
@@ -1139,6 +1138,8 @@ SecurityExtensionInit(INITARGS)
 
     EventSwapVector[SecurityEventBase + XSecurityAuthorizationRevoked] =
 	(EventSwapPtr)SwapSecurityAuthorizationRevokedEvent;
+
+    SetResourceTypeErrorValue(SecurityAuthorizationResType, SecurityErrorBase + XSecurityBadAuthorization);
 
     /* Label objects that were created before we could register ourself */
     SecurityLabelInitial();

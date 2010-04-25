@@ -1272,7 +1272,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 					       XRT_PIXMAP, client,
 					       DixReadAccess);
 	      if (status != Success)
-		  return (status == BadValue) ? BadPixmap : status;
+		  return status;
           }
        }
 
@@ -1284,7 +1284,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 					       XRT_PIXMAP, client,
 					       DixReadAccess);
 	      if (status != Success)
-		  return (status == BadValue) ? BadPixmap : status;
+		  return status;
           }
        }
 
@@ -1296,7 +1296,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
 						XRT_COLORMAP, client,
 						DixReadAccess);
 	       if (status != Success)
-		   return (status == BadValue) ? BadColor : status;
+		   return status;
            }
        }
 

@@ -264,7 +264,7 @@ SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XSyncCounter counter,
 				counter, RTCounter, client, DixReadAccess)))
 	{
 	    client->errorValue = counter;
-	    return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+	    return rc;
 	}
 	if (pCounter != pTrigger->pCounter)
 	{ /* new counter for trigger */
@@ -1328,7 +1328,7 @@ ProcSyncSetCounter(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pCounter, stuff->cid, RTCounter,
 				 client, DixWriteAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+	return rc;
 
     if (IsSystemCounter(pCounter))
     {
@@ -1358,7 +1358,7 @@ ProcSyncChangeCounter(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pCounter, stuff->cid, RTCounter,
 				 client, DixWriteAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+	return rc;
 
     if (IsSystemCounter(pCounter))
     {
@@ -1393,7 +1393,7 @@ ProcSyncDestroyCounter(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pCounter, stuff->counter, RTCounter,
 				 client, DixDestroyAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+	return rc;
 
     if (IsSystemCounter(pCounter))
     {
@@ -1536,7 +1536,7 @@ ProcSyncQueryCounter(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pCounter, stuff->counter,
 				 RTCounter, client, DixReadAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
+	return rc;
 
     rep.type = X_Reply;
     rep.length = 0;
@@ -1660,7 +1660,7 @@ ProcSyncChangeAlarm(ClientPtr client)
     status = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
 				     client, DixWriteAccess);
     if (status != Success)
-	return (status == BadValue) ? SyncErrorBase + XSyncBadAlarm : status;
+	return status;
 
     vmask = stuff->valueMask;
     len = client->req_len - bytes_to_int32(sizeof(xSyncChangeAlarmReq));
@@ -1699,7 +1699,7 @@ ProcSyncQueryAlarm(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
 				 client, DixReadAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
+	return rc;
 
     rep.type = X_Reply;
     rep.length = bytes_to_int32(sizeof(xSyncQueryAlarmReply) - sizeof(xGenericReply));
@@ -1756,7 +1756,7 @@ ProcSyncDestroyAlarm(ClientPtr client)
     rc = dixLookupResourceByType((pointer *)&pAlarm, stuff->alarm, RTAlarm,
 				 client, DixDestroyAccess);
     if (rc != Success)
-	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
+	return rc;
 
     FreeResource(stuff->alarm, RT_NONE);
     return Success;
@@ -2126,6 +2126,9 @@ SyncExtensionInit(void)
     SyncErrorBase = extEntry->errorBase;
     EventSwapVector[SyncEventBase + XSyncCounterNotify] = (EventSwapPtr) SCounterNotifyEvent;
     EventSwapVector[SyncEventBase + XSyncAlarmNotify] = (EventSwapPtr) SAlarmNotifyEvent;
+
+    SetResourceTypeErrorValue(RTCounter, SyncErrorBase + XSyncBadCounter);
+    SetResourceTypeErrorValue(RTAlarm, SyncErrorBase + XSyncBadAlarm);
 
     /*
      * Although SERVERTIME is implemented by the OS layer, we initialise it

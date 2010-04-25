@@ -268,6 +268,12 @@ CreateNewResourceType(DeleteType deleteFunc, char *name)
     return next;
 }
 
+void
+SetResourceTypeErrorValue(RESTYPE type, int errorValue)
+{
+    resourceTypes[type & TypeMask].errorValue = errorValue;
+}
+
 RESTYPE
 CreateNewResourceClass(void)
 {

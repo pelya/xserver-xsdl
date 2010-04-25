@@ -423,6 +423,7 @@ RROutputInit (void)
     RROutputType = CreateNewResourceType (RROutputDestroyResource, "OUTPUT");
     if (!RROutputType)
 	return FALSE;
+    SetResourceTypeErrorValue(RROutputType, RRErrorBase + BadRROutput);
     return TRUE;
 }
 

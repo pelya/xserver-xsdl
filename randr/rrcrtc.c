@@ -634,6 +634,7 @@ RRCrtcInit (void)
     RRCrtcType = CreateNewResourceType (RRCrtcDestroyResource, "CRTC");
     if (!RRCrtcType)
 	return FALSE;
+    SetResourceTypeErrorValue(RRCrtcType, RRErrorBase + BadRRCrtc);
     return TRUE;
 }
 
@@ -806,7 +807,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	{
 	    if (outputs)
 		free(outputs);
-	    return (rc == BadValue) ? RRErrorBase + BadRROutput : rc;
+	    return rc;
 	}
 	/* validate crtc for this output */
 	for (j = 0; j < outputs[i]->numCrtcs; j++)
