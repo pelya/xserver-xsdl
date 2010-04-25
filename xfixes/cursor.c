@@ -70,10 +70,7 @@ static void deleteCursorHideCountsForScreen (ScreenPtr pScreen);
 	int err;							\
 	err = dixLookupResourceByType((pointer *) &pCursor, cursor,	\
 				      RT_CURSOR, client, access);	\
-	if (err == BadValue) {						\
-	    client->errorValue = cursor;				\
-	    return BadCursor;						\
-	} else if (err != Success) {					\
+	if (err != Success) {						\
 	    client->errorValue = cursor;				\
 	    return err;							\
 	}								\
@@ -882,7 +879,7 @@ ProcXFixesHideCursor (ClientPtr client)
 			    client, DixGetAttrAccess);
     if (ret != Success) {
 	client->errorValue = stuff->window;
-	return (ret == BadValue) ? BadWindow : ret;
+	return ret;
     }
 
     /* 
@@ -945,7 +942,7 @@ ProcXFixesShowCursor (ClientPtr client)
 			   client, DixGetAttrAccess);
     if (rc != Success) {
 	client->errorValue = stuff->window;
-	return (rc == BadValue) ? BadWindow : rc;
+	return rc;
     }
 
     /* 

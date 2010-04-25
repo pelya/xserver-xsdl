@@ -1856,7 +1856,7 @@ ProcRenderCreateAnimCursor (ClientPtr client)
 	if (ret != Success)
 	{
 	    free(cursors);
-	    return (ret == BadValue) ? BadCursor : ret;
+	    return ret;
 	}
 	deltas[i] = elt->delay;
 	elt++;

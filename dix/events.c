@@ -4697,7 +4697,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
 	if (rc != Success)
 	{
 	    client->errorValue = stuff->cursor;
-	    return (rc == BadValue) ? BadCursor : rc;
+	    return rc;
 	}
     }
 
@@ -4820,7 +4820,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	if (rc != Success)
 	{
 	    client->errorValue = curs;
-	    return (rc == BadValue) ? BadCursor : rc;
+	    return rc;
 	}
 	access_mode |= DixForceAccess;
     }
@@ -5345,7 +5345,7 @@ ProcGrabButton(ClientPtr client)
 	if (rc != Success)
 	{
 	    client->errorValue = stuff->cursor;
-	    return (rc == BadValue) ? BadCursor : rc;
+	    return rc;
 	}
 	access_mode |= DixForceAccess;
     }
@@ -5608,7 +5608,7 @@ ProcRecolorCursor(ClientPtr client)
     if (rc != Success)
     {
 	client->errorValue = stuff->cursor;
-	return (rc == BadValue) ? BadCursor : rc;
+	return rc;
     }
 
     pCursor->foreRed = stuff->foreRed;

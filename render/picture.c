@@ -1176,7 +1176,6 @@ ChangePicture (PicturePtr	pPicture,
 			if (error != Success)
 			{
 			    client->errorValue = pid;
-			    error = (error == BadValue) ? BadPixmap : error;
 			    break;
 			}
 		    }

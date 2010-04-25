@@ -457,7 +457,7 @@ int PanoramiXConfigureWindow(ClientPtr client)
     result = dixLookupResourceByType((pointer *)&pWin, stuff->window,
 				     RT_WINDOW, client, DixWriteAccess);
     if (result != Success)
-	return (result == BadValue) ? BadWindow : result;
+	return result;
 
     result = dixLookupResourceByType((pointer *)&win, stuff->window,
 				     XRT_WINDOW, client, DixWriteAccess);

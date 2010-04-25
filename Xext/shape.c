@@ -415,7 +415,7 @@ ProcShapeMask (ClientPtr client)
 	rc = dixLookupResourceByType((pointer *)&pPixmap, stuff->src, RT_PIXMAP,
 			       client, DixReadAccess);
         if (rc != Success)
-	    return (rc == BadValue) ? BadPixmap : rc;
+	    return rc;
 	if (pPixmap->drawable.pScreen != pScreen ||
 	    pPixmap->drawable.depth != 1)
 	    return BadMatch;

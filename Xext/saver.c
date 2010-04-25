@@ -1043,7 +1043,6 @@ ScreenSaverSetAttributes (ClientPtr client)
 		}
 	        else
 		{
-		    ret = (ret == BadValue) ? BadPixmap : ret;
 		    client->errorValue = pixID;
 		    goto PatchUp;
 		}
@@ -1081,7 +1080,6 @@ ScreenSaverSetAttributes (ClientPtr client)
 		}
     	        else
 		{
-		    ret = (ret == BadValue) ? BadPixmap : ret;
 		    client->errorValue = pixID;
 		    goto PatchUp;
 		}
@@ -1163,7 +1161,6 @@ ScreenSaverSetAttributes (ClientPtr client)
 				    client, DixUseAccess);
 	    if (ret != Success)
 	    {
-		ret = (ret == BadValue) ? BadColor : ret;
 		client->errorValue = cmap;
 		goto PatchUp;
 	    }
@@ -1187,7 +1184,6 @@ ScreenSaverSetAttributes (ClientPtr client)
 					RT_CURSOR, client, DixUseAccess);
 	    	if (ret != Success)
 	    	{
-		    ret = (ret == BadValue) ? BadCursor : ret;
 		    client->errorValue = cursorID;
 		    goto PatchUp;
 	    	}
