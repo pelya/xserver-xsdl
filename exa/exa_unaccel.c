@@ -462,7 +462,7 @@ ExaSrcValidate(DrawablePtr pDrawable,
     REGION_UNION(pScreen, dst, dst, &reg);
     REGION_UNINIT(pScreen, &reg);
 
-    if (pExaScr->SourceValidate) {
+    if (pExaScr->SavedSourceValidate) {
         swap(pExaScr, pScreen, SourceValidate);
         pScreen->SourceValidate(pDrawable, x, y, width, height);
         swap(pExaScr, pScreen, SourceValidate);
