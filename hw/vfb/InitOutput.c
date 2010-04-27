@@ -77,7 +77,6 @@ from The Open Group.
 
 typedef struct
 {
-    int scrnum;
     int width;
     int paddedBytesWidth;
     int paddedWidth;
@@ -141,7 +140,6 @@ vfbInitializeDefaultScreens(void)
 
     for (i = 0; i < MAXSCREENS; i++)
     {
-	vfbScreens[i].scrnum = i;
 	vfbScreens[i].width  = VFB_DEFAULT_WIDTH;
 	vfbScreens[i].height = VFB_DEFAULT_HEIGHT;
 	vfbScreens[i].depth  = VFB_DEFAULT_DEPTH;
@@ -598,7 +596,7 @@ vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
     char dummyBuffer[DUMMY_BUFFER_SIZE];
     int currentFileSize, writeThisTime;
 
-    sprintf(pvfb->mmap_file, "%s/Xvfb_screen%d", pfbdir, pvfb->scrnum);
+    sprintf(pvfb->mmap_file, "%s/Xvfb_screen%d", pfbdir, (int) (pvfb - vfbScreens));
     if (-1 == (pvfb->mmap_fd = open(pvfb->mmap_file, O_CREAT|O_RDWR, 0666)))
     {
 	perror("open");
@@ -671,7 +669,7 @@ vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
 	return;
     }
 
-    ErrorF("screen %d shmid %d\n", pvfb->scrnum, pvfb->shmid);
+    ErrorF("screen %d shmid %d\n", (int) (pvfb - vfbScreens), pvfb->shmid);
 }
 #endif /* HAS_SHM */
 
