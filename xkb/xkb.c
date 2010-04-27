@@ -6707,6 +6707,9 @@ XkbExtensionInit(void)
     if (!RT_XKBCLIENT)
 	return;
 
+    if (!dixRegisterPrivateKey(&xkbDevicePrivateKeyRec, PRIVATE_DEVICE, 0))
+	return;
+
     if ((extEntry = AddExtension(XkbName, XkbNumberEvents, XkbNumberErrors,
 				 ProcXkbDispatch, SProcXkbDispatch,
 				 NULL, StandardMinorOpcode))) {

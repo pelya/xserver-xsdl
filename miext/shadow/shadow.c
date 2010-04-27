@@ -36,8 +36,8 @@
 #include    "gcstruct.h"
 #include    "shadow.h"
 
-static int shadowScrPrivateKeyIndex;
-DevPrivateKey shadowScrPrivateKey = &shadowScrPrivateKeyIndex;
+static DevPrivateKeyRec shadowScrPrivateKeyRec;
+#define shadowScrPrivateKey (&shadowScrPrivateKeyRec)
 
 #define wrap(priv, real, mem) {\
     priv->mem = real->mem; \
@@ -233,6 +233,9 @@ shadowInit(ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
 {
     PixmapPtr pPixmap;
     
+    if (!dixRegisterPrivateKey(&shadowScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
     pPixmap = pScreen->CreatePixmap(pScreen, pScreen->width, pScreen->height,
 				    pScreen->rootDepth, 0);
     if (!pPixmap)

@@ -141,10 +141,10 @@ int BadShmSegCode;
 RESTYPE ShmSegType;
 static ShmDescPtr Shmsegs;
 static Bool sharedPixmaps;
-static int shmScrPrivateKeyIndex;
-static DevPrivateKey shmScrPrivateKey = &shmScrPrivateKeyIndex;
-static int shmPixmapPrivateIndex;
-static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivateIndex;
+static DevPrivateKeyRec shmScrPrivateKeyRec;
+#define shmScrPrivateKey (&shmScrPrivateKeyRec)
+static DevPrivateKeyRec shmPixmapPrivateKeyRec;
+#define shmPixmapPrivateKey (&shmPixmapPrivateKeyRec)
 static ShmFuncs miFuncs = {NULL, NULL};
 static ShmFuncs fbFuncs = {fbShmCreatePixmap, NULL};
 
@@ -244,6 +244,16 @@ ShmInitScreenPriv(ScreenPtr pScreen)
     return screen_priv;
 }
 
+static Bool
+ShmRegisterPrivates(void)
+{
+    if (!dixRegisterPrivateKey(&shmScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&shmPixmapPrivateKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE;
+    return TRUE;
+}
+
 void
 ShmExtensionInit(INITARGS)
 {
@@ -257,6 +267,9 @@ ShmExtensionInit(INITARGS)
 	return;
     }
 #endif
+
+    if (!ShmRegisterPrivates())
+	return;
 
     sharedPixmaps = xFalse;
     {
@@ -303,6 +316,8 @@ ShmResetProc(ExtensionEntry *extEntry)
 void
 ShmRegisterFuncs(ScreenPtr pScreen, ShmFuncsPtr funcs)
 {
+    if (!ShmRegisterPrivates())
+	return;
     ShmInitScreenPriv(pScreen)->shmFuncs = funcs;
 }
 
@@ -316,7 +331,7 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     {
 	ShmDescPtr  shmdesc;
 	shmdesc = (ShmDescPtr)dixLookupPrivate(&pPixmap->devPrivates,
-					       shmPixmapPrivate);
+					       shmPixmapPrivateKey);
 	if (shmdesc)
 	    ShmDetachSegment ((pointer) shmdesc, pPixmap->drawable.id);
     }
@@ -817,7 +832,7 @@ CreatePmap:
 				shmdesc->addr + stuff->offset);
 
 	if (pMap) {
-	    dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
+	    dixSetPrivate(&pMap->devPrivates, shmPixmapPrivateKey, shmdesc);
             shmdesc->refcnt++;
 	    pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	    pMap->drawable.id = newPix->info[j].id;
@@ -1156,7 +1171,7 @@ CreatePmap:
 	    pDraw->pScreen->DestroyPixmap(pMap);
 	    return rc;
 	}
-	dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
+	dixSetPrivate(&pMap->devPrivates, shmPixmapPrivateKey, shmdesc);
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	pMap->drawable.id = stuff->pid;

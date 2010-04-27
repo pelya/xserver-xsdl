@@ -151,8 +151,8 @@ typedef struct {
    int (*TiledFillChooser)(GCPtr);
 } XAAOverlayRec, *XAAOverlayPtr;
 
-static int XAAOverlayKeyIndex;
-static DevPrivateKey XAAOverlayKey = &XAAOverlayKeyIndex;
+static DevPrivateKeyRec XAAOverlayKeyRec;
+#define XAAOverlayKey (&XAAOverlayKeyRec)
 
 #define GET_OVERLAY_PRIV(pScreen) \
     (XAAOverlayPtr)dixLookupPrivate(&(pScreen)->devPrivates, XAAOverlayKey)
@@ -172,6 +172,9 @@ XAAInitDualFramebufferOverlay(
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     XAAOverlayPtr pOverPriv;
+
+    if (!dixRegisterPrivateKey(&XAAOverlayKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
 
     if(!(pOverPriv = malloc(sizeof(XAAOverlayRec))))
 	return FALSE;

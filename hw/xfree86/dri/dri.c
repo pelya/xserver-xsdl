@@ -74,10 +74,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
 
 static int DRIEntPrivIndex = -1;
-static int DRIScreenPrivKeyIndex;
-static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKeyIndex;
-static int DRIWindowPrivKeyIndex;
-static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKeyIndex;
+static DevPrivateKeyRec DRIScreenPrivKeyRec;
+#define DRIScreenPrivKey (&DRIScreenPrivKeyRec)
+static DevPrivateKeyRec DRIWindowPrivKeyRec;
+#define DRIWindowPrivKey (&DRIWindowPrivKeyRec)
 static unsigned long DRIGeneration = 0;
 static unsigned int DRIDrawableValidationStamp = 0;
 
@@ -356,6 +356,11 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     if (DRIGeneration != serverGeneration)
 	DRIGeneration = serverGeneration;
+
+    if (!dixRegisterPrivateKey(&DRIScreenPrivKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&DRIWindowPrivKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
 
     pDRIPriv = (DRIScreenPrivPtr) calloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
@@ -785,7 +790,7 @@ drmServerInfo DRIDRMServerInfo =  {
 Bool
 DRIExtensionInit(void)
 {
-    if (!DRIScreenPrivKey || DRIGeneration != serverGeneration) {
+    if (DRIGeneration != serverGeneration) {
 	return FALSE;
     }
 

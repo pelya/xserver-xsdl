@@ -51,12 +51,15 @@
 CARD8 dri2_major; /* version of DRI2 supported by DDX */
 CARD8 dri2_minor;
 
-static int           dri2ScreenPrivateKeyIndex;
-static DevPrivateKey dri2ScreenPrivateKey = &dri2ScreenPrivateKeyIndex;
-static int dri2WindowPrivateKeyIndex;
-static DevPrivateKey dri2WindowPrivateKey = &dri2WindowPrivateKeyIndex;
-static int dri2PixmapPrivateKeyIndex;
-static DevPrivateKey dri2PixmapPrivateKey = &dri2PixmapPrivateKeyIndex;
+static DevPrivateKeyRec dri2ScreenPrivateKeyRec;
+#define dri2ScreenPrivateKey (&dri2ScreenPrivateKeyRec)
+
+static DevPrivateKeyRec dri2WindowPrivateKeyRec;
+#define dri2WindowPrivateKey (&dri2WindowPrivateKeyRec)
+
+static DevPrivateKeyRec dri2PixmapPrivateKeyRec;
+#define dri2PixmapPrivateKey (&dri2PixmapPrivateKeyRec)
+
 static RESTYPE       dri2DrawableRes;
 
 typedef struct _DRI2Screen *DRI2ScreenPtr;
@@ -1024,6 +1027,15 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
                   "[DRI2] Direct rendering is not supported when VGA arb is necessary for the device\n");
         return FALSE;
     }
+
+    if (!dixRegisterPrivateKey(&dri2ScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&dri2WindowPrivateKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&dri2PixmapPrivateKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE;
 
     ds = calloc(1, sizeof *ds);
     if (!ds)

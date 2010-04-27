@@ -37,9 +37,6 @@ fbCloseScreen (int index, ScreenPtr pScreen)
     free(depths);
     free(pScreen->visuals);
     free(pScreen->devPrivate);
-#ifdef FB_SCREEN_PRIVATE
-    free(dixLookupPrivate(&pScreen->devPrivates, fbGetScreenPrivateKey()));
-#endif
     return TRUE;
 }
 

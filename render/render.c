@@ -210,8 +210,8 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
 };
 
 int	RenderErrBase;
-static int RenderClientPrivateKeyIndex;
-DevPrivateKey RenderClientPrivateKey = &RenderClientPrivateKeyIndex;
+static DevPrivateKeyRec RenderClientPrivateKeyRec;
+#define RenderClientPrivateKey (&RenderClientPrivateKeyRec )
 
 typedef struct _RenderClient {
     int	    major_version;
@@ -246,7 +246,7 @@ RenderExtensionInit (void)
 	return;
     if (!PictureFinishInit ())
 	return;
-    if (!dixRequestPrivate(RenderClientPrivateKey, sizeof(RenderClientRec)))
+    if (!dixRegisterPrivateKey(&RenderClientPrivateKeyRec, PRIVATE_CLIENT, sizeof(RenderClientRec)))
 	return;
     if (!AddCallback (&ClientStateCallback, RenderClientCallback, 0))
 	return;

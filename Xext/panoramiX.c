@@ -103,10 +103,10 @@ static void PanoramiXResetProc(ExtensionEntry*);
 
 int (* SavedProcVector[256]) (ClientPtr client) = { NULL, };
 
-static int PanoramiXGCKeyIndex;
-static DevPrivateKey PanoramiXGCKey = &PanoramiXGCKeyIndex;
-static int PanoramiXScreenKeyIndex;
-static DevPrivateKey PanoramiXScreenKey = &PanoramiXScreenKeyIndex;
+static DevPrivateKeyRec PanoramiXGCKeyRec;
+#define PanoramiXGCKey (&PanoramiXGCKeyRec)
+static DevPrivateKeyRec PanoramiXScreenKeyRec;
+#define PanoramiXScreenKey (&PanoramiXScreenKeyRec)
 
 typedef struct {
   DDXPointRec clipOrg;
@@ -443,6 +443,16 @@ void PanoramiXExtensionInit(int argc, char *argv[])
     if (noPanoramiXExtension) 
 	return;
 
+    if (!dixRegisterPrivateKey(&PanoramiXScreenKeyRec, PRIVATE_SCREEN, 0)) {
+	noPanoramiXExtension = TRUE;
+	return;
+    }
+
+    if (!dixRegisterPrivateKey(&PanoramiXGCKeyRec, PRIVATE_GC, sizeof(PanoramiXGCRec))) {
+	noPanoramiXExtension = TRUE;
+	return;
+    }
+
     PanoramiXNumScreens = screenInfo.numScreens;
     if (PanoramiXNumScreens == 1) {		/* Only 1 screen 	*/
 	noPanoramiXExtension = TRUE;
@@ -462,11 +472,6 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	 *	run in non-PanoramiXeen mode.
 	 */
 
-	if (!dixRequestPrivate(PanoramiXGCKey, sizeof(PanoramiXGCRec))) {
-		noPanoramiXExtension = TRUE;
-		return;
-	}
-	
 	for (i = 0; i < PanoramiXNumScreens; i++) {
 	   pScreen = screenInfo.screens[i];
 	   pScreenPriv = malloc(sizeof(PanoramiXScreenRec));

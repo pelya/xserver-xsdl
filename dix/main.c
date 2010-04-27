@@ -174,7 +174,7 @@ int main(int argc, char *argv[], char *envp[])
 	    InitProcVectors();
 	    for (i=1; i<MAXCLIENTS; i++)
 		clients[i] = NullClient;
-	    serverClient = malloc(sizeof(ClientRec));
+	    serverClient = calloc(sizeof(ClientRec), 1);
 	    if (!serverClient)
 		FatalError("couldn't create server client");
 	    InitClient(serverClient, 0, (pointer)NULL);
@@ -183,6 +183,12 @@ int main(int argc, char *argv[], char *envp[])
 	    ResetWellKnownSockets ();
 	clients[0] = serverClient;
 	currentMaxClients = 1;
+
+	/* Initialize server client devPrivates, to be reallocated as
+	 * more client privates are registered
+	 */
+	if (!dixAllocatePrivates(&serverClient->devPrivates, PRIVATE_CLIENT))
+	    FatalError("failed to create server client privates");
 
 	if (!InitClientResources(serverClient))      /* for root resources */
 	    FatalError("couldn't init server resources");
@@ -194,8 +200,7 @@ int main(int argc, char *argv[], char *envp[])
 	InitEvents();
 	InitSelections();
 	InitGlyphCaching();
-	if (!dixResetPrivates())
-	    FatalError("couldn't init private data storage");
+	dixResetPrivates();
 	dixResetRegistry();
 	ResetFontPrivateIndex();
 	InitCallbackManager();
@@ -204,6 +209,7 @@ int main(int argc, char *argv[], char *envp[])
 	if (screenInfo.numScreens < 1)
 	    FatalError("no screens found");
 	InitExtensions(argc, argv);
+
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
 	    ScreenPtr pScreen = screenInfo.screens[i];
@@ -314,16 +320,17 @@ int main(int argc, char *argv[], char *envp[])
 	    FreeGCperDepth(i);
 	    FreeDefaultStipple(i);
 	    (* screenInfo.screens[i]->CloseScreen)(i, screenInfo.screens[i]);
-	    dixFreePrivates(screenInfo.screens[i]->devPrivates);
+	    dixFreePrivates(screenInfo.screens[i]->devPrivates, PRIVATE_SCREEN);
 	    free(screenInfo.screens[i]);
 	    screenInfo.numScreens = i;
 	}
+
+	dixFreePrivates(serverClient->devPrivates, PRIVATE_CLIENT);
+	serverClient->devPrivates = NULL;
+
 	FreeFonts();
 
 	FreeAuditTimer();
-
-	dixFreePrivates(serverClient->devPrivates);
-	serverClient->devPrivates = NULL;
 
 	if (dispatchException & DE_TERMINATE)
 	{

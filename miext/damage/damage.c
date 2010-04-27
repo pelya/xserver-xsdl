@@ -70,14 +70,14 @@
 
 #define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
 
-static int damageScrPrivateKeyIndex;
-static DevPrivateKey damageScrPrivateKey = &damageScrPrivateKeyIndex;
-static int damagePixPrivateKeyIndex;
-static DevPrivateKey damagePixPrivateKey = &damagePixPrivateKeyIndex;
-static int damageGCPrivateKeyIndex;
-static DevPrivateKey damageGCPrivateKey = &damageGCPrivateKeyIndex;
-static int damageWinPrivateKeyIndex;
-static DevPrivateKey damageWinPrivateKey = &damageWinPrivateKeyIndex;
+static DevPrivateKeyRec damageScrPrivateKeyRec;
+#define damageScrPrivateKey (&damageScrPrivateKeyRec)
+static DevPrivateKeyRec damagePixPrivateKeyRec;
+#define damagePixPrivateKey (&damagePixPrivateKeyRec)
+static DevPrivateKeyRec damageGCPrivateKeyRec;
+#define damageGCPrivateKey (&damageGCPrivateKeyRec)
+static DevPrivateKeyRec damageWinPrivateKeyRec;
+#define damageWinPrivateKey (&damageWinPrivateKeyRec)
 
 static DamagePtr *
 getDrawableDamageRef (DrawablePtr pDrawable)
@@ -1884,10 +1884,19 @@ DamageSetup (ScreenPtr pScreen)
 	miDamageCreate, miDamageRegister, miDamageUnregister, miDamageDestroy
     };
 
+    if (!dixRegisterPrivateKey(&damageScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
     if (dixLookupPrivate(&pScreen->devPrivates, damageScrPrivateKey))
 	return TRUE;
 
-    if (!dixRequestPrivate(damageGCPrivateKey, sizeof(DamageGCPrivRec)))
+    if (!dixRegisterPrivateKey(&damageGCPrivateKeyRec, PRIVATE_GC, sizeof(DamageGCPrivRec)))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&damagePixPrivateKeyRec, PRIVATE_PICTURE, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&damageWinPrivateKeyRec, PRIVATE_WINDOW, 0))
 	return FALSE;
 
     pScrPriv = malloc(sizeof (DamageScrPrivRec));
@@ -1926,7 +1935,7 @@ DamageCreate (DamageReportFunc  damageReport,
     damageScrPriv(pScreen);
     DamagePtr	pDamage;
 
-    pDamage = malloc(sizeof (DamageRec));
+    pDamage = dixAllocateObjectWithPrivates(DamageRec, PRIVATE_DAMAGE);
     if (!pDamage)
 	return 0;
     pDamage->pNext = 0;
@@ -1946,7 +1955,6 @@ DamageCreate (DamageReportFunc  damageReport,
     pDamage->damageDestroy = damageDestroy;
     pDamage->damageMarker = NULL;
     pDamage->pScreen = pScreen;
-    pDamage->devPrivates = NULL;
 
     (*pScrPriv->funcs.Create) (pDamage);
 
@@ -2050,11 +2058,9 @@ DamageDestroy (DamagePtr    pDamage)
     if (pDamage->damageDestroy)
 	(*pDamage->damageDestroy) (pDamage, pDamage->closure);
     (*pScrPriv->funcs.Destroy) (pDamage);
-    dixFreePrivates(pDamage->devPrivates);
-    pDamage->devPrivates = NULL;
     RegionUninit(&pDamage->damage);
     RegionUninit(&pDamage->pendingDamage);
-    free(pDamage);
+    dixFreeObjectWithPrivates(pDamage, PRIVATE_DAMAGE);
 }
 
 Bool

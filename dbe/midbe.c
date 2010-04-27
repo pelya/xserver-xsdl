@@ -58,14 +58,8 @@
 
 #include <stdio.h>
 
-static int miDbeWindowPrivPrivKeyIndex;
-static DevPrivateKey miDbeWindowPrivPrivKey = &miDbeWindowPrivPrivKeyIndex;
-static RESTYPE	dbeDrawableResType;
-static RESTYPE	dbeWindowPrivResType;
-static int dbeScreenPrivKeyIndex;
-static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKeyIndex;
-static int dbeWindowPrivKeyIndex;
-static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKeyIndex;
+static DevPrivateKeyRec miDbeWindowPrivPrivKeyRec;
+#define miDbeWindowPrivPrivKey (&miDbeWindowPrivPrivKeyRec)
 
 
 /******************************************************************************
@@ -787,16 +781,8 @@ miDbeResetProc(ScreenPtr pScreen)
 Bool
 miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
 {
-    /* Copy resource types created by DIX */
-    dbeDrawableResType   = pDbeScreenPriv->dbeDrawableResType;
-    dbeWindowPrivResType = pDbeScreenPriv->dbeWindowPrivResType;
-
-    /* Copy private indices created by DIX */
-    dbeScreenPrivKey = pDbeScreenPriv->dbeScreenPrivKey;
-    dbeWindowPrivKey = pDbeScreenPriv->dbeWindowPrivKey;
-
-    if (!dixRequestPrivate(miDbeWindowPrivPrivKey,
-			   sizeof(MiDbeWindowPrivPrivRec)))
+    if (!dixRegisterPrivateKey(&miDbeWindowPrivPrivKeyRec, PRIVATE_DBE_WINDOW,
+			       sizeof(MiDbeWindowPrivPrivRec)))
         return(FALSE);
 
     /* Wrap functions. */

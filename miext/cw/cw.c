@@ -43,14 +43,11 @@
 #define CW_ASSERT(x) do {} while (0)
 #endif
 
-static int cwGCKeyIndex;
-DevPrivateKey cwGCKey = &cwGCKeyIndex;
-static int cwScreenKeyIndex;
-DevPrivateKey cwScreenKey = &cwScreenKeyIndex;
-static int cwWindowKeyIndex;
-DevPrivateKey cwWindowKey = &cwWindowKeyIndex;
-static int cwPictureKeyIndex;
-DevPrivateKey cwPictureKey = &cwPictureKeyIndex;
+DevPrivateKeyRec cwGCKeyRec;
+DevPrivateKeyRec cwScreenKeyRec;
+DevPrivateKeyRec cwWindowKeyRec;
+DevPrivateKeyRec cwPictureKeyRec;
+
 extern GCOps cwGCOps;
 
 static Bool
@@ -477,7 +474,16 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     cwScreenPtr pScreenPriv;
     Bool has_render = GetPictureScreenIfSet(pScreen) != NULL;
 
-    if (!dixRequestPrivate(cwGCKey, sizeof(cwGCRec)))
+    if (!dixRegisterPrivateKey(&cwScreenKeyRec, PRIVATE_SCREEN, 0))
+	return;
+
+    if (!dixRegisterPrivateKey(&cwGCKeyRec, PRIVATE_GC, sizeof(cwGCRec)))
+	return;
+
+    if (!dixRegisterPrivateKey(&cwWindowKeyRec, PRIVATE_WINDOW, 0))
+	return;
+
+    if (!dixRegisterPrivateKey(&cwPictureKeyRec, PRIVATE_PICTURE, 0))
 	return;
 
     pScreenPriv = malloc(sizeof(cwScreenRec));

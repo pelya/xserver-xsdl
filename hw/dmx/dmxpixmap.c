@@ -49,7 +49,7 @@
 /** Initialize a private area in \a pScreen for pixmap information. */
 Bool dmxInitPixmap(ScreenPtr pScreen)
 {
-    if (!dixRequestPrivate(dmxPixPrivateKey, sizeof(dmxPixPrivRec)))
+    if (!dixRegisterPrivateKey(&dmxPixPrivateKeyRec, PRIVATE_PIXMAP, sizeof(dmxPixPrivRec)))
 	return FALSE;
 
     return TRUE;
@@ -174,8 +174,7 @@ Bool dmxDestroyPixmap(PixmapPtr pPixmap)
 	    dmxSync(dmxScreen, FALSE);
 	}
     }
-    dixFreePrivates(pPixmap->devPrivates);
-    free(pPixmap);
+    FreePixmap(pPixmap);
 
 #if 0
     if (pScreen->DestroyPixmap)

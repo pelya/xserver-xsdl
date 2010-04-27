@@ -43,8 +43,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "mi.h"
 #define EXTENSION_EVENT_BASE 64
 
-static int xkbDevicePrivateKeyIndex;
-DevPrivateKey xkbDevicePrivateKey = &xkbDevicePrivateKeyIndex;
+DevPrivateKeyRec xkbDevicePrivateKeyRec;
 
 static void XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button);
 static void XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y);

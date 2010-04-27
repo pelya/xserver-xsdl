@@ -51,8 +51,8 @@ from Kaleb S. KEITHLEY
 #define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
 static int VidModeErrorBase;
-static int VidModeClientPrivateKeyIndex;
-static DevPrivateKey VidModeClientPrivateKey = &VidModeClientPrivateKeyIndex;
+static DevPrivateKeyRec VidModeClientPrivateKeyRec;
+#define VidModeClientPrivateKey (&VidModeClientPrivateKeyRec)
 
 /* This holds the client's version information */
 typedef struct {
@@ -141,8 +141,8 @@ typedef struct _XF86VidModeScreenPrivate {
     Bool		hasWindow;
 } XF86VidModeScreenPrivateRec, *XF86VidModeScreenPrivatePtr;
 
-static int ScreenPrivateKeyIndex;
-static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
+static DevPrivateKeyRec ScreenPrivateKeyRec;
+#define ScreenPrivateKey (&ScreenPrivateKeyRec)
 
 #define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
     dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))
@@ -169,6 +169,13 @@ XFree86VidModeExtensionInit(void)
 
     DEBUG_P("XFree86VidModeExtensionInit");
 
+    if (!dixRegisterPrivateKey(&VidModeClientPrivateKeyRec, PRIVATE_CLIENT, 0))
+	return;
+#ifdef XF86VIDMODE_EVENTS
+    if (!dixRegisterPrivateKey(&ScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return;
+#endif
+
 #ifdef XF86VIDMODE_EVENTS
     EventType = CreateNewResourceType(XF86VidModeFreeEvents, "VidModeEvent");
 #endif
@@ -177,9 +184,6 @@ XFree86VidModeExtensionInit(void)
         pScreen = screenInfo.screens[i];
 	if (VidModeExtensionInit(pScreen))
 	    enabled = TRUE;
-#ifdef XF86VIDMODE_EVENTS
-	SetScreenPrivate (pScreen, NULL);
-#endif
     }
     /* This means that the DDX doesn't want the vidmode extension enabled */
     if (!enabled)

@@ -55,10 +55,10 @@ typedef struct {
    Bool				copyUnderlay;
 } miOverlayScreenRec, *miOverlayScreenPtr;
 
-static int miOverlayWindowKeyKeyIndex;
-static DevPrivateKey miOverlayWindowKey = &miOverlayWindowKeyKeyIndex;
-static int miOverlayScreenKeyIndex;
-static DevPrivateKey miOverlayScreenKey = &miOverlayScreenKeyIndex;
+static DevPrivateKeyRec miOverlayWindowKeyRec;
+#define miOverlayWindowKey (&miOverlayWindowKeyRec)
+static DevPrivateKeyRec miOverlayScreenKeyRec;
+#define miOverlayScreenKey (&miOverlayScreenKeyRec)
 
 static void RebuildTree(WindowPtr);
 static Bool HasUnderlayChildren(WindowPtr);
@@ -113,7 +113,10 @@ miInitOverlay(
 
     if(!inOverlayFunc || !transFunc) return FALSE;
 
-    if(!dixRequestPrivate(miOverlayWindowKey, sizeof(miOverlayWindowRec)))
+    if(!dixRegisterPrivateKey(&miOverlayWindowKeyRec, PRIVATE_WINDOW, sizeof(miOverlayWindowRec)))
+	return FALSE;
+
+    if(!dixRegisterPrivateKey(&miOverlayScreenKeyRec, PRIVATE_SCREEN, 0))
 	return FALSE;
 
     if(!(pScreenPriv = malloc(sizeof(miOverlayScreenRec))))

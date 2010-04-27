@@ -389,8 +389,8 @@ ddxProcessArgument(int argc, char *argv[], int i)
     return 0;
 }
 
-static int cmapScrPrivateKeyIndex;
-static DevPrivateKey cmapScrPrivateKey = &cmapScrPrivateKeyIndex;
+static DevPrivateKeyRec cmapScrPrivateKeyRec;
+#define cmapScrPrivateKey (&cmapScrPrivateKeyRec)
 
 #define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
 #define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
@@ -811,6 +811,9 @@ vfbScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     int ret;
     char *pbits;
     
+    if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
     if (dpix == 0)
       dpix = 100;
 

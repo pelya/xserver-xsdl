@@ -67,6 +67,7 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp,
     pPixmap->devKind = paddedWidth;
     pPixmap->refcnt = 1;
     pPixmap->devPrivate.ptr = (pointer) ((char *)pPixmap + base + adjust);
+
 #ifdef FB_DEBUG
     pPixmap->devPrivate.ptr = (void *) ((char *) pPixmap->devPrivate.ptr + paddedWidth);
     fbInitializeDrawable (&pPixmap->drawable);
@@ -100,8 +101,7 @@ fbDestroyPixmap (PixmapPtr pPixmap)
 {
     if(--pPixmap->refcnt)
 	return TRUE;
-    dixFreePrivates(pPixmap->devPrivates);
-    free(pPixmap);
+    FreePixmap(pPixmap);
     return TRUE;
 }
 

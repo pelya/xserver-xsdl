@@ -84,19 +84,13 @@ static const CARD8	glyphDepths[GlyphFormatNum] = { 1, 4, 8, 16, 32 };
 
 static GlyphHashRec	globalGlyphs[GlyphFormatNum];
 
-static void
-FreeGlyphPrivates (GlyphPtr glyph)
-{
-    dixFreePrivates(glyph->devPrivates);
-    glyph->devPrivates = NULL;
-}
-
 void
 GlyphUninit (ScreenPtr pScreen)
 {
     PictureScreenPtr ps = GetPictureScreen (pScreen);
     GlyphPtr	     glyph;
     int		     fdepth, i;
+    int		     scrno = pScreen->myNum;
 
     for (fdepth = 0; fdepth < GlyphFormatNum; fdepth++)
     {
@@ -108,8 +102,12 @@ GlyphUninit (ScreenPtr pScreen)
 	    glyph = globalGlyphs[fdepth].table[i].glyph;
 	    if (glyph && glyph != DeletedGlyph)
 	    {
+		if (GlyphPicture(glyph)[scrno])
+		{
+		    FreePicture ((pointer) GlyphPicture (glyph)[scrno], 0);
+		    GlyphPicture(glyph)[scrno] = NULL;
+		}
 		(*ps->UnrealizeGlyph) (pScreen, glyph);
-		FreeGlyphPrivates(glyph);
 	    }
 	}
     }
@@ -301,8 +299,7 @@ FreeGlyph (GlyphPtr glyph, int format)
 	}
 
 	FreeGlyphPicture(glyph);
-	FreeGlyphPrivates(glyph);
-	free(glyph);
+	dixFreeObjectWithPrivates(glyph, PRIVATE_GLYPH);
     }
 }
 
@@ -320,8 +317,7 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
     if (gr->glyph && gr->glyph != DeletedGlyph && gr->glyph != glyph)
     {
 	FreeGlyphPicture(glyph);
-	FreeGlyphPrivates(glyph);
-	free(glyph);
+	dixFreeObjectWithPrivates(glyph, PRIVATE_GLYPH);
 	glyph = gr->glyph;
     }
     else if (gr->glyph != glyph)
@@ -372,6 +368,8 @@ FindGlyph (GlyphSetPtr glyphSet, Glyph id)
     return glyph;
 }
 
+#define GLYPH_SIZE	(sizeof (GlyphRec) + dixPrivatesSize(PRIVATE_GLYPH))
+
 GlyphPtr
 AllocateGlyph (xGlyphInfo *gi, int fdepth)
 {
@@ -381,13 +379,13 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     int		     i;
 
     size = screenInfo.numScreens * sizeof (PicturePtr);
-    glyph = (GlyphPtr) malloc(size + sizeof (GlyphRec));
+    glyph = (GlyphPtr) malloc (size + GLYPH_SIZE);
     if (!glyph)
 	return 0;
     glyph->refcnt = 0;
     glyph->size = size + sizeof (xGlyphInfo);
     glyph->info = *gi;
-    glyph->devPrivates = NULL;
+    dixInitPrivates(glyph, glyph + 1, PRIVATE_GLYPH);
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
@@ -411,8 +409,7 @@ bail:
 	    (*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
     }
 
-    FreeGlyphPrivates(glyph);
-    free(glyph);
+    dixFreeObjectWithPrivates(glyph, PRIVATE_GLYPH);
     return 0;
 }
     
@@ -481,7 +478,6 @@ GlyphSetPtr
 AllocateGlyphSet (int fdepth, PictFormatPtr format)
 {
     GlyphSetPtr	glyphSet;
-    int size;
     
     if (!globalGlyphs[fdepth].hashSet)
     {
@@ -489,8 +485,7 @@ AllocateGlyphSet (int fdepth, PictFormatPtr format)
 	    return FALSE;
     }
 
-    size = sizeof (GlyphSetRec);
-    glyphSet = calloc(1, size);
+    glyphSet = dixAllocateObjectWithPrivates(GlyphSetRec, PRIVATE_GLYPHSET);
     if (!glyphSet)
 	return FALSE;
 
@@ -532,8 +527,7 @@ FreeGlyphSet (pointer	value,
 	else
 	    ResizeGlyphHash (&globalGlyphs[glyphSet->fdepth], 0, TRUE);
 	free(table);
-	dixFreePrivates(glyphSet->devPrivates);
-	free(glyphSet);
+	dixFreeObjectWithPrivates(glyphSet, PRIVATE_GLYPHSET);
     }
     return Success;
 }

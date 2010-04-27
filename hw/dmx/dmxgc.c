@@ -85,7 +85,7 @@ static GCOps dmxGCOps = {
 /** Initialize the GC on \a pScreen */
 Bool dmxInitGC(ScreenPtr pScreen)
 {
-    if (!dixRequestPrivate(dmxGCPrivateKey, sizeof(dmxGCPrivRec)))
+    if (!dixRegisterPrivateKey(&dmxGCPrivateKeyRec, PRIVATE_GC, sizeof(dmxGCPrivRec)))
             return FALSE;
     return TRUE;
 }

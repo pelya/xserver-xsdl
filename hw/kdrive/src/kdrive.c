@@ -64,8 +64,7 @@ KdDepths    kdDepths[] = {
 
 #define KD_DEFAULT_BUTTONS 5
 
-static int          kdScreenPrivateKeyIndex;
-DevPrivateKey       kdScreenPrivateKey = &kdScreenPrivateKeyIndex;
+DevPrivateKeyRec    kdScreenPrivateKeyRec;
 unsigned long	    kdGeneration;
 
 Bool                kdVideoTest;
@@ -698,6 +697,9 @@ KdAllocatePrivates (ScreenPtr pScreen)
 
     if (kdGeneration != serverGeneration)
 	kdGeneration = serverGeneration;
+
+    if (!dixRegisterPrivateKey(&kdScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
 
     pScreenPriv = calloc(1, sizeof (*pScreenPriv));
     if (!pScreenPriv)

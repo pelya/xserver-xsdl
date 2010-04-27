@@ -3498,8 +3498,7 @@ CloseDownClient(ClientPtr client)
 	    nextFreeClientID = client->index;
 	clients[client->index] = NullClient;
 	SmartLastClient = NullClient;
-	dixFreePrivates(client->devPrivates);
-	free(client);
+	dixFreeObjectWithPrivates(client, PRIVATE_CLIENT);
 
 	while (!clients[currentMaxClients-1])
 	    currentMaxClients--;
@@ -3520,7 +3519,6 @@ KillAllClients(void)
 
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
-    memset(client, 0, sizeof(*client));
     client->index = i;
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
     client->closeDownMode = i ? DestroyAll : RetainPermanent;
@@ -3548,13 +3546,13 @@ ClientPtr NextAvailableClient(pointer ospriv)
     i = nextFreeClientID;
     if (i == MAXCLIENTS)
 	return (ClientPtr)NULL;
-    clients[i] = client = malloc(sizeof(ClientRec));
+    clients[i] = client = dixAllocateObjectWithPrivates(ClientRec, PRIVATE_CLIENT);
     if (!client)
 	return (ClientPtr)NULL;
     InitClient(client, i, ospriv);
     if (!InitClientResources(client))
     {
-	free(client);
+	dixFreeObjectWithPrivates(client, PRIVATE_CLIENT);
 	return (ClientPtr)NULL;
     }
     data.reqType = 1;
@@ -3562,7 +3560,7 @@ ClientPtr NextAvailableClient(pointer ospriv)
     if (!InsertFakeRequest(client, (char *)&data, sz_xReq))
     {
 	FreeClientResources(client);
-	free(client);
+	dixFreeObjectWithPrivates(client, PRIVATE_CLIENT);
 	return (ClientPtr)NULL;
     }
     if (i == currentMaxClients)
@@ -3868,9 +3866,12 @@ AddScreen(
     if (!pScreen)
 	return -1;
 
-    pScreen->devPrivates = NULL;
+    if (!dixAllocatePrivates(&pScreen->devPrivates, PRIVATE_SCREEN)) {
+	free (pScreen);
+	return -1;
+    }
     pScreen->myNum = i;
-    pScreen->totalPixmapSize = BitmapBytePad(sizeof(PixmapRec)*8);
+    pScreen->totalPixmapSize = 0;	/* computed in CreateScratchPixmapForScreen */
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
 
@@ -3920,10 +3921,13 @@ AddScreen(
     screenInfo.numScreens++;
     if (!(*pfnInit)(i, pScreen, argc, argv))
     {
-	dixFreePrivates(pScreen->devPrivates);
+	dixFreePrivates(pScreen->devPrivates, PRIVATE_SCREEN);
 	free(pScreen);
 	screenInfo.numScreens--;
 	return -1;
     }
+
+    dixRegisterPrivateKey(&cursorScreenDevPriv[i], PRIVATE_CURSOR, 0);
+
     return i;
 }

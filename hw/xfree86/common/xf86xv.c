@@ -110,10 +110,11 @@ static void xf86XVAdjustFrame(int index, int x, int y, int flags);
 static Bool xf86XVInitAdaptors(ScreenPtr, XF86VideoAdaptorPtr*, int);
 
 
-static int XF86XVWindowKeyIndex;
-static DevPrivateKey XF86XVWindowKey = &XF86XVWindowKeyIndex;
-static int XF86XvScreenKeyIndex;
-DevPrivateKey XF86XvScreenKey = &XF86XvScreenKeyIndex;
+static DevPrivateKeyRec XF86XVWindowKeyRec;
+#define XF86XVWindowKey (&XF86XVWindowKeyRec)
+
+DevPrivateKey XF86XvScreenKey;
+
 static unsigned long PortResource = 0;
 
 DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;
@@ -186,8 +187,8 @@ typedef struct {
    int num;
 } OffscreenImageRec;
 
-static int OffscreenPrivateKeyIndex;
-static DevPrivateKey OffscreenPrivateKey = &OffscreenPrivateKeyIndex;
+static DevPrivateKeyRec OffscreenPrivateKeyRec;
+#define OffscreenPrivateKey (&OffscreenPrivateKeyRec)
 #define GetOffscreenImage(pScreen) ((OffscreenImageRec *) dixLookupPrivate(&(pScreen)->devPrivates, OffscreenPrivateKey))
 
 Bool
@@ -198,9 +199,9 @@ xf86XVRegisterOffscreenImages(
 ){
     OffscreenImageRec *OffscreenImage;
     /* This function may be called before xf86XVScreenInit, so there's
-     * no better place than this to call dixRequestPrivate to ensure we
+     * no better place than this to call dixRegisterPrivateKey to ensure we
      * have space reserved. After the first call it is a no-op. */
-    if(!dixRequestPrivate(OffscreenPrivateKey, sizeof(OffscreenImageRec)) ||
+    if(!dixRegisterPrivateKey(OffscreenPrivateKey, PRIVATE_SCREEN, sizeof(OffscreenImageRec)) ||
        !(OffscreenImage = GetOffscreenImage(pScreen)))
         /* Every X.org driver assumes this function always succeeds, so
          * just die on allocation failure. */
@@ -251,7 +252,11 @@ xf86XVScreenInit(
 
   if(Success != (*XvScreenInitProc)(pScreen)) return FALSE;
 
+  if (!dixRegisterPrivateKey(&XF86XVWindowKeyRec, PRIVATE_WINDOW, 0))
+      return FALSE;
+
   XF86XvScreenKey = (*XvGetScreenKeyProc)();
+
   PortResource = (*XvGetRTPortProc)();
 
   pxvs = GET_XV_SCREEN(pScreen);

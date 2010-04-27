@@ -479,7 +479,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
 {
     GCPtr pGC;
 
-    pGC = malloc(sizeof(GC));
+    pGC = dixAllocateObjectWithPrivates(GC, PRIVATE_GC);
     if (!pGC)
     {
 	*pStatus = BadAlloc;
@@ -492,7 +492,6 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     pGC->planemask = ~0;
     pGC->serialNumber = GC_CHANGE_SERIAL_BIT;
     pGC->funcs = 0;
-    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;
@@ -785,8 +784,7 @@ FreeGC(pointer value, XID gid)
     (*pGC->funcs->DestroyGC) (pGC);
     if (pGC->dash != DefaultDash)
 	free(pGC->dash);
-    dixFreePrivates(pGC->devPrivates);
-    free(pGC);
+    dixFreeObjectWithPrivates(pGC, PRIVATE_GC);
     return(Success);
 }
 
@@ -808,7 +806,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
 
-    pGC = malloc(sizeof(GC));
+    pGC = dixAllocateObjectWithPrivates(GC, PRIVATE_GC);
     if (!pGC)
 	return (GCPtr)NULL;
 
@@ -817,7 +815,6 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     pGC->alu = GXcopy; /* dst <- src */
     pGC->planemask = ~0;
     pGC->serialNumber = 0;
-    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;

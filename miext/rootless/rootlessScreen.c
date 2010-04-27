@@ -62,15 +62,10 @@ extern int RootlessMiValidateTree(WindowPtr pRoot, WindowPtr pChild,
 extern Bool RootlessCreateGC(GCPtr pGC);
 
 // Initialize globals
-static int rootlessGCPrivateKeyIndex;
-DevPrivateKey rootlessGCPrivateKey = &rootlessGCPrivateKeyIndex;
-static int rootlessScreenPrivateKeyIndex;
-DevPrivateKey rootlessScreenPrivateKey = &rootlessScreenPrivateKeyIndex;
-static int rootlessWindowPrivateKeyIndex;
-DevPrivateKey rootlessWindowPrivateKey = &rootlessWindowPrivateKeyIndex;
-static int rootlessWindowOldPixmapPrivateKeyIndex;
-DevPrivateKey rootlessWindowOldPixmapPrivateKey = &rootlessWindowOldPixmapPrivateKeyIndex;
-
+DevPrivateKeyRec rootlessGCPrivateKeyRec;
+DevPrivateKeyRec rootlessScreenPrivateKeyRec;
+DevPrivateKeyRec rootlessWindowPrivateKeyRec;
+DevPrivateKeyRec rootlessWindowOldPixmapPrivateKeyRec;
 
 /*
  * RootlessUpdateScreenPixmap
@@ -637,8 +632,13 @@ RootlessAllocatePrivates(ScreenPtr pScreen)
 {
     RootlessScreenRec *s;
 
-    // no allocation needed for screen privates
-    if (!dixRequestPrivate(rootlessGCPrivateKey, sizeof(RootlessGCRec)))
+    if (!dixRegisterPrivateKey(&rootlessGCPrivateKeyRec, PRIVATE_GC, sizeof(RootlessGCRec)))
+        return FALSE;
+    if (!dixRegisterPrivateKey(&rootlessScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+        return FALSE;
+    if (!dixRegisterPrivateKey(&rootlessWindowPrivateKeyRec, PRIVATE_WINDOW, 0))
+        return FALSE;
+    if (!dixRegisterPrivateKey(&rootlessWindowOldPixmapPrivateKeyRec, PRIVATE_WINDOW, 0))
         return FALSE;
 
     s = malloc(sizeof(RootlessScreenRec));

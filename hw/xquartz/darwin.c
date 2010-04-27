@@ -84,8 +84,7 @@ FILE *debug_log_fp = NULL;
  * X server shared global variables
  */
 int                     darwinScreensFound = 0;
-static int              darwinScreenKeyIndex;
-DevPrivateKey           darwinScreenKey = &darwinScreenKeyIndex;
+DevPrivateKeyRec        darwinScreenKeyRec;
 io_connect_t            darwinParamConnect = 0;
 int                     darwinEventReadFD = -1;
 int                     darwinEventWriteFD = -1;
@@ -184,6 +183,9 @@ static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv
     static int  foundIndex = 0;
     Bool        ret;
     DarwinFramebufferPtr dfb;
+
+    if (!dixRegisterPrivateKey(&darwinScreenKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
 
     // reset index of found screens for each server generation
     if (index == 0) {

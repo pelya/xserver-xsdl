@@ -255,7 +255,9 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 
     if (devid >= MAXDEVICES)
 	return (DeviceIntPtr)NULL;
-    dev =  calloc(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec), 1);
+    dev =  _dixAllocateObjectWithPrivates(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec),
+					  sizeof(DeviceIntRec) + sizeof(SpriteInfoRec),
+					  offsetof(DeviceIntRec, devPrivates), PRIVATE_DEVICE);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->id = devid;
@@ -936,8 +938,7 @@ CloseDevice(DeviceIntPtr dev)
     }
 
     free(dev->deviceGrab.sync.event);
-    dixFreePrivates(dev->devPrivates);
-    free(dev);
+    dixFreeObjectWithPrivates(dev, PRIVATE_DEVICE);
 }
 
 /**

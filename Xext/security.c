@@ -51,8 +51,8 @@ static RESTYPE RTEventClient;
 static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
 /* Private state record */
-static int stateKeyIndex;
-static DevPrivateKey stateKey = &stateKeyIndex;
+static DevPrivateKeyRec stateKeyRec;
+#define stateKey (&stateKeyRec)
 
 /* This is what we store as client security state */
 typedef struct {
@@ -1108,7 +1108,7 @@ SecurityExtensionInit(INITARGS)
     RTEventClient |= RC_NEVERRETAIN;
 
     /* Allocate the private storage */
-    if (!dixRequestPrivate(stateKey, sizeof(SecurityStateRec)))
+    if (!dixRegisterPrivateKey(stateKey, PRIVATE_CLIENT, sizeof(SecurityStateRec)))
 	FatalError("SecurityExtensionSetup: Can't allocate client private.\n");
 
     /* Register callbacks */

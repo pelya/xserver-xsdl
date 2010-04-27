@@ -109,10 +109,10 @@ static Bool findWindowPairFromLocal (WindowPtr a_local,
 
 static unsigned char DRIReqCode = 0;
 
-static int ephyrDRIWindowKeyIndex;
-static DevPrivateKey ephyrDRIWindowKey = &ephyrDRIWindowKeyIndex;
-static int ephyrDRIScreenKeyIndex;
-static DevPrivateKey ephyrDRIScreenKey = &ephyrDRIScreenKeyIndex;
+static DevPrivateKeyRec ephyrDRIWindowKeyRec;
+#define ephyrDRIWindowKey (&ephyrDRIWindowKeyRec)
+static DevPrivateKeyRec ephyrDRIScreenKeyRec;
+#define ephyrDRIScreenKey (&ephyrDRIScreenKeyRec)
 
 #define GET_EPHYR_DRI_WINDOW_PRIV(win) ((EphyrDRIWindowPrivPtr) \
     dixLookupPrivate(&(win)->devPrivates, ephyrDRIWindowKey))

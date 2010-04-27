@@ -61,10 +61,11 @@ unsigned char DGAReqCode = 0;
 int DGAErrorBase;
 int DGAEventBase;
 
-static int DGAScreenPrivateKeyIndex;
-static DevPrivateKey DGAScreenPrivateKey = &DGAScreenPrivateKeyIndex;
-static int DGAClientPrivateKeyIndex;
-static DevPrivateKey DGAClientPrivateKey = &DGAClientPrivateKeyIndex;
+static DevPrivateKeyRec DGAScreenPrivateKeyRec;
+#define DGAScreenPrivateKey (&DGAScreenPrivateKeyRec)
+#define DGAScreenPrivateKeyRegistered (DGAScreenPrivateKeyRec.initialized)
+static DevPrivateKeyRec DGAClientPrivateKeyRec;
+#define DGAClientPrivateKey (&DGAClientPrivateKeyRec)
 static int DGACallbackRefCount = 0;
 
 /* This holds the client's version information */
@@ -88,6 +89,12 @@ void
 XFree86DGAExtensionInit(INITARGS)
 {
     ExtensionEntry* extEntry;
+
+    if (!dixRegisterPrivateKey(&DGAClientPrivateKeyRec, PRIVATE_CLIENT, 0))
+	return;
+
+    if (!dixRegisterPrivateKey(&DGAScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return;
 
     if ((extEntry = AddExtension(XF86DGANAME,
 				XF86DGANumberEvents,
@@ -717,12 +724,12 @@ ProcXF86DGADirectVideo(ClientPtr client)
 
     if (stuff->screen > screenInfo.numScreens)
 	return BadValue;
-    owner = DGA_GETCLIENT(stuff->screen);
-
     REQUEST_SIZE_MATCH(xXF86DGADirectVideoReq);
 
     if (!DGAAvailable(stuff->screen))
 	return DGAErrorBase + XF86DGANoDirectVideoMode;
+
+    owner = DGA_GETCLIENT(stuff->screen);
 
     if (owner && owner != client)
         return DGAErrorBase + XF86DGANoDirectVideoMode;

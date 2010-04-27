@@ -151,11 +151,7 @@ WindowSeekDeviceCursor(WindowPtr pWin,
 
 int screenIsSaved = SCREEN_SAVER_OFF;
 
-static int FocusPrivatesKeyIndex;
-DevPrivateKey FocusPrivatesKey = &FocusPrivatesKeyIndex;
-
 static Bool TileScreenSaver(ScreenPtr pScreen, int kind);
-
 
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
 			      CWDontPropagate | CWOverrideRedirect | CWCursor )
@@ -357,7 +353,7 @@ CreateRootWindow(ScreenPtr pScreen)
     BoxRec	box;
     PixmapFormatRec *format;
 
-    pWin = malloc(sizeof(WindowRec));
+    pWin = dixAllocateObjectWithPrivates(WindowRec, PRIVATE_WINDOW);
     if (!pWin)
 	return FALSE;
 
@@ -370,7 +366,6 @@ CreateRootWindow(ScreenPtr pScreen)
 
     pWin->drawable.pScreen = pScreen;
     pWin->drawable.type = DRAWABLE_WINDOW;
-    pWin->devPrivates = NULL;
 
     pWin->drawable.depth = pScreen->rootDepth;
     for (format = screenInfo.formats;
@@ -637,14 +632,13 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin = malloc(sizeof(WindowRec));
+    pWin = dixAllocateObjectWithPrivates(WindowRec, PRIVATE_WINDOW);
     if (!pWin)
     {
 	*error = BadAlloc;
 	return NullWindow;
     }
     pWin->drawable = pParent->drawable;
-    pWin->devPrivates = NULL;
     pWin->drawable.depth = depth;
     if (depth == pParent->drawable.depth)
 	pWin->drawable.bitsPerPixel = pParent->drawable.bitsPerPixel;
@@ -668,7 +662,7 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
     {
 	if (!MakeWindowOptional (pWin))
 	{
-	    free(pWin);
+	    dixFreeObjectWithPrivates(pWin, PRIVATE_WINDOW);
 	    *error = BadAlloc;
 	    return NullWindow;
 	}
@@ -683,7 +677,7 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
     *error = XaceHook(XACE_RESOURCE_ACCESS, client, wid, RT_WINDOW, pWin,
 		RT_WINDOW, pWin->parent, DixCreateAccess|DixSetAttrAccess);
     if (*error != Success) {
-	free(pWin);
+	dixFreeObjectWithPrivates(pWin, PRIVATE_WINDOW);
 	return NullWindow;
     }
 
@@ -881,8 +875,7 @@ CrushTree(WindowPtr pWin)
 		(*UnrealizeWindow)(pChild);
 	    }
 	    FreeWindowResources(pChild);
-	    dixFreePrivates(pChild->devPrivates);
-	    free(pChild);
+	    dixFreeObjectWithPrivates(pChild, PRIVATE_WINDOW);
 	    if ( (pChild = pSib) )
 		break;
 	    pChild = pParent;
@@ -932,9 +925,7 @@ DeleteWindow(pointer value, XID wid)
 	if (pWin->prevSib)
 	    pWin->prevSib->nextSib = pWin->nextSib;
     }
-    free(dixLookupPrivate(&pWin->devPrivates, FocusPrivatesKey));
-    dixFreePrivates(pWin->devPrivates);
-    free(pWin);
+    dixFreeObjectWithPrivates(pWin, PRIVATE_WINDOW);
     return Success;
 }
 

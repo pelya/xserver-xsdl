@@ -52,6 +52,10 @@ typedef struct _PrivateDesc {
 #define PRIV_MAX 256
 #define PRIV_STEP 16
 
+static int number_privates_allocated;
+static int number_private_ptrs_allocated;
+static int bytes_private_data_allocated;
+
 /* list of all allocated privates */
 static PrivateDescRec items[PRIV_MAX];
 static int nextPriv;
@@ -59,31 +63,31 @@ static int nextPriv;
 static PrivateDescRec *
 findItem(const DevPrivateKey key)
 {
-    if (!*key) {
+    if (!key->key) {
 	if (nextPriv >= PRIV_MAX)
 	    return NULL;
 
 	items[nextPriv].key = key;
-	*key = nextPriv;
+	key->key = nextPriv;
 	nextPriv++;
     }
 
-    return items + *key;
+    return items + key->key;
 }
 
 static _X_INLINE int
 privateExists(PrivateRec **privates, const DevPrivateKey key)
 {
-    return *key && *privates &&
-	(*privates)[0].state > *key &&
-	(*privates)[*key].state;
+    return key->key && *privates &&
+	(*privates)[0].state > key->key &&
+	(*privates)[key->key].state;
 }
 
 /*
  * Request pre-allocated space.
  */
 int
-dixRequestPrivate(const DevPrivateKey key, unsigned size)
+dixRegisterPrivateKey(const DevPrivateKey key, DevPrivateType type, unsigned size)
 {
     PrivateDescRec *item = findItem(key);
     if (!item)
@@ -96,7 +100,7 @@ dixRequestPrivate(const DevPrivateKey key, unsigned size)
 /*
  * Allocate a private and attach it to an existing object.
  */
-pointer *
+static pointer *
 dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 {
     PrivateDescRec *item = findItem(key);
@@ -104,7 +108,7 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
     pointer value;
     int oldsize, newsize;
 
-    newsize = (*key / PRIV_STEP + 1) * PRIV_STEP;
+    newsize = (key->key / PRIV_STEP + 1) * PRIV_STEP;
 
     /* resize or init privates array */
     if (!item)
@@ -112,6 +116,8 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 
     /* initialize privates array if necessary */
     if (!*privates) {
+	++number_privates_allocated;
+	number_private_ptrs_allocated += newsize;
 	ptr = calloc(newsize, sizeof(*ptr));
 	if (!ptr)
 	    return NULL;
@@ -122,22 +128,25 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
     oldsize = (*privates)[0].state;
 
     /* resize privates array if necessary */
-    if (*key >= oldsize) {
+    if (key->key >= oldsize) {
 	ptr = realloc(*privates, newsize * sizeof(*ptr));
 	if (!ptr)
 	    return NULL;
 	memset(ptr + oldsize, 0, (newsize - oldsize) * sizeof(*ptr));
 	*privates = ptr;
 	(*privates)[0].state = newsize;
+	number_private_ptrs_allocated -= oldsize;
+	number_private_ptrs_allocated += newsize;
     }
 
     /* initialize slot */
-    ptr = *privates + *key;
+    ptr = *privates + key->key;
     ptr->state = 1;
     if (item->size) {
 	value = calloc(item->size, 1);
 	if (!value)
 	    return NULL;
+	bytes_private_data_allocated += item->size;
 	ptr->value = value;
     }
 
@@ -152,8 +161,9 @@ dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
 {
     pointer *ptr;
 
+    assert (key->key != 0);
     if (privateExists(privates, key))
-	return (*privates)[*key].value;
+	return (*privates)[key->key].value;
 
     ptr = dixAllocatePrivate(privates, key);
     return ptr ? *ptr : NULL;
@@ -165,8 +175,10 @@ dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
 pointer *
 dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
 {
+    assert (key->key != 0);
+
     if (privateExists(privates, key))
-	return &(*privates)[*key].value;
+	return &(*privates)[key->key].value;
 
     return dixAllocatePrivate(privates, key);
 }
@@ -177,9 +189,10 @@ dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
 int
 dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
 {
+    assert (key->key != 0);
  top:
     if (privateExists(privates, key)) {
-	(*privates)[*key].value = val;
+	(*privates)[key->key].value = val;
 	return TRUE;
     }
 
@@ -192,17 +205,21 @@ dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
  * Called to free privates at object deletion time.
  */
 void
-dixFreePrivates(PrivateRec *privates)
+dixFreePrivates(PrivateRec *privates, DevPrivateType type)
 {
     int i;
 
-    if (privates)
+    if (privates) {
+	number_private_ptrs_allocated -= privates->state;
+	number_privates_allocated--;
 	for (i = 1; i < privates->state; i++)
 	    if (privates[i].state) {
 		/* free pre-allocated memory */
 		if (items[i].size)
 		    free(privates[i].value);
+		bytes_private_data_allocated -= items[i].size;
 	    }
+    }
 
     free(privates);
 }
@@ -239,16 +256,32 @@ dixLookupPrivateOffset(RESTYPE type)
     return -1;
 }
 
-int
+void
+dixPrivateUsage(void)
+{
+    ErrorF("number of private structures: %d\n",
+	   number_privates_allocated);
+    ErrorF("total number of private pointers: %d (%zd bytes)\n",
+	   number_private_ptrs_allocated,
+	   number_private_ptrs_allocated * sizeof (struct _Private));
+    ErrorF("bytes of extra private data: %d\n",
+	   bytes_private_data_allocated);
+    ErrorF("Total privates memory usage: %zd\n",
+	   bytes_private_data_allocated +
+	   number_private_ptrs_allocated * sizeof (struct _Private));
+}
+
+void
 dixResetPrivates(void)
 {
     int i;
 
     /* reset private descriptors */
     for (i = 1; i < nextPriv; i++) {
-	*items[i].key = 0;
+	items[i].key->key = 0;
 	items[i].size = 0;
     }
     nextPriv = 1;
-    return TRUE;
+    if (number_privates_allocated)
+	dixPrivateUsage();
 }

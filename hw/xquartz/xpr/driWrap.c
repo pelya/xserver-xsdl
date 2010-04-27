@@ -55,11 +55,11 @@ typedef struct {
     DevUnion devPrivate;
 } DRISavedDrawableState;
 
-static int driGCKeyIndex;
-static DevPrivateKey driGCKey = &driGCKeyIndex;
+static DevPrivateKeyRec driGCKeyRec;
+#define driGCKey (&driGCKeyRec)
 
-static int driWrapScreenKeyIndex;
-static DevPrivateKey driWrapScreenKey = &driWrapScreenKeyIndex;
+static DevPrivateKeyRec driWrapScreenKeyRec;
+#define driWrapScreenKey (&driWrapScreenKeyRec)
 
 static GCOps driGCOps;
 
@@ -527,10 +527,10 @@ Bool
 DRIWrapInit(ScreenPtr pScreen) {
     DRIWrapScreenRec *pScreenPriv;
 
-    if(!dixRequestPrivate(driGCKey, sizeof(DRIGCRec)))
+    if(!dixRegisterPrivateKey(&driGCKeyRec, PRIVATE_GC, sizeof(DRIGCRec)))
 	return FALSE;
 
-    if(!dixRequestPrivate(driWrapScreenKey, sizeof(DRIWrapScreenRec)))
+    if(!dixRegisterPrivateKey(&driWrapScreenKeyRec, PRIVATE_WINDOW, sizeof(DRIWrapScreenRec)))
 	return FALSE;
     
     pScreenPriv = malloc(sizeof(*pScreenPriv));

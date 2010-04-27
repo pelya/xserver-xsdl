@@ -54,18 +54,18 @@ in this Software without prior written authorization from The Open Group.
 # include "inputstr.h"
 
 /* per-screen private data */
-static int miDCScreenKeyIndex;
-static DevPrivateKey miDCScreenKey = &miDCScreenKeyIndex;
+static DevPrivateKeyRec miDCScreenKeyRec;
+#define miDCScreenKey (&miDCScreenKeyRec)
 
 static Bool	miDCCloseScreen(int index, ScreenPtr pScreen);
 
 /* per bits per-screen private data */
-static int miDCCursorBitsKeyIndex[MAXSCREENS];
-#define miDCCursorBitsKey(screen)	(&miDCCursorBitsKeyIndex[(screen)->myNum])
+static DevPrivateKeyRec miDCCursorBitsKeyRec[MAXSCREENS];
+#define miDCCursorBitsKey(screen)	(&miDCCursorBitsKeyRec[(screen)->myNum])
 
 /* per device per-screen private data */
-static int miDCDeviceKeyIndex[MAXSCREENS];
-#define miDCDeviceKey(screen)		(&miDCDeviceKeyIndex[(screen)->myNum])
+static DevPrivateKeyRec miDCDeviceKeyRec[MAXSCREENS];
+#define miDCDeviceKey(screen)		(&miDCDeviceKeyRec[(screen)->myNum])
 
 typedef struct {
     GCPtr	    pSourceGC, pMaskGC;
@@ -103,10 +103,18 @@ miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
 {
     miDCScreenPtr   pScreenPriv;
 
+    if (!dixRegisterPrivateKey(&miDCScreenKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&miDCDeviceKeyRec[pScreen->myNum], PRIVATE_DEVICE, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&miDCCursorBitsKeyRec[pScreen->myNum], PRIVATE_CURSOR_BITS, 0))
+	return FALSE;
+
     pScreenPriv = malloc(sizeof (miDCScreenRec));
     if (!pScreenPriv)
 	return FALSE;
-
 
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = miDCCloseScreen;

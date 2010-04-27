@@ -50,8 +50,8 @@
 #include "protocol-versions.h"
 
 static CARD8	CompositeReqCode;
-static int CompositeClientPrivateKeyIndex;
-static DevPrivateKey CompositeClientPrivateKey = &CompositeClientPrivateKeyIndex;
+static DevPrivateKeyRec CompositeClientPrivateKeyRec;
+#define CompositeClientPrivateKey (&CompositeClientPrivateKeyRec)
 RESTYPE		CompositeClientWindowType;
 RESTYPE		CompositeClientSubwindowsType;
 RESTYPE		CompositeClientOverlayType;
@@ -558,8 +558,8 @@ CompositeExtensionInit (void)
     if (!CompositeClientOverlayType)
 	return;
 
-    if (!dixRequestPrivate(CompositeClientPrivateKey,
-			   sizeof(CompositeClientRec)))
+    if (!dixRegisterPrivateKey(&CompositeClientPrivateKeyRec, PRIVATE_CLIENT,
+			       sizeof(CompositeClientRec)))
 	return;
 
     if (!AddCallback (&ClientStateCallback, CompositeClientCallback, 0))

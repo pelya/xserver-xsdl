@@ -65,8 +65,8 @@ RESTYPE __glXSwapBarrierRes;
 */
 xGLXSingleReply __glXReply;
 
-static int glxClientPrivateKeyIndex;
-static DevPrivateKey glxClientPrivateKey = &glxClientPrivateKeyIndex;
+static DevPrivateKeyRec glxClientPrivateKeyRec;
+#define glxClientPrivateKey (&glxClientPrivateKeyRec)
 
 /*
 ** Client that called into GLX dispatch.
@@ -364,7 +364,7 @@ void GlxExtensionInit(void)
     if (!__glXContextRes || !__glXDrawableRes || !__glXSwapBarrierRes)
 	return;
 
-    if (!dixRequestPrivate(glxClientPrivateKey, sizeof (__GLXclientState)))
+    if (!dixRegisterPrivateKey(&glxClientPrivateKeyRec, PRIVATE_CLIENT, sizeof (__GLXclientState)))
 	return;
     if (!AddCallback (&ClientStateCallback, glxClientCallback, 0))
 	return;

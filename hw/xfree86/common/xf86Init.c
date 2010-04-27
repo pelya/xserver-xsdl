@@ -66,6 +66,7 @@
 #include "xf86Priv.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
+#include "xf86cmap.h"
 #include "xorgVersion.h"
 #include "xf86Build.h"
 #include "mipointer.h"
@@ -733,6 +734,15 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     }
   }
 #endif /* SCO325 */
+
+  for (i = 0; i < xf86NumScreens; i++)
+      if (!xf86ColormapAllocatePrivates(xf86Screens[i]))
+	  FatalError("Cannot register DDX private keys");
+
+  if (!dixRegisterPrivateKey(&xf86ScreenKeyRec, PRIVATE_SCREEN, 0) ||
+      !dixRegisterPrivateKey(&xf86CreateRootWindowKeyRec, PRIVATE_SCREEN, 0) ||
+      !dixRegisterPrivateKey(&xf86PixmapKeyRec, PRIVATE_PIXMAP, 0))
+      FatalError("Cannot register DDX private keys");
 
   for (i = 0; i < xf86NumScreens; i++) {
 	xf86VGAarbiterLock(xf86Screens[i]);

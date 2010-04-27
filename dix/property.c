@@ -269,13 +269,13 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     {
 	if (!pWin->optional && !MakeWindowOptional (pWin))
 	    return(BadAlloc);
-        pProp = malloc(sizeof(PropertyRec));
+	pProp = dixAllocateObjectWithPrivates(PropertyRec, PRIVATE_PROPERTY);
 	if (!pProp)
 	    return(BadAlloc);
         data = malloc(totalSize);
 	if (!data && len)
 	{
-	    free(pProp);
+	    dixFreeObjectWithPrivates(pProp, PRIVATE_PROPERTY);
 	    return(BadAlloc);
 	}
         memcpy(data, value, totalSize);
@@ -289,7 +289,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 				    DixCreateAccess|DixWriteAccess);
 	if (rc != Success) {
 	    free(data);
-	    free(pProp);
+	    dixFreeObjectWithPrivates(pProp, PRIVATE_PROPERTY);
 	    pClient->errorValue = property;
 	    return rc;
 	}
@@ -405,9 +405,8 @@ DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
 	}
 
 	deliverPropertyNotifyEvent(pWin, PropertyDelete, pProp->propertyName);
-	dixFreePrivates(pProp->devPrivates);
 	free(pProp->data);
-        free(pProp);
+	dixFreeObjectWithPrivates(pProp, PRIVATE_PROPERTY);
     }
     return rc;
 }
@@ -422,9 +421,8 @@ DeleteAllWindowProperties(WindowPtr pWin)
     {
 	deliverPropertyNotifyEvent(pWin, PropertyDelete, pProp->propertyName);
 	pNextProp = pProp->next;
-	dixFreePrivates(pProp->devPrivates);
         free(pProp->data);
-        free(pProp);
+	dixFreeObjectWithPrivates(pProp, PRIVATE_PROPERTY);
 	pProp = pNextProp;
     }
 }
@@ -570,9 +568,8 @@ ProcGetProperty(ClientPtr client)
 	    prevProp->next = pProp->next;
 	}
 
-	dixFreePrivates(pProp->devPrivates);
 	free(pProp->data);
-	free(pProp);
+	dixFreeObjectWithPrivates(pProp, PRIVATE_PROPERTY);
     }
     return Success;
 }

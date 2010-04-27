@@ -57,15 +57,13 @@
 
 /* GLOBALS */
 
-/* These are static globals copied to DBE's screen private for use by DDX */
-static int dbeScreenPrivKeyIndex;
-static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKeyIndex;
-static int dbeWindowPrivKeyIndex;
-static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKeyIndex;
+/* These are globals for use by DDX */
+DevPrivateKeyRec dbeScreenPrivKeyRec;
+DevPrivateKeyRec dbeWindowPrivKeyRec;
 
-/* These are static globals copied to DBE's screen private for use by DDX */
-static RESTYPE	dbeDrawableResType;
-static RESTYPE	dbeWindowPrivResType;
+/* These are globals for use by DDX */
+RESTYPE	dbeDrawableResType;
+RESTYPE	dbeWindowPrivResType;
 
 /* Used to generate DBE's BadBuffer error. */
 static int	dbeErrorBase;
@@ -254,7 +252,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
          * Allocate a window priv.
          */
 
-        pDbeWindowPriv = calloc(1, sizeof(DbeWindowPrivRec));
+        pDbeWindowPriv = dixAllocateObjectWithPrivates(DbeWindowPrivRec, PRIVATE_DBE_WINDOW);
 	if (!pDbeWindowPriv)
             return(BadAlloc);
 
@@ -1410,8 +1408,7 @@ DbeWindowPrivDelete(pointer pDbeWinPriv, XID id)
 		      NULL);
 
         /* We are done with the window priv. */
-	dixFreePrivates(pDbeWindowPriv->devPrivates);
-        free(pDbeWindowPriv);
+	dixFreeObjectWithPrivates(pDbeWindowPriv, PRIVATE_DBE_WINDOW);
     }
 
     return(Success);
@@ -1576,6 +1573,12 @@ DbeExtensionInit(void)
     if (!dbeWindowPrivResType)
 	return;
 
+    if (!dixRegisterPrivateKey(&dbeScreenPrivKeyRec, PRIVATE_SCREEN, 0))
+	return;
+
+    if (!dixRegisterPrivateKey(&dbeWindowPrivKeyRec, PRIVATE_WINDOW, 0))
+	return;
+
     for (i = 0; i < screenInfo.numScreens; i++)
     {
         /* For each screen, set up DBE screen privates and init DIX and DDX
@@ -1601,14 +1604,6 @@ DbeExtensionInit(void)
 	}
 
 	dixSetPrivate(&pScreen->devPrivates, dbeScreenPrivKey, pDbeScreenPriv);
-
-        /* Copy the resource types */
-        pDbeScreenPriv->dbeDrawableResType   = dbeDrawableResType;
-        pDbeScreenPriv->dbeWindowPrivResType = dbeWindowPrivResType;
-
-        /* Copy the private indices */
-        pDbeScreenPriv->dbeScreenPrivKey = dbeScreenPrivKey;
-        pDbeScreenPriv->dbeWindowPrivKey = dbeWindowPrivKey;
 
         {
             /* We don't have DDX support for DBE anymore */

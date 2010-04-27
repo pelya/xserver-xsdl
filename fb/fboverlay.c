@@ -33,8 +33,8 @@
 #include "fboverlay.h"
 #include "shmint.h"
 
-static int fbOverlayScreenPrivateKeyIndex;
-static DevPrivateKey fbOverlayScreenPrivateKey = &fbOverlayScreenPrivateKeyIndex;
+static DevPrivateKeyRec fbOverlayScreenPrivateKeyRec;
+#define fbOverlayScreenPrivateKey (&fbOverlayScreenPrivateKeyRec)
 
 DevPrivateKey fbOverlayGetScreenPrivateKey(void)
 {
@@ -348,6 +348,9 @@ fbOverlayFinishScreenInit(ScreenPtr	pScreen,
     VisualID	defaultVisual;
     FbOverlayScrPrivPtr	pScrPriv;
 
+    if (!dixRegisterPrivateKey(&fbOverlayScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
     pScrPriv = malloc(sizeof (FbOverlayScrPrivRec));
     if (!pScrPriv)
 	return FALSE;
@@ -416,7 +419,6 @@ fbOverlayFinishScreenInit(ScreenPtr	pScreen,
     pScrPriv->layer[1].u.init.pbits = pbits2;
     pScrPriv->layer[1].u.init.width = width2;
     pScrPriv->layer[1].u.init.depth = depth2;
-    
     dixSetPrivate(&pScreen->devPrivates, fbOverlayScreenPrivateKey, pScrPriv);
     
     /* overwrite miCloseScreen with our own */

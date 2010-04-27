@@ -182,10 +182,10 @@ miSpriteIsDown(miCursorInfoPtr pDevCursor)
  * screen wrappers
  */
 
-static int miSpriteScreenKeyIndex;
-static DevPrivateKey miSpriteScreenKey = &miSpriteScreenKeyIndex;
-static int miSpriteDevPrivatesKeyIndex;
-static DevPrivateKey miSpriteDevPrivatesKey = &miSpriteDevPrivatesKeyIndex;
+static DevPrivateKeyRec miSpriteScreenKeyRec;
+#define miSpriteScreenKey (&miSpriteScreenKeyRec)
+static DevPrivateKeyRec miSpriteDevPrivatesKeyRec;
+#define miSpriteDevPrivatesKey (&miSpriteDevPrivatesKeyRec)
 
 static Bool	    miSpriteCloseScreen(int i, ScreenPtr pScreen);
 static void	    miSpriteGetImage(DrawablePtr pDrawable, int sx, int sy,
@@ -291,6 +291,12 @@ miSpriteInitialize (ScreenPtr               pScreen,
     VisualPtr		pVisual;
 
     if (!DamageSetup (pScreen))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&miSpriteScreenKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&miSpriteDevPrivatesKeyRec, PRIVATE_DEVICE, 0))
 	return FALSE;
 
     pScreenPriv = malloc(sizeof (miSpriteScreenRec));

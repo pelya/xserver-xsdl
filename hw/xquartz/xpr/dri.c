@@ -74,14 +74,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <AvailabilityMacros.h>
 
-static int DRIScreenPrivKeyIndex;
-static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKeyIndex;
-static int DRIWindowPrivKeyIndex;
-static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKeyIndex;
-static int DRIPixmapPrivKeyIndex;
-static DevPrivateKey DRIPixmapPrivKey = &DRIPixmapPrivKeyIndex;
-static int DRIPixmapBufferPrivKeyIndex;
-static DevPrivateKey DRIPixmapBufferPrivKey = &DRIPixmapBufferPrivKeyIndex;
+static DevPrivateKeyRec DRIScreenPrivKeyRec;
+#define DRIScreenPrivKey (&DRIScreenPrivKeyRec)
+static DevPrivateKeyRec DRIWindowPrivKeyRec;
+#define DRIWindowPrivKey (&DRIWindowPrivKeyRec)
+static DevPrivateKeyRec DRIPixmapPrivKeyRec;
+#define DRIPixmapPrivKey (&DRIPixmapPrivKeyRec)
+static DevPrivateKeyRec DRIPixmapBufferPrivKeyRec;
+#define DRIPixmapBufferPrivKey (&DRIPixmapBufferPrivKeyRec)
 
 static RESTYPE DRIDrawablePrivResType;
 
@@ -204,6 +204,15 @@ DRIScreenInit(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr    pDRIPriv;
     int                 i;
+
+    if (!dixRegisterPrivateKey(&DRIScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE:
+    if (!dixRegisterPrivateKey(&DRIWindowPrivateKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE:
+    if (!dixRegisterPrivateKey(&DRIPixmapPrivateKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE:
+    if (!dixRegisterPrivateKey(&DRIPixmapBufferPrivateKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE:
 
     pDRIPriv = (DRIScreenPrivPtr) calloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {

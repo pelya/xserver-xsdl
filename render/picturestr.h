@@ -396,8 +396,12 @@ typedef struct _PictureScreen {
 
 } PictureScreenRec, *PictureScreenPtr;
 
-extern _X_EXPORT DevPrivateKey	PictureScreenPrivateKey;
-extern _X_EXPORT DevPrivateKey	PictureWindowPrivateKey;
+extern _X_EXPORT DevPrivateKeyRec PictureScreenPrivateKeyRec;
+#define PictureScreenPrivateKey (&PictureScreenPrivateKeyRec)
+
+extern _X_EXPORT DevPrivateKeyRec PictureWindowPrivateKeyRec;
+#define	PictureWindowPrivateKey (&PictureWindowPrivateKeyRec)
+
 extern _X_EXPORT RESTYPE	PictureType;
 extern _X_EXPORT RESTYPE	PictFormatType;
 extern _X_EXPORT RESTYPE	GlyphSetType;

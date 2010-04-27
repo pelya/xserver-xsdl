@@ -226,8 +226,8 @@ MakeScreenPrivate (
 	ScreenPtr /* pScreen */
 	);
 
-static int ScreenPrivateKeyIndex;
-static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
+static DevPrivateKeyRec ScreenPrivateKeyRec;
+#define ScreenPrivateKey (&ScreenPrivateKeyRec)
 
 #define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
     dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))
@@ -251,6 +251,9 @@ ScreenSaverExtensionInit(INITARGS)
     ExtensionEntry *extEntry;
     int		    i;
     ScreenPtr	    pScreen;
+
+    if (!dixRegisterPrivateKey(&ScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return;
 
     AttrType = CreateNewResourceType(ScreenSaverFreeAttr, "SaverAttr");
     SaverEventType = CreateNewResourceType(ScreenSaverFreeEvents,

@@ -123,8 +123,6 @@ CursorPtr rootCursor;
 Bool party_like_its_1989 = FALSE;
 Bool whiteRoot = FALSE;
 
-int cursorScreenDevPriv[MAXSCREENS];
-
 TimeStamp currentTime;
 TimeStamp lastDeviceEventTime;
 

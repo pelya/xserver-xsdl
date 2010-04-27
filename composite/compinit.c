@@ -48,13 +48,9 @@
 #include "compint.h"
 #include "compositeext.h"
 
-static int CompScreenPrivateKeyIndex;
-DevPrivateKey CompScreenPrivateKey = &CompScreenPrivateKeyIndex;
-static int CompWindowPrivateKeyIndex;
-DevPrivateKey CompWindowPrivateKey = &CompWindowPrivateKeyIndex;
-static int CompSubwindowsPrivateKeyIndex;
-DevPrivateKey CompSubwindowsPrivateKey = &CompSubwindowsPrivateKeyIndex;
-
+DevPrivateKeyRec CompScreenPrivateKeyRec;
+DevPrivateKeyRec CompWindowPrivateKeyRec;
+DevPrivateKeyRec CompSubwindowsPrivateKeyRec;
 
 static Bool
 compCloseScreen (int index, ScreenPtr pScreen)
@@ -318,6 +314,13 @@ Bool
 compScreenInit (ScreenPtr pScreen)
 {
     CompScreenPtr   cs;
+
+    if (!dixRegisterPrivateKey(&CompScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&CompWindowPrivateKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&CompSubwindowsPrivateKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
 
     if (GetCompScreen (pScreen))
 	return TRUE;

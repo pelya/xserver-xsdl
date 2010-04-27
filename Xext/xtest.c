@@ -63,8 +63,8 @@ extern int DeviceValuator;
 static EventListPtr xtest_evlist;
 
 /* Used to store if a device is an XTest Virtual device */
-static int XTestDevicePrivateKeyIndex;
-DevPrivateKey XTestDevicePrivateKey = &XTestDevicePrivateKeyIndex;
+static DevPrivateKeyRec XTestDevicePrivateKeyRec;
+#define XTestDevicePrivateKey (&XTestDevicePrivateKeyRec)
 
 /**
  * xtestpointer
@@ -102,6 +102,9 @@ static DISPATCH_PROC(SProcXTestGrabControl);
 void
 XTestExtensionInit(INITARGS)
 {
+    if (!dixRegisterPrivateKey(&XTestDevicePrivateKeyRec, PRIVATE_DEVICE, 0))
+	return;
+
     AddExtension(XTestExtensionName, 0, 0,
             ProcXTestDispatch, SProcXTestDispatch,
             NULL, StandardMinorOpcode);

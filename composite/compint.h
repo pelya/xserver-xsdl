@@ -157,9 +157,14 @@ typedef struct _CompScreen {
     
 } CompScreenRec, *CompScreenPtr;
 
-extern DevPrivateKey CompScreenPrivateKey;
-extern DevPrivateKey CompWindowPrivateKey;
-extern DevPrivateKey CompSubwindowsPrivateKey;
+extern DevPrivateKeyRec CompScreenPrivateKeyRec;
+#define CompScreenPrivateKey (&CompScreenPrivateKeyRec)
+
+extern DevPrivateKeyRec CompWindowPrivateKeyRec;
+#define CompWindowPrivateKey (&CompWindowPrivateKeyRec)
+
+extern DevPrivateKeyRec CompSubwindowsPrivateKeyRec;
+#define CompSubwindowsPrivateKey (&CompSubwindowsPrivateKeyRec)
 
 #define GetCompScreen(s) ((CompScreenPtr) \
     dixLookupPrivate(&(s)->devPrivates, CompScreenPrivateKey))

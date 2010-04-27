@@ -33,8 +33,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNPixmap.h"
 
-static int xnestPixmapPrivateKeyIndex;
-DevPrivateKey xnestPixmapPrivateKey = &xnestPixmapPrivateKeyIndex;
+DevPrivateKeyRec xnestPixmapPrivateKeyRec;
 
 PixmapPtr
 xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
@@ -42,7 +41,7 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
 {
   PixmapPtr pPixmap;
 
-  pPixmap = AllocatePixmap(pScreen, sizeof(xnestPrivPixmap));
+  pPixmap = AllocatePixmap(pScreen, 0);
   if (!pPixmap)
     return NullPixmap;
   pPixmap->drawable.type = DRAWABLE_PIXMAP;
@@ -59,8 +58,6 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
   pPixmap->refcnt = 1;
   pPixmap->devKind = PixmapBytePad(width, depth);
   pPixmap->usage_hint = usage_hint;
-  dixSetPrivate(&pPixmap->devPrivates, xnestPixmapPrivateKey,
-		(char *)pPixmap + pScreen->totalPixmapSize);
   if (width && height)
       xnestPixmapPriv(pPixmap)->pixmap = 
 	  XCreatePixmap(xnestDisplay, 
@@ -78,8 +75,7 @@ xnestDestroyPixmap(PixmapPtr pPixmap)
   if(--pPixmap->refcnt)
     return TRUE;
   XFreePixmap(xnestDisplay, xnestPixmap(pPixmap));
-  dixFreePrivates(pPixmap->devPrivates);
-  free(pPixmap);
+  FreePixmap(pPixmap);
   return TRUE;
 }
 

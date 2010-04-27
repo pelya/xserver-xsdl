@@ -84,11 +84,11 @@ typedef struct {
    GCFuncs *funcs;
 } ShadowGCRec, *ShadowGCPtr;
 
+static DevPrivateKeyRec ShadowScreenKeyRec;
+#define ShadowScreenKey (&ShadowScreenKeyRec)
 
-static int ShadowScreenKeyIndex;
-static DevPrivateKey ShadowScreenKey = &ShadowScreenKeyIndex;
-static int ShadowGCKeyIndex;
-static DevPrivateKey ShadowGCKey = &ShadowGCKeyIndex;
+static DevPrivateKeyRec ShadowGCKeyRec;
+#define ShadowGCKey (&ShadowGCKeyRec)
 
 #define GET_SCREEN_PRIVATE(pScreen) \
     (ShadowScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, ShadowScreenKey)
@@ -162,7 +162,10 @@ ShadowFBInit2 (
 
     if(!preRefreshArea && !postRefreshArea) return FALSE;
     
-    if(!dixRequestPrivate(ShadowGCKey, sizeof(ShadowGCRec)))
+    if (!dixRegisterPrivateKey(&ShadowScreenKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
+    if(!dixRegisterPrivateKey(&ShadowGCKeyRec, PRIVATE_GC, sizeof(ShadowGCRec)))
 	return FALSE;
 
     if(!(pPriv = (ShadowScreenPtr)malloc(sizeof(ShadowScreenRec))))

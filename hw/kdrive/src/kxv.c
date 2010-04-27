@@ -103,10 +103,10 @@ static void KdXVClipNotify(WindowPtr pWin, int dx, int dy);
 /* misc */
 static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr*, int);
 
-static int KdXVWindowKeyIndex;
-DevPrivateKey KdXVWindowKey = &KdXVWindowKeyIndex;
-static int KdXvScreenKeyIndex;
-DevPrivateKey KdXvScreenKey = &KdXvScreenKeyIndex;
+static DevPrivateKeyRec KdXVWindowKeyRec;
+#define KdXVWindowKey (&KdXVWindowKeyRec)
+static DevPrivateKeyRec KdXvScreenKeyRec;
+#define KdXvScreenKey (&KdXvScreenKeyRec)
 static unsigned long KdXVGeneration = 0;
 static unsigned long PortResource = 0;
 
@@ -198,6 +198,12 @@ KdXVScreenInit(
 
   if(!XvGetScreenKeyProc || !XvGetRTPortProc || !XvScreenInitProc)
 	return FALSE;
+
+  if (!dixRegisterPrivateKey(&KdXVWindowKeyRec, PRIVATE_WINDOW, 0))
+      return FALSE;
+
+  if (!dixRegisterPrivateKey(&KdXVScreenKeyRec, PRIVATE_SCREEN, 0))
+      return FALSE;
 
   if(Success != (*XvScreenInitProc)(pScreen)) return FALSE;
 

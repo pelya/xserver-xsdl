@@ -42,10 +42,8 @@
 #include "picturestr.h"
 #include "xace.h"
 
-static int PictureScreenPrivateKeyIndex;
-DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKeyIndex;
-static int PictureWindowPrivateKeyIndex;
-DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKeyIndex;
+DevPrivateKeyRec PictureScreenPrivateKeyRec;
+DevPrivateKeyRec PictureWindowPrivateKeyRec;
 static int	PictureGeneration;
 RESTYPE		PictureType;
 RESTYPE		PictFormatType;
@@ -628,6 +626,12 @@ PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 	    return FALSE;
 	PictureGeneration = serverGeneration;
     }
+    if (!dixRegisterPrivateKey(&PictureScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
+    if (!dixRegisterPrivateKey(&PictureWindowPrivateKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
+
     if (!formats)
     {
 	formats = PictureCreateDefaultFormats (pScreen, &nformats);
@@ -753,7 +757,7 @@ CreatePicture (Picture		pid,
     PicturePtr		pPicture;
     PictureScreenPtr	ps = GetPictureScreen(pDrawable->pScreen);
 
-    pPicture = (PicturePtr)malloc(sizeof(PictureRec));
+    pPicture = dixAllocateObjectWithPrivates(PictureRec, PRIVATE_PICTURE);
     if (!pPicture)
     {
 	*error = BadAlloc;
@@ -764,7 +768,6 @@ CreatePicture (Picture		pid,
     pPicture->pDrawable = pDrawable;
     pPicture->pFormat = pFormat;
     pPicture->format = pFormat->format | (pDrawable->bitsPerPixel << 24);
-    pPicture->devPrivates = NULL;
 
     /* security creation/labeling check */
     *error = XaceHook(XACE_RESOURCE_ACCESS, client, pid, PictureType, pPicture,
@@ -896,12 +899,11 @@ static void initGradient(SourcePictPtr pGradient, int stopCount,
 static PicturePtr createSourcePicture(void)
 {
     PicturePtr pPicture;
-    pPicture = (PicturePtr) malloc(sizeof(PictureRec));
+    pPicture = dixAllocateObjectWithPrivates(PictureRec, PRIVATE_PICTURE);
     pPicture->pDrawable = 0;
     pPicture->pFormat = 0;
     pPicture->pNext = 0;
     pPicture->format = PICT_a8r8g8b8;
-    pPicture->devPrivates = 0;
 
     SetPictureToDefaults(pPicture);
     return pPicture;
@@ -1566,8 +1568,7 @@ FreePicture (pointer	value,
                 (*pScreen->DestroyPixmap) ((PixmapPtr)pPicture->pDrawable);
             }
         }
-	dixFreePrivates(pPicture->devPrivates);
-	free(pPicture);
+	dixFreeObjectWithPrivates(pPicture, PRIVATE_PICTURE);
     }
     return Success;
 }

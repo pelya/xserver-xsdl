@@ -32,8 +32,8 @@ static int		DamageEventBase;
 static RESTYPE		DamageExtType;
 static RESTYPE		DamageExtWinType;
 
-static int DamageClientPrivateKeyIndex;
-static DevPrivateKey DamageClientPrivateKey = &DamageClientPrivateKeyIndex;
+static DevPrivateKeyRec DamageClientPrivateKeyRec;
+#define DamageClientPrivateKey (&DamageClientPrivateKeyRec)
 
 #define prScreen	screenInfo.screens[0]
 
@@ -502,8 +502,9 @@ DamageExtensionInit(void)
     if (!DamageExtWinType)
 	return;
 
-    if (!dixRequestPrivate(DamageClientPrivateKey, sizeof (DamageClientRec)))
+    if (!dixRegisterPrivateKey(&DamageClientPrivateKeyRec, PRIVATE_CLIENT, sizeof (DamageClientRec)))
 	return;
+
     if (!AddCallback (&ClientStateCallback, DamageClientCallback, 0))
 	return;
 

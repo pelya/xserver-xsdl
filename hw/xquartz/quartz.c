@@ -73,8 +73,7 @@ int                     quartzUseAGL = 1;
 int                     quartzEnableKeyEquivalents = 1;
 int                     quartzServerVisible = FALSE;
 int                     quartzServerQuitting = FALSE;
-static int              quartzScreenKeyIndex;
-DevPrivateKey           quartzScreenKey = &quartzScreenKeyIndex;
+DevPrivateKeyRec        quartzScreenKeyRec;
 int                     aquaMenuBarHeight = 0;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
@@ -166,6 +165,9 @@ void QuartzInitOutput(
     {
         FatalError("Could not register block and wakeup handlers.");
     }
+
+    if (!dixRegisterPrivateKey(&quartzScreenKeyRec, PRIVATE_SCREEN, 0))
+	FatalError("Failed to alloc quartz screen private.\n");
 
 #if defined(RANDR) && !defined(FAKE_RANDR)
     if(!QuartzRandRInit(pScreen))

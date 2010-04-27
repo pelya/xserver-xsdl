@@ -37,12 +37,12 @@
 #include "exa_priv.h"
 #include "exa.h"
 
-static int exaScreenPrivateKeyIndex;
-DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKeyIndex;
-static int exaPixmapPrivateKeyIndex;
-DevPrivateKey exaPixmapPrivateKey = &exaPixmapPrivateKeyIndex;
-static int exaGCPrivateKeyIndex;
-DevPrivateKey exaGCPrivateKey = &exaGCPrivateKeyIndex;
+static DevPrivateKeyRec exaScreenPrivateKeyRec;
+#define exaScreenPrivateKey (&exaScreenPrivateKeyRec)
+static DevPrivateKeyRec exaPixmapPrivateKeyRec;
+#define exaPixmapPrivateKey (&exaPixmapPrivateKeyRec)
+static DevPrivateKeyRec exaGCPrivateKeyRec;
+#define exaGCPrivateKey (&exaGCPrivateKeyRec)
 
 #ifdef MITSHM
 static ShmFuncs exaShmFuncs = { NULL, NULL };
@@ -889,7 +889,13 @@ exaDriverInit (ScreenPtr		pScreen,
 
     ps = GetPictureScreenIfSet(pScreen);
 
-    pExaScr = calloc(sizeof (ExaScreenPrivRec), 1);
+    if (!dixRegisterPrivateKey(&exaScreenPrivateKeyRec, PRIVATE_SCREEN, 0)) {
+        LogMessage(X_WARNING, "EXA(%d): Failed to register screen private\n",
+		   pScreen->myNum);
+	return FALSE;
+    }
+
+    pExaScr = calloc (sizeof (ExaScreenPrivRec), 1);
     if (!pExaScr) {
         LogMessage(X_WARNING, "EXA(%d): Failed to allocate screen private\n",
 		   pScreen->myNum);
@@ -904,7 +910,7 @@ exaDriverInit (ScreenPtr		pScreen,
 
     exaDDXDriverInit(pScreen);
 
-    if (!dixRequestPrivate(exaGCPrivateKey, sizeof(ExaGCPrivRec))) {
+    if (!dixRegisterPrivateKey(&exaGCPrivateKeyRec, PRIVATE_GC, sizeof(ExaGCPrivRec))) {
 	LogMessage(X_WARNING,
 	       "EXA(%d): Failed to allocate GC private\n",
 	       pScreen->myNum);
@@ -953,7 +959,7 @@ exaDriverInit (ScreenPtr		pScreen,
      */
     if (pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS)
     {
-	if (!dixRequestPrivate(exaPixmapPrivateKey, sizeof(ExaPixmapPrivRec))) {
+	if (!dixRegisterPrivateKey(&exaPixmapPrivateKeyRec, PRIVATE_PIXMAP, sizeof(ExaPixmapPrivRec))) {
             LogMessage(X_WARNING,
 		       "EXA(%d): Failed to allocate pixmap private\n",
 		       pScreen->myNum);

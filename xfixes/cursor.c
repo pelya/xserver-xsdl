@@ -59,8 +59,8 @@ static RESTYPE		CursorHideCountType;
 static RESTYPE		CursorWindowType;
 static CursorPtr	CursorCurrent[MAXDEVICES];
 
-static int CursorScreenPrivateKeyIndex;
-static DevPrivateKey CursorScreenPrivateKey = &CursorScreenPrivateKeyIndex;
+static DevPrivateKeyRec CursorScreenPrivateKeyRec;
+#define CursorScreenPrivateKey (&CursorScreenPrivateKeyRec)
 
 static void deleteCursorHideCountsForScreen (ScreenPtr pScreen);
 
@@ -1037,6 +1037,9 @@ XFixesCursorInit (void)
     if (party_like_its_1989)
 	CursorVisible = EnableCursor;
     
+    if (!dixRegisterPrivateKey(&CursorScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	ScreenPtr	pScreen = screenInfo.screens[i];

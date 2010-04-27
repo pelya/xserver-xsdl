@@ -34,8 +34,8 @@ is" without express or implied warranty.
 #include "XNWindow.h"
 #include "Args.h"
 
-static int cmapScrPrivateKeyIndex;
-static DevPrivateKey cmapScrPrivateKey = &cmapScrPrivateKeyIndex;
+static DevPrivateKeyRec cmapScrPrivateKeyRec;
+#define cmapScrPrivateKey (&cmapScrPrivateKeyRec)
 
 #define GetInstalledColormap(s) ((ColormapPtr) dixLookupPrivate(&(s)->devPrivates, cmapScrPrivateKey))
 #define SetInstalledColormap(s,c) (dixSetPrivate(&(s)->devPrivates, cmapScrPrivateKey, c))
