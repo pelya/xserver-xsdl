@@ -104,7 +104,7 @@ typedef struct
 } vfbScreenInfo, *vfbScreenInfoPtr;
 
 static int vfbNumScreens;
-static vfbScreenInfo vfbScreens[MAXSCREENS];
+static vfbScreenInfo *vfbScreens;
 static vfbScreenInfo defaultScreenInfo = {
     .width  = VFB_DEFAULT_WIDTH,
     .height = VFB_DEFAULT_HEIGHT,
@@ -280,7 +280,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	int screenNum;
 	CHECK_FOR_REQUIRED_ARGUMENTS(2);
 	screenNum = atoi(argv[i+1]);
-	if (screenNum < 0 || screenNum >= MAXSCREENS)
+	if (screenNum < 0)
 	{
 	    ErrorF("Invalid screen number %d\n", screenNum);
 	    UseMsg();
@@ -288,8 +288,14 @@ ddxProcessArgument(int argc, char *argv[], int i)
 		       screenNum);
 	}
 
-	for (; vfbNumScreens <= screenNum; ++vfbNumScreens)
-	    vfbScreens[vfbNumScreens] = defaultScreenInfo;
+	if (vfbNumScreens <= screenNum)
+	{
+	    vfbScreens = xrealloc(vfbScreens, sizeof(*vfbScreens) * (screenNum + 1));
+	    if (!vfbScreens)
+		FatalError("Not enough memory for screen %d\n", screenNum);
+	    for (; vfbNumScreens <= screenNum; ++vfbNumScreens)
+		vfbScreens[vfbNumScreens] = defaultScreenInfo;
+	}
 
 	if (3 != sscanf(argv[i+2], "%dx%dx%d",
 			&vfbScreens[screenNum].width,
@@ -953,7 +959,7 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 
     if (vfbNumScreens < 1)
     {
-	vfbScreens[0] = defaultScreenInfo;
+	vfbScreens = &defaultScreenInfo;
 	vfbNumScreens = 1;
     }
     for (i = 0; i < vfbNumScreens; i++)
