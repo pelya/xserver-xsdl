@@ -58,10 +58,6 @@ typedef struct _AnimCur {
 } AnimCurRec, *AnimCurPtr;
 
 typedef struct _AnimScrPriv {
-    CursorPtr			pCursor;
-    int				elt;
-    CARD32			time;
-
     CloseScreenProcPtr		CloseScreen;
 
     ScreenBlockHandlerProcPtr	BlockHandler;
