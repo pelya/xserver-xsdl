@@ -105,6 +105,14 @@ typedef struct
 
 static int vfbNumScreens;
 static vfbScreenInfo vfbScreens[MAXSCREENS];
+static vfbScreenInfo defaultScreenInfo = {
+    .width  = VFB_DEFAULT_WIDTH,
+    .height = VFB_DEFAULT_HEIGHT,
+    .depth  = VFB_DEFAULT_DEPTH,
+    .blackPixel = VFB_DEFAULT_BLACKPIXEL,
+    .whitePixel = VFB_DEFAULT_WHITEPIXEL,
+    .lineBias = VFB_DEFAULT_LINEBIAS,
+};
 static Bool vfbPixmapDepths[33];
 #ifdef HAS_MMAP
 static char *pfbdir = NULL;
@@ -112,7 +120,6 @@ static char *pfbdir = NULL;
 typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB, MMAPPED_FILE_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
-static int lastScreen = -1;
 static Bool Render = TRUE;
 
 #define swapcopy16(_dst, _src) \
@@ -131,24 +138,6 @@ vfbInitializePixmapDepths(void)
     vfbPixmapDepths[1] = TRUE; /* always need bitmaps */
     for (i = 2; i <= 32; i++)
 	vfbPixmapDepths[i] = FALSE;
-}
-
-static void
-vfbInitializeDefaultScreens(void)
-{
-    int i;
-
-    for (i = 0; i < MAXSCREENS; i++)
-    {
-	vfbScreens[i].width  = VFB_DEFAULT_WIDTH;
-	vfbScreens[i].height = VFB_DEFAULT_HEIGHT;
-	vfbScreens[i].depth  = VFB_DEFAULT_DEPTH;
-	vfbScreens[i].blackPixel = VFB_DEFAULT_BLACKPIXEL;
-	vfbScreens[i].whitePixel = VFB_DEFAULT_WHITEPIXEL;
-	vfbScreens[i].lineBias = VFB_DEFAULT_LINEBIAS;
-	vfbScreens[i].pfbMemory = NULL;
-    }
-    vfbNumScreens = 1;
 }
 
 static int
@@ -265,13 +254,19 @@ int
 ddxProcessArgument(int argc, char *argv[], int i)
 {
     static Bool firstTime = TRUE;
+    static int lastScreen = -1;
+    vfbScreenInfo *currentScreen;
 
     if (firstTime)
     {
-	vfbInitializeDefaultScreens();
 	vfbInitializePixmapDepths();
         firstTime = FALSE;
     }
+
+    if (lastScreen == -1)
+	currentScreen = &defaultScreenInfo;
+    else
+	currentScreen = &vfbScreens[lastScreen];
 
 #define CHECK_FOR_REQUIRED_ARGUMENTS(num) \
     if (((i + num) >= argc) || (!argv[i + num])) {                      \
@@ -292,6 +287,10 @@ ddxProcessArgument(int argc, char *argv[], int i)
 	    FatalError("Invalid screen number %d passed to -screen\n",
 		       screenNum);
 	}
+
+	for (; vfbNumScreens <= screenNum; ++vfbNumScreens)
+	    vfbScreens[vfbNumScreens] = defaultScreenInfo;
+
 	if (3 != sscanf(argv[i+2], "%dx%dx%d",
 			&vfbScreens[screenNum].width,
 			&vfbScreens[screenNum].height,
@@ -303,8 +302,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
 		   argv[i+2], screenNum);
 	}
 
-	if (screenNum >= vfbNumScreens)
-	    vfbNumScreens = screenNum + 1;
 	lastScreen = screenNum;
 	return 3;
     }
@@ -346,61 +343,22 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     if (strcmp (argv[i], "-blackpixel") == 0)	/* -blackpixel n */
     {
-	Pixel pix;
 	CHECK_FOR_REQUIRED_ARGUMENTS(1);
-	pix = atoi(argv[++i]);
-	if (-1 == lastScreen)
-	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
-	    {
-		vfbScreens[i].blackPixel = pix;
-	    }
-	}
-	else
-	{
-	    vfbScreens[lastScreen].blackPixel = pix;
-	}
+	currentScreen->blackPixel = atoi(argv[++i]);
 	return 2;
     }
 
     if (strcmp (argv[i], "-whitepixel") == 0)	/* -whitepixel n */
     {
-	Pixel pix;
 	CHECK_FOR_REQUIRED_ARGUMENTS(1);
-	pix = atoi(argv[++i]);
-	if (-1 == lastScreen)
-	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
-	    {
-		vfbScreens[i].whitePixel = pix;
-	    }
-	}
-	else
-	{
-	    vfbScreens[lastScreen].whitePixel = pix;
-	}
+	currentScreen->whitePixel = atoi(argv[++i]);
 	return 2;
     }
 
     if (strcmp (argv[i], "-linebias") == 0)	/* -linebias n */
     {
-	unsigned int linebias;
 	CHECK_FOR_REQUIRED_ARGUMENTS(1);
-	linebias = atoi(argv[++i]);
-	if (-1 == lastScreen)
-	{
-	    int i;
-	    for (i = 0; i < MAXSCREENS; i++)
-	    {
-		vfbScreens[i].lineBias = linebias;
-	    }
-	}
-	else
-	{
-	    vfbScreens[lastScreen].lineBias = linebias;
-	}
+	currentScreen->lineBias = atoi(argv[++i]);
 	return 2;
     }
 
@@ -993,6 +951,11 @@ InitOutput(ScreenInfo *screenInfo, int argc, char **argv)
 
     /* initialize screens */
 
+    if (vfbNumScreens < 1)
+    {
+	vfbScreens[0] = defaultScreenInfo;
+	vfbNumScreens = 1;
+    }
     for (i = 0; i < vfbNumScreens; i++)
     {
 	if (-1 == AddScreen(vfbScreenInit, argc, argv))
