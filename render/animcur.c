@@ -98,7 +98,6 @@ static DevPrivateKey AnimCurScreenPrivateKey = &AnimCurScreenPrivateKeyIndex;
 #define IsAnimCur(c)	    ((c) && ((c)->bits == &animCursorBits))
 #define GetAnimCur(c)	    ((AnimCurPtr) ((c) + 1))
 #define GetAnimCurScreen(s) ((AnimCurScreenPtr)dixLookupPrivate(&(s)->devPrivates, AnimCurScreenPrivateKey))
-#define GetAnimCurScreenIfSet(s) GetAnimCurScreen(s)
 #define SetAnimCurScreen(s,p) dixSetPrivate(&(s)->devPrivates, AnimCurScreenPrivateKey, p)
 
 #define Wrap(as,s,elt,func) (((as)->elt = (s)->elt), (s)->elt = func)
@@ -375,7 +374,7 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     AnimCurPtr	ac;
 
     for (i = 0; i < screenInfo.numScreens; i++)
-	if (!GetAnimCurScreenIfSet (screenInfo.screens[i]))
+	if (!GetAnimCurScreen (screenInfo.screens[i]))
 	    return BadImplementation;
 
     for (i = 0; i < ncursor; i++)
