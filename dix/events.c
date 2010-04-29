@@ -1408,12 +1408,8 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
     ComputeFreezes();
 }
 
-/* Only ever used if a grab is called on an attached slave device. */
-static int GrabPrivateKeyIndex;
-static DevPrivateKey GrabPrivateKey = &GrabPrivateKeyIndex;
-
 /**
- * Save the device's master device in the devPrivates. This needs to be done
+ * Save the device's master device id. This needs to be done
  * if a client directly grabs a slave device that is attached to a master. For
  * the duration of the grab, the device is detached, ungrabbing re-attaches it
  * though.
@@ -1424,35 +1420,28 @@ static DevPrivateKey GrabPrivateKey = &GrabPrivateKeyIndex;
 static void
 DetachFromMaster(DeviceIntPtr dev)
 {
-    intptr_t id;
     if (!dev->u.master)
         return;
 
-    id = dev->u.master->id;
+    dev->saved_master_id = dev->u.master->id;
 
-    dixSetPrivate(&dev->devPrivates, GrabPrivateKey, (void *)id);
     AttachDevice(NULL, dev, NULL);
 }
 
 static void
 ReattachToOldMaster(DeviceIntPtr dev)
 {
-    int id;
-    void *p;
     DeviceIntPtr master = NULL;
 
     if (IsMaster(dev))
         return;
 
-
-    p = dixLookupPrivate(&dev->devPrivates, GrabPrivateKey);
-    id = (intptr_t) p; /* silence gcc warnings */
-    dixLookupDevice(&master, id, serverClient, DixUseAccess);
+    dixLookupDevice(&master, dev->saved_master_id, serverClient, DixUseAccess);
 
     if (master)
     {
         AttachDevice(serverClient, dev, master);
-        dixSetPrivate(&dev->devPrivates, GrabPrivateKey, NULL);
+	dev->saved_master_id = 0;
     }
 }
 
