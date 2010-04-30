@@ -197,6 +197,9 @@ xf86XVRegisterOffscreenImages(
     int num
 ){
     OffscreenImageRec *OffscreenImage;
+    /* This function may be called before xf86XVScreenInit, so there's
+     * no better place than this to call dixRequestPrivate to ensure we
+     * have space reserved. After the first call it is a no-op. */
     if(!dixRequestPrivate(OffscreenPrivateKey, sizeof(OffscreenImageRec)) ||
        !(OffscreenImage = GetOffscreenImage(pScreen)))
         /* Every X.org driver assumes this function always succeeds, so
