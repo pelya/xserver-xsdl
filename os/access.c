@@ -765,7 +765,8 @@ DefineSelf (int fd)
 	    continue;
 #endif /* DNETCONN */
 	len = sizeof(*(ifr->ifa_addr));
-	family = ConvertAddr(ifr->ifa_addr, &len, (pointer *)&addr);
+	family = ConvertAddr((struct sockaddr *) ifr->ifa_addr, &len,
+			     (pointer *)&addr);
 	if (family == -1 || family == FamilyLocal) 
 	    continue;
 #if defined(IPv6) && defined(AF_INET6)
@@ -789,7 +790,6 @@ DefineSelf (int fd)
 	}
 #ifdef XDMCP
 	{
-	    struct sockaddr broad_addr;
 	    /*
 	     * If this isn't an Internet Address, don't register it.
 	     */
@@ -835,11 +835,10 @@ DefineSelf (int fd)
 	    if ((ifr->ifa_flags & IFF_BROADCAST) &&
 		(ifr->ifa_flags & IFF_UP) &&
                 ifr->ifa_broadaddr)
-		broad_addr = *ifr->ifa_broadaddr;
+		XdmcpRegisterBroadcastAddress(
+		    (struct sockaddr_in *) ifr->ifa_broadaddr);
 	    else
 		continue;
-	    XdmcpRegisterBroadcastAddress((struct sockaddr_in *)
-					  &broad_addr);
 	}
 #endif /* XDMCP */
 		
