@@ -57,7 +57,11 @@ typedef enum {
 } DevPrivateType;
 
 typedef struct _DevPrivateKeyRec {
-    int			key;
+    int			offset;
+    int			size;
+    Bool		initialized;
+    DevPrivateType	type;
+    struct _DevPrivateKeyRec	*next;
 } DevPrivateKeyRec, *DevPrivateKey;
 
 /*
@@ -91,17 +95,46 @@ dixRegisterPrivateKey(DevPrivateKey key, DevPrivateType type, unsigned size);
 static inline Bool
 dixPrivateKeyRegistered(DevPrivateKey key)
 {
-    return key->key != 0;
+    return key->initialized;
+}
+
+/*
+ * Get the address of the private storage.
+ *
+ * For keys with pre-defined storage, this gets the base of that storage
+ * Otherwise, it returns the place where the private pointer is stored.
+ */
+static inline void *
+dixGetPrivateAddr(PrivatePtr *privates, const DevPrivateKey key)
+{
+    assert(key->initialized);
+    return (char *) (*privates) + key->offset;
+}
+
+/*
+ * Fetch a private pointer stored in the object
+ *
+ * Returns the pointer stored with dixSetPrivate.
+ * This must only be used with keys that have
+ * no pre-defined storage
+ */
+static inline void *
+dixGetPrivate(PrivatePtr *privates, const DevPrivateKey key)
+{
+    assert (key->size == 0);
+    return *(void **) dixGetPrivateAddr(privates, key);
 }
 
 /*
  * Associate 'val' with 'key' in 'privates' so that later calls to
  * dixLookupPrivate(privates, key) will return 'val'.
- *
- * dixSetPrivate returns FALSE if a memory allocation fails.
  */
-extern _X_EXPORT int
-dixSetPrivate(PrivatePtr *privates, const DevPrivateKey key, pointer val);
+static inline void
+dixSetPrivate(PrivatePtr *privates, const DevPrivateKey key, pointer val)
+{
+    assert (key->size == 0);
+    *(pointer *) dixGetPrivateAddr(privates, key) = val;
+}
 
 #include "dix.h"
 #include "resource.h"
@@ -113,28 +146,42 @@ dixSetPrivate(PrivatePtr *privates, const DevPrivateKey key, pointer val);
  * storage. For privates without defined storage, return the pointer
  * contents
  */
-extern _X_EXPORT pointer
-dixLookupPrivate(PrivatePtr *privates, const DevPrivateKey key);
+static inline pointer
+dixLookupPrivate(PrivatePtr *privates, const DevPrivateKey key)
+{
+    if (key->size)
+	return dixGetPrivateAddr(privates, key);
+    else
+	return dixGetPrivate(privates, key);
+}
 
 /*
- * Look up the address of a private pointer.  If 'key' is not associated with a
- * value in 'privates', then dixLookupPrivateAddr calls dixAllocatePrivate and
- * returns a pointer to the resulting associated value.
+ * Look up the address of the pointer to the storage
  *
- * dixLookupPrivateAddr returns NULL if 'key' was not previously associated in
- * 'privates' and a memory allocation fails.
+ * This returns the place where the private pointer is stored,
+ * which is only valid for privates without predefined storage.
  */
-extern _X_EXPORT pointer *
-dixLookupPrivateAddr(PrivatePtr *privates, const DevPrivateKey key);
+static inline pointer *
+dixLookupPrivateAddr(PrivatePtr *privates, const DevPrivateKey key)
+{
+    assert (key->size == 0);
+    return dixGetPrivateAddr(privates, key);
+}
 
 /*
- * Allocates private data separately from main object (clients and colormaps)
+ * Allocates private data separately from main object.
+ *
+ * For objects created during server initialization, this allows those
+ * privates to be re-allocated as new private keys are registered.
+ *
+ * This includes screens, the serverClient, default colormaps and
+ * extensions entries.
  */
-static inline Bool
-dixAllocatePrivates(PrivatePtr *privates, DevPrivateType type) { *privates = NULL; return TRUE; }
+extern _X_EXPORT Bool
+dixAllocatePrivates(PrivatePtr *privates, DevPrivateType type);
 
 /*
- * Frees separately allocated private data (screens and clients)
+ * Frees separately allocated private data
  */
 extern _X_EXPORT void
 dixFreePrivates(PrivatePtr privates, DevPrivateType type);
@@ -142,48 +189,44 @@ dixFreePrivates(PrivatePtr privates, DevPrivateType type);
 /*
  * Initialize privates by zeroing them
  */
-static inline void
-_dixInitPrivates(PrivatePtr *privates, void *addr, DevPrivateType type) { *privates = NULL; }
+extern _X_EXPORT void
+_dixInitPrivates(PrivatePtr *privates, void *addr, DevPrivateType type);
 
 #define dixInitPrivates(o, v, type) _dixInitPrivates(&(o)->devPrivates, (v), type);
 
 /*
  * Clean up privates
  */
-static inline void
-_dixFiniPrivates(PrivatePtr privates, DevPrivateType type) { dixFreePrivates(privates, type); }
+extern _X_EXPORT void
+_dixFiniPrivates(PrivatePtr privates, DevPrivateType type);
 
 #define dixFiniPrivates(o,t)	_dixFiniPrivates((o)->devPrivates,t)
 
 /*
  * Allocates private data at object creation time. Required
- * for all objects other than ScreenRecs.
+ * for almost all objects, except for the list described
+ * above for dixAllocatePrivates.
  */
-static inline void *
-_dixAllocateObjectWithPrivates(unsigned size, unsigned clear, unsigned offset, DevPrivateType type) {
-    return calloc(size, 1);
-}
+extern _X_EXPORT void *
+_dixAllocateObjectWithPrivates(unsigned size, unsigned clear, unsigned offset, DevPrivateType type);
 
 #define dixAllocateObjectWithPrivates(t, type) (t *) _dixAllocateObjectWithPrivates(sizeof(t), sizeof(t), offsetof(t, devPrivates), type)
 
-static inline void
-_dixFreeObjectWithPrivates(void *object, PrivatePtr privates, DevPrivateType type) {
-    dixFreePrivates(privates, type);
-    free(object);
-}
+extern _X_EXPORT void
+_dixFreeObjectWithPrivates(void *object, PrivatePtr privates, DevPrivateType type);
 
 #define dixFreeObjectWithPrivates(o,t) _dixFreeObjectWithPrivates(o, (o)->devPrivates, t)
 
 /*
  * Return size of privates for the specified type
  */
-static inline int
-dixPrivatesSize(DevPrivateType type) { return 0; }
+extern _X_EXPORT int
+dixPrivatesSize(DevPrivateType type);
 
 /*
  * Dump out private stats to ErrorF
  */
-void
+extern void
 dixPrivateUsage(void);
 
 /*
@@ -195,6 +238,7 @@ dixResetPrivates(void);
 
 /*
  * Looks up the offset where the devPrivates field is located.
+ *
  * Returns -1 if the specified resource has no dev privates.
  * The position of the devPrivates field varies by structure
  * and calling code might only know the resource type, not the

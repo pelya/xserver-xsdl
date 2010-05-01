@@ -25,6 +25,28 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
+/*
+ * Copyright © 2010, Keith Packard
+ * Copyright © 2010, Jamey Sharp
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
+ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -38,190 +60,298 @@ from The Open Group.
 #include "cursorstr.h"
 #include "colormapst.h"
 #include "inputstr.h"
+#include "scrnintstr.h"
+#include "extnsionst.h"
 
-struct _Private {
-    int state;
-    pointer value;
+static struct {
+    DevPrivateKey	key;
+    unsigned		offset;
+    int			created;
+    int			allocated;
+} keys[PRIVATE_LAST];
+
+static const Bool xselinux_private[PRIVATE_LAST] = {
+    [PRIVATE_CLIENT] = TRUE,
+    [PRIVATE_WINDOW] = TRUE,
+    [PRIVATE_PIXMAP] = TRUE,
+    [PRIVATE_GC] = TRUE,
+    [PRIVATE_CURSOR] = TRUE,
+    [PRIVATE_COLORMAP] = TRUE,
+    [PRIVATE_DEVICE] = TRUE,
+    [PRIVATE_EXTENSION] = TRUE,
+    [PRIVATE_SELECTION] = TRUE,
+    [PRIVATE_PROPERTY] = TRUE,
+    [PRIVATE_PICTURE] = TRUE,
+    [PRIVATE_GLYPHSET] = TRUE,
 };
 
-typedef struct _PrivateDesc {
-    DevPrivateKey key;
-    unsigned size;
-} PrivateDescRec;
+typedef Bool (*FixupFunc)(PrivatePtr *privates, int offset, unsigned bytes);
 
-#define PRIV_MAX 256
-#define PRIV_STEP 16
-
-static int number_privates_allocated;
-static int number_private_ptrs_allocated;
-static int bytes_private_data_allocated;
-
-/* list of all allocated privates */
-static PrivateDescRec items[PRIV_MAX];
-static int nextPriv;
-
-static PrivateDescRec *
-findItem(const DevPrivateKey key)
+static Bool
+dixReallocPrivates(PrivatePtr *privates, int old_offset, unsigned bytes)
 {
-    if (!key->key) {
-	if (nextPriv >= PRIV_MAX)
-	    return NULL;
+    void	*new_privates;
 
-	items[nextPriv].key = key;
-	key->key = nextPriv;
-	nextPriv++;
+    new_privates = realloc(*privates, old_offset + bytes);
+    if (!new_privates)
+	return FALSE;
+    memset((char *) new_privates + old_offset, '\0', bytes);
+    *privates = new_privates;
+    return TRUE;
+}
+
+static Bool
+dixMovePrivates(PrivatePtr *privates, int new_offset, unsigned bytes)
+{
+    memmove((char *) *privates + bytes, *privates, new_offset - bytes);
+    memset(*privates, '\0', bytes);
+    return TRUE;
+}
+
+static Bool
+fixupScreens(FixupFunc fixup, unsigned bytes)
+{
+    int s;
+    for (s = 0; s < screenInfo.numScreens; s++)
+	if (!fixup(&screenInfo.screens[s]->devPrivates, keys[PRIVATE_SCREEN].offset, bytes))
+	    return FALSE;
+    return TRUE;
+}
+
+static Bool
+fixupServerClient(FixupFunc fixup, unsigned bytes)
+{
+    if (serverClient)
+	return fixup(&serverClient->devPrivates, keys[PRIVATE_CLIENT].offset, bytes);
+    return TRUE;
+}
+
+static Bool
+fixupExtensions(FixupFunc fixup, unsigned bytes)
+{
+    unsigned char 	major;
+    ExtensionEntry	*extension;
+    for (major = EXTENSION_BASE; (extension = GetExtensionEntry(major)); major++)
+	if (!fixup(&extension->devPrivates, keys[PRIVATE_EXTENSION].offset, bytes))
+	    return FALSE;
+    return TRUE;
+}
+
+static Bool
+fixupDefaultColormaps(FixupFunc fixup, unsigned bytes)
+{
+    int s;
+    for (s = 0; s < screenInfo.numScreens; s++) {
+	ColormapPtr cmap;
+	dixLookupResourceByType((pointer *) &cmap, screenInfo.screens[s]->defColormap,
+	                        RT_COLORMAP, serverClient, DixCreateAccess);
+	if (cmap && !fixup(&cmap->devPrivates, keys[PRIVATE_COLORMAP].offset, bytes))
+	    return FALSE;
     }
-
-    return items + key->key;
+    return TRUE;
 }
 
-static _X_INLINE int
-privateExists(PrivateRec **privates, const DevPrivateKey key)
-{
-    return key->key && *privates &&
-	(*privates)[0].state > key->key &&
-	(*privates)[key->key].state;
-}
+static Bool (* const allocated_early[PRIVATE_LAST])(FixupFunc, unsigned) = {
+    [PRIVATE_SCREEN] = fixupScreens,
+    [PRIVATE_CLIENT] = fixupServerClient,
+    [PRIVATE_EXTENSION] = fixupExtensions,
+    [PRIVATE_COLORMAP] = fixupDefaultColormaps,
+};
 
 /*
- * Request pre-allocated space.
+ * Register a private key. This takes the type of object the key will
+ * be used with, which may be PRIVATE_ALL indicating that this key
+ * will be used with all of the private objects. If 'size' is
+ * non-zero, then the specified amount of space will be allocated in
+ * the private storage. Otherwise, space for a single pointer will
+ * be allocated which can be set with dixSetPrivate
  */
-int
-dixRegisterPrivateKey(const DevPrivateKey key, DevPrivateType type, unsigned size)
+Bool
+dixRegisterPrivateKey(DevPrivateKey key, DevPrivateType type, unsigned size)
 {
-    PrivateDescRec *item = findItem(key);
-    if (!item)
-	return FALSE;
-    if (size > item->size)
-	item->size = size;
+    DevPrivateType	t;
+    int			offset;
+    unsigned		bytes;
+
+    if (key->initialized) {
+	assert (size == key->size);
+	return TRUE;
+    }
+
+    /* Compute required space */
+    bytes = size;
+    if (size == 0)
+	bytes = sizeof (void *);
+
+    /* align to void * size */
+    bytes = (bytes + sizeof (void *) - 1) & ~(sizeof (void *) - 1);
+
+    /* Update offsets for all affected keys */
+    if (type == PRIVATE_XSELINUX) {
+	DevPrivateKey	k;
+
+	/* Resize if we can, or make sure nothing's allocated if we can't
+	 */
+	for (t = PRIVATE_XSELINUX; t < PRIVATE_LAST; t++)
+	    if (xselinux_private[t]) {
+		if (!allocated_early[t])
+		    assert (!keys[t].created);
+		else if (!allocated_early[t](dixReallocPrivates, bytes))
+		    return FALSE;
+	    }
+
+	/* Move all existing keys up in the privates space to make
+	 * room for this new global key
+	 */
+	for (t = PRIVATE_XSELINUX; t < PRIVATE_LAST; t++) {
+	    if (xselinux_private[t]) {
+		for (k = keys[t].key; k; k = k->next)
+		    k->offset += bytes;
+		keys[t].offset += bytes;
+		if (allocated_early[t])
+		    allocated_early[t](dixMovePrivates, bytes);
+	    }
+	}
+
+	offset = 0;
+    } else {
+	/* Resize if we can, or make sure nothing's allocated if we can't */
+	if (!allocated_early[type])
+	    assert(!keys[type].created);
+	else if (!allocated_early[type](dixReallocPrivates, bytes))
+	    return FALSE;
+	offset = keys[type].offset;
+	keys[type].offset += bytes;
+    }
+
+    /* Setup this key */
+    key->offset = offset;
+    key->size = size;
+    key->initialized = TRUE;
+    key->type = type;
+    key->next = keys[type].key;
+    keys[type].key = key;
+
     return TRUE;
 }
 
 /*
- * Allocate a private and attach it to an existing object.
- */
-static pointer *
-dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
-{
-    PrivateDescRec *item = findItem(key);
-    PrivateRec *ptr;
-    pointer value;
-    int oldsize, newsize;
-
-    newsize = (key->key / PRIV_STEP + 1) * PRIV_STEP;
-
-    /* resize or init privates array */
-    if (!item)
-	return NULL;
-
-    /* initialize privates array if necessary */
-    if (!*privates) {
-	++number_privates_allocated;
-	number_private_ptrs_allocated += newsize;
-	ptr = calloc(newsize, sizeof(*ptr));
-	if (!ptr)
-	    return NULL;
-	*privates = ptr;
-	(*privates)[0].state = newsize;
-    }
-
-    oldsize = (*privates)[0].state;
-
-    /* resize privates array if necessary */
-    if (key->key >= oldsize) {
-	ptr = realloc(*privates, newsize * sizeof(*ptr));
-	if (!ptr)
-	    return NULL;
-	memset(ptr + oldsize, 0, (newsize - oldsize) * sizeof(*ptr));
-	*privates = ptr;
-	(*privates)[0].state = newsize;
-	number_private_ptrs_allocated -= oldsize;
-	number_private_ptrs_allocated += newsize;
-    }
-
-    /* initialize slot */
-    ptr = *privates + key->key;
-    ptr->state = 1;
-    if (item->size) {
-	value = calloc(item->size, 1);
-	if (!value)
-	    return NULL;
-	bytes_private_data_allocated += item->size;
-	ptr->value = value;
-    }
-
-    return &ptr->value;
-}
-
-/*
- * Look up a private pointer.
- */
-pointer
-dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
-{
-    pointer *ptr;
-
-    assert (key->key != 0);
-    if (privateExists(privates, key))
-	return (*privates)[key->key].value;
-
-    ptr = dixAllocatePrivate(privates, key);
-    return ptr ? *ptr : NULL;
-}
-
-/*
- * Look up the address of a private pointer.
- */
-pointer *
-dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
-{
-    assert (key->key != 0);
-
-    if (privateExists(privates, key))
-	return &(*privates)[key->key].value;
-
-    return dixAllocatePrivate(privates, key);
-}
-
-/*
- * Set a private pointer.
- */
-int
-dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
-{
-    assert (key->key != 0);
- top:
-    if (privateExists(privates, key)) {
-	(*privates)[key->key].value = val;
-	return TRUE;
-    }
-
-    if (!dixAllocatePrivate(privates, key))
-	return FALSE;
-    goto top;
-}
-
-/*
- * Called to free privates at object deletion time.
+ * Initialize privates by zeroing them
  */
 void
-dixFreePrivates(PrivateRec *privates, DevPrivateType type)
+_dixInitPrivates(PrivatePtr *privates, void *addr, DevPrivateType type)
 {
-    int i;
+    keys[type].created++;
+    if (xselinux_private[type])
+	keys[PRIVATE_XSELINUX].created++;
+    if (keys[type].offset == 0)
+	addr = 0;
+    *privates = addr;
+    memset(addr, '\0', keys[type].offset);
+}
 
-    if (privates) {
-	number_private_ptrs_allocated -= privates->state;
-	number_privates_allocated--;
-	for (i = 1; i < privates->state; i++)
-	    if (privates[i].state) {
-		/* free pre-allocated memory */
-		if (items[i].size)
-		    free(privates[i].value);
-		bytes_private_data_allocated -= items[i].size;
-	    }
+/*
+ * Clean up privates
+ */
+void
+_dixFiniPrivates(PrivatePtr privates, DevPrivateType type)
+{
+    keys[type].created--;
+    if (xselinux_private[type])
+	keys[PRIVATE_XSELINUX].created--;
+}
+
+/*
+ * Allocate new object with privates.
+ *
+ * This is expected to be invoked from the
+ * dixAllocateObjectWithPrivates macro
+ */
+void *
+_dixAllocateObjectWithPrivates(unsigned baseSize, unsigned clear, unsigned offset, DevPrivateType type)
+{
+    unsigned		totalSize;
+    void		*object;
+    PrivatePtr		privates;
+    PrivatePtr		*devPrivates;
+
+    assert (type > PRIVATE_SCREEN && type < PRIVATE_LAST);
+
+    /* round up so that void * is aligned */
+    baseSize = (baseSize + sizeof (void *) - 1) & ~(sizeof (void *) - 1);
+    totalSize = baseSize + keys[type].offset;
+    object = malloc(totalSize);
+    if (!object)
+	return NULL;
+
+    memset(object, '\0', clear);
+    privates = (PrivatePtr) (((char *) object) + baseSize);
+    devPrivates = (PrivatePtr *) ((char *) object + offset);
+
+    _dixInitPrivates(devPrivates, privates, type);
+
+    return object;
+}
+
+/*
+ * Allocate privates separately from containing object.
+ * Used for clients and screens.
+ */
+Bool
+dixAllocatePrivates(PrivatePtr *privates, DevPrivateType type)
+{
+    unsigned 	size;
+    PrivatePtr	p;
+
+    assert (type > PRIVATE_XSELINUX && type < PRIVATE_LAST);
+
+    size = keys[type].offset;
+    if (!size) {
+	p = NULL;
+    } else {
+	if (!(p = malloc(size)))
+	    return FALSE;
     }
 
+    _dixInitPrivates(privates, p, type);
+    ++keys[type].allocated;
+
+    return TRUE;
+}
+
+/*
+ * Free an object that has privates
+ *
+ * This is expected to be invoked from the
+ * dixFreeObjectWithPrivates macro
+ */
+void
+_dixFreeObjectWithPrivates(void *object, PrivatePtr privates, DevPrivateType type)
+{
+    _dixFiniPrivates(privates, type);
+    free(object);
+}
+
+/*
+ * Called to free screen or client privates
+ */
+void
+dixFreePrivates(PrivatePtr privates, DevPrivateType type)
+{
+    _dixFiniPrivates(privates, type);
+    --keys[type].allocated;
     free(privates);
+}
+
+/*
+ * Return size of privates for the specified type
+ */
+extern _X_EXPORT int
+dixPrivatesSize(DevPrivateType type)
+{
+    assert (type >= PRIVATE_SCREEN && type < PRIVATE_LAST);
+
+    return keys[type].offset;
 }
 
 /* Table of devPrivates offsets */
@@ -256,32 +386,80 @@ dixLookupPrivateOffset(RESTYPE type)
     return -1;
 }
 
+static const char *key_names[PRIVATE_LAST] = {
+    /* XSELinux uses the same private keys for numerous objects */
+    [PRIVATE_XSELINUX] = "XSELINUX",
+
+    /* Otherwise, you get a private in just the requested structure
+     */
+    /* These can have objects created before all of the keys are registered */
+    [PRIVATE_SCREEN] = "SCREEN",
+    [PRIVATE_EXTENSION] = "EXTENSION",
+    [PRIVATE_COLORMAP] = "COLORMAP",
+
+    /* These cannot have any objects before all relevant keys are registered */
+    [PRIVATE_DEVICE] = "DEVICE",
+    [PRIVATE_CLIENT] = "CLIENT",
+    [PRIVATE_PROPERTY] = "PROPERTY",
+    [PRIVATE_SELECTION] = "SELECTION",
+    [PRIVATE_WINDOW] = "WINDOW",
+    [PRIVATE_PIXMAP] = "PIXMAP",
+    [PRIVATE_GC] = "GC",
+    [PRIVATE_CURSOR] = "CURSOR",
+    [PRIVATE_CURSOR_BITS] = "CURSOR_BITS",
+
+    /* extension privates */
+    [PRIVATE_DBE_WINDOW] = "DBE_WINDOW",
+    [PRIVATE_DAMAGE] = "DAMAGE",
+    [PRIVATE_GLYPH] = "GLYPH",
+    [PRIVATE_GLYPHSET] = "GLYPHSET",
+    [PRIVATE_PICTURE] = "PICTURE",
+};
+
 void
 dixPrivateUsage(void)
 {
-    ErrorF("number of private structures: %d\n",
-	   number_privates_allocated);
-    ErrorF("total number of private pointers: %d (%zd bytes)\n",
-	   number_private_ptrs_allocated,
-	   number_private_ptrs_allocated * sizeof (struct _Private));
-    ErrorF("bytes of extra private data: %d\n",
-	   bytes_private_data_allocated);
-    ErrorF("Total privates memory usage: %zd\n",
-	   bytes_private_data_allocated +
-	   number_private_ptrs_allocated * sizeof (struct _Private));
+    int objects = 0;
+    int	bytes = 0;
+    int alloc = 0;
+    DevPrivateType t;
+
+    for (t = PRIVATE_XSELINUX + 1; t < PRIVATE_LAST; t++) {
+	if (keys[t].offset) {
+	    ErrorF("%s: %d objects of %d bytes = %d total bytes %d private allocs\n",
+		   key_names[t], keys[t].created, keys[t].offset, keys[t].created * keys[t].offset,
+		   keys[t].allocated);
+	    bytes += keys[t].created * keys[t].offset;
+	    objects += keys[t].created;
+	    alloc += keys[t].allocated;
+	}
+    }
+    ErrorF("TOTAL: %d objects, %d bytes, %d allocs\n",
+	   objects, bytes, alloc);
 }
 
 void
 dixResetPrivates(void)
 {
-    int i;
+    DevPrivateType	t;
 
-    /* reset private descriptors */
-    for (i = 1; i < nextPriv; i++) {
-	items[i].key->key = 0;
-	items[i].size = 0;
+    for (t = PRIVATE_XSELINUX; t < PRIVATE_LAST; t++) {
+	DevPrivateKey	key;
+
+	for (key = keys[t].key; key; key = key->next) {
+	    key->offset = 0;
+	    key->initialized = FALSE;
+	    key->size = 0;
+	    key->type = 0;
+	}
+	if (keys[t].created) {
+	    ErrorF("%d %ss still allocated at reset\n",
+		   keys[t].created, key_names[t]);
+	    dixPrivateUsage();
+	}
+	keys[t].key = NULL;
+	keys[t].offset = 0;
+	keys[t].created = 0;
+	keys[t].allocated = 0;
     }
-    nextPriv = 1;
-    if (number_privates_allocated)
-	dixPrivateUsage();
 }
