@@ -59,14 +59,7 @@ static DevPrivateKeyRec miDCScreenKeyRec;
 
 static Bool	miDCCloseScreen(int index, ScreenPtr pScreen);
 
-/* per bits per-screen private data */
-static DevPrivateKeyRec miDCCursorBitsKeyRec[MAXSCREENS];
-#define miDCCursorBitsKey(screen)	(&miDCCursorBitsKeyRec[(screen)->myNum])
-
-/* per device per-screen private data */
-static DevPrivateKeyRec miDCDeviceKeyRec[MAXSCREENS];
-#define miDCDeviceKey(screen)		(&miDCDeviceKeyRec[(screen)->myNum])
-
+/* per device private data */
 typedef struct {
     GCPtr	    pSourceGC, pMaskGC;
     GCPtr	    pSaveGC, pRestoreGC;
@@ -86,8 +79,14 @@ typedef struct {
  * in the pCursorBuffers array. 
  */
 typedef struct {
-    CloseScreenProcPtr CloseScreen;
+    CloseScreenProcPtr	CloseScreen;
+    DevPrivateKey	device_key;
+    DevPrivateKey	cursor_bits_key;
 } miDCScreenRec, *miDCScreenPtr;
+
+#define miGetDCScreen(s)	((miDCScreenPtr)(dixLookupPrivate(&(s)->devPrivates, miDCScreenKey)))
+#define miDCDeviceKey(s) 	(miGetDCScreen(s)->device_key)
+#define miDCCursorBitsKey(s)	(miGetDCScreen(s)->cursor_bits_key)
 
 /* per-cursor per-screen private data */
 typedef struct {
@@ -106,16 +105,16 @@ miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
     if (!dixRegisterPrivateKey(&miDCScreenKeyRec, PRIVATE_SCREEN, 0))
 	return FALSE;
 
-    if (!dixRegisterPrivateKey(&miDCDeviceKeyRec[pScreen->myNum], PRIVATE_DEVICE, 0))
-	return FALSE;
-
-    if (!dixRegisterPrivateKey(&miDCCursorBitsKeyRec[pScreen->myNum], PRIVATE_CURSOR_BITS, 0))
-	return FALSE;
-
     pScreenPriv = malloc(sizeof (miDCScreenRec));
     if (!pScreenPriv)
 	return FALSE;
 
+    pScreenPriv->cursor_bits_key = dixCreatePrivateKey(PRIVATE_CURSOR_BITS, 0);
+    pScreenPriv->device_key = dixCreatePrivateKey(PRIVATE_DEVICE, 0);
+    if (!pScreenPriv->cursor_bits_key || !pScreenPriv->device_key) {
+	free(pScreenPriv);
+	return FALSE;
+    }
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = miDCCloseScreen;
 
