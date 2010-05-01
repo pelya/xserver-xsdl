@@ -653,7 +653,7 @@ initializeExtensions(__GLXDRIscreen *screen)
 
 #ifdef __DRI2_FLUSH
 	if (strcmp(extensions[i]->name, __DRI2_FLUSH) == 0 &&
-	    extensions[i]->version >= __DRI2_FLUSH_VERSION) {
+	    extensions[i]->version >= 3) {
 		screen->flush = (__DRI2flushExtension *) extensions[i];
 	}
 #endif
@@ -713,11 +713,11 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     
     for (i = 0; extensions[i]; i++) {
         if (strcmp(extensions[i]->name, __DRI_CORE) == 0 &&
-	    extensions[i]->version >= __DRI_CORE_VERSION) {
+	    extensions[i]->version >= 1) {
 		screen->core = (const __DRIcoreExtension *) extensions[i];
 	}
         if (strcmp(extensions[i]->name, __DRI_DRI2) == 0 &&
-	    extensions[i]->version >= __DRI_DRI2_VERSION) {
+	    extensions[i]->version >= 1) {
 		screen->dri2 = (const __DRIdri2Extension *) extensions[i];
 	}
     }
