@@ -229,10 +229,35 @@ dixRegisterPrivateKey(DevPrivateKey key, DevPrivateType type, unsigned size)
     key->size = size;
     key->initialized = TRUE;
     key->type = type;
+    key->allocated = FALSE;
     key->next = keys[type].key;
     keys[type].key = key;
 
     return TRUE;
+}
+
+/*
+ * Allocate a new private key.
+ *
+ * This manages the storage of the key object itself, freeing it when the
+ * privates system is restarted at server reset time. All other keys
+ * are expected to be statically allocated as the privates must be
+ * reset after all objects have been freed
+ */
+DevPrivateKey
+dixCreatePrivateKey(DevPrivateType type, unsigned size)
+{
+    DevPrivateKey	key;
+
+    key = calloc(sizeof (DevPrivateKeyRec), 1);
+    if (!key)
+	return NULL;
+    if (!dixRegisterPrivateKey(key, type, size)) {
+	free(key);
+	return NULL;
+    }
+    key->allocated = TRUE;
+    return key;
 }
 
 /*
@@ -444,13 +469,16 @@ dixResetPrivates(void)
     DevPrivateType	t;
 
     for (t = PRIVATE_XSELINUX; t < PRIVATE_LAST; t++) {
-	DevPrivateKey	key;
+	DevPrivateKey	key, next;
 
-	for (key = keys[t].key; key; key = key->next) {
+	for (key = keys[t].key; key; key = next) {
+	    next = key->next;
 	    key->offset = 0;
 	    key->initialized = FALSE;
 	    key->size = 0;
 	    key->type = 0;
+	    if (key->allocated)
+		free(key);
 	}
 	if (keys[t].created) {
 	    ErrorF("%d %ss still allocated at reset\n",
