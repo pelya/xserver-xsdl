@@ -58,6 +58,140 @@ static int xf86EntityPrivateCount = 0;
 
 BusRec primaryBus = { BUS_NONE, { 0 } };
 
+/**
+ * Call the driver's correct probe function.
+ *
+ * If the driver implements the \c DriverRec::PciProbe entry-point and an
+ * appropriate PCI device (with matching Device section in the xorg.conf file)
+ * is found, it is called.  If \c DriverRec::PciProbe or no devices can be
+ * successfully probed with it (e.g., only non-PCI devices are available),
+ * the driver's \c DriverRec::Probe function is called.
+ *
+ * \param drv   Driver to probe
+ *
+ * \return
+ * If a device can be successfully probed by the driver, \c TRUE is
+ * returned.  Otherwise, \c FALSE is returned.
+ */
+Bool
+xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
+{
+    Bool     foundScreen = FALSE;
+
+    if (drv->PciProbe != NULL) {
+        if (xf86DoConfigure && xf86DoConfigurePass1) {
+            assert(detect_only);
+            foundScreen = xf86PciAddMatchingDev(drv);
+        }
+        else {
+            assert(! detect_only);
+            foundScreen = xf86PciProbeDev(drv);
+        }
+    }
+
+    if (!foundScreen && (drv->Probe != NULL)) {
+        xf86Msg( X_WARNING, "Falling back to old probe method for %s\n",
+                             drv->driverName);
+        foundScreen = (*drv->Probe)(drv, (detect_only) ? PROBE_DETECT
+                                    : PROBE_DEFAULT);
+    }
+
+    return foundScreen;
+}
+
+/**
+ * @return TRUE if all buses are configured and set up correctly and FALSE
+ * otherwise.
+ */
+Bool
+xf86BusConfig(void)
+{
+    screenLayoutPtr layout;
+    int i, j;
+
+    /* Enable full I/O access */
+    if (xorgHWAccess)
+        xorgHWAccess = xf86EnableIO();
+
+    /* Locate bus slot that had register IO enabled at server startup */
+    if (xorgHWAccess)
+        xf86FindPrimaryDevice();
+
+    /*
+     * Now call each of the Probe functions.  Each successful probe will
+     * result in an extra entry added to the xf86Screens[] list for each
+     * instance of the hardware found.
+     */
+    for (i = 0; i < xf86NumDrivers; i++) {
+        xorgHWFlags flags;
+        if (!xorgHWAccess) {
+            if (!xf86DriverList[i]->driverFunc
+            || !xf86DriverList[i]->driverFunc(NULL,
+                             GET_REQUIRED_HW_INTERFACES,
+                              &flags)
+            || NEED_IO_ENABLED(flags))
+            continue;
+        }
+
+        xf86CallDriverProbe(xf86DriverList[i], FALSE);
+    }
+
+    /* If nothing was detected, return now */
+    if (xf86NumScreens == 0) {
+        xf86Msg(X_ERROR, "No devices detected.\n");
+        return FALSE;
+    }
+
+    xf86VGAarbiterInit();
+
+    /*
+     * Match up the screens found by the probes against those specified
+     * in the config file.  Remove the ones that won't be used.  Sort
+     * them in the order specified.
+     *
+     * What is the best way to do this?
+     *
+     * For now, go through the screens allocated by the probes, and
+     * look for screen config entry which refers to the same device
+     * section as picked out by the probe.
+     *
+     */
+    for (i = 0; i < xf86NumScreens; i++) {
+        for (layout = xf86ConfigLayout.screens; layout->screen != NULL;
+             layout++) {
+            Bool found = FALSE;
+            for (j = 0; j < xf86Screens[i]->numEntities; j++) {
+
+                GDevPtr dev = xf86GetDevFromEntity(
+                                xf86Screens[i]->entityList[j],
+                                xf86Screens[i]->entityInstanceList[j]);
+                if (dev == layout->screen->device) {
+                    /* A match has been found */
+                    xf86Screens[i]->confScreen = layout->screen;
+                    found = TRUE;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+        if (layout->screen == NULL) {
+            /* No match found */
+            xf86Msg(X_ERROR,
+            "Screen %d deleted because of no matching config section.\n", i);
+            xf86DeleteScreen(i--, 0);
+        }
+    }
+
+    /* If no screens left, return now.  */
+    if (xf86NumScreens == 0) {
+        xf86Msg(X_ERROR,
+        "Device(s) detected, but none match those in the config file.\n");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
 /*
  * Call the bus probes relevant to the architecture.
  *
