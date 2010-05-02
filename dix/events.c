@@ -2558,7 +2558,6 @@ static Bool
 PointInBorderSize(WindowPtr pWin, int x, int y)
 {
     BoxRec box;
-    SpritePtr pSprite = inputInfo.pointer->spriteInfo->sprite;
 
     if(POINT_IN_REGION(pWin->drawable.pScreen, &pWin->borderSize, x, y, &box))
 	return TRUE;
@@ -2566,6 +2565,7 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
 #ifdef PANORAMIX
     if(!noPanoramiXExtension &&
             XineramaSetWindowPntrs(inputInfo.pointer, pWin)) {
+	SpritePtr pSprite = inputInfo.pointer->spriteInfo->sprite;
 	int i;
 
 	for(i = 1; i < PanoramiXNumScreens; i++) {
