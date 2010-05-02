@@ -480,21 +480,13 @@ xf86EnterServerState(xf86State state)
 void
 xf86PostProbe(void)
 {
-    if (fbSlotClaimed) {
-        if (pciSlotClaimed
+    if (fbSlotClaimed && (pciSlotClaimed
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	    || sbusSlotClaimed
 #endif
-	    ) { 
+	    ))
 	    FatalError("Cannot run in framebuffer mode. Please specify busIDs "
 		       "       for all framebuffer devices\n");
-	    return;
-	} else  {
-	    xf86Msg(X_INFO,"Running in FRAMEBUFFER Mode\n");
-
-	    return;
-	}
-    }
 }
 
 void
