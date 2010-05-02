@@ -457,12 +457,12 @@ xf86PostProbe(void)
 void
 xf86PostScreenInit(void)
 {
+    xf86VGAarbiterWrapFunctions();
+
     if (fbSlotClaimed) {
 	SetSIGIOForState(OPERATING);
 	return;
     }
-
-    xf86VGAarbiterWrapFunctions();
 
     DebugF("PostScreenInit  generation: %i\n",serverGeneration);
     xf86EnterServerState(OPERATING);
