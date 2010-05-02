@@ -390,8 +390,6 @@ xf86GetDevFromEntity(int entityIndex, int instance)
 void
 xf86AccessEnter(void)
 {
-    return;
-
     /*
      * on enter we simply disable routing of special resources
      * to any bus and let the RAC code to "open" the right bridges.
@@ -412,7 +410,6 @@ xf86AccessEnter(void)
 void
 xf86AccessLeave(void)
 {
-    return;
     EntityLeave();
 }
 
