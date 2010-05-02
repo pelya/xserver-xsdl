@@ -786,7 +786,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     }
 
     xf86PostProbe();
-    xf86EntityInit();
 
     /*
      * Sort the drivers to match the requested ording.  Using a slow

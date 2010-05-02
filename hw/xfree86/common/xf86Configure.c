@@ -818,7 +818,6 @@ DoConfigure(void)
     }
 
     xf86PostProbe();
-    xf86EntityInit();
 
     for (j = 0; j < xf86NumScreens; j++) {
 	xf86Screens[j]->scrnIndex = j;

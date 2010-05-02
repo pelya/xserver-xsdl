@@ -114,7 +114,6 @@ extern _X_EXPORT  RootWinPropPtr *xf86RegisteredPropertiesTable;
 extern _X_EXPORT void xf86BusProbe(void);
 extern _X_EXPORT void xf86AccessEnter(void);
 extern _X_EXPORT void xf86AccessLeave(void);
-extern _X_EXPORT void xf86EntityInit(void);
 
 extern _X_EXPORT void xf86FindPrimaryDevice(void);
 /* new RAC */

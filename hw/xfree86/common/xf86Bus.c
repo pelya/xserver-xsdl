@@ -108,21 +108,6 @@ StringToBusType(const char* busID, const char **retID)
     return ret;
 }
 
-/*
- * Entity related code.
- */
-
-void
-xf86EntityInit(void)
-{
-    int i;
-    
-    for (i = 0; i < xf86NumEntities; i++)
-	if (xf86Entities[i]->entityInit) {
-	    xf86Entities[i]->entityInit(i,xf86Entities[i]->private);
-	}
-}
-
 int
 xf86AllocateEntity(void)
 {
@@ -133,28 +118,6 @@ xf86AllocateEntity(void)
     xf86Entities[xf86NumEntities - 1]->entityPrivates =
                xnfcalloc(sizeof(DevUnion) * xf86EntityPrivateCount, 1);
     return (xf86NumEntities - 1);
-}
-
-static void
-EntityEnter(void)
-{
-    int i;
-    
-    for (i = 0; i < xf86NumEntities; i++)
-	if (xf86Entities[i]->entityEnter) {
-	    xf86Entities[i]->entityEnter(i,xf86Entities[i]->private);
-	}
-}
-
-static void
-EntityLeave(void)
-{
-    int i;
-
-    for (i = 0; i < xf86NumEntities; i++)
-	if (xf86Entities[i]->entityLeave) {
-	    xf86Entities[i]->entityLeave(i,xf86Entities[i]->private);
-	}
 }
 
 Bool
@@ -388,27 +351,23 @@ xf86GetDevFromEntity(int entityIndex, int instance)
 void
 xf86AccessEnter(void)
 {
-    /*
-     * on enter we simply disable routing of special resources
-     * to any bus and let the RAC code to "open" the right bridges.
-     */
-    EntityEnter();
+    int i;
+
+    for (i = 0; i < xf86NumEntities; i++)
+        if (xf86Entities[i]->entityEnter)
+		xf86Entities[i]->entityEnter(i,xf86Entities[i]->private);
+
     xf86EnterServerState(SETUP);
 }
 
-/*
- * xf86AccessLeave() -- prepares access for and calls the
- * entityLeave() functions.
- * xf86AccessLeaveState() --- gets called to restore the
- * access to the VGA IO resources when switching VT or on
- * server exit.
- * This was split to call xf86AccessLeaveState() from
- * ddxGiveUp().
- */
 void
 xf86AccessLeave(void)
 {
-    EntityLeave();
+    int i;
+
+    for (i = 0; i < xf86NumEntities; i++)
+        if (xf86Entities[i]->entityLeave)
+		xf86Entities[i]->entityLeave(i,xf86Entities[i]->private);
 }
 
 /*
@@ -480,6 +439,8 @@ xf86EnterServerState(xf86State state)
 void
 xf86PostProbe(void)
 {
+    int i;
+
     if (fbSlotClaimed && (pciSlotClaimed
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	    || sbusSlotClaimed
@@ -487,6 +448,10 @@ xf86PostProbe(void)
 	    ))
 	    FatalError("Cannot run in framebuffer mode. Please specify busIDs "
 		       "       for all framebuffer devices\n");
+
+    for (i = 0; i < xf86NumEntities; i++)
+        if (xf86Entities[i]->entityInit)
+	    xf86Entities[i]->entityInit(i,xf86Entities[i]->private);
 }
 
 void
