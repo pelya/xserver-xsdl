@@ -399,12 +399,17 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 
 typedef enum { TRI_UNSET, TRI_TRUE, TRI_FALSE } TriState;
 
-static void
-SetSIGIOForState(xf86State state)
+void
+xf86EnterServerState(xf86State state)
 {
     static int sigio_state;
     static TriState sigio_blocked = TRI_UNSET;
 
+    /*
+     * This is a good place to block SIGIO during SETUP state. SIGIO should be
+     * blocked in SETUP state otherwise (u)sleep() might get interrupted
+     * early. We take care not to call xf86BlockSIGIO() twice.
+     */
     if ((state == SETUP) && (sigio_blocked != TRI_TRUE)) {
         sigio_state = xf86BlockSIGIO();
 	sigio_blocked = TRI_TRUE;
@@ -412,24 +417,6 @@ SetSIGIOForState(xf86State state)
         xf86UnblockSIGIO(sigio_state);
         sigio_blocked = TRI_FALSE;
     }
-}
-
-void
-xf86EnterServerState(xf86State state)
-{
-    /* 
-     * This is a good place to block SIGIO during SETUP state.
-     * SIGIO should be blocked in SETUP state otherwise (u)sleep()
-     * might get interrupted early. 
-     * We take care not to call xf86BlockSIGIO() twice. 
-     */
-    SetSIGIOForState(state);
-    if (state == SETUP)
-	DebugF("Entering SETUP state\n");
-    else
-	DebugF("Entering OPERATING state\n");
-
-    return;
 }
 
 /*
@@ -458,13 +445,6 @@ void
 xf86PostScreenInit(void)
 {
     xf86VGAarbiterWrapFunctions();
-
-    if (fbSlotClaimed) {
-	SetSIGIOForState(OPERATING);
-	return;
-    }
-
-    DebugF("PostScreenInit  generation: %i\n",serverGeneration);
     xf86EnterServerState(OPERATING);
 }
 
