@@ -833,7 +833,6 @@ DoConfigure(void)
 
 	ConfiguredMonitor = NULL;
 
-	xf86EnableAccess(xf86Screens[dev2screen[j]]);
 	if ((*xf86Screens[dev2screen[j]]->PreInit)(xf86Screens[dev2screen[j]], 
 						   PROBE_DETECT) &&
 	    ConfiguredMonitor) {

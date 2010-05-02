@@ -371,29 +371,6 @@ xf86AccessLeave(void)
 }
 
 /*
- * xf86EnableAccess() -- enable access to controlled resources.
- * To reduce latency when switching access the ScrnInfoRec has
- * a linked list of the EntityAccPtr of all screen entities.
- */
-/*
- * switching access needs to be done in te following oder:
- * disable
- * 1. disable old entity
- * 2. reroute bus
- * 3. enable new entity
- * Otherwise resources needed for access control might be shadowed
- * by other resources!
- */
-
-void
-xf86EnableAccess(ScrnInfoPtr pScrn)
-{
-    DebugF("Enable access %i\n",pScrn->scrnIndex);
-
-    return;
-}
-
-/*
  * xf86EnterServerState() -- set state the server is in.
  */
 
