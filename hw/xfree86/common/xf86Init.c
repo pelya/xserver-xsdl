@@ -700,10 +700,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /*
      * Locate bus slot that had register IO enabled at server startup
      */
-    if (xorgHWAccess) {
-        xf86AccessInit();
+    if (xorgHWAccess)
         xf86FindPrimaryDevice();
-    }
     /*
      * Now call each of the Probe functions.  Each successful probe will
      * result in an extra entry added to the xf86Screens[] list for each

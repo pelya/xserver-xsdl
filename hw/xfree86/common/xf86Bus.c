@@ -58,8 +58,6 @@ static int xf86EntityPrivateCount = 0;
 
 BusRec primaryBus = { BUS_NONE, { 0 } };
 
-static Bool xf86ResAccessEnter = FALSE;
-
 static Bool doFramebufferMode = FALSE;
 
 /*
@@ -386,24 +384,13 @@ xf86GetDevFromEntity(int entityIndex, int instance)
 }
 
 /*
- * xf86AccessInit() - set up everything needed for access control
- * called only once on first server generation.
- */
-void
-xf86AccessInit(void)
-{
-    xf86ResAccessEnter = TRUE;
-}
-
-/*
  * xf86AccessEnter() -- gets called to save the text mode VGA IO 
  * resources when reentering the server after a VT switch.
  */
 void
 xf86AccessEnter(void)
 {
-    if (xf86ResAccessEnter) 
-	return;
+    return;
 
     /*
      * on enter we simply disable routing of special resources
@@ -411,7 +398,6 @@ xf86AccessEnter(void)
      */
     EntityEnter();
     xf86EnterServerState(SETUP);
-    xf86ResAccessEnter = TRUE;
 }
 
 /*
@@ -426,8 +412,7 @@ xf86AccessEnter(void)
 void
 xf86AccessLeave(void)
 {
-    if (!xf86ResAccessEnter)
-	return;
+    return;
     EntityLeave();
 }
 

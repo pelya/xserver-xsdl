@@ -112,7 +112,6 @@ extern _X_EXPORT  RootWinPropPtr *xf86RegisteredPropertiesTable;
 /* xf86Bus.c */
 
 extern _X_EXPORT void xf86BusProbe(void);
-extern _X_EXPORT void xf86AccessInit(void);
 extern _X_EXPORT void xf86AccessEnter(void);
 extern _X_EXPORT void xf86AccessLeave(void);
 extern _X_EXPORT void xf86EntityInit(void);
