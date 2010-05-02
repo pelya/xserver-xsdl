@@ -58,8 +58,6 @@ static int xf86EntityPrivateCount = 0;
 
 BusRec primaryBus = { BUS_NONE, { 0 } };
 
-static Bool doFramebufferMode = FALSE;
-
 /*
  * Call the bus probes relevant to the architecture.
  *
@@ -493,7 +491,6 @@ xf86PostProbe(void)
 	    return;
 	} else  {
 	    xf86Msg(X_INFO,"Running in FRAMEBUFFER Mode\n");
-	    doFramebufferMode = TRUE;
 
 	    return;
 	}
@@ -503,7 +500,7 @@ xf86PostProbe(void)
 void
 xf86PostScreenInit(void)
 {
-    if (doFramebufferMode) {
+    if (fbSlotClaimed) {
 	SetSIGIOForState(OPERATING);
 	return;
     }
