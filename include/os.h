@@ -218,19 +218,20 @@ extern _X_EXPORT int set_font_authorizations(
 /*
  * Use malloc(3) instead.
  */
-extern _X_EXPORT void *Xalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *Xalloc(unsigned long /*amount*/) X_DEPRECATED;
 /*
  * Use calloc(3) instead
  */
-extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/) X_DEPRECATED;
 /*
  * Use realloc(3) instead
  */
-extern _X_EXPORT void *Xrealloc(void * /*ptr*/, unsigned long /*amount*/);
+extern _X_EXPORT void *Xrealloc(void * /*ptr*/, unsigned long /*amount*/)
+    X_DEPRECATED;
 /*
  * Use free(3) instead
  */
-extern _X_EXPORT void Xfree(void * /*ptr*/);
+extern _X_EXPORT void Xfree(void * /*ptr*/) X_DEPRECATED;
 
 #endif
 
