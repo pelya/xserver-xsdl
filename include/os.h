@@ -214,15 +214,15 @@ extern _X_EXPORT int set_font_authorizations(
 
 #ifndef _HAVE_XALLOC_DECLS
 #define _HAVE_XALLOC_DECLS
-extern _X_EXPORT pointer Xalloc(unsigned long /*amount*/);
-extern _X_EXPORT pointer Xcalloc(unsigned long /*amount*/);
-extern _X_EXPORT pointer Xrealloc(pointer /*ptr*/, unsigned long /*amount*/);
-extern _X_EXPORT void Xfree(pointer /*ptr*/);
+extern _X_EXPORT void *Xalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *Xrealloc(void * /*ptr*/, unsigned long /*amount*/);
+extern _X_EXPORT void Xfree(void * /*ptr*/);
 #endif
 
-extern _X_EXPORT pointer XNFalloc(unsigned long /*amount*/);
-extern _X_EXPORT pointer XNFcalloc(unsigned long /*amount*/);
-extern _X_EXPORT pointer XNFrealloc(pointer /*ptr*/, unsigned long /*amount*/);
+extern _X_EXPORT void *XNFalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *XNFcalloc(unsigned long /*amount*/);
+extern _X_EXPORT void *XNFrealloc(void * /*ptr*/, unsigned long /*amount*/);
 
 extern _X_EXPORT char *Xstrdup(const char *s);
 extern _X_EXPORT char *XNFstrdup(const char *s);
