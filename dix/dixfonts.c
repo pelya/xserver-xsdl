@@ -1836,7 +1836,7 @@ SetDefaultFontPath(char *path)
     if (!start) {
 	temp_path = Xprintf("%s%sbuilt-ins", path, *path ? "," : "");
     } else {
-	temp_path = Xstrdup(path);
+	temp_path = xstrdup(path);
     }
     if (!temp_path)
         return BadAlloc;
