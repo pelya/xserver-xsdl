@@ -1039,11 +1039,6 @@ Xalloc(unsigned long amount)
     return malloc(amount);
 }
 
-/*****************
- * XNFalloc
- * "no failure" alloc
- *****************/
-
 void *
 XNFalloc(unsigned long amount)
 {
@@ -1053,19 +1048,11 @@ XNFalloc(unsigned long amount)
     return ptr;
 }
 
-/*****************
- * Xcalloc
- *****************/
-
 void *
 Xcalloc(unsigned long amount)
 {
     return calloc(1, amount);
 }
-
-/*****************
- * XNFcalloc
- *****************/
 
 void *
 XNFcalloc(unsigned long amount)
@@ -1075,10 +1062,6 @@ XNFcalloc(unsigned long amount)
         FatalError("XNFcalloc: Out of memory");
     return ret;
 }
-
-/*****************
- * Xrealloc
- *****************/
 
 void *
 Xrealloc(void *ptr, unsigned long amount)
@@ -1097,11 +1080,6 @@ Xrealloc(void *ptr, unsigned long amount)
 
     return realloc(ptr, amount);
 }
-                    
-/*****************
- * XNFrealloc 
- * "no failure" realloc
- *****************/
 
 void *
 XNFrealloc(void *ptr, unsigned long amount)
@@ -1111,11 +1089,6 @@ XNFrealloc(void *ptr, unsigned long amount)
 	FatalError("XNFrealloc: Out of memory");
     return ret;
 }
-
-/*****************
- *  Xfree
- *    calls free 
- *****************/    
 
 void
 Xfree(void *ptr)
