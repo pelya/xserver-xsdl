@@ -1365,7 +1365,7 @@ unsigned	i,len;
 char		*desc,*start;
 
     len= (rep->length*4)-(SIZEOF(xkbGetMapReply)-SIZEOF(xGenericReply));
-    start= desc= xcalloc(1, len);
+    start= desc= calloc(1, len);
     if (!start)
 	return BadAlloc;
     if ( rep->nTypes>0 )
@@ -1405,7 +1405,7 @@ char		*desc,*start;
     }
     WriteToClient(client, (i=SIZEOF(xkbGetMapReply)), (char *)rep);
     WriteToClient(client, len, start);
-    xfree((char *)start);
+    free((char *)start);
     return client->noClientException;
 }
 
@@ -2186,8 +2186,8 @@ unsigned	 first,last;
     if (maxRG>(int)xkbi->nRadioGroups) {
         int sz = maxRG*sizeof(XkbRadioGroupRec);
         if (xkbi->radioGroups)
-             xkbi->radioGroups= xrealloc(xkbi->radioGroups,sz);
-        else xkbi->radioGroups= xcalloc(1, sz);
+             xkbi->radioGroups= realloc(xkbi->radioGroups,sz);
+        else xkbi->radioGroups= calloc(1, sz);
         if (xkbi->radioGroups) {
              if (xkbi->nRadioGroups)
                 bzero(&xkbi->radioGroups[xkbi->nRadioGroups],
@@ -2629,7 +2629,7 @@ int		size;
 
     size= rep->length*4;
     if (size>0) {
-	data = xalloc(size);
+	data = malloc(size);
 	if (data) {
 	    register unsigned i,bit;
 	    xkbModsWireDesc *	grp;
@@ -2680,7 +2680,7 @@ int		size;
     WriteToClient(client, SIZEOF(xkbGetCompatMapReply), (char *)rep);
     if (data) {
 	WriteToClient(client, size, data);
-	xfree((char *)data);
+	free((char *)data);
     }
     return client->noClientException;
 }
@@ -2777,7 +2777,7 @@ _XkbSetCompatMap(ClientPtr client, DeviceIntPtr dev,
 	XkbSymInterpretPtr	sym;
 	if ((unsigned)(req->firstSI+req->nSI)>compat->num_si) {
 	    compat->num_si= req->firstSI+req->nSI;
-	    compat->sym_interpret= xrealloc(compat->sym_interpret,
+	    compat->sym_interpret= realloc(compat->sym_interpret,
 					    compat->num_si * sizeof(XkbSymInterpretRec));
 	    if (!compat->sym_interpret) {
 		compat->num_si= 0;
@@ -2995,7 +2995,7 @@ register unsigned	bit;
     length = rep->length*4;
     if (length>0) {
 	CARD8 *to;
-	to= map= xalloc(length);
+	to= map= malloc(length);
 	if (map) {
 	    xkbIndicatorMapWireDesc  *wire = (xkbIndicatorMapWireDesc *)to;
 	    for (i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
@@ -3034,7 +3034,7 @@ register unsigned	bit;
     WriteToClient(client, SIZEOF(xkbGetIndicatorMapReply), (char *)rep);
     if (map) {
 	WriteToClient(client, length, (char *)map);
-	xfree((char *)map);
+	free((char *)map);
     }
     return client->noClientException;
 }
@@ -3632,7 +3632,7 @@ register int            n;
 	swapl(&rep->indicators,n);
     }
 
-    start = desc = xalloc(length);
+    start = desc = malloc(length);
     if ( !start )
 	return BadAlloc;
     if (xkb->names) {
@@ -3756,7 +3756,7 @@ register int            n;
     }
     WriteToClient(client, SIZEOF(xkbGetNamesReply), (char *)rep);
     WriteToClient(client, length, start);
-    xfree((char *)start);
+    free((char *)start);
     return client->noClientException;
 }
 
@@ -4118,7 +4118,7 @@ _XkbSetNames(ClientPtr client, DeviceIntPtr dev, xkbSetNamesReq *stuff)
             tmp+= stuff->nKeyAliases*2;
         }
         else if (names->key_aliases!=NULL) {
-            xfree(names->key_aliases);
+            free(names->key_aliases);
             names->key_aliases= NULL;
             names->num_key_aliases= 0;
         }
@@ -4137,7 +4137,7 @@ _XkbSetNames(ClientPtr client, DeviceIntPtr dev, xkbSetNamesReq *stuff)
             tmp+= stuff->nRadioGroups;
         }
         else if (names->radio_groups) {
-            xfree(names->radio_groups);
+            free(names->radio_groups);
             names->radio_groups= NULL;
             names->num_rg= 0;
         }
@@ -4740,7 +4740,7 @@ XkbSendGeometry(	ClientPtr		client,
 
     if (geom!=NULL) {
 	len= rep->length*4;
-	start= desc= xalloc(len);
+	start= desc= malloc(len);
 	if (!start)
 	    return BadAlloc;
 	desc=  XkbWriteCountedString(desc,geom->label_font,client->swapped);
@@ -4784,7 +4784,7 @@ XkbSendGeometry(	ClientPtr		client,
     if (len>0)
 	WriteToClient(client, len, start);
     if (start!=NULL)
-	xfree((char *)start);
+	free((char *)start);
     if (freeGeom)
 	XkbFreeGeometry(geom,XkbGeomAllMask,TRUE);
     return client->noClientException;
@@ -4834,7 +4834,7 @@ CARD16	len,*plen;
 	swaps(plen,n);
     }
     len= *plen;
-    str= xalloc(len+1);
+    str= malloc(len+1);
     if (str) {
 	memcpy(str,&wire[2],len);
 	str[len]= '\0';
@@ -5182,16 +5182,16 @@ char *		wire;
             return BadAlloc;
 	val= _GetCountedString(&wire,client->swapped);
         if (!val) {
-            xfree(name);
+            free(name);
             return BadAlloc;
         }
 	if (XkbAddGeomProperty(geom,name,val)==NULL) {
-            xfree(name);
-            xfree(val);
+            free(name);
+            free(val);
 	    return BadAlloc;
         }
-        xfree(name);
-        xfree(val);
+        free(name);
+        free(val);
     }
 
     if (req->nColors<2) {
@@ -5218,10 +5218,10 @@ char *		wire;
 	if (!name)
             return BadAlloc;
         if (!XkbAddGeomColor(geom,name,geom->num_colors)) {
-            xfree(name);
+            free(name);
 	    return BadAlloc;
         }
-        xfree(name);
+        free(name);
     }
     if (req->nColors!=geom->num_colors) {
 	client->errorValue= _XkbErrCode3(0x05,req->nColors,geom->num_colors);
@@ -5449,7 +5449,7 @@ unsigned char	*wire,*str,*tmp,*legal;
     wire= *pWire;
     len= (*(unsigned char *)wire++);
     if (len>0) {
-	str= xcalloc(1, len+1);
+	str= calloc(1, len+1);
 	if (str) {
 	    tmp= str;
 	    for (i=0;i<len;i++) {
@@ -5460,7 +5460,7 @@ unsigned char	*wire,*str,*tmp,*legal;
 	    if (tmp!=str)
 		*tmp++= '\0';
 	    else {
-		xfree(str);
+		free(str);
 		str= NULL;
 	    }
 	}
@@ -5511,7 +5511,7 @@ ProcXkbListComponents(ClientPtr client)
 	return BadLength;
     if ((status=XkbDDXList(dev,&list,client))!=Success) {
 	if (list.pool) {
-	    xfree(list.pool);
+	    free(list.pool);
 	    list.pool= NULL;
 	}
 	return status;
@@ -5545,7 +5545,7 @@ ProcXkbListComponents(ClientPtr client)
     WriteToClient(client,SIZEOF(xkbListComponentsReply),(char *)&rep);
     if (list.nPool && list.pool) {
 	WriteToClient(client,XkbPaddedSize(list.nPool), (char *)list.pool);
-	xfree(list.pool);
+	free(list.pool);
 	list.pool= NULL;
     }
     return client->noClientException;
@@ -5886,11 +5886,11 @@ ProcXkbGetKbdByName(ClientPtr client)
 	XkbFreeKeyboard(new,XkbAllComponentsMask,TRUE);
 	new= NULL;
     }
-    if (names.keycodes)	{ xfree(names.keycodes); names.keycodes= NULL; }
-    if (names.types)	{ xfree(names.types); names.types= NULL; }
-    if (names.compat)	{ xfree(names.compat); names.compat= NULL; }
-    if (names.symbols)	{ xfree(names.symbols); names.symbols= NULL; }
-    if (names.geometry)	{ xfree(names.geometry); names.geometry= NULL; }
+    if (names.keycodes)	{ free(names.keycodes); names.keycodes= NULL; }
+    if (names.types)	{ free(names.types); names.types= NULL; }
+    if (names.compat)	{ free(names.compat); names.compat= NULL; }
+    if (names.symbols)	{ free(names.symbols); names.symbols= NULL; }
+    if (names.geometry)	{ free(names.geometry); names.geometry= NULL; }
     return client->noClientException;
 }
 
@@ -6205,12 +6205,12 @@ char *			str;
     }
     WriteToClient(client,SIZEOF(xkbGetDeviceInfoReply), (char *)&rep);
 
-    str= xalloc(nameLen);
+    str= malloc(nameLen);
     if (!str) 
 	return BadAlloc;
     XkbWriteCountedString(str,dev->name,client->swapped);
     WriteToClient(client,nameLen,str);
-    xfree(str);
+    free(str);
     length-= nameLen;
 
     if (rep.nBtnsRtrn>0) {
@@ -6459,7 +6459,7 @@ _XkbSetDeviceInfoCheck(ClientPtr client, DeviceIntPtr dev,
 	nBtns= dev->button->numButtons;
 	acts= dev->button->xkb_acts;
 	if (acts==NULL) {
-	    acts= xcalloc(nBtns, sizeof(XkbAction));
+	    acts= calloc(nBtns, sizeof(XkbAction));
 	    if (!acts)
 		return BadAlloc;
 	    dev->button->xkb_acts= acts;

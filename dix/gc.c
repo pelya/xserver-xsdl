@@ -436,7 +436,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		{
 		    if (pGC->dash != DefaultDash)
 		    {
-			xfree(pGC->dash);
+			free(pGC->dash);
 			pGC->numInDashList = 2;
 			pGC->dash = DefaultDash;
 		    }
@@ -445,11 +445,11 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
  		{
 		    unsigned char *dash;
 
-		    dash = xalloc(2 * sizeof(unsigned char));
+		    dash = malloc(2 * sizeof(unsigned char));
 		    if (dash)
 		    {
 			if (pGC->dash != DefaultDash)
-			    xfree(pGC->dash);
+			    free(pGC->dash);
 			pGC->numInDashList = 2;
 			pGC->dash = dash;
 			dash[0] = newdash;
@@ -554,7 +554,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
 {
     GCPtr pGC;
 
-    pGC = xalloc(sizeof(GC));
+    pGC = malloc(sizeof(GC));
     if (!pGC)
     {
 	*pStatus = BadAlloc;
@@ -794,7 +794,7 @@ CopyGC(GC *pgcSrc, GC *pgcDst, BITS32 mask)
 		{
 		    if (pgcDst->dash != DefaultDash)
 		    {
-			xfree(pgcDst->dash);
+			free(pgcDst->dash);
 			pgcDst->numInDashList = pgcSrc->numInDashList;
 			pgcDst->dash = pgcSrc->dash;
 		    }
@@ -804,11 +804,11 @@ CopyGC(GC *pgcSrc, GC *pgcDst, BITS32 mask)
 		    unsigned char *dash;
 		    unsigned int i;
 
-		    dash = xalloc(pgcSrc->numInDashList * sizeof(unsigned char));
+		    dash = malloc(pgcSrc->numInDashList * sizeof(unsigned char));
 		    if (dash)
 		    {
 			if (pgcDst->dash != DefaultDash)
-			    xfree(pgcDst->dash);
+			    free(pgcDst->dash);
 			pgcDst->numInDashList = pgcSrc->numInDashList;
 			pgcDst->dash = dash;
 			for (i=0; i<pgcSrc->numInDashList; i++)
@@ -859,9 +859,9 @@ FreeGC(pointer value, XID gid)
 
     (*pGC->funcs->DestroyGC) (pGC);
     if (pGC->dash != DefaultDash)
-	xfree(pGC->dash);
+	free(pGC->dash);
     dixFreePrivates(pGC->devPrivates);
-    xfree(pGC);
+    free(pGC);
     return(Success);
 }
 
@@ -883,7 +883,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
 
-    pGC = xalloc(sizeof(GC));
+    pGC = malloc(sizeof(GC));
     if (!pGC)
 	return (GCPtr)NULL;
 
@@ -1044,9 +1044,9 @@ SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
     }
 
     if (ndash & 1)
-	p = xalloc(2 * ndash * sizeof(unsigned char));
+	p = malloc(2 * ndash * sizeof(unsigned char));
     else
-	p = xalloc(ndash * sizeof(unsigned char));
+	p = malloc(ndash * sizeof(unsigned char));
     if (!p)
 	return BadAlloc;
 
@@ -1059,7 +1059,7 @@ SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
     }
 
     if (pGC->dash != DefaultDash)
-	xfree(pGC->dash);
+	free(pGC->dash);
     pGC->numInDashList = ndash;
     pGC->dash = p;
     if (ndash & 1)
@@ -1141,7 +1141,7 @@ SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects,
     if (newct < 0)
 	return(BadMatch);
     size = nrects * sizeof(xRectangle);
-    prectsNew = xalloc(size);
+    prectsNew = malloc(size);
     if (!prectsNew && size)
 	return BadAlloc;
 

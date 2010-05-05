@@ -196,7 +196,7 @@ CursorCloseScreen (int index, ScreenPtr pScreen)
     Unwrap (cs, pScreen, DisplayCursor, display_proc);
     deleteCursorHideCountsForScreen(pScreen);
     ret = (*pScreen->CloseScreen) (index, pScreen);
-    xfree (cs);
+    free(cs);
     return ret;
 }
 
@@ -229,7 +229,7 @@ XFixesSelectCursorInput (ClientPtr	pClient,
     }
     if (!e)
     {
-	e = (CursorEventPtr) xalloc (sizeof (CursorEventRec));
+	e = (CursorEventPtr) malloc(sizeof (CursorEventRec));
 	if (!e)
 	    return BadAlloc;
 
@@ -249,7 +249,7 @@ XFixesSelectCursorInput (ClientPtr	pClient,
 	    if (!AddResource (pWindow->drawable.id, CursorWindowType,
 			      (pointer) pWindow))
 	    {
-		xfree (e);
+		free(e);
 		return BadAlloc;
 	    }
 
@@ -389,7 +389,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     width = pCursor->bits->width;
     height = pCursor->bits->height;
     npixels = width * height;
-    rep = xalloc (sizeof (xXFixesGetCursorImageReply) +
+    rep = malloc(sizeof (xXFixesGetCursorImageReply) +
 		  npixels * sizeof (CARD32));
     if (!rep)
 	return BadAlloc;
@@ -423,7 +423,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     }
     WriteToClient(client, sizeof (xXFixesGetCursorImageReply) +
 			 (npixels << 2), (char *) rep);
-    xfree (rep);
+    free(rep);
     return client->noClientException;
 }
 
@@ -544,7 +544,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     name = pCursor->name ? NameForAtom (pCursor->name) : "";
     nbytes = strlen (name);
     nbytesRound = pad_to_int32(nbytes);
-    rep = xalloc (sizeof (xXFixesGetCursorImageAndNameReply) +
+    rep = malloc(sizeof (xXFixesGetCursorImageAndNameReply) +
 		  npixels * sizeof (CARD32) + nbytesRound);
     if (!rep)
 	return BadAlloc;
@@ -583,7 +583,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     }
     WriteToClient(client, sizeof (xXFixesGetCursorImageAndNameReply) +
 			 (npixels << 2) + nbytesRound, (char *) rep);
-    xfree (rep);
+    free(rep);
     return client->noClientException;
 }
 
@@ -801,7 +801,7 @@ createCursorHideCount (ClientPtr pClient, ScreenPtr pScreen)
     CursorScreenPtr    cs = GetCursorScreen(pScreen);
     CursorHideCountPtr pChc;
 
-    pChc = (CursorHideCountPtr) xalloc(sizeof(CursorHideCountRec));
+    pChc = (CursorHideCountPtr) malloc(sizeof(CursorHideCountRec));
     if (pChc == NULL) {
 	return BadAlloc;
     }
@@ -818,7 +818,7 @@ createCursorHideCount (ClientPtr pClient, ScreenPtr pScreen)
      */
     if (!AddResource (pChc->resource, CursorHideCountType, 
 		      (pointer) pChc)) {
-	xfree(pChc);
+	free(pChc);
 	return BadAlloc;
     }
 
@@ -839,7 +839,7 @@ deleteCursorHideCount (CursorHideCountPtr pChcToDel, ScreenPtr pScreen)
     while (pChc != NULL) {
 	pNext = pChc->pNext;
 	if (pChc == pChcToDel) {
-	    xfree(pChc);
+	    free(pChc);
 	    if (pChcLast == NULL) {
 		cs->pCursorHideCounts = pNext;
 	    } else {
@@ -995,7 +995,7 @@ CursorFreeClient (pointer data, XID id)
 	if (e == old)
 	{
 	    *prev = e->next;
-	    xfree (e);
+	    free(e);
 	    break;
 	}
     }
@@ -1043,8 +1043,8 @@ createInvisibleCursor (void)
     unsigned char *psrcbits, *pmaskbits;
     CursorMetricRec cm;
 
-    psrcbits = (unsigned char *) xcalloc(4, 1);
-    pmaskbits = (unsigned char *) xcalloc(4, 1);
+    psrcbits = (unsigned char *) calloc(4, 1);
+    pmaskbits = (unsigned char *) calloc(4, 1);
     if (psrcbits == NULL || pmaskbits == NULL) {
 	return NULL;
     }
@@ -1080,7 +1080,7 @@ XFixesCursorInit (void)
 	ScreenPtr	pScreen = screenInfo.screens[i];
 	CursorScreenPtr	cs;
 
-	cs = (CursorScreenPtr) xalloc (sizeof (CursorScreenRec));
+	cs = (CursorScreenPtr) malloc(sizeof (CursorScreenRec));
 	if (!cs)
 	    return FALSE;
 	Wrap (cs, pScreen, CloseScreen, CursorCloseScreen);

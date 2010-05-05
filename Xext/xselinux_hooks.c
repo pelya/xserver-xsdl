@@ -151,7 +151,7 @@ SELinuxLabelClient(ClientPtr client)
 	if (bytes <= 0)
 	    goto finish;
 
-	subj->command = xalloc(bytes);
+	subj->command = malloc(bytes);
 	if (!subj->command)
 	    goto finish;
 
@@ -830,7 +830,7 @@ SELinuxSubjectFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     PrivateCallbackRec *rec = calldata;
     SELinuxSubjectRec *subj = *rec->value;
 
-    xfree(subj->command);
+    free(subj->command);
 }
 
 static void

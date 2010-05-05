@@ -1157,7 +1157,7 @@ ProcXvQueryImageAttributes(ClientPtr client)
 
   num_planes = pImage->num_planes;
 
-  if(!(offsets = xalloc(num_planes << 3)))
+  if(!(offsets = malloc(num_planes << 3)))
 	return BadAlloc;
   pitches = offsets + num_planes;
 
@@ -1180,7 +1180,7 @@ ProcXvQueryImageAttributes(ClientPtr client)
     SwapLongs((CARD32*)offsets, planeLength);
   WriteToClient(client, planeLength << 2, (char*)offsets);
 
-  xfree(offsets);
+  free(offsets);
 
   return Success;
 }
@@ -1924,7 +1924,7 @@ void XineramifyXv(void)
 
       /* now create a resource for each port */
       for(j = 0; j < refAdapt->nPorts; j++) {
-	 PanoramiXRes *port = xalloc(sizeof(PanoramiXRes));
+	 PanoramiXRes *port = malloc(sizeof(PanoramiXRes));
 	 if(!port)
 	    break;
 

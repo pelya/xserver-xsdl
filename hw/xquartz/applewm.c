@@ -229,7 +229,7 @@ WMFreeClient (pointer data, XID id) {
         }
         updateEventMask (pHead);
     }
-    xfree ((pointer) pEvent);
+    free((pointer) pEvent);
     return 1;
 }
 
@@ -242,9 +242,9 @@ WMFreeEvents (pointer data, XID id) {
     for (pCur = *pHead; pCur; pCur = pNext) {
         pNext = pCur->next;
         FreeResource (pCur->clientResource, ClientType);
-        xfree ((pointer) pCur);
+        free((pointer) pCur);
     }
-    xfree ((pointer) pHead);
+    free((pointer) pHead);
     eventMask = 0;
     return 1;
 }
@@ -274,7 +274,7 @@ ProcAppleWMSelectInput (register ClientPtr client)
         }
 
         /* build the entry */
-        pNewEvent = (WMEventPtr) xalloc (sizeof (WMEventRec));
+        pNewEvent = (WMEventPtr) malloc(sizeof (WMEventRec));
         if (!pNewEvent)
             return BadAlloc;
         pNewEvent->next = 0;
@@ -296,7 +296,7 @@ ProcAppleWMSelectInput (register ClientPtr client)
          */
         if (i != Success || !pHead)
         {
-            pHead = (WMEventPtr *) xalloc (sizeof (WMEventPtr));
+            pHead = (WMEventPtr *) malloc(sizeof (WMEventPtr));
             if (!pHead ||
                 !AddResource (eventResource, EventType, (pointer)pHead))
             {
@@ -323,7 +323,7 @@ ProcAppleWMSelectInput (register ClientPtr client)
                     pNewEvent->next = pEvent->next;
                 else
                     *pHead = pEvent->next;
-                xfree (pEvent);
+                free(pEvent);
                 updateEventMask (pHead);
             }
         }
@@ -414,8 +414,8 @@ ProcAppleWMSetWindowMenu(
     REQUEST_AT_LEAST_SIZE(xAppleWMSetWindowMenuReq);
 
     nitems = stuff->nitems;
-    items = xalloc (sizeof (char *) * nitems);
-    shortcuts = xalloc (sizeof (char) * nitems);
+    items = malloc(sizeof (char *) * nitems);
+    shortcuts = malloc(sizeof (char) * nitems);
 
     max_len = (stuff->length << 2) - sizeof(xAppleWMSetWindowMenuReq);
     bytes = (char *) &stuff[1];

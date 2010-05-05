@@ -235,7 +235,7 @@ static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKeyIndex;
     dixSetPrivate(&(s)->devPrivates, ScreenPrivateKey, v);
 #define SetupScreen(s)	ScreenSaverScreenPrivatePtr pPriv = (s ? GetScreenPrivate(s) : NULL)
 
-#define New(t)	(xalloc (sizeof (t)))
+#define New(t)	(malloc(sizeof (t)))
 
 /****************
  * ScreenSaverExtensionInit
@@ -283,7 +283,7 @@ CheckScreenPrivate (ScreenPtr pScreen)
     if (!pPriv->attr && !pPriv->events &&
 	!pPriv->hasWindow && pPriv->installedMap == None)
     {
-	xfree (pPriv);
+	free(pPriv);
 	SetScreenPrivate (pScreen, NULL);
 	savedScreenInfo[pScreen->myNum].ExternalScreenSaver = NULL;
     }
@@ -343,7 +343,7 @@ setEventMask (ScreenPtr pScreen, ClientPtr client, unsigned long mask)
     {
 	FreeResource (pEv->resource, SaverEventType);
 	*pPrev = pEv->next;
-	xfree (pEv);
+	free(pEv);
 	CheckScreenPrivate (pScreen);
     }
     else
@@ -387,8 +387,8 @@ static void
 FreeScreenAttr (ScreenSaverAttrPtr pAttr)
 {
     FreeAttrs (pAttr);
-    xfree (pAttr->values);
-    xfree (pAttr);
+    free(pAttr->values);
+    free(pAttr);
 }
 
 static int
@@ -407,7 +407,7 @@ ScreenSaverFreeEvents (pointer value, XID id)
     if (!pEv)
 	return TRUE;
     *pPrev = pEv->next;
-    xfree (pEv);
+    free(pEv);
     CheckScreenPrivate (pScreen);
     return TRUE;
 }
@@ -446,7 +446,7 @@ ScreenSaverFreeSuspend (pointer value, XID id)
 	if (this == data)
 	{
 	    *prev = this->next;
-	    xfree (this);
+	    free(this);
 	    break;
 	}
     }
@@ -644,14 +644,14 @@ CreateSaverWindow (ScreenPtr pScreen)
     wantMap = wColormap (pWin);
     if (wantMap == None)
 	return TRUE;
-    installedMaps = xalloc (pScreen->maxInstalledCmaps * sizeof (Colormap));
+    installedMaps = malloc(pScreen->maxInstalledCmaps * sizeof (Colormap));
     numInstalled = (*pWin->drawable.pScreen->ListInstalledColormaps)
 						    (pScreen, installedMaps);
     for (i = 0; i < numInstalled; i++) 
 	if (installedMaps[i] == wantMap)
 	    break;
 
-    xfree ((char *) installedMaps);
+    free((char *) installedMaps);
 
     if (i < numInstalled)
 	return TRUE;
@@ -982,7 +982,7 @@ ScreenSaverSetAttributes (ClientPtr client)
 	goto bail;
     }
     /* over allocate for override redirect */
-    values = xalloc ((len + 1) * sizeof (unsigned long));
+    values = malloc((len + 1) * sizeof (unsigned long));
     if (!values)
     {
 	ret = BadAlloc;
@@ -1219,8 +1219,8 @@ PatchUp:
     FreeAttrs (pAttr);
 bail:
     CheckScreenPrivate (pScreen);
-    if (pAttr) xfree (pAttr->values);
-    xfree (pAttr);
+    if (pAttr) free(pAttr->values);
+    free(pAttr);
     return ret;
 }
 
@@ -1392,7 +1392,7 @@ ProcScreenSaverSuspend (ClientPtr client)
      * to the record, so the screensaver will be reenabled and the record freed
      * if the client disconnects without reenabling it first.
      */
-    this = xalloc (sizeof (ScreenSaverSuspensionRec));
+    this = malloc(sizeof (ScreenSaverSuspensionRec));
 
     if (!this)
 	return BadAlloc;
@@ -1404,7 +1404,7 @@ ProcScreenSaverSuspend (ClientPtr client)
 
     if (!AddResource (this->clientResource, SuspendType, (pointer) this))
     {
-	xfree (this);
+	free(this);
 	return BadAlloc;
     }
 

@@ -164,7 +164,7 @@ WMFreeClient (pointer data, XID id)
 	}
       updateEventMask (pHead);
     }
-  xfree ((pointer) pEvent);
+  free((pointer) pEvent);
   return 1;
 }
 
@@ -179,9 +179,9 @@ WMFreeEvents (pointer data, XID id)
     {
       pNext = pCur->next;
       FreeResource (pCur->clientResource, ClientType);
-      xfree ((pointer) pCur);
+      free((pointer) pCur);
     }
-  xfree ((pointer) pHead);
+  free((pointer) pHead);
   eventMask = 0;
   return 1;
 }
@@ -212,7 +212,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 	}
       
       /* build the entry */
-      pNewEvent = (WMEventPtr) xalloc (sizeof (WMEventRec));
+      pNewEvent = (WMEventPtr) malloc(sizeof (WMEventRec));
       if (!pNewEvent)
 	return BadAlloc;
       pNewEvent->next = 0;
@@ -234,7 +234,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
        */
       if (!pHead)
 	{
-	  pHead = (WMEventPtr *) xalloc (sizeof (WMEventPtr));
+	  pHead = (WMEventPtr *) malloc(sizeof (WMEventPtr));
 	  if (!pHead ||
 	      !AddResource (eventResource, eventResourceType, (pointer)pHead))
 	    {
@@ -266,7 +266,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 		pNewEvent->next = pEvent->next;
 	      else
 		*pHead = pEvent->next;
-	      xfree (pEvent);
+	      free(pEvent);
 	      updateEventMask (pHead);
 	    }
 	}

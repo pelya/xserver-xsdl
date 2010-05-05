@@ -104,7 +104,7 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 
     __glXDrawableRelease(drawable);
 
-    xfree(private);
+    free(private);
 }
 
 static GLboolean
@@ -138,7 +138,7 @@ __glXDRIcontextDestroy(__GLXcontext *baseContext)
 
     (*screen->core->destroyContext)(context->driContext);
     __glXContextDestroy(&context->base);
-    xfree(context);
+    free(context);
 }
 
 static int
@@ -254,7 +254,7 @@ __glXDRIscreenDestroy(__GLXscreen *baseScreen)
 
     __glXScreenDestroy(baseScreen);
 
-    xfree(screen);
+    free(screen);
 }
 
 static __GLXcontext *
@@ -274,7 +274,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     else
 	driShare = NULL;
 
-    context = xcalloc(1, sizeof *context);
+    context = calloc(1, sizeof *context);
     if (context == NULL)
 	return NULL;
 
@@ -315,14 +315,14 @@ __glXDRIscreenCreateDrawable(ClientPtr client,
 
     ScreenPtr pScreen = driScreen->base.pScreen;
 
-    private = xcalloc(1, sizeof *private);
+    private = calloc(1, sizeof *private);
     if (private == NULL)
 	return NULL;
 
     private->screen = driScreen;
     if (!__glXDrawableInit(&private->base, screen,
 			   pDraw, type, glxDrawId, glxConfig)) {
-        xfree(private);
+        free(private);
 	return NULL;
     }
 
@@ -450,7 +450,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     const __DRIconfig **driConfigs;
     int i;
 
-    screen = xcalloc(1, sizeof *screen);
+    screen = calloc(1, sizeof *screen);
     if (screen == NULL)
 	return NULL;
 
@@ -527,7 +527,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     if (screen->driver)
         dlclose(screen->driver);
 
-    xfree(screen);
+    free(screen);
 
     LogMessage(X_ERROR, "GLX: could not load software renderer\n");
 

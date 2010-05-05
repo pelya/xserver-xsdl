@@ -490,7 +490,7 @@ ProcXF86DRIGetDrawableInfo(
 
     if (rep.numClipRects) {
        /* Clip cliprects to screen dimensions (redirected windows) */
-       pClippedRects = xalloc(rep.numClipRects * sizeof(drm_clip_rect_t));
+       pClippedRects = malloc(rep.numClipRects * sizeof(drm_clip_rect_t));
 
        if (pClippedRects) {
 	    ScreenPtr pScreen = screenInfo.screens[stuff->screen];
@@ -524,7 +524,7 @@ ProcXF86DRIGetDrawableInfo(
 	WriteToClient(client,  
 		      sizeof(drm_clip_rect_t) * rep.numClipRects,
 		      (char *)pClippedRects);
-	xfree(pClippedRects);
+	free(pClippedRects);
     }
 
     if (rep.numBackClipRects) {

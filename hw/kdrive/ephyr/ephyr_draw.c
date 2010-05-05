@@ -432,13 +432,13 @@ ephyrDrawInit(ScreenPtr pScreen)
     EphyrFakexaPriv *fakexa;
     Bool success;
 
-    fakexa = xcalloc(1, sizeof(*fakexa));
+    fakexa = calloc(1, sizeof(*fakexa));
     if (fakexa == NULL)
 	return FALSE;
 
     fakexa->exa = exaDriverAlloc();
     if (fakexa->exa == NULL) {
-	xfree(fakexa);
+	free(fakexa);
 	return FALSE;
     }
 
@@ -487,8 +487,8 @@ ephyrDrawInit(ScreenPtr pScreen)
 	scrpriv->fakexa = fakexa;
     } else {
 	ErrorF("Failed to initialize EXA\n");
-	xfree(fakexa->exa);
-	xfree(fakexa);
+	free(fakexa->exa);
+	free(fakexa);
     }
 
     return success;

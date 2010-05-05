@@ -568,7 +568,7 @@ ProcXFixesFetchRegion (ClientPtr client)
     pBox = REGION_RECTS (pRegion);
     nBox = REGION_NUM_RECTS (pRegion);
     
-    reply = xalloc (sizeof (xXFixesFetchRegionReply) +
+    reply = malloc(sizeof (xXFixesFetchRegionReply) +
 		    nBox * sizeof (xRectangle));
     if (!reply)
 	return BadAlloc;
@@ -601,7 +601,7 @@ ProcXFixesFetchRegion (ClientPtr client)
     }
     (void) WriteToClient(client, sizeof (xXFixesFetchRegionReply) +
 			 nBox * sizeof (xRectangle), (char *) reply);
-    xfree (reply);
+    free(reply);
     return (client->noClientException);
 }
 
@@ -812,7 +812,7 @@ ProcXFixesExpandRegion (ClientPtr client)
     pSrc = REGION_RECTS(pSource);
     if (nBoxes)
     {
-	pTmp = xalloc (nBoxes * sizeof (BoxRec));
+	pTmp = malloc(nBoxes * sizeof (BoxRec));
 	if (!pTmp)
 	    return BadAlloc;
 	for (i = 0; i < nBoxes; i++)
@@ -829,7 +829,7 @@ ProcXFixesExpandRegion (ClientPtr client)
 	    REGION_INIT (pScreen, &r, &pTmp[i], 0);
 	    REGION_UNION (pScreen, pDestination, pDestination, &r);
 	}
-	xfree(pTmp);
+	free(pTmp);
     }
     if (ret == Success) 
 	ret = client->noClientException;

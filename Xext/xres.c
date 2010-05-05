@@ -63,7 +63,7 @@ ProcXResQueryClients (ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXResQueryClientsReq);
 
-    current_clients = xalloc(currentMaxClients * sizeof(int));
+    current_clients = malloc(currentMaxClients * sizeof(int));
 
     num_clients = 0;
     for(i = 0; i < currentMaxClients; i++) {
@@ -101,7 +101,7 @@ ProcXResQueryClients (ClientPtr client)
         }
     }
 
-    xfree(current_clients);
+    free(current_clients);
 
     return (client->noClientException);
 }
@@ -132,7 +132,7 @@ ProcXResQueryClientResources (ClientPtr client)
         return BadValue;
     }
 
-    counts = xcalloc(lastResourceType + 1, sizeof(int));
+    counts = calloc(lastResourceType + 1, sizeof(int));
 
     FindAllClientResources(clients[clientID], ResFindAllRes, counts);
 
@@ -182,7 +182,7 @@ ProcXResQueryClientResources (ClientPtr client)
         }
     }
 
-    xfree(counts);
+    free(counts);
     
     return (client->noClientException);
 }

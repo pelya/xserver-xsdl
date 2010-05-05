@@ -140,7 +140,7 @@ miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
 {
     miDCScreenPtr   pScreenPriv;
 
-    pScreenPriv = xalloc (sizeof (miDCScreenRec));
+    pScreenPriv = malloc(sizeof (miDCScreenRec));
     if (!pScreenPriv)
 	return FALSE;
 
@@ -152,7 +152,7 @@ miDCInitialize (ScreenPtr pScreen, miPointerScreenFuncPtr screenFuncs)
 
     if (!miSpriteInitialize (pScreen, &miDCFuncs, screenFuncs))
     {
-	xfree ((pointer) pScreenPriv);
+	free((pointer) pScreenPriv);
 	return FALSE;
     }
     return TRUE;
@@ -166,7 +166,7 @@ miDCCloseScreen (int index, ScreenPtr pScreen)
     pScreenPriv = (miDCScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
 						  miDCScreenKey);
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
-    xfree ((pointer) pScreenPriv);
+    free((pointer) pScreenPriv);
     return (*pScreen->CloseScreen) (index, pScreen);
 }
 
@@ -224,7 +224,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
     GCPtr	    pGC;
     XID		    gcvals[3];
 
-    pPriv = xalloc (sizeof (miDCCursorRec));
+    pPriv = malloc(sizeof (miDCCursorRec));
     if (!pPriv)
 	return NULL;
 #ifdef ARGB_CURSOR
@@ -237,7 +237,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 	pFormat = PictureMatchFormat (pScreen, 32, PICT_a8r8g8b8);
 	if (!pFormat)
 	{
-	    xfree ((pointer) pPriv);
+	    free((pointer) pPriv);
 	    return NULL;
 	}
 	
@@ -248,14 +248,14 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
-	    xfree ((pointer) pPriv);
+	    free((pointer) pPriv);
 	    return NULL;
 	}
 	pGC = GetScratchGC (32, pScreen);
 	if (!pGC)
 	{
 	    (*pScreen->DestroyPixmap) (pPixmap);
-	    xfree ((pointer) pPriv);
+	    free((pointer) pPriv);
 	    return NULL;
 	}
 	ValidateGC (&pPixmap->drawable, pGC);
@@ -269,7 +269,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
         (*pScreen->DestroyPixmap) (pPixmap);
 	if (!pPriv->pPicture)
 	{
-	    xfree ((pointer) pPriv);
+	    free((pointer) pPriv);
 	    return NULL;
 	}
 	dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), pPriv);
@@ -280,14 +280,14 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
     pPriv->sourceBits = (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1, 0);
     if (!pPriv->sourceBits)
     {
-	xfree ((pointer) pPriv);
+	free((pointer) pPriv);
 	return NULL;
     }
     pPriv->maskBits =  (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1, 0);
     if (!pPriv->maskBits)
     {
 	(*pScreen->DestroyPixmap) (pPriv->sourceBits);
-	xfree ((pointer) pPriv);
+	free((pointer) pPriv);
 	return NULL;
     }
     dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), pPriv);
@@ -346,7 +346,7 @@ miDCUnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 	if (pPriv->pPicture)
 	    FreePicture (pPriv->pPicture, 0);
 #endif
-	xfree ((pointer) pPriv);
+	free((pointer) pPriv);
 	dixSetPrivate(&pCursor->bits->devPrivates, CursorScreenKey(pScreen), NULL);
     }
     return TRUE;
@@ -780,7 +780,7 @@ miDCDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
     {
         pScreen = screenInfo.screens[i];
 
-        pBuffer = xalloc(sizeof(miDCBufferRec));
+        pBuffer = malloc(sizeof(miDCBufferRec));
         if (!pBuffer)
             goto failure;
 
@@ -866,7 +866,7 @@ miDCDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
                 if (pBuffer->pSave) (*pScreen->DestroyPixmap)(pBuffer->pSave);
                 if (pBuffer->pTemp) (*pScreen->DestroyPixmap)(pBuffer->pTemp);
 
-                xfree(pBuffer);
+                free(pBuffer);
                 dixSetPrivate(&pDev->devPrivates, miDCSpriteKey + pScreen->myNum, NULL);
             }
         }

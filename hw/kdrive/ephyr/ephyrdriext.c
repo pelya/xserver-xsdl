@@ -160,7 +160,7 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
         EPHYR_LOG_ERROR ("failed to register DRI extension\n") ;
         goto out ;
     }
-    screen_priv = xcalloc (1, sizeof (EphyrDRIScreenPrivRec)) ;
+    screen_priv = calloc(1, sizeof (EphyrDRIScreenPrivRec)) ;
     if (!screen_priv) {
         EPHYR_LOG_ERROR ("failed to allocate screen_priv\n") ;
         goto out ;
@@ -258,7 +258,7 @@ ephyrDRIDestroyWindow (WindowPtr a_win)
         EphyrDRIWindowPrivPtr win_priv=GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
         if (win_priv) {
             destroyHostPeerWindow (a_win) ;
-            xfree (win_priv) ;
+            free(win_priv) ;
 	    dixSetPrivate(&a_win->devPrivates, ephyrDRIWindowKey, NULL);
             EPHYR_LOG ("destroyed the remote peer window\n") ;
         }
@@ -418,7 +418,7 @@ ephyrDRIClipNotify (WindowPtr a_win,
         EPHYR_LOG_ERROR ("failed to get window pair\n") ;
         goto out ;
     }
-    rects = xcalloc (REGION_NUM_RECTS (&a_win->clipList),
+    rects = calloc(REGION_NUM_RECTS (&a_win->clipList),
                      sizeof (EphyrRect)) ;
     for (i=0; i < REGION_NUM_RECTS (&a_win->clipList); i++) {
         memmove (&rects[i],
@@ -440,7 +440,7 @@ ephyrDRIClipNotify (WindowPtr a_win,
     is_ok = TRUE ;
 
 out:
-    xfree (rects) ;
+    free(rects) ;
     rects = NULL ;
 
     EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
@@ -511,7 +511,7 @@ EphyrDuplicateVisual (unsigned int a_screen,
     /*
      * be prepare to extend screen->visuals to add new_visual to it
      */
-    new_visuals = xcalloc (screen->numVisuals+1, sizeof (VisualRec)) ;
+    new_visuals = calloc(screen->numVisuals+1, sizeof (VisualRec)) ;
     memmove (new_visuals,
              screen->visuals,
              screen->numVisuals*sizeof (VisualRec)) ;
@@ -535,7 +535,7 @@ EphyrDuplicateVisual (unsigned int a_screen,
          * extend the list of visual IDs in that entry,
          * so to add a_new_id in there.
          */
-        vids = xrealloc (cur_depth->vids,
+        vids = realloc(cur_depth->vids,
                          (cur_depth->numVids+1)*sizeof (VisualID));
         if (!vids) {
             EPHYR_LOG_ERROR ("failed to realloc numids\n") ;
@@ -558,14 +558,14 @@ EphyrDuplicateVisual (unsigned int a_screen,
     /*
      * Commit our change to screen->visuals
      */
-    xfree (screen->visuals) ;
+    free(screen->visuals) ;
     screen->visuals = new_visuals ;
     screen->numVisuals++ ;
     new_visuals = NULL ;
 
     is_ok = TRUE ;
 out:
-    xfree (new_visuals) ;
+    free(new_visuals) ;
     new_visuals = NULL ;
 
     EPHYR_LOG ("leave\n") ; 
@@ -1067,7 +1067,7 @@ ProcXF86DRICreateDrawable (ClientPtr client)
 
     win_priv = GET_EPHYR_DRI_WINDOW_PRIV (window) ;
     if (!win_priv) {
-        win_priv = xcalloc (1, sizeof (EphyrDRIWindowPrivRec)) ;
+        win_priv = calloc(1, sizeof (EphyrDRIWindowPrivRec)) ;
         if (!win_priv) {
             EPHYR_LOG_ERROR ("failed to allocate window private\n") ;
             return BadAlloc ;
@@ -1252,7 +1252,7 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
                       sizeof(drm_clip_rect_t) * rep.numBackClipRects,
                       (char *)backClipRects);
     }
-    xfree(clipRects);
+    free(clipRects);
     clipRects = NULL ;
 
     EPHYR_LOG ("leave\n") ;

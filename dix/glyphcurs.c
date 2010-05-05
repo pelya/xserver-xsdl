@@ -91,7 +91,7 @@ ServerBitsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm, unsigned cha
 
     pScreen = screenInfo.screens[0];
     nby = BitmapBytePad(cm->width) * (long)cm->height;
-    pbits = xcalloc(1, nby);
+    pbits = calloc(1, nby);
     if (!pbits)
 	return BadAlloc;
 
@@ -105,7 +105,7 @@ ServerBitsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm, unsigned cha
 	    (*pScreen->DestroyPixmap)(ppix);
 	if (pGC)
 	    FreeScratchGC(pGC);
-	xfree(pbits);
+	free(pbits);
 	return BadAlloc;
     }
 

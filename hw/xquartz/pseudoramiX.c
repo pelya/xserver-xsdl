@@ -94,7 +94,7 @@ PseudoramiXAddScreen(int x, int y, int w, int h)
 
     if (pseudoramiXNumScreens == pseudoramiXScreensAllocated) {
         pseudoramiXScreensAllocated += pseudoramiXScreensAllocated + 1;
-        pseudoramiXScreens = xrealloc(pseudoramiXScreens,
+        pseudoramiXScreens = realloc(pseudoramiXScreens,
                                       pseudoramiXScreensAllocated *
                                       sizeof(PseudoramiXScreenRec));
     }

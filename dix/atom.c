@@ -109,7 +109,7 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
     {
 	NodePtr nd;
 
-	nd = xalloc(sizeof(NodeRec));
+	nd = malloc(sizeof(NodeRec));
 	if (!nd)
 	    return BAD_RESOURCE;
 	if (lastAtom < XA_LAST_PREDEFINED)
@@ -118,9 +118,9 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	}
 	else
 	{
-	    char *newstring = xalloc(len + 1);
+	    char *newstring = malloc(len + 1);
 	    if (!newstring) {
-		xfree(nd);
+		free(nd);
 		return BAD_RESOURCE;
 	    }
 	    strncpy(newstring, string, (int)len);
@@ -130,12 +130,12 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	if ((lastAtom + 1) >= tableLength) {
 	    NodePtr *table;
 
-	    table = (NodePtr *) xrealloc(nodeTable,
+	    table = (NodePtr *) realloc(nodeTable,
 					 tableLength * (2 * sizeof(NodePtr)));
 	    if (!table) {
 		if (nd->string != string)
-		    xfree(nd->string);
-		xfree(nd);
+		    free(nd->string);
+		free(nd);
 		return BAD_RESOURCE;
 	    }
 	    tableLength <<= 1;
@@ -181,8 +181,8 @@ FreeAtom(NodePtr patom)
     if(patom->right)
 	FreeAtom(patom->right);
     if (patom->a > XA_LAST_PREDEFINED)
-	xfree(patom->string);
-    xfree(patom);
+	free(patom->string);
+    free(patom);
 }
 
 void
@@ -192,7 +192,7 @@ FreeAllAtoms(void)
 	return;
     FreeAtom(atomRoot);
     atomRoot = (NodePtr)NULL;
-    xfree(nodeTable);
+    free(nodeTable);
     nodeTable = (NodePtr *)NULL;
     lastAtom = None;
 }
@@ -202,7 +202,7 @@ InitAtoms(void)
 {
     FreeAllAtoms();
     tableLength = InitialTableSize;
-    nodeTable = xalloc(InitialTableSize*sizeof(NodePtr));
+    nodeTable = malloc(InitialTableSize*sizeof(NodePtr));
     if (!nodeTable)
 	AtomError();
     nodeTable[None] = (NodePtr)NULL;

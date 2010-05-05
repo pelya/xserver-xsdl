@@ -68,9 +68,9 @@ static char **dmxGetFontPath(int *npaths)
 
     GetFontPath(serverClient, npaths, &len, &paths);
 
-    newfp = xalloc(*npaths + len);
+    newfp = malloc(*npaths + len);
     c = (unsigned char *)newfp;
-    fp = xalloc(*npaths * sizeof(*fp));
+    fp = malloc(*npaths * sizeof(*fp));
 
     memmove(newfp, paths+1, *npaths + len - 1);
     l = *paths;
@@ -91,8 +91,8 @@ static char **dmxGetFontPath(int *npaths)
 
 static void dmxFreeFontPath(char **fp)
 {
-    xfree(fp[0]);
-    xfree(fp);
+    free(fp[0]);
+    free(fp);
 }
 
 static Bool dmxCheckFontPathElement(DMXScreenInfo *dmxScreen, char *fp)
@@ -195,7 +195,7 @@ static int dmxProcSetFontPath(ClientPtr client)
         return BadLength;
 
     GetFontPath(serverClient, &nOldPaths, &lenOldPaths, &tmpFontPath);
-    oldFontPath = xalloc(nOldPaths + lenOldPaths);
+    oldFontPath = malloc(nOldPaths + lenOldPaths);
     memmove(oldFontPath, tmpFontPath, nOldPaths + lenOldPaths);
 
     result = SetFontPath(client, stuff->nFonts, (unsigned char *)&stuff[1],
@@ -217,7 +217,7 @@ static int dmxProcSetFontPath(ClientPtr client)
 	}
     }
 
-    xfree(oldFontPath);
+    free(oldFontPath);
     return result;
 }
 
@@ -300,7 +300,7 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 	if (!dmxFontPath)
 	    dmxLog(dmxWarning, "No default font path is set.\n");
 
-	goodfps = xalloc(npaths * sizeof(*goodfps));
+	goodfps = malloc(npaths * sizeof(*goodfps));
 
 	dmxLog(dmxError,
 	       "The DMX server failed to set the following font paths on "
@@ -347,11 +347,11 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 		       "more information on font paths.\n");
 		dmxFreeFontPath(fp);
 		XFreeFontPath(oldFontPath);
-		xfree(goodfps);
+		free(goodfps);
 		return FALSE;
 	    }
 
-	    newfp = xalloc(len * sizeof(*newfp));
+	    newfp = malloc(len * sizeof(*newfp));
 	    for (i = 0; i < npaths; i++) {
 		if (goodfps[i]) {
 		    int n = strlen(fp[i]);
@@ -398,7 +398,7 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 	    /* We still have errors so return with error */
 	    dmxFreeFontPath(fp);
 	    XFreeFontPath(oldFontPath);
-	    xfree(goodfps);
+	    free(goodfps);
 	    return FALSE;
 	}
     }
@@ -440,12 +440,12 @@ Bool dmxRealizeFont(ScreenPtr pScreen, FontPtr pFont)
 
     if (!(pFontPriv = FontGetPrivate(pFont, dmxFontPrivateIndex))) {
 	FontSetPrivate(pFont, dmxFontPrivateIndex, NULL);
-	pFontPriv = xalloc(sizeof(dmxFontPrivRec));
+	pFontPriv = malloc(sizeof(dmxFontPrivRec));
 	if (!pFontPriv) return FALSE;
         pFontPriv->font = NULL;
         MAXSCREENSALLOC(pFontPriv->font);
         if (!pFontPriv->font) {
-            xfree(pFontPriv);
+            free(pFontPriv);
             return FALSE;
         }
 	pFontPriv->refcnt = 0;
@@ -491,7 +491,7 @@ Bool dmxUnrealizeFont(ScreenPtr pScreen, FontPtr pFont)
 	/* In case the font failed to load properly */
 	if (!pFontPriv->refcnt) {
             MAXSCREENSFREE(pFontPriv->font);
-	    xfree(pFontPriv);
+	    free(pFontPriv);
 	    FontSetPrivate(pFont, dmxFontPrivateIndex, NULL);
 	} else if (pFontPriv->font[pScreen->myNum]) {
 	    if (dmxScreen->beDisplay)
@@ -549,7 +549,7 @@ Bool dmxUnrealizeFont(ScreenPtr pScreen, FontPtr pFont)
 #endif
 		) {
                 MAXSCREENSFREE(pFontPriv->font);
-		xfree(pFontPriv);
+		free(pFontPriv);
 		FontSetPrivate(pFont, dmxFontPrivateIndex, NULL);
 	    }
 	}

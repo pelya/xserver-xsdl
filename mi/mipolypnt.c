@@ -120,6 +120,6 @@ miPolyPoint(
 	DoChangeGC(pGC, GCFillStyle, &fsOld, 0);
 	ValidateGC(pDrawable, pGC);
     }
-    xfree(pwidthInit);
+    free(pwidthInit);
 }
 

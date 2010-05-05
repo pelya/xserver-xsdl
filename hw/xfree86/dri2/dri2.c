@@ -128,7 +128,7 @@ DRI2AllocateDrawable(DrawablePtr pDraw)
     WindowPtr pWin;
     PixmapPtr pPixmap;
 
-    pPriv = xalloc(sizeof *pPriv);
+    pPriv = malloc(sizeof *pPriv);
     if (pPriv == NULL)
 	return NULL;
 
@@ -270,10 +270,10 @@ static int DRI2DrawableGone(pointer p, XID id)
 	for (i = 0; i < pPriv->bufferCount; i++)
 	    (*ds->DestroyBuffer)(pDraw, pPriv->buffers[i]);
 
-	xfree(pPriv->buffers);
+	free(pPriv->buffers);
     }
 
-    xfree(pPriv);
+    free(pPriv);
 
     return Success;
 }
@@ -344,7 +344,7 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
     dimensions_match = (pDraw->width == pPriv->width)
 	&& (pDraw->height == pPriv->height);
 
-    buffers = xalloc((count + 1) * sizeof(buffers[0]));
+    buffers = malloc((count + 1) * sizeof(buffers[0]));
 
     for (i = 0; i < count; i++) {
 	const unsigned attachment = *(attachments++);
@@ -408,7 +408,7 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	    }
 	}
 
-	xfree(pPriv->buffers);
+	free(pPriv->buffers);
     }
 
     pPriv->buffers = buffers;
@@ -936,7 +936,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
         return FALSE;
     }
 
-    ds = xcalloc(1, sizeof *ds);
+    ds = calloc(1, sizeof *ds);
     if (!ds)
 	return FALSE;
 
@@ -965,17 +965,17 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     if (info->version == 3 || info->numDrivers == 0) {
 	/* Driver too old: use the old-style driverName field */
 	ds->numDrivers = 1;
-	ds->driverNames = xalloc(sizeof(*ds->driverNames));
+	ds->driverNames = malloc(sizeof(*ds->driverNames));
 	if (!ds->driverNames) {
-	    xfree(ds);
+	    free(ds);
 	    return FALSE;
 	}
 	ds->driverNames[0] = info->driverName;
     } else {
 	ds->numDrivers = info->numDrivers;
-	ds->driverNames = xalloc(info->numDrivers * sizeof(*ds->driverNames));
+	ds->driverNames = malloc(info->numDrivers * sizeof(*ds->driverNames));
 	if (!ds->driverNames) {
-	    xfree(ds);
+	    free(ds);
 	    return FALSE;
 	}
 	memcpy(ds->driverNames, info->driverNames,
@@ -1000,8 +1000,8 @@ DRI2CloseScreen(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
-    xfree(ds->driverNames);
-    xfree(ds);
+    free(ds->driverNames);
+    free(ds);
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, NULL);
 }
 

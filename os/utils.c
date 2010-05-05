@@ -995,7 +995,7 @@ set_font_authorizations(char **authorizations, int *authlen, pointer client)
 #endif
 
 	len = strlen(hnameptr) + 1;
-	result = xalloc(len + sizeof(AUTHORIZATION_NAME) + 4);
+	result = malloc(len + sizeof(AUTHORIZATION_NAME) + 4);
 
 	p = result;
         *p++ = sizeof(AUTHORIZATION_NAME) >> 8;
@@ -1373,11 +1373,11 @@ Popen(char *command, char *type)
     if ((*type != 'r' && *type != 'w') || type[1])
 	return NULL;
 
-    if ((cur = xalloc(sizeof(struct pid))) == NULL)
+    if ((cur = malloc(sizeof(struct pid))) == NULL)
 	return NULL;
 
     if (pipe(pdes) < 0) {
-	xfree(cur);
+	free(cur);
 	return NULL;
     }
 
@@ -1392,7 +1392,7 @@ Popen(char *command, char *type)
     case -1: 	/* error */
 	close(pdes[0]);
 	close(pdes[1]);
-	xfree(cur);
+	free(cur);
 	if (OsSignal(SIGALRM, old_alarm) == SIG_ERR)
 	  perror("signal");
 	return NULL;
@@ -1459,11 +1459,11 @@ Fopen(char *file, char *type)
     if ((*type != 'r' && *type != 'w') || type[1])
 	return NULL;
 
-    if ((cur = xalloc(sizeof(struct pid))) == NULL)
+    if ((cur = malloc(sizeof(struct pid))) == NULL)
 	return NULL;
 
     if (pipe(pdes) < 0) {
-	xfree(cur);
+	free(cur);
 	return NULL;
     }
 
@@ -1471,7 +1471,7 @@ Fopen(char *file, char *type)
     case -1: 	/* error */
 	close(pdes[0]);
 	close(pdes[1]);
-	xfree(cur);
+	free(cur);
 	return NULL;
     case 0:	/* child */
 	if (setgid(getgid()) == -1)
@@ -1565,7 +1565,7 @@ Pclose(pointer iop)
 	pidlist = cur->next;
     else
 	last->next = cur->next;
-    xfree(cur);
+    free(cur);
 
     /* allow EINTR again */
     OsReleaseSignals ();

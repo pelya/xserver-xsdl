@@ -143,19 +143,19 @@ miCopyArea(DrawablePtr  pSrcDrawable,
 	dsty += pDstDrawable->y;
     }
 
-    pptFirst = ppt = xalloc(heightSrc * sizeof(DDXPointRec));
-    pwidthFirst = pwidth = xalloc(heightSrc * sizeof(unsigned int));
+    pptFirst = ppt = malloc(heightSrc * sizeof(DDXPointRec));
+    pwidthFirst = pwidth = malloc(heightSrc * sizeof(unsigned int));
     numRects = REGION_NUM_RECTS(prgnSrcClip);
     boxes = REGION_RECTS(prgnSrcClip);
-    ordering = xalloc(numRects * sizeof(unsigned int));
+    ordering = malloc(numRects * sizeof(unsigned int));
     if(!pptFirst || !pwidthFirst || !ordering)
     {
        if (ordering)
-	   xfree(ordering);
+	   free(ordering);
        if (pwidthFirst)
-           xfree(pwidthFirst);
+           free(pwidthFirst);
        if (pptFirst)
-           xfree(pptFirst);
+           free(pptFirst);
        return NULL;
     }
 
@@ -235,7 +235,7 @@ miCopyArea(DrawablePtr  pSrcDrawable,
 	    ppt++->y = y++;
 	    *pwidth++ = width;
 	}
-	pbits = xalloc(height * PixmapBytePad(width, pSrcDrawable->depth));
+	pbits = malloc(height * PixmapBytePad(width, pSrcDrawable->depth));
 	if (pbits)
 	{
 	    (*pSrcDrawable->pScreen->GetSpans)(pSrcDrawable, width, pptFirst,
@@ -253,7 +253,7 @@ miCopyArea(DrawablePtr  pSrcDrawable,
 
 	    (*pGC->ops->SetSpans)(pDstDrawable, pGC, (char *)pbits, pptFirst,
 				  (int *)pwidthFirst, height, TRUE);
-	    xfree(pbits);
+	    free(pbits);
 	}
     }
     prgnExposed = miHandleExposures(pSrcDrawable, pDstDrawable, pGC, xIn, yIn,
@@ -261,9 +261,9 @@ miCopyArea(DrawablePtr  pSrcDrawable,
     if(realSrcClip)
 	REGION_DESTROY(pGC->pScreen, prgnSrcClip);
 		
-    xfree(ordering);
-    xfree(pwidthFirst);
-    xfree(pptFirst);
+    free(ordering);
+    free(pwidthFirst);
+    free(pptFirst);
     return prgnExposed;
 }
 
@@ -313,7 +313,7 @@ miGetPlane(
     sy += pDraw->y;
     widthInBytes = BitmapBytePad(w);
     if(!result)
-        result = xcalloc(h, widthInBytes);
+        result = calloc(h, widthInBytes);
     if (!result)
 	return NULL;
     bitsPerPixel = pDraw->bitsPerPixel;
@@ -429,12 +429,12 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     dixChangeGC(NullClient, pGCT, GCBackground, NULL, gcv);
     ValidateGC((DrawablePtr)pPixmap, pGCT);
     miClearDrawable((DrawablePtr)pPixmap, pGCT);
-    ppt = pptFirst = xalloc(h * sizeof(DDXPointRec));
-    pwidth = pwidthFirst = xalloc(h * sizeof(int));
+    ppt = pptFirst = malloc(h * sizeof(DDXPointRec));
+    pwidth = pwidthFirst = malloc(h * sizeof(int));
     if(!pptFirst || !pwidthFirst)
     {
-	if (pwidthFirst) xfree(pwidthFirst);
-	if (pptFirst) xfree(pptFirst);
+	if (pwidthFirst) free(pwidthFirst);
+	if (pptFirst) free(pptFirst);
 	FreeScratchGC(pGCT);
 	return;
     }
@@ -460,8 +460,8 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
 
     (*pGCT->ops->SetSpans)((DrawablePtr)pPixmap, pGCT, (char *)pbits,
 			   pptFirst, pwidthFirst, h, TRUE);
-    xfree(pwidthFirst);
-    xfree(pptFirst);
+    free(pwidthFirst);
+    free(pptFirst);
 
 
     /* Save current values from the client GC */
@@ -614,7 +614,7 @@ miCopyPlane( DrawablePtr pSrcDrawable,
 	    miOpqStipDrawable(pDstDrawable, pGC, prgnSrc, ptile, 0,
 			      box.x2 - box.x1, box.y2 - box.y1,
 			      dstx + box.x1 - srcx, dsty + box.y1 - srcy);
-	    xfree(ptile);
+	    free(ptile);
 	}
     }
     prgnExposed = miHandleExposures(pSrcDrawable, pDstDrawable, pGC, srcx, srcy,
@@ -798,14 +798,14 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	break;
 
       case ZPixmap:
-    	ppt = pptFirst = xalloc(h * sizeof(DDXPointRec));
-    	pwidth = pwidthFirst = xalloc(h * sizeof(int));
+        ppt = pptFirst = malloc(h * sizeof(DDXPointRec));
+        pwidth = pwidthFirst = malloc(h * sizeof(int));
 	if(!pptFirst || !pwidthFirst)
         {
 	   if (pwidthFirst)
-               xfree(pwidthFirst);
+               free(pwidthFirst);
            if (pptFirst)
-               xfree(pptFirst);
+               free(pptFirst);
            return;
         }
 	if (pGC->miTranslate)
@@ -824,8 +824,8 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 
 	(*pGC->ops->SetSpans)(pDraw, pGC, (char *)pImage, pptFirst,
 			      pwidthFirst, h, TRUE);
-	xfree(pwidthFirst);
-	xfree(pptFirst);
+	free(pwidthFirst);
+	free(pptFirst);
 	break;
     }
 }

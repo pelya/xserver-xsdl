@@ -238,12 +238,12 @@ typedef struct _host {
 	int		requested;
 } HOST;
 
-#define MakeHost(h,l)	(h)=xalloc(sizeof *(h)+(l));\
+#define MakeHost(h,l)	(h)=malloc(sizeof *(h)+(l));\
 			if (h) { \
 			   (h)->addr=(unsigned char *) ((h) + 1);\
 			   (h)->requested = FALSE; \
 			}
-#define FreeHost(h)	xfree(h)
+#define FreeHost(h)	free(h)
 static HOST *selfhosts = NULL;
 static HOST *validhosts = NULL;
 static int AccessEnabled = DEFAULT_ACCESS_CONTROL;
@@ -587,7 +587,7 @@ DefineSelf (int fd)
         Error ("Getting interface count");    
     if (len < (ifn.lifn_count * sizeof(struct lifreq))) {
 	len = ifn.lifn_count * sizeof(struct lifreq);
-	bufptr = xalloc(len);
+	bufptr = malloc(len);
     }
 #endif
     
@@ -1131,12 +1131,12 @@ Bool LocalClient(ClientPtr client)
 	    &alen, (pointer *)&addr);
 	if (family == -1)
 	{
-	    xfree (from);
+	    free(from);
 	    return FALSE;
 	}
 	if (family == FamilyLocal)
 	{
-	    xfree (from);
+	    free(from);
 	    return TRUE;
 	}
 	for (host = selfhosts; host; host = host->next)
@@ -1144,7 +1144,7 @@ Bool LocalClient(ClientPtr client)
 	    if (addrEqual (family, addr, alen, host))
 		return TRUE;
 	}
-	xfree (from);
+	free(from);
     }
     return FALSE;
 }
@@ -1214,7 +1214,7 @@ GetLocalClientCreds(ClientPtr client, LocalClientCredRec **lccp)
     }
 #endif
 
-    *lccp = Xcalloc(sizeof(LocalClientCredRec));
+    *lccp = calloc(1, sizeof(LocalClientCredRec));
     if (*lccp == NULL)
 	return -1;
     lcc = *lccp;
@@ -1250,7 +1250,7 @@ GetLocalClientCreds(ClientPtr client, LocalClientCredRec **lccp)
 #endif
     lcc->nSuppGids = ucred_getgroups(peercred, &gids);
     if (lcc->nSuppGids > 0) {
-	lcc->pSuppGids = Xcalloc((lcc->nSuppGids) * sizeof(int));
+	lcc->pSuppGids = calloc(lcc->nSuppGids, sizeof(int));
 	if (lcc->pSuppGids == NULL) {
 	    lcc->nSuppGids = 0;
 	} else {
@@ -1287,9 +1287,9 @@ FreeLocalClientCreds(LocalClientCredRec *lcc)
 {
     if (lcc != NULL) {
 	if (lcc->nSuppGids > 0) {
-	    Xfree(lcc->pSuppGids);
+	    free(lcc->pSuppGids);
 	}
-	Xfree(lcc);
+	free(lcc);
     }
 }
 
@@ -1484,7 +1484,7 @@ GetHosts (
     }
     if (n)
     {
-        *data = ptr = xalloc (n);
+        *data = ptr = malloc(n);
 	if (!ptr)
 	{
 	    return(BadAlloc);
@@ -1743,7 +1743,7 @@ siTypeAdd(const char *typeName, siAddrMatchFunc addrMatch,
 	}
     }
 
-    s = xalloc(sizeof(struct siType));
+    s = malloc(sizeof(struct siType));
     if (s == NULL)
 	return BadAlloc;
 
@@ -2085,7 +2085,7 @@ static Bool
 siLocalCredGetId(const char *addr, int len, siLocalCredPrivPtr lcPriv, int *id)
 {
     Bool parsedOK = FALSE;
-    char *addrbuf = xalloc(len + 1);
+    char *addrbuf = malloc(len + 1);
 
     if (addrbuf == NULL) {
 	return FALSE;
@@ -2119,7 +2119,7 @@ siLocalCredGetId(const char *addr, int len, siLocalCredPrivPtr lcPriv, int *id)
 	}
     }
 
-    xfree(addrbuf);
+    free(addrbuf);
     return parsedOK;
 }
 

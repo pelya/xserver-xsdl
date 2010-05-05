@@ -122,7 +122,7 @@ Bool QuartzAddScreen(
     ScreenPtr pScreen)
 {
     // allocate space for private per screen Quartz specific storage
-    QuartzScreenPtr displayInfo = xcalloc(sizeof(QuartzScreenRec), 1);
+    QuartzScreenPtr displayInfo = calloc(sizeof(QuartzScreenRec), 1);
 
     // QUARTZ_PRIV(pScreen) = displayInfo;
     dixSetPrivate(&pScreen->devPrivates, quartzScreenKey, displayInfo);

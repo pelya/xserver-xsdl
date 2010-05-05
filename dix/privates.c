@@ -115,7 +115,7 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 
     /* initialize privates array if necessary */
     if (!*privates) {
-	ptr = xcalloc(newsize, sizeof(*ptr));
+	ptr = calloc(newsize, sizeof(*ptr));
 	if (!ptr)
 	    return NULL;
 	*privates = ptr;
@@ -126,7 +126,7 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 
     /* resize privates array if necessary */
     if (*key >= oldsize) {
-	ptr = xrealloc(*privates, newsize * sizeof(*ptr));
+	ptr = realloc(*privates, newsize * sizeof(*ptr));
 	if (!ptr)
 	    return NULL;
 	memset(ptr + oldsize, 0, (newsize - oldsize) * sizeof(*ptr));
@@ -138,7 +138,7 @@ dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
     ptr = *privates + *key;
     ptr->state = 1;
     if (item->size) {
-	value = xcalloc(item->size, 1);
+	value = calloc(item->size, 1);
 	if (!value)
 	    return NULL;
 	ptr->value = value;
@@ -214,10 +214,10 @@ dixFreePrivates(PrivateRec *privates)
 
 		/* free pre-allocated memory */
 		if (items[i].size)
-		    xfree(privates[i].value);
+		    free(privates[i].value);
 	    }
 
-    xfree(privates);
+    free(privates);
 }
 
 /*
@@ -273,7 +273,7 @@ dixRegisterPrivateOffset(RESTYPE type, int offset)
     /* resize offsets table if necessary */
     while (type >= offsetsSize) {
 	unsigned i = offsetsSize * 2 * sizeof(int);
-	offsets = (int *)xrealloc(offsets, i);
+	offsets = (int *)realloc(offsets, i);
 	if (!offsets) {
 	    offsetsSize = 0;
 	    return FALSE;
@@ -311,9 +311,9 @@ dixResetPrivates(void)
 
     /* reset offsets */
     if (offsets)
-	xfree(offsets);
+	free(offsets);
     offsetsSize = sizeof(offsetDefaults);
-    offsets = xalloc(offsetsSize);
+    offsets = malloc(offsetsSize);
     offsetsSize /= sizeof(int);
     if (!offsets)
 	return FALSE;

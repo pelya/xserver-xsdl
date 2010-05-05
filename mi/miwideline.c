@@ -122,13 +122,13 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     
     if (!spanData)
     {
-    	pptInit = xalloc (overall_height * sizeof(*ppt));
+        pptInit = malloc(overall_height * sizeof(*ppt));
     	if (!pptInit)
 	    return;
-    	pwidthInit = xalloc (overall_height * sizeof(*pwidth));
+        pwidthInit = malloc(overall_height * sizeof(*pwidth));
     	if (!pwidthInit)
     	{
-	    xfree (pptInit);
+	    free(pptInit);
 	    return;
     	}
 	ppt = pptInit;
@@ -143,13 +143,13 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     }
     else
     {
-	spanRec.points = xalloc (overall_height * sizeof (*ppt));
+	spanRec.points = malloc(overall_height * sizeof (*ppt));
 	if (!spanRec.points)
 	    return;
-	spanRec.widths = xalloc (overall_height * sizeof (int));
+	spanRec.widths = malloc(overall_height * sizeof (int));
 	if (!spanRec.widths)
 	{
-	    xfree (spanRec.points);
+	    free(spanRec.points);
 	    return;
 	}
 	ppt = spanRec.points;
@@ -229,8 +229,8 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     if (!spanData)
     {
     	(*pGC->ops->FillSpans) (pDrawable, pGC, ppt - pptInit, pptInit, pwidthInit, TRUE);
-    	xfree (pwidthInit);
-    	xfree (pptInit);
+        free(pwidthInit);
+        free(pptInit);
     	if (pixel != oldPixel)
     	{
 	    DoChangeGC (pGC, GCForeground, &oldPixel, FALSE);
@@ -283,13 +283,13 @@ miFillRectPolyHelper (
     }
     else
     {
-	spanRec.points = xalloc (h * sizeof (*ppt));
+	spanRec.points = malloc(h * sizeof (*ppt));
 	if (!spanRec.points)
 	    return;
-	spanRec.widths = xalloc (h * sizeof (int));
+	spanRec.widths = malloc(h * sizeof (int));
 	if (!spanRec.widths)
 	{
-	    xfree (spanRec.points);
+	    free(spanRec.points);
 	    return;
 	}
 	ppt = spanRec.points;
@@ -1107,13 +1107,13 @@ miLineArc (
     }
     if (!spanData)
     {
-    	points = xalloc(sizeof(DDXPointRec) * pGC->lineWidth);
+        points = malloc(sizeof(DDXPointRec) * pGC->lineWidth);
     	if (!points)
 	    return;
-    	widths = xalloc(sizeof(int) * pGC->lineWidth);
+        widths = malloc(sizeof(int) * pGC->lineWidth);
     	if (!widths)
     	{
-	    xfree(points);
+	    free(points);
 	    return;
     	}
     	oldPixel = pGC->fgPixel;
@@ -1126,13 +1126,13 @@ miLineArc (
     }
     else
     {
-	points = xalloc (pGC->lineWidth * sizeof (DDXPointRec));
+	points = malloc(pGC->lineWidth * sizeof (DDXPointRec));
 	if (!points)
 	    return;
-	widths = xalloc (pGC->lineWidth * sizeof (int));
+	widths = malloc(pGC->lineWidth * sizeof (int));
 	if (!widths)
 	{
-	    xfree (points);
+	    free(points);
 	    return;
 	}
 	spanRec.points = points;
@@ -1148,8 +1148,8 @@ miLineArc (
     if (!spanData)
     {
     	(*pGC->ops->FillSpans)(pDraw, pGC, n, points, widths, TRUE);
-    	xfree(widths);
-    	xfree(points);
+        free(widths);
+        free(points);
     	if (pixel != oldPixel)
     	{
 	    DoChangeGC(pGC, GCForeground, &oldPixel, FALSE);

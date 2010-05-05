@@ -358,7 +358,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
 
 	numRects = REGION_NUM_RECTS(pRgn);
 	pBox = REGION_RECTS(pRgn);
-	if(!(pEvent = xalloc(numRects * sizeof(xEvent))))
+	if(!(pEvent = malloc(numRects * sizeof(xEvent))))
 		return;
 	pe = pEvent;
 
@@ -376,7 +376,7 @@ miSendGraphicsExpose (ClientPtr client, RegionPtr pRgn, XID drawable,
 	}
 	TryClientEvents(client, NULL, pEvent, numRects,
 			    (Mask)0, NoEventMask, NullGrab);
-	xfree(pEvent);
+	free(pEvent);
     }
     else
     {
@@ -402,7 +402,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 
     pBox = REGION_RECTS(pRgn);
     numRects = REGION_NUM_RECTS(pRgn);
-    if(!(pEvent = xcalloc(1, numRects * sizeof(xEvent))))
+    if(!(pEvent = calloc(1, numRects * sizeof(xEvent))))
 	return;
 
     for (i=numRects, pe = pEvent; --i >= 0; pe++, pBox++)
@@ -432,7 +432,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 	    win = PanoramiXFindIDByScrnum(XRT_WINDOW, 
 			pWin->drawable.id, scrnum);
 	    if(!win) {
-		xfree(pEvent);
+		free(pEvent);
 		return;
 	    }
 	    realWin = win->info[0].id;
@@ -449,7 +449,7 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 
     DeliverEvents(pWin, pEvent, numRects, NullWindow);
 
-    xfree(pEvent);
+    free(pEvent);
 }
 
 void
@@ -646,14 +646,14 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 	gcmask |= GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin;
     }
 
-    prect = xalloc(REGION_NUM_RECTS(prgn) * sizeof(xRectangle));
+    prect = malloc(REGION_NUM_RECTS(prgn) * sizeof(xRectangle));
     if (!prect)
 	return;
 
     pGC = GetScratchGC(drawable->depth, drawable->pScreen);
     if (!pGC)
     {
-	xfree(prect);
+	free(prect);
 	return;
     }
     
@@ -671,7 +671,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     }
     prect -= numRects;
     (*pGC->ops->PolyFillRect)(drawable, pGC, numRects, prect);
-    xfree(prect);
+    free(prect);
 
     FreeScratchGC(pGC);
 }

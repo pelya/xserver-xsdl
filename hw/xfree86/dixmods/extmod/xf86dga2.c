@@ -218,7 +218,7 @@ ProcXDGAQueryModes(ClientPtr client)
 	return (client->noClientException);
     }
 
-    if(!(mode = (XDGAModePtr)xalloc(num * sizeof(XDGAModeRec))))
+    if(!(mode = (XDGAModePtr)malloc(num * sizeof(XDGAModeRec))))
 	return BadAlloc;
 
     for(i = 0; i < num; i++)
@@ -267,7 +267,7 @@ ProcXDGAQueryModes(ClientPtr client)
 	WriteToClient(client, size, mode[i].name);
     }
 
-    xfree(mode);
+    free(mode);
 
     return (client->noClientException);
 }
@@ -583,7 +583,7 @@ ProcXDGASetClientVersion(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXDGASetClientVersionReq);
     if ((pPriv = DGA_GETPRIV(client)) == NULL) {
-	pPriv = xalloc(sizeof(DGAPrivRec));
+	pPriv = malloc(sizeof(DGAPrivRec));
 	/* XXX Need to look into freeing this */
 	if (!pPriv)
 	    return BadAlloc;

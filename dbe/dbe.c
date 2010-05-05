@@ -241,7 +241,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     }
 
     /* Free what was allocated by the GetVisualInfo() call above. */
-    xfree(scrVisInfo.visinfo);
+    free(scrVisInfo.visinfo);
 
     if (!visualMatched)
     {
@@ -254,7 +254,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
          * Allocate a window priv.
          */
 
-        pDbeWindowPriv = xcalloc(1, sizeof(DbeWindowPrivRec));
+        pDbeWindowPriv = calloc(1, sizeof(DbeWindowPrivRec));
 	if (!pDbeWindowPriv)
             return(BadAlloc);
 
@@ -319,7 +319,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
             }
 
             /* malloc/realloc a new array and initialize all elements to 0. */
-            pDbeWindowPriv->IDs = (XID *)xrealloc(pIDs,
+            pDbeWindowPriv->IDs = (XID *)realloc(pIDs,
                 (pDbeWindowPriv->maxAvailableIDs+DBE_INCR_MAX_IDS)*sizeof(XID));
             if (!pDbeWindowPriv->IDs)
             {
@@ -383,7 +383,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
 
 out_free:
     dixSetPrivate(&pWin->devPrivates, dbeWindowPrivKey, NULL);
-    xfree(pDbeWindowPriv);
+    free(pDbeWindowPriv);
     return (status);
 
 } /* ProcDbeAllocateBackBufferName() */
@@ -508,7 +508,7 @@ ProcDbeSwapBuffers(ClientPtr client)
     dbeSwapInfo = (xDbeSwapInfo *)&stuff[1];
 
     /* Allocate array to record swap information. */ 
-    swapInfo = (DbeSwapInfoPtr)Xalloc(nStuff * sizeof(DbeSwapInfoRec));
+    swapInfo = (DbeSwapInfoPtr)malloc(nStuff * sizeof(DbeSwapInfoRec));
     if (swapInfo == NULL)
     {
         return(BadAlloc);
@@ -523,14 +523,14 @@ ProcDbeSwapBuffers(ClientPtr client)
 	error = dixLookupWindow(&pWin, dbeSwapInfo[i].window, client,
 				DixWriteAccess);
 	if (error != Success) {
-            Xfree(swapInfo);
+            free(swapInfo);
 	    return error;
         }
 
         /* Each window must be double-buffered - BadMatch. */
         if (DBE_WINDOW_PRIV(pWin) == NULL)
         {
-            Xfree(swapInfo);
+            free(swapInfo);
             return(BadMatch);
         }
 
@@ -539,7 +539,7 @@ ProcDbeSwapBuffers(ClientPtr client)
         {
             if (dbeSwapInfo[i].window == dbeSwapInfo[j].window)
             {
-                Xfree(swapInfo);
+                free(swapInfo);
                 return(BadMatch);
 	    }
         }
@@ -550,7 +550,7 @@ ProcDbeSwapBuffers(ClientPtr client)
             (dbeSwapInfo[i].swapAction != XdbeUntouched ) &&
             (dbeSwapInfo[i].swapAction != XdbeCopied    ))
         {
-            Xfree(swapInfo);
+            free(swapInfo);
             return(BadValue);
         }
 
@@ -580,12 +580,12 @@ ProcDbeSwapBuffers(ClientPtr client)
         error = (*pDbeScreenPriv->SwapBuffers)(client, &nStuff, swapInfo);
         if (error != Success)
         {
-            Xfree(swapInfo);
+            free(swapInfo);
             return(error);
         }
     }
     
-    Xfree(swapInfo);
+    free(swapInfo);
     return(Success);
 
 } /* ProcDbeSwapBuffers() */
@@ -672,7 +672,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
     /* Make sure any specified drawables are valid. */
     if (stuff->n != 0)
     {
-        if (!(pDrawables = (DrawablePtr *)Xalloc(stuff->n *
+        if (!(pDrawables = (DrawablePtr *)malloc(stuff->n *
                                                  sizeof(DrawablePtr))))
         {
             return(BadAlloc);
@@ -685,19 +685,19 @@ ProcDbeGetVisualInfo(ClientPtr client)
 	    rc = dixLookupDrawable(pDrawables+i, drawables[i], client, 0,
 				   DixGetAttrAccess);
 	    if (rc != Success) {
-                Xfree(pDrawables);
+                free(pDrawables);
                 return rc;
             }
         }
     }
 
     count = (stuff->n == 0) ? screenInfo.numScreens : stuff->n;
-    if (!(pScrVisInfo = (XdbeScreenVisualInfo *)xalloc(count *
+    if (!(pScrVisInfo = (XdbeScreenVisualInfo *)malloc(count *
                         sizeof(XdbeScreenVisualInfo))))
     {
         if (pDrawables)
         {
-            Xfree(pDrawables);
+            free(pDrawables);
         }
 
         return(BadAlloc);
@@ -720,13 +720,13 @@ ProcDbeGetVisualInfo(ClientPtr client)
             /* Free visinfos that we allocated for previous screen infos.*/
             for (j = 0; j < i; j++)
             {
-                xfree(pScrVisInfo[j].visinfo);
+                free(pScrVisInfo[j].visinfo);
             }
 
             /* Free pDrawables if we needed to allocate it above. */
             if (pDrawables)
             {
-                Xfree(pDrawables);
+                free(pDrawables);
             }
 
             return (rc == Success) ? BadAlloc : rc;
@@ -801,13 +801,13 @@ ProcDbeGetVisualInfo(ClientPtr client)
     /* Clean up memory. */
     for (i = 0; i < count; i++)
     {
-        xfree(pScrVisInfo[i].visinfo);
+        free(pScrVisInfo[i].visinfo);
     }
-    xfree(pScrVisInfo);
+    free(pScrVisInfo);
 
     if (pDrawables)
     {
-        Xfree(pDrawables);
+        free(pDrawables);
     }
 
     return(client->noClientException);
@@ -1385,7 +1385,7 @@ DbeWindowPrivDelete(pointer pDbeWinPriv, XID id)
                DBE_INIT_MAX_IDS * sizeof(XID));
 
         /* Free the extended array; use the static array. */
-        xfree(pDbeWindowPriv->IDs);
+        free(pDbeWindowPriv->IDs);
         pDbeWindowPriv->IDs = pDbeWindowPriv->initIDs;
         pDbeWindowPriv->maxAvailableIDs = DBE_INIT_MAX_IDS;
     }
@@ -1417,7 +1417,7 @@ DbeWindowPrivDelete(pointer pDbeWinPriv, XID id)
 
         /* We are done with the window priv. */
 	dixFreePrivates(pDbeWindowPriv->devPrivates);
-        xfree(pDbeWindowPriv);
+        free(pDbeWindowPriv);
     }
 
     return(Success);
@@ -1457,7 +1457,7 @@ DbeResetProc(ExtensionEntry *extEntry)
 		(*pDbeScreenPriv->ResetProc)(pScreen);
 
 	    dixFreePrivates(pDbeScreenPriv->devPrivates);
-	    xfree(pDbeScreenPriv);
+	    free(pDbeScreenPriv);
 	}
     }
 } /* DbeResetProc() */
@@ -1596,7 +1596,7 @@ DbeExtensionInit(void)
 	pScreen = screenInfo.screens[i];
 
 	if (!(pDbeScreenPriv =
-             (DbeScreenPrivPtr)Xcalloc(sizeof(DbeScreenPrivRec))))
+              (DbeScreenPrivPtr)calloc(1, sizeof(DbeScreenPrivRec))))
 	{
             /* If we can not alloc a window or screen private,
              * then free any privates that we already alloc'ed and return
@@ -1604,7 +1604,7 @@ DbeExtensionInit(void)
 
 	    for (j = 0; j < i; j++)
 	    {
-		xfree(dixLookupPrivate(&screenInfo.screens[j]->devPrivates,
+		free(dixLookupPrivate(&screenInfo.screens[j]->devPrivates,
 				       dbeScreenPrivKey));
 		dixSetPrivate(&screenInfo.screens[j]->devPrivates,
 			      dbeScreenPrivKey, NULL);
@@ -1666,7 +1666,7 @@ DbeExtensionInit(void)
 
         for (i = 0; i < screenInfo.numScreens; i++)
         {
-		xfree(dixLookupPrivate(&screenInfo.screens[i]->devPrivates,
+		free(dixLookupPrivate(&screenInfo.screens[i]->devPrivates,
 				       dbeScreenPrivKey));
 		dixSetPrivate(&pScreen->devPrivates, dbeScreenPrivKey, NULL);
         }

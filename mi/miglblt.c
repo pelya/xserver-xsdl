@@ -141,7 +141,7 @@ miPolyGlyphBlt(
     DoChangeGC(pGCtmp, GCFunction|GCForeground|GCBackground, gcvals, 0);
 
     nbyLine = BitmapBytePad(width);
-    pbits = xalloc(height*nbyLine);
+    pbits = malloc(height*nbyLine);
     if (!pbits)
     {
 	(*pDrawable->pScreen->DestroyPixmap)(pPixmap);
@@ -192,7 +192,7 @@ miPolyGlyphBlt(
 	x += pci->metrics.characterWidth;
     }
     (*pDrawable->pScreen->DestroyPixmap)(pPixmap);
-    xfree(pbits);
+    free(pbits);
     FreeScratchGC(pGCtmp);
 }
 

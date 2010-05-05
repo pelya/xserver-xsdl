@@ -52,7 +52,7 @@ typedef struct {
 static security_context_t
 SELinuxCopyContext(char *ptr, unsigned len)
 {
-    security_context_t copy = xalloc(len + 1);
+    security_context_t copy = malloc(len + 1);
     if (!copy)
 	return NULL;
     strncpy(copy, ptr, len);
@@ -141,7 +141,7 @@ ProcSELinuxSetCreateContext(ClientPtr client, unsigned offset)
 	    rc = BadValue;
     }
 
-    xfree(ctx);
+    free(ctx);
     return rc;
 }
 
@@ -198,7 +198,7 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
 
     rc = Success;
 out:
-    xfree(ctx);
+    free(ctx);
     return rc;
 }
 
@@ -334,7 +334,7 @@ SELinuxFreeItems(SELinuxListItemRec *items, int count)
 	freecon(items[k].octx);
 	freecon(items[k].dctx);
     }
-    xfree(items);
+    free(items);
 }
 
 static int
@@ -345,7 +345,7 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
     SELinuxListItemsReply rep;
     CARD32 *buf;
 
-    buf = xcalloc(size, sizeof(CARD32));
+    buf = calloc(size, sizeof(CARD32));
     if (size && !buf) {
 	rc = BadAlloc;
 	goto out;
@@ -391,7 +391,7 @@ SELinuxSendItemsToClient(ClientPtr client, SELinuxListItemRec *items,
 
     /* Free stuff and return */
     rc = client->noClientException;
-    xfree(buf);
+    free(buf);
 out:
     SELinuxFreeItems(items, count);
     return rc;
@@ -417,7 +417,7 @@ ProcSELinuxListProperties(ClientPtr client)
     count = 0;
     for (pProp = wUserProps(pWin); pProp; pProp = pProp->next)
 	count++;
-    items = xcalloc(count, sizeof(SELinuxListItemRec));
+    items = calloc(count, sizeof(SELinuxListItemRec));
     if (count && !items)
 	return BadAlloc;
 
@@ -451,7 +451,7 @@ ProcSELinuxListSelections(ClientPtr client)
     count = 0;
     for (pSel = CurrentSelections; pSel; pSel = pSel->next)
 	count++;
-    items = xcalloc(count, sizeof(SELinuxListItemRec));
+    items = calloc(count, sizeof(SELinuxListItemRec));
     if (count && !items)
 	return BadAlloc;
 

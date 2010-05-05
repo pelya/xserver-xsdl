@@ -131,7 +131,7 @@ Win32System(const char *cmdline)
 	    LocalFree(buffer);
 	}
 
-	xfree(cmd);
+	free(cmd);
 	return -1;
     }
     /* Wait until child process exits. */
@@ -142,7 +142,7 @@ Win32System(const char *cmdline)
     /* Close process and thread handles. */
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
-    xfree(cmd);
+    free(cmd);
 
     return dwExitCode;
 }
@@ -235,7 +235,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 		  xkm_output_dir, keymap);
 
     if (xkbbasedirflag != emptystring) {
-	xfree(xkbbasedirflag);
+	free(xkbbasedirflag);
     }
     
 #ifndef WIN32
@@ -265,7 +265,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 		nameRtrn[nameRtrnLen-1]= '\0';
 	    }
             if (buf != NULL)
-                xfree (buf);
+                free(buf);
 	    return TRUE;
 	}
 	else
@@ -285,7 +285,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
     if (nameRtrn)
 	nameRtrn[0]= '\0';
     if (buf != NULL)
-        xfree (buf);
+        free(buf);
     return FALSE;
 }
 

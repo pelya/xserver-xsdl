@@ -800,7 +800,7 @@ miComputeWideEllipse(int lw, xArc *parc)
     if (!lw)
 	lw = 1;
     k = (parc->height >> 1) + ((lw - 1) >> 1);
-    spdata = xalloc(sizeof(miArcSpanData) + sizeof(miArcSpan) * (k + 2));
+    spdata = malloc(sizeof(miArcSpanData) + sizeof(miArcSpan) * (k + 2));
     if (!spdata)
 	return NULL;
     spdata->spans = (miArcSpan *)(spdata + 1);
@@ -831,14 +831,14 @@ miFillWideEllipse(
 
     yorgu = parc->height + pGC->lineWidth;
     n = (sizeof(int) * 2) * yorgu;
-    widths = xalloc(n + (sizeof(DDXPointRec) * 2) * yorgu);
+    widths = malloc(n + (sizeof(DDXPointRec) * 2) * yorgu);
     if (!widths)
 	return;
     points = (DDXPointPtr)((char *)widths + n);
     spdata = miComputeWideEllipse((int)pGC->lineWidth, parc);
     if (!spdata)
     {
-	xfree(widths);
+	free(widths);
 	return;
     }
     pts = points;
@@ -927,10 +927,10 @@ miFillWideEllipse(
 	    wids += 2;
 	}
     }
-    xfree(spdata);
+    free(spdata);
     (*pGC->ops->FillSpans)(pDraw, pGC, pts - points, points, widths, FALSE);
 
-    xfree(widths);
+    free(widths);
 }
 
 /*
@@ -1266,7 +1266,7 @@ miArcJoin(DrawablePtr pDraw, GCPtr pGC, miArcFacePtr pLeft,
 		arc.height = width;
 		arc.angle1 = -miDatan2 (corner.y - center.y, corner.x - center.x);
 		arc.angle2 = a;
-		pArcPts = xalloc (3 * sizeof (SppPointRec));
+		pArcPts = malloc(3 * sizeof (SppPointRec));
 		if (!pArcPts)
 		    return;
 		pArcPts[0].x = otherCorner.x;
@@ -1282,7 +1282,7 @@ miArcJoin(DrawablePtr pDraw, GCPtr pGC, miArcFacePtr pLeft,
 			 * rest of the line */
 			miFillSppPoly(pDraw, pGC, cpt, pArcPts, xOrg, yOrg, xFtrans, yFtrans);
 		}
-		xfree(pArcPts);
+		free(pArcPts);
 		return;
 	case JoinMiter:
 		/*
@@ -1413,7 +1413,7 @@ miRoundCap(
 	 * rest of the line */
 	miFillSppPoly(pDraw, pGC, cpt, pArcPts, -xOrg, -yOrg, xFtrans, yFtrans);
     }
-    xfree(pArcPts);
+    free(pArcPts);
 }
 
 /*
@@ -1511,10 +1511,10 @@ miDatan2 (double dy, double dx)
  * This procedure allocates the space necessary to fit the arc points.
  * Sometimes it's convenient for those points to be at the end of an existing
  * array. (For example, if we want to leave a spare point to make sectors
- * instead of segments.)  So we pass in the xalloc()ed chunk that contains the
+ * instead of segments.)  So we pass in the malloc()ed chunk that contains the
  * array and an index saying where we should start stashing the points.
  * If there isn't an array already, we just pass in a null pointer and 
- * count on xrealloc() to handle the null pointer correctly.
+ * count on realloc() to handle the null pointer correctly.
  */
 static int
 miGetArcPts(
@@ -1561,7 +1561,7 @@ miGetArcPts(
     count++;
 
     cdt = 2 * miDcos(dt);
-    if (!(poly = (SppPointPtr) xrealloc((pointer)*ppPts,
+    if (!(poly = (SppPointPtr) realloc((pointer)*ppPts,
 					(cpt + count) * sizeof(SppPointRec))))
 	return(0);
     *ppPts = poly;
@@ -1624,7 +1624,7 @@ addCap (
 	if (*ncapsp == *sizep)
 	{
 	    newsize = *sizep + ADD_REALLOC_STEP;
-	    cap = (miArcCapPtr) xrealloc (*capsp,
+	    cap = (miArcCapPtr) realloc(*capsp,
 					  newsize * sizeof (**capsp));
 	    if (!cap)
 		return;
@@ -1655,7 +1655,7 @@ addJoin (
 	if (*njoinsp == *sizep)
 	{
 	    newsize = *sizep + ADD_REALLOC_STEP;
-	    join = (miArcJoinPtr) xrealloc (*joinsp,
+	    join = (miArcJoinPtr) realloc(*joinsp,
 					    newsize * sizeof (**joinsp));
 	    if (!join)
 		return;
@@ -1685,7 +1685,7 @@ addArc (
 	if (*narcsp == *sizep)
 	{
 	    newsize = *sizep + ADD_REALLOC_STEP;
-	    arc = (miArcDataPtr) xrealloc (*arcsp,
+	    arc = (miArcDataPtr) realloc(*arcsp,
 					   newsize * sizeof (**arcsp));
 	    if (!arc)
 		return NULL;
@@ -1710,13 +1710,13 @@ miFreeArcs(
 	     iphase--)
 	{
 	    if (arcs[iphase].narcs > 0)
-		xfree(arcs[iphase].arcs);
+		free(arcs[iphase].arcs);
 	    if (arcs[iphase].njoins > 0)
-		xfree(arcs[iphase].joins);
+		free(arcs[iphase].joins);
 	    if (arcs[iphase].ncaps > 0)
-		xfree(arcs[iphase].caps);
+		free(arcs[iphase].caps);
 	}
-	xfree(arcs);
+	free(arcs);
 }
 
 /*
@@ -1800,13 +1800,13 @@ miComputeArcs (
 	isDoubleDash = (pGC->lineStyle == LineDoubleDash);
 	dashOffset = pGC->dashOffset;
 
-	data = xalloc (narcs * sizeof (struct arcData));
+	data = malloc(narcs * sizeof (struct arcData));
 	if (!data)
 	    return NULL;
-	arcs = xalloc (sizeof (*arcs) * (isDoubleDash ? 2 : 1));
+	arcs = malloc(sizeof (*arcs) * (isDoubleDash ? 2 : 1));
 	if (!arcs)
 	{
-	    xfree(data);
+	    free(data);
 	    return NULL;
 	}
 	for (i = 0; i < narcs; i++) {
@@ -2155,11 +2155,11 @@ miComputeArcs (
 			arcs[iphase].arcs[arcs[iphase].narcs-1].cap =
 			         arcs[iphase].ncaps;
 		}
-	xfree(data);
+	free(data);
 	return arcs;
 arcfail:
 	miFreeArcs(arcs, pGC);
-	xfree(data);
+	free(data);
 	return NULL;
 }
 
@@ -3016,7 +3016,7 @@ realAllocSpan (void)
 	struct finalSpan	*span;
 	int			i;
 
-	newChunk = xalloc (sizeof (struct finalSpanChunk));
+	newChunk = malloc(sizeof (struct finalSpanChunk));
 	if (!newChunk)
 		return (struct finalSpan *) NULL;
 	newChunk->next = chunks;
@@ -3039,11 +3039,11 @@ disposeFinalSpans (void)
 
 	for (chunk = chunks; chunk; chunk = next) {
 		next = chunk->next;
-		xfree (chunk);
+		free(chunk);
 	}
 	chunks = 0;
 	freeFinalSpans = 0;
-	xfree(finalSpans);
+	free(finalSpans);
 	finalSpans = 0;
 }
 
@@ -3063,8 +3063,8 @@ fillSpans (
 
 	if (nspans == 0)
 		return;
-	xSpan = xSpans = xalloc (nspans * sizeof (DDXPointRec));
-	xWidth = xWidths = xalloc (nspans * sizeof (int));
+	xSpan = xSpans = malloc(nspans * sizeof (DDXPointRec));
+	xWidth = xWidths = malloc(nspans * sizeof (int));
 	if (xSpans && xWidths)
 	{
 	    i = 0;
@@ -3084,9 +3084,9 @@ fillSpans (
 	}
 	disposeFinalSpans ();
 	if (xSpans)
-	    xfree (xSpans);
+	    free(xSpans);
 	if (xWidths)
-	    xfree (xWidths);
+	    free(xWidths);
 	finalMiny = 0;
 	finalMaxy = -1;
 	finalSize = 0;
@@ -3121,7 +3121,7 @@ realFindSpan (int y)
 		else
 			change = SPAN_REALLOC;
 		newSize = finalSize + change;
-		newSpans = xalloc(newSize * sizeof (struct finalSpan *));
+		newSpans = malloc(newSize * sizeof (struct finalSpan *));
 		if (!newSpans)
 		    return NULL;
 		newMiny = finalMiny;
@@ -3134,7 +3134,7 @@ realFindSpan (int y)
 			memmove(((char *) newSpans) + (finalMiny-newMiny) * sizeof (struct finalSpan *),
 				(char *) finalSpans,
 			       finalSize * sizeof (struct finalSpan *));
-			xfree (finalSpans);
+			free(finalSpans);
 		}
 		if ((i = finalMiny - newMiny) > 0)
 			bzero ((char *)newSpans, i * sizeof (struct finalSpan *));
@@ -3477,7 +3477,7 @@ drawArc (
 			left->counterClock = temp;
 		}
 	}
-	xfree(spdata);
+	free(spdata);
 }
 
 static void

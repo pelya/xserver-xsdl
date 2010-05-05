@@ -480,7 +480,7 @@ miInitializeCompositeWrapper(ScreenPtr pScreen)
     if (!dixRequestPrivate(cwGCKey, sizeof(cwGCRec)))
 	return;
 
-    pScreenPriv = xalloc(sizeof(cwScreenRec));
+    pScreenPriv = malloc(sizeof(cwScreenRec));
     if (!pScreenPriv)
 	return;
 
@@ -516,7 +516,7 @@ cwCloseScreen (int i, ScreenPtr pScreen)
     if (ps)
 	cwFiniRender(pScreen);
 
-    xfree((pointer)pScreenPriv);
+    free((pointer)pScreenPriv);
 
     return (*pScreen->CloseScreen)(i, pScreen);
 }

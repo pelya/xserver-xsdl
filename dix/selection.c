@@ -95,7 +95,7 @@ InitSelections(void)
     while (pSel) {
 	pNextSel = pSel->next;
 	dixFreePrivates(pSel->devPrivates);
-	xfree(pSel);
+	free(pSel);
 	pSel = pNextSel;
     }
 
@@ -198,7 +198,7 @@ ProcSetSelectionOwner(ClientPtr client)
 	/*
 	 * It doesn't exist, so add it...
 	 */
-	pSel = xalloc(sizeof(Selection));
+	pSel = malloc(sizeof(Selection));
 	if (!pSel)
 	    return BadAlloc;
 
@@ -209,7 +209,7 @@ ProcSetSelectionOwner(ClientPtr client)
 	rc = XaceHookSelectionAccess(client, &pSel,
 				     DixCreateAccess|DixSetAttrAccess);
 	if (rc != Success) {
-	    xfree(pSel);
+	    free(pSel);
 	    return rc;
 	}
 
