@@ -214,18 +214,54 @@ extern _X_EXPORT int set_font_authorizations(
 
 #ifndef _HAVE_XALLOC_DECLS
 #define _HAVE_XALLOC_DECLS
+
+/*
+ * Use malloc(3) instead.
+ */
 extern _X_EXPORT void *Xalloc(unsigned long /*amount*/);
+/*
+ * Use calloc(3) instead
+ */
 extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/);
+/*
+ * Use realloc(3) instead
+ */
 extern _X_EXPORT void *Xrealloc(void * /*ptr*/, unsigned long /*amount*/);
+/*
+ * Use free(3) instead
+ */
 extern _X_EXPORT void Xfree(void * /*ptr*/);
+
 #endif
 
+/*
+ * This function malloc(3)s buffer, terminating the server if there is not
+ * enough memory.
+ */
 extern _X_EXPORT void *XNFalloc(unsigned long /*amount*/);
+/*
+ * This function calloc(3)s buffer, terminating the server if there is not
+ * enough memory.
+ */
 extern _X_EXPORT void *XNFcalloc(unsigned long /*amount*/);
+/*
+ * This function realloc(3)s passed buffer, terminating the server if there is
+ * not enough memory.
+ */
 extern _X_EXPORT void *XNFrealloc(void * /*ptr*/, unsigned long /*amount*/);
 
+/*
+ * This function strdup(3)s passed string. The only difference from the library
+ * function that it is safe to pass NULL, as NULL will be returned.
+ */
 extern _X_EXPORT char *Xstrdup(const char *s);
+
+/*
+ * This function strdup(3)s passed string, terminating the server if there is
+ * not enough memory. If NULL is passed to this function, NULL is returned.
+ */
 extern _X_EXPORT char *XNFstrdup(const char *s);
+
 extern _X_EXPORT char *Xprintf(const char *fmt, ...);
 extern _X_EXPORT char *Xvprintf(const char *fmt, va_list va);
 extern _X_EXPORT char *XNFprintf(const char *fmt, ...);
