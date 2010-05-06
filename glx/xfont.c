@@ -46,8 +46,6 @@
 #include <windowstr.h>
 #include <dixfontstr.h>
 
-extern XID clientErrorValue;	/* imported kludge from dix layer */
-
 /*
 ** Make a single GL bitmap from a single X glyph
 */
