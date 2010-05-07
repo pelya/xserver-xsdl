@@ -1524,7 +1524,7 @@ miRoundCap(
 
 # define Dsin(d)	((d) == 0.0 ? 0.0 : ((d) == 90.0 ? 1.0 : sin(d*M_PI/180.0)))
 # define Dcos(d)	((d) == 0.0 ? 1.0 : ((d) == 90.0 ? 0.0 : cos(d*M_PI/180.0)))
-# define mod(a,b)	((a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
+# define mod(a,b)	((a) >= 0 ? (a) % (b) : (b) - (-(a)) % (b))
 
 static double
 miDcos (double a)
