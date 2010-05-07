@@ -491,14 +491,6 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 #undef NEXTVAL
 #undef NEXT_PTR
 
-/* Publically defined entry to ChangeGC.  Just calls dixChangeGC and tells
- * it that all of the entries are constants or IDs */
-int
-ChangeGC(GC *pGC, BITS32 mask, XID *pval)
-{
-    return (dixChangeGC(NullClient, pGC, mask, pval, NULL));
-}
-
 /* CreateGC(pDrawable, mask, pval, pStatus)
    creates a default GC for the given drawable, using mask to fill
    in any non-default values.
@@ -582,7 +574,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
     else if (mask)
-        *pStatus = ChangeGC(pGC, mask, pval);
+        *pStatus = dixChangeGC(NullClient, pGC, mask, pval, NULL);
     else
 	*pStatus = Success;
 
@@ -625,8 +617,7 @@ CreateDefaultTile (GCPtr pGC)
     tmpval[0] = GXcopy;
     tmpval[1] = pGC->tile.pixel;
     tmpval[2] = FillSolid;
-    (void)ChangeGC(pgcScratch, GCFunction | GCForeground | GCFillStyle, 
-		   tmpval);
+    (void)dixChangeGC(NullClient, pgcScratch, GCFunction | GCForeground | GCFillStyle, tmpval, NULL);
     ValidateGC((DrawablePtr)pTile, pgcScratch);
     rect.x = 0;
     rect.y = 0;
@@ -965,7 +956,7 @@ CreateDefaultStipple(int screenNum)
 	(*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 	return FALSE;
     }
-    (void)ChangeGC(pgcScratch, GCFunction|GCForeground|GCFillStyle, tmpval);
+    (void)dixChangeGC(NullClient, pgcScratch, GCFunction|GCForeground|GCFillStyle, tmpval, NULL);
     ValidateGC((DrawablePtr)pScreen->PixmapPerDepth[0], pgcScratch);
     rect.x = 0;
     rect.y = 0;

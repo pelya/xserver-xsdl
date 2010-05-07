@@ -328,7 +328,7 @@ MakeRootTile(WindowPtr pWin)
 	attributes[0] = pScreen->whitePixel;
 	attributes[1] = pScreen->blackPixel;
 
-	(void)ChangeGC(pGC, GCForeground | GCBackground, attributes);
+	(void)dixChangeGC(NullClient, pGC, GCForeground | GCBackground, attributes, NULL);
     }
 
    ValidateGC((DrawablePtr)pWin->background.pixmap, pGC);

@@ -306,7 +306,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
  			   0, XYPixmap, (char *)pCursor->bits->source);
     gcvals[0] = GXand;
-    ChangeGC (pGC, GCFunction, gcvals);
+    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
     ValidateGC ((DrawablePtr)pPriv->sourceBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->sourceBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
@@ -314,13 +314,13 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 
     /* mask bits -- pCursor->mask & ~pCursor->source */
     gcvals[0] = GXcopy;
-    ChangeGC (pGC, GCFunction, gcvals);
+    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
     ValidateGC ((DrawablePtr)pPriv->maskBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->maskBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
  			   0, XYPixmap, (char *)pCursor->bits->mask);
     gcvals[0] = GXandInverted;
-    ChangeGC (pGC, GCFunction, gcvals);
+    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
     ValidateGC ((DrawablePtr)pPriv->maskBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->maskBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
