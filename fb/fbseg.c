@@ -250,7 +250,7 @@ fbSetFg (DrawablePtr	pDrawable,
 {
     if (fg != pGC->fgPixel)
     {
-	DoChangeGC (pGC, GCForeground, (XID *) &fg, FALSE);
+	dixChangeGC (NullClient, pGC, GCForeground, &fg, NULL);
 	ValidateGC (pDrawable, pGC);
     }
 }

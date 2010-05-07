@@ -1239,7 +1239,7 @@ SProcDbeDispatch(ClientPtr client)
 static Bool
 DbeSetupBackgroundPainter(WindowPtr pWin, GCPtr pGC)
 {
-    pointer	gcvalues[4];
+    ChangeGCVal	gcvalues[4];
     int		ts_x_origin, ts_y_origin;
     PixUnion	background;
     int		backgroundState;
@@ -1265,16 +1265,16 @@ DbeSetupBackgroundPainter(WindowPtr pWin, GCPtr pGC)
     switch (backgroundState)
     {
         case BackgroundPixel:
-            gcvalues[0] = (pointer)background.pixel;
-            gcvalues[1] = (pointer)FillSolid;
+            gcvalues[0].val = background.pixel;
+            gcvalues[1].val = FillSolid;
             gcmask = GCForeground|GCFillStyle;
             break;
 
         case BackgroundPixmap:
-            gcvalues[0] = (pointer)FillTiled;
-            gcvalues[1] = (pointer)background.pixmap;
-            gcvalues[2] = (pointer)(long)ts_x_origin;
-            gcvalues[3] = (pointer)(long)ts_y_origin;
+            gcvalues[0].val = FillTiled;
+            gcvalues[1].ptr = background.pixmap;
+            gcvalues[2].val = ts_x_origin;
+            gcvalues[3].val = ts_y_origin;
             gcmask = GCFillStyle|GCTile|GCTileStipXOrigin|GCTileStipYOrigin;
             break;
 
@@ -1283,13 +1283,7 @@ DbeSetupBackgroundPainter(WindowPtr pWin, GCPtr pGC)
             return(FALSE);
     }
 
-    if (DoChangeGC(pGC, gcmask, (XID *)gcvalues, TRUE) != 0)
-    {
-        return(FALSE);
-    }
-
-    return(TRUE);
-
+    return dixChangeGC(NullClient, pGC, gcmask, NULL, gcvalues) == 0;
 } /* DbeSetupBackgroundPainter() */
 
 

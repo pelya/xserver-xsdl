@@ -78,13 +78,13 @@ typedef struct _LineFace {
 #define MILINESETPIXEL(pDrawable, pGC, pixel, oldPixel) { \
     oldPixel = pGC->fgPixel; \
     if (pixel != oldPixel) { \
-	DoChangeGC (pGC, GCForeground, (XID *) &pixel, FALSE); \
+	dixChangeGC (NullClient, pGC, GCForeground, (XID *) &pixel, NULL); \
 	ValidateGC (pDrawable, pGC); \
     } \
 }
 #define MILINERESETPIXEL(pDrawable, pGC, pixel, oldPixel) { \
     if (pixel != oldPixel) { \
-	DoChangeGC (pGC, GCForeground, (XID *) &oldPixel, FALSE); \
+	dixChangeGC (NullClient, pGC, GCForeground, (XID *) &oldPixel, NULL); \
 	ValidateGC (pDrawable, pGC); \
     } \
 }

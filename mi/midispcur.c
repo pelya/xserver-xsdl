@@ -371,7 +371,7 @@ miDCPutBits (
     if (sourceGC->fgPixel != source)
     {
 	gcvals[0] = source;
-	DoChangeGC (sourceGC, GCForeground, gcvals, 0);
+	dixChangeGC (NullClient, sourceGC, GCForeground, gcvals, NULL);
     }
     if (sourceGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, sourceGC);
@@ -391,7 +391,7 @@ miDCPutBits (
     if (maskGC->fgPixel != mask)
     {
 	gcvals[0] = mask;
-	DoChangeGC (maskGC, GCForeground, gcvals, 0);
+	dixChangeGC (NullClient, maskGC, GCForeground, gcvals, NULL);
     }
     if (maskGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, maskGC);

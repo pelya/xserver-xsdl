@@ -691,9 +691,9 @@ miClearDrawable(DrawablePtr pDraw, GCPtr pGC)
     rect.y = 0;
     rect.width = pDraw->width;
     rect.height = pDraw->height;
-    DoChangeGC(pGC, GCForeground, &bg, 0);
+    dixChangeGC(NullClient, pGC, GCForeground, &bg, NULL);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->PolyFillRect)(pDraw, pGC, 1, &rect);
-    DoChangeGC(pGC, GCForeground, &fg, 0);
+    dixChangeGC(NullClient, pGC, GCForeground, &fg, NULL);
     ValidateGC(pDraw, pGC);
 }

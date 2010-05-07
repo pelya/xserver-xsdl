@@ -91,11 +91,9 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
  * pass NullClient for the client since any access checking should have
  * already been done at a higher level.
  * 
- * Since we had to create a new function anyway, we decided to change the
- * way the list of gc values is passed to eliminate the compiler warnings
- * caused by the DoChangeGC interface.  You can pass the values via pC32
- * or pUnion, but not both; one of them must be NULL.  If you don't need
- * to pass any pointers, you can use either one:
+ * You can pass the list of gc values via pC32 or pUnion, but not both;
+ * one of them must be NULL.  If you don't need to pass any pointers,
+ * you can use either one:
  * 
  *     example calling dixChangeGC using pC32 parameter
  *
@@ -126,13 +124,6 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
  * Note: we could have gotten by with just the pUnion parameter, but on
  * 64 bit machines that would have forced us to copy the value list that
  * comes in the ChangeGC request.
- * 
- * Ideally, we'd change all the DoChangeGC calls to dixChangeGC, but this
- * is far too many changes to consider at this time, so we've only
- * changed the ones that caused compiler warnings.  New code should use
- * dixChangeGC.
- * 
- * dpw
  */
 
 #define NEXTVAL(_type, _var) { \
@@ -507,37 +498,6 @@ ChangeGC(GC *pGC, BITS32 mask, XID *pval)
 {
     return (dixChangeGC(NullClient, pGC, mask, pval, NULL));
 }
-
-/* DoChangeGC(pGC, mask, pval, fPointer)
-   mask is a set of bits indicating which values to change.
-   pval contains an appropriate value for each mask.
-   fPointer is true if the values for tiles, stipples, fonts or clipmasks
-   are pointers instead of IDs.  Note: if you are passing pointers you
-   MUST declare the array of values as type pointer!  Other data types
-   may not be large enough to hold pointers on some machines.  Yes,
-   this means you have to cast to (XID *) when you pass the array to
-   DoChangeGC.  Similarly, if you are not passing pointers (fPointer = 0) you
-   MUST declare the array as type XID (not unsigned long!), or again the wrong
-   size data type may be used.  To avoid this cruftiness, use dixChangeGC
-   above.
-
-   if there is an error, the value is marked as changed 
-   anyway, which is probably wrong, but infrequent.
-
-NOTE:
-	all values sent over the protocol for ChangeGC requests are
-32 bits long
-*/
-int
-DoChangeGC(GC *pGC, BITS32 mask, XID *pval, int fPointer)
-{
-    if (fPointer)
-    /* XXX might be a problem on 64 bit big-endian servers */
-	return dixChangeGC(NullClient, pGC, mask, NULL, (ChangeGCValPtr)pval);
-    else
-	return dixChangeGC(NullClient, pGC, mask, pval, NULL);
-}
-
 
 /* CreateGC(pDrawable, mask, pval, pStatus)
    creates a default GC for the given drawable, using mask to fill

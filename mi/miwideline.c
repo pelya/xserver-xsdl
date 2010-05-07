@@ -137,7 +137,7 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     	if (pixel != oldPixel)
     	{
 	    XID tmpPixel = (XID)pixel;
-    	    DoChangeGC (pGC, GCForeground, &tmpPixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &tmpPixel, NULL);
     	    ValidateGC (pDrawable, pGC);
     	}
     }
@@ -233,7 +233,7 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
         free(pptInit);
     	if (pixel != oldPixel)
     	{
-	    DoChangeGC (pGC, GCForeground, &oldPixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &oldPixel, NULL);
 	    ValidateGC (pDrawable, pGC);
     	}
     }
@@ -271,13 +271,13 @@ miFillRectPolyHelper (
     	if (pixel != oldPixel)
     	{
 	    XID tmpPixel = (XID)pixel;
-    	    DoChangeGC (pGC, GCForeground, &tmpPixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &tmpPixel, NULL);
     	    ValidateGC (pDrawable, pGC);
     	}
 	(*pGC->ops->PolyFillRect) (pDrawable, pGC, 1, &rect);
     	if (pixel != oldPixel)
     	{
-	    DoChangeGC (pGC, GCForeground, &oldPixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &oldPixel, NULL);
 	    ValidateGC (pDrawable, pGC);
     	}
     }
@@ -1120,7 +1120,7 @@ miLineArc (
     	if (pixel != oldPixel)
     	{
 	    XID tmpPixel = (XID)pixel;
-	    DoChangeGC(pGC, GCForeground, &tmpPixel, FALSE);
+	    dixChangeGC(NullClient, pGC, GCForeground, &tmpPixel, NULL);
 	    ValidateGC (pDraw, pGC);
     	}
     }
@@ -1152,7 +1152,7 @@ miLineArc (
         free(points);
     	if (pixel != oldPixel)
     	{
-	    DoChangeGC(pGC, GCForeground, &oldPixel, FALSE);
+	    dixChangeGC(NullClient, pGC, GCForeground, &oldPixel, NULL);
 	    ValidateGC (pDraw, pGC);
     	}
     }
@@ -1571,14 +1571,14 @@ miCleanupSpanData (DrawablePtr pDrawable, GCPtr pGC, SpanDataPtr spanData)
 	oldPixel = pGC->fgPixel;
     	if (pixel != oldPixel)
     	{
-    	    DoChangeGC (pGC, GCForeground, &pixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &pixel, NULL);
     	    ValidateGC (pDrawable, pGC);
     	}
 	miFillUniqueSpanGroup (pDrawable, pGC, &spanData->bgGroup);
 	miFreeSpanGroup (&spanData->bgGroup);
     	if (pixel != oldPixel)
     	{
-	    DoChangeGC (pGC, GCForeground, &oldPixel, FALSE);
+	    dixChangeGC (NullClient, pGC, GCForeground, &oldPixel, NULL);
 	    ValidateGC (pDrawable, pGC);
     	}
     }

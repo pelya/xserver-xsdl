@@ -803,7 +803,7 @@ miZeroPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    if ((pGC->fillStyle == FillSolid) ||
 		(pGC->fillStyle == FillStippled))
 	    {
-		DoChangeGC(pGC, GCForeground, (XID *)&pGC->bgPixel, 0);
+		dixChangeGC(NullClient, pGC, GCForeground, (XID *)&pGC->bgPixel, NULL);
 		ValidateGC(pDraw, pGC);
 	    }
 	    pts = &points[numPts >> 1];
@@ -831,7 +831,7 @@ miZeroPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    if ((pGC->fillStyle == FillSolid) ||
 		(pGC->fillStyle == FillStippled))
 	    {
-		DoChangeGC(pGC, GCForeground, &fgPixel, 0);
+		dixChangeGC(NullClient, pGC, GCForeground, &fgPixel, NULL);
 		ValidateGC(pDraw, pGC);
 	    }
 	}

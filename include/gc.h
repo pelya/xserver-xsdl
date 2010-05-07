@@ -93,12 +93,6 @@ extern _X_EXPORT int ChangeGC(
     BITS32 /*mask*/,
     XID* /*pval*/);
 
-extern _X_EXPORT int DoChangeGC(
-    GCPtr/*pGC*/,
-    BITS32 /*mask*/,
-    XID* /*pval*/,
-    int /*fPointer*/);
-
 typedef union {
     CARD32 val;
     pointer ptr;

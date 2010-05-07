@@ -679,7 +679,7 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
  
 	    /* alu is already GXCopy */
 	    gcv[0] = (XID)planeMask;
-	    DoChangeGC(pGC, GCPlaneMask, gcv, 0);
+	    dixChangeGC(NullClient, pGC, GCPlaneMask, gcv, NULL);
 	    ValidateGC((DrawablePtr)pPixmap, pGC);
 	}
 
@@ -776,7 +776,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	oldBg = pGC->bgPixel;
 	gcv[0] = (XID)~0;
 	gcv[1] = (XID)0;
-	DoChangeGC(pGC, GCForeground | GCBackground, gcv, 0);
+	dixChangeGC(NullClient, pGC, GCForeground | GCBackground, gcv, NULL);
 	bytesPer = (long)h * BitmapBytePad(w + leftPad);
 
 	for (i = 1 << (depth-1); i != 0; i >>= 1, pImage += bytesPer)
@@ -784,7 +784,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	    if (i & oldPlanemask)
 	    {
 	        gcv[0] = (XID)i;
-	        DoChangeGC(pGC, GCPlaneMask, gcv, 0);
+	        dixChangeGC(NullClient, pGC, GCPlaneMask, gcv, NULL);
 	        ValidateGC(pDraw, pGC);
 	        (*pGC->ops->PutImage)(pDraw, pGC, 1, x, y, w, h, leftPad,
 			         XYBitmap, (char *)pImage);
@@ -793,7 +793,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	gcv[0] = (XID)oldPlanemask;
 	gcv[1] = (XID)oldFg;
 	gcv[2] = (XID)oldBg;
-	DoChangeGC(pGC, GCPlaneMask | GCForeground | GCBackground, gcv, 0);
+	dixChangeGC(NullClient, pGC, GCPlaneMask | GCForeground | GCBackground, gcv, NULL);
 	ValidateGC(pDraw, pGC);
 	break;
 

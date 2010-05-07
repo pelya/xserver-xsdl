@@ -107,7 +107,7 @@ miPolyPoint(
     fsNew = FillSolid;
     if(pGC->fillStyle != FillSolid)
     {
-	DoChangeGC(pGC, GCFillStyle, &fsNew, 0);
+	dixChangeGC(NullClient, pGC, GCFillStyle, &fsNew, NULL);
 	ValidateGC(pDrawable, pGC);
     }
     pwidth = pwidthInit;
@@ -117,7 +117,7 @@ miPolyPoint(
 
     if(fsOld != FillSolid)
     {
-	DoChangeGC(pGC, GCFillStyle, &fsOld, 0);
+	dixChangeGC(NullClient, pGC, GCFillStyle, &fsOld, NULL);
 	ValidateGC(pDrawable, pGC);
     }
     free(pwidthInit);

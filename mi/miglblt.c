@@ -138,7 +138,7 @@ miPolyGlyphBlt(
     gcvals[1] = 1;
     gcvals[2] = 0;
 
-    DoChangeGC(pGCtmp, GCFunction|GCForeground|GCBackground, gcvals, 0);
+    dixChangeGC(NullClient, pGCtmp, GCFunction|GCForeground|GCBackground, gcvals, NULL);
 
     nbyLine = BitmapBytePad(width);
     pbits = malloc(height*nbyLine);
@@ -237,13 +237,13 @@ miImageGlyphBlt(
     gcvals[0] = GXcopy;
     gcvals[1] = pGC->bgPixel;
     gcvals[2] = FillSolid;
-    DoChangeGC(pGC, GCFunction|GCForeground|GCFillStyle, gcvals, 0);
+    dixChangeGC(NullClient, pGC, GCFunction|GCForeground|GCFillStyle, gcvals, NULL);
     ValidateGC(pDrawable, pGC);
     (*pGC->ops->PolyFillRect)(pDrawable, pGC, 1, &backrect);
 
     /* put down the glyphs */
     gcvals[0] = oldFG;
-    DoChangeGC(pGC, GCForeground, gcvals, 0);
+    dixChangeGC(NullClient, pGC, GCForeground, gcvals, NULL);
     ValidateGC(pDrawable, pGC);
     (*pGC->ops->PolyGlyphBlt)(pDrawable, pGC, x, y, nglyph, ppci,
 			      pglyphBase);
@@ -252,7 +252,7 @@ miImageGlyphBlt(
     gcvals[0] = oldAlu;
     gcvals[1] = oldFG;
     gcvals[2] = oldFS;
-    DoChangeGC(pGC, GCFunction|GCForeground|GCFillStyle, gcvals, 0);
+    dixChangeGC(NullClient, pGC, GCFunction|GCForeground|GCFillStyle, gcvals, NULL);
     ValidateGC(pDrawable, pGC);
 
 }
