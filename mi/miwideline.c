@@ -106,6 +106,31 @@ static void miLineArc(DrawablePtr pDraw, GCPtr pGC,
  */
 
 static void
+fillSpans(DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel, Spans *spans, SpanDataPtr spanData)
+{
+    if (!spanData)
+    {
+	XID oldPixel = pGC->fgPixel;
+	if (pixel != oldPixel)
+	{
+	    XID tmpPixel = (XID)pixel;
+	    dixChangeGC (NullClient, pGC, GCForeground, &tmpPixel, NULL);
+	    ValidateGC (pDrawable, pGC);
+	}
+	(*pGC->ops->FillSpans) (pDrawable, pGC, spans->count, spans->points, spans->widths, TRUE);
+	free(spans->widths);
+	free(spans->points);
+	if (pixel != oldPixel)
+	{
+	    dixChangeGC (NullClient, pGC, GCForeground, &oldPixel, NULL);
+	    ValidateGC (pDrawable, pGC);
+	}
+    }
+    else
+	AppendSpanGroup (pGC, pixel, spans, spanData);
+}
+
+static void
 miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
 		  SpanDataPtr spanData, int y, int overall_height,
 		  PolyEdgePtr left, PolyEdgePtr right,
@@ -126,27 +151,13 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
 
     DDXPointPtr ppt;
     int 	*pwidth;
-    XID		oldPixel;
     int		xorg;
     Spans	spanRec;
 
-    left_height = 0;
-    right_height = 0;
-    
     if (!InitSpans(&spanRec, overall_height))
 	return;
     ppt = spanRec.points;
     pwidth = spanRec.widths;
-    if (!spanData)
-    {
-    	oldPixel = pGC->fgPixel;
-    	if (pixel != oldPixel)
-    	{
-	    XID tmpPixel = (XID)pixel;
-	    dixChangeGC (NullClient, pGC, GCForeground, &tmpPixel, NULL);
-    	    ValidateGC (pDrawable, pGC);
-    	}
-    }
 
     xorg = 0;
     if (pGC->miTranslate)
@@ -219,19 +230,7 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
 	}
     }
     spanRec.count = ppt - spanRec.points;
-    if (!spanData)
-    {
-	(*pGC->ops->FillSpans) (pDrawable, pGC, spanRec.count, spanRec.points, spanRec.widths, TRUE);
-	free(spanRec.widths);
-	free(spanRec.points);
-    	if (pixel != oldPixel)
-    	{
-	    dixChangeGC (NullClient, pGC, GCForeground, &oldPixel, NULL);
-	    ValidateGC (pDrawable, pGC);
-    	}
-    }
-    else
-	AppendSpanGroup (pGC, pixel, &spanRec, spanData);
+    fillSpans (pDrawable, pGC, pixel, &spanRec, spanData);
 }
 
 static void
@@ -1042,7 +1041,6 @@ miLineArc (
     Bool	    	isInt)
 {
     int xorgi = 0, yorgi = 0;
-    XID		oldPixel;
     Spans spanRec;
     int n;
     PolyEdgeRec	edge1, edge2;
@@ -1088,16 +1086,6 @@ miLineArc (
     }
     if (!InitSpans(&spanRec, pGC->lineWidth))
 	return;
-    if (!spanData)
-    {
-    	oldPixel = pGC->fgPixel;
-    	if (pixel != oldPixel)
-    	{
-	    XID tmpPixel = (XID)pixel;
-	    dixChangeGC(NullClient, pGC, GCForeground, &tmpPixel, NULL);
-	    ValidateGC (pDraw, pGC);
-    	}
-    }
     if (isInt)
 	n = miLineArcI(pDraw, pGC, xorgi, yorgi, spanRec.points, spanRec.widths);
     else
@@ -1105,20 +1093,7 @@ miLineArc (
 		       &edge1, edgey1, edgeleft1,
 		       &edge2, edgey2, edgeleft2);
     spanRec.count = n;
-
-    if (!spanData)
-    {
-	(*pGC->ops->FillSpans)(pDraw, pGC, spanRec.count, spanRec.points, spanRec.widths, TRUE);
-	free(spanRec.widths);
-	free(spanRec.points);
-    	if (pixel != oldPixel)
-    	{
-	    dixChangeGC(NullClient, pGC, GCForeground, &oldPixel, NULL);
-	    ValidateGC (pDraw, pGC);
-    	}
-    }
-    else
-	AppendSpanGroup (pGC, pixel, &spanRec, spanData);
+    fillSpans (pDraw, pGC, pixel, &spanRec, spanData);
 }
 
 static void
