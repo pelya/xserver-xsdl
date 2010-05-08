@@ -127,24 +127,21 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
  */
 
 #define NEXTVAL(_type, _var) { \
-      if (pC32) _var = (_type)*pC32++; \
-      else { \
 	_var = (_type)(pUnion->val); pUnion++; \
-      } \
     }
 
 #define NEXT_PTR(_type, _var) { \
-    assert(pUnion); _var = (_type)pUnion->ptr; pUnion++; }
+    _var = (_type)pUnion->ptr; pUnion++; }
 
-int
-dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
+static int
+ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 {
     BITS32 	index2;
-    int 	rc, error = 0;
+    int 	error = 0;
     PixmapPtr 	pPixmap;
     BITS32	maskQ;
 
-    assert( (pC32 && !pUnion) || (!pC32 && pUnion) );
+    assert(pUnion);
     pGC->serialNumber |= GC_CHANGE_SERIAL_BIT;
 
     maskQ = mask;	/* save these for when we walk the GCque */
@@ -254,23 +251,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		break;
 	    }
 	    case GCTile:
-		if (pUnion)
-		{
-		    NEXT_PTR(PixmapPtr, pPixmap);
-		}
-		else
-		{
-		    XID newpix;
-		    NEXTVAL(XID, newpix);
-		    rc = dixLookupResourceByType((pointer *)&pPixmap, newpix,
-					   RT_PIXMAP, client, DixReadAccess);
-		    if (rc != Success)
-		    {
-			clientErrorValue = newpix;
-			error = (rc == BadValue) ? BadPixmap : rc;
-			break;
-		    }
-		}
+		NEXT_PTR(PixmapPtr, pPixmap);
 		if ((pPixmap->drawable.depth != pGC->depth) ||
 		    (pPixmap->drawable.pScreen != pGC->pScreen))
 		{
@@ -286,23 +267,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		}
 		break;
 	    case GCStipple:
-		if (pUnion)
-		{
-		    NEXT_PTR(PixmapPtr, pPixmap);
-		}
-		else
-		{
-		    XID newstipple;
-		    NEXTVAL(XID, newstipple)
-		    rc = dixLookupResourceByType((pointer *)&pPixmap, newstipple,
-					   RT_PIXMAP, client, DixReadAccess);
-		    if (rc != Success)
-		    {
-			clientErrorValue = newstipple;
-			error = (rc == BadValue) ? BadPixmap : rc;
-			break;
-		    }
-		}
+		NEXT_PTR(PixmapPtr, pPixmap);
 		if ((pPixmap->drawable.depth != 1) ||
 		    (pPixmap->drawable.pScreen != pGC->pScreen))
 		{
@@ -325,23 +290,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 	    case GCFont:
     	    {
 		FontPtr	pFont;
-		if (pUnion)
-		{
-		    NEXT_PTR(FontPtr, pFont);
-		}
-		else
-		{
-		    XID newfont;
-		    NEXTVAL(XID, newfont)
-		    rc = dixLookupResourceByType((pointer *)&pFont, newfont,
-					   RT_FONT, client, DixUseAccess);
-		    if (rc != Success)
-		    {
-			clientErrorValue = newfont;
-			error = (rc == BadValue) ? BadFont : rc;
-			break;
-		    }
-		}
+		NEXT_PTR(FontPtr, pFont);
 		pFont->refcnt++;
 		if (pGC->font)
 		    CloseFont(pGC->font, (Font)0);
@@ -381,28 +330,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		NEXTVAL(INT16, pGC->clipOrg.y);
 		break;
 	    case GCClipMask:
-		if (pUnion)
-		{
-		    NEXT_PTR(PixmapPtr, pPixmap);
-		}
-		else
-		{
-		    Pixmap pid;
-		    NEXTVAL(Pixmap, pid)
-		    if (pid == None)
-			pPixmap = NullPixmap;
-		    else {
-			rc = dixLookupResourceByType((pointer *)&pPixmap, pid,
-					       RT_PIXMAP, client,
-					       DixReadAccess);
-			if (rc != Success) {
-			    clientErrorValue = pid;
-			    error = (rc == BadValue) ? BadPixmap : rc;
-			    break;
-			}
-		    }
-		}
-
+		NEXT_PTR(PixmapPtr, pPixmap);
 		if (pPixmap)
 		{
 		    if ((pPixmap->drawable.depth != 1) ||
@@ -490,6 +418,61 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 
 #undef NEXTVAL
 #undef NEXT_PTR
+
+static const struct {
+    BITS32 mask;
+    RESTYPE type;
+    Mask access_mode;
+} xidfields[] = {
+    { GCTile, RT_PIXMAP, DixReadAccess },
+    { GCStipple, RT_PIXMAP, DixReadAccess },
+    { GCFont, RT_FONT, DixUseAccess },
+    { GCClipMask, RT_PIXMAP, DixReadAccess },
+};
+
+static int
+ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
+{
+    ChangeGCVal vals[GCLastBit + 1];
+    int i;
+    if (mask & ~((1 << (GCLastBit + 1)) - 1))
+    {
+	clientErrorValue = mask;
+	return BadValue;
+    }
+    for (i = Ones(mask); i; --i)
+	vals[i].val = pC32[i];
+    for (i = 0; i < sizeof(xidfields) / sizeof(*xidfields); ++i)
+    {
+	int offset, rc;
+	if (!(mask & xidfields[i].mask))
+	    continue;
+	offset = Ones(mask & (xidfields[i].mask - 1));
+	if (xidfields[i].mask == GCClipMask && vals[offset].val == None)
+	{
+	    vals[offset].ptr = NullPixmap;
+	    continue;
+	}
+	rc = dixLookupResourceByType(&vals[offset].ptr, vals[offset].val,
+		xidfields[i].type, client, xidfields[i].access_mode);
+	if (rc != Success)
+	{
+	    clientErrorValue = vals[offset].val;
+	    if (rc == BadValue)
+		rc = (xidfields[i].type == RT_PIXMAP) ? BadPixmap : BadFont;
+	    return rc;
+	}
+    }
+    return ChangeGC(client, pGC, mask, vals);
+}
+
+int
+dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
+{
+    if (pC32)
+	return ChangeGCXIDs(client, pGC, mask, pC32);
+    return ChangeGC(client, pGC, mask, pUnion);
+}
 
 /* CreateGC(pDrawable, mask, pval, pStatus)
    creates a default GC for the given drawable, using mask to fill
