@@ -497,10 +497,11 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h)
 	 */
 	if (pGC)
 	{
-	    XID val = IncludeInferiors;
+	    ChangeGCVal val;
+	    val.val = IncludeInferiors;
 	    
 	    ValidateGC(&pPixmap->drawable, pGC);
-	    dixChangeGC (serverClient, pGC, GCSubwindowMode, &val, NULL);
+	    dixChangeGC (serverClient, pGC, GCSubwindowMode, NULL, &val);
 	    (*pGC->ops->CopyArea) (&pParent->drawable,
 				   &pPixmap->drawable,
 				   pGC,

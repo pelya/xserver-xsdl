@@ -622,7 +622,7 @@ ProcXFixesSetGCClipRegion (ClientPtr client)
 {
     GCPtr	pGC;
     RegionPtr	pRegion;
-    XID		vals[2];
+    ChangeGCVal	vals[2];
     int		rc;
     REQUEST(xXFixesSetGCClipRegionReq);
     REQUEST_SIZE_MATCH(xXFixesSetGCClipRegionReq);
@@ -640,9 +640,9 @@ ProcXFixesSetGCClipRegion (ClientPtr client)
 	    return BadAlloc;
     }
     
-    vals[0] = stuff->xOrigin;
-    vals[1] = stuff->yOrigin;
-    dixChangeGC (NullClient, pGC, GCClipXOrigin|GCClipYOrigin, vals, NULL);
+    vals[0].val = stuff->xOrigin;
+    vals[1].val = stuff->yOrigin;
+    dixChangeGC (NullClient, pGC, GCClipXOrigin|GCClipYOrigin, NULL, vals);
     (*pGC->funcs->ChangeClip)(pGC, pRegion ? CT_REGION : CT_NONE, (pointer)pRegion, 0);
 
     return (client->noClientException);

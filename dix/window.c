@@ -323,12 +323,12 @@ MakeRootTile(WindowPtr pWin)
 	FatalError("could not create root tile");
 
     {
-	CARD32 attributes[2];
+	ChangeGCVal attributes[2];
 
-	attributes[0] = pScreen->whitePixel;
-	attributes[1] = pScreen->blackPixel;
+	attributes[0].val = pScreen->whitePixel;
+	attributes[1].val = pScreen->blackPixel;
 
-	(void)dixChangeGC(NullClient, pGC, GCForeground | GCBackground, attributes, NULL);
+	(void)dixChangeGC(NullClient, pGC, GCForeground | GCBackground, NULL, attributes);
     }
 
    ValidateGC((DrawablePtr)pWin->background.pixmap, pGC);

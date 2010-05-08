@@ -97,17 +97,17 @@ ephyrPrepareSolid(PixmapPtr pPix, int alu, Pixel pm, Pixel fg)
     KdScreenInfo *screen = pScreenPriv->screen;
     EphyrScrPriv *scrpriv = screen->driver;
     EphyrFakexaPriv *fakexa = scrpriv->fakexa;
-    CARD32 tmpval[3];
+    ChangeGCVal tmpval[3];
 
     ephyrPreparePipelinedAccess(pPix, EXA_PREPARE_DEST);
 
     fakexa->pDst = pPix;
     fakexa->pGC = GetScratchGC(pPix->drawable.depth, pScreen);
 
-    tmpval[0] = alu;
-    tmpval[1] = pm;
-    tmpval[2] = fg;
-    dixChangeGC(NullClient, fakexa->pGC, GCFunction | GCPlaneMask | GCForeground, tmpval, NULL);
+    tmpval[0].val = alu;
+    tmpval[1].val = pm;
+    tmpval[2].val = fg;
+    dixChangeGC(NullClient, fakexa->pGC, GCFunction | GCPlaneMask | GCForeground, NULL, tmpval);
 
     ValidateGC(&pPix->drawable, fakexa->pGC);
 
@@ -161,7 +161,7 @@ ephyrPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu,
     KdScreenInfo *screen = pScreenPriv->screen;
     EphyrScrPriv *scrpriv = screen->driver;
     EphyrFakexaPriv *fakexa = scrpriv->fakexa;
-    CARD32 tmpval[2];
+    ChangeGCVal tmpval[2];
 
     ephyrPreparePipelinedAccess(pDst, EXA_PREPARE_DEST);
     ephyrPreparePipelinedAccess(pSrc, EXA_PREPARE_SRC);
@@ -170,9 +170,9 @@ ephyrPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu,
     fakexa->pDst = pDst;
     fakexa->pGC = GetScratchGC(pDst->drawable.depth, pScreen);
 
-    tmpval[0] = alu;
-    tmpval[1] = pm;
-    dixChangeGC (NullClient, fakexa->pGC, GCFunction | GCPlaneMask, tmpval, NULL);
+    tmpval[0].val = alu;
+    tmpval[1].val = pm;
+    dixChangeGC (NullClient, fakexa->pGC, GCFunction | GCPlaneMask, NULL, tmpval);
 
     ValidateGC(&pDst->drawable, fakexa->pGC);
 

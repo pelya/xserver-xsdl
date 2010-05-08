@@ -646,7 +646,6 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
     unsigned char	depth;
     int			i, linelength, width, srcx, srcy;
     DDXPointRec		pt = {0, 0};
-    XID			gcv[2];
     PixmapPtr		pPixmap = NULL;
     GCPtr		pGC = NULL;
 
@@ -655,6 +654,7 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
     {
 	if ( (((1<<depth)-1)&planeMask) != (1<<depth)-1 )
 	{
+	    ChangeGCVal gcv;
 	    xPoint pt;
 
 	    pGC = GetScratchGC(depth, pDraw->pScreen);
@@ -678,8 +678,8 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
 				   TRUE);
  
 	    /* alu is already GXCopy */
-	    gcv[0] = (XID)planeMask;
-	    dixChangeGC(NullClient, pGC, GCPlaneMask, gcv, NULL);
+	    gcv.val = (XID)planeMask;
+	    dixChangeGC(NullClient, pGC, GCPlaneMask, NULL, &gcv);
 	    ValidateGC((DrawablePtr)pPixmap, pGC);
 	}
 
@@ -747,7 +747,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
     RegionPtr		prgnSrc;
     BoxRec		box;
     unsigned long	oldFg, oldBg;
-    XID			gcv[3];
+    ChangeGCVal		gcv[3];
     unsigned long	oldPlanemask;
     unsigned long	i;
     long		bytesPer;
@@ -774,26 +774,26 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	oldPlanemask = pGC->planemask;
 	oldFg = pGC->fgPixel;
 	oldBg = pGC->bgPixel;
-	gcv[0] = (XID)~0;
-	gcv[1] = (XID)0;
-	dixChangeGC(NullClient, pGC, GCForeground | GCBackground, gcv, NULL);
+	gcv[0].val = (XID)~0;
+	gcv[1].val = (XID)0;
+	dixChangeGC(NullClient, pGC, GCForeground | GCBackground, NULL, gcv);
 	bytesPer = (long)h * BitmapBytePad(w + leftPad);
 
 	for (i = 1 << (depth-1); i != 0; i >>= 1, pImage += bytesPer)
 	{
 	    if (i & oldPlanemask)
 	    {
-	        gcv[0] = (XID)i;
-	        dixChangeGC(NullClient, pGC, GCPlaneMask, gcv, NULL);
+	        gcv[0].val = (XID)i;
+	        dixChangeGC(NullClient, pGC, GCPlaneMask, NULL, gcv);
 	        ValidateGC(pDraw, pGC);
 	        (*pGC->ops->PutImage)(pDraw, pGC, 1, x, y, w, h, leftPad,
 			         XYBitmap, (char *)pImage);
 	    }
 	}
-	gcv[0] = (XID)oldPlanemask;
-	gcv[1] = (XID)oldFg;
-	gcv[2] = (XID)oldBg;
-	dixChangeGC(NullClient, pGC, GCPlaneMask | GCForeground | GCBackground, gcv, NULL);
+	gcv[0].val = (XID)oldPlanemask;
+	gcv[1].val = (XID)oldFg;
+	gcv[2].val = (XID)oldBg;
+	dixChangeGC(NullClient, pGC, GCPlaneMask | GCForeground | GCBackground, NULL, gcv);
 	ValidateGC(pDraw, pGC);
 	break;
 

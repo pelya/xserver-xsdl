@@ -593,7 +593,7 @@ out:
 static Bool
 CreateDefaultTile (GCPtr pGC)
 {
-    XID		tmpval[3];
+    ChangeGCVal	tmpval[3];
     PixmapPtr 	pTile;
     GCPtr	pgcScratch;
     xRectangle	rect;
@@ -614,10 +614,10 @@ CreateDefaultTile (GCPtr pGC)
 	    FreeScratchGC(pgcScratch);
 	return FALSE;
     }
-    tmpval[0] = GXcopy;
-    tmpval[1] = pGC->tile.pixel;
-    tmpval[2] = FillSolid;
-    (void)dixChangeGC(NullClient, pgcScratch, GCFunction | GCForeground | GCFillStyle, tmpval, NULL);
+    tmpval[0].val = GXcopy;
+    tmpval[1].val = pGC->tile.pixel;
+    tmpval[2].val = FillSolid;
+    (void)dixChangeGC(NullClient, pgcScratch, GCFunction | GCForeground | GCFillStyle, NULL, tmpval);
     ValidateGC((DrawablePtr)pTile, pgcScratch);
     rect.x = 0;
     rect.y = 0;
@@ -935,7 +935,7 @@ Bool
 CreateDefaultStipple(int screenNum)
 {
     ScreenPtr pScreen;
-    XID tmpval[3];
+    ChangeGCVal tmpval[3];
     xRectangle rect;
     CARD16 w, h;
     GCPtr pgcScratch;
@@ -949,14 +949,16 @@ CreateDefaultStipple(int screenNum)
 			(*pScreen->CreatePixmap)(pScreen, w, h, 1, 0)))
 	return FALSE;
     /* fill stipple with 1 */
-    tmpval[0] = GXcopy; tmpval[1] = 1; tmpval[2] = FillSolid;
+    tmpval[0].val = GXcopy;
+    tmpval[1].val = 1;
+    tmpval[2].val = FillSolid;
     pgcScratch = GetScratchGC(1, pScreen);
     if (!pgcScratch)
     {
 	(*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 	return FALSE;
     }
-    (void)dixChangeGC(NullClient, pgcScratch, GCFunction|GCForeground|GCFillStyle, tmpval, NULL);
+    (void)dixChangeGC(NullClient, pgcScratch, GCFunction|GCForeground|GCFillStyle, NULL, tmpval);
     ValidateGC((DrawablePtr)pScreen->PixmapPerDepth[0], pgcScratch);
     rect.x = 0;
     rect.y = 0;
