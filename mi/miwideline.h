@@ -31,30 +31,6 @@ from The Open Group.
 #include "mispans.h"
 #include "mifpoly.h" /* for ICEIL */
 
-/* 
- * interface data to span-merging polygon filler
- */
-
-typedef struct _SpanData {
-    SpanGroup	fgGroup, bgGroup;
-} SpanDataRec, *SpanDataPtr;
-
-#define AppendSpanGroup(pGC, pixel, spanPtr, spanData) { \
-	SpanGroup   *group, *othergroup = NULL; \
-	if (pixel == pGC->fgPixel) \
-	{ \
-	    group = &spanData->fgGroup; \
-	    if (pGC->lineStyle == LineDoubleDash) \
-		othergroup = &spanData->bgGroup; \
-	} \
-	else \
-	{ \
-	    group = &spanData->bgGroup; \
-	    othergroup = &spanData->fgGroup; \
-	} \
-	miAppendSpans (group, othergroup, spanPtr); \
-}
-
 /*
  * Polygon edge description for integer wide-line routines
  */

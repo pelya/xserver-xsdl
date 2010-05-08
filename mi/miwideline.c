@@ -52,6 +52,33 @@ from The Open Group.
 #include "miwideline.h"
 #include "mi.h"
 
+/*
+ * interface data to span-merging polygon filler
+ */
+
+typedef struct _SpanData {
+    SpanGroup	fgGroup, bgGroup;
+} SpanDataRec, *SpanDataPtr;
+
+static void
+AppendSpanGroup(GCPtr pGC, unsigned long pixel, Spans *spanPtr, SpanDataPtr spanData)
+{
+    SpanGroup *group, *othergroup = NULL;
+    if (pixel == pGC->fgPixel)
+    {
+	group = &spanData->fgGroup;
+	if (pGC->lineStyle == LineDoubleDash)
+	    othergroup = &spanData->bgGroup;
+    }
+    else
+    {
+	group = &spanData->bgGroup;
+	othergroup = &spanData->fgGroup;
+    }
+    miAppendSpans (group, othergroup, spanPtr);
+}
+
+
 static void miLineArc(DrawablePtr pDraw, GCPtr pGC,
 		      unsigned long pixel, SpanDataPtr spanData,
 		      LineFacePtr leftFace,
@@ -213,7 +240,7 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     else
     {
 	spanRec.count = ppt - spanRec.points;
-	AppendSpanGroup (pGC, pixel, &spanRec, spanData)
+	AppendSpanGroup (pGC, pixel, &spanRec, spanData);
     }
 }
 
@@ -282,7 +309,7 @@ miFillRectPolyHelper (
 	    y++;
 	}
 	spanRec.count = ppt - spanRec.points;
-	AppendSpanGroup (pGC, pixel, &spanRec, spanData)
+	AppendSpanGroup (pGC, pixel, &spanRec, spanData);
     }
 }
 
@@ -1132,7 +1159,7 @@ miLineArc (
     else
     {
 	spanRec.count = n;
-	AppendSpanGroup (pGC, pixel, &spanRec, spanData)
+	AppendSpanGroup (pGC, pixel, &spanRec, spanData);
     }
 }
 
