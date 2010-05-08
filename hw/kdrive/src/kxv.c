@@ -1892,7 +1892,7 @@ KXVPaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
 
     val[0].val = fg;
     val[1].val = IncludeInferiors;
-    dixChangeGC (NullClient, pGC, GCForeground|GCSubwindowMode, NULL, val);
+    ChangeGC (NullClient, pGC, GCForeground|GCSubwindowMode, val);
 
     ValidateGC (pDraw, pGC);
 

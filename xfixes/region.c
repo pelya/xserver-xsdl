@@ -642,7 +642,7 @@ ProcXFixesSetGCClipRegion (ClientPtr client)
     
     vals[0].val = stuff->xOrigin;
     vals[1].val = stuff->yOrigin;
-    dixChangeGC (NullClient, pGC, GCClipXOrigin|GCClipYOrigin, NULL, vals);
+    ChangeGC (NullClient, pGC, GCClipXOrigin|GCClipYOrigin, vals);
     (*pGC->funcs->ChangeClip)(pGC, pRegion ? CT_REGION : CT_NONE, (pointer)pRegion, 0);
 
     return (client->noClientException);

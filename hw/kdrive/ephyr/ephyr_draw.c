@@ -107,7 +107,7 @@ ephyrPrepareSolid(PixmapPtr pPix, int alu, Pixel pm, Pixel fg)
     tmpval[0].val = alu;
     tmpval[1].val = pm;
     tmpval[2].val = fg;
-    dixChangeGC(NullClient, fakexa->pGC, GCFunction | GCPlaneMask | GCForeground, NULL, tmpval);
+    ChangeGC(NullClient, fakexa->pGC, GCFunction | GCPlaneMask | GCForeground, tmpval);
 
     ValidateGC(&pPix->drawable, fakexa->pGC);
 
@@ -172,7 +172,7 @@ ephyrPrepareCopy(PixmapPtr pSrc, PixmapPtr pDst, int dx, int dy, int alu,
 
     tmpval[0].val = alu;
     tmpval[1].val = pm;
-    dixChangeGC (NullClient, fakexa->pGC, GCFunction | GCPlaneMask, NULL, tmpval);
+    ChangeGC (NullClient, fakexa->pGC, GCFunction | GCPlaneMask, tmpval);
 
     ValidateGC(&pDst->drawable, fakexa->pGC);
 

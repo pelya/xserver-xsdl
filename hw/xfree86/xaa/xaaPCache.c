@@ -1881,7 +1881,7 @@ XAAWriteBitmapToCacheLinear(
    pGC = GetScratchGC(pScreenPix->drawable.depth, pScreen);
    gcvals[0].val = fg;
    gcvals[1].val = bg;
-   dixChangeGC(NullClient, pGC, GCForeground | GCBackground, NULL, gcvals);
+   ChangeGC(NullClient, pGC, GCForeground | GCBackground, gcvals);
    ValidateGC((DrawablePtr)pDstPix, pGC);
 
    /* We've unwrapped already so these ops miss a sync */

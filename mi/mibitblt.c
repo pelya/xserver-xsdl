@@ -426,7 +426,7 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     }
     /* First set the whole pixmap to 0 */
     gcv[0].val = 0;
-    dixChangeGC(NullClient, pGCT, GCBackground, NULL, gcv);
+    ChangeGC(NullClient, pGCT, GCBackground, gcv);
     ValidateGC((DrawablePtr)pPixmap, pGCT);
     miClearDrawable((DrawablePtr)pPixmap, pGCT);
     ppt = pptFirst = malloc(h * sizeof(DDXPointRec));
@@ -477,9 +477,9 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     gcv[2].val = dstx - srcx;
     gcv[3].val = dsty;
 
-    dixChangeGC(NullClient, pGC,
+    ChangeGC(NullClient, pGC,
              GCFillStyle | GCStipple | GCTileStipXOrigin | GCTileStipYOrigin,
-	     NULL, gcv);
+	     gcv);
     ValidateGC(pDraw, pGC);
 
     /* Fill the drawable with the stipple.  This will draw the
@@ -495,7 +495,7 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     /* Invert the tiling pixmap. This sets 0s for 1s and 1s for 0s, only
      * within the clipping region, the part outside is still all 0s */
     gcv[0].val = GXinvert;
-    dixChangeGC(NullClient, pGCT, GCFunction, NULL, gcv);
+    ChangeGC(NullClient, pGCT, GCFunction, gcv);
     ValidateGC((DrawablePtr)pPixmap, pGCT);
     (*pGCT->ops->CopyArea)((DrawablePtr)pPixmap, (DrawablePtr)pPixmap,
 			   pGCT, 0, 0, w + srcx, h, 0, 0);
@@ -507,8 +507,7 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     gcv[0].val = pGC->bgPixel;
     gcv[1].val = oldfg;
     gcv[2].ptr = pPixmap;
-    dixChangeGC(NullClient, pGC, GCForeground | GCBackground | GCStipple,
-		NULL, gcv);
+    ChangeGC(NullClient, pGC, GCForeground | GCBackground | GCStipple, gcv);
     ValidateGC(pDraw, pGC);
     /* PolyFillRect might have bashed the rectangle */
     rect.x = dstx;
@@ -526,9 +525,9 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     gcv[3].ptr = pStipple;
     gcv[4].val = oldOrg.x;
     gcv[5].val = oldOrg.y;
-    dixChangeGC(NullClient, pGC, 
+    ChangeGC(NullClient, pGC,
         GCForeground | GCBackground | GCFillStyle | GCStipple | 
-	GCTileStipXOrigin | GCTileStipYOrigin, NULL, gcv);
+	GCTileStipXOrigin | GCTileStipYOrigin, gcv);
 
     ValidateGC(pDraw, pGC);
     /* put what we hope is a smaller clip region back in the scratch gc */
@@ -679,7 +678,7 @@ miGetImage( DrawablePtr pDraw, int sx, int sy, int w, int h,
  
 	    /* alu is already GXCopy */
 	    gcv.val = (XID)planeMask;
-	    dixChangeGC(NullClient, pGC, GCPlaneMask, NULL, &gcv);
+	    ChangeGC(NullClient, pGC, GCPlaneMask, &gcv);
 	    ValidateGC((DrawablePtr)pPixmap, pGC);
 	}
 
@@ -776,7 +775,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	oldBg = pGC->bgPixel;
 	gcv[0].val = (XID)~0;
 	gcv[1].val = (XID)0;
-	dixChangeGC(NullClient, pGC, GCForeground | GCBackground, NULL, gcv);
+	ChangeGC(NullClient, pGC, GCForeground | GCBackground, gcv);
 	bytesPer = (long)h * BitmapBytePad(w + leftPad);
 
 	for (i = 1 << (depth-1); i != 0; i >>= 1, pImage += bytesPer)
@@ -784,7 +783,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	    if (i & oldPlanemask)
 	    {
 	        gcv[0].val = (XID)i;
-	        dixChangeGC(NullClient, pGC, GCPlaneMask, NULL, gcv);
+	        ChangeGC(NullClient, pGC, GCPlaneMask, gcv);
 	        ValidateGC(pDraw, pGC);
 	        (*pGC->ops->PutImage)(pDraw, pGC, 1, x, y, w, h, leftPad,
 			         XYBitmap, (char *)pImage);
@@ -793,7 +792,7 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
 	gcv[0].val = (XID)oldPlanemask;
 	gcv[1].val = (XID)oldFg;
 	gcv[2].val = (XID)oldBg;
-	dixChangeGC(NullClient, pGC, GCPlaneMask | GCForeground | GCBackground, NULL, gcv);
+	ChangeGC(NullClient, pGC, GCPlaneMask | GCForeground | GCBackground, gcv);
 	ValidateGC(pDraw, pGC);
 	break;
 

@@ -80,7 +80,7 @@ typedef struct _LineFace {
     if (pixel != oldPixel) { \
 	ChangeGCVal gcval; \
 	gcval.val = pixel; \
-	dixChangeGC (NullClient, pGC, GCForeground, NULL, &gcval); \
+	ChangeGC (NullClient, pGC, GCForeground, &gcval); \
 	ValidateGC (pDrawable, pGC); \
     } \
 }
@@ -88,7 +88,7 @@ typedef struct _LineFace {
     if (pixel != oldPixel) { \
 	ChangeGCVal gcval; \
 	gcval.val = oldPixel; \
-	dixChangeGC (NullClient, pGC, GCForeground, NULL, &gcval); \
+	ChangeGC (NullClient, pGC, GCForeground, &gcval); \
 	ValidateGC (pDrawable, pGC); \
     } \
 }

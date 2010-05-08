@@ -805,7 +805,7 @@ miZeroPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    {
 		ChangeGCVal gcval;
 		gcval.val = pGC->bgPixel;
-		dixChangeGC(NullClient, pGC, GCForeground, NULL, &gcval);
+		ChangeGC(NullClient, pGC, GCForeground, &gcval);
 		ValidateGC(pDraw, pGC);
 	    }
 	    pts = &points[numPts >> 1];
@@ -835,7 +835,7 @@ miZeroPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    {
 		ChangeGCVal gcval;
 		gcval.val = fgPixel;
-		dixChangeGC(NullClient, pGC, GCForeground, NULL, &gcval);
+		ChangeGC(NullClient, pGC, GCForeground, &gcval);
 		ValidateGC(pDraw, pGC);
 	    }
 	}

@@ -1537,7 +1537,7 @@ ProcChangeGC(ClientPtr client)
     if (len != Ones(stuff->mask))
         return BadLength;
 
-    result = dixChangeGC(client, pGC, stuff->mask, (CARD32 *) &stuff[1], 0);
+    result = ChangeGCXIDs(client, pGC, stuff->mask, (CARD32 *) &stuff[1]);
     if (client->noClientException != Success)
         return(client->noClientException);
     else

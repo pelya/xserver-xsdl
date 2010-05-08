@@ -1263,7 +1263,7 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 		{
 		    ChangeGCVal val;
 		    val.ptr = pFont;
-		    dixChangeGC(NullClient, c->pGC, GCFont, NULL, &val);
+		    ChangeGC(NullClient, c->pGC, GCFont, &val);
 		    ValidateGC(c->pDraw, c->pGC);
 		    if (c->reqType == X_PolyText8)
 			c->polyText = (PolyTextPtr) c->pGC->ops->PolyText8;
@@ -1408,7 +1408,7 @@ bail:
 	{
 	    ChangeGCVal val;
 	    val.ptr = pFont;
-	    dixChangeGC(NullClient, origGC, GCFont, NULL, &val);
+	    ChangeGC(NullClient, origGC, GCFont, &val);
 	    ValidateGC(c->pDraw, origGC);
 	}
 
@@ -1427,7 +1427,7 @@ bail:
     if (c->slept)
     {
 	ClientWakeup(c->client);
-	dixChangeGC(NullClient, c->pGC, clearGCmask, NULL, clearGC);
+	ChangeGC(NullClient, c->pGC, clearGCmask, clearGC);
 
 	/* Unreference the font from the scratch GC */
 	CloseFont(c->pGC->font, (Font)0);
@@ -1584,7 +1584,7 @@ bail:
     if (c->slept)
     {
 	ClientWakeup(c->client);
-	dixChangeGC(NullClient, c->pGC, clearGCmask, NULL, clearGC);
+	ChangeGC(NullClient, c->pGC, clearGCmask, clearGC);
 
 	/* Unreference the font from the scratch GC */
 	CloseFont(c->pGC->font, (Font)0);

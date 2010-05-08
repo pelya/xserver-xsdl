@@ -82,48 +82,37 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
 }
 
 
-/* dixChangeGC(client, pGC, mask, pC32, pUnion)
- * 
- * This function was created as part of the Security extension
- * implementation.  The client performing the gc change must be passed so
- * that access checks can be performed on any tiles, stipples, or fonts
- * that are specified.  ddxen can call this too; they should normally
- * pass NullClient for the client since any access checking should have
+/*
+ * ChangeGC/ChangeGCXIDs:
+ *
+ * The client performing the gc change must be passed so that access
+ * checks can be performed on any tiles, stipples, or fonts that are
+ * specified.  ddxen can call this too; they should normally pass
+ * NullClient for the client since any access checking should have
  * already been done at a higher level.
  * 
- * You can pass the list of gc values via pC32 or pUnion, but not both;
- * one of them must be NULL.  If you don't need to pass any pointers,
- * you can use either one:
+ * If you have any XIDs, you must use ChangeGCXIDs:
  * 
- *     example calling dixChangeGC using pC32 parameter
- *
  *     CARD32 v[2];
- *     v[0] = foreground;
- *     v[1] = background;
- *     dixChangeGC(client, pGC, GCForeground|GCBackground, v, NULL);
+ *     v[0] = FillTiled;
+ *     v[1] = pid;
+ *     ChangeGCXIDs(client, pGC, GCFillStyle|GCTile, v);
  * 
- *     example calling dixChangeGC using pUnion parameter;
- *     same effect as above
+ * However, if you need to pass a pointer to a pixmap or font, you must
+ * use ChangeGC:
+ * 
+ *     ChangeGCVal v[2];
+ *     v[0].val = FillTiled;
+ *     v[1].ptr = pPixmap;
+ *     ChangeGC(client, pGC, GCFillStyle|GCTile, v);
+ * 
+ * If you have neither XIDs nor pointers, you can use either function,
+ * but ChangeGC will do less work.
  *
  *     ChangeGCVal v[2];
  *     v[0].val = foreground;
  *     v[1].val = background;
- *     dixChangeGC(client, pGC, GCForeground|GCBackground, NULL, v);
- * 
- * However, if you need to pass a pointer to a pixmap or font, you MUST
- * use the pUnion parameter.
- * 
- *     example calling dixChangeGC passing pointers in the value list
- *     v[1].ptr is a pointer to a pixmap
- *
- *     ChangeGCVal v[2];
- *     v[0].val = FillTiled;
- *     v[1].ptr = pPixmap;
- *     dixChangeGC(client, pGC, GCFillStyle|GCTile, NULL, v);
- * 
- * Note: we could have gotten by with just the pUnion parameter, but on
- * 64 bit machines that would have forced us to copy the value list that
- * comes in the ChangeGC request.
+ *     ChangeGC(client, pGC, GCForeground|GCBackground, v);
  */
 
 #define NEXTVAL(_type, _var) { \
@@ -133,7 +122,7 @@ ValidateGC(DrawablePtr pDraw, GC *pGC)
 #define NEXT_PTR(_type, _var) { \
     _var = (_type)pUnion->ptr; pUnion++; }
 
-static int
+int
 ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 {
     BITS32 	index2;
@@ -430,7 +419,7 @@ static const struct {
     { GCClipMask, RT_PIXMAP, DixReadAccess },
 };
 
-static int
+int
 ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
 {
     ChangeGCVal vals[GCLastBit + 1];
@@ -464,14 +453,6 @@ ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
 	}
     }
     return ChangeGC(client, pGC, mask, vals);
-}
-
-int
-dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
-{
-    if (pC32)
-	return ChangeGCXIDs(client, pGC, mask, pC32);
-    return ChangeGC(client, pGC, mask, pUnion);
 }
 
 /* CreateGC(pDrawable, mask, pval, pStatus)
@@ -557,7 +538,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
     else if (mask)
-        *pStatus = dixChangeGC(client, pGC, mask, pval, NULL);
+        *pStatus = ChangeGCXIDs(client, pGC, mask, pval);
     else
 	*pStatus = Success;
 
@@ -600,7 +581,7 @@ CreateDefaultTile (GCPtr pGC)
     tmpval[0].val = GXcopy;
     tmpval[1].val = pGC->tile.pixel;
     tmpval[2].val = FillSolid;
-    (void)dixChangeGC(NullClient, pgcScratch, GCFunction | GCForeground | GCFillStyle, NULL, tmpval);
+    (void)ChangeGC(NullClient, pgcScratch, GCFunction | GCForeground | GCFillStyle, tmpval);
     ValidateGC((DrawablePtr)pTile, pgcScratch);
     rect.x = 0;
     rect.y = 0;
@@ -941,7 +922,7 @@ CreateDefaultStipple(int screenNum)
 	(*pScreen->DestroyPixmap)(pScreen->PixmapPerDepth[0]);
 	return FALSE;
     }
-    (void)dixChangeGC(NullClient, pgcScratch, GCFunction|GCForeground|GCFillStyle, NULL, tmpval);
+    (void)ChangeGC(NullClient, pgcScratch, GCFunction|GCForeground|GCFillStyle, tmpval);
     ValidateGC((DrawablePtr)pScreen->PixmapPerDepth[0], pgcScratch);
     rect.x = 0;
     rect.y = 0;

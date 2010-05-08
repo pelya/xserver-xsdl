@@ -1283,7 +1283,7 @@ DbeSetupBackgroundPainter(WindowPtr pWin, GCPtr pGC)
             return(FALSE);
     }
 
-    return dixChangeGC(NullClient, pGC, gcmask, NULL, gcvalues) == 0;
+    return ChangeGC(NullClient, pGC, gcmask, gcvalues) == 0;
 } /* DbeSetupBackgroundPainter() */
 
 

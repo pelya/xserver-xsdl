@@ -70,7 +70,7 @@ miColorRects (PicturePtr    pDst,
 	(*pGC->funcs->ChangeClip) (pGC, CT_REGION, pClip, 0);
     }
 
-    dixChangeGC (NullClient, pGC, mask, NULL, tmpval);
+    ChangeGC (NullClient, pGC, mask, tmpval);
     ValidateGC (pDst->pDrawable, pGC);
     if (xoff || yoff)
     {
@@ -149,7 +149,7 @@ miCompositeRects (CARD8		op,
 	gcvals[0].val = GXcopy;
 	gcvals[1].val = pixel;
 
-	dixChangeGC (NullClient, pGC, GCFunction | GCForeground, NULL, gcvals);
+	ChangeGC (NullClient, pGC, GCFunction | GCForeground, gcvals);
 	ValidateGC (&pPixmap->drawable, pGC);
 	one.x = 0;
 	one.y = 0;

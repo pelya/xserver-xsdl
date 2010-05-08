@@ -115,7 +115,7 @@ fillSpans(DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel, Spans *spans, S
 	if (pixel != oldPixel.val)
 	{
 	    tmpPixel.val = (XID)pixel;
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &tmpPixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &tmpPixel);
 	    ValidateGC (pDrawable, pGC);
 	}
 	(*pGC->ops->FillSpans) (pDrawable, pGC, spans->count, spans->points, spans->widths, TRUE);
@@ -123,7 +123,7 @@ fillSpans(DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel, Spans *spans, S
 	free(spans->points);
 	if (pixel != oldPixel.val)
 	{
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &oldPixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &oldPixel);
 	    ValidateGC (pDrawable, pGC);
 	}
     }
@@ -261,13 +261,13 @@ miFillRectPolyHelper (
 	if (pixel != oldPixel.val)
     	{
 	    tmpPixel.val = (XID)pixel;
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &tmpPixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &tmpPixel);
     	    ValidateGC (pDrawable, pGC);
     	}
 	(*pGC->ops->PolyFillRect) (pDrawable, pGC, 1, &rect);
 	if (pixel != oldPixel.val)
     	{
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &oldPixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &oldPixel);
 	    ValidateGC (pDrawable, pGC);
     	}
     }
@@ -1504,14 +1504,14 @@ miCleanupSpanData (DrawablePtr pDrawable, GCPtr pGC, SpanDataPtr spanData)
 	oldPixel.val = pGC->fgPixel;
 	if (pixel.val != oldPixel.val)
     	{
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &pixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &pixel);
     	    ValidateGC (pDrawable, pGC);
     	}
 	miFillUniqueSpanGroup (pDrawable, pGC, &spanData->bgGroup);
 	miFreeSpanGroup (&spanData->bgGroup);
 	if (pixel.val != oldPixel.val)
     	{
-	    dixChangeGC (NullClient, pGC, GCForeground, NULL, &oldPixel);
+	    ChangeGC (NullClient, pGC, GCForeground, &oldPixel);
 	    ValidateGC (pDrawable, pGC);
     	}
     }

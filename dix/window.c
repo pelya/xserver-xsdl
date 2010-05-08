@@ -328,7 +328,7 @@ MakeRootTile(WindowPtr pWin)
 	attributes[0].val = pScreen->whitePixel;
 	attributes[1].val = pScreen->blackPixel;
 
-	(void)dixChangeGC(NullClient, pGC, GCForeground | GCBackground, NULL, attributes);
+	(void)ChangeGC(NullClient, pGC, GCForeground | GCBackground, attributes);
     }
 
    ValidateGC((DrawablePtr)pWin->background.pixmap, pGC);
@@ -3763,8 +3763,7 @@ DrawLogo(WindowPtr pWin)
     } else {
 	back[0].val = 0;
 	back[1].val = 0;
-	dixChangeGC(NullClient, pGC, GCTileStipXOrigin|GCTileStipYOrigin,
-		    NULL, back);
+	ChangeGC(NullClient, pGC, GCTileStipXOrigin|GCTileStipYOrigin, back);
 	back[0].val = FillTiled;
 	back[1].ptr = pWin->background.pixmap;
 	bmask = GCFillStyle|GCTile;
@@ -3802,7 +3801,7 @@ DrawLogo(WindowPtr pWin)
     poly[1].x = x + size-d31;	       poly[1].y = y;
     poly[2].x = x + 0;		       poly[2].y = y + size;
     poly[3].x = x + d31;	       poly[3].y = y + size;
-    dixChangeGC(NullClient, pGC, fmask, NULL, fore);
+    ChangeGC(NullClient, pGC, fmask, fore);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->FillPolygon)(pDraw, pGC, Convex, CoordModeOrigin, 4, poly);
 
@@ -3821,7 +3820,7 @@ DrawLogo(WindowPtr pWin)
     poly[1].x = x + size / 2;			 poly[1].y = y + size/2;
     poly[2].x = x + (size/2)+(d31-(d31/2));	 poly[2].y = y + size/2;
     poly[3].x = x + d31;			 poly[3].y = y + size;
-    dixChangeGC(NullClient, pGC, bmask, NULL, back);
+    ChangeGC(NullClient, pGC, bmask, back);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->FillPolygon)(pDraw, pGC, Convex, CoordModeOrigin, 4, poly);
 
@@ -3860,7 +3859,7 @@ DrawLogo(WindowPtr pWin)
     poly[1].x = x + size/4;	       poly[1].y = y;
     poly[2].x = x + size;	       poly[2].y = y + size;
     poly[3].x = x + size - size/4;     poly[3].y = y + size;
-    dixChangeGC(NullClient, pGC, fmask, NULL, fore);
+    ChangeGC(NullClient, pGC, fmask, fore);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->FillPolygon)(pDraw, pGC, Convex, CoordModeOrigin, 4, poly);
 
@@ -3878,7 +3877,7 @@ DrawLogo(WindowPtr pWin)
     poly[1].x = x + size-( thin+gap);  poly[1].y = y;
     poly[2].x = x + thin;	      poly[2].y = y + size;
     poly[3].x = x + thin + gap;	      poly[3].y = y + size;
-    dixChangeGC(NullClient, pGC, bmask, NULL, back);
+    ChangeGC(NullClient, pGC, bmask, back);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->FillPolygon)(pDraw, pGC, Convex, CoordModeOrigin, 4, poly);
 

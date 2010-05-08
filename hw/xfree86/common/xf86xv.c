@@ -1856,7 +1856,7 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
    } else if (key != pGC->fgPixel){
        ChangeGCVal val;
        val.val = key;
-       dixChangeGC(NullClient, pGC, GCForeground, NULL, &val);
+       ChangeGC(NullClient, pGC, GCForeground, &val);
        ValidateGC(pDraw, pGC);
    }
 
@@ -1893,7 +1893,7 @@ xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
    gc = GetScratchGC(root->depth, pScreen);
    pval[0].val = key;
    pval[1].val = IncludeInferiors;
-   (void) dixChangeGC(NullClient, gc, GCForeground|GCSubwindowMode, NULL, pval);
+   (void) ChangeGC(NullClient, gc, GCForeground|GCSubwindowMode, pval);
    ValidateGC(root, gc);
 
    rects = malloc(nbox * sizeof(xRectangle));

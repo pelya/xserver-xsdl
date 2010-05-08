@@ -1043,9 +1043,9 @@ miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 		gcvals[3].val = pGC->lineWidth;
 		gcvals[4].val = pGC->capStyle;
 		gcvals[5].val = pGC->joinStyle;
-		dixChangeGC(NullClient, pGCTo, GCFunction |
+		ChangeGC(NullClient, pGCTo, GCFunction |
 			GCForeground | GCBackground | GCLineWidth |
-			GCCapStyle | GCJoinStyle, NULL, gcvals);
+			GCCapStyle | GCJoinStyle, gcvals);
 	    }
     
 	    /* allocate a 1 bit deep pixmap of the appropriate size, and
@@ -1088,11 +1088,11 @@ miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    ChangeGCVal gcval;
 	    if (iphase == 1) {
 		gcval.val = bg;
-		dixChangeGC (NullClient, pGC, GCForeground, NULL, &gcval);
+		ChangeGC (NullClient, pGC, GCForeground, &gcval);
 		ValidateGC (pDraw, pGC);
 	    } else if (pGC->lineStyle == LineDoubleDash) {
 		gcval.val = fg;
-		dixChangeGC (NullClient, pGC, GCForeground, NULL, &gcval);
+		ChangeGC (NullClient, pGC, GCForeground, &gcval);
 		ValidateGC (pDraw, pGC);
 	    }
 	    for (i = 0; i < polyArcs[iphase].narcs; i++) {

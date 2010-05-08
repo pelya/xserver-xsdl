@@ -204,8 +204,8 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	
 	vals[0].val = x_off - pDrawable->x;
 	vals[1].val = y_off - pDrawable->y;
-	dixChangeGC(NullClient, pBackingGC,
-		    (GCClipXOrigin | GCClipYOrigin), NULL, vals);
+	ChangeGC(NullClient, pBackingGC,
+		    (GCClipXOrigin | GCClipYOrigin), vals);
 
 	pPriv->serialNumber = pDrawable->serialNumber;
 	/*
@@ -226,8 +226,8 @@ cwValidateGC(GCPtr pGC, unsigned long stateChanges, DrawablePtr pDrawable)
 	ChangeGCVal vals[2];
 	vals[0].val = pGC->patOrg.x + x_off;
 	vals[1].val = pGC->patOrg.y + y_off;
-	dixChangeGC(NullClient, pBackingGC,
-		    (GCTileStipXOrigin | GCTileStipYOrigin), NULL, vals);
+	ChangeGC(NullClient, pBackingGC,
+		    (GCTileStipXOrigin | GCTileStipYOrigin), vals);
     }
 
     ValidateGC(pBackingDrawable, pBackingGC);
