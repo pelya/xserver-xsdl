@@ -1235,7 +1235,7 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 		 | ((Font)*(c->pElt+2)) << 16
 		 | ((Font)*(c->pElt+1)) << 24;
 	    err = dixLookupResourceByType((pointer *)&pFont, fid, RT_FONT,
-					  client, DixReadAccess);
+					  client, DixUseAccess);
 	    if (err != Success)
 	    {
 		err = (err == BadValue) ? BadFont : err;
