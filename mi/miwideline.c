@@ -138,8 +138,31 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     while ((left_count || left_height) &&
 	   (right_count || right_height))
     {
-	MIPOLYRELOADLEFT
-	MIPOLYRELOADRIGHT
+	if (!left_height && left_count)
+	{
+	    left_height = left->height;
+	    left_x = left->x;
+	    left_stepx = left->stepx;
+	    left_signdx = left->signdx;
+	    left_e = left->e;
+	    left_dy = left->dy;
+	    left_dx = left->dx;
+	    --left_count;
+	    ++left;
+	}
+
+	if (!right_height && right_count)
+	{
+	    right_height = right->height;
+	    right_x = right->x;
+	    right_stepx = right->stepx;
+	    right_signdx = right->signdx;
+	    right_e = right->e;
+	    right_dy = right->dy;
+	    right_dx = right->dx;
+	    --right_count;
+	    ++right;
+	}
 
 	height = left_height;
 	if (height > right_height)
@@ -157,11 +180,23 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
 		ppt++;
 		*pwidth++ = right_x - left_x + 1;
 	    }
-    	    y++;
-    	
-	    MIPOLYSTEPLEFT
+	    y++;
 
-	    MIPOLYSTEPRIGHT
+	    left_x += left_stepx;
+	    left_e += left_dx;
+	    if (left_e > 0)
+	    {
+		left_x += left_signdx;
+		left_e -= left_dy;
+	    }
+
+	    right_x += right_stepx;
+	    right_e += right_dx;
+	    if (right_e > 0)
+	    {
+		right_x += right_signdx;
+		right_e -= right_dy;
+	    }
 	}
     }
     if (!spanData)

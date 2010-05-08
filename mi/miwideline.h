@@ -99,46 +99,6 @@ typedef struct _LineFace {
  * macros for polygon fillers
  */
 
-#define MIPOLYRELOADLEFT    if (!left_height && left_count) { \
-	    	    	    	left_height = left->height; \
-	    	    	    	left_x = left->x; \
-	    	    	    	left_stepx = left->stepx; \
-	    	    	    	left_signdx = left->signdx; \
-	    	    	    	left_e = left->e; \
-	    	    	    	left_dy = left->dy; \
-	    	    	    	left_dx = left->dx; \
-	    	    	    	--left_count; \
-	    	    	    	++left; \
-			    }
-
-#define MIPOLYRELOADRIGHT   if (!right_height && right_count) { \
-	    	    	    	right_height = right->height; \
-	    	    	    	right_x = right->x; \
-	    	    	    	right_stepx = right->stepx; \
-	    	    	    	right_signdx = right->signdx; \
-	    	    	    	right_e = right->e; \
-	    	    	    	right_dy = right->dy; \
-	    	    	    	right_dx = right->dx; \
-	    	    	    	--right_count; \
-	    	    	    	++right; \
-			}
-
-#define MIPOLYSTEPLEFT  left_x += left_stepx; \
-    	    	    	left_e += left_dx; \
-    	    	    	if (left_e > 0) \
-    	    	    	{ \
-	    	    	    left_x += left_signdx; \
-	    	    	    left_e -= left_dy; \
-    	    	    	}
-
-#define MIPOLYSTEPRIGHT right_x += right_stepx; \
-    	    	    	right_e += right_dx; \
-    	    	    	if (right_e > 0) \
-    	    	    	{ \
-	    	    	    right_x += right_signdx; \
-	    	    	    right_e -= right_dy; \
-    	    	    	}
-
 #define MILINESETPIXEL(pDrawable, pGC, pixel, oldPixel) { \
     oldPixel = pGC->fgPixel; \
     if (pixel != oldPixel) { \
