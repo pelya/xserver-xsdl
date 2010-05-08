@@ -213,16 +213,6 @@ typedef struct _miPolyArc {
 	miArcJoinPtr	joins;
 } miPolyArcRec, *miPolyArcPtr;
 
-#define GCValsFunction		0
-#define GCValsForeground 	1
-#define GCValsBackground 	2
-#define GCValsLineWidth 	3
-#define GCValsCapStyle 		4
-#define GCValsJoinStyle		5
-#define GCValsMask		(GCFunction | GCForeground | GCBackground | \
-				 GCLineWidth | GCCapStyle | GCJoinStyle)
-static CARD32 gcvals[6];
-
 static void fillSpans(DrawablePtr pDrawable, GCPtr pGC);
 static void newFinalSpan(int y, int xmin, int xmax);
 static void drawArc(xArc *tarc, int l, int a0, int a1, miArcFacePtr right,
@@ -1045,13 +1035,18 @@ miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    pGCTo = GetScratchGC(1, pDraw->pScreen);
 	    if (!pGCTo)
 		return;
-	    gcvals[GCValsFunction] = GXcopy;
-	    gcvals[GCValsForeground] = 1;
-	    gcvals[GCValsBackground] = 0;
-	    gcvals[GCValsLineWidth] = pGC->lineWidth;
-	    gcvals[GCValsCapStyle] = pGC->capStyle;
-	    gcvals[GCValsJoinStyle] = pGC->joinStyle;
-	    dixChangeGC(NullClient, pGCTo, GCValsMask, gcvals, NULL);
+	    {
+		CARD32 gcvals[6];
+		gcvals[0] = GXcopy;
+		gcvals[1] = 1;
+		gcvals[2] = 0;
+		gcvals[3] = pGC->lineWidth;
+		gcvals[4] = pGC->capStyle;
+		gcvals[5] = pGC->joinStyle;
+		dixChangeGC(NullClient, pGCTo, GCFunction |
+			GCForeground | GCBackground | GCLineWidth |
+			GCCapStyle | GCJoinStyle, gcvals, NULL);
+	    }
     
 	    /* allocate a 1 bit deep pixmap of the appropriate size, and
 	     * validate it */
