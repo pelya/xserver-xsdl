@@ -1541,10 +1541,7 @@ ProcChangeGC(ClientPtr client)
     if (client->noClientException != Success)
         return(client->noClientException);
     else
-    {
-	client->errorValue = clientErrorValue;
         return(result);
-    }
 }
 
 int
@@ -1564,14 +1561,16 @@ ProcCopyGC(ClientPtr client)
 	return result;
     if ((dstGC->pScreen != pGC->pScreen) || (dstGC->depth != pGC->depth))
         return (BadMatch);    
+    if (stuff->mask & ~GCAllBits)
+    {
+	client->errorValue = stuff->mask;
+	return BadValue;
+    }
     result = CopyGC(pGC, dstGC, stuff->mask);
     if (client->noClientException != Success)
         return(client->noClientException);
     else
-    {
-	client->errorValue = clientErrorValue;
         return(result);
-    }
 }
 
 int
@@ -1598,7 +1597,9 @@ ProcSetDashes(ClientPtr client)
         return(client->noClientException);
     else
     {
-	client->errorValue = clientErrorValue;
+	/* If there's an error, either there's no sensible errorValue,
+	 * or there was a dash segment of 0. */
+	client->errorValue = 0;
         return(result);
     }
 }

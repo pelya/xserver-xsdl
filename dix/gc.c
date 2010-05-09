@@ -66,7 +66,6 @@ SOFTWARE.
 #include "xace.h"
 #include <assert.h>
 
-extern XID clientErrorValue;
 extern FontPtr defaultFont;
 
 static Bool CreateDefaultTile(GCPtr pGC);
@@ -149,7 +148,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->alu = newalu;
 		else
 		{
-		    clientErrorValue = newalu;
+		    if (client)
+			client->errorValue = newalu;
 		    error = BadValue;
 		}
 		break;
@@ -182,7 +182,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->lineStyle = newlinestyle;
 		else
 		{
-		    clientErrorValue = newlinestyle;
+		    if (client)
+			client->errorValue = newlinestyle;
 		    error = BadValue;
 		}
 		break;
@@ -195,7 +196,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->capStyle = newcapstyle;
 		else
 		{
-		    clientErrorValue = newcapstyle;
+		    if (client)
+			client->errorValue = newcapstyle;
 		    error = BadValue;
 		}
 		break;
@@ -208,7 +210,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->joinStyle = newjoinstyle;
 		else
 		{
-		    clientErrorValue = newjoinstyle;
+		    if (client)
+			client->errorValue = newjoinstyle;
 		    error = BadValue;
 		}
 		break;
@@ -221,7 +224,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->fillStyle = newfillstyle;
 		else
 		{
-		    clientErrorValue = newfillstyle;
+		    if (client)
+			client->errorValue = newfillstyle;
 		    error = BadValue;
 		}
 		break;
@@ -234,7 +238,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->fillRule = newfillrule;
 		else
 		{
-		    clientErrorValue = newfillrule;
+		    if (client)
+			client->errorValue = newfillrule;
 		    error = BadValue;
 		}
 		break;
@@ -294,7 +299,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->subWindowMode = newclipmode;
 		else
 		{
-		    clientErrorValue = newclipmode;
+		    if (client)
+			client->errorValue = newclipmode;
 		    error = BadValue;
 		}
 		break;
@@ -307,7 +313,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->graphicsExposures = newge;
 		else
 		{
-		    clientErrorValue = newge;
+		    if (client)
+			client->errorValue = newge;
 		    error = BadValue;
 		}
 		break;
@@ -368,7 +375,8 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		}
  		else
 		{
-		   clientErrorValue = newdash;
+		   if (client)
+			client->errorValue = newdash;
 		   error = BadValue;
 		}
 		break;
@@ -381,13 +389,15 @@ ChangeGC(ClientPtr client, GC *pGC, BITS32 mask, ChangeGCValPtr pUnion)
 		    pGC->arcMode = newarcmode;
 		else
 		{
-		    clientErrorValue = newarcmode;
+		    if (client)
+			client->errorValue = newarcmode;
 		    error = BadValue;
 		}
 		break;
 	    }
 	    default:
-		clientErrorValue = maskQ;
+		if (client)
+		    client->errorValue = maskQ;
 		error = BadValue;
 		break;
 	}
@@ -426,7 +436,7 @@ ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
     int i;
     if (mask & ~GCAllBits)
     {
-	clientErrorValue = mask;
+	client->errorValue = mask;
 	return BadValue;
     }
     for (i = Ones(mask); i; --i)
@@ -446,7 +456,7 @@ ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
 		xidfields[i].type, client, xidfields[i].access_mode);
 	if (rc != Success)
 	{
-	    clientErrorValue = vals[offset].val;
+	    client->errorValue = vals[offset].val;
 	    if (rc == BadValue)
 		rc = (xidfields[i].type == RT_PIXMAP) ? BadPixmap : BadFont;
 	    return rc;
@@ -737,9 +747,7 @@ CopyGC(GC *pgcSrc, GC *pgcDst, BITS32 mask)
 		pgcDst->arcMode = pgcSrc->arcMode;
 		break;
 	    default:
-		clientErrorValue = maskQ;
-		error = BadValue;
-		break;
+		FatalError ("CopyGC: Unhandled mask!\n");
 	}
     }
     if (pgcDst->fillStyle == FillTiled && pgcDst->tileIsPixel)
@@ -955,7 +963,6 @@ SetDashes(GCPtr pGC, unsigned offset, unsigned ndash, unsigned char *pdash)
 	if (!*p++)
 	{
 	    /* dash segment must be > 0 */
-	    clientErrorValue = 0;
 	    return BadValue;
 	}
     }
