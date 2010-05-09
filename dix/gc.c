@@ -574,7 +574,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
     else if (mask)
-        *pStatus = dixChangeGC(NullClient, pGC, mask, pval, NULL);
+        *pStatus = dixChangeGC(client, pGC, mask, pval, NULL);
     else
 	*pStatus = Success;
 
