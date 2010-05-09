@@ -424,7 +424,7 @@ ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
 {
     ChangeGCVal vals[GCLastBit + 1];
     int i;
-    if (mask & ~((1 << (GCLastBit + 1)) - 1))
+    if (mask & ~GCAllBits)
     {
 	clientErrorValue = mask;
 	return BadValue;
@@ -534,7 +534,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     if (*pStatus != Success)
 	goto out;
 
-    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
+    pGC->stateChanges = GCAllBits;
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
     else if (mask)
@@ -837,7 +837,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     pGC->lastWinOrg.x = 0;
     pGC->lastWinOrg.y = 0;
 
-    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
+    pGC->stateChanges = GCAllBits;
     if (!(*pScreen->CreateGC)(pGC))
     {
 	FreeGC(pGC, (XID)0);
@@ -1118,7 +1118,7 @@ GetScratchGC(unsigned depth, ScreenPtr pScreen)
 	    pGC->clipOrg.y = 0;
 	    if (pGC->clientClipType != CT_NONE)
 		(*pGC->funcs->ChangeClip) (pGC, CT_NONE, NULL, 0);
-	    pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
+	    pGC->stateChanges = GCAllBits;
 	    return pGC;
 	}
     /* if we make it this far, need to roll our own */

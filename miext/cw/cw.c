@@ -129,7 +129,7 @@ cwCreateBackingGC(GCPtr pGC, DrawablePtr pDrawable)
 	return FALSE;
 
     pPriv->serialNumber = 0;
-    pPriv->stateChanges = (1 << (GCLastBit + 1)) - 1;
+    pPriv->stateChanges = GCAllBits;
 
     return TRUE;
 }
