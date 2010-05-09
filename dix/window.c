@@ -3743,7 +3743,7 @@ DrawLogo(WindowPtr pWin)
 
 	    querypixels[0] = fore[0].val;
 	    querypixels[1] = pWin->background.pixel;
-	    QueryColors(cmap, 2, querypixels, rgb);
+	    QueryColors(cmap, 2, querypixels, rgb, serverClient);
 	    if ((rgb[0].red == rgb[1].red) &&
 		(rgb[0].green == rgb[1].green) &&
 		(rgb[0].blue == rgb[1].blue)) {

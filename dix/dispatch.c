@@ -176,13 +176,6 @@ CallbackListPtr ClientStateCallback;
 volatile char dispatchException = 0;
 volatile char isItTimeToYield;
 
-/* Various of the DIX function interfaces were not designed to allow
- * the client->errorValue to be set on BadValue and other errors.
- * Rather than changing interfaces and breaking untold code we introduce
- * a new global that dispatch can use.
- */
-XID clientErrorValue;   /* XXX this is a kludge */
-
 #define SAME_SCREENS(a, b) (\
     (a.pScreen == b.pScreen))
 
@@ -2833,10 +2826,7 @@ ProcFreeColors(ClientPtr client)
         if (client->noClientException != Success)
             return(client->noClientException);
         else
-	{
-	    client->errorValue = clientErrorValue;
             return rc;
-	}
 
     }
     else
@@ -2864,14 +2854,11 @@ ProcStoreColors (ClientPtr client)
 	if (count % sizeof(xColorItem))
 	    return(BadLength);
 	count /= sizeof(xColorItem);
-	rc = StoreColors(pcmp, count, (xColorItem *)&stuff[1]);
+	rc = StoreColors(pcmp, count, (xColorItem *)&stuff[1], client);
         if (client->noClientException != Success)
             return(client->noClientException);
         else
-	{
-	    client->errorValue = clientErrorValue;
             return rc;
-	}
     }
     else
     {
@@ -2899,7 +2886,7 @@ ProcStoreNamedColor (ClientPtr client)
 	{
 	    def.flags = stuff->flags;
 	    def.pixel = stuff->pixel;
-	    rc = StoreColors(pcmp, 1, &def);
+	    rc = StoreColors(pcmp, 1, &def, client);
             if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
@@ -2934,16 +2921,13 @@ ProcQueryColors(ClientPtr client)
 	prgbs = calloc(1, count * sizeof(xrgb));
 	if(!prgbs && count)
             return(BadAlloc);
-	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs)) )
+	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs, client)) )
 	{
 	    if (prgbs) free(prgbs);
 	    if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
-	    {
-		client->errorValue = clientErrorValue;
 	        return rc;
-	    }
 	}
 	memset(&qcr, 0, sizeof(xQueryColorsReply));
 	qcr.type = X_Reply;

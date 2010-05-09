@@ -246,7 +246,7 @@ vgaInstallColormap(pmap)
 
   for ( i=0; i<entries; i++) ppix[i] = i;
 
-  QueryColors( pmap, entries, ppix, prgb);
+  QueryColors(pmap, entries, ppix, prgb, serverClient);
 
   for ( i=0; i<entries; i++) /* convert xrgbs to xColorItems */
     {

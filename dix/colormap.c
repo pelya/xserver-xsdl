@@ -65,8 +65,6 @@ SOFTWARE.
 #include "privates.h"
 #include "xace.h"
 
-extern XID clientErrorValue;
-
 static Pixel FindBestPixel(
     EntryPtr /*pentFirst*/,
     int /*size*/,
@@ -1415,7 +1413,7 @@ BlueComp (EntryPtr pent, xrgb *prgb)
 /* Read the color value of a cell */
 
 int
-QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
+QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList, ClientPtr client)
 {
     Pixel	*ppix, pixel;
     xrgb	*prgb;
@@ -1438,14 +1436,14 @@ QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 	{
 	    pixel = *ppix;
 	    if (pixel & rgbbad) {
-		clientErrorValue = pixel;
+		client->errorValue = pixel;
 		errVal =  BadValue;
 		continue;
 	    }
 	    i  = (pixel & pVisual->redMask) >> pVisual->offsetRed;
 	    if (i >= numred)
 	    {
-		clientErrorValue = pixel;
+		client->errorValue = pixel;
 		errVal =  BadValue;
 		continue;
 	    }
@@ -1453,7 +1451,7 @@ QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 	    i  = (pixel & pVisual->greenMask) >> pVisual->offsetGreen;
 	    if (i >= numgreen)
 	    {
-		clientErrorValue = pixel;
+		client->errorValue = pixel;
 		errVal =  BadValue;
 		continue;
 	    }
@@ -1461,7 +1459,7 @@ QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 	    i  = (pixel & pVisual->blueMask) >> pVisual->offsetBlue;
 	    if (i >= numblue)
 	    {
-		clientErrorValue = pixel;
+		client->errorValue = pixel;
 		errVal =  BadValue;
 		continue;
 	    }
@@ -1475,7 +1473,7 @@ QueryColors (ColormapPtr pmap, int count, Pixel *ppixIn, xrgb *prgbList)
 	    pixel = *ppix;
 	    if (pixel >= pVisual->ColormapEntries)
 	    {
-		clientErrorValue = pixel;
+		client->errorValue = pixel;
 		errVal = BadValue;
 	    }
 	    else
@@ -2238,7 +2236,7 @@ FreeColors (ColormapPtr pmap, int client, int count, Pixel *pixels, Pixel mask)
     }
     if ((mask != rmask) && count)
     {
-	clientErrorValue = *pixels | mask;
+	clients[client]->errorValue = *pixels | mask;
 	result = BadValue;
     }
     /* XXX should worry about removing any RT_CMAPENTRY resource */
@@ -2320,7 +2318,7 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 	    pixTest = ((*pptr | bits) & cmask) >> offset;
 	    if ((pixTest >= numents) || (*pptr & rgbbad))
 	    {
-		clientErrorValue = *pptr | bits;
+		clients[client]->errorValue = *pptr | bits;
 		errVal = BadValue;
 		continue;
 	    }
@@ -2401,7 +2399,7 @@ FreeCo (ColormapPtr pmap, int client, int color, int npixIn, Pixel *ppixIn, Pixe
 
 /* Redefine color values */
 int
-StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
+StoreColors (ColormapPtr pmap, int count, xColorItem *defs, ClientPtr client)
 {
     Pixel 	pix;
     xColorItem *pdef;
@@ -2439,7 +2437,7 @@ StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
 	    if (pdef->pixel & rgbbad)
 	    {
 		errVal = BadValue;
-		clientErrorValue = pdef->pixel;
+		client->errorValue = pdef->pixel;
 		continue;
 	    }
 	    pix = (pdef->pixel & pVisual->redMask) >> pVisual->offsetRed;
@@ -2511,7 +2509,7 @@ StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
 		    defs[idef] = defs[n];
 		idef++;
 	    } else
-		clientErrorValue = pdef->pixel;
+		client->errorValue = pdef->pixel;
 	}
     }
     else
@@ -2522,7 +2520,7 @@ StoreColors (ColormapPtr pmap, int count, xColorItem *defs)
 	    ok = TRUE;
 	    if (pdef->pixel >= pVisual->ColormapEntries)
 	    {
-		clientErrorValue = pdef->pixel;
+		client->errorValue = pdef->pixel;
 	        errVal = BadValue;
 		ok = FALSE;
 	    }
