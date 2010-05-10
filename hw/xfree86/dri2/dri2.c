@@ -634,6 +634,8 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
     ScreenPtr	    pScreen = pDraw->pScreen;
     DRI2DrawablePtr pPriv;
     CARD64          ust = 0;
+    BoxRec          box;
+    RegionRec       region;
 
     pPriv = DRI2GetDrawable(pDraw);
     if (pPriv == NULL) {
@@ -644,6 +646,14 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
 
     pPriv->swapsPending--;
     pPriv->swap_count++;
+
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = pDraw->width;
+    box.y2 = pDraw->height;
+    REGION_INIT(pScreen, &region, &box, 0);
+    DRI2CopyRegion(pDraw, &region, DRI2BufferFakeFrontLeft,
+		   DRI2BufferFrontLeft);
 
     ust = ((CARD64)tv_sec * 1000000) + tv_usec;
     if (swap_complete)
