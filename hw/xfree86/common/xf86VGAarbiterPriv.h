@@ -103,18 +103,7 @@ VGAGet(ScreenPtr pScreen) {
 }
 
 static inline void
-VGAGet_GC(GC *pGC) {
-    pci_device_vgaarb_set_target(xf86Screens[pGC->pScreen->myNum]->vgaDev);
-    pci_device_vgaarb_lock();
-}
-
-static inline void
 VGAPut(void) {
-    pci_device_vgaarb_unlock();
-}
-
-static inline void
-VGAPut_GC(void) {
     pci_device_vgaarb_unlock();
 }
 

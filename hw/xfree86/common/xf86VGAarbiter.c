@@ -662,10 +662,11 @@ VGAarbiterFillSpans(
     int *pwidthInit,
     int fSorted )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->FillSpans)(pDraw, pGC, nInit, pptInit, pwidthInit, fSorted);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -679,10 +680,11 @@ VGAarbiterSetSpans(
     int         nspans,
     int         fSorted )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->SetSpans)(pDraw, pGC, pcharsrc, ppt, pwidth, nspans, fSorted);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -696,11 +698,12 @@ VGAarbiterPutImage(
     int     format,
     char    *pImage )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PutImage)(pDraw, pGC, depth, x, y, w, h,
               leftPad, format, pImage);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -714,12 +717,12 @@ VGAarbiterCopyArea(
     int dstx, int dsty )
 {
     RegionPtr ret;
-
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     ret = (*pGC->ops->CopyArea)(pSrc, pDst,
                 pGC, srcx, srcy, width, height, dstx, dsty);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
     return ret;
 }
@@ -735,12 +738,12 @@ VGAarbiterCopyPlane(
     unsigned long bitPlane )
 {
     RegionPtr ret;
-
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     ret = (*pGC->ops->CopyPlane)(pSrc, pDst, pGC, srcx, srcy,
                  width, height, dstx, dsty, bitPlane);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
     return ret;
 }
@@ -753,10 +756,11 @@ VGAarbiterPolyPoint(
     int npt,
     xPoint *pptInit )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyPoint)(pDraw, pGC, mode, npt, pptInit);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -769,10 +773,11 @@ VGAarbiterPolylines(
     int     npt,
     DDXPointPtr pptInit )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->Polylines)(pDraw, pGC, mode, npt, pptInit);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -783,10 +788,11 @@ VGAarbiterPolySegment(
     int     nseg,
     xSegment    *pSeg )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolySegment)(pDraw, pGC, nseg, pSeg);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -797,10 +803,11 @@ VGAarbiterPolyRectangle(
     int          nRectsInit,
     xRectangle  *pRectsInit )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyRectangle)(pDraw, pGC, nRectsInit, pRectsInit);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -811,10 +818,11 @@ VGAarbiterPolyArc(
     int     narcs,
     xArc    *parcs )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyArc)(pDraw, pGC, narcs, parcs);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -827,10 +835,11 @@ VGAarbiterFillPolygon(
     int     count,
     DDXPointPtr ptsIn )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->FillPolygon)(pDraw, pGC, shape, mode, count, ptsIn);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -841,10 +850,11 @@ VGAarbiterPolyFillRect(
     int     nrectFill,
     xRectangle  *prectInit)
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyFillRect)(pDraw, pGC, nrectFill, prectInit);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -855,10 +865,11 @@ VGAarbiterPolyFillArc(
     int     narcs,
     xArc    *parcs )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyFillArc)(pDraw, pGC, narcs, parcs);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -872,11 +883,11 @@ VGAarbiterPolyText8(
     char    *chars )
 {
     int ret;
-
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     ret = (*pGC->ops->PolyText8)(pDraw, pGC, x, y, count, chars);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
     return ret;
 }
@@ -891,11 +902,11 @@ VGAarbiterPolyText16(
     unsigned short *chars )
 {
     int ret;
-
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     ret = (*pGC->ops->PolyText16)(pDraw, pGC, x, y, count, chars);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
     return ret;
 }
@@ -909,10 +920,11 @@ VGAarbiterImageText8(
     int     count,
     char    *chars )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->ImageText8)(pDraw, pGC, x, y, count, chars);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -925,10 +937,11 @@ VGAarbiterImageText16(
     int     count,
     unsigned short *chars )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->ImageText16)(pDraw, pGC, x, y, count, chars);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -942,11 +955,12 @@ VGAarbiterImageGlyphBlt(
     CharInfoPtr *ppci,
     pointer pglyphBase )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->ImageGlyphBlt)(pDraw, pGC, xInit, yInit,
                    nglyph, ppci, pglyphBase);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -959,11 +973,12 @@ VGAarbiterPolyGlyphBlt(
     CharInfoPtr *ppci,
     pointer pglyphBase )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PolyGlyphBlt)(pDraw, pGC, xInit, yInit,
                   nglyph, ppci, pglyphBase);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
@@ -974,10 +989,11 @@ VGAarbiterPushPixels(
     DrawablePtr pDraw,
     int dx, int dy, int xOrg, int yOrg )
 {
+    ScreenPtr pScreen = pGC->pScreen;
     GC_UNWRAP(pGC);
-    VGAGet_GC(pGC);
+    VGAGet(pScreen);
     (*pGC->ops->PushPixels)(pGC, pBitMap, pDraw, dx, dy, xOrg, yOrg);
-    VGAPut_GC();
+    VGAPut();
     GC_WRAP(pGC);
 }
 
