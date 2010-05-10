@@ -93,9 +93,6 @@
     (VGAarbiterGCPtr)dixLookupPrivate(&(x)->devPrivates, VGAarbiterGCKey);\
     (x)->ops = pGCPriv->wrapOps; (x)->funcs = pGCPriv->wrapFuncs;
 
-#define GC_SCREEN register ScrnInfoPtr pScrn = \
-    xf86Screens[pGC->pScreen->myNum]
-
 static inline void
 VGAGet(ScreenPtr pScreen) {
     pci_device_vgaarb_set_target(xf86Screens[pScreen->myNum]->vgaDev);
