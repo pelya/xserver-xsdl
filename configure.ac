@@ -1704,9 +1704,11 @@ if test "x$XORG" = xyes; then
 	  *)
 	  	XORG_OS="unknown"
 		XORG_OS_SUBDIR="unknown"
-		AC_MSG_ERROR([Your OS is unknown. Xorg currently only supports Linux, \
-		Free/Open/NetBSD, Solaris, and OS X. If you are interested in porting \
-	        Xorg to your platform, please email xorg@lists.freedesktop.org.])
+		AC_MSG_ERROR([m4_text_wrap(m4_join([ ],
+		[Your OS is unknown. Xorg currently only supports Linux,],
+		[Free/Open/Net/DragonFlyBSD, Solaris/OpenSolaris, & GNU Hurd.],
+		[If you are interested in porting Xorg to your platform,],
+		[please email xorg@lists.freedesktop.org.]))])
 		;;
 	esac
 
