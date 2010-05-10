@@ -43,41 +43,9 @@ static Bool VTSwitch = TRUE;
 static Bool ShareVTs = FALSE;
 static int activeVT = -1;
 
-static int vtPermSave[4];
 static char vtname[11];
 static struct termios tty_attr; /* tty state to restore */
 static int tty_mode; /* kbd mode to restore */
-
-static int
-saveVtPerms(void)
-{
-    /* We need to use stat to get permissions. */
-    struct stat svtp;
-
-    /* Do them numerically ordered, hard coded tty0 first. */
-    if (stat("/dev/tty0", &svtp) != 0)
-	return 0;
-    vtPermSave[0] = (int)svtp.st_uid;
-    vtPermSave[1] = (int)svtp.st_gid;
-
-    /* Now check the console we are dealing with. */
-    if (stat(vtname, &svtp) != 0)
-	return 0;
-    vtPermSave[2] = (int)svtp.st_uid;
-    vtPermSave[3] = (int)svtp.st_gid;
-
-    return 1;
-}
-
-static void
-restoreVtPerms(void)
-{
-    if (geteuid() == 0) {
-	 /* Set the terminal permissions back to before we started. */
-	 (void)chown("/dev/tty0", vtPermSave[0], vtPermSave[1]);
-	 (void)chown(vtname, vtPermSave[2], vtPermSave[3]);
-    }
-}
 
 static void *console_handler;
 
@@ -176,34 +144,6 @@ xf86OpenConsole(void)
 	if (xf86Info.consoleFd < 0)
 	    FatalError("xf86OpenConsole: Cannot open virtual console"
 		       " %d (%s)\n", xf86Info.vtno, strerror(errno));
-
-        if (!ShareVTs)
-        {
-	    /*
-	     * Grab the vt ownership before we overwrite it.
-	     * Hard coded /dev/tty0 into this function as well for below.
-	     */
-	    if (!saveVtPerms())
-	        xf86Msg(X_WARNING,
-		        "xf86OpenConsole: Could not save ownership of VT\n");
-
-	    if (geteuid() == 0) {
-		    /* change ownership of the vt */
-		    if (chown(vtname, getuid(), getgid()) < 0)
-			    xf86Msg(X_WARNING,"xf86OpenConsole: chown %s failed: %s\n",
-				    vtname, strerror(errno));
-
-		    /*
-		     * the current VT device we're running on is not
-		     * "console", we want to grab all consoles too
-		     *
-		     * Why is this needed??
-		     */
-		    if (chown("/dev/tty0", getuid(), getgid()) < 0)
-			    xf86Msg(X_WARNING,"xf86OpenConsole: chown /dev/tty0 failed: %s\n",
-				    strerror(errno));
-	    }
-        }
 
 	/*
 	 * Linux doesn't switch to an active vt after the last close of a vt,
@@ -352,8 +292,6 @@ xf86CloseConsole(void)
         }
     }
     close(xf86Info.consoleFd);	/* make the vt-manager happy */
-
-    restoreVtPerms();		/* restore the permissions */
 }
 
 int
