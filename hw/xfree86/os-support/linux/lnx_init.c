@@ -39,7 +39,6 @@
 #include <sys/stat.h>
 
 static Bool KeepTty = FALSE;
-static int VTnum = -1;
 static Bool VTSwitch = TRUE;
 static Bool ShareVTs = FALSE;
 static int activeVT = -1;
@@ -112,8 +111,7 @@ xf86OpenConsole(void)
 	/*
 	 * setup the virtual terminal manager
 	 */
-	if (VTnum != -1) {
-	    xf86Info.vtno = VTnum;
+	if (xf86Info.vtno != -1) {
 	    from = X_CMDLINE;
 	} else {
 
@@ -382,10 +380,10 @@ xf86ProcessArgument(int argc, char *argv[], int i)
         }
 	if ((argv[i][0] == 'v') && (argv[i][1] == 't'))
 	{
-		if (sscanf(argv[i], "vt%2d", &VTnum) == 0)
+		if (sscanf(argv[i], "vt%2d", &xf86Info.vtno) == 0)
 		{
 			UseMsg();
-			VTnum = -1;
+			xf86Info.vtno = -1;
 			return 0;
 		}
 		return 1;
