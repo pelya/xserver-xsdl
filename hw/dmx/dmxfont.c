@@ -172,7 +172,6 @@ static int dmxProcSetFontPath(ClientPtr client)
     unsigned long  nbytes, total, n;
     long           nfonts;
     int            i, result;
-    int            error;
     unsigned char *oldFontPath, *tmpFontPath;
     int            nOldPaths;
     int            lenOldPaths;
@@ -198,22 +197,19 @@ static int dmxProcSetFontPath(ClientPtr client)
     oldFontPath = malloc(nOldPaths + lenOldPaths);
     memmove(oldFontPath, tmpFontPath, nOldPaths + lenOldPaths);
 
-    result = SetFontPath(client, stuff->nFonts, (unsigned char *)&stuff[1],
-			 &error);
+    result = SetFontPath(client, stuff->nFonts, (unsigned char *)&stuff[1]);
     if (!result) {
+	int error = 0;
 	for (i = 0; i < dmxNumScreens; i++)
 	    if ((result = dmxCheckFontPath(&dmxScreens[i], &error)))
 		break;
 
 	if (result) {
-	    int  ignoreresult, ignoreerror;
-
 	    /* Restore old fontpath in the DMX server */
-	    ignoreresult = SetFontPath(client, nOldPaths, oldFontPath,
-				       &ignoreerror);
+	    SetFontPath(client, nOldPaths, oldFontPath);
+	    client->errorValue = error;
 	} else {
 	    result = client->noClientException;
-	    client->errorValue = error;
 	}
     }
 
@@ -315,7 +311,6 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 	    int   newnpaths = 0;
 	    int   len = 0;
 	    int   j = 0;
-	    int   error;
 
 	    dmxLog(dmxError,
 		   "These font paths will not be used because the "
@@ -361,8 +356,7 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 		}
 	    }
 
-	    if (SetFontPath(serverClient, newnpaths, (unsigned char *)newfp,
-			    &error)) {
+	    if (SetFontPath(serverClient, newnpaths, (unsigned char *)newfp)) {
 		/* Note that this should never happen since all of the
 		 * FPEs were previously valid. */
 		dmxLog(dmxError, "Cannot reset the default font path.\n");
