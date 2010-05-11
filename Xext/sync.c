@@ -1146,7 +1146,7 @@ ProcSyncInitialize(ClientPtr client)
 	swaps(&rep.sequenceNumber, n);
     }
     WriteToClient(client, sizeof(rep), (char *) &rep);
-    return client->noClientException;
+    return Success;
 }
 
 /*
@@ -1223,7 +1223,7 @@ ProcSyncListSystemCounters(ClientPtr client)
 	free(list);
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /*
@@ -1297,7 +1297,7 @@ ProcSyncGetPriority(ClientPtr client)
 
     WriteToClient(client, sizeof(xSyncGetPriorityReply), (char *) &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 /*
@@ -1317,7 +1317,7 @@ ProcSyncCreateCounter(ClientPtr client)
     if (!SyncCreateCounter(client, stuff->cid, initial))
 	return BadAlloc;
 
-    return client->noClientException;
+    return Success;
 }
 
 /*
@@ -1569,7 +1569,7 @@ ProcSyncQueryCounter(ClientPtr client)
 	swapl(&rep.value_lo, n);
     }
     WriteToClient(client, sizeof(xSyncQueryCounterReply), (char *) &rep);
-    return client->noClientException;
+    return Success;
 }
 
 
@@ -1749,7 +1749,7 @@ ProcSyncQueryAlarm(ClientPtr client)
     }
 
     WriteToClient(client, sizeof(xSyncQueryAlarmReply), (char *) &rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -1767,7 +1767,7 @@ ProcSyncDestroyAlarm(ClientPtr client)
 	return (rc == BadValue) ? SyncErrorBase + XSyncBadAlarm : rc;
 
     FreeResource(stuff->alarm, RT_NONE);
-    return client->noClientException;
+    return Success;
 }
 
 /*

@@ -752,7 +752,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
 	free(extra);
     }
     
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -997,7 +997,7 @@ sendReply:
     }
     WriteToClient(client, sizeof(xRRSetCrtcConfigReply), (char *)&rep);
     
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1066,7 +1066,7 @@ ProcRRGetPanning (ClientPtr client)
 	swaps(&rep.border_bottom, n);
     }
     WriteToClient(client, sizeof(xRRGetPanningReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1145,7 +1145,7 @@ sendReply:
 	swaps(&rep.newTimestamp, n);
     }
     WriteToClient(client, sizeof(xRRSetPanningReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1173,7 +1173,7 @@ ProcRRGetCrtcGammaSize (ClientPtr client)
 	swaps (&reply.size, n);
     }
     WriteToClient (client, sizeof (xRRGetCrtcGammaSizeReply), (char *) &reply);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1218,7 +1218,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
 	WriteSwappedDataToClient (client, len, extra);
 	free(extra);
     }
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1383,5 +1383,5 @@ ProcRRGetCrtcTransform (ClientPtr client)
     }
     WriteToClient (client, sizeof (xRRGetCrtcTransformReply) + nextra, (char *) reply);
     free(reply);
-    return client->noClientException;
+    return Success;
 }

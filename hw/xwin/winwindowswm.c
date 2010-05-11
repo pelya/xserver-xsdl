@@ -124,7 +124,7 @@ ProcWindowsWMQueryVersion(register ClientPtr client)
       swapl(&rep.length, n);
     }
   WriteToClient(client, sizeof(xWindowsWMQueryVersionReply), (char *)&rep);
-  return (client->noClientException);
+  return Success;
 }
 
 
@@ -335,7 +335,7 @@ ProcWindowsWMDisableUpdate (register ClientPtr client)
 
   //winDisableUpdate();
 
-  return (client->noClientException);
+  return Success;
 }
 
 static int
@@ -345,7 +345,7 @@ ProcWindowsWMReenableUpdate (register ClientPtr client)
 
   //winEnableUpdate(); 
 
-  return (client->noClientException);
+  return Success;
 }
 
 
@@ -358,7 +358,7 @@ ProcWindowsWMSetFrontProcess (register ClientPtr client)
   
   //QuartzMessageMainThread(kWindowsSetFrontProcess, NULL, 0);
   
-  return (client->noClientException);
+  return Success;
 }
 
 
@@ -414,7 +414,7 @@ ProcWindowsWMFrameGetRect (register ClientPtr client)
 #endif
 
   WriteToClient(client, sizeof(xWindowsWMFrameGetRectReply), (char *)&rep);
-  return (client->noClientException);
+  return Success;
 }
 
 
@@ -507,7 +507,7 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
   ErrorF ("ProcWindowsWMFrameDraw - done\n");
 #endif
 
-  return (client->noClientException);
+  return Success;
 }
 
 static int
@@ -566,7 +566,7 @@ ProcWindowsWMFrameSetTitle(
   ErrorF ("ProcWindowsWMFrameSetTitle - done\n");
 #endif
 
-  return (client->noClientException);
+  return Success;
 }
 
 

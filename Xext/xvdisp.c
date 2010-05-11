@@ -460,7 +460,7 @@ ProcXvQueryAdaptors(ClientPtr client)
 
     }
 
-  return (client->noClientException);
+  return Success;
 }
 
 static int
@@ -520,7 +520,7 @@ ProcXvQueryEncodings(ClientPtr client)
       pe++;
     }
 
-  return (client->noClientException);
+  return Success;
 }
 
 static int

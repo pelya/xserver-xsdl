@@ -1851,7 +1851,7 @@ ChangeKeyMapping(ClientPtr client,
     XkbApplyMappingChange(dev, &keysyms, firstKeyCode, keyCodes, NULL,
                           serverClient);
 
-    return client->noClientException;
+    return Success;
 }
 
 static void

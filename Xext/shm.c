@@ -359,7 +359,7 @@ ProcShmQueryVersion(ClientPtr client)
 	swaps(&rep.gid, n);
     }
     WriteToClient(client, sizeof(xShmQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 /*
@@ -485,7 +485,7 @@ ProcShmAttach(ClientPtr client)
     }
     if (!AddResource(stuff->shmseg, ShmSegType, (pointer)shmdesc))
 	return BadAlloc;
-    return(client->noClientException);
+    return Success;
 }
 
 /*ARGSUSED*/
@@ -515,7 +515,7 @@ ProcShmDetach(ClientPtr client)
     REQUEST_SIZE_MATCH(xShmDetachReq);
     VERIFY_SHMSEG(stuff->shmseg, shmdesc, client);
     FreeResource(stuff->shmseg, RT_NONE);
-    return(client->noClientException);
+    return Success;
 }
 
 /*
@@ -601,7 +601,7 @@ ProcPanoramiXShmPutImage(ClientPtr client)
 	    stuff->dstY = orig_y - panoramiXdataPtr[j].y;
 	}
 	result = ProcShmPutImage(client);
-	if(result != client->noClientException) break;
+	if(result != Success) break;
     }
     return(result);
 }
@@ -733,7 +733,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
     WriteToClient(client, sizeof(xShmGetImageReply), (char *)&xgi);
 
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -804,7 +804,7 @@ CreatePmap:
     for(j = 1; j < PanoramiXNumScreens; j++)
 	newPix->info[j].id = FakeClientID(client->index);
 
-    result = (client->noClientException);
+    result = Success;
 
     FOR_NSCREENS(j) {
 	ShmScrPrivateRec *screen_priv;
@@ -951,7 +951,7 @@ ProcShmPutImage(ClientPtr client)
 	WriteEventsToClient(client, 1, (xEvent *) &ev);
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -1065,7 +1065,7 @@ ProcShmGetImage(ClientPtr client)
     }
     WriteToClient(client, sizeof(xShmGetImageReply), (char *)&xgi);
 
-    return(client->noClientException);
+    return Success;
 }
 
 static PixmapPtr
@@ -1162,7 +1162,7 @@ CreatePmap:
 	pMap->drawable.id = stuff->pid;
 	if (AddResource(stuff->pid, RT_PIXMAP, (pointer)pMap))
 	{
-	    return(client->noClientException);
+	    return Success;
 	}
 	pDraw->pScreen->DestroyPixmap(pMap);
     }

@@ -394,7 +394,7 @@ ProcXF86VidModeQueryVersion(ClientPtr client)
     	swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xXF86VidModeQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -495,7 +495,7 @@ ProcXF86VidModeGetModeLine(ClientPtr client)
 	WriteToClient(client, sizeof(xXF86VidModeGetModeLineReply),
 			(char *)&rep);
     }
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -590,7 +590,7 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
 
    } while (VidModeGetNextModeline(stuff->screen, &mode, &dotClock));
 
-    return (client->noClientException);
+    return Success;
 }
 
 #define MODEMATCH(mode,stuff)	  \
@@ -761,7 +761,7 @@ ProcXF86VidModeAddModeLine(ClientPtr client)
     
     if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("AddModeLine - Succeeded\n");
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -874,7 +874,7 @@ ProcXF86VidModeDeleteModeLine(ClientPtr client)
 	    VidModeDeleteModeline(stuff->screen, mode);
 	    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 		ErrorF("DeleteModeLine - Succeeded\n");
-	    return(client->noClientException);
+	    return Success;
 	}
     } while (VidModeGetNextModeline(stuff->screen, &mode, &dotClock));
 
@@ -1002,7 +1002,7 @@ ProcXF86VidModeModModeLine(ClientPtr client)
 
     if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("ModModeLine - Succeeded\n");
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -1120,7 +1120,7 @@ status_reply:
     WriteToClient(client, sizeof(xXF86VidModeValidateModeLineReply), (char *)&rep);
     if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 	ErrorF("ValidateModeLine - Succeeded (status = %d)\n", status);
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -1137,7 +1137,7 @@ ProcXF86VidModeSwitchMode(ClientPtr client)
 
     VidModeZoomViewport(stuff->screen, (short)stuff->zoom);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1201,7 +1201,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 
     if ((VidModeGetDotClock(stuff->screen, stuff->dotclock) == dotClock)
 	    && MODEMATCH(mode, stuff))
-	return (client->noClientException);
+	return Success;
 
     if (!VidModeGetFirstModeline(stuff->screen, &mode, &dotClock))
 	return BadValue;
@@ -1230,7 +1230,7 @@ ProcXF86VidModeSwitchToMode(ClientPtr client)
 
 	    if (xf86GetVerbosity() > DEFAULT_XF86VIDMODE_VERBOSITY)
 		ErrorF("SwitchToMode - Succeeded\n");
-	    return(client->noClientException);
+	    return Success;
 	}
     } while (VidModeGetNextModeline(stuff->screen, &mode, &dotClock));
 
@@ -1252,7 +1252,7 @@ ProcXF86VidModeLockModeSwitch(ClientPtr client)
     if (!VidModeLockZoom(stuff->screen, (short)stuff->lock))
 	return VidModeErrorBase + XF86VidModeZoomLocked;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1339,7 +1339,7 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     free(hsyncdata);
     free(vsyncdata);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1371,7 +1371,7 @@ ProcXF86VidModeGetViewPort(ClientPtr client)
 	swapl(&rep.y, n);
     }
     WriteToClient(client, SIZEOF(xXF86VidModeGetViewPortReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1389,7 +1389,7 @@ ProcXF86VidModeSetViewPort(ClientPtr client)
     if (!VidModeSetViewPort(stuff->screen, stuff->x, stuff->y))
 	return BadValue;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1453,7 +1453,7 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
     }
 
     free(Clocks);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1472,7 +1472,7 @@ ProcXF86VidModeSetGamma(ClientPtr client)
 		((float)stuff->green)/10000., ((float)stuff->blue)/10000.))
 	return BadValue;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1506,7 +1506,7 @@ ProcXF86VidModeGetGamma(ClientPtr client)
     	swapl(&rep.blue, n);
     }
     WriteToClient(client, sizeof(xXF86VidModeGetGammaReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1533,7 +1533,7 @@ ProcXF86VidModeSetGammaRamp(ClientPtr client)
     if (!VidModeSetGammaRamp(stuff->screen, stuff->size, r, g, b))
         return BadValue;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1584,7 +1584,7 @@ ProcXF86VidModeGetGammaRamp(ClientPtr client)
         free(ramp);
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -1611,7 +1611,7 @@ ProcXF86VidModeGetGammaRampSize(ClientPtr client)
     }
     WriteToClient(client,sizeof(xXF86VidModeGetGammaRampSizeReply),(char*)&rep);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1641,7 +1641,7 @@ ProcXF86VidModeGetPermissions(ClientPtr client)
     }
     WriteToClient(client,sizeof(xXF86VidModeGetPermissionsReply),(char*)&rep);
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -1665,7 +1665,7 @@ ProcXF86VidModeSetClientVersion(ClientPtr client)
     pPriv->major = stuff->major;
     pPriv->minor = stuff->minor;
     
-    return (client->noClientException);
+    return Success;
 }
 
 static int

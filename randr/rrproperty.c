@@ -447,7 +447,7 @@ ProcRRListOutputProperties (ClientPtr client)
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
         free(pAtoms);
     }
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -493,7 +493,7 @@ ProcRRQueryOutputProperty (ClientPtr client)
 				 extra);
         free(extra);
     }
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -566,7 +566,7 @@ ProcRRChangeOutputProperty (ClientPtr client)
     if (err != Success)
 	return err;
     else
-	return client->noClientException;
+	return Success;
 }
 
 int
@@ -587,7 +587,7 @@ ProcRRDeleteOutputProperty (ClientPtr client)
 
 
     RRDeleteOutputProperty(output, stuff->property);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -646,7 +646,7 @@ ProcRRGetOutputProperty (ClientPtr client)
 	    swapl(&reply.nItems, n);
 	}
 	WriteToClient(client, sizeof(xRRGetOutputPropertyReply), &reply);
-	return(client->noClientException);
+	return Success;
     }
 
     if (prop->immutable && stuff->delete)
@@ -678,7 +678,7 @@ ProcRRGetOutputProperty (ClientPtr client)
 	    swapl(&reply.nItems, n);
 	}
 	WriteToClient(client, sizeof(xRRGetOutputPropertyReply), &reply);
-	return(client->noClientException);
+	return Success;
     }
 
 /*
@@ -753,6 +753,6 @@ ProcRRGetOutputProperty (ClientPtr client)
 	*prev = prop->next;
 	RRDestroyOutputProperty (prop);
     }
-    return(client->noClientException);
+    return Success;
 }
 

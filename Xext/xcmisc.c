@@ -83,7 +83,7 @@ ProcXCMiscGetVersion(ClientPtr client)
 	swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xXCMiscGetVersionReply), (char *)&rep);
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -106,7 +106,7 @@ ProcXCMiscGetXIDRange(ClientPtr client)
 	swapl(&rep.count, n);
     }
     WriteToClient(client, sizeof(xXCMiscGetXIDRangeReply), (char *)&rep);
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -145,7 +145,7 @@ ProcXCMiscGetXIDList(ClientPtr client)
 	WriteSwappedDataToClient(client, count * sizeof(XID), pids);
     }
     free(pids);
-    return(client->noClientException);
+    return Success;
 }
 
 static int

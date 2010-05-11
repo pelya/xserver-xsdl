@@ -147,7 +147,7 @@ ProcDbeGetVersion(ClientPtr client)
 
     WriteToClient(client, sizeof(xDbeGetVersionReply), (char *)&rep);
 
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetVersion() */
 
@@ -810,7 +810,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
         free(pDrawables);
     }
 
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetVisualInfo() */
 
@@ -866,7 +866,7 @@ ProcDbeGetBackBufferAttributes(ClientPtr client)
 
     WriteToClient(client, sizeof(xDbeGetBackBufferAttributesReply),
                   (char *)&rep);
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetbackBufferAttributes() */
 

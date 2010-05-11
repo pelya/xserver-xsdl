@@ -65,7 +65,7 @@ ProcRRQueryVersion (ClientPtr client)
 	swapl(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xRRQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int

@@ -192,7 +192,7 @@ ProcAppleWMQueryVersion(
         swapl(&rep.length, n);
     }
     WriteToClient(client, sizeof(xAppleWMQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -383,7 +383,7 @@ ProcAppleWMDisableUpdate(
 
     appleWMProcs->DisableUpdate();
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -395,7 +395,7 @@ ProcAppleWMReenableUpdate(
 
     appleWMProcs->EnableUpdate();
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -435,7 +435,7 @@ ProcAppleWMSetWindowMenu(
     free(items);
     free(shortcuts);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -447,7 +447,7 @@ ProcAppleWMSetWindowMenuCheck(
 
     REQUEST_SIZE_MATCH(xAppleWMSetWindowMenuCheckReq);
     X11ApplicationSetWindowMenuCheck(stuff->index);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -458,7 +458,7 @@ ProcAppleWMSetFrontProcess(
     REQUEST_SIZE_MATCH(xAppleWMSetFrontProcessReq);
 
     X11ApplicationSetFrontProcess();
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -483,7 +483,7 @@ ProcAppleWMSetWindowLevel(register ClientPtr client)
         return err;
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -502,7 +502,7 @@ ProcAppleWMSendPSN(register ClientPtr client)
         return err;
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -532,7 +532,7 @@ ProcAppleWMAttachTransient(register ClientPtr client)
         return err;
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -545,7 +545,7 @@ ProcAppleWMSetCanQuit(
     REQUEST_SIZE_MATCH(xAppleWMSetCanQuitReq);
 
     X11ApplicationSetCanQuit(stuff->state);
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -581,7 +581,7 @@ ProcAppleWMFrameGetRect(
     rep.h = rr.y2 - rr.y1;
 
     WriteToClient(client, sizeof(xAppleWMFrameGetRectReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -611,7 +611,7 @@ ProcAppleWMFrameHitTest(
     rep.ret = ret;
 
     WriteToClient(client, sizeof(xAppleWMFrameHitTestReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -649,7 +649,7 @@ ProcAppleWMFrameDraw(
         return errno;
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 

@@ -320,7 +320,7 @@ ProcRRCreateMode (ClientPtr client)
     WriteToClient(client, sizeof(xRRCreateModeReply), (char *)&rep);
     /* Drop out reference to this mode */
     RRModeDestroy (mode);
-    return client->noClientException;
+    return Success;
 }
 
 int

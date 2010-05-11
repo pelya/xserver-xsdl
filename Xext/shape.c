@@ -269,7 +269,7 @@ ProcShapeQueryVersion (ClientPtr client)
 	swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof (xShapeQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 /*****************
@@ -736,7 +736,7 @@ ProcShapeQueryExtents (ClientPtr client)
 	swaps(&rep.heightClipShape, n);
     }
     WriteToClient(client, sizeof (xShapeQueryExtentsReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 /*ARGSUSED*/
@@ -996,7 +996,7 @@ ProcShapeInputSelected (ClientPtr client)
 	swapl (&rep.length, n);
     }
     WriteToClient (client, sizeof (xShapeInputSelectedReply), (char *) &rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1081,7 +1081,7 @@ ProcShapeGetRectangles (ClientPtr client)
     WriteToClient (client, sizeof (rep), (char *) &rep);
     WriteToClient (client, nrects * sizeof (xRectangle), (char *) rects);
     free(rects);
-    return client->noClientException;
+    return Success;
 }
 
 static int

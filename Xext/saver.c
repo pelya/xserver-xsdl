@@ -737,7 +737,7 @@ ProcScreenSaverQueryVersion (ClientPtr client)
     	swapl(&rep.length, n);
     }
     WriteToClient(client, sizeof (xScreenSaverQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -813,7 +813,7 @@ ProcScreenSaverQueryInfo (ClientPtr client)
 	swapl (&rep.eventMask, n);
     }
     WriteToClient(client, sizeof (xScreenSaverQueryInfoReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1415,7 +1415,7 @@ ProcScreenSaverSuspend (ClientPtr client)
 	FreeScreenSaverTimer();
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 static DISPATCH_PROC((*NormalVector[])) = {

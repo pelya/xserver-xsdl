@@ -424,7 +424,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     WriteToClient(client, sizeof (xXFixesGetCursorImageReply) +
 			 (npixels << 2), (char *) rep);
     free(rep);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -452,7 +452,7 @@ ProcXFixesSetCursorName (ClientPtr client)
 	return BadAlloc;
     
     pCursor->name = atom;
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -501,7 +501,7 @@ ProcXFixesGetCursorName (ClientPtr client)
     WriteReplyToClient(client, sizeof(xXFixesGetCursorNameReply), &reply);
     WriteToClient(client, len, str);
     
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -584,7 +584,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     WriteToClient(client, sizeof (xXFixesGetCursorImageAndNameReply) +
 			 (npixels << 2) + nbytesRound, (char *) rep);
     free(rep);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -719,7 +719,7 @@ ProcXFixesChangeCursor (ClientPtr client)
 		   DixWriteAccess|DixSetAttrAccess);
 
     ReplaceCursor (pSource, TestForCursor, (pointer) pDestination);
-    return (client->noClientException);
+    return Success;
 }
 
 int
@@ -757,7 +757,7 @@ ProcXFixesChangeCursorByName (ClientPtr client)
     name = MakeAtom (tchar, stuff->nbytes, FALSE);
     if (name)
 	ReplaceCursor (pSource, TestForCursorName, &name);
-    return (client->noClientException);
+    return Success;
 }
 
 int
@@ -895,7 +895,7 @@ ProcXFixesHideCursor (ClientPtr client)
     pChc = findCursorHideCount(client, pWin->drawable.pScreen);
     if (pChc != NULL) {
 	pChc->hideCount++;
-	return client->noClientException;
+	return Success;
     }
 
     /* 
@@ -969,7 +969,7 @@ ProcXFixesShowCursor (ClientPtr client)
 	FreeResource(pChc->resource, 0);
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 int 
