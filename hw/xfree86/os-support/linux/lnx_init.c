@@ -59,6 +59,16 @@ drain_console(int fd, void *closure)
     }
 }
 
+static void
+switch_to(int vt, const char *from)
+{
+    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, vt) < 0)
+        FatalError("%s: VT_ACTIVATE failed: %s\n", from, strerror(errno));
+
+    if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, vt) < 0)
+        FatalError("%s: VT_WAITACTIVE failed: %s\n", from, strerror(errno));
+}
+
 void
 xf86OpenConsole(void)
 {
@@ -174,13 +184,7 @@ xf86OpenConsole(void)
 	    /*
 	     * now get the VT.  This _must_ succeed, or else fail completely.
 	     */
-	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) < 0)
-	        FatalError("xf86OpenConsole: VT_ACTIVATE failed: %s\n",
-		           strerror(errno));
-
-	    if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, xf86Info.vtno) < 0)
-	        FatalError("xf86OpenConsole: VT_WAITACTIVE failed: %s\n",
-			   strerror(errno));
+            switch_to(xf86Info.vtno, "xf86OpenConsole");
 
 	    if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) < 0)
 	        FatalError("xf86OpenConsole: VT_GETMODE failed %s\n",
@@ -227,16 +231,8 @@ xf86OpenConsole(void)
     } else { 	/* serverGeneration != 1 */
         if (!ShareVTs && VTSwitch)
         {
-	    /*
-	     * now get the VT
-	     */
-	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno) < 0)
-	        xf86Msg(X_WARNING, "xf86OpenConsole: VT_ACTIVATE failed %s\n",
-		        strerror(errno));
-
-	    if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, xf86Info.vtno) < 0)
-	        xf86Msg(X_WARNING, "xf86OpenConsole: VT_WAITACTIVE failed %s\n",
-		        strerror(errno));
+	    /* now get the VT */
+            switch_to(xf86Info.vtno, "xf86OpenConsole");
         }
     }
 }
@@ -281,13 +277,7 @@ xf86CloseConsole(void)
          * Perform a switch back to the active VT when we were started
          */
         if (activeVT >= 0) {
-	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, activeVT) < 0)
-	        xf86Msg(X_WARNING, "xf86CloseConsole: VT_ACTIVATE failed: %s\n",
-		        strerror(errno));
-	    if (ioctl(xf86Info.consoleFd, VT_WAITACTIVE, activeVT) < 0)
-		xf86Msg(X_WARNING,
-			"xf86CloseConsole: VT_WAITACTIVE failed: %s\n",
-			strerror(errno));
+            switch_to(activeVT, "xf86CloseConsole");
 	    activeVT = -1;
         }
     }
