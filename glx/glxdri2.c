@@ -429,6 +429,17 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     return &context->base;
 }
 
+static void
+__glXDRIinvalidateBuffers(DrawablePtr pDraw, void *priv)
+{
+#if __DRI2_FLUSH_VERSION >= 3
+    __GLXDRIdrawable *private = priv;
+    __GLXDRIscreen *screen = private->screen;
+
+    (*screen->flush->invalidate)(private->driDrawable);
+#endif
+}
+
 static __GLXdrawable *
 __glXDRIscreenCreateDrawable(ClientPtr client,
 			     __GLXscreen *screen,
@@ -459,7 +470,8 @@ __glXDRIscreenCreateDrawable(ClientPtr client,
     private->base.waitGL	= __glXDRIdrawableWaitGL;
     private->base.waitX		= __glXDRIdrawableWaitX;
 
-    if (DRI2CreateDrawable(client, pDraw, drawId)) {
+    if (DRI2CreateDrawable(client, pDraw, drawId,
+			   __glXDRIinvalidateBuffers, private)) {
 	    free(private);
 	    return NULL;
     }
@@ -573,9 +585,18 @@ static const __DRIdri2LoaderExtension loaderExtension = {
     dri2GetBuffersWithFormat,
 };
 
+#ifdef __DRI_USE_INVALIDATE
+static const __DRIuseInvalidateExtension dri2UseInvalidate = {
+   { __DRI_USE_INVALIDATE, __DRI_USE_INVALIDATE_VERSION }
+};
+#endif
+
 static const __DRIextension *loader_extensions[] = {
     &systemTimeExtension.base,
     &loaderExtension.base,
+#ifdef __DRI_USE_INVALIDATE
+    &dri2UseInvalidate,
+#endif
     NULL
 };
 

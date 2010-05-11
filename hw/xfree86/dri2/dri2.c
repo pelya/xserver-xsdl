@@ -96,6 +96,8 @@ typedef struct _DRI2Screen {
     DRI2ScheduleWaitMSCProcPtr	 ScheduleWaitMSC;
 
     HandleExposuresProcPtr       HandleExposures;
+
+    ConfigNotifyProcPtr		 ConfigNotify;
 } DRI2ScreenRec;
 
 static DRI2ScreenPtr
@@ -165,9 +167,11 @@ DRI2AllocateDrawable(DrawablePtr pDraw)
 }
 
 typedef struct DRI2DrawableRefRec {
-    XID id;
-    XID dri2_id;
-    struct list link;
+    XID		  id;
+    XID		  dri2_id;
+    DRI2InvalidateProcPtr	invalidate;
+    void	 *priv;
+    struct list	  link;
 } DRI2DrawableRefRec, *DRI2DrawableRefPtr;
 
 static DRI2DrawableRefPtr
@@ -184,7 +188,8 @@ DRI2LookupDrawableRef(DRI2DrawablePtr pPriv, XID id)
 }
 
 static int
-DRI2AddDrawableRef(DRI2DrawablePtr pPriv, XID id, XID dri2_id)
+DRI2AddDrawableRef(DRI2DrawablePtr pPriv, XID id, XID dri2_id,
+		   DRI2InvalidateProcPtr invalidate, void *priv)
 {
     DRI2DrawableRefPtr ref;
 
@@ -200,13 +205,16 @@ DRI2AddDrawableRef(DRI2DrawablePtr pPriv, XID id, XID dri2_id)
 
     ref->id = id;
     ref->dri2_id = dri2_id; 
+    ref->invalidate = invalidate;
+    ref->priv = priv;
     list_add(&ref->link, &pPriv->reference_list);
 
     return Success;
 }
 
 int
-DRI2CreateDrawable(ClientPtr client, DrawablePtr pDraw, XID id)
+DRI2CreateDrawable(ClientPtr client, DrawablePtr pDraw, XID id,
+		   DRI2InvalidateProcPtr invalidate, void *priv)
 {
     DRI2DrawablePtr pPriv;
     XID dri2_id;
@@ -219,7 +227,7 @@ DRI2CreateDrawable(ClientPtr client, DrawablePtr pDraw, XID id)
 	return BadAlloc;
     
     dri2_id = FakeClientID(client->index);
-    rc = DRI2AddDrawableRef(pPriv, id, dri2_id);
+    rc = DRI2AddDrawableRef(pPriv, id, dri2_id, invalidate, priv);
     if (rc != Success)
 	return rc;
 
@@ -454,6 +462,19 @@ DRI2GetBuffersWithFormat(DrawablePtr pDraw, int *width, int *height,
 {
     return do_get_buffers(pDraw, width, height, attachments, count,
 			  out_count, TRUE);
+}
+
+static void
+DRI2InvalidateDrawable(DrawablePtr pDraw)
+{
+    DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
+    DRI2DrawableRefPtr ref;
+
+    if (!pPriv)
+        return;
+
+    list_for_each_entry(ref, &pPriv->reference_list, link)
+	ref->invalidate(pDraw, ref->priv);
 }
 
 /*
@@ -766,6 +787,8 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
      */
     *swap_target = pPriv->swap_count + pPriv->swapsPending;
 
+    DRI2InvalidateDrawable(pDraw);
+
     return Success;
 }
 
@@ -916,6 +939,30 @@ DRI2Authenticate(ScreenPtr pScreen, drm_magic_t magic)
     return TRUE;
 }
 
+static void
+DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
+		 WindowPtr pSib)
+{
+    DrawablePtr pDraw = (DrawablePtr)pWin;
+    ScreenPtr pScreen = pDraw->pScreen;
+    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
+    DRI2DrawablePtr dd = DRI2GetDrawable(pDraw);
+
+    if (ds->ConfigNotify) {
+	pScreen->ConfigNotify = ds->ConfigNotify;
+
+	(*pScreen->ConfigNotify)(pWin, x, y, w, h, bw, pSib);
+
+	ds->ConfigNotify = pScreen->ConfigNotify;
+	pScreen->ConfigNotify = DRI2ConfigNotify;
+    }
+
+    if (!dd || (dd->width == w && dd->height == h))
+	return;
+
+    DRI2InvalidateDrawable(pDraw);
+}
+
 Bool
 DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 {
@@ -953,7 +1000,7 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 	ds->ScheduleSwap = info->ScheduleSwap;
 	ds->ScheduleWaitMSC = info->ScheduleWaitMSC;
 	ds->GetMSC = info->GetMSC;
-	cur_minor = 2;
+	cur_minor = 3;
     } else {
 	cur_minor = 1;
     }
@@ -983,6 +1030,9 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     }
 
     dixSetPrivate(&pScreen->devPrivates, dri2ScreenPrivateKey, ds);
+
+    ds->ConfigNotify = pScreen->ConfigNotify;
+    pScreen->ConfigNotify = DRI2ConfigNotify;
 
     xf86DrvMsg(pScreen->myNum, X_INFO, "[DRI2] Setup complete\n");
     for (i = 0; i < sizeof(driverTypeNames) / sizeof(driverTypeNames[0]); i++) {
