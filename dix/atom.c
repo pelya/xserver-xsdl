@@ -145,8 +145,8 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	*np = nd;
 	nd->left = nd->right = NULL;
 	nd->fingerPrint = fp;
-	nd->a = (++lastAtom);
-	*(nodeTable+lastAtom) = nd;
+	nd->a = ++lastAtom;
+	nodeTable[lastAtom] = nd;
 	return nd->a;
     }
     else
@@ -194,7 +194,7 @@ FreeAtom(NodePtr patom)
 void
 FreeAllAtoms(void)
 {
-    if(atomRoot == NULL)
+    if (atomRoot == NULL)
 	return;
     FreeAtom(atomRoot);
     atomRoot = NULL;
@@ -208,7 +208,7 @@ InitAtoms(void)
 {
     FreeAllAtoms();
     tableLength = InitialTableSize;
-    nodeTable = malloc(InitialTableSize*sizeof(NodePtr));
+    nodeTable = malloc(InitialTableSize * sizeof(NodePtr));
     if (!nodeTable)
 	AtomError();
     nodeTable[None] = NULL;
