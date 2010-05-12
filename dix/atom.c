@@ -180,8 +180,13 @@ FreeAtom(NodePtr patom)
 	FreeAtom(patom->left);
     if(patom->right)
 	FreeAtom(patom->right);
-    if (patom->a > XA_LAST_PREDEFINED)
-	free(patom->string);
+    if (patom->a > XA_LAST_PREDEFINED) {
+        /*
+         * All strings above XA_LAST_PREDEFINED are strdup'ed, so it's safe to
+         * cast here
+         */
+	free((char *)patom->string);
+    }
     free(patom);
 }
 
