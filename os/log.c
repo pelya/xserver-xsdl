@@ -402,9 +402,8 @@ LogMessage(MessageType type, const char *format, ...)
     va_end(ap);
 }
 
-#ifdef __GNUC__
-void AbortServer(void) __attribute__((noreturn));
-#endif
+void
+AbortServer(void) X_NORETURN;
 
 void
 AbortServer(void)
