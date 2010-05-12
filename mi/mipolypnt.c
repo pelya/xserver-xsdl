@@ -73,7 +73,7 @@ miPolyPoint(
     int			i;
     xPoint 		*ppt;
 
-    if(!(pwidthInit = xalloc(npt * sizeof(int))))
+    if(!(pwidthInit = malloc(npt * sizeof(int))))
 	return;
 
     /* make pointlist origin relative */

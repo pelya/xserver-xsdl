@@ -299,7 +299,7 @@ extern _X_EXPORT void OsBlockSignals (void);
 
 extern _X_EXPORT void OsReleaseSignals (void);
 
-extern _X_EXPORT void OsAbort (void);
+extern _X_EXPORT void OsAbort (void) X_NORETURN;
 
 #if !defined(WIN32)
 extern _X_EXPORT int System(char *);
@@ -547,10 +547,7 @@ extern _X_EXPORT void FreeAuditTimer(void);
 extern _X_EXPORT void AuditF(const char *f, ...) _printf_attribute(1,2);
 extern _X_EXPORT void VAuditF(const char *f, va_list args);
 extern _X_EXPORT void FatalError(const char *f, ...) _printf_attribute(1,2)
-#if defined(__GNUC__) && (__GNUC__ > 2)
-__attribute((noreturn))
-#endif
-;
+    X_NORETURN;
 
 #ifdef DEBUG
 #define DebugF ErrorF

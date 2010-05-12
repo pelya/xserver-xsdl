@@ -68,7 +68,7 @@ typedef struct _Node {
 } NodeRec, *NodePtr;
 
 static Atom lastAtom = None;
-static NodePtr atomRoot = (NodePtr)NULL;
+static NodePtr atomRoot = NULL;
 static unsigned long tableLength;
 static NodePtr *nodeTable;
 
@@ -88,7 +88,7 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	fp = fp * 27 + string[i];
 	fp = fp * 27 + string[len - 1 - i];
     }
-    while (*np != (NodePtr) NULL)
+    while (*np != NULL)
     {
 	if (fp < (*np)->fingerPrint)
 	    np = &((*np)->left);
@@ -130,11 +130,12 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	if ((lastAtom + 1) >= tableLength) {
 	    NodePtr *table;
 
-	    table = (NodePtr *) realloc(nodeTable,
-					 tableLength * (2 * sizeof(NodePtr)));
+	    table = realloc(nodeTable, tableLength * (2 * sizeof(NodePtr)));
 	    if (!table) {
-		if (nd->string != string)
-		    free(nd->string);
+		if (nd->string != string) {
+                    /* nd->string has been strdup'ed */
+		    free((char *)nd->string);
+                }
 		free(nd);
 		return BAD_RESOURCE;
 	    }
@@ -142,10 +143,10 @@ MakeAtom(const char *string, unsigned len, Bool makeit)
 	    nodeTable = table;
 	}
 	*np = nd;
-	nd->left = nd->right = (NodePtr) NULL;
+	nd->left = nd->right = NULL;
 	nd->fingerPrint = fp;
-	nd->a = (++lastAtom);
-	*(nodeTable+lastAtom) = nd;
+	nd->a = ++lastAtom;
+	nodeTable[lastAtom] = nd;
 	return nd->a;
     }
     else
@@ -163,7 +164,7 @@ NameForAtom(Atom atom)
 {
     NodePtr node;
     if (atom > lastAtom) return 0;
-    if ((node = nodeTable[atom]) == (NodePtr)NULL) return 0;
+    if ((node = nodeTable[atom]) == NULL) return 0;
     return node->string;
 }
 
@@ -180,20 +181,25 @@ FreeAtom(NodePtr patom)
 	FreeAtom(patom->left);
     if(patom->right)
 	FreeAtom(patom->right);
-    if (patom->a > XA_LAST_PREDEFINED)
-	free(patom->string);
+    if (patom->a > XA_LAST_PREDEFINED) {
+        /*
+         * All strings above XA_LAST_PREDEFINED are strdup'ed, so it's safe to
+         * cast here
+         */
+	free((char *)patom->string);
+    }
     free(patom);
 }
 
 void
 FreeAllAtoms(void)
 {
-    if(atomRoot == (NodePtr)NULL)
+    if (atomRoot == NULL)
 	return;
     FreeAtom(atomRoot);
-    atomRoot = (NodePtr)NULL;
+    atomRoot = NULL;
     free(nodeTable);
-    nodeTable = (NodePtr *)NULL;
+    nodeTable = NULL;
     lastAtom = None;
 }
 
@@ -202,11 +208,11 @@ InitAtoms(void)
 {
     FreeAllAtoms();
     tableLength = InitialTableSize;
-    nodeTable = malloc(InitialTableSize*sizeof(NodePtr));
+    nodeTable = malloc(InitialTableSize * sizeof(NodePtr));
     if (!nodeTable)
 	AtomError();
-    nodeTable[None] = (NodePtr)NULL;
+    nodeTable[None] = NULL;
     MakePredeclaredAtoms();
     if (lastAtom != XA_LAST_PREDEFINED)
-	AtomError ();
+	AtomError();
 }

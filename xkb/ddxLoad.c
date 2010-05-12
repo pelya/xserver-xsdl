@@ -186,7 +186,7 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
     char	*buf = NULL, keymap[PATH_MAX], xkm_output_dir[PATH_MAX];
 
     const char	*emptystring = "";
-    const char	*xkbbasedirflag = emptystring;
+    char *xkbbasedirflag = NULL;
     const char	*xkbbindir = emptystring;
     const char	*xkbbindirsep = emptystring;
 
@@ -230,13 +230,11 @@ XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 		  xkbbindir, xkbbindirsep,
 		  ( (xkbDebugFlags < 2) ? 1 :
 		    ((xkbDebugFlags > 10) ? 10 : (int)xkbDebugFlags) ),
-		  xkbbasedirflag, xkmfile,
+		  xkbbasedirflag ? xkbbasedirflag : "", xkmfile,
 		  PRE_ERROR_MSG, ERROR_PREFIX, POST_ERROR_MSG1,
 		  xkm_output_dir, keymap);
 
-    if (xkbbasedirflag != emptystring) {
-	free(xkbbasedirflag);
-    }
+    free(xkbbasedirflag);
     
 #ifndef WIN32
     out= Popen(buf,"w");
