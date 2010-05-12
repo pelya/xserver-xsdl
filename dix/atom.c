@@ -213,5 +213,5 @@ InitAtoms(void)
     nodeTable[None] = (NodePtr)NULL;
     MakePredeclaredAtoms();
     if (lastAtom != XA_LAST_PREDEFINED)
-	AtomError ();
+	AtomError();
 }
