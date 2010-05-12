@@ -299,7 +299,7 @@ extern _X_EXPORT void OsBlockSignals (void);
 
 extern _X_EXPORT void OsReleaseSignals (void);
 
-extern _X_EXPORT void OsAbort (void);
+extern _X_EXPORT void OsAbort (void) X_NORETURN;
 
 #if !defined(WIN32)
 extern _X_EXPORT int System(char *);
