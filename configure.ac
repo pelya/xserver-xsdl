@@ -2230,7 +2230,6 @@ hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/sco/Makefile
 hw/xfree86/os-support/solaris/Makefile
-hw/xfree86/os-support/sysv/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/ramdac/Makefile
 hw/xfree86/shadowfb/Makefile
