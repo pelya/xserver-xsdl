@@ -138,11 +138,12 @@ xf86VGAarbiterScrnInit(ScrnInfoPtr pScrn)
 }
 
 void
-xf86VGAarbiterDeviceDecodes(ScrnInfoPtr pScrn)
+xf86VGAarbiterDeviceDecodes(ScrnInfoPtr pScrn, int rsrc)
 {
     if (vga_no_arb)
 	return;
-    pci_device_vgaarb_decodes(VGA_ARB_RSRC_LEGACY_MEM | VGA_ARB_RSRC_LEGACY_IO);
+    pci_device_vgaarb_set_target(pScrn->vgaDev);
+    pci_device_vgaarb_decodes(rsrc);
 }
 
 Bool
