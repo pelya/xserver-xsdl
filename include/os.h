@@ -218,20 +218,20 @@ extern _X_EXPORT int set_font_authorizations(
 /*
  * Use malloc(3) instead.
  */
-extern _X_EXPORT void *Xalloc(unsigned long /*amount*/) X_DEPRECATED;
+extern _X_EXPORT void *Xalloc(unsigned long /*amount*/) _X_DEPRECATED;
 /*
  * Use calloc(3) instead
  */
-extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/) X_DEPRECATED;
+extern _X_EXPORT void *Xcalloc(unsigned long /*amount*/) _X_DEPRECATED;
 /*
  * Use realloc(3) instead
  */
 extern _X_EXPORT void *Xrealloc(void * /*ptr*/, unsigned long /*amount*/)
-    X_DEPRECATED;
+    _X_DEPRECATED;
 /*
  * Use free(3) instead
  */
-extern _X_EXPORT void Xfree(void * /*ptr*/) X_DEPRECATED;
+extern _X_EXPORT void Xfree(void * /*ptr*/) _X_DEPRECATED;
 
 #endif
 
@@ -263,9 +263,9 @@ extern _X_EXPORT char *Xstrdup(const char *s);
  */
 extern _X_EXPORT char *XNFstrdup(const char *s);
 
-extern _X_EXPORT char *Xprintf(const char *fmt, ...);
+extern _X_EXPORT char *Xprintf(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2);
 extern _X_EXPORT char *Xvprintf(const char *fmt, va_list va);
-extern _X_EXPORT char *XNFprintf(const char *fmt, ...);
+extern _X_EXPORT char *XNFprintf(const char *fmt, ...) _X_ATTRIBUTE_PRINTF(1,2);
 extern _X_EXPORT char *XNFvprintf(const char *fmt, va_list va);
 
 typedef void (*OsSigHandlerPtr)(int /* sig */);
@@ -299,7 +299,7 @@ extern _X_EXPORT void OsBlockSignals (void);
 
 extern _X_EXPORT void OsReleaseSignals (void);
 
-extern _X_EXPORT void OsAbort (void) X_NORETURN;
+extern _X_EXPORT void OsAbort (void) _X_NORETURN;
 
 #if !defined(WIN32)
 extern _X_EXPORT int System(char *);
@@ -525,29 +525,21 @@ typedef enum {
     X_UNKNOWN = -1		/* unknown -- this must always be last */
 } MessageType;
 
-/* XXX Need to check which GCC versions have the format(printf) attribute. */
-#if defined(__GNUC__) && (__GNUC__ > 2)
-#define _printf_attribute(a,b) __attribute((format(__printf__,a,b)))
-#else
-#define _printf_attribute(a,b) /**/
-#endif
-
 extern _X_EXPORT const char *LogInit(const char *fname, const char *backup);
 extern _X_EXPORT void LogClose(void);
 extern _X_EXPORT Bool LogSetParameter(LogParameter param, int value);
 extern _X_EXPORT void LogVWrite(int verb, const char *f, va_list args);
-extern _X_EXPORT void LogWrite(int verb, const char *f, ...) _printf_attribute(2,3);
+extern _X_EXPORT void LogWrite(int verb, const char *f, ...) _X_ATTRIBUTE_PRINTF(2,3);
 extern _X_EXPORT void LogVMessageVerb(MessageType type, int verb, const char *format,
 			    va_list args);
 extern _X_EXPORT void LogMessageVerb(MessageType type, int verb, const char *format,
-			   ...) _printf_attribute(3,4);
+			   ...) _X_ATTRIBUTE_PRINTF(3,4);
 extern _X_EXPORT void LogMessage(MessageType type, const char *format, ...)
-			_printf_attribute(2,3);
+			_X_ATTRIBUTE_PRINTF(2,3);
 extern _X_EXPORT void FreeAuditTimer(void);
-extern _X_EXPORT void AuditF(const char *f, ...) _printf_attribute(1,2);
+extern _X_EXPORT void AuditF(const char *f, ...) _X_ATTRIBUTE_PRINTF(1,2);
 extern _X_EXPORT void VAuditF(const char *f, va_list args);
-extern _X_EXPORT void FatalError(const char *f, ...) _printf_attribute(1,2)
-    X_NORETURN;
+extern _X_EXPORT void FatalError(const char *f, ...) _X_ATTRIBUTE_PRINTF(1,2) _X_NORETURN;
 
 #ifdef DEBUG
 #define DebugF ErrorF
@@ -556,7 +548,7 @@ extern _X_EXPORT void FatalError(const char *f, ...) _printf_attribute(1,2)
 #endif
 
 extern _X_EXPORT void VErrorF(const char *f, va_list args);
-extern _X_EXPORT void ErrorF(const char *f, ...) _printf_attribute(1,2);
+extern _X_EXPORT void ErrorF(const char *f, ...) _X_ATTRIBUTE_PRINTF(1,2);
 extern _X_EXPORT void Error(char *str);
 extern _X_EXPORT void LogPrintMarkers(void);
 

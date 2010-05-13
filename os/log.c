@@ -403,7 +403,7 @@ LogMessage(MessageType type, const char *format, ...)
 }
 
 void
-AbortServer(void) X_NORETURN;
+AbortServer(void) _X_NORETURN;
 
 void
 AbortServer(void)
