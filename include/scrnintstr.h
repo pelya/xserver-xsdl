@@ -121,11 +121,6 @@ typedef    void (* GetSpansProcPtr)(
 	int /*nspans*/,
 	char * /*pdstStart*/);
 
-typedef    void (* PointerNonInterestBoxProcPtr)(
-        DeviceIntPtr /*pDev*/,
-	ScreenPtr /*pScreen*/,
-	BoxPtr /*pBox*/);
-
 typedef    void (* SourceValidateProcPtr)(
 	DrawablePtr /*pDrawable*/,
 	int /*x*/,
@@ -489,7 +484,6 @@ typedef struct _Screen {
     SaveScreenProcPtr		SaveScreen;
     GetImageProcPtr		GetImage;
     GetSpansProcPtr		GetSpans;
-    PointerNonInterestBoxProcPtr PointerNonInterestBox;
     SourceValidateProcPtr	SourceValidate;
 
     /* Window Procedures */

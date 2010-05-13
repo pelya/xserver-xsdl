@@ -246,7 +246,6 @@ miScreenInit(
     }
     /* else CloseScreen */
     /* QueryBestSize, SaveScreen, GetImage, GetSpans */
-    pScreen->PointerNonInterestBox = (PointerNonInterestBoxProcPtr) 0;
     pScreen->SourceValidate = (SourceValidateProcPtr) 0;
     /* CreateWindow, DestroyWindow, PositionWindow, ChangeWindowAttributes */
     /* RealizeWindow, UnrealizeWindow */

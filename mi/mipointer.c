@@ -63,8 +63,6 @@ static Bool miPointerDisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                    CursorPtr pCursor);
 static void miPointerConstrainCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                      BoxPtr pBox); 
-static void miPointerPointerNonInterestBox(DeviceIntPtr pDev, 
-                                           ScreenPtr pScreen, BoxPtr pBox);
 static void miPointerCursorLimits(DeviceIntPtr pDev, ScreenPtr pScreen,
                                   CursorPtr pCursor, BoxPtr pHotBox, 
                                   BoxPtr pTopLeftBox);
@@ -115,7 +113,6 @@ miPointerInitialize (ScreenPtr                  pScreen,
     pScreen->UnrealizeCursor = miPointerUnrealizeCursor;
     pScreen->SetCursorPosition = miPointerSetCursorPosition;
     pScreen->RecolorCursor = miRecolorCursor;
-    pScreen->PointerNonInterestBox = miPointerPointerNonInterestBox;
     pScreen->DeviceCursorInitialize = miPointerDeviceInitialize;
     pScreen->DeviceCursorCleanup = miPointerDeviceCleanup;
 
@@ -207,15 +204,6 @@ miPointerConstrainCursor (DeviceIntPtr pDev, ScreenPtr pScreen, BoxPtr pBox)
 
     pPointer->limits = *pBox;
     pPointer->confined = PointerConfinedToScreen(pDev);
-}
-
-/*ARGSUSED*/
-static void
-miPointerPointerNonInterestBox (DeviceIntPtr    pDev,
-                                ScreenPtr       pScreen,
-                                BoxPtr          pBox)
-{
-    /* until DIX uses this, this will remain a stub */
 }
 
 /*ARGSUSED*/
