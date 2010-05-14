@@ -235,7 +235,7 @@ static int ProcDMXQueryVersion(ClientPtr client)
 	swapl(&rep.patchVersion, n);
     }
     WriteToClient(client, sizeof(xDMXQueryVersionReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXSync(ClientPtr client)
@@ -257,7 +257,7 @@ static int ProcDMXSync(ClientPtr client)
         swapl(&rep.status, n);
     }
     WriteToClient(client, sizeof(xDMXSyncReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXForceWindowCreation(ClientPtr client)
@@ -326,7 +326,7 @@ static int ProcDMXGetScreenCount(ClientPtr client)
         swapl(&rep.screenCount, n);
     }
     WriteToClient(client, sizeof(xDMXGetScreenCountReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXGetScreenAttributes(ClientPtr client)
@@ -384,7 +384,7 @@ static int ProcDMXGetScreenAttributes(ClientPtr client)
     }
     WriteToClient(client, sizeof(xDMXGetScreenAttributesReply), (char *)&rep);
     if (length) WriteToClient(client, length, (char *)attr.displayName);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXChangeScreensAttributes(ClientPtr client)
@@ -457,7 +457,7 @@ static int ProcDMXChangeScreensAttributes(ClientPtr client)
     WriteToClient(client,
                   sizeof(xDMXChangeScreensAttributesReply),
                   (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXAddScreen(ClientPtr client)
@@ -508,7 +508,7 @@ static int ProcDMXAddScreen(ClientPtr client)
     WriteToClient(client,
                   sizeof(xDMXAddScreenReply),
                   (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXRemoveScreen(ClientPtr client)
@@ -534,7 +534,7 @@ static int ProcDMXRemoveScreen(ClientPtr client)
     WriteToClient(client,
                   sizeof(xDMXRemoveScreenReply),
                   (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 
@@ -678,7 +678,7 @@ static int ProcDMXGetWindowAttributes(ClientPtr client)
     free(windows);
     free(screens);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXGetDesktopAttributes(ClientPtr client)
@@ -709,7 +709,7 @@ static int ProcDMXGetDesktopAttributes(ClientPtr client)
         swapl(&rep.shiftY, n);
     }
     WriteToClient(client, sizeof(xDMXGetDesktopAttributesReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXChangeDesktopAttributes(ClientPtr client)
@@ -752,7 +752,7 @@ static int ProcDMXChangeDesktopAttributes(ClientPtr client)
     WriteToClient(client,
                   sizeof(xDMXChangeDesktopAttributesReply),
                   (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXGetInputCount(ClientPtr client)
@@ -772,7 +772,7 @@ static int ProcDMXGetInputCount(ClientPtr client)
         swapl(&rep.inputCount, n);
     }
     WriteToClient(client, sizeof(xDMXGetInputCountReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXGetInputAttributes(ClientPtr client)
@@ -810,7 +810,7 @@ static int ProcDMXGetInputAttributes(ClientPtr client)
     }
     WriteToClient(client, sizeof(xDMXGetInputAttributesReply), (char *)&rep);
     if (length) WriteToClient(client, length, (char *)attr.name);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXAddInput(ClientPtr client)
@@ -861,7 +861,7 @@ static int ProcDMXAddInput(ClientPtr client)
         swapl(&rep.physicalId, n);
     }
     WriteToClient(client, sizeof(xDMXAddInputReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXRemoveInput(ClientPtr client)
@@ -887,7 +887,7 @@ static int ProcDMXRemoveInput(ClientPtr client)
         swapl(&rep.status, n);
     }
     WriteToClient(client, sizeof(xDMXRemoveInputReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcDMXDispatch(ClientPtr client)

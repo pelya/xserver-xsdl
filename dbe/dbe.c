@@ -147,7 +147,7 @@ ProcDbeGetVersion(ClientPtr client)
 
     WriteToClient(client, sizeof(xDbeGetVersionReply), (char *)&rep);
 
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetVersion() */
 
@@ -810,7 +810,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
         free(pDrawables);
     }
 
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetVisualInfo() */
 
@@ -866,7 +866,7 @@ ProcDbeGetBackBufferAttributes(ClientPtr client)
 
     WriteToClient(client, sizeof(xDbeGetBackBufferAttributesReply),
                   (char *)&rep);
-    return(client->noClientException);
+    return Success;
 
 } /* ProcDbeGetbackBufferAttributes() */
 
@@ -1283,7 +1283,7 @@ DbeSetupBackgroundPainter(WindowPtr pWin, GCPtr pGC)
             return(FALSE);
     }
 
-    return dixChangeGC(NullClient, pGC, gcmask, NULL, gcvalues) == 0;
+    return ChangeGC(NullClient, pGC, gcmask, gcvalues) == 0;
 } /* DbeSetupBackgroundPainter() */
 
 

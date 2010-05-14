@@ -1867,7 +1867,7 @@ void
 KXVPaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
 {
     GCPtr	pGC;
-    CARD32    	val[2];
+    ChangeGCVal	val[2];
     xRectangle	*rects, *r;
     BoxPtr	pBox = REGION_RECTS (pRgn);
     int		nBox = REGION_NUM_RECTS (pRgn);
@@ -1890,9 +1890,9 @@ KXVPaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
     if (!pGC)
 	goto bail1;
 
-    val[0] = fg;
-    val[1] = IncludeInferiors;
-    dixChangeGC (NullClient, pGC, GCForeground|GCSubwindowMode, val, NULL);
+    val[0].val = fg;
+    val[1].val = IncludeInferiors;
+    ChangeGC (NullClient, pGC, GCForeground|GCSubwindowMode, val);
 
     ValidateGC (pDraw, pGC);
 

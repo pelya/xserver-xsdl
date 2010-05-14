@@ -126,7 +126,7 @@ ProcXTestGetVersion(ClientPtr client)
         swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xXTestGetVersionReply), (char *)&rep);
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -164,7 +164,7 @@ ProcXTestCompareCursor(ClientPtr client)
         swaps(&rep.sequenceNumber, n);
     }
     WriteToClient(client, sizeof(xXTestCompareCursorReply), (char *)&rep);
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -457,7 +457,7 @@ ProcXTestFakeInput(ClientPtr client)
 
     if (need_ptr_update)
         miPointerUpdateSprite(dev);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -475,7 +475,7 @@ ProcXTestGrabControl(ClientPtr client)
         MakeClientGrabImpervious(client);
     else
         MakeClientGrabPervious(client);
-    return(client->noClientException);
+    return Success;
 }
 
 static int

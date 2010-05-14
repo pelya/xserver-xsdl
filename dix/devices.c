@@ -1535,7 +1535,7 @@ ProcSetModifierMapping(ClientPtr client)
     rep.success = rc;
 
     WriteReplyToClient(client, sizeof(xSetModifierMappingReply), &rep);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1561,7 +1561,7 @@ ProcGetModifierMapping(ClientPtr client)
 
     free(modkeymap);
 
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1619,7 +1619,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
                               stuff->keyCodes, NULL, client);
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -1722,7 +1722,7 @@ ProcGetKeyboardMapping(ClientPtr client)
     free(syms->map);
     free(syms);
 
-    return client->noClientException;
+    return Success;
 }
 
 int

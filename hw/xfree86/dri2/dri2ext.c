@@ -91,7 +91,7 @@ ProcDRI2QueryVersion(ClientPtr client)
 
     WriteToClient(client, sizeof(xDRI2QueryVersionReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -129,7 +129,7 @@ ProcDRI2Connect(ClientPtr client)
     WriteToClient(client, rep.driverNameLength, driverName);
     WriteToClient(client, rep.deviceNameLength, deviceName);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -151,7 +151,7 @@ ProcDRI2Authenticate(ClientPtr client)
     rep.authenticated = DRI2Authenticate(pDraw->pScreen, stuff->magic);
     WriteToClient(client, sizeof(xDRI2AuthenticateReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -188,7 +188,7 @@ ProcDRI2CreateDrawable(ClientPtr client)
     if (status != Success)
 	return status;
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -203,7 +203,7 @@ ProcDRI2DestroyDrawable(ClientPtr client)
 		       &pDrawable, &status))
 	return status;
 
-    return client->noClientException;
+    return Success;
 }
 
 
@@ -269,7 +269,7 @@ ProcDRI2GetBuffers(ClientPtr client)
 	return status;
 
     if (DRI2ThrottleClient(client, pDrawable))
-	return client->noClientException;
+	return Success;
 
     attachments = (unsigned int *) &stuff[1];
     buffers = DRI2GetBuffers(pDrawable, &width, &height,
@@ -278,7 +278,7 @@ ProcDRI2GetBuffers(ClientPtr client)
 
     send_buffers_reply(client, pDrawable, buffers, count, width, height);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -296,7 +296,7 @@ ProcDRI2GetBuffersWithFormat(ClientPtr client)
 	return status;
 
     if (DRI2ThrottleClient(client, pDrawable))
-	return client->noClientException;
+	return Success;
 
     attachments = (unsigned int *) &stuff[1];
     buffers = DRI2GetBuffersWithFormat(pDrawable, &width, &height,
@@ -304,7 +304,7 @@ ProcDRI2GetBuffersWithFormat(ClientPtr client)
 
     send_buffers_reply(client, pDrawable, buffers, count, width, height);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -341,7 +341,7 @@ ProcDRI2CopyRegion(ClientPtr client)
 
     WriteToClient(client, sizeof(xDRI2CopyRegionReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -398,7 +398,7 @@ ProcDRI2SwapBuffers(ClientPtr client)
      * also orders swaps.
      */
     if (DRI2ThrottleClient(client, pDrawable))
-	return client->noClientException;
+	return Success;
 
     target_msc = vals_to_card64(stuff->target_msc_lo, stuff->target_msc_hi);
     divisor = vals_to_card64(stuff->divisor_lo, stuff->divisor_hi);
@@ -416,7 +416,7 @@ ProcDRI2SwapBuffers(ClientPtr client)
 
     WriteToClient(client, sizeof(xDRI2SwapBuffersReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -456,7 +456,7 @@ ProcDRI2GetMSC(ClientPtr client)
 
     WriteToClient(client, sizeof(xDRI2MSCReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -483,7 +483,7 @@ ProcDRI2WaitMSC(ClientPtr client)
     if (status != Success)
 	return status;
 
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -498,7 +498,7 @@ ProcDRI2WaitMSCReply(ClientPtr client, CARD64 ust, CARD64 msc, CARD64 sbc)
 
     WriteToClient(client, sizeof(xDRI2MSCReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -518,7 +518,7 @@ ProcDRI2SwapInterval(ClientPtr client)
 
     DRI2SwapInterval(pDrawable, stuff->interval);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -548,7 +548,7 @@ ProcDRI2WaitSBC(ClientPtr client)
 
     WriteToClient(client, sizeof(xDRI2MSCReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -613,7 +613,7 @@ SProcDRI2Connect(ClientPtr client)
     rep.driverNameLength = 0;
     rep.deviceNameLength = 0;
 
-    return client->noClientException;
+    return Success;
 }
 
 static int

@@ -244,7 +244,7 @@ ProcRRGetScreenSizeRange (ClientPtr client)
 	swaps(&rep.maxHeight, n);
     }
     WriteToClient(client, sizeof(xRRGetScreenSizeRangeReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 int
@@ -470,7 +470,7 @@ rrGetScreenResources(ClientPtr client, Bool query)
 	WriteToClient (client, extraLen, (char *) extra);
 	free(extra);
     }
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -740,7 +740,7 @@ ProcRRGetScreenInfo (ClientPtr client)
 	WriteToClient (client, extraLen, (char *) extra);
 	free(extra);
     }
-    return (client->noClientException);
+    return Success;
 }
 
 int
@@ -975,7 +975,7 @@ sendReply:
     }
     WriteToClient(client, sizeof(xRRSetScreenConfigReply), (char *)&rep);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static CARD16

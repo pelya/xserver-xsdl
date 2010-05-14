@@ -657,7 +657,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 	return;
     }
     
-    dixChangeGC (NullClient, pGC, gcmask, NULL, gcval);
+    ChangeGC (NullClient, pGC, gcmask, gcval);
     ValidateGC (drawable, pGC);
 
     numRects = REGION_NUM_RECTS(prgn);
@@ -683,17 +683,18 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 void
 miClearDrawable(DrawablePtr pDraw, GCPtr pGC)
 {
-    XID fg = pGC->fgPixel;
-    XID bg = pGC->bgPixel;
+    ChangeGCVal fg, bg;
     xRectangle rect;
 
+    fg.val = pGC->fgPixel;
+    bg.val = pGC->bgPixel;
     rect.x = 0;
     rect.y = 0;
     rect.width = pDraw->width;
     rect.height = pDraw->height;
-    dixChangeGC(NullClient, pGC, GCForeground, &bg, NULL);
+    ChangeGC(NullClient, pGC, GCForeground, &bg);
     ValidateGC(pDraw, pGC);
     (*pGC->ops->PolyFillRect)(pDraw, pGC, 1, &rect);
-    dixChangeGC(NullClient, pGC, GCForeground, &fg, NULL);
+    ChangeGC(NullClient, pGC, GCForeground, &fg);
     ValidateGC(pDraw, pGC);
 }

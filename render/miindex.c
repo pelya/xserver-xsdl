@@ -276,7 +276,7 @@ miInitIndexed (ScreenPtr	pScreen,
     /*
      * Build mapping from pixel value to ARGB
      */
-    QueryColors (pColormap, num, pixels, rgb);
+    QueryColors (pColormap, num, pixels, rgb, serverClient);
     for (i = 0; i < num; i++)
     {
 	p = pixels[i];

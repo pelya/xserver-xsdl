@@ -1166,7 +1166,7 @@ badAlloc:
 
 #define TextEltHeader 2
 #define FontShiftSize 5
-static XID clearGC[] = { CT_NONE };
+static ChangeGCVal clearGC[] = { { .ptr = NullPixmap } };
 #define clearGCmask (GCClipMask)
 
 int
@@ -1261,7 +1261,9 @@ doPolyText(ClientPtr client, PTclosurePtr c)
 	    {
 		if (pFont != c->pGC->font && c->pDraw)
 		{
-		    dixChangeGC(NullClient, c->pGC, GCFont, &fid, NULL);
+		    ChangeGCVal val;
+		    val.ptr = pFont;
+		    ChangeGC(NullClient, c->pGC, GCFont, &val);
 		    ValidateGC(c->pDraw, c->pGC);
 		    if (c->reqType == X_PolyText8)
 			c->polyText = (PolyTextPtr) c->pGC->ops->PolyText8;
@@ -1404,7 +1406,9 @@ bail:
 	/* Step 4 */
 	if (pFont != origGC->font)
 	{
-	    dixChangeGC(NullClient, origGC, GCFont, &fid, NULL);
+	    ChangeGCVal val;
+	    val.ptr = pFont;
+	    ChangeGC(NullClient, origGC, GCFont, &val);
 	    ValidateGC(c->pDraw, origGC);
 	}
 
@@ -1423,7 +1427,7 @@ bail:
     if (c->slept)
     {
 	ClientWakeup(c->client);
-	dixChangeGC(NullClient, c->pGC, clearGCmask, clearGC, NULL);
+	ChangeGC(NullClient, c->pGC, clearGCmask, clearGC);
 
 	/* Unreference the font from the scratch GC */
 	CloseFont(c->pGC->font, (Font)0);
@@ -1580,7 +1584,7 @@ bail:
     if (c->slept)
     {
 	ClientWakeup(c->client);
-	dixChangeGC(NullClient, c->pGC, clearGCmask, clearGC, NULL);
+	ChangeGC(NullClient, c->pGC, clearGCmask, clearGC);
 
 	/* Unreference the font from the scratch GC */
 	CloseFont(c->pGC->font, (Font)0);

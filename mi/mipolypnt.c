@@ -68,7 +68,7 @@ miPolyPoint(
     int 		xorg;
     int 		yorg;
     int 		nptTmp;
-    XID			fsOld, fsNew;
+    ChangeGCVal		fsOld, fsNew;
     int			*pwidthInit, *pwidth;
     int			i;
     xPoint 		*ppt;
@@ -103,11 +103,11 @@ miPolyPoint(
 	}
     }
 
-    fsOld = pGC->fillStyle;
-    fsNew = FillSolid;
+    fsOld.val = pGC->fillStyle;
+    fsNew.val = FillSolid;
     if(pGC->fillStyle != FillSolid)
     {
-	dixChangeGC(NullClient, pGC, GCFillStyle, &fsNew, NULL);
+	ChangeGC(NullClient, pGC, GCFillStyle, &fsNew);
 	ValidateGC(pDrawable, pGC);
     }
     pwidth = pwidthInit;
@@ -115,9 +115,9 @@ miPolyPoint(
 	*pwidth++ = 1;
     (*pGC->ops->FillSpans)(pDrawable, pGC, npt, pptInit, pwidthInit, FALSE); 
 
-    if(fsOld != FillSolid)
+    if(fsOld.val != FillSolid)
     {
-	dixChangeGC(NullClient, pGC, GCFillStyle, &fsOld, NULL);
+	ChangeGC(NullClient, pGC, GCFillStyle, &fsOld);
 	ValidateGC(pDrawable, pGC);
     }
     free(pwidthInit);

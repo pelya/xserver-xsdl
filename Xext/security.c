@@ -383,7 +383,7 @@ ProcSecurityQueryVersion(
     }
     (void)WriteToClient(client, SIZEOF(xSecurityQueryVersionReply),
 			(char *)&rep);
-    return (client->noClientException);
+    return Success;
 } /* ProcSecurityQueryVersion */
 
 
@@ -604,10 +604,7 @@ ProcSecurityGenerateAuthorization(
 		  pAuth->group, eventMask);
 
     /* the request succeeded; don't call RemoveAuthorization or free pAuth */
-
-    removeAuth = FALSE;
-    pAuth = NULL;
-    err = client->noClientException;
+    return Success;
 
 bailout:
     if (removeAuth)

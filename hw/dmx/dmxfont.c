@@ -208,8 +208,6 @@ static int dmxProcSetFontPath(ClientPtr client)
 	    /* Restore old fontpath in the DMX server */
 	    SetFontPath(client, nOldPaths, oldFontPath);
 	    client->errorValue = error;
-	} else {
-	    result = client->noClientException;
 	}
     }
 

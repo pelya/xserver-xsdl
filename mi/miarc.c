@@ -213,16 +213,6 @@ typedef struct _miPolyArc {
 	miArcJoinPtr	joins;
 } miPolyArcRec, *miPolyArcPtr;
 
-#define GCValsFunction		0
-#define GCValsForeground 	1
-#define GCValsBackground 	2
-#define GCValsLineWidth 	3
-#define GCValsCapStyle 		4
-#define GCValsJoinStyle		5
-#define GCValsMask		(GCFunction | GCForeground | GCBackground | \
-				 GCLineWidth | GCCapStyle | GCJoinStyle)
-static CARD32 gcvals[6];
-
 static void fillSpans(DrawablePtr pDrawable, GCPtr pGC);
 static void newFinalSpan(int y, int xmin, int xmax);
 static void drawArc(xArc *tarc, int l, int a0, int a1, miArcFacePtr right,
@@ -1045,13 +1035,18 @@ miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
 	    pGCTo = GetScratchGC(1, pDraw->pScreen);
 	    if (!pGCTo)
 		return;
-	    gcvals[GCValsFunction] = GXcopy;
-	    gcvals[GCValsForeground] = 1;
-	    gcvals[GCValsBackground] = 0;
-	    gcvals[GCValsLineWidth] = pGC->lineWidth;
-	    gcvals[GCValsCapStyle] = pGC->capStyle;
-	    gcvals[GCValsJoinStyle] = pGC->joinStyle;
-	    dixChangeGC(NullClient, pGCTo, GCValsMask, gcvals, NULL);
+	    {
+		ChangeGCVal gcvals[6];
+		gcvals[0].val = GXcopy;
+		gcvals[1].val = 1;
+		gcvals[2].val = 0;
+		gcvals[3].val = pGC->lineWidth;
+		gcvals[4].val = pGC->capStyle;
+		gcvals[5].val = pGC->joinStyle;
+		ChangeGC(NullClient, pGCTo, GCFunction |
+			GCForeground | GCBackground | GCLineWidth |
+			GCCapStyle | GCJoinStyle, gcvals);
+	    }
     
 	    /* allocate a 1 bit deep pixmap of the appropriate size, and
 	     * validate it */
@@ -1090,11 +1085,14 @@ miPolyArc(DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parcs)
  	     iphase >= 0;
 	     iphase--)
 	{
+	    ChangeGCVal gcval;
 	    if (iphase == 1) {
-		dixChangeGC (NullClient, pGC, GCForeground, &bg, NULL);
+		gcval.val = bg;
+		ChangeGC (NullClient, pGC, GCForeground, &gcval);
 		ValidateGC (pDraw, pGC);
 	    } else if (pGC->lineStyle == LineDoubleDash) {
-		dixChangeGC (NullClient, pGC, GCForeground, &fg, NULL);
+		gcval.val = fg;
+		ChangeGC (NullClient, pGC, GCForeground, &gcval);
 		ValidateGC (pDraw, pGC);
 	    }
 	    for (i = 0; i < polyArcs[iphase].narcs; i++) {

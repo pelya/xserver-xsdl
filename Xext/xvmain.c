@@ -126,8 +126,6 @@ unsigned long XvRTPortNotify;
 
 /* EXTERNAL */
 
-extern XID clientErrorValue;
-
 static void WriteSwappedVideoNotifyEvent(xvEvent *, xvEvent *);
 static void WriteSwappedPortNotifyEvent(xvEvent *, xvEvent *);
 static Bool CreateResourceTypes(void);

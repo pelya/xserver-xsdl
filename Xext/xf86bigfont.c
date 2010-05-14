@@ -368,7 +368,7 @@ ProcXF86BigfontQueryVersion(
     }
     WriteToClient(client,
 		  sizeof(xXF86BigfontQueryVersionReply), (char *)&reply);
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -698,7 +698,7 @@ ProcXF86BigfontQueryFont(
 	    if (shmid == -1) free(pIndex2UniqIndex);
 	    if (!pDesc) free(pCI);
 	}
-	return (client->noClientException);
+	return Success;
     }
 }
 

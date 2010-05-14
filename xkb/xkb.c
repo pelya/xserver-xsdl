@@ -194,7 +194,7 @@ ProcXkbUseExtension(ClientPtr client)
 	swaps(&rep.serverMinor, n);
     }
     WriteToClient(client,SIZEOF(xkbUseExtensionReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -219,7 +219,7 @@ ProcXkbSelectEvents(ClientPtr client)
 	client->mapNotifyMask|= (stuff->affectMap&stuff->map);
     }
     if ((stuff->affectWhich&(~XkbMapNotifyMask))==0) 
-	return client->noClientException;
+	return Success;
 
     masks = XkbFindClientResource((DevicePtr)dev,client);
     if (!masks){
@@ -343,7 +343,7 @@ ProcXkbSelectEvents(ClientPtr client)
 	    ErrorF("[xkb] Extra data (%d bytes) after SelectEvents\n",dataLeft);
 	    return BadLength;
 	}
-	return client->noClientException;
+	return Success;
     }
     return BadAlloc;
 }
@@ -578,7 +578,7 @@ ProcXkbGetState(ClientPtr client)
 	swaps(&rep.ptrBtnState,n);
     }
     WriteToClient(client, SIZEOF(xkbGetStateReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -646,7 +646,7 @@ ProcXkbLatchLockState(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -722,7 +722,7 @@ ProcXkbGetControls(ClientPtr client)
 	swaps(&rep.axOptions, n);
     }
     WriteToClient(client, SIZEOF(xkbGetControlsReply), (char *)&rep);
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -942,7 +942,7 @@ ProcXkbSetControls(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -1406,7 +1406,7 @@ char		*desc,*start;
     WriteToClient(client, (i=SIZEOF(xkbGetMapReply)), (char *)rep);
     WriteToClient(client, len, start);
     free((char *)start);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -2594,7 +2594,7 @@ ProcXkbSetMap(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -2682,7 +2682,7 @@ int		size;
 	WriteToClient(client, size, data);
 	free((char *)data);
     }
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -2923,7 +2923,7 @@ ProcXkbSetCompatMap(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -2960,7 +2960,7 @@ ProcXkbGetIndicatorState(ClientPtr client)
 	swapl(&rep.state,i);
     }
     WriteToClient(client, SIZEOF(xkbGetIndicatorStateReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -3036,7 +3036,7 @@ register unsigned	bit;
 	WriteToClient(client, length, (char *)map);
 	free((char *)map);
     }
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -3130,7 +3130,7 @@ ProcXkbSetIndicatorMap(ClientPtr client)
     CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
 
     if (stuff->which==0)
-	return client->noClientException;
+	return Success;
 
     for (nIndicators=i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
 	if (stuff->which&bit)
@@ -3257,7 +3257,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     }
 
     WriteToClient(client,SIZEOF(xkbGetNamedIndicatorReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 
@@ -3467,7 +3467,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -3757,7 +3757,7 @@ register int            n;
     WriteToClient(client, SIZEOF(xkbGetNamesReply), (char *)rep);
     WriteToClient(client, length, start);
     free((char *)start);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -4286,7 +4286,7 @@ ProcXkbSetNames(ClientPtr client)
 
     /* everything is okay -- update names */
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -4787,7 +4787,7 @@ XkbSendGeometry(	ClientPtr		client,
 	free((char *)start);
     if (freeGeom)
 	XkbFreeGeometry(geom,XkbGeomAllMask,TRUE);
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -5414,7 +5414,7 @@ ProcXkbPerClientFlags(ClientPtr client)
 	swapl(&rep.autoCtrlValues,n);
     }
     WriteToClient(client,SIZEOF(xkbPerClientFlagsReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -5548,7 +5548,7 @@ ProcXkbListComponents(ClientPtr client)
 	free(list.pool);
 	list.pool= NULL;
     }
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -5891,7 +5891,7 @@ ProcXkbGetKbdByName(ClientPtr client)
     if (names.compat)	{ free(names.compat); names.compat= NULL; }
     if (names.symbols)	{ free(names.symbols); names.symbols= NULL; }
     if (names.geometry)	{ free(names.geometry); names.geometry= NULL; }
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -6231,7 +6231,7 @@ char *			str;
 	ErrorF("[xkb]                  Wrote %d fewer bytes than expected\n",length);
 	return BadLength;
     }
-    return client->noClientException;
+    return Success;
 }
 
 static char *
@@ -6556,7 +6556,7 @@ ProcXkbSetDeviceInfo(ClientPtr client)
         }
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/
@@ -6619,7 +6619,7 @@ int rc;
 	swapl(&rep.supportedCtrls, n);
     }
     WriteToClient(client,SIZEOF(xkbSetDebuggingFlagsReply), (char *)&rep);
-    return client->noClientException;
+    return Success;
 }
 
 /***====================================================================***/

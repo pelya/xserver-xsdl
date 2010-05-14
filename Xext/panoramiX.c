@@ -917,7 +917,7 @@ ProcPanoramiXQueryVersion (ClientPtr client)
         swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof (xPanoramiXQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 int
@@ -944,7 +944,7 @@ ProcPanoramiXGetState(ClientPtr client)
 	    swapl (&rep.window, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetStateReply), (char *) &rep);
-	return client->noClientException;
+	return Success;
 
 }
 
@@ -972,7 +972,7 @@ ProcPanoramiXGetScreenCount(ClientPtr client)
 	    swapl (&rep.window, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetScreenCountReply), (char *) &rep);
-	return client->noClientException;
+	return Success;
 }
 
 int 
@@ -1008,7 +1008,7 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 	    swapl (&rep.screen, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetScreenSizeReply), (char *) &rep);
-	return client->noClientException;
+	return Success;
 }
 
 
@@ -1039,7 +1039,7 @@ ProcXineramaIsActive(ClientPtr client)
 	swapl (&rep.state, n);
     }	
     WriteToClient (client, sizeof (xXineramaIsActiveReply), (char *) &rep);
-    return client->noClientException;
+    return Success;
 }
 
 
@@ -1084,7 +1084,7 @@ ProcXineramaQueryScreens(ClientPtr client)
 	}
     }
 
-    return client->noClientException;
+    return Success;
 }
 
 

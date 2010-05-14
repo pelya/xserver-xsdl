@@ -527,7 +527,7 @@ ProcRRGetOutputInfo (ClientPtr client)
 	free(extra);
     }
     
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -581,7 +581,7 @@ ProcRRSetOutputPrimary(ClientPtr client)
     pScrPriv = rrGetScrPriv(pWin->drawable.pScreen);
     RRSetPrimaryOutput(pWin->drawable.pScreen, pScrPriv, output);
 
-    return client->noClientException;
+    return Success;
 }
 
 int
@@ -617,5 +617,5 @@ ProcRRGetOutputPrimary(ClientPtr client)
 
     WriteToClient(client, sizeof(xRRGetOutputPrimaryReply), &rep);
 
-    return client->noClientException;
+    return Success;
 }

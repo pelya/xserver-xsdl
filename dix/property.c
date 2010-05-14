@@ -244,7 +244,7 @@ ProcChangeProperty(ClientPtr client)
     if (err != Success)
 	return err;
     else
-	return client->noClientException;
+	return Success;
 }
 
 int
@@ -442,7 +442,7 @@ NullPropertyReply(
     reply->propertyType = propertyType;
     reply->format = format;
     WriteReplyToClient(client, sizeof(xGenericReply), reply);
-    return(client->noClientException);
+    return Success;
 }
 
 /*****************
@@ -574,7 +574,7 @@ ProcGetProperty(ClientPtr client)
 	free(pProp->data);
 	free(pProp);
     }
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -620,7 +620,7 @@ ProcListProperties(ClientPtr client)
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
     }
     free(pAtoms);
-    return(client->noClientException);
+    return Success;
 }
 
 int 
@@ -641,9 +641,5 @@ ProcDeleteProperty(ClientPtr client)
 	return (BadAtom);
     }
 
-    result = DeleteProperty(client, pWin, stuff->property);
-    if (client->noClientException != Success)
-	return(client->noClientException);
-    else
-	return(result);
+    return DeleteProperty(client, pWin, stuff->property);
 }

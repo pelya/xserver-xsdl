@@ -293,7 +293,7 @@ ProcQueryExtension(ClientPtr client)
 	}
     }
     WriteReplyToClient(client, sizeof(xQueryExtensionReply), &reply);
-    return(client->noClientException);
+    return Success;
 }
 
 int
@@ -354,5 +354,5 @@ ProcListExtensions(ClientPtr client)
         WriteToClient(client, total_length, buffer);
         free(buffer);
     }
-    return(client->noClientException);
+    return Success;
 }

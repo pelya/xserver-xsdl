@@ -583,7 +583,7 @@ static int __glXDispatch(ClientPtr client)
 	ResetCurrentRequest(client);
 	client->sequence--;
 	IgnoreClient(client);
-	return(client->noClientException);
+	return Success;
     }
 
     /*

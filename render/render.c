@@ -290,7 +290,7 @@ ProcRenderQueryVersion (ClientPtr client)
 	swapl(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xRenderQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static VisualPtr
@@ -513,7 +513,7 @@ ProcRenderQueryPictFormats (ClientPtr client)
     }
     WriteToClient(client, rlength, (char *) reply);
     free(reply);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -572,7 +572,7 @@ ProcRenderQueryPictIndexValues (ClientPtr client)
 
     WriteToClient(client, rlength, (char *) reply);
     free(reply);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -647,7 +647,6 @@ ProcRenderSetPictureClipRectangles (ClientPtr client)
     REQUEST(xRenderSetPictureClipRectanglesReq);
     PicturePtr	    pPicture;
     int		    nr;
-    int		    result;
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureClipRectanglesReq);
     VERIFY_PICTURE (pPicture, stuff->picture, client, DixSetAttrAccess);
@@ -658,13 +657,9 @@ ProcRenderSetPictureClipRectangles (ClientPtr client)
     if (nr & 4)
 	return BadLength;
     nr >>= 3;
-    result = SetPictureClipRects (pPicture, 
+    return SetPictureClipRects (pPicture,
 				  stuff->xOrigin, stuff->yOrigin,
 				  nr, (xRectangle *) &stuff[1]);
-    if (client->noClientException != Success)
-        return(client->noClientException);
-    else
-        return(result);
 }
 
 static int
@@ -677,7 +672,7 @@ ProcRenderFreePicture (ClientPtr client)
 
     VERIFY_PICTURE (pPicture, stuff->picture, client, DixDestroyAccess);
     FreeResource (stuff->picture, RT_NONE);
-    return(client->noClientException);
+    return Success;
 }
 
 static Bool
@@ -772,7 +767,7 @@ ProcRenderTrapezoids (ClientPtr client)
 	CompositeTrapezoids (stuff->op, pSrc, pDst, pFormat,
 			     stuff->xSrc, stuff->ySrc,
 			     ntraps, (xTrapezoid *) &stuff[1]);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -812,7 +807,7 @@ ProcRenderTriangles (ClientPtr client)
 	CompositeTriangles (stuff->op, pSrc, pDst, pFormat,
 			    stuff->xSrc, stuff->ySrc,
 			    ntris, (xTriangle *) &stuff[1]);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -852,7 +847,7 @@ ProcRenderTriStrip (ClientPtr client)
 	CompositeTriStrip (stuff->op, pSrc, pDst, pFormat,
 			   stuff->xSrc, stuff->ySrc,
 			   npoints, (xPointFixed *) &stuff[1]);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -892,7 +887,7 @@ ProcRenderTriFan (ClientPtr client)
 	CompositeTriFan (stuff->op, pSrc, pDst, pFormat,
 			 stuff->xSrc, stuff->ySrc,
 			 npoints, (xPointFixed *) &stuff[1]);
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -984,7 +979,7 @@ ProcRenderReferenceGlyphSet (ClientPtr client)
     glyphSet->refcnt++;
     if (!AddResource (stuff->gsid, GlyphSetType, (pointer)glyphSet))
 	return BadAlloc;
-    return client->noClientException;
+    return Success;
 }
 
 #define NLOCALDELTA	64
@@ -1006,7 +1001,7 @@ ProcRenderFreeGlyphSet (ClientPtr client)
 	return (rc == BadValue) ? RenderErrBase + BadGlyphSet : rc;
     }
     FreeResource (stuff->glyphset, RT_NONE);
-    return client->noClientException;
+    return Success;
 }
 
 typedef struct _GlyphNew {
@@ -1201,7 +1196,7 @@ ProcRenderAddGlyphs (ClientPtr client)
 
     if (glyphsBase != glyphsLocal)
 	free(glyphsBase);
-    return client->noClientException;
+    return Success;
 bail:
     if (pSrc)
 	FreePicture ((pointer) pSrc, 0);
@@ -1249,7 +1244,7 @@ ProcRenderFreeGlyphs (ClientPtr client)
 	    return RenderErrBase + BadGlyph;
 	}
     }
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -1426,7 +1421,7 @@ ProcRenderCompositeGlyphs (ClientPtr client)
     if (listsBase != listsLocal)
 	free(listsBase);
     
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -1457,7 +1452,7 @@ ProcRenderFillRectangles (ClientPtr client)
 		    things,
 		    (xRectangle *) &stuff[1]);
     
-    return client->noClientException;
+    return Success;
 }
 
 static void
@@ -1682,7 +1677,7 @@ ProcRenderCreateCursor (ClientPtr client)
     if (!AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
 	return BadAlloc;
 
-    return client->noClientException;
+    return Success;
 }
 
 static int
@@ -1690,15 +1685,10 @@ ProcRenderSetPictureTransform (ClientPtr client)
 {
     REQUEST(xRenderSetPictureTransformReq);
     PicturePtr	pPicture;
-    int		result;
 
     REQUEST_SIZE_MATCH(xRenderSetPictureTransformReq);
     VERIFY_PICTURE (pPicture, stuff->picture, client, DixSetAttrAccess);
-    result = SetPictureTransform (pPicture, (PictTransform *) &stuff->transform);
-    if (client->noClientException != Success)
-        return(client->noClientException);
-    else
-        return(result);
+    return SetPictureTransform (pPicture, (PictTransform *) &stuff->transform);
 }
 
 static int
@@ -1808,7 +1798,7 @@ ProcRenderQueryFilters (ClientPtr client)
     WriteToClient(client, total_bytes, (char *) reply);
     free(reply);
     
-    return(client->noClientException);
+    return Success;
 }
 
 static int
@@ -1871,7 +1861,7 @@ ProcRenderCreateAnimCursor (ClientPtr client)
 	return ret;
     
     if (AddResource (stuff->cid, RT_CURSOR, (pointer)pCursor))
-	return client->noClientException;
+	return Success;
     return BadAlloc;
 }
 
@@ -1894,7 +1884,7 @@ ProcRenderAddTraps (ClientPtr client)
 	AddTraps (pPicture,
 		  stuff->xOff, stuff->yOff,
 		  ntraps, (xTrap *) &stuff[1]);
-    return client->noClientException;
+    return Success;
 }
 
 static int ProcRenderCreateSolidFill(ClientPtr client)

@@ -52,13 +52,6 @@ Equipment Corporation.
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
                               CWDontPropagate | CWOverrideRedirect | CWCursor )
 
-/* Various of the DIX function interfaces were not designed to allow
- * the client->errorValue to be set on BadValue and other errors.
- * Rather than changing interfaces and breaking untold code we introduce
- * a new global that dispatch can use.
- */
-extern XID clientErrorValue;   /* XXX this is a kludge */
-
 int PanoramiXCreateWindow(ClientPtr client)
 {
     PanoramiXRes *parent, *newWin;
@@ -579,7 +572,7 @@ int PanoramiXGetGeometry(ClientPtr client)
     }
 
     WriteReplyToClient(client, sizeof(xGetGeometryReply), &rep);
-    return (client->noClientException);
+    return Success;
 }
 
 int PanoramiXTranslateCoords(ClientPtr client)
@@ -649,7 +642,7 @@ int PanoramiXTranslateCoords(ClientPtr client)
     }
 
     WriteReplyToClient(client, sizeof(xTranslateCoordsReply), &rep);
-    return(client->noClientException);
+    return Success;
 }
 
 int PanoramiXCreatePixmap(ClientPtr client)
@@ -1088,8 +1081,6 @@ int PanoramiXCopyArea(ClientPtr client)
 	}
 
 	free(data);
-
-	result = Success;
     } else {
 	DrawablePtr pDst = NULL, pSrc = NULL;
 	GCPtr pGC = NULL;
@@ -1157,11 +1148,9 @@ int PanoramiXCopyArea(ClientPtr client)
 		client, &totalReg, stuff->dstDrawable, X_CopyArea, 0);
 	    REGION_UNINIT(pScreen, &totalReg);
 	}
-	
-	result = client->noClientException;
     }
 
-    return (result);
+    return Success;
 }
 
 
@@ -1271,7 +1260,7 @@ int PanoramiXCopyPlane(ClientPtr client)
 	REGION_UNINIT(pScreen, &totalReg);
     }
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -1331,7 +1320,7 @@ int PanoramiXPolyPoint(ClientPtr client)
         free(origPts);
         return (result);
     } else
-	return (client->noClientException);
+	return Success;
 }
 
 
@@ -1391,7 +1380,7 @@ int PanoramiXPolyLine(ClientPtr client)
         free(origPts);
         return (result);
    } else
-	return (client->noClientException);
+	return Success;
 }
 
 
@@ -1454,7 +1443,7 @@ int PanoramiXPolySegment(ClientPtr client)
 	free(origSegs);
 	return (result);
     } else
-	  return (client->noClientException);
+	  return Success;
 }
 
 
@@ -1516,7 +1505,7 @@ int PanoramiXPolyRectangle(ClientPtr client)
 	free(origRecs);
 	return (result);
     } else
-       return (client->noClientException);
+       return Success;
 }
 
 
@@ -1576,7 +1565,7 @@ int PanoramiXPolyArc(ClientPtr client)
 	free(origArcs);
 	return (result);
     } else
-       return (client->noClientException);
+       return Success;
 }
 
 
@@ -1637,7 +1626,7 @@ int PanoramiXFillPoly(ClientPtr client)
 	free(locPts);
 	return (result);
     } else
-       return (client->noClientException);
+       return Success;
 }
 
 
@@ -1698,7 +1687,7 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
 	free(origRects);
 	return (result);
     } else
-       return (client->noClientException);
+       return Success;
 }
 
 
@@ -1759,7 +1748,7 @@ int PanoramiXPolyFillArc(ClientPtr client)
 	free(origArcs);
 	return (result);
     } else
-       return (client->noClientException);
+       return Success;
 }
 
 
@@ -1954,7 +1943,7 @@ int PanoramiXGetImage(ClientPtr client)
 	}
     }
     free(pBuf);
-    return (client->noClientException);
+    return Success;
 }
 
 

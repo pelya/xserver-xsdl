@@ -222,7 +222,7 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
 {
     miDCCursorPtr   pPriv;
     GCPtr	    pGC;
-    XID		    gcvals[3];
+    ChangeGCVal	    gcvals;
 
     pPriv = malloc(sizeof (miDCCursorRec));
     if (!pPriv)
@@ -305,22 +305,22 @@ miDCRealize (ScreenPtr pScreen, CursorPtr pCursor)
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->sourceBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
  			   0, XYPixmap, (char *)pCursor->bits->source);
-    gcvals[0] = GXand;
-    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
+    gcvals.val = GXand;
+    ChangeGC (NullClient, pGC, GCFunction, &gcvals);
     ValidateGC ((DrawablePtr)pPriv->sourceBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->sourceBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
  			   0, XYPixmap, (char *)pCursor->bits->mask);
 
     /* mask bits -- pCursor->mask & ~pCursor->source */
-    gcvals[0] = GXcopy;
-    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
+    gcvals.val = GXcopy;
+    ChangeGC (NullClient, pGC, GCFunction, &gcvals);
     ValidateGC ((DrawablePtr)pPriv->maskBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->maskBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
  			   0, XYPixmap, (char *)pCursor->bits->mask);
-    gcvals[0] = GXandInverted;
-    dixChangeGC (NullClient, pGC, GCFunction, gcvals, NULL);
+    gcvals.val = GXandInverted;
+    ChangeGC (NullClient, pGC, GCFunction, &gcvals);
     ValidateGC ((DrawablePtr)pPriv->maskBits, pGC);
     (*pGC->ops->PutImage) ((DrawablePtr)pPriv->maskBits, pGC, 1,
 			   0, 0, pCursor->bits->width, pCursor->bits->height,
@@ -365,13 +365,13 @@ miDCPutBits (
     unsigned long   source,
     unsigned long   mask)
 {
-    XID	    gcvals[1];
+    ChangeGCVal gcval;
     int     x, y;
 
     if (sourceGC->fgPixel != source)
     {
-	gcvals[0] = source;
-	dixChangeGC (NullClient, sourceGC, GCForeground, gcvals, NULL);
+	gcval.val = source;
+	ChangeGC (NullClient, sourceGC, GCForeground, &gcval);
     }
     if (sourceGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, sourceGC);
@@ -390,8 +390,8 @@ miDCPutBits (
     (*sourceGC->ops->PushPixels) (sourceGC, pPriv->sourceBits, pDrawable, w, h, x, y);
     if (maskGC->fgPixel != mask)
     {
-	gcvals[0] = mask;
-	dixChangeGC (NullClient, maskGC, GCForeground, gcvals, NULL);
+	gcval.val = mask;
+	ChangeGC (NullClient, maskGC, GCForeground, &gcval);
     }
     if (maskGC->serialNumber != pDrawable->serialNumber)
 	ValidateGC (pDrawable, maskGC);

@@ -50,7 +50,7 @@ ProcXResQueryVersion (ClientPtr client)
         swaps(&rep.server_minor, n);
     }
     WriteToClient(client, sizeof (xXResQueryVersionReply), (char *)&rep);
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -103,7 +103,7 @@ ProcXResQueryClients (ClientPtr client)
 
     free(current_clients);
 
-    return (client->noClientException);
+    return Success;
 }
 
 
@@ -184,7 +184,7 @@ ProcXResQueryClientResources (ClientPtr client)
 
     free(counts);
     
-    return (client->noClientException);
+    return Success;
 }
 
 static unsigned long
@@ -295,7 +295,7 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
     }
     WriteToClient (client,sizeof(xXResQueryClientPixmapBytesReply),(char*)&rep);
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int

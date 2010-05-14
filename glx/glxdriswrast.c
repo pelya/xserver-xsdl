@@ -292,14 +292,6 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     return &context->base;
 }
 
-static void
-glxChangeGC(GCPtr gc, BITS32 mask, CARD32 val)
-{
-    CARD32 v[1];
-    v[0] = val;
-    dixChangeGC(NullClient, gc, mask, v, NULL);
-}
-
 static __GLXdrawable *
 __glXDRIscreenCreateDrawable(ClientPtr client,
 			     __GLXscreen *screen,
@@ -309,6 +301,7 @@ __glXDRIscreenCreateDrawable(ClientPtr client,
 			     XID glxDrawId,
 			     __GLXconfig *glxConfig)
 {
+    ChangeGCVal gcvals[2];
     __GLXDRIscreen *driScreen = (__GLXDRIscreen *) screen;
     __GLXDRIconfig *config = (__GLXDRIconfig *) glxConfig;
     __GLXDRIdrawable *private;
@@ -333,9 +326,10 @@ __glXDRIscreenCreateDrawable(ClientPtr client,
     private->gc = CreateScratchGC(pScreen, pDraw->depth);
     private->swapgc = CreateScratchGC(pScreen, pDraw->depth);
 
-    glxChangeGC(private->gc, GCFunction, GXcopy);
-    glxChangeGC(private->swapgc, GCFunction, GXcopy);
-    glxChangeGC(private->swapgc, GCGraphicsExposures, FALSE);
+    gcvals[0].val = GXcopy;
+    ChangeGC(NullClient, private->gc, GCFunction, gcvals);
+    gcvals[1].val = FALSE;
+    ChangeGC(NullClient, private->gc, GCFunction | GCGraphicsExposures, gcvals);
 
     private->driDrawable =
 	(*driScreen->swrast->createNewDrawable)(driScreen->driScreen,

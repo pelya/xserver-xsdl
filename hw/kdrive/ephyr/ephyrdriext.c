@@ -636,7 +636,7 @@ ProcXF86DRIQueryVersion (register ClientPtr client)
     }
     WriteToClient(client, sizeof(xXF86DRIQueryVersionReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -674,7 +674,7 @@ ProcXF86DRIQueryDirectRenderingCapable (register ClientPtr client)
     WriteToClient(client, sizeof(xXF86DRIQueryDirectRenderingCapableReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -717,7 +717,7 @@ ProcXF86DRIOpenConnection (register ClientPtr client)
     if (rep.busIdStringLength)
         WriteToClient(client, rep.busIdStringLength, busIdString);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -744,7 +744,7 @@ ProcXF86DRIAuthConnection  (register ClientPtr client)
     }
     WriteToClient(client, sizeof(xXF86DRIAuthConnectionReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -763,7 +763,7 @@ ProcXF86DRICloseConnection (register ClientPtr client)
     */
 
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -802,7 +802,7 @@ ProcXF86DRIGetClientDriverName (register ClientPtr client)
                       rep.clientDriverNameLength, 
                       clientDriverName);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -848,7 +848,7 @@ ProcXF86DRICreateContext (register ClientPtr client)
 
     WriteToClient(client, sizeof(xXF86DRICreateContextReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -868,7 +868,7 @@ ProcXF86DRIDestroyContext (register ClientPtr client)
    }
 
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static Bool
@@ -1079,7 +1079,7 @@ ProcXF86DRICreateDrawable (ClientPtr client)
 
     WriteToClient(client, sizeof(xXF86DRICreateDrawableReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1123,7 +1123,7 @@ ProcXF86DRIDestroyDrawable (register ClientPtr client)
     pair->remote=0;
 
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1257,7 +1257,7 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
 
     EPHYR_LOG ("leave\n") ;
 
-    return (client->noClientException);
+    return Success;
 }
 
 static int
@@ -1308,7 +1308,7 @@ ProcXF86DRIGetDeviceInfo (register ClientPtr client)
         WriteToClient(client, rep.devPrivateSize, (char *)pDevPrivate);
     }
     EPHYR_LOG ("leave\n") ;
-    return (client->noClientException);
+    return Success;
 }
 
 static int
