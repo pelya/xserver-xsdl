@@ -2161,6 +2161,7 @@ damageext/Makefile
 dbe/Makefile
 dix/Makefile
 doc/Makefile
+doc/xml/Makefile
 fb/Makefile
 record/Makefile
 config/Makefile
