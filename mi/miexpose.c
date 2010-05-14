@@ -297,7 +297,7 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 
 	if (extents)
 	{
-	    /* PaintWindowBackground doesn't clip, so we have to */
+	    /* miPaintWindow doesn't clip, so we have to */
 	    REGION_INTERSECT(pscr, &rgnExposed, &rgnExposed, &pWin->clipList);
 	}
 	miPaintWindow((WindowPtr)pDstDrawable, &rgnExposed, PW_BACKGROUND);
@@ -497,7 +497,7 @@ miWindowExposures( WindowPtr pWin, RegionPtr prgn, RegionPtr other_exposed)
 		REGION_RESET( pWin->drawable.pScreen, exposures, &box);
 		REGION_UNION( pWin->drawable.pScreen, prgn, prgn, exposures);
 	    }
-	    /* PaintWindowBackground doesn't clip, so we have to */
+	    /* miPaintWindow doesn't clip, so we have to */
 	    REGION_INTERSECT( pWin->drawable.pScreen, prgn, prgn, &pWin->clipList);
 	}
 	if (prgn && !REGION_NIL(prgn))
