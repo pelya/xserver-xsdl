@@ -439,7 +439,7 @@ ChangeGCXIDs(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32)
 	client->errorValue = mask;
 	return BadValue;
     }
-    for (i = Ones(mask); i; --i)
+    for (i = Ones(mask); i--; )
 	vals[i].val = pC32[i];
     for (i = 0; i < sizeof(xidfields) / sizeof(*xidfields); ++i)
     {
