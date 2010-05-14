@@ -207,13 +207,16 @@ ProcDRI2DestroyDrawable(ClientPtr client)
 }
 
 
-static void
+static int
 send_buffers_reply(ClientPtr client, DrawablePtr pDrawable,
 		   DRI2BufferPtr *buffers, int count, int width, int height)
 {
     xDRI2GetBuffersReply rep;
     int skip = 0;
     int i;
+
+    if (buffers == NULL)
+	    return BadAlloc;
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
 	for (i = 0; i < count; i++) {
@@ -251,6 +254,7 @@ send_buffers_reply(ClientPtr client, DrawablePtr pDrawable,
 	buffer.flags = buffers[i]->flags;
 	WriteToClient(client, sizeof(xDRI2Buffer), &buffer);
     }
+    return Success;
 }
 
 
@@ -276,9 +280,8 @@ ProcDRI2GetBuffers(ClientPtr client)
 			     attachments, stuff->count, &count);
 
 
-    send_buffers_reply(client, pDrawable, buffers, count, width, height);
+    return send_buffers_reply(client, pDrawable, buffers, count, width, height);
 
-    return Success;
 }
 
 static int
@@ -302,9 +305,7 @@ ProcDRI2GetBuffersWithFormat(ClientPtr client)
     buffers = DRI2GetBuffersWithFormat(pDrawable, &width, &height,
 				       attachments, stuff->count, &count);
 
-    send_buffers_reply(client, pDrawable, buffers, count, width, height);
-
-    return Success;
+    return send_buffers_reply(client, pDrawable, buffers, count, width, height);
 }
 
 static int

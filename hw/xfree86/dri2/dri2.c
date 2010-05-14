@@ -326,6 +326,31 @@ allocate_or_reuse_buffer(DrawablePtr pDraw, DRI2ScreenPtr ds,
     }
 }
 
+static void
+update_dri2_drawable_buffers(DRI2DrawablePtr pPriv, DrawablePtr pDraw,
+			     DRI2BufferPtr *buffers, int *out_count, int *width, int *height)
+{
+    DRI2ScreenPtr   ds = DRI2GetScreen(pDraw->pScreen);
+    int i;
+
+    if (pPriv->buffers != NULL) {
+	for (i = 0; i < pPriv->bufferCount; i++) {
+	    if (pPriv->buffers[i] != NULL) {
+		(*ds->DestroyBuffer)(pDraw, pPriv->buffers[i]);
+	    }
+	}
+
+	free(pPriv->buffers);
+    }
+
+    pPriv->buffers = buffers;
+    pPriv->bufferCount = *out_count;
+    pPriv->width = pDraw->width;
+    pPriv->height = pDraw->height;
+    *width = pPriv->width;
+    *height = pPriv->height;
+}
+
 static DRI2BufferPtr *
 do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	       unsigned int *attachments, int count, int *out_count,
@@ -363,6 +388,9 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 				     &buffers[i]))
 		buffers_changed = 1;
 
+	if (buffers[i] == NULL)
+	    goto err_out;
+
 	/* If the drawable is a window and the front-buffer is requested,
 	 * silently add the fake front-buffer to the list of requested
 	 * attachments.  The counting logic in the loop accounts for the case
@@ -395,6 +423,9 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 				     front_format, dimensions_match,
 				     &buffers[i++]))
 	    buffers_changed = 1;
+
+	if (buffers[i] == NULL)
+	    goto err_out;
     }
 
     if (need_fake_front > 0) {
@@ -403,29 +434,15 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 				     &buffers[i++]))
 	    buffers_changed = 1;
 
+	if (buffers[i] == NULL)
+	    goto err_out;
+
 	have_fake_front = 1;
     }
 
     *out_count = i;
 
-
-    if (pPriv->buffers != NULL) {
-	for (i = 0; i < pPriv->bufferCount; i++) {
-	    if (pPriv->buffers[i] != NULL) {
-		(*ds->DestroyBuffer)(pDraw, pPriv->buffers[i]);
-	    }
-	}
-
-	free(pPriv->buffers);
-    }
-
-    pPriv->buffers = buffers;
-    pPriv->bufferCount = *out_count;
-    pPriv->width = pDraw->width;
-    pPriv->height = pDraw->height;
-    *width = pPriv->width;
-    *height = pPriv->height;
-
+    update_dri2_drawable_buffers(pPriv, pDraw, buffers, out_count, width, height);
 
     /* If the client is getting a fake front-buffer, pre-fill it with the
      * contents of the real front-buffer.  This ensures correct operation of
@@ -446,6 +463,22 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
     }
 
     return pPriv->buffers;
+
+err_out:
+
+    *out_count = 0;
+
+    for (i = 0; i < count; i++) {
+	    if (buffers[i] != NULL)
+		    (*ds->DestroyBuffer)(pDraw, buffers[i]);
+    }
+
+    free(buffers);
+    buffers = NULL;
+
+    update_dri2_drawable_buffers(pPriv, pDraw, buffers, out_count, width, height);
+
+    return buffers;
 }
 
 DRI2BufferPtr *
