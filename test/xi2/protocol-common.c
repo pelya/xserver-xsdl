@@ -152,6 +152,7 @@ void init_simple(void)
     screen.SetCursorPosition = set_cursor_pos;
 
     dixResetPrivates();
+    InitAtoms();
     XInputExtensionInit();
     init_window(&root, NULL, ROOT_WINDOW_ID);
     init_window(&window, &root, CLIENT_WINDOW_ID);
