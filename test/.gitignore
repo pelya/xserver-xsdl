@@ -1,2 +1,15 @@
 #		Add & Override for this directory and it's subdirectories
 libxservertest.c
+
+input
+xkb
+xtest
+xi2/protocol-eventconvert
+xi2/protocol-xigetclientpointer
+xi2/protocol-xigetselectedevents
+xi2/protocol-xiquerydevice
+xi2/protocol-xiquerypointer
+xi2/protocol-xiqueryversion
+xi2/protocol-xiselectevents
+xi2/protocol-xisetclientpointer
+xi2/protocol-xiwarppointer
