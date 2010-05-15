@@ -1038,12 +1038,15 @@ static inline int ensure_flag(int flags, int device_independent, int device_depe
             location.x += frame.origin.x;
             location.y += frame.origin.y;
             lastpt = location;
-        } else if(isTabletEvent) {
+        } else if(isTabletEvent || [e type] == NSOtherMouseDown || [e type] == NSOtherMouseUp) {
             // NSEvents for tablets are not consistent wrt deltaXY between events, so we cannot rely on that
             // Thus tablets will be subject to the warp-pointer bug worked around by the delta, but tablets
             // are not normally used in cases where that bug would present itself, so this is a fair tradeoff
             // <rdar://problem/7111003> deltaX and deltaY are incorrect for NSMouseMoved, NSTabletPointEventSubtype
             // http://xquartz.macosforge.org/trac/ticket/288
+            // The deltaXY for middle click events also appear erroneous after fast user switching
+            // <rdar://problem/7979468> deltaX and deltaY are incorrect for NSOtherMouseDown and NSOtherMouseUp after FUS
+            // http://xquartz.macosforge.org/trac/ticket/389
             location = [e locationInWindow];
             lastpt = location;
         } else {
