@@ -19,10 +19,13 @@
 <article>
   <articleinfo>
 
-    <title>XFree86 server 4.x Design (DRAFT)</title>
+    <title>XFree86 DDX Design (Xorg server version &xserver.version;)</title>
 
     <authorgroup>
-      <corpauthor>The XFree86 Project, Inc</corpauthor>
+      <corpauthor><ulink url="http://www.xfree86.org/">
+	The XFree86 Project, Inc.</ulink></corpauthor>
+      <corpauthor><ulink url="http://www.x.org/">
+	The X.Org Foundation, Inc.</ulink></corpauthor>
 
       <othercredit>
 	<firstname>Jim</firstname><surname>Gettys</surname>
@@ -36,8 +39,11 @@
   </articleinfo>
 
   <note><para>
-This is a DRAFT document, and the interfaces described here
-are subject to change without notice.
+This document describes software undergoing continual evolution, and
+the interfaces described here are subject to change without notice.
+This document is intended to cover the interfaces as found in the
+xorg-server-&xserver.version; release, but is probably not completely
+in sync with the code base.
     </para></note>
 
 
@@ -45,7 +51,17 @@ are subject to change without notice.
     <title>Preface</title>
 
     <para>
-The broad design principles are:
+This document was originally the design spec for the DDX layer of the
+XFree86 4.0 X server.  The X.Org Foundation adopted the XFree86 4.4rc2
+version of that server as the basis of the Xorg server project, and has
+evolved the XFree86 DDX layer greatly since forking.   This document thus
+covers only the current implementation of the XFree86 DDX as found in the
+Xorg server &xserver.version; release, and no longer matches the XFree86
+server itself.
+      </para>
+
+    <para>
+The XFree86 Project's broad design principles for XFree86 4.0 were:
       <itemizedlist>
 	<listitem><para>keep it reasonable
 	    <itemizedlist>
@@ -86,8 +102,15 @@ The broad design principles are:
     </para>
 
     <para>
-Unless we find major deficiencies in the DIX layer, we should avoid
-making changes there.
+While the XFree86 project had a goal of avoiding changes to the DIX
+layer unless they found major deficiencies there, to avoid divergence from
+the X.Org sample implementation they were integrating changes from, the
+X.Org developers now maintain both sides, and make changes where they are
+most appropriate.   This document concentrates on the XFree86 DDX layer used
+in the Xorg server itself (the code found in <filename>hw/xfree86</filename>
+in the source tree), and developers will also want to refer to the
+<filename>Xserver-spec</filename> documentation that covers the DIX layer
+routines common to all the X servers in the sample implementation.
     </para>
   </sect1>
 
