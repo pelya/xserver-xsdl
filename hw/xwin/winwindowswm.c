@@ -304,8 +304,7 @@ winWindowsWMSendEvent (int type, unsigned int mask, int which, int arg,
 #if CYGMULTIWINDOW_DEBUG
       ErrorF ("winWindowsWMSendEvent - x%08x\n", (int) client);
 #endif
-      if ((pEvent->mask & mask) == 0
-	  || client == serverClient || client->clientGone)
+      if ((pEvent->mask & mask) == 0)
 	{
 	  continue;
 	}

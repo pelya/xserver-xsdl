@@ -69,8 +69,7 @@ DamageExtNotify (DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
 	    ev.area.y = pBoxes[i].y1;
 	    ev.area.width = pBoxes[i].x2 - pBoxes[i].x1;
 	    ev.area.height = pBoxes[i].y2 - pBoxes[i].y1;
-	    if (!pClient->clientGone)
-		WriteEventsToClient (pClient, 1, (xEvent *) &ev);
+	    WriteEventsToClient (pClient, 1, (xEvent *) &ev);
 	}
     }
     else
@@ -79,8 +78,7 @@ DamageExtNotify (DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
 	ev.area.y = 0;
 	ev.area.width = pDrawable->width;
 	ev.area.height = pDrawable->height;
-	if (!pClient->clientGone)
-	    WriteEventsToClient (pClient, 1, (xEvent *) &ev);
+	WriteEventsToClient (pClient, 1, (xEvent *) &ev);
     }
     /* Composite extension marks clients with manual Subwindows as critical */
     if (pDamageClient->critical > 0)

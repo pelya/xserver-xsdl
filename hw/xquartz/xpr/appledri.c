@@ -199,7 +199,7 @@ static void surface_notify(
         return;
 
     client = clients[client_index];
-    if (client == NULL || client == serverClient || client->clientGone)
+    if (client == NULL)
         return;
 
     se.type = DRIEventBase + AppleDRISurfaceNotify;

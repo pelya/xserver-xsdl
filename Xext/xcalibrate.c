@@ -59,8 +59,7 @@ xcalibrate_event_hook (int x, int y, int pressure, void *closure)
   ev.y = y;
   ev.pressure = pressure;
 
-  if (!pClient->clientGone)
-    WriteEventsToClient (pClient, 1, (xEvent *) &ev);
+  WriteEventsToClient (pClient, 1, (xEvent *) &ev);
 }
 
 static int

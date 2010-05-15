@@ -350,11 +350,8 @@ AppleWMSendEvent (int type, unsigned int mask, int which, int arg) {
         return;
     for (pEvent = *pHead; pEvent; pEvent = pEvent->next) {
         client = pEvent->client;
-        if ((pEvent->mask & mask) == 0
-            || client == serverClient || client->clientGone)
-        {
+        if ((pEvent->mask & mask) == 0)
             continue;
-        }
         se.type = type + WMEventBase;
         se.kind = which;
         se.arg = arg;

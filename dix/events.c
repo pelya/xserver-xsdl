@@ -5669,6 +5669,9 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     int       i,
               eventlength = sizeof(xEvent);
 
+    if (!pClient || pClient == serverClient || pClient->clientGone)
+	return;
+
     /* Let XKB rewrite the state, as it depends on client preferences. */
     XkbFilterEvents(pClient, count, events);
 

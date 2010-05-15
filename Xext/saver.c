@@ -500,8 +500,6 @@ SendScreenSaverNotify (ScreenPtr pScreen, int state, Bool forced)
     for (pEv = pPriv->events; pEv; pEv = pEv->next)
     {
 	client = pEv->client;
-	if (client->clientGone)
-	    continue;
 	if (!(pEv->mask & mask))
 	    continue;
 	ev.type = ScreenSaverNotify + ScreenSaverEventBase;

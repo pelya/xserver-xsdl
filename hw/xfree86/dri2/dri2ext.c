@@ -160,9 +160,6 @@ DRI2InvalidateBuffersEvent(DrawablePtr pDraw, void *priv)
     xDRI2InvalidateBuffers event;
     ClientPtr client = priv;
 
-    if (client->clientGone)
-	return;
-
     event.type = DRI2EventBase + DRI2_InvalidateBuffers;
     event.sequenceNumber = client->sequence;
     event.drawable = pDraw->id;
