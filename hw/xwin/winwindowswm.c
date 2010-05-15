@@ -319,7 +319,6 @@ winWindowsWMSendEvent (int type, unsigned int mask, int which, int arg,
       se.y = y;
       se.w = w;
       se.h = h;
-      se.sequenceNumber = client->sequence;
       se.time = currentTime.milliseconds;
       WriteEventsToClient (client, 1, (xEvent *) &se);
     }

@@ -40,7 +40,6 @@ DeliverPropertyEvent(WindowPtr pWin, void *value)
 	if (!(pRREvent->mask & RROutputPropertyNotifyMask))
 	    continue;
 
-	event->sequenceNumber = pRREvent->client->sequence;
 	event->window = pRREvent->window->drawable.id;
 	WriteEventsToClient(pRREvent->client, 1, (xEvent *)event);
     }

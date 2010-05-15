@@ -161,7 +161,6 @@ DRI2InvalidateBuffersEvent(DrawablePtr pDraw, void *priv)
     ClientPtr client = priv;
 
     event.type = DRI2EventBase + DRI2_InvalidateBuffers;
-    event.sequenceNumber = client->sequence;
     event.drawable = pDraw->id;
 
     WriteEventsToClient(client, 1, (xEvent *)&event);
@@ -363,7 +362,6 @@ DRI2SwapEvent(ClientPtr client, void *data, int type, CARD64 ust, CARD64 msc,
     DrawablePtr pDrawable = data;
 
     event.type = DRI2EventBase + DRI2_BufferSwapComplete;
-    event.sequenceNumber = client->sequence;
     event.event_type = type;
     event.drawable = pDrawable->id;
     event.ust_hi = (CARD64)ust >> 32;

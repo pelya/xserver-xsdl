@@ -3741,7 +3741,6 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
 
     memset(&rep, 0, sizeof(xError));
     rep.type = X_Error;
-    rep.sequenceNumber = client->sequence;
     rep.errorCode = errorCode;
     rep.majorCode = majorCode;
     rep.minorCode = minorCode;

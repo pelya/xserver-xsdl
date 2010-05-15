@@ -885,7 +885,6 @@ void
 SendShapeNotify (WindowPtr pWin, int which)
 {
     ShapeEventPtr	*pHead, pShapeEvent;
-    ClientPtr		client;
     xShapeNotifyEvent	se;
     BoxRec		extents;
     RegionPtr		region;
@@ -940,18 +939,16 @@ SendShapeNotify (WindowPtr pWin, int which)
 	return;
     }
     for (pShapeEvent = *pHead; pShapeEvent; pShapeEvent = pShapeEvent->next) {
-	client = pShapeEvent->client;
 	se.type = ShapeNotify + ShapeEventBase;
 	se.kind = which;
 	se.window = pWin->drawable.id;
-	se.sequenceNumber = client->sequence;
 	se.x = extents.x1;
 	se.y = extents.y1;
 	se.width = extents.x2 - extents.x1;
 	se.height = extents.y2 - extents.y1;
 	se.time = currentTime.milliseconds;
 	se.shaped = shaped;
-	WriteEventsToClient (client, 1, (xEvent *) &se);
+	WriteEventsToClient (pShapeEvent->client, 1, (xEvent *) &se);
     }
 }
 

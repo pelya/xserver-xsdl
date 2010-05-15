@@ -198,12 +198,10 @@ SecurityDeleteAuthorization(
     while ((pEventClient = pAuth->eventClients))
     {
 	/* send revocation event event */
-	ClientPtr client = rClient(pEventClient);
 	xSecurityAuthorizationRevokedEvent are;
 	are.type = SecurityEventBase + XSecurityAuthorizationRevoked;
-	are.sequenceNumber = client->sequence;
 	are.authId = pAuth->id;
-	WriteEventsToClient(client, 1, (xEvent *)&are);
+	WriteEventsToClient(rClient(pEventClient), 1, (xEvent *)&are);
 	FreeResource(pEventClient->resource, RT_NONE);
     }
 

@@ -1100,7 +1100,6 @@ ProcXvShmPutImage(ClientPtr client)
 
         ev.type = ShmCompletionCode;
         ev.drawable = stuff->drawable;
-        ev.sequenceNumber = client->sequence;
         ev.minorEvent = xv_ShmPutImage;
         ev.majorEvent = XvReqCode;
         ev.shmseg = stuff->shmseg;

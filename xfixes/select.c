@@ -85,7 +85,6 @@ XFixesSelectionCallback (CallbackListPtr *callbacks, pointer data, pointer args)
 	    memset(&ev, 0, sizeof(xXFixesSelectionNotifyEvent));
 	    ev.type = XFixesEventBase + XFixesSelectionNotify;
 	    ev.subtype = subtype;
-	    ev.sequenceNumber = e->pClient->sequence;
 	    ev.window = e->pWindow->drawable.id;
 	    if (subtype == XFixesSetSelectionOwnerNotify)
 		ev.owner = selection->window;

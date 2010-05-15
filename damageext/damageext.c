@@ -50,7 +50,6 @@ DamageExtNotify (DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
     UpdateCurrentTimeIf ();
     ev.type = DamageEventBase + XDamageNotify;
     ev.level = pDamageExt->level;
-    ev.sequenceNumber = pClient->sequence;
     ev.drawable = pDamageExt->drawable;
     ev.damage = pDamageExt->id;
     ev.timestamp = currentTime.milliseconds;
