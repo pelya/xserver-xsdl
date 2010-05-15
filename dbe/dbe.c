@@ -1576,10 +1576,6 @@ DbeExtensionInit(void)
     if (!dbeWindowPrivResType)
 	return;
 
-    if (!dixRegisterPrivateOffset(dbeDrawableResType,
-				  offsetof(PixmapRec, devPrivates)))
-	return;
-
     for (i = 0; i < screenInfo.numScreens; i++)
     {
         /* For each screen, set up DBE screen privates and init DIX and DDX

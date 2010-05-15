@@ -254,8 +254,6 @@ CreateNewResourceType(DeleteType deleteFunc, char *name)
     types = realloc(resourceTypes, (next + 1) * sizeof(*resourceTypes));
     if (!types)
 	return 0;
-    if (!dixRegisterPrivateOffset(next, -1))
-	return 0;
 
     lastResourceType = next;
     resourceTypes = types;

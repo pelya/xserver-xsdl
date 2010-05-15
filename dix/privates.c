@@ -208,7 +208,7 @@ dixFreePrivates(PrivateRec *privates)
 }
 
 /* Table of devPrivates offsets */
-static const int offsetDefaults[] = {
+static const int offsets[] = {
     -1,					/* RT_NONE */
     offsetof(WindowRec, devPrivates),	/* RT_WINDOW */
     offsetof(PixmapRec, devPrivates),	/* RT_PIXMAP */
@@ -216,45 +216,27 @@ static const int offsetDefaults[] = {
     -1,		    			/* RT_FONT */
     offsetof(CursorRec, devPrivates),	/* RT_CURSOR */
     offsetof(ColormapRec, devPrivates),	/* RT_COLORMAP */
-    -1,			  		/* RT_CMAPENTRY */
-    -1,					/* RT_OTHERCLIENT */
-    -1					/* RT_PASSIVEGRAB */
 };
-    
-static int *offsets = NULL;
-static int offsetsSize = 0;
 
-/*
- * Specify where the devPrivates field is located in a structure type
- */
-int
-dixRegisterPrivateOffset(RESTYPE type, int offset)
-{
-    type = type & TypeMask;
-
-    /* resize offsets table if necessary */
-    while (type >= offsetsSize) {
-	unsigned i = offsetsSize * 2 * sizeof(int);
-	offsets = (int *)realloc(offsets, i);
-	if (!offsets) {
-	    offsetsSize = 0;
-	    return FALSE;
-	}
-	for (i=offsetsSize; i < 2*offsetsSize; i++)
-	    offsets[i] = -1;
-	offsetsSize *= 2;
-    }
-
-    offsets[type] = offset;
-    return TRUE;
-}
+#define NUM_OFFSETS	(sizeof (offsets) / sizeof (offsets[0]))
 
 int
 dixLookupPrivateOffset(RESTYPE type)
 {
+    /*
+     * Special kludge for DBE which registers a new resource type that
+     * points at pixmaps (thanks, DBE)
+     */
+    if (type & RC_DRAWABLE) {
+	if (type == RT_WINDOW)
+	    return offsets[RT_WINDOW & TypeMask];
+	else
+	    return offsets[RT_PIXMAP & TypeMask];
+    }
     type = type & TypeMask;
-    assert(type < offsetsSize);
-    return offsets[type];
+    if (type < NUM_OFFSETS)
+	return offsets[type];
+    return -1;
 }
 
 int
@@ -268,15 +250,5 @@ dixResetPrivates(void)
 	items[i].size = 0;
     }
     nextPriv = 1;
-
-    /* reset offsets */
-    if (offsets)
-	free(offsets);
-    offsetsSize = sizeof(offsetDefaults);
-    offsets = malloc(offsetsSize);
-    offsetsSize /= sizeof(int);
-    if (!offsets)
-	return FALSE;
-    memcpy(offsets, offsetDefaults, sizeof(offsetDefaults));
     return TRUE;
 }

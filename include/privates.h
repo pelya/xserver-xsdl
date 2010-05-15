@@ -108,24 +108,14 @@ extern _X_EXPORT int
 dixResetPrivates(void);
 
 /*
- * These next two functions are necessary because the position of
- * the devPrivates field varies by structure and calling code might
- * only know the resource type, not the structure definition.
- */
-
-/*
  * Looks up the offset where the devPrivates field is located.
- * Returns -1 if no offset has been registered for the resource type.
+ * Returns -1 if the specified resource has no dev privates.
+ * The position of the devPrivates field varies by structure
+ * and calling code might only know the resource type, not the
+ * structure definition.
  */
 extern _X_EXPORT int
 dixLookupPrivateOffset(RESTYPE type);
-
-/*
- * Specifies the offset where the devPrivates field is located.
- * A negative value indicates no devPrivates field is available.
- */
-extern _X_EXPORT int
-dixRegisterPrivateOffset(RESTYPE type, int offset);
 
 /*
  * Convenience macro for adding an offset to an object pointer
