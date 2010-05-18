@@ -70,23 +70,11 @@ typedef struct _AnimScrPriv {
     RecolorCursorProcPtr	RecolorCursor;
 } AnimCurScreenRec, *AnimCurScreenPtr;
 
-typedef struct _AnimCurState {
-    CursorPtr			pCursor;
-    ScreenPtr			pScreen;
-    int				elt;
-    CARD32			time;
-} AnimCurStateRec, *AnimCurStatePtr;
-
-/* What a waste. But we need an API change to alloc it per device only. */
-static AnimCurStateRec animCurState[MAXDEVICES];
-
 static unsigned char empty[4];
 
 static CursorBits   animCursorBits = {
     empty, empty, 2, 1, 1, 0, 0, 1
 };
-
-static int AnimCurGeneration;
 
 static int AnimCurScreenPrivateKeyIndex;
 static DevPrivateKey AnimCurScreenPrivateKey = &AnimCurScreenPrivateKeyIndex;
@@ -167,14 +155,14 @@ AnimCurScreenBlockHandler (int screenNum,
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-	if (IsPointerDevice(dev) && pScreen == animCurState[dev->id].pScreen)
+	if (IsPointerDevice(dev) && pScreen == dev->spriteInfo->anim.pScreen)
 	{
 	    if (!now) now = GetTimeInMillis (); 
 
-	    if ((INT32) (now - animCurState[dev->id].time) >= 0)
+	    if ((INT32) (now - dev->spriteInfo->anim.time) >= 0)
 	    {
-		AnimCurPtr ac  = GetAnimCur(animCurState[dev->id].pCursor);
-		int        elt = (animCurState[dev->id].elt + 1) % ac->nelt;
+		AnimCurPtr ac  = GetAnimCur(dev->spriteInfo->anim.pCursor);
+		int        elt = (dev->spriteInfo->anim.elt + 1) % ac->nelt;
 		DisplayCursorProcPtr DisplayCursor;
 
 		/*
@@ -190,12 +178,12 @@ AnimCurScreenBlockHandler (int screenNum,
 		as->DisplayCursor = pScreen->DisplayCursor;
 		pScreen->DisplayCursor = DisplayCursor;
 
-		animCurState[dev->id].elt = elt;
-		animCurState[dev->id].time = now + ac->elts[elt].delay;
+		dev->spriteInfo->anim.elt = elt;
+		dev->spriteInfo->anim.time = now + ac->elts[elt].delay;
 	    }
 
-	    if (soonest > animCurState[dev->id].time)
-		soonest = animCurState[dev->id].time;
+	    if (soonest > dev->spriteInfo->anim.time)
+		soonest = dev->spriteInfo->anim.time;
 	}
     }
 
@@ -218,7 +206,7 @@ AnimCurDisplayCursor (DeviceIntPtr pDev,
     Unwrap (as, pScreen, DisplayCursor);
     if (IsAnimCur(pCursor))
     {
-	if (pCursor != animCurState[pDev->id].pCursor)
+	if (pCursor != pDev->spriteInfo->anim.pCursor)
 	{
 	    AnimCurPtr		ac = GetAnimCur(pCursor);
 
@@ -226,10 +214,10 @@ AnimCurDisplayCursor (DeviceIntPtr pDev,
                 (pDev, pScreen, ac->elts[0].pCursor);
 	    if (ret)
 	    {
-		animCurState[pDev->id].elt = 0;
-		animCurState[pDev->id].time = GetTimeInMillis () + ac->elts[0].delay;
-		animCurState[pDev->id].pCursor = pCursor;
-		animCurState[pDev->id].pScreen = pScreen;
+		pDev->spriteInfo->anim.elt = 0;
+		pDev->spriteInfo->anim.time = GetTimeInMillis () + ac->elts[0].delay;
+		pDev->spriteInfo->anim.pCursor = pCursor;
+		pDev->spriteInfo->anim.pScreen = pScreen;
 	    }
 	}
 	else
@@ -237,8 +225,8 @@ AnimCurDisplayCursor (DeviceIntPtr pDev,
     }
     else
     {
-        animCurState[pDev->id].pCursor = 0;
-	animCurState[pDev->id].pScreen = 0;
+	pDev->spriteInfo->anim.pCursor = 0;
+	pDev->spriteInfo->anim.pScreen = 0;
 	ret = (*pScreen->DisplayCursor) (pDev, pScreen, pCursor);
     }
     Wrap (as, pScreen, DisplayCursor, AnimCurDisplayCursor);
@@ -256,8 +244,8 @@ AnimCurSetCursorPosition (DeviceIntPtr pDev,
     Bool		ret;
     
     Unwrap (as, pScreen, SetCursorPosition);
-    if (animCurState[pDev->id].pCursor)
-	animCurState[pDev->id].pScreen = pScreen;
+    if (pDev->spriteInfo->anim.pCursor)
+	pDev->spriteInfo->anim.pScreen = pScreen;
     ret = (*pScreen->SetCursorPosition) (pDev, pScreen, x, y, generateEvent);
     Wrap (as, pScreen, SetCursorPosition, AnimCurSetCursorPosition);
     return ret;
@@ -322,7 +310,7 @@ AnimCurRecolorCursor (DeviceIntPtr pDev,
         for (i = 0; i < ac->nelt; i++)
 	    (*pScreen->RecolorCursor) (pDev, pScreen, ac->elts[i].pCursor,
 				       displayed && 
-				       animCurState[pDev->id].elt == i);
+				       pDev->spriteInfo->anim.elt == i);
     }
     else
 	(*pScreen->RecolorCursor) (pDev, pScreen, pCursor, displayed);
@@ -334,17 +322,6 @@ AnimCurInit (ScreenPtr pScreen)
 {
     AnimCurScreenPtr    as;
 
-    if (AnimCurGeneration != serverGeneration)
-    {
-        int i;
-	AnimCurGeneration = serverGeneration;
-        for (i = 0; i < MAXDEVICES; i++) {
-            animCurState[i].pCursor = 0;
-            animCurState[i].pScreen = 0;
-            animCurState[i].elt = 0;
-            animCurState[i].time = 0;
-        }
-    }
     as = (AnimCurScreenPtr) malloc(sizeof (AnimCurScreenRec));
     if (!as)
 	return FALSE;
