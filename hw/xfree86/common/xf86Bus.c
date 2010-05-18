@@ -111,10 +111,6 @@ xf86BusConfig(void)
     if (xorgHWAccess)
         xorgHWAccess = xf86EnableIO();
 
-    /* Locate bus slot that had register IO enabled at server startup */
-    if (xorgHWAccess)
-        xf86FindPrimaryDevice();
-
     /*
      * Now call each of the Probe functions.  Each successful probe will
      * result in an extra entry added to the xf86Screens[] list for each
@@ -555,39 +551,6 @@ xf86PostScreenInit(void)
 {
     xf86VGAarbiterWrapFunctions();
     xf86EnterServerState(OPERATING);
-}
-
-/*
- * xf86FindPrimaryDevice() - Find the display device which
- * was active when the server was started.
- */
-void
-xf86FindPrimaryDevice(void)
-{
-    if (primaryBus.type != BUS_NONE) {
-	char *bus;
-	char loc[16];
-
-	switch (primaryBus.type) {
-	case BUS_PCI:
-	    bus = "PCI";
-	    snprintf(loc, sizeof(loc), " %2.2x@%2.2x:%2.2x:%1.1x",
-		     primaryBus.id.pci->bus,
-		     primaryBus.id.pci->domain,
-		     primaryBus.id.pci->dev,
-		     primaryBus.id.pci->func);
-	    break;
-	case BUS_SBUS:
-	    bus = "SBUS";
-	    snprintf(loc, sizeof(loc), " %2.2x", primaryBus.id.sbus.fbNum);
-	    break;
-	default:
-	    bus = "";
-	    loc[0] = '\0';
-	}
-
-	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
-    }
 }
 
 int
