@@ -107,8 +107,6 @@
 #ifndef _PCI_H
 #define _PCI_H 1
 
-#include <X11/Xarch.h>
-#include <X11/Xfuncproto.h>
 #include "xf86Pci.h"
 #include "xf86PciInfo.h"
 

@@ -49,8 +49,6 @@
 #include "xf86_OSproc.h"
 #include "xf86VGAarbiter.h"
 
-#include "Pci.h"
-
 /* Entity data */
 EntityPtr *xf86Entities = NULL;	/* Bus slots claimed by drivers */
 int xf86NumEntities = 0;
