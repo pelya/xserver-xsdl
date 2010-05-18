@@ -121,9 +121,6 @@
 #define PCI_DOM_MASK 0x0ffu
 #endif
 
-#define DEVID(vendor, device) \
-    ((CARD32)((PCI_##device << 16) | PCI_##vendor))
-
 #ifndef PCI_DOM_MASK
 # define PCI_DOM_MASK 0x0ffu
 #endif
@@ -142,9 +139,6 @@
 #define PCI_BUS_FROM_TAG(tag)  (((tag) >> 16) & (PCI_DOMBUS_MASK))
 #define PCI_DEV_FROM_TAG(tag)  (((tag) & 0x0000f800u) >> 11)
 #define PCI_FUNC_FROM_TAG(tag) (((tag) & 0x00000700u) >> 8)
-
-#define PCI_DFN_FROM_TAG(tag)  (((tag) & 0x0000ff00u) >> 8)
-#define PCI_BDEV_FROM_TAG(tag) ((tag) & 0x00fff800u)
 
 #define PCI_DOM_FROM_BUS(bus)  (((bus) >> 8) & (PCI_DOM_MASK))
 #define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
