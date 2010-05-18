@@ -257,11 +257,8 @@ static void
 miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 {
     ScreenPtr		    pScreen = closure;
-    miSpriteScreenPtr	    pScreenPriv;
     miCursorInfoPtr         pCursorInfo;
     DeviceIntPtr            pDev;
-
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
@@ -394,7 +391,6 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
                   char *pdstLine)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
-    miSpriteScreenPtr    pScreenPriv;
     DeviceIntPtr    pDev;
     miCursorInfoPtr pCursorInfo;
 
@@ -402,7 +398,6 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
-        pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
         for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
             if (DevHasCursor(pDev))
@@ -430,7 +425,6 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
                   int *pwidth, int nspans, char *pdstStart)
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
-    miSpriteScreenPtr	    pScreenPriv;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
@@ -438,8 +432,6 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
-        pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
-
         for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
             if (DevHasCursor(pDev))
@@ -484,7 +476,6 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
                         int height)
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
-    miSpriteScreenPtr	    pScreenPriv;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
@@ -492,8 +483,6 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
-	pScreenPriv = dixLookupPrivate(&pScreen->devPrivates,miSpriteScreenKey);
-
 	for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
 	{
 	    if (DevHasCursor(pDev))
@@ -520,13 +509,10 @@ static void
 miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     ScreenPtr	pScreen = pWindow->drawable.pScreen;
-    miSpriteScreenPtr	    pScreenPriv;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
     SCREEN_PROLOGUE (pScreen, CopyWindow);
-
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
@@ -893,10 +879,8 @@ miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
 static void
 miSpriteMoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
-    miSpriteScreenPtr	pScreenPriv;
     CursorPtr pCursor;
 
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
     if (!IsMaster(pDev) && !pDev->u.master)
         return;
 
@@ -1068,7 +1052,6 @@ miSpriteRestoreCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
 static void
 miSpriteComputeSaved (DeviceIntPtr pDev, ScreenPtr pScreen)
 {
-    miSpriteScreenPtr   pScreenPriv;
     int		    x, y, w, h;
     int		    wpad, hpad;
     CursorPtr	    pCursor;
@@ -1077,7 +1060,6 @@ miSpriteComputeSaved (DeviceIntPtr pDev, ScreenPtr pScreen)
     if (!IsMaster(pDev) && !pDev->u.master)
         return;
 
-    pScreenPriv = dixLookupPrivate(&pScreen->devPrivates, miSpriteScreenKey);
     pCursorInfo = MISPRITE(pDev);
 
     pCursor = pCursorInfo->pCursor;
