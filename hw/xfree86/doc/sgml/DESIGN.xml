@@ -150,7 +150,7 @@ changes:
       </para>
 
       <para>
-    A &k.device; section is considered ``active'' if there is a reference
+    A &k.device; section is considered <quote>active</quote> if there is a reference
     to it in an active &k.screen; section.
       </para>
     </sect2>
@@ -166,7 +166,7 @@ changes:
     can be used to identify which screen is to be active when multiple
     &k.screen; sections are present.  It is possible to specify the active
     screen from the command line.  A default is chosen in the absence
-    of one being specified.  A &k.screen; section is considered ``active''
+    of one being specified.  A &k.screen; section is considered <quote>active</quote>
     if there is a reference to it either from the command line, or from
     an active &k.serverlayout; section.
       </para>
@@ -336,7 +336,7 @@ framebuffer code are outside the scope of this document.
     <para>
 This approach to the driver interface provides good flexibility, but does
 increase the complexity of drivers.  To help address this, the XFree86
-common layer provides a set of ``helper'' functions to take care of things
+common layer provides a set of <quote>helper</quote> functions to take care of things
 that most drivers need.  These helpers help minimise the amount of code
 duplication between drivers.  The use of helper functions by drivers is
 however optional, though encouraged.  The basic philosophy behind the
@@ -466,11 +466,11 @@ mechanism for this.
 	<title>Bus</title>
 
 	<para>
-    ``Bus'' is ambiguous as it is used for different things: it may refer
+    <quote>Bus</quote> is ambiguous as it is used for different things: it may refer
     to physical incompatible extension connectors in a computer system.
     The RAC system knows two such systems: The ISA bus and the PCI bus.
     (On the software level EISA, MCA and VL buses are currently treated
-    like ISA buses).  ``Bus'' may also refer to logically different
+    like ISA buses).  <quote>Bus</quote> may also refer to logically different
     entities on a single bus system which are connected via bridges.  A
     PCI system may have several distinct PCI buses connecting each other
     by PCI-PCI bridges or to the host CPU by HOST-PCI bridges.
@@ -503,7 +503,7 @@ mechanism for this.
 	<title>Resource</title>
 
 	<para>
-    ``Resource'' refers to a range of memory or I/O addresses an entity
+    <quote>Resource</quote> refers to a range of memory or I/O addresses an entity
     can decode.
 	</para>
 
@@ -609,7 +609,7 @@ Here is what <function>InitOutput()</function> does:
 
       <para>
     Port I/O access is controlled from the XFree86 common layer, and is
-    ``all or nothing''.  It is enabled prior to calling driver probes, at
+    <quote>all or nothing</quote>.  It is enabled prior to calling driver probes, at
     the start of subsequent server generations, and when VT switching
     back to the Xserver.  It is disabled at the end of server generations,
     and when VT switching away from the Xserver.
@@ -775,7 +775,7 @@ Here is what <function>InitOutput()</function> does:
     calling any driver functions that may access hardware.  All generic
     bus information is probed and saved (for restoration later).  All
     (shared resource) video devices are disabled at the generic bus
-    level, and a probe is done to find the ``primary'' video device.  These
+    level, and a probe is done to find the <quote>primary</quote> video device.  These
     devices remain disabled for the next step.
       </para>
     </sect2>
@@ -870,7 +870,7 @@ Here is what <function>InitOutput()</function> does:
       entities. Optionally <function>xf86AllocateScreen()</function>
       function may also be used to allocate the <structname>ScrnInfoRec</structname>.
       Any of these functions take care of initialising fields to defined
-      ``unused'' values.
+      <quote>unused</quote> values.
 	</para>
 
 	<para>
@@ -928,7 +928,7 @@ Here is what <function>InitOutput()</function> does:
       <structfield>origIndex</structfield>, <structfield>module</structfield> and
       <structfield>drv</structfield> fields are initialised.  The reference count
       in <parameter>drv</parameter> is incremented.  The storage for any
-      currently allocated ``privates'' pointers is also allocated and
+      currently allocated <quote>privates</quote> pointers is also allocated and
       the <structfield>privates</structfield> field initialised (the privates data
       is of course not allocated or initialised).  This function never
       returns on failure.  If the allocation fails, the server exits
@@ -1107,9 +1107,9 @@ Here is what <function>InitOutput()</function> does:
       the <structname>ScrnInfoRec</structname>'s <structfield>driverPrivate</structfield>
       field.  Any other modules which require persistent data (ie data
       that persists across server generations) should be initialised in
-      this function, and they should allocate a ``privates'' index to
+      this function, and they should allocate a <quote>privates</quote> index to
       hook their data into by calling
-      <function>xf86AllocateScrnInfoPrivateIndex()</function>.  The ``privates''
+      <function>xf86AllocateScrnInfoPrivateIndex()</function>.  The <quote>privates</quote>
       data is persistent.
 	    </para>
 
@@ -1406,18 +1406,18 @@ Here is what <function>InitOutput()</function> does:
 	    </para></listitem>
 
 	  <listitem><para>
-        A resource marked ``disabled'' during OPERATING state will be
+        A resource marked <quote>disabled</quote> during OPERATING state will be
         ignored entirely.
 	    </para></listitem>
 
 	  <listitem><para>
-	A resource marked ``unused'' will only conflict with an overlapping
+	A resource marked <quote>unused</quote> will only conflict with an overlapping
 	resource of an other entity if the second is actually in use
 	during OPERATING state.
 	    </para></listitem>
 
 	  <listitem><para>
-	If an ``unused'' resource was found to conflict but the entity
+	If an <quote>unused</quote> resource was found to conflict but the entity
 	does not use any other resource of this type the entire resource
 	type will be disabled for that entity.
 	    </para></listitem>
@@ -1619,7 +1619,7 @@ Here is what <function>InitOutput()</function> does:
                                    -1, -1, -1, -1, -1, NewApertureAddress);
 	  </programlisting>
 	  <blockquote><para>
-        where the <structfield>``ppix''</structfield> field in a ScrnInfoRec
+        where the <structfield>ppix</structfield> field in a ScrnInfoRec
         points to the pixmap used by the screen's
         <function>SaveRestoreImage()</function> function to hold the screen's
         contents while switched out.
@@ -1759,7 +1759,7 @@ MODECHECK_FINAL are intended for checks that may involve more than one mode.
       call.  This would predominantly be data allocated by
       <function>ChipPreInit()</function> that persists across server
       generations.  It would include the <structfield>driverPrivate</structfield>,
-      and any ``privates'' entries that modules may have allocated.
+      and any <quote>privates</quote> entries that modules may have allocated.
 
 	    </para></blockquote>
 	</para></blockquote>
@@ -2279,8 +2279,8 @@ these and will disable them before returning from
 <function>PreInit()</function>.  This also applies to all other driver
 functions.  Several functions are provided to request resource ranges,
 register these, correct PCI config space and add replacements for the
-generic access functions.  Resources may be marked ``disabled'' or
-``unused'' during OPERATING stage.  Although these steps could also be
+generic access functions.  Resources may be marked <quote>disabled</quote> or
+<quote>unused</quote> during OPERATING stage.  Although these steps could also be
 performed in <function>ScreenInit()</function>, this is not desirable.
       </para>
 
@@ -2311,18 +2311,18 @@ rules:
 	    </para></listitem>
 
 	  <listitem><para>
-   A resource marked ``disabled'' during OPERATING state will be ignored
+   A resource marked <quote>disabled</quote> during OPERATING state will be ignored
    entirely.
 	    </para></listitem>
 
 	  <listitem><para>
-   A resource marked ``unused'' will only conflicts with an overlapping
+   A resource marked <quote>unused</quote> will only conflicts with an overlapping
    resource of an other entity if the second is actually in use during
    OPERATING state.
 	    </para></listitem>
 
 	  <listitem><para>
-   If an ``unused'' resource was found to conflict however the entity
+   If an <quote>unused</quote> resource was found to conflict however the entity
    does not use any other resource of this type the entire resource type
    will be disabled for that entity.
 	    </para></listitem>
@@ -2357,7 +2357,7 @@ certain resources:
    driver function enabling them needs to disable them before it will
    return.  This should be used if a resource which can be controlled
    in a device dependent way is only required during SETUP state.  This
-   way it can be marked ``unused'' during OPERATING state.
+   way it can be marked <quote>unused</quote> during OPERATING state.
 	    </para></listitem>
 	</orderedlist>
       </para>
@@ -2602,8 +2602,8 @@ available at the driver level:
       Takes a <parameter>BusID</parameter> string, and if it is in the correct
       format, returns the PCI <parameter>bus</parameter>, <parameter>device</parameter>,
       <parameter>func</parameter> values that it indicates.  The format of the
-      string is expected to be "PCI:bus:device:func" where each of `bus',
-      `device' and `func' are decimal integers.  The ":func" part may
+      string is expected to be "PCI:bus:device:func" where each of <quote>bus</quote>,
+      <quote>device</quote> and <quote>func</quote> are decimal integers.  The ":func" part may
       be omitted, and the func value assumed to be zero, but this isn't
       encouraged.  The "PCI" prefix may also be omitted.  The prefix
       "AGP" is currently equivalent to the "PCI" prefix.  If the string
@@ -3147,7 +3147,7 @@ The flags are ORed together.
   </sect1>
 
   <sect1 id="options">
-    <title>Config file ``Option'' entries</title>
+    <title>Config file <quote>Option</quote> entries</title>
 
     <para>
 Option entries are permitted in most sections and subsections of the
@@ -3520,7 +3520,7 @@ Next, the higher level functions that most drivers would use.
 	<blockquote><para>
       This function should be used when comparing strings from the config
       file with expected values.  It works like <function>strcmp()</function>,
-      but is not case sensitive and space, tab, and `<literal>_</literal>' characters
+      but is not case sensitive and space, tab, and <quote><literal>_</literal></quote> characters
       are ignored in the comparison.  The use of this function isn't
       restricted to parsing option values.  It may be used anywhere
       where this functionality required.
@@ -4498,7 +4498,7 @@ typedef struct {
 
     <para>
 XFree86 offers the X Video Extension which allows clients to treat video
-as any another primitive and ``Put'' video into drawables.  By default,
+as any another primitive and <quote>Put</quote> video into drawables.  By default,
 the extension reports no video adaptors as being available since the
 DDX layer has not been initialized.  The driver can initialize the DDX
 layer by filling out one or more <literal remap="tt">XF86VideoAdaptorRecs</literal>
@@ -4606,12 +4606,12 @@ as follows:
 		  <term><constant>VIDEO_NO_CLIPPING</constant></term>
 		  <listitem><para>
 	   This indicates that the video adaptor does not support
-	   clipping.  The driver will never receive ``Put'' requests
+	   clipping.  The driver will never receive <quote>Put</quote> requests
 	   where less than the entire area determined by
 	   <parameter>drw_x</parameter>, <parameter>drw_y</parameter>,
 	   <parameter>drw_w</parameter> and <parameter>drw_h</parameter> is visible.
-	   This flag does not apply to ``Get'' requests.  Hardware
-	   that is incapable of clipping ``Gets'' may punt or get
+	   This flag does not apply to <quote>Get</quote> requests.  Hardware
+	   that is incapable of clipping <quote>Gets</quote> may punt or get
 	   the extents of the clipping region passed to it.
 		    </para></listitem>
 
@@ -4817,7 +4817,7 @@ as follows:
 	  the various hardware expected to be used with this extension,
 	  it is not expected that all hardware will be able to do this
 	  exactly as described.  In that case the driver should just do
-	  ``the best it can,'' scaling as closely to the target rectangle
+	  <quote>the best it can,</quote> scaling as closely to the target rectangle
 	  as it can without rendering outside of it.  In the worst case,
 	  the driver can opt to just not turn on the video.
 	      </para>
@@ -5065,7 +5065,7 @@ typedef struct {
    Each adaptor may have an array of these advertising the attributes
    for its ports.  Currently defined flags are <literal remap="tt">XvGettable</literal>
    and <literal remap="tt">XvSettable</literal> which may be OR'd together indicating that
-   attribute is ``gettable'' or ``settable'' by the client.  The
+   attribute is <quote>gettable</quote> or <quote>settable</quote> by the client.  The
    <literal remap="tt">min</literal> and <literal remap="tt">max</literal> field specify the valid range
    for the value.  <literal remap="tt">Name</literal> is a text string describing the
    attribute by name.
@@ -5385,7 +5385,7 @@ XFree86 common layer.
 		    </para>
 
 		    <para>
-		  When loading ``external'' modules (modules that don't
+		  When loading <quote>external</quote> modules (modules that don't
 		  have the standard entry point, for example a
 		  special shared library) the options parameter can be
 		  set to <constant>EXTERN_MODULE</constant> to tell the
@@ -5423,7 +5423,7 @@ typedef struct {
 		  information in the module's
 		  <structname>XF86ModuleVersionInfo</structname> record (which
 		  is described below).  The values in comments above
-		  indicate ``don't care'' settings for each of the fields.
+		  indicate <quote>don't care</quote> settings for each of the fields.
 		  The comparisons made are as follows:
 
 		      <variablelist>
@@ -5968,12 +5968,12 @@ the server, and may also be used from within modules.
                    int errmaj, int errmin);
 	  </programlisting>
 	  <blockquote><para>
-    This function prints an error message that includes the text ``Failed
-    to load module'', the module name <parameter>modname</parameter>, a message
+    This function prints an error message that includes the text <quote>Failed
+    to load module</quote>, the module name <parameter>modname</parameter>, a message
     specific to the <parameter>errmaj</parameter> value, and the value if
     <parameter>errmin</parameter>.  If <parameter>name</parameter> is
     non-<constant>NULL</constant>, it is printed as an identifying prefix
-    to the message (followed by a `:').
+    to the message (followed by a <quote>:</quote>).
 	    </para>
 
 	  </blockquote></para></blockquote>
@@ -6036,9 +6036,9 @@ typedef struct {
     <title>Helper Functions</title>
 
     <para>
-This section describe ``helper'' functions that video driver
+This section describe <quote>helper</quote> functions that video driver
 might find useful.  While video drivers are not required to use any of
-these to be considered ``compliant'', the use of appropriate helpers is
+these to be considered <quote>compliant</quote>, the use of appropriate helpers is
 strongly encouraged to improve the consistency of driver behaviour.
     </para>
 
@@ -6994,7 +6994,7 @@ be catered for the by the helpers.
 	    <para>
       Note that the <structfield>mode-&gt;SynthClock</structfield> field is always
       filled in by <function>xf86ValidateModes()</function>: it will contain
-      the ``data transport clock'', which is the clock that will have
+      the <quote>data transport clock</quote>, which is the clock that will have
       to be programmed in the chip when it has a programmable clock, or
       the clock that will be picked from the clocks list when it is not
       a programmable one.  Thus:
@@ -7975,7 +7975,7 @@ programming the standard VGA registers, and for handling VGA colourmaps.
     void writeMiscOut(vgaHWPtr hwp, CARD8 value);
 	  </programlisting>
 	  <blockquote><para>
-      Write `<parameter>value</parameter>' to the Miscellaneous Output register.
+      Write <quote><parameter>value</parameter></quote> to the Miscellaneous Output register.
 	    </para>
 
 	  </blockquote></para></blockquote>
@@ -8112,7 +8112,7 @@ most drivers (even those which don't fit that basic description).
 
     <para>
 The information here is based on the initial conversion of the Matrox
-Millennium driver to the ``new design''.  For a fleshing out and sample
+Millennium driver to the <quote>new design</quote>.  For a fleshing out and sample
 implementation of some of the bits outlined here, refer to that driver.
 Note that this is an example only.  The approach used here will not be
 appropriate for all drivers.
@@ -8122,7 +8122,7 @@ appropriate for all drivers.
 Each driver must reserve a unique driver name, and a string that is used
 to prefix all of its externally visible symbols.  This is to avoid name
 space clashes when loading multiple drivers.  The examples here are for
-the ``ZZZ'' driver, which uses the ``ZZZ'' or ``zzz'' prefix for its externally
+the <quote>ZZZ</quote> driver, which uses the <quote>ZZZ</quote> or <quote>zzz</quote> prefix for its externally
 visible symbols.
     </para>
 
@@ -8373,7 +8373,7 @@ typedef struct {
 	<listitem>
 	  <para>
     Define the list of config file Options that the driver accepts.  For
-    consistency between drivers those in the list of ``standard'' options
+    consistency between drivers those in the list of <quote>standard</quote> options
     should be used where appropriate before inventing new options.
 
 	    <programlisting>
