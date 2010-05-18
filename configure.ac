@@ -2139,6 +2139,7 @@ AC_TRY_COMPILE([
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
+AC_SUBST([RELEASE_DATE])
 BUILD_DATE="`date +'%Y%m%d'`"
 AC_SUBST([BUILD_DATE])
 BUILD_TIME="`date +'1%H%M%S'`"
@@ -2162,6 +2163,7 @@ dbe/Makefile
 dix/Makefile
 doc/Makefile
 doc/xml/Makefile
+doc/xml/xserver.ent
 fb/Makefile
 record/Makefile
 config/Makefile

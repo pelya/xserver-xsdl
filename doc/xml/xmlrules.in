@@ -36,24 +36,33 @@ BUILT_DOC_FILES =
 
 SUFFIXES = .xml .txt .html .pdf
 
+XML_ENT_DIR = $(abs_top_builddir)/doc/xml
+XMLTO_FLAGS = --searchpath $(XML_ENT_DIR)
+
 if HAVE_XMLTO
 BUILT_DOC_FILES += $(TXT_FILES)
 .xml.txt:
 	@rm -f $@
-	$(AM_V_GEN)$(XMLTO) txt $<
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) txt $<
 
 BUILT_DOC_FILES += $(HTML_FILES)
 .xml.html:
 	@rm -f $@
-	$(AM_V_GEN)$(XMLTO) xhtml-nochunks $<
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks $<
 
 if HAVE_FOP
 BUILT_DOC_FILES += $(PDF_FILES)
 .xml.pdf:
 	@rm -f $@
-	$(AM_V_GEN)$(XMLTO) --with-fop pdf $<
+	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) --with-fop pdf $<
 endif
 
 endif
 
 CLEAN_DOC_FILES = $(TXT_FILES) $(HTML_FILES) $(PDF_FILES)
+
+# All the files we build depend on the entities
+$(BUILT_DOC_FILES): $(XML_ENT_DIR)/xserver.ent
+
+$(XML_ENT_DIR)/xserver.ent:
+	(cd $(XML_ENT_DIR) && $(MAKE) $(AM_MAKEFLAGS) $(@F))

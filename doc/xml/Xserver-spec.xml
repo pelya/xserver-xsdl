@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
  "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+ <!ENTITY % defs SYSTEM "/xserver/doc/xml/xserver.ent"> %defs;
 ]>
 
 <article>
@@ -38,7 +39,8 @@
       <affiliation><orgname>X.org Foundation and Hewlett Packard</orgname></affiliation>
     </author>
     <publisher><publishername>The X.Org Foundation</publishername></publisher>
-    <pubdate>2004</pubdate>
+    <pubdate>&xserver.reldate;</pubdate>
+    <releaseinfo>X server version &xserver.version;</releaseinfo>
     <title>Definition of the Porting Layer for the X v11 Sample Server</title>
     <titleabbrev>X Porting Layer</titleabbrev>
     <revhistory>
