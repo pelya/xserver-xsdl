@@ -339,6 +339,8 @@ optionTypeToSting(OptionValueType type)
         return "[<bool>]";
     case OPTV_FREQ:
         return "<freq>";
+    case OPTV_PERCENT:
+        return "<percent>";
     default:
         return "";
     }
@@ -384,7 +386,8 @@ configureDeviceSection (int screennum)
 	    "        ### Available Driver options are:-\n"
 	    "        ### Values: <i>: integer, <f>: float, "
 			"<bool>: \"True\"/\"False\",\n"
-	    "        ### <string>: \"String\", <freq>: \"<f> Hz/kHz/MHz\"\n"
+	    "        ### <string>: \"String\", <freq>: \"<f> Hz/kHz/MHz\",\n"
+	    "        ### <percent>: \"<f>%\"\n"
 	    "        ### [arg]: arg optional\n";
 	ptr->dev_comment = xstrdup(descrip);
 	if (ptr->dev_comment) {
