@@ -799,7 +799,7 @@ is what fills the default tile.  (maybe this comment should
 go with CreateGC() or ChangeGC().)
 */
 
-GCPtr
+static GCPtr
 CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
