@@ -821,7 +821,6 @@ DoConfigure(void)
     }
 
     xf86PostProbe();
-    xf86EntityInit();
 
     for (j = 0; j < xf86NumScreens; j++) {
 	xf86Screens[j]->scrnIndex = j;
@@ -837,7 +836,6 @@ DoConfigure(void)
 
 	ConfiguredMonitor = NULL;
 
-	xf86EnableAccess(xf86Screens[dev2screen[j]]);
 	if ((*xf86Screens[dev2screen[j]]->PreInit)(xf86Screens[dev2screen[j]], 
 						   PROBE_DETECT) &&
 	    ConfiguredMonitor) {
