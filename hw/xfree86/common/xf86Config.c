@@ -2330,6 +2330,7 @@ configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
     inputp->driver = conf_input->inp_driver;
     inputp->commonOptions = conf_input->inp_option_lst;
     inputp->extraOptions = NULL;
+    inputp->attrs = NULL;
 
     return TRUE;
 }
