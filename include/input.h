@@ -62,6 +62,9 @@ SOFTWARE.
 #define DEVICE_OFF	2
 #define DEVICE_CLOSE	3
 
+/* DeleteInputDeviceRequest flags */
+#define DEVICE_REMOVE_ALL    (1 << 0) /* all devices will be removed */
+
 #define POINTER_RELATIVE (1 << 1)
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
@@ -536,7 +539,8 @@ extern _X_EXPORT int NewInputDeviceRequest(
     InputAttributes *attrs,
     DeviceIntPtr *dev);
 extern  _X_EXPORT void DeleteInputDeviceRequest(
-    DeviceIntPtr dev);
+    DeviceIntPtr dev,
+    int flags);
 
 extern _X_EXPORT void DDXRingBell(
     int volume,

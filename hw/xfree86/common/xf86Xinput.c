@@ -854,7 +854,7 @@ unwind:
 }
 
 void
-DeleteInputDeviceRequest(DeviceIntPtr pDev)
+DeleteInputDeviceRequest(DeviceIntPtr pDev, int flags)
 {
     LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
     InputDriverPtr drv = NULL;
@@ -874,9 +874,9 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
     if (!isMaster && pInfo != NULL)
     {
         if(drv->UnInit)
-            drv->UnInit(drv, pInfo, 0);
+            drv->UnInit(drv, pInfo, flags);
         else
-            xf86DeleteInput(pInfo, 0);
+            xf86DeleteInput(pInfo, flags);
 
         /* devices added through HAL aren't in the config layout */
         it = xf86ConfigLayout.inputs;
@@ -1267,7 +1267,7 @@ xf86DisableDevice(DeviceIntPtr dev, Bool panic)
     } else
     {
         SendDevicePresenceEvent(dev->id, DeviceUnrecoverable);
-        DeleteInputDeviceRequest(dev);
+        DeleteInputDeviceRequest(dev, 0);
     }
 }
 
