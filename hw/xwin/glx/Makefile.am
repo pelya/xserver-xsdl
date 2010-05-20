@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libXwinGLX.la
 
 libXwinGLX_la_SOURCES = \
 	winpriv.c \
+	winpriv.h \
 	glwindows.h \
 	glwrap.c \
 	indirect.c \
