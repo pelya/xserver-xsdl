@@ -1440,8 +1440,6 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
     if (sectlist)
 	*sectlist = NULL;
 
-    if (xf86DoConfigure && xf86DoConfigurePass1) return 1;
-
     /*
      * This is a very important function that matches the device sections
      * as they show up in the config file with the drivers that the server
