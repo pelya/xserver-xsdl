@@ -322,7 +322,7 @@ configureScreenSection (int screennum)
 }
 
 static const char* 
-optionTypeToSting(OptionValueType type)
+optionTypeToString(OptionValueType type)
 {
     switch (type) {
     case OPTV_NONE:
@@ -397,7 +397,7 @@ configureDeviceSection (int screennum)
 		const char *prefix = "        #Option     ";
 		const char *middle = " \t# ";
 		const char *suffix = "\n";
-		const char *opttype = optionTypeToSting(p->type);
+		const char *opttype = optionTypeToString(p->type);
 		char *optname;
 		int len = strlen(ptr->dev_comment) + strlen(prefix) +
 			  strlen(middle) + strlen(suffix) + 1;
