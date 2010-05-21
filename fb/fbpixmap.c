@@ -115,7 +115,7 @@ if (((rx1) < (rx2)) && ((ry1) < (ry2)) &&			\
 {								\
     if ((reg)->data->numRects == (reg)->data->size)		\
     {								\
-	miRectAlloc(reg, 1);					\
+	RegionRectAlloc(reg, 1);					\
 	fr = REGION_BOXPTR(reg);				\
 	r = fr + (reg)->data->numRects;				\
     }								\
@@ -315,7 +315,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 
     fbFinishAccess(&pPix->drawable);
 #ifdef DEBUG
-    if (!miValidRegion(pReg))
+    if (!RegionIsValid(pReg))
 	FatalError("Assertion failed file %s, line %d: expr\n", __FILE__, __LINE__);
 #endif
     return(pReg);

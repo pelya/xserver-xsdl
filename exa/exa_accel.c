@@ -407,7 +407,7 @@ exaHWCopyNtoN (DrawablePtr    pSrcDrawable,
 	    rects[i].height = pbox[i].y2 - pbox[i].y1;
 	}
 
-	/* This must match the miRegionCopy() logic for reversing rect order */
+	/* This must match the RegionCopy() logic for reversing rect order */
 	if (nbox == 1 || (dx > 0 && dy > 0) ||
 	    (pDstDrawable != pSrcDrawable &&
 	     (pDstDrawable->type != DRAWABLE_WINDOW ||

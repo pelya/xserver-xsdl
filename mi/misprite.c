@@ -268,7 +268,7 @@ miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 
             if (pCursorInfo->isUp &&
                 pCursorInfo->pScreen == pScreen &&
-                miRectIn(pRegion, &pCursorInfo->saved) != rgnOUT)
+                RegionContainsRect(pRegion, &pCursorInfo->saved) != rgnOUT)
             {
                 SPRITE_DEBUG(("Damage remove\n"));
                 miSpriteRemoveCursor (pDev, pScreen);
@@ -523,7 +523,7 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
              * Damage will take care of destination check
              */
             if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen &&
-                    miRectIn(prgnSrc, &pCursorInfo->saved) != rgnOUT)
+                    RegionContainsRect(prgnSrc, &pCursorInfo->saved) != rgnOUT)
             {
                 SPRITE_DEBUG (("CopyWindow remove\n"));
                 miSpriteRemoveCursor (pDev, pScreen);

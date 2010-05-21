@@ -85,7 +85,7 @@ extern _X_EXPORT void miFreeSpanGroup(
     SpanGroup * /*spanGroup*/
 );
 
-extern _X_EXPORT int miClipSpans(
+extern _X_EXPORT int RegionClipSpans(
     RegionPtr /*prgnDst*/,
     DDXPointPtr /*ppt*/,
     int * /*pwidth*/,

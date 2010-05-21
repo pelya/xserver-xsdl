@@ -195,7 +195,7 @@ PrintChildren(WindowPtr p1, int indent)
         ErrorF("[dix] ");
 	for (i=0; i<indent; i++) ErrorF(" ");
 	ErrorF("%lx\n", p1->drawable.id);
-	miPrintRegion(&p1->clipList);
+	RegionPrint(&p1->clipList);
 	PrintChildren(p2, indent+4);
 	p1 = p1->nextSib;
     }
@@ -211,7 +211,7 @@ PrintWindowTree(void)
     {
 	ErrorF("[dix] WINDOW %d\n", i);
 	pWin = screenInfo.screens[i]->root;
-	miPrintRegion(&pWin->clipList);
+	RegionPrint(&pWin->clipList);
 	p1 = pWin->firstChild;
 	PrintChildren(p1, 4);
     }

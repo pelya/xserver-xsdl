@@ -422,18 +422,18 @@ extern _X_EXPORT void miPushPixels(
 
 /* see also region.h */
 
-extern _X_EXPORT Bool miRectAlloc(
+extern _X_EXPORT Bool RegionRectAlloc(
     RegionPtr /*pRgn*/,
     int /*n*/
 );
 
 #ifdef DEBUG
-extern _X_EXPORT Bool miValidRegion(
+extern _X_EXPORT Bool RegionIsValid(
     RegionPtr /*prgn*/
 );
 #endif
 
-extern _X_EXPORT Bool miRegionBroken(RegionPtr pReg);
+extern _X_EXPORT Bool RegionBroken(RegionPtr pReg);
 
 /* miscrinit.c */
 
