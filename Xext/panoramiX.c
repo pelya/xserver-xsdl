@@ -386,7 +386,7 @@ static void XineramaInitData(ScreenPtr pScreen)
 {
     int i, w, h;
 
-    RegionNull(&PanoramiXScreenRegion)
+    RegionNull(&PanoramiXScreenRegion);
     for (i = 0; i < PanoramiXNumScreens; i++) {
 	BoxRec TheBox;
 	RegionRec ScreenRegion;

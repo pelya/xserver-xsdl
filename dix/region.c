@@ -275,12 +275,6 @@ RegionPrint(RegionPtr rgn)
     ErrorF("[mi] \n");
 }
 
-Bool
-RegionEqual(RegionPtr reg1, RegionPtr reg2)
-{
-    return pixman_region_equal (reg1, reg2);
-}
-
 #ifdef DEBUG
 Bool
 RegionIsValid(RegionPtr reg)
@@ -374,12 +368,6 @@ RegionRectAlloc(RegionPtr pRgn, int n)
     }
     pRgn->data->size = n;
     return TRUE;
-}
-
-Bool
-RegionCopy(RegionPtr dst, RegionPtr src)
-{
-    return pixman_region_copy (dst, src);
 }
 
 /*======================================================================
@@ -800,8 +788,8 @@ RegionOp(
  *-----------------------------------------------------------------------
  * RegionSetExtents --
  *	Reset the extents of a region to what they should be. Called by
- *	RegionSubtract and RegionIntersect as they can't figure it out along the
- *	way or do so easily, as RegionUnion can.
+ *	Subtract and Intersect as they can't figure it out along the
+ *	way or do so easily, as Union can.
  *
  * Results:
  *	None.
@@ -869,15 +857,6 @@ RegionSetExtents (RegionPtr pReg)
  *-----------------------------------------------------------------------
  */
 /*ARGSUSED*/
-Bool
-RegionIntersect(
-    RegionPtr	newReg,     /* destination Region */
-    RegionPtr	reg1,
-    RegionPtr	reg2        /* source regions     */
-    )
-{
-    return pixman_region_intersect (newReg, reg1, reg2);
-}
 
 #define MERGERECT(r)						\
 {								\
@@ -971,16 +950,6 @@ RegionUnionO (
     NEWRECT(pReg, pNextRect, x1, y1, x2, y2);
 
     return TRUE;
-}
-
-Bool
-RegionUnion(
-    RegionPtr	newReg,          /* destination Region */
-    RegionPtr	reg1,
-    RegionPtr	reg2             /* source regions     */
-    )
-{
-    return pixman_region_union (newReg, reg1, reg2);
 }
 
 /*======================================================================
@@ -1182,7 +1151,7 @@ QuickSortRects(
  *		or a coalescing into 1 box (ala Menus).
  *
  *	Step 3. Merge the separate regions down to a single region by calling
- *		RegionUnion.  Maximize the work each RegionUnion call does by using
+ *		Union.  Maximize the work each Union call does by using
  *		a binary merge.
  *
  *-----------------------------------------------------------------------
@@ -1454,102 +1423,6 @@ RegionFromRects(int nrects, xRectangle *prect, int ctype)
 	free(pData);
     }
     return pRgn;
-}
-
-/*======================================================================
- * 	    	  Region Subtraction
- *====================================================================*/
-
-
-/*-
- *-----------------------------------------------------------------------
- * RegionSubtractO --
- *	Overlapping band subtraction. x1 is the left-most point not yet
- *	checked.
- *
- * Results:
- *	TRUE if successful.
- *
- * Side Effects:
- *	pReg may have rectangles added to it.
- *
- *-----------------------------------------------------------------------
- */
-/*ARGSUSED*/
-
-/*-
- *-----------------------------------------------------------------------
- * RegionSubtract --
- *	Subtract regS from regM and leave the result in regD.
- *	S stands for subtrahend, M for minuend and D for difference.
- *
- * Results:
- *	TRUE if successful.
- *
- * Side Effects:
- *	regD is overwritten.
- *
- *-----------------------------------------------------------------------
- */
-Bool
-RegionSubtract(RegionPtr regD, RegionPtr regM, RegionPtr regS)
-{
-    return pixman_region_subtract (regD, regM, regS);
-}
-
-/*======================================================================
- *	    Region Inversion
- *====================================================================*/
-
-/*-
- *-----------------------------------------------------------------------
- * RegionInverse --
- *	Take a region and a box and return a region that is everything
- *	in the box but not in the region. The careful reader will note
- *	that this is the same as subtracting the region from the box...
- *
- * Results:
- *	TRUE.
- *
- * Side Effects:
- *	newReg is overwritten.
- *
- *-----------------------------------------------------------------------
- */
-Bool
-RegionInverse(
-    RegionPtr	  newReg,       /* Destination region */
-    RegionPtr	  reg1,         /* Region to invert */
-    BoxPtr	  invRect	/* Bounding box for inversion */
-    )
-{
-    return pixman_region_inverse (newReg, reg1, invRect);
-}
-int
-RegionContainsRect(RegionPtr region, BoxPtr prect)
-{
-    return pixman_region_contains_rectangle (region, prect);
-}
-
-/* TranslateRegion(pReg, x, y)
-   translates in place
-*/
-
-void
-RegionTranslate(RegionPtr pReg, int x, int y)
-{
-    pixman_region_translate (pReg, x, y);
-}
-
-Bool
-RegionContainsPoint(
-    RegionPtr pReg,
-    int x,
-    int y,
-    BoxPtr box      /* "return" value */
-    )
-{
-    return pixman_region_contains_point (pReg, x, y, box);
 }
 
 #define ExchangeSpans(a, b)				    \
