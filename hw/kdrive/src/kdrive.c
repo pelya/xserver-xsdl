@@ -121,8 +121,8 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 	    {
 		RegionPtr	borderVisible;
 
-		borderVisible = REGION_CREATE(pScreen, NullBox, 1);
-		REGION_SUBTRACT(pScreen, borderVisible,
+		borderVisible = RegionCreate(NullBox, 1);
+		RegionSubtract(borderVisible,
 				&pWin->borderClip, &pWin->winSize);
 		pWin->valdata->before.borderVisible = borderVisible;
 	    }
@@ -138,15 +138,15 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 	box.y2 = pScreen->height;
 	pWin->drawable.width = pScreen->width;
 	pWin->drawable.height = pScreen->height;
-	REGION_INIT (pScreen, &pWin->winSize, &box, 1);
-	REGION_INIT (pScreen, &pWin->borderSize, &box, 1);
-	REGION_RESET(pScreen, &pWin->borderClip, &box);
-	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	RegionInit(&pWin->winSize, &box, 1);
+	RegionInit(&pWin->borderSize, &box, 1);
+	RegionReset(&pWin->borderClip, &box);
+	RegionBreak(&pWin->clipList);
     }
     else
     {
-	REGION_EMPTY(pScreen, &pWin->borderClip);
-	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	RegionEmpty(&pWin->borderClip);
+	RegionBreak(&pWin->clipList);
     }
 
     ResizeChildrenWinSize (pWin, 0, 0, 0, 0);
@@ -836,8 +836,8 @@ KdCreateWindow (WindowPtr pWin)
 
 	if (!pScreenPriv->enabled)
 	{
-	    REGION_EMPTY (pWin->drawable.pScreen, &pWin->borderClip);
-	    REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	    RegionEmpty(&pWin->borderClip);
+	    RegionBreak(&pWin->clipList);
 	}
     }
 #endif

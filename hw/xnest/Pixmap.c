@@ -97,8 +97,8 @@ xnestPixmapToRegion(PixmapPtr pPixmap)
 		     pPixmap->drawable.width, pPixmap->drawable.height,
 		     1, XYPixmap);
   
-  pReg = REGION_CREATE(pPixmap->drawable.pScreen, NULL, 1);
-  pTmpReg = REGION_CREATE(pPixmap->drawable.pScreen, NULL, 1);
+  pReg = RegionCreate(NULL, 1);
+  pTmpReg = RegionCreate(NULL, 1);
   if(!pReg || !pTmpReg) {
       XDestroyImage(ximage);
       return NullRegion;
@@ -118,8 +118,8 @@ xnestPixmapToRegion(PixmapPtr pPixmap)
 	else if (currentPixel == 0L) {
 	  /* right edge */
 	  Box.x2 = x;
-	  REGION_RESET(pPixmap->drawable.pScreen, pTmpReg, &Box);
-	  REGION_APPEND(pPixmap->drawable.pScreen, pReg, pTmpReg);
+	  RegionReset(pTmpReg, &Box);
+	  RegionAppend(pReg, pTmpReg);
 	}
 	previousPixel = currentPixel;
       }
@@ -127,15 +127,15 @@ xnestPixmapToRegion(PixmapPtr pPixmap)
     if (previousPixel != 0L) {
       /* right edge because of the end of pixmap */
       Box.x2 = pPixmap->drawable.width;
-      REGION_RESET(pPixmap->drawable.pScreen, pTmpReg, &Box);
-      REGION_APPEND(pPixmap->drawable.pScreen, pReg, pTmpReg);
+      RegionReset(pTmpReg, &Box);
+      RegionAppend(pReg, pTmpReg);
     }
   }
   
-  REGION_DESTROY(pPixmap->drawable.pScreen, pTmpReg);
+  RegionDestroy(pTmpReg);
   XDestroyImage(ximage);
 
-  REGION_VALIDATE(pPixmap->drawable.pScreen, pReg, &overlap);
+  RegionValidate(pReg, &overlap);
 
   return(pReg);
 }

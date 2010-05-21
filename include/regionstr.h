@@ -70,68 +70,68 @@ extern _X_EXPORT BoxRec RegionEmptyBox;
 extern _X_EXPORT RegDataRec RegionEmptyData;
 extern _X_EXPORT RegDataRec RegionBrokenData;
 
-#define REGION_NIL(reg) ((reg)->data && !(reg)->data->numRects)
+#define RegionNil(reg) ((reg)->data && !(reg)->data->numRects)
 /* not a region */
-#define REGION_NAR(reg)	((reg)->data == &RegionBrokenData)
-#define REGION_NUM_RECTS(reg) ((reg)->data ? (reg)->data->numRects : 1)
-#define REGION_SIZE(reg) ((reg)->data ? (reg)->data->size : 0)
-#define REGION_RECTS(reg) ((reg)->data ? (BoxPtr)((reg)->data + 1) \
+#define RegionNar(reg)	((reg)->data == &RegionBrokenData)
+#define RegionNumRects(reg) ((reg)->data ? (reg)->data->numRects : 1)
+#define RegionSize(reg) ((reg)->data ? (reg)->data->size : 0)
+#define RegionRects(reg) ((reg)->data ? (BoxPtr)((reg)->data + 1) \
 			               : &(reg)->extents)
-#define REGION_BOXPTR(reg) ((BoxPtr)((reg)->data + 1))
-#define REGION_BOX(reg,i) (&REGION_BOXPTR(reg)[i])
-#define REGION_TOP(reg) REGION_BOX(reg, (reg)->data->numRects)
-#define REGION_END(reg) REGION_BOX(reg, (reg)->data->numRects - 1)
-#define REGION_SZOF(n) (sizeof(RegDataRec) + ((n) * sizeof(BoxRec)))
+#define RegionBoxptr(reg) ((BoxPtr)((reg)->data + 1))
+#define RegionBox(reg,i) (&RegionBoxptr(reg)[i])
+#define RegionTop(reg) RegionBox(reg, (reg)->data->numRects)
+#define RegionEnd(reg) RegionBox(reg, (reg)->data->numRects - 1)
+#define RegionSizeof(n) (sizeof(RegDataRec) + ((n) * sizeof(BoxRec)))
 
-#define REGION_CREATE(_pScreen, _rect, _size) \
+#define RegionCreate(_rect, _size) \
     RegionCreate(_rect, _size)
 
-#define REGION_COPY(_pScreen, dst, src) \
+#define RegionCopy(dst, src) \
     RegionCopy(dst, src)
 
-#define REGION_DESTROY(_pScreen, _pReg) \
+#define RegionDestroy(_pReg) \
     RegionDestroy(_pReg)
 
-#define REGION_INTERSECT(_pScreen, newReg, reg1, reg2) \
+#define RegionIntersect(newReg, reg1, reg2) \
     RegionIntersect(newReg, reg1, reg2)
 
-#define REGION_UNION(_pScreen, newReg, reg1, reg2) \
+#define RegionUnion(newReg, reg1, reg2) \
     RegionUnion(newReg, reg1, reg2)
 
-#define REGION_SUBTRACT(_pScreen, newReg, reg1, reg2) \
+#define RegionSubtract(newReg, reg1, reg2) \
     RegionSubtract(newReg, reg1, reg2)
 
-#define REGION_INVERSE(_pScreen, newReg, reg1, invRect) \
+#define RegionInverse(newReg, reg1, invRect) \
     RegionInverse(newReg, reg1, invRect)
 
-#define REGION_TRANSLATE(_pScreen, _pReg, _x, _y) \
+#define RegionTranslate(_pReg, _x, _y) \
     RegionTranslate(_pReg, _x, _y)
 
-#define RECT_IN_REGION(_pScreen, _pReg, prect) \
+#define RegionContainsRect(_pReg, prect) \
     RegionContainsRect(_pReg, prect)
 
-#define POINT_IN_REGION(_pScreen, _pReg, _x, _y, prect) \
+#define RegionContainsPoint(_pReg, _x, _y, prect) \
     RegionContainsPoint(_pReg, _x, _y, prect)
 
-#define REGION_APPEND(_pScreen, dstrgn, rgn) \
+#define RegionAppend(dstrgn, rgn) \
     RegionAppend(dstrgn, rgn)
 
-#define REGION_VALIDATE(_pScreen, badreg, pOverlap) \
+#define RegionValidate(badreg, pOverlap) \
     RegionValidate(badreg, pOverlap)
 
-#define BITMAP_TO_REGION(_pScreen, pPix) \
+#define BitmapToRegion(_pScreen, pPix) \
     (*(_pScreen)->BitmapToRegion)(pPix) /* no mi version?! */
 
-#define RECTS_TO_REGION(_pScreen, nrects, prect, ctype) \
+#define RegionFromRects(nrects, prect, ctype) \
     RegionFromRects(nrects, prect, ctype)
 
-#define REGION_EQUAL(_pScreen, _pReg1, _pReg2) \
+#define RegionEqual(_pReg1, _pReg2) \
     RegionEqual(_pReg1, _pReg2)
 
-#define REGION_BREAK(_pScreen, _pReg) \
+#define RegionBreak(_pReg) \
     RegionBreak(_pReg)
 
-#define REGION_INIT(_pScreen, _pReg, _rect, _size) \
+#define RegionInit(_pReg, _rect, _size) \
 { \
     if ((_rect) != NULL)				\
     { \
@@ -142,7 +142,7 @@ extern _X_EXPORT RegDataRec RegionBrokenData;
     { \
         (_pReg)->extents = RegionEmptyBox; \
         if (((_size) > 1) && ((_pReg)->data = \
-                             (RegDataPtr)malloc(REGION_SZOF(_size)))) \
+                             (RegDataPtr)malloc(RegionSizeof(_size)))) \
         { \
             (_pReg)->data->size = (_size); \
             (_pReg)->data->numRects = 0; \
@@ -153,7 +153,7 @@ extern _X_EXPORT RegDataRec RegionBrokenData;
  }
 
 
-#define REGION_UNINIT(_pScreen, _pReg) \
+#define RegionUninit(_pReg) \
 { \
     if ((_pReg)->data && (_pReg)->data->size) { \
 	free((_pReg)->data); \
@@ -161,40 +161,35 @@ extern _X_EXPORT RegDataRec RegionBrokenData;
     } \
 }
 
-#define REGION_RESET(_pScreen, _pReg, _pBox) \
+#define RegionReset(_pReg, _pBox) \
 { \
     (_pReg)->extents = *(_pBox); \
-    REGION_UNINIT(_pScreen, _pReg); \
+    RegionUninit(_pReg); \
     (_pReg)->data = (RegDataPtr)NULL; \
 }
 
-#define REGION_NOTEMPTY(_pScreen, _pReg) \
-    !REGION_NIL(_pReg)
+#define RegionNotEmpty(_pReg) \
+    !RegionNil(_pReg)
 
-#define REGION_BROKEN(_pScreen, _pReg) \
-    REGION_NAR(_pReg)
+#define RegionBroken(_pReg) \
+    RegionNar(_pReg)
 
-#define REGION_EMPTY(_pScreen, _pReg) \
+#define RegionEmpty(_pReg) \
 { \
-    REGION_UNINIT(_pScreen, _pReg); \
+    RegionUninit(_pReg); \
     (_pReg)->extents.x2 = (_pReg)->extents.x1; \
     (_pReg)->extents.y2 = (_pReg)->extents.y1; \
     (_pReg)->data = &RegionEmptyData; \
 }
 
-#define REGION_EXTENTS(_pScreen, _pReg) \
+#define RegionExtents(_pReg) \
     (&(_pReg)->extents)
 
-#define REGION_NULL(_pScreen, _pReg) \
+#define RegionNull(_pReg) \
 { \
     (_pReg)->extents = RegionEmptyBox; \
     (_pReg)->data = &RegionEmptyData; \
 }
-
-#ifndef REGION_NULL
-#define REGION_NULL(_pScreen, _pReg) \
-    REGION_INIT(_pScreen, _pReg, NullBox, 1)
-#endif
 
 /* moved from mi.h */
 
@@ -204,15 +199,7 @@ extern _X_EXPORT RegionPtr RegionCreate(
     BoxPtr /*rect*/,
     int /*size*/);
 
-extern _X_EXPORT void RegionInit(
-    RegionPtr /*pReg*/,
-    BoxPtr /*rect*/,
-    int /*size*/);
-
 extern _X_EXPORT void RegionDestroy(
-    RegionPtr /*pReg*/);
-
-extern _X_EXPORT void RegionUninit(
     RegionPtr /*pReg*/);
 
 extern _X_EXPORT Bool RegionCopy(
@@ -261,10 +248,6 @@ extern _X_EXPORT void RegionTranslate(
     int /*x*/,
     int /*y*/);
 
-extern _X_EXPORT void RegionReset(
-    RegionPtr /*pReg*/,
-    BoxPtr /*pBox*/);
-
 extern _X_EXPORT Bool RegionBreak(
     RegionPtr /*pReg*/);
 
@@ -278,16 +261,28 @@ extern _X_EXPORT Bool RegionEqual(
     RegionPtr /*pReg1*/,
     RegionPtr /*pReg2*/);
 
-extern _X_EXPORT Bool RegionNotEmpty(
-    RegionPtr /*pReg*/);
+extern _X_EXPORT Bool RegionRectAlloc(
+    RegionPtr /*pRgn*/,
+    int /*n*/
+);
 
-extern _X_EXPORT void RegionEmpty(
-    RegionPtr /*pReg*/);
-
-extern _X_EXPORT BoxPtr RegionExtents(
-    RegionPtr /*pReg*/);
+#ifdef DEBUG
+extern _X_EXPORT Bool RegionIsValid(
+    RegionPtr /*prgn*/
+);
+#endif
 
 extern _X_EXPORT void RegionPrint(
     RegionPtr /*pReg*/);
+
+extern _X_EXPORT int RegionClipSpans(
+    RegionPtr /*prgnDst*/,
+    DDXPointPtr /*ppt*/,
+    int * /*pwidth*/,
+    int /*nspans*/,
+    DDXPointPtr /*pptNew*/,
+    int * /*pwidthNew*/,
+    int /*fSorted*/
+);
 
 #endif /* REGIONSTRUCT_H */

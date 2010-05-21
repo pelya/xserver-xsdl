@@ -322,9 +322,9 @@ xf86XVFreeAdaptor(XvAdaptorPtr pAdaptor)
 	  pPriv = (XvPortRecPrivatePtr)pPort->devPriv.ptr;
 	  if(pPriv) {
 	     if(pPriv->clientClip)
-		REGION_DESTROY(pAdaptor->pScreen, pPriv->clientClip);
+		RegionDestroy(pPriv->clientClip);
 	     if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
-		REGION_DESTROY(pAdaptor->pScreen, pPriv->pCompositeClip);
+		RegionDestroy(pPriv->pCompositeClip);
 	     free(pPriv);
 	  }
       }
@@ -658,18 +658,18 @@ xf86XVUpdateCompositeClip(XvPortRecPrivatePtr portPriv)
 	return;
    }
 
-   pCompositeClip = REGION_CREATE(pScreen, NullBox, 1);
-   REGION_COPY(pScreen, pCompositeClip, portPriv->clientClip);
-   REGION_TRANSLATE(pScreen, pCompositeClip,
+   pCompositeClip = RegionCreate(NullBox, 1);
+   RegionCopy(pCompositeClip, portPriv->clientClip);
+   RegionTranslate(pCompositeClip,
 			portPriv->pDraw->x + portPriv->clipOrg.x,
 			portPriv->pDraw->y + portPriv->clipOrg.y);
-   REGION_INTERSECT(pScreen, pCompositeClip, pregWin, pCompositeClip);
+   RegionIntersect(pCompositeClip, pregWin, pCompositeClip);
 
    portPriv->pCompositeClip = pCompositeClip;
    portPriv->FreeCompositeClip = TRUE;
 
    if(freeCompClip) {
-	REGION_DESTROY(pScreen, pregWin);
+	RegionDestroy(pregWin);
    }
 }
 
@@ -684,17 +684,17 @@ xf86XVCopyClip(
     /* copy the new clip if it exists */
     if((pGC->clientClipType == CT_REGION) && pGC->clientClip) {
 	if(!portPriv->clientClip)
-	    portPriv->clientClip = REGION_CREATE(pScreen, NullBox, 1);
+	    portPriv->clientClip = RegionCreate(NullBox, 1);
 	/* Note: this is in window coordinates */
-	REGION_COPY(pScreen, portPriv->clientClip, pGC->clientClip);
+	RegionCopy(portPriv->clientClip, pGC->clientClip);
     } else if(portPriv->clientClip) { /* free the old clientClip */
-	REGION_DESTROY(pScreen, portPriv->clientClip);
+	RegionDestroy(portPriv->clientClip);
 	portPriv->clientClip = NULL;
     }
 
     /* get rid of the old clip list */
     if(portPriv->pCompositeClip && portPriv->FreeCompositeClip) {
-	REGION_DESTROY(pScreen, portPriv->pCompositeClip);
+	RegionDestroy(portPriv->pCompositeClip);
     }
 
     portPriv->clipOrg = pGC->clipOrg;
@@ -723,18 +723,18 @@ xf86XVRegetVideo(XvPortRecPrivatePtr portPriv)
   WinBox.y2 = WinBox.y1 + portPriv->drw_h;
 
   /* clip to the window composite clip */
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, portPriv->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, portPriv->pCompositeClip);
 
   /* that's all if it's totally obscured */
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
 	clippedAway = TRUE;
 	goto CLIP_VIDEO_BAILOUT;
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->GetVideo)(portPriv->pScrn,
@@ -760,8 +760,8 @@ CLIP_VIDEO_BAILOUT:
   if(!portPriv->FreeCompositeClip)
      portPriv->pCompositeClip = NULL;
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -788,9 +788,9 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
   WinBox.y2 = WinBox.y1 + portPriv->drw_h;
 
   /* clip to the window composite clip */
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, portPriv->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, portPriv->pCompositeClip);
 
   /* clip and translate to the viewport */
   if(portPriv->AdaptorRec->flags & VIDEO_CLIP_TO_VIEWPORT) {
@@ -802,21 +802,21 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
      VPBox.x2 = portPriv->pScrn->frameX1 + 1;
      VPBox.y2 = portPriv->pScrn->frameY1 + 1;
 
-     REGION_INIT(pScreen, &VPReg, &VPBox, 1);
-     REGION_INTERSECT(pScreen, &ClipRegion, &ClipRegion, &VPReg);
-     REGION_UNINIT(pScreen, &VPReg);
+     RegionInit(&VPReg, &VPBox, 1);
+     RegionIntersect(&ClipRegion, &ClipRegion, &VPReg);
+     RegionUninit(&VPReg);
   }
 
   /* that's all if it's totally obscured */
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
 	clippedAway = TRUE;
 	goto CLIP_VIDEO_BAILOUT;
   }
 
   /* bailout if we have to clip but the hardware doesn't support it */
   if(portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-     BoxPtr clipBox = REGION_RECTS(&ClipRegion);
-     if(  (REGION_NUM_RECTS(&ClipRegion) != 1) ||
+     BoxPtr clipBox = RegionRects(&ClipRegion);
+     if(  (RegionNumRects(&ClipRegion) != 1) ||
 	  (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
 	  (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2))
      {
@@ -826,7 +826,7 @@ xf86XVReputVideo(XvPortRecPrivatePtr portPriv)
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->PutVideo)(portPriv->pScrn,
@@ -851,8 +851,8 @@ CLIP_VIDEO_BAILOUT:
   if(!portPriv->FreeCompositeClip)
      portPriv->pCompositeClip = NULL;
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -878,9 +878,9 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
   WinBox.y2 = WinBox.y1 + portPriv->drw_h;
 
   /* clip to the window composite clip */
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, portPriv->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, portPriv->pCompositeClip);
 
   /* clip and translate to the viewport */
   if(portPriv->AdaptorRec->flags & VIDEO_CLIP_TO_VIEWPORT) {
@@ -892,21 +892,21 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
      VPBox.x2 = portPriv->pScrn->frameX1 + 1;
      VPBox.y2 = portPriv->pScrn->frameY1 + 1;
 
-     REGION_INIT(pScreen, &VPReg, &VPBox, 1);
-     REGION_INTERSECT(pScreen, &ClipRegion, &ClipRegion, &VPReg);
-     REGION_UNINIT(pScreen, &VPReg);
+     RegionInit(&VPReg, &VPBox, 1);
+     RegionIntersect(&ClipRegion, &ClipRegion, &VPReg);
+     RegionUninit(&VPReg);
   }
 
   /* that's all if it's totally obscured */
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
 	clippedAway = TRUE;
 	goto CLIP_VIDEO_BAILOUT;
   }
 
   /* bailout if we have to clip but the hardware doesn't support it */
   if(portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-     BoxPtr clipBox = REGION_RECTS(&ClipRegion);
-     if(  (REGION_NUM_RECTS(&ClipRegion) != 1) ||
+     BoxPtr clipBox = RegionRects(&ClipRegion);
+     if(  (RegionNumRects(&ClipRegion) != 1) ||
 	  (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
 	  (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2))
      {
@@ -916,7 +916,7 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->ReputImage)(portPriv->pScrn,
@@ -938,8 +938,8 @@ CLIP_VIDEO_BAILOUT:
   if(!portPriv->FreeCompositeClip)
      portPriv->pCompositeClip = NULL;
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -1060,7 +1060,7 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
   XvPortRecPrivatePtr pPriv;
   Bool AreasExposed;
 
-  AreasExposed = (WinPriv && reg1 && REGION_NOTEMPTY(pScreen, reg1));
+  AreasExposed = (WinPriv && reg1 && RegionNotEmpty(reg1));
 
   pScreen->WindowExposures = ScreenPriv->WindowExposures;
   (*pScreen->WindowExposures)(pWin, reg1, reg2);
@@ -1131,7 +1131,7 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
      if(!pPriv) goto next;
  
      if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
-	REGION_DESTROY(pScreen, pPriv->pCompositeClip);
+	RegionDestroy(pPriv->pCompositeClip);
 
      pPriv->pCompositeClip = NULL;
 
@@ -1268,7 +1268,7 @@ xf86XVLeaveVT(int index, int flags)
 		pPriv->isOn = XV_OFF;
 
 		if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
-		    REGION_DESTROY(pScreen, pPriv->pCompositeClip);
+		    RegionDestroy(pPriv->pCompositeClip);
 
 		pPriv->pCompositeClip = NULL;
 
@@ -1309,7 +1309,7 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
 	if(!pPriv->type && (pPriv->isOn != XV_OFF)) { /* overlaid still/image */
 
 	  if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
-	     REGION_DESTROY(pScreen, pPriv->pCompositeClip);
+	     RegionDestroy(pPriv->pCompositeClip);
 
 	  pPriv->pCompositeClip = NULL;
 
@@ -1432,9 +1432,9 @@ xf86XVPutStill(
   WinBox.x2 = WinBox.x1 + drw_w;
   WinBox.y2 = WinBox.y1 + drw_h;
 
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, pGC->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, pGC->pCompositeClip);
 
   if(portPriv->AdaptorRec->flags & VIDEO_CLIP_TO_VIEWPORT) {
      RegionRec VPReg;
@@ -1445,23 +1445,23 @@ xf86XVPutStill(
      VPBox.x2 = portPriv->pScrn->frameX1 + 1;
      VPBox.y2 = portPriv->pScrn->frameY1 + 1;
 
-     REGION_INIT(pScreen, &VPReg, &VPBox, 1);
-     REGION_INTERSECT(pScreen, &ClipRegion, &ClipRegion, &VPReg);
-     REGION_UNINIT(pScreen, &VPReg);
+     RegionInit(&VPReg, &VPBox, 1);
+     RegionIntersect(&ClipRegion, &ClipRegion, &VPReg);
+     RegionUninit(&VPReg);
   }
 
   if(portPriv->pDraw) {
      xf86XVRemovePortFromWindow((WindowPtr)(portPriv->pDraw), portPriv);
   }
 
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
      clippedAway = TRUE;
      goto PUT_STILL_BAILOUT;
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-     BoxPtr clipBox = REGION_RECTS(&ClipRegion);
-     if(  (REGION_NUM_RECTS(&ClipRegion) != 1) ||
+     BoxPtr clipBox = RegionRects(&ClipRegion);
+     if(  (RegionNumRects(&ClipRegion) != 1) ||
 	  (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
 	  (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2))
      {
@@ -1471,7 +1471,7 @@ xf86XVPutStill(
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->PutStill)(portPriv->pScrn,
@@ -1500,8 +1500,8 @@ PUT_STILL_BAILOUT:
 	portPriv->isOn = XV_PENDING;
   }
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -1584,21 +1584,21 @@ xf86XVGetStill(
   WinBox.x2 = WinBox.x1 + drw_w;
   WinBox.y2 = WinBox.y1 + drw_h;
 
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, pGC->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, pGC->pCompositeClip);
 
   if(portPriv->pDraw) {
      xf86XVRemovePortFromWindow((WindowPtr)(portPriv->pDraw), portPriv);
   }
 
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
      clippedAway = TRUE;
      goto GET_STILL_BAILOUT;
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->GetStill)(portPriv->pScrn,
@@ -1615,8 +1615,8 @@ GET_STILL_BAILOUT:
 	portPriv->isOn = XV_PENDING;
   }
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -1732,9 +1732,9 @@ xf86XVPutImage(
   WinBox.x2 = WinBox.x1 + drw_w;
   WinBox.y2 = WinBox.y1 + drw_h;
 
-  REGION_INIT(pScreen, &WinRegion, &WinBox, 1);
-  REGION_NULL(pScreen, &ClipRegion);
-  REGION_INTERSECT(pScreen, &ClipRegion, &WinRegion, pGC->pCompositeClip);
+  RegionInit(&WinRegion, &WinBox, 1);
+  RegionNull(&ClipRegion);
+  RegionIntersect(&ClipRegion, &WinRegion, pGC->pCompositeClip);
 
   if(portPriv->AdaptorRec->flags & VIDEO_CLIP_TO_VIEWPORT) {
      RegionRec VPReg;
@@ -1745,9 +1745,9 @@ xf86XVPutImage(
      VPBox.x2 = portPriv->pScrn->frameX1 + 1;
      VPBox.y2 = portPriv->pScrn->frameY1 + 1;
 
-     REGION_INIT(pScreen, &VPReg, &VPBox, 1);
-     REGION_INTERSECT(pScreen, &ClipRegion, &ClipRegion, &VPReg);
-     REGION_UNINIT(pScreen, &VPReg);
+     RegionInit(&VPReg, &VPBox, 1);
+     RegionIntersect(&ClipRegion, &ClipRegion, &VPReg);
+     RegionUninit(&VPReg);
   }
 
   /* If we are changing windows, unregister our port in the old window */
@@ -1758,14 +1758,14 @@ xf86XVPutImage(
   ret =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
   if(ret != Success) goto PUT_IMAGE_BAILOUT;
 
-  if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
+  if(!RegionNotEmpty(&ClipRegion)) {
      clippedAway = TRUE;
      goto PUT_IMAGE_BAILOUT;
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_NO_CLIPPING) {
-     BoxPtr clipBox = REGION_RECTS(&ClipRegion);
-     if(  (REGION_NUM_RECTS(&ClipRegion) != 1) ||
+     BoxPtr clipBox = RegionRects(&ClipRegion);
+     if(  (RegionNumRects(&ClipRegion) != 1) ||
 	  (clipBox->x1 != WinBox.x1) || (clipBox->x2 != WinBox.x2) ||
 	  (clipBox->y1 != WinBox.y1) || (clipBox->y2 != WinBox.y2))
      {
@@ -1775,7 +1775,7 @@ xf86XVPutImage(
   }
 
   if(portPriv->AdaptorRec->flags & VIDEO_INVERT_CLIPLIST) {
-     REGION_SUBTRACT(pScreen, &ClipRegion, &WinRegion, &ClipRegion);
+     RegionSubtract(&ClipRegion, &WinRegion, &ClipRegion);
   }
 
   ret = (*portPriv->AdaptorRec->PutImage)(portPriv->pScrn,
@@ -1803,8 +1803,8 @@ PUT_IMAGE_BAILOUT:
 	portPriv->isOn = XV_PENDING;
   }
 
-  REGION_UNINIT(pScreen, &WinRegion);
-  REGION_UNINIT(pScreen, &ClipRegion);
+  RegionUninit(&WinRegion);
+  RegionUninit(&ClipRegion);
 
   return ret;
 }
@@ -1834,8 +1834,8 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
    WindowPtr pWin = (WindowPtr)pDraw;
    XF86XVWindowPtr pPriv = GET_XF86XV_WINDOW(pWin);
    GCPtr pGC = NULL;
-   BoxPtr pbox = REGION_RECTS(clipboxes);
-   int i, nbox = REGION_NUM_RECTS(clipboxes);
+   BoxPtr pbox = RegionRects(clipboxes);
+   int i, nbox = RegionNumRects(clipboxes);
    xRectangle *rects;
 
    if(!xf86Screens[pScreen->myNum]->vtSema) return;
@@ -1860,7 +1860,7 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
        ValidateGC(pDraw, pGC);
    }
 
-   REGION_TRANSLATE(pDraw->pScreen, clipboxes, -pDraw->x, -pDraw->y);
+   RegionTranslate(clipboxes, -pDraw->x, -pDraw->y);
 
    rects = malloc(nbox * sizeof(xRectangle));
 
@@ -1883,8 +1883,8 @@ xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 {
    DrawablePtr root = &pScreen->root->drawable;
    ChangeGCVal pval[2];
-   BoxPtr pbox = REGION_RECTS(clipboxes);
-   int i, nbox = REGION_NUM_RECTS(clipboxes);
+   BoxPtr pbox = RegionRects(clipboxes);
+   int i, nbox = RegionNumRects(clipboxes);
    xRectangle *rects;
    GCPtr gc;
 
@@ -1936,7 +1936,7 @@ xf86XVClipVideoHelper(
 ){
     double xsw, xdw, ysw, ydw;
     INT32 delta;
-    BoxPtr extents = REGION_EXTENTS(DummyScreen, reg);
+    BoxPtr extents = RegionExtents(reg);
     int diff;
 
     xsw = (*xb - *xa) << 16;
@@ -1998,9 +1998,9 @@ xf86XVClipVideoHelper(
 	(dst->y1 > extents->y1) || (dst->y2 < extents->y2))
     {
 	RegionRec clipReg;
-	REGION_INIT(DummyScreen, &clipReg, dst, 1);
-	REGION_INTERSECT(DummyScreen, reg, reg, &clipReg);
-	REGION_UNINIT(DummyScreen, &clipReg);
+	RegionInit(&clipReg, dst, 1);
+	RegionIntersect(reg, reg, &clipReg);
+	RegionUninit(&clipReg);
     }
     return TRUE;
 }

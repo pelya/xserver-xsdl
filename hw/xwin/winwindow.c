@@ -147,22 +147,22 @@ winCopyWindowNativeGDI (WindowPtr pWin,
   pwinRoot = pWin->drawable.pScreen->root;
 
   /* Create a region for the destination */
-  prgnDst = REGION_CREATE(pWin->drawable.pScreen, NULL, 1);
+  prgnDst = RegionCreate(NULL, 1);
 
   /* Calculate the shift from the source to the destination */
   dx = ptOldOrg.x - pWin->drawable.x;
   dy = ptOldOrg.y - pWin->drawable.y;
 
   /* Translate the region from the destination to the source? */
-  REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
-  REGION_INTERSECT(pWin->drawable.pScreen, prgnDst, &pWin->borderClip,
+  RegionTranslate(prgnSrc, -dx, -dy);
+  RegionIntersect(prgnDst, &pWin->borderClip,
 		   prgnSrc);
 
   /* Get a pointer to the first box in the region to be copied */
-  pBox = REGION_RECTS(prgnDst);
+  pBox = RegionRects(prgnDst);
   
   /* Get the number of boxes in the region */
-  nbox = REGION_NUM_RECTS(prgnDst);
+  nbox = RegionNumRects(prgnDst);
 
   /* Allocate source points for each box */
   if(!(pptSrc = (DDXPointPtr )malloc(nbox * sizeof(DDXPointRec))))
@@ -179,7 +179,7 @@ winCopyWindowNativeGDI (WindowPtr pWin,
     }
 
   /* Setup loop pointers again */
-  pBoxDst = REGION_RECTS(prgnDst);
+  pBoxDst = RegionRects(prgnDst);
   ppt = pptSrc;
 
 #if 0
@@ -205,7 +205,7 @@ winCopyWindowNativeGDI (WindowPtr pWin,
 
   /* Cleanup the regions, etc. */
   free(pptSrc);
-  REGION_DESTROY(pWin->drawable.pScreen, prgnDst);
+  RegionDestroy(prgnDst);
 }
 
 
@@ -593,13 +593,13 @@ winReshapeRootless (WindowPtr pWin)
   if (!wBoundingShape (pWin))
     return;
 
-  REGION_NULL(pScreen, &rrNewShape);
-  REGION_COPY(pScreen, &rrNewShape, wBoundingShape(pWin));
-  REGION_TRANSLATE(pScreen, &rrNewShape, pWin->borderWidth,
+  RegionNull(&rrNewShape);
+  RegionCopy(&rrNewShape, wBoundingShape(pWin));
+  RegionTranslate(&rrNewShape, pWin->borderWidth,
                    pWin->borderWidth);
   
-  nRects = REGION_NUM_RECTS(&rrNewShape);
-  pShape = REGION_RECTS(&rrNewShape);
+  nRects = RegionNumRects(&rrNewShape);
+  pShape = RegionRects(&rrNewShape);
   
   if (nRects > 0)
     {
@@ -631,7 +631,7 @@ winReshapeRootless (WindowPtr pWin)
       pWinPriv->hRgn = hRgn;
     }
 
-  REGION_UNINIT(pScreen, &rrNewShape);
+  RegionUninit(&rrNewShape);
   
   return;
 }

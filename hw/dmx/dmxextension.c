@@ -350,7 +350,7 @@ void dmxUpdateScreenResources(ScreenPtr pScreen, int x, int y, int w, int h)
 	 * clipList to be broken since it will be recalculated in
 	 * ValidateTree()
 	 */
-	REGION_BREAK(pScreen, &pRoot->clipList);
+	RegionBreak(&pRoot->clipList);
     } else {
 	/* Otherwise, we just set it directly since there are no
 	 * windows visible on this screen
@@ -994,7 +994,7 @@ static void dmxForceExposures(int idx)
 	 * clipList to be broken since it will be recalculated in
 	 * ValidateTree()
 	 */
-	REGION_BREAK(pScreen, &pRoot->clipList);
+	RegionBreak(&pRoot->clipList);
 	pScreen->ValidateTree(pRoot, NULL, VTBroken);
 	pScreen->HandleExposures(pRoot);
 	if (pScreen->PostValidateTree)

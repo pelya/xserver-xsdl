@@ -161,10 +161,10 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
     if (box.x1 >= box.x2 || box.y1 >= box.y2)
 	return;
 
-    REGION_INIT(pScreen, &region, &box, 1);
+    RegionInit(&region, &box, 1);
     DamageRegionAppend(&pPix->drawable, &region);
     DamageRegionProcessPending(&pPix->drawable);
-    REGION_UNINIT(pScreen, &region);
+    RegionUninit(&region);
 }
 
 static int
@@ -658,7 +658,7 @@ exaBitmapToRegion(PixmapPtr pPix)
 
     exaPrepareAccess(&pPix->drawable, EXA_PREPARE_SRC);
     swap(pExaScr, pScreen, BitmapToRegion);
-    ret = pScreen->BitmapToRegion(pPix);
+    ret = (*pScreen->BitmapToRegion)(pPix);
     swap(pExaScr, pScreen, BitmapToRegion);
     exaFinishAccess(&pPix->drawable, EXA_PREPARE_SRC);
 

@@ -218,7 +218,7 @@ ProcCompositeCreateRegionFromBorderClip (ClientPtr client)
     pRegion = XFixesRegionCopy (pBorderClip);
     if (!pRegion)
 	return BadAlloc;
-    REGION_TRANSLATE (pScreen, pRegion, -pWin->drawable.x, -pWin->drawable.y);
+    RegionTranslate(pRegion, -pWin->drawable.x, -pWin->drawable.y);
     
     if (!AddResource (stuff->region, RegionResType, (pointer) pRegion))
 	return BadAlloc;

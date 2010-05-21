@@ -226,7 +226,7 @@ static void dmxConsoleDrawWindows(pointer private)
                        pChild->drawable.height,
                        pChild->visibility,
                        pChild->overrideRedirect,
-                       REGION_NUM_RECTS(&pChild->clipList));
+                       RegionNumRects(&pChild->clipList));
 #endif
                 rect.x      = scalex(priv, pChild->drawable.x + pScreen->x);
                 rect.y      = scaley(priv, pChild->drawable.y + pScreen->y);

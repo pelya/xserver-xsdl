@@ -639,8 +639,8 @@ XAAInitPixmapCache(
    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
    XAAInfoRecPtr infoRec = (XAAInfoRecPtr)data;
    XAAPixmapCachePrivatePtr pCachePriv;
-   BoxPtr pBox = REGION_RECTS(areas);
-   int nBox = REGION_NUM_RECTS(areas);
+   BoxPtr pBox = RegionRects(areas);
+   int nBox = RegionNumRects(areas);
    int Num512, Num256, Num128, NumPartial, NumColor, NumMono;
    int Target512, Target256;
    CacheLinkPtr List512, List256, List128, ListPartial, ListColor, ListMono;

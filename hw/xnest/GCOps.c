@@ -131,8 +131,8 @@ xnestBitBlitHelper(GCPtr pGC)
     BoxRec Box;
     Bool pending, overlap;
 
-    pReg = REGION_CREATE(pGC->pScreen, NULL, 1);
-    pTmpReg = REGION_CREATE(pGC->pScreen, NULL, 1);
+    pReg = RegionCreate(NULL, 1);
+    pTmpReg = RegionCreate(NULL, 1);
     if(!pReg || !pTmpReg) return NullRegion;
     
     pending = True;
@@ -149,15 +149,15 @@ xnestBitBlitHelper(GCPtr pGC)
 	Box.y1 = event.xgraphicsexpose.y;
 	Box.x2 = event.xgraphicsexpose.x + event.xgraphicsexpose.width;
 	Box.y2 = event.xgraphicsexpose.y + event.xgraphicsexpose.height;
-	REGION_RESET(pGC->pScreen, pTmpReg, &Box);
-	REGION_APPEND(pGC->pScreen, pReg, pTmpReg);
+	RegionReset(pTmpReg, &Box);
+	RegionAppend(pReg, pTmpReg);
 	pending = event.xgraphicsexpose.count;
 	break;
       }
     }
 
-    REGION_DESTROY(pGC->pScreen, pTmpReg);
-    REGION_VALIDATE(pGC->pScreen, pReg, &overlap);
+    RegionDestroy(pTmpReg);
+    RegionValidate(pReg, &overlap);
     return(pReg);
   }
 }

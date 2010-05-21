@@ -940,8 +940,8 @@ static void dmxDoSetShape(WindowPtr pWindow)
 
     /* First, set the bounding shape */
     if (wBoundingShape(pWindow)) {
-	pBox = REGION_RECTS(wBoundingShape(pWindow));
-	nRect = nBox = REGION_NUM_RECTS(wBoundingShape(pWindow));
+	pBox = RegionRects(wBoundingShape(pWindow));
+	nRect = nBox = RegionNumRects(wBoundingShape(pWindow));
 	pRectFirst = pRect = malloc(nRect * sizeof(*pRect));
 	while (nBox--) {
 	    pRect->x      = pBox->x1;
@@ -963,8 +963,8 @@ static void dmxDoSetShape(WindowPtr pWindow)
 
     /* Next, set the clip shape */
     if (wClipShape(pWindow)) {
-	pBox = REGION_RECTS(wClipShape(pWindow));
-	nRect = nBox = REGION_NUM_RECTS(wClipShape(pWindow));
+	pBox = RegionRects(wClipShape(pWindow));
+	nRect = nBox = RegionNumRects(wClipShape(pWindow));
 	pRectFirst = pRect = malloc(nRect * sizeof(*pRect));
 	while (nBox--) {
 	    pRect->x      = pBox->x1;

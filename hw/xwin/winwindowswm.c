@@ -495,11 +495,11 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
       /* wBoundingShape is relative to *inner* origin of window.
 	 Translate by borderWidth to get the outside-relative position. */
       
-      REGION_NULL(pScreen, &newShape);
-      REGION_COPY(pScreen, &newShape, wBoundingShape(pWin));
-      REGION_TRANSLATE(pScreen, &newShape, pWin->borderWidth, pWin->borderWidth);
+      RegionNull(&newShape);
+      RegionCopy(&newShape, wBoundingShape(pWin));
+      RegionTranslate(&newShape, pWin->borderWidth, pWin->borderWidth);
       winMWExtWMReshapeFrame (pRLWinPriv, &newShape);
-      REGION_UNINIT(pScreen, &newShape);
+      RegionUninit(&newShape);
     }
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("ProcWindowsWMFrameDraw - done\n");

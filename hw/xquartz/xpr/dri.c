@@ -347,8 +347,8 @@ DRIUpdateSurface(DRIDrawablePrivPtr pDRIDrawablePriv, DrawablePtr pDraw)
         wc.height = pWin->drawable.height + 2 * pWin->borderWidth;
         wc.bit_gravity = XP_GRAVITY_NONE;
 
-        wc.shape_nrects = REGION_NUM_RECTS(&pWin->clipList);
-        wc.shape_rects = REGION_RECTS(&pWin->clipList);
+        wc.shape_nrects = RegionNumRects(&pWin->clipList);
+        wc.shape_rects = RegionRects(&pWin->clipList);
         wc.shape_tx = - (pTopWin->drawable.x - pTopWin->borderWidth);
         wc.shape_ty = - (pTopWin->drawable.y - pTopWin->borderWidth);
 

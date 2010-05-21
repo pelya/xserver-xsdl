@@ -1157,7 +1157,7 @@ DRIDCNTreeTraversal(WindowPtr pWin, pointer data)
 	ScreenPtr pScreen = pWin->drawable.pScreen;
 	DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
-	if (REGION_NUM_RECTS(&pWin->clipList) > 0) {
+	if (RegionNumRects(&pWin->clipList) > 0) {
 	    WindowPtr *pDRIWindows = (WindowPtr*)data;
 	    int i = 0;
 
@@ -1269,7 +1269,7 @@ DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 	    pDRIDrawablePriv->pScreen = pScreen;
 	    pDRIDrawablePriv->refCount = 1;
 	    pDRIDrawablePriv->drawableIndex = -1;
-	    pDRIDrawablePriv->nrects = REGION_NUM_RECTS(&pWin->clipList);
+	    pDRIDrawablePriv->nrects = RegionNumRects(&pWin->clipList);
 
 	    /* save private off of preallocated index */
 	    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey,
@@ -1288,8 +1288,8 @@ DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 	    drmUpdateDrawableInfo(pDRIPriv->drmFD,
 				  pDRIDrawablePriv->hwDrawable,
 				  DRM_DRAWABLE_CLIPRECTS,
-				  REGION_NUM_RECTS(&pWin->clipList),
-				  REGION_RECTS(&pWin->clipList));
+				  RegionNumRects(&pWin->clipList),
+				  RegionRects(&pWin->clipList));
 	    *hHWDrawable = pDRIDrawablePriv->hwDrawable;
 	}
     }
@@ -1502,8 +1502,8 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 #endif
 	    *W = (int)(pWin->drawable.width);
 	    *H = (int)(pWin->drawable.height);
-	    *numClipRects = REGION_NUM_RECTS(&pWin->clipList);
-	    *pClipRects = (drm_clip_rect_t *)REGION_RECTS(&pWin->clipList);
+	    *numClipRects = RegionNumRects(&pWin->clipList);
+	    *pClipRects = (drm_clip_rect_t *)RegionRects(&pWin->clipList);
 
 	    if (!*numClipRects && pDRIPriv->fullscreen) {
 				/* use fake full-screen clip rect */
@@ -1883,10 +1883,10 @@ DRITreeTraversal(WindowPtr pWin, pointer data)
         ScreenPtr pScreen = pWin->drawable.pScreen;
         DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
-	if(REGION_NUM_RECTS(&(pWin->clipList)) > 0) {
+	if(RegionNumRects(&(pWin->clipList)) > 0) {
 	   RegionPtr reg = (RegionPtr)data;
 
-	   REGION_UNION(pScreen, reg, reg, &(pWin->clipList));
+	   RegionUnion(reg, reg, &(pWin->clipList));
 	   pDRIPriv->nrWalked++;
 	}
 
@@ -1932,21 +1932,21 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     if(pDRIPriv->nrWindowsVisible > 0) {
        RegionRec reg;
 
-       REGION_NULL(pScreen, &reg);
+       RegionNull(&reg);
        pDRIPriv->nrWalked = 0;
        TraverseTree(pWin, DRITreeTraversal, (pointer)(&reg));
 
-       if(REGION_NOTEMPTY(pScreen, &reg)) {
-           REGION_TRANSLATE(pScreen, &reg, ptOldOrg.x - pWin->drawable.x,  
+       if(RegionNotEmpty(&reg)) {
+           RegionTranslate(&reg, ptOldOrg.x - pWin->drawable.x,
                                         ptOldOrg.y - pWin->drawable.y);
-           REGION_INTERSECT(pScreen, &reg, &reg, prgnSrc);
+           RegionIntersect(&reg, &reg, prgnSrc);
 
            /* The MoveBuffers interface is not ideal */
            (*pDRIPriv->pDriverInfo->MoveBuffers)(pWin, ptOldOrg, &reg,
 				pDRIPriv->pDriverInfo->ddxDrawableTableEntry);
        }
 
-       REGION_UNINIT(pScreen, &reg);
+       RegionUninit(&reg);
     }
 
     /* call lower wrapped functions */
@@ -2122,7 +2122,7 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
     if(!pDRIPriv) return;
 
     if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
-        int nrects = REGION_NUM_RECTS(&pWin->clipList);
+        int nrects = RegionNumRects(&pWin->clipList);
 
         if(!pDRIPriv->windowsTouched) {
             DRILockTree(pScreen);
@@ -2143,7 +2143,7 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 
 	drmUpdateDrawableInfo(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable,
 			      DRM_DRAWABLE_CLIPRECTS,
-			      nrects, REGION_RECTS(&pWin->clipList));
+			      nrects, RegionRects(&pWin->clipList));
     }
 
     /* call lower wrapped functions */
@@ -2368,9 +2368,9 @@ DRIMoveBuffersHelper(
    BoxRec tmpBox;
    int y, nbox;
 
-   extents = REGION_EXTENTS(pScreen, reg);
-   nbox = REGION_NUM_RECTS(reg);
-   pbox = REGION_RECTS(reg);
+   extents = RegionExtents(reg);
+   nbox = RegionNumRects(reg);
+   pbox = RegionRects(reg);
 
    if((dy > 0) && (dy < (extents->y2 - extents->y1))) {
      *ydir = -1;

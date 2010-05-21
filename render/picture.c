@@ -1298,7 +1298,7 @@ SetPictureClipRects (PicturePtr	pPicture,
     RegionPtr		clientClip;
     int			result;
 
-    clientClip = RECTS_TO_REGION(pScreen,
+    clientClip = RegionFromRects(
 				 nRect, rects, CT_UNSORTED);
     if (!clientClip)
 	return BadAlloc;
@@ -1329,14 +1329,14 @@ SetPictureClipRegion (PicturePtr    pPicture,
     if (pRegion)
     {
         type = CT_REGION;
-        clientClip = REGION_CREATE (pScreen,
-                                    REGION_EXTENTS(pScreen, pRegion),
-                                    REGION_NUM_RECTS(pRegion));
+        clientClip = RegionCreate(
+                                    RegionExtents(pRegion),
+                                    RegionNumRects(pRegion));
         if (!clientClip)
             return BadAlloc;
-        if (!REGION_COPY (pSCreen, clientClip, pRegion))
+        if (!RegionCopy(clientClip, pRegion))
         {
-            REGION_DESTROY (pScreen, clientClip);
+            RegionDestroy(clientClip);
             return BadAlloc;
         }
     }
@@ -1462,9 +1462,9 @@ CopyPicture (PicturePtr	pSrc,
 		    RegionPtr clientClip;
 		    RegionPtr srcClientClip = (RegionPtr)pSrc->clientClip;
 
-		    clientClip = REGION_CREATE(pSrc->pDrawable->pScreen,
-			REGION_EXTENTS(pSrc->pDrawable->pScreen, srcClientClip),
-			REGION_NUM_RECTS(srcClientClip));
+		    clientClip = RegionCreate(
+			RegionExtents(srcClientClip),
+			RegionNumRects(srcClientClip));
 		    (*ps->ChangePictureClip)(pDst, CT_REGION, clientClip, 0);
 		}
 		break;

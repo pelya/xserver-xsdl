@@ -83,8 +83,6 @@ Equipment Corporation.
 #include <X11/Xprotostr.h>
 #include <X11/Xfuncproto.h>
 #include "gc.h"
-#include "mi.h"
-#include "mispans.h"
 #include <pixman.h>
 
 #undef assert
@@ -171,7 +169,7 @@ Equipment Corporation.
         ((r1)->y1 <= (r2)->y1) && \
         ((r1)->y2 >= (r2)->y2) )
 
-#define xallocData(n) malloc(REGION_SZOF(n))
+#define xallocData(n) malloc(RegionSizeof(n))
 #define xfreeData(reg) if ((reg)->data && (reg)->data->size) free((reg)->data)
 
 #define RECTALLOC_BAIL(pReg,n,bail) \
@@ -197,7 +195,7 @@ if (!(pReg)->data || (((pReg)->data->numRects + (n)) > (pReg)->data->size)) \
     {									\
 	if (!RegionRectAlloc(pReg, 1))					\
 	    return FALSE;						\
-	pNextRect = REGION_TOP(pReg);					\
+	pNextRect = RegionTop(pReg);					\
     }									\
     ADDRECT(pNextRect,nx1,ny1,nx2,ny2);					\
     pReg->data->numRects++;						\
@@ -209,7 +207,7 @@ if (!(pReg)->data || (((pReg)->data->numRects + (n)) > (pReg)->data->size)) \
 if (((numRects) < ((reg)->data->size >> 1)) && ((reg)->data->size > 50)) \
 {									 \
     RegDataPtr NewData;							 \
-    NewData = (RegDataPtr)realloc((reg)->data, REGION_SZOF(numRects));	 \
+    NewData = (RegDataPtr)realloc((reg)->data, RegionSizeof(numRects));	 \
     if (NewData)							 \
     {									 \
 	NewData->size = (numRects);					 \
@@ -265,9 +263,9 @@ RegionPrint(RegionPtr rgn)
     int i;
     BoxPtr rects;
 
-    num = REGION_NUM_RECTS(rgn);
-    size = REGION_SIZE(rgn);
-    rects = REGION_RECTS(rgn);
+    num = RegionNumRects(rgn);
+    size = RegionSize(rgn);
+    rects = RegionRects(rgn);
     ErrorF("[mi] num: %d size: %d\n", num, size);
     ErrorF("[mi] extents: %d %d %d %d\n",
 	   rgn->extents.x1, rgn->extents.y1, rgn->extents.x2, rgn->extents.y2);
@@ -292,7 +290,7 @@ RegionIsValid(RegionPtr reg)
     if ((reg->extents.x1 > reg->extents.x2) ||
 	(reg->extents.y1 > reg->extents.y2))
 	return FALSE;
-    numRects = REGION_NUM_RECTS(reg);
+    numRects = RegionNumRects(reg);
     if (!numRects)
 	return ((reg->extents.x1 == reg->extents.x2) &&
 		(reg->extents.y1 == reg->extents.y2) &&
@@ -304,7 +302,7 @@ RegionIsValid(RegionPtr reg)
 	BoxPtr pboxP, pboxN;
 	BoxRec box;
 	
-	pboxP = REGION_RECTS(reg);
+	pboxP = RegionRects(reg);
 	box = *pboxP;
 	box.y2 = pboxP[numRects-1].y2;
 	pboxN = pboxP + 1;
@@ -330,26 +328,6 @@ RegionIsValid(RegionPtr reg)
 }
 #endif /* DEBUG */
 
-/*****************************************************************
- *   RegionInit(pReg, rect, size)
- *     Outer region rect is statically allocated.
- *****************************************************************/
-
-void
-RegionInit(RegionPtr pReg, BoxPtr rect, int size)
-{
-    if (rect)
-	pixman_region_init_with_extents (pReg, rect);
-    else
-	pixman_region_init (pReg);
-}
-
-void
-RegionUninit(RegionPtr pReg)
-{
-    pixman_region_fini (pReg);
-}
-
 Bool
 RegionBreak (RegionPtr pReg)
 {
@@ -371,7 +349,7 @@ RegionRectAlloc(RegionPtr pRgn, int n)
 	if (!pRgn->data)
 	    return RegionBreak (pRgn);
 	pRgn->data->numRects = 1;
-	*REGION_BOXPTR(pRgn) = pRgn->extents;
+	*RegionBoxptr(pRgn) = pRgn->extents;
     }
     else if (!pRgn->data->size)
     {
@@ -389,7 +367,7 @@ RegionRectAlloc(RegionPtr pRgn, int n)
 		n = 250;
 	}
 	n += pRgn->data->numRects;
-	data = (RegDataPtr)realloc(pRgn->data, REGION_SZOF(n));
+	data = (RegDataPtr)realloc(pRgn->data, RegionSizeof(n));
 	if (!data)
 	    return RegionBreak (pRgn);
 	pRgn->data = data;
@@ -448,8 +426,8 @@ RegionCoalesce (
      * The bands may only be coalesced if the bottom of the previous
      * matches the top scanline of the current.
      */
-    pPrevBox = REGION_BOX(pReg, prevStart);
-    pCurBox = REGION_BOX(pReg, curStart);
+    pPrevBox = RegionBox(pReg, prevStart);
+    pCurBox = RegionBox(pReg, curStart);
     if (pPrevBox->y2 != pCurBox->y1) return curStart;
 
     /*
@@ -528,7 +506,7 @@ RegionAppendNonO (
 
     /* Make sure we have enough space for all rectangles to be added */
     RECTALLOC(pReg, newRects);
-    pNextRect = REGION_TOP(pReg);
+    pNextRect = RegionTop(pReg);
     pReg->data->numRects += newRects;
     do {
 	assert(r->x1 < r->x2);
@@ -553,7 +531,7 @@ RegionAppendNonO (
     int newRects;							\
     if ((newRects = rEnd - r)) {					\
 	RECTALLOC(newReg, newRects);					\
-	memmove((char *)REGION_TOP(newReg),(char *)r, 			\
+	memmove((char *)RegionTop(newReg),(char *)r, 			\
               newRects * sizeof(BoxRec));				\
 	newReg->data->numRects += newRects;				\
     }									\
@@ -634,7 +612,7 @@ RegionOp(
     /*
      * Break any region computed from a broken region
      */
-    if (REGION_NAR (reg1) || REGION_NAR(reg2))
+    if (RegionNar (reg1) || RegionNar(reg2))
 	return RegionBreak (newReg);
     
     /*
@@ -645,11 +623,11 @@ RegionOp(
      * another array of rectangles for it to use.
      */
 
-    r1 = REGION_RECTS(reg1);
-    newSize = REGION_NUM_RECTS(reg1);
+    r1 = RegionRects(reg1);
+    newSize = RegionNumRects(reg1);
     r1End = r1 + newSize;
-    numRects = REGION_NUM_RECTS(reg2);
-    r2 = REGION_RECTS(reg2);
+    numRects = RegionNumRects(reg2);
+    r2 = RegionRects(reg2);
     r2End = r2 + numRects;
     assert(r1 != r1End);
     assert(r2 != r2End);
@@ -806,7 +784,7 @@ RegionOp(
     }
     else if (numRects == 1)
     {
-	newReg->extents = *REGION_BOXPTR(newReg);
+	newReg->extents = *RegionBoxptr(newReg);
 	xfreeData(newReg);
 	newReg->data = NULL;
     }
@@ -847,8 +825,8 @@ RegionSetExtents (RegionPtr pReg)
 	return;
     }
 
-    pBox = REGION_BOXPTR(pReg);
-    pBoxEnd = REGION_END(pReg);
+    pBox = RegionBoxptr(pReg);
+    pBoxEnd = RegionEnd(pReg);
 
     /*
      * Since pBox is the first rectangle in the region, it must have the
@@ -953,7 +931,7 @@ RegionUnionO (
     assert (y1 < y2);
     assert(r1 != r1End && r2 != r2End);
 
-    pNextRect = REGION_TOP(pReg);
+    pNextRect = RegionTop(pReg);
 
     /* Start off current rectangle */
     if (r1->x1 < r2->x1)
@@ -1033,7 +1011,7 @@ RegionAppend(RegionPtr dstrgn, RegionPtr rgn)
     BoxPtr new, old;
     Bool prepend;
 
-    if (REGION_NAR(rgn))
+    if (RegionNar(rgn))
 	return RegionBreak (dstrgn);
     
     if (!rgn->data && (dstrgn->data == &RegionEmptyData))
@@ -1043,16 +1021,16 @@ RegionAppend(RegionPtr dstrgn, RegionPtr rgn)
 	return TRUE;
     }
 
-    numRects = REGION_NUM_RECTS(rgn);
+    numRects = RegionNumRects(rgn);
     if (!numRects)
 	return TRUE;
     prepend = FALSE;
     size = numRects;
-    dnumRects = REGION_NUM_RECTS(dstrgn);
+    dnumRects = RegionNumRects(dstrgn);
     if (!dnumRects && (size < 200))
 	size = 200; /* XXX pick numbers out of a hat */
     RECTALLOC(dstrgn, size);
-    old = REGION_RECTS(rgn);
+    old = RegionRects(rgn);
     if (!dnumRects)
 	dstrgn->extents = rgn->extents;
     else if (dstrgn->extents.x2 > dstrgn->extents.x1)
@@ -1060,7 +1038,7 @@ RegionAppend(RegionPtr dstrgn, RegionPtr rgn)
 	BoxPtr first, last;
 
 	first = old;
-	last = REGION_BOXPTR(dstrgn) + (dnumRects - 1);
+	last = RegionBoxptr(dstrgn) + (dnumRects - 1);
 	if ((first->y1 > last->y2) ||
 	    ((first->y1 == last->y1) && (first->y2 == last->y2) &&
 	     (first->x1 > last->x2)))
@@ -1073,7 +1051,7 @@ RegionAppend(RegionPtr dstrgn, RegionPtr rgn)
 	}
 	else
 	{
-	    first = REGION_BOXPTR(dstrgn);
+	    first = RegionBoxptr(dstrgn);
 	    last = old + (numRects - 1);
 	    if ((first->y1 > last->y2) ||
 		((first->y1 == last->y1) && (first->y2 == last->y2) &&
@@ -1092,16 +1070,16 @@ RegionAppend(RegionPtr dstrgn, RegionPtr rgn)
     }
     if (prepend)
     {
-	new = REGION_BOX(dstrgn, numRects);
+	new = RegionBox(dstrgn, numRects);
 	if (dnumRects == 1)
-	    *new = *REGION_BOXPTR(dstrgn);
+	    *new = *RegionBoxptr(dstrgn);
 	else
-	    memmove((char *)new,(char *)REGION_BOXPTR(dstrgn), 
+	    memmove((char *)new,(char *)RegionBoxptr(dstrgn),
 		  dnumRects * sizeof(BoxRec));
-	new = REGION_BOXPTR(dstrgn);
+	new = RegionBoxptr(dstrgn);
     }
     else
-	new = REGION_BOXPTR(dstrgn) + dnumRects;
+	new = RegionBoxptr(dstrgn) + dnumRects;
     if (numRects == 1)
 	*new = *old;
     else
@@ -1242,7 +1220,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
     numRects = badreg->data->numRects;
     if (!numRects)
     {
-	if (REGION_NAR(badreg))
+	if (RegionNar(badreg))
 	    return FALSE;
 	good(badreg);
 	return TRUE;
@@ -1263,7 +1241,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
     }
 
     /* Step 1: Sort the rects array into ascending (y1, x1) order */
-    QuickSortRects(REGION_BOXPTR(badreg), numRects);
+    QuickSortRects(RegionBoxptr(badreg), numRects);
 
     /* Step 2: Scatter the sorted array into the minimum number of regions */
 
@@ -1277,7 +1255,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
     ri[0].prevBand = 0;
     ri[0].curBand = 0;
     ri[0].reg = *badreg;
-    box = REGION_BOXPTR(&ri[0].reg);
+    box = RegionBoxptr(&ri[0].reg);
     ri[0].reg.extents = *box;
     ri[0].reg.data->numRects = 1;
 
@@ -1294,7 +1272,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
 	for (j = numRI, rit = ri; --j >= 0; rit++)
 	{
 	    reg = &rit->reg;
-	    riBox = REGION_END(reg);
+	    riBox = RegionEnd(reg);
 
 	    if (box->y1 == riBox->y1 && box->y2 == riBox->y2)
 	    {
@@ -1308,7 +1286,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
 		else
 		{
 		    RECTALLOC_BAIL(reg, 1, bail);
-		    *REGION_TOP(reg) = *box;
+		    *RegionTop(reg) = *box;
 		    reg->data->numRects++;
 		}
 		goto NextRect;   /* So sue me */
@@ -1321,7 +1299,7 @@ RegionValidate(RegionPtr badreg, Bool *pOverlap)
 		Coalesce(reg, rit->prevBand, rit->curBand);
 		rit->curBand = reg->data->numRects;
 		RECTALLOC_BAIL(reg, 1, bail);
-		*REGION_TOP(reg) = *box;
+		*RegionTop(reg) = *box;
 		reg->data->numRects++;
 		goto NextRect;
 	    }
@@ -1355,7 +1333,7 @@ NextRect: ;
     for (j = numRI, rit = ri; --j >= 0; rit++)
     {
 	reg = &rit->reg;
-	riBox = REGION_END(reg);
+	riBox = RegionEnd(reg);
 	reg->extents.y2 = riBox->y2;
 	if (reg->extents.x2 < riBox->x2) reg->extents.x2 = riBox->x2;
 	Coalesce(reg, rit->prevBand, rit->curBand);
@@ -1410,7 +1388,7 @@ RegionFromRects(int nrects, xRectangle *prect, int ctype)
     int			x1, y1, x2, y2;
 
     pRgn = RegionCreate(NullBox, 0);
-    if (REGION_NAR (pRgn))
+    if (RegionNar (pRgn))
 	return pRgn;
     if (!nrects)
 	return pRgn;
@@ -1563,12 +1541,6 @@ RegionTranslate(RegionPtr pReg, int x, int y)
     pixman_region_translate (pReg, x, y);
 }
 
-void
-RegionReset(RegionPtr pReg, BoxPtr pBox)
-{
-    pixman_region_reset (pReg, pBox);
-}
-
 Bool
 RegionContainsPoint(
     RegionPtr pReg,
@@ -1578,36 +1550,6 @@ RegionContainsPoint(
     )
 {
     return pixman_region_contains_point (pReg, x, y, box);
-}
-
-Bool
-RegionNotEmpty(RegionPtr pReg)
-{
-    return pixman_region_not_empty (pReg);
-}
-
-Bool
-RegionBroken(RegionPtr pReg)
-{
-    good(pReg);
-    return (REGION_NAR(pReg));
-}
-
-void
-RegionEmpty(RegionPtr pReg)
-{
-    good(pReg);
-    xfreeData(pReg);
-    pReg->extents.x2 = pReg->extents.x1;
-    pReg->extents.y2 = pReg->extents.y1;
-    pReg->data = &RegionEmptyData;
-}
-
-BoxPtr
-RegionExtents(RegionPtr pReg)
-{
-    good(pReg);
-    return(&pReg->extents);
 }
 
 #define ExchangeSpans(a, b)				    \
@@ -1795,7 +1737,7 @@ RegionClipSpans(
 	if ((! fSorted) && (nspans > 1))
 	    QuickSortSpans(ppt, pwidth, nspans);
 
-	pboxBandStart = REGION_BOXPTR(prgnDst);
+	pboxBandStart = RegionBoxptr(prgnDst);
 	pboxLast = pboxBandStart + numRects;
     
 	NextBand();

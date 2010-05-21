@@ -817,8 +817,8 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
 	    {
 		RegionPtr	borderVisible;
 
-		borderVisible = REGION_CREATE(pScreen, NullBox, 1);
-		REGION_SUBTRACT(pScreen, borderVisible,
+		borderVisible = RegionCreate(NullBox, 1);
+		RegionSubtract(borderVisible,
 				&pWin->borderClip, &pWin->winSize);
 		pWin->valdata->before.borderVisible = borderVisible;
 	    }
@@ -837,13 +837,13 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
 	box.y1 = 0;
 	box.x2 = pScreen->width;
 	box.y2 = pScreen->height;
-	REGION_RESET(pScreen, &pWin->borderClip, &box);
-	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	RegionReset(&pWin->borderClip, &box);
+	RegionBreak(&pWin->clipList);
     }
     else
     {
-	REGION_EMPTY(pScreen, &pWin->borderClip);
-	REGION_BREAK (pWin->drawable.pScreen, &pWin->clipList);
+	RegionEmpty(&pWin->borderClip);
+	RegionBreak(&pWin->clipList);
     }
 
     ResizeChildrenWinSize (pWin, 0, 0, 0, 0);
@@ -852,8 +852,8 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
     {
 	if (pWin->backStorage)
 	{
-	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
+	    pOldClip = RegionCreate(NullBox, 1);
+	    RegionCopy(pOldClip, &pWin->clipList);
 	}
 
 	if (pWin->firstChild)
@@ -882,7 +882,7 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
 			     (pWin, 0, 0, pOldClip,
 			      pWin->drawable.x, pWin->drawable.y);
 	if (WasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
+	    RegionDestroy(pOldClip);
 	if (bsExposed)
 	{
 	    RegionPtr	valExposed = NullRegion;
@@ -891,8 +891,8 @@ xf86SetRootClip (ScreenPtr pScreen, int enable)
 		valExposed = &pWin->valdata->after.exposed;
 	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
 	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
+		RegionEmpty(valExposed);
+	    RegionDestroy(bsExposed);
 	}
     }
     if (WasViewable)

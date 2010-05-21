@@ -739,7 +739,7 @@ typedef struct {
  */
 
 #define fbWindowEnabled(pWin) \
-    REGION_NOTEMPTY((pWin)->drawable.pScreen, \
+    RegionNotEmpty(\
 		    &(pWin)->drawable.pScreen->root->borderClip)
 
 #define fbDrawableEnabled(pDrawable) \

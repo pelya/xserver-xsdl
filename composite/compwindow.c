@@ -98,10 +98,10 @@ compRepaintBorder (ClientPtr pClient, pointer closure)
     if (rc == Success) {
 	RegionRec exposed;
 
-	REGION_NULL(pScreen, &exposed);
-	REGION_SUBTRACT(pScreen, &exposed, &pWindow->borderClip, &pWindow->winSize);
+	RegionNull(&exposed);
+	RegionSubtract(&exposed, &pWindow->borderClip, &pWindow->winSize);
 	miPaintWindow(pWindow, &exposed, PW_BORDER);
-	REGION_UNINIT(pScreen, &exposed);
+	RegionUninit(&exposed);
     }
     return TRUE;
 }
@@ -283,7 +283,7 @@ compClipNotify (WindowPtr pWin, int dx, int dy)
 	if (cw->borderClipX != pWin->drawable.x ||
 	    cw->borderClipY != pWin->drawable.y)
 	{
-	    REGION_TRANSLATE (pScreen, &cw->borderClip,
+	    RegionTranslate(&cw->borderClip,
 			      pWin->drawable.x - cw->borderClipX,
 			      pWin->drawable.y - cw->borderClipY);
 	    cw->borderClipX = pWin->drawable.x;
@@ -404,14 +404,14 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 
 	    dx = ptOldOrg.x - pWin->drawable.x;
 	    dy = ptOldOrg.y - pWin->drawable.y;
-	    REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
+	    RegionTranslate(prgnSrc, -dx, -dy);
 
-	    REGION_NULL (pWin->drawable.pScreen, &rgnDst);
+	    RegionNull(&rgnDst);
 
-	    REGION_INTERSECT(pWin->drawable.pScreen, &rgnDst,
+	    RegionIntersect(&rgnDst,
 			     &pWin->borderClip, prgnSrc);
 
-	    REGION_TRANSLATE (pWin->drawable.pScreen, &rgnDst,
+	    RegionTranslate(&rgnDst,
 			      -pPixmap->screen_x, -pPixmap->screen_y);
 
 	    dx = dx + pPixmap->screen_x - cw->oldx;
@@ -419,8 +419,8 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 	    pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
 	    if (pGC)
 	    {
-		BoxPtr	pBox = REGION_RECTS (&rgnDst);
-		int	nBox = REGION_NUM_RECTS (&rgnDst);
+		BoxPtr	pBox = RegionRects (&rgnDst);
+		int	nBox = RegionNumRects (&rgnDst);
 
 		ValidateGC(&pPixmap->drawable, pGC);
 		while (nBox--)
@@ -448,16 +448,16 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     if (ptOldOrg.x != pWin->drawable.x || ptOldOrg.y != pWin->drawable.y)
     {
 	if (dx || dy)
-	    REGION_TRANSLATE (pScreen, prgnSrc, dx, dy);
+	    RegionTranslate(prgnSrc, dx, dy);
 	(*pScreen->CopyWindow) (pWin, ptOldOrg, prgnSrc);
 	if (dx || dy)
-	    REGION_TRANSLATE (pScreen, prgnSrc, -dx, -dy);
+	    RegionTranslate(prgnSrc, -dx, -dy);
     }
     else
     {
 	ptOldOrg.x -= dx;
 	ptOldOrg.y -= dy;
-	REGION_TRANSLATE (prgnSrc, prgnSrc,
+	RegionTranslate(prgnSrc,
 			  pWin->drawable.x - ptOldOrg.x,
 			  pWin->drawable.y - ptOldOrg.y);
 	DamageRegionAppend(&pWin->drawable, prgnSrc);
@@ -525,26 +525,26 @@ compSetRedirectBorderClip (WindowPtr pWin, RegionPtr pRegion)
     CompWindowPtr   cw = GetCompWindow (pWin);
     RegionRec	    damage;
 
-    REGION_NULL (pScreen, &damage);
+    RegionNull(&damage);
     /*
      * Align old border clip with new border clip
      */
-    REGION_TRANSLATE (pScreen, &cw->borderClip,
+    RegionTranslate(&cw->borderClip,
 		      pWin->drawable.x - cw->borderClipX,
 		      pWin->drawable.y - cw->borderClipY);
     /*
      * Compute newly visible portion of window for repaint
      */
-    REGION_SUBTRACT (pScreen, &damage, pRegion, &cw->borderClip);
+    RegionSubtract(&damage, pRegion, &cw->borderClip);
     /*
      * Report that as damaged so it will be redrawn
      */
     DamageRegionAppend(&pWin->drawable, &damage);
-    REGION_UNINIT (pScreen, &damage);
+    RegionUninit(&damage);
     /*
      * Save the new border clip region
      */
-    REGION_COPY (pScreen, &cw->borderClip, pRegion);
+    RegionCopy(&cw->borderClip, pRegion);
     cw->borderClipX = pWin->drawable.x;
     cw->borderClipY = pWin->drawable.y;
 }
@@ -606,18 +606,18 @@ compWindowUpdateAutomatic (WindowPtr pWin)
     /*
      * First move the region from window to screen coordinates
      */
-    REGION_TRANSLATE (pScreen, pRegion,
+    RegionTranslate(pRegion,
 		      pWin->drawable.x, pWin->drawable.y);
 
     /*
      * Clip against the "real" border clip
      */
-    REGION_INTERSECT (pScreen, pRegion, pRegion, &cw->borderClip);
+    RegionIntersect(pRegion, pRegion, &cw->borderClip);
 
     /*
      * Now translate from screen to dest coordinates
      */
-    REGION_TRANSLATE (pScreen, pRegion,
+    RegionTranslate(pRegion,
 		      -pParent->drawable.x, -pParent->drawable.y);
 
     /*

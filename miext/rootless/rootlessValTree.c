@@ -122,8 +122,8 @@ RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
     Bool    someIn, someOut;
     register int t, x1, y1, x2, y2;
 
-    nbox = REGION_NUM_RECTS (bounding);
-    boundBox = REGION_RECTS (bounding);
+    nbox = RegionNumRects (bounding);
+    boundBox = RegionRects (bounding);
     someIn = someOut = FALSE;
     x1 = rect->x1;
     y1 = rect->y1;
@@ -147,7 +147,7 @@ RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
 	    box.x2 = box.x1;
 	if (box.y1 > box.y2)
 	    box.y2 = box.y1;
-	switch (RECT_IN_REGION(pScreen, universe, &box))
+	switch (RegionContainsRect(universe, &box))
 	{
 	case rgnIN:
 	    if (someOut)
@@ -224,7 +224,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
     borderSize.y2 = dy;
 
     oldVis = pParent->visibility;
-    switch (RECT_IN_REGION( pScreen, universe, &borderSize)) 
+    switch (RegionContainsRect(universe, &borderSize))
     {
     case rgnIN:
 	    newVis = VisibilityUnobscured;
@@ -285,9 +285,9 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 		{
 		    if (pChild->visibility != VisibilityFullyObscured)
 		    {
-			REGION_TRANSLATE( pScreen, &pChild->borderClip,
+			RegionTranslate(&pChild->borderClip,
 						      dx, dy);
-			REGION_TRANSLATE( pScreen, &pChild->clipList,
+			RegionTranslate(&pChild->clipList,
 						      dx, dy);
 			pChild->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 			if (pScreen->ClipNotify)
@@ -296,16 +296,16 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 		    }
 		    if (pChild->valdata)
 		    {
-			REGION_NULL(pScreen,
+			RegionNull(
 				    &pChild->valdata->after.borderExposed);
 			if (HasParentRelativeBorder(pChild))
 			  {
-			    REGION_SUBTRACT(pScreen,
+			    RegionSubtract(
 					 &pChild->valdata->after.borderExposed,
 					 &pChild->borderClip,
 					 &pChild->winSize);
 			}
-			REGION_NULL(pScreen, &pChild->valdata->after.exposed);
+			RegionNull(&pChild->valdata->after.exposed);
 		    }
 		    if (pChild->firstChild)
 		    {
@@ -334,20 +334,20 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 	     * We translate the old clipList because that will be exposed or copied
 	     * if gravity is right.
 	     */
-	    REGION_TRANSLATE( pScreen, &pParent->borderClip, dx, dy);
-	    REGION_TRANSLATE( pScreen, &pParent->clipList, dx, dy);
+	    RegionTranslate(&pParent->borderClip, dx, dy);
+	    RegionTranslate(&pParent->clipList, dx, dy);
     	} 
 	break;
     case VTBroken:
-	REGION_EMPTY (pScreen, &pParent->borderClip);
-	REGION_EMPTY (pScreen, &pParent->clipList);
+	RegionEmpty(&pParent->borderClip);
+	RegionEmpty(&pParent->clipList);
 	break;
     }
 
     borderVisible = pParent->valdata->before.borderVisible;
     resized = pParent->valdata->before.resized;
-    REGION_NULL(pScreen, &pParent->valdata->after.borderExposed);
-    REGION_NULL(pScreen, &pParent->valdata->after.exposed);
+    RegionNull(&pParent->valdata->after.borderExposed);
+    RegionNull(&pParent->valdata->after.exposed);
 
     /*
      * Since the borderClip must not be clipped by the children, we do
@@ -367,23 +367,23 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 	     * of the border will be saved by DIX in borderVisible --
 	     * use that region and destroy it
 	     */
-	    REGION_SUBTRACT( pScreen, exposed, universe, borderVisible);
-	    REGION_DESTROY( pScreen, borderVisible);
+	    RegionSubtract(exposed, universe, borderVisible);
+	    RegionDestroy(borderVisible);
     	}
     	else
     	{
-	    REGION_SUBTRACT( pScreen, exposed, universe, &pParent->borderClip);
+	    RegionSubtract(exposed, universe, &pParent->borderClip);
     	}
 	if (HasParentRelativeBorder(pParent) && (dx || dy)) {
-	    REGION_SUBTRACT( pScreen, &pParent->valdata->after.borderExposed,
+	    RegionSubtract(&pParent->valdata->after.borderExposed,
 				  universe,
 				  &pParent->winSize);
 	} else {
-	    REGION_SUBTRACT( pScreen, &pParent->valdata->after.borderExposed,
+	    RegionSubtract(&pParent->valdata->after.borderExposed,
 			       exposed, &pParent->winSize);
 	}
 
-    	REGION_COPY( pScreen, &pParent->borderClip, universe);
+	RegionCopy(&pParent->borderClip, universe);
     
     	/*
      	 * To get the right clipList for the parent, and to make doubly sure
@@ -391,15 +391,15 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
      	 * border from the universe before proceeding.
      	 */
     
-    	REGION_INTERSECT( pScreen, universe, universe, &pParent->winSize);
+	RegionIntersect(universe, universe, &pParent->winSize);
     }
     else
-    	REGION_COPY( pScreen, &pParent->borderClip, universe);
+	RegionCopy(&pParent->borderClip, universe);
     
     if ((pChild = pParent->firstChild) && pParent->mapped)
     {
-	REGION_NULL(pScreen, &childUniverse);
-	REGION_NULL(pScreen, &childUnion);
+	RegionNull(&childUniverse);
+	RegionNull(&childUnion);
 	if ((pChild->drawable.y < pParent->lastChild->drawable.y) ||
 	    ((pChild->drawable.y == pParent->lastChild->drawable.y) &&
 	     (pChild->drawable.x < pParent->lastChild->drawable.x)))
@@ -407,7 +407,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 	    for (; pChild; pChild = pChild->nextSib)
 	    {
 		if (pChild->viewable)
-		    REGION_APPEND( pScreen, &childUnion, &pChild->borderSize);
+		    RegionAppend(&childUnion, &pChild->borderSize);
 	    }
 	}
 	else
@@ -415,10 +415,10 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 	    for (pChild = pParent->lastChild; pChild; pChild = pChild->prevSib)
 	    {
 		if (pChild->viewable)
-		    REGION_APPEND( pScreen, &childUnion, &pChild->borderSize);
+		    RegionAppend(&childUnion, &pChild->borderSize);
 	    }
 	}
-	REGION_VALIDATE( pScreen, &childUnion, &overlap);
+	RegionValidate(&childUnion, &overlap);
 
 	for (pChild = pParent->firstChild;
 	     pChild;
@@ -435,7 +435,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 		     * Figure out the new universe from the child's
 		     * perspective and recurse.
 		     */
-		    REGION_INTERSECT( pScreen, &childUniverse,
+		    RegionIntersect(&childUniverse,
 					    universe,
 					    &pChild->borderSize);
 		    RootlessComputeClips (pChild, pScreen, &childUniverse, 
@@ -447,14 +447,14 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 		 * other sibling.
 		 */
 		if (overlap)
-		    REGION_SUBTRACT( pScreen, universe, universe,
+		    RegionSubtract(universe, universe,
 					  &pChild->borderSize);
 	    }
 	}
 	if (!overlap)
-	    REGION_SUBTRACT( pScreen, universe, universe, &childUnion);
-	REGION_UNINIT( pScreen, &childUnion);
-	REGION_UNINIT( pScreen, &childUniverse);
+	    RegionSubtract(universe, universe, &childUnion);
+	RegionUninit(&childUnion);
+	RegionUninit(&childUniverse);
     } /* if any children */
 
     /*
@@ -467,12 +467,12 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
     if (oldVis == VisibilityFullyObscured ||
 	oldVis == VisibilityNotViewable)
     {
-	REGION_COPY( pScreen, &pParent->valdata->after.exposed, universe);
+	RegionCopy(&pParent->valdata->after.exposed, universe);
     }
     else if (newVis != VisibilityFullyObscured &&
 	     newVis != VisibilityNotViewable)
     {
-    	REGION_SUBTRACT( pScreen, &pParent->valdata->after.exposed,
+	RegionSubtract(&pParent->valdata->after.exposed,
 			       universe, &pParent->clipList);
     }
 
@@ -484,7 +484,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
      */
     if (pParent->backStorage && !resized)
     {
-	REGION_SUBTRACT( pScreen, exposed, &pParent->clipList, universe);
+	RegionSubtract(exposed, &pParent->clipList, universe);
 	(* pScreen->SaveDoomedAreas)(pParent, exposed, dx, dy);
     }
     
@@ -498,7 +498,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
     }
 
 #ifdef NOTDEF
-    REGION_COPY( pScreen, &pParent->clipList, universe);
+    RegionCopy(&pParent->clipList, universe);
 #endif
 
     pParent->drawable.serialNumber = NEXT_SERIAL_NUMBER;
@@ -589,15 +589,15 @@ RootlessMiValidateTree (WindowPtr pRoot, /* Parent to validate */
     if (pChild == NullWindow)
 	pChild = pRoot->firstChild;
 
-    REGION_NULL(pScreen, &childClip);
-    REGION_NULL(pScreen, &exposed);
+    RegionNull(&childClip);
+    RegionNull(&exposed);
 
-    if (REGION_BROKEN (pScreen, &pRoot->clipList) &&
-	!REGION_BROKEN (pScreen, &pRoot->borderClip))
+    if (RegionBroken(&pRoot->clipList) &&
+	!RegionBroken(&pRoot->borderClip))
     {
         // fixme this might not work, but hopefully doesn't happen anyway.
         kind = VTBroken;
-        REGION_EMPTY (pScreen, &pRoot->clipList);
+        RegionEmpty(&pRoot->clipList);
         ErrorF("ValidateTree: BUSTED!\n");
     }
 
@@ -613,28 +613,28 @@ RootlessMiValidateTree (WindowPtr pRoot, /* Parent to validate */
     {
         if (pWin->viewable) {
             if (pWin->valdata) {
-                REGION_COPY( pScreen, &childClip, &pWin->borderSize);
+                RegionCopy(&childClip, &pWin->borderSize);
                 RootlessComputeClips (pWin, pScreen, &childClip, kind, &exposed);
             } else if (pWin->visibility == VisibilityNotViewable) {
                 RootlessTreeObscured(pWin);
             }
         } else {
             if (pWin->valdata) {
-                REGION_EMPTY( pScreen, &pWin->clipList);
+                RegionEmpty(&pWin->clipList);
                 if (pScreen->ClipNotify)
                     (* pScreen->ClipNotify) (pWin, 0, 0);
-                REGION_EMPTY( pScreen, &pWin->borderClip);
+                RegionEmpty(&pWin->borderClip);
                 pWin->valdata = NULL;
             }
         }
     }
 
-    REGION_UNINIT(pScreen, &childClip);
+    RegionUninit(&childClip);
 
     /* The root is never clipped by its children, so nothing on the root 
        is ever exposed by moving or mapping its children. */
-    REGION_NULL(pScreen, &pRoot->valdata->after.exposed);
-    REGION_NULL(pScreen, &pRoot->valdata->after.borderExposed);
+    RegionNull(&pRoot->valdata->after.exposed);
+    RegionNull(&pRoot->valdata->after.borderExposed);
 
     return 1;
 }

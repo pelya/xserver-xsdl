@@ -184,7 +184,7 @@ RootlessDestroyFrame(WindowPtr pWin, RootlessWindowPtr winRec)
     SCREENREC(pScreen)->imp->DestroyFrame(winRec->wid);
 
 #ifdef ROOTLESS_TRACK_DAMAGE
-    REGION_UNINIT(pScreen, &winRec->damage);
+    RegionUninit(&winRec->damage);
 #endif
 
     free(winRec);
@@ -232,9 +232,9 @@ RootlessGetShape(WindowPtr pWin, RegionPtr pShape)
     /* wBoundingShape is relative to *inner* origin of window.
        Translate by borderWidth to get the outside-relative position. */
 
-    REGION_NULL(pScreen, pShape);
-    REGION_COPY(pScreen, pShape, wBoundingShape(pWin));
-    REGION_TRANSLATE(pScreen, pShape, pWin->borderWidth, pWin->borderWidth);
+    RegionNull(pShape);
+    RegionCopy(pShape, wBoundingShape(pWin));
+    RegionTranslate(pShape, pWin->borderWidth, pWin->borderWidth);
 
     return TRUE;
 }
@@ -266,7 +266,7 @@ static void RootlessReshapeFrame(WindowPtr pWin)
     RL_DEBUG_MSG("reshaping...");
     if (pShape != NULL) {
         RL_DEBUG_MSG("numrects %d, extents %d %d %d %d ",
-                     REGION_NUM_RECTS(&newShape),
+                     RegionNumRects(&newShape),
                      newShape.extents.x1, newShape.extents.y1,
                      newShape.extents.x2, newShape.extents.y2);
     } else {
@@ -277,7 +277,7 @@ static void RootlessReshapeFrame(WindowPtr pWin)
     SCREENREC(pScreen)->imp->ReshapeFrame(winRec->wid, pShape);
 
     if (pShape != NULL)
-        REGION_UNINIT(pScreen, &newShape);
+        RegionUninit(&newShape);
 }
 
 
@@ -355,8 +355,8 @@ RootlessPositionWindow(WindowPtr pWin, int x, int y)
 
 #ifdef ROOTLESS_TRACK_DAMAGE
             // Move damaged region to correspond to new window position
-            if (REGION_NOTEMPTY(pScreen, &winRec->damage)) {
-                REGION_TRANSLATE(pScreen, &winRec->damage,
+            if (RegionNotEmpty(&winRec->damage)) {
+                RegionTranslate(&winRec->damage,
                                  x - bw - winRec->x,
                                  y - bw - winRec->y);
             }
@@ -394,7 +394,7 @@ RootlessInitializeFrame(WindowPtr pWin, RootlessWindowRec *winRec)
     winRec->borderWidth = bw;
 
 #ifdef ROOTLESS_TRACK_DAMAGE
-    REGION_NULL(pScreen, &winRec->damage);
+    RegionNull(&winRec->damage);
 #endif
 }
 
@@ -457,7 +457,7 @@ RootlessEnsureFrame(WindowPtr pWin)
       RootlessFlushWindowColormap(pWin);
 
     if (pShape != NULL)
-        REGION_UNINIT(pScreen, &shape);
+        RegionUninit(&shape);
 
     return winRec;
 }
@@ -673,7 +673,7 @@ RootlessNoCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 
     RL_DEBUG_MSG("ROOTLESSNOCOPYWINDOW ");
 
-    REGION_TRANSLATE(pWin->drawable.pScreen, prgnSrc, -dx, -dy);
+    RegionTranslate(prgnSrc, -dx, -dy);
 }
 
 
@@ -705,9 +705,9 @@ RootlessResizeCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
-    REGION_TRANSLATE(pScreen, prgnSrc, -dx, -dy);
-    REGION_NULL(pScreen, &rgnDst);
-    REGION_INTERSECT(pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
+    RegionTranslate(prgnSrc, -dx, -dy);
+    RegionNull(&rgnDst);
+    RegionIntersect(&rgnDst, &pWin->borderClip, prgnSrc);
 
     if (gResizeDeathCount == 1) {
         /* Simple case, we only have a single source pixmap. */
@@ -724,21 +724,21 @@ RootlessResizeCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
            intersect the destination with each source and copy those bits. */
 
         for (i = 0; i < gResizeDeathCount; i++) {
-            REGION_INIT(pScreen, &clip, gResizeDeathBounds + 0, 1);
-            REGION_NULL(pScreen, &clipped);
-            REGION_INTERSECT(pScreen, &rgnDst, &clip, &clipped);
+            RegionInit(&clip, gResizeDeathBounds + 0, 1);
+            RegionNull(&clipped);
+            RegionIntersect(&rgnDst, &clip, &clipped);
 
             fbCopyRegion(&gResizeDeathPix[i]->drawable,
                          &pScreen->GetWindowPixmap(pWin)->drawable, 0,
                          &clipped, dx, dy, fbCopyWindowProc, 0, 0);
 
-            REGION_UNINIT(pScreen, &clipped);
-            REGION_UNINIT(pScreen, &clip);
+            RegionUninit(&clipped);
+            RegionUninit(&clip);
         }
     }
 
     /* Don't update - resize will update everything */
-    REGION_UNINIT(pScreen, &rgnDst);
+    RegionUninit(&rgnDst);
 
     fbValidateDrawable(&pWin->drawable);
 
@@ -768,12 +768,12 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 
     dx = ptOldOrg.x - pWin->drawable.x;
     dy = ptOldOrg.y - pWin->drawable.y;
-    REGION_TRANSLATE(pScreen, prgnSrc, -dx, -dy);
+    RegionTranslate(prgnSrc, -dx, -dy);
 
-    REGION_NULL(pScreen, &rgnDst);
-    REGION_INTERSECT(pScreen, &rgnDst, &pWin->borderClip, prgnSrc);
+    RegionNull(&rgnDst);
+    RegionIntersect(&rgnDst, &pWin->borderClip, prgnSrc);
 
-    extents = REGION_EXTENTS(pScreen, &rgnDst);
+    extents = RegionExtents(&rgnDst);
     area = (extents->x2 - extents->x1) * (extents->y2 - extents->y1);
 
     /* If the area exceeds threshold, use the implementation's
@@ -797,13 +797,13 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
         }
 
         /* Move region to window local coords */
-        REGION_TRANSLATE(pScreen, &rgnDst, -winRec->x, -winRec->y);
+        RegionTranslate(&rgnDst, -winRec->x, -winRec->y);
 
         RootlessStopDrawing(pWin, FALSE);
 
         SCREENREC(pScreen)->imp->CopyWindow(winRec->wid,
-                                            REGION_NUM_RECTS(&rgnDst),
-                                            REGION_RECTS(&rgnDst),
+                                            RegionNumRects(&rgnDst),
+                                            RegionRects(&rgnDst),
                                             dx, dy);
     }
     else {
@@ -817,7 +817,7 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     }
 
 out:
-    REGION_UNINIT(pScreen, &rgnDst);
+    RegionUninit(&rgnDst);
     fbValidateDrawable(&pWin->drawable);
 
     SCREEN_WRAP(pScreen, CopyWindow);
@@ -1320,11 +1320,11 @@ RootlessResizeWindow(WindowPtr pWin, int x, int y,
 
         box.x1 = x; box.y1 = y;
         box.x2 = x + w; box.y2 = y + h;
-        REGION_UNINIT(pScreen, &pWin->winSize);
-        REGION_INIT(pScreen, &pWin->winSize, &box, 1);
-        REGION_COPY(pScreen, &pWin->borderSize, &pWin->winSize);
-        REGION_COPY(pScreen, &pWin->clipList, &pWin->winSize);
-        REGION_COPY(pScreen, &pWin->borderClip, &pWin->winSize);
+        RegionUninit(&pWin->winSize);
+        RegionInit(&pWin->winSize, &box, 1);
+        RegionCopy(&pWin->borderSize, &pWin->winSize);
+        RegionCopy(&pWin->clipList, &pWin->winSize);
+        RegionCopy(&pWin->borderClip, &pWin->winSize);
 
         miSendExposures(pWin, &pWin->borderClip,
                         pWin->drawable.x, pWin->drawable.y);        

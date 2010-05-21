@@ -871,8 +871,8 @@ int dmxChangePictureClip(PicturePtr pPicture, int clipType,
 				       pPictPriv->pict, 0, 0, None);
 	} else if (pPicture->clientClip) {
 	    RegionPtr   pClip = pPicture->clientClip;
-	    BoxPtr      pBox  = REGION_RECTS(pClip);
-	    int         nBox  = REGION_NUM_RECTS(pClip);
+	    BoxPtr      pBox  = RegionRects(pClip);
+	    int         nBox  = RegionNumRects(pClip);
 	    XRectangle *pRects;
 	    XRectangle *pRect;
 	    int         nRects;

@@ -418,23 +418,6 @@ extern _X_EXPORT void miPushPixels(
     int /*yOrg*/
 );
 
-/* miregion.c */
-
-/* see also region.h */
-
-extern _X_EXPORT Bool RegionRectAlloc(
-    RegionPtr /*pRgn*/,
-    int /*n*/
-);
-
-#ifdef DEBUG
-extern _X_EXPORT Bool RegionIsValid(
-    RegionPtr /*prgn*/
-);
-#endif
-
-extern _X_EXPORT Bool RegionBroken(RegionPtr pReg);
-
 /* miscrinit.c */
 
 extern _X_EXPORT Bool miModifyPixmapHeader(

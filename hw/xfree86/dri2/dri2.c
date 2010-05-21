@@ -461,7 +461,7 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	box.y1 = 0;
 	box.x2 = pPriv->width;
 	box.y2 = pPriv->height;
-	REGION_INIT(pDraw->pScreen, &region, &box, 0);
+	RegionInit(&region, &box, 0);
 
 	DRI2CopyRegion(pDraw, &region, DRI2BufferFakeFrontLeft,
 		       DRI2BufferFrontLeft);
@@ -614,7 +614,7 @@ DRI2CanFlip(DrawablePtr pDraw)
     pWinPixmap = pScreen->GetWindowPixmap(pWin);
     if (pRootPixmap != pWinPixmap)
 	return FALSE;
-    if (!REGION_EQUAL(pScreen, &pWin->clipList, &pRoot->winSize))
+    if (!RegionEqual(&pWin->clipList, &pRoot->winSize))
 	return FALSE;
 
     return TRUE;
@@ -710,7 +710,7 @@ DRI2SwapComplete(ClientPtr client, DrawablePtr pDraw, int frame,
     box.y1 = 0;
     box.x2 = pDraw->width;
     box.y2 = pDraw->height;
-    REGION_INIT(pScreen, &region, &box, 0);
+    RegionInit(&region, &box, 0);
     DRI2CopyRegion(pDraw, &region, DRI2BufferFakeFrontLeft,
 		   DRI2BufferFrontLeft);
 
@@ -782,7 +782,7 @@ DRI2SwapBuffers(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 	box.y1 = 0;
 	box.x2 = pDraw->width;
 	box.y2 = pDraw->height;
-	REGION_INIT(pScreen, &region, &box, 0);
+	RegionInit(&region, &box, 0);
 
 	pPriv->swapsPending++;
 

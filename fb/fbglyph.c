@@ -39,7 +39,7 @@ fbGlyphIn (RegionPtr	pRegion,
 	   int		height)
 {
     BoxRec  box;
-    BoxPtr  pExtents = REGION_EXTENTS (dummyScreen, pRegion);
+    BoxPtr  pExtents = RegionExtents(pRegion);
 
     /*
      * Check extents by hand to avoid 16 bit overflows
@@ -56,7 +56,7 @@ fbGlyphIn (RegionPtr	pRegion,
     box.x2 = x + width;
     box.y1 = y;
     box.y2 = y + height;
-    return RECT_IN_REGION (dummyScreen, pRegion, &box) == rgnIN;
+    return RegionContainsRect(pRegion, &box) == rgnIN;
 }
 
 #ifdef FB_24BIT

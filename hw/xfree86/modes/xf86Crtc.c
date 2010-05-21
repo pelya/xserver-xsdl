@@ -3155,9 +3155,9 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 						  &crtc_box);
 
 	if (crtc) {
-	    REGION_INIT (pScreen, &crtc_region_local, &crtc_box, 1);
+	    RegionInit(&crtc_region_local, &crtc_box, 1);
 	    crtc_region = &crtc_region_local;
-	    REGION_INTERSECT (pScreen, crtc_region, crtc_region, reg);
+	    RegionIntersect(crtc_region, crtc_region, reg);
 	}
 	*crtc_ret = crtc;
     }
@@ -3166,7 +3166,7 @@ xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 				crtc_region, width, height);
 
     if (crtc_region != reg)
-	REGION_UNINIT (pScreen, &crtc_region_local);
+	RegionUninit(&crtc_region_local);
 
     return ret;
 }

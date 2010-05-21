@@ -255,12 +255,12 @@ XaceCensorImage(
     imageBox.y1 = y;
     imageBox.x2 = x + w;
     imageBox.y2 = y + h;
-    REGION_INIT(pScreen, &imageRegion, &imageBox, 1);
-    REGION_NULL(pScreen, &censorRegion);
+    RegionInit(&imageRegion, &imageBox, 1);
+    RegionNull(&censorRegion);
 
     /* censorRegion = imageRegion - visibleRegion */
-    REGION_SUBTRACT(pScreen, &censorRegion, &imageRegion, pVisibleRegion);
-    nRects = REGION_NUM_RECTS(&censorRegion);
+    RegionSubtract(&censorRegion, &imageRegion, pVisibleRegion);
+    nRects = RegionNumRects(&censorRegion);
     if (nRects > 0)
     { /* we have something to censor */
 	GCPtr pScratchGC = NULL;
@@ -280,7 +280,7 @@ XaceCensorImage(
 	    failed = TRUE;
 	    goto failSafe;
 	}
-	for (pBox = REGION_RECTS(&censorRegion), i = 0;
+	for (pBox = RegionRects(&censorRegion), i = 0;
 	     i < nRects;
 	     i++, pBox++)
 	{
@@ -330,8 +330,8 @@ XaceCensorImage(
 	if (pScratchGC) FreeScratchGC(pScratchGC);
 	if (pPix)       FreeScratchPixmapHeader(pPix);
     }
-    REGION_UNINIT(pScreen, &imageRegion);
-    REGION_UNINIT(pScreen, &censorRegion);
+    RegionUninit(&imageRegion);
+    RegionUninit(&censorRegion);
 } /* XaceCensorImage */
 
 /*

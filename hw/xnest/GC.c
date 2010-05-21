@@ -210,10 +210,10 @@ xnestChangeClip(GCPtr pGC, int type, pointer pValue, int nRects)
       break;
       
     case CT_REGION:
-      nRects = REGION_NUM_RECTS((RegionPtr)pValue);
+      nRects = RegionNumRects((RegionPtr)pValue);
       size = nRects * sizeof(*pRects);
       pRects = (XRectangle *) malloc(size);
-      pBox = REGION_RECTS((RegionPtr)pValue);
+      pBox = RegionRects((RegionPtr)pValue);
       for (i = nRects; i-- > 0; ) {
 	pRects[i].x = pBox[i].x1;
 	pRects[i].y = pBox[i].y1;
@@ -277,7 +277,7 @@ xnestChangeClip(GCPtr pGC, int type, pointer pValue, int nRects)
        * other parts of server can only deal with CT_NONE,
        * CT_PIXMAP and CT_REGION client clips.
        */
-      pGC->clientClip = (pointer) RECTS_TO_REGION(pGC->pScreen, nRects,
+      pGC->clientClip = (pointer) RegionFromRects(nRects,
 						  (xRectangle *)pValue, type);
       free(pValue);
       pValue = pGC->clientClip;
@@ -313,7 +313,7 @@ xnestDestroyClipHelper(GCPtr pGC)
       break;
       
     case CT_REGION:
-      REGION_DESTROY(pGC->pScreen, pGC->clientClip); 
+      RegionDestroy(pGC->clientClip);
       break;
     }
 }
@@ -331,8 +331,8 @@ xnestCopyClip(GCPtr pGCDst, GCPtr pGCSrc)
       break;
 
     case CT_REGION:
-      pRgn = REGION_CREATE(pGCDst->pScreen, NULL, 1);
-      REGION_COPY(pGCDst->pScreen, pRgn, pGCSrc->clientClip);
+      pRgn = RegionCreate(NULL, 1);
+      RegionCopy(pRgn, pGCSrc->clientClip);
       xnestChangeClip(pGCDst, CT_REGION, pRgn, 0);
       break;
     }

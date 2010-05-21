@@ -180,7 +180,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 
             exaSetAccelBlock(pExaScr, pExaPixmap,
                              width, height, bitsPerPixel);
-            REGION_EMPTY(pScreen, &pExaPixmap->validFB);
+            RegionEmpty(&pExaPixmap->validFB);
         }
 
 	/* Need to re-create system copy if there's also a GPU copy */
@@ -192,7 +192,7 @@ exaModifyPixmapHeader_mixed(PixmapPtr pPixmap, int width, int height, int depth,
 	    DamageUnregister(&pPixmap->drawable, pExaPixmap->pDamage);
 	    DamageDestroy(pExaPixmap->pDamage);
 	    pExaPixmap->pDamage = NULL;
-	    REGION_EMPTY(pScreen, &pExaPixmap->validSys);
+	    RegionEmpty(&pExaPixmap->validSys);
 
 	    if (pExaScr->deferred_mixed_pixmap == pPixmap)
 		pExaScr->deferred_mixed_pixmap = NULL;
