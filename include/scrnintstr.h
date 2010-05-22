@@ -82,6 +82,16 @@ typedef struct _Depth {
     VisualID		*vids;    /* block of visual ids for this depth */
   } DepthRec;
 
+typedef struct _ScreenSaverStuff {
+    WindowPtr pWindow;
+    XID       wid;
+    char      blanked;
+    Bool      (*ExternalScreenSaver)(
+	ScreenPtr	/*pScreen*/,
+	int		/*xstate*/,
+	Bool		/*force*/);
+} ScreenSaverStuffRec;
+
 
 /*
  *  There is a typedef for each screen function pointer so that code that
@@ -468,6 +478,7 @@ typedef struct _Screen {
     pointer		devPrivate;
     short       	numVisuals;
     VisualPtr		visuals;
+    ScreenSaverStuffRec screensaver;
 
     /* Random screen procedures */
 

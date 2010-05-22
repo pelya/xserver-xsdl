@@ -800,7 +800,7 @@ CompositeRealChildHead (WindowPtr pWin)
 
     if (!pWin->parent &&
 	(screenIsSaved == SCREEN_SAVER_ON) &&
-	(HasSaverWindow (pWin->drawable.pScreen->myNum))) {
+	(HasSaverWindow (pWin->drawable.pScreen))) {
 
 	/* First child is the screen saver; see if next child is the overlay */
 	pChildBefore = pWin->firstChild;

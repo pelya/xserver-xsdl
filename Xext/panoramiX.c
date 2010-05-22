@@ -836,13 +836,14 @@ PanoramiXConsolidate(void)
     saver->type = XRT_WINDOW;
 
     for (i =  0; i < PanoramiXNumScreens; i++) {
+	ScreenPtr pScreen = screenInfo.screens[i];
 	root->info[i].id = WindowTable[i]->drawable.id;
 	root->u.win.class = InputOutput;
         root->u.win.root = TRUE;
-        saver->info[i].id = savedScreenInfo[i].wid;
+        saver->info[i].id = pScreen->screensaver.wid;
         saver->u.win.class = InputOutput;
         saver->u.win.root = TRUE;
-	defmap->info[i].id = (screenInfo.screens[i])->defColormap;
+	defmap->info[i].id = pScreen->defColormap;
     }
 
     AddResource(root->info[0].id, XRT_WINDOW, root);
