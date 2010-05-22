@@ -6,4 +6,5 @@ endif
 
 EXTRA_DIST = \
 	README.DRI \
+	README.modes \
 	README.rapidaccess
