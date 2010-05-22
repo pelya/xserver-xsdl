@@ -1062,7 +1062,7 @@ xf86SetBlackWhitePixels(ScreenPtr pScreen)
 static void
 xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 {
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
+    WindowPtr	pWin = pScreen->root;
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;

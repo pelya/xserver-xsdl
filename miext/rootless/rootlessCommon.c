@@ -447,7 +447,7 @@ RootlessRedisplay(WindowPtr pWindow)
 void
 RootlessRepositionWindows(ScreenPtr pScreen)
 {
-    WindowPtr root = WindowTable[pScreen->myNum];
+    WindowPtr root = pScreen->root;
     WindowPtr win;
 
     if (root != NULL) {
@@ -468,7 +468,7 @@ RootlessRepositionWindows(ScreenPtr pScreen)
 void
 RootlessRedisplayScreen(ScreenPtr pScreen)
 {
-    WindowPtr root = WindowTable[pScreen->myNum];
+    WindowPtr root = pScreen->root;
 
     if (root != NULL) {
         WindowPtr win;

@@ -570,7 +570,7 @@ static void dmxUpdateWindowInformation(DMXInputInfo *dmxInput,
     int i;
 
 #ifdef PANORAMIX
-    if (!noPanoramiXExtension && pWindow && pWindow->parent != WindowTable[0])
+    if (!noPanoramiXExtension && pWindow && pWindow->parent != screenInfo.screens[0]->root)
         return;
 #endif
 #if DMX_WINDOW_DEBUG

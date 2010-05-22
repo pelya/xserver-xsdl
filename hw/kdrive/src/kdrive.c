@@ -95,7 +95,7 @@ KdOsFuncs	*kdOsFuncs;
 void
 KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 {
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
+    WindowPtr	pWin = pScreen->root;
     WindowPtr	pChild;
     Bool	WasViewable;
     Bool	anyMarked = FALSE;

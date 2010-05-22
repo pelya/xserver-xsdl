@@ -141,7 +141,7 @@ compScreenUpdate (ScreenPtr pScreen)
     compCheckTree (pScreen);
     if (cs->damaged)
     {
-	compWindowUpdate (WindowTable[pScreen->myNum]);
+	compWindowUpdate (pScreen->root);
 	cs->damaged = FALSE;
     }
 }

@@ -1517,7 +1517,7 @@ RootlessOrderAllWindows (void)
     RL_DEBUG_MSG("RootlessOrderAllWindows() ");
     for (i = 0; i < screenInfo.numScreens; i++) {
       if (screenInfo.screens[i] == NULL) continue;
-      pWin = WindowTable[i];
+      pWin = screenInfo.screens[i]->root;
       if (pWin == NULL) continue;
       
       for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib) {
@@ -1533,7 +1533,7 @@ void
 RootlessEnableRoot (ScreenPtr pScreen)
 {
     WindowPtr pRoot;
-    pRoot = WindowTable[pScreen->myNum];
+    pRoot = pScreen->root;
     
     RootlessEnsureFrame (pRoot);
     (*pScreen->ClearToBackground) (pRoot, 0, 0, 0, 0, TRUE);
@@ -1546,7 +1546,7 @@ RootlessDisableRoot (ScreenPtr pScreen)
     WindowPtr pRoot;
     RootlessWindowRec *winRec;
 
-    pRoot = WindowTable[pScreen->myNum];
+    pRoot = pScreen->root;
     winRec = WINREC (pRoot);
 
     if (NULL == winRec)
@@ -1572,8 +1572,10 @@ RootlessHideAllWindows (void)
     for (i = 0; i < screenInfo.numScreens; i++)
     {
         pScreen = screenInfo.screens[i];
-        pWin = WindowTable[i];
-        if (pScreen == NULL || pWin == NULL)
+	if (pScreen == NULL)
+	    continue;
+	pWin = pScreen->root;
+	if (pWin == NULL)
             continue;
         
         for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib)
@@ -1609,8 +1611,10 @@ RootlessShowAllWindows (void)
     for (i = 0; i < screenInfo.numScreens; i++)
     {
         pScreen = screenInfo.screens[i];
-        pWin = WindowTable[i];
-        if (pScreen == NULL || pWin == NULL)
+	if (pScreen == NULL)
+	    continue;
+	pWin = pScreen->root;
+	if (pWin == NULL)
             continue;
         
         for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib)

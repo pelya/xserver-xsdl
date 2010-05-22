@@ -503,7 +503,7 @@ SendScreenSaverNotify (ScreenPtr pScreen, int state, Bool forced)
 	ev.type = ScreenSaverNotify + ScreenSaverEventBase;
 	ev.state = state;
 	ev.timestamp = currentTime.milliseconds;
-	ev.root = WindowTable[pScreen->myNum]->drawable.id;
+	ev.root = pScreen->root->drawable.id;
 	ev.window = pScreen->screensaver.wid;
 	ev.kind = kind;
 	ev.forced = forced;
@@ -580,7 +580,7 @@ CreateSaverWindow (ScreenPtr pScreen)
     if (GrabInProgress && GrabInProgress != pAttr->client->index)
 	return FALSE;
 
-    pWin = CreateWindow (pSaver->wid, WindowTable[pScreen->myNum],
+    pWin = CreateWindow (pSaver->wid, pScreen->root,
 			 pAttr->x, pAttr->y, pAttr->width, pAttr->height,
 			 pAttr->borderWidth, pAttr->class, 
 			 pAttr->mask, (XID *)pAttr->values, 
@@ -866,7 +866,7 @@ ScreenSaverSetAttributes (ClientPtr client)
     if (ret != Success)
 	return ret;
     pScreen = pDraw->pScreen;
-    pParent = WindowTable[pScreen->myNum];
+    pParent = pScreen->root;
 
     ret = XaceHook(XACE_SCREENSAVER_ACCESS, client, pScreen, DixSetAttrAccess);
     if (ret != Success)

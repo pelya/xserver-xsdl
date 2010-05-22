@@ -1881,7 +1881,7 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 void
 xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 {
-   DrawablePtr root = &WindowTable[pScreen->myNum]->drawable;
+   DrawablePtr root = &pScreen->root->drawable;
    ChangeGCVal pval[2];
    BoxPtr pbox = REGION_RECTS(clipboxes);
    int i, nbox = REGION_NUM_RECTS(clipboxes);

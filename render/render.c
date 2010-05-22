@@ -2681,7 +2681,7 @@ PanoramiXRenderCreatePicture (ClientPtr client)
     newPict->info[0].id = stuff->pid;
     
     if (refDraw->type == XRT_WINDOW &&
-	stuff->drawable == WindowTable[0]->drawable.id)
+	stuff->drawable == screenInfo.screens[0]->root->drawable.id)
     {
 	newPict->u.pict.root = TRUE;
     }

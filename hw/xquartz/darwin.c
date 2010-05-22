@@ -793,7 +793,7 @@ void AbortDDX( void )
 void
 xf86SetRootClip (ScreenPtr pScreen, int enable)
 {
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
+    WindowPtr	pWin = pScreen->root;
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = TRUE;

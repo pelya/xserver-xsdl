@@ -837,7 +837,7 @@ PanoramiXConsolidate(void)
 
     for (i =  0; i < PanoramiXNumScreens; i++) {
 	ScreenPtr pScreen = screenInfo.screens[i];
-	root->info[i].id = WindowTable[i]->drawable.id;
+	root->info[i].id = pScreen->root->drawable.id;
 	root->u.win.class = InputOutput;
         root->u.win.root = TRUE;
         saver->info[i].id = pScreen->screensaver.wid;

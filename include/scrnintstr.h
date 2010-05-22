@@ -478,6 +478,7 @@ typedef struct _Screen {
     pointer		devPrivate;
     short       	numVisuals;
     VisualPtr		visuals;
+    WindowPtr		root;
     ScreenSaverStuffRec screensaver;
 
     /* Random screen procedures */

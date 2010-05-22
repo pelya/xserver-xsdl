@@ -276,7 +276,7 @@ void QuartzUpdateScreens(void) {
     sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
     
     /* Adjust the root window. */
-    pRoot = WindowTable[pScreen->myNum];
+    pRoot = pScreen->root;
     AppleWMSetScreenOrigin(pRoot);
     pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
     miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);

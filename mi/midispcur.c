@@ -405,7 +405,7 @@ miDCPutUpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
     }
     pScreenPriv = (miDCScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
 						  miDCScreenKey);
-    pWin = WindowTable[pScreen->myNum];
+    pWin = pScreen->root;
     pBuffer = MIDCBUFFER(pDev, pScreen);
 
 #ifdef ARGB_CURSOR
@@ -448,7 +448,7 @@ miDCSaveUnderCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
     pBuffer = MIDCBUFFER(pDev, pScreen);
 
     pSave = pBuffer->pSave;
-    pWin = WindowTable[pScreen->myNum];
+    pWin = pScreen->root;
     if (!pSave || pSave->drawable.width < w || pSave->drawable.height < h)
     {
 	if (pSave)
@@ -482,7 +482,7 @@ miDCRestoreUnderCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
     pBuffer = MIDCBUFFER(pDev, pScreen);
     pSave = pBuffer->pSave;
 
-    pWin = WindowTable[pScreen->myNum];
+    pWin = pScreen->root;
     if (!pSave)
 	return FALSE;
 
@@ -513,7 +513,7 @@ miDCDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
             goto failure;
 
         dixSetPrivate(&pDev->devPrivates, miDCSpriteKey + pScreen->myNum, pBuffer);
-        pWin = WindowTable[pScreen->myNum];
+        pWin = pScreen->root;
 
         pBuffer->pSourceGC = miDCMakeGC(pWin);
         if (!pBuffer->pSourceGC)

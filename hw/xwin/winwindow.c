@@ -144,7 +144,7 @@ winCopyWindowNativeGDI (WindowPtr pWin,
 #endif
 
   /* Get a pointer to the root window */
-  pwinRoot = WindowTable[pWin->drawable.pScreen->myNum];
+  pwinRoot = pWin->drawable.pScreen->root;
 
   /* Create a region for the destination */
   prgnDst = REGION_CREATE(pWin->drawable.pScreen, NULL, 1);

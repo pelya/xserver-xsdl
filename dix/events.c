@@ -556,9 +556,10 @@ XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
-    if(pWin == WindowTable[0]) {
-	    memcpy(pSprite->windows, WindowTable,
-				PanoramiXNumScreens*sizeof(WindowPtr));
+    if(pWin == screenInfo.screens[0]->root) {
+	int i;
+	for (i = 0; i < PanoramiXNumScreens; i++)
+	    pSprite->windows[i] = screenInfo.screens[i]->root;
     } else {
 	PanoramiXRes *win;
 	int rc, i;
@@ -619,7 +620,7 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
         pSprite->hotShape = NullRegion;
 
     pSprite->confined = FALSE;
-    pSprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
+    pSprite->confineWin = (pWin == screenInfo.screens[0]->root) ? NullWindow : pWin;
 
     CheckPhysLimits(pDev, pSprite->current, generateEvents, FALSE, NULL);
 }
@@ -875,7 +876,7 @@ CheckVirtualMotion(
 #ifdef PANORAMIX
     if (noPanoramiXExtension) /* No typo. Only set the root win if disabled */
 #endif
-        RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
+        RootWindow(pDev) = pSprite->hot.pScreen->root;
 }
 
 static void
@@ -1123,7 +1124,7 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
 	 *  updated yet.
 	 */
 	if (ev->any.type == ET_Motion)
-	    ev->device_event.root = WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
+	    ev->device_event.root = pSprite->hotPhys.pScreen->root->drawable.id;
 
 	eventinfo.event = ev;
 	eventinfo.device = device;
@@ -1339,7 +1340,7 @@ playmore:
             }
             else
                 ConfineCursorToWindow(dev,
-                        WindowTable[dev->spriteInfo->sprite->hotPhys.pScreen->myNum],
+                        dev->spriteInfo->sprite->hotPhys.pScreen->root,
                         TRUE, FALSE);
             PostNewCursor(dev);
         }
@@ -1369,7 +1370,7 @@ ScreenRestructured (ScreenPtr pScreen)
         }
         else
             ConfineCursorToWindow(pDev,
-                    WindowTable[pDev->spriteInfo->sprite->hotPhys.pScreen->myNum],
+                    pDev->spriteInfo->sprite->hotPhys.pScreen->root,
                     TRUE, FALSE);
     }
 }
@@ -2766,7 +2767,7 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
             if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
             {
                 pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
-                RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
+                RootWindow(pDev) = pSprite->hot.pScreen->root;
             }
         }
 
@@ -2849,7 +2850,7 @@ WindowsRestructured(void)
 
 #ifdef PANORAMIX
 /* This was added to support reconfiguration under Xdmx.  The problem is
- * that if the 0th screen (i.e., WindowTable[0]) is moved to an origin
+ * that if the 0th screen (i.e., screenInfo.screens[0]) is moved to an origin
  * other than 0,0, the information in the private sprite structure must
  * be updated accordingly, or XYToWindow (and other routines) will not
  * compute correctly. */
@@ -2892,7 +2893,7 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
             } else
                 ConfineCursorToWindow(
                         pDev,
-                        WindowTable[pSprite->hotPhys.pScreen->myNum],
+                        pSprite->hotPhys.pScreen->root,
                         TRUE, FALSE);
 
         }
@@ -3051,7 +3052,7 @@ UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
 
     pSprite = pDev->spriteInfo->sprite;
 
-    win = WindowTable[pScreen->myNum];
+    win = pScreen->root;
 
     pSprite->hotPhys.pScreen = pScreen;
     pSprite->hot = pSprite->hotPhys;
@@ -3124,7 +3125,7 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 		XineramaConfineCursorToWindow(pDev,
                         pSprite->confineWin, TRUE);
 	    else
-		XineramaConfineCursorToWindow(pDev, WindowTable[0], TRUE);
+		XineramaConfineCursorToWindow(pDev, screenInfo.screens[0]->root, TRUE);
 	    /* if the pointer wasn't confined, the DDX won't get
 	       told of the pointer warp so we reposition it here */
 	    if(!syncEvents.playingEvents)
@@ -3139,8 +3140,7 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
     } else
 #endif
     if (newScreen != pSprite->hotPhys.pScreen)
-	ConfineCursorToWindow(pDev, WindowTable[newScreen->myNum],
-                TRUE, FALSE);
+	ConfineCursorToWindow(pDev, newScreen->root, TRUE, FALSE);
 }
 
 #ifdef PANORAMIX
@@ -3215,7 +3215,7 @@ XineramaWarpPointer(ClientPtr client)
 
 	winX = source->drawable.x;
 	winY = source->drawable.y;
-	if(source == WindowTable[0]) {
+	if(source == screenInfo.screens[0]->root) {
 	    winX -= panoramiXdataPtr[0].x;
 	    winY -= panoramiXdataPtr[0].y;
 	}
@@ -3231,7 +3231,7 @@ XineramaWarpPointer(ClientPtr client)
     if (dest) {
 	x = dest->drawable.x;
 	y = dest->drawable.y;
-	if(dest == WindowTable[0]) {
+	if(dest == screenInfo.screens[0]->root) {
 	    x -= panoramiXdataPtr[0].x;
 	    y -= panoramiXdataPtr[0].y;
 	}

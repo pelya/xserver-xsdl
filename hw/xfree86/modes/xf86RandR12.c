@@ -517,7 +517,7 @@ xf86RandR12SetMode (ScreenPtr	    pScreen,
     int			oldHeight = pScreen->height;
     int			oldmmWidth = pScreen->mmWidth;
     int			oldmmHeight = pScreen->mmHeight;
-    WindowPtr		pRoot = WindowTable[pScreen->myNum];
+    WindowPtr		pRoot = pScreen->root;
     DisplayModePtr      currentMode = NULL;
     Bool 		ret = TRUE;
     PixmapPtr 		pspix = NULL;
@@ -685,7 +685,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = XF86SCRNINFO(pScreen);
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
-    WindowPtr		pRoot = WindowTable[pScreen->myNum];
+    WindowPtr		pRoot = pScreen->root;
     PixmapPtr		pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
     Bool		ret = FALSE;
     int                 c;
@@ -739,7 +739,7 @@ finish:
     if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
 #if RANDR_12_INTERFACE
-    if (xf86RandR12Key && WindowTable[pScreen->myNum] && ret)
+    if (xf86RandR12Key && pScreen->root && ret)
 	RRScreenSizeNotify (pScreen);
 #endif
     return ret;

@@ -562,7 +562,7 @@ CreateConnectionBlock(void)
 	VisualPtr	pVisual;
 
 	pScreen = screenInfo.screens[i];
-	root.windowId = WindowTable[i]->drawable.id;
+	root.windowId = pScreen->root->drawable.id;
 	root.defaultColormap = pScreen->defColormap;
 	root.whitePixel = pScreen->whitePixel;
 	root.blackPixel = pScreen->blackPixel;
@@ -912,7 +912,7 @@ GetGeometry(ClientPtr client, xGetGeometryReply *rep)
     rep->type = X_Reply;
     rep->length = 0;
     rep->sequenceNumber = client->sequence;
-    rep->root = WindowTable[pDraw->pScreen->myNum]->drawable.id;
+    rep->root = pDraw->pScreen->root->drawable.id;
     rep->depth = pDraw->depth;
     rep->width = pDraw->width;
     rep->height = pDraw->height;
@@ -972,7 +972,7 @@ ProcQueryTree(ClientPtr client)
         return rc;
     memset(&reply, 0, sizeof(xQueryTreeReply));
     reply.type = X_Reply;
-    reply.root = WindowTable[pWin->drawable.pScreen->myNum]->drawable.id;
+    reply.root = pWin->drawable.pScreen->root->drawable.id;
     reply.sequenceNumber = client->sequence;
     if (pWin->parent)
 	reply.parent = pWin->parent->drawable.id;
@@ -2055,7 +2055,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	}
 	else
 	{
-	    pBoundingDraw = (DrawablePtr)WindowTable[pDraw->pScreen->myNum];
+	    pBoundingDraw = (DrawablePtr)pDraw->pScreen->root;
 	}
 
 	xgi.visual = wVisual (pWin);
@@ -3666,9 +3666,9 @@ SendConnSetup(ClientPtr client, char *reason)
     {
 	unsigned int j;
 	xDepth *pDepth;
+	WindowPtr pRoot = screenInfo.screens[i]->root;
 
-        root->currentInputMask = WindowTable[i]->eventMask |
-			         wOtherEventMasks (WindowTable[i]);
+        root->currentInputMask = pRoot->eventMask | wOtherEventMasks(pRoot);
 	pDepth = (xDepth *)(root + 1);
 	for (j = 0; j < root->nDepths; j++)
 	{
@@ -3916,7 +3916,6 @@ AddScreen(
        any of the strings pointed to by argv.  They may be passed to
        multiple screens.
     */
-    WindowTable[i] = NullWindow;
     screenInfo.screens[i] = pScreen;
     screenInfo.numScreens++;
     if (!(*pfnInit)(i, pScreen, argc, argv))

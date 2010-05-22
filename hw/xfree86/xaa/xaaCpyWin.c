@@ -47,7 +47,7 @@ XAACopyWindow(
     	return;
     }
 
-    pwinRoot = WindowTable[pScreen->myNum];
+    pwinRoot = pScreen->root;
 
     REGION_NULL(pScreen, &rgnDst);
 

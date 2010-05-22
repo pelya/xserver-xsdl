@@ -210,7 +210,7 @@ PrintWindowTree(void)
     for (i=0; i<screenInfo.numScreens; i++)
     {
 	ErrorF("[dix] WINDOW %d\n", i);
-	pWin = WindowTable[i];
+	pWin = screenInfo.screens[i]->root;
 	miPrintRegion(&pWin->clipList);
 	p1 = pWin->firstChild;
 	PrintChildren(p1, 4);
@@ -256,7 +256,7 @@ TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
 int
 WalkTree(ScreenPtr pScreen, VisitWindowProcPtr func, pointer data)
 {
-    return(TraverseTree(WindowTable[pScreen->myNum], func, data));
+    return(TraverseTree(pScreen->root, func, data));
 }
 
 /* hack for forcing backing store on all windows */
@@ -366,7 +366,7 @@ CreateRootWindow(ScreenPtr pScreen)
     pScreen->screensaver.ExternalScreenSaver = NULL;
     screenIsSaved = SCREEN_SAVER_OFF;
 
-    WindowTable[pScreen->myNum] = pWin;
+    pScreen->root = pWin;
 
     pWin->drawable.pScreen = pScreen;
     pWin->drawable.type = DRAWABLE_WINDOW;
@@ -1327,7 +1327,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	     */
 	    if ( cursorID == None)
 	    {
-		if (pWin == WindowTable[pWin->drawable.pScreen->myNum])
+		if (pWin == pWin->drawable.pScreen->root)
 		    pCursor = rootCursor;
 		else
 		    pCursor = (CursorPtr) None;
@@ -2964,7 +2964,7 @@ HandleSaveSet(ClientPtr client)
 	pWin = SaveSetWindow(client->saveSet[j]);
 #ifdef XFIXES
 	if (SaveSetToRoot(client->saveSet[j]))
-	    pParent = WindowTable[pWin->drawable.pScreen->myNum];
+	    pParent = pWin->drawable.pScreen->root;
 	else
 #endif
 	{
@@ -3250,7 +3250,6 @@ SaveScreens(int on, int mode)
 static Bool
 TileScreenSaver(ScreenPtr pScreen, int kind)
 {
-    int i = pScreen->myNum;
     int j;
     int result;
     XID attributes[3];
@@ -3266,9 +3265,9 @@ TileScreenSaver(ScreenPtr pScreen, int kind)
     attri = 0;
     switch (kind) {
     case SCREEN_IS_TILED:
-	switch (WindowTable[i]->backgroundState) {
+	switch (pScreen->root->backgroundState) {
 	case BackgroundPixel:
-	    attributes[attri++] = WindowTable[i]->background.pixel;
+	    attributes[attri++] = pScreen->root->background.pixel;
 	    mask |= CWBackPixel;
 	    break;
 	case BackgroundPixmap:
@@ -3280,7 +3279,7 @@ TileScreenSaver(ScreenPtr pScreen, int kind)
 	}
 	break;
     case SCREEN_IS_BLACK:
-	attributes[attri++] = WindowTable[i]->drawable.pScreen->blackPixel;
+	attributes[attri++] = pScreen->root->drawable.pScreen->blackPixel;
 	mask |= CWBackPixel;
 	break;
     }
@@ -3329,12 +3328,12 @@ TileScreenSaver(ScreenPtr pScreen, int kind)
 
     pWin = pScreen->screensaver.pWindow =
 	 CreateWindow(pScreen->screensaver.wid,
-	      WindowTable[i],
+	      pScreen->root,
 	      -RANDOM_WIDTH, -RANDOM_WIDTH,
 	      (unsigned short)pScreen->width + RANDOM_WIDTH,
 	      (unsigned short)pScreen->height + RANDOM_WIDTH,
 	      0, InputOutput, mask, attributes, 0, serverClient,
-	      wVisual (WindowTable[i]), &result);
+	      wVisual (pScreen->root), &result);
 
     if (cursor)
 	FreeResource (cursorID, RT_NONE);

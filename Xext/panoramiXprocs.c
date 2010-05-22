@@ -129,7 +129,7 @@ int PanoramiXCreateWindow(ClientPtr client)
     orig_visual = stuff->visual;
     orig_x = stuff->x;
     orig_y = stuff->y;
-    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id) ||
+    parentIsRoot = (stuff->parent == screenInfo.screens[0]->root->drawable.id) ||
                    (stuff->parent == screenInfo.screens[0]->screensaver.wid);
     FOR_NSCREENS_BACKWARD(j) {
         stuff->wid = newWin->info[j].id;
@@ -328,7 +328,7 @@ int PanoramiXReparentWindow(ClientPtr client)
 
     x = stuff->x;
     y = stuff->y;
-    parentIsRoot = (stuff->parent == WindowTable[0]->drawable.id) ||
+    parentIsRoot = (stuff->parent == screenInfo.screens[0]->root->drawable.id) ||
                    (stuff->parent == screenInfo.screens[0]->screensaver.wid);
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->window = win->info[j].id;
@@ -475,7 +475,7 @@ int PanoramiXConfigureWindow(ClientPtr client)
 	}
     }
 
-    if(pWin->parent && ((pWin->parent == WindowTable[0]) ||
+    if(pWin->parent && ((pWin->parent == screenInfo.screens[0]->root) ||
                         (pWin->parent->drawable.id == screenInfo.screens[0]->screensaver.wid)))
     {
 	if ((Mask)stuff->mask & CWX) {
@@ -544,7 +544,7 @@ int PanoramiXGetGeometry(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.root = WindowTable[0]->drawable.id;
+    rep.root = screenInfo.screens[0]->root->drawable.id;
     rep.depth = pDraw->depth;
     rep.width = pDraw->width;
     rep.height = pDraw->height;
@@ -562,7 +562,7 @@ int PanoramiXGetGeometry(ClientPtr client)
         WindowPtr pWin = (WindowPtr)pDraw;
 	rep.x = pWin->origin.x - wBorderWidth (pWin);
 	rep.y = pWin->origin.y - wBorderWidth (pWin);
-	if((pWin->parent == WindowTable[0]) || 
+	if((pWin->parent == screenInfo.screens[0]->root) ||
            (pWin->parent->drawable.id == screenInfo.screens[0]->screensaver.wid))
         {
 	   rep.x += panoramiXdataPtr[0].x;
@@ -596,7 +596,7 @@ int PanoramiXTranslateCoords(ClientPtr client)
     rep.sameScreen = xTrue;
     rep.child = None;
 
-    if((pWin == WindowTable[0]) || 
+    if((pWin == screenInfo.screens[0]->root) ||
        (pWin->drawable.id == screenInfo.screens[0]->screensaver.wid))
     { 
 	x = stuff->srcX - panoramiXdataPtr[0].x;
@@ -634,7 +634,7 @@ int PanoramiXTranslateCoords(ClientPtr client)
     }
     rep.dstX = x - pDst->drawable.x;
     rep.dstY = y - pDst->drawable.y;
-    if((pDst == WindowTable[0]) || 
+    if((pDst == screenInfo.screens[0]->root) ||
        (pWin->drawable.id == screenInfo.screens[0]->screensaver.wid))
     {
 	rep.dstX += panoramiXdataPtr[0].x;

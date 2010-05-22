@@ -690,7 +690,7 @@ ReplaceCursor (CursorPtr pCursor,
 	}
     }
     /* this "knows" that WindowHasNewCursor doesn't depend on it's argument */
-    WindowHasNewCursor (WindowTable[0]);
+    WindowHasNewCursor (screenInfo.screens[0]->root);
 }
 
 static Bool 

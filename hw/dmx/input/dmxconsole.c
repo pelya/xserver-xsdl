@@ -204,7 +204,7 @@ static void dmxConsoleDrawWindows(pointer private)
     XUnionRectWithRegion(&rect, whole, whole);
     
     for (i = 0; i < dmxNumScreens; i++) {
-        WindowPtr     pRoot       = WindowTable[i];
+        WindowPtr     pRoot       = screenInfo.screens[i]->root;
         WindowPtr     pChild;
 
 #if DMX_WINDOW_DEBUG
