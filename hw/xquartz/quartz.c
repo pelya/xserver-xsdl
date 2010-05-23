@@ -259,8 +259,8 @@ void QuartzUpdateScreens(void) {
     PseudoramiXResetScreens();
     quartzProcs->AddPseudoramiXScreens(&x, &y, &width, &height);
     
-    dixScreenOrigins[pScreen->myNum].x = x;
-    dixScreenOrigins[pScreen->myNum].y = y;
+    pScreen->x = x;
+    pScreen->y = y;
     pScreen->mmWidth = pScreen->mmWidth * ((double) width / pScreen->width);
     pScreen->mmHeight = pScreen->mmHeight * ((double) height / pScreen->height);
     pScreen->width = width;
@@ -269,11 +269,11 @@ void QuartzUpdateScreens(void) {
     DarwinAdjustScreenOrigins(&screenInfo);
     quartzProcs->UpdateScreen(pScreen);
     
-    /* DarwinAdjustScreenOrigins or UpdateScreen may change dixScreenOrigins,
+    /* DarwinAdjustScreenOrigins or UpdateScreen may change pScreen->x/y,
      * so use it rather than x/y
      */
-    sx = dixScreenOrigins[pScreen->myNum].x + darwinMainScreenX;
-    sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
+    sx = pScreen->x + darwinMainScreenX;
+    sy = pScreen->y + darwinMainScreenY;
     
     /* Adjust the root window. */
     pRoot = pScreen->root;
@@ -292,7 +292,7 @@ void QuartzUpdateScreens(void) {
     inputInfo.pointer->spriteInfo->sprite->physLimits = bounds;
     inputInfo.pointer->spriteInfo->sprite->hotLimits = bounds;
 
-    DEBUG_LOG("Root Window: %dx%d @ (%d, %d) darwinMainScreen (%d, %d) xy (%d, %d) dixScreenOrigins (%d, %d)\n", width, height, x - sx, y - sy, darwinMainScreenX, darwinMainScreenY, x, y, dixScreenOrigins[pScreen->myNum].x, dixScreenOrigins[pScreen->myNum].y);
+    DEBUG_LOG("Root Window: %dx%d @ (%d, %d) darwinMainScreen (%d, %d) xy (%d, %d) dixScreenOrigins (%d, %d)\n", width, height, x - sx, y - sy, darwinMainScreenX, darwinMainScreenY, x, y, pScreen->x, pScreen->y);
 
     /* Send an event for the root reconfigure */
     e.u.u.type = ConfigureNotify;

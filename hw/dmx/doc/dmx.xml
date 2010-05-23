@@ -1511,8 +1511,7 @@ PanoramiX prefix.
     physical screen, and single region (PanoramiXScreenRegion) is
     initialized to be the union of the screen regions.
     The relative positioning information for the
-    physical screens is taken from the array
-    dixScreenOrigins&lsqb;&rsqb;, which
+    physical screens is taken from the ScreenRec x and y members, which
     the DDX layer must initialize in InitOutput().  The bounds of the
     combined screen is also calculated (PanoramiXPixWidth and
     PanoramiXPixHeight).

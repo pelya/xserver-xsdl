@@ -135,5 +135,3 @@ char *display;
 char *ConnectionInfo;
 
 CARD32 TimeOutValue = DEFAULT_TIMEOUT * MILLI_PER_SECOND;
-
-DDXPointRec dixScreenOrigins[MAXSCREENS];

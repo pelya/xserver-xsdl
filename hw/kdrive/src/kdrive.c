@@ -941,9 +941,8 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreenPriv->card = card;
     pScreenPriv->bytesPerPixel = screen->fb.bitsPerPixel >> 3;
     pScreenPriv->dpmsState = KD_DPMS_NORMAL;
-#ifdef PANORAMIX
-    dixScreenOrigins[pScreen->myNum] = screen->origin;
-#endif
+    pScreen->x = screen->origin.x;
+    pScreen->y = screen->origin.y;
 
     if (!monitorResolution)
 	monitorResolution = 75;

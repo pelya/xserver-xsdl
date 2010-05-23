@@ -198,8 +198,8 @@ XineramaValidateGC(
 
     if((pDraw->type == DRAWABLE_WINDOW) && !(((WindowPtr)pDraw)->parent)) {
 	/* the root window */
-	int x_off = dixScreenOrigins[pGC->pScreen->myNum].x;
-	int y_off = dixScreenOrigins[pGC->pScreen->myNum].y;
+	int x_off = pGC->pScreen->x;
+	int y_off = pGC->pScreen->y;
 	int new_val;
 
 	new_val = pGCPriv->clipOrg.x - x_off;
@@ -395,9 +395,9 @@ static void XineramaInitData(ScreenPtr pScreen)
 
         pScreen = screenInfo.screens[i];
 
-	TheBox.x1 = dixScreenOrigins[i].x;
+	TheBox.x1 = pScreen->x;
 	TheBox.x2 = TheBox.x1 + pScreen->width;
-	TheBox.y1 = dixScreenOrigins[i].y;
+	TheBox.y1 = pScreen->y;
 	TheBox.y2 = TheBox.y1 + pScreen->height;
 
 	REGION_INIT(pScreen, &XineramaScreenRegions[i], &TheBox, 1);
@@ -405,13 +405,13 @@ static void XineramaInitData(ScreenPtr pScreen)
 		     &XineramaScreenRegions[i]);
     }
 
-    PanoramiXPixWidth = dixScreenOrigins[0].x + screenInfo.screens[0]->width;
-    PanoramiXPixHeight = dixScreenOrigins[0].y + screenInfo.screens[0]->height;
+    PanoramiXPixWidth = screenInfo.screens[0]->x + screenInfo.screens[0]->width;
+    PanoramiXPixHeight = screenInfo.screens[0]->y + screenInfo.screens[0]->height;
 
     for (i = 1; i < PanoramiXNumScreens; i++) {
 	pScreen = screenInfo.screens[i];
-	w = dixScreenOrigins[i].x + pScreen->width;
-	h = dixScreenOrigins[i].y + pScreen->height;
+	w = pScreen->x + pScreen->width;
+	h = pScreen->y + pScreen->height;
 
 	if (PanoramiXPixWidth < w)
 	    PanoramiXPixWidth = w;
@@ -1060,8 +1060,8 @@ ProcXineramaQueryScreens(ClientPtr client)
 	int i;
 
 	for(i = 0; i < PanoramiXNumScreens; i++) {
-	    scratch.x_org  = dixScreenOrigins[i].x;
-	    scratch.y_org  = dixScreenOrigins[i].y;
+	    scratch.x_org  = screenInfo.screens[i]->x;
+	    scratch.y_org  = screenInfo.screens[i]->y;
 	    scratch.width  = screenInfo.screens[i]->width;
 	    scratch.height = screenInfo.screens[i]->height;
 	
@@ -1153,8 +1153,8 @@ XineramaGetImageData(
     SrcBox.x1 = left;
     SrcBox.y1 = top;
     if(!isRoot) {
-	SrcBox.x1 += pDraw->x + dixScreenOrigins[0].x;
-	SrcBox.y1 += pDraw->y + dixScreenOrigins[0].y;
+	SrcBox.x1 += pDraw->x + screenInfo.screens[0]->x;
+	SrcBox.y1 += pDraw->y + screenInfo.screens[0]->y;
     }
     SrcBox.x2 = SrcBox.x1 + width;
     SrcBox.y2 = SrcBox.y1 + height;
@@ -1171,8 +1171,8 @@ XineramaGetImageData(
 
 	if(inOut == rgnIN) {	   
 	    (*pDraw->pScreen->GetImage)(pDraw, 
-			SrcBox.x1 - pDraw->x - dixScreenOrigins[i].x,
-			SrcBox.y1 - pDraw->y - dixScreenOrigins[i].y,
+			SrcBox.x1 - pDraw->x - screenInfo.screens[i]->x,
+			SrcBox.y1 - pDraw->y - screenInfo.screens[i]->y,
 			width, height, format, planemask, data);
 	    break;
 	} else if (inOut == rgnOUT)
@@ -1203,8 +1203,8 @@ XineramaGetImageData(
 		    }	
 		}
 
-		x = pbox->x1 - pDraw->x - dixScreenOrigins[i].x;
-		y = pbox->y1 - pDraw->y - dixScreenOrigins[i].y;
+		x = pbox->x1 - pDraw->x - screenInfo.screens[i]->x;
+		y = pbox->y1 - pDraw->y - screenInfo.screens[i]->y;
 
 		(*pDraw->pScreen->GetImage)(pDraw, x, y, w, h, 
 					format, planemask, ScratchMem);

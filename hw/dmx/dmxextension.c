@@ -447,12 +447,12 @@ static void dmxSetRootWindowOrigin(int idx, int x, int y)
     dmxScreen->rootYOrigin = y;
 
     /* Compute offsets here in case <x,y> has been changed above */
-    xoff = x - dixScreenOrigins[idx].x;
-    yoff = y - dixScreenOrigins[idx].y;
+    xoff = x - pScreen->x;
+    yoff = y - pScreen->y;
 
-    /* Adjust the root window's position in dixScreenOrigins */
-    dixScreenOrigins[idx].x = dmxScreen->rootXOrigin;
-    dixScreenOrigins[idx].y = dmxScreen->rootYOrigin;
+    /* Adjust the root window's position */
+    pScreen->x = dmxScreen->rootXOrigin;
+    pScreen->y = dmxScreen->rootYOrigin;
 
     /* Recalculate the Xinerama regions and data structs */
     XineramaReinitData(pScreen);

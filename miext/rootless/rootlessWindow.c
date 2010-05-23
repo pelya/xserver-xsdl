@@ -53,9 +53,9 @@ extern Bool no_configure_window;
 
 #ifdef ROOTLESS_GLOBAL_COORDS
 #define SCREEN_TO_GLOBAL_X \
-    (dixScreenOrigins[pScreen->myNum].x + rootlessGlobalOffsetX)
+    (pScreen->x + rootlessGlobalOffsetX)
 #define SCREEN_TO_GLOBAL_Y \
-    (dixScreenOrigins[pScreen->myNum].y + rootlessGlobalOffsetY)
+    (pScreen->y + rootlessGlobalOffsetY)
 #else
 #define SCREEN_TO_GLOBAL_X 0
 #define SCREEN_TO_GLOBAL_Y 0
@@ -109,8 +109,8 @@ void RootlessNativeWindowMoved (WindowPtr pWin) {
     
     if (xp_get_window_bounds (MAKE_WINDOW_ID(winRec->wid), &bounds) != Success) return;
     
-    sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
-    sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
+    sx = pWin->drawable.pScreen->x + darwinMainScreenX;
+    sy = pWin->drawable.pScreen->y + darwinMainScreenY;
     
     /* Fake up a ConfigureWindow packet to resize the window to the current bounds. */
     vlist[0] = (INT16) bounds.x1 - sx;

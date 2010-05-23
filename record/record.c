@@ -43,6 +43,7 @@ and Jim Haggerty of Metheus.
 #include "swaprep.h"
 #include "inputstr.h"
 #include "eventconvert.h"
+#include "scrnintstr.h"
 
 
 #include <stdio.h>
@@ -755,11 +756,11 @@ RecordSendProtocolEvents(RecordClientsAndProtocolPtr pRCAP,
 		int scr = XineramaGetCursorScreen(inputInfo.pointer);
 		memcpy(&shiftedEvent, pev, sizeof(xEvent));
 		shiftedEvent.u.keyButtonPointer.rootX +=
-		    dixScreenOrigins[scr].x -
-		    dixScreenOrigins[0].x;
+		    screenInfo.screens[scr]->x -
+		    screenInfo.screens[0]->x;
 		shiftedEvent.u.keyButtonPointer.rootY +=
-		    dixScreenOrigins[scr].y -
-		    dixScreenOrigins[0].y;
+		    screenInfo.screens[scr]->y -
+		    screenInfo.screens[0]->y;
 		pEvToRecord = &shiftedEvent;
 	    }
 #endif /* PANORAMIX */
