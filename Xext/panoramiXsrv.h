@@ -21,8 +21,6 @@ extern _X_EXPORT int XineramaDeleteResource(pointer, XID);
 
 extern _X_EXPORT void XineramaReinitData(ScreenPtr);
 
-extern _X_EXPORT RegionRec XineramaScreenRegions[MAXSCREENS];
-
 extern _X_EXPORT unsigned long XRC_DRAWABLE;
 extern _X_EXPORT unsigned long XRT_WINDOW;
 extern _X_EXPORT unsigned long XRT_PIXMAP;

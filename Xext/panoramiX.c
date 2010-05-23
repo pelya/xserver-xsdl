@@ -119,7 +119,7 @@ typedef struct {
   CloseScreenProcPtr	CloseScreen;
 } PanoramiXScreenRec, *PanoramiXScreenPtr;
 
-RegionRec XineramaScreenRegions[MAXSCREENS];
+static RegionRec XineramaScreenRegions[MAXSCREENS];
 
 static void XineramaValidateGC(GCPtr, unsigned long, DrawablePtr);
 static void XineramaChangeGC(GCPtr, unsigned long);
