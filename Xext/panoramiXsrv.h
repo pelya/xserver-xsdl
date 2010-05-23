@@ -9,7 +9,6 @@
 #include "panoramiX.h"
 
 extern _X_EXPORT int PanoramiXNumScreens;
-extern _X_EXPORT PanoramiXData *panoramiXdataPtr;
 extern _X_EXPORT int PanoramiXPixWidth;
 extern _X_EXPORT int PanoramiXPixHeight;
 

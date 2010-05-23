@@ -2832,22 +2832,22 @@ PanoramiXRenderComposite (ClientPtr client)
 	stuff->src = src->info[j].id;
 	if (src->u.pict.root)
 	{
-	    stuff->xSrc = orig.xSrc - panoramiXdataPtr[j].x;
-	    stuff->ySrc = orig.ySrc - panoramiXdataPtr[j].y;
+	    stuff->xSrc = orig.xSrc - dixScreenOrigins[j].x;
+	    stuff->ySrc = orig.ySrc - dixScreenOrigins[j].y;
 	}
 	stuff->dst = dst->info[j].id;
 	if (dst->u.pict.root)
 	{
-	    stuff->xDst = orig.xDst - panoramiXdataPtr[j].x;
-	    stuff->yDst = orig.yDst - panoramiXdataPtr[j].y;
+	    stuff->xDst = orig.xDst - dixScreenOrigins[j].x;
+	    stuff->yDst = orig.yDst - dixScreenOrigins[j].y;
 	}
 	if (msk)
 	{
 	    stuff->mask = msk->info[j].id;
 	    if (msk->u.pict.root)
 	    {
-		stuff->xMask = orig.xMask - panoramiXdataPtr[j].x;
-		stuff->yMask = orig.yMask - panoramiXdataPtr[j].y;
+		stuff->xMask = orig.xMask - dixScreenOrigins[j].x;
+		stuff->yMask = orig.yMask - dixScreenOrigins[j].y;
 	    }
 	}
 	result = (*PanoramiXSaveRenderVector[X_RenderComposite]) (client);
@@ -2881,14 +2881,14 @@ PanoramiXRenderCompositeGlyphs (ClientPtr client)
 	    stuff->src = src->info[j].id;
 	    if (src->u.pict.root)
 	    {
-		stuff->xSrc = xSrc - panoramiXdataPtr[j].x;
-		stuff->ySrc = ySrc - panoramiXdataPtr[j].y;
+		stuff->xSrc = xSrc - dixScreenOrigins[j].x;
+		stuff->ySrc = ySrc - dixScreenOrigins[j].y;
 	    }
 	    stuff->dst = dst->info[j].id;
 	    if (dst->u.pict.root)
 	    {
-		elt->deltax = origElt.deltax - panoramiXdataPtr[j].x;
-		elt->deltay = origElt.deltay - panoramiXdataPtr[j].y;
+		elt->deltax = origElt.deltax - dixScreenOrigins[j].x;
+		elt->deltay = origElt.deltay - dixScreenOrigins[j].y;
 	    }
 	    result = (*PanoramiXSaveRenderVector[stuff->renderReqType]) (client);
 	    if(result != Success) break;
@@ -2918,8 +2918,8 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root)
 	    {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    xRectangle	*rects = (xRectangle *) (stuff + 1);
@@ -2966,8 +2966,8 @@ PanoramiXRenderTrapezoids(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
                     xTrapezoid  *trap = (xTrapezoid *) (stuff + 1);
@@ -3026,8 +3026,8 @@ PanoramiXRenderTriangles(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
                     xTriangle  *tri = (xTriangle *) (stuff + 1);
@@ -3082,8 +3082,8 @@ PanoramiXRenderTriStrip(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -3134,8 +3134,8 @@ PanoramiXRenderTriFan(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -3188,8 +3188,8 @@ PanoramiXRenderAddTraps (ClientPtr client)
 	    
 	    if (picture->u.pict.root)
 	    {
-		stuff->xOff = x_off + panoramiXdataPtr[j].x;
-		stuff->yOff = y_off + panoramiXdataPtr[j].y;
+		stuff->xOff = x_off + dixScreenOrigins[j].x;
+		stuff->yOff = y_off + dixScreenOrigins[j].y;
 	    }
 	    result = (*PanoramiXSaveRenderVector[X_RenderAddTraps]) (client);
 	    if(result != Success) break;

@@ -755,11 +755,11 @@ RecordSendProtocolEvents(RecordClientsAndProtocolPtr pRCAP,
 		int scr = XineramaGetCursorScreen(inputInfo.pointer);
 		memcpy(&shiftedEvent, pev, sizeof(xEvent));
 		shiftedEvent.u.keyButtonPointer.rootX +=
-		    panoramiXdataPtr[scr].x -
-		    panoramiXdataPtr[0].x;
+		    dixScreenOrigins[scr].x -
+		    dixScreenOrigins[0].x;
 		shiftedEvent.u.keyButtonPointer.rootY +=
-		    panoramiXdataPtr[scr].y -
-		    panoramiXdataPtr[0].y;
+		    dixScreenOrigins[scr].y -
+		    dixScreenOrigins[0].y;
 		pEvToRecord = &shiftedEvent;
 	    }
 #endif /* PANORAMIX */

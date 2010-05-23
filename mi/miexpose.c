@@ -424,8 +424,8 @@ miSendExposures( WindowPtr pWin, RegionPtr pRgn, int dx, int dy)
 	XID realWin = 0;
 
 	if(!pWin->parent) {
-	    x = panoramiXdataPtr[scrnum].x;
-	    y = panoramiXdataPtr[scrnum].y;
+	    x = dixScreenOrigins[scrnum].x;
+	    y = dixScreenOrigins[scrnum].y;
 	    pWin = screenInfo.screens[0]->root;
 	    realWin = pWin->drawable.id;
 	} else if (scrnum) {

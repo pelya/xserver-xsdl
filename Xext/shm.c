@@ -598,8 +598,8 @@ ProcPanoramiXShmPutImage(ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->dstX = orig_x - panoramiXdataPtr[j].x;
-	    stuff->dstY = orig_y - panoramiXdataPtr[j].y;
+	    stuff->dstX = orig_x - dixScreenOrigins[j].x;
+	    stuff->dstY = orig_y - dixScreenOrigins[j].y;
 	}
 	result = ProcShmPutImage(client);
 	if(result != Success) break;
@@ -660,10 +660,10 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 	    return(BadMatch);
     } else {
       if( /* check for being onscreen */
-	panoramiXdataPtr[0].x + pDraw->x + x < 0 ||
-	panoramiXdataPtr[0].x + pDraw->x + x + w > PanoramiXPixWidth ||
-        panoramiXdataPtr[0].y + pDraw->y + y < 0 ||
-	panoramiXdataPtr[0].y + pDraw->y + y + h > PanoramiXPixHeight ||
+	dixScreenOrigins[0].x + pDraw->x + x < 0 ||
+	dixScreenOrigins[0].x + pDraw->x + x + w > PanoramiXPixWidth ||
+	dixScreenOrigins[0].y + pDraw->y + y < 0 ||
+	dixScreenOrigins[0].y + pDraw->y + y + h > PanoramiXPixHeight ||
 	 /* check for being inside of border */
        	x < - wBorderWidth((WindowPtr)pDraw) ||
 	x + w > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||

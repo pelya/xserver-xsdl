@@ -135,8 +135,8 @@ int PanoramiXCreateWindow(ClientPtr client)
         stuff->wid = newWin->info[j].id;
         stuff->parent = parent->info[j].id;
 	if (parentIsRoot) {
-	    stuff->x = orig_x - panoramiXdataPtr[j].x;
-	    stuff->y = orig_y - panoramiXdataPtr[j].y;
+	    stuff->x = orig_x - dixScreenOrigins[j].x;
+	    stuff->y = orig_y - dixScreenOrigins[j].y;
 	}
 	if (backPix)
 	    *((CARD32 *) &stuff[1] + pback_offset) = backPix->info[j].id;
@@ -334,8 +334,8 @@ int PanoramiXReparentWindow(ClientPtr client)
 	stuff->window = win->info[j].id;
 	stuff->parent = parent->info[j].id;
 	if(parentIsRoot) {
-	    stuff->x = x - panoramiXdataPtr[j].x;
-	    stuff->y = y - panoramiXdataPtr[j].y;
+	    stuff->x = x - dixScreenOrigins[j].x;
+	    stuff->y = y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_ReparentWindow])(client);
         if(result != Success) break;
@@ -495,9 +495,9 @@ int PanoramiXConfigureWindow(ClientPtr client)
 	if(sib)
 	    *((CARD32 *) &stuff[1] + sib_offset) = sib->info[j].id;
 	if(x_offset >= 0)
-	    *((CARD32 *) &stuff[1] + x_offset) = x - panoramiXdataPtr[j].x;
+	    *((CARD32 *) &stuff[1] + x_offset) = x - dixScreenOrigins[j].x;
 	if(y_offset >= 0)
-	    *((CARD32 *) &stuff[1] + y_offset) = y - panoramiXdataPtr[j].y;
+	    *((CARD32 *) &stuff[1] + y_offset) = y - dixScreenOrigins[j].y;
 	result = (*SavedProcVector[X_ConfigureWindow])(client);
         if(result != Success) break;
     }
@@ -565,8 +565,8 @@ int PanoramiXGetGeometry(ClientPtr client)
 	if((pWin->parent == screenInfo.screens[0]->root) ||
            (pWin->parent->drawable.id == screenInfo.screens[0]->screensaver.wid))
         {
-	   rep.x += panoramiXdataPtr[0].x;
-	   rep.y += panoramiXdataPtr[0].y;
+	   rep.x += dixScreenOrigins[0].x;
+	   rep.y += dixScreenOrigins[0].y;
 	}
 	rep.borderWidth = pWin->borderWidth;
     }
@@ -599,8 +599,8 @@ int PanoramiXTranslateCoords(ClientPtr client)
     if((pWin == screenInfo.screens[0]->root) ||
        (pWin->drawable.id == screenInfo.screens[0]->screensaver.wid))
     { 
-	x = stuff->srcX - panoramiXdataPtr[0].x;
-	y = stuff->srcY - panoramiXdataPtr[0].y;
+	x = stuff->srcX - dixScreenOrigins[0].x;
+	y = stuff->srcY - dixScreenOrigins[0].y;
     } else {
 	x = pWin->drawable.x + stuff->srcX;
 	y = pWin->drawable.y + stuff->srcY;
@@ -637,8 +637,8 @@ int PanoramiXTranslateCoords(ClientPtr client)
     if((pDst == screenInfo.screens[0]->root) ||
        (pWin->drawable.id == screenInfo.screens[0]->screensaver.wid))
     {
-	rep.dstX += panoramiXdataPtr[0].x;
-	rep.dstY += panoramiXdataPtr[0].y;
+	rep.dstX += dixScreenOrigins[0].x;
+	rep.dstY += dixScreenOrigins[0].y;
     }
 
     WriteReplyToClient(client, sizeof(xTranslateCoordsReply), &rep);
@@ -981,8 +981,8 @@ int PanoramiXClearToBackground(ClientPtr client)
     FOR_NSCREENS_BACKWARD(j) {
 	stuff->window = win->info[j].id;
 	if(isRoot) {
-	    stuff->x = x - panoramiXdataPtr[j].x;
-	    stuff->y = y - panoramiXdataPtr[j].y;
+	    stuff->x = x - dixScreenOrigins[j].x;
+	    stuff->y = y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_ClearArea])(client);
 	if(result != Success) break;
@@ -1092,12 +1092,12 @@ int PanoramiXCopyArea(ClientPtr client)
 	    stuff->srcDrawable = src->info[j].id;
 	    stuff->gc          = gc->info[j].id;
  	    if (srcIsRoot) {	
-		stuff->srcX = srcx - panoramiXdataPtr[j].x;
-		stuff->srcY = srcy - panoramiXdataPtr[j].y;
+		stuff->srcX = srcx - dixScreenOrigins[j].x;
+		stuff->srcY = srcy - dixScreenOrigins[j].y;
 	    }
  	    if (dstIsRoot) {	
-		stuff->dstX = dstx - panoramiXdataPtr[j].x;
-		stuff->dstY = dsty - panoramiXdataPtr[j].y;
+		stuff->dstX = dstx - dixScreenOrigins[j].x;
+		stuff->dstY = dsty - dixScreenOrigins[j].y;
 	    }
 
 	    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, DixWriteAccess);
@@ -1137,7 +1137,7 @@ int PanoramiXCopyArea(ClientPtr client)
 		if(pRgn[j]) {
 		   if(srcIsRoot) {
 		       REGION_TRANSLATE(pScreen, pRgn[j], 
-				panoramiXdataPtr[j].x, panoramiXdataPtr[j].y);
+				dixScreenOrigins[j].x, dixScreenOrigins[j].y);
 		   }
 		   REGION_APPEND(pScreen, &totalReg, pRgn[j]);
 		   REGION_DESTROY(pScreen, pRgn[j]);
@@ -1203,12 +1203,12 @@ int PanoramiXCopyPlane(ClientPtr client)
 	stuff->srcDrawable = src->info[j].id;
 	stuff->gc          = gc->info[j].id;
 	if (srcIsRoot) {	
-	    stuff->srcX = srcx - panoramiXdataPtr[j].x;
-	    stuff->srcY = srcy - panoramiXdataPtr[j].y;
+	    stuff->srcX = srcx - dixScreenOrigins[j].x;
+	    stuff->srcY = srcy - dixScreenOrigins[j].y;
 	}
 	if (dstIsRoot) {	
-	    stuff->dstX = dstx - panoramiXdataPtr[j].x;
-	    stuff->dstY = dsty - panoramiXdataPtr[j].y;
+	    stuff->dstX = dstx - dixScreenOrigins[j].x;
+	    stuff->dstY = dsty - dixScreenOrigins[j].y;
 	}
 
 	VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, DixWriteAccess);
@@ -1297,8 +1297,8 @@ int PanoramiXPolyPoint(ClientPtr client)
             if(j) memcpy(&stuff[1], origPts, npoint * sizeof(xPoint));
 
             if (isRoot) {
-                int x_off = panoramiXdataPtr[j].x;
-                int y_off = panoramiXdataPtr[j].y;
+                int x_off = dixScreenOrigins[j].x;
+                int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
                     xPoint *pnts = (xPoint*)&stuff[1];
@@ -1357,8 +1357,8 @@ int PanoramiXPolyLine(ClientPtr client)
             if(j) memcpy(&stuff[1], origPts, npoint * sizeof(xPoint));
 
             if (isRoot) {
-                int x_off = panoramiXdataPtr[j].x;
-                int y_off = panoramiXdataPtr[j].y;
+                int x_off = dixScreenOrigins[j].x;
+                int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    xPoint *pnts = (xPoint*)&stuff[1];
@@ -1420,8 +1420,8 @@ int PanoramiXPolySegment(ClientPtr client)
             if(j) memcpy(&stuff[1], origSegs, nsegs * sizeof(xSegment));
 
             if (isRoot) {
-                int x_off = panoramiXdataPtr[j].x;
-                int y_off = panoramiXdataPtr[j].y;
+                int x_off = dixScreenOrigins[j].x;
+                int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    xSegment *segs = (xSegment*)&stuff[1];
@@ -1483,8 +1483,8 @@ int PanoramiXPolyRectangle(ClientPtr client)
             if(j) memcpy(&stuff[1], origRecs, nrects * sizeof(xRectangle));
 
 	    if (isRoot) {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 
 		if(x_off || y_off) {
@@ -1545,8 +1545,8 @@ int PanoramiXPolyArc(ClientPtr client)
             if(j) memcpy(&stuff[1], origArcs, narcs * sizeof(xArc));
 
 	    if (isRoot) {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 	
 		if(x_off || y_off) {
 		    xArc *arcs = (xArc *) &stuff[1];
@@ -1603,8 +1603,8 @@ int PanoramiXFillPoly(ClientPtr client)
 	    if(j) memcpy(&stuff[1], locPts, count * sizeof(DDXPointRec));
 
 	    if (isRoot) {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    DDXPointPtr pnts = (DDXPointPtr)&stuff[1];
@@ -1666,8 +1666,8 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
 	    if(j) memcpy(&stuff[1], origRects, things * sizeof(xRectangle));
 
 	    if (isRoot) {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    xRectangle *rects = (xRectangle *) &stuff[1];
@@ -1727,8 +1727,8 @@ int PanoramiXPolyFillArc(ClientPtr client)
 	    if(j) memcpy(&stuff[1], origArcs, narcs * sizeof(xArc));
 
 	    if (isRoot) {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = dixScreenOrigins[j].x;
+		int y_off = dixScreenOrigins[j].y;
 
 		if(x_off || y_off) {
 		    xArc *arcs = (xArc *) &stuff[1];
@@ -1780,8 +1780,8 @@ int PanoramiXPutImage(ClientPtr client)
     orig_y = stuff->dstY;
     FOR_NSCREENS_BACKWARD(j){
 	if (isRoot) {
-    	  stuff->dstX = orig_x - panoramiXdataPtr[j].x;
-	  stuff->dstY = orig_y - panoramiXdataPtr[j].y;
+	  stuff->dstX = orig_x - dixScreenOrigins[j].x;
+	  stuff->dstY = orig_y - dixScreenOrigins[j].y;
 	}
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
@@ -1846,10 +1846,10 @@ int PanoramiXGetImage(ClientPtr client)
 	    return(BadMatch);
     } else {
       if( /* check for being onscreen */
-	panoramiXdataPtr[0].x + pDraw->x + x < 0 ||
-	panoramiXdataPtr[0].x + pDraw->x + x + w > PanoramiXPixWidth ||
-        panoramiXdataPtr[0].y + pDraw->y + y < 0 ||
-	panoramiXdataPtr[0].y + pDraw->y + y + h > PanoramiXPixHeight ||
+	dixScreenOrigins[0].x + pDraw->x + x < 0 ||
+	dixScreenOrigins[0].x + pDraw->x + x + w > PanoramiXPixWidth ||
+	dixScreenOrigins[0].y + pDraw->y + y < 0 ||
+	dixScreenOrigins[0].y + pDraw->y + y + h > PanoramiXPixHeight ||
 	 /* check for being inside of border */
        	x < - wBorderWidth((WindowPtr)pDraw) ||
 	x + w > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||
@@ -1983,8 +1983,8 @@ PanoramiXPolyText8(ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->x = orig_x - panoramiXdataPtr[j].x;
-	    stuff->y = orig_y - panoramiXdataPtr[j].y;
+	    stuff->x = orig_x - dixScreenOrigins[j].x;
+	    stuff->y = orig_y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_PolyText8])(client);
 	if(result != Success) break;
@@ -2024,8 +2024,8 @@ PanoramiXPolyText16(ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->x = orig_x - panoramiXdataPtr[j].x;
-	    stuff->y = orig_y - panoramiXdataPtr[j].y;
+	    stuff->x = orig_x - dixScreenOrigins[j].x;
+	    stuff->y = orig_y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_PolyText16])(client);
 	if(result != Success) break;
@@ -2065,8 +2065,8 @@ int PanoramiXImageText8(ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->x = orig_x - panoramiXdataPtr[j].x;
-	    stuff->y = orig_y - panoramiXdataPtr[j].y;
+	    stuff->x = orig_x - dixScreenOrigins[j].x;
+	    stuff->y = orig_y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_ImageText8])(client);
 	if(result != Success) break;
@@ -2106,8 +2106,8 @@ int PanoramiXImageText16(ClientPtr client)
 	stuff->drawable = draw->info[j].id;
 	stuff->gc = gc->info[j].id;
 	if (isRoot) {
-	    stuff->x = orig_x - panoramiXdataPtr[j].x;
-	    stuff->y = orig_y - panoramiXdataPtr[j].y;
+	    stuff->x = orig_x - dixScreenOrigins[j].x;
+	    stuff->y = orig_y - dixScreenOrigins[j].y;
 	}
 	result = (*SavedProcVector[X_ImageText16])(client);
 	if(result != Success) break;

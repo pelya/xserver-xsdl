@@ -181,12 +181,12 @@ ProcXIQueryPointer(ClientPtr client)
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-        rep.root_x += FP1616(panoramiXdataPtr[0].x, 0);
-        rep.root_y += FP1616(panoramiXdataPtr[0].y, 0);
+        rep.root_x += FP1616(dixScreenOrigins[0].x, 0);
+        rep.root_y += FP1616(dixScreenOrigins[0].y, 0);
         if (stuff->win == rep.root)
         {
-            rep.win_x += FP1616(panoramiXdataPtr[0].x, 0);
-            rep.win_y += FP1616(panoramiXdataPtr[0].y, 0);
+            rep.win_x += FP1616(dixScreenOrigins[0].x, 0);
+            rep.win_y += FP1616(dixScreenOrigins[0].y, 0);
         }
     }
 #endif

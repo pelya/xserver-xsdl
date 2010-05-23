@@ -2236,8 +2236,8 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 	event.u.configureRequest.y = y;
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-            event.u.configureRequest.x += panoramiXdataPtr[0].x;
-            event.u.configureRequest.y += panoramiXdataPtr[0].y;
+            event.u.configureRequest.x += dixScreenOrigins[0].x;
+            event.u.configureRequest.y += dixScreenOrigins[0].y;
 	}
 #endif
 	event.u.configureRequest.width = w;
@@ -2317,8 +2317,8 @@ ActuallyDoSomething:
 	event.u.configureNotify.y = y;
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-	    event.u.configureNotify.x += panoramiXdataPtr[0].x;
-            event.u.configureNotify.y += panoramiXdataPtr[0].y;
+	    event.u.configureNotify.x += dixScreenOrigins[0].x;
+	    event.u.configureNotify.y += dixScreenOrigins[0].y;
 	}
 #endif
 	event.u.configureNotify.width = w;
@@ -2471,8 +2471,8 @@ ReparentWindow(WindowPtr pWin, WindowPtr pParent,
     event.u.reparent.y = y;
 #ifdef PANORAMIX
     if(!noPanoramiXExtension && !pParent->parent) {
-	event.u.reparent.x += panoramiXdataPtr[0].x;
-	event.u.reparent.y += panoramiXdataPtr[0].y;
+	event.u.reparent.x += dixScreenOrigins[0].x;
+	event.u.reparent.y += dixScreenOrigins[0].y;
     }
 #endif
     event.u.reparent.override = pWin->overrideRedirect;

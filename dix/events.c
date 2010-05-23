@@ -502,8 +502,8 @@ XineramaSetCursorPosition(
        that screen are. */
 
     pScreen = pSprite->screen;
-    x += panoramiXdataPtr[0].x;
-    y += panoramiXdataPtr[0].y;
+    x += dixScreenOrigins[0].x;
+    y += dixScreenOrigins[0].y;
 
     if(!POINT_IN_REGION(pScreen, &XineramaScreenRegions[pScreen->myNum],
 								x, y, &box))
@@ -521,10 +521,10 @@ XineramaSetCursorPosition(
     }
 
     pSprite->screen = pScreen;
-    pSprite->hotPhys.x = x - panoramiXdataPtr[0].x;
-    pSprite->hotPhys.y = y - panoramiXdataPtr[0].y;
-    x -= panoramiXdataPtr[pScreen->myNum].x;
-    y -= panoramiXdataPtr[pScreen->myNum].y;
+    pSprite->hotPhys.x = x - dixScreenOrigins[0].x;
+    pSprite->hotPhys.y = y - dixScreenOrigins[0].y;
+    x -= dixScreenOrigins[pScreen->myNum].x;
+    y -= dixScreenOrigins[pScreen->myNum].y;
 
     return (*pScreen->SetCursorPosition)(pDev, pScreen, x, y, generateEvent);
 }
@@ -542,10 +542,10 @@ XineramaConstrainCursor(DeviceIntPtr pDev)
 
     /* Translate the constraining box to the screen
        the sprite is actually on */
-    newBox.x1 += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-    newBox.x2 += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-    newBox.y1 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
-    newBox.y2 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
+    newBox.x1 += dixScreenOrigins[0].x - dixScreenOrigins[pScreen->myNum].x;
+    newBox.x2 += dixScreenOrigins[0].x - dixScreenOrigins[pScreen->myNum].x;
+    newBox.y1 += dixScreenOrigins[0].y - dixScreenOrigins[pScreen->myNum].y;
+    newBox.y2 += dixScreenOrigins[0].y - dixScreenOrigins[pScreen->myNum].y;
 
     (* pScreen->ConstrainCursor)(pDev, pScreen, &newBox);
 }
@@ -595,12 +595,12 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
 
     REGION_COPY(pSprite->screen, &pSprite->Reg1,
             &pSprite->windows[i]->borderSize);
-    off_x = panoramiXdataPtr[i].x;
-    off_y = panoramiXdataPtr[i].y;
+    off_x = dixScreenOrigins[i].x;
+    off_y = dixScreenOrigins[i].y;
 
     while(i--) {
-        x = off_x - panoramiXdataPtr[i].x;
-        y = off_y - panoramiXdataPtr[i].y;
+        x = off_x - dixScreenOrigins[i].x;
+        y = off_y - dixScreenOrigins[i].y;
 
         if(x || y)
             REGION_TRANSLATE(pSprite->screen, &pSprite->Reg1, x, y);
@@ -608,8 +608,8 @@ XineramaConfineCursorToWindow(DeviceIntPtr pDev,
         REGION_UNION(pSprite->screen, &pSprite->Reg1, &pSprite->Reg1,
                 &pSprite->windows[i]->borderSize);
 
-        off_x = panoramiXdataPtr[i].x;
-        off_y = panoramiXdataPtr[i].y;
+        off_x = dixScreenOrigins[i].x;
+        off_y = dixScreenOrigins[i].y;
     }
 
     pSprite->hotLimits = *REGION_EXTENTS(pSprite->screen, &pSprite->Reg1);
@@ -814,12 +814,12 @@ CheckVirtualMotion(
 
             REGION_COPY(pSprite->screen, &pSprite->Reg2,
                     &pSprite->windows[i]->borderSize);
-            off_x = panoramiXdataPtr[i].x;
-            off_y = panoramiXdataPtr[i].y;
+            off_x = dixScreenOrigins[i].x;
+            off_y = dixScreenOrigins[i].y;
 
             while(i--) {
-                x = off_x - panoramiXdataPtr[i].x;
-                y = off_y - panoramiXdataPtr[i].y;
+                x = off_x - dixScreenOrigins[i].x;
+                y = off_y - dixScreenOrigins[i].y;
 
                 if(x || y)
                     REGION_TRANSLATE(pSprite->screen, &pSprite->Reg2, x, y);
@@ -827,8 +827,8 @@ CheckVirtualMotion(
                 REGION_UNION(pSprite->screen, &pSprite->Reg2, &pSprite->Reg2,
                         &pSprite->windows[i]->borderSize);
 
-                off_x = panoramiXdataPtr[i].x;
-                off_y = panoramiXdataPtr[i].y;
+                off_x = dixScreenOrigins[i].x;
+                off_y = dixScreenOrigins[i].y;
             }
         } else
 #endif
@@ -1135,10 +1135,10 @@ EnqueueEvent(InternalEvent *ev, DeviceIntPtr device)
     {
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension) {
-            event->root_x += panoramiXdataPtr[pSprite->screen->myNum].x -
-			      panoramiXdataPtr[0].x;
-	    event->root_y += panoramiXdataPtr[pSprite->screen->myNum].y -
-			      panoramiXdataPtr[0].y;
+	    event->root_x += dixScreenOrigins[pSprite->screen->myNum].x -
+			      dixScreenOrigins[0].x;
+	    event->root_y += dixScreenOrigins[pSprite->screen->myNum].y -
+			      dixScreenOrigins[0].y;
 	}
 #endif
 	pSprite->hotPhys.x = event->root_x;
@@ -1218,10 +1218,10 @@ PlayReleasedEvents(void)
                     case ET_KeyRelease:
                     case ET_ProximityIn:
                     case ET_ProximityOut:
-                        ev->root_x += panoramiXdataPtr[0].x -
-                            panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].x;
-                        ev->root_y += panoramiXdataPtr[0].y -
-                            panoramiXdataPtr[pDev->spriteInfo->sprite->screen->myNum].y;
+                        ev->root_x += dixScreenOrigins[0].x -
+                            dixScreenOrigins[pDev->spriteInfo->sprite->screen->myNum].x;
+                        ev->root_y += dixScreenOrigins[0].y -
+                            dixScreenOrigins[pDev->spriteInfo->sprite->screen->myNum].y;
                         break;
                     default:
                         break;
@@ -2561,8 +2561,8 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
 	for(i = 1; i < PanoramiXNumScreens; i++) {
 	   if(POINT_IN_REGION(pSprite->screen,
 			&pSprite->windows[i]->borderSize,
-			x + panoramiXdataPtr[0].x - panoramiXdataPtr[i].x,
-			y + panoramiXdataPtr[0].y - panoramiXdataPtr[i].y,
+			x + dixScreenOrigins[0].x - dixScreenOrigins[i].x,
+			y + dixScreenOrigins[0].y - dixScreenOrigins[i].y,
 			&box))
 		return TRUE;
 	}
@@ -2757,10 +2757,10 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
             /* Motion events entering DIX get translated to Screen 0
                coordinates.  Replayed events have already been
                translated since they've entered DIX before */
-            ev->root_x += panoramiXdataPtr[pSprite->screen->myNum].x -
-                                       panoramiXdataPtr[0].x;
-            ev->root_y += panoramiXdataPtr[pSprite->screen->myNum].y -
-                                       panoramiXdataPtr[0].y;
+            ev->root_x += dixScreenOrigins[pSprite->screen->myNum].x -
+                                       dixScreenOrigins[0].x;
+            ev->root_y += dixScreenOrigins[pSprite->screen->myNum].y -
+                                       dixScreenOrigins[0].y;
         } else
 #endif
         {
@@ -3008,10 +3008,10 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
     }
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-        pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
-        pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
-        pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
-        pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+        pSprite->hotLimits.x1 = -dixScreenOrigins[0].x;
+        pSprite->hotLimits.y1 = -dixScreenOrigins[0].y;
+        pSprite->hotLimits.x2 = PanoramiXPixWidth  - dixScreenOrigins[0].x;
+        pSprite->hotLimits.y2 = PanoramiXPixHeight - dixScreenOrigins[0].y;
         pSprite->physLimits = pSprite->hotLimits;
         pSprite->confineWin = NullWindow;
         pSprite->hotShape = NullRegion;
@@ -3078,10 +3078,10 @@ UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-        pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
-        pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
-        pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
-        pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+        pSprite->hotLimits.x1 = -dixScreenOrigins[0].x;
+        pSprite->hotLimits.y1 = -dixScreenOrigins[0].y;
+        pSprite->hotLimits.x2 = PanoramiXPixWidth  - dixScreenOrigins[0].x;
+        pSprite->hotLimits.y2 = PanoramiXPixHeight - dixScreenOrigins[0].y;
         pSprite->physLimits = pSprite->hotLimits;
         pSprite->screen = pScreen;
     }
@@ -3114,10 +3114,10 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
     pSprite->hotPhys.y = y;
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-	pSprite->hotPhys.x += panoramiXdataPtr[newScreen->myNum].x -
-			    panoramiXdataPtr[0].x;
-	pSprite->hotPhys.y += panoramiXdataPtr[newScreen->myNum].y -
-			    panoramiXdataPtr[0].y;
+	pSprite->hotPhys.x += dixScreenOrigins[newScreen->myNum].x -
+			    dixScreenOrigins[0].x;
+	pSprite->hotPhys.y += dixScreenOrigins[newScreen->myNum].y -
+			    dixScreenOrigins[0].y;
 	if (newScreen != pSprite->screen) {
 	    pSprite->screen = newScreen;
 	    /* Make sure we tell the DDX to update its copy of the screen */
@@ -3132,10 +3132,10 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 		(*pSprite->screen->SetCursorPosition)(
                                                       pDev,
                                                       pSprite->screen,
-		    pSprite->hotPhys.x + panoramiXdataPtr[0].x -
-			panoramiXdataPtr[pSprite->screen->myNum].x,
-		    pSprite->hotPhys.y + panoramiXdataPtr[0].y -
-			panoramiXdataPtr[pSprite->screen->myNum].y, FALSE);
+		    pSprite->hotPhys.x + dixScreenOrigins[0].x -
+			dixScreenOrigins[pSprite->screen->myNum].x,
+		    pSprite->hotPhys.y + dixScreenOrigins[0].y -
+			dixScreenOrigins[pSprite->screen->myNum].y, FALSE);
 	}
     } else
 #endif
@@ -3163,14 +3163,14 @@ XineramaPointInWindowIsVisible(
 
     if(!XineramaSetWindowPntrs(inputInfo.pointer, pWin)) return FALSE;
 
-    xoff = x + panoramiXdataPtr[0].x;
-    yoff = y + panoramiXdataPtr[0].y;
+    xoff = x + dixScreenOrigins[0].x;
+    yoff = y + dixScreenOrigins[0].y;
 
     for(i = 1; i < PanoramiXNumScreens; i++) {
 	pWin = inputInfo.pointer->spriteInfo->sprite->windows[i];
 	pScreen = pWin->drawable.pScreen;
-	x = xoff - panoramiXdataPtr[i].x;
-	y = yoff - panoramiXdataPtr[i].y;
+	x = xoff - dixScreenOrigins[i].x;
+	y = yoff - dixScreenOrigins[i].y;
 
 	if(POINT_IN_REGION(pScreen, &pWin->borderClip, x, y, &box)
 	   && (!wInputShape(pWin) ||
@@ -3216,8 +3216,8 @@ XineramaWarpPointer(ClientPtr client)
 	winX = source->drawable.x;
 	winY = source->drawable.y;
 	if(source == screenInfo.screens[0]->root) {
-	    winX -= panoramiXdataPtr[0].x;
-	    winY -= panoramiXdataPtr[0].y;
+	    winX -= dixScreenOrigins[0].x;
+	    winY -= dixScreenOrigins[0].y;
 	}
 	if (x < winX + stuff->srcX ||
 	    y < winY + stuff->srcY ||
@@ -3232,8 +3232,8 @@ XineramaWarpPointer(ClientPtr client)
 	x = dest->drawable.x;
 	y = dest->drawable.y;
 	if(dest == screenInfo.screens[0]->root) {
-	    x -= panoramiXdataPtr[0].x;
-	    y -= panoramiXdataPtr[0].y;
+	    x -= dixScreenOrigins[0].x;
+	    y -= dixScreenOrigins[0].y;
 	}
     }
 
@@ -4997,11 +4997,11 @@ ProcQueryPointer(ClientPtr client)
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-	rep.rootX += panoramiXdataPtr[0].x;
-	rep.rootY += panoramiXdataPtr[0].y;
+	rep.rootX += dixScreenOrigins[0].x;
+	rep.rootY += dixScreenOrigins[0].y;
 	if(stuff->id == rep.root) {
-	    rep.winX += panoramiXdataPtr[0].x;
-	    rep.winY += panoramiXdataPtr[0].y;
+	    rep.winX += dixScreenOrigins[0].x;
+	    rep.winY += dixScreenOrigins[0].y;
 	}
     }
 #endif
@@ -5670,7 +5670,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension &&
-       (panoramiXdataPtr[0].x || panoramiXdataPtr[0].y))
+       (dixScreenOrigins[0].x || dixScreenOrigins[0].y))
     {
 	switch(events->u.u.type) {
 	case MotionNotify:
@@ -5687,13 +5687,13 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
         */
 	    count = 1;  /* should always be 1 */
 	    memcpy(&eventCopy, events, sizeof(xEvent));
-	    eventCopy.u.keyButtonPointer.rootX += panoramiXdataPtr[0].x;
-	    eventCopy.u.keyButtonPointer.rootY += panoramiXdataPtr[0].y;
+	    eventCopy.u.keyButtonPointer.rootX += dixScreenOrigins[0].x;
+	    eventCopy.u.keyButtonPointer.rootY += dixScreenOrigins[0].y;
 	    if(eventCopy.u.keyButtonPointer.event ==
 	       eventCopy.u.keyButtonPointer.root)
 	    {
-		eventCopy.u.keyButtonPointer.eventX += panoramiXdataPtr[0].x;
-		eventCopy.u.keyButtonPointer.eventY += panoramiXdataPtr[0].y;
+		eventCopy.u.keyButtonPointer.eventX += dixScreenOrigins[0].x;
+		eventCopy.u.keyButtonPointer.eventY += dixScreenOrigins[0].y;
 	    }
 	    events = &eventCopy;
 	    break;
