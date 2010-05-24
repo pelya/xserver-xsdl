@@ -446,7 +446,6 @@ damageCreateGC(GCPtr pGC)
     damageGCPriv(pGC);
     Bool ret;
 
-    pGC->pCompositeClip = 0;
     unwrap (pScrPriv, pScreen, CreateGC);
     if((ret = (*pScreen->CreateGC) (pGC))) {
 	pGCPriv->ops = NULL;

@@ -64,19 +64,13 @@ const GCOps	fbGCOps = {
 Bool
 fbCreateGC(GCPtr pGC)
 {
-    pGC->clientClip = NULL;
-    pGC->clientClipType = CT_NONE;
-
     pGC->ops = (GCOps *) &fbGCOps;
     pGC->funcs = (GCFuncs *) &fbGCFuncs;
 
     /* fb wants to translate before scan conversion */
     pGC->miTranslate = 1;
+    pGC->fExpose = 1;
 
-    fbGetRotatedPixmap(pGC) = 0;
-    fbGetExpose(pGC) = 1;
-    fbGetFreeCompClip(pGC) = 0;
-    fbGetCompositeClip(pGC) = 0;
     fbGetGCPrivate(pGC)->bpp = BitsPerPixel (pGC->depth);
     return TRUE;
 }

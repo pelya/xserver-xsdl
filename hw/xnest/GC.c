@@ -73,9 +73,6 @@ static GCOps xnestOps = {
 Bool
 xnestCreateGC(GCPtr pGC)
 {
-  pGC->clientClipType = CT_NONE;
-  pGC->clientClip = NULL;
-  
   pGC->funcs = &xnestFuncs;
   pGC->ops = &xnestOps;
   
