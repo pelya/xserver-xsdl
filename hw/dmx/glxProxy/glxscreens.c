@@ -254,7 +254,6 @@ void __glXScreenInit(GLint numscreens)
 	 if (numscreens > 1) {
 	    for (s=1; s<numscreens; s++) {
 	       DMXScreenInfo *dmxScreen = &dmxScreens[s];
-	       __GLXscreenInfo *glxScreen = &__glXActiveScreens[s];
 	  
 	       cfg = FindMatchingFBConfig( &dmxScreen0->fbconfigs[c],
 		                           dmxScreen->fbconfigs, 

@@ -750,7 +750,6 @@ int __glXDisp_ReadPixels(__GLXclientState *cl, GLbyte *pc)
     GLboolean swapBytes, lsbFirst;
     ClientPtr client = cl->client;
     DrawablePtr pDraw;
-    int error;
     __GLXcontext *glxc;
     int from_screen = 0;
     int to_screen = 0;
