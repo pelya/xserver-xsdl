@@ -77,6 +77,8 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XI2.h>
 #include <X11/extensions/XIproto.h>
+#include <math.h>
+#include <pixman.h>
 #include "exglobals.h"
 #include "exevents.h"
 #include "xiquerydevice.h" /* for SizeDeviceClasses */
@@ -90,6 +92,48 @@ SOFTWARE.
  */
 
 static void RecalculateMasterButtons(DeviceIntPtr slave);
+
+static void
+DeviceSetTransform(DeviceIntPtr dev, float *transform)
+{
+    struct pixman_f_transform scale;
+    double sx, sy;
+    int x, y;
+
+    /**
+     * calculate combined transformation matrix:
+     *
+     * M = InvScale * Transform * Scale
+     *
+     * So we can later transform points using M * p
+     *
+     * Where:
+     *  Scale scales coordinates into 0..1 range
+     *  Transform is the user supplied (affine) transform
+     *  InvScale scales coordinates back up into their native range
+     */
+    sx = dev->valuator->axes[0].max_value - dev->valuator->axes[0].min_value;
+    sy = dev->valuator->axes[1].max_value - dev->valuator->axes[1].min_value;
+
+    /* invscale */
+    pixman_f_transform_init_scale(&scale, sx, sy);
+    scale.m[0][2] = dev->valuator->axes[0].min_value;
+    scale.m[1][2] = dev->valuator->axes[1].min_value;
+
+    /* transform */
+    for (y=0; y<3; y++)
+        for (x=0; x<3; x++)
+            dev->transform.m[y][x] = *transform++;
+
+    pixman_f_transform_multiply(&dev->transform, &scale, &dev->transform);
+
+    /* scale */
+    pixman_f_transform_init_scale(&scale, 1.0 / sx, 1.0 / sy);
+    scale.m[0][2] = -dev->valuator->axes[0].min_value / sx;
+    scale.m[1][2] = -dev->valuator->axes[1].min_value / sy;
+
+    pixman_f_transform_multiply(&dev->transform, &dev->transform, &scale);
+}
 
 /**
  * DIX property handler.
@@ -115,6 +159,21 @@ DeviceSetProperty(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop,
             else if (!(*((CARD8*)prop->data)) && dev->enabled)
                 DisableDevice(dev, TRUE);
         }
+    } else if (property == XIGetKnownProperty(XI_PROP_TRANSFORM))
+    {
+        float *f = (float*)prop->data;
+        int i;
+
+        if (prop->format != 32 || prop->size != 9 ||
+            prop->type != XIGetKnownProperty(XATOM_FLOAT))
+            return BadValue;
+
+        for (i=0; i<9; i++)
+            if (!isfinite(f[i]))
+                return BadValue;
+
+        if (!checkonly)
+            DeviceSetTransform(dev, f);
     }
 
     return Success;
@@ -183,6 +242,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     int devid;
     char devind[MAXDEVICES];
     BOOL enabled;
+    float transform[9];
 
     /* Find next available id, 0 and 1 are reserved */
     memset(devind, 0, sizeof(char)*MAXDEVICES);
@@ -234,6 +294,17 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
                            XA_INTEGER, 8, PropModeReplace, 1, &enabled,
                            FALSE);
     XISetDevicePropertyDeletable(dev, XIGetKnownProperty(XI_PROP_ENABLED), FALSE);
+
+    /* unity matrix */
+    memset(transform, 0, sizeof(transform));
+    transform[0] = transform[4] = transform[8] = 1.0f;
+
+    XIChangeDeviceProperty(dev, XIGetKnownProperty(XI_PROP_TRANSFORM),
+                           XIGetKnownProperty(XATOM_FLOAT), 32,
+                           PropModeReplace, 9, transform, FALSE);
+    XISetDevicePropertyDeletable(dev, XIGetKnownProperty(XI_PROP_TRANSFORM),
+                                 FALSE);
+
     XIRegisterPropertyHandler(dev, DeviceSetProperty, NULL, NULL);
 
     return dev;
