@@ -798,73 +798,9 @@ miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
 	miSpriteFindColors (pPointer, pScreen);
     }
     if (pPointer->isUp) {
-#if 0
-        /* FIXME: Disabled for MPX, should be rewritten */
-	int	sx, sy;
-	/*
-	 * check to see if the old saved region
-	 * encloses the new sprite, in which case we use
-	 * the flicker-free MoveCursor primitive.
-	 */
-	sx = pointer->x - (int)pCursor->bits->xhot;
-	sy = pointer->y - (int)pCursor->bits->yhot;
-	if (sx + (int) pCursor->bits->width >= pointer->saved.x1 &&
-	    sx < pointer->saved.x2 &&
-	    sy + (int) pCursor->bits->height >= pointer->saved.y1 &&
-	    sy < pointer->saved.y2 &&
-	    (int) pCursor->bits->width + (2 * SPRITE_PAD) ==
-		pointer->saved.x2 - pointer->saved.x1 &&
-	    (int) pCursor->bits->height + (2 * SPRITE_PAD) ==
-		pointer->saved.y2 - pointer->saved.y1
-	    )
-	{
-	    DamageDrawInternal (pScreen, TRUE);
-	    miSpriteIsDown(pCursorInfo);
-	    if (!(sx >= pointer->saved.x1 &&
-                  sx + (int)pCursor->bits->width < pointer->saved.x2
-                  && sy >= pointer->saved.y1 &&
-                  sy + (int)pCursor->bits->height <
-                                pointer->saved.y2))
-            {
-		int oldx1, oldy1, dx, dy;
-
-		oldx1 = pointer->saved.x1;
-		oldy1 = pointer->saved.y1;
-		dx = oldx1 - (sx - SPRITE_PAD);
-		dy = oldy1 - (sy - SPRITE_PAD);
-		pointer->saved.x1 -= dx;
-		pointer->saved.y1 -= dy;
-		pointer->saved.x2 -= dx;
-		pointer->saved.y2 -= dy;
-		(void) miDCChangeSave(pScreen,
-				pointer->saved.x1,
- 				pointer->saved.y1,
-                                pointer->saved.x2 -
-                                pointer->saved.x1,
-                                pointer->saved.y2 -
-                                pointer->saved.y1,
-				dx, dy);
-	    }
-	    (void) miDCMoveCursor(pScreen, pCursor,
-				  pointer->saved.x1,
- 				  pointer->saved.y1,
-                                  pointer->saved.x2 -
-                                  pointer->saved.x1,
-                                  pointer->saved.y2 -
-                                  pointer->saved.y1,
-				  sx - pointer->saved.x1,
-				  sy - pointer->saved.y1,
-				  pointer->colors[SOURCE_COLOR].pixel,
-				  pointer->colors[MASK_COLOR].pixel);
-	    miSpriteIsUp(pCursorInfo);
-	    DamageDrawInternal (pScreen, FALSE);
-	}
-	else
-#endif
-	{
-	    SPRITE_DEBUG (("SetCursor remove %d\n", pDev->id));
-	    miSpriteRemoveCursor (pDev, pScreen);
-	}
+	/* TODO: reimplement flicker-free MoveCursor */
+	SPRITE_DEBUG (("SetCursor remove %d\n", pDev->id));
+	miSpriteRemoveCursor (pDev, pScreen);
     }
 
     if (!pPointer->isUp && pPointer->pCursor)
