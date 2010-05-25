@@ -397,6 +397,7 @@ int __glXForwardSingleReqSwap( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -420,6 +421,7 @@ int __glXForwardPipe0WithReplySwap( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -443,6 +445,7 @@ int __glXForwardPipe0WithReplySwapsv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -467,6 +470,7 @@ int __glXForwardPipe0WithReplySwapiv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -491,6 +495,7 @@ int __glXForwardPipe0WithReplySwapdv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -515,6 +520,7 @@ int __glXForwardAllWithReplySwap( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -539,6 +545,7 @@ int __glXForwardAllWithReplySwapsv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -563,6 +570,7 @@ int __glXForwardAllWithReplySwapiv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
@@ -587,6 +595,7 @@ int __glXForwardAllWithReplySwapdv( __GLXclientState *cl, GLbyte *pc )
 {
    xGLXSingleReq *req = (xGLXSingleReq *)pc;
    __GLX_DECLARE_SWAP_VARIABLES;
+   __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
 
    __GLX_SWAP_SHORT(&req->length);
    __GLX_SWAP_INT(&req->contextTag);
