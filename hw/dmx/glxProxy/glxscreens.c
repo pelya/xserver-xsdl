@@ -204,9 +204,9 @@ static void CalcServerVersionAndExtensions( void )
     * release temporary storage
     */
    for (s=0; s<__glXNumActiveScreens; s++) {
-      if (be_extensions[s]) Xfree(be_extensions[s]); 
+      free(be_extensions[s]);
    }
-   Xfree( be_extensions );
+   free( be_extensions );
 
    if (dmxGLXSwapGroupSupport) {
        if (!denied_extensions ||

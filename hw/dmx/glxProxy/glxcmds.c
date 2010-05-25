@@ -3404,7 +3404,7 @@ int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
       WriteToClient(client, attribs_size, (char *)attribs);
    }
 
-   Xfree(attribs);
+   free(attribs);
 
    return Success;
 }
