@@ -827,7 +827,7 @@ static void dmxPopulateLocal(DMXInputInfo *dmxInput, dmxArg a)
     }
 }
 
-int dmxInputExtensionErrorHandler(Display *dsp, char *name, char *reason)
+int dmxInputExtensionErrorHandler(Display *dsp, _Xconst char *name, _Xconst char *reason)
 {
     return 0;
 }
@@ -839,7 +839,7 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
     Display              *display;
     int                  num;
     int                  i, j;
-    int                  (*handler)(Display *, char *, char *);
+    XextErrorHandler     handler;
 
     if (!(display = XOpenDisplay(dmxInput->name))) return;
     
