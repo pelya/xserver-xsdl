@@ -367,46 +367,6 @@ Bool __glXCoreType(void)
 
 /************************************************************************/
 
-void GlxSetVisualConfigs(int nconfigs, 
-                         __GLXvisualConfig *configs, void **privates)
-{
-    glxSetVisualConfigs(nconfigs, configs, privates);
-}
-
-static miInitVisualsProcPtr saveInitVisualsProc;
-
-Bool GlxInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
-		    int *nvisualp, int *ndepthp,
-		    int *rootDepthp, VisualID *defaultVisp,
-		    unsigned long sizes, int bitsPerRGB,
-		    int preferredVis)
-{
-    Bool ret;
-
-    if (saveInitVisualsProc) {
-        ret = saveInitVisualsProc(visualp, depthp, nvisualp, ndepthp,
-                                  rootDepthp, defaultVisp, sizes, bitsPerRGB,
-                                  preferredVis);
-        if (!ret)
-            return False;
-    }
-
-    glxInitVisuals(nvisualp, visualp, defaultVisp, *ndepthp, *depthp,*rootDepthp);
-
-    return True;
-}
-
-void
-GlxWrapInitVisuals(miInitVisualsProcPtr *initVisProc)
-{
-    if (dmxGLXProxy) {
-	saveInitVisualsProc = *initVisProc;
-	*initVisProc = GlxInitVisuals;
-    }
-}
-
-/************************************************************************/
-
 void __glXFlushContextCache(void)
 {
     __glXLastContext = 0;
