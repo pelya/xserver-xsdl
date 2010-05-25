@@ -622,7 +622,6 @@ MergeInputClasses(IDevPtr idev, InputAttributes *attrs)
         mergedopts = xf86ReplaceStrOption(mergedopts, "driver", idev->driver);
     }
     idev->commonOptions = xf86optionListMerge(idev->commonOptions, mergedopts);
-
     return Success;
 }
 
@@ -822,6 +821,8 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
         rval = MergeInputClasses(idev, attrs);
         if (rval != Success)
             goto unwind;
+
+        idev->attrs = DuplicateInputAttributes(attrs);
     }
 
     if (!idev->driver || !idev->identifier) {
