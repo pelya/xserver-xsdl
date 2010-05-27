@@ -991,7 +991,7 @@ static void dmxDoSetShape(WindowPtr pWindow)
 }
 
 /** Set shape of \a pWindow on the back-end server. */
-void dmxSetShape(WindowPtr pWindow)
+void dmxSetShape(WindowPtr pWindow, int kind)
 {
     ScreenPtr       pScreen = pWindow->drawable.pScreen;
     DMXScreenInfo  *dmxScreen = &dmxScreens[pScreen->myNum];
@@ -1000,7 +1000,7 @@ void dmxSetShape(WindowPtr pWindow)
     DMX_UNWRAP(SetShape, dmxScreen, pScreen);
 #if 1
     if (pScreen->SetShape)
-	pScreen->SetShape(pWindow);
+	pScreen->SetShape(pWindow, kind);
 #endif
 
     if (pWinPriv->window) {

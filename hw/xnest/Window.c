@@ -423,10 +423,10 @@ xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn, RegionPtr other_exposed)
 }
 
 void
-xnestSetShape(WindowPtr pWin)
+xnestSetShape(WindowPtr pWin, int kind)
 {
   xnestShapeWindow(pWin);
-  miSetShape(pWin);
+  miSetShape(pWin, kind);
 }
 
 static Bool

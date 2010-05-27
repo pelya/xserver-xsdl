@@ -94,7 +94,7 @@ extern void dmxResizeRootWindow(WindowPtr pRoot,
 extern Bool dmxBEDestroyWindow(WindowPtr pWindow);
 
 /* Support for shape extension */
-extern void dmxSetShape(WindowPtr pWindow);
+extern void dmxSetShape(WindowPtr pWindow, int kind);
 
 /** Private index.  \see dmxwindow.c \see dmxscrinit.c */
 extern DevPrivateKey dmxWinPrivateKey;

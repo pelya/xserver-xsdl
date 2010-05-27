@@ -733,7 +733,7 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
     if (*pDestRegion)
 	REGION_DESTROY(pScreen, *pDestRegion);
     *pDestRegion = pRegion;
-    (*pScreen->SetShape) (pWin);
+    (*pScreen->SetShape) (pWin, stuff->destKind);
     SendShapeNotify (pWin, stuff->destKind);
     return Success;
 }

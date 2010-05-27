@@ -567,7 +567,8 @@ extern _X_EXPORT WindowPtr miGetLayerWindow(
 );
 
 extern _X_EXPORT void miSetShape(
-    WindowPtr /*pWin*/
+    WindowPtr /*pWin*/,
+    int /*kind*/
 );
 
 extern _X_EXPORT void miChangeBorderWidth(

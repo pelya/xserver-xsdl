@@ -5,6 +5,7 @@
 
 #include <X11/X.h>
 #include "scrnintstr.h"
+#include <X11/extensions/shapeproto.h>
 #include "validate.h"
 #include "windowstr.h"
 #include "mi.h"
@@ -82,7 +83,7 @@ static void miOverlayResizeWindow(WindowPtr, int, int, unsigned int,
 					unsigned int, WindowPtr);
 static void miOverlayClearToBackground(WindowPtr, int, int, int, int, Bool);
 
-static void miOverlaySetShape(WindowPtr);
+static void miOverlaySetShape(WindowPtr, int);
 static void miOverlayChangeBorderWidth(WindowPtr, unsigned int);
 
 #define MIOVERLAY_GET_SCREEN_PRIVATE(pScreen) ((miOverlayScreenPtr) \
@@ -1497,53 +1498,55 @@ miOverlayResizeWindow(
 
 
 static void
-miOverlaySetShape(WindowPtr pWin)
+miOverlaySetShape(WindowPtr pWin, int kind)
 {
-    Bool	WasViewable = (Bool)(pWin->viewable);
-    ScreenPtr 	pScreen = pWin->drawable.pScreen;
+    Bool        WasViewable = (Bool)(pWin->viewable);
+    ScreenPtr   pScreen = pWin->drawable.pScreen;
 
-    if (WasViewable) {
-	(*pScreen->MarkOverlappedWindows)(pWin, pWin, NULL);
+    if (kind != ShapeInput) {
+        if (WasViewable) {
+            (*pScreen->MarkOverlappedWindows)(pWin, pWin, NULL);
 
-	if (HasBorder (pWin)) {
-	    RegionPtr borderVisible;
+            if (HasBorder (pWin)) {
+                RegionPtr borderVisible;
 
-	    borderVisible = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_SUBTRACT(pScreen, borderVisible,
-				      &pWin->borderClip, &pWin->winSize);
-	    pWin->valdata->before.borderVisible = borderVisible;
-	    pWin->valdata->before.resized = TRUE;
-	    if(IN_UNDERLAY(pWin)) {
-		miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
-		RegionPtr borderVisible2;
+                borderVisible = REGION_CREATE(pScreen, NullBox, 1);
+                REGION_SUBTRACT(pScreen, borderVisible,
+                                        &pWin->borderClip, &pWin->winSize);
+                pWin->valdata->before.borderVisible = borderVisible;
+                pWin->valdata->before.resized = TRUE;
+                if(IN_UNDERLAY(pWin)) {
+                    miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
+                    RegionPtr borderVisible2;
 
-		borderVisible2 = REGION_CREATE(pScreen, NULL, 1);
-		REGION_SUBTRACT(pScreen, borderVisible2,
-				      &pTree->borderClip, &pWin->winSize);
-		pTree->valdata->borderVisible = borderVisible2;
-	    }
-	}
-    }
+                    borderVisible2 = REGION_CREATE(pScreen, NULL, 1);
+                    REGION_SUBTRACT(pScreen, borderVisible2,
+                                        &pTree->borderClip, &pWin->winSize);
+                    pTree->valdata->borderVisible = borderVisible2;
+                }
+            }
+        }
 
-    SetWinSize (pWin);
-    SetBorderSize (pWin);
+        SetWinSize (pWin);
+        SetBorderSize (pWin);
 
-    ResizeChildrenWinSize(pWin, 0, 0, 0, 0);
+        ResizeChildrenWinSize(pWin, 0, 0, 0, 0);
 
-    if (WasViewable) {
-	(*pScreen->MarkOverlappedWindows)(pWin, pWin, NULL);
+        if (WasViewable) {
+            (*pScreen->MarkOverlappedWindows)(pWin, pWin, NULL);
 
 
-	(*pScreen->ValidateTree)(pWin->parent, NullWindow, VTOther);
-    }
+            (*pScreen->ValidateTree)(pWin->parent, NullWindow, VTOther);
+        }
 
-    if (WasViewable) {
-	(*pScreen->HandleExposures)(pWin->parent);
-	if (pScreen->PostValidateTree)
-	    (*pScreen->PostValidateTree)(pWin->parent, NullWindow, VTOther);
+        if (WasViewable) {
+            (*pScreen->HandleExposures)(pWin->parent);
+            if (pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree)(pWin->parent, NullWindow, VTOther);
+        }
     }
     if (pWin->realized)
-	WindowsRestructured ();
+        WindowsRestructured ();
     CheckCursorConfinement(pWin);
 }
 

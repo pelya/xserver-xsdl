@@ -1204,7 +1204,7 @@ Bool
 winMapWindowRootless (WindowPtr pWindow);
 
 void
-winSetShapeRootless (WindowPtr pWindow);
+winSetShapeRootless (WindowPtr pWindow, int kind);
 
 
 /*
@@ -1226,7 +1226,7 @@ void
 winReshapeMultiWindow (WindowPtr pWin);
 
 void
-winSetShapeMultiWindow (WindowPtr pWindow);
+winSetShapeMultiWindow (WindowPtr pWindow, int kind);
 
 void
 winUpdateRgnMultiWindow (WindowPtr pWindow);

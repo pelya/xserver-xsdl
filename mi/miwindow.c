@@ -50,6 +50,7 @@ SOFTWARE.
 #endif
 
 #include <X11/X.h>
+#include <X11/extensions/shape.h>
 #include "regionstr.h"
 #include "region.h"
 #include "mi.h"
@@ -696,56 +697,59 @@ miGetLayerWindow(WindowPtr pWin)
  */
 
 void
-miSetShape(WindowPtr pWin)
+miSetShape(WindowPtr pWin, int kind)
 {
-    Bool	WasViewable = (Bool)(pWin->viewable);
-    ScreenPtr 	pScreen = pWin->drawable.pScreen;
-    Bool	anyMarked = FALSE;
+    Bool        WasViewable = (Bool)(pWin->viewable);
+    ScreenPtr   pScreen = pWin->drawable.pScreen;
+    Bool        anyMarked = FALSE;
     WindowPtr   pLayerWin;
 
-    if (WasViewable)
-    {
-	anyMarked = (*pScreen->MarkOverlappedWindows)(pWin, pWin,
-						      &pLayerWin);
-	if (pWin->valdata)
-	{
-	    if (HasBorder (pWin))
-	    {
-		RegionPtr	borderVisible;
+    if (kind != ShapeInput) {
+        if (WasViewable)
+        {
+            anyMarked = (*pScreen->MarkOverlappedWindows)(pWin, pWin,
+                                                          &pLayerWin);
+            if (pWin->valdata)
+            {
+                if (HasBorder (pWin))
+                {
+                    RegionPtr borderVisible;
 
-		borderVisible = REGION_CREATE(pScreen, NullBox, 1);
-		REGION_SUBTRACT(pScreen, borderVisible,
-				      &pWin->borderClip, &pWin->winSize);
-		pWin->valdata->before.borderVisible = borderVisible;
-	    }
-	    pWin->valdata->before.resized = TRUE;
-	}
-    }
+                    borderVisible = REGION_CREATE(pScreen, NullBox, 1);
+                    REGION_SUBTRACT(pScreen, borderVisible,
+                                    &pWin->borderClip, &pWin->winSize);
+                    pWin->valdata->before.borderVisible = borderVisible;
+                }
+                pWin->valdata->before.resized = TRUE;
+            }
+        }
 
-    SetWinSize (pWin);
-    SetBorderSize (pWin);
+        SetWinSize (pWin);
+        SetBorderSize (pWin);
 
-    ResizeChildrenWinSize(pWin, 0, 0, 0, 0);
+        ResizeChildrenWinSize(pWin, 0, 0, 0, 0);
 
-    if (WasViewable)
-    {
-	anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin, pWin,
-						NULL);
+        if (WasViewable)
+        {
+            anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin, pWin,
+                                                           NULL);
 
+            if (anyMarked)
+                (*pScreen->ValidateTree)(pLayerWin->parent, NullWindow,
+                                         VTOther);
+        }
 
-	if (anyMarked)
-	    (*pScreen->ValidateTree)(pLayerWin->parent, NullWindow, VTOther);
-    }
-
-    if (WasViewable)
-    {
-	if (anyMarked)
-	    (*pScreen->HandleExposures)(pLayerWin->parent);
-	if (anyMarked && pScreen->PostValidateTree)
-	    (*pScreen->PostValidateTree)(pLayerWin->parent, NullWindow, VTOther);
+        if (WasViewable)
+        {
+            if (anyMarked)
+                (*pScreen->HandleExposures)(pLayerWin->parent);
+            if (anyMarked && pScreen->PostValidateTree)
+                (*pScreen->PostValidateTree)(pLayerWin->parent, NullWindow,
+                                             VTOther);
+        }
     }
     if (pWin->realized)
-	WindowsRestructured ();
+        WindowsRestructured ();
     CheckCursorConfinement(pWin);
 }
 

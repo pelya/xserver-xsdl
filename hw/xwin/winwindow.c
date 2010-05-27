@@ -451,17 +451,17 @@ winMapWindowRootless (WindowPtr pWin)
 
 
 void
-winSetShapeRootless (WindowPtr pWin)
+winSetShapeRootless (WindowPtr pWin, int kind)
 {
   ScreenPtr		pScreen = pWin->drawable.pScreen;
   winScreenPriv(pScreen);
 
 #if CYGDEBUG
-  winTrace ("winSetShapeRootless (%p)\n", pWin);
+  winTrace ("winSetShapeRootless (%p, %i)\n", pWin, kind);
 #endif
 
   WIN_UNWRAP(SetShape); 
-  (*pScreen->SetShape)(pWin);
+  (*pScreen->SetShape)(pWin, kind);
   WIN_WRAP(SetShape, winSetShapeRootless);
   
   winReshapeRootless (pWin);

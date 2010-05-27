@@ -220,7 +220,7 @@ RegionOperate (
     }
     if (srcRgn)
 	REGION_DESTROY(pScreen, srcRgn);
-    (*pScreen->SetShape) (pWin);
+    (*pScreen->SetShape) (pWin, kind);
     SendShapeNotify (pWin, kind);
     return Success;
 }
@@ -642,7 +642,7 @@ ProcShapeOffset (ClientPtr client)
     if (srcRgn)
     {
         REGION_TRANSLATE(pScreen, srcRgn, stuff->xOff, stuff->yOff);
-        (*pScreen->SetShape) (pWin);
+        (*pScreen->SetShape) (pWin, stuff->destKind);
     }
     SendShapeNotify (pWin, (int)stuff->destKind);
     return Success;

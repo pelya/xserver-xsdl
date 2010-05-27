@@ -423,7 +423,8 @@ typedef    void (* ReparentWindowProcPtr)(
     WindowPtr /*pPriorParent*/);
 
 typedef    void (* SetShapeProcPtr)(
-	WindowPtr /*pWin*/);
+        WindowPtr /*pWin*/,
+        int /* kind */);
 
 typedef    void (* ChangeBorderWidthProcPtr)(
 	WindowPtr /*pWin*/,
