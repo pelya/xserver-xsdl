@@ -569,6 +569,12 @@ miDCDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
                 if (pBuffer->pSaveGC) FreeGC(pBuffer->pSaveGC, (GContext) 0);
                 if (pBuffer->pRestoreGC) FreeGC(pBuffer->pRestoreGC, (GContext) 0);
 
+#ifdef ARGB_CURSOR
+                /* If a pRootPicture was allocated for a root window, it
+                 * is freed when that root window is destroyed, so don't
+                 * free it again here. */
+#endif
+
                 if (pBuffer->pSave) (*pScreen->DestroyPixmap)(pBuffer->pSave);
 
                 free(pBuffer);
