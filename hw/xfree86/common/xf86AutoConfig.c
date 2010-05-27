@@ -257,7 +257,7 @@ listPossibleVideoDrivers(char *matches[], int nmatches)
     }
 #endif
 
-    xf86PciMatchDriver(matches, nmatches);
+    i = xf86PciMatchDriver(matches, nmatches);
 
     /* Fallback to platform default hardware */
     if (i < (nmatches - 1)) {
