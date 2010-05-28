@@ -695,25 +695,33 @@ miDbePositionWindow(WindowPtr pWin, int x, int y)
 
 
         pDbeWindowPrivPriv = MI_DBE_WINDOW_PRIV_PRIV(pDbeWindowPriv);
-        ValidateGC((DrawablePtr)pFrontBuffer, pGC);
 
 	/* I suppose this could avoid quite a bit of work if
 	 * it computed the minimal area required.
 	 */
+	ValidateGC(&pFrontBuffer->drawable, pGC);
 	if (clear)
         {
 	    (*pGC->ops->PolyFillRect)((DrawablePtr)pFrontBuffer, pGC, 1,
 				      &clearRect);
-	    (*pGC->ops->PolyFillRect)((DrawablePtr)pBackBuffer , pGC, 1,
-				      &clearRect);
-        }
-
-        /* Copy the contents of the old DBE pixmaps to the new pixmaps. */
+	}
+	/* Copy the contents of the old front pixmap to the new one. */
 	if (pWin->bitGravity != ForgetGravity)
 	{
 	    (*pGC->ops->CopyArea)((DrawablePtr)pDbeWindowPrivPriv->pFrontBuffer,
                                   (DrawablePtr)pFrontBuffer, pGC, sourcex,
                                   sourcey, savewidth, saveheight, destx, desty);
+        }
+
+	ValidateGC(&pBackBuffer->drawable, pGC);
+	if (clear)
+	{
+	    (*pGC->ops->PolyFillRect)((DrawablePtr)pBackBuffer , pGC, 1,
+				      &clearRect);
+	}
+	/* Copy the contents of the old back pixmap to the new one. */
+	if (pWin->bitGravity != ForgetGravity)
+	{
 	    (*pGC->ops->CopyArea)((DrawablePtr)pDbeWindowPrivPriv->pBackBuffer,
                                   (DrawablePtr)pBackBuffer, pGC, sourcex,
                                   sourcey, savewidth, saveheight, destx, desty);
