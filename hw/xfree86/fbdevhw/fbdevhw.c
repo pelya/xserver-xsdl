@@ -96,12 +96,6 @@ typedef struct {
 	/* saved video mode */
 	struct fb_var_screeninfo	saved_var;
 
-	/* FIXME: unused??? [geert] */
-	struct fb_cmap			saved_cmap;
-	unsigned short			*saved_red;
-	unsigned short			*saved_green;
-	unsigned short			*saved_blue;
-
 	/* buildin video mode */
 	DisplayModeRec			buildin;
 
@@ -806,8 +800,6 @@ fbdevHWModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 
 /* -------------------------------------------------------------------- */
 /* video mode save/restore                                              */
-
-/* TODO: colormap */
 void
 fbdevHWSave(ScrnInfoPtr pScrn)
 {
