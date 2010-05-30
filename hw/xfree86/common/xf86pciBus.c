@@ -76,6 +76,11 @@ Bool pciSlotClaimed = FALSE;
     (((c) & 0x00ffff00) \
 	 == ((PCI_CLASS_DISPLAY << 16) | (PCI_SUBCLASS_DISPLAY_VGA << 8)))
 
+
+static struct pci_slot_match xf86IsolateDevice = {
+    PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, 0
+};
+
 void
 xf86FormatPciBusNumber(int busnum, char *buffer)
 {
