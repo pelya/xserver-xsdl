@@ -1572,16 +1572,6 @@ if test "x$XORG" = xyes; then
 	dnl ===================================================================
 
 	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
-	SAVE_LIBS=$LIBS
-	SAVE_CFLAGS=$CFLAGS
-	CFLAGS=$PCIACCESS_CFLAGS
-	LIBS=$PCIACCESS_LIBS
-	AC_CHECK_FUNCS([pci_system_init_dev_mem])
-	AC_CHECK_FUNCS([pci_device_enable])
-	AC_CHECK_FUNCS([pci_device_is_boot_vga])
-	AC_CHECK_FUNCS([pci_device_vgaarb_init])
-	LIBS=$SAVE_LIBS
-	CFLAGS=$SAVE_CFLAGS
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
