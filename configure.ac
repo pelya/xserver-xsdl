@@ -1270,7 +1270,6 @@ if test "x$XDMAUTH" = xyes; then
 fi
 
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
-AC_DEFINE_DIR(PCI_TXT_IDS_PATH, PCI_TXT_IDS_DIR, [Default PCI text file ID path])
 AC_DEFINE_DIR(SERVER_MISC_CONFIG_PATH, SERVERCONFIG, [Server miscellaneous config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTROOTDIR, [Default base font path])
 dridriverdir=`$PKG_CONFIG --variable=dridriverdir dri`
@@ -1521,9 +1520,6 @@ if test "x$XORG" = xauto; then
 fi
 AC_MSG_RESULT([$XORG])
 
-xorg_bus_bsdpci=no
-xorg_bus_sparc=no
-
 if test "x$XORG" = xyes; then
 	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
@@ -1571,9 +1567,31 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([symbol_visibility])
 	dnl ===================================================================
 
+	dnl ===================================================================
+	dnl ================= beginning of PCI configuration ==================
+	dnl ===================================================================
+	xorg_bus_bsdpci=no
+	xorg_bus_sparc=no
+
 	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
+
+	AC_DEFINE(XSERVER_LIBPCIACCESS, 1, [Use libpciaccess for all pci manipulation])
+	AC_DEFINE_DIR(PCI_TXT_IDS_PATH, PCI_TXT_IDS_DIR, [Default PCI text file ID path])
+	case $host_os in
+	  gnu* | freebsd* | kfreebsd*-gnu | netbsd* | openbsd* | solaris* | dragonfly*)
+		xorg_bus_bsdpci="yes"
+		;;
+	esac
+	case $host_cpu in
+	  sparc*)
+		xorg_bus_sparc="yes"
+		;;
+	esac
+	dnl ===================================================================
+	dnl ==================== end of PCI configuration =====================
+	dnl ===================================================================
 
 	case $host_os in
 	  linux*)
@@ -1595,11 +1613,9 @@ if test "x$XORG" = xyes; then
 		;;
 	  freebsd* | kfreebsd*-gnu | dragonfly*)
 		XORG_OS_SUBDIR="bsd"
-		xorg_bus_bsdpci="yes"
 		;;
 	  netbsd*)
 		XORG_OS_SUBDIR="bsd"
-		xorg_bus_bsdpci="yes"
 		;;
 	  openbsd*)
 		if test "x$ac_cv_BSD_APM" = xyes \
@@ -1607,14 +1623,10 @@ if test "x$XORG" = xyes; then
 			XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 		fi
 		XORG_OS_SUBDIR="bsd"
-		xorg_bus_bsdpci="yes"
 		;;
 	  solaris*)
 		XORG_OS_SUBDIR="solaris"
 		XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
-		# Use the same stubs as BSD for old functions, since we now
-		# use libpciaccess for PCI
-		xorg_bus_bsdpci="yes"
 		AC_CHECK_HEADERS([sys/kd.h])
 		AC_CHECK_HEADERS([sys/vt.h], [solaris_vt=yes], [solaris_vt=no])
 		# Check for minimum supported release
@@ -1659,9 +1671,6 @@ if test "x$XORG" = xyes; then
 		;;
 	  gnu*)
 		XORG_OS_SUBDIR="hurd"
-		# Use the same stubs as BSD for old functions, since we now
-		# use libpciaccess for PCI
-		xorg_bus_bsdpci="yes"
 		;;
 	  *)
 		XORG_OS_SUBDIR="stub"
@@ -1674,9 +1683,6 @@ if test "x$XORG" = xyes; then
 	esac
 
 	case $host_cpu in
-	  sparc*)
-		xorg_bus_sparc="yes"
-		;;
 	  i*86)
 		;;
 	esac
@@ -1733,7 +1739,6 @@ if test "x$XORG" = xyes; then
 	AC_DEFINE_DIR(DEFAULT_LIBRARY_PATH, libdir, [Default library install path])
 	AC_DEFINE_DIR(DEFAULT_LOGPREFIX, LOGPREFIX, [Default log location])
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
-	AC_DEFINE(XSERVER_LIBPCIACCESS, 1, [Use libpciaccess for all pci manipulation])
 	if test "x$VGAHW" = xyes; then
 		AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
 	fi
