@@ -1307,15 +1307,10 @@ xf86PciMatchDriver(char* matches[], int nmatches) {
     }
 
     pci_iterator_destroy(iter);
-
-    if (!info) {
-	ErrorF("Primary device is not PCI\n");
-    }
 #ifdef __linux__
-    else {
+    if (info)
 	matchDriverFromFiles(matches, info->vendor_id, info->device_id);
-    }
-#endif /* __linux__ */
+#endif
 
     for (i = 0; (i < nmatches) && (matches[i]); i++) {
 	/* find end of matches list */
