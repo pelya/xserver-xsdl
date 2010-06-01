@@ -92,6 +92,7 @@ extern _X_EXPORT Bool VTSwitchEnabled;	/* kbd driver */
 #ifndef _NO_XF86_PROTOTYPES
 
 /* PCI related */
+#ifdef XSERVER_LIBPCIACCESS
 #include <pciaccess.h>
 extern _X_EXPORT Bool pciSlotClaimed;
 
@@ -118,6 +119,15 @@ extern _X_EXPORT ScrnInfoPtr xf86ConfigPciEntity(ScrnInfoPtr pScrn,
 extern _X_EXPORT Bool xf86ConfigActivePciEntity(ScrnInfoPtr pScrn,
         int entityIndex,PciChipsets *p_chip, void *dummy, EntityProc init,
         EntityProc enter, EntityProc leave, pointer private);
+#else
+#define xf86VGAarbiterInit() do {} while (0)
+#define xf86VGAarbiterFini() do {} while (0)
+#define xf86VGAarbiterLock(x) do {} while (0)
+#define xf86VGAarbiterUnlock(x) do {} while (0)
+#define xf86VGAarbiterScrnInit(x) do {} while (0)
+#define xf86VGAarbiterDeviceDecodes() do {} while (0)
+#define xf86VGAarbiterWrapFunctions() do {} while (0)
+#endif
 
 /* xf86Bus.c */
 

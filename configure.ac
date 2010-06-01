@@ -638,6 +638,7 @@ AC_ARG_ENABLE(int10-module,     AS_HELP_STRING([--enable-int10-module], [Build X
 AC_ARG_ENABLE(windowswm,      AS_HELP_STRING([--enable-windowswm], [Build XWin with WindowsWM extension (default: no)]), [WINDOWSWM=$enableval], [WINDOWSWM=no])
 AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with libdrm support (default: enabled)]), [DRM=$enableval],[DRM=yes])
 AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg with client ID tracking (default: enabled)]), [CLIENTIDS=$enableval], [CLIENTIDS=yes])
+AC_ARG_ENABLE(pciaccess, AS_HELP_STRING([--enable-pciaccess], [Build Xorg with pciaccess library (default: enabled)]), [PCI=$enableval], [PCI=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -1573,6 +1574,9 @@ if test "x$XORG" = xyes; then
 	xorg_bus_bsdpci=no
 	xorg_bus_sparc=no
 
+	AC_MSG_CHECKING([whether to build Xorg PCI functions])
+	if test "x$PCI" = xyes; then
+
 	PKG_CHECK_MODULES([PCIACCESS], $LIBPCIACCESS)
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $GLX_SYS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
@@ -1589,6 +1593,9 @@ if test "x$XORG" = xyes; then
 		xorg_bus_sparc="yes"
 		;;
 	esac
+	fi
+	AC_MSG_RESULT([$PCI])
+
 	dnl ===================================================================
 	dnl ==================== end of PCI configuration =====================
 	dnl ===================================================================
@@ -1768,6 +1775,7 @@ if test "x$XORG" = xyes; then
 	AC_SUBST([abi_extension])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
+AM_CONDITIONAL([XORG_BUS_PCI], [test "x$PCI" = xyes])
 AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])

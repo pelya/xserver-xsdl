@@ -1,7 +1,10 @@
 noinst_LTLIBRARIES = libbus.la
 sdk_HEADERS = xf86Pci.h
 
-PCI_SOURCES = Pci.c Pci.h
+PCI_SOURCES =
+if XORG_BUS_PCI
+PCI_SOURCES += Pci.c Pci.h
+endif
 
 if XORG_BUS_BSDPCI
 PCI_SOURCES += bsd_pci.c

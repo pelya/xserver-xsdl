@@ -127,4 +127,7 @@
 /* Build with libdrm support */
 #undef WITH_LIBDRM
 
+/* Use libpciaccess */
+#undef XSERVER_LIBPCIACCESS
+
 #endif /* _XORG_CONFIG_H_ */
