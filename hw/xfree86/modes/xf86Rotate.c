@@ -76,9 +76,9 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 {
     ScrnInfoPtr		scrn = crtc->scrn;
     ScreenPtr		screen = scrn->pScreen;
-    WindowPtr		root = WindowTable[screen->myNum];
+    WindowPtr		root = screen->root;
     PixmapPtr		dst_pixmap = crtc->rotatedPixmap;
-    PictFormatPtr	format = compWindowFormat (WindowTable[screen->myNum]);
+    PictFormatPtr	format = compWindowFormat (screen->root);
     int			error;
     PicturePtr		src, dst;
     int			n = REGION_NUM_RECTS(region);

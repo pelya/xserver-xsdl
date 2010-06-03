@@ -926,7 +926,7 @@ ProcessRawEvent(RawDeviceEvent *ev, DeviceIntPtr device)
         }
 
         for (i = 0; i < screenInfo.numScreens; i++)
-            DeliverEventsToWindow(device, WindowTable[i], xi, 1,
+            DeliverEventsToWindow(device, screenInfo.screens[i]->root, xi, 1,
                                   GetEventFilter(device, xi), NULL);
         free(xi);
     }
@@ -1042,7 +1042,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
 
 	/* see comment in EnqueueEvents regarding the next three lines */
 	if (ev->any.type == ET_Motion)
-	    ev->device_event.root = WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
+	    ev->device_event.root = pSprite->hotPhys.pScreen->root->drawable.id;
 
 	eventinfo.device = device;
 	eventinfo.event = ev;
@@ -2120,7 +2120,7 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
     WindowPtr pWin, p1;
 
     for (i = 0; i < screenInfo.numScreens; i++) {
-        pWin = WindowTable[i];
+        pWin = screenInfo.screens[i]->root;
         if (!pWin)
             continue;
         DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab);

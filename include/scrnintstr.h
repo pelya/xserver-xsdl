@@ -82,6 +82,16 @@ typedef struct _Depth {
     VisualID		*vids;    /* block of visual ids for this depth */
   } DepthRec;
 
+typedef struct _ScreenSaverStuff {
+    WindowPtr pWindow;
+    XID       wid;
+    char      blanked;
+    Bool      (*ExternalScreenSaver)(
+	ScreenPtr	/*pScreen*/,
+	int		/*xstate*/,
+	Bool		/*force*/);
+} ScreenSaverStuffRec;
+
 
 /*
  *  There is a typedef for each screen function pointer so that code that
@@ -446,7 +456,7 @@ typedef    void (* DeviceCursorCleanupProcPtr)(
 typedef struct _Screen {
     int			myNum;	/* index of this instance in Screens[] */
     ATOM		id;
-    short		width, height;
+    short		x, y, width, height;
     short		mmWidth, mmHeight;
     short		numDepths;
     unsigned char      	rootDepth;
@@ -468,6 +478,8 @@ typedef struct _Screen {
     pointer		devPrivate;
     short       	numVisuals;
     VisualPtr		visuals;
+    WindowPtr		root;
+    ScreenSaverStuffRec screensaver;
 
     /* Random screen procedures */
 

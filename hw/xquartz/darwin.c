@@ -262,8 +262,8 @@ static Bool DarwinScreenInit(int index, ScreenPtr pScreen, int argc, char **argv
         return FALSE;
     }
 
-    dixScreenOrigins[index].x = dfb->x;
-    dixScreenOrigins[index].y = dfb->y;
+    pScreen->x = dfb->x;
+    pScreen->y = dfb->y;
 
     /*    ErrorF("Screen %d added: %dx%d @ (%d,%d)\n",
 	  index, dfb->width, dfb->height, dfb->x, dfb->y); */
@@ -526,16 +526,16 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
 {
     int i, left, top;
 
-    left = dixScreenOrigins[0].x;
-    top  = dixScreenOrigins[0].y;
+    left = pScreenInfo->screens[0]->x;
+    top  = pScreenInfo->screens[0]->y;
 
     /* Find leftmost screen. If there's a tie, take the topmost of the two. */
     for (i = 1; i < pScreenInfo->numScreens; i++) {
-        if (dixScreenOrigins[i].x < left  ||
-            (dixScreenOrigins[i].x == left && dixScreenOrigins[i].y < top))
+        if (pScreenInfo->screens[i]->x < left  ||
+            (pScreenInfo->screens[i]->x == left && pScreenInfo->screens[i]->y < top))
         {
-            left = dixScreenOrigins[i].x;
-            top = dixScreenOrigins[i].y;
+            left = pScreenInfo->screens[i]->x;
+            top = pScreenInfo->screens[i]->y;
         }
     }
 
@@ -551,10 +551,10 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
 
     if (darwinMainScreenX != 0 || darwinMainScreenY != 0) {
         for (i = 0; i < pScreenInfo->numScreens; i++) {
-            dixScreenOrigins[i].x -= darwinMainScreenX;
-            dixScreenOrigins[i].y -= darwinMainScreenY;
+            pScreenInfo->screens[i]->x -= darwinMainScreenX;
+            pScreenInfo->screens[i]->y -= darwinMainScreenY;
             DEBUG_LOG("Screen %d placed at X11 coordinate (%d,%d).\n",
-                      i, dixScreenOrigins[i].x, dixScreenOrigins[i].y);
+                      i, pScreenInfo->screens[i]->x, pScreenInfo->screens[i]->y);
         }
     }
 }
@@ -793,7 +793,7 @@ void AbortDDX( void )
 void
 xf86SetRootClip (ScreenPtr pScreen, int enable)
 {
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
+    WindowPtr	pWin = pScreen->root;
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = TRUE;

@@ -249,7 +249,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
 
 	for (i = 0; i < screenInfo.numScreens; i++)
-	    InitRootWindow(WindowTable[i]);
+	    InitRootWindow(screenInfo.screens[i]->root);
 
         InitCoreDevices();
 	InitInput(argc, argv);
@@ -303,7 +303,8 @@ int main(int argc, char *argv[], char *envp[])
 
         CloseInput();
 
-        memset(WindowTable, 0, sizeof(WindowTable));
+	for (i = 0; i < screenInfo.numScreens; i++)
+	    screenInfo.screens[i]->root = NullWindow;
 	CloseDownDevices();
 	CloseDownEvents();
 

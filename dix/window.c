@@ -151,12 +151,10 @@ WindowSeekDeviceCursor(WindowPtr pWin,
 
 int screenIsSaved = SCREEN_SAVER_OFF;
 
-ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
-
 static int FocusPrivatesKeyIndex;
 DevPrivateKey FocusPrivatesKey = &FocusPrivatesKeyIndex;
 
-static Bool TileScreenSaver(int i, int kind);
+static Bool TileScreenSaver(ScreenPtr pScreen, int kind);
 
 
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
@@ -212,7 +210,7 @@ PrintWindowTree(void)
     for (i=0; i<screenInfo.numScreens; i++)
     {
 	ErrorF("[dix] WINDOW %d\n", i);
-	pWin = WindowTable[i];
+	pWin = screenInfo.screens[i]->root;
 	miPrintRegion(&pWin->clipList);
 	p1 = pWin->firstChild;
 	PrintChildren(p1, 4);
@@ -258,7 +256,7 @@ TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
 int
 WalkTree(ScreenPtr pScreen, VisitWindowProcPtr func, pointer data)
 {
-    return(TraverseTree(WindowTable[pScreen->myNum], func, data));
+    return(TraverseTree(pScreen->root, func, data));
 }
 
 /* hack for forcing backing store on all windows */
@@ -363,12 +361,12 @@ CreateRootWindow(ScreenPtr pScreen)
     if (!pWin)
 	return FALSE;
 
-    savedScreenInfo[pScreen->myNum].pWindow = NULL;
-    savedScreenInfo[pScreen->myNum].wid = FakeClientID(0);
-    savedScreenInfo[pScreen->myNum].ExternalScreenSaver = NULL;
+    pScreen->screensaver.pWindow = NULL;
+    pScreen->screensaver.wid = FakeClientID(0);
+    pScreen->screensaver.ExternalScreenSaver = NULL;
     screenIsSaved = SCREEN_SAVER_OFF;
 
-    WindowTable[pScreen->myNum] = pWin;
+    pScreen->root = pWin;
 
     pWin->drawable.pScreen = pScreen;
     pWin->drawable.type = DRAWABLE_WINDOW;
@@ -539,7 +537,7 @@ RealChildHead(WindowPtr pWin)
 
     if (!pWin->parent &&
 	(screenIsSaved == SCREEN_SAVER_ON) &&
-	(HasSaverWindow (pWin->drawable.pScreen->myNum)))
+	(HasSaverWindow (pWin->drawable.pScreen)))
 	return (pWin->firstChild);
     else
 	return (NullWindow);
@@ -1329,7 +1327,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	     */
 	    if ( cursorID == None)
 	    {
-		if (pWin == WindowTable[pWin->drawable.pScreen->myNum])
+		if (pWin == pWin->drawable.pScreen->root)
 		    pCursor = rootCursor;
 		else
 		    pCursor = (CursorPtr) None;
@@ -2238,8 +2236,8 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 	event.u.configureRequest.y = y;
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-            event.u.configureRequest.x += panoramiXdataPtr[0].x;
-            event.u.configureRequest.y += panoramiXdataPtr[0].y;
+            event.u.configureRequest.x += screenInfo.screens[0]->x;
+            event.u.configureRequest.y += screenInfo.screens[0]->y;
 	}
 #endif
 	event.u.configureRequest.width = w;
@@ -2319,8 +2317,8 @@ ActuallyDoSomething:
 	event.u.configureNotify.y = y;
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension && (!pParent || !pParent->parent)) {
-	    event.u.configureNotify.x += panoramiXdataPtr[0].x;
-            event.u.configureNotify.y += panoramiXdataPtr[0].y;
+	    event.u.configureNotify.x += screenInfo.screens[0]->x;
+	    event.u.configureNotify.y += screenInfo.screens[0]->y;
 	}
 #endif
 	event.u.configureNotify.width = w;
@@ -2473,8 +2471,8 @@ ReparentWindow(WindowPtr pWin, WindowPtr pParent,
     event.u.reparent.y = y;
 #ifdef PANORAMIX
     if(!noPanoramiXExtension && !pParent->parent) {
-	event.u.reparent.x += panoramiXdataPtr[0].x;
-	event.u.reparent.y += panoramiXdataPtr[0].y;
+	event.u.reparent.x += screenInfo.screens[0]->x;
+	event.u.reparent.y += screenInfo.screens[0]->y;
     }
 #endif
     event.u.reparent.override = pWin->overrideRedirect;
@@ -2966,7 +2964,7 @@ HandleSaveSet(ClientPtr client)
 	pWin = SaveSetWindow(client->saveSet[j]);
 #ifdef XFIXES
 	if (SaveSetToRoot(client->saveSet[j]))
-	    pParent = WindowTable[pWin->drawable.pScreen->myNum];
+	    pParent = pWin->drawable.pScreen->root;
 	else
 #endif
 	{
@@ -3034,7 +3032,7 @@ NotClippedByChildren(WindowPtr pWin)
     pReg = REGION_CREATE(pScreen, NullBox, 1);
     if (pWin->parent ||
 	screenIsSaved != SCREEN_SAVER_ON ||
-	!HasSaverWindow (pWin->drawable.pScreen->myNum))
+	!HasSaverWindow (pWin->drawable.pScreen))
     {
 	REGION_INTERSECT(pScreen, pReg, &pWin->borderClip, &pWin->winSize);
     }
@@ -3152,33 +3150,33 @@ dixSaveScreens(ClientPtr client, int on, int mode)
     }
     for (i = 0; i < screenInfo.numScreens; i++)
     {
+	ScreenPtr pScreen = screenInfo.screens[i];
 	if (on == SCREEN_SAVER_FORCER)
-	   (* screenInfo.screens[i]->SaveScreen) (screenInfo.screens[i], on);
-	if (savedScreenInfo[i].ExternalScreenSaver)
+	   (* pScreen->SaveScreen) (pScreen, on);
+	if (pScreen->screensaver.ExternalScreenSaver)
 	{
-	    if ((*savedScreenInfo[i].ExternalScreenSaver)
-		(screenInfo.screens[i], type, on == SCREEN_SAVER_FORCER))
+	    if ((*pScreen->screensaver.ExternalScreenSaver)
+		(pScreen, type, on == SCREEN_SAVER_FORCER))
 		continue;
 	}
 	if (type == screenIsSaved)
 	    continue;
 	switch (type) {
 	case SCREEN_SAVER_OFF:
-	    if (savedScreenInfo[i].blanked == SCREEN_IS_BLANKED)
+	    if (pScreen->screensaver.blanked == SCREEN_IS_BLANKED)
 	    {
-	       (* screenInfo.screens[i]->SaveScreen) (screenInfo.screens[i],
-						      what);
+	       (* pScreen->SaveScreen) (pScreen, what);
 	    }
-	    else if (HasSaverWindow (i))
+	    else if (HasSaverWindow (pScreen))
 	    {
-		savedScreenInfo[i].pWindow = NullWindow;
-		FreeResource(savedScreenInfo[i].wid, RT_NONE);
+		pScreen->screensaver.pWindow = NullWindow;
+		FreeResource(pScreen->screensaver.wid, RT_NONE);
 	    }
 	    break;
 	case SCREEN_SAVER_CYCLE:
-	    if (savedScreenInfo[i].blanked == SCREEN_IS_TILED)
+	    if (pScreen->screensaver.blanked == SCREEN_IS_TILED)
 	    {
-		WindowPtr pWin = savedScreenInfo[i].pWindow;
+		WindowPtr pWin = pScreen->screensaver.pWindow;
 		/* make it look like screen saver is off, so that
 		 * NotClippedByChildren will compute a clip list
 		 * for the root window, so miPaintWindow works
@@ -3202,35 +3200,33 @@ dixSaveScreens(ClientPtr client, int on, int mode)
 	     * Call the DDX saver in case it wants to do something
 	     * at cycle time
 	     */
-	    else if (savedScreenInfo[i].blanked == SCREEN_IS_BLANKED)
+	    else if (pScreen->screensaver.blanked == SCREEN_IS_BLANKED)
 	    {
-		(* screenInfo.screens[i]->SaveScreen) (screenInfo.screens[i],
-						       type);
+		(* pScreen->SaveScreen) (pScreen, type);
 	    }
 	    break;
 	case SCREEN_SAVER_ON:
 	    if (ScreenSaverBlanking != DontPreferBlanking)
 	    {
-		if ((* screenInfo.screens[i]->SaveScreen)
-		   (screenInfo.screens[i], what))
+		if ((* pScreen->SaveScreen) (pScreen, what))
 		{
-		   savedScreenInfo[i].blanked = SCREEN_IS_BLANKED;
+		   pScreen->screensaver.blanked = SCREEN_IS_BLANKED;
 		   continue;
 		}
 		if ((ScreenSaverAllowExposures != DontAllowExposures) &&
-		    TileScreenSaver(i, SCREEN_IS_BLACK))
+		    TileScreenSaver(pScreen, SCREEN_IS_BLACK))
 		{
-		    savedScreenInfo[i].blanked = SCREEN_IS_BLACK;
+		    pScreen->screensaver.blanked = SCREEN_IS_BLACK;
 		    continue;
 		}
 	    }
 	    if ((ScreenSaverAllowExposures != DontAllowExposures) &&
-		TileScreenSaver(i, SCREEN_IS_TILED))
+		TileScreenSaver(pScreen, SCREEN_IS_TILED))
 	    {
-		savedScreenInfo[i].blanked = SCREEN_IS_TILED;
+		pScreen->screensaver.blanked = SCREEN_IS_TILED;
 	    }
 	    else
-		savedScreenInfo[i].blanked = SCREEN_ISNT_SAVED;
+		pScreen->screensaver.blanked = SCREEN_ISNT_SAVED;
 	    break;
 	}
     }
@@ -3252,7 +3248,7 @@ SaveScreens(int on, int mode)
 }
 
 static Bool
-TileScreenSaver(int i, int kind)
+TileScreenSaver(ScreenPtr pScreen, int kind)
 {
     int j;
     int result;
@@ -3269,9 +3265,9 @@ TileScreenSaver(int i, int kind)
     attri = 0;
     switch (kind) {
     case SCREEN_IS_TILED:
-	switch (WindowTable[i]->backgroundState) {
+	switch (pScreen->root->backgroundState) {
 	case BackgroundPixel:
-	    attributes[attri++] = WindowTable[i]->background.pixel;
+	    attributes[attri++] = pScreen->root->background.pixel;
 	    mask |= CWBackPixel;
 	    break;
 	case BackgroundPixmap:
@@ -3283,7 +3279,7 @@ TileScreenSaver(int i, int kind)
 	}
 	break;
     case SCREEN_IS_BLACK:
-	attributes[attri++] = WindowTable[i]->drawable.pScreen->blackPixel;
+	attributes[attri++] = pScreen->root->drawable.pScreen->blackPixel;
 	mask |= CWBackPixel;
 	break;
     }
@@ -3330,14 +3326,14 @@ TileScreenSaver(int i, int kind)
 	}
     }
 
-    pWin = savedScreenInfo[i].pWindow =
-	 CreateWindow(savedScreenInfo[i].wid,
-	      WindowTable[i],
+    pWin = pScreen->screensaver.pWindow =
+	 CreateWindow(pScreen->screensaver.wid,
+	      pScreen->root,
 	      -RANDOM_WIDTH, -RANDOM_WIDTH,
-	      (unsigned short)screenInfo.screens[i]->width + RANDOM_WIDTH,
-	      (unsigned short)screenInfo.screens[i]->height + RANDOM_WIDTH,
+	      (unsigned short)pScreen->width + RANDOM_WIDTH,
+	      (unsigned short)pScreen->height + RANDOM_WIDTH,
 	      0, InputOutput, mask, attributes, 0, serverClient,
-	      wVisual (WindowTable[i]), &result);
+	      wVisual (pScreen->root), &result);
 
     if (cursor)
 	FreeResource (cursorID, RT_NONE);
@@ -3346,7 +3342,7 @@ TileScreenSaver(int i, int kind)
 	return FALSE;
 
     if (!AddResource(pWin->drawable.id, RT_WINDOW,
-		     (pointer)savedScreenInfo[i].pWindow))
+		     (pointer)pScreen->screensaver.pWindow))
 	return FALSE;
 
     if (mask & CWBackPixmap)

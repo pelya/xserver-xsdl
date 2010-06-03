@@ -1690,8 +1690,8 @@ XineramaXvShmPutImage(ClientPtr client)
 	   stuff->drw_x = x;
 	   stuff->drw_y = y;
 	   if(isRoot) {
-		stuff->drw_x -= panoramiXdataPtr[i].x;
-		stuff->drw_y -= panoramiXdataPtr[i].y;
+		stuff->drw_x -= screenInfo.screens[i]->x;
+		stuff->drw_y -= screenInfo.screens[i]->y;
 	   }
 	   stuff->send_event = (send_event && !i) ? 1 : 0;
 
@@ -1742,8 +1742,8 @@ XineramaXvPutImage(ClientPtr client)
 	   stuff->drw_x = x;
 	   stuff->drw_y = y;
 	   if(isRoot) {
-		stuff->drw_x -= panoramiXdataPtr[i].x;
-		stuff->drw_y -= panoramiXdataPtr[i].y;
+		stuff->drw_x -= screenInfo.screens[i]->x;
+		stuff->drw_y -= screenInfo.screens[i]->y;
 	   }
 
 	   result = ProcXvPutImage(client);
@@ -1790,8 +1790,8 @@ XineramaXvPutVideo(ClientPtr client)
            stuff->drw_x = x;
            stuff->drw_y = y;
            if(isRoot) {
-                stuff->drw_x -= panoramiXdataPtr[i].x;
-                stuff->drw_y -= panoramiXdataPtr[i].y;
+                stuff->drw_x -= screenInfo.screens[i]->x;
+                stuff->drw_y -= screenInfo.screens[i]->y;
            }
 
            result = ProcXvPutVideo(client);
@@ -1838,8 +1838,8 @@ XineramaXvPutStill(ClientPtr client)
            stuff->drw_x = x;
            stuff->drw_y = y;
            if(isRoot) {
-                stuff->drw_x -= panoramiXdataPtr[i].x;
-                stuff->drw_y -= panoramiXdataPtr[i].y;
+                stuff->drw_x -= screenInfo.screens[i]->x;
+                stuff->drw_y -= screenInfo.screens[i]->y;
            }
 
            result = ProcXvPutStill(client);

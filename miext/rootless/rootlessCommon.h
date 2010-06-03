@@ -213,7 +213,7 @@ extern RegionRec rootlessHugeRoot;
 
 // Returns TRUE if this window is a root window
 #define IsRoot(pWin) \
-    ((pWin) == WindowTable[(pWin)->drawable.pScreen->myNum])
+    ((pWin) == (pWin)->drawable.pScreen->root)
 
 
 /*

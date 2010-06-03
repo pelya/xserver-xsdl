@@ -296,8 +296,8 @@ QuartzWarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     {
         int sx, sy;
 
-        sx = dixScreenOrigins[pScreen->myNum].x + darwinMainScreenX;
-        sy = dixScreenOrigins[pScreen->myNum].y + darwinMainScreenY;
+        sx = pScreen->x + darwinMainScreenX;
+        sy = pScreen->y + darwinMainScreenY;
 
         CGWarpMouseCursorPosition(CGPointMake(sx + x, sy + y));
     }

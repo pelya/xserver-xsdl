@@ -324,7 +324,7 @@ XAAOverCopyWindow(
     RegionRec rgnDst;
     BoxPtr pbox;
     int i, nbox, dx, dy;
-    WindowPtr pRoot = WindowTable[pScreen->myNum];
+    WindowPtr pRoot = pScreen->root;
 
 
     if (!pScrn->vtSema || !infoRec->ScreenToScreenBitBlt) { 

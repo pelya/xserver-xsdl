@@ -607,7 +607,7 @@ DRI2CanFlip(DrawablePtr pDraw)
     if (pDraw->type == DRAWABLE_PIXMAP)
 	return TRUE;
 
-    pRoot = WindowTable[pScreen->myNum];
+    pRoot = pScreen->root;
     pRootPixmap = pScreen->GetWindowPixmap(pRoot);
 
     pWin = (WindowPtr) pDraw;

@@ -493,7 +493,7 @@ static void expose_1 (WindowPtr pWin) {
 void
 RootlessScreenExpose (ScreenPtr pScreen)
 {
-    expose_1 (WindowTable[pScreen->myNum]);
+    expose_1 (pScreen->root);
 }
 
 

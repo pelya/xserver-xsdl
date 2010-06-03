@@ -2681,7 +2681,7 @@ PanoramiXRenderCreatePicture (ClientPtr client)
     newPict->info[0].id = stuff->pid;
     
     if (refDraw->type == XRT_WINDOW &&
-	stuff->drawable == WindowTable[0]->drawable.id)
+	stuff->drawable == screenInfo.screens[0]->root->drawable.id)
     {
 	newPict->u.pict.root = TRUE;
     }
@@ -2832,22 +2832,22 @@ PanoramiXRenderComposite (ClientPtr client)
 	stuff->src = src->info[j].id;
 	if (src->u.pict.root)
 	{
-	    stuff->xSrc = orig.xSrc - panoramiXdataPtr[j].x;
-	    stuff->ySrc = orig.ySrc - panoramiXdataPtr[j].y;
+	    stuff->xSrc = orig.xSrc - screenInfo.screens[j]->x;
+	    stuff->ySrc = orig.ySrc - screenInfo.screens[j]->y;
 	}
 	stuff->dst = dst->info[j].id;
 	if (dst->u.pict.root)
 	{
-	    stuff->xDst = orig.xDst - panoramiXdataPtr[j].x;
-	    stuff->yDst = orig.yDst - panoramiXdataPtr[j].y;
+	    stuff->xDst = orig.xDst - screenInfo.screens[j]->x;
+	    stuff->yDst = orig.yDst - screenInfo.screens[j]->y;
 	}
 	if (msk)
 	{
 	    stuff->mask = msk->info[j].id;
 	    if (msk->u.pict.root)
 	    {
-		stuff->xMask = orig.xMask - panoramiXdataPtr[j].x;
-		stuff->yMask = orig.yMask - panoramiXdataPtr[j].y;
+		stuff->xMask = orig.xMask - screenInfo.screens[j]->x;
+		stuff->yMask = orig.yMask - screenInfo.screens[j]->y;
 	    }
 	}
 	result = (*PanoramiXSaveRenderVector[X_RenderComposite]) (client);
@@ -2881,14 +2881,14 @@ PanoramiXRenderCompositeGlyphs (ClientPtr client)
 	    stuff->src = src->info[j].id;
 	    if (src->u.pict.root)
 	    {
-		stuff->xSrc = xSrc - panoramiXdataPtr[j].x;
-		stuff->ySrc = ySrc - panoramiXdataPtr[j].y;
+		stuff->xSrc = xSrc - screenInfo.screens[j]->x;
+		stuff->ySrc = ySrc - screenInfo.screens[j]->y;
 	    }
 	    stuff->dst = dst->info[j].id;
 	    if (dst->u.pict.root)
 	    {
-		elt->deltax = origElt.deltax - panoramiXdataPtr[j].x;
-		elt->deltay = origElt.deltay - panoramiXdataPtr[j].y;
+		elt->deltax = origElt.deltax - screenInfo.screens[j]->x;
+		elt->deltay = origElt.deltay - screenInfo.screens[j]->y;
 	    }
 	    result = (*PanoramiXSaveRenderVector[stuff->renderReqType]) (client);
 	    if(result != Success) break;
@@ -2918,8 +2918,8 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root)
 	    {
-		int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = screenInfo.screens[j]->x;
+		int y_off = screenInfo.screens[j]->y;
 
 		if(x_off || y_off) {
 		    xRectangle	*rects = (xRectangle *) (stuff + 1);
@@ -2966,8 +2966,8 @@ PanoramiXRenderTrapezoids(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = screenInfo.screens[j]->x;
+		int y_off = screenInfo.screens[j]->y;
 
 		if(x_off || y_off) {
                     xTrapezoid  *trap = (xTrapezoid *) (stuff + 1);
@@ -3026,8 +3026,8 @@ PanoramiXRenderTriangles(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = screenInfo.screens[j]->x;
+		int y_off = screenInfo.screens[j]->y;
 
 		if(x_off || y_off) {
                     xTriangle  *tri = (xTriangle *) (stuff + 1);
@@ -3082,8 +3082,8 @@ PanoramiXRenderTriStrip(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = screenInfo.screens[j]->x;
+		int y_off = screenInfo.screens[j]->y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -3134,8 +3134,8 @@ PanoramiXRenderTriFan(ClientPtr client)
 	FOR_NSCREENS_FORWARD(j) {
 	    if (j) memcpy (stuff + 1, extra, extra_len);
 	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
+		int x_off = screenInfo.screens[j]->x;
+		int y_off = screenInfo.screens[j]->y;
 
 		if(x_off || y_off) {
                     xPointFixed  *fixed = (xPointFixed *) (stuff + 1);
@@ -3188,8 +3188,8 @@ PanoramiXRenderAddTraps (ClientPtr client)
 	    
 	    if (picture->u.pict.root)
 	    {
-		stuff->xOff = x_off + panoramiXdataPtr[j].x;
-		stuff->yOff = y_off + panoramiXdataPtr[j].y;
+		stuff->xOff = x_off + screenInfo.screens[j]->x;
+		stuff->yOff = y_off + screenInfo.screens[j]->y;
 	    }
 	    result = (*PanoramiXSaveRenderVector[X_RenderAddTraps]) (client);
 	    if(result != Success) break;

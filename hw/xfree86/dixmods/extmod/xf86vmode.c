@@ -347,7 +347,7 @@ SendXF86VidModeNotify(ScreenPtr pScreen, int state, Bool forced)
 	ev.type = XF86VidModeNotify + XF86VidModeEventBase;
 	ev.state = state;
 	ev.timestamp = currentTime.milliseconds;
-	ev.root = WindowTable[pScreen->myNum]->drawable.id;
+	ev.root = pScreen->root->drawable.id;
 	ev.kind = kind;
 	ev.forced = forced;
 	WriteEventsToClient (pEv->client, 1, (xEvent *) &ev);

@@ -1187,7 +1187,7 @@ DRIDriverClipNotify(ScreenPtr pScreen)
 
 	if (pDRIPriv->nrWindows > 0) {
 	    pDRIPriv->nrWalked = 0;
-	    TraverseTree(WindowTable[pScreen->myNum], DRIDCNTreeTraversal,
+	    TraverseTree(pScreen->root, DRIDCNTreeTraversal,
 			 (pointer)pDRIWindows);
 	}
 

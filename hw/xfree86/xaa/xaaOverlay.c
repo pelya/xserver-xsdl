@@ -54,7 +54,7 @@ XAACopyWindow8_32(
     	return;
     }
 
-    pwinRoot = WindowTable[pScreen->myNum];
+    pwinRoot = pScreen->root;
 
     if(doUnderlay)
 	freeReg = miOverlayCollectUnderlayRegions(pWin, &borderClip);

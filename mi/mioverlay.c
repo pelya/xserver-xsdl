@@ -306,7 +306,7 @@ miOverlayReparentWindow(WindowPtr pWin, WindowPtr pPriorParent)
 {
     if(IN_UNDERLAY(pWin) || HasUnderlayChildren(pWin)) {
 	/* This could probably be more optimal */
-	RebuildTree(WindowTable[pWin->drawable.pScreen->myNum]->firstChild);
+	RebuildTree(pWin->drawable.pScreen->root->firstChild);
     }	
 }
 
@@ -1610,7 +1610,7 @@ miOverlayChangeBorderWidth(
 void
 miOverlaySetRootClip(ScreenPtr pScreen, Bool enable)
 {
-    WindowPtr pRoot = WindowTable[pScreen->myNum];
+    WindowPtr pRoot = pScreen->root;
     miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pRoot);
 
     MARK_UNDERLAY(pRoot);
@@ -1741,7 +1741,7 @@ miOverlayComputeCompositeClip(GCPtr pGC, WindowPtr pWin)
 	pregWin = REGION_CREATE(pScreen, NullBox, 1);
 	freeTmpClip = TRUE;
 	if (pWin->parent || (screenIsSaved != SCREEN_SAVER_ON) ||
-		!HasSaverWindow (pScreen->myNum))
+		!HasSaverWindow (pScreen))
 	{
             REGION_INTERSECT(pScreen,pregWin,&pTree->borderClip,&pWin->winSize);
 	}

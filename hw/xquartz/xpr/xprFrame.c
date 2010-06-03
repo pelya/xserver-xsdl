@@ -576,7 +576,7 @@ xprHideWindows(Bool hide)
     
     for (screen = 0; screen < screenInfo.numScreens; screen++) {
         RootlessFrameID prevWid = NULL;
-        pRoot = WindowTable[screenInfo.screens[screen]->myNum];
+        pRoot = screenInfo.screens[screen]->root;
 
         for (pWin = pRoot->firstChild; pWin; pWin = pWin->nextSib) {
             RootlessWindowRec *winRec = WINREC(pWin);

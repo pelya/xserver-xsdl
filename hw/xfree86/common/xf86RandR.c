@@ -159,7 +159,7 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
     int			oldmmHeight = pScreen->mmHeight;
     int			oldVirtualX = scrp->virtualX;
     int			oldVirtualY = scrp->virtualY;
-    WindowPtr		pRoot = WindowTable[pScreen->myNum];
+    WindowPtr		pRoot = pScreen->root;
     Bool		ret = TRUE;
 
     if (pRoot && scrp->vtSema)
