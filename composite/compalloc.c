@@ -143,6 +143,7 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	cw->oldy = COMP_ORIGIN_INVALID;
 	cw->damageRegistered = FALSE;
 	cw->damaged = FALSE;
+	cw->pOldPixmap = NullPixmap;
 	dixSetPrivate(&pWin->devPrivates, CompWindowPrivateKey, cw);
     }
     ccw->next = cw->clients;
