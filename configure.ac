@@ -1382,7 +1382,7 @@ if test "x$with_sha1" = xlibmd; then
 	          [Use libmd SHA1 functions])
 	SHA1_LIBS=-lmd
 fi
-PKG_CHECK_MODULES([LIBSHA1], [sha1], [HAVE_LIBSHA1=yes], [HAVE_LIBSHA1=no])
+PKG_CHECK_MODULES([LIBSHA1], [libsha1], [HAVE_LIBSHA1=yes], [HAVE_LIBSHA1=no])
 if test "x$with_sha1" = x && test "x$HAVE_LIBSHA1" = xyes; then
    with_sha1=libsha1
 fi
