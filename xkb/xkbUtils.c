@@ -933,10 +933,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
                    src->map->size_syms * sizeof(KeySym));
         }
         else {
-            if (dst->map->syms) {
-                free(dst->map->syms);
-                dst->map->syms = NULL;
-            }
+            free(dst->map->syms);
+            dst->map->syms = NULL;
         }
         dst->map->num_syms = src->map->num_syms;
         dst->map->size_syms = src->map->size_syms;
@@ -958,10 +956,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
                    (src->max_key_code + 1) * sizeof(XkbSymMapRec));
         }
         else {
-            if (dst->map->key_sym_map) {
-                free(dst->map->key_sym_map);
-                dst->map->key_sym_map = NULL;
-            }
+            free(dst->map->key_sym_map);
+            dst->map->key_sym_map = NULL;
         }
 
         if (src->map->types && src->map->num_types) {
@@ -988,15 +984,12 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
                      dst->map->types) {
                 for (i = src->map->num_types, dtype = (dst->map->types + i);
                      i < dst->map->num_types; i++, dtype++) {
-                    if (dtype->level_names)
-                        free(dtype->level_names);
+                    free(dtype->level_names);
                     dtype->level_names = NULL;
                     dtype->num_levels = 0;
                     if (dtype->map_count) {
-                        if (dtype->map)
-                            free(dtype->map);
-                        if (dtype->preserve)
-                            free(dtype->preserve);
+                        free(dtype->map);
+                        free(dtype->preserve);
                     }
                 }
             }
@@ -1099,10 +1092,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
                 }
                 else {
                     if (dtype->map_count && i < dst->map->num_types) {
-                        if (dtype->map)
-                            free(dtype->map);
-                        if (dtype->preserve)
-                            free(dtype->preserve);
+                        free(dtype->map);
+                        free(dtype->preserve);
                     }
                     dtype->map_count = 0;
                     dtype->map = NULL;
@@ -1117,16 +1108,15 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
             if (dst->map->types) {
                 for (i = 0, dtype = dst->map->types; i < dst->map->num_types;
                      i++, dtype++) {
-                    if (dtype->level_names)
-                        free(dtype->level_names);
+                    free(dtype->level_names);
                     if (dtype->map && dtype->map_count)
                         free(dtype->map);
                     if (dtype->preserve && dtype->map_count)
                         free(dtype->preserve);
                 }
-                free(dst->map->types);
-                dst->map->types = NULL;
             }
+            free(dst->map->types);
+            dst->map->types = NULL;
             dst->map->num_types = 0;
             dst->map->size_types = 0;
         }
@@ -1144,10 +1134,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
             memcpy(dst->map->modmap, src->map->modmap, src->max_key_code + 1);
         }
         else {
-            if (dst->map->modmap) {
-                free(dst->map->modmap);
-                dst->map->modmap = NULL;
-            }
+            free(dst->map->modmap);
+            dst->map->modmap = NULL;
         }
     }
     else {
@@ -1186,10 +1174,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
                    src->max_key_code + 1);
         }
         else {
-            if (dst->server->explicit) {
-                free(dst->server->explicit);
-                dst->server->explicit = NULL;
-            }
+            free(dst->server->explicit);
+            dst->server->explicit = NULL;
         }
 
         if (src->server->acts) {
@@ -1207,10 +1193,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
                    src->server->size_acts * sizeof(XkbAction));
         }
         else {
-            if (dst->server->acts) {
-                free(dst->server->acts);
-                dst->server->acts = NULL;
-            }
+            free(dst->server->acts);
+            dst->server->acts = NULL;
         }
        dst->server->size_acts = src->server->size_acts;
        dst->server->num_acts = src->server->num_acts;
@@ -1232,10 +1216,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
                    (src->max_key_code + 1) * sizeof(unsigned short));
         }
         else {
-            if (dst->server->key_acts) {
-                free(dst->server->key_acts);
-                dst->server->key_acts = NULL;
-            }
+            free(dst->server->key_acts);
+            dst->server->key_acts = NULL;
         }
 
         if (src->server->behaviors) {
@@ -1255,10 +1237,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
                    (src->max_key_code + 1) * sizeof(XkbBehavior));
         }
         else {
-            if (dst->server->behaviors) {
-                free(dst->server->behaviors);
-                dst->server->behaviors = NULL;
-            }
+            free(dst->server->behaviors);
+            dst->server->behaviors = NULL;
         }
 
         memcpy(dst->server->vmods, src->server->vmods, XkbNumVirtualMods);
@@ -1280,10 +1260,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
                    (src->max_key_code + 1) * sizeof(unsigned short));
         }
         else {
-            if (dst->server->vmodmap) {
-                free(dst->server->vmodmap);
-                dst->server->vmodmap = NULL;
-            }
+            free(dst->server->vmodmap);
+            dst->server->vmodmap = NULL;
         }
     }
     else {
@@ -1323,10 +1301,8 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
                    (src->max_key_code + 1) * sizeof(XkbKeyNameRec));
         }
         else {
-            if (dst->names->keys) {
-                free(dst->names->keys);
-                dst->names->keys = NULL;
-            }
+            free(dst->names->keys);
+            dst->names->keys = NULL;
         }
 
         if (src->names->num_key_aliases) {
@@ -1346,10 +1322,8 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
                    src->names->num_key_aliases * sizeof(XkbKeyAliasRec));
         }
         else {
-            if (dst->names->key_aliases) {
-                free(dst->names->key_aliases);
-                dst->names->key_aliases = NULL;
-            }
+            free(dst->names->key_aliases);
+            dst->names->key_aliases = NULL;
         }
         dst->names->num_key_aliases = src->names->num_key_aliases;
 
@@ -1368,8 +1342,7 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
                    src->names->num_rg * sizeof(Atom));
         }
         else {
-            if (dst->names->radio_groups)
-                free(dst->names->radio_groups);
+            free(dst->names->radio_groups);
         }
         dst->names->num_rg = src->names->num_rg;
 
@@ -1750,25 +1723,18 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
                      j < dsection->num_doodads;
                      j++, ddoodad++) {
                     if (ddoodad->any.type == XkbTextDoodad) {
-                        if (ddoodad->text.text) {
-                            free(ddoodad->text.text);
-                            ddoodad->text.text = NULL;
-                        }
-                        if (ddoodad->text.font) {
-                            free(ddoodad->text.font);
-                            ddoodad->text.font = NULL;
-                        }
+                        free(ddoodad->text.text);
+                        ddoodad->text.text = NULL;
+                        free(ddoodad->text.font);
+                        ddoodad->text.font = NULL;
                      }
                      else if (ddoodad->any.type == XkbLogoDoodad) {
-                        if (ddoodad->logo.logo_name) {
-                            free(ddoodad->logo.logo_name);
-                            ddoodad->logo.logo_name = NULL;
-                        }
+                         free(ddoodad->logo.logo_name);
+                         ddoodad->logo.logo_name = NULL;
                     }
                 }
 
-                if (dsection->num_doodads)
-                    free(dsection->doodads);
+                free(dsection->doodads);
             }
 
             dst->geom->num_sections = 0;
@@ -1877,20 +1843,14 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
                  i < dst->geom->num_doodads;
                  i++, ddoodad++) {
                  if (ddoodad->any.type == XkbTextDoodad) {
-                    if (ddoodad->text.text) {
-                        free(ddoodad->text.text);
-                        ddoodad->text.text = NULL;
-                    }
-                    if (ddoodad->text.font) {
-                        free(ddoodad->text.font);
-                        ddoodad->text.font = NULL;
-                    }
+                     free(ddoodad->text.text);
+                     ddoodad->text.text = NULL;
+                     free(ddoodad->text.font);
+                     ddoodad->text.font = NULL;
                  }
                  else if (ddoodad->any.type == XkbLogoDoodad) {
-                    if (ddoodad->logo.logo_name) {
-                        free(ddoodad->logo.logo_name);
-                        ddoodad->logo.logo_name = NULL;
-                    }
+                     free(ddoodad->logo.logo_name);
+                     ddoodad->logo.logo_name = NULL;
                 }
             }
             dst->geom->num_doodads = 0;
@@ -1966,9 +1926,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
             dst->geom->num_key_aliases = dst->geom->sz_key_aliases;
         }
         else {
-            if (dst->geom->key_aliases) {
-                free(dst->geom->key_aliases);
-            }
+            free(dst->geom->key_aliases);
             dst->geom->key_aliases = NULL;
             dst->geom->num_key_aliases = 0;
             dst->geom->sz_key_aliases = 0;
@@ -1998,9 +1956,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
             dst->geom->base_color = &(dst->geom->colors[i]);
         }
         else {
-            if (dst->geom->label_font) {
-                free(dst->geom->label_font);
-            }
+            free(dst->geom->label_font);
             dst->geom->label_font = NULL;
             dst->geom->label_color = NULL;
             dst->geom->base_color = NULL;
@@ -2035,10 +1991,8 @@ _XkbCopyIndicators(XkbDescPtr src, XkbDescPtr dst)
         memcpy(dst->indicators, src->indicators, sizeof(XkbIndicatorRec));
     }
     else {
-        if (dst->indicators) {
-            free(dst->indicators);
-            dst->indicators = NULL;
-        }
+        free(dst->indicators);
+        dst->indicators = NULL;
     }
     return TRUE;
 }
@@ -2056,10 +2010,8 @@ _XkbCopyControls(XkbDescPtr src, XkbDescPtr dst)
         memcpy(dst->ctrls, src->ctrls, sizeof(XkbControlsRec));
     }
     else {
-        if (dst->ctrls) {
-            free(dst->ctrls);
-            dst->ctrls = NULL;
-        }
+        free(dst->ctrls);
+        dst->ctrls = NULL;
     }
     return TRUE;
 }
