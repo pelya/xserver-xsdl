@@ -794,7 +794,7 @@ APPLEWMPROTO="applewmproto >= 1.4"
 
 dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2.99.3] [renderproto >= 0.11] [fixesproto >= 4.1] [damageproto >= 1.1] [xcmiscproto >= 1.2.0] [xextproto >= 7.0.99.3] [xproto >= 7.0.17] [xtrans >= 1.2.2] [bigreqsproto >= 1.1.0] fontsproto [inputproto >= 1.9.99.902] [kbproto >= 1.0.3]"
-REQUIRED_LIBS="xfont xau [pixman-1 >= 0.15.20]"
+REQUIRED_LIBS="xfont xau"
 
 dnl List of libraries that require a specific version
 LIBAPPLEWM="applewm >= 1.4"
@@ -810,6 +810,12 @@ LIBGLIB="glib-2.0 >= 2.16"
 LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
 LIBDBUS="dbus-1 >= 1.0"
+LIBPIXMAN="pixman-1 >= 0.15.20"
+
+dnl Pixman is always required, but we separate it out so we can link
+dnl specific modules against it
+PKG_CHECK_MODULES(PIXMAN, $LIBPIXMAN)
+REQUIRED_LIBS="$REQUIRED_LIBS $LIBPIXMAN"
 
 if test "x$CONFIG_UDEV" = xyes &&
  { test "x$CONFIG_DBUS_API" = xyes || test "x$CONFIG_HAL" = xyes; }; then
