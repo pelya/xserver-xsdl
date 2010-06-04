@@ -441,7 +441,7 @@ winFixupPaths (void)
             int comment_block = FALSE;
 
             /* get defautl fontpath */
-            char *fontpath = xstrdup(defaultFontPath);
+            char *fontpath = strdup(defaultFontPath);
             size_t size = strlen(fontpath);
 
             /* read all lines */
@@ -528,7 +528,7 @@ winFixupPaths (void)
 
             /* cleanup */
             fclose(fontdirs);  
-            defaultFontPath = xstrdup(fontpath);
+            defaultFontPath = strdup(fontpath);
             free(fontpath);
             changed_fontpath = TRUE;
             font_from = X_CONFIG;
@@ -600,7 +600,7 @@ winFixupPaths (void)
             }
         } 
 
-        defaultFontPath = xstrdup(newfp);
+        defaultFontPath = strdup(newfp);
         free(newfp);
         changed_fontpath = TRUE;
     }
