@@ -919,11 +919,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->map->syms) {
             if (src->map->size_syms != dst->map->size_syms) {
-                if (dst->map->syms)
-                    tmp = realloc(dst->map->syms,
-                                   src->map->size_syms * sizeof(KeySym));
-                else
-                    tmp = malloc(src->map->size_syms * sizeof(KeySym));
+                tmp = realloc(dst->map->syms,
+                              src->map->size_syms * sizeof(KeySym));
                 if (!tmp)
                     return FALSE;
                 dst->map->syms = tmp;
@@ -941,13 +938,8 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->map->key_sym_map) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->map->key_sym_map)
-                    tmp = realloc(dst->map->key_sym_map,
-                                   (src->max_key_code + 1) *
-                                     sizeof(XkbSymMapRec));
-                else
-                    tmp = malloc((src->max_key_code + 1) *
-                                 sizeof(XkbSymMapRec));
+                tmp = realloc(dst->map->key_sym_map,
+                              (src->max_key_code + 1) * sizeof(XkbSymMapRec));
                 if (!tmp)
                     return FALSE;
                 dst->map->key_sym_map = tmp;
@@ -1123,10 +1115,7 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->map->modmap) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->map->modmap)
-                    tmp = realloc(dst->map->modmap, src->max_key_code + 1);
-                else
-                    tmp = malloc(src->max_key_code + 1);
+                tmp = realloc(dst->map->modmap, src->max_key_code + 1);
                 if (!tmp)
                     return FALSE;
                 dst->map->modmap = tmp;
@@ -1162,10 +1151,7 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->server->explicit) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->server->explicit)
-                    tmp = realloc(dst->server->explicit, src->max_key_code + 1);
-                else
-                    tmp = malloc(src->max_key_code + 1);
+                tmp = realloc(dst->server->explicit, src->max_key_code + 1);
                 if (!tmp)
                     return FALSE;
                 dst->server->explicit = tmp;
@@ -1180,11 +1166,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->server->acts) {
             if (src->server->size_acts != dst->server->size_acts) {
-                if (dst->server->acts)
-                    tmp = realloc(dst->server->acts,
-                                   src->server->size_acts * sizeof(XkbAction));
-                else
-                    tmp = malloc(src->server->size_acts * sizeof(XkbAction));
+                tmp = realloc(dst->server->acts,
+                              src->server->size_acts * sizeof(XkbAction));
                 if (!tmp)
                     return FALSE;
                 dst->server->acts = tmp;
@@ -1201,13 +1184,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->server->key_acts) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->server->key_acts)
-                    tmp = realloc(dst->server->key_acts,
-                                   (src->max_key_code + 1) *
-                                     sizeof(unsigned short));
-                else
-                    tmp = malloc((src->max_key_code + 1) *
-                                 sizeof(unsigned short));
+                tmp = realloc(dst->server->key_acts,
+                              (src->max_key_code + 1) * sizeof(unsigned short));
                 if (!tmp)
                     return FALSE;
                 dst->server->key_acts = tmp;
@@ -1222,13 +1200,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->server->behaviors) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->server->behaviors)
-                    tmp = realloc(dst->server->behaviors,
-                                   (src->max_key_code + 1) *
-                                   sizeof(XkbBehavior));
-                else
-                    tmp = malloc((src->max_key_code + 1) *
-                                 sizeof(XkbBehavior));
+                tmp = realloc(dst->server->behaviors,
+                              (src->max_key_code + 1) * sizeof(XkbBehavior));
                 if (!tmp)
                     return FALSE;
                 dst->server->behaviors = tmp;
@@ -1245,13 +1218,8 @@ _XkbCopyServerMap(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->server->vmodmap) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->server->vmodmap)
-                    tmp = realloc(dst->server->vmodmap,
-                                   (src->max_key_code + 1) *
-                                   sizeof(unsigned short));
-                else
-                    tmp = malloc((src->max_key_code + 1) *
-                                 sizeof(unsigned short));
+                tmp = realloc(dst->server->vmodmap,
+                              (src->max_key_code + 1) * sizeof(unsigned short));
                 if (!tmp)
                     return FALSE;
                 dst->server->vmodmap = tmp;
@@ -1287,12 +1255,8 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->names->keys) {
             if (src->max_key_code != dst->max_key_code) {
-                if (dst->names->keys)
-                    tmp = realloc(dst->names->keys, (src->max_key_code + 1) *
-                                   sizeof(XkbKeyNameRec));
-                else
-                    tmp = malloc((src->max_key_code + 1) *
-                                 sizeof(XkbKeyNameRec));
+                tmp = realloc(dst->names->keys,
+                              (src->max_key_code + 1) * sizeof(XkbKeyNameRec));
                 if (!tmp)
                     return FALSE;
                 dst->names->keys = tmp;
@@ -1307,13 +1271,9 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->names->num_key_aliases) {
             if (src->names->num_key_aliases != dst->names->num_key_aliases) {
-                if (dst->names->key_aliases)
-                    tmp = realloc(dst->names->key_aliases,
-                                   src->names->num_key_aliases *
-                                     sizeof(XkbKeyAliasRec));
-                else
-                    tmp = malloc(src->names->num_key_aliases *
-                                 sizeof(XkbKeyAliasRec));
+                tmp = realloc(dst->names->key_aliases,
+                              src->names->num_key_aliases *
+                              sizeof(XkbKeyAliasRec));
                 if (!tmp)
                     return FALSE;
                 dst->names->key_aliases = tmp;
@@ -1329,11 +1289,8 @@ _XkbCopyNames(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->names->num_rg) {
             if (src->names->num_rg != dst->names->num_rg) {
-                if (dst->names->radio_groups)
-                    tmp = realloc(dst->names->radio_groups,
-                                   src->names->num_rg * sizeof(Atom));
-                else
-                    tmp = malloc(src->names->num_rg * sizeof(Atom));
+                tmp = realloc(dst->names->radio_groups,
+                              src->names->num_rg * sizeof(Atom));
                 if (!tmp)
                     return FALSE;
                 dst->names->radio_groups = tmp;
@@ -1383,13 +1340,8 @@ _XkbCopyCompat(XkbDescPtr src, XkbDescPtr dst)
 
         if (src->compat->sym_interpret && src->compat->num_si) {
             if (src->compat->num_si != dst->compat->size_si) {
-                if (dst->compat->sym_interpret)
-                    tmp = realloc(dst->compat->sym_interpret,
-                                   src->compat->num_si *
-                                     sizeof(XkbSymInterpretRec));
-                else
-                    tmp = malloc(src->compat->num_si *
-                                 sizeof(XkbSymInterpretRec));
+                tmp = realloc(dst->compat->sym_interpret,
+                              src->compat->num_si * sizeof(XkbSymInterpretRec));
                 if (!tmp)
                     return FALSE;
                 dst->compat->sym_interpret = tmp;
