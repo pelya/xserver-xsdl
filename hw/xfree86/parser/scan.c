@@ -601,7 +601,7 @@ xf86pathIsSafe(const char *path)
  *    %P    projroot
  *    %C    sysconfdir
  *    %D    datadir
- *    %M    major version number
+ *    %M    config file format version number
  *    %%    %
  */
 
@@ -627,16 +627,10 @@ xf86pathIsSafe(const char *path)
 #define XCONFENV	"XORGCONFIG"
 #endif
 #define XFREE86CFGFILE "XF86Config"
-#ifndef XF86_VERSION_MAJOR
-#ifdef XVERSION
-#if XVERSION > 40000000
-#define XF86_VERSION_MAJOR	(XVERSION / 10000000)
-#else
-#define XF86_VERSION_MAJOR	(XVERSION / 1000)
-#endif
-#else
-#define XF86_VERSION_MAJOR	4
-#endif
+/* xorg.conf is based on XF86Config version 4.   If we ever break
+   compatibility of the xorg.conf syntax, we'll bump this version number. */
+#ifndef CONFIG_FILE_VERSION
+#define CONFIG_FILE_VERSION	4
 #endif
 
 #define BAIL_OUT		do {									\
@@ -771,11 +765,8 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 				break;
 			case 'M':
 				if (!majorvers[0]) {
-					if (XF86_VERSION_MAJOR < 0 || XF86_VERSION_MAJOR > 99) {
-						fprintf(stderr, "XF86_VERSION_MAJOR is out of range\n");
-						BAIL_OUT;
-					} else
-						sprintf(majorvers, "%d", XF86_VERSION_MAJOR);
+					snprintf(majorvers, sizeof(majorvers),
+						 "%d", CONFIG_FILE_VERSION);
 				}
 				APPEND_STR(majorvers);
 				break;
