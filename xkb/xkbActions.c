@@ -41,6 +41,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "xkb.h"
 #include <ctype.h>
 #include "mi.h"
+#include "mipointer.h"
 #define EXTENSION_EVENT_BASE 64
 
 DevPrivateKeyRec xkbDevicePrivateKeyRec;
@@ -1337,6 +1338,8 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
     EventListPtr        events;
     int                 nevents, i;
     DeviceIntPtr        ptr;
+    ScreenPtr           pScreen;
+    Bool                saveWait;
     int                 gpe_flags = 0;
 
     if (IsMaster(dev))
@@ -1353,9 +1356,12 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
 
     events = InitEventList(GetMaximumEventsNum());
     OsBlockSignals();
+    pScreen = miPointerGetScreen(ptr);
+    saveWait = miPointerSetWaitForUpdate(pScreen, FALSE);
     nevents = GetPointerEvents(events, ptr,
                                MotionNotify, 0,
                                gpe_flags, 0, 2, (int[]){x, y});
+    miPointerSetWaitForUpdate(pScreen, saveWait);
     OsReleaseSignals();
 
     for (i = 0; i < nevents; i++)
