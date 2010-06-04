@@ -626,7 +626,6 @@ xf86pathIsSafe(const char *path)
 #ifndef XCONFENV
 #define XCONFENV	"XORGCONFIG"
 #endif
-#define XFREE86CFGFILE "XF86Config"
 /* xorg.conf is based on XF86Config version 4.   If we ever break
    compatibility of the xorg.conf syntax, we'll bump this version number. */
 #ifndef CONFIG_FILE_VERSION
@@ -988,11 +987,8 @@ xf86openConfigFile(const char *path, const char *cmdline, const char *projroot)
 	if (!projroot || !projroot[0])
 		projroot = PROJECTROOT;
 
-	/* Search for a config file or a fallback */
+	/* Search for a config file */
 	configPath = OpenConfigFile(path, cmdline, projroot, XCONFIGFILE);
-	if (!configPath)
-		configPath = OpenConfigFile(path, cmdline, projroot,
-					    XFREE86CFGFILE);
 	return configPath;
 }
 
