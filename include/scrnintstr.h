@@ -396,7 +396,7 @@ typedef    void (* PostChangeSaveUnderProcPtr)(
 	WindowPtr /*pLayerWin*/,
 	WindowPtr /*firstChild*/);
 
-typedef    void (* ConfigNotifyProcPtr)(
+typedef    int (* ConfigNotifyProcPtr)(
 	WindowPtr /*pWin*/,
 	int /*x*/,
 	int /*y*/,

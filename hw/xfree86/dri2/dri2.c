@@ -977,7 +977,7 @@ DRI2Authenticate(ScreenPtr pScreen, uint32_t magic)
     return TRUE;
 }
 
-static void
+static int
 DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
 		 WindowPtr pSib)
 {
@@ -985,20 +985,24 @@ DRI2ConfigNotify(WindowPtr pWin, int x, int y, int w, int h, int bw,
     ScreenPtr pScreen = pDraw->pScreen;
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
     DRI2DrawablePtr dd = DRI2GetDrawable(pDraw);
+    int ret;
 
     if (ds->ConfigNotify) {
 	pScreen->ConfigNotify = ds->ConfigNotify;
 
-	(*pScreen->ConfigNotify)(pWin, x, y, w, h, bw, pSib);
+	ret = (*pScreen->ConfigNotify)(pWin, x, y, w, h, bw, pSib);
 
 	ds->ConfigNotify = pScreen->ConfigNotify;
 	pScreen->ConfigNotify = DRI2ConfigNotify;
+	if (ret)
+	    return ret;
     }
 
     if (!dd || (dd->width == w && dd->height == h))
-	return;
+	return Success;
 
     DRI2InvalidateDrawable(pDraw);
+    return Success;
 }
 
 Bool

@@ -69,9 +69,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->InstallColormap = cs->InstallColormap;
     pScreen->ChangeWindowAttributes = cs->ChangeWindowAttributes;
     pScreen->ReparentWindow = cs->ReparentWindow;
-    pScreen->MoveWindow = cs->MoveWindow;
-    pScreen->ResizeWindow = cs->ResizeWindow;
-    pScreen->ChangeBorderWidth = cs->ChangeBorderWidth;
+    pScreen->ConfigNotify = cs->ConfigNotify;
     
     pScreen->ClipNotify = cs->ClipNotify;
     pScreen->UnrealizeWindow = cs->UnrealizeWindow;
@@ -362,14 +360,8 @@ compScreenInit (ScreenPtr pScreen)
     cs->ClipNotify = pScreen->ClipNotify;
     pScreen->ClipNotify = compClipNotify;
 
-    cs->MoveWindow = pScreen->MoveWindow;
-    pScreen->MoveWindow = compMoveWindow;
-
-    cs->ResizeWindow = pScreen->ResizeWindow;
-    pScreen->ResizeWindow = compResizeWindow;
-
-    cs->ChangeBorderWidth = pScreen->ChangeBorderWidth;
-    pScreen->ChangeBorderWidth = compChangeBorderWidth;
+    cs->ConfigNotify = pScreen->ConfigNotify;
+    pScreen->ConfigNotify = compConfigNotify;
 
     cs->ReparentWindow = pScreen->ReparentWindow;
     pScreen->ReparentWindow = compReparentWindow;
