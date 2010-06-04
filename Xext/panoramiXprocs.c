@@ -1897,7 +1897,7 @@ int PanoramiXGetImage(ClientPtr client)
 	    nlines = min(linesPerBuf, h - linesDone);
 
 	    if(pDraw->depth == 1)
-		bzero(pBuf, nlines * widthBytesLine);
+		memset(pBuf, 0, nlines * widthBytesLine);
 
 	    XineramaGetImageData(drawables, x, y + linesDone, w, nlines,
 			format, planemask, pBuf, widthBytesLine, isRoot);
@@ -1914,7 +1914,7 @@ int PanoramiXGetImage(ClientPtr client)
 	        while (h - linesDone > 0) {
 		    nlines = min(linesPerBuf, h - linesDone);
 
-		    bzero(pBuf, nlines * widthBytesLine);
+		    memset(pBuf, 0, nlines * widthBytesLine);
 
 		    XineramaGetImageData(drawables, x, y + linesDone, w, 
 					nlines, format, plane, pBuf,

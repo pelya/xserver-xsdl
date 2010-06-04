@@ -654,7 +654,7 @@ xf86AllocateEntityPrivateIndex(void)
 	nprivs = xnfrealloc(pEnt->entityPrivates,
 			    xf86EntityPrivateCount * sizeof(DevUnion));
 	/* Zero the new private */
-	bzero(&nprivs[idx], sizeof(DevUnion));
+	memset(&nprivs[idx], 0, sizeof(DevUnion));
 	pEnt->entityPrivates = nprivs;
     }
     return idx;

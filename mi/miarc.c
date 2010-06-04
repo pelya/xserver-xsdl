@@ -3135,9 +3135,9 @@ realFindSpan (int y)
 			free(finalSpans);
 		}
 		if ((i = finalMiny - newMiny) > 0)
-			bzero ((char *)newSpans, i * sizeof (struct finalSpan *));
+			memset((char *)newSpans, 0, i * sizeof (struct finalSpan *));
 		if ((i = newMaxy - finalMaxy) > 0)
-			bzero ((char *)(newSpans + newSize - i),
+			memset((char *)(newSpans + newSize - i), 0,
 			       i * sizeof (struct finalSpan *));
 		finalSpans = newSpans;
 		finalMaxy = newMaxy;

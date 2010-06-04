@@ -2971,7 +2971,7 @@ ProcCreateCursor (ClientPtr client)
     else
     {
 	/* zeroing the (pad) bits helps some ddx cursor handling */
-	bzero((char *)mskbits, n);
+	memset((char *)mskbits, 0, n);
 	(* msk->drawable.pScreen->GetImage)( (DrawablePtr)msk, 0, 0, width,
 					height, XYPixmap, 1, (pointer)mskbits);
     }

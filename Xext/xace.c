@@ -321,7 +321,7 @@ XaceCensorImage(
 	    /* Censoring was not completed above.  To be safe, wipe out
 	     * all the image data so that nothing trusted gets out.
 	     */
-	    bzero(pBuf, (int)(widthBytesLine * h));
+	    memset(pBuf, 0, (int)(widthBytesLine * h));
 	}
 	if (pRects)     free(pRects);
 	if (pScratchGC) FreeScratchGC(pScratchGC);

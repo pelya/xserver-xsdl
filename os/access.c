@@ -311,7 +311,7 @@ ifioctl (int fd, int cmd, char *arg)
     struct strioctl ioc;
     int ret;
 
-    bzero((char *) &ioc, sizeof(ioc));
+    memset((char *) &ioc, 0, sizeof(ioc));
     ioc.ic_cmd = cmd;
     ioc.ic_timout = 0;
     if (cmd == SIOCGIFCONF)
@@ -1038,7 +1038,7 @@ ResetHosts (char *display)
 		len = sizeof(saddr.sa);
 		if (ConvertAddr (&saddr.sa, &len, (pointer *)&addr) == FamilyDECnet)
 		{
-		    bzero ((char *) &dnaddr, sizeof (dnaddr));
+		    memset((char *) &dnaddr, 0, sizeof (dnaddr));
 		    dnaddr.a_len = np->n_length;
 		    acopy (np->n_addr, dnaddr.a_addr, np->n_length);
 		    dnaddrp = &dnaddr;

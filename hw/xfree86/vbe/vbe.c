@@ -345,7 +345,7 @@ VBEGetVBEInfo(vbeInfoPtr pVbe)
     char *str;
     CARD16 major, *modes;
 
-    bzero(pVbe->memory, sizeof(VbeInfoBlock));
+    memset(pVbe->memory, 0, sizeof(VbeInfoBlock));
 
     /*
     Input:
@@ -504,7 +504,7 @@ VBEGetModeInfo(vbeInfoPtr pVbe, int mode)
 {
     VbeModeInfoBlock *block = NULL;
 
-    bzero(pVbe->memory, sizeof(VbeModeInfoBlock));
+    memset(pVbe->memory, 0, sizeof(VbeModeInfoBlock));
 
     /*
     Input:

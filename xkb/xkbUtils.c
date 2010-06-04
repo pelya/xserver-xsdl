@@ -282,7 +282,7 @@ register unsigned	key;
         register  unsigned      bit,i;
         unsigned                present;
 
-        bzero(newVMods,XkbNumVirtualMods);
+        memset(newVMods, 0, XkbNumVirtualMods);
         present= 0;
         for (key=xkb->min_key_code;key<=xkb->max_key_code;key++) {
             if (xkb->server->vmodmap[key]==0)
@@ -588,7 +588,7 @@ XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 xkbMapNotify	mn;
 
     xkbi->desc->server->explicit[key]|= XkbExplicitAutoRepeatMask;
-    bzero(&mn,sizeof(mn));
+    memset(&mn, 0, sizeof(mn));
     mn.changed= XkbExplicitComponentsMask;
     mn.firstKeyExplicit= key;
     mn.nKeyExplicit= 1;
@@ -961,7 +961,7 @@ _XkbCopyClientMap(XkbDescPtr src, XkbDescPtr dst)
                     if (!tmp)
                         return FALSE;
                     dst->map->types = tmp;
-                    bzero(dst->map->types + dst->map->num_types,
+                    memset(dst->map->types + dst->map->num_types, 0,
                           (src->map->num_types - dst->map->num_types) *
                             sizeof(XkbKeyTypeRec));
                 }
@@ -1426,7 +1426,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
             dst->geom->sz_properties = src->geom->num_properties;
 
             if (dst->geom->sz_properties > dst->geom->num_properties) {
-                bzero(dst->geom->properties + dst->geom->num_properties,
+                memset(dst->geom->properties + dst->geom->num_properties, 0,
                       (dst->geom->sz_properties - dst->geom->num_properties) *
                       sizeof(XkbPropertyRec));
             }
@@ -1504,7 +1504,7 @@ _XkbCopyGeom(XkbDescPtr src, XkbDescPtr dst)
             dst->geom->sz_colors = src->geom->num_colors;
 
             if (dst->geom->sz_colors > dst->geom->num_colors) {
-                bzero(dst->geom->colors + dst->geom->num_colors,
+                memset(dst->geom->colors + dst->geom->num_colors, 0,
                       (dst->geom->sz_colors - dst->geom->num_colors) *
                       sizeof(XkbColorRec));
             }

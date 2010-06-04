@@ -309,8 +309,8 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
     if ((class | DynamicClass) == DirectColor)
 	size = NUMRED(pVisual);
     pmap->freeRed = size;
-    bzero ((char *) pmap->red, (int)sizebytes);
-    bzero((char *) pmap->numPixelsRed, MAXCLIENTS * sizeof(int));
+    memset((char *) pmap->red, 0, (int)sizebytes);
+    memset((char *) pmap->numPixelsRed, 0, MAXCLIENTS * sizeof(int));
     for (pptr = &pmap->clientPixelsRed[MAXCLIENTS]; --pptr >= pmap->clientPixelsRed; )
 	*pptr = (Pixel *)NULL;
     if (alloc == AllocAll)
@@ -347,8 +347,8 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
 	pmap->numPixelsBlue = (int *)((char *)pmap->clientPixelsBlue +
 				      (MAXCLIENTS * sizeof(Pixel *)));
 
-	bzero ((char *) pmap->green, (int)sizebytes);
-	bzero ((char *) pmap->blue, (int)sizebytes);
+	memset((char *) pmap->green, 0, (int)sizebytes);
+	memset((char *) pmap->blue, 0, (int)sizebytes);
 
 	memmove((char *) pmap->clientPixelsGreen,
 		(char *) pmap->clientPixelsRed,
@@ -356,8 +356,8 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
 	memmove((char *) pmap->clientPixelsBlue,
 		(char *) pmap->clientPixelsRed,
 	      MAXCLIENTS * sizeof(Pixel *));
-	bzero((char *) pmap->numPixelsGreen, MAXCLIENTS * sizeof(int));
-	bzero((char *) pmap->numPixelsBlue, MAXCLIENTS * sizeof(int));
+	memset((char *) pmap->numPixelsGreen, 0, MAXCLIENTS * sizeof(int));
+	memset((char *) pmap->numPixelsBlue, 0, MAXCLIENTS * sizeof(int));
 
 	/* If every cell is allocated, mark its refcnt */
 	if (alloc == AllocAll)

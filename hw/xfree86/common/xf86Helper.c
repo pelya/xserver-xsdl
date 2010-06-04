@@ -269,7 +269,7 @@ xf86AllocateScrnInfoPrivateIndex(void)
 	nprivs = xnfrealloc(pScr->privates,
 			    xf86ScrnInfoPrivateCount * sizeof(DevUnion));
 	/* Zero the new private */
-	bzero(&nprivs[idx], sizeof(DevUnion));
+	memset(&nprivs[idx], 0, sizeof(DevUnion));
 	pScr->privates = nprivs;
     }
     return idx;

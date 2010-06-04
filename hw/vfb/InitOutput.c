@@ -570,7 +570,7 @@ vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
 
     /* Extend the file to be the proper size */
 
-    bzero(dummyBuffer, DUMMY_BUFFER_SIZE);
+    memset(dummyBuffer, 0, DUMMY_BUFFER_SIZE);
     for (currentFileSize = 0;
 	 currentFileSize < pvfb->sizeInBytes;
 	 currentFileSize += writeThisTime)

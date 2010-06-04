@@ -979,7 +979,7 @@ set_font_authorizations(char **authorizations, int *authlen, pointer client)
 
 	gethostname(hname, 1024);
 #if defined(IPv6) && defined(AF_INET6)
-	bzero(&hints, sizeof(hints));
+	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_CANONNAME;
 	if (getaddrinfo(hname, NULL, &hints, &ai) == 0) {
 	    hnameptr = ai->ai_canonname;
@@ -1178,7 +1178,7 @@ SmartScheduleInit (void)
     if (SmartScheduleDisable)
 	return TRUE;
     
-    bzero ((char *) &act, sizeof(struct sigaction));
+    memset((char *) &act, 0, sizeof(struct sigaction));
 
     /* Set up the timer signal function */
     act.sa_handler = SmartScheduleTimer;

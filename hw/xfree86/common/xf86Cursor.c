@@ -590,7 +590,7 @@ xf86InitOrigins(void)
     /* need to have this set up with a config file option */
     HardEdges = FALSE;
 
-    bzero(xf86ScreenLayout, MAXSCREENS * sizeof(xf86ScreenLayoutRec));
+    memset(xf86ScreenLayout, 0, MAXSCREENS * sizeof(xf86ScreenLayoutRec));
 	
     screensLeft = prevScreensLeft = (1 << xf86NumScreens) - 1;
 

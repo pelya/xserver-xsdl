@@ -203,8 +203,8 @@ xf86PrintBanner(void)
     struct tm t;
     char buf[100];
 
-    bzero(&t, sizeof(t));
-    bzero(buf, sizeof(buf));
+    memset(&t, 0, sizeof(t));
+    memset(buf, 0, sizeof(buf));
     t.tm_mday = BUILD_DATE % 100;
     t.tm_mon = (BUILD_DATE / 100) % 100 - 1;
     t.tm_year = BUILD_DATE / 10000 - 1900;

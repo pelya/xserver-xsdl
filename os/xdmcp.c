@@ -338,7 +338,7 @@ XdmcpRegisterBroadcastAddress (const struct sockaddr_in *addr)
     if (NumBroadcastAddresses >= MAX_BROADCAST)
 	return;
     bcast = &BroadcastAddresses[NumBroadcastAddresses++];
-    bzero (bcast, sizeof (struct sockaddr_in));
+    memset(bcast, 0, sizeof (struct sockaddr_in));
 #ifdef BSD44SOCKETS
     bcast->sin_len = addr->sin_len;
 #endif
@@ -1483,7 +1483,7 @@ get_addr_by_name(
     char *pport = portstr;
     int gaierr;
 
-    bzero(&hints, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = socktype;
 
     if (port == 0) {
@@ -1616,7 +1616,7 @@ get_mcast_options(int argc, char **argv, int i)
     } else {
 	FatalError("Xserver: port out of range: %d\n", xdm_udp_port);
     }
-    bzero(&hints, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_socktype = SOCK_DGRAM;
 
     if ((gaierr = getaddrinfo(address, portstr, &hints, &firstai)) == 0) {

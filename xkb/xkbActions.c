@@ -1032,7 +1032,7 @@ register int	i;
     xkbi->filters= realloc(xkbi->filters,
                             xkbi->szFilters * sizeof(XkbFilterRec));
     /* 6/21/93 (ef) -- XXX! deal with allocation failure */
-    bzero(&xkbi->filters[xkbi->szFilters/2],
+    memset(&xkbi->filters[xkbi->szFilters/2], 0,
             (xkbi->szFilters/2)*sizeof(XkbFilterRec));
     return &xkbi->filters[xkbi->szFilters/2];
 }

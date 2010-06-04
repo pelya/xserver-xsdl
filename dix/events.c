@@ -4310,7 +4310,7 @@ CoreEnterLeaveEvent(
         xKeymapEvent ke;
         ClientPtr client = grab ? rClient(grab) : wClient(pWin);
         if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixReadAccess))
-            bzero((char *)&ke.map[0], 31);
+            memset((char *)&ke.map[0], 0, 31);
         else
             memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
 
@@ -4420,7 +4420,7 @@ CoreFocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
         xKeymapEvent ke;
         ClientPtr client = wClient(pWin);
         if (XaceHook(XACE_DEVICE_ACCESS, client, dev, DixReadAccess))
-            bzero((char *)&ke.map[0], 31);
+            memset((char *)&ke.map[0], 0, 31);
         else
             memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 

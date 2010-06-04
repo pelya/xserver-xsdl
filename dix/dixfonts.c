@@ -1093,7 +1093,7 @@ doListFontsWithInfo(ClientPtr client, LFWIclosurePtr c)
     }
 finish:
     length = sizeof(xListFontsWithInfoReply);
-    bzero((char *) &finalReply, sizeof(xListFontsWithInfoReply));
+    memset((char *) &finalReply, 0, sizeof(xListFontsWithInfoReply));
     finalReply.type = X_Reply;
     finalReply.sequenceNumber = client->sequence;
     finalReply.length = bytes_to_int32(sizeof(xListFontsWithInfoReply)
