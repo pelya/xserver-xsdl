@@ -134,6 +134,6 @@ add_option(InputOption **options, const char *key, const char *value)
     if (!*options) /* Yeesh. */
         return;
     (*options)->key = xstrdup(key);
-    (*options)->value = xstrdup(value);
+    (*options)->value = strdup(value);
     (*options)->next = NULL;
 }
