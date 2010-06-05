@@ -288,12 +288,12 @@ static void RootlessReshapeFrame(WindowPtr pWin)
  *  shaped when the window is framed.
  */
 void
-RootlessSetShape(WindowPtr pWin)
+RootlessSetShape(WindowPtr pWin, int kind)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
 
     SCREEN_UNWRAP(pScreen, SetShape);
-    pScreen->SetShape(pWin);
+    pScreen->SetShape(pWin, kind);
     SCREEN_WRAP(pScreen, SetShape);
 
     RootlessReshapeFrame(pWin);
