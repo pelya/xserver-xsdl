@@ -265,8 +265,7 @@ extern _X_EXPORT int DRI2WaitMSC(ClientPtr client, DrawablePtr pDrawable,
 extern _X_EXPORT int ProcDRI2WaitMSCReply(ClientPtr client, CARD64 ust,
 					  CARD64 msc, CARD64 sbc);
 extern _X_EXPORT int DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw,
-				 CARD64 target_sbc, CARD64 *ust, CARD64 *msc,
-				 CARD64 *sbc);
+				 CARD64 target_sbc);
 extern _X_EXPORT Bool DRI2ThrottleClient(ClientPtr client, DrawablePtr pDraw);
 
 extern _X_EXPORT Bool DRI2CanFlip(DrawablePtr pDraw);

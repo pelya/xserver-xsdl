@@ -912,8 +912,7 @@ DRI2WaitMSC(ClientPtr client, DrawablePtr pDraw, CARD64 target_msc,
 }
 
 int
-DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw, CARD64 target_sbc,
-	    CARD64 *ust, CARD64 *msc, CARD64 *sbc)
+DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw, CARD64 target_sbc)
 {
     DRI2DrawablePtr pPriv;
 
@@ -927,14 +926,13 @@ DRI2WaitSBC(ClientPtr client, DrawablePtr pDraw, CARD64 target_sbc,
     if (target_sbc == 0)
         target_sbc = pPriv->swap_count + pPriv->swapsPending;
 
-    /* If current swap count already >= target_sbc,
+    /* If current swap count already >= target_sbc, reply and
      * return immediately with (ust, msc, sbc) triplet of
      * most recent completed swap.
      */
     if (pPriv->swap_count >= target_sbc) {
-        *sbc = pPriv->swap_count;
-        *msc = pPriv->last_swap_msc;
-        *ust = pPriv->last_swap_ust;
+        ProcDRI2WaitMSCReply(client, pPriv->last_swap_ust,
+                             pPriv->last_swap_msc, pPriv->swap_count);
         return Success;
     }
 
