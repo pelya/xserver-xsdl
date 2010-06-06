@@ -53,25 +53,39 @@ static void RRDeliverPropertyEvent(ScreenPtr pScreen, xEvent *event)
 	WalkTree(pScreen, DeliverPropertyEvent, event);
 }
 
+static void
+RRDestroyOutputProperty (RRPropertyPtr prop)
+{
+    free(prop->valid_values);
+    free(prop->current.data);
+    free(prop->pending.data);
+    free(prop);
+}
+
+static void
+RRDeleteProperty(RROutputRec *output, RRPropertyRec *prop)
+{
+    xRROutputPropertyNotifyEvent event;
+    event.type = RREventBase + RRNotify;
+    event.subCode = RRNotify_OutputProperty;
+    event.output = output->id;
+    event.state = PropertyDelete;
+    event.atom = prop->propertyName;
+    event.timestamp = currentTime.milliseconds;
+
+    RRDeliverPropertyEvent(output->pScreen, (xEvent *)&event);
+
+    RRDestroyOutputProperty(prop);
+}
+
 void
-RRDeleteAllOutputProperties (RROutputPtr output)
+RRDeleteAllOutputProperties(RROutputPtr output)
 {
     RRPropertyPtr prop, next;
-    xRROutputPropertyNotifyEvent    event;
 
-    for (prop = output->properties; prop; prop = next)
-    {
+    for (prop = output->properties; prop; prop = next) {
 	next = prop->next;
-	event.type = RREventBase + RRNotify;
-	event.subCode = RRNotify_OutputProperty;
-	event.output = output->id;
-	event.state = PropertyDelete;
-	event.atom = prop->propertyName;
-	event.timestamp = currentTime.milliseconds;
-	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
-	free(prop->current.data);
-	free(prop->pending.data);
-	free(prop);
+        RRDeleteProperty(output, prop);
     }
 }
 
@@ -104,37 +118,17 @@ RRCreateOutputProperty (Atom property)
     return prop;
 }
 
-static void
-RRDestroyOutputProperty (RRPropertyPtr prop)
-{
-    free(prop->valid_values);
-    free(prop->current.data);
-    free(prop->pending.data);
-    free(prop->valid_values);
-    free(prop);
-}
-
 void
-RRDeleteOutputProperty (RROutputPtr output, Atom property)
+RRDeleteOutputProperty(RROutputPtr output, Atom property)
 {
-    RRPropertyPtr	prop, *prev;
-    xRROutputPropertyNotifyEvent    event;
+    RRPropertyRec *prop, **prev;
 
     for (prev = &output->properties; (prop = *prev); prev = &(prop->next))
-	if (prop->propertyName == property)
-	    break;
-    if (prop)
-    {
-	*prev = prop->next;
-	event.type = RREventBase + RRNotify;
-	event.subCode = RRNotify_OutputProperty;
-	event.output = output->id;
-	event.state = PropertyDelete;
-	event.atom = prop->propertyName;
-	event.timestamp = currentTime.milliseconds;
-	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
-	RRDestroyOutputProperty (prop);
-    }
+	if (prop->propertyName == property) {
+            *prev = prop->next;
+            RRDeleteProperty(output, prop);
+            return;
+        }
 }
 
 int
