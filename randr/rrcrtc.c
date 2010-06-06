@@ -863,19 +863,6 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
     
-#if 0
-    /*
-     * if the client's config timestamp is not the same as the last config
-     * timestamp, then the config information isn't up-to-date and
-     * can't even be validated
-     */
-    if (CompareTimeStamps (configTime, pScrPriv->lastConfigTime) != 0)
-    {
-	rep.status = RRSetConfigInvalidConfigTime;
-	goto sendReply;
-    }
-#endif
-    
     /*
      * Validate requested rotation
      */
@@ -948,16 +935,6 @@ ProcRRSetCrtcConfig (ClientPtr client)
 #endif
     }
     
-    /*
-     * Make sure the requested set-time is not older than
-     * the last set-time
-     */
-    if (CompareTimeStamps (time, pScrPriv->lastSetTime) < 0)
-    {
-	rep.status = RRSetConfigInvalidTime;
-	goto sendReply;
-    }
-
     if (!RRCrtcSet (crtc, mode, stuff->x, stuff->y,
 		   rotation, numOutputs, outputs))
     {
@@ -1088,16 +1065,6 @@ ProcRRSetPanning (ClientPtr client)
     
     time = ClientTimeToServerTime(stuff->timestamp);
     
-    /*
-     * Make sure the requested set-time is not older than
-     * the last set-time
-     */
-    if (CompareTimeStamps (time, pScrPriv->lastSetTime) < 0)
-    {
-	rep.status = RRSetConfigInvalidTime;
-	goto sendReply;
-    }
-
     if (!pScrPriv->rrGetPanning)
 	return RRErrorBase + BadRRCrtc;
 
