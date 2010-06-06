@@ -3081,10 +3081,8 @@ fillSpans (
 	    (*pGC->ops->FillSpans) (pDrawable, pGC, i, xSpans, xWidths, TRUE);
 	}
 	disposeFinalSpans ();
-	if (xSpans)
-	    free(xSpans);
-	if (xWidths)
-	    free(xWidths);
+	free(xSpans);
+	free(xWidths);
 	finalMiny = 0;
 	finalMaxy = -1;
 	finalSize = 0;

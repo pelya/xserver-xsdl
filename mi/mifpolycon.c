@@ -122,9 +122,9 @@ miFillSppPoly(
 
     if(!ptsOut || !width || !Marked)
     {
-	if (Marked) free(Marked);
-	if (width) free(width);
-	if (ptsOut) free(ptsOut);
+	free(Marked);
+	free(width);
+	free(ptsOut);
 	return;
     }
 

@@ -108,8 +108,7 @@ miCopyRegion (DrawablePtr   pSrcDrawable,
 	    pboxNew2 = (BoxPtr)malloc(sizeof(BoxRec) * nbox);
 	    if(!pboxNew2)
 	    {
-		if (pboxNew1)
-		    free(pboxNew1);
+		free(pboxNew1);
 		return;
 	    }
 	    pboxBase = pboxNext = pbox;
@@ -143,10 +142,8 @@ miCopyRegion (DrawablePtr   pSrcDrawable,
 		 dx, dy,
 		 reverse, upsidedown, bitPlane, closure);
     
-    if (pboxNew1)
-	free(pboxNew1);
-    if (pboxNew2)
-	free(pboxNew2);
+    free(pboxNew1);
+    free(pboxNew2);
 }
 
 RegionPtr

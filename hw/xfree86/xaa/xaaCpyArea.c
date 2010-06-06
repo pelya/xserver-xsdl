@@ -148,8 +148,8 @@ XAADoBitBlt(
 	    pboxNew2 = (BoxPtr)malloc(sizeof(BoxRec) * nbox);
 	    pptNew2 = (DDXPointPtr)malloc(sizeof(DDXPointRec) * nbox);
 	    if(!pboxNew2 || !pptNew2) {
-		if (pptNew2) free(pptNew2);
-		if (pboxNew2) free(pboxNew2);
+		free(pptNew2);
+		free(pboxNew2);
 		if (pboxNew1) {
 		    free(pptNew1);
 		    free(pboxNew1);

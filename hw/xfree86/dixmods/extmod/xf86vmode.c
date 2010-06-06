@@ -1102,8 +1102,7 @@ ProcXF86VidModeValidateModeLine(ClientPtr client)
     status = VidModeCheckModeForDriver(stuff->screen, modetmp);
 
 status_reply:
-    if(modetmp)
-      free(modetmp);
+    free(modetmp);
 
     rep.type = X_Reply;
     rep.length = bytes_to_int32(SIZEOF(xXF86VidModeValidateModeLineReply)

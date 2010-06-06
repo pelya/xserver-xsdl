@@ -214,8 +214,7 @@ xnestSetInstalledColormapWindows(ScreenPtr pScreen)
   free(icws.cmapIDs);
   
   if (!xnestSameInstalledColormapWindows(icws.windows, icws.numWindows)) {
-    if (xnestOldInstalledColormapWindows)
-      free(xnestOldInstalledColormapWindows);
+    free(xnestOldInstalledColormapWindows);
 
 #ifdef _XSERVER64
     {
@@ -264,14 +263,13 @@ xnestSetInstalledColormapWindows(ScreenPtr pScreen)
 #endif /* DUMB_WINDOW_MANAGERS */
   }
   else
-    if (icws.windows) free(icws.windows);
+    free(icws.windows);
 }
 
 void
 xnestSetScreenSaverColormapWindow(ScreenPtr pScreen)
 {
-  if (xnestOldInstalledColormapWindows)
-    free(xnestOldInstalledColormapWindows);
+  free(xnestOldInstalledColormapWindows);
   
 #ifdef _XSERVER64
   {

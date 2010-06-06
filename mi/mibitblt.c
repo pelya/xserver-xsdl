@@ -150,12 +150,9 @@ miCopyArea(DrawablePtr  pSrcDrawable,
     ordering = malloc(numRects * sizeof(unsigned int));
     if(!pptFirst || !pwidthFirst || !ordering)
     {
-       if (ordering)
-	   free(ordering);
-       if (pwidthFirst)
-           free(pwidthFirst);
-       if (pptFirst)
-           free(pptFirst);
+       free(ordering);
+       free(pwidthFirst);
+       free(pptFirst);
        return NULL;
     }
 
@@ -433,8 +430,8 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     pwidth = pwidthFirst = malloc(h * sizeof(int));
     if(!pptFirst || !pwidthFirst)
     {
-	if (pwidthFirst) free(pwidthFirst);
-	if (pptFirst) free(pptFirst);
+	free(pwidthFirst);
+	free(pptFirst);
 	FreeScratchGC(pGCT);
 	return;
     }
@@ -801,10 +798,8 @@ miPutImage( DrawablePtr pDraw, GCPtr pGC, int depth,
         pwidth = pwidthFirst = malloc(h * sizeof(int));
 	if(!pptFirst || !pwidthFirst)
         {
-	   if (pwidthFirst)
-               free(pwidthFirst);
-           if (pptFirst)
-               free(pptFirst);
+	   free(pwidthFirst);
+           free(pptFirst);
            return;
         }
 	if (pGC->miTranslate)

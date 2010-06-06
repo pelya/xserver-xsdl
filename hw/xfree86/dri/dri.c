@@ -578,10 +578,8 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	      drmInstallSIGIOHandler(pDRIPriv->drmFD, DRISwapContext))) {
 	    DRIDrvMsg(pScreen->myNum, X_ERROR,
 		      "[drm] failed to setup DRM signal handler\n");
-	    if (pDRIPriv->hiddenContextStore)
-		free(pDRIPriv->hiddenContextStore);
-	    if (pDRIPriv->partial3DContextStore)
-		free(pDRIPriv->partial3DContextStore);
+	    free(pDRIPriv->hiddenContextStore);
+	    free(pDRIPriv->partial3DContextStore);
 	    DRIDestroyContextPriv(pDRIContextPriv);
 	    return FALSE;
 	} else {
@@ -1618,7 +1616,7 @@ DRICreateInfoRec(void)
 void
 DRIDestroyInfoRec(DRIInfoPtr DRIInfo)
 {
-    if (DRIInfo->busIdString) free(DRIInfo->busIdString);
+    free(DRIInfo->busIdString);
     free((char*)DRIInfo);
 }
 

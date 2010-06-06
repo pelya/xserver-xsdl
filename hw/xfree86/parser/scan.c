@@ -923,8 +923,7 @@ OpenConfigDir(const char *path, const char *cmdline, const char *projroot,
 		if (!found) {
 			free(dirpath);
 			dirpath = NULL;
-			if (list)
-				free(list);
+			free(list);
 		}
 	}
 
@@ -1088,8 +1087,7 @@ xf86validationError (char *format,...)
 void
 xf86setSection (char *section)
 {
-	if (configSection)
-		free(configSection);
+	free(configSection);
 	configSection = malloc(strlen (section) + 1);
 	strcpy (configSection, section);
 }

@@ -157,8 +157,7 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
 	    xf86_config->num_crtc--;
 	    break;
 	}
-    if (crtc->params)
-	free(crtc->params);
+    free(crtc->params);
     free(crtc->gamma_red);
     free(crtc);
 }
@@ -382,8 +381,7 @@ done:
 	crtc->transformPresent = saved_transform_present;
     }
 
-    if (adjusted_mode->name)
-	    free(adjusted_mode->name);
+    free(adjusted_mode->name);
     free(adjusted_mode);
 
     if (didLock)
@@ -482,8 +480,7 @@ xf86OutputSetMonitor (xf86OutputPtr output)
     if (!output->name)
 	return;
 
-    if (output->options)
-	free(output->options);
+    free(output->options);
 
     output->options = xnfalloc (sizeof (xf86OutputOptions));
     memcpy (output->options, xf86OutputOptions, sizeof (xf86OutputOptions));

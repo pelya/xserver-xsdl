@@ -327,8 +327,7 @@ void
 AllocateMotionHistory(DeviceIntPtr pDev)
 {
     int size;
-    if (pDev->valuator->motion)
-        free(pDev->valuator->motion);
+    free(pDev->valuator->motion);
 
     if (pDev->valuator->numMotionEvents < 1)
         return;

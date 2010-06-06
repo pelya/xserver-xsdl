@@ -257,8 +257,7 @@ exaDestroyPixmap_mixed(PixmapPtr pPixmap)
 	pExaPixmap->driverPriv = NULL;
 
 	if (pExaPixmap->pDamage) {
-	    if (pExaPixmap->sys_ptr)
-		free(pExaPixmap->sys_ptr);
+	    free(pExaPixmap->sys_ptr);
 	    pExaPixmap->sys_ptr = NULL;
 	    pExaPixmap->pDamage = NULL;
 	}

@@ -553,9 +553,9 @@ MakeMultiDefs(XkbRF_MultiDefsPtr mdefs, XkbRF_VarDefsPtr defs)
 static void
 FreeMultiDefs(XkbRF_MultiDefsPtr defs)
 {
-  if (defs->options) free(defs->options);
-  if (defs->layout[1])  free(defs->layout[1]);
-  if (defs->variant[1])  free(defs->variant[1]);
+  free(defs->options);
+  free(defs->layout[1]);
+  free(defs->variant[1]);
 }
 
 static void
@@ -988,15 +988,15 @@ XkbRF_GroupPtr	group;
 	return;
     if (rules->rules) {
 	for (i=0,rule=rules->rules;i<rules->num_rules;i++,rule++) {
-	    if (rule->model)	free(rule->model);
-	    if (rule->layout)	free(rule->layout);
-	    if (rule->variant)	free(rule->variant);
-	    if (rule->option)	free(rule->option);
-	    if (rule->keycodes)	free(rule->keycodes);
-	    if (rule->symbols)	free(rule->symbols);
-	    if (rule->types)	free(rule->types);
-	    if (rule->compat)	free(rule->compat);
-	    if (rule->geometry)	free(rule->geometry);
+	    free(rule->model);
+	    free(rule->layout);
+	    free(rule->variant);
+	    free(rule->option);
+	    free(rule->keycodes);
+	    free(rule->symbols);
+	    free(rule->types);
+	    free(rule->compat);
+	    free(rule->geometry);
 	    memset((char *)rule, 0, sizeof(XkbRF_RuleRec));
 	}
 	free(rules->rules);
@@ -1006,8 +1006,8 @@ XkbRF_GroupPtr	group;
 
     if (rules->groups) {
 	for (i=0, group=rules->groups;i<rules->num_groups;i++,group++) {
-	    if (group->name)	free(group->name);
-	    if (group->words)	free(group->words);
+	    free(group->name);
+	    free(group->words);
 	}
 	free(rules->groups);
 	rules->num_groups= 0;

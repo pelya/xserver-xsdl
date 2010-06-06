@@ -693,10 +693,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
     if (!(pScrVisInfo = (XdbeScreenVisualInfo *)malloc(count *
                         sizeof(XdbeScreenVisualInfo))))
     {
-        if (pDrawables)
-        {
-            free(pDrawables);
-        }
+        free(pDrawables);
 
         return(BadAlloc);
     }
@@ -722,10 +719,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
             }
 
             /* Free pDrawables if we needed to allocate it above. */
-            if (pDrawables)
-            {
-                free(pDrawables);
-            }
+            free(pDrawables);
 
             return (rc == Success) ? BadAlloc : rc;
         }
@@ -803,10 +797,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
     }
     free(pScrVisInfo);
 
-    if (pDrawables)
-    {
-        free(pDrawables);
-    }
+    free(pDrawables);
 
     return Success;
 

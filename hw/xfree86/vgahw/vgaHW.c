@@ -1479,8 +1479,7 @@ vgaHWGetHWRecPrivate(void)
 static void
 vgaHWFreeRegs(vgaRegPtr regp)
 {
-    if (regp->CRTC)
-        free(regp->CRTC);
+    free(regp->CRTC);
 
     regp->CRTC =
     regp->Sequencer =

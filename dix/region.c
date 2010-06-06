@@ -762,8 +762,7 @@ RegionOp(
 	AppendRegions(newReg, r2BandEnd, r2End);
     }
 
-    if (oldData)
-	free(oldData);
+    free(oldData);
 
     if (!(numRects = newReg->data->numRects))
     {

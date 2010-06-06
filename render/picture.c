@@ -1524,8 +1524,7 @@ FreePicture (pointer	value,
 
     if (--pPicture->refcnt == 0)
     {
-	if (pPicture->transform)
-	    free(pPicture->transform);
+	free(pPicture->transform);
 
 	if (pPicture->pSourcePict)
 	{

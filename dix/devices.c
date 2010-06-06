@@ -740,8 +740,7 @@ FreeDeviceClass(int type, pointer *class)
         case ButtonClass:
             {
                 ButtonClassPtr *b = (ButtonClassPtr*)class;
-                if ((*b)->xkb_acts)
-                    free((*b)->xkb_acts);
+                free((*b)->xkb_acts);
                 free((*b));
                 break;
             }
@@ -749,8 +748,7 @@ FreeDeviceClass(int type, pointer *class)
             {
                 ValuatorClassPtr *v = (ValuatorClassPtr*)class;
 
-                if ((*v)->motion)
-                    free((*v)->motion);
+                free((*v)->motion);
                 free((*v));
                 break;
             }
@@ -1465,10 +1463,8 @@ InitStringFeedbackClassDeviceStruct (
     feedc->ctrl.symbols_displayed = malloc(sizeof (KeySym) * max_symbols);
     if (!feedc->ctrl.symbols_supported || !feedc->ctrl.symbols_displayed)
     {
-	if (feedc->ctrl.symbols_supported)
-	    free(feedc->ctrl.symbols_supported);
-	if (feedc->ctrl.symbols_displayed)
-	    free(feedc->ctrl.symbols_displayed);
+	free(feedc->ctrl.symbols_supported);
+	free(feedc->ctrl.symbols_displayed);
 	free(feedc);
 	return FALSE;
     }
@@ -2283,8 +2279,7 @@ ProcGetMotionEvents(ClientPtr client)
 	WriteSwappedDataToClient(client, nEvents * sizeof(xTimecoord),
 				 (char *)coords);
     }
-    if (coords)
-	free(coords);
+    free(coords);
     return Success;
 }
 

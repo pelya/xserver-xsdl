@@ -1084,9 +1084,9 @@ static void dmxInputFreeLocal(DMXLocalInputInfoRec *local)
     if (local->isCore && local->type == DMX_LOCAL_KEYBOARD)
         dmxLocalCoreKeyboard = NULL;
     if (local->destroy_private) local->destroy_private(local->private);
-    if (local->history)         free(local->history);
-    if (local->valuators)       free(local->valuators);
-    if (local->deviceName)      free(local->deviceName);
+    free(local->history);
+    free(local->valuators);
+    free(local->deviceName);
     local->private    = NULL;
     local->history    = NULL;
     local->deviceName = NULL;
@@ -1100,9 +1100,9 @@ void dmxInputFree(DMXInputInfo *dmxInput)
     
     if (!dmxInput) return;
 
-    if (dmxInput->keycodes) free(dmxInput->keycodes);
-    if (dmxInput->symbols)  free(dmxInput->symbols);
-    if (dmxInput->geometry) free(dmxInput->geometry);
+    free(dmxInput->keycodes);
+    free(dmxInput->symbols);
+    free(dmxInput->geometry);
 
     for (i = 0; i < dmxInput->numDevs; i++) {
         dmxInputFreeLocal(dmxInput->devs[i]);

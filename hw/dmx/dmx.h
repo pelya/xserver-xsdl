@@ -351,7 +351,7 @@ do {									\
         
 #define MAXSCREENSFREE(o)                                               \
     do {                                                                \
-        if (o) free(o);                                                \
+        free(o);                                                \
         o = NULL;                                                       \
     } while (0)
 

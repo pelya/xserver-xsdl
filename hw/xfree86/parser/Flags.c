@@ -451,8 +451,7 @@ xf86parseOption(XF86OptionPtr head)
 
 	if ((token = xf86getSubToken(&comment)) != STRING) {
 		xf86parseError(BAD_OPTION_MSG, NULL);
-		if (comment)
-			free(comment);
+		free(comment);
 		return (head);
 	}
 

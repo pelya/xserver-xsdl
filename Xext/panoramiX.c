@@ -1276,8 +1276,7 @@ XineramaGetImageData(
 	
     }
 
-    if(ScratchMem)
-	free(ScratchMem);
+    free(ScratchMem);
 
     RegionUninit(&SrcRegion);
     RegionUninit(&GrabRegion);

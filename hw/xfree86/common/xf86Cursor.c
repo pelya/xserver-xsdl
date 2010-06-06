@@ -848,10 +848,10 @@ xf86ReconfigureLayout(void)
     for (i = 0; i < MAXSCREENS; i++) {
 	xf86ScreenLayoutPtr sl = &xf86ScreenLayout[i];
 	/* we don't have to zero these, xf86InitOrigins() takes care of that */
-	if (sl->left) free(sl->left);
-	if (sl->right) free(sl->right);
-	if (sl->up) free(sl->up);
-	if (sl->down) free(sl->down);
+	free(sl->left);
+	free(sl->right);
+	free(sl->up);
+	free(sl->down);
     }
 
     xf86InitOrigins();

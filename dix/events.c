@@ -3793,10 +3793,8 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     }
 
 unwind:
-    if (xE)
-        free(xE);
-    if (xi2)
-        free(xi2);
+    free(xE);
+    free(xi2);
     return;
 }
 
@@ -3976,10 +3974,8 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	}
     }
 
-    if (xi)
-        free(xi);
-    if (xi2)
-        free(xi2);
+    free(xi);
+    free(xi2);
 }
 
 /* This function is used to set the key pressed or key released state -

@@ -1868,8 +1868,7 @@ bailout:
     if (si)
     {
 	for (i = 0; i < maxSets; i++)
-	    if (si[i].intervals)
-		free(si[i].intervals);
+	    free(si[i].intervals);
 	free(si);
     }
     if (pCanonClients && pCanonClients != (XID *)&stuff[1])
@@ -1955,8 +1954,7 @@ ProcRecordCreateContext(ClientPtr client)
 	err = BadAlloc;
     }
 bailout:
-    if (pContext)
-	free(pContext);
+    free(pContext);
     return err;
 } /* ProcRecordCreateContext */
 
@@ -2352,7 +2350,7 @@ ProcRecordGetContext(ClientPtr client)
 bailout:
     for (i = 0; i < nRCAPs; i++)
     {
-	if (pRangeInfo[i].pRanges) free(pRangeInfo[i].pRanges);
+	free(pRangeInfo[i].pRanges);
     }
     free(pRangeInfo);
     return err;

@@ -312,8 +312,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
 	if ((map_count>type->map_count)||(type->map==NULL))
 	    type->map = realloc(type->map,map_count * sizeof(XkbKTMapEntryRec));
 	if (!type->map) {
-	    if (prev_map) 
-		free(prev_map);
+	    free(prev_map);
 	    return BadAlloc;
 	}
 	if (want_preserve) {
@@ -324,8 +323,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
 					  map_count * sizeof(XkbModsRec));
 	    }
 	    if (!type->preserve) {
-		if (prev_preserve) 
-		    free(prev_preserve);
+		free(prev_preserve);
 		return BadAlloc;
 	    }
 	}
@@ -342,8 +340,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
 	type->level_names = realloc(type->level_names,
 				     new_num_lvls * sizeof(Atom));
 	if (!type->level_names) {
-	    if (prev_level_names) 
-		free(prev_level_names);
+	    free(prev_level_names);
 	    return BadAlloc;
 	}
     }

@@ -69,10 +69,8 @@ RRDeleteAllOutputProperties (RROutputPtr output)
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
 	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
-	if (prop->current.data)
-	    free(prop->current.data);
-	if (prop->pending.data)
-	    free(prop->pending.data);
+	free(prop->current.data);
+	free(prop->pending.data);
 	free(prop);
     }
 }
@@ -109,14 +107,10 @@ RRCreateOutputProperty (Atom property)
 static void
 RRDestroyOutputProperty (RRPropertyPtr prop)
 {
-    if (prop->valid_values)
-	free(prop->valid_values);
-    if (prop->current.data)
-	free(prop->current.data);
-    if (prop->pending.data)
-	free(prop->pending.data);
-    if (prop->valid_values)
-	free(prop->valid_values);
+    free(prop->valid_values);
+    free(prop->current.data);
+    free(prop->pending.data);
+    free(prop->valid_values);
     free(prop);
 }
 
@@ -232,12 +226,10 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	    !pScrPriv->rrOutputSetProperty(output->pScreen, output,
 					   prop->propertyName, &new_value))
 	{
-	    if (new_value.data)
-		free(new_value.data);
+	    free(new_value.data);
 	    return (BadValue);
 	}
-	if (prop_value->data)
-	    free(prop_value->data);
+	free(prop_value->data);
 	*prop_value = new_value;
     }
 
@@ -378,8 +370,7 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
      */
     if (prop->is_pending && !pending)
     {
-	if (prop->pending.data)
-	    free(prop->pending.data);
+	free(prop->pending.data);
 	RRInitOutputPropertyValue (&prop->pending);
     }
 
@@ -387,8 +378,7 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
     prop->range = range;
     prop->immutable = immutable;
     prop->num_valid = num_values;
-    if (prop->valid_values)
-	free(prop->valid_values);
+    free(prop->valid_values);
     prop->valid_values = new_values;
 
     if (add) {

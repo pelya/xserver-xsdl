@@ -844,10 +844,8 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
 unwind:
     if (is_auto && !xf86Info.autoAddDevices)
         xf86Msg(X_INFO, "AutoAddDevices is off - not adding device.\n");
-    if(idev->driver)
-        free(idev->driver);
-    if(idev->identifier)
-        free(idev->identifier);
+    free(idev->driver);
+    free(idev->identifier);
     xf86optionListFree(idev->commonOptions);
     free(idev);
     return rval;

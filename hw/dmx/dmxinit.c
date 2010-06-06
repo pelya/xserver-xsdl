@@ -606,8 +606,8 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
             dmxScreens[i].stat = NULL;
         }
         for (i = 0; i < dmxNumInputs; i++) dmxInputFree(&dmxInputs[i]);
-        if (dmxScreens) free(dmxScreens);
-        if (dmxInputs)  free(dmxInputs);
+        free(dmxScreens);
+        free(dmxInputs);
         dmxScreens    = NULL;
         dmxInputs     = NULL;
         dmxNumScreens = 0;

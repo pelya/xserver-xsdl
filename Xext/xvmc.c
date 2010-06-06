@@ -259,8 +259,7 @@ ProcXvMCCreateContext(ClientPtr client)
       WriteToClient(client, dwords << 2, (char*)data); 
     AddResource(pContext->context_id, XvMCRTContext, pContext);
 
-    if(data)
-	free(data);
+    free(data);
 
     return Success;
 }
@@ -327,8 +326,7 @@ ProcXvMCCreateSurface(ClientPtr client)
       WriteToClient(client, dwords << 2, (char*)data);
     AddResource(pSurface->surface_id, XvMCRTSurface, pSurface);
 
-    if(data)
-        free(data);
+    free(data);
 
     pContext->refcnt++;
 
@@ -444,8 +442,7 @@ ProcXvMCCreateSubpicture(ClientPtr client)
       WriteToClient(client, dwords << 2, (char*)data);
     AddResource(pSubpicture->subpicture_id, XvMCRTSubpicture, pSubpicture);
 
-    if(data)
-        free(data);
+    free(data);
 
     pContext->refcnt++;
 

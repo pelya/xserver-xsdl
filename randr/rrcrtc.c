@@ -190,8 +190,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	}
 	else
 	{
-	    if (crtc->outputs)
-		free(crtc->outputs);
+	    free(crtc->outputs);
 	    newoutputs = NULL;
 	}
 	crtc->outputs = newoutputs;
@@ -440,8 +439,7 @@ RRCrtcDestroyResource (pointer value, XID pid)
 	    }
 	}
     }
-    if (crtc->gammaRed)
-	free(crtc->gammaRed);
+    free(crtc->gammaRed);
     if (crtc->mode)
 	RRModeDestroy (crtc->mode);
     free(crtc);
@@ -563,8 +561,7 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
     }
     else
 	gamma = NULL;
-    if (crtc->gammaRed)
-	free(crtc->gammaRed);
+    free(crtc->gammaRed);
     crtc->gammaRed = gamma;
     crtc->gammaGreen = gamma + size;
     crtc->gammaBlue = gamma + size*2;
@@ -805,8 +802,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 				     RROutputType, client, DixSetAttrAccess);
 	if (rc != Success)
 	{
-	    if (outputs)
-		free(outputs);
+	    free(outputs);
 	    return rc;
 	}
 	/* validate crtc for this output */
@@ -815,8 +811,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 		break;
 	if (j == outputs[i]->numCrtcs)
 	{
-	    if (outputs)
-		free(outputs);
+	    free(outputs);
 	    return BadMatch;
 	}
 	/* validate mode for this output */
@@ -830,8 +825,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	}
 	if (j == outputs[i]->numModes + outputs[i]->numUserModes)
 	{
-	    if (outputs)
-		free(outputs);
+	    free(outputs);
 	    return BadMatch;
 	}
     }
@@ -850,8 +844,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    }
 	    if (k == outputs[i]->numClones)
 	    {
-		if (outputs)
-		    free(outputs);
+		free(outputs);
 		return BadMatch;
 	    }
 	}
@@ -900,8 +893,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	 * Invalid rotation
 	 */
 	client->errorValue = stuff->rotation;
-	if (outputs)
-	    free(outputs);
+	free(outputs);
 	return BadValue;
     }
 
@@ -913,8 +905,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	     * requested rotation or reflection not supported by screen
 	     */
 	    client->errorValue = stuff->rotation;
-	    if (outputs)
-		free(outputs);
+	    free(outputs);
 	    return BadMatch;
 	}
     
@@ -943,16 +934,14 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    if (stuff->x + source_width > pScreen->width)
 	    {
 		client->errorValue = stuff->x;
-		if (outputs)
-		    free(outputs);
+		free(outputs);
 		return BadValue;
 	    }
 	    
 	    if (stuff->y + source_height > pScreen->height)
 	    {
 		client->errorValue = stuff->y;
-		if (outputs)
-		    free(outputs);
+		free(outputs);
 		return BadValue;
 	    }
 	}
@@ -979,8 +968,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
     pScrPriv->lastSetTime = time;
     
 sendReply:
-    if (outputs)
-	free(outputs);
+    free(outputs);
     
     rep.type = X_Reply;
     /* rep.status has already been filled in */

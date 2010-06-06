@@ -109,8 +109,8 @@ miFillConvexPoly(
     width = FirstWidth = malloc(sizeof(int) * dy);
     if(!FirstPoint || !FirstWidth)
     {
-	if (FirstWidth) free(FirstWidth);
-	if (FirstPoint) free(FirstPoint);
+	free(FirstWidth);
+	free(FirstPoint);
 	return(FALSE);
     }
 

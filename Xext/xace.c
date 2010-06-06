@@ -323,7 +323,7 @@ XaceCensorImage(
 	     */
 	    memset(pBuf, 0, (int)(widthBytesLine * h));
 	}
-	if (pRects)     free(pRects);
+	free(pRects);
 	if (pScratchGC) FreeScratchGC(pScratchGC);
 	if (pPix)       FreeScratchPixmapHeader(pPix);
     }

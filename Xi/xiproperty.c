@@ -622,8 +622,7 @@ XIFetchDeviceProperty(DeviceIntPtr dev, Atom property)
 static void
 XIDestroyDeviceProperty (XIPropertyPtr prop)
 {
-    if (prop->value.data)
-        free(prop->value.data);
+    free(prop->value.data);
     free(prop);
 }
 
@@ -798,8 +797,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                                 &new_value, checkonly);
                         if (checkonly && rc != Success)
                         {
-                            if (new_value.data)
-                                free(new_value.data);
+                            free(new_value.data);
                             return (rc);
                         }
                     }
@@ -808,8 +806,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                 checkonly = !checkonly;
             } while (!checkonly);
         }
-        if (prop_value->data)
-            free(prop_value->data);
+        free(prop_value->data);
         *prop_value = new_value;
     } else if (len == 0)
     {

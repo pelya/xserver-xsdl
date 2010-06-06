@@ -120,8 +120,7 @@ FreeList(const char ***list, int *lines)
     int i;
 
     for (i = 0; i < *lines; i++) {
-	if ((*list)[i])
-	    free((*list)[i]);
+	free((*list)[i]);
     }
     free(*list);
     *list = NULL;

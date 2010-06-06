@@ -604,7 +604,7 @@ bailout:
     if (removeAuth)
 	RemoveAuthorization(stuff->nbytesAuthProto, protoname,
 			    authdata_len, pAuthdata);
-    if (pAuth) free(pAuth);
+    free(pAuth);
     return err;
 
 } /* ProcSecurityGenerateAuthorization */

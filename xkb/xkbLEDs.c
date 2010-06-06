@@ -605,8 +605,8 @@ void
 XkbFreeSrvLedInfo(XkbSrvLedInfoPtr sli)
 {
     if ((sli->flags&XkbSLI_IsDefault)==0) {
-	if (sli->maps)	free(sli->maps);
-	if (sli->names)	free(sli->names);
+	free(sli->maps);
+	free(sli->names);
     }
     sli->maps= NULL;
     sli->names= NULL;

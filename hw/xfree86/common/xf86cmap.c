@@ -327,7 +327,7 @@ CMapDestroyColormap (ColormapPtr cmap)
     CMapLinkPtr prevLink = NULL, pLink = pScreenPriv->maps;
 
     if(pColPriv) {
-	if(pColPriv->colors) free(pColPriv->colors);
+	free(pColPriv->colors);
 	free(pColPriv);
     }
    

@@ -144,18 +144,12 @@ FreePixmapCachePrivate(XAAPixmapCachePrivatePtr pPriv)
 {
     if(!pPriv) return;
 
-    if(pPriv->Info512)
-	free(pPriv->Info512);
-    if(pPriv->Info256)
-	free(pPriv->Info256);
-    if(pPriv->Info128)
-	free(pPriv->Info128);
-    if(pPriv->InfoColor)
-	free(pPriv->InfoColor);
-    if(pPriv->InfoMono)
-	free(pPriv->InfoMono);
-    if(pPriv->InfoPartial)
-	free(pPriv->InfoPartial);
+    free(pPriv->Info512);
+    free(pPriv->Info256);
+    free(pPriv->Info128);
+    free(pPriv->InfoColor);
+    free(pPriv->InfoMono);
+    free(pPriv->InfoPartial);
      
     free(pPriv);
 }

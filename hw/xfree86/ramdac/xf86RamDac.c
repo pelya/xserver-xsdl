@@ -132,12 +132,10 @@ RamDacFreeRec(ScrnInfoPtr pScrn)
     ramdacScrPtr = ((RamDacScreenRecPtr)
 				(pScrn)->privates[RamDacGetScreenIndex()].ptr);
     
-    if (ramdacHWPtr)
-	free(ramdacHWPtr);
+    free(ramdacHWPtr);
     ramdacHWPtr = NULL;
 
-    if (ramdacScrPtr)
-	free(ramdacScrPtr);
+    free(ramdacScrPtr);
     ramdacScrPtr = NULL;
 }
 

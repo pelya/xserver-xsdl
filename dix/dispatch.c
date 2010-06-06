@@ -2837,7 +2837,7 @@ ProcQueryColors(ClientPtr client)
             return(BadAlloc);
 	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs, client)) )
 	{
-	    if (prgbs) free(prgbs);
+	    free(prgbs);
 	    return rc;
 	}
 	memset(&qcr, 0, sizeof(xQueryColorsReply));
@@ -2851,7 +2851,7 @@ ProcQueryColors(ClientPtr client)
 	    client->pSwapReplyFunc = (ReplySwapPtr) SQColorsExtend;
 	    WriteSwappedDataToClient(client, count * sizeof(xrgb), prgbs);
 	}
-	if (prgbs) free(prgbs);
+	free(prgbs);
 	return Success;
 	
     }

@@ -148,7 +148,7 @@ pointer dmxConsoleCreatePrivate(DeviceIntPtr pDevice)
 /** If \a private is non-NULL, free its associated memory. */
 void dmxConsoleDestroyPrivate(pointer private)
 {
-    if (private) free(private);
+    free(private);
 }
 
 static void dmxConsoleDrawFineCursor(myPrivate *priv, XRectangle *rect)

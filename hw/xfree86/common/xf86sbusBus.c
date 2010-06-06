@@ -478,8 +478,7 @@ xf86MatchSbusInstances(const char *driverName, int sbusDevId,
 	    instances[i].claimed = TRUE;
 	    instances[i].dev = dev;
 	}
-	if (promPath)
-	    free(promPath);
+	free(promPath);
     }
 
     DebugF("%s instances found: %d\n", driverName, numClaimedInstances);

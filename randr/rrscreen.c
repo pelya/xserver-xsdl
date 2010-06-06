@@ -951,8 +951,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     
 sendReply:
     
-    if (pData)
-	free(pData);
+    free(pData);
 
     rep.type = X_Reply;
     /* rep.status has already been filled in */

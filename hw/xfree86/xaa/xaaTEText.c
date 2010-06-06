@@ -299,8 +299,7 @@ XAAGlyphBltTEColorExpansion(
 		skippix, ytop - Top, glyphs + skipglyphs, glyphWidth, 
 		fg, bg, rop, planemask);
 
-	    if (fallbackBits)
-		free(fallbackBits);
+	    free(fallbackBits);
 	}
 
 	nbox--; pbox++;

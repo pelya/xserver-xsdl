@@ -1639,8 +1639,7 @@ AllocColorCells (int client, ColormapPtr pmap, int colors, int planes,
 	pcr->client = client;
 	if (!AddResource(FakeClientID(client), RT_CMAPENTRY, (pointer)pcr))
 	    ok = BadAlloc;
-    } else if (pcr)
-	free(pcr);
+    } else free(pcr);
 
     return (ok);
 }
@@ -1730,8 +1729,7 @@ AllocColorPlanes (int client, ColormapPtr pmap, int colors,
 	pcr->client = client;
 	if (!AddResource(FakeClientID(client), RT_CMAPENTRY, (pointer)pcr))
 	    ok = BadAlloc;
-    } else if (pcr)
-	free(pcr);
+    } else free(pcr);
 
     return (ok);
 }
@@ -1764,9 +1762,9 @@ AllocDirect (int client, ColormapPtr pmap, int c, int r, int g, int b, Bool cont
     ppixBlue = malloc(npixB * sizeof(Pixel));
     if (!ppixRed || !ppixGreen || !ppixBlue)
     {
-	if (ppixBlue) free(ppixBlue);
-	if (ppixGreen) free(ppixGreen);
-	if (ppixRed) free(ppixRed);
+	free(ppixBlue);
+	free(ppixGreen);
+	free(ppixRed);
 	return(BadAlloc);
     }
 

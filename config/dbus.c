@@ -184,10 +184,8 @@ unwind:
     while (options) {
         tmpo = options;
         options = options->next;
-        if (tmpo->key)
-            free(tmpo->key);
-        if (tmpo->value)
-            free(tmpo->value);
+        free(tmpo->key);
+        free(tmpo->value);
         free(tmpo);
     }
 

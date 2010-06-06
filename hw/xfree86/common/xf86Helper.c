@@ -234,8 +234,7 @@ xf86DeleteScreen(int scrnIndex, int flags)
     if (pScrn->drv)
 	pScrn->drv->refCount--;
 
-    if (pScrn->privates)
-	free(pScrn->privates);
+    free(pScrn->privates);
 
     xf86ClearEntityListForScreen(scrnIndex);
 
@@ -327,8 +326,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     /* This should *really* be handled in drv->UnInit(dev) call instead, but
      * if the driver forgets about it make sure we free it or at least crash
      * with flying colors */
-    if (pInp->private)
-	free(pInp->private);
+    free(pInp->private);
 
     FreeInputAttributes(pInp->attrs);
 
@@ -2017,8 +2015,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
        */
       pNewProp->next = NULL;
     } else {
-      if (pNewProp->name)
-	free(pNewProp->name);
+      free(pNewProp->name);
       existing = TRUE;
     }
 

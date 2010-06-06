@@ -893,7 +893,7 @@ InitCallbackManager(void)
     {
 	DeleteCallbackList(listsToCleanup[i]);
     }
-    if (listsToCleanup) free(listsToCleanup);
+    free(listsToCleanup);
 
     numCallbackListsToCleanup = 0;
     listsToCleanup = NULL;

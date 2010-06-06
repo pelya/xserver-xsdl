@@ -378,10 +378,8 @@ tsort(void)
 	if (n == NULL)
 	    ErrorF("tsort: internal error -- could not find cycle");
     }
-    if (cycle_buf)
-	free(cycle_buf);
-    if (longest_cycle)
-	free(longest_cycle);
+    free(cycle_buf);
+    free(longest_cycle);
     if (graph)
 	free_nodes(graph);
 }

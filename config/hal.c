@@ -251,28 +251,23 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                     {
                         if (!strcasecmp(&tmp[3], "layout"))
                         {
-                            if (xkb_opts.layout)
-                                free(xkb_opts.layout);
+                            free(xkb_opts.layout);
                             xkb_opts.layout = strdup(tmp_val);
                         } else if (!strcasecmp(&tmp[3], "model"))
                         {
-                            if (xkb_opts.model)
-                                free(xkb_opts.model);
+                            free(xkb_opts.model);
                             xkb_opts.model = strdup(tmp_val);
                         } else if (!strcasecmp(&tmp[3], "rules"))
                         {
-                            if (xkb_opts.rules)
-                                free(xkb_opts.rules);
+                            free(xkb_opts.rules);
                             xkb_opts.rules = strdup(tmp_val);
                         } else if (!strcasecmp(&tmp[3], "variant"))
                         {
-                            if (xkb_opts.variant)
-                                free(xkb_opts.variant);
+                            free(xkb_opts.variant);
                             xkb_opts.variant = strdup(tmp_val);
                         } else if (!strcasecmp(&tmp[3], "options"))
                         {
-                            if (xkb_opts.options)
-                                free(xkb_opts.options);
+                            free(xkb_opts.options);
                             xkb_opts.options = strdup(tmp_val);
                         }
                     } else
@@ -289,8 +284,7 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                         (!strcasecmp(&tmp[3], "options")) &&
                         (tmp_val = get_prop_string_array(hal_ctx, udi, psi_key)))
                     {
-                        if (xkb_opts.options)
-                            free(xkb_opts.options);
+                        free(xkb_opts.options);
                         xkb_opts.options = strdup(tmp_val);
                     }
                 }
@@ -366,22 +360,17 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     }
 
     for (; dev; dev = dev->next){
-        if (dev->config_info)
-            free(dev->config_info);
+        free(dev->config_info);
         dev->config_info = xstrdup(config_info);
     }
 
 unwind:
     if (set)
         libhal_free_property_set(set);
-    if (path)
-        free(path);
-    if (driver)
-        free(driver);
-    if (name)
-        free(name);
-    if (config_info)
-        free(config_info);
+    free(path);
+    free(driver);
+    free(name);
+    free(config_info);
     while (!dev && (tmpo = options)) {
         options = tmpo->next;
         free(tmpo->key);
@@ -401,16 +390,11 @@ unwind:
         free(attrs.tags);
     }
 
-    if (xkb_opts.layout)
-        free(xkb_opts.layout);
-    if (xkb_opts.rules)
-        free(xkb_opts.rules);
-    if (xkb_opts.model)
-        free(xkb_opts.model);
-    if (xkb_opts.variant)
-        free(xkb_opts.variant);
-    if (xkb_opts.options)
-        free(xkb_opts.options);
+    free(xkb_opts.layout);
+    free(xkb_opts.rules);
+    free(xkb_opts.model);
+    free(xkb_opts.variant);
+    free(xkb_opts.options);
 
     dbus_error_free(&error);
 
