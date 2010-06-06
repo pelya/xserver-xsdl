@@ -37,12 +37,9 @@
 #include "exa_priv.h"
 #include "exa.h"
 
-static DevPrivateKeyRec exaScreenPrivateKeyRec;
-#define exaScreenPrivateKey (&exaScreenPrivateKeyRec)
-static DevPrivateKeyRec exaPixmapPrivateKeyRec;
-#define exaPixmapPrivateKey (&exaPixmapPrivateKeyRec)
-static DevPrivateKeyRec exaGCPrivateKeyRec;
-#define exaGCPrivateKey (&exaGCPrivateKeyRec)
+DevPrivateKeyRec exaScreenPrivateKeyRec;
+DevPrivateKeyRec exaPixmapPrivateKeyRec;
+DevPrivateKeyRec exaGCPrivateKeyRec;
 
 #ifdef MITSHM
 static ShmFuncs exaShmFuncs = { NULL, NULL };
