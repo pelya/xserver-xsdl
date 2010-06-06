@@ -368,8 +368,6 @@ FindGlyph (GlyphSetPtr glyphSet, Glyph id)
     return glyph;
 }
 
-#define GLYPH_SIZE	(sizeof (GlyphRec) + dixPrivatesSize(PRIVATE_GLYPH))
-
 GlyphPtr
 AllocateGlyph (xGlyphInfo *gi, int fdepth)
 {
@@ -377,15 +375,17 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     int		     size;
     GlyphPtr	     glyph;
     int		     i;
+    int		     head_size;
 
-    size = screenInfo.numScreens * sizeof (PicturePtr);
-    glyph = (GlyphPtr) malloc (size + GLYPH_SIZE);
+    head_size = sizeof (GlyphRec) + screenInfo.numScreens * sizeof (PicturePtr);
+    size = (head_size + dixPrivatesSize(PRIVATE_GLYPH));
+    glyph = (GlyphPtr) malloc (size);
     if (!glyph)
 	return 0;
     glyph->refcnt = 0;
     glyph->size = size + sizeof (xGlyphInfo);
     glyph->info = *gi;
-    dixInitPrivates(glyph, glyph + 1, PRIVATE_GLYPH);
+    dixInitPrivates(glyph, (char *) glyph + head_size, PRIVATE_GLYPH);
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
