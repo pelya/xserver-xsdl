@@ -91,10 +91,10 @@ AddExtension(char *name, int NumEvents, int NumErrors,
 
     ext = calloc(sizeof (ExtensionEntry), 1);
     if (!ext)
-	return(NULL);
+	return NULL;
     if (!dixAllocatePrivates(&ext->devPrivates, PRIVATE_EXTENSION)) {
 	free(ext);
-	return(NULL);
+	return NULL;
     }
     ext->name = malloc(strlen(name) + 1);
     ext->num_aliases = 0;
@@ -149,7 +149,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
     }
 
     RegisterExtensionNames(ext);
-    return(ext);
+    return ext;
 }
 
 Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
@@ -335,7 +335,7 @@ ProcListExtensions(ClientPtr client)
         reply.length = bytes_to_int32(total_length);
 	buffer = bufptr = malloc(total_length);
 	if (!buffer)
-	    return(BadAlloc);
+	    return BadAlloc;
         for (i=0;  i<NumExtensions; i++)
         {
 	    int len;

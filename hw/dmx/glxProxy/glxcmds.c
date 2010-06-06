@@ -80,7 +80,7 @@ Display *GetBackEndDisplay( __GLXclientState *cl, int s )
    if (! cl->be_displays[s] ) {
       cl->be_displays[s] = XOpenDisplay( DisplayString(dmxScreens[s].beDisplay) );
    }
-   return( cl->be_displays[s] );
+   return cl->be_displays[s];
 }
 
 /*
@@ -628,7 +628,7 @@ int GetCurrentBackEndTag(__GLXclientState *cl, GLXContextTag tag, int s)
       return( cl->be_currentCTag[ (tag-1)*screenInfo.numScreens + s ] );
    }
    else {
-      return( 0 );
+      return 0;
    }
 }
 

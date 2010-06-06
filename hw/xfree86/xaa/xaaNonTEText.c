@@ -82,7 +82,7 @@ XAAPolyText8NonTEColorExpansion(
  		infoRec->CharInfo);
     }
 
-    return (x + width);
+    return x + width;
 }
 
 
@@ -112,7 +112,7 @@ XAAPolyText16NonTEColorExpansion(
 		infoRec->CharInfo);
     }
 
-    return (x + width);
+    return x + width;
 }
 
 

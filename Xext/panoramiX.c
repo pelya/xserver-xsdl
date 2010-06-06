@@ -339,7 +339,7 @@ XineramaFindIDByScrnum(pointer resource, XID id, pointer privdata)
     PanoramiXRes *res = (PanoramiXRes*)resource;
     PanoramiXSearchData *data = (PanoramiXSearchData*)privdata;
     
-    return (res->info[data->screen].id == data->id);
+    return res->info[data->screen].id == data->id;
 }
 
 PanoramiXRes *

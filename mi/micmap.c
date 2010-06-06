@@ -47,7 +47,7 @@ miListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
 {
     if (GetInstalledmiColormap(pScreen)) {
 	*pmaps = GetInstalledmiColormap(pScreen)->mid;
-	return (1);
+	return 1;
     }
     return 0;
 }

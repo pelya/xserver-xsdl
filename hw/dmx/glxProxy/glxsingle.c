@@ -668,7 +668,7 @@ static GLint __glReadPixels_size(GLenum format, GLenum type, GLint w, GLint h,
 	   }
 	   if (elementbits_return) *elementbits_return = elements;
 	   if (rowbytes_return) *rowbytes_return = rowsize;
-	   return (rowsize * h);
+	   return rowsize * h;
 	} else {
 	   return -1;
 	}
@@ -718,7 +718,7 @@ static GLint __glReadPixels_size(GLenum format, GLenum type, GLint w, GLint h,
     if (elementbits_return) *elementbits_return = esize*elements*8;
     if (rowbytes_return) *rowbytes_return = rowsize;
 
-    return (rowsize * h);
+    return rowsize * h;
 }
 
 static int intersectRect( int x1, int x2, int y1, int y2,
@@ -734,14 +734,14 @@ static int intersectRect( int x1, int x2, int y1, int y2,
 
    if ( (width <= 0) || (height <= 0) ) {
       *ix1 = *ix2 = *iy1 = *iy2 = 0;
-      return(0);
+      return 0;
    }
    else {
       *ix1 = left;
       *ix2 = right;
       *iy1 = top;
       *iy2 = bottom;
-      return( width * height );
+      return width * height;
    }
 
 }
@@ -811,7 +811,7 @@ int __glXDisp_ReadPixels(__GLXclientState *cl, GLbyte *pc)
     if (buf_size > 0) {
        buf = (char *) malloc( buf_size );
        if ( !buf ) {
-	  return( BadAlloc );
+	  return BadAlloc;
        }
     }
     else {

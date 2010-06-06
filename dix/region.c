@@ -245,7 +245,7 @@ RegionCreate(BoxPtr rect, int size)
 
     RegionInit (pReg, rect, size);
     
-    return(pReg);
+    return pReg;
 }
 
 void
@@ -290,7 +290,7 @@ RegionIsValid(RegionPtr reg)
 		(reg->extents.y1 == reg->extents.y2) &&
 		(reg->data->size || (reg->data == &RegionEmptyData)));
     else if (numRects == 1)
-	return (!reg->data);
+	return !reg->data;
     else
     {
 	BoxPtr pboxP, pboxN;
@@ -428,7 +428,7 @@ RegionCoalesce (
 
     do {
 	if ((pPrevBox->x1 != pCurBox->x1) || (pPrevBox->x2 != pCurBox->x2)) {
-	    return (curStart);
+	    return curStart;
 	}
 	pPrevBox++;
 	pCurBox++;
@@ -1655,5 +1655,5 @@ RegionClipSpans(
 	    }
 	}
     }
-    return (pwidthNew - pwidthNewStart);
+    return pwidthNew - pwidthNewStart;
 }

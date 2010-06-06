@@ -465,7 +465,7 @@ ProcXTestGrabControl(ClientPtr client)
     if ((stuff->impervious != xTrue) && (stuff->impervious != xFalse))
     {
         client->errorValue = stuff->impervious;
-        return(BadValue);
+        return BadValue;
     }
     if (stuff->impervious)
         MakeClientGrabImpervious(client);

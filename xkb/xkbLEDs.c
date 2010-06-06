@@ -166,7 +166,7 @@ XkbStatePtr	state;
 	    }
 	}
     }
-    return (stateChange || ctrlChange);
+    return stateChange || ctrlChange;
 }
 	
 	/*

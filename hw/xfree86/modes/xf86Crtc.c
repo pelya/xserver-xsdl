@@ -577,7 +577,7 @@ xf86OutputInitialRotation (xf86OutputPtr output)
     
     for (i = 0; i < 4; i++)
 	if (xf86nameCompare (direction[i], rotate_name) == 0)
-	    return (1 << i);
+	    return 1 << i;
     return RR_Rotate_0;
 }
 
@@ -2201,7 +2201,7 @@ xf86TargetFallback(ScrnInfoPtr scrn, xf86CrtcConfigPtr config,
 				       target_rotation, width, height);
     }
 
-    return (target_mode != NULL);
+    return target_mode != NULL;
 }
 
 static Bool
@@ -3220,7 +3220,7 @@ xf86_crtc_supports_gamma(ScrnInfoPtr pScrn)
 	    return FALSE;
 	crtc = xf86_config->crtc[0];
 
-	return (crtc->funcs->gamma_set != NULL);
+	return crtc->funcs->gamma_set != NULL;
     }
 
     return FALSE;

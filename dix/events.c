@@ -331,7 +331,7 @@ IsKeyboardDevice(DeviceIntPtr dev)
 Bool
 IsMaster(DeviceIntPtr dev)
 {
-    return (dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD);
+    return dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD;
 }
 
 static WindowPtr XYToWindow(
@@ -4083,7 +4083,7 @@ OtherClientGone(pointer value, XID id)
 	    }
 	    free(other);
 	    RecalculateDeliverableEvents(pWin);
-	    return(Success);
+	    return Success;
 	}
 	prev = other;
     }
@@ -4488,7 +4488,7 @@ SetInputFocus(
 	/* It is a match error to try to set the input focus to an
 	unviewable window. */
 	if(!focusWin->realized)
-	    return(BadMatch);
+	    return BadMatch;
     }
     rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixSetFocusAccess);
     if (rc != Success)
@@ -5005,7 +5005,7 @@ ProcQueryPointer(ClientPtr client)
 
     WriteReplyToClient(client, sizeof(xQueryPointerReply), &rep);
 
-    return(Success);
+    return Success;
 }
 
 /**
@@ -5209,8 +5209,8 @@ ProcUngrabKey(ClientPtr client)
     tempGrab.next = NULL;
 
     if (!DeletePassiveGrabFromList(&tempGrab))
-	return(BadAlloc);
-    return(Success);
+	return BadAlloc;
+    return Success;
 }
 
 /**
@@ -5404,8 +5404,8 @@ ProcUngrabButton(ClientPtr client)
     tempGrab.next = NULL;
 
     if (!DeletePassiveGrabFromList(&tempGrab))
-	return(BadAlloc);
-    return(Success);
+	return BadAlloc;
+    return Success;
 }
 
 /**
@@ -5619,7 +5619,7 @@ ProcRecolorCursor(ClientPtr client)
 	( *pscr->RecolorCursor)(PickPointer(client), pscr, pCursor,
 				(pCursor == pSprite->current) && displayed);
     }
-    return (Success);
+    return Success;
 }
 
 /**

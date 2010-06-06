@@ -43,13 +43,13 @@ fbCloseScreen (int index, ScreenPtr pScreen)
 Bool
 fbRealizeFont(ScreenPtr pScreen, FontPtr pFont)
 {
-    return (TRUE);
+    return TRUE;
 }
 
 Bool
 fbUnrealizeFont(ScreenPtr pScreen, FontPtr pFont)
 {
-    return (TRUE);
+    return TRUE;
 }
 
 void

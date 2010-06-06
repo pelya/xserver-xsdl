@@ -2117,11 +2117,11 @@ ProcChangePointerControl(ClientPtr client)
     ctrl = mouse->ptrfeed->ctrl;
     if ((stuff->doAccel != xTrue) && (stuff->doAccel != xFalse)) {
 	client->errorValue = stuff->doAccel;
-	return(BadValue);
+	return BadValue;
     }
     if ((stuff->doThresh != xTrue) && (stuff->doThresh != xFalse)) {
 	client->errorValue = stuff->doThresh;
-	return(BadValue);
+	return BadValue;
     }
     if (stuff->doAccel) {
 	if (stuff->accelNum == -1) {

@@ -379,7 +379,7 @@ miGetPlane(
 	    pOut += delta;
 	}
     }
-    return(result);    
+    return result;
 
 }
 

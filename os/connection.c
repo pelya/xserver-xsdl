@@ -267,7 +267,7 @@ lookup_trans_conn (int fd)
 		return ListenTransConns[i];
     }
 
-    return (NULL);
+    return NULL;
 }
 
 /* Set MaxClients and lastfdesc, and allocate ConnectionTranslation */

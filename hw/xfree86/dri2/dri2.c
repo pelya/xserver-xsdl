@@ -949,7 +949,7 @@ DRI2HasSwapControl(ScreenPtr pScreen)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
 
-    return (ds->ScheduleSwap && ds->GetMSC);
+    return ds->ScheduleSwap && ds->GetMSC;
 }
 
 Bool

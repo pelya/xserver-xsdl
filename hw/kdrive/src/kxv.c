@@ -1173,7 +1173,7 @@ KdXVQueryAdaptors(
   *p_nAdaptors = pxvs->nAdaptors;
   *p_pAdaptors = pxvs->pAdaptors;
 
-  return (Success);
+  return Success;
 }
 
 static Bool

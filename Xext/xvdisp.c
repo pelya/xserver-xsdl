@@ -483,7 +483,7 @@ ProcXvQueryEncodings(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   rep.type = X_Reply;
@@ -540,14 +540,14 @@ ProcXvPutVideo(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvInputMask) ||
 	!(pPort->pAdaptor->type & XvVideoMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -578,14 +578,14 @@ ProcXvPutStill(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvInputMask) ||
 	!(pPort->pAdaptor->type & XvStillMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -616,14 +616,14 @@ ProcXvGetVideo(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvOutputMask) ||
 	!(pPort->pAdaptor->type & XvVideoMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -654,14 +654,14 @@ ProcXvGetStill(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvOutputMask) ||
 	!(pPort->pAdaptor->type & XvStillMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -703,7 +703,7 @@ ProcXvSelectPortNotify(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   return XvdiSelectPortNotify(client, pPort, stuff->onoff);
@@ -723,7 +723,7 @@ ProcXvGrabPort(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   status = XvdiGrabPort(client, pPort, stuff->time, &result);
@@ -756,7 +756,7 @@ ProcXvUngrabPort(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   return XvdiUngrabPort(client, pPort, stuff->time);
@@ -776,7 +776,7 @@ ProcXvStopVideo(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixWriteAccess);
@@ -799,13 +799,13 @@ ProcXvSetPortAttribute(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!ValidAtom(stuff->attribute))
     {
       client->errorValue = stuff->attribute;
-      return(BadAtom);
+      return BadAtom;
     }
 
   status = XvdiSetPortAttribute(client, pPort, stuff->attribute, stuff->value);
@@ -833,13 +833,13 @@ ProcXvGetPortAttribute(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!ValidAtom(stuff->attribute))
     {
       client->errorValue = stuff->attribute;
-      return(BadAtom);
+      return BadAtom;
     }
 
   status = XvdiGetPortAttribute(client, pPort, stuff->attribute, &value);
@@ -874,7 +874,7 @@ ProcXvQueryBestSize(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   rep.type = X_Reply;
@@ -911,7 +911,7 @@ ProcXvQueryPortAttributes(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   rep.type = X_Reply;
@@ -967,14 +967,14 @@ ProcXvPutImage(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvImageMask) ||
 	!(pPort->pAdaptor->type & XvInputMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -1047,14 +1047,14 @@ ProcXvShmPutImage(ClientPtr client)
   if ((status = _AllocatePort(stuff->port, pPort)) != Success)
     {
       client->errorValue = stuff->port;
-      return (status);
+      return status;
     }
 
   if (!(pPort->pAdaptor->type & XvImageMask) ||
 	!(pPort->pAdaptor->type & XvInputMask))
     {
       client->errorValue = stuff->port;
-      return (BadMatch);
+      return BadMatch;
     }
 
   status = XvdiMatchPort(pPort, pDraw);
@@ -1113,7 +1113,7 @@ static int
 ProcXvShmPutImage(ClientPtr client)
 {
     SendErrorToClient(client, XvReqCode, xv_ShmPutImage, 0, BadImplementation);
-    return(BadImplementation);
+    return BadImplementation;
 }
 #endif
 
@@ -1267,7 +1267,7 @@ ProcXvDispatch(ClientPtr client)
 
   if (stuff->data > xvNumRequests) {
     SendErrorToClient(client, XvReqCode, stuff->data, 0, BadRequest);
-    return(BadRequest);
+    return BadRequest;
   }
 
   return XvProcVector[stuff->data](client);
@@ -1591,7 +1591,7 @@ SProcXvDispatch(ClientPtr client)
 
   if (stuff->data > xvNumRequests) {
     SendErrorToClient(client, XvReqCode, stuff->data, 0, BadRequest);
-    return(BadRequest);
+    return BadRequest;
   }
 
   return SXvProcVector[stuff->data](client);

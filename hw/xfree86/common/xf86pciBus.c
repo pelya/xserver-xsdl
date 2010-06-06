@@ -465,7 +465,7 @@ xf86PciAddMatchingDev(DriverPtr drvp)
 
     pci_iterator_destroy(iter);
 
-    return (numFound != 0);
+    return numFound != 0;
 }
 
 Bool

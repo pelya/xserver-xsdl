@@ -155,7 +155,7 @@ int PanoramiXCreateWindow(ClientPtr client)
     else 
         free(newWin);
 
-    return (result);
+    return result;
 }
 
 
@@ -227,7 +227,7 @@ int PanoramiXChangeWindowAttributes(ClientPtr client)
         result = (*SavedProcVector[X_ChangeWindowAttributes])(client);
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -253,7 +253,7 @@ int PanoramiXDestroyWindow(ClientPtr client)
     /* Since ProcDestroyWindow is using FreeResource, it will free
 	our resource for us on the last pass through the loop above */
  
-    return (result);
+    return result;
 }
 
 
@@ -279,7 +279,7 @@ int PanoramiXDestroySubwindows(ClientPtr client)
     /* DestroySubwindows is using FreeResource which will free
 	our resources for us on the last pass through the loop above */
 
-    return (result);
+    return result;
 }
 
 
@@ -302,7 +302,7 @@ int PanoramiXChangeSaveSet(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -341,7 +341,7 @@ int PanoramiXReparentWindow(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -364,7 +364,7 @@ int PanoramiXMapWindow(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -387,7 +387,7 @@ int PanoramiXMapSubwindows(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -410,7 +410,7 @@ int PanoramiXUnmapWindow(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -433,7 +433,7 @@ int PanoramiXUnmapSubwindows(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -502,7 +502,7 @@ int PanoramiXConfigureWindow(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -525,7 +525,7 @@ int PanoramiXCirculateWindow(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -679,7 +679,7 @@ int PanoramiXCreatePixmap(ClientPtr client)
     else 
 	free(newPix);
 
-    return (result);
+    return result;
 }
 
 
@@ -707,7 +707,7 @@ int PanoramiXFreePixmap(ClientPtr client)
     /* Since ProcFreePixmap is using FreeResource, it will free
 	our resource for us on the last pass through the loop above */
  
-    return (result);
+    return result;
 }
 
 
@@ -789,7 +789,7 @@ int PanoramiXCreateGC(ClientPtr client)
     else 
         free(newGC);
 
-    return (result);
+    return result;
 }
 
 int PanoramiXChangeGC(ClientPtr client)
@@ -855,7 +855,7 @@ int PanoramiXChangeGC(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -884,7 +884,7 @@ int PanoramiXCopyGC(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -907,7 +907,7 @@ int PanoramiXSetDashes(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -930,7 +930,7 @@ int PanoramiXSetClipRectangles(ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 
@@ -956,7 +956,7 @@ int PanoramiXFreeGC(ClientPtr client)
     /* Since ProcFreeGC is using FreeResource, it will free
 	our resource for us on the last pass through the loop above */
  
-    return (result);
+    return result;
 }
 
 
@@ -987,7 +987,7 @@ int PanoramiXClearToBackground(ClientPtr client)
 	if(result != Success) break;
     }
  
-    return (result);
+    return result;
 }
 
 
@@ -1069,7 +1069,7 @@ int PanoramiXCopyArea(ClientPtr client)
 	    if(drawables[0]->depth != pDst->depth) {
 		client->errorValue = stuff->dstDrawable;
 		free(data);
-		return (BadMatch);
+		return BadMatch;
 	    }
 
 	    (*pGC->ops->PutImage) (pDst, pGC, pDst->depth, dstx, dsty, 
@@ -1112,7 +1112,7 @@ int PanoramiXCopyArea(ClientPtr client)
 		if ((pDst->pScreen != pSrc->pScreen) || 
 		    (pDst->depth != pSrc->depth)) {
 			client->errorValue = stuff->dstDrawable;
-			return (BadMatch);
+			return BadMatch;
    		}
  	    } else
 		pSrc = pDst;
@@ -1215,7 +1215,7 @@ int PanoramiXCopyPlane(ClientPtr client)
 
             if (pdstDraw->pScreen != psrcDraw->pScreen) {
 		client->errorValue = stuff->dstDrawable;
-		return (BadMatch);
+		return BadMatch;
 	    }
 	} else
 	    psrcDraw = pdstDraw;
@@ -1223,7 +1223,7 @@ int PanoramiXCopyPlane(ClientPtr client)
 	if(stuff->bitPlane == 0 || (stuff->bitPlane & (stuff->bitPlane - 1)) ||
 		(stuff->bitPlane > (1L << (psrcDraw->depth - 1)))) {
 	    client->errorValue = stuff->bitPlane;
-	    return(BadValue);
+	    return BadValue;
 	}
 
 	pRgn = (*pGC->ops->CopyPlane)(psrcDraw, pdstDraw, pGC,
@@ -1305,7 +1305,7 @@ int PanoramiXPolyPoint(ClientPtr client)
 	    if(result != Success) break;
         }
         free(origPts);
-        return (result);
+        return result;
     } else
 	return Success;
 }
@@ -1365,7 +1365,7 @@ int PanoramiXPolyLine(ClientPtr client)
 	    if(result != Success) break;
         }
         free(origPts);
-        return (result);
+        return result;
    } else
 	return Success;
 }
@@ -1428,7 +1428,7 @@ int PanoramiXPolySegment(ClientPtr client)
 	    if(result != Success) break;
     	}
 	free(origSegs);
-	return (result);
+	return result;
     } else
 	  return Success;
 }
@@ -1490,7 +1490,7 @@ int PanoramiXPolyRectangle(ClientPtr client)
 	    if(result != Success) break;
 	}
 	free(origRecs);
-	return (result);
+	return result;
     } else
        return Success;
 }
@@ -1550,7 +1550,7 @@ int PanoramiXPolyArc(ClientPtr client)
 	    if(result != Success) break;
         }
 	free(origArcs);
-	return (result);
+	return result;
     } else
        return Success;
 }
@@ -1611,7 +1611,7 @@ int PanoramiXFillPoly(ClientPtr client)
 	    if(result != Success) break;
 	}
 	free(locPts);
-	return (result);
+	return result;
     } else
        return Success;
 }
@@ -1672,7 +1672,7 @@ int PanoramiXPolyFillRectangle(ClientPtr client)
 	    if(result != Success) break;
 	}
 	free(origRects);
-	return (result);
+	return result;
     } else
        return Success;
 }
@@ -1733,7 +1733,7 @@ int PanoramiXPolyFillArc(ClientPtr client)
 	    if(result != Success) break;
 	}
 	free(origArcs);
-	return (result);
+	return result;
     } else
        return Success;
 }
@@ -1775,7 +1775,7 @@ int PanoramiXPutImage(ClientPtr client)
 	result = (* SavedProcVector[X_PutImage])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -1798,7 +1798,7 @@ int PanoramiXGetImage(ClientPtr client)
 
     if ((stuff->format != XYPixmap) && (stuff->format != ZPixmap)) {
 	client->errorValue = stuff->format;
-        return(BadValue);
+        return BadValue;
     }
 
     rc = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
@@ -1815,7 +1815,7 @@ int PanoramiXGetImage(ClientPtr client)
 	return rc;
 
     if(!((WindowPtr)pDraw)->realized)
-	return(BadMatch);
+	return BadMatch;
 
     x = stuff->x;
     y = stuff->y;
@@ -1830,7 +1830,7 @@ int PanoramiXGetImage(ClientPtr client)
       if( /* check for being onscreen */
 	x < 0 || x + w > PanoramiXPixWidth ||
 	y < 0 || y + h > PanoramiXPixHeight )
-	    return(BadMatch);
+	    return BadMatch;
     } else {
       if( /* check for being onscreen */
 	screenInfo.screens[0]->x + pDraw->x + x < 0 ||
@@ -1842,7 +1842,7 @@ int PanoramiXGetImage(ClientPtr client)
 	x + w > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||
 	y < -wBorderWidth((WindowPtr)pDraw) ||
 	y + h > wBorderWidth ((WindowPtr)pDraw) + (int)pDraw->height)
-	    return(BadMatch);
+	    return BadMatch;
     }
 
     drawables[0] = pDraw;
@@ -1884,7 +1884,7 @@ int PanoramiXGetImage(ClientPtr client)
     }
     length = linesPerBuf * widthBytesLine;
     if(!(pBuf = malloc(length)))
-	return (BadAlloc);
+	return BadAlloc;
 
     WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
 
@@ -1976,7 +1976,7 @@ PanoramiXPolyText8(ClientPtr client)
 	result = (*SavedProcVector[X_PolyText8])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 int 
@@ -2017,7 +2017,7 @@ PanoramiXPolyText16(ClientPtr client)
 	result = (*SavedProcVector[X_PolyText16])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2058,7 +2058,7 @@ int PanoramiXImageText8(ClientPtr client)
 	result = (*SavedProcVector[X_ImageText8])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2099,7 +2099,7 @@ int PanoramiXImageText16(ClientPtr client)
 	result = (*SavedProcVector[X_ImageText16])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2139,7 +2139,7 @@ int PanoramiXCreateColormap(ClientPtr client)
     else 
         free(newCmap);
 
-    return (result);
+    return result;
 }
 
 
@@ -2167,7 +2167,7 @@ int PanoramiXFreeColormap(ClientPtr client)
     /* Since ProcFreeColormap is using FreeResource, it will free
 	our resource for us on the last pass through the loop above */
 
-    return (result);
+    return result;
 }
 
 
@@ -2208,7 +2208,7 @@ PanoramiXCopyColormapAndFree(ClientPtr client)
     else 
         free(newCmap);
 
-    return (result);
+    return result;
 }
 
 
@@ -2232,7 +2232,7 @@ int PanoramiXInstallColormap(ClientPtr client)
 	result = (* SavedProcVector[X_InstallColormap])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2256,7 +2256,7 @@ int PanoramiXUninstallColormap(ClientPtr client)
 	result = (* SavedProcVector[X_UninstallColormap])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2280,7 +2280,7 @@ int PanoramiXAllocColor(ClientPtr client)
 	result = (* SavedProcVector[X_AllocColor])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2304,7 +2304,7 @@ int PanoramiXAllocNamedColor(ClientPtr client)
         result = (* SavedProcVector[X_AllocNamedColor])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2328,7 +2328,7 @@ int PanoramiXAllocColorCells(ClientPtr client)
 	result = (* SavedProcVector[X_AllocColorCells])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2352,7 +2352,7 @@ int PanoramiXAllocColorPlanes(ClientPtr client)
 	result = (* SavedProcVector[X_AllocColorPlanes])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2376,7 +2376,7 @@ int PanoramiXFreeColors(ClientPtr client)
         stuff->cmap = cmap->info[j].id;
         result = (* SavedProcVector[X_FreeColors])(client);
     }
-    return (result);
+    return result;
 }
 
 
@@ -2400,7 +2400,7 @@ int PanoramiXStoreColors(ClientPtr client)
 	result = (* SavedProcVector[X_StoreColors])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 
 
@@ -2424,5 +2424,5 @@ int PanoramiXStoreNamedColor(ClientPtr client)
 	result = (* SavedProcVector[X_StoreNamedColor])(client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }

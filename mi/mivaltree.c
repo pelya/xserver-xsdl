@@ -809,5 +809,5 @@ miValidateTree (
     RegionUninit(&exposed);
     if (pScreen->ClipNotify)
 	(*pScreen->ClipNotify) (pParent, 0, 0);
-    return (1);
+    return 1;
 }

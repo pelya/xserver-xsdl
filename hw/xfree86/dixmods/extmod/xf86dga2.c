@@ -692,10 +692,10 @@ ProcXF86DGAGetVideoLL(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     if(!DGAAvailable(stuff->screen))
-	return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     if(!(num = DGAGetOldDGAMode(stuff->screen)))
-	return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     /* get the parameters for the mode that best matches */
     DGAGetModeInfo(stuff->screen, &mode, num);
@@ -736,12 +736,12 @@ ProcXF86DGADirectVideo(ClientPtr client)
 
     if (stuff->enable & XF86DGADirectGraphics) {
 	if(!(num = DGAGetOldDGAMode(stuff->screen)))
-	    return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	    return DGAErrorBase + XF86DGANoDirectVideoMode;
     } else
 	num = 0;
 
     if(Success != DGASetMode(stuff->screen, num, &mode, &pix))
-	return (DGAErrorBase + XF86DGAScreenNotActive);
+	return DGAErrorBase + XF86DGAScreenNotActive;
 
     DGASetInputMode (stuff->screen,
 		     (stuff->enable & XF86DGADirectKeyb) != 0,
@@ -785,10 +785,10 @@ ProcXF86DGAGetViewPortSize(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     if (!DGAAvailable(stuff->screen))
-	return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     if(!(num = DGAGetOldDGAMode(stuff->screen)))
-	return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     DGAGetModeInfo(stuff->screen, &mode, num);
 
@@ -813,7 +813,7 @@ ProcXF86DGASetViewPort(ClientPtr client)
     REQUEST_SIZE_MATCH(xXF86DGASetViewPortReq);
 
     if (!DGAAvailable(stuff->screen))
-	return (DGAErrorBase + XF86DGANoDirectVideoMode);
+	return DGAErrorBase + XF86DGANoDirectVideoMode;
 
     if (!DGAActive(stuff->screen))
 	return DGAErrorBase + XF86DGADirectNotActivated;
@@ -877,7 +877,7 @@ ProcXF86DGAInstallColormap(ClientPtr client)
     REQUEST_SIZE_MATCH(xXF86DGAInstallColormapReq);
 
     if (!DGAActive(stuff->screen))
-	return (DGAErrorBase + XF86DGADirectNotActivated);
+	return DGAErrorBase + XF86DGADirectNotActivated;
 
     rc = dixLookupResourceByType((pointer *)&pcmp, stuff->id, RT_COLORMAP,
 				 client, DixInstallAccess);
@@ -926,7 +926,7 @@ ProcXF86DGAViewPortChanged(ClientPtr client)
     REQUEST_SIZE_MATCH(xXF86DGAViewPortChangedReq);
 
     if (!DGAActive(stuff->screen))
-	return (DGAErrorBase + XF86DGADirectNotActivated);
+	return DGAErrorBase + XF86DGADirectNotActivated;
 
     rep.type = X_Reply;
     rep.length = 0;

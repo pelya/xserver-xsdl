@@ -1561,7 +1561,7 @@ miGetArcPts(
     cdt = 2 * miDcos(dt);
     if (!(poly = (SppPointPtr) realloc((pointer)*ppPts,
 					(cpt + count) * sizeof(SppPointRec))))
-	return(0);
+	return 0;
     *ppPts = poly;
 
     xc = parc->width/2.0;		/* store half width and half height */
@@ -1598,7 +1598,7 @@ miGetArcPts(
 	poly[cpt +i -1].y = (miDsin(st + et) * parc->height/2.0 + yc);
     }
 
-    return(count);
+    return count;
 }
 
 struct arcData {

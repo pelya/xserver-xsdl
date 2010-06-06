@@ -242,7 +242,7 @@ SecurityDeleteAuthorizationEventClient(
 	    else
 		pAuth->eventClients = pEventClient->next;
 	    free(pEventClient);
-	    return(Success);
+	    return Success;
 	}
 	prev = pEventClient;
     }

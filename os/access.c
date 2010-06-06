@@ -329,7 +329,7 @@ ifioctl (int fd, int cmd, char *arg)
 #ifdef SVR4
 	((struct ifconf *) arg)->ifc_len = ioc.ic_len;
 #endif
-    return(ret);
+    return ret;
 }
 #else /* Case sun, SCO325 and others  */
 #define ifioctl ioctl
@@ -1343,13 +1343,13 @@ AddHost (ClientPtr	client,
 	if ((len = CheckAddr (family, pAddr, length)) < 0)
 	{
 	    client->errorValue = length;
-	    return (BadValue);
+	    return BadValue;
 	}
 	break;
     case FamilyLocal:
     default:
 	client->errorValue = family;
-	return (BadValue);
+	return BadValue;
     }
     if (NewHost (family, pAddr, len, FALSE))
 	return Success;
@@ -1441,13 +1441,13 @@ RemoveHost (
     	if ((len = CheckAddr (family, pAddr, length)) < 0)
     	{
 	    client->errorValue = length;
-            return(BadValue);
+            return BadValue;
     	}
 	break;
     case FamilyLocal:
     default:
 	client->errorValue = family;
-        return(BadValue);
+        return BadValue;
     }
     for (prev = &validhosts;
          (host = *prev) && (!addrEqual (family, pAddr, len, host));
@@ -1458,7 +1458,7 @@ RemoveHost (
         *prev = host->next;
         FreeHost (host);
     }
-    return (Success);
+    return Success;
 }
 
 /* Get all hosts in the access control list */
@@ -1486,7 +1486,7 @@ GetHosts (
         *data = ptr = malloc(n);
 	if (!ptr)
 	{
-	    return(BadAlloc);
+	    return BadAlloc;
 	}
         for (host = validhosts; host; host = host->next)
 	{
@@ -1502,7 +1502,7 @@ GetHosts (
     }
     *pnHosts = nHosts;
     *pLen = n;
-    return(Success);
+    return Success;
 }
 
 /* Check for valid address family and length, and return address length. */
@@ -1555,7 +1555,7 @@ CheckAddr (
       default:
         len = -1;
     }
-    return (len);
+    return len;
 }
 
 /* Check if a host is not in the access control list. 
@@ -1572,7 +1572,7 @@ InvalidHost (
     register HOST 		*selfhost, *host;
 
     if (!AccessEnabled)   /* just let them in */
-        return(0);    
+        return 0;
     family = ConvertAddr (saddr, &len, (pointer *)&addr);
     if (family == -1)
         return 1;
@@ -1600,15 +1600,15 @@ InvalidHost (
     {
 	if ((host->family == FamilyServerInterpreted)) {
 	    if (siAddrMatch (family, addr, len, host, client)) {
-		return (0);
+		return 0;
 	    }
 	} else {
 	    if (addrEqual (family, addr, len, host))
-		return (0);
+		return 0;
 	}
 
     }
-    return (1);
+    return 1;
 }
 
 static int
@@ -1618,7 +1618,7 @@ ConvertAddr (
     pointer			*addr)
 {
     if (*len == 0)
-        return (FamilyLocal);
+        return FamilyLocal;
     switch (saddr->sa_family)
     {
     case AF_UNSPEC:

@@ -520,7 +520,7 @@ ProcXF86VidModeGetAllModeLines(ClientPtr client)
 
     modecount = VidModeGetNumOfModes(stuff->screen);
     if (modecount < 1)
-      return (VidModeErrorBase + XF86VidModeExtensionDisabled);
+      return VidModeErrorBase + XF86VidModeExtensionDisabled;
 
     if (!VidModeGetFirstModeline(stuff->screen, &mode, &dotClock))
 	return BadValue;

@@ -294,7 +294,7 @@ xf86CreateRootWindow(WindowPtr pWin)
   }
 
   DebugF("xf86CreateRootWindow() returns %d\n", ret);
-  return (ret);
+  return ret;
 }
 
 

@@ -213,7 +213,7 @@ static Bool CheckForShmSyscall(void)
         badSysCall = TRUE;
     }
     signal(SIGSYS, oldHandler);
-    return(!badSysCall);
+    return !badSysCall;
 }
 
 #define MUST_CHECK_FOR_SHM_SYSCALL
@@ -456,7 +456,7 @@ ProcShmAttach(ClientPtr client)
     if ((stuff->readOnly != xTrue) && (stuff->readOnly != xFalse))
     {
 	client->errorValue = stuff->readOnly;
-        return(BadValue);
+        return BadValue;
     }
     for (shmdesc = Shmsegs;
 	 shmdesc && (shmdesc->shmid != stuff->shmid);
@@ -619,7 +619,7 @@ ProcPanoramiXShmPutImage(ClientPtr client)
 	result = ProcShmPutImage(client);
 	if(result != Success) break;
     }
-    return(result);
+    return result;
 }
 
 static int 
@@ -641,7 +641,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 
     if ((stuff->format != XYPixmap) && (stuff->format != ZPixmap)) {
 	client->errorValue = stuff->format;
-        return(BadValue);
+        return BadValue;
     }
 
     rc = dixLookupResourceByClass((pointer *)&draw, stuff->drawable,
@@ -672,7 +672,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
       if( /* check for being onscreen */
 	x < 0 || x + w > PanoramiXPixWidth ||
 	y < 0 || y + h > PanoramiXPixHeight )
-	    return(BadMatch);
+	    return BadMatch;
     } else {
       if( /* check for being onscreen */
 	screenInfo.screens[0]->x + pDraw->x + x < 0 ||
@@ -684,12 +684,12 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 	x + w > wBorderWidth((WindowPtr)pDraw) + (int)pDraw->width ||
 	y < -wBorderWidth((WindowPtr)pDraw) ||
 	y + h > wBorderWidth ((WindowPtr)pDraw) + (int)pDraw->height)
-	    return(BadMatch);
+	    return BadMatch;
     }
 
     drawables = calloc(PanoramiXNumScreens, sizeof(DrawablePtr));
     if(!drawables)
-	return(BadAlloc);
+	return BadAlloc;
 
     drawables[0] = pDraw;
     for(i = 1; i < PanoramiXNumScreens; i++) {
@@ -987,7 +987,7 @@ ProcShmGetImage(ClientPtr client)
     if ((stuff->format != XYPixmap) && (stuff->format != ZPixmap))
     {
 	client->errorValue = stuff->format;
-        return(BadValue);
+        return BadValue;
     }
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
 			   DixReadAccess);
@@ -1011,7 +1011,7 @@ ProcShmGetImage(ClientPtr client)
          stuff->y + (int)stuff->height >
 		wBorderWidth((WindowPtr)pDraw) + (int)pDraw->height
         )
-	    return(BadMatch);
+	    return BadMatch;
 	xgi.visual = wVisual(((WindowPtr)pDraw));
     }
     else
@@ -1021,7 +1021,7 @@ ProcShmGetImage(ClientPtr client)
 	    stuff->y < 0 ||
 	    stuff->y+(int)stuff->height > pDraw->height
 	    )
-	    return(BadMatch);
+	    return BadMatch;
 	xgi.visual = None;
     }
     xgi.type = X_Reply;
@@ -1181,7 +1181,7 @@ CreatePmap:
 	}
 	pDraw->pScreen->DestroyPixmap(pMap);
     }
-    return (BadAlloc);
+    return BadAlloc;
 }
 
 static int

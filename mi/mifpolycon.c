@@ -276,5 +276,5 @@ GetFPolyYBounds(
 
     *by = ICEIL(ymin + yFtrans);
     *ty = ICEIL(ymax + yFtrans - 1);
-    return(ptMin-ptsStart);
+    return ptMin-ptsStart;
 }

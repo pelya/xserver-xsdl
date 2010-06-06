@@ -117,7 +117,7 @@ xnestGetImage(DrawablePtr pDrawable, int x, int y, int w, int h,
 static Bool
 xnestBitBlitPredicate(Display *display, XEvent *event, char *args)
 {
-  return (event->type == GraphicsExpose || event->type == NoExpose);
+  return event->type == GraphicsExpose || event->type == NoExpose;
 }
 
 static RegionPtr
@@ -158,7 +158,7 @@ xnestBitBlitHelper(GCPtr pGC)
 
     RegionDestroy(pTmpReg);
     RegionValidate(pReg, &overlap);
-    return(pReg);
+    return pReg;
   }
 }
 

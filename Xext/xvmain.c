@@ -634,7 +634,7 @@ XvdiPutVideo(
 
   pPort->time = currentTime;
 
-  return (Success);
+  return Success;
 
 }
 
@@ -764,7 +764,7 @@ XvdiGetVideo(
 
   pPort->time = currentTime;
 
-  return (Success);
+  return Success;
 
 }
 

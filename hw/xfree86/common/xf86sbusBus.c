@@ -530,7 +530,7 @@ xf86GetSbusInfoForEntity(int entityIndex)
 
     for (psdpp = xf86SbusInfo; *psdpp != NULL; psdpp++) {
 	if (p->bus.id.sbus.fbNum == (*psdpp)->fbNum)
-	    return (*psdpp);
+	    return *psdpp;
     }
     return NULL;
 }

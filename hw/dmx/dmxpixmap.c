@@ -247,5 +247,5 @@ RegionPtr dmxBitmapToRegion(PixmapPtr pPixmap)
     RegionValidate(pReg, &overlap);
 
     dmxSync(dmxScreen, FALSE);
-    return(pReg);
+    return pReg;
 }

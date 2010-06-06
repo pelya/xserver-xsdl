@@ -348,6 +348,6 @@ int main(int argc, char *argv[], char *envp[])
 	free(ConnectionInfo);
 	ConnectionInfo = NULL;
     }
-    return(0);
+    return 0;
 }
 

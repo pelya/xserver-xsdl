@@ -269,7 +269,7 @@ ProcXFixesSelectCursorInput (ClientPtr client)
     if (stuff->eventMask & ~CursorAllEvents)
     {
 	client->errorValue = stuff->eventMask;
-	return( BadValue );
+	return BadValue;
     }
     return XFixesSelectCursorInput (client, pWin, stuff->eventMask);
 }
@@ -732,7 +732,7 @@ static Bool
 TestForCursorName (CursorPtr pCursor, pointer closure)
 {
     Atom *pName = closure;
-    return (pCursor->name == *pName);
+    return pCursor->name == *pName;
 }
 
 int

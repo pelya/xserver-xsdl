@@ -278,9 +278,9 @@ xf86SendDragEvents(DeviceIntPtr	device)
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     
     if (device->button && device->button->buttonsDown > 0)
-        return (local->flags & XI86_SEND_DRAG_EVENTS);
+        return local->flags & XI86_SEND_DRAG_EVENTS;
     else
-        return (TRUE);
+        return TRUE;
 }
 
 /***********************************************************************
@@ -1193,7 +1193,7 @@ xf86ScaleAxis(int	Cx,
     if (X < Sxlow)
 	X = Sxlow;
     
-    return (X);
+    return X;
 }
 
 /*

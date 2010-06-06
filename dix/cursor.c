@@ -122,7 +122,7 @@ FreeCursor(pointer value, XID cid)
     DeviceIntPtr pDev = NULL; /* unused anyway */
 
     if ( --pCurs->refcnt != 0)
-	return(Success);
+	return Success;
 
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
@@ -132,7 +132,7 @@ FreeCursor(pointer value, XID cid)
     FreeCursorBits(pCurs->bits);
     dixFiniPrivates(pCurs, PRIVATE_CURSOR);
     free( pCurs);
-    return(Success);
+    return Success;
 }
 
 

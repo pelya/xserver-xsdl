@@ -221,12 +221,12 @@ TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
     WindowPtr pChild;
 
     if (!(pChild = pWin))
-       return(WT_NOMATCH);
+       return WT_NOMATCH;
     while (1)
     {
 	result = (* func)(pChild, data);
 	if (result == WT_STOPWALKING)
-	    return(WT_STOPWALKING);
+	    return WT_STOPWALKING;
 	if ((result == WT_WALKCHILDREN) && pChild->firstChild)
 	{
 	    pChild = pChild->firstChild;
@@ -238,7 +238,7 @@ TraverseTree(WindowPtr pWin, VisitWindowProcPtr func, pointer data)
 	    break;
 	pChild = pChild->nextSib;
     }
-    return(WT_NOMATCH);
+    return WT_NOMATCH;
 }
 
 /*****
@@ -529,9 +529,9 @@ RealChildHead(WindowPtr pWin)
     if (!pWin->parent &&
 	(screenIsSaved == SCREEN_SAVER_ON) &&
 	(HasSaverWindow (pWin->drawable.pScreen)))
-	return (pWin->firstChild);
+	return pWin->firstChild;
     else
-	return (NullWindow);
+	return NullWindow;
 }
 
 /*****
@@ -1549,7 +1549,7 @@ MoveWindowInStack(WindowPtr pWin, WindowPtr pNextSib)
         (*pWin->drawable.pScreen->RestackWindow)(pWin, pWin->nextSib);
 #endif
 
-    return( pFirstChange );
+    return pFirstChange;
 }
 
 void
@@ -1795,12 +1795,12 @@ IsSiblingAboveMe(
     while (pWin)
     {
 	if (pWin == pSib)
-	    return(Above);
+	    return Above;
 	else if (pWin == pMe)
-	    return(Below);
+	    return Below;
 	pWin = pWin->nextSib;
     }
-    return(Below);
+    return Below;
 }
 
 static BoxPtr
@@ -1814,7 +1814,7 @@ WindowExtents(
 	       + wBorderWidth (pWin);
     pBox->y2 = pWin->drawable.y + (int)pWin->drawable.height
 	       + wBorderWidth (pWin);
-    return(pBox);
+    return pBox;
 }
 
 #define IS_SHAPED(pWin)	(wBoundingShape (pWin) != (RegionPtr) NULL)
@@ -1872,10 +1872,10 @@ AnyWindowOverlapsMe(
 	    if (BOXES_OVERLAP(sbox, box)
 	    && ShapeOverlap (pWin, box, pSib, sbox)
 	    )
-		return(TRUE);
+		return TRUE;
 	}
     }
-    return(FALSE);
+    return FALSE;
 }
 
 static Bool
@@ -1895,10 +1895,10 @@ IOverlapAnyWindow(
 	    if (BOXES_OVERLAP(sbox, box)
 	    && ShapeOverlap (pWin, box, pSib, sbox)
 	    )
-		return(TRUE);
+		return TRUE;
 	}
     }
-    return(FALSE);
+    return FALSE;
 }
 
 /*
@@ -1955,63 +1955,63 @@ WhereDoIGoInTheStack(
     {
       case Above:
 	if (pSib)
-	   return(pSib);
+	   return pSib;
 	else if (pWin == pFirst)
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
 	else
-	    return(pFirst);
+	    return pFirst;
       case Below:
 	if (pSib)
 	    if (pSib->nextSib != pWin)
-		return(pSib->nextSib);
+		return pSib->nextSib;
 	    else
-		return(pWin->nextSib);
+		return pWin->nextSib;
 	else
 	    return NullWindow;
       case TopIf:
 	if ((!pWin->mapped || (pSib && !pSib->mapped)))
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
 	else if (pSib)
 	{
 	    if ((IsSiblingAboveMe(pWin, pSib) == Above) &&
 		(RegionContainsRect(&pSib->borderSize, &box) != rgnOUT))
-		return(pFirst);
+		return pFirst;
 	    else
-		return(pWin->nextSib);
+		return pWin->nextSib;
 	}
 	else if (AnyWindowOverlapsMe(pWin, pHead, &box))
-	    return(pFirst);
+	    return pFirst;
 	else
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
       case BottomIf:
 	if ((!pWin->mapped || (pSib && !pSib->mapped)))
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
 	else if (pSib)
 	{
 	    if ((IsSiblingAboveMe(pWin, pSib) == Below) &&
 		(RegionContainsRect(&pSib->borderSize, &box) != rgnOUT))
 		return NullWindow;
 	    else
-		return(pWin->nextSib);
+		return pWin->nextSib;
 	}
 	else if (IOverlapAnyWindow(pWin, &box))
 	    return NullWindow;
 	else
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
       case Opposite:
 	if ((!pWin->mapped || (pSib && !pSib->mapped)))
-	    return(pWin->nextSib);
+	    return pWin->nextSib;
 	else if (pSib)
 	{
 	    if (RegionContainsRect(&pSib->borderSize, &box) != rgnOUT)
 	    {
 		if (IsSiblingAboveMe(pWin, pSib) == Above)
-		    return(pFirst);
+		    return pFirst;
 		else
 		    return NullWindow;
 	    }
 	    else
-		return(pWin->nextSib);
+		return pWin->nextSib;
 	}
 	else if (AnyWindowOverlapsMe(pWin, pHead, &box))
 	{
@@ -2019,7 +2019,7 @@ WhereDoIGoInTheStack(
 	     * if (pWin == pWin->parent->firstChild)
 	     *	  return pWin->nextSib;
 	     */
-	    return(pFirst);
+	    return pFirst;
 	}
 	else if (IOverlapAnyWindow(pWin, &box))
 	    return NullWindow;
@@ -2094,10 +2094,10 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
     xEvent event;
 
     if ((pWin->drawable.class == InputOnly) && (mask & IllegalInputOnlyConfigureMask))
-	return(BadMatch);
+	return BadMatch;
 
     if ((mask & CWSibling) && !(mask & CWStackMode))
-	return(BadMatch);
+	return BadMatch;
 
     pVlist = vlist;
 
@@ -2154,9 +2154,9 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 		return rc;
 	    }
 	    if (pSib->parent != pParent)
-		return(BadMatch);
+		return BadMatch;
 	    if (pSib == pWin)
-		return(BadMatch);
+		return BadMatch;
 	    break;
 	  case CWStackMode:
 	    GET_CARD8(CWStackMode, smode);
@@ -2164,12 +2164,12 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 		(smode != Opposite) && (smode != Above) && (smode != Below))
 	    {
 		client->errorValue = smode;
-		return(BadValue);
+		return BadValue;
 	    }
 	    break;
 	  default:
 	    client->errorValue = mask;
-	    return(BadValue);
+	    return BadValue;
 	}
     }
 	/* root really can't be reconfigured, so just return */
@@ -2217,7 +2217,7 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 	event.u.configureRequest.parent = pParent->drawable.id;
 	if (MaybeDeliverEventsToClient(pParent, &event, 1,
 		SubstructureRedirectMask, client) == 1)
-	    return(Success);
+	    return Success;
     }
     if (action == RESIZE_WIN)
     {
@@ -2268,7 +2268,7 @@ ConfigureWindow(WindowPtr pWin, Mask mask, XID *vlist, ClientPtr client)
 #endif
 	    goto ActuallyDoSomething;
     }
-    return(Success);
+    return Success;
 
 ActuallyDoSomething:
     if (pWin->drawable.pScreen->ConfigNotify)
@@ -2331,7 +2331,7 @@ ActuallyDoSomething:
 
     if (action != RESTACK_WIN)
 	CheckCursorConfinement(pWin);
-    return(Success);
+    return Success;
 #undef RESTACK_WIN
 #undef MOVE_WIN
 #undef RESIZE_WIN
@@ -2392,7 +2392,7 @@ CirculateWindow(WindowPtr pParent, int direction, ClientPtr client)
 	event.u.u.type = CirculateRequest;
 	if (MaybeDeliverEventsToClient(pParent, &event, 1,
 		SubstructureRedirectMask, client) == 1)
-	    return(Success);
+	    return Success;
     }
 
     event.u.u.type = CirculateNotify;
@@ -2401,7 +2401,7 @@ CirculateWindow(WindowPtr pParent, int direction, ClientPtr client)
 		       (direction == RaiseLowest) ? pFirst : NullWindow,
 		       VTStack);
 
-    return(Success);
+    return Success;
 }
 
 static int
@@ -2412,9 +2412,9 @@ CompareWIDs(
     Window *wid = (Window *)value;
 
     if (pWin->drawable.id == *wid)
-       return(WT_STOPWALKING);
+       return WT_STOPWALKING;
     else
-       return(WT_WALKCHILDREN);
+       return WT_WALKCHILDREN;
 }
 
 /*****
@@ -2433,9 +2433,9 @@ ReparentWindow(WindowPtr pWin, WindowPtr pParent,
 
     pScreen = pWin->drawable.pScreen;
     if (TraverseTree(pWin, CompareWIDs, (pointer)&pParent->drawable.id) == WT_STOPWALKING)
-	return(BadMatch);		
+	return BadMatch;
     if (!MakeWindowOptional(pWin))
-	return(BadAlloc);
+	return BadAlloc;
 
     if (WasMapped)
        UnmapWindow(pWin, FALSE);
@@ -2511,7 +2511,7 @@ ReparentWindow(WindowPtr pWin, WindowPtr pParent,
     if (WasMapped)
 	MapWindow(pWin, client);
     RecalculateDeliverableEvents(pWin);
-    return(Success);
+    return Success;
 }
 
 static void
@@ -2584,7 +2584,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
     WindowPtr  pLayerWin;
 
     if (pWin->mapped)
-	return(Success);
+	return Success;
 
     /*  general check for permission to map window */
     if (XaceHook(XACE_RESOURCE_ACCESS, client, pWin->drawable.id, RT_WINDOW,
@@ -2608,7 +2608,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 
 	    if (MaybeDeliverEventsToClient(pParent, &event, 1,
 		SubstructureRedirectMask, client) == 1)
-		return(Success);
+		return Success;
 	}
 
 	pWin->mapped = TRUE;
@@ -2622,7 +2622,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 	}
 
 	if (!pParent->realized)
-	    return(Success);
+	    return Success;
 	RealizeTree(pWin);
 	if (pWin->viewable)
 	{
@@ -2657,7 +2657,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 	RegionUninit(&temp);
     }
 
-    return(Success);
+    return Success;
 }
 
 
@@ -2813,7 +2813,7 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
     WindowPtr pLayerWin = pWin;
 
     if ((!pWin->mapped) || (!(pParent = pWin->parent)))
-	return(Success);
+	return Success;
     if (SubStrSend(pWin, pParent) && MapUnmapEventsEnabled(pWin))
     {
 	memset(&event, 0, sizeof(xEvent));
@@ -2843,7 +2843,7 @@ UnmapWindow(WindowPtr pWin, Bool fromConfigure)
     }
     if (wasRealized && !fromConfigure)
 	WindowsRestructured ();
-    return(Success);
+    return Success;
 }
 
 /*****
@@ -2986,15 +2986,15 @@ PointInWindowIsVisible(WindowPtr pWin, int x, int y)
     BoxRec box;
 
     if (!pWin->realized)
-	return (FALSE);
+	return FALSE;
     if (RegionContainsPoint(&pWin->borderClip,
 						  x, y, &box)
 	&& (!wInputShape(pWin) ||
 	    RegionContainsPoint(wInputShape(pWin),
 				x - pWin->drawable.x,
 				y - pWin->drawable.y, &box)))
-	return(TRUE);
-    return(FALSE);
+	return TRUE;
+    return FALSE;
 }
 
 
@@ -3008,7 +3008,7 @@ NotClippedByChildren(WindowPtr pWin)
     {
 	RegionIntersect(pReg, &pWin->borderClip, &pWin->winSize);
     }
-    return(pReg);
+    return pReg;
 }
 
 void

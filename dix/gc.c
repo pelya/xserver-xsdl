@@ -562,7 +562,7 @@ out:
 	pGC = (GCPtr)NULL;
     }
 
-    return (pGC);
+    return pGC;
 }
 
 static Bool
@@ -785,7 +785,7 @@ FreeGC(pointer value, XID gid)
     if (pGC->dash != DefaultDash)
 	free(pGC->dash);
     dixFreeObjectWithPrivates(pGC, PRIVATE_GC);
-    return(Success);
+    return Success;
 }
 
 /* CreateScratchGC(pScreen, depth)
@@ -1066,7 +1066,7 @@ SetClipRects(GCPtr pGC, int xOrigin, int yOrigin, int nrects,
 
     newct = VerifyRectOrder(nrects, prects, ordering);
     if (newct < 0)
-	return(BadMatch);
+	return BadMatch;
     size = nrects * sizeof(xRectangle);
     prectsNew = malloc(size);
     if (!prectsNew && size)

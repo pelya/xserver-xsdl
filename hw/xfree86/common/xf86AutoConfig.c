@@ -185,7 +185,7 @@ xf86AutoConfig(void)
     if (ret != CONFIG_OK)
 	xf86Msg(X_ERROR, "Error parsing the built-in default configuration.\n");
 
-    return (ret == CONFIG_OK);
+    return ret == CONFIG_OK;
 }
 
 static void

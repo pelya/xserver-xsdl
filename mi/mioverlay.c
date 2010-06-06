@@ -444,7 +444,7 @@ miOverlayMarkOverlappedWindows(
 	MIOVERLAY_GET_SCREEN_PRIVATE(pScreen)->underlayMarked = TRUE;	
     }
 
-    return (underMarked || overMarked);
+    return underMarked || overMarked;
 }
 
 

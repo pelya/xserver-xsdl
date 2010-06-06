@@ -482,7 +482,7 @@ CloseFont(pointer value, XID fid)
     FontPtr     pfont = (FontPtr)value;
 
     if (pfont == NullFont)
-	return (Success);
+	return Success;
     if (--pfont->refcnt == 0) {
 	if (patternCache)
 	    RemoveCachedFontPattern (patternCache, pfont);
@@ -504,7 +504,7 @@ CloseFont(pointer value, XID fid)
 	(*fpe_functions[fpe->type].close_font) (fpe, pfont);
 	FreeFPE(fpe);
     }
-    return (Success);
+    return Success;
 }
 
 

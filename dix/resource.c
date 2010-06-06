@@ -901,7 +901,7 @@ LegalNewID(XID id, ClientPtr client)
 
 	    rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
 					  DixGetAttrAccess);
-	    return (rc == BadValue);
+	    return rc == BadValue;
 	}
 	return FALSE;
 }

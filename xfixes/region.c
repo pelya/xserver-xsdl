@@ -63,7 +63,7 @@ XFixesRegionInit (void)
 {
     RegionResType = CreateNewResourceType(RegionResFree, "XFixesRegion");
 
-    return (RegionResType != 0);
+    return RegionResType != 0;
 }
 
 int

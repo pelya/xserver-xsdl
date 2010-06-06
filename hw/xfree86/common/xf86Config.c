@@ -163,7 +163,7 @@ xf86GetPathElem(char **pnt)
     **pnt = '\0';
     *pnt += 1;
   }
-  return(p1);
+  return p1;
 }
 
 /*
@@ -239,7 +239,7 @@ xf86ValidateFontPath(char *path)
     strcat(out_pnt, path_elem);
     out_pnt += strlen(path_elem);
   }
-  return(tmp_path);
+  return tmp_path;
 }
 
 

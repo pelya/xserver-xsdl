@@ -1360,7 +1360,7 @@ xf86TokenToString(SymTabPtr table, int token)
     if (table[i].token < 0)
 	return NULL;
     else
-	return(table[i].name);
+	return table[i].name;
 }
 
 int
@@ -1374,7 +1374,7 @@ xf86StringToToken(SymTabPtr table, const char *string)
     for (i = 0; table[i].token >= 0 && xf86NameCmp(string, table[i].name); i++)
 	;
 
-    return(table[i].token);
+    return table[i].token;
 }
 
 /*
@@ -1993,7 +1993,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
 	   ScrnIndex, property, type, format, len, value);
 
     if (ScrnIndex<0 || ScrnIndex>=xf86NumScreens) {
-      return(BadMatch);
+      return BadMatch;
     }
 
     if (xf86RegisteredPropertiesTable &&
@@ -2007,7 +2007,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
 
     if (!pNewProp) {
       if ((pNewProp = (RootWinPropPtr)malloc(sizeof(RootWinProp))) == NULL) {
-	return(BadAlloc);
+	return BadAlloc;
       }
       /*
        * We will put this property at the end of the list so that
@@ -2031,7 +2031,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       DebugF("creating xf86RegisteredPropertiesTable[] size %d\n",
 	     xf86NumScreens);
       if ( NULL==(xf86RegisteredPropertiesTable=(RootWinPropPtr*)xnfcalloc(sizeof(RootWinProp),xf86NumScreens) )) {
-	return(BadAlloc);
+	return BadAlloc;
       }
       for (i=0; i<xf86NumScreens; i++) {
 	xf86RegisteredPropertiesTable[i] = NULL;
@@ -2056,7 +2056,7 @@ xf86RegisterRootWindowProperty(int ScrnIndex, Atom property, Atom type,
       }
     }
     DebugF("xf86RegisterRootWindowProperty succeeded\n");
-    return(Success);
+    return Success;
 }
 
 Bool

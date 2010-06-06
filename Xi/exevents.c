@@ -1702,7 +1702,7 @@ InputClientGone(WindowPtr pWin, XID id)
     InputClientsPtr other, prev;
 
     if (!wOtherInputMasks(pWin))
-	return (Success);
+	return Success;
     prev = 0;
     for (other = wOtherInputMasks(pWin)->inputClients; other;
 	 other = other->next) {
@@ -1728,7 +1728,7 @@ InputClientGone(WindowPtr pWin, XID id)
 		free(other);
 	    }
 	    RecalculateDeviceDeliverableEvents(pWin);
-	    return (Success);
+	    return Success;
 	}
 	prev = other;
     }
@@ -1829,7 +1829,7 @@ ChangeKeyMapping(ClientPtr client,
     KeyClassPtr k = dev->key;
 
     if (k == NULL)
-	return (BadMatch);
+	return BadMatch;
 
     if (len != (keyCodes * keySymsPerKeyCode))
 	return BadLength;
@@ -1972,7 +1972,7 @@ MaybeSendDeviceMotionNotifyHint(deviceKeyButtonPointer * pEvents, Mask mask)
 	    pEvents->detail = NotifyNormal;
 	}
     }
-    return (0);
+    return 0;
 }
 
 void

@@ -1090,6 +1090,6 @@ XAAGetRectClipBoxes(
     	}
     }
 
-    return(pboxClipped - pboxClippedBase);  
+    return pboxClipped - pboxClippedBase;
 }
 

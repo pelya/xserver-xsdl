@@ -48,7 +48,7 @@ fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
     /* By the time we are processing requests, we can guarantee that there
      * is always a colormap installed */
     *pmaps = GetInstalledColormap(pScreen)->mid;
-    return (1);
+    return 1;
 }
 
 

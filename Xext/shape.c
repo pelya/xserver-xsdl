@@ -363,7 +363,7 @@ ProcPanoramiXShapeRectangles(
 	result = ProcShapeRectangles (client);
 	if (result != Success) break;
     }
-    return (result);
+    return result;
 }
 #endif
 
@@ -472,7 +472,7 @@ ProcPanoramiXShapeMask(
 	result = ProcShapeMask (client);
 	if (result != Success) break;
     }
-    return (result);
+    return result;
 }
 #endif
 
@@ -596,7 +596,7 @@ ProcPanoramiXShapeCombine(
 	result = ProcShapeCombine (client);
 	if (result != Success) break;
     }
-    return (result);
+    return result;
 }
 #endif
 
@@ -662,7 +662,7 @@ ProcPanoramiXShapeOffset(
 	result = ProcShapeOffset (client);
 	if(result != Success) break;
     }
-    return (result);
+    return result;
 }
 #endif
 

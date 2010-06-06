@@ -133,5 +133,5 @@ xnestPixmapToRegion(PixmapPtr pPixmap)
 
   RegionValidate(pReg, &overlap);
 
-  return(pReg);
+  return pReg;
 }

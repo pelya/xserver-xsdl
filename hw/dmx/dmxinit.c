@@ -404,7 +404,7 @@ Bool dmxGetVisualInfo(DMXScreenInfo *dmxScreen)
         dmxLogVisual(dmxScreen, &dmxScreen->beVisuals[i],
                      (i == dmxScreen->beDefVisualIndex));
 
-    return (dmxScreen->beDefVisualIndex >= 0);
+    return dmxScreen->beDefVisualIndex >= 0;
 }
 
 void dmxGetColormaps(DMXScreenInfo *dmxScreen)

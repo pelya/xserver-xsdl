@@ -154,7 +154,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
     {
 	prop = RRCreateOutputProperty (property);
 	if (!prop)
-	    return(BadAlloc);
+	    return BadAlloc;
 	add = TRUE;
 	mode = PropModeReplace;
     }
@@ -169,9 +169,9 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
      "PropModeReplace" since they will be written over. */
 
     if ((format != prop_value->format) && (mode != PropModeReplace))
-	return(BadMatch);
+	return BadMatch;
     if ((prop_value->type != type) && (mode != PropModeReplace))
-	return(BadMatch);
+	return BadMatch;
     new_value = *prop_value;
     if (mode == PropModeReplace)
 	total_len = len;
@@ -221,7 +221,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 					   prop->propertyName, &new_value))
 	{
 	    free(new_value.data);
-	    return (BadValue);
+	    return BadValue;
 	}
 	free(prop_value->data);
 	*prop_value = new_value;
@@ -251,7 +251,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	event.timestamp = currentTime.milliseconds;
 	RRDeliverPropertyEvent (output->pScreen, (xEvent *)&event);
     }
-    return(Success);
+    return Success;
 }
 
 Bool
@@ -341,10 +341,10 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
     {
         prop = RRCreateOutputProperty (property);
 	if (!prop)
-	    return(BadAlloc);
+	    return BadAlloc;
 	add = TRUE;
     } else if (prop->immutable && !immutable)
-	return(BadAccess);
+	return BadAccess;
     
     /*
      * ranges must have even number of values
@@ -401,7 +401,7 @@ ProcRRListOutputProperties (ClientPtr client)
 	numProps++;
     if (numProps)
         if(!(pAtoms = (Atom *)malloc(numProps * sizeof(Atom))))
-            return(BadAlloc);
+            return BadAlloc;
 
     rep.type = X_Reply;
     rep.length = bytes_to_int32(numProps * sizeof(Atom));
@@ -530,12 +530,12 @@ ProcRRChangeOutputProperty (ClientPtr client)
     if (!ValidAtom(stuff->property))
     {
 	client->errorValue = stuff->property;
-	return(BadAtom);
+	return BadAtom;
     }
     if (!ValidAtom(stuff->type))
     {
 	client->errorValue = stuff->type;
-	return(BadAtom);
+	return BadAtom;
     }
 
     err = RRChangeOutputProperty(output, stuff->property,
@@ -560,7 +560,7 @@ ProcRRDeleteOutputProperty (ClientPtr client)
     if (!ValidAtom(stuff->property))
     {
 	client->errorValue = stuff->property;
-	return (BadAtom);
+	return BadAtom;
     }
 
 
@@ -588,17 +588,17 @@ ProcRRGetOutputProperty (ClientPtr client)
     if (!ValidAtom(stuff->property))
     {
 	client->errorValue = stuff->property;
-	return(BadAtom);
+	return BadAtom;
     }
     if ((stuff->delete != xTrue) && (stuff->delete != xFalse))
     {
 	client->errorValue = stuff->delete;
-	return(BadValue);
+	return BadValue;
     }
     if ((stuff->type != AnyPropertyType) && !ValidAtom(stuff->type))
     {
 	client->errorValue = stuff->type;
-	return(BadAtom);
+	return BadAtom;
     }
 
     for (prev = &output->properties; (prop = *prev); prev = &prop->next)

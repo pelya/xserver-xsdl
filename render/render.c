@@ -852,7 +852,7 @@ ProcRenderTriStrip (ClientPtr client)
 	pFormat = 0;
     npoints = ((client->req_len << 2) - sizeof (xRenderTriStripReq));
     if (npoints & 4)
-	return(BadLength);
+	return BadLength;
     npoints >>= 3;
     if (npoints >= 3)
 	CompositeTriStrip (stuff->op, pSrc, pDst, pFormat,
@@ -892,7 +892,7 @@ ProcRenderTriFan (ClientPtr client)
 	pFormat = 0;
     npoints = ((client->req_len << 2) - sizeof (xRenderTriStripReq));
     if (npoints & 4)
-	return(BadLength);
+	return BadLength;
     npoints >>= 3;
     if (npoints >= 3)
 	CompositeTriFan (stuff->op, pSrc, pDst, pFormat,
@@ -1461,7 +1461,7 @@ ProcRenderFillRectangles (ClientPtr client)
     
     things = (client->req_len << 2) - sizeof(xRenderFillRectanglesReq);
     if (things & 4)
-	return(BadLength);
+	return BadLength;
     things >>= 3;
     
     CompositeRects (stuff->op,
@@ -1530,10 +1530,10 @@ ProcRenderCreateCursor (ClientPtr client)
 	return BadAlloc;
     if ( stuff->x > width 
       || stuff->y > height )
-	return (BadMatch);
+	return BadMatch;
     argbbits = malloc(width * height * sizeof (CARD32));
     if (!argbbits)
-	return (BadAlloc);
+	return BadAlloc;
     
     stride = BitmapBytePad(width);
     nbytes_mono = stride*height;
@@ -1541,14 +1541,14 @@ ProcRenderCreateCursor (ClientPtr client)
     if (!srcbits)
     {
 	free(argbbits);
-	return (BadAlloc);
+	return BadAlloc;
     }
     mskbits = calloc(1, nbytes_mono);
     if (!mskbits)
     {
 	free(argbbits);
 	free(srcbits);
-	return (BadAlloc);
+	return BadAlloc;
     }
 
     if (pSrc->format == PICT_a8r8g8b8)
@@ -1570,7 +1570,7 @@ ProcRenderCreateCursor (ClientPtr client)
 	    free(argbbits);
 	    free(srcbits);
 	    free(mskbits);
-	    return (BadImplementation);
+	    return BadImplementation;
 	}
 	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 32,
 					    CREATE_PIXMAP_USAGE_SCRATCH);
@@ -1579,7 +1579,7 @@ ProcRenderCreateCursor (ClientPtr client)
 	    free(argbbits);
 	    free(srcbits);
 	    free(mskbits);
-	    return (BadAlloc);
+	    return BadAlloc;
 	}
 	pPicture = CreatePicture (0, &pPixmap->drawable, pFormat, 0, 0, 
 				  client, &error);
@@ -2703,7 +2703,7 @@ PanoramiXRenderCreatePicture (ClientPtr client)
     else 
 	free(newPict);
 
-    return (result);
+    return result;
 }
 
 static int
@@ -2723,7 +2723,7 @@ PanoramiXRenderChangePicture (ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 static int
@@ -2743,7 +2743,7 @@ PanoramiXRenderSetPictureClipRectangles (ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 static int
@@ -2763,7 +2763,7 @@ PanoramiXRenderSetPictureTransform (ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 static int
@@ -2783,7 +2783,7 @@ PanoramiXRenderSetPictureFilter (ClientPtr client)
         if(result != Success) break;
     }
 
-    return (result);
+    return result;
 }
 
 static int
@@ -2809,7 +2809,7 @@ PanoramiXRenderFreePicture (ClientPtr client)
     /* Since ProcRenderFreePicture is using FreeResource, it will free
 	our resource for us on the last pass through the loop above */
  
-    return (result);
+    return result;
 }
 
 static int

@@ -114,7 +114,7 @@ static char **defaultPathList = NULL;
 static Bool
 PathIsAbsolute(const char *path)
 {
-    return (*path == '/');
+    return *path == '/';
 }	
 
 /*
@@ -739,7 +739,7 @@ static ModuleDescPtr
 AddSibling(ModuleDescPtr head, ModuleDescPtr new)
 {
     new->sib = head;
-    return (new);
+    return new;
 }
 
 pointer
@@ -789,7 +789,7 @@ NewModuleDesc(const char *name)
 	mdp->TearDownData = NULL;
     }
 
-    return (mdp);
+    return mdp;
 }
 
 ModuleDescPtr

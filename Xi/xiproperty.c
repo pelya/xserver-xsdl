@@ -254,18 +254,18 @@ get_property(ClientPtr client, DeviceIntPtr dev, Atom property, Atom type,
     if (!ValidAtom(property))
     {
         client->errorValue = property;
-        return(BadAtom);
+        return BadAtom;
     }
     if ((delete != xTrue) && (delete != xFalse))
     {
         client->errorValue = delete;
-        return(BadValue);
+        return BadValue;
     }
 
     if ((type != AnyPropertyType) && !ValidAtom(type))
     {
         client->errorValue = type;
-        return(BadAtom);
+        return BadAtom;
     }
 
     for (prop = dev->properties.properties; prop; prop = prop->next)
@@ -350,12 +350,12 @@ check_change_property(ClientPtr client, Atom property, Atom type, int format,
     if (!ValidAtom(property))
     {
         client->errorValue = property;
-        return(BadAtom);
+        return BadAtom;
     }
     if (!ValidAtom(type))
     {
         client->errorValue = type;
-        return(BadAtom);
+        return BadAtom;
     }
 
     return Success;
@@ -683,7 +683,7 @@ XIDeleteDeviceProperty (DeviceIntPtr device, Atom property, Bool fromClient)
             if (handler->DeleteProperty)
                 rc = handler->DeleteProperty(device, prop->propertyName);
             if (rc != Success)
-                return (rc);
+                return rc;
             handler = handler->next;
         }
     }
@@ -720,7 +720,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
     {
         prop = XICreateDeviceProperty (property);
         if (!prop)
-            return(BadAlloc);
+            return BadAlloc;
         add = TRUE;
         mode = PropModeReplace;
     }
@@ -732,9 +732,9 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
      "PropModeReplace" since they will be written over. */
 
     if ((format != prop_value->format) && (mode != PropModeReplace))
-        return(BadMatch);
+        return BadMatch;
     if ((prop_value->type != type) && (mode != PropModeReplace))
-        return(BadMatch);
+        return BadMatch;
     new_value = *prop_value;
     if (mode == PropModeReplace)
         total_len = len;
@@ -798,7 +798,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
                         if (checkonly && rc != Success)
                         {
                             free(new_value.data);
-                            return (rc);
+                            return rc;
                         }
                     }
                     handler = handler->next;
@@ -823,7 +823,7 @@ XIChangeDeviceProperty (DeviceIntPtr dev, Atom property, Atom type,
         send_property_event(dev, prop->propertyName,
                             (add) ?  XIPropertyCreated : XIPropertyModified);
 
-    return(Success);
+    return Success;
 }
 
 int
@@ -956,7 +956,7 @@ ProcXDeleteDeviceProperty (ClientPtr client)
     if (!ValidAtom(stuff->property))
     {
         client->errorValue = stuff->property;
-        return (BadAtom);
+        return BadAtom;
     }
 
     rc = XIDeleteDeviceProperty(dev, stuff->property, TRUE);
@@ -1199,7 +1199,7 @@ ProcXIDeleteProperty(ClientPtr client)
     if (!ValidAtom(stuff->property))
     {
         client->errorValue = stuff->property;
-        return (BadAtom);
+        return BadAtom;
     }
 
     rc = XIDeleteDeviceProperty(dev, stuff->property, TRUE);

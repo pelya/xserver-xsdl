@@ -78,7 +78,7 @@ static Bool
 GARTInit(int screenNum)
 {
 	if (initDone)
-		return (gartFd != -1);
+		return gartFd != -1;
 
 	if (gartFd == -1)
 		gartFd = open(AGP_DEVICE, O_RDWR);

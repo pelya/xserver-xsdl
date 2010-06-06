@@ -67,7 +67,7 @@ SetTimeSinceLastInputEvent(void)
 static Bool
 xnestExposurePredicate(Display *display, XEvent *event, char *args)
 {
-  return (event->type == Expose || event->type == ProcessedExpose);
+  return event->type == Expose || event->type == ProcessedExpose;
 }
 
 static Bool

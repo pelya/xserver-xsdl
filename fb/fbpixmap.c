@@ -318,7 +318,7 @@ fbPixmapToRegion(PixmapPtr pPix)
     if (!RegionIsValid(pReg))
 	FatalError("Assertion failed file %s, line %d: expr\n", __FILE__, __LINE__);
 #endif
-    return(pReg);
+    return pReg;
 }
 
 #ifdef FB_DEBUG

@@ -82,7 +82,7 @@ RamDacInit(ScrnInfoPtr pScrn, RamDacRecPtr ramdacPriv)
 	((RamDacScreenRecPtr) (pScrn)->privates[RamDacGetScreenIndex()].ptr);
     ramdacScrPtr->RamDacRec = ramdacPriv;
 
-    return(TRUE);
+    return TRUE;
 }
 
 void
