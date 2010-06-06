@@ -105,8 +105,7 @@ static Bool KdXVInitAdaptors(ScreenPtr, KdVideoAdaptorPtr*, int);
 
 static DevPrivateKeyRec KdXVWindowKeyRec;
 #define KdXVWindowKey (&KdXVWindowKeyRec)
-static DevPrivateKeyRec KdXvScreenKeyRec;
-#define KdXvScreenKey (&KdXvScreenKeyRec)
+static DevPrivateKey KdXvScreenKey;
 static unsigned long KdXVGeneration = 0;
 static unsigned long PortResource = 0;
 
@@ -200,9 +199,6 @@ KdXVScreenInit(
 	return FALSE;
 
   if (!dixRegisterPrivateKey(&KdXVWindowKeyRec, PRIVATE_WINDOW, 0))
-      return FALSE;
-
-  if (!dixRegisterPrivateKey(&KdXVScreenKeyRec, PRIVATE_SCREEN, 0))
       return FALSE;
 
   if(Success != (*XvScreenInitProc)(pScreen)) return FALSE;
