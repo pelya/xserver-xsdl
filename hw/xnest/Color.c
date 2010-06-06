@@ -469,6 +469,9 @@ xnestCreateDefaultColormap(ScreenPtr pScreen)
   unsigned short zero = 0, ones = 0xFFFF;  
   Pixel wp, bp;
 
+  if (!dixRegisterPrivateKey(&cmapScrPrivateKeyRec, PRIVATE_SCREEN, 0))
+      return FALSE;
+
   for (pVisual = pScreen->visuals;
        pVisual->vid != pScreen->rootVisual;
        pVisual++);
