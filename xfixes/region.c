@@ -663,7 +663,6 @@ int
 ProcXFixesSetWindowShapeRegion (ClientPtr client)
 {
     WindowPtr	    pWin;
-    ScreenPtr	    pScreen;
     RegionPtr	    pRegion;
     RegionPtr	    *pDestRegion;
     int rc;
@@ -678,7 +677,6 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
 	return rc;
     }
     VERIFY_REGION_OR_NONE(pRegion, stuff->region, client, DixWriteAccess);
-    pScreen = pWin->drawable.pScreen;
     switch (stuff->destKind) {
     case ShapeBounding:
     case ShapeClip:
@@ -733,7 +731,7 @@ ProcXFixesSetWindowShapeRegion (ClientPtr client)
     if (*pDestRegion)
 	RegionDestroy(*pDestRegion);
     *pDestRegion = pRegion;
-    (*pScreen->SetShape) (pWin, stuff->destKind);
+    (*pWin->drawable.pScreen->SetShape) (pWin, stuff->destKind);
     SendShapeNotify (pWin, stuff->destKind);
     return Success;
 }

@@ -593,8 +593,7 @@ damageDestroyClip(GCPtr pGC)
 
 #define checkGCDamage(d,g)	(getDrawableDamage(d) && \
 				 (!g->pCompositeClip ||\
-				  RegionNotEmpty(\
-						  g->pCompositeClip)))
+				  RegionNotEmpty(g->pCompositeClip)))
 
 #define TRIM_PICTURE_BOX(box, pDst) { \
     BoxPtr extents = &pDst->pCompositeClip->extents;\

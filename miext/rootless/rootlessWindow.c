@@ -179,9 +179,7 @@ RootlessCreateWindow(WindowPtr pWin)
 static void
 RootlessDestroyFrame(WindowPtr pWin, RootlessWindowPtr winRec)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-
-    SCREENREC(pScreen)->imp->DestroyFrame(winRec->wid);
+    SCREENREC(pWin->drawable.pScreen)->imp->DestroyFrame(winRec->wid);
 
 #ifdef ROOTLESS_TRACK_DAMAGE
     RegionUninit(&winRec->damage);
@@ -218,14 +216,6 @@ RootlessDestroyWindow(WindowPtr pWin)
 static Bool
 RootlessGetShape(WindowPtr pWin, RegionPtr pShape)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-
-    /* 
-     * Avoid a warning.  
-     * REGION_NULL and the other macros don't actually seem to use pScreen.
-     */
-    (void)pScreen; 
-
     if (wBoundingShape(pWin) == NULL)
         return FALSE;
 
@@ -247,7 +237,6 @@ RootlessGetShape(WindowPtr pWin, RegionPtr pShape)
 static void RootlessReshapeFrame(WindowPtr pWin)
 {
     RootlessWindowRec *winRec = WINREC(pWin);
-    ScreenPtr pScreen = pWin->drawable.pScreen;
     RegionRec newShape;
     RegionPtr pShape;
 
@@ -274,7 +263,7 @@ static void RootlessReshapeFrame(WindowPtr pWin)
     }
 #endif
 
-    SCREENREC(pScreen)->imp->ReshapeFrame(winRec->wid, pShape);
+    SCREENREC(pWin->drawable.pScreen)->imp->ReshapeFrame(winRec->wid, pShape);
 
     if (pShape != NULL)
         RegionUninit(&newShape);

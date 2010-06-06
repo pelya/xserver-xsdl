@@ -463,7 +463,6 @@ extern _X_EXPORT DevPrivateKey miAllocateGCPrivateIndex(
 /* mivaltree.c */
 
 extern _X_EXPORT int miShapedWindowIn(
-    ScreenPtr /*pScreen*/,
     RegionPtr /*universe*/,
     RegionPtr /*bounding*/,
     BoxPtr /*rect*/,

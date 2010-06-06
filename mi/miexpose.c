@@ -131,7 +131,6 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 		  GCPtr pGC, int srcx, int srcy, int width, int height,
 		  int dstx, int dsty, unsigned long plane)
 {
-    ScreenPtr pscr;
     RegionPtr prgnSrcClip;	/* drawable-relative source clip */
     RegionRec rgnSrcRec;
     RegionPtr prgnDstClip;	/* drawable-relative dest clip */
@@ -147,9 +146,6 @@ miHandleExposures(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
     WindowPtr pSrcWin;
     BoxRec expBox;
     Bool extents;
-
-    /* This prevents warning about pscr not being used. */
-    pGC->pScreen = pscr = pGC->pScreen;
 
     /* avoid work if we can */
     if (!pGC->graphicsExposures &&

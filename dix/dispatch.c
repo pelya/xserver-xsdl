@@ -1179,14 +1179,12 @@ ProcTranslateCoords(ClientPtr client)
 		 * borderSize
 		 */
 		&& (!wBoundingShape(pWin) ||
-		    RegionContainsPoint(
-					&pWin->borderSize, x, y, &box))
+		    RegionContainsPoint(&pWin->borderSize, x, y, &box))
 		
 		&& (!wInputShape(pWin) ||
-		    RegionContainsPoint(
-				    wInputShape(pWin),
-				    x - pWin->drawable.x,
-				    y - pWin->drawable.y, &box))
+		    RegionContainsPoint(wInputShape(pWin),
+					x - pWin->drawable.x,
+					y - pWin->drawable.y, &box))
 		)
             {
 		rep.child = pWin->drawable.id;
@@ -2151,8 +2149,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
 	{
-	    RegionTranslate(pVisibleRegion,
-			     -pDraw->x, -pDraw->y);
+	    RegionTranslate(pVisibleRegion, -pDraw->x, -pDraw->y);
 	}
     }
 

@@ -150,8 +150,6 @@ RegionOperate (
 	int xoff, int yoff,
 	CreateDftPtr create)
 {
-    ScreenPtr	pScreen = pWin->drawable.pScreen;
-
     if (srcRgn && (xoff || yoff))
 	RegionTranslate(srcRgn, xoff, yoff);
     if (!pWin->parent)
@@ -220,7 +218,7 @@ RegionOperate (
     }
     if (srcRgn)
 	RegionDestroy(srcRgn);
-    (*pScreen->SetShape) (pWin, kind);
+    (*pWin->drawable.pScreen->SetShape) (pWin, kind);
     SendShapeNotify (pWin, kind);
     return Success;
 }
@@ -281,7 +279,6 @@ static int
 ProcShapeRectangles (ClientPtr client)
 {
     WindowPtr		pWin;
-    ScreenPtr		pScreen;
     REQUEST(xShapeRectanglesReq);
     xRectangle		*prects;
     int		        nrects, ctype, rc;
@@ -314,7 +311,6 @@ ProcShapeRectangles (ClientPtr client)
 	client->errorValue = stuff->ordering;
         return BadValue;
     }
-    pScreen = pWin->drawable.pScreen;
     nrects = ((stuff->length  << 2) - sizeof(xShapeRectanglesReq));
     if (nrects & 4)
 	return BadLength;
@@ -489,7 +485,6 @@ static int
 ProcShapeCombine (ClientPtr client)
 {
     WindowPtr		pSrcWin, pDestWin;
-    ScreenPtr		pScreen;
     REQUEST(xShapeCombineReq);
     RegionPtr		srcRgn;
     RegionPtr		*destRgn;
@@ -519,7 +514,6 @@ ProcShapeCombine (ClientPtr client)
 	client->errorValue = stuff->destKind;
 	return BadValue;
     }
-    pScreen = pDestWin->drawable.pScreen;
 
     rc = dixLookupWindow(&pSrcWin, stuff->src, client, DixGetAttrAccess);
     if (rc != Success)
@@ -541,7 +535,7 @@ ProcShapeCombine (ClientPtr client)
 	client->errorValue = stuff->srcKind;
 	return BadValue;
     }
-    if (pSrcWin->drawable.pScreen != pScreen)
+    if (pSrcWin->drawable.pScreen != pDestWin->drawable.pScreen)
     {
 	return BadMatch;
     }
@@ -614,7 +608,6 @@ static int
 ProcShapeOffset (ClientPtr client)
 {
     WindowPtr		pWin;
-    ScreenPtr		pScreen;
     REQUEST(xShapeOffsetReq);
     RegionPtr		srcRgn;
     int			rc;
@@ -638,11 +631,10 @@ ProcShapeOffset (ClientPtr client)
 	client->errorValue = stuff->destKind;
 	return BadValue;
     }
-    pScreen = pWin->drawable.pScreen;
     if (srcRgn)
     {
         RegionTranslate(srcRgn, stuff->xOff, stuff->yOff);
-        (*pScreen->SetShape) (pWin, stuff->destKind);
+        (*pWin->drawable.pScreen->SetShape) (pWin, stuff->destKind);
     }
     SendShapeNotify (pWin, (int)stuff->destKind);
     return Success;

@@ -887,7 +887,6 @@ CheckVirtualMotion(
 static void
 ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
     if (syncEvents.playingEvents)
@@ -907,7 +906,7 @@ ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bo
 	pSprite->hotShape = wBoundingShape(pWin) ? &pWin->borderSize
 					       : NullRegion;
         CheckPhysLimits(pDev, pSprite->current, generateEvents,
-                        confineToScreen, pScreen);
+                        confineToScreen, pWin->drawable.pScreen);
     }
 }
 
@@ -2562,11 +2561,10 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
 	int i;
 
 	for(i = 1; i < PanoramiXNumScreens; i++) {
-	   if(RegionContainsPoint(
-			&pSprite->windows[i]->borderSize,
-			x + screenInfo.screens[0]->x - screenInfo.screens[i]->x,
-			y + screenInfo.screens[0]->y - screenInfo.screens[i]->y,
-			&box))
+	   if(RegionContainsPoint(&pSprite->windows[i]->borderSize,
+				  x + screenInfo.screens[0]->x - screenInfo.screens[i]->x,
+				  y + screenInfo.screens[0]->y - screenInfo.screens[i]->y,
+				  &box))
 		return TRUE;
 	}
     }
@@ -2610,10 +2608,9 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 	     */
 	    && (!wBoundingShape(pWin) || PointInBorderSize(pWin, x, y))
 	    && (!wInputShape(pWin) ||
-		RegionContainsPoint(
-				wInputShape(pWin),
-				x - pWin->drawable.x,
-				y - pWin->drawable.y, &box))
+		RegionContainsPoint(wInputShape(pWin),
+				    x - pWin->drawable.x,
+				    y - pWin->drawable.y, &box))
 #ifdef ROOTLESS
     /* In rootless mode windows may be offscreen, even when
      * they're in X's stack. (E.g. if the native window system
@@ -2881,9 +2878,9 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
             pSprite->hotLimits.y2 -= yoff;
 
             if (RegionNotEmpty(&pSprite->Reg1))
-                RegionTranslate(&pSprite->Reg1,    xoff, yoff);
+                RegionTranslate(&pSprite->Reg1, xoff, yoff);
             if (RegionNotEmpty(&pSprite->Reg2))
-                RegionTranslate(&pSprite->Reg2,    xoff, yoff);
+                RegionTranslate(&pSprite->Reg2, xoff, yoff);
 
             /* FIXME: if we call ConfineCursorToWindow, must we do anything else? */
             if ((grab = pDev->deviceGrab.grab) && grab->confineTo) {
@@ -3151,7 +3148,6 @@ XineramaPointInWindowIsVisible(
     int y
 )
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
     BoxRec box;
     int i, xoff, yoff;
 
@@ -3167,16 +3163,14 @@ XineramaPointInWindowIsVisible(
 
     for(i = 1; i < PanoramiXNumScreens; i++) {
 	pWin = inputInfo.pointer->spriteInfo->sprite->windows[i];
-	pScreen = pWin->drawable.pScreen;
 	x = xoff - screenInfo.screens[i]->x;
 	y = yoff - screenInfo.screens[i]->y;
 
 	if(RegionContainsPoint(&pWin->borderClip, x, y, &box)
 	   && (!wInputShape(pWin) ||
-	       RegionContainsPoint(
-			       wInputShape(pWin),
-			       x - pWin->drawable.x,
-			       y - pWin->drawable.y, &box)))
+	       RegionContainsPoint(wInputShape(pWin),
+				   x - pWin->drawable.x,
+				   y - pWin->drawable.y, &box)))
             return TRUE;
 
     }
@@ -3375,8 +3369,7 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 	int i;
 
 	for(i = 1; i < PanoramiXNumScreens; i++) {
-	    if(RegionNotEmpty(
-                        &pDev->spriteInfo->sprite->windows[i]->borderSize))
+	    if(RegionNotEmpty(&pDev->spriteInfo->sprite->windows[i]->borderSize))
 		return TRUE;
 	}
      }

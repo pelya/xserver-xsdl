@@ -262,7 +262,6 @@ void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
 void
 RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
 {
-    ScreenPtr pScreen = pWindow->drawable.pScreen;
     RootlessWindowRec *winRec;
     RegionRec clipped;
     WindowPtr pTop;
@@ -307,7 +306,8 @@ RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
                 RegionUnion(&winRec->damage,
                                  &winRec->damage, (pRegion));
 #else
-                SCREENREC(pScreen)->imp->DamageRects(winRec->wid,
+                SCREENREC(pWindow->drawable.pScreen)->imp->
+                    DamageRects(winRec->wid,
                                 RegionNumRects(pRegion),
                                 RegionRects(pRegion),
                                 -winRec->x, -winRec->y);
@@ -332,7 +332,8 @@ RootlessDamageRegion(WindowPtr pWindow, RegionPtr pRegion)
         RegionUnion(&winRec->damage,
                      &winRec->damage, (pRegion));
 #else
-        SCREENREC(pScreen)->imp->DamageRects(winRec->wid,
+        SCREENREC(pWindow->drawable.pScreen)->imp->
+            DamageRects(winRec->wid,
                         RegionNumRects(&clipped),
                         RegionRects(&clipped),
                         -winRec->x, -winRec->y);

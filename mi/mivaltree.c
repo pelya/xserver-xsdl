@@ -107,7 +107,7 @@ Equipment Corporation.
  * Compute the visibility of a shaped window
  */
 int
-miShapedWindowIn (ScreenPtr pScreen, RegionPtr universe, RegionPtr bounding,
+miShapedWindowIn (RegionPtr universe, RegionPtr bounding,
                   BoxPtr rect, int x, int y)
 {
     BoxRec  	box;
@@ -272,7 +272,7 @@ miComputeClips (
 
 		if ((pBounding = wBoundingShape (pParent)))
 		{
-		    switch (miShapedWindowIn (pScreen, universe, pBounding,
+		    switch (miShapedWindowIn (universe, pBounding,
 					      &borderSize,
 					      pParent->drawable.x,
  					      pParent->drawable.y))
@@ -331,14 +331,12 @@ miComputeClips (
 		    }
 		    if (pChild->valdata)
 		    {
-			RegionNull(
-				    &pChild->valdata->after.borderExposed);
+			RegionNull(&pChild->valdata->after.borderExposed);
 			if (HasParentRelativeBorder(pChild))
 			{
-			    RegionSubtract(
-					 &pChild->valdata->after.borderExposed,
-					 &pChild->borderClip,
-					 &pChild->winSize);
+			    RegionSubtract(&pChild->valdata->after.borderExposed,
+					   &pChild->borderClip,
+					   &pChild->winSize);
 			}
 			RegionNull(&pChild->valdata->after.exposed);
 		    }

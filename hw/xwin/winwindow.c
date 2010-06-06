@@ -564,7 +564,6 @@ void
 winReshapeRootless (WindowPtr pWin)
 {
   int		nRects;
-  /* ScreenPtr	pScreen = pWin->drawable.pScreen;*/
   RegionRec	rrNewShape;
   BoxPtr	pShape, pRects, pEnd;
   HRGN		hRgn, hRgnRect;

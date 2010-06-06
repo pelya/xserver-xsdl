@@ -67,7 +67,6 @@ miClearToBackground(WindowPtr pWin,
     BoxRec box;
     RegionRec	reg;
     RegionPtr pBSReg = NullRegion;
-    ScreenPtr	pScreen;
     BoxPtr  extents;
     int	    x1, y1, x2, y2;
 
@@ -111,12 +110,11 @@ miClearToBackground(WindowPtr pWin,
     box.y1 = y1;
     box.y2 = y2;
 
-    pScreen = pWin->drawable.pScreen;
     RegionInit(&reg, &box, 1);
 
     RegionIntersect(&reg, &reg, &pWin->clipList);
     if (generateExposures)
-	(*pScreen->WindowExposures)(pWin, &reg, pBSReg);
+	(*pWin->drawable.pScreen->WindowExposures)(pWin, &reg, pBSReg);
     else if (pWin->backgroundState != None)
 	miPaintWindow(pWin, &reg, PW_BACKGROUND);
     RegionUninit(&reg);
@@ -146,9 +144,6 @@ miMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst, WindowPtr *ppLayerWin)
     WindowPtr pChild, pLast;
     Bool anyMarked = FALSE;
     MarkWindowProcPtr MarkWindow = pWin->drawable.pScreen->MarkWindow;
-    ScreenPtr pScreen;
-
-    pScreen = pWin->drawable.pScreen;
 
     /* single layered systems are easy */
     if (ppLayerWin) *ppLayerWin = pWin;
@@ -230,10 +225,7 @@ miHandleValidateExposures(WindowPtr pWin)
 {
     WindowPtr pChild;
     ValidatePtr val;
-    ScreenPtr pScreen;
     WindowExposuresProcPtr WindowExposures;
-
-    pScreen = pWin->drawable.pScreen;
 
     pChild = pWin;
     WindowExposures = pChild->drawable.pScreen->WindowExposures;
@@ -339,7 +331,6 @@ miRecomputeExposures (
     WindowPtr	pWin,
     pointer		value) /* must conform to VisitWindowProcPtr */
 {
-    ScreenPtr	pScreen;
     RegionPtr	pValid = (RegionPtr)value;
 
     if (pWin->valdata)
@@ -353,7 +344,6 @@ miRecomputeExposures (
 	if (pWin->redirectDraw != RedirectDrawNone)
 	    return WT_DONTWALKCHILDREN;
 #endif
-	pScreen = pWin->drawable.pScreen;
 	/*
 	 * compute exposed regions of this window
 	 */
@@ -824,10 +814,7 @@ miMarkUnrealizedWindow(WindowPtr pChild, WindowPtr pWin, Bool fromConfigure)
 void
 miSegregateChildren(WindowPtr pWin, RegionPtr pReg, int depth)
 {
-    ScreenPtr pScreen;
     WindowPtr pChild;
-
-    pScreen = pWin->drawable.pScreen;
 
     for (pChild = pWin->firstChild; pChild; pChild = pChild->nextSib)
     {

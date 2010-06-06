@@ -104,16 +104,13 @@ Equipment Corporation.
 
 #include    "globals.h"
 
-int RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
-			RegionPtr bounding, BoxPtr rect, int x, int y);
-
 int RootlessMiValidateTree (WindowPtr pRoot, WindowPtr pChild, VTKind kind);
 
 /*
  * Compute the visibility of a shaped window
  */
-int
-RootlessShapedWindowIn (ScreenPtr pScreen, RegionPtr universe,
+static int
+RootlessShapedWindowIn (RegionPtr universe,
 			RegionPtr bounding, BoxPtr rect, int x, int y)
 {
     BoxRec  box;
@@ -236,7 +233,7 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 
 		if ((pBounding = wBoundingShape (pParent)))
 		{
-		    switch (RootlessShapedWindowIn (pScreen, universe, 
+		    switch (RootlessShapedWindowIn (universe,
 						    pBounding, &borderSize,
 						    pParent->drawable.x,
 						    pParent->drawable.y))
@@ -296,14 +293,12 @@ RootlessComputeClips (WindowPtr pParent, ScreenPtr pScreen,
 		    }
 		    if (pChild->valdata)
 		    {
-			RegionNull(
-				    &pChild->valdata->after.borderExposed);
+			RegionNull(&pChild->valdata->after.borderExposed);
 			if (HasParentRelativeBorder(pChild))
 			  {
-			    RegionSubtract(
-					 &pChild->valdata->after.borderExposed,
-					 &pChild->borderClip,
-					 &pChild->winSize);
+			    RegionSubtract(&pChild->valdata->after.borderExposed,
+					   &pChild->borderClip,
+					   &pChild->winSize);
 			}
 			RegionNull(&pChild->valdata->after.exposed);
 		    }

@@ -329,7 +329,6 @@ miOverlayMarkOverlappedWindows(
     WindowPtr pFirst,
     WindowPtr *pLayerWin
 ){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
     WindowPtr pChild, pLast;
     Bool overMarked, underMarked, doUnderlay, markAll;
     miOverlayTreePtr pTree = NULL, tLast, tChild;
@@ -440,6 +439,7 @@ miOverlayMarkOverlappedWindows(
     }
 
     if(underMarked) {
+	ScreenPtr pScreen = pWin->drawable.pScreen;
 	MARK_UNDERLAY(pTree->parent->pWin);
 	MIOVERLAY_GET_SCREEN_PRIVATE(pScreen)->underlayMarked = TRUE;	
     }
@@ -486,7 +486,7 @@ miOverlayComputeClips(
 		RegionPtr   pBounding;
 
 		if ((pBounding = wBoundingShape (pParent))) {
-		    switch (miShapedWindowIn (pScreen, universe, pBounding,
+		    switch (miShapedWindowIn (universe, pBounding,
 					      &borderSize,
 					      pParent->drawable.x,
  					      pParent->drawable.y))
@@ -535,10 +535,9 @@ miOverlayComputeClips(
 		    if (tChild->valdata) {
 			RegionNull(&tChild->valdata->borderExposed);
 			if (HasParentRelativeBorder(tChild->pWin)){
-			    RegionSubtract(
-					 &tChild->valdata->borderExposed,
-					 &tChild->borderClip,
-					 &tChild->pWin->winSize);
+			    RegionSubtract(&tChild->valdata->borderExposed,
+					   &tChild->borderClip,
+					   &tChild->pWin->winSize);
 			}
 			RegionNull(&tChild->valdata->exposed);
 		    }
@@ -1004,7 +1003,6 @@ miOverlayWindowExposures(
     RegionPtr other_exposed
 ){
     RegionPtr   exposures = prgn;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
 
     if ((prgn && !RegionNil(prgn)) ||
 	(exposures && !RegionNil(exposures)) || other_exposed)
@@ -1025,6 +1023,7 @@ miOverlayWindowExposures(
 	if (clientInterested && exposures && 
 	   (RegionNumRects(exposures) > RECTLIMIT))
 	{
+	    ScreenPtr pScreen = pWin->drawable.pScreen;
             miOverlayScreenPtr pPriv = MIOVERLAY_GET_SCREEN_PRIVATE(pScreen);
 	    BoxRec box;
 
@@ -1074,12 +1073,8 @@ miOverlayRecomputeExposures (
     WindowPtr	pWin,
     pointer	value 
 ){
-    ScreenPtr pScreen;
     miOverlayTwoRegions	*pValid = (miOverlayTwoRegions*)value;
     miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
-
-    /* This prevents warning about pScreen not being used. */
-    pWin->drawable.pScreen = pScreen = pWin->drawable.pScreen;
 
     if (pWin->valdata) {
 	/*
@@ -1419,13 +1414,11 @@ miOverlayResizeWindow(
 	    if (oldpt.x != x || oldpt.y != y) {
 		if(gravitate2[g]) {
 		    pPriv->copyUnderlay = TRUE;
-		    (*pWin->drawable.pScreen->CopyWindow)(
-						pWin, oldpt, gravitate2[g]);
+		    (*pScreen->CopyWindow)(pWin, oldpt, gravitate2[g]);
 		}
 		if(gravitate[g]) {
 		    pPriv->copyUnderlay = FALSE;
-		    (*pWin->drawable.pScreen->CopyWindow)(
-						pWin, oldpt, gravitate[g]);
+		    (*pScreen->CopyWindow)(pWin, oldpt, gravitate[g]);
 		}
 	    }
 
@@ -1730,7 +1723,6 @@ miOverlayCopyUnderlay(ScreenPtr pScreen)
 void
 miOverlayComputeCompositeClip(GCPtr pGC, WindowPtr pWin)
 {
-    ScreenPtr       pScreen = pGC->pScreen;
     miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
     RegionPtr       pregWin;
     Bool            freeTmpClip, freeCompClip;
@@ -1744,7 +1736,7 @@ miOverlayComputeCompositeClip(GCPtr pGC, WindowPtr pWin)
 	pregWin = RegionCreate(NullBox, 1);
 	freeTmpClip = TRUE;
 	if (pWin->parent || (screenIsSaved != SCREEN_SAVER_ON) ||
-		!HasSaverWindow (pScreen))
+		!HasSaverWindow (pGC->pScreen))
 	{
             RegionIntersect(pregWin,&pTree->borderClip,&pWin->winSize);
 	}

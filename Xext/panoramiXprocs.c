@@ -620,8 +620,7 @@ int PanoramiXTranslateCoords(ClientPtr client)
 		 * borderSize
 		 */
 		&& (!wBoundingShape(pWin) ||
-		    RegionContainsPoint(
-					wBoundingShape(pWin), 
+		    RegionContainsPoint(wBoundingShape(pWin),
 					x - pWin->drawable.x, 
 					y - pWin->drawable.y, &box))
 		)
@@ -1136,10 +1135,9 @@ int PanoramiXCopyArea(ClientPtr client)
 	}
 
 	if(pGC->graphicsExposures) {
-	    ScreenPtr pScreen = pDst->pScreen;
 	    Bool overlap;
 	    RegionValidate(&totalReg, &overlap);
-	    (*pScreen->SendGraphicsExpose)(
+	    (*pDst->pScreen->SendGraphicsExpose)(
 		client, &totalReg, stuff->dstDrawable, X_CopyArea, 0);
 	    RegionUninit(&totalReg);
 	}
@@ -1242,10 +1240,9 @@ int PanoramiXCopyPlane(ClientPtr client)
     }
 
     if(pGC->graphicsExposures) {
-	ScreenPtr pScreen = pdstDraw->pScreen;
 	Bool overlap;
 	RegionValidate(&totalReg, &overlap);
-	(*pScreen->SendGraphicsExpose)(
+	(*pdstDraw->pScreen->SendGraphicsExpose)(
 		client, &totalReg, stuff->dstDrawable, X_CopyPlane, 0);
 	RegionUninit(&totalReg);
     }

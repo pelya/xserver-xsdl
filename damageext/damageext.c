@@ -35,8 +35,6 @@ static RESTYPE		DamageExtWinType;
 static DevPrivateKeyRec DamageClientPrivateKeyRec;
 #define DamageClientPrivateKey (&DamageClientPrivateKeyRec)
 
-#define prScreen	screenInfo.screens[0]
-
 static void
 DamageExtNotify (DamageExtPtr pDamageExt, BoxPtr pBoxes, int nBoxes)
 {

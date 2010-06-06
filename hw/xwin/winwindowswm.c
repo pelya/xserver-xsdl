@@ -425,7 +425,6 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
   RECT rcNew;
   int nCmdShow, rc;
   RegionRec newShape;
-  ScreenPtr pScreen;
 
   REQUEST_SIZE_MATCH (xWindowsWMFrameDrawReq);
 
@@ -491,7 +490,6 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
 
   if (wBoundingShape(pWin) != NULL)
     {
-      pScreen = pWin->drawable.pScreen;
       /* wBoundingShape is relative to *inner* origin of window.
 	 Translate by borderWidth to get the outside-relative position. */
       

@@ -75,8 +75,7 @@ fbOverlayCreateWindow(WindowPtr pWin)
 	     */
 	    if (!pWin->parent)
 	    {
-		RegionEmpty(
-			      &pScrPriv->layer[i].u.run.region);
+		RegionEmpty(&pScrPriv->layer[i].u.run.region);
 	    }
 	    return TRUE;
 	}
@@ -182,30 +181,25 @@ fbOverlayUpdateLayerRegion (ScreenPtr	pScreen,
 	if (i == layer)
 	{
 	    /* add new piece to this fb */
-	    RegionUnion(
-			  &pScrPriv->layer[i].u.run.region,
-			  &pScrPriv->layer[i].u.run.region,
-			  prgn);
+	    RegionUnion(&pScrPriv->layer[i].u.run.region,
+			&pScrPriv->layer[i].u.run.region,
+			prgn);
 	}
-	else if (RegionNotEmpty(
-				  &pScrPriv->layer[i].u.run.region))
+	else if (RegionNotEmpty(&pScrPriv->layer[i].u.run.region))
 	{
 	    /* paint new piece with chroma key */
 	    RegionNull(&rgnNew);
-	    RegionIntersect(
-			      &rgnNew, 
-			      prgn, 
-			      &pScrPriv->layer[i].u.run.region);
+	    RegionIntersect(&rgnNew, prgn,
+			    &pScrPriv->layer[i].u.run.region);
 	    (*pScrPriv->PaintKey) (&pScrPriv->layer[i].u.run.pixmap->drawable,
 				   &rgnNew,
 				   pScrPriv->layer[i].key,
 				   i);
 	    RegionUninit(&rgnNew);
 	    /* remove piece from other fbs */
-	    RegionSubtract(
-			     &pScrPriv->layer[i].u.run.region,
-			     &pScrPriv->layer[i].u.run.region,
-			     prgn);
+	    RegionSubtract(&pScrPriv->layer[i].u.run.region,
+			   &pScrPriv->layer[i].u.run.region,
+			   prgn);
 	}
     }
 }
@@ -219,7 +213,7 @@ fbOverlayCopyWindow(WindowPtr	pWin,
 		    RegionPtr	prgnSrc)
 {
     ScreenPtr		pScreen = pWin->drawable.pScreen;
-    FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pWin->drawable.pScreen);
+    FbOverlayScrPrivPtr	pScrPriv = fbOverlayGetScrPriv(pScreen);
     RegionRec		rgnDst;
     int			dx, dy;
     int			i;

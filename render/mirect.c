@@ -42,7 +42,6 @@ miColorRects (PicturePtr    pDst,
 	      int	    xoff,
 	      int	    yoff)
 {
-    ScreenPtr		pScreen = pDst->pDrawable->pScreen;
     CARD32		pixel;
     GCPtr		pGC;
     ChangeGCVal		tmpval[5];
@@ -51,7 +50,7 @@ miColorRects (PicturePtr    pDst,
 
     miRenderColorToPixel (pDst->pFormat, color, &pixel);
 
-    pGC = GetScratchGC (pDst->pDrawable->depth, pScreen);
+    pGC = GetScratchGC (pDst->pDrawable->depth, pDst->pDrawable->pScreen);
     if (!pGC)
 	return;
     tmpval[0].val = GXcopy;

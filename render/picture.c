@@ -1300,8 +1300,7 @@ SetPictureClipRects (PicturePtr	pPicture,
     RegionPtr		clientClip;
     int			result;
 
-    clientClip = RegionFromRects(
-				 nRect, rects, CT_UNSORTED);
+    clientClip = RegionFromRects(nRect, rects, CT_UNSORTED);
     if (!clientClip)
 	return BadAlloc;
     result =(*ps->ChangePictureClip) (pPicture, CT_REGION, 
@@ -1331,9 +1330,8 @@ SetPictureClipRegion (PicturePtr    pPicture,
     if (pRegion)
     {
         type = CT_REGION;
-        clientClip = RegionCreate(
-                                    RegionExtents(pRegion),
-                                    RegionNumRects(pRegion));
+        clientClip = RegionCreate(RegionExtents(pRegion),
+                                  RegionNumRects(pRegion));
         if (!clientClip)
             return BadAlloc;
         if (!RegionCopy(clientClip, pRegion))

@@ -117,8 +117,7 @@ miCopyClip(GCPtr pgcDst, GCPtr pgcSrc)
 	break;
       case CT_REGION:
 	prgnNew = RegionCreate(NULL, 1);
-	RegionCopy(prgnNew,
-					(RegionPtr) (pgcSrc->clientClip));
+	RegionCopy(prgnNew, (RegionPtr) (pgcSrc->clientClip));
 	(*pgcDst->funcs->ChangeClip) (pgcDst, CT_REGION, (pointer) prgnNew, 0);
 	break;
     }
@@ -134,11 +133,6 @@ miCopyGC(GCPtr pGCSrc, unsigned long changes, GCPtr pGCDst)
 void
 miComputeCompositeClip( GCPtr pGC, DrawablePtr pDrawable)
 {
-    ScreenPtr       pScreen;
-
-    /* This prevents warnings about pScreen not being used. */
-    pGC->pScreen = pScreen = pGC->pScreen;
-
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	WindowPtr       pWin = (WindowPtr) pDrawable;

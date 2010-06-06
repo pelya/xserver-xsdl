@@ -29,8 +29,6 @@
 #include	<X11/fonts/fontstruct.h>
 #include	"dixfontstr.h"
 
-#define dummyScreen screenInfo.screens[0]
-      
 Bool
 fbGlyphIn (RegionPtr	pRegion,
 	   int		x,

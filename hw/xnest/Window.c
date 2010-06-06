@@ -150,10 +150,8 @@ xnestDestroyWindow(WindowPtr pWin)
   if (pWin->nextSib)
     xnestWindowPriv(pWin->nextSib)->sibling_above = 
       xnestWindowPriv(pWin)->sibling_above;
-  RegionDestroy(
-				xnestWindowPriv(pWin)->bounding_shape);
-  RegionDestroy(
-				xnestWindowPriv(pWin)->clip_shape);
+  RegionDestroy(xnestWindowPriv(pWin)->bounding_shape);
+  RegionDestroy(xnestWindowPriv(pWin)->clip_shape);
   XDestroyWindow(xnestDisplay, xnestWindow(pWin));
   xnestWindowPriv(pWin)->window = None;
 
@@ -465,8 +463,7 @@ xnestShapeWindow(WindowPtr pWin)
 			wBoundingShape(pWin))) {
     
     if (wBoundingShape(pWin)) {
-      RegionCopy(
-		xnestWindowPriv(pWin)->bounding_shape, wBoundingShape(pWin));
+      RegionCopy(xnestWindowPriv(pWin)->bounding_shape, wBoundingShape(pWin));
       
       reg = XCreateRegion();
       pBox = RegionRects(xnestWindowPriv(pWin)->bounding_shape);
@@ -484,8 +481,7 @@ xnestShapeWindow(WindowPtr pWin)
       XDestroyRegion(reg);
     }
     else {
-      RegionEmpty(
-				xnestWindowPriv(pWin)->bounding_shape);
+      RegionEmpty(xnestWindowPriv(pWin)->bounding_shape);
       
       XShapeCombineMask(xnestDisplay, xnestWindow(pWin),
 			ShapeBounding, 0, 0, None, ShapeSet);
@@ -496,8 +492,7 @@ xnestShapeWindow(WindowPtr pWin)
 			wClipShape(pWin))) {
     
     if (wClipShape(pWin)) {
-      RegionCopy(
-			xnestWindowPriv(pWin)->clip_shape, wClipShape(pWin));
+      RegionCopy(xnestWindowPriv(pWin)->clip_shape, wClipShape(pWin));
       
       reg = XCreateRegion();
       pBox = RegionRects(xnestWindowPriv(pWin)->clip_shape);
@@ -515,8 +510,7 @@ xnestShapeWindow(WindowPtr pWin)
       XDestroyRegion(reg);
     }
     else {
-      RegionEmpty(
-				     xnestWindowPriv(pWin)->clip_shape);
+      RegionEmpty(xnestWindowPriv(pWin)->clip_shape);
       
       XShapeCombineMask(xnestDisplay, xnestWindow(pWin),
 			ShapeClip, 0, 0, None, ShapeSet);

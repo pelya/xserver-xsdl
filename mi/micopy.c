@@ -209,8 +209,7 @@ miDoCopy (DrawablePtr	pSrcDrawable,
 	     * VT is inactive, make sure the region isn't empty
 	     */
 	    if (!((WindowPtr) pSrcDrawable)->parent &&
-		RegionNotEmpty(
-				 &((WindowPtr) pSrcDrawable)->borderClip))
+		RegionNotEmpty(&((WindowPtr) pSrcDrawable)->borderClip))
 	    {
 		/*
 		 * special case bitblt from root window in

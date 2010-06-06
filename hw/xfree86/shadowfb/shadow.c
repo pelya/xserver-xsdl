@@ -1356,38 +1356,32 @@ ShadowFontToBox(BoxPtr BB, DrawablePtr pDrawable, GCPtr pGC, int x, int y,
 	}
 	right += pFont->info.maxbounds.rightSideBearing;
 	BB->x1 =
-	    max(pDrawable->x + x - left, (RegionExtents(
-		&((WindowPtr) pDrawable)->winSize))->x1);
+	    max(pDrawable->x + x - left,
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->x1);
 	BB->y1 =
 	    max(pDrawable->y + y - ascent,
-	    (RegionExtents(
-             &((WindowPtr) pDrawable)->winSize))->y1);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->y1);
 	BB->x2 =
 	    min(pDrawable->x + x + right,
-	    (RegionExtents(
-             &((WindowPtr) pDrawable)->winSize))->x2);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->x2);
 	BB->y2 =
 	    min(pDrawable->y + y + descent,
-	    (RegionExtents(
-             &((WindowPtr) pDrawable)->winSize))->y2);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->y2);
     } else {
     	ShadowTextExtent(pFont, count, chars, wide ? (FONTLASTROW(pFont) == 0)
                          ? Linear16Bit : TwoD16Bit : Linear8Bit, BB);
 	BB->x1 =
-	    max(pDrawable->x + x + BB->x1, (RegionExtents(
-		&((WindowPtr) pDrawable)->winSize))->x1);
+	    max(pDrawable->x + x + BB->x1,
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->x1);
 	BB->y1 =
 	    max(pDrawable->y + y + BB->y1,
-	    (RegionExtents(
-             &((WindowPtr) pDrawable)->winSize))->y1);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->y1);
 	BB->x2 =
 	    min(pDrawable->x + x + BB->x2,
-	    (RegionExtents(
-	     &((WindowPtr) pDrawable)->winSize))->x2);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->x2);
 	BB->y2 =
 	    min(pDrawable->y + y + BB->y2,
-	    (RegionExtents(
-	     &((WindowPtr) pDrawable)->winSize))->y2);
+		RegionExtents(&((WindowPtr) pDrawable)->winSize)->y2);
     }
 }
 

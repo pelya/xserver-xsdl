@@ -119,10 +119,7 @@ winReshapeMultiWindow (WindowPtr pWin)
 
   RegionNull(&rrNewShape);
   RegionCopy(&rrNewShape, wBoundingShape(pWin));
-  RegionTranslate(
-		   &rrNewShape,
-		   pWin->borderWidth,
-                   pWin->borderWidth);
+  RegionTranslate(&rrNewShape, pWin->borderWidth, pWin->borderWidth);
   
   nRects = RegionNumRects(&rrNewShape);
   pShape = RegionRects(&rrNewShape);
