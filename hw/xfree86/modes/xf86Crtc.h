@@ -72,6 +72,23 @@ typedef enum _xf86OutputStatus {
    XF86OutputStatusUnknown
 } xf86OutputStatus;
 
+typedef enum _xf86CrtcSetFlags {
+    XF86CrtcSetMode = 1,		/* mode */
+    XF86CrtcSetOutput = 2,		/* outputs */
+    XF86CrtcSetOrigin = 4,		/* x/y */
+    XF86CrtcSetTransform = 8,		/* transform */
+    XF86CrtcSetRotation = 16,		/* rotation */
+    XF86CrtcSetProperty = 32,		/* output property */
+} xf86CrtcSetFlags;
+
+typedef struct _xf86CrtcSet {
+    xf86CrtcSetFlags	flags;
+    DisplayModePtr	mode;
+    Rotation		rotation;
+    RRTransformPtr	transform;
+    int			x, y;
+} xf86CrtcSetRec;
+
 typedef struct _xf86CrtcFuncs {
    /**
     * Turns the crtc on/off, or sets intermediate power levels if available.
@@ -220,6 +237,12 @@ typedef struct _xf86CrtcFuncs {
      */
     void
     (*set_origin)(xf86CrtcPtr crtc, int x, int y);
+
+    /**
+     * General mode setting entry point that does everything
+     */
+    Bool
+    (*set)(xf86CrtcPtr crtc, xf86CrtcSetFlags flags);
 
 } xf86CrtcFuncsRec, *xf86CrtcFuncsPtr;
 
@@ -738,18 +761,12 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
 extern _X_EXPORT void
 xf86CrtcDestroy (xf86CrtcPtr		crtc);
 
-
 /**
- * Sets the given video mode on the given crtc
+ * Change a crtc configuration (modes, outputs, etc)
  */
 
 extern _X_EXPORT Bool
-xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
-			  RRTransformPtr transform, int x, int y);
-
-extern _X_EXPORT Bool
-xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
-		 int x, int y);
+xf86CrtcSet (xf86CrtcPtr crtc, xf86CrtcSetRec *set);
 
 extern _X_EXPORT void
 xf86CrtcSetOrigin (xf86CrtcPtr crtc, int x, int y);

@@ -1133,7 +1133,7 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
     xf86CrtcPtr		crtc = randr_crtc->devPrivate;
     RRTransformPtr	transform;
-    Bool		changed = FALSE;
+    xf86CrtcSetFlags	flags = 0;
     int			o, ro;
     xf86CrtcPtr		*save_crtcs;
     Bool		save_enabled = crtc->enabled;
@@ -1143,22 +1143,22 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 
     save_crtcs = malloc(config->num_output * sizeof (xf86CrtcPtr));
     if ((randr_mode != NULL) != crtc->enabled)
-	changed = TRUE;
+	flags |= XF86CrtcSetMode;
     else if (randr_mode && !xf86RandRModeMatches (randr_mode, &crtc->mode))
-	changed = TRUE;
+	flags |= XF86CrtcSetMode;
     
     if (rotation != crtc->rotation)
-	changed = TRUE;
+	flags |= XF86CrtcSetRotation;
 
     transform = RRCrtcGetTransform (randr_crtc);
     if ((transform != NULL) != crtc->transformPresent)
-	changed = TRUE;
+	flags |= XF86CrtcSetTransform;
     else if (transform && memcmp (&transform->transform, &crtc->transform.transform,
 				  sizeof (transform->transform)) != 0)
-	changed = TRUE;
+	flags |= XF86CrtcSetTransform;
 
     if (x != crtc->x || y != crtc->y)
-	changed = TRUE;
+	flags |= XF86CrtcSetOrigin;
     for (o = 0; o < config->num_output; o++) 
     {
 	xf86OutputPtr  output = config->output[o];
@@ -1178,16 +1178,16 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 	    }
 	if (new_crtc != output->crtc)
 	{
-	    changed = TRUE;
+	    flags |= XF86CrtcSetOutput;
 	    output->crtc = new_crtc;
 	}
     }
     for (ro = 0; ro < num_randr_outputs; ro++) 
         if (randr_outputs[ro]->pendingProperties)
-	    changed = TRUE;
+	    flags |= XF86CrtcSetProperty;
 
     /* XXX need device-independent mode setting code through an API */
-    if (changed)
+    if (flags)
     {
 	crtc->enabled = randr_mode != NULL;
 
@@ -1195,9 +1195,16 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 	{
 	    DisplayModeRec  mode;
 	    RRTransformPtr  transform = RRCrtcGetTransform (randr_crtc);
+	    xf86CrtcSetRec  set;
 
 	    xf86RandRModeConvert (pScrn, randr_mode, &mode);
-	    if (!xf86CrtcSetModeTransform (crtc, &mode, rotation, transform, x, y))
+	    set.mode = &mode;
+	    set.rotation = rotation;
+	    set.transform = transform;
+	    set.x = x;
+	    set.y = y;
+	    set.flags = flags;
+	    if (!xf86CrtcSet(crtc, &set))
 	    {
 		crtc->enabled = save_enabled;
 		for (o = 0; o < config->num_output; o++)
