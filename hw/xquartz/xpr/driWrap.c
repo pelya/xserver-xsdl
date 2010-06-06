@@ -530,18 +530,12 @@ DRIWrapInit(ScreenPtr pScreen) {
     if(!dixRegisterPrivateKey(&driGCKeyRec, PRIVATE_GC, sizeof(DRIGCRec)))
 	return FALSE;
 
-    if(!dixRegisterPrivateKey(&driWrapScreenKeyRec, PRIVATE_WINDOW, sizeof(DRIWrapScreenRec)))
-	return FALSE;
-    
-    pScreenPriv = malloc(sizeof(*pScreenPriv));
-
-    if(NULL == pScreenPriv)
+    if(!dixRegisterPrivateKey(&driWrapScreenKeyRec, PRIVATE_SCREEN, sizeof(DRIWrapScreenRec)))
 	return FALSE;
 
+    pScreenPriv = dixGetPrivateAddr(&pScreen->devPrivates, &driWrapScreenKeyRec);
     pScreenPriv->CreateGC = pScreen->CreateGC;
     pScreen->CreateGC = DRICreateGC;
     
-    dixSetPrivate(&pScreen->devPrivates, driWrapScreenKey, pScreenPriv);
-        
     return TRUE;
 }

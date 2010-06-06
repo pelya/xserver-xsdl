@@ -205,14 +205,14 @@ DRIScreenInit(ScreenPtr pScreen)
     DRIScreenPrivPtr    pDRIPriv;
     int                 i;
 
-    if (!dixRegisterPrivateKey(&DRIScreenPrivateKeyRec, PRIVATE_SCREEN, 0))
-	return FALSE:
-    if (!dixRegisterPrivateKey(&DRIWindowPrivateKeyRec, PRIVATE_WINDOW, 0))
-	return FALSE:
-    if (!dixRegisterPrivateKey(&DRIPixmapPrivateKeyRec, PRIVATE_PIXMAP, 0))
-	return FALSE:
-    if (!dixRegisterPrivateKey(&DRIPixmapBufferPrivateKeyRec, PRIVATE_PIXMAP, 0))
-	return FALSE:
+    if (!dixRegisterPrivateKey(&DRIScreenPrivKeyRec, PRIVATE_SCREEN, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&DRIWindowPrivKeyRec, PRIVATE_WINDOW, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&DRIPixmapPrivKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE;
+    if (!dixRegisterPrivateKey(&DRIPixmapBufferPrivKeyRec, PRIVATE_PIXMAP, 0))
+	return FALSE;
 
     pDRIPriv = (DRIScreenPrivPtr) calloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
