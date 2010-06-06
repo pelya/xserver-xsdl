@@ -1893,7 +1893,7 @@ DamageSetup (ScreenPtr pScreen)
     if (!dixRegisterPrivateKey(&damageGCPrivateKeyRec, PRIVATE_GC, sizeof(DamageGCPrivRec)))
 	return FALSE;
 
-    if (!dixRegisterPrivateKey(&damagePixPrivateKeyRec, PRIVATE_PICTURE, 0))
+    if (!dixRegisterPrivateKey(&damagePixPrivateKeyRec, PRIVATE_PIXMAP, 0))
 	return FALSE;
 
     if (!dixRegisterPrivateKey(&damageWinPrivateKeyRec, PRIVATE_WINDOW, 0))
