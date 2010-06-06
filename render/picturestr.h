@@ -407,7 +407,7 @@ extern _X_EXPORT RESTYPE	PictFormatType;
 extern _X_EXPORT RESTYPE	GlyphSetType;
 
 #define GetPictureScreen(s) ((PictureScreenPtr)dixLookupPrivate(&(s)->devPrivates, PictureScreenPrivateKey))
-#define GetPictureScreenIfSet(s) GetPictureScreen(s)
+#define GetPictureScreenIfSet(s) (dixPrivateKeyRegistered(PictureScreenPrivateKey) ? GetPictureScreen(s) : NULL)
 #define SetPictureScreen(s,p) dixSetPrivate(&(s)->devPrivates, PictureScreenPrivateKey, p)
 #define GetPictureWindow(w) ((PicturePtr)dixLookupPrivate(&(w)->devPrivates, PictureWindowPrivateKey))
 #define SetPictureWindow(w,p) dixSetPrivate(&(w)->devPrivates, PictureWindowPrivateKey, p)
