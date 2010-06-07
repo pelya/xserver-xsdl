@@ -1038,8 +1038,8 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp,
 
 	if (crtc->enabled)
 	{
-	    crtc_width = crtc->x + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
-	    crtc_height = crtc->y + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
+	    crtc_width = crtc->desiredX + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
+	    crtc_height = crtc->desiredY + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
 	}
 	if (!canGrow) {
 	    for (o = 0; o < config->num_output; o++)
