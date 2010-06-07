@@ -84,7 +84,7 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 {
     PixmapPtr   pPixmap;
     
-    if (pDrawable->type == DRAWABLE_WINDOW)
+    if (WindowDrawable(pDrawable->type))
     {
 	ScreenPtr   pScreen = pDrawable->pScreen;
 
@@ -300,7 +300,7 @@ damageRegionAppend (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	 * Need to move everyone to screen coordinates
 	 * XXX what about off-screen pixmaps with non-zero x/y?
 	 */
-	if (pDamage->pDrawable->type != DRAWABLE_WINDOW)
+	if (!WindowDrawable(pDamage->pDrawable->type))
 	{
 	    draw_x += ((PixmapPtr) pDamage->pDrawable)->screen_x;
 	    draw_y += ((PixmapPtr) pDamage->pDrawable)->screen_y;

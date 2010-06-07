@@ -557,7 +557,7 @@ int PanoramiXGetGeometry(ClientPtr client)
 	rep.width = root->pixWidth;
 	rep.height = root->pixHeight;
     } else 
-    if ((pDraw->type == UNDRAWABLE_WINDOW) || (pDraw->type == DRAWABLE_WINDOW))
+    if (WindowDrawable(pDraw->type))
     {
         WindowPtr pWin = (WindowPtr)pDraw;
 	rep.x = pWin->origin.x - wBorderWidth (pWin);
