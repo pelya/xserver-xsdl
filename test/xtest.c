@@ -61,7 +61,6 @@ static void xtest_init_devices(void)
     InitAtoms();
 
     XkbInitPrivates();
-    XTestInitPrivates();
 
     /* this also inits the xtest devices */
     InitCoreDevices();

@@ -554,6 +554,9 @@ typedef struct _DeviceIntRec {
 
     /* coordinate transformation matrix for absolute input devices */
     struct pixman_f_transform transform;
+
+    /* XTest related master device id */
+    int xtest_master_id;
 } DeviceIntRec;
 
 typedef struct {

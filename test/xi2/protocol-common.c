@@ -157,7 +157,6 @@ void init_simple(void)
     dixResetPrivates();
     InitAtoms();
     XkbInitPrivates();
-    XTestInitPrivates();
     dixRegisterPrivateKey(&XIClientPrivateKeyRec, PRIVATE_CLIENT, sizeof(XIClientRec));
     dixRegisterPrivateKey(&miPointerScreenKeyRec, PRIVATE_SCREEN, 0);
     dixRegisterPrivateKey(&miPointerPrivKeyRec, PRIVATE_DEVICE, 0);
