@@ -1190,6 +1190,43 @@ xf86DrvMsg(int scrnIndex, MessageType type, const char *format, ...)
     va_end(ap);
 }
 
+/* Print input driver messages in the standard format of
+   <driver>: <device name>: <message> */
+void
+xf86VIDrvMsgVerb(LocalDevicePtr dev, MessageType type, int verb, const char *format,
+		 va_list args)
+{
+    char *msg;
+
+    msg = Xprintf("%s: %s: %s", dev->drv->driverName, dev->name, format);
+    LogVMessageVerb(type, verb, "%s", msg);
+    free(msg);
+}
+
+/* Print input driver message, with verbose level specified directly */
+void
+xf86IDrvMsgVerb(LocalDevicePtr dev, MessageType type, int verb, const char *format,
+	       ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    xf86VIDrvMsgVerb(dev, type, verb, format, ap);
+    va_end(ap);
+}
+
+/* Print input driver messages, with verbose level of 1 (default) */
+void
+xf86IDrvMsg(LocalDevicePtr dev, MessageType type, const char *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+    xf86VIDrvMsgVerb(dev, type, 1, format, ap);
+    va_end(ap);
+}
+
+
 /* Print non-driver messages with verbose level specified directly */
 void
 xf86MsgVerb(MessageType type, int verb, const char *format, ...)

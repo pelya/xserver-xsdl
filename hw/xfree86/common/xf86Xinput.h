@@ -192,6 +192,17 @@ extern _X_EXPORT InputDriverPtr xf86LookupInputDriver(const char *name);
 extern _X_EXPORT InputInfoPtr xf86LookupInput(const char *name);
 extern _X_EXPORT void xf86DeleteInput(InputInfoPtr pInp, int flags);
 extern _X_EXPORT void xf86MotionHistoryAllocate(LocalDevicePtr local);
+extern _X_EXPORT void xf86IDrvMsgVerb(LocalDevicePtr dev,
+				      MessageType type, int verb,
+				      const char *format, ...) _X_ATTRIBUTE_PRINTF(4,5);
+extern _X_EXPORT void xf86IDrvMsg(LocalDevicePtr dev,
+				  MessageType type,
+				  const char *format, ...) _X_ATTRIBUTE_PRINTF(3,4);
+extern _X_EXPORT void xf86VIDrvMsgVerb(LocalDevicePtr dev,
+				       MessageType type,
+				       int verb,
+				       const char *format,
+				       va_list args);
 
 /* xf86Option.c */
 extern _X_EXPORT void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
