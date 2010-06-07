@@ -99,10 +99,16 @@ static DISPATCH_PROC(SProcXTestFakeInput);
 static DISPATCH_PROC(SProcXTestGetVersion);
 static DISPATCH_PROC(SProcXTestGrabControl);
 
+Bool
+XTestInitPrivates(void)
+{
+    return dixRegisterPrivateKey(&XTestDevicePrivateKeyRec, PRIVATE_DEVICE, 0);
+}
+
 void
 XTestExtensionInit(INITARGS)
 {
-    if (!dixRegisterPrivateKey(&XTestDevicePrivateKeyRec, PRIVATE_DEVICE, 0))
+    if (!XTestInitPrivates())
 	return;
 
     AddExtension(XTestExtensionName, 0, 0,

@@ -63,6 +63,11 @@ xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
 				 backupproc,xkbUnwrapProc);
 }
 
+Bool
+XkbInitPrivates(void)
+{
+    return dixRegisterPrivateKey(&xkbDevicePrivateKeyRec, PRIVATE_DEVICE, 0);
+}
 
 void
 XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)

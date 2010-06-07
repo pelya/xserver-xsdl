@@ -237,6 +237,7 @@ extern int key_is_down(DeviceIntPtr pDev, int key_code, int type);
 
 extern void InitCoreDevices(void);
 extern void InitXTestDevices(void);
+extern Bool XTestInitPrivates(void);
 
 extern _X_EXPORT DeviceIntPtr AddInputDevice(
     ClientPtr /*client*/,

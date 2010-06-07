@@ -321,6 +321,8 @@ extern _X_EXPORT int XkbProcessArguments(
     int				/* i */
 );
 
+extern _X_EXPORT Bool   XkbInitPrivates(void);
+
 extern _X_EXPORT void	XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc);
 
 extern _X_EXPORT void	XkbFreeCompatMap(
