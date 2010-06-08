@@ -129,6 +129,7 @@ static void
 device_added(LibHalContext *hal_ctx, const char *udi)
 {
     char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
+    char *hal_tags;
     InputOption *options = NULL, *tmpo = NULL;
     InputAttributes attrs = {0};
     DeviceIntPtr dev = NULL;
@@ -164,7 +165,9 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         attrs.product = xstrdup(name);
 
     attrs.vendor = get_prop_string(hal_ctx, udi, "info.vendor");
-    attrs.tags = xstrtokenize(get_prop_string(hal_ctx, udi, "input.tags"), ",");
+    hal_tags = get_prop_string(hal_ctx, udi, "input.tags");
+    attrs.tags = xstrtokenize(hal_tags, ",");
+    free(hal_tags);
 
     if (libhal_device_query_capability(hal_ctx, udi, "input.keys", NULL))
         attrs.flags |= ATTR_KEYBOARD;
