@@ -496,6 +496,48 @@ AddOtherInputDevices(void)
 {
 }
 
+static int
+match_substring(const char *attr, const char *pattern)
+{
+    return (strstr(attr, pattern)) ? 0 : -1;
+}
+
+#ifdef HAVE_FNMATCH_H
+static int
+match_path_pattern(const char *attr, const char *pattern)
+{
+    return fnmatch(pattern, attr, FNM_PATHNAME);
+}
+#else
+#define match_path_pattern match_substring
+#endif
+
+/*
+ * Match an attribute against a NULL terminated list of patterns. If any
+ * pattern is matched, return TRUE.
+ */
+static Bool
+MatchAttrToken(const char *attr, char **patterns,
+               int (*compare)(const char *attr, const char *pattern))
+{
+    char **cur;
+
+    /* If there are no patterns, accept the match */
+    if (!patterns)
+        return TRUE;
+
+    /* If there are patterns but no attribute, reject the match */
+    if (!attr)
+        return FALSE;
+
+    /* Otherwise, iterate the patterns looking for a match */
+    for (cur = patterns; *cur; cur++)
+        if ((*compare)(attr, *cur) == 0)
+            return TRUE;
+
+    return FALSE;
+}
+
 /*
  * Classes without any Match statements match all devices. Otherwise, all
  * statements must match.
@@ -504,67 +546,39 @@ static Bool
 InputClassMatches(const XF86ConfInputClassPtr iclass,
                   const InputAttributes *attrs)
 {
-    char **cur;
-    Bool match;
+    /* MatchProduct substring */
+    if (!MatchAttrToken(attrs->product, iclass->match_product, match_substring))
+        return FALSE;
 
-    if (iclass->match_product) {
-        if (!attrs->product)
-            return FALSE;
-        /* see if any of the values match */
-        for (cur = iclass->match_product, match = FALSE; *cur; cur++)
-            if (strstr(attrs->product, *cur)) {
-                match = TRUE;
-                break;
-            }
-        if (!match)
-            return FALSE;
-    }
-    if (iclass->match_vendor) {
-        if (!attrs->vendor)
-            return FALSE;
-        /* see if any of the values match */
-        for (cur = iclass->match_vendor, match = FALSE; *cur; cur++)
-            if (strstr(attrs->vendor, *cur)) {
-                match = TRUE;
-                break;
-            }
-        if (!match)
-            return FALSE;
-    }
-    if (iclass->match_device) {
-        if (!attrs->device)
-            return FALSE;
-        /* see if any of the values match */
-        for (cur = iclass->match_device, match = FALSE; *cur; cur++)
-#ifdef HAVE_FNMATCH_H
-            if (fnmatch(*cur, attrs->device, FNM_PATHNAME) == 0) {
-#else
-            if (strstr(attrs->device, *cur)) {
-#endif
-                match = TRUE;
-                break;
-            }
-        if (!match)
-            return FALSE;
-    }
+    /* MatchVendor substring */
+    if (!MatchAttrToken(attrs->vendor, iclass->match_vendor, match_substring))
+        return FALSE;
+
+    /* MatchDevicePath pattern */
+    if (!MatchAttrToken(attrs->device, iclass->match_device, match_path_pattern))
+        return FALSE;
+
+    /*
+     * MatchTag string
+     * See if any of the device's tags match any of the MatchTag tokens.
+     */
     if (iclass->match_tag) {
+        char * const *tag;
+        Bool match;
+
         if (!attrs->tags)
             return FALSE;
-
-        for (cur = iclass->match_tag, match = FALSE; *cur && !match; cur++) {
-            char * const *tag;
-            for(tag = attrs->tags; *tag; tag++) {
-                if (!strcmp(*tag, *cur)) {
-                    match = TRUE;
-                    break;
-                }
+        for (tag = attrs->tags, match = FALSE; *tag; tag++) {
+            if (MatchAttrToken(*tag, iclass->match_tag, strcmp)) {
+                match = TRUE;
+                break;
             }
         }
-
         if (!match)
             return FALSE;
     }
 
+    /* MatchIs* booleans */
     if (iclass->is_keyboard.set &&
         iclass->is_keyboard.val != !!(attrs->flags & ATTR_KEYBOARD))
         return FALSE;
@@ -583,6 +597,7 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
     if (iclass->is_touchscreen.set &&
         iclass->is_touchscreen.val != !!(attrs->flags & ATTR_TOUCHSCREEN))
         return FALSE;
+
     return TRUE;
 }
 
