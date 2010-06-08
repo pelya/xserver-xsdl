@@ -1086,6 +1086,15 @@ This entry can be used to check if the device file matches the
 pathname pattern. Multiple patterns can be matched by separating arguments
 with a '|' character.
 .TP 7
+.BI "MatchOS \*q" matchos \*q
+This entry can be used to check if the operating system matches the
+case-insensitive
+.RI \*q matchos \*q
+string. This entry is only supported on platforms providing the
+.BR uname (2)
+system call. Multiple operating systems can be matched by separating arguments
+with a '|' character.
+.TP 7
 .BI "MatchTag \*q" matchtag \*q
 This entry can be used to check if tags assigned by the config backend
 matches the

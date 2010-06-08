@@ -80,6 +80,9 @@
 #ifdef HAVE_FNMATCH_H
 #include <fnmatch.h>
 #endif
+#ifdef HAVE_SYS_UTSNAME_H
+#include <sys/utsname.h>
+#endif
 
 #include "extnsionst.h"
 
@@ -496,6 +499,31 @@ AddOtherInputDevices(void)
 {
 }
 
+/*
+ * Get the operating system name from uname and store it statically to avoid
+ * repeating the system call each time MatchOS is checked.
+ */
+static const char *
+HostOS(void)
+{
+#ifdef HAVE_SYS_UTSNAME_H
+    struct utsname name;
+    static char host_os[sizeof(name.sysname)] = "";
+
+    if (*host_os == '\0') {
+        if (uname(&name) >= 0)
+            strcpy(host_os, name.sysname);
+        else {
+            strncpy(host_os, "unknown", sizeof(host_os));
+            host_os[sizeof(host_os)-1] = '\0';
+        }
+    }
+    return host_os;
+#else
+    return "";
+#endif
+}
+
 static int
 match_substring(const char *attr, const char *pattern)
 {
@@ -556,6 +584,10 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
 
     /* MatchDevicePath pattern */
     if (!MatchAttrToken(attrs->device, iclass->match_device, match_path_pattern))
+        return FALSE;
+
+    /* MatchOS case-insensitive string */
+    if (!MatchAttrToken(HostOS(), iclass->match_os, strcasecmp))
         return FALSE;
 
     /*

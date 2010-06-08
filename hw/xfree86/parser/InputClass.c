@@ -47,6 +47,7 @@ xf86ConfigSymTabRec InputClassTab[] =
     {MATCH_PRODUCT, "matchproduct"},
     {MATCH_VENDOR, "matchvendor"},
     {MATCH_DEVICE_PATH, "matchdevicepath"},
+    {MATCH_OS, "matchos"},
     {MATCH_TAG, "matchtag"},
     {MATCH_IS_KEYBOARD, "matchiskeyboard"},
     {MATCH_IS_POINTER, "matchispointer"},
@@ -107,6 +108,11 @@ xf86parseInputClassSection(void)
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchDevicePath");
             ptr->match_device = xstrtokenize(val.str, TOKEN_SEP);
+            break;
+        case MATCH_OS:
+            if (xf86getSubToken(&(ptr->comment)) != STRING)
+                Error(QUOTE_MSG, "MatchOS");
+            ptr->match_os = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_TAG:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
@@ -217,6 +223,14 @@ xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
                         *list);
             fprintf(cf, "\"\n");
         }
+        if (ptr->match_os) {
+            fprintf(cf, "\tMatchOS         \"");
+            for (list = ptr->match_os; *list; list++)
+                fprintf(cf, "%s%s",
+                        list == ptr->match_os ? "" : TOKEN_SEP,
+                        *list);
+            fprintf(cf, "\"\n");
+        }
         if (ptr->match_tag) {
             fprintf(cf, "\tMatchTag \"");
             for (list = ptr->match_tag; *list; list++)
@@ -272,6 +286,11 @@ xf86freeInputClassList (XF86ConfInputClassPtr ptr)
             for (list = ptr->match_device; *list; list++)
                 free(*list);
             free(ptr->match_device);
+        }
+        if (ptr->match_os) {
+            for (list = ptr->match_os; *list; list++)
+                free(*list);
+            free(ptr->match_os);
         }
         if (ptr->match_tag) {
             for (list = ptr->match_tag; *list; list++)
