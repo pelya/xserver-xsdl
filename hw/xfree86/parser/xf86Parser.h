@@ -357,6 +357,7 @@ typedef struct
 	struct list match_os;
 	struct list match_pnpid;
 	struct list match_usbid;
+	struct list match_driver;
 	struct list match_tag;
 	xf86TriState is_keyboard;
 	xf86TriState is_pointer;

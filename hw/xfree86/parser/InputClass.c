@@ -50,6 +50,7 @@ xf86ConfigSymTabRec InputClassTab[] =
     {MATCH_OS, "matchos"},
     {MATCH_PNPID, "matchpnpid"},
     {MATCH_USBID, "matchusbid"},
+    {MATCH_DRIVER, "matchdriver"},
     {MATCH_TAG, "matchtag"},
     {MATCH_IS_KEYBOARD, "matchiskeyboard"},
     {MATCH_IS_POINTER, "matchispointer"},
@@ -91,6 +92,7 @@ xf86parseInputClassSection(void)
     list_init(&ptr->match_os);
     list_init(&ptr->match_pnpid);
     list_init(&ptr->match_usbid);
+    list_init(&ptr->match_driver);
     list_init(&ptr->match_tag);
 
     while ((token = xf86getToken(InputClassTab)) != ENDSECTION) {
@@ -151,6 +153,12 @@ xf86parseInputClassSection(void)
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchUSBID");
             add_group_entry(&ptr->match_usbid,
+                            xstrtokenize(val.str, TOKEN_SEP));
+            break;
+        case MATCH_DRIVER:
+            if (xf86getSubToken(&(ptr->comment)) != STRING)
+                Error(QUOTE_MSG, "MatchDriver");
+            add_group_entry(&ptr->match_driver,
                             xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_TAG:
@@ -283,6 +291,13 @@ xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
                         *cur);
             fprintf(cf, "\"\n");
         }
+        list_for_each_entry(group, &ptr->match_driver, entry) {
+            fprintf(cf, "\tMatchDriver     \"");
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
+            fprintf(cf, "\"\n");
+        }
         list_for_each_entry(group, &ptr->match_tag, entry) {
             fprintf(cf, "\tMatchTag        \"");
             for (cur = group->values; *cur; cur++)
@@ -358,6 +373,12 @@ xf86freeInputClassList (XF86ConfInputClassPtr ptr)
             free(group);
         }
         list_for_each_entry_safe(group, next, &ptr->match_usbid, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
+                free(*list);
+            free(group);
+        }
+        list_for_each_entry_safe(group, next, &ptr->match_driver, entry) {
             list_del(&group->entry);
             for (list = group->values; *list; list++)
                 free(*list);

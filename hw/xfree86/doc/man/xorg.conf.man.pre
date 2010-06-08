@@ -1123,6 +1123,15 @@ separated by a ':'. This is the same format as the
 .BR lsusb (8)
 program.
 .TP 7
+.BI "MatchDriver \*q" matchdriver \*q
+Check the case-sensitive string
+.RI \*q matchdriver \*q
+against the currently configured driver of the device. Ordering of sections
+using this entry is important since it will not match unless the driver has
+been set by the config backend or a previous
+.B InputClass
+section.
+.TP 7
 .BI "MatchTag \*q" matchtag \*q
 This entry can be used to check if tags assigned by the config backend
 matches the

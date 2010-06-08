@@ -594,7 +594,7 @@ MatchAttrToken(const char *attr, struct list *patterns,
  * statements must match.
  */
 static Bool
-InputClassMatches(const XF86ConfInputClassPtr iclass,
+InputClassMatches(const XF86ConfInputClassPtr iclass, const IDevPtr idev,
                   const InputAttributes *attrs)
 {
     /* MatchProduct substring */
@@ -619,6 +619,10 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
 
     /* MatchUSBID pattern */
     if (!MatchAttrToken(attrs->usb_id, &iclass->match_usbid, match_pattern))
+        return FALSE;
+
+    /* MatchDriver string */
+    if (!MatchAttrToken(idev->driver, &iclass->match_driver, strcmp))
         return FALSE;
 
     /*
@@ -673,34 +677,33 @@ static int
 MergeInputClasses(const IDevPtr idev, const InputAttributes *attrs)
 {
     XF86ConfInputClassPtr cl;
-    XF86OptionPtr classopts, mergedopts = NULL;
-    char *classdriver = NULL;
+    XF86OptionPtr classopts;
 
     for (cl = xf86configptr->conf_inputclass_lst; cl; cl = cl->list.next) {
-        if (!InputClassMatches(cl, attrs))
+        if (!InputClassMatches(cl, idev, attrs))
             continue;
 
-        /* Collect class options and merge over previous classes */
+        /* Collect class options and driver settings */
+        classopts = xf86optionListDup(cl->option_lst);
+        if (cl->driver) {
+            free(idev->driver);
+            idev->driver = xstrdup(cl->driver);
+            if (!idev->driver) {
+                xf86Msg(X_ERROR, "Failed to allocate memory while merging "
+                        "InputClass configuration");
+                return BadAlloc;
+            }
+            classopts = xf86ReplaceStrOption(classopts, "driver",
+                                             idev->driver);
+        }
+
+        /* Apply options to device with InputClass settings preferred. */
         xf86Msg(X_CONFIG, "%s: Applying InputClass \"%s\"\n",
                 idev->identifier, cl->identifier);
-        if (cl->driver)
-            classdriver = cl->driver;
-        classopts = xf86optionListDup(cl->option_lst);
-        mergedopts = xf86optionListMerge(mergedopts, classopts);
+        idev->commonOptions = xf86optionListMerge(idev->commonOptions,
+                                                  classopts);
     }
 
-    /* Apply options to device with InputClass settings preferred. */
-    if (classdriver) {
-        free(idev->driver);
-        idev->driver = xstrdup(classdriver);
-        if (!idev->driver) {
-            xf86Msg(X_ERROR, "Failed to allocate memory while merging "
-                    "InputClass configuration");
-            return BadAlloc;
-        }
-        mergedopts = xf86ReplaceStrOption(mergedopts, "driver", idev->driver);
-    }
-    idev->commonOptions = xf86optionListMerge(idev->commonOptions, mergedopts);
     return Success;
 }
 
@@ -716,7 +719,7 @@ IgnoreInputClass(const IDevPtr idev, const InputAttributes *attrs)
     const char *ignore_class;
 
     for (cl = xf86configptr->conf_inputclass_lst; cl; cl = cl->list.next) {
-        if (!InputClassMatches(cl, attrs))
+        if (!InputClassMatches(cl, idev, attrs))
             continue;
         if (xf86findOption(cl->option_lst, "Ignore")) {
             ignore = xf86CheckBoolOption(cl->option_lst, "Ignore", FALSE);

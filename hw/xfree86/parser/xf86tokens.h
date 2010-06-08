@@ -282,6 +282,7 @@ typedef enum {
     MATCH_OS,
     MATCH_PNPID,
     MATCH_USBID,
+    MATCH_DRIVER,
     MATCH_TAG,
     MATCH_IS_KEYBOARD,
     MATCH_IS_POINTER,
