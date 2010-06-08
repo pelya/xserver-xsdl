@@ -551,29 +551,42 @@ match_path_pattern(const char *attr, const char *pattern)
 #endif
 
 /*
- * Match an attribute against a NULL terminated list of patterns. If any
- * pattern is matched, return TRUE.
+ * Match an attribute against a list of NULL terminated arrays of patterns.
+ * If a pattern in each list entry is matched, return TRUE.
  */
 static Bool
-MatchAttrToken(const char *attr, char **patterns,
+MatchAttrToken(const char *attr, struct list *patterns,
                int (*compare)(const char *attr, const char *pattern))
 {
-    char **cur;
+    const xf86MatchGroup *group;
 
     /* If there are no patterns, accept the match */
-    if (!patterns)
+    if (list_is_empty(patterns))
         return TRUE;
 
     /* If there are patterns but no attribute, reject the match */
     if (!attr)
         return FALSE;
 
-    /* Otherwise, iterate the patterns looking for a match */
-    for (cur = patterns; *cur; cur++)
-        if ((*compare)(attr, *cur) == 0)
-            return TRUE;
+    /*
+     * Otherwise, iterate the list of patterns ensuring each entry has a
+     * match. Each list entry is a separate Match line of the same type.
+     */
+    list_for_each_entry(group, patterns, entry) {
+        char * const *cur;
+        Bool match = FALSE;
 
-    return FALSE;
+        for (cur = group->values; *cur; cur++)
+            if ((*compare)(attr, *cur) == 0) {
+                match = TRUE;
+                break;
+            }
+        if (!match)
+            return FALSE;
+    }
+
+    /* All the entries in the list matched the attribute */
+    return TRUE;
 }
 
 /*
@@ -585,41 +598,41 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
                   const InputAttributes *attrs)
 {
     /* MatchProduct substring */
-    if (!MatchAttrToken(attrs->product, iclass->match_product, match_substring))
+    if (!MatchAttrToken(attrs->product, &iclass->match_product, match_substring))
         return FALSE;
 
     /* MatchVendor substring */
-    if (!MatchAttrToken(attrs->vendor, iclass->match_vendor, match_substring))
+    if (!MatchAttrToken(attrs->vendor, &iclass->match_vendor, match_substring))
         return FALSE;
 
     /* MatchDevicePath pattern */
-    if (!MatchAttrToken(attrs->device, iclass->match_device, match_path_pattern))
+    if (!MatchAttrToken(attrs->device, &iclass->match_device, match_path_pattern))
         return FALSE;
 
     /* MatchOS case-insensitive string */
-    if (!MatchAttrToken(HostOS(), iclass->match_os, strcasecmp))
+    if (!MatchAttrToken(HostOS(), &iclass->match_os, strcasecmp))
         return FALSE;
 
     /* MatchPnPID pattern */
-    if (!MatchAttrToken(attrs->pnp_id, iclass->match_pnpid, match_pattern))
+    if (!MatchAttrToken(attrs->pnp_id, &iclass->match_pnpid, match_pattern))
         return FALSE;
 
     /* MatchUSBID pattern */
-    if (!MatchAttrToken(attrs->usb_id, iclass->match_usbid, match_pattern))
+    if (!MatchAttrToken(attrs->usb_id, &iclass->match_usbid, match_pattern))
         return FALSE;
 
     /*
      * MatchTag string
      * See if any of the device's tags match any of the MatchTag tokens.
      */
-    if (iclass->match_tag) {
+    if (!list_is_empty(&iclass->match_tag)) {
         char * const *tag;
         Bool match;
 
         if (!attrs->tags)
             return FALSE;
         for (tag = attrs->tags, match = FALSE; *tag; tag++) {
-            if (MatchAttrToken(*tag, iclass->match_tag, strcmp)) {
+            if (MatchAttrToken(*tag, &iclass->match_tag, strcmp)) {
                 match = TRUE;
                 break;
             }

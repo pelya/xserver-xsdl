@@ -64,6 +64,18 @@ xf86ConfigSymTabRec InputClassTab[] =
 
 #define TOKEN_SEP "|"
 
+static void
+add_group_entry(struct list *head, char **values)
+{
+    xf86MatchGroup *group;
+
+    group = malloc(sizeof(*group));
+    if (group) {
+        group->values = values;
+        list_add(&group->entry, head);
+    }
+}
+
 XF86ConfInputClassPtr
 xf86parseInputClassSection(void)
 {
@@ -71,6 +83,15 @@ xf86parseInputClassSection(void)
     int token;
 
     parsePrologue(XF86ConfInputClassPtr, XF86ConfInputClassRec)
+
+    /* Initialize MatchGroup lists */
+    list_init(&ptr->match_product);
+    list_init(&ptr->match_vendor);
+    list_init(&ptr->match_device);
+    list_init(&ptr->match_os);
+    list_init(&ptr->match_pnpid);
+    list_init(&ptr->match_usbid);
+    list_init(&ptr->match_tag);
 
     while ((token = xf86getToken(InputClassTab)) != ENDSECTION) {
         switch (token) {
@@ -99,37 +120,44 @@ xf86parseInputClassSection(void)
         case MATCH_PRODUCT:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchProduct");
-            ptr->match_product = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_product,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_VENDOR:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchVendor");
-            ptr->match_vendor = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_vendor,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_DEVICE_PATH:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchDevicePath");
-            ptr->match_device = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_device,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_OS:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchOS");
-            ptr->match_os = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_os,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_PNPID:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchPnPID");
-            ptr->match_pnpid = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_pnpid,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_USBID:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchUSBID");
-            ptr->match_usbid = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_usbid,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_TAG:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchTag");
-            ptr->match_tag = xstrtokenize(val.str, TOKEN_SEP);
+            add_group_entry(&ptr->match_tag,
+                            xstrtokenize(val.str, TOKEN_SEP));
             break;
         case MATCH_IS_KEYBOARD:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
@@ -201,7 +229,8 @@ xf86parseInputClassSection(void)
 void
 xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
 {
-    char **list;
+    const xf86MatchGroup *group;
+    char * const *cur;
 
     while (ptr) {
         fprintf(cf, "Section \"InputClass\"\n");
@@ -211,62 +240,57 @@ xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
             fprintf(cf, "\tIdentifier      \"%s\"\n", ptr->identifier);
         if (ptr->driver)
             fprintf(cf, "\tDriver          \"%s\"\n", ptr->driver);
-        if (ptr->match_product) {
+
+        list_for_each_entry(group, &ptr->match_product, entry) {
             fprintf(cf, "\tMatchProduct    \"");
-            for (list = ptr->match_product; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_product ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_vendor) {
+        list_for_each_entry(group, &ptr->match_vendor, entry) {
             fprintf(cf, "\tMatchVendor     \"");
-            for (list = ptr->match_vendor; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_vendor ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_device) {
+        list_for_each_entry(group, &ptr->match_device, entry) {
             fprintf(cf, "\tMatchDevicePath \"");
-            for (list = ptr->match_device; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_device ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_os) {
+        list_for_each_entry(group, &ptr->match_os, entry) {
             fprintf(cf, "\tMatchOS         \"");
-            for (list = ptr->match_os; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_os ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_pnpid) {
+        list_for_each_entry(group, &ptr->match_pnpid, entry) {
             fprintf(cf, "\tMatchPnPID      \"");
-            for (list = ptr->match_pnpid; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_pnpid ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_usbid) {
+        list_for_each_entry(group, &ptr->match_usbid, entry) {
             fprintf(cf, "\tMatchUSBID      \"");
-            for (list = ptr->match_usbid; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_usbid ? "" : TOKEN_SEP,
-                        *list);
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
-        if (ptr->match_tag) {
-            fprintf(cf, "\tMatchTag \"");
-            for (list = ptr->match_tag; *list; list++)
-                fprintf(cf, "%s%s",
-                        list == ptr->match_tag ? "" : TOKEN_SEP,
-                        *list);
+        list_for_each_entry(group, &ptr->match_tag, entry) {
+            fprintf(cf, "\tMatchTag        \"");
+            for (cur = group->values; *cur; cur++)
+                fprintf(cf, "%s%s", cur == group->values ? "" : TOKEN_SEP,
+                        *cur);
             fprintf(cf, "\"\n");
         }
+
         if (ptr->is_keyboard.set)
             fprintf(cf, "\tIsKeyboard      \"%s\"\n",
                     ptr->is_keyboard.val ? "yes" : "no");
@@ -295,46 +319,57 @@ void
 xf86freeInputClassList (XF86ConfInputClassPtr ptr)
 {
     XF86ConfInputClassPtr prev;
-    char **list;
 
     while (ptr) {
+        xf86MatchGroup *group, *next;
+        char **list;
+
         TestFree(ptr->identifier);
         TestFree(ptr->driver);
-        if (ptr->match_product) {
-            for (list = ptr->match_product; *list; list++)
+
+        list_for_each_entry_safe(group, next, &ptr->match_product, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_product);
+            free(group);
         }
-        if (ptr->match_vendor) {
-            for (list = ptr->match_vendor; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_vendor, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_vendor);
+            free(group);
         }
-        if (ptr->match_device) {
-            for (list = ptr->match_device; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_device, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_device);
+            free(group);
         }
-        if (ptr->match_os) {
-            for (list = ptr->match_os; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_os, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_os);
+            free(group);
         }
-        if (ptr->match_pnpid) {
-            for (list = ptr->match_pnpid; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_pnpid, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_pnpid);
+            free(group);
         }
-        if (ptr->match_usbid) {
-            for (list = ptr->match_usbid; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_usbid, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_usbid);
+            free(group);
         }
-        if (ptr->match_tag) {
-            for (list = ptr->match_tag; *list; list++)
+        list_for_each_entry_safe(group, next, &ptr->match_tag, entry) {
+            list_del(&group->entry);
+            for (list = group->values; *list; list++)
                 free(*list);
-            free(ptr->match_tag);
+            free(group);
         }
+
         TestFree(ptr->comment);
         xf86optionListFree(ptr->option_lst);
 
