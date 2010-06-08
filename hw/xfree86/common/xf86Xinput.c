@@ -501,7 +501,8 @@ AddOtherInputDevices(void)
  * statements must match.
  */
 static Bool
-InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
+InputClassMatches(const XF86ConfInputClassPtr iclass,
+                  const InputAttributes *attrs)
 {
     char **cur;
     Bool match;
@@ -591,7 +592,7 @@ InputClassMatches(XF86ConfInputClassPtr iclass, InputAttributes *attrs)
  * well as any previous InputClass sections.
  */
 static int
-MergeInputClasses(IDevPtr idev, InputAttributes *attrs)
+MergeInputClasses(const IDevPtr idev, const InputAttributes *attrs)
 {
     XF86ConfInputClassPtr cl;
     XF86OptionPtr classopts, mergedopts = NULL;
@@ -630,7 +631,7 @@ MergeInputClasses(IDevPtr idev, InputAttributes *attrs)
  * value of the last matching class and holler when returning TRUE.
  */
 static Bool
-IgnoreInputClass(IDevPtr idev, InputAttributes *attrs)
+IgnoreInputClass(const IDevPtr idev, const InputAttributes *attrs)
 {
     XF86ConfInputClassPtr cl;
     Bool ignore = FALSE;
