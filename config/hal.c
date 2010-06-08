@@ -622,7 +622,7 @@ config_hal_init(void)
     }
 
     /* verbose message */
-    LogMessageVerb(X_INFO,7,"config/hal: initialized");
+    LogMessageVerb(X_INFO,7,"config/hal: initialized\n");
 
     return 1;
 }
