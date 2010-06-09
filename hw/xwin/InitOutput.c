@@ -275,11 +275,8 @@ ddxGiveUp (void)
     }
   
   /* Free concatenated command line */
-  if (g_pszCommandLine)
-    {
-      free (g_pszCommandLine);
-      g_pszCommandLine = NULL;
-    }
+  free(g_pszCommandLine);
+  g_pszCommandLine = NULL;
 
   /* Remove our keyboard hook if it is installed */
   winRemoveKeyboardHookLL ();
