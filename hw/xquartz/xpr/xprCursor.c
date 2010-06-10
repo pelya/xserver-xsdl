@@ -58,7 +58,7 @@ typedef struct {
 } QuartzCursorScreenRec, *QuartzCursorScreenPtr;
 
 static DevPrivateKeyRec darwinCursorScreenKeyRec;
-#define darwinCursorScreenKey (&darwinCursorScreenKey)
+#define darwinCursorScreenKey (&darwinCursorScreenKeyRec)
 
 #define CURSOR_PRIV(pScreen) ((QuartzCursorScreenPtr) \
     dixLookupPrivate(&pScreen->devPrivates, darwinCursorScreenKey))
@@ -359,7 +359,7 @@ QuartzInitCursor(ScreenPtr pScreen)
     if (!miDCInitialize(pScreen, &quartzScreenFuncsRec))
         return FALSE;
 
-    if (!dixRegisterPrivate(&darwinCursorScreenKeyRec, PRIVATE_SCREEN, 0))
+    if (!dixRegisterPrivateKey(&darwinCursorScreenKeyRec, PRIVATE_SCREEN, 0))
 	return FALSE;
 
     ScreenPriv = calloc(1, sizeof(QuartzCursorScreenRec));
