@@ -55,7 +55,9 @@ static Bool
 validDrawable(ClientPtr client, XID drawable, Mask access_mode,
 	      DrawablePtr *pDrawable, int *status)
 {
-    *status = dixLookupDrawable(pDrawable, drawable, client, 0, access_mode);
+    *status = dixLookupDrawable(pDrawable, drawable, client,
+				M_DRAWABLE_WINDOW | M_DRAWABLE_PIXMAP,
+				access_mode);
     if (*status != Success) {
 	client->errorValue = drawable;
 	return FALSE;

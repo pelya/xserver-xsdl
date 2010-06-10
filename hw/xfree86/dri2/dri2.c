@@ -118,12 +118,15 @@ DRI2GetDrawable(DrawablePtr pDraw)
     WindowPtr pWin;
     PixmapPtr pPixmap;
 
-    if (WindowDrawable(pDraw->type)) {
+    switch (pDraw->type) {
+    case DRAWABLE_WINDOW:
 	pWin = (WindowPtr) pDraw;
 	return dixLookupPrivate(&pWin->devPrivates, dri2WindowPrivateKey);
-    } else {
+    case DRAWABLE_PIXMAP:
 	pPixmap = (PixmapPtr) pDraw;
 	return dixLookupPrivate(&pPixmap->devPrivates, dri2PixmapPrivateKey);
+    default:
+	return NULL;
     }
 }
 
@@ -161,7 +164,7 @@ DRI2AllocateDrawable(DrawablePtr pDraw)
     pPriv->last_swap_ust = 0;
     list_init(&pPriv->reference_list);
 
-    if (WindowDrawable(pDraw->type)) {
+    if (pDraw->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr) pDraw;
 	dixSetPrivate(&pWin->devPrivates, dri2WindowPrivateKey, pPriv);
     } else {
@@ -272,7 +275,7 @@ static int DRI2DrawableGone(pointer p, XID id)
 	return Success;
 
     pDraw = pPriv->drawable;
-    if (WindowDrawable(pDraw->type)) {
+    if (pDraw->type == DRAWABLE_WINDOW) {
 	pWin = (WindowPtr) pDraw;
 	dixSetPrivate(&pWin->devPrivates, dri2WindowPrivateKey, NULL);
     } else {
@@ -411,12 +414,12 @@ do_get_buffers(DrawablePtr pDraw, int *width, int *height,
 	    need_real_front--;
 	    front_format = format;
 
-	    if (WindowDrawable(pDraw->type)) {
+	    if (pDraw->type == DRAWABLE_WINDOW) {
 		need_fake_front++;
 	    }
 	}
 
-	if (WindowDrawable(pDraw->type)) {
+	if (pDraw->type == DRAWABLE_WINDOW) {
 	    if (attachment == DRI2BufferFakeFrontLeft) {
 		need_fake_front--;
 		have_fake_front = 1;
