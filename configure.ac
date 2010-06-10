@@ -809,6 +809,7 @@ LIBPCIACCESS="pciaccess >= 0.8.0"
 LIBGLIB="glib-2.0 >= 2.16"
 LIBUDEV="libudev >= 143"
 LIBSELINUX="libselinux >= 2.0.86"
+LIBDBUS="dbus-1 >= 1.0"
 
 if test "x$CONFIG_UDEV" = xyes &&
  { test "x$CONFIG_DBUS_API" = xyes || test "x$CONFIG_HAL" = xyes; }; then
@@ -832,7 +833,7 @@ fi
 dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
 dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
 dnl API.
-PKG_CHECK_MODULES(DBUS, dbus-1, [HAVE_DBUS=yes], [HAVE_DBUS=no])
+PKG_CHECK_MODULES(DBUS, $LIBDBUS, [HAVE_DBUS=yes], [HAVE_DBUS=no])
 if test "x$HAVE_DBUS" = xyes; then
 	AC_DEFINE(HAVE_DBUS, 1, [Have D-Bus support])
 fi
