@@ -49,6 +49,7 @@ xf86ConfigSymTabRec InputClassTab[] =
     {MATCH_DEVICE_PATH, "matchdevicepath"},
     {MATCH_OS, "matchos"},
     {MATCH_PNPID, "matchpnpid"},
+    {MATCH_USBID, "matchusbid"},
     {MATCH_TAG, "matchtag"},
     {MATCH_IS_KEYBOARD, "matchiskeyboard"},
     {MATCH_IS_POINTER, "matchispointer"},
@@ -119,6 +120,11 @@ xf86parseInputClassSection(void)
             if (xf86getSubToken(&(ptr->comment)) != STRING)
                 Error(QUOTE_MSG, "MatchPnPID");
             ptr->match_pnpid = xstrtokenize(val.str, TOKEN_SEP);
+            break;
+        case MATCH_USBID:
+            if (xf86getSubToken(&(ptr->comment)) != STRING)
+                Error(QUOTE_MSG, "MatchUSBID");
+            ptr->match_usbid = xstrtokenize(val.str, TOKEN_SEP);
             break;
         case MATCH_TAG:
             if (xf86getSubToken(&(ptr->comment)) != STRING)
@@ -245,6 +251,14 @@ xf86printInputClassSection (FILE * cf, XF86ConfInputClassPtr ptr)
                         *list);
             fprintf(cf, "\"\n");
         }
+        if (ptr->match_usbid) {
+            fprintf(cf, "\tMatchUSBID      \"");
+            for (list = ptr->match_usbid; *list; list++)
+                fprintf(cf, "%s%s",
+                        list == ptr->match_usbid ? "" : TOKEN_SEP,
+                        *list);
+            fprintf(cf, "\"\n");
+        }
         if (ptr->match_tag) {
             fprintf(cf, "\tMatchTag \"");
             for (list = ptr->match_tag; *list; list++)
@@ -310,6 +324,11 @@ xf86freeInputClassList (XF86ConfInputClassPtr ptr)
             for (list = ptr->match_pnpid; *list; list++)
                 free(*list);
             free(ptr->match_pnpid);
+        }
+        if (ptr->match_usbid) {
+            for (list = ptr->match_usbid; *list; list++)
+                free(*list);
+            free(ptr->match_usbid);
         }
         if (ptr->match_tag) {
             for (list = ptr->match_tag; *list; list++)

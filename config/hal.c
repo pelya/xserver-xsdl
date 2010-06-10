@@ -184,7 +184,24 @@ device_added(LibHalContext *hal_ctx, const char *udi)
 
     parent = get_prop_string(hal_ctx, udi, "info.parent");
     if (parent) {
+        int usb_vendor, usb_product;
+
         attrs.pnp_id = get_prop_string(hal_ctx, parent, "pnp.id");
+
+        /* construct USB ID in lowercase - "0000:ffff" */
+        usb_vendor = libhal_device_get_property_int(hal_ctx, parent,
+                                                    "usb.vendor_id", NULL);
+        LogMessageVerb(X_INFO, 10,
+                       "config/hal: getting usb.vendor_id on %s "
+                       "returned %04x\n", parent, usb_vendor);
+        usb_product = libhal_device_get_property_int(hal_ctx, parent,
+                                                     "usb.product_id", NULL);
+        LogMessageVerb(X_INFO, 10,
+                       "config/hal: getting usb.product_id on %s "
+                       "returned %04x\n", parent, usb_product);
+        if (usb_vendor && usb_product)
+            attrs.usb_id = Xprintf("%04x:%04x", usb_vendor, usb_product);
+
         free(parent);
     }
 
@@ -391,6 +408,7 @@ unwind:
     free(attrs.vendor);
     free(attrs.device);
     free(attrs.pnp_id);
+    free(attrs.usb_id);
     if (attrs.tags) {
         char **tag = attrs.tags;
         while (*tag) {

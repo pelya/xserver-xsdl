@@ -808,6 +808,13 @@ static void cmp_attr_fields(InputAttributes *attr1,
     } else
         g_assert(attr2->pnp_id == NULL);
 
+    if (attr1->usb_id != NULL)
+    {
+        g_assert(attr1->usb_id != attr2->usb_id);
+        g_assert(strcmp(attr1->usb_id, attr2->usb_id) == 0);
+    } else
+        g_assert(attr2->usb_id == NULL);
+
     tags1 = attr1->tags;
     tags2 = attr2->tags;
 
@@ -874,6 +881,11 @@ static void dix_input_attributes(void)
     FreeInputAttributes(new);
 
     orig.pnp_id = "PnPID";
+    new = DuplicateInputAttributes(&orig);
+    cmp_attr_fields(&orig, new);
+    FreeInputAttributes(new);
+
+    orig.usb_id = "USBID";
     new = DuplicateInputAttributes(&orig);
     cmp_attr_fields(&orig, new);
     FreeInputAttributes(new);

@@ -1101,6 +1101,15 @@ The device's Plug and Play (PnP) ID can be checked against the
 shell wildcard pattern. Multiple IDs can be matched by separating arguments
 with a '|' character.
 .TP 7
+.BI "MatchUSBID \*q" matchusb \*q
+The device's USB ID can be checked against the
+.RI \*q matchusb \*q
+shell wildcard pattern. The ID is constructed as lowercase hexadecimal numbers
+separated by a ':'. This is the same format as the
+.BR lsusb (8)
+program. Multiple IDs can be matched by separating arguments with a '|'
+character.
+.TP 7
 .BI "MatchTag \*q" matchtag \*q
 This entry can be used to check if tags assigned by the config backend
 matches the

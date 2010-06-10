@@ -604,6 +604,10 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
     if (!MatchAttrToken(attrs->pnp_id, iclass->match_pnpid, match_pattern))
         return FALSE;
 
+    /* MatchUSBID pattern */
+    if (!MatchAttrToken(attrs->usb_id, iclass->match_usbid, match_pattern))
+        return FALSE;
+
     /*
      * MatchTag string
      * See if any of the device's tags match any of the MatchTag tokens.
