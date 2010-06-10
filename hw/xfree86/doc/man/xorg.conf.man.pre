@@ -1095,6 +1095,12 @@ string. This entry is only supported on platforms providing the
 system call. Multiple operating systems can be matched by separating arguments
 with a '|' character.
 .TP 7
+.BI "MatchPnPID \*q" matchpnp \*q
+The device's Plug and Play (PnP) ID can be checked against the
+.RI \*q matchpnp \*q
+shell wildcard pattern. Multiple IDs can be matched by separating arguments
+with a '|' character.
+.TP 7
 .BI "MatchTag \*q" matchtag \*q
 This entry can be used to check if tags assigned by the config backend
 matches the

@@ -357,6 +357,8 @@ DuplicateInputAttributes(InputAttributes *attrs)
         goto unwind;
     if (attrs->device && !(new_attr->device = strdup(attrs->device)))
         goto unwind;
+    if (attrs->pnp_id && !(new_attr->pnp_id = strdup(attrs->pnp_id)))
+        goto unwind;
 
     new_attr->flags = attrs->flags;
 
@@ -401,6 +403,7 @@ FreeInputAttributes(InputAttributes *attrs)
     free(attrs->product);
     free(attrs->vendor);
     free(attrs->device);
+    free(attrs->pnp_id);
 
     if ((tags = attrs->tags))
         while(*tags)

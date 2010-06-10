@@ -129,7 +129,7 @@ static void
 device_added(LibHalContext *hal_ctx, const char *udi)
 {
     char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
-    char *hal_tags;
+    char *hal_tags, *parent;
     InputOption *options = NULL, *tmpo = NULL;
     InputAttributes attrs = {0};
     DeviceIntPtr dev = NULL;
@@ -181,6 +181,12 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         attrs.flags |= ATTR_TOUCHPAD;
     if (libhal_device_query_capability(hal_ctx, udi, "input.touchscreen", NULL))
         attrs.flags |= ATTR_TOUCHSCREEN;
+
+    parent = get_prop_string(hal_ctx, udi, "info.parent");
+    if (parent) {
+        attrs.pnp_id = get_prop_string(hal_ctx, parent, "pnp.id");
+        free(parent);
+    }
 
     options = calloc(sizeof(*options), 1);
     if (!options){
@@ -384,6 +390,7 @@ unwind:
     free(attrs.product);
     free(attrs.vendor);
     free(attrs.device);
+    free(attrs.pnp_id);
     if (attrs.tags) {
         char **tag = attrs.tags;
         while (*tag) {

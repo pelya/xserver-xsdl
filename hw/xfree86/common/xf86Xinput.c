@@ -532,6 +532,16 @@ match_substring(const char *attr, const char *pattern)
 
 #ifdef HAVE_FNMATCH_H
 static int
+match_pattern(const char *attr, const char *pattern)
+{
+    return fnmatch(pattern, attr, 0);
+}
+#else
+#define match_pattern match_substring
+#endif
+
+#ifdef HAVE_FNMATCH_H
+static int
 match_path_pattern(const char *attr, const char *pattern)
 {
     return fnmatch(pattern, attr, FNM_PATHNAME);
@@ -588,6 +598,10 @@ InputClassMatches(const XF86ConfInputClassPtr iclass,
 
     /* MatchOS case-insensitive string */
     if (!MatchAttrToken(HostOS(), iclass->match_os, strcasecmp))
+        return FALSE;
+
+    /* MatchPnPID pattern */
+    if (!MatchAttrToken(attrs->pnp_id, iclass->match_pnpid, match_pattern))
         return FALSE;
 
     /*

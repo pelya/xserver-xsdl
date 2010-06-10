@@ -99,6 +99,9 @@ device_added(struct udev_device *udev_device)
             name = udev_device_get_property_value(parent, "NAME");
             LOG_PROPERTY(ppath, "NAME", name);
         }
+
+        attrs.pnp_id = udev_device_get_sysattr_value(parent, "id");
+        LOG_SYSATTR(ppath, "id", attrs.pnp_id);
     }
     if (!name)
         name = "(unnamed)";

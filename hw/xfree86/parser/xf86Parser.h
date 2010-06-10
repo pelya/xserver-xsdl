@@ -347,6 +347,7 @@ typedef struct
 	char **match_vendor;
 	char **match_device;
 	char **match_os;
+	char **match_pnpid;
 	char **match_tag;
 	xf86TriState is_keyboard;
 	xf86TriState is_pointer;
