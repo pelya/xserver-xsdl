@@ -129,6 +129,7 @@ static void
 device_added(LibHalContext *hal_ctx, const char *udi)
 {
     char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
+    char *hal_tags, *parent;
     InputOption *options = NULL, *tmpo = NULL;
     InputAttributes attrs = {0};
     DeviceIntPtr dev = NULL;
@@ -164,7 +165,9 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         attrs.product = xstrdup(name);
 
     attrs.vendor = get_prop_string(hal_ctx, udi, "info.vendor");
-    attrs.tags = xstrtokenize(get_prop_string(hal_ctx, udi, "input.tags"), ",");
+    hal_tags = get_prop_string(hal_ctx, udi, "input.tags");
+    attrs.tags = xstrtokenize(hal_tags, ",");
+    free(hal_tags);
 
     if (libhal_device_query_capability(hal_ctx, udi, "input.keys", NULL))
         attrs.flags |= ATTR_KEYBOARD;
@@ -178,6 +181,29 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         attrs.flags |= ATTR_TOUCHPAD;
     if (libhal_device_query_capability(hal_ctx, udi, "input.touchscreen", NULL))
         attrs.flags |= ATTR_TOUCHSCREEN;
+
+    parent = get_prop_string(hal_ctx, udi, "info.parent");
+    if (parent) {
+        int usb_vendor, usb_product;
+
+        attrs.pnp_id = get_prop_string(hal_ctx, parent, "pnp.id");
+
+        /* construct USB ID in lowercase - "0000:ffff" */
+        usb_vendor = libhal_device_get_property_int(hal_ctx, parent,
+                                                    "usb.vendor_id", NULL);
+        LogMessageVerb(X_INFO, 10,
+                       "config/hal: getting usb.vendor_id on %s "
+                       "returned %04x\n", parent, usb_vendor);
+        usb_product = libhal_device_get_property_int(hal_ctx, parent,
+                                                     "usb.product_id", NULL);
+        LogMessageVerb(X_INFO, 10,
+                       "config/hal: getting usb.product_id on %s "
+                       "returned %04x\n", parent, usb_product);
+        if (usb_vendor && usb_product)
+            attrs.usb_id = Xprintf("%04x:%04x", usb_vendor, usb_product);
+
+        free(parent);
+    }
 
     options = calloc(sizeof(*options), 1);
     if (!options){
@@ -381,6 +407,8 @@ unwind:
     free(attrs.product);
     free(attrs.vendor);
     free(attrs.device);
+    free(attrs.pnp_id);
+    free(attrs.usb_id);
     if (attrs.tags) {
         char **tag = attrs.tags;
         while (*tag) {
@@ -619,7 +647,7 @@ config_hal_init(void)
     }
 
     /* verbose message */
-    LogMessageVerb(X_INFO,7,"config/hal: initialized");
+    LogMessageVerb(X_INFO,7,"config/hal: initialized\n");
 
     return 1;
 }

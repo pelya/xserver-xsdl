@@ -193,16 +193,12 @@ void
 CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 {
     KeyClassPtr mk = master->key;
-    KeyClassPtr dk = device->key;
-    int i;
 
     if (device == master)
         return;
 
     mk->sourceid = device->id;
 
-    for (i = 0; i < 8; i++)
-        mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
     if (!XkbCopyDeviceKeymap(master, device))
         FatalError("Couldn't pivot keymap from device to core!\n");
