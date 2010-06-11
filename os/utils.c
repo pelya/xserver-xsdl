@@ -205,8 +205,6 @@ int auditTrailLevel = 1;
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
 
-static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
-
 OsSigHandlerPtr
 OsSignal(int sig, OsSigHandlerPtr handler)
 {
@@ -879,8 +877,7 @@ ProcessCommandLine(int argc, char *argv[])
 	}
 	else if (strncmp (argv[i], "tty", 3) == 0)
 	{
-	    /* just in case any body is interested */
-	    dev_tty_from_init = argv[i];
+            /* init supplies us with this useless information */
 	}
 #ifdef XDMCP
 	else if ((skip = XdmcpOptions(argc, argv, i)) != i)
