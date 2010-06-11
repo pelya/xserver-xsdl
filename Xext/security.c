@@ -805,7 +805,6 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     Mask allowed = SecurityResourceMask;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&clients[cid]->devPrivates, stateKey);
 
     /* disable background None for untrusted windows */
     if ((requested & DixCreateAccess) && (rec->rtype == RT_WINDOW))
@@ -831,8 +830,11 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	    allowed |= DixReadAccess;
     }
 
-    if (SecurityDoCheck(subj, obj, requested, allowed) == Success)
-	return;
+    if (clients[cid] != NULL) {
+	obj = dixLookupPrivate(&clients[cid]->devPrivates, stateKey);
+	if (SecurityDoCheck(subj, obj, requested, allowed) == Success)
+	    return;
+    }
 
     SecurityAudit("Security: denied client %d access %x to resource 0x%x "
 		  "of client %d on request %s\n", rec->client->index,
