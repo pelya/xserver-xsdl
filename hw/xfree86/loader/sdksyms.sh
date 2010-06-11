@@ -231,7 +231,6 @@ cat > sdksyms.c << EOF
 #include "miwideline.h"
 #include "mistruct.h"
 #include "mifpoly.h"
-#include "mioverlay.h"
 
 
 /* randr/Makefile.am */
