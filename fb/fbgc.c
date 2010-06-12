@@ -199,9 +199,6 @@ fbValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
     FbGCPrivPtr	pPriv = fbGetGCPrivate(pGC);
     FbBits	mask;
 
-    pGC->lastWinOrg.x = pDrawable->x;
-    pGC->lastWinOrg.y = pDrawable->y;
-
     /*
      * if the client clip is different or moved OR the subwindowMode has
      * changed OR the window's clip has changed since the last validation

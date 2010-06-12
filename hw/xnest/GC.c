@@ -92,8 +92,6 @@ xnestCreateGC(GCPtr pGC)
 void
 xnestValidateGC(GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
-  pGC->lastWinOrg.x = pDrawable->x;
-  pGC->lastWinOrg.y = pDrawable->y;
 }
 
 void
