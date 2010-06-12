@@ -95,7 +95,6 @@ typedef struct _GCFuncs {
     void	(* CopyClip)(
 		GCPtr /*pgcDst*/,
 		GCPtr /*pgcSrc*/);
-    DevUnion	devPrivate;
 } GCFuncs;
 
 /*
@@ -264,8 +263,6 @@ typedef struct _GCOps {
 		int /*h*/,
 		int /*x*/,
 		int /*y*/);
-
-    DevUnion	devPrivate;
 } GCOps;
 
 /* there is padding in the bit fields because the Sun compiler doesn't

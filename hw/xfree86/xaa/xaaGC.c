@@ -651,5 +651,4 @@ GCOps XAAPixmapOps = {
     XAAPolyText16Pixmap, XAAImageText8Pixmap, 
     XAAImageText16Pixmap, XAAImageGlyphBltPixmap, 
     XAAPolyGlyphBltPixmap, XAAPushPixelsPixmap,
-    {NULL}		/* devPrivate */
 };

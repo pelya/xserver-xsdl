@@ -53,7 +53,6 @@ static GCOps VGAarbiterGCOps = {
     VGAarbiterPolyFillArc, VGAarbiterPolyText8, VGAarbiterPolyText16,
     VGAarbiterImageText8, VGAarbiterImageText16, VGAarbiterImageGlyphBlt,
     VGAarbiterPolyGlyphBlt, VGAarbiterPushPixels,
-    {NULL}      /* devPrivate */
 };
 
 static miPointerSpriteFuncRec VGAarbiterSpriteFuncs = {

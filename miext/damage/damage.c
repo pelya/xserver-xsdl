@@ -1757,7 +1757,6 @@ static GCOps damageGCOps = {
     damagePolyText16, damageImageText8,
     damageImageText16, damageImageGlyphBlt,
     damagePolyGlyphBlt, damagePushPixels,
-    {NULL}		/* devPrivate */
 };
 
 static void
