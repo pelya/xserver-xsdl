@@ -458,28 +458,6 @@ damageCreateGC(GCPtr pGC)
     return ret;
 }
 
-#ifdef NOTUSED
-static void
-damageWrapGC (GCPtr pGC)
-{
-    damageGCPriv(pGC);
-
-    pGCPriv->ops = NULL;
-    pGCPriv->funcs = pGC->funcs;
-    pGC->funcs = &damageGCFuncs;
-}
-
-static void
-damageUnwrapGC (GCPtr pGC)
-{
-    damageGCPriv(pGC);
-
-    pGC->funcs = pGCPriv->funcs;
-    if (pGCPriv->ops)
-	pGC->ops = pGCPriv->ops;
-}
-#endif
-
 #define DAMAGE_GC_OP_PROLOGUE(pGC, pDrawable) \
     damageGCPriv(pGC);  \
     GCFuncs *oldFuncs = pGC->funcs; \
