@@ -312,19 +312,6 @@ AC_CHECK_HEADER([execinfo.h],[
     ])]
 )
 
-dnl ARM needs additional compiler flags for proper backtraces if GCC is
-dnl used. Compile a dummy program with the -mapcs-frame option. If it
-dnl succeeds, we know that we are building for ARM with GCC.
-old_CFLAGS="$CFLAGS"
-CFLAGS="-mapcs-frame"
-AC_COMPILE_IFELSE(
-        AC_LANG_PROGRAM([[ ]]),
-        ARM_BACKTRACE_CFLAGS="$CFLAGS",
-        ARM_BACKTRACE_CFLAGS=""
-)
-CFLAGS="$old_CFLAGS"
-AC_SUBST(ARM_BACKTRACE_CFLAGS)
-
 dnl ---------------------------------------------------------------------------
 dnl Bus options and CPU capabilities.  Replaces logic in
 dnl hw/xfree86/os-support/bus/Makefile.am, among others.
