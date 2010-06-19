@@ -28,6 +28,7 @@
 
 #include <X11/X.h>
 #include <X11/Xmd.h>
+#include <xcb/xcb.h>
 
 #define EPHYR_WANT_DEBUG 0
 
@@ -205,6 +206,12 @@ int
  hostx_get_event(EphyrHostXEvent * ev);
 
 void *hostx_get_display(void);
+
+xcb_connection_t *
+hostx_get_xcbconn(void);
+
+int
+hostx_get_screen(void);
 
 int
  hostx_get_window(int a_screen_number);
