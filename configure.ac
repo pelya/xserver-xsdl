@@ -2121,7 +2121,7 @@ if test "$KDRIVE" = yes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xcb-xv"
     fi
     if test "x$DRI" = xyes && test "x$GLX" = xyes; then
-        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS $LIBGL libdrm xcb-glx xcb-xf86dri"
+        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS $LIBGL libdrm xcb-glx xcb-xf86dri > 1.6"
     fi
 
     if test "x$XEPHYR" = xauto; then
