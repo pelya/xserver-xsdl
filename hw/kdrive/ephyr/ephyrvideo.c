@@ -39,7 +39,7 @@
 #include "ephyrhostvideo.h"
 
 struct _EphyrXVPriv {
-    EphyrHostXVAdaptorArray *host_adaptors;
+    xcb_xv_query_adaptors_reply_t *host_adaptors;
     KdVideoAdaptorPtr adaptors;
     int num_adaptors;
 };
@@ -381,23 +381,29 @@ videoEncodingDup(EphyrHostEncoding * a_encodings, int a_num_encodings)
 }
 
 static KdAttributePtr
-portAttributesDup(EphyrHostAttribute * a_encodings, int a_num_encodings)
+portAttributesDup(const xcb_xv_query_port_attributes_reply_t *a_encodings)
 {
     int i = 0;
     KdAttributePtr result = NULL;
+    xcb_xv_attribute_info_iterator_t it;
 
-    EPHYR_RETURN_VAL_IF_FAIL(a_encodings && a_num_encodings, NULL);
+    EPHYR_RETURN_VAL_IF_FAIL(a_encodings, NULL);
 
-    result = calloc(a_num_encodings, sizeof(KdAttributeRec));
+    result = calloc(a_encodings->num_attributes, sizeof(KdAttributeRec));
     if (!result) {
         EPHYR_LOG_ERROR("failed to allocate attributes\n");
         return NULL;
     }
-    for (i = 0; i < a_num_encodings; i++) {
-        result[i].flags = a_encodings[i].flags;
-        result[i].min_value = a_encodings[i].min_value;
-        result[i].max_value = a_encodings[i].max_value;
-        result[i].name = strdup(a_encodings[i].name);
+    it = xcb_xv_query_port_attributes_attributes_iterator(a_encodings);
+    for (i = 0;
+         i < a_encodings->num_attributes;
+         xcb_xv_attribute_info_next(&it), i++) {
+        result[i].flags = it.data->flags;
+        result[i].min_value = it.data->min;
+        result[i].max_value = it.data->max;
+        result[i].name = malloc(it.data->size + 1);
+	memcpy (result[i].name, xcb_xv_attribute_info_name(it.data), it.data->size);
+	result[i].name[it.data->size] = '\0';
     }
     return result;
 }
@@ -405,13 +411,13 @@ portAttributesDup(EphyrHostAttribute * a_encodings, int a_num_encodings)
 static Bool
 ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
 {
-    EphyrHostXVAdaptor *cur_host_adaptor = NULL;
+    xcb_xv_adaptor_info_t *cur_host_adaptor = NULL;
     EphyrHostVideoFormat *video_formats = NULL;
     EphyrHostEncoding *encodings = NULL;
-    EphyrHostAttribute *attributes = NULL;
+    xcb_xv_query_port_attributes_reply_t *attributes = NULL;
     EphyrHostImageFormat *image_formats = NULL;
     int num_video_formats = 0, base_port_id = 0,
-        num_attributes = 0, num_formats = 0, i = 0, port_priv_offset = 0;
+        num_formats = 0, i = 0, port_priv_offset = 0;
     unsigned num_encodings = 0;
     Bool is_ok = FALSE;
 
@@ -458,10 +464,8 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
         a_this->adaptors[i].type |= XvWindowMask;
         a_this->adaptors[i].flags =
             VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
-        if (ephyrHostXVAdaptorGetName(cur_host_adaptor))
-            a_this->adaptors[i].name =
-                strdup(ephyrHostXVAdaptorGetName(cur_host_adaptor));
-        else
+        a_this->adaptors[i].name = ephyrHostXVAdaptorGetName(cur_host_adaptor);
+        if (!a_this->adaptors[i].name)
             a_this->adaptors[i].name = strdup("Xephyr Video Overlay");
         base_port_id = ephyrHostXVAdaptorGetFirstPortID(cur_host_adaptor);
         if (base_port_id < 0) {
@@ -504,15 +508,14 @@ ephyrXVPrivQueryHostAdaptors(EphyrXVPriv * a_this)
             port_priv->xv_priv = a_this;
             a_this->adaptors[i].pPortPrivates[j].ptr = port_priv;
         }
-        if (!ephyrHostXVQueryPortAttributes(base_port_id,
-                                            &attributes, &num_attributes)) {
+        if (!ephyrHostXVQueryPortAttributes(base_port_id, &attributes)) {
             EPHYR_LOG_ERROR("failed to get port attribute "
                             "for adaptor %d\n", i);
             continue;
         }
         a_this->adaptors[i].pAttributes =
-            portAttributesDup(attributes, num_attributes);
-        a_this->adaptors[i].nAttributes = num_attributes;
+            portAttributesDup(attributes);
+        a_this->adaptors[i].nAttributes = attributes->num_attributes;
         /*make sure atoms of attrs names are created in xephyr */
         for (j = 0; j < a_this->adaptors[i].nAttributes; j++) {
             if (a_this->adaptors[i].pAttributes[j].name)
@@ -548,7 +551,7 @@ ephyrXVPrivSetAdaptorsHooks(EphyrXVPriv * a_this)
 {
     int i = 0;
     Bool has_it = FALSE;
-    EphyrHostXVAdaptor *cur_host_adaptor = NULL;
+    xcb_xv_adaptor_info_t *cur_host_adaptor = NULL;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this, FALSE);
 

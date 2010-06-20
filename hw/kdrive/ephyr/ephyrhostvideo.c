@@ -38,12 +38,8 @@
 #ifdef _XSERVER64
 #undef _XSERVER64
 #endif
-#include <X11/Xutil.h>
-#include <X11/Xlibint.h>
-#include <X11/extensions/Xvlib.h>
-#include <X11/extensions/Xvproto.h>
-#include <X11/extensions/Xext.h>
-#include <X11/extensions/extutil.h>
+#include <xcb/xv.h>
+#include <xcb/xcb_aux.h>
 #define _HAVE_XALLOC_DECLS
 
 #include "hostx.h"
@@ -56,295 +52,114 @@
 #ifndef FALSE
 #define FALSE 0
 #endif /*FALSE*/
-static XExtensionInfo _xv_info_data;
-static XExtensionInfo *xv_info = &_xv_info_data;
-static const char *xv_extension_name = XvName;
-static char *xv_error_string(Display * dpy, int code, XExtCodes * codes,
-                             char *buf, int n);
-static int xv_close_display(Display * dpy, XExtCodes * codes);
-static Bool xv_wire_to_event(Display * dpy, XEvent * host, xEvent *wire);
 
-static XExtensionHooks xv_extension_hooks = {
-    NULL,                       /* create_gc */
-    NULL,                       /* copy_gc */
-    NULL,                       /* flush_gc */
-    NULL,                       /* free_gc */
-    NULL,                       /* create_font */
-    NULL,                       /* free_font */
-    xv_close_display,           /* close_display */
-    xv_wire_to_event,           /* wire_to_event */
-    NULL,                       /* event_to_wire */
-    NULL,                       /* error */
-    xv_error_string             /* error_string */
-};
-
-static const char *xv_error_list[] = {
-    "BadPort",                  /* XvBadPort     */
-    "BadEncoding",              /* XvBadEncoding */
-    "BadControl"                /* XvBadControl  */
-};
-
-#define XvCheckExtension(dpy, i, val) \
-  XextCheckExtension(dpy, i, xv_extension_name, val)
-#define XvGetReq(name, req) \
-        WORD64ALIGN\
-        if ((dpy->bufptr + SIZEOF(xv##name##Req)) > dpy->bufmax)\
-                _XFlush(dpy);\
-        req = (xv##name##Req *)(dpy->last_req = dpy->bufptr);\
-        req->reqType = info->codes->major_opcode;\
-        req->xvReqType = xv_##name; \
-        req->length = (SIZEOF(xv##name##Req))>>2;\
-        dpy->bufptr += SIZEOF(xv##name##Req);\
-        dpy->request++
-
-static
-XEXT_GENERATE_CLOSE_DISPLAY(xv_close_display, xv_info)
-
-static
-XEXT_GENERATE_FIND_DISPLAY(xv_find_display, xv_info,
-                           xv_extension_name,
-                           &xv_extension_hooks, XvNumEvents, NULL)
-
-static
-XEXT_GENERATE_ERROR_STRING(xv_error_string, xv_extension_name,
-                           XvNumErrors, xv_error_list)
-
-struct _EphyrHostXVAdaptorArray {
-    XvAdaptorInfo *adaptors;
-    unsigned int nb_adaptors;
-};
-
-/*heavily copied from libx11*/
-#define BUFSIZE 2048
-static void
-ephyrHostXVLogXErrorEvent(Display * a_display,
-                          XErrorEvent * a_err_event, FILE * a_fp)
-{
-    char buffer[BUFSIZ];
-    char mesg[BUFSIZ];
-    char number[32];
-    const char *mtype = "XlibMessage";
-    register _XExtension *ext = (_XExtension *) NULL;
-    _XExtension *bext = (_XExtension *) NULL;
-    Display *dpy = a_display;
-
-    XGetErrorText(dpy, a_err_event->error_code, buffer, BUFSIZ);
-    XGetErrorDatabaseText(dpy, mtype, "XError", "X Error", mesg, BUFSIZ);
-    (void) fprintf(a_fp, "%s:  %s\n  ", mesg, buffer);
-    XGetErrorDatabaseText(dpy, mtype, "MajorCode", "Request Major code %d",
-                          mesg, BUFSIZ);
-    (void) fprintf(a_fp, mesg, a_err_event->request_code);
-    if (a_err_event->request_code < 128) {
-        snprintf(number, sizeof(number), "%d", a_err_event->request_code);
-        XGetErrorDatabaseText(dpy, "XRequest", number, "", buffer, BUFSIZ);
-    }
-    else {
-        for (ext = dpy->ext_procs;
-             ext && (ext->codes.major_opcode != a_err_event->request_code);
-             ext = ext->next);
-        if (ext)
-            strcpy(buffer, ext->name);
-        else
-            buffer[0] = '\0';
-    }
-    (void) fprintf(a_fp, " (%s)\n", buffer);
-    if (a_err_event->request_code >= 128) {
-        XGetErrorDatabaseText(dpy, mtype, "MinorCode", "Request Minor code %d",
-                              mesg, BUFSIZ);
-        fputs("  ", a_fp);
-        (void) fprintf(a_fp, mesg, a_err_event->minor_code);
-        if (ext) {
-            snprintf(mesg, sizeof(mesg), "%s.%d",
-                     ext->name, a_err_event->minor_code);
-            XGetErrorDatabaseText(dpy, "XRequest", mesg, "", buffer, BUFSIZ);
-            (void) fprintf(a_fp, " (%s)", buffer);
-        }
-        fputs("\n", a_fp);
-    }
-    if (a_err_event->error_code >= 128) {
-        /* kludge, try to find the extension that caused it */
-        buffer[0] = '\0';
-        for (ext = dpy->ext_procs; ext; ext = ext->next) {
-            if (ext->error_string)
-                (*ext->error_string) (dpy, a_err_event->error_code, &ext->codes,
-                                      buffer, BUFSIZ);
-            if (buffer[0]) {
-                bext = ext;
-                break;
-            }
-            if (ext->codes.first_error &&
-                ext->codes.first_error < (int) a_err_event->error_code &&
-                (!bext || ext->codes.first_error > bext->codes.first_error))
-                bext = ext;
-        }
-        if (bext)
-            snprintf(buffer, sizeof(buffer), "%s.%d", bext->name,
-                     a_err_event->error_code - bext->codes.first_error);
-        else
-            strcpy(buffer, "Value");
-        XGetErrorDatabaseText(dpy, mtype, buffer, "", mesg, BUFSIZ);
-        if (mesg[0]) {
-            fputs("  ", a_fp);
-            (void) fprintf(a_fp, mesg, a_err_event->resourceid);
-            fputs("\n", a_fp);
-        }
-        /* let extensions try to print the values */
-        for (ext = dpy->ext_procs; ext; ext = ext->next) {
-            if (ext->error_values)
-                (*ext->error_values) (dpy, a_err_event, a_fp);
-        }
-    }
-    else if ((a_err_event->error_code == BadWindow) ||
-             (a_err_event->error_code == BadPixmap) ||
-             (a_err_event->error_code == BadCursor) ||
-             (a_err_event->error_code == BadFont) ||
-             (a_err_event->error_code == BadDrawable) ||
-             (a_err_event->error_code == BadColor) ||
-             (a_err_event->error_code == BadGC) ||
-             (a_err_event->error_code == BadIDChoice) ||
-             (a_err_event->error_code == BadValue) ||
-             (a_err_event->error_code == BadAtom)) {
-        if (a_err_event->error_code == BadValue)
-            XGetErrorDatabaseText(dpy, mtype, "Value", "Value 0x%x",
-                                  mesg, BUFSIZ);
-        else if (a_err_event->error_code == BadAtom)
-            XGetErrorDatabaseText(dpy, mtype, "AtomID", "AtomID 0x%x",
-                                  mesg, BUFSIZ);
-        else
-            XGetErrorDatabaseText(dpy, mtype, "ResourceID", "ResourceID 0x%x",
-                                  mesg, BUFSIZ);
-        fputs("  ", a_fp);
-        (void) fprintf(a_fp, mesg, a_err_event->resourceid);
-        fputs("\n", a_fp);
-    }
-    XGetErrorDatabaseText(dpy, mtype, "ErrorSerial", "Error Serial #%d",
-                          mesg, BUFSIZ);
-    fputs("  ", a_fp);
-    (void) fprintf(a_fp, mesg, a_err_event->serial);
-    XGetErrorDatabaseText(dpy, mtype, "CurrentSerial", "Current Serial #%d",
-                          mesg, BUFSIZ);
-    fputs("\n  ", a_fp);
-    (void) fprintf(a_fp, mesg, dpy->request);
-    fputs("\n", a_fp);
-}
-
-static int
-ephyrHostXVErrorHandler(Display * a_display, XErrorEvent * a_error_event)
-{
-    EPHYR_LOG_ERROR("got an error from the host xserver:\n");
-    ephyrHostXVLogXErrorEvent(a_display, a_error_event, stderr);
-    return Success;
-}
 
 void
 ephyrHostXVInit(void)
 {
-    static Bool s_initialized;
-
-    if (s_initialized)
-        return;
-    XSetErrorHandler(ephyrHostXVErrorHandler);
-    s_initialized = TRUE;
 }
 
 Bool
-ephyrHostXVQueryAdaptors(EphyrHostXVAdaptorArray ** a_adaptors)
+ephyrHostXVQueryAdaptors (xcb_xv_query_adaptors_reply_t **a_adaptors)
 {
-    EphyrHostXVAdaptorArray *result = NULL;
-    int ret = 0;
     Bool is_ok = FALSE;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_xv_query_adaptors_cookie_t cookie;
+    xcb_xv_query_adaptors_reply_t *reply = NULL;
+    xcb_generic_error_t *e = NULL;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_adaptors, FALSE);
 
     EPHYR_LOG("enter\n");
 
-    result = calloc(1, sizeof(EphyrHostXVAdaptorArray));
-    if (!result)
-        goto out;
-
-    ret = XvQueryAdaptors(hostx_get_display(),
-                          DefaultRootWindow(hostx_get_display()),
-                          &result->nb_adaptors, &result->adaptors);
-    if (ret != Success) {
-        EPHYR_LOG_ERROR("failed to query host adaptors: %d\n", ret);
+    cookie = xcb_xv_query_adaptors(conn,
+		    xcb_aux_get_screen(conn, hostx_get_screen())->root);
+    reply = xcb_xv_query_adaptors_reply(hostx_get_xcbconn(), cookie, &e);
+    if (e) {
+        EPHYR_LOG_ERROR ("failed to query host adaptors: %d\n", e->error_code);
         goto out;
     }
-    *a_adaptors = result;
+    *a_adaptors = reply;
     is_ok = TRUE;
 
- out:
+out:
     EPHYR_LOG("leave\n");
+    free(e);
     return is_ok;
 }
 
 void
-ephyrHostXVAdaptorArrayDelete(EphyrHostXVAdaptorArray * a_adaptors)
+ephyrHostXVAdaptorArrayDelete (xcb_xv_query_adaptors_reply_t *a_adaptors)
 {
-    if (!a_adaptors)
-        return;
-    if (a_adaptors->adaptors) {
-        XvFreeAdaptorInfo(a_adaptors->adaptors);
-        a_adaptors->adaptors = NULL;
-        a_adaptors->nb_adaptors = 0;
-    }
-    XFree(a_adaptors);
+    free (a_adaptors);
 }
 
 int
-ephyrHostXVAdaptorArrayGetSize(const EphyrHostXVAdaptorArray * a_this)
+ephyrHostXVAdaptorArrayGetSize (const xcb_xv_query_adaptors_reply_t *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
-    return a_this->nb_adaptors;
+    return a_this->num_adaptors;
 }
 
-EphyrHostXVAdaptor *
-ephyrHostXVAdaptorArrayAt(const EphyrHostXVAdaptorArray * a_this, int a_index)
+xcb_xv_adaptor_info_t *
+ephyrHostXVAdaptorArrayAt(const xcb_xv_query_adaptors_reply_t *a_this,
+                          int a_index)
 {
+    int i;
+    xcb_xv_adaptor_info_iterator_t it;
     EPHYR_RETURN_VAL_IF_FAIL(a_this, NULL);
 
-    if (a_index >= a_this->nb_adaptors)
+    it = xcb_xv_query_adaptors_info_iterator(a_this);
+    if (a_index >= a_this->num_adaptors)
         return NULL;
-    return (EphyrHostXVAdaptor *) &a_this->adaptors[a_index];
+    for (i = 0; i < a_index; i++)
+        xcb_xv_adaptor_info_next(&it);
+
+    return it.data;
 }
 
 char
-ephyrHostXVAdaptorGetType(const EphyrHostXVAdaptor * a_this)
+ephyrHostXVAdaptorGetType(const xcb_xv_adaptor_info_t *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
-    return ((const XvAdaptorInfo *) a_this)->type;
+    return a_this->type;
 }
 
-const char *
-ephyrHostXVAdaptorGetName(const EphyrHostXVAdaptor * a_this)
+char *
+ephyrHostXVAdaptorGetName(const xcb_xv_adaptor_info_t *a_this)
 {
+    char *name;
+
     EPHYR_RETURN_VAL_IF_FAIL(a_this, NULL);
 
-    return ((const XvAdaptorInfo *) a_this)->name;
+    name = malloc(a_this->name_size + 1);
+    if (!name)
+        return NULL;
+    memcpy(name, xcb_xv_adaptor_info_name(a_this), a_this->name_size);
+    name[a_this->name_size] = '\0';
+
+    return name;
 }
 
-EphyrHostVideoFormat *
-ephyrHostXVAdaptorGetVideoFormats(const EphyrHostXVAdaptor * a_this,
-                                  int *a_nb_formats)
+EphyrHostVideoFormat*
+ephyrHostXVAdaptorGetVideoFormats (const xcb_xv_adaptor_info_t *a_this,
+                                   int *a_nb_formats)
 {
     EphyrHostVideoFormat *formats = NULL;
     int nb_formats = 0, i = 0;
-    XVisualInfo *visual_info, visual_info_template;
-    int nb_visual_info;
+    xcb_xv_format_t *format = xcb_xv_adaptor_info_formats(a_this);
 
     EPHYR_RETURN_VAL_IF_FAIL(a_this, NULL);
 
-    nb_formats = ((const XvAdaptorInfo *) a_this)->num_formats;
+    nb_formats = a_this->num_formats;
     formats = calloc(nb_formats, sizeof(EphyrHostVideoFormat));
     for (i = 0; i < nb_formats; i++) {
-        memset(&visual_info_template, 0, sizeof(visual_info_template));
-        visual_info_template.visualid =
-            ((const XvAdaptorInfo *) a_this)->formats[i].visual_id;
-        visual_info = XGetVisualInfo(hostx_get_display(),
-                                     VisualIDMask,
-                                     &visual_info_template, &nb_visual_info);
-        formats[i].depth = ((const XvAdaptorInfo *) a_this)->formats[i].depth;
-        formats[i].visual_class = visual_info->class;
-        XFree(visual_info);
+        xcb_visualtype_t *visual =
+            xcb_aux_find_visual_by_id(
+                    xcb_aux_get_screen(hostx_get_xcbconn(), hostx_get_screen()),
+                    format[i].visual);
+        formats[i].depth = format[i].depth;
+        formats[i].visual_class = visual->_class;
     }
     if (a_nb_formats)
         *a_nb_formats = nb_formats;
@@ -352,28 +167,27 @@ ephyrHostXVAdaptorGetVideoFormats(const EphyrHostXVAdaptor * a_this,
 }
 
 int
-ephyrHostXVAdaptorGetNbPorts(const EphyrHostXVAdaptor * a_this)
+ephyrHostXVAdaptorGetNbPorts(const xcb_xv_adaptor_info_t *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
 
-    return ((const XvAdaptorInfo *) a_this)->num_ports;
+    return a_this->num_ports;
 }
 
 int
-ephyrHostXVAdaptorGetFirstPortID(const EphyrHostXVAdaptor * a_this)
+ephyrHostXVAdaptorGetFirstPortID (const xcb_xv_adaptor_info_t *a_this)
 {
-    EPHYR_RETURN_VAL_IF_FAIL(a_this, -1);
-
-    return ((const XvAdaptorInfo *) a_this)->base_id;
+    return a_this->base_id;
 }
 
 Bool
-ephyrHostXVAdaptorHasPutVideo(const EphyrHostXVAdaptor * a_this, Bool *a_result)
+ephyrHostXVAdaptorHasPutVideo (const xcb_xv_adaptor_info_t *a_this,
+                               Bool *a_result)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this && a_result, FALSE);
 
-    if ((((const XvAdaptorInfo *) a_this)->type &
-         (XvVideoMask | XvInputMask)) == (XvVideoMask | XvInputMask))
+    if ((a_this->type & (XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_INPUT_MASK)) ==
+        (XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_INPUT_MASK))
         *a_result = TRUE;
     else
         *a_result = FALSE;
@@ -381,10 +195,11 @@ ephyrHostXVAdaptorHasPutVideo(const EphyrHostXVAdaptor * a_this, Bool *a_result)
 }
 
 Bool
-ephyrHostXVAdaptorHasGetVideo(const EphyrHostXVAdaptor * a_this, Bool *a_result)
+ephyrHostXVAdaptorHasGetVideo(const xcb_xv_adaptor_info_t *a_this,
+                              Bool *a_result)
 {
-    if ((((const XvAdaptorInfo *) a_this)->type &
-         (XvVideoMask | XvOutputMask)) == (XvVideoMask | XvOutputMask))
+    if ((a_this->type & (XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_OUTPUT_MASK)) ==
+        (XCB_XV_TYPE_VIDEO_MASK | XCB_XV_TYPE_OUTPUT_MASK))
         *a_result = TRUE;
     else
         *a_result = FALSE;
@@ -392,12 +207,13 @@ ephyrHostXVAdaptorHasGetVideo(const EphyrHostXVAdaptor * a_this, Bool *a_result)
 }
 
 Bool
-ephyrHostXVAdaptorHasPutStill(const EphyrHostXVAdaptor * a_this, Bool *a_result)
+ephyrHostXVAdaptorHasPutStill(const xcb_xv_adaptor_info_t *a_this,
+                              Bool *a_result)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this && a_result, FALSE);
 
-    if ((((const XvAdaptorInfo *) a_this)->type &
-         (XvStillMask | XvInputMask)) == (XvStillMask | XvInputMask))
+    if ((a_this->type & (XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_INPUT_MASK)) ==
+        (XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_INPUT_MASK))
         *a_result = TRUE;
     else
         *a_result = FALSE;
@@ -405,12 +221,13 @@ ephyrHostXVAdaptorHasPutStill(const EphyrHostXVAdaptor * a_this, Bool *a_result)
 }
 
 Bool
-ephyrHostXVAdaptorHasGetStill(const EphyrHostXVAdaptor * a_this, Bool *a_result)
+ephyrHostXVAdaptorHasGetStill(const xcb_xv_adaptor_info_t *a_this,
+                              Bool *a_result)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this && a_result, FALSE);
 
-    if ((((const XvAdaptorInfo *) a_this)->type &
-         (XvStillMask | XvOutputMask)) == (XvStillMask | XvOutputMask))
+    if ((a_this->type & (XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_OUTPUT_MASK)) ==
+        (XCB_XV_TYPE_STILL_MASK | XCB_XV_TYPE_OUTPUT_MASK))
         *a_result = TRUE;
     else
         *a_result = FALSE;
@@ -418,12 +235,13 @@ ephyrHostXVAdaptorHasGetStill(const EphyrHostXVAdaptor * a_this, Bool *a_result)
 }
 
 Bool
-ephyrHostXVAdaptorHasPutImage(const EphyrHostXVAdaptor * a_this, Bool *a_result)
+ephyrHostXVAdaptorHasPutImage(const xcb_xv_adaptor_info_t *a_this,
+                              Bool *a_result)
 {
     EPHYR_RETURN_VAL_IF_FAIL(a_this && a_result, FALSE);
 
-    if ((((const XvAdaptorInfo *) a_this)->type &
-         (XvImageMask | XvInputMask)) == (XvImageMask | XvInputMask))
+    if ((a_this->type & (XCB_XV_TYPE_IMAGE_MASK | XCB_XV_TYPE_INPUT_MASK)) ==
+        (XCB_XV_TYPE_IMAGE_MASK | XCB_XV_TYPE_INPUT_MASK))
         *a_result = TRUE;
     else
         *a_result = FALSE;
@@ -436,34 +254,36 @@ ephyrHostXVQueryEncodings(int a_port_id,
                           unsigned int *a_num_encodings)
 {
     EphyrHostEncoding *encodings = NULL;
-    XvEncodingInfo *encoding_info = NULL;
+    xcb_xv_encoding_info_iterator_t encoding_info;
+    xcb_xv_query_encodings_cookie_t cookie;
+    xcb_xv_query_encodings_reply_t *reply;
     unsigned int num_encodings = 0, i;
-    int ret = 0;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_encodings && a_num_encodings, FALSE);
 
-    ret = XvQueryEncodings(hostx_get_display(),
-                           a_port_id, &num_encodings, &encoding_info);
-    if (num_encodings && encoding_info) {
-        encodings = calloc(num_encodings, sizeof(EphyrHostEncoding));
-        for (i = 0; i < num_encodings; i++) {
-            encodings[i].id = encoding_info[i].encoding_id;
-            encodings[i].name = strdup(encoding_info[i].name);
-            encodings[i].width = encoding_info[i].width;
-            encodings[i].height = encoding_info[i].height;
-            encodings[i].rate.numerator = encoding_info[i].rate.numerator;
-            encodings[i].rate.denominator = encoding_info[i].rate.denominator;
+    cookie = xcb_xv_query_encodings(hostx_get_xcbconn(), a_port_id);
+    reply = xcb_xv_query_encodings_reply(hostx_get_xcbconn(), cookie, NULL);
+    if (!reply)
+        return FALSE;
+    num_encodings = reply->num_encodings;
+    encoding_info = xcb_xv_query_encodings_info_iterator(reply);
+    if (num_encodings) {
+        encodings = calloc(num_encodings, sizeof (EphyrHostEncoding));
+        for (i=0; i<num_encodings; i++, xcb_xv_encoding_info_next(&encoding_info)) {
+            encodings[i].id = encoding_info.data->encoding;
+            encodings[i].name = malloc(encoding_info.data->name_size + 1);
+	    memcpy(encodings[i].name, xcb_xv_encoding_info_name(encoding_info.data), encoding_info.data->name_size);
+	    encodings[i].name[encoding_info.data->name_size] = '\0';
+            encodings[i].width = encoding_info.data->width;
+            encodings[i].height = encoding_info.data->height;
+            encodings[i].rate.numerator = encoding_info.data->rate.numerator;
+            encodings[i].rate.denominator = encoding_info.data->rate.denominator;
         }
     }
-    if (encoding_info) {
-        XvFreeEncodingInfo(encoding_info);
-        encoding_info = NULL;
-    }
+    free(reply);
     *a_encodings = encodings;
     *a_num_encodings = num_encodings;
 
-    if (ret != Success)
-        return FALSE;
     return TRUE;
 }
 
@@ -482,26 +302,26 @@ ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings, int a_num_encodings)
 }
 
 void
-ephyrHostAttributesDelete(EphyrHostAttribute * a_attributes)
+ephyrHostAttributesDelete(xcb_xv_query_port_attributes_reply_t *a_attributes)
 {
-    if (!a_attributes)
-        return;
-    XFree(a_attributes);
+    free(a_attributes);
 }
 
 Bool
 ephyrHostXVQueryPortAttributes(int a_port_id,
-                               EphyrHostAttribute ** a_attributes,
-                               int *a_num_attributes)
+                               xcb_xv_query_port_attributes_reply_t **a_attributes)
 {
-    EPHYR_RETURN_VAL_IF_FAIL(a_attributes && a_num_attributes, FALSE);
+    xcb_xv_query_port_attributes_cookie_t cookie;
+    xcb_xv_query_port_attributes_reply_t *reply;
+    xcb_connection_t *conn = hostx_get_xcbconn();
 
-    *a_attributes =
-        (EphyrHostAttribute *) XvQueryPortAttributes(hostx_get_display(),
-                                                     a_port_id,
-                                                     a_num_attributes);
+    EPHYR_RETURN_VAL_IF_FAIL(a_attributes, FALSE);
 
-    return TRUE;
+    cookie = xcb_xv_query_port_attributes(conn, a_port_id);
+    reply = xcb_xv_query_port_attributes_reply(conn, cookie, NULL);
+    *a_attributes = reply;
+
+    return (reply != NULL);
 }
 
 Bool
@@ -509,31 +329,66 @@ ephyrHostXVQueryImageFormats(int a_port_id,
                              EphyrHostImageFormat ** a_formats,
                              int *a_num_format)
 {
-    XvImageFormatValues *result = NULL;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_xv_list_image_formats_cookie_t cookie;
+    xcb_xv_list_image_formats_reply_t *reply;
+    xcb_xv_image_format_info_t *format;
+    EphyrHostImageFormat *ephyrFormats;
+    int i;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_formats && a_num_format, FALSE);
 
-    result = XvListImageFormats(hostx_get_display(), a_port_id, a_num_format);
-    *a_formats = (EphyrHostImageFormat *) result;
-    return TRUE;
+    cookie = xcb_xv_list_image_formats(conn, a_port_id);
+    reply = xcb_xv_list_image_formats_reply(conn, cookie, NULL);
+    if (!reply)
+        return FALSE;
+    *a_num_format = reply->num_formats;
+    ephyrFormats = calloc(reply->num_formats, sizeof(EphyrHostImageFormat));
+    if (!ephyrFormats) {
+        free(reply);
+        return FALSE;
+    }
+    format = xcb_xv_list_image_formats_format(reply);
+    for (i = 0; i < reply->num_formats; i++) {
+        ephyrFormats[i].id = format[i].id;
+        ephyrFormats[i].type = format[i].type;
+        ephyrFormats[i].byte_order = format[i].byte_order;
+        memcpy(ephyrFormats[i].guid, format[i].guid, 16);
+        ephyrFormats[i].bits_per_pixel = format[i].bpp;
+        ephyrFormats[i].format = format[i].format;
+        ephyrFormats[i].num_planes = format[i].num_planes;
+        ephyrFormats[i].depth = format[i].depth;
+        ephyrFormats[i].red_mask = format[i].red_mask;
+        ephyrFormats[i].green_mask = format[i].green_mask;
+        ephyrFormats[i].blue_mask = format[i].blue_mask;
+        ephyrFormats[i].y_sample_bits = format[i].y_sample_bits;
+        ephyrFormats[i].u_sample_bits = format[i].u_sample_bits;
+        ephyrFormats[i].v_sample_bits = format[i].v_sample_bits;
+        ephyrFormats[i].horz_y_period = format[i].vhorz_y_period;
+        ephyrFormats[i].horz_u_period = format[i].vhorz_u_period;
+        ephyrFormats[i].horz_v_period = format[i].vhorz_v_period;
+        ephyrFormats[i].vert_y_period = format[i].vvert_y_period;
+        ephyrFormats[i].vert_u_period = format[i].vvert_u_period;
+        ephyrFormats[i].vert_v_period = format[i].vvert_v_period;
+        memcpy(ephyrFormats[i].component_order, format[i].vcomp_order, 32);
+        ephyrFormats[i].scanline_order = format[i].vscanline_order;
+    }
+    *a_formats = ephyrFormats;
 
+    free(reply);
+    return TRUE;
 }
 
 Bool
 ephyrHostXVSetPortAttribute(int a_port_id, int a_atom, int a_attr_value)
 {
-    int res = Success;
+    EPHYR_LOG("atom,value: (%d,%d)\n", a_atom, a_attr_value);
 
-    EPHYR_LOG("atom,name,value: (%d,%s,%d)\n",
-              a_atom, XGetAtomName(hostx_get_display(), a_atom), a_attr_value);
-
-    res = XvSetPortAttribute(hostx_get_display(),
-                             a_port_id, a_atom, a_attr_value);
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvSetPortAttribute() failed: %d\n", res);
-        return FALSE;
-    }
-    XFlush(hostx_get_display());
+    xcb_xv_set_port_attribute(hostx_get_xcbconn(),
+                              a_port_id,
+                              a_atom,
+                              a_attr_value);
+    xcb_flush(hostx_get_xcbconn());
     EPHYR_LOG("leave\n");
 
     return TRUE;
@@ -542,20 +397,24 @@ ephyrHostXVSetPortAttribute(int a_port_id, int a_atom, int a_attr_value)
 Bool
 ephyrHostXVGetPortAttribute(int a_port_id, int a_atom, int *a_attr_value)
 {
-    int res = Success;
     Bool ret = FALSE;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_xv_get_port_attribute_cookie_t cookie;
+    xcb_xv_get_port_attribute_reply_t *reply;
+    xcb_generic_error_t *e;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_attr_value, FALSE);
 
-    EPHYR_LOG("enter, a_port_id: %d, a_atomid: %d, attr_name: %s\n",
-              a_port_id, a_atom, XGetAtomName(hostx_get_display(), a_atom));
+    EPHYR_LOG("enter, a_port_id: %d, a_atomid: %d\n", a_port_id, a_atom);
 
-    res = XvGetPortAttribute(hostx_get_display(),
-                             a_port_id, a_atom, a_attr_value);
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvGetPortAttribute() failed: %d \n", res);
+    cookie = xcb_xv_get_port_attribute(conn, a_port_id, a_atom);
+    reply = xcb_xv_get_port_attribute_reply(conn, cookie, &e);
+    if (e) {
+        EPHYR_LOG_ERROR ("XvGetPortAttribute() failed: %d \n", e->error_code);
+        free(e);
         goto out;
     }
+    *a_attr_value = reply->value;
     EPHYR_LOG("atom,value: (%d, %d)\n", a_atom, *a_attr_value);
 
     ret = TRUE;
@@ -574,68 +433,36 @@ ephyrHostXVQueryBestSize(int a_port_id,
                          unsigned int a_drw_h,
                          unsigned int *a_actual_w, unsigned int *a_actual_h)
 {
-    int res = 0;
     Bool is_ok = FALSE;
+    xcb_xv_query_best_size_cookie_t cookie;
+    xcb_xv_query_best_size_reply_t *reply;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_actual_w && a_actual_h, FALSE);
 
     EPHYR_LOG("enter: frame (%dx%d), drw (%dx%d)\n",
               a_frame_w, a_frame_h, a_drw_w, a_drw_h);
 
-    res = XvQueryBestSize(hostx_get_display(),
-                          a_port_id,
-                          a_motion,
-                          a_frame_w, a_frame_h,
-                          a_drw_w, a_drw_h, a_actual_w, a_actual_h);
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvQueryBestSize() failed: %d\n", res);
+    cookie = xcb_xv_query_best_size(hostx_get_xcbconn(),
+                                    a_port_id,
+                                    a_frame_w, a_frame_h,
+                                    a_drw_w, a_drw_h,
+                                    a_motion);
+    reply = xcb_xv_query_best_size_reply(hostx_get_xcbconn(), cookie, NULL);
+    if (!reply) {
+        EPHYR_LOG_ERROR ("XvQueryBestSize() failed\n");
         goto out;
     }
-    XSync(hostx_get_display(), FALSE);
+    *a_actual_w = reply->actual_width;
+    *a_actual_h = reply->actual_height;
+    free(reply);
 
     EPHYR_LOG("actual (%dx%d)\n", *a_actual_w, *a_actual_h);
     is_ok = TRUE;
 
- out:
+out:
+    free(reply);
     EPHYR_LOG("leave\n");
     return is_ok;
-}
-
-static Bool
-xv_wire_to_event(Display * dpy, XEvent * host, xEvent *wire)
-{
-    XExtDisplayInfo *info = xv_find_display(dpy);
-    XvEvent *re = (XvEvent *) host;
-    xvEvent *event = (xvEvent *) wire;
-
-    XvCheckExtension(dpy, info, False);
-
-    switch ((event->u.u.type & 0x7F) - info->codes->first_event) {
-    case XvVideoNotify:
-        re->xvvideo.type = event->u.u.type & 0x7f;
-        re->xvvideo.serial = _XSetLastRequestRead(dpy, (xGenericReply *) event);
-        re->xvvideo.send_event = ((event->u.u.type & 0x80) != 0);
-        re->xvvideo.display = dpy;
-        re->xvvideo.time = event->u.videoNotify.time;
-        re->xvvideo.reason = event->u.videoNotify.reason;
-        re->xvvideo.drawable = event->u.videoNotify.drawable;
-        re->xvvideo.port_id = event->u.videoNotify.port;
-        break;
-    case XvPortNotify:
-        re->xvport.type = event->u.u.type & 0x7f;
-        re->xvport.serial = _XSetLastRequestRead(dpy, (xGenericReply *) event);
-        re->xvport.send_event = ((event->u.u.type & 0x80) != 0);
-        re->xvport.display = dpy;
-        re->xvport.time = event->u.portNotify.time;
-        re->xvport.port_id = event->u.portNotify.port;
-        re->xvport.attribute = event->u.portNotify.attribute;
-        re->xvport.value = event->u.portNotify.value;
-        break;
-    default:
-        return False;
-    }
-
-    return True;
 }
 
 Bool
@@ -646,77 +473,85 @@ ephyrHostXVQueryImageAttributes(int a_port_id,
                                 int *a_image_size,
                                 int *a_pitches, int *a_offsets)
 {
-    Display *dpy = hostx_get_display();
-    Bool ret = FALSE;
-    XExtDisplayInfo *info = xv_find_display(dpy);
-    xvQueryImageAttributesReq *req = NULL;
-    xvQueryImageAttributesReply rep;
+    xcb_connection_t *conn = hostx_get_xcbconn ();
+    xcb_xv_query_image_attributes_cookie_t cookie;
+    xcb_xv_query_image_attributes_reply_t *reply;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_width, FALSE);
     EPHYR_RETURN_VAL_IF_FAIL(a_height, FALSE);
     EPHYR_RETURN_VAL_IF_FAIL(a_image_size, FALSE);
 
-    XvCheckExtension(dpy, info, FALSE);
-
-    LockDisplay(dpy);
-
-    XvGetReq(QueryImageAttributes, req);
-    req->id = a_image_id;
-    req->port = a_port_id;
-    req->width = *a_width;
-    req->height = *a_height;
-    /*
-     * read the reply
-     */
-    if (!_XReply(dpy, (xReply *) &rep, 0, xFalse)) {
-        EPHYR_LOG_ERROR("QeryImageAttribute req failed\n");
-        goto out;
-    }
+    cookie = xcb_xv_query_image_attributes(conn,
+                                           a_port_id, a_image_id,
+                                           *a_width, *a_height);
+    reply = xcb_xv_query_image_attributes_reply(conn, cookie, NULL);
+    if (!reply)
+        return FALSE;
     if (a_pitches && a_offsets) {
-        _XRead(dpy, (char *) a_pitches, rep.num_planes << 2);
-        _XRead(dpy, (char *) a_offsets, rep.num_planes << 2);
+        memcpy(a_pitches,
+               xcb_xv_query_image_attributes_pitches(reply),
+               reply->num_planes << 2);
+        memcpy(a_offsets,
+               xcb_xv_query_image_attributes_offsets(reply),
+               reply->num_planes << 2);
     }
-    else {
-        _XEatDataWords(dpy, rep.length);
-    }
-    *a_width = rep.width;
-    *a_height = rep.height;
-    *a_image_size = rep.data_size;
+    *a_width = reply->width;
+    *a_height = reply->height;
+    *a_image_size = reply->data_size;
+    free(reply);
 
-    ret = TRUE;
-
- out:
-    UnlockDisplay(dpy);
-    SyncHandle();
-    return ret;
+    return TRUE;
 }
 
 Bool
 ephyrHostGetAtom(const char *a_name, Bool a_create_if_not_exists, int *a_atom)
 {
-    int atom = None;
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_intern_atom_cookie_t cookie;
+    xcb_intern_atom_reply_t *reply;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_atom, FALSE);
 
-    atom = XInternAtom(hostx_get_display(), a_name, a_create_if_not_exists);
-    if (atom == None) {
+    cookie = xcb_intern_atom(conn,
+                             a_create_if_not_exists,
+                             strlen(a_name),
+                             a_name);
+    reply = xcb_intern_atom_reply(conn, cookie, NULL);
+    if (!reply || reply->atom == None) {
+        free(reply);
         return FALSE;
     }
-    *a_atom = atom;
+    *a_atom = reply->atom;
+    free(reply);
     return TRUE;
 }
 
 char *
 ephyrHostGetAtomName(int a_atom)
 {
-    return XGetAtomName(hostx_get_display(), a_atom);
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_get_atom_name_cookie_t cookie;
+    xcb_get_atom_name_reply_t *reply;
+    char *ret;
+
+    cookie = xcb_get_atom_name(conn, a_atom);
+    reply = xcb_get_atom_name_reply(conn, cookie, NULL);
+    if (!reply)
+        return NULL;
+    ret = malloc(xcb_get_atom_name_name_length(reply) + 1);
+    if (ret) {
+        memcpy(ret, xcb_get_atom_name_name(reply),
+               xcb_get_atom_name_name_length(reply));
+        ret[xcb_get_atom_name_name_length(reply)] = '\0';
+    }
+    free(reply);
+    return ret;
 }
 
 void
 ephyrHostFree(void *a_pointer)
 {
-    if (a_pointer)
-        XFree(a_pointer);
+    free(a_pointer);
 }
 
 Bool
@@ -737,36 +572,39 @@ ephyrHostXVPutImage(int a_screen_num,
                     EphyrHostBox * a_clip_rects, int a_clip_rect_nums)
 {
     Bool is_ok = TRUE;
-    XvImage *xv_image = NULL;
-    GC gc = 0;
-    XGCValues gc_values;
-    Display *dpy = hostx_get_display();
-    XRectangle *rects = NULL;
-    int res = 0;
+    xcb_connection_t *conn = hostx_get_xcbconn ();
+    xcb_gcontext_t gc;
+    xcb_rectangle_t *rects = NULL;
+    int data_len, width, height;
+    xcb_xv_query_image_attributes_cookie_t image_attr_cookie;
+    xcb_xv_query_image_attributes_reply_t *image_attr_reply;
 
     EPHYR_RETURN_VAL_IF_FAIL(a_buf, FALSE);
 
     EPHYR_LOG("enter, num_clip_rects: %d\n", a_clip_rect_nums);
 
-    memset(&gc_values, 0, sizeof(gc_values));
-    gc = XCreateGC(dpy, hostx_get_window(a_screen_num), 0L, &gc_values);
-    if (!gc) {
-        EPHYR_LOG_ERROR("failed to create gc \n");
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, hostx_get_window(a_screen_num), 0, NULL);
+
+    image_attr_cookie = xcb_xv_query_image_attributes(conn,
+                                                      a_port_id,
+                                                      a_image_id,
+                                                      a_image_width,
+                                                      a_image_height);
+    image_attr_reply = xcb_xv_query_image_attributes_reply(conn,
+                                                           image_attr_cookie,
+                                                           NULL);
+    if (!image_attr_reply)
         goto out;
-    }
-    xv_image = (XvImage *) XvCreateImage(hostx_get_display(),
-                                         a_port_id, a_image_id,
-                                         NULL, a_image_width, a_image_height);
-    if (!xv_image) {
-        EPHYR_LOG_ERROR("failed to create image\n");
-        goto out;
-    }
-    xv_image->data = (char *) a_buf;
+    data_len = image_attr_reply->data_size;
+    width = image_attr_reply->width;
+    height = image_attr_reply->height;
+    free(image_attr_reply);
+
     if (a_clip_rect_nums) {
         int i = 0;
-
-        rects = calloc(a_clip_rect_nums, sizeof(XRectangle));
-        for (i = 0; i < a_clip_rect_nums; i++) {
+        rects = calloc(a_clip_rect_nums, sizeof(xcb_rectangle_t));
+        for (i=0; i < a_clip_rect_nums; i++) {
             rects[i].x = a_clip_rects[i].x1;
             rects[i].y = a_clip_rects[i].y1;
             rects[i].width = a_clip_rects[i].x2 - a_clip_rects[i].x1;
@@ -774,31 +612,28 @@ ephyrHostXVPutImage(int a_screen_num,
             EPHYR_LOG("(x,y,w,h): (%d,%d,%d,%d)\n",
                       rects[i].x, rects[i].y, rects[i].width, rects[i].height);
         }
-        XSetClipRectangles(dpy, gc, 0, 0, rects, a_clip_rect_nums, YXBanded);
-        /*this always returns 1 */
+        xcb_set_clip_rectangles(conn,
+                                XCB_CLIP_ORDERING_YX_BANDED,
+                                gc,
+                                0,
+                                0,
+                                a_clip_rect_nums,
+                                rects);
+	free(rects);
     }
-    res = XvPutImage(dpy, a_port_id,
-                     hostx_get_window(a_screen_num),
-                     gc, xv_image,
+    xcb_xv_put_image(conn,
+                     a_port_id,
+                     hostx_get_window (a_screen_num),
+                     gc,
+                     a_image_id,
                      a_src_x, a_src_y, a_src_w, a_src_h,
-                     a_drw_x, a_drw_y, a_drw_w, a_drw_h);
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvPutImage() failed: %d\n", res);
-        goto out;
-    }
+                     a_drw_x, a_drw_y, a_drw_w, a_drw_h,
+                     width, height,
+                     data_len, a_buf);
     is_ok = TRUE;
 
- out:
-    if (xv_image) {
-        XFree(xv_image);
-        xv_image = NULL;
-    }
-    if (gc) {
-        XFreeGC(dpy, gc);
-        gc = NULL;
-    }
-    free(rects);
-    rects = NULL;
+out:
+    xcb_free_gc(conn, gc);
     EPHYR_LOG("leave\n");
     return is_ok;
 }
@@ -809,34 +644,22 @@ ephyrHostXVPutVideo(int a_screen_num, int a_port_id,
                     int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
     Bool is_ok = FALSE;
-    int res = FALSE;
-    GC gc = 0;
-    XGCValues gc_values;
-    Display *dpy = hostx_get_display();
+    xcb_gcontext_t gc;
+    xcb_connection_t *conn = hostx_get_xcbconn();
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
 
-    gc = XCreateGC(dpy, hostx_get_window(a_screen_num), 0L, &gc_values);
-    if (!gc) {
-        EPHYR_LOG_ERROR("failed to create gc \n");
-        goto out;
-    }
-    res = XvPutVideo(dpy, a_port_id, hostx_get_window(a_screen_num), gc,
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn, gc, hostx_get_window (a_screen_num), 0, NULL);
+    xcb_xv_put_video(conn,
+                     a_port_id,
+                     hostx_get_window (a_screen_num), gc,
                      a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
-
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvPutVideo() failed: %d\n", res);
-        goto out;
-    }
-
     is_ok = TRUE;
 
- out:
-    if (gc) {
-        XFreeGC(dpy, gc);
-        gc = NULL;
-    }
+    xcb_free_gc(conn, gc);
+
     return is_ok;
 }
 
@@ -845,36 +668,26 @@ ephyrHostXVGetVideo(int a_screen_num, int a_port_id,
                     int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                     int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
-    Bool is_ok = FALSE;
-    int res = FALSE;
-    GC gc = 0;
-    XGCValues gc_values;
-    Display *dpy = hostx_get_display();
+    xcb_gcontext_t gc;
+    xcb_connection_t *conn = hostx_get_xcbconn();
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
 
-    gc = XCreateGC(dpy, hostx_get_window(a_screen_num), 0L, &gc_values);
-    if (!gc) {
-        EPHYR_LOG_ERROR("failed to create gc \n");
-        goto out;
-    }
-    res = XvGetVideo(dpy, a_port_id, hostx_get_window(a_screen_num), gc,
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn,
+                  gc,
+                  hostx_get_window (a_screen_num),
+                  0, NULL);
+    xcb_xv_get_video(conn,
+                     a_port_id,
+                     hostx_get_window (a_screen_num),
+                     gc,
                      a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
 
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvGetVideo() failed: %d\n", res);
-        goto out;
-    }
+    xcb_free_gc(conn, gc);
 
-    is_ok = TRUE;
-
- out:
-    if (gc) {
-        XFreeGC(dpy, gc);
-        gc = NULL;
-    }
-    return is_ok;
+    return TRUE;
 }
 
 Bool
@@ -882,36 +695,26 @@ ephyrHostXVPutStill(int a_screen_num, int a_port_id,
                     int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                     int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
-    Bool is_ok = FALSE;
-    int res = FALSE;
-    GC gc = 0;
-    XGCValues gc_values;
-    Display *dpy = hostx_get_display();
+    xcb_connection_t *conn = hostx_get_xcbconn();
+    xcb_gcontext_t gc;
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
 
-    gc = XCreateGC(dpy, hostx_get_window(a_screen_num), 0L, &gc_values);
-    if (!gc) {
-        EPHYR_LOG_ERROR("failed to create gc \n");
-        goto out;
-    }
-    res = XvPutStill(dpy, a_port_id, hostx_get_window(a_screen_num), gc,
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn,
+                  gc,
+                  hostx_get_window (a_screen_num),
+                  0, NULL);
+    xcb_xv_put_still(conn,
+                     a_port_id,
+                     hostx_get_window (a_screen_num),
+                     gc,
                      a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
 
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvPutStill() failed: %d\n", res);
-        goto out;
-    }
+    xcb_free_gc(conn, gc);
 
-    is_ok = TRUE;
-
- out:
-    if (gc) {
-        XFreeGC(dpy, gc);
-        gc = NULL;
-    }
-    return is_ok;
+    return TRUE;
 }
 
 Bool
@@ -919,57 +722,38 @@ ephyrHostXVGetStill(int a_screen_num, int a_port_id,
                     int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                     int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
-    Bool is_ok = FALSE;
-    int res = FALSE;
-    GC gc = 0;
-    XGCValues gc_values;
-    Display *dpy = hostx_get_display();
+    xcb_gcontext_t gc;
+    xcb_connection_t *conn = hostx_get_xcbconn();
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
 
-    gc = XCreateGC(dpy, hostx_get_window(a_screen_num), 0L, &gc_values);
-    if (!gc) {
-        EPHYR_LOG_ERROR("failed to create gc \n");
-        goto out;
-    }
-    res = XvGetStill(dpy, a_port_id, hostx_get_window(a_screen_num), gc,
+    gc = xcb_generate_id(conn);
+    xcb_create_gc(conn,
+                  gc,
+                  hostx_get_window (a_screen_num),
+                  0, NULL);
+    xcb_xv_get_still(conn,
+                     a_port_id,
+                     hostx_get_window (a_screen_num),
+                     gc,
                      a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                      a_drw_x, a_drw_y, a_drw_w, a_drw_h);
+    xcb_free_gc(conn, gc);
 
-    if (res != Success) {
-        EPHYR_LOG_ERROR("XvGetStill() failed: %d\n", res);
-        goto out;
-    }
-
-    is_ok = TRUE;
-
- out:
-    if (gc) {
-        XFreeGC(dpy, gc);
-        gc = NULL;
-    }
-    return is_ok;
+    return TRUE;
 }
 
 Bool
 ephyrHostXVStopVideo(int a_screen_num, int a_port_id)
 {
-    int ret = 0;
-    Bool is_ok = FALSE;
-    Display *dpy = hostx_get_display();
+    xcb_connection_t *conn = hostx_get_xcbconn();
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(conn, FALSE);
 
     EPHYR_LOG("enter\n");
 
-    ret = XvStopVideo(dpy, a_port_id, hostx_get_window(a_screen_num));
-    if (ret != Success) {
-        EPHYR_LOG_ERROR("XvStopVideo() failed: %d \n", ret);
-        goto out;
-    }
-    is_ok = TRUE;
+    xcb_xv_stop_video(conn, a_port_id, hostx_get_window (a_screen_num));
 
- out:
     EPHYR_LOG("leave\n");
-    return is_ok;
+    return TRUE;
 }

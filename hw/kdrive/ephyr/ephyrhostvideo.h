@@ -28,8 +28,9 @@
 #ifndef __EPHYRHOSTVIDEO_H__
 #define __EPHYRHOSTVIDEO_H__
 
-typedef void *EphyrHostXVAdaptor;
 typedef struct _EphyrHostXVAdaptorArray EphyrHostXVAdaptorArray;
+#include <xcb/xv.h>
+#include <X11/Xdefs.h>
 
 typedef struct _EphyrHostVideoFormat {
     char depth;
@@ -47,13 +48,6 @@ typedef struct _EphyrHostEncoding {
     unsigned short width, height;
     EphyrHostRational rate;
 } EphyrHostEncoding;
-
-typedef struct _EphyrHostAttribute {
-    int flags;
-    int min_value;
-    int max_value;
-    char *name;
-} EphyrHostAttribute;
 
 typedef struct _EphyrHostImageFormat {
     int id;                     /* Unique descriptor for the format */
@@ -95,32 +89,32 @@ void ephyrHostFree(void *a_pointer);
 /*
  * host adaptor array
  */
-Bool ephyrHostXVQueryAdaptors(EphyrHostXVAdaptorArray ** a_adaptors);
-void ephyrHostXVAdaptorArrayDelete(EphyrHostXVAdaptorArray * a_adaptors);
-int ephyrHostXVAdaptorArrayGetSize(const EphyrHostXVAdaptorArray * a_this);
-EphyrHostXVAdaptor *ephyrHostXVAdaptorArrayAt(const EphyrHostXVAdaptorArray *
-                                              a_this, int a_index);
+Bool ephyrHostXVQueryAdaptors(xcb_xv_query_adaptors_reply_t **a_adaptors);
+void ephyrHostXVAdaptorArrayDelete(xcb_xv_query_adaptors_reply_t *a_adaptors);
+int ephyrHostXVAdaptorArrayGetSize(const xcb_xv_query_adaptors_reply_t *a_this);
+xcb_xv_adaptor_info_t* ephyrHostXVAdaptorArrayAt(const xcb_xv_query_adaptors_reply_t *a_this,
+                                                 int a_index);
 
 /*
  * host adaptor
  */
 
-char ephyrHostXVAdaptorGetType(const EphyrHostXVAdaptor * a_this);
-const char *ephyrHostXVAdaptorGetName(const EphyrHostXVAdaptor * a_this);
+char ephyrHostXVAdaptorGetType(const xcb_xv_adaptor_info_t *a_this);
+char* ephyrHostXVAdaptorGetName(const xcb_xv_adaptor_info_t *a_this);
 EphyrHostVideoFormat *ephyrHostXVAdaptorGetVideoFormats
-    (const EphyrHostXVAdaptor * a_this, int *a_nb_formats);
-int ephyrHostXVAdaptorGetNbPorts(const EphyrHostXVAdaptor * a_this);
-int ephyrHostXVAdaptorGetFirstPortID(const EphyrHostXVAdaptor * a_this);
+    (const xcb_xv_adaptor_info_t *a_this, int *a_nb_formats);
+int ephyrHostXVAdaptorGetNbPorts(const xcb_xv_adaptor_info_t *a_this);
+int ephyrHostXVAdaptorGetFirstPortID(const xcb_xv_adaptor_info_t *a_this);
 
-Bool ephyrHostXVAdaptorHasPutVideo(const EphyrHostXVAdaptor * a_this,
+Bool ephyrHostXVAdaptorHasPutVideo(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
-Bool ephyrHostXVAdaptorHasGetVideo(const EphyrHostXVAdaptor * a_this,
+Bool ephyrHostXVAdaptorHasGetVideo(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
-Bool ephyrHostXVAdaptorHasPutStill(const EphyrHostXVAdaptor * a_this,
+Bool ephyrHostXVAdaptorHasPutStill(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
-Bool ephyrHostXVAdaptorHasGetStill(const EphyrHostXVAdaptor * a_this,
+Bool ephyrHostXVAdaptorHasGetStill(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
-Bool ephyrHostXVAdaptorHasPutImage(const EphyrHostXVAdaptor * a_this,
+Bool ephyrHostXVAdaptorHasPutImage(const xcb_xv_adaptor_info_t *a_this,
                                    Bool *a_result);
 
 /*
@@ -137,10 +131,9 @@ void ephyrHostEncodingsDelete(EphyrHostEncoding * a_encodings,
  * attribute
  */
 Bool ephyrHostXVQueryPortAttributes(int a_port_id,
-                                    EphyrHostAttribute ** a_attributes,
-                                    int *a_num_attributes);
+                                    xcb_xv_query_port_attributes_reply_t **a_attributes);
 
-void ephyrHostAttributesDelete(EphyrHostAttribute * a_attributes);
+void ephyrHostAttributesDelete(xcb_xv_query_port_attributes_reply_t *a_attributes);
 
 /*
  * image format
