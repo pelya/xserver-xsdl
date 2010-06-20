@@ -1016,30 +1016,49 @@ hostx_get_event(EphyrHostXEvent * ev)
                     host_screen_from_window(xev.xexpose.window);
 
                 if (grabbed_screen != -1) {
-                    XUngrabKeyboard(HostX.dpy, CurrentTime);
-                    XUngrabPointer(HostX.dpy, CurrentTime);
+                    xcb_ungrab_keyboard(HostX.conn, XCB_TIME_CURRENT_TIME);
+                    xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
                     grabbed_screen = -1;
                     hostx_set_win_title(host_screen->info,
                                         "(ctrl+shift grabs mouse and keyboard)");
                 }
                 else {
                     /* Attempt grab */
-                    if (XGrabKeyboard(HostX.dpy, host_screen->win, True,
-                                      GrabModeAsync,
-                                      GrabModeAsync, CurrentTime) == 0) {
-                        if (XGrabPointer(HostX.dpy, host_screen->win, True,
-                                         NoEventMask,
-                                         GrabModeAsync,
-                                         GrabModeAsync,
-                                         host_screen->win, None,
-                                         CurrentTime) == 0) {
+                    xcb_grab_keyboard_cookie_t kbgrabc =
+                        xcb_grab_keyboard(HostX.conn,
+                                          True,
+                                          host_screen->win,
+                                          XCB_TIME_CURRENT_TIME,
+                                          XCB_GRAB_MODE_ASYNC,
+                                          XCB_GRAB_MODE_ASYNC);
+                    xcb_grab_keyboard_reply_t *kbgrabr;
+                    xcb_grab_pointer_cookie_t pgrabc =
+                        xcb_grab_pointer(HostX.conn,
+                                         True,
+                                         host_screen->win,
+                                         0,
+                                         XCB_GRAB_MODE_ASYNC,
+                                         XCB_GRAB_MODE_ASYNC,
+                                         host_screen->win,
+                                         XCB_NONE,
+                                         XCB_TIME_CURRENT_TIME);
+                    xcb_grab_pointer_reply_t *pgrabr;
+                    kbgrabr = xcb_grab_keyboard_reply(HostX.conn, kbgrabc, NULL);
+                    if (!kbgrabr || kbgrabr->status != XCB_GRAB_STATUS_SUCCESS) {
+                        xcb_discard_reply(HostX.conn, pgrabc.sequence);
+                        xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
+                    } else {
+                        pgrabr = xcb_grab_pointer_reply(HostX.conn, pgrabc, NULL);
+                        if (!pgrabr || pgrabr->status != XCB_GRAB_STATUS_SUCCESS)
+                            {
+                                xcb_ungrab_keyboard(HostX.conn,
+                                                    XCB_TIME_CURRENT_TIME);
+                            } else {
                             grabbed_screen = host_screen->mynum;
                             hostx_set_win_title
                                 (host_screen->info,
                                  "(ctrl+shift releases mouse and keyboard)");
                         }
-                        else    /* Failed pointer grabm  ungrab keyboard */
-                            XUngrabKeyboard(HostX.dpy, CurrentTime);
                     }
                 }
             }
