@@ -910,7 +910,8 @@ hostx_load_keymap(void)
 {
     int min_keycode, max_keycode;
 
-    XDisplayKeycodes(HostX.dpy, &min_keycode, &max_keycode);
+    min_keycode = xcb_get_setup(HostX.conn)->min_keycode;
+    max_keycode = xcb_get_setup(HostX.conn)->max_keycode;
 
     EPHYR_DBG("min: %d, max: %d", min_keycode, max_keycode);
 
