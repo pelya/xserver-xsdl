@@ -1175,43 +1175,50 @@ hostx_get_extension_info(const char *a_ext_name,
 int
 hostx_get_visuals_info(EphyrHostVisualInfo ** a_visuals, int *a_num_entries)
 {
-    Display *dpy = hostx_get_display();
     Bool is_ok = False;
-    XVisualInfo templ, *visuals = NULL;
     EphyrHostVisualInfo *host_visuals = NULL;
-    int nb_items = 0, i = 0;
+    int nb_items = 0, i = 0, screen_num;
+    xcb_screen_iterator_t screens;
+    xcb_depth_iterator_t depths;
 
-    EPHYR_RETURN_VAL_IF_FAIL(a_visuals && a_num_entries && dpy, False);
+    EPHYR_RETURN_VAL_IF_FAIL(a_visuals && a_num_entries, False);
     EPHYR_LOG("enter\n");
-    memset(&templ, 0, sizeof(templ));
-    visuals = XGetVisualInfo(dpy, VisualNoMask, &templ, &nb_items);
-    if (!visuals) {
-        EPHYR_LOG_ERROR("host does not advertise any visual\n");
-        goto out;
+
+    screens = xcb_setup_roots_iterator(xcb_get_setup(HostX.conn));
+    for (screen_num = 0; screens.rem; screen_num++, xcb_screen_next(&screens)) {
+        depths = xcb_screen_allowed_depths_iterator(screens.data);
+        for (; depths.rem; xcb_depth_next(&depths)) {
+            xcb_visualtype_t *visuals = xcb_depth_visuals(depths.data);
+            EphyrHostVisualInfo *tmp_visuals =
+                realloc(host_visuals,
+                        (nb_items + depths.data->visuals_len)
+                        * sizeof(EphyrHostVisualInfo));
+            if (!tmp_visuals) {
+                goto out;
+            }
+            host_visuals = tmp_visuals;
+            for (i = 0; i < depths.data->visuals_len; i++) {
+                host_visuals[nb_items + i].visualid = visuals[i].visual_id;
+                host_visuals[nb_items + i].screen = screen_num;
+                host_visuals[nb_items + i].depth = depths.data->depth;
+                host_visuals[nb_items + i].class = visuals[i]._class;
+                host_visuals[nb_items + i].red_mask = visuals[i].red_mask;
+                host_visuals[nb_items + i].green_mask = visuals[i].green_mask;
+                host_visuals[nb_items + i].blue_mask = visuals[i].blue_mask;
+                host_visuals[nb_items + i].colormap_size = visuals[i].colormap_entries;
+                host_visuals[nb_items + i].bits_per_rgb = visuals[i].bits_per_rgb_value;
+            }
+            nb_items += depths.data->visuals_len;
+        }
     }
+
     EPHYR_LOG("host advertises %d visuals\n", nb_items);
-    host_visuals = calloc(nb_items, sizeof(EphyrHostVisualInfo));
-    for (i = 0; i < nb_items; i++) {
-        host_visuals[i].visualid = visuals[i].visualid;
-        host_visuals[i].screen = visuals[i].screen;
-        host_visuals[i].depth = visuals[i].depth;
-        host_visuals[i].class = visuals[i].class;
-        host_visuals[i].red_mask = visuals[i].red_mask;
-        host_visuals[i].green_mask = visuals[i].green_mask;
-        host_visuals[i].blue_mask = visuals[i].blue_mask;
-        host_visuals[i].colormap_size = visuals[i].colormap_size;
-        host_visuals[i].bits_per_rgb = visuals[i].bits_per_rgb;
-    }
     *a_visuals = host_visuals;
     *a_num_entries = nb_items;
     host_visuals = NULL;
 
     is_ok = TRUE;
- out:
-    if (visuals) {
-        XFree(visuals);
-        visuals = NULL;
-    }
+out:
     free(host_visuals);
     host_visuals = NULL;
     EPHYR_LOG("leave\n");
