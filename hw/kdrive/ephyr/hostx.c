@@ -942,169 +942,195 @@ host_screen_from_window(Window w)
 int
 hostx_get_event(EphyrHostXEvent * ev)
 {
-    XEvent xev;
+    xcb_generic_event_t *xev;
     static int grabbed_screen = -1;
     static xcb_key_symbols_t *keysyms;
 
     if (!keysyms)
         keysyms = xcb_key_symbols_alloc(HostX.conn);
 
-    if (XPending(HostX.dpy)) {
-        XNextEvent(HostX.dpy, &xev);
+    xev = xcb_poll_for_event(HostX.conn);
+    if (!xev) {
+        /* If our XCB connection has died (for example, our window was
+         * closed), exit now.
+         */
+        if (xcb_connection_has_error(HostX.conn)) {
+            CloseWellKnownConnections();
+            OsCleanup(1);
+            exit(1);
+        }
 
-        switch (xev.type) {
-        case Expose:
-            /* Not so great event compression, but works ok */
-            while (XCheckTypedWindowEvent(HostX.dpy, xev.xexpose.window,
-                                          Expose, &xev));
-            {
-                struct EphyrHostScreen *host_screen =
-                    host_screen_from_window(xev.xexpose.window);
-                if (host_screen) {
-                    hostx_paint_rect(host_screen->info, 0, 0, 0, 0,
-                                     host_screen->win_width,
-                                     host_screen->win_height);
-                }
-                else {
-                    EPHYR_LOG_ERROR("failed to get host screen\n");
-                    ev->type = EPHYR_EV_EXPOSE;
-                    ev->data.expose.window = xev.xexpose.window;
-                    return 1;
-                }
-            }
-            return 0;
+        return 0;
+    }
 
-        case MotionNotify:
-        {
+    switch (xev->response_type & 0x7f) {
+    case XCB_EXPOSE: {
+        xcb_expose_event_t *expose = (xcb_expose_event_t *)xev;
+        struct EphyrHostScreen *host_screen =
+            host_screen_from_window(expose->window);
+
+        /* Wait for the last expose event in a series of cliprects
+         * to actually paint our screen.
+         */
+        if (expose->count != 0)
+            break;
+
+        if (host_screen) {
+            hostx_paint_rect(host_screen->info, 0, 0, 0, 0,
+                             host_screen->win_width,
+                             host_screen->win_height);
+        }
+        else {
+            EPHYR_LOG_ERROR("failed to get host screen\n");
+            ev->type = EPHYR_EV_EXPOSE;
+            ev->data.expose.window = expose->window;
+            free(xev);
+            return 1;
+        }
+        return 0;
+    }
+
+    case XCB_MOTION_NOTIFY: {
+        xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)xev;
+        struct EphyrHostScreen *host_screen =
+            host_screen_from_window(motion->event);
+
+        ev->type = EPHYR_EV_MOUSE_MOTION;
+        ev->data.mouse_motion.x = motion->event_x;
+        ev->data.mouse_motion.y = motion->event_y;
+        ev->data.mouse_motion.window = motion->event;
+        ev->data.mouse_motion.screen =
+            (host_screen ? host_screen->mynum : -1);
+        free(xev);
+        return 1;
+    }
+
+    case XCB_BUTTON_PRESS: {
+        xcb_button_press_event_t *button = (xcb_button_press_event_t *)xev;
+        ev->type = EPHYR_EV_MOUSE_PRESS;
+        ev->key_state = button->state;
+        /* 
+         * This is a bit hacky. will break for button 5 ( defined as 0x10 )
+         * Check KD_BUTTON defines in kdrive.h 
+         */
+        ev->data.mouse_down.button_num = 1 << (button->detail - 1);
+        free(xev);
+        return 1;
+    }
+
+    case XCB_BUTTON_RELEASE: {
+        xcb_button_release_event_t *button = (xcb_button_release_event_t *)xev;
+        ev->type = EPHYR_EV_MOUSE_RELEASE;
+        ev->key_state = button->state;
+        ev->data.mouse_up.button_num = 1 << (button->detail-1);
+        free(xev);
+        return 1;
+    }
+
+    case XCB_KEY_PRESS: {
+        xcb_key_press_event_t *key = (xcb_key_press_event_t *)xev;
+        ev->type = EPHYR_EV_KEY_PRESS;
+        ev->key_state = key->state;
+        ev->data.key_down.scancode = key->detail;
+        free(xev);
+        return 1;
+    }
+
+    case XCB_KEY_RELEASE: {
+        xcb_key_release_event_t *key = (xcb_key_release_event_t *)xev;
+        if ((xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_L
+             || xcb_key_symbols_get_keysym(keysyms, key->detail, 0) == XK_Shift_R)
+            && (key->state & XCB_MOD_MASK_CONTROL)) {
             struct EphyrHostScreen *host_screen =
-                host_screen_from_window(xev.xmotion.window);
+                host_screen_from_window(key->event);
 
-            ev->type = EPHYR_EV_MOUSE_MOTION;
-            ev->data.mouse_motion.x = xev.xmotion.x;
-            ev->data.mouse_motion.y = xev.xmotion.y;
-            ev->data.mouse_motion.window = xev.xmotion.window;
-            ev->data.mouse_motion.screen =
-                (host_screen ? host_screen->mynum : -1);
-        }
-            return 1;
-
-        case ButtonPress:
-            ev->type = EPHYR_EV_MOUSE_PRESS;
-            ev->key_state = xev.xkey.state;
-            /* 
-             * This is a bit hacky. will break for button 5 ( defined as 0x10 )
-             * Check KD_BUTTON defines in kdrive.h 
-             */
-            ev->data.mouse_down.button_num = 1 << (xev.xbutton.button - 1);
-            return 1;
-
-        case ButtonRelease:
-            ev->type = EPHYR_EV_MOUSE_RELEASE;
-            ev->key_state = xev.xkey.state;
-            ev->data.mouse_up.button_num = 1 << (xev.xbutton.button - 1);
-            return 1;
-
-        case KeyPress:
-        {
-            ev->type = EPHYR_EV_KEY_PRESS;
-            ev->key_state = xev.xkey.state;
-            ev->data.key_down.scancode = xev.xkey.keycode;
-            return 1;
-        }
-        case KeyRelease:
-            if ((xcb_key_symbols_get_keysym(keysyms,xev.xkey.keycode, 0) == XK_Shift_L
-                 || xcb_key_symbols_get_keysym(keysyms,xev.xkey.keycode, 0) == XK_Shift_R)
-                && (xev.xkey.state & XCB_MOD_MASK_CONTROL)) {
-                struct EphyrHostScreen *host_screen =
-                    host_screen_from_window(xev.xexpose.window);
-
-                if (grabbed_screen != -1) {
-                    xcb_ungrab_keyboard(HostX.conn, XCB_TIME_CURRENT_TIME);
+            if (grabbed_screen != -1) {
+                xcb_ungrab_keyboard(HostX.conn, XCB_TIME_CURRENT_TIME);
+                xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
+                grabbed_screen = -1;
+                hostx_set_win_title(host_screen->info,
+                                    "(ctrl+shift grabs mouse and keyboard)");
+            }
+            else {
+                /* Attempt grab */
+                xcb_grab_keyboard_cookie_t kbgrabc =
+                    xcb_grab_keyboard(HostX.conn,
+                                      True,
+                                      host_screen->win,
+                                      XCB_TIME_CURRENT_TIME,
+                                      XCB_GRAB_MODE_ASYNC,
+                                      XCB_GRAB_MODE_ASYNC);
+                xcb_grab_keyboard_reply_t *kbgrabr;
+                xcb_grab_pointer_cookie_t pgrabc =
+                    xcb_grab_pointer(HostX.conn,
+                                     True,
+                                     host_screen->win,
+                                     0,
+                                     XCB_GRAB_MODE_ASYNC,
+                                     XCB_GRAB_MODE_ASYNC,
+                                     host_screen->win,
+                                     XCB_NONE,
+                                     XCB_TIME_CURRENT_TIME);
+                xcb_grab_pointer_reply_t *pgrabr;
+                kbgrabr = xcb_grab_keyboard_reply(HostX.conn, kbgrabc, NULL);
+                if (!kbgrabr || kbgrabr->status != XCB_GRAB_STATUS_SUCCESS) {
+                    xcb_discard_reply(HostX.conn, pgrabc.sequence);
                     xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
-                    grabbed_screen = -1;
-                    hostx_set_win_title(host_screen->info,
-                                        "(ctrl+shift grabs mouse and keyboard)");
-                }
-                else {
-                    /* Attempt grab */
-                    xcb_grab_keyboard_cookie_t kbgrabc =
-                        xcb_grab_keyboard(HostX.conn,
-                                          True,
-                                          host_screen->win,
-                                          XCB_TIME_CURRENT_TIME,
-                                          XCB_GRAB_MODE_ASYNC,
-                                          XCB_GRAB_MODE_ASYNC);
-                    xcb_grab_keyboard_reply_t *kbgrabr;
-                    xcb_grab_pointer_cookie_t pgrabc =
-                        xcb_grab_pointer(HostX.conn,
-                                         True,
-                                         host_screen->win,
-                                         0,
-                                         XCB_GRAB_MODE_ASYNC,
-                                         XCB_GRAB_MODE_ASYNC,
-                                         host_screen->win,
-                                         XCB_NONE,
-                                         XCB_TIME_CURRENT_TIME);
-                    xcb_grab_pointer_reply_t *pgrabr;
-                    kbgrabr = xcb_grab_keyboard_reply(HostX.conn, kbgrabc, NULL);
-                    if (!kbgrabr || kbgrabr->status != XCB_GRAB_STATUS_SUCCESS) {
-                        xcb_discard_reply(HostX.conn, pgrabc.sequence);
-                        xcb_ungrab_pointer(HostX.conn, XCB_TIME_CURRENT_TIME);
-                    } else {
-                        pgrabr = xcb_grab_pointer_reply(HostX.conn, pgrabc, NULL);
-                        if (!pgrabr || pgrabr->status != XCB_GRAB_STATUS_SUCCESS)
-                            {
-                                xcb_ungrab_keyboard(HostX.conn,
-                                                    XCB_TIME_CURRENT_TIME);
-                            } else {
-                            grabbed_screen = host_screen->mynum;
-                            hostx_set_win_title
-                                (host_screen->info,
-                                 "(ctrl+shift releases mouse and keyboard)");
-                        }
+                } else {
+                    pgrabr = xcb_grab_pointer_reply(HostX.conn, pgrabc, NULL);
+                    if (!pgrabr || pgrabr->status != XCB_GRAB_STATUS_SUCCESS)
+                        {
+                            xcb_ungrab_keyboard(HostX.conn,
+                                                XCB_TIME_CURRENT_TIME);
+                        } else {
+                        grabbed_screen = host_screen->mynum;
+                        hostx_set_win_title
+                            (host_screen->info,
+                             "(ctrl+shift releases mouse and keyboard)");
                     }
                 }
             }
+        }
 
-            /* Still send the release event even if above has happened
-             * server will get confused with just an up event. 
-             * Maybe it would be better to just block shift+ctrls getting to
-             * kdrive all togeather. 
-             */
-            ev->type = EPHYR_EV_KEY_RELEASE;
-            ev->key_state = xev.xkey.state;
-            ev->data.key_up.scancode = xev.xkey.keycode;
-            return 1;
+        /* Still send the release event even if above has happened
+         * server will get confused with just an up event. 
+         * Maybe it would be better to just block shift+ctrls getting to
+         * kdrive all togeather. 
+         */
+        ev->type = EPHYR_EV_KEY_RELEASE;
+        ev->key_state = key->state;
+        ev->data.key_up.scancode = key->detail;
+        return 1;
+    }
 
-        case ConfigureNotify:
+    case ConfigureNotify:
         {
             struct EphyrHostScreen *host_screen;
+            xcb_configure_notify_event_t *configure =
+                (xcb_configure_notify_event_t *)xev;
 
-            /* event compression as for Expose events, cause
-             * we don't want to resize the framebuffer for
-             * every single change */
-            while (XCheckTypedWindowEvent(HostX.dpy, xev.xconfigure.window,
-                                          ConfigureNotify, &xev));
-            host_screen = host_screen_from_window(xev.xconfigure.window);
+            host_screen = host_screen_from_window(configure->window);
 
             if (!host_screen ||
                 (host_screen->win_pre_existing == None && !EphyrWantResize)) {
+                free(xev);
                 return 0;
             }
 
             ev->type = EPHYR_EV_CONFIGURE;
-            ev->data.configure.width = xev.xconfigure.width;
-            ev->data.configure.height = xev.xconfigure.height;
-            ev->data.configure.window = xev.xconfigure.window;
+            ev->data.configure.width = configure->width;
+            ev->data.configure.height = configure->height;
+            ev->data.configure.window = configure->window;
             ev->data.configure.screen = host_screen->mynum;
+            free(xev);
 
             return 1;
         }
-        default:
-            break;
+    default:
+        break;
 
-        }
     }
+    free(xev);
     return 0;
 }
 
