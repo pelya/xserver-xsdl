@@ -16,6 +16,7 @@
 #include "xaawrap.h"
 #include "gcstruct.h"
 #include "pixmapstr.h"
+#include "mioverlay.h"
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -36,6 +37,7 @@ XAACopyWindow8_32(
     ScreenPtr pScreen = pWin->drawable.pScreen;
     XAAInfoRecPtr infoRec = 
 	GET_XAAINFORECPTR_FROM_DRAWABLE((&pWin->drawable));
+    Bool doUnderlay = miOverlayCopyUnderlay(pScreen);
     RegionPtr borderClip = &pWin->borderClip;
     Bool freeReg = FALSE;
 
@@ -53,6 +55,9 @@ XAACopyWindow8_32(
     }
 
     pwinRoot = pScreen->root;
+
+    if(doUnderlay)
+	freeReg = miOverlayCollectUnderlayRegions(pWin, &borderClip);
 
     RegionNull(&rgnDst);
 
@@ -76,7 +81,7 @@ XAACopyWindow8_32(
 	ppt++; pbox++;
     }
     
-    infoRec->ScratchGC.planemask = 0xff000000;
+    infoRec->ScratchGC.planemask = doUnderlay ? 0x00ffffff : 0xff000000;
     infoRec->ScratchGC.alu = GXcopy;
 
     XAADoBitBlt((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
@@ -88,6 +93,25 @@ XAACopyWindow8_32(
 	RegionDestroy(borderClip);
 }
 
+static void
+XAASetColorKey8_32(
+    ScreenPtr pScreen,
+    int nbox,
+    BoxPtr pbox
+){
+    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
+    ScrnInfoPtr pScrn = infoRec->pScrn;
+
+    /* I'm counting on writes being clipped away while switched away.
+       If this isn't going to be true then I need to be wrapping instead. */
+    if(!infoRec->pScrn->vtSema) return;
+
+    (*infoRec->FillSolidRects)(pScrn, pScrn->colorKey << 24, GXcopy, 
+					0xff000000, nbox, pbox);
+  
+    SET_SYNC_FLAG(infoRec);
+}
+
 void
 XAASetupOverlay8_32Planar(ScreenPtr pScreen)
 {
@@ -95,6 +119,9 @@ XAASetupOverlay8_32Planar(ScreenPtr pScreen)
     int i;
 
     pScreen->CopyWindow = XAACopyWindow8_32;
+
+    if(!(infoRec->FillSolidRectsFlags & NO_PLANEMASK))
+	miOverlaySetTransFunction(pScreen, XAASetColorKey8_32);
 
     infoRec->FullPlanemask = ~0;
     for(i = 0; i < 32; i++) /* haven't thought about this much */
