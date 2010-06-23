@@ -881,21 +881,21 @@ LegalNewID(XID id, ClientPtr client)
 #ifdef PANORAMIX
     XID 	minid, maxid;
 
-	if (!noPanoramiXExtension) { 
-	    minid = client->clientAsMask | (client->index ? 
-			                    SERVER_BIT : SERVER_MINID);
-	    maxid = (clientTable[client->index].fakeID | RESOURCE_ID_MASK) + 1;
-            if ((id >= minid) && (id <= maxid))
-	        return TRUE;
-	}
+    if (!noPanoramiXExtension) {
+        minid = client->clientAsMask | (client->index ?
+                                        SERVER_BIT : SERVER_MINID);
+        maxid = (clientTable[client->index].fakeID | RESOURCE_ID_MASK) + 1;
+        if ((id >= minid) && (id <= maxid))
+            return TRUE;
+    }
 #endif /* PANORAMIX */
-	if (client->clientAsMask == (id & ~RESOURCE_ID_MASK))
-	{
-	    rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
-					  DixGetAttrAccess);
-	    return rc == BadValue;
-	}
-	return FALSE;
+    if (client->clientAsMask == (id & ~RESOURCE_ID_MASK))
+    {
+        rc = dixLookupResourceByClass(&val, id, RC_ANY, serverClient,
+                                      DixGetAttrAccess);
+        return rc == BadValue;
+    }
+    return FALSE;
 }
 
 int
