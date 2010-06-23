@@ -1515,7 +1515,7 @@ fi
 
 dnl Xnest DDX
 
-PKG_CHECK_MODULES(XNESTMODULES, [xfont $LIBXEXT x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
+PKG_CHECK_MODULES(XNESTMODULES, [$LIBXEXT x11 xau $XDMCP_MODULES], [have_xnest=yes], [have_xnest=no])
 AC_MSG_CHECKING([whether to build Xnest DDX])
 if test "x$XNEST" = xauto; then
 	XNEST="$have_xnest"
@@ -1867,7 +1867,7 @@ if test "x$XWIN" = xyes; then
 	AC_DEFINE_UNQUOTED(__VENDORDWEBSUPPORT__, ["$VENDOR_WEB"], [Vendor web address for support])
 	AC_CHECK_TOOL(WINDRES, windres)
 
-	PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
+	PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau])
 
 	if test "x$WINDOWSWM" = xauto; then
 		PKG_CHECK_EXISTS($WINDOWSWMPROTO, [WINDOWSWM=yes], [WINDOWSWM=no])
@@ -1956,7 +1956,7 @@ AM_CONDITIONAL(STANDALONE_XPBPROXY, [test "x$STANDALONE_XPBPROXY" = xyes])
 dnl DMX DDX
 PKG_CHECK_MODULES(
 	[DMXMODULES],
-	[xmuu $LIBXEXT x11 xrender xfixes xfont $LIBXI $DMXPROTO xau $XDMCP_MODULES],
+	[xmuu $LIBXEXT x11 xrender xfixes $LIBXI $DMXPROTO xau $XDMCP_MODULES],
 	[PKG_CHECK_MODULES(
 		[XDMXCONFIG_DEP],
 		[xaw7 xmu xt xpm x11],
@@ -2061,7 +2061,7 @@ if test "$KDRIVE" = yes; then
        AC_DEFINE(KDRIVE_MOUSE, 1, [Enable KDrive mouse driver])
     fi
 
-    XEPHYR_REQUIRED_LIBS="x11 $LIBXEXT xfont xau xdmcp"
+    XEPHYR_REQUIRED_LIBS="x11 $LIBXEXT xau xdmcp"
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi
