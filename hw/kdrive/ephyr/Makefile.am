@@ -34,8 +34,6 @@ HOSTDRI_SRCS =			\
 	ephyrdriext.h		\
 	ephyrdri.c		\
 	ephyrdri.h		\
-	XF86dri.c		\
-	xf86dri.h		\
 	ephyrglxext.c		\
 	ephyrglxext.h		\
 	ephyrhostglx.c		\
