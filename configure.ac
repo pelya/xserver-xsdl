@@ -2116,7 +2116,7 @@ if test "$KDRIVE" = yes; then
        AC_DEFINE(KDRIVE_MOUSE, 1, [Enable KDrive mouse driver])
     fi
 
-    XEPHYR_REQUIRED_LIBS="x11 >= 1.6 $LIBXEXT xau xdmcp xcb x11-xcb xcb-shape xcb-aux xcb-image xcb-icccm xcb-shm"
+    XEPHYR_REQUIRED_LIBS="x11 >= 1.6 $LIBXEXT xau xdmcp xcb x11-xcb xcb-shape xcb-aux xcb-image xcb-icccm xcb-shm xcb-keysyms"
     if test "x$XV" = xyes; then
         XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
     fi

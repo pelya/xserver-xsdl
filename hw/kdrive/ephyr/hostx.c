@@ -62,6 +62,7 @@
 #include <xcb/shm.h>
 #include <xcb/xcb_image.h>
 #include <xcb/shape.h>
+#include <xcb/xcb_keysyms.h>
 #ifdef XF86DRI
 #include <xcb/xf86dri.h>
 #include <xcb/glx.h>
@@ -943,6 +944,10 @@ hostx_get_event(EphyrHostXEvent * ev)
 {
     XEvent xev;
     static int grabbed_screen = -1;
+    static xcb_key_symbols_t *keysyms;
+
+    if (!keysyms)
+        keysyms = xcb_key_symbols_alloc(HostX.conn);
 
     if (XPending(HostX.dpy)) {
         XNextEvent(HostX.dpy, &xev);
@@ -1007,11 +1012,9 @@ hostx_get_event(EphyrHostXEvent * ev)
             return 1;
         }
         case KeyRelease:
-
-            if ((XKeycodeToKeysym(HostX.dpy, xev.xkey.keycode, 0) == XK_Shift_L
-                 || XKeycodeToKeysym(HostX.dpy, xev.xkey.keycode,
-                                     0) == XK_Shift_R)
-                && (xev.xkey.state & ControlMask)) {
+            if ((xcb_key_symbols_get_keysym(keysyms,xev.xkey.keycode, 0) == XK_Shift_L
+                 || xcb_key_symbols_get_keysym(keysyms,xev.xkey.keycode, 0) == XK_Shift_R)
+                && (xev.xkey.state & XCB_MOD_MASK_CONTROL)) {
                 struct EphyrHostScreen *host_screen =
                     host_screen_from_window(xev.xexpose.window);
 
