@@ -220,11 +220,6 @@ int
  hostx_get_window_attributes(int a_window, EphyrHostWindowAttributes * a_attr);
 
 int
-
-hostx_get_extension_info(const char *a_ext_name,
-                         int *a_major_opcode,
-                         int *a_first_even, int *a_first_error);
-int
  hostx_get_visuals_info(EphyrHostVisualInfo ** a_visuals, int *a_num_entries);
 
 int hostx_create_window(int a_screen_number,

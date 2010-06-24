@@ -1158,21 +1158,6 @@ hostx_get_window_attributes(int a_window, EphyrHostWindowAttributes * a_attrs)
 }
 
 int
-hostx_get_extension_info(const char *a_ext_name,
-                         int *a_major_opcode,
-                         int *a_first_event, int *a_first_error)
-{
-    if (!a_ext_name || !a_major_opcode || !a_first_event || !a_first_error)
-        return 0;
-    if (!XQueryExtension(HostX.dpy,
-                         a_ext_name,
-                         a_major_opcode, a_first_event, a_first_error)) {
-        return 0;
-    }
-    return 1;
-}
-
-int
 hostx_get_visuals_info(EphyrHostVisualInfo ** a_visuals, int *a_num_entries)
 {
     Bool is_ok = False;
