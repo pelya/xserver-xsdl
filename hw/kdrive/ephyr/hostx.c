@@ -94,7 +94,7 @@ struct EphyrHostXVars {
     Display *dpy;
     xcb_connection_t *conn;
     int screen;
-    Visual *visual;
+    xcb_visualtype_t *visual;
     Window winroot;
     xcb_gcontext_t  gc;
     int depth;
@@ -371,7 +371,7 @@ hostx_init(void)
     HostX.winroot = RootWindow(HostX.dpy, HostX.screen);
     HostX.gc = xcb_generate_id(HostX.conn);
     HostX.depth = DefaultDepth(HostX.dpy, HostX.screen);
-    HostX.visual = DefaultVisual(HostX.dpy, HostX.screen);
+    HostX.visual  = xcb_aux_find_visual_by_id(screen, screen->root_visual);
 
     xcb_create_gc(HostX.conn, HostX.gc, HostX.winroot, 0, NULL);
     cookie_WINDOW_STATE = xcb_intern_atom(HostX.conn, False,
@@ -593,10 +593,10 @@ hostx_get_bpp(EphyrScreenInfo screen)
     if (!host_screen)
         return 0;
 
-    if (host_depth_matches_server(host_screen))
-        return HostX.visual->bits_per_rgb;
+    if (host_depth_matches_server (host_screen))
+        return HostX.visual->bits_per_rgb_value;
     else
-        return host_screen->server_depth;       /*XXX correct ? */
+        return host_screen->server_depth; /*XXX correct ?*/
 }
 
 void
