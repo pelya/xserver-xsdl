@@ -368,9 +368,9 @@ hostx_init(void)
     HostX.conn = XGetXCBConnection(HostX.dpy);
     HostX.screen = DefaultScreen(HostX.dpy);
     screen = xcb_aux_get_screen(HostX.conn, HostX.screen);
-    HostX.winroot = RootWindow(HostX.dpy, HostX.screen);
+    HostX.winroot = screen->root;
     HostX.gc = xcb_generate_id(HostX.conn);
-    HostX.depth = DefaultDepth(HostX.dpy, HostX.screen);
+    HostX.depth = screen->root_depth;
     HostX.visual  = xcb_aux_find_visual_by_id(screen, screen->root_visual);
 
     xcb_create_gc(HostX.conn, HostX.gc, HostX.winroot, 0, NULL);
@@ -439,8 +439,8 @@ hostx_init(void)
                                  "(ctrl+shift grabs mouse and keyboard)");
 
             if (HostX.use_fullscreen) {
-                host_screen->win_width  = DisplayWidth(HostX.dpy, HostX.screen);
-                host_screen->win_height = DisplayHeight(HostX.dpy, HostX.screen);
+                host_screen->win_width  = screen->width_in_pixels;
+                host_screen->win_height = screen->height_in_pixels;
 
                 hostx_set_fullscreen_hint();
             }
@@ -1123,7 +1123,7 @@ hostx_get_xcbconn(void)
 int
 hostx_get_screen(void)
 {
-    return DefaultScreen(HostX.dpy);
+    return HostX.screen;
 }
 
 int
