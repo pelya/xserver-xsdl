@@ -54,7 +54,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#include <X11/extensions/shape.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 #include <X11/Xlib-xcb.h>
@@ -1300,15 +1299,16 @@ hostx_set_window_bounding_rectangles(int a_window,
                                      EphyrRect * a_rects, int a_num_rects)
 {
     Bool is_ok = FALSE;
-    Display *dpy = hostx_get_display();
     int i = 0;
-    XRectangle *rects = NULL;
+    xcb_rectangle_t *rects = NULL;
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy && a_rects, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(a_rects, FALSE);
 
     EPHYR_LOG("enter. num rects:%d\n", a_num_rects);
 
-    rects = calloc(a_num_rects, sizeof(XRectangle));
+    rects = calloc(a_num_rects, sizeof (xcb_rectangle_t));
+    if (!rects)
+        goto out;
     for (i = 0; i < a_num_rects; i++) {
         rects[i].x = a_rects[i].x1;
         rects[i].y = a_rects[i].y1;
@@ -1317,11 +1317,17 @@ hostx_set_window_bounding_rectangles(int a_window,
         EPHYR_LOG("borders clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
                   rects[i].x, rects[i].y, rects[i].width, rects[i].height);
     }
-    /*this aways returns 1 */
-    XShapeCombineRectangles(dpy, a_window, ShapeBounding, 0, 0,
-                            rects, a_num_rects, ShapeSet, YXBanded);
+    xcb_shape_rectangles(HostX.conn,
+                         XCB_SHAPE_SO_SET,
+                         XCB_SHAPE_SK_BOUNDING,
+                         XCB_CLIP_ORDERING_YX_BANDED,
+                         a_window,
+                         0, 0,
+                         a_num_rects,
+                         rects);
     is_ok = TRUE;
 
+out:
     free(rects);
     rects = NULL;
     EPHYR_LOG("leave\n");
@@ -1335,13 +1341,15 @@ hostx_set_window_clipping_rectangles(int a_window,
     Bool is_ok = FALSE;
     Display *dpy = hostx_get_display();
     int i = 0;
-    XRectangle *rects = NULL;
+    xcb_rectangle_t *rects = NULL;
 
     EPHYR_RETURN_VAL_IF_FAIL(dpy && a_rects, FALSE);
 
     EPHYR_LOG("enter. num rects:%d\n", a_num_rects);
 
-    rects = calloc(a_num_rects, sizeof(XRectangle));
+    rects = calloc(a_num_rects, sizeof (xcb_rectangle_t));
+    if (!rects)
+        goto out;
     for (i = 0; i < a_num_rects; i++) {
         rects[i].x = a_rects[i].x1;
         rects[i].y = a_rects[i].y1;
@@ -1350,11 +1358,17 @@ hostx_set_window_clipping_rectangles(int a_window,
         EPHYR_LOG("clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
                   rects[i].x, rects[i].y, rects[i].width, rects[i].height);
     }
-    /*this aways returns 1 */
-    XShapeCombineRectangles(dpy, a_window, ShapeClip, 0, 0,
-                            rects, a_num_rects, ShapeSet, YXBanded);
+    xcb_shape_rectangles(HostX.conn,
+                         XCB_SHAPE_SO_SET,
+                         XCB_SHAPE_SK_CLIP,
+                         XCB_CLIP_ORDERING_YX_BANDED,
+                         a_window,
+                         0, 0,
+                         a_num_rects,
+                         rects);
     is_ok = TRUE;
 
+out:
     free(rects);
     rects = NULL;
     EPHYR_LOG("leave\n");
