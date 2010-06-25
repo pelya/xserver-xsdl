@@ -840,45 +840,14 @@ hostx_paint_debug_rect(struct EphyrHostScreen *host_screen,
 void
 hostx_load_keymap(void)
 {
-    XID *keymap;
-    int host_width, min_keycode, max_keycode, width;
-    int i, j;
+    int min_keycode, max_keycode;
 
     XDisplayKeycodes(HostX.dpy, &min_keycode, &max_keycode);
 
     EPHYR_DBG("min: %d, max: %d", min_keycode, max_keycode);
 
-    keymap = XGetKeyboardMapping(HostX.dpy,
-                                 min_keycode,
-                                 max_keycode - min_keycode + 1, &host_width);
-
-    /* Try and copy the hosts keymap into our keymap to avoid loads
-     * of messing around.
-     *
-     * kdrive cannot can have more than 4 keysyms per keycode
-     * so we only copy at most the first 4 ( xorg has 6 per keycode, XVNC 2 )
-     */
-    width = (host_width > 4) ? 4 : host_width;
-
-    ephyrKeySyms.map = (CARD32 *) calloc(sizeof(CARD32),
-                                         (max_keycode - min_keycode + 1) *
-                                         width);
-    if (!ephyrKeySyms.map)
-        goto out;
-
-    for (i = 0; i < (max_keycode - min_keycode + 1); i++)
-        for (j = 0; j < width; j++)
-            ephyrKeySyms.map[(i * width) + j] =
-                (CARD32) keymap[(i * host_width) + j];
-
-    EPHYR_DBG("keymap width, host:%d kdrive:%d", host_width, width);
-
     ephyrKeySyms.minKeyCode = min_keycode;
     ephyrKeySyms.maxKeyCode = max_keycode;
-    ephyrKeySyms.mapWidth = width;
-
- out:
-    XFree(keymap);
 }
 
 static struct EphyrHostScreen *

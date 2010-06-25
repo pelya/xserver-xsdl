@@ -1091,7 +1091,7 @@ EphyrKeyboardInit(KdKeyboardInfo * ki)
     ki->driverPrivate = (EphyrKbdPrivate *)
         calloc(sizeof(EphyrKbdPrivate), 1);
     hostx_load_keymap();
-    if (!ephyrKeySyms.map) {
+    if (!ephyrKeySyms.minKeyCode) {
         ErrorF("Couldn't load keymap from host\n");
         return BadAlloc;
     }

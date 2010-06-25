@@ -51,12 +51,9 @@ typedef enum EphyrHostXEventType {
     EPHYR_EV_CONFIGURE,
 } EphyrHostXEventType;
 
-/* I can't believe it's not a KeySymsRec. */
 typedef struct {
     int minKeyCode;
     int maxKeyCode;
-    int mapWidth;
-    CARD32 *map;
 } EphyrKeySyms;
 
 struct EphyrHostXEvent {
