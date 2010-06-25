@@ -2183,6 +2183,7 @@ dbe/Makefile
 dix/Makefile
 doc/Makefile
 doc/xml/Makefile
+doc/xml/dtrace/Makefile
 doc/xml/xserver.ent
 fb/Makefile
 record/Makefile

@@ -21,15 +21,16 @@
 # DEALINGS IN THE SOFTWARE.
 #
 
-SUBDIRS = dtrace
+XML_FILES = Xserver-DTrace.xml
 
-XML_FILES = Xserver-spec.xml
+include ../xmlrules.in
 
-include xmlrules.in
-
-if ENABLE_DEVEL_DOCS
+if XSERVER_DTRACE
+doc_DATA = $(BUILT_DOC_FILES)
+else
 noinst_DATA = $(BUILT_DOC_FILES)
 endif
+
 CLEANFILES = $(CLEAN_DOC_FILES)
 
 EXTRA_DIST = $(XML_FILES)
