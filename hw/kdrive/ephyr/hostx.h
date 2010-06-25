@@ -205,8 +205,6 @@ void
 int
  hostx_get_event(EphyrHostXEvent * ev);
 
-void *hostx_get_display(void);
-
 xcb_connection_t *
 hostx_get_xcbconn(void);
 

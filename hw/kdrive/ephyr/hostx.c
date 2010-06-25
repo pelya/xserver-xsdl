@@ -51,12 +51,9 @@
 #include <sys/shm.h>
 #include <sys/time.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
-#include <X11/Xlib-xcb.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/shm.h>
@@ -91,7 +88,6 @@ struct EphyrHostScreen {
 
 struct EphyrHostXVars {
     char *server_dpy_name;
-    Display *dpy;
     xcb_connection_t *conn;
     int screen;
     xcb_visualtype_t *visual;
@@ -151,7 +147,7 @@ hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height)
 
     if (host_screen &&
         (host_screen->win_pre_existing != None ||
-         HostX.use_fullscreen == True)) {
+         HostX.use_fullscreen == TRUE)) {
         *width = host_screen->win_width;
         *height = host_screen->win_height;
         return 1;
@@ -233,7 +229,7 @@ hostx_want_host_cursor(void)
 void
 hostx_use_host_cursor(void)
 {
-    HostX.use_host_cursor = True;
+    HostX.use_host_cursor = TRUE;
 }
 
 int
@@ -252,7 +248,7 @@ hostx_want_preexisting_window(EphyrScreenInfo screen)
 void
 hostx_use_fullscreen(void)
 {
-    HostX.use_fullscreen = True;
+    HostX.use_fullscreen = TRUE;
 }
 
 int
@@ -323,15 +319,6 @@ hostx_set_title(char *title)
 #pragma does_not_return(exit)
 #endif
 
-static int _X_NORETURN
-x_io_error_handler(Display * dpy)
-{
-    ErrorF("Lost connection to X server: %s\n", strerror(errno));
-    CloseWellKnownConnections();
-    OsCleanup(1);
-    exit(1);
-}
-
 int
 hostx_init(void)
 {
@@ -358,15 +345,11 @@ hostx_init(void)
 
     EPHYR_DBG("mark");
 
-    if ((HostX.dpy = XOpenDisplay(getenv("DISPLAY"))) == NULL) {
+    if ((HostX.conn = xcb_connect(NULL, &HostX.screen)) == NULL) {
         fprintf(stderr, "\nXephyr cannot open host display. Is DISPLAY set?\n");
         exit(1);
     }
 
-    XSetIOErrorHandler(x_io_error_handler);
-
-    HostX.conn = XGetXCBConnection(HostX.dpy);
-    HostX.screen = DefaultScreen(HostX.dpy);
     screen = xcb_aux_get_screen(HostX.conn, HostX.screen);
     HostX.winroot = screen->root;
     HostX.gc = xcb_generate_id(HostX.conn);
@@ -374,11 +357,11 @@ hostx_init(void)
     HostX.visual  = xcb_aux_find_visual_by_id(screen, screen->root_visual);
 
     xcb_create_gc(HostX.conn, HostX.gc, HostX.winroot, 0, NULL);
-    cookie_WINDOW_STATE = xcb_intern_atom(HostX.conn, False,
+    cookie_WINDOW_STATE = xcb_intern_atom(HostX.conn, FALSE,
                                           strlen("_NET_WM_STATE"),
                                           "_NET_WM_STATE");
     cookie_WINDOW_STATE_FULLSCREEN =
-        xcb_intern_atom(HostX.conn, False,
+        xcb_intern_atom(HostX.conn, FALSE,
                         strlen("_NET_WM_STATE_FULLSCREEN"),
                         "_NET_WM_STATE_FULLSCREEN");
 
@@ -519,7 +502,7 @@ hostx_init(void)
     shm_rep = xcb_get_extension_data(HostX.conn, &xcb_shm_id);
     if (!shm_rep || !shm_rep->present || getenv("XEPHYR_NO_SHM")) {
         fprintf(stderr, "\nXephyr unable to use SHM XImages\n");
-        HostX.have_shm = False;
+        HostX.have_shm = FALSE;
     }
     else {
         /* Really really check we have shm - better way ?*/
@@ -528,19 +511,19 @@ hostx_init(void)
         xcb_void_cookie_t cookie;
         xcb_shm_seg_t shmseg;
 
-        HostX.have_shm = True;
+        HostX.have_shm = TRUE;
 
         shminfo.shmid = shmget(IPC_PRIVATE, 1, IPC_CREAT|0777);
         shminfo.shmaddr = shmat(shminfo.shmid,0,0);
 
         shmseg = xcb_generate_id(HostX.conn);
         cookie = xcb_shm_attach_checked(HostX.conn, shmseg, shminfo.shmid,
-                                        True);
+                                        TRUE);
         e = xcb_request_check(HostX.conn, cookie);
 
         if (e) {
             fprintf(stderr, "\nXephyr unable to use SHM XImages\n");
-            HostX.have_shm = False;
+            HostX.have_shm = FALSE;
             free(e);
         }
 
@@ -678,7 +661,7 @@ hostx_screen_init(EphyrScreenInfo screen,
                   int width, int height, int buffer_height,
                   int *bytes_per_line, int *bits_per_pixel)
 {
-    Bool shm_success = False;
+    Bool shm_success = FALSE;
 
     struct EphyrHostScreen *host_screen = host_screen_from_screen_info(screen);
 
@@ -729,7 +712,7 @@ hostx_screen_init(EphyrScreenInfo screen,
         if (host_screen->ximg->data == (uint8_t *) -1) {
             EPHYR_DBG
                 ("Can't attach SHM Segment, falling back to plain XImages");
-            HostX.have_shm = False;
+            HostX.have_shm = FALSE;
             xcb_image_destroy (host_screen->ximg);
             shmctl(host_screen->shminfo.shmid, IPC_RMID, 0);
         }
@@ -739,8 +722,8 @@ hostx_screen_init(EphyrScreenInfo screen,
             xcb_shm_attach(HostX.conn,
                            host_screen->shminfo.shmseg,
                            host_screen->shminfo.shmid,
-                           False);
-            shm_success = True;
+                           FALSE);
+            shm_success = TRUE;
         }
     }
 
@@ -870,7 +853,7 @@ hostx_paint_rect(EphyrScreenInfo screen,
         xcb_image_shm_put(HostX.conn, host_screen->win,
                           HostX.gc, host_screen->ximg,
                           host_screen->shminfo,
-                          sx, sy, dx, dy, width, height, False);
+                          sx, sy, dx, dy, width, height, FALSE);
     }
     else {
         xcb_image_put(HostX.conn, host_screen->win, HostX.gc, host_screen->ximg,
@@ -1055,7 +1038,7 @@ hostx_get_event(EphyrHostXEvent * ev)
                 /* Attempt grab */
                 xcb_grab_keyboard_cookie_t kbgrabc =
                     xcb_grab_keyboard(HostX.conn,
-                                      True,
+                                      TRUE,
                                       host_screen->win,
                                       XCB_TIME_CURRENT_TIME,
                                       XCB_GRAB_MODE_ASYNC,
@@ -1063,7 +1046,7 @@ hostx_get_event(EphyrHostXEvent * ev)
                 xcb_grab_keyboard_reply_t *kbgrabr;
                 xcb_grab_pointer_cookie_t pgrabc =
                     xcb_grab_pointer(HostX.conn,
-                                     True,
+                                     TRUE,
                                      host_screen->win,
                                      0,
                                      XCB_GRAB_MODE_ASYNC,
@@ -1134,12 +1117,6 @@ hostx_get_event(EphyrHostXEvent * ev)
     return 0;
 }
 
-void *
-hostx_get_display(void)
-{
-    return HostX.dpy;
-}
-
 xcb_connection_t *
 hostx_get_xcbconn(void)
 {
@@ -1189,13 +1166,13 @@ hostx_get_window_attributes(int a_window, EphyrHostWindowAttributes * a_attrs)
 int
 hostx_get_visuals_info(EphyrHostVisualInfo ** a_visuals, int *a_num_entries)
 {
-    Bool is_ok = False;
+    Bool is_ok = FALSE;
     EphyrHostVisualInfo *host_visuals = NULL;
     int nb_items = 0, i = 0, screen_num;
     xcb_screen_iterator_t screens;
     xcb_depth_iterator_t depths;
 
-    EPHYR_RETURN_VAL_IF_FAIL(a_visuals && a_num_entries, False);
+    EPHYR_RETURN_VAL_IF_FAIL(a_visuals && a_num_entries, FALSE);
     EPHYR_LOG("enter\n");
 
     screens = xcb_setup_roots_iterator(xcb_get_setup(HostX.conn));
@@ -1380,11 +1357,10 @@ hostx_set_window_clipping_rectangles(int a_window,
                                      EphyrRect * a_rects, int a_num_rects)
 {
     Bool is_ok = FALSE;
-    Display *dpy = hostx_get_display();
     int i = 0;
     xcb_rectangle_t *rects = NULL;
 
-    EPHYR_RETURN_VAL_IF_FAIL(dpy && a_rects, FALSE);
+    EPHYR_RETURN_VAL_IF_FAIL(a_rects, FALSE);
 
     EPHYR_LOG("enter. num rects:%d\n", a_num_rects);
 
