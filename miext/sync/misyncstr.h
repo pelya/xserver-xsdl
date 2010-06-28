@@ -35,6 +35,7 @@
 
 /* Sync object types */
 #define SYNC_COUNTER		0
+#define SYNC_FENCE		1
 
 typedef struct _SyncObject {
     ClientPtr		client;	/* Owning client. 0 for system counters */
@@ -50,7 +51,15 @@ typedef struct _SyncCounter {
     struct _SysCounterInfo *pSysCounterInfo; /* NULL if not a system counter */
 } SyncCounter;
 
-typedef struct _SyncTrigger {
+struct _SyncFence {
+    SyncObject		sync;		/* Common sync object data */
+    ScreenPtr		pScreen;	/* Screen of this fence object */
+    SyncFenceFuncsRec	funcs;		/* Funcs for performing ops on fence */
+    Bool		triggered;	/* fence state */
+    PrivateRec		*devPrivates;	/* driver-specific per-fence data */
+};
+
+struct _SyncTrigger {
     SyncObject *pSync;
     CARD64	wait_value;	/* wait value */
     unsigned int value_type;	/* Absolute or Relative */
@@ -66,7 +75,7 @@ typedef struct _SyncTrigger {
     void	(*CounterDestroyed)(
 				struct _SyncTrigger * /*pTrigger*/
 				    );
-} SyncTrigger;
+};
 
 typedef struct _SyncTriggerList {
     SyncTrigger *pTrigger;

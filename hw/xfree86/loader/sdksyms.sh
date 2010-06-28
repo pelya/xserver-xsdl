@@ -41,6 +41,9 @@ cat > sdksyms.c << EOF
 #include "damage.h"
 #include "damagestr.h"
 
+/* miext/sync/Makefile.am */
+#include "misync.h"
+#include "misyncstr.h"
 
 /* Xext/Makefile.am -- half is module, half is builtin */
 /*

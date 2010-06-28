@@ -59,7 +59,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include <X11/Xmd.h>
-#include "misc.h"
+#include "scrnintstr.h"
 #include "os.h"
 #include "extnsionst.h"
 #include "dixstruct.h"
@@ -2199,6 +2199,10 @@ void
 SyncExtensionInit(void)
 {
     ExtensionEntry *extEntry;
+    int 	    s;
+
+    for (s = 0; s < screenInfo.numScreens; s++)
+	miSyncSetup(screenInfo.screens[s]);
 
     if (RTCounter == 0)
     {
