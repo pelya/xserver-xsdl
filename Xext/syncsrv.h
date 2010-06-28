@@ -53,12 +53,20 @@ PERFORMANCE OF THIS SOFTWARE.
 
 #define CARD64 XSyncValue /* XXX temporary! need real 64 bit values for Alpha */
 
-typedef struct _SyncCounter {
+/* Sync object types */
+#define SYNC_COUNTER		0
+
+typedef struct _SyncObject {
     ClientPtr		client;	/* Owning client. 0 for system counters */
-    XSyncCounter	id;		/* resource ID */
-    CARD64		value;		/* counter value */
     struct _SyncTriggerList *pTriglist;	/* list of triggers */
-    Bool		beingDestroyed; /* in process of going away */
+    XID			id;		/* resource ID */
+    unsigned char	type;		/* SYNC_* */
+    Bool		beingDestroyed;	/* in process of going away */
+} SyncObject;
+
+typedef struct _SyncCounter {
+    SyncObject		sync;		/* Common sync object data */
+    CARD64		value;		/* counter value */
     struct _SysCounterInfo *pSysCounterInfo; /* NULL if not a system counter */
 } SyncCounter;
 

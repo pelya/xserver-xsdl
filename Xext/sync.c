@@ -89,7 +89,7 @@ static int SyncNumSystemCounters = 0;
 static SyncCounter **SysCounterList = NULL;
 
 #define IsSystemCounter(pCounter) \
-    (pCounter && (pCounter->client == NULL))
+    (pCounter && (pCounter->sync.client == NULL))
 
 /* these are all the alarm attributes that pertain to the alarm's trigger */
 #define XSyncCAAllTrigger \
@@ -118,7 +118,7 @@ SyncDeleteTriggerFromCounter(SyncTrigger *pTrigger)
 	return;
 
     pPrev = NULL;
-    pCur = pTrigger->pCounter->pTriglist;
+    pCur = pTrigger->pCounter->sync.pTriglist;
 
     while (pCur)
     {
@@ -127,7 +127,7 @@ SyncDeleteTriggerFromCounter(SyncTrigger *pTrigger)
 	    if (pPrev)
 		pPrev->next = pCur->next;
 	    else
-		pTrigger->pCounter->pTriglist = pCur->next;
+		pTrigger->pCounter->sync.pTriglist = pCur->next;
 
 	    free(pCur);
 	    break;
@@ -151,7 +151,7 @@ SyncAddTriggerToCounter(SyncTrigger *pTrigger)
 	return Success;
 
     /* don't do anything if it's already there */
-    for (pCur = pTrigger->pCounter->pTriglist; pCur; pCur = pCur->next)
+    for (pCur = pTrigger->pCounter->sync.pTriglist; pCur; pCur = pCur->next)
     {
 	if (pCur->pTrigger == pTrigger)
 	    return Success;
@@ -161,8 +161,8 @@ SyncAddTriggerToCounter(SyncTrigger *pTrigger)
 	return BadAlloc;
 
     pCur->pTrigger = pTrigger;
-    pCur->next = pTrigger->pCounter->pTriglist;
-    pTrigger->pCounter->pTriglist = pCur;
+    pCur->next = pTrigger->pCounter->sync.pTriglist;
+    pTrigger->pCounter->sync.pTriglist = pCur;
 
     if (IsSystemCounter(pTrigger->pCounter))
 	SyncComputeBracketValues(pTrigger->pCounter);
@@ -390,14 +390,14 @@ SyncSendCounterNotifyEvents(ClientPtr client, SyncAwait **ppAwait,
 	SyncTrigger *pTrigger = &(*ppAwait)->trigger;
 	pev->type = SyncEventBase + XSyncCounterNotify;
 	pev->kind = XSyncCounterNotify;
-	pev->counter = pTrigger->pCounter->id;
+	pev->counter = pTrigger->pCounter->sync.id;
 	pev->wait_value_lo = XSyncValueLow32(pTrigger->test_value);
 	pev->wait_value_hi = XSyncValueHigh32(pTrigger->test_value);
 	pev->counter_value_lo = XSyncValueLow32(pTrigger->pCounter->value);
 	pev->counter_value_hi = XSyncValueHigh32(pTrigger->pCounter->value);
 	pev->time = currentTime.milliseconds;
 	pev->count = num_events - i - 1; /* events remaining */
-	pev->destroyed = pTrigger->pCounter->beingDestroyed;
+	pev->destroyed = pTrigger->pCounter->sync.beingDestroyed;
     }
     /* swapping will be taken care of by this */
     WriteEventsToClient(client, num_events, (xEvent *)pEvents);
@@ -532,7 +532,7 @@ SyncAwaitTriggerFired(SyncTrigger *pTrigger)
 	 *  always generated if the counter for one of the triggers is
 	 *  destroyed."
 	 */
-	if (pAwait->trigger.pCounter->beingDestroyed)
+	if (pAwait->trigger.pCounter->sync.beingDestroyed)
 	{
 	    ppAwait[num_events++] = pAwait;
 	    continue;
@@ -600,7 +600,7 @@ SyncChangeCounter(SyncCounter *pCounter, CARD64 newval)
     pCounter->value = newval;
 
     /* run through triggers to see if any become true */
-    for (ptl = pCounter->pTriglist; ptl; ptl = pnext)
+    for (ptl = pCounter->sync.pTriglist; ptl; ptl = pnext)
     {
 	pnext = ptl->next;
 	if ((*ptl->pTrigger->CheckTrigger)(ptl->pTrigger, oldval))
@@ -692,7 +692,8 @@ SyncChangeAlarmAttributes(ClientPtr client, SyncAlarm *pAlarm, Mask mask,
     XSyncCounter   counter;
     Mask	   origmask = mask;
 
-    counter = pAlarm->trigger.pCounter ? pAlarm->trigger.pCounter->id : None;
+    counter =
+	pAlarm->trigger.pCounter ? pAlarm->trigger.pCounter->sync.id : None;
 
     while (mask)
     {
@@ -781,26 +782,52 @@ SyncChangeAlarmAttributes(ClientPtr client, SyncAlarm *pAlarm, Mask mask,
     return Success;
 }
 
+static SyncObject *
+SyncCreate(ClientPtr client, XID id, unsigned char type)
+{
+    SyncObject *pSync;
+    RESTYPE resType;
+    unsigned long syncSize;
+
+    switch (type) {
+    case SYNC_COUNTER:
+	resType = RTCounter;
+	syncSize = sizeof(SyncCounter);
+	break;
+    default:
+	return NULL;
+    }
+
+    if (!(pSync = (SyncObject *)malloc(syncSize)))
+	return NULL;
+
+    if (!AddResource(id, resType, (pointer) pSync))
+    {
+	free(pSync);
+	return NULL;
+    }
+
+    pSync->client = client;
+    pSync->id = id;
+    pSync->pTriglist = NULL;
+    pSync->beingDestroyed = FALSE;
+    pSync->type = type;
+
+    return pSync;
+}
+
 
 static SyncCounter *
 SyncCreateCounter(ClientPtr client, XSyncCounter id, CARD64 initialvalue)
 {
     SyncCounter *pCounter;
 
-    if (!(pCounter = malloc(sizeof(SyncCounter))))
+    if (!(pCounter = (SyncCounter *)SyncCreate(client,
+					       id,
+					       SYNC_COUNTER)))
 	return NULL;
 
-    if (!AddResource(id, RTCounter, (pointer) pCounter))
-    {
-	free(pCounter);
-	return NULL;
-    }
-
-    pCounter->client = client;
-    pCounter->id = id;
     pCounter->value = initialvalue;
-    pCounter->pTriglist = NULL;
-    pCounter->beingDestroyed = FALSE;
     pCounter->pSysCounterInfo = NULL;
     return pCounter;
 }
@@ -852,7 +879,7 @@ SyncCreateSystemCounter(
 	psci = malloc(sizeof(SysCounterInfo));
 	if (!psci)
 	{
-	    FreeResource(pCounter->id, RT_NONE);
+	    FreeResource(pCounter->sync.id, RT_NONE);
 	    return pCounter;
 	}
 	pCounter->pSysCounterInfo = psci;
@@ -872,7 +899,7 @@ void
 SyncDestroySystemCounter(pointer pSysCounter)
 {
     SyncCounter *pCounter = (SyncCounter *)pSysCounter;
-    FreeResource(pCounter->id, RT_NONE);
+    FreeResource(pCounter->sync.id, RT_NONE);
 }
 
 static void
@@ -896,7 +923,7 @@ SyncComputeBracketValues(SyncCounter *pCounter)
     XSyncMaxValue(&psci->bracket_greater);
     XSyncMinValue(&psci->bracket_less);
 
-    for (pCur = pCounter->pTriglist; pCur; pCur = pCur->next)
+    for (pCur = pCounter->sync.pTriglist; pCur; pCur = pCur->next)
     {
 	pTrigger = pCur->pTrigger;
 	
@@ -986,9 +1013,9 @@ FreeCounter(void *env, XID id)
     SyncCounter     *pCounter = (SyncCounter *) env;
     SyncTriggerList *ptl, *pnext;
 
-    pCounter->beingDestroyed = TRUE;
+    pCounter->sync.beingDestroyed = TRUE;
     /* tell all the counter's triggers that the counter has been destroyed */
-    for (ptl = pCounter->pTriglist; ptl; ptl = pnext)
+    for (ptl = pCounter->sync.pTriglist; ptl; ptl = pnext)
     {
 	(*ptl->pTrigger->CounterDestroyed)(ptl->pTrigger);
 	pnext = ptl->next;
@@ -1048,7 +1075,7 @@ FreeAwait(void *addr, XID id)
 	 * the trigger list itself, so don't do it here.
 	 */
 	SyncCounter *pCounter = pAwait->trigger.pCounter;
-	if (pCounter && !pCounter->beingDestroyed)
+	if (pCounter && !pCounter->sync.beingDestroyed)
 	    SyncDeleteTriggerFromCounter(&pAwait->trigger);
     }
     free(pAwaitUnion);
@@ -1158,7 +1185,7 @@ ProcSyncListSystemCounters(ClientPtr client)
 	char *pname_in_reply;
 	SysCounterInfo *psci = SysCounterList[i]->pSysCounterInfo;
 
-	walklist->counter = SysCounterList[i]->id;
+	walklist->counter = SysCounterList[i]->sync.id;
 	walklist->resolution_hi = XSyncValueHigh32(psci->resolution);
 	walklist->resolution_lo = XSyncValueLow32(psci->resolution);
 	namelen = strlen(psci->name);
@@ -1371,7 +1398,7 @@ ProcSyncDestroyCounter(ClientPtr client)
 	client->errorValue = stuff->counter;
 	return BadAccess;
     }
-    FreeResource(pCounter->id, RT_NONE);
+    FreeResource(pCounter->sync.id, RT_NONE);
     return Success;
 }
 
@@ -1677,7 +1704,7 @@ ProcSyncQueryAlarm(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     pTrigger = &pAlarm->trigger;
-    rep.counter = (pTrigger->pCounter) ? pTrigger->pCounter->id : None;
+    rep.counter = (pTrigger->pCounter) ? pTrigger->pCounter->sync.id : None;
 
 #if 0 /* XXX unclear what to do, depends on whether relative value-types
        * are "consumed" immediately and are considered absolute from then
@@ -2243,7 +2270,7 @@ static void
 IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 {
     XSyncValue idle, old_idle;
-    SyncTriggerList *list = IdleTimeCounter->pTriglist;
+    SyncTriggerList *list = IdleTimeCounter->sync.pTriglist;
     SyncTrigger *trig;
 
     if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
@@ -2264,7 +2291,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 	 * immediately so we can reschedule.
 	 */
 
-	for (list = IdleTimeCounter->pTriglist; list; list = list->next) {
+	for (list = IdleTimeCounter->sync.pTriglist; list; list = list->next) {
 	    trig = list->pTrigger;
 	    if (trig->CheckTrigger(trig, old_idle)) {
 		AdjustWaitForDelay(wt, 0);
@@ -2290,7 +2317,7 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 	                        idle, &overflow);
 	    timeout = min(timeout, XSyncValueLow32 (value));
 	} else {
-	    for (list = IdleTimeCounter->pTriglist; list; list = list->next) {
+	    for (list = IdleTimeCounter->sync.pTriglist; list; list = list->next) {
 		trig = list->pTrigger;
 		if (trig->CheckTrigger(trig, old_idle)) {
 		    timeout = min(timeout, 0);
