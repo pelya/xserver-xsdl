@@ -101,7 +101,7 @@ typedef struct _SysCounterInfo {
 
 
 typedef struct _SyncTrigger {
-    SyncCounter *pCounter;
+    SyncObject *pSync;
     CARD64	wait_value;	/* wait value */
     unsigned int value_type;     /* Absolute or Relative */
     unsigned int test_type;	/* transition or Comparision type */
