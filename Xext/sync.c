@@ -2192,7 +2192,6 @@ SyncResetProc(ExtensionEntry *extEntry)
     RTCounter = 0;
 }
 
-
 /*
  * ** Initialise the extension.
  */
