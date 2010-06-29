@@ -500,9 +500,6 @@ _XkbFilterPointerMove(	XkbSrvInfoPtr	xkbi,
 int	x,y;
 Bool	accel;
 
-    if (xkbi->device == inputInfo.keyboard)
-        return 0;
-
     if (filter->keycode==0) {		/* initial press */
 	filter->keycode = keycode;
 	filter->active = 1;
@@ -1342,10 +1339,12 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
     DeviceIntPtr        ptr;
     int                 gpe_flags = 0;
 
-    if (!dev->u.master)
+    if (IsMaster(dev))
+        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
+    else if (!dev->u.master)
         ptr = dev;
     else
-        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
+        return;
 
     if (flags & XkbSA_MoveAbsoluteX || flags & XkbSA_MoveAbsoluteY)
         gpe_flags = POINTER_ABSOLUTE;
