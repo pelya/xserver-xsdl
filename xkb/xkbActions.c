@@ -633,6 +633,8 @@ _XkbFilterPointerBtn(	XkbSrvInfoPtr	xkbi,
 		    break;
 		}
 		xkbi->lockedPtrButtons&= ~(1<<button);
+
+		/* fallthrough */
 	    case XkbSA_PtrBtn:
 		XkbFakeDeviceButton(xkbi->device, 0, button);
 		break;
