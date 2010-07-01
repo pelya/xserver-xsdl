@@ -710,19 +710,16 @@ DeviceEvent     *event = &ev->device_event;
 	if (xkbi) {
 	    xkbi->lockedPtrButtons&= ~(1 << (event->detail.key & 0x7));
 
-            /* Merge this MD's lockedPtrButtons with the one of all
-             * attached slave devices.
-             * The DIX uses a merged button state for MDs, not
-             * releasing buttons until the last SD has released
-             * thenm. If we unconditionally clear the
-             * lockedPtrButtons bit on the MD, a PointerKeys button
-             * release on the SD keyboard won't generate the required fake button
-             * event on the XTEST pointer, thus never processing the
-             * button event in the DIX and the XTEST pointer's
-             * buttons stay down - result is a stuck button.
-             */
-	    if (IsMaster(dev))
-                XkbMergeLockedPtrBtns(dev);
+            if (IsMaster(dev))
+            {
+                DeviceIntPtr source;
+                int rc;
+                rc = dixLookupDevice(&source, event->sourceid, serverClient, DixWriteAccess);
+                if (rc != Success)
+                    ErrorF("[xkb] bad sourceid '%d' on button release event.\n", event->sourceid);
+                else if (!IsXTestDevice(source, GetMaster(dev, MASTER_POINTER)))
+                    XkbFakeDeviceButton(dev, FALSE, event->detail.key);
+            }
 	}
 
 	changed |= XkbPointerButtonMask;
