@@ -45,7 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 DevPrivateKeyRec xkbDevicePrivateKeyRec;
 
-static void XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button);
+void XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button);
 static void XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y);
 
 void
@@ -500,9 +500,6 @@ _XkbFilterPointerMove(	XkbSrvInfoPtr	xkbi,
 int	x,y;
 Bool	accel;
 
-    if (xkbi->device == inputInfo.keyboard)
-        return 0;
-
     if (filter->keycode==0) {		/* initial press */
 	filter->keycode = keycode;
 	filter->active = 1;
@@ -633,6 +630,16 @@ _XkbFilterPointerBtn(	XkbSrvInfoPtr	xkbi,
 		    break;
 		}
 		xkbi->lockedPtrButtons&= ~(1<<button);
+
+		if (IsMaster(xkbi->device))
+		{
+		    XkbMergeLockedPtrBtns(xkbi->device);
+                    /* One SD still has lock set, don't post event */
+		    if ((xkbi->lockedPtrButtons & (1 << button)) != 0)
+			break;
+		}
+
+		/* fallthrough */
 	    case XkbSA_PtrBtn:
 		XkbFakeDeviceButton(xkbi->device, 0, button);
 		break;
@@ -1332,10 +1339,12 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
     DeviceIntPtr        ptr;
     int                 gpe_flags = 0;
 
-    if (!dev->u.master)
+    if (IsMaster(dev))
+        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
+    else if (!dev->u.master)
         ptr = dev;
     else
-        ptr = GetXTestDevice(GetMaster(dev, MASTER_POINTER));
+        return;
 
     if (flags & XkbSA_MoveAbsoluteX || flags & XkbSA_MoveAbsoluteY)
         gpe_flags = POINTER_ABSOLUTE;
@@ -1355,7 +1364,7 @@ XkbFakePointerMotion(DeviceIntPtr dev, unsigned flags,int x,int y)
     FreeEventList(events, GetMaximumEventsNum());
 }
 
-static void
+void
 XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
 {
     EventListPtr        events;

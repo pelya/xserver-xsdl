@@ -924,6 +924,15 @@ extern int XkbGetEffectiveGroup(
         XkbStatePtr             /* xkbstate */,
         CARD8                   /* keycode */);
 
+extern void XkbMergeLockedPtrBtns(
+        DeviceIntPtr            /* master */);
+
+extern void XkbFakeDeviceButton(
+        DeviceIntPtr            /* dev */,
+        int                     /* press */,
+        int                     /* button */);
+
+
 #include "xkbfile.h"
 #include "xkbrules.h"
 
