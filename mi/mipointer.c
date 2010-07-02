@@ -73,6 +73,7 @@ static void miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen,
 static Bool miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerDeviceCleanup(DeviceIntPtr pDev,
                                    ScreenPtr pScreen);
+static void miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y);
 
 static EventList* events; /* for WarpPointer MotionNotifies */
 
@@ -305,24 +306,9 @@ miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
     }
 
     if (GenerateEvent)
-    {
 	miPointerMove (pDev, pScreen, x, y);
-    }
     else
-    {
-	/* everything from miPointerMove except the event and history */
-
-    	if (!pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
-    	{
-	    pPointer->devx = x;
-	    pPointer->devy = y;
-	    if(pPointer->pCursor && !pPointer->pCursor->bits->emptyMask)
-		(*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
-    	}
-	pPointer->x = x;
-	pPointer->y = y;
-	pPointer->pScreen = pScreen;
-    }
+        miPointerMoved(pDev, pScreen, x, y);
 
     /* Don't call USFS if we use Xinerama, otherwise the root window is
      * updated to the second screen, and we never receive any events.
