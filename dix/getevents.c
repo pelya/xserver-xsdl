@@ -115,7 +115,7 @@ key_is_down(DeviceIntPtr pDev, int key_code, int type)
 
     if (type & KEY_PROCESSED)
         ret |= !!(pDev->key->down[key_code >> 3] & (1 << (key_code & 7)));
-    else if (type & KEY_POSTED)
+    if (type & KEY_POSTED)
         ret |= !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
 
     return ret;
