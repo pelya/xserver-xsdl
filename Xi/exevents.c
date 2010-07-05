@@ -814,23 +814,22 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         if (!k)
             return DONT_PROCESS;
 
-	kptr = &k->down[key >> 3];
-        /* don't allow ddx to generate multiple downs, but repeats are okay */
-	if ((*kptr & bit) && !event->key_repeat)
+	/* don't allow ddx to generate multiple downs, but repeats are okay */
+	if (key_is_down(device, key, KEY_PROCESSED) && !event->key_repeat)
 	    return DONT_PROCESS;
+
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-	*kptr |= bit;
+	set_key_down(device, key, KEY_PROCESSED);
     } else if (event->type == ET_KeyRelease) {
         if (!k)
             return DONT_PROCESS;
 
-	kptr = &k->down[key >> 3];
-	if (!(*kptr & bit))	/* guard against duplicates */
+	if (!key_is_down(device, key, KEY_PROCESSED))	/* guard against duplicates */
 	    return DONT_PROCESS;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-	*kptr &= ~bit;
+	set_key_up(device, key, KEY_PROCESSED);
     } else if (event->type == ET_ButtonPress) {
         Mask mask;
         if (!b)
