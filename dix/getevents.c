@@ -94,18 +94,18 @@ void
 set_key_down(DeviceIntPtr pDev, int key_code, int type)
 {
     if (type == KEY_PROCESSED)
-        pDev->key->down[key_code >> 3] |= (1 << (key_code & 7));
+        SetBit(pDev->key->down, key_code);
     else
-        pDev->key->postdown[key_code >> 3] |= (1 << (key_code & 7));
+        SetBit(pDev->key->postdown, key_code);
 }
 
 void
 set_key_up(DeviceIntPtr pDev, int key_code, int type)
 {
     if (type == KEY_PROCESSED)
-        pDev->key->down[key_code >> 3] &= ~(1 << (key_code & 7));
+        ClearBit(pDev->key->down, key_code);
     else
-        pDev->key->postdown[key_code >> 3] &= ~(1 << (key_code & 7));
+        ClearBit(pDev->key->postdown, key_code);
 }
 
 Bool
@@ -114,9 +114,9 @@ key_is_down(DeviceIntPtr pDev, int key_code, int type)
     int ret = 0;
 
     if (type & KEY_PROCESSED)
-        ret |= !!(pDev->key->down[key_code >> 3] & (1 << (key_code & 7)));
+        ret |= !!BitIsOn(pDev->key->down, key_code);
     if (type & KEY_POSTED)
-        ret |= !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
+        ret |= !!BitIsOn(pDev->key->postdown, key_code);
 
     return ret;
 }
