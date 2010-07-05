@@ -747,7 +747,6 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
     KeyClassPtr k       = NULL;
     ButtonClassPtr b    = NULL;
     ValuatorClassPtr v  = NULL;
-    BYTE *kptr          = NULL;
 
     /* This event is always the first we get, before the actual events with
      * the data. However, the way how the DDX is set up, "device" will
@@ -835,10 +834,10 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         if (!b)
             return DONT_PROCESS;
 
-        kptr = &b->down[key >> 3];
-        if ((*kptr & bit) != 0)
+        if (button_is_down(device, key, BUTTON_PROCESSED))
             return DONT_PROCESS;
-        *kptr |= bit;
+
+        set_button_down(device, key, BUTTON_PROCESSED);
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         if (!b->map[key])
@@ -858,8 +857,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         if (!b)
             return DONT_PROCESS;
 
-        kptr = &b->down[key>>3];
-        if (!(*kptr & bit))
+        if (!button_is_down(device, key, BUTTON_PROCESSED))
             return DONT_PROCESS;
         if (IsMaster(device)) {
             DeviceIntPtr sd;
@@ -874,11 +872,11 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
                     continue;
                 if (!sd->button)
                     continue;
-                if ((sd->button->down[key>>3] & bit) != 0)
+                if (button_is_down(sd, key, BUTTON_PROCESSED))
                     return DONT_PROCESS;
             }
         }
-        *kptr &= ~bit;
+        set_button_up(device, key, BUTTON_PROCESSED);
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         if (!b->map[key])

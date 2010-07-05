@@ -91,6 +91,37 @@ GetMotionHistorySize(void)
 }
 
 void
+set_button_down(DeviceIntPtr pDev, int button, int type)
+{
+    if (type == BUTTON_PROCESSED)
+        SetBit(pDev->button->down, button);
+    else
+        SetBit(pDev->button->postdown, button);
+}
+
+void
+set_button_up(DeviceIntPtr pDev, int button, int type)
+{
+    if (type == BUTTON_PROCESSED)
+        ClearBit(pDev->button->down, button);
+    else
+        ClearBit(pDev->button->postdown, button);
+}
+
+Bool
+button_is_down(DeviceIntPtr pDev, int button, int type)
+{
+    int ret = 0;
+
+    if (type & BUTTON_PROCESSED)
+        ret |= !!BitIsOn(pDev->button->down, button);
+    if (type & BUTTON_POSTED)
+        ret |= !!BitIsOn(pDev->button->postdown, button);
+
+    return ret;
+}
+
+void
 set_key_down(DeviceIntPtr pDev, int key_code, int type)
 {
     if (type == KEY_PROCESSED)
@@ -1123,11 +1154,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     else {
         if (type == ButtonPress) {
             event->type = ET_ButtonPress;
-            pDev->button->postdown[buttons >> 3] |= (1 << (buttons & 7));
+            set_button_down(pDev, buttons, BUTTON_POSTED);
         }
         else if (type == ButtonRelease) {
             event->type = ET_ButtonRelease;
-            pDev->button->postdown[buttons >> 3] &= ~(1 << (buttons & 7));
+            set_button_up(pDev, buttons, BUTTON_POSTED);
         }
         event->detail.button = buttons;
     }
