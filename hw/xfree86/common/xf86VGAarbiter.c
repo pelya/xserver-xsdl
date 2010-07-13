@@ -573,9 +573,7 @@ VGAarbiterCreateGC(GCPtr pGC)
     Bool         ret;
 
     SCREEN_PROLOG(CreateGC);
-    VGAGet(pScreen);
     ret = (*pScreen->CreateGC)(pGC);
-    VGAPut();
     GC_WRAP(pGC);
     SCREEN_EPILOG(CreateGC,VGAarbiterCreateGC);
 
