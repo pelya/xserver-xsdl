@@ -61,8 +61,6 @@ winMWExtWMProcs = {
   NULL,//winMWExtWMUpdateColorMap,
 
   NULL,//winMWExtWMCopyBytes,
-  NULL,//winMWExtWMFillBytes,
-  NULL,//winMWExtWMCompositePixels,
   winMWExtWMCopyWindow
 };
 #endif
@@ -463,8 +461,6 @@ winFinishScreenInitFB (int index,
       winDebug ("winScreenInit - MultiWindowExtWM - RootlessInit returned\n");
       
       rootless_CopyBytes_threshold = 0;
-      rootless_FillBytes_threshold = 0;
-      rootless_CompositePixels_threshold = 0;
       /* FIXME: How many? Profiling needed? */
       rootless_CopyWindow_threshold = 1;
 

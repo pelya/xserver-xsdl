@@ -40,8 +40,6 @@
 #include "colormapst.h"
 
 unsigned int rootless_CopyBytes_threshold = 0;
-unsigned int rootless_FillBytes_threshold = 0;
-unsigned int rootless_CompositePixels_threshold = 0;
 unsigned int rootless_CopyWindow_threshold = 0;
 int rootlessGlobalOffsetX = 0;
 int rootlessGlobalOffsetY = 0;

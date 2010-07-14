@@ -102,8 +102,7 @@ rootlessConfig.h:
         offset that is applied to all screens when converting from
         screen-local to global coordinates.
 
-      o rootless_CopyBytes_threshold, rootless_FillBytes_threshold, 
-        rootless_CompositePixels_threshold, rootless_CopyWindow_threshold:
+      o rootless_CopyBytes_threshold, rootless_CopyWindow_threshold:
         The minimum number of bytes or pixels for which to use the rootless
         implementation's respective acceleration function. The rootless
         acceleration functions are all optional so these will only be used
@@ -320,44 +319,6 @@ typedef void (*RootlessCopyBytesProc)
     (unsigned int width, unsigned int height,
      const void *src, unsigned int srcRowBytes,
      void *dst, unsigned int dstRowBytes);
-
-/*
- * Fill memory with 32-bit pattern. (Optional)
- *
- *  width       Bytes to fill per row
- *  height      Number of rows
- *  value       32-bit pattern to fill with
- *  dst         Destination data
- *  dstRowBytes Width of destination in bytes
- */
-typedef void (*RootlessFillBytesProc)
-    (unsigned int width, unsigned int height, unsigned int value,
-     void *dst, unsigned int dstRowBytes);
-
-/*
- * Composite pixels from source and mask to destination. (Optional)
- *
- *  width, height   Size of area to composite to in pizels
- *  function        Composite function built with RL_COMPOSITE_FUNCTION
- *  src             Source data
- *  srcRowBytes     Width of source in bytes (Passing NULL means source
- *                  is a single pixel.
- *  mask            Mask data
- *  maskRowBytes    Width of mask in bytes
- *  dst             Destination data
- *  dstRowBytes     Width of destination in bytes
- *
- *  For src and dst, the first element of the array is the color data. If
- *  the second element is non-null it implies there is alpha data (which
- *  may be meshed or planar). Data without alpha is assumed to be opaque.
- *
- *  An X11 error code is returned.
- */
-typedef int (*RootlessCompositePixelsProc)
-    (unsigned int width, unsigned int height, unsigned int function,
-     void *src[2], unsigned int srcRowBytes[2],
-     void *mask, unsigned int maskRowBytes,
-     void *dst[2], unsigned int dstRowBytes[2]);
 
 /*
  * Copy area in frame to another part of frame. (Optional)
