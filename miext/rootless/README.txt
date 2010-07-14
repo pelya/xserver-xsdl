@@ -105,18 +105,6 @@ rootlessConfig.h:
         during resizing and rely on the frame contents being preserved
         accordingly.
 
-      o ROOTLESS_TRACK_DAMAGE: The generic rootless layer draws to the
-        frames' backing buffers and periodically flushes the modified
-        regions to the underlying window server. If this option is true,
-        the generic rootless layer will track these damaged regions. 
-        Currently it uses the miRegion code and will not simplify damaged 
-        regions even when updating a bounding region would be more 
-        efficient. Some window systems provide a more efficient way to 
-        track damaged regions. If this option is false, the rootless 
-        implementation function DamageRects() is called whenever a 
-        backing buffer is modified and the rootless implementation is 
-        expected to track the damaged regions itself.
-
         The following runtime options are defined in rootless.h:
 
       o rootlessGlobalOffsetX, rootlessGlobalOffsetY: These are only 
@@ -287,8 +275,7 @@ typedef void (*RootlessStartDrawingProc)
  *  is started again.
  *
  *  wid         Frame id
- *  flush       Flush drawing updates for this frame to the screen. This
- *              will always be FALSE if ROOTLESS_TRACK_DAMAGE is set.
+ *  flush       Flush drawing updates for this frame to the screen.
  */
 typedef void (*RootlessStopDrawingProc)
     (RootlessFrameID wid, Bool flush);
@@ -299,15 +286,13 @@ typedef void (*RootlessStopDrawingProc)
  *
  *  wid         Frame id
  *  pDamage     Region containing all the changed pixels in frame-local
- *              coordinates. This is clipped to the window's clip. This
- *              will be NULL if ROOTLESS_TRACK_DAMAGE is not set.
+ *              coordinates. This is clipped to the window's clip.
  */
 typedef void (*RootlessUpdateRegionProc)
     (RootlessFrameID wid, RegionPtr pDamage);
 
 /*
  * Mark damaged rectangles as requiring redisplay to screen.
- *  This will only be called if ROOTLESS_TRACK_DAMAGE is not set.
  *
  *  wid         Frame id
  *  nrects      Number of damaged rectangles

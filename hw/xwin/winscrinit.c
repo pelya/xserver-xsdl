@@ -54,9 +54,7 @@ winMWExtWMProcs = {
   winMWExtWMStartDrawing,
   winMWExtWMStopDrawing,
   winMWExtWMUpdateRegion,
-#ifndef ROOTLESS_TRACK_DAMAGE
   winMWExtWMDamageRects,
-#endif
   winMWExtWMRootlessSwitchWindow,
   NULL,//winMWExtWMDoReorderWindow,
   NULL,//winMWExtWMHideWindow,

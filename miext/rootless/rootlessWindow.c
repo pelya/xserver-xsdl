@@ -180,11 +180,6 @@ static void
 RootlessDestroyFrame(WindowPtr pWin, RootlessWindowPtr winRec)
 {
     SCREENREC(pWin->drawable.pScreen)->imp->DestroyFrame(winRec->wid);
-
-#ifdef ROOTLESS_TRACK_DAMAGE
-    RegionUninit(&winRec->damage);
-#endif
-
     free(winRec);
     SETWINREC(pWin, NULL);
 }
@@ -341,15 +336,6 @@ RootlessPositionWindow(WindowPtr pWin, int x, int y)
 
             winRec->pixmap->devPrivate.ptr = winRec->pixelData;
             SetPixmapBaseToScreen(winRec->pixmap, x - bw, y - bw);
-
-#ifdef ROOTLESS_TRACK_DAMAGE
-            // Move damaged region to correspond to new window position
-            if (RegionNotEmpty(&winRec->damage)) {
-                RegionTranslate(&winRec->damage,
-                                 x - bw - winRec->x,
-                                 y - bw - winRec->y);
-            }
-#endif
         }
     }
 
@@ -381,10 +367,6 @@ RootlessInitializeFrame(WindowPtr pWin, RootlessWindowRec *winRec)
     winRec->width = d->width + 2*bw;
     winRec->height = d->height + 2*bw;
     winRec->borderWidth = bw;
-
-#ifdef ROOTLESS_TRACK_DAMAGE
-    RegionNull(&winRec->damage);
-#endif
 }
 
 /*

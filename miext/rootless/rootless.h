@@ -68,10 +68,6 @@ typedef struct _RootlessWindowRec {
 
     PixmapPtr pixmap;
 
-#ifdef ROOTLESS_TRACK_DAMAGE
-    RegionRec damage;
-#endif
-
     unsigned int is_drawing :1;	// Currently drawing?
     unsigned int is_reorder_pending :1;
     unsigned int is_offscreen :1;
@@ -227,8 +223,7 @@ typedef void (*RootlessStartDrawingProc)
  *  is started again.
  *
  *  wid         Frame id
- *  flush       Flush drawing updates for this frame to the screen. This
- *              will always be FALSE if ROOTLESS_TRACK_DAMAGE is set.
+ *  flush       Flush drawing updates for this frame to the screen.
  */
 typedef void (*RootlessStopDrawingProc)
     (RootlessFrameID wid, Bool flush);
@@ -239,15 +234,13 @@ typedef void (*RootlessStopDrawingProc)
  *
  *  wid         Frame id
  *  pDamage     Region containing all the changed pixels in frame-lcoal
- *              coordinates. This is clipped to the window's clip. This
- *              will be NULL if ROOTLESS_TRACK_DAMAGE is not set.
+ *              coordinates. This is clipped to the window's clip.
  */
 typedef void (*RootlessUpdateRegionProc)
     (RootlessFrameID wid, RegionPtr pDamage);
 
 /*
  * Mark damaged rectangles as requiring redisplay to screen.
- *  This will only be called if ROOTLESS_TRACK_DAMAGE is not set.
  *
  *  wid         Frame id
  *  nrects      Number of damaged rectangles
@@ -374,9 +367,7 @@ typedef struct _RootlessFrameProcs {
     RootlessStartDrawingProc StartDrawing;
     RootlessStopDrawingProc StopDrawing;
     RootlessUpdateRegionProc UpdateRegion;
-#ifndef ROOTLESS_TRACK_DAMAGE
     RootlessDamageRectsProc DamageRects;
-#endif
 
     /* Optional frame functions */
     RootlessSwitchWindowProc SwitchWindow;
@@ -426,8 +417,7 @@ void RootlessStartDrawing(WindowPtr pWindow);
 /*
  * Finish drawing to a window's backing buffer.
  *
- *  flush       If true and ROOTLESS_TRACK_DAMAGE is set, damaged areas
- *              are flushed to the screen.
+ *  flush       If true, damaged areas are flushed to the screen.
  */
 void RootlessStopDrawing(WindowPtr pWindow, Bool flush);
 
