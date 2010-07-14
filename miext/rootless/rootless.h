@@ -76,10 +76,8 @@ typedef struct _RootlessWindowRec {
 
 
 /* Offset for screen-local to global coordinate transforms */
-#ifdef ROOTLESS_GLOBAL_COORDS
 extern int rootlessGlobalOffsetX;
 extern int rootlessGlobalOffsetY;
-#endif
 
 /* The minimum number of bytes or pixels for which to use the
    implementation's accelerated functions. */
@@ -130,8 +128,7 @@ enum rl_gravity_enum {
  *              initialized before calling except for pFrame->wid, which
  *              is set by this function.
  *  pScreen     Screen on which to place the new frame
- *  newX, newY  Position of the frame. These will be identical to pFrame-x,
- *              pFrame->y unless ROOTLESS_GLOBAL_COORDS is set.
+ *  newX, newY  Position of the frame.
  *  pNewShape   Shape for the frame (in frame-local coordinates). NULL for
  *              unshaped frames.
  */

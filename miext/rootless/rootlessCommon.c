@@ -43,10 +43,8 @@ unsigned int rootless_CopyBytes_threshold = 0;
 unsigned int rootless_FillBytes_threshold = 0;
 unsigned int rootless_CompositePixels_threshold = 0;
 unsigned int rootless_CopyWindow_threshold = 0;
-#ifdef ROOTLESS_GLOBAL_COORDS
 int rootlessGlobalOffsetX = 0;
 int rootlessGlobalOffsetY = 0;
-#endif
 
 RegionRec rootlessHugeRoot = {{-32767, -32767, 32767, 32767}, NULL};
 

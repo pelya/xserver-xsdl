@@ -76,15 +76,6 @@ rootlessConfig.h to specify compile time options for its platform.
         The following compile-time options are defined in 
 rootlessConfig.h:
 
-      o ROOTLESS_GLOBAL_COORDS: This option controls the way that frame
-        coordinates are passed to the rootless implementation. If false,
-        the coordinates are passed per screen relative to the origin of 
-        the screen the frame is currently on. Some implementations may 
-        prefer to work in a single global coordinate space that spans all 
-        screens. If this option is true, the coordinates are passed after 
-        adding the coordinates of the screen origin and an overall offset of 
-        (rootlessGlobalOffsetX, rootlessGlobalOffsetY).
-
       o ROOTLESS_PROTECT_ALPHA: By default for a color bit depth of 24 and
         32 bits per pixel, fb will overwrite the "unused" 8 bits to optimize
         drawing speed. If this is true, the alpha channel of frames is
@@ -107,8 +98,7 @@ rootlessConfig.h:
 
         The following runtime options are defined in rootless.h:
 
-      o rootlessGlobalOffsetX, rootlessGlobalOffsetY: These are only 
-        used if ROOTLESS_GLOBAL_COORDS is true. They specify the global
+      o rootlessGlobalOffsetX, rootlessGlobalOffsetY: These specify the global
         offset that is applied to all screens when converting from
         screen-local to global coordinates.
 
@@ -182,8 +172,7 @@ implementation to indicate the frame to operate on.
  *              initialized before calling except for pFrame->wid, which
  *              is set by this function.
  *  pScreen     Screen on which to place the new frame
- *  newX, newY  Position of the frame. These will be identical to pFrame-x,
- *              pFrame->y unless ROOTLESS_GLOBAL_COORDS is set.
+ *  newX, newY  Position of the frame.
  *  pNewShape   Shape for the frame (in frame-local coordinates). NULL for
  *              unshaped frames.
  */

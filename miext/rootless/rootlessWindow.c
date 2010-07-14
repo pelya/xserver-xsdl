@@ -51,15 +51,10 @@ extern Bool no_configure_window;
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
 
-#ifdef ROOTLESS_GLOBAL_COORDS
 #define SCREEN_TO_GLOBAL_X \
     (pScreen->x + rootlessGlobalOffsetX)
 #define SCREEN_TO_GLOBAL_Y \
     (pScreen->y + rootlessGlobalOffsetY)
-#else
-#define SCREEN_TO_GLOBAL_X 0
-#define SCREEN_TO_GLOBAL_Y 0
-#endif
 
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
   static Atom func (void) {                                       \
