@@ -37,6 +37,7 @@
 
 #include "quartzCommon.h"
 #include "quartzRandR.h"
+#include "quartz.h"
 
 #if defined(FAKE_RANDR)
 #include "scrnintstr.h"
@@ -95,12 +96,6 @@ RREditConnectionInfo (ScreenPtr pScreen)
 
 #define DEFAULT_REFRESH  60
 #define kDisplayModeUsableFlags  (kDisplayModeValidFlag | kDisplayModeSafeFlag)
-
-typedef struct {
-    size_t width, height;
-    int refresh;
-    const void *ref;
-} QuartzModeInfo, *QuartzModeInfoPtr;
 
 typedef Bool (*QuartzModeCallback)
     (ScreenPtr, CGDirectDisplayID, QuartzModeInfoPtr, void *);
@@ -289,21 +284,30 @@ static Bool QuartzRandRModesEqual (QuartzModeInfoPtr pMode1,
     return TRUE;
 }
 
+static Bool QuartzRandRRegisterMode (ScreenPtr pScreen,
+                                     QuartzModeInfoPtr pMode,
+                                     Bool isCurrentMode) {
+    RRScreenSizePtr pSize = RRRegisterSize(pScreen,
+        pMode->width, pMode->height, pScreen->mmWidth, pScreen->mmHeight);
+    if (pSize) {
+        RRRegisterRate(pScreen, pSize, pMode->refresh);
+
+        if (isCurrentMode)
+            RRSetCurrentConfig(pScreen, RR_Rotate_0, pMode->refresh, pSize);
+
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static Bool QuartzRandRGetModeCallback (ScreenPtr pScreen,
                                         CGDirectDisplayID screenId,
                                         QuartzModeInfoPtr pMode,
                                         void *data) {
     QuartzModeInfoPtr pCurMode = (QuartzModeInfoPtr) data;
 
-    RRScreenSizePtr pSize = RRRegisterSize(pScreen,
-        pMode->width, pMode->height, pScreen->mmWidth, pScreen->mmHeight);
-    if (pSize) {
-        RRRegisterRate(pScreen, pSize, pMode->refresh);
-
-        if (QuartzRandRModesEqual(pMode, pCurMode))
-            RRSetCurrentConfig(pScreen, RR_Rotate_0, pMode->refresh, pSize);
-    }
-    return TRUE;
+    return QuartzRandRRegisterMode(pScreen, pMode,
+        QuartzRandRModesEqual(pMode, pCurMode));
 }
 
 static Bool QuartzRandRSetModeCallback (ScreenPtr pScreen,
@@ -329,20 +333,29 @@ static Bool QuartzRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
         return FALSE;
     if (pQuartzScreen->displayCount > 1) {
         /* RandR operations are not well-defined for an X11 screen spanning
-           multiple CG displays. Create a single entry for the current virtual
-           resolution. */
-        RRScreenSizePtr pSize = RRRegisterSize(pScreen, pScreen->width,
-            pScreen->height, pScreen->mmWidth, pScreen->mmHeight);
-        if (pSize) {
-            RRRegisterRate(pScreen, pSize, DEFAULT_REFRESH);
-            RRSetCurrentConfig(pScreen, RR_Rotate_0, DEFAULT_REFRESH, pSize);
-        }
+           multiple CG displays. Create two entries for the current virtual
+           resolution including/excluding the menu bar. */
+        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->fakeMode,
+            !quartzHasRoot);
+        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->originalMode,
+            quartzHasRoot);
         return TRUE;
     }
     screenId = pQuartzScreen->displayIDs[0];
 
     if (!QuartzRandRGetCurrentModeInfo(screenId, &curMode))
         return FALSE;
+
+    /* Add a fake mode corresponding to the original resolution excluding the
+       height of the menu bar. */
+    if (!quartzHasRoot &&
+        QuartzRandRModesEqual(&pQuartzScreen->originalMode, &curMode)) {
+        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->fakeMode, TRUE);
+        curMode = pQuartzScreen->fakeMode;
+    }
+    else
+        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->fakeMode, FALSE);
+
     return QuartzRandREnumerateModes(pScreen, screenId,
         QuartzRandRGetModeCallback, &curMode);
 }
@@ -354,6 +367,21 @@ static Bool QuartzRandRSetConfig (ScreenPtr           pScreen,
     QuartzScreenPtr pQuartzScreen = QUARTZ_PRIV(pScreen);
     CGDirectDisplayID screenId;
     QuartzModeInfo reqMode, curMode;
+    Bool rootless = FALSE;
+
+    reqMode.width = pSize->width;
+    reqMode.height = pSize->height;
+    reqMode.refresh = rate;
+
+    /* If the client requested the fake screen mode, switch to rootless mode.
+       Switch to fullscreen mode (root window visible) if a real screen mode was
+       requested. */
+    if (QuartzRandRModesEqual(&reqMode, &pQuartzScreen->fakeMode)) {
+        rootless = TRUE;
+        reqMode = pQuartzScreen->originalMode;
+    }
+    QuartzSetFullscreen(!rootless);
+    QuartzSetRootless(rootless);
 
     if (pQuartzScreen->displayCount == 0)
         return FALSE;
@@ -361,14 +389,9 @@ static Bool QuartzRandRSetConfig (ScreenPtr           pScreen,
         /* RandR operations are not well-defined for an X11 screen spanning
            multiple CG displays. Do not accept any configuations that differ
            from the current configuration. */
-        return ((pSize->width == pScreen->width) &&
-                (pSize->height == pScreen->height));
+        return QuartzRandRModesEqual(&reqMode, &pQuartzScreen->originalMode);
     }
     screenId = pQuartzScreen->displayIDs[0];
-
-    reqMode.width = pSize->width;
-    reqMode.height = pSize->height;
-    reqMode.refresh = rate;
 
     /* Do not switch modes if requested mode is equal to current mode. */
     if (!QuartzRandRGetCurrentModeInfo(screenId, &curMode))
@@ -382,8 +405,22 @@ static Bool QuartzRandRSetConfig (ScreenPtr           pScreen,
 
 Bool QuartzRandRInit (ScreenPtr pScreen) {
     rrScrPrivPtr    pScrPriv;
+    QuartzScreenPtr pQuartzScreen = QUARTZ_PRIV(pScreen);
     
     if (!RRScreenInit (pScreen)) return FALSE;
+
+    if (pQuartzScreen->displayCount == 1) {
+        if (!QuartzRandRGetCurrentModeInfo(pQuartzScreen->displayIDs[0],
+                                           &pQuartzScreen->originalMode))
+            return FALSE;
+    }
+    else {
+        pQuartzScreen->originalMode.width = pScreen->width;
+        pQuartzScreen->originalMode.height = pScreen->height;
+        pQuartzScreen->originalMode.refresh = DEFAULT_REFRESH;
+    }
+    pQuartzScreen->fakeMode = pQuartzScreen->originalMode;
+    pQuartzScreen->fakeMode.height -= aquaMenuBarHeight;
 
     pScrPriv = rrGetScrPriv(pScreen);
     pScrPriv->rrGetInfo = QuartzRandRGetInfo;
