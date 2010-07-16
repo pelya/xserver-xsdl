@@ -51,6 +51,9 @@ typedef struct {
 #define QUARTZ_PRIV(pScreen) \
     ((QuartzScreenPtr)dixLookupPrivate(&pScreen->devPrivates, quartzScreenKey))
 
+void QuartzCopyDisplayIDs(ScreenPtr pScreen,
+                          int displayCount, CGDirectDisplayID *displayIDs);
+
 // User preferences used by Quartz modes
 extern int              quartzUseSysBeep;
 extern int              quartzFullscreenDisableHotkeys;

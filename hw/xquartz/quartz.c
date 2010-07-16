@@ -35,6 +35,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "quartzRandR.h"
 #include "inputstr.h"
 #include "quartz.h"
 #include "darwin.h"
@@ -46,7 +47,6 @@
 #include "X11Application.h"
 
 #include <X11/extensions/applewmconst.h>
-#include <X11/extensions/randr.h>
 
 // X headers
 #include "scrnintstr.h"
@@ -56,6 +56,8 @@
 #include "mi.h"
 
 // System headers
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -63,8 +65,6 @@
 
 #include <rootlessCommon.h>
 #include <Xplugin.h>
-
-#define FAKE_RANDR 1
 
 // Shared global variables for Quartz modes
 int                     quartzUseSysBeep = 0;
@@ -75,30 +75,6 @@ QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
 int                     quartzFullscreenDisableHotkeys = TRUE;
 int                     quartzOptionSendsAlt = FALSE;
-
-#if defined(RANDR) && !defined(FAKE_RANDR)
-Bool QuartzRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
-  return FALSE;
-}
-
-Bool QuartzRandRSetConfig (ScreenPtr           pScreen,
-			       Rotation            randr,
-			       int                 rate,
-			       RRScreenSizePtr     pSize) {
-  return FALSE;
-}
-
-Bool QuartzRandRInit (ScreenPtr pScreen) {
-  rrScrPrivPtr    pScrPriv;
-    
-  if (!RRScreenInit (pScreen)) return FALSE;
-
-  pScrPriv = rrGetScrPriv(pScreen);
-  pScrPriv->rrGetInfo = QuartzRandRGetInfo;
-  pScrPriv->rrSetConfig = QuartzRandRSetConfig;
-  return TRUE;
-}
-#endif
 
 /*
 ===========================================================================
@@ -143,6 +119,13 @@ Bool QuartzSetupScreen(
     if (! quartzProcs->InitCursor(pScreen))
         return FALSE;
 
+#if defined(RANDR) && !defined(FAKE_RANDR)
+    if(!QuartzRandRInit(pScreen)) {
+        DEBUG_LOG("Failed to init RandR extension.\n");
+        return FALSE;
+    }
+#endif
+
     return TRUE;
 }
 
@@ -165,11 +148,6 @@ void QuartzInitOutput(
     if (!dixRegisterPrivateKey(&quartzScreenKeyRec, PRIVATE_SCREEN, 0))
 	FatalError("Failed to alloc quartz screen private.\n");
 
-#if defined(RANDR) && !defined(FAKE_RANDR)
-    if(!QuartzRandRInit(pScreen))
-        FatalError("Failed to init RandR extension.\n");
-#endif
-
     // Do display mode specific initialization
     quartzProcs->DisplayInit();
 }
@@ -191,50 +169,6 @@ void QuartzInitInput(
 }
 
 
-#ifdef FAKE_RANDR
-
-static const int padlength[4] = {0, 3, 2, 1};
-
-static void
-RREditConnectionInfo (ScreenPtr pScreen)
-{
-    xConnSetup	    *connSetup;
-    char	    *vendor;
-    xPixmapFormat   *formats;
-    xWindowRoot	    *root;
-    xDepth	    *depth;
-    xVisualType	    *visual;
-    int		    screen = 0;
-    int		    d;
-
-    connSetup = (xConnSetup *) ConnectionInfo;
-    vendor = (char *) connSetup + sizeof (xConnSetup);
-    formats = (xPixmapFormat *) ((char *) vendor +
-				 connSetup->nbytesVendor +
-				 padlength[connSetup->nbytesVendor & 3]);
-    root = (xWindowRoot *) ((char *) formats +
-			    sizeof (xPixmapFormat) * screenInfo.numPixmapFormats);
-    while (screen != pScreen->myNum)
-    {
-	depth = (xDepth *) ((char *) root + 
-			    sizeof (xWindowRoot));
-	for (d = 0; d < root->nDepths; d++)
-	{
-	    visual = (xVisualType *) ((char *) depth +
-				      sizeof (xDepth));
-	    depth = (xDepth *) ((char *) visual +
-				depth->nVisuals * sizeof (xVisualType));
-	}
-	root = (xWindowRoot *) ((char *) depth);
-	screen++;
-    }
-    root->pixWidth = pScreen->width;
-    root->pixHeight = pScreen->height;
-    root->mmWidth = pScreen->mmWidth;
-    root->mmHeight = pScreen->mmHeight;
-}
-#endif
-
 void QuartzUpdateScreens(void) {
     ScreenPtr pScreen;
     WindowPtr pRoot;
@@ -255,7 +189,7 @@ void QuartzUpdateScreens(void) {
     pScreen = screenInfo.screens[0];
     
     PseudoramiXResetScreens();
-    quartzProcs->AddPseudoramiXScreens(&x, &y, &width, &height);
+    quartzProcs->AddPseudoramiXScreens(&x, &y, &width, &height, pScreen);
     
     pScreen->x = x;
     pScreen->y = y;
@@ -445,4 +379,20 @@ void QuartzSetRootClip(
 void QuartzSpaceChanged(uint32_t space_id) {
     /* Do something special here, so we don't depend on quartz-wm for spaces to work... */
     DEBUG_LOG("Space Changed (%u) ... do something interesting...\n", space_id);
+}
+
+/*
+ * QuartzCopyDisplayIDs
+ *  Associate an X11 screen with one or more CoreGraphics display IDs by copying
+ *  the list into a private array. Free the previously copied array, if present.
+ */
+void QuartzCopyDisplayIDs(ScreenPtr pScreen,
+                          int displayCount, CGDirectDisplayID *displayIDs) {
+    QuartzScreenPtr pQuartzScreen = QUARTZ_PRIV(pScreen);
+    int size = displayCount * sizeof(CGDirectDisplayID);
+
+    free(pQuartzScreen->displayIDs);
+    pQuartzScreen->displayIDs = malloc(size);
+    memcpy(pQuartzScreen->displayIDs, displayIDs, size);
+    pQuartzScreen->displayCount = displayCount;
 }

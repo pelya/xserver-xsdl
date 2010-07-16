@@ -176,7 +176,7 @@ displayScreenBounds(CGDirectDisplayID id)
  *  with PseudoramiX.
  */
 static void
-xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
+xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height, ScreenPtr pScreen)
 {
     CGDisplayCount i, displayCount;
     CGDirectDisplayID *displayList = NULL;
@@ -199,6 +199,7 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     if(!displayList)
         FatalError("Unable to allocate memory for list of displays.\n");
     CGGetActiveDisplayList(displayCount, displayList, &displayCount);
+    QuartzCopyDisplayIDs(pScreen, displayCount, displayList);
 
     /* Get the union of all screens */
     for (i = 0; i < displayCount; i++) {
@@ -336,6 +337,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
         ErrorF("Warning: noPseudoramiXExtension!\n");
         
         dpy = displayAtIndex(index);
+        QuartzCopyDisplayIDs(pScreen, 1, &dpy);
 
         frame = displayScreenBounds(dpy);
 
@@ -346,7 +348,7 @@ xprAddScreen(int index, ScreenPtr pScreen)
     }
     else
     {
-        xprAddPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height);
+        xprAddPseudoramiXScreens(&dfb->x, &dfb->y, &dfb->width, &dfb->height, pScreen);
     }
 
     /* Passing zero width (pitch) makes miCreateScreenResources set the

@@ -62,7 +62,8 @@ typedef void (*ResumeScreenProc)(ScreenPtr pScreen);
 /*
  * Screen state change support
  */
-typedef void (*AddPseudoramiXScreensProc)(int *x, int *y, int *width, int *height);
+typedef void (*AddPseudoramiXScreensProc)
+    (int *x, int *y, int *width, int *height, ScreenPtr pScreen);
 typedef void (*UpdateScreenProc)(ScreenPtr pScreen);
 
 /*
