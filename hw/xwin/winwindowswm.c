@@ -45,8 +45,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static int WMErrorBase;
 
-static DISPATCH_PROC(ProcWindowsWMDispatch);
-static DISPATCH_PROC(SProcWindowsWMDispatch);
 
 static unsigned char WMReqCode = 0;
 static int WMEventBase = 0;

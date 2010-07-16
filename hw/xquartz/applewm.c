@@ -70,8 +70,6 @@ static AppleWMProcsPtr appleWMProcs;
 
 static int WMErrorBase;
 
-static DISPATCH_PROC(ProcAppleWMDispatch);
-static DISPATCH_PROC(SProcAppleWMDispatch);
 
 static unsigned char WMReqCode = 0;
 static int WMEventBase = 0;

@@ -59,8 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static int DRIErrorBase = 0;
 
-static DISPATCH_PROC(ProcAppleDRIDispatch);
-static DISPATCH_PROC(SProcAppleDRIDispatch);
 
 static void AppleDRIResetProc(ExtensionEntry* extEntry);
 static int ProcAppleDRICreatePixmap(ClientPtr client);
