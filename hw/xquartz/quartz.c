@@ -119,7 +119,7 @@ Bool QuartzSetupScreen(
     if (! quartzProcs->InitCursor(pScreen))
         return FALSE;
 
-#if defined(RANDR) && !defined(FAKE_RANDR)
+#if defined(RANDR)
     if(!QuartzRandRInit(pScreen)) {
         DEBUG_LOG("Failed to init RandR extension.\n");
         return FALSE;
@@ -239,10 +239,6 @@ void QuartzUpdateScreens(void) {
     DeliverEvents(pRoot, &e, 1, NullWindow);
 
     quartzProcs->UpdateScreen(pScreen);
-    
-#ifdef FAKE_RANDR
-    RREditConnectionInfo(pScreen);
-#endif    
 }
 
 void QuartzSetFullscreen(Bool state) {

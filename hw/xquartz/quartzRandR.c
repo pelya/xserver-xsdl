@@ -39,60 +39,10 @@
 #include "quartzRandR.h"
 #include "quartz.h"
 
-#if defined(FAKE_RANDR)
-#include "scrnintstr.h"
-#include "windowstr.h"
-#else
 #include <X11/extensions/randr.h>
 #include <randrstr.h>
 #include <IOKit/graphics/IOGraphicsTypes.h>
-#endif
 
-
-#if defined(FAKE_RANDR)
-
-static const int padlength[4] = {0, 3, 2, 1};
-
-void
-RREditConnectionInfo (ScreenPtr pScreen)
-{
-    xConnSetup	    *connSetup;
-    char	    *vendor;
-    xPixmapFormat   *formats;
-    xWindowRoot	    *root;
-    xDepth	    *depth;
-    xVisualType	    *visual;
-    int		    screen = 0;
-    int		    d;
-
-    connSetup = (xConnSetup *) ConnectionInfo;
-    vendor = (char *) connSetup + sizeof (xConnSetup);
-    formats = (xPixmapFormat *) ((char *) vendor +
-				 connSetup->nbytesVendor +
-				 padlength[connSetup->nbytesVendor & 3]);
-    root = (xWindowRoot *) ((char *) formats +
-			    sizeof (xPixmapFormat) * screenInfo.numPixmapFormats);
-    while (screen != pScreen->myNum)
-    {
-	depth = (xDepth *) ((char *) root + 
-			    sizeof (xWindowRoot));
-	for (d = 0; d < root->nDepths; d++)
-	{
-	    visual = (xVisualType *) ((char *) depth +
-				      sizeof (xDepth));
-	    depth = (xDepth *) ((char *) visual +
-				depth->nVisuals * sizeof (xVisualType));
-	}
-	root = (xWindowRoot *) ((char *) depth);
-	screen++;
-    }
-    root->pixWidth = pScreen->width;
-    root->pixHeight = pScreen->height;
-    root->mmWidth = pScreen->mmWidth;
-    root->mmHeight = pScreen->mmHeight;
-}
-
-#else  /* defined(FAKE_RANDR) */
 
 #define DEFAULT_REFRESH  60
 #define kDisplayModeUsableFlags  (kDisplayModeValidFlag | kDisplayModeSafeFlag)
@@ -427,5 +377,3 @@ Bool QuartzRandRInit (ScreenPtr pScreen) {
     pScrPriv->rrSetConfig = QuartzRandRSetConfig;
     return TRUE;
 }
-
-#endif  /* defined(FAKE_RANDR) */

@@ -27,11 +27,6 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-/*define FAKE_RANDR 1*/
 #define USE_DEPRECATED_CG_API 1
 
-#if defined(FAKE_RANDR)
-void RREditConnectionInfo (ScreenPtr pScreen);
-#else
 Bool QuartzRandRInit (ScreenPtr pScreen);
-#endif
