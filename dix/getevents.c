@@ -210,7 +210,7 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask)
         if (valuator_mask_isset(mask, i))
         {
             SetBit(event->valuators.mask, i);
-            if (dev->valuator->mode == Absolute)
+            if (dev->valuator->axes[i].mode == Absolute)
                 SetBit(event->valuators.mode, i);
             event->valuators.data[i] = valuator_mask_get(mask, i);
             event->valuators.data_frac[i] =
@@ -255,8 +255,7 @@ CreateClassesChangedEvent(EventList* event,
             dce->valuators[i].min = slave->valuator->axes[i].min_value;
             dce->valuators[i].max = slave->valuator->axes[i].max_value;
             dce->valuators[i].resolution = slave->valuator->axes[i].resolution;
-            /* This should, eventually, be a per-axis mode */
-            dce->valuators[i].mode = slave->valuator->mode;
+            dce->valuators[i].mode = slave->valuator->axes[i].mode;
             dce->valuators[i].name = slave->valuator->axes[i].label;
         }
     }
@@ -374,8 +373,16 @@ AllocateMotionHistory(DeviceIntPtr pDev)
      */
     if (IsMaster(pDev))
         size = sizeof(INT32) * 3 * MAX_VALUATORS;
-    else
-        size = sizeof(INT32) * pDev->valuator->numAxes;
+    else {
+        ValuatorClassPtr v = pDev->valuator;
+        int numAxes;
+        /* XI1 doesn't understand mixed mode devices */
+        for (numAxes = 0; numAxes < v->numAxes; numAxes++)
+            if ((v->axes[numAxes].mode & DeviceMode) !=
+                (v->mode & DeviceMode))
+                break;
+        size = sizeof(INT32) * numAxes;
+    }
 
     size += sizeof(Time);
 
@@ -556,6 +563,10 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
 
         for (i = 0; i < v->numAxes; i++)
         {
+            /* XI1 doesn't support mixed mode devices */
+            if ((pDev->valuator->axes[i].mode & DeviceMode) !=
+                (pDev->valuator->mode & DeviceMode))
+                break;
             if (valuator_mask_size(mask) <= i || !valuator_mask_isset(mask, i))
             {
                 buff += 3 * sizeof(INT32);
@@ -769,7 +780,7 @@ moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
         if (valuator_mask_isset(mask, i))
         {
             dev->last.valuators[i] += valuator_mask_get(mask, i);
-            if (dev->valuator->mode == Absolute)
+            if (dev->valuator->axes[i].mode == Absolute)
                 clipAxis(dev, i, &dev->last.valuators[i]);
             valuator_mask_set(mask, i, dev->last.valuators[i]);
         }

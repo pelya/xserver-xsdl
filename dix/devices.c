@@ -1260,7 +1260,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
 
     for (i=0; i<numAxes; i++) {
         InitValuatorAxisStruct(dev, i, labels[i], NO_AXIS_LIMITS, NO_AXIS_LIMITS,
-                               0, 0, 0);
+                               0, 0, 0, mode);
 	valc->axisVal[i]=0;
     }
 
@@ -2357,8 +2357,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
                 event.valuators[i].min = master->valuator->axes[i].min_value;
                 event.valuators[i].max = master->valuator->axes[i].max_value;
                 event.valuators[i].resolution = master->valuator->axes[i].resolution;
-                /* This should, eventually, be a per-axis mode */
-                event.valuators[i].mode = master->valuator->mode;
+                event.valuators[i].mode = master->valuator->axes[i].mode;
                 event.valuators[i].name = master->valuator->axes[i].label;
             }
         }

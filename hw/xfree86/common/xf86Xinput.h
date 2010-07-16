@@ -147,7 +147,7 @@ extern _X_EXPORT void xf86XInputSetScreen(InputInfoPtr pInfo, int screen_number,
 extern _X_EXPORT void xf86ProcessCommonOptions(InputInfoPtr pInfo, pointer options);
 extern _X_EXPORT void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval,
 				int maxval, int resolution, int min_res,
-				int max_res);
+				int max_res, int mode);
 extern _X_EXPORT void xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum);
 extern _X_EXPORT void xf86AddEnabledDevice(InputInfoPtr pInfo);
 extern _X_EXPORT void xf86RemoveEnabledDevice(InputInfoPtr pInfo);

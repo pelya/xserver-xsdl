@@ -218,6 +218,7 @@ typedef struct _AxisInfo {
     int		min_value;
     int		max_value;
     Atom	label;
+    CARD8	mode;
 } AxisInfo, *AxisInfoPtr;
 
 typedef struct _ValuatorAccelerationRec {

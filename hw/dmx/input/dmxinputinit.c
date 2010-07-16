@@ -476,7 +476,8 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                     InitValuatorAxisStruct(pDevice, i, axis_labels[i],
                                            info.minval[i], info.maxval[i],
                                            info.res[i],
-                                           info.minres[i], info.maxres[i]);
+                                           info.minres[i], info.maxres[i],
+                                           Relative);
             } else if (info.numRelAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
                                               axis_labels,
@@ -486,7 +487,8 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                     InitValuatorAxisStruct(pDevice, i, axis_labels[i],
                                            info.minval[i],
                                            info.maxval[i], info.res[i],
-                                           info.minres[i], info.maxres[i]);
+                                           info.minres[i], info.maxres[i],
+                                           Relative);
             } else if (info.numAbsAxes) {
                 InitValuatorClassDeviceStruct(pDevice, info.numAbsAxes,
                                               axis_labels,
@@ -497,7 +499,7 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                            axis_labels[i],
                                            info.minval[i], info.maxval[i],
                                            info.res[i], info.minres[i],
-                                           info.maxres[i]);
+                                           info.maxres[i], Absolute);
             }
         }
         if (info.focusClass)       InitFocusClassDeviceStruct(pDevice);
