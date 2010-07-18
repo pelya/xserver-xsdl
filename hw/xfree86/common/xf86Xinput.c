@@ -92,6 +92,9 @@
 
 EventListPtr xf86Events = NULL;
 
+static int
+xf86InputDevicePostInit(DeviceIntPtr dev);
+
 /**
  * Eval config and modify DeviceVelocityRec accordingly
  */
@@ -778,6 +781,19 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     free(pInp);
 }
 
+/*
+ * Apply backend-specific initialization. Invoked after ActiveteDevice(),
+ * i.e. after the driver successfully completed DEVICE_INIT and the device
+ * is advertised.
+ * @param dev the device
+ * @return Success or an error code
+ */
+static int
+xf86InputDevicePostInit(DeviceIntPtr dev) {
+    ApplyAccelerationSettings(dev);
+    return Success;
+}
+
 /**
  * Create a new input device, activate and enable it.
  *
@@ -845,6 +861,14 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
         RemoveDevice(dev, TRUE);
         goto unwind;
+    }
+
+    rval = xf86InputDevicePostInit(dev);
+    if (rval != Success)
+    {
+	xf86Msg(X_ERROR, "Couldn't post-init device \"%s\"\n", idev->identifier);
+	RemoveDevice(dev, TRUE);
+	goto unwind;
     }
 
     /* Enable it if it's properly initialised and we're currently in the VT */
@@ -1357,9 +1381,6 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 	dev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         dev->last.valuators[1] = dev->valuator->axisVal[1];
     }
-
-    if(axnum == 0)  /* to prevent double invocation */
-	ApplyAccelerationSettings(dev);
 }
 
 
