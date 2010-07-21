@@ -775,11 +775,13 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         goto unwind;
     }
 
-    pInfo = drv->PreInit(drv, idev, 0);
+    if (!(pInfo = xf86AllocateInput(drv, idev)))
+	goto unwind;
 
-    if (!pInfo) {
-        xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n", idev->identifier);
-        rval = BadMatch;
+    rval = drv->PreInit(drv, pInfo, 0);
+
+    if (rval != Success) {
+        xf86Msg(X_ERROR, "PreInit returned %d for \"%s\"\n", rval, idev->identifier);
         goto unwind;
     }
     else if (!(pInfo->flags & XI86_CONFIGURED)) {

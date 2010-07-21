@@ -97,13 +97,14 @@ typedef struct _InputDriverRec {
     int			    driverVersion;
     char *		    driverName;
     void		    (*Identify)(int flags);
-    struct _LocalDeviceRec *(*PreInit)(struct _InputDriverRec *drv,
-				       IDevPtr dev, int flags);
+    int			    (*PreInit)(struct _InputDriverRec *drv,
+				       struct _LocalDeviceRec* pInfo, int flags);
     void		    (*UnInit)(struct _InputDriverRec *drv,
 				      struct _LocalDeviceRec *pInfo,
 				      int flags);
     pointer		    module;
     int			    refCount;
+    char **		    default_options;
 } InputDriverRec, *InputDriverPtr;
 
 /* This is to input devices what the ScrnInfoRec is to screens. */
@@ -202,7 +203,7 @@ int xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL is_auto);
 /* xf86Helper.c */
 extern _X_EXPORT void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);
 extern _X_EXPORT void xf86DeleteInputDriver(int drvIndex);
-extern _X_EXPORT InputInfoPtr xf86AllocateInput(InputDriverPtr drv, int flags);
+extern _X_INTERNAL InputInfoPtr xf86AllocateInput(InputDriverPtr drv, IDevPtr idev);
 extern _X_EXPORT InputDriverPtr xf86LookupInputDriver(const char *name);
 extern _X_EXPORT InputInfoPtr xf86LookupInput(const char *name);
 extern _X_EXPORT void xf86DeleteInput(InputInfoPtr pInp, int flags);

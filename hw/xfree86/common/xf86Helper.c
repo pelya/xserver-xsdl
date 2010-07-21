@@ -276,7 +276,7 @@ xf86AllocateScrnInfoPrivateIndex(void)
 
 /* Allocate a new InputInfoRec and append it to the tail of xf86InputDevs. */
 InputInfoPtr
-xf86AllocateInput(InputDriverPtr drv, int flags)
+xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
 {
     InputInfoPtr new, *prev = NULL;
 
@@ -292,6 +292,26 @@ xf86AllocateInput(InputDriverPtr drv, int flags)
 
     *prev = new;
     new->next = NULL;
+
+    new->fd = -1;
+    new->name = idev->identifier;
+    new->type_name = "UNKNOWN";
+    new->device_control = NULL;
+    new->read_input = NULL;
+    new->history_size = 0;
+    new->control_proc = NULL;
+    new->close_proc = NULL;
+    new->switch_mode = NULL;
+    new->conversion_proc = NULL;
+    new->reverse_conversion_proc = NULL;
+    new->dev = NULL;
+    new->private_flags = 0;
+    new->always_core_feedback = NULL;
+    new->private = NULL;
+    new->conf_idev = idev;
+
+    xf86CollectInputOptions(new, (const char**)drv->default_options, NULL);
+    xf86ProcessCommonOptions(new, new->options);
 
     return new;
 }
