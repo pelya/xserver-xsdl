@@ -351,8 +351,6 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->type = SLAVE;
         dev->spriteInfo->spriteOwner = FALSE;
 
-        dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
-        dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
         dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
 
         RegisterOtherDevice(dev);
