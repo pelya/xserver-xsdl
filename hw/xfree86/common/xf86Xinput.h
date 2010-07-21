@@ -184,7 +184,6 @@ extern _X_EXPORT void xf86PostKeyEventP(DeviceIntPtr device, unsigned int key_co
 		       int *valuators);
 extern _X_EXPORT void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
-extern _X_EXPORT int xf86ActivateDevice(LocalDevicePtr local);
 extern _X_EXPORT LocalDevicePtr xf86FirstLocalDevice(void);
 extern _X_EXPORT int xf86ScaleAxis(int Cx, int Sxhigh, int Sxlow, int Rxhigh, int Rxlow);
 extern _X_EXPORT void xf86XInputSetScreen(LocalDevicePtr local, int screen_number, int x, int y);

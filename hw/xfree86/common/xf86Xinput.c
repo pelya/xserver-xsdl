@@ -324,7 +324,7 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
  * Returns TRUE on success, or FALSE otherwise.
  ***********************************************************************
  */
-int
+static int
 xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
