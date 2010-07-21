@@ -122,7 +122,6 @@ AddOtherInputDevices(void)
 
     dev = (DeviceIntPtr) AddInputDevice(deviceProc, TRUE);
     dev->public.devicePrivate = private;
-    RegisterOtherDevice(dev);
     dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
     ************************************************************************/
 

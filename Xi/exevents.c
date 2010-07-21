@@ -111,13 +111,6 @@ XIShouldNotify(ClientPtr client, DeviceIntPtr dev)
     return 0;
 }
 
-void
-RegisterOtherDevice(DeviceIntPtr device)
-{
-    device->public.processInputProc = ProcessOtherEvent;
-    device->public.realInputProc = ProcessOtherEvent;
-}
-
 Bool
 IsPointerEvent(InternalEvent* event)
 {

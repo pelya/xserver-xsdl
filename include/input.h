@@ -274,12 +274,6 @@ extern _X_EXPORT int RemoveDevice(
 
 extern _X_EXPORT int NumMotionEvents(void);
 
-extern void RegisterPointerDevice(
-    DeviceIntPtr /*device*/);
-
-extern void RegisterKeyboardDevice(
-    DeviceIntPtr /*device*/);
-
 extern _X_EXPORT int dixLookupDevice(
     DeviceIntPtr *         /* dev */,
     int                    /* id */,

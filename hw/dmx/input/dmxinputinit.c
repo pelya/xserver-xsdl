@@ -693,7 +693,6 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
     DeviceIntPtr pDevice;
     Atom         atom;
     const char   *name = NULL;
-    void         (*registerProcPtr)(DeviceIntPtr)   = NULL;
     char         *devname;
     DMXInputInfo *dmxInput;
 
@@ -706,22 +705,19 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
             dmxLocal->isCore     = 1;
             dmxLocalCoreKeyboard = dmxLocal;
             name                 = "keyboard";
-            registerProcPtr      = RegisterKeyboardDevice;
         }
         if (dmxLocal->type == DMX_LOCAL_MOUSE && !dmxLocalCorePointer) {
             dmxLocal->isCore     = 1;
             dmxLocalCorePointer  = dmxLocal;
             name                 = "pointer";
-            registerProcPtr      = RegisterPointerDevice;
         }
     }
 
     if (!name) {
         name            = "extension";
-        registerProcPtr = RegisterOtherDevice;
     }
 
-    if (!name || !registerProcPtr)
+    if (!name)
         dmxLog(dmxFatal, "Cannot add device %s\n", dmxLocal->name);
 
     pDevice                       = AddInputDevice(serverClient, dmxDeviceOnOff, TRUE);
@@ -737,8 +733,6 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
     atom          = MakeAtom((char *)devname, strlen(devname), TRUE);
     pDevice->type = atom;
     pDevice->name = devname;
-
-    registerProcPtr(pDevice);
 
     if (dmxLocal->isCore && dmxLocal->type == DMX_LOCAL_MOUSE) {
 #if 00 /*BP*/

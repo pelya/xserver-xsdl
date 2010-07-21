@@ -261,8 +261,8 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->id = devid;
-    dev->public.processInputProc = (ProcessInputProc)NoopDDA;
-    dev->public.realInputProc = (ProcessInputProc)NoopDDA;
+    dev->public.processInputProc = ProcessOtherEvent;
+    dev->public.realInputProc = ProcessOtherEvent;
     dev->public.enqueueInputProc = EnqueueEvent;
     dev->deviceProc = deviceProc;
     dev->startup = autoStart;
@@ -271,6 +271,7 @@ AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
     dev->deviceGrab.grabTime = currentTime;
     dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
     dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+
 
     dev->coreEvents = TRUE;
 
@@ -1104,18 +1105,6 @@ NumMotionEvents(void)
     /* only called to fill data in initial connection reply.
      * VCP is ok here, it is the only fixed device we have. */
     return inputInfo.pointer->valuator->numMotionEvents;
-}
-
-void
-RegisterPointerDevice(DeviceIntPtr device)
-{
-    RegisterOtherDevice(device);
-}
-
-void
-RegisterKeyboardDevice(DeviceIntPtr device)
-{
-    RegisterOtherDevice(device);
 }
 
 int

@@ -353,7 +353,6 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
 
-        RegisterOtherDevice(dev);
         XkbSetExtension(dev, ProcessKeyboardEvent);
 
         if (serverGeneration == 1) 

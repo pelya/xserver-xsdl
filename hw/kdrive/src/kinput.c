@@ -943,8 +943,6 @@ KdAddKeyboard (KdKeyboardInfo *ki)
         return !Success;
     }
 
-    RegisterOtherDevice(ki->dixdev);
-
 #ifdef DEBUG
     ErrorF("added keyboard %s with dix id %d\n", ki->name, ki->dixdev->id);
 #endif
@@ -1011,8 +1009,6 @@ KdAddPointer (KdPointerInfo *pi)
                pi->name ? pi->name : "(unnamed)");
         return BadDevice;
     }
-
-    RegisterOtherDevice(pi->dixdev);
 
     for (prev = &kdPointers; *prev; prev = &(*prev)->next);
     *prev = pi;

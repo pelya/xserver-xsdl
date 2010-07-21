@@ -146,10 +146,6 @@ typedef struct _GrabParameters {
 } GrabParameters;
 
 
-extern void
-RegisterOtherDevice (
-	DeviceIntPtr           /* device */);
-
 extern int
 UpdateDeviceState (
 	DeviceIntPtr           /* device */,

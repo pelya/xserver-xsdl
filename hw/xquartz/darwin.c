@@ -468,7 +468,6 @@ void InitInput( int argc, char **argv )
     XkbSetRulesDflts(&rmlvo);
 
     darwinKeyboard = AddInputDevice(serverClient, DarwinKeybdProc, TRUE);
-    RegisterKeyboardDevice( darwinKeyboard );
     darwinKeyboard->name = strdup("keyboard");
 
     /* here's the snippet from the current gdk sources:
@@ -486,19 +485,15 @@ void InitInput( int argc, char **argv )
     */
 
     darwinPointer = AddInputDevice(serverClient, DarwinMouseProc, TRUE);
-    RegisterPointerDevice( darwinPointer );
     darwinPointer->name = strdup("pointer");
 
     darwinTabletStylus = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
-    RegisterPointerDevice( darwinTabletStylus );
     darwinTabletStylus->name = strdup("pen");
 
     darwinTabletCursor = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
-    RegisterPointerDevice( darwinTabletCursor );
     darwinTabletCursor->name = strdup("cursor");
 
     darwinTabletEraser = AddInputDevice(serverClient, DarwinTabletProc, TRUE);
-    RegisterPointerDevice( darwinTabletEraser );
     darwinTabletEraser->name = strdup("eraser");
 
     darwinTabletCurrent = darwinTabletStylus;
