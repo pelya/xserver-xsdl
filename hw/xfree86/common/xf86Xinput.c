@@ -353,6 +353,7 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
         dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+        dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
 
         RegisterOtherDevice(dev);
         XkbSetExtension(dev, ProcessKeyboardEvent);
