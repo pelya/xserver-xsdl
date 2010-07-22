@@ -62,14 +62,6 @@
 #define XI86_ALWAYS_CORE	0x04 /* device always controls the pointer */
 /* the device sends Xinput and core pointer events */
 #define XI86_SEND_CORE_EVENTS	XI86_ALWAYS_CORE
-/* if the device is the core pointer or is sending core events, and
- * SEND_DRAG_EVENTS is false, and a buttons is done, then no motion events
- * (mouse drag action) are sent. This is mainly to allow a touch screen to be
- * used with netscape and other browsers which do strange things if the mouse
- * moves between button down and button up. With a touch screen, this motion
- * is common due to the user's finger moving slightly.
- */
-#define XI86_SEND_DRAG_EVENTS	0x08
 
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)

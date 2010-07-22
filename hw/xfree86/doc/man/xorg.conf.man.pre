@@ -944,9 +944,6 @@ default. Devices with
 disabled will be \*qfloating\*q and only accessible by clients employing the
 X Input extension. This option controls the startup behavior only, a device
 may be reattached or set floating at runtime.
-.TP 7
-.BI "Option \*qSendDragEvents\*q  \*q" boolean \*q
-Send core events while dragging. Enabled by default.
 .PP
 For pointing devices, the following options control how the pointer
 is accelerated or decelerated with respect to physical device motion. Most of

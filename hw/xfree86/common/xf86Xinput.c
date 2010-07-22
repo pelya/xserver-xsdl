@@ -272,17 +272,6 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
     }
 }
 
-static Bool
-xf86SendDragEvents(DeviceIntPtr	device)
-{
-    LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
-    
-    if (device->button && device->button->buttonsDown > 0)
-        return local->flags & XI86_SEND_DRAG_EVENTS;
-    else
-        return TRUE;
-}
-
 /***********************************************************************
  *
  * xf86ProcessCommonOptions --
@@ -303,12 +292,6 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     } else {
         local->flags |= XI86_ALWAYS_CORE;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
-    }
-
-    if (xf86SetBoolOption(list, "SendDragEvents", 1)) {
-        local->flags |= XI86_SEND_DRAG_EVENTS;
-    } else {
-        xf86Msg(X_CONFIG, "%s: doesn't report drag events\n", local->name);
     }
 
     /* Backwards compatibility. */
@@ -994,7 +977,6 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                     int			*valuators)
 {
     int i = 0, nevents = 0;
-    Bool drag = xf86SendDragEvents(device);
     DeviceEvent *event;
     int flags = 0;
 
@@ -1041,12 +1023,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
 
     for (i = 0; i < nevents; i++) {
         event = (DeviceEvent*)((xf86Events + i)->event);
-        /* Don't post core motion events for devices not registered to send
-         * drag events. */
-        if (event->header == ET_Internal &&
-            (event->type != ET_Motion || drag)) {
-            mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
-        }
+        mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
     }
 }
 
