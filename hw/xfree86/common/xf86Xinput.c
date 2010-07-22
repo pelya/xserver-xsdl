@@ -705,6 +705,95 @@ IgnoreInputClass(const IDevPtr idev, const InputAttributes *attrs)
     return ignore;
 }
 
+/* Allocate a new InputInfoRec and append it to the tail of xf86InputDevs. */
+static InputInfoPtr
+xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
+{
+    InputInfoPtr new, *prev = NULL;
+
+    if (!(new = calloc(sizeof(InputInfoRec), 1)))
+	return NULL;
+
+    new->drv = drv;
+    drv->refCount++;
+    new->module = DuplicateModule(drv->module, NULL);
+
+    for (prev = &xf86InputDevs; *prev; prev = &(*prev)->next)
+        ;
+
+    *prev = new;
+    new->next = NULL;
+
+    new->fd = -1;
+    new->name = idev->identifier;
+    new->type_name = "UNKNOWN";
+    new->device_control = NULL;
+    new->read_input = NULL;
+    new->history_size = 0;
+    new->control_proc = NULL;
+    new->close_proc = NULL;
+    new->switch_mode = NULL;
+    new->conversion_proc = NULL;
+    new->reverse_conversion_proc = NULL;
+    new->dev = NULL;
+    new->private_flags = 0;
+    new->always_core_feedback = NULL;
+    new->private = NULL;
+    new->conf_idev = idev;
+
+    xf86CollectInputOptions(new, (const char**)drv->default_options, NULL);
+    xf86ProcessCommonOptions(new, new->options);
+
+    return new;
+}
+
+/*
+ * Remove an entry from xf86InputDevs.  Ideally it should free all allocated
+ * data.  To do this properly may require a driver hook.
+ */
+
+void
+xf86DeleteInput(InputInfoPtr pInp, int flags)
+{
+    InputInfoPtr p;
+
+    /* First check if the inputdev is valid. */
+    if (pInp == NULL)
+	return;
+
+#if 0
+    /* If a free function is defined, call it here. */
+    if (pInp->free)
+	pInp->free(pInp, 0);
+#endif
+
+    if (pInp->module)
+	UnloadModule(pInp->module);
+
+    if (pInp->drv)
+	pInp->drv->refCount--;
+
+    /* This should *really* be handled in drv->UnInit(dev) call instead, but
+     * if the driver forgets about it make sure we free it or at least crash
+     * with flying colors */
+    free(pInp->private);
+
+    FreeInputAttributes(pInp->attrs);
+
+    /* Remove the entry from the list. */
+    if (pInp == xf86InputDevs)
+	xf86InputDevs = pInp->next;
+    else {
+	p = xf86InputDevs;
+	while (p && p->next != pInp)
+	    p = p->next;
+	if (p)
+	    p->next = pInp->next;
+	/* Else the entry wasn't in the xf86InputDevs list (ignore this). */
+    }
+    free(pInp);
+}
+
 /**
  * Create a new input device, activate and enable it.
  *

@@ -188,7 +188,6 @@ int xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL is_auto);
 /* xf86Helper.c */
 extern _X_EXPORT void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);
 extern _X_EXPORT void xf86DeleteInputDriver(int drvIndex);
-extern _X_INTERNAL InputInfoPtr xf86AllocateInput(InputDriverPtr drv, IDevPtr idev);
 extern _X_EXPORT InputDriverPtr xf86LookupInputDriver(const char *name);
 extern _X_EXPORT InputInfoPtr xf86LookupInput(const char *name);
 extern _X_EXPORT void xf86DeleteInput(InputInfoPtr pInp, int flags);
