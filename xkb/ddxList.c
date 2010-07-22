@@ -202,8 +202,7 @@ char	tmpname[PATH_MAX];
     }
     if (!in)
     {
-        if (buf != NULL)
-	    free(buf);
+	free(buf);
 #ifdef WIN32
 	unlink(tmpname);
 #endif
@@ -266,8 +265,7 @@ char	tmpname[PATH_MAX];
     fclose(in);
     unlink(tmpname);
 #endif
-    if (buf != NULL)
-        free(buf);
+    free(buf);
     return status;
 }
 
