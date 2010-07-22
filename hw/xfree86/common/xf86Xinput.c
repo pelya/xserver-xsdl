@@ -329,36 +329,32 @@ xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
 
-    if (local->flags & XI86_CONFIGURED) {
-        dev = AddInputDevice(serverClient, local->device_control, TRUE);
+    dev = AddInputDevice(serverClient, local->device_control, TRUE);
 
-        if (dev == NULL)
-        {
-            xf86Msg(X_ERROR, "Too many input devices. Ignoring %s\n",
-                    local->name);
-            local->dev = NULL;
-            return FALSE;
-        }
-
-        local->atom = MakeAtom(local->type_name,
-                               strlen(local->type_name),
-                               TRUE);
-        AssignTypeAndName(dev, local->atom, local->name);
-        dev->public.devicePrivate = (pointer) local;
-        local->dev = dev;      
-        
-        dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
-        dev->type = SLAVE;
-        dev->spriteInfo->spriteOwner = FALSE;
-
-        dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
-
-        XkbSetExtension(dev, ProcessKeyboardEvent);
-
-        if (serverGeneration == 1) 
-            xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
-                    local->name, local->type_name);
+    if (dev == NULL)
+    {
+        xf86Msg(X_ERROR, "Too many input devices. Ignoring %s\n",
+                local->name);
+        local->dev = NULL;
+        return FALSE;
     }
+
+    local->atom = MakeAtom(local->type_name, strlen(local->type_name), TRUE);
+    AssignTypeAndName(dev, local->atom, local->name);
+    dev->public.devicePrivate = local;
+    local->dev = dev;
+
+    dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
+    dev->type = SLAVE;
+    dev->spriteInfo->spriteOwner = FALSE;
+
+    dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
+
+    XkbSetExtension(dev, ProcessKeyboardEvent);
+
+    if (serverGeneration == 1)
+        xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
+                local->name, local->type_name);
 
     return TRUE;
 }
@@ -780,12 +776,6 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
 
     if (rval != Success) {
         xf86Msg(X_ERROR, "PreInit returned %d for \"%s\"\n", rval, idev->identifier);
-        goto unwind;
-    }
-    else if (!(pInfo->flags & XI86_CONFIGURED)) {
-        xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-                idev->identifier);
-        rval = BadMatch;
         goto unwind;
     }
 

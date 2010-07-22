@@ -59,7 +59,6 @@
 #include "XIstubs.h"
 
 /* Input device flags */
-#define XI86_CONFIGURED         0x02 /* the device has been configured */
 #define XI86_ALWAYS_CORE	0x04 /* device always controls the pointer */
 /* the device sends Xinput and core pointer events */
 #define XI86_SEND_CORE_EVENTS	XI86_ALWAYS_CORE
