@@ -333,8 +333,6 @@ xf86ActivateDevice(LocalDevicePtr local)
 
     dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
 
-    XkbSetExtension(dev, ProcessKeyboardEvent);
-
     if (serverGeneration == 1)
         xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
                 local->name, local->type_name);
