@@ -3019,6 +3019,7 @@ register unsigned	bit;
 	    to = (CARD8 *)wire;
 	    if ((to-map)!=length) {
 		client->errorValue = _XkbErrCode2(0xff,length);
+		free(map);
 		return BadLength;
 	    }
 	}
