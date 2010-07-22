@@ -534,8 +534,7 @@ XkbAction               *act;
 
         case XkbSA_XFree86Private:
             /* copy the kind of action */
-            strncpy((char*)act->any.data, (char*)wire.actionData,
-                    XkbAnyActionDataSize);
+            memcpy(act->any.data, wire.actionData, XkbAnyActionDataSize);
             break ;
 
         case XkbSA_Terminate:
