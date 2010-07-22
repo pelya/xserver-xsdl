@@ -59,7 +59,6 @@
 #include "XIstubs.h"
 
 /* Input device flags */
-#define XI86_OPEN_ON_INIT       0x01 /* open the device at startup time */
 #define XI86_CONFIGURED         0x02 /* the device has been configured */
 #define XI86_ALWAYS_CORE	0x04 /* device always controls the pointer */
 /* the device sends Xinput and core pointer events */
@@ -72,10 +71,6 @@
  * is common due to the user's finger moving slightly.
  */
 #define XI86_SEND_DRAG_EVENTS	0x08
-#define XI86_CORE_POINTER	0x10 /* device is the core pointer */
-#define XI86_CORE_KEYBOARD	0x20 /* device is the core keyboard */
-#define XI86_POINTER_CAPABLE	0x40 /* capable of being a core pointer */
-#define XI86_KEYBOARD_CAPABLE	0x80 /* capable of being a core keyboard */
 
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
