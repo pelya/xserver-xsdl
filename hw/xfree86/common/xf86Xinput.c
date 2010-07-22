@@ -307,7 +307,7 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
  * Returns TRUE on success, or FALSE otherwise.
  ***********************************************************************
  */
-static int
+static DeviceIntPtr
 xf86ActivateDevice(LocalDevicePtr local)
 {
     DeviceIntPtr	dev;
@@ -319,7 +319,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         xf86Msg(X_ERROR, "Too many input devices. Ignoring %s\n",
                 local->name);
         local->dev = NULL;
-        return FALSE;
+        return NULL;
     }
 
     local->atom = MakeAtom(local->type_name, strlen(local->type_name), TRUE);
@@ -337,7 +337,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
                 local->name, local->type_name);
 
-    return TRUE;
+    return dev;
 }
 
 
@@ -760,13 +760,12 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         goto unwind;
     }
 
-    if (!xf86ActivateDevice(pInfo))
+    if (!(dev = xf86ActivateDevice(pInfo)))
     {
         rval = BadAlloc;
         goto unwind;
     }
 
-    dev = pInfo->dev;
     rval = ActivateDevice(dev, TRUE);
     if (rval != Success)
     {
