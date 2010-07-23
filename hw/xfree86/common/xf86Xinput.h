@@ -64,7 +64,7 @@
 #define XI86_SEND_CORE_EVENTS	XI86_ALWAYS_CORE
 
 #define XI_PRIVATE(dev) \
-	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
+	(((InputInfoPtr)((dev)->public.devicePrivate))->private)
 
 /* Valuator verification macro */
 #define XI_VERIFY_VALUATORS(num_valuators)					\
@@ -78,15 +78,17 @@
 #define TS_Raw 60
 #define TS_Scaled 61
 
+struct _InputInfoRec;
+
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int			    driverVersion;
     char *		    driverName;
     void		    (*Identify)(int flags);
     int			    (*PreInit)(struct _InputDriverRec *drv,
-				       struct _LocalDeviceRec* pInfo, int flags);
+				       struct _InputInfoRec* pInfo, int flags);
     void		    (*UnInit)(struct _InputDriverRec *drv,
-				      struct _LocalDeviceRec *pInfo,
+				      struct _InputInfoRec *pInfo,
 				      int flags);
     pointer		    module;
     int			    refCount;
@@ -95,27 +97,27 @@ typedef struct _InputDriverRec {
 
 /* This is to input devices what the ScrnInfoRec is to screens. */
 
-typedef struct _LocalDeviceRec {
-    struct _LocalDeviceRec *next;
+typedef struct _InputInfoRec {
+    struct _InputInfoRec *next;
     char *		    name;
     int			    flags;
 
     Bool		    (*device_control)(DeviceIntPtr device, int what);
-    void		    (*read_input)(struct _LocalDeviceRec *local);
-    int			    (*control_proc)(struct _LocalDeviceRec *local,
+    void		    (*read_input)(struct _InputInfoRec *local);
+    int			    (*control_proc)(struct _InputInfoRec *local,
 					   xDeviceCtl *control);
-    void		    (*close_proc)(struct _LocalDeviceRec *local);
+    void		    (*close_proc)(struct _InputInfoRec *local);
     int			    (*switch_mode)(ClientPtr client, DeviceIntPtr dev,
 					  int mode);
-    Bool		    (*conversion_proc)(struct _LocalDeviceRec *local,
+    Bool		    (*conversion_proc)(struct _InputInfoRec *local,
 					      int first, int num, int v0,
 					      int v1, int v2, int v3, int v4,
 					      int v5, int *x, int *y);
     Bool		    (*reverse_conversion_proc)(
-					struct _LocalDeviceRec *local,
+					struct _InputInfoRec *local,
 					int x, int y, int *valuators);
     int                     (*set_device_valuators)
-				(struct _LocalDeviceRec *local,
+				(struct _InputInfoRec *local,
 				 int *valuators, int first_valuator,
 				 int num_valuators);
 
@@ -136,12 +138,12 @@ typedef struct _LocalDeviceRec {
     pointer		    options;
     unsigned int            history_size;
     InputAttributes         *attrs;
-} LocalDeviceRec, *LocalDevicePtr, InputInfoRec, *InputInfoPtr;
+} InputInfoRec, *InputInfoPtr;
 
 typedef struct _DeviceAssocRec 
 {
     char *		    config_section_name;
-    LocalDevicePtr	    (*device_allocate)(void);
+    InputInfoPtr	    (*device_allocate)(void);
 } DeviceAssocRec, *DeviceAssocPtr;
 
 /* xf86Globals.c */
@@ -170,9 +172,9 @@ extern _X_EXPORT void xf86PostKeyEventP(DeviceIntPtr device, unsigned int key_co
 		       int *valuators);
 extern _X_EXPORT void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
-extern _X_EXPORT LocalDevicePtr xf86FirstLocalDevice(void);
+extern _X_EXPORT InputInfoPtr xf86FirstLocalDevice(void);
 extern _X_EXPORT int xf86ScaleAxis(int Cx, int Sxhigh, int Sxlow, int Rxhigh, int Rxlow);
-extern _X_EXPORT void xf86XInputSetScreen(LocalDevicePtr local, int screen_number, int x, int y);
+extern _X_EXPORT void xf86XInputSetScreen(InputInfoPtr pInfo, int screen_number, int x, int y);
 extern _X_EXPORT void xf86ProcessCommonOptions(InputInfoPtr pInfo, pointer options);
 extern _X_EXPORT void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval,
 				int maxval, int resolution, int min_res,
@@ -191,14 +193,14 @@ extern _X_EXPORT void xf86DeleteInputDriver(int drvIndex);
 extern _X_EXPORT InputDriverPtr xf86LookupInputDriver(const char *name);
 extern _X_EXPORT InputInfoPtr xf86LookupInput(const char *name);
 extern _X_EXPORT void xf86DeleteInput(InputInfoPtr pInp, int flags);
-extern _X_EXPORT void xf86MotionHistoryAllocate(LocalDevicePtr local);
-extern _X_EXPORT void xf86IDrvMsgVerb(LocalDevicePtr dev,
+extern _X_EXPORT void xf86MotionHistoryAllocate(InputInfoPtr pInfo);
+extern _X_EXPORT void xf86IDrvMsgVerb(InputInfoPtr dev,
 				      MessageType type, int verb,
 				      const char *format, ...) _X_ATTRIBUTE_PRINTF(4,5);
-extern _X_EXPORT void xf86IDrvMsg(LocalDevicePtr dev,
+extern _X_EXPORT void xf86IDrvMsg(InputInfoPtr dev,
 				  MessageType type,
 				  const char *format, ...) _X_ATTRIBUTE_PRINTF(3,4);
-extern _X_EXPORT void xf86VIDrvMsgVerb(LocalDevicePtr dev,
+extern _X_EXPORT void xf86VIDrvMsgVerb(InputInfoPtr dev,
 				       MessageType type,
 				       int verb,
 				       const char *format,

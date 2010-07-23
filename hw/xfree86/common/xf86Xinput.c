@@ -202,11 +202,11 @@ static void
 ApplyAccelerationSettings(DeviceIntPtr dev){
     int scheme, i;
     DeviceVelocityPtr pVel;
-    LocalDevicePtr local = (LocalDevicePtr)dev->public.devicePrivate;
+    InputInfoPtr pInfo = (InputInfoPtr)dev->public.devicePrivate;
     char* schemeStr;
 
     if (dev->valuator && dev->ptrfeed) {
-	schemeStr = xf86SetStrOption(local->options, "AccelerationScheme", "");
+	schemeStr = xf86SetStrOption(pInfo->options, "AccelerationScheme", "");
 
 	scheme = dev->valuator->accelScheme.number;
 
@@ -227,15 +227,15 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
 
             if (InitPointerAccelerationScheme(dev, scheme)) {
 		xf86Msg(X_CONFIG, "%s: (accel) selected scheme %s/%i\n",
-		        local->name, schemeStr, scheme);
+		        pInfo->name, schemeStr, scheme);
 	    } else {
         	xf86Msg(X_CONFIG, "%s: (accel) could not init scheme %s\n",
-        	        local->name, schemeStr);
+		        pInfo->name, schemeStr);
         	scheme = dev->valuator->accelScheme.number;
             }
         } else {
             xf86Msg(X_CONFIG, "%s: (accel) keeping acceleration scheme %i\n",
-                    local->name, scheme);
+                    pInfo->name, scheme);
         }
 
         free(schemeStr);
@@ -244,31 +244,31 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
         switch (scheme) {
             case PtrAccelPredictable:
                 pVel = GetDevicePredictableAccelData(dev);
-                ProcessVelocityConfiguration (dev, local->name, local->options,
+                ProcessVelocityConfiguration (dev, pInfo->name, pInfo->options,
                                               pVel);
                 break;
         }
 
-        i = xf86SetIntOption(local->options, "AccelerationNumerator",
+        i = xf86SetIntOption(pInfo->options, "AccelerationNumerator",
                              dev->ptrfeed->ctrl.num);
         if (i >= 0)
             dev->ptrfeed->ctrl.num = i;
 
-        i = xf86SetIntOption(local->options, "AccelerationDenominator",
+        i = xf86SetIntOption(pInfo->options, "AccelerationDenominator",
                              dev->ptrfeed->ctrl.den);
         if (i > 0)
             dev->ptrfeed->ctrl.den = i;
 
-        i = xf86SetIntOption(local->options, "AccelerationThreshold",
+        i = xf86SetIntOption(pInfo->options, "AccelerationThreshold",
                              dev->ptrfeed->ctrl.threshold);
         if (i >= 0)
             dev->ptrfeed->ctrl.threshold = i;
 
         xf86Msg(X_CONFIG, "%s: (accel) acceleration factor: %.3f\n",
-                            local->name, ((float)dev->ptrfeed->ctrl.num)/
+                            pInfo->name, ((float)dev->ptrfeed->ctrl.num)/
                                          ((float)dev->ptrfeed->ctrl.den));
         xf86Msg(X_CONFIG, "%s: (accel) acceleration threshold: %i\n",
-                local->name, dev->ptrfeed->ctrl.threshold);
+                pInfo->name, dev->ptrfeed->ctrl.threshold);
     }
 }
 
@@ -281,21 +281,21 @@ ApplyAccelerationSettings(DeviceIntPtr dev){
  ***********************************************************************
  */
 void
-xf86ProcessCommonOptions(LocalDevicePtr local,
+xf86ProcessCommonOptions(InputInfoPtr pInfo,
                          pointer	list)
 {
     if (!xf86SetBoolOption(list, "AlwaysCore", 1) ||
         !xf86SetBoolOption(list, "SendCoreEvents", 1) ||
         !xf86SetBoolOption(list, "CorePointer", 1) ||
         !xf86SetBoolOption(list, "CoreKeyboard", 1)) {
-        xf86Msg(X_CONFIG, "%s: doesn't report core events\n", local->name);
+        xf86Msg(X_CONFIG, "%s: doesn't report core events\n", pInfo->name);
     } else {
-        local->flags |= XI86_ALWAYS_CORE;
-        xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
+        pInfo->flags |= XI86_ALWAYS_CORE;
+        xf86Msg(X_CONFIG, "%s: always reports core events\n", pInfo->name);
     }
 
     /* Backwards compatibility. */
-    local->history_size = GetMotionHistorySize();
+    pInfo->history_size = GetMotionHistorySize();
 }
 
 /***********************************************************************
@@ -308,34 +308,34 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
  ***********************************************************************
  */
 static DeviceIntPtr
-xf86ActivateDevice(LocalDevicePtr local)
+xf86ActivateDevice(InputInfoPtr pInfo)
 {
     DeviceIntPtr	dev;
 
-    dev = AddInputDevice(serverClient, local->device_control, TRUE);
+    dev = AddInputDevice(serverClient, pInfo->device_control, TRUE);
 
     if (dev == NULL)
     {
         xf86Msg(X_ERROR, "Too many input devices. Ignoring %s\n",
-                local->name);
-        local->dev = NULL;
+                pInfo->name);
+        pInfo->dev = NULL;
         return NULL;
     }
 
-    local->atom = MakeAtom(local->type_name, strlen(local->type_name), TRUE);
-    AssignTypeAndName(dev, local->atom, local->name);
-    dev->public.devicePrivate = local;
-    local->dev = dev;
+    pInfo->atom = MakeAtom(pInfo->type_name, strlen(pInfo->type_name), TRUE);
+    AssignTypeAndName(dev, pInfo->atom, pInfo->name);
+    dev->public.devicePrivate = pInfo;
+    pInfo->dev = dev;
 
-    dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
+    dev->coreEvents = pInfo->flags & XI86_ALWAYS_CORE;
     dev->type = SLAVE;
     dev->spriteInfo->spriteOwner = FALSE;
 
-    dev->config_info = xf86SetStrOption(local->options, "config_info", NULL);
+    dev->config_info = xf86SetStrOption(pInfo->options, "config_info", NULL);
 
     if (serverGeneration == 1)
         xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
-                local->name, local->type_name);
+                pInfo->name, pInfo->type_name);
 
     return dev;
 }
@@ -397,10 +397,10 @@ CloseInputDevice(DeviceIntPtr dev,
 int
 SetDeviceMode (ClientPtr client, DeviceIntPtr dev, int mode)
 {
-  LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
+  InputInfoPtr        pInfo = (InputInfoPtr)dev->public.devicePrivate;
 
-  if (local->switch_mode) {
-    return (*local->switch_mode)(client, dev, mode);
+  if (pInfo->switch_mode) {
+    return (*pInfo->switch_mode)(client, dev, mode);
   }
   else
     return BadMatch;
@@ -424,10 +424,10 @@ int
 SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
                     int first_valuator, int num_valuators)
 {
-    LocalDevicePtr local = (LocalDevicePtr) dev->public.devicePrivate;
+    InputInfoPtr pInfo = (InputInfoPtr) dev->public.devicePrivate;
 
-    if (local->set_device_valuators)
-	return (*local->set_device_valuators)(local, valuators, first_valuator,
+    if (pInfo->set_device_valuators)
+	return (*pInfo->set_device_valuators)(pInfo, valuators, first_valuator,
 					      num_valuators);
 
     return BadMatch;
@@ -446,9 +446,9 @@ SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
 int
 ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
 {
-  LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
+  InputInfoPtr        pInfo = (InputInfoPtr)dev->public.devicePrivate;
 
-  if (!local->control_proc) {
+  if (!pInfo->control_proc) {
       switch (control->control) {
       case DEVICE_CORE:
           return BadMatch;
@@ -462,7 +462,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
       }
   }
   else {
-      return (*local->control_proc)(local, control);
+      return (*pInfo->control_proc)(pInfo, control);
   }
 }
 
@@ -992,7 +992,7 @@ unwind:
 void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
-    LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
+    InputInfoPtr pInfo = (InputInfoPtr) pDev->public.devicePrivate;
     InputDriverPtr drv = NULL;
     IDevRec *idev = NULL;
     IDevPtr *it;
@@ -1282,7 +1282,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     xf86PostKeyEventP(device, key_code, is_down, 0, 0, 0, NULL);
 }
 
-LocalDevicePtr
+InputInfoPtr
 xf86FirstLocalDevice(void)
 {
     return xf86InputDevs;
@@ -1335,14 +1335,14 @@ xf86ScaleAxis(int	Cx,
  * specific like a touch screen.
  */
 void
-xf86XInputSetScreen(LocalDevicePtr	local,
+xf86XInputSetScreen(InputInfoPtr	pInfo,
 		    int			screen_number,
 		    int			x,
 		    int			y)
 {
-    if (miPointerGetScreen(local->dev) !=
+    if (miPointerGetScreen(pInfo->dev) !=
           screenInfo.screens[screen_number]) {
-	miPointerSetScreen(local->dev, screen_number, x, y);
+	miPointerSetScreen(pInfo->dev, screen_number, x, y);
     }
 }
 
