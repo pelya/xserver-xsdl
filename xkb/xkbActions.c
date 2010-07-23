@@ -1410,6 +1410,7 @@ void
 XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
 {
     DeviceIntPtr        ptr;
+    int                 down;
 
     /* If dev is a slave device, and the SD is attached, do nothing. If we'd
      * post through the attached master pointer we'd get duplicate events.
@@ -1425,6 +1426,10 @@ XkbFakeDeviceButton(DeviceIntPtr dev,Bool press,int button)
     } else if (!dev->u.master)
         ptr = dev;
     else
+        return;
+
+    down = button_is_down(ptr, button, BUTTON_PROCESSED);
+    if (press == down)
         return;
 
     InjectPointerKeyEvents(dev, press ? ButtonPress : ButtonRelease,
