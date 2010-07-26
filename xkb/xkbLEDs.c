@@ -714,10 +714,12 @@ XkbSrvLedInfoPtr	sli;
 	    }	
 	}
     }
-    if ((sli->names==NULL)&&(needed_parts&XkbXI_IndicatorNamesMask))
-	sli->names= calloc(XkbNumIndicators, sizeof(Atom));
-    if ((sli->maps==NULL)&&(needed_parts&XkbXI_IndicatorMapsMask))
-	sli->maps= calloc(XkbNumIndicators, sizeof(XkbIndicatorMapRec));
+    if (sli) {
+	if ((sli->names==NULL)&&(needed_parts&XkbXI_IndicatorNamesMask))
+	    sli->names= calloc(XkbNumIndicators, sizeof(Atom));
+	if ((sli->maps==NULL)&&(needed_parts&XkbXI_IndicatorMapsMask))
+	    sli->maps= calloc(XkbNumIndicators, sizeof(XkbIndicatorMapRec));
+    }
     return sli;
 }
 
