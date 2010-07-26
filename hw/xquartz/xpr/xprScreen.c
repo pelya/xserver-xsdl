@@ -36,6 +36,7 @@
 #include "quartzCommon.h"
 #include "inputstr.h"
 #include "quartz.h"
+#include "quartzRandR.h"
 #include "xpr.h"
 #include "xprEvent.h"
 #include "pseudoramiX.h"
