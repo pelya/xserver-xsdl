@@ -34,7 +34,7 @@
 typedef struct {
     size_t width, height;
     int refresh;
-    const void *ref;
+    void *ref; /* CGDisplayModeRef or CFDictionaryRef */
 } QuartzModeInfo, *QuartzModeInfoPtr;
 
 // Quartz specific per screen storage structure
