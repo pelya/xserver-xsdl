@@ -1,9 +1,9 @@
 /*
- *
  * Quartz-specific support for the XRandR extension
  *
  * Copyright (c) 2001-2004 Greg Parker and Torrey T. Lyons,
  *               2010      Jan Hauffa.
+ *               2010      Apple Inc.
  *                 All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -39,6 +39,8 @@
 #include "quartzRandR.h"
 #include "quartz.h"
 
+#include <AvailabilityMacros.h>
+
 #include <X11/extensions/randr.h>
 #include <randrstr.h>
 #include <IOKit/graphics/IOGraphicsTypes.h>
@@ -51,7 +53,7 @@ typedef Bool (*QuartzModeCallback)
     (ScreenPtr, CGDirectDisplayID, QuartzModeInfoPtr, void *);
 
 
-#if defined(USE_DEPRECATED_CG_API)
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
 
 static long getDictLong (CFDictionaryRef dictRef, CFStringRef key) {
     long value;
@@ -140,7 +142,7 @@ static Bool QuartzRandREnumerateModes (ScreenPtr pScreen,
     return TRUE;
 }
 
-#else  /* defined(USE_DEPRECATED_CG_API) */
+#else /* we have the new CG APIs from Snow Leopard */
 
 static void QuartzRandRGetModeInfo (CGDisplayModeRef modeRef,
                                     QuartzModeInfoPtr pMode) {
@@ -220,7 +222,7 @@ static Bool QuartzRandREnumerateModes (ScreenPtr pScreen,
     return TRUE;
 }
 
-#endif  /* defined(USE_DEPRECATED_CG_API) */
+#endif  /* Snow Leopard CoreGraphics APIs */
 
 
 static Bool QuartzRandRModesEqual (QuartzModeInfoPtr pMode1,

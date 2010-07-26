@@ -2,6 +2,7 @@
  * quartzRandR.h
  *
  * Copyright (c) 2010 Jan Hauffa.
+ *               2010 Apple Inc.
  *                 All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,6 +28,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#define USE_DEPRECATED_CG_API 1
+#ifndef _QUARTZRANDR_H_
+#define _QUARTZRANDR_H_
 
 Bool QuartzRandRInit (ScreenPtr pScreen);
+
+#endif
