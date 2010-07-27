@@ -3760,7 +3760,7 @@ Also included in each GC is support for dynamic devPrivates, which the
 DDX can use for any purpose (see <xref linkend="wrappers_and_privates"/> below).</para>
 <para>
 The DIX routines available for manipulating GCs are
-CreateGC, ChangeGC, CopyGC, SetClipRects, SetDashes, and FreeGC.
+CreateGC, ChangeGC, ChangeGCXIDs, CopyGC, SetClipRects, SetDashes, and FreeGC.
 <blockquote><programlisting>
 
 	GCPtr CreateGC(pDrawable, mask, pval, pStatus)
@@ -3769,10 +3769,17 @@ CreateGC, ChangeGC, CopyGC, SetClipRects, SetDashes, and FreeGC.
 	    XID *pval;
 	    int *pStatus;
 
-	int ChangeGC(pGC, mask, pval)
+	int ChangeGC(client, pGC, mask, pUnion)
+	    ClientPtr client;
 	    GCPtr pGC;
 	    BITS32 mask;
-	    XID *pval;
+	    ChangeGCValPtr pUnion;
+
+	int ChangeGCXIDs(client, pGC, mask, pC32)
+	    ClientPtr client;
+	    GCPtr pGC;
+	    BITS32 mask;
+	    CARD32 *pC32;
 
 	int CopyGC(pgcSrc, pgcDst, mask)
 	    GCPtr pgcSrc;
