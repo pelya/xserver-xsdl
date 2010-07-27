@@ -158,7 +158,7 @@ displayScreenBounds(CGDirectDisplayID id)
               (int)frame.origin.x, (int)frame.origin.y);
     
     /* Remove menubar to help standard X11 window managers. */
-    if (quartzEnableRootless && 
+    if (XQuartzIsRootless && 
         frame.origin.x == 0 && frame.origin.y == 0) {
         frame.origin.y += aquaMenuBarHeight;
         frame.size.height -= aquaMenuBarHeight;
@@ -274,7 +274,8 @@ xprDisplayInit(void)
     AppleDRIExtensionInit();
     xprAppleWMInit();
 
-    if (!quartzEnableRootless)
+    XQuartzIsRootless = XQuartzRootlessDefault;
+    if (!XQuartzIsRootless)
         RootlessHideAllWindows();
 }
 

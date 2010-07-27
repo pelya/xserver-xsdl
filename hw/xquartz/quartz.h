@@ -35,6 +35,7 @@
 
 #include "screenint.h"
 #include "window.h"
+#include "pixmap.h"
 
 /*------------------------------------------
    Quartz display mode function types
@@ -113,7 +114,20 @@ typedef struct _QuartzModeProcs {
 } QuartzModeProcsRec, *QuartzModeProcsPtr;
 
 extern QuartzModeProcsPtr quartzProcs;
-extern int quartzHasRoot, quartzEnableRootless;
+
+extern Bool XQuartzHasRoot;          /* TODO: These two booleans are very similar and */
+extern Bool XQuartzServerVisible;    /* the code that uses them needs to be refactored
+                                      * XQuartzHasRoot is essentially the "saved" XQuartzServerVisible
+                                      * value from when the server was not in rootless mode.
+                                      */
+
+extern Bool XQuartzEnableKeyEquivalents;
+extern Bool XQuartzRootlessDefault;  /* Is our default mode rootless? */
+extern Bool XQuartzIsRootless;       /* Is our current mode rootless (or FS)? */
+extern Bool XQuartzFullscreenMenu;   /* Show the menu bar (autohide) while in FS */
+extern Bool XQuartzFullscreenDisableHotkeys;
+extern Bool XQuartzOptionSendsAlt;   /* Alt or Mode_switch? */
+extern Bool XQuartzUseSysBeep;       /* Sys beep or our own? */
 
 Bool QuartzAddScreen(int index, ScreenPtr pScreen);
 Bool QuartzSetupScreen(int index, ScreenPtr pScreen);
@@ -129,8 +143,8 @@ void QuartzHide(void);
 void QuartzSetRootClip(BOOL enable);
 void QuartzSpaceChanged(uint32_t space_id);
 
-void QuartzSetFullscreen(Bool state);
 void QuartzSetRootless(Bool state);
+void QuartzSetFullscreen(Bool state);
 
 int server_main(int argc, char **argv, char **envp);
 #endif

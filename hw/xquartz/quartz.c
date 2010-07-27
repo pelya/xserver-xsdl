@@ -66,15 +66,20 @@
 #include <rootlessCommon.h>
 #include <Xplugin.h>
 
-// Shared global variables for Quartz modes
-int                     quartzUseSysBeep = 0;
-int                     quartzServerVisible = FALSE;
 DevPrivateKeyRec        quartzScreenKeyRec;
 int                     aquaMenuBarHeight = 0;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
-int                     quartzFullscreenDisableHotkeys = TRUE;
-int                     quartzOptionSendsAlt = FALSE;
+
+Bool XQuartzFullscreenDisableHotkeys = TRUE;
+Bool XQuartzOptionSendsAlt = FALSE;
+Bool XQuartzEnableKeyEquivalents = TRUE;
+Bool XQuartzHasRoot = FALSE;
+Bool XQuartzRootlessDefault = TRUE;
+Bool XQuartzIsRootless = TRUE;
+Bool XQuartzServerVisible = FALSE;
+Bool XQuartzFullscreenMenu = FALSE;
+Bool XQuartzUseSysBeep = FALSE;
 
 /*
 ===========================================================================
@@ -245,61 +250,61 @@ void QuartzSetFullscreen(Bool state) {
     
     DEBUG_LOG("QuartzSetFullscreen: state=%d\n", state);
     
-    if(quartzHasRoot == state)
+    if(XQuartzHasRoot == state)
         return;
     
-    quartzHasRoot = state;
+    XQuartzHasRoot = state;
     
     xp_disable_update ();
     
-    if (!quartzHasRoot && !quartzEnableRootless)
+    if (!XQuartzHasRoot && !XQuartzIsRootless)
         RootlessHideAllWindows();
     
-    RootlessUpdateRooted(quartzHasRoot);
+    RootlessUpdateRooted(XQuartzHasRoot);
     
-    if (quartzHasRoot && !quartzEnableRootless)
+    if (XQuartzHasRoot && !XQuartzIsRootless)
         RootlessShowAllWindows ();
     
-    if (quartzHasRoot || quartzEnableRootless) {
+    if (XQuartzHasRoot || XQuartzIsRootless) {
         RootlessRepositionWindows(screenInfo.screens[0]);
     }
 
     /* Somehow the menubar manages to interfere with our event stream
      * in fullscreen mode, even though it's not visible. 
      */
-    X11ApplicationShowHideMenubar(!quartzHasRoot);
+    X11ApplicationShowHideMenubar(!XQuartzHasRoot);
     
     xp_reenable_update ();
     
-    if (quartzFullscreenDisableHotkeys)
-        xp_disable_hot_keys(quartzHasRoot);
+    if (XQuartzFullscreenDisableHotkeys)
+        xp_disable_hot_keys(XQuartzHasRoot);
 }
 
 void QuartzSetRootless(Bool state) {
-    if(quartzEnableRootless == state)
+    if(XQuartzIsRootless == state)
         return;
     
-    quartzEnableRootless = state;
+    XQuartzIsRootless = state;
 
     xp_disable_update();
 
     /* When in rootless, the menubar is not part of the screen, so we need to update our screens on toggle */    
     QuartzUpdateScreens();
 
-    if(!quartzHasRoot) {
-        if(!quartzEnableRootless) {
+    if(!XQuartzHasRoot) {
+        if(!XQuartzIsRootless) {
             RootlessHideAllWindows();
         } else {
             RootlessShowAllWindows();
         }
     }
 
-    X11ApplicationShowHideMenubar(!quartzHasRoot);
+    X11ApplicationShowHideMenubar(!XQuartzHasRoot);
 
     xp_reenable_update();
 
-    if (!quartzEnableRootless && quartzFullscreenDisableHotkeys)
-        xp_disable_hot_keys(quartzHasRoot);
+    if (!XQuartzIsRootless && XQuartzFullscreenDisableHotkeys)
+        xp_disable_hot_keys(XQuartzHasRoot);
 }
 
 /*
@@ -311,17 +316,17 @@ void QuartzSetRootless(Bool state) {
 void QuartzShow(void) {
     int i;
 
-    if (quartzServerVisible)
+    if (XQuartzServerVisible)
         return;
     
-    quartzServerVisible = TRUE;
+    XQuartzServerVisible = TRUE;
     for (i = 0; i < screenInfo.numScreens; i++) {
         if (screenInfo.screens[i]) {
             quartzProcs->ResumeScreen(screenInfo.screens[i]);
         }
     }
     
-    if (!quartzEnableRootless)
+    if (!XQuartzIsRootless)
         QuartzSetFullscreen(TRUE);
 }
 
@@ -336,7 +341,7 @@ void QuartzHide(void)
 {
     int i;
 
-    if (quartzServerVisible) {
+    if (XQuartzServerVisible) {
         for (i = 0; i < screenInfo.numScreens; i++) {
             if (screenInfo.screens[i]) {
                 quartzProcs->SuspendScreen(screenInfo.screens[i]);
@@ -345,7 +350,7 @@ void QuartzHide(void)
     }
     
     QuartzSetFullscreen(FALSE);
-    quartzServerVisible = FALSE;
+    XQuartzServerVisible = FALSE;
 }
 
 
@@ -358,7 +363,7 @@ void QuartzSetRootClip(
 {
     int i;
 
-    if (!quartzServerVisible)
+    if (!XQuartzServerVisible)
         return;
 
     for (i = 0; i < screenInfo.numScreens; i++) {

@@ -45,7 +45,7 @@ typedef struct {
     // No CG display will be covered by more than one X11 screen.
     int displayCount;
     CGDirectDisplayID *displayIDs;
-    QuartzModeInfo rootlessMode, fullScreenMode, currentMode;
+    QuartzModeInfo rootlessMode, fullscreenMode, currentMode;
 } QuartzScreenRec, *QuartzScreenPtr;
 
 #define QUARTZ_PRIV(pScreen) \

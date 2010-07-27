@@ -38,13 +38,7 @@
 #include <X11/Xdefs.h>
 #include "privates.h"
 
-// User preferences used by Quartz modes
-extern int              quartzUseSysBeep;
-extern int              quartzFullscreenDisableHotkeys;
-extern int              quartzOptionSendsAlt;
-
 // Other shared data
-extern int              quartzServerVisible;
 extern DevPrivateKeyRec quartzScreenKeyRec;
 #define quartzScreenKey (&quartzScreenKeyRec)
 extern int              aquaMenuBarHeight;
