@@ -51,11 +51,6 @@
 #include "dmxinputinit.h"
 #include "exevents.h"
 
-/** This is not required by the XINPUT model that DMX uses. */
-void AddOtherInputDevices(void)
-{
-}
-
 /** Set device mode to \a mode.  This is not implemented. */
 int SetDeviceMode(ClientPtr client, DeviceIntPtr dev, int mode)
 {

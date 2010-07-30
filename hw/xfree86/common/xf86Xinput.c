@@ -412,11 +412,6 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
   }
 }
 
-void
-AddOtherInputDevices(void)
-{
-}
-
 /*
  * Get the operating system name from uname and store it statically to avoid
  * repeating the system call each time MatchOS is checked.

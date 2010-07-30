@@ -2176,13 +2176,6 @@ ProcessInputEvents (void)
     KdCheckLock ();
 }
 
-/* We initialise all input devices at startup. */
-void
-AddOtherInputDevices(void)
-{
-    return;
-}
-
 /* At the moment, absolute/relative is up to the client. */
 int
 SetDeviceMode(register ClientPtr client, DeviceIntPtr pDev, int mode)

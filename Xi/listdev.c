@@ -356,9 +356,6 @@ ProcXListInputDevices(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-
-    AddOtherInputDevices();
-
     /* allocate space for saving skip value */
     skip = calloc(sizeof(Bool), inputInfo.numDevices);
     if (!skip)
