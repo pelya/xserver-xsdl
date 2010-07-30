@@ -63,7 +63,6 @@
 #include "Pci.h"
 
 #include "xf86Xinput.h"
-extern DeviceAssocRec mouse_assoc;
 
 #include "xkbsrv.h"
 

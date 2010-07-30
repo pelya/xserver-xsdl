@@ -140,12 +140,6 @@ typedef struct _InputInfoRec {
     InputAttributes         *attrs;
 } InputInfoRec, *InputInfoPtr;
 
-typedef struct _DeviceAssocRec 
-{
-    char *		    config_section_name;
-    InputInfoPtr	    (*device_allocate)(void);
-} DeviceAssocRec, *DeviceAssocPtr;
-
 /* xf86Globals.c */
 extern _X_EXPORT InputInfoPtr xf86InputDevs;
 
