@@ -68,24 +68,6 @@ SOFTWARE.
 
 /***********************************************************************
  *
- * Caller:	ProcXCloseDevice
- *
- * Take care of implementation-dependent details of closing a device.
- * Some implementations may actually close the device, others may just
- * remove this clients interest in that device.
- *
- * The default implementation is to do nothing (assume all input devices
- * are initialized during X server initialization and kept open).
- *
- */
-
-void
-CloseInputDevice(DeviceIntPtr d, ClientPtr client)
-{
-}
-
-/***********************************************************************
- *
  * Caller:	ProcXListInputDevices
  *
  * This is the implementation-dependent routine to initialize an input
@@ -125,34 +107,6 @@ AddOtherInputDevices(void)
     dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
     ************************************************************************/
 
-}
-
-/***********************************************************************
- *
- * Caller:	ProcXOpenDevice
- *
- * This is the implementation-dependent routine to open an input device.
- * Some implementations open all input devices when the server is first
- * initialized, and never close them.  Other implementations open only
- * the X pointer and keyboard devices during server initialization,
- * and only open other input devices when some client makes an
- * XOpenDevice request.  This entry point is for the latter type of
- * implementation.
- *
- * If the physical device is not already open, do it here.  In this case,
- * you need to keep track of the fact that one or more clients has the
- * device open, and physically close it when the last client that has
- * it open does an XCloseDevice.
- *
- * The default implementation is to do nothing (assume all input devices
- * are opened during X server initialization and kept open).
- *
- */
-
-void
-OpenInputDevice(DeviceIntPtr dev, ClientPtr client, int *status)
-{
-    *status = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixUseAccess);
 }
 
 /****************************************************************************

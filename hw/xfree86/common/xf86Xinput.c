@@ -327,47 +327,6 @@ xf86ActivateDevice(InputInfoPtr pInfo)
     return dev;
 }
 
-
-/***********************************************************************
- *
- * Caller:	ProcXOpenDevice
- *
- * This is the implementation-dependent routine to open an input device.
- * Some implementations open all input devices when the server is first
- * initialized, and never close them.  Other implementations open only
- * the X pointer and keyboard devices during server initialization,
- * and only open other input devices when some client makes an
- * XOpenDevice request.  This entry point is for the latter type of 
- * implementation.
- *
- * If the physical device is not already open, do it here.  In this case,
- * you need to keep track of the fact that one or more clients has the
- * device open, and physically close it when the last client that has
- * it open does an XCloseDevice.
- *
- * The default implementation is to do nothing (assume all input devices
- * are opened during X server initialization and kept open).
- *
- ***********************************************************************
- */
-
-void
-OpenInputDevice(DeviceIntPtr	dev,
-                ClientPtr	client,
-                int		*status)
-{
-    if (!dev->inited)
-        ActivateDevice(dev, TRUE);
-
-    *status = Success;
-}
-
-void
-CloseInputDevice(DeviceIntPtr dev,
-                 ClientPtr client)
-{
-}
-
 /****************************************************************************
  *
  * Caller:	ProcXSetDeviceMode

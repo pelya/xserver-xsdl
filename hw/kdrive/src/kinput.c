@@ -2176,23 +2176,6 @@ ProcessInputEvents (void)
     KdCheckLock ();
 }
 
-/* FIXME use XSECURITY to work out whether the client should be allowed to
- * open and close. */
-void
-OpenInputDevice(DeviceIntPtr pDev, ClientPtr client, int *status)
-{
-    if (!pDev)
-        *status = BadDevice;
-    else
-        *status = Success;
-}
-
-void
-CloseInputDevice(DeviceIntPtr pDev, ClientPtr client)
-{
-    return;
-}
-
 /* We initialise all input devices at startup. */
 void
 AddOtherInputDevices(void)

@@ -51,20 +51,8 @@
 #include "dmxinputinit.h"
 #include "exevents.h"
 
-/** Close the input device.  This is not required by the XINPUT model
- * that DMX uses. */
-void CloseInputDevice (DeviceIntPtr d, ClientPtr client)
-{
-}
-
 /** This is not required by the XINPUT model that DMX uses. */
 void AddOtherInputDevices(void)
-{
-}
-
-/** Open an input device.  This is not required by the XINPUT model that
- * DMX uses. */
-void OpenInputDevice (DeviceIntPtr dev, ClientPtr client, int *status)
 {
 }
 
