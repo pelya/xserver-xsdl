@@ -59,18 +59,9 @@
 #include "xf86Priv.h"
 #include "xf86Config.h"
 #include "xf86Xinput.h"
-#include "XIstubs.h"
 #include "xf86Optrec.h"
-#include "xf86Parser.h"
 #include "mipointer.h"
-#include "xf86InPriv.h"
-#include "compiler.h"
 #include "extinit.h"
-
-#ifdef DPMSExtension
-#include <X11/extensions/dpmsconst.h>
-#include "dpmsproc.h"
-#endif
 
 #include "exevents.h"	/* AddInputDevice */
 #include "exglobals.h"
@@ -84,14 +75,8 @@
 #include <sys/utsname.h>
 #endif
 
-#include "extnsionst.h"
-
-#include "windowstr.h"	/* screenIsSaved */
-
 #include <stdarg.h>
 #include <stdint.h>          /* for int64_t */
-
-#include <X11/Xpoll.h>
 
 #include "mi.h"
 
@@ -104,7 +89,6 @@
 
 #include "xkbsrv.h"
 
-#include "os.h"
 
 EventListPtr xf86Events = NULL;
 
