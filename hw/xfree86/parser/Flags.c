@@ -132,7 +132,6 @@ xf86parseFlagsSection (void)
 					if (ServerFlagsTab[i].token == token)
 					{
 						char *valstr = NULL;
-						/* can't use strdup because it calls malloc */
 						tmp = strdup (ServerFlagsTab[i].name);
 						if (hasvalue)
 						{
@@ -365,7 +364,6 @@ xf86optionListCreate( const char **options, int count, int used )
 	}
 	for (i = 0; i < count; i += 2)
 	{
-		/* can't use strdup because it calls malloc */
 		t1 = malloc (sizeof (char) *
 				(strlen (options[i]) + 1));
 		strcpy (t1, options[i]);
