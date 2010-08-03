@@ -370,7 +370,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
                     break;
                     
                 case 18: /* ApplicationDidReactivate */
-                    if (XQuartzHasRoot) for_appkit = NO;
+                    if (XQuartzFullscreenVisible) for_appkit = NO;
                     break;
                     
                 case NSApplicationDeactivatedEventType:

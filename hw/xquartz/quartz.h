@@ -115,12 +115,8 @@ typedef struct _QuartzModeProcs {
 
 extern QuartzModeProcsPtr quartzProcs;
 
-extern Bool XQuartzHasRoot;          /* TODO: These two booleans are very similar and */
-extern Bool XQuartzServerVisible;    /* the code that uses them needs to be refactored
-                                      * XQuartzHasRoot is essentially the "saved" XQuartzServerVisible
-                                      * value from when the server was not in rootless mode.
-                                      */
-
+extern Bool XQuartzFullscreenVisible; /* Are the windows visible (predicated on !rootless) */
+extern Bool XQuartzServerVisible;     /* Is the server visible ... TODO: Refactor to "active" */
 extern Bool XQuartzEnableKeyEquivalents;
 extern Bool XQuartzRootlessDefault;  /* Is our default mode rootless? */
 extern Bool XQuartzIsRootless;       /* Is our current mode rootless (or FS)? */
@@ -144,7 +140,7 @@ void QuartzSetRootClip(BOOL enable);
 void QuartzSpaceChanged(uint32_t space_id);
 
 void QuartzSetRootless(Bool state);
-void QuartzSetFullscreen(Bool state);
+void QuartzShowFullscreen(Bool state);
 
 int server_main(int argc, char **argv, char **envp);
 #endif

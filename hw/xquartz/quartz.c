@@ -74,7 +74,7 @@ const char             *quartzOpenGLBundle = NULL;
 Bool XQuartzFullscreenDisableHotkeys = TRUE;
 Bool XQuartzOptionSendsAlt = FALSE;
 Bool XQuartzEnableKeyEquivalents = TRUE;
-Bool XQuartzHasRoot = FALSE;
+Bool XQuartzFullscreenVisible = FALSE;
 Bool XQuartzRootlessDefault = TRUE;
 Bool XQuartzIsRootless = TRUE;
 Bool XQuartzServerVisible = FALSE;
@@ -246,43 +246,57 @@ void QuartzUpdateScreens(void) {
     quartzProcs->UpdateScreen(pScreen);
 }
 
-void QuartzSetFullscreen(Bool state) {
+void QuartzShowFullscreen(int state) {
+    int i;
     
-    DEBUG_LOG("QuartzSetFullscreen: state=%d\n", state);
+    DEBUG_LOG("QuartzShowFullscreen: state=%d\n", state);
     
-    if(XQuartzHasRoot == state)
+    if(XQuartzIsRootless) {
+        ErrorF("QuartzShowFullscreen called while in rootless mode.\n");
+        return;
+    }
+    
+    if(XQuartzFullscreenVisible == state)
         return;
     
-    XQuartzHasRoot = state;
+    XQuartzFullscreenVisible = state;
     
     xp_disable_update ();
     
-    if (!XQuartzHasRoot && !XQuartzIsRootless)
+    if (!XQuartzFullscreenVisible)
         RootlessHideAllWindows();
     
-    RootlessUpdateRooted(XQuartzHasRoot);
+    RootlessUpdateRooted(XQuartzFullscreenVisible);
     
-    if (XQuartzHasRoot && !XQuartzIsRootless)
+    if (XQuartzFullscreenVisible) {
         RootlessShowAllWindows ();
-    
-    if (XQuartzHasRoot || XQuartzIsRootless) {
-        RootlessRepositionWindows(screenInfo.screens[0]);
+        for (i=0; i < screenInfo.numScreens; i++) {
+            ScreenPtr pScreen = screenInfo.screens[i];        
+            RootlessRepositionWindows(pScreen);
+            // JH: I don't think this is necessary, but keeping it here as a reminder
+            //RootlessUpdateScreenPixmap(pScreen);
+        }
     }
 
     /* Somehow the menubar manages to interfere with our event stream
      * in fullscreen mode, even though it's not visible. 
      */
-    X11ApplicationShowHideMenubar(!XQuartzHasRoot);
+    X11ApplicationShowHideMenubar(!XQuartzFullscreenVisible);
     
     xp_reenable_update ();
     
     if (XQuartzFullscreenDisableHotkeys)
-        xp_disable_hot_keys(XQuartzHasRoot);
+        xp_disable_hot_keys(XQuartzFullscreenVisible);
 }
 
-void QuartzSetRootless(Bool state) {
+void QuartzSetRootless(Bool state) {    
+    DEBUG_LOG("QuartzSetRootless state=%d\n", state);
+    
     if(XQuartzIsRootless == state)
         return;
+    
+    if(state)
+        QuartzShowFullscreen(FALSE);
     
     XQuartzIsRootless = state;
 
@@ -291,20 +305,17 @@ void QuartzSetRootless(Bool state) {
     /* When in rootless, the menubar is not part of the screen, so we need to update our screens on toggle */    
     QuartzUpdateScreens();
 
-    if(!XQuartzHasRoot) {
-        if(!XQuartzIsRootless) {
-            RootlessHideAllWindows();
-        } else {
-            RootlessShowAllWindows();
-        }
+    if(XQuartzIsRootless) {
+        RootlessShowAllWindows();
+    } else {
+        RootlessHideAllWindows();
     }
 
-    X11ApplicationShowHideMenubar(!XQuartzHasRoot);
+    X11ApplicationShowHideMenubar(TRUE);
 
     xp_reenable_update();
 
-    if (!XQuartzIsRootless && XQuartzFullscreenDisableHotkeys)
-        xp_disable_hot_keys(XQuartzHasRoot);
+    xp_disable_hot_keys(FALSE);
 }
 
 /*
@@ -327,7 +338,7 @@ void QuartzShow(void) {
     }
     
     if (!XQuartzIsRootless)
-        QuartzSetFullscreen(TRUE);
+        QuartzShowFullscreen(TRUE);
 }
 
 
@@ -348,8 +359,9 @@ void QuartzHide(void)
             }
         }
     }
-    
-    QuartzSetFullscreen(FALSE);
+
+    if(!XQuartzIsRootless)
+        QuartzShowFullscreen(FALSE);
     XQuartzServerVisible = FALSE;
 }
 
