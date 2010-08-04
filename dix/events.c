@@ -1276,7 +1276,6 @@ static void
 ComputeFreezes(void)
 {
     DeviceIntPtr replayDev = syncEvents.replayDev;
-    int i;
     WindowPtr w;
     GrabPtr grab;
     DeviceIntPtr dev;
@@ -1294,29 +1293,15 @@ ComputeFreezes(void)
 	syncEvents.replayDev = (DeviceIntPtr)NULL;
 
         w = XYToWindow(replayDev, event->root_x, event->root_y);
-	for (i = 0; i < replayDev->spriteInfo->sprite->spriteTraceGood; i++)
-	{
-	    if (syncEvents.replayWin ==
-		replayDev->spriteInfo->sprite->spriteTrace[i])
-	    {
-		if (!CheckDeviceGrabs(replayDev, event, i+1)) {
-		    if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
-			DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
-		    else
-			DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
-                                            NullWindow, replayDev);
-		}
-		goto playmore;
-	    }
-	}
-	/* must not still be in the same stack */
-	if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
-	    DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
-	else
-	    DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
-                                NullWindow, replayDev);
+        if (!CheckDeviceGrabs(replayDev, event, syncEvents.replayWin))
+        {
+            if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
+                DeliverFocusedEvent(replayDev, (InternalEvent*)event, w);
+            else
+                DeliverDeviceEvents(w, (InternalEvent*)event, NullGrab,
+                                    NullWindow, replayDev);
+        }
     }
-playmore:
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
 	if (!dev->deviceGrab.sync.frozen)
@@ -3611,7 +3596,7 @@ CheckPassiveGrabsOnWindow(
 */
 
 Bool
-CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
+CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
 {
     int i;
     WindowPtr pWin = NULL;
@@ -3629,7 +3614,15 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
     if (device->deviceGrab.grab)
         return FALSE;
 
-    i = checkFirst;
+    i = 0;
+    if (ancestor)
+    {
+        while (i < device->spriteInfo->sprite->spriteTraceGood)
+            if (device->spriteInfo->sprite->spriteTrace[i++] == ancestor)
+                break;
+        if (i == device->spriteInfo->sprite->spriteTraceGood)
+            return FALSE;
+    }
 
     if (focus)
     {
@@ -3642,8 +3635,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
 
 	if ((focus->win == NoneWin) ||
 	    (i >= device->spriteInfo->sprite->spriteTraceGood) ||
-	    ((i > checkFirst) &&
-             (pWin != device->spriteInfo->sprite->spriteTrace[i-1])))
+	    (pWin && pWin != device->spriteInfo->sprite->spriteTrace[i-1]))
 	    return FALSE;
     }
 
