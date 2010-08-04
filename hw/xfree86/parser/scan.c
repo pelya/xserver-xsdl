@@ -819,6 +819,7 @@ OpenConfigFile(const char *path, const char *cmdline, const char *projroot,
 		}
 	}
 
+	free(pathcopy);
 	if (file) {
 		configFiles[numFiles].file = file;
 		configFiles[numFiles].path = strdup(filepath);
@@ -927,6 +928,7 @@ OpenConfigDir(const char *path, const char *cmdline, const char *projroot,
 		}
 	}
 
+	free(pathcopy);
 	return dirpath;
 }
 
