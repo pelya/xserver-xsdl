@@ -2648,11 +2648,11 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     BOOL rc = FALSE;
     DeviceEvent event;
 
-    if (dev->deviceGrab.grab &&
-        dev->deviceGrab.fromPassiveGrab &&
-        dev->deviceGrab.grab->type == XI_Enter)
+    if (dev->deviceGrab.grab)
     {
-        if (dev->deviceGrab.grab->window == win ||
+        if (!dev->deviceGrab.fromPassiveGrab ||
+            dev->deviceGrab.grab->type != XI_Enter ||
+            dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
@@ -2688,11 +2688,11 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     BOOL rc = FALSE;
     DeviceEvent event;
 
-    if (dev->deviceGrab.grab &&
-        dev->deviceGrab.fromPassiveGrab &&
-        dev->deviceGrab.grab->type == XI_Enter)
+    if (dev->deviceGrab.grab)
     {
-        if (dev->deviceGrab.grab->window == win ||
+        if (!dev->deviceGrab.fromPassiveGrab ||
+            dev->deviceGrab.grab->type != XI_Enter ||
+            dev->deviceGrab.grab->window == win ||
             IsParent(dev->deviceGrab.grab->window, win))
             return FALSE;
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
@@ -3403,9 +3403,6 @@ CheckPassiveGrabsOnWindow(
 #define XI2_MATCH        0x4
     int match = 0;
 
-    if (device->deviceGrab.grab)
-        return FALSE;
-
     if (!grab)
 	return FALSE;
     /* Fill out the grab details, but leave the type for later before
@@ -3628,6 +3625,9 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
     if (event->type == ET_ButtonPress
         && (device->button->buttonsDown != 1))
 	return FALSE;
+
+    if (device->deviceGrab.grab)
+        return FALSE;
 
     i = checkFirst;
 
