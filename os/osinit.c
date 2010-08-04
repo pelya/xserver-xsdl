@@ -305,9 +305,7 @@ OsInit(void)
      * log file name if logging to a file is desired.
      */
     LogInit(NULL, NULL);
-    if (!SmartScheduleDisable)
-	if (!SmartScheduleInit ())
-	    SmartScheduleDisable = TRUE;
+    SmartScheduleInit ();
 }
 
 void

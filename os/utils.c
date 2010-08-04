@@ -1155,14 +1155,14 @@ SmartScheduleTimer (int sig)
     SmartScheduleTime += SmartScheduleInterval;
 }
 
-Bool
+void
 SmartScheduleInit (void)
 {
     struct sigaction	act;
 
     if (SmartScheduleDisable)
-	return TRUE;
-    
+	return;
+
     memset((char *) &act, 0, sizeof(struct sigaction));
 
     /* Set up the timer signal function */
@@ -1172,9 +1172,8 @@ SmartScheduleInit (void)
     if (sigaction (SIGALRM, &act, 0) < 0)
     {
 	perror ("sigaction for smart scheduler");
-	return FALSE;
+	SmartScheduleDisable = TRUE;
     }
-    return TRUE;
 }
 
 #ifdef SIG_BLOCK
