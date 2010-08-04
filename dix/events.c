@@ -5055,7 +5055,7 @@ ProcSendEvent(ClientPtr client)
 	/* If the input focus is PointerRootWin, send the event to where
 	the pointer is if possible, then perhaps propogate up to root. */
 	if (inputFocus == PointerRootWin)
-	    inputFocus = pSprite->spriteTrace[0]; /* Root window! */
+	    inputFocus = RootWindow(dev);
 
 	if (IsParent(inputFocus, pSprite->win))
 	{
