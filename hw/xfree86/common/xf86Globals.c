@@ -125,7 +125,6 @@ xf86InfoRec xf86Info = {
 #endif
     .pmFlag                     = TRUE,
     .log                        = LogNone,
-    .kbdCustomKeycodes          = FALSE,
     .disableRandR               = FALSE,
     .randRFrom                  = X_DEFAULT,
 #if defined(CONFIG_HAL) || defined(CONFIG_UDEV)

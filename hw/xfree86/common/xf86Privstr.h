@@ -96,7 +96,6 @@ typedef struct {
 #endif
     Bool		pmFlag;
     Log			log;
-    Bool		kbdCustomKeycodes;
     Bool		disableRandR;
     MessageType		randRFrom;
     Bool		aiglx;
