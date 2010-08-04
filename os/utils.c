@@ -1121,17 +1121,9 @@ XNFstrdup(const char *s)
     return ret;
 }
 
-
-#define SMART_SCHEDULE_POSSIBLE
-#ifdef SMART_SCHEDULE_POSSIBLE
-#define SMART_SCHEDULE_SIGNAL		SIGALRM
-#define SMART_SCHEDULE_TIMER		ITIMER_REAL
-#endif
-
 void
 SmartScheduleStopTimer (void)
 {
-#ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
     if (SmartScheduleDisable)
@@ -1141,13 +1133,11 @@ SmartScheduleStopTimer (void)
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = 0;
     (void) setitimer (ITIMER_REAL, &timer, 0);
-#endif
 }
 
 void
 SmartScheduleStartTimer (void)
 {
-#ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
     if (SmartScheduleDisable)
@@ -1157,21 +1147,17 @@ SmartScheduleStartTimer (void)
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = SmartScheduleInterval * 1000;
     setitimer (ITIMER_REAL, &timer, 0);
-#endif
 }
 
-#ifdef SMART_SCHEDULE_POSSIBLE
 static void
 SmartScheduleTimer (int sig)
 {
     SmartScheduleTime += SmartScheduleInterval;
 }
-#endif
 
 Bool
 SmartScheduleInit (void)
 {
-#ifdef SMART_SCHEDULE_POSSIBLE
     struct sigaction	act;
 
     if (SmartScheduleDisable)
@@ -1182,16 +1168,13 @@ SmartScheduleInit (void)
     /* Set up the timer signal function */
     act.sa_handler = SmartScheduleTimer;
     sigemptyset (&act.sa_mask);
-    sigaddset (&act.sa_mask, SMART_SCHEDULE_SIGNAL);
-    if (sigaction (SMART_SCHEDULE_SIGNAL, &act, 0) < 0)
+    sigaddset (&act.sa_mask, SIGALRM);
+    if (sigaction (SIGALRM, &act, 0) < 0)
     {
 	perror ("sigaction for smart scheduler");
 	return FALSE;
     }
     return TRUE;
-#else
-    return FALSE;
-#endif
 }
 
 #ifdef SIG_BLOCK
