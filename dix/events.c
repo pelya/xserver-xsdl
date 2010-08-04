@@ -3636,8 +3636,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
 	for (; i < focus->traceGood; i++)
 	{
 	    pWin = focus->trace[i];
-	    if (pWin->optional &&
-	        CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
+	    if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
 		return TRUE;
 	}
 
@@ -3651,8 +3650,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, int checkFirst)
     for (; i < device->spriteInfo->sprite->spriteTraceGood; i++)
     {
 	pWin = device->spriteInfo->sprite->spriteTrace[i];
-	if (pWin->optional &&
-	    CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
+	if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
 	    return TRUE;
     }
 
