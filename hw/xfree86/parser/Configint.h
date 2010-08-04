@@ -98,9 +98,6 @@ LexRec, *LexPtr;
 #define parsePrologue(typeptr,typerec) typeptr ptr; \
 if( (ptr=calloc(1,sizeof(typerec))) == NULL ) { return NULL; }
 
-#define parsePrologueVoid(typeptr,typerec) int token; typeptr ptr; \
-if( (ptr=calloc(1,sizeof(typerec))) == NULL ) { return; }
-
 #define HANDLE_RETURN(f,func)\
 if ((ptr->f=func) == NULL)\
 {\
