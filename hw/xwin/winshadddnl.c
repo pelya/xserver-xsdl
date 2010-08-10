@@ -1010,18 +1010,6 @@ winAdjustVideoModeShadowDDNL (ScreenPtr pScreen)
       pScreenInfo->dwBPP = dwBPP;
     }
 
-  /* See if the shadow bitmap will be larger than the DIB size limit */
-  if (pScreenInfo->dwWidth * pScreenInfo->dwHeight * pScreenInfo->dwBPP
-      >= WIN_DIB_MAXIMUM_SIZE)
-    {
-      winErrorFVerb (1, "winAdjustVideoModeShadowDDNL - Requested DirectDraw surface "
-	      "will be larger than %d MB.  The surface may fail to be "
-	      "allocated on Windows 95, 98, or Me, due to a %d MB limit in "
-	      "DIB size.  This limit does not apply to Windows NT/2000, and "
-	      "this message may be ignored on those platforms.\n",
-	      WIN_DIB_MAXIMUM_SIZE_MB, WIN_DIB_MAXIMUM_SIZE_MB);
-    }
-  
   /* Release our DC */
   ReleaseDC (NULL, hdc);
 

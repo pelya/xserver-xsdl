@@ -74,9 +74,6 @@
 #endif
 #define WIN_DEFAULT_USER_GAVE_HEIGHT_AND_WIDTH	FALSE
 
-#define WIN_DIB_MAXIMUM_SIZE	0x08000000 /* 16 MB on Windows 95, 98, Me */
-#define WIN_DIB_MAXIMUM_SIZE_MB (WIN_DIB_MAXIMUM_SIZE / 8 / 1024 / 1024)
-
 /*
  * Windows only supports 256 color palettes
  */
