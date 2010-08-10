@@ -447,7 +447,7 @@ extern _X_EXPORT int GetPointerEvents(
     int flags,
     int first_valuator,
     int num_valuators,
-    int *valuators);
+    const int *valuators);
 
 extern _X_EXPORT int GetKeyboardEvents(
     EventListPtr events,
@@ -462,7 +462,7 @@ extern int GetKeyboardValuatorEvents(
     int key_code,
     int first_valuator,
     int num_valuator,
-    int *valuators);
+    const int *valuators);
 
 extern int GetProximityEvents(
     EventListPtr events,
@@ -470,7 +470,7 @@ extern int GetProximityEvents(
     int type,
     int first_valuator,
     int num_valuators,
-    int *valuators);
+    const int *valuators);
 
 extern void PostSyntheticMotion(
     DeviceIntPtr pDev,

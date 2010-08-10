@@ -140,23 +140,23 @@ extern _X_EXPORT InputInfoPtr xf86InputDevs;
 extern _X_EXPORT void xf86PostMotionEvent(DeviceIntPtr device, int is_absolute,
 			 int first_valuator, int num_valuators, ...);
 extern _X_EXPORT void xf86PostMotionEventP(DeviceIntPtr device, int is_absolute,
-			 int first_valuator, int num_valuators, int *valuators);
+			 int first_valuator, int num_valuators, const int *valuators);
 extern _X_EXPORT void xf86PostProximityEvent(DeviceIntPtr device, int is_in,
 			    int first_valuator, int num_valuators, ...);
 extern _X_EXPORT void xf86PostProximityEventP(DeviceIntPtr device, int is_in, int first_valuator,
-			     int num_valuators, int *valuators);
+			     int num_valuators, const int *valuators);
 extern _X_EXPORT void xf86PostButtonEvent(DeviceIntPtr device, int is_absolute, int button,
 		    	 int is_down, int first_valuator, int num_valuators,
 			 ...);
 extern _X_EXPORT void xf86PostButtonEventP(DeviceIntPtr device, int is_absolute, int button,
 			  int is_down, int first_valuator, int num_valuators,
-			  int *valuators);
+			  const int *valuators);
 extern _X_EXPORT void xf86PostKeyEvent(DeviceIntPtr device, unsigned int key_code, int is_down,
 		      int is_absolute, int first_valuator, int num_valuators,
 		      ...);
 extern _X_EXPORT void xf86PostKeyEventP(DeviceIntPtr device, unsigned int key_code, int is_down,
 		       int is_absolute, int first_valuator, int num_valuators,
-		       int *valuators);
+		       const int *valuators);
 extern _X_EXPORT void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
 extern _X_EXPORT InputInfoPtr xf86FirstLocalDevice(void);

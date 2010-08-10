@@ -912,7 +912,7 @@ GetKeyboardEvents(EventList *events, DeviceIntPtr pDev, int type, int key_code) 
 int
 GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int key_code, int first_valuator,
-                          int num_valuators, int *valuators_in) {
+                          int num_valuators, const int *valuators_in) {
     int num_events = 0;
     CARD32 ms = 0;
     DeviceEvent *event;
@@ -1071,7 +1071,7 @@ transformAbsolute(DeviceIntPtr dev, int v[MAX_VALUATORS])
 int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
-                 int *valuators_in) {
+                 const int *valuators_in) {
     int num_events = 1;
     CARD32 ms;
     DeviceEvent *event;
@@ -1191,7 +1191,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
  */
 int
 GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
-                   int first_valuator, int num_valuators, int *valuators_in)
+                   int first_valuator, int num_valuators, const int *valuators_in)
 {
     int num_events = 1;
     DeviceEvent *event;

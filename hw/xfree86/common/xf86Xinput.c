@@ -1016,7 +1016,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                     int			is_absolute,
                     int			first_valuator,
                     int			num_valuators,
-                    int			*valuators)
+                    const int		*valuators)
 {
     int i = 0, nevents = 0;
     DeviceEvent *event;
@@ -1097,7 +1097,7 @@ xf86PostProximityEventP(DeviceIntPtr	device,
                         int		is_in,
                         int		first_valuator,
                         int		num_valuators,
-                        int		*valuators)
+                        const int	*valuators)
 {
     int i, nevents;
 
@@ -1143,7 +1143,7 @@ xf86PostButtonEventP(DeviceIntPtr	device,
                      int		is_down,
                      int		first_valuator,
                      int		num_valuators,
-                     int		*valuators)
+                     const int		*valuators)
 {
     int i = 0, nevents = 0;
     int flags = 0;
@@ -1208,7 +1208,7 @@ xf86PostKeyEventP(DeviceIntPtr	device,
                   int		is_absolute,
                   int		first_valuator,
                   int		num_valuators,
-                  int		*valuators)
+                  const int	*valuators)
 {
     int i = 0, nevents = 0;
 
