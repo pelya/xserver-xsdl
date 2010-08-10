@@ -151,13 +151,20 @@ winScreenInit (int index,
    * Check that all monitors have the same display depth if we are using
    * multiple monitors
    */
-  if (pScreenInfo->fMultipleMonitors 
+  if (pScreenInfo->fMultipleMonitors
       && !GetSystemMetrics (SM_SAMEDISPLAYFORMAT))
     {
       ErrorF ("winScreenInit - Monitors do not all have same pixel format / "
-	      "display depth.\n"
-	      "Using primary display only.\n");
-      pScreenInfo->fMultipleMonitors = FALSE;
+	      "display depth.\n");
+      if (pScreenInfo->dwEngine == WIN_SERVER_SHADOW_GDI)
+        {
+          ErrorF ("winScreenInit - Performance may suffer off primary display.\n");
+        }
+      else
+        {
+          ErrorF ("winScreenInit - Using primary display only.\n");
+          pScreenInfo->fMultipleMonitors = FALSE;
+        }
     }
 
   /* Create display window */
