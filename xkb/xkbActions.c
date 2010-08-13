@@ -1358,7 +1358,7 @@ InjectPointerKeyEvents(DeviceIntPtr dev, int type, int button, int flags, int nu
     ScreenPtr           pScreen;
     EventListPtr        events;
     int                 nevents, i;
-    DeviceIntPtr        ptr, mpointer, lastSlave;
+    DeviceIntPtr        ptr, mpointer, lastSlave = NULL;
     Bool                saveWait;
 
     if (IsMaster(dev)) {
