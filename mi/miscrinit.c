@@ -283,17 +283,6 @@ miScreenInit(
     return miScreenDevPrivateInit(pScreen, width, pbits);
 }
 
-static DevPrivateKeyRec privateKeyRec;
-#define privateKey (&privateKeyRec)
-
-DevPrivateKey
-miAllocateGCPrivateIndex(void)
-{
-    if (!dixRegisterPrivateKey(&privateKeyRec, PRIVATE_GC, 0))
-	return NULL;
-    return privateKey;
-}
-
 DevPrivateKeyRec miZeroLineScreenKeyRec;
 
 void
