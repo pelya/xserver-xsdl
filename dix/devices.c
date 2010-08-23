@@ -2341,7 +2341,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
         maxbuttons = max(maxbuttons, dev->button->numButtons);
     }
 
-    if (master->button->numButtons != maxbuttons)
+    if (master->button && master->button->numButtons != maxbuttons)
     {
         int i;
         DeviceChangedEvent event;
