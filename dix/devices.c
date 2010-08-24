@@ -2352,7 +2352,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
 
         event.header = ET_Internal;
         event.type = ET_DeviceChanged;
-        event.time = CurrentTime;
+        event.time = GetTimeInMillis();
         event.deviceid = master->id;
         event.flags = DEVCHANGE_POINTER_EVENT | DEVCHANGE_DEVICE_CHANGE;
         event.buttons.num_buttons = maxbuttons;
