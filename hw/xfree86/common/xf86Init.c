@@ -1062,10 +1062,9 @@ ddxProcessArgument(int argc, char **argv, int i)
     {
       char *mp;
       CHECK_FOR_REQUIRED_ARGUMENT();
-      mp = malloc(strlen(argv[i + 1]) + 1);
+      mp = strdup(argv[i + 1]);
       if (!mp)
 	FatalError("Can't allocate memory for ModulePath\n");
-      strcpy(mp, argv[i + 1]);
       xf86ModulePath = mp;
       xf86ModPathFrom = X_CMDLINE;
       return 2;
@@ -1074,10 +1073,9 @@ ddxProcessArgument(int argc, char **argv, int i)
     {
       char *lf;
       CHECK_FOR_REQUIRED_ARGUMENT();
-      lf = malloc(strlen(argv[i + 1]) + 1);
+      lf = strdup(argv[i + 1]);
       if (!lf)
 	FatalError("Can't allocate memory for LogFile\n");
-      strcpy(lf, argv[i + 1]);
       xf86LogFile = lf;
       xf86LogFileFrom = X_CMDLINE;
       return 2;

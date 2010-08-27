@@ -1090,8 +1090,7 @@ void
 xf86setSection (char *section)
 {
 	free(configSection);
-	configSection = malloc(strlen (section) + 1);
-	strcpy (configSection, section);
+	configSection = strdup(section);
 }
 
 /* 

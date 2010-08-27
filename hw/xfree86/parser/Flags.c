@@ -364,12 +364,8 @@ xf86optionListCreate( const char **options, int count, int used )
 	}
 	for (i = 0; i < count; i += 2)
 	{
-		t1 = malloc (sizeof (char) *
-				(strlen (options[i]) + 1));
-		strcpy (t1, options[i]);
-		t2 = malloc (sizeof (char) *
-				(strlen (options[i + 1]) + 1));
-		strcpy (t2, options[i + 1]);
+		t1 = strdup(options[i]);
+		t2 = strdup(options[i + 1]);
 		p = addNewOption2 (p, t1, t2, used);
 	}
 
