@@ -527,6 +527,7 @@ void UseMsg(void)
 #endif
     ErrorF("-dumbSched             Disable smart scheduling, enable old behavior\n");
     ErrorF("-schedInterval int     Set scheduler interval in msec\n");
+    ErrorF("-sigstop               Enable SIGSTOP based startup\n");
     ErrorF("+extension name        Enable extension\n");
     ErrorF("-extension name        Disable extension\n");
 #ifdef XDMCP
@@ -921,6 +922,10 @@ ProcessCommandLine(int argc, char *argv[])
 	    }
 	    else
 		UseMsg ();
+	}
+	else if ( strcmp( argv[i], "-sigstop") == 0)
+	{
+	    RunFromSigStopParent = TRUE;
 	}
 	else if ( strcmp( argv[i], "+extension") == 0)
 	{
