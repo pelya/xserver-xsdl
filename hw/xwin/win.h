@@ -504,7 +504,8 @@ typedef struct _winPrivScreenRec
   HDC			hdcScreen;
   HDC			hdcShadow;
   HWND			hwndScreen;
-  
+  BITMAPINFOHEADER      *pbmih;
+
   /* Privates used by shadow fb and primary fb DirectDraw servers */
   LPDIRECTDRAW		pdd;
   LPDIRECTDRAWSURFACE2	pddsPrimary;

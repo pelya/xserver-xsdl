@@ -126,7 +126,7 @@ winScreenInit (int index,
       return FALSE;
     }
 
-  /* Adjust the video mode for our engine type */
+  /* Horribly misnamed function: Allow engine to adjust BPP for screen */
   if (!(*pScreenPriv->pwinAdjustVideoMode) (pScreen))
     {
       ErrorF ("winScreenInit - winAdjustVideoMode () failed\n");
@@ -269,7 +269,8 @@ winFinishScreenInitFB (int index,
     }
 
   /*
-   * Grab the number of bits that are used to represent color in each pixel.
+   * Calculate the number of bits that are used to represent color in each pixel,
+   * the color depth for the screen
    */
   if (pScreenInfo->dwBPP == 8)
     pScreenInfo->dwDepth = 8;
@@ -277,7 +278,7 @@ winFinishScreenInitFB (int index,
     pScreenInfo->dwDepth = winCountBits (pScreenPriv->dwRedMask)
       + winCountBits (pScreenPriv->dwGreenMask)
       + winCountBits (pScreenPriv->dwBlueMask);
-  
+
   winErrorFVerb (2, "winFinishScreenInitFB - Masks: %08x %08x %08x\n",
 	  (unsigned int) pScreenPriv->dwRedMask,
 	  (unsigned int) pScreenPriv->dwGreenMask,

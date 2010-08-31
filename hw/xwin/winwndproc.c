@@ -183,28 +183,6 @@ winWindowProc (HWND hwnd, UINT message,
 	      LOWORD (lParam), HIWORD (lParam), wParam);
 
       /*
-       * TrueColor --> TrueColor depth changes are disruptive for:
-       *	Windowed:
-       *		Shadow DirectDraw
-       *		Shadow DirectDraw Non-Locking
-       *		Primary DirectDraw
-       *
-       * TrueColor --> TrueColor depth changes are non-optimal for:
-       *	Windowed:
-       *		Shadow GDI
-       *
-       *	FullScreen:
-       *		Shadow GDI
-       *
-       * TrueColor --> PseudoColor or vice versa are disruptive for:
-       *	Windowed:
-       *		Shadow DirectDraw
-       *		Shadow DirectDraw Non-Locking
-       *		Primary DirectDraw
-       *		Shadow GDI
-       */
-
-      /*
        * Check for a disruptive change in depth.
        * We can only display a message for a disruptive depth change,
        * we cannot do anything to correct the situation.
@@ -213,31 +191,38 @@ winWindowProc (HWND hwnd, UINT message,
         XXX: maybe we need to check if GetSystemMetrics(SM_SAMEDISPLAYFORMAT)
         has changed as well...
       */
-      if ((s_pScreenInfo->dwBPP != GetDeviceCaps (s_pScreenPriv->hdcScreen, BITSPIXEL))
-	  && (s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
-	      || s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL
+      if (s_pScreenInfo->dwBPP != GetDeviceCaps (s_pScreenPriv->hdcScreen, BITSPIXEL))
+        {
+          if ((s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DD
+               || s_pScreenInfo->dwEngine == WIN_SERVER_SHADOW_DDNL
 #ifdef XWIN_PRIMARYFB
-	      || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD
+               || s_pScreenInfo->dwEngine == WIN_SERVER_PRIMARY_DD
 #endif
-	      ))
-	{
-	  /* Cannot display the visual until the depth is restored */
-	  ErrorF ("winWindowProc - Disruptive change in depth\n");
+               ))
+            {
+              /* Cannot display the visual until the depth is restored */
+              ErrorF ("winWindowProc - Disruptive change in depth\n");
 
-	  /* Display depth change dialog */
-	  winDisplayDepthChangeDialog (s_pScreenPriv);
+              /* Display depth change dialog */
+              winDisplayDepthChangeDialog (s_pScreenPriv);
 
-	  /* Flag that we have an invalid screen depth */
-	  s_pScreenPriv->fBadDepth = TRUE;
+              /* Flag that we have an invalid screen depth */
+              s_pScreenPriv->fBadDepth = TRUE;
 
-	  /* Minimize the display window */
-	  ShowWindow (hwnd, SW_MINIMIZE);
-	}
+              /* Minimize the display window */
+              ShowWindow (hwnd, SW_MINIMIZE);
+            }
+          else
+            {
+              /* For GDI, performance may suffer until original depth is restored */
+              ErrorF ("winWindowProc - Performance may be non-optimal after change in depth\n");
+            }
+        }
       else
-	{
-	  /* Flag that we have a valid screen depth */
-	  s_pScreenPriv->fBadDepth = FALSE;
-	}
+        {
+          /* Flag that we have a valid screen depth */
+          s_pScreenPriv->fBadDepth = FALSE;
+        }
 
       /*
         If we could cheaply check if this WM_DISPLAYCHANGE change

@@ -338,33 +338,20 @@ winAllocateFBShadowGDI (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
-  BITMAPINFOHEADER	*pbmih = NULL;
   DIBSECTION		dibsection;
   Bool			fReturn = TRUE;
 
-  /* Allocate bitmap info header */
-  pbmih = (BITMAPINFOHEADER*) malloc (sizeof (BITMAPINFOHEADER)
-				      + 256 * sizeof (RGBQUAD));
-  if (pbmih == NULL)
-    {
-      ErrorF ("winAllocateFBShadowGDI - malloc () failed\n");
-      return FALSE;
-    }
-
-  /* Query the screen format */
-  fReturn = winQueryScreenDIBFormat (pScreen, pbmih);
-
   /* Describe shadow bitmap to be created */
-  pbmih->biWidth = pScreenInfo->dwWidth;
-  pbmih->biHeight = -pScreenInfo->dwHeight;
-  
+  pScreenPriv->pbmih->biWidth = pScreenInfo->dwWidth;
+  pScreenPriv->pbmih->biHeight = -pScreenInfo->dwHeight;
+
   ErrorF ("winAllocateFBShadowGDI - Creating DIB with width: %d height: %d "
 	  "depth: %d\n",
-	  (int) pbmih->biWidth, (int) -pbmih->biHeight, pbmih->biBitCount);
+	  (int) pScreenPriv->pbmih->biWidth, (int) -pScreenPriv->pbmih->biHeight, pScreenPriv->pbmih->biBitCount);
 
   /* Create a DI shadow bitmap with a bit pointer */
   pScreenPriv->hbmpShadow = CreateDIBSection (pScreenPriv->hdcScreen,
-					      (BITMAPINFO *) pbmih,
+					      (BITMAPINFO *) pScreenPriv->pbmih,
 					      DIB_RGB_COLORS,
 					      (VOID**) &pScreenInfo->pfb,
 					      NULL,
@@ -444,13 +431,6 @@ winAllocateFBShadowGDI (ScreenPtr pScreen)
   winDebug ("winAllocateFBShadowGDI - Created shadow stride: %d\n",
 	  (int) pScreenInfo->dwStride);
 #endif
-
-  /* Determine our color masks */
-  if (!winQueryRGBBitsAndMasks (pScreen))
-    {
-      ErrorF ("winAllocateFBShadowGDI - winQueryRGBBitsAndMasks failed\n");
-      return FALSE;
-    }
 
 #ifdef XWIN_MULTIWINDOW
   /* Redraw all windows */
@@ -606,6 +586,29 @@ winInitScreenShadowGDI (ScreenPtr pScreen)
   /* Get device contexts for the screen and shadow bitmap */
   pScreenPriv->hdcScreen = GetDC (pScreenPriv->hwndScreen);
   pScreenPriv->hdcShadow = CreateCompatibleDC (pScreenPriv->hdcScreen);
+
+  /* Allocate bitmap info header */
+  pScreenPriv->pbmih = (BITMAPINFOHEADER*) malloc (sizeof (BITMAPINFOHEADER)
+                                                   + 256 * sizeof (RGBQUAD));
+  if (pScreenPriv->pbmih == NULL)
+    {
+      ErrorF ("winInitScreenShadowGDI - malloc () failed\n");
+      return FALSE;
+    }
+
+  /* Query the screen format */
+  if (!winQueryScreenDIBFormat (pScreen, pScreenPriv->pbmih))
+    {
+      ErrorF ("winInitScreenShadowGDI - winQueryScreenDIBFormat failed\n");
+      return FALSE;
+    }
+
+  /* Determine our color masks */
+  if (!winQueryRGBBitsAndMasks (pScreen))
+    {
+      ErrorF ("winInitScreenShadowGDI - winQueryRGBBitsAndMasks failed\n");
+      return FALSE;
+    }
 
   return winAllocateFBShadowGDI(pScreen);
 }
