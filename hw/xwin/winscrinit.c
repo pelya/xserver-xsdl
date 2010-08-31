@@ -91,6 +91,7 @@ winScreenInit (int index,
   winScreenInfoPtr      pScreenInfo = &g_ScreenInfo[index];
   winPrivScreenPtr	pScreenPriv;
   HDC			hdc;
+  DWORD dwInitialBPP;
 
 #if CYGDEBUG || YES
   winDebug ("winScreenInit - dwWidth: %ld dwHeight: %ld\n",
@@ -127,10 +128,27 @@ winScreenInit (int index,
     }
 
   /* Horribly misnamed function: Allow engine to adjust BPP for screen */
+  dwInitialBPP = pScreenInfo->dwBPP;
+
   if (!(*pScreenPriv->pwinAdjustVideoMode) (pScreen))
     {
       ErrorF ("winScreenInit - winAdjustVideoMode () failed\n");
       return FALSE;
+    }
+
+  if (dwInitialBPP == WIN_DEFAULT_BPP)
+    {
+      /* No -depth parameter was passed, let the user know the depth being used */
+      ErrorF ("winScreenInit - Using Windows display depth of %d bits per pixel\n", (int) pScreenInfo->dwBPP);
+    }
+  else if (dwInitialBPP != pScreenInfo->dwBPP)
+    {
+      /* Warn user if engine forced a depth different to -depth parameter */
+      ErrorF ("winScreenInit - Command line depth of %d bpp overidden by engine, using %d bpp\n", (int) dwInitialBPP, (int) pScreenInfo->dwBPP);
+    }
+  else
+    {
+      ErrorF ("winScreenInit - Using command line depth of %d bpp\n", (int) pScreenInfo->dwBPP);
     }
 
   /* Check for supported display depth */

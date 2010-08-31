@@ -436,33 +436,13 @@ winAdjustVideoModePrimaryDD (ScreenPtr pScreen)
   dwBPP = GetDeviceCaps (hdc, BITSPIXEL);
 
   /* DirectDraw can only change the depth in fullscreen mode */
-  if (pScreenInfo->dwBPP == WIN_DEFAULT_BPP)
+  if (!(pScreenInfo->fFullScreen &&
+        (pScreenInfo->dwBPP != WIN_DEFAULT_BPP)))
     {
-      /* No -depth parameter passed, let the user know the depth being used */
-      ErrorF ("winAdjustVideoModePrimaryDD - Using Windows display "
-	      "depth of %d bits per pixel\n", (int) dwBPP);
-
-      /* Use GDI's depth */
+      /* Otherwise, We'll use GDI's depth */
       pScreenInfo->dwBPP = dwBPP;
     }
-  else if (pScreenInfo->fFullScreen
-	   && pScreenInfo->dwBPP != dwBPP)
-    {
-      /* FullScreen, and GDI depth differs from -depth parameter */
-      ErrorF ("winAdjustVideoModePrimaryDD - FullScreen, using command "
-	      "line depth: %d\n", (int) pScreenInfo->dwBPP);
-    }
-  else if (dwBPP != pScreenInfo->dwBPP)
-    {
-      /* Windowed, and GDI depth differs from -depth parameter */
-      ErrorF ("winAdjustVideoModePrimaryDD - Windowed, command line "
-	      "depth: %d, using depth: %d\n",
-	      (int) pScreenInfo->dwBPP, (int) dwBPP);
 
-      /* We'll use GDI's depth */
-      pScreenInfo->dwBPP = dwBPP;
-    }
-  
   /* Release our DC */
   ReleaseDC (NULL, hdc);
 

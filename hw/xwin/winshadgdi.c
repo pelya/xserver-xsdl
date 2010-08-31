@@ -798,26 +798,9 @@ winAdjustVideoModeShadowGDI (ScreenPtr pScreen)
   /* Query GDI for current display depth */
   dwBPP = GetDeviceCaps (hdc, BITSPIXEL);
 
-  /* GDI cannot change the screen depth */
-  if (pScreenInfo->dwBPP == WIN_DEFAULT_BPP)
-    {
-      /* No -depth parameter passed, let the user know the depth being used */
-      ErrorF ("winAdjustVideoModeShadowGDI - Using Windows display "
-	      "depth of %d bits per pixel\n", (int) dwBPP);
+  /* GDI cannot change the screen depth, so always use GDI's depth */
+  pScreenInfo->dwBPP = dwBPP;
 
-      /* Use GDI's depth */
-      pScreenInfo->dwBPP = dwBPP;
-    }
-  else if (dwBPP != pScreenInfo->dwBPP)
-    {
-      /* Warn user if GDI depth is different than -depth parameter */
-      ErrorF ("winAdjustVideoModeShadowGDI - Command line bpp: %d, "\
-	      "using bpp: %d\n", (int) pScreenInfo->dwBPP, (int) dwBPP);
-
-      /* We'll use GDI's depth */
-      pScreenInfo->dwBPP = dwBPP;
-    }
-  
   /* Release our DC */
   ReleaseDC (NULL, hdc);
   hdc = NULL;
