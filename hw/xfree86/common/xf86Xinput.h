@@ -128,8 +128,6 @@ typedef struct _InputInfoRec {
     int			    private_flags;
     unsigned int	    first;
     unsigned int	    last;
-    int			    old_x;
-    int			    old_y;
     char *		    type_name;
     IntegerFeedbackPtr	    always_core_feedback;
     IDevPtr		    conf_idev;
