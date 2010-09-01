@@ -125,8 +125,6 @@ typedef struct _InputInfoRec {
     Atom		    atom;
     DeviceIntPtr	    dev;
     pointer		    private;
-    unsigned int	    first;
-    unsigned int	    last;
     char *		    type_name;
     IntegerFeedbackPtr	    always_core_feedback;
     IDevPtr		    conf_idev;
