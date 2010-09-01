@@ -125,7 +125,6 @@ typedef struct _InputInfoRec {
     Atom		    atom;
     DeviceIntPtr	    dev;
     pointer		    private;
-    int			    private_flags;
     unsigned int	    first;
     unsigned int	    last;
     char *		    type_name;
