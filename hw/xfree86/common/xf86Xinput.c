@@ -295,6 +295,7 @@ static DeviceIntPtr
 xf86ActivateDevice(InputInfoPtr pInfo)
 {
     DeviceIntPtr	dev;
+    Atom		atom;
 
     dev = AddInputDevice(serverClient, pInfo->device_control, TRUE);
 
@@ -306,8 +307,8 @@ xf86ActivateDevice(InputInfoPtr pInfo)
         return NULL;
     }
 
-    pInfo->atom = MakeAtom(pInfo->type_name, strlen(pInfo->type_name), TRUE);
-    AssignTypeAndName(dev, pInfo->atom, pInfo->name);
+    atom = MakeAtom(pInfo->type_name, strlen(pInfo->type_name), TRUE);
+    AssignTypeAndName(dev, atom, pInfo->name);
     dev->public.devicePrivate = pInfo;
     pInfo->dev = dev;
 

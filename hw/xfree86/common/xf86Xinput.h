@@ -122,7 +122,6 @@ typedef struct _InputInfoRec {
 				 int num_valuators);
 
     int			    fd;
-    Atom		    atom;
     DeviceIntPtr	    dev;
     pointer		    private;
     char *		    type_name;
