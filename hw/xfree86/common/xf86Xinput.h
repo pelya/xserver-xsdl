@@ -130,7 +130,6 @@ typedef struct _InputInfoRec {
     InputDriverPtr	    drv;
     pointer		    module;
     pointer		    options;
-    unsigned int            history_size;
     InputAttributes         *attrs;
 } InputInfoRec, *InputInfoPtr;
 

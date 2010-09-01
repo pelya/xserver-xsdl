@@ -280,9 +280,6 @@ xf86ProcessCommonOptions(InputInfoPtr pInfo,
         pInfo->flags |= XI86_ALWAYS_CORE;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", pInfo->name);
     }
-
-    /* Backwards compatibility. */
-    pInfo->history_size = GetMotionHistorySize();
 }
 
 /***********************************************************************
@@ -670,7 +667,6 @@ xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
     new->type_name = "UNKNOWN";
     new->device_control = NULL;
     new->read_input = NULL;
-    new->history_size = 0;
     new->control_proc = NULL;
     new->close_proc = NULL;
     new->switch_mode = NULL;
