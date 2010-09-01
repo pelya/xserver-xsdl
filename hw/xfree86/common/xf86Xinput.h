@@ -106,16 +106,8 @@ typedef struct _InputInfoRec {
     void		    (*read_input)(struct _InputInfoRec *local);
     int			    (*control_proc)(struct _InputInfoRec *local,
 					   xDeviceCtl *control);
-    void		    (*close_proc)(struct _InputInfoRec *local);
     int			    (*switch_mode)(ClientPtr client, DeviceIntPtr dev,
 					  int mode);
-    Bool		    (*conversion_proc)(struct _InputInfoRec *local,
-					      int first, int num, int v0,
-					      int v1, int v2, int v3, int v4,
-					      int v5, int *x, int *y);
-    Bool		    (*reverse_conversion_proc)(
-					struct _InputInfoRec *local,
-					int x, int y, int *valuators);
     int                     (*set_device_valuators)
 				(struct _InputInfoRec *local,
 				 int *valuators, int first_valuator,

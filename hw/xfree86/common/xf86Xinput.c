@@ -669,10 +669,7 @@ xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
     new->device_control = NULL;
     new->read_input = NULL;
     new->control_proc = NULL;
-    new->close_proc = NULL;
     new->switch_mode = NULL;
-    new->conversion_proc = NULL;
-    new->reverse_conversion_proc = NULL;
     new->dev = NULL;
     new->private = NULL;
     new->conf_idev = idev;
