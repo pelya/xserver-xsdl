@@ -126,7 +126,6 @@ typedef struct _InputInfoRec {
     DeviceIntPtr	    dev;
     pointer		    private;
     char *		    type_name;
-    IntegerFeedbackPtr	    always_core_feedback;
     IDevPtr		    conf_idev;
     InputDriverPtr	    drv;
     pointer		    module;

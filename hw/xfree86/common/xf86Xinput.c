@@ -677,7 +677,6 @@ xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
     new->conversion_proc = NULL;
     new->reverse_conversion_proc = NULL;
     new->dev = NULL;
-    new->always_core_feedback = NULL;
     new->private = NULL;
     new->conf_idev = idev;
 
