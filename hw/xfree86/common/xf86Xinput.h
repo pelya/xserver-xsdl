@@ -78,8 +78,6 @@
 #define TS_Raw 60
 #define TS_Scaled 61
 
-struct _InputInfoRec;
-
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int			    driverVersion;
@@ -100,6 +98,8 @@ typedef struct _InputDriverRec {
 typedef struct _InputInfoRec {
     struct _InputInfoRec *next;
     char *		    name;
+    char *		    driver;
+
     int			    flags;
 
     Bool		    (*device_control)(DeviceIntPtr device, int what);
@@ -117,12 +117,11 @@ typedef struct _InputInfoRec {
     DeviceIntPtr	    dev;
     pointer		    private;
     char *		    type_name;
-    IDevPtr		    conf_idev;
     InputDriverPtr	    drv;
     pointer		    module;
     pointer		    options;
     InputAttributes         *attrs;
-} InputInfoRec, *InputInfoPtr;
+} *InputInfoPtr;
 
 /* xf86Globals.c */
 extern _X_EXPORT InputInfoPtr xf86InputDevs;
@@ -163,7 +162,7 @@ extern _X_EXPORT void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
 extern _X_EXPORT void xf86DisableDevice(DeviceIntPtr dev, Bool panic);
 extern _X_EXPORT void xf86EnableDevice(DeviceIntPtr dev);
 /* not exported */
-int xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL is_auto);
+int xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL is_auto);
 
 /* xf86Helper.c */
 extern _X_EXPORT void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);

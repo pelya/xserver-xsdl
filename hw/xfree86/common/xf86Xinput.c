@@ -505,7 +505,7 @@ MatchAttrToken(const char *attr, struct list *patterns,
  * statements must match.
  */
 static Bool
-InputClassMatches(const XF86ConfInputClassPtr iclass, const IDevPtr idev,
+InputClassMatches(const XF86ConfInputClassPtr iclass, const InputInfoPtr idev,
                   const InputAttributes *attrs)
 {
     /* MatchProduct substring */
@@ -585,7 +585,7 @@ InputClassMatches(const XF86ConfInputClassPtr iclass, const IDevPtr idev,
  * well as any previous InputClass sections.
  */
 static int
-MergeInputClasses(const IDevPtr idev, const InputAttributes *attrs)
+MergeInputClasses(const InputInfoPtr idev, const InputAttributes *attrs)
 {
     XF86ConfInputClassPtr cl;
     XF86OptionPtr classopts;
@@ -610,9 +610,8 @@ MergeInputClasses(const IDevPtr idev, const InputAttributes *attrs)
 
         /* Apply options to device with InputClass settings preferred. */
         xf86Msg(X_CONFIG, "%s: Applying InputClass \"%s\"\n",
-                idev->identifier, cl->identifier);
-        idev->commonOptions = xf86optionListMerge(idev->commonOptions,
-                                                  classopts);
+                idev->name, cl->identifier);
+        idev->options = xf86optionListMerge(idev->options, classopts);
     }
 
     return Success;
@@ -623,7 +622,7 @@ MergeInputClasses(const IDevPtr idev, const InputAttributes *attrs)
  * value of the last matching class and holler when returning TRUE.
  */
 static Bool
-IgnoreInputClass(const IDevPtr idev, const InputAttributes *attrs)
+IgnoreInputClass(const InputInfoPtr idev, const InputAttributes *attrs)
 {
     XF86ConfInputClassPtr cl;
     Bool ignore = FALSE;
@@ -640,38 +639,43 @@ IgnoreInputClass(const IDevPtr idev, const InputAttributes *attrs)
 
     if (ignore)
         xf86Msg(X_CONFIG, "%s: Ignoring device from InputClass \"%s\"\n",
-                idev->identifier, ignore_class);
+                idev->name, ignore_class);
     return ignore;
 }
 
-/* Allocate a new InputInfoRec and append it to the tail of xf86InputDevs. */
 static InputInfoPtr
-xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
+xf86AllocateInput(void)
 {
-    InputInfoPtr new, *prev = NULL;
+    InputInfoPtr pInfo;
 
-    if (!(new = calloc(sizeof(InputInfoRec), 1)))
-	return NULL;
+    pInfo = calloc(sizeof(*pInfo), 1);
+    if (!pInfo)
+        return NULL;
 
-    new->drv = drv;
+    pInfo->fd = -1;
+    pInfo->type_name = "UNKNOWN";
+
+    return pInfo;
+}
+
+/* Append InputInfoRec to the tail of xf86InputDevs. */
+static void
+xf86AddInput(InputDriverPtr drv, InputInfoPtr pInfo)
+{
+    InputInfoPtr *prev = NULL;
+
+    pInfo->drv = drv;
     drv->refCount++;
-    new->module = DuplicateModule(drv->module, NULL);
+    pInfo->module = DuplicateModule(drv->module, NULL);
 
     for (prev = &xf86InputDevs; *prev; prev = &(*prev)->next)
         ;
 
-    *prev = new;
-    new->next = NULL;
+    *prev = pInfo;
+    pInfo->next = NULL;
 
-    new->fd = -1;
-    new->name = idev->identifier;
-    new->type_name = "UNKNOWN";
-    new->conf_idev = idev;
-
-    xf86CollectInputOptions(new, (const char**)drv->default_options);
-    xf86ProcessCommonOptions(new, new->options);
-
-    return new;
+    xf86CollectInputOptions(pInfo, (const char**)drv->default_options);
+    xf86ProcessCommonOptions(pInfo, pInfo->options);
 }
 
 /*
@@ -710,6 +714,10 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
 	    p->next = pInp->next;
 	/* Else the entry wasn't in the xf86InputDevs list (ignore this). */
     }
+
+    free(pInp->driver);
+    free(pInp->name);
+    xf86optionListFree(pInp->options);
     free(pInp);
 }
 
@@ -744,21 +752,20 @@ xf86InputDevicePostInit(DeviceIntPtr dev) {
  * @return Success or an error code
  */
 _X_INTERNAL int
-xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
+xf86NewInputDevice(InputInfoPtr pInfo, DeviceIntPtr *pdev, BOOL enable)
 {
     InputDriverPtr drv = NULL;
-    InputInfoPtr pInfo = NULL;
     DeviceIntPtr dev = NULL;
     int rval;
 
     /* Memory leak for every attached device if we don't
      * test if the module is already loaded first */
-    drv = xf86LookupInputDriver(idev->driver);
+    drv = xf86LookupInputDriver(pInfo->driver);
     if (!drv)
-        if (xf86LoadOneModule(idev->driver, NULL))
-            drv = xf86LookupInputDriver(idev->driver);
+        if (xf86LoadOneModule(pInfo->driver, NULL))
+            drv = xf86LookupInputDriver(pInfo->driver);
     if (!drv) {
-        xf86Msg(X_ERROR, "No input driver matching `%s'\n", idev->driver);
+        xf86Msg(X_ERROR, "No input driver matching `%s'\n", pInfo->driver);
         rval = BadName;
         goto unwind;
     }
@@ -771,13 +778,12 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         goto unwind;
     }
 
-    if (!(pInfo = xf86AllocateInput(drv, idev)))
-	goto unwind;
+    xf86AddInput(drv, pInfo);
 
     rval = drv->PreInit(drv, pInfo, 0);
 
     if (rval != Success) {
-        xf86Msg(X_ERROR, "PreInit returned %d for \"%s\"\n", rval, idev->identifier);
+        xf86Msg(X_ERROR, "PreInit returned %d for \"%s\"\n", rval, pInfo->name);
         goto unwind;
     }
 
@@ -790,7 +796,7 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
     rval = ActivateDevice(dev, TRUE);
     if (rval != Success)
     {
-        xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
+        xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", pInfo->name);
         RemoveDevice(dev, TRUE);
         goto unwind;
     }
@@ -798,7 +804,7 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
     rval = xf86InputDevicePostInit(dev);
     if (rval != Success)
     {
-	xf86Msg(X_ERROR, "Couldn't post-init device \"%s\"\n", idev->identifier);
+	xf86Msg(X_ERROR, "Couldn't post-init device \"%s\"\n", pInfo->name);
 	RemoveDevice(dev, TRUE);
 	goto unwind;
     }
@@ -809,7 +815,7 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
         EnableDevice(dev, TRUE);
         if (!dev->enabled)
         {
-            xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", idev->identifier);
+            xf86Msg(X_ERROR, "Couldn't init device \"%s\"\n", pInfo->name);
             rval = BadMatch;
             goto unwind;
         }
@@ -822,7 +828,7 @@ xf86NewInputDevice(IDevPtr idev, DeviceIntPtr *pdev, BOOL enable)
 
 unwind:
     if(pInfo) {
-        if(drv->UnInit)
+        if(drv && drv->UnInit)
             drv->UnInit(drv, pInfo, 0);
         else
             xf86DeleteInput(pInfo, 0);
@@ -834,23 +840,23 @@ int
 NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
                        DeviceIntPtr *pdev)
 {
-    IDevRec *idev = NULL;
+    InputInfoPtr pInfo = NULL;
     InputOption *option = NULL;
     int rval = Success;
     int is_auto = 0;
 
-    idev = calloc(sizeof(*idev), 1);
-    if (!idev)
+    pInfo = xf86AllocateInput();
+    if (!pInfo)
         return BadAlloc;
 
     for (option = options; option; option = option->next) {
         if (strcasecmp(option->key, "driver") == 0) {
-            if (idev->driver) {
+            if (pInfo->driver) {
                 rval = BadRequest;
                 goto unwind;
             }
-            idev->driver = xstrdup(option->value);
-            if (!idev->driver) {
+            pInfo->driver = xstrdup(option->value);
+            if (!pInfo->driver) {
                 rval = BadAlloc;
                 goto unwind;
             }
@@ -858,12 +864,12 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
 
         if (strcasecmp(option->key, "name") == 0 ||
             strcasecmp(option->key, "identifier") == 0) {
-            if (idev->identifier) {
+            if (pInfo->name) {
                 rval = BadRequest;
                 goto unwind;
             }
-            idev->identifier = xstrdup(option->value);
-            if (!idev->identifier) {
+            pInfo->name = xstrdup(option->value);
+            if (!pInfo->name) {
                 rval = BadAlloc;
                 goto unwind;
             }
@@ -883,7 +889,7 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
     for (option = options; option; option = option->next) {
         /* Steal option key/value strings from the provided list.
          * We need those strings, the InputOption list doesn't. */
-        idev->commonOptions = xf86addNewOption(idev->commonOptions,
+        pInfo->options = xf86addNewOption(pInfo->options,
                                                option->key, option->value);
         option->key = NULL;
         option->value = NULL;
@@ -891,42 +897,39 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
 
     /* Apply InputClass settings */
     if (attrs) {
-        if (IgnoreInputClass(idev, attrs)) {
+        if (IgnoreInputClass(pInfo, attrs)) {
             rval = BadIDChoice;
             goto unwind;
         }
 
-        rval = MergeInputClasses(idev, attrs);
+        rval = MergeInputClasses(pInfo, attrs);
         if (rval != Success)
             goto unwind;
 
-        idev->attrs = DuplicateInputAttributes(attrs);
+        pInfo->attrs = DuplicateInputAttributes(attrs);
     }
 
-    if (!idev->driver || !idev->identifier) {
+    if (!pInfo->driver || !pInfo->name) {
         xf86Msg(X_INFO, "No input driver/identifier specified (ignoring)\n");
         rval = BadRequest;
         goto unwind;
     }
 
-    if (!idev->identifier) {
+    if (!pInfo->name) {
         xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
         rval = BadMatch;
         goto unwind;
     }
 
-    rval = xf86NewInputDevice(idev, pdev,
+    rval = xf86NewInputDevice(pInfo, pdev,
                 (!is_auto || (is_auto && xf86Info.autoEnableDevices)));
-    if (rval == Success)
-        return Success;
+
+    return rval;
 
 unwind:
     if (is_auto && !xf86Info.autoAddDevices)
         xf86Msg(X_INFO, "AutoAddDevices is off - not adding device.\n");
-    free(idev->driver);
-    free(idev->identifier);
-    xf86optionListFree(idev->commonOptions);
-    free(idev);
+    xf86DeleteInput(pInfo, 0);
     return rval;
 }
 
@@ -935,15 +938,10 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
     InputInfoPtr pInfo = (InputInfoPtr) pDev->public.devicePrivate;
     InputDriverPtr drv = NULL;
-    IDevRec *idev = NULL;
-    IDevPtr *it;
     Bool isMaster = IsMaster(pDev);
 
     if (pInfo) /* need to get these before RemoveDevice */
-    {
         drv = pInfo->drv;
-        idev = pInfo->conf_idev;
-    }
 
     OsBlockSignals();
     RemoveDevice(pDev, TRUE);
@@ -954,19 +952,6 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
             drv->UnInit(drv, pInfo, 0);
         else
             xf86DeleteInput(pInfo, 0);
-
-        /* devices added by the config backend aren't in the config layout */
-        it = xf86ConfigLayout.inputs;
-        while(*it && *it != idev)
-            it++;
-
-        if (!(*it)) /* end of list, not in the layout */
-        {
-            free(idev->driver);
-            free(idev->identifier);
-            xf86optionListFree(idev->commonOptions);
-            free(idev);
-        }
     }
     OsReleaseSignals();
 }
