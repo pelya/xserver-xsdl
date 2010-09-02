@@ -71,10 +71,6 @@
 		return;								\
 	}
 
-/* Stupid API backwards-compatibility. */
-#define TS_Raw 60
-#define TS_Scaled 61
-
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int			    driverVersion;
