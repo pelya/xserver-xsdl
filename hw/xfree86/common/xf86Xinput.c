@@ -679,10 +679,8 @@ xf86AddInput(InputDriverPtr drv, InputInfoPtr pInfo)
 }
 
 /*
- * Remove an entry from xf86InputDevs.  Ideally it should free all allocated
- * data.  To do this properly may require a driver hook.
+ * Remove an entry from xf86InputDevs and free all the device's information.
  */
-
 void
 xf86DeleteInput(InputInfoPtr pInp, int flags)
 {
