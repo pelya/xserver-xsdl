@@ -183,9 +183,4 @@ extern _X_EXPORT void xf86VIDrvMsgVerb(InputInfoPtr dev,
 /* xf86Option.c */
 extern void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts);
 
-
-/* Legacy hatred */
-#define SendCoreEvents 59
-#define DontSendCoreEvents 60
-
 #endif /* _xf86Xinput_h */
