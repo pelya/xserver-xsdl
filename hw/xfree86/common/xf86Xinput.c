@@ -682,8 +682,6 @@ xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
 void
 xf86DeleteInput(InputInfoPtr pInp, int flags)
 {
-    InputInfoPtr p;
-
     /* First check if the inputdev is valid. */
     if (pInp == NULL)
 	return;
@@ -711,7 +709,7 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     if (pInp == xf86InputDevs)
 	xf86InputDevs = pInp->next;
     else {
-	p = xf86InputDevs;
+	InputInfoPtr p = xf86InputDevs;
 	while (p && p->next != pInp)
 	    p = p->next;
 	if (p)
