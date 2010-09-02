@@ -121,7 +121,7 @@ typedef struct _InputInfoRec {
 } *InputInfoPtr;
 
 /* xf86Globals.c */
-extern _X_EXPORT InputInfoPtr xf86InputDevs;
+extern InputInfoPtr xf86InputDevs;
 
 /* xf86Xinput.c */
 extern _X_EXPORT void xf86PostMotionEvent(DeviceIntPtr device, int is_absolute,
