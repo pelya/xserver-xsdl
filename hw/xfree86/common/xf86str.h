@@ -405,7 +405,6 @@ typedef struct {
    char *			identifier;
    char *			driver;
    pointer		 	commonOptions;
-   pointer			extraOptions;
    InputAttributes              *attrs;
 } IDevRec, *IDevPtr;
 

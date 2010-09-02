@@ -1130,46 +1130,24 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * remove the core attribute from the later ones.
      */
     for (devs = servlayoutp->inputs; devs && *devs; devs++) {
-	pointer opt1 = NULL, opt2 = NULL;
         indp = *devs;
 	if (indp->commonOptions &&
 	    xf86CheckBoolOption(indp->commonOptions, "CorePointer", FALSE)) {
-	    opt1 = indp->commonOptions;
-	}
-	if (indp->extraOptions &&
-	    xf86CheckBoolOption(indp->extraOptions, "CorePointer", FALSE)) {
-	    opt2 = indp->extraOptions;
-	}
-	if (opt1 || opt2) {
 	    if (!corePointer) {
 		corePointer = indp;
 	    } else {
-		if (opt1)
-		    xf86ReplaceBoolOption(opt1, "CorePointer", FALSE);
-		if (opt2)
-		    xf86ReplaceBoolOption(opt2, "CorePointer", FALSE);
+		    xf86ReplaceBoolOption(indp->commonOptions, "CorePointer", FALSE);
 		xf86Msg(X_WARNING, "Duplicate core pointer devices.  "
 			"Removing core pointer attribute from \"%s\"\n",
 			indp->identifier);
 	    }
 	}
-	opt1 = opt2 = NULL;
 	if (indp->commonOptions &&
 	    xf86CheckBoolOption(indp->commonOptions, "CoreKeyboard", FALSE)) {
-	    opt1 = indp->commonOptions;
-	}
-	if (indp->extraOptions &&
-	    xf86CheckBoolOption(indp->extraOptions, "CoreKeyboard", FALSE)) {
-	    opt2 = indp->extraOptions;
-	}
-	if (opt1 || opt2) {
 	    if (!coreKeyboard) {
 		coreKeyboard = indp;
 	    } else {
-		if (opt1)
-		    xf86ReplaceBoolOption(opt1, "CoreKeyboard", FALSE);
-		if (opt2)
-		    xf86ReplaceBoolOption(opt2, "CoreKeyboard", FALSE);
+		    xf86ReplaceBoolOption(indp->commonOptions, "CoreKeyboard", FALSE);
 		xf86Msg(X_WARNING, "Duplicate core keyboard devices.  "
 			"Removing core keyboard attribute from \"%s\"\n",
 			indp->identifier);
@@ -1269,7 +1247,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevPtr));
             devs[count - 1] = xnfalloc(sizeof(IDevRec));
 	    *devs[count - 1] = Pointer;
-	    devs[count - 1]->extraOptions =
+	    devs[count - 1]->commonOptions =
 				xf86addNewOption(NULL, xnfstrdup("CorePointer"), NULL);
 	    devs[count] = NULL;
 	    servlayoutp->inputs = devs;
@@ -1313,7 +1291,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevPtr));
             devs[count - 1] = xnfalloc(sizeof(IDevRec));
 	    *devs[count - 1] = Pointer;
-	    devs[count - 1]->extraOptions =
+	    devs[count - 1]->commonOptions =
 				xf86addNewOption(NULL, xnfstrdup("AlwaysCore"), NULL);
 	    devs[count] = NULL;
 	    servlayoutp->inputs = devs;
@@ -1409,7 +1387,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevPtr));
             devs[count - 1] = xnfalloc(sizeof(IDevRec));
 	    *devs[count - 1] = Keyboard;
-	    devs[count - 1]->extraOptions =
+	    devs[count - 1]->commonOptions =
 				xf86addNewOption(NULL, xnfstrdup("CoreKeyboard"), NULL);
 	    devs[count] = NULL;
 	    servlayoutp->inputs = devs;
@@ -1506,7 +1484,7 @@ configInputDevices(XF86ConfLayoutPtr layout, serverLayoutPtr servlayoutp)
 	    free(indp);
 	    return FALSE;
 	}
-	indp[count]->extraOptions = irp->iref_option_lst;
+	indp[count]->commonOptions = irp->iref_option_lst;
 	count++;
 	irp = (XF86ConfInputrefPtr)irp->list.next;
     }
@@ -2328,7 +2306,6 @@ configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
     inputp->identifier = conf_input->inp_identifier;
     inputp->driver = conf_input->inp_driver;
     inputp->commonOptions = conf_input->inp_option_lst;
-    inputp->extraOptions = NULL;
     inputp->attrs = NULL;
 
     return TRUE;
