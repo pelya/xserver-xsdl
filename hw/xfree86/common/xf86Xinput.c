@@ -911,7 +911,8 @@ NewInputDeviceRequest (InputOption *options, InputAttributes *attrs,
 
     if (!idev->identifier) {
         xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
-        return BadMatch;
+        rval = BadMatch;
+        goto unwind;
     }
 
     rval = xf86NewInputDevice(idev, pdev,
