@@ -63,14 +63,6 @@
 /* the device sends Xinput and core pointer events */
 #define XI86_SEND_CORE_EVENTS	XI86_ALWAYS_CORE
 
-/* Valuator verification macro */
-#define XI_VERIFY_VALUATORS(num_valuators)					\
-	if (num_valuators > MAX_VALUATORS) {					\
-		xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"		\
-			" MAX_VALUATORS\n", __FUNCTION__, num_valuators);	\
-		return;								\
-	}
-
 /* This holds the input driver entry and module information. */
 typedef struct _InputDriverRec {
     int			    driverVersion;

@@ -89,6 +89,14 @@
 
 #include "xkbsrv.h"
 
+/* Valuator verification macro */
+#define XI_VERIFY_VALUATORS(num_valuators)					\
+	if (num_valuators > MAX_VALUATORS) {					\
+		xf86Msg(X_ERROR, "%s: num_valuator %d is greater than"		\
+			" MAX_VALUATORS\n", __FUNCTION__, num_valuators);	\
+		return;								\
+	}
+
 
 EventListPtr xf86Events = NULL;
 
