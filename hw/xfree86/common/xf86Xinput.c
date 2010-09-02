@@ -666,12 +666,6 @@ xf86AllocateInput(InputDriverPtr drv, IDevPtr idev)
     new->fd = -1;
     new->name = idev->identifier;
     new->type_name = "UNKNOWN";
-    new->device_control = NULL;
-    new->read_input = NULL;
-    new->control_proc = NULL;
-    new->switch_mode = NULL;
-    new->dev = NULL;
-    new->private = NULL;
     new->conf_idev = idev;
 
     xf86CollectInputOptions(new, (const char**)drv->default_options, NULL);
