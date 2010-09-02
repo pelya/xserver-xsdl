@@ -133,12 +133,9 @@ xf86CollectOptions(ScrnInfoPtr pScrn, pointer extraOpts)
  */
 
 void
-xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
-			pointer extraOpts)
+xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts)
 {
     XF86OptionPtr tmp;
-    XF86OptionPtr extras = (XF86OptionPtr)extraOpts;
-
     pInfo->options = NULL;
     if (defaultOpts) {
 	pInfo->options = xf86OptionListCreate(defaultOpts, -1, 0);
@@ -150,14 +147,6 @@ xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
 	else
 	    pInfo->options = tmp;
     }
-    if (extras) {
-	tmp = xf86optionListDup(extras);
-	if (pInfo->options)
-	    pInfo->options = xf86optionListMerge(pInfo->options, tmp);
-	else
-	    pInfo->options = tmp;
-    }
-
     if (pInfo->conf_idev && pInfo->conf_idev->attrs) {
         pInfo->attrs = pInfo->conf_idev->attrs;
     }

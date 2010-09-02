@@ -185,8 +185,7 @@ extern _X_EXPORT void xf86VIDrvMsgVerb(InputInfoPtr dev,
 				       va_list args);
 
 /* xf86Option.c */
-extern _X_EXPORT void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
-			     pointer extraOpts);
+extern void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts);
 
 
 /* Legacy hatred */
