@@ -686,12 +686,6 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     if (pInp == NULL)
 	return;
 
-#if 0
-    /* If a free function is defined, call it here. */
-    if (pInp->free)
-	pInp->free(pInp, 0);
-#endif
-
     if (pInp->module)
 	UnloadModule(pInp->module);
 
