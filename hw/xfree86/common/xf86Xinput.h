@@ -63,9 +63,6 @@
 /* the device sends Xinput and core pointer events */
 #define XI86_SEND_CORE_EVENTS	XI86_ALWAYS_CORE
 
-#define XI_PRIVATE(dev) \
-	(((InputInfoPtr)((dev)->public.devicePrivate))->private)
-
 /* Valuator verification macro */
 #define XI_VERIFY_VALUATORS(num_valuators)					\
 	if (num_valuators > MAX_VALUATORS) {					\
