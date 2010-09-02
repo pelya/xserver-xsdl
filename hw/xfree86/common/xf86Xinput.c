@@ -962,7 +962,7 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
         else
             xf86DeleteInput(pInfo, 0);
 
-        /* devices added through HAL aren't in the config layout */
+        /* devices added by the config backend aren't in the config layout */
         it = xf86ConfigLayout.inputs;
         while(*it && *it != idev)
             it++;
