@@ -320,6 +320,7 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
 {
     DeviceIntPtr mdev;
     int len = original->any.length;
+    int type = original->any.type;
 
     CHECKEVENT(original);
 
@@ -327,7 +328,12 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
     if (!sdev || !sdev->u.master)
         return NULL;
 
-    switch(original->any.type)
+#if XFreeXDGA
+    if (type == ET_DGAEvent)
+        type = original->dga_event.subtype;
+#endif
+
+    switch(type)
     {
         case ET_KeyPress:
         case ET_KeyRelease:
