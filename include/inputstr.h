@@ -266,6 +266,7 @@ typedef struct _ValuatorAccelerationRec {
     int                         number;
     PointerAccelSchemeProc      AccelSchemeProc;
     void                       *accelData; /* at disposal of AccelScheme */
+    PointerAccelSchemeInitProc  AccelInitProc;
     DeviceCallbackProc          AccelCleanupProc;
 } ValuatorAccelerationRec, *ValuatorAccelerationPtr;
 

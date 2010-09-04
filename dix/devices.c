@@ -1279,10 +1279,11 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
 
 /* global list of acceleration schemes */
 ValuatorAccelerationRec pointerAccelerationScheme[] = {
-    {PtrAccelNoOp,        NULL, NULL, NULL},
-    {PtrAccelPredictable, acceleratePointerPredictable, NULL, AccelerationDefaultCleanup},
-    {PtrAccelLightweight, acceleratePointerLightweight, NULL, NULL},
-    {-1, NULL, NULL, NULL} /* terminator */
+    {PtrAccelNoOp, NULL, NULL, NULL, NULL},
+    {PtrAccelPredictable, acceleratePointerPredictable, NULL,
+        InitPredictableAccelerationScheme, AccelerationDefaultCleanup},
+    {PtrAccelLightweight, acceleratePointerLightweight, NULL, NULL, NULL},
+    {-1, NULL, NULL, NULL, NULL} /* terminator */
 };
 
 /**
@@ -1294,59 +1295,37 @@ InitPointerAccelerationScheme(DeviceIntPtr dev,
                               int scheme)
 {
     int x, i = -1;
-    void* data = NULL;
     ValuatorClassPtr val;
 
     val = dev->valuator;
 
-    if(!val)
-	return FALSE;
-
-    if(IsMaster(dev) && scheme != PtrAccelNoOp)
+    if (!val)
         return FALSE;
 
-    for(x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
+    if (IsMaster(dev) && scheme != PtrAccelNoOp)
+        return FALSE;
+
+    for (x = 0; pointerAccelerationScheme[x].number >= 0; x++) {
         if(pointerAccelerationScheme[x].number == scheme){
             i = x;
             break;
         }
     }
 
-    if(-1 == i)
+    if (-1 == i)
         return FALSE;
 
     if (val->accelScheme.AccelCleanupProc)
         val->accelScheme.AccelCleanupProc(dev);
 
-    /* init scheme-specific data */
-    switch(scheme){
-        case PtrAccelPredictable:
-        {
-            DeviceVelocityPtr s;
-            s = malloc(sizeof(DeviceVelocityRec));
-            if(!s)
-        	return FALSE;
-            InitVelocityData(s);
-            data = s;
-            break;
+    if (pointerAccelerationScheme[i].AccelInitProc) {
+        if (!pointerAccelerationScheme[i].AccelInitProc(dev,
+                                            &pointerAccelerationScheme[i])) {
+            return FALSE;
         }
-        default:
-            break;
+    } else {
+        val->accelScheme = pointerAccelerationScheme[i];
     }
-
-    val->accelScheme = pointerAccelerationScheme[i];
-    val->accelScheme.accelData = data;
-
-    /* post-init scheme */
-    switch(scheme){
-        case PtrAccelPredictable:
-            InitializePredictableAccelerationProperties(dev);
-            break;
-
-        default:
-            break;
-    }
-
     return TRUE;
 }
 

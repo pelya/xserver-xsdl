@@ -150,6 +150,11 @@ typedef void (*PointerAccelSchemeProc)(
 typedef void (*DeviceCallbackProc)(
               DeviceIntPtr /*pDev*/);
 
+struct _ValuatorAccelerationRec;
+typedef Bool (*PointerAccelSchemeInitProc)(
+              DeviceIntPtr /*dev*/,
+              struct _ValuatorAccelerationRec* /*protoScheme*/);
+
 typedef struct _DeviceRec {
     pointer	devicePrivate;
     ProcessInputProc processInputProc;	/* current */
