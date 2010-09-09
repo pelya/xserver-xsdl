@@ -136,6 +136,25 @@ xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts)
     }
 }
 
+/**
+ * Duplicate the option list passed in. The returned pointer will be a newly
+ * allocated option list and must be freed by the caller.
+ */
+pointer
+xf86OptionListDuplicate(pointer options)
+{
+    pointer o = NULL;
+
+    while (options)
+    {
+        o = xf86AddNewOption(o, xf86OptionName(options), xf86OptionValue(options));
+        options = xf86nextOption(options);
+    }
+
+    return o;
+}
+
+
 /* Created for new XInput stuff -- essentially extensions to the parser	*/
 
 static int
