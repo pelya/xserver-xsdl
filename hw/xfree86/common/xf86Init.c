@@ -314,18 +314,10 @@ InstallSignalHandlers(void)
 	signal(SIGEMT, SIG_DFL);
 #endif
 	signal(SIGFPE, SIG_DFL);
-#ifdef SIGBUS
 	signal(SIGBUS, SIG_DFL);
-#endif
-#ifdef SIGSYS
 	signal(SIGSYS, SIG_DFL);
-#endif
-#ifdef SIGXCPU
 	signal(SIGXCPU, SIG_DFL);
-#endif
-#ifdef SIGXFSZ
 	signal(SIGXFSZ, SIG_DFL);
-#endif
     }
 }
 
@@ -863,9 +855,7 @@ OsVendorInit(void)
 {
   static Bool beenHere = FALSE;
 
-#ifdef SIGCHLD
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
-#endif
 
   if (!beenHere) {
     umask(022);

@@ -1122,10 +1122,7 @@ XNFstrdup(const char *s)
 }
 
 
-#ifdef SIGVTALRM
 #define SMART_SCHEDULE_POSSIBLE
-#endif
-
 #ifdef SMART_SCHEDULE_POSSIBLE
 #define SMART_SCHEDULE_SIGNAL		SIGALRM
 #define SMART_SCHEDULE_TIMER		ITIMER_REAL
@@ -1211,30 +1208,18 @@ OsBlockSignals (void)
 	sigset_t    set;
 	
 	sigemptyset (&set);
-#ifdef SIGALRM
 	sigaddset (&set, SIGALRM);
-#endif
-#ifdef SIGVTALRM
 	sigaddset (&set, SIGVTALRM);
-#endif
 #ifdef SIGWINCH
 	sigaddset (&set, SIGWINCH);
 #endif
 #ifdef SIGIO
 	sigaddset (&set, SIGIO);
 #endif
-#ifdef SIGTSTP
 	sigaddset (&set, SIGTSTP);
-#endif
-#ifdef SIGTTIN
 	sigaddset (&set, SIGTTIN);
-#endif
-#ifdef SIGTTOU
 	sigaddset (&set, SIGTTOU);
-#endif
-#ifdef SIGCHLD
 	sigaddset (&set, SIGCHLD);
-#endif
 	sigprocmask (SIG_BLOCK, &set, &PreviousSignalMask);
     }
 #endif
@@ -1280,21 +1265,17 @@ int
 System(char *command)
 {
     int pid, p;
-#ifdef SIGCHLD
     void (*csig)(int);
-#endif
     int status;
 
     if (!command)
 	return 1;
 
-#ifdef SIGCHLD
     csig = signal(SIGCHLD, SIG_DFL);
     if (csig == SIG_ERR) {
       perror("signal");
       return -1;
     }
-#endif
 
 #ifdef DEBUG
     ErrorF("System: `%s'\n", command);
@@ -1317,12 +1298,10 @@ System(char *command)
 	
     }
 
-#ifdef SIGCHLD
     if (signal(SIGCHLD, csig) == SIG_ERR) {
       perror("signal");
       return -1;
     }
-#endif
 
     return p == -1 ? -1 : status;
 }
