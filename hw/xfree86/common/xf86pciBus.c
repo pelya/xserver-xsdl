@@ -1327,3 +1327,38 @@ xf86PciMatchDriver(char* matches[], int nmatches) {
 
     return i;
 }
+
+Bool
+xf86PciConfigure(void *busData, struct pci_device *pDev)
+{
+    struct pci_device * pVideo = NULL;
+
+    pVideo = (struct pci_device *) busData;
+    if (pDev &&
+        (pDev->domain == pVideo->domain) &&
+        (pDev->bus == pVideo->bus) &&
+        (pDev->dev == pVideo->dev) &&
+        (pDev->func == pVideo->func))
+        return 0;
+
+    return 1;
+}
+
+void
+xf86PciConfigureNewDev(void *busData, struct pci_device *pVideo,
+                         GDevRec *GDev, int *chipset)
+{
+    char busnum[8];
+
+    pVideo = (struct pci_device *) busData;
+
+    GDev->busID = xnfalloc(16);
+    xf86FormatPciBusNumber(pVideo->bus, busnum);
+    sprintf(GDev->busID, "PCI:%s:%d:%d", busnum, pVideo->dev, pVideo->func);
+
+    GDev->chipID = pVideo->device_id;
+    GDev->chipRev = pVideo->revision;
+
+    if (*chipset < 0)
+        *chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
+}
