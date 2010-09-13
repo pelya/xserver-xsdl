@@ -1123,7 +1123,7 @@ void xf86VGAarbiterLock(ScrnInfoPtr pScrn) {}
 void xf86VGAarbiterUnlock(ScrnInfoPtr pScrn) {}
 Bool xf86VGAarbiterAllowDRI(ScreenPtr pScreen) { return TRUE; }
 void xf86VGAarbiterScrnInit(ScrnInfoPtr pScrn) {}
-void xf86VGAarbiterDeviceDecodes(ScrnInfoPtr pScrn) {}
+void xf86VGAarbiterDeviceDecodes(ScrnInfoPtr pScrn, int rsrc) {}
 Bool xf86VGAarbiterWrapFunctions(void) { return FALSE; }
 
 #endif
