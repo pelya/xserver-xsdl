@@ -53,7 +53,6 @@ static GCOps VGAarbiterGCOps = {
     VGAarbiterPolyFillArc, VGAarbiterPolyText8, VGAarbiterPolyText16,
     VGAarbiterImageText8, VGAarbiterImageText16, VGAarbiterImageGlyphBlt,
     VGAarbiterPolyGlyphBlt, VGAarbiterPushPixels,
-    {NULL}      /* devPrivate */
 };
 
 static miPointerSpriteFuncRec VGAarbiterSpriteFuncs = {
@@ -574,9 +573,7 @@ VGAarbiterCreateGC(GCPtr pGC)
     Bool         ret;
 
     SCREEN_PROLOG(CreateGC);
-    VGAGet(pScreen);
     ret = (*pScreen->CreateGC)(pGC);
-    VGAPut();
     GC_WRAP(pGC);
     SCREEN_EPILOG(CreateGC,VGAarbiterCreateGC);
 
