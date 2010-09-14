@@ -81,6 +81,8 @@ WinKBLayoutRec winKBLayouts[] =
     {  0x00000816, -1, "pc105",     "pt",        NULL,        NULL, "Portuguese (Portugal)"},
     {  0x0000041a, -1, "pc105",     "hr",        NULL,        NULL, "Croatian"},
     {  0x0000041d, -1, "pc105",     "se",        NULL,        NULL, "Swedish (Sweden)"},
+    {  0x0000041f, -1, "pc105",     "tr",        NULL,        NULL, "Turkish (Q)"},
+    {  0x0001041f, -1, "pc105",     "tr",        "f",         NULL, "Turkish (F)"},
     {  0x00000424, -1, "pc105",     "si",        NULL,        NULL, "Slovenian"},
     {  0x00000425, -1, "pc105",     "ee",        NULL,        NULL, "Estonian"},
     {  0x00000452, -1, "pc105",     "gb",        "intl",      NULL, "United Kingdom (Extended)"},
