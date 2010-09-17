@@ -174,7 +174,7 @@ LoaderInit(void)
 	    path = uwcrtpath; /* fallback: try to get libcrt.a from the uccs */
 	else
 	    path = xcrtpath; /* get the libcrt.a we compiled with */
-	LoaderOpen (path, 0, &errmaj, &errmin, &wasLoaded);
+	LoaderOpen (path, &errmaj, &errmin, &wasLoaded, 0);
     }
 #endif
 }
@@ -203,8 +203,8 @@ do_dlopen(loaderPtr modrec, int flags)
 /* Public Interface to the loader. */
 
 int
-LoaderOpen(const char *module, int handle,
-	   int *errmaj, int *errmin, int *wasLoaded, int flags)
+LoaderOpen(const char *module, int *errmaj, int *errmin, int *wasLoaded,
+           int flags)
 {
     loaderPtr tmp;
     int new_handle;
@@ -214,22 +214,20 @@ LoaderOpen(const char *module, int handle,
 #endif
 
     /* Is the module already loaded? */
-    if (handle >= 0) {
-	tmp = listHead;
-	while (tmp) {
+    tmp = listHead;
+    while (tmp) {
 #ifdef DEBUGLIST
-	    ErrorF("strcmp(%x(%s),{%x} %x(%s))\n", module, module,
-		   &(tmp->name), tmp->name, tmp->name);
+        ErrorF("strcmp(%x(%s),{%x} %x(%s))\n", module, module,
+               &(tmp->name), tmp->name, tmp->name);
 #endif
-	    if (!strcmp(module, tmp->name)) {
-		refCount[tmp->handle]++;
-		if (wasLoaded)
-		    *wasLoaded = 1;
-		xf86MsgVerb(X_INFO, 2, "Reloading %s\n", module);
-		return tmp->handle;
-	    }
-	    tmp = tmp->next;
-	}
+        if (!strcmp(module, tmp->name)) {
+            refCount[tmp->handle]++;
+            if (wasLoaded)
+                *wasLoaded = 1;
+            xf86MsgVerb(X_INFO, 2, "Reloading %s\n", module);
+            return tmp->handle;
+        }
+        tmp = tmp->next;
     }
 
     /*
