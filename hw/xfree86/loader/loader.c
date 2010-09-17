@@ -96,41 +96,6 @@
 
 extern void *xorg_symbols[];
 
-#define MAX_HANDLE 256
-static int refCount[MAX_HANDLE];
-
-/* Prototypes for static functions. */
-static loaderPtr listHead = NULL;
-
-static loaderPtr
-_LoaderListPush(void)
-{
-    loaderPtr item = calloc(1, sizeof(struct _loader));
-
-    item->next = listHead;
-    listHead = item;
-
-    return item;
-}
-
-static loaderPtr
-_LoaderListPop(int handle)
-{
-    loaderPtr item = listHead;
-    loaderPtr *bptr = &listHead;	/* pointer to previous node */
-
-    while (item) {
-	if (item->handle == handle) {
-	    *bptr = item->next;	/* remove this from the list */
-	    return item;
-	}
-	bptr = &(item->next);
-	item = item->next;
-    }
-
-    return 0;
-}
-
 void
 LoaderInit(void)
 {
@@ -171,129 +136,40 @@ LoaderInit(void)
 #endif
 }
 
-static void *
-do_dlopen(loaderPtr modrec, int flags)
-{
-    void *dlfile;
-    int dlopen_flags;
-
-    if (flags & LD_FLAG_GLOBAL)
-	dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL;
-    else
-	dlopen_flags = DLOPEN_LAZY;
-
-    dlfile = dlopen(modrec->name, dlopen_flags);
-
-    if (dlfile == NULL) {
-	ErrorF("dlopen: %s\n", dlerror());
-	return NULL;
-    }
-
-    return dlfile;
-}
-
 /* Public Interface to the loader. */
 
-int
-LoaderOpen(const char *module, int *errmaj, int *errmin, int *wasLoaded,
-           int flags)
+void *
+LoaderOpen(const char *module, int *errmaj, int *errmin)
 {
-    loaderPtr tmp;
-    int new_handle;
+    void *ret;
 
 #if defined(DEBUG)
     ErrorF("LoaderOpen(%s)\n", module);
 #endif
 
-    /* Is the module already loaded? */
-    tmp = listHead;
-    while (tmp) {
-#ifdef DEBUGLIST
-        ErrorF("strcmp(%x(%s),{%x} %x(%s))\n", module, module,
-               &(tmp->name), tmp->name, tmp->name);
-#endif
-        if (!strcmp(module, tmp->name)) {
-            refCount[tmp->handle]++;
-            if (wasLoaded)
-                *wasLoaded = 1;
-            xf86MsgVerb(X_INFO, 2, "Reloading %s\n", module);
-            return tmp->handle;
-        }
-        tmp = tmp->next;
-    }
-
-    /*
-     * OK, it's a new one. Add it.
-     */
     xf86Msg(X_INFO, "Loading %s\n", module);
-    if (wasLoaded)
-	*wasLoaded = 0;
 
-    /*
-     * Find a free handle.
-     */
-    new_handle = 1;
-    while (new_handle < MAX_HANDLE && refCount[new_handle])
-	new_handle++;
-
-    if (new_handle == MAX_HANDLE) {
-	xf86Msg(X_ERROR, "Out of loader space\n");	/* XXX */
-	if (errmaj)
-	    *errmaj = LDR_NOSPACE;
-	if (errmin)
-	    *errmin = LDR_NOSPACE;
-	return -1;
-    }
-
-    refCount[new_handle] = 1;
-
-    tmp = _LoaderListPush();
-    tmp->name = strdup(module);
-    tmp->handle = new_handle;
-
-    if ((tmp->private = do_dlopen(tmp, flags)) == NULL) {
-	xf86Msg(X_ERROR, "Failed to load %s\n", module);
-	_LoaderListPop(new_handle);
-	refCount[new_handle] = 0;
+    if (!(ret = dlopen(module, DLOPEN_LAZY | DLOPEN_GLOBAL))) {
+	xf86Msg(X_ERROR, "Failed to load %s: %s\n", module, dlerror());
 	if (errmaj)
 	    *errmaj = LDR_NOLOAD;
 	if (errmin)
 	    *errmin = LDR_NOLOAD;
-	return -1;
+	return NULL;
     }
 
-    return new_handle;
-}
-
-int
-LoaderHandleOpen(int handle)
-{
-    if (handle < 0 || handle >= MAX_HANDLE)
-	return -1;
-
-    if (!refCount[handle])
-	return -1;
-
-    refCount[handle]++;
-    return handle;
+    return ret;
 }
 
 void *
 LoaderSymbol(const char *name)
 {
     static void *global_scope = NULL;
-    loaderPtr l;
     void *p;
 
     p = dlsym(RTLD_DEFAULT, name);
     if (p != NULL)
 	return p;
-
-    for (l = listHead; l != NULL; l = l->next) {
-        p = dlsym(l->private, name);
-	if (p)
-	    return p;
-    }
 
     if (!global_scope)
 	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL);
@@ -304,32 +180,11 @@ LoaderSymbol(const char *name)
     return NULL;
 }
 
-int
-LoaderUnload(int handle)
+void
+LoaderUnload(const char *name, void *handle)
 {
-    loaderRec fakeHead;
-    loaderPtr tmp = &fakeHead;
-
-    if (handle < 0 || handle >= MAX_HANDLE)
-	return -1;
-
-    /*
-     * check the reference count, only free it if it goes to zero
-     */
-    if (--refCount[handle])
-	return 0;
-    /*
-     * find the loaderRecs associated with this handle.
-     */
-
-    while ((tmp = _LoaderListPop(handle)) != NULL) {
-	xf86Msg(X_INFO, "Unloading %s\n", tmp->name);
-	dlclose(tmp->private);
-	free(tmp->name);
-	free(tmp);
-    }
-
-    return 0;
+    xf86Msg(X_INFO, "Unloading %s\n", name);
+    dlclose(handle);
 }
 
 unsigned long LoaderOptions = 0;
