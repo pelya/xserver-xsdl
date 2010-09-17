@@ -3911,7 +3911,7 @@ AddScreen(
 	return -1;
     }
 
-    dixRegisterPrivateKey(&cursorScreenDevPriv[i], PRIVATE_CURSOR, 0);
+    dixRegisterScreenPrivateKey(&cursorScreenDevPriv, pScreen, PRIVATE_CURSOR, 0);
 
     return i;
 }
