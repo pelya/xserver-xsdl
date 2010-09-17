@@ -174,7 +174,7 @@ LoaderInit(void)
 	    path = uwcrtpath; /* fallback: try to get libcrt.a from the uccs */
 	else
 	    path = xcrtpath; /* get the libcrt.a we compiled with */
-	LoaderOpen (path, "libcrt", 0, &errmaj, &errmin, &wasLoaded);
+	LoaderOpen (path, 0, &errmaj, &errmin, &wasLoaded);
     }
 #endif
 }
@@ -203,7 +203,7 @@ do_dlopen(loaderPtr modrec, int flags)
 /* Public Interface to the loader. */
 
 int
-LoaderOpen(const char *module, const char *cname, int handle,
+LoaderOpen(const char *module, int handle,
 	   int *errmaj, int *errmin, int *wasLoaded, int flags)
 {
     loaderPtr tmp;
@@ -259,7 +259,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 
     tmp = _LoaderListPush();
     tmp->name = strdup(module);
-    tmp->cname = strdup(cname);
     tmp->handle = new_handle;
 
     if ((tmp->private = do_dlopen(tmp, flags)) == NULL) {
@@ -337,7 +336,6 @@ LoaderUnload(int handle)
 	xf86Msg(X_INFO, "Unloading %s\n", tmp->name);
 	dlclose(tmp->private);
 	free(tmp->name);
-	free(tmp->cname);
 	free(tmp);
     }
 
