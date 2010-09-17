@@ -388,7 +388,7 @@ XineramaRegisterConnectionBlockCallback(void (*func)(void))
     return TRUE;
 }
 
-static void XineramaInitData(ScreenPtr pScreen)
+static void XineramaInitData(void)
 {
     int i, w, h;
 
@@ -397,7 +397,7 @@ static void XineramaInitData(ScreenPtr pScreen)
 	BoxRec TheBox;
 	RegionRec ScreenRegion;
 
-        pScreen = screenInfo.screens[i];
+	ScreenPtr pScreen = screenInfo.screens[i];
 
 	TheBox.x1 = pScreen->x;
 	TheBox.x2 = TheBox.x1 + pScreen->width;
@@ -414,7 +414,7 @@ static void XineramaInitData(ScreenPtr pScreen)
     PanoramiXPixHeight = screenInfo.screens[0]->y + screenInfo.screens[0]->height;
 
     FOR_NSCREENS_FORWARD_SKIP(i) {
-	pScreen = screenInfo.screens[i];
+	ScreenPtr pScreen = screenInfo.screens[i];
 	w = pScreen->x + pScreen->width;
 	h = pScreen->y + pScreen->height;
 
@@ -425,10 +425,10 @@ static void XineramaInitData(ScreenPtr pScreen)
     }
 }
 
-void XineramaReinitData(ScreenPtr pScreen)
+void XineramaReinitData(void)
 {
     RegionUninit(&PanoramiXScreenRegion);
-    XineramaInitData(pScreen);
+    XineramaInitData();
 }
 
 /*
@@ -525,7 +525,7 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	return;
     }
   
-    XineramaInitData(pScreen);
+    XineramaInitData();
 
     /*
      *	Put our processes into the ProcVector
