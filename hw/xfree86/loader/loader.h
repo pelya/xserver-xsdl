@@ -91,7 +91,4 @@ extern unsigned long LoaderOptions;
 int LoaderOpen(const char *, const char *, int, int *, int *, int *, int);
 int LoaderHandleOpen(int);
 
-/* Loader backends. */
-#include "dlloader.h"
-
 #endif /* _LOADER_H */

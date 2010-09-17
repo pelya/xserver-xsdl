@@ -75,6 +75,33 @@
 #include "xf86Priv.h"
 #include "compiler.h"
 
+#ifdef HAVE_DLFCN_H
+
+#include <dlfcn.h>
+#include <X11/Xos.h>
+
+#if defined(DL_LAZY)
+#define DLOPEN_LAZY DL_LAZY
+#elif defined(RTLD_LAZY)
+#define DLOPEN_LAZY RTLD_LAZY
+#elif defined(__FreeBSD__)
+#define DLOPEN_LAZY 1
+#else
+#define DLOPEN_LAZY 0
+#endif
+
+#if defined(LD_GLOBAL)
+#define DLOPEN_GLOBAL LD_GLOBAL
+#elif defined(RTLD_GLOBAL)
+#define DLOPEN_GLOBAL RTLD_GLOBAL
+#else
+#define DLOPEN_GLOBAL 0
+#endif
+
+#else
+#error i have no dynamic linker and i must scream
+#endif
+
 extern void *xorg_symbols[];
 
 #define MAX_HANDLE 256
@@ -154,6 +181,27 @@ LoaderInit(void)
 #endif
 }
 
+static void *
+do_dlopen(loaderPtr modrec, int flags)
+{
+    void *dlfile;
+    int dlopen_flags;
+
+    if (flags & LD_FLAG_GLOBAL)
+	dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL;
+    else
+	dlopen_flags = DLOPEN_LAZY;
+
+    dlfile = dlopen(modrec->name, dlopen_flags);
+
+    if (dlfile == NULL) {
+	ErrorF("dlopen: %s\n", dlerror());
+	return NULL;
+    }
+
+    return dlfile;
+}
+
 /* Public Interface to the loader. */
 
 int
@@ -217,7 +265,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     tmp->handle = new_handle;
     tmp->module = moduleseq++;
 
-    if ((tmp->private = DLLoadModule(tmp, flags)) == NULL) {
+    if ((tmp->private = do_dlopen(tmp, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
 	_LoaderListPop(new_handle);
 	refCount[new_handle] = 0;
@@ -245,9 +293,29 @@ LoaderHandleOpen(int handle)
 }
 
 void *
-LoaderSymbol(const char *sym)
+LoaderSymbol(const char *name)
 {
-    return (DLFindSymbol(sym));
+    static void *global_scope = NULL;
+    loaderPtr l;
+    void *p;
+
+    p = dlsym(RTLD_DEFAULT, name);
+    if (p != NULL)
+	return p;
+
+    for (l = listHead; l != NULL; l = l->next) {
+        p = dlsym(l->private, name);
+	if (p)
+	    return p;
+    }
+
+    if (!global_scope)
+	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL);
+
+    if (global_scope)
+	return dlsym(global_scope, name);
+
+    return NULL;
 }
 
 int
@@ -270,7 +338,7 @@ LoaderUnload(int handle)
 
     while ((tmp = _LoaderListPop(handle)) != NULL) {
 	xf86Msg(X_INFO, "Unloading %s\n", tmp->name);
-	DLUnloadModule(tmp->private);
+	dlclose(tmp->private);
 	free(tmp->name);
 	free(tmp->cname);
 	free(tmp);
