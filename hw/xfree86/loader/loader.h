@@ -67,7 +67,6 @@ typedef struct _loader *loaderPtr;
 typedef struct _loader {
     int handle;			/* Unique id used to remove symbols from
 				 * this module when it is unloaded */
-    int module;			/* Unique id to identify compilation units */
     char *name;
     char *cname;
     void *private;		/* format specific data */

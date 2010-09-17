@@ -107,8 +107,6 @@ extern void *xorg_symbols[];
 #define MAX_HANDLE 256
 static int refCount[MAX_HANDLE];
 
-static int moduleseq = 0;
-
 /* Prototypes for static functions. */
 static loaderPtr listHead = NULL;
 
@@ -263,7 +261,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
     tmp->name = strdup(module);
     tmp->cname = strdup(cname);
     tmp->handle = new_handle;
-    tmp->module = moduleseq++;
 
     if ((tmp->private = do_dlopen(tmp, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
