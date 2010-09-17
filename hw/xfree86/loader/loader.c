@@ -54,18 +54,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#if defined(UseMMAP) || (defined(linux) && defined(__ia64__))
-#include <sys/mman.h>
-#endif
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-#if defined(linux) && \
-    (defined(__alpha__) || defined(__powerpc__) || defined(__ia64__) \
-    || defined(__amd64__))
-#include <malloc.h>
-#endif
 #include <stdarg.h>
 
 #include "os.h"
