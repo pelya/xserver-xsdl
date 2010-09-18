@@ -231,5 +231,11 @@ extern _X_EXPORT Bool vgaHWAllocDefaultRegs(vgaRegPtr regp);
 
 extern _X_EXPORT DDC1SetSpeedProc vgaHWddc1SetSpeedWeak(void);
 extern _X_EXPORT SaveScreenProcPtr vgaHWSaveScreenWeak(void);
+extern _X_EXPORT void xf86GetClocks(ScrnInfoPtr pScrn, int num,
+		   Bool (*ClockFunc)(ScrnInfoPtr, int),
+		   void (*ProtectRegs)(ScrnInfoPtr, Bool),
+		   void (*BlankScreen)(ScrnInfoPtr, Bool),
+		   IOADDRESS vertsyncreg, int maskval,
+		   int knownclkindex, int knownclkvalue);
 
 #endif /* _VGAHW_H */

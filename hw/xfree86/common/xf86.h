@@ -239,12 +239,6 @@ extern _X_EXPORT void xf86ShowClocks(ScrnInfoPtr scrp, MessageType from);
 extern _X_EXPORT void xf86PrintChipsets(const char *drvname, const char *drvmsg,
 		       SymTabPtr chips);
 extern _X_EXPORT int xf86MatchDevice(const char *drivername, GDevPtr **driversectlist);
-extern _X_EXPORT void xf86GetClocks(ScrnInfoPtr pScrn, int num,
-		   Bool (*ClockFunc)(ScrnInfoPtr, int),
-		   void (*ProtectRegs)(ScrnInfoPtr, Bool),
-		   void (*BlankScreen)(ScrnInfoPtr, Bool),
-		   IOADDRESS vertsyncreg, int maskval,
-		   int knownclkindex, int knownclkvalue);
 extern _X_EXPORT const char *xf86GetVisualName(int visual);
 extern _X_EXPORT int xf86GetVerbosity(void);
 extern _X_EXPORT Pix24Flags xf86GetPix24(void);
