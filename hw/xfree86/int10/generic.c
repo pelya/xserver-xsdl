@@ -297,7 +297,7 @@ MapVRam(xf86Int10InfoPtr pInt)
     INTPriv(pInt)->vRam = xf86MapDomainMemory(pInt->scrnIndex, VIDMEM_MMIO,
 					      pInt->dev, V_RAM, size);
 
-    pInt->ioBase = xf86Screens[pInt->scrnIndex]->domainIOBase;
+    pInt->io = pci_legacy_open_io(pInt->dev, 0, 64 * 1024);
 }
 
 static void
@@ -308,6 +308,9 @@ UnmapVRam(xf86Int10InfoPtr pInt)
     int size = ((VRAM_SIZE + pagesize - 1)/pagesize) * pagesize;
 
     xf86UnMapVidMem(screen, INTPriv(pInt)->vRam, size);
+
+    pci_device_close_io(pInt->dev, pInt->io);
+    pInt->io = NULL;
 }
 
 Bool
