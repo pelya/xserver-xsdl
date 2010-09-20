@@ -528,7 +528,7 @@ extern _X_EXPORT void FreeInputAttributes(InputAttributes *attrs);
 /* misc event helpers */
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);
 extern Mask GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev);
-void FixUpEventFromWindow(DeviceIntPtr pDev,
+void FixUpEventFromWindow(SpritePtr pSprite,
                           xEvent *xE,
                           WindowPtr pWin,
                           Window child,

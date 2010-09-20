@@ -2181,9 +2181,8 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
     return 2;
 }
 
-static Window FindChildForEvent(DeviceIntPtr dev, WindowPtr event)
+static Window FindChildForEvent(SpritePtr pSprite, WindowPtr event)
 {
-    SpritePtr pSprite = dev->spriteInfo->sprite;
     WindowPtr w = pSprite->spriteTrace[pSprite->spriteTraceGood-1];
     Window child = None;
 
@@ -2222,16 +2221,14 @@ static Window FindChildForEvent(DeviceIntPtr dev, WindowPtr event)
  */
 void
 FixUpEventFromWindow(
-    DeviceIntPtr pDev,
+    SpritePtr pSprite,
     xEvent *xE,
     WindowPtr pWin,
     Window child,
     Bool calcChild)
 {
-    SpritePtr pSprite = pDev->spriteInfo->sprite;
-
     if (calcChild)
-        child = FindChildForEvent(pDev, pWin);
+        child = FindChildForEvent(pSprite, pWin);
 
     if (XI2_EVENT(xE))
     {
@@ -2247,7 +2244,7 @@ FixUpEventFromWindow(
             event->evtype == XI_PropertyEvent)
             return;
 
-        event->root = GetCurrentRootWindow(pDev)->drawable.id;
+        event->root = RootWindow(pSprite)->drawable.id;
         event->event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
@@ -2268,7 +2265,7 @@ FixUpEventFromWindow(
 
     } else
     {
-        XE_KBPTR.root = GetCurrentRootWindow(pDev)->drawable.id;
+        XE_KBPTR.root = RootWindow(pSprite)->drawable.id;
         XE_KBPTR.event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
@@ -2374,6 +2371,7 @@ int
 DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                     WindowPtr stopAt, DeviceIntPtr dev)
 {
+    SpritePtr pSprite = dev->spriteInfo->sprite;
     Window child = None;
     Mask filter;
     int deliveries = 0;
@@ -2396,7 +2394,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 {
                     /* XXX: XACE */
                     filter = GetEventFilter(dev, xi2);
-                    FixUpEventFromWindow(dev, xi2, pWin, child, FALSE);
+                    FixUpEventFromWindow(pSprite, xi2, pWin, child, FALSE);
                     deliveries = DeliverEventsToWindow(dev, pWin, xi2, 1,
                                                        filter, grab);
                     free(xi2);
@@ -2414,7 +2412,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 if (rc == Success) {
                     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count) == Success) {
                         filter = GetEventFilter(dev, xE);
-                        FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
+                        FixUpEventFromWindow(pSprite, xE, pWin, child, FALSE);
                         deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
                                                            filter, grab);
                         if (deliveries > 0)
@@ -2432,7 +2430,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
                 if (rc == Success) {
                     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, &core, 1) == Success) {
                         filter = GetEventFilter(dev, &core);
-                        FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
+                        FixUpEventFromWindow(pSprite, &core, pWin, child, FALSE);
                         deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
                                                            filter, grab);
                         if (deliveries > 0)
@@ -3368,6 +3366,7 @@ CheckPassiveGrabsOnWindow(
     DeviceEvent *event,
     BOOL checkCore)
 {
+    SpritePtr pSprite = device->spriteInfo->sprite;
     GrabPtr grab = wPassiveGrabs(pWin);
     GrabRec tempGrab;
     GrabInfoPtr grabinfo;
@@ -3531,7 +3530,7 @@ CheckPassiveGrabsOnWindow(
 
             if (xE)
             {
-                FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
+                FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
 
                 TryClientEvents(rClient(grab), device, xE, count,
                                        GetEventFilter(device, xE),
@@ -3683,7 +3682,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     {
         /* XXX: XACE */
         int filter = GetEventFilter(keybd, xi2);
-        FixUpEventFromWindow(ptr, xi2, focus, None, FALSE);
+        FixUpEventFromWindow(ptr->spriteInfo->sprite, xi2, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, xi2, 1,
                                            filter, NullGrab);
         if (deliveries > 0)
@@ -3696,7 +3695,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     if (rc == Success &&
         XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count) == Success)
     {
-        FixUpEventFromWindow(ptr, xE, focus, None, FALSE);
+        FixUpEventFromWindow(ptr->spriteInfo->sprite, xE, focus, None, FALSE);
         deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
                 GetEventFilter(keybd, xE),
                 NullGrab);
@@ -3712,7 +3711,8 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
         rc = EventToCore(event, &core);
         if (rc == Success) {
             if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, &core, 1) == Success) {
-                FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
+                FixUpEventFromWindow(keybd->spriteInfo->sprite, &core, focus,
+                                     None, FALSE);
                 deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
                                                    GetEventFilter(keybd, &core),
                                                    NullGrab);
@@ -3802,8 +3802,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
             rc = EventToCore(event, &core);
             if (rc == Success)
             {
-                FixUpEventFromWindow(thisDev, &core, grab->window,
-                        None, TRUE);
+                FixUpEventFromWindow(pSprite, &core, grab->window, None, TRUE);
                 if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
                             grab->window, &core, 1) ||
                         XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
@@ -3830,7 +3829,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                     grab->xi2mask[XIAllMasterDevices][evtype/8] |
                     grab->xi2mask[thisDev->id][evtype/8];
                 /* try XI2 event */
-                FixUpEventFromWindow(thisDev, xi2, grab->window, None, TRUE);
+                FixUpEventFromWindow(pSprite, xi2, grab->window, None, TRUE);
                 /* XXX: XACE */
                 deliveries = TryClientEvents(rClient(grab), thisDev, xi2, 1, mask,
                         GetEventFilter(thisDev, xi2), grab);
@@ -3851,8 +3850,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
                 else
                     mask = grab->eventMask;
 
-                FixUpEventFromWindow(thisDev, xi, grab->window,
-                        None, TRUE);
+                FixUpEventFromWindow(pSprite, xi, grab->window, None, TRUE);
 
                 if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
                             grab->window, xi, count) ||
@@ -4198,7 +4196,7 @@ CoreEnterLeaveEvent(
     event.u.enterLeave.rootX = mouse->spriteInfo->sprite->hot.x;
     event.u.enterLeave.rootY = mouse->spriteInfo->sprite->hot.y;
     /* Counts on the same initial structure of crossing & button events! */
-    FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
+    FixUpEventFromWindow(mouse->spriteInfo->sprite, &event, pWin, None, FALSE);
     /* Enter/Leave events always set child */
     event.u.enterLeave.child = child;
     event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
@@ -4298,7 +4296,8 @@ DeviceEnterLeaveEvent(
         event->group.locked_group = kbd->key->xkbInfo->state.locked_group;
     }
 
-    FixUpEventFromWindow(mouse, (xEvent*)event, pWin, None, FALSE);
+    FixUpEventFromWindow(mouse->spriteInfo->sprite, (xEvent*)event, pWin,
+                         None, FALSE);
 
     filter = GetEventFilter(mouse, (xEvent*)event);
 
