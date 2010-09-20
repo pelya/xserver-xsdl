@@ -332,12 +332,6 @@ IsMaster(DeviceIntPtr dev)
     return dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD;
 }
 
-static WindowPtr XYToWindow(
-    DeviceIntPtr pDev,
-    int x,
-    int y
-);
-
 /**
  * Max event opcode.
  */
@@ -1290,7 +1284,8 @@ ComputeFreezes(void)
 
 	syncEvents.replayDev = (DeviceIntPtr)NULL;
 
-        w = XYToWindow(replayDev, event->root_x, event->root_y);
+        w = XYToWindow(replayDev->spriteInfo->sprite,
+                       event->root_x, event->root_y);
         if (!CheckDeviceGrabs(replayDev, event, syncEvents.replayWin))
         {
             if (replayDev->focus && !IsPointerEvent((InternalEvent*)event))
@@ -2553,16 +2548,14 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
  *
  * @returns the window at the given coordinates.
  */
-static WindowPtr
-XYToWindow(DeviceIntPtr pDev, int x, int y)
+WindowPtr
+XYToWindow(SpritePtr pSprite, int x, int y)
 {
     WindowPtr  pWin;
     BoxRec		box;
-    SpritePtr pSprite;
 
-    pSprite = pDev->spriteInfo->sprite;
     pSprite->spriteTraceGood = 1;	/* root window still there */
-    pWin = GetCurrentRootWindow(pDev)->firstChild;
+    pWin = RootWindow(pSprite)->firstChild;
     while (pWin)
     {
 	if ((pWin->mapped) &&
@@ -2775,7 +2768,7 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
 	ev->root_y = pSprite->hot.y;
     }
 
-    newSpriteWin = XYToWindow(pDev, pSprite->hot.x, pSprite->hot.y);
+    newSpriteWin = XYToWindow(pSprite, pSprite->hot.x, pSprite->hot.y);
 
     if (newSpriteWin != prevSpriteWin)
     {

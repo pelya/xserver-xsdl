@@ -533,6 +533,7 @@ void FixUpEventFromWindow(SpritePtr pSprite,
                           WindowPtr pWin,
                           Window child,
                           Bool calcChild);
+extern WindowPtr XYToWindow(SpritePtr pSprite, int x, int y);
 extern int EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event,
                               WindowPtr win);
 /**
