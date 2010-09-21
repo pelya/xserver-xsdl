@@ -103,7 +103,7 @@
 # if defined(NO_INLINE) || defined(DO_PROTOTYPES)
 
 #  if !defined(__arm__)
-#   if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) \
+#   if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) && !defined(__nds32__) \
       && !(defined(__alpha__) && defined(linux)) \
       && !(defined(__ia64__) && defined(linux)) \
 
@@ -114,7 +114,7 @@ extern _X_EXPORT unsigned int inb(unsigned short);
 extern _X_EXPORT unsigned int inw(unsigned short);
 extern _X_EXPORT unsigned int inl(unsigned short);
 
-#   else /* __sparc__,  __arm32__, __alpha__*/
+#   else /* __sparc__,  __arm32__, __alpha__, __nds32__ */
 
 extern _X_EXPORT void outb(unsigned long, unsigned char);
 extern _X_EXPORT void outw(unsigned long, unsigned short);
@@ -123,7 +123,7 @@ extern _X_EXPORT unsigned int inb(unsigned long);
 extern _X_EXPORT unsigned int inw(unsigned long);
 extern _X_EXPORT unsigned int inl(unsigned long);
 
-#   endif /* __sparc__,  __arm32__, __alpha__ */
+#   endif /* __sparc__,  __arm32__, __alpha__, __nds32__ */
 #  endif /* __arm__ */
 
 #  if defined(__powerpc__) && !defined(__OpenBSD__)
