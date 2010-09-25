@@ -947,6 +947,21 @@ hostx_get_event(EphyrHostXEvent * ev)
     }
 
     switch (xev->response_type & 0x7f) {
+    case 0: { /* error */
+        xcb_generic_error_t *e = (xcb_generic_error_t *)xev;
+        fprintf(stderr, "X11 error\n"
+                "Error code: %hhu\n"
+                "Sequence number: %hu\n"
+                "Major code: %hhu\tMinor code: %hu\n"
+                "Error value: %u\n",
+                e->error_code,
+                e->sequence,
+                e->major_code, e->minor_code,
+                e->resource_id);
+        free(xev);
+        exit(1);
+    }
+
     case XCB_EXPOSE: {
         xcb_expose_event_t *expose = (xcb_expose_event_t *)xev;
         struct EphyrHostScreen *host_screen =
