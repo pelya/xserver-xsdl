@@ -677,7 +677,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     ScrnInfoPtr		pScrn = XF86SCRNINFO(pScreen);
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
     WindowPtr		pRoot = pScreen->root;
-    PixmapPtr		pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
+    PixmapPtr		pScrnPix;
     Bool		ret = FALSE;
     int                 c;
 
@@ -714,6 +714,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 	}
     }
 
+    pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
     pScreen->width = pScrnPix->drawable.width = width;
     pScreen->height = pScrnPix->drawable.height = height;
     randrp->mmWidth = pScreen->mmWidth = mmWidth;
