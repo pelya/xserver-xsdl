@@ -776,6 +776,9 @@ xf86SetWeight(ScrnInfoPtr scrp, rgb weight, rgb mask)
 	    scrp->weight.red = scrp->weight.blue = 5;
 	    scrp->weight.green = 6;
 	    break;
+	case 18:
+	    scrp->weight.red = scrp->weight.green = scrp->weight.blue = 6;
+	    break;
 	case 24:
 	    scrp->weight.red = scrp->weight.green = scrp->weight.blue = 8;
 	    break;
