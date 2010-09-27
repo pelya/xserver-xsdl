@@ -1180,10 +1180,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
     if (enable)
     {
 	/*
-	 * Restore the screen pixmap devPrivate field
-	 */
-	pspix->devPrivate = pScrnInfo->pixmapPrivate;
-	/*
 	 * Restore all of the clip lists on the screen
 	 */
 	if (!xf86Resetting)
@@ -1196,13 +1192,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
 	 * Empty all of the clip lists on the screen
 	 */
 	xf86SetRootClip (pScreen, FALSE);
-	/*
-	 * save the screen pixmap devPrivate field and
-	 * replace it with NULL so accidental references
-	 * to the frame buffer are caught
-	 */
-	pScrnInfo->pixmapPrivate = pspix->devPrivate;
-	pspix->devPrivate.ptr = NULL;
     }
 }
 
