@@ -76,27 +76,6 @@ typedef struct _DRIEvent {
     unsigned int    mask;
 } DRIEventRec;
 
-
-void
-AppleDRIExtensionInit(void)
-{
-    ExtensionEntry* extEntry;
-
-    if (DRIExtensionInit() &&
-        (extEntry = AddExtension(APPLEDRINAME,
-                                 AppleDRINumberEvents,
-                                 AppleDRINumberErrors,
-                                 ProcAppleDRIDispatch,
-                                 SProcAppleDRIDispatch,
-                                 AppleDRIResetProc,
-                                 StandardMinorOpcode))) {
-        DRIReqCode = (unsigned char)extEntry->base;
-        DRIErrorBase = extEntry->errorBase;
-        DRIEventBase = extEntry->eventBase;
-        EventSwapVector[DRIEventBase] = (EventSwapPtr) SNotifyEvent;
-    }
-}
-
 /*ARGSUSED*/
 static void
 AppleDRIResetProc (
@@ -417,5 +396,25 @@ SProcAppleDRIDispatch (
         return SProcAppleDRIQueryVersion(client);
     default:
         return BadRequest;
+    }
+}
+
+void
+AppleDRIExtensionInit(void)
+{
+    ExtensionEntry* extEntry;
+
+    if (DRIExtensionInit() &&
+        (extEntry = AddExtension(APPLEDRINAME,
+                                 AppleDRINumberEvents,
+                                 AppleDRINumberErrors,
+                                 ProcAppleDRIDispatch,
+                                 SProcAppleDRIDispatch,
+                                 AppleDRIResetProc,
+                                 StandardMinorOpcode))) {
+        DRIReqCode = (unsigned char)extEntry->base;
+        DRIErrorBase = extEntry->errorBase;
+        DRIEventBase = extEntry->eventBase;
+        EventSwapVector[DRIEventBase] = (EventSwapPtr) SNotifyEvent;
     }
 }
