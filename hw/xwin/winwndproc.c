@@ -231,18 +231,7 @@ winWindowProc (HWND hwnd, UINT message,
         (this is probably usually the case so that might be an
         overoptimization)
       */
-
-      /*
-       * We can simply recreate the same-sized primary surface when
-       * the display dimensions change.
-       */
 	{
-
-#if CYGDEBUG
-	  winDebug ("winWindowProc - WM_DISPLAYCHANGE - Recreated "
-		  "primary surface\n");
-#endif
-
 	  /*
              In rootless modes which are monitor or virtual desktop size
              use RandR to resize the X screen
@@ -311,13 +300,8 @@ winWindowProc (HWND hwnd, UINT message,
           else
             {
               /*
-                If we get here, we are either windowed and using the GDI engine
-                or windowed and non-fullscreen using any engine
-              */
-
-              /*
-               * For ddraw engines, we need to (try to) recreate the same-sized primary surface
-               * when display dimensions change (but not depth, that is disruptive)
+               * We can simply recreate the same-sized primary surface when
+               * the display dimensions change.
                */
 
               /*

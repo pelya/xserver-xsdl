@@ -514,23 +514,14 @@ winFreeFBShadowDD (ScreenPtr pScreen)
       pScreenPriv->pddsShadow = NULL;
     }
 
-  /* Detach the clipper from the primary surface and release the clipper. */
+  /* Detach the clipper from the primary surface and release the primary surface, if there is one */
+  winReleasePrimarySurfaceShadowDD(pScreen);
+
+  /* Release the clipper object */
   if (pScreenPriv->pddcPrimary)
     {
-      /* Detach the clipper */
-      IDirectDrawSurface2_SetClipper (pScreenPriv->pddsPrimary,
-				      NULL);
-
-      /* Release the clipper object */
       IDirectDrawClipper_Release (pScreenPriv->pddcPrimary);
       pScreenPriv->pddcPrimary = NULL;
-    }
-
-  /* Release the primary surface, if there is one */
-  if (pScreenPriv->pddsPrimary)
-    {
-      IDirectDrawSurface2_Release (pScreenPriv->pddsPrimary);
-      pScreenPriv->pddsPrimary = NULL;
     }
 
   /* Free the DirectDraw2 object, if there is one */
@@ -576,6 +567,10 @@ winShadowUpdateDD (ScreenPtr pScreen,
    */
   if ((!pScreenPriv->fActive && pScreenInfo->fFullScreen)
       || pScreenPriv->fBadDepth) return;
+
+  /* Return immediately if we didn't get needed surfaces */
+  if (!pScreenPriv->pddsPrimary || !pScreenPriv->pddsShadow)
+    return;
 
   /* Get the origin of the window in the screen coords */
   ptOrigin.x = pScreenInfo->dwXOffset;
