@@ -177,10 +177,6 @@ winGetSpansNativeGDI (DrawablePtr	pDrawable,
       DeleteDC (hdcMem);
       break;
 
-    case UNDRAWABLE_WINDOW:
-      FatalError ("winGetSpans - UNDRAWABLE_WINDOW\n");
-      break;
-
     default:
       FatalError ("winGetSpans - Unknown drawable type\n");
       break;
