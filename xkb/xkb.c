@@ -2343,8 +2343,8 @@ _XkbSetMapChecks(ClientPtr client, DeviceIntPtr dev, xkbSetMapReq *req, char* va
     XkbDescPtr          xkb;
     int                 error;
     int                 nTypes = 0, nActions;
-    CARD8               mapWidths[XkbMaxLegalKeyCode + 1];
-    CARD16              symsPerKey[XkbMaxLegalKeyCode + 1];
+    CARD8               mapWidths[XkbMaxLegalKeyCode + 1] = {0};
+    CARD16              symsPerKey[XkbMaxLegalKeyCode + 1] = {0};
 
     xkbi= dev->key->xkbInfo;
     xkb = xkbi->desc;
