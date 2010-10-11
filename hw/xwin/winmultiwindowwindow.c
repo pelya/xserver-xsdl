@@ -110,7 +110,10 @@ winCreateWindowMultiWindow (WindowPtr pWin)
   pWinPriv->hWnd = NULL;
   pWinPriv->pScreenPriv = winGetScreenPriv(pWin->drawable.pScreen);
   pWinPriv->fXKilled = FALSE;
- 
+#ifdef XWIN_GLX_WINDOWS
+  pWinPriv->fWglUsed = FALSE;
+#endif
+
   return fResult;
 }
 
@@ -651,6 +654,11 @@ winDestroyWindowsWindow (WindowPtr pWin)
   /* Destroy any icons we created for this window */
   winDestroyIcon(hIcon);
   winDestroyIcon(hIconSm);
+
+#ifdef XWIN_GLX_WINDOWS
+  /* No longer note WGL used on this window */
+  pWinPriv->fWglUsed = FALSE;
+#endif
 
   /* Process all messages on our queue */
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
