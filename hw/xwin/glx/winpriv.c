@@ -19,7 +19,7 @@ winCreateWindowsWindow (WindowPtr pWin);
  */
 HWND winGetWindowInfo(WindowPtr pWin)
 {
-    winDebug("%s: pWin=%p\n", __FUNCTION__, pWin);
+    winTrace("%s: pWin %p XID 0x%x\n", __FUNCTION__, pWin, pWin->drawable.id);
 
     /* a real window was requested */
     if (pWin != NULL)
