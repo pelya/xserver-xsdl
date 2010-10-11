@@ -854,11 +854,6 @@ winFillSpansNativeGDI (DrawablePtr	pDrawable,
 	}
       break;
 
-    case DRAWABLE_BUFFER:
-      /* DRAWABLE_BUFFER seems to be undocumented. */
-      ErrorF ("winFillSpans - DRAWABLE_BUFFER - Unimplemented\n");
-      break;
-
     default:
       ErrorF ("winFillSpans - Unknown drawable type\n");
       break;
