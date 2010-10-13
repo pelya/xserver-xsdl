@@ -916,7 +916,7 @@ GetGeometry(ClientPtr client, xGetGeometryReply *rep)
     rep->width = pDraw->width;
     rep->height = pDraw->height;
 
-    if (WindowDrawable(pDraw))
+    if (WindowDrawable(pDraw->type))
     {
         WindowPtr pWin = (WindowPtr)pDraw;
 	rep->x = pWin->origin.x - wBorderWidth (pWin);
