@@ -524,24 +524,6 @@ fixup_video_driver_list(char **drivers)
             }
         }
     }
-    /*
-     * since the ati wrapper driver is gross and awful, sort ati before
-     * atimisc, which makes sure all the ati symbols are visible in xorgcfg.
-     */
-    for (drv = drivers; drv != end; drv++) {
-        if (!strcmp(*drv, "atimisc")) {
-            atimisc = drv;
-            for (drv = atimisc; drv != end; drv++) {
-                if (!strcmp(*drv, "ati")) {
-                    ati = drv;
-                    x = *ati; *ati = *atimisc; *atimisc = x;
-                    return;
-                }
-            }
-            /* if we get here, ati was already ahead of atimisc */
-            return;
-        }
-    }
 }
 
 static char **
