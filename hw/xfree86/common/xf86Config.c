@@ -2211,15 +2211,11 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 static void
 configDRI(XF86ConfDRIPtr drip)
 {
-    int                count = 0;
-    XF86ConfBuffersPtr bufs;
     int                i;
     struct group       *grp;
 
     xf86ConfigDRI.group      = -1;
     xf86ConfigDRI.mode       = 0;
-    xf86ConfigDRI.bufs_count = 0;
-    xf86ConfigDRI.bufs       = NULL;
 
     if (drip) {
 	if (drip->dri_group_name) {
@@ -2230,24 +2226,6 @@ configDRI(XF86ConfDRIPtr drip)
 		xf86ConfigDRI.group = drip->dri_group;
 	}
 	xf86ConfigDRI.mode = drip->dri_mode;
-	for (bufs = drip->dri_buffers_lst; bufs; bufs = bufs->list.next)
-	    ++count;
-	
-	xf86ConfigDRI.bufs_count = count;
-	xf86ConfigDRI.bufs = xnfalloc(count * sizeof(*xf86ConfigDRI.bufs));
-	
-	for (i = 0, bufs = drip->dri_buffers_lst;
-	     i < count;
-	     i++, bufs = bufs->list.next) {
-	    
-	    xf86ConfigDRI.bufs[i].count = bufs->buf_count;
-	    xf86ConfigDRI.bufs[i].size  = bufs->buf_size;
-				/* FIXME: Flags not implemented.  These
-                                   could be used, for example, to specify a
-                                   contiguous block and/or write-combining
-                                   cache policy. */
-	    xf86ConfigDRI.bufs[i].flags = 0;
-	}
     }
 }
 #endif
