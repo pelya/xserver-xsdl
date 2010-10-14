@@ -73,7 +73,6 @@ char *		g_pszCommandLine = NULL;
 Bool		g_fSilentFatalError = FALSE;
 DWORD		g_dwCurrentThreadID = 0;
 Bool		g_fKeyboardHookLL = FALSE;
-HWND		g_hwndKeyboardFocus = NULL;
 Bool		g_fNoHelpMessageBox = FALSE;
 Bool		g_fSoftwareCursor = FALSE;
 Bool		g_fSilentDupError = FALSE;
@@ -120,7 +119,6 @@ void
 winInitializeGlobals (void)
 {
   g_dwCurrentThreadID = GetCurrentThreadId ();
-  g_hwndKeyboardFocus = NULL;
 #ifdef XWIN_CLIPBOARD
   g_fClipboardLaunched = FALSE;
   g_fClipboardStarted = FALSE;
