@@ -554,7 +554,6 @@ xf86pathIsSafe(const char *path)
  *    %P    projroot
  *    %C    sysconfdir
  *    %D    datadir
- *    %M    config file format version number
  *    %%    %
  */
 
@@ -578,11 +577,6 @@ xf86pathIsSafe(const char *path)
 #endif
 #ifndef XCONFENV
 #define XCONFENV	"XORGCONFIG"
-#endif
-/* xorg.conf is based on XF86Config version 4.   If we ever break
-   compatibility of the xorg.conf syntax, we'll bump this version number. */
-#ifndef CONFIG_FILE_VERSION
-#define CONFIG_FILE_VERSION	4
 #endif
 
 #define BAIL_OUT		do {									\
@@ -614,7 +608,6 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 	int i, l;
 	static const char *env = NULL;
 	static char *hostname = NULL;
-	static char majorvers[3] = "";
 
 	if (!template)
 		return NULL;
@@ -714,13 +707,6 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 				break;
 			case 'D':
 				APPEND_STR(DATADIR);
-				break;
-			case 'M':
-				if (!majorvers[0]) {
-					snprintf(majorvers, sizeof(majorvers),
-						 "%d", CONFIG_FILE_VERSION);
-				}
-				APPEND_STR(majorvers);
 				break;
 			case '%':
 				result[l++] = '%';
