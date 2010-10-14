@@ -210,7 +210,7 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, int first_valuator,
     }
 
     memcpy(&event->valuators.data[first_valuator],
-           valuators, num_valuators * sizeof(uint32_t));
+           valuators, num_valuators * sizeof(int32_t));
 
 }
 
