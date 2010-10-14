@@ -115,53 +115,6 @@ static int pushToken = LOCK_TOKEN;
 static int eol_seen = 0;		/* private state to handle comments */
 LexRec val;
 
-/* 
- * xf86strToUL --
- *
- *  A portable, but restricted, version of strtoul().  It only understands
- *  hex, octal, and decimal.  But it's good enough for our needs.
- */
-static unsigned int
-xf86strToUL (char *str)
-{
-	int base = 10;
-	char *p = str;
-	unsigned int tot = 0;
-
-	if (*p == '0')
-	{
-		p++;
-		if ((*p == 'x') || (*p == 'X'))
-		{
-			p++;
-			base = 16;
-		}
-		else
-			base = 8;
-	}
-	while (*p)
-	{
-		if ((*p >= '0') && (*p <= ((base == 8) ? '7' : '9')))
-		{
-			tot = tot * base + (*p - '0');
-		}
-		else if ((base == 16) && (*p >= 'a') && (*p <= 'f'))
-		{
-			tot = tot * base + 10 + (*p - 'a');
-		}
-		else if ((base == 16) && (*p >= 'A') && (*p <= 'F'))
-		{
-			tot = tot * base + 10 + (*p - 'A');
-		}
-		else
-		{
-			return tot;
-		}
-		p++;
-	}
-	return tot;
-}
-
 /*
  * xf86getNextLine --
  *
@@ -434,7 +387,7 @@ again:
 				configRBuf[i++] = c;
 			configPos--;		/* GJA -- one too far */
 			configRBuf[i] = '\0';
-			val.num = xf86strToUL (configRBuf);
+			val.num = strtoul (configRBuf, NULL, 0);
 			val.realnum = atof (configRBuf);
 			return NUMBER;
 		}
