@@ -34,7 +34,6 @@ from The Open Group.
 #include <../xfree86/common/xorgVersion.h>
 #include "win.h"
 #include "winconfig.h"
-#include "winprefs.h"
 #include "winmsg.h"
 
 /*

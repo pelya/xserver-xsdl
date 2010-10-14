@@ -38,7 +38,6 @@
 #include "win.h"
 #include "dixevents.h"
 #include "winmultiwindowclass.h"
-#include "winprefs.h"
 
 /*
  * External global variables
