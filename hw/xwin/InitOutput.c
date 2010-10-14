@@ -90,11 +90,16 @@ extern HWND			g_hwndClipboard;
 extern Bool			g_fClipboard;
 #endif
 
-extern HMODULE			g_hmodCommonControls;
+
 extern FARPROC			g_fpTrackMouseEvent;
 extern Bool			g_fNoHelpMessageBox;                     
 extern Bool			g_fSilentDupError;                     
 extern Bool                     g_fNativeGl;
+
+/*
+  module handle for dynamically loaded comctl32 library
+*/
+static HMODULE g_hmodCommonControls = NULL;
 
 /*
  * Function prototypes

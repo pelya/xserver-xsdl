@@ -656,7 +656,6 @@ extern DeviceIntPtr             g_pwinKeyboard;
 extern FARPROC			g_fpDirectDrawCreate;
 extern FARPROC			g_fpDirectDrawCreateClipper;
 
-extern HMODULE			g_hmodCommonControls;
 extern FARPROC			g_fpTrackMouseEvent;
 
 
