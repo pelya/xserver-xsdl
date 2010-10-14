@@ -58,29 +58,9 @@ typedef HRESULT (*SHGETFOLDERPATHPROC)(
 );
 #endif
 
-
 /*
  * References to external symbols
  */
-
-extern int			g_iNumScreens;
-extern winScreenInfo *		g_ScreenInfo;
-extern char *			g_pszCommandLine;
-extern Bool			g_fSilentFatalError;
-
-extern const char *		g_pszLogFile;
-extern Bool			g_fLogFileChanged;
-extern int			g_iLogVerbose;
-Bool				g_fLogInited;
-
-extern Bool			g_fXdmcpEnabled;
-extern Bool			g_fAuthEnabled;
-#ifdef HAS_DEVWINDOWS
-extern int			g_fdMessageQueue;
-#endif
-extern const char *		g_pszQueryHost;
-extern HINSTANCE		g_hInstance;
-
 #ifdef XWIN_CLIPBOARD
 extern Bool			g_fUnicodeClipboard;
 extern Bool			g_fClipboardLaunched;
@@ -90,11 +70,6 @@ extern HWND			g_hwndClipboard;
 extern Bool			g_fClipboard;
 #endif
 
-
-extern FARPROC			g_fpTrackMouseEvent;
-extern Bool			g_fNoHelpMessageBox;                     
-extern Bool			g_fSilentDupError;                     
-extern Bool                     g_fNativeGl;
 
 /*
   module handle for dynamically loaded comctl32 library

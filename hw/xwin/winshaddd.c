@@ -38,13 +38,6 @@
 
 
 /*
- * External symbols
- */
-
-extern HWND			g_hDlgExit;
-extern const char *g_pszLogFile;
-
-/*
  * FIXME: Headers are broken, DEFINE_GUID doesn't work correctly,
  * so we have to redefine it here.
  */

@@ -35,16 +35,6 @@
 
 
 /*
- * External symbols
- */
-
-#ifdef XWIN_MULTIWINDOW
-extern DWORD			g_dwCurrentThreadID;
-#endif
-extern HWND			g_hDlgExit;
-
-
-/*
  * Local function prototypes
  */
 

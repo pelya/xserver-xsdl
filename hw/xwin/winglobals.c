@@ -82,6 +82,7 @@ Bool            g_fNativeGl = FALSE;
  * Global variables for dynamically loaded libraries and
  * their function pointers
  */
+
 FARPROC		g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
 
 

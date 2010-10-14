@@ -40,26 +40,10 @@ from The Open Group.
  * References to external symbols
  */
 
-extern int			g_iNumScreens;
-extern winScreenInfo *		g_ScreenInfo;
 #ifdef XWIN_CLIPBOARD
 extern Bool			g_fUnicodeClipboard;
 extern Bool			g_fClipboard;
 #endif
-extern int			g_iLogVerbose;
-extern const char *		g_pszLogFile;
-#ifdef RELOCATE_PROJECTROOT
-extern Bool			g_fLogFileChanged;
-#endif
-extern Bool			g_fXdmcpEnabled;
-extern Bool			g_fAuthEnabled;
-extern char *			g_pszCommandLine;
-extern Bool			g_fKeyboardHookLL;
-extern Bool			g_fNoHelpMessageBox;                     
-extern Bool			g_fSoftwareCursor;
-extern Bool			g_fSilentDupError;
-extern Bool                     g_fNativeGl;
-
 /* globals required by callback function for monitor information */
 struct GetMonitorInfoData {
     int  requestedMonitor;

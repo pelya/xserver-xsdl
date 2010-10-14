@@ -314,9 +314,6 @@ typedef Bool (*winFinishCreateWindowsWindowProcPtr)(WindowPtr pWin);
 
 typedef Bool (*winCreateScreenResourcesProc)(ScreenPtr);
 
-/* Typedef for DIX wrapper functions */
-typedef int (*winDispatchProcPtr) (ClientPtr);
-
 
 /*
  * GC (graphics context) privates
@@ -622,6 +619,8 @@ typedef struct {
  * Extern declares for general global variables
  */
 
+#include "winglobals.h"
+
 extern winScreenInfo *		g_ScreenInfo;
 extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
 extern DWORD			g_dwEvents;
@@ -648,14 +647,12 @@ extern const char *		g_pszQueryHost;
 extern DeviceIntPtr             g_pwinPointer;
 extern DeviceIntPtr             g_pwinKeyboard;
 
-
 /*
- * Extern declares for dynamically loaded libraries and function pointers
+ * Extern declares for dynamically loaded library function pointers
  */
 
 extern FARPROC			g_fpDirectDrawCreate;
 extern FARPROC			g_fpDirectDrawCreateClipper;
-
 extern FARPROC			g_fpTrackMouseEvent;
 
 

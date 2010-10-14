@@ -51,17 +51,6 @@ Bool				g_fButton[3] = { FALSE, FALSE, FALSE };
 
 
 /*
- * References to external symbols
- */
-
-extern Bool			g_fClipboard;
-extern HWND			g_hDlgDepthChange;
-extern Bool			g_fKeyboardHookLL;
-extern Bool			g_fSoftwareCursor;
-extern DWORD			g_dwCurrentThreadID;
-
-
-/*
  * Called by winWakeupHandler
  * Processes current Windows message
  */
