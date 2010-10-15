@@ -483,7 +483,7 @@ ProcWindowsWMFrameSetTitle(
 			   )
 {
   unsigned int title_length, title_max;
-  unsigned char *title_bytes;
+  char *title_bytes;
   REQUEST(xWindowsWMFrameSetTitleReq);
   WindowPtr pWin;
   win32RootlessWindowPtr pRLWinPriv;
