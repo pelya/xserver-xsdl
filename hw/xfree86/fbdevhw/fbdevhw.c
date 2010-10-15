@@ -16,25 +16,10 @@
 
 #include "fbdevhw.h"
 #include "fbpriv.h"
-
-#define PAGE_MASK               (~(getpagesize() - 1))
-
 #include "globals.h"
 #include <X11/extensions/dpmsconst.h>
 
-#define DEBUG 0
-
 #define PAGE_MASK               (~(getpagesize() - 1))
-
-#if DEBUG
-# define TRACE_ENTER(str)	ErrorF("fbdevHW: " str " %d\n",pScrn->scrnIndex)
-#else
-# define TRACE_ENTER(str)
-#endif
-
-/* -------------------------------------------------------------------- */
-
-static MODULESETUPPROTO(fbdevhwSetup);
 
 static XF86ModuleVersionInfo fbdevHWVersRec =
 {
@@ -52,15 +37,9 @@ static XF86ModuleVersionInfo fbdevHWVersRec =
 
 _X_EXPORT XF86ModuleData fbdevhwModuleData = {
     &fbdevHWVersRec,
-    fbdevhwSetup,
+    NULL,
     NULL
 };
-
-static pointer
-fbdevhwSetup(pointer module, pointer opts, int *errmaj, int *errmin)
-{
-    return (pointer)1;
-}
 
 #include <fcntl.h>
 #include <errno.h>
@@ -95,12 +74,6 @@ typedef struct {
 
 	/* saved video mode */
 	struct fb_var_screeninfo	saved_var;
-
-	/* FIXME: unused??? [geert] */
-	struct fb_cmap			saved_cmap;
-	unsigned short			*saved_red;
-	unsigned short			*saved_green;
-	unsigned short			*saved_blue;
 
 	/* buildin video mode */
 	DisplayModeRec			buildin;
@@ -445,8 +418,6 @@ fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device * pPci, char *device)
 {
 	fbdevHWPtr fPtr;
 
-	TRACE_ENTER("Init");
-
 	fbdevHWGetRec(pScrn);
 	fPtr = FBDEVHWPTR(pScrn);
 
@@ -541,8 +512,6 @@ fbdevHWSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool check)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	struct fb_var_screeninfo req_var = fPtr->var, set_var;
-	
-	TRACE_ENTER("SetMode");
 
 	xfree2fbdev_fblayout(pScrn, &req_var);
 	xfree2fbdev_timing(mode, &req_var);
@@ -586,7 +555,6 @@ fbdevHWSetVideoModes(ScrnInfoPtr pScrn)
 	char **modename;
 	DisplayModePtr mode,this,last = pScrn->modes;
 
-	TRACE_ENTER("VerifyModes");
 	if (NULL == pScrn->display->modes)
 		return;
 
@@ -643,7 +611,6 @@ fbdevHWUseBuildinMode(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("UseBuildinMode");
 	pScrn->modes    = &fPtr->buildin;
 	pScrn->virtualX = pScrn->display->virtualX;
 	pScrn->virtualY = pScrn->display->virtualY;
@@ -669,7 +636,6 @@ fbdevHWMapVidmem(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("MapVidmem");
 	if (NULL == fPtr->fbmem) {
 		calculateFbmem_len(fPtr);
 		fPtr->fbmem = mmap(NULL, fPtr->fbmem_len, PROT_READ | PROT_WRITE,
@@ -695,7 +661,6 @@ fbdevHWLinearOffset(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("LinearOffset");
 	return fPtr->fboff;
 }
 
@@ -704,7 +669,6 @@ fbdevHWUnmapVidmem(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("UnmapVidmem");
 	if (NULL != fPtr->fbmem) {
 		if (-1 == munmap(fPtr->fbmem, fPtr->fbmem_len))
 			xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
@@ -721,7 +685,6 @@ fbdevHWMapMMIO(ScrnInfoPtr pScrn)
 
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("MapMMIO");
 	if (NULL == fPtr->mmio) {
 		/* tell the kernel not to use accels to speed up console scrolling */
 		fPtr->var.accel_flags = 0;
@@ -752,7 +715,6 @@ fbdevHWUnmapMMIO(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("UnmapMMIO");
 	if (NULL != fPtr->mmio) {
 		if (-1 == munmap((void *)((unsigned long)fPtr->mmio & PAGE_MASK), fPtr->mmio_len))
 			xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
@@ -806,14 +768,11 @@ fbdevHWModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 
 /* -------------------------------------------------------------------- */
 /* video mode save/restore                                              */
-
-/* TODO: colormap */
 void
 fbdevHWSave(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("Save");
 	if (0 != ioctl(fPtr->fd,FBIOGET_VSCREENINFO,(void*)(&fPtr->saved_var)))
 		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 			   "FBIOGET_VSCREENINFO: %s\n", strerror(errno));
@@ -824,7 +783,6 @@ fbdevHWRestore(ScrnInfoPtr pScrn)
 {
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("Restore");
 	if (0 != ioctl(fPtr->fd,FBIOPUT_VSCREENINFO,(void*)(&fPtr->saved_var)))
 		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 			   "FBIOPUT_VSCREENINFO: %s\n", strerror(errno));
@@ -842,7 +800,6 @@ fbdevHWLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 	unsigned short red,green,blue;
 	int i;
 
-	TRACE_ENTER("LoadPalette");
 	cmap.len   = 1;
 	cmap.red   = &red;
 	cmap.green = &green;
@@ -870,8 +827,6 @@ fbdevHWValidMode(int scrnIndex, DisplayModePtr mode, Bool verbose, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 
-	TRACE_ENTER("ValidMode");
-
 	if (!fbdevHWSetMode(pScrn, mode, TRUE))
 		return MODE_BAD;
 
@@ -883,7 +838,6 @@ fbdevHWSwitchMode(int scrnIndex, DisplayModePtr mode, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 
-	TRACE_ENTER("SwitchMode");
 
 	if (!fbdevHWSetMode(pScrn, mode, FALSE))
 		return FALSE;
@@ -897,7 +851,6 @@ fbdevHWAdjustFrame(int scrnIndex, int x, int y, int flags)
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 
-	TRACE_ENTER("AdjustFrame");
 	if ( x < 0 || x + fPtr->var.xres > fPtr->var.xres_virtual || 
 	     y < 0 || y + fPtr->var.yres > fPtr->var.yres_virtual )
 		return;
@@ -914,7 +867,6 @@ fbdevHWEnterVT(int scrnIndex, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 	
-	TRACE_ENTER("EnterVT");
 	if (!fbdevHWModeInit(pScrn, pScrn->currentMode))
 		return FALSE;
 	fbdevHWAdjustFrame(scrnIndex, pScrn->frameX0, pScrn->frameY0, 0);
@@ -926,7 +878,6 @@ fbdevHWLeaveVT(int scrnIndex, int flags)
 {
 	ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
 
-	TRACE_ENTER("LeaveVT");
 	fbdevHWRestore(pScrn);
 }
 
@@ -936,7 +887,6 @@ fbdevHWDPMSSet(ScrnInfoPtr pScrn, int mode, int flags)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	unsigned long fbmode;
 
-	TRACE_ENTER("DPMSSet");
 	if (!pScrn->vtSema)
 		return;
 
@@ -969,7 +919,6 @@ fbdevHWSaveScreen(ScreenPtr pScreen, int mode)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	unsigned long unblank;
 
-	TRACE_ENTER("HWSaveScreen");
 	if (!pScrn->vtSema)
 		return TRUE;
 

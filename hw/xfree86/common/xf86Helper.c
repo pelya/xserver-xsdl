@@ -125,7 +125,6 @@ xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags)
 				xnfalloc(sizeof(InputDriverRec));
     *xf86InputDriverList[xf86NumInputDrivers - 1] = *driver;
     xf86InputDriverList[xf86NumInputDrivers - 1]->module = module;
-    xf86InputDriverList[xf86NumInputDrivers - 1]->refCount = 0;
 }
 
 void
@@ -706,6 +705,9 @@ xf86SetWeight(ScrnInfoPtr scrp, rgb weight, rgb mask)
 	    scrp->weight.red = scrp->weight.blue = 5;
 	    scrp->weight.green = 6;
 	    break;
+	case 18:
+	    scrp->weight.red = scrp->weight.green = scrp->weight.blue = 6;
+	    break;
 	case 24:
 	    scrp->weight.red = scrp->weight.green = scrp->weight.blue = 8;
 	    break;
@@ -1110,10 +1112,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
     if (enable)
     {
 	/*
-	 * Restore the screen pixmap devPrivate field
-	 */
-	pspix->devPrivate = pScrnInfo->pixmapPrivate;
-	/*
 	 * Restore all of the clip lists on the screen
 	 */
 	if (!xf86Resetting)
@@ -1126,13 +1124,6 @@ xf86EnableDisableFBAccess(int scrnIndex, Bool enable)
 	 * Empty all of the clip lists on the screen
 	 */
 	xf86SetRootClip (pScreen, FALSE);
-	/*
-	 * save the screen pixmap devPrivate field and
-	 * replace it with NULL so accidental references
-	 * to the frame buffer are caught
-	 */
-	pScrnInfo->pixmapPrivate = pspix->devPrivate;
-	pspix->devPrivate.ptr = NULL;
     }
 }
 
@@ -1234,7 +1225,7 @@ xf86MsgVerb(MessageType type, int verb, const char *format, ...)
     va_list ap;
 
     va_start(ap, format);
-    xf86VDrvMsgVerb(-1, type, verb, format, ap);
+    LogVMessageVerb(type, verb, format, ap);
     va_end(ap);
 }
 
@@ -1245,7 +1236,7 @@ xf86Msg(MessageType type, const char *format, ...)
     va_list ap;
 
     va_start(ap, format);
-    xf86VDrvMsgVerb(-1, type, 1, format, ap);
+    LogVMessageVerb(type, 1, format, ap);
     va_end(ap);
 }
 

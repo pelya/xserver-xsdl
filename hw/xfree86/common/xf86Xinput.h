@@ -74,7 +74,6 @@ typedef struct _InputDriverRec {
 				      struct _InputInfoRec *pInfo,
 				      int flags);
     pointer		    module;
-    int			    refCount;
     char **		    default_options;
 } InputDriverRec, *InputDriverPtr;
 

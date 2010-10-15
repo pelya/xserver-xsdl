@@ -238,7 +238,6 @@ long	    SmartLastPrint;
 #endif
 
 void        Dispatch(void);
-void        InitProcVectors(void);
 
 static int
 SmartScheduleClient (int *clientReady, int nready)
@@ -917,23 +916,14 @@ GetGeometry(ClientPtr client, xGetGeometryReply *rep)
     rep->width = pDraw->width;
     rep->height = pDraw->height;
 
-    /* XXX - Because the pixmap-implementation of the multibuffer extension 
-     *       may have the buffer-id's drawable resource value be a pointer
-     *       to the buffer's window instead of the buffer itself
-     *       (this happens if the buffer is the displayed buffer),
-     *       we also have to check that the id matches before we can
-     *       truly say that it is a DRAWABLE_WINDOW.
-     */
-
-    if ((pDraw->type == UNDRAWABLE_WINDOW) ||
-        ((pDraw->type == DRAWABLE_WINDOW) && (stuff->id == pDraw->id)))
+    if (WindowDrawable(pDraw->type))
     {
         WindowPtr pWin = (WindowPtr)pDraw;
 	rep->x = pWin->origin.x - wBorderWidth (pWin);
 	rep->y = pWin->origin.y - wBorderWidth (pWin);
 	rep->borderWidth = pWin->borderWidth;
     }
-    else /* DRAWABLE_PIXMAP or DRAWABLE_BUFFER */
+    else /* DRAWABLE_PIXMAP */
     {
 	rep->x = rep->y = rep->borderWidth = 0;
     }
@@ -3385,25 +3375,6 @@ int ProcNoOperation(ClientPtr client)
     
     /* noop -- don't do anything */
     return Success;
-}
-
-void
-InitProcVectors(void)
-{
-    int i;
-    for (i = 0; i<256; i++)
-    {
-	if(!ProcVector[i])
-	{
-            ProcVector[i] = SwappedProcVector[i] = ProcBadRequest;
-	    ReplySwapVector[i] = ReplyNotSwappd;
-	}
-    }
-    for(i = LASTEvent; i < 128; i++)
-    {
-	EventSwapVector[i] = NotImplemented;
-    }
-    
 }
 
 /**********************

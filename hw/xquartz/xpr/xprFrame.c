@@ -171,7 +171,7 @@ xprCreateFrame(RootlessWindowPtr pFrame, ScreenPtr pScreen,
 
     pFrame->level = !IsRoot (pWin) ? AppleWMWindowLevelNormal : AppleWMNumWindowLevels;
 
-    if(quartzEnableRootless)
+    if(XQuartzIsRootless)
         wc.window_level = normal_window_levels[pFrame->level];
     else
         wc.window_level = rooted_window_levels[pFrame->level];
@@ -285,7 +285,7 @@ static void xprRestackFrame(RootlessFrameID wid, RootlessFrameID nextWid) {
         RootlessWindowRec *winRec = x_hash_table_lookup(window_hash, wid, NULL);
 
         if(winRec) {
-            if(quartzEnableRootless)
+            if(XQuartzIsRootless)
                 wc.window_level = normal_window_levels[winRec->level];
             else
                 wc.window_level = rooted_window_levels[winRec->level];
@@ -463,8 +463,6 @@ static RootlessFrameProcsRec xprRootlessProcs = {
     xprHideWindow,
     xprUpdateColormap,
     xp_copy_bytes,
-    xp_fill_bytes,
-    xp_composite_pixels,
     xprCopyWindow
 };
 
@@ -480,8 +478,6 @@ xprInit(ScreenPtr pScreen)
     TA_SERVER();
     
     rootless_CopyBytes_threshold = xp_copy_bytes_threshold;
-    rootless_FillBytes_threshold = xp_fill_bytes_threshold;
-    rootless_CompositePixels_threshold = xp_composite_area_threshold;
     rootless_CopyWindow_threshold = xp_scroll_area_threshold;
 
     return TRUE;

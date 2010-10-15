@@ -26,8 +26,8 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
-AC_INIT([xorg-server], 1.9.0, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
-RELEASE_DATE="2010-08-20"
+AC_INIT([xorg-server], 1.9.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+RELEASE_DATE="2010-10-01"
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
 AM_MAINTAINER_MODE
@@ -71,7 +71,6 @@ AC_PROG_LN_S
 AC_LIBTOOL_WIN32_DLL
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
-DOLT
 AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
 AC_PROG_LEX
@@ -601,9 +600,6 @@ AC_ARG_ENABLE(pc98,     	AC_HELP_STRING([--enable-pc98], [Enable PC98 support in
 				[SUPPORT_PC98=auto])
 
 dnl GLX build options
-AC_ARG_WITH(dri-driver-path,  AS_HELP_STRING([--with-dri-driver-path=PATH], [Path to DRI drivers (default: ${libdir}/dri)]),
-				[ DRI_DRIVER_PATH="$withval" ],
-				[ DRI_DRIVER_PATH="${libdir}/dri" ])
 AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]),
                                 [AIGLX=$enableval],
                                 [AIGLX=yes])
@@ -1258,7 +1254,8 @@ AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(PCI_TXT_IDS_PATH, PCI_TXT_IDS_DIR, [Default PCI text file ID path])
 AC_DEFINE_DIR(SERVER_MISC_CONFIG_PATH, SERVERCONFIG, [Server miscellaneous config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTROOTDIR, [Default base font path])
-AC_DEFINE_DIR(DRI_DRIVER_PATH, DRI_DRIVER_PATH, [Default DRI driver path])
+dridriverdir=`$PKG_CONFIG --variable=dridriverdir dri`
+AC_DEFINE_DIR(DRI_DRIVER_PATH, dridriverdir, [Default DRI driver path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_NAME"], [Vendor name])
 AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_NAME_SHORT"], [Short vendor name])
 AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
@@ -1926,7 +1923,7 @@ if test "x$XQUARTZ" = xyes; then
 
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
 
-	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
+	CFLAGS="${CFLAGS} -DROOTLESS_SAFEALPHA -DNO_ALLOCA"
 
 	PKG_CHECK_MODULES(XPBPROXY, $APPLEWMPROTO $LIBAPPLEWM xfixes x11)
 

@@ -57,23 +57,6 @@
 #include <X11/Xfuncproto.h>
 #include <X11/Xmd.h>
 
-/* LoadModule proc flags; LD_FLAG_GLOBAL adds symbols to global
- * namespace, default is to keep symbols local to module. */
-#define LD_FLAG_GLOBAL 1
-
-typedef struct _loader *loaderPtr;
-
-/* Each module loaded has a loaderRec */
-typedef struct _loader {
-    int handle;			/* Unique id used to remove symbols from
-				 * this module when it is unloaded */
-    int module;			/* Unique id to identify compilation units */
-    char *name;
-    char *cname;
-    void *private;		/* format specific data */
-    loaderPtr next;
-} loaderRec;
-
 /* Compiled-in version information */
 typedef struct {
     int xf86Version;
@@ -88,16 +71,6 @@ extern const ModuleVersions LoaderVersionInfo;
 extern unsigned long LoaderOptions;
 
 /* Internal Functions */
-void LoaderDuplicateSymbol(const char *, const int);
-char *_LoaderModuleToName(int);
-int LoaderOpen(const char *, const char *, int, int *, int *, int *, int);
-int LoaderHandleOpen(int);
-
-/* object to name lookup routines */
-char *_LoaderHandleToName(int handle);
-char *_LoaderHandleToCanonicalName(int handle);
-
-/* Loader backends. */
-#include "dlloader.h"
+void * LoaderOpen(const char *, int *, int *);
 
 #endif /* _LOADER_H */

@@ -62,6 +62,7 @@
 #include "xf86Optrec.h"
 #include "mipointer.h"
 #include "extinit.h"
+#include "loaderProcs.h"
 
 #include "exevents.h"	/* AddInputDevice */
 #include "exglobals.h"
@@ -673,7 +674,6 @@ xf86AddInput(InputDriverPtr drv, InputInfoPtr pInfo)
     InputInfoPtr *prev = NULL;
 
     pInfo->drv = drv;
-    drv->refCount++;
     pInfo->module = DuplicateModule(drv->module, NULL);
 
     for (prev = &xf86InputDevs; *prev; prev = &(*prev)->next)
@@ -698,9 +698,6 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
 
     if (pInp->module)
 	UnloadModule(pInp->module);
-
-    if (pInp->drv)
-	pInp->drv->refCount--;
 
     /* This should *really* be handled in drv->UnInit(dev) call instead, but
      * if the driver forgets about it make sure we free it or at least crash
