@@ -634,7 +634,7 @@ winMultiWindowWMProc (void *pArg)
   ErrorF ("winMultiWindowWMProc ()\n");
 #endif
 
-  /* Loop until we explicity break out */
+  /* Loop until we explicitly break out */
   for (;;)
     {
       WMMsgNodePtr	pNode;

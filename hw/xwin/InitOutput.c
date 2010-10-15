@@ -266,7 +266,7 @@ ddxGiveUp (void)
       g_fpDirectDrawCreateClipper = NULL;
     }
 
-  /* Unload our TrackMouseEvent funtion pointer */
+  /* Unload our TrackMouseEvent function pointer */
   if (g_hmodCommonControls != NULL)
     {
       FreeLibrary (g_hmodCommonControls);
@@ -437,7 +437,7 @@ winFixupPaths (void)
             int needs_sep = TRUE; 
             int comment_block = FALSE;
 
-            /* get defautl fontpath */
+            /* get default fontpath */
             char *fontpath = strdup(defaultFontPath);
             size_t size = strlen(fontpath);
 

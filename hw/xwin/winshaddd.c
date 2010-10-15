@@ -55,7 +55,7 @@ extern const char *g_pszLogFile;
 
 
 /*
- * FIXME: Headers are broken, IID_IDirectDraw4 has to be defined
+ * FIXME: Headers are broken, IID_IDirectDraw2 has to be defined
  * here manually.  Should be handled by ddraw.h
  */
 #ifndef IID_IDirectDraw2
