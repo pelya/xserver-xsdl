@@ -653,7 +653,6 @@ extern DeviceIntPtr             g_pwinKeyboard;
  * Extern declares for dynamically loaded libraries and function pointers
  */
 
-extern HMODULE			g_hmodDirectDraw;
 extern FARPROC			g_fpDirectDrawCreate;
 extern FARPROC			g_fpDirectDrawCreateClipper;
 
@@ -858,6 +857,9 @@ winSetEngine (ScreenPtr pScreen);
 
 Bool
 winGetDDProcAddresses (void);
+
+void
+winReleaseDDProcAddresses(void);
 
 
 /*

@@ -90,10 +90,6 @@ extern HWND			g_hwndClipboard;
 extern Bool			g_fClipboard;
 #endif
 
-extern HMODULE			g_hmodDirectDraw;
-extern FARPROC			g_fpDirectDrawCreate;
-extern FARPROC			g_fpDirectDrawCreateClipper;
-  
 extern HMODULE			g_hmodCommonControls;
 extern FARPROC			g_fpTrackMouseEvent;
 extern Bool			g_fNoHelpMessageBox;                     
@@ -258,13 +254,7 @@ ddxGiveUp (void)
    * At this point we aren't creating any new screens, so
    * we are guaranteed to not need the DirectDraw functions.
    */
-  if (g_hmodDirectDraw != NULL)
-    {
-      FreeLibrary (g_hmodDirectDraw);
-      g_hmodDirectDraw = NULL;
-      g_fpDirectDrawCreate = NULL;
-      g_fpDirectDrawCreateClipper = NULL;
-    }
+  winReleaseDDProcAddresses();
 
   /* Unload our TrackMouseEvent function pointer */
   if (g_hmodCommonControls != NULL)

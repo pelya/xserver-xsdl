@@ -84,10 +84,6 @@ Bool            g_fNativeGl = FALSE;
  * their function pointers
  */
 
-HMODULE		g_hmodDirectDraw = NULL;
-FARPROC		g_fpDirectDrawCreate = NULL;
-FARPROC		g_fpDirectDrawCreateClipper = NULL;
-
 HMODULE		g_hmodCommonControls = NULL;
 FARPROC		g_fpTrackMouseEvent = (FARPROC) (void (*)(void))NoopDDA;
 
