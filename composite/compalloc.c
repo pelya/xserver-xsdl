@@ -514,14 +514,14 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h, Bool map)
     if (TraverseTree(pWin, bgNoneVisitWindow, NULL) == WT_NOMATCH)
 	return pPixmap;
 
+    /*
+     * Copy bits from the parent into the new pixmap so that it will
+     * have "reasonable" contents in case for background None areas.
+     */
     if (pParent->drawable.depth == pWin->drawable.depth)
     {
 	GCPtr	pGC = GetScratchGC (pWin->drawable.depth, pScreen);
 	
-	/*
-	 * Copy bits from the parent into the new pixmap so that it will
-	 * have "reasonable" contents in case for background None areas.
-	 */
 	if (pGC)
 	{
 	    ChangeGCVal val;
