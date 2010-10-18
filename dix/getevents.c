@@ -185,8 +185,7 @@ init_raw(DeviceIntPtr dev, RawDeviceEvent *event, Time ms, int type, int detail)
 }
 
 static void
-set_raw_valuators(RawDeviceEvent *event, ValuatorMask *mask, int *valuators,
-                  int32_t* data)
+set_raw_valuators(RawDeviceEvent *event, ValuatorMask *mask, int32_t* data)
 {
     int i;
 
@@ -195,15 +194,14 @@ set_raw_valuators(RawDeviceEvent *event, ValuatorMask *mask, int *valuators,
         if (valuator_mask_isset(mask, i))
         {
             SetBit(event->valuators.mask, i);
-            data[i] = valuators[i];
+            data[i] = valuator_mask_get(mask, i);
         }
     }
 }
 
 
 static void
-set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask,
-              int *valuators)
+set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask)
 {
     int i;
 
@@ -214,7 +212,7 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask,
             SetBit(event->valuators.mask, i);
             if (dev->valuator->mode == Absolute)
                 SetBit(event->valuators.mode, i);
-            event->valuators.data[i] = valuators[i];
+            event->valuators.data[i] = valuator_mask_get(mask, i);
             event->valuators.data_frac[i] =
                 dev->last.remainder[i] * (1 << 16) * (1 << 16);
         }
@@ -648,13 +646,17 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
  * Clip every axis in the list of valuators to its bounds.
  */
 static void
-clipValuators(DeviceIntPtr pDev, ValuatorMask *mask, int *valuators)
+clipValuators(DeviceIntPtr pDev, ValuatorMask *mask)
 {
     int i;
 
     for (i = 0; i < valuator_mask_size(mask); i++)
         if (valuator_mask_isset(mask, i))
-            clipAxis(pDev, i, &(valuators[i]));
+        {
+            int val = valuator_mask_get(mask, i);
+            clipAxis(pDev, i, &val);
+            valuator_mask_set(mask, i, val);
+        }
 }
 
 /**
@@ -702,18 +704,17 @@ UpdateFromMaster(EventListPtr events, DeviceIntPtr dev, int type, int *num_event
  *        @first+@num.
  */
 static void
-moveAbsolute(DeviceIntPtr dev, int *x, int *y,
-             const ValuatorMask *mask, int *valuators)
+moveAbsolute(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
 {
     int i;
 
     if (valuator_mask_isset(mask, 0))
-        *x = *(valuators + 0);
+        *x = valuator_mask_get(mask, 0);
     else
         *x = dev->last.valuators[0];
 
     if (valuator_mask_isset(mask, 1))
-        *y = *(valuators + 1);
+        *y = valuator_mask_get(mask, 1);
     else
         *y = dev->last.valuators[1];
 
@@ -724,7 +725,7 @@ moveAbsolute(DeviceIntPtr dev, int *x, int *y,
     {
         if (valuator_mask_isset(mask, i))
         {
-            dev->last.valuators[i] = valuators[i];
+            dev->last.valuators[i] = valuator_mask_get(mask, i);
             clipAxis(dev, i, &dev->last.valuators[i]);
         }
     }
@@ -741,8 +742,7 @@ moveAbsolute(DeviceIntPtr dev, int *x, int *y,
  *        @first+@num.
  */
 static void
-moveRelative(DeviceIntPtr dev, int *x, int *y,
-             ValuatorMask *mask, int *valuators)
+moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
 {
     int i;
 
@@ -750,10 +750,10 @@ moveRelative(DeviceIntPtr dev, int *x, int *y,
     *y = dev->last.valuators[1];
 
     if (valuator_mask_isset(mask, 0))
-        *x += *(valuators +0);
+        *x += valuator_mask_get(mask, 0);
 
-    if (valuator_mask_bit_isset(mask, 1))
-        *y += *(valuators + 1);
+    if (valuator_mask_isset(mask, 1))
+        *y += valuator_mask_get(mask, 1);
 
     /* if attached, clip both x and y to the defined limits (usually
      * co-ord space limit). If it is attached, we need x/y to go over the
@@ -768,10 +768,10 @@ moveRelative(DeviceIntPtr dev, int *x, int *y,
     {
         if (valuator_mask_isset(mask, i))
         {
-            dev->last.valuators[i] += valuators[i];
+            dev->last.valuators[i] += valuator_mask_get(mask, i);
             if (dev->valuator->mode == Absolute)
                 clipAxis(dev, i, &dev->last.valuators[i]);
-            valuators[i] = dev->last.valuators[i];
+            valuator_mask_set(mask, i, dev->last.valuators[i]);
         }
     }
 }
@@ -938,7 +938,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     DeviceEvent *event;
     RawDeviceEvent *raw;
     ValuatorMask mask;
-    int valuators[MAX_VALUATORS];
 
     /* refuse events from disabled devices */
     if (!pDev->enabled)
@@ -971,15 +970,12 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     valuator_mask_copy(&mask, mask_in);
 
-    if (valuator_mask_size(&mask) > 0)
-        valuator_mask_copy_valuators(&mask, valuators);
-
     init_raw(pDev, raw, ms, type, key_code);
-    set_raw_valuators(raw, &mask, valuators, raw->valuators.data_raw);
+    set_raw_valuators(raw, &mask, raw->valuators.data_raw);
 
-    clipValuators(pDev, &mask, valuators);
+    clipValuators(pDev, &mask);
 
-    set_raw_valuators(raw, &mask, valuators, raw->valuators.data);
+    set_raw_valuators(raw, &mask, raw->valuators.data);
 
     event = (DeviceEvent*) events->event;
     init_event(pDev, event, ms);
@@ -994,9 +990,9 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 	set_key_up(pDev, key_code, KEY_POSTED);
     }
 
-    clipValuators(pDev, &mask, valuators);
+    clipValuators(pDev, &mask);
 
-    set_valuators(pDev, event, &mask, valuators);
+    set_valuators(pDev, event, &mask);
 
     return num_events;
 }
@@ -1053,19 +1049,19 @@ FreeEventList(EventListPtr list, int num_events)
 }
 
 static void
-transformAbsolute(DeviceIntPtr dev, int v[MAX_VALUATORS])
+transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
 {
     struct pixman_f_vector p;
 
     /* p' = M * p in homogeneous coordinates */
-    p.v[0] = v[0];
-    p.v[1] = v[1];
+    p.v[0] = valuator_mask_get(mask, 0);
+    p.v[1] = valuator_mask_get(mask, 1);
     p.v[2] = 1.0;
 
     pixman_f_transform_point(&dev->transform, &p);
 
-    v[0] = lround(p.v[0]);
-    v[1] = lround(p.v[1]);
+    valuator_mask_set(mask, 0, lround(p.v[0]));
+    valuator_mask_set(mask, 1, lround(p.v[1]));
 }
 
 /**
@@ -1099,7 +1095,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     float x_frac = 0.0, y_frac = 0.0, cx_frac, cy_frac;
     ScreenPtr scr = miPointerGetScreen(pDev);
     ValuatorMask mask;
-    int valuators[MAX_VALUATORS];
 
     /* refuse events from disabled devices */
     if (!pDev->enabled)
@@ -1125,38 +1120,44 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     valuator_mask_copy(&mask, mask_in);
 
-    if (valuator_mask_size(&mask) > 1)
-        valuator_mask_copy_valuators(&mask, valuators);
-
     init_raw(pDev, raw, ms, type, buttons);
-    set_raw_valuators(raw, &mask, valuators, raw->valuators.data_raw);
+    set_raw_valuators(raw, &mask, raw->valuators.data_raw);
 
     if (flags & POINTER_ABSOLUTE)
     {
         if (flags & POINTER_SCREEN) /* valuators are in screen coords */
         {
+            int scaled;
 
             if (valuator_mask_isset(&mask, 0))
-                valuators[0] = rescaleValuatorAxis(valuators[0], 0.0, &x_frac, NULL,
-                        pDev->valuator->axes + 0,
-                        scr->width);
+            {
+                scaled = rescaleValuatorAxis(valuator_mask_get(&mask, 0),
+                                             0.0, &x_frac, NULL,
+                                             pDev->valuator->axes + 0,
+                                             scr->width);
+                valuator_mask_set(&mask, 0, scaled);
+            }
             if (valuator_mask_isset(&mask, 1))
-                valuators[1] = rescaleValuatorAxis(valuators[1], 0.0, &y_frac, NULL,
-                        pDev->valuator->axes + 1,
-                        scr->height);
+            {
+                scaled = rescaleValuatorAxis(valuator_mask_get(&mask, 0),
+                                             0.0, &y_frac, NULL,
+                                             pDev->valuator->axes + 1,
+                                             scr->height);
+                valuator_mask_set(&mask, 1, scaled);
+            }
         }
 
-        transformAbsolute(pDev, valuators);
-        moveAbsolute(pDev, &x, &y, &mask, valuators);
+        transformAbsolute(pDev, &mask);
+        moveAbsolute(pDev, &x, &y, &mask);
     } else {
         if (flags & POINTER_ACCELERATE) {
             /* FIXME: Pointer acceleration only requires X and Y values. This
              * should be converted to masked valuators. */
             int vals[2];
             vals[0] = valuator_mask_isset(&mask, 0) ?
-                      valuators[0] : pDev->last.valuators[0];
+                      valuator_mask_get(&mask, 0) : pDev->last.valuators[0];
             vals[1] = valuator_mask_isset(&mask, 1) ?
-                      valuators[1] : pDev->last.valuators[1];
+                      valuator_mask_get(&mask, 1) : pDev->last.valuators[1];
             accelPointer(pDev, 0, 2, vals, ms);
 
             /* The pointer acceleration code modifies the fractional part
@@ -1164,21 +1165,21 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             x_frac = pDev->last.remainder[0];
             y_frac = pDev->last.remainder[1];
         }
-        moveRelative(pDev, &x, &y, &mask, valuators);
+        moveRelative(pDev, &x, &y, &mask);
     }
 
-    set_raw_valuators(raw, &mask, valuators, raw->valuators.data);
+    set_raw_valuators(raw, &mask, raw->valuators.data);
 
     positionSprite(pDev, &x, &y, x_frac, y_frac, scr, &cx, &cy, &cx_frac, &cy_frac);
     updateHistory(pDev, &mask, ms);
 
     /* Update the valuators with the true value sent to the client*/
     if (valuator_mask_isset(&mask, 0))
-        valuators[0] = x;
+        valuator_mask_set(&mask, 0, x);
     if (valuator_mask_isset(&mask, 1))
-        valuators[1] = y;
+        valuator_mask_set(&mask, 0, y);
 
-    clipValuators(pDev, &mask, valuators);
+    clipValuators(pDev, &mask);
 
     event = (DeviceEvent*) events->event;
     init_event(pDev, event, ms);
@@ -1204,7 +1205,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     event->root_x_frac = cx_frac;
     event->root_y_frac = cy_frac;
 
-    set_valuators(pDev, event, &mask, valuators);
+    set_valuators(pDev, event, &mask);
 
     return num_events;
 }
@@ -1223,7 +1224,6 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
     int num_events = 1;
     DeviceEvent *event;
     ValuatorMask mask;
-    int valuators[MAX_VALUATORS];
 
     /* refuse events from disabled devices */
     if (!pDev->enabled)
@@ -1247,11 +1247,9 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
     init_event(pDev, event, GetTimeInMillis());
     event->type = (type == ProximityIn) ? ET_ProximityIn : ET_ProximityOut;
 
-    if (valuator_mask_size(&mask) > 0)
-        valuator_mask_copy_valuators(&mask, valuators);
-    clipValuators(pDev, &mask, valuators);
+    clipValuators(pDev, &mask);
 
-    set_valuators(pDev, event, &mask, valuators);
+    set_valuators(pDev, event, &mask);
 
     return num_events;
 }
