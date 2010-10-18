@@ -972,16 +972,17 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0;
-    static int valuators[MAX_VALUATORS];
+    ValuatorMask mask;
 
     XI_VERIFY_VALUATORS(num_valuators);
 
+    valuator_mask_zero(&mask);
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
-        valuators[i] = va_arg(var, int);
+        valuator_mask_set(&mask, first_valuator + i, va_arg(var, int));
     va_end(var);
 
-    xf86PostMotionEventP(device, is_absolute, first_valuator, num_valuators, valuators);
+    xf86PostMotionEventM(device, is_absolute, &mask);
 }
 
 void
@@ -1060,18 +1061,17 @@ xf86PostProximityEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i;
-    int valuators[MAX_VALUATORS];
+    ValuatorMask mask;
 
     XI_VERIFY_VALUATORS(num_valuators);
 
+    valuator_mask_zero(&mask);
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
-        valuators[i] = va_arg(var, int);
+        valuator_mask_set(&mask, first_valuator + i, va_arg(var, int));
     va_end(var);
 
-    xf86PostProximityEventP(device, is_in, first_valuator, num_valuators,
-			    valuators);
-
+    xf86PostProximityEventM(device, is_in, &mask);
 }
 
 void
@@ -1113,19 +1113,19 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                     ...)
 {
     va_list var;
-    int valuators[MAX_VALUATORS];
+    ValuatorMask mask;
     int i = 0;
 
     XI_VERIFY_VALUATORS(num_valuators);
 
+    valuator_mask_zero(&mask);
+
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
-        valuators[i] = va_arg(var, int);
+        valuator_mask_set(&mask, first_valuator + i, va_arg(var, int));
     va_end(var);
 
-    xf86PostButtonEventP(device, is_absolute, button, is_down, first_valuator,
-			 num_valuators, valuators);
-
+    xf86PostButtonEventM(device, is_absolute, button, is_down, &mask);
 }
 
 void
@@ -1192,18 +1192,18 @@ xf86PostKeyEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0;
-    static int valuators[MAX_VALUATORS];
+    ValuatorMask mask;
 
     XI_VERIFY_VALUATORS(num_valuators);
 
+    valuator_mask_zero(&mask);
+
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
-      valuators[i] = va_arg(var, int);
+        valuator_mask_set(&mask, first_valuator + i, va_arg(var, int));
     va_end(var);
 
-    xf86PostKeyEventP(device, key_code, is_down, is_absolute, first_valuator,
-		      num_valuators, valuators);
-
+    xf86PostKeyEventM(device, key_code, is_down, is_absolute, &mask);
 }
 
 void
