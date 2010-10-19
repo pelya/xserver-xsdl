@@ -41,7 +41,6 @@ struct _ValuatorMask {
 extern _X_HIDDEN int valuator_mask_size(const ValuatorMask *mask);
 extern _X_HIDDEN int valuator_mask_isset(const ValuatorMask *mask, int bit);
 extern _X_HIDDEN void valuator_mask_unset(ValuatorMask *mask, int bit);
-extern _X_HIDDEN int* valuator_mask_copy_valuators(const ValuatorMask *mask, int *valuators_in);
 extern _X_HIDDEN int valuator_mask_num_valuators(const ValuatorMask *mask);
 extern _X_HIDDEN void valuator_mask_copy(ValuatorMask *dest, const ValuatorMask *src);
 extern _X_HIDDEN int valuator_mask_get(const ValuatorMask *mask, int valnum);

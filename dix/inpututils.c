@@ -527,31 +527,6 @@ valuator_mask_unset(ValuatorMask *mask, int valuator)
     }
 }
 
-
-/**
- * Copy the valuator data from the given mask and return it as one closed
- * array (i.e., with holes where the masks are unset.
- * If valuators_in is not NULL, the valuator data will be copied into
- * valuators_in. The caller is responsible to allocate enough memory.
- *
- * Otherwise, memory is allocated and returned.
- */
-int*
-valuator_mask_copy_valuators(const ValuatorMask *mask, int *valuators_in)
-{
-    int *valuators;
-
-    if (!valuators_in)
-        valuators = calloc(valuator_mask_size(mask), sizeof(int));
-    else
-        valuators = valuators_in;
-
-    memcpy(valuators, mask->valuators,
-           valuator_mask_size(mask) * sizeof(int));
-
-    return valuators;
-}
-
 void
 valuator_mask_copy(ValuatorMask *dest, const ValuatorMask *src)
 {
