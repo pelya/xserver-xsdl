@@ -38,6 +38,7 @@
 #include "exevents.h"
 #include "dixgrabs.h"
 #include "eventstr.h"
+#include "inpututils.h"
 #include <glib.h>
 
 /**
@@ -901,12 +902,88 @@ static void dix_input_attributes(void)
     FreeInputAttributes(new);
 }
 
+static void dix_input_valuator_masks(void)
+{
+    ValuatorMask *mask = NULL, *copy;
+    int nvaluators = MAX_VALUATORS;
+    int valuators[nvaluators];
+    int i;
+    int first_val, num_vals;
+
+    for (i = 0; i < nvaluators; i++)
+        valuators[i] = i;
+
+    mask = valuator_mask_new(nvaluators);
+    g_assert(mask != NULL);
+    g_assert(valuator_mask_size(mask) == 0);
+    g_assert(valuator_mask_num_valuators(mask) == 0);
+
+    for (i = 0; i < nvaluators; i++)
+    {
+        g_assert(!valuator_mask_isset(mask, i));
+        valuator_mask_set(mask, i, valuators[i]);
+        g_assert(valuator_mask_isset(mask, i));
+        g_assert(valuator_mask_get(mask, i) == valuators[i]);
+        g_assert(valuator_mask_size(mask) == i + 1);
+        g_assert(valuator_mask_num_valuators(mask) == i + 1);
+    }
+
+    for (i = 0; i < nvaluators; i++)
+    {
+        g_assert(valuator_mask_isset(mask, i));
+        valuator_mask_unset(mask, i);
+        /* we're removing valuators from the front, so size should stay the
+         * same until the last bit is removed */
+        if (i < nvaluators - 1)
+            g_assert(valuator_mask_size(mask) == nvaluators);
+        g_assert(!valuator_mask_isset(mask, i));
+    }
+
+    g_assert(valuator_mask_size(mask) == 0);
+    valuator_mask_zero(mask);
+    g_assert(valuator_mask_size(mask) == 0);
+    g_assert(valuator_mask_num_valuators(mask) == 0);
+    for (i = 0; i < nvaluators; i++)
+        g_assert(!valuator_mask_isset(mask, i));
+
+    first_val = 5;
+    num_vals = 6;
+
+    valuator_mask_set_range(mask, first_val, num_vals, valuators);
+    g_assert(valuator_mask_size(mask) == first_val + num_vals);
+    g_assert(valuator_mask_num_valuators(mask) == num_vals);
+    for (i = 0; i < nvaluators; i++)
+    {
+        if (i < first_val || i >= first_val + num_vals)
+            g_assert(!valuator_mask_isset(mask, i));
+        else
+        {
+            g_assert(valuator_mask_isset(mask, i));
+            g_assert(valuator_mask_get(mask, i) == valuators[i - first_val]);
+        }
+    }
+
+    copy = valuator_mask_new(nvaluators);
+    valuator_mask_copy(copy, mask);
+    g_assert(mask != copy);
+    g_assert(valuator_mask_size(mask) == valuator_mask_size(copy));
+    g_assert(valuator_mask_num_valuators(mask) == valuator_mask_num_valuators(copy));
+
+    for (i = 0; i < nvaluators; i++)
+    {
+        g_assert(valuator_mask_isset(mask, i) == valuator_mask_isset(copy, i));
+        g_assert(valuator_mask_get(mask, i) == valuator_mask_get(copy, i));
+    }
+
+    free(mask);
+}
 
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
     g_test_bug_base("https://bugzilla.freedesktop.org/show_bug.cgi?id=");
 
+    g_test_add_func("/dix/input/valuator-masks", dix_input_valuator_masks);
     g_test_add_func("/dix/input/attributes", dix_input_attributes);
     g_test_add_func("/dix/input/init-valuators", dix_init_valuators);
     g_test_add_func("/dix/input/event-core-conversion", dix_event_to_core_conversion);
