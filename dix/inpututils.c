@@ -418,3 +418,16 @@ FreeInputAttributes(InputAttributes *attrs)
     free(attrs);
 }
 
+
+int
+CountBits(const uint8_t *mask, int len)
+{
+    int i;
+    int ret = 0;
+
+    for (i = 0; i < len; i++)
+        if (BitIsOn(mask, i))
+            ret++;
+
+    return ret;
+}
