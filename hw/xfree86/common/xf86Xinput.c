@@ -67,6 +67,7 @@
 #include "exevents.h"	/* AddInputDevice */
 #include "exglobals.h"
 #include "eventstr.h"
+#include "inpututils.h"
 
 #include <string.h>     /* InputClassMatches */
 #ifdef HAVE_FNMATCH_H
@@ -97,7 +98,6 @@
 			" MAX_VALUATORS\n", __FUNCTION__, num_valuators);	\
 		return;								\
 	}
-
 
 EventListPtr xf86Events = NULL;
 
@@ -991,6 +991,19 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                     int			num_valuators,
                     const int		*valuators)
 {
+    ValuatorMask mask;
+
+    XI_VERIFY_VALUATORS(num_valuators);
+
+    valuator_mask_set_range(&mask, first_valuator, num_valuators, valuators);
+    xf86PostMotionEventM(device, is_absolute, &mask);
+}
+
+void
+xf86PostMotionEventM(DeviceIntPtr	device,
+                     int		is_absolute,
+                     const ValuatorMask	*mask)
+{
     int i = 0, nevents = 0;
     DeviceEvent *event;
     int flags = 0;
@@ -1000,8 +1013,6 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     int dx = 0, dy = 0;
 #endif
 
-    XI_VERIFY_VALUATORS(num_valuators);
-
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
     else
@@ -1009,19 +1020,20 @@ xf86PostMotionEventP(DeviceIntPtr	device,
 
 #if XFreeXDGA
     /* The evdev driver may not always send all axes across. */
-    if (num_valuators >= 1 && first_valuator <= 1) {
+    if (valuator_mask_isset(mask, 0) ||
+        valuator_mask_isset(mask, 1))
         if (miPointerGetScreen(device)) {
             index = miPointerGetScreen(device)->myNum;
-            if (first_valuator == 0)
+            if (valuator_mask_isset(mask, 0))
             {
-                dx = valuators[0];
+                dx = valuator_mask_get(mask, 0);
                 if (is_absolute)
                     dx -= device->last.valuators[0];
             }
 
-            if (first_valuator == 1 || num_valuators >= 2)
+            if (valuator_mask_isset(mask, 1))
             {
-                dy = valuators[1 - first_valuator];
+                dy = valuator_mask_get(mask, 1);
                 if (is_absolute)
                     dy -= device->last.valuators[1];
             }
@@ -1029,12 +1041,9 @@ xf86PostMotionEventP(DeviceIntPtr	device,
             if (DGAStealMotionEvent(device, index, dx, dy))
                 return;
         }
-    }
 #endif
 
-    nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
-                               flags, first_valuator, num_valuators,
-                               valuators);
+    nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0, flags, mask);
 
     for (i = 0; i < nevents; i++) {
         event = (DeviceEvent*)((xf86Events + i)->event);
@@ -1072,13 +1081,23 @@ xf86PostProximityEventP(DeviceIntPtr	device,
                         int		num_valuators,
                         const int	*valuators)
 {
-    int i, nevents;
+    ValuatorMask mask;
 
     XI_VERIFY_VALUATORS(num_valuators);
 
+    valuator_mask_set_range(&mask, first_valuator, num_valuators, valuators);
+    xf86PostProximityEventM(device, is_in, &mask);
+}
+
+void
+xf86PostProximityEventM(DeviceIntPtr	device,
+                        int		is_in,
+                        const ValuatorMask *mask)
+{
+    int i, nevents;
+
     nevents = GetProximityEvents(xf86Events, device,
-                                 is_in ? ProximityIn : ProximityOut, 
-                                 first_valuator, num_valuators, valuators);
+                                 is_in ? ProximityIn : ProximityOut, mask);
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
 
@@ -1118,14 +1137,27 @@ xf86PostButtonEventP(DeviceIntPtr	device,
                      int		num_valuators,
                      const int		*valuators)
 {
+    ValuatorMask mask;
+
+    XI_VERIFY_VALUATORS(num_valuators);
+
+    valuator_mask_set_range(&mask, first_valuator, num_valuators, valuators);
+    xf86PostButtonEventM(device, is_absolute, button, is_down, &mask);
+}
+
+void
+xf86PostButtonEventM(DeviceIntPtr	device,
+                     int		is_absolute,
+                     int		button,
+                     int		is_down,
+                     const ValuatorMask	*mask)
+{
     int i = 0, nevents = 0;
     int flags = 0;
 
 #if XFreeXDGA
     int index;
 #endif
-
-    XI_VERIFY_VALUATORS(num_valuators);
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -1142,7 +1174,7 @@ xf86PostButtonEventP(DeviceIntPtr	device,
 
     nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
-                               flags, first_valuator, num_valuators, valuators);
+                               flags, mask);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, (InternalEvent*)((xf86Events + i)->event));
@@ -1183,15 +1215,27 @@ xf86PostKeyEventP(DeviceIntPtr	device,
                   int		num_valuators,
                   const int	*valuators)
 {
-    int i = 0, nevents = 0;
+    ValuatorMask mask;
 
     XI_VERIFY_VALUATORS(num_valuators);
+
+    valuator_mask_set_range(&mask, first_valuator, num_valuators, valuators);
+    xf86PostKeyEventM(device, key_code, is_down, is_absolute, &mask);
+}
+
+void
+xf86PostKeyEventM(DeviceIntPtr	device,
+                  unsigned int	key_code,
+                  int		is_down,
+                  int		is_absolute,
+                  const ValuatorMask *mask)
+{
+    int i = 0, nevents = 0;
 
     if (is_absolute) {
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
-                                            key_code, first_valuator,
-                                            num_valuators, valuators);
+                                            key_code, mask);
     }
     else {
         nevents = GetKeyboardEvents(xf86Events, device,
@@ -1208,7 +1252,10 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       unsigned int      key_code,
                       int               is_down)
 {
-    xf86PostKeyEventP(device, key_code, is_down, 0, 0, 0, NULL);
+    ValuatorMask mask;
+
+    valuator_mask_zero(&mask);
+    xf86PostKeyEventM(device, key_code, is_down, 0, &mask);
 }
 
 InputInfoPtr

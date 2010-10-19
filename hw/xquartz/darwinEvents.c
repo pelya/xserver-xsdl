@@ -414,6 +414,7 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
 			     float pressure, float tilt_x, float tilt_y) {
 	static int darwinFakeMouseButtonDown = 0;
 	int i, num_events;
+    ValuatorMask mask;
     ScreenPtr screen;
     int valuators[5];
 	
@@ -464,8 +465,9 @@ void DarwinSendPointerEvents(DeviceIntPtr pDev, int ev_type, int ev_button, floa
 
     DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y, pressure, tilt_x, tilt_y);
     darwinEvents_lock(); {
+        valuator_mask_set_range(&mask, 0, (pDev == darwinTabletCurrent) ? 5 : 2, valuators);
         num_events = GetPointerEvents(darwinEvents, pDev, ev_type, ev_button, 
-                                      POINTER_ABSOLUTE, 0, pDev==darwinTabletCurrent?5:2, valuators);
+                                      POINTER_ABSOLUTE, 0, &mask);
         for(i=0; i<num_events; i++) mieqEnqueue (pDev, (InternalEvent*)darwinEvents[i].event);
         if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();
@@ -491,6 +493,7 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
     ScreenPtr screen;
     DeviceIntPtr pDev = darwinTabletCurrent;
     int valuators[5];
+    ValuatorMask mask;
 
 	DEBUG_LOG("DarwinSendProximityEvents(%d, %f, %f)\n", ev_type, pointer_x, pointer_y);
 
@@ -507,8 +510,8 @@ void DarwinSendProximityEvents(int ev_type, float pointer_x, float pointer_y) {
 
     DarwinPrepareValuators(pDev, valuators, screen, pointer_x, pointer_y, 0.0f, 0.0f, 0.0f);
     darwinEvents_lock(); {
-        num_events = GetProximityEvents(darwinEvents, pDev, ev_type,
-                                        0, 5, valuators);
+        valuator_mask_set_range(&mask, 0, 5, valuators);
+        num_events = GetProximityEvents(darwinEvents, pDev, ev_type, &mask);
         for(i=0; i<num_events; i++) mieqEnqueue (pDev, (InternalEvent*)darwinEvents[i].event);
         if(num_events > 0) DarwinPokeEQ();
     } darwinEvents_unlock();

@@ -48,6 +48,7 @@
 #include "exglobals.h"
 #include "eventstr.h"
 #include "xserver-properties.h"
+#include "inpututils.h"
 
 #define AtomFromName(x) MakeAtom(x, strlen(x), 1)
 
@@ -1967,14 +1968,16 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
 {
     int nEvents = 0, i = 0;
     int valuators[3] = { x, y, z };
+    ValuatorMask mask;
 
     /* TRUE from KdHandlePointerEvent, means 'we swallowed the event'. */
     if (!force && KdHandlePointerEvent(pi, type, x, y, z, b, absrel))
         return;
 
+    valuator_mask_set_range(&mask, 0, 3, valuators);
+
     GetEventList(&kdEvents);
-    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel,
-                               0, 3, valuators);
+    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, &mask);
     for (i = 0; i < nEvents; i++)
         KdQueueEvent(pi->dixdev, (InternalEvent *)((kdEvents + i)->event));
 }
