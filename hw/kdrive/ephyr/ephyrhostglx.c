@@ -31,17 +31,6 @@
 #include <kdrive-config.h>
 #endif
 
-/*
- * including some server headers (like kdrive-config.h)
- * might define the macro _XSERVER64
- * on 64 bits machines. That macro must _NOT_ be defined for Xlib
- * client code, otherwise bad things happen.
- * So let's undef that macro if necessary.
- */
-#ifdef _XSERVER64
-#undef _XSERVER64
-#endif
-
 #include <X11/Xdefs.h>
 #include <X11/Xmd.h>
 #include <GL/glxproto.h>

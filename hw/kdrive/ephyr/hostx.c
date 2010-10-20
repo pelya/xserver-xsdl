@@ -27,17 +27,6 @@
 #include <kdrive-config.h>
 #endif
 
-/*
- * including some server headers (like kdrive-config.h)
- * might define the macro _XSERVER64
- * on 64 bits machines. That macro must _NOT_ be defined for Xlib
- * client code, otherwise bad things happen.
- * So let's undef that macro if necessary.
- */
-#ifdef _XSERVER64
-#undef _XSERVER64
-#endif
-
 #include "hostx.h"
 
 #include <stdlib.h>
@@ -65,12 +54,6 @@
 #include <xcb/glx.h>
 #endif /* XF86DRI */
 #include "ephyrlog.h"
-
-/*  
- * All xlib calls go here, which gets built as its own .a .
- * Mixing kdrive and xlib headers causes all sorts of types
- * to get clobbered. 
- */
 
 struct EphyrHostScreen {
     Window win;
