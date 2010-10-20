@@ -496,10 +496,6 @@ void UseMsg(void)
     ErrorF("-ls int                limit stack space to N Kb\n");
 #endif
     ErrorF("-nolock                disable the locking mechanism\n");
-#ifndef NOLOGOHACK
-    ErrorF("-logo                  enable logo in screen saver\n");
-    ErrorF("nologo                 disable logo in screen saver\n");
-#endif
     ErrorF("-nolisten string       don't listen on protocol\n");
     ErrorF("-noreset               don't reset after last client exists\n");
     ErrorF("-reset                 reset after last client exists\n");
@@ -755,16 +751,6 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 	    nolock = TRUE;
 	}
-#ifndef NOLOGOHACK
-	else if ( strcmp( argv[i], "-logo") == 0)
-	{
-	    logoScreenSaver = 1;
-	}
-	else if ( strcmp( argv[i], "nologo") == 0)
-	{
-	    logoScreenSaver = 0;
-	}
-#endif
 	else if ( strcmp( argv[i], "-nolisten") == 0)
 	{
             if(++i < argc) {
