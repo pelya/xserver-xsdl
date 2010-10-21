@@ -2210,7 +2210,6 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 static void
 configDRI(XF86ConfDRIPtr drip)
 {
-    int                i;
     struct group       *grp;
 
     xf86ConfigDRI.group      = -1;
