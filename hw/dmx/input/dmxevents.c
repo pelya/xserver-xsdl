@@ -301,7 +301,7 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
 
     if (axesCount > DMX_MAX_AXES) axesCount = DMX_MAX_AXES;
 
-    if (!pDevice->valuator->mode && axesCount == 2) {
+    if ((pDevice->valuator->mode == Relative) && axesCount == 2) {
                                 /* The dmx console is a relative mode
                                  * device that sometimes reports
                                  * absolute motion.  It only has two
