@@ -780,7 +780,7 @@ moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
         if (valuator_mask_isset(mask, i))
         {
             dev->last.valuators[i] += valuator_mask_get(mask, i);
-            if (dev->valuator->axes[i].mode == Absolute)
+            if (valuator_get_mode(dev, i) == Absolute)
                 clipAxis(dev, i, &dev->last.valuators[i]);
             valuator_mask_set(mask, i, dev->last.valuators[i]);
         }
@@ -1252,7 +1252,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
     for (i = 0; i < valuator_mask_num_valuators(&mask); i++)
     {
         if (valuator_mask_isset(&mask, i) &&
-            pDev->valuator->axes[i].mode == Relative)
+            valuator_get_mode(pDev, i) == Relative)
             valuator_mask_unset(&mask, i);
     }
 
