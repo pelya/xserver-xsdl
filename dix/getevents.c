@@ -1232,7 +1232,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 int
 GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const ValuatorMask *mask_in)
 {
-    int num_events = 1;
+    int num_events = 1, i;
     DeviceEvent *event;
     ValuatorMask mask;
 
@@ -1248,9 +1248,13 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
 
     valuator_mask_copy(&mask, mask_in);
 
-    /* Do we need to send a DeviceValuator event? */
-    if ((pDev->valuator->mode & 1) == Relative)
-        valuator_mask_zero(&mask);
+    /* ignore relative axes for proximity. */
+    for (i = 0; i < valuator_mask_num_valuators(&mask); i++)
+    {
+        if (valuator_mask_isset(&mask, i) &&
+            pDev->valuator->axes[i].mode == Relative)
+            valuator_mask_unset(&mask, i);
+    }
 
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
