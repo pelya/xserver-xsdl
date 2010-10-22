@@ -978,6 +978,38 @@ static void dix_input_valuator_masks(void)
     free(mask);
 }
 
+static void dix_valuator_mode(void)
+{
+    DeviceIntRec dev;
+    const int num_axes = MAX_VALUATORS;
+    int i;
+    Atom atoms[MAX_VALUATORS] = { 0 };
+
+    memset(&dev, 0, sizeof(DeviceIntRec));
+    dev.type = MASTER_POINTER; /* claim it's a master to stop ptracccel */
+
+    g_assert(InitValuatorClassDeviceStruct(NULL, 0, atoms, 0, 0) == FALSE);
+    g_assert(InitValuatorClassDeviceStruct(&dev, num_axes, atoms, 0, Absolute));
+
+    for (i = 0; i < num_axes; i++)
+    {
+        g_assert(valuator_get_mode(&dev, i) == Absolute);
+        valuator_set_mode(&dev, i, Relative);
+        g_assert(dev.valuator->axes[i].mode == Relative);
+        g_assert(valuator_get_mode(&dev, i) == Relative);
+    }
+
+    valuator_set_mode(&dev, VALUATOR_MODE_ALL_AXES, Absolute);
+    for (i = 0; i < num_axes; i++)
+        g_assert(valuator_get_mode(&dev, i) == Absolute);
+
+    valuator_set_mode(&dev, VALUATOR_MODE_ALL_AXES, Relative);
+    for (i = 0; i < num_axes; i++)
+        g_assert(valuator_get_mode(&dev, i) == Relative);
+}
+
+
+
 int main(int argc, char** argv)
 {
     g_test_init(&argc, &argv,NULL);
@@ -990,6 +1022,7 @@ int main(int argc, char** argv)
     g_test_add_func("/dix/input/check-grab-values", dix_check_grab_values);
     g_test_add_func("/dix/input/xi2-struct-sizes", xi2_struct_sizes);
     g_test_add_func("/dix/input/grab_matching", dix_grab_matching);
+    g_test_add_func("/dix/input/valuator_mode", dix_valuator_mode);
     g_test_add_func("/include/byte_padding_macros", include_byte_padding_macros);
     g_test_add_func("/Xi/xiproperty/register-unregister", xi_unregister_handlers);
 
