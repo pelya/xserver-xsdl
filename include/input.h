@@ -546,6 +546,10 @@ extern _X_EXPORT void DDXRingBell(
     int pitch,
     int duration);
 
+#define VALUATOR_MODE_ALL_AXES -1
+extern _X_HIDDEN int valuator_get_mode(DeviceIntPtr dev, int axis);
+extern _X_HIDDEN void valuator_set_mode(DeviceIntPtr dev, int axis, int mode);
+
 /* Set to TRUE by default - os/utils.c sets it to FALSE on user request,
    xfixes/cursor.c uses it to determine if the cursor is enabled */
 extern Bool EnableCursor;

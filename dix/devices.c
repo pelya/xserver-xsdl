@@ -2570,3 +2570,25 @@ AllocDevicePair (ClientPtr client, char* name,
     return Success;
 }
 
+/**
+ * Return Relative or Absolute for the device.
+ */
+int valuator_get_mode(DeviceIntPtr dev, int axis)
+{
+    return (dev->valuator->axes[axis].mode & DeviceMode);
+}
+
+/**
+ * Set the given mode for the axis. If axis is VALUATOR_MODE_ALL_AXES, then
+ * set the mode for all axes.
+ */
+void valuator_set_mode(DeviceIntPtr dev, int axis, int mode)
+{
+    if (axis != VALUATOR_MODE_ALL_AXES)
+        dev->valuator->axes[axis].mode = mode;
+    else {
+        int i;
+        for (i = 0; i < dev->valuator->numAxes; i++)
+            dev->valuator->axes[axis].mode = mode;
+    }
+}
