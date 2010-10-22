@@ -378,8 +378,7 @@ AllocateMotionHistory(DeviceIntPtr pDev)
         int numAxes;
         /* XI1 doesn't understand mixed mode devices */
         for (numAxes = 0; numAxes < v->numAxes; numAxes++)
-            if ((v->axes[numAxes].mode & DeviceMode) !=
-                (v->mode & DeviceMode))
+            if (valuator_get_mode(pDev, numAxes) != valuator_get_mode(pDev, 0))
                 break;
         size = sizeof(INT32) * numAxes;
     }
@@ -564,8 +563,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, ValuatorMask *mask,
         for (i = 0; i < v->numAxes; i++)
         {
             /* XI1 doesn't support mixed mode devices */
-            if ((pDev->valuator->axes[i].mode & DeviceMode) !=
-                (pDev->valuator->mode & DeviceMode))
+            if (valuator_get_mode(pDev, i) != valuator_get_mode(pDev, 0))
                 break;
             if (valuator_mask_size(mask) <= i || !valuator_mask_isset(mask, i))
             {
