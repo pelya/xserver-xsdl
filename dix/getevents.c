@@ -767,9 +767,11 @@ moveRelative(DeviceIntPtr dev, int *x, int *y, ValuatorMask *mask)
     /* if attached, clip both x and y to the defined limits (usually
      * co-ord space limit). If it is attached, we need x/y to go over the
      * limits to be able to change screens. */
-    if(dev->u.master && dev->valuator->mode == Absolute) {
-        clipAxis(dev, 0, x);
-        clipAxis(dev, 1, y);
+    if(dev->u.master) {
+        if (valuator_get_mode(dev, 0) == Absolute)
+            clipAxis(dev, 0, x);
+        if (valuator_get_mode(dev, 1) == Absolute)
+            clipAxis(dev, 1, y);
     }
 
     /* calc other axes, clip, drop back into valuators */
