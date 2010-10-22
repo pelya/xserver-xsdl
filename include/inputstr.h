@@ -240,7 +240,6 @@ typedef struct _ValuatorClassRec {
     AxisInfoPtr 	  axes;
     unsigned short	  numAxes;
     double		  *axisVal; /* always absolute, but device-coord system */
-    CARD8	 	  mode;
     ValuatorAccelerationRec	accelScheme;
 } ValuatorClassRec, *ValuatorClassPtr;
 

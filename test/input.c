@@ -66,7 +66,6 @@ static void dix_init_valuators(void)
     g_assert(val);
     g_assert(val->numAxes == num_axes);
     g_assert(val->numMotionEvents == 0);
-    g_assert(val->mode == Absolute);
     g_assert(val->axisVal);
 
     for (i = 0; i < num_axes; i++)
@@ -74,6 +73,7 @@ static void dix_init_valuators(void)
         g_assert(val->axisVal[i] == 0);
         g_assert(val->axes->min_value == NO_AXIS_LIMITS);
         g_assert(val->axes->max_value == NO_AXIS_LIMITS);
+        g_assert(val->axes->mode == Absolute);
     }
 
     g_assert(dev.last.numValuators == num_axes);

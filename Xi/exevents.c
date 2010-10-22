@@ -556,7 +556,6 @@ DeepCopyPointerClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         v->axisVal = (double*)(v->axes + from->valuator->numAxes);
         v->sourceid = from->id;
-        v->mode = from->valuator->mode;
     } else if (to->valuator && !from->valuator)
     {
         ClassesPtr classes;
@@ -1177,7 +1176,7 @@ FixDeviceStateNotify(DeviceIntPtr dev, deviceStateNotify * ev, KeyClassPtr k,
 	int nval = v->numAxes - first;
 
 	ev->classes_reported |= (1 << ValuatorClass);
-	ev->classes_reported |= (dev->valuator->mode << ModeBitsShift);
+	ev->classes_reported |= valuator_get_mode(dev, 0) << ModeBitsShift;
 	ev->num_valuators = nval < 3 ? nval : 3;
 	switch (ev->num_valuators) {
 	case 3:
