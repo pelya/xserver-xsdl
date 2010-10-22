@@ -1251,9 +1251,12 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, Atom *labels,
     valc->numMotionEvents = numMotionEvents;
     valc->motionHintWindow = NullWindow;
     valc->numAxes = numAxes;
-    valc->mode = mode;
     valc->axes = (AxisInfoPtr)(valc + 1);
     valc->axisVal = (double *)(valc->axes + numAxes);
+
+    if (mode & OutOfProximity)
+        InitProximityClassDeviceStruct(dev);
+
     dev->valuator = valc;
 
     AllocateMotionHistory(dev);

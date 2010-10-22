@@ -891,9 +891,9 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
         mask = PointerMotionMask | b->state | b->motionMask;
         SetMaskForEvent(device->id, mask, MotionNotify);
     } else if (event->type == ET_ProximityIn)
-	device->valuator->mode &= ~OutOfProximity;
+	device->proximity->in_proximity = TRUE;
     else if (event->type == ET_ProximityOut)
-	device->valuator->mode |= OutOfProximity;
+	device->proximity->in_proximity = FALSE;
 
     return DEFAULT;
 }
@@ -1112,6 +1112,7 @@ InitProximityClassDeviceStruct(DeviceIntPtr dev)
     if (!proxc)
 	return FALSE;
     proxc->sourceid = dev->id;
+    proxc->in_proximity = TRUE;
     dev->proximity = proxc;
     return TRUE;
 }
@@ -1145,6 +1146,9 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval, int 
     ax->max_resolution = max_res;
     ax->label = label;
     ax->mode = mode;
+
+    if (mode & OutOfProximity)
+        dev->proximity->in_proximity = FALSE;
 }
 
 static void

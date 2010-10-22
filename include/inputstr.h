@@ -273,7 +273,7 @@ typedef struct _FocusClassRec {
 
 typedef struct _ProximityClassRec {
     int		sourceid;
-    char	pad;
+    char	in_proximity;
 } ProximityClassRec, *ProximityClassPtr;
 
 typedef struct _AbsoluteClassRec {
