@@ -305,10 +305,7 @@ LogVWrite(int verb, const char *f, va_list args)
 	    if (len > bufferUnused) {
 		bufferSize += 1024;
 		bufferUnused += 1024;
-		if (saveBuffer)
-		    saveBuffer = realloc(saveBuffer, bufferSize);
-		else
-		    saveBuffer = malloc(bufferSize);
+		saveBuffer = realloc(saveBuffer, bufferSize);
 		if (!saveBuffer)
 		    FatalError("realloc() failed while saving log messages\n");
 	    }
