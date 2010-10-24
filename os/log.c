@@ -302,10 +302,6 @@ LogVWrite(int verb, const char *f, va_list args)
 #endif
 	    }
 	} else if (needBuffer) {
-	    /*
-	     * Note, this code is used before OsInit() has been called, so
-	     * malloc() and friends can't be used.
-	     */
 	    if (len > bufferUnused) {
 		bufferSize += 1024;
 		bufferUnused += 1024;
