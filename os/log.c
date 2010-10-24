@@ -177,7 +177,6 @@ LogInit(const char *fname, const char *backup)
     char *logFileName = NULL;
 
     if (fname && *fname) {
-	/* malloc() can't be used yet. */
 	logFileName = malloc(strlen(fname) + strlen(display) + 1);
 	if (!logFileName)
 	    FatalError("Cannot allocate space for the log file name\n");
