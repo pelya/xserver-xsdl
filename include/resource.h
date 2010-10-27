@@ -152,11 +152,36 @@ typedef Bool (*FindComplexResType) (pointer /*value */ ,
                                     XID /*id */ ,
                                     pointer /*cdata */ );
 
+/* Structure for estimating resource memory usage. Memory usage
+ * consists of space allocated for the resource itself and of
+ * references to other resources. Currently the most important use for
+ * this structure is to estimate pixmap usage of different resources
+ * more accurately. */
+typedef struct {
+    /* Size of resource itself. Zero if not implemented. */
+    unsigned long resourceSize;
+    /* Size attributed to pixmap references from the resource. */
+    unsigned long pixmapRefSize;
+} ResourceSizeRec, *ResourceSizePtr;
+
+typedef void (*SizeType)(pointer /*value*/,
+                         XID /*id*/,
+                         ResourceSizePtr /*size*/);
+
 extern _X_EXPORT RESTYPE CreateNewResourceType(DeleteType /*deleteFunc */ ,
                                                const char * /*name */ );
 
 extern _X_EXPORT void SetResourceTypeErrorValue(RESTYPE /*type */ ,
                                                 int /*errorValue */ );
+
+extern _X_EXPORT SizeType GetResourceTypeSizeFunc(
+    RESTYPE /*type*/);
+
+extern _X_EXPORT void SetResourceTypeSizeFunc(
+    RESTYPE /*type*/, SizeType /*sizeFunc*/);
+
+extern _X_EXPORT void SetResourceTypeErrorValue(
+    RESTYPE /*type*/, int /*errorValue*/);
 
 extern _X_EXPORT RESTYPE CreateNewResourceClass(void);
 

@@ -141,6 +141,7 @@ Equipment Corporation.
 #include "xace.h"
 #include <assert.h>
 #include "registry.h"
+#include "gcstruct.h"
 
 #ifdef XSERVER_DTRACE
 #include <sys/types.h>
@@ -182,50 +183,212 @@ RESTYPE TypeMask;
 
 struct ResourceType {
     DeleteType deleteFunc;
+    SizeType sizeFunc;
     int errorValue;
 };
+
+/**
+ * Used by all resources that don't specify a function to calculate
+ * resource size. Currently this is used for all resources with
+ * insignificant memory usage.
+ *
+ * @see GetResourceTypeSizeFunc, SetResourceTypeSizeFunc
+ *
+ * @param[in] value Pointer to resource object.
+ *
+ * @param[in] id Resource ID for the object.
+ *
+ * @param[out] size Fill all fields to zero to indicate that size of
+ *                  resource can't be determined.
+ */
+static void
+GetDefaultBytes(pointer value, XID id, ResourceSizePtr size)
+{
+    size->resourceSize = 0;
+    size->pixmapRefSize = 0;
+}
+
+/**
+ * Calculate drawable size in bytes. Reference counting is not taken
+ * into account.
+ *
+ * @param[in] drawable Pointer to a drawable.
+ *
+ * @return Estimate of total memory usage for the drawable.
+ */
+static unsigned long
+GetDrawableBytes(DrawablePtr drawable)
+{
+    int bytes = 0;
+
+    if (drawable)
+    {
+        int bytesPerPixel = drawable->bitsPerPixel >> 3;
+        int numberOfPixels = drawable->width * drawable->height;
+        bytes = numberOfPixels * bytesPerPixel;
+    }
+
+    return bytes;
+}
+
+/**
+ * Calculate pixmap size in bytes. Reference counting is taken into
+ * account. Any extra data attached by extensions and drivers is not
+ * taken into account. The purpose of this function is to estimate
+ * memory usage that can be attributed to single reference of the
+ * pixmap.
+ *
+ * @param[in] value Pointer to a pixmap.
+ *
+ * @param[in] id Resource ID of pixmap. If the pixmap hasn't been
+ *               added as resource, just pass value->drawable.id.
+ *
+ * @param[out] size Estimate of memory usage attributed to a single
+ *                  pixmap reference.
+ */
+static void
+GetPixmapBytes(pointer value, XID id, ResourceSizePtr size)
+{
+    PixmapPtr pixmap = value;
+
+    size->resourceSize = 0;
+    size->pixmapRefSize = 0;
+
+    if (pixmap && pixmap->refcnt)
+    {
+        DrawablePtr drawable = &pixmap->drawable;
+        size->resourceSize = GetDrawableBytes(drawable);
+        size->pixmapRefSize = size->resourceSize / pixmap->refcnt;
+    }
+}
+
+/**
+ * Calculate window size in bytes. The purpose of this function is to
+ * estimate memory usage that can be attributed to all pixmap
+ * references of the window.
+ *
+ * @param[in] value Pointer to a window.
+ *
+ * @param[in] id Resource ID of window.
+ *
+ * @param[out] size Estimate of memory usage attributed to a all
+ *                  pixmap references of a window.
+ */
+static void
+GetWindowBytes(pointer value, XID id, ResourceSizePtr size)
+{
+    SizeType pixmapSizeFunc = GetResourceTypeSizeFunc(RT_PIXMAP);
+    ResourceSizeRec pixmapSize = { 0, 0 };
+    WindowPtr window = value;
+
+    /* Currently only pixmap bytes are reported to clients. */
+    size->resourceSize = 0;
+
+    /* Calculate pixmap reference sizes. */
+    size->pixmapRefSize = 0;
+    if (window->backgroundState == BackgroundPixmap)
+    {
+        PixmapPtr pixmap = window->background.pixmap;
+        pixmapSizeFunc(pixmap, pixmap->drawable.id, &pixmapSize);
+        size->pixmapRefSize += pixmapSize.pixmapRefSize;
+    }
+    if (window->border.pixmap && !window->borderIsPixel)
+    {
+        PixmapPtr pixmap = window->border.pixmap;
+        pixmapSizeFunc(pixmap, pixmap->drawable.id, &pixmapSize);
+        size->pixmapRefSize += pixmapSize.pixmapRefSize;
+    }
+}
+
+/**
+ * Calculate graphics context size in bytes. The purpose of this
+ * function is to estimate memory usage that can be attributed to all
+ * pixmap references of the graphics context.
+ *
+ * @param[in] value Pointer to a graphics context.
+ *
+ * @param[in] id Resource ID of graphics context.
+ *
+ * @param[out] size Estimate of memory usage attributed to a all
+ *                  pixmap references of a graphics context.
+ */
+static void
+GetGcBytes(pointer value, XID id, ResourceSizePtr size)
+{
+    SizeType pixmapSizeFunc = GetResourceTypeSizeFunc(RT_PIXMAP);
+    ResourceSizeRec pixmapSize = { 0, 0 };
+    GCPtr gc = value;
+
+    /* Currently only pixmap bytes are reported to clients. */
+    size->resourceSize = 0;
+
+    /* Calculate pixmap reference sizes. */
+    size->pixmapRefSize = 0;
+    if (gc->stipple)
+    {
+        PixmapPtr pixmap = gc->stipple;
+        pixmapSizeFunc(pixmap, pixmap->drawable.id, &pixmapSize);
+        size->pixmapRefSize += pixmapSize.pixmapRefSize;
+    }
+    if (gc->tile.pixmap && !gc->tileIsPixel)
+    {
+        PixmapPtr pixmap = gc->tile.pixmap;
+        pixmapSizeFunc(pixmap, pixmap->drawable.id, &pixmapSize);
+        size->pixmapRefSize += pixmapSize.pixmapRefSize;
+    }
+}
 
 static struct ResourceType *resourceTypes;
 
 static const struct ResourceType predefTypes[] = {
     [RT_NONE & (RC_LASTPREDEF - 1)] = {
                                        .deleteFunc = (DeleteType) NoopDDA,
+                                       .sizeFunc = GetDefaultBytes,
                                        .errorValue = BadValue,
                                        },
     [RT_WINDOW & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = DeleteWindow,
+                                         .sizeFunc = GetWindowBytes,
                                          .errorValue = BadWindow,
                                          },
     [RT_PIXMAP & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = dixDestroyPixmap,
+                                         .sizeFunc = GetPixmapBytes,
                                          .errorValue = BadPixmap,
                                          },
     [RT_GC & (RC_LASTPREDEF - 1)] = {
                                      .deleteFunc = FreeGC,
+                                     .sizeFunc = GetGcBytes,
                                      .errorValue = BadGC,
                                      },
     [RT_FONT & (RC_LASTPREDEF - 1)] = {
                                        .deleteFunc = CloseFont,
+                                       .sizeFunc = GetDefaultBytes,
                                        .errorValue = BadFont,
                                        },
     [RT_CURSOR & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = FreeCursor,
+                                         .sizeFunc = GetDefaultBytes,
                                          .errorValue = BadCursor,
                                          },
     [RT_COLORMAP & (RC_LASTPREDEF - 1)] = {
                                            .deleteFunc = FreeColormap,
+                                           .sizeFunc = GetDefaultBytes,
                                            .errorValue = BadColor,
                                            },
     [RT_CMAPENTRY & (RC_LASTPREDEF - 1)] = {
                                             .deleteFunc = FreeClientPixels,
+                                            .sizeFunc = GetDefaultBytes,
                                             .errorValue = BadColor,
                                             },
     [RT_OTHERCLIENT & (RC_LASTPREDEF - 1)] = {
                                               .deleteFunc = OtherClientGone,
+                                              .sizeFunc = GetDefaultBytes,
                                               .errorValue = BadValue,
                                               },
     [RT_PASSIVEGRAB & (RC_LASTPREDEF - 1)] = {
                                               .deleteFunc = DeletePassiveGrab,
+                                              .sizeFunc = GetDefaultBytes,
                                               .errorValue = BadValue,
                                               },
 };
@@ -256,12 +419,46 @@ CreateNewResourceType(DeleteType deleteFunc, const char *name)
     lastResourceType = next;
     resourceTypes = types;
     resourceTypes[next].deleteFunc = deleteFunc;
+    resourceTypes[next].sizeFunc = GetDefaultBytes;
     resourceTypes[next].errorValue = BadValue;
 
     /* Called even if name is NULL, to remove any previous entry */
     RegisterResourceName(next, name);
 
     return next;
+}
+
+/**
+ * Get the function used to calculate resource size. Extensions and
+ * drivers need to be able to determine the current size calculation
+ * function if they want to wrap or override it.
+ *
+ * @param[in] type     Resource type used in size calculations.
+ *
+ * @return Function to calculate the size of a single
+ *                     resource.
+ */
+SizeType
+GetResourceTypeSizeFunc(RESTYPE type)
+{
+    return resourceTypes[type & TypeMask].sizeFunc;
+}
+
+/**
+ * Override the default function that calculates resource size. For
+ * example, video driver knows better how to calculate pixmap memory
+ * usage and can therefore wrap or override size calculation for
+ * RT_PIXMAP.
+ *
+ * @param[in] type     Resource type used in size calculations.
+ *
+ * @param[in] sizeFunc Function to calculate the size of a single
+ *                     resource.
+ */
+void
+SetResourceTypeSizeFunc(RESTYPE type, SizeType sizeFunc)
+{
+    resourceTypes[type & TypeMask].sizeFunc = sizeFunc;
 }
 
 void
