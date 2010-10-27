@@ -28,6 +28,7 @@
 #include "misc.h"
 #include <string.h>
 #include "picturestr.h"
+#include "compint.h"
 
 /** @brief Holds fragments of responses for ConstructClientIds.
  *
@@ -342,6 +343,14 @@ ResFindPicturePixmaps(pointer value, XID id, pointer cdata)
 #endif
 }
 
+static void
+ResFindCompositeClientWindowPixmaps (pointer value, XID id, pointer cdata)
+{
+#ifdef COMPOSITE
+    ResFindResourcePixmaps(value, id, CompositeClientWindowType, cdata);
+#endif
+}
+
 static int
 ProcXResQueryClientPixmapBytes(ClientPtr client)
 {
@@ -384,7 +393,10 @@ ProcXResQueryClientPixmapBytes(ClientPtr client)
 #endif
 
 #ifdef COMPOSITE
-    /* FIXME: include composite pixmaps too */
+    /* Composite extension client window pixmaps. */
+    FindClientResourcesByType(clients[clientID], CompositeClientWindowType,
+                              ResFindCompositeClientWindowPixmaps,
+                              (pointer)(&bytes));
 #endif
 
     rep.type = X_Reply;
