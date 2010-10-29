@@ -1116,10 +1116,11 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
   XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
   XF86XVWindowPtr WinPriv = GET_XF86XV_WINDOW(pWin);
   XvPortRecPrivatePtr pPriv;
-  Bool visible = (pWin->visibility == VisibilityUnobscured) ||
-		 (pWin->visibility == VisibilityPartiallyObscured);
 
   while(WinPriv) {
+     Bool visible = pWin->visibility == VisibilityUnobscured ||
+		    pWin->visibility == VisibilityPartiallyObscured;
+
      pPriv = WinPriv->PortRec;
 
      if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
@@ -1131,24 +1132,15 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
         (*pPriv->AdaptorRec->ClipNotify)(pPriv->pScrn, pPriv->DevPriv.ptr,
                                          pWin, dx, dy);
 
-     /* Stop everything except images, but stop them too if the
-	window isn't visible.  But we only remove the images. */
-
-     if(pPriv->type || !visible) {
-	if(pPriv->isOn == XV_ON) {
-	    (*pPriv->AdaptorRec->StopVideo)(
-			pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
-	    pPriv->isOn = XV_PENDING;
-	}
-
-	if(!pPriv->type) {  /* overlaid still/image */
-	    WinPriv = WinPriv->next;
-	    xf86XVRemovePortFromWindow(pWin, pPriv);
-	    continue;
-	}
-     }
+     /*
+      * Stop and remove still/images if
+      * ReputImage isn't supported.
+      */
+     if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
+	visible = FALSE;
 
      WinPriv = WinPriv->next;
+     xf86XVReputOrStopPort(pPriv, pWin, visible);
   }
 
   if(ScreenPriv->ClipNotify) {
