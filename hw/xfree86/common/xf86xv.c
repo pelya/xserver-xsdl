@@ -1007,8 +1007,20 @@ xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 static void
 xf86XVReputOrStopPort(XvPortRecPrivatePtr pPriv,
 		      WindowPtr pWin,
-		      Bool AreasExposed)
+		      Bool visible)
 {
+    if (!visible) {
+	if (pPriv->isOn == XV_ON) {
+	    (*pPriv->AdaptorRec->StopVideo)(pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
+	    pPriv->isOn = XV_PENDING;
+	}
+
+	if (!pPriv->type) /* overlaid still/image*/
+	    xf86XVRemovePortFromWindow(pWin, pPriv);
+
+	return;
+    }
+
     switch (pPriv->type) {
     case XvInputMask:
 	xf86XVReputVideo(pPriv);
@@ -1019,14 +1031,6 @@ xf86XVReputOrStopPort(XvPortRecPrivatePtr pPriv,
     default:  /* overlaid still/image*/
 	if (pPriv->AdaptorRec->ReputImage)
 	    xf86XVReputImage(pPriv);
-	else if (AreasExposed) {
-	    if (pPriv->isOn == XV_ON) {
-		(*pPriv->AdaptorRec->StopVideo)(pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
-		pPriv->isOn = XV_PENDING;
-	    }
-
-	    xf86XVRemovePortFromWindow(pWin, pPriv);
-	}
 	break;
     }
 }
@@ -1088,10 +1092,19 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
   if (!pWin->valdata) return;
 
   while(WinPriv) {
+     Bool visible = TRUE;
+
      pPriv = WinPriv->PortRec;
 
+     /*
+      * Stop and remove still/images if areas were exposed and
+      * ReputImage isn't supported.
+      */
+     if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
+	visible = !AreasExposed;
+
      WinPriv = WinPriv->next;
-     xf86XVReputOrStopPort(pPriv, pWin, AreasExposed);
+     xf86XVReputOrStopPort(pPriv, pWin, visible);
   }
 }
 
