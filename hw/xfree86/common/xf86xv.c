@@ -1286,24 +1286,26 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
       XvPortRecPrivatePtr pPriv;
 
       for(i = pa->nPorts; i > 0; i--, pPort++) {
+	Bool visible;
+
 	pPriv = (XvPortRecPrivatePtr)pPort->devPriv.ptr;
 
-	if(!pPriv->type && (pPriv->isOn != XV_OFF)) { /* overlaid still/image */
-	  pWin = (WindowPtr)pPriv->pDraw;
+	pWin = (WindowPtr)pPriv->pDraw;
 
-	  if ((pPriv->AdaptorRec->ReputImage) &&
-	     ((pWin->visibility == VisibilityUnobscured) ||
-	      (pWin->visibility == VisibilityPartiallyObscured)))
-	  {
-	      xf86XVReputImage(pPriv);
-	  } else if (pPriv->isOn == XV_ON) {
-	     (*pPriv->AdaptorRec->StopVideo)(
-				 pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
-	     xf86XVRemovePortFromWindow(pWin, pPriv);
-	     pPriv->isOn = XV_PENDING;
-	     continue;
-	  }
-	}
+	if (pPriv->isOn == XV_OFF || !pWin)
+	    continue;
+
+	visible = pWin->visibility == VisibilityUnobscured ||
+		  pWin->visibility == VisibilityPartiallyObscured;
+
+	/*
+	 * Stop and remove still/images if
+	 * ReputImage isn't supported.
+	 */
+	if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
+	    visible = FALSE;
+
+	xf86XVReputOrStopPort(pPriv, pWin, visible);
      }
   }
 }
