@@ -1048,7 +1048,6 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
   ScreenPtr pScreen = pWin->drawable.pScreen;
   XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
   XF86XVWindowPtr WinPriv = GET_XF86XV_WINDOW(pWin);
-  XF86XVWindowPtr pPrev;
   XvPortRecPrivatePtr pPriv;
   Bool AreasExposed;
 
@@ -1060,8 +1059,6 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
 
   /* filter out XClearWindow/Area */
   if (!pWin->valdata) return;
-
-  pPrev = NULL;
 
   while(WinPriv) {
      pPriv = WinPriv->PortRec;
@@ -1079,28 +1076,18 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
 	if (pPriv->AdaptorRec->ReputImage)
 	   xf86XVReputImage(pPriv);
 	else if(AreasExposed) {
-	    XF86XVWindowPtr tmp;
-
 	    if (pPriv->isOn == XV_ON) {
 		(*pPriv->AdaptorRec->StopVideo)(
 		    pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
 		pPriv->isOn = XV_PENDING;
 	    }
-	    pPriv->pDraw = NULL;
 
-	    if(!pPrev)
-		dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey,
-			      WinPriv->next);
-	    else
-	       pPrev->next = WinPriv->next;
-	    tmp = WinPriv;
 	    WinPriv = WinPriv->next;
-	    free(tmp);
+	    xf86XVRemovePortFromWindow(pWin, pPriv);
 	    continue;
 	}
 	break;
      }
-     pPrev = WinPriv;
      WinPriv = WinPriv->next;
   }
 }
@@ -1112,7 +1099,6 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
   ScreenPtr pScreen = pWin->drawable.pScreen;
   XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
   XF86XVWindowPtr WinPriv = GET_XF86XV_WINDOW(pWin);
-  XF86XVWindowPtr tmp, pPrev = NULL;
   XvPortRecPrivatePtr pPriv;
   Bool visible = (pWin->visibility == VisibilityUnobscured) ||
 		 (pWin->visibility == VisibilityPartiallyObscured);
@@ -1140,21 +1126,12 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 	}
 
 	if(!pPriv->type) {  /* overlaid still/image */
-	    pPriv->pDraw = NULL;
-
-	    if(!pPrev)
-		dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey,
-			      WinPriv->next);
-	    else
-	       pPrev->next = WinPriv->next;
-	    tmp = WinPriv;
 	    WinPriv = WinPriv->next;
-	    free(tmp);
+	    xf86XVRemovePortFromWindow(pWin, pPriv);
 	    continue;
 	}
      }
 
-     pPrev = WinPriv;
      WinPriv = WinPriv->next;
   }
 
