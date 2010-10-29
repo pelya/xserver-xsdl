@@ -1289,12 +1289,6 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
 	pPriv = (XvPortRecPrivatePtr)pPort->devPriv.ptr;
 
 	if(!pPriv->type && (pPriv->isOn != XV_OFF)) { /* overlaid still/image */
-
-	  if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
-	     RegionDestroy(pPriv->pCompositeClip);
-
-	  pPriv->pCompositeClip = NULL;
-
 	  pWin = (WindowPtr)pPriv->pDraw;
 
 	  if ((pPriv->AdaptorRec->ReputImage) &&
