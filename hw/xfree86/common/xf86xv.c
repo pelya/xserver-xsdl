@@ -1035,6 +1035,40 @@ xf86XVReputOrStopPort(XvPortRecPrivatePtr pPriv,
     }
 }
 
+static void
+xf86XVReputOrStopAllPorts(ScrnInfoPtr pScrn)
+{
+    ScreenPtr pScreen = pScrn->pScreen;
+    XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
+    XvAdaptorPtr pa;
+    int c, i;
+
+    for (c = pxvs->nAdaptors, pa = pxvs->pAdaptors; c > 0; c--, pa++) {
+	XvPortPtr pPort = pa->pPorts;
+
+	for (i = pa->nPorts; i > 0; i--, pPort++) {
+	    XvPortRecPrivatePtr pPriv = (XvPortRecPrivatePtr)pPort->devPriv.ptr;
+	    WindowPtr pWin = (WindowPtr)pPriv->pDraw;
+	    Bool visible;
+
+	    if (pPriv->isOn == XV_OFF || !pWin)
+		continue;
+
+	    visible = pWin->visibility == VisibilityUnobscured ||
+		      pWin->visibility == VisibilityPartiallyObscured;
+
+	    /*
+	     * Stop and remove still/images if
+	     * ReputImage isn't supported.
+	     */
+	    if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
+		visible = FALSE;
+
+	    xf86XVReputOrStopPort(pPriv, pWin, visible);
+	}
+    }
+}
+
 /****  ScreenRec fields ****/
 
 static Bool
@@ -1269,11 +1303,7 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
 {
   ScrnInfoPtr pScrn = xf86Screens[index];
   ScreenPtr pScreen = pScrn->pScreen;
-  XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
   XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
-  WindowPtr pWin;
-  XvAdaptorPtr pa;
-  int c, i;
 
   if(ScreenPriv->AdjustFrame) {
 	pScrn->AdjustFrame = ScreenPriv->AdjustFrame;
@@ -1281,33 +1311,7 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
 	pScrn->AdjustFrame = xf86XVAdjustFrame;
   }
 
-  for(c = pxvs->nAdaptors, pa = pxvs->pAdaptors; c > 0; c--, pa++) {
-      XvPortPtr pPort = pa->pPorts;
-      XvPortRecPrivatePtr pPriv;
-
-      for(i = pa->nPorts; i > 0; i--, pPort++) {
-	Bool visible;
-
-	pPriv = (XvPortRecPrivatePtr)pPort->devPriv.ptr;
-
-	pWin = (WindowPtr)pPriv->pDraw;
-
-	if (pPriv->isOn == XV_OFF || !pWin)
-	    continue;
-
-	visible = pWin->visibility == VisibilityUnobscured ||
-		  pWin->visibility == VisibilityPartiallyObscured;
-
-	/*
-	 * Stop and remove still/images if
-	 * ReputImage isn't supported.
-	 */
-	if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
-	    visible = FALSE;
-
-	xf86XVReputOrStopPort(pPriv, pWin, visible);
-     }
-  }
+  xf86XVReputOrStopAllPorts(pScrn);
 }
 
 
