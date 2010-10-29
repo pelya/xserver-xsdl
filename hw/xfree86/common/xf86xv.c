@@ -1120,8 +1120,6 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
   while(WinPriv) {
      pPriv = WinPriv->PortRec;
 
-     if(!pPriv) goto next;
- 
      if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
 	RegionDestroy(pPriv->pCompositeClip);
 
@@ -1156,7 +1154,6 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 	}
      }
 
-next:
      pPrev = WinPriv;
      WinPriv = WinPriv->next;
   }
