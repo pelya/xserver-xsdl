@@ -1004,6 +1004,33 @@ xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
      portPriv->pDraw = NULL;
 }
 
+static void
+xf86XVReputOrStopPort(XvPortRecPrivatePtr pPriv,
+		      WindowPtr pWin,
+		      Bool AreasExposed)
+{
+    switch (pPriv->type) {
+    case XvInputMask:
+	xf86XVReputVideo(pPriv);
+	break;
+    case XvOutputMask:
+	xf86XVRegetVideo(pPriv);
+	break;
+    default:  /* overlaid still/image*/
+	if (pPriv->AdaptorRec->ReputImage)
+	    xf86XVReputImage(pPriv);
+	else if (AreasExposed) {
+	    if (pPriv->isOn == XV_ON) {
+		(*pPriv->AdaptorRec->StopVideo)(pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
+		pPriv->isOn = XV_PENDING;
+	    }
+
+	    xf86XVRemovePortFromWindow(pWin, pPriv);
+	}
+	break;
+    }
+}
+
 /****  ScreenRec fields ****/
 
 static Bool
@@ -1063,32 +1090,8 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
   while(WinPriv) {
      pPriv = WinPriv->PortRec;
 
-     /* Reput anyone with a reput function */
-
-     switch(pPriv->type) {
-     case XvInputMask:
-	xf86XVReputVideo(pPriv);
-	break;
-     case XvOutputMask:
-	xf86XVRegetVideo(pPriv);
-	break;
-     default:  /* overlaid still/image*/
-	if (pPriv->AdaptorRec->ReputImage)
-	   xf86XVReputImage(pPriv);
-	else if(AreasExposed) {
-	    if (pPriv->isOn == XV_ON) {
-		(*pPriv->AdaptorRec->StopVideo)(
-		    pPriv->pScrn, pPriv->DevPriv.ptr, FALSE);
-		pPriv->isOn = XV_PENDING;
-	    }
-
-	    WinPriv = WinPriv->next;
-	    xf86XVRemovePortFromWindow(pWin, pPriv);
-	    continue;
-	}
-	break;
-     }
      WinPriv = WinPriv->next;
+     xf86XVReputOrStopPort(pPriv, pWin, AreasExposed);
   }
 }
 
