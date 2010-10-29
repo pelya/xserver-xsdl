@@ -44,6 +44,7 @@ typedef struct {
    Bool                         (*EnterVT)(int, int);
    void                         (*LeaveVT)(int, int);
    GCPtr			videoGC;
+   xf86ModeSetProc		*ModeSet;
 } XF86XVScreenRec, *XF86XVScreenPtr;
 
 typedef struct {

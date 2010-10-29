@@ -104,6 +104,7 @@ static void xf86XVClipNotify(WindowPtr pWin, int dx, int dy);
 static Bool xf86XVEnterVT(int, int);
 static void xf86XVLeaveVT(int, int);
 static void xf86XVAdjustFrame(int index, int x, int y, int flags);
+static void xf86XVModeSet(ScrnInfoPtr pScrn);
 
 /* misc */
 
@@ -287,6 +288,7 @@ xf86XVScreenInit(
   ScreenPriv->EnterVT = pScrn->EnterVT;
   ScreenPriv->LeaveVT = pScrn->LeaveVT;
   ScreenPriv->AdjustFrame = pScrn->AdjustFrame;
+  ScreenPriv->ModeSet = pScrn->ModeSet;
 
   pScreen->DestroyWindow = xf86XVDestroyWindow;
   pScreen->WindowExposures = xf86XVWindowExposures;
@@ -295,6 +297,7 @@ xf86XVScreenInit(
   pScrn->LeaveVT = xf86XVLeaveVT;
   if(pScrn->AdjustFrame)
      pScrn->AdjustFrame = xf86XVAdjustFrame;
+  pScrn->ModeSet = xf86XVModeSet;
 
   if(!xf86XVInitAdaptors(pScreen, adaptors, num))
 	return FALSE;
@@ -1241,6 +1244,7 @@ xf86XVCloseScreen(int i, ScreenPtr pScreen)
   pScrn->EnterVT = ScreenPriv->EnterVT;
   pScrn->LeaveVT = ScreenPriv->LeaveVT;
   pScrn->AdjustFrame = ScreenPriv->AdjustFrame;
+  pScrn->ModeSet = ScreenPriv->ModeSet;
 
   for(c = 0, pa = pxvs->pAdaptors; c < pxvs->nAdaptors; c++, pa++) {
        xf86XVFreeAdaptor(pa);
@@ -1344,6 +1348,26 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
   xf86XVReputOrStopAllPorts(pScrn);
 }
 
+static void
+xf86XVModeSet(ScrnInfoPtr pScrn)
+{
+    ScreenPtr pScreen = pScrn->pScreen;
+    XF86XVScreenPtr ScreenPriv;
+
+    /* Can be called before pScrn->pScreen is set */
+    if (!pScreen)
+	return;
+
+    ScreenPriv = GET_XF86XV_SCREEN(pScreen);
+
+    if (ScreenPriv->ModeSet) {
+	pScrn->ModeSet = ScreenPriv->ModeSet;
+	(*pScrn->ModeSet)(pScrn);
+	pScrn->ModeSet = xf86XVModeSet;
+    }
+
+    xf86XVReputOrStopAllPorts(pScrn);
+}
 
 /**** XvAdaptorRec fields ****/
 
