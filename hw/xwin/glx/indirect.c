@@ -211,21 +211,24 @@ static
 const char *glxWinErrorMessage(void)
 {
   static char errorbuffer[1024];
+  unsigned int last_error = GetLastError();
 
   if (!FormatMessage(
-                     FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                     FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
                      NULL,
-                     GetLastError(),
-                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                     last_error,
+                     0,
                      (LPTSTR) &errorbuffer,
                      sizeof(errorbuffer),
                      NULL ))
     {
-      snprintf(errorbuffer, sizeof(errorbuffer), "Unknown error in FormatMessage: %08x!", (unsigned)GetLastError());
+      snprintf(errorbuffer, sizeof(errorbuffer), "Unknown error");
     }
 
-  if (errorbuffer[strlen(errorbuffer)-1] == '\n')
+  if ((errorbuffer[strlen(errorbuffer)-1] == '\n') || (errorbuffer[strlen(errorbuffer)-1] == '\r'))
     errorbuffer[strlen(errorbuffer)-1] = 0;
+
+  sprintf(errorbuffer + strlen(errorbuffer), " (%08x)", last_error);
 
   return errorbuffer;
 }
