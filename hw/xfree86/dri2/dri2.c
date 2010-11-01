@@ -192,6 +192,29 @@ DRI2AllocateDrawable(DrawablePtr pDraw)
     return pPriv;
 }
 
+Bool
+DRI2SwapLimit(DrawablePtr pDraw, int swap_limit)
+{
+    DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
+    if (!pPriv)
+	return FALSE;
+
+    pPriv->swap_limit = swap_limit;
+
+    /* Check throttling */
+    if (pPriv->swapsPending >= pPriv->swap_limit)
+	return TRUE;
+
+    if (pPriv->target_sbc == -1 && !pPriv->blockedOnMsc) {
+	if (pPriv->blockedClient) {
+	    AttendClient(pPriv->blockedClient);
+	    pPriv->blockedClient = NULL;
+	}
+    }
+
+    return TRUE;
+}
+
 typedef struct DRI2DrawableRefRec {
     XID		  id;
     XID		  dri2_id;

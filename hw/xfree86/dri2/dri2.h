@@ -265,6 +265,7 @@ extern _X_EXPORT DRI2BufferPtr *DRI2GetBuffersWithFormat(DrawablePtr pDraw,
 	int *out_count);
 
 extern _X_EXPORT void DRI2SwapInterval(DrawablePtr pDrawable, int interval);
+extern _X_EXPORT Bool DRI2SwapLimit(DrawablePtr pDraw, int swap_limit);
 extern _X_EXPORT int DRI2SwapBuffers(ClientPtr client, DrawablePtr pDrawable,
 				     CARD64 target_msc, CARD64 divisor,
 				     CARD64 remainder, CARD64 *swap_target,
