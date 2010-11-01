@@ -169,6 +169,19 @@ typedef void		(*DRI2InvalidateProcPtr)(DrawablePtr pDraw,
 						 void *data);
 
 /**
+ * DRI2 calls this hook when ever swap_limit is going to be changed. Default
+ * implementation for the hook only accepts one as swap_limit. If driver can
+ * support other swap_limits it has to implement supported limits with this
+ * callback.
+ *
+ * \param pDraw drawable whos swap_limit is going to be changed
+ * \param swap_limit new swap_limit that going to be set
+ * \return TRUE if limit is support, FALSE if not.
+ */
+typedef Bool		(*DRI2SwapLimitValidateProcPtr)(DrawablePtr pDraw,
+							int swap_limit);
+
+/**
  * Version of the DRI2InfoRec structure defined in this header
  */
 #define DRI2INFOREC_VERSION 6
@@ -203,6 +216,7 @@ typedef struct {
     /* added in version 6 */
 
     DRI2ReuseBufferNotifyProcPtr ReuseBufferNotify;
+    DRI2SwapLimitValidateProcPtr SwapLimitValidate;
 }  DRI2InfoRec, *DRI2InfoPtr;
 
 extern _X_EXPORT int DRI2EventBase;

@@ -103,6 +103,7 @@ typedef struct _DRI2Screen {
     DRI2ScheduleWaitMSCProcPtr	 ScheduleWaitMSC;
     DRI2AuthMagicProcPtr	 AuthMagic;
     DRI2ReuseBufferNotifyProcPtr ReuseBufferNotify;
+    DRI2SwapLimitValidateProcPtr SwapLimitValidate;
 
     HandleExposuresProcPtr       HandleExposures;
 
@@ -196,7 +197,14 @@ Bool
 DRI2SwapLimit(DrawablePtr pDraw, int swap_limit)
 {
     DRI2DrawablePtr pPriv = DRI2GetDrawable(pDraw);
+    DRI2ScreenPtr ds;
     if (!pPriv)
+	return FALSE;
+
+    ds = pPriv->dri2_screen;
+
+    if (!ds->SwapLimitValidate
+	|| !ds->SwapLimitValidate(pDraw, swap_limit))
 	return FALSE;
 
     pPriv->swap_limit = swap_limit;
@@ -1156,8 +1164,10 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
         ds->AuthMagic = info->AuthMagic;
     }
 
-    if (info->version >= 6)
+    if (info->version >= 6) {
 	ds->ReuseBufferNotify = info->ReuseBufferNotify;
+	ds->SwapLimitValidate = info->SwapLimitValidate;
+    }
 
     /*
      * if the driver doesn't provide an AuthMagic function or the info struct
