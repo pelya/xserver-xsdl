@@ -67,7 +67,6 @@ typedef struct {
    DrawablePtr pDraw;
    unsigned char type;
    unsigned int subWindowMode;
-   DDXPointRec clipOrg;
    RegionPtr clientClip;
    RegionPtr pCompositeClip;
    Bool FreeCompositeClip;
