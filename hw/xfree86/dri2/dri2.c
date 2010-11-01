@@ -102,6 +102,7 @@ typedef struct _DRI2Screen {
     DRI2GetMSCProcPtr		 GetMSC;
     DRI2ScheduleWaitMSCProcPtr	 ScheduleWaitMSC;
     DRI2AuthMagicProcPtr	 AuthMagic;
+    DRI2ReuseBufferNotifyProcPtr ReuseBufferNotify;
 
     HandleExposuresProcPtr       HandleExposures;
 
@@ -352,6 +353,10 @@ allocate_or_reuse_buffer(DrawablePtr pDraw, DRI2ScreenPtr ds,
 
     } else {
 	*buffer = pPriv->buffers[old_buf];
+
+	if (ds->ReuseBufferNotify)
+		(*ds->ReuseBufferNotify)(pDraw, *buffer);
+
 	pPriv->buffers[old_buf] = NULL;
 	return FALSE;
     }
@@ -1127,6 +1132,9 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
     if (info->version >= 5) {
         ds->AuthMagic = info->AuthMagic;
     }
+
+    if (info->version >= 6)
+	ds->ReuseBufferNotify = info->ReuseBufferNotify;
 
     /*
      * if the driver doesn't provide an AuthMagic function or the info struct
