@@ -703,6 +703,27 @@ xf86XVCopyClip(
     portPriv->subWindowMode = pGC->subWindowMode;
 }
 
+static void
+xf86XVCopyCompositeClip(XvPortRecPrivatePtr portPriv,
+			GCPtr pGC,
+			DrawablePtr pDraw)
+{
+    if (!portPriv->clientClip)
+	portPriv->clientClip = RegionCreate(NullBox, 1);
+    /* Keep the original GC composite clip around for ReputImage */
+    RegionCopy(portPriv->clientClip, pGC->pCompositeClip);
+    RegionTranslate(portPriv->clientClip,
+		    -pDraw->x, -pDraw->y);
+
+    /* get rid of the old clip list */
+    if (portPriv->pCompositeClip && portPriv->FreeCompositeClip)
+	RegionDestroy(portPriv->pCompositeClip);
+
+    portPriv->pCompositeClip = pGC->pCompositeClip;
+    portPriv->FreeCompositeClip = FALSE;
+    portPriv->subWindowMode = pGC->subWindowMode;
+}
+
 static int
 xf86XVRegetVideo(XvPortRecPrivatePtr portPriv)
 {
@@ -862,6 +883,11 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
   Bool clippedAway = FALSE;
 
   xf86XVUpdateCompositeClip(portPriv);
+
+  /* the clip can get smaller over time */
+  RegionCopy(portPriv->clientClip, portPriv->pCompositeClip);
+  RegionTranslate(portPriv->clientClip,
+		  -portPriv->pDraw->x, -portPriv->pDraw->y);
 
   /* translate the video region to the screen */
   WinBox.x1 = portPriv->pDraw->x + portPriv->drw_x;
@@ -1411,6 +1437,8 @@ xf86XVPutStill(
   WinBox.x2 = WinBox.x1 + drw_w;
   WinBox.y2 = WinBox.y1 + drw_h;
 
+  xf86XVCopyCompositeClip(portPriv, pGC, pDraw);
+
   RegionInit(&WinRegion, &WinBox, 1);
   RegionNull(&ClipRegion);
   RegionIntersect(&ClipRegion, &WinRegion, pGC->pCompositeClip);
@@ -1478,6 +1506,10 @@ PUT_STILL_BAILOUT:
 		portPriv->pScrn, portPriv->DevPriv.ptr, FALSE);
 	portPriv->isOn = XV_PENDING;
   }
+
+  /* This clip was copied and only good for one shot */
+  if(!portPriv->FreeCompositeClip)
+     portPriv->pCompositeClip = NULL;
 
   RegionUninit(&WinRegion);
   RegionUninit(&ClipRegion);
@@ -1700,6 +1732,8 @@ xf86XVPutImage(
 
   if(!portPriv->pScrn->vtSema) return Success; /* Success ? */
 
+  xf86XVCopyCompositeClip(portPriv, pGC, pDraw);
+
   WinBox.x1 = pDraw->x + drw_x;
   WinBox.y1 = pDraw->y + drw_y;
   WinBox.x2 = WinBox.x1 + drw_w;
@@ -1775,6 +1809,10 @@ PUT_IMAGE_BAILOUT:
 		portPriv->pScrn, portPriv->DevPriv.ptr, FALSE);
 	portPriv->isOn = XV_PENDING;
   }
+
+  /* This clip was copied and only good for one shot */
+  if(!portPriv->FreeCompositeClip)
+     portPriv->pCompositeClip = NULL;
 
   RegionUninit(&WinRegion);
   RegionUninit(&ClipRegion);
