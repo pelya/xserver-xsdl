@@ -179,7 +179,6 @@
 #define fbUnmapWindow wfbUnmapWindow
 #define fbUnrealizeFont wfbUnrealizeFont
 #define fbValidateGC wfbValidateGC
-#define fbWalkCompositeRegion wfbWalkCompositeRegion
 #define fbWinPrivateKeyRec wfbWinPrivateKeyRec
 #define fbZeroLine wfbZeroLine
 #define fbZeroSegment wfbZeroSegment
