@@ -556,7 +556,7 @@ xf86XVInitAdaptors(
       adaptorPriv->QueryBestSize = adaptorPtr->QueryBestSize;
       adaptorPriv->QueryImageAttributes = adaptorPtr->QueryImageAttributes;
       adaptorPriv->PutImage = adaptorPtr->PutImage;
-      adaptorPriv->ReputImage = adaptorPtr->ReputImage;
+      adaptorPriv->ReputImage = adaptorPtr->ReputImage; /* image/still */
 
       pa->devPriv.ptr = (pointer)adaptorPriv;
 
@@ -873,6 +873,7 @@ CLIP_VIDEO_BAILOUT:
   return ret;
 }
 
+/* Reput image/still */
 static int
 xf86XVReputImage(XvPortRecPrivatePtr portPriv)
 {

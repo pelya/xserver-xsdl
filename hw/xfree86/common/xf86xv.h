@@ -165,7 +165,7 @@ typedef struct {
   GetPortAttributeFuncPtr GetPortAttribute;
   QueryBestSizeFuncPtr QueryBestSize;
   PutImageFuncPtr PutImage;
-  ReputImageFuncPtr ReputImage;
+  ReputImageFuncPtr ReputImage; /* image/still */
   QueryImageAttributesFuncPtr QueryImageAttributes;
   ClipNotifyFuncPtr ClipNotify;
 } XF86VideoAdaptorRec, *XF86VideoAdaptorPtr;
