@@ -28,9 +28,6 @@
 #ifndef _FBPICT_H_
 #define _FBPICT_H_
 
-#include "renderedge.h"
-
-
 #if defined(__GNUC__)
 #define INLINE __inline__
 #else
