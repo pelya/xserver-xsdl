@@ -76,25 +76,6 @@ fbComposite (CARD8      op,
     free_pixman_pict (pDst, dest);
 }
 
-void
-fbCompositeGeneral (CARD8	op,
-		    PicturePtr	pSrc,
-		    PicturePtr	pMask,
-		    PicturePtr	pDst,
-		    INT16	xSrc,
-		    INT16	ySrc,
-		    INT16	xMask,
-		    INT16	yMask,
-		    INT16	xDst,
-		    INT16	yDst,
-		    CARD16	width,
-		    CARD16	height)
-{
-    fbComposite (op, pSrc, pMask, pDst,
-			xSrc, ySrc, xMask, yMask, xDst, yDst,
-			width, height);
-}
-
 static pixman_image_t *
 create_solid_fill_image (PicturePtr pict)
 {
