@@ -939,7 +939,10 @@ xf86XVReputImage(XvPortRecPrivatePtr portPriv)
   }
 
   ret = (*portPriv->AdaptorRec->ReputImage)(portPriv->pScrn,
+			portPriv->vid_x, portPriv->vid_y,
 			WinBox.x1, WinBox.y1,
+			portPriv->vid_w, portPriv->vid_h,
+			portPriv->drw_w, portPriv->drw_h,
 			&ClipRegion, portPriv->DevPriv.ptr,
 			portPriv->pDraw);
 
@@ -1493,6 +1496,8 @@ xf86XVPutStill(
 
      xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
      portPriv->isOn = XV_ON;
+     portPriv->vid_x = vid_x;  portPriv->vid_y = vid_y;
+     portPriv->vid_w = vid_w;  portPriv->vid_h = vid_h;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should
@@ -1796,6 +1801,8 @@ xf86XVPutImage(
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_IMAGES)) {
 
      portPriv->isOn = XV_ON;
+     portPriv->vid_x = src_x;  portPriv->vid_y = src_y;
+     portPriv->vid_w = src_w;  portPriv->vid_h = src_h;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should

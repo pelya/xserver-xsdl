@@ -111,7 +111,9 @@ typedef int (* PutImageFuncPtr)( ScrnInfoPtr pScrn,
 	short src_w, short src_h, short drw_w, short drw_h,
 	int image, unsigned char* buf, short width, short height, Bool Sync,
 	RegionPtr clipBoxes, pointer data, DrawablePtr pDraw );
-typedef int (* ReputImageFuncPtr)( ScrnInfoPtr pScrn, short drw_x, short drw_y,
+typedef int (* ReputImageFuncPtr)( ScrnInfoPtr pScrn,
+	short src_x, short src_y, short drw_x, short drw_y,
+	short src_w, short src_h, short drw_w, short drw_h,
 	RegionPtr clipBoxes, pointer data, DrawablePtr pDraw );
 typedef int (*QueryImageAttributesFuncPtr)(ScrnInfoPtr pScrn, 
 	int image, unsigned short *width, unsigned short *height, 
