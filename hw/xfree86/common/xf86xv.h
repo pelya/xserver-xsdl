@@ -36,6 +36,10 @@
 #define VIDEO_INVERT_CLIPLIST			0x00000002
 #define VIDEO_OVERLAID_IMAGES			0x00000004
 #define VIDEO_OVERLAID_STILLS			0x00000008
+/*
+ * Usage of VIDEO_CLIP_TO_VIEWPORT is not recommended.
+ * It can make reput behaviour inconsistent.
+ */
 #define VIDEO_CLIP_TO_VIEWPORT			0x00000010
 
 typedef struct {
