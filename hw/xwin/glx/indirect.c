@@ -49,8 +49,17 @@
   - pbuffer clobbering: we don't get async notification, but can we arrange to emit the
     event when we notice it's been clobbered? at the very least, check if it's been clobbered
     before using it?
-  - are the __GLXConfig * we get handed back ones we are made (so we can extend the structure
-    with privates?) Or are they created inside the GLX core as well?
+  - XGetImage() doesn't work on pixmaps; need to do more work to make the format and location
+    of the native pixmap compatible
+  - implement GLX_EXT_texture_from_pixmap in terms of WGL_ARB_render_texture
+    (not quite straightforward as we will have to create a pbuffer and copy the pixmap texture
+     into it)
+*/
+
+/*
+  Assumptions:
+  - the __GLXConfig * we get handed back ones we are made (so we can extend the structure
+    with privates) and never get created inside the GLX core
 */
 
 /*
