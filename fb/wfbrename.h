@@ -169,4 +169,3 @@
 #define fbZeroSegment wfbZeroSegment
 #define free_pixman_pict wfb_free_pixman_pict
 #define image_from_pict wfb_image_from_pict
-#define composeFunctions wfbComposeFunctions
