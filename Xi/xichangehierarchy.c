@@ -325,14 +325,14 @@ unwind:
 static int
 detach_slave(ClientPtr client, xXIDetachSlaveInfo *c, int flags[MAXDEVICES])
 {
-    DeviceIntPtr ptr;
+    DeviceIntPtr dev;
     int rc;
 
-    rc = dixLookupDevice(&ptr, c->deviceid, client, DixManageAccess);
+    rc = dixLookupDevice(&dev, c->deviceid, client, DixManageAccess);
     if (rc != Success)
         goto unwind;
 
-    if (IsMaster(ptr))
+    if (IsMaster(dev))
     {
         client->errorValue = c->deviceid;
         rc = BadDevice;
@@ -340,15 +340,15 @@ detach_slave(ClientPtr client, xXIDetachSlaveInfo *c, int flags[MAXDEVICES])
     }
 
     /* Don't allow changes to XTest Devices, these are fixed */
-    if (IsXTestDevice(ptr, NULL))
+    if (IsXTestDevice(dev, NULL))
     {
         client->errorValue = c->deviceid;
         rc = BadDevice;
         goto unwind;
     }
 
-    AttachDevice(client, ptr, NULL);
-    flags[ptr->id] |= XISlaveDetached;
+    AttachDevice(client, dev, NULL);
+    flags[dev->id] |= XISlaveDetached;
 
 unwind:
     return rc;
@@ -358,15 +358,15 @@ static int
 attach_slave(ClientPtr client, xXIAttachSlaveInfo *c,
              int flags[MAXDEVICES])
 {
-    DeviceIntPtr ptr;
+    DeviceIntPtr dev;
     DeviceIntPtr newmaster;
     int rc;
 
-    rc = dixLookupDevice(&ptr, c->deviceid, client, DixManageAccess);
+    rc = dixLookupDevice(&dev, c->deviceid, client, DixManageAccess);
     if (rc != Success)
         goto unwind;
 
-    if (IsMaster(ptr))
+    if (IsMaster(dev))
     {
         client->errorValue = c->deviceid;
         rc = BadDevice;
@@ -374,7 +374,7 @@ attach_slave(ClientPtr client, xXIAttachSlaveInfo *c,
     }
 
     /* Don't allow changes to XTest Devices, these are fixed */
-    if (IsXTestDevice(ptr, NULL))
+    if (IsXTestDevice(dev, NULL))
     {
         client->errorValue = c->deviceid;
         rc = BadDevice;
@@ -391,15 +391,15 @@ attach_slave(ClientPtr client, xXIAttachSlaveInfo *c,
         goto unwind;
     }
 
-    if (!((IsPointerDevice(newmaster) && IsPointerDevice(ptr)) ||
-        (IsKeyboardDevice(newmaster) && IsKeyboardDevice(ptr))))
+    if (!((IsPointerDevice(newmaster) && IsPointerDevice(dev)) ||
+        (IsKeyboardDevice(newmaster) && IsKeyboardDevice(dev))))
     {
         rc = BadDevice;
         goto unwind;
     }
 
-    AttachDevice(client, ptr, newmaster);
-    flags[ptr->id] |= XISlaveAttached;
+    AttachDevice(client, dev, newmaster);
+    flags[dev->id] |= XISlaveAttached;
 
 unwind:
     return rc;
