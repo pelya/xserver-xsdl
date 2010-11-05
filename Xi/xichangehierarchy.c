@@ -157,7 +157,11 @@ add_master(ClientPtr client, xXIAddMasterInfo *c, int flags[MAXDEVICES])
     /* Allocate virtual slave devices for xtest events */
     rc = AllocXTestDevice(client, name, &XTestptr, &XTestkeybd, ptr, keybd);
     if (rc != Success)
+    {
+        DeleteInputDeviceRequest(ptr);
+        DeleteInputDeviceRequest(keybd);
         goto unwind;
+    }
 
     ActivateDevice(ptr, FALSE);
     ActivateDevice(keybd, FALSE);
