@@ -377,8 +377,7 @@ int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap)
 
     __GLX_SEND_HEADER();
     WriteToClient(client, length, (char *) string); 
-    if (buf != NULL)
-	free(buf);
+    free(buf);
 
     return Success;
 }

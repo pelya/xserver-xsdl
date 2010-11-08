@@ -292,11 +292,9 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
     }
     type= &xkb->map->types[type_ndx];
     if (map_count==0) {
-	if (type->map!=NULL)
-	    free(type->map);
+	free(type->map);
 	type->map= NULL;
-	if (type->preserve!=NULL)
-	    free(type->preserve);
+	free(type->preserve);
 	type->preserve= NULL;
 	type->map_count= 0;
     }
