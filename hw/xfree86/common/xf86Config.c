@@ -742,8 +742,6 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
-  { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
-        {0}, FALSE },
   { FLAG_IGNORE_ABI,		"IgnoreABI",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",		OPTV_BOOLEAN,
@@ -956,7 +954,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     /* AllowEmptyInput is automatically true if we're hotplugging */
     xf86Info.allowEmptyInput = (xf86Info.autoAddDevices && xf86Info.autoEnableDevices);
-    xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &xf86Info.allowEmptyInput);
 
     /* AEI on? Then we're not using kbd, so use the evdev rules set. */
 #if defined(linux)
@@ -1437,8 +1434,10 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	                "reconfigure %s or disable AutoAddDevices.\n",
 			config_backend, config_backend);
 #else
-	xf86Msg(X_INFO, "Hotplugging is disabled and no input devices were configured.\n"
-			"\tTry disabling AllowEmptyInput.\n");
+	xf86Msg(X_WARNING, "Hotplugging requested but the server was "
+			   "compiled without a config backend. "
+			   "No input devices were configured, the server "
+			   "will start without any input devices.\n");
 #endif
     }
 
@@ -2353,7 +2352,7 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
                 IDevPtr *current;
                 if (!warned)
                 {
-                    xf86Msg(X_WARNING, "AllowEmptyInput is on, devices using "
+                    xf86Msg(X_WARNING, "Hotplugging is on, devices using "
                             "drivers 'kbd', 'mouse' or 'vmmouse' will be disabled.\n");
                     warned = TRUE;
                 }
