@@ -137,6 +137,8 @@ Equipment Corporation.
  *    ChangeWindowDeviceCursor
  ******/
 
+Bool bgNoneRoot = FALSE;
+
 static unsigned char _back_lsb[4] = {0x88, 0x22, 0x44, 0x11};
 static unsigned char _back_msb[4] = {0x11, 0x44, 0x22, 0x88};
 
@@ -462,6 +464,10 @@ InitRootWindow(WindowPtr pWin)
 
     if (party_like_its_1989) {
         MakeRootTile(pWin);
+        backFlag |= CWBackPixmap;
+    } else if (pScreen->canDoBGNoneRoot && bgNoneRoot) {
+        pWin->backgroundState = XaceBackgroundNoneState(pWin);
+        pWin->background.pixel = pScreen->whitePixel;
         backFlag |= CWBackPixmap;
     } else {
 	if (whiteRoot)

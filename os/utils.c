@@ -498,6 +498,7 @@ void UseMsg(void)
     ErrorF("-nolock                disable the locking mechanism\n");
     ErrorF("-nolisten string       don't listen on protocol\n");
     ErrorF("-noreset               don't reset after last client exists\n");
+    ErrorF("-background [none]     create root window with no background\n");
     ErrorF("-reset                 reset after last client exists\n");
     ErrorF("-p #                   screen-saver pattern duration (minutes)\n");
     ErrorF("-pn                    accept failure to listen on all ports\n");
@@ -828,6 +829,14 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultBackingStore = WhenMapped;
         else if ( strcmp( argv[i], "-wr") == 0)
             whiteRoot = TRUE;
+        else if ( strcmp( argv[i], "-background") == 0) {
+            if(++i < argc) {
+                if (!strcmp ( argv[i], "none"))
+                    bgNoneRoot = TRUE;
+                else
+                    UseMsg();
+            }
+        }
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);

@@ -69,6 +69,7 @@ extern _X_EXPORT Bool defeatAccessControl;
 extern _X_EXPORT long maxBigRequestSize;
 extern _X_EXPORT Bool party_like_its_1989;
 extern _X_EXPORT Bool whiteRoot;
+extern _X_EXPORT Bool bgNoneRoot;
 
 extern _X_EXPORT Bool CoreDump;
 
