@@ -956,6 +956,26 @@ DestroySubwindows(WindowPtr pWin, ClientPtr client)
     return Success;
 }
 
+static void
+SetRootWindowBackground(WindowPtr pWin, ScreenPtr pScreen, Mask *index2)
+{
+    /* following the protocol: "Changing the background of a root window to
+     * None or ParentRelative restores the default background pixmap" */
+    if (bgNoneRoot) {
+	pWin->backgroundState = XaceBackgroundNoneState(pWin);
+	pWin->background.pixel = pScreen->whitePixel;
+    }
+    else if (party_like_its_1989)
+	MakeRootTile(pWin);
+    else {
+	if (whiteRoot)
+	    pWin->background.pixel = pScreen->whitePixel;
+	else
+	    pWin->background.pixel = pScreen->blackPixel;
+	*index2 = CWBackPixel;
+    }
+}
+
 /*****
  *  ChangeWindowAttributes
  *   
@@ -1005,7 +1025,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 		if (pWin->backgroundState == BackgroundPixmap)
 		    (*pScreen->DestroyPixmap)(pWin->background.pixmap);
 		if (!pWin->parent)
-		    MakeRootTile(pWin);
+		    SetRootWindowBackground(pWin, pScreen, &index2);
 		else {
 		    pWin->backgroundState = XaceBackgroundNoneState(pWin);
 		    pWin->background.pixel = pScreen->whitePixel;
@@ -1022,7 +1042,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 		if (pWin->backgroundState == BackgroundPixmap)
 		    (*pScreen->DestroyPixmap)(pWin->background.pixmap);
 		if (!pWin->parent)
-		    MakeRootTile(pWin);
+		    SetRootWindowBackground(pWin, pScreen, &index2);
 		else
 		    pWin->backgroundState = ParentRelative;
 		borderRelative = TRUE;
