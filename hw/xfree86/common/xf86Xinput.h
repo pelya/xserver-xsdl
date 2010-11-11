@@ -142,7 +142,7 @@ extern _X_EXPORT void xf86PostKeyEventP(DeviceIntPtr device, unsigned int key_co
 extern _X_EXPORT void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
 extern _X_EXPORT InputInfoPtr xf86FirstLocalDevice(void);
-extern _X_EXPORT int xf86ScaleAxis(int Cx, int Sxhigh, int Sxlow, int Rxhigh, int Rxlow);
+extern _X_EXPORT int xf86ScaleAxis(int Cx, int to_max, int to_min, int from_max, int from_min);
 extern _X_EXPORT void xf86XInputSetScreen(InputInfoPtr pInfo, int screen_number, int x, int y);
 extern _X_EXPORT void xf86ProcessCommonOptions(InputInfoPtr pInfo, pointer options);
 extern _X_EXPORT void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, Atom label, int minval,

@@ -77,19 +77,19 @@
 			"/etc/X11/%R," "%P/etc/X11/%R," \
 			"%E," "%F," \
 			"/etc/X11/%F," "%P/etc/X11/%F," \
-			"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
-			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+			"/etc/X11/%X," "/etc/%X," \
+			"%P/etc/X11/%X.%H," \
 			"%P/etc/X11/%X," \
-			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+			"%P/lib/X11/%X.%H," \
 			"%P/lib/X11/%X"
 #endif
 #ifndef USER_CONFIGPATH
 #define USER_CONFIGPATH	"/etc/X11/%S," "%P/etc/X11/%S," \
 			"/etc/X11/%G," "%P/etc/X11/%G," \
-			"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
-			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
+			"/etc/X11/%X," "/etc/%X," \
+			"%P/etc/X11/%X.%H," \
 			"%P/etc/X11/%X," \
-			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
+			"%P/lib/X11/%X.%H," \
 			"%P/lib/X11/%X"
 #endif
 #ifndef ROOT_CONFIGDIRPATH
@@ -503,7 +503,6 @@ fixup_video_driver_list(char **drivers)
     static const char *fallback[4] = { "vesa", "fbdev", "wsfb", NULL };
     char **end, **drv;
     char *x;
-    char **ati, **atimisc;
     int i;
 
     /* walk to the end of the list */
@@ -523,24 +522,6 @@ fixup_video_driver_list(char **drivers)
             }
         }
     }
-    /*
-     * since the ati wrapper driver is gross and awful, sort ati before
-     * atimisc, which makes sure all the ati symbols are visible in xorgcfg.
-     */
-    for (drv = drivers; drv != end; drv++) {
-        if (!strcmp(*drv, "atimisc")) {
-            atimisc = drv;
-            for (drv = atimisc; drv != end; drv++) {
-                if (!strcmp(*drv, "ati")) {
-                    ati = drv;
-                    x = *ati; *ati = *atimisc; *atimisc = x;
-                    return;
-                }
-            }
-            /* if we get here, ati was already ahead of atimisc */
-            return;
-        }
-    }
 }
 
 static char **
@@ -548,7 +529,7 @@ GenerateDriverlist(char * dirname)
 {
     char **ret;
     const char *subdirs[] = { dirname, NULL };
-    static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
+    static const char *patlist[] = {"(.*)_drv\\.so", NULL};
     ret = LoaderListDirs(subdirs, patlist);
     
     /* fix up the probe order for video drivers */
@@ -760,8 +741,6 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
-  { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
-        {0}, FALSE },
   { FLAG_IGNORE_ABI,		"IgnoreABI",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",		OPTV_BOOLEAN,
@@ -974,7 +953,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 
     /* AllowEmptyInput is automatically true if we're hotplugging */
     xf86Info.allowEmptyInput = (xf86Info.autoAddDevices && xf86Info.autoEnableDevices);
-    xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &xf86Info.allowEmptyInput);
 
     /* AEI on? Then we're not using kbd, so use the evdev rules set. */
 #if defined(linux)
@@ -1433,8 +1411,10 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	                "reconfigure %s or disable AutoAddDevices.\n",
 			config_backend, config_backend);
 #else
-	xf86Msg(X_INFO, "Hotplugging is disabled and no input devices were configured.\n"
-			"\tTry disabling AllowEmptyInput.\n");
+	xf86Msg(X_WARNING, "Hotplugging requested but the server was "
+			   "compiled without a config backend. "
+			   "No input devices were configured, the server "
+			   "will start without any input devices.\n");
 #endif
     }
 
@@ -2206,15 +2186,10 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 static void
 configDRI(XF86ConfDRIPtr drip)
 {
-    int                count = 0;
-    XF86ConfBuffersPtr bufs;
-    int                i;
     struct group       *grp;
 
     xf86ConfigDRI.group      = -1;
     xf86ConfigDRI.mode       = 0;
-    xf86ConfigDRI.bufs_count = 0;
-    xf86ConfigDRI.bufs       = NULL;
 
     if (drip) {
 	if (drip->dri_group_name) {
@@ -2225,24 +2200,6 @@ configDRI(XF86ConfDRIPtr drip)
 		xf86ConfigDRI.group = drip->dri_group;
 	}
 	xf86ConfigDRI.mode = drip->dri_mode;
-	for (bufs = drip->dri_buffers_lst; bufs; bufs = bufs->list.next)
-	    ++count;
-	
-	xf86ConfigDRI.bufs_count = count;
-	xf86ConfigDRI.bufs = xnfalloc(count * sizeof(*xf86ConfigDRI.bufs));
-	
-	for (i = 0, bufs = drip->dri_buffers_lst;
-	     i < count;
-	     i++, bufs = bufs->list.next) {
-	    
-	    xf86ConfigDRI.bufs[i].count = bufs->buf_count;
-	    xf86ConfigDRI.bufs[i].size  = bufs->buf_size;
-				/* FIXME: Flags not implemented.  These
-                                   could be used, for example, to specify a
-                                   contiguous block and/or write-combining
-                                   cache policy. */
-	    xf86ConfigDRI.bufs[i].flags = 0;
-	}
     }
 }
 #endif
@@ -2371,7 +2328,7 @@ checkInput(serverLayoutPtr layout, Bool implicit_layout) {
                 InputInfoPtr *current;
                 if (!warned)
                 {
-                    xf86Msg(X_WARNING, "AllowEmptyInput is on, devices using "
+                    xf86Msg(X_WARNING, "Hotplugging is on, devices using "
                             "drivers 'kbd', 'mouse' or 'vmmouse' will be disabled.\n");
                     warned = TRUE;
                 }

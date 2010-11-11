@@ -44,8 +44,8 @@
 static pointer
 mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int Flags)
 {
-    mach_port_t device,iopl_dev;
-    memory_object_t iopl_mem;
+    mach_port_t device,mem_dev;
+    memory_object_t mem_obj;
     kern_return_t err;
     vm_address_t addr=(vm_address_t)0;
 
@@ -55,7 +55,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int Flags)
 	errno = err;
 	FatalError("xf86MapVidMem() can't get_privileged_ports. (%s)\n",strerror(errno));
     }
-    err = device_open(device,D_READ|D_WRITE,"iopl",&iopl_dev);
+    err = device_open(device,D_READ|D_WRITE,"mem",&mem_dev);
     mach_port_deallocate (mach_task_self(), device);
     if( err )
     {
@@ -63,7 +63,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int Flags)
 	FatalError("xf86MapVidMem() can't device_open. (%s)\n",strerror(errno));
     }
 
-    err = device_map(iopl_dev,VM_PROT_READ|VM_PROT_WRITE, Base , Size ,&iopl_mem,0);
+    err = device_map(mem_dev,VM_PROT_READ|VM_PROT_WRITE, Base , Size ,&mem_obj,0);
     if( err )
     {
 	errno = err;
@@ -74,23 +74,23 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int Flags)
 		 Size,
 		 0,     /* mask */
 		 TRUE,  /* anywhere */
-		 iopl_mem,
+		 mem_obj,
 		 (vm_offset_t)Base,
 		 FALSE, /* copy on write */
 		 VM_PROT_READ|VM_PROT_WRITE,
 		 VM_PROT_READ|VM_PROT_WRITE,
 		 VM_INHERIT_SHARE);
-    mach_port_deallocate(mach_task_self(),iopl_mem);
+    mach_port_deallocate(mach_task_self(),mem_obj);
     if( err )
     {
 	errno = err;
-	FatalError("xf86MapVidMem() can't vm_map.(iopl_mem) (%s)\n",strerror(errno));
+	FatalError("xf86MapVidMem() can't vm_map.(mem_obj) (%s)\n",strerror(errno));
     }
-    mach_port_deallocate(mach_task_self(),iopl_dev);
+    mach_port_deallocate(mach_task_self(),mem_dev);
     if( err )
     {
 	errno = err;
-	FatalError("xf86MapVidMem() can't mach_port_deallocate.(iopl_dev) (%s)\n",strerror(errno));
+	FatalError("xf86MapVidMem() can't mach_port_deallocate.(mem_dev) (%s)\n",strerror(errno));
     }
     return (pointer)addr;
 }
@@ -124,8 +124,17 @@ xf86EnableIO()
 	FatalError("xf86EnableIO: ioperm() failed (%s)\n", strerror(errno));
 	return FALSE;
     }
+#if 0
+    /*
+     * Trapping disabled for now, as some VBIOSes (mga-g450 notably) use these
+     * ports, and the int10 wrapper is not emulating them. (Note that it's
+     * effectively what happens in the Linux variant too, as iopl() is used
+     * there, making the ioperm() meaningless.)
+     *
+     * Reenable this when int10 gets fixed.  */
     ioperm(0x40,4,0); /* trap access to the timer chip */
     ioperm(0x60,4,0); /* trap access to the keyboard controller */
+#endif
     return TRUE;
 }
 	

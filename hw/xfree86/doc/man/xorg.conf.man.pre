@@ -39,14 +39,11 @@ server is started as a normal user:
 .IR __projectroot__/etc/X11/ <cmdline>
 .IB /etc/X11/ $XORGCONFIG
 .IB __projectroot__/etc/X11/ $XORGCONFIG
-.I /etc/X11/__xconfigfile__\-4
 .I /etc/X11/__xconfigfile__
 .I /etc/__xconfigfile__
 .IR __projectroot__/etc/X11/__xconfigfile__. <hostname>
-.I __projectroot__/etc/X11/__xconfigfile__\-4
 .I __projectroot__/etc/X11/__xconfigfile__
 .IR __projectroot__/lib/X11/__xconfigfile__. <hostname>
-.I __projectroot__/lib/X11/__xconfigfile__\-4
 .I __projectroot__/lib/X11/__xconfigfile__
 .fi
 .RE
@@ -74,14 +71,11 @@ search locations are as follows:
 .B $XORGCONFIG
 .IB /etc/X11/ $XORGCONFIG
 .IB __projectroot__/etc/X11/ $XORGCONFIG
-.I /etc/X11/__xconfigfile__\-4
 .I /etc/X11/__xconfigfile__
 .I /etc/__xconfigfile__
 .IR __projectroot__/etc/X11/__xconfigfile__. <hostname>
-.I __projectroot__/etc/X11/__xconfigfile__\-4
 .I __projectroot__/etc/X11/__xconfigfile__
 .IR __projectroot__/lib/X11/__xconfigfile__. <hostname>
-.I __projectroot__/lib/X11/__xconfigfile__\-4
 .I __projectroot__/lib/X11/__xconfigfile__
 .fi
 .RE
@@ -564,9 +558,6 @@ Default: off.
 This tells the mousedrv(__drivermansuffix__) and vmmouse(__drivermansuffix__)
 drivers to not report failure if the mouse device can't be opened/initialised.
 It has no effect on the evdev(__drivermansuffix__) or other drivers.
-The previous functionality of allowing the server to start up even if
-the mouse device can't be opened/initialised is now handled by the
-AllowEmptyInput option.
 Default: false.
 .TP 7
 .BI "Option \*qVTSysReq\*q  \*q" boolean \*q
@@ -682,12 +673,6 @@ default.
 .BI "Option \*qIgnoreABI\*q \*q" boolean \*q
 Allow modules built for a different, potentially incompatible version of
 the X server to load. Disabled by default.
-.TP 7
-.BI "Option \*qAllowEmptyInput\*q \*q" boolean \*q
-If enabled, don't add the standard keyboard and mouse drivers, if there are no
-input devices in the config file.  Enabled by default if AutoAddDevices and
-AutoEnableDevices is enabled, otherwise disabled.
-If AllowEmptyInput is on, devices using the kbd, mouse or vmmouse driver are ignored.
 .TP 7
 .BI "Option \*qAutoAddDevices\*q \*q" boolean \*q
 If this option is disabled, then no devices will be added from HAL events.

@@ -223,7 +223,7 @@ ProcDamageCreate (ClientPtr client)
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	pRegion = &((WindowPtr) pDrawable)->borderClip;
-	DamageRegionAppend(pDrawable, pRegion);
+	DamageDamageRegion(pDrawable, pRegion);
     }
 
     return Success;
@@ -293,7 +293,7 @@ ProcDamageAdd (ClientPtr client)
      * screen coordinates like damage expects.
      */
     RegionTranslate(pRegion, pDrawable->x, pDrawable->y);
-    DamageRegionAppend(pDrawable, pRegion);
+    DamageDamageRegion(pDrawable, pRegion);
     RegionTranslate(pRegion, -pDrawable->x, -pDrawable->y);
 
     return Success;
