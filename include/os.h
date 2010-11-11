@@ -51,6 +51,7 @@ SOFTWARE.
 
 #include "misc.h"
 #include <stdarg.h>
+#include <string.h>
 
 #define SCREEN_SAVER_ON   0
 #define SCREEN_SAVER_OFF  1
