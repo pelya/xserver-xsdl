@@ -2897,6 +2897,7 @@ int __glXCreateWindow(__GLXclientState *cl, GLbyte *pc)
     VisualPtr pVisual;
     VisualID visId;
     int i, rc;
+    pointer val;
 
     /*
     ** Check if windowId is valid 
@@ -2962,7 +2963,9 @@ int __glXCreateWindow(__GLXclientState *cl, GLbyte *pc)
     /*
     ** Check if there is already a fbconfig associated with this window
     */
-    if ( LookupIDByType(glxwindowId, __glXWindowRes) ) {
+    if (Success == dixLookupResourceByType(&val,
+					   glxwindowId, __glXWindowRes,
+					   NullClient, DixUnknownAccess)) {
 	client->errorValue = glxwindowId;
 	return BadAlloc;
     }
@@ -2994,11 +2997,14 @@ int __glXDestroyWindow(__GLXclientState *cl, GLbyte *pc)
     ClientPtr client = cl->client;
     xGLXDestroyWindowReq *req = (xGLXDestroyWindowReq *) pc;
     XID glxwindow = req->glxwindow;
+    pointer val;
 
     /*
     ** Check if it's a valid GLX window.
     */
-    if (!LookupIDByType(glxwindow, __glXWindowRes)) {
+    if (Success != dixLookupResourceByType(&val,
+					   glxwindow, __glXWindowRes,
+					   NullClient, DixUnknownAccess)) {
 	client->errorValue = glxwindow;
 	return __glXBadDrawable;
     }
