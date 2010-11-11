@@ -504,7 +504,6 @@ fixup_video_driver_list(char **drivers)
     static const char *fallback[4] = { "vesa", "fbdev", "wsfb", NULL };
     char **end, **drv;
     char *x;
-    char **ati, **atimisc;
     int i;
 
     /* walk to the end of the list */
@@ -2211,7 +2210,6 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 static void
 configDRI(XF86ConfDRIPtr drip)
 {
-    int                i;
     struct group       *grp;
 
     xf86ConfigDRI.group      = -1;
