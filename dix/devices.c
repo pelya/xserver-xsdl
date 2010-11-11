@@ -2592,6 +2592,6 @@ void valuator_set_mode(DeviceIntPtr dev, int axis, int mode)
     else {
         int i;
         for (i = 0; i < dev->valuator->numAxes; i++)
-            dev->valuator->axes[axis].mode = mode;
+            dev->valuator->axes[i].mode = mode;
     }
 }
