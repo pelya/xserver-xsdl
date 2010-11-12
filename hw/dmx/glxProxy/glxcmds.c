@@ -1104,14 +1104,16 @@ static int MakeCurrent(__GLXclientState *cl,
        to_screen = screenInfo.numScreens - 1;
 
        if (pDraw && new_reply.writeType != GLX_PBUFFER_TYPE) {
-	  pXinDraw = (PanoramiXRes *)
-	     SecurityLookupIDByClass(client, pDraw->id, XRC_DRAWABLE, DixReadAccess);
+	  dixLookupResourceByClass((pointer*) &pXinDraw,
+				   pDraw->id, XRC_DRAWABLE,
+				   client, DixReadAccess);
        }
 
        if (pReadDraw && pReadDraw != pDraw && 
 	     new_reply.readType != GLX_PBUFFER_TYPE) {
-	  pXinReadDraw = (PanoramiXRes *)
-	     SecurityLookupIDByClass(client, pReadDraw->id, XRC_DRAWABLE, DixReadAccess);
+	  dixLookupResourceByClass((pointer*) &pXinReadDraw,
+				   pReadDraw->id, XRC_DRAWABLE,
+				   client, DixReadAccess);
        }
        else {
 	  pXinReadDraw = pXinDraw;
@@ -1765,8 +1767,9 @@ static int CreateGLXPixmap(__GLXclientState *cl,
        from_screen = 0;
        to_screen = screenInfo.numScreens - 1;
 
-       pXinDraw = (PanoramiXRes *)
-	  SecurityLookupIDByClass(client, pDraw->id, XRC_DRAWABLE, DixReadAccess);
+       dixLookupResourceByClass((pointer*) &pXinDraw,
+				pDraw->id, XRC_DRAWABLE,
+				client, DixReadAccess);
     }
 #endif
 
@@ -2013,8 +2016,9 @@ int __glXDoSwapBuffers(__GLXclientState *cl, XID drawId, GLXContextTag tag)
     if (!noPanoramiXExtension) {
        from_screen = 0;
        to_screen = screenInfo.numScreens - 1;
-       pXinDraw = (PanoramiXRes *)
-        SecurityLookupIDByClass(client, pDraw->id, XRC_DRAWABLE, DixReadAccess);
+       dixLookupResourceByClass((pointer*) &pXinDraw,
+				pDraw->id, XRC_DRAWABLE,
+				client, DixReadAccess);
     }
 #endif
 
@@ -3369,9 +3373,9 @@ int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 
 #ifdef PANORAMIX
        if (!noPanoramiXExtension) {
-	  pXinDraw = (PanoramiXRes *)
-	     SecurityLookupIDByClass(client, pDraw->id, XRC_DRAWABLE, DixReadAccess);
-	  if (!pXinDraw) {
+	  if (Success != dixLookupResourceByClass((pointer*) &pXinDraw,
+						  pDraw->id, XRC_DRAWABLE,
+						  client, DixReadAccess)) {
 	     client->errorValue = drawId;
 	     return __glXBadDrawable;
 	  }
@@ -3533,9 +3537,10 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 
 #ifdef PANORAMIX
        if (!noPanoramiXExtension) {
-	  PanoramiXRes *pXinDraw = (PanoramiXRes *)
-	     SecurityLookupIDByClass(client, pDraw->id, XRC_DRAWABLE, DixReadAccess);
-	  if (!pXinDraw) {
+	  PanoramiXRes *pXinDraw;
+	  if (Success != dixLookupResourceByClass((pointer*) &pXinDraw,
+						  pDraw->id, XRC_DRAWABLE,
+						  client, DixReadAccess)) {
 	     client->errorValue = drawId;
 	     return __glXBadDrawable;
 	  }
