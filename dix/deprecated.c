@@ -67,7 +67,7 @@ SecurityLookupWindow(XID id, ClientPtr client, Mask access_mode)
     WindowPtr pWin;
     static int warn = 1;
     dixLookupWindow(&pWin, id, client, access_mode);
-    if (warn > 0 && --warn)
+    if (warn > 0 && warn--)
 	ErrorF("Warning: LookupWindow()/SecurityLookupWindow() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupWindow().\n");
@@ -88,7 +88,7 @@ SecurityLookupDrawable(XID id, ClientPtr client, Mask access_mode)
     DrawablePtr pDraw;
     static int warn = 1;
     dixLookupDrawable(&pDraw, id, client, M_DRAWABLE, access_mode);
-    if (warn > 0 && --warn)
+    if (warn > 0 && warn--)
 	ErrorF("Warning: LookupDrawable()/SecurityLookupDrawable() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupDrawable().\n");
@@ -109,7 +109,7 @@ LookupClient(XID id, ClientPtr client)
     ClientPtr pClient;
     static int warn = 1;
     dixLookupClient(&pClient, id, client, DixUnknownAccess);
-    if (warn > 0 && --warn)
+    if (warn > 0 && warn--)
 	ErrorF("Warning: LookupClient() is deprecated.  Please convert your "
 	       "driver/module to use dixLookupClient().\n");
     return pClient;
@@ -123,7 +123,7 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype,
     pointer retval;
     static int warn = 1;
     dixLookupResourceByType(&retval, id, rtype, client, access_mode);
-    if (warn > 0 && --warn)
+    if (warn > 0 && warn--)
 	ErrorF("Warning: LookupIDByType()/SecurityLookupIDByType() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupResourceByType().\n");
@@ -137,7 +137,7 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes,
     pointer retval;
     static int warn = 1;
     dixLookupResourceByClass(&retval, id, classes, client, access_mode);
-    if (warn > 0 && --warn)
+    if (warn > 0 && warn--)
 	ErrorF("Warning: LookupIDByClass()/SecurityLookupIDByClass() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupResourceByClass().\n");
