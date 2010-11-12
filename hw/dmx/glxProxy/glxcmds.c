@@ -3074,7 +3074,10 @@ int __glXQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
     int nReplyBytes;
 
     req = (xGLXQueryContextInfoEXTReq *)pc;
-    ctx = (__GLXcontext *) SecurityLookupIDByType(client, req->context, __glXContextRes, DixReadAccess);
+    dixLookupResourceByType((pointer*) &ctx,
+			    req->context, __glXContextRes,
+			    client,  DixReadAccess);
+
     if (!ctx) {
         client->errorValue = req->context;
         return __glXBadContext;
