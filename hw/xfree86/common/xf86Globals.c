@@ -128,11 +128,11 @@ xf86InfoRec xf86Info = {
     .disableRandR               = FALSE,
     .randRFrom                  = X_DEFAULT,
 #if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
-    .allowEmptyInput            = TRUE,
+    .forceInputDevices          = FALSE,
     .autoAddDevices             = TRUE,
     .autoEnableDevices          = TRUE
 #else
-    .allowEmptyInput            = FALSE,
+    .forceInputDevices          = TRUE,
     .autoAddDevices             = FALSE,
     .autoEnableDevices          = FALSE
 #endif

@@ -951,12 +951,13 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     }
 #endif
 
-    /* AllowEmptyInput is automatically true if we're hotplugging */
-    xf86Info.allowEmptyInput = (xf86Info.autoAddDevices && xf86Info.autoEnableDevices);
+    /* if we're not hotplugging, force some input devices to exist */
+    xf86Info.forceInputDevices = !(xf86Info.autoAddDevices && xf86Info.autoEnableDevices);
 
-    /* AEI on? Then we're not using kbd, so use the evdev rules set. */
+    /* when forcing input devices, we use kbd. otherwise evdev, so use the
+     * evdev rules set. */
 #if defined(linux)
-    if (xf86Info.allowEmptyInput)
+    if (!xf86Info.forceInputDevices)
         set.rules = "evdev";
 #endif
     XkbSetRulesDflts(&set);
@@ -1173,7 +1174,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 3. First core pointer device. */
-    if (!foundPointer && (!xf86Info.allowEmptyInput || implicitLayout)) {
+    if (!foundPointer && (xf86Info.forceInputDevices || implicitLayout)) {
 	XF86ConfInputPtr p;
 
 	for (p = xf86configptr->conf_input_lst; p; p = p->list.next) {
@@ -1189,7 +1190,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 4. First pointer with an allowed mouse driver. */
-    if (!foundPointer && !xf86Info.allowEmptyInput) {
+    if (!foundPointer && xf86Info.forceInputDevices) {
 	const char **driver = mousedrivers;
 	confInput = xf86findInput(CONF_IMPLICIT_POINTER,
 				  xf86configptr->conf_input_lst);
@@ -1206,7 +1207,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 5. Built-in default. */
-    if (!foundPointer && !xf86Info.allowEmptyInput) {
+    if (!foundPointer && xf86Info.forceInputDevices) {
 	memset(&defPtr, 0, sizeof(defPtr));
 	defPtr.inp_identifier = strdup("<default pointer>");
 	defPtr.inp_driver = strdup("mouse");
@@ -1232,7 +1233,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	}
     }
 
-    if (!foundPointer && !xf86Info.allowEmptyInput) {
+    if (!foundPointer && xf86Info.forceInputDevices) {
 	/* This shouldn't happen. */
 	xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
 	return FALSE;
@@ -1256,7 +1257,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	    driver++;
 	}
     }
-    if (!found && !xf86Info.allowEmptyInput) {
+    if (!found && xf86Info.forceInputDevices) {
 	xf86Msg(X_INFO, "No default mouse found, adding one\n");
 	memset(&defPtr, 0, sizeof(defPtr));
 	defPtr.inp_identifier = strdup("<default pointer>");
@@ -1315,7 +1316,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 3. First core keyboard device. */
-    if (!foundKeyboard && (!xf86Info.allowEmptyInput || implicitLayout)) {
+    if (!foundKeyboard && (xf86Info.forceInputDevices || implicitLayout)) {
 	XF86ConfInputPtr p;
 
 	for (p = xf86configptr->conf_input_lst; p; p = p->list.next) {
@@ -1331,7 +1332,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 4. First keyboard with 'keyboard' or 'kbd' as the driver. */
-    if (!foundKeyboard && !xf86Info.allowEmptyInput) {
+    if (!foundKeyboard && xf86Info.forceInputDevices) {
 	confInput = xf86findInput(CONF_IMPLICIT_KEYBOARD,
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
@@ -1346,7 +1347,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     /* 5. Built-in default. */
-    if (!foundKeyboard && !xf86Info.allowEmptyInput) {
+    if (!foundKeyboard && xf86Info.forceInputDevices) {
 	memset(&defKbd, 0, sizeof(defKbd));
 	defKbd.inp_identifier = strdup("<default keyboard>");
 	defKbd.inp_driver = strdup("kbd");
@@ -1372,7 +1373,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	}
     }
 
-    if (!foundKeyboard && !xf86Info.allowEmptyInput) {
+    if (!foundKeyboard && xf86Info.forceInputDevices) {
 	/* This shouldn't happen. */
 	xf86Msg(X_ERROR, "Cannot locate a core keyboard device.\n");
 	return FALSE;
@@ -1398,7 +1399,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	            "\tUsing the %s.\n", keyboardMsg);
     }
 
-    if (xf86Info.allowEmptyInput && !(foundPointer && foundKeyboard)) {
+    if (!xf86Info.forceInputDevices && !(foundPointer && foundKeyboard)) {
 #if defined(CONFIG_HAL) || defined(CONFIG_UDEV)
 	const char *config_backend;
 #if defined(CONFIG_HAL)
@@ -2311,10 +2312,11 @@ static void
 checkInput(serverLayoutPtr layout, Bool implicit_layout) {
     checkCoreInputDevices(layout, implicit_layout);
 
-    /* AllowEmptyInput and the "kbd" and "mouse" drivers are mutually
-     * exclusive. Trawl the list for mouse/kbd devices and disable them.
+    /* Unless we're forcing input devices, disable mouse/kbd devices in the
+     * config. Otherwise the same physical device is added multiple times,
+     * leading to duplicate events.
      */
-    if (xf86Info.allowEmptyInput && layout->inputs)
+    if (!xf86Info.forceInputDevices && layout->inputs)
     {
         InputInfoPtr *dev = layout->inputs;
         BOOL warned = FALSE;
