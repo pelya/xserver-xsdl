@@ -1057,14 +1057,18 @@ transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
     struct pixman_f_vector p;
 
     /* p' = M * p in homogeneous coordinates */
-    p.v[0] = valuator_mask_get(mask, 0);
-    p.v[1] = valuator_mask_get(mask, 1);
+    p.v[0] = (valuator_mask_isset(mask, 0) ? valuator_mask_get(mask, 0) :
+              dev->last.valuators[0]);
+    p.v[1] = (valuator_mask_isset(mask, 1) ? valuator_mask_get(mask, 1) :
+              dev->last.valuators[1]);
     p.v[2] = 1.0;
 
     pixman_f_transform_point(&dev->transform, &p);
 
-    valuator_mask_set(mask, 0, lround(p.v[0]));
-    valuator_mask_set(mask, 1, lround(p.v[1]));
+    if (lround(p.v[0]) != dev->last.valuators[0])
+        valuator_mask_set(mask, 0, lround(p.v[0]));
+    if (lround(p.v[1]) != dev->last.valuators[1])
+        valuator_mask_set(mask, 1, lround(p.v[1]));
 }
 
 /**
