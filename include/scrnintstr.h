@@ -345,14 +345,6 @@ typedef    Bool (* MarkOverlappedWindowsProcPtr)(
 	WindowPtr /*firstChild*/,
 	WindowPtr * /*pLayerWin*/);
 
-typedef    Bool (* ChangeSaveUnderProcPtr)(
-	WindowPtr /*pLayerWin*/,
-	WindowPtr /*firstChild*/);
-
-typedef    void (* PostChangeSaveUnderProcPtr)(
-	WindowPtr /*pLayerWin*/,
-	WindowPtr /*firstChild*/);
-
 typedef    int (* ConfigNotifyProcPtr)(
 	WindowPtr /*pWin*/,
 	int /*x*/,
@@ -527,8 +519,6 @@ typedef struct _Screen {
 
     MarkWindowProcPtr		MarkWindow;
     MarkOverlappedWindowsProcPtr MarkOverlappedWindows;
-    ChangeSaveUnderProcPtr	ChangeSaveUnder;
-    PostChangeSaveUnderProcPtr	PostChangeSaveUnder;
     ConfigNotifyProcPtr		ConfigNotify;
     MoveWindowProcPtr		MoveWindow;
     ResizeWindowProcPtr		ResizeWindow;
