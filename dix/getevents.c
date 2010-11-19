@@ -1159,10 +1159,15 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
              * should be converted to masked valuators. */
             int vals[2];
             vals[0] = valuator_mask_isset(&mask, 0) ?
-                      valuator_mask_get(&mask, 0) : pDev->last.valuators[0];
+                      valuator_mask_get(&mask, 0) : 0;
             vals[1] = valuator_mask_isset(&mask, 1) ?
-                      valuator_mask_get(&mask, 1) : pDev->last.valuators[1];
+                      valuator_mask_get(&mask, 1) : 0;
             accelPointer(pDev, 0, 2, vals, ms);
+
+            if (valuator_mask_isset(&mask, 0))
+                valuator_mask_set(&mask, 0, vals[0]);
+            if (valuator_mask_isset(&mask, 1))
+                valuator_mask_set(&mask, 1, vals[1]);
 
             /* The pointer acceleration code modifies the fractional part
              * in-place, so we need to extract this information first */
