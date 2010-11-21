@@ -37,6 +37,8 @@ BUILT_DOC_FILES =
 SUFFIXES = .xml .txt .html .pdf
 
 XML_ENT_DIR = $(abs_top_builddir)/doc/xml
+
+if HAVE_XMLTO
 XMLTO_FLAGS = --searchpath $(XML_ENT_DIR)
 
 if HAVE_STYLESHEETS
@@ -44,7 +46,6 @@ XMLTO_FLAGS += -m $(XSL_STYLESHEET) \
 	--stringparam html.stylesheet=$(STYLESHEET_SRCDIR)/xorg.css
 endif
 
-if HAVE_XMLTO
 if HAVE_XMLTO_TEXT
 BUILT_DOC_FILES += $(TXT_FILES)
 .xml.txt:
@@ -61,7 +62,7 @@ BUILT_DOC_FILES += $(PDF_FILES)
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) --with-fop pdf $<
 endif
 
-endif
+endif HAVE_XMLTO
 
 CLEAN_DOC_FILES = $(TXT_FILES) $(HTML_FILES) $(PDF_FILES)
 
