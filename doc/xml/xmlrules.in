@@ -40,11 +40,8 @@ XML_ENT_DIR = $(abs_top_builddir)/doc/xml
 XMLTO_FLAGS = --searchpath $(XML_ENT_DIR)
 
 if HAVE_STYLESHEETS
-XMLTO_FLAGS += -m $(XSL_STYLESHEET)
-BUILT_DOC_FILES += xorg.css
-
-xorg.css: $(STYLESHEET_SRCDIR)/xorg.css
-	$(AM_V_GEN)cp -pf $(STYLESHEET_SRCDIR)/xorg.css $@
+XMLTO_FLAGS += -m $(XSL_STYLESHEET) \
+	--stringparam html.stylesheet=$(STYLESHEET_SRCDIR)/xorg.css
 endif
 
 if HAVE_XMLTO
@@ -69,7 +66,7 @@ endif
 
 endif
 
-CLEAN_DOC_FILES = $(TXT_FILES) $(HTML_FILES) $(PDF_FILES) xorg.css
+CLEAN_DOC_FILES = $(TXT_FILES) $(HTML_FILES) $(PDF_FILES)
 
 # All the files we build depend on the entities
 $(BUILT_DOC_FILES): $(XML_ENT_DIR)/xserver.ent
