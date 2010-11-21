@@ -21,7 +21,7 @@
 
 XML_FILES = DESIGN.xml
 
-include ../../../../doc/xml/xmlrules.in
+include $(top_srcdir)/doc/xml/xmlrules.in
 
 if ENABLE_DEVEL_DOCS
 noinst_DATA = $(BUILT_DOC_FILES)

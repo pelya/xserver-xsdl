@@ -23,7 +23,7 @@
 
 XML_FILES = Xserver-DTrace.xml
 
-include ../xmlrules.in
+include $(top_srcdir)/doc/xml/xmlrules.in
 
 if ENABLE_DOCS
 if XSERVER_DTRACE

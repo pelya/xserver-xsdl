@@ -25,7 +25,7 @@ SUBDIRS = dtrace
 
 XML_FILES = Xserver-spec.xml
 
-include xmlrules.in
+include $(top_srcdir)/doc/xml/xmlrules.in
 
 if ENABLE_DEVEL_DOCS
 noinst_DATA = $(BUILT_DOC_FILES)
