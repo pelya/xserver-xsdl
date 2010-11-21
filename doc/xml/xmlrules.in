@@ -48,17 +48,17 @@ endif
 
 if HAVE_XMLTO_TEXT
 BUILT_DOC_FILES += $(TXT_FILES)
-.xml.txt:
+%.txt: %.xml
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) txt $<
 endif
 
 BUILT_DOC_FILES += $(HTML_FILES)
-.xml.html:
+%.html: %.xml
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks $<
 
 if HAVE_FOP
 BUILT_DOC_FILES += $(PDF_FILES)
-.xml.pdf:
+%.pdf: %.xml
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) --with-fop pdf $<
 endif
 
