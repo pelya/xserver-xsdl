@@ -48,17 +48,17 @@ endif
 
 if HAVE_XMLTO_TEXT
 BUILT_DOC_FILES += $(TXT_FILES)
-%.txt: %.xml
+%.txt: %.xml $(XML_ENT_DIR)/xserver.ent
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) txt $<
 endif
 
 BUILT_DOC_FILES += $(HTML_FILES)
-%.html: %.xml
+%.html: %.xml $(XML_ENT_DIR)/xserver.ent
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks $<
 
 if HAVE_FOP
 BUILT_DOC_FILES += $(PDF_FILES)
-%.pdf: %.xml
+%.pdf: %.xml $(XML_ENT_DIR)/xserver.ent
 	$(AM_V_GEN)$(XMLTO) $(XMLTO_FLAGS) --with-fop pdf $<
 endif
 
@@ -66,8 +66,3 @@ endif HAVE_XMLTO
 
 CLEAN_DOC_FILES = $(TXT_FILES) $(HTML_FILES) $(PDF_FILES)
 
-# All the files we build depend on the entities
-$(BUILT_DOC_FILES): $(XML_ENT_DIR)/xserver.ent
-
-$(XML_ENT_DIR)/xserver.ent:
-	(cd $(XML_ENT_DIR) && $(MAKE) $(AM_MAKEFLAGS) $(@F))
