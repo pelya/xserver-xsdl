@@ -208,12 +208,6 @@ cat > sdksyms.c << EOF
  */
 
 
-/* hw/xfree86/xf8_16bpp/Makefile.am -- module */
-/*
-#include "cfb8_16.h"
- */
-
-
 /* mi/Makefile.am */
 #include "micmap.h"
 #include "miline.h"
