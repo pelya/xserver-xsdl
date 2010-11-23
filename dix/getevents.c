@@ -1255,6 +1255,10 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
             valuator_mask_unset(&mask, i);
     }
 
+    /* FIXME: posting proximity events with relative valuators only results
+     * in an empty event, EventToXI() will fail to convert → no event sent
+     * to client. */
+
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
     event = (DeviceEvent *) events->event;
