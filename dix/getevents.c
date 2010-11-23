@@ -210,7 +210,7 @@ set_valuators(DeviceIntPtr dev, DeviceEvent* event, ValuatorMask *mask)
         if (valuator_mask_isset(mask, i))
         {
             SetBit(event->valuators.mask, i);
-            if (dev->valuator->axes[i].mode == Absolute)
+            if (valuator_get_mode(dev, i) == Absolute)
                 SetBit(event->valuators.mode, i);
             event->valuators.data[i] = valuator_mask_get(mask, i);
             event->valuators.data_frac[i] =
