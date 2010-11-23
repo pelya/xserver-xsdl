@@ -1186,7 +1186,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (valuator_mask_isset(&mask, 0))
         valuator_mask_set(&mask, 0, x);
     if (valuator_mask_isset(&mask, 1))
-        valuator_mask_set(&mask, 0, y);
+        valuator_mask_set(&mask, 1, y);
 
     clipValuators(pDev, &mask);
 
