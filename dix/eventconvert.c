@@ -327,7 +327,7 @@ countValuators(DeviceEvent *ev, int *first)
         /* Assume mode of 0th valuator matches XI1 device mode. Stop when the
          * event mode changes since XI1 can't handle mixed mode devices.
          */
-        if (ev->valuators.mode[i] != ev->valuators.mode[0])
+        if (BitIsOn(ev->valuators.mode, i) != BitIsOn(ev->valuators.mode, 0))
             break;
 
         if (BitIsOn(ev->valuators.mask, i))
