@@ -1248,7 +1248,7 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type, const Valuato
     valuator_mask_copy(&mask, mask_in);
 
     /* ignore relative axes for proximity. */
-    for (i = 0; i < valuator_mask_num_valuators(&mask); i++)
+    for (i = 0; i < valuator_mask_size(&mask); i++)
     {
         if (valuator_mask_isset(&mask, i) &&
             valuator_get_mode(pDev, i) == Relative)
