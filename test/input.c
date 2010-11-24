@@ -1050,7 +1050,22 @@ static void dix_valuator_mode(void)
         g_assert(valuator_get_mode(&dev, i) == Relative);
 }
 
+static void include_bit_test_macros(void)
+{
+    uint8_t mask[9] = { 0 };
+    int i;
 
+    for (i = 0; i < sizeof(mask)/sizeof(mask[0]); i++)
+    {
+        g_assert(BitIsOn(mask, i) == 0);
+        SetBit(mask, i);
+        g_assert(BitIsOn(mask, i) == 1);
+        g_assert(!!(mask[i/8] & (1 << (i % 8))));
+        g_assert(CountBits(mask, sizeof(mask)) == 1);
+        ClearBit(mask, i);
+        g_assert(BitIsOn(mask, i) == 0);
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -1066,6 +1081,7 @@ int main(int argc, char** argv)
     g_test_add_func("/dix/input/grab_matching", dix_grab_matching);
     g_test_add_func("/dix/input/valuator_mode", dix_valuator_mode);
     g_test_add_func("/include/byte_padding_macros", include_byte_padding_macros);
+    g_test_add_func("/include/bit_test_macros", include_bit_test_macros);
     g_test_add_func("/Xi/xiproperty/register-unregister", xi_unregister_handlers);
 
 
