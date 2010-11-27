@@ -480,7 +480,7 @@ these operations.</para>
 Before getting bogged down in the interface details, an typical usage
 example should establish the framework.  Let's look at the
 ClientStateCallback in dix/dispatch.c.  The purpose of this particular
-callback is to notify intereseted parties when a client's state
+callback is to notify interested parties when a client's state
 (initial, running, gone) changes.  The callback is "created" in this
 case by simply declaring a variable:
 <blockquote><programlisting>
@@ -489,7 +489,7 @@ case by simply declaring a variable:
 </para>
 <para>
 Whenever the client's state changes, the following code appears, which notifies
-all intereseted parties of the change:
+all interested parties of the change:
 <blockquote><programlisting>
 	if (ClientStateCallback) CallCallbacks(&amp;ClientStateCallback, (pointer)client);
 </programlisting></blockquote>
@@ -759,7 +759,7 @@ These registered block handlers are called after the per-screen handlers:
 <programlisting>
 	void (*BlockHandler) (blockData, pptv, pReadmask)
 		pointer	blockData;
-		OSTimePtr pptv;
+		OsTimerPtr pptv;
 		pointer	pReadmask;
 </programlisting>
 </blockquote>
@@ -770,7 +770,7 @@ which on UNIX family systems is generally represented by a struct timeval
 consisting of seconds and microseconds in 32 bit values.
 As a convenience to reduce error prone struct timeval computations which
 require modulus arithmetic and correct overflow behavior in the face of
-millisecond wrapping throrugh 32 bits,
+millisecond wrapping through 32 bits,
 <blockquote><programlisting>
 
 	void AdjustWaitForDelay(pointer /*waitTime*, unsigned long /* newdelay */)
@@ -875,7 +875,7 @@ and RemoveEnabledDevice are in Xserver/os/connection.c.
 Similarly, the X server or an extension may need to wait for some timeout.
 Early X releases implemented this functionality using block and wakeup handlers,
 but this has been rewritten to use a general timer facilty, and the
-internal screen saver facilties reimplemented to use Timers.
+internal screen saver facilities reimplemented to use Timers.
 These functions are TimerInit, TimerForce, TimerSet, TimerCheck, TimerCancel,
 and TimerFree, as defined in Xserver/include/os.h. A callback function will be called
 when the timer fires, along with the current time, and a user provided argument.
@@ -913,11 +913,11 @@ for the timer entry.
 
 	void TimerCancel(OsTimerPtr /* pTimer */)
 
-	void TimerFree(OSTimerPtr /* pTimer */)
+	void TimerFree(OsTimerPtr /* pTimer */)
 </programlisting></blockquote>
 </para>
 <para>
-TimerInit frees any exisiting timer entries. TimerForce forces a call to the timer's
+TimerInit frees any existing timer entries. TimerForce forces a call to the timer's
 callback function and returns true if the timer entry existed, else it returns false and
 does not call the callback function. TimerCancel will cancel the specified timer.
 TimerFree calls TimerCancel and frees the specified timer.
@@ -1807,7 +1807,7 @@ printed on each keycap. (See X11/keysym.h)
 <para>
 Legal modifier keys must generate both up and down transitions.  When
 a client tries to change a modifier key (for instance, to make "A" the
-"Control" key), DIX calls the following routine, which should retuurn
+"Control" key), DIX calls the following routine, which should return
 TRUE if the key can be used as a modifier on the given device:
 <blockquote><programlisting>
 
@@ -2708,7 +2708,7 @@ Xserver/dix/colormap.c.)</para>
 
 
 </programlisting></blockquote>
-ListInstalledColormaps fills the pCMapList in with the resource ids
+ListInstalledColormaps fills the pCmapList in with the resource ids
 of the installed maps and returns a count of installed maps.
 pCmapList will point to an array of size MaxInstalledMaps that was allocated
 by the caller.</para>
@@ -3606,7 +3606,7 @@ this screen function.  The new border width is given by width.</para>
 </programlisting></blockquote>
 This function is called for windows that are being unrealized as part of
 an UnrealizeTree.  pChild is the window being unrealized, pWin is an
-ancestor, and the fromConfigure value is simply propogated from UnrealizeTree.</para>
+ancestor, and the fromConfigure value is simply propagated from UnrealizeTree.</para>
 </section>
 </section>
 </section>
@@ -5011,7 +5011,7 @@ mi and fb implementations.</para>
 <row><entry><function>ListInstalledColormaps</function></entry><entry><literal>ddx</literal></entry><entry><para>Screen</para></entry></row>
 <row><entry><function>LookupKeyboardDevice</function></entry><entry><literal>dix</literal></entry><entry><para></para></entry></row>
 <row><entry><function>LookupPointerDevice</function></entry><entry><literal>dix</literal></entry><entry><para></para></entry></row>
-<row><entry><function>ModifyPixmapheader</function></entry><entry><literal>mi</literal></entry><entry><para>Screen</para></entry></row>
+<row><entry><function>ModifyPixmapHeader</function></entry><entry><literal>mi</literal></entry><entry><para>Screen</para></entry></row>
 <row><entry><function>NextAvailableClient</function></entry><entry><literal>dix</literal></entry><entry><para></para></entry></row>
 <row><entry><function>OsInit</function></entry><entry><literal>os</literal></entry><entry><para></para></entry></row>
 <row><entry><function>PaintWindowBackground</function></entry><entry><literal>mi</literal></entry><entry><para>Window</para></entry></row>
