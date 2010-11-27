@@ -1215,18 +1215,10 @@ library is contained in dix/dixfonts.c
   <title>Memory Management</title>
 <para>
 Memory management is based on functions in the C runtime library.
-Xalloc(), Xrealloc(), and Xfree() work just like malloc(), realloc(),
-and free(), except that you can pass a null pointer to Xrealloc() to
-have it allocate anew or pass a null pointer to Xfree() and nothing
-will happen.  The versions in the sample server also do some checking
-that is useful for debugging.  Consult a C runtime library reference
+Xalloc(), Xrealloc(), and Xfree() are deprecated aliases for malloc(),
+realloc(), and free(), and you should simply call the C library functions
+directly.  Consult a C runtime library reference
 manual for more details.
-</para>
-<para>
-The macros ALLOCATE_LOCAL and DEALLOCATE_LOCAL are provided in
-Xserver/include/os.h.  These are useful if your compiler supports
-alloca() (or some method of allocating memory from the stack); and are
-defined appropriately on systems which support it.
 </para>
 <para>
 Treat memory allocation carefully in your implementation.  Memory
