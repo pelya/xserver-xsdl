@@ -1344,7 +1344,7 @@ terminate the server; it must not return.
 </para>
 <para>
 The sample server implementation for these routines
-is in Xserver/os/util.c.
+is in Xserver/os/log.c along with other routines for logging messages.
 </para>
 </section>
 </section>
