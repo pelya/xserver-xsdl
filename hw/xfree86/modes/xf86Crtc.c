@@ -660,13 +660,11 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
 Bool
 xf86OutputRename (xf86OutputPtr output, const char *name)
 {
-    int	    len = strlen(name) + 1;
-    char    *newname = malloc(len);
+    char    *newname = strdup(name);
     
     if (!newname)
 	return FALSE;	/* so sorry... */
     
-    strcpy (newname, name);
     if (output->name && output->name != (char *) (output + 1))
 	free(output->name);
     output->name = newname;
