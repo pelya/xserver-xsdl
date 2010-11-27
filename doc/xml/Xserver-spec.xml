@@ -442,18 +442,29 @@ and type; if skipFree is true, then the deleteFunc is not called.
 To look up a resource, use one of the following.
 <blockquote><programlisting>
 
-	pointer LookupIDByType(id, rtype)
-	    XID id;
-	    RESTYPE rtype;
+	int dixLookupResourceByType(
+	    pointer *result,
+	    XID id,
+	    RESTYPE rtype,
+	    ClientPtr client,
+	    Mask access_mode);
 
-	pointer LookupIDByClass(id, classes)
-	    XID id;
-	    RESTYPE classes;
+	int dixLookupResourceByClass(
+	    pointer *result,
+	    XID id,
+	    RESTYPE rclass,
+	    ClientPtr client,
+	    Mask access_mode);
 
 </programlisting></blockquote>
-LookupIDByType finds a resource with the given id and exact type.
-LookupIDByClass finds a resource with the given id whose type is
-included in any one of the specified classes.</para>
+dixLookupResourceByType finds a resource with the given id and exact type.
+dixLookupResourceByClass finds a resource with the given id whose type is
+included in any one of the specified classes.
+The client and access_mode must be provided to allow security extensions to
+check if the client has the right privileges for the requested access.
+The bitmask values defined in the dixaccess.h header are or'ed together
+to define the requested access_mode.
+</para>
 </section>
 </section>
 <section>
