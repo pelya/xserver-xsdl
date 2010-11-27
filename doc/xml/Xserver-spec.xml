@@ -588,8 +588,9 @@ used here which takes the minor opcode from the normal place in the request
 There are a number of macros in Xserver/include/dix.h which
 are useful to the extension writer.  Ones of particular interest
 are: REQUEST, REQUEST_SIZE_MATCH, REQUEST_AT_LEAST_SIZE,
-REQUEST_FIXED_SIZE, LEGAL_NEW_RESOURCE, LOOKUP_DRAWABLE, VERIFY_GC, and
+REQUEST_FIXED_SIZE, LEGAL_NEW_RESOURCE, and
 VALIDATE_DRAWABLE_AND_GC. Useful byte swapping macros can be found
+in Xserver/include/dix.h: WriteReplyToClient and WriteSwappedDataToClient; and
 in Xserver/include/misc.h: lswapl, lswaps, LengthRestB, LengthRestS,
 LengthRestL, SwapRestS, SwapRestL, swapl, swaps, cpswapl, and cpswaps.</para>
 </section>
