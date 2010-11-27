@@ -510,24 +510,6 @@ When CallCallbacks is invoked on the list, func will be called thusly:
 Now for the details.
 <blockquote><programlisting>
 
-	Bool CreateCallbackList(pcbl, cbfuncs)
-	    CallbackListPtr  *pcbl;
-	    CallbackFuncsPtr cbfuncs;
-
-</programlisting></blockquote>
-CreateCallbackList creates a callback list.  We envision that this
-function will be rarely used because the callback list is created
-automatically (if it doesn't already exist) when the first call to
-AddCallback is made on the list.  The only reason to explicitly create
-the callback list with this function is if you want to override the
-implementation of some of the other operations on the list by passing
-your own cbfuncs.  You also lose something by explicit creation: you
-introduce an order dependency during server startup because the list
-must be created before any modules subscribe to it.  Returns TRUE if
-successful.</para>
-<para>
-<blockquote><programlisting>
-
 	Bool AddCallback(pcbl, callback, subscriber_data)
 	    CallbackListPtr *pcbl;
 	    CallbackProcPtr callback;
