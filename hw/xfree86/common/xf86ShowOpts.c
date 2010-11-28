@@ -111,6 +111,9 @@ void DoShowOptions (void) {
 				);
 				for (p = pOption; p->name != NULL; p++) {
 					const char *opttype = optionTypeToSting(p->type);
+					/* XXX: Why overallocate by 2 bytes?
+					 * Otherwise, this would be strdup()
+					 */
 					char *optname = malloc(strlen(p->name) + 2 + 1);
 					if (!optname) {
 						continue;                      

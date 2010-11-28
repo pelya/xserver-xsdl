@@ -1284,11 +1284,8 @@ xf86LogInit(void)
     /* Get the log file name */
     if (xf86LogFileFrom == X_DEFAULT) {
 	/* Append the display number and ".log" */
-	lf = malloc(strlen(xf86LogFile) + strlen("%s") +
-		    strlen(LOGSUFFIX) + 1);
-	if (!lf)
+	if (asprintf(&lf, "%s%%s" LOGSUFFIX, xf86LogFile) == -1)
 	    FatalError("Cannot allocate space for the log file name\n");
-	sprintf(lf, "%s%%s" LOGSUFFIX, xf86LogFile);
 	xf86LogFile = lf;
     }
 
