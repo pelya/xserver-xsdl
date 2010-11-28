@@ -27,7 +27,10 @@ INCLUDES = $(XORG_INCS) \
 	   -I$(top_srcdir)/hw/xfree86/parser
 
 # gah
-cvt_SOURCES = cvt.c $(top_srcdir)/hw/xfree86/modes/xf86cvt.c
+cvt_SOURCES = cvt.c \
+	$(top_srcdir)/hw/xfree86/modes/xf86cvt.c \
+	$(top_srcdir)/os/xprintf.c
+
 cvt_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 man1_MANS = cvt.man
