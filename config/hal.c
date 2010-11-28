@@ -200,7 +200,9 @@ device_added(LibHalContext *hal_ctx, const char *udi)
                        "config/hal: getting usb.product_id on %s "
                        "returned %04x\n", parent, usb_product);
         if (usb_vendor && usb_product)
-            attrs.usb_id = Xprintf("%04x:%04x", usb_vendor, usb_product);
+            if (asprintf(&attrs.usb_id, "%04x:%04x", usb_vendor, usb_product)
+		== -1)
+		attrs.usb_id = NULL;
 
         free(parent);
     }

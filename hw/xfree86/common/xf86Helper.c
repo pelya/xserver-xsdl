@@ -1193,9 +1193,13 @@ xf86VIDrvMsgVerb(InputInfoPtr dev, MessageType type, int verb, const char *forma
 {
     char *msg;
 
-    msg = Xprintf("%s: %s: %s", dev->drv->driverName, dev->name, format);
-    LogVMessageVerb(type, verb, msg, args);
-    free(msg);
+    if (asprintf(&msg, "%s: %s: %s", dev->drv->driverName, dev->name, format)
+	== -1) {
+	LogVMessageVerb(type, verb, "%s", args);
+    } else {
+	LogVMessageVerb(type, verb, msg, args);
+	free(msg);
+    }
 }
 
 /* Print input driver message, with verbose level specified directly */

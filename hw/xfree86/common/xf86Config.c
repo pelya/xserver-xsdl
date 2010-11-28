@@ -585,12 +585,11 @@ configFiles(XF86ConfFilesPtr fileconf)
     else if (fileconf && fileconf->file_fontpath) {
 	pathFrom = X_CONFIG;
 	if (xf86Info.useDefaultFontPath) {
-	    defaultFontPath = Xprintf("%s%s%s",
-				      fileconf->file_fontpath,
-				      *temp_path ? "," : "", temp_path);
-	    if (defaultFontPath != NULL) {
+	    if (asprintf(&defaultFontPath, "%s%s%s", fileconf->file_fontpath,
+			 *temp_path ? "," : "", temp_path) == -1)
+		defaultFontPath = NULL;
+	    else
 		must_copy = FALSE;
-	    }
 	}
 	else
 	    defaultFontPath = fileconf->file_fontpath;
