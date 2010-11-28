@@ -97,11 +97,8 @@ void DoShowOptions (void) {
 				);
 				continue;                                                       
 			}
-			pSymbol = malloc(
-				strlen(xf86DriverList[i]->driverName) + strlen("ModuleData") + 1
-			);
-			strcpy (pSymbol, xf86DriverList[i]->driverName);
-			strcat (pSymbol, "ModuleData");
+			XNFasprintf(&pSymbol, "%sModuleData",
+				    xf86DriverList[i]->driverName);
 			initData = LoaderSymbol (pSymbol);
 			if (initData) {
 				XF86ModuleVersionInfo *vers = initData->vers;

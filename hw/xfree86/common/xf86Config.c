@@ -208,9 +208,7 @@ xf86ValidateFontPath(char *path)
 	continue;
       }
       else {
-	p1 = xnfalloc(strlen(dir_elem)+strlen(DIR_FILE)+1);
-	strcpy(p1, dir_elem);
-	strcat(p1, DIR_FILE);
+	XNFasprintf(&p1, "%s%s", dir_elem, DIR_FILE);
 	flag = stat(p1, &stat_buf);
 	if (flag == 0)
 	  if (!S_ISREG(stat_buf.st_mode))
