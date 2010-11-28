@@ -1190,7 +1190,7 @@ xf86VIDrvMsgVerb(InputInfoPtr dev, MessageType type, int verb, const char *forma
     char *msg;
 
     msg = Xprintf("%s: %s: %s", dev->drv->driverName, dev->name, format);
-    LogVMessageVerb(type, verb, "%s", msg);
+    LogVMessageVerb(type, verb, msg, args);
     free(msg);
 }
 
