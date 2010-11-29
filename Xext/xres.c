@@ -10,6 +10,7 @@
 #include <string.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <assert.h>
 #include "misc.h"
 #include "os.h"
 #include "dixstruct.h"
@@ -22,6 +23,98 @@
 #include "gcstruct.h"
 #include "modinit.h"
 #include "protocol-versions.h"
+#include "client.h"
+#include "list.h"
+#include "misc.h"
+#include <string.h>
+
+/** @brief Holds fragments of responses for ConstructClientIds.
+ *
+ *  note: there is no consideration for data alignment */
+typedef struct {
+    struct xorg_list l;
+    int   bytes;
+    /* data follows */
+} FragmentList;
+
+/** @brief Holds structure for the generated response to
+           ProcXResQueryClientIds; used by ConstructClientId* -functions */
+typedef struct {
+    int           numIds;
+    int           resultBytes;
+    struct xorg_list   response;
+    int           sentClientMasks[MAXCLIENTS];
+} ConstructClientIdCtx;
+
+/** @brief Allocate and add a sequence of bytes at the end of a fragment list.
+           Call DestroyFragments to release the list.
+
+    @param frags A pointer to head of an initialized linked list
+    @param bytes Number of bytes to allocate
+    @return Returns a pointer to the allocated non-zeroed region
+            that is to be filled by the caller. On error (out of memory)
+            returns NULL and makes no changes to the list.
+*/
+static void *
+AddFragment(struct xorg_list *frags, int bytes)
+{
+    FragmentList *f = malloc(sizeof(FragmentList) + bytes);
+    if (!f) {
+        return NULL;
+    } else {
+        f->bytes = bytes;
+        xorg_list_add(&f->l, frags->prev);
+        return (char*) f + sizeof(*f);
+    }
+}
+
+/** @brief Sends all fragments in the list to the client. Does not
+           free anything.
+
+    @param client The client to send the fragments to
+    @param frags The head of the list of fragments
+*/
+static void
+WriteFragmentsToClient(ClientPtr client, struct xorg_list *frags)
+{
+    FragmentList *it;
+    xorg_list_for_each_entry(it, frags, l) {
+        WriteToClient(client, it->bytes, (char*) it + sizeof(*it));
+    }
+}
+
+/** @brief Frees a list of fragments. Does not free() root node.
+
+    @param frags The head of the list of fragments
+*/
+static void
+DestroyFragments(struct xorg_list *frags)
+{
+    FragmentList *it, *tmp;
+    xorg_list_for_each_entry_safe(it, tmp, frags, l) {
+        xorg_list_del(&it->l);
+        free(it);
+    }
+}
+
+/** @brief Constructs a context record for ConstructClientId* functions
+           to use */
+static void
+InitConstructClientIdCtx(ConstructClientIdCtx *ctx)
+{
+    ctx->numIds = 0;
+    ctx->resultBytes = 0;
+    xorg_list_init(&ctx->response);
+    memset(ctx->sentClientMasks, 0, sizeof(ctx->sentClientMasks));
+}
+
+/** @brief Destroys a context record, releases all memory (except the storage
+           for *ctx itself) */
+static void
+DestroyConstructClientIdCtx(ConstructClientIdCtx *ctx)
+{
+    DestroyFragments(&ctx->response);
+}
 
 static int
 ProcXResQueryVersion(ClientPtr client)
@@ -288,6 +381,202 @@ ProcXResQueryClientPixmapBytes(ClientPtr client)
     return Success;
 }
 
+/** @brief Finds out if a client's information need to be put into the
+    response; marks client having been handled, if that is the case.
+
+    @param client   The client to send information about
+    @param mask     The request mask (0 to send everything, otherwise a
+                    bitmask of X_XRes*Mask)
+    @param ctx      The context record that tells which clients and id types
+                    have been already handled
+    @param sendMask Which id type are we now considering. One of X_XRes*Mask.
+
+    @return Returns TRUE if the client information needs to be on the
+            response, otherwise FALSE.
+*/
+static Bool
+WillConstructMask(ClientPtr client, CARD32 mask,
+                  ConstructClientIdCtx *ctx, int sendMask)
+{
+    if ((!mask || (mask & sendMask))
+        && !(ctx->sentClientMasks[client->index] & sendMask)) {
+        ctx->sentClientMasks[client->index] |= sendMask;
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+/** @brief Constructs a response about a single client, based on a certain
+           client id spec
+
+    @param sendClient Which client wishes to receive this answer. Used for
+                      byte endianess.
+    @param client     Which client are we considering.
+    @param mask       The client id spec mask indicating which information
+                      we want about this client.
+    @param ctx        The context record containing the constructed response
+                      and information on which clients and masks have been
+                      already handled.
+
+    @return Return TRUE if everything went OK, otherwise FALSE which indicates
+            a memory allocation problem.
+*/
+static Bool
+ConstructClientIdValue(ClientPtr sendClient, ClientPtr client, CARD32 mask,
+                       ConstructClientIdCtx *ctx)
+{
+    xXResClientIdValue rep;
+
+    rep.spec.client = client->clientAsMask;
+    if (client->swapped) {
+        swapl (&rep.spec.client);
+    }
+
+    if (WillConstructMask(client, mask, ctx, X_XResClientXIDMask)) {
+        void *ptr = AddFragment(&ctx->response, sizeof(rep));
+        if (!ptr) {
+            return FALSE;
+        }
+
+        rep.spec.mask = X_XResClientXIDMask;
+        rep.length = 0;
+        if (sendClient->swapped) {
+            swapl (&rep.spec.mask);
+            /* swapl (&rep.length, n); - not required for rep.length = 0 */
+        }
+
+        memcpy(ptr, &rep, sizeof(rep));
+
+        ctx->resultBytes += sizeof(rep);
+        ++ctx->numIds;
+    }
+    if (WillConstructMask(client, mask, ctx, X_XResLocalClientPIDMask)) {
+        pid_t pid = GetClientPid(client);
+
+        if (pid != -1) {
+            void *ptr = AddFragment(&ctx->response,
+                                    sizeof(rep) + sizeof(CARD32));
+            CARD32 *value = (void*) ((char*) ptr + sizeof(rep));
+
+            if (!ptr) {
+                return FALSE;
+            }
+
+            rep.spec.mask = X_XResLocalClientPIDMask;
+            rep.length = 4;
+
+            if (sendClient->swapped) {
+                swapl (&rep.spec.mask);
+                swapl (&rep.length);
+            }
+
+            if (sendClient->swapped) {
+                swapl (value);
+            }
+            memcpy(ptr, &rep, sizeof(rep));
+            *value = pid;
+
+            ctx->resultBytes += sizeof(rep) + sizeof(CARD32);
+            ++ctx->numIds;
+        }
+    }
+
+    /* memory allocation errors earlier may return with FALSE */
+    return TRUE;
+}
+
+/** @brief Constructs a response about all clients, based on a client id specs
+
+    @param client   Which client which we are constructing the response for.
+    @param numSpecs Number of client id specs in specs
+    @param specs    Client id specs
+
+    @return Return Success if everything went OK, otherwise a Bad* (currently
+            BadAlloc or BadValue)
+*/
+static int
+ConstructClientIds(ClientPtr client,
+                   int numSpecs, xXResClientIdSpec* specs,
+                   ConstructClientIdCtx *ctx)
+{
+    int specIdx;
+
+    for (specIdx = 0; specIdx < numSpecs; ++specIdx) {
+        if (specs[specIdx].client == 0) {
+            int c;
+            for (c = 0; c < currentMaxClients; ++c) {
+                if (clients[c]) {
+                    if (!ConstructClientIdValue(client, clients[c],
+                                                specs[specIdx].mask, ctx)) {
+                        return BadAlloc;
+                    }
+                }
+            }
+        } else {
+            int clientID = CLIENT_ID(specs[specIdx].client);
+
+            if ((clientID < currentMaxClients) && clients[clientID]) {
+                if (!ConstructClientIdValue(client, clients[clientID],
+                                            specs[specIdx].mask, ctx)) {
+                    return BadAlloc;
+                }
+            }
+        }
+    }
+
+    /* memory allocation errors earlier may return with BadAlloc */
+    return Success;
+}
+
+/** @brief Response to XResQueryClientIds request introduced in XResProto v1.2
+
+    @param client Which client which we are constructing the response for.
+
+    @return Returns the value returned from ConstructClientIds with the same
+            semantics
+*/
+static int
+ProcXResQueryClientIds (ClientPtr client)
+{
+    REQUEST(xXResQueryClientIdsReq);
+
+    xXResQueryClientIdsReply  rep;
+    xXResClientIdSpec        *specs = (void*) ((char*) stuff + sizeof(*stuff));
+    int                       rc;
+    ConstructClientIdCtx      ctx;
+
+    InitConstructClientIdCtx(&ctx);
+
+    REQUEST_AT_LEAST_SIZE(xXResQueryClientIdsReq);
+    REQUEST_FIXED_SIZE(xXResQueryClientIdsReq,
+                       stuff->numSpecs * sizeof(specs[0]));
+
+    rc = ConstructClientIds(client, stuff->numSpecs, specs, &ctx);
+
+    if (rc == Success) {
+        rep.type = X_Reply;
+        rep.sequenceNumber = client->sequence;
+
+        assert((ctx.resultBytes & 3) == 0);
+        rep.length = bytes_to_int32(ctx.resultBytes);
+        rep.numIds = ctx.numIds;
+
+        if (client->swapped) {
+            swaps (&rep.sequenceNumber);
+            swapl (&rep.length);
+            swapl (&rep.numIds);
+        }
+
+        WriteToClient(client,sizeof(rep),(char*)&rep);
+        WriteFragmentsToClient(client, &ctx.response);
+    }
+
+    DestroyConstructClientIdCtx(&ctx);
+
+    return rc;
+}
+
 static int
 ProcResDispatch(ClientPtr client)
 {
@@ -301,8 +590,12 @@ ProcResDispatch(ClientPtr client)
         return ProcXResQueryClientResources(client);
     case X_XResQueryClientPixmapBytes:
         return ProcXResQueryClientPixmapBytes(client);
-    default:
-        break;
+    case X_XResQueryClientIds:
+        return ProcXResQueryClientIds(client);
+    case X_XResQueryResourceBytes:
+        /* not implemented yet */
+        return BadRequest;
+    default: break;
     }
 
     return BadRequest;
@@ -335,7 +628,17 @@ SProcXResQueryClientPixmapBytes(ClientPtr client)
 }
 
 static int
-SProcResDispatch(ClientPtr client)
+SProcXResQueryClientIds (ClientPtr client)
+{
+    REQUEST(xXResQueryClientIdsReq);
+
+    REQUEST_AT_LEAST_SIZE (xXResQueryClientIdsReq);
+    swapl(&stuff->numSpecs);
+    return ProcXResQueryClientIds(client);
+}
+
+static int
+SProcResDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     swaps(&stuff->length);
@@ -349,8 +652,12 @@ SProcResDispatch(ClientPtr client)
         return SProcXResQueryClientResources(client);
     case X_XResQueryClientPixmapBytes:
         return SProcXResQueryClientPixmapBytes(client);
-    default:
-        break;
+    case X_XResQueryClientIds:
+        return SProcXResQueryClientIds(client);
+    case X_XResQueryResourceBytes:
+        /* not implemented yet */
+        return BadRequest;
+    default: break;
     }
 
     return BadRequest;
