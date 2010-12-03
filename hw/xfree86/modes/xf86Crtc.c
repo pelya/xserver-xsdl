@@ -82,6 +82,17 @@ xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
     config->maxHeight = maxHeight;
 }
 
+void
+xf86CrtcSetScanoutFormats(ScrnInfoPtr		scrn,
+			  int			num_formats,
+			  xf86CrtcScanoutFormat	*formats)
+{
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    config->num_scanout_formats = num_formats;
+    config->scanout_formats = formats;
+}
+
 /*
  * Crtc functions
  */
@@ -265,6 +276,7 @@ xf86CrtcSet(xf86CrtcPtr crtc, xf86CrtcSetRec *set)
     Rotation		saved_rotation;
     RRTransformRec	saved_transform;
     Bool		saved_transform_present;
+    PixmapPtr		saved_scanout_pixmap;
 
     crtc->enabled = xf86CrtcInUse (crtc);
 
@@ -284,6 +296,7 @@ xf86CrtcSet(xf86CrtcPtr crtc, xf86CrtcSetRec *set)
     saved_x = crtc->x;
     saved_y = crtc->y;
     saved_rotation = crtc->rotation;
+    saved_scanout_pixmap = crtc->scanoutPixmap;
     if (crtc->transformPresent) {
 	RRTransformInit (&saved_transform);
 	RRTransformCopy (&saved_transform, &crtc->transform);
@@ -301,6 +314,8 @@ xf86CrtcSet(xf86CrtcPtr crtc, xf86CrtcSetRec *set)
     }
     if (set->flags & XF86CrtcSetRotation)
 	crtc->rotation = set->rotation;
+    if (set->flags & XF86CrtcSetScanoutPixmap)
+	crtc->scanoutPixmap = set->scanout_pixmap;
 
     if (set->flags & XF86CrtcSetTransform) {
 	if (set->transform) {
@@ -399,6 +414,10 @@ done:
 	crtc->active = TRUE;
 	if (scrn->pScreen)
 	    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
+	if (crtc->scanoutPixmap)
+	    ++crtc->scanoutPixmap->refcnt;
+	if (saved_scanout_pixmap)
+	    (*scrn->pScreen->DestroyPixmap)(saved_scanout_pixmap);
 	if (scrn->ModeSet)
 	    scrn->ModeSet(scrn);
     } else {
@@ -409,6 +428,7 @@ done:
 	if (saved_transform_present)
 	    RRTransformCopy (&crtc->transform, &saved_transform);
 	crtc->transformPresent = saved_transform_present;
+	crtc->scanoutPixmap = saved_scanout_pixmap;
     }
 
     if (adjusted_mode) {

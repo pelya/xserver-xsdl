@@ -138,7 +138,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	      Rotation	    rotation,
 	      RRTransformPtr transform,
 	      int	    numOutputs,
-	      RROutputPtr   *outputs)
+	      RROutputPtr   *outputs,
+	      PixmapPtr	    scanoutPixmap)
 {
     int	    i, j;
 
@@ -236,6 +237,15 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	RRCrtcChanged (crtc, TRUE);
     }
 
+    if (scanoutPixmap != crtc->scanoutPixmap)
+    {
+	if (scanoutPixmap)
+	    ++scanoutPixmap->refcnt;
+	if (crtc->scanoutPixmap)
+	    (*crtc->scanoutPixmap->drawable.pScreen->DestroyPixmap) (crtc->scanoutPixmap);
+	crtc->scanoutPixmap = scanoutPixmap;
+    }
+
     if (crtc->changed && mode)
     {
 	RRTransformCompute (x, y,
@@ -312,7 +322,8 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   int		y,
 	   Rotation	rotation,
 	   int		numOutputs,
-	   RROutputPtr  *outputs)
+	   RROutputPtr  *outputs,
+	   PixmapPtr	scanout_pixmap)
 {
     ScreenPtr	pScreen = crtc->pScreen;
     Bool	ret = FALSE;
@@ -326,7 +337,8 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	crtc->numOutputs == numOutputs &&
 	!memcmp (crtc->outputs, outputs, numOutputs * sizeof (RROutputPtr)) &&
 	!RRCrtcPendingProperties (crtc) &&
-	!RRCrtcPendingTransform (crtc))
+	!RRCrtcPendingTransform (crtc) &&
+	crtc->scanoutPixmap == scanout_pixmap)
     {
 	ret = TRUE;
     }
@@ -336,7 +348,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	if (pScrPriv->rrCrtcSet)
 	{
 	    ret = (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y,
-					  rotation, numOutputs, outputs);
+					  rotation, numOutputs, outputs, scanout_pixmap);
 	}
 	else
 #endif
@@ -349,7 +361,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 
 		if (!mode)
 		{
-		    RRCrtcNotify (crtc, NULL, x, y, rotation, NULL, 0, NULL);
+		    RRCrtcNotify (crtc, NULL, x, y, rotation, NULL, 0, NULL, scanout_pixmap);
 		    ret = TRUE;
 		}
 		else
@@ -375,7 +387,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 		     */
 		    if (ret)
 		    {
-			RRCrtcNotify (crtc, mode, x, y, rotation, NULL, 1, outputs);
+			RRCrtcNotify (crtc, mode, x, y, rotation, NULL, 1, outputs, scanout_pixmap);
 			RRScreenSizeNotify (pScreen);
 		    }
 		}
@@ -573,7 +585,10 @@ RRCrtcGammaNotify (RRCrtcPtr	crtc)
     return TRUE;    /* not much going on here */
 }
 
-static void
+/*
+ * Compute overall scanout buffer requirements for the specified mode
+ */
+void
 RRModeGetScanoutSize (RRModePtr mode, struct pixman_f_transform *transform,
 		      int *width, int *height)
 {
@@ -1049,7 +1064,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
     }
 
     if (!RRCrtcSet (crtc, mode, stuff->x, stuff->y,
-		   rotation, numOutputs, outputs))
+		    rotation, numOutputs, outputs, NULL))
     {
 	rep.status = RRSetConfigFailed;
 	goto sendReply;

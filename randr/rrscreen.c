@@ -794,8 +794,10 @@ ProcRRSetScreenConfig (ClientPtr client)
     }
     
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixWriteAccess);
-    if (rc != Success)
+    if (rc != Success) {
+	client->errorValue = stuff->drawable;
 	return rc;
+    }
 
     pScreen = pDraw->pScreen;
 
@@ -940,7 +942,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	for (c = 0; c < pScrPriv->numCrtcs; c++)
 	{
 	    if (!RRCrtcSet (pScrPriv->crtcs[c], NULL, 0, 0, RR_Rotate_0,
-			    0, NULL))
+			    0, NULL, NULL))
 	    {
 		rep.status = RRSetConfigFailed;
 		/* XXX recover from failure */
@@ -956,7 +958,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	}
     }
 
-    if (!RRCrtcSet (crtc, mode, 0, 0, stuff->rotation, 1, &output))
+    if (!RRCrtcSet (crtc, mode, 0, 0, stuff->rotation, 1, &output, NULL))
 	rep.status = RRSetConfigFailed;
     else {
 	pScrPriv->lastSetTime = time;
