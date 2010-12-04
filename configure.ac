@@ -2180,6 +2180,7 @@ damageext/Makefile
 dbe/Makefile
 dix/Makefile
 doc/Makefile
+doc/man/Makefile
 doc/xml/Makefile
 doc/xml/dtrace/Makefile
 doc/xml/xserver.ent

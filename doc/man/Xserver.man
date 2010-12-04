@@ -38,7 +38,7 @@ is the generic name for the X Window System display server.  It is
 frequently a link or a copy of the appropriate server binary for
 driving the most frequently used server on a given machine.
 .SH "STARTING THE SERVER"
-The X server is usually started from the X Display Manager program 
+The X server is usually started from the X Display Manager program
 \fIxdm\fP(1) or a similar display manager program.
 This utility is run from the system boot files and takes care of keeping
 the server running, prompting for usernames and passwords, and starting up
@@ -97,7 +97,7 @@ Audit lines are sent as standard error output.
 .TP 8
 .B \-auth \fIauthorization-file\fP
 specifies a file which contains a collection of authorization records used
-to authenticate access.  See also the \fIxdm\fP(1) and 
+to authenticate access.  See also the \fIxdm\fP(1) and
 \fIXsecurity\fP(__miscmansuffix__) manual pages.
 .TP 8
 .B \-br
@@ -285,19 +285,19 @@ sets the stack space limit of the server to the specified number of kilobytes.
 A value of zero makes the stack size as large as possible.  The default value
 of \-1 leaves the stack space limit unchanged.
 .TP 8
-.B \-render 
+.B \-render
 .BR default | mono | gray | color
 sets the color allocation policy that will be used by the render extension.
 .RS 8
 .TP 8
 .I default
 selects the default policy defined for the display depth of the X
-server. 
+server.
 .TP 8
 .I mono
-don't use any color cell. 
+don't use any color cell.
 .TP 8
-.I gray 
+.I gray
 use a gray map of 13 color cells for the X render extension.
 .TP 8
 .I color
@@ -325,13 +325,13 @@ enable XDMCP and broadcasts BroadcastQuery packets to the network.  The
 first responding display manager will be chosen for the session.
 .TP 8
 .B \-multicast [\fIaddress\fP [\fIhop count\fP]]
-Enable XDMCP and multicast BroadcastQuery packets to the  network.   
-The first responding display manager is chosen for the session.  If an 
-address is specified, the multicast is sent to that address.  If no 
-address is specified, the multicast is sent to the default XDMCP IPv6 
-multicast group.  If a hop count is specified, it is used as the maximum 
-hop count for the multicast.  If no hop count is specified, the multicast 
-is set to a maximum of 1 hop, to prevent the multicast from being routed 
+Enable XDMCP and multicast BroadcastQuery packets to the  network.
+The first responding display manager is chosen for the session.  If an
+address is specified, the multicast is sent to that address.  If no
+address is specified, the multicast is sent to the default XDMCP IPv6
+multicast group.  If a hop count is specified, it is used as the maximum
+hop count for the multicast.  If no hop count is specified, the multicast
+is set to a maximum of 1 hop, to prevent the multicast from being routed
 beyond the local network.
 .TP 8
 .B \-indirect \fIhostname\fP
@@ -368,7 +368,7 @@ Yet another XDMCP specific value, this one allows the display manager to
 identify each display so that it can locate the shared key.
 .SH XKEYBOARD OPTIONS
 X servers that support the XKEYBOARD (a.k.a. \*qXKB\*q) extension accept the
-following options.  All layout files specified on the command line must be 
+following options.  All layout files specified on the command line must be
 located in the XKB base directory or a subdirectory, and specified as the
 relative path from the XKB base directory.  The default XKB base directory is
 .IR __projectroot__/lib/X11/xkb .
@@ -400,8 +400,8 @@ specify which transport type clients should try to use.
 .SH GRANTING ACCESS
 The X server implements a platform-dependent subset of the following
 authorization protocols: MIT-MAGIC-COOKIE-1, XDM-AUTHORIZATION-1,
-XDM-AUTHORIZATION-2, SUN-DES-1, and MIT-KERBEROS-5.  See the 
-\fIXsecurity\fP(__miscmansuffix__) manual page for information on the 
+XDM-AUTHORIZATION-2, SUN-DES-1, and MIT-KERBEROS-5.  See the
+\fIXsecurity\fP(__miscmansuffix__) manual page for information on the
 operation of these protocols.
 .PP
 Authorization data required by the above protocols is passed to the
@@ -486,7 +486,7 @@ is possible.
 The X server can obtain fonts from directories and/or from font servers.
 The list of directories and font servers
 the X server uses when trying to open a font is controlled
-by the \fIfont path\fP.  
+by the \fIfont path\fP.
 .LP
 The default font path is
 __default_font_path__ .
@@ -561,7 +561,7 @@ Fonts: \fIbdftopcf\fP(1), \fImkfontdir\fP(1), \fImkfontscale\fP(1),
 \fIxfs\fP(1), \fIxlsfonts\fP(1), \fIxfontsel\fP(1), \fIxfd\fP(1),
 .I "X Logical Font Description Conventions"
 .PP
-Security: \fIXsecurity\fP(__miscmansuffix__), \fIxauth\fP(1), \fIXau\fP(1), 
+Security: \fIXsecurity\fP(__miscmansuffix__), \fIxauth\fP(1), \fIXau\fP(1),
 \fIxdm\fP(1), \fIxhost\fP(1), \fIxfwp\fP(1),
 .I "Security Extension Specification"
 .PP
