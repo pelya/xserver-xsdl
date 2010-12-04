@@ -55,9 +55,10 @@
 #define RANDR_10_INTERFACE 1
 #define RANDR_12_INTERFACE 1
 #define RANDR_13_INTERFACE 1 /* requires RANDR_12_INTERFACE */
+#define RANDR_14_INTERFACE 1 /* requires RANDR_13_INTERFACE */
 #define RANDR_GET_CRTC_INTERFACE 1
 
-#define RANDR_INTERFACE_VERSION 0x0103
+#define RANDR_INTERFACE_VERSION 0x0104
 
 typedef XID	RRMode;
 typedef XID	RROutput;
@@ -122,9 +123,16 @@ struct _rrCrtc {
     Bool	    transforms;
     RRTransformRec  client_pending_transform;
     RRTransformRec  client_current_transform;
+    PictTransform   client_sprite_position_transform;
+    PictTransform   client_sprite_image_transform;
+    struct pict_f_transform	client_sprite_f_position_transform;
+    struct pict_f_transform	client_sprite_f_image_transform;
+
     PictTransform   transform;
     struct pict_f_transform f_transform;
     struct pict_f_transform f_inverse;
+    struct pict_f_transform f_sprite_position;		/* crtc from screen */
+    struct pict_f_transform f_sprite_image_inverse;	/* image from crtc */
 };
 
 struct _rrOutput {
@@ -233,6 +241,16 @@ typedef Bool (*RRSetConfigProcPtr) (ScreenPtr		pScreen,
 #endif
 	
 
+typedef void (*RRSetCrtcSpriteTransformPtr) (ScreenPtr pScreen,
+					     RRCrtcPtr randr_crtc,
+					     struct pict_f_transform *position_transform,
+					     struct pict_f_transform *image_transform);
+
+typedef void (*RRGetCrtcSpriteTransformPtr) (ScreenPtr pScreen,
+					     RRCrtcPtr randr_crtc,
+					     struct pict_f_transform *position_transform,
+					     struct pict_f_transform *image_transform);
+
 typedef struct _rrScrPriv {
     /*
      * 'public' part of the structure; DDXen fill this in
@@ -256,7 +274,9 @@ typedef struct _rrScrPriv {
     RRGetPanningProcPtr	rrGetPanning;
     RRSetPanningProcPtr	rrSetPanning;
 #endif
-    
+    RRSetCrtcSpriteTransformPtr	rrSetCrtcSpriteTransform;
+    RRGetCrtcSpriteTransformPtr	rrGetCrtcSpriteTransform;
+
     /*
      * Private part of the structure; not considered part of the ABI
      */
@@ -606,25 +626,6 @@ extern _X_EXPORT void
 RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height);
 
 /*
- * Compute the complete transformation matrix including
- * client-specified transform, rotation/reflection values and the crtc 
- * offset.
- *
- * Return TRUE if the resulting transform is not a simple translation.
- */
-extern _X_EXPORT Bool
-RRTransformCompute (int			    x,
-		    int			    y,
-		    int			    width,
-		    int			    height,
-		    Rotation		    rotation,
-		    RRTransformPtr	    rr_transform,
-
-		    PictTransformPtr	    transform,
-		    struct pict_f_transform *f_transform,
-		    struct pict_f_transform *f_inverse);
-
-/*
  * Return crtc transform
  */
 extern _X_EXPORT RRTransformPtr
@@ -699,6 +700,19 @@ ProcRRGetPanning (ClientPtr client);
 
 int
 ProcRRSetPanning (ClientPtr client);
+
+void
+RRCrtcSpriteTransformSet(RRCrtcPtr crtc,
+			 PictTransform *position_transform,
+			 PictTransform *image_transform,
+			 struct pict_f_transform *f_position_transform,
+			 struct pict_f_transform *f_image_transform);
+
+int
+ProcRRSetCrtcSpriteTransform (ClientPtr client);
+
+int
+ProcRRGetCrtcSpriteTransform (ClientPtr client);
 
 /* rrdispatch.c */
 extern _X_EXPORT Bool
@@ -888,6 +902,13 @@ ProcRRConfigureOutputProperty (ClientPtr client);
 
 extern _X_EXPORT int
 ProcRRDeleteOutputProperty (ClientPtr client);
+
+/* rrsprite.c */
+extern _X_EXPORT int
+ProcRRSetCrtcSpriteTransform (ClientPtr client);
+
+extern _X_EXPORT int
+ProcRRGetCrtcSpriteTransform (ClientPtr client);
 
 /* rrxinerama.c */
 #ifdef XINERAMA

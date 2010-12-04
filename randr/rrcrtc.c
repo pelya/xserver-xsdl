@@ -93,6 +93,8 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
     pixman_transform_init_identity (&crtc->transform);
     pixman_f_transform_init_identity (&crtc->f_transform);
     pixman_f_transform_init_identity (&crtc->f_inverse);
+    pixman_f_transform_init_identity (&crtc->f_sprite_position);
+    pixman_f_transform_init_identity (&crtc->f_sprite_image_inverse);
 
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
 	return NULL;
@@ -231,15 +233,21 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	RRTransformCopy (&crtc->client_current_transform, transform);
 	RRCrtcChanged (crtc, TRUE);
     }
+
     if (crtc->changed && mode)
     {
 	RRTransformCompute (x, y,
 			    mode->mode.width, mode->mode.height,
 			    rotation,
 			    &crtc->client_current_transform,
+			    &crtc->client_sprite_f_position_transform,
+			    &crtc->client_sprite_f_image_transform,
 			    &crtc->transform, &crtc->f_transform,
-			    &crtc->f_inverse);
+			    &crtc->f_inverse, &crtc->f_sprite_position,
+			    &crtc->f_sprite_image_inverse,
+			    NULL);
     }
+
     return TRUE;
 }
 
@@ -511,7 +519,7 @@ RRCrtcGammaNotify (RRCrtcPtr	crtc)
 }
 
 static void
-RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
+RRModeGetScanoutSize (RRModePtr mode, struct pixman_f_transform *transform,
 		      int *width, int *height)
 {
     BoxRec  box;
@@ -527,7 +535,7 @@ RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
     box.x2 = mode->mode.width;
     box.y2 = mode->mode.height;
 
-    pixman_transform_bounds (transform, &box);
+    pixman_f_transform_bounds (transform, &box);
     *width = box.x2 - box.x1;
     *height = box.y2 - box.y1;
 }
@@ -538,7 +546,7 @@ RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
 void
 RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
 {
-    return RRModeGetScanoutSize (crtc->mode, &crtc->transform, width, height);
+    RRModeGetScanoutSize (crtc->mode, &crtc->f_transform, width, height);
 }
 
 /*
@@ -924,9 +932,12 @@ ProcRRSetCrtcConfig (ClientPtr client)
 				mode->mode.width, mode->mode.height,
 				rotation,
 				&crtc->client_pending_transform,
-				&transform, &f_transform, &f_inverse);
+				&crtc->client_sprite_f_position_transform,
+				&crtc->client_sprite_f_image_transform,
+				&transform, &f_transform, &f_inverse, NULL, NULL, NULL);
 
-	    RRModeGetScanoutSize (mode, &transform, &source_width, &source_height);
+	    RRModeGetScanoutSize (mode, &f_transform,
+				  &source_width, &source_height);
 	    if (stuff->x + source_width > pScreen->width)
 	    {
 		client->errorValue = stuff->x;
