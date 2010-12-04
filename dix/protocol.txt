@@ -124,6 +124,13 @@ R004 DRI2:DestroyDrawable
 R005 DRI2:GetBuffers
 R006 DRI2:CopyRegion
 R007 DRI2:GetBuffersWithFormat
+R008 DRI2:SwapBuffers
+R009 DRI2:GetMSC
+R010 DRI2:WaitMSC
+R011 DRI2:WaitSBC
+R012 DRI2:SwapInterval
+V000 DRI2:BufferSwapComplete
+V001 DRI2:InvalidateBuffers
 R000 Extended-Visual-Information:QueryVersion
 R001 Extended-Visual-Information:GetVisualInfo
 R000 FontCache:QueryVersion
