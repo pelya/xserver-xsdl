@@ -191,6 +191,24 @@ RRScreenSizeSet (ScreenPtr  pScreen,
 }
 
 /*
+ * Compute an RRScreenConfig from the current screen information
+ */
+void
+RRScreenCurrentConfig(ScreenPtr screen,
+		      RRScreenConfigPtr screen_config)
+{
+    PixmapPtr		screen_pixmap = screen->GetScreenPixmap(screen);
+    WindowPtr		root = screen->root;
+
+    screen_config->screen_pixmap_width = screen_pixmap->drawable.width;
+    screen_config->screen_pixmap_height = screen_pixmap->drawable.height;
+    screen_config->screen_width = root->drawable.width;
+    screen_config->screen_height = root->drawable.height;
+    screen_config->mm_width = screen->mmWidth;
+    screen_config->mm_height = screen->mmHeight;
+}
+
+/*
  * Retrieve valid screen size range
  */
 int
