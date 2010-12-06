@@ -2793,6 +2793,14 @@ IdleTimeBlockHandler(pointer env, struct timeval **wt, pointer LastSelectMask)
 		break;
 	    }
 	}
+	/* 
+	 * We've been called exactly on the idle time, but we have a
+	 * NegativeTransition trigger which requires a transition from an
+	 * idle time greater than this.  Schedule a wakeup for the next
+	 * millisecond so we won't miss a transition.
+	 */
+	if (XSyncValueEqual (idle, *pIdleTimeValueLess))
+	    AdjustWaitForDelay(wt, 1);
     }
     else if (pIdleTimeValueGreater)
     {
