@@ -1465,6 +1465,66 @@ ProcSyncDestroyCounter(ClientPtr client)
     return Success;
 }
 
+static SyncAwaitUnion*
+SyncAwaitPrologue(ClientPtr client, int items)
+{
+    SyncAwaitUnion *pAwaitUnion;
+
+    /*  all the memory for the entire await list is allocated
+     *  here in one chunk
+     */
+    pAwaitUnion = malloc((items+1) * sizeof(SyncAwaitUnion));
+    if (!pAwaitUnion)
+	return NULL;
+
+    /* first item is the header, remainder are real wait conditions */
+
+    pAwaitUnion->header.delete_id = FakeClientID(client->index);
+    if (!AddResource(pAwaitUnion->header.delete_id, RTAwait, pAwaitUnion))
+    {
+	free(pAwaitUnion);
+	return NULL;
+    }
+
+    pAwaitUnion->header.client = client;
+    pAwaitUnion->header.num_waitconditions = 0;
+
+    return pAwaitUnion;
+}
+
+static void
+SyncAwaitEpilogue(ClientPtr client, int items, SyncAwaitUnion *pAwaitUnion)
+{
+    SyncAwait *pAwait;
+    int i;
+
+    IgnoreClient(client);
+
+    /* see if any of the triggers are already true */
+
+    pAwait = &(pAwaitUnion+1)->await; /* skip over header */
+    for (i = 0; i < items; i++, pAwait++)
+    {
+	CARD64 value;
+
+	/*  don't have to worry about NULL counters because the request
+	 *  errors before we get here out if they occur
+	 */
+	switch (pAwait->trigger.pSync->type) {
+	case SYNC_COUNTER:
+	    value = ((SyncCounter *)pAwait->trigger.pSync)->value;
+	    break;
+	default:
+	    XSyncIntToValue(&value, 0);
+	}
+
+	if ((*pAwait->trigger.CheckTrigger)(&pAwait->trigger, value))
+	{
+	    (*pAwait->trigger.TriggerFired)(&pAwait->trigger);
+	    break; /* once is enough */
+	}
+    }
+}
 
 /*
  * ** Await
@@ -1496,28 +1556,12 @@ ProcSyncAwait(ClientPtr client)
 	return BadValue;
     }
 
-    pProtocolWaitConds = (xSyncWaitCondition *) & stuff[1];
-
-    /*  all the memory for the entire await list is allocated
-     *  here in one chunk
-     */
-    pAwaitUnion = malloc((items+1) * sizeof(SyncAwaitUnion));
-    if (!pAwaitUnion)
+    if (!(pAwaitUnion = SyncAwaitPrologue(client, items)))
 	return BadAlloc;
-
-    /* first item is the header, remainder are real wait conditions */
-
-    pAwaitUnion->header.delete_id = FakeClientID(client->index);
-    if (!AddResource(pAwaitUnion->header.delete_id, RTAwait, pAwaitUnion))
-    {
-	free(pAwaitUnion);
-	return BadAlloc;
-    }
 
     /* don't need to do any more memory allocation for this request! */
 
-    pAwaitUnion->header.client = client;
-    pAwaitUnion->header.num_waitconditions = 0;
+    pProtocolWaitConds = (xSyncWaitCondition *) & stuff[1];
 
     pAwait = &(pAwaitUnion+1)->await; /* skip over header */
     for (i = 0; i < items; i++, pProtocolWaitConds++, pAwait++)
@@ -1561,32 +1605,8 @@ ProcSyncAwait(ClientPtr client)
 	pAwaitUnion->header.num_waitconditions++;
     }
 
-    IgnoreClient(client);
+    SyncAwaitEpilogue(client, items, pAwaitUnion);
 
-    /* see if any of the triggers are already true */
-
-    pAwait = &(pAwaitUnion+1)->await; /* skip over header */
-    for (i = 0; i < items; i++, pAwait++)
-    {
-	CARD64 value;
-
-	/*  don't have to worry about NULL counters because the request
-	 *  errors before we get here out if they occur
-	 */
-	switch (pAwait->trigger.pSync->type) {
-	case SYNC_COUNTER:
-	    value = ((SyncCounter *)pAwait->trigger.pSync)->value;
-	    break;
-	default:
-	    XSyncIntToValue(&value, 0);
-	}
-
-	if ((*pAwait->trigger.CheckTrigger)(&pAwait->trigger, value))
-	{
-	    (*pAwait->trigger.TriggerFired)(&pAwait->trigger);
-	    break; /* once is enough */
-	}
-    }
     return Success;
 }
 
