@@ -435,10 +435,9 @@ RRCrtcCurrentConfig(RRCrtcPtr crtc,
     crtc_config->sprite_position_f_transform = crtc->client_sprite_f_position_transform;
     crtc_config->sprite_image_f_transform = crtc->client_sprite_f_image_transform;
 
-    /* XXX add pixmap stuff */
-    crtc_config->pixmap = NULL;
-    crtc_config->pixmap_x = 0;
-    crtc_config->pixmap_y = 0;
+    crtc_config->pixmap = crtc->scanoutPixmap;
+    crtc_config->pixmap_x = crtc->x;
+    crtc_config->pixmap_y = crtc->y;
     return TRUE;
 }
 
@@ -1510,6 +1509,8 @@ RRConvertCrtcConfig(ClientPtr client, ScreenPtr screen,
 
     if (x->pixmap == None)
 	pixmap = NULL;
+    else if (x->pixmap == RR_CurrentScanoutPixmap)
+	pixmap = crtc->scanoutPixmap;
     else
     {
 	rc = dixLookupResourceByType((pointer *) &pixmap, x->pixmap,

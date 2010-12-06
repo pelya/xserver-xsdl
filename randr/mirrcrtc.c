@@ -28,11 +28,6 @@ miRRSetScreenConfig(ScreenPtr screen,
 {
     RRScreenConfigRec	old_screen_config;
 
-    /* XXX deal with separate pixmap/screen sizes */
-    if (screen_config->screen_pixmap_width != screen_config->screen_width ||
-	screen_config->screen_pixmap_height != screen_config->screen_height)
-	return FALSE;
-
     RRScreenCurrentConfig(screen, &old_screen_config);
 
     /* Check and see if nothing has changed */
@@ -47,6 +42,8 @@ miRRSetScreenConfig(ScreenPtr screen,
     return RRScreenSizeSet(screen,
 			   screen_config->screen_width,
 			   screen_config->screen_height,
+			   screen_config->screen_pixmap_width,
+			   screen_config->screen_pixmap_height,
 			   screen_config->mm_width,
 			   screen_config->mm_height);
 }

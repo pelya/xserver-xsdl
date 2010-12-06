@@ -168,6 +168,8 @@ Bool
 RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD16	    width,
 		 CARD16	    height,
+		 CARD16	    pixWidth,
+		 CARD16	    pixHeight,
 		 CARD32	    mmWidth,
 		 CARD32	    mmHeight)
 {
@@ -178,6 +180,7 @@ RRScreenSizeSet (ScreenPtr  pScreen,
     {
 	return (*pScrPriv->rrScreenSetSize) (pScreen,
 					     width, height,
+					     pixWidth, pixHeight,
 					     mmWidth, mmHeight);
     }
 #endif
@@ -317,6 +320,7 @@ ProcRRSetScreenSize (ClientPtr client)
 	return BadValue;
     }
     if (!RRScreenSizeSet (pScreen, 
+			  stuff->width, stuff->height,
 			  stuff->width, stuff->height,
 			  stuff->widthInMillimeters,
 			  stuff->heightInMillimeters))
@@ -949,7 +953,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 		goto sendReply;
 	    }
 	}
-	if (!RRScreenSizeSet (pScreen, width, height,
+	if (!RRScreenSizeSet (pScreen, width, height, width, height,
 			      pScreen->mmWidth, pScreen->mmHeight))
 	{
 	    rep.status = RRSetConfigFailed;
