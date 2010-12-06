@@ -414,10 +414,6 @@ done:
 	crtc->active = TRUE;
 	if (scrn->pScreen)
 	    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
-	if (crtc->scanoutPixmap)
-	    ++crtc->scanoutPixmap->refcnt;
-	if (saved_scanout_pixmap)
-	    (*scrn->pScreen->DestroyPixmap)(saved_scanout_pixmap);
 	if (scrn->ModeSet)
 	    scrn->ModeSet(scrn);
     } else {
