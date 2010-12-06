@@ -2165,6 +2165,18 @@ ProcSyncDispatch(ClientPtr client)
 	return ProcSyncSetPriority(client);
       case X_SyncGetPriority:
 	return ProcSyncGetPriority(client);
+      case X_SyncCreateFence:
+	return ProcSyncCreateFence(client);
+      case X_SyncTriggerFence:
+	return ProcSyncTriggerFence(client);
+      case X_SyncResetFence:
+	return ProcSyncResetFence(client);
+      case X_SyncDestroyFence:
+	return ProcSyncDestroyFence(client);
+      case X_SyncQueryFence:
+	return ProcSyncQueryFence(client);
+      case X_SyncAwaitFence:
+	return ProcSyncAwaitFence(client);
       default:
 	return BadRequest;
     }
@@ -2477,6 +2489,18 @@ SProcSyncDispatch(ClientPtr client)
 	return SProcSyncSetPriority(client);
       case X_SyncGetPriority:
 	return SProcSyncGetPriority(client);
+      case X_SyncCreateFence:
+	return SProcSyncCreateFence(client);
+      case X_SyncTriggerFence:
+	return SProcSyncTriggerFence(client);
+      case X_SyncResetFence:
+	return SProcSyncResetFence(client);
+      case X_SyncDestroyFence:
+	return SProcSyncDestroyFence(client);
+      case X_SyncQueryFence:
+	return SProcSyncQueryFence(client);
+      case X_SyncAwaitFence:
+	return SProcSyncAwaitFence(client);
       default:
 	return BadRequest;
     }
