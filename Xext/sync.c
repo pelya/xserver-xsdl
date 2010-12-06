@@ -67,6 +67,7 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "opaque.h"
 #include <X11/extensions/syncproto.h>
 #include "syncsrv.h"
+#include "protocol-versions.h"
 
 #include <stdio.h>
 #if !defined(WIN32)
@@ -1099,8 +1100,8 @@ ProcSyncInitialize(ClientPtr client)
     memset(&rep, 0, sizeof(xSyncInitializeReply));
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.majorVersion = SYNC_MAJOR_VERSION;
-    rep.minorVersion = SYNC_MINOR_VERSION;
+    rep.majorVersion = SERVER_SYNC_MAJOR_VERSION;
+    rep.minorVersion = SERVER_SYNC_MINOR_VERSION;
     rep.length = 0;
 
     if (client->swapped)
