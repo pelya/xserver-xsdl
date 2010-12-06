@@ -1059,6 +1059,17 @@ SyncComputeBracketValues(SyncCounter *pCounter)
 	    {
 		psci->bracket_less = pTrigger->test_value;
 		pnewltval = &psci->bracket_less;
+	    } else if (XSyncValueEqual(pCounter->value, pTrigger->test_value) &&
+		       XSyncValueLessThan(pTrigger->test_value,
+					  psci->bracket_greater))
+	    {
+	        /*
+		 * The value is exactly equal to our threshold.  We want one
+		 * more event in the positive direction to ensure we pick up
+		 * when the value *exceeds* this threshold.
+		 */
+	        psci->bracket_greater = pTrigger->test_value;
+		pnewgtval = &psci->bracket_greater;
 	    }
 	}
         else if (pTrigger->test_type == XSyncPositiveTransition &&
@@ -1069,6 +1080,17 @@ SyncComputeBracketValues(SyncCounter *pCounter)
 	    {
 		psci->bracket_greater = pTrigger->test_value;
 		pnewgtval = &psci->bracket_greater;
+	    } else if (XSyncValueEqual(pCounter->value, pTrigger->test_value) &&
+		       XSyncValueGreaterThan(pTrigger->test_value,
+					     psci->bracket_less))
+	    {
+	        /*
+		 * The value is exactly equal to our threshold.  We want one
+		 * more event in the negative direction to ensure we pick up
+		 * when the value is less than this threshold.
+		 */
+	        psci->bracket_less = pTrigger->test_value;
+		pnewltval = &psci->bracket_less;
 	    }
 	}
     } /* end for each trigger */
