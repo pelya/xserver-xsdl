@@ -147,6 +147,9 @@ SyncDeleteTriggerFromSyncObject(SyncTrigger *pTrigger)
 
 	if (IsSystemCounter(pCounter))
 	    SyncComputeBracketValues(pCounter);
+    } else if (SYNC_FENCE == pTrigger->pSync->type) {
+	SyncFence* pFence = (SyncFence*) pTrigger->pSync;
+	pFence->funcs.DeleteTrigger(pTrigger);
     }
 }
 
@@ -180,23 +183,27 @@ SyncAddTriggerToSyncObject(SyncTrigger *pTrigger)
 
 	if (IsSystemCounter(pCounter))
 	    SyncComputeBracketValues(pCounter);
+    } else if (SYNC_FENCE == pTrigger->pSync->type) {
+	SyncFence* pFence = (SyncFence*) pTrigger->pSync;
+	pFence->funcs.AddTrigger(pTrigger);
     }
 
     return Success;
 }
 
 
-/*  Below are four possible functions that can be plugged into
- *  pTrigger->CheckTrigger, corresponding to the four possible
- *  test-types.  These functions are called after the counter's
- *  value changes but are also passed the old counter value
- *  so they can inspect both the old and new values.
- *  (PositiveTransition and NegativeTransition need to see both
- *  pieces of information.)  These functions return the truth value
- *  of the trigger.
+/*  Below are five possible functions that can be plugged into
+ *  pTrigger->CheckTrigger for counter sync objects, corresponding to
+ *  the four possible test-types, and the one possible function that
+ *  can be plugged into pTrigger->CheckTrigger for fence sync objects.
+ *  These functions are called after the sync object's state changes
+ *  but are also passed the old state so they can inspect both the old
+ *  and new values.  (PositiveTransition and NegativeTransition need to
+ *  see both pieces of information.)  These functions return the truth
+ *  value of the trigger.
  *
- *  All of them include the condition pTrigger->pCounter == NULL.
- *  This is because the spec says that a trigger with a counter value
+ *  All of them include the condition pTrigger->pSync == NULL.
+ *  This is because the spec says that a trigger with a sync value
  *  of None is always TRUE.
  */
 
@@ -248,6 +255,16 @@ SyncCheckTriggerNegativeTransition(SyncTrigger *pTrigger, CARD64 oldval)
     return (pCounter == NULL ||
 	    (XSyncValueGreaterThan(oldval, pTrigger->test_value) &&
 	     XSyncValueLessOrEqual(pCounter->value, pTrigger->test_value)));
+}
+
+static Bool
+SyncCheckTriggerFence(SyncTrigger *pTrigger, CARD64 unused)
+{
+    SyncFence* pFence = (SyncFence*) pTrigger->pSync;
+    (void)unused;
+
+    return (pFence == NULL ||
+	    pFence->funcs.CheckTriggered(pFence));
 }
 
 static int
@@ -302,30 +319,38 @@ SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XID syncObject,
 
     if (changes & XSyncCATestType)
     {
-	if (pTrigger->test_type != XSyncPositiveTransition &&
-	    pTrigger->test_type != XSyncNegativeTransition &&
-	    pTrigger->test_type != XSyncPositiveComparison &&
-	    pTrigger->test_type != XSyncNegativeComparison)
-	{
-	    client->errorValue = pTrigger->test_type;
-	    return BadValue;
-	}
-	/* select appropriate CheckTrigger function */
 
-	switch (pTrigger->test_type)
+	if (SYNC_FENCE == pSync->type)
 	{
-	case XSyncPositiveTransition:
-	    pTrigger->CheckTrigger = SyncCheckTriggerPositiveTransition;
-	    break;
-	case XSyncNegativeTransition:
-	    pTrigger->CheckTrigger = SyncCheckTriggerNegativeTransition;
-	    break;
-	case XSyncPositiveComparison:
-	    pTrigger->CheckTrigger = SyncCheckTriggerPositiveComparison;
-	    break;
-	case XSyncNegativeComparison:
-	    pTrigger->CheckTrigger = SyncCheckTriggerNegativeComparison;
-	    break;
+	    pTrigger->CheckTrigger = SyncCheckTriggerFence;
+	}
+	else
+	{
+	    if (pTrigger->test_type != XSyncPositiveTransition &&
+		pTrigger->test_type != XSyncNegativeTransition &&
+		pTrigger->test_type != XSyncPositiveComparison &&
+		pTrigger->test_type != XSyncNegativeComparison)
+	    {
+		client->errorValue = pTrigger->test_type;
+		return BadValue;
+	    }
+	    /* select appropriate CheckTrigger function */
+
+	    switch (pTrigger->test_type)
+	    {
+	    case XSyncPositiveTransition:
+		pTrigger->CheckTrigger = SyncCheckTriggerPositiveTransition;
+		break;
+	    case XSyncNegativeTransition:
+		pTrigger->CheckTrigger = SyncCheckTriggerNegativeTransition;
+		break;
+	    case XSyncPositiveComparison:
+		pTrigger->CheckTrigger = SyncCheckTriggerPositiveComparison;
+		break;
+	    case XSyncNegativeComparison:
+		pTrigger->CheckTrigger = SyncCheckTriggerNegativeComparison;
+		break;
+	    }
 	}
     }
 
@@ -2019,6 +2044,89 @@ ProcSyncQueryFence(ClientPtr client)
     return client->noClientException;
 }
 
+static int
+ProcSyncAwaitFence(ClientPtr client)
+{
+    REQUEST(xSyncAwaitFenceReq);
+    SyncAwaitUnion *pAwaitUnion;
+    SyncAwait *pAwait;
+    /* Use CARD32 rather than XSyncFence because XIDs are hard-coded to
+     * CARD32 in protocol definitions */
+    CARD32 *pProtocolFences;
+    int status;
+    int len;
+    int items;
+    int i;
+
+    REQUEST_AT_LEAST_SIZE(xSyncAwaitFenceReq);
+
+    len = client->req_len << 2;
+    len -= sz_xSyncAwaitFenceReq;
+    items = len / sizeof(CARD32);
+
+    if (items * sizeof(CARD32) != len)
+    {
+	return BadLength;
+    }
+    if (items == 0)
+    {
+	client->errorValue = items; /* XXX protocol change */
+	return BadValue;
+    }
+
+    if (!(pAwaitUnion = SyncAwaitPrologue(client, items)))
+	return BadAlloc;
+
+    /* don't need to do any more memory allocation for this request! */
+
+    pProtocolFences = (CARD32 *) & stuff[1];
+
+    pAwait = &(pAwaitUnion+1)->await; /* skip over header */
+    for (i = 0; i < items; i++, pProtocolFences++, pAwait++)
+    {
+	if (*pProtocolFences == None) /* XXX protocol change */
+	{
+	    /*  this should take care of removing any triggers created by
+	     *  this request that have already been registered on sync objects
+	     */
+	    FreeResource(pAwaitUnion->header.delete_id, RT_NONE);
+	    client->errorValue = *pProtocolFences;
+	    return SyncErrorBase + XSyncBadCounter;
+	}
+
+	pAwait->trigger.pSync = NULL;
+	/* Provide acceptable values for these unused fields to
+	 * satisfy SyncInitTrigger's validation logic
+	 */
+	pAwait->trigger.value_type = XSyncAbsolute;
+	XSyncIntToValue(&pAwait->trigger.wait_value, 0);
+	pAwait->trigger.test_type = 0;
+
+	status = SyncInitTrigger(client, &pAwait->trigger,
+				 *pProtocolFences, RTFence,
+				 XSyncCAAllTrigger);
+	if (status != Success)
+	{
+	    /*  this should take care of removing any triggers created by
+	     *  this request that have already been registered on sync objects
+	     */
+	    FreeResource(pAwaitUnion->header.delete_id, RT_NONE);
+	    return status;
+	}
+	/* this is not a mistake -- same function works for both cases */
+	pAwait->trigger.TriggerFired = SyncAwaitTriggerFired;
+	pAwait->trigger.CounterDestroyed = SyncAwaitTriggerFired;
+	/* event_threshold is unused for fence syncs */
+	XSyncIntToValue(&pAwait->event_threshold, 0);
+	pAwait->pHeader = &pAwaitUnion->header;
+	pAwaitUnion->header.num_waitconditions++;
+    }
+
+    SyncAwaitEpilogue(client, items, pAwaitUnion);
+
+    return client->noClientException;
+}
+
 /*
  * ** Given an extension request, call the appropriate request procedure
  */
@@ -2319,6 +2427,19 @@ SProcSyncQueryFence(ClientPtr client)
     swapl(&stuff->fid, n);
 
     return ProcSyncQueryFence(client);
+}
+
+static int
+SProcSyncAwaitFence(ClientPtr client)
+{
+    REQUEST(xSyncAwaitFenceReq);
+    char   n;
+
+    swaps(&stuff->length, n);
+    REQUEST_AT_LEAST_SIZE(xSyncAwaitFenceReq);
+    SwapRestL(stuff);
+
+    return ProcSyncAwaitFence(client);
 }
 
 static int
