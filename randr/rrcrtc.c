@@ -430,8 +430,10 @@ RRCrtcCurrentConfig(RRCrtcPtr crtc,
     if (!crtc_config->outputs)
 	return FALSE;
     memcpy(crtc_config->outputs, crtc->outputs, crtc->numOutputs * sizeof (RROutputPtr));
-    crtc_config->sprite_position_transform = crtc->client_sprite_f_position_transform;
-    crtc_config->sprite_image_transform = crtc->client_sprite_f_image_transform;
+    crtc_config->sprite_position_transform = crtc->client_sprite_position_transform;
+    crtc_config->sprite_image_transform = crtc->client_sprite_image_transform;
+    crtc_config->sprite_position_f_transform = crtc->client_sprite_f_position_transform;
+    crtc_config->sprite_image_f_transform = crtc->client_sprite_f_image_transform;
 
     /* XXX add pixmap stuff */
     crtc_config->pixmap = NULL;
@@ -718,8 +720,8 @@ RRScreenCoversCrtc(RRScreenConfigPtr screen_config,
 			crtc_config->mode->mode.width, crtc_config->mode->mode.height,
 			crtc_config->rotation,
 			client_transform,
-			&crtc_config->sprite_position_transform,
-			&crtc_config->sprite_image_transform,
+			&crtc_config->sprite_position_f_transform,
+			&crtc_config->sprite_image_f_transform,
 			NULL, &f_transform, NULL, NULL, NULL, NULL);
 
     RRModeGetScanoutSize (crtc_config->mode, &f_transform,
@@ -1469,15 +1471,6 @@ ProcRRGetCrtcTransform (ClientPtr client)
     return Success;
 }
 
-static void
-pixman_f_transform_from_xRenderTransform(struct pixman_f_transform *f_transform,
-					 xRenderTransform *x_transform)
-{
-    struct pixman_transform	transform;
-    PictTransform_from_xRenderTransform(&transform, x_transform);
-    pixman_f_transform_from_pixman_transform(f_transform, &transform);
-}
-
 static int
 RRConvertCrtcConfig(ClientPtr client, ScreenPtr screen,
 		    RRScreenConfigPtr screen_config,
@@ -1594,10 +1587,14 @@ RRConvertCrtcConfig(ClientPtr client, ScreenPtr screen,
     config->rotation = x->rotation;
     config->numOutputs = x->nOutput;
     config->outputs = outputs;
-    pixman_f_transform_from_xRenderTransform(&config->sprite_position_transform,
+    PictTransform_from_xRenderTransform(&config->sprite_position_transform,
 					     &x->spritePositionTransform);
-    pixman_f_transform_from_xRenderTransform(&config->sprite_image_transform,
+    PictTransform_from_xRenderTransform(&config->sprite_image_transform,
 					     &x->spriteImageTransform);
+    pixman_f_transform_from_pixman_transform(&config->sprite_position_f_transform,
+					     &config->sprite_position_transform);
+    pixman_f_transform_from_pixman_transform(&config->sprite_image_f_transform,
+					     &config->sprite_image_transform);
     config->pixmap = pixmap;
     config->pixmap_x = x->xPixmap;
     config->pixmap_y = x->yPixmap;
