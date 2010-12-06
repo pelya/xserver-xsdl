@@ -1465,7 +1465,8 @@ configInputDevices(XF86ConfLayoutPtr layout, serverLayoutPtr servlayoutp)
 	    free(indp);
 	    return FALSE;
 	}
-	indp[count]->options = irp->iref_option_lst;
+	indp[count]->options = xf86OptionListMerge(indp[count]->options,
+						   irp->iref_option_lst);
 	count++;
 	irp = (XF86ConfInputrefPtr)irp->list.next;
     }
