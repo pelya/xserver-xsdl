@@ -1750,9 +1750,6 @@ ProcRRSetCrtcConfigs (ClientPtr client)
     screen_config.mm_width = stuff->widthInMillimeters;
     screen_config.mm_height = stuff->heightInMillimeters;
 
-    if (num_configs == 0)
-	return Success;
-
     output_ids = (RROutput *) (x_configs + num_configs);
 
     /*
@@ -1760,7 +1757,7 @@ ProcRRSetCrtcConfigs (ClientPtr client)
      * server crtc configurations
      */
     configs = calloc(num_configs, sizeof (RRCrtcConfigRec));
-    if (!configs)
+    if (num_configs > 0 && configs == NULL)
 	return BadAlloc;
     for (i = 0; i < num_configs; i++) {
 	rc = RRConvertCrtcConfig(client, screen, &screen_config,
@@ -1773,7 +1770,8 @@ ProcRRSetCrtcConfigs (ClientPtr client)
 	output_ids += x_configs[i].nOutput;
     }
 
-    if (!RRSetCrtcConfigs (screen, &screen_config, configs, num_configs))
+    if (num_configs &&
+	!RRSetCrtcConfigs (screen, &screen_config, configs, num_configs))
     {
 	rep.status = RRSetConfigFailed;
 	goto sendReply;
