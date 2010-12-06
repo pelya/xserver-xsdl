@@ -653,7 +653,7 @@ IgnoreInputClass(const InputInfoPtr idev, const InputAttributes *attrs)
     return ignore;
 }
 
-static InputInfoPtr
+InputInfoPtr
 xf86AllocateInput(void)
 {
     InputInfoPtr pInfo;
