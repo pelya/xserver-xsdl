@@ -571,21 +571,14 @@ ErrorF(const char * f, ...)
 /* A perror() workalike. */
 
 void
-Error(char *str)
+Error(const char *str)
 {
-    char *err = NULL;
-    int saveErrno = errno;
+    const char *err = strerror(errno);
 
-    if (str) {
-	err = malloc(strlen(strerror(saveErrno)) + strlen(str) + 2 + 1);
-	if (!err)
-	    return;
-	sprintf(err, "%s: ", str);
-	strcat(err, strerror(saveErrno));
+    if (str)
+	LogWrite(-1, "%s: %s", str, err);
+    else
 	LogWrite(-1, "%s", err);
-	free(err);
-    } else
-	LogWrite(-1, "%s", strerror(saveErrno));
 }
 
 void

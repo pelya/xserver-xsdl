@@ -64,9 +64,7 @@ dnl version-config.h covers the version numbers so they can be bumped without
 dnl forcing an entire recompile.x
 AC_CONFIG_HEADERS(include/version-config.h)
 
-AC_PROG_CC
 AM_PROG_AS
-AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_LIBTOOL_WIN32_DLL
 AC_DISABLE_STATIC
@@ -77,7 +75,6 @@ AC_PROG_LEX
 AC_PROG_YACC
 AC_SYS_LARGEFILE
 XORG_PROG_RAWCPP
-AC_PROG_SED
 
 # Quoted so that make will expand $(CWARNFLAGS) in makefiles to allow
 # easier overrides at build time.
