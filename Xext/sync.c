@@ -296,7 +296,7 @@ SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XID syncObject,
 
     /* if system counter, ask it what the current value is */
 
-    if (SYNC_COUNTER == pSync->type)
+    if (pSync && SYNC_COUNTER == pSync->type)
     {
 	pCounter = (SyncCounter *)pSync;
 
@@ -320,7 +320,7 @@ SyncInitTrigger(ClientPtr client, SyncTrigger *pTrigger, XID syncObject,
     if (changes & XSyncCATestType)
     {
 
-	if (SYNC_FENCE == pSync->type)
+	if (pSync && SYNC_FENCE == pSync->type)
 	{
 	    pTrigger->CheckTrigger = SyncCheckTriggerFence;
 	}
