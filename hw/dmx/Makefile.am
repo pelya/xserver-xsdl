@@ -1,4 +1,3 @@
-DIST_SUBDIRS = input config glxProxy examples doc
 
 SUBDIRS = input config examples
 bin_PROGRAMS = Xdmx
