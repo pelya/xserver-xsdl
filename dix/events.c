@@ -209,10 +209,6 @@ static void CheckPhysLimits(DeviceIntPtr pDev,
                             Bool generateEvents,
                             Bool confineToScreen,
                             ScreenPtr pScreen);
-static Bool CheckPassiveGrabsOnWindow(WindowPtr pWin,
-                                      DeviceIntPtr device,
-                                      DeviceEvent *event,
-                                      BOOL checkCore);
 
 /** Key repeat hack. Do not use but in TryClientEvents */
 extern BOOL EventIsKeyRepeat(xEvent *event);
@@ -2633,7 +2629,7 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    rc = (CheckPassiveGrabsOnWindow(win, dev, &event, FALSE, TRUE) != NULL);
     if (rc)
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
     return rc;
@@ -2670,10 +2666,9 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    rc = CheckPassiveGrabsOnWindow(win, dev, &event, FALSE);
+    rc = (CheckPassiveGrabsOnWindow(win, dev, &event, FALSE, TRUE) != NULL);
     if (rc)
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveGrab);
-
     return rc;
 }
 
@@ -3344,20 +3339,23 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 /**
  * "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
  * passive grab set on the window to be activated.
- * If a passive grab is activated, the event will be delivered to the client.
+ * If activate is true and a passive grab is found, it will be activated,
+ * and the event will be delivered to the client.
  *
  * @param pWin The window that may be subject to a passive grab.
  * @param device Device that caused the event.
  * @param event The current device event.
  * @param checkCore Check for core grabs too.
+ * @param activate If a grab is found, activate it and deliver the event.
  */
 
-static Bool
+GrabPtr
 CheckPassiveGrabsOnWindow(
     WindowPtr pWin,
     DeviceIntPtr device,
     DeviceEvent *event,
-    BOOL checkCore)
+    BOOL checkCore,
+    BOOL activate)
 {
     SpritePtr pSprite = device->spriteInfo->sprite;
     GrabPtr grab = wPassiveGrabs(pWin);
@@ -3369,7 +3367,7 @@ CheckPassiveGrabsOnWindow(
     int match = 0;
 
     if (!grab)
-	return FALSE;
+	return NULL;
     /* Fill out the grab details, but leave the type for later before
      * comparing */
     tempGrab.window = pWin;
@@ -3483,6 +3481,8 @@ CheckPassiveGrabsOnWindow(
                     continue;
             }
 
+            if (!activate)
+                return grab;
 
             if (match & CORE_MATCH)
             {
@@ -3540,10 +3540,10 @@ CheckPassiveGrabsOnWindow(
 
             if (match & (XI_MATCH | XI2_MATCH))
                 free(xE); /* on core match xE == &core */
-	    return TRUE;
+	    return grab;
 	}
     }
-    return FALSE;
+    return NULL;
 #undef CORE_MATCH
 #undef XI_MATCH
 #undef XI2_MATCH
@@ -3609,7 +3609,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
 	for (; i < focus->traceGood; i++)
 	{
 	    pWin = focus->trace[i];
-	    if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
+	    if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
 		return TRUE;
 	}
 
@@ -3622,7 +3622,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
     for (; i < device->spriteInfo->sprite->spriteTraceGood; i++)
     {
 	pWin = device->spriteInfo->sprite->spriteTrace[i];
-	if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore))
+	if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
 	    return TRUE;
     }
 
