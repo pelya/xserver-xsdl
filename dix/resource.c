@@ -207,6 +207,7 @@ GetDefaultBytes(pointer value, XID id, ResourceSizePtr size)
 {
     size->resourceSize = 0;
     size->pixmapRefSize = 0;
+    size->refCnt = 1;
 }
 
 /**
@@ -273,6 +274,7 @@ GetPixmapBytes(pointer value, XID id, ResourceSizePtr size)
 
     size->resourceSize = 0;
     size->pixmapRefSize = 0;
+    size->refCnt = pixmap->refcnt;
 
     if (pixmap && pixmap->refcnt)
     {
@@ -298,7 +300,7 @@ static void
 GetWindowBytes(pointer value, XID id, ResourceSizePtr size)
 {
     SizeType pixmapSizeFunc = GetResourceTypeSizeFunc(RT_PIXMAP);
-    ResourceSizeRec pixmapSize = { 0, 0 };
+    ResourceSizeRec pixmapSize = { 0, 0, 0 };
     WindowPtr window = value;
 
     /* Currently only pixmap bytes are reported to clients. */
@@ -306,6 +308,9 @@ GetWindowBytes(pointer value, XID id, ResourceSizePtr size)
 
     /* Calculate pixmap reference sizes. */
     size->pixmapRefSize = 0;
+
+    size->refCnt = 1;
+
     if (window->backgroundState == BackgroundPixmap)
     {
         PixmapPtr pixmap = window->background.pixmap;
@@ -368,7 +373,7 @@ static void
 GetGcBytes(pointer value, XID id, ResourceSizePtr size)
 {
     SizeType pixmapSizeFunc = GetResourceTypeSizeFunc(RT_PIXMAP);
-    ResourceSizeRec pixmapSize = { 0, 0 };
+    ResourceSizeRec pixmapSize = { 0, 0, 0 };
     GCPtr gc = value;
 
     /* Currently only pixmap bytes are reported to clients. */
@@ -376,6 +381,8 @@ GetGcBytes(pointer value, XID id, ResourceSizePtr size)
 
     /* Calculate pixmap reference sizes. */
     size->pixmapRefSize = 0;
+
+    size->refCnt = 1;
     if (gc->stipple)
     {
         PixmapPtr pixmap = gc->stipple;

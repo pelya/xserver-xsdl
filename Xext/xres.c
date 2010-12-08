@@ -27,6 +27,7 @@
 #include "list.h"
 #include "misc.h"
 #include <string.h>
+#include "hashtable.h"
 #include "picturestr.h"
 #include "compint.h"
 
@@ -39,6 +40,8 @@ typedef struct {
     /* data follows */
 } FragmentList;
 
+#define FRAGMENT_DATA(ptr) ((void*) ((char*) (ptr) + sizeof(FragmentList)))
+
 /** @brief Holds structure for the generated response to
            ProcXResQueryClientIds; used by ConstructClientId* -functions */
 typedef struct {
@@ -47,6 +50,41 @@ typedef struct {
     struct xorg_list   response;
     int           sentClientMasks[MAXCLIENTS];
 } ConstructClientIdCtx;
+
+/** @brief Holds the structure for information required to
+           generate the response to XResQueryResourceBytes. In addition
+           to response it contains information on the query as well,
+           as well as some volatile information required by a few
+           functions that cannot take that information directly
+           via a parameter, as they are called via already-existing
+           higher order functions. */
+typedef struct {
+    ClientPtr     sendClient;
+    int           numSizes;
+    int           resultBytes;
+    struct xorg_list response;
+    int           status;
+    long          numSpecs;
+    xXResResourceIdSpec *specs;
+    HashTable     visitedResources;
+
+    /* Used by AddSubResourceSizeSpec when AddResourceSizeValue is
+       handling crossreferences */
+    HashTable     visitedSubResources;
+
+    /* used when ConstructResourceBytesCtx is passed to
+       AddResourceSizeValue2 via FindClientResourcesByType */
+    RESTYPE       resType;
+
+    /* used when ConstructResourceBytesCtx is passed to
+       AddResourceSizeValueByResource from ConstructResourceBytesByResource */
+    xXResResourceIdSpec       *curSpec;
+
+    /** Used when iterating through a single resource's subresources
+
+        @see AddSubResourceSizeSpec */
+    xXResResourceSizeValue    *sizeValue;
+} ConstructResourceBytesCtx;
 
 /** @brief Allocate and add a sequence of bytes at the end of a fragment list.
            Call DestroyFragments to release the list.
@@ -116,6 +154,37 @@ static void
 DestroyConstructClientIdCtx(ConstructClientIdCtx *ctx)
 {
     DestroyFragments(&ctx->response);
+}
+
+static Bool
+InitConstructResourceBytesCtx(ConstructResourceBytesCtx *ctx,
+                              ClientPtr                  sendClient,
+                              long                       numSpecs,
+                              xXResResourceIdSpec       *specs)
+{
+    ctx->sendClient = sendClient;
+    ctx->numSizes = 0;
+    ctx->resultBytes = 0;
+    xorg_list_init(&ctx->response);
+    ctx->status = Success;
+    ctx->numSpecs = numSpecs;
+    ctx->specs = specs;
+    ctx->visitedResources = ht_create(sizeof(XID), 0,
+                                      ht_resourceid_hash, ht_resourceid_compare,
+                                      NULL);
+
+    if (!ctx->visitedResources) {
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
+static void
+DestroyConstructResourceBytesCtx(ConstructResourceBytesCtx *ctx)
+{
+    DestroyFragments(&ctx->response);
+    ht_destroy(ctx->visitedResources);
 }
 
 static int
@@ -293,7 +362,7 @@ static void
 ResFindResourcePixmaps(pointer value, XID id, RESTYPE type, pointer cdata)
 {
     SizeType sizeFunc = GetResourceTypeSizeFunc(type);
-    ResourceSizeRec size = { 0, 0 };
+    ResourceSizeRec size = { 0, 0, 0 };
     unsigned long *bytes = cdata;
 
     sizeFunc(value, id, &size);
@@ -616,6 +685,388 @@ ProcXResQueryClientIds (ClientPtr client)
     return rc;
 }
 
+/** @brief Swaps xXResResourceIdSpec endianess */
+static void
+SwapXResResourceIdSpec(xXResResourceIdSpec *spec)
+{
+    swapl(&spec->resource);
+    swapl(&spec->type);
+}
+
+/** @brief Swaps xXResResourceSizeSpec endianess */
+static void
+SwapXResResourceSizeSpec(xXResResourceSizeSpec *size)
+{
+    SwapXResResourceIdSpec(&size->spec);
+    swapl(&size->bytes);
+    swapl(&size->refCount);
+    swapl(&size->useCount);
+}
+
+/** @brief Swaps xXResResourceSizeValue endianess */
+static void
+SwapXResResourceSizeValue(xXResResourceSizeValue *rep)
+{
+    SwapXResResourceSizeSpec(&rep->size);
+    swapl(&rep->numCrossReferences);
+}
+
+/** @brief Swaps the response bytes */
+static void
+SwapXResQueryResourceBytes(struct xorg_list *response)
+{
+    struct xorg_list *it = response->next;
+    int c;
+
+    while (it != response) {
+        xXResResourceSizeValue *value = FRAGMENT_DATA(it);
+        it = it->next;
+        for (c = 0; c < value->numCrossReferences; ++c) {
+            xXResResourceSizeSpec *spec = FRAGMENT_DATA(it);
+            SwapXResResourceSizeSpec(spec);
+            it = it->next;
+        }
+        SwapXResResourceSizeValue(value);
+    }
+}
+
+/** @brief Adds xXResResourceSizeSpec describing a resource's size into
+           the buffer contained in the context. The resource is considered
+           to be a subresource.
+
+   @see AddResourceSizeValue
+
+   @param[in] value     The X resource object on which to add information
+                        about to the buffer
+   @param[in] id        The ID of the X resource
+   @param[in] type      The type of the X resource
+   @param[in/out] cdata The context object of type ConstructResourceBytesCtx.
+                        Void pointer type is used here to satisfy the type
+                        FindRes
+*/
+static void
+AddSubResourceSizeSpec(pointer value,
+                       XID id,
+                       RESTYPE type,
+                       pointer cdata)
+{
+    ConstructResourceBytesCtx *ctx = cdata;
+
+    if (ctx->status == Success) {
+        xXResResourceSizeSpec **prevCrossRef =
+          ht_find(ctx->visitedSubResources, &value);
+        if (!prevCrossRef) {
+            Bool ok = TRUE;
+            xXResResourceSizeSpec *crossRef =
+                AddFragment(&ctx->response, sizeof(xXResResourceSizeSpec));
+            ok = ok && crossRef != NULL;
+            if (ok) {
+                xXResResourceSizeSpec **p;
+                p = ht_add(ctx->visitedSubResources, &value);
+                if (!p) {
+                    ok = FALSE;
+                } else {
+                    *p = crossRef;
+                }
+            }
+            if (!ok) {
+                ctx->status = BadAlloc;
+            } else {
+                SizeType sizeFunc = GetResourceTypeSizeFunc(type);
+                ResourceSizeRec size = { 0, 0, 0 };
+                sizeFunc(value, id, &size);
+
+                crossRef->spec.resource = id;
+                crossRef->spec.type = type;
+                crossRef->bytes = size.resourceSize;
+                crossRef->refCount = size.refCnt;
+                crossRef->useCount = 1;
+
+                ++ctx->sizeValue->numCrossReferences;
+
+                ctx->resultBytes += sizeof(*crossRef);
+            }
+        } else {
+            /* if we have visited the subresource earlier (from current parent
+               resource), just increase its use count by one */
+            ++(*prevCrossRef)->useCount;
+        }
+    }
+}
+
+/** @brief Adds xXResResourceSizeValue describing a resource's size into
+           the buffer contained in the context. In addition, the
+           subresources are iterated and added as xXResResourceSizeSpec's
+           by using AddSubResourceSizeSpec
+
+   @see AddSubResourceSizeSpec
+
+   @param[in] value     The X resource object on which to add information
+                        about to the buffer
+   @param[in] id        The ID of the X resource
+   @param[in] type      The type of the X resource
+   @param[in/out] cdata The context object of type ConstructResourceBytesCtx.
+                        Void pointer type is used here to satisfy the type
+                        FindRes
+*/
+static void
+AddResourceSizeValue(pointer ptr, XID id, RESTYPE type, pointer cdata)
+{
+    ConstructResourceBytesCtx *ctx = cdata;
+    if (ctx->status == Success &&
+        !ht_find(ctx->visitedResources, &id)) {
+        Bool ok = TRUE;
+        HashTable ht;
+        HtGenericHashSetupRec htSetup = {
+            .keySize = sizeof(void*)
+        };
+
+        /* it doesn't matter that we don't undo the work done here
+         * immediately. All but ht_init will be undone at the end
+         * of the request and there can happen no failure after
+         * ht_init, so we don't need to clean it up here in any
+         * special way */
+
+        xXResResourceSizeValue *value =
+            AddFragment(&ctx->response, sizeof(xXResResourceSizeValue));
+        if (!value) {
+            ok = FALSE;
+        }
+        ok = ok && ht_add(ctx->visitedResources, &id);
+        if (ok) {
+            ht = ht_create(htSetup.keySize,
+                           sizeof(xXResResourceSizeSpec*),
+                           ht_generic_hash, ht_generic_compare,
+                           &htSetup);
+            ok = ok && ht;
+        }
+
+        if (!ok) {
+            ctx->status = BadAlloc;
+        } else {
+            SizeType sizeFunc = GetResourceTypeSizeFunc(type);
+            ResourceSizeRec size = { 0, 0, 0 };
+
+            sizeFunc(ptr, id, &size);
+
+            value->size.spec.resource = id;
+            value->size.spec.type = type;
+            value->size.bytes = size.resourceSize;
+            value->size.refCount = size.refCnt;
+            value->size.useCount = 1;
+            value->numCrossReferences = 0;
+
+            ctx->sizeValue = value;
+            ctx->visitedSubResources = ht;
+            FindSubResources(ptr, type, AddSubResourceSizeSpec, ctx);
+            ctx->visitedSubResources = NULL;
+            ctx->sizeValue = NULL;
+
+            ctx->resultBytes += sizeof(*value);
+            ++ctx->numSizes;
+
+            ht_destroy(ht);
+        }
+    }
+}
+
+/** @brief A variant of AddResourceSizeValue that passes the resource type
+           through the context object to satisfy the type FindResType
+
+   @see AddResourceSizeValue
+
+   @param[in] ptr        The resource
+   @param[in] id         The resource ID
+   @param[in/out] cdata  The context object that contains the resource type
+*/
+static void
+AddResourceSizeValueWithResType(pointer ptr, XID id, pointer cdata)
+{
+    ConstructResourceBytesCtx *ctx = cdata;
+    AddResourceSizeValue(ptr, id, ctx->resType, cdata);
+}
+
+/** @brief Adds the information of a resource into the buffer if it matches
+           the match condition.
+
+   @see AddResourceSizeValue
+
+   @param[in] ptr        The resource
+   @param[in] id         The resource ID
+   @param[in] type       The resource type
+   @param[in/out] cdata  The context object as a void pointer to satisfy the
+                         type FindAllRes
+*/
+static void
+AddResourceSizeValueByResource(pointer ptr, XID id, RESTYPE type, pointer cdata)
+{
+    ConstructResourceBytesCtx *ctx = cdata;
+    xXResResourceIdSpec *spec = ctx->curSpec;
+
+    if ((!spec->type || spec->type == type) &&
+        (!spec->resource || spec->resource == id)) {
+        AddResourceSizeValue(ptr, id, type, ctx);
+    }
+}
+
+/** @brief Add all resources of the client into the result buffer
+           disregarding all those specifications that specify the
+           resource by its ID. Those are handled by
+           ConstructResourceBytesByResource
+
+   @see ConstructResourceBytesByResource
+
+   @param[in] aboutClient  Which client is being considered
+   @param[in/out] ctx      The context that contains the resource id
+                           specifications as well as the result buffer
+*/
+static void
+ConstructClientResourceBytes(ClientPtr aboutClient,
+                             ConstructResourceBytesCtx *ctx)
+{
+    int specIdx;
+    for (specIdx = 0; specIdx < ctx->numSpecs; ++specIdx) {
+        xXResResourceIdSpec* spec = ctx->specs + specIdx;
+        if (spec->resource) {
+            /* these specs are handled elsewhere */
+        } else if (spec->type) {
+            ctx->resType = spec->type;
+            FindClientResourcesByType(aboutClient, spec->type,
+                                      AddResourceSizeValueWithResType, ctx);
+        } else {
+            FindAllClientResources(aboutClient, AddResourceSizeValue, ctx);
+        }
+    }
+}
+
+/** @brief Add the sizes of all such resources that can are specified by
+           their ID in the resource id specification. The scan can
+           by limited to a client with the aboutClient parameter
+
+   @see ConstructResourceBytesByResource
+
+   @param[in] aboutClient  Which client is being considered. This may be None
+                           to mean all clients.
+   @param[in/out] ctx      The context that contains the resource id
+                           specifications as well as the result buffer. In
+                           addition this function uses the curSpec field to
+                           keep a pointer to the current resource id
+                           specification in it, which can be used by
+                           AddResourceSizeValueByResource .
+*/
+static void
+ConstructResourceBytesByResource(XID aboutClient, ConstructResourceBytesCtx *ctx)
+{
+    int specIdx;
+    for (specIdx = 0; specIdx < ctx->numSpecs; ++specIdx) {
+        xXResResourceIdSpec *spec = ctx->specs + specIdx;
+        if (spec->resource) {
+            int cid = CLIENT_ID(spec->resource);
+            if (cid < currentMaxClients &&
+                (aboutClient == None || cid == aboutClient)) {
+                ClientPtr client = clients[cid];
+                if (client) {
+                    ctx->curSpec = spec;
+                    FindAllClientResources(client,
+                                           AddResourceSizeValueByResource,
+                                           ctx);
+                }
+            }
+        }
+    }
+}
+
+/** @brief Build the resource size response for the given client
+           (or all if not specified) per the parameters set up
+           in the context object.
+
+  @param[in] aboutClient  Which client to consider or None for all clients
+  @param[in/out] ctx      The context object that contains the request as well
+                          as the response buffer.
+*/
+static int
+ConstructResourceBytes(XID aboutClient,
+                       ConstructResourceBytesCtx *ctx)
+{
+    if (aboutClient) {
+        int clientIdx = CLIENT_ID(aboutClient);
+        ClientPtr client = NullClient;
+
+        if ((clientIdx >= currentMaxClients) || !clients[clientIdx]) {
+            ctx->sendClient->errorValue = aboutClient;
+            return BadValue;
+        }
+
+        client = clients[clientIdx];
+
+        ConstructClientResourceBytes(client, ctx);
+        ConstructResourceBytesByResource(aboutClient, ctx);
+    } else {
+        int clientIdx;
+
+        ConstructClientResourceBytes(NULL, ctx);
+
+        for (clientIdx = 0; clientIdx < currentMaxClients; ++clientIdx) {
+            ClientPtr client = clients[clientIdx];
+
+            if (client) {
+                ConstructClientResourceBytes(client, ctx);
+            }
+        }
+
+        ConstructResourceBytesByResource(None, ctx);
+    }
+
+
+    return ctx->status;
+}
+
+/** @brief Implements the XResQueryResourceBytes of XResProto v1.2 */
+static int
+ProcXResQueryResourceBytes (ClientPtr client)
+{
+    REQUEST(xXResQueryResourceBytesReq);
+
+    xXResQueryResourceBytesReply rep;
+    int                          rc;
+    ConstructResourceBytesCtx    ctx;
+
+    REQUEST_AT_LEAST_SIZE(xXResQueryResourceBytesReq);
+    REQUEST_FIXED_SIZE(xXResQueryResourceBytesReq,
+                       stuff->numSpecs * sizeof(ctx.specs[0]));
+
+    if (!InitConstructResourceBytesCtx(&ctx, client,
+                                       stuff->numSpecs,
+                                       (void*) ((char*) stuff +
+                                                sz_xXResQueryResourceBytesReq))) {
+        return BadAlloc;
+    }
+
+    rc = ConstructResourceBytes(stuff->client, &ctx);
+
+    if (rc == Success) {
+        rep.type = X_Reply;
+        rep.sequenceNumber = client->sequence;
+        rep.numSizes = ctx.numSizes;
+        rep.length = bytes_to_int32(ctx.resultBytes);
+
+        if (client->swapped) {
+            swaps (&rep.sequenceNumber);
+            swapl (&rep.length);
+            swapl (&rep.numSizes);
+
+            SwapXResQueryResourceBytes(&ctx.response);
+        }
+
+        WriteToClient(client,sizeof(rep),(char*)&rep);
+        WriteFragmentsToClient(client, &ctx.response);
+    }
+
+    DestroyConstructResourceBytesCtx(&ctx);
+
+    return rc;
+}
+
 static int
 ProcResDispatch(ClientPtr client)
 {
@@ -632,8 +1083,7 @@ ProcResDispatch(ClientPtr client)
     case X_XResQueryClientIds:
         return ProcXResQueryClientIds(client);
     case X_XResQueryResourceBytes:
-        /* not implemented yet */
-        return BadRequest;
+        return ProcXResQueryResourceBytes(client);
     default: break;
     }
 
@@ -676,6 +1126,28 @@ SProcXResQueryClientIds (ClientPtr client)
     return ProcXResQueryClientIds(client);
 }
 
+/** @brief Implements the XResQueryResourceBytes of XResProto v1.2.
+    This variant byteswaps request contents before issuing the
+    rest of the work to ProcXResQueryResourceBytes */
+static int
+SProcXResQueryResourceBytes (ClientPtr client)
+{
+    REQUEST(xXResQueryResourceBytesReq);
+    int c;
+    xXResResourceIdSpec *specs = (void*) ((char*) stuff + sizeof(*stuff));
+
+    swapl(&stuff->numSpecs);
+    REQUEST_AT_LEAST_SIZE(xXResQueryResourceBytesReq);
+    REQUEST_FIXED_SIZE(xXResQueryResourceBytesReq,
+                       stuff->numSpecs * sizeof(specs[0]));
+
+    for (c = 0; c < stuff->numSpecs; ++c) {
+        SwapXResResourceIdSpec(specs + c);
+    }
+
+    return ProcXResQueryResourceBytes(client);
+}
+
 static int
 SProcResDispatch (ClientPtr client)
 {
@@ -694,8 +1166,7 @@ SProcResDispatch (ClientPtr client)
     case X_XResQueryClientIds:
         return SProcXResQueryClientIds(client);
     case X_XResQueryResourceBytes:
-        /* not implemented yet */
-        return BadRequest;
+        return SProcXResQueryResourceBytes(client);
     default: break;
     }
 
