@@ -1104,17 +1104,25 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (!pDev->enabled)
         return 0;
 
+    if (!scr || !pDev->valuator)
+        return 0;
+
+    switch (type)
+    {
+        case MotionNotify:
+            if (!mask_in || valuator_mask_num_valuators(mask_in) <= 0)
+                return 0;
+            break;
+        case ButtonPress:
+        case ButtonRelease:
+            if (!pDev->button || !buttons)
+                return 0;
+            break;
+        default:
+            return 0;
+    }
+
     ms = GetTimeInMillis(); /* before pointer update to help precision */
-
-    if (!scr || !pDev->valuator ||
-        (type != MotionNotify && type != ButtonPress && type != ButtonRelease) ||
-        (type != MotionNotify && !pDev->button) ||
-        ((type == ButtonPress || type == ButtonRelease) && !buttons))
-        return 0;
-
-    if (type == MotionNotify &&
-        (!mask_in || valuator_mask_num_valuators(mask_in) <= 0))
-        return 0;
 
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
