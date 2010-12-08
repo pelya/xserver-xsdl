@@ -1015,10 +1015,13 @@ xf86PostMotionEventM(DeviceIntPtr	device,
     int dx = 0, dy = 0;
 #endif
 
-    if (is_absolute)
-        flags = POINTER_ABSOLUTE;
-    else
-        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
+    if (valuator_mask_num_valuators(mask) > 0)
+    {
+        if (is_absolute)
+            flags = POINTER_ABSOLUTE;
+        else
+            flags = POINTER_RELATIVE | POINTER_ACCELERATE;
+    }
 
 #if XFreeXDGA
     /* The evdev driver may not always send all axes across. */
@@ -1160,10 +1163,13 @@ xf86PostButtonEventM(DeviceIntPtr	device,
     int index;
 #endif
 
-    if (is_absolute)
-        flags = POINTER_ABSOLUTE;
-    else
-        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
+    if (valuator_mask_num_valuators(mask) > 0)
+    {
+        if (is_absolute)
+            flags = POINTER_ABSOLUTE;
+        else
+            flags = POINTER_RELATIVE | POINTER_ACCELERATE;
+    }
 
 #if XFreeXDGA
     if (miPointerGetScreen(device)) {
