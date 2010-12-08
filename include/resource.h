@@ -171,11 +171,18 @@ typedef void (*SizeType)(pointer /*value*/,
 extern _X_EXPORT RESTYPE CreateNewResourceType(DeleteType /*deleteFunc */ ,
                                                const char * /*name */ );
 
+typedef void (*FindTypeSubResources)(pointer /* value */,
+                                     FindAllRes /* func */,
+                                     pointer /* cdata */);
+
 extern _X_EXPORT void SetResourceTypeErrorValue(RESTYPE /*type */ ,
                                                 int /*errorValue */ );
 
 extern _X_EXPORT SizeType GetResourceTypeSizeFunc(
     RESTYPE /*type*/);
+
+extern _X_EXPORT void SetResourceTypeFindSubResFunc(
+    RESTYPE /*type*/, FindTypeSubResources /*findFunc*/);
 
 extern _X_EXPORT void SetResourceTypeSizeFunc(
     RESTYPE /*type*/, SizeType /*sizeFunc*/);
@@ -217,6 +224,15 @@ extern _X_EXPORT void FindClientResourcesByType(ClientPtr /*client */ ,
 extern _X_EXPORT void FindAllClientResources(ClientPtr /*client */ ,
                                              FindAllRes /*func */ ,
                                              pointer /*cdata */ );
+
+/** @brief Iterate through all subresources of a resource.
+
+    @note The XID argument provided to the FindAllRes function
+          may be 0 for subresources that don't have an XID */
+extern _X_EXPORT void FindSubResources(pointer /*resource*/,
+                                       RESTYPE /*type*/,
+                                       FindAllRes /*func*/,
+                                       pointer /*cdata*/);
 
 extern _X_EXPORT void FreeClientNeverRetainResources(ClientPtr /*client */ );
 

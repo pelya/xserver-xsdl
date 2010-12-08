@@ -184,6 +184,7 @@ RESTYPE TypeMask;
 struct ResourceType {
     DeleteType deleteFunc;
     SizeType sizeFunc;
+    FindTypeSubResources findSubResFunc;
     int errorValue;
 };
 
@@ -206,6 +207,25 @@ GetDefaultBytes(pointer value, XID id, ResourceSizePtr size)
 {
     size->resourceSize = 0;
     size->pixmapRefSize = 0;
+}
+
+/**
+ * Used by all resources that don't specify a function to iterate
+ * through subresources. Currently this is used for all resources with
+ * insignificant memory usage.
+ *
+ * @see FindSubResources, SetResourceTypeFindSubResFunc
+ *
+ * @param[in] value Pointer to resource object.
+ *
+ * @param[in] func Function to call for each subresource.
+
+ * @param[out] cdata Pointer to opaque data.
+ */
+static void
+DefaultFindSubRes(pointer value, FindAllRes func, pointer cdata)
+{
+    /* do nothing */
 }
 
 /**
@@ -301,13 +321,45 @@ GetWindowBytes(pointer value, XID id, ResourceSizePtr size)
 }
 
 /**
+ * Iterate through subresources of a window. The purpose of this
+ * function is to gather accurate information on what resources
+ * a resource uses.
+ *
+ * @note Currently only sub-pixmaps are iterated
+ *
+ * @param[in] value  Pointer to a window
+ *
+ * @param[in] func   Function to call with each subresource
+ *
+ * @param[out] cdata Pointer to opaque data
+ */
+static void
+FindWindowSubRes(pointer value, FindAllRes func, pointer cdata)
+{
+    WindowPtr window = value;
+
+    /* Currently only pixmap subresources are reported to clients. */
+
+    if (window->backgroundState == BackgroundPixmap)
+    {
+        PixmapPtr pixmap = window->background.pixmap;
+        func(window->background.pixmap, pixmap->drawable.id, RT_PIXMAP, cdata);
+    }
+    if (window->border.pixmap && !window->borderIsPixel)
+    {
+        PixmapPtr pixmap = window->border.pixmap;
+        func(window->background.pixmap, pixmap->drawable.id, RT_PIXMAP, cdata);
+    }
+}
+
+/**
  * Calculate graphics context size in bytes. The purpose of this
  * function is to estimate memory usage that can be attributed to all
  * pixmap references of the graphics context.
  *
  * @param[in] value Pointer to a graphics context.
  *
- * @param[in] id Resource ID of graphics context.
+ * @param[in] id    Resource ID of graphics context.
  *
  * @param[out] size Estimate of memory usage attributed to a all
  *                  pixmap references of a graphics context.
@@ -338,57 +390,99 @@ GetGcBytes(pointer value, XID id, ResourceSizePtr size)
     }
 }
 
+/**
+ * Iterate through subresources of a graphics context. The purpose of
+ * this function is to gather accurate information on what resources a
+ * resource uses.
+ *
+ * @note Currently only sub-pixmaps are iterated
+ *
+ * @param[in] value  Pointer to a window
+ *
+ * @param[in] func   Function to call with each subresource
+ *
+ * @param[out] cdata Pointer to opaque data
+ */
+static void
+FindGCSubRes(pointer value, FindAllRes func, pointer cdata)
+{
+    GCPtr gc = value;
+
+    /* Currently only pixmap subresources are reported to clients. */
+
+    if (gc->stipple)
+    {
+        PixmapPtr pixmap = gc->stipple;
+        func(pixmap, pixmap->drawable.id, RT_PIXMAP, cdata);
+    }
+    if (gc->tile.pixmap && !gc->tileIsPixel)
+    {
+        PixmapPtr pixmap = gc->tile.pixmap;
+        func(pixmap, pixmap->drawable.id, RT_PIXMAP, cdata);
+    }
+}
+
 static struct ResourceType *resourceTypes;
 
 static const struct ResourceType predefTypes[] = {
     [RT_NONE & (RC_LASTPREDEF - 1)] = {
                                        .deleteFunc = (DeleteType) NoopDDA,
                                        .sizeFunc = GetDefaultBytes,
+                                       .findSubResFunc = DefaultFindSubRes,
                                        .errorValue = BadValue,
                                        },
     [RT_WINDOW & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = DeleteWindow,
                                          .sizeFunc = GetWindowBytes,
+                                         .findSubResFunc = FindWindowSubRes,
                                          .errorValue = BadWindow,
                                          },
     [RT_PIXMAP & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = dixDestroyPixmap,
                                          .sizeFunc = GetPixmapBytes,
+                                         .findSubResFunc = DefaultFindSubRes,
                                          .errorValue = BadPixmap,
                                          },
     [RT_GC & (RC_LASTPREDEF - 1)] = {
                                      .deleteFunc = FreeGC,
                                      .sizeFunc = GetGcBytes,
+                                     .findSubResFunc = FindGCSubRes,
                                      .errorValue = BadGC,
                                      },
     [RT_FONT & (RC_LASTPREDEF - 1)] = {
                                        .deleteFunc = CloseFont,
                                        .sizeFunc = GetDefaultBytes,
+                                       .findSubResFunc = DefaultFindSubRes,
                                        .errorValue = BadFont,
                                        },
     [RT_CURSOR & (RC_LASTPREDEF - 1)] = {
                                          .deleteFunc = FreeCursor,
                                          .sizeFunc = GetDefaultBytes,
+                                         .findSubResFunc = DefaultFindSubRes,
                                          .errorValue = BadCursor,
                                          },
     [RT_COLORMAP & (RC_LASTPREDEF - 1)] = {
                                            .deleteFunc = FreeColormap,
                                            .sizeFunc = GetDefaultBytes,
+                                           .findSubResFunc = DefaultFindSubRes,
                                            .errorValue = BadColor,
                                            },
     [RT_CMAPENTRY & (RC_LASTPREDEF - 1)] = {
                                             .deleteFunc = FreeClientPixels,
                                             .sizeFunc = GetDefaultBytes,
+                                            .findSubResFunc = DefaultFindSubRes,
                                             .errorValue = BadColor,
                                             },
     [RT_OTHERCLIENT & (RC_LASTPREDEF - 1)] = {
                                               .deleteFunc = OtherClientGone,
                                               .sizeFunc = GetDefaultBytes,
+                                              .findSubResFunc = DefaultFindSubRes,
                                               .errorValue = BadValue,
                                               },
     [RT_PASSIVEGRAB & (RC_LASTPREDEF - 1)] = {
                                               .deleteFunc = DeletePassiveGrab,
                                               .sizeFunc = GetDefaultBytes,
+                                              .findSubResFunc = DefaultFindSubRes,
                                               .errorValue = BadValue,
                                               },
 };
@@ -420,6 +514,7 @@ CreateNewResourceType(DeleteType deleteFunc, const char *name)
     resourceTypes = types;
     resourceTypes[next].deleteFunc = deleteFunc;
     resourceTypes[next].sizeFunc = GetDefaultBytes;
+    resourceTypes[next].findSubResFunc = DefaultFindSubRes;
     resourceTypes[next].errorValue = BadValue;
 
     /* Called even if name is NULL, to remove any previous entry */
@@ -459,6 +554,24 @@ void
 SetResourceTypeSizeFunc(RESTYPE type, SizeType sizeFunc)
 {
     resourceTypes[type & TypeMask].sizeFunc = sizeFunc;
+}
+
+/**
+ * Provide a function for iterating the subresources of a resource.
+ * This allows for example more accurate accounting of the (memory)
+ * resources consumed by a resource.
+ *
+ * @see FindSubResources
+ *
+ * @param[in] type     Resource type used in size calculations.
+ *
+ * @param[in] sizeFunc Function to calculate the size of a single
+ *                     resource.
+ */
+void
+SetResourceTypeFindSubResFunc(RESTYPE type, FindTypeSubResources findFunc)
+{
+    resourceTypes[type & TypeMask].findSubResFunc = findFunc;
 }
 
 void
@@ -869,6 +982,15 @@ FindClientResourcesByType(ClientPtr client,
             }
         }
     }
+}
+
+void FindSubResources(pointer    resource,
+                      RESTYPE    type,
+                      FindAllRes func,
+                      pointer    cdata)
+{
+    struct ResourceType rtype = resourceTypes[type & TypeMask];
+    rtype.findSubResFunc(resource, func, cdata);
 }
 
 void
