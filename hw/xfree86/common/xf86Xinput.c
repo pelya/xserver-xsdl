@@ -684,6 +684,7 @@ xf86AddInput(InputDriverPtr drv, InputInfoPtr pInfo)
     pInfo->next = NULL;
 
     xf86CollectInputOptions(pInfo, (const char**)drv->default_options);
+    xf86OptionListReport(pInfo->options);
     xf86ProcessCommonOptions(pInfo, pInfo->options);
 }
 
