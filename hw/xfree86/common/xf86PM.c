@@ -67,8 +67,6 @@ suspend (pmEvent event, Bool undo)
     int i;
     InputInfoPtr pInfo;
 
-   xf86inSuspend = TRUE;
-    
     for (i = 0; i < xf86NumScreens; i++) {
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, FALSE);
@@ -118,7 +116,6 @@ resume(pmEvent event, Bool undo)
 	EnableDevice(pInfo->dev, TRUE);
 	pInfo = pInfo->next;
     }
-    xf86inSuspend = FALSE;
 }
 
 static void

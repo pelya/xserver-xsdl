@@ -69,7 +69,6 @@ extern _X_EXPORT Bool fbSlotClaimed;
 extern _X_EXPORT Bool sbusSlotClaimed;
 #endif
 extern _X_EXPORT confDRIRec xf86ConfigDRI;
-extern _X_EXPORT Bool xf86inSuspend;
 extern _X_EXPORT Bool xf86DRI2Enabled(void);
 
 extern _X_EXPORT Bool VTSwitchEnabled;	/* kbd driver */
