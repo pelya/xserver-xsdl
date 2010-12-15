@@ -484,8 +484,6 @@ xf86AccessEnter(void)
     for (i = 0; i < xf86NumEntities; i++)
         if (xf86Entities[i]->entityEnter)
 		xf86Entities[i]->entityEnter(i,xf86Entities[i]->private);
-
-    xf86EnterServerState(SETUP);
 }
 
 void
