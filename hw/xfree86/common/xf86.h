@@ -135,7 +135,6 @@ extern _X_EXPORT EntityInfoPtr xf86GetEntityInfo(int entityIndex);
 extern _X_EXPORT Bool xf86SetEntityFuncs(int entityIndex, EntityProc init,
 			EntityProc enter, EntityProc leave, pointer);
 extern _X_EXPORT Bool xf86IsEntityPrimary(int entityIndex);
-extern _X_EXPORT void xf86EnterServerState(xf86State state);
 extern _X_EXPORT ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 
 extern _X_EXPORT int xf86GetLastScrnFlag(int entityIndex);

@@ -330,7 +330,7 @@ InstallSignalHandlers(void)
 void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
-  int                    i, j, k, scr_index;
+  int                    i, j, k, scr_index, was_blocked = 0;
   char                   **modulelist;
   pointer                *optionlist;
   Pix24Flags		 screenpix24, pix24;
@@ -708,7 +708,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ);
 #endif
       xf86AccessEnter();
-      xf86EnterServerState(SETUP);
+      was_blocked = xf86BlockSIGIO();
     }
   }
 
@@ -779,7 +779,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-  xf86PostScreenInit();
+  xf86VGAarbiterWrapFunctions();
+  xf86UnblockSIGIO(was_blocked);
 
   xf86InitOrigins();
 
@@ -928,6 +929,8 @@ AbortDDX(void)
 {
   int i;
 
+  xf86BlockSIGIO();
+
   /*
    * try to restore the original video state
    */
@@ -936,8 +939,6 @@ AbortDDX(void)
       DPMSSet(serverClient, DPMSModeOn);
 #endif
   if (xf86Screens) {
-      if (xf86Screens[0]->vtSema)
-	  xf86EnterServerState(SETUP);
       for (i = 0; i < xf86NumScreens; i++)
 	  if (xf86Screens[i]->vtSema) {
 	      /*
