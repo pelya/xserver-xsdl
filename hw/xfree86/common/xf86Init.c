@@ -711,20 +711,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xf86EnterServerState(SETUP);
     }
   }
-#ifdef SCO325
-  else {
-    /*
-     * Under SCO we must ack that we got the console at startup,
-     * I think this is the safest way to assure it.
-     */
-    static int once = 1;
-    if (once) {
-      once = 0;
-      if (ioctl(xf86Info.consoleFd, VT_RELDISP, VT_ACKACQ) < 0)
-        xf86Msg(X_WARNING, "VT_ACKACQ failed");
-    }
-  }
-#endif /* SCO325 */
 
   for (i = 0; i < xf86NumScreens; i++)
       if (!xf86ColormapAllocatePrivates(xf86Screens[i]))
