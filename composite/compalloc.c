@@ -104,6 +104,35 @@ compDestroyDamage (DamagePtr pDamage, void *closure)
     cw->damage = 0;
 }
 
+static Bool
+compMarkWindows(WindowPtr pWin,
+		WindowPtr *ppLayerWin)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    WindowPtr pLayerWin = pWin;
+
+    if (!pWin->viewable)
+	return FALSE;
+
+    (*pScreen->MarkOverlappedWindows)(pWin, pWin, &pLayerWin);
+    (*pScreen->MarkWindow)(pLayerWin->parent);
+
+    *ppLayerWin = pLayerWin;
+
+    return TRUE;
+}
+
+static void
+compHandleMarkedWindows(WindowPtr pWin, WindowPtr pLayerWin)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    (*pScreen->ValidateTree)(pLayerWin->parent, pLayerWin, VTOther);
+    (*pScreen->HandleExposures)(pLayerWin->parent);
+    if (pScreen->PostValidateTree)
+	(*pScreen->PostValidateTree)(pLayerWin->parent, pLayerWin, VTOther);
+}
+
 /*
  * Redirect one window for one client
  */
@@ -112,8 +141,9 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 {
     CompWindowPtr	cw = GetCompWindow (pWin);
     CompClientWindowPtr	ccw;
-    Bool		wasMapped = pWin->mapped;
     CompScreenPtr       cs = GetCompScreen(pWin->drawable.pScreen);
+    WindowPtr		pLayerWin;
+    Bool		anyMarked = FALSE;
     
     if (pWin == cs->pOverlayWin) {
 	return Success;
@@ -163,12 +193,8 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	    free(cw);
 	    return BadAlloc;
 	}
-	if (wasMapped)
-	{
-	    DisableMapUnmapEvents (pWin);
-	    UnmapWindow (pWin, FALSE);
-	    EnableMapUnmapEvents (pWin);
-	}
+
+	anyMarked = compMarkWindows (pWin, &pLayerWin);
 
 	/* Make sure our borderClip is correct for ValidateTree */
 	RegionNull(&cw->borderClip);
@@ -190,16 +216,9 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	return BadAlloc;
     if (ccw->update == CompositeRedirectManual)
     {
-	/* If the window was CompositeRedirectAutomatic, then
-	 * unmap the window so that the parent clip list will
-	 * be correctly recomputed.
-	 */
-	if (pWin->mapped) 
-	{
-	    DisableMapUnmapEvents (pWin);
-	    UnmapWindow (pWin, FALSE);
-	    EnableMapUnmapEvents (pWin);
-	}
+	if (!anyMarked)
+	    anyMarked = compMarkWindows (pWin, &pLayerWin);
+
 	if (cw->damageRegistered)
 	{
 	    DamageUnregister (&pWin->drawable, cw->damage);
@@ -213,15 +232,9 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	FreeResource (ccw->id, RT_NONE);
 	return BadAlloc;
     }
-    if (wasMapped && !pWin->mapped)
-    {
-	Bool	overrideRedirect = pWin->overrideRedirect;
-	pWin->overrideRedirect = TRUE;
-	DisableMapUnmapEvents (pWin);
-	MapWindow (pWin, pClient);
-	EnableMapUnmapEvents (pWin);
-	pWin->overrideRedirect = overrideRedirect;
-    }
+
+    if (anyMarked)
+	compHandleMarkedWindows (pWin, pLayerWin);
     
     return Success;
 }
@@ -235,7 +248,8 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 {
     CompWindowPtr	cw = GetCompWindow (pWin);
     CompClientWindowPtr	ccw, *prev;
-    Bool		wasMapped = pWin->mapped;
+    Bool		anyMarked = FALSE;
+    WindowPtr		pLayerWin;
 
     if (!cw)
 	return;
@@ -252,12 +266,7 @@ compFreeClientWindow (WindowPtr pWin, XID id)
     }
     if (!cw->clients)
     {
-	if (wasMapped)
-	{
-	    DisableMapUnmapEvents (pWin);
-	    UnmapWindow (pWin, FALSE);
-	    EnableMapUnmapEvents (pWin);
-	}
+	anyMarked = compMarkWindows (pWin, &pLayerWin);
     
 	if (pWin->redirectDraw != RedirectDrawNone)
 	    compFreePixmap (pWin);
@@ -278,15 +287,9 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 	pWin->redirectDraw = RedirectDrawAutomatic;
 	DamageDamageRegion(&pWin->drawable, &pWin->borderSize);
     }
-    if (wasMapped && !pWin->mapped)
-    {
-	Bool	overrideRedirect = pWin->overrideRedirect;
-	pWin->overrideRedirect = TRUE;
-	DisableMapUnmapEvents (pWin);
-	MapWindow (pWin, clients[CLIENT_ID(id)]);
-	EnableMapUnmapEvents (pWin);
-	pWin->overrideRedirect = overrideRedirect;
-    }
+
+    if (anyMarked)
+	compHandleMarkedWindows (pWin, pLayerWin);
 }
 
 /*
