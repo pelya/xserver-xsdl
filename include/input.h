@@ -532,6 +532,18 @@ void FixUpEventFromWindow(DeviceIntPtr pDev,
                           WindowPtr pWin,
                           Window child,
                           Bool calcChild);
+extern int EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event,
+                              WindowPtr win);
+/**
+ * Return masks for EventIsDeliverable.
+ * @defgroup EventIsDeliverable return flags
+ * @{
+ */
+#define XI_MASK                 (1 << 0) /**< XI mask set on window */
+#define CORE_MASK               (1 << 1) /**< Core mask set on window */
+#define DONT_PROPAGATE_MASK     (1 << 2) /**< DontPropagate mask set on window */
+#define XI2_MASK                (1 << 3) /**< XI2 mask set on window */
+/* @} */
 
 /* Implemented by the DDX. */
 extern _X_EXPORT int NewInputDeviceRequest(
