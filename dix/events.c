@@ -195,8 +195,6 @@ typedef const char *string;
 #define XE_KBPTR (xE->u.keyButtonPointer)
 
 
-#define rClient(obj) (clients[CLIENT_ID((obj)->resource)])
-
 CallbackListPtr EventCallback;
 CallbackListPtr DeviceEventCallback;
 
