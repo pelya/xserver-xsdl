@@ -536,9 +536,8 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h, Bool map)
 	{
 	    ChangeGCVal val;
 	    val.val = IncludeInferiors;
-	    
+	    ChangeGC (NullClient, pGC, GCSubwindowMode, &val);
 	    ValidateGC(&pPixmap->drawable, pGC);
-	    ChangeGC (serverClient, pGC, GCSubwindowMode, &val);
 	    (*pGC->ops->CopyArea) (&pParent->drawable,
 				   &pPixmap->drawable,
 				   pGC,
