@@ -170,9 +170,11 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	    EnableMapUnmapEvents (pWin);
 	}
 
+	/* Make sure our borderClip is correct for ValidateTree */
 	RegionNull(&cw->borderClip);
-	cw->borderClipX = 0;
-	cw->borderClipY = 0;
+	RegionCopy(&cw->borderClip, &pWin->borderClip);
+	cw->borderClipX = pWin->drawable.x;
+	cw->borderClipY = pWin->drawable.y;
 	cw->update = CompositeRedirectAutomatic;
 	cw->clients = 0;
 	cw->oldx = COMP_ORIGIN_INVALID;
