@@ -239,6 +239,34 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
     return Success;
 }
 
+void
+compRestoreWindow (WindowPtr pWin, PixmapPtr pPixmap)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    WindowPtr pParent = pWin->parent;
+
+    if (pParent->drawable.depth == pWin->drawable.depth) {
+	GCPtr pGC = GetScratchGC (pWin->drawable.depth, pScreen);
+	int bw = (int) pWin->borderWidth;
+	int x = bw;
+	int y = bw;
+	int w = pWin->drawable.width;
+	int h = pWin->drawable.height;
+
+	if (pGC) {
+	    ChangeGCVal val;
+	    val.val = IncludeInferiors;
+	    ChangeGC (NullClient, pGC, GCSubwindowMode, &val);
+	    ValidateGC(&pWin->drawable, pGC);
+	    (*pGC->ops->CopyArea) (&pPixmap->drawable,
+				   &pWin->drawable,
+				   pGC,
+				   x, y, w, h, 0, 0);
+	    FreeScratchGC (pGC);
+	}
+    }
+}
+
 /*
  * Free one of the per-client per-window resources, clearing
  * redirect and the per-window pointer as appropriate
@@ -246,10 +274,12 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 void
 compFreeClientWindow (WindowPtr pWin, XID id)
 {
+    ScreenPtr		pScreen = pWin->drawable.pScreen;
     CompWindowPtr	cw = GetCompWindow (pWin);
     CompClientWindowPtr	ccw, *prev;
     Bool		anyMarked = FALSE;
     WindowPtr		pLayerWin;
+    PixmapPtr           pPixmap = NULL;
 
     if (!cw)
 	return;
@@ -268,8 +298,10 @@ compFreeClientWindow (WindowPtr pWin, XID id)
     {
 	anyMarked = compMarkWindows (pWin, &pLayerWin);
     
-	if (pWin->redirectDraw != RedirectDrawNone)
-	    compFreePixmap (pWin);
+	if (pWin->redirectDraw != RedirectDrawNone) {
+	    pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+	    compSetParentPixmap (pWin);
+	}
 
 	if (cw->damage)
 	    DamageDestroy (cw->damage);
@@ -290,6 +322,11 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 
     if (anyMarked)
 	compHandleMarkedWindows (pWin, pLayerWin);
+
+    if (pPixmap) {
+	compRestoreWindow (pWin, pPixmap);
+	(*pScreen->DestroyPixmap) (pPixmap);
+    }
 }
 
 /*
@@ -621,10 +658,10 @@ compAllocPixmap (WindowPtr pWin)
 }
 
 void
-compFreePixmap (WindowPtr pWin)
+compSetParentPixmap (WindowPtr pWin)
 {
     ScreenPtr	    pScreen = pWin->drawable.pScreen;
-    PixmapPtr	    pRedirectPixmap, pParentPixmap;
+    PixmapPtr	    pParentPixmap;
     CompWindowPtr   cw = GetCompWindow (pWin);
 
     if (cw->damageRegistered)
@@ -640,11 +677,9 @@ compFreePixmap (WindowPtr pWin)
      * parent exposed area; regions beyond the parent cause crashes
      */
     RegionCopy(&pWin->borderClip, &cw->borderClip);
-    pRedirectPixmap = (*pScreen->GetWindowPixmap) (pWin);
     pParentPixmap = (*pScreen->GetWindowPixmap) (pWin->parent);
     pWin->redirectDraw = RedirectDrawNone;
     compSetPixmap (pWin, pParentPixmap);
-    (*pScreen->DestroyPixmap) (pRedirectPixmap);
 }
 
 /*
