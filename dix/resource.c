@@ -636,25 +636,32 @@ InitClientResources(ClientPtr client)
     return TRUE;
 }
 
+int
+HashResourceID(XID id, int numBits)
+{
+    id &= RESOURCE_ID_MASK;
+    switch (numBits)
+    {
+        case 6:
+            return ((int)(0x03F & (id ^ (id>>6) ^ (id>>12))));
+        case 7:
+            return ((int)(0x07F & (id ^ (id>>7) ^ (id>>13))));
+        case 8:
+            return ((int)(0x0FF & (id ^ (id>>8) ^ (id>>16))));
+        case 9:
+            return ((int)(0x1FF & (id ^ (id>>9))));
+        case 10:
+            return ((int)(0x3FF & (id ^ (id>>10))));
+        case 11:
+            return ((int)(0x7FF & (id ^ (id>>11))));
+    }
+    return -1;
+}
+
 static int
 Hash(int client, XID id)
 {
-    id &= RESOURCE_ID_MASK;
-    switch (clientTable[client].hashsize) {
-    case 6:
-        return ((int) (0x03F & (id ^ (id >> 6) ^ (id >> 12))));
-    case 7:
-        return ((int) (0x07F & (id ^ (id >> 7) ^ (id >> 13))));
-    case 8:
-        return ((int) (0x0FF & (id ^ (id >> 8) ^ (id >> 16))));
-    case 9:
-        return ((int) (0x1FF & (id ^ (id >> 9))));
-    case 10:
-        return ((int) (0x3FF & (id ^ (id >> 10))));
-    case 11:
-        return ((int) (0x7FF & (id ^ (id >> 11))));
-    }
-    return -1;
+    return HashResourceID(id, clientTable[client].hashsize);
 }
 
 static XID
