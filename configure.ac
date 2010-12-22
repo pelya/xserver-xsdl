@@ -623,6 +623,7 @@ AC_ARG_ENABLE(vbe,            AS_HELP_STRING([--enable-vbe], [Build Xorg with VB
 AC_ARG_ENABLE(int10-module,     AS_HELP_STRING([--enable-int10-module], [Build Xorg with int10 module (default: enabled)]), [INT10MODULE=$enableval], [INT10MODULE=yes])
 AC_ARG_ENABLE(windowswm,      AS_HELP_STRING([--enable-windowswm], [Build XWin with WindowsWM extension (default: no)]), [WINDOWSWM=$enableval], [WINDOWSWM=no])
 AC_ARG_ENABLE(libdrm,         AS_HELP_STRING([--enable-libdrm], [Build Xorg with libdrm support (default: enabled)]), [DRM=$enableval],[DRM=yes])
+AC_ARG_ENABLE(clientids,      AS_HELP_STRING([--disable-clientids], [Build Xorg with client ID tracking (default: enabled)]), [CLIENTIDS=$enableval], [CLIENTIDS=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -975,6 +976,18 @@ if test "x$RES" = xyes; then
 	AC_DEFINE(RES, 1, [Support X resource extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES $RESOURCEPROTO"
 fi
+
+# The XRes extension may support client ID tracking only if it has
+# been specifically enabled. Client ID tracking is implicitly not
+# supported if XRes extension is disabled.
+AC_MSG_CHECKING([whether to track client ids])
+if test "x$RES" = xyes && test "x$CLIENTIDS" = xyes; then
+	AC_DEFINE(CLIENTIDS, 1, [Support client ID tracking])
+else
+	CLIENTIDS=no
+fi
+AC_MSG_RESULT([$CLIENTIDS])
+AM_CONDITIONAL(CLIENTIDS, [test "x$CLIENTIDS" = xyes])
 
 if test "x$GLX" = xyes; then
 	PKG_CHECK_MODULES([XLIB], [x11])
