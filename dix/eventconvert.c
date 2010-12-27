@@ -605,6 +605,7 @@ eventToDeviceEvent(DeviceEvent *ev, xEvent **xi)
     xde->root_x         = FP1616(ev->root_x, ev->root_x_frac);
     xde->root_y         = FP1616(ev->root_y, ev->root_y_frac);
 
+    xde->flags          = ev->flags;
     if (ev->key_repeat)
         xde->flags      |= XIKeyRepeat;
 

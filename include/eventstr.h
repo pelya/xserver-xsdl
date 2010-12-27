@@ -113,6 +113,7 @@ struct _DeviceEvent
     Window      root; /**< Root window of the event */
     int corestate;    /**< Core key/button state BEFORE the event */
     int key_repeat;   /**< Internally-generated key repeat event */
+    uint32_t flags;   /**< Flags to be copied into the generated event */
 };
 
 
