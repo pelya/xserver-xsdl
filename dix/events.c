@@ -256,7 +256,7 @@ EventSyncInfoRec syncEvents;
 /**
  * The root window the given device is currently on.
  */
-#define RootWindow(dev) dev->spriteInfo->sprite->spriteTrace[0]
+#define RootWindow(sprite) sprite->spriteTrace[0]
 
 static xEvent* swapEvent = NULL;
 static int swapEventLen = 0;
@@ -879,7 +879,7 @@ CheckVirtualMotion(
 #ifdef PANORAMIX
     if (noPanoramiXExtension) /* No typo. Only set the root win if disabled */
 #endif
-        RootWindow(pDev) = pSprite->hot.pScreen->root;
+        RootWindow(pDev->spriteInfo->sprite) = pSprite->hot.pScreen->root;
 }
 
 static void
@@ -1012,7 +1012,7 @@ PostNewCursor(DeviceIntPtr pDev)
 WindowPtr
 GetCurrentRootWindow(DeviceIntPtr dev)
 {
-    return RootWindow(dev);
+    return RootWindow(dev->spriteInfo->sprite);
 }
 
 /**
@@ -1511,7 +1511,7 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     DoEnterLeaveEvents(mouse, mouse->id, grab->window,
                        mouse->spriteInfo->sprite->win, NotifyUngrab);
     if (grab->confineTo)
-	ConfineCursorToWindow(mouse, RootWindow(mouse), FALSE, FALSE);
+	ConfineCursorToWindow(mouse, GetCurrentRootWindow(mouse), FALSE, FALSE);
     PostNewCursor(mouse);
     if (grab->cursor)
 	FreeCursor(grab->cursor, (Cursor)0);
@@ -2247,7 +2247,7 @@ FixUpEventFromWindow(
             event->evtype == XI_PropertyEvent)
             return;
 
-        event->root = RootWindow(pDev)->drawable.id;
+        event->root = GetCurrentRootWindow(pDev)->drawable.id;
         event->event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
@@ -2268,7 +2268,7 @@ FixUpEventFromWindow(
 
     } else
     {
-        XE_KBPTR.root = RootWindow(pDev)->drawable.id;
+        XE_KBPTR.root = GetCurrentRootWindow(pDev)->drawable.id;
         XE_KBPTR.event = pWin->drawable.id;
         if (pSprite->hot.pScreen == pWin->drawable.pScreen)
         {
@@ -2564,7 +2564,7 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
 
     pSprite = pDev->spriteInfo->sprite;
     pSprite->spriteTraceGood = 1;	/* root window still there */
-    pWin = RootWindow(pDev)->firstChild;
+    pWin = GetCurrentRootWindow(pDev)->firstChild;
     while (pWin)
     {
 	if ((pWin->mapped) &&
@@ -2737,7 +2737,8 @@ CheckMotion(DeviceEvent *ev, DeviceIntPtr pDev)
             if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
             {
                 pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
-                RootWindow(pDev) = pSprite->hot.pScreen->root;
+                RootWindow(pDev->spriteInfo->sprite) =
+                    pSprite->hot.pScreen->root;
             }
         }
 
@@ -2942,7 +2943,7 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 	    FatalError("Failed to allocate spriteTrace");
 	pSprite->spriteTraceSize = 32;
 
-	RootWindow(pDev) = pWin;
+	RootWindow(pDev->spriteInfo->sprite) = pWin;
 	pSprite->spriteTraceGood = 1;
 
 	pSprite->pEnqueueScreen = pScreen;
@@ -4554,7 +4555,8 @@ ProcGrabPointer(ClientPtr client)
     if (grab)
     {
         if (grab->confineTo && !confineTo)
-            ConfineCursorToWindow(device, RootWindow(device), FALSE, FALSE);
+            ConfineCursorToWindow(device, GetCurrentRootWindow(device), FALSE,
+                                  FALSE);
         oldCursor = grab->cursor;
     }
 
@@ -4883,7 +4885,7 @@ ProcQueryPointer(ClientPtr client)
     rep.mask = mouse->button ? (mouse->button->state) : 0;
     rep.mask |= XkbStateFieldFromRec(&keyboard->key->xkbInfo->state);
     rep.length = 0;
-    rep.root = (RootWindow(mouse))->drawable.id;
+    rep.root = (GetCurrentRootWindow(mouse))->drawable.id;
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
     rep.child = None;
@@ -5042,7 +5044,7 @@ ProcSendEvent(ClientPtr client)
 	/* If the input focus is PointerRootWin, send the event to where
 	the pointer is if possible, then perhaps propogate up to root. */
 	if (inputFocus == PointerRootWin)
-	    inputFocus = RootWindow(dev);
+	    inputFocus = GetCurrentRootWindow(dev);
 
 	if (IsParent(inputFocus, pSprite->win))
 	{
