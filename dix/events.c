@@ -3415,9 +3415,9 @@ CheckPassiveGrabsOnWindow(
         tempGrab.detail.exact = event->detail.key;
         if (!match)
         {
-            tempGrab.type = GetXIType((InternalEvent*)event);
             tempGrab.grabtype = GRABTYPE_XI;
-            if (GrabMatchesSecond(&tempGrab, grab, FALSE))
+            if ((tempGrab.type = GetXIType((InternalEvent*)event)) &&
+                (GrabMatchesSecond(&tempGrab, grab, FALSE)))
                 match = XI_MATCH;
         }
 
