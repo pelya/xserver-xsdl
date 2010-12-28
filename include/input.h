@@ -526,6 +526,7 @@ extern _X_EXPORT InputAttributes *DuplicateInputAttributes(InputAttributes *attr
 extern _X_EXPORT void FreeInputAttributes(InputAttributes *attrs);
 
 /* misc event helpers */
+extern Mask GetEventMask(DeviceIntPtr dev, xEvent* ev, InputClientsPtr clients);
 extern Mask GetEventFilter(DeviceIntPtr dev, xEvent *event);
 extern Mask GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev);
 void FixUpEventFromWindow(SpritePtr pSprite,

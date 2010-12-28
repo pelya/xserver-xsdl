@@ -439,7 +439,7 @@ GetWindowXI2Mask(DeviceIntPtr dev, WindowPtr win, xEvent* ev)
             (inputMasks->xi2mask[XIAllMasterDevices][evtype/8] && IsMaster(dev)));
 }
 
-static Mask
+Mask
 GetEventMask(DeviceIntPtr dev, xEvent *event, InputClients* other)
 {
     /* XI2 filters are only ever 8 bit, so let's return a 8 bit mask */
