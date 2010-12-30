@@ -96,6 +96,7 @@ typedef struct {
     VisualPtr	    pVisual;
     DamagePtr	    pDamage;		/* damage tracking structure */
     Bool            damageRegistered;
+    int             numberOfCursors;
 } miSpriteScreenRec, *miSpriteScreenPtr;
 
 #define SOURCE_COLOR	0
@@ -345,6 +346,7 @@ miSpriteInitialize (ScreenPtr               pScreen,
     pScreenPriv->colors[MASK_COLOR].green = 0;
     pScreenPriv->colors[MASK_COLOR].blue = 0;
     pScreenPriv->damageRegistered = 0;
+    pScreenPriv->numberOfCursors = 0;
 
     dixSetPrivate(&pScreen->devPrivates, miSpriteScreenKey, pScreenPriv);
 
@@ -772,21 +774,29 @@ static void
 miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
                    CursorPtr pCursor, int x, int y)
 {
-    miCursorInfoPtr pPointer;
+    miCursorInfoPtr     pPointer;
+    miSpriteScreenPtr   pScreenPriv;
 
     if (!IsMaster(pDev) && !pDev->u.master)
         return;
 
     pPointer = MISPRITE(pDev);
+    pScreenPriv = GetSpriteScreen(pScreen);
 
     if (!pCursor)
     {
+	if (pPointer->shouldBeUp)
+	    --pScreenPriv->numberOfCursors;
     	pPointer->shouldBeUp = FALSE;
     	if (pPointer->isUp)
 	    miSpriteRemoveCursor (pDev, pScreen);
+	if (pScreenPriv->numberOfCursors == 0)
+	    miSpriteDisableDamage(pScreen, pScreenPriv);
 	pPointer->pCursor = 0;
 	return;
     }
+    if (!pPointer->shouldBeUp)
+	pScreenPriv->numberOfCursors++;
     pPointer->shouldBeUp = TRUE;
     if (pPointer->x == x &&
 	pPointer->y == y &&
