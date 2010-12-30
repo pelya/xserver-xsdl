@@ -256,6 +256,15 @@ static void miSpriteRestoreCursor(DeviceIntPtr pDev,
                                  ScreenPtr pScreen);
 
 static void
+miSpriteRegisterBlockHandler(ScreenPtr pScreen, miSpriteScreenPtr pScreenPriv)
+{
+    if (!pScreenPriv->BlockHandler) {
+        pScreenPriv->BlockHandler = pScreen->BlockHandler;
+        pScreen->BlockHandler = miSpriteBlockHandler;
+    }
+}
+
+static void
 miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 {
     ScreenPtr		    pScreen = closure;
@@ -332,7 +341,7 @@ miSpriteInitialize (ScreenPtr               pScreen,
     pScreenPriv->InstallColormap = pScreen->InstallColormap;
     pScreenPriv->StoreColors = pScreen->StoreColors;
 
-    pScreenPriv->BlockHandler = pScreen->BlockHandler;
+    pScreenPriv->BlockHandler = NULL;
 
     pScreenPriv->DeviceCursorInitialize = pScreen->DeviceCursorInitialize;
     pScreenPriv->DeviceCursorCleanup = pScreen->DeviceCursorCleanup;
@@ -359,8 +368,6 @@ miSpriteInitialize (ScreenPtr               pScreen,
     pScreen->InstallColormap = miSpriteInstallColormap;
     pScreen->StoreColors = miSpriteStoreColors;
 
-    pScreen->BlockHandler = miSpriteBlockHandler;
-
     return TRUE;
 }
 
@@ -382,7 +389,6 @@ miSpriteCloseScreen (int i, ScreenPtr pScreen)
     pScreen->GetImage = pScreenPriv->GetImage;
     pScreen->GetSpans = pScreenPriv->GetSpans;
     pScreen->SourceValidate = pScreenPriv->SourceValidate;
-    pScreen->BlockHandler = pScreenPriv->BlockHandler;
     pScreen->InstallColormap = pScreenPriv->InstallColormap;
     pScreen->StoreColors = pScreenPriv->StoreColors;
 
@@ -555,12 +561,7 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
     miSpriteScreenPtr	pPriv = GetSpriteScreen(pScreen);
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
-
-    SCREEN_PROLOGUE(pPriv, pScreen, BlockHandler);
-
-    (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
-
-    SCREEN_EPILOGUE(pPriv, pScreen, BlockHandler);
+    Bool                WorkToDo = FALSE;
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
@@ -587,9 +588,20 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
                 miSpriteRestoreCursor (pDev, pScreen);
+                if (!pCursorInfo->isUp)
+                    WorkToDo = TRUE;
             }
         }
     }
+
+    SCREEN_PROLOGUE(pPriv, pScreen, BlockHandler);
+
+    (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
+
+    if (WorkToDo)
+        SCREEN_EPILOGUE(pPriv, pScreen, BlockHandler);
+    else
+        pPriv->BlockHandler = NULL;
 }
 
 static void
@@ -798,6 +810,8 @@ miSpriteSetCursor (DeviceIntPtr pDev, ScreenPtr pScreen,
     if (!pPointer->shouldBeUp)
 	pScreenPriv->numberOfCursors++;
     pPointer->shouldBeUp = TRUE;
+    if (!pPointer->isUp)
+	miSpriteRegisterBlockHandler(pScreen, pScreenPriv);
     if (pPointer->x == x &&
 	pPointer->y == y &&
 	pPointer->pCursor == pCursor &&
@@ -898,6 +912,7 @@ miSpriteRemoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen)
     pCursorInfo = MISPRITE(pDev);
 
     miSpriteIsDown(pCursorInfo);
+    miSpriteRegisterBlockHandler(pScreen, pScreenPriv);
     pCursorInfo->pCacheWin = NullWindow;
     miSpriteDisableDamage(pScreen, pScreenPriv);
     if (!miDCRestoreUnderCursor(pDev,
