@@ -301,7 +301,6 @@ compScreenInit (ScreenPtr pScreen)
     if (!cs)
 	return FALSE;
 
-    cs->damaged = FALSE;
     cs->overlayWid = FakeClientID(0);
     cs->pOverlayWin = NULL;
     cs->pOverlayClients = NULL;

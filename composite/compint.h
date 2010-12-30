@@ -152,7 +152,6 @@ typedef struct _CompScreen {
 
     ScreenBlockHandlerProcPtr	BlockHandler;
     CloseScreenProcPtr		CloseScreen;
-    Bool			damaged;
     int				numAlternateVisuals;
     VisualID			*alternateVisuals;
 

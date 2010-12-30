@@ -50,14 +50,8 @@
 static void
 compScreenUpdate (ScreenPtr pScreen)
 {
-    CompScreenPtr   cs = GetCompScreen (pScreen);
-
     compCheckTree (pScreen);
-    if (cs->damaged)
-    {
-	compWindowUpdate (pScreen->root);
-	cs->damaged = FALSE;
-    }
+    compWindowUpdate (pScreen->root);
 }
 
 static void
@@ -85,11 +79,9 @@ compReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
     CompScreenPtr   cs = GetCompScreen (pScreen);
     CompWindowPtr   cw = GetCompWindow (pWin);
 
-    if (!cs->damaged) {
+    if (!cs->BlockHandler) {
         cs->BlockHandler = pScreen->BlockHandler;
         pScreen->BlockHandler = compBlockHandler;
-
-        cs->damaged = TRUE;
     }
     cw->damaged = TRUE;
 }
