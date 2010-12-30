@@ -314,7 +314,7 @@ config_udev_fini(void)
     udev = udev_monitor_get_udev(udev_monitor);
 
     RemoveGeneralSocket(udev_monitor_get_fd(udev_monitor));
-    RemoveBlockAndWakeupHandlers(block_handler, wakeup_handler, udev_monitor);
+    RemoveBlockAndWakeupHandlers(block_handler, wakeup_handler, NULL);
     udev_monitor_unref(udev_monitor);
     udev_monitor = NULL;
     udev_unref(udev);
