@@ -61,7 +61,6 @@ compCloseScreen (int index, ScreenPtr pScreen)
     free(cs->alternateVisuals);
 
     pScreen->CloseScreen = cs->CloseScreen;
-    pScreen->BlockHandler = cs->BlockHandler;
     pScreen->InstallColormap = cs->InstallColormap;
     pScreen->ChangeWindowAttributes = cs->ChangeWindowAttributes;
     pScreen->ReparentWindow = cs->ReparentWindow;
@@ -128,35 +127,6 @@ compChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     pScreen->ChangeWindowAttributes = compChangeWindowAttributes;
 
     return ret;
-}
-
-static void
-compScreenUpdate (ScreenPtr pScreen)
-{
-    CompScreenPtr   cs = GetCompScreen (pScreen);
-
-    compCheckTree (pScreen);
-    if (cs->damaged)
-    {
-	compWindowUpdate (pScreen->root);
-	cs->damaged = FALSE;
-    }
-}
-
-static void
-compBlockHandler (int	    i,
-		  pointer   blockData,
-		  pointer   pTimeout,
-		  pointer   pReadmask)
-{
-    ScreenPtr	    pScreen = screenInfo.screens[i];
-    CompScreenPtr   cs = GetCompScreen (pScreen);
-
-    pScreen->BlockHandler = cs->BlockHandler;
-    compScreenUpdate (pScreen);
-    (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
-    cs->BlockHandler = pScreen->BlockHandler;
-    pScreen->BlockHandler = compBlockHandler;
 }
 
 /*
@@ -387,8 +357,7 @@ compScreenInit (ScreenPtr pScreen)
     cs->ChangeWindowAttributes = pScreen->ChangeWindowAttributes;
     pScreen->ChangeWindowAttributes = compChangeWindowAttributes;
 
-    cs->BlockHandler = pScreen->BlockHandler;
-    pScreen->BlockHandler = compBlockHandler;
+    cs->BlockHandler = NULL;
 
     cs->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = compCloseScreen;
