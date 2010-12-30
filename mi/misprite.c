@@ -569,7 +569,7 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
                     && pCursorInfo->pScreen == pScreen
                     && pCursorInfo->shouldBeUp)
             {
-                SPRITE_DEBUG (("BlockHandler restore\n"));
+                SPRITE_DEBUG (("BlockHandler save"));
                 miSpriteSaveUnderCursor (pDev, pScreen);
             }
         }
