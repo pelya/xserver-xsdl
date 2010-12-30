@@ -216,11 +216,10 @@ static Bool         miSpriteDeviceCursorInitialize(DeviceIntPtr pDev,
 static void         miSpriteDeviceCursorCleanup(DeviceIntPtr pDev,
                                                 ScreenPtr pScreen);
 
-#define SCREEN_PROLOGUE(pScreen, field) ((pScreen)->field = \
-   ((miSpriteScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, \
-					miSpriteScreenKey))->field)
-#define SCREEN_EPILOGUE(pScreen, field)\
-    ((pScreen)->field = miSprite##field)
+#define SCREEN_PROLOGUE(pPriv, pScreen, field) ((pScreen)->field = \
+   (pPriv)->field)
+#define SCREEN_EPILOGUE(pPriv, pScreen, field)\
+    ((pPriv)->field = (pScreen)->field, (pScreen)->field = miSprite##field)
 
 /*
  * pointer-sprite method table
@@ -397,11 +396,12 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
                   unsigned int format, unsigned long planemask,
                   char *pdstLine)
 {
-    ScreenPtr	    pScreen = pDrawable->pScreen;
-    DeviceIntPtr    pDev;
-    miCursorInfoPtr pCursorInfo;
+    ScreenPtr           pScreen = pDrawable->pScreen;
+    DeviceIntPtr        pDev;
+    miCursorInfoPtr     pCursorInfo;
+    miSpriteScreenPtr   pPriv = GetSpriteScreen(pScreen);
 
-    SCREEN_PROLOGUE (pScreen, GetImage);
+    SCREEN_PROLOGUE (pPriv, pScreen, GetImage);
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
@@ -424,7 +424,7 @@ miSpriteGetImage (DrawablePtr pDrawable, int sx, int sy, int w, int h,
     (*pScreen->GetImage) (pDrawable, sx, sy, w, h,
 			  format, planemask, pdstLine);
 
-    SCREEN_EPILOGUE (pScreen, GetImage);
+    SCREEN_EPILOGUE (pPriv, pScreen, GetImage);
 }
 
 static void
@@ -434,8 +434,9 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
     ScreenPtr		    pScreen = pDrawable->pScreen;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
+    miSpriteScreenPtr       pPriv = GetSpriteScreen(pScreen);
 
-    SCREEN_PROLOGUE (pScreen, GetSpans);
+    SCREEN_PROLOGUE (pPriv, pScreen, GetSpans);
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
@@ -475,7 +476,7 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 
     (*pScreen->GetSpans) (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 
-    SCREEN_EPILOGUE (pScreen, GetSpans);
+    SCREEN_EPILOGUE (pPriv, pScreen, GetSpans);
 }
 
 static void
@@ -485,8 +486,9 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
     ScreenPtr		    pScreen = pDrawable->pScreen;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
+    miSpriteScreenPtr       pPriv = GetSpriteScreen(pScreen);
 
-    SCREEN_PROLOGUE (pScreen, SourceValidate);
+    SCREEN_PROLOGUE (pPriv, pScreen, SourceValidate);
 
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
@@ -509,7 +511,7 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
     if (pScreen->SourceValidate)
 	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
 
-    SCREEN_EPILOGUE (pScreen, SourceValidate);
+    SCREEN_EPILOGUE (pPriv, pScreen, SourceValidate);
 }
 
 static void
@@ -518,8 +520,9 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     ScreenPtr	pScreen = pWindow->drawable.pScreen;
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
+    miSpriteScreenPtr       pPriv = GetSpriteScreen(pScreen);
 
-    SCREEN_PROLOGUE (pScreen, CopyWindow);
+    SCREEN_PROLOGUE (pPriv, pScreen, CopyWindow);
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
@@ -539,7 +542,7 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     }
 
     (*pScreen->CopyWindow) (pWindow, ptOldOrg, prgnSrc);
-    SCREEN_EPILOGUE (pScreen, CopyWindow);
+    SCREEN_EPILOGUE (pPriv, pScreen, CopyWindow);
 }
 
 static void
@@ -551,11 +554,11 @@ miSpriteBlockHandler (int i, pointer blockData, pointer pTimeout,
     DeviceIntPtr            pDev;
     miCursorInfoPtr         pCursorInfo;
 
-    SCREEN_PROLOGUE(pScreen, BlockHandler);
+    SCREEN_PROLOGUE(pPriv, pScreen, BlockHandler);
 
     (*pScreen->BlockHandler) (i, blockData, pTimeout, pReadmask);
 
-    SCREEN_EPILOGUE(pScreen, BlockHandler);
+    SCREEN_EPILOGUE(pPriv, pScreen, BlockHandler);
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
@@ -593,11 +596,11 @@ miSpriteInstallColormap (ColormapPtr pMap)
     ScreenPtr		pScreen = pMap->pScreen;
     miSpriteScreenPtr	pPriv = GetSpriteScreen(pScreen);
 
-    SCREEN_PROLOGUE(pScreen, InstallColormap);
+    SCREEN_PROLOGUE(pPriv, pScreen, InstallColormap);
 
     (*pScreen->InstallColormap) (pMap);
 
-    SCREEN_EPILOGUE(pScreen, InstallColormap);
+    SCREEN_EPILOGUE(pPriv, pScreen, InstallColormap);
 
     /* InstallColormap can be called before devices are initialized. */
     pPriv->pInstalledMap = pMap;
@@ -630,11 +633,11 @@ miSpriteStoreColors (ColormapPtr pMap, int ndef, xColorItem *pdef)
     DeviceIntPtr        pDev;
     miCursorInfoPtr     pCursorInfo;
 
-    SCREEN_PROLOGUE(pScreen, StoreColors);
+    SCREEN_PROLOGUE(pPriv, pScreen, StoreColors);
 
     (*pScreen->StoreColors) (pMap, ndef, pdef);
 
-    SCREEN_EPILOGUE(pScreen, StoreColors);
+    SCREEN_EPILOGUE(pPriv, pScreen, StoreColors);
 
     if (pPriv->pColormap == pMap)
     {
