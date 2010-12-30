@@ -95,8 +95,6 @@ AnimCurCloseScreen (int index, ScreenPtr pScreen)
     Bool                ret;
 
     Unwrap(as, pScreen, CloseScreen);
-    
-    Unwrap(as, pScreen, BlockHandler);
 
     Unwrap(as, pScreen, CursorLimits);
     Unwrap(as, pScreen, DisplayCursor);
@@ -196,7 +194,10 @@ AnimCurScreenBlockHandler (int screenNum,
 
     Unwrap (as, pScreen, BlockHandler);
     (*pScreen->BlockHandler) (screenNum, blockData, pTimeout, pReadmask);
-    Wrap (as, pScreen, BlockHandler, AnimCurScreenBlockHandler);
+    if (activeDevice)
+        Wrap (as, pScreen, BlockHandler, AnimCurScreenBlockHandler);
+    else
+        as->BlockHandler = NULL;
 }
 
 static Bool
@@ -222,6 +223,9 @@ AnimCurDisplayCursor (DeviceIntPtr pDev,
 		pDev->spriteInfo->anim.time = GetTimeInMillis () + ac->elts[0].delay;
 		pDev->spriteInfo->anim.pCursor = pCursor;
 		pDev->spriteInfo->anim.pScreen = pScreen;
+
+		if (!as->BlockHandler)
+		    Wrap(as, pScreen, BlockHandler, AnimCurScreenBlockHandler);
 	    }
 	}
 	else
@@ -248,8 +252,12 @@ AnimCurSetCursorPosition (DeviceIntPtr pDev,
     Bool		ret;
     
     Unwrap (as, pScreen, SetCursorPosition);
-    if (pDev->spriteInfo->anim.pCursor)
+    if (pDev->spriteInfo->anim.pCursor) {
 	pDev->spriteInfo->anim.pScreen = pScreen;
+
+	if (!as->BlockHandler)
+	    Wrap(as, pScreen, BlockHandler, AnimCurScreenBlockHandler);
+    }
     ret = (*pScreen->SetCursorPosition) (pDev, pScreen, x, y, generateEvent);
     Wrap (as, pScreen, SetCursorPosition, AnimCurSetCursorPosition);
     return ret;
@@ -334,7 +342,7 @@ AnimCurInit (ScreenPtr pScreen)
 	return FALSE;
     Wrap(as, pScreen, CloseScreen, AnimCurCloseScreen);
 
-    Wrap(as, pScreen, BlockHandler, AnimCurScreenBlockHandler);
+    as->BlockHandler = NULL;
 
     Wrap(as, pScreen, CursorLimits, AnimCurCursorLimits);
     Wrap(as, pScreen, DisplayCursor, AnimCurDisplayCursor);
