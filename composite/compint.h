@@ -159,6 +159,7 @@ typedef struct _CompScreen {
     Window			overlayWid;
     CompOverlayClientPtr        pOverlayClients;
     
+    GetImageProcPtr		GetImage;
 } CompScreenRec, *CompScreenPtr;
 
 extern DevPrivateKeyRec CompScreenPrivateKeyRec;
@@ -314,6 +315,9 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 void
 compWindowUpdate (WindowPtr pWin);
+
+void
+compScreenUpdate (ScreenPtr pScreen);
 
 WindowPtr
 CompositeRealChildHead (WindowPtr pWin);

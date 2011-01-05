@@ -47,7 +47,7 @@
 
 #include "compint.h"
 
-static void
+void
 compScreenUpdate (ScreenPtr pScreen)
 {
     compCheckTree (pScreen);

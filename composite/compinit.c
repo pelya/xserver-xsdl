@@ -77,6 +77,8 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->CopyWindow = cs->CopyWindow;
     pScreen->PositionWindow = cs->PositionWindow;
 
+    pScreen->GetImage = cs->GetImage;
+
     free(cs);
     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, NULL);
     ret = (*pScreen->CloseScreen) (index, pScreen);
@@ -127,6 +129,25 @@ compChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
     pScreen->ChangeWindowAttributes = compChangeWindowAttributes;
 
     return ret;
+}
+
+static void
+compGetImage (DrawablePtr pDrawable,
+	      int sx, int sy,
+	      int w, int h,
+	      unsigned int format,
+	      unsigned long planemask,
+	      char *pdstLine)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    CompScreenPtr cs = GetCompScreen (pScreen);
+
+    pScreen->GetImage = cs->GetImage;
+    if (pDrawable->type == DRAWABLE_WINDOW)
+	compScreenUpdate (pScreen);
+    (*pScreen->GetImage) (pDrawable, sx, sy, w, h, format, planemask, pdstLine);
+    cs->GetImage = pScreen->GetImage;
+    pScreen->GetImage = compGetImage;
 }
 
 /*
@@ -360,6 +381,9 @@ compScreenInit (ScreenPtr pScreen)
 
     cs->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = compCloseScreen;
+
+    cs->GetImage = pScreen->GetImage;
+    pScreen->GetImage = compGetImage;
 
     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, cs);
 
