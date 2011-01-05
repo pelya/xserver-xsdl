@@ -57,7 +57,8 @@ XAABitBlt(
     if((pSrcDrawable != pDstDrawable) && 
 			pSrcDrawable->pScreen->SourceValidate) {
 	(*pSrcDrawable->pScreen->SourceValidate) (
-			pSrcDrawable, srcx, srcy, width, height);
+			pSrcDrawable, srcx, srcy, width, height,
+			pGC->subWindowMode);
     }
 
     srcx += pSrcDrawable->x;

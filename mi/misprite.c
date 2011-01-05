@@ -198,7 +198,8 @@ static void	    miSpriteGetSpans(DrawablePtr pDrawable, int wMax,
 				     DDXPointPtr ppt, int *pwidth, int nspans,
 				     char *pdstStart);
 static void	    miSpriteSourceValidate(DrawablePtr pDrawable, int x, int y,
-					   int width, int height);
+					   int width, int height,
+					   unsigned int subWindowMode);
 static void	    miSpriteCopyWindow (WindowPtr pWindow,
 					DDXPointRec ptOldOrg,
 					RegionPtr prgnSrc);
@@ -489,7 +490,7 @@ miSpriteGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 
 static void
 miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
-                        int height)
+                        int height, unsigned int subWindowMode)
 {
     ScreenPtr		    pScreen = pDrawable->pScreen;
     DeviceIntPtr            pDev;
@@ -517,7 +518,7 @@ miSpriteSourceValidate (DrawablePtr pDrawable, int x, int y, int width,
     }
 
     if (pScreen->SourceValidate)
-	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
+	(*pScreen->SourceValidate) (pDrawable, x, y, width, height, subWindowMode);
 
     SCREEN_EPILOGUE (pPriv, pScreen, SourceValidate);
 }

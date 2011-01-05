@@ -186,7 +186,8 @@ miDoCopy (DrawablePtr	pSrcDrawable,
     if ((pSrcDrawable != pDstDrawable) &&
 	pSrcDrawable->pScreen->SourceValidate)
     {
-	(*pSrcDrawable->pScreen->SourceValidate) (pSrcDrawable, xIn, yIn, widthSrc, heightSrc);
+	(*pSrcDrawable->pScreen->SourceValidate) (pSrcDrawable, xIn, yIn, widthSrc, heightSrc,
+						  pGC->subWindowMode);
     }
 
     /* Compute source clip region */
