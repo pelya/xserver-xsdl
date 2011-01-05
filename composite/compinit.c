@@ -78,6 +78,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->PositionWindow = cs->PositionWindow;
 
     pScreen->GetImage = cs->GetImage;
+    pScreen->SourceValidate = cs->SourceValidate;
 
     free(cs);
     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, NULL);
@@ -148,6 +149,24 @@ compGetImage (DrawablePtr pDrawable,
     (*pScreen->GetImage) (pDrawable, sx, sy, w, h, format, planemask, pdstLine);
     cs->GetImage = pScreen->GetImage;
     pScreen->GetImage = compGetImage;
+}
+
+static void compSourceValidate(DrawablePtr pDrawable,
+			       int x, int y,
+			       int width, int height,
+			       unsigned int subWindowMode)
+{
+    ScreenPtr pScreen = pDrawable->pScreen;
+    CompScreenPtr cs = GetCompScreen (pScreen);
+
+    pScreen->SourceValidate = cs->SourceValidate;
+    if (pDrawable->type == DRAWABLE_WINDOW && subWindowMode == IncludeInferiors)
+	compScreenUpdate (pScreen);
+    if (pScreen->SourceValidate)
+	(*pScreen->SourceValidate) (pDrawable, x, y, width, height,
+				    subWindowMode);
+    cs->SourceValidate = pScreen->SourceValidate;
+    pScreen->SourceValidate = compSourceValidate;
 }
 
 /*
@@ -384,6 +403,9 @@ compScreenInit (ScreenPtr pScreen)
 
     cs->GetImage = pScreen->GetImage;
     pScreen->GetImage = compGetImage;
+
+    cs->SourceValidate = pScreen->SourceValidate;
+    pScreen->SourceValidate = compSourceValidate;
 
     dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, cs);
 

@@ -160,6 +160,7 @@ typedef struct _CompScreen {
     CompOverlayClientPtr        pOverlayClients;
     
     GetImageProcPtr		GetImage;
+    SourceValidateProcPtr	SourceValidate;
 } CompScreenRec, *CompScreenPtr;
 
 extern DevPrivateKeyRec CompScreenPrivateKeyRec;
