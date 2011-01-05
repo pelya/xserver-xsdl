@@ -183,8 +183,7 @@ miDoCopy (DrawablePtr	pSrcDrawable,
 	return NULL;
     }
 
-    if ((pSrcDrawable != pDstDrawable) &&
-	pSrcDrawable->pScreen->SourceValidate)
+    if (pSrcDrawable->pScreen->SourceValidate)
     {
 	(*pSrcDrawable->pScreen->SourceValidate) (pSrcDrawable, xIn, yIn, widthSrc, heightSrc,
 						  pGC->subWindowMode);

@@ -2958,8 +2958,7 @@ The sample server implementation is in Xserver/fb/fbscreen.c.</para>
 
 </programlisting></blockquote>
 SourceValidate should be called by CopyArea/CopyPlane primitives when
-the source drawable is not the same as the destination, and the
-SourceValidate function pointer in the screen is non-null.  If you know that
+the SourceValidate function pointer in the screen is non-null.  If you know that
 you will never need SourceValidate, you can avoid this check.  Currently,
 SourceValidate is used by the mi software cursor code to remove the cursor
 from the screen when the source rectangle overlaps the cursor position.
