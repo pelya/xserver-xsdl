@@ -720,13 +720,11 @@ compWindowUpdateAutomatic (WindowPtr pWin)
     DamageEmpty (cw->damage);
 }
 
-void
-compWindowUpdate (WindowPtr pWin)
+static void
+compPaintWindowToParent (WindowPtr pWin)
 {
-    WindowPtr	pChild;
+    compPaintChildrenToWindow (pWin);
 
-    for (pChild = pWin->lastChild; pChild; pChild = pChild->prevSib)
-	compWindowUpdate (pChild);
     if (pWin->redirectDraw != RedirectDrawNone)
     {
 	CompWindowPtr	cw = GetCompWindow(pWin);
@@ -737,6 +735,20 @@ compWindowUpdate (WindowPtr pWin)
 	    cw->damaged = FALSE;
 	}
     }
+}
+
+void
+compPaintChildrenToWindow (WindowPtr pWin)
+{
+    WindowPtr pChild;
+
+    if (!pWin->damagedDescendants)
+	return;
+
+    for (pChild = pWin->lastChild; pChild; pChild = pChild->prevSib)
+	compPaintWindowToParent (pChild);
+
+    pWin->damagedDescendants = FALSE;
 }
 
 WindowPtr

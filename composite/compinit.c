@@ -145,7 +145,7 @@ compGetImage (DrawablePtr pDrawable,
 
     pScreen->GetImage = cs->GetImage;
     if (pDrawable->type == DRAWABLE_WINDOW)
-	compScreenUpdate (pScreen);
+	compPaintChildrenToWindow ((WindowPtr) pDrawable);
     (*pScreen->GetImage) (pDrawable, sx, sy, w, h, format, planemask, pdstLine);
     cs->GetImage = pScreen->GetImage;
     pScreen->GetImage = compGetImage;
@@ -161,7 +161,7 @@ static void compSourceValidate(DrawablePtr pDrawable,
 
     pScreen->SourceValidate = cs->SourceValidate;
     if (pDrawable->type == DRAWABLE_WINDOW && subWindowMode == IncludeInferiors)
-	compScreenUpdate (pScreen);
+	compPaintChildrenToWindow ((WindowPtr) pDrawable);
     if (pScreen->SourceValidate)
 	(*pScreen->SourceValidate) (pDrawable, x, y, width, height,
 				    subWindowMode);

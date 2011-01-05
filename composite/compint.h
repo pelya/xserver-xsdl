@@ -315,10 +315,7 @@ void
 compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 void
-compWindowUpdate (WindowPtr pWin);
-
-void
-compScreenUpdate (ScreenPtr pScreen);
+compPaintChildrenToWindow (WindowPtr pWin);
 
 WindowPtr
 CompositeRealChildHead (WindowPtr pWin);

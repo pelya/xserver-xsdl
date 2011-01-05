@@ -47,11 +47,11 @@
 
 #include "compint.h"
 
-void
+static void
 compScreenUpdate (ScreenPtr pScreen)
 {
     compCheckTree (pScreen);
-    compWindowUpdate (pScreen->root);
+    compPaintChildrenToWindow (pScreen->root);
 }
 
 static void
@@ -84,6 +84,15 @@ compReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
         pScreen->BlockHandler = compBlockHandler;
     }
     cw->damaged = TRUE;
+
+    /* Mark the ancestors */
+    pWin = pWin->parent;
+    while (pWin) {
+	if (pWin->damagedDescendants)
+	    break;
+	pWin->damagedDescendants = TRUE;
+	pWin = pWin->parent;
+    }
 }
 
 static void
