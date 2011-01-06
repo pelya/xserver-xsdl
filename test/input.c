@@ -1017,7 +1017,8 @@ static void dix_input_valuator_masks(void)
         g_assert(valuator_mask_get(mask, i) == valuator_mask_get(copy, i));
     }
 
-    free(mask);
+    valuator_mask_free(&mask);
+    g_assert(mask == NULL);
 }
 
 static void dix_valuator_mode(void)

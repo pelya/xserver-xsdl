@@ -567,6 +567,7 @@ extern _X_HIDDEN void valuator_set_mode(DeviceIntPtr dev, int axis, int mode);
 extern Bool EnableCursor;
 
 extern _X_EXPORT ValuatorMask  *valuator_mask_new(int num_valuators);
+extern _X_EXPORT void valuator_mask_free(ValuatorMask **mask);
 extern _X_EXPORT void valuator_mask_set_range(ValuatorMask *mask,
                                        int first_valuator, int num_valuators,
                                        const int* valuators);
