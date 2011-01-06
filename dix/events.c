@@ -3889,7 +3889,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 		    (CLIENT_BITS(grab->resource) ==
 		     CLIENT_BITS(dev->deviceGrab.grab->resource)))
 		    dev->deviceGrab.sync.state = FROZEN_NO_EVENT;
-		else
+		else if (GetPairedDevice(thisDev) == dev)
                     dev->deviceGrab.sync.other = grab;
 	    }
 	    /* fall through */
