@@ -1595,14 +1595,10 @@ if test "x$XORG" = xyes; then
 		xorg_bus_linuxpci="yes"
 		linux_acpi="no"
 		case $host_cpu in
-		  ia64*)
-			linux_ia64=yes
-			linux_acpi="yes"
-			;;
 		  alpha*)
 		  	linux_alpha=yes
 			;;
-		  i*86|amd64*|x86_64*)
+		  i*86|amd64*|x86_64*|ia64*)
 			linux_acpi="yes"
 			;;
 		  *)
@@ -1782,7 +1778,6 @@ AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARC], [test "x$xorg_bus_sparc" = xyes])
-AM_CONDITIONAL([LINUX_IA64], [test "x$linux_ia64" = xyes])
 AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
