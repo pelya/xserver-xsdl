@@ -16,6 +16,3 @@ libxorgos_la_LIBADD = @XORG_OS_SUBDIR@/lib@XORG_OS_SUBDIR@.la \
 
 AM_CFLAGS = $(DIX_CFLAGS) 
 
-# FIXME: These don't seem to be used anywhere
-EXTRA_DIST += \
-	shared/bios_devmem.c
