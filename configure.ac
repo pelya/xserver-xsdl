@@ -2213,6 +2213,7 @@ hw/xfree86/doc/sgml/Makefile
 hw/xfree86/dri/Makefile
 hw/xfree86/dri2/Makefile
 hw/xfree86/exa/Makefile
+hw/xfree86/exa/man/Makefile
 hw/xfree86/fbdevhw/Makefile
 hw/xfree86/fbdevhw/man/Makefile
 hw/xfree86/i2c/Makefile
