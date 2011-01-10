@@ -2256,7 +2256,7 @@ hw/xwin/man/Makefile
 hw/xquartz/Makefile
 hw/xquartz/GL/Makefile
 hw/xquartz/bundle/Makefile
-hw/xquartz/doc/Makefile
+hw/xquartz/man/Makefile
 hw/xquartz/mach-startup/Makefile
 hw/xquartz/pbproxy/Makefile
 hw/xquartz/xpr/Makefile
