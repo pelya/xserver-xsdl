@@ -2233,6 +2233,7 @@ hw/xfree86/vgahw/Makefile
 hw/xfree86/x86emu/Makefile
 hw/xfree86/xaa/Makefile
 hw/xfree86/utils/Makefile
+hw/xfree86/utils/man/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
 hw/dmx/config/Makefile
