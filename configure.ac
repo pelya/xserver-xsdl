@@ -2242,6 +2242,7 @@ hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
 hw/vfb/Makefile
+hw/vfb/man/Makefile
 hw/xnest/Makefile
 hw/xnest/man/Makefile
 hw/xwin/Makefile
