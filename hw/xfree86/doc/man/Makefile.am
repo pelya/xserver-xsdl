@@ -1,24 +1,25 @@
-# Xserver.man covers options generic to all X servers built in this tree
-MAN_SRCS = Xorg.man.pre xorg.conf.man.pre
-
 appmandir = $(APP_MAN_DIR)
-appman_DATA = Xorg.$(APP_MAN_SUFFIX)
+appman_PRE = Xorg.man
+appman_DATA = $(appman_PRE:man=$(APP_MAN_SUFFIX))
 
 filemandir = $(FILE_MAN_DIR)
-fileman_DATA = xorg.conf.$(FILE_MAN_SUFFIX)
+fileman_PRE = xorg.conf.man
+fileman_DATA = $(fileman_PRE:man=$(FILE_MAN_SUFFIX))
 
-Xorg.$(APP_MAN_SUFFIX): Xorg.man
-	-$(AM_V_at)rm -f Xorg.$(APP_MAN_SUFFIX)
-	$(AM_V_at)$(LN_S) Xorg.man Xorg.$(APP_MAN_SUFFIX)
+EXTRA_DIST = $(appman_PRE) $(fileman_PRE)
+CLEANFILES = $(appman_DATA) $(fileman_DATA)
+SUFFIXES = .$(APP_MAN_SUFFIX) .$(FILE_MAN_SUFFIX) .man
 
-xorg.conf.$(FILE_MAN_SUFFIX): xorg.conf.man
-	-$(AM_V_at)rm -f xorg.conf.$(FILE_MAN_SUFFIX)
-	$(AM_V_at)$(LN_S) xorg.conf.man xorg.conf.$(FILE_MAN_SUFFIX)
+# String replacements in MAN_SUBSTS now come from xorg-macros.m4 via configure
+MAN_SUBSTS += 	-e 's|__logdir__|$(logdir)|g' \
+		-e 's|__datadir__|$(datadir)|g' \
+		-e 's|__mandir__|$(mandir)|g' \
+		-e 's|__sysconfdir__|$(sysconfdir)|g' \
+		-e 's|__xconfigdir__|$(__XCONFIGDIR__)|g' \
+		-e 's|__xkbdir__|$(XKB_BASE_DIRECTORY)|g' \
+		-e 's|__modulepath__|$(DEFAULT_MODULE_PATH)|g'
 
-include $(top_srcdir)/cpprules.in
-
-EXTRAMANDEFS = -D__logdir__=$(logdir)
-
-CLEANFILES = $(appman_DATA) $(fileman_DATA) xorg.conf.man Xorg.man
-
-EXTRA_DIST = $(MAN_SRCS)
+.man.$(APP_MAN_SUFFIX):
+	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@
+.man.$(FILE_MAN_SUFFIX):
+	$(AM_V_GEN)$(SED) $(MAN_SUBSTS) < $< > $@
