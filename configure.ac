@@ -2246,6 +2246,7 @@ hw/xnest/Makefile
 hw/xnest/man/Makefile
 hw/xwin/Makefile
 hw/xwin/glx/Makefile
+hw/xwin/man/Makefile
 hw/xquartz/Makefile
 hw/xquartz/GL/Makefile
 hw/xquartz/bundle/Makefile
