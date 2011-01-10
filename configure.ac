@@ -2214,6 +2214,7 @@ hw/xfree86/dri/Makefile
 hw/xfree86/dri2/Makefile
 hw/xfree86/exa/Makefile
 hw/xfree86/fbdevhw/Makefile
+hw/xfree86/fbdevhw/man/Makefile
 hw/xfree86/i2c/Makefile
 hw/xfree86/int10/Makefile
 hw/xfree86/loader/Makefile
