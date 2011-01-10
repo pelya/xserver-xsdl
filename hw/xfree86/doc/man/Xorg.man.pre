@@ -15,7 +15,7 @@ is a full featured X server that was originally designed for UNIX and
 UNIX-like operating systems running on Intel x86 hardware.  It now runs
 on a wider range of hardware and OS platforms.
 .PP
-This work was derived by the X.Org Foundation from the XFree86 Project's 
+This work was derived by the X.Org Foundation from the XFree86 Project's
 .I "XFree86\ 4.4rc2"
 release.
 The XFree86 release was originally derived from
@@ -117,13 +117,13 @@ one way, the highest precedence mechanism is used.  The list of mechanisms
 is ordered from highest precedence to lowest.  Note that not all parameters
 can be supplied via all methods.  The available command line options
 and environment variables (and some defaults) are described here and in
-the Xserver(__appmansuffix__) manual page.  Most configuration file 
+the Xserver(__appmansuffix__) manual page.  Most configuration file
 parameters, with their defaults, are described in the
-__xconfigfile__(__filemansuffix__) manual page.  Driver and module specific 
-configuration parameters are described in the relevant driver or module 
+__xconfigfile__(__filemansuffix__) manual page.  Driver and module specific
+configuration parameters are described in the relevant driver or module
 manual page.
 .PP
-In addition to the normal server options described in the 
+In addition to the normal server options described in the
 Xserver(__appmansuffix__) manual page,
 .B __xservername__
 accepts the following command line switches:
@@ -673,7 +673,7 @@ information can be found from the X.Org web site
 .PP
 .B __xservername__
 is copyright software, provided under licenses that permit modification
-and redistribution in source and binary form without fee.  
+and redistribution in source and binary form without fee.
 .B __xservername__ is copyright by numerous authors and
 contributors from around the world.  Licensing information can be found
 at
@@ -684,6 +684,6 @@ Refer to the source code for specific copyright notices.
 is a trademark of The XFree86 Project, Inc.
 .PP
 .B X11(TM)
-and 
+and
 .B X Window System(TM)
 are trademarks of The Open Group.
