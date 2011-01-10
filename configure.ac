@@ -2239,11 +2239,13 @@ hw/xfree86/utils/man/Makefile
 hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
 hw/dmx/config/Makefile
+hw/dmx/config/man/Makefile
 hw/dmx/doc/Makefile
 hw/dmx/examples/Makefile
 hw/dmx/input/Makefile
 hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
+hw/dmx/man/Makefile
 hw/vfb/Makefile
 hw/vfb/man/Makefile
 hw/xnest/Makefile
