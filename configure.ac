@@ -2243,6 +2243,7 @@ hw/dmx/glxProxy/Makefile
 hw/dmx/Makefile
 hw/vfb/Makefile
 hw/xnest/Makefile
+hw/xnest/man/Makefile
 hw/xwin/Makefile
 hw/xwin/glx/Makefile
 hw/xquartz/Makefile
