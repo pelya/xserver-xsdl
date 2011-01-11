@@ -65,4 +65,14 @@ fbAddTriangles (PicturePtr  pPicture,
 		int	    ntri,
 		xTriangle   *tris);
 
+extern _X_EXPORT void
+fbTrapezoids (CARD8	    op,
+	      PicturePtr    pSrc,
+	      PicturePtr    pDst,
+	      PictFormatPtr maskFormat,
+	      INT16	    xSrc,
+	      INT16	    ySrc,
+	      int	    ntrap,
+	      xTrapezoid    *traps);
+
 #endif /* _FBPICT_H_ */

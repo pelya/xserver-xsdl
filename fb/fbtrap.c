@@ -123,9 +123,9 @@ fbAddTriangles (PicturePtr  pPicture,
 	 *	       / \             / \
 	 *	      /   \           /   \
 	 *	     /     +         +     \
-	 *      /    --           --    \
-	 *     /   --               --   \
-	 *    / ---                   --- \
+	 *          /    --           --    \
+	 *         /   --               --   \
+	 *        / ---                   --- \
 	 *	 +--                         --+
 	 */
 	
@@ -157,3 +157,80 @@ fbAddTriangles (PicturePtr  pPicture,
     }
 }
 
+
+void
+fbTrapezoids (CARD8	    op,
+	      PicturePtr    pSrc,
+	      PicturePtr    pDst,
+	      PictFormatPtr maskFormat,
+	      INT16	    xSrc,
+	      INT16	    ySrc,
+	      int	    ntrap,
+	      xTrapezoid    *traps)
+{
+    pixman_image_t *src, *dst;
+    int src_xoff, src_yoff;
+    int dst_xoff, dst_yoff;
+
+    if (ntrap == 0)
+	return;
+    
+    src = image_from_pict (pSrc, FALSE, &src_xoff, &src_yoff);
+    dst = image_from_pict (pDst, TRUE, &dst_xoff, &dst_yoff);
+
+    if (src && dst)
+    {
+	pixman_format_code_t format;
+	int x_dst, y_dst;
+	int i;
+
+	x_dst = traps[0].left.p1.x >> 16;
+	y_dst = traps[0].left.p1.y >> 16;
+	    
+	if (!maskFormat)
+	{
+	    if (pDst->polyEdge == PolyEdgeSharp)
+		format = PIXMAN_a1;
+	    else
+		format = PIXMAN_a8;
+
+	    for (i = 0; i < ntrap; ++i)
+	    {
+		pixman_composite_trapezoids (op, src, dst, format,
+					     xSrc + src_xoff,
+					     ySrc + src_yoff,
+					     x_dst + dst_xoff,
+					     y_dst + dst_yoff,
+					     1, (pixman_trapezoid_t *)traps++);
+	    }
+	}
+	else
+	{
+	    switch (PICT_FORMAT_A (maskFormat->format))
+	    {
+	    case 1:
+		format = PIXMAN_a1;
+		break;
+
+	    case 4:
+		format = PIXMAN_a4;
+		break;
+
+	    default:
+	    case 8:
+		format = PIXMAN_a8;
+		break;
+	    }
+
+	    pixman_composite_trapezoids (op, src, dst, format,
+					 xSrc + src_xoff,
+					 ySrc + src_yoff,
+					 x_dst + dst_xoff,
+					 y_dst + dst_yoff,
+					 ntrap, (pixman_trapezoid_t *)traps);
+	}
+    }
+
+    free_pixman_pict (pSrc, src);
+    free_pixman_pict (pDst, dst);
+}

@@ -631,7 +631,7 @@ miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->Composite	= 0;			/* requires DDX support */
     ps->Glyphs		= miGlyphs;
     ps->CompositeRects	= miCompositeRects;
-    ps->Trapezoids	= miTrapezoids;
+    ps->Trapezoids	= 0;
     ps->Triangles	= miTriangles;
     ps->TriStrip	= miTriStrip;
     ps->TriFan		= miTriFan;
