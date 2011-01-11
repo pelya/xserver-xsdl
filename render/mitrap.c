@@ -34,55 +34,6 @@
 #include "picturestr.h"
 #include "mipict.h"
 
-PicturePtr
-miCreateAlphaPicture (ScreenPtr	    pScreen, 
-		      PicturePtr    pDst,
-		      PictFormatPtr pPictFormat,
-		      CARD16	    width,
-		      CARD16	    height)
-{
-    PixmapPtr	    pPixmap;
-    PicturePtr	    pPicture;
-    GCPtr	    pGC;
-    int		    error;
-    xRectangle	    rect;
-
-    if (width > 32767 || height > 32767)
-	return 0;
-
-    if (!pPictFormat)
-    {
-	if (pDst->polyEdge == PolyEdgeSharp)
-	    pPictFormat = PictureMatchFormat (pScreen, 1, PICT_a1);
-	else
-	    pPictFormat = PictureMatchFormat (pScreen, 8, PICT_a8);
-	if (!pPictFormat)
-	    return 0;
-    }
-
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 
-					pPictFormat->depth, 0);
-    if (!pPixmap)
-	return 0;
-    pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
-    if (!pGC)
-    {
-	(*pScreen->DestroyPixmap) (pPixmap);
-	return 0;
-    }
-    ValidateGC (&pPixmap->drawable, pGC);
-    rect.x = 0;
-    rect.y = 0;
-    rect.width = width;
-    rect.height = height;
-    (*pGC->ops->PolyFillRect)(&pPixmap->drawable, pGC, 1, &rect);
-    FreeScratchGC (pGC);
-    pPicture = CreatePicture (0, &pPixmap->drawable, pPictFormat,
-			      0, 0, serverClient, &error);
-    (*pScreen->DestroyPixmap) (pPixmap);
-    return pPicture;
-}
-
 static xFixed
 miLineFixedX (xLineFixed *l, xFixed y, Bool ceil)
 {

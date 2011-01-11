@@ -632,7 +632,7 @@ miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->Glyphs		= miGlyphs;
     ps->CompositeRects	= miCompositeRects;
     ps->Trapezoids	= 0;
-    ps->Triangles	= miTriangles;
+    ps->Triangles	= 0;
     ps->TriStrip	= miTriStrip;
     ps->TriFan		= miTriFan;
     

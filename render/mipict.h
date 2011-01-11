@@ -152,16 +152,6 @@ extern _X_EXPORT void
 miTriangleBounds (int ntri, xTriangle *tris, BoxPtr bounds);
 
 extern _X_EXPORT void
-miTriangles (CARD8	    op,
-	     PicturePtr	    pSrc,
-	     PicturePtr	    pDst,
-	     PictFormatPtr  maskFormat,
-	     INT16	    xSrc,
-	     INT16	    ySrc,
-	     int	    ntri,
-	     xTriangle	    *tris);
-
-extern _X_EXPORT void
 miTriStrip (CARD8	    op,
 	    PicturePtr	    pSrc,
 	    PicturePtr	    pDst,
@@ -180,13 +170,6 @@ miTriFan (CARD8		op,
 	  INT16		ySrc,
 	  int		npoint,
 	  xPointFixed	*points);
-
-extern _X_EXPORT PicturePtr
-miCreateAlphaPicture (ScreenPtr	    pScreen, 
-		      PicturePtr    pDst,
-		      PictFormatPtr pPictFormat,
-		      CARD16	    width,
-		      CARD16	    height);
 
 extern _X_EXPORT Bool
 miInitIndexed (ScreenPtr	pScreen,

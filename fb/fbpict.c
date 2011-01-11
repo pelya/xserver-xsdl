@@ -367,6 +367,7 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     ps->Trapezoids = fbTrapezoids;
     ps->AddTraps = fbAddTraps;
     ps->AddTriangles = fbAddTriangles;
+    ps->Triangles = fbTriangles;
 
     return TRUE;
 }

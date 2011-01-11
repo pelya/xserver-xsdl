@@ -157,51 +157,56 @@ fbAddTriangles (PicturePtr  pPicture,
     }
 }
 
+typedef void (* CompositeShapesFunc) (pixman_op_t op,
+				      pixman_image_t *src,
+				      pixman_image_t *dst,
+				      pixman_format_code_t mask_format,
+				      int x_src, int y_src,
+				      int x_dst, int y_dst,
+				      int n_shapes, const uint8_t *shapes);
 
-void
-fbTrapezoids (CARD8	    op,
-	      PicturePtr    pSrc,
-	      PicturePtr    pDst,
-	      PictFormatPtr maskFormat,
-	      INT16	    xSrc,
-	      INT16	    ySrc,
-	      int	    ntrap,
-	      xTrapezoid    *traps)
+static void
+fbShapes (CompositeShapesFunc	composite,
+	  pixman_op_t		op,
+	  PicturePtr		pSrc,
+	  PicturePtr		pDst,
+	  PictFormatPtr		maskFormat,
+	  int16_t		xSrc,
+	  int16_t		ySrc,
+	  int16_t		xDst,
+	  int16_t		yDst,
+	  int			nshapes,
+	  int			shape_size,
+	  const uint8_t *	shapes)
 {
     pixman_image_t *src, *dst;
     int src_xoff, src_yoff;
     int dst_xoff, dst_yoff;
 
-    if (ntrap == 0)
-	return;
-    
     src = image_from_pict (pSrc, FALSE, &src_xoff, &src_yoff);
     dst = image_from_pict (pDst, TRUE, &dst_xoff, &dst_yoff);
 
     if (src && dst)
     {
 	pixman_format_code_t format;
-	int x_dst, y_dst;
-	int i;
 
-	x_dst = traps[0].left.p1.x >> 16;
-	y_dst = traps[0].left.p1.y >> 16;
-	    
 	if (!maskFormat)
 	{
+	    int i;
+
 	    if (pDst->polyEdge == PolyEdgeSharp)
 		format = PIXMAN_a1;
 	    else
 		format = PIXMAN_a8;
 
-	    for (i = 0; i < ntrap; ++i)
+	    for (i = 0; i < nshapes; ++i)
 	    {
-		pixman_composite_trapezoids (op, src, dst, format,
-					     xSrc + src_xoff,
-					     ySrc + src_yoff,
-					     x_dst + dst_xoff,
-					     y_dst + dst_yoff,
-					     1, (pixman_trapezoid_t *)traps++);
+		composite (op, src, dst, format,
+			   xSrc + src_xoff,
+			   ySrc + src_yoff,
+			   xDst + dst_xoff,
+			   yDst + dst_yoff,
+			   1, shapes + i * shape_size);
 	    }
 	}
 	else
@@ -221,16 +226,58 @@ fbTrapezoids (CARD8	    op,
 		format = PIXMAN_a8;
 		break;
 	    }
-
-	    pixman_composite_trapezoids (op, src, dst, format,
-					 xSrc + src_xoff,
-					 ySrc + src_yoff,
-					 x_dst + dst_xoff,
-					 y_dst + dst_yoff,
-					 ntrap, (pixman_trapezoid_t *)traps);
+	    
+	    composite (op, src, dst, format,
+		       xSrc + src_xoff,
+		       ySrc + src_yoff,
+		       xDst + dst_xoff,
+		       yDst + dst_yoff,
+		       nshapes, shapes);
 	}
     }
 
     free_pixman_pict (pSrc, src);
     free_pixman_pict (pDst, dst);
+}
+
+void
+fbTrapezoids (CARD8	    op,
+	      PicturePtr    pSrc,
+	      PicturePtr    pDst,
+	      PictFormatPtr maskFormat,
+	      INT16	    xSrc,
+	      INT16	    ySrc,
+	      int	    ntrap,
+	      xTrapezoid    *traps)
+{
+    int xDst, yDst;
+
+    xDst = traps[0].left.p1.x >> 16;
+    yDst = traps[0].left.p1.y >> 16;
+    
+    fbShapes ((CompositeShapesFunc)pixman_composite_trapezoids,
+	      op, pSrc, pDst, maskFormat,
+	      xSrc, ySrc, xDst, yDst,
+	      ntrap, sizeof (xTrapezoid), (const uint8_t *)traps);
+}
+
+void
+fbTriangles (CARD8	    op,
+	     PicturePtr    pSrc,
+	     PicturePtr    pDst,
+	     PictFormatPtr maskFormat,
+	     INT16	    xSrc,
+	     INT16	    ySrc,
+	     int	    ntris,
+	     xTriangle    *tris)
+{ 
+    int xDst, yDst;
+
+    xDst = tris[0].p1.x >> 16;
+    yDst = tris[0].p1.y >> 16;
+    
+    fbShapes ((CompositeShapesFunc)pixman_composite_triangles,
+	      op, pSrc, pDst, maskFormat,
+	      xSrc, ySrc, xDst, yDst,
+	      ntris, sizeof (xTriangle), (const uint8_t *)tris);
 }
