@@ -40,6 +40,7 @@ typedef struct {
    DestroyWindowProcPtr		DestroyWindow;
    ClipNotifyProcPtr		ClipNotify;
    WindowExposuresProcPtr	WindowExposures;
+   PostValidateTreeProcPtr	PostValidateTree;
    void                         (*AdjustFrame)(int, int, int, int);
    Bool                         (*EnterVT)(int, int);
    void                         (*LeaveVT)(int, int);
@@ -73,6 +74,7 @@ typedef struct {
    Bool FreeCompositeClip;
    XvAdaptorRecPrivatePtr AdaptorRec;
    XvStatus isOn;
+   Bool clipChanged;
    int vid_x, vid_y, vid_w, vid_h;
    int drw_x, drw_y, drw_w, drw_h;
    DevUnion DevPriv;

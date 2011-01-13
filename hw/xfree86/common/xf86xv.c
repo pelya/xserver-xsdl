@@ -97,6 +97,7 @@ static int xf86XVQueryImageAttributes(ClientPtr, XvPortPtr, XvImagePtr,
 
 static Bool xf86XVDestroyWindow(WindowPtr pWin);
 static void xf86XVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
+static void xf86XVPostValidateTree(WindowPtr pWin, WindowPtr pLayerWin, VTKind kind);
 static void xf86XVClipNotify(WindowPtr pWin, int dx, int dy);
 
 /* ScrnInfoRec functions */
@@ -282,6 +283,7 @@ xf86XVScreenInit(
 
   ScreenPriv->DestroyWindow = pScreen->DestroyWindow;
   ScreenPriv->WindowExposures = pScreen->WindowExposures;
+  ScreenPriv->PostValidateTree = pScreen->PostValidateTree;
   ScreenPriv->ClipNotify = pScreen->ClipNotify;
   ScreenPriv->EnterVT = pScrn->EnterVT;
   ScreenPriv->LeaveVT = pScrn->LeaveVT;
@@ -290,6 +292,7 @@ xf86XVScreenInit(
 
   pScreen->DestroyWindow = xf86XVDestroyWindow;
   pScreen->WindowExposures = xf86XVWindowExposures;
+  pScreen->PostValidateTree = xf86XVPostValidateTree;
   pScreen->ClipNotify = xf86XVClipNotify;
   pScrn->EnterVT = xf86XVEnterVT;
   pScrn->LeaveVT = xf86XVLeaveVT;
@@ -1038,6 +1041,7 @@ xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	RegionDestroy(portPriv->ckeyFilled);
 	portPriv->ckeyFilled = NULL;
      }
+     portPriv->clipChanged = FALSE;
 }
 
 static void
@@ -1072,7 +1076,7 @@ xf86XVReputOrStopPort(XvPortRecPrivatePtr pPriv,
 }
 
 static void
-xf86XVReputOrStopAllPorts(ScrnInfoPtr pScrn)
+xf86XVReputOrStopAllPorts(ScrnInfoPtr pScrn, Bool onlyChanged)
 {
     ScreenPtr pScreen = pScrn->pScreen;
     XvScreenPtr pxvs = GET_XV_SCREEN(pScreen);
@@ -1090,6 +1094,9 @@ xf86XVReputOrStopAllPorts(ScrnInfoPtr pScrn)
 	    if (pPriv->isOn == XV_OFF || !pWin)
 		continue;
 
+	    if (onlyChanged && !pPriv->clipChanged)
+		continue;
+
 	    visible = pWin->visibility == VisibilityUnobscured ||
 		      pWin->visibility == VisibilityPartiallyObscured;
 
@@ -1101,6 +1108,8 @@ xf86XVReputOrStopAllPorts(ScrnInfoPtr pScrn)
 		visible = FALSE;
 
 	    xf86XVReputOrStopPort(pPriv, pWin, visible);
+
+	    pPriv->clipChanged = FALSE;
 	}
     }
 }
@@ -1139,6 +1148,30 @@ xf86XVDestroyWindow(WindowPtr pWin)
   return ret;
 }
 
+static void
+xf86XVPostValidateTree(WindowPtr pWin, WindowPtr pLayerWin, VTKind kind)
+{
+    ScreenPtr pScreen;
+    XF86XVScreenPtr ScreenPriv;
+    ScrnInfoPtr pScrn;
+
+    if (pWin)
+	pScreen = pWin->drawable.pScreen;
+    else
+	pScreen = pLayerWin->drawable.pScreen;
+
+    ScreenPriv = GET_XF86XV_SCREEN(pScreen);
+    pScrn = xf86Screens[pScreen->myNum];
+
+    xf86XVReputOrStopAllPorts(pScrn, TRUE);
+
+    if (ScreenPriv->PostValidateTree) {
+	pScreen->PostValidateTree = ScreenPriv->PostValidateTree;
+	(*pScreen->PostValidateTree)(pWin, pLayerWin, kind);
+	ScreenPriv->PostValidateTree = pScreen->PostValidateTree;
+	pScreen->PostValidateTree = xf86XVPostValidateTree;
+    }
+}
 
 static void
 xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
@@ -1187,9 +1220,10 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
 
      WinPriv = WinPriv->next;
      xf86XVReputOrStopPort(pPriv, pWin, visible);
+
+     pPriv->clipChanged = FALSE;
   }
 }
-
 
 static void
 xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
@@ -1200,9 +1234,6 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
   XvPortRecPrivatePtr pPriv;
 
   while(WinPriv) {
-     Bool visible = pWin->visibility == VisibilityUnobscured ||
-		    pWin->visibility == VisibilityPartiallyObscured;
-
      pPriv = WinPriv->PortRec;
 
      if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
@@ -1214,15 +1245,9 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
         (*pPriv->AdaptorRec->ClipNotify)(pPriv->pScrn, pPriv->DevPriv.ptr,
                                          pWin, dx, dy);
 
-     /*
-      * Stop and remove still/images if
-      * ReputImage isn't supported.
-      */
-     if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
-	visible = FALSE;
+     pPriv->clipChanged = TRUE;
 
      WinPriv = WinPriv->next;
-     xf86XVReputOrStopPort(pPriv, pWin, visible);
   }
 
   if(ScreenPriv->ClipNotify) {
@@ -1249,6 +1274,7 @@ xf86XVCloseScreen(int i, ScreenPtr pScreen)
 
   pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
   pScreen->WindowExposures = ScreenPriv->WindowExposures;
+  pScreen->PostValidateTree = ScreenPriv->PostValidateTree;
   pScreen->ClipNotify = ScreenPriv->ClipNotify;
 
   pScrn->EnterVT = ScreenPriv->EnterVT;
@@ -1355,7 +1381,7 @@ xf86XVAdjustFrame(int index, int x, int y, int flags)
 	pScrn->AdjustFrame = xf86XVAdjustFrame;
   }
 
-  xf86XVReputOrStopAllPorts(pScrn);
+  xf86XVReputOrStopAllPorts(pScrn, FALSE);
 }
 
 static void
@@ -1376,7 +1402,7 @@ xf86XVModeSet(ScrnInfoPtr pScrn)
 	pScrn->ModeSet = xf86XVModeSet;
     }
 
-    xf86XVReputOrStopAllPorts(pScrn);
+    xf86XVReputOrStopAllPorts(pScrn, FALSE);
 }
 
 /**** XvAdaptorRec fields ****/
