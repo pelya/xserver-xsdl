@@ -43,7 +43,6 @@ typedef struct {
    void                         (*AdjustFrame)(int, int, int, int);
    Bool                         (*EnterVT)(int, int);
    void                         (*LeaveVT)(int, int);
-   GCPtr			videoGC;
    xf86ModeSetProc		*ModeSet;
 } XF86XVScreenRec, *XF86XVScreenPtr;
 
@@ -82,7 +81,6 @@ typedef struct {
 typedef struct _XF86XVWindowRec{
    XvPortRecPrivatePtr PortRec;
    struct _XF86XVWindowRec *next;
-   GCPtr pGC;
 } XF86XVWindowRec, *XF86XVWindowPtr;
 
 #endif  /* _XF86XVPRIV_H_ */

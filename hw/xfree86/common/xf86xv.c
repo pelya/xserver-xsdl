@@ -280,8 +280,6 @@ xf86XVScreenInit(
 
   pScrn = xf86Screens[pScreen->myNum];
 
-  ScreenPriv->videoGC = NULL;  /* for the helper */
-
   ScreenPriv->DestroyWindow = pScreen->DestroyWindow;
   ScreenPriv->WindowExposures = pScreen->WindowExposures;
   ScreenPriv->ClipNotify = pScreen->ClipNotify;
@@ -1123,9 +1121,6 @@ xf86XVDestroyWindow(WindowPtr pWin)
 
      pPriv->pDraw = NULL;
      tmp = WinPriv;
-     if(WinPriv->pGC) {
-       FreeGC(WinPriv->pGC, 0);
-     }
      WinPriv = WinPriv->next;
      free(tmp);
   }
@@ -1231,11 +1226,6 @@ xf86XVCloseScreen(int i, ScreenPtr pScreen)
   int c;
 
   if(!ScreenPriv) return TRUE;
-
-  if(ScreenPriv->videoGC) {
-     FreeGC(ScreenPriv->videoGC, 0);
-     ScreenPriv->videoGC = NULL;
-  }
 
   pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
   pScreen->WindowExposures = ScreenPriv->WindowExposures;
