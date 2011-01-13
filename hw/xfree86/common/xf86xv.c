@@ -1869,62 +1869,10 @@ xf86XVQueryImageAttributes(
 			format->id, width, height, pitches, offsets);
 }
 
-
 void
 xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 {
    ScreenPtr pScreen = pDraw->pScreen;
-   WindowPtr pWin = (WindowPtr)pDraw;
-   XF86XVWindowPtr pPriv = GET_XF86XV_WINDOW(pWin);
-   GCPtr pGC = NULL;
-   BoxPtr pbox = RegionRects(clipboxes);
-   int i, nbox = RegionNumRects(clipboxes);
-   xRectangle *rects;
-
-   if(!xf86Screens[pScreen->myNum]->vtSema) return;
-
-   if(pPriv)
-      pGC = pPriv->pGC;
-
-   if(!pGC) {
-       int status;
-       XID pval[2];
-       pval[0] = key;
-       pval[1] = IncludeInferiors;
-       pGC = CreateGC(pDraw, GCForeground | GCSubwindowMode, pval, &status,
-		      (XID)0, serverClient);
-       if(!pGC) return;
-       ValidateGC(pDraw, pGC);
-       if (pPriv) pPriv->pGC = pGC;
-   } else if (key != pGC->fgPixel){
-       ChangeGCVal val;
-       val.val = key;
-       ChangeGC(NullClient, pGC, GCForeground, &val);
-       ValidateGC(pDraw, pGC);
-   }
-
-   RegionTranslate(clipboxes, -pDraw->x, -pDraw->y);
-
-   rects = malloc(nbox * sizeof(xRectangle));
-
-   for(i = 0; i < nbox; i++, pbox++) {
-      rects[i].x = pbox->x1;
-      rects[i].y = pbox->y1;
-      rects[i].width = pbox->x2 - pbox->x1;
-      rects[i].height = pbox->y2 - pbox->y1;
-   }
-
-   (*pGC->ops->PolyFillRect)(pDraw, pGC, nbox, rects);
-
-   if (!pPriv) FreeGC(pGC, 0);
-
-   free(rects);
-}
-
-void
-xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
-{
-   DrawablePtr root = &pScreen->root->drawable;
    ChangeGCVal pval[2];
    BoxPtr pbox = RegionRects(clipboxes);
    int i, nbox = RegionNumRects(clipboxes);
@@ -1933,26 +1881,32 @@ xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 
    if(!xf86Screens[pScreen->myNum]->vtSema) return;
 
-   gc = GetScratchGC(root->depth, pScreen);
+   gc = GetScratchGC(pDraw->depth, pScreen);
    pval[0].val = key;
    pval[1].val = IncludeInferiors;
    (void) ChangeGC(NullClient, gc, GCForeground|GCSubwindowMode, pval);
-   ValidateGC(root, gc);
+   ValidateGC(pDraw, gc);
 
    rects = malloc(nbox * sizeof(xRectangle));
 
    for(i = 0; i < nbox; i++, pbox++) 
    {
-      rects[i].x = pbox->x1;
-      rects[i].y = pbox->y1;
+      rects[i].x = pbox->x1 - pDraw->x;
+      rects[i].y = pbox->y1 - pDraw->y;
       rects[i].width = pbox->x2 - pbox->x1;
       rects[i].height = pbox->y2 - pbox->y1;
    }
    
-   (*gc->ops->PolyFillRect)(root, gc, nbox, rects);
+   (*gc->ops->PolyFillRect)(pDraw, gc, nbox, rects);
    
    free(rects);
    FreeScratchGC (gc);
+}
+
+void
+xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
+{
+    xf86XVFillKeyHelperDrawable (&pScreen->root->drawable, key, clipboxes);
 }
 
 /* xf86XVClipVideoHelper -
