@@ -100,6 +100,8 @@ static void xf86XVWindowExposures(WindowPtr pWin, RegionPtr r1, RegionPtr r2);
 static void xf86XVPostValidateTree(WindowPtr pWin, WindowPtr pLayerWin, VTKind kind);
 static void xf86XVClipNotify(WindowPtr pWin, int dx, int dy);
 
+#define PostValidateTreeUndefined ((PostValidateTreeProcPtr)-1)
+
 /* ScrnInfoRec functions */
 
 static Bool xf86XVEnterVT(int, int);
@@ -283,7 +285,7 @@ xf86XVScreenInit(
 
   ScreenPriv->DestroyWindow = pScreen->DestroyWindow;
   ScreenPriv->WindowExposures = pScreen->WindowExposures;
-  ScreenPriv->PostValidateTree = pScreen->PostValidateTree;
+  ScreenPriv->PostValidateTree = PostValidateTreeUndefined;
   ScreenPriv->ClipNotify = pScreen->ClipNotify;
   ScreenPriv->EnterVT = pScrn->EnterVT;
   ScreenPriv->LeaveVT = pScrn->LeaveVT;
@@ -292,7 +294,6 @@ xf86XVScreenInit(
 
   pScreen->DestroyWindow = xf86XVDestroyWindow;
   pScreen->WindowExposures = xf86XVWindowExposures;
-  pScreen->PostValidateTree = xf86XVPostValidateTree;
   pScreen->ClipNotify = xf86XVClipNotify;
   pScrn->EnterVT = xf86XVEnterVT;
   pScrn->LeaveVT = xf86XVLeaveVT;
@@ -1165,12 +1166,11 @@ xf86XVPostValidateTree(WindowPtr pWin, WindowPtr pLayerWin, VTKind kind)
 
     xf86XVReputOrStopAllPorts(pScrn, TRUE);
 
-    if (ScreenPriv->PostValidateTree) {
-	pScreen->PostValidateTree = ScreenPriv->PostValidateTree;
+    pScreen->PostValidateTree = ScreenPriv->PostValidateTree;
+    if (pScreen->PostValidateTree) {
 	(*pScreen->PostValidateTree)(pWin, pLayerWin, kind);
-	ScreenPriv->PostValidateTree = pScreen->PostValidateTree;
-	pScreen->PostValidateTree = xf86XVPostValidateTree;
     }
+    ScreenPriv->PostValidateTree = PostValidateTreeUndefined;
 }
 
 static void
@@ -1247,6 +1247,11 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 
      pPriv->clipChanged = TRUE;
 
+     if (ScreenPriv->PostValidateTree == PostValidateTreeUndefined) {
+        ScreenPriv->PostValidateTree = pScreen->PostValidateTree;
+        pScreen->PostValidateTree = xf86XVPostValidateTree;
+     }
+
      WinPriv = WinPriv->next;
   }
 
@@ -1274,7 +1279,6 @@ xf86XVCloseScreen(int i, ScreenPtr pScreen)
 
   pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
   pScreen->WindowExposures = ScreenPriv->WindowExposures;
-  pScreen->PostValidateTree = ScreenPriv->PostValidateTree;
   pScreen->ClipNotify = ScreenPriv->ClipNotify;
 
   pScrn->EnterVT = ScreenPriv->EnterVT;
