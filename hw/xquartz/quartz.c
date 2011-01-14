@@ -244,6 +244,9 @@ void QuartzUpdateScreens(void) {
     DeliverEvents(pRoot, &e, 1, NullWindow);
 
     quartzProcs->UpdateScreen(pScreen);
+
+    /* Tell RandR about the new size, so new connections get the correct info */
+    RRScreenSizeNotify(pScreen);
 }
 
 static void pokeActivityCallback(CFRunLoopTimerRef timer, void *info) {
