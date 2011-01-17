@@ -68,6 +68,7 @@ typedef struct {
    unsigned char type;
    unsigned int subWindowMode;
    RegionPtr clientClip;
+   RegionPtr ckeyFilled;
    RegionPtr pCompositeClip;
    Bool FreeCompositeClip;
    XvAdaptorRecPrivatePtr AdaptorRec;

@@ -331,6 +331,8 @@ xf86XVFreeAdaptor(XvAdaptorPtr pAdaptor)
 		RegionDestroy(pPriv->clientClip);
 	     if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
 		RegionDestroy(pPriv->pCompositeClip);
+	     if (pPriv->ckeyFilled)
+		RegionDestroy(pPriv->ckeyFilled);
 	     free(pPriv);
 	  }
       }
@@ -1016,7 +1018,6 @@ static void
 xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 {
      XF86XVWindowPtr winPriv, prevPriv = NULL;
-
      winPriv = GET_XF86XV_WINDOW(pWin);
 
      while(winPriv) {
@@ -1033,6 +1034,10 @@ xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	winPriv = winPriv->next;
      }
      portPriv->pDraw = NULL;
+     if (portPriv->ckeyFilled) {
+	RegionDestroy(portPriv->ckeyFilled);
+	portPriv->ckeyFilled = NULL;
+     }
 }
 
 static void
@@ -1164,6 +1169,21 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
       */
      if (!pPriv->type && !pPriv->AdaptorRec->ReputImage)
 	visible = !AreasExposed;
+
+     /*
+      * Subtract exposed areas from overlaid image to match textured video
+      * behavior.
+      */
+     if (!pPriv->type && pPriv->clientClip)
+	    RegionSubtract(pPriv->clientClip, pPriv->clientClip, reg1);
+
+     if (visible && pPriv->ckeyFilled) {
+        RegionRec tmp;
+        RegionNull(&tmp);
+        RegionCopy(&tmp, reg1);
+        RegionTranslate(&tmp, pWin->drawable.x, pWin->drawable.y);
+        RegionSubtract(pPriv->ckeyFilled, pPriv->ckeyFilled, &tmp);
+     }
 
      WinPriv = WinPriv->next;
      xf86XVReputOrStopPort(pPriv, pWin, visible);
@@ -1860,12 +1880,12 @@ xf86XVQueryImageAttributes(
 }
 
 void
-xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
+xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr fillboxes)
 {
    ScreenPtr pScreen = pDraw->pScreen;
    ChangeGCVal pval[2];
-   BoxPtr pbox = RegionRects(clipboxes);
-   int i, nbox = RegionNumRects(clipboxes);
+   BoxPtr pbox = RegionRects(fillboxes);
+   int i, nbox = RegionNumRects(fillboxes);
    xRectangle *rects;
    GCPtr gc;
 
@@ -1894,10 +1914,56 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 }
 
 void
-xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
+xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr fillboxes)
 {
-    xf86XVFillKeyHelperDrawable (&pScreen->root->drawable, key, clipboxes);
+    xf86XVFillKeyHelperDrawable (&pScreen->root->drawable, key, fillboxes);
 }
+
+void
+xf86XVFillKeyHelperPort (DrawablePtr pDraw, pointer data, CARD32 key, RegionPtr clipboxes, Bool fillEverything)
+{
+    WindowPtr pWin = (WindowPtr)pDraw;
+    XF86XVWindowPtr WinPriv = GET_XF86XV_WINDOW(pWin);
+    XvPortRecPrivatePtr portPriv = NULL;
+    RegionRec reg;
+    RegionPtr fillboxes;
+
+    while (WinPriv) {
+	XvPortRecPrivatePtr pPriv = WinPriv->PortRec;
+
+	if (data == pPriv->DevPriv.ptr) {
+	    portPriv = pPriv;
+	    break;
+	}
+
+	WinPriv = WinPriv->next;
+    }
+
+    if (!portPriv)
+	return;
+
+    if (!portPriv->ckeyFilled)
+	portPriv->ckeyFilled = RegionCreate(NULL, 0);
+
+    if (!fillEverything) {
+	RegionNull(&reg);
+	fillboxes = &reg;
+	RegionSubtract(fillboxes, clipboxes, portPriv->ckeyFilled);
+
+	if (!RegionNotEmpty(fillboxes))
+	    goto out;
+    } else
+	fillboxes = clipboxes;
+
+
+    RegionCopy(portPriv->ckeyFilled, clipboxes);
+
+    xf86XVFillKeyHelperDrawable(pDraw, key, fillboxes);
+out:
+    if (!fillEverything)
+        RegionUninit(&reg);
+}
+
 
 /* xf86XVClipVideoHelper -
 
