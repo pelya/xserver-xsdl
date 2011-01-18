@@ -1051,23 +1051,14 @@ FreeEventList(EventListPtr list, int num_events)
 }
 
 static void
-transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask)
+transformAbsolute(DeviceIntPtr dev, ValuatorMask *mask, int *x, int *y)
 {
-    struct pixman_f_vector p;
-
-    /* p' = M * p in homogeneous coordinates */
-    p.v[0] = (valuator_mask_isset(mask, 0) ? valuator_mask_get(mask, 0) :
-              dev->last.valuators[0]);
-    p.v[1] = (valuator_mask_isset(mask, 1) ? valuator_mask_get(mask, 1) :
-              dev->last.valuators[1]);
-    p.v[2] = 1.0;
+    struct pixman_f_vector p = {.v = {*x, *y, 1}};
 
     pixman_f_transform_point(&dev->transform, &p);
 
-    if (lround(p.v[0]) != dev->last.valuators[0])
-        valuator_mask_set(mask, 0, lround(p.v[0]));
-    if (lround(p.v[1]) != dev->last.valuators[1])
-        valuator_mask_set(mask, 1, lround(p.v[1]));
+    *x = lround(p.v[0]);
+    *y = lround(p.v[1]);
 }
 
 /**
@@ -1158,7 +1149,16 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             }
         }
 
-        transformAbsolute(pDev, &mask);
+        x = (valuator_mask_isset(&mask, 0) ? valuator_mask_get(&mask, 0) :
+             pDev->last.valuators[0]);
+        y = (valuator_mask_isset(&mask, 1) ? valuator_mask_get(&mask, 1) :
+             pDev->last.valuators[1]);
+        transformAbsolute(pDev, &mask, &x, &y);
+        if (valuator_mask_isset(&mask, 0))
+            valuator_mask_set(&mask, 0, x);
+        if (valuator_mask_isset(&mask, 1))
+            valuator_mask_set(&mask, 1, y);
+
         moveAbsolute(pDev, &x, &y, &mask);
     } else {
         if (flags & POINTER_ACCELERATE) {
