@@ -2182,7 +2182,7 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 
 static Window FindChildForEvent(SpritePtr pSprite, WindowPtr event)
 {
-    WindowPtr w = pSprite->spriteTrace[pSprite->spriteTraceGood-1];
+    WindowPtr w = DeepestSpriteWin(pSprite);
     Window child = None;
 
     /* If the search ends up past the root should the child field be
@@ -2625,7 +2625,7 @@ XYToWindow(SpritePtr pSprite, int x, int y)
 	else
 	    pWin = pWin->nextSib;
     }
-    return pSprite->spriteTrace[pSprite->spriteTraceGood-1];
+    return DeepestSpriteWin(pSprite);
 }
 
 /**
