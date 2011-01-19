@@ -3430,7 +3430,7 @@ CheckPassiveGrabsOnWindow(
 	DeviceIntPtr	gdev;
 	XkbSrvInfoPtr	xkbi = NULL;
 	xEvent *xE = NULL;
-	xEvent core;
+        int count, rc;
 
 	gdev= grab->modifierDevice;
         if (grab->grabtype == GRABTYPE_CORE)
@@ -3478,135 +3478,129 @@ CheckPassiveGrabsOnWindow(
                 match = CORE_MATCH;
         }
 
-        if (match && (!grab->confineTo ||
-	     (grab->confineTo->realized &&
-				BorderSizeNotEmpty(device, grab->confineTo))))
-	{
-            int rc, count = 0;
-            xEvent *xE = NULL;
+        if (!match || (grab->confineTo &&
+                       (!grab->confineTo->realized ||
+                        !BorderSizeNotEmpty(device, grab->confineTo))))
+            continue;
 
-            grabinfo = &device->deviceGrab;
-            /* In some cases a passive core grab may exist, but the client
-             * already has a core grab on some other device. In this case we
-             * must not get the grab, otherwise we may never ungrab the
-             * device.
-             */
+        grabinfo = &device->deviceGrab;
+        /* In some cases a passive core grab may exist, but the client
+         * already has a core grab on some other device. In this case we
+         * must not get the grab, otherwise we may never ungrab the
+         * device.
+         */
 
-            if (grab->grabtype == GRABTYPE_CORE)
+        if (grab->grabtype == GRABTYPE_CORE)
+        {
+            DeviceIntPtr other;
+            BOOL interfering = FALSE;
+
+            /* A passive grab may have been created for a different device
+               than it is assigned to at this point in time.
+               Update the grab's device and modifier device to reflect the
+               current state.
+               Since XGrabDeviceButton requires to specify the
+               modifierDevice explicitly, we don't override this choice.
+               */
+            if (tempGrab.type < GenericEvent)
             {
-                DeviceIntPtr other;
-                BOOL interfering = FALSE;
-
-                /* A passive grab may have been created for a different device
-                   than it is assigned to at this point in time.
-                   Update the grab's device and modifier device to reflect the
-                   current state.
-                   Since XGrabDeviceButton requires to specify the
-                   modifierDevice explicitly, we don't override this choice.
-                   */
-                if (tempGrab.type < GenericEvent)
-                {
-                    grab->device = device;
-                    grab->modifierDevice = GetPairedDevice(device);
-                }
-
-                for (other = inputInfo.devices; other; other = other->next)
-                {
-                    GrabPtr othergrab = other->deviceGrab.grab;
-                    if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
-                        SameClient(grab, rClient(othergrab)) &&
-                        ((IsPointerDevice(grab->device) &&
-                         IsPointerDevice(othergrab->device)) ||
-                         (IsKeyboardDevice(grab->device) &&
-                          IsKeyboardDevice(othergrab->device))))
-                    {
-                        interfering = TRUE;
-                        break;
-                    }
-                }
-                if (interfering)
-                    continue;
+                grab->device = device;
+                grab->modifierDevice = GetPairedDevice(device);
             }
 
-            if (!activate)
+            for (other = inputInfo.devices; other; other = other->next)
             {
-                return grab;
-            }
-            else if (!GetXIType(event) && !GetCoreType(event))
-            {
-                ErrorF("Event type %d in CheckPassiveGrabsOnWindow is"
-                       " neither XI 1.x nor core\n", event->any.type);
-                return NULL;
-            }
-
-            /* The only consumers of corestate are Xi 1.x and core events,
-             * which are guaranteed to come from DeviceEvents. */
-            if (match & (XI_MATCH | CORE_MATCH))
-            {
-                event->device_event.corestate &= 0x1f00;
-                event->device_event.corestate |=
-                    tempGrab.modifiersDetail.exact & (~0x1f00);
-            }
-
-            if (match & CORE_MATCH)
-            {
-                rc = EventToCore((InternalEvent*)event, &xE, &count);
-                if (rc != Success)
+                GrabPtr othergrab = other->deviceGrab.grab;
+                if (othergrab && othergrab->grabtype == GRABTYPE_CORE &&
+                    SameClient(grab, rClient(othergrab)) &&
+                    ((IsPointerDevice(grab->device) &&
+                     IsPointerDevice(othergrab->device)) ||
+                     (IsKeyboardDevice(grab->device) &&
+                      IsKeyboardDevice(othergrab->device))))
                 {
-                    if (rc != BadMatch)
-                        ErrorF("[dix] %s: core conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->any.type,
-                                rc);
-                    continue;
-                }
-            } else if (match & XI2_MATCH)
-            {
-                rc = EventToXI2(event, &xE);
-                if (rc != Success)
-                {
-                    if (rc != BadMatch)
-                        ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->any.type,
-                                rc);
-                    continue;
-                }
-                count = 1;
-            } else
-            {
-                rc = EventToXI(event, &xE, &count);
-                if (rc != Success)
-                {
-                    if (rc != BadMatch)
-                        ErrorF("[dix] %s: XI conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->any.type,
-                                rc);
-                    continue;
+                    interfering = TRUE;
+                    break;
                 }
             }
+            if (interfering)
+                continue;
+        }
 
-	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
+        if (!activate)
+        {
+            return grab;
+        }
+        else if (!GetXIType(event) && !GetCoreType(event))
+        {
+            ErrorF("Event type %d in CheckPassiveGrabsOnWindow is neither"
+                   " XI 1.x nor core\n", event->any.type);
+            return NULL;
+        }
 
-            if (xE)
+        /* The only consumers of corestate are Xi 1.x and core events, which
+         * are guaranteed to come from DeviceEvents. */
+        if (match & (XI_MATCH | CORE_MATCH))
+        {
+            event->device_event.corestate &= 0x1f00;
+            event->device_event.corestate |= tempGrab.modifiersDetail.exact &
+                                              (~0x1f00);
+        }
+
+        if (match & CORE_MATCH)
+        {
+            rc = EventToCore(event, &xE, &count);
+            if (rc != Success)
             {
-                FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
-
-                /* XXX: XACE? */
-                TryClientEvents(rClient(grab), device, xE, count,
-                                       GetEventFilter(device, xE),
-                                       GetEventFilter(device, xE), grab);
+                if (rc != BadMatch)
+                    ErrorF("[dix] %s: core conversion failed in CPGFW "
+                            "(%d, %d).\n", device->name, event->any.type, rc);
+                continue;
             }
-
-	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
-	    {
-                if (!grabinfo->sync.event)
-                    grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
-                *grabinfo->sync.event = event->device_event;
-		grabinfo->sync.state = FROZEN_WITH_EVENT;
+        } else if (match & XI2_MATCH)
+        {
+            rc = EventToXI2(event, &xE);
+            if (rc != Success)
+            {
+                if (rc != BadMatch)
+                    ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
+                            "(%d, %d).\n", device->name, event->any.type, rc);
+                continue;
             }
+            count = 1;
+        } else
+        {
+            rc = EventToXI(event, &xE, &count);
+            if (rc != Success)
+            {
+                if (rc != BadMatch)
+                    ErrorF("[dix] %s: XI conversion failed in CPGFW "
+                            "(%d, %d).\n", device->name, event->any.type, rc);
+                continue;
+            }
+        }
 
-            free(xE);
-	    return grab;
-	}
+        (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
+
+        if (xE)
+        {
+            FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
+
+            /* XXX: XACE? */
+            TryClientEvents(rClient(grab), device, xE, count,
+                            GetEventFilter(device, xE),
+                            GetEventFilter(device, xE), grab);
+        }
+
+        if (grabinfo->sync.state == FROZEN_NO_EVENT)
+        {
+            if (!grabinfo->sync.event)
+                grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
+            *grabinfo->sync.event = event->device_event;
+            grabinfo->sync.state = FROZEN_WITH_EVENT;
+        }
+
+        free(xE);
+        return grab;
     }
     return NULL;
 #undef CORE_MATCH
