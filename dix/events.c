@@ -2663,7 +2663,8 @@ ActivateFocusInGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    rc = (CheckPassiveGrabsOnWindow(win, dev, &event, FALSE, TRUE) != NULL);
+    rc = (CheckPassiveGrabsOnWindow(win, dev, (InternalEvent *) &event, FALSE,
+                                    TRUE) != NULL);
     if (rc)
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveUngrab);
     return rc;
@@ -2700,7 +2701,8 @@ ActivateEnterGrab(DeviceIntPtr dev, WindowPtr old, WindowPtr win)
     event.deviceid = dev->id;
     event.sourceid = dev->id;
     event.detail.button = 0;
-    rc = (CheckPassiveGrabsOnWindow(win, dev, &event, FALSE, TRUE) != NULL);
+    rc = (CheckPassiveGrabsOnWindow(win, dev, (InternalEvent *) &event, FALSE,
+                                    TRUE) != NULL);
     if (rc)
         DoEnterLeaveEvents(dev, dev->id, old, win, XINotifyPassiveGrab);
     return rc;
@@ -3387,7 +3389,7 @@ GrabPtr
 CheckPassiveGrabsOnWindow(
     WindowPtr pWin,
     DeviceIntPtr device,
-    DeviceEvent *event,
+    InternalEvent *event,
     BOOL checkCore,
     BOOL activate)
 {
@@ -3404,9 +3406,22 @@ CheckPassiveGrabsOnWindow(
 	return NULL;
     /* Fill out the grab details, but leave the type for later before
      * comparing */
+    switch (event->any.type)
+    {
+        case ET_KeyPress:
+        case ET_KeyRelease:
+            tempGrab.detail.exact = event->device_event.detail.key;
+            break;
+        case ET_ButtonPress:
+        case ET_ButtonRelease:
+            tempGrab.detail.exact = event->device_event.detail.button;
+            break;
+        default:
+            tempGrab.detail.exact = 0;
+            break;
+    }
     tempGrab.window = pWin;
     tempGrab.device = device;
-    tempGrab.detail.exact = event->detail.key;
     tempGrab.detail.pMask = NULL;
     tempGrab.modifiersDetail.pMask = NULL;
     tempGrab.next = NULL;
@@ -3414,6 +3429,8 @@ CheckPassiveGrabsOnWindow(
     {
 	DeviceIntPtr	gdev;
 	XkbSrvInfoPtr	xkbi = NULL;
+	xEvent *xE = NULL;
+	xEvent core;
 
 	gdev= grab->modifierDevice;
         if (grab->grabtype == GRABTYPE_CORE)
@@ -3439,16 +3456,15 @@ CheckPassiveGrabsOnWindow(
         tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
 
         /* Check for XI2 and XI grabs first */
-        tempGrab.type = GetXI2Type((InternalEvent*)event);
+        tempGrab.type = GetXI2Type(event);
         tempGrab.grabtype = GRABTYPE_XI2;
         if (GrabMatchesSecond(&tempGrab, grab, FALSE))
             match = XI2_MATCH;
 
-        tempGrab.detail.exact = event->detail.key;
         if (!match)
         {
             tempGrab.grabtype = GRABTYPE_XI;
-            if ((tempGrab.type = GetXIType((InternalEvent*)event)) &&
+            if ((tempGrab.type = GetXIType(event)) &&
                 (GrabMatchesSecond(&tempGrab, grab, FALSE)))
                 match = XI_MATCH;
         }
@@ -3457,7 +3473,7 @@ CheckPassiveGrabsOnWindow(
         if (!match && checkCore)
         {
             tempGrab.grabtype = GRABTYPE_CORE;
-            if ((tempGrab.type = GetCoreType((InternalEvent*)event)) &&
+            if ((tempGrab.type = GetCoreType(event)) &&
                 (GrabMatchesSecond(&tempGrab, grab, TRUE)))
                 match = CORE_MATCH;
         }
@@ -3469,8 +3485,6 @@ CheckPassiveGrabsOnWindow(
             int rc, count = 0;
             xEvent *xE = NULL;
 
-            event->corestate &= 0x1f00;
-            event->corestate |= tempGrab.modifiersDetail.exact & (~0x1f00);
             grabinfo = &device->deviceGrab;
             /* In some cases a passive core grab may exist, but the client
              * already has a core grab on some other device. In this case we
@@ -3515,7 +3529,24 @@ CheckPassiveGrabsOnWindow(
             }
 
             if (!activate)
+            {
                 return grab;
+            }
+            else if (!GetXIType(event) && !GetCoreType(event))
+            {
+                ErrorF("Event type %d in CheckPassiveGrabsOnWindow is"
+                       " neither XI 1.x nor core\n", event->any.type);
+                return NULL;
+            }
+
+            /* The only consumers of corestate are Xi 1.x and core events,
+             * which are guaranteed to come from DeviceEvents. */
+            if (match & (XI_MATCH | CORE_MATCH))
+            {
+                event->device_event.corestate &= 0x1f00;
+                event->device_event.corestate |=
+                    tempGrab.modifiersDetail.exact & (~0x1f00);
+            }
 
             if (match & CORE_MATCH)
             {
@@ -3524,28 +3555,31 @@ CheckPassiveGrabsOnWindow(
                 {
                     if (rc != BadMatch)
                         ErrorF("[dix] %s: core conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->type, rc);
+                                "(%d, %d).\n", device->name, event->any.type,
+                                rc);
                     continue;
                 }
             } else if (match & XI2_MATCH)
             {
-                rc = EventToXI2((InternalEvent*)event, &xE);
+                rc = EventToXI2(event, &xE);
                 if (rc != Success)
                 {
                     if (rc != BadMatch)
                         ErrorF("[dix] %s: XI2 conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->type, rc);
+                                "(%d, %d).\n", device->name, event->any.type,
+                                rc);
                     continue;
                 }
                 count = 1;
             } else
             {
-                rc = EventToXI((InternalEvent*)event, &xE, &count);
+                rc = EventToXI(event, &xE, &count);
                 if (rc != Success)
                 {
                     if (rc != BadMatch)
                         ErrorF("[dix] %s: XI conversion failed in CPGFW "
-                                "(%d, %d).\n", device->name, event->type, rc);
+                                "(%d, %d).\n", device->name, event->any.type,
+                                rc);
                     continue;
                 }
             }
@@ -3566,7 +3600,7 @@ CheckPassiveGrabsOnWindow(
 	    {
                 if (!grabinfo->sync.event)
                     grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
-                *grabinfo->sync.event = *event;
+                *grabinfo->sync.event = event->device_event;
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
 
@@ -3641,7 +3675,8 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
 	for (; i < focus->traceGood; i++)
 	{
 	    pWin = focus->trace[i];
-	    if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
+	    if (CheckPassiveGrabsOnWindow(pWin, device, (InternalEvent *) event,
+                                          sendCore, TRUE))
 	    {
 		ret = TRUE;
 		goto out;
@@ -3657,7 +3692,8 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
     for (; i < device->spriteInfo->sprite->spriteTraceGood; i++)
     {
 	pWin = device->spriteInfo->sprite->spriteTrace[i];
-	if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
+	if (CheckPassiveGrabsOnWindow(pWin, device, (InternalEvent *) event,
+	                              sendCore, TRUE))
 	{
 	    ret = TRUE;
 	    goto out;

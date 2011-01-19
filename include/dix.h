@@ -375,7 +375,7 @@ extern void ReleaseActiveGrabs(
 extern GrabPtr CheckPassiveGrabsOnWindow(
     WindowPtr /* pWin */,
     DeviceIntPtr /* device */,
-    DeviceEvent * /* event */,
+    InternalEvent * /* event */,
     BOOL /* checkCore */,
     BOOL /* activate */);
 
