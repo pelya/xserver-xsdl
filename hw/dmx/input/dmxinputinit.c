@@ -607,7 +607,7 @@ static void dmxCollectAll(DMXInputInfo *dmxInput)
 static void dmxBlockHandler(pointer blockData, OSTimePtr pTimeout,
                             pointer pReadMask)
 {
-    DMXInputInfo    *dmxInput = &dmxInputs[(int)blockData];
+    DMXInputInfo    *dmxInput = &dmxInputs[(uintptr_t)blockData];
     static unsigned long generation = 0;
     
     if (generation != serverGeneration) {
@@ -634,7 +634,7 @@ static void dmxSwitchReturn(pointer p)
 
 static void dmxWakeupHandler(pointer blockData, int result, pointer pReadMask)
 {
-    DMXInputInfo *dmxInput = &dmxInputs[(int)blockData];
+    DMXInputInfo *dmxInput = &dmxInputs[(uintptr_t)blockData];
     int          i;
 
     if (dmxInput->vt_switch_pending) {
@@ -1036,9 +1036,8 @@ void dmxInputInit(DMXInputInfo *dmxInput)
     dmxInput->processInputEvents    = dmxProcessInputEvents;
     dmxInput->detached              = False;
     
-    RegisterBlockAndWakeupHandlers(dmxBlockHandler,
-                                   dmxWakeupHandler,
-                                   (void *)dmxInput->inputIdx);
+    RegisterBlockAndWakeupHandlers(dmxBlockHandler, dmxWakeupHandler,
+                                   (void *)(uintptr_t)dmxInput->inputIdx);
 }
 
 static void dmxInputFreeLocal(DMXLocalInputInfoRec *local)
