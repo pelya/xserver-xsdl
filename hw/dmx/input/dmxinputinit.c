@@ -132,14 +132,6 @@ static DMXLocalInputInfoRec DMXConsoleKbd = {
     NULL, dmxCommonKbdCtrl, dmxCommonKbdBell
 };
 
-static DMXLocalInputInfoRec DMXCommonOth = {
-    "common-oth", DMX_LOCAL_OTHER, DMX_LOCAL_TYPE_COMMON, 1,
-    dmxCommonCopyPrivate, NULL,
-    NULL, NULL, NULL, dmxCommonOthGetInfo,
-    dmxCommonOthOn, dmxCommonOthOff
-};
-
-
 static DMXLocalInputInfoRec DMXLocalDevices[] = {
                                 /* Dummy drivers that can compile on any OS */
 #ifdef __linux__
@@ -897,29 +889,6 @@ static void dmxInputScanForExtensions(DMXInputInfo *dmxInput, int doXI)
                     }
                 }
                 break;
-#if 0
-            case IsXExtensionDevice:
-            case IsXExtensionKeyboard:
-            case IsXExtensionPointer:
-                if (doXI) {
-                    if (!dmxInput->numDevs) {
-                        dmxLog(dmxWarning,
-                               "Cannot use remote (%s) XInput devices if"
-                               " not also using core devices\n",
-                               dmxInput->name);
-                    } else {
-                        dmxLocal             = dmxInputCopyLocal(dmxInput,
-                                                                &DMXCommonOth);
-                        dmxLocal->isCore     = FALSE;
-                        dmxLocal->sendsCore  = FALSE;
-                        dmxLocal->deviceId   = devices[i].id;
-                        dmxLocal->deviceName = (devices[i].name
-                                                ? strdup(devices[i].name)
-                                                : NULL);
-                    }
-                }
-                break;
-#endif
             }
         }
         XFreeDeviceList(devices);
