@@ -1032,6 +1032,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, DGAEvent *event, DeviceIntPtr keybd)
     DeviceEvent     ev;
 
     memset(&ev, 0, sizeof(ev));
+    ev.header = ET_Internal;
     ev.length = sizeof(ev);
     ev.detail.key = event->detail;
     ev.type = event->subtype;
