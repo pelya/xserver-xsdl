@@ -999,18 +999,6 @@ DGAStealButtonEvent(DeviceIntPtr dev, int index, int button, int is_down)
 
 /* We have the power to steal or modify events that are about to get queued */
 
-Bool
-DGAIsDgaEvent (xEvent *e)
-{
-    int	    coreEquiv;
-    if (!DGAScreenKeyRegistered || XDGAEventBase == 0)
-	return FALSE;
-    coreEquiv = e->u.u.type - *XDGAEventBase;
-    if (KeyPress <= coreEquiv && coreEquiv <= MotionNotify)
-	return TRUE;
-    return FALSE;
-}
-
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
 static Mask filters[] =
 {
