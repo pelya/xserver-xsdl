@@ -1210,6 +1210,9 @@ DGAHandleEvent(int screen_num, InternalEvent *ev, DeviceIntPtr device)
     if (!pScreenPriv)
 	return;
 
+    if (!IsMaster(device))
+	return;
+
     switch (event->subtype) {
     case KeyPress:
     case KeyRelease:
