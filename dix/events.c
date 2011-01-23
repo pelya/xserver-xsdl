@@ -3565,7 +3565,7 @@ CheckPassiveGrabsOnWindow(
 	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
 	    {
                 if (!grabinfo->sync.event)
-                    grabinfo->sync.event = calloc(1, sizeof(InternalEvent));
+                    grabinfo->sync.event = calloc(1, sizeof(DeviceEvent));
                 *grabinfo->sync.event = *event;
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
