@@ -421,7 +421,7 @@ int __glXDispSwap_CreateGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
     xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;    
     __GLX_DECLARE_SWAP_VARIABLES;
 
-    REQUEST_SIZE_MATCH(xGLXCreateGLXPbufferSGIXReq);
+    REQUEST_AT_LEAST_SIZE(xGLXCreateGLXPbufferSGIXReq);
 
     __GLX_SWAP_INT(&req->screen);
     __GLX_SWAP_INT(&req->fbconfig);

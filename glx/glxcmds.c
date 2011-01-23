@@ -1436,7 +1436,7 @@ int __glXDisp_CreateGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
     ClientPtr client = cl->client;
     xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;
 
-    REQUEST_SIZE_MATCH(xGLXCreateGLXPbufferSGIXReq);
+    REQUEST_AT_LEAST_SIZE(xGLXCreateGLXPbufferSGIXReq);
 
     return DoCreatePbuffer(cl->client, req->screen, req->fbconfig,
 			   req->width, req->height, req->pbuffer);
