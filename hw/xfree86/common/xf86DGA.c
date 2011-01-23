@@ -942,8 +942,6 @@ DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
    return TRUE;
 }  
 
-static int  DGAMouseX, DGAMouseY;
-
 Bool
 DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
 {
@@ -957,17 +955,6 @@ DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
 
    if(!pScreenPriv || !pScreenPriv->grabMouse) /* no direct mode */
         return FALSE;
-
-    DGAMouseX += dx;
-    if (DGAMouseX < 0)
-        DGAMouseX = 0;
-    else if (DGAMouseX > screenInfo.screens[index]->width)
-        DGAMouseX = screenInfo.screens[index]->width;
-    DGAMouseY += dy;
-    if (DGAMouseY < 0)
-        DGAMouseY = 0;
-    else if (DGAMouseY > screenInfo.screens[index]->height)
-        DGAMouseY = screenInfo.screens[index]->height;
 
     memset(&event, 0, sizeof(event));
     event.header = ET_Internal;
