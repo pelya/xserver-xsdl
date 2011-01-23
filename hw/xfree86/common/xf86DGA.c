@@ -53,7 +53,7 @@
 
 static DevPrivateKeyRec DGAScreenKeyRec;
 #define DGAScreenKeyRegistered dixPrivateKeyRegistered(&DGAScreenKeyRec)
-static int mieq_installed = 0;
+static Bool mieq_installed;
 
 static Bool DGACloseScreen(int i, ScreenPtr pScreen);
 static void DGADestroyColormap(ColormapPtr pmap);
@@ -252,7 +252,7 @@ DGACloseScreen(int i, ScreenPtr pScreen)
 
    if (mieq_installed) {
        mieqSetHandler(ET_DGAEvent, NULL);
-       mieq_installed = 0;
+       mieq_installed = FALSE;
    }
 
    FreeMarkedVisuals(pScreen);
@@ -449,7 +449,7 @@ xf86SetDGAMode(
 
    if (!mieq_installed) {
       mieqSetHandler(ET_DGAEvent, DGAHandleEvent);
-      mieq_installed = 1;
+      mieq_installed = TRUE;
    }
 
    return Success;
@@ -472,7 +472,7 @@ DGASetInputMode(int index, Bool keyboard, Bool mouse)
 
       if (!mieq_installed) {
           mieqSetHandler(ET_DGAEvent, DGAHandleEvent);
-          mieq_installed = 1;
+          mieq_installed = TRUE;
       }
    }
 }
