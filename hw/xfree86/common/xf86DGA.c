@@ -446,6 +446,11 @@ xf86SetDGAMode(
    pScreenPriv->grabMouse = TRUE;
    pScreenPriv->grabKeyboard = TRUE;
 
+   if (!mieq_installed) {
+      mieqSetHandler(ET_DGAEvent, DGAHandleEvent);
+      mieq_installed = 1;
+   }
+
    return Success;
 }
 
