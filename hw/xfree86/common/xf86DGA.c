@@ -250,9 +250,10 @@ DGACloseScreen(int i, ScreenPtr pScreen)
 {
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
 
-   if (XDGAEventBase) {
+   if (mieq_installed) {
        mieqSetHandler(ET_DGAEvent, NULL);
-    }
+       mieq_installed = 0;
+   }
 
    FreeMarkedVisuals(pScreen);
 
