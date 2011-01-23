@@ -1240,6 +1240,19 @@ xf86PostKeyEventM(DeviceIntPtr	device,
 {
     int i = 0, nevents = 0;
 
+#if XFreeXDGA
+    int index;
+    DeviceIntPtr pointer;
+
+    /* Some pointers send key events, paired device is wrong then. */
+    pointer = IsPointerDevice(device) ? device : GetPairedDevice(device);
+    if (miPointerGetScreen(pointer)) {
+        index = miPointerGetScreen(pointer)->myNum;
+        if (DGAStealKeyEvent(device, index, key_code, is_down))
+            return;
+    }
+#endif
+
     if (is_absolute) {
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
