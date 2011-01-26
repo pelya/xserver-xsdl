@@ -648,19 +648,23 @@ int __glXDispSwap_BindTexImageEXT(__GLXclientState *cl, GLbyte *pc)
     xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
     GLXDrawable		 *drawId;
     int			 *buffer;
+    CARD32		 *num_attribs;
     __GLX_DECLARE_SWAP_VARIABLES;
 
-    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 8);
+    if ((sizeof(xGLXVendorPrivateReq) + 12) >> 2 > client->req_len)
+	return BadLength;
 
     pc += __GLX_VENDPRIV_HDR_SIZE;
 
     drawId = ((GLXDrawable *) (pc));
     buffer = ((int *)	      (pc + 4));
+    num_attribs = ((CARD32 *) (pc + 8));
     
     __GLX_SWAP_SHORT(&req->length);
     __GLX_SWAP_INT(&req->contextTag);
     __GLX_SWAP_INT(drawId);
     __GLX_SWAP_INT(buffer);
+    __GLX_SWAP_INT(num_attribs);
 
     return __glXDisp_BindTexImageEXT(cl, (GLbyte *)pc);
 }

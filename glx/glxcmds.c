@@ -1697,13 +1697,21 @@ int __glXDisp_BindTexImageEXT(__GLXclientState *cl, GLbyte *pc)
     GLXDrawable		 drawId;
     int			 buffer;
     int			 error;
+    CARD32		 num_attribs;
 
-    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 8);
+    if ((sizeof(xGLXVendorPrivateReq) + 12) >> 2 > client->req_len)
+	return BadLength;
 
     pc += __GLX_VENDPRIV_HDR_SIZE;
 
     drawId = *((CARD32 *) (pc));
     buffer = *((INT32 *)  (pc + 4));
+    num_attribs = *((CARD32 *) (pc + 8));
+    if (num_attribs > (UINT32_MAX >> 3)) {
+	client->errorValue = num_attribs;
+	return BadValue;
+    }
+    REQUEST_FIXED_SIZE(xGLXVendorPrivateReq, 12 + (num_attribs << 3));
 
     if (buffer != GLX_FRONT_LEFT_EXT)
 	return __glXError(GLXBadPixmap);
