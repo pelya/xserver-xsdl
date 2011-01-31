@@ -42,6 +42,9 @@
  * [c6 c7 c8]   [1] */
 #define XI_PROP_TRANSFORM "Coordinate Transformation Matrix"
 
+/* STRING. Device node path of device */
+#define XI_PROP_DEVICE_NODE "Device Node"
+
 /* Pointer acceleration properties */
 /* INTEGER of any format */
 #define ACCEL_PROP_PROFILE_NUMBER "Device Accel Profile"
