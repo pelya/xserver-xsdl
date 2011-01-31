@@ -1013,7 +1013,7 @@ else
 fi
 AM_CONDITIONAL(AIGLX, test "x$AIGLX" = xyes)
 
-if test "x$GLX_USE_TLS" = xyes -a "x$AIGLX" = xyes; then
+if test "x$GLX_USE_TLS" = xyes ; then
 	GLX_DEFINES="-DGLX_USE_TLS -DPTHREADS"
 	GLX_SYS_LIBS="$GLX_SYS_LIBS -lpthread"
 fi
