@@ -1084,11 +1084,11 @@ acceleratePointerPredictable(
 					(float)dev->ptrfeed->ctrl.num /
 					(float)dev->ptrfeed->ctrl.den);
 
-            if(mult != 1.0 || velocitydata->const_acceleration != 1.0) {
+            if(mult != 1.0f || velocitydata->const_acceleration != 1.0f) {
                 ApplySofteningAndConstantDeceleration( velocitydata,
 						       dx, dy,
 						       &fdx, &fdy,
-						       (mult > 1.0) && soften);
+						       (mult > 1.0f) && soften);
 
                 if (dx) {
                     tmp = mult * fdx + dev->last.remainder[0];
