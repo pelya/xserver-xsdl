@@ -22,7 +22,7 @@
 #
 
 SUBDIRS = dtrace
-doc_sources =  Xserver-spec.xml
+doc_sources =  Xserver-spec.xml Xinput.xml
 
 # Developer's documentation is not installed
 if ENABLE_DEVEL_DOCS
