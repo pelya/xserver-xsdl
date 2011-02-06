@@ -212,7 +212,7 @@ LookupBoolOption(pointer optlist, const char *name, int deflt, Bool markUsed)
     return deflt;
 }
 
-static int
+static double
 LookupPercentOption(pointer optlist, const char *name, double deflt, Bool markUsed)
 {
     OptionInfoRec o;
