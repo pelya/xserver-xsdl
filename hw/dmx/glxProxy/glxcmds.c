@@ -101,8 +101,8 @@ static int CreateContext(__GLXclientState *cl,
     int from_screen = screen;
     int to_screen = screen;
     DMXScreenInfo *dmxScreen;
-    VisualID be_vid;
-    GLXFBConfigID be_fbconfigId;
+    VisualID be_vid = 0;
+    GLXFBConfigID be_fbconfigId = 0;
     int num_be_screens;
     Display *dpy;
     
