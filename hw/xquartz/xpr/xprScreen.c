@@ -196,6 +196,13 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height, ScreenPtr pScr
         return;
     }
 
+    /* If the displays are captured, we are in a RandR game mode
+     * on the primary display, so we only want to include the first
+     * display.  The others are covered by the shield window.
+     */
+    if (CGDisplayIsCaptured(kCGDirectMainDisplay))
+        displayCount = 1;
+
     displayList = malloc(displayCount * sizeof(CGDirectDisplayID));
     if(!displayList)
         FatalError("Unable to allocate memory for list of displays.\n");

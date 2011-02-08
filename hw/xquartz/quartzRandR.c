@@ -413,16 +413,6 @@ static Bool QuartzRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
     if (pQuartzScreen->displayCount == 0)
         return FALSE;
 
-    if (pQuartzScreen->displayCount > 1) {
-        /* RandR operations are not well-defined for an X11 screen spanning
-           multiple CG displays. Create two entries for the current virtual
-           resolution including/excluding the menu bar. */
-
-        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->rootlessMode);
-        QuartzRandRRegisterMode(pScreen, &pQuartzScreen->fullscreenMode);
-        return TRUE;
-    }
-
     return QuartzRandREnumerateModes(pScreen, QuartzRandRRegisterModeCallback, NULL);
 }
 
