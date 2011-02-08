@@ -1733,6 +1733,7 @@ static int CreateGLXPixmap(__GLXclientState *cl,
     else {
        pVisual = NULL;
        pGlxVisual = NULL;
+       pGlxScreen = &__glXActiveScreens[pDraw->pScreen->myNum];
     }
 
     pGlxPixmap = (__GLXpixmap *) malloc(sizeof(__GLXpixmap));
