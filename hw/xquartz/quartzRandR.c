@@ -40,6 +40,8 @@
 #include "quartz.h"
 #include "darwin.h"
 
+#include "X11Application.h"
+
 #include <AvailabilityMacros.h>
 
 #include <X11/extensions/randr.h>
@@ -349,6 +351,8 @@ static Bool QuartzRandRSetMode(ScreenPtr pScreen, QuartzModeInfoPtr pMode, BOOL 
     Bool captureDisplay = (pMode->refresh != FAKE_REFRESH_FULLSCREEN && pMode->refresh != FAKE_REFRESH_ROOTLESS);
 
     if(XQuartzShieldingWindowLevel == 0 && captureDisplay) {
+        if(!X11ApplicationCanEnterRandR())
+            return FALSE;
         CGCaptureAllDisplays();
         XQuartzShieldingWindowLevel = CGShieldingWindowLevel(); // 2147483630
         DEBUG_LOG("Display captured.  ShieldWindowID: %u, Shield level: %d\n",
