@@ -297,8 +297,8 @@ int __glXForwardAllWithReply( __GLXclientState *cl, GLbyte *pc )
    xGLXSingleReply be_reply;
     __GLXcontext *glxc;
    int buf_size;
-   char *be_buf;
-   int   be_buf_size;
+   char *be_buf = NULL;
+   int   be_buf_size = 0;
    int from_screen = 0;
    int to_screen = 0;
    int s;
