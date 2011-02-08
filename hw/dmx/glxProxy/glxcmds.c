@@ -1660,7 +1660,7 @@ static int CreateGLXPixmap(__GLXclientState *cl,
 	return BadMatch;
     }
 
-    if (fbconfigId == NULL && visual == NULL) {
+    if (fbconfigId == 0 && visual == 0) {
 	  return BadValue;
     }
 
