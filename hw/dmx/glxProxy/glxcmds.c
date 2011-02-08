@@ -3466,20 +3466,15 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 
    if (drawId != None) {
       rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixSetAttrAccess);
-      if (rc == Success) {
-	 if (pDraw->type == DRAWABLE_WINDOW) {
-		WindowPtr pWin = (WindowPtr)pDraw;
-		be_drawable = 0;
-		screen = pWin->drawable.pScreen->myNum;
-
-	 }
-	 else {
-	    /*
-	     ** Drawable is not a Window , GLXWindow or a GLXPixmap.
-	     */
-	    client->errorValue = drawId;
-	    return __glXBadDrawable;
-	 }
+      if (rc == Success && pDraw->type == DRAWABLE_WINDOW) {
+	  be_drawable = 0;
+	  screen = pDraw->pScreen->myNum;
+      } else {
+	 /*
+	  ** Drawable is not a Window , GLXWindow or a GLXPixmap.
+	  */
+	 client->errorValue = drawId;
+	 return __glXBadDrawable;
       }
 
       if (!pDraw) {
@@ -3517,17 +3512,15 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 	    be_drawable = pGlxPbuffer->be_xids[screen];
 	 }
       }
+   }
 
-
-      if (!pDraw) {
+   if (!pDraw) {
 	 /*
 	  ** Drawable is not a Window , GLXWindow or a GLXPixmap.
 	  */
 	 client->errorValue = drawId;
 	 return __glXBadDrawable;
-      }
-    }
-
+   }
 
    /* if the drawable is a window or GLXWindow - 
     * we need to find the base id on the back-end server
