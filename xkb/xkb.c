@@ -3644,7 +3644,7 @@ register int            n;
 	swapl(&rep->indicators,n);
     }
 
-    start = desc = malloc(length);
+    start = desc = calloc(1, length);
     if ( !start )
 	return BadAlloc;
     if (xkb->names) {
