@@ -5569,13 +5569,13 @@ ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
     DeviceIntPtr                tmpd;
-    xkbGetKbdByNameReply 	rep;
-    xkbGetMapReply		mrep;
-    xkbGetCompatMapReply	crep;
-    xkbGetIndicatorMapReply	irep;
-    xkbGetNamesReply		nrep;
-    xkbGetGeometryReply		grep;
-    XkbComponentNamesRec	names;
+    xkbGetKbdByNameReply 	rep = {0};
+    xkbGetMapReply		mrep = {0};
+    xkbGetCompatMapReply	crep = {0};
+    xkbGetIndicatorMapReply	irep = {0};
+    xkbGetNamesReply		nrep = {0};
+    xkbGetGeometryReply		grep = {0};
+    XkbComponentNamesRec	names = {0};
     XkbDescPtr			xkb, new;
     unsigned char *		str;
     char 			mapFile[PATH_MAX];
