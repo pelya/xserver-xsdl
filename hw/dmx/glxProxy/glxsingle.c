@@ -811,6 +811,7 @@ int __glXDisp_ReadPixels(__GLXclientState *cl, GLbyte *pc)
     }
     else {
        buf_size = 0;
+       buf = NULL;
     }
 
     if (buf_size > 0) {
