@@ -215,7 +215,7 @@ int __glXForwardPipe0WithReply( __GLXclientState *cl, GLbyte *pc )
    xGLXSingleReply be_reply;
     __GLXcontext *glxc;
    int buf_size;
-   char *be_buf;
+   char *be_buf = NULL;
    int   be_buf_size;
    DMXScreenInfo *dmxScreen;
    Display *dpy;
