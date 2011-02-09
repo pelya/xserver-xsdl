@@ -272,6 +272,9 @@ miPointerSetCursorPosition(DeviceIntPtr pDev, ScreenPtr pScreen,
 
     pPointer->generateEvent = generateEvent;
 
+    if (pScreen->ConstrainCursorHarder)
+	pScreen->ConstrainCursorHarder(pDev, pScreen, Absolute, &x, &y);
+
     /* device dependent - must pend signal and call miPointerWarpCursor */
     (*pScreenPriv->screenFuncs->WarpCursor) (pDev, pScreen, x, y);
     if (!generateEvent)
@@ -615,6 +618,9 @@ miPointerSetPosition(DeviceIntPtr pDev, int mode, int *x, int *y)
 	*y = pPointer->limits.y1;
     if (*y >= pPointer->limits.y2)
 	*y = pPointer->limits.y2 - 1;
+
+    if (pScreen->ConstrainCursorHarder)
+       pScreen->ConstrainCursorHarder(pDev, pScreen, mode, x, y);
 
     if (pPointer->x == *x && pPointer->y == *y && 
             pPointer->pScreen == pScreen) 
