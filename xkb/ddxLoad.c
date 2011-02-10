@@ -470,13 +470,34 @@ XkbDescPtr
 XkbCompileKeymap(DeviceIntPtr dev, XkbRMLVOSet *rmlvo)
 {
     XkbDescPtr xkb;
+    unsigned int need;
 
     if (!dev || !rmlvo) {
         LogMessage(X_ERROR, "XKB: No device or RMLVO specified\n");
         return NULL;
     }
 
-    xkb = XkbCompileKeymapForDevice(dev, rmlvo, 0);
+    /* These are the components we really really need */
+    need = XkmSymbolsMask | XkmCompatMapMask | XkmTypesMask |
+           XkmKeyNamesMask | XkmVirtualModsMask;
+
+
+    xkb = XkbCompileKeymapForDevice(dev, rmlvo, need);
+
+    if (!xkb) {
+        XkbRMLVOSet dflts;
+
+        /* we didn't get what we really needed. And that will likely leave
+         * us with a keyboard that doesn't work. Use the defaults instead */
+        LogMessage(X_ERROR, "XKB: Failed to load keymap. Loading default "
+                   "keymap instead.\n");
+
+        XkbGetRulesDflts(&dflts);
+
+        xkb = XkbCompileKeymapForDevice(dev, &dflts, 0);
+
+        XkbFreeRMLVOSet(&dflts, FALSE);
+    }
 
     return xkb;
 }
