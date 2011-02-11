@@ -193,8 +193,7 @@ miPointerDisplayCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
     miPointerPtr pPointer;
 
     /* return for keyboards */
-    if ((IsMaster(pDev) && !DevHasCursor(pDev)) ||
-        (!IsMaster(pDev) && pDev->u.master && !DevHasCursor(pDev->u.master)))
+    if (!IsPointerDevice(pDev))
             return FALSE;
 
     pPointer = MIPOINTER(pDev);
