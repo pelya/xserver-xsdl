@@ -158,32 +158,7 @@ miPointerInitialize (ScreenPtr                  pScreen,
 static Bool
 miPointerCloseScreen (int index, ScreenPtr pScreen)
 {
-#if 0
-    miPointerPtr pPointer;
-    DeviceIntPtr pDev;
-#endif
-
     SetupScreen(pScreen);
-
-#if 0
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
-    {
-        if (DevHasCursor(pDev))
-        {
-            pPointer = MIPOINTER(pDev);
-
-            if (pScreen == pPointer->pScreen)
-                pPointer->pScreen = 0;
-            if (pScreen == pPointer->pSpriteScreen)
-                pPointer->pSpriteScreen = 0;
-        }
-    }
-
-    if (MIPOINTER(inputInfo.pointer)->pScreen == pScreen)
-        MIPOINTER(inputInfo.pointer)->pScreen = 0;
-    if (MIPOINTER(inputInfo.pointer)->pSpriteScreen == pScreen)
-        MIPOINTER(inputInfo.pointer)->pSpriteScreen = 0;
-#endif
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     free((pointer) pScreenPriv);
