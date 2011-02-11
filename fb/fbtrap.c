@@ -65,32 +65,6 @@ fbRasterizeTrapezoid (PicturePtr    pPicture,
     free_pixman_pict (pPicture, image);
 }
 
-static int
-_GreaterY (xPointFixed *a, xPointFixed *b)
-{
-    if (a->y == b->y)
-	return a->x > b->x;
-    return a->y > b->y;
-}
-
-/*
- * Note that the definition of this function is a bit odd because
- * of the X coordinate space (y increasing downwards).
- */
-static int
-_Clockwise (xPointFixed *ref, xPointFixed *a, xPointFixed *b)
-{
-    xPointFixed	ad, bd;
-
-    ad.x = a->x - ref->x;
-    ad.y = a->y - ref->y;
-    bd.x = b->x - ref->x;
-    bd.y = b->y - ref->y;
-
-    return ((xFixed_32_32) bd.y * ad.x - (xFixed_32_32) ad.y * bd.x) < 0;
-}
-
-/* FIXME -- this could be made more efficient */
 void
 fbAddTriangles (PicturePtr  pPicture,
 		INT16	    x_off,
@@ -98,63 +72,16 @@ fbAddTriangles (PicturePtr  pPicture,
 		int	    ntri,
 		xTriangle *tris)
 {
-    xPointFixed	  *top, *left, *right, *tmp;
-    xTrapezoid	    trap;
+    int image_xoff, image_yoff;
+    pixman_image_t *image =
+	image_from_pict (pPicture, FALSE, &image_xoff, &image_yoff);
 
-    for (; ntri; ntri--, tris++)
-    {
-	top = &tris->p1;
-	left = &tris->p2;
-	right = &tris->p3;
-	if (_GreaterY (top, left)) {
-	    tmp = left; left = top; top = tmp;
-	}
-	if (_GreaterY (top, right)) {
-	    tmp = right; right = top; top = tmp;
-	}
-	if (_Clockwise (top, right, left)) {
-	    tmp = right; right = left; left = tmp;
-	}
-	
-	/*
-	 * Two cases:
-	 *
-	 *		+		+
-	 *	       / \             / \
-	 *	      /   \           /   \
-	 *	     /     +         +     \
-	 *          /    --           --    \
-	 *         /   --               --   \
-	 *        / ---                   --- \
-	 *	 +--                         --+
-	 */
-	
-	trap.top = top->y;
-	trap.left.p1 = *top;
-	trap.left.p2 = *left;
-	trap.right.p1 = *top;
-	trap.right.p2 = *right;
-	if (right->y < left->y)
-	    trap.bottom = right->y;
-	else
-	    trap.bottom = left->y;
-	fbRasterizeTrapezoid (pPicture, &trap, x_off, y_off);
-	if (right->y < left->y)
-	{
-	    trap.top = right->y;
-	    trap.bottom = left->y;
-	    trap.right.p1 = *right;
-	    trap.right.p2 = *left;
-	}
-	else
-	{
-	    trap.top = left->y;
-	    trap.bottom = right->y;
-	    trap.left.p1 = *left;
-	    trap.left.p2 = *right;
-	}
-	fbRasterizeTrapezoid (pPicture, &trap, x_off, y_off);
-    }
+    if (!image)
+	return;
+    
+    pixman_add_triangles (image, x_off, y_off, ntri, (pixman_triangle_t *)tris);
+
+    free_pixman_pict (pPicture, image);
 }
 
 typedef void (* CompositeShapesFunc) (pixman_op_t op,
