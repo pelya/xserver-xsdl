@@ -866,10 +866,11 @@ positionSprite(DeviceIntPtr dev, int *x, int *y, float x_frac, float y_frac,
     miPointerSetPosition(dev, screenx, screeny);
 
     if (dev->u.master) {
-        dev->u.master->last.valuators[0] = *screenx;
-        dev->u.master->last.valuators[1] = *screeny;
-        dev->u.master->last.remainder[0] = *screenx_frac;
-        dev->u.master->last.remainder[1] = *screeny_frac;
+        DeviceIntPtr master = GetMaster(dev, MASTER_POINTER);
+        master->last.valuators[0] = *screenx;
+        master->last.valuators[1] = *screeny;
+        master->last.remainder[0] = *screenx_frac;
+        master->last.remainder[1] = *screeny_frac;
     }
 
     if (dev->valuator)
