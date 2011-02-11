@@ -328,6 +328,13 @@ IsMaster(DeviceIntPtr dev)
     return dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD;
 }
 
+Bool
+IsFloating(DeviceIntPtr dev)
+{
+    return GetMaster(dev, MASTER_KEYBOARD) == NULL;
+}
+
+
 /**
  * Max event opcode.
  */
