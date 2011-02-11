@@ -273,7 +273,7 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
                     do_modmap_change(client, tmp, modmap);
         }
     }
-    else if (dev->u.master && dev->u.master->u.lastSlave == dev) {
+    else if (!IsFloating(dev) && dev->u.master->u.lastSlave == dev) {
         /* If this fails, expect the results to be weird. */
         if (check_modmap_change(client, dev->u.master, modmap))
             do_modmap_change(client, dev->u.master, modmap);

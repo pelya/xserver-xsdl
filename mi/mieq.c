@@ -325,7 +325,7 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
     CHECKEVENT(original);
 
     /* ET_XQuartz has sdev == NULL */
-    if (!sdev || IsMaster(sdev) || !sdev->u.master)
+    if (!sdev || IsMaster(sdev) || IsFloating(sdev))
         return NULL;
 
 #if XFreeXDGA
@@ -410,7 +410,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
         handler(screenNum, event, dev);
         /* Check for the SD's master in case the device got detached
          * during event processing */
-        if (master && dev->u.master)
+        if (master && !IsFloating(dev))
             handler(screenNum, &mevent, master);
     } else
     {
@@ -419,7 +419,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
 
         /* Check for the SD's master in case the device got detached
          * during event processing */
-        if (master && dev->u.master)
+        if (master && !IsFloating(dev))
             master->public.processInputProc(&mevent, master);
     }
 }

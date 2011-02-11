@@ -383,7 +383,7 @@ int GetDeviceUse(DeviceIntPtr dev, uint16_t *attachment)
         DeviceIntPtr paired = GetPairedDevice(dev);
         use = IsPointerDevice(dev) ? XIMasterPointer : XIMasterKeyboard;
         *attachment = (paired ? paired->id : 0);
-    } else if (master)
+    } else if (!IsFloating(dev))
     {
         use = IsPointerDevice(master) ? XISlavePointer : XISlaveKeyboard;
         *attachment = master->id;

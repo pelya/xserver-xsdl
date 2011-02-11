@@ -713,7 +713,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
     if (IsMaster(slave))
         return;
 
-    if (!slave->u.master)
+    if (IsFloating(slave))
         return; /* set floating since the event */
 
     if (slave->u.master->id != dce->masterid)
@@ -1009,7 +1009,7 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     b = device->button;
     k = device->key;
 
-    if (IsMaster(device) || !device->u.master)
+    if (IsMaster(device) || IsFloating(device))
         CheckMotion(event, device);
 
     switch (event->type)
@@ -1226,7 +1226,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     DeviceIntPtr mouse;
     int btlen, len, i;
 
-    mouse = (IsMaster(dev) || dev->u.master) ? GetMaster(dev, MASTER_POINTER) : dev;
+    mouse = IsFloating(dev) ? dev : GetMaster(dev, MASTER_POINTER);
 
     /* XI 2 event */
     btlen = (mouse->button) ? bits_to_bytes(mouse->button->numButtons) : 0;

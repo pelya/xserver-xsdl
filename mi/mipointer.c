@@ -73,7 +73,7 @@ DevPrivateKeyRec miPointerScreenKeyRec;
 DevPrivateKeyRec miPointerPrivKeyRec;
 
 #define MIPOINTER(dev) \
-    ((!IsMaster(dev) && !dev->u.master) ? \
+    (IsFloating(dev) ? \
         (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
         (miPointerPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miPointerPrivKey))
 
@@ -332,7 +332,7 @@ miPointerDeviceCleanup(DeviceIntPtr pDev, ScreenPtr pScreen)
 {
     SetupScreen(pScreen);
 
-    if (!IsMaster(pDev) && pDev->u.master)
+    if (!IsMaster(pDev) && !IsFloating(pDev))
         return;
 
     (*pScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);

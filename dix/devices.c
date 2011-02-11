@@ -987,7 +987,7 @@ CloseDownDevices(void)
      */
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        if (!IsMaster(dev) && dev->u.master)
+        if (!IsMaster(dev) && !IsFloating(dev))
             dev->u.master = NULL;
     }
 
@@ -2397,11 +2397,11 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return BadDevice;
 
     /* set from floating to floating? */
-    if (!dev->u.master && !master && dev->enabled)
+    if (IsFloating(dev) && !master && dev->enabled)
         return Success;
 
     /* free the existing sprite. */
-    if (!dev->u.master && dev->spriteInfo->paired == dev)
+    if (IsFloating(dev) && dev->spriteInfo->paired == dev)
     {
         screen = miPointerGetScreen(dev);
         screen->DeviceCursorCleanup(dev, screen);
@@ -2459,7 +2459,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
-    if (!IsMaster(dev) && dev->u.master)
+    if (!IsMaster(dev) && !IsFloating(dev))
         dev = dev->u.master;
 
     return dev->spriteInfo->paired;

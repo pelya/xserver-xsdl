@@ -1404,7 +1404,7 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 static void
 DetachFromMaster(DeviceIntPtr dev)
 {
-    if (!dev->u.master)
+    if (!IsFloating(dev))
         return;
 
     dev->saved_master_id = dev->u.master->id;
@@ -2806,7 +2806,7 @@ WindowsRestructured(void)
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
     {
-        if (IsMaster(pDev) || !pDev->u.master)
+        if (IsMaster(pDev) || IsFloating(pDev))
             CheckMotion(NULL, pDev);
         pDev = pDev->next;
     }
@@ -3401,7 +3401,7 @@ CheckPassiveGrabsOnWindow(
              * attached master keyboard. Since the slave may have been
              * reattached after the grab, the modifier device may not be the
              * same. */
-            if (!IsMaster(grab->device) && device->u.master)
+            if (!IsMaster(grab->device) && !IsFloating(device))
                 gdev = GetMaster(device, MASTER_KEYBOARD);
         }
 
