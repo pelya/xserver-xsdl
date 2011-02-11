@@ -325,7 +325,7 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
     CHECKEVENT(original);
 
     /* ET_XQuartz has sdev == NULL */
-    if (!sdev || !sdev->u.master)
+    if (!sdev || IsMaster(sdev) || !sdev->u.master)
         return NULL;
 
 #if XFreeXDGA

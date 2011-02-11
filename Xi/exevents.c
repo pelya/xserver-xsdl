@@ -710,6 +710,9 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
     if (rc != Success)
         return; /* Device has disappeared */
 
+    if (IsMaster(slave))
+        return;
+
     if (!slave->u.master)
         return; /* set floating since the event */
 
