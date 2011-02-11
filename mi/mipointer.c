@@ -220,15 +220,15 @@ miPointerCursorLimits(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor,
     *pTopLeftBox = *pHotBox;
 }
 
-static Bool GenerateEvent;
-
 static Bool
 miPointerSetCursorPosition(DeviceIntPtr pDev, ScreenPtr pScreen,
                            int x, int y, Bool generateEvent)
 {
     SetupScreen (pScreen);
+    miPointerPtr pPointer = MIPOINTER(pDev);
 
-    GenerateEvent = generateEvent;
+    pPointer->generateEvent = generateEvent;
+
     /* device dependent - must pend signal and call miPointerWarpCursor */
     (*pScreenPriv->screenFuncs->WarpCursor) (pDev, pScreen, x, y);
     if (!generateEvent)
@@ -261,6 +261,7 @@ miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen)
     pPointer->confined = FALSE;
     pPointer->x = 0;
     pPointer->y = 0;
+    pPointer->generateEvent = FALSE;
 
     if (!((*pScreenPriv->spriteFuncs->DeviceCursorInitialize)(pDev, pScreen)))
     {
@@ -306,7 +307,7 @@ miPointerWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
         changedScreen = TRUE;
     }
 
-    if (GenerateEvent)
+    if (pPointer->generateEvent)
 	miPointerMove (pDev, pScreen, x, y);
     else
         miPointerMoveNoEvent(pDev, pScreen, x, y);
