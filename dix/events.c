@@ -4277,7 +4277,7 @@ DeviceEnterLeaveEvent(
         if (BitIsOn(mouse->button->down, i))
             SetBit(&event[1], i);
 
-    kbd = (IsMaster(mouse) || mouse->u.master) ? GetPairedDevice(mouse) : NULL;
+    kbd = GetMaster(mouse, MASTER_KEYBOARD);
     if (kbd && kbd->key)
     {
         event->mods.base_mods = kbd->key->xkbInfo->state.base_mods;
