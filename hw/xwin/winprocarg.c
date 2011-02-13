@@ -1158,9 +1158,8 @@ winLogVersionInfo(void)
 
     ErrorF("Welcome to the XWin X Server\n");
     ErrorF("Vendor: %s\n", XVENDORNAME);
-    ErrorF("Release: %d.%d.%d.%d (%d)\n", XORG_VERSION_MAJOR,
-           XORG_VERSION_MINOR, XORG_VERSION_PATCH, XORG_VERSION_SNAP,
-           XORG_VERSION_CURRENT);
+    ErrorF("Release: %d.%d.%d.%d\n", XORG_VERSION_MAJOR,
+           XORG_VERSION_MINOR, XORG_VERSION_PATCH, XORG_VERSION_SNAP);
     ErrorF("%s\n\n", BUILDERSTRING);
     ErrorF("Contact: %s\n", BUILDERADDR);
 }
