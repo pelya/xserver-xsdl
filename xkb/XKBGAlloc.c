@@ -659,11 +659,11 @@ register XkbPropertyPtr prop;
     }
     prop= &geom->properties[geom->num_properties];
     prop->name= malloc(strlen(name)+1);
-    if (!name)
+    if (!prop->name)
 	return NULL;
     strcpy(prop->name,name);
     prop->value= malloc(strlen(value)+1);
-    if (!value) {
+    if (!prop->value) {
 	free(prop->name);
 	prop->name= NULL;
 	return NULL;
