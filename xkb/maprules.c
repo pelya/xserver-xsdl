@@ -945,9 +945,8 @@ Bool		ok;
     if ((!base)||(!rules))
 	return FALSE;
     if (locale) {
-	if (strlen(base)+strlen(locale)+2 > PATH_MAX)
+	if (snprintf(buf, PATH_MAX, "%s-%s", base, locale) >= PATH_MAX)
 	    return FALSE;
-	sprintf(buf,"%s-%s", base, locale);
     }
     else {
 	if (strlen(base)+1 > PATH_MAX)
