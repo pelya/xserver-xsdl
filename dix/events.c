@@ -2366,8 +2366,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     Window child = None;
     Mask filter;
     int deliveries = 0;
-    xEvent core;
-    xEvent *xE = NULL;
+    xEvent *xE = NULL, *core = NULL;
     int rc, mask, count = 0;
 
     CHECKEVENT(event);
@@ -2417,13 +2416,13 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             /* Core event */
             if ((mask & EVENT_CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
-                rc = EventToCore(event, &core);
+                rc = EventToCore(event, &core, &count);
                 if (rc == Success) {
-                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, &core, 1) == Success) {
-                        filter = GetEventFilter(dev, &core);
-                        FixUpEventFromWindow(pSprite, &core, pWin, child, FALSE);
-                        deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
-                                                           filter, grab);
+                    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, core, count) == Success) {
+                        filter = GetEventFilter(dev, core);
+                        FixUpEventFromWindow(pSprite, core, pWin, child, FALSE);
+                        deliveries = DeliverEventsToWindow(dev, pWin, core,
+                                                           count, filter, grab);
                         if (deliveries > 0)
                             goto unwind;
                     }
@@ -2445,6 +2444,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
     }
 
 unwind:
+    free(core);
     free(xE);
     return deliveries;
 }
@@ -3460,7 +3460,6 @@ CheckPassiveGrabsOnWindow(
 	{
             int rc, count = 0;
             xEvent *xE = NULL;
-            xEvent core;
 
             event->corestate &= 0x1f00;
             event->corestate |= tempGrab.modifiersDetail.exact & (~0x1f00);
@@ -3512,7 +3511,7 @@ CheckPassiveGrabsOnWindow(
 
             if (match & CORE_MATCH)
             {
-                rc = EventToCore((InternalEvent*)event, &core);
+                rc = EventToCore((InternalEvent*)event, &xE, &count);
                 if (rc != Success)
                 {
                     if (rc != BadMatch)
@@ -3520,8 +3519,6 @@ CheckPassiveGrabsOnWindow(
                                 "(%d, %d).\n", device->name, event->type, rc);
                     continue;
                 }
-                xE = &core;
-                count = 1;
             } else if (match & XI2_MATCH)
             {
                 rc = EventToXI2((InternalEvent*)event, &xE);
@@ -3551,6 +3548,7 @@ CheckPassiveGrabsOnWindow(
             {
                 FixUpEventFromWindow(pSprite, xE, grab->window, None, TRUE);
 
+                /* XXX: XACE? */
                 TryClientEvents(rClient(grab), device, xE, count,
                                        GetEventFilter(device, xE),
                                        GetEventFilter(device, xE), grab);
@@ -3564,8 +3562,7 @@ CheckPassiveGrabsOnWindow(
 		grabinfo->sync.state = FROZEN_WITH_EVENT;
             }
 
-            if (match & (XI_MATCH | XI2_MATCH))
-                free(xE); /* on core match xE == &core */
+            free(xE);
 	    return grab;
 	}
     }
@@ -3682,8 +3679,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     DeviceIntPtr ptr;
     WindowPtr focus = keybd->focus->win;
     BOOL sendCore = (IsMaster(keybd) && keybd->coreEvents);
-    xEvent core;
-    xEvent *xE = NULL, *xi2 = NULL;
+    xEvent *core = NULL, *xE = NULL, *xi2 = NULL;
     int count, rc;
     int deliveries = 0;
 
@@ -3737,13 +3733,13 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
 
     if (sendCore)
     {
-        rc = EventToCore(event, &core);
+        rc = EventToCore(event, &core, &count);
         if (rc == Success) {
-            if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, &core, 1) == Success) {
-                FixUpEventFromWindow(keybd->spriteInfo->sprite, &core, focus,
+            if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, core, count) == Success) {
+                FixUpEventFromWindow(keybd->spriteInfo->sprite, core, focus,
                                      None, FALSE);
-                deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
-                                                   GetEventFilter(keybd, &core),
+                deliveries = DeliverEventsToWindow(keybd, focus, core, count,
+                                                   GetEventFilter(keybd, core),
                                                    NullGrab);
             }
         } else if (rc != BadMatch)
@@ -3752,6 +3748,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, InternalEvent *event, WindowPtr window)
     }
 
 unwind:
+    free(core);
     free(xE);
     free(xi2);
     return;
@@ -3777,6 +3774,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
     int rc, count = 0;
     xEvent *xi = NULL;
     xEvent *xi2 = NULL;
+    xEvent *core = NULL;
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3826,22 +3824,20 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
         /* try core event */
         if (sendCore && grab->grabtype == GRABTYPE_CORE)
         {
-            xEvent core;
-
-            rc = EventToCore(event, &core);
+            rc = EventToCore(event, &core, &count);
             if (rc == Success)
             {
-                FixUpEventFromWindow(pSprite, &core, grab->window, None, TRUE);
+                FixUpEventFromWindow(pSprite, core, grab->window, None, TRUE);
                 if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
-                            grab->window, &core, 1) ||
+                            grab->window, core, count) ||
                         XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
-                            grab->window, &core, 1))
+                            grab->window, core, count))
                     deliveries = 1; /* don't send, but pretend we did */
-                else if (!IsInterferingGrab(rClient(grab), thisDev, &core))
+                else if (!IsInterferingGrab(rClient(grab), thisDev, core))
                 {
                     deliveries = TryClientEvents(rClient(grab), thisDev,
-                            &core, 1, mask,
-                            GetEventFilter(thisDev, &core),
+                            core, count, mask,
+                            GetEventFilter(thisDev, core),
                             grab);
                 }
             } else if (rc != BadMatch)
@@ -3931,6 +3927,7 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	}
     }
 
+    free(core);
     free(xi);
     free(xi2);
 }
