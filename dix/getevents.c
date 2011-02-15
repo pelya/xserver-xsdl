@@ -58,6 +58,7 @@
 #endif
 
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XI2.h>
 #include <X11/extensions/XIproto.h>
 #include <pixman.h>
 #include "exglobals.h"
@@ -1158,6 +1159,11 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
     event->root_y = trunc(screeny);
     event->root_x_frac = screenx - trunc(screenx);
     event->root_y_frac = screeny - trunc(screeny);
+
+    if (flags & POINTER_EMULATED) {
+        raw->flags = XIPointerEmulated;
+        event->flags = XIPointerEmulated;
+    }
 
     set_valuators(pDev, event, &mask);
 

@@ -41,6 +41,7 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
     int nvals = 0;
     int bits_set;
     int len;
+    uint32_t flagmask = 0;
 
     if (swap)
     {
@@ -62,7 +63,17 @@ static void test_values_XIRawEvent(RawDeviceEvent *in, xXIRawEvent *out,
     assert(out->detail == in->detail.button);
     assert(out->deviceid == in->deviceid);
     assert(out->valuators_len >= bytes_to_int32(bits_to_bytes(sizeof(in->valuators.mask))));
-    assert(out->flags == 0); /* FIXME: we don't set the flags yet */
+
+    switch (in->type) {
+    case ET_RawMotion:
+    case ET_RawButtonPress:
+    case ET_RawButtonRelease:
+        flagmask = XIPointerEmulated;
+        break;
+    default:
+        flagmask = 0;
+    }
+    assert((out->flags & ~flagmask) == 0);
 
     ptr = (unsigned char*)&out[1];
     bits_set = 0;
@@ -304,6 +315,11 @@ static void test_values_XIDeviceEvent(DeviceEvent *in, xXIDeviceEvent *out,
     assert(out->sourceid == in->sourceid);
 
     switch (in->type) {
+        case ET_ButtonPress:
+        case ET_Motion:
+        case ET_ButtonRelease:
+            flagmask = XIPointerEmulated;
+            break;
         case ET_KeyPress:
             flagmask = XIKeyRepeat;
             break;

@@ -68,6 +68,7 @@ SOFTWARE.
 #define POINTER_ACCELERATE	(1 << 3)
 #define POINTER_SCREEN		(1 << 4)	/* Data in screen coordinates */
 #define POINTER_NORAW		(1 << 5)	/* Don't generate RawEvents */
+#define POINTER_EMULATED	(1 << 6)	/* Event was emulated from another event */
 
 /*int constants for pointer acceleration schemes*/
 #define PtrAccelNoOp            0
