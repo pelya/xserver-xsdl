@@ -1043,39 +1043,24 @@ QueuePointerEvents(DeviceIntPtr device, int type,
 }
 
 /**
- * Generate a series of InternalEvents representing pointer motion, or
- * button presses.
+ * Helper function for GetPointerEvents, which only generates motion and
+ * raw motion events for the slave device: does not update the master device.
  *
- * The DDX is responsible for allocating the events in the first
- * place via InitEventList() and GetMaximumEventsNum(), and for freeing it.
- *
- * In the generated events rootX/Y will be in absolute screen coords and
- * the valuator information in the absolute or relative device coords.
- *
- * last.valuators[x] of the device is always in absolute device coords.
- * last.valuators[x] of the master device is in absolute screen coords.
- *
- * master->last.valuators[x] for x > 2 is undefined.
+ * Should not be called by anyone other than GetPointerEvents.
  *
  * @return the number of events written into events.
  */
-int
-GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons,
-                 int flags, const ValuatorMask *mask_in) {
+static int
+fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
+                    int buttons, CARD32 ms, int flags,
+                    const ValuatorMask *mask_in)
+{
     int num_events = 1, i;
-    CARD32 ms;
     DeviceEvent *event;
-    RawDeviceEvent    *raw;
+    RawDeviceEvent *raw;
     double screenx = 0.0, screeny = 0.0;
     ScreenPtr scr = miPointerGetScreen(pDev);
     ValuatorMask mask;
-
-    /* refuse events from disabled devices */
-    if (!pDev->enabled)
-        return 0;
-
-    if (!scr)
-        return 0;
 
     switch (type)
     {
@@ -1091,10 +1076,6 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
         default:
             return 0;
     }
-
-    ms = GetTimeInMillis(); /* before pointer update to help precision */
-
-    events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT, &num_events);
 
     valuator_mask_copy(&mask, mask_in);
 
@@ -1180,6 +1161,45 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type, int buttons
 
     set_valuators(pDev, event, &mask);
 
+    return num_events;
+}
+
+/**
+ * Generate a complete series of InternalEvents (filled into the EventList)
+ * representing pointer motion, or button presses.  If the device is a slave
+ * device, also potentially generate a DeviceClassesChangedEvent to update
+ * the master device.
+ *
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via InitEventList() and GetMaximumEventsNum(), and for freeing it.
+ *
+ * In the generated events rootX/Y will be in absolute screen coords and
+ * the valuator information in the absolute or relative device coords.
+ *
+ * last.valuators[x] of the device is always in absolute device coords.
+ * last.valuators[x] of the master device is in absolute screen coords.
+ *
+ * master->last.valuators[x] for x > 2 is undefined.
+ */
+int
+GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
+                 int buttons, int flags, const ValuatorMask *mask_in)
+{
+    CARD32 ms = GetTimeInMillis();
+    int num_events = 0;
+
+    /* refuse events from disabled devices */
+    if (!pDev->enabled)
+        return 0;
+
+    if (!miPointerGetScreen(pDev))
+        return 0;
+
+    events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT,
+                              &num_events);
+    num_events += fill_pointer_events(events, pDev, type, buttons, ms, flags,
+                                      mask_in);
     return num_events;
 }
 
