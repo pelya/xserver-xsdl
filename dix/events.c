@@ -3582,6 +3582,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
     WindowPtr pWin = NULL;
     FocusClassPtr focus = IsPointerEvent((InternalEvent*)event) ? NULL : device->focus;
     BOOL sendCore = (IsMaster(device) && device->coreEvents);
+    Bool ret = FALSE;
 
     if (event->type != ET_ButtonPress &&
         event->type != ET_KeyPress)
@@ -3601,7 +3602,7 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
             if (device->spriteInfo->sprite->spriteTrace[i++] == ancestor)
                 break;
         if (i == device->spriteInfo->sprite->spriteTraceGood)
-            return FALSE;
+            goto out;
     }
 
     if (focus)
@@ -3610,23 +3611,32 @@ CheckDeviceGrabs(DeviceIntPtr device, DeviceEvent *event, WindowPtr ancestor)
 	{
 	    pWin = focus->trace[i];
 	    if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
-		return TRUE;
+	    {
+		ret = TRUE;
+		goto out;
+	    }
 	}
 
 	if ((focus->win == NoneWin) ||
 	    (i >= device->spriteInfo->sprite->spriteTraceGood) ||
 	    (pWin && pWin != device->spriteInfo->sprite->spriteTrace[i-1]))
-	    return FALSE;
+	    goto out;
     }
 
     for (; i < device->spriteInfo->sprite->spriteTraceGood; i++)
     {
 	pWin = device->spriteInfo->sprite->spriteTrace[i];
 	if (CheckPassiveGrabsOnWindow(pWin, device, event, sendCore, TRUE))
-	    return TRUE;
+	{
+	    ret = TRUE;
+	    goto out;
+	}
     }
 
-    return FALSE;
+out:
+    if (ret == TRUE && event->type == ET_KeyPress)
+        device->deviceGrab.activatingKey = event->detail.key;
+    return ret;
 }
 
 /**

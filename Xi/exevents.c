@@ -1047,10 +1047,8 @@ ProcessOtherEvent(InternalEvent *ev, DeviceIntPtr device)
     switch(event->type)
     {
         case ET_KeyPress:
-            if (!grab && CheckDeviceGrabs(device, event, 0)) {
-                device->deviceGrab.activatingKey = key;
+            if (!grab && CheckDeviceGrabs(device, event, 0))
                 return;
-            }
             break;
         case ET_KeyRelease:
             if (grab && device->deviceGrab.fromPassiveGrab &&
