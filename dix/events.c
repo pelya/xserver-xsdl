@@ -2466,9 +2466,8 @@ int
 DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
               WindowPtr otherParent)
 {
-    Mask filter;
-    int     deliveries;
     DeviceIntRec dummy;
+    int     deliveries;
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum)
@@ -2479,11 +2478,42 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
 	return 0;
 
     dummy.id = XIAllDevices;
-    filter = GetEventFilter(&dummy, xE);
-    if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
-	xE->u.destroyNotify.event = pWin->drawable.id;
-    if (filter != StructureAndSubMask)
-	return DeliverEventsToWindow(&dummy, pWin, xE, count, filter, NullGrab);
+
+    switch (xE->u.u.type)
+    {
+        case DestroyNotify:
+        case UnmapNotify:
+        case MapNotify:
+        case MapRequest:
+        case ReparentNotify:
+        case ConfigureNotify:
+        case ConfigureRequest:
+        case GravityNotify:
+        case CirculateNotify:
+        case CirculateRequest:
+            xE->u.destroyNotify.event = pWin->drawable.id;
+            break;
+    }
+
+    switch (xE->u.u.type)
+    {
+        case DestroyNotify:
+        case UnmapNotify:
+        case MapNotify:
+        case ReparentNotify:
+        case ConfigureNotify:
+        case GravityNotify:
+        case CirculateNotify:
+            break;
+        default:
+        {
+            Mask filter;
+            filter = GetEventFilter(&dummy, xE);
+            return DeliverEventsToWindow(&dummy, pWin, xE, count, filter,
+                                         NullGrab);
+        }
+    }
+
     deliveries = DeliverEventsToWindow(&dummy, pWin, xE, count,
                                        StructureNotifyMask, NullGrab);
     if (pWin->parent)
