@@ -2,6 +2,7 @@
  * Copyright © 2006 Nokia Corporation
  * Copyright © 2006-2007 Daniel Stone
  * Copyright © 2008 Red Hat, Inc.
+ * Copyright © 2011 The Chromium Authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -603,8 +604,10 @@ GetMaximumEventsNum(void) {
     /* One raw event
      * One device event
      * One possible device changed event
+     * Lots of possible separate button scroll events (horiz + vert)
+     * Lots of possible separate raw button scroll events (horiz + vert)
      */
-    return 3;
+    return 100;
 }
 
 
@@ -1171,6 +1174,95 @@ fill_pointer_events(InternalEvent *events, DeviceIntPtr pDev, int type,
 }
 
 /**
+ * Generate events for each scroll axis that changed between before/after
+ * for the device.
+ *
+ * @param events The pointer to the event list to fill the events
+ * @param dev The device to generate the events for
+ * @param axis The axis number to generate events for
+ * @param mask State before this event in absolute coords
+ * @param[in,out] last Last scroll state posted in absolute coords (modified
+ * in-place)
+ * @param ms Current time in ms
+ * @param max_events Max number of events to be generated
+ * @return The number of events generated
+ */
+static int
+emulate_scroll_button_events(InternalEvent *events,
+                             DeviceIntPtr dev,
+                             int axis,
+                             const ValuatorMask *mask,
+                             ValuatorMask *last,
+                             CARD32 ms,
+                             int max_events)
+{
+    AxisInfoPtr ax;
+    double delta;
+    double incr;
+    int num_events = 0;
+    double total;
+    int b;
+
+    if (dev->valuator->axes[axis].scroll.type == SCROLL_TYPE_NONE)
+        return 0;
+
+    if (!valuator_mask_isset(mask, axis))
+        return 0;
+
+    ax = &dev->valuator->axes[axis];
+    incr = ax->scroll.increment;
+
+    if (!valuator_mask_isset(last, axis))
+        valuator_mask_set_double(last, axis, 0);
+
+    delta = valuator_mask_get_double(mask, axis) - valuator_mask_get_double(last, axis);
+    total = delta;
+    b = (ax->scroll.type == SCROLL_TYPE_VERTICAL) ? 5 : 7;
+
+    if ((incr > 0 && delta < 0) ||
+        (incr < 0 && delta > 0))
+        b--; /* we're scrolling up or left → button 4 or 6 */
+
+    while (fabs(delta) >= fabs(incr))
+    {
+        int nev_tmp;
+
+        if (delta > 0)
+            delta -= fabs(incr);
+        else if (delta < 0)
+            delta += fabs(incr);
+
+        /* fill_pointer_events() generates four events: one normal and one raw
+         * event for button press and button release.
+         * We may get a bigger scroll delta than we can generate events
+         * for. In that case, we keep decreasing delta, but skip events.
+         */
+        if (num_events + 4 < max_events)
+        {
+            nev_tmp = fill_pointer_events(events, dev, ButtonPress, b, ms,
+                                          POINTER_EMULATED, NULL);
+            events += nev_tmp;
+            num_events += nev_tmp;
+            nev_tmp = fill_pointer_events(events, dev, ButtonRelease, b, ms,
+                                          POINTER_EMULATED, NULL);
+            events += nev_tmp;
+            num_events += nev_tmp;
+        }
+    }
+
+    /* We emulated, update last.scroll */
+    if (total != delta)
+    {
+        total -= delta;
+        valuator_mask_set_double(last, axis,
+                                 valuator_mask_get_double(last, axis) + total);
+    }
+
+    return num_events;
+}
+
+
+/**
  * Generate a complete series of InternalEvents (filled into the EventList)
  * representing pointer motion, or button presses.  If the device is a slave
  * device, also potentially generate a DeviceClassesChangedEvent to update
@@ -1193,7 +1285,12 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
                  int buttons, int flags, const ValuatorMask *mask_in)
 {
     CARD32 ms = GetTimeInMillis();
-    int num_events = 0;
+    int num_events = 0, nev_tmp;
+    int h_scroll_axis = pDev->valuator->h_scroll_axis;
+    int v_scroll_axis = pDev->valuator->v_scroll_axis;
+    ValuatorMask mask;
+    ValuatorMask scroll;
+    int i;
 
     /* refuse events from disabled devices */
     if (!pDev->enabled)
@@ -1204,8 +1301,73 @@ GetPointerEvents(InternalEvent *events, DeviceIntPtr pDev, int type,
 
     events = UpdateFromMaster(events, pDev, DEVCHANGE_POINTER_EVENT,
                               &num_events);
-    num_events += fill_pointer_events(events, pDev, type, buttons, ms, flags,
-                                      mask_in);
+
+    valuator_mask_copy(&mask, mask_in);
+
+    /* Turn a scroll button press into a smooth-scrolling event if
+     * necessary. This only needs to cater for the XIScrollFlagPreferred
+     * axis (if more than one scrolling axis is present) */
+    if (type == ButtonPress)
+    {
+        double val, adj;
+        int axis;
+
+        switch (buttons) {
+        case 4:
+            adj = 1.0;
+            axis = v_scroll_axis;
+            break;
+        case 5:
+            adj = -1.0;
+            axis = v_scroll_axis;
+            break;
+        case 6:
+            adj = 1.0;
+            axis = h_scroll_axis;
+            break;
+        case 7:
+            adj = -1.0;
+            axis = h_scroll_axis;
+            break;
+        default:
+            adj = 0.0;
+            axis = -1;
+            break;
+        }
+
+        if (adj != 0.0 && axis != -1)
+        {
+            adj *= pDev->valuator->axes[axis].scroll.increment;
+            val = valuator_mask_get_double(&mask, axis) + adj;
+            valuator_mask_set_double(&mask, axis, val);
+            type = MotionNotify;
+            buttons = 0;
+        }
+    }
+
+    /* First fill out the original event set, with smooth-scrolling axes. */
+    nev_tmp = fill_pointer_events(events, pDev, type, buttons, ms, flags,
+                                  &mask);
+    events += nev_tmp;
+    num_events += nev_tmp;
+
+    valuator_mask_zero(&scroll);
+
+    /* Now turn the smooth-scrolling axes back into emulated button presses
+     * for legacy clients, based on the integer delta between before and now */
+    for (i = 0; i < valuator_mask_size(&mask); i++) {
+        if (!valuator_mask_isset(&mask, i))
+            continue;
+
+        valuator_mask_set_double(&scroll, i, pDev->last.valuators[i]);
+
+        nev_tmp = emulate_scroll_button_events(events, pDev, i, &scroll,
+                                               pDev->last.scroll, ms,
+                                               GetMaximumEventsNum() - num_events);
+        events += nev_tmp;
+        num_events += nev_tmp;
+    }
+
     return num_events;
 }
 

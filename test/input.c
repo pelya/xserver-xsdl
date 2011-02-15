@@ -52,6 +52,7 @@ static void dix_init_valuators(void)
 {
     DeviceIntRec dev;
     ValuatorClassPtr val;
+    AxisInfoPtr axis;
     const int num_axes = 2;
     int i;
     Atom atoms[MAX_VALUATORS] = { 0 };
@@ -78,6 +79,62 @@ static void dix_init_valuators(void)
     }
 
     assert(dev.last.numValuators == num_axes);
+
+    /* invalid increment */
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_VERTICAL, 0.0, SCROLL_FLAG_NONE) == FALSE);
+    /* invalid type */
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_VERTICAL - 1, 1.0, SCROLL_FLAG_NONE) == FALSE);
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_HORIZONTAL + 1, 1.0, SCROLL_FLAG_NONE) == FALSE);
+    /* invalid axisnum */
+    assert(SetScrollValuator(&dev, 2, SCROLL_TYPE_HORIZONTAL, 1.0, SCROLL_FLAG_NONE) == FALSE);
+
+    /* valid */
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_VERTICAL, 3.0, SCROLL_FLAG_NONE) == TRUE);
+    axis = &dev.valuator->axes[0];
+    assert(axis->scroll.increment == 3.0);
+    assert(axis->scroll.type == SCROLL_TYPE_VERTICAL);
+    assert(axis->scroll.flags == 0);
+
+    /* valid */
+    assert(SetScrollValuator(&dev, 1, SCROLL_TYPE_HORIZONTAL, 2.0, SCROLL_FLAG_NONE) == TRUE);
+    axis = &dev.valuator->axes[1];
+    assert(axis->scroll.increment == 2.0);
+    assert(axis->scroll.type == SCROLL_TYPE_HORIZONTAL);
+    assert(axis->scroll.flags == 0);
+
+    /* can add another non-preffered axis */
+    assert(SetScrollValuator(&dev, 1, SCROLL_TYPE_VERTICAL, 5.0, SCROLL_FLAG_NONE) == TRUE);
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_HORIZONTAL, 5.0, SCROLL_FLAG_NONE) == TRUE);
+
+    /* can overwrite with Preferred */
+    assert(SetScrollValuator(&dev, 1, SCROLL_TYPE_VERTICAL, 5.5, SCROLL_FLAG_PREFERRED) == TRUE);
+    axis = &dev.valuator->axes[1];
+    assert(axis->scroll.increment == 5.5);
+    assert(axis->scroll.type == SCROLL_TYPE_VERTICAL);
+    assert(axis->scroll.flags == SCROLL_FLAG_PREFERRED);
+
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_HORIZONTAL, 8.8, SCROLL_FLAG_PREFERRED) == TRUE);
+    axis = &dev.valuator->axes[0];
+    assert(axis->scroll.increment == 8.8);
+    assert(axis->scroll.type == SCROLL_TYPE_HORIZONTAL);
+    assert(axis->scroll.flags == SCROLL_FLAG_PREFERRED);
+
+    /* can overwrite as none */
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_NONE, 5.0,
+                SCROLL_FLAG_NONE) == TRUE);
+    axis = &dev.valuator->axes[0];
+    assert(axis->scroll.type == SCROLL_TYPE_NONE);
+
+    /* can overwrite axis with new settings */
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_VERTICAL, 5.0, SCROLL_FLAG_NONE) == TRUE);
+    axis = &dev.valuator->axes[0];
+    assert(axis->scroll.type == SCROLL_TYPE_VERTICAL);
+    assert(axis->scroll.increment == 5.0);
+    assert(axis->scroll.flags == SCROLL_FLAG_NONE);
+    assert(SetScrollValuator(&dev, 0, SCROLL_TYPE_VERTICAL, 3.0, SCROLL_FLAG_NONE) == TRUE);
+    assert(axis->scroll.type == SCROLL_TYPE_VERTICAL);
+    assert(axis->scroll.increment == 3.0);
+    assert(axis->scroll.flags == SCROLL_FLAG_NONE);
 }
 
 /* just check the known success cases, and that error cases set the client's
