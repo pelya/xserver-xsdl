@@ -1278,7 +1278,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     DeliverEventsToWindow(dev, pWin, (xEvent *) & event, 1,
 				DeviceFocusChangeMask, NullGrab);
 
-    if ((type == DeviceFocusIn) &&
+    if ((event.type == DeviceFocusIn) &&
 	(wOtherInputMasks(pWin)) &&
 	(wOtherInputMasks(pWin)->inputEvents[dev->id] & DeviceStateNotifyMask))
     {
