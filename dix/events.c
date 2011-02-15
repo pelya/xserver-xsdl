@@ -2287,8 +2287,8 @@ FixUpEventFromWindow(
  * @param[in] event The event that is to be sent.
  * @param[in] win The current event window.
  *
- * @return Bitmask of ::XI2_MASK, ::XI_MASK, ::CORE_MASK, and
- * ::DONT_PROPAGATE_MASK.
+ * @return Bitmask of ::EVENT_XI2_MASK, ::EVENT_XI1_MASK, ::EVENT_CORE_MASK, and
+ *         ::EVENT_DONT_PROPAGATE_MASK.
  */
 int
 EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
@@ -2309,7 +2309,7 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
         ((inputMasks->xi2mask[XIAllDevices][type/8] & filter) ||
          ((inputMasks->xi2mask[XIAllMasterDevices][type/8] & filter) && IsMaster(dev)) ||
          (inputMasks->xi2mask[dev->id][type/8] & filter)))
-        rc |= XI2_MASK;
+        rc |= EVENT_XI2_MASK;
 
     type = GetXIType(event);
     ev.u.u.type = type;
@@ -2319,22 +2319,22 @@ EventIsDeliverable(DeviceIntPtr dev, InternalEvent* event, WindowPtr win)
     if (type && inputMasks &&
         (inputMasks->deliverableEvents[dev->id] & filter) &&
         (inputMasks->inputEvents[dev->id] & filter))
-        rc |= XI_MASK;
+        rc |= EVENT_XI1_MASK;
 
     /* Check for XI DontPropagate mask */
     if (type && inputMasks &&
         (inputMasks->dontPropagateMask[dev->id] & filter))
-        rc |= DONT_PROPAGATE_MASK;
+        rc |= EVENT_DONT_PROPAGATE_MASK;
 
     /* Check for core mask */
     type = GetCoreType(event);
     if (type && (win->deliverableEvents & filter) &&
         ((wOtherEventMasks(win) | win->eventMask) & filter))
-        rc |= CORE_MASK;
+        rc |= EVENT_CORE_MASK;
 
     /* Check for core DontPropagate mask */
     if (type && (filter & wDontPropagateMask(win)))
-        rc |= DONT_PROPAGATE_MASK;
+        rc |= EVENT_DONT_PROPAGATE_MASK;
 
     return rc;
 }
@@ -2377,7 +2377,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
         if ((mask = EventIsDeliverable(dev, event, pWin)))
         {
             /* XI2 events first */
-            if (mask & XI2_MASK)
+            if (mask & EVENT_XI2_MASK)
             {
                 xEvent *xi2 = NULL;
                 rc = EventToXI2(event, &xi2);
@@ -2397,7 +2397,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             }
 
             /* XI events */
-            if (mask & XI_MASK)
+            if (mask & EVENT_XI1_MASK)
             {
                 rc = EventToXI(event, &xE, &count);
                 if (rc == Success) {
@@ -2415,7 +2415,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             }
 
             /* Core event */
-            if ((mask & CORE_MASK) && IsMaster(dev) && dev->coreEvents)
+            if ((mask & EVENT_CORE_MASK) && IsMaster(dev) && dev->coreEvents)
             {
                 rc = EventToCore(event, &core);
                 if (rc == Success) {
@@ -2433,7 +2433,7 @@ DeliverDeviceEvents(WindowPtr pWin, InternalEvent *event, GrabPtr grab,
             }
 
             if ((deliveries < 0) || (pWin == stopAt) ||
-                (mask & DONT_PROPAGATE_MASK))
+                (mask & EVENT_DONT_PROPAGATE_MASK))
             {
                 deliveries = 0;
                 goto unwind;
@@ -2448,10 +2448,6 @@ unwind:
     free(xE);
     return deliveries;
 }
-
-#undef XI_MASK
-#undef CORE_MASK
-#undef DONT_PROPAGATE_MASK
 
 /**
  * Deliver event to a window and it's immediate parent. Used for most window
