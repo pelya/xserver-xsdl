@@ -70,6 +70,8 @@ void XISendDeviceHierarchyEvent(int flags[MAXDEVICES])
 
     ev = calloc(1, sizeof(xXIHierarchyEvent) +
                  MAXDEVICES * sizeof(xXIHierarchyInfo));
+    if (!ev)
+        return;
     ev->type = GenericEvent;
     ev->extension = IReqCode;
     ev->evtype = XI_HierarchyChanged;
