@@ -2473,7 +2473,10 @@ GetPairedDevice(DeviceIntPtr dev)
  * returned master is either the device itself or the paired master device.
  * If dev is a floating slave device, NULL is returned.
  *
- * @type ::MASTER_KEYBOARD or ::MASTER_POINTER
+ * @type ::MASTER_KEYBOARD or ::MASTER_POINTER or ::MASTER_ATTACHED
+ * @return The requested master device. In the case of MASTER_ATTACHED, this
+ * is the directly attached master to this device, regardless of the type.
+ * Otherwise, it is either the master keyboard or pointer for this device.
  */
 DeviceIntPtr
 GetMaster(DeviceIntPtr dev, int which)
@@ -2485,7 +2488,7 @@ GetMaster(DeviceIntPtr dev, int which)
     else
         master = dev->u.master;
 
-    if (master)
+    if (master && which != MASTER_ATTACHED)
     {
         if (which == MASTER_KEYBOARD)
         {

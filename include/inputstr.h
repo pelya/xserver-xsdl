@@ -493,6 +493,7 @@ typedef struct _SpriteInfoRec {
 #define MASTER_POINTER          1
 #define MASTER_KEYBOARD         2
 #define SLAVE                   3
+#define MASTER_ATTACHED         4  /* special type for GetMaster */
 
 typedef struct _DeviceIntRec {
     DeviceRec	public;
