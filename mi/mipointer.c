@@ -540,7 +540,7 @@ miPointerMoveNoEvent (DeviceIntPtr pDev, ScreenPtr pScreen,
      * VCP, as this may cause a non-HW rendered cursor to be rendered during
      * SIGIO. This again leads to allocs during SIGIO which leads to SIGABRT.
      */
-    if ((pDev == inputInfo.pointer || (!IsMaster(pDev) && pDev->u.master == inputInfo.pointer))
+    if (GetMaster(pDev, MASTER_POINTER) == inputInfo.pointer
         && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
     {
 	pPointer->devx = x;
