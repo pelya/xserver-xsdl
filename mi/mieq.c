@@ -321,6 +321,7 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
     DeviceIntPtr mdev;
     int len = original->any.length;
     int type = original->any.type;
+    int mtype; /* which master type? */
 
     CHECKEVENT(original);
 
@@ -337,20 +338,21 @@ CopyGetMasterEvent(DeviceIntPtr sdev,
     {
         case ET_KeyPress:
         case ET_KeyRelease:
-            mdev = GetMaster(sdev, MASTER_KEYBOARD);
+            mtype = MASTER_KEYBOARD;
             break;
         case ET_ButtonPress:
         case ET_ButtonRelease:
         case ET_Motion:
         case ET_ProximityIn:
         case ET_ProximityOut:
-            mdev = GetMaster(sdev, MASTER_POINTER);
+            mtype = MASTER_POINTER;
             break;
         default:
-            mdev = sdev->u.master;
+            mtype = MASTER_ATTACHED;
             break;
     }
 
+    mdev = GetMaster(sdev, mtype);
     memcpy(copy, original, len);
     ChangeDeviceID(mdev, copy);
     FixUpEventForMaster(mdev, sdev, original, copy);
@@ -466,7 +468,7 @@ mieqProcessInputEvents(void)
         pthread_mutex_unlock(&miEventQueueMutex);
 #endif
 
-        master  = (dev && !IsMaster(dev) && dev->u.master) ? dev->u.master : NULL;
+        master = (dev) ? GetMaster(dev, MASTER_ATTACHED) : NULL;
 
         if (screenIsSaved == SCREEN_SAVER_ON)
             dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);

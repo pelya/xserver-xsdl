@@ -375,7 +375,7 @@ SwapValuatorInfo(DeviceIntPtr dev, xXIValuatorInfo* info)
 
 int GetDeviceUse(DeviceIntPtr dev, uint16_t *attachment)
 {
-    DeviceIntPtr master = dev->u.master;
+    DeviceIntPtr master = GetMaster(dev, MASTER_ATTACHED);
     int use;
 
     if (IsMaster(dev))

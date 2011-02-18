@@ -446,7 +446,7 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-            if (other->u.master == dev)
+            if (!IsMaster(other) && GetMaster(other, MASTER_ATTACHED) == dev)
             {
                 AttachDevice(NULL, other, NULL);
                 flags[other->id] |= XISlaveDetached;
@@ -2327,7 +2327,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (IsMaster(dev) ||
-            dev->u.master != master ||
+            GetMaster(dev, MASTER_ATTACHED) != master ||
             !dev->button)
             continue;
 
@@ -2408,8 +2408,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         free(dev->spriteInfo->sprite);
     }
 
-    oldmaster = dev->u.master;
-    dev->u.master = master;
+    oldmaster = GetMaster(dev, MASTER_ATTACHED);
+    dev->master = master;
 
     /* If device is set to floating, we need to create a sprite for it,
      * otherwise things go bad. However, we don't want to render the cursor,
@@ -2460,7 +2460,7 @@ DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
     if (!IsMaster(dev) && !IsFloating(dev))
-        dev = dev->u.master;
+        dev = GetMaster(dev, MASTER_ATTACHED);
 
     return dev->spriteInfo->paired;
 }

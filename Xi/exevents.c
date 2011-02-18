@@ -716,7 +716,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device, DeviceChangedEvent *dce)
     if (IsFloating(slave))
         return; /* set floating since the event */
 
-    if (slave->u.master->id != dce->masterid)
+    if (GetMaster(slave, MASTER_ATTACHED)->id != dce->masterid)
         return; /* not our slave anymore, don't care */
 
     /* FIXME: we probably need to send a DCE for the new slave now */

@@ -1407,7 +1407,7 @@ DetachFromMaster(DeviceIntPtr dev)
     if (!IsFloating(dev))
         return;
 
-    dev->saved_master_id = dev->u.master->id;
+    dev->saved_master_id = GetMaster(dev, MASTER_ATTACHED)->id;
 
     AttachDevice(NULL, dev, NULL);
 }
@@ -3237,7 +3237,7 @@ ProcWarpPointer(ClientPtr client)
     dev = PickPointer(client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if ((tmp == dev) || (!IsMaster(tmp) && tmp->u.master == dev)) {
+        if (GetMaster(tmp, MASTER_ATTACHED) == dev) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixWriteAccess);
 	    if (rc != Success)
 		return rc;
