@@ -5883,12 +5883,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    nkn.changed|= XkbNKN_GeometryMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
 
-	if (!IsMaster(dev) && !IsFloating(dev))
-	{
-	    DeviceIntPtr master = dev->u.master;
-	    if (master->u.lastSlave == dev)
-	    {
-		XkbCopyDeviceKeymap(dev->u.master, dev);
+	if (!IsMaster(dev)) {
+	    DeviceIntPtr master = GetMaster(dev, MASTER_KEYBOARD);
+	    if (master && master->u.lastSlave == dev) {
+		XkbCopyDeviceKeymap(master, dev);
 		XkbSendNewKeyboardNotify(dev,&nkn);
 	    }
 	}
