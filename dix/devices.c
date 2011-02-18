@@ -457,8 +457,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-	    if (IsMaster(other) && other->u.lastSlave == dev)
-		other->u.lastSlave = NULL;
+	    if (IsMaster(other) && other->lastSlave == dev)
+		other->lastSlave = NULL;
 	}
     }
 
@@ -988,7 +988,7 @@ CloseDownDevices(void)
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (!IsMaster(dev) && !IsFloating(dev))
-            dev->u.master = NULL;
+            dev->master = NULL;
     }
 
     CloseDeviceList(&inputInfo.devices);
@@ -2486,7 +2486,7 @@ GetMaster(DeviceIntPtr dev, int which)
     if (IsMaster(dev))
         master = dev;
     else
-        master = dev->u.master;
+        master = dev->master;
 
     if (master && which != MASTER_ATTACHED)
     {
@@ -2541,7 +2541,7 @@ AllocDevicePair (ClientPtr client, char* name,
     pointer->coreEvents = TRUE;
     pointer->spriteInfo->spriteOwner = TRUE;
 
-    pointer->u.lastSlave = NULL;
+    pointer->lastSlave = NULL;
     pointer->last.slave = NULL;
     pointer->type = (master) ? MASTER_POINTER : SLAVE;
 
@@ -2567,7 +2567,7 @@ AllocDevicePair (ClientPtr client, char* name,
     keyboard->coreEvents = TRUE;
     keyboard->spriteInfo->spriteOwner = FALSE;
 
-    keyboard->u.lastSlave = NULL;
+    keyboard->lastSlave = NULL;
     keyboard->last.slave = NULL;
     keyboard->type = (master) ? MASTER_KEYBOARD : SLAVE;
 

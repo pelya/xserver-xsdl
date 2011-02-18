@@ -402,7 +402,7 @@ mieqProcessDeviceEvent(DeviceIntPtr dev,
     master = CopyGetMasterEvent(dev, event, &mevent);
 
     if (master)
-        master->u.lastSlave = dev;
+        master->lastSlave = dev;
 
     /* If someone's registered a custom event handler, let them
      * steal it. */

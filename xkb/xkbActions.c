@@ -1365,7 +1365,7 @@ InjectPointerKeyEvents(DeviceIntPtr dev, int type, int button, int flags, Valuat
 
     if (IsMaster(dev)) {
         mpointer = GetMaster(dev, MASTER_POINTER);
-        lastSlave = mpointer->u.lastSlave;
+        lastSlave = mpointer->lastSlave;
         ptr = GetXTestDevice(mpointer);
     } else if (IsFloating(dev))
         ptr = dev;

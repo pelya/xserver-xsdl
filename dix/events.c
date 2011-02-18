@@ -3244,8 +3244,8 @@ ProcWarpPointer(ClientPtr client)
 	}
     }
 
-    if (dev->u.lastSlave)
-        dev = dev->u.lastSlave;
+    if (dev->lastSlave)
+        dev = dev->lastSlave;
     pSprite = dev->spriteInfo->sprite;
 
 #ifdef PANORAMIX

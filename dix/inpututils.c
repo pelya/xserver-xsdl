@@ -273,10 +273,10 @@ change_modmap(ClientPtr client, DeviceIntPtr dev, KeyCode *modkeymap,
                     do_modmap_change(client, tmp, modmap);
         }
     }
-    else if (!IsFloating(dev) && GetMaster(dev, MASTER_KEYBOARD)->u.lastSlave == dev) {
+    else if (!IsFloating(dev) && GetMaster(dev, MASTER_KEYBOARD)->lastSlave == dev) {
         /* If this fails, expect the results to be weird. */
-        if (check_modmap_change(client, dev->u.master, modmap))
-            do_modmap_change(client, dev->u.master, modmap);
+        if (check_modmap_change(client, dev->master, modmap))
+            do_modmap_change(client, dev->master, modmap);
     }
 
     return Success;

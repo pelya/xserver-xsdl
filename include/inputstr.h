@@ -530,10 +530,8 @@ typedef struct _DeviceIntRec {
     PrivateRec		*devPrivates;
     DeviceUnwrapProc    unwrapProc;
     SpriteInfoPtr       spriteInfo;
-    union {
-        DeviceIntPtr        master;     /* master device */
-        DeviceIntPtr        lastSlave;  /* last slave device used */
-    } u;
+    DeviceIntPtr        master;     /* master device */
+    DeviceIntPtr        lastSlave;  /* last slave device used */
 
     /* last valuator values recorded, not posted to client;
      * for slave devices, valuators is in device coordinates
