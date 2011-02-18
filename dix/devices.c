@@ -1664,7 +1664,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
                           stuff->keyCodes, NULL, client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if (IsMaster(tmp) || tmp->u.master != pDev)
+        if (IsMaster(tmp) || GetMaster(tmp, MASTER_KEYBOARD) != pDev)
             continue;
         if (!tmp->key)
             continue;
