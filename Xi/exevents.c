@@ -869,7 +869,7 @@ UpdateDeviceState(DeviceIntPtr device, DeviceEvent* event)
              * event being delivered through the slave first
              */
             for (sd = inputInfo.devices; sd; sd = sd->next) {
-                if (IsMaster(sd) || sd->u.master != device)
+                if (IsMaster(sd) || GetMaster(sd, MASTER_POINTER) != device)
                     continue;
                 if (!sd->button)
                     continue;
