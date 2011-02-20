@@ -34,7 +34,7 @@ all-local: html/annotated.html
 dist-local: html/annotated.html
 
 html/annotated.html: $(DOXYGEN_SRC)
-	$(DOXYGEN) $(srcdir)/doxygen.conf
+	$(DOXYGEN) doxygen.conf
 
 maintainer-clean-local:
 	rm -rf html/
