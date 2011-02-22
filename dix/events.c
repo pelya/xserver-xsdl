@@ -3904,16 +3904,15 @@ DeliverGrabbedEvent(InternalEvent *event, DeviceIntPtr thisDev,
 	switch (grabinfo->sync.state)
 	{
 	case FREEZE_BOTH_NEXT_EVENT:
-	    for (dev = inputInfo.devices; dev; dev = dev->next)
+	    dev = GetPairedDevice(thisDev);
+	    if (dev)
 	    {
-		if (dev == thisDev)
-		    continue;
 		FreezeThaw(dev, TRUE);
 		if ((dev->deviceGrab.sync.state == FREEZE_BOTH_NEXT_EVENT) &&
 		    (CLIENT_BITS(grab->resource) ==
 		     CLIENT_BITS(dev->deviceGrab.grab->resource)))
 		    dev->deviceGrab.sync.state = FROZEN_NO_EVENT;
-		else if (GetPairedDevice(thisDev) == dev)
+		else
                     dev->deviceGrab.sync.other = grab;
 	    }
 	    /* fall through */
