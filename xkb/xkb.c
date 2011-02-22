@@ -3644,7 +3644,7 @@ register int            n;
 	swapl(&rep->indicators,n);
     }
 
-    start = desc = malloc(length);
+    start = desc = calloc(1, length);
     if ( !start )
 	return BadAlloc;
     if (xkb->names) {
@@ -5569,13 +5569,13 @@ ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
     DeviceIntPtr                tmpd;
-    xkbGetKbdByNameReply 	rep;
-    xkbGetMapReply		mrep;
-    xkbGetCompatMapReply	crep;
-    xkbGetIndicatorMapReply	irep;
-    xkbGetNamesReply		nrep;
-    xkbGetGeometryReply		grep;
-    XkbComponentNamesRec	names;
+    xkbGetKbdByNameReply 	rep = {0};
+    xkbGetMapReply		mrep = {0};
+    xkbGetCompatMapReply	crep = {0};
+    xkbGetIndicatorMapReply	irep = {0};
+    xkbGetNamesReply		nrep = {0};
+    xkbGetGeometryReply		grep = {0};
+    XkbComponentNamesRec	names = {0};
     XkbDescPtr			xkb, new;
     unsigned char *		str;
     char 			mapFile[PATH_MAX];
@@ -5883,12 +5883,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    nkn.changed|= XkbNKN_GeometryMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
 
-	if (!IsMaster(dev) && dev->u.master)
-	{
-	    DeviceIntPtr master = dev->u.master;
-	    if (master->u.lastSlave == dev)
-	    {
-		XkbCopyDeviceKeymap(dev->u.master, dev);
+	if (!IsMaster(dev)) {
+	    DeviceIntPtr master = GetMaster(dev, MASTER_KEYBOARD);
+	    if (master && master->lastSlave == dev) {
+		XkbCopyDeviceKeymap(master, dev);
 		XkbSendNewKeyboardNotify(dev,&nkn);
 	    }
 	}

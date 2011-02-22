@@ -284,12 +284,12 @@ remove_master(ClientPtr client, xXIRemoveMasterInfo *r,
         for (attached = inputInfo.devices; attached; attached = attached->next)
         {
             if (!IsMaster(attached)) {
-                if (attached->u.master == ptr)
+                if (GetMaster(attached, MASTER_ATTACHED) == ptr)
                 {
                     AttachDevice(client, attached, newptr);
                     flags[attached->id] |= XISlaveAttached;
                 }
-                if (attached->u.master == keybd)
+                if (GetMaster(attached, MASTER_ATTACHED) == keybd)
                 {
                     AttachDevice(client, attached, newkeybd);
                     flags[attached->id] |= XISlaveAttached;

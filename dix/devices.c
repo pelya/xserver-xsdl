@@ -446,7 +446,7 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-            if (other->u.master == dev)
+            if (!IsMaster(other) && GetMaster(other, MASTER_ATTACHED) == dev)
             {
                 AttachDevice(NULL, other, NULL);
                 flags[other->id] |= XISlaveDetached;
@@ -457,8 +457,8 @@ DisableDevice(DeviceIntPtr dev, BOOL sendevent)
     {
         for (other = inputInfo.devices; other; other = other->next)
         {
-	    if (IsMaster(other) && other->u.lastSlave == dev)
-		other->u.lastSlave = NULL;
+	    if (IsMaster(other) && other->lastSlave == dev)
+		other->lastSlave = NULL;
 	}
     }
 
@@ -987,8 +987,8 @@ CloseDownDevices(void)
      */
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        if (!IsMaster(dev) && dev->u.master)
-            dev->u.master = NULL;
+        if (!IsMaster(dev) && !IsFloating(dev))
+            dev->master = NULL;
     }
 
     CloseDeviceList(&inputInfo.devices);
@@ -1643,7 +1643,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
                           stuff->keyCodes, NULL, client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if (IsMaster(tmp) || tmp->u.master != pDev)
+        if (IsMaster(tmp) || GetMaster(tmp, MASTER_KEYBOARD) != pDev)
             continue;
         if (!tmp->key)
             continue;
@@ -2306,7 +2306,7 @@ RecalculateMasterButtons(DeviceIntPtr slave)
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (IsMaster(dev) ||
-            dev->u.master != master ||
+            GetMaster(dev, MASTER_ATTACHED) != master ||
             !dev->button)
             continue;
 
@@ -2376,19 +2376,19 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return BadDevice;
 
     /* set from floating to floating? */
-    if (!dev->u.master && !master && dev->enabled)
+    if (IsFloating(dev) && !master && dev->enabled)
         return Success;
 
     /* free the existing sprite. */
-    if (!dev->u.master && dev->spriteInfo->paired == dev)
+    if (IsFloating(dev) && dev->spriteInfo->paired == dev)
     {
         screen = miPointerGetScreen(dev);
         screen->DeviceCursorCleanup(dev, screen);
         free(dev->spriteInfo->sprite);
     }
 
-    oldmaster = dev->u.master;
-    dev->u.master = master;
+    oldmaster = GetMaster(dev, MASTER_ATTACHED);
+    dev->master = master;
 
     /* If device is set to floating, we need to create a sprite for it,
      * otherwise things go bad. However, we don't want to render the cursor,
@@ -2438,8 +2438,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
-    if (!IsMaster(dev) && dev->u.master)
-        dev = dev->u.master;
+    if (!IsMaster(dev) && !IsFloating(dev))
+        dev = GetMaster(dev, MASTER_ATTACHED);
 
     return dev->spriteInfo->paired;
 }
@@ -2452,7 +2452,10 @@ GetPairedDevice(DeviceIntPtr dev)
  * returned master is either the device itself or the paired master device.
  * If dev is a floating slave device, NULL is returned.
  *
- * @type ::MASTER_KEYBOARD or ::MASTER_POINTER
+ * @type ::MASTER_KEYBOARD or ::MASTER_POINTER or ::MASTER_ATTACHED
+ * @return The requested master device. In the case of MASTER_ATTACHED, this
+ * is the directly attached master to this device, regardless of the type.
+ * Otherwise, it is either the master keyboard or pointer for this device.
  */
 DeviceIntPtr
 GetMaster(DeviceIntPtr dev, int which)
@@ -2462,9 +2465,9 @@ GetMaster(DeviceIntPtr dev, int which)
     if (IsMaster(dev))
         master = dev;
     else
-        master = dev->u.master;
+        master = dev->master;
 
-    if (master)
+    if (master && which != MASTER_ATTACHED)
     {
         if (which == MASTER_KEYBOARD)
         {
@@ -2517,7 +2520,7 @@ AllocDevicePair (ClientPtr client, char* name,
     pointer->coreEvents = TRUE;
     pointer->spriteInfo->spriteOwner = TRUE;
 
-    pointer->u.lastSlave = NULL;
+    pointer->lastSlave = NULL;
     pointer->last.slave = NULL;
     pointer->type = (master) ? MASTER_POINTER : SLAVE;
 
@@ -2543,7 +2546,7 @@ AllocDevicePair (ClientPtr client, char* name,
     keyboard->coreEvents = TRUE;
     keyboard->spriteInfo->spriteOwner = FALSE;
 
-    keyboard->u.lastSlave = NULL;
+    keyboard->lastSlave = NULL;
     keyboard->last.slave = NULL;
     keyboard->type = (master) ? MASTER_KEYBOARD : SLAVE;
 

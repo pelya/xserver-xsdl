@@ -93,7 +93,7 @@ ProcXIQueryPointer(ClientPtr client)
     }
 
     if (pDev->valuator == NULL || IsKeyboardDevice(pDev) ||
-        (!IsMaster(pDev) && pDev->u.master)) /* no attached devices */
+        (!IsMaster(pDev) && !IsFloating(pDev))) /* no attached devices */
     {
         client->errorValue = stuff->deviceid;
         return BadDevice;
@@ -129,7 +129,7 @@ ProcXIQueryPointer(ClientPtr client)
 
     if (kbd)
     {
-        state = &kbd->key->xkbInfo->prev_state;
+        state = &kbd->key->xkbInfo->state;
         rep.mods.base_mods = state->base_mods;
         rep.mods.latched_mods = state->latched_mods;
         rep.mods.locked_mods = state->locked_mods;

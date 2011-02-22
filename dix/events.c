@@ -328,6 +328,13 @@ IsMaster(DeviceIntPtr dev)
     return dev->type == MASTER_POINTER || dev->type == MASTER_KEYBOARD;
 }
 
+Bool
+IsFloating(DeviceIntPtr dev)
+{
+    return GetMaster(dev, MASTER_KEYBOARD) == NULL;
+}
+
+
 /**
  * Max event opcode.
  */
@@ -1397,10 +1404,10 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 static void
 DetachFromMaster(DeviceIntPtr dev)
 {
-    if (!dev->u.master)
+    if (!IsFloating(dev))
         return;
 
-    dev->saved_master_id = dev->u.master->id;
+    dev->saved_master_id = GetMaster(dev, MASTER_ATTACHED)->id;
 
     AttachDevice(NULL, dev, NULL);
 }
@@ -2825,7 +2832,7 @@ WindowsRestructured(void)
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
     {
-        if (IsMaster(pDev) || !pDev->u.master)
+        if (IsMaster(pDev) || IsFloating(pDev))
             CheckMotion(NULL, pDev);
         pDev = pDev->next;
     }
@@ -3256,15 +3263,15 @@ ProcWarpPointer(ClientPtr client)
     dev = PickPointer(client);
 
     for (tmp = inputInfo.devices; tmp; tmp = tmp->next) {
-        if ((tmp == dev) || (!IsMaster(tmp) && tmp->u.master == dev)) {
+        if (GetMaster(tmp, MASTER_ATTACHED) == dev) {
 	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixWriteAccess);
 	    if (rc != Success)
 		return rc;
 	}
     }
 
-    if (dev->u.lastSlave)
-        dev = dev->u.lastSlave;
+    if (dev->lastSlave)
+        dev = dev->lastSlave;
     pSprite = dev->spriteInfo->sprite;
 
 #ifdef PANORAMIX
@@ -3420,7 +3427,7 @@ CheckPassiveGrabsOnWindow(
              * attached master keyboard. Since the slave may have been
              * reattached after the grab, the modifier device may not be the
              * same. */
-            if (!IsMaster(grab->device) && device->u.master)
+            if (!IsMaster(grab->device) && !IsFloating(device))
                 gdev = GetMaster(device, MASTER_KEYBOARD);
         }
 
@@ -4309,7 +4316,7 @@ DeviceEnterLeaveEvent(
         if (BitIsOn(mouse->button->down, i))
             SetBit(&event[1], i);
 
-    kbd = (IsMaster(mouse) || mouse->u.master) ? GetPairedDevice(mouse) : NULL;
+    kbd = GetMaster(mouse, MASTER_KEYBOARD);
     if (kbd && kbd->key)
     {
         event->mods.base_mods = kbd->key->xkbInfo->state.base_mods;
