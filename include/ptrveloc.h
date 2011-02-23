@@ -1,6 +1,6 @@
 /*
  *
- * Copyright © 2006-2009 Simon Thum             simon dot thum at gmx dot de
+ * Copyright © 2006-2011 Simon Thum             simon dot thum at gmx dot de
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 #ifndef POINTERVELOCITY_H
 #define POINTERVELOCITY_H
 
-#include <input.h> /* DeviceIntPtr */
+#include <input.h>
 
 /* constants for acceleration profiles */
 
@@ -134,11 +134,9 @@ InitPredictableAccelerationScheme(DeviceIntPtr dev,
 				  struct _ValuatorAccelerationRec* protoScheme);
 
 extern _X_INTERNAL void
-acceleratePointerPredictable(DeviceIntPtr dev, int first_valuator,
-                             int num_valuators, int *valuators, int evtime);
+acceleratePointerPredictable(DeviceIntPtr dev, ValuatorMask* val, int evtime);
 
 extern _X_INTERNAL void
-acceleratePointerLightweight(DeviceIntPtr dev, int first_valuator,
-                             int num_valuators, int *valuators, int ignored);
+acceleratePointerLightweight(DeviceIntPtr dev, ValuatorMask* val, int evtime);
 
 #endif  /* POINTERVELOCITY_H */

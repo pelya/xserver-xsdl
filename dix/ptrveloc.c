@@ -1071,32 +1071,28 @@ GetDevicePredictableAccelData(
 void
 acceleratePointerPredictable(
     DeviceIntPtr dev,
-    int first_valuator,
-    int num_valuators,
-    int *valuators,
+    ValuatorMask* val,
     int evtime)
 {
     float fdx, fdy, tmp, mult; /* no need to init */
-    int dx = 0, dy = 0;
-    int *px = NULL, *py = NULL;
+    int dx = 0, dy = 0, tmpi;
     DeviceVelocityPtr velocitydata = GetDevicePredictableAccelData(dev);
     Bool soften = TRUE;
 
-    if (!num_valuators || !valuators || !velocitydata)
+    if (!velocitydata)
         return;
 
     if (velocitydata->statistics.profile_number == AccelProfileNone &&
-	velocitydata->const_acceleration == 1.0f) {
-	return; /*we're inactive anyway, so skip the whole thing.*/
+        velocitydata->const_acceleration == 1.0f) {
+        return; /*we're inactive anyway, so skip the whole thing.*/
     }
 
-    if (first_valuator == 0) {
-        dx = valuators[0];
-        px = &valuators[0];
+    if (valuator_mask_isset(val, 0)) {
+        dx = valuator_mask_get(val, 0);
     }
-    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
-        dy = valuators[1 - first_valuator];
-        py = &valuators[1 - first_valuator];
+
+    if (valuator_mask_isset(val, 1)) {
+        dy = valuator_mask_get(val, 1);
     }
 
     if (dx || dy){
@@ -1108,15 +1104,15 @@ acceleratePointerPredictable(
         if (dev->ptrfeed && dev->ptrfeed->ctrl.num) {
             /* invoke acceleration profile to determine acceleration */
             mult = ComputeAcceleration (dev, velocitydata,
-					dev->ptrfeed->ctrl.threshold,
-					(float)dev->ptrfeed->ctrl.num /
-					(float)dev->ptrfeed->ctrl.den);
+                                        dev->ptrfeed->ctrl.threshold,
+                                        (float)dev->ptrfeed->ctrl.num /
+                                            (float)dev->ptrfeed->ctrl.den);
 
             if(mult != 1.0f || velocitydata->const_acceleration != 1.0f) {
-                ApplySofteningAndConstantDeceleration( velocitydata,
-						       dx, dy,
-						       &fdx, &fdy,
-						       (mult > 1.0f) && soften);
+                ApplySofteningAndConstantDeceleration(velocitydata,
+                                                      dx, dy,
+                                                      &fdx, &fdy,
+                                                      (mult > 1.0f) && soften);
 
                 if (dx) {
                     tmp = mult * fdx + dev->last.remainder[0];
@@ -1125,13 +1121,15 @@ acceleratePointerPredictable(
                      * process each axis conditionally, there's no danger
                      * of a toggling remainder. Its lack of guarantees likely
                      * makes it faster on the average target. */
-                    *px = lrintf(tmp);
-                    dev->last.remainder[0] = tmp - (float)*px;
+                    tmpi = lrintf(tmp);
+                    valuator_mask_set(val, 0, tmpi);
+                    dev->last.remainder[0] = tmp - (float)tmpi;
                 }
                 if (dy) {
                     tmp = mult * fdy + dev->last.remainder[1];
-                    *py = lrintf(tmp);
-                    dev->last.remainder[1] = tmp - (float)*py;
+                    tmpi = lrintf(tmp);
+                    valuator_mask_set(val, 1, tmpi);
+                    dev->last.remainder[1] = tmp - (float)tmpi;
                 }
                 DebugAccelF("pos (%i | %i) remainders x: %.3f y: %.3f delta x:%.3f y:%.3f\n",
                             *px, *py, dev->last.remainder[0], dev->last.remainder[1], fdx, fdy);
@@ -1152,25 +1150,18 @@ acceleratePointerPredictable(
 void
 acceleratePointerLightweight(
     DeviceIntPtr dev,
-    int first_valuator,
-    int num_valuators,
-    int *valuators,
+    ValuatorMask* val,
     int ignored)
 {
-    float mult = 0.0;
-    int dx = 0, dy = 0;
-    int *px = NULL, *py = NULL;
+    float mult = 0.0, tmpf;
+    int dx = 0, dy = 0, tmpi;
 
-    if (!num_valuators || !valuators)
-        return;
-
-    if (first_valuator == 0) {
-        dx = valuators[0];
-        px = &valuators[0];
+    if (valuator_mask_isset(val, 0)) {
+        dx = valuator_mask_get(val, 0);
     }
-    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
-        dy = valuators[1 - first_valuator];
-        py = &valuators[1 - first_valuator];
+
+    if (valuator_mask_isset(val, 1)) {
+        dy = valuator_mask_get(val, 1);
     }
 
     if (!dx && !dy)
@@ -1180,45 +1171,45 @@ acceleratePointerLightweight(
         /* modeled from xf86Events.c */
         if (dev->ptrfeed->ctrl.threshold) {
             if ((abs(dx) + abs(dy)) >= dev->ptrfeed->ctrl.threshold) {
-                dev->last.remainder[0] = ((float)dx *
-                                             (float)(dev->ptrfeed->ctrl.num)) /
-                                             (float)(dev->ptrfeed->ctrl.den) +
-                                            dev->last.remainder[0];
-                if (px) {
-                    *px = (int)dev->last.remainder[0];
-                    dev->last.remainder[0] = dev->last.remainder[0] -
-                                                (float)(*px);
+                tmpf = ((float)dx *
+                        (float)(dev->ptrfeed->ctrl.num)) /
+                       (float)(dev->ptrfeed->ctrl.den) +
+                       dev->last.remainder[0];
+                if (dx) {
+                    tmpi = (int) tmpf;
+                    valuator_mask_set(val, 0, tmpi);
+                    dev->last.remainder[0] = tmpf - (float)tmpi;
                 }
 
-                dev->last.remainder[1] = ((float)dy *
-                                             (float)(dev->ptrfeed->ctrl.num)) /
-                                             (float)(dev->ptrfeed->ctrl.den) +
-                                            dev->last.remainder[1];
-                if (py) {
-                    *py = (int)dev->last.remainder[1];
-                    dev->last.remainder[1] = dev->last.remainder[1] -
-                                                (float)(*py);
+                tmpf = ((float)dy *
+                        (float)(dev->ptrfeed->ctrl.num)) /
+                       (float)(dev->ptrfeed->ctrl.den) +
+                       dev->last.remainder[1];
+                if (dy) {
+                    tmpi = (int) tmpf;
+                    valuator_mask_set(val, 1, tmpi);
+                    dev->last.remainder[1] = tmpf - (float)tmpi;
                 }
             }
         }
         else {
-	    mult = pow((float)dx * (float)dx + (float)dy * (float)dy,
+            mult = pow((float)dx * (float)dx + (float)dy * (float)dy,
                        ((float)(dev->ptrfeed->ctrl.num) /
                         (float)(dev->ptrfeed->ctrl.den) - 1.0) /
                        2.0) / 2.0;
             if (dx) {
-                dev->last.remainder[0] = mult * (float)dx +
-                                            dev->last.remainder[0];
-                *px = (int)dev->last.remainder[0];
-                dev->last.remainder[0] = dev->last.remainder[0] -
-                                            (float)(*px);
+                tmpf = mult * (float)dx +
+                       dev->last.remainder[0];
+                tmpi = (int) tmpf;
+                valuator_mask_set(val, 0, tmpi);
+                dev->last.remainder[0] = tmpf - (float)tmpi;
             }
             if (dy) {
-                dev->last.remainder[1] = mult * (float)dy +
-                                            dev->last.remainder[1];
-                *py = (int)dev->last.remainder[1];
-                dev->last.remainder[1] = dev->last.remainder[1] -
-                                            (float)(*py);
+                tmpf = mult * (float)dy +
+                       dev->last.remainder[1];
+                tmpi = (int)tmpf;
+                valuator_mask_set(val, 1, tmpi);
+                dev->last.remainder[1] = tmpf - (float)tmpi;
             }
         }
     }
