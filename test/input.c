@@ -1089,12 +1089,16 @@ static void dix_input_valuator_masks(void)
 {
     ValuatorMask *mask = NULL, *copy;
     int nvaluators = MAX_VALUATORS;
-    int valuators[nvaluators];
+    double valuators[nvaluators];
+    int val_ranged[nvaluators];
     int i;
     int first_val, num_vals;
 
     for (i = 0; i < nvaluators; i++)
-        valuators[i] = i;
+    {
+        valuators[i] = i + 0.5;
+        val_ranged[i] = i;
+    }
 
     mask = valuator_mask_new(nvaluators);
     assert(mask != NULL);
@@ -1104,9 +1108,10 @@ static void dix_input_valuator_masks(void)
     for (i = 0; i < nvaluators; i++)
     {
         assert(!valuator_mask_isset(mask, i));
-        valuator_mask_set(mask, i, valuators[i]);
+        valuator_mask_set_double(mask, i, valuators[i]);
         assert(valuator_mask_isset(mask, i));
-        assert(valuator_mask_get(mask, i) == valuators[i]);
+        assert(valuator_mask_get(mask, i) == trunc(valuators[i]));
+        assert(valuator_mask_get_double(mask, i) == valuators[i]);
         assert(valuator_mask_size(mask) == i + 1);
         assert(valuator_mask_num_valuators(mask) == i + 1);
     }
@@ -1132,7 +1137,7 @@ static void dix_input_valuator_masks(void)
     first_val = 5;
     num_vals = 6;
 
-    valuator_mask_set_range(mask, first_val, num_vals, valuators);
+    valuator_mask_set_range(mask, first_val, num_vals, val_ranged);
     assert(valuator_mask_size(mask) == first_val + num_vals);
     assert(valuator_mask_num_valuators(mask) == num_vals);
     for (i = 0; i < nvaluators; i++)
@@ -1142,7 +1147,9 @@ static void dix_input_valuator_masks(void)
         else
         {
             assert(valuator_mask_isset(mask, i));
-            assert(valuator_mask_get(mask, i) == valuators[i - first_val]);
+            assert(valuator_mask_get(mask, i) == val_ranged[i - first_val]);
+            assert(valuator_mask_get_double(mask, i) ==
+                    val_ranged[i - first_val]);
         }
     }
 
@@ -1156,6 +1163,8 @@ static void dix_input_valuator_masks(void)
     {
         assert(valuator_mask_isset(mask, i) == valuator_mask_isset(copy, i));
         assert(valuator_mask_get(mask, i) == valuator_mask_get(copy, i));
+        assert(valuator_mask_get_double(mask, i) ==
+                valuator_mask_get_double(copy, i));
     }
 
     valuator_mask_free(&mask);
