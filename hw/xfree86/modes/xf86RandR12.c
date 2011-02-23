@@ -1083,7 +1083,7 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
     ret = RRCrtcNotify (randr_crtc, randr_mode, x, y,
 			rotation,
 			crtc->transformPresent ? &crtc->transform : NULL,
-			numOutputs, randr_outputs, crtc->scanoutPixmap);
+			numOutputs, randr_outputs);
     free(randr_outputs);
     return ret;
 }
@@ -1126,8 +1126,7 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 		    int		    y,
 		    Rotation	    rotation,
 		    int		    num_randr_outputs,
-		    RROutputPtr	    *randr_outputs,
-		    PixmapPtr	    scanout_pixmap)
+		    RROutputPtr	    *randr_outputs)
 {
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -1157,9 +1156,6 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
     else if (transform && memcmp (&transform->transform, &crtc->transform.transform,
 				  sizeof (transform->transform)) != 0)
 	flags |= XF86CrtcSetTransform;
-
-    if (scanout_pixmap != crtc->scanoutPixmap)
-	flags |= XF86CrtcSetScanoutPixmap;
 
     if (x != crtc->x || y != crtc->y)
 	flags |= XF86CrtcSetOrigin;
@@ -1207,7 +1203,6 @@ xf86RandR12CrtcSet (ScreenPtr	    pScreen,
 	    set.transform = transform;
 	    set.x = x;
 	    set.y = y;
-	    set.scanout_pixmap = scanout_pixmap;
 	    set.flags = flags;
 	    if (!xf86CrtcSet(crtc, &set))
 	    {
@@ -1737,54 +1732,6 @@ xf86RandR12ChangeGamma(int scrnIndex, Gamma gamma)
     return Success;
 }
 
-static RRScanoutPixmapInfo *
-xf86RRQueryScanoutPixmaps(ScreenPtr screen, int *n_info)
-{
-    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
-    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
-    RRScanoutPixmapInfo	*info;
-    int			f;
-
-    info = calloc(config->num_scanout_formats, sizeof (RRScanoutPixmapInfo));
-    if (config->num_scanout_formats && !info) {
-	*n_info = 0;
-	return NULL;
-    }
-    for (f = 0; f < config->num_scanout_formats; f++) {
-	info[f].maxWidth = config->scanout_formats[f].maxWidth;
-	info[f].maxHeight = config->scanout_formats[f].maxHeight;
-	info[f].depth = config->scanout_formats[f].depth;
-	info[f].rotations = config->scanout_formats[f].rotations;
-	info[f].format = PictureMatchFormat (screen, info[f].depth,
-					     config->scanout_formats[f].format);
-    }
-    *n_info = config->num_scanout_formats;
-    return info;
-}
-
-static PixmapPtr
-xf86RRCreateScanoutPixmap(ScreenPtr screen,
-			  int width, int height, int depth,
-			  Rotation rotations,
-			  PictFormatPtr format)
-{
-    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
-    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
-    int			f;
-
-    if (!config->funcs->create_scanout_pixmap)
-	return NullPixmap;
-
-    for (f = 0; f < config->num_scanout_formats; f++)
-	if (config->scanout_formats[f].depth == depth &&
-	    (config->scanout_formats[f].format & 0xffffff) == format->format) {
-	    return (*config->funcs->create_scanout_pixmap) (scrn, width, height,
-							    rotations,
-							    &config->scanout_formats[f]);
-	}
-    return NullPixmap;
-}
-
 static void
 xf86RandR14SetCrtcSpriteTransform(ScreenPtr		pScreen,
 				  RRCrtcPtr		randr_crtc,
@@ -1946,17 +1893,17 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrCrtcGetGamma = xf86RandR12CrtcGetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
+#if RANDR_13_INTERFACE
     rp->rrOutputGetProperty = xf86RandR13OutputGetProperty;
     rp->rrGetPanning = xf86RandR13GetPanning;
     rp->rrSetPanning = xf86RandR13SetPanning;
+#endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     pScrn->ChangeGamma = xf86RandR12ChangeGamma;
     rp->rrSetCrtcSpriteTransform = xf86RandR14SetCrtcSpriteTransform;
     rp->rrSetCrtcConfigs = xf86RRSetCrtcConfigs;
-    rp->rrQueryScanoutPixmaps = xf86RRQueryScanoutPixmaps;
-    rp->rrCreateScanoutPixmap = xf86RRCreateScanoutPixmap;
 
     randrp->orig_EnterVT = pScrn->EnterVT;
     pScrn->EnterVT = xf86RandR12EnterVT;

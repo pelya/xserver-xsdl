@@ -79,7 +79,6 @@ typedef enum _xf86CrtcSetFlags {
     XF86CrtcSetTransform = 8,		/* transform */
     XF86CrtcSetRotation = 16,		/* rotation */
     XF86CrtcSetProperty = 32,		/* output property */
-    XF86CrtcSetScanoutPixmap = 64,	/* scanout pixmap */
 } xf86CrtcSetFlags;
 
 typedef struct _xf86CrtcSet {
@@ -88,7 +87,6 @@ typedef struct _xf86CrtcSet {
     Rotation		rotation;
     RRTransformPtr	transform;
     int			x, y;
-    PixmapPtr		scanout_pixmap;
 } xf86CrtcSetRec;
 
 typedef struct _xf86CrtcFuncs {
@@ -279,7 +277,6 @@ struct _xf86Crtc {
     Rotation	    rotation;
     PixmapPtr	    rotatedPixmap;
     void	    *rotatedData;
-    PixmapPtr	    scanoutPixmap;
     
     /**
      * Position on screen
@@ -673,14 +670,6 @@ typedef struct _xf86CrtcSetConfig {
     int				pixmap_x, pixmap_y;
 } xf86CrtcSetConfigRec, *xf86CrtcSetConfigPtr;
 
-typedef struct _xf86CrtcScanoutFormat {
-    int		    depth;
-    int		    bitsPerPixel;
-    int		    maxWidth, maxHeight;
-    Rotation	    rotations;
-    PictFormatShort format;
-} xf86CrtcScanoutFormat;
-
 typedef struct _xf86CrtcConfigFuncs {
     /**
      * Requests that the driver resize the screen.
@@ -704,17 +693,6 @@ typedef struct _xf86CrtcConfigFuncs {
 		   RRScreenConfigPtr	screen_config,
 		   xf86CrtcSetConfigPtr	crtc_configs,
 		   int			num_configs);
-
-    /**
-     * Create a scanout pixmap
-     */
-    PixmapPtr
-    (*create_scanout_pixmap)(ScrnInfoPtr		scrn,
-			     int			width,
-			     int			height,
-			     Rotation			rotations,
-			     xf86CrtcScanoutFormat	*format);
-
 } xf86CrtcConfigFuncsRec, *xf86CrtcConfigFuncsPtr;
 
 typedef void (*xf86_crtc_notify_proc_ptr) (ScreenPtr pScreen);
@@ -774,11 +752,6 @@ typedef struct _xf86CrtcConfig {
     /* callback when crtc configuration changes */
     xf86_crtc_notify_proc_ptr  xf86_crtc_notify;
 
-    /*
-     * Supported scanout pixmap formats
-     */
-    int			num_scanout_formats;
-    xf86CrtcScanoutFormat	*scanout_formats;
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern _X_EXPORT int xf86CrtcConfigPrivateIndex;
@@ -823,11 +796,6 @@ extern _X_EXPORT void
 xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
 		      int minWidth, int minHeight,
 		      int maxWidth, int maxHeight);
-
-extern _X_EXPORT void
-xf86CrtcSetScanoutFormats (ScrnInfoPtr			scrn,
-			   int				num_formats,
-			   xf86CrtcScanoutFormat	*formats);
 
 /*
  * Crtc functions

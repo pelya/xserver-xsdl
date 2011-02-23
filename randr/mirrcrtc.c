@@ -66,8 +66,7 @@ miRRSetCrtcConfig(RRCrtcConfigPtr crtc_config)
 		     y,
 		     crtc_config->rotation,
 		     crtc_config->numOutputs,
-		     crtc_config->outputs,
-		     crtc_config->pixmap);
+		     crtc_config->outputs);
 }
 
 Bool

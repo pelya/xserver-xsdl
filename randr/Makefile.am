@@ -16,7 +16,6 @@ librandr_la_SOURCES =	\
 	rrinfo.c	\
 	rrmode.c	\
 	rroutput.c	\
-	rrpixmap.c	\
 	rrpointer.c	\
 	rrproperty.c	\
 	rrscreen.c	\
