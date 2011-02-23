@@ -1682,9 +1682,9 @@ ProcRRSetCrtcConfigs (ClientPtr client)
     rrScrPrivPtr	    scr_priv;
     xRRCrtcConfig	    *x_configs;
     RRScreenConfigRec	    screen_config;
-    RRCrtcConfigPtr	    configs = NULL;
+    RRCrtcConfigPtr	    configs;
     RROutput		    *output_ids;
-    int			    num_configs = 0;
+    int			    num_configs;
     int			    rc, i;
     int			    extra_len;
     int			    num_output_ids;
